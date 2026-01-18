@@ -727,7 +727,7 @@ local function makeTeamCompositionList()
 				fbo = true,
 			})
 		end
-		if uiBgTex then
+		if uiBgTex and areaRect[4] then
 			gl.R2tHelper.RenderToTexture(uiBgTex,
 				function()
 					gl.Translate(-1, -1, 0)

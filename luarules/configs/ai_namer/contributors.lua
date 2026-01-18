@@ -56,6 +56,7 @@ local ContributorAINames = {
     "Nightmare",
     "Nihilore",
     "Nikuksis",
+    "NortySpock"
     "OPMan",
     "Odin",
     "Okema",
@@ -91,6 +92,7 @@ local ContributorAINames = {
 	"varunda",
     "Volshok",
     "Watch The Fort",
+    "Westbjumpin",
     "Xehrath",
     "Yaribz",
     "Zagupi",

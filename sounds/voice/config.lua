@@ -265,6 +265,16 @@ return {
 		delay = 20,
 		stackedDelay = true,
 	},
+	AllyRequestEnergy = {
+		delay = 10,
+		stackedDelay = true,
+		soundEffect = "AllyRequest",
+	},
+	AllyRequestMetal = {
+		delay = 10,
+		stackedDelay = true,
+		soundEffect = "AllyRequest",
+	},
 	IdleConstructors = {
 		delay = 30,
 		stackedDelay = true,
