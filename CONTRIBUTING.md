@@ -20,10 +20,6 @@ Or a more detailed disclosure:
 > I consulted ChatGPT to understand the codebase but the solution
 > was fully authored manually by myself.
 
-Failure to disclose this is first and foremost rude to the human operators
-on the other end of the pull request, but it also makes it difficult to
-determine how much scrutiny to apply to the contribution.
-
 In a perfect world, AI assistance would produce equal or higher quality
 work than any human. That isn't the world we live in today, and in most cases
 it's generating slop.
