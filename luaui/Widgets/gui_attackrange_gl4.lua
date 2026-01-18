@@ -1,6 +1,6 @@
 include("keysym.h.lua")
 
-local versionNumber = "1.1"
+local versionNumber = "1.2"
 
 local widget = widget ---@type Widget
 
@@ -74,6 +74,8 @@ local selectionDisableThresholdMult = 0.7
 
 ---------------------------------------------------------------------------------------------------------------------------
 ------------------ CONFIGURABLES --------------
+
+local DYNAMIC_RANGE_UPDATE_RATE = 3.0
 
 local buttonConfig = {
 	ally = { ground = true, AA = true, nano = true },
@@ -210,6 +212,7 @@ local unitBuildDistance = {}
 local unitBuilder = {}
 local unitOnOffable = {}
 local unitOnOffName = {}
+local unitDefRangeScale = {}
 for udid, ud in pairs(UnitDefs) do
 	unitBuilder[udid] = ud.isBuilder and (ud.canAssist or ud.canReclaim) and not (ud.isFactory and #ud.buildOptions > 0)
 	if unitBuilder[udid] then
@@ -221,6 +224,9 @@ for udid, ud in pairs(UnitDefs) do
 	unitOnOffable[udid] = ud.onOffable
 	if ud.customParams.onoffname then
 		unitOnOffName[udid] = ud.customParams.onoffname
+	end
+	if ud.customParams.rangexpscale then
+		unitDefRangeScale[udid] = ud.customParams.rangexpscale
 	end
 end
 
@@ -473,6 +479,7 @@ local GL_REPLACE            = GL.REPLACE --GL.KEEP
 local spGetUnitDefID        = Spring.GetUnitDefID
 local spGetUnitPosition     = Spring.GetUnitPosition
 local spGetUnitWeaponVectors=Spring.GetUnitWeaponVectors
+local spGetUnitWeaponState = Spring.GetUnitWeaponState
 local spGetUnitAllyTeam     = Spring.GetUnitAllyTeam
 local spGetMouseState       = Spring.GetMouseState
 local spTraceScreenRay      = Spring.TraceScreenRay
@@ -589,10 +596,12 @@ local mouseUnit
 local mouseovers = {} -- mirroring selections, but for mouseovers
 
 local unitsOnOff = {} -- unit weapon toggle states, tracked from CommandNotify (also building on off status)
+local unitRangeScale = { selections = {}, mouseovers = {} } -- stores info for units with scaling ranges
+local numScalingUnits = 0
 local myTeam = spGetMyTeamID()
 
 -- mirrors functionality of UnitDetected
-local function AddSelectedUnit(unitID, mouseover)
+local function AddSelectedUnit(unitID, mouseover, newRange)
 	--if not show_selected_weapon_ranges then return end
 	local collections = selections
 	if mouseover then
@@ -654,6 +663,22 @@ local function AddSelectedUnit(unitID, mouseover)
 		initializeUnitDefRing(unitDefID)
 	end
 
+	local scalingUnitDefs = unitDefRangeScale
+	local scalingUnitParams = unitRangeScale.selections
+	if mouseover then scalingUnitParams = unitRangeScale.mouseovers end
+	local oldRange = {}
+	if scalingUnitDefs[unitDefID] and alliedUnit then	-- Can't read enemy unit ranges.
+		if not newRange then newRange = {} end
+		scalingUnitParams[unitID] = { oldRange = {} }
+		numScalingUnits = numScalingUnits + 1
+		oldRange[unitID] = {}
+		for weaponNum = 1, #weapons do
+			if not newRange[weaponNum] then	-- Prevent unnecessary duplicate engine calls.
+				newRange[weaponNum] = spGetUnitWeaponState(unitID, weaponNum, "range")
+			end
+			oldRange[unitID][weaponNum] = {weaponNum, newRange[weaponNum]}
+		end
+	end
 
 	local x, y, z, mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition(unitID, true, true)
 
@@ -689,7 +714,15 @@ local function AddSelectedUnit(unitID, mouseover)
 			end
 		end
 
-		local ringParams = unitDefRings[unitDefID]['rings'][j]
+		local ringParams = {}
+		if newRange then
+			for i = 2, 17 do	-- See line 405.
+				ringParams[i] = unitDefRings[unitDefID]['rings'][j][i]	-- Preserves default range from unitDefs for use with enemy units.
+			end
+			ringParams[1] = newRange[j]
+		else
+			ringParams = unitDefRings[unitDefID]['rings'][j]
+		end
 		if drawIt and ringParams[1] > 0 then
 
 			local weaponID = j
@@ -743,6 +776,9 @@ local function AddSelectedUnit(unitID, mouseover)
 				}
 			end
 			collections[unitID].vaokeys[instanceID] = vaokey
+			if newRange then
+				scalingUnitParams[unitID].oldRange[instanceID] = oldRange[unitID][j]
+			end
 		end
 	end
 	-- we cheat here and update builder count
@@ -755,6 +791,8 @@ local function RemoveSelectedUnit(unitID, mouseover)
 	--if not show_selected_weapon_ranges then return end
 	local collections = selections
 	if mouseover then collections = mouseovers end
+	local scalingUnitParams = unitRangeScale.selections
+	if mouseover then scalingUnitParams = unitRangeScale.mouseovers end
 
 	local removedRings = 0
 	if collections[unitID] then
@@ -770,6 +808,10 @@ local function RemoveSelectedUnit(unitID, mouseover)
 			selBuilderCount = selBuilderCount - 1
 		end
 		collections[unitID] = nil
+		if scalingUnitParams[unitID] then
+			scalingUnitParams[unitID] = nil
+			numScalingUnits = numScalingUnits - 1
+		end
 	end
 end
 
@@ -821,6 +863,33 @@ local function initGL4()
 	return makeShaders()
 end
 
+local function DoRangeUpdate(unitID, scalingUnit, mouseover)
+	local newRange = {}
+	local update
+	for instanceID, oldRange in pairs(scalingUnit.oldRange) do
+		local weaponNum = oldRange[1]
+		newRange[weaponNum] = spGetUnitWeaponState(unitID, weaponNum, "range")
+		if oldRange[2] ~= newRange[weaponNum] then
+			update = true
+		end
+	end
+	if update then
+		RemoveSelectedUnit(unitID, mouseover)			-- need to refresh this unit's ring
+		AddSelectedUnit(unitID, mouseover, newRange)
+	end
+end
+
+local function UpdateScalingRange()			-- This function, and anything related to unitRangeScale, scalingUnitParams, and newRange are parts of a hook for Gunslingers or future/modded units that gain range with EXP.
+	local scalingUnitParams = unitRangeScale
+	for unitID, scalingUnit  in pairs(scalingUnitParams.selections) do
+		DoRangeUpdate(unitID, scalingUnit)
+	end
+	for unitID, scalingUnit  in pairs(scalingUnitParams.mouseovers) do
+		local mouseover = true
+		DoRangeUpdate(unitID, scalingUnit, mouseover)
+	end
+end
+
 -- refresh all display according to toggle status
 local function RefreshEverything()
 	-- what about just reinitialize?
@@ -830,6 +899,8 @@ local function RefreshEverything()
 	selectedUnits = {}
 	selUnits = {}
 	mouseovers = {}
+	unitRangeScale = { selections = {}, mouseovers = {} }
+	numScalingUnits = 0
 
 	widget:Initialize()
 end
@@ -1029,9 +1100,21 @@ function widget:KeyRelease(key, mods, isRepeat)
 	end
 end
 
+local timeSinceLastRangeUpdate = 0
 function widget:Update(dt)
 	if updateSelection and gameFrame % 3 == 0 then
 		UpdateSelectedUnits()
+	end
+
+	if numScalingUnits > 0 then
+		timeSinceLastRangeUpdate = timeSinceLastRangeUpdate + dt
+	else
+		timeSinceLastRangeUpdate = 0
+	end
+
+	if timeSinceLastRangeUpdate > DYNAMIC_RANGE_UPDATE_RATE then
+		UpdateScalingRange()			-- This function is relatively expensive, so we only run it when we need to.
+		timeSinceLastRangeUpdate = 0
 	end
 
 	if show_selected_weapon_ranges and cursor_unit_range and gameFrame % 3 == 1 then
