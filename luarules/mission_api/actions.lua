@@ -8,7 +8,7 @@ local triggers = GG['MissionAPI'].Triggers
 ----------------------------------------------------------------
 
 local function isNameUntracked(name)
-	return not trackedUnitIDsByName[name] or table.isEmpty(trackedUnitIDsByName[name])
+	return table.isNilOrEmpty(trackedUnitIDsByName[name])
 end
 
 local function trackUnit(name, unitID)
@@ -101,7 +101,7 @@ end
 local function transferUnits(name, newTeam, given)
 	if isNameUntracked(name) then return end
 
-	for _, unitID in pairs(trackedUnitIDsByName[name]) do
+	for _, unitID in pairs(table.copy(trackedUnitIDsByName[name])) do
 		Spring.TransferUnit(unitID, newTeam, given)
 	end
 end
@@ -149,7 +149,9 @@ local function nameUnits(name, teamID, unitDefName, rectangle, circle)
 
 	local unitsToName = {}
 	if hasFilterOtherThanTeamID then
-		unitsToName = table.intersection(true, unitsFromDef, unitsInRectangle, unitsInCircle)
+		unitsToName = table.valueIntersection(
+			unpack(table.filterArray({unitsFromDef, unitsInRectangle, unitsInCircle},
+				function(tbl) return not table.isEmpty(tbl) end)))
 	else
 		unitsToName = allUnitsOfTeam
 	end

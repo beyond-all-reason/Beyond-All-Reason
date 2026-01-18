@@ -124,7 +124,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	end
 
 	-- Remove destroyed tracked units
-	if not trackedUnitNamesByID[unitID] or table.isEmpty(trackedUnitNamesByID[unitID]) then
+	if table.isNilOrEmpty(trackedUnitNamesByID[unitID]) then
 		return
 	end
 
