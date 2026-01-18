@@ -1,4 +1,4 @@
-# Contributing to Beyond All Reason
+# Contributing to Beyond All Reason (BAR)
 
 ## AI Assistance Notice
 
