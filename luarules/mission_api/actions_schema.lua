@@ -173,23 +173,18 @@ local parameters = {
 			type = 'number'
 		},
 		[3] = {
-			-- requires teamID
 			name = 'unitDefName',
 			required = false,
 			type = 'string'
 		},
 		[4] = {
-			-- Example: { x1 = 0, z1 = 0, x2 = 123, z2 = 123 }
-			name = 'rectangle',
+			-- Examples:
+			-- Rectangle: { x1 = 0, z1 = 0, x2 = 123, z2 = 123 }
+			-- Circle: { x = 0, z = 0, radius = 123 }
+			name = 'area',
 			required = false,
 			type = 'table'
 		},
-		[5] = {
-			-- Example: { x1 = 0, z1 = 0, radius = 123 }
-			name = 'circle',
-			required = false,
-			type = 'table'
-		}
 	},
 	[actionTypes.UnnameUnits] = {
 		[1] = {

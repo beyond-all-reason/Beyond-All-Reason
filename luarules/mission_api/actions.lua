@@ -106,15 +106,15 @@ local function transferUnits(name, newTeam, given)
 	end
 end
 
-local function nameUnits(name, teamID, unitDefName, rectangle, circle)
+local function nameUnits(name, teamID, unitDefName, area)
 
-	if not teamID and not unitDefName and not rectangle and not circle then
+	if not teamID and not unitDefName and not area then
 		-- TODO: move this to prevalidation step?
-		Spring.Log('actions.lua', LOG.ERROR, "[Mission API] A NameUnits action is missing required parameter. At least one of teamID, unitDefName, rectangle, and circle is required.")
+		Spring.Log('actions.lua', LOG.ERROR, "[Mission API] A NameUnits action is missing required parameter. At least one of teamID, unitDefName, and area is required.")
 		return
 	end
 
-	local hasFilterOtherThanTeamID = unitDefName or rectangle or circle
+	local hasFilterOtherThanTeamID = unitDefName or area
 
 	local allUnitsOfTeam = {}
 	if not hasFilterOtherThanTeamID then
@@ -137,20 +137,17 @@ local function nameUnits(name, teamID, unitDefName, rectangle, circle)
 		end
 	end
 
-	local unitsInRectangle = {}
-	if rectangle then
-		unitsInRectangle = Spring.GetUnitsInRectangle(rectangle.x1, rectangle.z1, rectangle.x2, rectangle.z2, teamID)
-	end
-
-	local unitsInCircle = {}
-	if circle then
-		unitsInCircle = Spring.GetUnitsInCylinder(circle.x, circle.z, circle.radius, teamID)
+	local unitsInArea = {}
+	if area.x1 and area.z1 and area.x2 and area.z2 then
+		unitsInArea = Spring.GetUnitsInRectangle(area.x1, area.z1, area.x2, area.z2, teamID)
+	elseif area.x and area.z and area.radius then
+		unitsInArea = Spring.GetUnitsInCylinder(area.x, area.z, area.radius, teamID)
 	end
 
 	local unitsToName = {}
 	if hasFilterOtherThanTeamID then
 		unitsToName = table.valueIntersection(
-			unpack(table.filterArray({unitsFromDef, unitsInRectangle, unitsInCircle},
+			unpack(table.filterArray({ unitsFromDef, unitsInArea},
 				function(tbl) return not table.isEmpty(tbl) end)))
 	else
 		unitsToName = allUnitsOfTeam

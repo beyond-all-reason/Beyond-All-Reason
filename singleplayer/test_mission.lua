@@ -119,7 +119,7 @@ local actions = {
 			name = 'fusions',
 			teamID = 0,
 			unitDefName = 'armfus',
-			rectangle = { x1 = 0, z1 = 0, x2 = 999999, z2 = 2200 },
+			area = { x1 = 0, z1 = 0, x2 = 999999, z2 = 2200 },
 		},
 	},
 
