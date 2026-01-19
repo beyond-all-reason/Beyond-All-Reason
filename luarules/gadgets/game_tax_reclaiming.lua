@@ -16,23 +16,19 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-if Spring.GetModOptions().tax_resource_sharing_amount == 0 then
+local taxFunctions = VFS.Include('common/tax_functions.lua')
+if not (taxFunctions.reclaimLiveUnitTaxIsEnabled()) then
 	return false
 end
 
-local sharingTax = Spring.GetModOptions().tax_resource_sharing_amount
-if Spring.GetModOptions().easytax then
-	sharingTax = 0.3 -- 30% tax for easytax modoption
-end
-
+local reclaimTax = taxFunctions.reclaimLiveUnitTaxRatio() or 0
 -- We don't use UnitDestroyed because then we can't find out how much metal is in a partially built unit
-function gadget:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, step)
+function gadget:AllowUnitBuildStep(_, builderTeam, unitID, unitDefID, step)
 	local hp,maxhp,_,_,currentBuild = Spring.GetUnitHealth(unitID)
-	local objectTeam = Spring.GetUnitTeam(unitID)
     if step < 0 then -- reclaim step
 		if (hp + step * maxhp) <= 0 then -- we only care about the last bit
 			local metalCost = UnitDefs[unitDefID].metalCost * currentBuild
-			Spring.AddTeamResource(builderTeam, "metal", metalCost * (1- sharingTax))
+			Spring.AddTeamResource(builderTeam, "metal", metalCost * (1- reclaimTax))
 			Spring.DestroyUnit(unitID, false, true, nil, true)
 			return false
 		end

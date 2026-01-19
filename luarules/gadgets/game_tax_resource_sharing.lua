@@ -18,8 +18,10 @@ end
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
-if Spring.GetModOptions().tax_resource_sharing_amount == 0 and (not Spring.GetModOptions().easytax) then
-	return false
+
+local taxFunctions = VFS.Include('common/tax_functions.lua')
+if (not taxFunctions.sharingTaxIsEnabled()) then
+  return false 
 end
 
 local spIsCheatingEnabled = Spring.IsCheatingEnabled
@@ -27,15 +29,7 @@ local spGetTeamUnitCount = Spring.GetTeamUnitCount
 
 local gameMaxUnits = math.min(Spring.GetModOptions().maxunits, math.floor(32000 / #Spring.GetTeamList()))
 
-local sharingTax = Spring.GetModOptions().tax_resource_sharing_amount
-if Spring.GetModOptions().easytax then
-	sharingTax = 0.3 -- 30% tax for easytax modoption
-end
-
-local function isAlliedUnit(teamID, unitID)
-	local unitTeam = Spring.GetUnitTeam(unitID)
-	return teamID and unitTeam and teamID ~= unitTeam and Spring.AreTeamsAllied(teamID, unitTeam)
-end
+local sharingTax = taxFunctions.sharingTaxRatio()
 
 ----------------------------------------------------------------
 -- Callins
