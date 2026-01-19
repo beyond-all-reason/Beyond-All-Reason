@@ -56,7 +56,7 @@ local ContributorAINames = {
     "Nightmare",
     "Nihilore",
     "Nikuksis",
-    "NortySpock"
+    "NortySpock",
     "OPMan",
     "Odin",
     "Okema",
