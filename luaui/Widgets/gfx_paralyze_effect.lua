@@ -7,7 +7,7 @@ function widget:GetInfo()
     desc      = "Faster gl.UnitShape, Use WG.UnitShapeGL4",
     author    = "Beherith",
     date      = "2021.11.04",
-    license   = "Lua Code: GPL V2, GLSL code: (c) Beherith (mysterme@gmail.com)",
+    license   = "GNU GPL v2",
     layer     = 0,
     enabled   = true,
   }
