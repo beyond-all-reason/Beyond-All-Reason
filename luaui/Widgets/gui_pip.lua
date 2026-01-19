@@ -2358,7 +2358,7 @@ local function GetUnitsInBox(x1, y1, x2, y2)
 
 	-- Get all units in the world rectangle
 	local unitsInRect = spGetUnitsInRectangle(minWx, minWz, maxWx, maxWz)
-	
+
 	-- Reuse pool table to avoid allocations
 	local selectableUnits = selectableUnitsPool
 	local count = 0
@@ -4759,7 +4759,7 @@ local function RenderPipContents()
 	if uiState.drawingGround then
 		-- Draw base grass texture
 		glColor(0.92, 0.92, 0.92, 1)
-		glTexture('$grass')
+		glTexture('$minimap')
 		glBeginEnd(GL_QUADS, GroundTextureVertices)
 		glTexture(false)
 
@@ -5343,7 +5343,7 @@ local function DrawAnimation(mx, my)
 
 	if uiState.drawingGround then
 		glColor(0.9, 0.9, 0.9, 1)
-		glTexture('$grass')
+		glTexture('$minimap')
 		glBeginEnd(GL_QUADS, GroundTextureVertices)
 		glColor(1, 1, 1, 1)
 		glTexture(false)
@@ -5590,13 +5590,10 @@ end
 
 -- Helper function to handle hover and cursor updates
 local lastHoverCursorCheckTime = 0
+local lastHoveredUnitID = nil
+local lastHoveredFeatureID = nil
 local function HandleHoverAndCursor(mx, my)
 	if interactionState.arePanning then
-		return
-	end
-
-	-- Skip during active zoom for better performance
-	if interactionState.areIncreasingZoom or interactionState.areDecreasingZoom then
 		return
 	end
 
@@ -5604,33 +5601,43 @@ local function HandleHoverAndCursor(mx, my)
 		if WG['info'] and WG['info'].clearCustomHover then
 			WG['info'].clearCustomHover()
 		end
+		lastHoveredUnitID = nil
+		lastHoveredFeatureID = nil
 		return
 	end
 
-	-- Throttle expensive GetUnitAtPoint calls for performance
+	-- Throttle expensive GetUnitAtPoint calls for performance (but not during active zoom)
 	local currentTime = os.clock()
-	if (currentTime - lastHoverCursorCheckTime) < 0.1 then
-		return
-	end
-	lastHoverCursorCheckTime = currentTime
+	local shouldCheckUnit = (currentTime - lastHoverCursorCheckTime) >= 0.1
+	local isZooming = interactionState.areIncreasingZoom or interactionState.areDecreasingZoom
 
-	-- Update info widget with custom hover
-	if WG['info'] and WG['info'].setCustomHover then
-		local wx, wz = PipToWorldCoords(mx, my)
-		local uID = GetUnitAtPoint(wx, wz)
-		if uID then
-			WG['info'].setCustomHover('unit', uID)
-		else
-			local fID = GetFeatureAtPoint(wx, wz)
-			if fID then
-				WG['info'].setCustomHover('feature', fID)
+	if shouldCheckUnit and not isZooming then
+		lastHoverCursorCheckTime = currentTime
+
+		-- Update info widget with custom hover
+		if WG['info'] and WG['info'].setCustomHover then
+			local wx, wz = PipToWorldCoords(mx, my)
+			local uID = GetUnitAtPoint(wx, wz)
+			if uID then
+				WG['info'].setCustomHover('unit', uID)
+				lastHoveredUnitID = uID
+				lastHoveredFeatureID = nil
 			else
-				WG['info'].clearCustomHover()
+				local fID = GetFeatureAtPoint(wx, wz)
+				if fID then
+					WG['info'].setCustomHover('feature', fID)
+					lastHoveredFeatureID = fID
+					lastHoveredUnitID = nil
+				else
+					WG['info'].clearCustomHover()
+					lastHoveredUnitID = nil
+					lastHoveredFeatureID = nil
+				end
 			end
 		end
 	end
 
-	-- Handle cursor
+	-- Handle cursor - this runs every frame for smooth cursor updates
 	local _, activeCmdID = Spring.GetActiveCommand()
 	if not activeCmdID then
 		local defaultCmd = Spring.GetDefaultCommand()
@@ -5639,13 +5646,11 @@ local function HandleHoverAndCursor(mx, my)
 			local selectedUnits = Spring.GetSelectedUnits()
 			if selectedUnits and #selectedUnits > 0 then
 				-- Check if we have a transport and are hovering over a transportable unit
-				-- (already throttled above, reuse world coords)
-				local wx, wz = PipToWorldCoords(mx, my)
-				local uID = GetUnitAtPoint(wx, wz)
-				if uID and Spring.IsUnitAllied(uID) then
+				-- Use cached result from throttled check above
+				if lastHoveredUnitID and Spring.IsUnitAllied(lastHoveredUnitID) then
 					-- Check if any transport in selection can load this unit
 					for i = 1, #selectedUnits do
-						if CanTransportLoadUnit(selectedUnits[i], uID) then
+						if CanTransportLoadUnit(selectedUnits[i], lastHoveredUnitID) then
 							Spring.SetMouseCursor('Load')
 							return
 						end
@@ -6125,7 +6130,7 @@ function widget:Update(dt)
 	local currentTime = os.clock()
 	local mouseMoveThreshold = 10  -- pixels
 	local hoverCheckInterval = 0.1  -- seconds
-	local mouseMovedSignificantly = math.abs(mx - interactionState.lastHoverCheckX) > mouseMoveThreshold or 
+	local mouseMovedSignificantly = math.abs(mx - interactionState.lastHoverCheckX) > mouseMoveThreshold or
 	                                 math.abs(my - interactionState.lastHoverCheckY) > mouseMoveThreshold
 	local shouldCheckHover = (currentTime - interactionState.lastHoverCheckTime) > hoverCheckInterval or mouseMovedSignificantly
 	local isZooming = interactionState.areIncreasingZoom or interactionState.areDecreasingZoom
