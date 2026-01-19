@@ -33,6 +33,10 @@ local function prevalidateActions()
 					Spring.Log('actions_loader.lua', LOG.ERROR,"[Mission API] Unexpected parameter type, expected " ..parameter.type ..", got " .. actualType .. ". Action: " .. actionID .. ", Parameter: " .. parameter.name)
 				end
 			end
+
+			if parameter.validator then
+				parameter.validator(value, 'Action', actionID, parameter.name)
+			end
 		end
 	end
 end

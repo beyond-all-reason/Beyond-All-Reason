@@ -1,3 +1,5 @@
+VFS.Include('luarules/mission_api/validators.lua')
+
 local actionTypes = {
 	-- Triggers
 	EnableTrigger      = 100,       --
@@ -104,7 +106,8 @@ local parameters = {
 		[4] = {
 			name = 'position',
 			required = true,
-			type = 'table'
+			type = 'table',
+			validator = validators.position
 		},
 		[5] = {
 			name = 'quantity',
