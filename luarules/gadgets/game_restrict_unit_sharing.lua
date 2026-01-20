@@ -42,7 +42,7 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, captu
 	end
 	if commanders[unitDefID] then
 		_,_,isDead = Spring.GetTeamInfo(fromTeamID,false)
-		if isDead then -- this is /take
+		if isDead or Spring.GetTeamRulesParam(fromTeamID, "numActivePlayers") == 0 then -- this is /take
 			return true
 		end
 		return false
