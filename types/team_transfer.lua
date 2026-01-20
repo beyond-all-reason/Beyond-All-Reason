@@ -95,7 +95,6 @@
 ---@class PolicyContext
 ---@field senderTeamId number
 ---@field receiverTeamId number
----@field resultSoFar table<TransferCategory, table>
 ---@field sender TeamResources
 ---@field receiver TeamResources
 ---@field springRepo ISpring

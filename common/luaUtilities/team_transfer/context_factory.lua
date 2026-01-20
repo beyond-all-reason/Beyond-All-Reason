@@ -33,7 +33,6 @@ function ContextFactory.create(springRepo)
     local ctx = {
       senderTeamId = senderTeamID,
       receiverTeamId = receiverTeamID,
-      resultSoFar = {},
       sender = senderResources,
       receiver = receiverResources,
       springRepo = springRepo,
