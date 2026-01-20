@@ -216,7 +216,6 @@ describe("ResourceTransfer #action", function()
         transferCategory = SharedEnums.TransferCategory.MetalTransfer,
         resourceType = SharedEnums.ResourceType.METAL,
         desiredAmount = 100,
-        resultSoFar = {},
         isCheatingEnabled = false,
         springRepo = spring,
         areAlliedTeams = true,
@@ -295,7 +294,6 @@ describe("ResourceTransfer #action", function()
         transferCategory = SharedEnums.TransferCategory.MetalTransfer,
         resourceType = SharedEnums.ResourceType.METAL,
         desiredAmount = 200,
-        resultSoFar = {},
         isCheatingEnabled = false,
         springRepo = spring,
         areAlliedTeams = true,
@@ -341,7 +339,6 @@ describe("ResourceTransfer #action", function()
         transferCategory = SharedEnums.TransferCategory.MetalTransfer,
         resourceType = SharedEnums.ResourceType.METAL,
         desiredAmount = 200,
-        resultSoFar = {},
         isCheatingEnabled = false,
         springRepo = spring,
         areAlliedTeams = true,
@@ -384,7 +381,6 @@ describe("ResourceTransfer #action", function()
       local ctx = {
         desiredAmount = 300,        -- Limited to amountSendable
         transferCategory = SharedEnums.TransferCategory.MetalTransfer,
-        resultSoFar = {},
         isCheatingEnabled = false,
         senderTeamId = sender.id,
         receiverTeamId = receiver.id,
