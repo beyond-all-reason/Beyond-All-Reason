@@ -21,12 +21,15 @@ local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 
 local CMD_GUARD = CMD.GUARD
 local CMD_REPAIR = CMD.REPAIR
 local CMD_MOVESTATE = CMD.MOVE_STATE
 local MOVESTATE_ROAM = CMD.MOVESTATE_ROAM
 local CMD_INSERT = CMD.INSERT
+
+local footprintSize = Game.squareSize * Game.footprintScale
 
 -- Local state
 
@@ -36,8 +39,10 @@ local builderMoveStateCmdDesc = {
 
 local gaiaTeam = Spring.GetGaiaTeamID()
 
+local isFactory = {}
 local canBuildStep = {} -- i.e. anything that spends resources when assisted
 for unitDefID, unitDef in ipairs(UnitDefs) do
+	isFactory[unitDefID] = unitDef.isFactory
 	canBuildStep[unitDefID] = unitDef.isFactory or (unitDef.isBuilder and (unitDef.canBuild or unitDef.canAssist))
 end
 
@@ -155,6 +160,19 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 	end
 
 	return isBuilderAllowedCommand(cmdID, cmdParams[1], cmdParams[2], cmdParams[5], cmdParams[6], unitTeam)
+end
+
+function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z, facing)
+	-- Identical blueprints placed on top of one another are converted to build assist.
+	if builderID and not isFactory[spGetUnitDefID(builderID)] then
+		local units = spGetUnitsInCylinder(x, z, footprintSize)
+		for _, unitID in pairs(units) do
+			if unitDefID == spGetUnitDefID(unitID) and not isComplete(unitID) and isAlliedUnit(builderTeam, unitID) then
+				return false, false
+			end
+		end
+	end
+	return true, true
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
