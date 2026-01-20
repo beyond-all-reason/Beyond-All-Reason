@@ -91,6 +91,7 @@ end
 local function despawnUnits(name, selfDestruct, reclaimed)
 	if isNameUntracked(name) then return end
 
+	-- Copying table as UnitKilled trigger with SpawnUnits with the same name could cause infinite loop.
 	for _, unitID in pairs(table.copy(trackedUnitIDsByName[name])) do
 		Spring.DestroyUnit(unitID, selfDestruct, reclaimed)
 	end
@@ -101,6 +102,7 @@ end
 local function transferUnits(name, newTeam, given)
 	if isNameUntracked(name) then return end
 
+	-- Copying table as UnitExists trigger with TransferUnits with the same name could cause infinite loop.
 	for _, unitID in pairs(table.copy(trackedUnitIDsByName[name])) do
 		Spring.TransferUnit(unitID, newTeam, given)
 	end
