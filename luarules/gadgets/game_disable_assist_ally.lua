@@ -49,8 +49,7 @@ local EMPTY = {} -- stupid
 local function resolveCommand(cmdID, cmdParams)
 	local p = params
 	p[1], p[2], p[3] = cmdParams[4], cmdParams[5], cmdParams[6]
-	cmdID, cmdParams = cmdParams[1], p
-
+	cmdID, cmdParams = cmdParams[2], p
 	if cmdID ~= CMD_GUARD and cmdID ~= CMD_REPAIR then
 		return 0, EMPTY
 	else
