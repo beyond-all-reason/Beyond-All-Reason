@@ -183,6 +183,7 @@ end
 local function AllowUnitBuildStep(self, builderID, builderTeam, unitID, unitDefID, part)
     if part > 0 and builderTeam ~= spGetUnitTeam(unitID) then
 		checkUnitCommandList[builderID] = builderTeam
+		return false
     end
 	return true
 end
