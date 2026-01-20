@@ -107,7 +107,7 @@ local insertedCommands = {
 }
 
 local function resolveCommand(cmdParams)
-	local cmdID = cmdParams[1] or 0
+	local cmdID = cmdParams[2] or 0
 	if insertedCommands[cmdID] then
 		local p = PARAM
 		for i = 1, 6 do
