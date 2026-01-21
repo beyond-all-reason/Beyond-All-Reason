@@ -1380,7 +1380,7 @@ local options = {
         def    	= 1,
         min    	= 0.5,
         max    	= 5,
-        step   	= 1,
+        step   	= 0.1,
     },
 
     {

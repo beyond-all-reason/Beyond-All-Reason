@@ -22,9 +22,13 @@ end
 
 -- gather all economy/builder units
 local ecoUnits = {}
+local commanders = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.unitgroup and (unitDef.customParams.unitgroup == "energy" or unitDef.customParams.unitgroup == "metal" or unitDef.customParams.unitgroup == "builder" or unitDef.customParams.unitgroup == "buildert2" or unitDef.customParams.unitgroup == "buildert3") then
 		ecoUnits[unitDefID] = true
+	end
+	if unitDef.customParams.iscommander then
+		commanders[unitDefID] = true
 	end
 end
 
@@ -35,6 +39,13 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, captu
 	beingBuilt, buildProgress = Spring.GetUnitIsBeingBuilt(unitID)
 	if beingBuilt and buildProgress > 0 then
 		return false -- sharing partly built nanoframes is not allowed because letting it decay bypasses taxation
+	end
+	if commanders[unitDefID] then
+		_,_,isDead = Spring.GetTeamInfo(fromTeamID,false)
+		if isDead or Spring.GetTeamRulesParam(fromTeamID, "numActivePlayers") == 0 then -- this is /take
+			return true
+		end
+		return false
 	end
     if ecoUnits[unitDefID] then
         local _, maxHealth, _ = Spring.GetUnitHealth(unitID)

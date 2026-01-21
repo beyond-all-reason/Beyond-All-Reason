@@ -6,7 +6,7 @@ function widget:GetInfo()
 		desc = "Draw a button (instanced)",
 		author = "Beherith",
 		date = "2022.02.07 - 2022.12.08", -- damn that took a while
-		license = "Lua: GNU GPL, v2 or later, GLSL: (c) Beherith (mysterme@gmail.com)",
+		license = "GNU GPL v2",
 		layer = -1,
 		enabled = false,
 	}

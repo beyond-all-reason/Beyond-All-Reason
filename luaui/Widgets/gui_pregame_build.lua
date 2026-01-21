@@ -62,6 +62,7 @@ local cachedAlphaResults
 local cachedStartPosition
 local cachedQueueMetrics
 local cachedQueueLineVerts
+local forceRefreshCache = false
 
 local BUILD_MODE = {
 	SINGLE = 0,
@@ -290,6 +291,9 @@ function widget:Initialize()
 	end
 	WG["pregame-build"].getBuildPositions = function()
 		return buildModeState.buildPositions
+	end
+	WG["pregame-build"].forceRefresh = function()
+		forceRefreshCache = true
 	end
 	widgetHandler:RegisterGlobal("GetPreGameDefID", WG["pregame-build"].getPreGameDefID)
 	widgetHandler:RegisterGlobal("GetBuildQueue", WG["pregame-build"].getBuildQueue)
@@ -1020,12 +1024,13 @@ local function hasCacheExpired(currentStartPos, currentSelBuildData)
 		)) or
 		(currentMetrics.firstItemCoords == nil) ~= (cachedQueueMetrics.firstItemCoords == nil)
 
-	if startPosChanged or queueChanged then
+	if startPosChanged or queueChanged or forceRefreshCache then
 		cachedStartPosition = {x = currentStartPos.x, y = currentStartPos.y, z = currentStartPos.z}
 		cachedQueueMetrics = {
 			firstItemCoords = currentMetrics.firstItemCoords and {unpack(currentMetrics.firstItemCoords)} or nil,
 			queueLength = currentMetrics.queueLength
 		}
+		forceRefreshCache = false
 		return true
 	end
 	return false
@@ -1092,7 +1097,7 @@ function widget:DrawWorld()
 
 		-- Draw start units build radius
 		gl.Color(BUILD_DISTANCE_COLOR)
-		local buildDistance = Spring.GetGameRulesParam("overridePregameBuildDistance") or UnitDefs[startDefID].buildDistance
+		local buildDistance = UnitDefs[startDefID].buildDistance
 		if buildDistance then
 			gl.DrawGroundCircle(sx, sy, sz, buildDistance, 40)
 		end
@@ -1435,6 +1440,24 @@ function widget:GameFrame(n)
 		end
 	end
 	if tasker then
+		local quickStartOption = Spring.GetModOptions().quick_start
+		local quickStartEnabled = quickStartOption ~= "disabled"
+		
+		if quickStartEnabled and #buildQueue > 0 then
+			--we have to temporary Echo data like this because there are reports of builds that should be spawned in quickstart not being spawned. 
+			--Widget data isn't caught in replays so we have to echo this for now. 1/12/26
+			Spring.Echo(string.format("=== Build Queue for Commander (unitID: %d) ===", tasker))
+			for b = 1, #buildQueue do
+				local buildData = buildQueue[b]
+				local unitDefID = buildData[1]
+				local unitDefName = unitDefID > 0 and UnitDefs[unitDefID] and UnitDefs[unitDefID].name or "MOVE_COMMAND"
+				local x, y, z = buildData[2], buildData[3], buildData[4]
+				local facing = buildData[5] or 0
+				Spring.Echo(string.format("  [%d] %s at (%.1f, %.1f, %.1f) facing: %d", b, unitDefName, x, y, z, facing))
+			end
+			Spring.Echo(string.format("=== Total queue items: %d ===", #buildQueue))
+		end
+		
 		for b = 1, #buildQueue do
 			local buildData = buildQueue[b]
 			Spring.GiveOrderToUnit(

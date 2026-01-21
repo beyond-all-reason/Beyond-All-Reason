@@ -141,53 +141,54 @@ local specOffset = 256
 --------------------------------------------------------------------------------
 -- IMAGES
 --------------------------------------------------------------------------------
-local imgDir = LUAUI_DIRNAME .. "Images/advplayerslist/"
-local imageDirectory = ":lc:" .. imgDir
-local flagsExt = '.png'
-local flagHeight = 10
+local images = {}
+images['imgDir'] = LUAUI_DIRNAME .. "Images/advplayerslist/"
+images['imageDirectory'] = ":lc:" .. images['imgDir']
+images['flagsExt'] = '.png'
+images['flagHeight'] = 10
 
 local pics = {
-    currentPic = imageDirectory .. "indicator.dds",
-    unitsPic = imageDirectory .. "units.dds",
-    energyPic = imageDirectory .. "energy.dds",
-    metalPic = imageDirectory .. "metal.dds",
-    notFirstPic = imageDirectory .. "notfirst.dds",
-    pingPic = imageDirectory .. "ping.dds",
-    cpuPic = imageDirectory .. "cpu.dds",
-    barPic = imageDirectory .. "bar.png",
-    pointPic = imageDirectory .. "point.dds",
-    pencilPic = imageDirectory .. "pencil.dds",
-    eraserPic = imageDirectory .. "eraser.dds",
-    lowPic = imageDirectory .. "low.dds",
-    arrowPic = imageDirectory .. "arrow.dds",
-    takePic = imageDirectory .. "take.dds",
-    indentPic = imageDirectory .. "indent.png",
-    cameraPic = imageDirectory .. "camera.dds",
-    countryPic = imageDirectory .. "country.dds",
-    readyTexture = imageDirectory .. "indicator.dds",
-    allyPic = imageDirectory .. "ally.dds",
-    unallyPic = imageDirectory .. "unally.dds",
-    resourcesPic = imageDirectory .. "res.png",
-    resbarPic = imageDirectory .. "resbar.png",
-    resbarBgPic = imageDirectory .. "resbarBg.png",
-    incomePic = imageDirectory .. "res.png",
-    barGlowCenterPic = imageDirectory .. "barglow-center.png",
-    barGlowEdgePic = imageDirectory .. "barglow-edge.png",
+    currentPic = images['imageDirectory'] .. "indicator.dds",
+    unitsPic = images['imageDirectory'] .. "units.dds",
+    energyPic = images['imageDirectory'] .. "energy.dds",
+    metalPic = images['imageDirectory'] .. "metal.dds",
+    notFirstPic = images['imageDirectory'] .. "notfirst.dds",
+    pingPic = images['imageDirectory'] .. "ping.dds",
+    cpuPic = images['imageDirectory'] .. "cpu.dds",
+    barPic = images['imageDirectory'] .. "bar.png",
+    pointPic = images['imageDirectory'] .. "point.dds",
+    pencilPic = images['imageDirectory'] .. "pencil.dds",
+    eraserPic = images['imageDirectory'] .. "eraser.dds",
+    lowPic = images['imageDirectory'] .. "low.dds",
+    arrowPic = images['imageDirectory'] .. "arrow.dds",
+    takePic = images['imageDirectory'] .. "take.dds",
+    indentPic = images['imageDirectory'] .. "indent.png",
+    cameraPic = images['imageDirectory'] .. "camera.dds",
+    countryPic = images['imageDirectory'] .. "country.dds",
+    readyTexture = images['imageDirectory'] .. "indicator.dds",
+    allyPic = images['imageDirectory'] .. "ally.dds",
+    unallyPic = images['imageDirectory'] .. "unally.dds",
+    resourcesPic = images['imageDirectory'] .. "res.png",
+    resbarPic = images['imageDirectory'] .. "resbar.png",
+    resbarBgPic = images['imageDirectory'] .. "resbarBg.png",
+    incomePic = images['imageDirectory'] .. "res.png",
+    barGlowCenterPic = images['imageDirectory'] .. "barglow-center.png",
+    barGlowEdgePic = images['imageDirectory'] .. "barglow-edge.png",
 
-    chatPic = imageDirectory .. "chat.dds",
-    sidePic = imageDirectory .. "side.dds",
-    sharePic = imageDirectory .. "share.dds",
-    idPic = imageDirectory .. "id.dds",
-    tsPic = imageDirectory .. "ts.dds",
+    chatPic = images['imageDirectory'] .. "chat.dds",
+    sidePic = images['imageDirectory'] .. "side.dds",
+    sharePic = images['imageDirectory'] .. "share.dds",
+    idPic = images['imageDirectory'] .. "id.dds",
+    tsPic = images['imageDirectory'] .. "ts.dds",
 
-    rank0 = imageDirectory .. "ranks/1.png",
-    rank1 = imageDirectory .. "ranks/2.png",
-    rank2 = imageDirectory .. "ranks/3.png",
-    rank3 = imageDirectory .. "ranks/4.png",
-    rank4 = imageDirectory .. "ranks/5.png",
-    rank5 = imageDirectory .. "ranks/6.png",
-    rank6 = imageDirectory .. "ranks/7.png",
-    rank7 = imageDirectory .. "ranks/8.png",
+    rank0 = images['imageDirectory'] .. "ranks/1.png",
+    rank1 = images['imageDirectory'] .. "ranks/2.png",
+    rank2 = images['imageDirectory'] .. "ranks/3.png",
+    rank3 = images['imageDirectory'] .. "ranks/4.png",
+    rank4 = images['imageDirectory'] .. "ranks/5.png",
+    rank5 = images['imageDirectory'] .. "ranks/6.png",
+    rank6 = images['imageDirectory'] .. "ranks/7.png",
+    rank7 = images['imageDirectory'] .. "ranks/8.png",
 }
 
 local sidePics = {}  -- loaded in SetSidePics function
@@ -197,6 +198,11 @@ local apiAbsPosition = { 0, 0, 0, 0, 1, 1, false }
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
+
+local sharingTax = Spring.GetModOptions().tax_resource_sharing_amount or 0
+if Spring.GetModOptions().easytax then
+	sharingTax = 0.3 -- 30% tax for easytax modoption
+end
 
 --------------------------------------------------------------------------------
 -- Colors
@@ -1065,9 +1071,9 @@ function SetSidePics()
         end
 
         if teamSide then
-            sidePics[team] = imageDirectory .. teamSide .. "_default.png"
+            sidePics[team] = images['imageDirectory'] .. teamSide .. "_default.png"
         else
-            sidePics[team] = imageDirectory .. "default.png"
+            sidePics[team] = images['imageDirectory'] .. "default.png"
         end
     end
 end
@@ -2684,10 +2690,10 @@ function DrawAlly(posY, team)
 end
 
 function DrawCountry(country, posY)
-    if country ~= nil and country ~= "??" and VFS.FileExists(imgDir .. "flags/"  .. string.upper(country) .. flagsExt) then
-        gl_Texture(imgDir .. "flags/" .. string.upper(country) .. flagsExt)
+    if country ~= nil and country ~= "??" and VFS.FileExists(images['imgDir'] .. "flags/"  .. string.upper(country) .. images['flagsExt']) then
+        gl_Texture(images['imgDir'] .. "flags/" .. string.upper(country) .. images['flagsExt'])
         gl_Color(1, 1, 1, 1)
-        DrawRect(m_country.posX + widgetPosX + (3*playerScale), posY + (8*playerScale) - ((flagHeight/2)*playerScale), m_country.posX + widgetPosX + (17*playerScale), posY + (8*playerScale) + ((flagHeight/2)*playerScale))
+        DrawRect(m_country.posX + widgetPosX + (3*playerScale), posY + (8*playerScale) - ((images['flagHeight']/2)*playerScale), m_country.posX + widgetPosX + (17*playerScale), posY + (8*playerScale) + ((images['flagHeight']/2)*playerScale))
     end
 end
 
@@ -3498,6 +3504,7 @@ function widget:MouseRelease(x, y, button)
         if energyPlayer ~= nil then
             -- share energy/metal mouse release
             if energyPlayer.team == myTeamID then
+                Spring.SendLuaUIMsg('alert:allyRequest:energy', 'allies')
                 if shareAmount == 0 then
                     --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needEnergy'))
 					Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needEnergy')
@@ -3508,7 +3515,12 @@ function widget:MouseRelease(x, y, button)
             elseif shareAmount > 0 then
                 Spring_ShareResources(energyPlayer.team, "energy", shareAmount)
                 --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveEnergy', { amount = shareAmount, name = energyPlayer.name }))
-				Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveEnergy:amount='..shareAmount..':name='..(energyPlayer.orgname or energyPlayer.name))
+                if sharingTax and sharingTax > 0 then
+                    local amount2 = mathFloor(shareAmount * (1- sharingTax))
+                    Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveEnergy_taxed:amount='..shareAmount..':name='..(energyPlayer.orgname or energyPlayer.name)..':amount2='..amount2)
+                else
+				    Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveEnergy:amount='..shareAmount..':name='..(energyPlayer.orgname or energyPlayer.name))
+                end
                 WG.sharedEnergyFrame = spGetGameFrame()
             end
             sliderOrigin = nil
@@ -3520,6 +3532,7 @@ function widget:MouseRelease(x, y, button)
 
         if metalPlayer ~= nil and shareAmount then
             if metalPlayer.team == myTeamID then
+                Spring.SendLuaUIMsg('alert:allyRequest:metal', 'allies')
                 if shareAmount == 0 then
                     --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needMetal'))
 					Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needMetal')
@@ -3530,7 +3543,12 @@ function widget:MouseRelease(x, y, button)
             elseif shareAmount > 0 then
                 Spring_ShareResources(metalPlayer.team, "metal", shareAmount)
                 --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveMetal', { amount = shareAmount, name = metalPlayer.name }))
-				Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveMetal:amount='..shareAmount..':name='..(metalPlayer.orgname or metalPlayer.name))
+                if sharingTax and sharingTax > 0 then
+                    local amount2 = mathFloor(shareAmount * (1- sharingTax))
+                    Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveMetal_taxed:amount='..shareAmount..':name='..(metalPlayer.orgname or metalPlayer.name)..':amount2='..amount2)
+                else
+				    Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveMetal:amount='..shareAmount..':name='..(metalPlayer.orgname or metalPlayer.name))
+                end
                 WG.sharedMetalFrame = spGetGameFrame()
             end
             sliderOrigin = nil

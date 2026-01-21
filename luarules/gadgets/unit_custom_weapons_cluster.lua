@@ -50,6 +50,7 @@ local waterDepthCoef = 0.1       -- reduce "separation" from ground in water by 
 
 local DirectionsUtil = VFS.Include("LuaRules/Gadgets/Include/DirectionsUtil.lua")
 
+local clamp = math.clamp
 local max   = math.max
 local min   = math.min
 local rand  = math.random
@@ -58,9 +59,11 @@ local sqrt  = math.sqrt
 local cos   = math.cos
 local sin   = math.sin
 local atan2 = math.atan2
+local distsq = math.distance3dSquared
 
 local spGetGroundHeight       = Spring.GetGroundHeight
 local spGetGroundNormal       = Spring.GetGroundNormal
+local spGetProjectileDefID    = Spring.GetProjectileDefID
 local spGetUnitDefID          = Spring.GetUnitDefID
 local spGetUnitPosition       = Spring.GetUnitPosition
 local spGetUnitRadius         = Spring.GetUnitRadius
@@ -68,10 +71,14 @@ local spGetUnitTeam           = Spring.GetUnitTeam
 local spGetUnitsInSphere      = Spring.GetUnitsInSphere
 local spGetProjectileTeamID   = Spring.GetProjectileTeamID
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
+local spAreTeamsAllied        = Spring.AreTeamsAllied
 local spSpawnProjectile       = Spring.SpawnProjectile
+local spDeleteProjectile      = Spring.DeleteProjectile
 
 local gameSpeed  = Game.gameSpeed
 local mapGravity = Game.gravity / (gameSpeed * gameSpeed) * -1
+
+local addShieldDamage, getShieldPosition, getShieldUnitsInSphere -- see unit_shield_behaviour
 
 --------------------------------------------------------------------------------
 -- Initialize ------------------------------------------------------------------
@@ -101,7 +108,7 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 
 			if clusterCount < minSpawnNumber or clusterCount > maxSpawnNumber then
 				Spring.Log(gadget:GetInfo().name, LOG.WARNING, weaponDef.name .. ': cluster_count of ' .. clusterCount .. ', clamping to ' .. minSpawnNumber .. '-' .. maxSpawnNumber)
-				clusterCount = math.clamp(clusterCount, minSpawnNumber, maxSpawnNumber)
+				clusterCount = clamp(clusterCount, minSpawnNumber, maxSpawnNumber)
 			end
 
 			if clusterDef then
@@ -176,7 +183,7 @@ local function getUnitBulk(unitDef)
 
 	-- Height contributes less bulk, but tall units don't benefit as much from ground deflection.
 	-- Lower units, like Bulls, basically gain ground deflection on top of their unit deflection.
-	local height = 50 / math.clamp(unitDef.height, 1, 100) -- So set a cap and a peak at ~50.
+	local height = 50 / clamp(unitDef.height, 1, 100) -- So set a cap and a peak at ~50.
 
 	-- NB: Mass is useless for us here. It serves several arbitrary purposes aside from "weight".
 	local fromHealth = sqrt(unitDef.health) -- [1, 1000000] => [1, 1000] approx
@@ -188,7 +195,7 @@ local function getUnitBulk(unitDef)
 	end
 
 	local bulkiness = (fromHealth + fromMetal + fromVolume) + sqrt(fromHealth * fromMetal)
-	bulkiness = math.clamp(bulkiness / minBulkReflect, 0, 1) -- Scaled vs. 100% terrain-like.
+	bulkiness = clamp(bulkiness / minBulkReflect, 0, 1) -- Scaled vs. 100% terrain-like.
 	bulkiness = bulkiness ^ 0.64 -- Curve bulks upward, toward 1, to be much more noticeable.
 
 	if unitDef.customParams.decoyfor then
@@ -239,6 +246,9 @@ for _, data in pairs(clusterWeaponDefs) do
 end
 DirectionsUtil.ProvisionDirections(maxDataNum)
 
+local shieldsReworkOption = Spring.GetModOptions().shieldsrework
+local projectileHitShield = {}
+
 --------------------------------------------------------------------------------
 -- Functions -------------------------------------------------------------------
 
@@ -249,12 +259,6 @@ local waterFullDeflection = 0.85 -- 1 - vertical response loss
 ---Water is generally incompressible so acts like solid terrain of lower density
 -- when it takes hard impacts or impulses. We take a fast estimate of its added
 -- bulk to the solid terrain below and shift the surface direction toward level.
----@param slope number in radians? in what? is this [0, 1]?
----@param elevation number in elmos, always negative
----@return number percentX
----@return number percentY
----@return number percentZ
----@return number depth
 local function getWaterDeflection(slope, elevation)
 	elevation = max(elevation * waterDepthCoef, waterDepthDeflects)
 	local waterDeflectFraction = min(1, elevation / waterDepthDeflects)
@@ -334,6 +338,79 @@ local function getSurfaceDeflection(x, y, z)
 	return dx, dy, dz
 end
 
+---Shields can overlap with units, terrain, and other shields, so we should avoid both:
+-- (1) exaggerating other responses by adding new responses in the same direction, and
+-- (2) destructively negating other strong responses (> 1) when opposite in direction.
+local function getShieldDeflection(x, y, z, dx, dy, dz, shieldUnits)
+	local ox, oy, oz = dx, dy, dz
+	local responseMax = max(1, diag(ox, oy, oz))
+
+	-- Only direct hits contribute to deflection, but multiple hits can and do happen.
+	for _, shieldUnitID in pairs(shieldUnits) do
+		local sx, sy, sz, radius = getShieldPosition(shieldUnitID)
+
+		if sx then
+			-- Rescale to shield radius. This is incorrect for indirect hits/non-impacts only.
+			sx, sy, sz = dx + (x - sx) / radius, dy + (y - sy) / radius, dz + (z - sz) / radius
+			local response = diag(sx, sy, sz)
+			local limitMin, limitMax = 1, responseMax
+
+			if limitMax > 1 then
+				-- Limits above 1 are in the direction of the original response,
+				-- with the limits at 90 degrees from that direction equal to 1,
+				-- and the limits facing > 90 degrees away from it less than 1.
+				local codirection = (ox * sx + oy * sy + oz * sz) / limitMax
+				if codirection < 0 then
+					limitMin = min(-codirection, limitMin)
+					limitMax = 1
+					codirection = codirection + 1
+				end
+				limitMax = clamp(codirection, limitMin, limitMax)
+			end
+
+			-- Shields can overlap units, terrain, and other shields, so
+			-- they need to avoid exaggerating other existing responses.
+			if response > limitMax and response > 0 then
+				local ratio = limitMax / response
+				sx, sy, sz = sx * ratio, sy * ratio, sz * ratio
+			end
+
+			dx, dy, dz = sx, sy, sz
+		end
+	end
+
+	return dx, dy, dz
+end
+
+local function isInAlliance(teamID, unitID)
+	local unitTeam = spGetUnitTeam(unitID)
+	return teamID and unitTeam and (teamID == unitTeam or spAreTeamsAllied(teamID, unitTeam))
+end
+
+local function isInShield(x, y, z, shieldUnitID)
+	local sx, sy, sz, sr = getShieldPosition(shieldUnitID)
+	return sx and distsq(x, y, z, sx, sy, sz) < sr * sr
+end
+
+local function getNearShields(x, y, z, scatterDistance, teamID)
+	local shields, count = getShieldUnitsInSphere(x, y, z, scatterDistance)
+
+	if count > 0 then
+		for i = count, 1, -1 do
+			local shieldUnitID = shields[i]
+			if not isInAlliance(teamID, shieldUnitID) and isInShield(x, y, z, shieldUnitID) then
+				shields[i] = shields[count]
+				shields[count] = nil
+				count = count - 1
+			end
+		end
+
+		if count > 0 then
+			return shields
+		end
+	end
+end
+
 local function inheritMomentum(projectileID)
 	local vx, vy, vz, vw = spGetProjectileVelocity(projectileID)
 	-- Apply major loss from scattering (~50%) and reduce hyperspeeds (1 is convenient).
@@ -341,25 +418,23 @@ local function inheritMomentum(projectileID)
 	return vx * scale, vy * scale, vz * scale
 end
 
----@param attackerID integer? _Can_ be nil. See CLuaHandle::Explosion.
 local function spawnClusterProjectiles(data, x, y, z, attackerID, projectileID)
 	local clusterDefID = data.weaponID
 	local projectileCount = data.number
 	local projectileSpeed = data.weaponSpeed
-	local randomness = 1 / sqrt(projectileCount - 2) + 0.1
-
-	local params = spawnCache
-	params.owner = attackerID or -1
-	params.team = spGetProjectileTeamID(projectileID) or (attackerID and spGetUnitTeam(attackerID)) or -1
-	params.ttl = data.weaponTtl
-	local speed = params.speed
-	local position = params.pos
+	local attackerTeam = spGetProjectileTeamID(projectileID) or (attackerID and spGetUnitTeam(attackerID))
+	local subframeScatter = gameSpeed * 0.33
 
 	local deflectX, deflectY, deflectZ = getSurfaceDeflection(x, y, z)
 
-	if y - spGetGroundHeight(x, z) < 1 then
-		-- Only inherit momentum vs terrain hits so we do not bounce
-		-- directly into a unit that we should be scattering around.
+	local hitShields = projectileHitShield[projectileID]
+	local nearShields = shieldsReworkOption and getNearShields(x, y, z, projectileSpeed * subframeScatter, attackerTeam)
+
+	if hitShields then
+		deflectX, deflectY, deflectZ = getShieldDeflection(x, y, z, deflectX, deflectY, deflectZ, hitShields)
+	elseif y - spGetGroundHeight(x, z) < 0.5 then
+		-- Inherited momentum does not depend on deflection, nor account for it,
+		-- so avoid it in most cases, except for direct impacts against terrain.
 		local inheritX, inheritY, inheritZ = inheritMomentum(projectileID)
 		deflectX = deflectX + inheritX
 		deflectY = deflectY + inheritY
@@ -367,6 +442,14 @@ local function spawnClusterProjectiles(data, x, y, z, attackerID, projectileID)
 	end
 
 	local directionVectors = directions[projectileCount]
+	local randomness = 1 / sqrt(projectileCount - 2) + 0.1
+
+	local params = spawnCache
+	params.owner = attackerID or -1
+	params.team = attackerTeam or -1
+	params.ttl = data.weaponTtl
+	local speed = params.speed
+	local position = params.pos
 
 	for i = 0, projectileCount - 1 do
 		local velocityX = directionVectors[3 * i + 1] + deflectX
@@ -392,11 +475,20 @@ local function spawnClusterProjectiles(data, x, y, z, attackerID, projectileID)
 		speed[2] = velocityY
 		speed[3] = velocityZ
 
-		position[1] = x + velocityX * gameSpeed / 2
-		position[2] = y + velocityY * gameSpeed / 2
-		position[3] = z + velocityZ * gameSpeed / 2
+		position[1] = x + velocityX * subframeScatter
+		position[2] = y + velocityY * subframeScatter
+		position[3] = z + velocityZ * subframeScatter
 
-		spSpawnProjectile(clusterDefID, params)
+		local spawnedID = spSpawnProjectile(clusterDefID, params)
+
+		if nearShields and spawnedID then
+			for _, shieldUnitID in pairs(nearShields) do
+				if isInShield(position[1], position[2], position[3], shieldUnitID) then
+					addShieldDamage(shieldUnitID, nil, clusterDefID, spawnedID)
+					spDeleteProjectile(spawnedID) -- just to be sure
+				end
+			end
+		end
 	end
 end
 
@@ -413,11 +505,33 @@ function gadget:Initialize()
 	for weaponDefID in pairs(clusterWeaponDefs) do
 		Script.SetWatchExplosion(weaponDefID, true)
 	end
+
+	addShieldDamage = GG.AddShieldDamage
+	getShieldPosition = GG.GetUnitShieldPosition
+	getShieldUnitsInSphere = GG.GetShieldUnitsInSphere
 end
 
 function gadget:Explosion(weaponDefID, x, y, z, attackerID, projectileID)
 	local weaponData = clusterWeaponDefs[weaponDefID]
 	if weaponData then
 		spawnClusterProjectiles(weaponData, x, y, z, attackerID, projectileID)
+	end
+end
+
+function gadget:GameFramePost(frame)
+	local phs = projectileHitShield
+	for projectileID in pairs(phs) do
+		phs[projectileID] = nil
+	end
+end
+
+function gadget:ShieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, shieldUnitID, bounceProjectile, beamWeaponIndex, beamUnitID, startX, startY, startZ, hitX, hitY, hitZ)
+	if projectileID > -1 and clusterWeaponDefs[spGetProjectileDefID(projectileID)] then
+		local hitShields = projectileHitShield[projectileID]
+		if hitShields then
+			hitShields[#hitShields + 1] = shieldUnitID
+		else
+			projectileHitShield[projectileID] = { shieldUnitID }
+		end
 	end
 end
