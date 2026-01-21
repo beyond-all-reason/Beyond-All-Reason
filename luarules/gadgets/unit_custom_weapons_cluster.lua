@@ -246,7 +246,8 @@ for _, data in pairs(clusterWeaponDefs) do
 end
 DirectionsUtil.ProvisionDirections(maxDataNum)
 
-local shieldsReworkOption = Spring.GetModOptions().shieldsrework
+-- When not using the engine's shield bounce, clusters add their own deflection.
+local customShieldDeflect = table.contains({"unchanged", "absorbeverything"}, Spring.GetModOptions().experimentalshields)
 local projectileHitShield = {}
 
 --------------------------------------------------------------------------------
@@ -428,7 +429,7 @@ local function spawnClusterProjectiles(data, x, y, z, attackerID, projectileID)
 	local deflectX, deflectY, deflectZ = getSurfaceDeflection(x, y, z)
 
 	local hitShields = projectileHitShield[projectileID]
-	local nearShields = shieldsReworkOption and getNearShields(x, y, z, projectileSpeed * subframeScatter, attackerTeam)
+	local nearShields = customShieldDeflect and getNearShields(x, y, z, projectileSpeed * subframeScatter, attackerTeam)
 
 	if hitShields then
 		deflectX, deflectY, deflectZ = getShieldDeflection(x, y, z, deflectX, deflectY, deflectZ, hitShields)
