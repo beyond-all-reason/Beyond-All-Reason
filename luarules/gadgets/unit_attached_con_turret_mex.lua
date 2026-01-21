@@ -96,6 +96,7 @@ local function doSwapMex(unitID, unitTeam, unitData)
 	Spring.SetUnitHealth(conID, unitHealth)
 	Spring.SetUnitStealth(conID, true)
 	-- TODO: Is this still needed, given the `pairedUnitID`?
+	-- TODO: Set on-off methods for extration, energy upkeep
 	Spring.SetUnitResourcing(conID, "umm", unitExtraction)
 	Spring.SetUnitResourcing(mexID, "umm", -unitExtraction)
 	if isUnitNeutral then
