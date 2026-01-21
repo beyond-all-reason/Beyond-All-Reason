@@ -79,7 +79,7 @@ local function doSwapMex(unitID, unitTeam, unitData)
 		return
 	end
 	Spring.SetUnitBlocking(mexID, true, true, false)
-	Spring.SetUnitNoSelect(mexID,true)
+	Spring.SetUnitNoSelect(mexID, true)
 
 	local conID = Spring.CreateUnit(unitData.swapDefs.con, ux, uy, uz, unitFacing, unitTeam)
 	if not conID then
