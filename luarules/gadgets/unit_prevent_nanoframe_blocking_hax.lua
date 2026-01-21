@@ -112,6 +112,18 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 	end
 end
 
+function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+	-- Immediately restore neutral state when unit finishes building
+	-- This fixes issues with /nocost where units build instantly but
+	-- remain neutral until GameFrame runs, preventing enemy auto-fire
+	if newNanoFrameNeutralState[unitID] ~= nil then
+		local idx = GetNanoFrameIdx(unitID)
+		if idx then
+			RemoveNanoFrame(idx)
+		end
+	end
+end
+
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, builderID)
 	if newNanoFrameNeutralState[unitID]~=nil then
 		--Spring.Echo("to remove (destroyed)", unitID)
