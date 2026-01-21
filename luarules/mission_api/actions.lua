@@ -1,5 +1,5 @@
-local trackedUnitIDsByName = GG['MissionAPI'].TrackedUnitIDsByName
-local trackedUnitNamesByID = GG['MissionAPI'].TrackedUnitNamesByID
+local trackedUnitIDs = GG['MissionAPI'].trackedUnitIDs
+local trackedUnitNames = GG['MissionAPI'].trackedUnitNames
 local triggers = GG['MissionAPI'].Triggers
 
 
@@ -8,7 +8,7 @@ local triggers = GG['MissionAPI'].Triggers
 ----------------------------------------------------------------
 
 local function isNameUntracked(name)
-	return table.isNilOrEmpty(trackedUnitIDsByName[name])
+	return table.isNilOrEmpty(trackedUnitIDs[name])
 end
 
 local function trackUnit(name, unitID)
@@ -16,15 +16,15 @@ local function trackUnit(name, unitID)
 		return
 	end
 
-	if not trackedUnitIDsByName[name] then
-		trackedUnitIDsByName[name] = {}
+	if not trackedUnitIDs[name] then
+		trackedUnitIDs[name] = {}
 	end
-	if not trackedUnitNamesByID[unitID] then
-		trackedUnitNamesByID[unitID] = {}
+	if not trackedUnitNames[unitID] then
+		trackedUnitNames[unitID] = {}
 	end
 
-	trackedUnitIDsByName[name][#trackedUnitIDsByName[name] + 1] = unitID
-	trackedUnitNamesByID[unitID][#trackedUnitNamesByID[unitID] + 1] = name
+	trackedUnitIDs[name][#trackedUnitIDs[name] + 1] = unitID
+	trackedUnitNames[unitID][#trackedUnitNames[unitID] + 1] = name
 end
 
 local function generateGridPositions(center, quantity, xSpacing, zSpacing)
@@ -61,7 +61,7 @@ end
 local function issueOrders(name, orders)
     if isNameUntracked(name) then return end
 
-	Spring.GiveOrderArrayToUnitArray(trackedUnitIDsByName[name], orders)
+	Spring.GiveOrderArrayToUnitArray(trackedUnitIDs[name], orders)
 end
 
 local function spawnUnits(name, unitDefName, teamID, position, quantity, facing, construction)
@@ -92,7 +92,8 @@ local function despawnUnits(name, selfDestruct, reclaimed)
 	if isNameUntracked(name) then return end
 
 	-- Copying table as UnitKilled trigger with SpawnUnits with the same name could cause infinite loop.
-	for _, unitID in pairs(table.copy(trackedUnitIDsByName[name])) do
+	for _, unitID in pairs(table.copy(trackedUnitIDs[name])) do
+		-- unitID can be recycled for new units after a few frames, so check if it still exists
 		Spring.DestroyUnit(unitID, selfDestruct, reclaimed)
 	end
 end
@@ -103,7 +104,7 @@ local function transferUnits(name, newTeam, given)
 	if isNameUntracked(name) then return end
 
 	-- Copying table as UnitExists trigger with TransferUnits with the same name could cause infinite loop.
-	for _, unitID in pairs(table.copy(trackedUnitIDsByName[name])) do
+	for _, unitID in pairs(table.copy(trackedUnitIDs[name])) do
 		Spring.TransferUnit(unitID, newTeam, given)
 	end
 end
@@ -163,13 +164,13 @@ end
 local function unnameUnits(name)
 	if isNameUntracked(name) then return end
 
-	for _, unitID in pairs(trackedUnitIDsByName[name]) do
-		table.removeAll(trackedUnitNamesByID[unitID], name)
-		if table.isEmpty(trackedUnitNamesByID[unitID]) then
-			trackedUnitNamesByID[unitID] = nil
+	for _, unitID in pairs(trackedUnitIDs[name]) do
+		table.removeAll(trackedUnitNames[unitID], name)
+		if table.isEmpty(trackedUnitNames[unitID]) then
+			trackedUnitNames[unitID] = nil
 		end
 	end
-	trackedUnitIDsByName[name] = nil
+	trackedUnitIDs[name] = nil
 end
 
 local function spawnExplosion(position, direction, params)

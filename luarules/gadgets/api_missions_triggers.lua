@@ -14,7 +14,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local actionsDispatcher, trackedUnitIDsByName, trackedUnitNamesByID
+local actionsDispatcher, trackedUnitIDs, trackedUnitNames
 
 local types, triggers
 
@@ -45,7 +45,7 @@ local function activateTrigger(trigger)
 	trigger.triggered = true
 	trigger.repeatCount = trigger.repeatCount + 1
 
-	for _, actionID in pairs(trigger.actions) do
+	for _, actionID in ipairs(trigger.actions) do
 		actionsDispatcher.Invoke(actionID)
 	end
 end
@@ -91,8 +91,8 @@ function gadget:Initialize()
 	actionsDispatcher = VFS.Include('luarules/mission_api/actions_dispatcher.lua')
 	types = GG['MissionAPI'].TriggerTypes
 	triggers = GG['MissionAPI'].Triggers
-	trackedUnitIDsByName = GG['MissionAPI'].TrackedUnitIDsByName
-	trackedUnitNamesByID = GG['MissionAPI'].TrackedUnitNamesByID
+	trackedUnitIDs = GG['MissionAPI'].trackedUnitIDs
+	trackedUnitNames = GG['MissionAPI'].trackedUnitNames
 end
 
 function gadget:GameFrame(n)
@@ -109,7 +109,7 @@ function gadget:MetaUnitAdded(unitId, unitDefId, unitTeam)
 			local unitName = trigger.parameters.unitName
 			local unitDefName = trigger.parameters.unitDefName
 
-			if (unitName and table.contains(trackedUnitNamesByID[unitID], unitName)) or unitDefName == UnitDefs[unitDefId].name then
+			if (unitName and table.contains(trackedUnitNames[unitID], unitName)) or unitDefName == UnitDefs[unitDefId].name then
 				activateTrigger(trigger)
 			end
 		end
@@ -124,18 +124,18 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	end
 
 	-- Remove destroyed tracked units
-	if table.isNilOrEmpty(trackedUnitNamesByID[unitID]) then
+	if table.isNilOrEmpty(trackedUnitNames[unitID]) then
 		return
 	end
 
-	for _, name in pairs(trackedUnitNamesByID[unitID]) do
-		table.removeAll(trackedUnitIDsByName[name], unitID)
-		if table.isEmpty(trackedUnitIDsByName[name]) then
-			trackedUnitIDsByName[name] = nil
+	for _, name in pairs(trackedUnitNames[unitID]) do
+		table.removeAll(trackedUnitIDs[name], unitID)
+		if table.isEmpty(trackedUnitIDs[name]) then
+			trackedUnitIDs[name] = nil
 		end
 	end
 
-	trackedUnitNamesByID[unitID] = nil
+	trackedUnitNames[unitID] = nil
 end
 
 function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
