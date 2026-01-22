@@ -78,7 +78,7 @@ local spDeleteProjectile      = Spring.DeleteProjectile
 local gameSpeed  = Game.gameSpeed
 local mapGravity = Game.gravity / (gameSpeed * gameSpeed) * -1
 
-local addShieldDamage, getShieldPosition, getShieldUnitsInSphere -- see unit_shield_behaviour
+local addShieldDamage, damageToShields, getShieldPosition, getShieldUnitsInSphere -- see unit_shield_behaviour
 
 --------------------------------------------------------------------------------
 -- Initialize ------------------------------------------------------------------
@@ -430,6 +430,7 @@ local function spawnClusterProjectiles(data, x, y, z, attackerID, projectileID)
 
 	local hitShields = projectileHitShield[projectileID]
 	local nearShields = customShieldDeflect and getNearShields(x, y, z, projectileSpeed * subframeScatter, attackerTeam)
+	local shieldDamage = nearShields and damageToShields[clusterDefID]
 
 	if hitShields then
 		deflectX, deflectY, deflectZ = getShieldDeflection(x, y, z, deflectX, deflectY, deflectZ, hitShields)
@@ -485,8 +486,8 @@ local function spawnClusterProjectiles(data, x, y, z, attackerID, projectileID)
 		if nearShields and spawnedID then
 			for _, shieldUnitID in pairs(nearShields) do
 				if isInShield(position[1], position[2], position[3], shieldUnitID) then
-					addShieldDamage(shieldUnitID, nil, clusterDefID, spawnedID)
-					spDeleteProjectile(spawnedID) -- just to be sure
+					addShieldDamage(shieldUnitID, shieldDamage)
+					spDeleteProjectile(spawnedID)
 				end
 			end
 		end
@@ -508,6 +509,7 @@ function gadget:Initialize()
 	end
 
 	addShieldDamage = GG.AddShieldDamage
+	damageToShields = GG.DamageToShields
 	getShieldPosition = GG.GetUnitShieldPosition
 	getShieldUnitsInSphere = GG.GetShieldUnitsInSphere
 end

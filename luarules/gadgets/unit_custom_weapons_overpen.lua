@@ -98,7 +98,8 @@ local spValidUnitID            = Spring.ValidUnitID
 local armorDefault = Game.armorTypes.default
 local armorShields = Game.armorTypes.shields
 
-local addShieldDamage, getUnitShieldState, setVelocityControl -- see unit_shield_behaviour
+local addShieldDamage, getUnitShieldState, damageToShields -- see unit_shield_behaviour
+local setVelocityControl -- see unit_collision_damage_behaviour
 
 --------------------------------------------------------------------------------
 -- Setup -----------------------------------------------------------------------
@@ -322,29 +323,6 @@ local function exhaust(projectileID, collision)
 	spDeleteProjectile(projectileID)
 end
 
----Generic damage against shields using the default engine shields.
--- TODO: Remove this function when shieldsrework modoption is made mandatory. However:
--- TODO: If future modoptions might override the rework, then keep this function.
-local function addShieldDamageDefault(shieldUnitID, shieldWeaponIndex, damageToShields, weaponDefID, projectileID)
-	local exhausted, damageDone = false, 0
-	local state, health = spGetUnitShieldState(shieldUnitID)
-	local SHIELD_STATE_ENABLED = 1 -- nb: not boolean
-	if state == SHIELD_STATE_ENABLED and health > 0 then
-		local healthLeft = max(0, health - damageToShields)
-		if shieldWeaponIndex then
-			Spring.SetUnitShieldState(shieldUnitID, shieldWeaponIndex, healthLeft)
-		else
-			Spring.SetUnitShieldState(shieldUnitID, healthLeft)
-		end
-		if healthLeft > 0 then
-			exhausted, damageDone = true, damageToShields
-		else
-			exhausted, damageDone = false, health
-		end
-	end
-	return exhausted, damageDone
-end
-
 --------------------------------------------------------------------------------
 -- Gadget call-ins -------------------------------------------------------------
 
@@ -363,7 +341,8 @@ function gadget:Initialize()
 		unitArmorType[unitDefID] = unitDef.armorType
 	end
 
-	addShieldDamage = GG.AddShieldDamage or addShieldDamageDefault
+	addShieldDamage = GG.AddShieldDamage
+	damageToShields = GG.DamageToShields
 	getUnitShieldState = GG.GetUnitShieldState or spGetUnitShieldState
 	setVelocityControl = GG.SetVelocityControl
 end
@@ -400,8 +379,8 @@ local function _GameFramePost(collisionList)
 			local damageDealt, damageBase = damageEngine * damageLeft, min(damageEngine, damageArmor) * damageLeft
 
 			if shieldNumber then
-				local deleted, damage = addShieldDamage(targetID, shieldNumber, damageDealt, weapon.weaponID, projectileID)
-				damageLeft = deleted and 0 or damageLeft - penalty - damage / damageDealt -- shields force falloff
+				local exhausted, damageDone = addShieldDamage(targetID, damageDealt)
+				damageLeft = exhausted and 0 or damageLeft - penalty - damageDone / damageDealt -- shields force falloff
 			else
 				if isTargetUnit then
 					local impulse = damageBase * factor * falloffRatio(damageLeft, 1) -- inverse ratio
@@ -513,24 +492,20 @@ function gadget:ShieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, sh
 		return
 	end
 
-	local damage = penetrator.params[armorShields]
-	if damage <= 1 then
-		return true
-	end
-
-	projectileHits[projectileID] = penetrator
-	local state, health = getUnitShieldState(shieldUnitID, shieldWeaponIndex)
+	local _, power = getUnitShieldState(shieldUnitID, shieldWeaponIndex)
 	local collisions = penetrator.collisions
 	collisions[#collisions+1] = {
 		targetID  = shieldUnitID,
 		shieldID  = shieldWeaponIndex,
 		armorType = armorShields,
-		healthMax = health,
-		damage    = damage,
+		healthMax = power,
+		damage    = damageToShields[penetrator.params.weaponID],
 		hitX      = hitX,
 		hitY      = hitY,
 		hitZ      = hitZ,
 	}
+
+	projectileHits[projectileID] = penetrator
 
 	return true
 end

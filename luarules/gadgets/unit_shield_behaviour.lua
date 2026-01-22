@@ -10,9 +10,60 @@ function gadget:GetInfo()
 	}
 end
 
-local modOptions = Spring.GetModOptions()
-local runGadget = modOptions.experimentalshields == "unchanged" or modOptions.experimentalshields == "absorbeverything"
-if not gadgetHandler:IsSyncedCode() or not runGadget then return false end
+if not gadgetHandler:IsSyncedCode() then
+	return false
+end
+
+local mathMax = math.max
+
+local spGetUnitShieldState = Spring.GetUnitShieldState
+local spSetUnitShieldState = Spring.SetUnitShieldState
+
+local SHIELDSTATE_DISABLED = 0
+local SHIELDSTATE_ENABLED = 1
+
+local armorTypeShields = Game.armorTypes.shields
+
+local originalShieldDamages = table.new(#WeaponDefs, 1) -- [0] goes into hash part
+
+if not table.contains({ "unchanged", "absorbeverything" }, Spring.GetModOptions().experimentalshields) then
+	for weaponDefID = 0, #WeaponDefs do
+		local weaponDef = WeaponDefs[weaponDefID]
+		originalShieldDamages[weaponDefID] = weaponDef.damages and weaponDef.damages[armorTypeShields] or 0
+	end
+
+	---Pass a `weaponDefID` instead of a `damage` for shield damage to be determined for you.
+	---@return boolean exhausted The damage was mitigated, in full, by the shield.
+	---@return number damageDone The amount of damage done to the targeted shield.
+	local function addEngineShieldDamage(shieldUnitID, damage, weaponDefID)
+		local state, power = spGetUnitShieldState(shieldUnitID)
+
+		if state == SHIELDSTATE_ENABLED and power > 0 then
+			if not damage then
+				damage = originalShieldDamages[weaponDefID] or 0 -- to handle envDamageTypes
+			end
+
+			spSetUnitShieldState(shieldUnitID, max(0, power - damage))
+
+			if power >= damage then
+				return true, damage
+			else
+				return false, power
+			end
+		else
+			return false, 0
+		end
+	end
+
+	GG.AddShieldDamage = addEngineShieldDamage
+	GG.DamageToShields = originalShieldDamages
+	GG.GetUnitShieldPosition = function() end -- parts of the api are not usable
+	GG.GetShieldUnitsInSphere = function() end -- parts of the api are not usable
+	GG.GetUnitShieldState = spGetUnitShieldState
+
+	Spring.Log("unit_shield_behaviour", LOG.INFO, ("disabled by setting: %s"):format(Spring.GetModOptions().experimentalshields))
+	return false
+end
 
 ---- Optional unit customParams ----
 -- shield_aoe_penetration = bool, if true then AOE damage will hurt units within the shield radius
@@ -33,7 +84,6 @@ local shieldModulo                  = Game.gameSpeed
 local shieldOnUnitRulesParamIndex   = 531313
 local INLOS                         = { inlos = true }
 
-local mathMax                       = math.max
 local mathCeil                      = math.ceil
 local mathSqrt                      = math.sqrt
 local mathPi                        = math.pi
@@ -57,7 +107,6 @@ local spGetUnitArmored              = Spring.GetUnitArmored
 
 local shieldUnitDefs                = {}
 local shieldUnitsData               = {}
-local originalShieldDamages         = {}
 local beamEmitterWeapons            = {}
 local forceDeleteWeapons            = {}
 local unitDefIDCache                = {}
@@ -73,7 +122,7 @@ local gameFrame 					= 0
 
 for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 
-	if weaponDef.type == 'Flame' or weaponDef.customParams.overpenetrate then --overpenetration and flame projectiles aren't deleted when striking the shield. For compatibility with shield blocking type overrides.
+	if weaponDef.type == 'Flame' then -- flame projectiles aren't deleted when striking the shield. For compatibility with shield blocking type overrides.
 		forceDeleteWeapons[weaponDefID] = weaponDef
 	end
 
@@ -472,7 +521,7 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
 		local newShieldDamage = originalShieldDamages[weaponDefID] or fallbackShieldDamage
 		shieldData.shieldDamage = shieldData.shieldDamage + newShieldDamage
 		if forceDeleteWeapons[weaponDefID] then
-			-- Flames and penetrating projectiles aren't destroyed when they hit shields, so need to delete manually
+			-- Flame projectiles aren't destroyed when they hit shields, so need to delete manually
 			spDeleteProjectile(proID)
 		end
 	elseif beamEmitterUnitID then
@@ -497,25 +546,29 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
 	end
 end
 
----Shield controller API for other gadgets to generate and process their own shield damage events.
-local function addShieldDamage(shieldUnitID, damage, weaponDefID, projectileID, beamEmitterWeaponNum, beamEmitterUnitID)
-	local projectileDestroyed, damageMitigated = false, 0
+-- Gadget interface methods ----------------------------------------------------
+
+---Pass a `weaponDefID` instead of a `damage` for shield damage to be determined for you.
+---@return boolean exhausted The damage was mitigated, in full, by the shield.
+---@return number damageDone The amount of damage done to the targeted shield.
+local function addCustomShieldDamage(shieldUnitID, damage, weaponDefID)
 	local shieldData = shieldUnitsData[shieldUnitID]
+
 	if shieldData and shieldData.shieldEnabled then
-		local shieldDamage = shieldData.shieldDamage
-		local result = gadget:ShieldPreDamaged(projectileID, nil, shieldData.shieldWeaponNumber, shieldUnitID, nil,
-			beamEmitterWeaponNum, beamEmitterUnitID)
-		if result == nil then
-			projectileDestroyed = true
-			if damage then
-				shieldData.shieldDamage = shieldDamage + damage
-				damageMitigated = damage
-			else
-				damageMitigated = shieldData.shieldDamage - shieldDamage
-			end
+		local shieldDamageBefore = shieldData.shieldDamage
+
+		if not damage then
+			damage = originalShieldDamages[weaponDefID] or 0
 		end
+
+		shieldData.shieldDamage = shieldData.shieldDamage + damage
+
+		local damageDone = shieldData.shieldDamage - shieldDamageBefore
+		local exhausted = forceDeleteWeapons[weaponDefID] or damageDone >= damage
+		return exhausted, damageDone
 	end
-	return projectileDestroyed, damageMitigated
+
+	return false, 0
 end
 
 local function getUnitShieldWeaponPosition(shieldUnitID, unitData)
@@ -605,7 +658,8 @@ local function getUnitShieldState(shieldUnitID)
 	end
 end
 
-GG.AddShieldDamage = addShieldDamage
+GG.AddShieldDamage = addCustomShieldDamage
+GG.DamageToShields = originalShieldDamages
 GG.GetUnitShieldPosition = getUnitShieldPosition
 GG.GetShieldUnitsInSphere = getShieldUnitsInSphere
 GG.GetUnitShieldState = getUnitShieldState
@@ -618,7 +672,7 @@ function gadget:Initialize()
 	end
 end
 
-function gadget:ShutDown()
+function gadget:Shutdown()
 	GG.AddShieldDamage = nil
 	GG.GetUnitShieldState = nil
 	GG.GetUnitShieldPosition = nil
