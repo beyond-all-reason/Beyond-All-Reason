@@ -22,8 +22,6 @@ return {
 		explodeas = "tentacle_death",
 		footprintx = 8,
 		footprintz = 8,
-		idleautoheal = 15,
-		idletime = 300,
 		levelground = false,
 		mass = 1400,
 		health = 30000,

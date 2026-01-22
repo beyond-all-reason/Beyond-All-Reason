@@ -30,8 +30,6 @@ return {
 		hidedamage = true,
     	holdsteady = true,
 		icontype = "legcomlvl4",
-		idleautoheal = 25,
-		idletime = 1800,
 		sightemitheight = 40,
 		mass = 4900,
 		health = 18000,

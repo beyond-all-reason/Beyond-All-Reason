@@ -14,8 +14,6 @@ return {
 		explodeas = "nukeBuilding",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 4000,
 		maxslope = 10,
 		maxwaterdepth = 0,

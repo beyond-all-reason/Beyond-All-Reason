@@ -16,8 +16,6 @@ return {
 		explodeas = "hugeexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		mass = 5001,
 		health = 3650,
