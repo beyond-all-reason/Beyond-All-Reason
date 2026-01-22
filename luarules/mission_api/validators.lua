@@ -47,4 +47,22 @@ validators = {
 			return false
 		end
 	end,
+
+	unitDefName = function(unitDefName, actionOrTrigger, actionOrTriggerID, parameterName)
+		if not UnitDefNames[unitDefName] then
+			logError("Invalid unitDefName: " .. unitDefName .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID)
+			return false
+		end
+	end,
+
+	----------------------------------------------------------------
+	--- Number Validators:
+	----------------------------------------------------------------
+
+	teamID = function(teamID, actionOrTrigger, actionOrTriggerID, parameterName)
+		if not Spring.GetTeamAllyTeamID(teamID) then
+			logError("Invalid teamID: " .. teamID .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameterName)
+			return false
+		end
+	end,
 }

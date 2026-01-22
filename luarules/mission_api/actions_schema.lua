@@ -99,11 +99,13 @@ local parameters = {
 			name = 'unitDefName',
 			required = true,
 			type = 'string',
+			validator = validators.unitDefName
 		},
 		[3] = {
 			name = 'teamID',
 			required = true,
-			type = 'number'
+			type = 'number',
+			validator = validators.teamID
 		},
 		[4] = {
 			name = 'position',
@@ -155,7 +157,8 @@ local parameters = {
 		[2] = {
 			name = 'newTeam',
 			required = true,
-			type = 'number'
+			type = 'number',
+			validator = validators.teamID
 		},
 		[3] = {
 			-- can only transfer to other allyTeam if given=false

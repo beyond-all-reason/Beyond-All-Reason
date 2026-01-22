@@ -3,21 +3,6 @@ local actionTypes = GG['MissionAPI'].ActionTypes
 
 local triggers = {
 
-	triggerWithNoActions = {
-		type = triggerTypes.TimeElapsed,
-		parameters = {
-			gameFrame = math.maxinteger,
-		},
-	},
-
-	triggerWithInvalidActionID = {
-		type = triggerTypes.TimeElapsed,
-		parameters = {
-			gameFrame = math.maxinteger,
-		},
-		actions = { 'invalidActionID' },
-	},
-
 	at1each200spawnConBotsAndMove = {
 		type = triggerTypes.TimeElapsed,
 		settings = {
@@ -86,16 +71,28 @@ local triggers = {
 		},
 		actions = { 'gameEnd' },
 	},
+
+	----------------------------------------------------------------
+	--- Triggers only testing validation:
+	----------------------------------------------------------------
+
+	triggerWithNoActions = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = math.maxinteger,
+		},
+	},
+
+	triggerWithInvalidActionID = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = math.maxinteger,
+		},
+		actions = { 'invalidActionID' },
+	},
 }
 
 local actions = {
-
-	actionWithInvalidTriggerID = {
-		type = actionTypes.EnableTrigger,
-		parameters = {
-			triggerID = 'invalidTriggerID',
-		},
-	},
 
 	spawnConBots = {
 		type = actionTypes.SpawnUnits,
@@ -215,6 +212,26 @@ local actions = {
 		type = actionTypes.Defeat,
 		parameters = {
 			allyTeamIDs = {0},
+		},
+	},
+
+	----------------------------------------------------------------
+	--- Unreferenced actions testing validation:
+	----------------------------------------------------------------
+
+	actionWithInvalidTriggerID = {
+		type = actionTypes.EnableTrigger,
+		parameters = {
+			triggerID = 'invalidTriggerID',
+		},
+	},
+
+	actionWithInvalidTeamIDAndInvalidUnitDefName = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			unitDefName = 'invalidUnitDefName',
+			teamID = 6,
+			position = { x = 1800, z = 1600 },
 		},
 	},
 }
