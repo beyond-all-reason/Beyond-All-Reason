@@ -396,7 +396,7 @@ end
 local function getNearShields(x, y, z, scatterDistance, teamID)
 	local shields, count = getShieldUnitsInSphere(x, y, z, scatterDistance)
 
-	if count > 0 then
+	if count and count > 0 then
 		for i = count, 1, -1 do
 			local shieldUnitID = shields[i]
 			if not isInAlliance(teamID, shieldUnitID) and isInShield(x, y, z, shieldUnitID) then
