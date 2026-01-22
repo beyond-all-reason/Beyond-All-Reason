@@ -3,6 +3,21 @@ local actionTypes = GG['MissionAPI'].ActionTypes
 
 local triggers = {
 
+	triggerWithNoActions = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = math.maxinteger,
+		},
+	},
+
+	triggerWithInvalidActionID = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = math.maxinteger,
+		},
+		actions = { 'invalidActionID' },
+	},
+
 	at1each200spawnConBotsAndMove = {
 		type = triggerTypes.TimeElapsed,
 		settings = {

@@ -21,16 +21,20 @@ local parameters = schema.Parameters
 	}
 ]]
 
-local triggers = {}
-
-local function prevalidateTriggers()
+local function validateTriggers(triggers, rawActions)
 	for triggerID, trigger in pairs(triggers) do
 		if not trigger.type then
 			Spring.Log('triggers_loader.lua', LOG.ERROR, "[Mission API] Trigger missing type: " .. triggerID)
 		end
 
-		if not trigger.actions or next(trigger.actions) == nil then
+		if table.isNilOrEmpty(trigger.actions) then
 			Spring.Log('triggers_loader.lua', LOG.ERROR, "[Mission API] Trigger has no actions: " .. triggerID)
+		else
+			for _, action in pairs(trigger.actions) do
+				if not rawActions[action] then
+					Spring.Log('triggers_loader.lua', LOG.ERROR, "[Mission API] Trigger has invalid action. Trigger: " .. triggerID .. ", Action: " .. action)
+				end
+			end
 		end
 
 		for _, parameter in pairs(parameters[trigger.type]) do
@@ -48,7 +52,9 @@ local function prevalidateTriggers()
 	end
 end
 
-local function preprocessRawTriggers(rawTriggers)
+local function processRawTriggers(rawTriggers, rawActions)
+	local triggers = {}
+
 	for triggerID, rawTrigger in pairs(rawTriggers) do
 		local settings = rawTrigger.settings or {}
 		settings.prerequisites = settings.prerequisites or {}
@@ -65,30 +71,10 @@ local function preprocessRawTriggers(rawTriggers)
 		triggers[triggerID] = table.copy(rawTrigger)
 	end
 
-	prevalidateTriggers()
-end
-
-local function postvalidateTriggers()
-	local actions = GG['MissionAPI'].Actions
-	for triggerID, trigger in pairs(triggers) do
-		for _, actionID in pairs(trigger.actions) do
-			if not actions[actionID] then
-				Spring.Log('triggers_loader.lua', LOG.ERROR, "[Mission API] Trigger has action that does not exist. Trigger: " .. triggerID .. ", Action: " .. actionID)
-			end
-		end
-	end
-end
-
-local function postprocessTriggers()
-	postvalidateTriggers()
-end
-
-local function getTriggers()
+	validateTriggers(triggers, rawActions)
 	return triggers
 end
 
 return {
-	GetTriggers = getTriggers,
-	PreprocessRawTriggers = preprocessRawTriggers,
-	PostprocessTriggers = postprocessTriggers,
+	ProcessRawTriggers = processRawTriggers,
 }

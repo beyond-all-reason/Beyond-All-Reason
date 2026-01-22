@@ -10,9 +10,7 @@ local parameters = schema.Parameters
 	}
 ]]
 
-local actions = {}
-
-local function prevalidateActions()
+local function validateActions(actions)
 	for actionID, action in pairs(actions) do
 		if not action.type then
 			Spring.Log('actions_loader.lua', LOG.ERROR, "[Mission API] Action missing type: " .. actionID)
@@ -41,19 +39,12 @@ local function prevalidateActions()
 	end
 end
 
-local function preprocessRawActions(rawActions)
-	for actionID, rawAction in pairs(rawActions) do
-		actions[actionID] = table.copy(rawAction)
-	end
-
-	prevalidateActions()
-end
-
-local function getActions()
+local function processRawActions(rawActions)
+	local actions = table.map(rawActions, table.copy)
+	validateActions(actions)
 	return actions
 end
 
 return {
-	GetActions = getActions,
-	PreprocessRawActions = preprocessRawActions,
+	ProcessRawActions = processRawActions,
 }

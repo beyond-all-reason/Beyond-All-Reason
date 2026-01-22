@@ -16,20 +16,14 @@ end
 
 local scriptPath
 local triggersController, actionsController
-local rawTriggers, rawActions
 
 local function loadMission()
 	local mission = VFS.Include("singleplayer/" .. scriptPath)
-	rawTriggers = mission.Triggers
-	rawActions = mission.Actions
+	local rawTriggers = mission.Triggers
+	local rawActions = mission.Actions
 
-	triggersController.PreprocessRawTriggers(rawTriggers)
-	actionsController.PreprocessRawActions(rawActions)
-
-	GG['MissionAPI'].Triggers = triggersController.GetTriggers()
-	GG['MissionAPI'].Actions = actionsController.GetActions()
-
-	triggersController.PostprocessTriggers()
+	GG['MissionAPI'].Triggers = triggersController.ProcessRawTriggers(rawTriggers, rawActions)
+	GG['MissionAPI'].Actions = actionsController.ProcessRawActions(rawActions)
 end
 
 function gadget:Initialize()
