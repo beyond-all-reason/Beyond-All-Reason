@@ -2352,6 +2352,9 @@ function checkChanges()
 		local featureID = hoverData
 		local featureDefID = spGetFeatureDefID(featureID)
 		local featureDef = FeatureDefs[featureDefID]
+		if featureDef == nil then
+			return
+		end
 		local newTooltip = featureDef.translatedDescription or ''
 
 		if featureDef.reclaimable then

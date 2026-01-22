@@ -47,10 +47,13 @@ local zoom = 0.55 -- Initial zoom level
 local zoomFeatures = 0.2 -- Zoom level at which features stop being drawn (below this zoom, features are hidden)
 local zoomProjectileDetail = 0.2 -- Zoom level threshold for drawing expensive projectile effects (projectiles, beams, shatters). Explosions always shown.
 local zoomExplosionDetail = 0.1 -- Zoom level threshold for drawing expensive projectile effects (projectiles, beams, shatters). Explosions always shown.
+local hideEnergyOnlyFeatures = false -- Don't render features that only contain energy
 
 local showLosOverlay = true -- Toggle LOS darkening overlay on/off
 local losOverlayOpacity = 0.6 -- Opacity of LOS darkening (0.0 = no darkening, 1.0 = maximum darkening)
 local showPipFps = false -- Show PIP content FPS counter in top-left corner
+local losViewEnabled = false -- Toggle LOS view for current allyteam (button state)
+local losViewAllyTeam = nil -- Stores the allyteam ID when LOS view is enabled (locked to initial allyteam)
 
 local iconRadius = 40
 
@@ -479,7 +482,12 @@ local buttons = {
 					-- Create new pool for next merge
 					trackingMergePool = {}
 				else
-					interactionState.areTracking = selectedUnits
+					-- Create a copy of selectedUnits to avoid reference issues
+					local trackingUnits = {}
+					for i = 1, #selectedUnits do
+						trackingUnits[i] = selectedUnits[i]
+					end
+					interactionState.areTracking = trackingUnits
 				end
 				-- Disable zoom-to-cursor when tracking is enabled
 				cameraState.zoomToCursorActive = false
@@ -487,6 +495,23 @@ local buttons = {
 				-- No selection: clear tracking
 				interactionState.areTracking = nil
 			end
+		end
+	},
+	{
+		texture = 'LuaUI/Images/pip/PipView.png',
+		tooltip = Spring.I18N('ui.pip.view'),
+		tooltipActive = Spring.I18N('ui.pip.unview'),
+		command = 'pip_view',
+		OnPress = function()
+			losViewEnabled = not losViewEnabled
+			if losViewEnabled then
+				-- Store the current allyteam when enabling LOS view
+				losViewAllyTeam = Spring.GetMyAllyTeamID()
+			else
+				losViewAllyTeam = nil
+			end
+			pipR2T.losNeedsUpdate = true
+			pipR2T.frameNeedsUpdate = true
 		end
 	},
 	{
@@ -760,10 +785,7 @@ end
 local function UpdateTracking()
 	local uCount = 0
 	local ax, az = 0, 0
-	-- Clear and reuse stillAlive table
-	for i = #stillAlivePool, 1, -1 do
-		stillAlivePool[i] = nil
-	end
+	local stillAlive = {}
 
 	for t = 1, #interactionState.areTracking do
 		local uID = interactionState.areTracking[t]
@@ -772,7 +794,7 @@ local function UpdateTracking()
 			ax = ax + ux
 			az = az + uz
 			uCount = uCount + 1
-			stillAlivePool[uCount] = uID
+			stillAlive[uCount] = uID
 		end
 	end
 
@@ -1067,8 +1089,9 @@ local function DrawUnit(uID)
 	-- Debug counter for radar blobs
 	local debugRadarBlobCount = 0
 
-	-- Check visibility: either when tracking a player OR for our own team's visibility
+	-- Check visibility: either when tracking a player OR for our own team's visibility OR when LOS view is enabled
 	-- Get the ally team we should check visibility for
+	-- Note: trackingPlayerID takes priority over losViewEnabled (player tracking overrides LOS view)
 	local checkAllyTeamID = nil
 	local isEnemyUnit = false
 
@@ -1081,6 +1104,11 @@ local function DrawUnit(uID)
 			local _, _, _, _, _, unitAllyTeamID = spGetTeamInfo(uTeam, false)
 			isEnemyUnit = (unitAllyTeamID ~= playerAllyTeamID)
 		end
+	elseif losViewEnabled and losViewAllyTeam then
+		-- When LOS view is enabled (and not tracking a player), check visibility for the locked allyteam
+		checkAllyTeamID = losViewAllyTeam
+		local _, _, _, _, _, unitAllyTeamID = spGetTeamInfo(uTeam, false)
+		isEnemyUnit = (unitAllyTeamID ~= losViewAllyTeam)
 	elseif not cameraState.mySpecState then
 		-- When playing (not spectating), check our own ally team's visibility
 		local myTeamID = Spring.GetMyTeamID()
@@ -1177,6 +1205,14 @@ end
 local function DrawFeature(fID)
 	local fDefID = spGetFeatureDefID(fID)
 	if not fDefID or cache.noModelFeatures[fDefID] then return end
+
+	-- Skip energy-only features if option is enabled
+	if hideEnergyOnlyFeatures then
+		local fDef = FeatureDefs[fDefID]
+		if fDef and (not fDef.metal or fDef.metal <= 0) and fDef.energy and fDef.energy > 0 then
+			return
+		end
+	end
 
 	local fx, fy, fz = spGetFeaturePosition(fID)
 	if not fx then return end  -- Early exit if position is invalid
@@ -3358,6 +3394,8 @@ function widget:GetConfigData()
 			trackingPlayerID=interactionState.trackingPlayerID,
 			trackingSmoothness=trackingSmoothness,
 			radarWobbleSpeed=radarWobbleSpeed,
+			losViewEnabled=losViewEnabled,
+			losViewAllyTeam=losViewAllyTeam,
 			gameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"),
 		}
 end
@@ -3428,6 +3466,18 @@ function widget:SetConfigData(data)
 				-- Force frame update to show button
 				pipR2T.frameNeedsUpdate = true
 			end
+		end
+
+		-- Restore LOS view state
+		if data.losViewEnabled ~= nil then
+			losViewEnabled = data.losViewEnabled
+		end
+		if data.losViewAllyTeam ~= nil then
+			losViewAllyTeam = data.losViewAllyTeam
+		end
+		if losViewEnabled then
+			pipR2T.losNeedsUpdate = true
+			pipR2T.frameNeedsUpdate = true
 		end
 	end
 	cameraState.targetZoom = zoom
@@ -4688,6 +4738,11 @@ local function RenderFrameButtons()
 			if showPlayerTrackButton then
 				visibleButtons[#visibleButtons + 1] = buttons[i]
 			end
+		-- Show pip_view button only for spectators
+		elseif buttons[i].command == 'pip_view' then
+			if showPlayerTrackButton then
+				visibleButtons[#visibleButtons + 1] = buttons[i]
+			end
 		else
 			visibleButtons[#visibleButtons + 1] = buttons[i]
 		end
@@ -4700,8 +4755,11 @@ local function RenderFrameButtons()
 
 	local bx = 0
 	for i = 1, buttonCount do
-		if (visibleButtons[i].command == 'pip_track' and interactionState.areTracking) or
-		   (visibleButtons[i].command == 'pip_trackplayer' and interactionState.trackingPlayerID) then
+		local isActive = (visibleButtons[i].command == 'pip_track' and interactionState.areTracking) or
+		                 (visibleButtons[i].command == 'pip_trackplayer' and interactionState.trackingPlayerID) or
+		                 (visibleButtons[i].command == 'pip_view' and losViewEnabled)
+
+		if isActive then
 			glColor(panelBorderColorLight)
 			glTexture(false)
 			RectRound(bx, 0, bx + usedButtonSizeLocal, usedButtonSizeLocal, elementCorner*0.4, 1, 1, 1, 1)
@@ -4722,7 +4780,7 @@ local function ShouldShowLOS()
 	local myAllyTeam = Spring.GetMyAllyTeamID()
 	local mySpec, fullview = Spring.GetSpectatingState()
 
-	-- If tracking a player's camera, use their allyteam
+	-- If tracking a player's camera, use their allyteam (priority over LOS view)
 	if interactionState.trackingPlayerID then
 		local _, _, isSpec, teamID = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
 		if teamID then
@@ -4739,6 +4797,11 @@ local function ShouldShowLOS()
 				return true, allyTeamID
 			end
 		end
+	end
+
+	-- If LOS view is manually enabled via button, use the locked allyteam (after checking player tracking)
+	if losViewEnabled and losViewAllyTeam then
+		return true, losViewAllyTeam
 	end
 
 	-- If not a spectator, show LOS for our own allyteam
@@ -5623,11 +5686,18 @@ local function HandleHoverAndCursor(mx, my)
 				lastHoveredUnitID = uID
 				lastHoveredFeatureID = nil
 			else
-				local fID = GetFeatureAtPoint(wx, wz)
-				if fID then
-					WG['info'].setCustomHover('feature', fID)
-					lastHoveredFeatureID = fID
-					lastHoveredUnitID = nil
+				-- Only check features if zoom level is high enough to render them
+				if zoom >= zoomFeatures then
+					local fID = GetFeatureAtPoint(wx, wz)
+					if fID then
+						WG['info'].setCustomHover('feature', fID)
+						lastHoveredFeatureID = fID
+						lastHoveredUnitID = nil
+					else
+						WG['info'].clearCustomHover()
+						lastHoveredUnitID = nil
+						lastHoveredFeatureID = nil
+					end
 				else
 					WG['info'].clearCustomHover()
 					lastHoveredUnitID = nil
@@ -5703,6 +5773,11 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 			if interactionState.trackingPlayerID or spec then
 				visibleButtons[#visibleButtons + 1] = buttons[i]
 			end
+		elseif buttons[i].command == 'pip_view' then
+			local _, _, spec = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+			if spec then
+				visibleButtons[#visibleButtons + 1] = buttons[i]
+			end
 		else
 			visibleButtons[#visibleButtons + 1] = buttons[i]
 		end
@@ -5717,7 +5792,8 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 			local bx = dim.l
 			for i = 1, #visibleButtons do
 				if (visibleButtons[i].command == 'pip_track' and interactionState.areTracking) or
-				   (visibleButtons[i].command == 'pip_trackplayer' and interactionState.trackingPlayerID) then
+				   (visibleButtons[i].command == 'pip_trackplayer' and interactionState.trackingPlayerID) or
+				   (visibleButtons[i].command == 'pip_view' and losViewEnabled) then
 					glColor(panelBorderColorLight)
 					glTexture(false)
 					RectRound(bx, dim.b, bx + usedButtonSize, dim.b + usedButtonSize, elementCorner*0.4, 1, 1, 1, 1)
@@ -5740,7 +5816,8 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 					local tooltipText = visibleButtons[i].tooltip
 					if visibleButtons[i].tooltipActive then
 						if (visibleButtons[i].command == 'pip_track' and interactionState.areTracking) or
-						   (visibleButtons[i].command == 'pip_trackplayer' and interactionState.trackingPlayerID) then
+						   (visibleButtons[i].command == 'pip_trackplayer' and interactionState.trackingPlayerID) or
+						   (visibleButtons[i].command == 'pip_view' and losViewEnabled) then
 							tooltipText = visibleButtons[i].tooltipActive
 						end
 					end
@@ -5750,13 +5827,18 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 				glTexture(false)
 				RectRound(bx, dim.b, bx + usedButtonSize, dim.b + usedButtonSize, elementCorner*0.4, 1, 1, 1, 1)
 				if (visibleButtons[i].command == 'pip_track' and interactionState.areTracking) or
-				   (visibleButtons[i].command == 'pip_trackplayer' and interactionState.trackingPlayerID) then
+				   (visibleButtons[i].command == 'pip_trackplayer' and interactionState.trackingPlayerID) or
+				   (visibleButtons[i].command == 'pip_view' and losViewEnabled) then
 					glColor(panelBorderColorDark)
 				else
 					glColor(1, 1, 1, 1)
 				end
 				glTexture(visibleButtons[i].texture)
 				glTexRect(bx, dim.b, bx + usedButtonSize, dim.b + usedButtonSize)
+				-- Draw hover highlight on top for better visibility
+				glColor(1, 1, 1, 0.2)
+				glTexture(false)
+				RectRound(bx, dim.b, bx + usedButtonSize, dim.b + usedButtonSize, elementCorner*0.4, 1, 1, 1, 1)
 				glTexture(false)
 				break
 			end
@@ -6188,9 +6270,13 @@ function widget:Update(dt)
 	elseif isZooming then
 		-- Clear hover during zoom to avoid stale highlights
 		drawData.hoveredUnitID = nil
-	else
+	elseif not interactionState.isMouseOverPip then
+		-- Only clear if mouse left the PIP
 		drawData.hoveredUnitID = nil
-	end	-- If hover state changed, update frame buttons
+	end
+	-- Otherwise keep the last cached hover value to prevent flickering
+
+	-- If hover state changed, update frame buttons
 	if wasMouseOver ~= interactionState.isMouseOverPip and showButtonsOnHoverOnly then
 		pipR2T.frameNeedsUpdate = true
 	end
