@@ -66,7 +66,6 @@ for weaponDefID = 0, #WeaponDefs do
 	if weaponDef.type == 'DGun' then
 		Script.SetWatchProjectile(weaponDefID, true)
 		dgunDef[weaponDefID] = weaponDef
-		dgunDef[weaponDefID].setback = weaponDef.projectilespeed
 		dgunDef[weaponDefID].ttl = generateWeaponTtlFunction(weaponDef)
 	end
 end
@@ -121,7 +120,6 @@ end
 function gadget:Initialize()
 	addShieldDamage = GG.AddShieldDamage
 	damageToShields = GG.DamageToShields
-	getUnitShieldState = GG.GetUnitShieldState
 end
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
@@ -223,20 +221,9 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shie
 			end
 
 			-- DGuns do not get bounced back by shields, so we reset its position ourselves.
-			if not dgunShieldPenetrations[proID] then
-				local dx, dy, dz = spGetProjectileVelocity(proID)
-				local magnitude = mathSqrt(dx ^ 2 + dy ^ 2 + dz ^ 2)
-				local normalX, normalY, normalZ = dx / magnitude, dy / magnitude, dz / magnitude
-
-				local setback = dgunDef[weaponDefID].setback
-
-				local x, y, z = spGetProjectilePosition(proID)
-				local newX = x - normalX * setback
-				local newY = y - normalY * setback
-				local newZ = z - normalZ * setback
-
-				spSetProjectilePosition(proID, newX, newY, newZ)
-			end
+			local dx, dy, dz = spGetProjectileDirection(proID)
+			local speed = dgunDef[weaponDefID].projectilespeed
+			spSetProjectilePosition(proID, hitX - dx * speed, hitY - dy * speed, hitZ - dz * speed)
 		end
 
 		return true
