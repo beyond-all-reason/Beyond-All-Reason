@@ -68,9 +68,6 @@ end
 ---- Optional unit customParams ----
 -- shield_aoe_penetration = bool, if true then AOE damage will hurt units within the shield radius
 
--- If a unit doesn't have a defined shield damage or default damage, fallbackShieldDamage will be used as a fallback.
-local fallbackShieldDamage          = 0
-
 -- this defines what amount of the total damage a unit deals qualifies as a direct hit for units that are in the vague areas between covered and not covered by shields (typically on edges or sticking out partially)
 local directHitQualifyingMultiplier = 0.95
 
@@ -131,11 +128,11 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 	end
 
 	if weaponDef.customParams.beamtime_damage_reduction_multiplier then
-		local base = weaponDef.customParams.shield_damage or fallbackShieldDamage
+		local base = weaponDef.customParams.shield_damage or 0
 		local multiplier = weaponDef.customParams.beamtime_damage_reduction_multiplier
 		originalShieldDamages[weaponDefID] = mathCeil(base * multiplier)
 	else
-		originalShieldDamages[weaponDefID] = weaponDef.customParams.shield_damage or fallbackShieldDamage
+		originalShieldDamages[weaponDefID] = tonumber(weaponDef.customParams.shield_damage or 0) or 0
 	end
 
 
@@ -518,7 +515,7 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
 	-- proID isn't nil if hitscan weapons are used, it's actually -1.
 	if proID > -1 then
 		weaponDefID = projectileDefIDCache[proID] or spGetProjectileDefID(proID)
-		local newShieldDamage = originalShieldDamages[weaponDefID] or fallbackShieldDamage
+		local newShieldDamage = originalShieldDamages[weaponDefID] or 0
 		shieldData.shieldDamage = shieldData.shieldDamage + newShieldDamage
 		if forceDeleteWeapons[weaponDefID] then
 			-- Flame projectiles aren't destroyed when they hit shields, so need to delete manually
