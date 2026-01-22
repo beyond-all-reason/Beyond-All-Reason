@@ -559,9 +559,9 @@ local function getUnitShieldState(shieldUnitID)
 		end
 		-- Damage is applied late in the rework, effectively giving infinite HP for one frame.
 		-- Still, we report that the shield is enabled (1), and its "actual" power remaining.
-		return 1, power and mathMax(power - unitData.shieldDamage, 0) or -1
+		return SHIELDSTATE_ENABLED, power and mathMax(power - unitData.shieldDamage, 0) or -1
 	else
-		return 0, 0
+		return SHIELDSTATE_DISABLED, 0
 	end
 end
 
@@ -579,6 +579,7 @@ local function addCustomShieldDamage(shieldUnitID, damage, weaponDefID)
 		end
 
 		shieldData.shieldDamage = shieldData.shieldDamage + damage
+		shieldCheckFlags[shieldUnitID] = true
 
 		if power >= damage then
 			return true, damage
