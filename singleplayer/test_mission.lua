@@ -211,7 +211,7 @@ local actions = {
 	gameEnd = {
 		type = actionTypes.Defeat,
 		parameters = {
-			allyTeamIDs = {0},
+			allyTeamIDs = { 0 },
 		},
 	},
 
@@ -232,6 +232,14 @@ local actions = {
 			unitDefName = 'invalidUnitDefName',
 			teamID = 6,
 			position = { x = 1800, z = 1600 },
+			facing = 'invalidFacing',
+		},
+	},
+
+	actionWithInvalidAllyTeamID = {
+		type = actionTypes.Defeat,
+		parameters = {
+			allyTeamIDs = { 777 },
 		},
 	},
 }

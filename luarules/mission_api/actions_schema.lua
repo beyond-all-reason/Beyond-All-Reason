@@ -120,7 +120,8 @@ local parameters = {
 		[6] = {
 			name = 'facing',
 			required = false,
-			type = 'string'
+			type = 'string',
+			validator = validators.facing
 		},
 		[7] = {
 			name = 'construction',
@@ -173,12 +174,14 @@ local parameters = {
 		[1] = {
 			name = 'position',
 			required = true,
-			type = 'table'
+			type = 'table',
+			validator = validators.position
 		},
 		[2] = {
 			name = 'direction',
 			required = true,
-			type = 'table'
+			type = 'table',
+			validator = validators.position
 		},
 		[3] = {
 			name = 'params',
@@ -211,14 +214,16 @@ local parameters = {
 		[1] = {
 			name = 'allyTeamIDs',
 			required = true,
-			type = 'table'
+			type = 'table',
+			validator = validators.allyTeamIDs
 		}
 	},
 	[actionTypes.Defeat] = {
 		[1] = {
 			name = 'allyTeamIDs',
 			required = true,
-			type = 'table'
+			type = 'table',
+			validator = validators.allyTeamIDs
 		}
 	},
 

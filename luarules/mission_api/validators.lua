@@ -37,6 +37,26 @@ validators = {
 		return true
 	end,
 
+	allyTeamIDs = function(allyTeamIDs, actionOrTrigger, actionOrTriggerID, parameterName)
+		if table.isNilOrEmpty(allyTeamIDs) then
+			logError("allyTeamIDs table is empty. " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameterName)
+			return false
+		end
+
+		for i, allyTeamID in pairs(allyTeamIDs) do
+			if not validateField(allyTeamID, "allyTeamID #" .. i, 'number', actionOrTrigger, actionOrTriggerID, parameterName) then
+				return false
+			end
+
+			if not Spring.GetAllyTeamInfo(allyTeamID) then
+				logError("Invalid allyTeamID: " .. allyTeamID .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameterName)
+				return false
+			end
+		end
+
+		return true
+	end,
+
 	----------------------------------------------------------------
 	--- String Validators:
 	----------------------------------------------------------------
@@ -51,6 +71,14 @@ validators = {
 	unitDefName = function(unitDefName, actionOrTrigger, actionOrTriggerID, parameterName)
 		if not UnitDefNames[unitDefName] then
 			logError("Invalid unitDefName: " .. unitDefName .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID)
+			return false
+		end
+	end,
+
+	facing = function(facing, actionOrTrigger, actionOrTriggerID, parameterName)
+		local validFacings = { n = true, s = true, e = true, w = true }
+		if not validFacings[facing] then
+			logError("Invalid facing: " .. facing .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID)
 			return false
 		end
 	end,
