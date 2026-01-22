@@ -548,14 +548,34 @@ end
 
 -- Gadget interface methods ----------------------------------------------------
 
+---@return integer state 0 := DISABLED, 1 := ENABLED
+---@return number shieldHealthRemaining including the (hidden) damage done this frame so far
+local function getUnitShieldState(shieldUnitID)
+	local unitData = shieldUnitsData[shieldUnitID] or destroyedUnitData[shieldUnitID]
+	if unitData and unitData.shieldEnabled then
+		local power
+		if spGetUnitIsDead(shieldUnitID) == false then
+			local state;
+			state, power = spGetUnitShieldState(shieldUnitID, unitData.shieldWeaponNumber)
+		else
+			power = unitData.power
+		end
+		-- Damage is applied late in the rework, effectively giving infinite HP for one frame.
+		-- Still, we report that the shield is enabled (1), and its "actual" power remaining.
+		return 1, power and mathMax(power - unitData.shieldDamage, 0) or -1
+	else
+		return 0, 0
+	end
+end
+
 ---Pass a `weaponDefID` instead of a `damage` for shield damage to be determined for you.
 ---@return boolean exhausted The damage was mitigated, in full, by the shield.
 ---@return number damageDone The amount of damage done to the targeted shield.
 local function addCustomShieldDamage(shieldUnitID, damage, weaponDefID)
-	local shieldData = shieldUnitsData[shieldUnitID]
+	local state, power = getUnitShieldState(shieldUnitID) -- because the unit can be dead
 
-	if shieldData and shieldData.shieldEnabled then
-		local shieldDamageBefore = shieldData.shieldDamage
+	if state == SHIELDSTATE_ENABLED and power > 0 then
+		local shieldData = shieldUnitsData[shieldUnitID] or destroyedUnitData[shieldUnitID]
 
 		if not damage then
 			damage = originalShieldDamages[weaponDefID] or 0
@@ -563,9 +583,14 @@ local function addCustomShieldDamage(shieldUnitID, damage, weaponDefID)
 
 		shieldData.shieldDamage = shieldData.shieldDamage + damage
 
-		local damageDone = shieldData.shieldDamage - shieldDamageBefore
-		local exhausted = forceDeleteWeapons[weaponDefID] or damageDone >= damage
-		return exhausted, damageDone
+		if power >= damage then
+			return true, damage
+		elseif forceDeleteWeapons[weaponDefID] then
+			-- NB: The decision to delete is left up to the calling gadget.
+			return true, power
+		else
+			return false, power
+		end
 	end
 
 	return false, 0
@@ -636,26 +661,6 @@ local function getShieldUnitsInSphere(x, y, z, radius, onlyAlive)
 	end
 
 	return units, count
-end
-
----@return integer state 0 := DISABLED, 1 := ENABLED
----@return number shieldHealthRemaining including the (hidden) damage done this frame so far
-local function getUnitShieldState(shieldUnitID)
-	local unitData = shieldUnitsData[shieldUnitID] or destroyedUnitData[shieldUnitID]
-	if unitData and unitData.shieldEnabled then
-		local power
-		if spGetUnitIsDead(shieldUnitID) == false then
-			local state;
-			state, power = spGetUnitShieldState(shieldUnitID, unitData.shieldWeaponNumber)
-		else
-			power = unitData.power -- todo: not sure that this works at all
-		end
-		-- Damage is applied late in the rework, effectively giving infinite HP for one frame.
-		-- Still, we report that the shield is enabled (1), and its "actual" power remaining.
-		return 1, power and mathMax(power - unitData.shieldDamage, 0) or -1
-	else
-		return 0, 0
-	end
 end
 
 GG.AddShieldDamage = addCustomShieldDamage
