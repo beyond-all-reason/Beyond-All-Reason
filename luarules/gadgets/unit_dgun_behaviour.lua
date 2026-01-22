@@ -30,7 +30,7 @@ local mathSqrt = math.sqrt
 local mathMax = math.max
 local pairsNext = next
 
-local addShieldDamage, getUnitShieldState, damageToShields -- see unit_shield_behaviour
+local addShieldDamage -- see unit_shield_behaviour
 
 local dgunData = {}
 local dgunDef = {}
@@ -119,7 +119,6 @@ end
 
 function gadget:Initialize()
 	addShieldDamage = GG.AddShieldDamage
-	damageToShields = GG.DamageToShields
 end
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
@@ -207,12 +206,10 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shie
 	if proID > -1 and dgunData[proID] then
 		local proData = dgunData[proID]
 		local weaponDefID = proData.weaponDefID
-		local damage = damageToShields[weaponDefID]
-
 		local shieldBreak = dgunShieldPenetrations[proID] or {}
 
 		if not shieldBreak[shieldCarrierUnitID] then
-			local mitigated = addShieldDamage(shieldCarrierUnitID, damage)
+			local mitigated = addShieldDamage(shieldCarrierUnitID, nil, weaponDefID)
 
 			if not mitigated then
 				shieldBreak[shieldCarrierUnitID] = true
