@@ -89,6 +89,14 @@ local triggers = {
 }
 
 local actions = {
+
+	actionWithInvalidTriggerID = {
+		type = actionTypes.EnableTrigger,
+		parameters = {
+			triggerID = 'invalidTriggerID',
+		},
+	},
+
 	spawnConBots = {
 		type = actionTypes.SpawnUnits,
 		parameters = {

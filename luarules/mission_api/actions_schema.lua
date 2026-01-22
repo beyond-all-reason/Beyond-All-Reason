@@ -54,6 +54,7 @@ local parameters = {
 			name = 'triggerID',
 			required = true,
 			type = 'string',
+			validator = validators.triggerID
 		},
 	},
 
@@ -62,6 +63,7 @@ local parameters = {
 			name = 'triggerID',
 			required = true,
 			type = 'string',
+			validator = validators.triggerID
 		},
 	},
 

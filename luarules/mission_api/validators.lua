@@ -15,6 +15,11 @@ local function validateField(value, fieldName, expectedType, actionOrTrigger, ac
 end
 
 validators = {
+
+	----------------------------------------------------------------
+	--- Table Validators:
+	----------------------------------------------------------------
+
 	position = function(position, actionOrTrigger, actionOrTriggerID, parameterName)
 
 		for _, parm in pairs({"x", "z"}) do
@@ -30,5 +35,16 @@ validators = {
 		end
 
 		return true
-	end
+	end,
+
+	----------------------------------------------------------------
+	--- String Validators:
+	----------------------------------------------------------------
+
+	triggerID = function(triggerID, actionOrTrigger, actionOrTriggerID, parameterName)
+		if not GG['MissionAPI'].Triggers[triggerID] then
+			logError("Invalid triggerID: " .. triggerID .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID)
+			return false
+		end
+	end,
 }
