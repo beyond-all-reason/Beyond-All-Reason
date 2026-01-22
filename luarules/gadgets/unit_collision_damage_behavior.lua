@@ -269,9 +269,7 @@ local function setVelocityControl(unitID, enabled)
 	end
 end
 
-function gadget:Initialize()
-	GG.SetVelocityControl = setVelocityControl
-end
+GG.SetVelocityControl = setVelocityControl
 
 function gadget:ShutDown()
 	GG.SetVelocityControl = nil
