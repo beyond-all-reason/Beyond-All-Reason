@@ -23,13 +23,14 @@ local spGetGroundHeight = Spring.GetGroundHeight
 local spDeleteProjectile = Spring.DeleteProjectile
 local spSpawnExplosion = Spring.SpawnExplosion
 local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitShieldState = Spring.GetUnitShieldState
 local spSpawnCEG = Spring.SpawnCEG
 local spGetGameFrame = Spring.GetGameFrame
 
 local mathSqrt = math.sqrt
 local mathMax = math.max
 local pairsNext = next
+
+local addShieldDamage, getUnitShieldState, damageToShields -- see unit_shield_behaviour
 
 local dgunData = {}
 local dgunDef = {}
@@ -117,6 +118,12 @@ local function addVolumetricDamage(projectileID)
 	spSpawnExplosion(x, y, z, 0, 0, 0, explosionParame)
 end
 
+function gadget:Initialize()
+	addShieldDamage = GG.AddShieldDamage
+	damageToShields = GG.DamageToShields
+	getUnitShieldState = GG.GetUnitShieldState
+end
+
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 	if dgunDef[weaponDefID] then
 		dgunData[proID] = { proOwnerID = proOwnerID, weaponDefID = weaponDefID }
@@ -199,39 +206,40 @@ end
 
 function gadget:ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shieldCarrierUnitID, bounceProjectile,
 								 beamEmitterWeaponNum, beamEmitterUnitID, startX, startY, startZ, hitX, hitY, hitZ)
-	if proID > -1 and dgunTimeouts[proID] then
-		if dgunShieldPenetrations[proID] then return true end
-		local proDefID = dgunData[proID].weaponDefID
-		local shieldEnabledState, shieldPower = spGetUnitShieldState(shieldCarrierUnitID)
-		local damage = WeaponDefs[proDefID].damages[Game.armorTypes.shields] or
-		WeaponDefs[proDefID].damages[Game.armorTypes.default]
+	if proID > -1 and dgunData[proID] then
+		local proData = dgunData[proID]
+		local weaponDefID = proData.weaponDefID
+		local damage = damageToShields[weaponDefID]
 
-		local weaponDefID = dgunData[proID].weaponDefID
+		local shieldState, shieldPower = getUnitShieldState(shieldCarrierUnitID)
+		local shieldBreak = dgunShieldPenetrations[proID] or {}
 
-		if not dgunShieldPenetrations[proID] then
-			if shieldPower <= damage then
-				shieldPower = 0
-				dgunShieldPenetrations[proID] = true
+		if not shieldBreak[shieldCarrierUnitID] then
+			local mitigated = addShieldDamage(shieldCarrierUnitID, damage)
+
+			if not mitigated then
+				shieldBreak[shieldCarrierUnitID] = true
+				dgunShieldPenetrations[proID] = shieldBreak
+				return true
+			end
+
+			-- DGuns do not get bounced back by shields, so we reset its position ourselves.
+			if not dgunShieldPenetrations[proID] then
+				local dx, dy, dz = spGetProjectileVelocity(proID)
+				local magnitude = mathSqrt(dx ^ 2 + dy ^ 2 + dz ^ 2)
+				local normalX, normalY, normalZ = dx / magnitude, dy / magnitude, dz / magnitude
+
+				local setback = dgunDef[weaponDefID].setback
+
+				local x, y, z = spGetProjectilePosition(proID)
+				local newX = x - normalX * setback
+				local newY = y - normalY * setback
+				local newZ = z - normalZ * setback
+
+				spSetProjectilePosition(proID, newX, newY, newZ)
 			end
 		end
-		-- Engine does not provide a way for shields to stop DGun projectiles, they will impact once and carry on through,
-		-- need to manually move them back a bit so the next touchdown hits the shield
-		if not dgunShieldPenetrations[proID] then
-			-- Adjusting the projectile position based on setback
-			local dx, dy, dz = spGetProjectileVelocity(proID)
-			local magnitude = mathSqrt(dx ^ 2 + dy ^ 2 + dz ^ 2)
-			local normalX, normalY, normalZ = dx / magnitude, dy / magnitude, dz / magnitude
 
-			local setback = dgunDef[weaponDefID].setback
-
-			local x, y, z = spGetProjectilePosition(proID)
-			local newX = x - normalX * setback
-			local newY = y - normalY * setback
-			local newZ = z - normalZ * setback
-
-			spSetProjectilePosition(proID, newX, newY, newZ)
-		end
-
-		return false
+		return true
 	end
 end
