@@ -7,7 +7,7 @@ function gadget:GetInfo()
 		author = "SethDGamre",
 		date = "2024.8.29",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
+		layer = -1,
 		enabled = true
 	}
 end
@@ -269,7 +269,9 @@ local function setVelocityControl(unitID, enabled)
 	end
 end
 
-GG.SetVelocityControl = setVelocityControl
+function gadget:Initialize()
+	GG.SetVelocityControl = setVelocityControl
+end
 
 function gadget:ShutDown()
 	GG.SetVelocityControl = nil
