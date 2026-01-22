@@ -11,7 +11,21 @@ local parameters = schema.Parameters
 ]]
 
 local function validateActions(actions)
+
+	local allActionIDsReferencedByTriggers = {}
+	for _, trigger in pairs(GG['MissionAPI'].Triggers) do
+		if not table.isNilOrEmpty(trigger.actions) then
+			for _, actionID in pairs(trigger.actions) do
+				allActionIDsReferencedByTriggers[actionID] = true
+			end
+		end
+	end
+
 	for actionID, action in pairs(actions) do
+		if not allActionIDsReferencedByTriggers[actionID] then
+			Spring.Log('actions_loader.lua', LOG.WARNING, "[Mission API] Action not referenced by any trigger: " .. actionID)
+		end
+
 		if not action.type then
 			Spring.Log('actions_loader.lua', LOG.ERROR, "[Mission API] Action missing type: " .. actionID)
 		end
@@ -35,6 +49,7 @@ local function validateActions(actions)
 			if parameter.validator then
 				parameter.validator(value, 'Action', actionID, parameter.name)
 			end
+
 		end
 	end
 end
