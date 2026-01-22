@@ -211,7 +211,6 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shie
 		local weaponDefID = proData.weaponDefID
 		local damage = damageToShields[weaponDefID]
 
-		local shieldState, shieldPower = getUnitShieldState(shieldCarrierUnitID)
 		local shieldBreak = dgunShieldPenetrations[proID] or {}
 
 		if not shieldBreak[shieldCarrierUnitID] then
