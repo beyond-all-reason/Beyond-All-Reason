@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		version = '1.0',
 		date    = '2024-10',
 		license = 'GNU GPL, v2 or later',
-		layer   = -1, -- before unit_collision_damage_behavior
+		layer   = 0,
 		enabled = true,
 	}
 end
@@ -503,7 +503,12 @@ function gadget:Initialize()
 		unitArmorType[unitDefID] = unitDef.armorType
 	end
 
-	setVelocityControl = GG.SetVelocityControl -- along for the ride
+	if not GG.SetVelocityControl then
+		Spring.Echo("ERROR ERROR ERROR ERROR")
+	else
+		Spring.Echo("No error?", GG.SetVelocityControl)
+	end
+	setVelocityControl = GG.SetVelocityControl
 
 	if not GG.Shields then
 		Spring.Log("ScriptedWeapons", LOG.ERROR, "Shields API unavailable (overpen)")
