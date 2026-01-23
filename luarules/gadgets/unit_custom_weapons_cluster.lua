@@ -508,10 +508,15 @@ function gadget:Initialize()
 		Script.SetWatchExplosion(weaponDefID, true)
 	end
 
-	addShieldDamage = GG.AddShieldDamage
-	damageToShields = GG.DamageToShields
-	getShieldPosition = GG.GetUnitShieldPosition
-	getShieldUnitsInSphere = GG.GetShieldUnitsInSphere
+	if not GG.Shields then
+		Spring.Log("ScriptedWeapons", LOG.ERROR, "Shields API unavailable")
+		return
+	end
+
+	addShieldDamage = GG.Shields.AddShieldDamage
+	damageToShields = GG.Shields.DamageToShields
+	getShieldPosition = GG.Shields.GetUnitShieldPosition
+	getShieldUnitsInSphere = GG.Shields.GetShieldUnitsInSphere
 end
 
 function gadget:Explosion(weaponDefID, x, y, z, attackerID, projectileID)

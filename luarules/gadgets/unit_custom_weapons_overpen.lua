@@ -341,9 +341,15 @@ function gadget:Initialize()
 		unitArmorType[unitDefID] = unitDef.armorType
 	end
 
-	addShieldDamage = GG.AddShieldDamage
-	damageToShields = GG.DamageToShields
-	getUnitShieldState = GG.GetUnitShieldState or spGetUnitShieldState
+	if not GG.Shields then
+		Spring.Log("ScriptedWeapons", LOG.ERROR, "Shields API unavailable")
+		return
+	end
+
+	addShieldDamage = GG.Shields.AddShieldDamage
+	damageToShields = GG.Shields.DamageToShields
+	getUnitShieldState = GG.Shields.GetUnitShieldState
+
 	setVelocityControl = GG.SetVelocityControl
 end
 

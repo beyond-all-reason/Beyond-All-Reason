@@ -118,7 +118,12 @@ local function addVolumetricDamage(projectileID)
 end
 
 function gadget:Initialize()
-	addShieldDamage = GG.AddShieldDamage
+	if not GG.Shields then
+		Spring.Log("ScriptedWeapons", LOG.ERROR, "Shields API unavailable")
+		return
+	end
+
+	addShieldDamage = GG.Shields.AddShieldDamage
 end
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
