@@ -55,11 +55,12 @@ if not table.contains({ "unchanged", "absorbeverything" }, Spring.GetModOptions(
 		end
 	end
 
-	GG.AddShieldDamage = addEngineShieldDamage
-	GG.DamageToShields = originalShieldDamages
-	GG.GetUnitShieldPosition = function() end -- parts of the api are not usable
-	GG.GetShieldUnitsInSphere = function() end -- parts of the api are not usable
-	GG.GetUnitShieldState = spGetUnitShieldState
+	GG.Shields = {}
+	GG.Shields.AddShieldDamage = addEngineShieldDamage
+	GG.Shields.DamageToShields = originalShieldDamages
+	GG.Shields.GetUnitShieldPosition = function() end -- parts of the api are not usable
+	GG.Shields.GetShieldUnitsInSphere = function() end -- parts of the api are not usable
+	GG.Shields.GetUnitShieldState = spGetUnitShieldState
 
 	Spring.Log("unit_shield_behaviour", LOG.INFO, ("disabled by setting: %s"):format(Spring.GetModOptions().experimentalshields))
 	return false
@@ -662,11 +663,12 @@ local function getShieldUnitsInSphere(x, y, z, radius, onlyAlive)
 end
 
 function gadget:Initialize()
-	GG.AddShieldDamage = addCustomShieldDamage
-	GG.DamageToShields = originalShieldDamages
-	GG.GetUnitShieldPosition = getUnitShieldPosition
-	GG.GetShieldUnitsInSphere = getShieldUnitsInSphere
-	GG.GetUnitShieldState = getUnitShieldState
+	GG.Shields = {}
+	GG.Shields.AddShieldDamage = addCustomShieldDamage
+	GG.Shields.DamageToShields = originalShieldDamages
+	GG.Shields.GetUnitShieldPosition = getUnitShieldPosition
+	GG.Shields.GetShieldUnitsInSphere = getShieldUnitsInSphere
+	GG.Shields.GetUnitShieldState = getUnitShieldState
 
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		local unitDefID = Spring.GetUnitDefID(unitID)
@@ -676,9 +678,12 @@ function gadget:Initialize()
 end
 
 function gadget:Shutdown()
-	GG.AddShieldDamage = nil
-	GG.DamageToShields = nil
-	GG.GetUnitShieldPosition = nil
-	GG.GetShieldUnitsInSphere = nil
-	GG.GetUnitShieldState = nil
+	if GG.Shields then
+		GG.Shields.AddShieldDamage = nil
+		GG.Shields.DamageToShields = nil
+		GG.Shields.GetUnitShieldPosition = nil
+		GG.Shields.GetShieldUnitsInSphere = nil
+		GG.Shields.GetUnitShieldState = nil
+		GG.Shields = nil
+	end
 end
