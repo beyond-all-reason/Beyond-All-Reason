@@ -590,8 +590,7 @@ local function getUnitShieldState(shieldUnitID)
 	if unitData and unitData.shieldEnabled then
 		local power
 		if spGetUnitIsDead(shieldUnitID) == false then
-			local state;
-			state, power = spGetUnitShieldState(shieldUnitID, unitData.shieldWeaponNumber)
+			_, power = spGetUnitShieldState(shieldUnitID, unitData.shieldWeaponNumber)
 		else
 			power = unitData.power
 		end
