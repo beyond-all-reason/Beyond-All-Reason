@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		name = "Shield Behaviour",
 		desc = "Overrides default shield engine behavior.",
 		author = "SethDGamre",
-		layer = -1, -- provides GG.Shields interface for scripted weapon types
+		layer = -10, -- provides GG.Shields interface for scripted weapon types
 		enabled = true,
 	}
 end
