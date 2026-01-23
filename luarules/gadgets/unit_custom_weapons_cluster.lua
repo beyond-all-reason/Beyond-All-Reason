@@ -545,9 +545,11 @@ function gadget:Initialize()
 
 	-- Metatable for lookup on projectiles, rather than on our weaponDefIDs.
 	-- This is likely cheaper than keeping a projectiles cache table around.
-	local projectiles = setmetatable({}, {
-		__index = function (self, projectileID)
-			return projectileID >= 0 and clusterWeaponDefs[spGetProjectileDefID(projectileID)]
+	local projectiles = setmetatable({
+		[-1] = false, -- beam weapons use projectileID -1
+	}, {
+		__index = function (table, key)
+			return clusterWeaponDefs[spGetProjectileDefID(key)]
 		end
 	})
 
