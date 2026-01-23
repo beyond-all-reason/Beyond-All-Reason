@@ -661,13 +661,13 @@ local function getShieldUnitsInSphere(x, y, z, radius, onlyAlive)
 	return units, count
 end
 
-GG.AddShieldDamage = addCustomShieldDamage
-GG.DamageToShields = originalShieldDamages
-GG.GetUnitShieldPosition = getUnitShieldPosition
-GG.GetShieldUnitsInSphere = getShieldUnitsInSphere
-GG.GetUnitShieldState = getUnitShieldState
-
 function gadget:Initialize()
+	GG.AddShieldDamage = addCustomShieldDamage
+	GG.DamageToShields = originalShieldDamages
+	GG.GetUnitShieldPosition = getUnitShieldPosition
+	GG.GetShieldUnitsInSphere = getShieldUnitsInSphere
+	GG.GetUnitShieldState = getUnitShieldState
+
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		local unitDefID = Spring.GetUnitDefID(unitID)
 		local unitTeam = Spring.GetUnitTeam(unitID)
