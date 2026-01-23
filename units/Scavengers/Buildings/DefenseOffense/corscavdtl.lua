@@ -46,11 +46,11 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
+			decoy_when_closed = true,
 			--subfolder = "other/Scavengers",
 		},
 		featuredefs = {
 			dead = {
-				autoreclaimable = 0,
 				blocking = true,
 				category = "corpses",
 				collisionvolumeoffsets = "0.0 2.37060546837e-06 -0.0625",

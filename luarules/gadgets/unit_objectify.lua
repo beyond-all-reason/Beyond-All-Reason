@@ -42,9 +42,9 @@ local canRepair = {}
 local unitSize = {}
 
 for udefID,def in ipairs(UnitDefs) do
-    if def.customParams.objectify then
-        isObject[udefID] = true
-    end
+    -- if def.customParams.objectify then
+    --     isObject[udefID] = true
+    -- end
     if def.customParams.decoration then
         isDecoration[udefID] = true
     end
