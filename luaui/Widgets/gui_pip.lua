@@ -56,6 +56,7 @@ local config = {
 	showLosOverlay = true,
 	losOverlayOpacity = 0.6,
 	showPipFps = false,
+	allowCommandsWhenSpectating = false,  -- Allow giving commands as spectator when god mode is enabled
 
 	-- Rendering settings
 	iconRadius = 40,
@@ -171,6 +172,8 @@ local pipR2T = {
 	losLastUpdateTime = 0,
 	losUpdateRate = 0.4,  -- Update every 0.4 seconds
 	losTexScale = 96,  -- 96:1 ratio of map size to LOS texture size
+	losLastMode = nil,  -- Track whether last update used engine or manual LOS
+	losEngineDelayFrames = 0,  -- Delay frames before switching to engine LOS to let it update
 }
 render.minModeDlist = nil  -- Display list for minimized mode button
 
@@ -3486,6 +3489,7 @@ function widget:GetConfigData()
 		radarWobbleSpeed=config.radarWobbleSpeed,
 		losViewEnabled=state.losViewEnabled,
 		losViewAllyTeam=state.losViewAllyTeam,
+		gameID = Game.gameID or Spring.GetGameRulesParam("GameID"),
 	}
 end
 
@@ -4273,7 +4277,7 @@ end
 					glFunc.Texture(false)
 				else
 					-- Default icon - draw circle glow
-					local defaultIconSize = iconRadius * 0.5 * zoom * distMult
+					local defaultIconSize = config.iconRadius * 0.5 * cameraState.zoom * distMult
 					local glowSize = defaultIconSize * 1.4
 					glFunc.Texture('LuaUI/Images/pip/PipBlip.png')
 					glFunc.BeginEnd(glConst.QUADS, function()
@@ -4350,7 +4354,7 @@ end
 	-- Draw default icons (fallback radar blip texture for unknown unit types)
 	if defaultCount > 0 then
 		glFunc.Texture('LuaUI/Images/pip/PipBlip.png')
-		local defaultIconSize = iconRadius * 0.5 * zoom * distMult
+		local defaultIconSize = config.iconRadius * 0.5 * cameraState.zoom * distMult
 		glFunc.BeginEnd(glConst.QUADS, function()
 			for j = 1, defaultCount do
 				local i = defaultIconIndices[j]
@@ -4888,7 +4892,15 @@ local function ShouldShowLOS()
 
 	-- If LOS view is manually enabled via button, use the locked allyteam (after checking player tracking)
 	if state.losViewEnabled and state.losViewAllyTeam then
-		return true, state.losViewAllyTeam
+		-- Verify we can actually view this ally team's LOS
+		-- Spectators with fullview can see any ally team, otherwise only current ally team
+		if fullview or state.losViewAllyTeam == myAllyTeam then
+			return true, state.losViewAllyTeam
+		else
+			-- Can't view this ally team anymore, disable LOS view
+			state.losViewEnabled = false
+			state.losViewAllyTeam = nil
+		end
 	end
 
 	-- If not a spectator, show LOS for our own allyteam
@@ -5630,9 +5642,26 @@ local function UpdateLOSTexture(currentTime)
 	local myAllyTeam = Spring.GetMyAllyTeamID()
 	local useEngineLOS = (losAllyTeam == myAllyTeam)  -- Can use engine LOS if same allyteam
 
+	-- Handle delay when switching to engine LOS
+	local actualUseEngineLOS = useEngineLOS
+	if useEngineLOS then
+		-- Check if we're in the delay period after mode change
+		local modeChanged = (pipR2T.losLastMode ~= nil and pipR2T.losLastMode ~= useEngineLOS)
+		if modeChanged then
+			pipR2T.losEngineDelayFrames = 2
+		end
+
+		if pipR2T.losEngineDelayFrames > 0 then
+			pipR2T.losEngineDelayFrames = pipR2T.losEngineDelayFrames - 1
+			-- Continue using manual LOS during delay to avoid visual gap
+			actualUseEngineLOS = false
+		end
+	end
+	pipR2T.losLastMode = useEngineLOS
+
 	-- Check if update is needed based on update rate
 	local shouldUpdate
-	if useEngineLOS then
+	if actualUseEngineLOS then
 		-- Always update when using engine LOS (it's cheap and real-time)
 		shouldUpdate = true
 	else
@@ -5654,10 +5683,13 @@ local function UpdateLOSTexture(currentTime)
 	local losTexHeight = math.max(1, math.floor(mapInfo.mapSizeZ / pipR2T.losTexScale))
 
 	-- Render the LOS texture
-	if losShader then
-		gl.R2tHelper.RenderToTexture(pipR2T.losTex, function()
-			if useEngineLOS then
-				-- Use engine's LOS texture (fast, real-time)
+	gl.R2tHelper.RenderToTexture(pipR2T.losTex, function()
+		if actualUseEngineLOS then
+			-- Use engine's LOS texture (fast, real-time)
+			-- Requires shader to convert red channel to greyscale
+			if not losShader then
+				return
+			end
 				glFunc.Texture(0, '$info:los')
 
 				-- Activate shader to convert red channel to greyscale
@@ -5676,11 +5708,15 @@ local function UpdateLOSTexture(currentTime)
 			else
 				-- Manually generate LOS texture using Spring.IsPosInLos (expensive)
 				-- Clear to base darkness (no LOS)
-			local baseBrightness = 1.0 - config.losOverlayOpacity
-			gl.Clear(GL.COLOR_BUFFER_BIT, baseBrightness, baseBrightness, baseBrightness, 1)
+				local baseBrightness = 1.0 - config.losOverlayOpacity
+				gl.Clear(GL.COLOR_BUFFER_BIT, baseBrightness, baseBrightness, baseBrightness, 1)
 
-			local cellSizeX = mapInfo.mapSizeX / losTexWidth
-			local cellSizeZ = mapInfo.mapSizeZ / losTexHeight
+				local cellSizeX = mapInfo.mapSizeX / losTexWidth
+				local cellSizeZ = mapInfo.mapSizeZ / losTexHeight
+
+				-- Set color to white for LOS areas
+				glFunc.Color(1, 1, 1, 1)
+
 				glFunc.BeginEnd(glConst.QUADS, function()
 					for y = 0, losTexHeight - 1 do
 						for x = 0, losTexWidth - 1 do
@@ -5707,7 +5743,6 @@ local function UpdateLOSTexture(currentTime)
 				gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 			end
 		end, true)
-	end
 
 	pipR2T.losLastUpdateTime = currentTime
 	pipR2T.losNeedsUpdate = false
@@ -5807,39 +5842,44 @@ local function HandleHoverAndCursor(mx, my)
 	end
 
 	-- Handle cursor - this runs every frame for smooth cursor updates
-	local _, activeCmdID = Spring.GetActiveCommand()
-	if not activeCmdID then
-		local defaultCmd = Spring.GetDefaultCommand()
+	-- Don't change cursor for spectators (unless config allows it)
+	local isSpec = Spring.GetSpectatingState()
+	local canGiveCommands = not isSpec or config.allowCommandsWhenSpectating
+	if canGiveCommands then
+		local _, activeCmdID = Spring.GetActiveCommand()
+		if not activeCmdID then
+			local defaultCmd = Spring.GetDefaultCommand()
 
-		if not defaultCmd or defaultCmd == 0 then
-			local selectedUnits = Spring.GetSelectedUnits()
-			if selectedUnits and #selectedUnits > 0 then
-				-- Check if we have a transport and are hovering over a transportable unit
-				-- Use cached result from throttled check above
-				if lastHoveredUnitID and Spring.IsUnitAllied(lastHoveredUnitID) then
-					-- Check if any transport in selection can load this unit
+			if not defaultCmd or defaultCmd == 0 then
+				local selectedUnits = Spring.GetSelectedUnits()
+				if selectedUnits and #selectedUnits > 0 then
+					-- Check if we have a transport and are hovering over a transportable unit
+					-- Use cached result from throttled check above
+					if lastHoveredUnitID and Spring.IsUnitAllied(lastHoveredUnitID) then
+						-- Check if any transport in selection can load this unit
+						for i = 1, #selectedUnits do
+							if CanTransportLoadUnit(selectedUnits[i], lastHoveredUnitID) then
+								Spring.SetMouseCursor('Load')
+								return
+							end
+						end
+					end
+
+					-- Default to Move cursor if units can move (using cache)
 					for i = 1, #selectedUnits do
-						if CanTransportLoadUnit(selectedUnits[i], lastHoveredUnitID) then
-							Spring.SetMouseCursor('Load')
+						local uDefID = Spring.GetUnitDefID(selectedUnits[i])
+						if uDefID and (cache.canMove[uDefID] or cache.canFly[uDefID]) then
+							Spring.SetMouseCursor('Move')
 							return
 						end
 					end
 				end
-
-				-- Default to Move cursor if units can move (using cache)
-				for i = 1, #selectedUnits do
-					local uDefID = Spring.GetUnitDefID(selectedUnits[i])
-					if uDefID and (cache.canMove[uDefID] or cache.canFly[uDefID]) then
-						Spring.SetMouseCursor('Move')
-						return
-					end
-				end
 			end
-		end
-	else
-		local cursorName = cmdCursors[activeCmdID]
-		if cursorName then
-			Spring.SetMouseCursor(cursorName)
+		else
+			local cursorName = cmdCursors[activeCmdID]
+			if cursorName then
+				Spring.SetMouseCursor(cursorName)
+			end
 		end
 	end
 end
@@ -6612,13 +6652,17 @@ function widget:Update(dt)
 	end
 
 	if not gameHasStarted then
-		local newX, _, newZ = Spring.GetTeamStartPosition(Spring.GetMyTeamID())
-		if newX ~= miscState.startX then
-			miscState.startX, miscState.startZ = newX, newZ
-			cameraState.wcx, cameraState.wcz = miscState.startX, miscState.startZ
-			cameraState.targetWcx, cameraState.targetWcz = cameraState.wcx, cameraState.wcz  -- Set targets instantly for start position
-			RecalculateWorldCoordinates()
-			RecalculateGroundTextureCoordinates()
+		-- Only auto-focus on start position if not spectating or not tracking another player
+		local isSpec = Spring.GetSpectatingState()
+		if not isSpec and not interactionState.trackingPlayerID then
+			local newX, _, newZ = Spring.GetTeamStartPosition(Spring.GetMyTeamID())
+			if newX ~= miscState.startX then
+				miscState.startX, miscState.startZ = newX, newZ
+				cameraState.wcx, cameraState.wcz = miscState.startX, miscState.startZ
+				cameraState.targetWcx, cameraState.targetWcz = cameraState.wcx, cameraState.wcz  -- Set targets instantly for start position
+				RecalculateWorldCoordinates()
+				RecalculateGroundTextureCoordinates()
+			end
 		end
 	end
 
@@ -7428,11 +7472,16 @@ function widget:MousePress(mx, my, mButton)
 						                      cmdID == CMD.RESURRECT or cmdID == CMD.CAPTURE or cmdID == CMD.RESTORE or
 						                      cmdID == CMD.LOAD_UNITS or (setTargetCmd and cmdID == setTargetCmd))
 						if supportsArea then
-							-- Start area command drag
-							interactionState.areAreaDragging = true
-							interactionState.areaCommandStartX = mx
-							interactionState.areaCommandStartY = my
-							return true
+							-- Don't allow area commands as spectator (unless config allows it)
+							local isSpec = Spring.GetSpectatingState()
+							local canGiveCommands = not isSpec or config.allowCommandsWhenSpectating
+							if canGiveCommands then
+								-- Start area command drag
+								interactionState.areAreaDragging = true
+								interactionState.areaCommandStartX = mx
+								interactionState.areaCommandStartY = my
+								return true
+							end
 						else
 							-- Single command (no area support)
 							IssueCommandAtPoint(cmdID, wx, wz, false, false)
@@ -7547,13 +7596,18 @@ function widget:MousePress(mx, my, mButton)
 							end
 
 							if canLoadTarget then
-								-- Start area LOAD_UNITS drag instead of formation
-								interactionState.areAreaDragging = true
-								interactionState.areaCommandStartX = mx
-								interactionState.areaCommandStartY = my
-								-- Temporarily set LOAD_UNITS as active command for area drag
-								Spring.SetActiveCommand(Spring.GetCmdDescIndex(CMD.LOAD_UNITS))
-								return true
+								-- Don't allow area LOAD_UNITS as spectator (unless config allows it)
+								local isSpec = Spring.GetSpectatingState()
+								local canGiveCommands = not isSpec or config.allowCommandsWhenSpectating
+								if canGiveCommands then
+									-- Start area LOAD_UNITS drag instead of formation
+									interactionState.areAreaDragging = true
+									interactionState.areaCommandStartX = mx
+									interactionState.areaCommandStartY = my
+									-- Temporarily set LOAD_UNITS as active command for area drag
+									Spring.SetActiveCommand(Spring.GetCmdDescIndex(CMD.LOAD_UNITS))
+									return true
+								end
 							else
 								cmdID = CMD.GUARD
 								overrideTarget = uID
@@ -7580,20 +7634,25 @@ function widget:MousePress(mx, my, mButton)
 				end
 
 				if actualCmd then
-					-- Start formation with world position
-					-- Note: third parameter is fromMinimap, not shift behavior
-					-- Check if we should queue commands (only for single unit)
-					local selectedUnits = Spring.GetSelectedUnits()
-					local shouldQueue = selectedUnits and #selectedUnits == 1
+					-- Don't allow formation dragging as spectator (unless config allows it)
+					local isSpec = Spring.GetSpectatingState()
+					local canGiveCommands = not isSpec or config.allowCommandsWhenSpectating
+					if canGiveCommands then
+						-- Start formation with world position
+						-- Note: third parameter is fromMinimap, not shift behavior
+						-- Check if we should queue commands (only for single unit)
+						local selectedUnits = Spring.GetSelectedUnits()
+						local shouldQueue = selectedUnits and #selectedUnits == 1
 
-					-- Don't set pipForceShift yet - first command should replace, not queue
-					-- We'll set it after the first node is added (in MouseMove)
-					if WG.customformations.StartFormation({wx, wy, wz}, actualCmd, false) then
-						interactionState.areFormationDragging = true
-						interactionState.formationDragStartX = mx
-						interactionState.formationDragStartY = my
-						interactionState.formationDragShouldQueue = shouldQueue
-						return true
+						-- Don't set pipForceShift yet - first command should replace, not queue
+						-- We'll set it after the first node is added (in MouseMove)
+						if WG.customformations.StartFormation({wx, wy, wz}, actualCmd, false) then
+							interactionState.areFormationDragging = true
+							interactionState.formationDragStartX = mx
+							interactionState.formationDragStartY = my
+							interactionState.formationDragShouldQueue = shouldQueue
+							return true
+						end
 					end
 				end
 			end
