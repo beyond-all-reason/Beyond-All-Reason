@@ -497,6 +497,31 @@ end
 --------------------------------------------------------------------------------
 -- Gadget callins --------------------------------------------------------------
 
+function gadget:Explosion(weaponDefID, x, y, z, attackerID, projectileID)
+	local weaponData = clusterWeaponDefs[weaponDefID]
+	if weaponData then
+		spawnClusterProjectiles(weaponData, x, y, z, attackerID, projectileID)
+	end
+end
+
+function gadget:GameFramePost(frame)
+	local phs = projectileHitShield
+	for projectileID in pairs(phs) do
+		phs[projectileID] = nil
+	end
+end
+
+local function _ShieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, shieldUnitID, bounceProjectile, beamWeaponIndex, beamUnitID, startX, startY, startZ, hitX, hitY, hitZ)
+	if projectileID > -1 and clusterWeaponDefs[spGetProjectileDefID(projectileID)] then
+		local hitShields = projectileHitShield[projectileID]
+		if hitShields then
+			hitShields[#hitShields + 1] = shieldUnitID
+		else
+			projectileHitShield[projectileID] = { shieldUnitID }
+		end
+	end
+end
+
 function gadget:Initialize()
 	if not next(clusterWeaponDefs) then
 		Spring.Log(gadget:GetInfo().name, LOG.INFO, "Removing gadget. No weapons found.")
@@ -517,29 +542,14 @@ function gadget:Initialize()
 	damageToShields = GG.Shields.DamageToShields
 	getShieldPosition = GG.Shields.GetUnitShieldPosition
 	getShieldUnitsInSphere = GG.Shields.GetShieldUnitsInSphere
-end
 
-function gadget:Explosion(weaponDefID, x, y, z, attackerID, projectileID)
-	local weaponData = clusterWeaponDefs[weaponDefID]
-	if weaponData then
-		spawnClusterProjectiles(weaponData, x, y, z, attackerID, projectileID)
-	end
-end
-
-function gadget:GameFramePost(frame)
-	local phs = projectileHitShield
-	for projectileID in pairs(phs) do
-		phs[projectileID] = nil
-	end
-end
-
-function gadget:ShieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, shieldUnitID, bounceProjectile, beamWeaponIndex, beamUnitID, startX, startY, startZ, hitX, hitY, hitZ)
-	if projectileID > -1 and clusterWeaponDefs[spGetProjectileDefID(projectileID)] then
-		local hitShields = projectileHitShield[projectileID]
-		if hitShields then
-			hitShields[#hitShields + 1] = shieldUnitID
-		else
-			projectileHitShield[projectileID] = { shieldUnitID }
+	-- Metatable for lookup on projectiles, rather than on our weaponDefIDs.
+	-- This is likely cheaper than keeping a projectiles cache table around.
+	local projectiles = setmetatable({}, {
+		__index = function (self, projectileID)
+			return projectileID >= 0 and clusterWeaponDefs[spGetProjectileDefID(projectileID)]
 		end
-	end
+	})
+
+	GG.Shields.RegisterShieldPreDamaged(projectiles, _ShieldPreDamaged)
 end

@@ -81,7 +81,6 @@ local spGetUnitHealth          = Spring.GetUnitHealth
 local spGetUnitIsDead          = Spring.GetUnitIsDead
 local spGetUnitPosition        = Spring.GetUnitPosition
 local spGetUnitRadius          = Spring.GetUnitRadius
-local spGetUnitShieldState     = Spring.GetUnitShieldState
 local spGetWaterLevel          = Spring.GetWaterLevel
 
 local spSetFeatureHealth       = Spring.SetFeatureHealth
@@ -326,42 +325,6 @@ end
 --------------------------------------------------------------------------------
 -- Gadget call-ins -------------------------------------------------------------
 
--- Overpen code has two competing dependencies on unit_shield_behavior.
-local function _InitializeDelayed()
-	if not GG.Shields then
-		Spring.Log("ScriptedWeapons", LOG.ERROR, "Shields API unavailable (overpen)")
-		return
-	end
-
-	addShieldDamage = GG.Shields.AddShieldDamage
-	damageToShields = GG.Shields.DamageToShields
-	getUnitShieldState = GG.Shields.GetUnitShieldState
-
-	setVelocityControl = GG.SetVelocityControl -- along for the ride
-end
-
-function gadget:Initialize()
-	if not loadPenetratorWeaponDefs() then
-		Spring.Log(gadget:GetInfo().name, LOG.INFO, "No weapons with over-penetration found. Removing.")
-		gadgetHandler:RemoveGadget(self)
-		return
-	end
-
-	for weaponDefID, params in pairs(weaponParams) do
-		Script.SetWatchProjectile(weaponDefID, true)
-	end
-
-	for unitDefID, unitDef in ipairs(UnitDefs) do
-		unitArmorType[unitDefID] = unitDef.armorType
-	end
-end
-
-function gadget:GameFrame(frame)
-	_InitializeDelayed()
-	gadget.GameFrame = nil
-	gadgetHandler:UpdateCallIn("GameFrame")
-end
-
 local function _GameFramePost(collisionList)
 	for projectileID, penetrator in pairs(collisionList) do
 		collisionList[projectileID] = nil
@@ -497,7 +460,7 @@ function gadget:FeaturePreDamaged(featureID, featureDefID, featureTeam, damage, 
 	end
 end
 
-function gadget:ShieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, shieldUnitID, bounceProjectile, beamWeaponIndex, beamUnitID, startX, startY, startZ, hitX, hitY, hitZ)
+local function _ShieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, shieldUnitID, bounceProjectile, beamWeaponIndex, beamUnitID, startX, startY, startZ, hitX, hitY, hitZ)
 	if not spValidUnitID(shieldUnitID) then
 		return
 	end
@@ -523,4 +486,32 @@ function gadget:ShieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, sh
 	projectileHits[projectileID] = penetrator
 
 	return true
+end
+
+function gadget:Initialize()
+	if not loadPenetratorWeaponDefs() then
+		Spring.Log(gadget:GetInfo().name, LOG.INFO, "No weapons with over-penetration found. Removing.")
+		gadgetHandler:RemoveGadget(self)
+		return
+	end
+
+	for weaponDefID, params in pairs(weaponParams) do
+		Script.SetWatchProjectile(weaponDefID, true)
+	end
+
+	for unitDefID, unitDef in ipairs(UnitDefs) do
+		unitArmorType[unitDefID] = unitDef.armorType
+	end
+
+	setVelocityControl = GG.SetVelocityControl -- along for the ride
+
+	if not GG.Shields then
+		Spring.Log("ScriptedWeapons", LOG.ERROR, "Shields API unavailable (overpen)")
+		return
+	end
+
+	addShieldDamage = GG.Shields.AddShieldDamage
+	damageToShields = GG.Shields.DamageToShields
+	getUnitShieldState = GG.Shields.GetUnitShieldState
+	GG.Shields.RegisterShieldPreDamaged(projectiles, _ShieldPreDamaged)
 end

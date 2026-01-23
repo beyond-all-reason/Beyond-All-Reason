@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		name = "Shield Behaviour",
 		desc = "Overrides default shield engine behavior.",
 		author = "SethDGamre",
-		layer = 1,
+		layer = -1, -- provides GG.Shields interface for scripted weapon types
 		enabled = true,
 	}
 end
@@ -25,6 +25,7 @@ local SHIELDSTATE_ENABLED = 1
 local armorTypeShields = Game.armorTypes.shields
 
 local originalShieldDamages = table.new(#WeaponDefs, 1) -- [0] goes into hash part
+local scriptedShieldDamages = {}
 
 -- Some modoptions require engine shield behaviors (namely their bounce/repulsion effects):
 
@@ -57,15 +58,38 @@ if not table.contains({ "unchanged", "absorbeverything" }, Spring.GetModOptions(
 		end
 	end
 
-	GG.Shields = {}
-	GG.Shields.AddShieldDamage = addEngineShieldDamage
-	GG.Shields.DamageToShields = originalShieldDamages
-	GG.Shields.GetUnitShieldPosition = function() end -- TODO: parts of the api are not usable (nor needed)
-	GG.Shields.GetShieldUnitsInSphere = function() end -- TODO: parts of the api are not usable (nor needed)
-	GG.Shields.GetUnitShieldState = spGetUnitShieldState
+	local function _ShieldPreDamaged(self, projectileID, attackerID, shieldWeaponIndex, shieldUnitID, bounceProjectile, beamWeaponIndex, beamUnitID, startX, startY, startZ, hitX, hitY, hitZ)
+		for lookup, callback in pairs(scriptedShieldDamages) do
+			if lookup[projectileID] then
+				if callback(projectileID, attackerID, shieldWeaponIndex, shieldUnitID, bounceProjectile, beamWeaponIndex, beamUnitID, startX, startY, startZ, hitX, hitY, hitZ) then
+					return true
+				end
+			end
+		end
+	end
 
-	Spring.Log("unit_shield_behaviour", LOG.INFO, ("disabled by setting: %s"):format(Spring.GetModOptions().experimentalshields))
-	return false
+	---Add a scripted weapon type to be handled by the shield behaviour gadget.
+	---@param projectileTbl table [projectileID] := true
+	---@param callback function accepting the ShieldPreDamaged args (excluding self-ref), returning `true` when consuming the event
+	local function registerShieldPreDamaged(projectileTbl, callback)
+		if not next(scriptedShieldDamages) then
+			gadget.ShieldPreDamaged = _ShieldPreDamaged
+			gadgetHandler:UpdateCallIn("ShieldPreDamaged")
+		end
+		scriptedShieldDamages[projectileTbl] = callback
+	end
+
+	function gadget:Initialize()
+		GG.Shields = {}
+		GG.Shields.AddShieldDamage = addEngineShieldDamage
+		GG.Shields.DamageToShields = originalShieldDamages
+		GG.Shields.GetUnitShieldPosition = function() end -- TODO: parts of the api are not usable (nor needed)
+		GG.Shields.GetShieldUnitsInSphere = function() end -- TODO: parts of the api are not usable (nor needed)
+		GG.Shields.GetUnitShieldState = spGetUnitShieldState
+		GG.Shields.RegisterShieldPreDamaged = registerShieldPreDamaged
+	end
+
+	return -- do not load custom shields gadget
 end
 
 -- Otherwise, this gadget overrides all shield behaviors with game-side shields:
@@ -517,6 +541,15 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
 		return true
 	end
 
+	-- Process scripted weapon types first (dgun, cluster, overpen, area timed). These can override any behaviors, potentially.
+	for lookup, callback in pairs(scriptedShieldDamages) do
+		if lookup[proID] then -- TODO: filtering for beam weapons (projectileID == 1) is not especially effective here.
+			if callback(proID, proOwnerID, shieldWeaponNum, shieldUnitID, bounceProjectile, beamEmitterWeaponNum, beamEmitterUnitID, startX, startY, startZ, hitX, hitY, hitZ) then
+				return true
+			end
+		end
+	end
+
 	-- proID isn't nil if hitscan weapons are used, it's actually -1.
 	if proID > -1 then
 		weaponDefID = projectileDefIDCache[proID] or spGetProjectileDefID(proID)
@@ -666,6 +699,13 @@ local function getShieldUnitsInSphere(x, y, z, radius, onlyAlive)
 	return units, count
 end
 
+---Add a scripted weapon type to be handled by the shield behaviour gadget.
+---@param projectileTbl table [projectileID] := true
+---@param callback function accepting the ShieldPreDamaged args (excluding self-ref), returning `true` when consuming the event
+local function registerShieldPreDamaged(projectileTbl, callback)
+	scriptedShieldDamages[projectileTbl] = callback
+end
+
 function gadget:Initialize()
 	GG.Shields = {}
 	GG.Shields.AddShieldDamage = addCustomShieldDamage
@@ -673,6 +713,7 @@ function gadget:Initialize()
 	GG.Shields.GetUnitShieldPosition = getUnitShieldPosition
 	GG.Shields.GetShieldUnitsInSphere = getShieldUnitsInSphere
 	GG.Shields.GetUnitShieldState = getUnitShieldState
+	GG.Shields.RegisterShieldPreDamaged = registerShieldPreDamaged
 
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		local unitDefID = Spring.GetUnitDefID(unitID)
@@ -688,6 +729,7 @@ function gadget:Shutdown()
 		GG.Shields.GetUnitShieldPosition = nil
 		GG.Shields.GetShieldUnitsInSphere = nil
 		GG.Shields.GetUnitShieldState = nil
+		GG.Shields.RegisterShieldPreDamaged = nil
 		GG.Shields = nil
 	end
 end

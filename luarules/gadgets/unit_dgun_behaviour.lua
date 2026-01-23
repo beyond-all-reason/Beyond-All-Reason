@@ -117,16 +117,6 @@ local function addVolumetricDamage(projectileID)
 	spSpawnExplosion(x, y, z, 0, 0, 0, explosionParame)
 end
 
--- DGun code has two competing dependencies on unit_shield_behavior.
-local function _InitializeDelayed()
-	if not GG.Shields then
-		Spring.Log("ScriptedWeapons", LOG.ERROR, "Shields API unavailable (dgun)")
-		return
-	end
-
-	addShieldDamage = GG.Shields.AddShieldDamage
-end
-
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 	if dgunDef[weaponDefID] then
 		dgunData[proID] = { proOwnerID = proOwnerID, weaponDefID = weaponDefID }
@@ -143,7 +133,7 @@ function gadget:ProjectileDestroyed(proID)
 	dgunData[proID] = nil
 end
 
-local function _GameFrame(self, frame)
+function gadget:GameFrame(frame)
 	for proID in pairsNext, flyingDGuns do
 		-- Fireball is hitscan while in flight, engine only applies AoE damage after hitting the ground,
 		-- so we need to add the AoE damage manually for flying projectiles
@@ -190,14 +180,6 @@ local function _GameFrame(self, frame)
 	end
 end
 
-function gadget:GameFrame(frame)
-	-- Run initialization late, and once, to resolve conflicting load order.
-	_InitializeDelayed()
-	_GameFrame(gadget, frame)
-	gadget.GameFrame = _GameFrame
-	gadgetHandler:UpdateCallIn("GameFrame")
-end
-
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID,
 							   attackerDefID, attackerTeam)
 	if dgunDef[weaponDefID] and isCommander[attackerDefID] and (isCommander[unitDefID] or isDecoyCommander[unitDefID]) then
@@ -215,8 +197,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 	return damage
 end
 
-function gadget:ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shieldCarrierUnitID, bounceProjectile,
-								 beamEmitterWeaponNum, beamEmitterUnitID, startX, startY, startZ, hitX, hitY, hitZ)
+local function _ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shieldCarrierUnitID, bounceProjectile, beamEmitterWeaponNum, beamEmitterUnitID, startX, startY, startZ, hitX, hitY, hitZ)
 	if proID > -1 and dgunData[proID] then
 		local proData = dgunData[proID]
 		local weaponDefID = proData.weaponDefID
@@ -239,4 +220,14 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shie
 
 		return true
 	end
+end
+
+function gadget:Initialize()
+	if not GG.Shields then
+		Spring.Log("ScriptedWeapons", LOG.ERROR, "Shields API unavailable (dgun)")
+		return
+	end
+
+	addShieldDamage = GG.Shields.AddShieldDamage
+	GG.Shields.RegisterShieldPreDamaged(dgunData, _ShieldPreDamaged)
 end
