@@ -273,6 +273,6 @@ function gadget:Initialize()
 	GG.SetVelocityControl = setVelocityControl
 end
 
-function gadget:ShutDown()
+function gadget:Shutdown()
 	GG.SetVelocityControl = nil
 end
