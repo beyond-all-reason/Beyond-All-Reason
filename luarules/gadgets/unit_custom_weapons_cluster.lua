@@ -548,7 +548,7 @@ function gadget:Initialize()
 	local projectiles = setmetatable({
 		[-1] = false, -- beam weapons use projectileID -1
 	}, {
-		__index = function (table, key)
+		__index = function(tbl, key)
 			return clusterWeaponDefs[spGetProjectileDefID(key)]
 		end
 	})
