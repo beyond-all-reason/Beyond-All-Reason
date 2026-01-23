@@ -117,7 +117,8 @@ local function addVolumetricDamage(projectileID)
 	spSpawnExplosion(x, y, z, 0, 0, 0, explosionParame)
 end
 
-function gadget:Initialize()
+-- DGun code has two competing dependencies on unit_shield_behavior.
+local function _InitializeDelayed()
 	if not GG.Shields then
 		Spring.Log("ScriptedWeapons", LOG.ERROR, "Shields API unavailable (dgun)")
 		return
@@ -142,7 +143,7 @@ function gadget:ProjectileDestroyed(proID)
 	dgunData[proID] = nil
 end
 
-function gadget:GameFrame(frame)
+local function _GameFrame(frame)
 	for proID in pairsNext, flyingDGuns do
 		-- Fireball is hitscan while in flight, engine only applies AoE damage after hitting the ground,
 		-- so we need to add the AoE damage manually for flying projectiles
@@ -187,6 +188,14 @@ function gadget:GameFrame(frame)
 			dgunTimeouts[proID] = nil
 		end
 	end
+end
+
+function gadget:GameFrame(frame)
+	-- Run initialization late, and once, to resolve conflicting load order.
+	_InitializeDelayed()
+	_GameFrame(frame)
+	gadget.GameFrame = _GameFrame
+	gadgetHandler:UpdateCallIn("GameFrame")
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID,

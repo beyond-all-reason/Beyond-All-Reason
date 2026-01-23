@@ -326,6 +326,20 @@ end
 --------------------------------------------------------------------------------
 -- Gadget call-ins -------------------------------------------------------------
 
+-- Overpen code has two competing dependencies on unit_shield_behavior.
+local function _InitializeDelayed()
+	if not GG.Shields then
+		Spring.Log("ScriptedWeapons", LOG.ERROR, "Shields API unavailable (overpen)")
+		return
+	end
+
+	addShieldDamage = GG.Shields.AddShieldDamage
+	damageToShields = GG.Shields.DamageToShields
+	getUnitShieldState = GG.Shields.GetUnitShieldState
+
+	setVelocityControl = GG.SetVelocityControl -- along for the ride
+end
+
 function gadget:Initialize()
 	if not loadPenetratorWeaponDefs() then
 		Spring.Log(gadget:GetInfo().name, LOG.INFO, "No weapons with over-penetration found. Removing.")
@@ -340,17 +354,12 @@ function gadget:Initialize()
 	for unitDefID, unitDef in ipairs(UnitDefs) do
 		unitArmorType[unitDefID] = unitDef.armorType
 	end
+end
 
-	if not GG.Shields then
-		Spring.Log("ScriptedWeapons", LOG.ERROR, "Shields API unavailable (overpen)")
-		return
-	end
-
-	addShieldDamage = GG.Shields.AddShieldDamage
-	damageToShields = GG.Shields.DamageToShields
-	getUnitShieldState = GG.Shields.GetUnitShieldState
-
-	setVelocityControl = GG.SetVelocityControl
+function gadget:GameFrame(frame)
+	_InitializeDelayed()
+	gadget.GameFrame = nil
+	gadgetHandler:UpdateCallIn("GameFrame")
 end
 
 local function _GameFramePost(collisionList)
