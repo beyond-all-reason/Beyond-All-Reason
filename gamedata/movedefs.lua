@@ -442,7 +442,7 @@ local moveDatas = {
 		overrideUnitWaterline = false,
 	},
 
-	-- leghive armnanotc cornanotc cornanotcplat
+	-- leghive legfhive armnanotc cornanotc cornanotcplat
 	NANO = {
 		crushstrength = CRUSH.NONE,
 		footprint = 3,
