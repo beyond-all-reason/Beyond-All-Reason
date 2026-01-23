@@ -143,7 +143,7 @@ function gadget:ProjectileDestroyed(proID)
 	dgunData[proID] = nil
 end
 
-local function _GameFrame(frame)
+local function _GameFrame(self, frame)
 	for proID in pairsNext, flyingDGuns do
 		-- Fireball is hitscan while in flight, engine only applies AoE damage after hitting the ground,
 		-- so we need to add the AoE damage manually for flying projectiles
@@ -193,7 +193,7 @@ end
 function gadget:GameFrame(frame)
 	-- Run initialization late, and once, to resolve conflicting load order.
 	_InitializeDelayed()
-	_GameFrame(frame)
+	_GameFrame(gadget, frame)
 	gadget.GameFrame = _GameFrame
 	gadgetHandler:UpdateCallIn("GameFrame")
 end
