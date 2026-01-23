@@ -509,7 +509,7 @@ function gadget:Initialize()
 	end
 
 	if not GG.Shields then
-		Spring.Log("ScriptedWeapons", LOG.ERROR, "Shields API unavailable")
+		Spring.Log("ScriptedWeapons", LOG.ERROR, "Shields API unavailable (cluster)")
 		return
 	end
 
