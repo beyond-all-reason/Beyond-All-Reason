@@ -1,4 +1,4 @@
-VFS.Include('luarules/mission_api/validators.lua')
+VFS.Include('luarules/mission_api/validation.lua')
 
 local actionTypes = {
 	-- Triggers

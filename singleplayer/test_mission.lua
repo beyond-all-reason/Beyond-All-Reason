@@ -76,11 +76,10 @@ local triggers = {
 	--- Triggers only testing validation:
 	----------------------------------------------------------------
 
-	triggerWithNoActions = {
-		type = triggerTypes.TimeElapsed,
-		parameters = {
-			gameFrame = math.maxinteger,
-		},
+	triggerMissingType = {},
+
+	triggerWithInvalidType = {
+		type = 'invalidType',
 	},
 
 	triggerWithInvalidActionID = {

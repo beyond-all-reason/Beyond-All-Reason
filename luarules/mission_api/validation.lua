@@ -1,6 +1,9 @@
+--
+-- Validators for Mission API action and trigger parameters loaded from missions.
+--
 
 local function logError(message)
-	Spring.Log('validators.lua', LOG.ERROR, "[Mission API] " .. message)
+	Spring.Log('validation.lua', LOG.ERROR, "[Mission API] " .. message)
 end
 
 function validateParameters(schemaParameters, actionOrTriggerType, actionOrTriggerParameters, actionOrTrigger, actionOrTriggerID)
