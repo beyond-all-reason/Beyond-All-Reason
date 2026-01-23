@@ -503,11 +503,6 @@ function gadget:Initialize()
 		unitArmorType[unitDefID] = unitDef.armorType
 	end
 
-	if not GG.SetVelocityControl then
-		Spring.Echo("ERROR ERROR ERROR ERROR")
-	else
-		Spring.Echo("No error?", GG.SetVelocityControl)
-	end
 	setVelocityControl = GG.SetVelocityControl
 
 	if not GG.Shields then
