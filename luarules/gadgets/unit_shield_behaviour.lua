@@ -677,6 +677,8 @@ end
 
 function gadget:Shutdown()
 	GG.AddShieldDamage = nil
-	GG.GetUnitShieldState = nil
+	GG.DamageToShields = nil
 	GG.GetUnitShieldPosition = nil
+	GG.GetShieldUnitsInSphere = nil
+	GG.GetUnitShieldState = nil
 end
