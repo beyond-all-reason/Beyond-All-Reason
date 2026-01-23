@@ -26,6 +26,8 @@ local armorTypeShields = Game.armorTypes.shields
 
 local originalShieldDamages = table.new(#WeaponDefs, 1) -- [0] goes into hash part
 
+-- Some modoptions require engine shield behaviors (namely their bounce/repulsion effects):
+
 if not table.contains({ "unchanged", "absorbeverything" }, Spring.GetModOptions().experimentalshields) then
 	for weaponDefID = 0, #WeaponDefs do
 		local weaponDef = WeaponDefs[weaponDefID]
@@ -58,13 +60,15 @@ if not table.contains({ "unchanged", "absorbeverything" }, Spring.GetModOptions(
 	GG.Shields = {}
 	GG.Shields.AddShieldDamage = addEngineShieldDamage
 	GG.Shields.DamageToShields = originalShieldDamages
-	GG.Shields.GetUnitShieldPosition = function() end -- parts of the api are not usable
-	GG.Shields.GetShieldUnitsInSphere = function() end -- parts of the api are not usable
+	GG.Shields.GetUnitShieldPosition = function() end -- TODO: parts of the api are not usable (nor needed)
+	GG.Shields.GetShieldUnitsInSphere = function() end -- TODO: parts of the api are not usable (nor needed)
 	GG.Shields.GetUnitShieldState = spGetUnitShieldState
 
 	Spring.Log("unit_shield_behaviour", LOG.INFO, ("disabled by setting: %s"):format(Spring.GetModOptions().experimentalshields))
 	return false
 end
+
+-- Otherwise, this gadget overrides all shield behaviors with game-side shields:
 
 ---- Optional unit customParams ----
 -- shield_aoe_penetration = bool, if true then AOE damage will hurt units within the shield radius
