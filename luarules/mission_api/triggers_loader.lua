@@ -23,10 +23,6 @@ local parameters = schema.Parameters
 
 local function validateTriggers(triggers, rawActions)
 	for triggerID, trigger in pairs(triggers) do
-		if not trigger.type then
-			Spring.Log('triggers_loader.lua', LOG.ERROR, "[Mission API] Trigger missing type: " .. triggerID)
-		end
-
 		if table.isNilOrEmpty(trigger.actions) then
 			Spring.Log('triggers_loader.lua', LOG.ERROR, "[Mission API] Trigger has no actions: " .. triggerID)
 		else
@@ -37,18 +33,7 @@ local function validateTriggers(triggers, rawActions)
 			end
 		end
 
-		for _, parameter in pairs(parameters[trigger.type]) do
-			local value = trigger.parameters[parameter.name]
-			local type = type(value)
-
-			if value == nil and parameter.required then
-				Spring.Log('triggers_loader.lua', LOG.ERROR, "[Mission API] Trigger missing required parameter. Trigger: " .. triggerID .. ", Parameter: " .. parameter.name)
-			end
-
-			if value ~= nil and type ~= parameter.type then
-				Spring.Log('triggers_loader.lua', LOG.ERROR, "[Mission API] Unexpected parameter type, expected " .. parameter.type .. ", got " .. type .. ". Trigger: " .. triggerID .. ", Parameter: " .. parameter.name)
-			end
-		end
+		validateParameters(parameters, trigger.type, trigger.parameters, 'Trigger', triggerID)
 	end
 end
 

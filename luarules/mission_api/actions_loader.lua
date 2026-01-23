@@ -10,8 +10,7 @@ local parameters = schema.Parameters
 	}
 ]]
 
-local function validateActions(actions)
-
+local function getAllActionIDsReferencedByTriggers()
 	local allActionIDsReferencedByTriggers = {}
 	for _, trigger in pairs(GG['MissionAPI'].Triggers) do
 		if not table.isNilOrEmpty(trigger.actions) then
@@ -20,37 +19,18 @@ local function validateActions(actions)
 			end
 		end
 	end
+	return allActionIDsReferencedByTriggers
+end
+
+local function validateActions(actions)
+	local allActionIDsReferencedByTriggers = getAllActionIDsReferencedByTriggers()
 
 	for actionID, action in pairs(actions) do
 		if not allActionIDsReferencedByTriggers[actionID] then
 			Spring.Log('actions_loader.lua', LOG.WARNING, "[Mission API] Action not referenced by any trigger: " .. actionID)
 		end
 
-		if not action.type then
-			Spring.Log('actions_loader.lua', LOG.ERROR, "[Mission API] Action missing type: " .. actionID)
-		end
-
-		for _, parameter in pairs(parameters[action.type]) do
-			local value = action.parameters[parameter.name]
-
-			if value == nil and parameter.required then
-				Spring.Log('actions_loader.lua', LOG.ERROR, "[Mission API] Action missing required parameter. Action: " ..actionID .. ", Parameter: " .. parameter.name)
-			end
-
-			if value ~= nil then
-				local expectedType = parameter.type
-				local actualType = type(value)
-
-				if actualType ~= expectedType then
-					Spring.Log('actions_loader.lua', LOG.ERROR,"[Mission API] Unexpected parameter type, expected " ..parameter.type ..", got " .. actualType .. ". Action: " .. actionID .. ", Parameter: " .. parameter.name)
-				end
-			end
-
-			if parameter.validator then
-				parameter.validator(value, 'Action', actionID, parameter.name)
-			end
-
-		end
+		validateParameters(parameters, action.type, action.parameters, 'Action', actionID)
 	end
 end
 

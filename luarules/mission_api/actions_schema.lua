@@ -53,8 +53,7 @@ local parameters = {
 		[1] = {
 			name = 'triggerID',
 			required = true,
-			type = 'string',
-			validator = validators.triggerID
+			type = Types.triggerID
 		},
 	},
 
@@ -62,8 +61,7 @@ local parameters = {
 		[1] = {
 			name = 'triggerID',
 			required = true,
-			type = 'string',
-			validator = validators.triggerID
+			type = Types.triggerID
 		},
 	},
 
@@ -72,12 +70,12 @@ local parameters = {
 		[1] = {
 			name = 'name',
 			required = true,
-			type = 'string'
+			type = Types.string
 		},
 		[2] = {
 			name = 'orders',
 			required = true,
-			type = 'table'
+			type = Types.table
 		}
 	},
 	[actionTypes.AllowCommands] = {},
@@ -93,40 +91,36 @@ local parameters = {
 		[1] = {
 			name = 'name',
 			required = false,
-			type = 'string',
+			type = Types.string,
 		},
 		[2] = {
 			name = 'unitDefName',
 			required = true,
-			type = 'string',
-			validator = validators.unitDefName
+			type = Types.unitDefName
 		},
 		[3] = {
 			name = 'teamID',
 			required = true,
-			type = 'number',
-			validator = validators.teamID
+			type = Types.teamID
 		},
 		[4] = {
 			name = 'position',
 			required = true,
-			type = 'table',
-			validator = validators.position
+			type = Types.position
 		},
 		[5] = {
 			name = 'quantity',
 			required = false,
-			type = 'number',		},
+			type = Types.number,		},
 		[6] = {
 			name = 'facing',
 			required = false,
-			type = 'string',
-			validator = validators.facing
+			type = Types.facing
 		},
 		[7] = {
 			name = 'construction',
 			required = false,
-			type = 'boolean'
+			type = Types.boolean
 		}
 	},
 
@@ -134,17 +128,17 @@ local parameters = {
 		[1] = {
 			name = 'name',
 			required = true,
-			type = 'string',
+			type = Types.string,
 		},
 		[2] = {
 			name = 'selfDestruct',
 			required = false,
-			type = 'boolean',
+			type = Types.boolean,
 		},
 		[3] = {
 			name = 'reclaimed',
 			required = false,
-			type = 'boolean',
+			type = Types.boolean,
 		},
 	},
 	[actionTypes.SpawnWeapons] = {},
@@ -153,19 +147,18 @@ local parameters = {
 		[1] = {
 			name = 'name',
 			required = true,
-			type = 'string'
+			type = Types.string
 		},
 		[2] = {
 			name = 'newTeam',
 			required = true,
-			type = 'number',
-			validator = validators.teamID
+			type = Types.teamID
 		},
 		[3] = {
 			-- can only transfer to other allyTeam if given=false
 			name = 'given',
 			required = false,
-			type = 'boolean'
+			type = Types.boolean
 		}
 	},
 
@@ -174,19 +167,17 @@ local parameters = {
 		[1] = {
 			name = 'position',
 			required = true,
-			type = 'table',
-			validator = validators.position
+			type = Types.position
 		},
 		[2] = {
 			name = 'direction',
 			required = true,
-			type = 'table',
-			validator = validators.position
+			type = Types.position
 		},
 		[3] = {
 			name = 'params',
 			required = true,
-			type = 'table'
+			type = Types.table
 		}
 	},
 
@@ -205,7 +196,7 @@ local parameters = {
 		[1] = {
 			name = 'message',
 			required = true,
-			type = 'string',
+			type = Types.string,
 		}
 	},
 
@@ -214,16 +205,14 @@ local parameters = {
 		[1] = {
 			name = 'allyTeamIDs',
 			required = true,
-			type = 'table',
-			validator = validators.allyTeamIDs
+			type = Types.allyTeamIDs
 		}
 	},
 	[actionTypes.Defeat] = {
 		[1] = {
 			name = 'allyTeamIDs',
 			required = true,
-			type = 'table',
-			validator = validators.allyTeamIDs
+			type = Types.allyTeamIDs
 		}
 	},
 
@@ -232,7 +221,7 @@ local parameters = {
 		[1] = {
 			name = 'function',
 			required = true,
-			type = 'function',
+			type = Types.customFunction,
 		},
 	},
 }

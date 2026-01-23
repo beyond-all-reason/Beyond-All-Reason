@@ -1,3 +1,5 @@
+VFS.Include('luarules/mission_api/validators.lua')
+
 local triggerTypes = {
 	-- Time
 	TimeElapsed          = 100, --
@@ -47,93 +49,93 @@ local parameters = {
 		[1] = {
 			name = 'gameFrame',
 			required = true,
-			type = 'number',
+			type = Types.number,
 		},
 		[2] = {
 			name = 'interval',
 			required = false,
-			type = 'number',
+			type = Types.number,
 		},
 	},
-	
+
 	-- Units
-	[triggerTypes.UnitExists] = { 
+	[triggerTypes.UnitExists] = {
 		[1] = {
 			name = 'unitDefID',
 			required = true,
-			type = 'number',
+			type = Types.number,
 		},
 		[2] = {
 			name = 'teamID',
 			required = false,
-			type = 'number',
+			type = Types.number,
 		},
 		[3] = {
 			name = 'quantity',
 			required = false,
-			type = 'number',
+			type = Types.number,
 		},
 	},
-	[triggerTypes.UnitNotExists] = { 
+	[triggerTypes.UnitNotExists] = {
 		[1] = {
 			name = 'unit',
 			required = true,
-			type = 'string',
+			type = Types.string,
 		},
 	},
-	[triggerTypes.UnitKilled] = { 
+	[triggerTypes.UnitKilled] = {
 		[1] = {
 			name = 'unit',
 			required = true,
-			type = 'string'
+			type = Types.string
 		},
 	},
-	[triggerTypes.UnitCaptured] = { 
+	[triggerTypes.UnitCaptured] = {
 		[1] = {
 			name = 'unit',
 			required = true,
-			type = 'string'
+			type = Types.string
 		},
 	},
 	[triggerTypes.UnitResurrected] = {  },
-	[triggerTypes.UnitEnteredLocation] = { 
+	[triggerTypes.UnitEnteredLocation] = {
 		[1] = {
 			name = 'unit',
 			required = true,
-			type = 'string'
+			type = Types.string
 		},
 		[2] = {
 			name = 'position',
 			required = true,
-			type = 'table',
+			type = Types.table,
 		},
 		[3] = {
 			name = 'width',
 			required = true,
-			type = 'number',
+			type = Types.number,
 		},
 		[4] = {
 			name = 'height',
 			required = false,
-			type = 'number',
+			type = Types.number,
 		},
 	},
 	[triggerTypes.UnitLeftLocation] = {  },
 	[triggerTypes.UnitDwellLocation] = {  },
 	[triggerTypes.UnitSpotted] = {  },
 	[triggerTypes.UnitUnspotted] = {  },
-	[triggerTypes.ConstructionStarted] = { 
+	[triggerTypes.ConstructionStarted] = {
 		[1] = {
 			name = 'unit',
 			required = true,
-			type = 'string',
+			type = Types.string,
 		},
 	 },
-	[triggerTypes.ConstructionFinished] = { 
+	[triggerTypes.ConstructionFinished] = {
 		[1] = {
 			name = 'unit',
 			required = true,
-			type = 'string',
+			type = Types.string,
 		},
 	 },
 
@@ -153,11 +155,11 @@ local parameters = {
 	[triggerTypes.TotalUnitsCaptured] = {  },
 
 	-- Team
-	[triggerTypes.TeamDestroyed] = { 
+	[triggerTypes.TeamDestroyed] = {
 		[1] = {
 			name = 'teamID',
 			required = true,
-			type = 'number',
+			type = Types.number,
 		},
 	 },
 

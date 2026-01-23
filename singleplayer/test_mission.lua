@@ -219,6 +219,12 @@ local actions = {
 	--- Unreferenced actions testing validation:
 	----------------------------------------------------------------
 
+	actionMissingType = {},
+
+	actionWithInvalidType = {
+		type = 'invalidType',
+	},
+
 	actionWithInvalidTriggerID = {
 		type = actionTypes.EnableTrigger,
 		parameters = {
@@ -226,12 +232,12 @@ local actions = {
 		},
 	},
 
-	actionWithInvalidTeamIDAndInvalidUnitDefName = {
+	actionWithInvalidTeamIDAndInvalidUnitDefNameAndInvalidPosition = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitDefName = 'invalidUnitDefName',
 			teamID = 6,
-			position = { x = 1800, z = 1600 },
+			position = { x = 1800, invalidField = 1600 },
 			facing = 'invalidFacing',
 		},
 	},
