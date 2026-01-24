@@ -316,6 +316,7 @@ local firstclick = 0
 local dblclickPeriod = 0.4
 local backgroundMargin = 8
 local widgetRelRight = 0
+local lastUsedPipNum = 0
 
 --------------------------------------------------------------------------------
 -- GEOMETRY VARIABLES
@@ -3347,6 +3348,19 @@ function widget:MousePress(x, y, button)
                         if ctrl and i < specOffset then
                             Spring_SendCommands("toggleignore " .. (clickedPlayer.accountID and clickedPlayer.accountID or clickedPlayer.name))
                             return true
+                        elseif alt and not clickedPlayer.ai then
+                            -- ALT+click: track player camera in PIP
+                            -- Try other PIPs first before cycling back to the last used one
+                            for offset = 1, 5 do
+                                local pipNum = ((lastUsedPipNum + offset - 1) % 5) + 1
+                                if WG['pip'..pipNum] and WG['pip'..pipNum].TrackPlayer then
+                                    if WG['pip'..pipNum].TrackPlayer(i) then
+                                        lastUsedPipNum = pipNum
+                                        return true
+                                    end
+                                end
+                            end
+                            return true
                         elseif not player[i].spec then
                             if i ~= myTeamPlayerID then
                                 clickedPlayerTime = os.clock()
@@ -3450,6 +3464,20 @@ function widget:MousePress(x, y, button)
                         if m_name.active and clickedPlayer.name ~= absentName and IsOnRect(x, y, m_name.posX + widgetPosX + 1, posY, m_name.posX + widgetPosX + m_name.width, posY + 12) then
                             if ctrl then
                                 Spring_SendCommands("toggleignore " .. (clickedPlayer.accountID and clickedPlayer.accountID or clickedPlayer.name))
+                                return true
+                            end
+                            if alt and not clickedPlayer.ai then
+                                -- ALT+click: track player camera in PIP
+                                -- Try other PIPs first before cycling back to the last used one
+                                for offset = 1, 5 do
+                                    local pipNum = ((lastUsedPipNum + offset - 1) % 5) + 1
+                                    if WG['pip'..pipNum] and WG['pip'..pipNum].TrackPlayer then
+                                        if WG['pip'..pipNum].TrackPlayer(i) then
+                                            lastUsedPipNum = pipNum
+                                            return true
+                                        end
+                                    end
+                                end
                                 return true
                             end
                             if (mySpecStatus or player[i].allyteam == myAllyTeamID) and clickTime - prevClickTime < dblclickPeriod and clickedPlayer == prevClickedPlayer then
