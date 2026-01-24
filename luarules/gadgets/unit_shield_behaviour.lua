@@ -29,7 +29,7 @@ local scriptedShieldDamages = {}
 
 -- Some modoptions require engine shield behaviors (namely their bounce/repulsion effects):
 
-if Spring.GetModOptions().experimentalshields:lower():find("bounce") then
+if Spring.GetModOptions().experimentalshields:find("bounce") then
 	for weaponDefID = 0, #WeaponDefs do
 		local weaponDef = WeaponDefs[weaponDefID]
 		originalShieldDamages[weaponDefID] = weaponDef.damages and weaponDef.damages[armorTypeShields] or 0
