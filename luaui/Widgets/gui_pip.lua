@@ -10,7 +10,7 @@ function widget:GetInfo()
 		version   = "2.0",
 		date      = "October 2025",
 		license   = "GNU GPL, v2 or later",
-		layer     = -90005,
+		layer     = -990010,
 		enabled   = true,
 		handler   = true,
 	}
@@ -104,6 +104,7 @@ local render = {
 	elementCorner = nil,
 	RectRound = nil,
 	UiElement = nil,
+	RectRoundOutline = nil,
 	dim = {},  -- Panel dimensions: left, right, bottom, top
 	world = {},  -- World coordinate boundaries
 	ground = { view = {}, coord = {} },  -- Ground texture view and texture coordinates
@@ -193,6 +194,7 @@ local interactionState = {
 	areIncreasingZoom = false,  -- Getting closer (increasing zoom value)
 	areTracking = nil,
 	trackingPlayerID = nil,
+	lastTrackedTeammate = nil,  -- Track last cycled teammate for proper cycling order
 	areBoxSelecting = false,
 	areBoxDeselecting = false,
 	boxSelectStartX = 0,
@@ -552,30 +554,58 @@ local buttons = {
 				interactionState.trackingPlayerID = nil
 				pipR2T.frameNeedsUpdate = true
 			else
-				-- Get the team leader of my team
-				local myTeamID = Spring.GetMyTeamID()
-				local targetPlayerID = nil
+				local _, _, isSpec = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
 
-				-- Get the team leader's player ID from team info
-				local _, leaderPlayerID = Spring.GetTeamInfo(myTeamID, false)
+				if isSpec then
+					-- Spectator: Track team leader (keep existing behavior)
+					local myTeamID = Spring.GetMyTeamID()
+					local targetPlayerID = nil
 
-				-- Verify this player is active and not self
-				if leaderPlayerID then
-					local myPlayerID = Spring.GetMyPlayerID()
-					if leaderPlayerID ~= myPlayerID then
-						local name, active = Spring.GetPlayerInfo(leaderPlayerID, false)
-						if name and active then
-							targetPlayerID = leaderPlayerID
+					-- Get the team leader's player ID from team info
+					local _, leaderPlayerID = Spring.GetTeamInfo(myTeamID, false)
+
+					-- Verify this player is active and not self
+					if leaderPlayerID then
+						local myPlayerID = Spring.GetMyPlayerID()
+						if leaderPlayerID ~= myPlayerID then
+							local name, active = Spring.GetPlayerInfo(leaderPlayerID, false)
+							if name and active then
+								targetPlayerID = leaderPlayerID
+							end
 						end
 					end
-				end
 
-				if targetPlayerID then
-					interactionState.trackingPlayerID = targetPlayerID
-					-- Clear unit tracking when starting player tracking
-					interactionState.areTracking = nil
-					pipR2T.frameNeedsUpdate = true
-					pipR2T.contentNeedsUpdate = true
+					if targetPlayerID then
+						interactionState.trackingPlayerID = targetPlayerID
+						-- Clear unit tracking when starting player tracking
+						interactionState.areTracking = nil
+						pipR2T.frameNeedsUpdate = true
+						pipR2T.contentNeedsUpdate = true
+					end
+				else
+					-- Non-spectator: Cycle through alive teammates
+					local teammates = GetAliveTeammates()
+					if #teammates > 0 then
+						-- Find current index or start at beginning
+						local currentIndex = 0
+						for i, playerID in ipairs(teammates) do
+							if playerID == interactionState.lastTrackedTeammate then
+								currentIndex = i
+								break
+							end
+						end
+
+						-- Cycle to next teammate
+						currentIndex = (currentIndex % #teammates) + 1
+						local targetPlayerID = teammates[currentIndex]
+
+						interactionState.trackingPlayerID = targetPlayerID
+						interactionState.lastTrackedTeammate = targetPlayerID
+						-- Clear unit tracking when starting player tracking
+						interactionState.areTracking = nil
+						pipR2T.frameNeedsUpdate = true
+						pipR2T.contentNeedsUpdate = true
+					end
 				end
 			end
 		end
@@ -927,6 +957,33 @@ local function GetPlayerSkill(playerID)
 	return 0
 end
 
+-- Helper function to get alive teammates (excluding self and AI)
+local function GetAliveTeammates()
+	local myPlayerID = Spring.GetMyPlayerID()
+	local _, _, _, myTeamID = Spring.GetPlayerInfo(myPlayerID, false)
+	if not myTeamID then
+		return {}
+	end
+
+	local teammates = {}
+	local playerList = Spring.GetPlayerList()
+
+	for _, playerID in ipairs(playerList) do
+		if playerID ~= myPlayerID then
+			local _, active, isSpec, playerTeamID = Spring.GetPlayerInfo(playerID, false)
+			if active and not isSpec and playerTeamID and playerTeamID == myTeamID then
+				-- Check if this team is controlled by AI
+				local _, _, isDead, isAI = Spring.GetTeamInfo(playerTeamID, false)
+				if not isAI and not isDead then
+					table.insert(teammates, playerID)
+				end
+			end
+		end
+	end
+
+	return teammates
+end
+
 -- Helper function to find the next best player on the same team
 local function FindNextBestTeamPlayer(excludePlayerID)
 	-- Get the team and allyteam of the excluded player
@@ -1002,7 +1059,10 @@ local function UpdatePlayerTracking()
 		local playerCamState = WG.lockcamera.GetPlayerCameraState(interactionState.trackingPlayerID)
 
 		if not playerCamState then
-			-- Player stopped broadcasting - if player still exists but no camera state, keep tracking and use last known position
+			-- Player stopped broadcasting - this can happen when:
+			-- 1. Player actually stopped broadcasting (we should keep tracking)
+			-- 2. Spectator disabled fullview (broadcasts filtered by gadget, keep tracking)
+			-- Keep tracking and use last known position - tracking will resume when broadcasts return
 			return
 		end
 
@@ -1186,9 +1246,21 @@ local function DrawUnit(uID)
 		local _, _, _, playerTeamID = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
 		if playerTeamID then
 			local _, _, _, _, _, playerAllyTeamID = spFunc.GetTeamInfo(playerTeamID, false)
-			checkAllyTeamID = playerAllyTeamID
+
+			-- Check if we have fullview - without it we can only see our own allyteam's LOS
+			local _, fullview = Spring.GetSpectatingState()
+			local myAllyTeam = Spring.GetMyAllyTeamID()
+
+			if not fullview and playerAllyTeamID ~= myAllyTeam then
+				-- Tracking enemy player without fullview - use our own allyteam for visibility checks
+				checkAllyTeamID = myAllyTeam
+			else
+				-- Either have fullview or tracking same allyteam - use tracked player's allyteam
+				checkAllyTeamID = playerAllyTeamID
+			end
+
 			local _, _, _, _, _, unitAllyTeamID = spFunc.GetTeamInfo(uTeam, false)
-			isEnemyUnit = (unitAllyTeamID ~= playerAllyTeamID)
+			isEnemyUnit = (unitAllyTeamID ~= checkAllyTeamID)
 		end
 	elseif state.losViewEnabled and state.losViewAllyTeam then
 		-- When LOS view is enabled (and not tracking a player), check visibility for the locked allyteam
@@ -3205,8 +3277,8 @@ function widget:Initialize()
 	end
 	WG['pip'..pipNumber].TrackPlayer = function(playerID)
 		if playerID and type(playerID) == "number" then
-			local name = Spring.GetPlayerInfo(playerID, false)
-			if name then
+			local name, _, isSpec = Spring.GetPlayerInfo(playerID, false)
+			if name and not isSpec then
 				interactionState.trackingPlayerID = playerID
 				interactionState.areTracking = nil  -- Clear unit tracking
 				pipR2T.frameNeedsUpdate = true
@@ -3275,6 +3347,7 @@ function widget:ViewResize()
 	render.elementCorner = WG.FlowUI.elementCorner
 	render.RectRound = WG.FlowUI.Draw.RectRound
 	render.UiElement = WG.FlowUI.Draw.Element
+	render.RectRoundOutline = WG.FlowUI.Draw.RectRoundOutline
 	elementMargin = WG.FlowUI.elementMargin
 
 	-- Invalidate display lists on resize
@@ -3309,7 +3382,7 @@ function widget:ViewResize()
 		else
 			uiState.minModeL = uiState.savedDimensions.r - buttonSizeScaled
 		end
-		if uiState.savedDimensions.b < sh * 0.5 then
+		if uiState.savedDimensions.b < sh * 0.25 then
 			uiState.minModeB = uiState.savedDimensions.b
 		else
 			uiState.minModeB = uiState.savedDimensions.t - buttonSizeScaled
@@ -3370,24 +3443,7 @@ function widget:PlayerChanged(playerID)
 	-- Update spec state
 	cameraState.mySpecState = Spring.GetSpectatingState()
 
-	-- Check if we're tracking a player and if we can still access their view
-	if interactionState.trackingPlayerID then
-		local mySpec, fullview = Spring.GetSpectatingState()
-		local myAllyTeam = Spring.GetMyAllyTeamID()
-
-		if mySpec and not fullview then
-			-- We're spectating without fullview - check if tracked player is on the same allyteam we're viewing
-			local _, _, _, trackedTeamID = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
-			if trackedTeamID then
-				local trackedAllyTeam = Spring.GetTeamAllyTeamID(trackedTeamID)
-				if trackedAllyTeam and trackedAllyTeam ~= myAllyTeam then
-					-- We switched to viewing a different allyteam without fullview, stop tracking
-					interactionState.trackingPlayerID = nil
-					pipR2T.frameNeedsUpdate = true
-				end
-			end
-		end
-	end
+	-- Keep tracking even if fullview is disabled - tracking will resume when fullview is re-enabled
 end
 
 function widget:Shutdown()
@@ -4776,6 +4832,47 @@ local function RenderFrameBackground()
 	render.RectRound(0, 0, pipWidth, pipHeight, render.elementCorner*0.4, 1, 1, 1, 1)
 end
 
+-- Helper function to calculate maximize icon rotation angle based on expansion direction
+local function GetMaximizeIconRotation()
+	-- Determine expansion direction based on current or minimize button position
+	local sw, sh = Spring.GetWindowGeometry()
+	local posL, posB
+
+	-- Use current position when maximized (for minimize button rotation during drag/resize)
+	-- Use minMode position when minimized (for maximize button rotation)
+	if uiState.inMinMode then
+		posL = uiState.minModeL
+		posB = uiState.minModeB
+	else
+		-- When maximized, determine where it would minimize to based on current position
+		local buttonSize = math.floor(render.usedButtonSize * config.maximizeSizemult)
+		if render.dim.l < sw * 0.5 then
+			posL = render.dim.l
+		else
+			posL = render.dim.r - buttonSize
+		end
+		if render.dim.b < sh * 0.25 then
+			posB = render.dim.b
+		else
+			posB = render.dim.t - buttonSize
+		end
+	end
+
+	local onLeftSide = (posL and posL < sw * 0.5)
+	local onBottomSide = (posB and posB < sh * 0.25)
+
+	-- Default icon points to bottom-left, rotate to point toward expansion:
+	if onLeftSide and onBottomSide then
+		return 180  -- Bottom-left: expands toward top-right
+	elseif not onLeftSide and onBottomSide then
+		return 270  -- Bottom-right: expands toward top-left
+	elseif not onLeftSide and not onBottomSide then
+		return 0  -- Top-right: expands toward bottom-left
+	else  -- onLeftSide and not onBottomSide
+		return 90  -- Top-left: expands toward bottom-right
+	end
+end
+
 -- Helper function to render PIP frame buttons without hover effects
 local function RenderFrameButtons()
 	local usedButtonSizeLocal = render.usedButtonSize
@@ -4802,8 +4899,19 @@ local function RenderFrameButtons()
 	glFunc.Texture(false)
 	render.RectRound(pipWidth - usedButtonSizeLocal - render.elementPadding, pipHeight - usedButtonSizeLocal - render.elementPadding, pipWidth, pipHeight, render.elementCorner*0.65, 0, 0, 0, 1)
 	glFunc.Color(config.panelBorderColorLight)
-	glFunc.Texture('LuaUI/Images/pip/PipMinimize.png')
+	glFunc.Texture('LuaUI/Images/pip/PipShrink.png')
+
+	-- Rotate icon to point toward shrink position (opposite of expand direction)
+	local rotation = GetMaximizeIconRotation()
+	local centerX = pipWidth - usedButtonSizeLocal * 0.5
+	local centerY = pipHeight - usedButtonSizeLocal * 0.5
+	glFunc.PushMatrix()
+	glFunc.Translate(centerX, centerY, 0)
+	glFunc.Rotate(rotation, 0, 0, 1)
+	glFunc.Translate(-centerX, -centerY, 0)
+
 	glFunc.TexRect(pipWidth - usedButtonSizeLocal, pipHeight - usedButtonSizeLocal, pipWidth, pipHeight)
+	glFunc.PopMatrix()
 	glFunc.Texture(false)
 
 	-- Bottom-left buttons
@@ -4811,12 +4919,10 @@ local function RenderFrameButtons()
 	local hasSelection = #selectedUnits > 0
 	local isTracking = interactionState.areTracking ~= nil
 	local isTrackingPlayer = interactionState.trackingPlayerID ~= nil
-	-- Show player tracking button only when tracking or when spectating
-	local showPlayerTrackButton = isTrackingPlayer
-	if not showPlayerTrackButton then
-		local _, _, spec = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
-		showPlayerTrackButton = spec
-	end
+	-- Show player tracking button when tracking, when spectating, or when having alive teammates
+	local spec = Spring.GetSpectatingState()
+	local aliveTeammates = GetAliveTeammates()
+	local showPlayerTrackButton = isTrackingPlayer or spec or (#aliveTeammates > 0)
 	local visibleButtons = {}
 	for i = 1, #buttons do
 		-- Show pip_track button if has selection or is tracking units
@@ -4876,17 +4982,9 @@ local function ShouldShowLOS()
 		local _, _, isSpec, teamID = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
 		if teamID then
 			local allyTeamID = Spring.GetTeamAllyTeamID(teamID)
-			-- Check if we're spectating without fullview and the tracked player is from a different allyteam
-			if mySpec and not fullview and allyTeamID ~= myAllyTeam then
-				-- We're viewing a different allyteam than the tracked player without fullview
-				-- Stop tracking since we don't have access to their LOS
-				interactionState.trackingPlayerID = nil
-				pipR2T.frameNeedsUpdate = true
-				-- Fall through to check if we should show LOS for current view
-			else
-				-- Valid allyteam for tracking (either same team or fullview enabled)
-				return true, allyTeamID
-			end
+			-- Always return the tracked player's allyteam for LOS generation
+			-- Even without fullview, we can manually generate their LOS at this location
+			return true, allyTeamID
 		end
 	end
 
@@ -4917,6 +5015,68 @@ local function ShouldShowLOS()
 	return false, nil
 end
 
+-- Helper function to draw water and LOS overlays
+local function DrawWaterAndLOSOverlays()
+	-- Draw water overlay using shader
+	if mapInfo.hasWater and waterShader and not mapInfo.voidWater then
+		gl.UseShader(waterShader)
+
+		-- Set water color based on lava/water
+		local r, g, b, a
+		if mapInfo.isLava then
+			r, g, b, a = 0.22, 0, 0, 1
+		else
+			r, g, b, a = 0.08, 0.11, 0.22, 0.5
+		end
+		gl.UniformFloat(gl.GetUniformLocation(waterShader, "waterColor"), r, g, b, a)
+
+		-- Bind heightmap texture
+		gl.UniformInt(gl.GetUniformLocation(waterShader, "heightTex"), 0)
+		glFunc.Texture(0, '$heightmap')
+
+		-- Draw water overlay
+		glFunc.Color(1, 1, 1, 1)
+		glFunc.BeginEnd(glConst.QUADS, GroundTextureVertices)
+
+		glFunc.Texture(0, false)
+		gl.UseShader(0)
+	end
+
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)  -- Restore default blending
+
+	-- Draw LOS darkening overlay
+	local shouldShowLOS, losAllyTeam = ShouldShowLOS()
+	if config.showLosOverlay and shouldShowLOS and pipR2T.losTex then
+		-- Calculate scissor coordinates to only show the visible map portion
+		local scissorL = math.floor(math.max(render.ground.view.l, render.dim.l))
+		local scissorR = math.ceil(math.min(render.ground.view.r, render.dim.r))
+		local scissorB = math.floor(math.max(render.ground.view.b, render.dim.b))
+		local scissorT = math.ceil(math.min(render.ground.view.t, render.dim.t))
+
+		if scissorR > scissorL and scissorT > scissorB then
+			-- Enable scissor test to clip to visible map area
+			gl.Scissor(scissorL, scissorB, scissorR - scissorL, scissorT - scissorB)
+
+			-- Draw LOS texture
+			gl.Blending(GL.DST_COLOR, GL.ZERO)  -- result = dst * src
+			glFunc.Color(1, 1, 1, 1)
+			glFunc.Texture(pipR2T.losTex)
+
+			-- Draw full-screen quad with map texture coordinates
+			glFunc.BeginEnd(GL.QUADS, function()
+				glFunc.TexCoord(render.ground.coord.l, render.ground.coord.b); glFunc.Vertex(render.ground.view.l, render.ground.view.b)
+				glFunc.TexCoord(render.ground.coord.r, render.ground.coord.b); glFunc.Vertex(render.ground.view.r, render.ground.view.b)
+				glFunc.TexCoord(render.ground.coord.r, render.ground.coord.t); glFunc.Vertex(render.ground.view.r, render.ground.view.t)
+				glFunc.TexCoord(render.ground.coord.l, render.ground.coord.t); glFunc.Vertex(render.ground.view.l, render.ground.view.t)
+			end)
+
+			glFunc.Texture(false)
+			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)  -- Restore default blending
+			gl.Scissor(false)  -- Disable scissor test
+		end
+	end
+end
+
 local function RenderPipContents()
 	if uiState.drawingGround then
 
@@ -4926,66 +5086,8 @@ local function RenderPipContents()
 		glFunc.BeginEnd(glConst.QUADS, GroundTextureVertices)
 		glFunc.Texture(false)
 
-		-- Draw water overlay using shader
-		if mapInfo.hasWater and waterShader and not mapInfo.voidWater then
-			gl.UseShader(waterShader)
-
-			-- Set water color based on lava/water
-			local r, g, b, a
-			if mapInfo.isLava then
-				r, g, b, a = 0.22, 0, 0, 1
-			else
-				r, g, b, a = 0.08, 0.11, 0.22, 0.5
-			end
-			gl.UniformFloat(gl.GetUniformLocation(waterShader, "waterColor"), r, g, b, a)
-
-			-- Bind heightmap texture
-			gl.UniformInt(gl.GetUniformLocation(waterShader, "heightTex"), 0)
-			glFunc.Texture(0, '$heightmap')
-
-			-- Draw water overlay
-			glFunc.Color(1, 1, 1, 1)
-			glFunc.BeginEnd(glConst.QUADS, GroundTextureVertices)
-
-			glFunc.Texture(0, false)
-			gl.UseShader(0)
-		end
-
-		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)  -- Restore default blending
-
-		-- Draw LOS darkening overlay
-		local shouldShowLOS, losAllyTeam = ShouldShowLOS()
-		if config.showLosOverlay and shouldShowLOS and pipR2T.losTex then
-			-- Calculate scissor coordinates to only show the visible map portion
-			-- Add small margin to avoid edge cutoff
-			local scissorL = math.floor(math.max(render.ground.view.l, render.dim.l))
-			local scissorR = math.ceil(math.min(render.ground.view.r, render.dim.r))
-			local scissorB = math.floor(math.max(render.ground.view.b, render.dim.b))
-			local scissorT = math.ceil(math.min(render.ground.view.t, render.dim.t))
-
-			if scissorR > scissorL and scissorT > scissorB then
-				-- Enable scissor test to clip to visible map area
-				gl.Scissor(scissorL, scissorB, scissorR - scissorL, scissorT - scissorB)
-
-				-- Draw LOS texture - it has values in red channel, we need greyscale
-				-- Use multiplicative blending to darken the map based on LOS
-				gl.Blending(GL.DST_COLOR, GL.ZERO)  -- result = dst * src
-				glFunc.Color(1, 1, 1, 1)
-				glFunc.Texture(pipR2T.losTex)
-
-				-- Draw full-screen quad with map texture coordinates
-				glFunc.BeginEnd(GL.QUADS, function()
-					glFunc.TexCoord(render.ground.coord.l, render.ground.coord.b); glFunc.Vertex(render.ground.view.l, render.ground.view.b)
-					glFunc.TexCoord(render.ground.coord.r, render.ground.coord.b); glFunc.Vertex(render.ground.view.r, render.ground.view.b)
-					glFunc.TexCoord(render.ground.coord.r, render.ground.coord.t); glFunc.Vertex(render.ground.view.r, render.ground.view.t)
-					glFunc.TexCoord(render.ground.coord.l, render.ground.coord.t); glFunc.Vertex(render.ground.view.l, render.ground.view.t)
-				end)
-
-				glFunc.Texture(false)
-				gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)  -- Restore default blending
-				gl.Scissor(false)  -- Disable scissor test
-			end
-		end
+		-- Draw water and LOS overlays
+		DrawWaterAndLOSOverlays()
 	end
 
 	-- Measure draw time for performance monitoring
@@ -5424,8 +5526,8 @@ local function DrawTrackedPlayerName()
 
 	-- Get team color
 	local r, g, b = Spring.GetTeamColor(teamID)
-	local fontSize = math.floor(19 * render.widgetScale)
-	local padding = math.floor(16 * render.widgetScale)
+	local fontSize = math.floor(20 * render.widgetScale)
+	local padding = math.floor(17 * render.widgetScale)
 	local centerX = (render.dim.l + render.dim.r) / 2
 
 	font:Begin()
@@ -5527,6 +5629,9 @@ local function DrawAnimation(mx, my)
 		glFunc.BeginEnd(glConst.QUADS, GroundTextureVertices)
 		glFunc.Color(1, 1, 1, 1)
 		glFunc.Texture(false)
+
+		-- Draw water and LOS overlays
+		DrawWaterAndLOSOverlays()
 	end
 
 	DrawUnitsAndFeatures()
@@ -5545,8 +5650,19 @@ local function DrawAnimation(mx, my)
 			render.RectRound(uiState.minModeL, uiState.minModeB, uiState.minModeL + buttonSize, uiState.minModeB + buttonSize, render.elementCorner*0.4, 1, 1, 1, 1)
 		end
 		glFunc.Color(hover and {1, 1, 1, 1} or config.panelBorderColorLight)
-		glFunc.Texture('LuaUI/Images/pip/PipMaximize.png')
+		glFunc.Texture('LuaUI/Images/pip/PipExpand.png')
+
+		-- Rotate icon based on expansion direction
+		local rotation = GetMaximizeIconRotation()
+		local centerX = uiState.minModeL + buttonSize * 0.5
+		local centerY = uiState.minModeB + buttonSize * 0.5
+		glFunc.PushMatrix()
+		glFunc.Translate(centerX, centerY, 0)
+		glFunc.Rotate(rotation, 0, 0, 1)
+		glFunc.Translate(-centerX, -centerY, 0)
+
 		glFunc.TexRect(uiState.minModeL, uiState.minModeB, uiState.minModeL + buttonSize, uiState.minModeB + buttonSize)
+		glFunc.PopMatrix()
 		glFunc.Texture(false)
 	else
 		local currentWidth = render.dim.r - render.dim.l
@@ -5564,8 +5680,19 @@ local function DrawAnimation(mx, my)
 				render.RectRound(render.dim.r - render.usedButtonSize, render.dim.t - render.usedButtonSize, render.dim.r, render.dim.t, render.elementCorner*0.4, 1, 1, 1, 1)
 			end
 			glFunc.Color(hover and {1, 1, 1, 1} or config.panelBorderColorLight)
-			glFunc.Texture('LuaUI/Images/pip/PipMinimize.png')
+			glFunc.Texture('LuaUI/Images/pip/PipShrink.png')
+
+			-- Rotate icon opposite to maximize direction (points toward shrink position)
+			local rotation = GetMaximizeIconRotation()
+			local centerX = render.dim.r - render.usedButtonSize * 0.5
+			local centerY = render.dim.t - render.usedButtonSize * 0.5
+			glFunc.PushMatrix()
+			glFunc.Translate(centerX, centerY, 0)
+			glFunc.Rotate(rotation, 0, 0, 1)
+			glFunc.Translate(-centerX, -centerY, 0)
+
 			glFunc.TexRect(render.dim.r - render.usedButtonSize, render.dim.t - render.usedButtonSize, render.dim.r, render.dim.t)
+			glFunc.PopMatrix()
 			glFunc.Texture(false)
 		end
 	end
@@ -5640,7 +5767,18 @@ local function UpdateLOSTexture(currentTime)
 	end
 
 	local myAllyTeam = Spring.GetMyAllyTeamID()
-	local useEngineLOS = (losAllyTeam == myAllyTeam)  -- Can use engine LOS if same allyteam
+	-- Can only use engine LOS if:
+	-- 1. Same allyteam as us
+	-- 2. If tracking a player, must have fullview enabled (engine LOS requires fullview for enemy teams)
+	local useEngineLOS = (losAllyTeam == myAllyTeam)
+	if interactionState.trackingPlayerID and losAllyTeam ~= myAllyTeam then
+		-- Tracking an enemy player - must have fullview to use engine LOS
+		local _, fullview = Spring.GetSpectatingState()
+		if not fullview then
+			-- Without fullview, must manually generate enemy LOS
+			useEngineLOS = false
+		end
+	end
 
 	-- Handle delay when switching to engine LOS
 	local actualUseEngineLOS = useEngineLOS
@@ -5676,6 +5814,16 @@ local function UpdateLOSTexture(currentTime)
 	-- Validate losAllyTeam before proceeding
 	if not losAllyTeam or losAllyTeam < 0 then
 		return
+	end
+
+	-- Check if we can actually query this allyTeam's LOS
+	-- Without fullview, we can only query our own allyTeam
+	if losAllyTeam ~= myAllyTeam then
+		local _, fullview = Spring.GetSpectatingState()
+		if not fullview then
+			-- Can't query enemy LOS without fullview - skip update
+			return
+		end
 	end
 
 	-- Calculate LOS texture dimensions
@@ -5752,17 +5900,10 @@ end
 local function DrawTrackingIndicators()
 	if interactionState.areTracking and #interactionState.areTracking > 0 then
 		local lineWidth = math.ceil(2 * (render.vsx / 1920))
-		gl.LineWidth(lineWidth)
+		local pipWidth = render.dim.r - render.dim.l
+		local pipHeight = render.dim.t - render.dim.b
 		glFunc.Color(1, 1, 1, 0.22)
-		glFunc.BeginEnd(glConst.LINE_STRIP, function()
-			local offset = lineWidth * 0.5
-			glFunc.Vertex(render.dim.l + offset, render.dim.t - offset)
-			glFunc.Vertex(render.dim.r - offset, render.dim.t - offset)
-			glFunc.Vertex(render.dim.r - offset, render.dim.b + offset)
-			glFunc.Vertex(render.dim.l + offset, render.dim.b + offset)
-			glFunc.Vertex(render.dim.l + offset, render.dim.t - offset)
-		end)
-		gl.LineWidth(1)
+		render.RectRoundOutline(render.dim.l, render.dim.b, render.dim.r, render.dim.t, render.elementCorner*0.4, lineWidth, 1, 1, 1, 1, {1, 1, 1, 0.22}, {1, 1, 1, 0.22})
 	end
 
 	if interactionState.trackingPlayerID then
@@ -5770,17 +5911,8 @@ local function DrawTrackingIndicators()
 		if teamID then
 			local r, g, b = Spring.GetTeamColor(teamID)
 			local lineWidth = math.ceil(3 * (render.vsx / 1920))
-			gl.LineWidth(lineWidth)
 			glFunc.Color(r, g, b, 0.5)
-			glFunc.BeginEnd(glConst.LINE_STRIP, function()
-				local offset = lineWidth * 0.5
-				glFunc.Vertex(render.dim.l + offset, render.dim.t - offset)
-				glFunc.Vertex(render.dim.r - offset, render.dim.t - offset)
-				glFunc.Vertex(render.dim.r - offset, render.dim.b + offset)
-				glFunc.Vertex(render.dim.l + offset, render.dim.b + offset)
-				glFunc.Vertex(render.dim.l + offset, render.dim.t - offset)
-			end)
-			gl.LineWidth(1)
+			render.RectRoundOutline(render.dim.l, render.dim.b, render.dim.r, render.dim.t, render.elementCorner*0.4, lineWidth, 1, 1, 1, 1, {r, g, b, 0.5}, {r, g, b, 0.5})
 		end
 	end
 end
@@ -5909,7 +6041,8 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 			end
 		elseif buttons[i].command == 'pip_trackplayer' then
 			local _, _, spec = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
-			if interactionState.trackingPlayerID or spec then
+			local aliveTeammates = GetAliveTeammates()
+			if interactionState.trackingPlayerID or spec or (#aliveTeammates > 0) then
 				visibleButtons[#visibleButtons + 1] = buttons[i]
 			end
 		elseif buttons[i].command == 'pip_view' then
@@ -6005,6 +6138,16 @@ function widget:DrawScreen()
 
 		-- Then draw icon on top using display list
 		local offset = render.elementPadding + 2	-- to prevent touching screen edges and FlowUI Element will remove borders
+
+		-- Check if we need to recreate display list due to position change (affects rotation)
+		local sw, sh = Spring.GetWindowGeometry()
+		local currentQuadrant = (uiState.minModeL < sw * 0.5 and 1 or 2) + (uiState.minModeB < sh * 0.25 and 0 or 2)
+		if render.minModeQuadrant ~= currentQuadrant and render.minModeDlist then
+			gl.DeleteList(render.minModeDlist)
+			render.minModeDlist = nil
+		end
+		render.minModeQuadrant = currentQuadrant
+
 		if not render.minModeDlist then
 			render.minModeDlist = gl.CreateList(function()
 				-- Draw render.UiElement background (only borders, no fill to avoid double opacity)
@@ -6012,8 +6155,19 @@ function widget:DrawScreen()
 
 				-- Draw icon at origin (0,0) - will be transformed to actual position
 				glFunc.Color(config.panelBorderColorLight)
-				glFunc.Texture('LuaUI/Images/pip/PipMaximize.png')
+				glFunc.Texture('LuaUI/Images/pip/PipExpand.png')
+
+				-- Rotate icon based on expansion direction
+				local rotation = GetMaximizeIconRotation()
+				local centerX = offset + buttonSize * 0.5
+				local centerY = offset + buttonSize * 0.5
+				glFunc.PushMatrix()
+				glFunc.Translate(centerX, centerY, 0)
+				glFunc.Rotate(rotation, 0, 0, 1)
+				glFunc.Translate(-centerX, -centerY, 0)
+
 				glFunc.TexRect(offset, offset, offset+buttonSize, offset+buttonSize)
+				glFunc.PopMatrix()
 				glFunc.Texture(false)
 			end)
 		end
@@ -6138,8 +6292,19 @@ function widget:DrawScreen()
 			glFunc.Texture(false)
 			render.RectRound(render.dim.r - render.usedButtonSize - render.elementPadding, render.dim.t - render.usedButtonSize - render.elementPadding, render.dim.r, render.dim.t, render.elementCorner, 0, 0, 0, 1)
 			glFunc.Color(config.panelBorderColorLight)
-			glFunc.Texture('LuaUI/Images/pip/PipMinimize.png')
+			glFunc.Texture('LuaUI/Images/pip/PipShrink.png')
+
+			-- Rotate icon opposite to maximize direction (points toward shrink position)
+			local rotation = GetMaximizeIconRotation()
+			local centerX = render.dim.r - render.usedButtonSize * 0.5
+			local centerY = render.dim.t - render.usedButtonSize * 0.5
+			glFunc.PushMatrix()
+			glFunc.Translate(centerX, centerY, 0)
+			glFunc.Rotate(rotation, 0, 0, 1)
+			glFunc.Translate(-centerX, -centerY, 0)
+
 			glFunc.TexRect(render.dim.r - render.usedButtonSize, render.dim.t - render.usedButtonSize, render.dim.r, render.dim.t)
+			glFunc.PopMatrix()
 			glFunc.Texture(false)
 		end
 		if mx >= render.dim.r - render.usedButtonSize - render.elementPadding and mx <= render.dim.r - render.elementPadding and
@@ -6152,8 +6317,19 @@ function widget:DrawScreen()
 			glFunc.Texture(false)
 			render.RectRound(render.dim.r - render.usedButtonSize, render.dim.t - render.usedButtonSize, render.dim.r, render.dim.t, render.elementCorner*0.4, 1, 1, 1, 1)
 			glFunc.Color(1, 1, 1, 1)
-			glFunc.Texture('LuaUI/Images/pip/PipMinimize.png')
+			glFunc.Texture('LuaUI/Images/pip/PipShrink.png')
+
+			-- Rotate icon opposite to maximize direction (points toward shrink position)
+			local rotation = GetMaximizeIconRotation()
+			local centerX = render.dim.r - render.usedButtonSize * 0.5
+			local centerY = render.dim.t - render.usedButtonSize * 0.5
+			glFunc.PushMatrix()
+			glFunc.Translate(centerX, centerY, 0)
+			glFunc.Rotate(rotation, 0, 0, 1)
+			glFunc.Translate(-centerX, -centerY, 0)
+
 			glFunc.TexRect(render.dim.r - render.usedButtonSize, render.dim.t - render.usedButtonSize, render.dim.r, render.dim.t)
+			glFunc.PopMatrix()
 			glFunc.Texture(false)
 		end
 
@@ -6736,10 +6912,13 @@ function widget:GameStart()
 		uiState.inMinMode = false
 	end
 
-	-- Automatically track the commander at game start
-	local commanderID = FindMyCommander()
-	if commanderID then
-		interactionState.areTracking = {commanderID}  -- Store as table/array
+	-- Automatically track the commander at game start (not for spectators)
+	local spec = Spring.GetSpectatingState()
+	if not spec then
+		local commanderID = FindMyCommander()
+		if commanderID then
+			interactionState.areTracking = {commanderID}  -- Store as table/array
+		end
 	end
 end
 
@@ -7336,7 +7515,7 @@ function widget:MousePress(mx, my, mButton)
 				else
 					targetL = render.dim.r - math.floor(render.usedButtonSize*config.maximizeSizemult)
 				end
-				if render.dim.b < sh * 0.5 then
+				if render.dim.b < sh * 0.25 then
 					targetB = render.dim.b
 				else
 					targetB = render.dim.t - math.floor(render.usedButtonSize*config.maximizeSizemult)
@@ -7388,11 +7567,12 @@ function widget:MousePress(mx, my, mButton)
 				local hasSelection = #selectedUnits > 0
 				local isTracking = interactionState.areTracking ~= nil
 				local isTrackingPlayer = interactionState.trackingPlayerID ~= nil
-				-- Show player tracking button only when tracking or when spectating
+				-- Show player tracking button when tracking, when spectating, or when having alive teammates
 				local showPlayerTrackButton = isTrackingPlayer
 				if not showPlayerTrackButton then
 					local _, _, spec = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
-					showPlayerTrackButton = spec
+					local aliveTeammates = GetAliveTeammates()
+					showPlayerTrackButton = spec or (#aliveTeammates > 0)
 				end
 				local visibleButtons = {}
 				for i = 1, #buttons do
