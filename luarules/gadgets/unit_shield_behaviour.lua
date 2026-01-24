@@ -618,11 +618,9 @@ local function addCustomShieldDamage(shieldUnitID, damage, weaponDefID)
 		shieldData.shieldDamage = shieldData.shieldDamage + damage
 		shieldCheckFlags[shieldUnitID] = true
 
+		-- NB: The decision to delete the projectile is left up to the calling gadget.
 		if power >= damage then
 			return true, damage
-		elseif forceDeleteWeapons[weaponDefID] then
-			-- NB: The decision to delete is left up to the calling gadget.
-			return true, power
 		else
 			return false, power
 		end
