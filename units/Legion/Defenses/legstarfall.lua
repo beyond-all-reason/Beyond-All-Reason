@@ -80,8 +80,7 @@ return {
 				[4] = "custom:railgun-old",
 				[5] = "custom:smokegen-part",
 				[6] = "custom:smokegen-part2",
-				[7] = "custom:lightning-stormbig",
-				[8] = "custom:ventair-puff",
+				[7] = "custom:ventair-puff",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg3",

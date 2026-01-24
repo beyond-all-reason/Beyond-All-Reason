@@ -2335,13 +2335,13 @@ local unitGrids = {
 		},
 		{
 			{ "legdtr", "legstr", "legacluster", },               	  -- dragon's jaw, strider, t2 cluster arty
-			{ "legflak", "legrhapsis", "legaabot", "leggob", },    	  -- Ravager Flak, Rhapsis, T1 aa bot, Goblin
-			{ "legctl", "legnavyfrigate", },               			  -- coastal torp launcher, frigate
+			{ "legflak", "", "legaabot", "leggob", },                 -- Ravager Flak, intentional blank, T1 aa bot, Goblin
+			{ "legctl", "legnavyfrigate", "", "legamph" },            -- coastal torp launcher, frigate, intentional blank, Telchine
 		},
 		{
 			{ "legarad", "legeyes", "legforti", "legajam", },         -- adv radar, camera, wall, adv jammer
 			{ },                                                      --
-			{ },                                          			  -- med mine
+			{ },                                          			  -- med mine -- intentional blank
 		},
 		{
 			{ "leglab", "legck", },                                   -- bot lab, bot con
