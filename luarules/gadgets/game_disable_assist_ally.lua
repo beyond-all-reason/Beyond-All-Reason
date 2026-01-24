@@ -199,7 +199,7 @@ end
 
 -- Temp anti-cheat-esque guard. We check on random frames for units bypassing the rules.
 local function AllowUnitBuildStep(self, builderID, builderTeam, unitID, unitDefID, part)
-    if part > 0 and builderTeam ~= spGetUnitTeam(unitID) then
+    if part > 0 and builderTeam ~= spGetUnitTeam(unitID) and not isComplete(unitID) then
 		checkUnitCommandList[builderID] = builderTeam
 		return false
     end
