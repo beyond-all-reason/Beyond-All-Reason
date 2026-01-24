@@ -75,7 +75,7 @@ local function isBuilderAllowedCommand(cmdID, p1, p2, p5, p6, unitTeam)
 	if cmdID == CMD_GUARD then
 		return not isAlliedUnit(unitTeam, p1) or (isComplete(p1) and not canBuildStep[spGetUnitDefID(p1)])
 	elseif cmdID == CMD_REPAIR then
-		if p6 or (not p5 and p2) or not p1 then
+		if p6 or (not p5 and p2) or not p1 then -- check for 1 or 5 arguments
 			return true -- Area Repair is okay.
 		end
 		return not isAlliedUnit(unitTeam, p1) or (isComplete(p1))
