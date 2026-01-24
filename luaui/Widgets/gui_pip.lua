@@ -1747,7 +1747,11 @@ local function DrawProjectile(pID)
 				local speed = math.sqrt(vx*vx + vy*vy + vz*vz)
 
 				-- Scale up width at low zoom (far back) for better visibility (but not length)
-			local zoomScale = math.max(1, math.min(3, 1 / cameraState.zoom))
+				local zoomScale = math.max(1, math.min(3, 1 / cameraState.zoom))
+
+				-- Elongated blaster bolt (longer in direction of travel)
+				width = (cache.weaponSize[pDefID] or 2) * 0.8 * zoomScale
+				height = speed * 0.15 -- Length based on speed
 
 				-- Calculate angle based on velocity direction (like missiles)
 				angle = math.atan2(vx, vz) * mapInfo.rad2deg
@@ -1771,12 +1775,12 @@ local function DrawProjectile(pID)
 			else
 				cache.projectileSizes[pDefID] = 4
 			end
-			size = cache.projectileSizes[pDefID]
-		else
-			size = cache.projectileSizes[pDefID]
-		end
+		size = cache.projectileSizes[pDefID]
+	else
+		size = cache.projectileSizes[pDefID]
+	end
 
-		-- Only set color for non-blaster weapons
+	-- Only set color for non-blaster weapons
 		if not cache.weaponIsBlaster[pDefID] then
 			color = {1, 1, 0, 1}
 		end
@@ -1799,13 +1803,11 @@ local function DrawProjectile(pID)
 		angle = 0
 	end
 
-	-- Scale plasma cannon projectiles at low zoom (far back) for better visibility
-	if pDefID and cache.weaponIsPlasma[pDefID] then
-		-- Scale from 1x (high zoom/close) to 2x (low zoom/far) for better visibility at distance
-		local zoomScale = math.max(1, math.min(2, 1.2 / cameraState.zoom))
-		width = width * zoomScale * 0.9
-		height = height * zoomScale * 0.9
-	end
+	-- Scale projectiles to be visible at all zoom levels
+	-- Increase base size at high zoom (zoomed in close)
+	local zoomScale = 1 + (cameraState.zoom * 2) -- At zoom 0.05: 1.1x, at zoom 0.8: 2.6x
+	width = width * zoomScale
+	height = height * zoomScale
 
 	-- Make missiles longer rectangles and calculate orientation (using cached data)
 	if pDefID and cache.weaponIsMissile[pDefID] then
@@ -1951,7 +1953,7 @@ local function DrawProjectile(pID)
 					end
 				end)
 			else
-				-- -- Other projectiles as squares
+				-- Other projectiles as squares
 				-- glFunc.Color(color[1], color[2], color[3], color[4])
 				-- glFunc.BeginEnd(glConst.QUADS, function()
 				-- 	glFunc.Vertex(-width, -height, 0)
@@ -4678,6 +4680,7 @@ local function DrawUnitsAndFeatures()
 
 		-- Draw projectiles if enabled
 	if config.drawProjectiles then
+		glFunc.Texture(false)  -- Disable textures for colored projectiles
 		gl.Blending(true)
 		gl.DepthTest(false)
 
@@ -4701,15 +4704,19 @@ local function DrawUnitsAndFeatures()
 				DrawLaserBeams()
 			end
 
-			gl.DepthTest(true)
-			gl.Blending(false)
+			-- Draw explosions
+			DrawExplosions()
 		end
 
-		glFunc.PopMatrix()
+		gl.DepthTest(true)
+		gl.Blending(false)
+	end
+
+	glFunc.PopMatrix()
 
 
-		glFunc.Texture(0, false)
-		gl.Blending(true)
+	glFunc.Texture(0, false)
+	gl.Blending(true)
 		gl.DepthMask(false)
 		gl.DepthTest(false)
 
@@ -4740,7 +4747,7 @@ local function DrawUnitsAndFeatures()
 				if teamID then
 					local r, g, b = Spring.GetTeamColor(teamID)
 					-- Scale cursor size: larger at low zoom, stays reasonable at high zoom
-					local cursorSize = render.vsy * 0.007
+					local cursorSize = render.vsy * 0.0073
 
 					-- Draw crosshair lines to PIP boundaries (stop at cursor edge)
 					--glFunc.Color(r*1.5+0.5, g*1.5+0.5, b*1.5+0.5, 0.08)
@@ -4775,8 +4782,8 @@ local function DrawUnitsAndFeatures()
 					}
 
 					-- Draw black outline first (thicker)
-					glFunc.Color(0, 0, 0, 1)
-					gl.LineWidth(render.vsy / 600 + 2)
+					glFunc.Color(0, 0, 0, 0.66)
+					gl.LineWidth(render.vsy / 500 + 2)
 					for _, arc in ipairs(arcs) do
 						glFunc.BeginEnd(GL.LINE_STRIP, function()
 							local startAngle, endAngle = arc[1], arc[2]
@@ -4792,8 +4799,8 @@ local function DrawUnitsAndFeatures()
 					end
 
 					-- Draw colored arcs on top
-					glFunc.Color((r*1.5)+0.5, (g*1.5)+0.5, (b*1.5)+0.5, 1)
-					gl.LineWidth(render.vsy / 600)
+					glFunc.Color((r*1.3)+0.66, (g*1.3)+0.66, (b*1.3)+0.66, 1)
+					gl.LineWidth(render.vsy / 500)
 					for _, arc in ipairs(arcs) do
 						glFunc.BeginEnd(GL.LINE_STRIP, function()
 							local startAngle, endAngle = arc[1], arc[2]
@@ -4820,7 +4827,6 @@ local function DrawUnitsAndFeatures()
 
 		gl.LineWidth(1.0)
 		gl.Scissor(false)
-	end
 end
 
 -- Helper function to render PIP frame background (static)
@@ -6885,7 +6891,7 @@ function widget:GameStart()
 	-- Automatically maximize for players (only for the first PIP instance)
 	if pipNumber == 1 and not cameraState.mySpecState and uiState.inMinMode then
 		-- Trigger maximize animation
-		render.usedButtonSize = math.floor(buttonSize * render.widgetScale)
+		render.usedButtonSize = math.floor(config.buttonSize * render.widgetScale * render.uiScale)
 		local buttonSizeWithScale = math.floor(render.usedButtonSize * config.maximizeSizemult)
 
 		-- Update camera to tracked units immediately before maximizing
