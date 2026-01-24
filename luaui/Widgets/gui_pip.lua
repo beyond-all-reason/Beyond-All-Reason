@@ -109,6 +109,10 @@ local render = {
 	world = {},  -- World coordinate boundaries
 	ground = { view = {}, coord = {} },  -- Ground texture view and texture coordinates
 	minModeDlist = nil,  -- Display list for minimized mode button
+	mapRulerDlist = nil,  -- Display list for map ruler marks
+	mapRulerCacheKey = nil,  -- Cache key to detect when ruler needs regeneration
+	mapRulerMarkDlists = {},  -- Reusable mark pattern display lists
+	mapRulerLastMarkSize = nil,  -- Track mark size changes
 }
 
 -- Initialize render dimensions
@@ -175,6 +179,10 @@ local pipR2T = {
 	losTexScale = 96,  -- 96:1 ratio of map size to LOS texture size
 	losLastMode = nil,  -- Track whether last update used engine or manual LOS
 	losEngineDelayFrames = 0,  -- Delay frames before switching to engine LOS to let it update
+	-- Map ruler texture state
+	rulerTex = nil,
+	rulerNeedsUpdate = true,
+	rulerCacheKey = nil,  -- Cache key to detect significant changes
 }
 render.minModeDlist = nil  -- Display list for minimized mode button
 
@@ -313,6 +321,7 @@ local cache = {
 	weaponIsMissile = {},
 	weaponIsLightning = {},
 	weaponIsFlame = {},
+	weaponIsParalyze = {},
 	weaponSize = {},
 	weaponRange = {},
 	weaponThickness = {},
@@ -418,7 +427,7 @@ local buttons = {
 						local ax, az = 0, 0
 						for i = 1, #interactionState.areTracking do
 							local uID = interactionState.areTracking[i]
-							local ux, uy, uz = Spring.GetUnitBasePosition(uID)
+							local ux, uy, uz = spFunc.GetUnitBasePosition(uID)
 							if ux then
 								ax = ax + ux
 								az = az + uz
@@ -554,7 +563,7 @@ local buttons = {
 				interactionState.trackingPlayerID = nil
 				pipR2T.frameNeedsUpdate = true
 			else
-				local _, _, isSpec = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+				local _, _, isSpec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
 
 				if isSpec then
 					-- Spectator: Track team leader (keep existing behavior)
@@ -562,13 +571,13 @@ local buttons = {
 					local targetPlayerID = nil
 
 					-- Get the team leader's player ID from team info
-					local _, leaderPlayerID = Spring.GetTeamInfo(myTeamID, false)
+					local _, leaderPlayerID = spFunc.GetTeamInfo(myTeamID, false)
 
 					-- Verify this player is active and not self
 					if leaderPlayerID then
 						local myPlayerID = Spring.GetMyPlayerID()
 						if leaderPlayerID ~= myPlayerID then
-							local name, active = Spring.GetPlayerInfo(leaderPlayerID, false)
+							local name, active = spFunc.GetPlayerInfo(leaderPlayerID, false)
 							if name and active then
 								targetPlayerID = leaderPlayerID
 							end
@@ -599,12 +608,15 @@ local buttons = {
 						currentIndex = (currentIndex % #teammates) + 1
 						local targetPlayerID = teammates[currentIndex]
 
-						interactionState.trackingPlayerID = targetPlayerID
-						interactionState.lastTrackedTeammate = targetPlayerID
-						-- Clear unit tracking when starting player tracking
-						interactionState.areTracking = nil
-						pipR2T.frameNeedsUpdate = true
-						pipR2T.contentNeedsUpdate = true
+						-- Double-check we're not tracking ourselves
+						if targetPlayerID ~= Spring.GetMyPlayerID() then
+							interactionState.trackingPlayerID = targetPlayerID
+							interactionState.lastTrackedTeammate = targetPlayerID
+							-- Clear unit tracking when starting player tracking
+							interactionState.areTracking = nil
+							pipR2T.frameNeedsUpdate = true
+							pipR2T.contentNeedsUpdate = true
+						end
 					end
 				end
 			end
@@ -683,6 +695,9 @@ local spFunc = {
 	GetProjectileTarget = Spring.GetProjectileTarget,
 	GetProjectileOwnerID = Spring.GetProjectileOwnerID,
 	GetProjectileVelocity = Spring.GetProjectileVelocity,
+	GetUnitCommands = Spring.GetUnitCommands,
+	GetPlayerInfo = Spring.GetPlayerInfo,
+	GetCommandQueue = Spring.GetCommandQueue,
 }
 
 local success, mapinfo = pcall(VFS.Include,"mapinfo.lua")
@@ -948,7 +963,7 @@ end
 
 -- Helper function to get player skill/rating
 local function GetPlayerSkill(playerID)
-	local customtable = select(11, Spring.GetPlayerInfo(playerID))
+	local customtable = select(11, spFunc.GetPlayerInfo(playerID))
 	if type(customtable) == 'table' and customtable.skill then
 		local tsMu = customtable.skill
 		local skill = tsMu and tonumber(tsMu:match("-?%d+%.?%d*"))
@@ -960,7 +975,7 @@ end
 -- Helper function to get alive teammates (excluding self and AI)
 local function GetAliveTeammates()
 	local myPlayerID = Spring.GetMyPlayerID()
-	local _, _, _, myTeamID = Spring.GetPlayerInfo(myPlayerID, false)
+	local _, _, _, myTeamID = spFunc.GetPlayerInfo(myPlayerID, false)
 	if not myTeamID then
 		return {}
 	end
@@ -970,10 +985,10 @@ local function GetAliveTeammates()
 
 	for _, playerID in ipairs(playerList) do
 		if playerID ~= myPlayerID then
-			local _, active, isSpec, playerTeamID = Spring.GetPlayerInfo(playerID, false)
+			local _, active, isSpec, playerTeamID = spFunc.GetPlayerInfo(playerID, false)
 			if active and not isSpec and playerTeamID and playerTeamID == myTeamID then
 				-- Check if this team is controlled by AI
-				local _, _, isDead, isAI = Spring.GetTeamInfo(playerTeamID, false)
+				local _, _, isDead, isAI = spFunc.GetTeamInfo(playerTeamID, false)
 				if not isAI and not isDead then
 					table.insert(teammates, playerID)
 				end
@@ -987,12 +1002,12 @@ end
 -- Helper function to find the next best player on the same team
 local function FindNextBestTeamPlayer(excludePlayerID)
 	-- Get the team and allyteam of the excluded player
-	local _, _, _, excludeTeamID = Spring.GetPlayerInfo(excludePlayerID, false)
+	local _, _, _, excludeTeamID = spFunc.GetPlayerInfo(excludePlayerID, false)
 	if not excludeTeamID then
 		return nil
 	end
 
-	local _, _, _, _, _, excludeAllyTeamID = Spring.GetTeamInfo(excludeTeamID, false)
+	local _, _, _, _, _, excludeAllyTeamID = spFunc.GetTeamInfo(excludeTeamID, false)
 	if not excludeAllyTeamID then
 		return nil
 	end
@@ -1003,9 +1018,9 @@ local function FindNextBestTeamPlayer(excludePlayerID)
 
 	for _, playerID in ipairs(playerList) do
 		if playerID ~= excludePlayerID then
-			local _, active, isSpec, playerTeamID = Spring.GetPlayerInfo(playerID, false)
+			local _, active, isSpec, playerTeamID = spFunc.GetPlayerInfo(playerID, false)
 			if active and not isSpec and playerTeamID then
-				local _, _, _, _, _, playerAllyTeamID = Spring.GetTeamInfo(playerTeamID, false)
+				local _, _, _, _, _, playerAllyTeamID = spFunc.GetTeamInfo(playerTeamID, false)
 				if playerAllyTeamID == excludeAllyTeamID then
 					-- This player is on the same allyteam
 					local skill = GetPlayerSkill(playerID)
@@ -1032,7 +1047,7 @@ local function UpdatePlayerTracking()
 	end
 
 	-- Check if the tracked player has become a spectator or left
-	local playerName, active, isSpec = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
+	local playerName, active, isSpec = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
 	if not playerName then
 		-- Player left the game, try to find next best player on the same team
 		local nextPlayerID = FindNextBestTeamPlayer(interactionState.trackingPlayerID)
@@ -1243,7 +1258,7 @@ local function DrawUnit(uID)
 
 	if interactionState.trackingPlayerID and cameraState.mySpecState then
 		-- When tracking a player (as spectator), check their ally team's visibility
-		local _, _, _, playerTeamID = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
+		local _, _, _, playerTeamID = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
 		if playerTeamID then
 			local _, _, _, _, _, playerAllyTeamID = spFunc.GetTeamInfo(playerTeamID, false)
 
@@ -1427,7 +1442,7 @@ local function DrawProjectile(pID)
 								hasValidTarget = true
 							end
 						elseif targetType == string.byte('f') then -- feature target
-							local targetX, targetY, targetZ = Spring.GetFeaturePosition(targetID)
+							local targetX, targetY, targetZ = spFunc.GetFeaturePosition(targetID)
 							if targetX then
 								tx, ty, tz = targetX, targetY, targetZ
 								hasValidTarget = true
@@ -1513,7 +1528,7 @@ local function DrawProjectile(pID)
 								hasValidTarget = true
 							end
 						elseif targetType == string.byte('f') then -- feature target
-							local targetX, targetY, targetZ = Spring.GetFeaturePosition(targetID)
+							local targetX, targetY, targetZ = spFunc.GetFeaturePosition(targetID)
 							if targetX then
 								tx, ty, tz = targetX, targetY, targetZ
 								hasValidTarget = true
@@ -2285,7 +2300,8 @@ local function DrawExplosions()
 				i = i + 1
 			else
 				-- Draw explosion as expanding, fading circle
-				local progress = age / lifetime -- 0 to 1
+				local actualProgress = (age / lifetime)
+				local progress = 0.3 + (age / lifetime) * 0.7 -- Start at 33%, end at 100%
 
 				-- Calculate segments based on explosion size and progress
 				-- Smaller early explosions use fewer segments, larger/progressed use more
@@ -2392,9 +2408,12 @@ local function DrawExplosions()
 
 					-- Color based on size: small = yellow, large = red-orange to white (nuke-like)
 					local r, g, b
-					if explosion.radius > 150 then
-						-- Massive explosions (nukes): bright white-yellow
-						r, g, b = 1, 1, 0.8
+					if explosion.isParalyze then
+						-- Paralyze explosions: blue-white-ish
+						r, g, b = 0.75, 0.85, 1
+					elseif explosion.radius > 150 then
+						-- Nuke explosions: white to yellow-orange
+						r, g, b = 1, 0.9, 0.6
 					elseif explosion.radius > 80 then
 						-- Large explosions: orange-yellow
 						r, g, b = 1, 0.7, 0.2
@@ -2443,10 +2462,16 @@ local function DrawExplosions()
 					end
 
 					-- Add extra bright flash for massive explosions at the start
-					if explosion.radius > 150 and progress < 0.25 then -- Longer duration (was 0.15)
-						local flashAlpha = (1 - progress / 0.25) * alpha -- Full opacity flash
-						glFunc.Color(1, 1, 1, flashAlpha)
-						local flashRadius = baseRadius * 0.7 -- Even larger (was 0.5)
+					if (explosion.isParalyze or explosion.radius > 150) and actualProgress < 0.45 then
+						-- Flash only in first part of explosion
+						local flashProgress = actualProgress / 0.45
+						local flashAlpha = (1 - flashProgress) * alpha
+						local flashRadius = baseRadius * 0.9
+						if explosion.isParalyze then
+							glFunc.Color(0.65, 0.7, 1, flashAlpha)
+						else
+							glFunc.Color(1, 1, 1, flashAlpha)
+						end
 						glFunc.BeginEnd(glConst.TRIANGLE_FAN, function()
 							glFunc.Vertex(0, 0, 0)
 							for j = 0, segments do
@@ -2573,7 +2598,7 @@ local function GetUnitsInBox(x1, y1, x2, y2)
 end
 
 local function UnitQueueVertices(uID)
-	local uCmds = Spring.GetUnitCommands(uID, 50)
+	local uCmds = spFunc.GetUnitCommands(uID, 50)
 	if not uCmds or #uCmds == 0 then return end
 	local ux, uy, uz = spFunc.GetUnitPosition(uID)
 	local px, pz = WorldToPipCoords(ux, uz)
@@ -2582,7 +2607,13 @@ local function UnitQueueVertices(uID)
 		if (cmd.id < 0) or positionCmds[cmd.id] then
 			local cx, cy, cz
 			local paramCount = #cmd.params
-			if paramCount == 5 then
+			if paramCount == 3 or cmd.id == 10 then	-- with a little drag its 6
+				-- Regular positional command
+				cx, cy, cz = cmd.params[1], cmd.params[2], cmd.params[3]
+			elseif paramCount == 4 then
+				-- Area command: {x, y, z, radius} - use x and z
+				cx, cy, cz = cmd.params[1], cmd.params[2], cmd.params[3]
+			elseif paramCount == 5 then
 				-- 5 params could be: {targetID, x, y, z, radius} for set-target area commands
 				-- Check if first param is a valid unit/feature ID (large number)
 				if cmd.params[1] > 0 and cmd.params[1] < 1000000 then
@@ -2596,12 +2627,6 @@ local function UnitQueueVertices(uID)
 					-- Treat as positional: use x, y, z from params 2, 3, 4
 					cx, cy, cz = cmd.params[2], cmd.params[3], cmd.params[4]
 				end
-			elseif paramCount == 4 then
-				-- Area command: {x, y, z, radius} - use x and z
-				cx, cy, cz = cmd.params[1], cmd.params[2], cmd.params[3]
-			elseif paramCount == 3 then
-				-- Regular positional command
-				cx, cy, cz = cmd.params[1], cmd.params[2], cmd.params[3]
 			elseif paramCount == 1 then
 				if cmd.params[1] > Game.maxUnits then
 					cx, cy, cz = spFunc.GetFeaturePosition(cmd.params[1] - Game.maxUnits)
@@ -2674,7 +2699,7 @@ local function FindMyCommander()
 	-- Look for commander units (they have customParams.iscommander or are named *com)
 	for i = 1, #teamUnits do
 		local unitID = teamUnits[i]
-		local unitDefID = Spring.GetUnitDefID(unitID)
+		local unitDefID = spFunc.GetUnitDefID(unitID)
 		if unitDefID then
 			local unitDef = UnitDefs[unitDefID]
 			if unitDef then
@@ -2698,10 +2723,10 @@ local function CalculateBuildDragPositions(startWX, startWZ, endWX, endWZ, build
 	local buildWidth, buildHeight = GetBuildingDimensions(buildDefID, buildFacing)
 
 	-- Snap ONLY the start position - this becomes our anchor
-	local sx, sy, sz = Spring.Pos2BuildPos(buildDefID, startWX, Spring.GetGroundHeight(startWX, startWZ), startWZ)
+	local sx, sy, sz = Spring.Pos2BuildPos(buildDefID, startWX, spFunc.GetGroundHeight(startWX, startWZ), startWZ)
 
 	-- For end position, snap it too to know the intended area
-	local ex, ey, ez = Spring.Pos2BuildPos(buildDefID, endWX, Spring.GetGroundHeight(endWX, endWZ), endWZ)
+	local ex, ey, ez = Spring.Pos2BuildPos(buildDefID, endWX, spFunc.GetGroundHeight(endWX, endWZ), endWZ)
 
 	-- Calculate direction and distance
 	local dx = ex - sx
@@ -2761,7 +2786,7 @@ local function CalculateBuildDragPositions(startWX, startWZ, endWX, endWZ, build
 			local testZ = sz + dirZ * searchDist
 
 			-- Snap this test position
-			local snappedX, _, snappedZ = Spring.Pos2BuildPos(buildDefID, testX, Spring.GetGroundHeight(testX, testZ), testZ)
+			local snappedX, _, snappedZ = Spring.Pos2BuildPos(buildDefID, testX, spFunc.GetGroundHeight(testX, testZ), testZ)
 
 			-- Check distance from last placed building
 			local lastPos = positions[#positions]
@@ -2809,7 +2834,7 @@ local function CalculateBuildDragPositions(startWX, startWZ, endWX, endWZ, build
 				local wz = minZ + row * spacingZ
 
 				-- Snap each position to engine's build grid
-				local snappedX, _, snappedZ = Spring.Pos2BuildPos(buildDefID, wx, Spring.GetGroundHeight(wx, wz), wz)
+				local snappedX, _, snappedZ = Spring.Pos2BuildPos(buildDefID, wx, spFunc.GetGroundHeight(wx, wz), wz)
 
 				-- Check if this snapped position is too close to a previous one (engine would reject it)
 				local tooClose = false
@@ -2848,7 +2873,7 @@ local function CalculateBuildDragPositions(startWX, startWZ, endWX, endWZ, build
 					local wz = minZ + row * spacingZ
 
 					-- Snap each position to engine's build grid
-					local snappedX, _, snappedZ = Spring.Pos2BuildPos(buildDefID, wx, Spring.GetGroundHeight(wx, wz), wz)
+					local snappedX, _, snappedZ = Spring.Pos2BuildPos(buildDefID, wx, spFunc.GetGroundHeight(wx, wz), wz)
 
 					-- Check if too close to previous
 					local tooClose = false
@@ -2880,8 +2905,8 @@ local function CanTransportLoadUnit(transportUnitID, targetUnitID)
 		return false
 	end
 
-	local transportDefID = Spring.GetUnitDefID(transportUnitID)
-	local targetDefID = Spring.GetUnitDefID(targetUnitID)
+	local transportDefID = spFunc.GetUnitDefID(transportUnitID)
+	local targetDefID = spFunc.GetUnitDefID(targetUnitID)
 
 	if not transportDefID or not targetDefID then
 		return false
@@ -2972,14 +2997,14 @@ local function IssueCommandAtPoint(cmdID, wx, wz, usingRMB, forceQueue, radius)
 
 			-- Collect all transport units (using cache)
 			for i = 1, #selectedUnits do
-				local unitDefID = Spring.GetUnitDefID(selectedUnits[i])
+				local unitDefID = spFunc.GetUnitDefID(selectedUnits[i])
 				if unitDefID and cache.isTransport[unitDefID] and (cache.transportCapacity[unitDefID] or 0) > 0 then
 					transports[#transports + 1] = selectedUnits[i]
 				end
 			end			if #transports > 0 then
 				-- If multiple transports, convert to area command so they load different units
 				if #transports > 1 then
-					local ux, uy, uz = Spring.GetUnitPosition(id)
+					local ux, uy, uz = spFunc.GetUnitPosition(id)
 					if ux then
 						-- Use a small radius area command so transports will find different nearby units
 						local smallRadius = 150
@@ -3013,7 +3038,7 @@ local function IssueCommandAtPoint(cmdID, wx, wz, usingRMB, forceQueue, radius)
 					-- Give order to each transport unit individually (using cache)
 					-- This allows the engine to distribute targets naturally across multiple transports
 					for i = 1, #selectedUnits do
-						local unitDefID = Spring.GetUnitDefID(selectedUnits[i])
+						local unitDefID = spFunc.GetUnitDefID(selectedUnits[i])
 						if unitDefID and cache.isTransport[unitDefID] and (cache.transportCapacity[unitDefID] or 0) > 0 then
 							Spring.GiveOrderToUnit(selectedUnits[i], cmdID, {wx, spFunc.GetGroundHeight(wx, wz), wz, radius}, cmdOpts.coded)
 						end
@@ -3232,20 +3257,23 @@ function widget:Initialize()
 		if wDef.name and string.find(string.lower(wDef.name), "footstep") then
 			cache.weaponSkipExplosion[wDefID] = true
 		end
-	end
 
-	gameHasStarted = (Spring.GetGameFrame() > 0)
-	miscState.startX, _, miscState.startZ = Spring.GetTeamStartPosition(Spring.GetMyTeamID())
-	-- Only set camera position if not already loaded from config
-	if (not cameraState.wcx or not cameraState.wcz) and miscState.startX and miscState.startX >= 0 then
-		cameraState.wcx, cameraState.wcz = miscState.startX, miscState.startZ
-		cameraState.targetWcx, cameraState.targetWcz = cameraState.wcx, cameraState.wcz  -- Initialize targets
+	-- Check if weapon is paralyze damage
+	if wDef.damages and wDef.damages.paralyzeDamageTime and wDef.damages.paralyzeDamageTime > 0 then
+		cache.weaponIsParalyze[wDefID] = true
 	end
+end
 
-	-- Always minimize PIP when first starting (only on fresh start, not on reload)
-	if not uiState.inMinMode and not miscState.hadSavedConfig then
-		uiState.inMinMode = true
-		-- Store current dimensions before minimizing
+gameHasStarted = (Spring.GetGameFrame() > 0)
+miscState.startX, _, miscState.startZ = Spring.GetTeamStartPosition(Spring.GetMyTeamID())
+-- Only set camera position if not already loaded from config
+if (not cameraState.wcx or not cameraState.wcz) and miscState.startX and miscState.startX >= 0 then
+	cameraState.wcx, cameraState.wcz = miscState.startX, miscState.startZ
+	cameraState.targetWcx, cameraState.targetWcz = cameraState.wcx, cameraState.wcz  -- Initialize targets
+end
+
+-- Always minimize PIP when first starting (only on fresh start, not on reload)
+if not uiState.inMinMode and not miscState.hadSavedConfig then
 		uiState.savedDimensions = {
 			l = render.dim.l,
 			r = render.dim.r,
@@ -3279,7 +3307,13 @@ function widget:Initialize()
 	end
 	WG['pip'..pipNumber].TrackPlayer = function(playerID)
 		if playerID and type(playerID) == "number" then
-			local name, _, isSpec = Spring.GetPlayerInfo(playerID, false)
+			-- Prevent tracking yourself
+			local myPlayerID = Spring.GetMyPlayerID()
+			if playerID == myPlayerID then
+				return false
+			end
+
+			local name, _, isSpec = spFunc.GetPlayerInfo(playerID, false)
 			if name and not isSpec then
 				interactionState.trackingPlayerID = playerID
 				interactionState.areTracking = nil  -- Clear unit tracking
@@ -3609,7 +3643,7 @@ function widget:SetConfigData(data)
 
 		-- Restore player tracking if same game and player still exists
 		if data.trackingPlayerID and isSameGame then
-			local playerName = Spring.GetPlayerInfo(data.trackingPlayerID, false)
+			local playerName = spFunc.GetPlayerInfo(data.trackingPlayerID, false)
 			if playerName then
 				-- Restore the tracking - validation happens in UpdatePlayerTracking
 				interactionState.trackingPlayerID = data.trackingPlayerID
@@ -3713,7 +3747,7 @@ local function DrawFormationDotsOverlay()
 end
 
 -- Helper function to draw command queues overlay
-local function DrawCommandQueuesOverlay()
+local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 	-- Check if Shift+Space (meta) is held to show all visible units
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 	local showAllUnits = shift and meta
@@ -3745,8 +3779,8 @@ local function DrawCommandQueuesOverlay()
 				end
 			end
 		else
-			-- Use own selected units
-			selectedUnits = Spring.GetSelectedUnits()
+			-- Use cached selected units to avoid redundant API call
+			selectedUnits = cachedSelectedUnits
 		end
 
 		if not selectedUnits then
@@ -3771,22 +3805,19 @@ local function DrawCommandQueuesOverlay()
 	gl.LineWidth(1.0)
 	gl.LineStipple("springdefault")
 
-	-- Cache Spring API functions for the loop
-	local GetUnitPosition = Spring.GetUnitPosition
-	local GetUnitCommands = Spring.GetUnitCommands
-
 	-- Collect all line segments and markers into batches (massively reduces closure allocations)
 	local linePool = pools.commandLine
 	local markerPool = pools.commandMarker
 	local lineCount = 0
 	local markerCount = 0
+	local maxUnits = Game.maxUnits or 32000	-- Features are encoded as featureID + Game.maxUnits in commands
 
 	for i = 1, unitCount do
 		local uID = unitsToShow[i]
-		local ux, uy, uz = GetUnitPosition(uID)
+		local ux, uy, uz = spFunc.GetUnitPosition(uID)
 		if ux then
 			local startSX, startSY = WorldToPipCoords(ux, uz)
-			local commands = GetUnitCommands(uID, 30)
+			local commands = spFunc.GetUnitCommands(uID, 30)
 
 			if commands then
 				local cmdCount = #commands
@@ -3799,12 +3830,18 @@ local function DrawCommandQueuesOverlay()
 						local params = cmd.params
 						if params then
 							local paramCount = #params
-							if paramCount == 5 then
+							if paramCount == 3 or cmd.id == 10 then
+								-- Regular positional command (move, attack-ground, etc.)
+								cmdX, cmdZ = params[1], params[3]
+							elseif paramCount == 4 then
+								-- Area commands (reclaim, repair, etc.) have 4 params: {x, y, z, radius}
+								cmdX, cmdZ = params[1], params[3]
+							elseif paramCount == 5 then
 								-- 5 params could be: {targetID, x, y, z, radius} for set-target area commands
 								if params[1] > 0 and params[1] < 1000000 then
 									-- It's a target ID command
 									local targetID = params[1]
-									local tx, ty, tz = GetUnitPosition(targetID)
+									local tx, ty, tz = spFunc.GetUnitPosition(targetID)
 									if tx then
 										cmdX, cmdZ = tx, tz
 									end
@@ -3812,15 +3849,14 @@ local function DrawCommandQueuesOverlay()
 									-- Treat as positional
 									cmdX, cmdZ = params[2], params[4]
 								end
-							elseif paramCount == 4 then
-								-- Area commands (reclaim, repair, etc.) have 4 params: {x, y, z, radius}
-								cmdX, cmdZ = params[1], params[3]
-							elseif paramCount == 3 then
-								-- Regular positional command (move, attack-ground, etc.)
-								cmdX, cmdZ = params[1], params[3]
 							elseif paramCount == 1 then
 								local targetID = params[1]
-								local tx, ty, tz = GetUnitPosition(targetID)
+								local tx, ty, tz
+								if targetID >= maxUnits then	-- Features are encoded as featureID + Game.maxUnits in commands
+									tx, ty, tz = spFunc.GetFeaturePosition(targetID - maxUnits)
+								else
+									tx, ty, tz = spFunc.GetUnitPosition(targetID)
+								end
 								if tx then
 									cmdX, cmdZ = tx, tz
 								end
@@ -4002,20 +4038,21 @@ local function DrawBuildPreview(mx, my, iconRadiusZoomDistMult)
 			local rotation = buildFacing * 90
 			local canBuild = Spring.TestBuildOrder(buildDefID, wx, wy, wz, buildFacing)
 
-			if canBuild == 2 then
-				glFunc.Color(1, 1, 1, 0.5)
-			elseif canBuild == 1 then
-				local blockedByMobile = false
-				local nearbyUnits = Spring.GetUnitsInCylinder(wx, wz, 64)
-			if nearbyUnits then
-				for _, unitID in ipairs(nearbyUnits) do
-					local unitDefID = Spring.GetUnitDefID(unitID)
-					if unitDefID and cache.canMove[unitDefID] and not cache.isBuilding[unitDefID] then
-						blockedByMobile = true
-						break
+				if canBuild == 2 then
+					glFunc.Color(1, 1, 1, 0.5)
+				elseif canBuild == 1 then
+					local blockedByMobile = false
+					local nearbyUnits = Spring.GetUnitsInCylinder(wx, wz, 64)
+				if nearbyUnits then
+					for _, unitID in ipairs(nearbyUnits) do
+						local unitDefID = spFunc.GetUnitDefID(unitID)
+						if unitDefID and cache.canMove[unitDefID] and not cache.isBuilding[unitDefID] then
+							blockedByMobile = true
+							break
+						end
 					end
 				end
-			end				if blockedByMobile then
+				if blockedByMobile then
 					glFunc.Color(1, 1, 1, 0.5)
 				else
 					glFunc.Color(1, 1, 0, 0.5)
@@ -4070,7 +4107,7 @@ local function DrawBuildDragPreview(iconRadiusZoomDistMult)
 	for i = 1, #interactionState.buildDragPositions do
 		local pos = interactionState.buildDragPositions[i]
 		local cx, cy = WorldToPipCoords(pos.wx, pos.wz)
-		local canBuild = Spring.TestBuildOrder(buildDefID, pos.wx, Spring.GetGroundHeight(pos.wx, pos.wz), pos.wz, buildFacing)
+		local canBuild = Spring.TestBuildOrder(buildDefID, pos.wx, spFunc.GetGroundHeight(pos.wx, pos.wz), pos.wz, buildFacing)
 		local alpha = math.max(0.3, 0.6 - (i - 1) * 0.05)
 
 		if canBuild == 2 then
@@ -4080,7 +4117,7 @@ local function DrawBuildDragPreview(iconRadiusZoomDistMult)
 			local nearbyUnits = Spring.GetUnitsInCylinder(pos.wx, pos.wz, 64)
 			if nearbyUnits then
 				for _, unitID in ipairs(nearbyUnits) do
-					local unitDefID = Spring.GetUnitDefID(unitID)
+					local unitDefID = spFunc.GetUnitDefID(unitID)
 					if unitDefID and cache.canMove[unitDefID] and not cache.isBuilding[unitDefID] then
 						blockedByMobile = true
 						break
@@ -4112,8 +4149,8 @@ local function DrawBuildDragPreview(iconRadiusZoomDistMult)
 end
 
 -- Helper function to draw queued building ghosts
-local function DrawQueuedBuilds(iconRadiusZoomDistMult)
-	local selectedUnits = Spring.GetSelectedUnits()
+local function DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
+	local selectedUnits = cachedSelectedUnits
 	local selectedCount = selectedUnits and #selectedUnits or 0
 	if selectedCount == 0 then
 		return
@@ -4129,7 +4166,7 @@ local function DrawQueuedBuilds(iconRadiusZoomDistMult)
 
 	for i = 1, selectedCount do
 		local unitID = selectedUnits[i]
-		local queue = Spring.GetCommandQueue(unitID, -1)
+		local queue = spFunc.GetCommandQueue(unitID, -1)
 
 		if queue then
 			local queueLength = #queue
@@ -4138,7 +4175,6 @@ local function DrawQueuedBuilds(iconRadiusZoomDistMult)
 				if cmd.id < 0 then
 					local buildDefID = -cmd.id
 					local buildIcon = cache.unitIcon[buildDefID]
-
 					if buildIcon and cmd.params then
 						local paramCount = #cmd.params
 						if paramCount >= 3 then
@@ -4573,7 +4609,7 @@ end
 end
 
 -- Helper function to draw units and features in PIP
-local function DrawUnitsAndFeatures()
+local function DrawUnitsAndFeatures(cachedSelectedUnits)
 
 	-- Use larger margin for units and features to account for their radius
 	-- Features especially can be quite large (up to ~200 units radius for big wrecks)
@@ -4743,7 +4779,7 @@ local function DrawUnitsAndFeatures()
 				local opacity = cursor[7] or 1
 
 				-- Get player's team color
-				local _, _, _, teamID = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
+				local _, _, _, teamID = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
 				if teamID then
 					local r, g, b = Spring.GetTeamColor(teamID)
 					-- Scale cursor size: larger at low zoom, stays reasonable at high zoom
@@ -4823,7 +4859,7 @@ local function DrawUnitsAndFeatures()
 		local mx, my = spFunc.GetMouseState()
 		DrawBuildPreview(mx, my, iconRadiusZoomDistMult)
 		DrawBuildDragPreview(iconRadiusZoomDistMult)
-		DrawQueuedBuilds(iconRadiusZoomDistMult)
+		DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
 
 		gl.LineWidth(1.0)
 		gl.Scissor(false)
@@ -4985,7 +5021,7 @@ local function ShouldShowLOS()
 
 	-- If tracking a player's camera, use their allyteam (priority over LOS view)
 	if interactionState.trackingPlayerID then
-		local _, _, isSpec, teamID = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
+		local _, _, isSpec, teamID = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
 		if teamID then
 			local allyTeamID = Spring.GetTeamAllyTeamID(teamID)
 			-- Always return the tracked player's allyteam for LOS generation
@@ -5084,6 +5120,9 @@ local function DrawWaterAndLOSOverlays()
 end
 
 local function RenderPipContents()
+	-- Cache selected units once per render cycle to avoid multiple API calls
+	local cachedSelectedUnits = Spring.GetSelectedUnits()
+
 	if uiState.drawingGround then
 
 		-- Draw ground minimap
@@ -5098,10 +5137,10 @@ local function RenderPipContents()
 
 	-- Measure draw time for performance monitoring
 	local drawStartTime = os.clock()
-	DrawUnitsAndFeatures()
+	DrawUnitsAndFeatures(cachedSelectedUnits)
 	pipR2T.contentLastDrawTime = os.clock() - drawStartTime
 
-	DrawCommandQueuesOverlay()
+	DrawCommandQueuesOverlay(cachedSelectedUnits)
 end
 
 -- Helper function to draw box selection rectangle
@@ -5198,7 +5237,7 @@ local function DrawAreaCommand()
 		return
 	end
 
-	local mx, my = Spring.GetMouseState()
+	local mx, my = spFunc.GetMouseState()
 	local _, cmdID = Spring.GetActiveCommand()
 	if not cmdID or cmdID <= 0 then
 		return
@@ -5251,137 +5290,222 @@ end
 
 -- Draw map ruler at PIP edges to show scale
 local function DrawMapRuler()
-	-- Use fixed ruler spacing that never changes - this ensures consistent positions
-	-- Smallest ruler marks are always at multiples of 64 world units
-	local smallestSpacing = 64
-	local mediumSpacing = smallestSpacing * 4  -- 256
-	local largestSpacing = smallestSpacing * 16  -- 1024
+	if not gl.R2tHelper then
+		return
+	end
 
-	-- Calculate how many pixels each spacing level would take on screen
-	local worldWidth = render.world.r - render.world.l
-	local smallestScreenSpacing = (render.dim.r - render.dim.l) * (smallestSpacing / worldWidth)
-	local mediumScreenSpacing = (render.dim.r - render.dim.l) * (mediumSpacing / worldWidth)
-	local largestScreenSpacing = (render.dim.r - render.dim.l) * (largestSpacing / worldWidth)
-
-	-- Show different levels based on screen spacing (like a ruler)
-	-- Only show marks if they're at least 8 pixels apart
-	local showSmallest = smallestScreenSpacing >= 8
-	local showMedium = mediumScreenSpacing >= 8
-	local showLargest = largestScreenSpacing >= 8
-
-	-- Calculate ruler mark size in screen space (4 pixels)
+	-- Calculate ruler mark size
 	local markSize = math.ceil(3 * (render.vsy / 2000))
 
-	-- Draw squares at ruler marks along all edges
-	glFunc.Texture(false)
-	--glFunc.Color(0, 0, 0, 0.3)
-	glFunc.Color(1, 1, 1, 0.18)
+	-- Generate cache key with rounding to avoid tiny changes triggering regeneration
+	-- Round world coordinates to nearest 10 units and screen dimensions to nearest 5 pixels
+	local cacheKey = string.format("%d_%d_%d_%d_%d_%d_%d_%d_%d",
+		math.floor(render.world.l / 3) * 3,
+		math.floor(render.world.r / 3) * 3,
+		math.floor(render.world.t / 3) * 3,
+		math.floor(render.world.b / 3) * 3,
+		math.floor(render.dim.l / 3) * 3,
+		math.floor(render.dim.r / 3) * 3,
+		math.floor(render.dim.b / 3) * 3,
+		math.floor(render.dim.t / 3) * 3,
+		markSize)
 
-	-- Find ruler alignment based on world coordinates (always use smallest spacing as base)
-	miscState.startX = math.ceil(render.world.l / smallestSpacing) * smallestSpacing
-	-- Note: render.world.t is actually less than render.world.b (inverted Z axis)
-	miscState.startZ = math.ceil(render.world.t / smallestSpacing) * smallestSpacing
-
-	-- Top and bottom edges
-	local x = miscState.startX
-	while x <= render.world.r do
-		local sx = WorldToPipCoords(x, cameraState.wcz)
-
-		-- Check if sx is within visible bounds
-		if sx >= render.dim.l and sx <= render.dim.r then
-			-- Determine if this mark should be shown based on ruler level
-			local is16x = (x % largestSpacing == 0)
-			local is4x = (x % mediumSpacing == 0)
-
-			local shouldDraw = false
-			local length = markSize
-
-			if is16x and showLargest then
-				shouldDraw = true
-				length = markSize * 3
-			elseif is4x and showMedium then
-				shouldDraw = true
-				length = markSize * 2
-			elseif showSmallest then
-				shouldDraw = true
-				length = markSize
-			end
-
-			if shouldDraw then
-				-- Top edge
-				glFunc.BeginEnd(glConst.QUADS, function()
-					glFunc.Vertex(sx - markSize/2, render.dim.t - length)
-					glFunc.Vertex(sx + markSize/2, render.dim.t - length)
-					glFunc.Vertex(sx + markSize/2, render.dim.t)
-					glFunc.Vertex(sx - markSize/2, render.dim.t)
-				end)
-
-				-- Bottom edge
-				glFunc.BeginEnd(glConst.QUADS, function()
-					glFunc.Vertex(sx - markSize/2, render.dim.b)
-					glFunc.Vertex(sx + markSize/2, render.dim.b)
-					glFunc.Vertex(sx + markSize/2, render.dim.b + length)
-					glFunc.Vertex(sx - markSize/2, render.dim.b + length)
-				end)
-			end
-		end
-
-		x = x + smallestSpacing
+	-- Check if texture needs regeneration
+	if pipR2T.rulerCacheKey ~= cacheKey then
+		pipR2T.rulerNeedsUpdate = true
+		pipR2T.rulerCacheKey = cacheKey
 	end
 
-	-- Left and right edges (render.world.t < render.world.b because Z is inverted)
-	local z = miscState.startZ
-	while z <= render.world.b do
-		local _, sy = WorldToPipCoords(cameraState.wcx, z)
+	-- Create/update texture if needed
+	if pipR2T.rulerNeedsUpdate then
+		local pipWidth = render.dim.r - render.dim.l
+		local pipHeight = render.dim.t - render.dim.b
 
-		-- Check if sy is within visible bounds
-		if sy >= render.dim.b and sy <= render.dim.t then
-			-- Determine if this mark should be shown based on ruler level
-			local is16x = (z % largestSpacing == 0)
-			local is4x = (z % mediumSpacing == 0)
-
-			local shouldDraw = false
-			local length = markSize
-
-			if is16x and showLargest then
-				shouldDraw = true
-				length = markSize * 3
-			elseif is4x and showMedium then
-				shouldDraw = true
-				length = markSize * 2
-			elseif showSmallest then
-				shouldDraw = true
-				length = markSize
+		if not pipR2T.rulerTex or math.floor(pipWidth) ~= pipR2T.rulerLastWidth or math.floor(pipHeight) ~= pipR2T.rulerLastHeight then
+			if pipR2T.rulerTex then
+				gl.DeleteTexture(pipR2T.rulerTex)
 			end
-
-			if shouldDraw then
-				-- Left edge
-				glFunc.BeginEnd(glConst.QUADS, function()
-					glFunc.Vertex(render.dim.l, sy - markSize/2)
-					glFunc.Vertex(render.dim.l + length, sy - markSize/2)
-					glFunc.Vertex(render.dim.l + length, sy + markSize/2)
-					glFunc.Vertex(render.dim.l, sy + markSize/2)
-				end)
-
-				-- Right edge
-				glFunc.BeginEnd(glConst.QUADS, function()
-					glFunc.Vertex(render.dim.r - length, sy - markSize/2)
-					glFunc.Vertex(render.dim.r, sy - markSize/2)
-					glFunc.Vertex(render.dim.r, sy + markSize/2)
-					glFunc.Vertex(render.dim.r - length, sy + markSize/2)
-				end)
-			end
+			pipR2T.rulerTex = gl.CreateTexture(math.floor(pipWidth), math.floor(pipHeight), {
+				target = GL.TEXTURE_2D, format = GL.RGBA, fbo = true,
+			})
+			pipR2T.rulerLastWidth = math.floor(pipWidth)
+			pipR2T.rulerLastHeight = math.floor(pipHeight)
 		end
 
-		z = z + smallestSpacing
+		if pipR2T.rulerTex then
+			gl.R2tHelper.RenderToTexture(pipR2T.rulerTex, function()
+				glFunc.Translate(-1, -1, 0)
+				glFunc.Scale(2 / pipWidth, 2 / pipHeight, 0)
+
+				-- Create reusable mark pattern display lists if not exist or size changed
+				if not render.mapRulerMarkDlists.horizontal or render.mapRulerLastMarkSize ~= markSize then
+					-- Clean up old display lists
+					if render.mapRulerMarkDlists.horizontal then
+						for _, dlist in pairs(render.mapRulerMarkDlists.horizontal) do
+							gl.DeleteList(dlist)
+						end
+						for _, dlist in pairs(render.mapRulerMarkDlists.vertical) do
+							gl.DeleteList(dlist)
+						end
+					end
+
+					render.mapRulerMarkDlists.horizontal = {}
+					render.mapRulerMarkDlists.vertical = {}
+
+					-- Create horizontal marks (top/bottom edges) - centered at origin
+					for i, mult in ipairs({1, 2, 3}) do
+						local length = markSize * mult
+						-- Top mark (extends downward from 0)
+						render.mapRulerMarkDlists.horizontal["top" .. i] = gl.CreateList(function()
+							glFunc.BeginEnd(glConst.QUADS, function()
+								glFunc.Vertex(-markSize/2, -length)
+								glFunc.Vertex(markSize/2, -length)
+								glFunc.Vertex(markSize/2, 0)
+								glFunc.Vertex(-markSize/2, 0)
+							end)
+						end)
+						-- Bottom mark (extends upward from 0)
+						render.mapRulerMarkDlists.horizontal["bottom" .. i] = gl.CreateList(function()
+							glFunc.BeginEnd(glConst.QUADS, function()
+								glFunc.Vertex(-markSize/2, 0)
+								glFunc.Vertex(markSize/2, 0)
+								glFunc.Vertex(markSize/2, length)
+								glFunc.Vertex(-markSize/2, length)
+							end)
+						end)
+					end
+
+					-- Create vertical marks (left/right edges) - centered at origin
+					for i, mult in ipairs({1, 2, 3}) do
+						local length = markSize * mult
+						-- Left mark (extends rightward from 0)
+						render.mapRulerMarkDlists.vertical["left" .. i] = gl.CreateList(function()
+							glFunc.BeginEnd(glConst.QUADS, function()
+								glFunc.Vertex(0, -markSize/2)
+								glFunc.Vertex(length, -markSize/2)
+								glFunc.Vertex(length, markSize/2)
+								glFunc.Vertex(0, markSize/2)
+							end)
+						end)
+						-- Right mark (extends leftward from 0)
+						render.mapRulerMarkDlists.vertical["right" .. i] = gl.CreateList(function()
+							glFunc.BeginEnd(glConst.QUADS, function()
+								glFunc.Vertex(-length, -markSize/2)
+								glFunc.Vertex(0, -markSize/2)
+								glFunc.Vertex(0, markSize/2)
+								glFunc.Vertex(-length, markSize/2)
+							end)
+						end)
+					end
+
+					render.mapRulerLastMarkSize = markSize
+				end
+
+				-- Use fixed ruler spacing
+				local smallestSpacing = 64
+				local mediumSpacing = smallestSpacing * 4  -- 256
+				local largestSpacing = smallestSpacing * 16  -- 1024
+
+				-- Calculate how many pixels each spacing level would take on screen
+				local worldWidth = render.world.r - render.world.l
+				local smallestScreenSpacing = pipWidth * (smallestSpacing / worldWidth)
+				local mediumScreenSpacing = pipWidth * (mediumSpacing / worldWidth)
+				local largestScreenSpacing = pipWidth * (largestSpacing / worldWidth)
+
+				-- Show different levels based on screen spacing
+				local showSmallest = smallestScreenSpacing >= 8
+				local showMedium = mediumScreenSpacing >= 8
+				local showLargest = largestScreenSpacing >= 8
+
+				-- Find ruler alignment based on world coordinates
+				local startX = math.ceil(render.world.l / smallestSpacing) * smallestSpacing
+				local startZ = math.ceil(render.world.t / smallestSpacing) * smallestSpacing
+
+				glFunc.Texture(false)
+				glFunc.Color(1, 1, 1, 0.18)
+
+				-- Draw top and bottom edges using translations
+				local x = startX
+				while x <= render.world.r do
+					local sx = WorldToPipCoords(x, cameraState.wcz)
+					local lsx = sx - render.dim.l  -- Convert to texture local coords
+					if lsx >= 0 and lsx <= pipWidth then
+						local is16x = (x % largestSpacing == 0)
+						local is4x = (x % mediumSpacing == 0)
+
+						local markType
+						if is16x and showLargest then
+							markType = 3
+						elseif is4x and showMedium then
+							markType = 2
+						elseif showSmallest then
+							markType = 1
+						end
+
+						if markType then
+							glFunc.PushMatrix()
+							glFunc.Translate(lsx, pipHeight, 0)
+							glFunc.CallList(render.mapRulerMarkDlists.horizontal["top" .. markType])
+							glFunc.PopMatrix()
+
+							glFunc.PushMatrix()
+							glFunc.Translate(lsx, 0, 0)
+							glFunc.CallList(render.mapRulerMarkDlists.horizontal["bottom" .. markType])
+							glFunc.PopMatrix()
+						end
+					end
+					x = x + smallestSpacing
+				end
+
+				-- Draw left and right edges using translations
+				local z = startZ
+				while z <= render.world.b do
+					local _, sy = WorldToPipCoords(cameraState.wcx, z)
+					local lsy = sy - render.dim.b  -- Convert to texture local coords
+					if lsy >= 0 and lsy <= pipHeight then
+						local is16x = (z % largestSpacing == 0)
+						local is4x = (z % mediumSpacing == 0)
+
+						local markType
+						if is16x and showLargest then
+							markType = 3
+						elseif is4x and showMedium then
+							markType = 2
+						elseif showSmallest then
+							markType = 1
+						end
+
+						if markType then
+							glFunc.PushMatrix()
+							glFunc.Translate(0, lsy, 0)
+							glFunc.CallList(render.mapRulerMarkDlists.vertical["left" .. markType])
+							glFunc.PopMatrix()
+
+							glFunc.PushMatrix()
+							glFunc.Translate(pipWidth, lsy, 0)
+							glFunc.CallList(render.mapRulerMarkDlists.vertical["right" .. markType])
+							glFunc.PopMatrix()
+						end
+					end
+					z = z + smallestSpacing
+				end
+
+				glFunc.Color(1, 1, 1, 1)
+			end, true)
+
+			pipR2T.rulerNeedsUpdate = false
+		end
 	end
 
-	glFunc.Color(1, 1, 1, 1)
+	-- Blit the cached ruler texture
+	if pipR2T.rulerTex then
+		gl.R2tHelper.BlendTexRect(pipR2T.rulerTex, render.dim.l, render.dim.b, render.dim.r, render.dim.t, true)
+	end
 end
 
 -- Draw build cursor (icon and placement grid) when holding a build command
 local function DrawBuildCursor()
-	local mx, my = Spring.GetMouseState()
+	local mx, my = spFunc.GetMouseState()
 
 	-- Check if mouse is over PIP
 	if mx < render.dim.l or mx > render.dim.r or my < render.dim.b or my > render.dim.t then
@@ -5409,7 +5533,7 @@ local function DrawBuildCursor()
 	wx = math.floor(wx / gridSize + 0.5) * gridSize
 	wz = math.floor(wz / gridSize + 0.5) * gridSize
 
-	local wy = Spring.GetGroundHeight(wx, wz)
+	local wy = spFunc.GetGroundHeight(wx, wz)
 
 	-- Get build facing
 	local buildFacing = Spring.GetBuildFacing()
@@ -5520,7 +5644,7 @@ local function DrawTrackedPlayerName()
 		return
 	end
 
-	local playerName, active, isSpec, teamID = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
+	local playerName, active, isSpec, teamID = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
 	if not (playerName and teamID) then
 		return
 	end
@@ -5566,16 +5690,27 @@ local function UpdateR2TFrame(pipWidth, pipHeight)
 
 	-- Update frame textures if needed
 	if pipR2T.frameNeedsUpdate and pipWidth >= 1 and pipHeight >= 1 then
+		-- Create texture large enough to include elementPadding on all sides
+		local bgTexWidth = math.floor(pipWidth + render.elementPadding * 2)
+		local bgTexHeight = math.floor(pipHeight + render.elementPadding * 2)
+
 		if not pipR2T.frameBackgroundTex then
-			pipR2T.frameBackgroundTex = gl.CreateTexture(math.floor(pipWidth), math.floor(pipHeight), {
+			pipR2T.frameBackgroundTex = gl.CreateTexture(bgTexWidth, bgTexHeight, {
 				target = GL.TEXTURE_2D, format = GL.RGBA, fbo = true,
 			})
 		end
 		if pipR2T.frameBackgroundTex then
 			gl.R2tHelper.RenderToTexture(pipR2T.frameBackgroundTex, function()
 				glFunc.Translate(-1, -1, 0)
-				glFunc.Scale(2 / pipWidth, 2 / pipHeight, 0)
-				RenderFrameBackground()
+				glFunc.Scale(2 / bgTexWidth, 2 / bgTexHeight, 0)
+				-- Render UiElement using actual screen coordinates for proper shading
+				local padL = render.dim.l - render.elementPadding
+				local padB = render.dim.b - render.elementPadding
+				local padR = render.dim.r + render.elementPadding
+				local padT = render.dim.t + render.elementPadding
+				-- Translate to origin for texture rendering
+				glFunc.Translate(-padL, -padB, 0)
+				render.UiElement(padL, padB, padR, padT, 1, 1, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
 			end, true)
 		end
 
@@ -5596,9 +5731,12 @@ local function UpdateR2TFrame(pipWidth, pipHeight)
 	end
 
 	if pipR2T.frameBackgroundTex then
-		gl.R2tHelper.BlendTexRect(pipR2T.frameBackgroundTex, render.dim.l, render.dim.b, render.dim.r, render.dim.t, true)
+		-- Blit the cached UiElement background (includes padding)
+		gl.R2tHelper.BlendTexRect(pipR2T.frameBackgroundTex, render.dim.l-render.elementPadding, render.dim.b-render.elementPadding, render.dim.r+render.elementPadding, render.dim.t+render.elementPadding, true)
+	else
+		-- Fallback to direct rendering if texture not available
+		render.UiElement(render.dim.l-render.elementPadding, render.dim.b-render.elementPadding, render.dim.r+render.elementPadding, render.dim.t+render.elementPadding, 1, 1, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
 	end
-	render.UiElement(render.dim.l-render.elementPadding, render.dim.b-render.elementPadding, render.dim.r+render.elementPadding, render.dim.t+render.elementPadding, 1, 1, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
 end
 
 -- Helper function to calculate dynamic update rate
@@ -5712,6 +5850,24 @@ local function UpdateR2TContent(currentTime, pipUpdateInterval, pipWidth, pipHei
 
 	-- Check if size changed
 	local contentSizeChanged = math.floor(pipWidth) ~= pipR2T.contentLastWidth or math.floor(pipHeight) ~= pipR2T.contentLastHeight
+
+	-- Check if should update
+	-- During resize, respect FPS throttling unless it's a forced update or unlimited FPS
+	local timeSinceLastUpdate = currentTime - pipR2T.contentLastUpdateTime
+	local shouldUpdate = pipR2T.contentNeedsUpdate or
+		pipUpdateInterval == 0 or
+		(pipUpdateInterval > 0 and timeSinceLastUpdate >= pipUpdateInterval)
+
+	-- If size changed but we're throttled, defer the update
+	if contentSizeChanged and not shouldUpdate then
+		pipR2T.contentNeedsUpdate = true
+	end
+
+	if not shouldUpdate then
+		return
+	end
+
+	-- Only delete old texture when we're about to create a new one
 	if contentSizeChanged then
 		if pipR2T.contentTex then
 			gl.DeleteTexture(pipR2T.contentTex)
@@ -5719,15 +5875,6 @@ local function UpdateR2TContent(currentTime, pipUpdateInterval, pipWidth, pipHei
 		end
 		pipR2T.contentLastWidth = math.floor(pipWidth)
 		pipR2T.contentLastHeight = math.floor(pipHeight)
-	end
-
-	-- Check if should update
-	local shouldUpdate = pipR2T.contentNeedsUpdate or contentSizeChanged or
-		(pipUpdateInterval > 0 and (currentTime - pipR2T.contentLastUpdateTime) >= pipUpdateInterval) or
-		pipUpdateInterval == 0
-
-	if not shouldUpdate then
-		return
 	end
 
 	-- Create texture if needed
@@ -5913,7 +6060,7 @@ local function DrawTrackingIndicators()
 	end
 
 	if interactionState.trackingPlayerID then
-		local playerName, active, isSpec, teamID = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
+		local playerName, active, isSpec, teamID = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
 		if teamID then
 			local r, g, b = Spring.GetTeamColor(teamID)
 			local lineWidth = math.ceil(3 * (render.vsx / 1920))
@@ -6005,7 +6152,7 @@ local function HandleHoverAndCursor(mx, my)
 
 					-- Default to Move cursor if units can move (using cache)
 					for i = 1, #selectedUnits do
-						local uDefID = Spring.GetUnitDefID(selectedUnits[i])
+						local uDefID = spFunc.GetUnitDefID(selectedUnits[i])
 						if uDefID and (cache.canMove[uDefID] or cache.canFly[uDefID]) then
 							Spring.SetMouseCursor('Move')
 							return
@@ -6046,13 +6193,13 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 				visibleButtons[#visibleButtons + 1] = buttons[i]
 			end
 		elseif buttons[i].command == 'pip_trackplayer' then
-			local _, _, spec = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+			local _, _, spec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
 			local aliveTeammates = GetAliveTeammates()
 			if interactionState.trackingPlayerID or spec or (#aliveTeammates > 0) then
 				visibleButtons[#visibleButtons + 1] = buttons[i]
 			end
 		elseif buttons[i].command == 'pip_view' then
-			local _, _, spec = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+			local _, _, spec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
 			if spec then
 				visibleButtons[#visibleButtons + 1] = buttons[i]
 			end
@@ -6243,7 +6390,7 @@ function widget:DrawScreen()
 
 		-- Draw map ruler at edges (only when not spectating)
 		if config.showMapRuler then
-			local _, _, spec = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+			local _, _, spec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
 			if not spec then
 				DrawMapRuler()
 			end
@@ -6343,7 +6490,6 @@ function widget:DrawScreen()
 		DrawInteractiveOverlays(mx, my, render.usedButtonSize)
 	end
 
-
 	-- Display tracked player name at top-center of PIP (only when hovering)
 	DrawTrackedPlayerName()
 
@@ -6359,7 +6505,6 @@ function widget:DrawScreen()
 	end
 
 	-- Draw box selection rectangle
-
 	DrawBoxSelection()
 
 	-- Draw area command circle
@@ -6382,7 +6527,7 @@ function widget:DrawWorld()
 		-- Use team color if tracking a player, otherwise white
 		local r, g, b = 1, 1, 1
 		if interactionState.trackingPlayerID then
-			local _, _, _, teamID = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
+			local _, _, _, teamID = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
 			if teamID then
 				r, g, b = Spring.GetTeamColor(teamID)
 			end
@@ -6407,7 +6552,7 @@ function widget:DrawWorld()
 		glFunc.BeginEnd(GL.LINE_STRIP, function()
 			for i = 1, dragCount do
 				local pos = interactionState.buildDragPositions[i]
-				local wy = Spring.GetGroundHeight(pos.wx, pos.wz)
+				local wy = spFunc.GetGroundHeight(pos.wx, pos.wz)
 				glFunc.Vertex(pos.wx, wy + 5, pos.wz)
 			end
 		end)
@@ -6418,7 +6563,7 @@ function widget:DrawWorld()
 
 	-- Draw area command radius circle if actively dragging
 	if interactionState.areAreaDragging then
-		local mx, my = Spring.GetMouseState()
+		local mx, my = spFunc.GetMouseState()
 		local wx, wz = PipToWorldCoords(mx, my)
 		local startWX, startWZ = PipToWorldCoords(interactionState.areaCommandStartX, interactionState.areaCommandStartY)
 		local dx = wx - startWX
@@ -6429,7 +6574,7 @@ function widget:DrawWorld()
 			local _, cmdID = Spring.GetActiveCommand()
 			if cmdID and cmdID > 0 then
 				local color = cmdColors[cmdID] or cmdColors.unknown
-				local wy = Spring.GetGroundHeight(startWX, startWZ)
+				local wy = spFunc.GetGroundHeight(startWX, startWZ)
 
 				gl.DepthTest(true)
 				gl.Blending(GL.SRC_ALPHA, GL.ONE)
@@ -6490,7 +6635,7 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	-- Use team color if tracking a player, otherwise white
 	local r, g, b = 0.85, 0.85, 0.85
 	if interactionState.trackingPlayerID then
-		local _, _, _, teamID = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
+		local _, _, _, teamID = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
 		if teamID then
 			r, g, b = Spring.GetTeamColor(teamID)
 		end
@@ -6633,7 +6778,7 @@ function widget:Update(dt)
 
 	-- Verify actual mouse button states to prevent stuck button tracking
 	-- This handles cases where MouseRelease events don't fire (e.g., button released outside widget)
-	local mouseX, mouseY, leftButton, middleButton, rightButton = Spring.GetMouseState()
+	local mouseX, mouseY, leftButton, middleButton, rightButton = spFunc.GetMouseState()
 	if not leftButton and interactionState.leftMousePressed then
 		interactionState.leftMousePressed = false
 	end
@@ -7032,6 +7177,9 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 		-- Check if this is a lightning weapon
 		local isLightning = weaponID and cache.weaponIsLightning[weaponID]
 
+		-- Check if this is a paralyze weapon
+		local isParalyze = weaponID and cache.weaponIsParalyze[weaponID]
+
 		-- Add explosion to list with radius from cached weapon data
 		local radius = 10 -- Default radius
 		if weaponID and cache.weaponExplosionRadius[weaponID] then
@@ -7053,7 +7201,8 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 			randomSeed = math.random() * 1000,  -- For consistent per-explosion randomness
 			rotationSpeed = (math.random() - 0.5) * 4,  -- Random rotation speed
 			particles = {},  -- Will store particle debris
-			isLightning = isLightning
+			isLightning = isLightning,
+			isParalyze = isParalyze
 		}
 
 		-- Add lightning sparks
@@ -7169,13 +7318,13 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 			miscState.mapmarkInitScreenY = nil
 		else
 			-- Too old, use current position and clear stored position
-			screenX, screenY = Spring.GetMouseState()
+			screenX, screenY = spFunc.GetMouseState()
 			miscState.mapmarkInitScreenX = nil
 			miscState.mapmarkInitScreenY = nil
 		end
 	else
 		-- For line drawing and erase, use current mouse position
-		screenX, screenY = Spring.GetMouseState()
+		screenX, screenY = spFunc.GetMouseState()
 	end
 
 	-- Check if the mouse was/is over the PiP window
@@ -7188,7 +7337,7 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 			return false
 		end
 
-		local wy = Spring.GetGroundHeight(wx, wz)
+		local wy = spFunc.GetGroundHeight(wx, wz)
 		-- Add small height offset so markers are visible above ground (except for erase)
 		local markerHeight = wy + 5
 
@@ -7204,7 +7353,7 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 
 			-- If we have a previous position, draw line from there to here
 			if interactionState.lastMapDrawX and interactionState.lastMapDrawZ then
-				local lastY = Spring.GetGroundHeight(interactionState.lastMapDrawX, interactionState.lastMapDrawZ) + 5
+				local lastY = spFunc.GetGroundHeight(interactionState.lastMapDrawX, interactionState.lastMapDrawZ) + 5
 				Spring.MarkerAddLine(interactionState.lastMapDrawX, lastY, interactionState.lastMapDrawZ, wx, markerHeight, wz)
 			end
 
@@ -7576,7 +7725,7 @@ function widget:MousePress(mx, my, mButton)
 				-- Show player tracking button when tracking, when spectating, or when having alive teammates
 				local showPlayerTrackButton = isTrackingPlayer
 				if not showPlayerTrackButton then
-					local _, _, spec = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+					local _, _, spec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
 					local aliveTeammates = GetAliveTeammates()
 					showPlayerTrackButton = spec or (#aliveTeammates > 0)
 				end
@@ -7594,7 +7743,7 @@ function widget:MousePress(mx, my, mButton)
 						end
 					-- Show pip_view button only for spectators
 					elseif buttons[i].command == 'pip_view' then
-						local _, _, spec = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+						local _, _, spec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
 						if spec then
 							visibleButtons[#visibleButtons + 1] = buttons[i]
 						end
@@ -7758,7 +7907,7 @@ function widget:MousePress(mx, my, mButton)
 			-- Start formation dragging (if customformations widget is available)
 			if WG.customformations and WG.customformations.StartFormation then
 				local wx, wz = PipToWorldCoords(mx, my)
-				local wy = Spring.GetGroundHeight(wx, wz)
+				local wy = spFunc.GetGroundHeight(wx, wz)
 
 				-- Determine the command to use
 				local cmdID = activeCmd -- Start with active command (might be FIGHT, ATTACK, or PATROL)
@@ -8072,7 +8221,7 @@ end	-- If middle mouse is pressed but not yet committed to a mode, check if move
 		if WG.customformations and WG.customformations.AddFormationNode then
 			if mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t then
 				local wx, wz = PipToWorldCoords(mx, my)
-				local wy = Spring.GetGroundHeight(wx, wz)
+				local wy = spFunc.GetGroundHeight(wx, wz)
 				WG.customformations.AddFormationNode({wx, wy, wz})
 
 				-- After the first node is added, enable queuing for subsequent nodes
@@ -8103,7 +8252,7 @@ end
 function widget:KeyRelease(key)
 	-- When modifier keys change during build dragging, recalculate positions
 	if interactionState.areBuildDragging then
-		local mx, my = Spring.GetMouseState()
+		local mx, my = spFunc.GetMouseState()
 		if mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t then
 			local startWX, startWZ = PipToWorldCoords(interactionState.buildDragStartX, interactionState.buildDragStartY)
 			local endWX, endWZ = PipToWorldCoords(mx, my)
@@ -8373,7 +8522,7 @@ function widget:MouseRelease(mx, my, mButton)
 			local finalPos = nil
 			if mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t then
 				local wx, wz = PipToWorldCoords(mx, my)
-				local wy = Spring.GetGroundHeight(wx, wz)
+				local wy = spFunc.GetGroundHeight(wx, wz)
 				finalPos = {wx, wy, wz}
 			end
 			WG.customformations.EndFormation(finalPos)
