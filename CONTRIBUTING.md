@@ -14,10 +14,11 @@ Our code also uses some custom bindings for Lua 5.1 — for security, functional
 
 #### Engine calls
 
-* Minimize your calls to the engine (`Spring.CallName()`), as possible.  
-* Minimize the data you pass to, and receive from, the engine, as possible.  
-  * Especially reduce the number of tables created solely for engine calls.  
+* Minimize your calls to the engine (`Spring.CallName()`) if possible.  
+* Minimize the data you pass to and receive from the engine if possible.  
+  * Especially reduce the number of tables created solely for engine calls. Excessive table creations seems to cause lots of garbage collection.  
   * Prefer e.g. `GetUnitCurrentCommand` over `GetUnitCommands`.  
+
 * Prefer to receive multi-value returns from engine calls over tables, generally. There are many functions for getting general data about a unit in a table. These are not individually expensive but are orders of magnitude more costly than the alternative.
 
 #### Protected tables
@@ -62,7 +63,8 @@ You should prefer common functions, then, over potential shortcuts. For example,
 * Do not use magic numbers. Constant values should be declared together toward the top of the file and labeled as configurable or not, when non-obvious.  
 * Do not avoid newlines in code. Add extra newlines after blocks (loops, if/then statements) to aid future readers and reviewers. You can skip some extra newlines, like between immediately-nested if/elseif/else/then/end statements.  
 * Do not keep dead code. This includes all dead (unreachable), unused (not called), or removed (commented) code in any file. Delete all code not in active use.  
-* Do not keep debug code. This includes all echoes and even some warnings/errors.
+* Do not keep throwaway debug code. Logging invalid or unexpected state is ok, as is debug code gated behind a debug flag or modoption.  
+
 
 #### Variable naming
 
