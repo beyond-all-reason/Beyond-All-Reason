@@ -3,7 +3,7 @@ local actionTypes = GG['MissionAPI'].ActionTypes
 
 local triggers = {
 
-	at1each200spawnConBotsAndMove = {
+	spawnCons1 = {
 		type = triggerTypes.TimeElapsed,
 		settings = {
 			repeating = true,
@@ -13,68 +13,84 @@ local triggers = {
 			gameFrame = 1,
 			interval = 280,
 		},
-		actions = { 'spawnConBots', 'moveConBots' },
+		actions = { 'spawnCons1', 'moveCons1' },
 	},
 
-	at150spawnFusions = {
+	spawnEnergyGrid1 = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 150,
+			gameFrame = 1200,
 		},
-		actions = { 'spawnFusions' },
+		actions = { 'spawnEnergyGrid1', 'nameEnergyGrid1' },
 	},
 
-	at200killConBots = {
+	killCons = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			gameFrame = 200,
 		},
-		actions = { 'despawnConBotsAsKilled', 'messageBotsKilled' },
+		actions = { 'killCons1', 'messageConsKilled' },
 	},
 
-	at480selfDestructConBots = {
+	selfDestructCons = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			gameFrame = 480,
 		},
-		actions = { 'despawnConBotsSelfD', 'messageBotsSelfD' },
+		actions = { 'selfDestructCons1', 'messageSelfDestructCons1' },
 	},
 
-	at760reclaimConBots = {
+	reclaimCons = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			gameFrame = 760,
 		},
-		actions = { 'despawnConBotsReclaimed', 'messageBotsReclaimed' },
+		actions = { 'despawnCons1', 'messageConsReclaimed' },
 	},
 
-	at900giveConBotsToAI = {
+	transferCons1 = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			gameFrame = 900,
 		},
-		actions = { 'transferConBotsToAI', 'messageBotsToAI' },
+		actions = { 'transferCons1', 'messageTransferCons1' },
 	},
 
-	at1100giveConBotsToPlayer = {
+	transferCons2 = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			gameFrame = 1100,
 		},
-		actions = { 'transferConBotsToPlayer', 'messageBotsToPlayer' },
+		actions = { 'transferCons1', 'messageTransferCons2' },
 	},
 
-	at1300gameEnd = {
+	despawnEnergyGrid1 = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			gameFrame = 1300,
+		},
+		actions = { 'despawnEnergyGrid1', 'messageEnergyGrid1Reclaimed' },
+	},
+
+	doNotKillCons = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = 1400,
+		},
+		actions = { 'unnameCons', 'killCons1', 'messageConsNotKilled' },
+	},
+
+	gameEnd = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = 1500,
 		},
 		actions = { 'gameEnd' },
 	},
 }
 
 local actions = {
-	spawnConBots = {
+	spawnCons1 = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			name = 'con-bots',
@@ -86,7 +102,7 @@ local actions = {
 		},
 	},
 
-	spawnFusions = {
+	spawnEnergyGrid1 = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
             unitDefName = 'armfus',
@@ -97,7 +113,17 @@ local actions = {
 		},
 	},
 
-	moveConBots = {
+	nameEnergyGrid1 = {
+		type = actionTypes.NameUnits,
+		parameters = {
+			name = 'fusions',
+			teamID = 0,
+			unitDefName = 'armfus',
+			area = { x1 = 0, z1 = 0, x2 = 999999, z2 = 2200 },
+		},
+	},
+
+	moveCons1 = {
 		type = actionTypes.IssueOrders,
 		parameters = {
 			name = 'con-bots',
@@ -108,7 +134,7 @@ local actions = {
 		},
 	},
 
-	despawnConBotsAsKilled = {
+	killCons1 = {
 		type = actionTypes.DespawnUnits,
 		parameters = {
 			name = 'con-bots',
@@ -117,14 +143,14 @@ local actions = {
 		},
 	},
 
-	messageBotsKilled = {
+	messageConsKilled = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = "Let's kill those bots.",
 		},
 	},
 
-	despawnConBotsSelfD = {
+	selfDestructCons1 = {
 		type = actionTypes.DespawnUnits,
 		parameters = {
 			name = 'con-bots',
@@ -133,14 +159,14 @@ local actions = {
 		},
 	},
 
-	messageBotsSelfD = {
+	messageSelfDestructCons1 = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = "They blow themselves up!",
 		},
 	},
 
-	despawnConBotsReclaimed = {
+	despawnCons1 = {
 		type = actionTypes.DespawnUnits,
 		parameters = {
 			name = 'con-bots',
@@ -149,14 +175,30 @@ local actions = {
 		},
 	},
 
-	messageBotsReclaimed = {
+	messageConsReclaimed = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = "These just vanish...",
 		},
 	},
 
-	transferConBotsToAI = {
+	despawnEnergyGrid1 = {
+		type = actionTypes.DespawnUnits,
+		parameters = {
+			name = 'fusions',
+			selfDestruct = false,
+			reclaimed = true
+		},
+	},
+
+	messageEnergyGrid1Reclaimed = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "Did we pick the right fusions to remove?",
+		},
+	},
+
+	transferCons1 = {
 		type = actionTypes.TransferUnits,
 		parameters = {
 			name = 'con-bots',
@@ -165,14 +207,14 @@ local actions = {
 		},
 	},
 
-	messageBotsToAI = {
+	messageTransferCons1 = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = "We give these away.",
 		},
 	},
 
-	transferConBotsToPlayer = {
+	transferCons1 = {
 		type = actionTypes.TransferUnits,
 		parameters = {
 			name = 'con-bots',
@@ -181,10 +223,24 @@ local actions = {
 		},
 	},
 
-	messageBotsToPlayer = {
+	messageTransferCons2 = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = "And we take them back.",
+		},
+	},
+
+	unnameCons = {
+		type = actionTypes.UnnameUnits,
+		parameters = {
+			name = 'con-bots',
+		},
+	},
+
+	messageConsNotKilled = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "Let's unname the bots so we don't kill them.",
 		},
 	},
 

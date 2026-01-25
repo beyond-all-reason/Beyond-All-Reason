@@ -17,6 +17,8 @@ local actionTypes = {
 	SpawnUnits         = 400,       --
 	DespawnUnits       = 401,       --
 	TransferUnits      = 404,       --
+	NameUnits	       = 405,       --
+	UnnameUnits	       = 406,       --
 
 	-- SFX
 	SpawnExplosion     = 500,       --
@@ -157,6 +159,38 @@ local parameters = {
 			name = 'given',
 			required = false,
 			type = 'boolean'
+		}
+	},
+	[actionTypes.NameUnits] = {
+		[1] = {
+			name = 'name',
+			required = true,
+			type = 'string'
+		},
+		[2] = {
+			name = 'teamID',
+			required = false,
+			type = 'number'
+		},
+		[3] = {
+			name = 'unitDefName',
+			required = false,
+			type = 'string'
+		},
+		[4] = {
+			-- Examples:
+			-- Rectangle: { x1 = 0, z1 = 0, x2 = 123, z2 = 123 }
+			-- Circle: { x = 0, z = 0, radius = 123 }
+			name = 'area',
+			required = false,
+			type = 'table'
+		},
+	},
+	[actionTypes.UnnameUnits] = {
+		[1] = {
+			name = 'name',
+			required = true,
+			type = 'string'
 		}
 	},
 
