@@ -185,7 +185,7 @@ local parameters = {
 			-- Circle: { x = 0, z = 0, radius = 123 }
 			name = 'area',
 			required = false,
-			type = Types.table
+			type = Types.area
 		},
 	},
 	[actionTypes.UnnameUnits] = {

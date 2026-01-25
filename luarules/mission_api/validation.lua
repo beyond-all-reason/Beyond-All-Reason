@@ -162,6 +162,22 @@ Types = {
 		end
 	end,
 
+	area = function(area, actionOrTrigger, actionOrTriggerID, parameterName)
+		if not Types.table(area, actionOrTrigger, actionOrTriggerID, parameterName) then
+			return
+		end
+
+		local isRectangle = area.x1 and area.z1 and area.x2 and area.z2
+		local isCircle = area.x and area.z and area.radius
+		if not isRectangle and not isCircle then
+			logError("Invalid area parameter, must be rectangle { x1, z1, x2, z2 } or circle { x, z, radius }. " .. actionOrTrigger .. ": " .. actionOrTriggerID)
+		else
+			for key, value in pairs(area) do
+				validateField(value, key, 'number', actionOrTrigger, actionOrTriggerID, parameterName)
+			end
+		end
+	end,
+
 	----------------------------------------------------------------
 	--- String Validators:
 	----------------------------------------------------------------
