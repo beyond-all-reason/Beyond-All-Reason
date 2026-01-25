@@ -48,7 +48,8 @@ function gadget:Initialize()
 	local actionsSchema = VFS.Include('luarules/mission_api/actions_schema.lua')
 	GG['MissionAPI'].TriggerTypes = triggersSchema.Types
 	GG['MissionAPI'].ActionTypes = actionsSchema.Types
-	GG['MissionAPI'].TrackedUnits = {}
+	GG['MissionAPI'].trackedUnitIDs = {}
+	GG['MissionAPI'].trackedUnitNames = {}
 
 	triggersController = VFS.Include('luarules/mission_api/triggers_loader.lua')
 	actionsController = VFS.Include('luarules/mission_api/actions_loader.lua')
