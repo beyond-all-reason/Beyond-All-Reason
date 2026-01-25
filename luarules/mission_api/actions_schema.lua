@@ -75,7 +75,7 @@ local parameters = {
 		[2] = {
 			name = 'orders',
 			required = true,
-			type = Types.table
+			type = Types.orders
 		}
 	},
 	[actionTypes.AllowCommands] = {},

@@ -99,6 +99,69 @@ Types = {
 		return true
 	end,
 
+	orders = function(orders, actionOrTrigger, actionOrTriggerID, parameterName)
+
+		local function validateOrderCommandAndParams(commandID, params, orderNumber)
+			local function validateNumberArrayCurried(sizes, message)
+				return function()
+					if not validateLuaType(params, 'table', actionOrTrigger, actionOrTriggerID, parameterName .. '[' .. orderNumber .. ']' .. '[2]') then
+						return
+					end
+					if not table.contains(sizes, #params) then
+						logError("Parameter must be an array of " .. message .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameterName .. '[' .. orderNumber .. ']' .. '[2]')
+						return
+					end
+					for i = 1, 3 do
+						validateLuaType(params[i], 'number', actionOrTrigger, actionOrTriggerID, parameterName .. '[' .. orderNumber .. ']' .. '[2][' .. i .. ']')
+					end
+				end
+			end
+			local validate3 = validateNumberArrayCurried({ 3 }, "3 numbers {x, y, z}")
+			local validate4 = validateNumberArrayCurried({ 4 }, "4 numbers {x, y, z, radius}")
+			local validate3or4 = validateNumberArrayCurried({ 3, 4 }, "3 or 4 numbers {x, y, z, optional radius}")
+			local function validateNumber()
+				validateLuaType(params, 'number', actionOrTrigger, actionOrTriggerID, parameterName .. '[' .. orderNumber .. ']' .. '[2]')
+			end
+			local commandValidators = {
+				[CMD.STOP] = false, [CMD.SELFD] = false, [CMD.GUARD] = false,
+				[CMD.DGUN] = validate3, [CMD.MOVE] = validate3, [CMD.FIGHT] = validate3, [CMD.PATROL] = validate3,
+				[CMD.RECLAIM] = validate4, [CMD.RESURRECT] = validate4, [CMD.CAPTURE] = validate4, [CMD.AREA_ATTACK] = validate4, [CMD.RESTORE] = validate4,
+				[CMD.ATTACK] = validate3or4, [CMD.REPAIR] = validate3or4, [CMD.UNLOAD_UNITS] = validate3or4, [CMD.LOAD_UNITS] = validate3or4,
+				[CMD.CLOAK] = validateNumber, [CMD.ONOFF] = validateNumber, [CMD.FIRE_STATE] = validateNumber, [CMD.MOVE_STATE] = validateNumber,
+			}
+			if commandValidators[commandID] then
+				commandValidators[commandID]()
+			end
+		end
+
+		local function validateOrderOptions(options, orderNumber)
+			local validOptions = { right = true, alt = true, ctrl = true, shift = true, meta = true }
+			if options and Types.table(options, actionOrTrigger, actionOrTriggerID, parameterName .. '[3]') then
+				for _, optionName in pairs(options) do
+					if not validOptions[optionName] then
+						logError("Invalid order option: " .. optionName .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameterName .. ", Order #" .. orderNumber)
+					end
+				end
+			end
+		end
+
+		if not Types.table(orders, actionOrTrigger, actionOrTriggerID, parameterName) then
+			return
+		end
+
+		if #orders == 0 then
+			logError("Orders table is empty. " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameterName)
+			return
+		end
+
+		for i, order in pairs(orders) do
+			if validateField(order, "order #" .. i, 'table', actionOrTrigger, actionOrTriggerID, parameterName) then
+				validateOrderCommandAndParams(order[1], order[2], i)
+				validateOrderOptions(order[3], i)
+			end
+		end
+	end,
+
 	----------------------------------------------------------------
 	--- String Validators:
 	----------------------------------------------------------------

@@ -76,9 +76,9 @@ local triggers = {
 	--- Triggers only testing validation:
 	----------------------------------------------------------------
 
-	triggerMissingType = {},
+	triggerMissingTypeAndActions = {},
 
-	triggerWithInvalidType = {
+	triggerWithInvalidTypeAndNoActions = {
 		type = 'invalidType',
 	},
 
@@ -121,8 +121,8 @@ local actions = {
 		parameters = {
 			name = 'con-bots',
 			orders = {
-				{ CMD.MOVE, { 1850, 0, 1500 }, CMD.OPT_SHIFT },
-				{ CMD.MOVE, { 1850, 0, 1800 }, CMD.OPT_SHIFT },
+				{ CMD.MOVE, { 1850, 0, 1500 }, { 'shift' } },
+				{ CMD.MOVE, { 1850, 0, 1800 }, { 'shift' } },
 			},
 		},
 	},
