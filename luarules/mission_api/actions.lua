@@ -1,18 +1,30 @@
-local trackedUnits = GG['MissionAPI'].TrackedUnits
+local trackedUnitIDs = GG['MissionAPI'].trackedUnitIDs
+local trackedUnitNames = GG['MissionAPI'].trackedUnitNames
 local triggers = GG['MissionAPI'].Triggers
 
-local function enableTrigger(triggerID)
-	triggers[triggerID].settings.active = true
+
+----------------------------------------------------------------
+--- Utility Functions:
+----------------------------------------------------------------
+
+local function isNameUntracked(name)
+	return table.isNilOrEmpty(trackedUnitIDs[name])
 end
 
-local function disableTrigger(triggerID)
-	triggers[triggerID].settings.active = false
-end
+local function trackUnit(name, unitID)
+	if not name or not unitID then
+		return
+	end
 
-local function issueOrders(name, orders)
-    if not trackedUnits[name] or #trackedUnits[name] == 0 then return end
+	if not trackedUnitIDs[name] then
+		trackedUnitIDs[name] = {}
+	end
+	if not trackedUnitNames[unitID] then
+		trackedUnitNames[unitID] = {}
+	end
 
-	Spring.GiveOrderArrayToUnitArray(trackedUnits[name], orders)
+	trackedUnitIDs[name][#trackedUnitIDs[name] + 1] = unitID
+	trackedUnitNames[unitID][#trackedUnitNames[unitID] + 1] = name
 end
 
 local function generateGridPositions(center, quantity, xSpacing, zSpacing)
@@ -33,8 +45,28 @@ local function generateGridPositions(center, quantity, xSpacing, zSpacing)
 	return positions
 end
 
+
+----------------------------------------------------------------
+--- Action Functions:
+----------------------------------------------------------------
+
+local function enableTrigger(triggerID)
+	triggers[triggerID].settings.active = true
+end
+
+local function disableTrigger(triggerID)
+	triggers[triggerID].settings.active = false
+end
+
+local function issueOrders(name, orders)
+    if isNameUntracked(name) then return end
+
+	Spring.GiveOrderArrayToUnitArray(trackedUnitIDs[name], orders)
+end
+
 local function spawnUnits(name, unitDefName, teamID, position, quantity, facing, construction)
-	if name and not trackedUnits[name] then trackedUnits[name] = {} end
+
+	if not UnitDefNames[unitDefName] then return end
 
 	local unitDef = UnitDefs[UnitDefNames[unitDefName].id]
 	local xsize = unitDef.xsize * Game.squareSize
@@ -50,30 +82,96 @@ local function spawnUnits(name, unitDefName, teamID, position, quantity, facing,
 	for _, pos in pairs(positions) do
 		pos.y = Spring.GetGroundHeight(pos.x, pos.z)
 		local unitID = Spring.CreateUnit(unitDefName, pos.x, pos.y, pos.z, facing or 's', teamID, construction)
-		if unitID and name then
-			trackedUnits[name][#trackedUnits[name] + 1] = unitID
-			trackedUnits[unitID] = name
-		end
+		trackUnit(name, unitID)
 	end
 end
 
 ----------------------------------------------------------------
 
 local function despawnUnits(name, selfDestruct, reclaimed)
-    local unitIDs = trackedUnits[name]
-	local quantity = #unitIDs
-	for i = quantity, 1, -1 do
-		Spring.DestroyUnit(unitIDs[i], selfDestruct, reclaimed)
+	if isNameUntracked(name) then return end
+
+	-- Copying table as UnitKilled trigger with SpawnUnits with the same name could cause infinite loop.
+	for _, unitID in pairs(table.copy(trackedUnitIDs[name])) do
+		if Spring.GetUnitIsDead(unitID) == false then
+			Spring.DestroyUnit(unitIDs[i], selfDestruct, reclaimed)
+		end
 	end
-	trackedUnits[name] = nil
 end
 
 ----------------------------------------------------------------
 
 local function transferUnits(name, newTeam, given)
-	for _, unitID in pairs(trackedUnits[name]) do
+	if isNameUntracked(name) then return end
+
+	-- Copying table as UnitExists trigger with TransferUnits with the same name could cause infinite loop.
+	for _, unitID in pairs(table.copy(trackedUnitIDs[name])) do
 		Spring.TransferUnit(unitID, newTeam, given)
 	end
+end
+
+local function nameUnits(name, teamID, unitDefName, area)
+
+	if not teamID and not unitDefName and not area then
+		-- TODO: move this to prevalidation step?
+		Spring.Log('actions.lua', LOG.ERROR, "[Mission API] A NameUnits action is missing required parameter. At least one of teamID, unitDefName, and area is required.")
+		return
+	end
+
+	local hasFilterOtherThanTeamID = unitDefName or area
+
+	local allUnitsOfTeam = {}
+	if not hasFilterOtherThanTeamID then
+		allUnitsOfTeam = Spring.GetTeamUnits(teamID)
+	end
+
+	local unitsFromDef = {}
+	if unitDefName then
+		if UnitDefNames[unitDefName] then
+			local unitDefID = UnitDefNames[unitDefName].id
+			if teamID then
+				unitsFromDef = Spring.GetTeamUnitsByDefs(teamID, unitDefID)
+			else
+				for _, allyTeamID in pairs(Spring.GetAllyTeamList()) do
+					for _, teamIDForAllyTeam in pairs(Spring.GetTeamList(allyTeamID)) do
+						table.append(unitsFromDef, Spring.GetTeamUnitsByDefs(teamIDForAllyTeam, unitDefID))
+					end
+				end
+			end
+		end
+	end
+
+	local unitsInArea = {}
+	if area.x1 and area.z1 and area.x2 and area.z2 then
+		unitsInArea = Spring.GetUnitsInRectangle(area.x1, area.z1, area.x2, area.z2, teamID)
+	elseif area.x and area.z and area.radius then
+		unitsInArea = Spring.GetUnitsInCylinder(area.x, area.z, area.radius, teamID)
+	end
+
+	local unitsToName = {}
+	if hasFilterOtherThanTeamID then
+		unitsToName = table.valueIntersection(
+			unpack(table.filterArray({ unitsFromDef, unitsInArea},
+				function(tbl) return not table.isEmpty(tbl) end)))
+	else
+		unitsToName = allUnitsOfTeam
+	end
+
+	for _, unitID in pairs(unitsToName) do
+		trackUnit(name, unitID)
+	end
+end
+
+local function unnameUnits(name)
+	if isNameUntracked(name) then return end
+
+	for _, unitID in pairs(trackedUnitIDs[name]) do
+		table.removeAll(trackedUnitNames[unitID], name)
+		if table.isEmpty(trackedUnitNames[unitID]) then
+			trackedUnitNames[unitID] = nil
+		end
+	end
+	trackedUnitIDs[name] = nil
 end
 
 local function spawnExplosion(position, direction, params)
@@ -117,6 +215,8 @@ return {
 	SpawnUnits = spawnUnits,
 	DespawnUnits = despawnUnits,
 	TransferUnits = transferUnits,
+	NameUnits = nameUnits,
+	UnnameUnits = unnameUnits,
 
 	-- SFX
 	SpawnExplosion = spawnExplosion,
