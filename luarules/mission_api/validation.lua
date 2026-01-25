@@ -52,51 +52,38 @@ Types = {
 	----------------------------------------------------------------
 
 	table = function(table, actionOrTrigger, actionOrTriggerID, parameterName)
-		return validateLuaType(table, 'table', actionOrTrigger, actionOrTriggerID, parameterName)
+		validateLuaType(table, 'table', actionOrTrigger, actionOrTriggerID, parameterName)
 	end,
 
 	position = function(position, actionOrTrigger, actionOrTriggerID, parameterName)
 		if not Types.table(position, actionOrTrigger, actionOrTriggerID, parameterName) then
-			return false
+			return
 		end
 
 		for _, parm in pairs({"x", "z"}) do
-			if not validateField(position[parm], parm, 'number', actionOrTrigger, actionOrTriggerID, parameterName) then
-				return false
-			end
+			validateField(position[parm], parm, 'number', actionOrTrigger, actionOrTriggerID, parameterName)
 		end
 
 		position.y = position.y or Spring.GetGroundHeight(position.x, position.z)
-
-		if not validateField(position.y, 'y', 'number', actionOrTriggerID, parameterName) then
-			return false
-		end
-
-		return true
+		validateField(position.y, 'y', 'number', actionOrTriggerID, parameterName)
 	end,
 
 	allyTeamIDs = function(allyTeamIDs, actionOrTrigger, actionOrTriggerID, parameterName)
 		if not Types.table(allyTeamIDs, actionOrTrigger, actionOrTriggerID, parameterName) then
-			return false
+			return
 		end
 
 		if table.isNilOrEmpty(allyTeamIDs) then
 			logError("allyTeamIDs table is empty. " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameterName)
-			return false
+			return
 		end
 
 		for i, allyTeamID in pairs(allyTeamIDs) do
-			if not validateField(allyTeamID, "allyTeamID #" .. i, 'number', actionOrTrigger, actionOrTriggerID, parameterName) then
-				return false
-			end
-
-			if not Spring.GetAllyTeamInfo(allyTeamID) then
+			if validateField(allyTeamID, "allyTeamID #" .. i, 'number', actionOrTrigger, actionOrTriggerID, parameterName)
+				and not Spring.GetAllyTeamInfo(allyTeamID) then
 				logError("Invalid allyTeamID: " .. allyTeamID .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameterName)
-				return false
 			end
 		end
-
-		return true
 	end,
 
 	orders = function(orders, actionOrTrigger, actionOrTriggerID, parameterName)
@@ -183,28 +170,26 @@ Types = {
 	----------------------------------------------------------------
 
 	string = function(string, actionOrTrigger, actionOrTriggerID, parameterName)
-		return validateLuaType(string, 'string', actionOrTrigger, actionOrTriggerID, parameterName)
+		validateLuaType(string, 'string', actionOrTrigger, actionOrTriggerID, parameterName)
 	end,
 
 	triggerID = function(triggerID, actionOrTrigger, actionOrTriggerID, parameterName)
 		if not Types.string(triggerID, actionOrTrigger, actionOrTriggerID, parameterName) then
-			return false
+			return
 		end
 
 		if not GG['MissionAPI'].Triggers[triggerID] then
 			logError("Invalid triggerID: " .. triggerID .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID)
-			return false
 		end
 	end,
 
 	unitDefName = function(unitDefName, actionOrTrigger, actionOrTriggerID, parameterName)
 		if not Types.string(unitDefName, actionOrTrigger, actionOrTriggerID, parameterName) then
-			return false
+			return
 		end
 
 		if not UnitDefNames[unitDefName] then
 			logError("Invalid unitDefName: " .. unitDefName .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID)
-			return false
 		end
 	end,
 
@@ -212,7 +197,6 @@ Types = {
 		local validFacings = { n = true, s = true, e = true, w = true }
 		if not validFacings[facing] then
 			logError("Invalid facing: " .. facing .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID)
-			return false
 		end
 	end,
 
@@ -221,17 +205,16 @@ Types = {
 	----------------------------------------------------------------
 
 	number = function(number, actionOrTrigger, actionOrTriggerID, parameterName)
-		return validateLuaType(number, 'number', actionOrTrigger, actionOrTriggerID, parameterName)
+		validateLuaType(number, 'number', actionOrTrigger, actionOrTriggerID, parameterName)
 	end,
 
 	teamID = function(teamID, actionOrTrigger, actionOrTriggerID, parameterName)
 		if not Types.number(teamID, actionOrTrigger, actionOrTriggerID, parameterName) then
-			return false
+			return
 		end
 
 		if not Spring.GetTeamAllyTeamID(teamID) then
 			logError("Invalid teamID: " .. teamID .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameterName)
-			return false
 		end
 	end,
 
@@ -240,7 +223,7 @@ Types = {
 	----------------------------------------------------------------
 
 	boolean = function(boolean, actionOrTrigger, actionOrTriggerID, parameterName)
-		return validateLuaType(boolean, 'boolean', actionOrTrigger, actionOrTriggerID, parameterName)
+		validateLuaType(boolean, 'boolean', actionOrTrigger, actionOrTriggerID, parameterName)
 	end,
 
 	----------------------------------------------------------------
@@ -248,6 +231,6 @@ Types = {
 	----------------------------------------------------------------
 
 	customFunction = function(func, actionOrTrigger, actionOrTriggerID, parameterName)
-		return validateLuaType(func, 'function', actionOrTrigger, actionOrTriggerID, parameterName)
+		validateLuaType(func, 'function', actionOrTrigger, actionOrTriggerID, parameterName)
 	end,
 }
