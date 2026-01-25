@@ -143,7 +143,7 @@ function widget:Initialize()
 	
 	for _, unitID in ipairs(Spring.GetTeamUnits(Spring.GetLocalTeamID())) do
 		local cmdID, _, _, targetUnitID = Spring.GetUnitCurrentCommand(unitID, 1)
-		local isGuarding = cmdID and cmdID == CMD.GUARD
+		local isGuarding = cmdID == CMD.GUARD
 
 		if isGuarding and isTransport(unitID) and isFactory(targetUnitID) then
 			registerTransport(unitID, targetUnitID)
