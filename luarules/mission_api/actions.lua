@@ -94,7 +94,7 @@ local function despawnUnits(name, selfDestruct, reclaimed)
 	-- Copying table as UnitKilled trigger with SpawnUnits with the same name could cause infinite loop.
 	for _, unitID in pairs(table.copy(trackedUnitIDs[name])) do
 		if Spring.GetUnitIsDead(unitID) == false then
-			Spring.DestroyUnit(unitIDs[i], selfDestruct, reclaimed)
+			Spring.DestroyUnit(unitID, selfDestruct, reclaimed)
 		end
 	end
 end

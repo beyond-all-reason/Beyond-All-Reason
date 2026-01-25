@@ -27,7 +27,9 @@ local function validateTriggers(triggers, rawActions)
 			Spring.Log('triggers_loader.lua', LOG.ERROR, "[Mission API] Trigger has no actions: " .. triggerID)
 		else
 			for _, action in pairs(trigger.actions) do
-				if not rawActions[action] then
+				if action == nil or action == '' then
+					Spring.Log('triggers_loader.lua', LOG.ERROR, "[Mission API] Trigger has empty action ID: " .. triggerID)
+				elseif not rawActions[action] then
 					Spring.Log('triggers_loader.lua', LOG.ERROR, "[Mission API] Trigger has invalid action. Trigger: " .. triggerID .. ", Action: " .. action)
 				end
 			end

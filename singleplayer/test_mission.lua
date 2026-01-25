@@ -61,7 +61,7 @@ local triggers = {
 		parameters = {
 			gameFrame = 1100,
 		},
-		actions = { 'transferCons1', 'messageTransferCons2' },
+		actions = { 'transferCons2', 'messageTransferCons2' },
 	},
 
 	despawnEnergyGrid1 = {
@@ -232,7 +232,7 @@ local actions = {
 		},
 	},
 
-	transferCons1 = {
+	transferCons2 = {
 		type = actionTypes.TransferUnits,
 		parameters = {
 			name = 'con-bots',
