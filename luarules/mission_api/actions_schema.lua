@@ -167,17 +167,17 @@ local parameters = {
 		[1] = {
 			name = 'name',
 			required = true,
-			type = 'string'
+			type = Types.string
 		},
 		[2] = {
 			name = 'teamID',
 			required = false,
-			type = 'number'
+			type = Types.number
 		},
 		[3] = {
 			name = 'unitDefName',
 			required = false,
-			type = 'string'
+			type = Types.string
 		},
 		[4] = {
 			-- Examples:
@@ -185,14 +185,14 @@ local parameters = {
 			-- Circle: { x = 0, z = 0, radius = 123 }
 			name = 'area',
 			required = false,
-			type = 'table'
+			type = Types.table
 		},
 	},
 	[actionTypes.UnnameUnits] = {
 		[1] = {
 			name = 'name',
 			required = true,
-			type = 'string'
+			type = Types.string
 		}
 	},
 
