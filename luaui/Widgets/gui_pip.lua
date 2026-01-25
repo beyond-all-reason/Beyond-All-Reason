@@ -245,6 +245,7 @@ local miscState = {
 	hadSavedConfig = false,
 	pipUnits = {},
 	pipFeatures = {},
+	mapMarkers = {},  -- Table to store active map markers
 }
 -- Consolidated drawing data
 local drawData = {
@@ -375,6 +376,101 @@ local cmdCursors = {
 	[CMD.DGUN] = 'Attack',	-- DGun cursor doesnt work, use Attack instead
 	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = 'settarget',
 }
+
+
+
+-- What commands are issued at a position or unit/feature ID (Only used by GetUnitPosition)
+local positionCmds = {
+	[CMD.MOVE]=true,		[CMD.ATTACK]=true,		[CMD.RECLAIM]=true,		[CMD.RESTORE]=true,		[CMD.RESURRECT]=true,
+	[CMD.PATROL]=true,		[CMD.CAPTURE]=true,		[CMD.FIGHT]=true, 		[CMD.DGUN]=true,		[38521]=true, -- jump
+	[CMD.UNLOAD_UNIT]=true,	[CMD.UNLOAD_UNITS]=true,[CMD.LOAD_UNITS]=true,	[CMD.GUARD]=true,
+}
+
+
+----------------------------------------------------------------------------------------------------
+-- Speedups
+----------------------------------------------------------------------------------------------------
+
+-- GL constants
+local glConst = {
+	LINE_STRIP = GL.LINE_STRIP,
+	LINES = GL.LINES,
+	TRIANGLES = GL.TRIANGLES,
+	TRIANGLE_FAN = GL.TRIANGLE_FAN,
+	QUADS = GL.QUADS,
+	LINE_LOOP = GL.LINE_LOOP,
+}
+
+-- GL function speedups
+local glFunc = {
+	Color = gl.Color,
+	TexCoord = gl.TexCoord,
+	Texture = gl.Texture,
+	TexRect = gl.TexRect,
+	Vertex = gl.Vertex,
+	BeginEnd = gl.BeginEnd,
+	PushMatrix = gl.PushMatrix,
+	PopMatrix = gl.PopMatrix,
+	Translate = gl.Translate,
+	Rotate = gl.Rotate,
+	Scale = gl.Scale,
+	CallList = gl.CallList,
+	LineWidth = gl.LineWidth,
+}
+
+-- Spring function speedups
+local spFunc = {
+	GetGroundHeight = Spring.GetGroundHeight,
+	GetUnitsInRectangle = Spring.GetUnitsInRectangle,
+	GetUnitPosition = Spring.GetUnitPosition,
+	GetUnitBasePosition = Spring.GetUnitBasePosition,
+	GetUnitTeam = Spring.GetUnitTeam,
+	GetUnitDefID = Spring.GetUnitDefID,
+	GetTeamInfo = Spring.GetTeamInfo,
+	IsPosInLos = Spring.IsPosInLos,
+	GetUnitLosState = Spring.GetUnitLosState,
+	GetFeatureDefID = Spring.GetFeatureDefID,
+	GetFeatureDirection = Spring.GetFeatureDirection,
+	GetFeaturePosition = Spring.GetFeaturePosition,
+	GetFeatureTeam = Spring.GetFeatureTeam,
+	GetFeaturesInRectangle = Spring.GetFeaturesInRectangle,
+	IsUnitSelected = Spring.IsUnitSelected,
+	GetUnitHealth = Spring.GetUnitHealth,
+	GetMouseState = Spring.GetMouseState,
+	GetProjectilesInRectangle = Spring.GetProjectilesInRectangle,
+	GetProjectilePosition = Spring.GetProjectilePosition,
+	GetProjectileDefID = Spring.GetProjectileDefID,
+	GetProjectileTarget = Spring.GetProjectileTarget,
+	GetProjectileOwnerID = Spring.GetProjectileOwnerID,
+	GetProjectileVelocity = Spring.GetProjectileVelocity,
+	GetUnitCommands = Spring.GetUnitCommands,
+	GetPlayerInfo = Spring.GetPlayerInfo,
+	GetCommandQueue = Spring.GetCommandQueue,
+}
+
+local success, mapinfo = pcall(VFS.Include,"mapinfo.lua")
+local voidWater = false
+if success and mapinfo then
+	voidWater = mapinfo.voidwater
+end
+-- Map/game constants
+local mapInfo = {
+	rad2deg = 180 / math.pi,
+	atan2 = math.atan2,
+	mapSizeX = Game.mapSizeX,
+	mapSizeZ = Game.mapSizeZ,
+	minGroundHeight = nil,
+	maxGroundHeight = nil,
+	hasWater = false,
+	isLava = false,
+	voidWater = voidWater
+}
+mapInfo.minGroundHeight, mapInfo.maxGroundHeight = Spring.GetGroundExtremes()
+mapInfo.hasWater = mapInfo.minGroundHeight < 0
+mapInfo.isLava = mapInfo.hasWater and Spring.Lava.isLavaMap
+
+
+----------------------------------------------------------------------------------------------------
 
 -- Buttons (Must be declared after variables)
 local buttons = {
@@ -631,95 +727,6 @@ local buttons = {
 		end
 	},
 }
-
--- What commands are issued at a position or unit/feature ID (Only used by GetUnitPosition)
-local positionCmds = {
-	[CMD.MOVE]=true,		[CMD.ATTACK]=true,		[CMD.RECLAIM]=true,		[CMD.RESTORE]=true,		[CMD.RESURRECT]=true,
-	[CMD.PATROL]=true,		[CMD.CAPTURE]=true,		[CMD.FIGHT]=true, 		[CMD.DGUN]=true,		[38521]=true, -- jump
-	[CMD.UNLOAD_UNIT]=true,	[CMD.UNLOAD_UNITS]=true,[CMD.LOAD_UNITS]=true,	[CMD.GUARD]=true,
-}
-
-
-----------------------------------------------------------------------------------------------------
--- Speedups
-----------------------------------------------------------------------------------------------------
-
--- GL constants
-local glConst = {
-	LINE_STRIP = GL.LINE_STRIP,
-	LINES = GL.LINES,
-	TRIANGLES = GL.TRIANGLES,
-	TRIANGLE_FAN = GL.TRIANGLE_FAN,
-	QUADS = GL.QUADS,
-	LINE_LOOP = GL.LINE_LOOP,
-}
-
--- GL function speedups
-local glFunc = {
-	Color = gl.Color,
-	TexCoord = gl.TexCoord,
-	Texture = gl.Texture,
-	TexRect = gl.TexRect,
-	Vertex = gl.Vertex,
-	BeginEnd = gl.BeginEnd,
-	PushMatrix = gl.PushMatrix,
-	PopMatrix = gl.PopMatrix,
-	Translate = gl.Translate,
-	Rotate = gl.Rotate,
-	Scale = gl.Scale,
-	CallList = gl.CallList,
-}
-
--- Spring function speedups
-local spFunc = {
-	GetGroundHeight = Spring.GetGroundHeight,
-	GetUnitsInRectangle = Spring.GetUnitsInRectangle,
-	GetUnitPosition = Spring.GetUnitPosition,
-	GetUnitBasePosition = Spring.GetUnitBasePosition,
-	GetUnitTeam = Spring.GetUnitTeam,
-	GetUnitDefID = Spring.GetUnitDefID,
-	GetTeamInfo = Spring.GetTeamInfo,
-	IsPosInLos = Spring.IsPosInLos,
-	GetUnitLosState = Spring.GetUnitLosState,
-	GetFeatureDefID = Spring.GetFeatureDefID,
-	GetFeatureDirection = Spring.GetFeatureDirection,
-	GetFeaturePosition = Spring.GetFeaturePosition,
-	GetFeatureTeam = Spring.GetFeatureTeam,
-	GetFeaturesInRectangle = Spring.GetFeaturesInRectangle,
-	IsUnitSelected = Spring.IsUnitSelected,
-	GetUnitHealth = Spring.GetUnitHealth,
-	GetMouseState = Spring.GetMouseState,
-	GetProjectilesInRectangle = Spring.GetProjectilesInRectangle,
-	GetProjectilePosition = Spring.GetProjectilePosition,
-	GetProjectileDefID = Spring.GetProjectileDefID,
-	GetProjectileTarget = Spring.GetProjectileTarget,
-	GetProjectileOwnerID = Spring.GetProjectileOwnerID,
-	GetProjectileVelocity = Spring.GetProjectileVelocity,
-	GetUnitCommands = Spring.GetUnitCommands,
-	GetPlayerInfo = Spring.GetPlayerInfo,
-	GetCommandQueue = Spring.GetCommandQueue,
-}
-
-local success, mapinfo = pcall(VFS.Include,"mapinfo.lua")
-local voidWater = false
-if success and mapinfo then
-	voidWater = mapinfo.voidwater
-end
--- Map/game constants
-local mapInfo = {
-	rad2deg = 180 / math.pi,
-	atan2 = math.atan2,
-	mapSizeX = Game.mapSizeX,
-	mapSizeZ = Game.mapSizeZ,
-	minGroundHeight = nil,
-	maxGroundHeight = nil,
-	hasWater = false,
-	isLava = false,
-	voidWater = voidWater
-}
-mapInfo.minGroundHeight, mapInfo.maxGroundHeight = Spring.GetGroundExtremes()
-mapInfo.hasWater = mapInfo.minGroundHeight < 0
-mapInfo.isLava = mapInfo.hasWater and Spring.Lava.isLavaMap
 
 -- Shader for converting red-channel LOS texture to greyscale
 local losShader = nil
@@ -1604,7 +1611,7 @@ local function DrawProjectile(pID)
 						local z2 = cameraState.wcz - segZ
 
 						-- Draw outer glow
-						gl.LineWidth(segOuterWidth)
+						glFunc.LineWidth(segOuterWidth)
 						glFunc.Color(colorData[1], colorData[2], colorData[3], 0.4 * avgBrightness)
 						glFunc.BeginEnd(glConst.LINES, function()
 							glFunc.Vertex(x1, z1, 0)
@@ -1612,7 +1619,7 @@ local function DrawProjectile(pID)
 						end)
 
 						-- Draw inner core (very white with slight blue tint)
-						gl.LineWidth(segInnerWidth)
+						glFunc.LineWidth(segInnerWidth)
 						local coreR = 0.9 + colorData[1] * 0.1
 						local coreG = 0.9 + colorData[2] * 0.1
 						local coreB = 0.95 + colorData[3] * 0.05
@@ -1627,7 +1634,7 @@ local function DrawProjectile(pID)
 						prevBrightness = brightness
 					end
 
-					gl.LineWidth(1)
+					glFunc.LineWidth(1)
 
 					-- Draw small explosion effect at target point immediately (instead of caching)
 					-- This is a simple white-blue flash that fades quickly
@@ -2054,7 +2061,7 @@ local function DrawLaserBeams()
 					local segInnerWidth = math.max(1, baseInnerWidth * avgBrightness)
 
 					-- Draw outer glow (thicker, more transparent)
-					gl.LineWidth(segOuterWidth)
+					glFunc.LineWidth(segOuterWidth)
 					glFunc.Color(beam.r, beam.g, beam.b, alpha * 0.4 * avgBrightness)
 					glFunc.BeginEnd(glConst.LINES, function()
 						glFunc.Vertex(seg1.x - wcx_cached, wcz_cached - seg1.z, 0)
@@ -2062,7 +2069,7 @@ local function DrawLaserBeams()
 					end)
 
 					-- Draw inner core (thinner, brighter, whiter)
-					gl.LineWidth(segInnerWidth)
+					glFunc.LineWidth(segInnerWidth)
 					-- Make lightning core very white with slight blue tint, scaled by brightness
 					local coreR = 0.9 + beam.r * 0.1
 					local coreG = 0.9 + beam.g * 0.1
@@ -2088,7 +2095,7 @@ local function DrawLaserBeams()
 				local tz = wcz_cached - beam.tz
 
 				-- Draw outer glow (thicker, more transparent)
-				gl.LineWidth(outerWidth)
+				glFunc.LineWidth(outerWidth)
 				glFunc.Color(beam.r, beam.g, beam.b, alpha * 0.3)
 				glFunc.BeginEnd(glConst.LINES, function()
 					glFunc.Vertex(ox, oz, 0)
@@ -2096,7 +2103,7 @@ local function DrawLaserBeams()
 				end)
 
 				-- Draw inner core (thinner, brighter, whiter)
-				gl.LineWidth(innerWidth)
+				glFunc.LineWidth(innerWidth)
 				-- Blend weapon color with white for brighter core
 				local whiteness = 0.5 + (beam.thickness / 16) * 0.3  -- 0.5 to 0.8 based on thickness
 				local coreR = beam.r * (1 - whiteness) + whiteness
@@ -2115,7 +2122,7 @@ local function DrawLaserBeams()
 	end
 
 	-- Reset line width once at the end
-	gl.LineWidth(1)
+	glFunc.LineWidth(1)
 end
 
 local function DrawIconShatters()
@@ -2382,7 +2389,7 @@ local function DrawExplosions()
 							local sparkDirX = particle.vx * 0.3
 							local sparkDirZ = particle.vz * 0.3
 
-							gl.LineWidth(math.max(1, particle.size * 0.8))
+							glFunc.LineWidth(math.max(1, particle.size * 0.8))
 							glFunc.Color(r, g, b, sparkAlpha)
 							glFunc.BeginEnd(glConst.LINES, function()
 								glFunc.Vertex(particle.x - sparkDirX, particle.z - sparkDirZ, 0)
@@ -2452,7 +2459,7 @@ local function DrawExplosions()
 						elseif explosion.radius > 80 then
 							lineWidth = 5
 						end
-						gl.LineWidth(lineWidth)
+						glFunc.LineWidth(lineWidth)
 						glFunc.BeginEnd(glConst.LINE_LOOP, function()
 							for j = 0, segments do
 								local angle = j * angleStep
@@ -2487,7 +2494,7 @@ local function DrawExplosions()
 			end
 		end
 	end
-	gl.LineWidth(1)
+	glFunc.LineWidth(1)
 end
 
 local function GetUnitAtPoint(wx, wz)
@@ -3266,8 +3273,20 @@ end
 
 gameHasStarted = (Spring.GetGameFrame() > 0)
 miscState.startX, _, miscState.startZ = Spring.GetTeamStartPosition(Spring.GetMyTeamID())
--- Only set camera position if not already loaded from config
-if (not cameraState.wcx or not cameraState.wcz) and miscState.startX and miscState.startX >= 0 then
+
+-- For spectators on first maximize, center on map and zoom out more
+local isSpectator = Spring.GetSpectatingState()
+if isSpectator and not miscState.hadSavedConfig then
+	-- Center on map
+	cameraState.wcx = mapInfo.mapSizeX / 2
+	cameraState.wcz = mapInfo.mapSizeZ / 2
+	cameraState.targetWcx = cameraState.wcx
+	cameraState.targetWcz = cameraState.wcz
+	-- Zoom out more to see more of the map
+	cameraState.zoom = 0.3
+	cameraState.targetZoom = 0.3
+elseif (not cameraState.wcx or not cameraState.wcz) and miscState.startX and miscState.startX >= 0 then
+	-- Only set camera position if not already loaded from config (for players)
 	cameraState.wcx, cameraState.wcz = miscState.startX, miscState.startZ
 	cameraState.targetWcx, cameraState.targetWcz = cameraState.wcx, cameraState.wcz  -- Initialize targets
 end
@@ -3589,23 +3608,55 @@ function widget:SetConfigData(data)
 	--Spring.Echo(data)
 	miscState.hadSavedConfig = (data and next(data) ~= nil) -- Mark that we have saved config data
 
+	-- Validate and sanitize position data to prevent corruption
+	local function isValidNumber(val, min, max)
+		return val and type(val) == "number" and val == val and val >= min and val <= max
+	end
+
 	-- Don't restore uiState.minModeL/uiState.minModeB - always recalculate position in top-right corner
 	-- uiState.minModeL and uiState.minModeB will be set by ViewResize
 
-	-- First restore the expanded dimensions if available
+	-- First restore the expanded dimensions if available and valid
 	if data.pl and data.pr and data.pb and data.pt then
-		uiState.savedDimensions = {
-			l = math.floor(data.pl*render.vsx),
-			r = math.floor(data.pr*render.vsx),
-			b = math.floor(data.pb*render.vsy),
-			t = math.floor(data.pt*render.vsy)
-		}
-		-- Set dim to expanded size initially
-		render.dim.l = uiState.savedDimensions.l
-		render.dim.r = uiState.savedDimensions.r
-		render.dim.b = uiState.savedDimensions.b
-		render.dim.t = uiState.savedDimensions.t
-		CorrectScreenPosition()
+		-- Validate that the position values are reasonable (between 0 and 1 as normalized coords)
+		if isValidNumber(data.pl, 0, 1) and isValidNumber(data.pr, 0, 1) and
+		   isValidNumber(data.pb, 0, 1) and isValidNumber(data.pt, 0, 1) and
+		   data.pl < data.pr and data.pb < data.pt then  -- Ensure left < right and bottom < top
+
+			local tempL = math.floor(data.pl*render.vsx)
+			local tempR = math.floor(data.pr*render.vsx)
+			local tempB = math.floor(data.pb*render.vsy)
+			local tempT = math.floor(data.pt*render.vsy)
+
+			-- Additional sanity check: ensure dimensions are within screen bounds
+			local minSize = math.floor(config.minPanelSize * render.widgetScale)
+			local windowWidth = tempR - tempL
+			local windowHeight = tempT - tempB
+
+			if windowWidth >= minSize and windowHeight >= minSize and
+			   tempL >= 0 and tempR <= render.vsx and
+			   tempB >= 0 and tempT <= render.vsy then
+
+				uiState.savedDimensions = {
+					l = tempL,
+					r = tempR,
+					b = tempB,
+					t = tempT
+				}
+				-- Set dim to expanded size initially
+				render.dim.l = uiState.savedDimensions.l
+				render.dim.r = uiState.savedDimensions.r
+				render.dim.b = uiState.savedDimensions.b
+				render.dim.t = uiState.savedDimensions.t
+				CorrectScreenPosition()
+			else
+				-- Invalid dimensions - use default center position
+				Spring.Echo("PIP: Invalid saved dimensions detected, resetting to default position")
+			end
+		else
+			-- Invalid position data - don't restore
+			Spring.Echo("PIP: Corrupted position data detected, resetting to default position")
+		end
 	end
 
 	-- Always force minimize if in pregame AND it's a new game (different gameID)
@@ -3626,9 +3677,23 @@ function widget:SetConfigData(data)
 
 	-- If no valid saved data, keep existing dim values (initialized at top of file)
 
-	cameraState.wcx = data.wcx or cameraState.wcx
-	cameraState.wcz = data.wcz or cameraState.wcz
+	-- Validate camera coordinates (must be within map bounds)
+	local maxX = mapInfo.mapSizeX
+	local maxZ = mapInfo.mapSizeZ
+
+	if data.wcx and isValidNumber(data.wcx, 0, maxX) then
+		cameraState.wcx = data.wcx
+	end
+	if data.wcz and isValidNumber(data.wcz, 0, maxZ) then
+		cameraState.wcz = data.wcz
+	end
 	cameraState.targetWcx, cameraState.targetWcz = cameraState.wcx, cameraState.wcz  -- Initialize targets from config
+
+	-- Validate zoom level (must be between 0 and 1)
+	if data.zoom and isValidNumber(data.zoom, 0, 1) then
+		cameraState.zoom = data.zoom
+	end
+
 	uiState.drawingGround = data.drawingGround~= nil and data.drawingGround or uiState.drawingGround
 	config.drawProjectiles = data.drawProjectiles~= nil and data.drawProjectiles or config.drawProjectiles
 	config.trackingSmoothness = data.trackingSmoothness or config.trackingSmoothness
@@ -3639,7 +3704,6 @@ function widget:SetConfigData(data)
 
 	if Spring.GetGameFrame() > 0 or isSameGame then
 		interactionState.areTracking = data.areTracking
-		cameraState.zoom = data.zoom or cameraState.zoom
 
 		-- Restore player tracking if same game and player still exists
 		if data.trackingPlayerID and isSameGame then
@@ -3802,7 +3866,7 @@ local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 	end
 
 	gl.Scissor(render.dim.l, render.dim.b, render.dim.r - render.dim.l, render.dim.t - render.dim.b)
-	gl.LineWidth(1.0)
+	glFunc.LineWidth(1.0)
 	gl.LineStipple("springdefault")
 
 	-- Collect all line segments and markers into batches (massively reduces closure allocations)
@@ -3931,7 +3995,7 @@ local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 	end
 
 	gl.LineStipple(false)
-	gl.LineWidth(1.0)
+	glFunc.LineWidth(1.0)
 	gl.Scissor(false)
 end
 
@@ -3954,7 +4018,7 @@ local function DrawBuildPreview(mx, my, iconRadiusZoomDistMult)
 			local radius = 200
 			local segments = 32
 			glFunc.Color(1, 1, 0, 0.3)
-			gl.LineWidth(2)
+			glFunc.LineWidth(2)
 			glFunc.BeginEnd(glConst.LINE_LOOP, function()
 				for i = 0, segments do
 					local angle = (i / segments) * 2 * math.pi
@@ -3964,7 +4028,7 @@ local function DrawBuildPreview(mx, my, iconRadiusZoomDistMult)
 					glFunc.Vertex(cx, cy)
 				end
 			end)
-			gl.LineWidth(1)
+			glFunc.LineWidth(1)
 
 			-- Draw preview icons for all spots in area
 			local mexBuildings = WG["resource_spot_builder"] and WG["resource_spot_builder"].GetMexBuildings()
@@ -4672,7 +4736,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	gl.AlphaTest(false)
 
 	gl.Scissor(render.dim.l, render.dim.b, render.dim.r - render.dim.l, render.dim.t - render.dim.b)
-	gl.LineWidth(2.0)
+	glFunc.LineWidth(2.0)
 
 	-- Precompute center translation values (used by all drawing)
 	local centerX = 0.5 * (render.dim.l + render.dim.r)
@@ -4787,7 +4851,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 
 					-- Draw crosshair lines to PIP boundaries (stop at cursor edge)
 					--glFunc.Color(r*1.5+0.5, g*1.5+0.5, b*1.5+0.5, 0.08)
-					--gl.LineWidth(render.vsy / 600)
+					--glFunc.LineWidth(render.vsy / 600)
 					-- glFunc.BeginEnd(glConst.LINES, function()
 					-- 	-- Horizontal line (left to cursor)
 					-- 	glFunc.Vertex(0, cy)
@@ -4819,7 +4883,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 
 					-- Draw black outline first (thicker)
 					glFunc.Color(0, 0, 0, 0.66)
-					gl.LineWidth(render.vsy / 500 + 2)
+					glFunc.LineWidth(render.vsy / 500 + 2)
 					for _, arc in ipairs(arcs) do
 						glFunc.BeginEnd(GL.LINE_STRIP, function()
 							local startAngle, endAngle = arc[1], arc[2]
@@ -4836,7 +4900,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 
 					-- Draw colored arcs on top
 					glFunc.Color((r*1.3)+0.66, (g*1.3)+0.66, (b*1.3)+0.66, 1)
-					gl.LineWidth(render.vsy / 500)
+					glFunc.LineWidth(render.vsy / 500)
 					for _, arc in ipairs(arcs) do
 						glFunc.BeginEnd(GL.LINE_STRIP, function()
 							local startAngle, endAngle = arc[1], arc[2]
@@ -4850,7 +4914,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 							end
 						end)
 					end
-					gl.LineWidth(1.0)
+					glFunc.LineWidth(1.0)
 				end
 			end
 		end
@@ -4861,7 +4925,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		DrawBuildDragPreview(iconRadiusZoomDistMult)
 		DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
 
-		gl.LineWidth(1.0)
+		glFunc.LineWidth(1.0)
 		gl.Scissor(false)
 end
 
@@ -4928,7 +4992,7 @@ local function RenderFrameButtons()
 
 	-- Resize handle (bottom-right corner)
 	glFunc.Color(config.panelBorderColorDark)
-	gl.LineWidth(1.0)
+	glFunc.LineWidth(1.0)
 	glFunc.BeginEnd(glConst.TRIANGLES, function()
 		-- Relative coordinates for resize handle
 		glFunc.Vertex(pipWidth - usedButtonSizeLocal, 0)
@@ -5119,6 +5183,88 @@ local function DrawWaterAndLOSOverlays()
 	end
 end
 
+-- Helper function to draw map markers with rotating rectangles
+local function DrawMapMarkers()
+	if #miscState.mapMarkers == 0 then
+		return
+	end
+
+	local currentTime = os.clock()
+	local lineSize = math.floor(4 * render.widgetScale)
+	-- Scale baseSize based on zoom level (more zoomed out = slightly smaller markers)
+	local zoomScale = 0.45 + (cameraState.zoom * 0.66)  -- Scale between 0.7 and 1.0
+	local baseSize = 45 * render.widgetScale * zoomScale
+
+	glFunc.Texture(false)
+
+	-- Remove expired markers and draw active ones
+	local i = 1
+	while i <= #miscState.mapMarkers do
+		local marker = miscState.mapMarkers[i]
+		local age = currentTime - marker.time
+
+		-- Remove markers older than 5 seconds
+		if age > 4.5 then
+			table.remove(miscState.mapMarkers, i)
+		else
+			-- Draw marker if it's within the visible area (with margin for edge visibility)
+			local sx, sy = WorldToPipCoords(marker.x, marker.z)
+
+			-- Expand bounds check to include margin outside the PIP for edge markers
+			local edgeMargin = (baseSize*1.25) * render.widgetScale
+			if sx >= render.dim.l - edgeMargin and sx <= render.dim.r + edgeMargin and sy >= render.dim.b - edgeMargin and sy <= render.dim.t + edgeMargin then
+				-- Calculate rotation based on time (rotate at 180 degrees per second)
+				local rotation = (age * 180) % 360
+
+				-- Size of the rectangle (in screen pixels) with pulsating scale
+				local pulseScale = 1 + math.sin(age * 4.5) * 0.2  -- Pulsate between 0.8 and 1.2
+				local size = baseSize * pulseScale
+
+				-- Fade out over the last second
+				local alpha = age < 2.5 and 1 or (1 - (age - 2.5))
+
+				-- Use team color or default
+				local r, g, b = 1, 1, 0  -- Default yellow
+				if marker.teamID then
+					r, g, b = Spring.GetTeamColor(marker.teamID)
+				end
+
+				-- Draw rotating rectangle
+				glFunc.PushMatrix()
+				glFunc.Translate(sx, sy, 0)
+				glFunc.Rotate(rotation, 0, 0, 1)
+
+				-- background
+				glFunc.Color(0, 0, 0, alpha * 0.5)
+				glFunc.LineWidth(lineSize+2)
+				gl.BeginEnd(GL.LINE_LOOP, function()
+					glFunc.Vertex(-size, -size)
+					glFunc.Vertex(size, -size)
+					glFunc.Vertex(size, size)
+					glFunc.Vertex(-size, size)
+				end)
+				-- colored
+				local addition = 2 * (pulseScale-0.9)
+				glFunc.Color(r*1.2 + addition, g*1.2 + addition, b*1.2 + addition, alpha)
+				glFunc.LineWidth(lineSize)
+				gl.BeginEnd(GL.LINE_LOOP, function()
+					glFunc.Vertex(-size, -size)
+					glFunc.Vertex(size, -size)
+					glFunc.Vertex(size, size)
+					glFunc.Vertex(-size, size)
+				end)
+
+				glFunc.PopMatrix()
+			end
+
+			i = i + 1
+		end
+	end
+
+	glFunc.LineWidth(1.0)
+	glFunc.Color(1, 1, 1, 1)
+end
+
 local function RenderPipContents()
 	-- Cache selected units once per render cycle to avoid multiple API calls
 	local cachedSelectedUnits = Spring.GetSelectedUnits()
@@ -5141,6 +5287,9 @@ local function RenderPipContents()
 	pipR2T.contentLastDrawTime = os.clock() - drawStartTime
 
 	DrawCommandQueuesOverlay(cachedSelectedUnits)
+
+	-- Draw map markers
+	DrawMapMarkers()
 end
 
 -- Helper function to draw box selection rectangle
@@ -5192,7 +5341,7 @@ local function DrawBoxSelection()
 	end)
 
 	gl.PolygonMode(GL.FRONT_AND_BACK, GL.LINE)
-	gl.LineWidth(2.0 + 2.5)
+	glFunc.LineWidth(2.0 + 2.5)
 	glFunc.Color(0, 0, 0, 0.12)
 	glFunc.BeginEnd(glConst.QUADS, function()
 	glFunc.Vertex(minX, minY)
@@ -5205,7 +5354,7 @@ local function DrawBoxSelection()
 	if selectionboxEnabled then
 		gl.LineStipple(true)
 	end
-	gl.LineWidth(2.0)
+	glFunc.LineWidth(2.0)
 
 	-- Determine line color based on modifier keys (only if selectionbox widget is enabled)
 	if selectionboxEnabled and ctrl then
@@ -5229,7 +5378,7 @@ local function DrawBoxSelection()
 	if selectionboxEnabled then
 		gl.LineStipple(false)
 	end
-	gl.LineWidth(1.0)
+	glFunc.LineWidth(1.0)
 end
 
 local function DrawAreaCommand()
@@ -5608,7 +5757,7 @@ local function DrawBuildCursor()
 	-- Draw grid lines with color based on overall buildability
 	local lineColor = canBuild and {0.5, 1.0, 0.5, 0.9} or {1.0, 0.5, 0.5, 0.9}
 	glFunc.Color(lineColor[1], lineColor[2], lineColor[3], lineColor[4])
-	gl.LineWidth(1.5)
+	glFunc.LineWidth(1.5)
 
 	-- Vertical lines
 	for gx = gridLeft, gridRight, cellSize do
@@ -5634,7 +5783,7 @@ local function DrawBuildCursor()
 		end
 	end
 
-	gl.LineWidth(1.0)
+	glFunc.LineWidth(1.0)
 	glFunc.Color(1, 1, 1, 1)
 end
 
@@ -6415,7 +6564,7 @@ function widget:DrawScreen()
 		-- Draw resize handle when showing on hover
 		if config.showButtonsOnHoverOnly and interactionState.isMouseOverPip then
 			glFunc.Color(config.panelBorderColorDark)
-			gl.LineWidth(1.0)
+			glFunc.LineWidth(1.0)
 			glFunc.BeginEnd(glConst.TRIANGLES, ResizeHandleVertices)
 		end
 
@@ -6433,7 +6582,7 @@ function widget:DrawScreen()
 		if hover then
 			local mult = mbl and 4.5 or 1.5
 			glFunc.Color(config.panelBorderColorDark[1]*mult, config.panelBorderColorDark[2]*mult, config.panelBorderColorDark[3]*mult, 1)
-			gl.LineWidth(1.0)
+			glFunc.LineWidth(1.0)
 			glFunc.BeginEnd(glConst.TRIANGLES, ResizeHandleVertices)
 		end
 
@@ -6534,7 +6683,7 @@ function widget:DrawWorld()
 		end
 
 		glFunc.Color(r, g, b, 0.25)
-		gl.LineWidth(2.5)
+		glFunc.LineWidth(2.5)
 		gl.DepthTest(true)
 		glFunc.BeginEnd(glConst.LINE_STRIP, DrawGroundBox, render.world.l, render.world.r, render.world.b, render.world.t)
 		gl.DepthTest(false)
@@ -6546,7 +6695,7 @@ function widget:DrawWorld()
 	local dragCount = #interactionState.buildDragPositions
 	if interactionState.areBuildDragging and dragCount > 1 then
 		glFunc.Color(1, 1, 0, 0.6)
-		gl.LineWidth(2.0)
+		glFunc.LineWidth(2.0)
 		gl.LineStipple(true)
 		gl.DepthTest(true)
 		glFunc.BeginEnd(GL.LINE_STRIP, function()
@@ -6558,7 +6707,7 @@ function widget:DrawWorld()
 		end)
 		gl.LineStipple(false)
 		gl.DepthTest(false)
-		gl.LineWidth(1.0)
+		glFunc.LineWidth(1.0)
 	end
 
 	-- Draw area command radius circle if actively dragging
@@ -6624,7 +6773,7 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 
 	-- Draw dark background rectangle
 	glFunc.Color(0, 0, 0, 0.6)
-	gl.LineWidth((linewidth*1.5)+1)
+	glFunc.LineWidth((linewidth*1.5)+1)
 	glFunc.BeginEnd(GL.LINE_LOOP, function()
 		glFunc.Vertex(x1, z1)
 		glFunc.Vertex(x2, z1)
@@ -6642,7 +6791,7 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	end
 
 	glFunc.Color(r, g, b, 1)
-	gl.LineWidth(linewidth)
+	glFunc.LineWidth(linewidth)
 	--gl.LineStipple(2, 0xAAAA)
 	glFunc.BeginEnd(GL.LINE_LOOP, function()
 		glFunc.Vertex(x1, z1)
@@ -6652,7 +6801,7 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	end)
 	--gl.LineStipple(false)
 
-	gl.LineWidth(1.0)
+	glFunc.LineWidth(1.0)
 	glFunc.Color(1, 1, 1, 1)
 	glFunc.PopMatrix()
 end
@@ -7295,7 +7444,25 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 		return false
 	end
 
-	-- Only process our own mapmarks (not from other players)
+	-- Store point markers for rendering (from any player)
+	if cmdType == 'point' then
+		-- Get player's team
+		local _, _, _, teamID = Spring.GetPlayerInfo(playerID, false)
+
+		-- Add marker to list
+		table.insert(miscState.mapMarkers, {
+			x = mx,
+			z = mz,
+			time = os.clock(),
+			teamID = teamID,
+			playerID = playerID
+		})
+
+		-- Force PIP content update to show marker immediately
+		pipR2T.contentNeedsUpdate = true
+	end
+
+	-- Only process our own mapmarks for placement logic (not from other players)
 	local myPlayerID = Spring.GetMyPlayerID()
 	if playerID ~= myPlayerID then
 		return false
