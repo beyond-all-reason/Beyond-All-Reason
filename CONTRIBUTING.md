@@ -20,8 +20,6 @@ Also, we use some custom bindings for Lua 5.1 — for security, functionality, a
   * High table and string creation increases garbage collection and heap compaction.
   * Prefer e.g. `GetUnitCurrentCommand` over `GetUnitCommands`.  
 
-* Prefer to receive multi-value returns from engine calls over tables, generally. There are many functions for getting general data about a unit in a table. These are not individually expensive but are orders of magnitude more costly than the alternative.
-
 #### Protected tables
 
 Reading from the “Defs” tables — UnitDefs, WeaponDefs, and FeatureDefs — is more expensive than from an ordinary table. When you would access these frequently, cache the result in a lookup table, instead.
