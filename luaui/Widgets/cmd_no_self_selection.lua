@@ -180,6 +180,29 @@ function widget:ActiveCommandChanged(cmdid, type)
 	end
 end
 
+-- Godmode and headless testing fixes.
+
+local function unitAccessLost(self, unitID, unitTeam, unitAllyTeam, unitDefID)
+	if unitID == selectedUnitID then
+		if isVolumeHidden then
+			restoreSelectionVolume(selectedUnitID)
+		end
+	end
+end
+
+local function unitAccessGained(self, unitID, unitTeam, unitAllyTeam, unitDefID)
+	if unitID == selectedUnitID then
+		if not isVolumeHidden and selectClickTime < 0 then
+			removeSelectionVolume(selectedUnitID)
+		end
+	end
+end
+
+widget.UnitLeftLos = unitAccessLost
+widget.UnitLeftRadar = unitAccessLost
+widget.UnitEnteredLos = unitAccessGained
+widget.UnitEnteredRadar = unitAccessGained
+
 -- Interwupget communications and compatability
 
 ---Get information about a ray traced from screen to world position.
