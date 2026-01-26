@@ -20,7 +20,8 @@ If AI is used solely as an advisory or educational tool, disclosure is not requi
 Contributors are responsible for ensuring that:
 - the code has been run and tested
 - the code behaves correctly in practice, not just in theory
-- it is recommended to attach evidence of the code working, such as screenshots or video recordings
+
+It is recommended to attach test artifacts, such as screenshots or recordings, that demonstrate your code working for each test step.
 
 ## Issues and Discussions
 
