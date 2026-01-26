@@ -85,7 +85,16 @@ local function removeSelectionVolume(unitID)
 end
 
 local function restoreSelectionVolume(unitID)
-	sp_SetUnitSelectionVolumeData(unitID, unpack(restoreVolumeData))
+	local data = restoreVolumeData
+
+	if not data[1] then
+		cacheSelectionVolume(unitID)
+		if not data[1] then
+			return
+		end
+	end
+
+	sp_SetUnitSelectionVolumeData(unitID, unpack(data))
 	isVolumeHidden = false
 end
 
