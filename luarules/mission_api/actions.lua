@@ -111,13 +111,6 @@ local function transferUnits(name, newTeam, given)
 end
 
 local function nameUnits(name, teamID, unitDefName, area)
-
-	if not teamID and not unitDefName and not area then
-		-- TODO: move this to prevalidation step?
-		Spring.Log('actions.lua', LOG.ERROR, "[Mission API] A NameUnits action is missing required parameter. At least one of teamID, unitDefName, and area is required.")
-		return
-	end
-
 	local hasFilterOtherThanTeamID = unitDefName or area
 
 	local allUnitsOfTeam = {}

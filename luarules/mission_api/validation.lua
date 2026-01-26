@@ -12,6 +12,9 @@ function validateParameters(schemaParameters, actionOrTriggerType, actionOrTrigg
 	elseif not schemaParameters[actionOrTriggerType] then
 		logError(actionOrTrigger .. " has invalid type. " .. actionOrTrigger .. ": " .. actionOrTriggerID)
 	else
+		if actionOrTrigger == 'Action' and actionOrTriggerType == GG['MissionAPI'].ActionTypes.NameUnits and not actionOrTriggerParameters.teamID and not actionOrTriggerParameters.unitDefName and not actionOrTriggerParameters.area then
+			logError("NameUnits action '" .. actionOrTriggerID .. "' is missing required parameter. At least one of teamID, unitDefName, and area is required.")
+		end
 		for _, parameter in pairs(schemaParameters[actionOrTriggerType]) do
 			local value = actionOrTriggerParameters[parameter.name]
 
