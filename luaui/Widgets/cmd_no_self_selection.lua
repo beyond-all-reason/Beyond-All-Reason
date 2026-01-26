@@ -40,6 +40,13 @@ local sp_TraceScreenRay = Spring.TraceScreenRay
 --------------------------------------------------------------------------------
 -- Initialization --------------------------------------------------------------
 
+-- Factories need to self-select because their commands go to their built units.
+local isFactory = {}
+for unitDefID, unitDef in ipairs(UnitDefs) do
+	-- todo: weird things to consider, like enqueued self-reclaim commands, etc.
+	isFactory[unitDefID] = unitDef.isFactory and unitDef.canGuard
+end
+
 local selectedUnitID -- widget ignores/sees through only a single unit
 local selectClickTime = 0
 local cx, cy
@@ -47,13 +54,6 @@ local cx, cy
 local restoreVolumeData = {}
 local isVolumeHidden = false
 local inActiveCommand = false
-
--- Factories need to self-select because their commands go to their built units.
-local isFactory = {}
-for unitDefID, unitDef in ipairs(UnitDefs) do
-	-- todo: weird things to consider, like enqueued self-reclaim commands, etc.
-	isFactory[unitDefID] = unitDef.isFactory and unitDef.canGuard
-end
 
 --------------------------------------------------------------------------------
 -- Local functions -------------------------------------------------------------
@@ -76,6 +76,7 @@ local function removeSelectionVolume(unitID)
 	-- Handle headless testing and/or godmode selection of invisible enemy units.
 	-- This creates a potential inconsistency in the test, dependent on your LOS.
 	if not ox then
+		selectedUnitID = nil
 		return
 	end
 
