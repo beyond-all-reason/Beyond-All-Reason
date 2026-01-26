@@ -113,7 +113,7 @@ local function trySwapMex(unitID, unitData)
 	local unitTeam = Spring.GetUnitTeam(unitID)
 	local unitMax, unitCount = Spring.GetTeamMaxUnits(unitTeam)
 
-	if not unitCount or unitMax < unitCount + 1 then
+	if not unitCount or unitMax < unitCount + 2 then
 		return
 	end
 
