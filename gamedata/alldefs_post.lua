@@ -1706,19 +1706,8 @@ function UnitDef_Post(name, uDef)
 
 	-- Deduplicate buildoptions (various modoptions or later mods can add the same units)
 	-- Multiple unit defs can share the same table reference, so we create a new table for each
-	if uDef.buildoptions and #uDef.buildoptions > 0 then
-		local seen = {}
-		local dedupedBuildoptions = {}
-		
-		for i = 1, #uDef.buildoptions do
-			local unitName = uDef.buildoptions[i]
-			if type(unitName) == "string" and unitName ~= "" and not seen[unitName] then
-				seen[unitName] = true
-				dedupedBuildoptions[#dedupedBuildoptions + 1] = unitName
-			end
-		end
-		
-		uDef.buildoptions = dedupedBuildoptions
+	if uDef.buildoptions and next(uDef.buildoptions) then
+		uDef.buildoptions = table.toUniqueArray(uDef.buildoptions)
 	end
 end
 
