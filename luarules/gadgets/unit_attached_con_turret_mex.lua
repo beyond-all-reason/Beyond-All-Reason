@@ -175,7 +175,7 @@ local function doUnitDamaged(unitID, unitDefID, unitTeam, damage)
 	end
 end
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	if mexTurretDefID[unitDefID] then
+	if mexTurretDefID[unitDefID] and not paralyzer then
         doUnitDamaged(unitID, unitDefID, unitTeam, damage)
     end
 end
