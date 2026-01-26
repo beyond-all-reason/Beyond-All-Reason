@@ -256,7 +256,8 @@ local options = {
 			"PLEASE NOTE: For this to work, the game needs to have set startboxes.\n"..
 			-- tabs don't do much in chobby
 			"                          It won't work in FFA mode without boxes.\n"..
-			"                          Also, it does not affect Scavengers and Raptors.",
+			"                          Also, it does not affect Scavengers and Raptors.\n"..
+			"\255\75\0\100".."Note: No-Rush times over 30 minutes may cause performance or stability issues due to excessive unit buildup.",
         type   	= "number",
         section	= "options_main",
         def    	= 0,
