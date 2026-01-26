@@ -186,7 +186,7 @@ if not table.invert then
 	end
 end
 
-if not table.toUniqueArray then
+if not table.getUniqueArray then
 	local sort, floor = table.sort, math.floor
 
 	local lookup = {}
@@ -201,7 +201,7 @@ if not table.toUniqueArray then
 	---The final/sorted array forms a compact sequence with no gaps so can have new keys.
 	---@param tbl table may contain array, hash, or mixed data and can have gaps
 	---@return table sequence containing only unique entries, ordered by their integer indices
-	function table.toUniqueArray(tbl)
+	function table.getUniqueArray(tbl)
 		local unique, count = {}, 0
 		local invert = {}
 

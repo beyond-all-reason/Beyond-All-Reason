@@ -1714,7 +1714,7 @@ function UnitDef_Post(name, uDef)
 		end
 		-- Deduplicate buildoptions (various modoptions or later mods can add the same units)
 		-- Multiple unit defs can share the same table reference, so we create a new table for each
-		uDef.buildoptions = table.toUniqueArray(uDef.buildoptions)
+		uDef.buildoptions = table.getUniqueArray(uDef.buildoptions)
 	end
 end
 
