@@ -60,6 +60,7 @@ if not next(fakeBuildDefID) or not next(isExtractor) then
 end
 
 local mexesToSwap = {}
+local pairedUnits = {}
 
 local function doSwapMex(unitID, unitTeam, unitData)
 	local Spring = Spring
@@ -92,6 +93,8 @@ local function doSwapMex(unitID, unitTeam, unitData)
 	Spring.UnitAttach(mexID, conID, 6)
 	Spring.SetUnitRulesParam(conID, "pairedUnitID", mexID)
 	Spring.SetUnitRulesParam(mexID, "pairedUnitID", conID)
+	pairedUnits[conID] = mexID
+	pairedUnits[mexID] = conID
 
 	Spring.SetUnitHealth(conID, unitHealth)
 	Spring.SetUnitStealth(conID, true)
@@ -147,8 +150,7 @@ end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	if mexTurretDefID[unitDefID] then
-		local pairedUnitID = Spring.GetUnitRulesParam(unitID, "pairedUnitID")
-		Spring.TransferUnit(pairedUnitID, newTeam)
+		Spring.TransferUnit(pairedUnits[unitID], newTeam)
     end
 end
 
@@ -181,8 +183,9 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	mexesToSwap[unitID] = nil
 
 	if mexActualDefID[unitDefID] or mexTurretDefID[unitDefID] then
-		local pairedUnitID = Spring.GetUnitRulesParam(unitID, "pairedUnitID")
-		if pairedUnitID and Spring.GetUnitIsDead(pairedUnitID) == false then
+		local pairedUnitID = pairedUnits[unitID]
+		if pairedUnitID then
+			pairedUnits[pairedUnitID] = nil
 			Spring.DestroyUnit(pairedUnitID, false, true)
 		end
     end
