@@ -190,7 +190,7 @@ function widget:ActiveCommandChanged(cmdid, type)
 	end
 end
 
--- Godmode and headless testing fixes.
+-- Godmode and headless testing LOS fixes.
 
 local function unitAccessLost(self, unitID, unitTeam, unitAllyTeam, unitDefID)
 	if unitID == selectedUnitID then
