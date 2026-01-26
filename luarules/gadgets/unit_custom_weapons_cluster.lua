@@ -511,7 +511,8 @@ function gadget:GameFramePost(frame)
 	end
 end
 
-local function _ShieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, shieldUnitID, bounceProjectile, beamWeaponIndex, beamUnitID, startX, startY, startZ, hitX, hitY, hitZ)
+---@type ShieldPreDamagedCallback
+local function shieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, shieldUnitID, bounceProjectile, beamWeaponIndex, beamUnitID, startX, startY, startZ, hitX, hitY, hitZ)
 	if projectileID > -1 and clusterWeaponDefs[spGetProjectileDefID(projectileID)] then
 		local hitShields = projectileHitShield[projectileID]
 		if hitShields then
@@ -553,5 +554,5 @@ function gadget:Initialize()
 		end
 	})
 
-	GG.Shields.RegisterShieldPreDamaged(projectiles, _ShieldPreDamaged)
+	GG.Shields.RegisterShieldPreDamaged(projectiles, shieldPreDamaged)
 end

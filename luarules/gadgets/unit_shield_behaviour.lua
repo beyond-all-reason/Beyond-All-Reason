@@ -14,6 +14,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+---@alias ShieldPreDamagedCallback fun(projectileID:integer, attackerID:integer, shieldWeaponIndex:integer, shieldUnitID:integer, bounceProjectile:boolean, beamWeaponIndex:integer?, beamUnitID:integer?, startX:number?, startY:number?, startZ:number?, hitX:number, hitY:number, hitZ:number): boolean? (default := `false`)
+
 local mathMax = math.max
 
 local spGetUnitShieldState = Spring.GetUnitShieldState
@@ -58,7 +60,7 @@ if Spring.GetModOptions().experimentalshields:find("bounce") then
 		end
 	end
 
-	local function _ShieldPreDamaged(self, projectileID, attackerID, shieldWeaponIndex, shieldUnitID, bounceProjectile, beamWeaponIndex, beamUnitID, startX, startY, startZ, hitX, hitY, hitZ)
+	local function doShieldPreDamaged(self, projectileID, attackerID, shieldWeaponIndex, shieldUnitID, bounceProjectile, beamWeaponIndex, beamUnitID, startX, startY, startZ, hitX, hitY, hitZ)
 		for lookup, callback in pairs(scriptedShieldDamages) do
 			if lookup[projectileID] then
 				if callback(projectileID, attackerID, shieldWeaponIndex, shieldUnitID, bounceProjectile, beamWeaponIndex, beamUnitID, startX, startY, startZ, hitX, hitY, hitZ) then
@@ -70,10 +72,10 @@ if Spring.GetModOptions().experimentalshields:find("bounce") then
 
 	---Add a scripted weapon type to be handled by the shield behaviour gadget.
 	---@param projectileTbl table [projectileID] := true
-	---@param callback function accepting the ShieldPreDamaged args (excluding self-ref), returning `true` when consuming the event
+	---@param callback ShieldPreDamagedCallback accepting the ShieldPreDamaged args (excluding self-ref), returning `true` when consuming the event
 	local function registerShieldPreDamaged(projectileTbl, callback)
 		if not next(scriptedShieldDamages) then
-			gadget.ShieldPreDamaged = _ShieldPreDamaged
+			gadget.ShieldPreDamaged = doShieldPreDamaged
 			gadgetHandler:UpdateCallIn("ShieldPreDamaged")
 		end
 		scriptedShieldDamages[projectileTbl] = callback
@@ -698,7 +700,7 @@ end
 
 ---Add a scripted weapon type to be handled by the shield behaviour gadget.
 ---@param projectileTbl table [projectileID] := true
----@param callback function accepting the ShieldPreDamaged args (excluding self-ref), returning `true` when consuming the event
+---@param callback ShieldPreDamagedCallback accepting the ShieldPreDamaged args (excluding self-ref), returning `true` when consuming the event
 local function registerShieldPreDamaged(projectileTbl, callback)
 	scriptedShieldDamages[projectileTbl] = callback
 end

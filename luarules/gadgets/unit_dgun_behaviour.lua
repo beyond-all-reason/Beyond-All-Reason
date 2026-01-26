@@ -197,7 +197,8 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 	return damage
 end
 
-local function _ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shieldCarrierUnitID, bounceProjectile, beamEmitterWeaponNum, beamEmitterUnitID, startX, startY, startZ, hitX, hitY, hitZ)
+---@type ShieldPreDamagedCallback
+local function shieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shieldCarrierUnitID, bounceProjectile, beamEmitterWeaponNum, beamEmitterUnitID, startX, startY, startZ, hitX, hitY, hitZ)
 	if proID > -1 and dgunData[proID] then
 		local proData = dgunData[proID]
 		local weaponDefID = proData.weaponDefID
@@ -229,5 +230,5 @@ function gadget:Initialize()
 	end
 
 	addShieldDamage = GG.Shields.AddShieldDamage
-	GG.Shields.RegisterShieldPreDamaged(dgunData, _ShieldPreDamaged)
+	GG.Shields.RegisterShieldPreDamaged(dgunData, shieldPreDamaged)
 end

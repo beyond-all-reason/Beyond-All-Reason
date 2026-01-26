@@ -460,7 +460,8 @@ function gadget:FeaturePreDamaged(featureID, featureDefID, featureTeam, damage, 
 	end
 end
 
-local function _ShieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, shieldUnitID, bounceProjectile, beamWeaponIndex, beamUnitID, startX, startY, startZ, hitX, hitY, hitZ)
+---@type ShieldPreDamagedCallback
+local function shieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, shieldUnitID, bounceProjectile, beamWeaponIndex, beamUnitID, startX, startY, startZ, hitX, hitY, hitZ)
 	if not spValidUnitID(shieldUnitID) then
 		return
 	end
@@ -513,5 +514,5 @@ function gadget:Initialize()
 	addShieldDamage = GG.Shields.AddShieldDamage
 	damageToShields = GG.Shields.DamageToShields
 	getUnitShieldState = GG.Shields.GetUnitShieldState
-	GG.Shields.RegisterShieldPreDamaged(projectiles, _ShieldPreDamaged)
+	GG.Shields.RegisterShieldPreDamaged(projectiles, shieldPreDamaged)
 end
