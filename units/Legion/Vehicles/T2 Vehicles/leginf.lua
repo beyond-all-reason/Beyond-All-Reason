@@ -125,6 +125,7 @@ return {
 				flamegfxtime = 1,
 				gravityaffected = "true",
 				impulsefactor = 0.123,
+				leadlimit = 0,
 				mygravity = 0.08,
 				name = "Heavy Burst-Fire Napalm Artillery Tri-Cannons",
 				noselfdamage = true,
