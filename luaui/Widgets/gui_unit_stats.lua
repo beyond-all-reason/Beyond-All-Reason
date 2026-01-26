@@ -174,6 +174,9 @@ local anonymousName = '?????'
 
 local showStats = false
 
+-- TODO: Shield damages are overridden in the shields rework (now in main game)
+local shieldsRework = Spring.GetModOptions().experimentalshields:find("absorb")
+
 ------------------------------------------------------------------------------------
 -- Functions
 ------------------------------------------------------------------------------------
@@ -689,7 +692,12 @@ local function drawStats(uDefID, uID)
 				DrawText(texts.dmg..":", damageString)
 
 				local modifiers = { [defaultArmorDamage] = { armorTypes[defaultArmorIndex] } } -- [damage] = { armorClass1, armorClass2, ... }
+
+				local indestructibleArmorIndex = armorTypes.indestructable
+				local shieldsArmorIndex = shieldsRework and armorTypes.shields -- TODO: shield damage display is bugged since incorporating the shieldsrework
+
 				for index = 0, #armorTypes do
+					if index ~= indestructibleArmorIndex and index ~= shieldsArmorIndex then
 						local armorName = armorTypes[index]
 						local armorDamage = damages[index]
 						if not modifiers[armorDamage] then
