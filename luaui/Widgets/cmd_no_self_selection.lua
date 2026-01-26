@@ -69,9 +69,16 @@ end
 -- Since the camera can be rotated to extreme perspectives, even units that do not allow any
 -- other unit underneath themselves will have their selection volumes shrunk to zero radius.
 local function removeSelectionVolume(unitID)
-	-- The xyz scale and volume shape are not kept; we want an unambiguous point volume.
+	-- The xyz scale and volume shape are unused. We want an unambiguous point volume.
 	local _, _, _, ox, oy, oz, _, cont, axis = sp_GetUnitSelectionVolumeData(unitID)
 	local shape = 1 -- spherical volume
+
+	-- Handle headless testing and/or godmode selection of invisible enemy units.
+	-- This creates a potential inconsistency in the test, dependent on your LOS.
+	if not ox then
+		return
+	end
+
 	sp_SetUnitSelectionVolumeData(unitID, 0, 0, 0, ox, oy, oz, shape, cont, axis)
 	isVolumeHidden = true
 end
