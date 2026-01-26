@@ -175,7 +175,7 @@ local anonymousName = '?????'
 local showStats = false
 
 -- TODO: Shield damages are overridden in the shields rework (now in main game)
-local shieldsRework = Spring.GetModOptions().experimentalshields:find("absorb")
+local shieldsRework = not Spring.GetModOptions().experimentalshields:find("bounce")
 
 ------------------------------------------------------------------------------------
 -- Functions
