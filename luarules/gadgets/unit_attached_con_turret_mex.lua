@@ -155,12 +155,6 @@ function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
     end
 end
 
-function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	if mexActualDefID[unitDefID] then
-		return 0, 0 -- non-interactive
-	end
-end
-
 local function doUnitDamaged(unitID, unitDefID, unitTeam, damage)
 	local health, maxHealth = spGetUnitHealth(unitID)
 
