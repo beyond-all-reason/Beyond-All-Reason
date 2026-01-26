@@ -8,13 +8,19 @@ if not Engine or not Spring then return end
 
 -- TODO: support Engine.commitsNumber
 local function isEngineMinVersion(major, minor, patch)
-	if tonumber(Engine.versionMajor) > major then return true end
-	if tonumber(Engine.versionMinor) > minor then return true end
-	if tonumber(Engine.versionPatchSet) > patch then return true end
-	
-	return tonumber(Engine.versionMajor) == major
-		and tonumber(Engine.versionMinor) == minor
-		and tonumber(Engine.versionPatchSet) == patch
+    if tonumber(Engine.versionMajor) > major then
+        return true
+    elseif tonumber(Engine.versionMajor) < major then
+        return false
+    end
+
+    if tonumber(Engine.versionMinor) > minor then
+        return true
+    elseif tonumber(Engine.versionMinor) < minor then
+        return false
+    end
+
+    return tonumber(Engine.versionPatchSet) >= patch
 end
 
 -- An enhancement to add ellipsoidal and cylindrical targeting volumes was bugged briefly for BeamLaser and LightningCannon.
