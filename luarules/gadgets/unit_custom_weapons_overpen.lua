@@ -415,7 +415,7 @@ local function _GameFramePost(collisionList)
 						penetrator.dirY * impulse,
 						penetrator.dirZ * impulse
 					)
-					setVelocityControl(targetID, true)
+					if setVelocityControl then setVelocityControl(targetID, true) end
 				else
 					local health = collision.health - damageDealt
 					if health > 1 then
