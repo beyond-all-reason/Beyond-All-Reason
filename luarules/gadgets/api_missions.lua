@@ -44,11 +44,15 @@ function gadget:Initialize()
 	GG['MissionAPI'].ActionTypes = actionsSchema.Types
 	GG['MissionAPI'].trackedUnitIDs = {}
 	GG['MissionAPI'].trackedUnitNames = {}
+	GG['MissionAPI'].createdUnitNames = {}
+	GG['MissionAPI'].referencedUnitNames = {}
 
 	triggersController = VFS.Include('luarules/mission_api/triggers_loader.lua')
 	actionsController = VFS.Include('luarules/mission_api/actions_loader.lua')
 
 	loadMission();
+
+	validateUnitNameReferences()
 end
 
 function gadget:Shutdown()

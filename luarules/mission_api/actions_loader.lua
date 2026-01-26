@@ -1,4 +1,5 @@
 local schema = VFS.Include('luarules/mission_api/actions_schema.lua')
+local types = schema.Types
 local parameters = schema.Parameters
 
 --[[
@@ -9,6 +10,12 @@ local parameters = schema.Parameters
 		}
 	}
 ]]
+
+local actionsTypesNamingUnits = {
+	[types.SpawnUnits] = true, [types.NameUnits] = true, }
+local actionsTypesReferencingUnitNames = {
+	[types.IssueOrders] = true, [types.UnnameUnits] = true, [types.TransferUnits] = true,
+	[types.DespawnUnits] = true, [types.TransferUnits] = true, }
 
 local function getAllActionIDsReferencedByTriggers()
 	local allActionIDsReferencedByTriggers = {}
@@ -31,6 +38,8 @@ local function validateActions(actions)
 		end
 
 		validateParameters(parameters, action.type, action.parameters, 'Action', actionID)
+
+		recordUnitNameCreationsAndReferences(actionsTypesNamingUnits, actionsTypesReferencingUnitNames, action, 'Action ' .. actionID)
 	end
 end
 

@@ -48,6 +48,25 @@ local function validateField(value, fieldName, expectedType, actionOrTrigger, ac
 	return true
 end
 
+function recordUnitNameCreationsAndReferences(typesNamingUnits, typesReferencingUnitNames, actionOrTrigger, label)
+	local unitName = (actionOrTrigger.parameters or {}).name
+	if unitName then
+		if typesNamingUnits[actionOrTrigger.type] then
+			GG['MissionAPI'].createdUnitNames[unitName] = true
+		elseif typesReferencingUnitNames[actionOrTrigger.type] then
+			GG['MissionAPI'].referencedUnitNames[unitName] = label
+		end
+	end
+end
+
+function validateUnitNameReferences()
+	for unitName, label in pairs(GG['MissionAPI'].referencedUnitNames) do
+		if not GG['MissionAPI'].createdUnitNames[unitName] then
+			logError("Unit name '" .. unitName .. "' not created in any trigger or action. Referenced in: " .. label)
+		end
+	end
+end
+
 Types = {
 
 	----------------------------------------------------------------

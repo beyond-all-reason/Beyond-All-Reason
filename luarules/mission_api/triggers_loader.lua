@@ -21,6 +21,9 @@ local parameters = schema.Parameters
 	}
 ]]
 
+local triggersTypesNamingUnits = { }
+local triggersTypesReferencingUnitNames = { }
+
 local function validateTriggers(triggers, rawActions)
 	for triggerID, trigger in pairs(triggers) do
 		if table.isNilOrEmpty(trigger.actions) then
@@ -36,6 +39,8 @@ local function validateTriggers(triggers, rawActions)
 		end
 
 		validateParameters(parameters, trigger.type, trigger.parameters, 'Trigger', triggerID)
+
+		recordUnitNameCreationsAndReferences(triggersTypesNamingUnits, triggersTypesReferencingUnitNames, trigger, 'Trigger ' .. triggerID)
 	end
 end
 
