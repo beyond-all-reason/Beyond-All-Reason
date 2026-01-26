@@ -161,7 +161,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 	end
 end
 
-local function _UnitDamaged(unitID, unitTeam, damage)
+local function doUnitDamaged(unitID, unitDefID, unitTeam, damage)
 	local health, maxHealth = spGetUnitHealth(unitID)
 
 	if health - damage < 0 and damage < maxHealth * 0.5 then
@@ -182,7 +182,7 @@ local function _UnitDamaged(unitID, unitTeam, damage)
 end
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	if mexTurretDefID[unitDefID] then
-        _UnitDamaged(unitID, unitTeam, damage)
+        doUnitDamaged(unitID, unitDefID, unitTeam, damage)
     end
 end
 
