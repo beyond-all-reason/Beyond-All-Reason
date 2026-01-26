@@ -722,13 +722,5 @@ function gadget:Initialize()
 end
 
 function gadget:Shutdown()
-	if GG.Shields then
-		GG.Shields.AddShieldDamage = nil
-		GG.Shields.DamageToShields = nil
-		GG.Shields.GetUnitShieldPosition = nil
-		GG.Shields.GetShieldUnitsInSphere = nil
-		GG.Shields.GetUnitShieldState = nil
-		GG.Shields.RegisterShieldPreDamaged = nil
-		GG.Shields = nil
-	end
+	GG.Shields = nil
 end
