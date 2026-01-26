@@ -1,6 +1,6 @@
 # AI Usage Policy  
 
-## Disclosure Requirements
+## Disclosure requirements
 
 **AI usage in generating code must be explicitly disclosed in the associated Pull Request.**  
 Contributors must clearly state:
@@ -14,7 +14,7 @@ If maintainers reasonably suspect undisclosed AI use, the pull request will be c
 The above requirements apply to cases where AI is used to write production code.  
 If AI is used solely as an advisory or educational tool, disclosure is not required.
 
-## Verification and Testing
+## Verification and testing
 
 **All AI-assisted code must be fully verified by a human contributor.**  
 Contributors are responsible for ensuring that:
@@ -23,7 +23,7 @@ Contributors are responsible for ensuring that:
 
 It is recommended to attach test artifacts, such as screenshots or recordings, that demonstrate your code working for each test step.
 
-## Issues and Discussions
+## Issues and discussions
 
 **AI assistance is permitted in issues and discussions, with a strict human-in-the-loop requirement:**
 
@@ -33,7 +33,7 @@ It is recommended to attach test artifacts, such as screenshots or recordings, t
 
 AI may assist with explanations, summaries, or drafting, but must not replace understanding or judgment.
 
-## Prohibited Content
+## Prohibited content
 
 **AI-generated media is not permitted.**  
 This includes, but is not limited to: art, images, videos, and audio.  
@@ -44,7 +44,7 @@ Only text and code are eligible for AI assistance, subject to the rules above.
 **Repeated or intentional misuse of AI tools may result in contributor bans.**  
 Maintainers may enforce this policy at their discretion.
 
-## Why Is This Important?
+## Why is this important?
 
 Beyond All Reason is maintained by humans.
 
@@ -54,9 +54,9 @@ The primary behavior this policy seeks to prevent is **Vibe Coding**, defined as
 
 This policy exists to protect maintainers, preserve code quality, and ensure that collaboration remains productive and sustainable.
 
-## Responsible AI Usage Is Welcome
+## Responsible AI usage is welcome
 
-Beyond All Reason maintainers actively use AI tools as part of their workflow.  
+Beyond All Reason maintainers actively use AI tools as part of their workflow. 
 This policy does not represent an anti-AI position.
 
 The restrictions outlined above exist due to repeated misuse of AI by contributors who submit unverified, low-quality, or poorly understood work. The issue is not the tools themselves, but how they are applied.
