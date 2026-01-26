@@ -54,6 +54,7 @@ local config = {
 	-- Feature and overlay settings
 	hideEnergyOnlyFeatures = false,
 	showLosOverlay = true,
+	showLosRadar = true,
 	losOverlayOpacity = 0.6,
 	showPipFps = false,
 	allowCommandsWhenSpectating = false,  -- Allow giving commands as spectator when god mode is enabled
@@ -432,6 +433,7 @@ local spFunc = {
 	GetUnitDefID = Spring.GetUnitDefID,
 	GetTeamInfo = Spring.GetTeamInfo,
 	IsPosInLos = Spring.IsPosInLos,
+	IsPosInRadar = Spring.IsPosInRadar,
 	GetUnitLosState = Spring.GetUnitLosState,
 	GetFeatureDefID = Spring.GetFeatureDefID,
 	GetFeatureDirection = Spring.GetFeatureDirection,
@@ -744,14 +746,27 @@ local losShaderCode = {
 	]],
 	fragment = [[
 		uniform sampler2D losTex;
+		uniform sampler2D radarTex;
 		uniform float baseValue;
 		uniform float losScale;
+		uniform float showRadar;
 		varying vec2 texCoord;
 		void main() {
-			// Extract red channel from LOS texture
+			// Red channel of LOS texture: LOS (0.2-1.0 = in LOS, <0.2 = not in LOS)
 			float losValue = texture2D(losTex, texCoord).r;
-			// Convert to greyscale by replicating to all channels
+			// Red channel of radar texture: Radar coverage
+			float radarValue = texture2D(radarTex, texCoord).r;
+
+			// Calculate grey based on LOS
 			float grey = baseValue + losValue * losScale;
+
+			// If showRadar enabled, darken areas that have neither LOS nor radar
+			if (showRadar > 0.5) {
+				if (losValue < 0.2 && radarValue < 0.2) {
+					// Neither LOS nor radar - darken further
+					grey = grey * 0.5;
+				}
+			}
 
 			gl_FragColor = vec4(grey, grey, grey, 1.0);
 		}
@@ -759,9 +774,11 @@ local losShaderCode = {
 	uniformFloat = {
 		baseValue = 1.0 - config.losOverlayOpacity,  -- Brightness in no-LOS areas
 		losScale = config.losOverlayOpacity,         -- Brightness added for LOS areas
+		showRadar = config.showLosRadar and 1.0 or 0.0,
 	},
 	uniformInt = {
 		losTex = 0,
+		radarTex = 1,
 	},
 }
 
@@ -2523,9 +2540,9 @@ local function DrawExplosions()
 
 					local ringProgress = math.max(0, progress * 0.12) -- Stagger more tightly
 					if ringProgress > 0 then
-						local ringAlpha = (1 - ringProgress) * alpha * 0.8
+						-- Normalize ringProgress to 0-1 range for proper fading (max is 0.12)
+						local ringAlpha = (1 - math.min(1, ringProgress / 0.12)) * alpha * 0.8
 						local ringRadius = baseRadius * (0.8 + ringProgress * 0.4)
-						glFunc.Color(r, g, b, ringAlpha)
 						-- Thicker lines for bigger explosions
 						local lineWidth = 4
 						if explosion.radius > 150 then
@@ -2534,6 +2551,7 @@ local function DrawExplosions()
 							lineWidth = 5
 						end
 						glFunc.LineWidth(lineWidth)
+						glFunc.Color(r, g, b, ringAlpha)
 						glFunc.BeginEnd(glConst.LINE_LOOP, function()
 							for j = 0, segments do
 								local angle = j * angleStep
@@ -6616,9 +6634,13 @@ local function UpdateLOSTexture(currentTime)
 				return
 			end
 				glFunc.Texture(0, '$info:los')
+				glFunc.Texture(1, '$info:radar')
 
 				-- Activate shader to convert red channel to greyscale
 				gl.UseShader(losShader)
+
+				-- Update shader uniforms (in case config changed)
+				gl.UniformFloat(gl.GetUniformLocation(losShader, "showRadar"), config.showLosRadar and 1.0 or 0.0)
 
 				-- Draw full-screen quad in normalized coordinates (-1 to 1)
 				glFunc.BeginEnd(glConst.QUADS, function()
@@ -6629,19 +6651,54 @@ local function UpdateLOSTexture(currentTime)
 				end)
 
 				gl.UseShader(0)
+				glFunc.Texture(1, false)
 				glFunc.Texture(0, false)
 			else
 				-- Manually generate LOS texture using Spring.IsPosInLos (expensive)
-				-- Clear to base darkness (no LOS)
+				-- Clear to darkest level (neither LOS nor radar)
 				local baseBrightness = 1.0 - config.losOverlayOpacity
-				gl.Clear(GL.COLOR_BUFFER_BIT, baseBrightness, baseBrightness, baseBrightness, 1)
+				local darkestBrightness = baseBrightness * 0.5  -- Same as shader: grey * 0.5
+				local showRadar = config.showLosRadar
+
+				if showRadar then
+					-- Start with darkest (no LOS, no radar)
+					gl.Clear(GL.COLOR_BUFFER_BIT, darkestBrightness, darkestBrightness, darkestBrightness, 1)
+				else
+					-- No radar display, start with base darkness
+					gl.Clear(GL.COLOR_BUFFER_BIT, baseBrightness, baseBrightness, baseBrightness, 1)
+				end
 
 				local cellSizeX = mapInfo.mapSizeX / losTexWidth
 				local cellSizeZ = mapInfo.mapSizeZ / losTexHeight
 
-				-- Set color to white for LOS areas
-				glFunc.Color(1, 1, 1, 1)
+				-- First pass: draw radar areas (medium brightness) if showRadar enabled
+				if showRadar then
+					glFunc.Color(baseBrightness, baseBrightness, baseBrightness, 1)
+					glFunc.BeginEnd(glConst.QUADS, function()
+						for y = 0, losTexHeight - 1 do
+							for x = 0, losTexWidth - 1 do
+								local worldX = (x + 0.5) * cellSizeX
+								local worldZ = (y + 0.5) * cellSizeZ
+								local worldY = spFunc.GetGroundHeight(worldX, worldZ)
 
+								if spFunc.IsPosInRadar(worldX, worldY, worldZ, losAllyTeam) then
+									local nx1 = (x / losTexWidth) * 2 - 1
+									local nx2 = ((x + 1) / losTexWidth) * 2 - 1
+									local ny1 = (y / losTexHeight) * 2 - 1
+									local ny2 = ((y + 1) / losTexHeight) * 2 - 1
+
+									glFunc.Vertex(nx1, ny1)
+									glFunc.Vertex(nx2, ny1)
+									glFunc.Vertex(nx2, ny2)
+									glFunc.Vertex(nx1, ny2)
+								end
+							end
+						end
+					end)
+				end
+
+				-- Second pass: draw LOS areas (brightest)
+				glFunc.Color(1, 1, 1, 1)
 				glFunc.BeginEnd(glConst.QUADS, function()
 					for y = 0, losTexHeight - 1 do
 						for x = 0, losTexWidth - 1 do
@@ -6650,7 +6707,6 @@ local function UpdateLOSTexture(currentTime)
 							local worldY = spFunc.GetGroundHeight(worldX, worldZ)
 
 							if spFunc.IsPosInLos(worldX, worldY, worldZ, losAllyTeam) then
-								-- Convert to normalized coordinates (-1 to 1)
 								local nx1 = (x / losTexWidth) * 2 - 1
 								local nx2 = ((x + 1) / losTexWidth) * 2 - 1
 								local ny1 = (y / losTexHeight) * 2 - 1
