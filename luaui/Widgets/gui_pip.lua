@@ -304,6 +304,7 @@ local cache = {
 	explosions = {},
 	laserBeams = {},
 	iconShatters = {},
+	seismicPings = {},
 	-- Transport-related properties
 	isTransport = {},
 	transportCapacity = {},
@@ -2350,6 +2351,83 @@ local function DrawIconShatters()
 
 	gl.Blending(false)
 	gl.DepthTest(true)
+end
+
+-- Draw seismic pings as animated expanding rings
+local function DrawSeismicPings()
+	if #cache.seismicPings == 0 then return end
+
+	local i = 1
+	local wcx_cached = cameraState.wcx
+	local wcz_cached = cameraState.wcz
+
+	-- Cache world boundaries for culling
+	local worldLeft = render.world.l
+	local worldRight = render.world.r
+	local worldTop = render.world.t
+	local worldBottom = render.world.b
+
+	-- Get tracked player's allyteam if tracking
+	local trackedAllyTeam = nil
+	if interactionState.trackingPlayerID then
+		local _, _, _, _, trackedPlayerAllyTeam = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
+		trackedAllyTeam = trackedPlayerAllyTeam
+	end
+
+	-- Use PipBlip texture for circle drawing
+	glFunc.Texture('bitmaps/default/circles.tga')
+
+	while i <= #cache.seismicPings do
+		local ping = cache.seismicPings[i]
+		local age = gameTime - ping.startTime
+		local lifetime = 1.0 -- Seismic pings last about 2 seconds
+
+		if age > lifetime then
+			table.remove(cache.seismicPings, i)
+		else
+			-- Filter by allyteam if tracking a player
+			if trackedAllyTeam and ping.allyTeam and ping.allyTeam ~= trackedAllyTeam then
+				i = i + 1
+			-- Check if ping is within visible world bounds
+			elseif ping.x + ping.maxRadius < worldLeft or ping.x - ping.maxRadius > worldRight or
+				ping.z + ping.maxRadius < worldTop or ping.z - ping.maxRadius > worldBottom then
+				i = i + 1
+			else
+				local progress = age / lifetime
+
+				-- Convert world to screen coordinates (matrix already has zoom applied)
+				local screenX = ping.x - wcx_cached
+				local screenY = wcz_cached - ping.z
+
+				-- maxRadius is in world units, matrix zoom handles scaling
+				local maxRadius = ping.maxRadius
+
+				glFunc.PushMatrix()
+				glFunc.Translate(screenX, screenY, 0)
+
+				-- Draw multiple expanding rings like the engine does
+				-- Outer ring (largest, fades first)
+				local outerRadius = maxRadius * (0.2 + progress * 0.8)
+				local outerAlpha = math.max(0, (1 - progress) * 0.8)
+
+				-- Draw seismic ping
+				glFunc.Color(1, 0, 0, outerAlpha)
+				glFunc.TexRect(-outerRadius, -outerRadius, outerRadius, outerRadius)
+
+				-- Draw center dot
+				local centerRadius = maxRadius * 0.4 * (1 - progress * 0.5)
+				local centerAlpha = math.max(0, (1 - progress * 0.6))
+				glFunc.Color(1, 0.3, 0.3, centerAlpha)
+				glFunc.TexRect(-centerRadius, -centerRadius, centerRadius, centerRadius)
+
+				glFunc.PopMatrix()
+				i = i + 1
+			end
+		end
+	end
+
+	glFunc.Texture(false)
+	glFunc.Color(1, 1, 1, 1)
 end
 
 local function DrawExplosions()
@@ -5090,6 +5168,9 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 			DrawExplosions()
 		end
 
+		-- Draw seismic pings (always visible at any zoom level)
+		DrawSeismicPings()
+
 		gl.DepthTest(true)
 		gl.Blending(false)
 	end
@@ -7763,6 +7844,28 @@ function widget:GameStart()
 		if commanderID then
 			interactionState.areTracking = {commanderID}  -- Store as table/array
 		end
+	end
+end
+
+function widget:UnitSeismicPing(x, y, z, strength, allyTeam)
+	if uiState.inMinMode then return end
+	-- Calculate ping radius based on strength (strength is typically 1-10)
+	-- Use larger base radius for visibility
+	local maxRadius = 100 + math.min(strength, 20) * 15
+
+	-- Add to seismic pings cache
+	table.insert(cache.seismicPings, {
+		x = x,
+		z = z,
+		strength = strength,
+		maxRadius = maxRadius,
+		startTime = gameTime,
+		allyTeam = allyTeam,
+	})
+
+	-- Limit max seismic pings to prevent memory issues
+	if #cache.seismicPings > 50 then
+		table.remove(cache.seismicPings, 1)
 	end
 end
 
