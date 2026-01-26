@@ -8,7 +8,7 @@ if not Engine or not Spring then return end
 
 -- An enhancement to add ellipsoidal and cylindrical targeting volumes was bugged briefly for BeamLaser and LightningCannon.
 if Engine.FeatureSupport.targetBorderBug == nil then
-	local inRange = Spring.IsEngineMinVersion(2025, 6, 4) and not Spring.IsEngineMinVersion(2025, 6, 14)
+	local inRange = Spring.IsEngineMinVersion and Spring.IsEngineMinVersion(2025, 6, 4) and not Spring.IsEngineMinVersion(2025, 6, 14)
 	Engine.FeatureSupport.targetBorderBug = inRange
 end
 
