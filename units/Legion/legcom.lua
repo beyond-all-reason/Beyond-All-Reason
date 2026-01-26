@@ -269,7 +269,7 @@ return {
 				model = "legsmallrocket.s3o",
 				name = "Anti Air Missile Launcher",
 				noselfdamage = true,
-				range = 450,
+				range = 300,
 				reloadtime = 1.2,
 				smoketrail = true,
 				smokePeriod = 6,
