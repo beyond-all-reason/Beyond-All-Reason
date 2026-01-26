@@ -95,10 +95,7 @@ local function doSwapMex(unitID, unitTeam, unitData)
 
 	Spring.SetUnitHealth(conID, unitHealth)
 	Spring.SetUnitStealth(conID, true)
-	-- TODO: Is this still needed, given the `pairedUnitID`?
-	-- TODO: Set on-off methods for extration, energy upkeep
-	Spring.SetUnitResourcing(conID, "umm", unitExtraction)
-	Spring.SetUnitResourcing(mexID, "umm", -unitExtraction)
+
 	if isUnitNeutral then
 		Spring.SetUnitNeutral(mexID, true)
 		Spring.SetUnitNeutral(conID, true)
@@ -183,9 +180,9 @@ end
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	mexesToSwap[unitID] = nil
 
-	if mexTurretDefID[unitDefID] then
+	if mexActualDefID[unitDefID] or mexTurretDefID[unitDefID] then
 		local pairedUnitID = Spring.GetUnitRulesParam(unitID, "pairedUnitID")
-		if pairedUnitID then
+		if pairedUnitID and Spring.GetUnitIsDead(pairedUnitID) == false then
 			Spring.DestroyUnit(pairedUnitID, false, true)
 		end
     end
