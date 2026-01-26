@@ -152,6 +152,8 @@
 			"copy": "Copy main camera to PIP",
 			"track": "Track selected units",
 			"untrack": "Track selected units",
+			"view": "Limit to team view",
+			"unview": "View full map again",
 			"camera": "View selected player's camera",
 			"uncamera": "Cancel camera tracking",
 			"move": "Move window",

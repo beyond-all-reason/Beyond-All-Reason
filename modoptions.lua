@@ -261,7 +261,7 @@ local options = {
         section	= "options_main",
         def    	= 0,
         min    	= 0,
-        max    	= 30,
+        max    	= 120,
         step   	= 1,
     },
 

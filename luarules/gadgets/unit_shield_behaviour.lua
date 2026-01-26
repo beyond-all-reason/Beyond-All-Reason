@@ -44,16 +44,16 @@ local spSetUnitShieldRechargeDelay  = Spring.SetUnitShieldRechargeDelay
 local spDeleteProjectile            = Spring.DeleteProjectile
 local spGetProjectileDefID          = Spring.GetProjectileDefID
 local spGetUnitPosition             = Spring.GetUnitPosition
+local spGetUnitWeaponVectors        = Spring.GetUnitWeaponVectors
 local spGetUnitsInSphere            = Spring.GetUnitsInSphere
 local spGetProjectilesInRectangle   = Spring.GetProjectilesInRectangle
 local spGetProjectilesInSphere   	= Spring.GetProjectilesInSphere
 local spAreTeamsAllied              = Spring.AreTeamsAllied
 local spGetUnitIsActive             = Spring.GetUnitIsActive
+local spGetUnitIsDead               = Spring.GetUnitIsDead
 local spUseUnitResource             = Spring.UseUnitResource
 local spSetUnitRulesParam           = Spring.SetUnitRulesParam
 local spGetUnitArmored              = Spring.GetUnitArmored
-local mathMax                       = math.max
-local mathCeil                      = math.ceil
 
 local shieldUnitDefs                = {}
 local shieldUnitsData               = {}
@@ -67,6 +67,7 @@ local AOEWeaponDefIDs               = {}
 local projectileShieldHitCache      = {}
 local highestWeapDefDamages         = {}
 local armoredUnitDefs               = {}
+local destroyedUnitData             = {}
 
 local gameFrame 					= 0
 
@@ -105,7 +106,7 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 	if weaponDef.beamtime and weaponDef.beamtime < 1 then
 		local minimumMinIntensity = 0.5
 		local minIntensity = weaponDef.minIntensity or minimumMinIntensity
-		minIntensity = math.max(minIntensity, minimumMinIntensity)
+		minIntensity = mathMax(minIntensity, minimumMinIntensity)
 		-- This splits up the damage of hitscan weapons over the duration of beamtime, as each frame counts as a hit in ShieldPreDamaged() callin
 		-- Math.floor is used to sheer off the extra digits of the number of frames that the hits occur
 		beamtimeReductionMultiplier = 1 / math.floor(weaponDef.beamtime * Game.gameSpeed)
@@ -125,7 +126,7 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 	end
 
 	if weaponDef.minIntensity and hasDamageFalloff then
-		minIntensity = math.max(minimumMinIntensity, weaponDef.minIntensity)
+		minIntensity = mathMax(minimumMinIntensity, weaponDef.minIntensity)
 	end
 
 	highestWeapDefDamages[weaponDefID] = highestDamage * beamtimeReductionMultiplier * minIntensity *
@@ -213,6 +214,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			shieldDownTime = 0,
 			maxDownTime = 0
 		}
+		destroyedUnitData[unitID] = nil -- Handle (maybe) units being recreated and reusing their original ID
 		setCoveredUnits(unitID)
 	end
 
@@ -221,7 +223,16 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	shieldUnitsData[unitID] = nil
+	local unitData = shieldUnitsData[unitID]
+	if unitData then
+		shieldUnitsData[unitID] = nil
+		-- Keep shield data for one frame, since the shieldsrework delays updates until then.
+		destroyedUnitData[unitID] = unitData
+		unitData.x, unitData.y, unitData.z = spGetUnitWeaponVectors(unitID, unitData.shieldWeaponNumber)
+		-- ! Prevent a possible error here, it seems shields are cleaned up faster than unit weapons:
+		local success, state, power = pcall(spGetUnitShieldState, unitID, unitData.shieldWeaponNumber)
+		unitData.power = (success and state == 1 and power) or unitData.power or 0
+	end
 	unitDefIDCache[unitID] = nil
 end
 
@@ -413,6 +424,11 @@ function gadget:GameFrame(frame)
 		end
 		shieldCheckEndIndex = math.min(lastShieldCheckedIndex + shieldCheckChunkSize - 1, #shieldUnitIndex)
 	end
+
+	local dud = destroyedUnitData
+	for unitID in pairs(dud) do
+		dud[unitID] = nil
+	end
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID,
@@ -480,12 +496,10 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
 		removeCoveredUnits(shieldUnitID)
 	end
 end
+
 ---Shield controller API for other gadgets to generate and process their own shield damage events.
 local function addShieldDamage(shieldUnitID, damage, weaponDefID, projectileID, beamEmitterWeaponNum, beamEmitterUnitID)
 	local projectileDestroyed, damageMitigated = false, 0
-	if not beamEmitterUnitID and beamEmitterWeapons[weaponDefID] then
-		beamEmitterUnitID, beamEmitterWeaponNum = unpack(beamEmitterWeapons[weaponDefID])
-	end
 	local shieldData = shieldUnitsData[shieldUnitID]
 	if shieldData and shieldData.shieldEnabled then
 		local shieldDamage = shieldData.shieldDamage
@@ -504,9 +518,99 @@ local function addShieldDamage(shieldUnitID, damage, weaponDefID, projectileID, 
 	return projectileDestroyed, damageMitigated
 end
 
-function gadget:Initialize()
-	GG.AddShieldDamage = addShieldDamage
+local function getUnitShieldWeaponPosition(shieldUnitID, unitData)
+	if unitData.x then
+		return unitData.x, unitData.y, unitData.z, unitData.radius -- from dead unit
+	else
+		local x, y, z = spGetUnitWeaponVectors(shieldUnitID, unitData.shieldWeaponNumber or 1)
+		return x, y, z, unitData.radius
+	end
+end
 
+---@return number? x xyz, emitter point of the shield weapon
+---@return number? y
+---@return number? z
+---@return number? shieldRadius though the shield may be inactive
+local function getUnitShieldPosition(shieldUnitID)
+	local unitData = shieldUnitsData[shieldUnitID] or destroyedUnitData[shieldUnitID]
+	if unitData then
+		return getUnitShieldWeaponPosition(shieldUnitID, unitData)
+	end
+end
+
+local function isBallShellIntersection(dx, dy, dz, ballRadius, shellRadius)
+	local distanceSq = dx * dx + dy * dy + dz * dz
+	return distanceSq >= (shellRadius - ballRadius) * (shellRadius - ballRadius)
+		and distanceSq <= (shellRadius + ballRadius) * (shellRadius + ballRadius)
+end
+
+---@param x number
+---@param y number
+---@param z number
+---@param radius number? Additive with the radius of the target shield (default := `0`)
+---@param onlyAlive boolean? Navigate the rework's one-frame delay on shield effects by excluding recently-dead units (default := `false`)
+---@return integer[] shieldUnits
+---@return integer count
+local function getShieldUnitsInSphere(x, y, z, radius, onlyAlive)
+	radius = mathMax(radius or 0, 0.001)
+
+	local units, count = {}, 0
+	local position, intersect = getUnitShieldWeaponPosition, isBallShellIntersection
+
+	-- Find intersections of the solid search sphere and thin-shelled shield spheres.
+	for unitID, unitData in pairs(shieldUnitsData) do
+		if unitData.shieldEnabled then
+			local sx, sy, sz, shieldRadius = position(unitID, unitData)
+			if intersect(x - sx, y - sy, z - sz, radius, shieldRadius) then
+				count = count + 1
+				units[count] = unitID
+			end
+		end
+	end
+
+	if onlyAlive then
+		return units, count
+	end
+
+	for unitID, unitData in pairs(destroyedUnitData) do
+		if unitData.shieldEnabled then
+			local sx, sy, sz, shieldRadius = position(unitID, unitData)
+			if intersect(x - sx, y - sy, z - sz, radius, shieldRadius) then
+				count = count + 1
+				units[count] = unitID
+			end
+		end
+	end
+
+	return units, count
+end
+
+---@return integer state 0 := DISABLED, 1 := ENABLED
+---@return number shieldHealthRemaining including the (hidden) damage done this frame so far
+local function getUnitShieldState(shieldUnitID)
+	local unitData = shieldUnitsData[shieldUnitID] or destroyedUnitData[shieldUnitID]
+	if unitData and unitData.shieldEnabled then
+		local power
+		if spGetUnitIsDead(shieldUnitID) == false then
+			local state;
+			state, power = spGetUnitShieldState(shieldUnitID, unitData.shieldWeaponNumber)
+		else
+			power = unitData.power -- todo: not sure that this works at all
+		end
+		-- Damage is applied late in the rework, effectively giving infinite HP for one frame.
+		-- Still, we report that the shield is enabled (1), and its "actual" power remaining.
+		return 1, power and mathMax(power - unitData.shieldDamage, 0) or -1
+	else
+		return 0, 0
+	end
+end
+
+GG.AddShieldDamage = addShieldDamage
+GG.GetUnitShieldPosition = getUnitShieldPosition
+GG.GetShieldUnitsInSphere = getShieldUnitsInSphere
+GG.GetUnitShieldState = getUnitShieldState
+
+function gadget:Initialize()
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		local unitDefID = Spring.GetUnitDefID(unitID)
 		local unitTeam = Spring.GetUnitTeam(unitID)
@@ -516,4 +620,6 @@ end
 
 function gadget:ShutDown()
 	GG.AddShieldDamage = nil
+	GG.GetUnitShieldState = nil
+	GG.GetUnitShieldPosition = nil
 end
