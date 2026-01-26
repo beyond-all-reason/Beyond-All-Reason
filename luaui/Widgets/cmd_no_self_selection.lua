@@ -89,8 +89,9 @@ local function restoreSelectionVolume(unitID)
 
 	if not data[1] then
 		cacheSelectionVolume(unitID)
+		data = restoreVolumeData
 		if not data[1] then
-			return
+			return -- godmode/LOS shenanigans
 		end
 	end
 
