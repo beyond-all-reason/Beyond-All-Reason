@@ -27,9 +27,9 @@ It is recommended to attach test artifacts, such as screenshots or recordings, t
 
 **AI assistance is permitted in issues and discussions, with a strict human-in-the-loop requirement:**
 
-- AI-generated content must be reviewed and edited by a human before submission
-- verbosity, noise, and speculative content must be removed
-- contributors remain responsible for research, accuracy, and clarity
+- AI-generated content must be reviewed and edited by a human before submission.
+- Verbosity, noise, and speculative content must be removed.
+- Contributors remain responsible for research, accuracy, and clarity.
 
 AI may assist with explanations, summaries, or drafting, but must not replace understanding or judgment.
 
