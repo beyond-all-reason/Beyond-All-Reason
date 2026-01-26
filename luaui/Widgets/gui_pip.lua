@@ -5727,7 +5727,7 @@ local function RenderPipContents()
 
 	if uiState.drawingGround then
 		-- Draw ground minimap
-		glFunc.Color(0.92, 0.92, 0.92, 1)
+		glFunc.Color(1, 1, 1, 1)
 		glFunc.Texture('$minimap')
 		glFunc.BeginEnd(glConst.QUADS, GroundTextureVertices)
 		glFunc.Texture(false)
@@ -6402,85 +6402,6 @@ local function CalculateDynamicUpdateRate()
 	return dynamicUpdateRate
 end
 
--- Helper function to handle animation drawing
-local function DrawAnimation(mx, my)
-	DrawPanel(render.dim.l, render.dim.r, render.dim.b, render.dim.t)
-
-	if uiState.drawingGround then
-		glFunc.Color(0.9, 0.9, 0.9, 1)
-		glFunc.Texture('$minimap')
-		glFunc.BeginEnd(glConst.QUADS, GroundTextureVertices)
-		glFunc.Color(1, 1, 1, 1)
-		glFunc.Texture(false)
-
-		-- Draw water and LOS overlays
-		DrawWaterAndLOSOverlays()
-	end
-
-	DrawUnitsAndFeatures()
-
-	if uiState.inMinMode then
-		local buttonSize = math.floor(render.usedButtonSize*config.maximizeSizemult)
-		DrawPanel(uiState.minModeL, uiState.minModeL + buttonSize, uiState.minModeB, uiState.minModeB + buttonSize)
-		glFunc.Color(config.panelBorderColorDark)
-		glFunc.Texture(false)
-
-		local hover = mx >= uiState.minModeL - render.elementPadding and mx <= uiState.minModeL + buttonSize + render.elementPadding and
-		               my >= uiState.minModeB - render.elementPadding and my <= uiState.minModeB + buttonSize + render.elementPadding
-		if hover then
-			glFunc.Color(1,1,1,0.12)
-			glFunc.Texture(false)
-			render.RectRound(uiState.minModeL, uiState.minModeB, uiState.minModeL + buttonSize, uiState.minModeB + buttonSize, render.elementCorner*0.4, 1, 1, 1, 1)
-		end
-		glFunc.Color(hover and {1, 1, 1, 1} or config.panelBorderColorLight)
-		glFunc.Texture('LuaUI/Images/pip/PipExpand.png')
-
-		-- Rotate icon based on expansion direction
-		local rotation = GetMaximizeIconRotation()
-		local centerX = uiState.minModeL + buttonSize * 0.5
-		local centerY = uiState.minModeB + buttonSize * 0.5
-		glFunc.PushMatrix()
-		glFunc.Translate(centerX, centerY, 0)
-		glFunc.Rotate(rotation, 0, 0, 1)
-		glFunc.Translate(-centerX, -centerY, 0)
-
-		glFunc.TexRect(uiState.minModeL, uiState.minModeB, uiState.minModeL + buttonSize, uiState.minModeB + buttonSize)
-		glFunc.PopMatrix()
-		glFunc.Texture(false)
-	else
-		local currentWidth = render.dim.r - render.dim.l
-		local currentHeight = render.dim.t - render.dim.b
-		if currentWidth > render.usedButtonSize and currentHeight > render.usedButtonSize then
-			DrawPanel(render.dim.r - render.usedButtonSize, render.dim.r, render.dim.t - render.usedButtonSize, render.dim.t)
-			glFunc.Color(config.panelBorderColorDark)
-			glFunc.Texture(false)
-
-			local hover = mx >= render.dim.r - render.usedButtonSize and mx <= render.dim.r and
-			               my >= render.dim.t - render.usedButtonSize and my <= render.dim.t
-			if hover then
-				glFunc.Color(1,1,1,0.12)
-				glFunc.Texture(false)
-				render.RectRound(render.dim.r - render.usedButtonSize, render.dim.t - render.usedButtonSize, render.dim.r, render.dim.t, render.elementCorner*0.4, 1, 1, 1, 1)
-			end
-			glFunc.Color(hover and {1, 1, 1, 1} or config.panelBorderColorLight)
-			glFunc.Texture('LuaUI/Images/pip/PipShrink.png')
-
-			-- Rotate icon opposite to maximize direction (points toward shrink position)
-			local rotation = GetMaximizeIconRotation()
-			local centerX = render.dim.r - render.usedButtonSize * 0.5
-			local centerY = render.dim.t - render.usedButtonSize * 0.5
-			glFunc.PushMatrix()
-			glFunc.Translate(centerX, centerY, 0)
-			glFunc.Rotate(rotation, 0, 0, 1)
-			glFunc.Translate(-centerX, -centerY, 0)
-
-			glFunc.TexRect(render.dim.r - render.usedButtonSize, render.dim.t - render.usedButtonSize, render.dim.r, render.dim.t)
-			glFunc.PopMatrix()
-			glFunc.Texture(false)
-		end
-	end
-end
-
 -- Helper function to update R2T content texture
 local function UpdateR2TContent(currentTime, pipUpdateInterval, pipWidth, pipHeight)
 	if not gl.R2tHelper then
@@ -6987,13 +6908,12 @@ function widget:DrawScreen()
 
 	local mx, my, mbl = spFunc.GetMouseState()
 
-	-- During animation, draw transitioning panel
+	-- During animation, disable mouse interaction
 	if uiState.isAnimating then
-		DrawAnimation(mx, my)
-		return
+		mx, my = -1, -1  -- Force mouse out of bounds during animation
 	end
 
-	if uiState.inMinMode then
+	if uiState.inMinMode and not uiState.isAnimating then
 		-- Use display list for minimized mode (static graphics with relative coordinates)
 		local buttonSize = math.floor(render.usedButtonSize*config.maximizeSizemult)
 
