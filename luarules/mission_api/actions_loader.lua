@@ -1,6 +1,4 @@
-local schema = VFS.Include('luarules/mission_api/actions_schema.lua')
-local types = schema.Types
-local parameters = schema.Parameters
+local validateAction = VFS.Include('luarules/mission_api/validation.lua').ValidateAction
 
 --[[
 	actionID = {
@@ -10,12 +8,6 @@ local parameters = schema.Parameters
 		}
 	}
 ]]
-
-local actionsTypesNamingUnits = {
-	[types.SpawnUnits] = true, [types.NameUnits] = true, }
-local actionsTypesReferencingUnitNames = {
-	[types.IssueOrders] = true, [types.UnnameUnits] = true, [types.TransferUnits] = true,
-	[types.DespawnUnits] = true, [types.TransferUnits] = true, }
 
 local function getAllActionIDsReferencedByTriggers()
 	local allActionIDsReferencedByTriggers = {}
@@ -37,9 +29,7 @@ local function validateActions(actions)
 			Spring.Log('actions_loader.lua', LOG.WARNING, "[Mission API] Action not referenced by any trigger: " .. actionID)
 		end
 
-		validateParameters(parameters, action.type, action.parameters, 'Action', actionID)
-
-		recordUnitNameCreationsAndReferences(actionsTypesNamingUnits, actionsTypesReferencingUnitNames, action, 'Action ' .. actionID)
+		validateAction(actionID, action)
 	end
 end
 

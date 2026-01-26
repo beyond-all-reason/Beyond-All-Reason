@@ -1,4 +1,4 @@
-VFS.Include('luarules/mission_api/validation.lua')
+local Types = VFS.Include('luarules/mission_api/parameter_types.lua').Types
 
 local triggerTypes = {
 	-- Time
@@ -49,12 +49,12 @@ local parameters = {
 		[1] = {
 			name = 'gameFrame',
 			required = true,
-			type = Types.number,
+			type = Types.Number,
 		},
 		[2] = {
 			name = 'interval',
 			required = false,
-			type = Types.number,
+			type = Types.Number,
 		},
 	},
 
@@ -63,38 +63,38 @@ local parameters = {
 		[1] = {
 			name = 'unitDefID',
 			required = true,
-			type = Types.number,
+			type = Types.Number,
 		},
 		[2] = {
 			name = 'teamID',
 			required = false,
-			type = Types.number,
+			type = Types.Number,
 		},
 		[3] = {
 			name = 'quantity',
 			required = false,
-			type = Types.number,
+			type = Types.Number,
 		},
 	},
 	[triggerTypes.UnitNotExists] = {
 		[1] = {
 			name = 'unit',
 			required = true,
-			type = Types.string,
+			type = Types.String,
 		},
 	},
 	[triggerTypes.UnitKilled] = {
 		[1] = {
 			name = 'unit',
 			required = true,
-			type = Types.string
+			type = Types.String
 		},
 	},
 	[triggerTypes.UnitCaptured] = {
 		[1] = {
 			name = 'unit',
 			required = true,
-			type = Types.string
+			type = Types.String
 		},
 	},
 	[triggerTypes.UnitResurrected] = {  },
@@ -102,22 +102,22 @@ local parameters = {
 		[1] = {
 			name = 'unit',
 			required = true,
-			type = Types.string
+			type = Types.String
 		},
 		[2] = {
 			name = 'position',
 			required = true,
-			type = Types.table,
+			type = Types.Table,
 		},
 		[3] = {
 			name = 'width',
 			required = true,
-			type = Types.number,
+			type = Types.Number,
 		},
 		[4] = {
 			name = 'height',
 			required = false,
-			type = Types.number,
+			type = Types.Number,
 		},
 	},
 	[triggerTypes.UnitLeftLocation] = {  },
@@ -128,14 +128,14 @@ local parameters = {
 		[1] = {
 			name = 'unit',
 			required = true,
-			type = Types.string,
+			type = Types.String,
 		},
 	 },
 	[triggerTypes.ConstructionFinished] = {
 		[1] = {
 			name = 'unit',
 			required = true,
-			type = Types.string,
+			type = Types.String,
 		},
 	 },
 
@@ -159,7 +159,7 @@ local parameters = {
 		[1] = {
 			name = 'teamID',
 			required = true,
-			type = Types.number,
+			type = Types.Number,
 		},
 	 },
 

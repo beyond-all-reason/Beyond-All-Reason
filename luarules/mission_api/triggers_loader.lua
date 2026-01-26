@@ -1,5 +1,4 @@
-local schema = VFS.Include('luarules/mission_api/triggers_schema.lua')
-local parameters = schema.Parameters
+local validateTrigger = VFS.Include('luarules/mission_api/validation.lua').ValidateTrigger
 
 -- Example trigger
 --[[
@@ -21,9 +20,6 @@ local parameters = schema.Parameters
 	}
 ]]
 
-local triggersTypesNamingUnits = { }
-local triggersTypesReferencingUnitNames = { }
-
 local function validateTriggers(triggers, rawActions)
 	for triggerID, trigger in pairs(triggers) do
 		if table.isNilOrEmpty(trigger.actions) then
@@ -38,9 +34,7 @@ local function validateTriggers(triggers, rawActions)
 			end
 		end
 
-		validateParameters(parameters, trigger.type, trigger.parameters, 'Trigger', triggerID)
-
-		recordUnitNameCreationsAndReferences(triggersTypesNamingUnits, triggersTypesReferencingUnitNames, trigger, 'Trigger ' .. triggerID)
+		validateTrigger(triggerID, trigger)
 	end
 end
 

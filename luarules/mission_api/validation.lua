@@ -6,27 +6,6 @@ local function logError(message)
 	Spring.Log('validation.lua', LOG.ERROR, "[Mission API] " .. message)
 end
 
-function validateParameters(schemaParameters, actionOrTriggerType, actionOrTriggerParameters, actionOrTrigger, actionOrTriggerID)
-	if not actionOrTriggerType then
-		logError(actionOrTrigger .. " missing type. " .. actionOrTrigger .. ": " .. actionOrTriggerID)
-	elseif not schemaParameters[actionOrTriggerType] then
-		logError(actionOrTrigger .. " has invalid type. " .. actionOrTrigger .. ": " .. actionOrTriggerID)
-	else
-		if actionOrTrigger == 'Action' and actionOrTriggerType == GG['MissionAPI'].ActionTypes.NameUnits and not actionOrTriggerParameters.teamID and not actionOrTriggerParameters.unitDefName and not actionOrTriggerParameters.area then
-			logError("NameUnits action '" .. actionOrTriggerID .. "' is missing required parameter. At least one of teamID, unitDefName, and area is required.")
-		end
-		for _, parameter in pairs(schemaParameters[actionOrTriggerType]) do
-			local value = actionOrTriggerParameters[parameter.name]
-
-			if value == nil and parameter.required then
-				logError(actionOrTrigger .. " missing required parameter. " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameter.name)
-			else
-				parameter.type(value, 'Action', actionOrTriggerID, parameter.name)
-			end
-		end
-	end
-end
-
 local function validateLuaType(value, expectedType, actionOrTrigger, actionOrTriggerID, parameterName)
 	local actualType = type(value)
 	if value ~= nil and actualType ~= expectedType then
@@ -48,37 +27,29 @@ local function validateField(value, fieldName, expectedType, actionOrTrigger, ac
 	return true
 end
 
-function recordUnitNameCreationsAndReferences(typesNamingUnits, typesReferencingUnitNames, actionOrTrigger, label)
-	local unitName = (actionOrTrigger.parameters or {}).name
-	if unitName then
-		if typesNamingUnits[actionOrTrigger.type] then
-			GG['MissionAPI'].createdUnitNames[unitName] = true
-		elseif typesReferencingUnitNames[actionOrTrigger.type] then
-			GG['MissionAPI'].referencedUnitNames[unitName] = label
-		end
+local Types = VFS.Include('luarules/mission_api/parameter_types.lua').Types
+local function validateSimpleTypeCurried(expectedType)
+	return function(table, actionOrTrigger, actionOrTriggerID, parameterName)
+		validateLuaType(table, expectedType, actionOrTrigger, actionOrTriggerID, parameterName)
 	end
 end
+local luaTypeValidators = {
+	-- These need to be here to be available for the validators below
+	[Types.Table] = validateSimpleTypeCurried('table'),
+	[Types.String] = validateSimpleTypeCurried('string'),
+	[Types.Number] = validateSimpleTypeCurried('number'),
+	[Types.Boolean] = validateSimpleTypeCurried('boolean'),
+	[Types.Function] = validateSimpleTypeCurried('function'),
+}
 
-function validateUnitNameReferences()
-	for unitName, label in pairs(GG['MissionAPI'].referencedUnitNames) do
-		if not GG['MissionAPI'].createdUnitNames[unitName] then
-			logError("Unit name '" .. unitName .. "' not created in any trigger or action. Referenced in: " .. label)
-		end
-	end
-end
-
-Types = {
+local customValidators = {
 
 	----------------------------------------------------------------
 	--- Table Validators:
 	----------------------------------------------------------------
 
-	table = function(table, actionOrTrigger, actionOrTriggerID, parameterName)
-		validateLuaType(table, 'table', actionOrTrigger, actionOrTriggerID, parameterName)
-	end,
-
-	position = function(position, actionOrTrigger, actionOrTriggerID, parameterName)
-		if not Types.table(position, actionOrTrigger, actionOrTriggerID, parameterName) then
+	[Types.Position] = function(position, actionOrTrigger, actionOrTriggerID, parameterName)
+		if not luaTypeValidators[Types.Table](position, actionOrTrigger, actionOrTriggerID, parameterName) then
 			return
 		end
 
@@ -90,8 +61,8 @@ Types = {
 		validateField(position.y, 'y', 'number', actionOrTriggerID, parameterName)
 	end,
 
-	allyTeamIDs = function(allyTeamIDs, actionOrTrigger, actionOrTriggerID, parameterName)
-		if not Types.table(allyTeamIDs, actionOrTrigger, actionOrTriggerID, parameterName) then
+	[Types.AllyTeamIDs] = function(allyTeamIDs, actionOrTrigger, actionOrTriggerID, parameterName)
+		if not luaTypeValidators[Types.Table](allyTeamIDs, actionOrTrigger, actionOrTriggerID, parameterName) then
 			return
 		end
 
@@ -108,7 +79,7 @@ Types = {
 		end
 	end,
 
-	orders = function(orders, actionOrTrigger, actionOrTriggerID, parameterName)
+	[Types.Orders] = function(orders, actionOrTrigger, actionOrTriggerID, parameterName)
 
 		local function validateOrderCommandAndParams(commandID, params, orderNumber)
 			local function validateNumberArrayCurried(sizes, message)
@@ -145,7 +116,7 @@ Types = {
 
 		local function validateOrderOptions(options, orderNumber)
 			local validOptions = { right = true, alt = true, ctrl = true, shift = true, meta = true }
-			if options and Types.table(options, actionOrTrigger, actionOrTriggerID, parameterName .. '[3]') then
+			if options and luaTypeValidators[Types.Table](options, actionOrTrigger, actionOrTriggerID, parameterName .. '[3]') then
 				for _, optionName in pairs(options) do
 					if not validOptions[optionName] then
 						logError("Invalid order option: " .. optionName .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameterName .. ", Order #" .. orderNumber)
@@ -154,7 +125,7 @@ Types = {
 			end
 		end
 
-		if not Types.table(orders, actionOrTrigger, actionOrTriggerID, parameterName) then
+		if not luaTypeValidators[Types.Table](orders, actionOrTrigger, actionOrTriggerID, parameterName) then
 			return
 		end
 
@@ -171,8 +142,8 @@ Types = {
 		end
 	end,
 
-	area = function(area, actionOrTrigger, actionOrTriggerID, parameterName)
-		if not Types.table(area, actionOrTrigger, actionOrTriggerID, parameterName) then
+	[Types.Area] = function(area, actionOrTrigger, actionOrTriggerID, parameterName)
+		if not luaTypeValidators[Types.Table](area, actionOrTrigger, actionOrTriggerID, parameterName) then
 			return
 		end
 
@@ -191,12 +162,8 @@ Types = {
 	--- String Validators:
 	----------------------------------------------------------------
 
-	string = function(string, actionOrTrigger, actionOrTriggerID, parameterName)
-		validateLuaType(string, 'string', actionOrTrigger, actionOrTriggerID, parameterName)
-	end,
-
-	triggerID = function(triggerID, actionOrTrigger, actionOrTriggerID, parameterName)
-		if not Types.string(triggerID, actionOrTrigger, actionOrTriggerID, parameterName) then
+	[Types.TriggerID] = function(triggerID, actionOrTrigger, actionOrTriggerID, parameterName)
+		if not luaTypeValidators[Types.String](triggerID, actionOrTrigger, actionOrTriggerID, parameterName) then
 			return
 		end
 
@@ -205,8 +172,8 @@ Types = {
 		end
 	end,
 
-	unitDefName = function(unitDefName, actionOrTrigger, actionOrTriggerID, parameterName)
-		if not Types.string(unitDefName, actionOrTrigger, actionOrTriggerID, parameterName) then
+	[Types.UnitDefName] = function(unitDefName, actionOrTrigger, actionOrTriggerID, parameterName)
+		if not luaTypeValidators[Types.String](unitDefName, actionOrTrigger, actionOrTriggerID, parameterName) then
 			return
 		end
 
@@ -215,7 +182,7 @@ Types = {
 		end
 	end,
 
-	facing = function(facing, actionOrTrigger, actionOrTriggerID, _)
+	[Types.Facing] = function(facing, actionOrTrigger, actionOrTriggerID, _)
 		local validFacings = { n = true, s = true, e = true, w = true }
 		if not validFacings[facing] then
 			logError("Invalid facing: " .. facing .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID)
@@ -226,12 +193,8 @@ Types = {
 	--- Number Validators:
 	----------------------------------------------------------------
 
-	number = function(number, actionOrTrigger, actionOrTriggerID, parameterName)
-		validateLuaType(number, 'number', actionOrTrigger, actionOrTriggerID, parameterName)
-	end,
-
-	teamID = function(teamID, actionOrTrigger, actionOrTriggerID, parameterName)
-		if not Types.number(teamID, actionOrTrigger, actionOrTriggerID, parameterName) then
+	[Types.TeamID] = function(teamID, actionOrTrigger, actionOrTriggerID, parameterName)
+		if not luaTypeValidators[Types.Number](teamID, actionOrTrigger, actionOrTriggerID, parameterName) then
 			return
 		end
 
@@ -239,20 +202,84 @@ Types = {
 			logError("Invalid teamID: " .. teamID .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameterName)
 		end
 	end,
+}
 
-	----------------------------------------------------------------
-	--- Boolean Validators:
-	----------------------------------------------------------------
+local validators = table.merge(customValidators, luaTypeValidators)
 
-	boolean = function(boolean, actionOrTrigger, actionOrTriggerID, parameterName)
-		validateLuaType(boolean, 'boolean', actionOrTrigger, actionOrTriggerID, parameterName)
-	end,
+local function validate(schemaParameters, actionOrTriggerType, actionOrTriggerParameters, actionOrTrigger, actionOrTriggerID)
+	if not actionOrTriggerType then
+		logError(actionOrTrigger .. " missing type. " .. actionOrTrigger .. ": " .. actionOrTriggerID)
+	elseif not schemaParameters[actionOrTriggerType] then
+		logError(actionOrTrigger .. " has invalid type. " .. actionOrTrigger .. ": " .. actionOrTriggerID)
+	else
+		if actionOrTrigger == 'Action' and actionOrTriggerType == GG['MissionAPI'].ActionTypes.NameUnits and not actionOrTriggerParameters.teamID and not actionOrTriggerParameters.unitDefName and not actionOrTriggerParameters.area then
+			logError("NameUnits action '" .. actionOrTriggerID .. "' is missing required parameter. At least one of teamID, unitDefName, and area is required.")
+		end
+		for _, parameter in pairs(schemaParameters[actionOrTriggerType]) do
+			local value = actionOrTriggerParameters[parameter.name]
 
-	----------------------------------------------------------------
-	--- Function Validators:
-	----------------------------------------------------------------
+			if value == nil and parameter.required then
+				logError(actionOrTrigger .. " missing required parameter. " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameter.name)
+			else
+				validators[parameter.type](value, actionOrTrigger, actionOrTriggerID, parameter.name)
+			end
+		end
+	end
+end
 
-	customFunction = function(func, actionOrTrigger, actionOrTriggerID, parameterName)
-		validateLuaType(func, 'function', actionOrTrigger, actionOrTriggerID, parameterName)
-	end,
+local triggersSchemaParameter = VFS.Include('luarules/mission_api/triggers_schema.lua').Parameters
+local function validateTrigger(triggerID, trigger)
+	validate(triggersSchemaParameter, trigger.type, trigger.parameters, 'Trigger', triggerID)
+end
+
+local actionsSchemaParameters = VFS.Include('luarules/mission_api/actions_schema.lua').Parameters
+local function validateAction(actionID, action)
+	validate(actionsSchemaParameters, action.type, action.parameters, 'Action', actionID)
+end
+
+local function validateUnitNameReferences()
+	-- Types need to be fetched here to avoid circular dependency
+	local triggerTypes = GG['MissionAPI'].TriggerTypes
+	local actionTypes = GG['MissionAPI'].ActionTypes
+
+	local triggersTypesNamingUnits = { }
+	local triggersTypesReferencingUnitNames = { }
+	local actionsTypesNamingUnits = {
+		[actionTypes.SpawnUnits] = true, [actionTypes.NameUnits] = true,
+	}
+	local actionsTypesReferencingUnitNames = {
+		[actionTypes.IssueOrders] = true, [actionTypes.UnnameUnits] = true, [actionTypes.TransferUnits] = true,
+		[actionTypes.DespawnUnits] = true, [actionTypes.TransferUnits] = true,
+	}
+
+	local createdUnitNames = {}
+	local referencedUnitNames = {}
+	local function recordUnitNameCreationsAndReferences(typesNamingUnits, typesReferencingUnitNames, actionsOrTriggers, label)
+		for actionOrTriggerID, actionOrTrigger in pairs(actionsOrTriggers) do
+			local unitName = (actionOrTrigger.parameters or {}).name
+			if unitName then
+				if typesNamingUnits[actionOrTrigger.type] then
+					createdUnitNames[unitName] = true
+				elseif typesReferencingUnitNames[actionOrTrigger.type] then
+					referencedUnitNames[unitName] = referencedUnitNames[unitName] or {}
+					referencedUnitNames[unitName][#referencedUnitNames[unitName] + 1] = label .. actionOrTriggerID
+				end
+			end
+		end
+	end
+
+	recordUnitNameCreationsAndReferences(triggersTypesNamingUnits, triggersTypesReferencingUnitNames, GG['MissionAPI'].Triggers, "trigger ")
+	recordUnitNameCreationsAndReferences(actionsTypesNamingUnits, actionsTypesReferencingUnitNames, GG['MissionAPI'].Actions, "action ")
+
+	for unitName, labels in pairs(referencedUnitNames) do
+		if not createdUnitNames[unitName] then
+			logError("Unit name '" .. unitName .. "' not created in any trigger or action. Referenced in: " .. table.concat(labels, ", "))
+		end
+	end
+end
+
+return {
+	ValidateTrigger = validateTrigger,
+	ValidateAction = validateAction,
+	ValidateUnitNameReferences = validateUnitNameReferences
 }
