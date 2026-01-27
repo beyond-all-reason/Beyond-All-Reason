@@ -66,7 +66,7 @@ local function isComplete(unitID)
 end
 
 local function isAlliedUnit(teamID, unitID)
-	local unitTeam = spGetUnitTeam(unitID)
+	local unitTeam = unitID and spGetUnitTeam(unitID)
 	return unitTeam and teamID ~= unitTeam and spAreTeamsAllied(teamID, unitTeam)
 end
 
