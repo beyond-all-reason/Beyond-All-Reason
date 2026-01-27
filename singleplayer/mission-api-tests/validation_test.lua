@@ -63,6 +63,13 @@ local actions = {
 		},
 	},
 
+	actionWithNoAllyTeamIDs = {
+		type = actionTypes.Defeat,
+		parameters = {
+			allyTeamIDs = { },
+		},
+	},
+
 	actionWithInvalidTeamIDAndUnknownUnitName = {
 		type = actionTypes.TransferUnits,
 		parameters = {
@@ -89,6 +96,21 @@ local actions = {
 				{ CMD.MOVE, { 1850, 0, 1800 }, 'notATable' },         -- invalid options type
 				{ CMD.CLOAK, 'notANumber' },                          -- invalid parameters type
 			},
+		},
+	},
+
+	actionWithNoOrders = {
+		type = actionTypes.IssueOrders,
+		parameters = {
+			name = 'validName',
+			orders = {},
+		},
+	},
+
+	actionMissing1of3requiredParams = {
+		type = actionTypes.NameUnits,
+		parameters = {
+			name = 'validName',
 		},
 	},
 

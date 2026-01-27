@@ -138,6 +138,7 @@ local parameters = {
 			type = Types.Boolean,
 		},
 		[3] = {
+			-- when true, selfDestruct param has no effect
 			name = 'reclaimed',
 			required = false,
 			type = Types.Boolean,

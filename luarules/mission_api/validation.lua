@@ -17,7 +17,7 @@ end
 
 local function validateField(value, fieldName, expectedType, actionOrTrigger, actionOrTriggerID, parameterName)
 	if not value then
-		logError("Action missing required parameter. " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameterName .. "." .. fieldName)
+		logError(actionOrTrigger .. " missing required parameter. " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameterName .. "." .. fieldName)
 		return false
 	end
 	if type(value) ~= expectedType then
@@ -28,13 +28,14 @@ local function validateField(value, fieldName, expectedType, actionOrTrigger, ac
 end
 
 local Types = VFS.Include('luarules/mission_api/parameter_types.lua').Types
+
 local function validateSimpleTypeCurried(expectedType)
-	return function(table, actionOrTrigger, actionOrTriggerID, parameterName)
-		validateLuaType(table, expectedType, actionOrTrigger, actionOrTriggerID, parameterName)
+	return function(value, actionOrTrigger, actionOrTriggerID, parameterName)
+		return validateLuaType(value, expectedType, actionOrTrigger, actionOrTriggerID, parameterName)
 	end
 end
 local luaTypeValidators = {
-	-- These need to be here to be available for the validators below
+	-- These need to be here to be available in customValidators below
 	[Types.Table] = validateSimpleTypeCurried('table'),
 	[Types.String] = validateSimpleTypeCurried('string'),
 	[Types.Number] = validateSimpleTypeCurried('number'),
@@ -53,8 +54,10 @@ local customValidators = {
 			return
 		end
 
-		for _, parm in pairs({"x", "z"}) do
-			validateField(position[parm], parm, 'number', actionOrTrigger, actionOrTriggerID, parameterName)
+		for _, field in pairs({ "x", "z"}) do
+			if not validateField(position[field], field, 'number', actionOrTrigger, actionOrTriggerID, parameterName) then
+				return
+			end
 		end
 
 		position.y = position.y or Spring.GetGroundHeight(position.x, position.z)
@@ -87,7 +90,7 @@ local customValidators = {
 					if not validateLuaType(params, 'table', actionOrTrigger, actionOrTriggerID, parameterName .. '[' .. orderNumber .. ']' .. '[2]') then
 						return
 					end
-					if not table.contains(sizes, #params) then
+					if not table.contains(sizes, #(params or {})) then
 						logError("Parameter must be an array of " .. message .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameterName .. '[' .. orderNumber .. ']' .. '[2]')
 						return
 					end
@@ -146,6 +149,9 @@ local customValidators = {
 		if not luaTypeValidators[Types.Table](area, actionOrTrigger, actionOrTriggerID, parameterName) then
 			return
 		end
+		if not area then
+			return
+		end
 
 		local isRectangle = area.x1 and area.z1 and area.x2 and area.z2
 		local isCircle = area.x and area.z and area.radius
@@ -184,7 +190,7 @@ local customValidators = {
 
 	[Types.Facing] = function(facing, actionOrTrigger, actionOrTriggerID, _)
 		local validFacings = { n = true, s = true, e = true, w = true }
-		if not validFacings[facing] then
+		if facing and not validFacings[facing] then
 			logError("Invalid facing: " .. facing .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID)
 		end
 	end,
@@ -213,6 +219,7 @@ local function validate(schemaParameters, actionOrTriggerType, actionOrTriggerPa
 		logError(actionOrTrigger .. " has invalid type. " .. actionOrTrigger .. ": " .. actionOrTriggerID)
 	else
 		actionOrTriggerParameters = actionOrTriggerParameters or {}
+		-- For NameUnits action, at least one of teamID, unitDefName, or area is required:
 		if actionOrTrigger == 'Action' and actionOrTriggerType == GG['MissionAPI'].ActionTypes.NameUnits and not actionOrTriggerParameters.teamID and not actionOrTriggerParameters.unitDefName and not actionOrTriggerParameters.area then
 			logError("NameUnits action '" .. actionOrTriggerID .. "' is missing required parameter. At least one of teamID, unitDefName, and area is required.")
 		end
