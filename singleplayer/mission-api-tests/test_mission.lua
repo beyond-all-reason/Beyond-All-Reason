@@ -61,7 +61,7 @@ local triggers = {
 		parameters = {
 			gameFrame = 1100,
 		},
-		actions = { 'transferCons1', 'messageTransferCons2' },
+		actions = { 'transferCons2', 'messageTransferCons2' },
 	},
 
 	despawnEnergyGrid1 = {
@@ -128,8 +128,8 @@ local actions = {
 		parameters = {
 			name = 'con-bots',
 			orders = {
-				{ CMD.MOVE, { 1850, 0, 1500 }, CMD.OPT_SHIFT },
-				{ CMD.MOVE, { 1850, 0, 1800 }, CMD.OPT_SHIFT },
+				{ CMD.MOVE, { 1850, 0, 1500 }, { 'shift' } },
+				{ CMD.MOVE, { 1850, 0, 1800 }, { 'shift' } },
 			},
 		},
 	},
@@ -214,7 +214,7 @@ local actions = {
 		},
 	},
 
-	transferCons1 = {
+	transferCons2 = {
 		type = actionTypes.TransferUnits,
 		parameters = {
 			name = 'con-bots',
@@ -247,7 +247,7 @@ local actions = {
 	gameEnd = {
 		type = actionTypes.Defeat,
 		parameters = {
-			allyTeamIDs = {0},
+			allyTeamIDs = { 0 },
 		},
 	},
 }
