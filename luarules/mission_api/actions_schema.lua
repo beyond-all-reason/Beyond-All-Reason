@@ -246,7 +246,7 @@ local parameters = {
 			type = 'string',
 		},
 		[3] = {
-			name = 'teamID',
+			name = 'playerID',
 			required = false,
 			type = 'number',
 		}
@@ -258,7 +258,7 @@ local parameters = {
 			type = 'table'
 		},
 		[2] = {
-			name = 'teamID',
+			name = 'playerID',
 			required = false,
 			type = 'number',
 		}
@@ -271,7 +271,7 @@ local parameters = {
 			type = 'table'
 		},
 		[2] = {
-			name = 'teamID',
+			name = 'playerID',
 			required = false,
 			type = 'number',
 		}

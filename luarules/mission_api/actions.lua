@@ -182,24 +182,24 @@ local function sendMessage(message)
 	Spring.Echo(message)
 end
 
-local function addMarker(position, label, teamID)
+local function addMarker(position, label, playerID)
 	position.y = position.y or Spring.GetGroundHeight(position.x, position.z)
-	Spring.MarkerAddPoint(position.x, position.y, position.z, label, false, teamID)
+	Spring.MarkerAddPoint(position.x, position.y, position.z, label, false, playerID)
 end
 
-local function eraseMarker(position, teamID)
+local function eraseMarker(position, playerID)
 	position.y = position.y or Spring.GetGroundHeight(position.x, position.z)
-	Spring.MarkerErasePosition(position.x, position.y, position.z, nil, false, teamID, true)
+	Spring.MarkerErasePosition(position.x, position.y, position.z, nil, false, playerID, true)
 end
 
-local function drawLines(positions, teamID)
+local function drawLines(positions, playerID)
 	for _, pos in pairs(positions) do
 		pos.y = pos.y or Spring.GetGroundHeight(pos.x, pos.z)
 	end
 	for i = 1, #positions, 2 do
 		pos1 = positions[i]
 		pos2 = positions[i + 1]
-		Spring.MarkerAddLine(pos1.x, pos1.y, pos1.z, pos2.x, pos2.y, pos2.z, false, teamID)
+		Spring.MarkerAddLine(pos1.x, pos1.y, pos1.z, pos2.x, pos2.y, pos2.z, false, playerID)
 	end
 end
 

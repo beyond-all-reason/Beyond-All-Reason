@@ -29,7 +29,7 @@ local triggers = {
 		parameters = {
 			gameFrame = 200,
 		},
-		actions = { 'despawnConBotsAsKilled', 'messageBotsKilled', 'addMarker', 'drawLines' },
+		actions = { 'despawnConBotsAsKilled', 'messageBotsKilled' },
 	},
 
 	selfDestructCons = {
@@ -37,7 +37,7 @@ local triggers = {
 		parameters = {
 			gameFrame = 480,
 		},
-		actions = { 'despawnConBotsSelfD', 'messageBotsSelfD', 'eraseMarker' },
+		actions = { 'despawnConBotsSelfD', 'messageBotsSelfD' },
 	},
 
 	reclaimCons = {
@@ -120,31 +120,6 @@ local actions = {
 			teamID = 0,
 			unitDefName = 'armfus',
 			rectangle = { x1 = 0, z1 = 0, x2 = 999999, z2 = 2200 },
-		},
-	},
-
-	addMarker = {
-		type = actionTypes.AddMarker,
-		parameters = {
-			position = { x = 1700, z = 2200 },
-			label = 'Marker point',
-			teamID = 2,
-		},
-	},
-
-	drawLines = {
-		type = actionTypes.DrawLines,
-		parameters = {
-			positions = { { x = 1600, z = 2100 }, { x = 1800, z = 2300 }, { x = 1800, z = 2100 }, { x = 1600, z = 2300 } },
-			teamID = 0,
-		},
-	},
-
-	eraseMarker = {
-		type = actionTypes.EraseMarker,
-		parameters = {
-			position = { x = 1700, z = 2200 },
-			teamID = 0,
 		},
 	},
 
