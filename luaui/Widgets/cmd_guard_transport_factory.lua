@@ -72,7 +72,7 @@ for id, def in pairs(UnitDefs) do
 		cantBeTransported   = def.cantBeTransported,
 		transportSize       = def.transportSize,
 		xsize               = def.xsize
-	}
+    }
 end
 
 local function isFactory(unitID)
@@ -168,7 +168,7 @@ function widget:GameFrame(frame)
 
     for transportID, target in pairs(activeTransportToUnit) do
         -- Check if transport has loaded unit
-        if not IsUnitAlive(target) and transportState[transportID] ~= transport_states.unloaded and not isTransportingUnit(transportID, target) then
+        if not IsUnitAlive(target) then
             -- unit has been blown up, reset to unloaded
             transportState[transportID] = transport_states.unloaded
             activeTransportToUnit[transportID] = nil
@@ -180,15 +180,15 @@ function widget:GameFrame(frame)
                 local unitLocation     = {Spring.GetUnitPosition(target)}
                 local isFarFromFactory = distance(factoryLocation, unitLocation) > FACTORY_CLEARANCE_DISTANCE
 
-                if isFarFromFactory then
-                    tryActivateWait(target)
-                end
-
                 -- Check if we picked up the unit already
                 if isTransportingUnit(transportID, target) then                    
                     transportState[transportID] = transport_states.loaded
                     tryDeactivateWait(target)
                     Spring.GiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, unitToDestination[target], CMD.OPT_RIGHT)
+                end
+
+                if isFarFromFactory then
+                    tryActivateWait(target)
                 end
             end
 
@@ -199,6 +199,8 @@ function widget:GameFrame(frame)
             end
 
             -- Check if unit has left transport
+            -- In order to support transports with capacity > 1, we need to add logic for the transport to keep waiting until it sees a unit 
+            -- that it can't pick up.
             local carriedUnits = Spring.GetUnitIsTransporting(transportID)
             if carriedUnits == nil or #carriedUnits == 0 and transportState[transportID] == transport_states.loaded then
                 transportState[transportID] = transport_states.unloaded
@@ -228,7 +230,9 @@ end
 local function inactivateTransport(unitID)
     local guardedFactory = transportToFactory[unitID]
     if guardedFactory then
-        factoryToGuardingTransports[guardedFactory][unitID] = nil
+        if factoryToGuardingTransports[guardedFactory] then
+            factoryToGuardingTransports[guardedFactory][unitID] = nil
+        end
     end
 
     local unitWaitingForPickup = activeTransportToUnit[unitID]
@@ -243,12 +247,12 @@ local function canTransport(transportID, unitID)
 	local udef = Spring.GetUnitDefID(unitID)
 	local tdef = Spring.GetUnitDefID(transportID)
 
-	local uDefObj = cachedUnitDefs[udef]
-	local tDefObj = cachedUnitDefs[tdef]
-
 	if not udef or not tdef then
 		return false
 	end
+    
+    local uDefObj = cachedUnitDefs[udef]
+	local tDefObj = cachedUnitDefs[tdef]
 	
 	if uDefObj.xsize > tDefObj.transportSize * Game.footprintScale then
 		return false
@@ -277,15 +281,16 @@ local function canTransport(transportID, unitID)
 end
 
 local function RemoveFirstCommand(unitID)
-    local cmdQueue = Spring.GetUnitCommands(unitID, 1)
-    if #cmdQueue > 0 then
-        Spring.GiveOrderToUnit(unitID, cmdQueue[1].id, cmdQueue[1].params, {"shift"})
+    local cmdID, _, tag = Spring.GetUnitCurrentCommand(unitID, 1)
+
+    if cmdID ~= nil then
+        Spring.GiveOrderToUnit(unitID, CMD.REMOVE, { tag }, 0)
     end
 end
 
 function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
     local createdUnitID = unitID
-    if unitTeam == Spring.GetLocalTeamID() then
+    if Spring.AreTeamsAllied(unitTeam, Spring.GetLocalTeamID()) then
         if isTransport(createdUnitID) then
             -- Handle case where transport is rallied to another lab
             local cmdID, _, _, targetUnitID = Spring.GetUnitCurrentCommand(createdUnitID, 1)
@@ -299,7 +304,6 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
                 registerTransport(createdUnitID, targetUnitID)
             end
 
-            return
         elseif factoryToGuardingTransports[factID] and next(factoryToGuardingTransports[factID]) then
             local destination = getValidRallyCommandDestination(createdUnitID)
             if destination == nil then
@@ -329,7 +333,7 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
             end
 
             if bestTransportID > -1 then
-                transportState[bestTransportID]       = transport_states.approaching
+                transportState[bestTransportID]         = transport_states.approaching
 
                 local unitWaitDestination               = {Spring.GetUnitPosition(createdUnitID)}
                 Spring.GiveOrderToUnit(bestTransportID, CMD.MOVE,  unitWaitDestination, CMD.OPT_RIGHT)
