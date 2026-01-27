@@ -87,24 +87,6 @@ local triggers = {
 		},
 		actions = { 'gameEnd' },
 	},
-
-	----------------------------------------------------------------
-	--- Triggers only testing validation:
-	----------------------------------------------------------------
-
-	triggerMissingTypeAndActions = {},
-
-	triggerWithInvalidTypeAndNoActions = {
-		type = 'invalidType',
-	},
-
-	triggerWithInvalidActionID = {
-		type = triggerTypes.TimeElapsed,
-		parameters = {
-			gameFrame = math.maxinteger,
-		},
-		actions = { 'invalidActionID' },
-	},
 }
 
 local actions = {
@@ -266,40 +248,6 @@ local actions = {
 		type = actionTypes.Defeat,
 		parameters = {
 			allyTeamIDs = { 0 },
-		},
-	},
-
-	----------------------------------------------------------------
-	--- Unreferenced actions testing validation:
-	----------------------------------------------------------------
-
-	actionMissingType = {},
-
-	actionWithInvalidType = {
-		type = 'invalidType',
-	},
-
-	actionWithInvalidTriggerID = {
-		type = actionTypes.EnableTrigger,
-		parameters = {
-			triggerID = 'invalidTriggerID',
-		},
-	},
-
-	actionWithInvalidTeamIDAndInvalidUnitDefNameAndInvalidPosition = {
-		type = actionTypes.SpawnUnits,
-		parameters = {
-			unitDefName = 'invalidUnitDefName',
-			teamID = 6,
-			position = { x = 1800, invalidField = 1600 },
-			facing = 'invalidFacing',
-		},
-	},
-
-	actionWithInvalidAllyTeamID = {
-		type = actionTypes.Defeat,
-		parameters = {
-			allyTeamIDs = { 777 },
 		},
 	},
 }
