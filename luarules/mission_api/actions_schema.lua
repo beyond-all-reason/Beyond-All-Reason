@@ -36,6 +36,9 @@ local actionTypes = {
 	Unpause            = 702,
 	PlayMedia          = 703,
 	SendMessage        = 704,
+	AddMarker          = 705,
+	EraseMarker        = 706,
+	DrawLines          = 707,
 
 	-- Win Condition
 	Victory            = 800,
@@ -229,6 +232,48 @@ local parameters = {
 			name = 'message',
 			required = true,
 			type = 'string',
+		}
+	},
+	[actionTypes.AddMarker] = {
+		[1] = {
+			name = 'position',
+			required = true,
+			type = 'table'
+		},
+		[2] = {
+			name = 'label',
+			required = false,
+			type = 'string',
+		},
+		[3] = {
+			name = 'playerID',
+			required = false,
+			type = 'number',
+		}
+	},
+	[actionTypes.EraseMarker] = {
+		[1] = {
+			name = 'position',
+			required = true,
+			type = 'table'
+		},
+		[2] = {
+			name = 'playerID',
+			required = false,
+			type = 'number',
+		}
+	},
+	[actionTypes.DrawLines] = {
+		[1] = {
+			-- must be even number of positions
+			name = 'positions',
+			required = true,
+			type = 'table'
+		},
+		[2] = {
+			name = 'playerID',
+			required = false,
+			type = 'number',
 		}
 	},
 

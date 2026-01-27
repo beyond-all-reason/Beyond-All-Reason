@@ -29,7 +29,7 @@ local triggers = {
 		parameters = {
 			gameFrame = 200,
 		},
-		actions = { 'killCons1', 'messageConsKilled' },
+		actions = { 'despawnConBotsAsKilled', 'messageBotsKilled' },
 	},
 
 	selfDestructCons = {
@@ -37,7 +37,7 @@ local triggers = {
 		parameters = {
 			gameFrame = 480,
 		},
-		actions = { 'selfDestructCons1', 'messageSelfDestructCons1' },
+		actions = { 'despawnConBotsSelfD', 'messageBotsSelfD' },
 	},
 
 	reclaimCons = {
@@ -119,7 +119,7 @@ local actions = {
 			name = 'fusions',
 			teamID = 0,
 			unitDefName = 'armfus',
-			area = { x1 = 0, z1 = 0, x2 = 999999, z2 = 2200 },
+			rectangle = { x1 = 0, z1 = 0, x2 = 999999, z2 = 2200 },
 		},
 	},
 
