@@ -60,6 +60,7 @@ if not next(fakeBuildDefID) or not next(isExtractor) then
 end
 
 local mexesToSwap = {}
+local pairedUnits = {}
 
 local function doSwapMex(unitID, unitTeam, unitData)
 	local Spring = Spring
@@ -92,13 +93,12 @@ local function doSwapMex(unitID, unitTeam, unitData)
 	Spring.UnitAttach(mexID, conID, 6)
 	Spring.SetUnitRulesParam(conID, "pairedUnitID", mexID)
 	Spring.SetUnitRulesParam(mexID, "pairedUnitID", conID)
+	pairedUnits[conID] = mexID
+	pairedUnits[mexID] = conID
 
 	Spring.SetUnitHealth(conID, unitHealth)
 	Spring.SetUnitStealth(conID, true)
-	-- TODO: Is this still needed, given the `pairedUnitID`?
-	-- TODO: Set on-off methods for extration, energy upkeep
-	Spring.SetUnitResourcing(conID, "umm", unitExtraction)
-	Spring.SetUnitResourcing(mexID, "umm", -unitExtraction)
+
 	if isUnitNeutral then
 		Spring.SetUnitNeutral(mexID, true)
 		Spring.SetUnitNeutral(conID, true)
@@ -113,7 +113,7 @@ local function trySwapMex(unitID, unitData)
 	local unitTeam = Spring.GetUnitTeam(unitID)
 	local unitMax, unitCount = Spring.GetTeamMaxUnits(unitTeam)
 
-	if not unitCount or unitMax < unitCount + 1 then
+	if not unitCount or unitMax < unitCount + 2 then
 		return
 	end
 
@@ -150,18 +150,11 @@ end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	if mexTurretDefID[unitDefID] then
-		local pairedUnitID = Spring.GetUnitRulesParam(unitID, "pairedUnitID")
-		Spring.TransferUnit(pairedUnitID, newTeam)
+		Spring.TransferUnit(pairedUnits[unitID], newTeam)
     end
 end
 
-function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	if mexActualDefID[unitDefID] then
-		return 0, 0 -- non-interactive
-	end
-end
-
-local function _UnitDamaged(unitID, unitTeam, damage)
+local function doUnitDamaged(unitID, unitDefID, unitTeam, damage)
 	local health, maxHealth = spGetUnitHealth(unitID)
 
 	if health - damage < 0 and damage < maxHealth * 0.5 then
@@ -181,17 +174,18 @@ local function _UnitDamaged(unitID, unitTeam, damage)
 	end
 end
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	if mexTurretDefID[unitDefID] then
-        _UnitDamaged(unitID, unitTeam, damage)
+	if mexTurretDefID[unitDefID] and not paralyzer then
+        doUnitDamaged(unitID, unitDefID, unitTeam, damage)
     end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	mexesToSwap[unitID] = nil
 
-	if mexTurretDefID[unitDefID] then
-		local pairedUnitID = Spring.GetUnitRulesParam(unitID, "pairedUnitID")
+	if mexActualDefID[unitDefID] or mexTurretDefID[unitDefID] then
+		local pairedUnitID = pairedUnits[unitID]
 		if pairedUnitID then
+			pairedUnits[pairedUnitID] = nil
 			Spring.DestroyUnit(pairedUnitID, false, true)
 		end
     end
