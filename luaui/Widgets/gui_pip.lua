@@ -45,8 +45,8 @@ local config = {
 	trackingSmoothness = 8,
 	playerTrackingSmoothness = 4.5,
 	switchSmoothness = 30,
-	zoomMin = 0.05,
-	zoomMax = 0.8,
+	zoomMin = 0.04,
+	zoomMax = 0.95,
 	zoomFeatures = 0.2,
 	zoomProjectileDetail = 0.2,
 	zoomExplosionDetail = 0.1,
@@ -61,6 +61,8 @@ local config = {
 
 	-- Rendering settings
 	iconRadius = 40,
+	showUnitpics = true,      -- Show unitpics instead of icons when zoomed in
+	unitpicZoomThreshold = 0.6, -- Zoom level at which to switch to unitpics (higher = more zoomed in)
 	leftButtonPansCamera = false,
 	maximizeSizemult = 1.25,
 	screenMargin = 0.05,
@@ -273,6 +275,7 @@ local drawData = {
 -- This significantly reduces garbage collection overhead in performance-critical draw paths
 local pools = {
 	iconsByTexture = {}, -- Reused for grouping icons by texture (DrawUnitsAndFeatures)
+	unitpicsByTexture = {}, -- Reused for grouping unitpics by texture
 	defaultIconIndices = {}, -- Reused for default icon indices (DrawUnitsAndFeatures)
 	selectableUnits = {}, -- Reused for GetUnitsInBox results
 	fragmentsByTexture = {}, -- Reused for icon shatter fragments grouping (DrawIconShatters)
@@ -297,6 +300,7 @@ local cache = {
 	xsizes = {},
 	zsizes = {},
 	unitIcon = {},
+	unitPic = {},  -- Unit picture paths for detailed view
 	isFactory = {},
 	radiusSqs = {},
 	featureRadiusSqs = {},
@@ -2223,7 +2227,6 @@ local function DrawIconShatters()
 	local wcx_cached = cameraState.wcx
 	local wcz_cached = cameraState.wcz
 
-	gl.Blending(true)
 	gl.DepthTest(false)
 
 	-- Cache math functions for better performance
@@ -2349,7 +2352,6 @@ local function DrawIconShatters()
 	end
 	glFunc.Texture(false)
 
-	gl.Blending(false)
 	gl.DepthTest(true)
 end
 
@@ -2416,7 +2418,7 @@ local function DrawSeismicPings()
 
 				-- Draw center dot
 				local centerRadius = maxRadius * 0.4 * (1 - progress * 0.5)
-				local centerAlpha = math.max(0, (1 - progress * 0.6))
+				local centerAlpha = math.max(0, (1 - progress * 0.9))
 				glFunc.Color(1, 0.3, 0.3, centerAlpha)
 				glFunc.TexRect(-centerRadius, -centerRadius, centerRadius, centerRadius)
 
@@ -3338,6 +3340,11 @@ function widget:Initialize()
 		if uDef.iconType and iconTypes[uDef.iconType] and iconTypes[uDef.iconType].bitmap then
 			cache.unitIcon[uDefID] = iconTypes[uDef.iconType]
 		end
+		-- Cache unitpic path (buildpic texture)
+		local unitpicPath = 'unitpics/' .. uDef.name .. '.dds'
+		if VFS.FileExists(unitpicPath) then
+			cache.unitPic[uDefID] = unitpicPath
+		end
 
 		-- Cache transport properties
 		if uDef.isTransport then
@@ -3807,6 +3814,8 @@ function widget:GetConfigData()
 		radarWobbleSpeed=config.radarWobbleSpeed,
 		losViewEnabled=state.losViewEnabled,
 		losViewAllyTeam=state.losViewAllyTeam,
+		showUnitpics=config.showUnitpics,
+		unitpicZoomThreshold=config.unitpicZoomThreshold,
 		gameID = Game.gameID or Spring.GetGameRulesParam("GameID"),
 	}
 end
@@ -3905,6 +3914,8 @@ function widget:SetConfigData(data)
 	config.drawProjectiles = data.drawProjectiles~= nil and data.drawProjectiles or config.drawProjectiles
 	config.trackingSmoothness = data.trackingSmoothness or config.trackingSmoothness
 	config.radarWobbleSpeed = data.radarWobbleSpeed or config.radarWobbleSpeed
+	if data.showUnitpics ~= nil then config.showUnitpics = data.showUnitpics end
+	--if data.unitpicZoomThreshold then config.unitpicZoomThreshold = data.unitpicZoomThreshold end
 
 	local currentGameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID")
 	local isSameGame = (data.gameID and currentGameID and data.gameID == currentGameID)
@@ -4509,11 +4520,15 @@ local function DrawIcons()
 	local iconRadiusZoom = config.iconRadius * cameraState.zoom
 	local iconRadiusZoomDistMult = iconRadiusZoom * distMult
 
+	-- Check if we should use unitpics instead of icons
+	local useUnitpics = config.showUnitpics and cameraState.zoom >= config.unitpicZoomThreshold
+
 	-- Texture coordinate inset to prevent edge bleeding
 	local texInset = 0.004
 
 	-- Reuse pooled tables to avoid allocations every frame
 	local iconsByTexture = pools.iconsByTexture
+	local unitpicsByTexture = pools.unitpicsByTexture
 	local defaultIconIndices = pools.defaultIconIndices
 
 	-- Clear pool tables from previous frame and track sizes
@@ -4524,6 +4539,15 @@ local function DrawIcons()
 			t[i] = nil
 		end
 		textureSizes[k] = 0
+	end
+	-- Clear unitpic pool tables
+	local unitpicSizes = {}
+	for k in pairs(unitpicsByTexture) do
+		local t = unitpicsByTexture[k]
+		for i = #t, 1, -1 do
+			t[i] = nil
+		end
+		unitpicSizes[k] = 0
 	end
 	local defaultCount = 0
 
@@ -4542,6 +4566,21 @@ local function DrawIcons()
 			groupSize = groupSize + 1
 			textureSizes[bitmap] = groupSize
 			texGroup[groupSize] = i
+
+			-- Also group by unitpic if we're using unitpics
+			if useUnitpics and cache.unitPic[udef] then
+				local unitpic = cache.unitPic[udef]
+				local picGroup = unitpicsByTexture[unitpic]
+				local picGroupSize = unitpicSizes[unitpic]
+				if not picGroup then
+					picGroup = {}
+					picGroupSize = 0
+					unitpicsByTexture[unitpic] = picGroup
+				end
+				picGroupSize = picGroupSize + 1
+				unitpicSizes[unitpic] = picGroupSize
+				picGroup[picGroupSize] = i
+			end
 		else
 			defaultCount = defaultCount + 1
 			defaultIconIndices[defaultCount] = i
@@ -4553,6 +4592,261 @@ local function DrawIcons()
 		defaultIconIndices[i] = nil
 	end
 
+	-- Draw unitpics when zoomed in enough (before icons so icons layer on top if needed)
+	if useUnitpics then
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		-- Unitpic size multiplier (smaller than icons since they have no transparency)
+		local unitpicSizeMult = 0.85
+		-- Texcoord inset for 30% zoom (0.15 on each side)
+		local picTexInset = 0.18 * (1 - (cameraState.zoom - config.unitpicZoomThreshold) / (1 - config.unitpicZoomThreshold))
+		-- Fixed border sizes in world units
+		local teamBorderSize = 3 * cameraState.zoom * distMult
+		local blackBorderSize = 4 * cameraState.zoom * distMult
+		-- Corner cut ratio (0.25 = cut 25% of each corner of the unitpic)
+		local cornerCutRatio = 0.25
+
+		-- Helper function to draw octagon vertices (for use in BeginEnd with TRIANGLE_FAN)
+		-- Uses absolute corner cut 'c' so all layers align
+		local function drawOctagonVertices(cx, cy, s, c)
+			glFunc.Vertex(cx, cy, 0)  -- Center
+			glFunc.Vertex(cx - s + c, cy - s, 0)  -- Bottom left side
+			glFunc.Vertex(cx + s - c, cy - s, 0)  -- Bottom right side
+			glFunc.Vertex(cx + s, cy - s + c, 0)  -- Right bottom side
+			glFunc.Vertex(cx + s, cy + s - c, 0)  -- Right top side
+			glFunc.Vertex(cx + s - c, cy + s, 0)  -- Top right side
+			glFunc.Vertex(cx - s + c, cy + s, 0)  -- Top left side
+			glFunc.Vertex(cx - s, cy + s - c, 0)  -- Left top side
+			glFunc.Vertex(cx - s, cy - s + c, 0)  -- Left bottom side
+			glFunc.Vertex(cx - s + c, cy - s, 0)  -- Close back to start
+		end
+
+		-- Helper for textured octagon (unitpic) - Y flipped
+		-- Uses absolute corner cut 'c' so all layers align
+		-- Maps texture coordinates directly based on vertex position within the square
+		local function drawTexturedOctagonVertices(cx, cy, s, c, texIn)
+			local t0, t1 = texIn, 1 - texIn
+			local tRange = t1 - t0
+			local tMid = (t0 + t1) * 0.5
+			-- Convert position offset to texcoord offset
+			local function posToTex(px, py)
+				-- px, py are offsets from center in range [-s, s]
+				-- Map to texcoord range [t0, t1], with Y flipped
+				local tx = t0 + tRange * (px + s) / (2 * s)
+				local ty = t1 - tRange * (py + s) / (2 * s)  -- Y flipped
+				return tx, ty
+			end
+			-- Center
+			glFunc.TexCoord(tMid, tMid)
+			glFunc.Vertex(cx, cy, 0)
+			-- Bottom left side
+			local tx, ty = posToTex(-s + c, -s)
+			glFunc.TexCoord(tx, ty)
+			glFunc.Vertex(cx - s + c, cy - s, 0)
+			-- Bottom right side
+			tx, ty = posToTex(s - c, -s)
+			glFunc.TexCoord(tx, ty)
+			glFunc.Vertex(cx + s - c, cy - s, 0)
+			-- Right bottom side
+			tx, ty = posToTex(s, -s + c)
+			glFunc.TexCoord(tx, ty)
+			glFunc.Vertex(cx + s, cy - s + c, 0)
+			-- Right top side
+			tx, ty = posToTex(s, s - c)
+			glFunc.TexCoord(tx, ty)
+			glFunc.Vertex(cx + s, cy + s - c, 0)
+			-- Top right side
+			tx, ty = posToTex(s - c, s)
+			glFunc.TexCoord(tx, ty)
+			glFunc.Vertex(cx + s - c, cy + s, 0)
+			-- Top left side
+			tx, ty = posToTex(-s + c, s)
+			glFunc.TexCoord(tx, ty)
+			glFunc.Vertex(cx - s + c, cy + s, 0)
+			-- Left top side
+			tx, ty = posToTex(-s, s - c)
+			glFunc.TexCoord(tx, ty)
+			glFunc.Vertex(cx - s, cy + s - c, 0)
+			-- Left bottom side
+			tx, ty = posToTex(-s, -s + c)
+			glFunc.TexCoord(tx, ty)
+			glFunc.Vertex(cx - s, cy - s + c, 0)
+			-- Close back to start
+			tx, ty = posToTex(-s + c, -s)
+			glFunc.TexCoord(tx, ty)
+			glFunc.Vertex(cx - s + c, cy - s, 0)
+		end
+
+		-- PASS 1: Draw black outer borders (no texture)
+		glFunc.Texture(false)
+		glFunc.Color(0, 0, 0, 0.9)
+		if render.minimapRotation ~= 0 then
+			for texture, indices in pairs(unitpicsByTexture) do
+				local indexCount = #indices
+				for j = 1, indexCount do
+					local i = indices[j]
+					local cx = drawData.iconX[i]
+					local cy = drawData.iconY[i]
+					local udef = drawData.iconUdef[i]
+					local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size * unitpicSizeMult
+					local borderSize = iconSize + teamBorderSize + blackBorderSize
+					local cornerCut = (iconSize + teamBorderSize + blackBorderSize) * cornerCutRatio * 1.2  -- Absolute corner cut based on unitpic size
+
+					glFunc.PushMatrix()
+					glFunc.Translate(cx, cy, 0)
+					glFunc.Rotate(-render.minimapRotation * 180 / math.pi, 0, 0, 1)
+					glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, 0, 0, borderSize, cornerCut)
+					glFunc.PopMatrix()
+				end
+			end
+		else
+			for texture, indices in pairs(unitpicsByTexture) do
+				local indexCount = #indices
+				for j = 1, indexCount do
+					local i = indices[j]
+					local cx = drawData.iconX[i]
+					local cy = drawData.iconY[i]
+					local udef = drawData.iconUdef[i]
+					local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size * unitpicSizeMult
+					local borderSize = iconSize + teamBorderSize + blackBorderSize
+					local cornerCut = (iconSize + teamBorderSize + blackBorderSize) * cornerCutRatio * 1.2	-- Absolute corner cut based on unitpic size
+
+					glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, cx, cy, borderSize, cornerCut)
+				end
+			end
+		end
+
+		-- PASS 2: Draw team-colored inner borders (no texture)
+		if render.minimapRotation ~= 0 then
+			for texture, indices in pairs(unitpicsByTexture) do
+				local indexCount = #indices
+				for j = 1, indexCount do
+					local i = indices[j]
+					local cx = drawData.iconX[i]
+					local cy = drawData.iconY[i]
+					local udef = drawData.iconUdef[i]
+					local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size * unitpicSizeMult
+					local borderSize = iconSize + teamBorderSize
+					local cornerCut = (iconSize + teamBorderSize + blackBorderSize) * cornerCutRatio  -- Absolute corner cut based on unitpic size
+
+					local color = teamColors[drawData.iconTeam[i]]
+					if drawData.iconSelected[i] then
+						glFunc.Color(1, 1, 1, 1)
+					else
+						glFunc.Color(color[1], color[2], color[3], 1)
+					end
+
+					glFunc.PushMatrix()
+					glFunc.Translate(cx, cy, 0)
+					glFunc.Rotate(-render.minimapRotation * 180 / math.pi, 0, 0, 1)
+					glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, 0, 0, borderSize, cornerCut)
+					glFunc.PopMatrix()
+				end
+			end
+		else
+			for texture, indices in pairs(unitpicsByTexture) do
+				local indexCount = #indices
+				for j = 1, indexCount do
+					local i = indices[j]
+					local cx = drawData.iconX[i]
+					local cy = drawData.iconY[i]
+					local udef = drawData.iconUdef[i]
+					local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size * unitpicSizeMult
+					local borderSize = iconSize + teamBorderSize
+					local cornerCut = (iconSize + teamBorderSize + blackBorderSize) * cornerCutRatio  -- Absolute corner cut based on unitpic size
+
+					local color = teamColors[drawData.iconTeam[i]]
+					if drawData.iconSelected[i] then
+						glFunc.Color(1, 1, 1, 1)
+					else
+						glFunc.Color(color[1], color[2], color[3], 1)
+					end
+
+					glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, cx, cy, borderSize, cornerCut)
+				end
+			end
+		end
+
+		-- PASS 3: Draw unitpics on top (textured octagons)
+		for texture, indices in pairs(unitpicsByTexture) do
+			glFunc.Texture(texture)
+			local indexCount = #indices
+
+			if render.minimapRotation ~= 0 then
+				for j = 1, indexCount do
+					local i = indices[j]
+					local cx = drawData.iconX[i]
+					local cy = drawData.iconY[i]
+					local udef = drawData.iconUdef[i]
+					local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size * unitpicSizeMult
+					local cornerCut = (iconSize + teamBorderSize + blackBorderSize) * cornerCutRatio  -- Absolute corner cut based on unitpic size
+
+					local buildProgress = drawData.iconBuildProgress[i]
+					local opacity = buildProgress >= 1 and 1.0 or (0.2 + (buildProgress * 0.5))
+
+					local isHovered = (drawData.hoveredUnitID and drawData.iconUnitID[i] == drawData.hoveredUnitID)
+
+					if drawData.iconSelected[i] then
+						if isHovered then
+							glFunc.Color(1, 1, 1, math.min(1.0, opacity * 1.3))
+						else
+							glFunc.Color(1, 1, 1, opacity)
+						end
+					else
+						local color = teamColors[drawData.iconTeam[i]]
+						local brightness = 0.7 + (color[1] + color[2] + color[3]) / 9
+						if isHovered then
+							glFunc.Color(brightness * 1.2, brightness * 1.2, brightness * 1.2, opacity)
+						else
+							glFunc.Color(brightness, brightness, brightness, opacity)
+						end
+					end
+
+					glFunc.PushMatrix()
+					glFunc.Translate(cx, cy, 0)
+					glFunc.Rotate(-render.minimapRotation * 180 / math.pi, 0, 0, 1)
+					glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawTexturedOctagonVertices, 0, 0, iconSize, cornerCut, picTexInset)
+					glFunc.PopMatrix()
+				end
+			else
+				for j = 1, indexCount do
+					local i = indices[j]
+					local cx = drawData.iconX[i]
+					local cy = drawData.iconY[i]
+					local udef = drawData.iconUdef[i]
+					local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size * unitpicSizeMult
+					local cornerCut = (iconSize + teamBorderSize + blackBorderSize) * cornerCutRatio  -- Absolute corner cut based on unitpic size
+
+					local buildProgress = drawData.iconBuildProgress[i]
+					local opacity = buildProgress >= 1 and 1.0 or (0.2 + (buildProgress * 0.5))
+
+					local isHovered = (drawData.hoveredUnitID and drawData.iconUnitID[i] == drawData.hoveredUnitID)
+
+					if drawData.iconSelected[i] then
+						if isHovered then
+							glFunc.Color(1, 1, 1, math.min(1.0, opacity * 1.3))
+						else
+							glFunc.Color(1, 1, 1, opacity)
+						end
+					else
+						opacity = opacity
+						local color = teamColors[drawData.iconTeam[i]]
+						local brightness = 0.7 + (color[1] + color[2] + color[3]) / 9
+						if isHovered then
+							glFunc.Color(brightness * 1.2, brightness * 1.2, brightness * 1.2, opacity)
+						else
+							glFunc.Color(brightness, brightness, brightness, opacity)
+						end
+					end
+
+					glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawTexturedOctagonVertices, cx, cy, iconSize, cornerCut, picTexInset)
+				end
+			end
+		end
+		glFunc.Texture(false)
+	end
+
+	-- Skip normal icon drawing when using unitpics
+	if not useUnitpics then
 
 	-- Draw white backgrounds for tracked units FIRST (before normal icons)
 	local trackedCount = #drawData.trackedIconIndices
@@ -4576,42 +4870,13 @@ local function DrawIcons()
 			end
 		end
 
-	-- Draw tracked unit backgrounds grouped by texture
-	for texture, indices in pairs(trackedByTexture) do
-		local invertedTexture = string.gsub(texture, "icons/", "icons/inverted/")
-		glFunc.Texture(invertedTexture)
+		-- Draw tracked unit backgrounds grouped by texture
+		for texture, indices in pairs(trackedByTexture) do
+			local invertedTexture = string.gsub(texture, "icons/", "icons/inverted/")
+			glFunc.Texture(invertedTexture)
 
-		-- Draw with counter-rotation if map is rotated
-		if render.minimapRotation ~= 0 then
-			for j = 1, #indices do
-				local idx = indices[j]
-				if drawData.iconBuildProgress[idx] >= 1 then
-					local cx = drawData.iconX[idx]
-					local cy = drawData.iconY[idx]
-					local udef = drawData.iconUdef[idx]
-					local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size
-					local baseSize = cache.unitIcon[udef].size
-					local borderPixels = 0.09 / baseSize  -- Inverse relationship: smaller units get proportionally more border
-					local enlargedSize = iconSize * (1 + borderPixels)
-
-					glFunc.PushMatrix()
-					glFunc.Translate(cx, cy, 0)
-					glFunc.Rotate(-render.minimapRotation * 180 / math.pi, 0, 0, 1)
-					glFunc.BeginEnd(glConst.QUADS, function()
-						glFunc.TexCoord(texInset, 1 - texInset)
-						glFunc.Vertex(-enlargedSize, -enlargedSize)
-						glFunc.TexCoord(1 - texInset, 1 - texInset)
-						glFunc.Vertex(enlargedSize, -enlargedSize)
-						glFunc.TexCoord(1 - texInset, texInset)
-						glFunc.Vertex(enlargedSize, enlargedSize)
-						glFunc.TexCoord(texInset, texInset)
-						glFunc.Vertex(-enlargedSize, enlargedSize)
-					end)
-					glFunc.PopMatrix()
-				end
-			end
-		else
-			glFunc.BeginEnd(glConst.QUADS, function()
+			-- Draw with counter-rotation if map is rotated
+			if render.minimapRotation ~= 0 then
 				for j = 1, #indices do
 					local idx = indices[j]
 					if drawData.iconBuildProgress[idx] >= 1 then
@@ -4623,21 +4888,50 @@ local function DrawIcons()
 						local borderPixels = 0.09 / baseSize  -- Inverse relationship: smaller units get proportionally more border
 						local enlargedSize = iconSize * (1 + borderPixels)
 
-						glFunc.TexCoord(texInset, 1 - texInset)
-						glFunc.Vertex(cx - enlargedSize, cy - enlargedSize)
-						glFunc.TexCoord(1 - texInset, 1 - texInset)
-						glFunc.Vertex(cx + enlargedSize, cy - enlargedSize)
-						glFunc.TexCoord(1 - texInset, texInset)
-						glFunc.Vertex(cx + enlargedSize, cy + enlargedSize)
-						glFunc.TexCoord(texInset, texInset)
-						glFunc.Vertex(cx - enlargedSize, cy + enlargedSize)
+						glFunc.PushMatrix()
+						glFunc.Translate(cx, cy, 0)
+						glFunc.Rotate(-render.minimapRotation * 180 / math.pi, 0, 0, 1)
+						glFunc.BeginEnd(glConst.QUADS, function()
+							glFunc.TexCoord(texInset, 1 - texInset)
+							glFunc.Vertex(-enlargedSize, -enlargedSize)
+							glFunc.TexCoord(1 - texInset, 1 - texInset)
+							glFunc.Vertex(enlargedSize, -enlargedSize)
+							glFunc.TexCoord(1 - texInset, texInset)
+							glFunc.Vertex(enlargedSize, enlargedSize)
+							glFunc.TexCoord(texInset, texInset)
+							glFunc.Vertex(-enlargedSize, enlargedSize)
+						end)
+						glFunc.PopMatrix()
 					end
 				end
-			end)
+			else
+				glFunc.BeginEnd(glConst.QUADS, function()
+					for j = 1, #indices do
+						local idx = indices[j]
+						if drawData.iconBuildProgress[idx] >= 1 then
+							local cx = drawData.iconX[idx]
+							local cy = drawData.iconY[idx]
+							local udef = drawData.iconUdef[idx]
+							local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size
+							local baseSize = cache.unitIcon[udef].size
+							local borderPixels = 0.09 / baseSize  -- Inverse relationship: smaller units get proportionally more border
+							local enlargedSize = iconSize * (1 + borderPixels)
+
+							glFunc.TexCoord(texInset, 1 - texInset)
+							glFunc.Vertex(cx - enlargedSize, cy - enlargedSize)
+							glFunc.TexCoord(1 - texInset, 1 - texInset)
+							glFunc.Vertex(cx + enlargedSize, cy - enlargedSize)
+							glFunc.TexCoord(1 - texInset, texInset)
+							glFunc.Vertex(cx + enlargedSize, cy + enlargedSize)
+							glFunc.TexCoord(texInset, texInset)
+							glFunc.Vertex(cx - enlargedSize, cy + enlargedSize)
+						end
+					end
+				end)
+			end
 		end
+		glFunc.Texture(false)
 	end
-	glFunc.Texture(false)
-end
 
 	-- Draw bright glow for hovered unit (when command is active)
 	if drawData.hoveredUnitID then
@@ -4917,6 +5211,8 @@ end
 		end)
 		end
 	end
+
+	end  -- End of "if not useUnitpics" block
 
 	-- Draw radar blobs for units in radar but not in LOS
 	local radarBlobCount = #drawData.radarBlobX

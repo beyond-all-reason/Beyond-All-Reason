@@ -55,9 +55,9 @@ local min = math.min
 -- Config
 --------------------------------------------------------------------------------
 local pingLifetime = 1
-local baseRadius = 22
-local maxRadius = 30
-local baseThickness = 3.2
+local baseRadius = 17
+local maxRadius = 23
+local baseThickness = 2.4
 
 --------------------------------------------------------------------------------
 -- State
