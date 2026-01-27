@@ -120,7 +120,7 @@ AimWeapon1(heading, pitch)
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	aimDir1  = heading;
-	turn mainTurretHeadingPivot to y-axis heading speed <90.0>;
+	turn mainTurretHeadingPivot to y-axis heading speed <135.0>;
 	turn mainTurretPitchPivot to x-axis <0.0> - pitch speed <100.0>;
 	if (get ABS(wpn1_lasthead - heading)> <20>)
 	{

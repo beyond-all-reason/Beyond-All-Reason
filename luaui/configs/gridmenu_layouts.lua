@@ -71,7 +71,7 @@ local labGrids = {
 		"legavrad", "legavjam", "legaheattank", "leginf",        -- radar, jammer, prometheus, inferno
 		"legmrv", "legfloat", "legvflak", "legmed",            -- Quickshot, new triton, AA, boreas
 		-- page2
-		"legvcarry", "legavroc", "cormabm",					-- mantis, chiron, veh antinuke
+		"legvcarry", "legavroc", "legavantinuke",					-- mantis, chiron, veh antinuke
 	},
 	-- T1 air
 	armap = {
@@ -306,7 +306,7 @@ local labGrids = {
 	leghavp = {
 		"leghacv", "", "legmrv", "legavjam",
 		"leginf", "legmed", "legaheattank", "",
-		"cormabm", "legehovertank", "legvflak", "legavroc",
+		"legavantinuke", "legehovertank", "legvflak", "legavroc",
 	},
 }
 
@@ -1372,8 +1372,8 @@ local unitGrids = {
 		},
 		{
 			{ "legtl", "legfmg", "legnavaldefturret", "legdtr" },             -- offshore torp launcher, floating HLT
-			{ "legfrl", },                                    -- floating AA
-			{ "legctl", "legcluster", },                 		  -- coastal torp launcher, punisher, flame turret
+			{ "legfrl", "legfhive", "", ""},                                    -- floating AA
+			{ "legctl", "legcluster", "", ""},                 		  -- coastal torp launcher, punisher, flame turret
 		},
 		{
 			{ "legfrad", "legeyes", "legfdrag", },            -- floating radar, perimeter camera, shark's teeth
@@ -1479,7 +1479,7 @@ local unitGrids = {
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "armnanotc", "armnanotcplat", },                -- nano, floating nano
+			{ "armnanotc", "armnanotcplat", "armaap"},                -- nano, floating nano
 			{ "armhp", "armfhp", "armamsub", "armplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
@@ -1503,7 +1503,7 @@ local unitGrids = {
 		},
 		{
 			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "cornanotcplat", },                -- nano, floating nano
+			{ "cornanotc", "cornanotcplat", "coraap"},                -- nano, floating nano
 			{ "corhp", "corfhp", "coramsub", "corplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
@@ -1518,7 +1518,7 @@ local unitGrids = {
 			{ "leglht", "legmg", "corhlt", "legdtr", },     -- LLT, machine gun, HLT, flame turret
 			{ "legrl", "legrhapsis", "leglupara", "legfrl" },             -- basic AA, SAM, eradicator, floating AA
 			{ "legctl", "legcluster", "legtl", "legfmg", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
-			{ "legnavaldefturret", "", "", "", },
+			{ "legnavaldefturret", "legfhive", "", "", },
 		},
 		{
 			{ "legrad", "legeyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
@@ -1527,7 +1527,7 @@ local unitGrids = {
 		},
 		{
 			{ "leglab", "legvp", "legap", "legsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "legnanotc", "legnanotcplat", "", },      -- nano, T2 veh lab, floating nano
+			{ "legnanotc", "legnanotcplat", "legaap", },      -- nano, T2 veh lab, floating nano
 			{ "leghp", "legfhp", "legamphlab", "legsplab", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
@@ -1655,7 +1655,7 @@ local unitGrids = {
 	legack = {
 		{
 			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
-			{ "legadveconv", "legageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
+			{ "legadveconv", "legageo", "legmohocon", },               -- T2 converter, T2 geo, nano mex, fortified geo
 			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
@@ -1725,7 +1725,7 @@ local unitGrids = {
 	legacv = {
 		{
 			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
-			{ "legadveconv", "legageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
+			{ "legadveconv", "legageo", "legmohocon", },               -- T2 converter, T2 geo, nano mex, fortified geo
 			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
@@ -1794,7 +1794,7 @@ local unitGrids = {
 	legaca = {
 		{
 			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
-			{ "legadveconv", "legageo", "cormexp","leganavaladvgeo", },               -- T2 converter, T2 geo, armed moho
+			{ "legadveconv", "legageo", "legmohocon","leganavaladvgeo", },               -- T2 converter, T2 geo, nano mex, fortified geo
 			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
@@ -1933,7 +1933,7 @@ local unitGrids = {
 	leghaca = {
 		{
 			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
-			{ "legadveconv", "legageo", "cormexp", "legrampart"},               -- T2 converter, T2 geo, armed moho
+			{ "legadveconv", "legageo", "legmohocon", "legrampart"},               -- T2 converter, T2 geo, nano max, fortified geo
 			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
@@ -2002,7 +2002,7 @@ local unitGrids = {
 	leghack = {
 		{
 			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
-			{ "legadveconv", "legageo", "cormexp", "legrampart"},               -- T2 converter, T2 geo, armed moho
+			{ "legadveconv", "legageo", "legmohocon", "legrampart"},               -- T2 converter, T2 geo, nano mex, fortified geo
 			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
@@ -2071,7 +2071,7 @@ local unitGrids = {
 	leghacv = {
 		{
 			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
-			{ "legadveconv", "legageo", "cormexp", "legrampart"},               -- T2 converter, T2 geo, armed moho
+			{ "legadveconv", "legageo", "legmohocon", "legrampart"},               -- T2 converter, T2 geo, nano mex, fortified geo
 			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
@@ -2335,13 +2335,13 @@ local unitGrids = {
 		},
 		{
 			{ "legdtr", "legstr", "legacluster", },               	  -- dragon's jaw, strider, t2 cluster arty
-			{ "legflak", "legrhapsis", "legaabot", "leggob", },    	  -- Ravager Flak, Rhapsis, T1 aa bot, Goblin
-			{ "legctl", "legnavyfrigate", },               			  -- coastal torp launcher, frigate
+			{ "legflak", "", "legaabot", "leggob", },                 -- Ravager Flak, intentional blank, T1 aa bot, Goblin
+			{ "legctl", "legnavyfrigate", "", "legamph" },            -- coastal torp launcher, frigate, intentional blank, Telchine
 		},
 		{
 			{ "legarad", "legeyes", "legforti", "legajam", },         -- adv radar, camera, wall, adv jammer
 			{ },                                                      --
-			{ },                                          			  -- med mine
+			{ },                                          			  -- med mine -- intentional blank
 		},
 		{
 			{ "leglab", "legck", },                                   -- bot lab, bot con
@@ -2506,7 +2506,7 @@ local unitGrids = {
 			{ "legtl", "leganavaldefturret", "legacluster", "corfhlt", },       -- torp launcher, fl DDM, toaster, fHLT
 			{ "leganavalaaturret", "legnavyaaship", },                               -- fl flak, searcher
 			{ "legnavyscout", "legnavydestro", },                             -- supporter, destroyer
-			{ "cornavaldefturret", "coranavaldefturret", "", "", },
+			{ "legnavaldefturret", "legfhive", "", "", },
 		},
 		{
 			{ "legfrad", "legarad", },                             -- fl radar, adv radar

@@ -69,8 +69,9 @@ end
 if gadgetHandler:IsSyncedCode() then
 	function gadget:Initialize()
 		gadgetHandler:RegisterAllowCommand(CMD.BUILD)
+		gadgetHandler:RegisterAllowCommand(CMD.INSERT)
 
-		local registered = { [CMD.BUILD] = true }
+		local registered = { [CMD.BUILD] = true, [CMD.INSERT] = true }
 
 		for _, commandList in ipairs { CommandsToCatchMap, CommandsToCatchUnit, CommandsToCatchFeature } do
 			for command in pairs(commandList) do

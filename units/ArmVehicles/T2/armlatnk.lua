@@ -1,7 +1,7 @@
 return {
 	armlatnk = {
 		buildpic = "ARMLATNK.DDS",
-		buildtime = 6030,
+		buildtime = 8000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "30 26 34",

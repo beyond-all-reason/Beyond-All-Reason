@@ -1,7 +1,7 @@
 return {
 	armsb = {
 		buildpic = "ARMSB.DDS",
-		buildtime = 8000,
+		buildtime = 10000,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,

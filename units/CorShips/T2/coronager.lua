@@ -2,7 +2,7 @@ return {
 	coronager = {
 		activatewhenbuilt = true,
 		buildpic = "coronager.DDS",
-		buildtime = 20000,
+		buildtime = 26000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -5 0",
 		collisionvolumescales = "18 18 60",

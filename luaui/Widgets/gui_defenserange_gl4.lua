@@ -163,15 +163,24 @@ local unitDefRings = {} --each entry should be  a unitdefIDkey to very specific 
 	}
 ]]--
 
-local mobileAntiUnitDefs = {
-	[UnitDefNames.armscab.id ] = true,
-	[UnitDefNames.armcarry.id] = true,
-	[UnitDefNames.cormabm.id ] = true,
-	[UnitDefNames.corcarry.id] = true,
-	[UnitDefNames.armantiship.id] = true,
-	[UnitDefNames.corantiship.id] = true,
-	[UnitDefNames.leganavyantinukecarrier.id] = true,
+local mobileAntiUnitNames = {
+	'armscab',
+	'armcarry',
+	'cormabm',
+	'legavantinuke',
+	'corcarry',
+	'armantiship',
+	'corantiship',
+	'leganavyantinukecarrier'
 }
+
+local mobileAntiUnitDefs = {}
+
+for _, unit in ipairs(mobileAntiUnitNames) do
+    if UnitDefNames[unit] then
+        mobileAntiUnitDefs[UnitDefNames[unit].id] = true
+    end
+end
 
 local defensePosHash = {} -- key: {poshash=unitID}
 -- poshash is 4096 * posx/8 + posz/8
@@ -287,10 +296,8 @@ local function initUnitList()
 		['coranavaldefturret'] = { weapons = { 'ground' } },  --orthrus
 		['cortl'] = { weapons = { 'ground' } }, --torp launcher
 		['coratl'] = { weapons = { 'ground' } }, --T2 torp launcher
-		['leganavaltorpturret'] = { weapons = { 'ground' } }, --T2 torp launcher
 		['corfrt'] = { weapons = { 'air' } }, --floating rocket laucher
 		['corenaa'] = { weapons = { 'air' } }, --floating flak AA
-		['leganavalaaturret'] = { weapons = { 'air' } }, --floating flak AA
 		['corfdoom'] = { weapons = { [1] = 'cannon' } },
 
 		['cortoast'] = { weapons = { 'cannon' } },
@@ -306,6 +313,7 @@ local function initUnitList()
 		['armscab'] = { weapons = { 'nuke' } },
 		['armcarry'] = { weapons = { 'nuke' } },
 		['cormabm'] = { weapons = { 'nuke' } },
+		['legavantinuke'] = { weapons = { 'nuke' } },
 		['corcarry'] = { weapons = { 'nuke' } },
 		['armantiship'] = { weapons = { 'nuke' } },
 		['corantiship'] = { weapons = { 'nuke' } },
@@ -318,6 +326,7 @@ local function initUnitList()
 		['legacluster'] = { weapons = { 'cannon' } }, --T2 arty
 		['legdtr'] = { weapons = { 'ground' } }, --dragons jaw
 		['leghive'] = { weapons = { 'ground' } }, --Drone-defense
+		['legfhive'] = { weapons = { 'ground' } }, --Drone-defense
 		['legmg'] = { weapons = { 'ground' } }, --ground-AA MG defense
 		['legfmg'] = { weapons = { 'ground' } },  --cyclops
 		['legnavaldefturret'] = { weapons = { 'ground' } },  --cyclops
@@ -331,6 +340,7 @@ local function initUnitList()
 		['leglraa'] = { weapons = { 'air' } }, --T2 LR-AA
 		['legperdition'] = { weapons = { 'cannon' } }, --T2 LR-AA
 		['legapopupdef'] = { weapons = { 'ground' } }, --popup riot/minigun turret
+		['leganavyantinukecarrier'] = { weapons = { 'nuke' } },
 
 		['legstarfall'] = { weapons = { 'lrpc' } },
 		['leglrpc'] = { weapons = { 'lrpc' } },

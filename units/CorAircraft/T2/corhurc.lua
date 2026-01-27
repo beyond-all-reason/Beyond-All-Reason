@@ -2,7 +2,7 @@ return {
 	corhurc = {
 		blocking = false,
 		buildpic = "CORHURC.DDS",
-		buildtime = 31000,
+		buildtime = 36000,
 		canfly = true,
 		canmove = true,
 		collide = false,

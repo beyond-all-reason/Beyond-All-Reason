@@ -1,7 +1,7 @@
 return {
 	corvroc = {
 		buildpic = "CORVROC.DDS",
-		buildtime = 15000,
+		buildtime = 20000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -9 -2",
 		collisionvolumescales = "40 40 44",

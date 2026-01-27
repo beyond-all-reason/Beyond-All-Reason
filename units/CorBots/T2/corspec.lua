@@ -2,7 +2,7 @@ return {
 	corspec = {
 		activatewhenbuilt = true,
 		buildpic = "CORSPEC.DDS",
-		buildtime = 5440,
+		buildtime = 6500,
 		canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 -4 4",

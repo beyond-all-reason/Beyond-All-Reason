@@ -1,7 +1,7 @@
 return {
 	armscab = {
 		buildpic = "ARMSCAB.DDS",
-		buildtime = 40000,
+		buildtime = 49000,
 		canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 3 -1",

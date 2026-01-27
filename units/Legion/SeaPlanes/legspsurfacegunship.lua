@@ -2,7 +2,7 @@ return {
 	legspsurfacegunship = {
 		blocking = false,
 		buildpic = "legspsurfacegunship.DDS",
-		buildtime = 10000,
+		buildtime = 12140,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,
@@ -82,6 +82,7 @@ return {
 				areaofeffect = 140,
 				avoidfeature = false,
 				burnblow = true,
+				collidefriendly = false,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.9,

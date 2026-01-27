@@ -8,7 +8,7 @@ return {
 		energycost = 79000,
 		metalcost = 5600,
 		buildpic = "LEGFORT.DDS",
-		buildtime = 90000,
+		buildtime = 119750,
 		canfly = true,
 		canmove = true,
 		collide = true,

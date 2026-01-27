@@ -4,7 +4,7 @@ return {
 		buildangle = 16384,
 		builder = true,
 		buildpic = "ARMCARRY.DDS",
-		buildtime = 20000,
+		buildtime = 27000,
 		canassist = false,
 		canattack = false,
 		canmove = true,

@@ -80,7 +80,7 @@ return {
 		weapondefs = {
 			leganavaltorpturret_torpedo = {
 				areaofeffect = 16,
-				avoidfriendly = false,
+				avoidfriendly = true,
 				burnblow = true,
 				cegtag = "torpedotrail-small",
 				collidefriendly = false,
