@@ -80,7 +80,7 @@ return {
 		weapondefs = {
 			armatl_torpedo = {
 				areaofeffect = 32,
-				avoidfriendly = false,
+				avoidfriendly = true,
 				burnblow = true,
 				cegtag = "torpedotrail-small",
 				collidefriendly = false,

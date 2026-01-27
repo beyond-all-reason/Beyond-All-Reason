@@ -98,6 +98,8 @@ local spValidUnitID            = Spring.ValidUnitID
 local armorDefault = Game.armorTypes.default
 local armorShields = Game.armorTypes.shields
 
+local addShieldDamage, getUnitShieldState, setVelocityControl -- see unit_shield_behaviour
+
 --------------------------------------------------------------------------------
 -- Setup -----------------------------------------------------------------------
 
@@ -360,12 +362,13 @@ function gadget:Initialize()
 	for unitDefID, unitDef in ipairs(UnitDefs) do
 		unitArmorType[unitDefID] = unitDef.armorType
 	end
+
+	addShieldDamage = GG.AddShieldDamage or addShieldDamageDefault
+	getUnitShieldState = GG.GetUnitShieldState or spGetUnitShieldState
+	setVelocityControl = GG.SetVelocityControl
 end
 
 local function _GameFramePost(collisionList)
-	local addShieldDamage = GG.AddShieldDamage or addShieldDamageDefault
-	local setVelocityControl = GG.SetVelocityControl
-
 	for projectileID, penetrator in pairs(collisionList) do
 		collisionList[projectileID] = nil
 		local collisions = penetrator.collisions
@@ -412,7 +415,7 @@ local function _GameFramePost(collisionList)
 						penetrator.dirY * impulse,
 						penetrator.dirZ * impulse
 					)
-					setVelocityControl(targetID, true)
+					if setVelocityControl then setVelocityControl(targetID, true) end
 				else
 					local health = collision.health - damageDealt
 					if health > 1 then
@@ -516,7 +519,7 @@ function gadget:ShieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, sh
 	end
 
 	projectileHits[projectileID] = penetrator
-	local state, health = spGetUnitShieldState(shieldUnitID, shieldWeaponIndex)
+	local state, health = getUnitShieldState(shieldUnitID, shieldWeaponIndex)
 	local collisions = penetrator.collisions
 	collisions[#collisions+1] = {
 		targetID  = shieldUnitID,

@@ -2,7 +2,7 @@ return {
 	armstil = {
 		blocking = false,
 		buildpic = "ARMSTIL.DDS",
-		buildtime = 32000,
+		buildtime = 39000,
 		canfly = true,
 		canmove = true,
 		collide = false,

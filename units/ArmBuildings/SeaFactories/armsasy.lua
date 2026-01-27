@@ -2,7 +2,7 @@ return {
 	armsasy = {
 		builder = true,
 		buildpic = "ARMASY.DDS",
-		buildtime = 16000,
+		buildtime = 30000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -9 -2",
 		collisionvolumescales = "192 60 192",

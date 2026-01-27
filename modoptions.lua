@@ -78,6 +78,15 @@ local options = {
     },
 
     {
+        key    	= "allowunitcontrolwidgets",
+        name   	= "Allow Custom 'Unit Control' Widgets",
+        desc   	= "Allow custom user 'unit control' widgets or disallow them",
+        type   	= "bool",
+        def    	= true,
+        section	= "options_main",
+    },
+
+    {
         key    	= "allowpausegameplay",
         name   	= "Allow Commands While Paused",
         desc   	= "Allow giving unit commands while paused",
@@ -252,7 +261,7 @@ local options = {
         section	= "options_main",
         def    	= 0,
         min    	= 0,
-        max    	= 30,
+        max    	= 120,
         step   	= 1,
     },
 
@@ -1371,7 +1380,7 @@ local options = {
         def    	= 1,
         min    	= 0.5,
         max    	= 5,
-        step   	= 1,
+        step   	= 0.1,
     },
 
     {
@@ -1498,6 +1507,106 @@ local options = {
     },
 
     {
+        key 	= "proposed_unit_reworks",
+        name 	= "Season 3 balance test",
+        desc 	= "Test balance patch for the upcoming season. Nerfs funneling resources into just a single T2 base, by changing eco stats as well as nerfing units like Tzar and Fatboy. Also a variety of other changes, like an Incisor nerf and a Banshee buff. Full changelist below",
+        type 	= "bool",
+        hidden 	= true,
+        section = "options_experimental",
+        def 	= false,
+    },
+
+    {
+        key     = "community_balance_patch",
+        name    = "Community Balance Patch Jan '26",
+        desc    = "Enable community balance patch changes\n(overwrites changes in official seasonal balance test)",
+        type    = "list",
+        def     = "disabled",
+        section = "options_experimental",
+        items   = {
+            { key = "disabled", name = "Disabled", desc = "No community balance changes",
+            lock = {"community_balance_commando","community_balance_cortermite","community_balance_armwar","community_balance_armfast","community_balance_corjamt"} },
+
+            { key = "enabled",  name = "Enabled",  desc = "Enable all community balance changes\nCommando\nTermite\nCenturion\nSprinter\nCastro",
+            lock = {"community_balance_commando","community_balance_cortermite","community_balance_armwar","community_balance_armfast","community_balance_corjamt"} },
+
+            { key = "custom",   name = "Custom",   desc = "Customize individual community balance changes",
+            unlock = {"community_balance_commando", "community_balance_cortermite", "community_balance_armwar", "community_balance_armfast", "community_balance_corjamt"} },
+        }
+    },
+    
+    {
+        key     = "community_balance_patch_changelog_link",
+        name    = "Changelog",
+        desc    = "Community Balance Patch changelog",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://github.com/beyond-all-reason/Beyond-All-Reason/pull/6550",
+        width   = 195,
+        column  = 2.025,
+        linkheight = 325,
+        linkwidth = 350,
+    },
+
+    {
+        key     = "community_balance_patch_feedback_link",
+        name    = "Feedback Thread",
+        desc    = "Discord discussion about Community Balance Patch.",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/1447954953481228529/1447954953481228529",
+        width   = 215,
+        column  = 2.35,
+        linkheight = 325,
+        linkwidth = 350,
+    },
+
+    {
+        key     = "community_balance_commando",
+        name    = "(CBP) Commando",
+        desc    = "+130 jammer range (150 -> 280)\n+300 radar and LoS (900 -> 1200, 600 -> 900)\nAdd light and heavy mines to build options\n80% EMP resist\n2s self-destruct timer\nx2 autoheal (9 -> 18)\nWeapon: Cannon -> Laser\n100 dmg, 50 vs air (w/ laser damage falloff)\n2 shots/second (unchanged)\n100% accuracy\n8 aoe, 20 e/shot\n300 -> 450 range\nTargets air units\nCan be built in amphibious complex",
+        type    = "bool",
+        def     = false,
+        section = "options_experimental",
+    },
+
+    {
+        key     = "community_balance_cortermite",
+        name    = "(CBP) Termite",
+        desc    = "Added stealth",
+        type    = "bool",
+        def     = false,
+        section = "options_experimental",
+    },
+
+    {
+        key     = "community_balance_armwar",
+        name    = "(CBP) Centurion",
+        desc    = "Weapon range: 325 (from 330)\nSight distance: 330 (from 350)",
+        type    = "bool",
+        def     = false,
+        section = "options_experimental",
+    },
+
+    {
+        key     = "community_balance_armfast",
+        name    = "(CBP) Sprinter",
+        desc    = "Energy cost: 3500 (from 4140)\nAcceleration: 0.37 (from 0.414)\nSpeed: 115 (from 111.3)\nTurn-in-place angle: 115° (from 90°)\nTurn-in-place speed: 2.75 (from 2.4486)\nTurn rate: 1320 (from 1644.5)\nSight distance: 380 (from 351)\nWeapon: 18 AoE (from 16), 230 range (from 220), 15/5 damage (from 12/4)",
+        type    = "bool",
+        def     = false,
+        section = "options_experimental",
+    },
+
+    {
+        key     = "community_balance_corjamt",
+        name    = "(CBP) Castro",
+        desc    = "Build time: 9950 (from 4570)\nEnergy cost: 8500 (from 5200)\nEnergy upkeep: 40 (from 25)\nHealth: 790 (from 1070)\nMetal cost: 240 (from 115)\nRadar jammer distance: 500 (from 360)",
+        type    = "bool",
+        def     = false,
+        section = "options_experimental",
+    },
+
+    {
         key    	= "experimentallegionfaction",
         name   	= "Legion Faction",
         desc   	= "3rd experimental faction",
@@ -1505,7 +1614,7 @@ local options = {
         section = "options_experimental",
         def  	= false,
     },
-    
+
     {
         key     = "experimentallegionfaction_link",
         name    = "Development Discussion",
@@ -1514,6 +1623,28 @@ local options = {
         type    = "link",
         link    = "https://discord.com/channels/549281623154229250/1063217502898884701/1441480747629412675",
         width   = 275,
+        column  = 1.65,
+        linkheight = 325,
+        linkwidth = 350,
+    },
+
+    {
+        key 	= "easytax",
+        name 	= "Easy Sharing Tax",
+        desc 	= "Anti co-op sharing tax mod. Overwrites other tax settings. Don't combine with other sharing restriction mods, everything you need is included with easy tax.",
+        type 	= "bool",
+        section = "options_experimental",
+        def 	= false,
+    },
+
+    {
+        key     = "easytax_link",
+        name    = "Changelog",
+        desc    = "Easy Sharing Tax description.",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://gist.github.com/RebelNode/43b986f29b9cfacbe95cf634cac25c49",
+        width   = 215,
         column  = 1.65,
         linkheight = 325,
         linkwidth = 350,
@@ -1541,7 +1672,7 @@ local options = {
         linkheight = 325,
         linkwidth = 350,
     },
-    
+
     {
         key		= "t2_tech_threshold",
         name   	= "Tech 2 Threshold",
@@ -1565,7 +1696,7 @@ local options = {
         max    	= 100000,
         step   	= 1,
     },
-    
+
     {
         key		= "tech_blocking_per_team",
         name   	= "Multiply Threshold by Player Count",
@@ -1607,29 +1738,6 @@ local options = {
         hidden  = true,
         section = "options_experimental",
         def     = false,
-    },
-
-    {
-        key    	= "shieldsrework",
-        name   	= "Shields Rework v2.0",
-        desc   	= "Shields block plasma. Overkill damage is absorbed. Shield is down for the duration required to recharge the overkill damage at normal energy cost.",
-        type   	= "bool",
-        hidden 	= false,
-        section = "options_experimental",
-        def  	= false,
-    },
-
-    {
-        key     = "shieldsrework_community_poll_link",
-        name    = "Community Poll",
-        desc    = "A referendum to gauge community sentiment about whether or not it should be integrated into the regular game.",
-        section = "options_experimental",
-        type    = "link",
-        link    = "https://discord.com/channels/549281623154229250/1429782218997497946",
-        width   = 200,
-        column  = 1.65,
-        linkheight = 375,
-        linkwidth = 350,
     },
 
     {
@@ -1716,28 +1824,6 @@ local options = {
     },
 
     {
-        key 	= "proposed_unit_reworks",
-        name 	= "Season 3 balance test",
-        desc 	= "Test balance patch for the upcoming season. Nerfs funneling resources into just a single T2 base, by changing eco stats as well as nerfing units like Tzar and Fatboy. Also a variety of other changes, like an Incisor nerf and a Banshee buff. Full changelist below",
-        type 	= "bool",
-        --hidden 	= true,
-        section = "options_experimental",
-        def 	= false,
-    },
-    {
-        key     = "proposed_unit_reworks_link",
-        name    = "Changelog",
-        desc    = "Season 3 balance test changelog",
-        section = "options_experimental",
-        type    = "link",
-        link    = "https://gist.github.com/Mitvit/66d5061f88fb1bd7558aa728be225052",
-        width   = 165,
-        column  = 1.65,
-        linkheight = 325,
-        linkwidth = 350,
-    },
-
-    {
         key 	= "naval_balance_tweaks",
         name 	= "Proposed Naval Balance Tweaks",
         desc 	= "Modoption used to test specific balance adjustments dedicated towards naval units.",
@@ -1771,15 +1857,25 @@ local options = {
     },
 
     {
-        key 	= "experimental_ai_spawns",
-        name 	= "Show/Move AI Spawns",
-        desc 	= "Enables experimental AI spawn placement and movement features. Allows players to see and manually adjust AI starting positions.",
+        key 	= "pip",
+        name 	= "Picture-in-picture window",
+        desc 	= "Enables the picture-in-picture window showing a minimap-sized view of a chosen location.",
         type 	= "bool",
         section = "options_experimental",
         def 	= false,
-        unlock  = {
-            "allow_enemy_ai_spawn_placement", --remove when map_startbox_experimental/game_initial_spawn_experimental experiment is over
-        },
+    },
+
+    {
+        key     = "pip_link",
+        name    = "Report Bugs",
+        desc    = "Thread to report bugs and suggest improvements.",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://discordapp.com/channels/549281623154229250/1453758532460478484",
+        width   = 200,
+        column  = 1.65,
+        linkheight = 325,
+        linkwidth = 350,
     },
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2057,7 +2153,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
         max		= 10000,
         step	= 1,
     },
-
+    
     {
         key		= "startmetalstorage",
         name	= "Starting Metal Storage",
@@ -2092,6 +2188,15 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
         min		= 1000,
         max		= 20000,
         step	= 1,
+    },
+
+    {
+        key		= "bonusstartresourcemultiplier",
+        name	= "Apply Bonus to Starting Resources",
+        desc	= "If enabled, multiplies each players starting resources with their bonus.",
+        type	= "bool",
+        section	= "options_cheats",
+        def		= false,
     },
 
     {
@@ -2305,9 +2410,9 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
         hidden  = true,
         items	= {
             { key = "unchanged", 		name = "Unchanged", 			desc = "Unchanged" },
-            { key = "absorbplasma", 	name = "Absorb Plasma", 		desc = "Collisions Disabled" },
-            { key = "absorbeverything", name = "Absorb Everything", 	desc = "Collisions Enabled" },
-            { key = "bounceeverything", name = "Deflect Everything", 	desc = "Collisions Enabled" },
+            { key = "absorbeverything", name = "Absorb Everything", 	desc = "Shields absorb everything" },
+            { key = "bounceplasma",     name = "Deflect Plasma", 		desc = "Shields deflect plasma only" },
+            { key = "bounceeverything", name = "Deflect Everything", 	desc = "Shields deflect everything" },
         }
     },
 

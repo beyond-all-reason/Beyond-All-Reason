@@ -246,7 +246,7 @@ end
 --------------------------------------------------------------------------------
 -- MOUSE LOGIC
 --------------------------------------------------------------------------------
-local function GetMouseTargetPosition(weaponType)
+local function GetMouseTargetPosition(weaponType, aimingUnitID)
 	local isDgun = weaponType == "dgun"
 	local mx, my = spGetMouseState()
 	local targetType, target = spTraceScreenRay(mx, my)
@@ -279,6 +279,15 @@ local function GetMouseTargetPosition(weaponType)
 
 	if targetType == "unit" then
 		local unitID = target
+		-- do not snap when aiming at yourself
+		if unitID == aimingUnitID then
+			local groundPosition = GetGroundPosition()
+			if groundPosition then
+				return groundPosition[1], groundPosition[2], groundPosition[3]
+			else
+				return nil
+			end
+		end
 		local isAlly = spIsUnitAllied(unitID)
 		local shouldIgnoreUnit = false
 
@@ -706,9 +715,10 @@ local function GetUnitWithBestStockpile(unitIDs)
 	local maxProgress = 0
 	for _, unitId in ipairs(unitIDs) do
 		local numStockpiled, numStockpileQued, buildPercent = spGetUnitStockpile(unitId)
-		if numStockpiled > 0 then
+		-- these can be nil when switching teams as spectator
+		if numStockpiled and numStockpiled > 0 then
 			return unitId
-		elseif buildPercent > maxProgress then
+		elseif buildPercent and buildPercent > maxProgress then
 			maxProgress = buildPercent
 			bestUnit = unitId
 		end
@@ -1041,6 +1051,11 @@ local function DrawNoExplode(data, overrideSource)
 
 	local br = diag(bx, bz)
 
+	-- do not try to draw indicator when aiming at yourself
+	if br == 0 then
+		return
+	end
+
 	local wx = -aoe * bz / br
 	local wz = aoe * bx / br
 
@@ -1277,7 +1292,7 @@ local function DrawBallisticScatter(data)
 	-- VISIBILITY
 	----------------------------------------------------------------------------
 	local scatterSize = max(naturalRadius, lenUp)
-	local minScatterRadius = max(weaponInfo.aoe, 15) * 0.7
+	local minScatterRadius = max(weaponInfo.aoe, 15) * 1.4
 	local scatterAlphaFactor = GetSizeBasedAlpha(scatterSize, minScatterRadius)
 
 	if scatterAlphaFactor <= 0 then
@@ -1494,6 +1509,11 @@ local function DrawDirectScatter(data)
 	-- We need to ignore the height difference
 	local groundVectorMag = sqrt(1 - aimDirY * aimDirY)
 
+	-- do not try to draw indicator when aiming at yourself
+	if groundVectorMag == 0 then
+		return
+	end
+
 	-- Push the start point from the center of the unit to the perimeter
 	local edgeOffsetX = (aimDirX / groundVectorMag) * unitRadius
 	local edgeOffsetZ = (aimDirZ / groundVectorMag) * unitRadius
@@ -1630,7 +1650,7 @@ function widget:DrawWorldPreUnit()
 		return
 	end
 
-	local tx, ty, tz = GetMouseTargetPosition(weaponInfos.primary.type)
+	local tx, ty, tz = GetMouseTargetPosition(weaponInfos.primary.type, aimingUnitID)
 	if not tx then
 		ResetPulseAnimation()
 		return

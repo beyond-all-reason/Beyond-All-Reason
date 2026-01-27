@@ -2,7 +2,7 @@ return {
 	legspradarsonarplane = {
 		blocking = false,
 		buildpic = "legspradarsonarplane.DDS",
-		buildtime = 9050,
+		buildtime = 10680,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,

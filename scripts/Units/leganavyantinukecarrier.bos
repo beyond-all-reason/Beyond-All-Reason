@@ -148,12 +148,24 @@ QueryWeapon2(pieceIndex)
 	pieceIndex = flare;
 }
 
+AimWeapon2(heading, pitch)
+{	
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
+	start-script openAbm();
+	return (1);
+}
+
 AimWeapon1(heading, pitch)
 {	
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	start-script openAbm();
-	return (1);
+	return (0);
+}
+
+FireWeapon1()
+{	
+	return (0);
 }
 
 RestoreAfterDelay()

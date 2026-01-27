@@ -3,7 +3,7 @@ return {
 		airsightdistance = 950,
 		blocking = false,
 		buildpic = "legspfighter.DDS",
-		buildtime = 5500,
+		buildtime = 6540,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,

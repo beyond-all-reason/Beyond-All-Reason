@@ -19,6 +19,7 @@ end
 --------------------------------------------------------------------------------
 -- Localization ----------------------------------------------------------------
 
+local math_clamp = math.clamp
 local math_max = math.max
 local math_random = math.random
 local math_cos = math.cos
@@ -27,16 +28,21 @@ local math_pi = math.pi
 local math_tau = math.tau
 local distance3dSquared = math.distance3dSquared
 
+local CallAsTeam = CallAsTeam
+
 local spDeleteProjectile = Spring.DeleteProjectile
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGetGroundNormal = Spring.GetGroundNormal
+local spGetProjectileDefID = Spring.GetProjectileDefID
 local spGetProjectileOwnerID = Spring.GetProjectileOwnerID
 local spGetProjectilePosition = Spring.GetProjectilePosition
 local spGetProjectileTarget = Spring.GetProjectileTarget
+local spGetProjectileTeamID = Spring.GetProjectileTeamID
 local spGetProjectileTimeToLive = Spring.GetProjectileTimeToLive
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitWeaponState = Spring.GetUnitWeaponState
 local spGetUnitWeaponTarget = Spring.GetUnitWeaponTarget
 local spSetProjectilePosition = Spring.SetProjectilePosition
@@ -139,7 +145,29 @@ local function equalTargets(target1, target2)
 	)
 end
 
----Translate between TargetType enum and byte-integer target types (why are there two?)
+local readAs = { read = -1 }
+
+local function readAsTeam(teamID, ...)
+	local read = readAs
+	read.read = teamID or -1
+	return CallAsTeam(read, ...)
+end
+
+---@return number? targetX xyz coords
+---@return number? targetY
+---@return number? targetZ
+local function getTargetPositionWithError(projectileID)
+	local targetType, target = spGetProjectileTarget(projectileID)
+	if targetType == targetedUnit then
+		local teamID = spGetProjectileTeamID(projectileID) or spGetUnitTeam(spGetProjectileOwnerID(projectileID) or -1)
+		local _, _, _, targetX, targetY, targetZ = readAsTeam(teamID, spGetUnitPosition, target, false, true)
+		return targetX, targetY, targetZ -- unit aim position
+	elseif targetType == targetedGround then
+		return target[1], target[2], target[3]
+	end
+end
+
+---Translates TargetType integers to the ProjectileTargetType byte-integers needed in SetProjectileTarget.
 ---@param projectileID integer
 ---@param target integer|xyz?
 ---@param targetType TargetType
@@ -161,6 +189,8 @@ do
 		speed   = { 0, 0, 0 },
 		gravity = gravityPerFrame,
 		ttl     = 3000,
+		owner   = -1,
+		team    = -1,
 	}
 
 	---@return integer weaponDefID
@@ -168,21 +198,21 @@ do
 	---@return number parentSpeed
 	getProjectileArgs = function(params, projectileID)
 		local weaponDefID = params.speceffect_def
+		local projectile = projectileParams
+		local parentSpeed
 
-		local projectileParams = projectileParams
-
-		local pos = projectileParams.pos
+		local pos = projectile.pos
 		pos[1], pos[2], pos[3] = spGetProjectilePosition(projectileID)
 
-		local vel = projectileParams.speed
-		local parentSpeed
+		local vel = projectile.speed
 		vel[1], vel[2], vel[3], parentSpeed = spGetProjectileVelocity(projectileID)
 
-		projectileParams.owner = spGetProjectileOwnerID(projectileID)
-		projectileParams.cegTag = params.cegtag
-		projectileParams.model = params.model
+		projectile.owner = spGetProjectileOwnerID(projectileID) or -1
+		projectile.team  = spGetProjectileTeamID(projectileID) or spGetUnitTeam(projectile.owner) or -1
+		projectile.cegTag = params.cegtag
+		projectile.model = params.model
 
-		return weaponDefID, projectileParams, parentSpeed
+		return weaponDefID, projectile, parentSpeed
 	end
 end
 
@@ -192,52 +222,92 @@ end
 
 weaponCustomParamKeys.cruise = {
 	cruise_min_height = toPositiveNumber, -- Minimum ground clearance. Checked each frame, but no lookahead.
+	cruise_max_height = toPositiveNumber, -- Maximum ground clearance. Checked each frame, but no lookahead.
 	lockon_dist       = toPositiveNumber, -- Within this radius, disables the auto ground clearance.
 }
 
-local function applyCruiseCorrection(projectileID, positionX, positionY, positionZ, velocityX, velocityY, velocityZ)
-	local normalX, normalY, normalZ = spGetGroundNormal(positionX, positionZ)
-	local codirection = velocityX * normalX + velocityY * normalY + velocityZ * normalZ
-	velocityY = velocityY - normalY * codirection -- NB: can be a little strong on uneven terrain
+local useSmoothMeshHeight = 40 -- altitude used to switch between actual and smoothed terrain normals
+local responseRatio = 0 -- response decrease (multiplier (0, 1)) for a damper on excessive responses
+do
+	local frames = math.round(0.2 * Game.gameSpeed) -- spread the response over N frames
+	responseRatio = (1 + 1 / frames - 1 / (frames ^ 2)) / frames -- via taylor expansion
+end
+
+local cruiseWaitingDefs = {}
+local cruiseEngagedDefs = {}
+
+local function applyCruiseCorrection(projectileID, elevation, cruiseHeight, positionX, positionY, positionZ, velocityX, velocityY, velocityZ)
+	local responseY = 0
+	if elevation > 0 then
+		local normalX, normalY, normalZ = spGetGroundNormal(positionX, positionZ, cruiseHeight - elevation >= useSmoothMeshHeight)
+		responseY = velocityY - normalY * (velocityX * normalX + velocityY * normalY + velocityZ * normalZ)
+	end
+	velocityY = velocityY + (responseY - velocityY) * responseRatio
+	positionY = positionY + (cruiseHeight - positionY) * responseRatio
 	spSetProjectilePosition(projectileID, positionX, positionY, positionZ)
 	spSetProjectileVelocity(projectileID, velocityX, velocityY, velocityZ)
 end
 
+-- First-phase `cruise` effect, allowing weapons to ascend before triggering ground avoidance.
 specialEffectFunction.cruise = function(params, projectileID)
-	if spGetProjectileTimeToLive(projectileID) > 0 then
-		local positionX, positionY, positionZ = spGetProjectilePosition(projectileID)
-		local velocityX, velocityY, velocityZ, speed = spGetProjectileVelocity(projectileID)
-		local targetType, target = spGetProjectileTarget(projectileID)
+	local positionX, positionY, positionZ = spGetProjectilePosition(projectileID)
+	local velocityX, velocityY, velocityZ, speed = spGetProjectileVelocity(projectileID)
+	local elevation = math_max(spGetGroundHeight(positionX, positionZ), 0)
+	local cruiseHeight = elevation + params.cruise_min_height
 
-		local targetX, targetY, targetZ
-		if targetType == targetedUnit then
-			local _; -- declare a local sink var for unused values
-			_, _, _, targetX, targetY, targetZ = spGetUnitPosition(target, false, true)
-		elseif targetType == targetedGround then
-			targetX, targetY, targetZ = target[1], target[2], target[3]
-		end
-
-		local distance = params.lockon_dist
-
-		if distance * distance < distance3dSquared(positionX, positionY, positionZ, targetX, targetY, targetZ) then
-			local cruiseHeight = spGetGroundHeight(positionX, positionZ) + params.cruise_min_height
-
-			if positionY < cruiseHeight then
-				projectilesData[projectileID] = true
-				applyCruiseCorrection(projectileID, positionX, cruiseHeight, positionZ, velocityX, velocityY, velocityZ)
-			elseif projectilesData[projectileID]
-				and positionY > cruiseHeight
-				and velocityY > speed * -0.25 -- Avoid going into steep dives, e.g. after cliffs.
-			then
-				applyCruiseCorrection(projectileID, positionX, cruiseHeight, positionZ, velocityX, velocityY, velocityZ)
-			end
-
-			return false
+	if positionY >= cruiseHeight or velocityY <= speed * 0.125 then
+		local avoidGround = cruiseWaitingDefs[spGetProjectileDefID(projectileID)]
+		projectiles[projectileID] = avoidGround
+		avoidGround(projectileID) -- let the effect care about the `lockon_dist`
+	elseif elevation > 0 and speed > 0 and spGetProjectileTimeToLive(projectileID) > 0 then
+		local _, normalY = spGetGroundNormal(positionX, positionZ, true)
+		if velocityY / speed <= normalY then
+			applyCruiseCorrection(projectileID, elevation, cruiseHeight, positionX, positionY, positionZ, velocityX, velocityY, velocityZ)
 		end
 	end
 
-	projectilesData[projectileID] = nil
+	return false
+end
 
+-- Second-phase `cruise` effect, adding a ground-avoidance behavior that uses `cruise_min_height`.
+local function cruiseWaiting(params, projectileID)
+	if spGetProjectileTimeToLive(projectileID) > 0 then
+		local positionX, positionY, positionZ = spGetProjectilePosition(projectileID)
+		local targetX, targetY, targetZ = getTargetPositionWithError(projectileID)
+		local distance = params.lockon_dist
+
+		if not targetX or distance * distance < distance3dSquared(positionX, positionY, positionZ, targetX, targetY, targetZ) then
+			local elevation = math_max(spGetGroundHeight(positionX, positionZ), 0)
+			local cruiseHeight = elevation + params.cruise_min_height
+			-- Avoid going below the minimum cruise height while ignoring the maximum cruise height.
+			if positionY < cruiseHeight then
+				projectiles[projectileID] = cruiseEngagedDefs[spGetProjectileDefID(projectileID)]
+				applyCruiseCorrection(projectileID, elevation, cruiseHeight, positionX, positionY, positionZ, spGetProjectileVelocity(projectileID))
+			end
+			return false
+		end
+	end
+	return true
+end
+
+-- Third-phase `cruise` effect, adding a ground-following behavior that uses `cruise_max_height`.
+local function cruiseEngaged(params, projectileID)
+	if spGetProjectileTimeToLive(projectileID) > 0 then
+		local targetX, targetY, targetZ = getTargetPositionWithError(projectileID)
+		local positionX, positionY, positionZ = spGetProjectilePosition(projectileID)
+		local distance = params.lockon_dist
+
+		if not targetX or distance * distance < distance3dSquared(positionX, positionY, positionZ, targetX, targetY, targetZ) then
+			local elevation = math_max(spGetGroundHeight(positionX, positionZ), 0)
+			local cruiseHeight = math_clamp(positionY, elevation + params.cruise_min_height, elevation + params.cruise_max_height)
+			local velocityX, velocityY, velocityZ, speed = spGetProjectileVelocity(projectileID)
+			-- Follow the ground when it slopes away, but not over steep drops, e.g. sheer cliffs.
+			if positionY ~= cruiseHeight and (positionY > cruiseHeight or velocityY > speed * -0.25) then
+				applyCruiseCorrection(projectileID, elevation, cruiseHeight, positionX, positionY, positionZ, velocityX, velocityY, velocityZ)
+			end
+			return false
+		end
+	end
 	return true
 end
 
@@ -270,61 +340,91 @@ end
 -- Missile guidance behavior that changes the projectile's target when the primary weapon changes targets.
 -- If the primary weapon stops firing (no LoS/unit dead) the missiles will go for the last location that was targeted.
 
--- Based on retarget
--- Uses no weapon customParams.
-
--- Guidance weapon must be the primary and have burst/reload > 1 frame.
--- This is hackish but works well to prevent spammy retargeting anyway.
 weaponCustomParamKeys.guidance = {
 	guidance_lost_radius = toPositiveNumber,
 }
 
-local function guidanceLost(projectileID, radius, targetID)
-	local tx, ty, tz
+-- General info, since this became long:
+-- (1) The primary weapon's targeting must be used as guidance for the guidee weapon.
+-- (2) The primary weapon must be continuously firing or burst-firing e.g. BeamLaser.
+-- (3) You must add a guidance_lost_radius, even if it is zero, to the guidee weapon.
+-- (4) The code below has a bunch of perf hax to cache results for the Legion Medusa.
+
+---@class GuidanceEffectResult
+---@field [1] boolean isFiring
+---@field [2] TargetType guidanceType
+---@field [3] boolean isUserTarget, nil when guidanceType is `0`
+---@field [4] integer|xyz guidanceTarget, nil when guidanceType is `0`
+
+local guidanceResults = {} ---@type table<integer, GuidanceEffectResult|xyz>
+
+local lookahead = 0.6667 * Game.gameSpeed -- projectile position lookahead
+
+local function getGuidanceLost(projectileID, radius, targetID)
+	local ux, uy, uz
+	local teamID = spGetProjectileTeamID(projectileID)
 
 	if radius and radius > 0 then
-		local _, _, _, ux, uy, uz = spGetUnitPosition(targetID, false, true)
-		local elevation = math_max(spGetGroundHeight(ux, uz), 0)
-		local dx, dy, dz, slope = spGetGroundNormal(ux, uz, true)
+		ux, uy, uz = readAsTeam(teamID, spGetUnitPosition, targetID, false, true)
+	else
+		ux, uy, uz = readAsTeam(teamID, spGetUnitPosition, targetID)
+	end
+
+	if not ux then
+		-- We lost LOS on the target, most likely. Act casual.
+		local px, py, pz = spGetProjectilePosition(projectileID)
+		local vx, vy, vz = spGetProjectileVelocity(projectileID)
+		ux, uy, uz = px + vx * lookahead, py + vy * lookahead, pz + vz * lookahead
+	end
+
+	local result = { ux, uy, uz }
+	guidanceResults[-targetID - 1] = result
+	return result
+end
+
+local function guidanceLost(projectileID, radius, targetID)
+	local result = guidanceResults[-targetID - 1] or getGuidanceLost(projectileID, radius, targetID)
+	local tx, ty, tz = result[1], result[2], result[3]
+
+	if radius and radius > 0 then
+		local elevation = math_max(spGetGroundHeight(tx, tz), 0)
+		local dx, dy, dz = spGetGroundNormal(tx, tz, true)
 		local swerveRadius = radius * (0.25 + 0.75 * math_random())
 		local swerveAngle = math_tau * math_random()
 		local cosAngle = math_cos(swerveAngle)
 		local sinAngle = math_sin(swerveAngle)
 
-		if elevation <= 0 or slope <= 0.1 then
+		if elevation <= 0 or dy > 0.9 then
 			-- Scatter within a ring in the XZ plane.
-			tx = ux + swerveRadius * cosAngle
-			ty = uy
-			tz = uz + swerveRadius * sinAngle
+			tx = tx + swerveRadius * cosAngle
+			tz = tz + swerveRadius * sinAngle
 		else
 			-- Scatter within a ring rotated to align with terrain.
 			local ax, ay, az = 0, 1, 0
-			if dy >= 0.99 then ax, ay = 1, 0 end
 			local bx = ay * dz - az * dy
 			local by = az * dx - ax * dz
 			local bz = ax * dy - ay * dx
 			local cx = dy * bz - dz * by
 			local cy = dz * bx - dx * bz
 			local cz = dx * by - dy * bx
-			tx = ux + swerveRadius * (cosAngle * bx + sinAngle * cx)
-			ty = uy + swerveRadius * (cosAngle * by + sinAngle * cy)
-			tz = uz + swerveRadius * (cosAngle * bz + sinAngle * cz)
+			tx = tx + swerveRadius * (cosAngle * bx + sinAngle * cx)
+			ty = ty + swerveRadius * (cosAngle * by + sinAngle * cy)
+			tz = tz + swerveRadius * (cosAngle * bz + sinAngle * cz)
 		end
-	else
-		tx, ty, tz = spGetUnitPosition(targetID)
 	end
 
 	local elevation = math_max(spGetGroundHeight(tx, tz), 0)
 	spSetProjectileTarget(projectileID, tx, (ty - elevation < 40) and elevation or ((ty + elevation) * 0.5), tz)
 end
 
----@class GuidanceEffectResult
----@field [1] boolean isFiring
----@field [2] TargetType guidanceType
----@field [3] boolean? isUserTarget, nil when guidanceType is `0`
----@field [4] integer|xyz? guidanceTarget, nil when guidanceType is `0`
+local noGuidance = { false, 0, false, -1 }
 
-local guidanceResults = {} ---@type table<integer, GuidanceEffectResult>
+local function getGuidanceResult(ownerID)
+	local nextSalvo = spGetUnitWeaponState(ownerID, 1, "nextSalvo")
+	local result = nextSalvo and (nextSalvo + 1 >= gameFrame) and { true, spGetUnitWeaponTarget(ownerID, 1) } or noGuidance
+	guidanceResults[ownerID] = result
+	return result
+end
 
 specialEffectFunction.guidance = function(params, projectileID)
 	if spGetProjectileTimeToLive(projectileID) > 0 then
@@ -332,19 +432,12 @@ specialEffectFunction.guidance = function(params, projectileID)
 		local targetType, target = spGetProjectileTarget(projectileID)
 
 		if ownerID and spGetUnitIsDead(ownerID) == false then
-			local result = guidanceResults[ownerID]
-			if not result then
-				local nextSalvo = spGetUnitWeaponState(ownerID, 1, "nextSalvo")
-				result = { nextSalvo and (nextSalvo + 1 >= gameFrame) or false, spGetUnitWeaponTarget(ownerID, 1) }
-				guidanceResults[ownerID] = result
-			end
-			local hasGuidance, guidanceType, guidanceTarget = result[1], result[2], result[4]
-
-			if hasGuidance and guidanceTarget and
-				not equalTargets(guidanceTarget, target) and
-				setProjectileTarget(projectileID, guidanceTarget, guidanceType)
-			then
-				return false
+			local result = guidanceResults[ownerID] or getGuidanceResult(ownerID)
+			if result[1] then
+				local guidanceType, guidanceTarget = result[2], result[4]
+				if equalTargets(guidanceTarget, target) or setProjectileTarget(projectileID, guidanceTarget, guidanceType) then
+					return false
+				end
 			end
 		end
 
@@ -535,6 +628,10 @@ function gadget:Initialize()
 		metatables[effectName] = { __call = effectFunction }
 	end
 
+	-- cruise speceffect has extra stages with their own effect:
+	local cruiseWaitingMetatable = { __call = cruiseWaiting }
+	local cruiseEngagedMetatable = { __call = cruiseEngaged }
+
 	for weaponDefID, weaponDef in pairs(WeaponDefs) do
 		if weaponDef.customParams.speceffect then
 			local effectName, effectParams = parseCustomParams(weaponDef)
@@ -543,6 +640,11 @@ function gadget:Initialize()
 				if next(effectParams) then
 					-- When configured to a weapon's customParams, call the effect with its `params`:
 					weaponDefEffect[weaponDefID] = setmetatable(effectParams, metatables[effectName])
+
+					if effectName == "cruise" then
+						cruiseWaitingDefs[weaponDefID] = setmetatable(table.copy(effectParams), cruiseWaitingMetatable)
+						cruiseEngagedDefs[weaponDefID] = setmetatable(table.copy(effectParams), cruiseEngagedMetatable)
+					end
 				else
 					-- Otherwise, call the effect directly (skips the `params` arg):
 					weaponDefEffect[weaponDefID] = specialEffectFunction[effectName]
@@ -570,7 +672,6 @@ end
 
 function gadget:ProjectileDestroyed(projectileID)
 	projectiles[projectileID] = nil
-	projectilesData[projectileID] = nil
 end
 
 function gadget:GameFrame(frame)
