@@ -141,7 +141,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 
 	-- In unit_{xyz}_upgrade_reclaimer, units are transferred instantly,
 	-- so we can check immediately whether they are bypassing the rules:
-	if isAlliedUnit(unitTeam, builderID) then
+	if builderID and isAlliedUnit(unitTeam, builderID) then
 		checkUnitCommandList[unitID] = spGetUnitTeam(builderID)
 	end
 end
