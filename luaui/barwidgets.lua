@@ -153,6 +153,7 @@ local flexCallIns = {
 	'DrawWorld',
 	'DrawWorldPreUnit',
 	'DrawPreDecals',
+	'DrawWaterPost',
 	'DrawWorldPreParticles',
 	'DrawWorldShadow',
 	'DrawWorldReflection',
@@ -1648,6 +1649,19 @@ function widgetHandler:DrawPreDecals()
 	tracy.ZoneBeginN("W:DrawPreDecals")
 	for _, w in r_ipairs(self.DrawPreDecalsList) do
 		w:DrawPreDecals()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:DrawWaterPost()
+	tracy.ZoneBeginN("W:DrawWaterPost")
+	if not self.chobbyInterface  then
+		for _, w in r_ipairs(self.DrawWaterPostList) do
+			tracy.ZoneBeginN("W:DrawWaterPost:" .. w.whInfo.name)
+			w:DrawWaterPost()
+			tracy.ZoneEnd()
+		end
 	end
 	tracy.ZoneEnd()
 	return

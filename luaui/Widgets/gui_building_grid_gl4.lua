@@ -156,6 +156,13 @@ end
 
 function widget:Initialize()
     WG['buildinggrid'] = {}
+	WG['buildinggrid'].getShownUnitDefID = function()
+		return getForceShowUnitDefID() or cmdShowForUnitDefID
+	end
+
+	WG['buildinggrid'].getIsVisible = function()
+		return (getForceShowUnitDefID() or cmdShowForUnitDefID) ~= nil
+	end
     WG['buildinggrid'].getOpacity = function()
         return opacity
     end

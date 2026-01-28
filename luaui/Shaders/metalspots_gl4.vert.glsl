@@ -84,7 +84,13 @@ void main()
 	if (VERTEXTYPE == 2.0){
 		v_uvcoords = uvcoords;
 		// Make a silly ass billboard
-		circlealpha= 1.0;
+		// Apply fade in/out animation to text like the circles (twice as fast)
+		float textalpha = mix(
+			1.0 - ((timeInfo.x + timeInfo.w)- visibility.y) / 15.0, // turned unoccupied, fading into visibility
+			      ((timeInfo.x + timeInfo.w) - visibility.y) / 15.0, // going into occupied, so fade out from visibility.y
+			step(0.5, visibility.x)            // 1.0 if visibility is > 0.5
+		);
+		circlealpha = clamp(textalpha, 0.0, 1.0);
 		vec4 bbpos = vec4(TEXTWIDTH * localpos_dir_angle.x, 0, 2*TEXTHEIGHT * localpos_dir_angle.y ,  1.0) ;
 		mat3 rotY = mat3(cameraViewInv[0].xyz,cameraViewInv[2].xyz, cameraViewInv[1].xyz); // swizzle cause we use xz
 		bbpos.xyz =  (rotY * bbpos.xyz * 0.25 + worldXYZ) ;
