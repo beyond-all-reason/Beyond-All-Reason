@@ -186,6 +186,7 @@ local function handleTransport(transportID, target)
                 transportState[transportID] = transport_states.loaded
                 tryDeactivateWait(target)
                 Spring.GiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, unitToDestination[target], CMD.OPT_RIGHT)
+                return
             end
 
             if isFarFromFactory then
