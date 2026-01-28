@@ -338,6 +338,7 @@ local function updateButtons()
 	if WG['teamstats'] then addButton('stats', Spring.I18N('ui.topbar.button.stats')) end
 	if gameIsOver then addButton('graphs', Spring.I18N('ui.topbar.button.graphs')) end
 	if WG['scavengerinfo'] then addButton('scavengers', Spring.I18N('ui.topbar.button.scavengers')) end
+	if WG['game_info'] and (not WG['game_info'].hasGameInfo or WG['game_info'].hasGameInfo()) then addButton('objectives', Spring.I18N('ui.topbar.button.game')) end
 	if isSinglePlayer and allowSavegame and WG['savegame'] then addButton('save', Spring.I18N('ui.topbar.button.save')) end
 
 	buttonsArea['buttons'][lastbutton][1] = buttonsArea['buttons'][lastbutton][1] - sidePadding
@@ -2094,6 +2095,8 @@ local function applyButtonAction(button)
 		end
 	elseif button == 'scavengers' then
 		toggleWindow('scavengerinfo')
+	elseif button == 'objectives' then
+		toggleWindow('game_info')
 	elseif button == 'keybinds' then
 		toggleWindow('keybinds')
 	elseif button == 'changelog' then
@@ -2345,6 +2348,10 @@ function widget:Initialize()
 
 	WG['topbar'].getResourceBarsVisible = function()
 		return showResourceBars
+	end
+
+	WG['topbar'].refreshButtons = function()
+		updateButtons()
 	end
 
 	updateAvgWind()

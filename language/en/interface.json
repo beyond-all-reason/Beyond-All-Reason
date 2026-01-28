@@ -19,7 +19,8 @@
 				"scavengers": "Scavengers",
 				"stats": "Statistics",
 				"graphs": "Graphs",
-				"save": "Save"
+				"save": "Save",
+				"game": "Game"
 			},
 			"quit": {
 				"stay": "Stay",
