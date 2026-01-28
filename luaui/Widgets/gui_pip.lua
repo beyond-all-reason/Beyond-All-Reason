@@ -45,8 +45,8 @@ local config = {
 	trackingSmoothness = 8,
 	playerTrackingSmoothness = 4.5,
 	switchSmoothness = 30,
-	zoomMin = 0.05,
-	zoomMax = 0.8,
+	zoomMin = 0.04,
+	zoomMax = 0.95,
 	zoomFeatures = 0.2,
 	zoomProjectileDetail = 0.2,
 	zoomExplosionDetail = 0.1,
@@ -61,6 +61,8 @@ local config = {
 
 	-- Rendering settings
 	iconRadius = 40,
+	showUnitpics = true,      -- Show unitpics instead of icons when zoomed in
+	unitpicZoomThreshold = 0.7, -- Zoom level at which to switch to unitpics (higher = more zoomed in)
 	leftButtonPansCamera = false,
 	maximizeSizemult = 1.25,
 	screenMargin = 0.05,
@@ -273,6 +275,7 @@ local drawData = {
 -- This significantly reduces garbage collection overhead in performance-critical draw paths
 local pools = {
 	iconsByTexture = {}, -- Reused for grouping icons by texture (DrawUnitsAndFeatures)
+	unitpicsByTexture = {}, -- Reused for grouping unitpics by texture
 	defaultIconIndices = {}, -- Reused for default icon indices (DrawUnitsAndFeatures)
 	selectableUnits = {}, -- Reused for GetUnitsInBox results
 	fragmentsByTexture = {}, -- Reused for icon shatter fragments grouping (DrawIconShatters)
@@ -297,6 +300,7 @@ local cache = {
 	xsizes = {},
 	zsizes = {},
 	unitIcon = {},
+	unitPic = {},  -- Unit picture paths for detailed view
 	isFactory = {},
 	radiusSqs = {},
 	featureRadiusSqs = {},
@@ -340,6 +344,15 @@ local gameTime = 0 -- Accumulated game time (pauses when game is paused)
 
 local unitOutlineList = nil
 local radarDotList = nil
+local seismicPingDlists = {
+	outerArcs = {},
+	middleArcs = {},
+	innerArcs = {},
+	centerCircle = nil,
+	outerOutlines = {},
+	middleOutlines = {},
+	innerOutlines = {},
+}
 local gameHasStarted
 local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID()))
 
@@ -1330,11 +1343,36 @@ local function DrawGroundLine(x1, z1, x2, z2)
 	end
 end
 
-local function DrawGroundBox(l, r, b, t)
-	DrawGroundLine(l, t, r, t)
-	DrawGroundLine(r, t, r, b)
-	DrawGroundLine(r, b, l, b)
-	DrawGroundLine(l, b, l, t)
+local function DrawGroundBox(l, r, b, t, cornerSize)
+	-- Draw octagon with corners cut off by 16 world units
+
+	-- Handle coordinate system (b and t might be swapped depending on view)
+	local minZ = math.min(b, t)
+	local maxZ = math.max(b, t)
+
+	-- Clamp corner size if rectangle is too small
+	local width = r - l
+	local height = maxZ - minZ
+	local maxCorner = math.min(width, height) / 2
+	local c = math.min(cornerSize, maxCorner)
+
+	-- Draw 8 edges (going clockwise from top-left)
+	-- Top edge (at maxZ)
+	DrawGroundLine(l + c, maxZ, r - c, maxZ)
+	-- Top-right corner cut
+	DrawGroundLine(r - c, maxZ, r, maxZ - c)
+	-- Right edge
+	DrawGroundLine(r, maxZ - c, r, minZ + c)
+	-- Bottom-right corner cut
+	DrawGroundLine(r, minZ + c, r - c, minZ)
+	-- Bottom edge (at minZ)
+	DrawGroundLine(r - c, minZ, l + c, minZ)
+	-- Bottom-left corner cut
+	DrawGroundLine(l + c, minZ, l, minZ + c)
+	-- Left edge
+	DrawGroundLine(l, minZ + c, l, maxZ - c)
+	-- Top-left corner cut
+	DrawGroundLine(l, maxZ - c, l + c, maxZ)
 end
 
 
@@ -2223,7 +2261,6 @@ local function DrawIconShatters()
 	local wcx_cached = cameraState.wcx
 	local wcz_cached = cameraState.wcz
 
-	gl.Blending(true)
 	gl.DepthTest(false)
 
 	-- Cache math functions for better performance
@@ -2254,9 +2291,9 @@ local function DrawIconShatters()
 
 		-- Remove old shatters
 		if progress >= 1 then
-		table.remove(cache.iconShatters, i)
-	else
-		local fade = 1 - progress			-- Calculate scale: stays at 1.0 for first 50% of duration, then shrinks to 0 (earlier than before)
+			table.remove(cache.iconShatters, i)
+		else
+			local fade = 1 - progress			-- Calculate scale: stays at 1.0 for first 50% of duration, then shrinks to 0 (earlier than before)
 			local scale
 			if progress < 0.5 then
 				scale = 1.0
@@ -2319,7 +2356,7 @@ local function DrawIconShatters()
 			end
 
 			i = i + 1
-	end -- end of else (progress < 1)
+		end -- end of else (progress < 1)
 	end -- end of while loop
 
 	-- Draw all fragments grouped by texture
@@ -2349,11 +2386,10 @@ local function DrawIconShatters()
 	end
 	glFunc.Texture(false)
 
-	gl.Blending(false)
 	gl.DepthTest(true)
 end
 
--- Draw seismic pings as animated expanding rings
+-- Draw seismic pings as animated rotating arcs (matching the gadget draw style)
 local function DrawSeismicPings()
 	if #cache.seismicPings == 0 then return end
 
@@ -2374,15 +2410,15 @@ local function DrawSeismicPings()
 		trackedAllyTeam = trackedPlayerAllyTeam
 	end
 
-	-- Use PipBlip texture for circle drawing
-	glFunc.Texture('bitmaps/default/circles.tga')
+	local pingLifetime = 0.95
+	local baseRadius = 16
+	local maxRadius = 22
 
 	while i <= #cache.seismicPings do
 		local ping = cache.seismicPings[i]
 		local age = gameTime - ping.startTime
-		local lifetime = 1.0 -- Seismic pings last about 2 seconds
 
-		if age > lifetime then
+		if age > pingLifetime then
 			table.remove(cache.seismicPings, i)
 		else
 			-- Filter by allyteam if tracking a player
@@ -2393,40 +2429,128 @@ local function DrawSeismicPings()
 				ping.z + ping.maxRadius < worldTop or ping.z - ping.maxRadius > worldBottom then
 				i = i + 1
 			else
-				local progress = age / lifetime
+				local progress = age / pingLifetime
 
 				-- Convert world to screen coordinates (matrix already has zoom applied)
 				local screenX = ping.x - wcx_cached
 				local screenY = wcz_cached - ping.z
 
-				-- maxRadius is in world units, matrix zoom handles scaling
-				local maxRadius = ping.maxRadius
+				local radius = (baseRadius + (maxRadius - baseRadius) * progress)
 
 				glFunc.PushMatrix()
 				glFunc.Translate(screenX, screenY, 0)
 
-				-- Draw multiple expanding rings like the engine does
-				-- Outer ring (largest, fades first)
-				local outerRadius = maxRadius * (0.2 + progress * 0.8)
-				local outerAlpha = math.max(0, (1 - progress) * 0.8)
+				-- Calculate rotation and alpha values for each ring
+				local rotation1 = gameTime * 70
+				local outerProgress = math.min(1, progress * 1.3)
+				local outerAlpha = math.max(0, (1 - outerProgress) * 0.7)
+				local outerRadius = radius * 1.15 - (radius * progress * 0.25)
 
-				-- Draw seismic ping
-				glFunc.Color(1, 0, 0, outerAlpha)
-				glFunc.TexRect(-outerRadius, -outerRadius, outerRadius, outerRadius)
+				local rotation2 = -gameTime * 150
+				local middleProgress = math.max(0, math.min(1, (progress - 0.1) / 0.9))
+				local middleAlpha = math.max(0, (1 - middleProgress) * 0.85)
+				local middleRadius = radius + (radius * progress * 0.4)
 
-				-- Draw center dot
-				local centerRadius = maxRadius * 0.4 * (1 - progress * 0.5)
-				local centerAlpha = math.max(0, (1 - progress * 0.6))
-				glFunc.Color(1, 0.3, 0.3, centerAlpha)
-				glFunc.TexRect(-centerRadius, -centerRadius, centerRadius, centerRadius)
+				local rotation3 = gameTime * 90
+				local innerProgress = math.max(0, math.min(1, (progress - 0.15) / 0.85))
+				local innerAlpha = math.max(0, (1 - innerProgress))
+				local innerRadius = radius - (radius * progress * 0.45)
 
+				gl.Scale(2.3,2.3,0)	-- scale up so it is visible in pip
+
+				-- PASS 1: Draw all dark outlines with normal blending
+				if cameraState.zoom > 0.5 then
+					gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+
+					-- Outer outlines
+					glFunc.Color(0.09, 0, 0, outerAlpha * 0.25)
+					for j = 0, 3 do
+						glFunc.PushMatrix()
+						glFunc.Rotate(rotation1, 0, 0, 1)
+						glFunc.Scale(outerRadius, outerRadius, 1)
+						glFunc.CallList(seismicPingDlists.outerOutlines[j])
+						glFunc.PopMatrix()
+					end
+
+					-- Middle outlines
+					glFunc.Color(0.09, 0, 0, middleAlpha * 0.25)
+					for j = 0, 2 do
+						glFunc.PushMatrix()
+						glFunc.Rotate(rotation2, 0, 0, 1)
+						glFunc.Scale(middleRadius, middleRadius, 1)
+						glFunc.CallList(seismicPingDlists.middleOutlines[j])
+						glFunc.PopMatrix()
+					end
+
+					-- Inner outlines
+					glFunc.Color(0.07, 0, 0, innerAlpha * 0.25)
+					for j = 0, 1 do
+						glFunc.PushMatrix()
+						glFunc.Rotate(rotation3, 0, 0, 1)
+						glFunc.Scale(innerRadius, innerRadius, 1)
+						glFunc.CallList(seismicPingDlists.innerOutlines[j])
+						glFunc.PopMatrix()
+					end
+				end
+
+				-- PASS 2: Draw all bright arcs with additive blending
+				gl.Blending(GL.SRC_ALPHA, GL.ONE)
+
+				-- Outer ring - 4 arcs rotating clockwise
+				glFunc.Color(1, 0.1, 0.09, outerAlpha)
+				for j = 0, 3 do
+					glFunc.PushMatrix()
+					glFunc.Rotate(rotation1, 0, 0, 1)
+					glFunc.Scale(outerRadius, outerRadius, 1)
+					glFunc.CallList(seismicPingDlists.outerArcs[j])
+					glFunc.PopMatrix()
+				end
+
+				-- Middle ring - 3 arcs rotating counter-clockwise
+				glFunc.Color(1, 0.22, 0.2, middleAlpha)
+				for j = 0, 2 do
+					glFunc.PushMatrix()
+					glFunc.Rotate(rotation2, 0, 0, 1)
+					glFunc.Scale(middleRadius, middleRadius, 1)
+					glFunc.CallList(seismicPingDlists.middleArcs[j])
+					glFunc.PopMatrix()
+				end
+
+				-- Inner ring - 2 arcs rotating clockwise
+				glFunc.Color(1, 0.37, 0.33, innerAlpha)
+				for j = 0, 1 do
+					glFunc.PushMatrix()
+					glFunc.Rotate(rotation3, 0, 0, 1)
+					glFunc.Scale(innerRadius, innerRadius, 1)
+					glFunc.CallList(seismicPingDlists.innerArcs[j])
+					glFunc.PopMatrix()
+				end
+
+				-- Center dot (shrinks from large to small with fade in/out)
+				local centerProgress = math.min(1, progress * 1.8)
+				local centerScale = baseRadius * 0.82 * (1 - centerProgress)
+				if centerScale > 0.1 then
+					local centerAlphaMultiplier
+					if centerProgress < 0.2 then
+						centerAlphaMultiplier = centerProgress / 0.2
+					else
+						centerAlphaMultiplier = (1 - centerProgress) / 0.8
+					end
+					local centerAlpha = math.max(0, centerAlphaMultiplier * 0.6)
+					glFunc.Color(1, 0.25, 0.23, centerAlpha)
+					glFunc.PushMatrix()
+					glFunc.Scale(centerScale, centerScale, 1)
+					glFunc.CallList(seismicPingDlists.centerCircle)
+					glFunc.PopMatrix()
+				end
+
+				gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 				glFunc.PopMatrix()
 				i = i + 1
 			end
 		end
 	end
 
-	glFunc.Texture(false)
 	glFunc.Color(1, 1, 1, 1)
 end
 
@@ -3305,7 +3429,115 @@ end
 -- Callins
 ----------------------------------------------------------------------------------------------------
 
+-- Helper: Draw a thick arc as geometry (for display list creation)
+local function DrawThickArcVertices(innerRadius, outerRadius, startAngle, endAngle, segments)
+	local angleStep = (endAngle - startAngle) / segments
+	local cos, sin = math.cos, math.sin
+	for i = 0, segments - 1 do
+		local angle1 = startAngle + i * angleStep
+		local angle2 = startAngle + (i + 1) * angleStep
+		local cos1, sin1 = cos(angle1), sin(angle1)
+		local cos2, sin2 = cos(angle2), sin(angle2)
+		glFunc.Vertex(cos1 * innerRadius, sin1 * innerRadius, 0)
+		glFunc.Vertex(cos1 * outerRadius, sin1 * outerRadius, 0)
+		glFunc.Vertex(cos2 * outerRadius, sin2 * outerRadius, 0)
+		glFunc.Vertex(cos2 * innerRadius, sin2 * innerRadius, 0)
+	end
+end
+
+-- Create display lists for seismic ping rotating arcs
+local function CreateSeismicPingDlists()
+	local pi = math.pi
+	local pi2 = pi * 2
+	local baseRadius = 16
+	local baseThickness = 2.4
+
+	-- Proportional thicknesses (relative to unit radius 1.0)
+	local outerThicknessRatio = baseThickness * 1.05 / baseRadius
+	local middleThicknessRatio = baseThickness * 0.8 / baseRadius
+	local innerThicknessRatio = baseThickness * 1 / baseRadius
+	local centerThicknessRatio = baseThickness * 1.8 / baseRadius
+	local outlineExtra = 0.02
+
+	-- Outer arcs: 4 arcs, 60 degrees each
+	local outerInner = 1.08 - outerThicknessRatio / 2
+	local outerOuter = 1.08 + outerThicknessRatio / 2
+	for i = 0, 3 do
+		local startAngle = (i * 90) * pi / 180
+		local arcLength = 60 * pi / 180
+		-- Outline
+		seismicPingDlists.outerOutlines[i] = gl.CreateList(function()
+			glFunc.BeginEnd(glConst.QUADS, DrawThickArcVertices, outerInner - outlineExtra, outerOuter + outlineExtra, startAngle - 0.02, startAngle + arcLength + 0.02, 12)
+		end)
+		-- Main arc
+		seismicPingDlists.outerArcs[i] = gl.CreateList(function()
+			glFunc.BeginEnd(glConst.QUADS, DrawThickArcVertices, outerInner, outerOuter, startAngle, startAngle + arcLength, 12)
+		end)
+	end
+
+	-- Middle arcs: 3 arcs, 80 degrees each, at 0.85 of unit radius
+	local middleRadiusRatio = 0.85
+	local middleInner = middleRadiusRatio - middleThicknessRatio / 2
+	local middleOuter = middleRadiusRatio + middleThicknessRatio / 2
+	for i = 0, 2 do
+		local startAngle = (i * 120) * pi / 180
+		local arcLength = 80 * pi / 180
+		-- Outline
+		seismicPingDlists.middleOutlines[i] = gl.CreateList(function()
+			glFunc.BeginEnd(glConst.QUADS, DrawThickArcVertices, middleInner - outlineExtra, middleOuter + outlineExtra, startAngle - 0.02, startAngle + arcLength + 0.02, 12)
+		end)
+		-- Main arc
+		seismicPingDlists.middleArcs[i] = gl.CreateList(function()
+			glFunc.BeginEnd(glConst.QUADS, DrawThickArcVertices, middleInner, middleOuter, startAngle, startAngle + arcLength, 12)
+		end)
+	end
+
+	-- Inner arcs: 2 arcs, 120 degrees each, at 0.66 of unit radius
+	local innerRadiusRatio = 0.66
+	local innerInner = innerRadiusRatio - innerThicknessRatio / 2
+	local innerOuter = innerRadiusRatio + innerThicknessRatio / 2
+	for i = 0, 1 do
+		local startAngle = (i * 180) * pi / 180
+		local arcLength = 120 * pi / 180
+		-- Outline
+		seismicPingDlists.innerOutlines[i] = gl.CreateList(function()
+			glFunc.BeginEnd(glConst.QUADS, DrawThickArcVertices, innerInner - outlineExtra, innerOuter + outlineExtra, startAngle - 0.02, startAngle + arcLength + 0.02, 16)
+		end)
+		-- Main arc
+		seismicPingDlists.innerArcs[i] = gl.CreateList(function()
+			glFunc.BeginEnd(glConst.QUADS, DrawThickArcVertices, innerInner, innerOuter, startAngle, startAngle + arcLength, 16)
+		end)
+	end
+
+	-- Center circle: full circle
+	local centerInner = 1 - centerThicknessRatio / 1.3
+	local centerOuter = 1.25 + centerThicknessRatio / 1.3
+	seismicPingDlists.centerCircle = gl.CreateList(function()
+		glFunc.BeginEnd(glConst.QUADS, DrawThickArcVertices, centerInner, centerOuter, 0, pi2, 20)
+	end)
+end
+
+-- Delete seismic ping display lists
+local function DeleteSeismicPingDlists()
+	for i = 0, 3 do
+		if seismicPingDlists.outerArcs[i] then gl.DeleteList(seismicPingDlists.outerArcs[i]) end
+		if seismicPingDlists.outerOutlines[i] then gl.DeleteList(seismicPingDlists.outerOutlines[i]) end
+	end
+	for i = 0, 2 do
+		if seismicPingDlists.middleArcs[i] then gl.DeleteList(seismicPingDlists.middleArcs[i]) end
+		if seismicPingDlists.middleOutlines[i] then gl.DeleteList(seismicPingDlists.middleOutlines[i]) end
+	end
+	for i = 0, 1 do
+		if seismicPingDlists.innerArcs[i] then gl.DeleteList(seismicPingDlists.innerArcs[i]) end
+		if seismicPingDlists.innerOutlines[i] then gl.DeleteList(seismicPingDlists.innerOutlines[i]) end
+	end
+	if seismicPingDlists.centerCircle then gl.DeleteList(seismicPingDlists.centerCircle) end
+end
+
 function widget:Initialize()
+
+	-- Create seismic ping display lists
+	CreateSeismicPingDlists()
 
 	unitOutlineList = gl.CreateList(function()
 		glFunc.BeginEnd(GL.LINE_LOOP, function()
@@ -3337,6 +3569,11 @@ function widget:Initialize()
 		end
 		if uDef.iconType and iconTypes[uDef.iconType] and iconTypes[uDef.iconType].bitmap then
 			cache.unitIcon[uDefID] = iconTypes[uDef.iconType]
+		end
+		-- Cache unitpic path (buildpic texture)
+		local unitpicPath = 'unitpics/' .. uDef.name .. '.dds'
+		if VFS.FileExists(unitpicPath) then
+			cache.unitPic[uDefID] = unitpicPath
 		end
 
 		-- Cache transport properties
@@ -3711,6 +3948,7 @@ end
 function widget:Shutdown()
 	gl.DeleteList(unitOutlineList)
 	gl.DeleteList(radarDotList)
+	DeleteSeismicPingDlists()
 
 	-- Clean up render-to-texture
 	if pipR2T.contentTex then
@@ -3807,6 +4045,8 @@ function widget:GetConfigData()
 		radarWobbleSpeed=config.radarWobbleSpeed,
 		losViewEnabled=state.losViewEnabled,
 		losViewAllyTeam=state.losViewAllyTeam,
+		showUnitpics=config.showUnitpics,
+		unitpicZoomThreshold=config.unitpicZoomThreshold,
 		gameID = Game.gameID or Spring.GetGameRulesParam("GameID"),
 	}
 end
@@ -3905,6 +4145,8 @@ function widget:SetConfigData(data)
 	config.drawProjectiles = data.drawProjectiles~= nil and data.drawProjectiles or config.drawProjectiles
 	config.trackingSmoothness = data.trackingSmoothness or config.trackingSmoothness
 	config.radarWobbleSpeed = data.radarWobbleSpeed or config.radarWobbleSpeed
+	if data.showUnitpics ~= nil then config.showUnitpics = data.showUnitpics end
+	--if data.unitpicZoomThreshold then config.unitpicZoomThreshold = data.unitpicZoomThreshold end
 
 	local currentGameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID")
 	local isSameGame = (data.gameID and currentGameID and data.gameID == currentGameID)
@@ -4509,11 +4751,15 @@ local function DrawIcons()
 	local iconRadiusZoom = config.iconRadius * cameraState.zoom
 	local iconRadiusZoomDistMult = iconRadiusZoom * distMult
 
+	-- Check if we should use unitpics instead of icons
+	local useUnitpics = config.showUnitpics and cameraState.zoom >= config.unitpicZoomThreshold
+
 	-- Texture coordinate inset to prevent edge bleeding
 	local texInset = 0.004
 
 	-- Reuse pooled tables to avoid allocations every frame
 	local iconsByTexture = pools.iconsByTexture
+	local unitpicsByTexture = pools.unitpicsByTexture
 	local defaultIconIndices = pools.defaultIconIndices
 
 	-- Clear pool tables from previous frame and track sizes
@@ -4524,6 +4770,15 @@ local function DrawIcons()
 			t[i] = nil
 		end
 		textureSizes[k] = 0
+	end
+	-- Clear unitpic pool tables
+	local unitpicSizes = {}
+	for k in pairs(unitpicsByTexture) do
+		local t = unitpicsByTexture[k]
+		for i = #t, 1, -1 do
+			t[i] = nil
+		end
+		unitpicSizes[k] = 0
 	end
 	local defaultCount = 0
 
@@ -4542,6 +4797,21 @@ local function DrawIcons()
 			groupSize = groupSize + 1
 			textureSizes[bitmap] = groupSize
 			texGroup[groupSize] = i
+
+			-- Also group by unitpic if we're using unitpics
+			if useUnitpics and cache.unitPic[udef] then
+				local unitpic = cache.unitPic[udef]
+				local picGroup = unitpicsByTexture[unitpic]
+				local picGroupSize = unitpicSizes[unitpic]
+				if not picGroup then
+					picGroup = {}
+					picGroupSize = 0
+					unitpicsByTexture[unitpic] = picGroup
+				end
+				picGroupSize = picGroupSize + 1
+				unitpicSizes[unitpic] = picGroupSize
+				picGroup[picGroupSize] = i
+			end
 		else
 			defaultCount = defaultCount + 1
 			defaultIconIndices[defaultCount] = i
@@ -4553,6 +4823,261 @@ local function DrawIcons()
 		defaultIconIndices[i] = nil
 	end
 
+	-- Draw unitpics when zoomed in enough (before icons so icons layer on top if needed)
+	if useUnitpics then
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		-- Unitpic size multiplier (smaller than icons since they have no transparency)
+		local unitpicSizeMult = 0.85
+		-- Texcoord inset for 30% zoom (0.15 on each side)
+		local picTexInset = 0.18 * (1 - (cameraState.zoom - config.unitpicZoomThreshold) / (1 - config.unitpicZoomThreshold))
+		-- Fixed border sizes in world units
+		local teamBorderSize = 3 * cameraState.zoom * distMult
+		local blackBorderSize = 4 * cameraState.zoom * distMult
+		-- Corner cut ratio (0.25 = cut 25% of each corner of the unitpic)
+		local cornerCutRatio = 0.25
+
+		-- Helper function to draw octagon vertices (for use in BeginEnd with TRIANGLE_FAN)
+		-- Uses absolute corner cut 'c' so all layers align
+		local function drawOctagonVertices(cx, cy, s, c)
+			glFunc.Vertex(cx, cy, 0)  -- Center
+			glFunc.Vertex(cx - s + c, cy - s, 0)  -- Bottom left side
+			glFunc.Vertex(cx + s - c, cy - s, 0)  -- Bottom right side
+			glFunc.Vertex(cx + s, cy - s + c, 0)  -- Right bottom side
+			glFunc.Vertex(cx + s, cy + s - c, 0)  -- Right top side
+			glFunc.Vertex(cx + s - c, cy + s, 0)  -- Top right side
+			glFunc.Vertex(cx - s + c, cy + s, 0)  -- Top left side
+			glFunc.Vertex(cx - s, cy + s - c, 0)  -- Left top side
+			glFunc.Vertex(cx - s, cy - s + c, 0)  -- Left bottom side
+			glFunc.Vertex(cx - s + c, cy - s, 0)  -- Close back to start
+		end
+
+		-- Helper for textured octagon (unitpic) - Y flipped
+		-- Uses absolute corner cut 'c' so all layers align
+		-- Maps texture coordinates directly based on vertex position within the square
+		local function drawTexturedOctagonVertices(cx, cy, s, c, texIn)
+			local t0, t1 = texIn, 1 - texIn
+			local tRange = t1 - t0
+			local tMid = (t0 + t1) * 0.5
+			-- Convert position offset to texcoord offset
+			local function posToTex(px, py)
+				-- px, py are offsets from center in range [-s, s]
+				-- Map to texcoord range [t0, t1], with Y flipped
+				local tx = t0 + tRange * (px + s) / (2 * s)
+				local ty = t1 - tRange * (py + s) / (2 * s)  -- Y flipped
+				return tx, ty
+			end
+			-- Center
+			glFunc.TexCoord(tMid, tMid)
+			glFunc.Vertex(cx, cy, 0)
+			-- Bottom left side
+			local tx, ty = posToTex(-s + c, -s)
+			glFunc.TexCoord(tx, ty)
+			glFunc.Vertex(cx - s + c, cy - s, 0)
+			-- Bottom right side
+			tx, ty = posToTex(s - c, -s)
+			glFunc.TexCoord(tx, ty)
+			glFunc.Vertex(cx + s - c, cy - s, 0)
+			-- Right bottom side
+			tx, ty = posToTex(s, -s + c)
+			glFunc.TexCoord(tx, ty)
+			glFunc.Vertex(cx + s, cy - s + c, 0)
+			-- Right top side
+			tx, ty = posToTex(s, s - c)
+			glFunc.TexCoord(tx, ty)
+			glFunc.Vertex(cx + s, cy + s - c, 0)
+			-- Top right side
+			tx, ty = posToTex(s - c, s)
+			glFunc.TexCoord(tx, ty)
+			glFunc.Vertex(cx + s - c, cy + s, 0)
+			-- Top left side
+			tx, ty = posToTex(-s + c, s)
+			glFunc.TexCoord(tx, ty)
+			glFunc.Vertex(cx - s + c, cy + s, 0)
+			-- Left top side
+			tx, ty = posToTex(-s, s - c)
+			glFunc.TexCoord(tx, ty)
+			glFunc.Vertex(cx - s, cy + s - c, 0)
+			-- Left bottom side
+			tx, ty = posToTex(-s, -s + c)
+			glFunc.TexCoord(tx, ty)
+			glFunc.Vertex(cx - s, cy - s + c, 0)
+			-- Close back to start
+			tx, ty = posToTex(-s + c, -s)
+			glFunc.TexCoord(tx, ty)
+			glFunc.Vertex(cx - s + c, cy - s, 0)
+		end
+
+		-- PASS 1: Draw black outer borders (no texture)
+		glFunc.Texture(false)
+		glFunc.Color(0, 0, 0, 0.9)
+		if render.minimapRotation ~= 0 then
+			for texture, indices in pairs(unitpicsByTexture) do
+				local indexCount = #indices
+				for j = 1, indexCount do
+					local i = indices[j]
+					local cx = drawData.iconX[i]
+					local cy = drawData.iconY[i]
+					local udef = drawData.iconUdef[i]
+					local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size * unitpicSizeMult
+					local borderSize = iconSize + teamBorderSize + blackBorderSize
+					local cornerCut = (iconSize + teamBorderSize + blackBorderSize) * cornerCutRatio * 1.2  -- Absolute corner cut based on unitpic size
+
+					glFunc.PushMatrix()
+					glFunc.Translate(cx, cy, 0)
+					glFunc.Rotate(-render.minimapRotation * 180 / math.pi, 0, 0, 1)
+					glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, 0, 0, borderSize, cornerCut)
+					glFunc.PopMatrix()
+				end
+			end
+		else
+			for texture, indices in pairs(unitpicsByTexture) do
+				local indexCount = #indices
+				for j = 1, indexCount do
+					local i = indices[j]
+					local cx = drawData.iconX[i]
+					local cy = drawData.iconY[i]
+					local udef = drawData.iconUdef[i]
+					local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size * unitpicSizeMult
+					local borderSize = iconSize + teamBorderSize + blackBorderSize
+					local cornerCut = (iconSize + teamBorderSize + blackBorderSize) * cornerCutRatio * 1.2	-- Absolute corner cut based on unitpic size
+
+					glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, cx, cy, borderSize, cornerCut)
+				end
+			end
+		end
+
+		-- PASS 2: Draw team-colored inner borders (no texture)
+		if render.minimapRotation ~= 0 then
+			for texture, indices in pairs(unitpicsByTexture) do
+				local indexCount = #indices
+				for j = 1, indexCount do
+					local i = indices[j]
+					local cx = drawData.iconX[i]
+					local cy = drawData.iconY[i]
+					local udef = drawData.iconUdef[i]
+					local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size * unitpicSizeMult
+					local borderSize = iconSize + teamBorderSize
+					local cornerCut = (iconSize + teamBorderSize + blackBorderSize) * cornerCutRatio  -- Absolute corner cut based on unitpic size
+
+					local color = teamColors[drawData.iconTeam[i]]
+					if drawData.iconSelected[i] then
+						glFunc.Color(1, 1, 1, 1)
+					else
+						glFunc.Color(color[1], color[2], color[3], 1)
+					end
+
+					glFunc.PushMatrix()
+					glFunc.Translate(cx, cy, 0)
+					glFunc.Rotate(-render.minimapRotation * 180 / math.pi, 0, 0, 1)
+					glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, 0, 0, borderSize, cornerCut)
+					glFunc.PopMatrix()
+				end
+			end
+		else
+			for texture, indices in pairs(unitpicsByTexture) do
+				local indexCount = #indices
+				for j = 1, indexCount do
+					local i = indices[j]
+					local cx = drawData.iconX[i]
+					local cy = drawData.iconY[i]
+					local udef = drawData.iconUdef[i]
+					local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size * unitpicSizeMult
+					local borderSize = iconSize + teamBorderSize
+					local cornerCut = (iconSize + teamBorderSize + blackBorderSize) * cornerCutRatio  -- Absolute corner cut based on unitpic size
+
+					local color = teamColors[drawData.iconTeam[i]]
+					if drawData.iconSelected[i] then
+						glFunc.Color(1, 1, 1, 1)
+					else
+						glFunc.Color(color[1], color[2], color[3], 1)
+					end
+
+					glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, cx, cy, borderSize, cornerCut)
+				end
+			end
+		end
+
+		-- PASS 3: Draw unitpics on top (textured octagons)
+		for texture, indices in pairs(unitpicsByTexture) do
+			glFunc.Texture(texture)
+			local indexCount = #indices
+
+			if render.minimapRotation ~= 0 then
+				for j = 1, indexCount do
+					local i = indices[j]
+					local cx = drawData.iconX[i]
+					local cy = drawData.iconY[i]
+					local udef = drawData.iconUdef[i]
+					local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size * unitpicSizeMult
+					local cornerCut = (iconSize + teamBorderSize + blackBorderSize) * cornerCutRatio  -- Absolute corner cut based on unitpic size
+
+					local buildProgress = drawData.iconBuildProgress[i]
+					local opacity = buildProgress >= 1 and 1.0 or (0.2 + (buildProgress * 0.5))
+
+					local isHovered = (drawData.hoveredUnitID and drawData.iconUnitID[i] == drawData.hoveredUnitID)
+
+					if drawData.iconSelected[i] then
+						if isHovered then
+							glFunc.Color(1, 1, 1, math.min(1.0, opacity * 1.3))
+						else
+							glFunc.Color(1, 1, 1, opacity)
+						end
+					else
+						local color = teamColors[drawData.iconTeam[i]]
+						local brightness = 0.7 + (color[1] + color[2] + color[3]) / 9
+						if isHovered then
+							glFunc.Color(brightness * 1.2, brightness * 1.2, brightness * 1.2, opacity)
+						else
+							glFunc.Color(brightness, brightness, brightness, opacity)
+						end
+					end
+
+					glFunc.PushMatrix()
+					glFunc.Translate(cx, cy, 0)
+					glFunc.Rotate(-render.minimapRotation * 180 / math.pi, 0, 0, 1)
+					glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawTexturedOctagonVertices, 0, 0, iconSize, cornerCut, picTexInset)
+					glFunc.PopMatrix()
+				end
+			else
+				for j = 1, indexCount do
+					local i = indices[j]
+					local cx = drawData.iconX[i]
+					local cy = drawData.iconY[i]
+					local udef = drawData.iconUdef[i]
+					local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size * unitpicSizeMult
+					local cornerCut = (iconSize + teamBorderSize + blackBorderSize) * cornerCutRatio  -- Absolute corner cut based on unitpic size
+
+					local buildProgress = drawData.iconBuildProgress[i]
+					local opacity = buildProgress >= 1 and 1.0 or (0.2 + (buildProgress * 0.5))
+
+					local isHovered = (drawData.hoveredUnitID and drawData.iconUnitID[i] == drawData.hoveredUnitID)
+
+					if drawData.iconSelected[i] then
+						if isHovered then
+							glFunc.Color(1, 1, 1, math.min(1.0, opacity * 1.3))
+						else
+							glFunc.Color(1, 1, 1, opacity)
+						end
+					else
+						opacity = opacity
+						local color = teamColors[drawData.iconTeam[i]]
+						local brightness = 0.7 + (color[1] + color[2] + color[3]) / 9
+						if isHovered then
+							glFunc.Color(brightness * 1.2, brightness * 1.2, brightness * 1.2, opacity)
+						else
+							glFunc.Color(brightness, brightness, brightness, opacity)
+						end
+					end
+
+					glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawTexturedOctagonVertices, cx, cy, iconSize, cornerCut, picTexInset)
+				end
+			end
+		end
+		glFunc.Texture(false)
+	end
+
+	-- Skip normal icon drawing when using unitpics
+	if not useUnitpics then
 
 	-- Draw white backgrounds for tracked units FIRST (before normal icons)
 	local trackedCount = #drawData.trackedIconIndices
@@ -4576,42 +5101,13 @@ local function DrawIcons()
 			end
 		end
 
-	-- Draw tracked unit backgrounds grouped by texture
-	for texture, indices in pairs(trackedByTexture) do
-		local invertedTexture = string.gsub(texture, "icons/", "icons/inverted/")
-		glFunc.Texture(invertedTexture)
+		-- Draw tracked unit backgrounds grouped by texture
+		for texture, indices in pairs(trackedByTexture) do
+			local invertedTexture = string.gsub(texture, "icons/", "icons/inverted/")
+			glFunc.Texture(invertedTexture)
 
-		-- Draw with counter-rotation if map is rotated
-		if render.minimapRotation ~= 0 then
-			for j = 1, #indices do
-				local idx = indices[j]
-				if drawData.iconBuildProgress[idx] >= 1 then
-					local cx = drawData.iconX[idx]
-					local cy = drawData.iconY[idx]
-					local udef = drawData.iconUdef[idx]
-					local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size
-					local baseSize = cache.unitIcon[udef].size
-					local borderPixels = 0.09 / baseSize  -- Inverse relationship: smaller units get proportionally more border
-					local enlargedSize = iconSize * (1 + borderPixels)
-
-					glFunc.PushMatrix()
-					glFunc.Translate(cx, cy, 0)
-					glFunc.Rotate(-render.minimapRotation * 180 / math.pi, 0, 0, 1)
-					glFunc.BeginEnd(glConst.QUADS, function()
-						glFunc.TexCoord(texInset, 1 - texInset)
-						glFunc.Vertex(-enlargedSize, -enlargedSize)
-						glFunc.TexCoord(1 - texInset, 1 - texInset)
-						glFunc.Vertex(enlargedSize, -enlargedSize)
-						glFunc.TexCoord(1 - texInset, texInset)
-						glFunc.Vertex(enlargedSize, enlargedSize)
-						glFunc.TexCoord(texInset, texInset)
-						glFunc.Vertex(-enlargedSize, enlargedSize)
-					end)
-					glFunc.PopMatrix()
-				end
-			end
-		else
-			glFunc.BeginEnd(glConst.QUADS, function()
+			-- Draw with counter-rotation if map is rotated
+			if render.minimapRotation ~= 0 then
 				for j = 1, #indices do
 					local idx = indices[j]
 					if drawData.iconBuildProgress[idx] >= 1 then
@@ -4623,21 +5119,50 @@ local function DrawIcons()
 						local borderPixels = 0.09 / baseSize  -- Inverse relationship: smaller units get proportionally more border
 						local enlargedSize = iconSize * (1 + borderPixels)
 
-						glFunc.TexCoord(texInset, 1 - texInset)
-						glFunc.Vertex(cx - enlargedSize, cy - enlargedSize)
-						glFunc.TexCoord(1 - texInset, 1 - texInset)
-						glFunc.Vertex(cx + enlargedSize, cy - enlargedSize)
-						glFunc.TexCoord(1 - texInset, texInset)
-						glFunc.Vertex(cx + enlargedSize, cy + enlargedSize)
-						glFunc.TexCoord(texInset, texInset)
-						glFunc.Vertex(cx - enlargedSize, cy + enlargedSize)
+						glFunc.PushMatrix()
+						glFunc.Translate(cx, cy, 0)
+						glFunc.Rotate(-render.minimapRotation * 180 / math.pi, 0, 0, 1)
+						glFunc.BeginEnd(glConst.QUADS, function()
+							glFunc.TexCoord(texInset, 1 - texInset)
+							glFunc.Vertex(-enlargedSize, -enlargedSize)
+							glFunc.TexCoord(1 - texInset, 1 - texInset)
+							glFunc.Vertex(enlargedSize, -enlargedSize)
+							glFunc.TexCoord(1 - texInset, texInset)
+							glFunc.Vertex(enlargedSize, enlargedSize)
+							glFunc.TexCoord(texInset, texInset)
+							glFunc.Vertex(-enlargedSize, enlargedSize)
+						end)
+						glFunc.PopMatrix()
 					end
 				end
-			end)
+			else
+				glFunc.BeginEnd(glConst.QUADS, function()
+					for j = 1, #indices do
+						local idx = indices[j]
+						if drawData.iconBuildProgress[idx] >= 1 then
+							local cx = drawData.iconX[idx]
+							local cy = drawData.iconY[idx]
+							local udef = drawData.iconUdef[idx]
+							local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size
+							local baseSize = cache.unitIcon[udef].size
+							local borderPixels = 0.09 / baseSize  -- Inverse relationship: smaller units get proportionally more border
+							local enlargedSize = iconSize * (1 + borderPixels)
+
+							glFunc.TexCoord(texInset, 1 - texInset)
+							glFunc.Vertex(cx - enlargedSize, cy - enlargedSize)
+							glFunc.TexCoord(1 - texInset, 1 - texInset)
+							glFunc.Vertex(cx + enlargedSize, cy - enlargedSize)
+							glFunc.TexCoord(1 - texInset, texInset)
+							glFunc.Vertex(cx + enlargedSize, cy + enlargedSize)
+							glFunc.TexCoord(texInset, texInset)
+							glFunc.Vertex(cx - enlargedSize, cy + enlargedSize)
+						end
+					end
+				end)
+			end
 		end
+		glFunc.Texture(false)
 	end
-	glFunc.Texture(false)
-end
 
 	-- Draw bright glow for hovered unit (when command is active)
 	if drawData.hoveredUnitID then
@@ -4917,6 +5442,8 @@ end
 		end)
 		end
 	end
+
+	end  -- End of "if not useUnitpics" block
 
 	-- Draw radar blobs for units in radar but not in LOS
 	local radarBlobCount = #drawData.radarBlobX
@@ -5211,7 +5738,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 					local r, g, b = Spring.GetTeamColor(teamID)
 					-- Scale cursor size: larger at low zoom, stays reasonable at high zoom
 					local cursorSize = render.vsy * 0.0073
-
+					Spring.Echo()
 					-- Draw crosshair lines to PIP boundaries (stop at cursor edge)
 					--glFunc.Color(r*1.5+0.5, g*1.5+0.5, b*1.5+0.5, 0.08)
 					--glFunc.LineWidth(render.vsy / 600)
@@ -7245,10 +7772,19 @@ function widget:DrawWorld()
 			end
 		end
 
-		glFunc.Color(r, g, b, 0.25)
-		glFunc.LineWidth(2.5)
 		gl.DepthTest(true)
-		glFunc.BeginEnd(glConst.LINE_STRIP, DrawGroundBox, render.world.l, render.world.r, render.world.b, render.world.t)
+		local innerLineDist = 8
+		local cornerSize = 11
+		glFunc.LineWidth(7)
+		glFunc.Color(0, 0, 0, 0.05)
+		glFunc.BeginEnd(glConst.LINE_STRIP, DrawGroundBox, render.world.l, render.world.r, render.world.b, render.world.t, cornerSize)
+		glFunc.Color(0, 0, 0, 0.015)
+		glFunc.BeginEnd(glConst.LINE_STRIP, DrawGroundBox, render.world.l+innerLineDist, render.world.r-innerLineDist, render.world.b+innerLineDist, render.world.t-innerLineDist, cornerSize*0.65)
+		glFunc.LineWidth(2.5)
+		glFunc.Color(r, g, b, 0.25)
+		glFunc.BeginEnd(glConst.LINE_STRIP, DrawGroundBox, render.world.l, render.world.r, render.world.b, render.world.t, cornerSize)
+		glFunc.Color(r, g, b, 0.045)
+		glFunc.BeginEnd(glConst.LINE_STRIP, DrawGroundBox, render.world.l+innerLineDist, render.world.r-innerLineDist, render.world.b-innerLineDist, render.world.t+innerLineDist, cornerSize*0.65)
 		gl.DepthTest(false)
 	end
 
@@ -7362,13 +7898,34 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	end
 
 	-- Draw dark background rectangle (centered at origin after transform)
+	-- Use octagon with corners cut off by 16 world units (converted to minimap units)
+	local cornerWorldSize = 64
+	local cornerX = (cornerWorldSize / mapInfo.mapSizeX) * minimapWidth
+	local cornerY = (cornerWorldSize / mapInfo.mapSizeZ) * minimapHeight
+	-- Clamp corner size if rectangle is too small
+	local maxCorner = math.min(halfWidth, halfHeight) / 2
+	local cx = math.min(cornerX, maxCorner)
+	local cy = math.min(cornerY, maxCorner)
+
 	glFunc.Color(0, 0, 0, 0.6)
 	glFunc.LineWidth((linewidth*1.5)+1)
 	glFunc.BeginEnd(GL.LINE_LOOP, function()
-		glFunc.Vertex(-halfWidth, -halfHeight)
-		glFunc.Vertex(halfWidth, -halfHeight)
-		glFunc.Vertex(halfWidth, halfHeight)
-		glFunc.Vertex(-halfWidth, halfHeight)
+		-- Bottom edge
+		glFunc.Vertex(-halfWidth + cx, -halfHeight)
+		glFunc.Vertex(halfWidth - cx, -halfHeight)
+		-- Bottom-right corner cut
+		glFunc.Vertex(halfWidth, -halfHeight + cy)
+		-- Right edge
+		glFunc.Vertex(halfWidth, halfHeight - cy)
+		-- Top-right corner cut
+		glFunc.Vertex(halfWidth - cx, halfHeight)
+		-- Top edge
+		glFunc.Vertex(-halfWidth + cx, halfHeight)
+		-- Top-left corner cut
+		glFunc.Vertex(-halfWidth, halfHeight - cy)
+		-- Left edge
+		glFunc.Vertex(-halfWidth, -halfHeight + cy)
+		-- Bottom-left corner cut closes the loop
 	end)
 
 	-- Use team color if tracking a player, otherwise white
@@ -7383,10 +7940,22 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	glFunc.Color(r, g, b, 1)
 	glFunc.LineWidth(linewidth)
 	glFunc.BeginEnd(GL.LINE_LOOP, function()
-		glFunc.Vertex(-halfWidth, -halfHeight)
-		glFunc.Vertex(halfWidth, -halfHeight)
-		glFunc.Vertex(halfWidth, halfHeight)
-		glFunc.Vertex(-halfWidth, halfHeight)
+		-- Bottom edge
+		glFunc.Vertex(-halfWidth + cx, -halfHeight)
+		glFunc.Vertex(halfWidth - cx, -halfHeight)
+		-- Bottom-right corner cut
+		glFunc.Vertex(halfWidth, -halfHeight + cy)
+		-- Right edge
+		glFunc.Vertex(halfWidth, halfHeight - cy)
+		-- Top-right corner cut
+		glFunc.Vertex(halfWidth - cx, halfHeight)
+		-- Top edge
+		glFunc.Vertex(-halfWidth + cx, halfHeight)
+		-- Top-left corner cut
+		glFunc.Vertex(-halfWidth, halfHeight - cy)
+		-- Left edge
+		glFunc.Vertex(-halfWidth, -halfHeight + cy)
+		-- Bottom-left corner cut closes the loop
 	end)
 
 	glFunc.LineWidth(1.0)
@@ -7659,6 +8228,37 @@ function widget:Update(dt)
 			cameraState.zoom = cameraState.zoom + (cameraState.targetZoom - cameraState.zoom) * math.min(dt * config.zoomSmoothness, 1)
 		end
 
+		-- Calculate bounds for CURRENT zoom level
+		local pipWidth = render.dim.r - render.dim.l
+		local pipHeight = render.dim.t - render.dim.b
+		local currentVisibleWorldWidth = pipWidth / cameraState.zoom
+		local currentVisibleWorldHeight = pipHeight / cameraState.zoom
+		local currentSmallerDimension = math.min(currentVisibleWorldWidth, currentVisibleWorldHeight)
+		local currentMargin = currentSmallerDimension * config.mapEdgeMargin
+
+		local currentMinWcx = currentVisibleWorldWidth / 2 - currentMargin
+		local currentMaxWcx = mapInfo.mapSizeX - (currentVisibleWorldWidth / 2 - currentMargin)
+		local currentMinWcz = currentVisibleWorldHeight / 2 - currentMargin
+		local currentMaxWcz = mapInfo.mapSizeZ - (currentVisibleWorldHeight / 2 - currentMargin)
+
+		-- Also calculate bounds for TARGET zoom level to detect if we WILL hit an edge
+		local targetVisibleWorldWidth = pipWidth / cameraState.targetZoom
+		local targetVisibleWorldHeight = pipHeight / cameraState.targetZoom
+		local targetSmallerDimension = math.min(targetVisibleWorldWidth, targetVisibleWorldHeight)
+		local targetMargin = targetSmallerDimension * config.mapEdgeMargin
+
+		local targetMinWcx = targetVisibleWorldWidth / 2 - targetMargin
+		local targetMaxWcx = mapInfo.mapSizeX - (targetVisibleWorldWidth / 2 - targetMargin)
+		local targetMinWcz = targetVisibleWorldHeight / 2 - targetMargin
+		local targetMaxWcz = mapInfo.mapSizeZ - (targetVisibleWorldHeight / 2 - targetMargin)
+
+		-- Detect if at edge: either currently at edge, OR would be pushed by target zoom bounds
+		-- This handles both zooming from outside map AND zooming near edges inside map
+		local atLeftEdge = cameraState.wcx <= currentMinWcx + 1 or cameraState.wcx <= targetMinWcx + 1
+		local atRightEdge = cameraState.wcx >= currentMaxWcx - 1 or cameraState.wcx >= targetMaxWcx - 1
+		local atTopEdge = cameraState.wcz <= currentMinWcz + 1 or cameraState.wcz <= targetMinWcz + 1
+		local atBottomEdge = cameraState.wcz >= currentMaxWcz - 1 or cameraState.wcz >= targetMaxWcz - 1
+
 		if centerNeedsUpdate then
 			-- Use different smoothness values depending on context
 			local smoothnessToUse = config.centerSmoothness -- Default for zoom-to-cursor and panning
@@ -7671,9 +8271,69 @@ function widget:Update(dt)
 			end
 
 			local centerFactor = math.min(dt * smoothnessToUse, 1)
-			cameraState.wcx = cameraState.wcx + (cameraState.targetWcx - cameraState.wcx) * centerFactor
-			cameraState.wcz = cameraState.wcz + (cameraState.targetWcz - cameraState.wcz) * centerFactor
+
+			-- When zooming near edges, we need to handle two cases:
+			-- 1. Already AT the edge (position at current boundary) -> directly track the edge (snap)
+			-- 2. Approaching the edge (detected via target bounds) -> smoothly transition toward edge
+			-- The edge position itself changes smoothly with zoom, so snapping when AT edge gives smooth motion
+			if zoomNeedsUpdate then
+				-- Check if we're actually AT the current edge (within 2 world units)
+				local atCurrentLeftEdge = cameraState.wcx <= currentMinWcx + 2
+				local atCurrentRightEdge = cameraState.wcx >= currentMaxWcx - 2
+				local atCurrentTopEdge = cameraState.wcz <= currentMinWcz + 2
+				local atCurrentBottomEdge = cameraState.wcz >= currentMaxWcz - 2
+
+				if atLeftEdge then
+					if atCurrentLeftEdge then
+						-- Already at edge - directly track it (edge position changes with zoom)
+						cameraState.wcx = currentMinWcx
+					else
+						-- Approaching edge - smoothly transition toward it
+						local edgeFactor = math.min(dt * config.zoomSmoothness * 0.5, 1)
+						cameraState.wcx = cameraState.wcx + (currentMinWcx - cameraState.wcx) * edgeFactor
+					end
+					cameraState.targetWcx = currentMinWcx
+				elseif atRightEdge then
+					if atCurrentRightEdge then
+						cameraState.wcx = currentMaxWcx
+					else
+						local edgeFactor = math.min(dt * config.zoomSmoothness * 0.5, 1)
+						cameraState.wcx = cameraState.wcx + (currentMaxWcx - cameraState.wcx) * edgeFactor
+					end
+					cameraState.targetWcx = currentMaxWcx
+				else
+					cameraState.wcx = cameraState.wcx + (cameraState.targetWcx - cameraState.wcx) * centerFactor
+				end
+
+				if atTopEdge then
+					if atCurrentTopEdge then
+						cameraState.wcz = currentMinWcz
+					else
+						local edgeFactor = math.min(dt * config.zoomSmoothness * 0.5, 1)
+						cameraState.wcz = cameraState.wcz + (currentMinWcz - cameraState.wcz) * edgeFactor
+					end
+					cameraState.targetWcz = currentMinWcz
+				elseif atBottomEdge then
+					if atCurrentBottomEdge then
+						cameraState.wcz = currentMaxWcz
+					else
+						local edgeFactor = math.min(dt * config.zoomSmoothness * 0.5, 1)
+						cameraState.wcz = cameraState.wcz + (currentMaxWcz - cameraState.wcz) * edgeFactor
+					end
+					cameraState.targetWcz = currentMaxWcz
+				else
+					cameraState.wcz = cameraState.wcz + (cameraState.targetWcz - cameraState.wcz) * centerFactor
+				end
+			else
+				-- Not zooming, normal interpolation
+				cameraState.wcx = cameraState.wcx + (cameraState.targetWcx - cameraState.wcx) * centerFactor
+				cameraState.wcz = cameraState.wcz + (cameraState.targetWcz - cameraState.wcz) * centerFactor
+			end
 		end
+
+		-- Final clamp based on current zoom
+		cameraState.wcx = math.min(math.max(cameraState.wcx, currentMinWcx), currentMaxWcx)
+		cameraState.wcz = math.min(math.max(cameraState.wcz, currentMinWcz), currentMaxWcz)
 
 		RecalculateWorldCoordinates()
 		RecalculateGroundTextureCoordinates()
@@ -7849,23 +8509,30 @@ end
 
 function widget:UnitSeismicPing(x, y, z, strength, allyTeam)
 	if uiState.inMinMode then return end
-	-- Calculate ping radius based on strength (strength is typically 1-10)
-	-- Use larger base radius for visibility
-	local maxRadius = 100 + math.min(strength, 20) * 15
 
-	-- Add to seismic pings cache
-	table.insert(cache.seismicPings, {
-		x = x,
-		z = z,
-		strength = strength,
-		maxRadius = maxRadius,
-		startTime = gameTime,
-		allyTeam = allyTeam,
-	})
 
-	-- Limit max seismic pings to prevent memory issues
-	if #cache.seismicPings > 50 then
-		table.remove(cache.seismicPings, 1)
+	local myAllyTeam = Spring.GetMyAllyTeamID()
+	--local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
+
+	if (spec or allyTeam == myAllyTeam) then
+		-- Calculate ping radius based on strength (strength is typically 1-10)
+		-- Use larger base radius for visibility
+		local maxRadius = 100 + math.min(strength, 20) * 15
+
+		-- Add to seismic pings cache
+		table.insert(cache.seismicPings, {
+			x = x,
+			z = z,
+			strength = strength,
+			maxRadius = maxRadius,
+			startTime = gameTime,
+			allyTeam = allyTeam,
+		})
+
+		-- Limit max seismic pings to prevent memory issues
+		if #cache.seismicPings > 50 then
+			table.remove(cache.seismicPings, 1)
+		end
 	end
 end
 
@@ -8366,6 +9033,10 @@ function widget:MousePress(mx, my, mButton)
 				interactionState.panStartX = (render.dim.l + render.dim.r) / 2
 				interactionState.panStartY = (render.dim.b + render.dim.t) / 2
 				interactionState.areTracking = nil
+				-- Cancel any ongoing smooth animation by setting target to current position
+				cameraState.targetWcx = cameraState.wcx
+				cameraState.targetWcz = cameraState.wcz
+				cameraState.zoomToCursorActive = false
 			end
 			return true
 		end
@@ -8845,16 +9516,22 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 				end
 			end
 			if interactionState.areFormationDragging then
-			interactionState.areFormationDragging = false
-		end
+				interactionState.areFormationDragging = false
+			end
 
-		-- Start panning (but not when tracking player camera)
-		if not interactionState.trackingPlayerID then
-			interactionState.arePanning = true
-			interactionState.areTracking = nil
+			-- Start panning (but not when tracking player camera)
+			if not interactionState.trackingPlayerID then
+				interactionState.arePanning = true
+				interactionState.areTracking = nil
+				-- Cancel any ongoing smooth animation by setting target to current position
+				cameraState.targetWcx = cameraState.wcx
+				cameraState.targetWcz = cameraState.wcz
+				cameraState.zoomToCursorActive = false
+			end
 		end
 	end
-end	-- If middle mouse is pressed but not yet committed to a mode, check if moved
+
+	-- If middle mouse is pressed but not yet committed to a mode, check if moved
 	if interactionState.middleMousePressed and not interactionState.arePanning then
 		-- Check if there's actual movement (not just mouse jitter)
 		-- Use a small threshold to distinguish click from drag
@@ -8864,6 +9541,10 @@ end	-- If middle mouse is pressed but not yet committed to a mode, check if move
 			if not interactionState.trackingPlayerID then
 				interactionState.arePanning = true
 				interactionState.areTracking = nil
+				-- Cancel any ongoing smooth animation by setting target to current position
+				cameraState.targetWcx = cameraState.wcx
+				cameraState.targetWcz = cameraState.wcz
+				cameraState.zoomToCursorActive = false
 			end
 		end
 	end
@@ -8905,6 +9586,10 @@ end	-- If middle mouse is pressed but not yet committed to a mode, check if move
 			if not interactionState.trackingPlayerID then
 				interactionState.arePanning = true
 				interactionState.areTracking = nil
+				-- Cancel any ongoing smooth animation by setting target to current position
+				cameraState.targetWcx = cameraState.wcx
+				cameraState.targetWcz = cameraState.wcz
+				cameraState.zoomToCursorActive = false
 			end
 		end
 	end

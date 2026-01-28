@@ -66,7 +66,7 @@ local function isComplete(unitID)
 end
 
 local function isAlliedUnit(teamID, unitID)
-	local unitTeam = spGetUnitTeam(unitID)
+	local unitTeam = unitID and spGetUnitTeam(unitID)
 	return unitTeam and teamID ~= unitTeam and spAreTeamsAllied(teamID, unitTeam)
 end
 
@@ -141,7 +141,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 
 	-- In unit_{xyz}_upgrade_reclaimer, units are transferred instantly,
 	-- so we can check immediately whether they are bypassing the rules:
-	if isAlliedUnit(unitTeam, builderID) then
+	if builderID and isAlliedUnit(unitTeam, builderID) then
 		checkUnitCommandList[unitID] = spGetUnitTeam(builderID)
 	end
 end
