@@ -54,9 +54,9 @@ local min = math.min
 --------------------------------------------------------------------------------
 -- Config
 --------------------------------------------------------------------------------
-local pingLifetime = 1
-local baseRadius = 17
-local maxRadius = 23
+local pingLifetime = 0.95
+local baseRadius = 16
+local maxRadius = 22
 local baseThickness = 2.4
 
 --------------------------------------------------------------------------------
@@ -323,28 +323,24 @@ end
 function gadget:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
 	local spec, fullview = spGetSpectatingState()
 	local myAllyTeam = spGetMyAllyTeamID()
+	local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
 
-	-- pass to widgethandler
-	if spec or myAllyTeam == allyTeam then
+	if (spec or myAllyTeam ~= allyTeam) and unitAllyTeam ~= allyTeam then
+		if spec and not fullview then
+			if allyTeam ~= myAllyTeam then return end
+		end
+
+		table.insert(pings, {
+			x = x,
+			y = spGetGroundHeight(x, z) or y,
+			z = z,
+			strength = strength,
+			startTime = gameTime,
+		})
+
+		-- inform widgethandler
 		Script.LuaUI.UnitSeismicPing(x, y, z, strength, allyTeam)
 	end
-
-	if spec and not fullview then
-		if allyTeam ~= myAllyTeam then return end
-	elseif not spec then
-		if allyTeam ~= myAllyTeam then return end
-	end
-
-	local groundY = spGetGroundHeight(x, z) or y
-
-	table.insert(pings, {
-		x = x,
-		y = groundY,
-		z = z,
-		strength = strength,
-		allyTeam = allyTeam,
-		startTime = gameTime,
-	})
 end
 
 function gadget:Update(dt)
