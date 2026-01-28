@@ -203,8 +203,8 @@ local function handleTransport(transportID, target)
         end
 
         -- Check if unit has left transport
-        -- In order to support transports with capacity > 1, we need to add logic for the transport to keep waiting until it sees a unit 
-        -- that it can't pick up.
+        -- TODO: In order to support transports with capacity > 1, we need to add logic for the
+        -- transport to keep waiting until it sees a unit that it can't pick up.
         local carriedUnits = Spring.GetUnitIsTransporting(transportID)
         if carriedUnits == nil or #carriedUnits == 0 and transportState[transportID] == transport_states.loaded then
             transportState[transportID] = transport_states.unloaded
