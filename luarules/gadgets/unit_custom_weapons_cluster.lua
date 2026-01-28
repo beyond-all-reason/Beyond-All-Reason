@@ -78,7 +78,7 @@ local spDeleteProjectile      = Spring.DeleteProjectile
 local gameSpeed  = Game.gameSpeed
 local mapGravity = Game.gravity / (gameSpeed * gameSpeed) * -1
 
-local addShieldDamage, getShieldPosition, getShieldUnitsInSphere -- see unit_shield_behaviour
+local addShieldDamage, damageToShields, getShieldPosition, getShieldUnitsInSphere -- see unit_shield_behaviour
 
 --------------------------------------------------------------------------------
 -- Initialize ------------------------------------------------------------------
@@ -246,7 +246,8 @@ for _, data in pairs(clusterWeaponDefs) do
 end
 DirectionsUtil.ProvisionDirections(maxDataNum)
 
-local shieldsReworkOption = Spring.GetModOptions().shieldsrework
+-- When not using the engine's shield bounce, clusters add their own deflection.
+local customShieldDeflect = table.contains({"unchanged", "absorbeverything"}, Spring.GetModOptions().experimentalshields)
 local projectileHitShield = {}
 
 --------------------------------------------------------------------------------
@@ -395,7 +396,7 @@ end
 local function getNearShields(x, y, z, scatterDistance, teamID)
 	local shields, count = getShieldUnitsInSphere(x, y, z, scatterDistance)
 
-	if count > 0 then
+	if count and count > 0 then
 		for i = count, 1, -1 do
 			local shieldUnitID = shields[i]
 			if not isInAlliance(teamID, shieldUnitID) and isInShield(x, y, z, shieldUnitID) then
@@ -428,7 +429,8 @@ local function spawnClusterProjectiles(data, x, y, z, attackerID, projectileID)
 	local deflectX, deflectY, deflectZ = getSurfaceDeflection(x, y, z)
 
 	local hitShields = projectileHitShield[projectileID]
-	local nearShields = shieldsReworkOption and getNearShields(x, y, z, projectileSpeed * subframeScatter, attackerTeam)
+	local nearShields = customShieldDeflect and getNearShields(x, y, z, projectileSpeed * subframeScatter, attackerTeam)
+	local shieldDamage = nearShields and damageToShields[clusterDefID]
 
 	if hitShields then
 		deflectX, deflectY, deflectZ = getShieldDeflection(x, y, z, deflectX, deflectY, deflectZ, hitShields)
@@ -484,8 +486,8 @@ local function spawnClusterProjectiles(data, x, y, z, attackerID, projectileID)
 		if nearShields and spawnedID then
 			for _, shieldUnitID in pairs(nearShields) do
 				if isInShield(position[1], position[2], position[3], shieldUnitID) then
-					addShieldDamage(shieldUnitID, nil, clusterDefID, spawnedID)
-					spDeleteProjectile(spawnedID) -- just to be sure
+					addShieldDamage(shieldUnitID, shieldDamage)
+					spDeleteProjectile(spawnedID)
 				end
 			end
 		end
@@ -494,22 +496,6 @@ end
 
 --------------------------------------------------------------------------------
 -- Gadget callins --------------------------------------------------------------
-
-function gadget:Initialize()
-	if not next(clusterWeaponDefs) then
-		Spring.Log(gadget:GetInfo().name, LOG.INFO, "Removing gadget. No weapons found.")
-		gadgetHandler:RemoveGadget(self)
-		return
-	end
-
-	for weaponDefID in pairs(clusterWeaponDefs) do
-		Script.SetWatchExplosion(weaponDefID, true)
-	end
-
-	addShieldDamage = GG.AddShieldDamage
-	getShieldPosition = GG.GetUnitShieldPosition
-	getShieldUnitsInSphere = GG.GetShieldUnitsInSphere
-end
 
 function gadget:Explosion(weaponDefID, x, y, z, attackerID, projectileID)
 	local weaponData = clusterWeaponDefs[weaponDefID]
@@ -525,7 +511,8 @@ function gadget:GameFramePost(frame)
 	end
 end
 
-function gadget:ShieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, shieldUnitID, bounceProjectile, beamWeaponIndex, beamUnitID, startX, startY, startZ, hitX, hitY, hitZ)
+---@type ShieldPreDamagedCallback
+local function shieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, shieldUnitID, bounceProjectile, beamWeaponIndex, beamUnitID, startX, startY, startZ, hitX, hitY, hitZ)
 	if projectileID > -1 and clusterWeaponDefs[spGetProjectileDefID(projectileID)] then
 		local hitShields = projectileHitShield[projectileID]
 		if hitShields then
@@ -534,4 +521,38 @@ function gadget:ShieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, sh
 			projectileHitShield[projectileID] = { shieldUnitID }
 		end
 	end
+end
+
+function gadget:Initialize()
+	if not next(clusterWeaponDefs) then
+		Spring.Log(gadget:GetInfo().name, LOG.INFO, "Removing gadget. No weapons found.")
+		gadgetHandler:RemoveGadget(self)
+		return
+	end
+
+	for weaponDefID in pairs(clusterWeaponDefs) do
+		Script.SetWatchExplosion(weaponDefID, true)
+	end
+
+	if not GG.Shields then
+		Spring.Log("ScriptedWeapons", LOG.ERROR, "Shields API unavailable (cluster)")
+		return
+	end
+
+	addShieldDamage = GG.Shields.AddShieldDamage
+	damageToShields = GG.Shields.DamageToShields
+	getShieldPosition = GG.Shields.GetUnitShieldPosition
+	getShieldUnitsInSphere = GG.Shields.GetShieldUnitsInSphere
+
+	-- Metatable for lookup on projectiles, rather than on our weaponDefIDs.
+	-- This is likely cheaper than keeping a projectiles cache table around.
+	local projectiles = setmetatable({
+		[-1] = false, -- beam weapons use projectileID -1
+	}, {
+		__index = function(tbl, key)
+			return clusterWeaponDefs[spGetProjectileDefID(key)]
+		end
+	})
+
+	GG.Shields.RegisterShieldPreDamaged(projectiles, shieldPreDamaged)
 end
