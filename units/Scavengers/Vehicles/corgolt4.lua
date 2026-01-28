@@ -194,7 +194,7 @@ return {
 				badtargetcategory = "VTOL",
 				def = "CORLEVLR_WEAPON",
 				onlytargetcategory = "SURFACE",
-				weaponAimAdjustPriority = 9,
+				weaponaimadjustpriority = 9,
 			},
 			[2] = {
 				badtargetcategory = "VTOL",
