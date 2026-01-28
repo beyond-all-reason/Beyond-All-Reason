@@ -25,8 +25,11 @@ local spGetMyTeamID = Spring.GetMyTeamID
 -- Speedups
 local GiveOrderToUnit   = Spring.GiveOrderToUnit
 local GetUnitStates     = Spring.GetUnitStates
+local GiveOrder         = Spring.GiveOrder
 local CMD_WANT_CLOAK    = GameCMD.WANT_CLOAK
-
+local CMD_OPT_ALT       = CMD.OPT_ALT
+local CMD_INSERT        = CMD.INSERT
+local CMD_STOP          = CMD.STOP
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 local myTeam = spGetMyTeamID()
@@ -59,6 +62,15 @@ for _,name in pairs(exceptionList) do
 	end
 end
 
+local function setFireState(unitID, fireState)
+	GiveOrderToUnit(unitID, CMD.FIRE_STATE, { fireState }, 0)
+
+	-- if fireState is 0 (hold fire), insert a stop command so we stop firing immediately and can cloak without delay
+	if fireState == 0 then
+		GiveOrderToUnit(unitID, CMD_INSERT, {0, CMD_STOP, 0}, CMD_OPT_ALT)
+	end
+end
+
 local decloakFireState = {} --stores the desired fire state when decloaked of each unitID
 
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
@@ -70,12 +82,12 @@ function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts
 		if cmdParams[1] == 1 then -- store current fire state and cloak
 			decloakFireState[unitID] = select(1, GetUnitStates(unitID, false)) --store last state
 			if decloakFireState[unitID] ~= 0 then
-				GiveOrderToUnit(unitID, CMD.FIRE_STATE, { 0 }, 0)
+				setFireState(unitID, 0)
 			end
 		else -- decloak and restore previous fire state
 			if select(1, GetUnitStates(unitID, false)) == 0 then
 				local targetState = decloakFireState[unitID] or 0 -- default to hold fire if no cached state is found
-				GiveOrderToUnit(unitID, CMD.FIRE_STATE, { targetState }, 0) --revert to last state
+				setFireState(unitID, targetState)
 			end
 			decloakFireState[unitID] = nil
 		end
