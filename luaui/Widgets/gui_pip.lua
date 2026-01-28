@@ -1,5 +1,5 @@
 if not Spring.GetModOptions().pip then --and not Spring.GetModOptions().allowuserwidgets then
-	return
+	--return
 end
 
 function widget:GetInfo()
@@ -36,7 +36,7 @@ local config = {
 	minPanelSize = 330,
 	maxPanelSizeVsy = 0.4,  -- Maximum size as fraction of vertical screen resolution
 	buttonSize = 50,
-
+	
 	-- Zoom settings
 	zoomWheel = 1.22,
 	zoomRate = 15,
@@ -50,7 +50,7 @@ local config = {
 	zoomFeatures = 0.2,
 	zoomProjectileDetail = 0.2,
 	zoomExplosionDetail = 0.1,
-
+	
 	-- Feature and overlay settings
 	hideEnergyOnlyFeatures = false,
 	showLosOverlay = true,
@@ -58,7 +58,7 @@ local config = {
 	losOverlayOpacity = 0.6,
 	showPipFps = false,
 	allowCommandsWhenSpectating = false,  -- Allow giving commands as spectator when god mode is enabled
-
+	
 	-- Rendering settings
 	iconRadius = 40,
 	showUnitpics = true,      -- Show unitpics instead of icons when zoomed in
@@ -73,7 +73,7 @@ local config = {
 	switchInheritsTracking = false,
 	switchTransitionTime = 0.15,
 	showMapRuler = true,
-
+	
 	-- Performance settings
 	pipMinUpdateRate = 30,
 	pipMaxUpdateRate = 120,
@@ -81,7 +81,7 @@ local config = {
 	pipZoomThresholdMax = 0.4,
 	pipTargetDrawTime = 0.003,
 	pipPerformanceAdjustSpeed = 0.1,
-
+	
 	radarWobbleSpeed = 1,
 	CMD_AREA_MEX = GameCMD and GameCMD.AREA_MEX or 10000,
 }
@@ -344,6 +344,15 @@ local gameTime = 0 -- Accumulated game time (pauses when game is paused)
 
 local unitOutlineList = nil
 local radarDotList = nil
+local seismicPingDlists = {
+	outerArcs = {},
+	middleArcs = {},
+	innerArcs = {},
+	centerCircle = nil,
+	outerOutlines = {},
+	middleOutlines = {},
+	innerOutlines = {},
+}
 local gameHasStarted
 local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID()))
 
@@ -671,7 +680,7 @@ local buttons = {
 				pipR2T.frameNeedsUpdate = true
 			else
 				local _, _, isSpec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
-
+				
 				if isSpec then
 					-- Spectator: Track team leader (keep existing behavior)
 					local myTeamID = Spring.GetMyTeamID()
@@ -710,11 +719,11 @@ local buttons = {
 								break
 							end
 						end
-
+						
 						-- Cycle to next teammate
 						currentIndex = (currentIndex % #teammates) + 1
 						local targetPlayerID = teammates[currentIndex]
-
+						
 						-- Double-check we're not tracking ourselves
 						if targetPlayerID ~= Spring.GetMyPlayerID() then
 							interactionState.trackingPlayerID = targetPlayerID
@@ -733,7 +742,7 @@ local buttons = {
 		texture = 'LuaUI/Images/pip/PipMove.png',
 		tooltip = Spring.I18N('ui.pip.move'),
 		command = nil,
-		OnPress = function()
+		OnPress = function() 
 			interactionState.areDragging = true
 		end
 	},
@@ -761,10 +770,10 @@ local losShaderCode = {
 			float losValue = texture2D(losTex, texCoord).r;
 			// Red channel of radar texture: Radar coverage
 			float radarValue = texture2D(radarTex, texCoord).r;
-
+			
 			// Calculate grey based on LOS
 			float grey = baseValue + losValue * losScale;
-
+			
 			// If showRadar enabled, darken areas that have neither LOS nor radar
 			if (showRadar > 0.5) {
 				if (losValue < 0.2 && radarValue < 0.2) {
@@ -803,11 +812,11 @@ local waterShaderCode = {
 		varying vec2 texCoord;
 		void main() {
 			float height = texture2D(heightTex, texCoord).r;
-
+			
 			// Heightmap: black (0.0) = water, white (1.0) = land
 			// Apply water color where heightmap is black (water areas)
 			float waterAmount = 1.0 - height;
-
+			
 			gl_FragColor = vec4(waterColor.rgb, waterColor.a * waterAmount * 0.05);
 		}
 	]],
@@ -839,7 +848,7 @@ local worldToPipOffsetZ = 0
 
 function RecalculateWorldCoordinates()
 	local hw, hh = 0.5 * (render.dim.r - render.dim.l) / cameraState.zoom, 0.5 * (render.dim.t - render.dim.b) / cameraState.zoom
-
+	
 	-- At 90/270 degrees, the content is rotated inside the rectangular PIP window
 	-- So we need to swap what the world considers width/height
 	local isRotated90 = false
@@ -850,7 +859,7 @@ function RecalculateWorldCoordinates()
 			isRotated90 = true
 		end
 	end
-
+	
 	render.world.l, render.world.r, render.world.b, render.world.t = cameraState.wcx - hw, cameraState.wcx + hw, cameraState.wcz + hh, cameraState.wcz - hh
 
 	-- Precalculate factors for WorldToPipCoords (performance)
@@ -885,7 +894,7 @@ function RecalculateGroundTextureCoordinates()
 	-- At 90/270 degrees with rectangular PIP, we need to use swapped dimensions
 	-- so that after rotation the content fills the window correctly
 	local dimL, dimR, dimB, dimT = render.dim.l, render.dim.r, render.dim.b, render.dim.t
-
+	
 	if render.minimapRotation then
 		local rotDeg = math.abs(render.minimapRotation * 180 / math.pi) % 180
 		if rotDeg > 45 and rotDeg < 135 then
@@ -901,7 +910,7 @@ function RecalculateGroundTextureCoordinates()
 			dimT = centerY + halfWidth
 		end
 	end
-
+	
 	if render.world.l < 0 then
 		render.ground.view.l = dimL + (dimR - dimL) * (-render.world.l / (render.world.r - render.world.l))
 		render.ground.coord.l = 0
@@ -1061,10 +1070,10 @@ local function GetAliveTeammates()
 	if not myTeamID then
 		return {}
 	end
-
+	
 	local teammates = {}
 	local playerList = Spring.GetPlayerList()
-
+	
 	for _, playerID in ipairs(playerList) do
 		if playerID ~= myPlayerID then
 			local _, active, isSpec, playerTeamID = spFunc.GetPlayerInfo(playerID, false)
@@ -1077,7 +1086,7 @@ local function GetAliveTeammates()
 			end
 		end
 	end
-
+	
 	return teammates
 end
 
@@ -1282,22 +1291,22 @@ local function PipToWorldCoords(mx, my)
 	if render.minimapRotation ~= 0 then
 		local centerX = render.dim.l + (render.dim.r - render.dim.l) / 2
 		local centerY = render.dim.b + (render.dim.t - render.dim.b) / 2
-
+		
 		-- Translate to origin
 		local dx = mx - centerX
 		local dy = my - centerY
-
+		
 		-- Rotate back (inverse rotation = negative angle)
 		local cosR = math.cos(-render.minimapRotation)
 		local sinR = math.sin(-render.minimapRotation)
 		local rotatedX = dx * cosR - dy * sinR
 		local rotatedY = dx * sinR + dy * cosR
-
+		
 		-- Translate back
 		mx = rotatedX + centerX
 		my = rotatedY + centerY
 	end
-
+	
 	return render.world.l + (render.world.r - render.world.l) * ((mx - render.dim.l) / (render.dim.r - render.dim.l)),
 		   render.world.b + (render.world.t - render.world.b) * ((my - render.dim.b) / (render.dim.t - render.dim.b))
 end
@@ -1364,11 +1373,11 @@ local function DrawUnit(uID)
 		local _, _, _, playerTeamID = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
 		if playerTeamID then
 			local _, _, _, _, _, playerAllyTeamID = spFunc.GetTeamInfo(playerTeamID, false)
-
+			
 			-- Check if we have fullview - without it we can only see our own allyteam's LOS
 			local _, fullview = Spring.GetSpectatingState()
 			local myAllyTeam = Spring.GetMyAllyTeamID()
-
+			
 			if not fullview and playerAllyTeamID ~= myAllyTeam then
 				-- Tracking enemy player without fullview - use our own allyteam for visibility checks
 				checkAllyTeamID = myAllyTeam
@@ -1376,7 +1385,7 @@ local function DrawUnit(uID)
 				-- Either have fullview or tracking same allyteam - use tracked player's allyteam
 				checkAllyTeamID = playerAllyTeamID
 			end
-
+			
 			local _, _, _, _, _, unitAllyTeamID = spFunc.GetTeamInfo(uTeam, false)
 			isEnemyUnit = (unitAllyTeamID ~= checkAllyTeamID)
 		end
@@ -2257,9 +2266,9 @@ local function DrawIconShatters()
 
 		-- Remove old shatters
 		if progress >= 1 then
-		table.remove(cache.iconShatters, i)
-	else
-		local fade = 1 - progress			-- Calculate scale: stays at 1.0 for first 50% of duration, then shrinks to 0 (earlier than before)
+			table.remove(cache.iconShatters, i)
+		else
+			local fade = 1 - progress			-- Calculate scale: stays at 1.0 for first 50% of duration, then shrinks to 0 (earlier than before)
 			local scale
 			if progress < 0.5 then
 				scale = 1.0
@@ -2322,7 +2331,7 @@ local function DrawIconShatters()
 			end
 
 			i = i + 1
-	end -- end of else (progress < 1)
+		end -- end of else (progress < 1)
 	end -- end of while loop
 
 	-- Draw all fragments grouped by texture
@@ -2355,10 +2364,10 @@ local function DrawIconShatters()
 	gl.DepthTest(true)
 end
 
--- Draw seismic pings as animated expanding rings
+-- Draw seismic pings as animated rotating arcs (matching the gadget draw style)
 local function DrawSeismicPings()
 	if #cache.seismicPings == 0 then return end
-
+	
 	local i = 1
 	local wcx_cached = cameraState.wcx
 	local wcz_cached = cameraState.wcz
@@ -2376,15 +2385,15 @@ local function DrawSeismicPings()
 		trackedAllyTeam = trackedPlayerAllyTeam
 	end
 
-	-- Use PipBlip texture for circle drawing
-	glFunc.Texture('bitmaps/default/circles.tga')
+	local pingLifetime = 0.95
+	local baseRadius = 16
+	local maxRadius = 22
 
 	while i <= #cache.seismicPings do
 		local ping = cache.seismicPings[i]
 		local age = gameTime - ping.startTime
-		local lifetime = 1.0 -- Seismic pings last about 2 seconds
 
-		if age > lifetime then
+		if age > pingLifetime then
 			table.remove(cache.seismicPings, i)
 		else
 			-- Filter by allyteam if tracking a player
@@ -2395,40 +2404,125 @@ local function DrawSeismicPings()
 				ping.z + ping.maxRadius < worldTop or ping.z - ping.maxRadius > worldBottom then
 				i = i + 1
 			else
-				local progress = age / lifetime
+				local progress = age / pingLifetime
 
 				-- Convert world to screen coordinates (matrix already has zoom applied)
 				local screenX = ping.x - wcx_cached
 				local screenY = wcz_cached - ping.z
 
-				-- maxRadius is in world units, matrix zoom handles scaling
-				local maxRadius = ping.maxRadius
+				local radius = (baseRadius + (maxRadius - baseRadius) * progress)
 
 				glFunc.PushMatrix()
 				glFunc.Translate(screenX, screenY, 0)
 
-				-- Draw multiple expanding rings like the engine does
-				-- Outer ring (largest, fades first)
-				local outerRadius = maxRadius * (0.2 + progress * 0.8)
-				local outerAlpha = math.max(0, (1 - progress) * 0.8)
+				-- Calculate rotation and alpha values for each ring
+				local rotation1 = gameTime * 70
+				local outerProgress = math.min(1, progress * 1.3)
+				local outerAlpha = math.max(0, (1 - outerProgress) * 0.7)
+				local outerRadius = radius * 1.15 - (radius * progress * 0.25)
 
-				-- Draw seismic ping
-				glFunc.Color(1, 0, 0, outerAlpha)
-				glFunc.TexRect(-outerRadius, -outerRadius, outerRadius, outerRadius)
+				local rotation2 = -gameTime * 150
+				local middleProgress = math.max(0, math.min(1, (progress - 0.1) / 0.9))
+				local middleAlpha = math.max(0, (1 - middleProgress) * 0.85)
+				local middleRadius = radius + (radius * progress * 0.4)
 
-				-- Draw center dot
-				local centerRadius = maxRadius * 0.4 * (1 - progress * 0.5)
-				local centerAlpha = math.max(0, (1 - progress * 0.9))
-				glFunc.Color(1, 0.3, 0.3, centerAlpha)
-				glFunc.TexRect(-centerRadius, -centerRadius, centerRadius, centerRadius)
+				local rotation3 = gameTime * 90
+				local innerProgress = math.max(0, math.min(1, (progress - 0.15) / 0.85))
+				local innerAlpha = math.max(0, (1 - innerProgress))
+				local innerRadius = radius - (radius * progress * 0.45)
 
+				-- PASS 1: Draw all dark outlines with normal blending
+				gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+				gl.Scale(2.3,2.3,0)	-- scale up so it is visible in pip
+
+				-- Outer outlines
+				glFunc.Color(0.08, 0, 0, outerAlpha * 0.25)
+				for j = 0, 3 do
+					glFunc.PushMatrix()
+					glFunc.Rotate(rotation1, 0, 0, 1)
+					glFunc.Scale(outerRadius, outerRadius, 1)
+					glFunc.CallList(seismicPingDlists.outerOutlines[j])
+					glFunc.PopMatrix()
+				end
+
+				-- Middle outlines
+				glFunc.Color(0.08, 0, 0, middleAlpha * 0.25)
+				for j = 0, 2 do
+					glFunc.PushMatrix()
+					glFunc.Rotate(rotation2, 0, 0, 1)
+					glFunc.Scale(middleRadius, middleRadius, 1)
+					glFunc.CallList(seismicPingDlists.middleOutlines[j])
+					glFunc.PopMatrix()
+				end
+
+				-- Inner outlines
+				glFunc.Color(0.06, 0, 0, innerAlpha * 0.25)
+				for j = 0, 1 do
+					glFunc.PushMatrix()
+					glFunc.Rotate(rotation3, 0, 0, 1)
+					glFunc.Scale(innerRadius, innerRadius, 1)
+					glFunc.CallList(seismicPingDlists.innerOutlines[j])
+					glFunc.PopMatrix()
+				end
+
+				-- PASS 2: Draw all bright arcs with additive blending
+				gl.Blending(GL.SRC_ALPHA, GL.ONE)
+
+				-- Outer ring - 4 arcs rotating clockwise
+				glFunc.Color(1, 0.1, 0.09, outerAlpha)
+				for j = 0, 3 do
+					glFunc.PushMatrix()
+					glFunc.Rotate(rotation1, 0, 0, 1)
+					glFunc.Scale(outerRadius, outerRadius, 1)
+					glFunc.CallList(seismicPingDlists.outerArcs[j])
+					glFunc.PopMatrix()
+				end
+
+				-- Middle ring - 3 arcs rotating counter-clockwise
+				glFunc.Color(1, 0.22, 0.2, middleAlpha)
+				for j = 0, 2 do
+					glFunc.PushMatrix()
+					glFunc.Rotate(rotation2, 0, 0, 1)
+					glFunc.Scale(middleRadius, middleRadius, 1)
+					glFunc.CallList(seismicPingDlists.middleArcs[j])
+					glFunc.PopMatrix()
+				end
+
+				-- Inner ring - 2 arcs rotating clockwise
+				glFunc.Color(1, 0.37, 0.33, innerAlpha)
+				for j = 0, 1 do
+					glFunc.PushMatrix()
+					glFunc.Rotate(rotation3, 0, 0, 1)
+					glFunc.Scale(innerRadius, innerRadius, 1)
+					glFunc.CallList(seismicPingDlists.innerArcs[j])
+					glFunc.PopMatrix()
+				end
+
+				-- Center dot (shrinks from large to small with fade in/out)
+				local centerProgress = math.min(1, progress * 1.8)
+				local centerScale = baseRadius * 0.82 * (1 - centerProgress)
+				if centerScale > 0.1 then
+					local centerAlphaMultiplier
+					if centerProgress < 0.2 then
+						centerAlphaMultiplier = centerProgress / 0.2
+					else
+						centerAlphaMultiplier = (1 - centerProgress) / 0.8
+					end
+					local centerAlpha = math.max(0, centerAlphaMultiplier * 0.6)
+					glFunc.Color(1, 0.25, 0.23, centerAlpha)
+					glFunc.PushMatrix()
+					glFunc.Scale(centerScale, centerScale, 1)
+					glFunc.CallList(seismicPingDlists.centerCircle)
+					glFunc.PopMatrix()
+				end
+
+				gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 				glFunc.PopMatrix()
 				i = i + 1
 			end
 		end
 	end
 
-	glFunc.Texture(false)
 	glFunc.Color(1, 1, 1, 1)
 end
 
@@ -2694,7 +2788,7 @@ local function GetUnitAtPoint(wx, wz)
 
 	local factoryID
 	local radarUnitID  -- Store highest priority radar-only unit
-
+	
 	-- Iterate backwards to respect draw order (units drawn last are on top)
 	for i = #miscState.pipUnits, 1, -1 do
 		local uID = miscState.pipUnits[i]
@@ -2718,7 +2812,7 @@ local function GetUnitAtPoint(wx, wz)
 				-- Check if this unit is only visible via radar (not in LOS)
 				local losState = spFunc.GetUnitLosState(uID, checkAllyTeamID)
 				local isRadarOnly = losState and losState.radar and not losState.los
-
+				
 				if isRadarOnly then
 					-- Radar-only units have highest priority (drawn on top)
 					if not radarUnitID then
@@ -2738,7 +2832,7 @@ local function GetUnitAtPoint(wx, wz)
 			end
 		end
 	end
-
+	
 	-- Return in priority order: radar units > regular units > factories
 	return radarUnitID or factoryID
 end
@@ -3307,7 +3401,115 @@ end
 -- Callins
 ----------------------------------------------------------------------------------------------------
 
+-- Helper: Draw a thick arc as geometry (for display list creation)
+local function DrawThickArcVertices(innerRadius, outerRadius, startAngle, endAngle, segments)
+	local angleStep = (endAngle - startAngle) / segments
+	local cos, sin = math.cos, math.sin
+	for i = 0, segments - 1 do
+		local angle1 = startAngle + i * angleStep
+		local angle2 = startAngle + (i + 1) * angleStep
+		local cos1, sin1 = cos(angle1), sin(angle1)
+		local cos2, sin2 = cos(angle2), sin(angle2)
+		glFunc.Vertex(cos1 * innerRadius, sin1 * innerRadius, 0)
+		glFunc.Vertex(cos1 * outerRadius, sin1 * outerRadius, 0)
+		glFunc.Vertex(cos2 * outerRadius, sin2 * outerRadius, 0)
+		glFunc.Vertex(cos2 * innerRadius, sin2 * innerRadius, 0)
+	end
+end
+
+-- Create display lists for seismic ping rotating arcs
+local function CreateSeismicPingDlists()
+	local pi = math.pi
+	local pi2 = pi * 2
+	local baseRadius = 16
+	local baseThickness = 2.4
+
+	-- Proportional thicknesses (relative to unit radius 1.0)
+	local outerThicknessRatio = baseThickness * 1.05 / baseRadius
+	local middleThicknessRatio = baseThickness * 0.8 / baseRadius
+	local innerThicknessRatio = baseThickness * 1 / baseRadius
+	local centerThicknessRatio = baseThickness * 1.8 / baseRadius
+	local outlineExtra = 0.02
+
+	-- Outer arcs: 4 arcs, 60 degrees each
+	local outerInner = 1.08 - outerThicknessRatio / 2
+	local outerOuter = 1.08 + outerThicknessRatio / 2
+	for i = 0, 3 do
+		local startAngle = (i * 90) * pi / 180
+		local arcLength = 60 * pi / 180
+		-- Outline
+		seismicPingDlists.outerOutlines[i] = gl.CreateList(function()
+			glFunc.BeginEnd(glConst.QUADS, DrawThickArcVertices, outerInner - outlineExtra, outerOuter + outlineExtra, startAngle - 0.02, startAngle + arcLength + 0.02, 12)
+		end)
+		-- Main arc
+		seismicPingDlists.outerArcs[i] = gl.CreateList(function()
+			glFunc.BeginEnd(glConst.QUADS, DrawThickArcVertices, outerInner, outerOuter, startAngle, startAngle + arcLength, 12)
+		end)
+	end
+
+	-- Middle arcs: 3 arcs, 80 degrees each, at 0.85 of unit radius
+	local middleRadiusRatio = 0.85
+	local middleInner = middleRadiusRatio - middleThicknessRatio / 2
+	local middleOuter = middleRadiusRatio + middleThicknessRatio / 2
+	for i = 0, 2 do
+		local startAngle = (i * 120) * pi / 180
+		local arcLength = 80 * pi / 180
+		-- Outline
+		seismicPingDlists.middleOutlines[i] = gl.CreateList(function()
+			glFunc.BeginEnd(glConst.QUADS, DrawThickArcVertices, middleInner - outlineExtra, middleOuter + outlineExtra, startAngle - 0.02, startAngle + arcLength + 0.02, 12)
+		end)
+		-- Main arc
+		seismicPingDlists.middleArcs[i] = gl.CreateList(function()
+			glFunc.BeginEnd(glConst.QUADS, DrawThickArcVertices, middleInner, middleOuter, startAngle, startAngle + arcLength, 12)
+		end)
+	end
+
+	-- Inner arcs: 2 arcs, 120 degrees each, at 0.66 of unit radius
+	local innerRadiusRatio = 0.66
+	local innerInner = innerRadiusRatio - innerThicknessRatio / 2
+	local innerOuter = innerRadiusRatio + innerThicknessRatio / 2
+	for i = 0, 1 do
+		local startAngle = (i * 180) * pi / 180
+		local arcLength = 120 * pi / 180
+		-- Outline
+		seismicPingDlists.innerOutlines[i] = gl.CreateList(function()
+			glFunc.BeginEnd(glConst.QUADS, DrawThickArcVertices, innerInner - outlineExtra, innerOuter + outlineExtra, startAngle - 0.02, startAngle + arcLength + 0.02, 16)
+		end)
+		-- Main arc
+		seismicPingDlists.innerArcs[i] = gl.CreateList(function()
+			glFunc.BeginEnd(glConst.QUADS, DrawThickArcVertices, innerInner, innerOuter, startAngle, startAngle + arcLength, 16)
+		end)
+	end
+
+	-- Center circle: full circle
+	local centerInner = 1 - centerThicknessRatio / 1.3
+	local centerOuter = 1.25 + centerThicknessRatio / 1.3
+	seismicPingDlists.centerCircle = gl.CreateList(function()
+		glFunc.BeginEnd(glConst.QUADS, DrawThickArcVertices, centerInner, centerOuter, 0, pi2, 20)
+	end)
+end
+
+-- Delete seismic ping display lists
+local function DeleteSeismicPingDlists()
+	for i = 0, 3 do
+		if seismicPingDlists.outerArcs[i] then gl.DeleteList(seismicPingDlists.outerArcs[i]) end
+		if seismicPingDlists.outerOutlines[i] then gl.DeleteList(seismicPingDlists.outerOutlines[i]) end
+	end
+	for i = 0, 2 do
+		if seismicPingDlists.middleArcs[i] then gl.DeleteList(seismicPingDlists.middleArcs[i]) end
+		if seismicPingDlists.middleOutlines[i] then gl.DeleteList(seismicPingDlists.middleOutlines[i]) end
+	end
+	for i = 0, 1 do
+		if seismicPingDlists.innerArcs[i] then gl.DeleteList(seismicPingDlists.innerArcs[i]) end
+		if seismicPingDlists.innerOutlines[i] then gl.DeleteList(seismicPingDlists.innerOutlines[i]) end
+	end
+	if seismicPingDlists.centerCircle then gl.DeleteList(seismicPingDlists.centerCircle) end
+end
+
 function widget:Initialize()
+
+	-- Create seismic ping display lists
+	CreateSeismicPingDlists()
 
 	unitOutlineList = gl.CreateList(function()
 		glFunc.BeginEnd(GL.LINE_LOOP, function()
@@ -3370,7 +3572,7 @@ function widget:Initialize()
 		if uDef.isBuilding then
 			cache.isBuilding[uDefID] = true
 		end
-
+		
 		-- Cache combat properties
 		if uDef.weapons and #uDef.weapons > 0 then
 			-- Check if unit has any non-shield weapons
@@ -3415,7 +3617,7 @@ function widget:Initialize()
 			pipR2T.losTex = nil
 		end
 	end
-
+	
 	-- Initialize water shader if map has water
 	if mapInfo.hasWater then
 		waterShader = gl.CreateShader(waterShaderCode)
@@ -3478,7 +3680,7 @@ function widget:Initialize()
 		if wDef.name and string.find(string.lower(wDef.name), "footstep") then
 			cache.weaponSkipExplosion[wDefID] = true
 		end
-
+	
 	-- Check if weapon is paralyze damage
 	if wDef.damages and wDef.damages.paralyzeDamageTime and wDef.damages.paralyzeDamageTime > 0 then
 		cache.weaponIsParalyze[wDefID] = true
@@ -3545,7 +3747,7 @@ if not uiState.inMinMode and not miscState.hadSavedConfig then
 			if playerID == myPlayerID then
 				return false
 			end
-
+			
 			local name, _, isSpec = spFunc.GetPlayerInfo(playerID, false)
 			if name and not isSpec then
 				interactionState.trackingPlayerID = playerID
@@ -3718,6 +3920,7 @@ end
 function widget:Shutdown()
 	gl.DeleteList(unitOutlineList)
 	gl.DeleteList(radarDotList)
+	DeleteSeismicPingDlists()
 
 	-- Clean up render-to-texture
 	if pipR2T.contentTex then
@@ -3746,7 +3949,7 @@ function widget:Shutdown()
 		gl.DeleteShader(losShader)
 		losShader = nil
 	end
-
+	
 	if waterShader then
 		gl.DeleteShader(waterShader)
 		waterShader = nil
@@ -3835,24 +4038,24 @@ function widget:SetConfigData(data)
 	-- First restore the expanded dimensions if available and valid
 	if data.pl and data.pr and data.pb and data.pt then
 		-- Validate that the position values are reasonable (between 0 and 1 as normalized coords)
-		if isValidNumber(data.pl, 0, 1) and isValidNumber(data.pr, 0, 1) and
+		if isValidNumber(data.pl, 0, 1) and isValidNumber(data.pr, 0, 1) and 
 		   isValidNumber(data.pb, 0, 1) and isValidNumber(data.pt, 0, 1) and
 		   data.pl < data.pr and data.pb < data.pt then  -- Ensure left < right and bottom < top
-
+			
 			local tempL = math.floor(data.pl*render.vsx)
 			local tempR = math.floor(data.pr*render.vsx)
 			local tempB = math.floor(data.pb*render.vsy)
 			local tempT = math.floor(data.pt*render.vsy)
-
+			
 			-- Additional sanity check: ensure dimensions are within screen bounds
 			local minSize = math.floor(config.minPanelSize * render.widgetScale)
 			local windowWidth = tempR - tempL
 			local windowHeight = tempT - tempB
-
+			
 			if windowWidth >= minSize and windowHeight >= minSize and
 			   tempL >= 0 and tempR <= render.vsx and
 			   tempB >= 0 and tempT <= render.vsy then
-
+				
 				uiState.savedDimensions = {
 					l = tempL,
 					r = tempR,
@@ -3896,7 +4099,7 @@ function widget:SetConfigData(data)
 	-- Validate camera coordinates (must be within map bounds)
 	local maxX = mapInfo.mapSizeX
 	local maxZ = mapInfo.mapSizeZ
-
+	
 	if data.wcx and isValidNumber(data.wcx, 0, maxX) then
 		cameraState.wcx = data.wcx
 	end
@@ -3904,12 +4107,12 @@ function widget:SetConfigData(data)
 		cameraState.wcz = data.wcz
 	end
 	cameraState.targetWcx, cameraState.targetWcz = cameraState.wcx, cameraState.wcz  -- Initialize targets from config
-
+	
 	-- Validate zoom level (must be between 0 and 1)
 	if data.zoom and isValidNumber(data.zoom, 0, 1) then
 		cameraState.zoom = data.zoom
 	end
-
+	
 	uiState.drawingGround = data.drawingGround~= nil and data.drawingGround or uiState.drawingGround
 	config.drawProjectiles = data.drawProjectiles~= nil and data.drawProjectiles or config.drawProjectiles
 	config.trackingSmoothness = data.trackingSmoothness or config.trackingSmoothness
@@ -4333,7 +4536,7 @@ local function DrawBuildPreview(mx, my, iconRadiusZoomDistMult)
 							break
 						end
 					end
-				end
+				end				
 				if blockedByMobile then
 					glFunc.Color(1, 1, 1, 0.5)
 				else
@@ -4522,7 +4725,7 @@ local function DrawIcons()
 
 	-- Check if we should use unitpics instead of icons
 	local useUnitpics = config.showUnitpics and cameraState.zoom >= config.unitpicZoomThreshold
-
+	
 	-- Texture coordinate inset to prevent edge bleeding
 	local texInset = 0.004
 
@@ -4566,7 +4769,7 @@ local function DrawIcons()
 			groupSize = groupSize + 1
 			textureSizes[bitmap] = groupSize
 			texGroup[groupSize] = i
-
+			
 			-- Also group by unitpic if we're using unitpics
 			if useUnitpics and cache.unitPic[udef] then
 				local unitpic = cache.unitPic[udef]
@@ -4604,7 +4807,7 @@ local function DrawIcons()
 		local blackBorderSize = 4 * cameraState.zoom * distMult
 		-- Corner cut ratio (0.25 = cut 25% of each corner of the unitpic)
 		local cornerCutRatio = 0.25
-
+		
 		-- Helper function to draw octagon vertices (for use in BeginEnd with TRIANGLE_FAN)
 		-- Uses absolute corner cut 'c' so all layers align
 		local function drawOctagonVertices(cx, cy, s, c)
@@ -4619,7 +4822,7 @@ local function DrawIcons()
 			glFunc.Vertex(cx - s, cy - s + c, 0)  -- Left bottom side
 			glFunc.Vertex(cx - s + c, cy - s, 0)  -- Close back to start
 		end
-
+		
 		-- Helper for textured octagon (unitpic) - Y flipped
 		-- Uses absolute corner cut 'c' so all layers align
 		-- Maps texture coordinates directly based on vertex position within the square
@@ -4675,7 +4878,7 @@ local function DrawIcons()
 			glFunc.TexCoord(tx, ty)
 			glFunc.Vertex(cx - s + c, cy - s, 0)
 		end
-
+		
 		-- PASS 1: Draw black outer borders (no texture)
 		glFunc.Texture(false)
 		glFunc.Color(0, 0, 0, 0.9)
@@ -4690,7 +4893,7 @@ local function DrawIcons()
 					local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size * unitpicSizeMult
 					local borderSize = iconSize + teamBorderSize + blackBorderSize
 					local cornerCut = (iconSize + teamBorderSize + blackBorderSize) * cornerCutRatio * 1.2  -- Absolute corner cut based on unitpic size
-
+					
 					glFunc.PushMatrix()
 					glFunc.Translate(cx, cy, 0)
 					glFunc.Rotate(-render.minimapRotation * 180 / math.pi, 0, 0, 1)
@@ -4709,12 +4912,12 @@ local function DrawIcons()
 					local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size * unitpicSizeMult
 					local borderSize = iconSize + teamBorderSize + blackBorderSize
 					local cornerCut = (iconSize + teamBorderSize + blackBorderSize) * cornerCutRatio * 1.2	-- Absolute corner cut based on unitpic size
-
+					
 					glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, cx, cy, borderSize, cornerCut)
 				end
 			end
 		end
-
+		
 		-- PASS 2: Draw team-colored inner borders (no texture)
 		if render.minimapRotation ~= 0 then
 			for texture, indices in pairs(unitpicsByTexture) do
@@ -4727,14 +4930,14 @@ local function DrawIcons()
 					local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size * unitpicSizeMult
 					local borderSize = iconSize + teamBorderSize
 					local cornerCut = (iconSize + teamBorderSize + blackBorderSize) * cornerCutRatio  -- Absolute corner cut based on unitpic size
-
+					
 					local color = teamColors[drawData.iconTeam[i]]
 					if drawData.iconSelected[i] then
 						glFunc.Color(1, 1, 1, 1)
 					else
 						glFunc.Color(color[1], color[2], color[3], 1)
 					end
-
+					
 					glFunc.PushMatrix()
 					glFunc.Translate(cx, cy, 0)
 					glFunc.Rotate(-render.minimapRotation * 180 / math.pi, 0, 0, 1)
@@ -4753,24 +4956,24 @@ local function DrawIcons()
 					local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size * unitpicSizeMult
 					local borderSize = iconSize + teamBorderSize
 					local cornerCut = (iconSize + teamBorderSize + blackBorderSize) * cornerCutRatio  -- Absolute corner cut based on unitpic size
-
+					
 					local color = teamColors[drawData.iconTeam[i]]
 					if drawData.iconSelected[i] then
 						glFunc.Color(1, 1, 1, 1)
 					else
 						glFunc.Color(color[1], color[2], color[3], 1)
 					end
-
+					
 					glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, cx, cy, borderSize, cornerCut)
 				end
 			end
 		end
-
+		
 		-- PASS 3: Draw unitpics on top (textured octagons)
 		for texture, indices in pairs(unitpicsByTexture) do
 			glFunc.Texture(texture)
 			local indexCount = #indices
-
+			
 			if render.minimapRotation ~= 0 then
 				for j = 1, indexCount do
 					local i = indices[j]
@@ -4782,7 +4985,7 @@ local function DrawIcons()
 
 					local buildProgress = drawData.iconBuildProgress[i]
 					local opacity = buildProgress >= 1 and 1.0 or (0.2 + (buildProgress * 0.5))
-
+					
 					local isHovered = (drawData.hoveredUnitID and drawData.iconUnitID[i] == drawData.hoveredUnitID)
 
 					if drawData.iconSelected[i] then
@@ -4800,7 +5003,7 @@ local function DrawIcons()
 							glFunc.Color(brightness, brightness, brightness, opacity)
 						end
 					end
-
+					
 					glFunc.PushMatrix()
 					glFunc.Translate(cx, cy, 0)
 					glFunc.Rotate(-render.minimapRotation * 180 / math.pi, 0, 0, 1)
@@ -4837,7 +5040,7 @@ local function DrawIcons()
 							glFunc.Color(brightness, brightness, brightness, opacity)
 						end
 					end
-
+					
 					glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawTexturedOctagonVertices, cx, cy, iconSize, cornerCut, picTexInset)
 				end
 			end
@@ -4874,7 +5077,7 @@ local function DrawIcons()
 		for texture, indices in pairs(trackedByTexture) do
 			local invertedTexture = string.gsub(texture, "icons/", "icons/inverted/")
 			glFunc.Texture(invertedTexture)
-
+			
 			-- Draw with counter-rotation if map is rotated
 			if render.minimapRotation ~= 0 then
 				for j = 1, #indices do
@@ -4988,7 +5191,7 @@ local function DrawIcons()
 					local defaultIconSize = config.iconRadius * 0.5 * cameraState.zoom * distMult
 					local glowSize = defaultIconSize * 1.4
 					glFunc.Texture('LuaUI/Images/pip/PipBlip.png')
-
+					
 					if render.minimapRotation ~= 0 then
 						glFunc.PushMatrix()
 						glFunc.Translate(cx, cy, 0)
@@ -5030,7 +5233,7 @@ local function DrawIcons()
 
 		-- Draw normal icons
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-
+		
 		-- Draw with counter-rotation if map is rotated
 		if render.minimapRotation ~= 0 then
 			for j = 1, indexCount do
@@ -5059,7 +5262,7 @@ local function DrawIcons()
 						glFunc.Color(color[1], color[2], color[3], opacity)
 					end
 				end
-
+				
 				-- Counter-rotate to keep icon upright
 				glFunc.PushMatrix()
 				glFunc.Translate(cx, cy, 0)
@@ -5122,7 +5325,7 @@ local function DrawIcons()
 	if defaultCount > 0 then
 		glFunc.Texture('LuaUI/Images/pip/PipBlip.png')
 		local defaultIconSize = config.iconRadius * 0.5 * cameraState.zoom * distMult
-
+		
 		if render.minimapRotation ~= 0 then
 			for j = 1, defaultCount do
 				local i = defaultIconIndices[j]
@@ -5148,7 +5351,7 @@ local function DrawIcons()
 						glFunc.Color(color[1], color[2], color[3], opacity)
 					end
 				end
-
+				
 				-- Counter-rotate to keep icon upright
 				glFunc.PushMatrix()
 				glFunc.Translate(cx, cy, 0)
@@ -5466,7 +5669,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 
 		-- Draw seismic pings (always visible at any zoom level)
 		DrawSeismicPings()
-
+		
 		gl.DepthTest(true)
 		gl.Blending(false)
 	end
@@ -5507,7 +5710,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 					local r, g, b = Spring.GetTeamColor(teamID)
 					-- Scale cursor size: larger at low zoom, stays reasonable at high zoom
 					local cursorSize = render.vsy * 0.0073
-
+					Spring.Echo()
 					-- Draw crosshair lines to PIP boundaries (stop at cursor edge)
 					--glFunc.Color(r*1.5+0.5, g*1.5+0.5, b*1.5+0.5, 0.08)
 					--glFunc.LineWidth(render.vsy / 600)
@@ -5602,7 +5805,7 @@ local function GetMaximizeIconRotation()
 	-- Determine expansion direction based on current or minimize button position
 	local sw, sh = Spring.GetWindowGeometry()
 	local posL, posB
-
+	
 	-- Use current position when maximized (for minimize button rotation during drag/resize)
 	-- Use minMode position when minimized (for maximize button rotation)
 	if uiState.inMinMode then
@@ -5622,10 +5825,10 @@ local function GetMaximizeIconRotation()
 			posB = render.dim.t - buttonSize
 		end
 	end
-
+	
 	local onLeftSide = (posL and posL < sw * 0.5)
 	local onBottomSide = (posB and posB < sh * 0.25)
-
+	
 	-- Default icon points to bottom-left, rotate to point toward expansion:
 	if onLeftSide and onBottomSide then
 		return 180  -- Bottom-left: expands toward top-right
@@ -5665,7 +5868,7 @@ local function RenderFrameButtons()
 	render.RectRound(pipWidth - usedButtonSizeLocal - render.elementPadding, pipHeight - usedButtonSizeLocal - render.elementPadding, pipWidth, pipHeight, render.elementCorner*0.65, 0, 0, 0, 1)
 	glFunc.Color(config.panelBorderColorLight)
 	glFunc.Texture('LuaUI/Images/pip/PipShrink.png')
-
+	
 	-- Rotate icon to point toward shrink position (opposite of expand direction)
 	local rotation = GetMaximizeIconRotation()
 	local centerX = pipWidth - usedButtonSizeLocal * 0.5
@@ -5674,7 +5877,7 @@ local function RenderFrameButtons()
 	glFunc.Translate(centerX, centerY, 0)
 	glFunc.Rotate(rotation, 0, 0, 1)
 	glFunc.Translate(-centerX, -centerY, 0)
-
+	
 	glFunc.TexRect(pipWidth - usedButtonSizeLocal, pipHeight - usedButtonSizeLocal, pipWidth, pipHeight)
 	glFunc.PopMatrix()
 	glFunc.Texture(false)
@@ -5720,7 +5923,7 @@ local function RenderFrameButtons()
 		local isActive = (visibleButtons[i].command == 'pip_track' and interactionState.areTracking) or
 		                 (visibleButtons[i].command == 'pip_trackplayer' and interactionState.trackingPlayerID) or
 		                 (visibleButtons[i].command == 'pip_view' and state.losViewEnabled)
-
+		
 		if isActive then
 			glFunc.Color(config.panelBorderColorLight)
 			glFunc.Texture(false)
@@ -5785,7 +5988,7 @@ local function DrawWaterAndLOSOverlays()
 	-- Draw water overlay using shader
 	if mapInfo.hasWater and waterShader and not mapInfo.voidWater then
 		gl.UseShader(waterShader)
-
+		
 		-- Set water color based on lava/water
 		local r, g, b, a
 		if mapInfo.isLava then
@@ -5794,15 +5997,15 @@ local function DrawWaterAndLOSOverlays()
 			r, g, b, a = 0.08, 0.11, 0.22, 0.5
 		end
 		gl.UniformFloat(gl.GetUniformLocation(waterShader, "waterColor"), r, g, b, a)
-
+		
 		-- Bind heightmap texture
 		gl.UniformInt(gl.GetUniformLocation(waterShader, "heightTex"), 0)
 		glFunc.Texture(0, '$heightmap')
-
+		
 		-- Draw water overlay
 		glFunc.Color(1, 1, 1, 1)
 		glFunc.BeginEnd(glConst.QUADS, GroundTextureVertices)
-
+		
 		glFunc.Texture(0, false)
 		gl.UseShader(0)
 	end
@@ -5841,7 +6044,7 @@ local function DrawWaterAndLOSOverlays()
 
 		glFunc.Texture(false)
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)  -- Restore default blending
-
+		
 		if render.minimapRotation == 0 then
 			gl.Scissor(false)  -- Disable scissor test
 		end
@@ -5853,25 +6056,25 @@ local function DrawMapMarkers()
 	if #miscState.mapMarkers == 0 then
 		return
 	end
-
+	
 	-- Check if LOS view is limited and get the visible allyteam
 	local shouldShowLOS, losAllyTeam = ShouldShowLOS()
 	local filterByAllyTeam = shouldShowLOS and losAllyTeam ~= nil
-
+	
 	local currentTime = os.clock()
 	local lineSize = math.floor(4 * render.widgetScale)
 	-- Scale baseSize based on zoom level (more zoomed out = slightly smaller markers)
 	local zoomScale = 0.45 + (cameraState.zoom * 0.66)  -- Scale between 0.7 and 1.0
 	local baseSize = 45 * render.widgetScale * zoomScale
-
+				
 	glFunc.Texture(false)
-
+	
 	-- Remove expired markers and draw active ones
 	local i = 1
 	while i <= #miscState.mapMarkers do
 		local marker = miscState.mapMarkers[i]
 		local age = currentTime - marker.time
-
+		
 		-- Remove markers older than 5 seconds
 		if age > 4.5 then
 			table.remove(miscState.mapMarkers, i)
@@ -5882,30 +6085,30 @@ local function DrawMapMarkers()
 				local markerAllyTeam = Spring.GetTeamAllyTeamID(marker.teamID)
 				shouldDraw = (markerAllyTeam == losAllyTeam)
 			end
-
+			
 			if shouldDraw then
 				-- Draw marker if it's within the visible area (with margin for edge visibility)
 				local sx, sy = WorldToPipCoords(marker.x, marker.z)
-
+				
 				-- Expand bounds check to include margin outside the PIP for edge markers
 				local edgeMargin = (baseSize*1.25) * render.widgetScale
 				if sx >= render.dim.l - edgeMargin and sx <= render.dim.r + edgeMargin and sy >= render.dim.b - edgeMargin and sy <= render.dim.t + edgeMargin then
 				-- Calculate rotation based on time (rotate at 180 degrees per second)
 				local rotation = (age * 180) % 360
-
+				
 				-- Size of the rectangle (in screen pixels) with pulsating scale
 				local pulseScale = 1 + math.sin(age * 4.5) * 0.2  -- Pulsate between 0.8 and 1.2
 				local size = baseSize * pulseScale
-
+				
 				-- Fade out over the last second
 				local alpha = age < 2.5 and 1 or (1 - (age - 2.5))
-
+				
 				-- Use team color or default
 				local r, g, b = 1, 1, 0  -- Default yellow
 				if marker.teamID then
 					r, g, b = Spring.GetTeamColor(marker.teamID)
 				end
-
+				
 				-- Draw rotating rectangle
 				glFunc.PushMatrix()
 				glFunc.Translate(sx, sy, 0)
@@ -5930,15 +6133,15 @@ local function DrawMapMarkers()
 					glFunc.Vertex(size, size)
 					glFunc.Vertex(-size, size)
 				end)
-
+				
 				glFunc.PopMatrix()
 			end
 			end  -- end if shouldDraw
-
+			
 			i = i + 1
 		end
 	end
-
+	
 	glFunc.LineWidth(1.0)
 	glFunc.Color(1, 1, 1, 1)
 end
@@ -6081,7 +6284,7 @@ local function DrawBuildCursorWithRotation()
 
 	glFunc.LineWidth(1.0)
 	glFunc.Color(1, 1, 1, 1)
-
+	
 	-- Pop rotation matrix
 	if render.minimapRotation ~= 0 then
 		glFunc.PopMatrix()
@@ -6091,7 +6294,7 @@ end
 local function RenderPipContents()
 	-- Cache selected units once per render cycle to avoid multiple API calls
 	local cachedSelectedUnits = Spring.GetSelectedUnits()
-
+	
 	-- Apply rotation to all content if minimap is rotated
 	if render.minimapRotation ~= 0 then
 		local centerX = render.dim.l + (render.dim.r - render.dim.l) / 2
@@ -6101,14 +6304,14 @@ local function RenderPipContents()
 		glFunc.Rotate(render.minimapRotation * 180 / math.pi, 0, 0, 1)
 		glFunc.Translate(-centerX, -centerY, 0)
 	end
-
+	
 	if uiState.drawingGround then
 		-- Draw ground minimap
 		glFunc.Color(1, 1, 1, 1)
 		glFunc.Texture('$minimap')
 		glFunc.BeginEnd(glConst.QUADS, GroundTextureVertices)
 		glFunc.Texture(false)
-
+		
 		-- Draw water and LOS overlays
 		DrawWaterAndLOSOverlays()
 	end
@@ -6119,10 +6322,10 @@ local function RenderPipContents()
 	pipR2T.contentLastDrawTime = os.clock() - drawStartTime
 
 	DrawCommandQueuesOverlay(cachedSelectedUnits)
-
+	
 	-- Draw map markers
 	DrawMapMarkers()
-
+	
 	-- Pop rotation matrix if it was applied
 	if render.minimapRotation ~= 0 then
 		glFunc.PopMatrix()
@@ -6279,10 +6482,10 @@ local function DrawMapRuler()
 	if not gl.R2tHelper then
 		return
 	end
-
+	
 	-- Calculate ruler mark size
 	local markSize = math.ceil(3 * (render.vsy / 2000))
-
+	
 	-- Generate cache key with rounding to avoid tiny changes triggering regeneration
 	-- Round world coordinates to nearest 10 units and screen dimensions to nearest 5 pixels
 	local cacheKey = string.format("%d_%d_%d_%d_%d_%d_%d_%d_%d",
@@ -6295,18 +6498,18 @@ local function DrawMapRuler()
 		math.floor(render.dim.b / 3) * 3,
 		math.floor(render.dim.t / 3) * 3,
 		markSize)
-
+	
 	-- Check if texture needs regeneration
 	if pipR2T.rulerCacheKey ~= cacheKey then
 		pipR2T.rulerNeedsUpdate = true
 		pipR2T.rulerCacheKey = cacheKey
 	end
-
+	
 	-- Create/update texture if needed
 	if pipR2T.rulerNeedsUpdate then
 		local pipWidth = render.dim.r - render.dim.l
 		local pipHeight = render.dim.t - render.dim.b
-
+		
 		if not pipR2T.rulerTex or math.floor(pipWidth) ~= pipR2T.rulerLastWidth or math.floor(pipHeight) ~= pipR2T.rulerLastHeight then
 			if pipR2T.rulerTex then
 				gl.DeleteTexture(pipR2T.rulerTex)
@@ -6317,12 +6520,12 @@ local function DrawMapRuler()
 			pipR2T.rulerLastWidth = math.floor(pipWidth)
 			pipR2T.rulerLastHeight = math.floor(pipHeight)
 		end
-
+		
 		if pipR2T.rulerTex then
 			gl.R2tHelper.RenderToTexture(pipR2T.rulerTex, function()
 				glFunc.Translate(-1, -1, 0)
 				glFunc.Scale(2 / pipWidth, 2 / pipHeight, 0)
-
+				
 				-- Create reusable mark pattern display lists if not exist or size changed
 				if not render.mapRulerMarkDlists.horizontal or render.mapRulerLastMarkSize ~= markSize then
 					-- Clean up old display lists
@@ -6334,10 +6537,10 @@ local function DrawMapRuler()
 							gl.DeleteList(dlist)
 						end
 					end
-
+					
 					render.mapRulerMarkDlists.horizontal = {}
 					render.mapRulerMarkDlists.vertical = {}
-
+					
 					-- Create horizontal marks (top/bottom edges) - centered at origin
 					for i, mult in ipairs({1, 2, 3}) do
 						local length = markSize * mult
@@ -6360,7 +6563,7 @@ local function DrawMapRuler()
 							end)
 						end)
 					end
-
+					
 					-- Create vertical marks (left/right edges) - centered at origin
 					for i, mult in ipairs({1, 2, 3}) do
 						local length = markSize * mult
@@ -6383,10 +6586,10 @@ local function DrawMapRuler()
 							end)
 						end)
 					end
-
+					
 					render.mapRulerLastMarkSize = markSize
 				end
-
+				
 				-- Use fixed ruler spacing
 				local smallestSpacing = 64
 				local mediumSpacing = smallestSpacing * 4  -- 256
@@ -6397,13 +6600,13 @@ local function DrawMapRuler()
 				if render.minimapRotation then
 					rotDeg = (render.minimapRotation * 180 / math.pi) % 360
 				end
-
+				
 				-- Determine which world axis maps to screen horizontal/vertical and in which direction
 				-- Screen Y increases upward, world Z increases downward (south)
 				-- Screen X increases rightward, world X increases rightward (east)
 				local horizWorldL, horizWorldR  -- World coords at screen left and right
 				local vertWorldB, vertWorldT    -- World coords at screen bottom and top
-
+				
 				if rotDeg >= 315 or rotDeg < 45 then
 					-- ~0 degrees: X horizontal (normal), Z vertical (flipped)
 					horizWorldL, horizWorldR = render.world.l, render.world.r
@@ -6421,10 +6624,10 @@ local function DrawMapRuler()
 					horizWorldL, horizWorldR = render.world.b, render.world.t
 					vertWorldB, vertWorldT = render.world.r, render.world.l
 				end
-
+				
 				local horizWorldRange = horizWorldR - horizWorldL
 				local vertWorldRange = vertWorldT - vertWorldB
-
+				
 				-- Calculate how many pixels each spacing level would take on screen
 				local smallestScreenSpacing = pipWidth * (smallestSpacing / math.abs(horizWorldRange))
 				local mediumScreenSpacing = pipWidth * (mediumSpacing / math.abs(horizWorldRange))
@@ -6434,10 +6637,10 @@ local function DrawMapRuler()
 				local showSmallest = smallestScreenSpacing >= 8
 				local showMedium = mediumScreenSpacing >= 8
 				local showLargest = largestScreenSpacing >= 8
-
+				
 				glFunc.Texture(false)
 				glFunc.Color(1, 1, 1, 0.18)
-
+				
 				-- Draw horizontal edge marks (top/bottom of screen)
 				local startH = math.ceil(math.min(horizWorldL, horizWorldR) / smallestSpacing) * smallestSpacing
 				local endH = math.max(horizWorldL, horizWorldR)
@@ -6447,7 +6650,7 @@ local function DrawMapRuler()
 					if lsx >= 0 and lsx <= pipWidth then
 						local is16x = (h % largestSpacing == 0)
 						local is4x = (h % mediumSpacing == 0)
-
+						
 						local markType
 						if is16x and showLargest then
 							markType = 3
@@ -6456,13 +6659,13 @@ local function DrawMapRuler()
 						elseif showSmallest then
 							markType = 1
 						end
-
+						
 						if markType then
 							glFunc.PushMatrix()
 							glFunc.Translate(lsx, pipHeight, 0)
 							glFunc.CallList(render.mapRulerMarkDlists.horizontal["top" .. markType])
 							glFunc.PopMatrix()
-
+							
 							glFunc.PushMatrix()
 							glFunc.Translate(lsx, 0, 0)
 							glFunc.CallList(render.mapRulerMarkDlists.horizontal["bottom" .. markType])
@@ -6471,7 +6674,7 @@ local function DrawMapRuler()
 					end
 					h = h + smallestSpacing
 				end
-
+				
 				-- Draw vertical edge marks (left/right of screen)
 				local startV = math.ceil(math.min(vertWorldB, vertWorldT) / smallestSpacing) * smallestSpacing
 				local endV = math.max(vertWorldB, vertWorldT)
@@ -6481,7 +6684,7 @@ local function DrawMapRuler()
 					if lsy >= 0 and lsy <= pipHeight then
 						local is16x = (v % largestSpacing == 0)
 						local is4x = (v % mediumSpacing == 0)
-
+						
 						local markType
 						if is16x and showLargest then
 							markType = 3
@@ -6490,13 +6693,13 @@ local function DrawMapRuler()
 						elseif showSmallest then
 							markType = 1
 						end
-
+						
 						if markType then
 							glFunc.PushMatrix()
 							glFunc.Translate(0, lsy, 0)
 							glFunc.CallList(render.mapRulerMarkDlists.vertical["left" .. markType])
 							glFunc.PopMatrix()
-
+							
 							glFunc.PushMatrix()
 							glFunc.Translate(pipWidth, lsy, 0)
 							glFunc.CallList(render.mapRulerMarkDlists.vertical["right" .. markType])
@@ -6505,14 +6708,14 @@ local function DrawMapRuler()
 					end
 					v = v + smallestSpacing
 				end
-
+				
 				glFunc.Color(1, 1, 1, 1)
 			end, true)
-
+			
 			pipR2T.rulerNeedsUpdate = false
 		end
 	end
-
+	
 	-- Blit the cached ruler texture
 	if pipR2T.rulerTex then
 		gl.R2tHelper.BlendTexRect(pipR2T.rulerTex, render.dim.l, render.dim.b, render.dim.r, render.dim.t, true)
@@ -6709,7 +6912,7 @@ local function UpdateR2TFrame(pipWidth, pipHeight)
 		-- Create texture large enough to include elementPadding on all sides
 		local bgTexWidth = math.floor(pipWidth + render.elementPadding * 2)
 		local bgTexHeight = math.floor(pipHeight + render.elementPadding * 2)
-
+		
 		if not pipR2T.frameBackgroundTex then
 			pipR2T.frameBackgroundTex = gl.CreateTexture(bgTexWidth, bgTexHeight, {
 				target = GL.TEXTURE_2D, format = GL.RGBA, fbo = true,
@@ -6787,14 +6990,14 @@ local function UpdateR2TContent(currentTime, pipUpdateInterval, pipWidth, pipHei
 
 	-- Check if size changed
 	local contentSizeChanged = math.floor(pipWidth) ~= pipR2T.contentLastWidth or math.floor(pipHeight) ~= pipR2T.contentLastHeight
-
+	
 	-- Check if should update
 	-- During resize, respect FPS throttling unless it's a forced update or unlimited FPS
 	local timeSinceLastUpdate = currentTime - pipR2T.contentLastUpdateTime
 	local shouldUpdate = pipR2T.contentNeedsUpdate or
 		pipUpdateInterval == 0 or
 		(pipUpdateInterval > 0 and timeSinceLastUpdate >= pipUpdateInterval)
-
+	
 	-- If size changed but we're throttled, defer the update
 	if contentSizeChanged and not shouldUpdate then
 		pipR2T.contentNeedsUpdate = true
@@ -6826,7 +7029,7 @@ local function UpdateR2TContent(currentTime, pipUpdateInterval, pipWidth, pipHei
 	if pipR2T.contentTex then
 		-- Get and store minimap rotation for coordinate transformations
 		render.minimapRotation = Spring.GetMiniMapRotation and Spring.GetMiniMapRotation() or 0
-
+		
 		gl.R2tHelper.RenderToTexture(pipR2T.contentTex, function()
 			glFunc.Translate(-1, -1, 0)
 			glFunc.Scale(2 / pipWidth, 2 / pipHeight, 0)
@@ -6872,7 +7075,7 @@ local function UpdateLOSTexture(currentTime)
 			useEngineLOS = false
 		end
 	end
-
+	
 	-- Handle delay when switching to engine LOS
 	local actualUseEngineLOS = useEngineLOS
 	if useEngineLOS then
@@ -6881,7 +7084,7 @@ local function UpdateLOSTexture(currentTime)
 		if modeChanged then
 			pipR2T.losEngineDelayFrames = 2
 		end
-
+		
 		if pipR2T.losEngineDelayFrames > 0 then
 			pipR2T.losEngineDelayFrames = pipR2T.losEngineDelayFrames - 1
 			-- Continue using manual LOS during delay to avoid visual gap
@@ -6908,7 +7111,7 @@ local function UpdateLOSTexture(currentTime)
 	if not losAllyTeam or losAllyTeam < 0 then
 		return
 	end
-
+	
 	-- Check if we can actually query this allyTeam's LOS
 	-- Without fullview, we can only query our own allyTeam
 	if losAllyTeam ~= myAllyTeam then
@@ -6936,7 +7139,7 @@ local function UpdateLOSTexture(currentTime)
 
 				-- Activate shader to convert red channel to greyscale
 				gl.UseShader(losShader)
-
+				
 				-- Update shader uniforms (in case config changed)
 				gl.UniformFloat(gl.GetUniformLocation(losShader, "showRadar"), config.showLosRadar and 1.0 or 0.0)
 
@@ -6957,7 +7160,7 @@ local function UpdateLOSTexture(currentTime)
 				local baseBrightness = 1.0 - config.losOverlayOpacity
 				local darkestBrightness = baseBrightness * 0.5  -- Same as shader: grey * 0.5
 				local showRadar = config.showLosRadar
-
+				
 				if showRadar then
 					-- Start with darkest (no LOS, no radar)
 					gl.Clear(GL.COLOR_BUFFER_BIT, darkestBrightness, darkestBrightness, darkestBrightness, 1)
@@ -6968,7 +7171,7 @@ local function UpdateLOSTexture(currentTime)
 
 				local cellSizeX = mapInfo.mapSizeX / losTexWidth
 				local cellSizeZ = mapInfo.mapSizeZ / losTexHeight
-
+				
 				-- First pass: draw radar areas (medium brightness) if showRadar enabled
 				if showRadar then
 					glFunc.Color(baseBrightness, baseBrightness, baseBrightness, 1)
@@ -6994,7 +7197,7 @@ local function UpdateLOSTexture(currentTime)
 						end
 					end)
 				end
-
+				
 				-- Second pass: draw LOS areas (brightest)
 				glFunc.Color(1, 1, 1, 1)
 				glFunc.BeginEnd(glConst.QUADS, function()
@@ -7121,7 +7324,7 @@ local function HandleHoverAndCursor(mx, my)
 					if lastHoveredUnitID and not Spring.IsUnitAllied(lastHoveredUnitID) then
 						local allyTeam = Spring.GetUnitAllyTeam(lastHoveredUnitID)
 						local isNeutral = (allyTeam == gaiaAllyTeamID)
-
+						
 						-- Check if unit is visible (LOS or radar)
 						local checkAllyTeamID = cameraState.myAllyTeamID
 						if interactionState.trackingPlayerID and cameraState.mySpecState then
@@ -7130,7 +7333,7 @@ local function HandleHoverAndCursor(mx, my)
 						end
 						local losState = spFunc.GetUnitLosState(lastHoveredUnitID, checkAllyTeamID)
 						local isVisibleOrRadar = losState and (losState.los or losState.radar)
-
+						
 						if not isNeutral and isVisibleOrRadar then
 							-- Check if any selected unit can attack
 							for i = 1, #selectedUnits do
@@ -7142,7 +7345,7 @@ local function HandleHoverAndCursor(mx, my)
 							end
 						end
 					end
-
+					
 					-- Check if we have a transport and are hovering over a transportable unit
 					-- Use cached result from throttled check above
 					if lastHoveredUnitID and Spring.IsUnitAllied(lastHoveredUnitID) then
@@ -7299,7 +7502,7 @@ function widget:DrawScreen()
 
 		-- Then draw icon on top using display list
 		local offset = render.elementPadding + 2	-- to prevent touching screen edges and FlowUI Element will remove borders
-
+		
 		-- Check if we need to recreate display list due to position change (affects rotation)
 		local sw, sh = Spring.GetWindowGeometry()
 		local currentQuadrant = (uiState.minModeL < sw * 0.5 and 1 or 2) + (uiState.minModeB < sh * 0.25 and 0 or 2)
@@ -7308,7 +7511,7 @@ function widget:DrawScreen()
 			render.minModeDlist = nil
 		end
 		render.minModeQuadrant = currentQuadrant
-
+		
 		if not render.minModeDlist then
 			render.minModeDlist = gl.CreateList(function()
 				-- Draw render.UiElement background (only borders, no fill to avoid double opacity)
@@ -7317,7 +7520,7 @@ function widget:DrawScreen()
 				-- Draw icon at origin (0,0) - will be transformed to actual position
 				glFunc.Color(config.panelBorderColorLight)
 				glFunc.Texture('LuaUI/Images/pip/PipExpand.png')
-
+				
 				-- Rotate icon based on expansion direction
 				local rotation = GetMaximizeIconRotation()
 				local centerX = offset + buttonSize * 0.5
@@ -7326,7 +7529,7 @@ function widget:DrawScreen()
 				glFunc.Translate(centerX, centerY, 0)
 				glFunc.Rotate(rotation, 0, 0, 1)
 				glFunc.Translate(-centerX, -centerY, 0)
-
+				
 				glFunc.TexRect(offset, offset, offset+buttonSize, offset+buttonSize)
 				glFunc.PopMatrix()
 				glFunc.Texture(false)
@@ -7454,7 +7657,7 @@ function widget:DrawScreen()
 			render.RectRound(render.dim.r - render.usedButtonSize - render.elementPadding, render.dim.t - render.usedButtonSize - render.elementPadding, render.dim.r, render.dim.t, render.elementCorner, 0, 0, 0, 1)
 			glFunc.Color(config.panelBorderColorLight)
 			glFunc.Texture('LuaUI/Images/pip/PipShrink.png')
-
+			
 			-- Rotate icon opposite to maximize direction (points toward shrink position)
 			local rotation = GetMaximizeIconRotation()
 			local centerX = render.dim.r - render.usedButtonSize * 0.5
@@ -7463,7 +7666,7 @@ function widget:DrawScreen()
 			glFunc.Translate(centerX, centerY, 0)
 			glFunc.Rotate(rotation, 0, 0, 1)
 			glFunc.Translate(-centerX, -centerY, 0)
-
+			
 			glFunc.TexRect(render.dim.r - render.usedButtonSize, render.dim.t - render.usedButtonSize, render.dim.r, render.dim.t)
 			glFunc.PopMatrix()
 			glFunc.Texture(false)
@@ -7479,7 +7682,7 @@ function widget:DrawScreen()
 			render.RectRound(render.dim.r - render.usedButtonSize, render.dim.t - render.usedButtonSize, render.dim.r, render.dim.t, render.elementCorner*0.4, 1, 1, 1, 1)
 			glFunc.Color(1, 1, 1, 1)
 			glFunc.Texture('LuaUI/Images/pip/PipShrink.png')
-
+			
 			-- Rotate icon opposite to maximize direction (points toward shrink position)
 			local rotation = GetMaximizeIconRotation()
 			local centerX = render.dim.r - render.usedButtonSize * 0.5
@@ -7488,7 +7691,7 @@ function widget:DrawScreen()
 			glFunc.Translate(centerX, centerY, 0)
 			glFunc.Rotate(rotation, 0, 0, 1)
 			glFunc.Translate(-centerX, -centerY, 0)
-
+			
 			glFunc.TexRect(render.dim.r - render.usedButtonSize, render.dim.t - render.usedButtonSize, render.dim.r, render.dim.t)
 			glFunc.PopMatrix()
 			glFunc.Texture(false)
@@ -7609,7 +7812,7 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	local pipHeight = render.dim.t - render.dim.b
 	local hw = 0.5 * pipWidth / cameraState.zoom
 	local hh = 0.5 * pipHeight / cameraState.zoom
-
+	
 	-- At 90/270 degrees, the world dimensions are swapped relative to screen
 	-- We need to swap the rectangle dimensions to match what's actually visible
 	local rotDeg = 0
@@ -7620,7 +7823,7 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	if isRotated90 then
 		hw, hh = hh, hw
 	end
-
+	
 	-- The minimap itself is rotated, so we need to transform the world position
 	-- to account for the minimap's rotation
 	local worldX, worldZ = wcx, wcz
@@ -7636,27 +7839,27 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 		worldX = mapCenterX + (dx * cos_a - dz * sin_a)
 		worldZ = mapCenterZ + (dx * sin_a + dz * cos_a)
 	end
-
+	
 	-- Convert to minimap coordinates
 	local centerX = (worldX / mapInfo.mapSizeX) * minimapWidth
 	local centerY = (1 - (worldZ / mapInfo.mapSizeZ)) * minimapHeight
-
+	
 	-- Convert half-dimensions to minimap pixel size
 	local halfWidth = (hw / mapInfo.mapSizeX) * minimapWidth
 	local halfHeight = (hh / mapInfo.mapSizeZ) * minimapHeight
-
+	
 	-- Draw rectangle showing PIP view area (team-colored if tracking player)
 	local linewidth = math.ceil(render.vsy / 2000)
 	glFunc.Texture(false)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	glFunc.PushMatrix()
-
+	
 	-- Translate to center and rotate
 	glFunc.Translate(centerX, centerY, 0)
 	if render.minimapRotation and render.minimapRotation ~= 0 then
 		glFunc.Rotate(render.minimapRotation * 180 / math.pi, 0, 0, 1)
 	end
-
+	
 	-- Draw dark background rectangle (centered at origin after transform)
 	glFunc.Color(0, 0, 0, 0.6)
 	glFunc.LineWidth((linewidth*1.5)+1)
@@ -7768,7 +7971,7 @@ function widget:Update(dt)
 				-- But don't highlight neutral units
 				local allyTeam = Spring.GetUnitAllyTeam(unitID)
 				local isNeutral = (allyTeam == gaiaAllyTeamID)
-
+				
 				-- Check if unit is visible (LOS or radar)
 				local checkAllyTeamID = cameraState.myAllyTeamID
 				if interactionState.trackingPlayerID and cameraState.mySpecState then
@@ -7777,7 +7980,7 @@ function widget:Update(dt)
 				end
 				local losState = spFunc.GetUnitLosState(unitID, checkAllyTeamID)
 				local isVisibleOrRadar = losState and (losState.los or losState.radar)
-
+				
 				if not isNeutral and isVisibleOrRadar then
 					for i = 1, #selectedUnits do
 						local uDefID = spFunc.GetUnitDefID(selectedUnits[i])
@@ -7801,7 +8004,7 @@ function widget:Update(dt)
 		drawData.hoveredUnitID = nil
 	end
 	-- Otherwise keep the last cached hover value to prevent flickering
-
+	
 	-- If hover state changed, update frame buttons
 	if wasMouseOver ~= interactionState.isMouseOverPip and config.showButtonsOnHoverOnly then
 		pipR2T.frameNeedsUpdate = true
@@ -8145,23 +8348,30 @@ end
 
 function widget:UnitSeismicPing(x, y, z, strength, allyTeam)
 	if uiState.inMinMode then return end
-	-- Calculate ping radius based on strength (strength is typically 1-10)
-	-- Use larger base radius for visibility
-	local maxRadius = 100 + math.min(strength, 20) * 15
 
-	-- Add to seismic pings cache
-	table.insert(cache.seismicPings, {
-		x = x,
-		z = z,
-		strength = strength,
-		maxRadius = maxRadius,
-		startTime = gameTime,
-		allyTeam = allyTeam,
-	})
+	
+	local myAllyTeam = Spring.GetMyAllyTeamID()
+	--local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
 
-	-- Limit max seismic pings to prevent memory issues
-	if #cache.seismicPings > 50 then
-		table.remove(cache.seismicPings, 1)
+	if (spec or allyTeam == myAllyTeam) then
+		-- Calculate ping radius based on strength (strength is typically 1-10)
+		-- Use larger base radius for visibility
+		local maxRadius = 100 + math.min(strength, 20) * 15
+
+		-- Add to seismic pings cache
+		table.insert(cache.seismicPings, {
+			x = x,
+			z = z,
+			strength = strength,
+			maxRadius = maxRadius,
+			startTime = gameTime,
+			allyTeam = allyTeam,
+		})
+
+		-- Limit max seismic pings to prevent memory issues
+		if #cache.seismicPings > 50 then
+			table.remove(cache.seismicPings, 1)
+		end
 	end
 end
 
@@ -8268,7 +8478,7 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 
 		-- Check if this is a lightning weapon
 		local isLightning = weaponID and cache.weaponIsLightning[weaponID]
-
+		
 		-- Check if this is a paralyze weapon
 		local isParalyze = weaponID and cache.weaponIsParalyze[weaponID]
 
@@ -8391,7 +8601,7 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 	if cmdType == 'point' then
 		-- Get player's team
 		local _, _, _, teamID = Spring.GetPlayerInfo(playerID, false)
-
+		
 		-- Add marker to list
 		table.insert(miscState.mapMarkers, {
 			x = mx,
@@ -8400,7 +8610,7 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 			teamID = teamID,
 			playerID = playerID
 		})
-
+		
 		-- Force PIP content update to show marker immediately
 		pipR2T.contentNeedsUpdate = true
 	end
@@ -8666,7 +8876,7 @@ function widget:MousePress(mx, my, mButton)
 			return true
 		end
 	end
-
+	
 	-- Check if we are centering the view, takes priority
 	if mButton == 1 then
 		if interactionState.areCentering then
@@ -8872,7 +9082,7 @@ function widget:MousePress(mx, my, mButton)
 					end
 				end
 				local buttonIndex = 1 + math.floor((mx - render.dim.l) / render.usedButtonSize)
-
+				
 				local pressedButton = visibleButtons[buttonIndex]
 				if pressedButton then
 					pressedButton.OnPress()
@@ -9204,27 +9414,27 @@ end	-- If middle mouse is pressed but not yet committed to a mode, check if move
 			end
 		end
 	end
-
+	
 	if uiState.areResizing then
 		local minSize = math.floor(config.minPanelSize*render.widgetScale)
 		local maxSize = math.floor(render.vsy * config.maxPanelSizeVsy)
-
+		
 		-- Apply width constraint
-		if render.dim.r+dx - render.dim.l >= minSize then
+		if render.dim.r+dx - render.dim.l >= minSize then 
 			local newWidth = render.dim.r + dx - render.dim.l
 			if newWidth <= maxSize then
 				render.dim.r = render.dim.r + dx
 			end
 		end
-
-		-- Apply height constraint
-		if render.dim.t-dy - render.dim.b >= minSize then
+		
+		-- Apply height constraint  
+		if render.dim.t-dy - render.dim.b >= minSize then 
 			local newHeight = render.dim.t - dy - render.dim.b
 			if newHeight <= maxSize then
 				render.dim.b = render.dim.b + dy
 			end
 		end
-
+		
 		CorrectScreenPosition()
 		RecalculateWorldCoordinates()
 		RecalculateGroundTextureCoordinates()
@@ -9275,14 +9485,14 @@ end	-- If middle mouse is pressed but not yet committed to a mode, check if move
 				panDx = dx * cosR - dy * sinR
 				panDy = dx * sinR + dy * cosR
 			end
-
+			
 			-- Calculate the visible world area at current zoom
 			-- At 90/270 degrees, swap dimensions for correct panning limits
 			local pipWidth = render.dim.r - render.dim.l
 			local pipHeight = render.dim.t - render.dim.b
 			local visibleWorldWidth = pipWidth / cameraState.zoom
 			local visibleWorldHeight = pipHeight / cameraState.zoom
-
+			
 			if render.minimapRotation then
 				local rotDeg = math.abs(render.minimapRotation * 180 / math.pi) % 180
 				if rotDeg > 45 and rotDeg < 135 then
