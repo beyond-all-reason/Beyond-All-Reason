@@ -62,7 +62,7 @@ local config = {
 	-- Rendering settings
 	iconRadius = 40,
 	showUnitpics = true,      -- Show unitpics instead of icons when zoomed in
-	unitpicZoomThreshold = 0.6, -- Zoom level at which to switch to unitpics (higher = more zoomed in)
+	unitpicZoomThreshold = 0.7, -- Zoom level at which to switch to unitpics (higher = more zoomed in)
 	leftButtonPansCamera = false,
 	maximizeSizemult = 1.25,
 	screenMargin = 0.05,
@@ -1343,11 +1343,36 @@ local function DrawGroundLine(x1, z1, x2, z2)
 	end
 end
 
-local function DrawGroundBox(l, r, b, t)
-	DrawGroundLine(l, t, r, t)
-	DrawGroundLine(r, t, r, b)
-	DrawGroundLine(r, b, l, b)
-	DrawGroundLine(l, b, l, t)
+local function DrawGroundBox(l, r, b, t, cornerSize)
+	-- Draw octagon with corners cut off by 16 world units
+
+	-- Handle coordinate system (b and t might be swapped depending on view)
+	local minZ = math.min(b, t)
+	local maxZ = math.max(b, t)
+
+	-- Clamp corner size if rectangle is too small
+	local width = r - l
+	local height = maxZ - minZ
+	local maxCorner = math.min(width, height) / 2
+	local c = math.min(cornerSize, maxCorner)
+
+	-- Draw 8 edges (going clockwise from top-left)
+	-- Top edge (at maxZ)
+	DrawGroundLine(l + c, maxZ, r - c, maxZ)
+	-- Top-right corner cut
+	DrawGroundLine(r - c, maxZ, r, maxZ - c)
+	-- Right edge
+	DrawGroundLine(r, maxZ - c, r, minZ + c)
+	-- Bottom-right corner cut
+	DrawGroundLine(r, minZ + c, r - c, minZ)
+	-- Bottom edge (at minZ)
+	DrawGroundLine(r - c, minZ, l + c, minZ)
+	-- Bottom-left corner cut
+	DrawGroundLine(l + c, minZ, l, minZ + c)
+	-- Left edge
+	DrawGroundLine(l, minZ + c, l, maxZ - c)
+	-- Top-left corner cut
+	DrawGroundLine(l, maxZ - c, l + c, maxZ)
 end
 
 
@@ -7747,10 +7772,19 @@ function widget:DrawWorld()
 			end
 		end
 
-		glFunc.Color(r, g, b, 0.25)
-		glFunc.LineWidth(2.5)
 		gl.DepthTest(true)
-		glFunc.BeginEnd(glConst.LINE_STRIP, DrawGroundBox, render.world.l, render.world.r, render.world.b, render.world.t)
+		local innerLineDist = 8
+		local cornerSize = 11
+		glFunc.LineWidth(7)
+		glFunc.Color(0, 0, 0, 0.05)
+		glFunc.BeginEnd(glConst.LINE_STRIP, DrawGroundBox, render.world.l, render.world.r, render.world.b, render.world.t, cornerSize)
+		glFunc.Color(0, 0, 0, 0.015)
+		glFunc.BeginEnd(glConst.LINE_STRIP, DrawGroundBox, render.world.l+innerLineDist, render.world.r-innerLineDist, render.world.b+innerLineDist, render.world.t-innerLineDist, cornerSize*0.65)
+		glFunc.LineWidth(2.5)
+		glFunc.Color(r, g, b, 0.25)
+		glFunc.BeginEnd(glConst.LINE_STRIP, DrawGroundBox, render.world.l, render.world.r, render.world.b, render.world.t, cornerSize)
+		glFunc.Color(r, g, b, 0.045)
+		glFunc.BeginEnd(glConst.LINE_STRIP, DrawGroundBox, render.world.l+innerLineDist, render.world.r-innerLineDist, render.world.b-innerLineDist, render.world.t+innerLineDist, cornerSize*0.65)
 		gl.DepthTest(false)
 	end
 
@@ -7864,13 +7898,34 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	end
 
 	-- Draw dark background rectangle (centered at origin after transform)
+	-- Use octagon with corners cut off by 16 world units (converted to minimap units)
+	local cornerWorldSize = 64
+	local cornerX = (cornerWorldSize / mapInfo.mapSizeX) * minimapWidth
+	local cornerY = (cornerWorldSize / mapInfo.mapSizeZ) * minimapHeight
+	-- Clamp corner size if rectangle is too small
+	local maxCorner = math.min(halfWidth, halfHeight) / 2
+	local cx = math.min(cornerX, maxCorner)
+	local cy = math.min(cornerY, maxCorner)
+
 	glFunc.Color(0, 0, 0, 0.6)
 	glFunc.LineWidth((linewidth*1.5)+1)
 	glFunc.BeginEnd(GL.LINE_LOOP, function()
-		glFunc.Vertex(-halfWidth, -halfHeight)
-		glFunc.Vertex(halfWidth, -halfHeight)
-		glFunc.Vertex(halfWidth, halfHeight)
-		glFunc.Vertex(-halfWidth, halfHeight)
+		-- Bottom edge
+		glFunc.Vertex(-halfWidth + cx, -halfHeight)
+		glFunc.Vertex(halfWidth - cx, -halfHeight)
+		-- Bottom-right corner cut
+		glFunc.Vertex(halfWidth, -halfHeight + cy)
+		-- Right edge
+		glFunc.Vertex(halfWidth, halfHeight - cy)
+		-- Top-right corner cut
+		glFunc.Vertex(halfWidth - cx, halfHeight)
+		-- Top edge
+		glFunc.Vertex(-halfWidth + cx, halfHeight)
+		-- Top-left corner cut
+		glFunc.Vertex(-halfWidth, halfHeight - cy)
+		-- Left edge
+		glFunc.Vertex(-halfWidth, -halfHeight + cy)
+		-- Bottom-left corner cut closes the loop
 	end)
 
 	-- Use team color if tracking a player, otherwise white
@@ -7885,10 +7940,22 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	glFunc.Color(r, g, b, 1)
 	glFunc.LineWidth(linewidth)
 	glFunc.BeginEnd(GL.LINE_LOOP, function()
-		glFunc.Vertex(-halfWidth, -halfHeight)
-		glFunc.Vertex(halfWidth, -halfHeight)
-		glFunc.Vertex(halfWidth, halfHeight)
-		glFunc.Vertex(-halfWidth, halfHeight)
+		-- Bottom edge
+		glFunc.Vertex(-halfWidth + cx, -halfHeight)
+		glFunc.Vertex(halfWidth - cx, -halfHeight)
+		-- Bottom-right corner cut
+		glFunc.Vertex(halfWidth, -halfHeight + cy)
+		-- Right edge
+		glFunc.Vertex(halfWidth, halfHeight - cy)
+		-- Top-right corner cut
+		glFunc.Vertex(halfWidth - cx, halfHeight)
+		-- Top edge
+		glFunc.Vertex(-halfWidth + cx, halfHeight)
+		-- Top-left corner cut
+		glFunc.Vertex(-halfWidth, halfHeight - cy)
+		-- Left edge
+		glFunc.Vertex(-halfWidth, -halfHeight + cy)
+		-- Bottom-left corner cut closes the loop
 	end)
 
 	glFunc.LineWidth(1.0)
@@ -8966,6 +9033,10 @@ function widget:MousePress(mx, my, mButton)
 				interactionState.panStartX = (render.dim.l + render.dim.r) / 2
 				interactionState.panStartY = (render.dim.b + render.dim.t) / 2
 				interactionState.areTracking = nil
+				-- Cancel any ongoing smooth animation by setting target to current position
+				cameraState.targetWcx = cameraState.wcx
+				cameraState.targetWcz = cameraState.wcz
+				cameraState.zoomToCursorActive = false
 			end
 			return true
 		end
@@ -9445,16 +9516,22 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 				end
 			end
 			if interactionState.areFormationDragging then
-			interactionState.areFormationDragging = false
-		end
+				interactionState.areFormationDragging = false
+			end
 
-		-- Start panning (but not when tracking player camera)
-		if not interactionState.trackingPlayerID then
-			interactionState.arePanning = true
-			interactionState.areTracking = nil
+			-- Start panning (but not when tracking player camera)
+			if not interactionState.trackingPlayerID then
+				interactionState.arePanning = true
+				interactionState.areTracking = nil
+				-- Cancel any ongoing smooth animation by setting target to current position
+				cameraState.targetWcx = cameraState.wcx
+				cameraState.targetWcz = cameraState.wcz
+				cameraState.zoomToCursorActive = false
+			end
 		end
 	end
-end	-- If middle mouse is pressed but not yet committed to a mode, check if moved
+
+	-- If middle mouse is pressed but not yet committed to a mode, check if moved
 	if interactionState.middleMousePressed and not interactionState.arePanning then
 		-- Check if there's actual movement (not just mouse jitter)
 		-- Use a small threshold to distinguish click from drag
@@ -9464,6 +9541,10 @@ end	-- If middle mouse is pressed but not yet committed to a mode, check if move
 			if not interactionState.trackingPlayerID then
 				interactionState.arePanning = true
 				interactionState.areTracking = nil
+				-- Cancel any ongoing smooth animation by setting target to current position
+				cameraState.targetWcx = cameraState.wcx
+				cameraState.targetWcz = cameraState.wcz
+				cameraState.zoomToCursorActive = false
 			end
 		end
 	end
@@ -9505,6 +9586,10 @@ end	-- If middle mouse is pressed but not yet committed to a mode, check if move
 			if not interactionState.trackingPlayerID then
 				interactionState.arePanning = true
 				interactionState.areTracking = nil
+				-- Cancel any ongoing smooth animation by setting target to current position
+				cameraState.targetWcx = cameraState.wcx
+				cameraState.targetWcz = cameraState.wcz
+				cameraState.zoomToCursorActive = false
 			end
 		end
 	end
