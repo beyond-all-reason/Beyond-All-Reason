@@ -159,7 +159,9 @@
 			"move": "Move window",
 			"resize": "Resize window",
 			"minimize": "Minimize",
-			"maximize": "Maximize"
+			"maximize": "Maximize",
+			"worldminimize": "ALT+CLICK to Minimize PiP\nALT+CLICK-DRAG to Move PiP\nALT+SCROLL to zoom",
+			"worldmaximize": "ALT+CLICK Maximize PiP\nALT+CLICK-DRAG to Move PiP\nALT+SCROLL to zoom"
 		},
 		"teamEconomy": {
 			"tooltipTitle": "Team Income",
