@@ -1046,6 +1046,7 @@ function UnitDef_Post(name, uDef)
 	categories["MINE"] = function(uDef) return uDef.weapondefs and uDef.weapondefs.minerange end
 	categories["COMMANDER"] = function(uDef) return commanderList[uDef.movementclass] end
 	categories["EMPABLE"] = function(uDef) return categories.SURFACE(uDef) and uDef.customparams and uDef.customparams.paralyzemultiplier ~= 0 end
+	categories["SURFACERAIDER"] = function(uDef) return categories.SURFACE(uDef) and not uDef.workertime and uDef.speed and uDef.speed > 70 end --78 is the speed of rezbots, the fastest intentional exclusion.
 
 	local category = uDef.category or ""
 	if not string.find(category, "OBJECT", 1, true) then -- objects should not be targetable and therefore are not assigned any other category
