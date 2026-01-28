@@ -114,6 +114,7 @@ return {
 					area_onhit_damage = 40,
 					area_onhit_range = 75,
 					area_onhit_resistance = "_RAPTORACID_",
+					water_splash = 0,
 				},
 				damage = {
 					default = 1,
@@ -189,6 +190,7 @@ return {
 					area_onhit_damage = 40,
 					area_onhit_range = 75,
 					area_onhit_resistance = "_RAPTORACID_",
+					water_splash = 0,
 				},
 				damage = {
 					default = 1,

@@ -713,14 +713,14 @@ for wdid, wd in pairs(WeaponDefs) do
 end
 
 function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
-	if targetable[weaponID] and py-7300 > Spring.GetGroundHeight(px, pz) then	-- dont add distortion to (likely) intercepted explosions (mainly to curb nuke flashes)
+	local groundHeight = spGetGroundHeight(px,pz) or 1
+	if targetable[weaponID] and py-7300 > groundHeight then	-- dont add distortion to (likely) intercepted explosions (mainly to curb nuke flashes)
 		return
 	end
 	if explosionDistortions[weaponID] then
 		for i, distortion in pairs(explosionDistortions[weaponID]) do
 			local distortionParamTable = distortion.distortionParamTable
 			if distortion.alwaysVisible or spIsSphereInView(px,py,pz, distortionParamTable[4]) then
-				local groundHeight = spGetGroundHeight(px,pz) or 1
 				py = math_max(groundHeight + (distortion.yOffset or 0), py)
 				distortionParamTable[1] = px
 				distortionParamTable[2] = py
@@ -736,7 +736,6 @@ function widget:Barrelfire(px, py, pz, weaponID, ownerID)
 		for i, distortion in pairs(muzzleFlashDistortions[weaponID]) do
 			local distortionParamTable = distortion.distortionParamTable
 			if distortion.alwaysVisible or spIsSphereInView(px,py,pz, distortionParamTable[4]) then
-				local groundHeight = spGetGroundHeight(px,pz) or 1
 				distortionParamTable[1] = px
 				distortionParamTable[2] = py
 				distortionParamTable[3] = pz
