@@ -325,7 +325,7 @@ function gadget:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
 	local myAllyTeam = spGetMyAllyTeamID()
 	local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
 
-	if (spec or myAllyTeam ~= allyTeam) and unitAllyTeam ~= allyTeam then
+	if (spec or allyTeam == myAllyTeam) and unitAllyTeam ~= allyTeam then
 		if spec and not fullview then
 			if allyTeam ~= myAllyTeam then return end
 		end
