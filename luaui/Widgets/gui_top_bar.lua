@@ -65,6 +65,7 @@ local gameStarted = (spGetGameFrame() > 0)
 local gameFrame = spGetGameFrame()
 local gameIsOver = false
 local graphsWindowVisible = false
+local teamResignMode = Spring.GetModOptions().team_resign
 
 -- Resources
 local r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
@@ -328,7 +329,7 @@ local function updateButtons()
 	else
 		addButton('quit', Spring.I18N('ui.topbar.button.quit'))
 	end
-	if not gameIsOver and not spec and gameStarted and not isSinglePlayer then
+	if not gameIsOver and not spec and gameStarted and not isSinglePlayer and not teamResignMode then
 		addButton('resign', Spring.I18N('ui.topbar.button.resign'))
 	end
 
