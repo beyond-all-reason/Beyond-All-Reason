@@ -1,0 +1,153 @@
+/* === Default Styles === */
+/* RMLUI has no default styles and as such these styles are provided to mimic the very basic
+expectations of a UI framework. While semantic HTML is not strictly followed,
+these styles aim to provide a foundation of basic styling for those coming
+from traditional web design. */
+
+body {
+    font-family: "Exo 2";
+    font-size: 10dp;
+}
+
+div
+{
+	display: block;
+}
+
+p
+{
+	display: block;
+}
+
+h1
+{
+	display: block;
+	font-size: 2.25rem;
+	font-weight: bold;
+}
+
+h2
+{
+	display: block;
+	font-size: 2rem;
+	font-weight: bold;
+}
+
+h3
+{
+	display: block;
+	font-size: 1.5rem;
+	font-weight: bold;
+}
+
+ul,ol
+{
+	display: block;
+	padding-left: 10dp;
+}
+
+li
+{
+	display: block;
+}
+
+em
+{
+	font-style: italic;
+}
+
+strong
+{
+	font-weight: bold;
+}
+
+input {
+	border: 1dp rgba(0, 0, 0, 100);
+}
+
+input:focus {
+	border: 1dp rgba(0, 0, 0, 150);
+}
+
+input[type="checkbox"]
+{
+	width: 20dp;
+	height: 20dp;
+	margin-right: 5dp;
+}
+
+input[type="checkbox"]:checked
+{
+	background-color: rgba(0, 0, 0, 100);
+}
+
+select { 
+    border: 1dp #000; 
+	flex: 1;
+}
+
+select:focus { 
+	border: 2dp #000;
+    padding: 5dp 5dp 5dp 10dp;
+}
+
+/* selectvalue, selectbox, and selectarrow are RMLUI specific selectors */
+select selectvalue {
+	background-color: #fff;
+    margin-right: 40dp;
+    white-space: pre;
+}
+
+select selectbox { 
+    border: 1dp #000;
+    border-top-width: 0;
+    background-color: #fffa;
+}
+
+select selectarrow {
+    max-width: 10dp;
+	max-height: 10dp;
+    border-right: 2dp #000;
+    border-bottom: 2dp #000;
+    transform: rotateZ(45deg);
+}
+
+select option { padding: 3dp 5dp; white-space: pre; }
+select option:hover { background-color: #eee; }
+
+/* === Rml Core Element Defaults === */
+tabset tabs
+{
+	display: block;
+}
+
+/* Scrollbar */
+scrollbarvertical,
+scrollbarhorizontal
+{
+	width: 6dp;
+}
+
+scrollbarvertical slidertrack
+{
+	background-color: rgb(100, 100, 100);
+}
+
+scrollbarvertical sliderbar,
+scrollbarhorizontal sliderbar
+{
+	background-color: rgb(200, 200, 200);
+	border-radius: 2dp;
+}
+
+sliderarrowinc:hover,
+sliderarrowdec:hover
+{
+	background-color: rgb(150,150,150);
+}
+
+.widget-shadow {
+	box-shadow: #000a 2dp 3dp 3dp 0dp;
+	border: 1dp rgba(0, 0, 0, 150);
+	clip: always; /* ensures child elements do not overflow rounded corners */
+}
