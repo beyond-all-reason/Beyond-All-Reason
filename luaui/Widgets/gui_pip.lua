@@ -75,6 +75,7 @@ local config = {
 	showMapRuler = true,
 	showWorldIcon = true,  -- Show minimize/maximize icon in world view at PIP camera location
 	showWorldIconForSpectators = false,  -- Also show world icon when spectating (default off)
+	cancelPlayerTrackingOnPan = true,  -- Cancel player camera tracking when trying to pan or ALT+drag
 
 	-- Performance settings
 	pipMinUpdateRate = 30,
@@ -241,13 +242,12 @@ local interactionState = {
 	worldIconHoverStartTime = 0,  -- Time when hover started (for 1s delay)
 	worldIconTooltipDisplayStartTime = 0,  -- Time when tooltip started displaying (for 1s count)
 	worldIconTooltipShownThisHover = false,  -- Flag to only count tooltip once per hover
-	worldIconDragging = false,  -- Whether we're dragging via world icon
+	worldIconDragging = false,  -- Whether we're dragging via world icon to move PIP window
 	worldIconClickStartX = 0,  -- Screen X when we started clicking world icon
 	worldIconClickStartY = 0,  -- Screen Y when we started clicking world icon
-	worldIconClickStartWX = 0,  -- World X when we started clicking world icon
-	worldIconClickStartWZ = 0,  -- World Z when we started clicking world icon
-	worldIconDragOrigWcx = nil,  -- Original wcx before drag started
-	worldIconDragOrigWcz = nil,  -- Original wcz before drag started
+	minimizeButtonDragging = false,  -- Whether we're dragging via minimize button to move PIP window
+	minimizeButtonClickStartX = 0,  -- Screen X when we started clicking minimize button
+	minimizeButtonClickStartY = 0,  -- Screen Y when we started clicking minimize button
 }
 
 -- Consolidated misc state
@@ -1045,10 +1045,11 @@ local function UpdateTracking()
 		local newTargetWcz = az / uCount
 
 		-- Apply map edge margin constraints
+		-- Use TARGET zoom level so panning and zooming are in sync when tracking near edges
 		local pipWidth = render.dim.r - render.dim.l
 		local pipHeight = render.dim.t - render.dim.b
-		local visibleWorldWidth = pipWidth / cameraState.zoom
-		local visibleWorldHeight = pipHeight / cameraState.zoom
+		local visibleWorldWidth = pipWidth / cameraState.targetZoom
+		local visibleWorldHeight = pipHeight / cameraState.targetZoom
 		local smallerVisibleDimension = math.min(visibleWorldWidth, visibleWorldHeight)
 		local margin = smallerVisibleDimension * config.mapEdgeMargin
 
@@ -8543,7 +8544,13 @@ function widget:Update(dt)
 			elseif interactionState.trackingPlayerID then
 				smoothnessToUse = config.playerTrackingSmoothness -- Slower, smoother tracking for player camera
 			elseif interactionState.areTracking then
-				smoothnessToUse = config.trackingSmoothness -- Smoother animation for unit tracking mode
+				-- When tracking units and also zooming, use zoom smoothness for the center animation
+				-- so that both animations stay in sync (otherwise panning lags behind zooming near edges)
+				if zoomNeedsUpdate then
+					smoothnessToUse = config.zoomSmoothness
+				else
+					smoothnessToUse = config.trackingSmoothness -- Smoother animation for unit tracking mode
+				end
 			end
 
 			local centerFactor = math.min(dt * smoothnessToUse, 1)
@@ -9307,18 +9314,9 @@ function widget:MousePress(mx, my, mButton)
 	if config.showWorldIcon and mButton == 1 and alt and not uiState.isAnimating then
 		if (uiState.inMinMode and interactionState.worldMaximizeIconHovered) or
 		   (not uiState.inMinMode and interactionState.worldMinimizeIconHovered) then
-			-- Start tracking for potential drag or click
+			-- Start tracking for potential drag or click (screen coordinates only for window movement)
 			interactionState.worldIconClickStartX = mx
 			interactionState.worldIconClickStartY = my
-			-- Get world position for drag calculations
-			local _, pos = Spring.TraceScreenRay(mx, my, true)
-			if pos then
-				interactionState.worldIconClickStartWX = pos[1]
-				interactionState.worldIconClickStartWZ = pos[3]
-			else
-				interactionState.worldIconClickStartWX = cameraState.wcx
-				interactionState.worldIconClickStartWZ = cameraState.wcz
-			end
 			return true  -- Capture the click
 		end
 	end
@@ -9394,46 +9392,58 @@ function widget:MousePress(mx, my, mButton)
 			end
 		end
 
-		-- Was maximize clicked?
-		if mButton == 1 and
+		-- Was maximize clicked? (or ALT+drag/middle drag to move window)
+		if (mButton == 1 or mButton == 2) and
 		   mx >= uiState.minModeL and mx <= uiState.minModeL + math.floor(render.usedButtonSize*config.maximizeSizemult) and
 		   my >= uiState.minModeB and my <= uiState.minModeB + math.floor(render.usedButtonSize*config.maximizeSizemult) then
-			-- Start maximize animation - restore saved dimensions
-			local buttonSize = math.floor(render.usedButtonSize*config.maximizeSizemult)
+			local altKey = Spring.GetModKeyState()
 
-			-- Temporarily set dimensions to saved values to check if they're valid
-			render.dim.l = uiState.savedDimensions.l
-			render.dim.r = uiState.savedDimensions.r
-			render.dim.b = uiState.savedDimensions.b
-			render.dim.t = uiState.savedDimensions.t
-			CorrectScreenPosition()
-
-			-- Update camera to tracked units immediately before maximizing
-			if interactionState.areTracking then
-				UpdateTracking()
+			-- If ALT is held or middle mouse, start tracking for drag (to move window)
+			if altKey or mButton == 2 then
+				interactionState.minimizeButtonClickStartX = mx
+				interactionState.minimizeButtonClickStartY = my
+				return true
 			end
-			RecalculateWorldCoordinates()
-			RecalculateGroundTextureCoordinates()
 
-			uiState.animStartDim = {
-				l = uiState.minModeL,
-				r = uiState.minModeL + buttonSize,
-				b = uiState.minModeB,
-				t = uiState.minModeB + buttonSize
-			}
-			uiState.animEndDim = {
-				l = render.dim.l,
-				r = render.dim.r,
-				b = render.dim.b,
-				t = render.dim.t
-			}
-			uiState.animationProgress = 0
-			uiState.isAnimating = true
-			uiState.inMinMode = false
-			miscState.hasOpenedPIPThisGame = true
-			-- Update hover state after maximizing to check if mouse is over the restored PIP
-			interactionState.isMouseOverPip = (mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t)
-			return true
+			-- Normal maximize (no ALT, left click only)
+			if mButton == 1 then
+				-- Start maximize animation - restore saved dimensions
+				local buttonSize = math.floor(render.usedButtonSize*config.maximizeSizemult)
+
+				-- Temporarily set dimensions to saved values to check if they're valid
+				render.dim.l = uiState.savedDimensions.l
+				render.dim.r = uiState.savedDimensions.r
+				render.dim.b = uiState.savedDimensions.b
+				render.dim.t = uiState.savedDimensions.t
+				CorrectScreenPosition()
+
+				-- Update camera to tracked units immediately before maximizing
+				if interactionState.areTracking then
+					UpdateTracking()
+				end
+				RecalculateWorldCoordinates()
+				RecalculateGroundTextureCoordinates()
+
+				uiState.animStartDim = {
+					l = uiState.minModeL,
+					r = uiState.minModeL + buttonSize,
+					b = uiState.minModeB,
+					t = uiState.minModeB + buttonSize
+				}
+				uiState.animEndDim = {
+					l = render.dim.l,
+					r = render.dim.r,
+					b = render.dim.b,
+					t = render.dim.t
+				}
+				uiState.animationProgress = 0
+				uiState.isAnimating = true
+				uiState.inMinMode = false
+				miscState.hasOpenedPIPThisGame = true
+				-- Update hover state after maximizing to check if mouse is over the restored PIP
+				interactionState.isMouseOverPip = (mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t)
+				return true
+			end
 		end
 		-- Nothing else to click while in minMode
 		return
@@ -9446,6 +9456,15 @@ function widget:MousePress(mx, my, mButton)
 			interactionState.panToggleMode = false
 			interactionState.arePanning = false
 			return true
+		end
+
+		-- Check if middle mouse is on the minimize button (to move window instead of pan)
+		if mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t then
+			if mx >= render.dim.r - render.usedButtonSize and my >= render.dim.t - render.usedButtonSize then
+				interactionState.minimizeButtonClickStartX = mx
+				interactionState.minimizeButtonClickStartY = my
+				return true
+			end
 		end
 
 		-- Start tracking middle mouse for toggle vs hold-drag
@@ -9479,8 +9498,18 @@ function widget:MousePress(mx, my, mButton)
 				return true
 			end
 
-			-- Minimizing?
+			-- Minimizing? (or ALT+drag/middle drag to move window)
 			if mx >= render.dim.r - render.usedButtonSize and my >= render.dim.t - render.usedButtonSize then
+				local altKey = Spring.GetModKeyState()
+
+				-- If ALT is held or middle mouse, start tracking for drag (to move window)
+				if altKey or mButton == 2 then
+					interactionState.minimizeButtonClickStartX = mx
+					interactionState.minimizeButtonClickStartY = my
+					return true
+				end
+
+				-- Normal minimize (no ALT, left click only)
 				local sw, sh = Spring.GetWindowGeometry()
 
 				-- Save current dimensions before minimizing
@@ -9832,7 +9861,7 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 	-- Get modifier key states
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 
-	-- Handle world icon drag (ALT+drag to move PIP center)
+	-- Handle world icon drag (ALT+drag to move PIP window on screen)
 	if alt and interactionState.worldIconClickStartX ~= 0 and not uiState.isAnimating then
 		local dragThreshold = 8  -- Pixels before considering it a drag
 		local dragDistX = math.abs(mx - interactionState.worldIconClickStartX)
@@ -9841,48 +9870,66 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 		if dragDistX > dragThreshold or dragDistY > dragThreshold or interactionState.worldIconDragging then
 			interactionState.worldIconDragging = true
 
-			-- Get current world position
-			local _, pos = Spring.TraceScreenRay(mx, my, true)
-			if pos then
-				-- Calculate world offset from drag start
-				local worldDX = pos[1] - interactionState.worldIconClickStartWX
-				local worldDZ = pos[3] - interactionState.worldIconClickStartWZ
+			-- Move PIP window on screen (like the move button does)
+			render.dim.l = render.dim.l + dx
+			render.dim.r = render.dim.r + dx
+			render.dim.b = render.dim.b + dy
+			render.dim.t = render.dim.t + dy
+			CorrectScreenPosition()
+			RecalculateWorldCoordinates()
+			RecalculateGroundTextureCoordinates()
 
-				-- Move PIP center (subtract offset because dragging right should move view left)
-				local startWcx = cameraState.wcx
-				local startWcz = cameraState.wcz
+			-- Update guishader blur dimensions
+			UpdateGuishaderBlur()
 
-				-- Get original position (before any dragging this session)
-				if not interactionState.worldIconDragOrigWcx then
-					interactionState.worldIconDragOrigWcx = cameraState.wcx
-					interactionState.worldIconDragOrigWcz = cameraState.wcz
+			return true
+		end
+	end
+
+	-- Handle minimize button drag (ALT+drag to move PIP window on screen)
+	if interactionState.minimizeButtonClickStartX ~= 0 and not uiState.isAnimating then
+		local dragThreshold = 8  -- Pixels before considering it a drag
+		local dragDistX = math.abs(mx - interactionState.minimizeButtonClickStartX)
+		local dragDistY = math.abs(my - interactionState.minimizeButtonClickStartY)
+
+		if dragDistX > dragThreshold or dragDistY > dragThreshold or interactionState.minimizeButtonDragging then
+			interactionState.minimizeButtonDragging = true
+
+			if uiState.inMinMode then
+				-- Move the minimized button position
+				uiState.minModeL = uiState.minModeL + dx
+				uiState.minModeB = uiState.minModeB + dy
+
+				-- Clamp to screen bounds
+				local buttonSize = math.floor(render.usedButtonSize * config.maximizeSizemult)
+				local screenMarginPx = math.floor(config.screenMargin * render.vsy)
+				uiState.minModeL = math.max(screenMarginPx, math.min(render.vsx - screenMarginPx - buttonSize, uiState.minModeL))
+				uiState.minModeB = math.max(screenMarginPx, math.min(render.vsy - screenMarginPx - buttonSize, uiState.minModeB))
+
+				-- Also update saved dimensions so they stay relative to the button position
+				if uiState.savedDimensions then
+					uiState.savedDimensions.l = uiState.savedDimensions.l + dx
+					uiState.savedDimensions.r = uiState.savedDimensions.r + dx
+					uiState.savedDimensions.b = uiState.savedDimensions.b + dy
+					uiState.savedDimensions.t = uiState.savedDimensions.t + dy
 				end
 
-				-- Apply offset from original position
-				cameraState.wcx = interactionState.worldIconDragOrigWcx + worldDX
-				cameraState.wcz = interactionState.worldIconDragOrigWcz + worldDZ
-
-				-- Clamp to map bounds
-				local halfWidth = (render.world.r - render.world.l) / 2
-				local halfHeight = (render.world.t - render.world.b) / 2
-				cameraState.wcx = math.max(halfWidth, math.min(mapInfo.mapSizeX - halfWidth, cameraState.wcx))
-				cameraState.wcz = math.max(halfHeight, math.min(mapInfo.mapSizeZ - halfHeight, cameraState.wcz))
-
-				-- Update targets to match (no smooth animation during drag)
-				cameraState.targetWcx = cameraState.wcx
-				cameraState.targetWcz = cameraState.wcz
-
-				-- Stop tracking when manually moving
-				interactionState.areTracking = nil
-
-				-- Update locked icon position to follow drag
-				miscState.worldIconLockedX = cameraState.wcx
-				miscState.worldIconLockedZ = cameraState.wcz
-
+				-- Update guishader blur dimensions
+				UpdateGuishaderBlur()
+			else
+				-- Move PIP window on screen (like the move button does)
+				render.dim.l = render.dim.l + dx
+				render.dim.r = render.dim.r + dx
+				render.dim.b = render.dim.b + dy
+				render.dim.t = render.dim.t + dy
+				CorrectScreenPosition()
 				RecalculateWorldCoordinates()
 				RecalculateGroundTextureCoordinates()
-				pipR2T.contentNeedsUpdate = true
+
+				-- Update guishader blur dimensions
+				UpdateGuishaderBlur()
 			end
+
 			return true
 		end
 	end
@@ -9907,15 +9954,20 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 				interactionState.areFormationDragging = false
 			end
 
-			-- Start panning (but not when tracking player camera)
-			if not interactionState.trackingPlayerID then
-				interactionState.arePanning = true
-				interactionState.areTracking = nil
-				-- Cancel any ongoing smooth animation by setting target to current position
-				cameraState.targetWcx = cameraState.wcx
-				cameraState.targetWcz = cameraState.wcz
-				cameraState.zoomToCursorActive = false
+			-- Start panning (cancel player tracking if config allows, otherwise block)
+			if interactionState.trackingPlayerID then
+				if config.cancelPlayerTrackingOnPan then
+					interactionState.trackingPlayerID = nil
+				else
+					return  -- Don't pan when tracking player camera
+				end
 			end
+			interactionState.arePanning = true
+			interactionState.areTracking = nil
+			-- Cancel any ongoing smooth animation by setting target to current position
+			cameraState.targetWcx = cameraState.wcx
+			cameraState.targetWcz = cameraState.wcz
+			cameraState.zoomToCursorActive = false
 		end
 	end
 
@@ -9925,20 +9977,26 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 		-- Use a small threshold to distinguish click from drag
 		if math.abs(dx) > 2 or math.abs(dy) > 2 then
 			interactionState.middleMouseMoved = true
-			-- Start hold-drag panning (but not when tracking player camera)
-			if not interactionState.trackingPlayerID then
-				interactionState.arePanning = true
-				interactionState.areTracking = nil
-				-- Cancel any ongoing smooth animation by setting target to current position
-				cameraState.targetWcx = cameraState.wcx
-				cameraState.targetWcz = cameraState.wcz
-				cameraState.zoomToCursorActive = false
+			-- Start hold-drag panning (cancel player tracking if config allows, otherwise block)
+			if interactionState.trackingPlayerID then
+				if config.cancelPlayerTrackingOnPan then
+					interactionState.trackingPlayerID = nil
+				else
+					return  -- Don't pan when tracking player camera
+				end
 			end
+			interactionState.arePanning = true
+			interactionState.areTracking = nil
+			-- Cancel any ongoing smooth animation by setting target to current position
+			cameraState.targetWcx = cameraState.wcx
+			cameraState.targetWcz = cameraState.wcz
+			cameraState.zoomToCursorActive = false
 		end
 	end
 
 	-- Alt+Left drag for panning (but not when queuing buildings with shift)
-	if interactionState.leftMousePressed and alt and not interactionState.arePanning and mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t then
+	-- Skip if we're already doing minimize button drag
+	if interactionState.leftMousePressed and alt and not interactionState.arePanning and not interactionState.minimizeButtonDragging and interactionState.minimizeButtonClickStartX == 0 and mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t then
 		-- Check if we're holding a build command with shift (queuing buildings)
 		local _, cmdID = Spring.GetActiveCommand()
 		local isBuildCommand = (cmdID and cmdID < 0)
@@ -9970,15 +10028,20 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 				end
 			end
 
-			-- Start panning (but not when tracking player camera)
-			if not interactionState.trackingPlayerID then
-				interactionState.arePanning = true
-				interactionState.areTracking = nil
-				-- Cancel any ongoing smooth animation by setting target to current position
-				cameraState.targetWcx = cameraState.wcx
-				cameraState.targetWcz = cameraState.wcz
-				cameraState.zoomToCursorActive = false
+			-- Start panning (cancel player tracking if config allows, otherwise block)
+			if interactionState.trackingPlayerID then
+				if config.cancelPlayerTrackingOnPan then
+					interactionState.trackingPlayerID = nil
+				else
+					return  -- Don't pan when tracking player camera
+				end
 			end
+			interactionState.arePanning = true
+			interactionState.areTracking = nil
+			-- Cancel any ongoing smooth animation by setting target to current position
+			cameraState.targetWcx = cameraState.wcx
+			cameraState.targetWcz = cameraState.wcz
+			cameraState.zoomToCursorActive = false
 		end
 	end
 
@@ -10195,8 +10258,6 @@ function widget:MouseRelease(mx, my, mButton)
 		interactionState.worldIconClickStartX = 0
 		interactionState.worldIconClickStartY = 0
 		interactionState.worldIconDragging = false
-		interactionState.worldIconDragOrigWcx = nil
-		interactionState.worldIconDragOrigWcz = nil
 
 		-- If it was a click (not a drag), trigger minimize/maximize
 		if wasClick and not uiState.isAnimating then
@@ -10258,6 +10319,120 @@ function widget:MouseRelease(mx, my, mButton)
 				uiState.isAnimating = true
 				uiState.inMinMode = true
 				interactionState.isMouseOverPip = false
+			end
+		end
+		return  -- Don't process further
+	end
+
+	-- Handle minimize button click/drag release (ALT+click to minimize, ALT/middle drag to move)
+	if (mButton == 1 or mButton == 2) and interactionState.minimizeButtonClickStartX ~= 0 then
+		local wasDragging = interactionState.minimizeButtonDragging
+		local dragThreshold = 8  -- Pixels before considering it a drag
+		local dragDistX = math.abs(mx - interactionState.minimizeButtonClickStartX)
+		local dragDistY = math.abs(my - interactionState.minimizeButtonClickStartY)
+		local wasClick = dragDistX <= dragThreshold and dragDistY <= dragThreshold
+
+		-- Reset drag state
+		interactionState.minimizeButtonClickStartX = 0
+		interactionState.minimizeButtonClickStartY = 0
+		interactionState.minimizeButtonDragging = false
+
+		-- If it was a click (not a drag) with left mouse, trigger minimize or maximize
+		-- Middle mouse click does nothing (just drag to move)
+		if wasClick and mButton == 1 and not uiState.isAnimating then
+			if uiState.inMinMode then
+				-- Maximize (we were in minimized mode)
+				local buttonSize = math.floor(render.usedButtonSize*config.maximizeSizemult)
+
+				render.dim.l = uiState.savedDimensions.l
+				render.dim.r = uiState.savedDimensions.r
+				render.dim.b = uiState.savedDimensions.b
+				render.dim.t = uiState.savedDimensions.t
+				CorrectScreenPosition()
+
+				if interactionState.areTracking then
+					UpdateTracking()
+				end
+				RecalculateWorldCoordinates()
+				RecalculateGroundTextureCoordinates()
+
+				uiState.animStartDim = {
+					l = uiState.minModeL,
+					r = uiState.minModeL + buttonSize,
+					b = uiState.minModeB,
+					t = uiState.minModeB + buttonSize
+				}
+				uiState.animEndDim = {
+					l = render.dim.l,
+					r = render.dim.r,
+					b = render.dim.b,
+					t = render.dim.t
+				}
+				uiState.animationProgress = 0
+				uiState.isAnimating = true
+				uiState.inMinMode = false
+				miscState.hasOpenedPIPThisGame = true
+				interactionState.isMouseOverPip = false
+			else
+				-- Minimize (we were in maximized mode)
+				local sw, sh = Spring.GetWindowGeometry()
+
+				-- Save current dimensions before minimizing
+				uiState.savedDimensions = {
+					l = render.dim.l,
+					r = render.dim.r,
+					b = render.dim.b,
+					t = render.dim.t
+				}
+
+				-- Calculate where the minimize button will end up
+				local targetL, targetB
+				if render.dim.l < sw * 0.5 then
+					targetL = render.dim.l
+				else
+					targetL = render.dim.r - math.floor(render.usedButtonSize*config.maximizeSizemult)
+				end
+				if render.dim.b < sh * 0.25 then
+					targetB = render.dim.b
+				else
+					targetB = render.dim.t - math.floor(render.usedButtonSize*config.maximizeSizemult)
+				end
+
+				-- Store the target position
+				uiState.minModeL = targetL
+				uiState.minModeB = targetB
+
+				-- Start minimize animation
+				local buttonSize = math.floor(render.usedButtonSize*config.maximizeSizemult)
+				uiState.animStartDim = {
+					l = render.dim.l,
+					r = render.dim.r,
+					b = render.dim.b,
+					t = render.dim.t
+				}
+				uiState.animEndDim = {
+					l = targetL,
+					r = targetL + buttonSize,
+					b = targetB,
+					t = targetB + buttonSize
+				}
+				uiState.animationProgress = 0
+				uiState.isAnimating = true
+				uiState.inMinMode = true
+
+				-- Clean up R2T textures when minimizing
+				if pipR2T.contentTex then
+					gl.DeleteTexture(pipR2T.contentTex)
+					pipR2T.contentTex = nil
+				end
+				if pipR2T.frameBackgroundTex then
+					gl.DeleteTexture(pipR2T.frameBackgroundTex)
+					pipR2T.frameBackgroundTex = nil
+				end
+				if pipR2T.frameButtonsTex then
+					gl.DeleteTexture(pipR2T.frameButtonsTex)
+					pipR2T.frameButtonsTex = nil
+				end
 			end
 		end
 		return  -- Don't process further
