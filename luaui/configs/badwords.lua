@@ -69,7 +69,7 @@ local wordList = {
 	"^ubaxr?lf?$",
 	"^ubaxvrf?$",
 	"^x[lv]xrf?$",
-	"^zpsnttrg$",
+	"^zpsntt[rvb]g$",
 	"^zbeba$",
 	"^zhssqvire$",
 	"^a[v1]tt?nf?$",
