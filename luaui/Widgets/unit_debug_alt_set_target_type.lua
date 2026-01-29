@@ -87,7 +87,7 @@ local function GetUnitsInAttackRangeWithDef(unitID, unitDefIDToTarget)
 end
 
 function widget:GameFrame(frame)
-    printf("CAT0: Hitting GameFrame")
+
 	if frame % POLLING_RATE ~= 0 then
 		return
 	end
@@ -182,7 +182,7 @@ end
 
 function widget:TextCommand(command)
     if string.find(command, "astt_toggleLog", nil, true) == 1 then
-        shouldLog = ~shouldLog
+        shouldLog = not shouldLog
     end
 
 end
