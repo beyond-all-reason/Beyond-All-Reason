@@ -120,6 +120,7 @@ local render = {
 	mapRulerMarkDlists = {},  -- Reusable mark pattern display lists
 	mapRulerLastMarkSize = nil,  -- Track mark size changes
 	minimapRotation = 0,  -- Current minimap rotation in radians
+	guishaderDlist = nil,  -- Display list for guishader blur with rounded corners
 }
 
 -- Initialize render dimensions
@@ -178,6 +179,12 @@ local pipR2T = {
 	frameNeedsUpdate = true,
 	frameLastWidth = 0,
 	frameLastHeight = 0,
+	-- Content mask for rounded corners
+	contentMaskDlist = nil,
+	contentMaskLastWidth = 0,
+	contentMaskLastHeight = 0,
+	contentMaskLastL = 0,
+	contentMaskLastB = 0,
 	-- LOS texture state
 	losTex = nil,
 	losNeedsUpdate = true,
@@ -1007,7 +1014,21 @@ local function UpdateGuishaderBlur()
 	if WG['guishader'] then
 		-- Always update blur with current dimensions (including when minimized)
 		-- The dim values will reflect the minimized button size when uiState.inMinMode is true
-		if WG['guishader'].InsertRect then
+		-- Use InsertDlist for rounded corner blur support
+		if WG['guishader'].InsertDlist then
+			-- Clean up old dlist ourselves before creating new one
+			if render.guishaderDlist then
+				gl.DeleteList(render.guishaderDlist)
+				render.guishaderDlist = nil
+			end
+			-- Create new dlist with rounded rectangle
+			render.guishaderDlist = gl.CreateList(function()
+				render.RectRound(render.dim.l-render.elementPadding, render.dim.b-render.elementPadding, render.dim.r+render.elementPadding, render.dim.t+render.elementPadding, render.elementCorner)
+			end)
+			-- Use force=true to ensure immediate stencil texture update
+			WG['guishader'].InsertDlist(render.guishaderDlist, 'pip'..pipNumber, true)
+		elseif WG['guishader'].InsertRect then
+			-- Fallback to InsertRect if InsertDlist not available
 			WG['guishader'].InsertRect(render.dim.l-render.elementPadding, render.dim.b-render.elementPadding, render.dim.r+render.elementPadding, render.dim.t+render.elementPadding, 'pip'..pipNumber)
 		end
 	end
@@ -1216,8 +1237,8 @@ local function UpdatePlayerTracking()
 			if camX and camZ then
 				-- For tilted cameras, we need to project the view direction onto the ground
 				-- Get camera direction/rotation if available
-				local rx = playerCamState.rx or 0  -- Camera rotation around X axis (tilt)
-				local ry = playerCamState.ry or 0  -- Camera rotation around Y axis (heading)
+				local rx = playerCamState.rx or 0  -- Camera rotation around X axis (tilt) - in radians
+				local ry = playerCamState.ry or 0  -- Camera rotation around Y axis (heading) - in radians
 				local dist = playerCamState.dist  -- Camera distance (may be nil)
 				local height = playerCamState.height or camY or 500
 
@@ -1228,21 +1249,21 @@ local function UpdatePlayerTracking()
 
 				-- If camera has distance parameter, it's likely overhead/spring mode
 				-- In that case, px/pz is already the ground point we want
-				if playerCamState.mode then
-					-- Different camera modes need different handling
-					if playerCamState.mode == "ta" or playerCamState.mode == "spring" then
-						-- Spring/TA camera: px, pz is the target point on ground
-						lookAtX, lookAtZ = camX, camZ
-					elseif playerCamState.mode == "ov" then
-						-- Overview camera: use px, pz directly
-						lookAtX, lookAtZ = camX, camZ
-					elseif playerCamState.mode == "free" or playerCamState.mode == "fps" then
-						-- Free/FPS camera: need to project view direction onto ground
-						-- Calculate where the camera is looking at ground level
-						local viewDist = height / math.max(0.1, math.cos(math.rad(rx)))
-						lookAtX = camX + viewDist * math.sin(math.rad(ry))
-						lookAtZ = camZ + viewDist * math.cos(math.rad(ry))
-					end
+				-- Apply forward offset for tilted cameras regardless of mode
+				-- Calculate forward offset based on tilt angle
+				-- rx is in radians, typically negative for looking down (e.g., -1.2 rad = ~69 degrees down)
+				local tiltFromVertical = math.abs(rx)  -- How much tilted from straight down (0 = straight down, pi/2 = horizontal)
+				local effectiveHeight = dist or height or 500
+				if tiltFromVertical > 0.1 and effectiveHeight > 100 then
+					-- Calculate forward offset: more tilt = more offset
+					-- Use the effective viewing distance (dist or height)
+					-- tan(tilt) gives the ratio of forward distance to height
+					local forwardOffset = math.tan(tiltFromVertical) * effectiveHeight * -0.2
+
+					-- Apply offset in the direction camera is facing (ry = heading/yaw in radians)
+					-- Subtract to shift view toward where camera is actually looking
+					--lookAtX = camX - math.sin(ry) * forwardOffset
+					lookAtZ = camZ - math.cos(ry) * forwardOffset
 				end
 
 				cameraState.targetWcx = lookAtX
@@ -1253,27 +1274,42 @@ local function UpdatePlayerTracking()
 				-- The camera state might have: dist, height, or we can use camY
 				local zoomValue = nil
 
+				-- Calculate PIP size relative to main screen for accurate player view representation
+				-- The tracked player's view is their full screen, so we need to adjust zoom
+				-- based on how much smaller/larger the PIP is compared to their likely screen size
+				local pipWidth = render.dim.r - render.dim.l
+				local pipHeight = render.dim.t - render.dim.b
+				local pipDiagonal = math.sqrt(pipWidth * pipWidth + pipHeight * pipHeight)
+				-- Reference: assume tracked player has similar screen size to us
+				local screenDiagonal = math.sqrt(render.vsx * render.vsx + render.vsy * render.vsy)
+				-- Size ratio: if PIP is smaller, we need higher zoom to show same area
+				-- pipSizeRatio < 1 means PIP is smaller than screen
+				local pipSizeRatio = pipDiagonal / screenDiagonal
+
 				-- First priority: use dist if available (spring/ta camera)
-				-- Validate dist is reasonable (100-8000 range, not extreme values)
-				if dist and dist > 100 and dist < 8000 then
+				-- Validate dist is reasonable (100-20000 range for overview support)
+				if dist and dist > 100 and dist < 16000 then
 					-- Spring camera distance scales inversely with zoom
-					-- Typical range: 500-3000, map to our zoom range
-					zoomValue = 400 / dist
-					-- Only use if result is within valid zoom range
-					if zoomValue < config.zoomMin or zoomValue > config.zoomMax then
-						zoomValue = nil
-					end
+					-- Typical range: 500-3000 for normal play, up to 15000+ for overview
+					-- Base zoom from player's camera distance
+					-- Higher constant = more zoomed in result
+					local baseZoom = 2000 / dist
+					-- Adjust zoom based on PIP size: smaller PIP = lower zoom to show same world area
+					-- If PIP is half screen size, zoom should be halved to fit same view in smaller space
+					zoomValue = baseZoom * pipSizeRatio
+					-- Clamp to valid zoom range instead of discarding
+					zoomValue = math.max(config.zoomMin, math.min(config.zoomMax, zoomValue))
 				end
 
 				-- Second priority: use height if dist not available
-				-- Validate height is reasonable (100-6000 range)
-				if not zoomValue and height and height > 100 and height < 6000 then
+				-- Validate height is reasonable (100-15000 range for overview support)
+				if not zoomValue and height and height > 100 and height < 15000 then
 					-- Camera height scales inversely with zoom
-					zoomValue = 300 / height
-					-- Only use if result is within valid zoom range
-					if zoomValue < config.zoomMin or zoomValue > config.zoomMax then
-						zoomValue = nil
-					end
+					local baseZoom = 2400 / height
+					-- Adjust zoom based on PIP size
+					zoomValue = baseZoom * pipSizeRatio
+					-- Clamp to valid zoom range instead of discarding
+					zoomValue = math.max(config.zoomMin, math.min(config.zoomMax, zoomValue))
 				end
 
 				-- Apply zoom if we calculated one, but only if change is significant
@@ -3976,6 +4012,12 @@ function widget:Shutdown()
 		pipR2T.contentTex = nil
 	end
 
+	-- Clean up content mask dlist
+	if pipR2T.contentMaskDlist then
+		gl.DeleteList(pipR2T.contentMaskDlist)
+		pipR2T.contentMaskDlist = nil
+	end
+
 	-- Clean up frame textures
 	if pipR2T.frameBackgroundTex then
 		gl.DeleteTexture(pipR2T.frameBackgroundTex)
@@ -4010,8 +4052,17 @@ function widget:Shutdown()
 	end
 
 	-- Remove guishader blur
-	if WG['guishader'] and WG['guishader'].RemoveRect then
-		WG['guishader'].RemoveRect('pip'..pipNumber)
+	if WG['guishader'] then
+		if WG['guishader'].RemoveDlist then
+			WG['guishader'].RemoveDlist('pip'..pipNumber)
+		elseif WG['guishader'].RemoveRect then
+			WG['guishader'].RemoveRect('pip'..pipNumber)
+		end
+	end
+	-- Clean up our guishader dlist
+	if render.guishaderDlist then
+		gl.DeleteList(render.guishaderDlist)
+		render.guishaderDlist = nil
 	end
 
 	-- Clean up API
@@ -6133,7 +6184,6 @@ local function DrawMapMarkers()
 		local marker = miscState.mapMarkers[i]
 		local age = currentTime - marker.time
 
-		-- Remove markers older than 5 seconds
 		if age > 4.5 then
 			table.remove(miscState.mapMarkers, i)
 		else
@@ -7295,7 +7345,7 @@ local function DrawTrackingIndicators()
 		local pipWidth = render.dim.r - render.dim.l
 		local pipHeight = render.dim.t - render.dim.b
 		glFunc.Color(1, 1, 1, 0.22)
-		render.RectRoundOutline(render.dim.l, render.dim.b, render.dim.r, render.dim.t, render.elementCorner*0.4, lineWidth, 1, 1, 1, 1, {1, 1, 1, 0.22}, {1, 1, 1, 0.22})
+		render.RectRoundOutline(render.dim.l, render.dim.b, render.dim.r, render.dim.t, render.elementCorner*0.5, lineWidth, 1, 1, 1, 1, {1, 1, 1, 0.22}, {1, 1, 1, 0.22})
 	end
 
 	if interactionState.trackingPlayerID then
@@ -7304,7 +7354,7 @@ local function DrawTrackingIndicators()
 			local r, g, b = Spring.GetTeamColor(teamID)
 			local lineWidth = math.ceil(3 * (render.vsx / 1920))
 			glFunc.Color(r, g, b, 0.5)
-			render.RectRoundOutline(render.dim.l, render.dim.b, render.dim.r, render.dim.t, render.elementCorner*0.4, lineWidth, 1, 1, 1, 1, {r, g, b, 0.5}, {r, g, b, 0.5})
+			render.RectRoundOutline(render.dim.l, render.dim.b, render.dim.r, render.dim.t, render.elementCorner*0.5, lineWidth, 1, 1, 1, 1, {r, g, b, 0.5}, {r, g, b, 0.5})
 		end
 	end
 end
@@ -7652,9 +7702,49 @@ function widget:DrawScreen()
 		UpdateR2TContent(currentTime, pipUpdateInterval, pipWidth, pipHeight)
 		pipR2T.contentLastDrawTime = os.clock() - drawStartTime
 
-		-- Blit the pre-rendered texture
+		-- Update content mask display list if dimensions or position changed
+		local maskNeedsUpdate = (math.floor(pipWidth) ~= pipR2T.contentMaskLastWidth or
+								 math.floor(pipHeight) ~= pipR2T.contentMaskLastHeight or
+								 math.floor(render.dim.l) ~= pipR2T.contentMaskLastL or
+								 math.floor(render.dim.b) ~= pipR2T.contentMaskLastB)
+		if maskNeedsUpdate then
+			if pipR2T.contentMaskDlist then
+				gl.DeleteList(pipR2T.contentMaskDlist)
+			end
+			pipR2T.contentMaskDlist = gl.CreateList(function()
+				-- Draw rounded rectangle shape for stencil mask
+				-- Use slightly larger corner radius so diagonal border looks same thickness as straight edges
+				render.RectRound(render.dim.l, render.dim.b, render.dim.r, render.dim.t, render.elementCorner * 0.5, 1, 1, 1, 1)
+			end)
+			pipR2T.contentMaskLastWidth = math.floor(pipWidth)
+			pipR2T.contentMaskLastHeight = math.floor(pipHeight)
+			pipR2T.contentMaskLastL = math.floor(render.dim.l)
+			pipR2T.contentMaskLastB = math.floor(render.dim.b)
+		end
+
+		-- Blit the pre-rendered texture with rounded corner stencil mask
 		if pipR2T.contentTex then
+			-- Set up stencil buffer to clip to rounded corners
+			gl.Clear(GL.STENCIL_BUFFER_BIT)
+			gl.StencilTest(true)
+			gl.StencilFunc(GL.ALWAYS, 1, 0xFF)  -- Always pass, write 1 to stencil buffer
+			gl.StencilOp(GL.KEEP, GL.KEEP, GL.REPLACE)  -- Replace stencil value where we draw
+			gl.ColorMask(false, false, false, false)  -- Don't draw to color buffer
+
+			-- Draw the rounded mask shape into stencil buffer
+			if pipR2T.contentMaskDlist then
+				gl.CallList(pipR2T.contentMaskDlist)
+			end
+
+			-- Now draw content only where stencil == 1
+			gl.ColorMask(true, true, true, true)  -- Enable color writes
+			gl.StencilFunc(GL.EQUAL, 1, 0xFF)  -- Only draw where stencil == 1
+			gl.StencilOp(GL.KEEP, GL.KEEP, GL.KEEP)  -- Don't modify stencil buffer
+
 			gl.R2tHelper.BlendTexRect(pipR2T.contentTex, render.dim.l, render.dim.b, render.dim.r, render.dim.t, true)
+
+			-- Disable stencil test
+			gl.StencilTest(false)
 		end
 
 		-- Draw map ruler at edges (only when not spectating)
