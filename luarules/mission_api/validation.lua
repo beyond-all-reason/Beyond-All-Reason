@@ -106,11 +106,31 @@ local customValidators = {
 				validateLuaType(params, 'number', actionOrTrigger, actionOrTriggerID, parameterName .. '[' .. orderNumber .. ']' .. '[2]')
 			end
 			local commandValidators = {
-				[CMD.STOP] = false, [CMD.SELFD] = false, [CMD.GUARD] = false,
-				[CMD.DGUN] = validate3, [CMD.MOVE] = validate3, [CMD.FIGHT] = validate3, [CMD.PATROL] = validate3,
-				[CMD.RECLAIM] = validate4, [CMD.RESURRECT] = validate4, [CMD.CAPTURE] = validate4, [CMD.AREA_ATTACK] = validate4, [CMD.RESTORE] = validate4,
-				[CMD.ATTACK] = validate3or4, [CMD.REPAIR] = validate3or4, [CMD.UNLOAD_UNITS] = validate3or4, [CMD.LOAD_UNITS] = validate3or4,
-				[CMD.CLOAK] = validateNumber, [CMD.ONOFF] = validateNumber, [CMD.FIRE_STATE] = validateNumber, [CMD.MOVE_STATE] = validateNumber,
+				-- No parameters:SpawnUnits:
+				[CMD.STOP] = false,
+				[CMD.SELFD] = false,
+				[CMD.GUARD] = false,
+				-- 3 number parameters:
+				[CMD.DGUN] = validate3,
+				[CMD.MOVE] = validate3,
+				[CMD.FIGHT] = validate3,
+				[CMD.PATROL] = validate3,
+				-- 4 number parameters:
+				[CMD.RECLAIM] = validate4,
+				[CMD.RESURRECT] = validate4,
+				[CMD.CAPTURE] = validate4,
+				[CMD.AREA_ATTACK] = validate4,
+				[CMD.RESTORE] = validate4,
+				-- 3 or 4 number parameters:
+				[CMD.ATTACK] = validate3or4,
+				[CMD.REPAIR] = validate3or4,
+				[CMD.UNLOAD_UNITS] = validate3or4,
+				[CMD.LOAD_UNITS] = validate3or4,
+				-- Single number parameter:
+				[CMD.CLOAK] = validateNumber,
+				[CMD.ONOFF] = validateNumber,
+				[CMD.FIRE_STATE] = validateNumber,
+				[CMD.MOVE_STATE] = validateNumber,
 			}
 			if commandValidators[commandID] then
 				commandValidators[commandID]()
@@ -219,13 +239,14 @@ local function validate(schemaParameters, actionOrTriggerType, actionOrTriggerPa
 		logError(actionOrTrigger .. " has invalid type. " .. actionOrTrigger .. ": " .. actionOrTriggerID)
 	else
 		actionOrTriggerParameters = actionOrTriggerParameters or {}
-		-- For NameUnits action, at least one of teamID, unitDefName, or area is required:
-		if actionOrTrigger == 'Action' and actionOrTriggerType == GG['MissionAPI'].ActionTypes.NameUnits and not actionOrTriggerParameters.teamID and not actionOrTriggerParameters.unitDefName and not actionOrTriggerParameters.area then
-			logError("NameUnits action '" .. actionOrTriggerID .. "' is missing required parameter. At least one of teamID, unitDefName, and area is required.")
+		-- Check for requiresOneOf parameters:
+		local requiresOneOf = schemaParameters[actionOrTriggerType].requiresOneOf
+		if requiresOneOf and table.all(requiresOneOf, function(paramName) return actionOrTriggerParameters[paramName] == nil end) then
+			logError("NameUnits action '" .. actionOrTriggerID .. "' is missing required parameter. At least one of " .. table.toString(requiresOneOf) .. " is required.")
 		end
-		for _, parameter in pairs(schemaParameters[actionOrTriggerType]) do
+		-- Validate each parameter:
+		for _, parameter in ipairs(schemaParameters[actionOrTriggerType]) do
 			local value = actionOrTriggerParameters[parameter.name]
-
 			if value == nil and parameter.required then
 				logError(actionOrTrigger .. " missing required parameter. " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameter.name)
 			else
@@ -253,11 +274,15 @@ local function validateUnitNameReferences()
 	local triggersTypesNamingUnits = { }
 	local triggersTypesReferencingUnitNames = { }
 	local actionsTypesNamingUnits = {
-		[actionTypes.SpawnUnits] = true, [actionTypes.NameUnits] = true,
+		[actionTypes.SpawnUnits] = true,
+		[actionTypes.NameUnits] = true,
 	}
 	local actionsTypesReferencingUnitNames = {
-		[actionTypes.IssueOrders] = true, [actionTypes.UnnameUnits] = true, [actionTypes.TransferUnits] = true,
-		[actionTypes.DespawnUnits] = true, [actionTypes.TransferUnits] = true,
+		[actionTypes.IssueOrders] = true,
+		[actionTypes.UnnameUnits] = true,
+		[actionTypes.TransferUnits] = true,
+		[actionTypes.DespawnUnits] = true,
+		[actionTypes.TransferUnits] = true,
 	}
 
 	local createdUnitNames = {}

@@ -188,6 +188,7 @@ local parameters = {
 			required = false,
 			type = Types.Area
 		},
+		requiresOneOf = { 'teamD', 'unitDefName', 'area' }
 	},
 	[actionTypes.UnnameUnits] = {
 		[1] = {
