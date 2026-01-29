@@ -1,5 +1,5 @@
 include("keysym.h.lua")
-local versionNumber = 1.4
+local versionNumber = 1.5
 
 local widget = widget ---@type Widget
 
@@ -7,7 +7,7 @@ function widget:GetInfo()
 	return {
 		name = "FactoryQ Manager",
 		desc = "Saves and Loads Factory Queues. Load: Meta+[0-9], Save: Alt+Meta+[0-9] (v" .. string.format("%.1f", versionNumber) .. ")",
-		author = "very_bad_soldier",
+		author = "very_bad_soldier, Chronographer",
 		date = "Jul 6, 2008",
 		license = "GNU GPL, v2 or later",
 		layer = -9000,
@@ -29,10 +29,10 @@ local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 
 --Changelog
+--1.5: added repeat icon and bindable keybind actions to activate
 --1.4: fixed text alignment, changed layer cause other widgets are eating events otherwise (e.g. smartselect)
 --1.3: fixed for 0.83
 --1.21:
---added: Press Meta+C to clear currently selected factories queue
 --added: some speedups, but its still quite hungry will displaying menu
 
 --1.2:
@@ -64,8 +64,10 @@ local idrawY = 650
 local igroupLabelXOff = 17
 local igroupLabelYOff = 10
 
-local drawFadeTime = 0.5
+local drawFadeTime = 0.15
 local loadedBorderDisplayTime = 1.0
+
+local repeatIcon = "LuaUI/Images/repeat.png"
 
 --------------------------------------------------------------------------------
 --INTERNAL USE
@@ -83,6 +85,7 @@ local lastBoxX = nil
 local lastBoxY = nil
 local boxCoords = {}
 local curModId = nil
+local renderPresets = false
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -204,15 +207,6 @@ end
 
 function widget:PlayerChanged(playerID)
 	maybeRemoveSelf()
-end
-
-function widget:Initialize()
-	if Spring.IsReplay() or spGetGameFrame() > 0 then
-		maybeRemoveSelf()
-	end
-	widget:ViewResize()
-
-	curModId = string.upper(Game.gameShortName or "")
 end
 
 -- Included FactoryClear Lua widget
@@ -374,69 +368,28 @@ function loadQueue(unitId, unitDef, groupNo)
 	end
 end
 
-function widget:KeyPress(key, modifier, isRepeat)
-	local mode = nil
+local function factoryPresetKeyHandler(_, _, args)
+	args = args or {}
+	local mode = args[1]
+
+	local key = args[2]
 	local selUnit, unitDef = getSingleFactory()
+	local gr = tonumber(key)
 
-	if selUnit == nil and unitDef == nil then
-		return false
-	end
+	if selUnit == nil then return end
 
-	if modifier.meta and modifier.alt then
-		mode = 1 --write
-	elseif (modifier.meta) then
-		mode = 2 --read
-
-		if key == KEYSYMS.C then
-			ClearFactoryQueues()
-		end
-	else
-		return false
+	if mode == "save" then
+		saveQueue(selUnit, unitDef, gr)
+	elseif mode == "load" then
+		loadQueue(selUnit, unitDef, gr)
 	end
 
-	--asert(mode ~= nil)
-	local gr = -2
-	if key == KEYSYMS.N_0 then
-		gr = 0
-	end
-	if key == KEYSYMS.N_1 then
-		gr = 1
-	end
-	if key == KEYSYMS.N_2 then
-		gr = 2
-	end
-	if key == KEYSYMS.N_3 then
-		gr = 3
-	end
-	if key == KEYSYMS.N_4 then
-		gr = 4
-	end
-	if key == KEYSYMS.N_5 then
-		gr = 5
-	end
-	if key == KEYSYMS.N_6 then
-		gr = 6
-	end
-	if key == KEYSYMS.N_7 then
-		gr = 7
-	end
-	if key == KEYSYMS.N_8 then
-		gr = 8
-	end
-	if key == KEYSYMS.N_9 then
-		gr = 9
-	end
-	--if key == KEYSYMS.BACKSLASH then gr = -1 end
+end
 
-	if gr ~= -2 then
-		if mode == 1 then
-			saveQueue(selUnit, unitDef, gr)
-		elseif mode == 2 then
-			loadQueue(selUnit, unitDef, gr)
-		end
-	end
-
-	return true;
+local function factoryPresetRender(_, _, _, data)
+	data = data or {}
+	renderPresets = data[1]
+	return false 	
 end
 
 function CalcDrawCoords(unitId, heightAll)
@@ -482,7 +435,7 @@ function DrawBoxTitle(x, y, alpha, unitDef, selUnit)
 	local text = unitDef.translatedHumanName
 
 	font:Begin()
-	font:SetTextColor(0, 1, 0, alpha or 1)
+	font:SetTextColor(0.5, 1, 0.5, alpha or 1)
 	font:Print(text, x + boxHeightTitle + titleTextXOff, y - boxHeightTitle / 2.0 - titleTextYOff, fontSizeTitle, "nd0")
 	font:End()
 end
@@ -536,7 +489,12 @@ function DrawBoxGroup(x, y, yOffset, unitDef, selUnit, alpha, groupNo, queue)
 
 	font:Begin()
 	--Draw group Label
-	font:SetTextColor(1.0, 0.5, 0, alpha or 1)
+	if  queue[facRepeatIdx] == nil or queue[facRepeatIdx] == true then
+		font:SetTextColor(0, 1, 0, alpha or 1)
+	else
+		font:SetTextColor(1, 1, 1, alpha or 1)
+	end
+	
 	font:Print(groupNo, x + groupLabelXOff, y - boxHeight / 2.0 - groupLabelYOff, fontSizeGroup, "cdn")
 	xOff = xOff + groupLabelMargin
 
@@ -559,6 +517,23 @@ function DrawBoxGroup(x, y, yOffset, unitDef, selUnit, alpha, groupNo, queue)
 			font:Print(unitCount, x + (boxHeight*0.5) - boxIconBorder + xOff, y - boxHeight + unitCountYOff, fontSizeUnitCount, "cndo")
 		end
 		xOff = xOff + boxHeight - boxIconBorder - boxIconBorder + unitIconSpacing
+	end
+
+	if queue[facRepeatIdx] == nil or queue[facRepeatIdx] == true then 
+		if x + boxHeight + boxIconBorder + xOff + boxHeight + unitIconSpacing > x + boxWidth then
+			font:SetTextColor(1, 1, 1, alpha)
+			font:Print("...", x + xOff + unitCountXOff, y - boxHeight + unitCountYOff, fontSizeUnitCount, "nd")
+		else
+			gl.Color(1,1,1 ,mathMax(alpha, 0.8))
+			UiUnit(
+				x + boxIconBorder + xOff, y - boxHeight + boxIconBorder, x + boxHeight - boxIconBorder + xOff, y - boxIconBorder,
+				nil,
+				1,1,1,1,
+				0.08,
+				nil, nil,
+				repeatIcon
+			)
+		end
 	end
 
 	--draw "loaded" text
@@ -639,11 +614,24 @@ function DrawBoxes()
 
 end
 
+function widget:Initialize()
+	if Spring.IsReplay() or spGetGameFrame() > 0 then
+		maybeRemoveSelf()
+	end
+	widget:ViewResize()
+
+	curModId = string.upper(Game.gameShortName or "")
+
+	widgetHandler:AddAction("factory_preset", factoryPresetKeyHandler, nil, "p")
+	widgetHandler:AddAction("factory_preset_show", factoryPresetRender, {true}, "p")
+	widgetHandler:AddAction("factory_preset_show", factoryPresetRender, {false}, "r")
+end
+
 function widget:Update()
 	local now = Spring.GetGameSeconds()
 	local timediff = now - lastGameSeconds
 
-	if select(3, spGetModKeyState()) then
+	if renderPresets then
 		-- meta (space)
 		if alpha < 1.0 then
 			alpha = alpha + timediff / drawFadeTime
@@ -680,6 +668,11 @@ function widget:SetConfigData(data)
 	if data ~= nil then
 		savedQueues = data
 	end
+end
+
+function widget:Shutdown()
+	widgetHandler:RemoveAction("factory_preset")
+	widgetHandler:RemoveAction("factory_preset_show")
 end
 
 function printDebug(value)
