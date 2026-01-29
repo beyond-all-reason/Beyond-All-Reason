@@ -411,7 +411,6 @@
 				"title": "Queueing orders",
 				"append": "Add order to end of order queue",
 				"appendKey": "shift + (some order)",
-				"prependKey": "space + (some order)",
 				"prepend": "Add order to start of order queue"
 			},
 			"buildOrders": {
@@ -426,7 +425,6 @@
 				"intel": "Cycle through radar/defence/etc",
 				"factoriesKey": "v",
 				"factories": "Cycle through factories",
-				"rotateKey": "[ and ]",
 				"rotate": "Change facing of buildings"
 			},
 			"issueBuildOrders": {
@@ -439,16 +437,12 @@
 				"line": "Build in a line",
 				"gridKey": "shift + alt + (build order)",
 				"grid": "Build in a square",
-				"spacingUpKey": "alt+z",
 				"spacingUp": "Increase build spacing",
-				"spacingDownKey": "alt+x",
 				"spacingDown": "Decrease build spacing"
 			},
 			"massSelect": {
 				"title": "Group selection",
-				"allKey": "ctrl + a",
 				"all": "Select all units",
-				"buildersKey": "ctrl + b",
 				"builders": "Select all constructors",
 				"createGroupKey": "ctrl + (num)",
 				"createGroup": "Add units to group (num=1,2,..)",
@@ -458,7 +452,6 @@
 				"removeAutoGroup": "Remove unit type from autogroup",
 				"groupKey": "(num)",
 				"group": "Select all units assigned to group (num)",
-				"sameTypeKey": "ctrl + z",
 				"sameType": "Select all units of same type as selected"
 			},
 			"drawing": {
