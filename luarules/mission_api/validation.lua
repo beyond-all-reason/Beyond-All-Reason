@@ -6,32 +6,31 @@ local function logError(message)
 	Spring.Log('validation.lua', LOG.ERROR, "[Mission API] " .. message)
 end
 
-local function validateLuaType(value, expectedType, actionOrTrigger, actionOrTriggerID, parameterName)
+local function validateLuaType(value, expectedType)
 	local actualType = type(value)
 	if value ~= nil and actualType ~= expectedType then
-		logError("Unexpected parameter type, expected " ..expectedType ..", got " .. actualType .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameterName)
-		return false
+		return { "Unexpected parameter type, expected " .. expectedType .. ", got " .. actualType }
 	end
-	return true
+	return
 end
 
-local function validateField(value, fieldName, expectedType, actionOrTrigger, actionOrTriggerID, parameterName)
+local function validateField(value, fieldName, expectedType)
 	if not value then
-		logError(actionOrTrigger .. " missing required parameter. " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameterName .. "." .. fieldName)
-		return false
+		return { "Missing required parameter. ", "." .. fieldName }
+
 	end
 	if type(value) ~= expectedType then
-		logError("Unexpected parameter type, expected " .. expectedType .. ", got " .. type(value) .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameterName .. "." .. fieldName)
-		return false
+		return { "Unexpected parameter type, expected " .. expectedType .. ", got " .. type(value), "." .. fieldName }
 	end
-	return true
+	return
 end
 
 local Types = VFS.Include('luarules/mission_api/parameter_types.lua').Types
 
 local function validateSimpleTypeCurried(expectedType)
-	return function(value, actionOrTrigger, actionOrTriggerID, parameterName)
-		return validateLuaType(value, expectedType, actionOrTrigger, actionOrTriggerID, parameterName)
+	return function(value)
+		local luaTypeResult = validateLuaType(value, expectedType)
+		return luaTypeResult and { luaTypeResult } or nil
 	end
 end
 local luaTypeValidators = {
@@ -49,53 +48,78 @@ local customValidators = {
 	--- Table Validators:
 	----------------------------------------------------------------
 
-	[Types.Position] = function(position, actionOrTrigger, actionOrTriggerID, parameterName)
-		if not luaTypeValidators[Types.Table](position, actionOrTrigger, actionOrTriggerID, parameterName) then
-			return
+	[Types.Position] = function(position)
+		local luaTypeResult = luaTypeValidators[Types.Table](position)
+		if luaTypeResult then
+			return luaTypeResult
 		end
 
+		local result = {}
 		for _, field in pairs({ "x", "z"}) do
-			if not validateField(position[field], field, 'number', actionOrTrigger, actionOrTriggerID, parameterName) then
-				return
+			local fieldResult = validateField(position[field], field, 'number')
+			if fieldResult then
+				result[#result + 1] = fieldResult
 			end
+		end
+
+		if not table.isEmpty(result) then
+			return result
 		end
 
 		position.y = position.y or Spring.GetGroundHeight(position.x, position.z)
-		validateField(position.y, 'y', 'number', actionOrTriggerID, parameterName)
+		local fieldResult = validateField(position.y, 'y', 'number')
+		if fieldResult then
+			result[#result + 1] = fieldResult
+		end
+
+		return result
 	end,
 
-	[Types.AllyTeamIDs] = function(allyTeamIDs, actionOrTrigger, actionOrTriggerID, parameterName)
-		if not luaTypeValidators[Types.Table](allyTeamIDs, actionOrTrigger, actionOrTriggerID, parameterName) then
-			return
+	[Types.AllyTeamIDs] = function(allyTeamIDs)
+		local luaTypeResult = luaTypeValidators[Types.Table](allyTeamIDs)
+		if luaTypeResult then
+			return luaTypeResult
 		end
 
 		if table.isNilOrEmpty(allyTeamIDs) then
-			logError("allyTeamIDs table is empty. " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameterName)
-			return
+			return { { "allyTeamIDs table is empty. " } }
 		end
 
+		local result = {}
 		for i, allyTeamID in pairs(allyTeamIDs) do
-			if validateField(allyTeamID, "allyTeamID #" .. i, 'number', actionOrTrigger, actionOrTriggerID, parameterName)
-				and not Spring.GetAllyTeamInfo(allyTeamID) then
-				logError("Invalid allyTeamID: " .. allyTeamID .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameterName)
+			local fieldResult = validateField(allyTeamID, "allyTeamID #" .. i, 'number')
+			if fieldResult then
+				result[#result + 1] = fieldResult
+			elseif not Spring.GetAllyTeamInfo(allyTeamID) then
+				result[#result + 1] = { "Invalid allyTeamID: " .. allyTeamID }
 			end
 		end
+
+		return result
 	end,
 
-	[Types.Orders] = function(orders, actionOrTrigger, actionOrTriggerID, parameterName)
+	[Types.Orders] = function(orders)
+
+		local result = {}
 
 		local function validateOrderCommandAndParams(commandID, params, orderNumber)
 			local function validateNumberArrayCurried(sizes, message)
 				return function()
-					if not validateLuaType(params, 'table', actionOrTrigger, actionOrTriggerID, parameterName .. '[' .. orderNumber .. ']' .. '[2]') then
+					local luaTypeResult = validateLuaType(params, 'table')
+					if luaTypeResult then
+						result[#result + 1] = { luaTypeResult[1], '[' .. orderNumber .. '][2]' }
 						return
 					end
 					if not table.contains(sizes, #(params or {})) then
-						logError("Parameter must be an array of " .. message .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameterName .. '[' .. orderNumber .. ']' .. '[2]')
+						result[#result + 1] = { "Parameter must be an array of " .. message, '[' .. orderNumber .. '][2]' }
 						return
 					end
 					for i = 1, 3 do
-						validateLuaType(params[i], 'number', actionOrTrigger, actionOrTriggerID, parameterName .. '[' .. orderNumber .. ']' .. '[2][' .. i .. ']')
+						local luaTypeRes = validateLuaType(params[i], 'number')
+						if luaTypeRes then
+							result[#result + 1] = { luaTypeRes[1], '[' .. orderNumber .. '][2][' .. i .. ']' }
+							return
+						end
 					end
 				end
 			end
@@ -103,7 +127,10 @@ local customValidators = {
 			local validate4 = validateNumberArrayCurried({ 4 }, "4 numbers {x, y, z, radius}")
 			local validate3or4 = validateNumberArrayCurried({ 3, 4 }, "3 or 4 numbers {x, y, z, optional radius}")
 			local function validateNumber()
-				validateLuaType(params, 'number', actionOrTrigger, actionOrTriggerID, parameterName .. '[' .. orderNumber .. ']' .. '[2]')
+				local luaTypeResult = validateLuaType(params, 'number')
+				if luaTypeResult then
+					result[#result + 1] = { luaTypeResult[1], '[' .. orderNumber .. '][2]' }
+				end
 			end
 			local commandValidators = {
 				-- No parameters:SpawnUnits:
@@ -139,35 +166,47 @@ local customValidators = {
 
 		local function validateOrderOptions(options, orderNumber)
 			local validOptions = { right = true, alt = true, ctrl = true, shift = true, meta = true }
-			if options and luaTypeValidators[Types.Table](options, actionOrTrigger, actionOrTriggerID, parameterName .. '[3]') then
+			if options then
+				local luaTypeResult = validateLuaType(options, 'table')
+				if luaTypeResult then
+					result[#result + 1] = { luaTypeResult[1], "[" .. orderNumber .. "][3]" }
+					return
+				end
+
 				for _, optionName in pairs(options) do
 					if not validOptions[optionName] then
-						logError("Invalid order option: " .. optionName .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameterName .. ", Order #" .. orderNumber)
+						result[#result + 1] = { "Invalid order option: " .. optionName, "[" .. orderNumber .. "][3]" }
 					end
 				end
 			end
 		end
 
-		if not luaTypeValidators[Types.Table](orders, actionOrTrigger, actionOrTriggerID, parameterName) then
-			return
+		local luaTypeResult = luaTypeValidators[Types.Table](orders)
+		if luaTypeResult then
+			return luaTypeResult
 		end
 
 		if #orders == 0 then
-			logError("Orders table is empty. " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameterName)
-			return
+			return { { "Orders table is empty. " } }
 		end
 
 		for i, order in pairs(orders) do
-			if validateField(order, "order #" .. i, 'table', actionOrTrigger, actionOrTriggerID, parameterName) then
+			local fieldResult = validateField(order, "order #" .. i, 'table')
+			if fieldResult then
+				result[#result + 1] = fieldResult
+			else
 				validateOrderCommandAndParams(order[1], order[2], i)
 				validateOrderOptions(order[3], i)
 			end
 		end
+
+		return result
 	end,
 
-	[Types.Area] = function(area, actionOrTrigger, actionOrTriggerID, parameterName)
-		if not luaTypeValidators[Types.Table](area, actionOrTrigger, actionOrTriggerID, parameterName) then
-			return
+	[Types.Area] = function(area)
+		local luaTypeResult = luaTypeValidators[Types.Table](area)
+		if luaTypeResult then
+			return luaTypeResult
 		end
 		if not area then
 			return
@@ -176,42 +215,55 @@ local customValidators = {
 		local isRectangle = area.x1 and area.z1 and area.x2 and area.z2
 		local isCircle = area.x and area.z and area.radius
 		if not isRectangle and not isCircle then
-			logError("Invalid area parameter, must be rectangle { x1, z1, x2, z2 } or circle { x, z, radius }. " .. actionOrTrigger .. ": " .. actionOrTriggerID)
+			return { { "Invalid area parameter, must be rectangle { x1, z1, x2, z2 } or circle { x, z, radius }. " } }
 		else
+			local result = {}
 			for key, value in pairs(area) do
-				validateField(value, key, 'number', actionOrTrigger, actionOrTriggerID, parameterName)
+				local fieldResult = validateField(value, key, 'number')
+				if fieldResult then
+					result[#result + 1] = fieldResult
+				end
 			end
 		end
+
+		return result
 	end,
 
 	----------------------------------------------------------------
 	--- String Validators:
 	----------------------------------------------------------------
 
-	[Types.TriggerID] = function(triggerID, actionOrTrigger, actionOrTriggerID, parameterName)
-		if not luaTypeValidators[Types.String](triggerID, actionOrTrigger, actionOrTriggerID, parameterName) then
-			return
+	[Types.TriggerID] = function(triggerID)
+		local luaTypeResult = luaTypeValidators[Types.String](triggerID)
+		if luaTypeResult then
+			return luaTypeResult
 		end
 
 		if not GG['MissionAPI'].Triggers[triggerID] then
-			logError("Invalid triggerID: " .. triggerID .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID)
+			return { { "Invalid triggerID: " .. triggerID } }
 		end
 	end,
 
-	[Types.UnitDefName] = function(unitDefName, actionOrTrigger, actionOrTriggerID, parameterName)
-		if not luaTypeValidators[Types.String](unitDefName, actionOrTrigger, actionOrTriggerID, parameterName) then
-			return
+	[Types.UnitDefName] = function(unitDefName)
+		local luaTypeResult = luaTypeValidators[Types.String](unitDefName)
+		if luaTypeResult then
+			return luaTypeResult
 		end
 
 		if not UnitDefNames[unitDefName] then
-			logError("Invalid unitDefName: " .. unitDefName .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID)
+			return { { "Invalid unitDefName: " .. unitDefName } }
 		end
 	end,
 
-	[Types.Facing] = function(facing, actionOrTrigger, actionOrTriggerID, _)
+	[Types.Facing] = function(facing)
+		local luaTypeResult = luaTypeValidators[Types.String](facing)
+		if luaTypeResult then
+			return luaTypeResult
+		end
+
 		local validFacings = { n = true, s = true, e = true, w = true }
 		if facing and not validFacings[facing] then
-			logError("Invalid facing: " .. facing .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID)
+			return { { "Invalid facing: " .. facing } }
 		end
 	end,
 
@@ -219,13 +271,14 @@ local customValidators = {
 	--- Number Validators:
 	----------------------------------------------------------------
 
-	[Types.TeamID] = function(teamID, actionOrTrigger, actionOrTriggerID, parameterName)
-		if not luaTypeValidators[Types.Number](teamID, actionOrTrigger, actionOrTriggerID, parameterName) then
-			return
+	[Types.TeamID] = function(teamID)
+		local luaTypeResult = luaTypeValidators[Types.String](teamID)
+		if luaTypeResult then
+			return luaTypeResult
 		end
 
 		if not Spring.GetTeamAllyTeamID(teamID) then
-			logError("Invalid teamID: " .. teamID .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameterName)
+			return { { "Invalid teamID: " .. teamID } }
 		end
 	end,
 }
@@ -242,7 +295,7 @@ local function validate(schemaParameters, actionOrTriggerType, actionOrTriggerPa
 		-- Check for requiresOneOf parameters:
 		local requiresOneOf = schemaParameters[actionOrTriggerType].requiresOneOf
 		if requiresOneOf and table.all(requiresOneOf, function(paramName) return actionOrTriggerParameters[paramName] == nil end) then
-			logError("NameUnits action '" .. actionOrTriggerID .. "' is missing required parameter. At least one of " .. table.toString(requiresOneOf) .. " is required.")
+			logError(actionOrTrigger .." '" .. actionOrTriggerID .. "' is missing required parameter. At least one of " .. table.toString(requiresOneOf) .. " is required.")
 		end
 		-- Validate each parameter:
 		for _, parameter in ipairs(schemaParameters[actionOrTriggerType]) do
@@ -250,7 +303,11 @@ local function validate(schemaParameters, actionOrTriggerType, actionOrTriggerPa
 			if value == nil and parameter.required then
 				logError(actionOrTrigger .. " missing required parameter. " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameter.name)
 			else
-				validators[parameter.type](value, actionOrTrigger, actionOrTriggerID, parameter.name)
+				for _, messageWithSuffix in pairs(validators[parameter.type](value, actionOrTrigger, actionOrTriggerID, parameter.name) or {}) do
+					local message = messageWithSuffix[1]
+					local parameterNameSuffix = messageWithSuffix[2] or ""
+					logError(message .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameter.name .. parameterNameSuffix)
+				end
 			end
 		end
 	end
