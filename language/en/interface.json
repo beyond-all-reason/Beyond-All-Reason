@@ -496,7 +496,11 @@
 			"unpausedthegame": "%{name} %{textColor}unpaused the game",
 			"connectionattemptfrom": "%{textColor}Connection attempt from: %{name}",
 			"leftthegamenormal": "%{name} %{textColor}left the game %{textColor2}(normal quit)",
-			"leftthegametimeout": "%{name} %{textColor}left the game %{textColor2}(timeout)"
+			"leftthegametimeout": "%{name} %{textColor}left the game %{textColor2}(timeout)",
+			"moderation": {
+				"prefix": "Moderation:",
+				"blocked": "Words such as \"%{badWord}\" can be against the Code of Conduct if they are being used to abuse other players. Please take a moment to reevaluate your intentions. If your message was blocked in error, then you can send it again to bypass the filter."
+			}
 		},
 		"teamStats": {
 			"player": "Player",
