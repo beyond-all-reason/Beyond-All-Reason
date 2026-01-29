@@ -579,18 +579,6 @@ local function findBadWords(str)
 	end
 end
 
-local teamColorKeys = {}
-local teams = Spring.GetTeamList()
-for i = 1, #teams do
-	local r, g, b, a = spGetTeamColor(teams[i])
-	teamColorKeys[teams[i]] = r..'_'..g..'_'..b
-
-	if select(4, Spring.GetTeamInfo(teams[i], false)) then
-		playernames[getAIName(teams[i])] = true
-	end
-end
-teams = nil
-
 local function wordWrap(text, maxWidth, fontSize)
 	local lines = {}
 	local lineCount = 0
