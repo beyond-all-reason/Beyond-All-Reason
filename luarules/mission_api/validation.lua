@@ -1,6 +1,6 @@
---
--- Validators for Mission API action and trigger parameters loaded from missions.
---
+---
+--- Validators for Mission API action and trigger parameters loaded from missions.
+---
 
 local function logError(message)
 	Spring.Log('validation.lua', LOG.ERROR, "[Mission API] " .. message)
@@ -272,7 +272,7 @@ local customValidators = {
 	----------------------------------------------------------------
 
 	[Types.TeamID] = function(teamID)
-		local luaTypeResult = luaTypeValidators[Types.String](teamID)
+		local luaTypeResult = luaTypeValidators[Types.Number](teamID)
 		if luaTypeResult then
 			return luaTypeResult
 		end

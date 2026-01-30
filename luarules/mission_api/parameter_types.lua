@@ -1,6 +1,6 @@
---
--- Data types for Mission API action and trigger parameters.
---
+---
+--- Data types for Mission API action and trigger parameters.
+---
 
 local types = {
 
