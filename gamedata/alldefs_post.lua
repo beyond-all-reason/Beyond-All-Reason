@@ -1078,10 +1078,10 @@ function UnitDef_Post(name, uDef)
 	end
 
 	-- Sets idleautoheal to 5hp/s after 1800 frames aka 1 minute. 
-	-- NOTE: currently does not check for exceptions! So random copypaste will be overwritten.
-	-- If you really want a custom idleautoheal/time, edit this to allow that.
-	if uDef.health then
+	if uDef.idleautoheal == nil then
 		uDef.idleautoheal = 5
+	end
+	if uDef.idletime == nil then
 		uDef.idletime = 1800
 	end
 
