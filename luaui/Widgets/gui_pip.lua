@@ -22,6 +22,28 @@ end
 pipNumber = pipNumber or 1
 
 ----------------------------------------------------------------------------------------------------
+-- Keyboard config for hotkey display
+----------------------------------------------------------------------------------------------------
+local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
+local currentKeyboardLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
+
+-- Helper function to get a formatted hotkey string for an action
+local function getActionHotkey(action)
+	local hotkeys = Spring.GetActionHotKeys(action)
+	if not hotkeys or #hotkeys == 0 then
+		return ""
+	end
+	-- Find shortest hotkey
+	local key = hotkeys[1]
+	for i = 2, #hotkeys do
+		if hotkeys[i]:len() < key:len() then
+			key = hotkeys[i]
+		end
+	end
+	return keyConfig.sanitizeKey(key, currentKeyboardLayout):gsub("%+", " + ")
+end
+
+----------------------------------------------------------------------------------------------------
 -- Todo
 ----------------------------------------------------------------------------------------------------
 -- Add rendering building on cursor when active command is a building (incl. indicator of valid build location)
@@ -51,8 +73,8 @@ local config = {
 	zoomMin = 0.04,
 	zoomMax = 0.95,
 	zoomFeatures = 0.2,
-	zoomProjectileDetail = 0.1,
-	zoomExplosionDetail = 0.05,
+	zoomProjectileDetail = 0.12,
+	zoomExplosionDetail = 0.06,
 	
 	-- Feature and overlay settings
 	hideEnergyOnlyFeatures = false,
@@ -79,6 +101,8 @@ local config = {
 	showWorldIcon = true,  -- Show minimize/maximize icon in world view at PIP camera location
 	showWorldIconForSpectators = false,  -- Also show world icon when spectating (default off)
 	cancelPlayerTrackingOnPan = true,  -- Cancel player camera tracking when trying to pan or ALT+drag
+	pipMinimapCorner = 1,  -- Corner for pip minimap: 1=bottom-left, 2=bottom-right, 3=top-left, 4=top-right
+	minimapHeightPercent = 0.13,  -- Minimap height as percent of PIP height (maintains aspect ratio)
 	
 	-- Performance settings
 	pipMinUpdateRate = 30,
@@ -533,7 +557,7 @@ mapInfo.isLava = mapInfo.hasWater and Spring.Lava.isLavaMap
 local buttons = {
 	{
 		texture = 'LuaUI/Images/pip/PipCopy.png',
-		tooltip = Spring.I18N('ui.pip.copy'),
+		tooltipKey = 'ui.pip.copy',
 		command = 'pip_copy',
 		OnPress = function()
 				local sizex, sizez = Spring.GetWindowGeometry()
@@ -562,7 +586,7 @@ local buttons = {
 	},
 	{
 		texture = 'LuaUI/Images/pip/PipSwitch.png',
-		tooltip = Spring.I18N('ui.pip.switch'),
+		tooltipKey = 'ui.pip.switch',
 		command = 'pip_switch',
 		OnPress = function()
 				local sizex, sizez = Spring.GetWindowGeometry()
@@ -642,8 +666,8 @@ local buttons = {
 	},
 	{
 		texture = 'LuaUI/Images/pip/PipT.png',
-		tooltip = Spring.I18N('ui.pip.track'),
-		tooltipActive = Spring.I18N('ui.pip.untrack'),
+		tooltipKey = 'ui.pip.track',
+		tooltipActiveKey = 'ui.pip.untrack',
 		command = 'pip_track',
 		OnPress = function()
 			local selectedUnits = Spring.GetSelectedUnits()
@@ -690,8 +714,8 @@ local buttons = {
 	},
 	{
 		texture = 'LuaUI/Images/pip/PipView.png',
-		tooltip = Spring.I18N('ui.pip.view'),
-		tooltipActive = Spring.I18N('ui.pip.unview'),
+		tooltipKey = 'ui.pip.view',
+		tooltipActiveKey = 'ui.pip.unview',
 		command = 'pip_view',
 		OnPress = function()
 			state.losViewEnabled = not state.losViewEnabled
@@ -707,8 +731,8 @@ local buttons = {
 	},
 	{
 		texture = 'LuaUI/Images/pip/PipCam.png',
-		tooltip = Spring.I18N('ui.pip.camera'),
-		tooltipActive = Spring.I18N('ui.pip.uncamera'),
+		tooltipKey = 'ui.pip.camera',
+		tooltipActiveKey = 'ui.pip.uncamera',
 		command = 'pip_trackplayer',
 		OnPress = function()
 			if interactionState.trackingPlayerID then
@@ -777,7 +801,7 @@ local buttons = {
 	},
 	{
 		texture = 'LuaUI/Images/pip/PipMove.png',
-		tooltip = Spring.I18N('ui.pip.move'),
+		tooltipKey = 'ui.pip.move',  -- No command, no shortcut
 		command = nil,
 		OnPress = function() 
 			interactionState.areDragging = true
@@ -6144,7 +6168,7 @@ local function DrawWaterAndLOSOverlays()
 
 	-- Draw LOS darkening overlay
 	local shouldShowLOS, losAllyTeam = ShouldShowLOS()
-	if config.showLosOverlay and shouldShowLOS and pipR2T.losTex then
+	if config.showLosOverlay and shouldShowLOS and pipR2T.losTex and gameHasStarted then
 		-- Only use scissor test if not rotated (scissor doesn't work with rotation)
 		if render.minimapRotation == 0 then
 			-- Calculate scissor coordinates to only show the visible map portion
@@ -7266,6 +7290,244 @@ local function DrawTrackedPlayerResourceBars()
 	glFunc.Color(1, 1, 1, 1)
 end
 
+-- Helper function to draw a minimap overlay in PIP corner when tracking a player camera
+-- Shows map with LOS overlay and a rectangle indicating the current PIP view
+-- Also shown for players (not just spectators tracking others)
+local function DrawTrackedPlayerMinimap()
+	-- Show for players OR when tracking a player camera, but not when hovering
+	local showForPlayer = not cameraState.mySpecState  -- Show for players
+	local showForTracking = interactionState.trackingPlayerID ~= nil  -- Show when tracking
+	
+	if not showForPlayer and not showForTracking then
+		return
+	end
+	if interactionState.isMouseOverPip then
+		return
+	end
+
+	-- Get team for LOS overlay
+	local teamID
+	if interactionState.trackingPlayerID then
+		local playerName, active, isSpec
+		playerName, active, isSpec, teamID = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
+	else
+		-- Use local player's team
+		teamID = Spring.GetMyTeamID()
+	end
+	if not teamID then
+		return
+	end
+
+	-- Calculate minimap dimensions - 12% of PIP height, maintain map aspect ratio
+	local pipWidth = render.dim.r - render.dim.l
+	local pipHeight = render.dim.t - render.dim.b
+	local minimapHeight = math.floor(pipHeight * config.minimapHeightPercent)
+	local mapAspect = mapInfo.mapSizeX / mapInfo.mapSizeZ
+	local minimapWidth = math.floor(minimapHeight * mapAspect)
+
+	-- Clamp to reasonable size
+	minimapWidth = math.min(minimapWidth, math.floor(pipWidth * 0.35))
+	minimapHeight = math.floor(minimapWidth / mapAspect)
+
+	-- Position based on config corner setting
+	-- 1=bottom-left, 2=bottom-right, 3=top-left, 4=top-right
+	local cornerSize = math.floor(render.elementCorner * 0.6)
+	local borderOffset = 1  -- Touch the team color border
+	local mmLeft, mmBottom, mmRight, mmTop
+	local corner = config.pipMinimapCorner or 1
+	
+	if corner == 1 then  -- bottom-left
+		mmLeft = render.dim.l + cornerSize + borderOffset
+		mmBottom = render.dim.b + cornerSize + borderOffset
+		mmRight = mmLeft + minimapWidth
+		mmTop = mmBottom + minimapHeight
+	elseif corner == 2 then  -- bottom-right
+		mmRight = render.dim.r - cornerSize - borderOffset
+		mmBottom = render.dim.b + cornerSize + borderOffset
+		mmLeft = mmRight - minimapWidth
+		mmTop = mmBottom + minimapHeight
+	elseif corner == 3 then  -- top-left
+		mmLeft = render.dim.l + cornerSize + borderOffset
+		mmTop = render.dim.t - cornerSize - borderOffset
+		mmRight = mmLeft + minimapWidth
+		mmBottom = mmTop - minimapHeight
+	else  -- top-right (4)
+		mmRight = render.dim.r - cornerSize - borderOffset
+		mmTop = render.dim.t - cornerSize - borderOffset
+		mmLeft = mmRight - minimapWidth
+		mmBottom = mmTop - minimapHeight
+	end
+
+	-- Determine which corner faces PIP center for chamfer and border
+	-- bottom-left: chamfer top-right, border top+right
+	-- bottom-right: chamfer top-left, border top+left
+	-- top-left: chamfer bottom-right, border bottom+right
+	-- top-right: chamfer bottom-left, border bottom+left
+	local chamferSize = math.floor(minimapHeight * 0.06)
+	
+	glFunc.Color(0, 0, 0, 0.85)
+	if corner == 1 then  -- bottom-left: chamfer top-right
+		glFunc.BeginEnd(GL.POLYGON, function()
+			glFunc.Vertex(mmLeft, mmBottom)
+			glFunc.Vertex(mmRight + 3, mmBottom)
+			glFunc.Vertex(mmRight + 3, mmTop + 3 - chamferSize)
+			glFunc.Vertex(mmRight + 3 - chamferSize, mmTop + 3)
+			glFunc.Vertex(mmLeft, mmTop + 3)
+		end)
+	elseif corner == 2 then  -- bottom-right: chamfer top-left
+		glFunc.BeginEnd(GL.POLYGON, function()
+			glFunc.Vertex(mmRight, mmBottom)
+			glFunc.Vertex(mmRight, mmTop + 3)
+			glFunc.Vertex(mmLeft - 3 + chamferSize, mmTop + 3)
+			glFunc.Vertex(mmLeft - 3, mmTop + 3 - chamferSize)
+			glFunc.Vertex(mmLeft - 3, mmBottom)
+		end)
+	elseif corner == 3 then  -- top-left: chamfer bottom-right
+		glFunc.BeginEnd(GL.POLYGON, function()
+			glFunc.Vertex(mmLeft, mmTop)
+			glFunc.Vertex(mmLeft, mmBottom - 3)
+			glFunc.Vertex(mmRight + 3 - chamferSize, mmBottom - 3)
+			glFunc.Vertex(mmRight + 3, mmBottom - 3 + chamferSize)
+			glFunc.Vertex(mmRight + 3, mmTop)
+		end)
+	else  -- top-right: chamfer bottom-left
+		glFunc.BeginEnd(GL.POLYGON, function()
+			glFunc.Vertex(mmRight, mmTop)
+			glFunc.Vertex(mmLeft - 3, mmTop)
+			glFunc.Vertex(mmLeft - 3, mmBottom - 3 + chamferSize)
+			glFunc.Vertex(mmLeft - 3 + chamferSize, mmBottom - 3)
+			glFunc.Vertex(mmRight, mmBottom - 3)
+		end)
+	end
+
+	-- Draw border on sides facing PIP center
+	glFunc.Color(0.5, 0.5, 0.5, 0.6)
+	glFunc.LineWidth(1)
+	if corner == 1 then  -- bottom-left: border top+right
+		glFunc.BeginEnd(GL.LINE_STRIP, function()
+			glFunc.Vertex(mmLeft, mmTop + 3)
+			glFunc.Vertex(mmRight + 3 - chamferSize, mmTop + 3)
+			glFunc.Vertex(mmRight + 3, mmTop + 3 - chamferSize)
+			glFunc.Vertex(mmRight + 3, mmBottom)
+		end)
+	elseif corner == 2 then  -- bottom-right: border top+left
+		glFunc.BeginEnd(GL.LINE_STRIP, function()
+			glFunc.Vertex(mmRight, mmTop + 3)
+			glFunc.Vertex(mmLeft - 3 + chamferSize, mmTop + 3)
+			glFunc.Vertex(mmLeft - 3, mmTop + 3 - chamferSize)
+			glFunc.Vertex(mmLeft - 3, mmBottom)
+		end)
+	elseif corner == 3 then  -- top-left: border bottom+right
+		glFunc.BeginEnd(GL.LINE_STRIP, function()
+			glFunc.Vertex(mmLeft, mmBottom - 3)
+			glFunc.Vertex(mmRight + 3 - chamferSize, mmBottom - 3)
+			glFunc.Vertex(mmRight + 3, mmBottom - 3 + chamferSize)
+			glFunc.Vertex(mmRight + 3, mmTop)
+		end)
+	else  -- top-right: border bottom+left
+		glFunc.BeginEnd(GL.LINE_STRIP, function()
+			glFunc.Vertex(mmRight, mmBottom - 3)
+			glFunc.Vertex(mmLeft - 3 + chamferSize, mmBottom - 3)
+			glFunc.Vertex(mmLeft - 3, mmBottom - 3 + chamferSize)
+			glFunc.Vertex(mmLeft - 3, mmTop)
+		end)
+	end
+
+	-- Apply rotation for minimap content
+	local mmCenterX = (mmLeft + mmRight) / 2
+	local mmCenterY = (mmBottom + mmTop) / 2
+	if render.minimapRotation ~= 0 then
+		glFunc.PushMatrix()
+		glFunc.Translate(mmCenterX, mmCenterY, 0)
+		glFunc.Rotate(render.minimapRotation * 180 / math.pi, 0, 0, 1)
+		glFunc.Translate(-mmCenterX, -mmCenterY, 0)
+	end
+
+	-- Draw minimap ground texture (UV: 0,0 = top-left/NW, 1,1 = bottom-right/SE)
+	glFunc.Color(1, 1, 1, 1)
+	glFunc.Texture('$minimap')
+	glFunc.BeginEnd(GL.QUADS, function()
+		glFunc.TexCoord(0, 0); glFunc.Vertex(mmLeft, mmTop)
+		glFunc.TexCoord(1, 0); glFunc.Vertex(mmRight, mmTop)
+		glFunc.TexCoord(1, 1); glFunc.Vertex(mmRight, mmBottom)
+		glFunc.TexCoord(0, 1); glFunc.Vertex(mmLeft, mmBottom)
+	end)
+	glFunc.Texture(false)
+
+	-- Draw water/lava overlay
+	if mapInfo.hasWater and waterShader and not mapInfo.voidWater then
+		gl.UseShader(waterShader)
+		local r, g, b, a
+		if mapInfo.isLava then
+			r, g, b, a = 0.22, 0, 0, 1
+		else
+			r, g, b, a = 0.08, 0.11, 0.22, 0.5
+		end
+		gl.UniformFloat(gl.GetUniformLocation(waterShader, "waterColor"), r, g, b, a)
+		gl.UniformInt(gl.GetUniformLocation(waterShader, "heightTex"), 0)
+		glFunc.Texture(0, '$heightmap')
+		glFunc.Color(1, 1, 1, 1)
+		glFunc.BeginEnd(GL.QUADS, function()
+			glFunc.TexCoord(0, 0); glFunc.Vertex(mmLeft, mmTop)
+			glFunc.TexCoord(1, 0); glFunc.Vertex(mmRight, mmTop)
+			glFunc.TexCoord(1, 1); glFunc.Vertex(mmRight, mmBottom)
+			glFunc.TexCoord(0, 1); glFunc.Vertex(mmLeft, mmBottom)
+		end)
+		glFunc.Texture(0, false)
+		gl.UseShader(0)
+	end
+
+	-- Draw LOS overlay on minimap (only after game has started)
+	if pipR2T.losTex and gameHasStarted then
+		gl.Blending(GL.DST_COLOR, GL.ZERO)
+		glFunc.Color(1, 1, 1, 1)
+		glFunc.Texture(pipR2T.losTex)
+		glFunc.BeginEnd(GL.QUADS, function()
+			glFunc.TexCoord(0, 0); glFunc.Vertex(mmLeft, mmTop)
+			glFunc.TexCoord(1, 0); glFunc.Vertex(mmRight, mmTop)
+			glFunc.TexCoord(1, 1); glFunc.Vertex(mmRight, mmBottom)
+			glFunc.TexCoord(0, 1); glFunc.Vertex(mmLeft, mmBottom)
+		end)
+		glFunc.Texture(false)
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	end
+
+	-- Draw view rectangle (dynamic, updates every frame)
+	local worldL = math.max(0, math.min(mapInfo.mapSizeX, render.world.l))
+	local worldR = math.max(0, math.min(mapInfo.mapSizeX, render.world.r))
+	local worldT = math.max(0, math.min(mapInfo.mapSizeZ, render.world.t))
+	local worldB = math.max(0, math.min(mapInfo.mapSizeZ, render.world.b))
+
+	local viewL = mmLeft + (worldL / mapInfo.mapSizeX) * minimapWidth
+	local viewR = mmLeft + (worldR / mapInfo.mapSizeX) * minimapWidth
+	local viewT = mmTop - (worldT / mapInfo.mapSizeZ) * minimapHeight
+	local viewB = mmTop - (worldB / mapInfo.mapSizeZ) * minimapHeight
+
+	glFunc.Color(1, 1, 1, 0.9)
+	glFunc.LineWidth(2)
+	glFunc.BeginEnd(GL.LINE_LOOP, function()
+		glFunc.Vertex(viewL, viewB)
+		glFunc.Vertex(viewR, viewB)
+		glFunc.Vertex(viewR, viewT)
+		glFunc.Vertex(viewL, viewT)
+	end)
+
+	glFunc.Color(1, 1, 1, 0.15)
+	glFunc.BeginEnd(GL.QUADS, function()
+		glFunc.Vertex(viewL, viewB)
+		glFunc.Vertex(viewR, viewB)
+		glFunc.Vertex(viewR, viewT)
+		glFunc.Vertex(viewL, viewT)
+	end)
+
+	if render.minimapRotation ~= 0 then
+		glFunc.PopMatrix()
+	end
+
+	glFunc.LineWidth(1)
+	glFunc.Color(1, 1, 1, 1)
+end
+
 -- Helper function to update R2T frame textures
 local function UpdateR2TFrame(pipWidth, pipHeight)
 	if not gl.R2tHelper then
@@ -7838,13 +8100,21 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 		local bx = render.dim.l
 		for i = 1, #visibleButtons do
 			if mx >= bx and mx <= bx + render.usedButtonSize and my >= render.dim.b and my <= render.dim.b + render.usedButtonSize then
-				if visibleButtons[i].tooltip and WG['tooltip'] then
-					local tooltipText = visibleButtons[i].tooltip
-					if visibleButtons[i].tooltipActive then
+				if visibleButtons[i].tooltipKey and WG['tooltip'] then
+					local tooltipKey = visibleButtons[i].tooltipKey
+					if visibleButtons[i].tooltipActiveKey then
 						if (visibleButtons[i].command == 'pip_track' and interactionState.areTracking) or
 						   (visibleButtons[i].command == 'pip_trackplayer' and interactionState.trackingPlayerID) or
 						   (visibleButtons[i].command == 'pip_view' and state.losViewEnabled) then
-							tooltipText = visibleButtons[i].tooltipActive
+							tooltipKey = visibleButtons[i].tooltipActiveKey
+						end
+					end
+					-- Generate tooltip with shortcut key on new line if command exists and has a binding
+					local tooltipText = Spring.I18N(tooltipKey)
+					if visibleButtons[i].command then
+						local shortcut = getActionHotkey(visibleButtons[i].command)
+						if shortcut and shortcut ~= "" then
+							tooltipText = tooltipText .. "\n" .. shortcut
 						end
 					end
 					WG['tooltip'].ShowTooltip('pip'..pipNumber, tooltipText, nil, nil, nil)
@@ -8075,7 +8345,7 @@ function widget:DrawScreen()
 			if (render.dim.r-mx + my-render.dim.b <= render.usedButtonSize) then
 				hover = true
 				if WG['tooltip'] then
-					WG['tooltip'].ShowTooltip('pip'..pipNumber, 'Resize', nil, nil, nil)
+					WG['tooltip'].ShowTooltip('pip'..pipNumber, Spring.I18N('ui.pip.resize'), nil, nil, nil)
 				end
 			end
 		end
@@ -8113,7 +8383,7 @@ function widget:DrawScreen()
 			my >= render.dim.t - render.usedButtonSize - render.elementPadding and my <= render.dim.t - render.elementPadding then
 			hover = true
 			if WG['tooltip'] then
-				WG['tooltip'].ShowTooltip('pip'..pipNumber, 'Minimize', nil, nil, nil)
+				WG['tooltip'].ShowTooltip('pip'..pipNumber, Spring.I18N('ui.pip.minimize'), nil, nil, nil)
 			end
 			glFunc.Color(1,1,1,0.12)
 			glFunc.Texture(false)
@@ -8139,34 +8409,39 @@ function widget:DrawScreen()
 		DrawInteractiveOverlays(mx, my, render.usedButtonSize)
 	end
 
-	-- Display tracked player name at top-center of PIP (only when hovering)
-	DrawTrackedPlayerName()
+	if not uiState.isAnimating then
+		-- Display tracked player name at top-center of PIP (only when hovering)
+		DrawTrackedPlayerName()
 
-	-- Display resource bars when tracking a player camera (hidden when PIP is hovered)
-	DrawTrackedPlayerResourceBars()
+		-- Display resource bars when tracking a player camera (hidden when PIP is hovered)
+		DrawTrackedPlayerResourceBars()
 
-	-- Display current max update rate (top-left corner)
-	if showPipFps then
-		local fontSize = 11
-		local padding = 8
-		font:Begin()
-		font:SetTextColor(0.85, 0.85, 0.85, 1)
-		font:SetOutlineColor(0, 0, 0, 0.5)
-		font:Print(string.format("%.0f FPS", pipR2T.contentCurrentUpdateRate), render.dim.l + padding, render.dim.t - (fontSize*1.6) - padding, fontSize*2, "no")
-		font:End()
+		-- Display minimap overlay when tracking a player camera (hidden when PIP is hovered)
+		DrawTrackedPlayerMinimap()
+
+		-- Draw box selection rectangle
+		DrawBoxSelection()
+
+		-- Draw area command circle
+		DrawAreaCommand()
+
+		-- Draw build cursor with rotation applied
+		DrawBuildCursorWithRotation()
+
+		-- Draw formation dots overlay (command queues are now in R2T)
+		DrawFormationDotsOverlay()
+
+		-- Display current max update rate (top-left corner)
+		if showPipFps then
+			local fontSize = 11
+			local padding = 8
+			font:Begin()
+			font:SetTextColor(0.85, 0.85, 0.85, 1)
+			font:SetOutlineColor(0, 0, 0, 0.5)
+			font:Print(string.format("%.0f FPS", pipR2T.contentCurrentUpdateRate), render.dim.l + padding, render.dim.t - (fontSize*1.6) - padding, fontSize*2, "no")
+			font:End()
+		end
 	end
-
-	-- Draw box selection rectangle
-	DrawBoxSelection()
-
-	-- Draw area command circle
-	DrawAreaCommand()
-
-	-- Draw build cursor with rotation applied
-	DrawBuildCursorWithRotation()
-
-	-- Draw formation dots overlay (command queues are now in R2T)
-	DrawFormationDotsOverlay()
 
 	glFunc.Color(1, 1, 1, 1)
 end

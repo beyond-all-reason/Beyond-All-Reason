@@ -158,8 +158,8 @@
 			"uncamera": "Cancel camera tracking",
 			"move": "Move window",
 			"resize": "Resize window",
-			"minimize": "Minimize",
-			"maximize": "Maximize",
+			"minimize": "Minimize\nALT+CLICK-DRAG to Move",
+			"maximize": "Maximize\nALT+CLICK-DRAG to Move",
 			"worldminimize": "ALT+CLICK to Minimize PiP\nALT+CLICK-DRAG to Move PiP\nALT+SCROLL to zoom",
 			"worldmaximize": "ALT+CLICK Maximize PiP\nALT+CLICK-DRAG to Move PiP\nALT+SCROLL to zoom"
 		},
