@@ -38,6 +38,7 @@ local LineTypes = {
 }
 
 local utf8 = VFS.Include('common/luaUtilities/utf8.lua')
+local badWords = VFS.Include('luaui/configs/badwords.lua')
 
 local L_DEPRECATED = LOG.DEPRECATED
 local isDevSingle = (Spring.Utilities.IsDevMode() and Spring.Utilities.Gametype.IsSinglePlayer())
@@ -563,6 +564,19 @@ local function getAIName(teamID)
 		end
 	end
 	return Spring.I18N('ui.playersList.aiName', { name = name })
+end
+
+local lastMessage
+
+local function findBadWords(str)
+	str = string.lower(str)
+	for w in str:gmatch("%w+") do
+		for _, bw in ipairs(badWords) do
+			if sfind(w, bw) then
+				return w
+			end
+		end
+	end
 end
 
 local function wordWrap(text, maxWidth, fontSize)
@@ -2157,7 +2171,14 @@ function widget:KeyPress(key)
 					if ssub(inputText, 1, 1) == '/' then
 						Spring.SendCommands(ssub(inputText, 2))
 					else
-						Spring.SendCommands("say "..inputMode..inputText)
+						local badWord = findBadWords(inputText)
+						if badWord ~= nil and inputText ~= lastMessage then
+							addChatLine(Spring.GetGameFrame(), LineTypes.System, "Moderation", "\255\255\000\000" .. Spring.I18N('ui.chat.moderation.prefix'),
+								Spring.I18N('ui.chat.moderation.blocked', { badWord = badWord }))
+						else
+							Spring.SendCommands("say "..inputMode..inputText)
+						end
+						lastMessage = inputText
 					end
 				end
 				cancelChatInput()

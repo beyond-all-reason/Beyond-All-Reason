@@ -188,7 +188,7 @@ end
 --------------------------------------------------------------------------------
 -- Draw a single seismic ping with rotating arcs using display lists
 --------------------------------------------------------------------------------
-local function DrawPing(ping, currentTime)
+local function DrawPing(ping, currentTime, cameraDistance)
 	local age = currentTime - ping.startTime
 	if age > pingLifetime then
 		return false
@@ -218,37 +218,39 @@ local function DrawPing(ping, currentTime)
 	local innerAlpha = max(0, (1 - innerProgress))
 	local innerRadius = radius-(radius*progress*0.45)
 
-	-- PASS 1: Draw all dark outlines with normal blending
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	-- PASS 1: Draw all dark outlines with normal blending (skip when camera is far away for performance)
+	if cameraDistance < 3000 then
+		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-	-- Outer outlines
-	glColor(0.08, 0, 0, outerAlpha * 0.25)
-	for i = 0, 3 do
-		glPushMatrix()
-		glRotate(rotation1, 0, 0, 1)
-		glScale(outerRadius, outerRadius, 1)
-		glCallList(displayLists.outerOutlines[i])
-		glPopMatrix()
-	end
+		-- Outer outlines
+		glColor(0.09, 0, 0, outerAlpha * 0.25)
+		for i = 0, 3 do
+			glPushMatrix()
+			glRotate(rotation1, 0, 0, 1)
+			glScale(outerRadius, outerRadius, 1)
+			glCallList(displayLists.outerOutlines[i])
+			glPopMatrix()
+		end
 
-	-- Middle outlines
-	glColor(0.08, 0, 0, middleAlpha * 0.25)
-	for i = 0, 2 do
-		glPushMatrix()
-		glRotate(rotation2, 0, 0, 1)
-		glScale(middleRadius, middleRadius, 1)
-		glCallList(displayLists.middleOutlines[i])
-		glPopMatrix()
-	end
+		-- Middle outlines
+		glColor(0.09, 0, 0, middleAlpha * 0.25)
+		for i = 0, 2 do
+			glPushMatrix()
+			glRotate(rotation2, 0, 0, 1)
+			glScale(middleRadius, middleRadius, 1)
+			glCallList(displayLists.middleOutlines[i])
+			glPopMatrix()
+		end
 
-	-- Inner outlines
-	glColor(0.06, 0, 0, innerAlpha * 0.25)
-	for i = 0, 1 do
-		glPushMatrix()
-		glRotate(rotation3, 0, 0, 1)
-		glScale(innerRadius, innerRadius, 1)
-		glCallList(displayLists.innerOutlines[i])
-		glPopMatrix()
+		-- Inner outlines
+		glColor(0.07, 0, 0, innerAlpha * 0.25)
+		for i = 0, 1 do
+			glPushMatrix()
+			glRotate(rotation3, 0, 0, 1)
+			glScale(innerRadius, innerRadius, 1)
+			glCallList(displayLists.innerOutlines[i])
+			glPopMatrix()
+		end
 	end
 
 	-- PASS 2: Draw all bright arcs with additive blending
@@ -313,7 +315,6 @@ end
 --------------------------------------------------------------------------------
 function gadget:Initialize()
 	CreateDisplayLists()
-	local _, screenHeight = spGetViewGeometry()
 end
 
 function gadget:Shutdown()
@@ -352,13 +353,40 @@ function gadget:DrawWorld()
 
 	glDepthTest(false)
 
+	-- Get visible world bounds for culling
+	local cx, cy, cz = Spring.GetCameraPosition()
+	local cs = Spring.GetCameraState()
+	local vsx, vsy = spGetViewGeometry()
+
+	-- Calculate visible world area based on camera state
+	local viewDistance = cy / math.tan(math.rad(cs.fov or 45))
+	local viewWidth = viewDistance * (vsx / vsy)
+	local margin = maxRadius * thicknessScale * 3  -- Add margin for ping radius
+
+	local minX = cx - viewWidth - margin
+	local maxX = cx + viewWidth + margin
+	local minZ = cz - viewDistance - margin
+	local maxZ = cz + viewDistance + margin
+
 	local currentTime = gameTime
 	local i = 1
 	while i <= #pings do
-		if not DrawPing(pings[i], currentTime) then
-			table.remove(pings, i)
+		local ping = pings[i]
+		-- Check if ping is within visible bounds
+		if ping.x < minX or ping.x > maxX or ping.z < minZ or ping.z > maxZ then
+			-- Ping is outside view, skip drawing but don't remove yet
+			if currentTime - ping.startTime > pingLifetime then
+				table.remove(pings, i)
+			else
+				i = i + 1
+			end
 		else
-			i = i + 1
+			-- Ping is visible, try to draw it
+			if not DrawPing(ping, currentTime, cy) then
+				table.remove(pings, i)
+			else
+				i = i + 1
+			end
 		end
 	end
 
