@@ -20,6 +20,8 @@ Also, we use some custom bindings for Lua 5.1 — for security, functionality, a
   * High table and string creation increases garbage collection and heap compaction.
   * Prefer e.g. `GetUnitCurrentCommand` over `GetUnitCommands`.  
 
+_Even more Recoil-specific Lua conventions and best practices can be found in the [Recoil wupget guide](https://recoilengine.org/docs/guides/wupget/)_
+
 #### Protected tables
 
 Reading from the “Defs” tables — UnitDefs, WeaponDefs, and FeatureDefs — is more expensive than from an ordinary table. When you would access these frequently, cache the result in a lookup table, instead.
