@@ -6168,7 +6168,7 @@ local function DrawWaterAndLOSOverlays()
 
 	-- Draw LOS darkening overlay
 	local shouldShowLOS, losAllyTeam = ShouldShowLOS()
-	if config.showLosOverlay and shouldShowLOS and pipR2T.losTex then
+	if config.showLosOverlay and shouldShowLOS and pipR2T.losTex and gameHasStarted then
 		-- Only use scissor test if not rotated (scissor doesn't work with rotation)
 		if render.minimapRotation == 0 then
 			-- Calculate scissor coordinates to only show the visible map portion
