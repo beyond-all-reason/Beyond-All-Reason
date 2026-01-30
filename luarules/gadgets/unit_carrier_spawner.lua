@@ -347,6 +347,7 @@ local function UndockUnit(unitID, subUnitID)
 			droneMetaData.activeDocking = false
 			droneMetaData.activeUndockSequence = false
 			
+			carrierMetaList[unitID].subUnitsList[subUnitID] = droneMetaData
 			spCallCOBScript(subUnitID, "Undocked", 0, carrierMetaList[unitID].cobundockparam, droneMetaData.dockingPiece)
 			if carrierMetaList[unitID].dockArmor then
 				spSetUnitArmored(subUnitID, false, 1)
@@ -376,6 +377,7 @@ local function UndockSequence(unitID, subUnitID) -- Initiates an undock sequence
 				spCallCOBScript(unitID, "CarrierDroneUndockSequence", 0, subUnitID, droneMetaData.dockingPiece)
 				spCallCOBScript(subUnitID, "DroneUndockSequence", 0, carrierMetaList[unitID].cobundockparam, droneMetaData.dockingPiece)
 				droneMetaData.activeUndockSequence = true
+				carrierMetaList[unitID].subUnitsList[subUnitID] = droneMetaData
 			else
 				UndockUnit(unitID, subUnitID)
 			end
@@ -410,6 +412,7 @@ local function DroneSpawnSequence(unitID, subUnitID)
 				spCallCOBScript(unitID, "CarrierDroneSpawnSequence", 0, subUnitID, droneMetaData.dockingPiece)
 				spCallCOBScript(subUnitID, "DroneSpawnSequence", 0, carrierMetaList[unitID].cobundockparam, droneMetaData.dockingPiece)
 				droneMetaData.activeUndockSequence = true
+				carrierMetaList[unitID].subUnitsList[subUnitID] = droneMetaData
 			else
 				UndockUnit(unitID, subUnitID)
 			end
@@ -579,7 +582,6 @@ local function SpawnUnit(spawnData)
 						if carrierData.docking and droneMetaData.dockingPiece then
 							spUnitAttach(ownerID, subUnitID, droneMetaData.dockingPiece)
 							spGiveOrderToUnit(subUnitID, CMD.STOP, {}, 0)
-							spGiveOrderToUnit(subUnitID, CMD.FIRE_STATE, 0, 0)
 							mcDisable(subUnitID)
 							spSetUnitVelocity(subUnitID, 0, 0, 0)
 							if not carrierData.manualDrones then
@@ -599,6 +601,7 @@ local function SpawnUnit(spawnData)
 								local _, pieceAngle = spCallCOBScript(ownerID, "DroneDocked", 5, pieceAngle, droneMetaData.dockingPiece)
 								spCallCOBScript(subUnitID, "Docked", 0, carrierData.cobdockparam, droneMetaData.dockingPiece, pieceAngle)
 							end
+							carrierData.subUnitsList[subUnitID] = droneMetaData
 						else
 							spGiveOrderToUnit(subUnitID, CMD.MOVE, {spawnData.x, spawnData.y, spawnData.z}, 0)
 						end
@@ -615,6 +618,7 @@ local function SpawnUnit(spawnData)
 					end
 				end				
 			end
+			carrierMetaList[spawnData.ownerID] = carrierData
 		end
 	end
 end
@@ -831,6 +835,7 @@ function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 				end
 				droneMetaData.fighterStage = fighterStage
 			end
+			carrierMetaList[carrierUnitID].subUnitsList[unitID] = droneMetaData
 		end
 	end
 end
@@ -853,6 +858,7 @@ function gadget:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
 					droneMetaData.bomberStage = bomberStage
 					droneMetaData.lastBombing = lastBombing
 			    end
+				carrierMetaList[carrierUnitID].subUnitsList[proOwnerID] = droneMetaData
 		    end
 		end
 	end
@@ -900,6 +906,7 @@ function RemoveDrone(carrierUnitID, unitID)
 				
 			end
 		end
+		carrierMetaList[carrierUnitID].subUnitsList[unitID] = droneMetaData
 		if carrierMetaList[carrierUnitID] and carrierMetaList[carrierUnitID].subUnitsList and carrierMetaList[carrierUnitID].subUnitsList[unitID] then
 			carrierMetaList[carrierUnitID].subUnitsList[unitID] = nil
 			totalDroneCount = totalDroneCount - 1
@@ -1417,6 +1424,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 				end
 			end
 		end
+		carrierMetaData.subUnitsList[subUnitID] = droneData
 	end
 	if orderUpdate then
 		carrierMetaData.lastOrderUpdate = frame
@@ -1465,6 +1473,7 @@ local function DockUnits(dockingqueue, queuestart, queueend)
 							return
 						end
 						while not droneDocked do
+
 							local px, py, pz = spGetUnitPiecePosDir(unitID, pieceNumber)
 							subx, suby, subz = spGetUnitPosition(subUnitID)
 							local distance = diag((px-subx), (pz-subz))
@@ -1518,13 +1527,12 @@ local function DockUnits(dockingqueue, queuestart, queueend)
 							if distance < dockingSnapRange and heightDifference < dockingSnapRange and droneDocked ~= true then
 								spUnitAttach(unitID, subUnitID, pieceNumber)
 								spGiveOrderToUnit(subUnitID, CMD.STOP, {}, 0)
-								spGiveOrderToUnit(subUnitID, CMD.FIRE_STATE, 0, 0)
 								Spring.MoveCtrl.Disable(subUnitID)
 								spSetUnitVelocity(subUnitID, 0, 0, 0)
 								if not carrierMetaList[unitID].manualDrones then
 									SetUnitNoSelect(subUnitID, true)
 								end
-								droneMetaData.docked = true
+								droneDocked = true
 								droneMetaData.activeDocking = false
 								droneMetaData.bomberStage = 0
 								if carrierMetaList[unitID].dockArmor then
@@ -1573,6 +1581,8 @@ local function DockUnits(dockingqueue, queuestart, queueend)
 
 					StartScript(LandLoop)
 				end
+				droneMetaData.docked = droneDocked
+				carrierMetaList[unitID].subUnitsList[subUnitID] = droneMetaData
 			end
 		end
 	end
