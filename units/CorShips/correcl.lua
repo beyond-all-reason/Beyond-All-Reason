@@ -25,7 +25,6 @@ return {
 		minwaterdepth = 15,
 		movementclass = "UBOAT4",
 		objectname = "Units/CORRECL.s3o",
-		reclaimspeed = 100,
 		script = "Units/CORRECL.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallexplosiongenericSelfd-uw",
