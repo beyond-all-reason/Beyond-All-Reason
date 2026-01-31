@@ -100,7 +100,8 @@ return {
 				},
 				customparams = {
 					shield_aoe_penetration = true,
-				}
+					nuclear = 1,
+				},
 			},
 		},
 		weapons = {
