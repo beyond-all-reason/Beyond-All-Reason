@@ -117,6 +117,7 @@ return {
 				weaponvelocity = 420,
 				customparams = {
 					norangering = 1,
+					nuclear = 1,
 				},
 				damage = {
 					commanders = 3150,
@@ -159,6 +160,9 @@ return {
 					default = 5625,
 					subs = 1000,
 					vtol = 562,
+				},
+				customparams = {
+					nuclear = 1,
 				},
 			},
 		},
