@@ -27,7 +27,7 @@ return {
 		maxslope = 40,
 		maxwaterdepth = 0,
 		metalcost = 50,
-		mincloakdistance = 8,
+		mincloakdistance = 30,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORMINE3.s3o",
 		script = "mines_lus.lua",
