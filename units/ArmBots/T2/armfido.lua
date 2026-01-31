@@ -2,7 +2,7 @@ return {
 	armfido = {
 		activatewhenbuilt = true,
 		buildpic = "ARMFIDO.DDS",
-		buildtime = 6230,
+		buildtime = 6500,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 1",
 		collisionvolumescales = "26 32 28",
