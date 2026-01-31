@@ -1,6 +1,6 @@
 local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
 local Shared = VFS.Include("common/luaUtilities/team_transfer/unit_transfer_shared.lua")
-local PolicyShared = VFS.Include("common/luaUtilities/team_transfer/team_transfer_cache.lua")
+local PolicyShared = VFS.Include("common/luaUtilities/team_transfer/team_transfer_serialization_helpers.lua")
 
 local Synced = {
   ValidateUnits = Shared.ValidateUnits,
@@ -71,7 +71,9 @@ end
 ---@param receiverId number
 ---@param policyResult UnitPolicyResult
 function Synced.CachePolicyResult(springRepo, senderId, receiverId, policyResult)
-  springRepo.SetCachedPolicy(SharedEnums.PolicyType.UnitTransfer, senderId, receiverId, policyResult)
+  local baseKey = PolicyShared.MakeBaseKey(receiverId, SharedEnums.TransferCategory.UnitTransfer)
+  local serialized = Shared.SerializePolicy(policyResult)
+  springRepo.SetTeamRulesParam(senderId, baseKey, serialized)
 end
 
 return Synced

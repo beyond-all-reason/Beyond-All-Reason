@@ -78,7 +78,7 @@ function GG.GetTeamResourceData(teamID, resource)
 	return GetTeamResourceData(teamID, resource)
 end
 
-function GG.SetTeamResource(teamID, resource, amount)
+function Spring.SetTeamResource(teamID, resource, amount)
 	return springRepo.SetTeamResource(teamID, resource, amount)
 end
 
@@ -142,22 +142,9 @@ local function InitializeNewTeam(senderTeamId)
 		local metalPolicy = resultFactory(ctx, ResourceType.METAL)
 		ResourceTransfer.CachePolicyResult(springRepo, senderTeamId, receiverID, ResourceType.METAL, metalPolicy)
 		
-		local energyPolicy = resultFactory(ctx, ResourceType.ENERGY)
-		ResourceTransfer.CachePolicyResult(springRepo, senderTeamId, receiverID, ResourceType.ENERGY, energyPolicy)
-	end
-end
-
-function gadget:PlayerAdded(playerID)
-	local _, _, _, teamID = springRepo.GetPlayerInfo(playerID, false)
-	if teamID then
-		InitializeNewTeam(teamID)
-		ResourceTransfer.InvalidateAllyGroupCache()
-	end
-end
-
-function gadget:TeamDied(teamID)
-	ResourceTransfer.InvalidateAllyGroupCache()
-end
+		local energyPolicy = resultFactory(ctx, ResourceType.ENERGY)if not ModeHelper.IsModOptionEnabled(SharedEnums.ModOptions.ResourceSharingEnabled) then
+			return false
+		end
 
 --------------------------------------------------------------------------------
 -- ProcessEconomy Controller Function
@@ -225,6 +212,8 @@ local function BuildTeamData(excesses)
 				team = {
 					metal = {},
 					energy = {},
+					allyTeam = allyTeam,
+					isDead = false,	
 				}
 				teamsCache[teamId] = team
 			end
@@ -235,22 +224,22 @@ local function BuildTeamData(excesses)
 			local metal = team.metal
 			metal.resourceType = "metal"
 			metal.current = mCur
-			metal.storage = mStor
-			metal.pull = mPull
-			metal.income = mInc
-			metal.expense = mExp
-			metal.shareSlider = mShare
-			metal.excess = excess.metal
+			metal.storage = mStor or 0
+			metal.pull = mPull or 0
+			metal.income = mInc or 0
+			metal.expense = mExp or 0
+			metal.shareSlider = mShare or 0
+			metal.excess = excess.metal or 0
 			
 			local energy = team.energy
 			energy.resourceType = "energy"
 			energy.current = eCur
-			energy.storage = eStor
-			energy.pull = ePull
-			energy.income = eInc
-			energy.expense = eExp
-			energy.shareSlider = eShare
-			energy.excess = excess.energy
+			energy.storage = eStor or 0
+			energy.pull = ePull or 0
+			energy.income = eInc or 0
+			energy.expense = eExp or 0
+			energy.shareSlider = eShare or 0
+			energy.excess = excess.energy or 0
 		end
 	end
 	

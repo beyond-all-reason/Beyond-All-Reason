@@ -670,8 +670,8 @@ local function initializeCommander(commanderID, teamID)
 		unitDefID = commanderDefID
 	}
 
-	GG.SetTeamResource(teamID, "metal", max(0, currentMetal - QUICK_START_COST_METAL))
-	GG.SetTeamResource(teamID, "energy", max(0, currentEnergy - QUICK_START_COST_ENERGY))
+	Spring.SetTeamResource(teamID, "metal", max(0, currentMetal - QUICK_START_COST_METAL))
+	Spring.SetTeamResource(teamID, "energy", max(0, currentEnergy - QUICK_START_COST_ENERGY))
 
 	local comData = commanders[commanderID]
 	comData.spawnX, comData.spawnY, comData.spawnZ = spGetUnitPosition(commanderID)

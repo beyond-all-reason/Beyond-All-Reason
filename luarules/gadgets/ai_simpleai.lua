@@ -494,10 +494,10 @@ if gadgetHandler:IsSyncedCode() then
 					
 					if isCheaterTeam then
 						if mcurrent < mstorage * 0.20 then
-							GG.SetTeamResource(teamID, ResourceType.METAL, mstorage * 0.25)
+							Spring.SetTeamResource(teamID, ResourceType.METAL, mstorage * 0.25)
 						end
 						if ecurrent < estorage * 0.20 then
-							GG.SetTeamResource(teamID, ResourceType.ENERGY, estorage * 0.25)
+							Spring.SetTeamResource(teamID, ResourceType.ENERGY, estorage * 0.25)
 						end
 					end
 
@@ -530,7 +530,7 @@ if gadgetHandler:IsSyncedCode() then
 
 											if nearestEnemy and unitHealthPercentage > 30 then
 												if ecurrent < estorage*0.9 then
-													GG.SetTeamResource(teamID, ResourceType.ENERGY, estorage * 0.9)
+													Spring.SetTeamResource(teamID, ResourceType.ENERGY, estorage * 0.9)
 												end
 												spGiveOrderToUnit(unitID, spDgunCommand, {nearestEnemy}, 0)
 												local nearestEnemies = spGetUnitsInCylinder(unitposx, unitposz, 300)

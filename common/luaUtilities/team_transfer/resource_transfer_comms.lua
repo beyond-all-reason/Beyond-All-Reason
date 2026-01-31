@@ -1,5 +1,5 @@
 local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
-local Cache = VFS.Include("common/luaUtilities/team_transfer/team_transfer_cache.lua")
+local Cache = VFS.Include("common/luaUtilities/team_transfer/team_transfer_serialization_helpers.lua")
 local FieldTypes = Cache.FieldTypes
 
 local Comms = {
@@ -43,6 +43,7 @@ Comms.FormatNumberForUI = FormatNumberForUI
 function Comms.TooltipText(policyResult)
   local pascalResourceType = policyResult.resourceType:gsub("^%l", string.upper)
   local baseKey = 'ui.playersList'
+
   local case = Comms.DecideCommunicationCase(policyResult)
   if case == SharedEnums.ResourceCommunicationCase.OnSelf then
     return Spring.I18N(baseKey .. '.request' .. pascalResourceType)

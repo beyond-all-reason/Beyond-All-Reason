@@ -633,19 +633,6 @@ function SB:BuildSpring()
         -- No-op in tests
     end
 
-    -- Policy caching functions
-    local cachedPolicies = {}
-    
-    mock.SetCachedPolicy = function(policyType, senderId, receiverId, policyResult)
-        local key = string.format("%s_%d_%d", tostring(policyType), senderId, receiverId)
-        cachedPolicies[key] = policyResult
-    end
-
-    mock.GetCachedPolicy = function(policyType, senderId, receiverId)
-        local key = string.format("%s_%d_%d", tostring(policyType), senderId, receiverId)
-        return cachedPolicies[key]
-    end
-
     mock.GetGaiaTeamID = function()
         return -1
     end

@@ -282,6 +282,7 @@ local options = {
         desc    = "Controls overall sharing policy and locks/unlocks specific options, see `sharing_modes/` for more details",
         type    = "list",
         section = "options_sharing",
+        optional = true,
         def     = "enabled",
         items   = {}, -- Will be populated dynamically by Chobby from sharing_modes/ directory
     },

@@ -78,11 +78,11 @@ local function setup(addResources)
             commanderMinEnergy = com.energyStorage or 0
         end
 
-        GG.SetTeamResource(teamID, 'ms', mathMax(minStorageMetal, startingMetalStorage, startingMetal, commanderMinMetal))
-        GG.SetTeamResource(teamID, 'es', mathMax(minStorageEnergy, startingEnergyStorage, startingEnergy, commanderMinEnergy))
+        Spring.SetTeamResource(teamID, 'ms', mathMax(minStorageMetal, startingMetalStorage, startingMetal, commanderMinMetal))
+        Spring.SetTeamResource(teamID, 'es', mathMax(minStorageEnergy, startingEnergyStorage, startingEnergy, commanderMinEnergy))
         if addResources then
-            GG.SetTeamResource(teamID, 'm', startingMetal)
-            GG.SetTeamResource(teamID, 'e', startingEnergy)
+            Spring.SetTeamResource(teamID, 'm', startingMetal)
+            Spring.SetTeamResource(teamID, 'e', startingEnergy)
         end
     end
 end

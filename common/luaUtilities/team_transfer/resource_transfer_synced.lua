@@ -345,10 +345,9 @@ end
 ---@param resourceType ResourceType
 ---@param policyResult ResourcePolicyResult
 function Gadgets.CachePolicyResult(springRepo, senderId, receiverId, resourceType, policyResult)
-  local policyType = resourceType == SharedEnums.ResourceType.METAL
-    and SharedEnums.PolicyType.MetalTransfer
-    or SharedEnums.PolicyType.EnergyTransfer
-  springRepo.SetCachedPolicy(policyType, senderId, receiverId, policyResult)
+  local baseKey = Shared.MakeBaseKey(receiverId, resourceType)
+  local serialized = Shared.SerializeResourcePolicyResult(policyResult)
+  springRepo.SetTeamRulesParam(senderId, baseKey, serialized)
 end
 
 return Gadgets

@@ -1,5 +1,5 @@
 local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
-local PolicyShared = VFS.Include("common/luaUtilities/team_transfer/team_transfer_cache.lua")
+local PolicyShared = VFS.Include("common/luaUtilities/team_transfer/team_transfer_serialization_helpers.lua")
 local Comms = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_comms.lua")
 
 local Shared = Comms
@@ -109,18 +109,12 @@ end
 ---@return ResourcePolicyResult
 function Shared.GetCachedPolicyResult(senderId, receiverId, resourceType, springApi)
   local spring = springApi or Spring
-  local policyType = resourceType == SharedEnums.ResourceType.METAL
-    and SharedEnums.PolicyType.MetalTransfer
-    or SharedEnums.PolicyType.EnergyTransfer
-  
-  local result = spring.GetCachedPolicy(policyType, senderId, receiverId)
-  if result == nil then
+  local baseKey = Shared.MakeBaseKey(receiverId, resourceType)
+  local serialized = spring.GetTeamRulesParam(senderId, baseKey)
+  if serialized == nil then
     return Shared.CreateDenyPolicy(senderId, receiverId, resourceType, springApi)
   end
-  
-  result.senderTeamId = senderId
-  result.receiverTeamId = receiverId
-  return result
+  return Shared.DeserializePolicyResult(serialized, senderId, receiverId)
 end
 
 ---@param resourceType ResourceType
@@ -160,15 +154,3 @@ end
 ---@param teamId number
 ---@param resourceType ResourceType
 ---@param springRepo ISpring?
----@return number
-function Shared.GetCumulativeSent(teamId, resourceType, springRepo)
-  local param = Shared.GetCumulativeParam(resourceType)
-  local spring = springRepo or Spring
-  local value = spring.GetTeamRulesParam(teamId, param)
-  if value == nil then
-    return 0
-  end
-  return tonumber(value) or 0
-end
-
-return Shared

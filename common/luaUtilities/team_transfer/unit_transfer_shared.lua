@@ -1,5 +1,5 @@
 local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
-local PolicyShared = VFS.Include("common/luaUtilities/team_transfer/team_transfer_cache.lua")
+local PolicyShared = VFS.Include("common/luaUtilities/team_transfer/team_transfer_serialization_helpers.lua")
 local UnitSharingCategories = VFS.Include("common/luaUtilities/team_transfer/unit_sharing_categories.lua")
 local Comms = VFS.Include("common/luaUtilities/team_transfer/unit_transfer_comms.lua")
 
@@ -87,8 +87,9 @@ end
 ---@return UnitPolicyResult
 function Shared.GetCachedPolicyResult(senderTeamId, receiverTeamId, springApi)
   local spring = springApi or Spring
-  local result = spring.GetCachedPolicy(SharedEnums.PolicyType.UnitTransfer, senderTeamId, receiverTeamId)
-  if result == nil then
+  local baseKey = PolicyShared.MakeBaseKey(receiverTeamId, SharedEnums.TransferCategory.UnitTransfer)
+  local serialized = spring.GetTeamRulesParam(senderTeamId, baseKey)
+  if serialized == nil then
     ---@type UnitPolicyResult
     return {
       senderTeamId = senderTeamId,
@@ -97,10 +98,7 @@ function Shared.GetCachedPolicyResult(senderTeamId, receiverTeamId, springApi)
       sharingMode = SharedEnums.UnitSharingMode.Disabled,
     }
   end
-  
-  result.senderTeamId = senderTeamId
-  result.receiverTeamId = receiverTeamId
-  return result
+  return Shared.DeserializePolicy(serialized, senderTeamId, receiverTeamId)
 end
 
 ---Serialize unit policy expose to compact string
