@@ -1,6 +1,5 @@
 return {
 	corpship = {
-		autoheal = 1.5,
 		blocking = true,
 		buildpic = "CORPSHIP.DDS",
 		buildtime = 4550,
