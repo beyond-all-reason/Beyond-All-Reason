@@ -1,7 +1,7 @@
 return {
 	corban = {
 		buildpic = "CORBAN.DDS",
-		buildtime = 23100,
+		buildtime = 30000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -9 1",
 		collisionvolumescales = "42 42 42",
@@ -152,7 +152,6 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 720,
-
 				damage = {
 					default = 1000,
 					subs = 500,

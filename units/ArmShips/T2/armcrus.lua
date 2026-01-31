@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		buildangle = 16384,
 		buildpic = "ARMCRUS.DDS",
-		buildtime = 17000,
+		buildtime = 23000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -8 0",
 		collisionvolumescales = "32 32 112",
@@ -147,6 +147,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium",
+				gravityaffected = "true",
 				impulsefactor = 0.123,
 				name = "Long-range g2g gauss cannon",
 				noselfdamage = true,
@@ -194,12 +195,12 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
+				customparams = {
+					norangering = 1,
+				},
 				damage = {
 					default = 75,
 					vtol = 8,
-				},
-				customparams = {
-					norangering = 1,
 				},
 			},
 		},

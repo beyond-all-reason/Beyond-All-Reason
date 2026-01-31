@@ -2,7 +2,7 @@ return {
 	corvoyr = {
 		activatewhenbuilt = true,
 		buildpic = "CORVOYR.DDS",
-		buildtime = 3950,
+		buildtime = 5000,
 		canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
@@ -21,7 +21,7 @@ return {
 		maxslope = 16,
 		maxwaterdepth = 0,
 		metalcost = 99,
-		movementclass = "BOT3",
+		movementclass = "BOT2",
 		movestate = 0,
 		objectname = "Units/CORVOYR.s3o",
 		onoffable = false,

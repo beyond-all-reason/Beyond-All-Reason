@@ -18,9 +18,20 @@ if gadgetHandler:IsSyncedCode() then
 
 	local SetUnitSensorRadius = Spring.SetUnitSensorRadius
 	local SetUnitWeaponState = Spring.SetUnitWeaponState
+	local GetUnitHealth = Spring.GetUnitHealth
+	local GetGameFrame = Spring.GetGameFrame
+	local GetUnitMoveTypeData = Spring.GetUnitMoveTypeData
+	local SetAirMoveTypeData = Spring.MoveCtrl.SetAirMoveTypeData
+	local SetUnitCOBValue = Spring.SetUnitCOBValue
+	local GiveOrderToUnit = Spring.GiveOrderToUnit
+	local DestroyUnit = Spring.DestroyUnit
+	local SendToUnsynced = SendToUnsynced
+	local GetUnitRulesParam = Spring.GetUnitRulesParam
+	local SetUnitRulesParam = Spring.SetUnitRulesParam
 
 	local COB_CRASHING = COB.CRASHING
 	local COM_BLAST = WeaponDefNames['commanderexplosion'].id	-- used to prevent them being boosted and flying far away
+	local CMD_STOP = CMD.STOP
 
 	local crashing = {}
 	local crashingCount = 0
@@ -46,16 +57,16 @@ if gadgetHandler:IsSyncedCode() then
 			return 0,0
 		end
 
-		if crashable[unitDefID] and (damage>Spring.GetUnitHealth(unitID)) and weaponDefID ~= COM_BLAST then
+		if crashable[unitDefID] and (damage > GetUnitHealth(unitID)) and weaponDefID ~= COM_BLAST then
 			-- increase gravity so it crashes faster
-			local moveTypeData = Spring.GetUnitMoveTypeData(unitID)
+			local moveTypeData = GetUnitMoveTypeData(unitID)
 			if moveTypeData['myGravity'] then
-				Spring.MoveCtrl.SetAirMoveTypeData(unitID, 'myGravity', moveTypeData['myGravity'] * gravityMult)
+				SetAirMoveTypeData(unitID, 'myGravity', moveTypeData['myGravity'] * gravityMult)
 			end
 			-- make it crash
 			crashingCount = crashingCount + 1
-			crashing[unitID] = Spring.GetGameFrame() + 450
-			Spring.SetUnitCOBValue(unitID, COB_CRASHING, 1)
+			crashing[unitID] = GetGameFrame() + 450
+			SetUnitCOBValue(unitID, COB_CRASHING, 1)
 			Spring.SetUnitNoSelect(unitID,true)
 			Spring.SetUnitNoMinimap(unitID,true)
 			Spring.SetUnitIconDraw(unitID, false)
@@ -63,15 +74,17 @@ if gadgetHandler:IsSyncedCode() then
 			Spring.SetUnitAlwaysVisible(unitID, false)
 			Spring.SetUnitNeutral(unitID, true)
 			Spring.SetUnitBlocking(unitID, false)
+			Spring.SetUnitCrashing(unitID, true)
 			if unitWeapons[unitDefID] then
-				for weaponID, _ in pairs(unitWeapons[unitDefID]) do
-					SetUnitWeaponState(unitID, weaponID, "reloadState", 0)
-					SetUnitWeaponState(unitID, weaponID, "reloadTime", 9999)
-					SetUnitWeaponState(unitID, weaponID, "range", 0)
-					SetUnitWeaponState(unitID, weaponID, "burst", 0)
-					SetUnitWeaponState(unitID, weaponID, "aimReady", 0)
-					SetUnitWeaponState(unitID, weaponID, "salvoLeft", 0)
-					SetUnitWeaponState(unitID, weaponID, "nextSalvo", 9999)
+				local weapons = unitWeapons[unitDefID]
+				for i = 1, #weapons do
+					SetUnitWeaponState(unitID, i, "reloadState", 0)
+					SetUnitWeaponState(unitID, i, "reloadTime", 9999)
+					SetUnitWeaponState(unitID, i, "range", 0)
+					SetUnitWeaponState(unitID, i, "burst", 0)
+					SetUnitWeaponState(unitID, i, "aimReady", 0)
+					SetUnitWeaponState(unitID, i, "salvoLeft", 0)
+					SetUnitWeaponState(unitID, i, "nextSalvo", 9999)
 				end
 			end
 			-- remove sensors
@@ -82,14 +95,14 @@ if gadgetHandler:IsSyncedCode() then
 
 			-- make sure aircons stop building
 			if isAircon[unitDefID] then
-				Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
+				GiveOrderToUnit(unitID, CMD_STOP, {}, 0)
 			end
 
 			SendToUnsynced("crashingAircraft", unitID, unitDefID, unitTeam)
 
 			if attackerID then
-				local kills = Spring.GetUnitRulesParam(attackerID, "kills") or 0
-				Spring.SetUnitRulesParam(attackerID, "kills", kills + 1)
+				local kills = GetUnitRulesParam(attackerID, "kills") or 0
+				SetUnitRulesParam(attackerID, "kills", kills + 1)
 			end
 		end
 		return damage,1
@@ -99,7 +112,7 @@ if gadgetHandler:IsSyncedCode() then
 		if crashingCount > 0 and gf % 44 == 1 then
 			for unitID, deathGameFrame in pairs(crashing) do
 				if gf >= deathGameFrame then
-					Spring.DestroyUnit(unitID, false, true) -- dont selfd, but also dont leave wreck at all
+					DestroyUnit(unitID, false, true) -- dont selfd, but also dont leave wreck at all
 				end
 			end
 		end

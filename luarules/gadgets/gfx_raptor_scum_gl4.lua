@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		desc = "Draws scum with global overlap texturing",
 		author = "Beherith",
 		date = "2022.04.20",
-		license = "Lua code: GNU GPL, v2 or later, Shader GLSL code: (c) Beherith (mysterme@gmail.com)",
+		license = "GNU GPL v2",
 		layer = -1,
 		enabled = true,
 	}
@@ -263,7 +263,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-		if scumSpawnerIDs[unitDefID] and (debugmode or (unitTeam == pveTeamID)) then
+		if scumSpawnerIDs[unitDefID] and (debugmode or (unitTeam and unitTeam == pveTeamID)) then
 			local px, py, pz = Spring.GetUnitPosition(unitID)
 			local gf = Spring.GetGameFrame()
 
@@ -968,7 +968,9 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then	-- UNSYNCED
 	end
 
 	local function HandleScumRemoved(cmd, scumID )
-		AddOrUpdateScum(nil,nil,nil,nil, -10 * math.abs( scums[scumID].growthrate), scumID)
+		if scums[scumID] then
+			AddOrUpdateScum(nil,nil,nil,nil, -10 * math.abs( scums[scumID].growthrate), scumID)
+		end
 	end
 
 	local function ScumTextures()

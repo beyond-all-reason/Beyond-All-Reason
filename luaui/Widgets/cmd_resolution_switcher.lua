@@ -9,6 +9,12 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathMax = math.max
+local mathMin = math.min
+local tableInsert = table.insert
+
 -- these are set in widget:Initialize()
 local screenModes, screenGeometries, displays, firstPassDrawFrame, screenModeIndex
 
@@ -51,7 +57,7 @@ end
 local function insertMaximalScreenMode(minI, maxI, modes)
 	local windowGeometry = getMaximalWindowGeometry(minI, maxI)
 
-	table.insert(modes, {
+	tableInsert(modes, {
 		display = #displays,
 		name = "Multimonitor " .. minI .. "-" .. maxI,
 		displayName = "",
@@ -121,8 +127,8 @@ local function refreshScreenModes()
 				height = videoMode.h,
 			}
 
-			table.insert(screenModes, fullscreen)
-			table.insert(screenModes, borderless)
+			tableInsert(screenModes, fullscreen)
+			tableInsert(screenModes, borderless)
 		end
 
 		if videoMode.w >= 800 and videoMode.h > 600 then
@@ -136,7 +142,7 @@ local function refreshScreenModes()
 				hz = videoMode.hz
 			}
 
-			table.insert(screenModes, windowed)
+			tableInsert(screenModes, windowed)
 		end
 	end
 
@@ -159,29 +165,29 @@ local function refreshScreenModes()
 							if not addedDisplayCombo[display] or addedDisplayCombo[display] ~= display2 then
 								addedDisplayCombo[display] = display2
 								addedDisplayCombo[display2] = display
-								table.insert(screenModes, {
+								tableInsert(screenModes, {
 									display = #displays+1,	-- not actual display number
 									actualDisplay = (x < x2 and display or display2),
-									name = Spring.I18N('ui.resolutionswitcher.displays').." " .. display .. " + " .. display2.." ("..w + w2 .." x "..math.min(h, h2)..")",
+									name = Spring.I18N('ui.resolutionswitcher.displays').." " .. display .. " + " .. display2.." ("..w + w2 .." x "..mathMin(h, h2)..")",
 									displayName = "",
 									type = windowType.multimonitor,
-									x = math.min(x, x2),
-									y = math.max(y, y2),
+									x = mathMin(x, x2),
+									y = mathMax(y, y2),
 									width = w + w2,
-									height = math.min(h, h2),
+									height = mathMin(h, h2),
 								})
 								-- the screenmode above was restricted to minimum height in case one display has lower vertical resolution
 								if h ~= h2 then
-									table.insert(screenModes, {
+									tableInsert(screenModes, {
 										display = #displays+1,	-- not actual display number
 										actualDisplay = (x < x2 and display or display2),
-										name = Spring.I18N('ui.resolutionswitcher.displays').." " .. display .. " + " .. display2.." ("..w + w2 .." x "..math.max(h, h2)..")",
+										name = Spring.I18N('ui.resolutionswitcher.displays').." " .. display .. " + " .. display2.." ("..w + w2 .." x "..mathMax(h, h2)..")",
 										displayName = "",
 										type = windowType.multimonitor,
-										x = math.min(x, x2),
-										y = math.min(y, y2),
+										x = mathMin(x, x2),
+										y = mathMin(y, y2),
 										width = w + w2,
-										height = math.max(h, h2),
+										height = mathMax(h, h2),
 									})
 								end
 							end

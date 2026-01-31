@@ -19,9 +19,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-if not (Spring.GetModOptions().disable_unit_sharing
-			-- unit market handles the restriction instead if enabled so that selling still works
-			or Spring.GetModOptions().unit_market) then
+if not Spring.GetModOptions().disable_unit_sharing then
 	return false
 end
 

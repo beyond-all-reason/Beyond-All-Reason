@@ -7,7 +7,7 @@ return {
 		energycost = 27000,
 		metalcost = 1600,
 		buildpic = "LEGAGEO.DDS",
-		buildtime = 33300,
+		buildtime = 49950,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "96 86 96",

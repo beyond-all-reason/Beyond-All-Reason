@@ -11,6 +11,12 @@ function widget:GetInfo()
 		enabled		= false,
 	}
 end
+
+-- Localized functions for performance
+local mathSin = math.sin
+local mathPi = math.pi
+local tableInsert = table.insert
+
 ---------------------------------------------------------------------------------------------------
 --  Config
 ---------------------------------------------------------------------------------------------------
@@ -26,7 +32,7 @@ OPTIONS.defaults = {	-- these will be loaded when switching style, but the style
 	blinkDuration		= 0.12,
 	blinkTimeout		= 6,
 }
-table.insert(OPTIONS, {
+tableInsert(OPTIONS, {
 	name				= "Floris Cat",
 	body				= imageDirectory.."floriscat_body.png",
 	head				= imageDirectory.."floriscat_head.png",
@@ -38,7 +44,7 @@ table.insert(OPTIONS, {
 	head_xOffset		= 0,
 	head_yOffset		= 0,
 })
-table.insert(OPTIONS, {
+tableInsert(OPTIONS, {
 	name				= "GrumpyCat",
 	body				= imageDirectory.."grumpycat_body.png",
 	head				= imageDirectory.."grumpycat_head.png",
@@ -50,7 +56,7 @@ table.insert(OPTIONS, {
 	head_xOffset		= 0,
 	head_yOffset		= 0,
 })
-table.insert(OPTIONS, {
+tableInsert(OPTIONS, {
 	name				= "Teifion's MrBeans",
 	body				= imageDirectory.."mrbeans_body.png",
 	head				= imageDirectory.."mrbeans_head.png",
@@ -121,7 +127,7 @@ local xPos = 0
 local yPos = 0
 
 local drawSantahat = false
-if os.date("%m") == "12" and os.date("%d") >= "12" and  os.date("%d") <= "26" then
+if Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"] then
 	drawSantahat = true
 end
 
@@ -246,8 +252,8 @@ function widget:Update(dt)
 	sec=sec+dt
 	totalTime=totalTime+dt
 
-	rot = 14 + (6* math.sin(math.pi*(totalTime/4)))
-	bob = (1.5*math.sin(math.pi*(totalTime/5.5)))
+	rot = 14 + (6* mathSin(mathPi*(totalTime/4)))
+	bob = (1.5*mathSin(mathPi*(totalTime/5.5)))
 
 	if sec > OPTIONS[currentOption]['blinkTimeout'] then
 		usedDrawlist = 3

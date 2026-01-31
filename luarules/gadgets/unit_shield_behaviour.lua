@@ -5,18 +5,99 @@ function gadget:GetInfo()
 		name = "Shield Behaviour",
 		desc = "Overrides default shield engine behavior.",
 		author = "SethDGamre",
-		layer = 1,
-		enabled = true
+		layer = -10, -- provides GG.Shields interface for scripted weapon types
+		enabled = true,
 	}
 end
 
-if not gadgetHandler:IsSyncedCode() then return false end
+if not gadgetHandler:IsSyncedCode() then
+	return false
+end
+
+---@alias ShieldPreDamagedCallback fun(projectileID:integer, attackerID:integer, shieldWeaponIndex:integer, shieldUnitID:integer, bounceProjectile:boolean, beamWeaponIndex:integer?, beamUnitID:integer?, startX:number?, startY:number?, startZ:number?, hitX:number, hitY:number, hitZ:number): boolean? (default := `false`)
+
+local mathMax = math.max
+
+local spGetUnitShieldState = Spring.GetUnitShieldState
+local spSetUnitShieldState = Spring.SetUnitShieldState
+
+local SHIELDSTATE_DISABLED = 0
+local SHIELDSTATE_ENABLED = 1
+
+local armorTypeShields = Game.armorTypes.shields
+
+local originalShieldDamages = table.new(#WeaponDefs, 1) -- [0] goes into hash part
+local scriptedShieldDamages = {}
+
+-- Some modoptions require engine shield behaviors (namely their bounce/repulsion effects):
+
+if Spring.GetModOptions().experimentalshields:find("bounce") then
+	for weaponDefID = 0, #WeaponDefs do
+		local weaponDef = WeaponDefs[weaponDefID]
+		originalShieldDamages[weaponDefID] = weaponDef.damages and weaponDef.damages[armorTypeShields] or 0
+	end
+
+	---Pass a `weaponDefID` instead of a `damage` for shield damage to be determined for you.
+	---@return boolean exhausted The damage was mitigated, in full, by the shield.
+	---@return number damageDone The amount of damage done to the targeted shield.
+	local function addEngineShieldDamage(shieldUnitID, damage, weaponDefID)
+		local state, power = spGetUnitShieldState(shieldUnitID)
+
+		if state == SHIELDSTATE_ENABLED and power > 0 then
+			if not damage then
+				damage = originalShieldDamages[weaponDefID] or 0 -- to handle envDamageTypes
+			end
+
+			spSetUnitShieldState(shieldUnitID, max(0, power - damage))
+
+			if power >= damage then
+				return true, damage
+			else
+				return false, power
+			end
+		else
+			return false, 0
+		end
+	end
+
+	local function doShieldPreDamaged(self, projectileID, attackerID, shieldWeaponIndex, shieldUnitID, bounceProjectile, beamWeaponIndex, beamUnitID, startX, startY, startZ, hitX, hitY, hitZ)
+		for lookup, callback in pairs(scriptedShieldDamages) do
+			if lookup[projectileID] then
+				if callback(projectileID, attackerID, shieldWeaponIndex, shieldUnitID, bounceProjectile, beamWeaponIndex, beamUnitID, startX, startY, startZ, hitX, hitY, hitZ) then
+					return true
+				end
+			end
+		end
+	end
+
+	---Add a scripted weapon type to be handled by the shield behaviour gadget.
+	---@param projectileTbl table [projectileID] := true
+	---@param callback ShieldPreDamagedCallback accepting the ShieldPreDamaged args (excluding self-ref), returning `true` when consuming the event
+	local function registerShieldPreDamaged(projectileTbl, callback)
+		if not next(scriptedShieldDamages) then
+			gadget.ShieldPreDamaged = doShieldPreDamaged
+			gadgetHandler:UpdateCallIn("ShieldPreDamaged")
+		end
+		scriptedShieldDamages[projectileTbl] = callback
+	end
+
+	function gadget:Initialize()
+		GG.Shields = {}
+		GG.Shields.AddShieldDamage = addEngineShieldDamage
+		GG.Shields.DamageToShields = originalShieldDamages
+		GG.Shields.GetUnitShieldPosition = function() end -- TODO: parts of the api are not usable (nor needed)
+		GG.Shields.GetShieldUnitsInSphere = function() end -- TODO: parts of the api are not usable (nor needed)
+		GG.Shields.GetUnitShieldState = spGetUnitShieldState
+		GG.Shields.RegisterShieldPreDamaged = registerShieldPreDamaged
+	end
+
+	return -- do not load custom shields gadget
+end
+
+-- Otherwise, this gadget overrides all shield behaviors with game-side shields:
 
 ---- Optional unit customParams ----
 -- shield_aoe_penetration = bool, if true then AOE damage will hurt units within the shield radius
-
--- If a unit doesn't have a defined shield damage or default damage, fallbackShieldDamage will be used as a fallback.
-local fallbackShieldDamage          = 0
 
 -- this defines what amount of the total damage a unit deals qualifies as a direct hit for units that are in the vague areas between covered and not covered by shields (typically on edges or sticking out partially)
 local directHitQualifyingMultiplier = 0.95
@@ -27,10 +108,13 @@ local minDownTime					= 1 * Game.gameSpeed
 -- The maximum number of frames a shield is allowed to be offline from overkill. This is to handle very, very high single-attack damage which would otherwise cripple the shield for multiple minutes.
 local maxDownTime					= 20 * Game.gameSpeed
 
-local reworkEnabled 				= Spring.GetModOptions().shieldsrework --remove when shield rework is permanent
 local shieldModulo                  = Game.gameSpeed
 local shieldOnUnitRulesParamIndex   = 531313
 local INLOS                         = { inlos = true }
+
+local mathCeil                      = math.ceil
+local mathSqrt                      = math.sqrt
+local mathPi                        = math.pi
 
 local spGetUnitShieldState          = Spring.GetUnitShieldState
 local spSetUnitShieldState          = Spring.SetUnitShieldState
@@ -38,20 +122,19 @@ local spSetUnitShieldRechargeDelay  = Spring.SetUnitShieldRechargeDelay
 local spDeleteProjectile            = Spring.DeleteProjectile
 local spGetProjectileDefID          = Spring.GetProjectileDefID
 local spGetUnitPosition             = Spring.GetUnitPosition
+local spGetUnitWeaponVectors        = Spring.GetUnitWeaponVectors
 local spGetUnitsInSphere            = Spring.GetUnitsInSphere
 local spGetProjectilesInRectangle   = Spring.GetProjectilesInRectangle
 local spGetProjectilesInSphere   	= Spring.GetProjectilesInSphere
 local spAreTeamsAllied              = Spring.AreTeamsAllied
 local spGetUnitIsActive             = Spring.GetUnitIsActive
+local spGetUnitIsDead               = Spring.GetUnitIsDead
 local spUseUnitResource             = Spring.UseUnitResource
 local spSetUnitRulesParam           = Spring.SetUnitRulesParam
 local spGetUnitArmored              = Spring.GetUnitArmored
-local mathMax                       = math.max
-local mathCeil                      = math.ceil
 
 local shieldUnitDefs                = {}
 local shieldUnitsData               = {}
-local originalShieldDamages         = {}
 local beamEmitterWeapons            = {}
 local forceDeleteWeapons            = {}
 local unitDefIDCache                = {}
@@ -61,75 +144,73 @@ local AOEWeaponDefIDs               = {}
 local projectileShieldHitCache      = {}
 local highestWeapDefDamages         = {}
 local armoredUnitDefs               = {}
+local destroyedUnitData             = {}
 
 local gameFrame 					= 0
 
 for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 
-	if weaponDef.type == 'Flame' or weaponDef.customParams.overpenetrate then --overpenetration and flame projectiles aren't deleted when striking the shield. For compatibility with shield blocking type overrides.
+	if weaponDef.type == 'Flame' then -- flame projectiles aren't deleted when striking the shield. For compatibility with shield blocking type overrides.
 		forceDeleteWeapons[weaponDefID] = weaponDef
 	end
 
-	if reworkEnabled then  --remove this if when shield rework is permanent
-		if not weaponDef.customParams.shield_aoe_penetration then
-			AOEWeaponDefIDs[weaponDefID] = true
-		end
+	if not weaponDef.customParams.shield_aoe_penetration then
+		AOEWeaponDefIDs[weaponDefID] = true
+	end
 
-		if weaponDef.customParams.beamtime_damage_reduction_multiplier then
-			local base = weaponDef.customParams.shield_damage or fallbackShieldDamage
-			local multiplier = weaponDef.customParams.beamtime_damage_reduction_multiplier
-			originalShieldDamages[weaponDefID] = mathCeil(base * multiplier)
-		else
-			originalShieldDamages[weaponDefID] = weaponDef.customParams.shield_damage or fallbackShieldDamage
-		end
-
+	if weaponDef.customParams.beamtime_damage_reduction_multiplier then
+		local base = weaponDef.customParams.shield_damage or 0
+		local multiplier = weaponDef.customParams.beamtime_damage_reduction_multiplier
+		originalShieldDamages[weaponDefID] = mathCeil(base * multiplier)
+	else
+		originalShieldDamages[weaponDefID] = tonumber(weaponDef.customParams.shield_damage or 0) or 0
+	end
 
 
-		local highestDamage = 0
-		if weaponDef.damages then
-			for type, damage in ipairs(weaponDef.damages) do
-				if damage > highestDamage then
-					highestDamage = damage
-				end
+
+	local highestDamage = 0
+	if weaponDef.damages then
+		for type, damage in ipairs(weaponDef.damages) do
+			if damage > highestDamage then
+				highestDamage = damage
 			end
 		end
-
-		--this section calculates the rough amount of damage required to be considered a "direct hit", which assumes it didn't happen from AOE reaching inside shield.
-		local beamtimeReductionMultiplier = 1
-		local minIntensity = 1
-		if weaponDef.beamtime and weaponDef.beamtime < 1 then
-			local minimumMinIntensity = 0.5
-			local minIntensity = weaponDef.minIntensity or minimumMinIntensity
-			minIntensity = math.max(minIntensity, minimumMinIntensity)
-			-- This splits up the damage of hitscan weapons over the duration of beamtime, as each frame counts as a hit in ShieldPreDamaged() callin
-			-- Math.floor is used to sheer off the extra digits of the number of frames that the hits occur
-			beamtimeReductionMultiplier = 1 / math.floor(weaponDef.beamtime * Game.gameSpeed)
-		end
-
-
-		local minimumMinIntensity = 0.65 --impirically tested to work the majority of the time with normal damage falloff.
-		local hasDamageFalloff = false
-		local damageFalloffUnitTypes = {
-			BeamLaser = true,
-			Flame = true,
-			LaserCannon = true,
-			LightningCannon = true,
-		}
-		if damageFalloffUnitTypes[weaponDef.type] then
-			hasDamageFalloff = true
-		end
-
-		if weaponDef.minIntensity and hasDamageFalloff then
-			minIntensity = math.max(minimumMinIntensity, weaponDef.minIntensity)
-		end
-
-		highestWeapDefDamages[weaponDefID] = highestDamage * beamtimeReductionMultiplier * minIntensity *
-		directHitQualifyingMultiplier
 	end
+
+	--this section calculates the rough amount of damage required to be considered a "direct hit", which assumes it didn't happen from AOE reaching inside shield.
+	local beamtimeReductionMultiplier = 1
+	local minIntensity = 1
+	if weaponDef.beamtime and weaponDef.beamtime < 1 then
+		local minimumMinIntensity = 0.5
+		local minIntensity = weaponDef.minIntensity or minimumMinIntensity
+		minIntensity = mathMax(minIntensity, minimumMinIntensity)
+		-- This splits up the damage of hitscan weapons over the duration of beamtime, as each frame counts as a hit in ShieldPreDamaged() callin
+		-- Math.floor is used to sheer off the extra digits of the number of frames that the hits occur
+		beamtimeReductionMultiplier = 1 / math.floor(weaponDef.beamtime * Game.gameSpeed)
+	end
+
+
+	local minimumMinIntensity = 0.65 --impirically tested to work the majority of the time with normal damage falloff.
+	local hasDamageFalloff = false
+	local damageFalloffUnitTypes = {
+		BeamLaser = true,
+		Flame = true,
+		LaserCannon = true,
+		LightningCannon = true,
+	}
+	if damageFalloffUnitTypes[weaponDef.type] then
+		hasDamageFalloff = true
+	end
+
+	if weaponDef.minIntensity and hasDamageFalloff then
+		minIntensity = mathMax(minimumMinIntensity, weaponDef.minIntensity)
+	end
+
+	highestWeapDefDamages[weaponDefID] = highestDamage * beamtimeReductionMultiplier * minIntensity *
+	directHitQualifyingMultiplier
 end
 
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if not reworkEnabled then break end --remove when shield rework is permanent
 	if unitDef.customParams.shield_radius then
 		local data = {}
 		data.shieldRadius = tonumber(unitDef.customParams.shield_radius)
@@ -196,7 +277,6 @@ end
 ----main logic----
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	if not reworkEnabled then return end --remove when shield rework is permanent
 	local data = shieldUnitDefs[unitDefID]
 	if data then
 		shieldUnitsData[unitID] = {
@@ -211,6 +291,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			shieldDownTime = 0,
 			maxDownTime = 0
 		}
+		destroyedUnitData[unitID] = nil -- Handle (maybe) units being recreated and reusing their original ID
 		setCoveredUnits(unitID)
 	end
 
@@ -219,8 +300,16 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	if not reworkEnabled then return end --remove when shield rework is permanent
-	shieldUnitsData[unitID] = nil
+	local unitData = shieldUnitsData[unitID]
+	if unitData then
+		shieldUnitsData[unitID] = nil
+		-- Keep shield data for one frame, since the shieldsrework delays updates until then.
+		destroyedUnitData[unitID] = unitData
+		unitData.x, unitData.y, unitData.z = spGetUnitWeaponVectors(unitID, unitData.shieldWeaponNumber)
+		-- ! Prevent a possible error here, it seems shields are cleaned up faster than unit weapons:
+		local success, state, power = pcall(spGetUnitShieldState, unitID, unitData.shieldWeaponNumber)
+		unitData.power = (success and state == 1 and power) or unitData.power or 0
+	end
 	unitDefIDCache[unitID] = nil
 end
 
@@ -246,15 +335,15 @@ local function setProjectilesAlreadyInsideShield(shieldUnitID, radius)
 	else
 		-- Engine has GetProjectilesInRectangle, but not GetProjectilesInCircle, so we have to square the circle
 		-- TODO: Change to GetProjectilesInCircle once it is added
-		local radius = radius * math.sqrt(math.pi) / 2
-		local xmin = x - radius
-		local xmax = x + radius
-		local zmin = z - radius
-		local zmax = z + radius
+		local radiusSquared = radius * mathSqrt(mathPi) / 2
+		local xmin = x - radiusSquared
+		local xmax = x + radiusSquared
+		local zmin = z - radiusSquared
+		local zmax = z + radiusSquared
 		projectiles = spGetProjectilesInRectangle(xmin, zmin, xmax, zmax)
 	end
-	for _, projectileID in ipairs(projectiles) do
-		projectileShieldHitCache[projectileID] = true
+	for i = 1, #projectiles do
+		projectileShieldHitCache[projectiles[i]] = true
 	end
 end
 
@@ -317,7 +406,6 @@ local shieldCheckEndIndex = 1
 function gadget:GameFrame(frame)
 	gameFrame = frame
 
-	if not reworkEnabled then return end --remove when shield rework is permanent
 	for shieldUnitID, _ in pairs(shieldCheckFlags) do
 		local shieldData = shieldUnitsData[shieldUnitID] --zzz for some reason the shield orb isn't disappearing sometimes when big damage
 
@@ -413,11 +501,15 @@ function gadget:GameFrame(frame)
 		end
 		shieldCheckEndIndex = math.min(lastShieldCheckedIndex + shieldCheckChunkSize - 1, #shieldUnitIndex)
 	end
+
+	local dud = destroyedUnitData
+	for unitID in pairs(dud) do
+		dud[unitID] = nil
+	end
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID,
 							   attackerDefID, attackerTeam)
-	if not reworkEnabled then return end --remove when shield rework is permanent
 	if not AOEWeaponDefIDs[weaponDefID] or projectileShieldHitCache[projectileID] then
 		return damage
 	end
@@ -446,77 +538,181 @@ end
 function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitID, bounceProjectile, beamEmitterWeaponNum,
 								 beamEmitterUnitID, startX, startY, startZ, hitX, hitY, hitZ)
 	local weaponDefID
-	if not reworkEnabled then --this section is added for when shield rework isn't enabled, but any shields are able to block all projectiles. <<<
-		if proID > -1 then
-			weaponDefID = projectileDefIDCache[proID] or spGetProjectileDefID(proID)
-			if forceDeleteWeapons[weaponDefID] then
-				-- Flames and penetrating projectiles aren't destroyed when they hit shields, so need to delete manually
-				spDeleteProjectile(proID)
+	local shieldData = shieldUnitsData[shieldUnitID]
+	if not shieldData or not shieldData.shieldEnabled then
+		return true
+	end
+
+	-- Process scripted weapon types first (dgun, cluster, overpen, area timed). These can override any behaviors, potentially.
+	for lookup, callback in pairs(scriptedShieldDamages) do
+		if lookup[proID] then -- TODO: filtering for beam weapons (projectileID == -1) is not especially effective here.
+			if callback(proID, proOwnerID, shieldWeaponNum, shieldUnitID, bounceProjectile, beamEmitterWeaponNum, beamEmitterUnitID, startX, startY, startZ, hitX, hitY, hitZ) then
+				return true
 			end
 		end
-	else -- >>>
-		local shieldData = shieldUnitsData[shieldUnitID]
-		if not shieldData or not shieldData.shieldEnabled then
-			return true
+	end
+
+	-- proID isn't nil if hitscan weapons are used, it's actually -1.
+	if proID > -1 then
+		weaponDefID = projectileDefIDCache[proID] or spGetProjectileDefID(proID)
+		local newShieldDamage = originalShieldDamages[weaponDefID] or 0
+		shieldData.shieldDamage = shieldData.shieldDamage + newShieldDamage
+		if forceDeleteWeapons[weaponDefID] then
+			-- Flame projectiles aren't destroyed when they hit shields, so need to delete manually
+			spDeleteProjectile(proID)
+		end
+	elseif beamEmitterUnitID then
+		local beamEmitterUnitDefID = unitDefIDCache[beamEmitterUnitID]
+
+		if not beamEmitterUnitDefID then
+			return false
 		end
 
-		-- proID isn't nil if hitscan weapons are used, it's actually -1.
-		if proID > -1 then
-			weaponDefID = projectileDefIDCache[proID] or spGetProjectileDefID(proID)
-			local newShieldDamage = originalShieldDamages[weaponDefID] or fallbackShieldDamage
-			shieldData.shieldDamage = shieldData.shieldDamage + newShieldDamage
-			if forceDeleteWeapons[weaponDefID] then
-				-- Flames and penetrating projectiles aren't destroyed when they hit shields, so need to delete manually
-				spDeleteProjectile(proID)
-			end
-		elseif beamEmitterUnitID then
-			local beamEmitterUnitDefID = unitDefIDCache[beamEmitterUnitID]
+		weaponDefID = UnitDefs[beamEmitterUnitDefID].weapons[beamEmitterWeaponNum].weaponDef
+		shieldData.shieldDamage = (shieldData.shieldDamage + originalShieldDamages[weaponDefID])
+	end
 
-			if not beamEmitterUnitDefID then
-				return false
-			end
+	shieldCheckFlags[shieldUnitID] = true
 
-			weaponDefID = UnitDefs[beamEmitterUnitDefID].weapons[beamEmitterWeaponNum].weaponDef
-			shieldData.shieldDamage = (shieldData.shieldDamage + originalShieldDamages[weaponDefID])
+	if shieldData.shieldEnabled then
+		if not shieldData.shieldCoverageChecked and AOEWeaponDefIDs[weaponDefID] then
+			setCoveredUnits(shieldUnitID)
 		end
-
-		shieldCheckFlags[shieldUnitID] = true
-
-		if shieldData.shieldEnabled then
-			if not shieldData.shieldCoverageChecked and AOEWeaponDefIDs[weaponDefID] then
-				setCoveredUnits(shieldUnitID)
-			end
-		else
-			removeCoveredUnits(shieldUnitID)
-		end
+	else
+		removeCoveredUnits(shieldUnitID)
 	end
 end
----Shield controller API for other gadgets to generate and process their own shield damage events.
-local function addShieldDamage(shieldUnitID, damage, weaponDefID, projectileID, beamEmitterWeaponNum, beamEmitterUnitID)
-	local projectileDestroyed, damageMitigated = false, 0
-	if not beamEmitterUnitID and beamEmitterWeapons[weaponDefID] then
-		beamEmitterUnitID, beamEmitterWeaponNum = unpack(beamEmitterWeapons[weaponDefID])
+
+-- Gadget interface methods ----------------------------------------------------
+
+---@return integer state 0 := DISABLED, 1 := ENABLED
+---@return number shieldHealthRemaining including the (hidden) damage done this frame so far
+local function getUnitShieldState(shieldUnitID)
+	local unitData = shieldUnitsData[shieldUnitID] or destroyedUnitData[shieldUnitID]
+	if unitData and unitData.shieldEnabled then
+		local power
+		if spGetUnitIsDead(shieldUnitID) == false then
+			_, power = spGetUnitShieldState(shieldUnitID, unitData.shieldWeaponNumber)
+		else
+			power = unitData.power
+		end
+		-- Damage is applied late in the rework, effectively giving infinite HP for one frame.
+		-- Still, we report that the shield is enabled (1), and its "actual" power remaining.
+		return SHIELDSTATE_ENABLED, power and mathMax(power - unitData.shieldDamage, 0) or -1
+	else
+		return SHIELDSTATE_DISABLED, 0
 	end
-	local shieldData = shieldUnitsData[shieldUnitID]
-	if shieldData and shieldData.shieldEnabled then
-		local shieldDamage = shieldData.shieldDamage
-		local result = gadget:ShieldPreDamaged(projectileID, nil, shieldData.shieldWeaponNumber, shieldUnitID, nil,
-			beamEmitterWeaponNum, beamEmitterUnitID)
-		if result == nil then
-			projectileDestroyed = true
-			if damage then
-				shieldData.shieldDamage = shieldDamage + damage
-				damageMitigated = damage
-			else
-				damageMitigated = shieldData.shieldDamage - shieldDamage
+end
+
+---Pass a `weaponDefID` instead of a `damage` for shield damage to be determined for you.
+---@return boolean exhausted The damage was mitigated, in full, by the shield.
+---@return number damageDone The amount of damage done to the targeted shield.
+local function addCustomShieldDamage(shieldUnitID, damage, weaponDefID)
+	local state, power = getUnitShieldState(shieldUnitID) -- because the unit can be dead
+
+	if state == SHIELDSTATE_ENABLED and power > 0 then
+		local shieldData = shieldUnitsData[shieldUnitID] or destroyedUnitData[shieldUnitID]
+
+		if not damage then
+			damage = originalShieldDamages[weaponDefID] or 0
+		end
+
+		shieldData.shieldDamage = shieldData.shieldDamage + damage
+		shieldCheckFlags[shieldUnitID] = true
+
+		-- NB: The decision to delete the projectile is left up to the calling gadget.
+		if power >= damage then
+			return true, damage
+		else
+			return false, power
+		end
+	end
+
+	return false, 0
+end
+
+local function getUnitShieldWeaponPosition(shieldUnitID, unitData)
+	if unitData.x then
+		return unitData.x, unitData.y, unitData.z, unitData.radius -- from dead unit
+	else
+		local x, y, z = spGetUnitWeaponVectors(shieldUnitID, unitData.shieldWeaponNumber or 1)
+		return x, y, z, unitData.radius
+	end
+end
+
+---@return number? x xyz, emitter point of the shield weapon
+---@return number? y
+---@return number? z
+---@return number? shieldRadius though the shield may be inactive
+local function getUnitShieldPosition(shieldUnitID)
+	local unitData = shieldUnitsData[shieldUnitID] or destroyedUnitData[shieldUnitID]
+	if unitData then
+		return getUnitShieldWeaponPosition(shieldUnitID, unitData)
+	end
+end
+
+local function isBallShellIntersection(dx, dy, dz, ballRadius, shellRadius)
+	local distanceSq = dx * dx + dy * dy + dz * dz
+	return distanceSq >= (shellRadius - ballRadius) * (shellRadius - ballRadius)
+		and distanceSq <= (shellRadius + ballRadius) * (shellRadius + ballRadius)
+end
+
+---@param x number
+---@param y number
+---@param z number
+---@param radius number? Additive with the radius of the target shield (default := `0`)
+---@param onlyAlive boolean? Navigate the rework's one-frame delay on shield effects by excluding recently-dead units (default := `false`)
+---@return integer[] shieldUnits
+---@return integer count
+local function getShieldUnitsInSphere(x, y, z, radius, onlyAlive)
+	radius = mathMax(radius or 0, 0.001)
+
+	local units, count = {}, 0
+	local position, intersect = getUnitShieldWeaponPosition, isBallShellIntersection
+
+	-- Find intersections of the solid search sphere and thin-shelled shield spheres.
+	for unitID, unitData in pairs(shieldUnitsData) do
+		if unitData.shieldEnabled then
+			local sx, sy, sz, shieldRadius = position(unitID, unitData)
+			if intersect(x - sx, y - sy, z - sz, radius, shieldRadius) then
+				count = count + 1
+				units[count] = unitID
 			end
 		end
 	end
-	return projectileDestroyed, damageMitigated
+
+	if onlyAlive then
+		return units, count
+	end
+
+	for unitID, unitData in pairs(destroyedUnitData) do
+		if unitData.shieldEnabled then
+			local sx, sy, sz, shieldRadius = position(unitID, unitData)
+			if intersect(x - sx, y - sy, z - sz, radius, shieldRadius) then
+				count = count + 1
+				units[count] = unitID
+			end
+		end
+	end
+
+	return units, count
+end
+
+---Add a scripted weapon type to be handled by the shield behaviour gadget.
+---@param projectileTbl table [projectileID] := true
+---@param callback ShieldPreDamagedCallback accepting the ShieldPreDamaged args (excluding self-ref), returning `true` when consuming the event
+local function registerShieldPreDamaged(projectileTbl, callback)
+	scriptedShieldDamages[projectileTbl] = callback
 end
 
 function gadget:Initialize()
-	GG.AddShieldDamage = addShieldDamage
+	GG.Shields = {}
+	GG.Shields.AddShieldDamage = addCustomShieldDamage
+	GG.Shields.DamageToShields = originalShieldDamages
+	GG.Shields.GetUnitShieldPosition = getUnitShieldPosition
+	GG.Shields.GetShieldUnitsInSphere = getShieldUnitsInSphere
+	GG.Shields.GetUnitShieldState = getUnitShieldState
+	GG.Shields.RegisterShieldPreDamaged = registerShieldPreDamaged
 
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		local unitDefID = Spring.GetUnitDefID(unitID)
@@ -525,6 +721,6 @@ function gadget:Initialize()
 	end
 end
 
-function gadget:ShutDown()
-	GG.AddShieldDamage = nil
+function gadget:Shutdown()
+	GG.Shields = nil
 end

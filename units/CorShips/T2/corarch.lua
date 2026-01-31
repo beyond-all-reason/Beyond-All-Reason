@@ -3,7 +3,7 @@ return {
 		airsightdistance = 900,
 		buildangle = 16384,
 		buildpic = "CORARCH.DDS",
-		buildtime = 15000,
+		buildtime = 21000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -4 3",
 		collisionvolumescales = "37 37 74",
@@ -179,12 +179,12 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1000,
+				customparams = {
+					overrange_distance = 1001,
+					projectile_destruction_method = "descend",
+				},
 				damage = {
 					default = 125,
-				},
-				customparams = {
-					projectile_destruction_method = "descend",
-					overrange_distance = 1001,
 				},
 			},
 			mobileflak = {

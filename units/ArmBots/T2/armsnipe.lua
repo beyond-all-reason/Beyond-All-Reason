@@ -1,7 +1,7 @@
 return {
 	armsnipe = {
 		buildpic = "ARMSNIPE.DDS",
-		buildtime = 19000,
+		buildtime = 24000,
 		canmove = true,
 		cloakcost = 75,
 		cloakcostmoving = 200,
@@ -22,7 +22,7 @@ return {
 		maxwaterdepth = 22,
 		metalcost = 680,
 		mincloakdistance = 80,
-		movementclass = "BOT3",
+		movementclass = "BOT2",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMSNIPE.s3o",
 		script = "Units/ARMSNIPE.cob",
@@ -154,6 +154,7 @@ return {
 				edgeeffectiveness = 0.15,
 				energypershot = 500,
 				explosiongenerator = "custom:genericshellexplosion-sniper",
+				gravityaffected = "true",
 				impactonly = true,
 				impulsefactor = 0.234,
 				intensity = 0.75,

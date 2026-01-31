@@ -1,7 +1,7 @@
 return {
 	leghrk = {
 		buildpic = "LEGHRK.DDS",
-		buildtime = 9000,
+		buildtime = 12600,
 		canmove = true,
 		collisionvolumeoffsets = "0 -2 0",
         collisionvolumescales = "40.0 40.0 46.0",
@@ -19,7 +19,7 @@ return {
 		maxslope = 14,
 		maxwaterdepth = 21,
 		metalcost = 750,
-		movementclass = "BOT4",
+		movementclass = "BOT3",
 		separationDistance = 8,
 		movestate = 0,
 		nochasecategory = "VTOL",

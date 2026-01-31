@@ -1,0 +1,177 @@
+
+#include "../recoil_common_includes.h"
+
+piece
+    base,
+    bow,
+    wake,
+    greebles,
+    turretBase,
+    turretStrut,
+    nanoPipes,
+    nanoStruts,
+    nanoBarrels,
+    nanoFlare1,
+    nanoFlare2,
+    turretTop,
+    greebles2,
+    lightBase1,
+    light1,
+    conLight1a,
+    conLight1b
+;
+
+static-var  buildHeading, readyToBuild, whichBarrel;
+
+#define RB_MASS 20
+#define RB_LENGTH 5
+#define RB_WIDTH 2
+#define RB_PITCH_SPEED 200
+#define RB_PITCH_ACCELERATION 10
+#define RB_ROLL_ACCELERATION 3
+#define RB_WAKE_PIECE wake
+#define RB_WAKE_PERIOD 6 
+#define RB_WAKE_CEG 1024 + 0
+#include "../bar_ships_common.h"
+
+
+
+Create()
+{
+    hide nanoFlare1;
+    hide nanoFlare2;
+    hide conLight1a;
+    hide conLight1b;
+
+    move light1 to y-axis [-0.8] now;
+    move nanoStruts to z-axis [-2] now;
+    move nanoBarrels to z-axis [-4] now;
+    move turretStrut to y-axis [-4] now;
+
+	buildHeading = 0;
+	start-script InitRockBoat();
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script BoatPhysics();
+}
+
+
+StartBuilding(heading)
+{
+
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+
+	if (!readyToBuild){
+
+        move light1 to y-axis [0] speed [1];
+        move turretStrut to y-axis [0] speed [4];
+        wait-for-move turretStrut along y-axis;
+        move nanoStruts to z-axis [0] speed [4];
+        wait-for-move nanoStruts along z-axis;
+        move nanoBarrels to z-axis [0] speed [8];
+        wait-for-move nanoBarrels along z-axis;
+		readyToBuild = TRUE;
+	}
+
+	turn turretStrut to y-axis heading speed <160.038462>;
+	wait-for-turn turretStrut around y-axis;
+	
+	set INBUILDSTANCE to 1;
+
+    spin light1 around y-axis speed <90> accelerate <3>;
+    show conLight1a;
+    show conLight1b;
+	show nanoFlare1;
+    show nanoFlare2;
+}
+
+StopBuilding()
+{
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+
+    stop-spin light1 around y-axis decelerate <1>;
+	hide nanoFlare1;
+    hide nanoFlare2;
+    hide conLight1a;
+    hide conLight1b;
+
+	sleep 6000;
+	set INBUILDSTANCE to 0;
+	readyToBuild = FALSE;
+	
+    turn turretStrut to y-axis <0> speed <160>;
+    wait-for-turn turretStrut around y-axis;
+
+    move light1 to y-axis [-0.8] speed [1];
+    move nanoBarrels to z-axis [-4] speed [4];
+    move nanoStruts to z-axis [-2] speed [2];
+    wait-for-move nanoStruts along z-axis;
+    move turretStrut to y-axis [-4] speed [4];
+
+}
+
+
+
+StartMoving(reversing)
+{
+
+}
+
+StopMoving()
+{
+	
+}
+
+QueryNanoPiece(pieceIndex)
+{
+	if (whichBarrel == 0){
+        pieceIndex = nanoFlare1;
+        whichBarrel = 1;
+    }
+    else if (whichBarrel == 1){
+        pieceIndex =  nanoFlare2;
+        whichBarrel = 0;
+    }
+
+}
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		// explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode door1 type BITMAPONLY | NOHEATCLOUD;
+		// explode neck type BITMAPONLY | NOHEATCLOUD;
+		// explode nano type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		// explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode neck type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode nano type FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		// explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode neck type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode boom type SMOKE | FALL | NOHEATCLOUD;
+		// explode nano type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		// explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode neck type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		// explode boom type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		// explode nano type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

@@ -12,6 +12,14 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spGetUnitDefID = Spring.GetUnitDefID
+local spEcho = Spring.Echo
+local spGetUnitTeam = Spring.GetUnitTeam
+local spGetAllUnits = Spring.GetAllUnits
+local spGetSpectatingState = Spring.GetSpectatingState
+
 local iconsize = 1
 local iconoffset = 24
 
@@ -31,7 +39,7 @@ end
 local xpPerLevel = maximumRankXP/(numRanks-1)
 
 local unitHeights = {}
-local spec, fullview = Spring.GetSpectatingState()
+local spec, fullview = spGetSpectatingState()
 
 -- GL4 stuff:
 local InstanceVBOTable = gl.InstanceVBOTable
@@ -52,12 +60,12 @@ local debugmode = false
 local function addDirToAtlas(atlas, path)
 	local imgExts = {bmp = true,tga = true,jpg = true,png = true,dds = true, tif = true}
 	local files = VFS.DirList(path, '*.png')
-	if debugmode then Spring.Echo("Adding",#files, "images to atlas from", path) end
+	if debugmode then spEcho("Adding",#files, "images to atlas from", path) end
 	for i=1, #files do
 		if imgExts[string.sub(files[i],-3,-1)] then
 			gl.AddAtlasTexture(atlas,files[i])
 			--atlassedImages[files[i]] = true
-			--if debugmode then Spring.Echo("added", files[i]) end
+			--if debugmode then spEcho("added", files[i]) end
 		end
 	end
 end
@@ -67,15 +75,15 @@ local function makeAtlas()
 	addDirToAtlas(atlasID, "LuaUI/Images/ranks")
 	local result = gl.FinalizeTextureAtlas(atlasID)
 	if debugmode then
-		--Spring.Echo("atlas result", result)
+		--spEcho("atlas result", result)
 	end
 end
 
-local GetUnitDefID = Spring.GetUnitDefID
+local GetUnitDefID = spGetUnitDefID
 local GetUnitExperience = Spring.GetUnitExperience
-local GetAllUnits = Spring.GetAllUnits
+local GetAllUnits = spGetAllUnits
 local IsUnitAllied = Spring.IsUnitAllied
-local GetUnitTeam = Spring.GetUnitTeam
+local GetUnitTeam = spGetUnitTeam
 
 local glDepthTest = gl.DepthTest
 local glDepthMask = gl.DepthMask
@@ -129,18 +137,18 @@ for i = 1, 18 do vbocachetable[i] = 0 end -- init this caching table to preserve
 local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload, reason, rank, flash)
 	if debugmode then Spring.Debug.TraceEcho("add",unitID,reason) end
 	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true then
-		if debugmode then Spring.Echo("Warning: Rank Icons GL4 attempted to add an invalid unitID:", unitID) end
+		if debugmode then spEcho("Warning: Rank Icons GL4 attempted to add an invalid unitID:", unitID) end
 		return nil
 	end
 	local gf = (flash and Spring.GetGameFrame()) or 0
-	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
+	unitDefID = unitDefID or spGetUnitDefID(unitID)
 
 	--if unitDefID == nil or unitDefIDtoDecalInfo[unitDefID] == nil then return end -- these cant have plates
 	--local decalInfo = unitDefIDtoDecalInfo[unitDefID]
 
 	--local texname = "unittextures/decals/".. UnitDefs[unitDefID].name .. "_aoplane.dds" --unittextures/decals/armllt_aoplane.dds
 
-	--Spring.Echo (rank, rankTextures[rank], unitIconMult[unitDefID])
+	--spEcho (rank, rankTextures[rank], unitIconMult[unitDefID])
 	local p,q,s,t = gl.GetAtlasTexture(atlasID, rankTextures[rank])
 
 	vbocachetable[1] = usedIconsize -- length
@@ -148,7 +156,7 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload, reason, rank, fla
 	vbocachetable[3] = 0 -- cornersize
 	vbocachetable[4] = (unitHeights[unitDefID] or iconoffset) - 8 + ((debugmode and math.random()*16 ) or 0)-- height
 
-	--vbocachetable[5] = 0 -- Spring.GetUnitTeam(unitID)
+	--vbocachetable[5] = 0 -- spGetUnitTeam(unitID)
 	vbocachetable[6] = 4 -- numvertices
 
 	vbocachetable[7] = gf-(doRefresh and 200 or 0) -- gameframe for animations
@@ -239,10 +247,10 @@ end
 
 local function ProcessAllUnits()
 	InstanceVBOTable.clearInstanceTable(rankVBO)
-	local units = Spring.GetAllUnits()
-	--Spring.Echo("Refreshing Ground Plates", #units)
+	local units = spGetAllUnits()
+	--spEcho("Refreshing Ground Plates", #units)
 	for _, unitID in ipairs(units) do
-		local unitDefID = Spring.GetUnitDefID(unitID)
+		local unitDefID = spGetUnitDefID(unitID)
 		if unitDefID then
 			updateUnitRank(unitID, unitDefID, true)
 		end
@@ -251,7 +259,7 @@ local function ProcessAllUnits()
 end
 
 function widget:PlayerChanged(playerID)
-	spec, fullview = Spring.GetSpectatingState()
+	spec, fullview = spGetSpectatingState()
 end
 
 
@@ -359,7 +367,7 @@ function widget:DrawWorld()
 		doRefresh = false
 	end
 	if rankVBO.usedElements > 0 then
-		--Spring.Echo(rankVBO.usedElements)
+		--spEcho(rankVBO.usedElements)
 		--gl.Culling(GL.BACK)
 
 		glDepthMask(true)

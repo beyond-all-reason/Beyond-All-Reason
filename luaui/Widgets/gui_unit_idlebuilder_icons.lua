@@ -12,6 +12,10 @@ function widget:GetInfo()
    }
 end
 
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+
 local onlyOwnTeam = true
 
 local idleUnitDelay = 8	-- how long a unit must be idle before the icon shows up
@@ -24,7 +28,7 @@ local unitScope = {} -- table of teamid to table of stallable unitID : unitDefID
 local idleUnitList = {}
 
 local spGetUnitCommandCount = Spring.GetUnitCommandCount
-local spGetFactoryCommands = Spring.GetFactoryCommands
+local spGetFactoryCommandCount = Spring.GetFactoryCommandCount
 local spGetUnitTeam = Spring.GetUnitTeam
 local spec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
@@ -112,10 +116,10 @@ end
 
 
 local function updateIcons()
-	local gf = Spring.GetGameFrame()
+	local gf = spGetGameFrame()
 	local queue
 	for unitID, unitDefID in pairs(unitScope) do
-		queue = unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 0) or spGetUnitCommandCount(unitID, 0)
+		queue = unitConf[unitDefID][3] and spGetFactoryCommandCount(unitID) or spGetUnitCommandCount(unitID)
 		if queue == 0 then
 			if iconVBO.instanceIDtoIndex[unitID] == nil then -- not already being drawn
 				if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) then
@@ -150,7 +154,7 @@ local function updateIcons()
 end
 
 function widget:GameFrame(n)
-	if Spring.GetGameFrame() % 25 == 0 then
+	if spGetGameFrame() % 25 == 0 then
 		updateIcons()
 	end
 end

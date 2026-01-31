@@ -26,7 +26,7 @@ return {
 		script = "Units/CORBW.cob",
 		seismicsignature = 0,
 		selfdestructas = "tinyExplosionGenericSelfd",
-		sightdistance = 364,
+		sightdistance = 430,
 		speed = 280.5,
 		turninplaceanglelimit = 360,
 		turnrate = 1100,

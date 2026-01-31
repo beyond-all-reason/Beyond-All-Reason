@@ -1,4 +1,3 @@
-
 local difficulties = {
 	veryeasy = 1,
 	easy 	 = 2,
@@ -383,13 +382,13 @@ local LandUnitsList = {
 			--Cortex
 			["corshiva_scav"] = 4,
 			["corkarg_scav"] = 4,
-			["legeallterrainmech_scav"] = 4,
 			["corthermite"] = 4,
 			["corsok_scav"] = 2,
 			--Legion
 			["legpede_scav"] = 1,
 			["legkeres_scav"] = 4,
-			["legeshotgunmech_scav"] = 2,
+			["legeallterrainmech_scav"] = 4,
+			["legerailtank_scav"] = 2,
 			["legbunk_scav"] = 2,
 			["legehovertank_scav"] = 2,
 		},
@@ -407,8 +406,10 @@ local LandUnitsList = {
 			["corgolt4_scav"] = 2,
 			--Legion
 			["leegmech_scav"] = 2,
-			["legerailtank_scav"] = 3,
-			["legeheatraymech_scav"] = 2,
+			["legeshotgunmech_scav"] = 3,
+			["legerailtank_scav"] = 4,
+			["legeheatraymech_scav"] = 1,
+			["legeheatraymech_old_scav"] = 3,
 			["legelrpcmech_scav"] = 3,
 		},
 	},
@@ -499,7 +500,7 @@ local LandUnitsList = {
 			--Armada
 
 			--Cortex
-
+			["CorPrince_scav"] = 2,
 			--Legion
 			["legsrailt4_scav"] = 2,
 		},
@@ -650,6 +651,7 @@ local SeaUnitsList = {
 			["corsh_scav"] = 3,
 			--Legion
 			["legsh_scav"] = 3,
+			["legnavyscout_scav"] = 3,
 		},
 		[2] = {
 			--Armada
@@ -671,12 +673,16 @@ local SeaUnitsList = {
 			["armlship_scav"] = 3,
 			--Cortex
 			["corfship_scav"] = 3,
+			--Legion
+			["leganavyantiswarm_scav"] = 3,
 		},
 		[5] = {
 			--Armada
 			["armsubk_scav"] = 2,
 			--Cortex
 			["corshark_scav"] = 2,
+			--Legion
+			["leganavybattlesub_scav"] = 2,
 		},
 		[6] = {
 			--Armada
@@ -712,7 +718,9 @@ local SeaUnitsList = {
 			["corroy_scav"] = 2,
 			["corsnap_scav"] = 4,
 			--Legion
-			["legner_scav"] = 3,
+			["legnavyfrigate"] = 3,
+			["legner_scav"] = 4,
+			["legnavydestro_scav"] = 2,
 		},
 		[4] = {
 			--Armada
@@ -720,19 +728,25 @@ local SeaUnitsList = {
 			--Cortex
 			["corcrus_scav"] = 3,
 			["corhal_scav"] = 3,
+			--Legion
+			["leganavycruiser_scav"] = 3,
 		},
 		[5] = {
 			--Armada
 			["armbats_scav"] = 3,
 			--Cortex
 			["corbats_scav"] = 3,
+			--Legion
+			["leganavybattleship_scav"] = 3,
 		},
 		[6] = {
 			--Armada
 			["armpshipt3_scav"] = 2,
 			["armptt2_scav"] = 2,
 			--Cortex
-			["corblackhy_scav"] = 2,
+			["corprince_scav"] = 2,
+			--Legion
+			["leganavyartyship"] = 2,
 		},
 		[7] = {
 			--Armada
@@ -740,6 +754,9 @@ local SeaUnitsList = {
 			["armserpt3_scav"] = 2,
 			--Cortex
 			["coresuppt3_scav"] = 2,
+			["corblackhy_scav"] = 3,
+			--Legion
+			["leganavyflagship"] = 2,
 		},
 	},
 	Support = {
@@ -748,12 +765,16 @@ local SeaUnitsList = {
 			["armpt_scav"] = 2,
 			--Cortex
 			["corpt_scav"] = 2,
+			--Legion
+			["legnavyaaship_scav"] = 2,
 		},
 		[2] = {
 			--Armada
 			["armpt_scav"] = 2,
 			--Cortex
 			["corpt_scav"] = 2,
+			--Legion
+			["legnavyaaship_scav"] = 2,
 		},
 		[3] = {
 			--Armada
@@ -767,6 +788,7 @@ local SeaUnitsList = {
 			--Legion
 			["legah_scav"] = 2,
 			["legmh_scav"] = 2,
+			["leganavysub_scav"] = 2,
 		},
 		[4] = {
 			--Armada
@@ -777,6 +799,9 @@ local SeaUnitsList = {
 			["cordronecarry_scav"] = 2,
 			["corantiship_scav"] = 2,
 			["corarch_scav"] = 2,
+			--Legion
+			["leganavyantinukecarrier_scav"] = 4,
+			["leganavyaaship_scav"] = 2,
 		},
 		[5] = {
 			--Armada
@@ -790,7 +815,9 @@ local SeaUnitsList = {
 			["corsjam_scav"] = 2,
 			["corsentinel_scav"] = 2,
 			--Legion
-			["legvflak_scav"] = 2,
+			["leganavyheavysub_scav"] = 2,
+			["leganavymissileship_scav"] = 2,
+			["leganavyradjamship_scav"] = 2,
 		},
 		[6] = {
 			--Armada
@@ -819,7 +846,9 @@ local SeaUnitsList = {
 			["corcs_scav"] = 2,
 			["correcl_scav"] = 40,
 			["corch_scav"] = 2,
-			--Legion
+			--legion
+			["legnavyconship_scav"] = 2,
+			["legnavyrezsub_scav"] = 40,
 			["legch_scav"] = 2,
 		},
 		[2] = {
@@ -832,6 +861,8 @@ local SeaUnitsList = {
 			["correcl_scav"] = 40,
 			["corch_scav"] = 2,
 			--Legion
+			["legnavyconship_scav"] = 2,
+			["legnavyrezsub_scav"] = 40,
 			["legch_scav"] = 2,
 		},
 		[3] = {
@@ -844,6 +875,8 @@ local SeaUnitsList = {
 			["correcl_scav"] = 40,
 			["corch_scav"] = 2,
 			--Legion
+			["legnavyconship_scav"] = 2,
+			["legnavyrezsub_scav"] = 40,
 			["legch_scav"] = 2,
 		},
 		[4] = {
@@ -855,6 +888,10 @@ local SeaUnitsList = {
 			["coracsub_scav"] = 2,
 			["correcl_scav"] = 40,
 			["cormls_scav"] = 2,
+			--Legion
+			["leganavyconsub_scav"] = 2,
+			["legnavyrezsub_scav"] = 40,
+			["leganavyengineer_scav"] = 2,
 		},
 		[5] = {
 			--Armada
@@ -865,6 +902,10 @@ local SeaUnitsList = {
 			["coracsub_scav"] = 2,
 			["correcl_scav"] = 40,
 			["cormls_scav"] = 2,
+			--Legion
+			["leganavyconsub_scav"] = 2,
+			["legnavyrezsub_scav"] = 40,
+			["leganavyengineer_scav"] = 2,
 		},
 		[6] = {
 			--Armada
@@ -875,7 +916,10 @@ local SeaUnitsList = {
 			["coracsub_scav"] = 2,
 			["correcl_scav"] = 40,
 			["cormls_scav"] = 2,
-
+			--Legion
+			["leganavyconsub_scav"] = 2,
+			["legnavyrezsub_scav"] = 40,
+			["leganavyengineer_scav"] = 2,
 		},
 		[7] = {
 			--Armada
@@ -886,6 +930,10 @@ local SeaUnitsList = {
 			["coracsub_scav"] = 2,
 			["correcl_scav"] = 40,
 			["cormls_scav"] = 2,
+			--Legion
+			["leganavyconsub_scav"] = 2,
+			["legnavyrezsub_scav"] = 40,
+			["leganavyengineer_scav"] = 2,
 		},
 	},
 }
@@ -2527,10 +2575,167 @@ addNewSquad({
 	}
 }) --Cortex Flying Flagships
 
+--[[
+	Custom Squads Support 
+	This down here is meant for TweakDefs modders to allow them to add their custom modified Scav units to the spawn rosters easily'ish.	
+
+	Documentation WiP	
+
+	Available CustomParameters:
+
+	scavcustomsquad - bool - allow this unit to be processed by this whole thing
+	scavsquadunitsamount - number, integrer - maximum amount of these units that can spawn in a squad
+	scavsquadminanger - number, integrer - minimum tech percentage this unit can spawn at
+	scavsquadmaxanger - number, integrer - maximum tech percentage this unit can spawn at
+	scavsquadweight - number, integrer - how often will this unit be picked relative to other options. higher number = more often.
+	scavsquadrarity - string - either "basic" or "special", defaults to special. Basic squads are your spammable cannon fodder while specials are more specialised elemental units.
+	scavsquadbehavior - string - explained below
+	scavsquadbehaviordistance - number, integrer - Distance at which the behaviors operate. Usually means the fleeing distance, except berserks and kamikazes, where it defines reaction range.
+	scavsquadbehaviorchance - number, float between 0 and 1 - How sensitive the unit is to the behavior triggers.
+	scavsquadsurface - string - "land", "sea", "mixed" defines what surfaces the custom squad should spawn on. default: mixed
+
+	Behavior Classes:
+
+	"raider" - This is the default, that doesn't get any behaviors. You can specify it but it won't do anything.
+	"berserk" - Run towards target after getting hit by enemy or after hitting the target
+	"skirmisher" - Keep distance from the target
+	"healer" - Getting long max lifetime and always use Fight command. These units spawn as healers from burrows and queen
+	"artillery" - Long lifetime and no regrouping, always uses Fight command to keep distance, friendly fire enabled (assuming nothing else in the game stops it)
+	"kamikaze" - Long lifetime and no regrouping, always uses Move command to rush into the enemy
+]]
+
+for name, unitDef in pairs(UnitDefNames) do
+	if unitDef.customParams then
+		--Spring.Echo(name, unitDef.customParams)
+		if unitDef.customParams.scavcustomsquad and unitDef.customParams.scavcustomsquad == "1" then
+			local customSquadTable = {}
+			customSquadTable.units = {{
+				count = tonumber(unitDef.customParams.scavsquadunitsamount) or 1,
+				unit = name
+			}}
+			customSquadTable.minAnger = tonumber(unitDef.customParams.scavsquadminanger) or 0
+			customSquadTable.maxAnger = tonumber(unitDef.customParams.scavsquadmaxanger) or 999
+			customSquadTable.weight = tonumber(unitDef.customParams.scavsquadweight) or 1
+
+			if unitDef.customParams.scavsquadbehavior then
+
+				if unitDef.customParams.scavsquadbehavior == "berserk" and not scavBehaviours.BERSERK[unitDef.id] then
+					scavBehaviours.BERSERK[unitDef.id] = {
+						chance = tonumber(unitDef.customParams.scavsquadbehaviorchance) or 0.1,
+						distance = tonumber(unitDef.customParams.scavsquadbehaviordistance) or 2000
+					}
+				end
+
+				if unitDef.customParams.scavsquadbehavior == "skirmisher" then
+					if not scavBehaviours.SKIRMISH[unitDef.id] then
+						scavBehaviours.SKIRMISH[unitDef.id] = {
+							chance = tonumber(unitDef.customParams.scavsquadbehaviorchance) or 0.5,
+							distance = tonumber(unitDef.customParams.scavsquadbehaviordistance) or 500
+						}
+					end
+					if not scavBehaviours.COWARD[unitDef.id] then
+						scavBehaviours.COWARD[unitDef.id] = {
+							chance = tonumber(unitDef.customParams.scavsquadbehaviorchance) or 0.5,
+							distance = tonumber(unitDef.customParams.scavsquadbehaviordistance) or 500
+						}
+					end
+				end
+
+				if unitDef.customParams.scavsquadbehavior == "healer" then
+					if not scavBehaviours.COWARD[unitDef.id] then
+						scavBehaviours.COWARD[unitDef.id] = {
+							chance = tonumber(unitDef.customParams.scavsquadbehaviorchance) or 1,
+							distance = tonumber(unitDef.customParams.scavsquadbehaviordistance) or 500
+						}
+					end
+					if not scavBehaviours.HEALER[unitDef.id] then
+						scavBehaviours.HEALER[unitDef.id] = true
+					end
+				end
+
+				if unitDef.customParams.scavsquadbehavior == "artillery" then
+					if not scavBehaviours.SKIRMISH[unitDef.id] then
+						scavBehaviours.SKIRMISH[unitDef.id] = {
+							chance = tonumber(unitDef.customParams.scavsquadbehaviorchance) or 0.5, 
+							distance = tonumber(unitDef.customParams.scavsquadbehaviordistance) or 500
+						}
+					end
+					if not scavBehaviours.COWARD[unitDef.id] then
+						scavBehaviours.COWARD[unitDef.id] = {
+							chance = tonumber(unitDef.customParams.scavsquadbehaviorchance) or 0.5,
+							distance = tonumber(unitDef.customParams.scavsquadbehaviordistance) or 500
+						}
+					end
+					if not scavBehaviours.ARTILLERY[unitDef.id] then
+						scavBehaviours.ARTILLERY[unitDef.id] = true
+					end
+				end
+
+				if unitDef.customParams.scavsquadbehavior == "kamikaze" then
+					if not scavBehaviours.BERSERK[unitDef.id] then
+						scavBehaviours.BERSERK[unitDef.id] = {
+							chance = tonumber(unitDef.customParams.scavsquadbehaviorchance) or 1,
+							distance = tonumber(unitDef.customParams.scavsquadbehaviordistance) or 500
+						}
+					end
+					if not scavBehaviours.KAMIKAZE[unitDef.id] then
+						scavBehaviours.KAMIKAZE[unitDef.id] = true
+					end
+				end
+			end
+
+
+			if not customSquadTable.type then
+				
+				if (not unitDef.customParams.scavsquadsurface) or unitDef.customParams.scavsquadsurface == "land" or unitDef.customParams.scavsquadsurface == "mixed" then
+					if unitDef.customParams.scavsquadbehavior and unitDef.customParams.scavsquadbehavior == "healer" then
+						customSquadTable.type = "healerLand"
+					elseif unitDef.customParams.scavsquadrarity and unitDef.customParams.scavsquadrarity == "basic" then
+						if unitDef.canFly then
+							customSquadTable.type = "basicAirLand"
+						else
+							customSquadTable.type = "basicLand"
+						end
+					else
+						if unitDef.canFly then
+							customSquadTable.type = "specialAirLand"
+						else
+							customSquadTable.type = "specialLand"
+						end
+					end
+					addNewSquad(customSquadTable)
+				end
+
+				if (not unitDef.customParams.scavsquadsurface) or unitDef.customParams.scavsquadsurface == "sea" or unitDef.customParams.scavsquadsurface == "mixed" then
+					if unitDef.customParams.scavsquadbehavior and unitDef.customParams.scavsquadbehavior == "healer" then
+						customSquadTable.type = "healerSea"
+					elseif unitDef.customParams.scavsquadrarity and unitDef.customParams.scavsquadrarity == "basic" then
+						if unitDef.canFly then
+							customSquadTable.type = "basicAirSea"
+						else
+							customSquadTable.type = "basicSea"
+						end
+					else
+						if unitDef.canFly then
+							customSquadTable.type = "specialAirSea"
+						else
+							customSquadTable.type = "specialSea"
+						end
+					end
+					addNewSquad(customSquadTable)
+				end
+			end
+		end
+	end
+end
+
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Settings -- Adjust these
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 local airStartAnger = 0 -- needed for air waves to work correctly.
+if Spring.GetModOptions().unit_restrictions_noair then -- Disable air waves when No Air restriction is enabled
+	airStartAnger = 10000
+end
 local useScum = true -- Use scum as space where turrets can spawn (requires scum gadget from Beyond All Reason)
 local useWaveMsg = true -- Show dropdown message whenever new wave is spawning
 local spawnSquare = 90 -- size of the scav spawn square centered on the burrow

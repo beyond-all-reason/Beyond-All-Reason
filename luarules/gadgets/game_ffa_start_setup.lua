@@ -152,8 +152,10 @@ local function shuffleStartBoxes(allyTeamList)
   table.shuffle(startBoxes, 0)
 
   for _, allyTeamID in pairs(allyTeamList) do
-    local xmin, zmin, xmax, zmax = unpack(startBoxes[allyTeamID])
-    Spring.SetAllyTeamStartBox(allyTeamID, xmin, zmin, xmax, zmax)
+	if startBoxes[allyTeamID] then
+		local xmin, zmin, xmax, zmax = unpack(startBoxes[allyTeamID])
+		Spring.SetAllyTeamStartBox(allyTeamID, xmin, zmin, xmax, zmax)
+	end
   end
 
   Spring.Log(gadget:GetInfo().name, LOG.INFO,

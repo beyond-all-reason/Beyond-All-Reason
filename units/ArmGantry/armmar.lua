@@ -1,7 +1,7 @@
 return {
 	armmar = {
 		buildpic = "ARMMAR.DDS",
-		buildtime = 26100,
+		buildtime = 33000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",
@@ -162,6 +162,7 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				firestarter = 5,
+				gravityaffected = "true",
 				impulsefactor = 0.123,
 				name = "Double close-quarters gauss cannon",
 				noselfdamage = true,

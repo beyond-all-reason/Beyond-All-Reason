@@ -2,7 +2,6 @@ return {
 	coruwmme = {
 		activatewhenbuilt = true,
 		buildangle = 32768,
-		buildingmask = 0,
 		buildpic = "CORUWMME.DDS",
 		buildtime = 14100,
 		canrepeat = false,

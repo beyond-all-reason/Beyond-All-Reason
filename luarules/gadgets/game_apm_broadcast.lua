@@ -22,12 +22,13 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 
 	local totalTeamActions = {}
-	for _, teamID in ipairs(Spring.GetTeamList()) do
-		totalTeamActions[teamID] = 0
+	local teamList = Spring.GetTeamList()
+	for i = 1, #teamList do
+		totalTeamActions[teamList[i]] = 0
 	end
 	local ignoreUnitDefs = {}
 	for uDefID, uDef in pairs(UnitDefs) do
-		if uDef.customParams.drone then
+		if uDef.customParams and uDef.customParams.drone then
 			ignoreUnitDefs[uDefID] = true
 		end
 	end
@@ -50,7 +51,7 @@ if gadgetHandler:IsSyncedCode() then
 	-- be aware that these arent exclusively user actioned commands
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, fromSynced, fromLua)
 		-- limit to 1 action per gameframe
-		if not teamAddedActionFrame[teamID] and totalTeamActions[teamID] and not ignoreUnitDefs[unitID] then
+		if not teamAddedActionFrame[teamID] and totalTeamActions[teamID] and not ignoreUnitDefs[unitDefID] then
 			if not ignoreUnits[unitID] and not spGetUnitIsBeingBuilt(unitID) then	-- believe it or not but unitcreated can come after AllowCommand (with nocost at least)
 				totalTeamActions[teamID] = totalTeamActions[teamID] + 1
 				teamAddedActionFrame[teamID] = true
@@ -60,18 +61,25 @@ if gadgetHandler:IsSyncedCode() then
 		return true
 	end
 
+	local SendToUnsynced = SendToUnsynced
+	local mathFloor = math.floor
+	
 	function gadget:GameFrame(gf)
 		gameFrame = gf
 		teamAddedActionFrame = {}
 		if gf % 300 == 1 then	-- every 10 secs
+			local frameToMinute = 1 / ((gf - startFrame) / 1800)
 			for teamID, totalActions in pairs(totalTeamActions) do
-				local apm = totalActions / ((gf-startFrame)/1800)	-- 1800 frames = 1 min
-				SendToUnsynced("apmBroadcast", teamID, math.floor(apm+0.5))
+				local apm = mathFloor(totalActions * frameToMinute + 0.5)
+				SendToUnsynced("apmBroadcast", teamID, apm)
 			end
 		end
-		for unitID, frame in pairs(ignoreUnits) do
-			if frame == gf then
-				ignoreUnits[unitID] = nil
+		-- Batch cleanup: only iterate when necessary
+		if next(ignoreUnits) then
+			for unitID, frame in pairs(ignoreUnits) do
+				if frame <= gf then
+					ignoreUnits[unitID] = nil
+				end
 			end
 		end
 	end
