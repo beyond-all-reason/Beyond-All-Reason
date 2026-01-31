@@ -105,7 +105,6 @@ local dockingQueueOffset = 0
 
 local carrierMetaList = {}
 local droneMetaList = {}
-local droneMetaData = {}
 
 local lastCarrierUpdate = 0
 local lastSpawnCheck = 0
