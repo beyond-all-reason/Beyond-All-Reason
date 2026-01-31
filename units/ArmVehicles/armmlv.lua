@@ -22,7 +22,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		leavetracks = false,
-		mass = 1500,
+		mass = 740,
 		maxacc = 0.07135,
 		maxdec = 0.1427,
 		maxslope = 16,
