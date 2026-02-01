@@ -452,13 +452,14 @@ local function updateList()
 		end
 
 		local prevBackgroundX2 = backgroundRect and backgroundRect[3] or 0
+		local prevBackgroundY1 = backgroundRect and backgroundRect[2] or 0
 		backgroundRect = {
 			floor(posX * vsx),
 			floor(posY * vsy),
 			floor(posX * vsx) + usedWidth,
 			floor(posY * vsy) + usedHeight
 		}
-		if backgroundRect and backgroundRect[3] ~= prevBackgroundX2 then
+		if backgroundRect and (backgroundRect[3] ~= prevBackgroundX2 or backgroundRect[2] ~= prevBackgroundY1) then
 			if uiBgTex then
 				gl.DeleteTexture(uiBgTex)
 				uiBgTex = nil
