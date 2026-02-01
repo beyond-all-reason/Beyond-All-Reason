@@ -7,6 +7,32 @@ end
 
 pipNumber = pipNumber or 1
 
+-- Special mode flags
+local isMinimapMode = (pipNumber == 0)  -- When pipNumber == 0, act as minimap replacement
+local minimapModeMinZoom = nil  -- Calculated zoom to fit entire map (only used in minimap mode)
+
+-- Helper function to get effective zoom minimum (accounts for minimap mode)
+local function GetEffectiveZoomMin()
+	if isMinimapMode and minimapModeMinZoom then
+		return minimapModeMinZoom
+	end
+	return 0.04  -- Default config.zoomMin value
+end
+
+-- Helper function to get effective zoom maximum (accounts for minimap mode)
+local function GetEffectiveZoomMax()
+	-- In minimap mode, still allow zooming IN (higher zoom values)
+	return 0.95  -- Default config.zoomMax value
+end
+
+-- Helper function to check if at minimum zoom (fully zoomed out) in minimap mode
+local function IsAtMinimumZoom(zoom)
+	if isMinimapMode and minimapModeMinZoom then
+		return zoom <= minimapModeMinZoom * 1.02  -- 2% tolerance for floating point and smooth zooming
+	end
+	return false
+end
+
 function widget:GetInfo()
 	return {
 		name      = "Picture-in-Picture",
@@ -90,7 +116,7 @@ local config = {
 	unitpicZoomThreshold = 0.7, -- Zoom level at which to switch to unitpics (higher = more zoomed in)
 	leftButtonPansCamera = false,
 	maximizeSizemult = 1.25,
-	screenMargin = 0.05,
+	screenMargin = 0.045,
 	drawProjectiles = true,
 	zoomToCursor = true,
 	mapEdgeMargin = 0.15,
@@ -115,6 +141,14 @@ local config = {
 	
 	radarWobbleSpeed = 1,
 	CMD_AREA_MEX = GameCMD and GameCMD.AREA_MEX or 10000,
+	
+	-- Minimap mode settings (when pipNumber == 0)
+	minimapModeMaxHeight = 0.32,  -- Default max height (will be overridden by user's minimap config if available)
+	minimapModeMaxWidth = 0.26,   -- Max width as fraction of screen width
+	minimapModeScreenMargin = 0,  -- No margin in minimap mode (edge-to-edge)
+	minimapModeShowButtons = false,  -- Hide buttons in minimap mode
+	minimapModeStartMinimized = false,  -- Don't start minimized in minimap mode
+	minimapModeHideMoveResize = true,  -- Hide move and resize buttons in minimap mode
 }
 
 -- State variables
@@ -140,8 +174,8 @@ local render = {
 	UiElement = nil,
 	RectRoundOutline = nil,
 	dim = {},  -- Panel dimensions: left, right, bottom, top
-	world = {},  -- World coordinate boundaries
-	ground = { view = {}, coord = {} },  -- Ground texture view and texture coordinates
+	world = {l=0, r=0, b=0, t=0},  -- World coordinate boundaries
+	ground = { view = {l=0, r=0, b=0, t=0}, coord = {l=0, r=1, b=1, t=0} },  -- Ground texture view and texture coordinates
 	minModeDlist = nil,  -- Display list for minimized mode button
 	mapRulerDlist = nil,  -- Display list for map ruler marks
 	mapRulerCacheKey = nil,  -- Cache key to detect when ruler needs regeneration
@@ -293,6 +327,7 @@ local interactionState = {
 	minimizeButtonClickStartY = 0,  -- Screen Y when we started clicking minimize button
 	pipMinimapBounds = nil,  -- {l, r, b, t} bounds of pip-minimap when visible, nil otherwise
 	pipMinimapDragging = false,  -- Whether we're dragging the pip-minimap to move camera
+	worldCameraDragging = false,  -- Whether we're left-click dragging to move the world camera (leftButtonPansCamera mode)
 }
 
 -- Consolidated misc state
@@ -314,6 +349,8 @@ local miscState = {
 	pipUnits = {},
 	pipFeatures = {},
 	mapMarkers = {},  -- Table to store active map markers
+	minimapWidgetDisabled = false,  -- Whether we've disabled the old minimap widget (for minimap mode)
+	minimapCameraRestored = false,  -- Whether minimap camera state was restored from config (for luaui reload)
 }
 -- Consolidated drawing data
 local drawData = {
@@ -352,7 +389,6 @@ local pools = {
 	buildsByTexture = {}, -- Reused for DrawQueuedBuilds texture grouping
 	buildCountByTexture = {}, -- Reused for DrawQueuedBuilds counts
 	savedDim = {l=0, r=0, b=0, t=0}, -- Reused for UpdateR2TContent dimension backup
-	savedGround = {view={l=0,r=0,b=0,t=0}, coord={l=0,r=0,b=0,t=0}}, -- Reused for UpdateR2TContent ground backup
 	projectileColor = {1, 0.5, 0, 1}, -- Reused for DrawProjectile default color
 	trackingMerge = {}, -- Reused for tracking unit merge operations
 	trackingTempSet = {}, -- Reused for tracking unit deduplication
@@ -1009,21 +1045,29 @@ function RecalculateGroundTextureCoordinates()
 end
 
 local function CorrectScreenPosition()
-	local screenMarginPx = math.floor(config.screenMargin * render.vsy)
+	-- In minimap mode, use different margin and allow edge-to-edge positioning
+	local screenMarginPx
+	if isMinimapMode then
+		screenMarginPx = math.floor(config.minimapModeScreenMargin * render.vsy)
+	else
+		screenMarginPx = math.floor(config.screenMargin * render.vsy)
+	end
 	local minSize = math.floor(config.minPanelSize * render.widgetScale)
 
 	-- Calculate current window dimensions
 	local windowWidth = render.dim.r - render.dim.l
 	local windowHeight = render.dim.t - render.dim.b
 
-	-- Enforce minimum panel size
-	if windowWidth < minSize then
-		windowWidth = minSize
-		render.dim.r = render.dim.l + windowWidth
-	end
-	if windowHeight < minSize then
-		windowHeight = minSize
-		render.dim.t = render.dim.b + windowHeight
+	-- Enforce minimum panel size (skip in minimap mode - sizing is determined differently)
+	if not isMinimapMode then
+		if windowWidth < minSize then
+			windowWidth = minSize
+			render.dim.r = render.dim.l + windowWidth
+		end
+		if windowHeight < minSize then
+			windowHeight = minSize
+			render.dim.t = render.dim.b + windowHeight
+		end
 	end
 
 	-- Check and correct left boundary
@@ -1053,8 +1097,23 @@ end
 
 local function UpdateGuishaderBlur()
 	if WG['guishader'] then
-		-- Always update blur with current dimensions (including when minimized)
-		-- The dim values will reflect the minimized button size when uiState.inMinMode is true
+		-- Determine the correct bounds based on mode
+		local blurL, blurB, blurR, blurT
+		if uiState.inMinMode and not uiState.isAnimating then
+			-- Use minimized button position
+			local buttonSize = math.floor(render.usedButtonSize * config.maximizeSizemult)
+			blurL = uiState.minModeL - render.elementPadding
+			blurB = uiState.minModeB - render.elementPadding
+			blurR = uiState.minModeL + buttonSize + render.elementPadding
+			blurT = uiState.minModeB + buttonSize + render.elementPadding
+		else
+			-- Use regular PIP dimensions
+			blurL = render.dim.l - render.elementPadding
+			blurB = render.dim.b - render.elementPadding
+			blurR = render.dim.r + render.elementPadding
+			blurT = render.dim.t + render.elementPadding
+		end
+		
 		-- Use InsertDlist for rounded corner blur support
 		if WG['guishader'].InsertDlist then
 			-- Clean up old dlist ourselves before creating new one
@@ -1064,18 +1123,27 @@ local function UpdateGuishaderBlur()
 			end
 			-- Create new dlist with rounded rectangle
 			render.guishaderDlist = gl.CreateList(function()
-				render.RectRound(render.dim.l-render.elementPadding, render.dim.b-render.elementPadding, render.dim.r+render.elementPadding, render.dim.t+render.elementPadding, render.elementCorner)
+				render.RectRound(blurL, blurB, blurR, blurT, render.elementCorner)
 			end)
 			-- Use force=true to ensure immediate stencil texture update
 			WG['guishader'].InsertDlist(render.guishaderDlist, 'pip'..pipNumber, true)
 		elseif WG['guishader'].InsertRect then
 			-- Fallback to InsertRect if InsertDlist not available
-			WG['guishader'].InsertRect(render.dim.l-render.elementPadding, render.dim.b-render.elementPadding, render.dim.r+render.elementPadding, render.dim.t+render.elementPadding, 'pip'..pipNumber)
+			WG['guishader'].InsertRect(blurL, blurB, blurR, blurT, 'pip'..pipNumber)
 		end
 	end
 end
 
 local function UpdateCentering(mx, my)
+	-- In minimap mode at minimum zoom, don't allow centering - keep centered on map
+	if IsAtMinimumZoom(cameraState.zoom) then
+		cameraState.wcx = mapInfo.mapSizeX / 2
+		cameraState.wcz = mapInfo.mapSizeZ / 2
+		cameraState.targetWcx = cameraState.wcx
+		cameraState.targetWcz = cameraState.wcz
+		return
+	end
+	
 	local _, pos = Spring.TraceScreenRay(mx, my, true)
 	if pos and pos[2] > -10000 then
 		cameraState.wcx, cameraState.wcz = pos[1], pos[3]
@@ -1339,7 +1407,7 @@ local function UpdatePlayerTracking()
 					-- If PIP is half screen size, zoom should be halved to fit same view in smaller space
 					zoomValue = baseZoom * pipSizeRatio
 					-- Clamp to valid zoom range instead of discarding
-					zoomValue = math.max(config.zoomMin, math.min(config.zoomMax, zoomValue))
+					zoomValue = math.max(GetEffectiveZoomMin(), math.min(GetEffectiveZoomMax(), zoomValue))
 				end
 
 				-- Second priority: use height if dist not available
@@ -1350,7 +1418,7 @@ local function UpdatePlayerTracking()
 					-- Adjust zoom based on PIP size
 					zoomValue = baseZoom * pipSizeRatio
 					-- Clamp to valid zoom range instead of discarding
-					zoomValue = math.max(config.zoomMin, math.min(config.zoomMax, zoomValue))
+					zoomValue = math.max(GetEffectiveZoomMin(), math.min(GetEffectiveZoomMax(), zoomValue))
 				end
 
 				-- Apply zoom if we calculated one, but only if change is significant
@@ -1384,28 +1452,33 @@ local function UpdatePlayerTracking()
 end
 
 local function PipToWorldCoords(mx, my)
+	-- Get current minimap rotation (must fetch fresh, not use cached render.minimapRotation)
+	local minimapRotation = Spring.GetMiniMapRotation and Spring.GetMiniMapRotation() or 0
+	
+	-- Convert screen coordinates to normalized PIP coordinates (0-1)
+	local normX = (mx - render.dim.l) / (render.dim.r - render.dim.l)
+	local normY = (my - render.dim.b) / (render.dim.t - render.dim.b)
+	
 	-- Apply inverse rotation if minimap is rotated
-	if render.minimapRotation ~= 0 then
-		local centerX = render.dim.l + (render.dim.r - render.dim.l) / 2
-		local centerY = render.dim.b + (render.dim.t - render.dim.b) / 2
-		
-		-- Translate to origin
-		local dx = mx - centerX
-		local dy = my - centerY
+	if minimapRotation ~= 0 then
+		-- Translate to center (0.5, 0.5)
+		local dx = normX - 0.5
+		local dy = normY - 0.5
 		
 		-- Rotate back (inverse rotation = negative angle)
-		local cosR = math.cos(-render.minimapRotation)
-		local sinR = math.sin(-render.minimapRotation)
+		local cosR = math.cos(-minimapRotation)
+		local sinR = math.sin(-minimapRotation)
 		local rotatedX = dx * cosR - dy * sinR
 		local rotatedY = dx * sinR + dy * cosR
 		
 		-- Translate back
-		mx = rotatedX + centerX
-		my = rotatedY + centerY
+		normX = rotatedX + 0.5
+		normY = rotatedY + 0.5
 	end
 	
-	return render.world.l + (render.world.r - render.world.l) * ((mx - render.dim.l) / (render.dim.r - render.dim.l)),
-		   render.world.b + (render.world.t - render.world.b) * ((my - render.dim.b) / (render.dim.t - render.dim.b))
+	-- Convert normalized coordinates to world coordinates
+	return render.world.l + (render.world.r - render.world.l) * normX,
+		   render.world.b + (render.world.t - render.world.b) * normY
 end
 local function WorldToPipCoords(wx, wz)
 	-- Use precalculated factors for performance (avoids repeated division)
@@ -1427,9 +1500,35 @@ local function GroundTextureVertices()
 	glFunc.TexCoord(render.ground.coord.l, render.ground.coord.t); glFunc.Vertex(render.ground.view.l, render.ground.view.t)
 end
 
+-- Helper function to compute chamfered corner params based on screen bounds
+-- Returns tl, tr, br, bl (TopLeft, TopRight, BottomRight, BottomLeft)
+-- Corners are disabled (0) when the element touches or exceeds screen bounds
+local function GetChamferedCorners(l, b, r, t)
+	local atLeft = l <= 0
+	local atBottom = b <= 0
+	local atRight = r >= render.vsx
+	local atTop = t >= render.vsy
+	
+	-- tl (TopLeft) - disabled if at left or top edge
+	local tl = (atLeft or atTop) and 0 or 1
+	-- tr (TopRight) - disabled if at right or top edge
+	local tr = (atRight or atTop) and 0 or 1
+	-- br (BottomRight) - disabled if at right or bottom edge
+	local br = (atRight or atBottom) and 0 or 1
+	-- bl (BottomLeft) - disabled if at left or bottom edge
+	local bl = (atLeft or atBottom) and 0 or 1
+	
+	return tl, tr, br, bl
+end
+
 local function DrawPanel(l, r, b, t)
 	glFunc.Color(0.6,0.6,0.6,0.6)
-	render.UiElement(l-render.elementPadding, b-render.elementPadding, r+render.elementPadding, t+render.elementPadding, 1, 1, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
+	local padL = l - render.elementPadding
+	local padB = b - render.elementPadding
+	local padR = r + render.elementPadding
+	local padT = t + render.elementPadding
+	local tl, tr, br, bl = GetChamferedCorners(padL, padB, padR, padT)
+	render.UiElement(padL, padB, padR, padT, tl, tr, br, bl, nil, nil, nil, nil, nil, nil, nil, nil)
 end
 
 local function DrawGroundLine(x1, z1, x2, z2)
@@ -3832,8 +3931,34 @@ elseif (not cameraState.wcx or not cameraState.wcz) and miscState.startX and mis
 	cameraState.targetWcx, cameraState.targetWcz = cameraState.wcx, cameraState.wcz  -- Initialize targets
 end
 
--- Always minimize PIP when first starting (only on fresh start, not on reload)
-if not uiState.inMinMode and not miscState.hadSavedConfig then
+-- Minimap mode: hide the engine minimap since we're replacing it
+if isMinimapMode then
+	-- Store original minimap geometry and minimize state for restoration on shutdown
+	miscState.oldMinimapGeometry = Spring.GetMiniMapGeometry()
+	miscState.oldMinimapMinimized = Spring.GetConfigInt("MinimapMinimize", 0)
+	-- Minimize the engine minimap so it doesn't render
+	Spring.SendCommands("minimap minimize 1")
+	-- Disable the gui_minimap widget if it's running (we're replacing it)
+	-- Use FindWidget which works reliably during luaui reload
+	if widgetHandler:FindWidget("Minimap") then
+		widgetHandler:DisableWidget("Minimap")
+	end
+	
+	-- In minimap mode, don't start minimized and center on map
+	uiState.inMinMode = false
+	-- Only reset camera if not restored from config (luaui reload)
+	if not miscState.minimapCameraRestored then
+		cameraState.wcx = mapInfo.mapSizeX / 2
+		cameraState.wcz = mapInfo.mapSizeZ / 2
+		cameraState.targetWcx = cameraState.wcx
+		cameraState.targetWcz = cameraState.wcz
+		-- Start zoomed out to see full map (will be adjusted based on aspect ratio in ViewResize)
+		cameraState.zoom = 0.1
+		cameraState.targetZoom = 0.1
+	end
+else
+	-- Always minimize PIP when first starting (only on fresh start, not on reload)
+	if not uiState.inMinMode and not miscState.hadSavedConfig then
 		uiState.savedDimensions = {
 			l = render.dim.l,
 			r = render.dim.r,
@@ -3841,6 +3966,7 @@ if not uiState.inMinMode and not miscState.hadSavedConfig then
 			t = render.dim.t
 		}
 	end
+end
 
 	widget:ViewResize()
 
@@ -3897,6 +4023,72 @@ if not uiState.inMinMode and not miscState.hadSavedConfig then
 	WG['pip'..pipNumber].GetTrackedPlayer = function()
 		return interactionState.trackingPlayerID
 	end
+	-- API for minimap mode: get visible world area
+	WG['pip'..pipNumber].IsMinimapMode = function()
+		return isMinimapMode
+	end
+	WG['pip'..pipNumber].GetVisibleWorldArea = function()
+		-- Returns the visible world coordinates: left, right, bottom, top
+		return render.world.l, render.world.r, render.world.b, render.world.t
+	end
+	WG['pip'..pipNumber].GetScreenBounds = function()
+		-- Returns the screen coordinates of the PIP
+		return render.dim.l, render.dim.r, render.dim.b, render.dim.t
+	end
+	WG['pip'..pipNumber].GetZoom = function()
+		return cameraState.zoom
+	end
+	WG['pip'..pipNumber].GetCameraCenter = function()
+		return cameraState.wcx, cameraState.wcz
+	end
+
+	-- In minimap mode, also register as WG.pip_minimap for compatibility
+	if isMinimapMode then
+		WG.pip_minimap = WG['pip'..pipNumber]
+		-- Also expose getHeight like the original minimap widget for topbar compatibility
+		WG.pip_minimap.getHeight = function()
+			local padding = WG.FlowUI and WG.FlowUI.elementPadding or 5
+			return (render.dim.t - render.dim.b) + padding
+		end
+		
+		-- Register as WG['minimap'] for full compatibility with widgets expecting the original minimap API
+		WG['minimap'] = {}
+		WG['minimap'].getHeight = function()
+			local padding = WG.FlowUI and WG.FlowUI.elementPadding or 5
+			return (render.dim.t - render.dim.b) + padding
+		end
+		WG['minimap'].getMaxHeight = function()
+			return math.floor(config.minimapModeMaxHeight * render.vsy), config.minimapModeMaxHeight
+		end
+		WG['minimap'].setMaxHeight = function(value)
+			config.minimapModeMaxHeight = value
+			widget:ViewResize()
+		end
+		WG['minimap'].getLeftClickMove = function()
+			return config.leftButtonPansCamera
+		end
+		WG['minimap'].setLeftClickMove = function(value)
+			config.leftButtonPansCamera = value
+		end
+		-- API for widgetHandler to detect PIP minimap mode and get transformation info
+		WG['minimap'].isPipMinimapActive = function()
+			return true  -- Always true when this widget is active in minimap mode
+		end
+		-- Flag set during DrawInMiniMap calls from PIP (widgets can check this)
+		WG['minimap'].isDrawingInPip = false
+		-- Get the screen bounds of the PIP minimap for the widgetHandler to use
+		WG['minimap'].getScreenBounds = function()
+			return render.dim.l, render.dim.b, render.dim.r, render.dim.t
+		end
+		-- Get the world coordinates visible in the PIP
+		WG['minimap'].getVisibleWorldArea = function()
+			return render.world.l, render.world.r, render.world.b, render.world.t
+		end
+		-- Get the current minimap rotation
+		WG['minimap'].getRotation = function()
+			return render.minimapRotation or 0
+		end
+	end
 
 	for i = 1, #buttons do
 		local button = buttons[i]
@@ -3926,18 +4118,77 @@ function widget:ViewResize()
 	font = WG['fonts'].getFont(2)
 
 	local oldVsx, oldVsy = render.vsx, render.vsy
-	-- Ensure dim fields are initialized before arithmetic operations
-	if render.dim.l and render.dim.r and render.dim.b and render.dim.t then
-		render.dim.l, render.dim.r, render.dim.b, render.dim.t = render.dim.l/oldVsx, render.dim.r/oldVsx, render.dim.b/oldVsy, render.dim.t/oldVsy
-	else
-		-- Initialize with default values if not set
-		render.dim.l = 0.7
-		render.dim.r = 0.7 + (config.minPanelSize * render.widgetScale * 1.4) / oldVsx
-		render.dim.b = 0.7
-		render.dim.t = 0.7 + (config.minPanelSize * render.widgetScale * 1.2) / oldVsy
-	end
 	render.vsx, render.vsy = Spring.GetViewGeometry()
-	render.dim.l, render.dim.r, render.dim.b, render.dim.t = math.floor(render.dim.l*render.vsx), math.floor(render.dim.r*render.vsx), math.floor(render.dim.b*render.vsy), math.floor(render.dim.t*render.vsy)
+	
+	-- In minimap mode, calculate position and size like the minimap widget does
+	if isMinimapMode then
+		-- Use mapEdgeMargin = 0 in minimap mode
+		config.mapEdgeMargin = 0
+
+		local mapRatio = Game.mapX / Game.mapY
+		local maxHeight = config.minimapModeMaxHeight
+		local maxWidth = math.min(maxHeight * mapRatio, config.minimapModeMaxWidth * (render.vsx / render.vsy))
+		if maxWidth >= config.minimapModeMaxWidth * (render.vsx / render.vsy) then
+			maxHeight = maxWidth / mapRatio
+		end
+		
+		local usedWidth = math.floor(maxWidth * render.vsy)
+		local usedHeight = math.floor(maxHeight * render.vsy)
+		
+		-- Position at top-left corner touching the screen edges (no padding offset)
+		render.dim.l = 0
+		render.dim.r = usedWidth
+		render.dim.b = render.vsy - usedHeight
+		render.dim.t = render.vsy
+		
+		-- Calculate zoom so the map texture fully fits the PIP
+		-- Use full dimensions since we're edge-to-edge
+		local contentWidth = usedWidth
+		local contentHeight = usedHeight
+		
+		-- Calculate zoom based on which dimension is the limiting factor
+		local zoomForWidth = contentWidth / mapInfo.mapSizeX
+		local zoomForHeight = contentHeight / mapInfo.mapSizeZ
+		-- Reduce by 0.5% to ensure entire map is visible with a small margin
+		local fitZoom = math.min(zoomForWidth, zoomForHeight) * 0.995
+		
+		-- Store as both min and max zoom to lock at this level (no zooming in minimap mode)
+		minimapModeMinZoom = fitZoom
+		
+		-- Only set camera defaults if not restored from config (i.e., not a luaui reload)
+		if miscState.minimapCameraRestored then
+			-- Restored from config - just ensure zoom isn't below minimum
+			if cameraState.zoom < fitZoom then
+				cameraState.zoom = fitZoom
+				cameraState.targetZoom = fitZoom
+			end
+		else
+			-- Not restored - set to fit full map
+			cameraState.zoom = fitZoom
+			cameraState.targetZoom = fitZoom
+			cameraState.wcx = mapInfo.mapSizeX / 2
+			cameraState.wcz = mapInfo.mapSizeZ / 2
+			cameraState.targetWcx = cameraState.wcx
+			cameraState.targetWcz = cameraState.wcz
+		end
+		
+		-- Force recalculation of world coordinates immediately for minimap mode
+		-- This ensures the first frame renders with correct bounds
+		RecalculateWorldCoordinates()
+		RecalculateGroundTextureCoordinates()
+	else
+		-- Normal PIP mode: scale dimensions with screen size
+		if render.dim.l and render.dim.r and render.dim.b and render.dim.t then
+			render.dim.l, render.dim.r, render.dim.b, render.dim.t = render.dim.l/oldVsx, render.dim.r/oldVsx, render.dim.b/oldVsy, render.dim.t/oldVsy
+		else
+			-- Initialize with default values if not set
+			render.dim.l = 0.7
+			render.dim.r = 0.7 + (config.minPanelSize * render.widgetScale * 1.4) / oldVsx
+			render.dim.b = 0.7
+			render.dim.t = 0.7 + (config.minPanelSize * render.widgetScale * 1.2) / oldVsy
+		end
+		render.dim.l, render.dim.r, render.dim.b, render.dim.t = math.floor(render.dim.l*render.vsx), math.floor(render.dim.r*render.vsx), math.floor(render.dim.b*render.vsy), math.floor(render.dim.t*render.vsy)
+	end
 
 	render.widgetScale = (render.vsy / 2000) * render.uiScale
 	render.usedButtonSize = math.floor(config.buttonSize * render.widgetScale * render.uiScale)
@@ -4029,6 +4280,11 @@ function widget:ViewResize()
 		gl.DeleteTexture(pipR2T.contentTex)
 		pipR2T.contentTex = nil
 	end
+	-- Invalidate content mask cache to force regeneration with correct dimensions
+	pipR2T.contentMaskLastWidth = 0
+	pipR2T.contentMaskLastHeight = 0
+	pipR2T.contentMaskLastL = -1
+	pipR2T.contentMaskLastB = -1
 	pipR2T.contentNeedsUpdate = true
 
 	-- Update guishader blur dimensions
@@ -4113,14 +4369,33 @@ function widget:Shutdown()
 			WG['guishader'].RemoveRect('pip'..pipNumber)
 		end
 	end
-	-- Clean up our guishader dlist
+	-- Clean up guishader dlist
 	if render.guishaderDlist then
 		gl.DeleteList(render.guishaderDlist)
 		render.guishaderDlist = nil
 	end
 
+	-- Restore minimap if we were in minimap mode
+	if isMinimapMode then
+		-- Restore original minimize state
+		if miscState.oldMinimapMinimized == 0 then
+			Spring.SendCommands("minimap minimize 0")
+		end
+		if miscState.oldMinimapGeometry then
+			Spring.SendCommands("minimap geometry " .. miscState.oldMinimapGeometry)
+		end
+		-- Re-enable the gui_minimap widget if it exists
+		if widgetHandler.knownWidgets and widgetHandler.knownWidgets["Minimap"] then
+			widgetHandler:EnableWidget("Minimap")
+		end
+	end
+
 	-- Clean up API
 	WG['pip'..pipNumber] = nil
+	if isMinimapMode then
+		WG.pip_minimap = nil
+		WG['minimap'] = nil
+	end
 
 	for i = 1, #buttons do
 		local button = buttons[i]
@@ -4176,6 +4451,13 @@ function widget:GetConfigData()
 		unitpicZoomThreshold=config.unitpicZoomThreshold,
 		gameID = Game.gameID or Spring.GetGameRulesParam("GameID"),
 		worldIconTooltipShownTotal = miscState.worldIconTooltipShownTotal,
+		-- Minimap mode settings
+		minimapModeMaxHeight = config.minimapModeMaxHeight,
+		leftButtonPansCamera = config.leftButtonPansCamera,
+		-- Minimap mode camera state (for luaui reload restoration)
+		minimapModeWcx = isMinimapMode and cameraState.wcx or nil,
+		minimapModeWcz = isMinimapMode and cameraState.wcz or nil,
+		minimapModeZoom = isMinimapMode and cameraState.zoom or nil,
 	}
 end
 
@@ -4260,17 +4542,39 @@ function widget:SetConfigData(data)
 	local maxX = mapInfo.mapSizeX
 	local maxZ = mapInfo.mapSizeZ
 	
-	if data.wcx and isValidNumber(data.wcx, 0, maxX) then
-		cameraState.wcx = data.wcx
-	end
-	if data.wcz and isValidNumber(data.wcz, 0, maxZ) then
-		cameraState.wcz = data.wcz
-	end
-	cameraState.targetWcx, cameraState.targetWcz = cameraState.wcx, cameraState.wcz  -- Initialize targets from config
-	
-	-- Validate zoom level (must be between 0 and 1)
-	if data.zoom and isValidNumber(data.zoom, 0, 1) then
-		cameraState.zoom = data.zoom
+	if isMinimapMode then
+		-- In minimap mode, only restore camera state on luaui reload (same game)
+		-- At game launch, camera should start centered at minimum zoom
+		if isSameGame then
+			if data.minimapModeWcx and isValidNumber(data.minimapModeWcx, 0, maxX) then
+				cameraState.wcx = data.minimapModeWcx
+			end
+			if data.minimapModeWcz and isValidNumber(data.minimapModeWcz, 0, maxZ) then
+				cameraState.wcz = data.minimapModeWcz
+			end
+			cameraState.targetWcx, cameraState.targetWcz = cameraState.wcx, cameraState.wcz
+			
+			if data.minimapModeZoom and isValidNumber(data.minimapModeZoom, 0, 1) then
+				cameraState.zoom = data.minimapModeZoom
+				cameraState.targetZoom = cameraState.zoom
+				miscState.minimapCameraRestored = true  -- Flag that we restored camera state
+			end
+		end
+		-- If not same game, leave camera at defaults (centered, min zoom) set in Initialize
+	else
+		-- Regular PIP mode - restore camera position
+		if data.wcx and isValidNumber(data.wcx, 0, maxX) then
+			cameraState.wcx = data.wcx
+		end
+		if data.wcz and isValidNumber(data.wcz, 0, maxZ) then
+			cameraState.wcz = data.wcz
+		end
+		cameraState.targetWcx, cameraState.targetWcz = cameraState.wcx, cameraState.wcz  -- Initialize targets from config
+		
+		-- Validate zoom level (must be between 0 and 1)
+		if data.zoom and isValidNumber(data.zoom, 0, 1) then
+			cameraState.zoom = data.zoom
+		end
 	end
 	
 	uiState.drawingGround = data.drawingGround~= nil and data.drawingGround or uiState.drawingGround
@@ -4283,6 +4587,14 @@ function widget:SetConfigData(data)
 	-- Restore persistent tooltip counter
 	if data.worldIconTooltipShownTotal and type(data.worldIconTooltipShownTotal) == "number" then
 		miscState.worldIconTooltipShownTotal = data.worldIconTooltipShownTotal
+	end
+	
+	-- Restore minimap mode settings
+	if data.minimapModeMaxHeight and type(data.minimapModeMaxHeight) == "number" and data.minimapModeMaxHeight > 0 and data.minimapModeMaxHeight <= 1 then
+		config.minimapModeMaxHeight = data.minimapModeMaxHeight
+	end
+	if data.leftButtonPansCamera ~= nil then
+		config.leftButtonPansCamera = data.leftButtonPansCamera
 	end
 
 	local currentGameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID")
@@ -4886,7 +5198,21 @@ local function DrawIcons()
 	-- Batch icon drawing by texture to minimize state changes
 	local distMult = math.min(math.max(1, 2.2-(cameraState.zoom*3.3)), 3)
 	local iconRadiusZoom = config.iconRadius * cameraState.zoom
-	local iconRadiusZoomDistMult = iconRadiusZoom * distMult
+	
+	-- Apply MinimapIconScale from settings, scaled by zoom level
+	-- At minimum zoom (fully zoomed out), apply full MinimapIconScale effect
+	-- As you zoom in, icons become smaller more quickly
+	local minimapIconScale = Spring.GetConfigFloat("MinimapIconScale", 3.5) * (isMinimapMode and 1 or 0.7)
+	local zoomMin = GetEffectiveZoomMin()
+	local zoomMax = GetEffectiveZoomMax()
+	local zoomRange = zoomMax - zoomMin
+	local zoomNormalized = math.max(0, math.min(1, (cameraState.zoom - zoomMin) / zoomRange))  -- 0 at min zoom, 1 at max zoom
+	-- At min zoom: full minimapIconScale effect
+	-- As zoom increases: quickly reduce towards 1.0 (using squared curve for faster falloff)
+	local scaleFactor = (minimapIconScale - 1.0) * 0.22
+	local effectiveScale = 1.0 + scaleFactor * (1.0 - zoomNormalized) * (1.0 - zoomNormalized)
+	
+	local iconRadiusZoomDistMult = iconRadiusZoom * distMult * effectiveScale
 
 	-- Check if we should use unitpics instead of icons
 	local useUnitpics = config.showUnitpics and cameraState.zoom >= config.unitpicZoomThreshold
@@ -5962,7 +6288,22 @@ local function RenderFrameBackground()
 	local pipWidth = render.dim.r - render.dim.l
 	local pipHeight = render.dim.t - render.dim.b
 	glFunc.Color(0.6,0.6,0.6,0.6)
-	render.RectRound(0, 0, pipWidth, pipHeight, render.elementCorner*0.4, 1, 1, 1, 1)
+	
+	-- Determine which corners to round based on screen edge proximity
+	-- Corners at screen edges should be sharp (0), others rounded (1)
+	local edgeTolerance = 2  -- Pixels from edge to consider "at edge"
+	local atLeft = render.dim.l <= edgeTolerance
+	local atRight = render.dim.r >= render.vsx - edgeTolerance
+	local atBottom = render.dim.b <= edgeTolerance
+	local atTop = render.dim.t >= render.vsy - edgeTolerance
+	
+	-- RectRound params: tl, tr, br, bl (top-left, top-right, bottom-right, bottom-left)
+	local tl = (atLeft or atTop) and 0 or 1
+	local tr = (atRight or atTop) and 0 or 1
+	local br = (atRight or atBottom) and 0 or 1
+	local bl = (atLeft or atBottom) and 0 or 1
+	
+	render.RectRound(0, 0, pipWidth, pipHeight, render.elementCorner*0.4, tl, tr, br, bl)
 end
 
 -- Helper function to calculate maximize icon rotation angle based on expansion direction
@@ -6008,6 +6349,11 @@ end
 
 -- Helper function to render PIP frame buttons without hover effects
 local function RenderFrameButtons()
+	-- In minimap mode, don't render buttons at all (no minimize, no resize handle)
+	if isMinimapMode and config.minimapModeShowButtons == false then
+		return
+	end
+
 	local usedButtonSizeLocal = render.usedButtonSize
 	local pipWidth = render.dim.r - render.dim.l
 	local pipHeight = render.dim.t - render.dim.b
@@ -6017,35 +6363,39 @@ local function RenderFrameButtons()
 		return
 	end
 
-	-- Resize handle (bottom-right corner)
-	glFunc.Color(config.panelBorderColorDark)
-	glFunc.LineWidth(1.0)
-	glFunc.BeginEnd(glConst.TRIANGLES, function()
-		-- Relative coordinates for resize handle
-		glFunc.Vertex(pipWidth - usedButtonSizeLocal, 0)
-		glFunc.Vertex(pipWidth, 0)
-		glFunc.Vertex(pipWidth, usedButtonSizeLocal)
-	end)
+	-- Resize handle (bottom-right corner) - hide in minimap mode if configured
+	if not (isMinimapMode and config.minimapModeHideMoveResize) then
+		glFunc.Color(config.panelBorderColorDark)
+		glFunc.LineWidth(1.0)
+		glFunc.BeginEnd(glConst.TRIANGLES, function()
+			-- Relative coordinates for resize handle
+			glFunc.Vertex(pipWidth - usedButtonSizeLocal, 0)
+			glFunc.Vertex(pipWidth, 0)
+			glFunc.Vertex(pipWidth, usedButtonSizeLocal)
+		end)
+	end
 
-	-- Minimize button (top-right)
-	glFunc.Color(config.panelBorderColorDark)
-	glFunc.Texture(false)
-	render.RectRound(pipWidth - usedButtonSizeLocal - render.elementPadding, pipHeight - usedButtonSizeLocal - render.elementPadding, pipWidth, pipHeight, render.elementCorner*0.65, 0, 0, 0, 1)
-	glFunc.Color(config.panelBorderColorLight)
-	glFunc.Texture('LuaUI/Images/pip/PipShrink.png')
-	
-	-- Rotate icon to point toward shrink position (opposite of expand direction)
-	local rotation = GetMaximizeIconRotation()
-	local centerX = pipWidth - usedButtonSizeLocal * 0.5
-	local centerY = pipHeight - usedButtonSizeLocal * 0.5
-	glFunc.PushMatrix()
-	glFunc.Translate(centerX, centerY, 0)
-	glFunc.Rotate(rotation, 0, 0, 1)
-	glFunc.Translate(-centerX, -centerY, 0)
-	
-	glFunc.TexRect(pipWidth - usedButtonSizeLocal, pipHeight - usedButtonSizeLocal, pipWidth, pipHeight)
-	glFunc.PopMatrix()
-	glFunc.Texture(false)
+	-- Minimize button (top-right) - hide in minimap mode
+	if not isMinimapMode then
+		glFunc.Color(config.panelBorderColorDark)
+		glFunc.Texture(false)
+		render.RectRound(pipWidth - usedButtonSizeLocal - render.elementPadding, pipHeight - usedButtonSizeLocal - render.elementPadding, pipWidth, pipHeight, render.elementCorner*0.65, 0, 0, 0, 1)
+		glFunc.Color(config.panelBorderColorLight)
+		glFunc.Texture('LuaUI/Images/pip/PipShrink.png')
+		
+		-- Rotate icon to point toward shrink position (opposite of expand direction)
+		local rotation = GetMaximizeIconRotation()
+		local centerX = pipWidth - usedButtonSizeLocal * 0.5
+		local centerY = pipHeight - usedButtonSizeLocal * 0.5
+		glFunc.PushMatrix()
+		glFunc.Translate(centerX, centerY, 0)
+		glFunc.Rotate(rotation, 0, 0, 1)
+		glFunc.Translate(-centerX, -centerY, 0)
+		
+		glFunc.TexRect(pipWidth - usedButtonSizeLocal, pipHeight - usedButtonSizeLocal, pipWidth, pipHeight)
+		glFunc.PopMatrix()
+		glFunc.Texture(false)
+	end
 
 	-- Bottom-left buttons
 	local selectedUnits = Spring.GetSelectedUnits()
@@ -6058,23 +6408,50 @@ local function RenderFrameButtons()
 	local showPlayerTrackButton = isTrackingPlayer or spec or (#aliveTeammates > 0)
 	local visibleButtons = {}
 	for i = 1, #buttons do
-		-- Show pip_track button if has selection or is tracking units
-		if buttons[i].command == 'pip_track' then
-			if hasSelection or isTracking then
-				visibleButtons[#visibleButtons + 1] = buttons[i]
+		local btn = buttons[i]
+		-- In minimap mode, hide move button if configured
+		local skipButton = false
+		if isMinimapMode and config.minimapModeHideMoveResize then
+			-- Skip move button (no command, has PipMove texture)
+			if btn.tooltipKey == 'ui.pip.move' then
+				skipButton = true
 			end
-		-- Show pip_trackplayer button if lockcamera is available or already tracking
-		elseif buttons[i].command == 'pip_trackplayer' then
-			if showPlayerTrackButton then
-				visibleButtons[#visibleButtons + 1] = buttons[i]
+		end
+		
+		if not skipButton then
+			-- In minimap mode, skip switch and copy buttons (keep pip_track and pip_trackplayer)
+			-- Allow pip_view for spectators with fullview
+			if isMinimapMode then
+				if btn.command == 'pip_switch' or btn.command == 'pip_copy' then
+					skipButton = true
+				elseif btn.command == 'pip_view' then
+					local _, fullview = Spring.GetSpectatingState()
+					if not fullview then
+						skipButton = true
+					end
+				end
 			end
-		-- Show pip_view button only for spectators
-		elseif buttons[i].command == 'pip_view' then
-			if showPlayerTrackButton then
-				visibleButtons[#visibleButtons + 1] = buttons[i]
+		end
+		
+		if not skipButton then
+			-- Show pip_track button if has selection or is tracking units
+			if btn.command == 'pip_track' then
+				if hasSelection or isTracking then
+					visibleButtons[#visibleButtons + 1] = btn
+				end
+			-- Show pip_trackplayer button if lockcamera is available or already tracking
+			elseif btn.command == 'pip_trackplayer' then
+				if showPlayerTrackButton then
+					visibleButtons[#visibleButtons + 1] = btn
+				end
+			-- Show pip_view button only for spectators
+			elseif btn.command == 'pip_view' then
+				if showPlayerTrackButton then
+					visibleButtons[#visibleButtons + 1] = btn
+				end
+			else
+				visibleButtons[#visibleButtons + 1] = btn
 			end
-		else
-			visibleButtons[#visibleButtons + 1] = buttons[i]
 		end
 	end
 
@@ -6455,6 +6832,142 @@ local function DrawBuildCursorWithRotation()
 	end
 end
 
+-- Draw the main camera's view boundaries on the PIP (for minimap mode)
+local function DrawCameraViewBounds()
+	-- Only draw in minimap mode when not tracking a player camera
+	if not isMinimapMode or interactionState.trackingPlayerID then
+		return
+	end
+	
+	-- Get screen dimensions
+	local vsx, vsy = Spring.GetViewGeometry()
+	
+	-- Get camera position for ray origin
+	local camX, camY, camZ = Spring.GetCameraPosition()
+	
+	-- Helper function to intersect a screen pixel ray with horizontal plane at y=0
+	-- Returns world X, Z coordinates or nil if ray points away from plane
+	local function screenToGroundPlane(sx, sy)
+		local dirX, dirY, dirZ = Spring.GetPixelDir(sx, sy)
+		
+		-- Check if ray is pointing upward (will never hit ground plane at y=0)
+		if dirY >= 0 then
+			-- Ray points up or horizontal - extend it very far to show direction
+			-- Use a large distance to project the ray
+			local farDist = 50000
+			return camX + dirX * farDist, camZ + dirZ * farDist
+		end
+		
+		-- Calculate intersection with y=0 plane
+		-- Ray: P = camPos + t * dir
+		-- Plane: y = 0
+		-- Solve: camY + t * dirY = 0 => t = -camY / dirY
+		local t = -camY / dirY
+		
+		-- If intersection is behind camera, extend forward instead
+		if t < 0 then
+			local farDist = 50000
+			return camX + dirX * farDist, camZ + dirZ * farDist
+		end
+		
+		return camX + dirX * t, camZ + dirZ * t
+	end
+	
+	-- Use inset from edges to avoid issues at exact corners
+	local inset = 1
+	
+	-- Get world coordinates for all 4 screen corners by intersecting with y=0 plane
+	-- This avoids terrain height issues and works when looking at sky
+	local bottomLeftX, bottomLeftZ = screenToGroundPlane(inset, inset)
+	local bottomRightX, bottomRightZ = screenToGroundPlane(vsx - inset, inset)
+	local topRightX, topRightZ = screenToGroundPlane(vsx - inset, vsy - inset)
+	local topLeftX, topLeftZ = screenToGroundPlane(inset, vsy - inset)
+	
+	-- Don't clamp to map bounds - let the view representation extend off the map
+	-- This fixes the "sticking to edges" issue
+	
+	-- Convert to pip coordinates (no clamping, preserve true perspective shape)
+	-- Note: World Z maps to pip Y inversely (high Z = low Y in pip view)
+	local bl_x, bl_y = WorldToPipCoords(bottomLeftX, bottomLeftZ)
+	local br_x, br_y = WorldToPipCoords(bottomRightX, bottomRightZ)
+	local tr_x, tr_y = WorldToPipCoords(topRightX, topRightZ)
+	local tl_x, tl_y = WorldToPipCoords(topLeftX, topLeftZ)
+	
+	-- Calculate chamfer size (4 pixels at 1080p, scaled by resolution)
+	local chamfer = 2.5 * (render.vsy / 1080)
+	
+	-- Calculate chamfer offsets for each corner
+	-- Always apply chamfers regardless of position
+	local function getChamferVertices(x1, y1, x2, y2, cornerX, cornerY)
+		-- Get direction vectors from corner to adjacent points
+		local dx1, dy1 = x1 - cornerX, y1 - cornerY
+		local dx2, dy2 = x2 - cornerX, y2 - cornerY
+		
+		-- Normalize and scale by chamfer size
+		local len1 = math.sqrt(dx1*dx1 + dy1*dy1)
+		local len2 = math.sqrt(dx2*dx2 + dy2*dy2)
+		
+		if len1 < 0.001 or len2 < 0.001 then
+			return cornerX, cornerY, cornerX, cornerY
+		end
+		
+		-- Chamfer points along each edge from the corner
+		local c1x = cornerX + (dx1 / len1) * chamfer
+		local c1y = cornerY + (dy1 / len1) * chamfer
+		local c2x = cornerX + (dx2 / len2) * chamfer
+		local c2y = cornerY + (dy2 / len2) * chamfer
+		
+		return c1x, c1y, c2x, c2y
+	end
+	
+	-- Get chamfered vertices for each corner (going clockwise from bottom-left)
+	local bl_c1x, bl_c1y, bl_c2x, bl_c2y = getChamferVertices(tl_x, tl_y, br_x, br_y, bl_x, bl_y)
+	local br_c1x, br_c1y, br_c2x, br_c2y = getChamferVertices(bl_x, bl_y, tr_x, tr_y, br_x, br_y)
+	local tr_c1x, tr_c1y, tr_c2x, tr_c2y = getChamferVertices(br_x, br_y, tl_x, tl_y, tr_x, tr_y)
+	local tl_c1x, tl_c1y, tl_c2x, tl_c2y = getChamferVertices(tr_x, tr_y, bl_x, bl_y, tl_x, tl_y)
+	
+	-- Draw the view trapezoid with chamfered corners
+	glFunc.Texture(false)
+	
+	-- Draw shadow/outline first
+	glFunc.LineWidth(3 * ((vsx+1000) / 3000))
+	glFunc.Color(0, 0, 0, 0.4)
+	glFunc.BeginEnd(glConst.LINE_LOOP, function()
+		-- Bottom-left corner (2 vertices)
+		glFunc.Vertex(bl_c1x, bl_c1y)  -- toward top-left
+		glFunc.Vertex(bl_c2x, bl_c2y)  -- toward bottom-right
+		-- Bottom-right corner (2 vertices)
+		glFunc.Vertex(br_c1x, br_c1y)  -- toward bottom-left
+		glFunc.Vertex(br_c2x, br_c2y)  -- toward top-right
+		-- Top-right corner (2 vertices)
+		glFunc.Vertex(tr_c1x, tr_c1y)  -- toward bottom-right
+		glFunc.Vertex(tr_c2x, tr_c2y)  -- toward top-left
+		-- Top-left corner (2 vertices)
+		glFunc.Vertex(tl_c1x, tl_c1y)  -- toward top-right
+		glFunc.Vertex(tl_c2x, tl_c2y)  -- toward bottom-left
+	end)
+	
+	-- Draw white line on top
+	glFunc.LineWidth(1.5 * ((vsx+1000) / 3000))
+	glFunc.Color(1, 1, 1, 0.8)
+	glFunc.BeginEnd(glConst.LINE_LOOP, function()
+		-- Bottom-left corner (2 vertices)
+		glFunc.Vertex(bl_c1x, bl_c1y)
+		glFunc.Vertex(bl_c2x, bl_c2y)
+		-- Bottom-right corner (2 vertices)
+		glFunc.Vertex(br_c1x, br_c1y)
+		glFunc.Vertex(br_c2x, br_c2y)
+		-- Top-right corner (2 vertices)
+		glFunc.Vertex(tr_c1x, tr_c1y)
+		glFunc.Vertex(tr_c2x, tr_c2y)
+		-- Top-left corner (2 vertices)
+		glFunc.Vertex(tl_c1x, tl_c1y)
+		glFunc.Vertex(tl_c2x, tl_c2y)
+	end)
+	
+	glFunc.LineWidth(1.0)
+end
+
 local function RenderPipContents()
 	-- Cache selected units once per render cycle to avoid multiple API calls
 	local cachedSelectedUnits = Spring.GetSelectedUnits()
@@ -6490,10 +7003,16 @@ local function RenderPipContents()
 	-- Draw map markers
 	DrawMapMarkers()
 	
+	-- Draw main camera view boundaries (minimap mode only)
+	DrawCameraViewBounds()
+	
 	-- Pop rotation matrix if it was applied
 	if render.minimapRotation ~= 0 then
 		glFunc.PopMatrix()
 	end
+	
+	-- NOTE: DrawInMiniMap overlays are now rendered in DrawScreen after the R2T is blitted,
+	-- because matrix manipulation doesn't work correctly inside the R2T context.
 end
 
 -- Helper function to draw box selection rectangle
@@ -7305,6 +7824,12 @@ end
 -- Shows map with LOS overlay and a rectangle indicating the current PIP view
 -- Also shown for players (not just spectators tracking others) and when hovering
 local function DrawTrackedPlayerMinimap()
+	-- In minimap mode, don't show the pip-minimap overlay (we ARE the minimap)
+	if isMinimapMode then
+		interactionState.pipMinimapBounds = nil
+		return
+	end
+	
 	-- Show for players OR when tracking a player camera OR when hovering
 	local showForPlayer = not cameraState.mySpecState  -- Show for players
 	local showForTracking = interactionState.trackingPlayerID ~= nil  -- Show when tracking
@@ -7504,8 +8029,9 @@ local function DrawTrackedPlayerMinimap()
 		gl.UseShader(0)
 	end
 
-	-- Draw LOS overlay on minimap (only after game has started)
-	if pipR2T.losTex and gameHasStarted then
+	-- Draw LOS overlay on minimap (only after game has started and when LOS should be shown)
+	local shouldShowLOS, _ = ShouldShowLOS()
+	if config.showLosOverlay and shouldShowLOS and pipR2T.losTex and gameHasStarted then
 		gl.Blending(GL.DST_COLOR, GL.ZERO)
 		glFunc.Color(1, 1, 1, 1)
 		glFunc.Texture(pipR2T.losTex)
@@ -7607,7 +8133,8 @@ local function UpdateR2TFrame(pipWidth, pipHeight)
 				local padT = render.dim.t + render.elementPadding
 				-- Translate to origin for texture rendering
 				glFunc.Translate(-padL, -padB, 0)
-				render.UiElement(padL, padB, padR, padT, 1, 1, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
+				local tl, tr, br, bl = GetChamferedCorners(padL, padB, padR, padT)
+				render.UiElement(padL, padB, padR, padT, tl, tr, br, bl, nil, nil, nil, nil, nil, nil, nil, nil)
 			end, true)
 		end
 
@@ -7632,7 +8159,12 @@ local function UpdateR2TFrame(pipWidth, pipHeight)
 		gl.R2tHelper.BlendTexRect(pipR2T.frameBackgroundTex, render.dim.l-render.elementPadding, render.dim.b-render.elementPadding, render.dim.r+render.elementPadding, render.dim.t+render.elementPadding, true)
 	else
 		-- Fallback to direct rendering if texture not available
-		render.UiElement(render.dim.l-render.elementPadding, render.dim.b-render.elementPadding, render.dim.r+render.elementPadding, render.dim.t+render.elementPadding, 1, 1, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
+		local padL = render.dim.l - render.elementPadding
+		local padB = render.dim.b - render.elementPadding
+		local padR = render.dim.r + render.elementPadding
+		local padT = render.dim.t + render.elementPadding
+		local tl, tr, br, bl = GetChamferedCorners(padL, padB, padR, padT)
+		render.UiElement(padL, padB, padR, padT, tl, tr, br, bl, nil, nil, nil, nil, nil, nil, nil, nil)
 	end
 end
 
@@ -7663,6 +8195,12 @@ end
 -- Helper function to update R2T content texture
 local function UpdateR2TContent(currentTime, pipUpdateInterval, pipWidth, pipHeight)
 	if not gl.R2tHelper then
+		return
+	end
+
+	-- In minimap mode, skip rendering until ViewResize has initialized the zoom level
+	-- This prevents the first frame from rendering with incorrect dimensions
+	if isMinimapMode and not minimapModeMinZoom then
 		return
 	end
 
@@ -7712,10 +8250,8 @@ local function UpdateR2TContent(currentTime, pipUpdateInterval, pipWidth, pipHei
 			glFunc.Translate(-1, -1, 0)
 			glFunc.Scale(2 / pipWidth, 2 / pipHeight, 0)
 
-			-- Reuse saved dimension tables
+			-- Save current dimensions
 			pools.savedDim.l, pools.savedDim.r, pools.savedDim.b, pools.savedDim.t = render.dim.l, render.dim.r, render.dim.b, render.dim.t
-			pools.savedGround.view.l, pools.savedGround.view.r, pools.savedGround.view.b, pools.savedGround.view.t = render.ground.view.l, render.ground.view.r, render.ground.view.b, render.ground.view.t
-			pools.savedGround.coord.l, pools.savedGround.coord.r, pools.savedGround.coord.b, pools.savedGround.coord.t = render.ground.coord.l, render.ground.coord.r, render.ground.coord.b, render.ground.coord.t
 
 			render.dim.l, render.dim.b, render.dim.r, render.dim.t = 0, 0, pipWidth, pipHeight
 			RecalculateWorldCoordinates()
@@ -7724,8 +8260,7 @@ local function UpdateR2TContent(currentTime, pipUpdateInterval, pipWidth, pipHei
 
 			render.dim.l, render.dim.r, render.dim.b, render.dim.t = pools.savedDim.l, pools.savedDim.r, pools.savedDim.b, pools.savedDim.t
 			RecalculateWorldCoordinates()
-			render.ground.view.l, render.ground.view.r, render.ground.view.b, render.ground.view.t = pools.savedGround.view.l, pools.savedGround.view.r, pools.savedGround.view.b, pools.savedGround.view.t
-			render.ground.coord.l, render.ground.coord.r, render.ground.coord.b, render.ground.coord.t = pools.savedGround.coord.l, pools.savedGround.coord.r, pools.savedGround.coord.b, pools.savedGround.coord.t
+			RecalculateGroundTextureCoordinates()
 		end, true)
 		pipR2T.contentLastUpdateTime = currentTime
 		pipR2T.contentNeedsUpdate = false
@@ -7734,6 +8269,11 @@ end
 
 -- Update LOS texture with current Line-of-Sight information
 local function UpdateLOSTexture(currentTime)
+	-- In minimap mode, skip until ViewResize has initialized
+	if isMinimapMode and not minimapModeMinZoom then
+		return
+	end
+
 	-- Check if we should update LOS texture
 	local shouldShowLOS, losAllyTeam = ShouldShowLOS()
 	if not shouldShowLOS or not pipR2T.losTex then
@@ -8062,7 +8602,7 @@ end
 -- Helper function to draw interactive overlays (buttons, pip number, etc.)
 local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 	-- Draw pipNumber text only when hovering (and only for pip 2+)
-	if pipNumber ~= 1 and interactionState.isMouseOverPip then
+	if pipNumber > 1 and interactionState.isMouseOverPip then
 		glFunc.Color(config.panelBorderColorDark)
 		render.RectRound(render.dim.l, render.dim.t - render.usedButtonSize, render.dim.l + render.usedButtonSize, render.dim.t, render.elementCorner*0.4, 0, 0, 1, 0)
 		local fontSize = 14
@@ -8078,23 +8618,46 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 	local selectedUnits = Spring.GetSelectedUnits()
 	local visibleButtons = {}
 	for i = 1, #buttons do
-		if buttons[i].command == 'pip_track' then
-			if #selectedUnits > 0 or interactionState.areTracking then
-				visibleButtons[#visibleButtons + 1] = buttons[i]
+		local btn = buttons[i]
+		-- In minimap mode, hide move button if configured
+		local skipButton = false
+		if isMinimapMode and config.minimapModeHideMoveResize then
+			if btn.tooltipKey == 'ui.pip.move' then
+				skipButton = true
 			end
-		elseif buttons[i].command == 'pip_trackplayer' then
-			local _, _, spec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
-			local aliveTeammates = GetAliveTeammates()
-			if interactionState.trackingPlayerID or spec or (#aliveTeammates > 0) then
-				visibleButtons[#visibleButtons + 1] = buttons[i]
+		end
+		-- In minimap mode, skip switch and copy buttons (keep pip_track and pip_trackplayer)
+		-- Allow pip_view for spectators with fullview
+		if isMinimapMode then
+			if btn.command == 'pip_switch' or btn.command == 'pip_copy' then
+				skipButton = true
+			elseif btn.command == 'pip_view' then
+				local _, fullview = Spring.GetSpectatingState()
+				if not fullview then
+					skipButton = true
+				end
 			end
-		elseif buttons[i].command == 'pip_view' then
-			local _, _, spec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
-			if spec then
-				visibleButtons[#visibleButtons + 1] = buttons[i]
+		end
+		
+		if not skipButton then
+			if btn.command == 'pip_track' then
+				if #selectedUnits > 0 or interactionState.areTracking then
+					visibleButtons[#visibleButtons + 1] = btn
+				end
+			elseif btn.command == 'pip_trackplayer' then
+				local _, _, spec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+				local aliveTeammates = GetAliveTeammates()
+				if interactionState.trackingPlayerID or spec or (#aliveTeammates > 0) then
+					visibleButtons[#visibleButtons + 1] = btn
+				end
+			elseif btn.command == 'pip_view' then
+				local _, _, spec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+				if spec then
+					visibleButtons[#visibleButtons + 1] = btn
+				end
+			else
+				visibleButtons[#visibleButtons + 1] = btn
 			end
-		else
-			visibleButtons[#visibleButtons + 1] = buttons[i]
 		end
 	end
 
@@ -8173,7 +8736,6 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 end
 
 function widget:DrawScreen()
-
 	local mx, my, mbl = spFunc.GetMouseState()
 
 	-- During animation, disable mouse interaction
@@ -8181,7 +8743,13 @@ function widget:DrawScreen()
 		mx, my = -1, -1  -- Force mouse out of bounds during animation
 	end
 
-	if uiState.inMinMode and not uiState.isAnimating then
+	-- In minimap mode, skip all rendering until ViewResize has completed initialization
+	if isMinimapMode and not minimapModeMinZoom then
+		return
+	end
+
+	-- In minimap mode, never show minimized state (skip this whole section)
+	if uiState.inMinMode and not uiState.isAnimating and not isMinimapMode then
 		-- Use display list for minimized mode (static graphics with relative coordinates)
 		local buttonSize = math.floor(render.usedButtonSize*config.maximizeSizemult)
 
@@ -8194,16 +8762,29 @@ function widget:DrawScreen()
 		-- Check if we need to recreate display list due to position change (affects rotation)
 		local sw, sh = Spring.GetWindowGeometry()
 		local currentQuadrant = (uiState.minModeL < sw * 0.5 and 1 or 2) + (uiState.minModeB < sh * 0.25 and 0 or 2)
-		if render.minModeQuadrant ~= currentQuadrant and render.minModeDlist then
+		-- Also track edge state for chamfered corners
+		local actualL = uiState.minModeL - render.elementPadding
+		local actualB = uiState.minModeB - render.elementPadding
+		local actualR = uiState.minModeL + buttonSize + render.elementPadding
+		local actualT = uiState.minModeB + buttonSize + render.elementPadding
+		local currentEdgeState = (actualL <= 0 and 1 or 0) + (actualB <= 0 and 2 or 0) + (actualR >= render.vsx and 4 or 0) + (actualT >= render.vsy and 8 or 0)
+		if (render.minModeQuadrant ~= currentQuadrant or render.minModeEdgeState ~= currentEdgeState) and render.minModeDlist then
 			gl.DeleteList(render.minModeDlist)
 			render.minModeDlist = nil
 		end
 		render.minModeQuadrant = currentQuadrant
+		render.minModeEdgeState = currentEdgeState
 		
 		if not render.minModeDlist then
 			render.minModeDlist = gl.CreateList(function()
 				-- Draw render.UiElement background (only borders, no fill to avoid double opacity)
-				render.UiElement(offset-render.elementPadding, offset-render.elementPadding, offset+buttonSize+render.elementPadding, offset+buttonSize+render.elementPadding, 1, 1, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
+				-- Compute actual screen coordinates for chamfered corners
+				local actualL = uiState.minModeL - render.elementPadding
+				local actualB = uiState.minModeB - render.elementPadding
+				local actualR = uiState.minModeL + buttonSize + render.elementPadding
+				local actualT = uiState.minModeB + buttonSize + render.elementPadding
+				local tl, tr, br, bl = GetChamferedCorners(actualL, actualB, actualR, actualT)
+				render.UiElement(offset-render.elementPadding, offset-render.elementPadding, offset+buttonSize+render.elementPadding, offset+buttonSize+render.elementPadding, tl, tr, br, bl, nil, nil, nil, nil, nil, nil, nil, nil)
 
 				-- Draw icon at origin (0,0) - will be transformed to actual position
 				glFunc.Color(config.panelBorderColorLight)
@@ -8294,7 +8875,17 @@ function widget:DrawScreen()
 			pipR2T.contentMaskDlist = gl.CreateList(function()
 				-- Draw rounded rectangle shape for stencil mask
 				-- Use slightly larger corner radius so diagonal border looks same thickness as straight edges
-				render.RectRound(render.dim.l, render.dim.b, render.dim.r, render.dim.t, render.elementCorner * 0.5, 1, 1, 1, 1)
+				-- Disable corner rounding at screen edges
+				local edgeTolerance = 2
+				local atLeft = render.dim.l <= edgeTolerance
+				local atRight = render.dim.r >= render.vsx - edgeTolerance
+				local atBottom = render.dim.b <= edgeTolerance
+				local atTop = render.dim.t >= render.vsy - edgeTolerance
+				local tl = (atLeft or atTop) and 0 or 1
+				local tr = (atRight or atTop) and 0 or 1
+				local br = (atRight or atBottom) and 0 or 1
+				local bl = (atLeft or atBottom) and 0 or 1
+				render.RectRound(render.dim.l, render.dim.b, render.dim.r, render.dim.t, render.elementCorner * 0.5, tl, tr, br, bl)
 			end)
 			-- Also invalidate text display lists when position changes
 			if pipR2T.resbarTextDlist then
@@ -8334,6 +8925,100 @@ function widget:DrawScreen()
 			
 			-- Disable stencil test
 			gl.StencilTest(false)
+			
+			-- Draw minimap overlays from other widgets (only in minimap mode)
+			-- This is done here in DrawScreen (not in R2T) because matrix manipulation works correctly here
+			if isMinimapMode and WG['minimap'] and widgetHandler and widgetHandler.DrawInMiniMapList then
+				local minimapWidth = render.dim.r - render.dim.l
+				local minimapHeight = render.dim.t - render.dim.b
+				
+				-- Get the world coordinates visible in the PIP
+				local worldL, worldR, worldB, worldT = render.world.l, render.world.r, render.world.b, render.world.t
+				
+				-- Use scissor to clip to PIP area
+				gl.Scissor(render.dim.l, render.dim.b, minimapWidth, minimapHeight)
+				
+				-- Set a flag that widgets can check during their DrawInMiniMap
+				WG['minimap'].isDrawingInPip = true
+				
+				-- Calculate the normalized coords of our visible area
+				-- For shaders: pass in world-normalized coords (NOT Y-flipped), shaders do their own flip
+				local normVisLeft = worldL / mapInfo.mapSizeX
+				local normVisRight = worldR / mapInfo.mapSizeX
+				local normVisBottom = worldB / mapInfo.mapSizeZ  -- world Z coords, shader will flip
+				local normVisTop = worldT / mapInfo.mapSizeZ
+				
+				-- Expose the normalized visible area for GL4 shader widgets to use
+				-- They need this to transform their fullscreen quad coords to the visible portion
+				WG['minimap'].getNormalizedVisibleArea = function()
+					return normVisLeft, normVisRight, normVisBottom, normVisTop
+				end
+				
+				-- Also expose zoom level (1.0 = full map visible, >1 = zoomed in)
+				WG['minimap'].getZoomLevel = function()
+					return mapInfo.mapSizeX / (worldR - worldL)
+				end
+				
+				-- For fixed-function GL widgets that draw in [0,1] Y-flipped space
+				-- These coords have Y flipped: 0 = north (top), 1 = south (bottom)
+				local ffNormBottom = 1 - worldT / mapInfo.mapSizeZ
+				local ffNormTop = 1 - worldB / mapInfo.mapSizeZ
+				
+				-- Call widgets with proper matrix setup for fixed-function GL
+				for _, w in ipairs(widgetHandler.DrawInMiniMapList) do
+					if w ~= widget then  -- Don't recursively call ourselves
+						-- Save current matrices
+						gl.MatrixMode(GL.PROJECTION)
+						glFunc.PushMatrix()
+						gl.LoadIdentity()
+						
+						-- Handle minimap rotation
+						if render.minimapRotation and render.minimapRotation ~= 0 then
+							glFunc.Rotate(render.minimapRotation * 180 / math.pi, 0, 0, 1)
+						end
+						
+						-- Ortho maps [left,right,bottom,top] to [-1,1] NDC, which then maps to viewport
+						-- Use fixed-function Y-flipped coords for widgets that draw in [0,1] Y-flipped space
+						gl.Ortho(normVisLeft, normVisRight, ffNormBottom, ffNormTop, -1, 1)
+						
+						gl.MatrixMode(GL.MODELVIEW)
+						glFunc.PushMatrix()
+						gl.LoadIdentity()
+						
+						-- Set viewport to PIP area so NDC [-1,1] maps to our PIP screen coords
+						gl.Viewport(render.dim.l, render.dim.b, minimapWidth, minimapHeight)
+						
+						local success, err = pcall(function()
+							w:DrawInMiniMap(minimapWidth, minimapHeight)
+						end)
+						if not success then
+							Spring.Log(widget:GetInfo().name, LOG.WARNING, "Error in " .. (w.whInfo and w.whInfo.name or "unknown") .. ":DrawInMiniMap: " .. tostring(err))
+						end
+						
+						-- Restore viewport to full screen
+						gl.Viewport(0, 0, render.vsx, render.vsy)
+						
+						-- Restore matrices
+						glFunc.PopMatrix()
+						gl.MatrixMode(GL.PROJECTION)
+						glFunc.PopMatrix()
+						gl.MatrixMode(GL.MODELVIEW)
+					end
+				end
+				
+				-- Clear the flag and disable scissor
+				WG['minimap'].isDrawingInPip = false
+				WG['minimap'].getNormalizedVisibleArea = nil  -- Clear the function
+				WG['minimap'].getZoomLevel = nil
+				gl.Scissor(false)
+				
+				-- Restore GL state that widgets may have modified
+				glFunc.Color(1, 1, 1, 1)
+				glFunc.Texture(false)
+				gl.LineWidth(1.0)
+				gl.DepthTest(false)
+				gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+			end
 		end
 
 		-- Draw map ruler at edges (only when not spectating)
@@ -8360,78 +9045,83 @@ function widget:DrawScreen()
 			gl.R2tHelper.BlendTexRect(pipR2T.frameButtonsTex, render.dim.l, render.dim.b, render.dim.r, render.dim.t, true)
 		end
 
-		-- Draw resize handle when showing on hover
-		if config.showButtonsOnHoverOnly and interactionState.isMouseOverPip then
+		-- Draw resize handle when showing on hover (hide in minimap mode if configured)
+		if config.showButtonsOnHoverOnly and interactionState.isMouseOverPip and not (isMinimapMode and config.minimapModeHideMoveResize) then
 			glFunc.Color(config.panelBorderColorDark)
 			glFunc.LineWidth(1.0)
 			glFunc.BeginEnd(glConst.TRIANGLES, ResizeHandleVertices)
 		end
 
 		-- Draw dynamic hover overlays
-		-- Resize handle hover
-		local hover = uiState.areResizing or false
-		if mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t then
-			if (render.dim.r-mx + my-render.dim.b <= render.usedButtonSize) then
-				hover = true
-				if WG['tooltip'] then
-					WG['tooltip'].ShowTooltip('pip'..pipNumber, Spring.I18N('ui.pip.resize'), nil, nil, nil)
+		-- Resize handle hover (skip in minimap mode if configured)
+		local hover = false
+		if not (isMinimapMode and config.minimapModeHideMoveResize) then
+			hover = uiState.areResizing or false
+			if mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t then
+				if (render.dim.r-mx + my-render.dim.b <= render.usedButtonSize) then
+					hover = true
+					if WG['tooltip'] then
+						WG['tooltip'].ShowTooltip('pip'..pipNumber, Spring.I18N('ui.pip.resize'), nil, nil, nil)
+					end
 				end
 			end
-		end
-		if hover then
-			local mult = mbl and 4.5 or 1.5
-			glFunc.Color(config.panelBorderColorDark[1]*mult, config.panelBorderColorDark[2]*mult, config.panelBorderColorDark[3]*mult, 1)
-			glFunc.LineWidth(1.0)
-			glFunc.BeginEnd(glConst.TRIANGLES, ResizeHandleVertices)
+			if hover then
+				local mult = mbl and 4.5 or 1.5
+				glFunc.Color(config.panelBorderColorDark[1]*mult, config.panelBorderColorDark[2]*mult, config.panelBorderColorDark[3]*mult, 1)
+				glFunc.LineWidth(1.0)
+				glFunc.BeginEnd(glConst.TRIANGLES, ResizeHandleVertices)
+			end
 		end
 
-		-- Minimize button hover
+		-- Minimize button hover (skip in minimap mode)
 		hover = false
-		if config.showButtonsOnHoverOnly and interactionState.isMouseOverPip then
-			-- Draw minimize button base when showing on hover
-			glFunc.Color(config.panelBorderColorDark)
-			glFunc.Texture(false)
-			render.RectRound(render.dim.r - render.usedButtonSize - render.elementPadding, render.dim.t - render.usedButtonSize - render.elementPadding, render.dim.r, render.dim.t, render.elementCorner, 0, 0, 0, 1)
-			glFunc.Color(config.panelBorderColorLight)
-			glFunc.Texture('LuaUI/Images/pip/PipShrink.png')
-			
-			-- Rotate icon opposite to maximize direction (points toward shrink position)
-			local rotation = GetMaximizeIconRotation()
-			local centerX = render.dim.r - render.usedButtonSize * 0.5
-			local centerY = render.dim.t - render.usedButtonSize * 0.5
-			glFunc.PushMatrix()
-			glFunc.Translate(centerX, centerY, 0)
-			glFunc.Rotate(rotation, 0, 0, 1)
-			glFunc.Translate(-centerX, -centerY, 0)
-			
-			glFunc.TexRect(render.dim.r - render.usedButtonSize, render.dim.t - render.usedButtonSize, render.dim.r, render.dim.t)
-			glFunc.PopMatrix()
-			glFunc.Texture(false)
-		end
-		if mx >= render.dim.r - render.usedButtonSize - render.elementPadding and mx <= render.dim.r - render.elementPadding and
-			my >= render.dim.t - render.usedButtonSize - render.elementPadding and my <= render.dim.t - render.elementPadding then
-			hover = true
-			if WG['tooltip'] then
-				WG['tooltip'].ShowTooltip('pip'..pipNumber, Spring.I18N('ui.pip.minimize'), nil, nil, nil)
+		if not isMinimapMode or config.minimapModeShowButtons then
+			if config.showButtonsOnHoverOnly and interactionState.isMouseOverPip then
+				-- Draw minimize button base when showing on hover
+				glFunc.Color(config.panelBorderColorDark)
+				glFunc.Texture(false)
+				render.RectRound(render.dim.r - render.usedButtonSize - render.elementPadding, render.dim.t - render.usedButtonSize - render.elementPadding, render.dim.r, render.dim.t, render.elementCorner, 0, 0, 0, 1)
+				glFunc.Color(config.panelBorderColorLight)
+				glFunc.Texture('LuaUI/Images/pip/PipShrink.png')
+				
+				-- Rotate icon opposite to maximize direction (points toward shrink position)
+				local rotation = GetMaximizeIconRotation()
+				local centerX = render.dim.r - render.usedButtonSize * 0.5
+				local centerY = render.dim.t - render.usedButtonSize * 0.5
+				glFunc.PushMatrix()
+				glFunc.Translate(centerX, centerY, 0)
+				glFunc.Rotate(rotation, 0, 0, 1)
+				glFunc.Translate(-centerX, -centerY, 0)
+				
+				glFunc.TexRect(render.dim.r - render.usedButtonSize, render.dim.t - render.usedButtonSize, render.dim.r, render.dim.t)
+				glFunc.PopMatrix()
+				glFunc.Texture(false)
 			end
-			glFunc.Color(1,1,1,0.12)
-			glFunc.Texture(false)
-			render.RectRound(render.dim.r - render.usedButtonSize, render.dim.t - render.usedButtonSize, render.dim.r, render.dim.t, render.elementCorner*0.4, 1, 1, 1, 1)
-			glFunc.Color(1, 1, 1, 1)
-			glFunc.Texture('LuaUI/Images/pip/PipShrink.png')
-			
-			-- Rotate icon opposite to maximize direction (points toward shrink position)
-			local rotation = GetMaximizeIconRotation()
-			local centerX = render.dim.r - render.usedButtonSize * 0.5
-			local centerY = render.dim.t - render.usedButtonSize * 0.5
-			glFunc.PushMatrix()
-			glFunc.Translate(centerX, centerY, 0)
-			glFunc.Rotate(rotation, 0, 0, 1)
-			glFunc.Translate(-centerX, -centerY, 0)
-			
-			glFunc.TexRect(render.dim.r - render.usedButtonSize, render.dim.t - render.usedButtonSize, render.dim.r, render.dim.t)
-			glFunc.PopMatrix()
-			glFunc.Texture(false)
+			if mx >= render.dim.r - render.usedButtonSize - render.elementPadding and mx <= render.dim.r - render.elementPadding and
+				my >= render.dim.t - render.usedButtonSize - render.elementPadding and my <= render.dim.t - render.elementPadding then
+				hover = true
+				if WG['tooltip'] then
+					WG['tooltip'].ShowTooltip('pip'..pipNumber, Spring.I18N('ui.pip.minimize'), nil, nil, nil)
+				end
+				glFunc.Color(1,1,1,0.12)
+				glFunc.Texture(false)
+				render.RectRound(render.dim.r - render.usedButtonSize, render.dim.t - render.usedButtonSize, render.dim.r, render.dim.t, render.elementCorner*0.4, 1, 1, 1, 1)
+				glFunc.Color(1, 1, 1, 1)
+				glFunc.Texture('LuaUI/Images/pip/PipShrink.png')
+				
+				-- Rotate icon opposite to maximize direction (points toward shrink position)
+				local rotation = GetMaximizeIconRotation()
+				local centerX = render.dim.r - render.usedButtonSize * 0.5
+				local centerY = render.dim.t - render.usedButtonSize * 0.5
+				glFunc.PushMatrix()
+				glFunc.Translate(centerX, centerY, 0)
+				glFunc.Rotate(rotation, 0, 0, 1)
+				glFunc.Translate(-centerX, -centerY, 0)
+				
+				glFunc.TexRect(render.dim.r - render.usedButtonSize, render.dim.t - render.usedButtonSize, render.dim.r, render.dim.t)
+				glFunc.PopMatrix()
+				glFunc.Texture(false)
+			end
 		end
 
 		-- Bottom-left buttons hover and pip number
@@ -8471,6 +9161,11 @@ function widget:DrawScreen()
 			font:End()
 		end
 	end
+
+	-- Note: In minimap mode, we don't call gl.DrawMiniMap() because it would render the engine
+	-- minimap terrain on top of our PIP. The engine minimap is minimized instead.
+	-- DrawInMiniMap overlays from other widgets are handled in RenderPipContents() during R2T.
+	-- Widgets can check WG['minimap'].isPipMinimapActive() or WG['minimap'].isDrawingInPip to adapt.
 
 	glFunc.Color(1, 1, 1, 1)
 end
@@ -8584,6 +9279,9 @@ function widget:DrawWorld()
 	
 	-- During animation or when not minimized, draw the PIP boundary
 	if uiState.inMinMode and not uiState.isAnimating then return end  -- Skip if fully minimized (handled above), but continue during animation
+	
+	-- In minimap mode, don't draw pip view rectangle in world
+	if isMinimapMode then return end
 
 	-- Draw rectangle outline in world view marking PIP boundaries
 	-- Don't show if tracking player camera, or if spectator (unless showWorldIconForSpectators is enabled)
@@ -8735,6 +9433,8 @@ function widget:DrawWorld()
 end
 
 function widget:DrawInMiniMap(minimapWidth, minimapHeight)
+	-- In minimap mode, don't draw PIP viewport rectangle on the minimap (we ARE the minimap)
+	if isMinimapMode then return end
 	if uiState.inMinMode then return end
 
 	-- Calculate the viewport in world space
@@ -8860,6 +9560,18 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 end
 
 function widget:Update(dt)
+	-- In minimap mode, ensure the old minimap widget stays disabled
+	-- (it may load after us due to widget layer ordering)
+	if isMinimapMode and not miscState.minimapWidgetDisabled then
+		local minimapWidget = widgetHandler:FindWidget("Minimap")
+		if minimapWidget then
+			widgetHandler:DisableWidget("Minimap")
+		end
+		-- Also ensure the engine minimap stays minimized
+		Spring.SendCommands("minimap minimize 1")
+		miscState.minimapWidgetDisabled = true
+	end
+	
 	-- Update spectating state and check if it changed
 	local oldSpecState = cameraState.mySpecState
 	cameraState.mySpecState = Spring.GetSpectatingState()
@@ -9184,8 +9896,14 @@ function widget:Update(dt)
 		local maxWcz = mapInfo.mapSizeZ - (visibleWorldHeight / 2 - margin)
 
 		-- Clamp with margin-based boundaries
-		cameraState.targetWcx = math.min(math.max(cameraState.targetWcx, minWcx), maxWcx)
-		cameraState.targetWcz = math.min(math.max(cameraState.targetWcz, minWcz), maxWcz)
+		-- In minimap mode at minimum zoom, force center on map
+		if IsAtMinimumZoom(cameraState.targetZoom) then
+			cameraState.targetWcx = mapInfo.mapSizeX / 2
+			cameraState.targetWcz = mapInfo.mapSizeZ / 2
+		else
+			cameraState.targetWcx = math.min(math.max(cameraState.targetWcx, minWcx), maxWcx)
+			cameraState.targetWcz = math.min(math.max(cameraState.targetWcz, minWcz), maxWcz)
+		end
 
 		centerNeedsUpdate = true  -- Force center update
 	end
@@ -9307,6 +10025,14 @@ function widget:Update(dt)
 		-- Final clamp based on current zoom
 		cameraState.wcx = math.min(math.max(cameraState.wcx, currentMinWcx), currentMaxWcx)
 		cameraState.wcz = math.min(math.max(cameraState.wcz, currentMinWcz), currentMaxWcz)
+		
+		-- In minimap mode at minimum zoom, force exact center to prevent any drift
+		if IsAtMinimumZoom(cameraState.zoom) then
+			cameraState.wcx = mapInfo.mapSizeX / 2
+			cameraState.wcz = mapInfo.mapSizeZ / 2
+			cameraState.targetWcx = cameraState.wcx
+			cameraState.targetWcz = cameraState.wcz
+		end
 
 		RecalculateWorldCoordinates()
 		RecalculateGroundTextureCoordinates()
@@ -9317,7 +10043,7 @@ function widget:Update(dt)
 	end
 
 	if interactionState.areIncreasingZoom then
-		cameraState.targetZoom = math.min(cameraState.targetZoom * config.zoomRate ^ dt, config.zoomMax)
+		cameraState.targetZoom = math.min(cameraState.targetZoom * config.zoomRate ^ dt, GetEffectiveZoomMax())
 
 		-- Clamp BOTH current and target camera positions to respect margin
 		-- Use current zoom for current position, target zoom for target position
@@ -9354,7 +10080,7 @@ function widget:Update(dt)
 
 		-- Don't recalculate here - will be done below in the main zoom/center update block
 	elseif interactionState.areDecreasingZoom then
-		cameraState.targetZoom = math.max(cameraState.targetZoom / config.zoomRate ^ dt, config.zoomMin)
+		cameraState.targetZoom = math.max(cameraState.targetZoom / config.zoomRate ^ dt, GetEffectiveZoomMin())
 
 		-- Clamp BOTH current and target camera positions to respect margin
 		-- Use current zoom for current position, target zoom for target position
@@ -9385,8 +10111,9 @@ function widget:Update(dt)
 		-- Don't recalculate here - will be done below in the main zoom/center update block
 	end
 
-	if not gameHasStarted then
+	if not gameHasStarted and not isMinimapMode then
 		-- Only auto-focus on start position if not spectating or not tracking another player
+		-- Don't do this in minimap mode - the minimap should show the full map
 		local isSpec = Spring.GetSpectatingState()
 		if not isSpec and not interactionState.trackingPlayerID then
 			local newX, _, newZ = Spring.GetTeamStartPosition(Spring.GetMyTeamID())
@@ -9872,15 +10599,15 @@ function widget:MouseWheel(up, value)
 		
 		if Spring.GetConfigInt("ScrollWheelSpeed", 1) > 0 then
 			if up then
-				cameraState.targetZoom = math.max(cameraState.targetZoom / config.zoomWheel, config.zoomMin)
+				cameraState.targetZoom = math.max(cameraState.targetZoom / config.zoomWheel, GetEffectiveZoomMin())
 			else
-				cameraState.targetZoom = math.min(cameraState.targetZoom * config.zoomWheel, config.zoomMax)
+				cameraState.targetZoom = math.min(cameraState.targetZoom * config.zoomWheel, GetEffectiveZoomMax())
 			end
 		else
 			if not up then
-				cameraState.targetZoom = math.max(cameraState.targetZoom / config.zoomWheel, config.zoomMin)
+				cameraState.targetZoom = math.max(cameraState.targetZoom / config.zoomWheel, GetEffectiveZoomMin())
 			else
-				cameraState.targetZoom = math.min(cameraState.targetZoom * config.zoomWheel, config.zoomMax)
+				cameraState.targetZoom = math.min(cameraState.targetZoom * config.zoomWheel, GetEffectiveZoomMax())
 			end
 		end
 		
@@ -9908,15 +10635,15 @@ function widget:MouseWheel(up, value)
 
 			if Spring.GetConfigInt("ScrollWheelSpeed", 1) > 0 then
 				if up then
-					cameraState.targetZoom = math.max(cameraState.targetZoom / config.zoomWheel, config.zoomMin)
+					cameraState.targetZoom = math.max(cameraState.targetZoom / config.zoomWheel, GetEffectiveZoomMin())
 				else
-					cameraState.targetZoom = math.min(cameraState.targetZoom * config.zoomWheel, config.zoomMax)
+					cameraState.targetZoom = math.min(cameraState.targetZoom * config.zoomWheel, GetEffectiveZoomMax())
 				end
 			else
 				if not up then
-					cameraState.targetZoom = math.max(cameraState.targetZoom / config.zoomWheel, config.zoomMin)
+					cameraState.targetZoom = math.max(cameraState.targetZoom / config.zoomWheel, GetEffectiveZoomMin())
 				else
-					cameraState.targetZoom = math.min(cameraState.targetZoom * config.zoomWheel, config.zoomMax)
+					cameraState.targetZoom = math.min(cameraState.targetZoom * config.zoomWheel, GetEffectiveZoomMax())
 				end
 			end
 
@@ -9994,7 +10721,6 @@ function widget:MouseWheel(up, value)
 end
 
 function widget:MousePress(mx, my, mButton)
-
 	-- Track mapmark initiation position if mouse is over PiP (for point markers with double-click)
 	if mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t and not uiState.inMinMode then
 		miscState.mapmarkInitScreenX = mx
@@ -10011,6 +10737,42 @@ function widget:MousePress(mx, my, mButton)
 			local mmHeight = mmBounds.drawT - mmBounds.drawB
 			local relX = (mx - mmBounds.drawL) / mmWidth
 			local relY = 1 - ((my - mmBounds.drawB) / mmHeight)  -- Flip Y (screen Y is bottom-up, map Z is top-down)
+			
+			-- Apply rotation to account for minimap rotation
+			local minimapRotation = Spring.GetMiniMapRotation()
+			if minimapRotation ~= 0 then
+				-- Get map aspect ratio for coordinate scaling at 90/270 degrees
+				local mapAspect = mapInfo.mapSizeX / mapInfo.mapSizeZ
+				
+				-- Convert to center-based coordinates (0.5, 0.5 is center)
+				local centeredX = relX - 0.5
+				local centeredY = relY - 0.5
+				
+				-- At 90/270 degrees, the visual box aspect doesn't match the rotated content
+				-- We need to scale coordinates to account for this
+				-- The minimap box was created with mapAspect = mapSizeX/mapSizeZ
+				-- At 90/270, the content is rotated so X becomes Y and vice versa
+				local rotDegrees = math.abs(minimapRotation * 180 / math.pi)
+				local is90or270 = (rotDegrees > 45 and rotDegrees < 135) or (rotDegrees > 225 and rotDegrees < 315)
+				
+				if is90or270 and mapAspect ~= 1 then
+					-- Scale coordinates to account for aspect ratio mismatch
+					-- At 90/270, the rotated content has inverted aspect ratio
+					centeredX = centeredX * mapAspect
+					centeredY = centeredY / mapAspect
+				end
+				
+				-- Apply rotation (positive direction - Spring's rotation is CCW)
+				local cosR = math.cos(minimapRotation)
+				local sinR = math.sin(minimapRotation)
+				local rotatedX = centeredX * cosR - centeredY * sinR
+				local rotatedY = centeredX * sinR + centeredY * cosR
+				
+				-- Convert back to 0-1 range
+				relX = rotatedX + 0.5
+				relY = rotatedY + 0.5
+			end
+			
 			local worldX = relX * mapInfo.mapSizeX
 			local worldZ = relY * mapInfo.mapSizeZ
 			
@@ -10079,8 +10841,8 @@ function widget:MousePress(mx, my, mButton)
 				interactionState.areFormationDragging = false
 			end
 
-			-- Start panning (but not when tracking player camera)
-			if not interactionState.trackingPlayerID then
+			-- Start panning (but not when tracking player camera or at minimum zoom)
+			if not interactionState.trackingPlayerID and not IsAtMinimumZoom(cameraState.zoom) then
 				interactionState.arePanning = true
 				interactionState.panStartX = (render.dim.l + render.dim.r) / 2
 				interactionState.panStartY = (render.dim.b + render.dim.t) / 2
@@ -10214,14 +10976,16 @@ function widget:MousePress(mx, my, mButton)
 		-- Was it a left click? -> check buttons
 		if mButton == 1 then
 
-			-- Resize thing (check first - highest priority)
-			if render.dim.r-mx + my-render.dim.b <= render.usedButtonSize then
-				uiState.areResizing = true
-				return true
+			-- Resize thing (check first - highest priority) - disabled in minimap mode
+			if not (isMinimapMode and config.minimapModeHideMoveResize) then
+				if render.dim.r-mx + my-render.dim.b <= render.usedButtonSize then
+					uiState.areResizing = true
+					return true
+				end
 			end
 
-			-- Minimizing? (or ALT+drag/middle drag to move window)
-			if mx >= render.dim.r - render.usedButtonSize and my >= render.dim.t - render.usedButtonSize then
+			-- Minimizing? (or ALT+drag/middle drag to move window) - disabled in minimap mode
+			if not isMinimapMode and mx >= render.dim.r - render.usedButtonSize and my >= render.dim.t - render.usedButtonSize then
 				local altKey = Spring.GetModKeyState()
 				
 				-- If ALT is held or middle mouse, start tracking for drag (to move window)
@@ -10310,24 +11074,47 @@ function widget:MousePress(mx, my, mButton)
 				end
 				local visibleButtons = {}
 				for i = 1, #buttons do
-					-- Show pip_track button if has selection or is tracking units
-					if buttons[i].command == 'pip_track' then
-						if hasSelection or isTracking then
-							visibleButtons[#visibleButtons + 1] = buttons[i]
+					local btn = buttons[i]
+					-- In minimap mode, skip move button if configured
+					local skipButton = false
+					if isMinimapMode and config.minimapModeHideMoveResize then
+						if btn.tooltipKey == 'ui.pip.move' then
+							skipButton = true
 						end
-					-- Show pip_trackplayer button if lockcamera is available or already tracking
-					elseif buttons[i].command == 'pip_trackplayer' then
-						if showPlayerTrackButton then
-							visibleButtons[#visibleButtons + 1] = buttons[i]
+					end
+					-- In minimap mode, skip switch and copy buttons (keep pip_track and pip_trackplayer)
+					-- Allow pip_view for spectators with fullview
+					if isMinimapMode then
+						if btn.command == 'pip_switch' or btn.command == 'pip_copy' then
+							skipButton = true
+						elseif btn.command == 'pip_view' then
+							local _, fullview = Spring.GetSpectatingState()
+							if not fullview then
+								skipButton = true
+							end
 						end
-					-- Show pip_view button only for spectators
-					elseif buttons[i].command == 'pip_view' then
-						local _, _, spec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
-						if spec then
-							visibleButtons[#visibleButtons + 1] = buttons[i]
+					end
+					
+					if not skipButton then
+						-- Show pip_track button if has selection or is tracking units
+						if btn.command == 'pip_track' then
+							if hasSelection or isTracking then
+								visibleButtons[#visibleButtons + 1] = btn
+							end
+						-- Show pip_trackplayer button if lockcamera is available or already tracking
+						elseif btn.command == 'pip_trackplayer' then
+							if showPlayerTrackButton then
+								visibleButtons[#visibleButtons + 1] = btn
+							end
+						-- Show pip_view button only for spectators
+						elseif btn.command == 'pip_view' then
+							local _, _, spec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+							if spec then
+								visibleButtons[#visibleButtons + 1] = btn
+							end
+						else
+							visibleButtons[#visibleButtons + 1] = btn
 						end
-					else
-						visibleButtons[#visibleButtons + 1] = buttons[i]
 					end
 				end
 				local buttonIndex = 1 + math.floor((mx - render.dim.l) / render.usedButtonSize)
@@ -10341,6 +11128,19 @@ function widget:MousePress(mx, my, mButton)
 
 			-- Missed buttons with left click, so what did we click on?
 			local wx, wz = PipToWorldCoords(mx, my)
+			
+			-- In minimap mode with leftButtonPansCamera enabled, left-click moves the world camera
+			if isMinimapMode and config.leftButtonPansCamera then
+				local _, cmdID = Spring.GetActiveCommand()
+				-- Only move world camera if there's no active command
+				if not cmdID or cmdID == 0 then
+					local groundHeight = spFunc.GetGroundHeight(wx, wz) or 0
+					Spring.SetCameraTarget(wx, groundHeight, wz, 0.2)
+					interactionState.worldCameraDragging = true
+					return true
+				end
+			end
+			
 			local _, cmdID = Spring.GetActiveCommand()
 			if cmdID then
 				-- Check if this is a build command with shift modifier for drag-to-build
@@ -10583,6 +11383,15 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 	-- Get modifier key states
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 
+	-- Handle world camera dragging (leftButtonPansCamera mode in minimap mode)
+	if interactionState.worldCameraDragging then
+		-- Convert PIP coordinates to world coordinates and move world camera
+		local wx, wz = PipToWorldCoords(mx, my)
+		local groundHeight = spFunc.GetGroundHeight(wx, wz) or 0
+		Spring.SetCameraTarget(wx, groundHeight, wz, 0.04)
+		return true
+	end
+
 	-- Handle pip-minimap dragging (moves PIP camera)
 	if interactionState.pipMinimapDragging then
 		local mmBounds = interactionState.pipMinimapBounds
@@ -10592,6 +11401,37 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 			local mmHeight = mmBounds.drawT - mmBounds.drawB
 			local relX = (mx - mmBounds.drawL) / mmWidth
 			local relY = 1 - ((my - mmBounds.drawB) / mmHeight)  -- Flip Y (screen Y is bottom-up, map Z is top-down)
+			
+			-- Apply inverse rotation to account for minimap rotation
+			local minimapRotation = Spring.GetMiniMapRotation()
+			if minimapRotation ~= 0 then
+				-- Get map aspect ratio for coordinate scaling at 90/270 degrees
+				local mapAspect = mapInfo.mapSizeX / mapInfo.mapSizeZ
+				
+				-- Convert to center-based coordinates (0.5, 0.5 is center)
+				local centeredX = relX - 0.5
+				local centeredY = relY - 0.5
+				
+				-- At 90/270 degrees, the visual box aspect doesn't match the rotated content
+				local rotDegrees = math.abs(minimapRotation * 180 / math.pi)
+				local is90or270 = (rotDegrees > 45 and rotDegrees < 135) or (rotDegrees > 225 and rotDegrees < 315)
+				
+				if is90or270 and mapAspect ~= 1 then
+					-- Scale coordinates to account for aspect ratio mismatch
+					centeredX = centeredX * mapAspect
+					centeredY = centeredY / mapAspect
+				end
+				
+				-- Apply rotation (positive direction - Spring's rotation is CCW)
+				local cosR = math.cos(minimapRotation)
+				local sinR = math.sin(minimapRotation)
+				local rotatedX = centeredX * cosR - centeredY * sinR
+				local rotatedY = centeredX * sinR + centeredY * cosR
+				-- Convert back to 0-1 range
+				relX = rotatedX + 0.5
+				relY = rotatedY + 0.5
+			end
+			
 			local worldX = relX * mapInfo.mapSizeX
 			local worldZ = relY * mapInfo.mapSizeZ
 			
@@ -10610,8 +11450,14 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 			local maxWcz = mapInfo.mapSizeZ - (visibleWorldHeight / 2 - margin)
 			
 			-- Set camera target clamped to margins
-			cameraState.targetWcx = math.min(math.max(worldX, minWcx), maxWcx)
-			cameraState.targetWcz = math.min(math.max(worldZ, minWcz), maxWcz)
+			-- In minimap mode at minimum zoom, force center on map
+			if IsAtMinimumZoom(cameraState.zoom) then
+				cameraState.targetWcx = mapInfo.mapSizeX / 2
+				cameraState.targetWcz = mapInfo.mapSizeZ / 2
+			else
+				cameraState.targetWcx = math.min(math.max(worldX, minWcx), maxWcx)
+				cameraState.targetWcz = math.min(math.max(worldZ, minWcz), maxWcz)
+			end
 			-- Also set current position for immediate response during drag
 			cameraState.wcx = cameraState.targetWcx
 			cameraState.wcz = cameraState.targetWcz
@@ -10722,12 +11568,15 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 					return  -- Don't pan when tracking player camera
 				end
 			end
-			interactionState.arePanning = true
-			interactionState.areTracking = nil
-			-- Cancel any ongoing smooth animation by setting target to current position
-			cameraState.targetWcx = cameraState.wcx
-			cameraState.targetWcz = cameraState.wcz
-			cameraState.zoomToCursorActive = false
+			-- Don't pan when at minimum zoom in minimap mode
+			if not IsAtMinimumZoom(cameraState.zoom) then
+				interactionState.arePanning = true
+				interactionState.areTracking = nil
+				-- Cancel any ongoing smooth animation by setting target to current position
+				cameraState.targetWcx = cameraState.wcx
+				cameraState.targetWcz = cameraState.wcz
+				cameraState.zoomToCursorActive = false
+			end
 		end
 	end
 
@@ -10745,12 +11594,15 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 					return  -- Don't pan when tracking player camera
 				end
 			end
-			interactionState.arePanning = true
-			interactionState.areTracking = nil
-			-- Cancel any ongoing smooth animation by setting target to current position
-			cameraState.targetWcx = cameraState.wcx
-			cameraState.targetWcz = cameraState.wcz
-			cameraState.zoomToCursorActive = false
+			-- Don't pan when at minimum zoom in minimap mode
+			if not IsAtMinimumZoom(cameraState.zoom) then
+				interactionState.arePanning = true
+				interactionState.areTracking = nil
+				-- Cancel any ongoing smooth animation by setting target to current position
+				cameraState.targetWcx = cameraState.wcx
+				cameraState.targetWcz = cameraState.wcz
+				cameraState.zoomToCursorActive = false
+			end
 		end
 	end
 
@@ -10796,12 +11648,15 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 					return  -- Don't pan when tracking player camera
 				end
 			end
-			interactionState.arePanning = true
-			interactionState.areTracking = nil
-			-- Cancel any ongoing smooth animation by setting target to current position
-			cameraState.targetWcx = cameraState.wcx
-			cameraState.targetWcz = cameraState.wcz
-			cameraState.zoomToCursorActive = false
+			-- Don't pan when at minimum zoom in minimap mode
+			if not IsAtMinimumZoom(cameraState.zoom) then
+				interactionState.arePanning = true
+				interactionState.areTracking = nil
+				-- Cancel any ongoing smooth animation by setting target to current position
+				cameraState.targetWcx = cameraState.wcx
+				cameraState.targetWcz = cameraState.wcz
+				cameraState.zoomToCursorActive = false
+			end
 		end
 	end
 
@@ -10865,13 +11720,25 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 		UpdateGuishaderBlur()
 
 	elseif interactionState.arePanning then
+		-- In minimap mode at minimum zoom, don't allow panning - keep centered on map
+		if IsAtMinimumZoom(cameraState.zoom) then
+			cameraState.wcx = mapInfo.mapSizeX / 2
+			cameraState.wcz = mapInfo.mapSizeZ / 2
+			cameraState.targetWcx = cameraState.wcx
+			cameraState.targetWcz = cameraState.wcz
+			return
+		end
+		
 		-- Pan the camera based on mouse movement (only if there's movement)
 		if dx ~= 0 or dy ~= 0 then
+			-- Get current minimap rotation (must fetch fresh)
+			local minimapRotation = Spring.GetMiniMapRotation and Spring.GetMiniMapRotation() or 0
+			
 			-- Apply inverse rotation to mouse deltas if minimap is rotated
 			local panDx, panDy = dx, dy
-			if render.minimapRotation ~= 0 then
-				local cosR = math.cos(-render.minimapRotation)
-				local sinR = math.sin(-render.minimapRotation)
+			if minimapRotation ~= 0 then
+				local cosR = math.cos(-minimapRotation)
+				local sinR = math.sin(-minimapRotation)
 				panDx = dx * cosR - dy * sinR
 				panDy = dx * sinR + dy * cosR
 			end
@@ -10883,8 +11750,8 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 			local visibleWorldWidth = pipWidth / cameraState.zoom
 			local visibleWorldHeight = pipHeight / cameraState.zoom
 			
-			if render.minimapRotation then
-				local rotDeg = math.abs(render.minimapRotation * 180 / math.pi) % 180
+			if minimapRotation ~= 0 then
+				local rotDeg = math.abs(minimapRotation * 180 / math.pi) % 180
 				if rotDeg > 45 and rotDeg < 135 then
 					visibleWorldWidth, visibleWorldHeight = visibleWorldHeight, visibleWorldWidth
 				end
@@ -11006,6 +11873,12 @@ function widget:KeyRelease(key)
 end
 
 function widget:MouseRelease(mx, my, mButton)
+	-- Handle world camera drag release (leftButtonPansCamera mode)
+	if mButton == 1 and interactionState.worldCameraDragging then
+		interactionState.worldCameraDragging = false
+		return true
+	end
+
 	-- Handle pip-minimap drag release
 	if mButton == 1 and interactionState.pipMinimapDragging then
 		interactionState.pipMinimapDragging = false
