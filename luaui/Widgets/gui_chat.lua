@@ -2297,6 +2297,49 @@ function widget:KeyPress(key)
 		inputTextPosition = utf8.len(inputText)
 		cursorBlinkTimer = 0
 
+	elseif ctrl and key == 276 then -- CTRL + LEFT (word jump)
+		if shift then
+			if not inputSelectionStart then
+				inputSelectionStart = inputTextPosition
+			end
+		else
+			inputSelectionStart = nil
+		end
+		-- Move to previous word boundary
+		local pos = inputTextPosition
+		-- Skip any spaces before current position
+		while pos > 0 and utf8.sub(inputText, pos, pos):match("%s") do
+			pos = pos - 1
+		end
+		-- Skip the word
+		while pos > 0 and not utf8.sub(inputText, pos, pos):match("%s") do
+			pos = pos - 1
+		end
+		inputTextPosition = pos
+		cursorBlinkTimer = 0
+
+	elseif ctrl and key == 275 then -- CTRL + RIGHT (word jump)
+		if shift then
+			if not inputSelectionStart then
+				inputSelectionStart = inputTextPosition
+			end
+		else
+			inputSelectionStart = nil
+		end
+		-- Move to next word boundary
+		local textLen = utf8.len(inputText)
+		local pos = inputTextPosition
+		-- Skip the current word
+		while pos < textLen and not utf8.sub(inputText, pos + 1, pos + 1):match("%s") do
+			pos = pos + 1
+		end
+		-- Skip any spaces after the word
+		while pos < textLen and utf8.sub(inputText, pos + 1, pos + 1):match("%s") do
+			pos = pos + 1
+		end
+		inputTextPosition = pos
+		cursorBlinkTimer = 0
+
 	elseif not alt and not ctrl then
 		if key == 27 then -- ESC
 			cancelChatInput()
