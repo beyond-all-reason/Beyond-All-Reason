@@ -3,7 +3,7 @@ EventName = {
 	delay = integrer - Minimum seconds that have to pass to play this notification again.
 	stackedDelay = bool - Reset the delay even when attempted to play the notif under cooldown. 
 							Useful for stuff you want to be able to hear often, but not repeatedly if the condition didn't change.
-	resetOtherEventDelay = string - Name of 'fallback' event that will get it's delay reset. 
+	resetOtherEventDelay = table - Names of other events that will get it's delay reset. 
 							For example, UnitLost, is a general notif for losing units, but we have MetalExtractorLost, or RadarLost. I want those to reset UnitLost as well.
 	soundEffect = string - Sound Effect to play alongside the notification, located in 'sounds/voice-soundeffects'
 	notext = bool - hide the text part of the notification
@@ -18,17 +18,17 @@ return {
 	EnemyCommanderDied = {
 		delay = 1,
 		soundEffect = "EnemyComDead",
-		resetOtherEventDelay = "NeutralCommanderDied",
+		resetOtherEventDelay = {"NeutralCommanderDied"},
 	},
 	FriendlyCommanderDied = {
 		delay = 1,
 		soundEffect = "FriendlyComDead",
-		resetOtherEventDelay = "NeutralCommanderDied",
+		resetOtherEventDelay = {"NeutralCommanderDied"},
 	},
 	FriendlyCommanderSelfD = {
 		delay = 1,
 		soundEffect = "FriendlyComDead",
-		resetOtherEventDelay = "NeutralCommanderSelfD",
+		resetOtherEventDelay = {"NeutralCommanderSelfD"},
 	},
 	NeutralCommanderDied = {
 		delay = 1,
@@ -38,23 +38,7 @@ return {
 		delay = 1,
 		soundEffect = "NeutralComDead",
 	},
-	EnemyTeamEliminated = {
-		delay = 2,
-	},
-	YourTeamEliminated = {
-		delay = 2,
-	},
-	GainedLead = {
-		delay = 20,
-	},
-	LostLead = {
-		delay = 20,
-	},
-	ComHeavyDamage = {
-		delay = 10,
-		stackedDelay = true,
-		soundEffect = "CommanderHeavilyDamaged",
-	},
+
 	TeamDownLastCommander = {
 		delay = 30,
 		soundEffect = "YourTeamHasTheLastCommander",
@@ -63,6 +47,7 @@ return {
 		delay = 30,
 		soundEffect = "YouHaveTheLastCommander",
 	},
+
 	["RespawningCommanders/CommanderTransposed"] = {
 		delay = 5,
 	},
@@ -102,55 +87,67 @@ return {
 	GamePaused = {
 		delay = 1,
 	},
+	["TerritorialDomination/EnemyTeamEliminated"] = {
+		delay = 2,
+	},
+	["TerritorialDomination/YourTeamEliminated"] = {
+		delay = 2,
+	},
+	["TerritorialDomination/GainedLead"] = {
+		delay = 20,
+	},
+	["TerritorialDomination/LostLead"] = {
+		delay = 20,
+	},
 
 	TeammateCaughtUp = {
 		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerCaughtUp",
+		resetOtherEventDelay = {"NeutralPlayerCaughtUp"},
 	},
 	TeammateDisconnected = {
 		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerDisconnected",
+		resetOtherEventDelay = {"NeutralPlayerDisconnected"},
 	},
 	TeammateLagging = {
 		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerLagging",
+		resetOtherEventDelay = {"NeutralPlayerLagging"},
 	},
 	TeammateReconnected = {
 		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerReconnected",
+		resetOtherEventDelay = {"NeutralPlayerReconnected"},
 	},
 	TeammateResigned = {
 		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerResigned",
+		resetOtherEventDelay = {"NeutralPlayerResigned"},
 	},
 	TeammateTimedout = {
 		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerTimedout",
+		resetOtherEventDelay = {"NeutralPlayerTimedout"},
 	},
 
 	EnemyPlayerCaughtUp = {
 		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerCaughtUp",
+		resetOtherEventDelay = {"NeutralPlayerCaughtUp"},
 	},
 	EnemyPlayerDisconnected = {
 		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerDisconnected",
+		resetOtherEventDelay = {"NeutralPlayerDisconnected"},
 	},
 	EnemyPlayerLagging = {
 		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerLagging",
+		resetOtherEventDelay = {"NeutralPlayerLagging"},
 	},
 	EnemyPlayerReconnected = {
 		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerReconnected",
+		resetOtherEventDelay = {"NeutralPlayerReconnected"},
 	},
 	EnemyPlayerResigned = {
 		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerResigned",
+		resetOtherEventDelay = {"NeutralPlayerResigned"},
 	},
 	EnemyPlayerTimedout = {
 		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerTimedout",
+		resetOtherEventDelay = {"NeutralPlayerTimedout"},
 	},
 
 	NeutralPlayerCaughtUp = {
@@ -177,23 +174,8 @@ return {
 
 	-- Awareness
 	MaxUnitsReached = {
-		delay = 90,
-	},
-	DefenseUnderAttack = {
-		delay = 30,
+		delay = 10,
 		stackedDelay = true,
-		resetOtherEventDelay = "UnitsUnderAttack",
-		soundEffect = "UnitUnderAttack",
-	},
-	EconomyUnderAttack = {
-		delay = 30,
-		stackedDelay = true,
-		soundEffect = "UnitUnderAttack",
-	},
-	FactoryUnderAttack = {
-		delay = 30,
-		stackedDelay = true,
-		soundEffect = "UnitUnderAttack",
 	},
 	UnitsCaptured = {
 		delay = 5,
@@ -201,38 +183,70 @@ return {
 	UnitsReceived = {
 		delay = 5,
 	},
-	CommanderUnderAttack = {
-		delay = 10,
-		stackedDelay = true,
-		resetOtherEventDelay = "UnitsUnderAttack",
-		soundEffect = "CommanderUnderAttack",
-	},
+
+
 	UnitsUnderAttack = {
 		delay = 60,
 		stackedDelay = true,
+		resetOtherEventDelay = {"DefenseUnderAttack"},
 		soundEffect = "UnitUnderAttack",
 	},
-	UnitLost = {
+	DefenseUnderAttack = {
+		delay = 60,
+		stackedDelay = true,
+		resetOtherEventDelay = {"UnitsUnderAttack"},
+		soundEffect = "UnitUnderAttack",
+	},
+
+	EconomyUnderAttack = {
+		delay = 30,
+		stackedDelay = true,
+		resetOtherEventDelay = {"UnitsUnderAttack", "DefenseUnderAttack"},
+		soundEffect = "UnitUnderAttack",
+	},
+	FactoryUnderAttack = {
+		delay = 30,
+		stackedDelay = true,
+		resetOtherEventDelay = {"UnitsUnderAttack", "DefenseUnderAttack"},
+		soundEffect = "UnitUnderAttack",
+	},
+	CommanderUnderAttack = {
+		delay = 10,
+		stackedDelay = true,
+		resetOtherEventDelay = {"UnitsUnderAttack", "DefenseUnderAttack"},
+		soundEffect = "CommanderUnderAttack",
+	},
+	ComHeavyDamage = {
+		delay = 10,
+		stackedDelay = true,
+		resetOtherEventDelay = {"UnitsUnderAttack", "DefenseUnderAttack", "CommanderUnderAttack"},
+		soundEffect = "CommanderHeavilyDamaged",
+	},
+
+
+	UnitLost = { -- Master Event
 		delay = 60,
 		stackedDelay = true,
 		soundEffect = "UnitUnderAttack",
 	},
+
 	RadarLost = {
 		delay = 30,
 		stackedDelay = true,
-		resetOtherEventDelay = "UnitLost",
+		resetOtherEventDelay = {"UnitLost", "RadarLost"},
 		soundEffect = "UnitUnderAttack",
 	},
 	AdvancedRadarLost = {
 		delay = 30,
 		stackedDelay = true,
-		resetOtherEventDelay = "UnitLost",
+		resetOtherEventDelay = {"UnitLost", "AdvancedRadarLost"},
 		soundEffect = "UnitUnderAttack",
 	},
+
 	MetalExtractorLost = {
 		delay = 30,
 		stackedDelay = true,
-		resetOtherEventDelay = "UnitLost",
+		resetOtherEventDelay = {"UnitLost"},
 		soundEffect = "UnitUnderAttack",
 	},
 
@@ -276,18 +290,19 @@ return {
 		soundEffect = "AllyRequest",
 	},
 	IdleConstructors = {
-		delay = 30,
+		delay = 45,
 		stackedDelay = true,
 	},
 
 	-- Alerts
 	NukeLaunched = {
-		delay = 3,
+		delay = 5,
 		soundEffect = "NukeAlert",
-		resetOtherEventDelay = "AlliedNukeLaunched",
+		resetOtherEventDelay = {"AlliedNukeLaunched"},
+		stackedDelay = true,
 	},
 	AlliedNukeLaunched = {
-		delay = 3,
+		delay = 5,
 		soundEffect = "NukeAlert",
 		stackedDelay = true,
 	},
