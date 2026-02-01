@@ -346,6 +346,7 @@ local teamN
 local prevClickTime = os.clock()
 local specListShow = true
 local enemyListShow = true
+local enemyListShowUserPref = true  -- Stores user preference, separate from auto-disabled state
 local forceMainListRefresh = true
 
 --------------------------------------------------
@@ -1452,6 +1453,7 @@ function SortList()
         initiated = true
         if aliveTeams > 40 then
             enemyListShow = false
+            -- Don't update enemyListShowUserPref - this is auto-disabled, not user choice
         end
     end
     local deadTeamSize = 0.66
@@ -3312,6 +3314,7 @@ function widget:MousePress(x, y, button)
         posY = widgetPosY + widgetHeight - enemyLabelOffset
         if numberOfEnemies > 0 and IsOnRect(x, y, widgetPosX + 2, posY + 2, widgetPosX + widgetWidth - 2, posY + 20) then
             enemyListShow = not enemyListShow
+            enemyListShowUserPref = enemyListShow  -- User explicitly toggled, update preference
             SortList()
             SetModulesPositionX() --why?
             CreateLists()
@@ -3641,7 +3644,7 @@ function widget:GetConfigData()
             m_takeActive = m_take.active,
             m_active_Table = m_active_Table,
             specListShow = specListShow,
-            enemyListShow = enemyListShow,
+            enemyListShow = enemyListShowUserPref,  -- Save user preference, not auto-disabled state
             gameFrame = spGetGameFrame(),
             lastSystemData = lastSystemData,
             alwaysHideSpecs = alwaysHideSpecs,
@@ -3671,6 +3674,7 @@ function widget:SetConfigData(data)
 
     if data.enemyListShow ~= nil then
         enemyListShow = data.enemyListShow
+        enemyListShowUserPref = data.enemyListShow  -- Restore user preference
     end
 
     if data.version ~= nil and data.alwaysHideSpecs ~= nil then

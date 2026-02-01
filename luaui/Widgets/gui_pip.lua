@@ -5,6 +5,8 @@ if not Spring.GetModOptions().pip then
 	end
 end
 
+pipNumber = pipNumber or 1
+
 function widget:GetInfo()
 	return {
 		name      = "Picture-in-Picture",
@@ -13,13 +15,11 @@ function widget:GetInfo()
 		version   = "2.0",
 		date      = "October 2025",
 		license   = "GNU GPL, v2 or later",
-		layer     = -990010,
+		layer     = -(990020-pipNumber),
 		enabled   = true,
 		handler   = true,
 	}
 end
-
-pipNumber = pipNumber or 1
 
 ----------------------------------------------------------------------------------------------------
 -- Keyboard config for hotkey display
@@ -101,8 +101,9 @@ local config = {
 	showWorldIcon = true,  -- Show minimize/maximize icon in world view at PIP camera location
 	showWorldIconForSpectators = false,  -- Also show world icon when spectating (default off)
 	cancelPlayerTrackingOnPan = true,  -- Cancel player camera tracking when trying to pan or ALT+drag
-	pipMinimapCorner = 1,  -- Corner for pip minimap: 1=bottom-left, 2=bottom-right, 3=top-left, 4=top-right
-	minimapHeightPercent = 0.13,  -- Minimap height as percent of PIP height (maintains aspect ratio)
+	pipMinimapCorner = 3,  -- Corner for pip minimap: 1=bottom-left, 2=bottom-right, 3=top-left, 4=top-right
+	minimapHeightPercent = 0.12,  -- Minimap height as percent of PIP height (maintains aspect ratio)
+	minimapHoverHeightPercent = 0.15,  -- Minimap height when hovering over PIP
 	
 	-- Performance settings
 	pipMinUpdateRate = 30,
@@ -290,6 +291,8 @@ local interactionState = {
 	minimizeButtonDragging = false,  -- Whether we're dragging via minimize button to move PIP window
 	minimizeButtonClickStartX = 0,  -- Screen X when we started clicking minimize button
 	minimizeButtonClickStartY = 0,  -- Screen Y when we started clicking minimize button
+	pipMinimapBounds = nil,  -- {l, r, b, t} bounds of pip-minimap when visible, nil otherwise
+	pipMinimapDragging = false,  -- Whether we're dragging the pip-minimap to move camera
 }
 
 -- Consolidated misc state
@@ -559,6 +562,7 @@ local buttons = {
 		texture = 'LuaUI/Images/pip/PipCopy.png',
 		tooltipKey = 'ui.pip.copy',
 		command = 'pip_copy',
+		shortcut = 'Alt + Q',
 		OnPress = function()
 				local sizex, sizez = Spring.GetWindowGeometry()
 				local _, pos = Spring.TraceScreenRay(sizex/2, sizez/2, true)
@@ -588,6 +592,7 @@ local buttons = {
 		texture = 'LuaUI/Images/pip/PipSwitch.png',
 		tooltipKey = 'ui.pip.switch',
 		command = 'pip_switch',
+		shortcut = 'Shift + Q',
 		OnPress = function()
 				local sizex, sizez = Spring.GetWindowGeometry()
 				local _, pos = Spring.TraceScreenRay(sizex/2, sizez/2, true)
@@ -669,6 +674,7 @@ local buttons = {
 		tooltipKey = 'ui.pip.track',
 		tooltipActiveKey = 'ui.pip.untrack',
 		command = 'pip_track',
+		shortcut = 'Alt + A',
 		OnPress = function()
 			local selectedUnits = Spring.GetSelectedUnits()
 			if #selectedUnits > 0 then
@@ -3904,6 +3910,9 @@ if not uiState.inMinMode and not miscState.hadSavedConfig then
 			elseif button.command == 'pip_switch' then
 				Spring.SendCommands("unbindkeyset shift+q")
 				Spring.SendCommands("bind shift+q pip_switch")
+			elseif button.command == 'pip_track' then
+				Spring.SendCommands("unbindkeyset alt+a")
+				Spring.SendCommands("bind alt+a pip_track")
 			end
 		end
 	end
@@ -4123,6 +4132,8 @@ function widget:Shutdown()
 				Spring.SendCommands("unbind Alt+Q pip_copy")
 			elseif button.command == 'pip_switch' then
 				Spring.SendCommands("unbind Shift+Q pip_switch")
+			elseif button.command == 'pip_track' then
+				Spring.SendCommands("unbind Alt+A pip_track")
 			end
 		end
 	end
@@ -7292,16 +7303,15 @@ end
 
 -- Helper function to draw a minimap overlay in PIP corner when tracking a player camera
 -- Shows map with LOS overlay and a rectangle indicating the current PIP view
--- Also shown for players (not just spectators tracking others)
+-- Also shown for players (not just spectators tracking others) and when hovering
 local function DrawTrackedPlayerMinimap()
-	-- Show for players OR when tracking a player camera, but not when hovering
+	-- Show for players OR when tracking a player camera OR when hovering
 	local showForPlayer = not cameraState.mySpecState  -- Show for players
 	local showForTracking = interactionState.trackingPlayerID ~= nil  -- Show when tracking
+	local showForHover = interactionState.isMouseOverPip  -- Show when hovering
 	
-	if not showForPlayer and not showForTracking then
-		return
-	end
-	if interactionState.isMouseOverPip then
+	if not showForPlayer and not showForTracking and not showForHover then
+		interactionState.pipMinimapBounds = nil
 		return
 	end
 
@@ -7315,13 +7325,15 @@ local function DrawTrackedPlayerMinimap()
 		teamID = Spring.GetMyTeamID()
 	end
 	if not teamID then
+		interactionState.pipMinimapBounds = nil
 		return
 	end
 
-	-- Calculate minimap dimensions - 12% of PIP height, maintain map aspect ratio
+	-- Calculate minimap dimensions - use hover size if hovering, otherwise normal size
 	local pipWidth = render.dim.r - render.dim.l
 	local pipHeight = render.dim.t - render.dim.b
-	local minimapHeight = math.floor(pipHeight * config.minimapHeightPercent)
+	local heightPercent = showForHover and config.minimapHoverHeightPercent or config.minimapHeightPercent
+	local minimapHeight = math.floor(pipHeight * heightPercent)
 	local mapAspect = mapInfo.mapSizeX / mapInfo.mapSizeZ
 	local minimapWidth = math.floor(minimapHeight * mapAspect)
 
@@ -7331,8 +7343,10 @@ local function DrawTrackedPlayerMinimap()
 
 	-- Position based on config corner setting
 	-- 1=bottom-left, 2=bottom-right, 3=top-left, 4=top-right
-	local cornerSize = math.floor(render.elementCorner * 0.6)
-	local borderOffset = 1  -- Touch the team color border
+	-- When tracking units, add cornerSize offset; otherwise stick to PIP edge
+	local isTrackingUnits = interactionState.areTracking and #interactionState.areTracking > 0
+	local cornerSize = isTrackingUnits and math.floor(render.elementCorner * 0.6) or 0
+	local borderOffset = isTrackingUnits and 1 or 0  -- Touch the team color border, or snap to edge
 	local mmLeft, mmBottom, mmRight, mmTop
 	local corner = config.pipMinimapCorner or 1
 	
@@ -7357,6 +7371,19 @@ local function DrawTrackedPlayerMinimap()
 		mmLeft = mmRight - minimapWidth
 		mmBottom = mmTop - minimapHeight
 	end
+
+	-- Store minimap bounds for click handling (include the border)
+	interactionState.pipMinimapBounds = {
+		l = corner == 2 and (mmLeft - 3) or mmLeft,
+		r = corner == 1 and (mmRight + 3) or mmRight,
+		b = corner >= 3 and (mmBottom - 3) or mmBottom,
+		t = corner <= 2 and (mmTop + 3) or mmTop,
+		-- Store actual drawing bounds (without border) for coordinate conversion
+		drawL = mmLeft,
+		drawR = mmRight,
+		drawB = mmBottom,
+		drawT = mmTop,
+	}
 
 	-- Determine which corner faces PIP center for chamfer and border
 	-- bottom-left: chamfer top-right, border top+right
@@ -8109,13 +8136,15 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 							tooltipKey = visibleButtons[i].tooltipActiveKey
 						end
 					end
-					-- Generate tooltip with shortcut key on new line if command exists and has a binding
+					-- Generate tooltip with shortcut key on new line if available
 					local tooltipText = Spring.I18N(tooltipKey)
-					if visibleButtons[i].command then
-						local shortcut = getActionHotkey(visibleButtons[i].command)
-						if shortcut and shortcut ~= "" then
-							tooltipText = tooltipText .. "\n" .. shortcut
-						end
+					-- Use button's shortcut field first, fall back to getActionHotkey
+					local shortcut = visibleButtons[i].shortcut
+					if not shortcut and visibleButtons[i].command then
+						shortcut = getActionHotkey(visibleButtons[i].command)
+					end
+					if shortcut and shortcut ~= "" then
+						tooltipText = tooltipText .. "\n" .. shortcut
 					end
 					WG['tooltip'].ShowTooltip('pip'..pipNumber, tooltipText, nil, nil, nil)
 				end
@@ -8981,6 +9010,9 @@ function widget:Update(dt)
 	local mouseX, mouseY, leftButton, middleButton, rightButton = spFunc.GetMouseState()
 	if not leftButton and interactionState.leftMousePressed then
 		interactionState.leftMousePressed = false
+	end
+	if not leftButton and interactionState.pipMinimapDragging then
+		interactionState.pipMinimapDragging = false
 	end
 	if not rightButton and interactionState.rightMousePressed then
 		interactionState.rightMousePressed = false
@@ -9970,6 +10002,35 @@ function widget:MousePress(mx, my, mButton)
 		miscState.mapmarkInitTime = os.clock()
 	end
 
+	-- Handle click/drag on pip-minimap (if visible and not tracking player camera)
+	local mmBounds = interactionState.pipMinimapBounds
+	if mButton == 1 and mmBounds and not interactionState.trackingPlayerID and not uiState.inMinMode then
+		if mx >= mmBounds.l and mx <= mmBounds.r and my >= mmBounds.b and my <= mmBounds.t then
+			-- Convert screen position to world position and move camera there
+			local mmWidth = mmBounds.drawR - mmBounds.drawL
+			local mmHeight = mmBounds.drawT - mmBounds.drawB
+			local relX = (mx - mmBounds.drawL) / mmWidth
+			local relY = 1 - ((my - mmBounds.drawB) / mmHeight)  -- Flip Y (screen Y is bottom-up, map Z is top-down)
+			local worldX = relX * mapInfo.mapSizeX
+			local worldZ = relY * mapInfo.mapSizeZ
+			
+			-- Set camera target
+			cameraState.targetWcx = math.max(0, math.min(mapInfo.mapSizeX, worldX))
+			cameraState.targetWcz = math.max(0, math.min(mapInfo.mapSizeZ, worldZ))
+			RecalculateWorldCoordinates()
+			RecalculateGroundTextureCoordinates()
+			
+			-- Clear unit tracking when clicking minimap
+			interactionState.areTracking = nil
+			
+			-- Start minimap dragging for continued movement
+			interactionState.pipMinimapDragging = true
+			interactionState.leftMousePressed = true
+			
+			return true  -- Consume the click
+		end
+	end
+
 	-- Handle ALT+click on world minimize/maximize icons - start tracking for drag vs click
 	local alt = Spring.GetModKeyState()
 	if config.showWorldIcon and mButton == 1 and alt and not uiState.isAnimating then
@@ -10522,6 +10583,44 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 	-- Get modifier key states
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 
+	-- Handle pip-minimap dragging (moves PIP camera)
+	if interactionState.pipMinimapDragging then
+		local mmBounds = interactionState.pipMinimapBounds
+		if mmBounds then
+			-- Convert screen position to world position and move camera there
+			local mmWidth = mmBounds.drawR - mmBounds.drawL
+			local mmHeight = mmBounds.drawT - mmBounds.drawB
+			local relX = (mx - mmBounds.drawL) / mmWidth
+			local relY = 1 - ((my - mmBounds.drawB) / mmHeight)  -- Flip Y (screen Y is bottom-up, map Z is top-down)
+			local worldX = relX * mapInfo.mapSizeX
+			local worldZ = relY * mapInfo.mapSizeZ
+			
+			-- Apply map edge margin constraints (same as UpdateTracking)
+			local pipWidth = render.dim.r - render.dim.l
+			local pipHeight = render.dim.t - render.dim.b
+			local visibleWorldWidth = pipWidth / cameraState.zoom
+			local visibleWorldHeight = pipHeight / cameraState.zoom
+			local smallerVisibleDimension = math.min(visibleWorldWidth, visibleWorldHeight)
+			local margin = smallerVisibleDimension * config.mapEdgeMargin
+			
+			-- Calculate min/max camera positions to keep margin from map edges
+			local minWcx = visibleWorldWidth / 2 - margin
+			local maxWcx = mapInfo.mapSizeX - (visibleWorldWidth / 2 - margin)
+			local minWcz = visibleWorldHeight / 2 - margin
+			local maxWcz = mapInfo.mapSizeZ - (visibleWorldHeight / 2 - margin)
+			
+			-- Set camera target clamped to margins
+			cameraState.targetWcx = math.min(math.max(worldX, minWcx), maxWcx)
+			cameraState.targetWcz = math.min(math.max(worldZ, minWcz), maxWcz)
+			-- Also set current position for immediate response during drag
+			cameraState.wcx = cameraState.targetWcx
+			cameraState.wcz = cameraState.targetWcz
+			RecalculateWorldCoordinates()
+			RecalculateGroundTextureCoordinates()
+		end
+		return true
+	end
+
 	-- Handle world icon drag (ALT+drag to move PIP window on screen)
 	if alt and interactionState.worldIconClickStartX ~= 0 and not uiState.isAnimating then
 		local dragThreshold = 8  -- Pixels before considering it a drag
@@ -10907,6 +11006,12 @@ function widget:KeyRelease(key)
 end
 
 function widget:MouseRelease(mx, my, mButton)
+	-- Handle pip-minimap drag release
+	if mButton == 1 and interactionState.pipMinimapDragging then
+		interactionState.pipMinimapDragging = false
+		return true
+	end
+
 	-- Handle world icon click/drag release
 	if mButton == 1 and interactionState.worldIconClickStartX ~= 0 then
 		local wasDragging = interactionState.worldIconDragging
