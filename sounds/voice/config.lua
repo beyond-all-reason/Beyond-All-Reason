@@ -469,6 +469,10 @@ return {
 	Welcome = {
 		delay = 9999999,
 	},
+	WelcomeShort = {
+		delay = 0,
+		notext = true,
+	},
 	BuildMetal = {
 		delay = 9999999,
 		tutorial = true,
