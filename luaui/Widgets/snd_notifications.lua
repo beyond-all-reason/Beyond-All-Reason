@@ -769,8 +769,10 @@ local function playNextSound()
 		end
 
 		LastPlay[event] = spGetGameFrame()
-		if notification[event].resetOtherEventDelay then
-			LastPlay[notification[event].resetOtherEventDelay] = spGetGameFrame()
+		if notification[event].resetOtherEventDelay and #notification[event].resetOtherEventDelay > 0 then
+			for i = 1,#notification[event].resetOtherEventDelay do
+				LastPlay[notification[event].resetOtherEventDelay[i]] = spGetGameFrame()
+			end
 		end
 
 		-- for tutorial event: log number of plays
