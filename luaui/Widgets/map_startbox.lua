@@ -432,6 +432,7 @@ local shaderSourceCache = {
 		uniformFloat = {
 			pingData = {0,0,0,-10000}, -- x,y,z, time
 			isMiniMap = 0,
+			pipVisibleArea = {0, 1, 0, 1}, -- left, right, bottom, top in normalized [0,1] coords for PIP minimap
 		},
 		shaderName = "Start Polygons GL4",
 		shaderConfig = {
@@ -458,6 +459,7 @@ local coneShaderSourceCache = {
 	},
 	uniformFloat = {
 		isMiniMap = 0,
+		pipVisibleArea = {0, 1, 0, 1}, -- left, right, bottom, top in normalized [0,1] coords for PIP minimap
 	},
 	shaderName = "Start Cones GL4",
 	shaderConfig = {
@@ -502,6 +504,14 @@ local function DrawStartPolygons(inminimap)
 
 	startPolygonShader:SetUniformInt("rotationMiniMap", getCurrentMiniMapRotationOption() or ROTATION.DEG_0)
 	startPolygonShader:SetUniformInt("myAllyTeamID", myAllyTeamID or -1)
+	
+	-- Pass PIP visible area if drawing in PIP minimap
+	if inminimap and WG['minimap'] and WG['minimap'].isDrawingInPip and WG['minimap'].getNormalizedVisibleArea then
+		local left, right, bottom, top = WG['minimap'].getNormalizedVisibleArea()
+		startPolygonShader:SetUniform("pipVisibleArea", left, right, bottom, top)
+	else
+		startPolygonShader:SetUniform("pipVisibleArea", 0, 1, 0, 1)
+	end
 
 	fullScreenRectVAO:DrawArrays(GL_TRIANGLES)
 	startPolygonShader:Deactivate()
@@ -517,6 +527,14 @@ local function DrawStartCones(inminimap)
 	startConeShader:Activate()
 	startConeShader:SetUniform("isMinimap", inminimap and 1 or 0)
 	startConeShader:SetUniformInt("rotationMiniMap", getCurrentMiniMapRotationOption() or ROTATION.DEG_0)
+	
+	-- Pass PIP visible area if drawing in PIP minimap
+	if inminimap and WG['minimap'] and WG['minimap'].isDrawingInPip and WG['minimap'].getNormalizedVisibleArea then
+		local left, right, bottom, top = WG['minimap'].getNormalizedVisibleArea()
+		startConeShader:SetUniform("pipVisibleArea", left, right, bottom, top)
+	else
+		startConeShader:SetUniform("pipVisibleArea", 0, 1, 0, 1)
+	end
 
 	startConeShader:SetUniformFloat("startPosScale", startPosScale)
 
