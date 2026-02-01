@@ -288,14 +288,14 @@ local function UpdateCoroutines()
 end
 
 
-function HealUnit(unitID, healrate, resourceFrames, h, mh)
-	if (resourceFrames <= 0) or not h then
+function HealUnit(unitID, healrate, resourceFrames, droneCurrentHealth, droneMaxHealth)
+	if (resourceFrames <= 0) or not droneCurrentHealth then
 		return true
 	end
 	local healthGain = healrate*resourceFrames
-	local newHealth = mathMin(h + healthGain, mh)
-	if mh < newHealth then
-		newHealth = mh
+	local newHealth = mathMin(droneCurrentHealth + healthGain, droneMaxHealth)
+	if droneMaxHealth < newHealth then
+		newHealth = droneMaxHealth
 	end
 	if newHealth <= 0 then
 		spDestroyUnit(unitID, true)
@@ -361,7 +361,7 @@ local function UndockUnit(unitID, subUnitID)
 end
 
 
-local function UndockSequence(unitID, subUnitID) -- Initiates an undock sequence in COB
+local function UndockSequence(unitID, subUnitID)
 	if not carrierMetaList[unitID] then
 		return
 	elseif not carrierMetaList[unitID].subUnitsList[subUnitID] then
@@ -390,7 +390,7 @@ local function COBUndockSequenceFinished(unitID, unitDefID, team, subUnitID)
 		return
 	else
 		UndockUnit(unitID, subUnitID)
-		return 1
+		return
 	end
 end
 
@@ -426,7 +426,7 @@ local function COBDroneSpawnSequenceFinished(unitID, unitDefID, team, subUnitID)
 		local dockingPiece = carrierMetaList[unitID].subUnitsList[subUnitID].dockingPiece
 		local _, pieceAngle  = spCallCOBScript(unitID, "DroneDocked", 5, pieceAngle, dockingPiece)
 		spCallCOBScript(subUnitID, "Docked", 0, carrierMetaList[unitID].cobdockparam, dockingPiece, pieceAngle)
-		return 1
+		return
 	end
 end
 
@@ -1049,8 +1049,8 @@ local function UpdateStandaloneDrones(frame)
 		end
 
 		if droneData.decayRate > 0 then
-			local h, mh = spGetUnitHealth(unitID)
-			HealUnit(unitID, -droneData.decayRate, resourceFrames, h, mh)
+			local droneCurrentHealth, droneMaxHealth = spGetUnitHealth(unitID)
+			HealUnit(unitID, -droneData.decayRate, resourceFrames, droneCurrentHealth, droneMaxHealth)
 		end
 	end
 end
@@ -1181,23 +1181,23 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 			local droneInFormation = droneData.inFormation
 			local droneDistance = diag((carrierx-sx), (carrierz-sz))
 
-			local h, mh = spGetUnitHealth(subUnitID)
+			local droneCurrentHealth, droneMaxHealth = spGetUnitHealth(subUnitID)
 
 			local droneAlive = true
-			if h then
+			if droneCurrentHealth then
 				if carrierMetaData.dockedHealRate > 0 and droneDocked then
-					if h == mh then
+					if droneCurrentHealth == droneMaxHealth then
 						-- fully healed
 						droneData.stayDocked = false
 					else
 						-- still needs healing
 						droneData.stayDocked = true
-						droneAlive = HealUnit(subUnitID, carrierMetaData.dockedHealRate, resourceFrames, h, mh)
+						droneAlive = HealUnit(subUnitID, carrierMetaData.dockedHealRate, resourceFrames, droneCurrentHealth, droneMaxHealth)
 					end
 				elseif droneData.activeDocking == false then
-					droneAlive = HealUnit(subUnitID, -carrierMetaData.decayRate, resourceFrames, h, mh)
+					droneAlive = HealUnit(subUnitID, -carrierMetaData.decayRate, resourceFrames, droneCurrentHealth, droneMaxHealth)
 				end
-				if droneAlive and carrierMetaData.docking and 100*h/mh < carrierMetaData.dockToHealThreshold then
+				if droneAlive and carrierMetaData.docking and 100*droneCurrentHealth/droneMaxHealth < carrierMetaData.dockToHealThreshold then
 					DockUnitQueue(carrierID, subUnitID)
 				end
 			end
@@ -1523,6 +1523,7 @@ local function DockUnits(dockingqueue, queuestart, queueend)
 								if not carrierMetaList[unitID].manualDrones then
 									SetUnitNoSelect(subUnitID, true)
 								end
+								droneDocked = true
 								droneMetaData.docked = true
 								droneMetaData.activeDocking = false
 								droneMetaData.bomberStage = 0
@@ -1559,10 +1560,10 @@ local function DockUnits(dockingqueue, queuestart, queueend)
 							elseif not droneMetaData then
 								return
 							else
-								local h = spGetUnitHealth(subUnitID)
-								if not h then
+								local droneCurrentHealth = spGetUnitHealth(subUnitID)
+								if not droneCurrentHealth then
 									return
-								elseif h <= 0 then
+								elseif droneCurrentHealth <= 0 then
 									return
 								end
 							end
