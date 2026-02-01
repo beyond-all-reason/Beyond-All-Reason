@@ -406,7 +406,7 @@ local function DrawImpactIndicator(data, currentTime)
 
 	if isNuke then
 		-- Trefoil symbol in center (rotating, pulsing)
-		local trefoilSize = aoe * 0.66 * (0.75 + 0.18 * sin(currentTime * tau * 0.9))
+		local trefoilSize = aoe * 0.75 * (0.6 + 0.08 * sin(currentTime * tau * 0.4))
 		local trefoilOpacity = 0.35 + 0.1 * progress + 0.1 * blinkPhase
 		SetColor(color, trefoilOpacity)
 		DrawTrefoil(tx, ty + 3, tz, trefoilSize, rotation)

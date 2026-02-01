@@ -1,6 +1,15 @@
 local devUI = Spring.Utilities.ShowDevUI()
-if not Spring.GetModOptions().pip then
-	if not Spring.GetSpectatingState() or not Spring.Utilities.ShowDevUI() then
+local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+local isSpectator = Spring.GetSpectatingState()
+local pipEnabled = Spring.GetModOptions().pip
+
+-- When pipEnabled: always load
+-- When not pipEnabled: only load if devUI AND (spectator OR singleplayer)
+if not pipEnabled then
+	if not devUI then
+		return
+	end
+	if not isSinglePlayer and not isSpectator then
 		return
 	end
 end
@@ -149,6 +158,7 @@ local config = {
 	minimapModeShowButtons = false,  -- Hide buttons in minimap mode
 	minimapModeStartMinimized = false,  -- Don't start minimized in minimap mode
 	minimapModeHideMoveResize = true,  -- Hide move and resize buttons in minimap mode
+	showSpectatorPings = true,  -- Show map pings from spectators on the PIP minimap
 }
 
 -- State variables
@@ -4032,8 +4042,11 @@ end
 		return render.world.l, render.world.r, render.world.b, render.world.t
 	end
 	WG['pip'..pipNumber].GetScreenBounds = function()
-		-- Returns the screen coordinates of the PIP
-		return render.dim.l, render.dim.r, render.dim.b, render.dim.t
+		-- Returns the screen coordinates of the PIP: left, bottom, right, top
+		return render.dim.l, render.dim.b, render.dim.r, render.dim.t
+	end
+	WG['pip'..pipNumber].IsMinimized = function()
+		return uiState.inMinMode
 	end
 	WG['pip'..pipNumber].GetZoom = function()
 		return cameraState.zoom
@@ -4087,6 +4100,26 @@ end
 		-- Get the current minimap rotation
 		WG['minimap'].getRotation = function()
 			return render.minimapRotation or 0
+		end
+		-- Get normalized visible area for GL4 shader widgets (startbox, point_tracker, etc.)
+		-- Returns left, right, bottom, top in [0,1] world-normalized coords (NOT Y-flipped)
+		WG['minimap'].getNormalizedVisibleArea = function()
+			local normVisLeft = render.world.l / mapInfo.mapSizeX
+			local normVisRight = render.world.r / mapInfo.mapSizeX
+			local normVisBottom = render.world.b / mapInfo.mapSizeZ
+			local normVisTop = render.world.t / mapInfo.mapSizeZ
+			return normVisLeft, normVisRight, normVisBottom, normVisTop
+		end
+		-- Get zoom level (1.0 = full map visible, >1 = zoomed in)
+		WG['minimap'].getZoomLevel = function()
+			return mapInfo.mapSizeX / (render.world.r - render.world.l)
+		end
+		-- Get/set whether to show spectator pings on the PIP minimap
+		WG['minimap'].getShowSpectatorPings = function()
+			return config.showSpectatorPings
+		end
+		WG['minimap'].setShowSpectatorPings = function(value)
+			config.showSpectatorPings = value
 		end
 	end
 
@@ -6644,9 +6677,11 @@ local function DrawMapMarkers()
 				-- Fade out over the last second
 				local alpha = age < 2.5 and 1 or (1 - (age - 2.5))
 				
-				-- Use team color or default
+				-- Use team color for players, or gray for spectators
 				local r, g, b = 1, 1, 0  -- Default yellow
-				if marker.teamID then
+				if marker.isSpectator then
+					r, g, b = 0.7, 0.7, 0.7  -- Gray for spectators
+				elseif marker.teamID then
 					r, g, b = Spring.GetTeamColor(marker.teamID)
 				end
 				
@@ -8926,99 +8961,7 @@ function widget:DrawScreen()
 			-- Disable stencil test
 			gl.StencilTest(false)
 			
-			-- Draw minimap overlays from other widgets (only in minimap mode)
-			-- This is done here in DrawScreen (not in R2T) because matrix manipulation works correctly here
-			if isMinimapMode and WG['minimap'] and widgetHandler and widgetHandler.DrawInMiniMapList then
-				local minimapWidth = render.dim.r - render.dim.l
-				local minimapHeight = render.dim.t - render.dim.b
-				
-				-- Get the world coordinates visible in the PIP
-				local worldL, worldR, worldB, worldT = render.world.l, render.world.r, render.world.b, render.world.t
-				
-				-- Use scissor to clip to PIP area
-				gl.Scissor(render.dim.l, render.dim.b, minimapWidth, minimapHeight)
-				
-				-- Set a flag that widgets can check during their DrawInMiniMap
-				WG['minimap'].isDrawingInPip = true
-				
-				-- Calculate the normalized coords of our visible area
-				-- For shaders: pass in world-normalized coords (NOT Y-flipped), shaders do their own flip
-				local normVisLeft = worldL / mapInfo.mapSizeX
-				local normVisRight = worldR / mapInfo.mapSizeX
-				local normVisBottom = worldB / mapInfo.mapSizeZ  -- world Z coords, shader will flip
-				local normVisTop = worldT / mapInfo.mapSizeZ
-				
-				-- Expose the normalized visible area for GL4 shader widgets to use
-				-- They need this to transform their fullscreen quad coords to the visible portion
-				WG['minimap'].getNormalizedVisibleArea = function()
-					return normVisLeft, normVisRight, normVisBottom, normVisTop
-				end
-				
-				-- Also expose zoom level (1.0 = full map visible, >1 = zoomed in)
-				WG['minimap'].getZoomLevel = function()
-					return mapInfo.mapSizeX / (worldR - worldL)
-				end
-				
-				-- For fixed-function GL widgets that draw in [0,1] Y-flipped space
-				-- These coords have Y flipped: 0 = north (top), 1 = south (bottom)
-				local ffNormBottom = 1 - worldT / mapInfo.mapSizeZ
-				local ffNormTop = 1 - worldB / mapInfo.mapSizeZ
-				
-				-- Call widgets with proper matrix setup for fixed-function GL
-				for _, w in ipairs(widgetHandler.DrawInMiniMapList) do
-					if w ~= widget then  -- Don't recursively call ourselves
-						-- Save current matrices
-						gl.MatrixMode(GL.PROJECTION)
-						glFunc.PushMatrix()
-						gl.LoadIdentity()
-						
-						-- Handle minimap rotation
-						if render.minimapRotation and render.minimapRotation ~= 0 then
-							glFunc.Rotate(render.minimapRotation * 180 / math.pi, 0, 0, 1)
-						end
-						
-						-- Ortho maps [left,right,bottom,top] to [-1,1] NDC, which then maps to viewport
-						-- Use fixed-function Y-flipped coords for widgets that draw in [0,1] Y-flipped space
-						gl.Ortho(normVisLeft, normVisRight, ffNormBottom, ffNormTop, -1, 1)
-						
-						gl.MatrixMode(GL.MODELVIEW)
-						glFunc.PushMatrix()
-						gl.LoadIdentity()
-						
-						-- Set viewport to PIP area so NDC [-1,1] maps to our PIP screen coords
-						gl.Viewport(render.dim.l, render.dim.b, minimapWidth, minimapHeight)
-						
-						local success, err = pcall(function()
-							w:DrawInMiniMap(minimapWidth, minimapHeight)
-						end)
-						if not success then
-							Spring.Log(widget:GetInfo().name, LOG.WARNING, "Error in " .. (w.whInfo and w.whInfo.name or "unknown") .. ":DrawInMiniMap: " .. tostring(err))
-						end
-						
-						-- Restore viewport to full screen
-						gl.Viewport(0, 0, render.vsx, render.vsy)
-						
-						-- Restore matrices
-						glFunc.PopMatrix()
-						gl.MatrixMode(GL.PROJECTION)
-						glFunc.PopMatrix()
-						gl.MatrixMode(GL.MODELVIEW)
-					end
-				end
-				
-				-- Clear the flag and disable scissor
-				WG['minimap'].isDrawingInPip = false
-				WG['minimap'].getNormalizedVisibleArea = nil  -- Clear the function
-				WG['minimap'].getZoomLevel = nil
-				gl.Scissor(false)
-				
-				-- Restore GL state that widgets may have modified
-				glFunc.Color(1, 1, 1, 1)
-				glFunc.Texture(false)
-				gl.LineWidth(1.0)
-				gl.DepthTest(false)
-				gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-			end
+
 		end
 
 		-- Draw map ruler at edges (only when not spectating)
@@ -9432,132 +9375,6 @@ function widget:DrawWorld()
 	glFunc.Color(1, 1, 1, 1)
 end
 
-function widget:DrawInMiniMap(minimapWidth, minimapHeight)
-	-- In minimap mode, don't draw PIP viewport rectangle on the minimap (we ARE the minimap)
-	if isMinimapMode then return end
-	if uiState.inMinMode then return end
-
-	-- Calculate the viewport in world space
-	local wcx, wcz = cameraState.wcx, cameraState.wcz
-	local pipWidth = render.dim.r - render.dim.l
-	local pipHeight = render.dim.t - render.dim.b
-	local hw = 0.5 * pipWidth / cameraState.zoom
-	local hh = 0.5 * pipHeight / cameraState.zoom
-	
-	-- At 90/270 degrees, the world dimensions are swapped relative to screen
-	-- We need to swap the rectangle dimensions to match what's actually visible
-	local rotDeg = 0
-	if render.minimapRotation then
-		rotDeg = math.abs(render.minimapRotation * 180 / math.pi) % 360
-	end
-	local isRotated90 = (rotDeg > 45 and rotDeg < 135) or (rotDeg > 225 and rotDeg < 315)
-	if isRotated90 then
-		hw, hh = hh, hw
-	end
-	
-	-- The minimap itself is rotated, so we need to transform the world position
-	-- to account for the minimap's rotation
-	local worldX, worldZ = wcx, wcz
-	if render.minimapRotation and render.minimapRotation ~= 0 then
-		-- Rotate the center point by the inverse of minimap rotation
-		-- around the map center
-		local mapCenterX = mapInfo.mapSizeX / 2
-		local mapCenterZ = mapInfo.mapSizeZ / 2
-		local dx = worldX - mapCenterX
-		local dz = worldZ - mapCenterZ
-		local cos_a = math.cos(-render.minimapRotation)
-		local sin_a = math.sin(-render.minimapRotation)
-		worldX = mapCenterX + (dx * cos_a - dz * sin_a)
-		worldZ = mapCenterZ + (dx * sin_a + dz * cos_a)
-	end
-	
-	-- Convert to minimap coordinates
-	local centerX = (worldX / mapInfo.mapSizeX) * minimapWidth
-	local centerY = (1 - (worldZ / mapInfo.mapSizeZ)) * minimapHeight
-	
-	-- Convert half-dimensions to minimap pixel size
-	local halfWidth = (hw / mapInfo.mapSizeX) * minimapWidth
-	local halfHeight = (hh / mapInfo.mapSizeZ) * minimapHeight
-	
-	-- Draw rectangle showing PIP view area (team-colored if tracking player)
-	local linewidth = math.ceil(render.vsy / 2000)
-	glFunc.Texture(false)
-	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-	glFunc.PushMatrix()
-	
-	-- Translate to center and rotate
-	glFunc.Translate(centerX, centerY, 0)
-	if render.minimapRotation and render.minimapRotation ~= 0 then
-		glFunc.Rotate(render.minimapRotation * 180 / math.pi, 0, 0, 1)
-	end
-	
-	-- Draw dark background rectangle (centered at origin after transform)
-	-- Use octagon with corners cut off by 16 world units (converted to minimap units)
-	local cornerWorldSize = 64
-	local cornerX = (cornerWorldSize / mapInfo.mapSizeX) * minimapWidth
-	local cornerY = (cornerWorldSize / mapInfo.mapSizeZ) * minimapHeight
-	-- Clamp corner size if rectangle is too small
-	local maxCorner = math.min(halfWidth, halfHeight) / 2
-	local cx = math.min(cornerX, maxCorner)
-	local cy = math.min(cornerY, maxCorner)
-
-	-- draw dark outline
-	glFunc.Color(0, 0, 0, 0.6)
-	glFunc.LineWidth((linewidth*1.5)+1)
-	glFunc.BeginEnd(GL.LINE_LOOP, function()
-		-- Bottom edge
-		glFunc.Vertex(-halfWidth + cx, -halfHeight)
-		glFunc.Vertex(halfWidth - cx, -halfHeight)
-		-- Bottom-right corner cut
-		glFunc.Vertex(halfWidth, -halfHeight + cy)
-		-- Right edge
-		glFunc.Vertex(halfWidth, halfHeight - cy)
-		-- Top-right corner cut
-		glFunc.Vertex(halfWidth - cx, halfHeight)
-		-- Top edge
-		glFunc.Vertex(-halfWidth + cx, halfHeight)
-		-- Top-left corner cut
-		glFunc.Vertex(-halfWidth, halfHeight - cy)
-		-- Left edge
-		glFunc.Vertex(-halfWidth, -halfHeight + cy)
-		-- Bottom-left corner cut closes the loop
-	end)
-
-	-- Use team color if tracking a player, otherwise white
-	local r, g, b = 0.85, 0.85, 0.85
-	if interactionState.trackingPlayerID then
-		local _, _, _, teamID = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
-		if teamID then
-			r, g, b = Spring.GetTeamColor(teamID)
-		end
-	end
-
-	-- draw bright line
-	glFunc.Color(r, g, b, 1)
-	glFunc.LineWidth(linewidth)
-	glFunc.BeginEnd(GL.LINE_LOOP, function()
-		-- Bottom edge
-		glFunc.Vertex(-halfWidth + cx, -halfHeight)
-		glFunc.Vertex(halfWidth - cx, -halfHeight)
-		-- Bottom-right corner cut
-		glFunc.Vertex(halfWidth, -halfHeight + cy)
-		-- Right edge
-		glFunc.Vertex(halfWidth, halfHeight - cy)
-		-- Top-right corner cut
-		glFunc.Vertex(halfWidth - cx, halfHeight)
-		-- Top edge
-		glFunc.Vertex(-halfWidth + cx, halfHeight)
-		-- Top-left corner cut
-		glFunc.Vertex(-halfWidth, halfHeight - cy)
-		-- Left edge
-		glFunc.Vertex(-halfWidth, -halfHeight + cy)
-		-- Bottom-left corner cut closes the loop
-	end)
-
-	glFunc.LineWidth(1.0)
-	glFunc.Color(1, 1, 1, 1)
-	glFunc.PopMatrix()
-end
 
 function widget:Update(dt)
 	-- In minimap mode, ensure the old minimap widget stays disabled
@@ -10464,15 +10281,17 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 		-- Get player's team and spec status
 		local _, _, isSpec, teamID = Spring.GetPlayerInfo(playerID, false)
 		
-		-- Only add marker if player is not a spectator
-		if not isSpec then
+		-- Add marker if player is not a spectator, or if spectator pings are enabled in minimap mode
+		local showMarker = not isSpec or (isMinimapMode and config.showSpectatorPings)
+		if showMarker then
 			-- Add marker to list
 			table.insert(miscState.mapMarkers, {
 				x = mx,
 				z = mz,
 				time = os.clock(),
 				teamID = teamID,
-				playerID = playerID
+				playerID = playerID,
+				isSpectator = isSpec
 			})
 			
 			-- Force PIP content update to show marker immediately
