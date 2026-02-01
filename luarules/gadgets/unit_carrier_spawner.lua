@@ -306,12 +306,20 @@ function HealUnit(unitID, healrate, resourceFrames, droneCurrentHealth, droneMax
 	end
 end
 
+local function ValidCarrierAndDrone(unitID, subUnitID)
+	if not carrierMetaList[unitID] then
+		return false
+	elseif not carrierMetaList[unitID].subUnitsList[subUnitID] then
+		return false
+	else 
+		return true
+	end
+end
 
 
 local function DockUnitQueue(unitID, subUnitID)
-	if not carrierMetaList[unitID] then
-		return
-	elseif not carrierMetaList[unitID].subUnitsList[subUnitID] then
+	local validDrone = ValidCarrierAndDrone(unitID, subUnitID)
+	if not validDrone then
 		return
 	elseif carrierMetaList[unitID].subUnitsList[subUnitID].activeDocking then
 		return
@@ -327,9 +335,8 @@ end
 
 
 local function UndockUnit(unitID, subUnitID)
-	if not carrierMetaList[unitID] then
-		return
-	elseif not carrierMetaList[unitID].subUnitsList[subUnitID] then
+	local validDrone = ValidCarrierAndDrone(unitID, subUnitID)
+	if not validDrone then
 		return
 	else
 		local droneMetaData = carrierMetaList[unitID].subUnitsList[subUnitID]
@@ -362,9 +369,8 @@ end
 
 
 local function UndockSequence(unitID, subUnitID)
-	if not carrierMetaList[unitID] then
-		return
-	elseif not carrierMetaList[unitID].subUnitsList[subUnitID] then
+	local validDrone = ValidCarrierAndDrone(unitID, subUnitID)
+	if not validDrone then
 		return
 	else
 		local droneMetaData = carrierMetaList[unitID].subUnitsList[subUnitID]
@@ -384,9 +390,8 @@ end
 
 
 local function COBUndockSequenceFinished(unitID, unitDefID, team, subUnitID)
-	if not carrierMetaList[unitID] then
-		return
-	elseif not carrierMetaList[unitID].subUnitsList[subUnitID] then
+	local validDrone = ValidCarrierAndDrone(unitID, subUnitID)
+	if not validDrone then
 		return
 	else
 		UndockUnit(unitID, subUnitID)
@@ -396,9 +401,8 @@ end
 
 
 local function DroneSpawnSequence(unitID, subUnitID)
-	if not carrierMetaList[unitID] then
-		return
-	elseif not carrierMetaList[unitID].subUnitsList[subUnitID] then
+	local validDrone = ValidCarrierAndDrone(unitID, subUnitID)
+	if not validDrone then
 		return
 	else
 		local droneMetaData = carrierMetaList[unitID].subUnitsList[subUnitID]
@@ -418,9 +422,8 @@ end
 
 
 local function COBDroneSpawnSequenceFinished(unitID, unitDefID, team, subUnitID)
-	if not carrierMetaList[unitID] then
-		return
-	elseif not carrierMetaList[unitID].subUnitsList[subUnitID] then
+	local validDrone = ValidCarrierAndDrone(unitID, subUnitID)
+	if not validDrone then
 		return
 	else
 		local dockingPiece = carrierMetaList[unitID].subUnitsList[subUnitID].dockingPiece
