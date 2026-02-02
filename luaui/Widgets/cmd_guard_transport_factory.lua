@@ -323,7 +323,7 @@ local function canTransport(transportID, unitID)
 	return true
 end
 
-local function removeLeadingMoveCommandsNearUnit(unitID, factoryID)
+local function removeLeadingMoveCommandsNearFactory(unitID, factoryID)
     local tags = {}
 
 	local fx, fy, fz = Spring.GetUnitPosition(factoryID)
@@ -397,7 +397,7 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
             -- The fab issues an inital move command to every unit to make sure it clears the factory.
             -- We want get rid of that command before picking up. Otherwise, it'll get picked up
             -- and dropped off, and then proceed to walk back to the factory and then to the rally.
-            removeLeadingMoveCommandsNearUnit(createdUnitID, factID)
+            removeLeadingMoveCommandsNearFactory(createdUnitID, factID)
 
             if bestTransportID > -1 then
                 transportState[bestTransportID]         = transport_states.approaching
