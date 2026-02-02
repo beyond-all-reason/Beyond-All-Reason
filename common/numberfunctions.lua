@@ -107,6 +107,23 @@ if not math.closestPointOnCircle then
     end
 end
 
+if not math.distanceFromRectangle then
+	---Computes the distance between a point and the border of a rectangle.
+	---Points inside of the rectangle evaluate to zero, not e.g. negatives.
+	---@param centerX number
+	---@param centerZ number
+	---@param sizeX number
+	---@param sizeZ number
+	---@param pointX number
+	---@param pointZ number
+	---@return number
+	function math.distanceFromRectangle(centerX, centerZ, sizeX, sizeZ, pointX, pointZ)
+		local dx = math.max(math.abs(pointX - centerX) - sizeX * 0.5, 0)
+		local dz = math.max(math.abs(pointZ - centerZ) - sizeZ * 0.5, 0)
+		return math.diag(dx, dz)
+	end
+end
+
 if not math.HSLtoRGB then
 	function math.HSLtoRGB(ch, cs, cl)
 		if cs == 0 then
