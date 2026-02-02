@@ -389,7 +389,7 @@ local function undockSequence(unitID, subUnitID)
 end
 
 
-local function cobUndockSequenceFinished(unitID, unitDefID, team, subUnitID)
+local function CobUndockSequenceFinished(unitID, unitDefID, team, subUnitID)
 	local validDrone = validCarrierAndDrone(unitID, subUnitID)
 	if not validDrone then
 		return
@@ -421,7 +421,7 @@ local function droneSpawnSequence(unitID, subUnitID)
 end
 
 
-local function cobDroneSpawnSequenceFinished(unitID, unitDefID, team, subUnitID)
+local function CobDroneSpawnSequenceFinished(unitID, unitDefID, team, subUnitID)
 	local validDrone = validCarrierAndDrone(unitID, subUnitID)
 	if not validDrone then
 		return
@@ -1660,8 +1660,8 @@ function gadget:Initialize()
 		local unitID = allUnits[i]
 		gadget:UnitCreated(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID))
 	end
-	gadgetHandler:RegisterGlobal("cobUndockSequenceFinished", cobUndockSequenceFinished)
-	gadgetHandler:RegisterGlobal("cobDroneSpawnSequenceFinished", cobDroneSpawnSequenceFinished)
+	gadgetHandler:RegisterGlobal("CobUndockSequenceFinished", CobUndockSequenceFinished)
+	gadgetHandler:RegisterGlobal("CobDroneSpawnSequenceFinished", CobDroneSpawnSequenceFinished)
 	
 end
 
