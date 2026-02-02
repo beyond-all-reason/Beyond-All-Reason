@@ -373,7 +373,6 @@ local drawData = {
 	iconTeam = {},
 	iconX = {},
 	iconY = {},
-	iconHeight = {},  -- Unit Y world position for draw order (air units on top)
 	iconUdef = {},
 	iconSelected = {},
 	iconBuildProgress = {},
@@ -1704,7 +1703,6 @@ local function DrawUnit(uID)
 	local idx = #drawData.iconTeam + 1
 	drawData.iconTeam[idx] = uTeam
 	drawData.iconX[idx], drawData.iconY[idx] = WorldToPipCoords(ux, uz)
-	drawData.iconHeight[idx] = uy  -- Store height for draw order sorting
 	drawData.iconUdef[idx] = uDefID
 	drawData.iconUnitID[idx] = uID
 	-- When tracking a player, show their selections instead of our own
@@ -3793,11 +3791,8 @@ function widget:Initialize()
 		if uDef.iconType and iconTypes[uDef.iconType] and iconTypes[uDef.iconType].bitmap then
 			cache.unitIcon[uDefID] = iconTypes[uDef.iconType]
 		end
-		-- Cache unitpic path (buildpic texture)
-		local unitpicPath = 'unitpics/' .. uDef.name .. '.dds'
-		if VFS.FileExists(unitpicPath) then
-			cache.unitPic[uDefID] = unitpicPath
-		end
+		-- Cache unitpic path using engine's #unitDefID syntax (handles all buildpic variations automatically)
+		cache.unitPic[uDefID] = '#' .. uDefID
 
 		-- Cache transport properties
 		if uDef.isTransport then
@@ -5328,65 +5323,122 @@ local function DrawIcons()
 		unitpicSizes[k] = 0
 	end
 	local defaultCount = 0
+	local defaultElevatedCount = 0
 
 	local iconCount = #drawData.iconTeam
 	for i = 1, iconCount do
 		local udef = drawData.iconUdef[i]
+		-- Aircraft are always drawn on top (use unitdef, not current Y position)
+		local isElevated = udef and cache.canFly[udef]
+		
 		if udef and cache.unitIcon[udef] then
 			local bitmap = cache.unitIcon[udef].bitmap
-			local texGroup = iconsByTexture[bitmap]
-			local groupSize = textureSizes[bitmap]
+			-- Use separate texture groups for ground and elevated units
+			local groupKey = isElevated and (bitmap .. "_elevated") or bitmap
+			local texGroup = iconsByTexture[groupKey]
+			local groupSize = textureSizes[groupKey]
 			if not texGroup then
 				texGroup = {}
 				groupSize = 0
-				iconsByTexture[bitmap] = texGroup
+				iconsByTexture[groupKey] = texGroup
 			end
 			groupSize = groupSize + 1
-			textureSizes[bitmap] = groupSize
+			textureSizes[groupKey] = groupSize
 			texGroup[groupSize] = i
 			
 			-- Also group by unitpic if we're using unitpics
-			if useUnitpics and cache.unitPic[udef] then
+			if useUnitpics then
 				local unitpic = cache.unitPic[udef]
-				local picGroup = unitpicsByTexture[unitpic]
-				local picGroupSize = unitpicSizes[unitpic]
+				local picGroupKey = isElevated and (unitpic .. "_elevated") or unitpic
+				local picGroup = unitpicsByTexture[picGroupKey]
+				local picGroupSize = unitpicSizes[picGroupKey]
 				if not picGroup then
 					picGroup = {}
 					picGroupSize = 0
-					unitpicsByTexture[unitpic] = picGroup
+					unitpicsByTexture[picGroupKey] = picGroup
 				end
 				picGroupSize = picGroupSize + 1
-				unitpicSizes[unitpic] = picGroupSize
+				unitpicSizes[picGroupKey] = picGroupSize
 				picGroup[picGroupSize] = i
 			end
 		else
-			defaultCount = defaultCount + 1
-			defaultIconIndices[defaultCount] = i
+			if isElevated then
+				defaultElevatedCount = defaultElevatedCount + 1
+				-- Store elevated defaults at end of array (after ground defaults)
+				defaultIconIndices[iconCount + defaultElevatedCount] = i
+			else
+				defaultCount = defaultCount + 1
+				defaultIconIndices[defaultCount] = i
+			end
 		end
 	end
 
 	-- Clear leftover default indices
-	for i = defaultCount + 1, #defaultIconIndices do
+	for i = defaultCount + defaultElevatedCount + 1, #defaultIconIndices do
 		defaultIconIndices[i] = nil
 	end
-
-	-- Create a single sorted list of ALL icon indices by height (ground units first, air units on top)
-	-- This replaces per-texture-group sorting which doesn't work because texture groups are iterated in arbitrary order
-	local sortedIconIndices = {}
-	for i = 1, iconCount do
-		sortedIconIndices[i] = i
-	end
-	table.sort(sortedIconIndices, function(a, b)
-		local heightA = drawData.iconHeight[a] or 0
-		local heightB = drawData.iconHeight[b] or 0
-		if heightA ~= heightB then
-			return heightA < heightB
+	-- Also clear the gap between ground and elevated if any
+	for i = defaultCount + 1, iconCount do
+		if i < iconCount + 1 then
+			-- This space is used for elevated indices, don't clear
 		end
-		-- Use unit ID as tiebreaker for stable sorting of units at same height (buildings)
-		local unitA = drawData.iconUnitID[a] or 0
-		local unitB = drawData.iconUnitID[b] or 0
-		return unitA < unitB
-	end)
+	end
+
+	-- Sort each texture group by screen Y (ascending) for proper depth ordering
+	-- Lower Y (further back) drawn first, higher Y (closer/in front) drawn on top
+	-- Use unit ID as tiebreaker for stable sorting (prevents z-fighting flicker)
+	local iconY = drawData.iconY
+	local iconUnitID = drawData.iconUnitID
+	for _, indices in pairs(iconsByTexture) do
+		if #indices > 1 then
+			table.sort(indices, function(a, b)
+				local ya, yb = iconY[a], iconY[b]
+				if ya ~= yb then return ya < yb end
+				return iconUnitID[a] < iconUnitID[b]
+			end)
+		end
+	end
+	-- Sort unitpic groups by Y as well
+	for _, indices in pairs(unitpicsByTexture) do
+		if #indices > 1 then
+			table.sort(indices, function(a, b)
+				local ya, yb = iconY[a], iconY[b]
+				if ya ~= yb then return ya < yb end
+				return iconUnitID[a] < iconUnitID[b]
+			end)
+		end
+	end
+	-- Sort default ground icons (indices 1 to defaultCount)
+	if defaultCount > 1 then
+		-- Create temp array for sorting ground defaults
+		local groundDefaults = {}
+		for i = 1, defaultCount do
+			groundDefaults[i] = defaultIconIndices[i]
+		end
+		table.sort(groundDefaults, function(a, b)
+			local ya, yb = iconY[a], iconY[b]
+			if ya ~= yb then return ya < yb end
+			return iconUnitID[a] < iconUnitID[b]
+		end)
+		for i = 1, defaultCount do
+			defaultIconIndices[i] = groundDefaults[i]
+		end
+	end
+	-- Sort default elevated icons (indices iconCount+1 to iconCount+defaultElevatedCount)
+	if defaultElevatedCount > 1 then
+		local elevatedDefaults = {}
+		for i = 1, defaultElevatedCount do
+			elevatedDefaults[i] = defaultIconIndices[iconCount + i]
+		end
+		table.sort(elevatedDefaults, function(a, b)
+			local ya, yb = iconY[a], iconY[b]
+			if ya ~= yb then return ya < yb end
+			return iconUnitID[a] < iconUnitID[b]
+		end)
+		for i = 1, defaultElevatedCount do
+			defaultIconIndices[iconCount + i] = elevatedDefaults[i]
+		end
+	end
 
 	-- Draw unitpics when zoomed in enough (before icons so icons layer on top if needed)
 	if useUnitpics then
@@ -5472,45 +5524,46 @@ local function DrawIcons()
 			glFunc.Vertex(cx - s + c, cy - s, 0)
 		end
 		
-		-- Draw unitpics in height order (ground units first, air units on top)
-		-- Each unitpic draws all 3 layers together for correct z-ordering
-		local sortedCount = #sortedIconIndices
-		for j = 1, sortedCount do
-			local i = sortedIconIndices[j]
+		-- Helper function to draw a single unitpic with all three layers (border, team color, texture)
+		local function drawUnitpic(i, isRotated)
+			local cx = drawData.iconX[i]
+			local cy = drawData.iconY[i]
 			local udef = drawData.iconUdef[i]
-			if udef and cache.unitPic[udef] then
-				local cx = drawData.iconX[i]
-				local cy = drawData.iconY[i]
-				local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size * unitpicSizeMult
-				local borderSize = iconSize + teamBorderSize
-				local outerBorderSize = iconSize + teamBorderSize + blackBorderSize
-				local cornerCut = outerBorderSize * cornerCutRatio
+			local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size * unitpicSizeMult
+			local borderSize = iconSize + teamBorderSize + blackBorderSize
+			local teamBorderSizeTotal = iconSize + teamBorderSize
+			local cornerCut = borderSize * cornerCutRatio
+			local cornerCutOuter = borderSize * cornerCutRatio * 1.2
+			
+			local buildProgress = drawData.iconBuildProgress[i]
+			local opacity = buildProgress >= 1 and 1.0 or (0.2 + (buildProgress * 0.5))
+			local isHovered = (drawData.hoveredUnitID and drawData.iconUnitID[i] == drawData.hoveredUnitID)
+			local color = teamColors[drawData.iconTeam[i]]
+			
+			-- Use unitpic (engine's #unitDefID texture reference)
+			local unitpic = cache.unitPic[udef]
+			
+			if isRotated then
+				glFunc.PushMatrix()
+				glFunc.Translate(cx, cy, 0)
+				glFunc.Rotate(-render.minimapRotation * 180 / math.pi, 0, 0, 1)
 				
-				local buildProgress = drawData.iconBuildProgress[i]
-				local opacity = buildProgress >= 1 and 1.0 or (0.2 + (buildProgress * 0.5))
-				local isHovered = (drawData.hoveredUnitID and drawData.iconUnitID[i] == drawData.hoveredUnitID)
+				-- Black border
+				glFunc.Texture(false)
+				glFunc.Color(0, 0, 0, 0.9)
+				glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, 0, 0, borderSize, cornerCutOuter)
 				
-				if render.minimapRotation ~= 0 then
-					glFunc.PushMatrix()
-					glFunc.Translate(cx, cy, 0)
-					glFunc.Rotate(-render.minimapRotation * 180 / math.pi, 0, 0, 1)
-					
-					-- Layer 1: Black outer border
-					glFunc.Texture(false)
-					glFunc.Color(0, 0, 0, 0.9)
-					glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, 0, 0, outerBorderSize, cornerCut * 1.2)
-					
-					-- Layer 2: Team-colored inner border
-					local color = teamColors[drawData.iconTeam[i]]
-					if drawData.iconSelected[i] then
-						glFunc.Color(1, 1, 1, 1)
-					else
-						glFunc.Color(color[1], color[2], color[3], 1)
-					end
-					glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, 0, 0, borderSize, cornerCut)
-					
-					-- Layer 3: Unitpic texture
-					glFunc.Texture(cache.unitPic[udef])
+				-- Team color border
+				if drawData.iconSelected[i] then
+					glFunc.Color(1, 1, 1, 1)
+				else
+					glFunc.Color(color[1], color[2], color[3], 1)
+				end
+				glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, 0, 0, teamBorderSizeTotal, cornerCut)
+				
+				-- Unitpic texture
+				if unitpic then
+					glFunc.Texture(unitpic)
 					if drawData.iconSelected[i] then
 						if isHovered then
 							glFunc.Color(1, 1, 1, math.min(1.0, opacity * 1.3))
@@ -5526,25 +5579,26 @@ local function DrawIcons()
 						end
 					end
 					glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawTexturedOctagonVertices, 0, 0, iconSize, cornerCut, picTexInset)
-					
-					glFunc.PopMatrix()
+				end
+				
+				glFunc.PopMatrix()
+			else
+				-- Black border
+				glFunc.Texture(false)
+				glFunc.Color(0, 0, 0, 0.9)
+				glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, cx, cy, borderSize, cornerCutOuter)
+				
+				-- Team color border
+				if drawData.iconSelected[i] then
+					glFunc.Color(1, 1, 1, 1)
 				else
-					-- Layer 1: Black outer border
-					glFunc.Texture(false)
-					glFunc.Color(0, 0, 0, 0.9)
-					glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, cx, cy, outerBorderSize, cornerCut * 1.2)
-					
-					-- Layer 2: Team-colored inner border
-					local color = teamColors[drawData.iconTeam[i]]
-					if drawData.iconSelected[i] then
-						glFunc.Color(1, 1, 1, 1)
-					else
-						glFunc.Color(color[1], color[2], color[3], 1)
-					end
-					glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, cx, cy, borderSize, cornerCut)
-					
-					-- Layer 3: Unitpic texture
-					glFunc.Texture(cache.unitPic[udef])
+					glFunc.Color(color[1], color[2], color[3], 1)
+				end
+				glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, cx, cy, teamBorderSizeTotal, cornerCut)
+				
+				-- Unitpic texture
+				if unitpic then
+					glFunc.Texture(unitpic)
 					if drawData.iconSelected[i] then
 						if isHovered then
 							glFunc.Color(1, 1, 1, math.min(1.0, opacity * 1.3))
@@ -5563,6 +5617,27 @@ local function DrawIcons()
 				end
 			end
 		end
+		
+		local isRotated = render.minimapRotation ~= 0
+		
+		-- PASS 1: Draw ground unitpics (sorted by Y within each group)
+		for groupKey, indices in pairs(unitpicsByTexture) do
+			if not string.find(groupKey, "_elevated") then
+				for j = 1, #indices do
+					drawUnitpic(indices[j], isRotated)
+				end
+			end
+		end
+		
+		-- PASS 2: Draw elevated unitpics on top (sorted by Y within each group)
+		for groupKey, indices in pairs(unitpicsByTexture) do
+			if string.find(groupKey, "_elevated") then
+				for j = 1, #indices do
+					drawUnitpic(indices[j], isRotated)
+				end
+			end
+		end
+		
 		glFunc.Texture(false)
 	end
 
@@ -5744,50 +5819,43 @@ local function DrawIcons()
 		end
 
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)  -- Restore normal blending
-	end	-- Draw icons in height-sorted order (ground units first, air units on top)
-	-- This sacrifices some texture batching efficiency for correct draw order
+	end	-- Draw icons in two passes: ground units first, then elevated units on top
+	-- Uses texture batching within each pass for performance
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-	local lastTexture = nil
-	local sortedCount = #sortedIconIndices
+	local defaultIconSize = config.iconRadius * 0.5 * cameraState.zoom * distMult
 	
-	for j = 1, sortedCount do
-		local i = sortedIconIndices[j]
-		local udef = drawData.iconUdef[i]
-		if udef and cache.unitIcon[udef] then
-			local bitmap = cache.unitIcon[udef].bitmap
-			
-			-- Only change texture when needed
-			if bitmap ~= lastTexture then
-				glFunc.Texture(bitmap)
-				lastTexture = bitmap
-			end
-			
-			local cx = drawData.iconX[i]
-			local cy = drawData.iconY[i]
-			local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size
+	-- Helper function to draw a batch of icons for a texture group
+	local function drawIconBatch(texture, indices, isRotated)
+		glFunc.Texture(texture)
+		local indexCount = #indices
+		
+		if isRotated then
+			for j = 1, indexCount do
+				local i = indices[j]
+				local cx = drawData.iconX[i]
+				local cy = drawData.iconY[i]
+				local udef = drawData.iconUdef[i]
+				local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size
 
-			local buildProgress = drawData.iconBuildProgress[i]
-			local opacity = buildProgress >= 1 and 1.0 or (0.2 + (buildProgress * 0.5))
+				local buildProgress = drawData.iconBuildProgress[i]
+				local opacity = buildProgress >= 1 and 1.0 or (0.2 + (buildProgress * 0.5))
+				local isHovered = (drawData.hoveredUnitID and drawData.iconUnitID[i] == drawData.hoveredUnitID)
 
-			local isHovered = (drawData.hoveredUnitID and drawData.iconUnitID[i] == drawData.hoveredUnitID)
-
-			if drawData.iconSelected[i] then
-				if isHovered then
-					glFunc.Color(1, 1, 1, math.min(1.0, opacity * 1.3))
+				if drawData.iconSelected[i] then
+					if isHovered then
+						glFunc.Color(1, 1, 1, math.min(1.0, opacity * 1.3))
+					else
+						glFunc.Color(1, 1, 1, opacity)
+					end
 				else
-					glFunc.Color(1, 1, 1, opacity)
+					local color = teamColors[drawData.iconTeam[i]]
+					if isHovered then
+						glFunc.Color(math.min(1.0, color[1] * 1.3), math.min(1.0, color[2] * 1.3), math.min(1.0, color[3] * 1.3), opacity)
+					else
+						glFunc.Color(color[1], color[2], color[3], opacity)
+					end
 				end
-			else
-				local color = teamColors[drawData.iconTeam[i]]
-				if isHovered then
-					glFunc.Color(math.min(1.0, color[1] * 1.3), math.min(1.0, color[2] * 1.3), math.min(1.0, color[3] * 1.3), opacity)
-				else
-					glFunc.Color(color[1], color[2], color[3], opacity)
-				end
-			end
-			
-			if render.minimapRotation ~= 0 then
-				-- Counter-rotate to keep icon upright
+				
 				glFunc.PushMatrix()
 				glFunc.Translate(cx, cy, 0)
 				glFunc.Rotate(-render.minimapRotation * 180 / math.pi, 0, 0, 1)
@@ -5802,8 +5870,34 @@ local function DrawIcons()
 					glFunc.Vertex(-iconSize, iconSize)
 				end)
 				glFunc.PopMatrix()
-			else
-				glFunc.BeginEnd(glConst.QUADS, function()
+			end
+		else
+			glFunc.BeginEnd(glConst.QUADS, function()
+				for j = 1, indexCount do
+					local i = indices[j]
+					local cx = drawData.iconX[i]
+					local cy = drawData.iconY[i]
+					local udef = drawData.iconUdef[i]
+					local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size
+
+					local buildProgress = drawData.iconBuildProgress[i]
+					local opacity = buildProgress >= 1 and 1.0 or (0.2 + (buildProgress * 0.5))
+					local isHovered = (drawData.hoveredUnitID and drawData.iconUnitID[i] == drawData.hoveredUnitID)
+
+					if drawData.iconSelected[i] then
+						if isHovered then
+							glFunc.Color(1, 1, 1, math.min(1.0, opacity * 1.3))
+						else
+							glFunc.Color(1, 1, 1, opacity)
+						end
+					else
+						local color = teamColors[drawData.iconTeam[i]]
+						if isHovered then
+							glFunc.Color(math.min(1.0, color[1] * 1.3), math.min(1.0, color[2] * 1.3), math.min(1.0, color[3] * 1.3), opacity)
+						else
+							glFunc.Color(color[1], color[2], color[3], opacity)
+						end
+					end
 					glFunc.TexCoord(texInset, 1 - texInset)
 					glFunc.Vertex(cx - iconSize, cy - iconSize)
 					glFunc.TexCoord(1 - texInset, 1 - texInset)
@@ -5812,40 +5906,41 @@ local function DrawIcons()
 					glFunc.Vertex(cx + iconSize, cy + iconSize)
 					glFunc.TexCoord(texInset, texInset)
 					glFunc.Vertex(cx - iconSize, cy + iconSize)
-				end)
-			end
-		else
-			-- Default icon for unknown unit types
-			if 'LuaUI/Images/pip/PipBlip.png' ~= lastTexture then
-				glFunc.Texture('LuaUI/Images/pip/PipBlip.png')
-				lastTexture = 'LuaUI/Images/pip/PipBlip.png'
-			end
-			
-			local cx = drawData.iconX[i]
-			local cy = drawData.iconY[i]
-			local defaultIconSize = config.iconRadius * 0.5 * cameraState.zoom * distMult
-
-			local buildProgress = drawData.iconBuildProgress[i]
-			local opacity = buildProgress >= 1 and 1.0 or (0.2 + (buildProgress * 0.5))
-
-			local isHovered = (drawData.hoveredUnitID and drawData.iconUnitID[i] == drawData.hoveredUnitID)
-
-			if drawData.iconSelected[i] then
-				if isHovered then
-					glFunc.Color(1, 1, 1, math.min(1.0, opacity * 1.3))
-				else
-					glFunc.Color(1, 1, 1, opacity)
 				end
-			else
-				local color = teamColors[drawData.iconTeam[i]]
-				if isHovered then
-					glFunc.Color(math.min(1.0, color[1] * 1.55), math.min(1.0, color[2] * 1.55), math.min(1.0, color[3] * 1.55), opacity)
+			end)
+		end
+	end
+	
+	-- Helper function to draw default icons
+	local function drawDefaultIconBatch(startIdx, count, isRotated)
+		if count <= 0 then return end
+		glFunc.Texture('LuaUI/Images/pip/PipBlip.png')
+		
+		if isRotated then
+			for j = startIdx, startIdx + count - 1 do
+				local i = defaultIconIndices[j]
+				local cx = drawData.iconX[i]
+				local cy = drawData.iconY[i]
+
+				local buildProgress = drawData.iconBuildProgress[i]
+				local opacity = buildProgress >= 1 and 1.0 or (0.2 + (buildProgress * 0.5))
+				local isHovered = (drawData.hoveredUnitID and drawData.iconUnitID[i] == drawData.hoveredUnitID)
+
+				if drawData.iconSelected[i] then
+					if isHovered then
+						glFunc.Color(1, 1, 1, math.min(1.0, opacity * 1.3))
+					else
+						glFunc.Color(1, 1, 1, opacity)
+					end
 				else
-					glFunc.Color(color[1], color[2], color[3], opacity)
+					local color = teamColors[drawData.iconTeam[i]]
+					if isHovered then
+						glFunc.Color(math.min(1.0, color[1] * 1.55), math.min(1.0, color[2] * 1.55), math.min(1.0, color[3] * 1.55), opacity)
+					else
+						glFunc.Color(color[1], color[2], color[3], opacity)
+					end
 				end
-			end
-			
-			if render.minimapRotation ~= 0 then
+				
 				glFunc.PushMatrix()
 				glFunc.Translate(cx, cy, 0)
 				glFunc.Rotate(-render.minimapRotation * 180 / math.pi, 0, 0, 1)
@@ -5860,8 +5955,32 @@ local function DrawIcons()
 					glFunc.Vertex(-defaultIconSize, defaultIconSize)
 				end)
 				glFunc.PopMatrix()
-			else
-				glFunc.BeginEnd(glConst.QUADS, function()
+			end
+		else
+			glFunc.BeginEnd(glConst.QUADS, function()
+				for j = startIdx, startIdx + count - 1 do
+					local i = defaultIconIndices[j]
+					local cx = drawData.iconX[i]
+					local cy = drawData.iconY[i]
+
+					local buildProgress = drawData.iconBuildProgress[i]
+					local opacity = buildProgress >= 1 and 1.0 or (0.2 + (buildProgress * 0.5))
+					local isHovered = (drawData.hoveredUnitID and drawData.iconUnitID[i] == drawData.hoveredUnitID)
+
+					if drawData.iconSelected[i] then
+						if isHovered then
+							glFunc.Color(1, 1, 1, math.min(1.0, opacity * 1.3))
+						else
+							glFunc.Color(1, 1, 1, opacity)
+						end
+					else
+						local color = teamColors[drawData.iconTeam[i]]
+						if isHovered then
+							glFunc.Color(math.min(1.0, color[1] * 1.55), math.min(1.0, color[2] * 1.55), math.min(1.0, color[3] * 1.55), opacity)
+						else
+							glFunc.Color(color[1], color[2], color[3], opacity)
+						end
+					end
 					glFunc.TexCoord(texInset, 1 - texInset)
 					glFunc.Vertex(cx - defaultIconSize, cy - defaultIconSize)
 					glFunc.TexCoord(1 - texInset, 1 - texInset)
@@ -5870,10 +5989,34 @@ local function DrawIcons()
 					glFunc.Vertex(cx + defaultIconSize, cy + defaultIconSize)
 					glFunc.TexCoord(texInset, texInset)
 					glFunc.Vertex(cx - defaultIconSize, cy + defaultIconSize)
-				end)
-			end
+				end
+			end)
 		end
 	end
+	
+	local isRotated = render.minimapRotation ~= 0
+	
+	-- PASS 1: Draw ground units (texture batched)
+	for groupKey, indices in pairs(iconsByTexture) do
+		-- Skip elevated groups in first pass
+		if not string.find(groupKey, "_elevated") then
+			local texture = groupKey  -- Ground groups use texture as key directly
+			drawIconBatch(texture, indices, isRotated)
+		end
+	end
+	-- Draw ground default icons
+	drawDefaultIconBatch(1, defaultCount, isRotated)
+	
+	-- PASS 2: Draw elevated units on top (texture batched)
+	for groupKey, indices in pairs(iconsByTexture) do
+		-- Only draw elevated groups in second pass
+		if string.find(groupKey, "_elevated") then
+			local texture = string.gsub(groupKey, "_elevated", "")  -- Remove suffix to get actual texture
+			drawIconBatch(texture, indices, isRotated)
+		end
+	end
+	-- Draw elevated default icons
+	drawDefaultIconBatch(iconCount + 1, defaultElevatedCount, isRotated)
 
 	end  -- End of "if not useUnitpics" block
 
@@ -6029,7 +6172,6 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		drawData.iconTeam[i] = nil
 		drawData.iconX[i] = nil
 		drawData.iconY[i] = nil
-		drawData.iconHeight[i] = nil
 		drawData.iconUdef[i] = nil
 		drawData.iconSelected[i] = nil
 		drawData.iconBuildProgress[i] = nil
