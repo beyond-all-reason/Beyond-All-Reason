@@ -46,7 +46,7 @@ function widget:GetInfo()
 	return {
 		name      = "Picture-in-Picture",
 		desc      = "",
-		author    = "Floris, (original by Niobium in 2010)",
+		author    = "Floris", -- (original by Niobium created in 2010)
 		version   = "2.0",
 		date      = "October 2025",
 		license   = "GNU GPL, v2 or later",
@@ -159,6 +159,7 @@ local config = {
 	minimapModeStartMinimized = false,  -- Don't start minimized in minimap mode
 	minimapModeHideMoveResize = true,  -- Hide move and resize buttons in minimap mode
 	showSpectatorPings = true,  -- Show map pings from spectators on the PIP minimap
+	showViewRectangleOnMinimap = false,  -- Show the PIP view rectangle on the engine minimap
 }
 
 -- State variables
@@ -329,9 +330,13 @@ local interactionState = {
 	worldIconHoverStartTime = 0,  -- Time when hover started (for 1s delay)
 	worldIconTooltipDisplayStartTime = 0,  -- Time when tooltip started displaying (for 1s count)
 	worldIconTooltipShownThisHover = false,  -- Flag to only count tooltip once per hover
-	worldIconDragging = false,  -- Whether we're dragging via world icon to move PIP window
+	worldIconDragging = false,  -- Whether we're dragging via world icon to move PIP camera
 	worldIconClickStartX = 0,  -- Screen X when we started clicking world icon
 	worldIconClickStartY = 0,  -- Screen Y when we started clicking world icon
+	worldIconDragStartWorldX = nil,  -- World X under cursor when drag started
+	worldIconDragStartWorldZ = nil,  -- World Z under cursor when drag started
+	worldIconDragStartCamX = nil,  -- Camera X when drag started
+	worldIconDragStartCamZ = nil,  -- Camera Z when drag started
 	minimizeButtonDragging = false,  -- Whether we're dragging via minimize button to move PIP window
 	minimizeButtonClickStartX = 0,  -- Screen X when we started clicking minimize button
 	minimizeButtonClickStartY = 0,  -- Screen Y when we started clicking minimize button
@@ -361,6 +366,7 @@ local miscState = {
 	mapMarkers = {},  -- Table to store active map markers
 	minimapWidgetDisabled = false,  -- Whether we've disabled the old minimap widget (for minimap mode)
 	minimapCameraRestored = false,  -- Whether minimap camera state was restored from config (for luaui reload)
+	crashingUnits = {},  -- Units that are crashing (no icon should be drawn)
 }
 -- Consolidated drawing data
 local drawData = {
@@ -1586,6 +1592,11 @@ local function DrawUnit(uID)
 	local uDefID = spFunc.GetUnitDefID(uID)
 	-- Don't return early if uDefID is nil - unit might be radar-only
 
+	-- Skip crashing aircraft (they should not have icons)
+	-- Check both our tracking table and the engine's crashing rules param
+	if miscState.crashingUnits[uID] then return end
+	if (Spring.GetUnitRulesParam(uID, "crashing") or 0) == 1 then return end
+
 	local uTeam = spFunc.GetUnitTeam(uID)
 	local ux, uy, uz = spFunc.GetUnitBasePosition(uID)
 	if not ux then return end  -- Early exit if position is invalid
@@ -2777,6 +2788,9 @@ local function DrawExplosions()
 
 	while i <= #cache.explosions do
 		local explosion = cache.explosions[i]
+		if not explosion or not explosion.x then
+			table.remove(cache.explosions, i)
+		else
 		local age = gameTime - explosion.startTime
 
 		-- Remove explosions older than 0.8 seconds (longer for large explosions)
@@ -2993,6 +3007,7 @@ local function DrawExplosions()
 				i = i + 1
 			end
 		end
+		end -- end of "if not explosion" else block
 	end
 	glFunc.LineWidth(1)
 end
@@ -4211,14 +4226,26 @@ function widget:ViewResize()
 		RecalculateGroundTextureCoordinates()
 	else
 		-- Normal PIP mode: scale dimensions with screen size
-		if render.dim.l and render.dim.r and render.dim.b and render.dim.t then
+		-- Validate that dimensions are reasonable (not at origin/bottom-left which indicates corruption)
+		local minSize = math.floor(config.minPanelSize * render.widgetScale)
+		local dimsValid = render.dim.l and render.dim.r and render.dim.b and render.dim.t and
+		                  oldVsx > 0 and oldVsy > 0 and
+		                  (render.dim.r - render.dim.l) >= minSize and
+		                  (render.dim.t - render.dim.b) >= minSize and
+		                  render.dim.r > minSize and  -- Not stuck at bottom-left
+		                  render.dim.t > minSize
+		
+		if dimsValid then
 			render.dim.l, render.dim.r, render.dim.b, render.dim.t = render.dim.l/oldVsx, render.dim.r/oldVsx, render.dim.b/oldVsy, render.dim.t/oldVsy
 		else
-			-- Initialize with default values if not set
+			-- Initialize with default values positioned in upper-right area of screen
+			Spring.Echo("PIP: Detected invalid dimensions, resetting to default position")
 			render.dim.l = 0.7
-			render.dim.r = 0.7 + (config.minPanelSize * render.widgetScale * 1.4) / oldVsx
+			render.dim.r = 0.7 + (config.minPanelSize * render.widgetScale * 1.4) / render.vsx
 			render.dim.b = 0.7
-			render.dim.t = 0.7 + (config.minPanelSize * render.widgetScale * 1.2) / oldVsy
+			render.dim.t = 0.7 + (config.minPanelSize * render.widgetScale * 1.2) / render.vsy
+			-- Also clear saved dimensions since they may be corrupted too
+			uiState.savedDimensions = {}
 		end
 		render.dim.l, render.dim.r, render.dim.b, render.dim.t = math.floor(render.dim.l*render.vsx), math.floor(render.dim.r*render.vsx), math.floor(render.dim.b*render.vsy), math.floor(render.dim.t*render.vsy)
 	end
@@ -4257,7 +4284,16 @@ function widget:ViewResize()
 
 	-- If we have saved dimensions, position the minimize button at the window's position
 	-- This ensures consistency between auto-minimize on load and manual minimize
-	if uiState.savedDimensions.l and uiState.savedDimensions.r and uiState.savedDimensions.b and uiState.savedDimensions.t then
+	-- Validate that saved dimensions are reasonable (not corrupted to bottom-left)
+	local minSize = math.floor(config.minPanelSize * render.widgetScale)
+	local savedDimsValid = uiState.savedDimensions.l and uiState.savedDimensions.r and 
+	                       uiState.savedDimensions.b and uiState.savedDimensions.t and
+	                       (uiState.savedDimensions.r - uiState.savedDimensions.l) >= minSize and
+	                       (uiState.savedDimensions.t - uiState.savedDimensions.b) >= minSize and
+	                       uiState.savedDimensions.r > minSize and
+	                       uiState.savedDimensions.t > minSize
+	
+	if savedDimsValid then
 		-- Position based on where the window was (same logic as manual minimize)
 		local sw, sh = Spring.GetWindowGeometry()
 		if uiState.savedDimensions.l < sw * 0.5 then
@@ -4271,7 +4307,14 @@ function widget:ViewResize()
 			uiState.minModeB = uiState.savedDimensions.t - buttonSizeScaled
 		end
 	else
-		-- Fallback to screen edge if no saved dimensions
+		-- Fallback to top-right corner if no valid saved dimensions
+		uiState.minModeL = render.vsx - buttonSizeScaled - screenMarginPx
+		uiState.minModeB = render.vsy - buttonSizeScaled - screenMarginPx
+	end
+	
+	-- Validate minMode position isn't at bottom-left (indicating corruption)
+	if uiState.minModeL < buttonSizeScaled and uiState.minModeB < buttonSizeScaled then
+		-- Corrupted position, reset to top-right corner
 		uiState.minModeL = render.vsx - buttonSizeScaled - screenMarginPx
 		uiState.minModeB = render.vsy - buttonSizeScaled - screenMarginPx
 	end
@@ -6154,10 +6197,6 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	glFunc.Translate(centerX, centerY, 0)
 	glFunc.Scale(cameraState.zoom * contentScale, cameraState.zoom * contentScale, cameraState.zoom * contentScale)
 
-	-- Draw units (only icon data collection now, no 3D rendering)
-	for i = 1, unitCount do
-		DrawUnit(miscState.pipUnits[i])
-	end
 
 	-- Draw features (3D models)
 	if cameraState.zoom >= config.zoomFeatures then  -- Only draw features if zoom is above threshold
@@ -6167,6 +6206,10 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		end
 	end
 
+	-- Draw units (only icon data collection now, no 3D rendering)
+	for i = 1, unitCount do
+		DrawUnit(miscState.pipUnits[i])
+	end
 		-- Draw projectiles if enabled
 	if config.drawProjectiles then
 		glFunc.Texture(false)  -- Disable textures for colored projectiles
@@ -7007,200 +7050,9 @@ local function DrawCameraViewBounds()
 	glFunc.LineWidth(1.0)
 end
 
-local function RenderPipContents()
-	-- Cache selected units once per render cycle to avoid multiple API calls
-	local cachedSelectedUnits = Spring.GetSelectedUnits()
-	
-	-- Apply rotation to all content if minimap is rotated
-	if render.minimapRotation ~= 0 then
-		local centerX = render.dim.l + (render.dim.r - render.dim.l) / 2
-		local centerY = render.dim.b + (render.dim.t - render.dim.b) / 2
-		glFunc.PushMatrix()
-		glFunc.Translate(centerX, centerY, 0)
-		glFunc.Rotate(render.minimapRotation * 180 / math.pi, 0, 0, 1)
-		glFunc.Translate(-centerX, -centerY, 0)
-	end
-	
-	if uiState.drawingGround then
-		-- Draw ground minimap
-		glFunc.Color(1, 1, 1, 1)
-		glFunc.Texture('$minimap')
-		glFunc.BeginEnd(glConst.QUADS, GroundTextureVertices)
-		glFunc.Texture(false)
-		
-		-- Draw water and LOS overlays
-		DrawWaterAndLOSOverlays()
-	end
 
-	-- Measure draw time for performance monitoring
-	local drawStartTime = os.clock()
-	DrawUnitsAndFeatures(cachedSelectedUnits)
-	pipR2T.contentLastDrawTime = os.clock() - drawStartTime
-
-	DrawCommandQueuesOverlay(cachedSelectedUnits)
-	
-	-- Draw map markers
-	DrawMapMarkers()
-	
-	-- Draw main camera view boundaries (minimap mode only)
-	DrawCameraViewBounds()
-	
-	-- Pop rotation matrix if it was applied
-	if render.minimapRotation ~= 0 then
-		glFunc.PopMatrix()
-	end
-	
-	-- NOTE: DrawInMiniMap overlays are now rendered in DrawScreen after the R2T is blitted,
-	-- because matrix manipulation doesn't work correctly inside the R2T context.
-end
-
--- Helper function to draw box selection rectangle
-local function DrawBoxSelection()
-	if not interactionState.areBoxSelecting then
-		return
-	end
-
-	-- Don't draw box selection when tracking a player's camera
-	if interactionState.trackingPlayerID then
-		return
-	end
-
-	-- Don't draw box selection when tracking a player's camera
-	if interactionState.trackingPlayerID then
-		return
-	end
-
-	local minX = math.max(math.min(interactionState.boxSelectStartX, interactionState.boxSelectEndX), render.dim.l)
-	local maxX = math.min(math.max(interactionState.boxSelectStartX, interactionState.boxSelectEndX), render.dim.r)
-	local minY = math.max(math.min(interactionState.boxSelectStartY, interactionState.boxSelectEndY), render.dim.b)
-	local maxY = math.min(math.max(interactionState.boxSelectStartY, interactionState.boxSelectEndY), render.dim.t)
-
-	-- Check if selectionbox widget is enabled
-	local selectionboxEnabled = widgetHandler:IsWidgetKnown("Selectionbox") and (widgetHandler.orderList["Selectionbox"] and widgetHandler.knownWidgets["Selectionbox"].active)
-
-	-- Get modifier key states (ignoring alt as requested)
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
-
-	-- Determine background color based on modifier keys (only if selectionbox widget is enabled)
-	local bgAlpha = 0.03
-	if selectionboxEnabled and ctrl then
-		-- Red background when ctrl is held
-		glFunc.Color(1, 0.25, 0.25, bgAlpha)
-	elseif selectionboxEnabled and shift then
-		-- Green background when shift is held
-		glFunc.Color(0.45, 1, 0.45, bgAlpha)
-	else
-		-- White background for normal selection
-		glFunc.Color(1, 1, 1, bgAlpha * 0.8)
-	end
-
-	glFunc.Texture(false)
-	glFunc.BeginEnd(glConst.QUADS, function()
-		glFunc.Vertex(minX, minY)
-		glFunc.Vertex(maxX, minY)
-		glFunc.Vertex(maxX, maxY)
-		glFunc.Vertex(minX, maxY)
-	end)
-
-	gl.PolygonMode(GL.FRONT_AND_BACK, GL.LINE)
-	glFunc.LineWidth(2.0 + 2.5)
-	glFunc.Color(0, 0, 0, 0.12)
-	glFunc.BeginEnd(glConst.QUADS, function()
-	glFunc.Vertex(minX, minY)
-		glFunc.Vertex(maxX, minY)
-		glFunc.Vertex(maxX, maxY)
-		glFunc.Vertex(minX, maxY)
-	end)
-
-	-- Use stipple line only if selectionbox widget is enabled, otherwise use normal line
-	if selectionboxEnabled then
-		gl.LineStipple(true)
-	end
-	glFunc.LineWidth(2.0)
-
-	-- Determine line color based on modifier keys (only if selectionbox widget is enabled)
-	if selectionboxEnabled and ctrl then
-		-- Bright red when ctrl is held
-		glFunc.Color(1, 0.82, 0.82, 1)
-	elseif selectionboxEnabled and shift then
-		-- Bright green when shift is held
-		glFunc.Color(0.92, 1, 0.92, 1)
-	else
-		-- White for normal selection
-		glFunc.Color(1, 1, 1, 1)
-	end
-
-	glFunc.BeginEnd(glConst.QUADS, function()
-		glFunc.Vertex(minX, minY)
-		glFunc.Vertex(maxX, minY)
-		glFunc.Vertex(maxX, maxY)
-		glFunc.Vertex(minX, maxY)
-	end)
-	gl.PolygonMode(GL.FRONT_AND_BACK, GL.FILL)
-	if selectionboxEnabled then
-		gl.LineStipple(false)
-	end
-	glFunc.LineWidth(1.0)
-end
-
-local function DrawAreaCommand()
-	if not interactionState.areAreaDragging then
-		return
-	end
-
-	local mx, my = spFunc.GetMouseState()
-	local _, cmdID = Spring.GetActiveCommand()
-	if not cmdID or cmdID <= 0 then
-		return
-	end
-
-	-- Calculate center and current mouse position in screen coordinates
-	local centerX = interactionState.areaCommandStartX
-	local centerY = interactionState.areaCommandStartY
-
-	-- Calculate radius in screen space (pixels)
-	local dx = mx - centerX
-	local dy = my - centerY
-	local radius = math.sqrt(dx * dx + dy * dy)
-
-	-- Only draw if dragged more than 5 pixels
-	if radius < 5 then
-		return
-	end
-
-	-- Get command color
-	local color = cmdColors[cmdID] or cmdColors.unknown
-
-	-- Draw filled circle with command color using additive blending
-	glFunc.Texture(false)
-	gl.Blending(GL.SRC_ALPHA, GL.ONE)
-
-	-- Enable scissor test to clamp drawing to PIP bounds
-	gl.Scissor(render.dim.l, render.dim.b, render.dim.r - render.dim.l, render.dim.t - render.dim.b)
-
-	-- Draw filled circle with vibrant colors
-	glFunc.Color(color[1], color[2], color[3], 0.25)
-	local segments = math.max(16, math.min(64, math.floor(radius / 3)))
-	glFunc.BeginEnd(GL.TRIANGLE_FAN, function()
-		glFunc.Vertex(centerX, centerY)
-		for i = 0, segments do
-			local angle = (i / segments) * 2 * math.pi
-			local x = centerX + math.cos(angle) * radius
-			local y = centerY + math.sin(angle) * radius
-			glFunc.Vertex(x, y)
-		end
-	end)
-
-	-- Disable scissor test
-
-	-- Reset
-	gl.Scissor(false)
-	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-	glFunc.Color(1, 1, 1, 1)
-end
-
--- Draw map ruler at PIP edges to show scale
-local function DrawMapRuler()
+-- Update map ruler texture (must be called OUTSIDE of R2T context)
+local function UpdateMapRulerTexture()
 	if not gl.R2tHelper then
 		return
 	end
@@ -7228,9 +7080,12 @@ local function DrawMapRuler()
 	end
 	
 	-- Create/update texture if needed
-	if pipR2T.rulerNeedsUpdate then
-		local pipWidth = render.dim.r - render.dim.l
-		local pipHeight = render.dim.t - render.dim.b
+	if not pipR2T.rulerNeedsUpdate then
+		return
+	end
+	
+	local pipWidth = render.dim.r - render.dim.l
+	local pipHeight = render.dim.t - render.dim.b
 		
 		if not pipR2T.rulerTex or math.floor(pipWidth) ~= pipR2T.rulerLastWidth or math.floor(pipHeight) ~= pipR2T.rulerLastHeight then
 			if pipR2T.rulerTex then
@@ -7436,12 +7291,214 @@ local function DrawMapRuler()
 			
 			pipR2T.rulerNeedsUpdate = false
 		end
-	end
-	
-	-- Blit the cached ruler texture
-	if pipR2T.rulerTex then
+end
+
+-- Blit the cached map ruler texture (called inside RenderPipContents)
+local function BlitMapRuler()
+	if pipR2T.rulerTex and gl.R2tHelper then
 		gl.R2tHelper.BlendTexRect(pipR2T.rulerTex, render.dim.l, render.dim.b, render.dim.r, render.dim.t, true)
 	end
+end
+
+local function RenderPipContents()
+	-- Cache selected units once per render cycle to avoid multiple API calls
+	local cachedSelectedUnits = Spring.GetSelectedUnits()
+	
+	-- Apply rotation to all content if minimap is rotated
+	if render.minimapRotation ~= 0 then
+		local centerX = render.dim.l + (render.dim.r - render.dim.l) / 2
+		local centerY = render.dim.b + (render.dim.t - render.dim.b) / 2
+		glFunc.PushMatrix()
+		glFunc.Translate(centerX, centerY, 0)
+		glFunc.Rotate(render.minimapRotation * 180 / math.pi, 0, 0, 1)
+		glFunc.Translate(-centerX, -centerY, 0)
+	end
+	
+	if uiState.drawingGround then
+		-- Draw ground minimap
+		glFunc.Color(1, 1, 1, 1)
+		glFunc.Texture('$minimap')
+		glFunc.BeginEnd(glConst.QUADS, GroundTextureVertices)
+		glFunc.Texture(false)
+		
+		-- Draw water and LOS overlays
+		DrawWaterAndLOSOverlays()
+		
+		-- Blit map ruler at edges (on top of map+LOS but under units)
+		-- Note: ruler texture is updated outside R2T context in UpdateMapRulerTexture()
+		if config.showMapRuler then
+			local _, _, spec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+			if not spec then
+				BlitMapRuler()
+			end
+		end
+	end
+
+	-- Measure draw time for performance monitoring
+	local drawStartTime = os.clock()
+	DrawUnitsAndFeatures(cachedSelectedUnits)
+	pipR2T.contentLastDrawTime = os.clock() - drawStartTime
+
+	DrawCommandQueuesOverlay(cachedSelectedUnits)
+	
+	-- Draw map markers
+	DrawMapMarkers()
+	
+	-- Draw main camera view boundaries (minimap mode only)
+	DrawCameraViewBounds()
+	
+	-- Pop rotation matrix if it was applied
+	if render.minimapRotation ~= 0 then
+		glFunc.PopMatrix()
+	end
+	
+	-- NOTE: DrawInMiniMap overlays are now rendered in DrawScreen after the R2T is blitted,
+	-- because matrix manipulation doesn't work correctly inside the R2T context.
+end
+
+-- Helper function to draw box selection rectangle
+local function DrawBoxSelection()
+	if not interactionState.areBoxSelecting then
+		return
+	end
+
+	-- Don't draw box selection when tracking a player's camera
+	if interactionState.trackingPlayerID then
+		return
+	end
+
+	-- Don't draw box selection when tracking a player's camera
+	if interactionState.trackingPlayerID then
+		return
+	end
+
+	local minX = math.max(math.min(interactionState.boxSelectStartX, interactionState.boxSelectEndX), render.dim.l)
+	local maxX = math.min(math.max(interactionState.boxSelectStartX, interactionState.boxSelectEndX), render.dim.r)
+	local minY = math.max(math.min(interactionState.boxSelectStartY, interactionState.boxSelectEndY), render.dim.b)
+	local maxY = math.min(math.max(interactionState.boxSelectStartY, interactionState.boxSelectEndY), render.dim.t)
+
+	-- Check if selectionbox widget is enabled
+	local selectionboxEnabled = widgetHandler:IsWidgetKnown("Selectionbox") and (widgetHandler.orderList["Selectionbox"] and widgetHandler.knownWidgets["Selectionbox"].active)
+
+	-- Get modifier key states (ignoring alt as requested)
+	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+
+	-- Determine background color based on modifier keys (only if selectionbox widget is enabled)
+	local bgAlpha = 0.03
+	if selectionboxEnabled and ctrl then
+		-- Red background when ctrl is held
+		glFunc.Color(1, 0.25, 0.25, bgAlpha)
+	elseif selectionboxEnabled and shift then
+		-- Green background when shift is held
+		glFunc.Color(0.45, 1, 0.45, bgAlpha)
+	else
+		-- White background for normal selection
+		glFunc.Color(1, 1, 1, bgAlpha * 0.8)
+	end
+
+	glFunc.Texture(false)
+	glFunc.BeginEnd(glConst.QUADS, function()
+		glFunc.Vertex(minX, minY)
+		glFunc.Vertex(maxX, minY)
+		glFunc.Vertex(maxX, maxY)
+		glFunc.Vertex(minX, maxY)
+	end)
+
+	gl.PolygonMode(GL.FRONT_AND_BACK, GL.LINE)
+	glFunc.LineWidth(2.0 + 2.5)
+	glFunc.Color(0, 0, 0, 0.12)
+	glFunc.BeginEnd(glConst.QUADS, function()
+	glFunc.Vertex(minX, minY)
+		glFunc.Vertex(maxX, minY)
+		glFunc.Vertex(maxX, maxY)
+		glFunc.Vertex(minX, maxY)
+	end)
+
+	-- Use stipple line only if selectionbox widget is enabled, otherwise use normal line
+	if selectionboxEnabled then
+		gl.LineStipple(true)
+	end
+	glFunc.LineWidth(2.0)
+
+	-- Determine line color based on modifier keys (only if selectionbox widget is enabled)
+	if selectionboxEnabled and ctrl then
+		-- Bright red when ctrl is held
+		glFunc.Color(1, 0.82, 0.82, 1)
+	elseif selectionboxEnabled and shift then
+		-- Bright green when shift is held
+		glFunc.Color(0.92, 1, 0.92, 1)
+	else
+		-- White for normal selection
+		glFunc.Color(1, 1, 1, 1)
+	end
+
+	glFunc.BeginEnd(glConst.QUADS, function()
+		glFunc.Vertex(minX, minY)
+		glFunc.Vertex(maxX, minY)
+		glFunc.Vertex(maxX, maxY)
+		glFunc.Vertex(minX, maxY)
+	end)
+	gl.PolygonMode(GL.FRONT_AND_BACK, GL.FILL)
+	if selectionboxEnabled then
+		gl.LineStipple(false)
+	end
+	glFunc.LineWidth(1.0)
+end
+
+local function DrawAreaCommand()
+	if not interactionState.areAreaDragging then
+		return
+	end
+
+	local mx, my = spFunc.GetMouseState()
+	local _, cmdID = Spring.GetActiveCommand()
+	if not cmdID or cmdID <= 0 then
+		return
+	end
+
+	-- Calculate center and current mouse position in screen coordinates
+	local centerX = interactionState.areaCommandStartX
+	local centerY = interactionState.areaCommandStartY
+
+	-- Calculate radius in screen space (pixels)
+	local dx = mx - centerX
+	local dy = my - centerY
+	local radius = math.sqrt(dx * dx + dy * dy)
+
+	-- Only draw if dragged more than 5 pixels
+	if radius < 5 then
+		return
+	end
+
+	-- Get command color
+	local color = cmdColors[cmdID] or cmdColors.unknown
+
+	-- Draw filled circle with command color using additive blending
+	glFunc.Texture(false)
+	gl.Blending(GL.SRC_ALPHA, GL.ONE)
+
+	-- Enable scissor test to clamp drawing to PIP bounds
+	gl.Scissor(render.dim.l, render.dim.b, render.dim.r - render.dim.l, render.dim.t - render.dim.b)
+
+	-- Draw filled circle with vibrant colors
+	glFunc.Color(color[1], color[2], color[3], 0.25)
+	local segments = math.max(16, math.min(64, math.floor(radius / 3)))
+	glFunc.BeginEnd(GL.TRIANGLE_FAN, function()
+		glFunc.Vertex(centerX, centerY)
+		for i = 0, segments do
+			local angle = (i / segments) * 2 * math.pi
+			local x = centerX + math.cos(angle) * radius
+			local y = centerY + math.sin(angle) * radius
+			glFunc.Vertex(x, y)
+		end
+	end)
+
+	-- Disable scissor test
+
+	-- Reset
+	gl.Scissor(false)
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	glFunc.Color(1, 1, 1, 1)
 end
 
 -- Draw build cursor (icon and placement grid) when holding a build command
@@ -8285,6 +8342,14 @@ local function UpdateR2TContent(currentTime, pipUpdateInterval, pipWidth, pipHei
 		-- Get and store minimap rotation for coordinate transformations
 		render.minimapRotation = Spring.GetMiniMapRotation and Spring.GetMiniMapRotation() or 0
 		
+		-- Update map ruler texture BEFORE entering R2T context (to avoid nested R2T)
+		if config.showMapRuler then
+			local _, _, spec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+			if not spec then
+				UpdateMapRulerTexture()
+			end
+		end
+		
 		gl.R2tHelper.RenderToTexture(pipR2T.contentTex, function()
 			glFunc.Translate(-1, -1, 0)
 			glFunc.Scale(2 / pipWidth, 2 / pipHeight, 0)
@@ -9074,14 +9139,21 @@ function widget:DrawScreen()
 				-- Clear the flag and disable scissor
 				WG['minimap'].isDrawingInPip = false
 				gl.Scissor(false)
-			end
-		end
-
-		-- Draw map ruler at edges (only when not spectating)
-		if config.showMapRuler then
-			local _, _, spec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
-			if not spec then
-				DrawMapRuler()
+				
+				-- Reset GL state that widgets may have left dirty
+				glFunc.Texture(false)
+				glFunc.Color(1, 1, 1, 1)
+				gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+				gl.DepthTest(false)
+				gl.DepthMask(false)
+				gl.Culling(false)
+				gl.PolygonMode(GL.FRONT_AND_BACK, GL.FILL)
+				gl.LineWidth(1.0)
+				-- Reset stencil state (attack range widget uses stencil)
+				gl.StencilTest(false)
+				gl.StencilMask(255)
+				gl.StencilOp(GL.KEEP, GL.KEEP, GL.KEEP)
+				gl.ColorMask(true, true, true, true)
 			end
 		end
 	end
@@ -9492,6 +9564,7 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	-- In minimap mode, don't draw PIP viewport rectangle on the minimap (we ARE the minimap)
 	if isMinimapMode then return end
 	if uiState.inMinMode then return end
+	if not config.showViewRectangleOnMinimap then return end
 
 	-- Calculate the viewport in world space
 	local wcx, wcz = cameraState.wcx, cameraState.wcz
@@ -9536,7 +9609,9 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	local halfHeight = (hh / mapInfo.mapSizeZ) * minimapHeight
 	
 	-- Draw rectangle showing PIP view area (team-colored if tracking player)
-	local linewidth = math.ceil(render.vsy / 2000)
+	-- Use same resolution-scaled line widths as the PIP border shape
+	local linewidth = 1.5 * ((render.vsx + 1000) / 3000)
+	local outlinewidth = 3 * ((render.vsx + 1000) / 3000)
 	glFunc.Texture(false)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	glFunc.PushMatrix()
@@ -9548,18 +9623,15 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	end
 	
 	-- Draw dark background rectangle (centered at origin after transform)
-	-- Use octagon with corners cut off by 16 world units (converted to minimap units)
-	local cornerWorldSize = 64
-	local cornerX = (cornerWorldSize / mapInfo.mapSizeX) * minimapWidth
-	local cornerY = (cornerWorldSize / mapInfo.mapSizeZ) * minimapHeight
-	-- Clamp corner size if rectangle is too small
-	local maxCorner = math.min(halfWidth, halfHeight) / 2
-	local cx = math.min(cornerX, maxCorner)
-	local cy = math.min(cornerY, maxCorner)
+	-- Use same fixed screen-pixel chamfer as PIP border (2.5 pixels at 1080p)
+	-- Stays constant regardless of zoom level
+	local chamfer = 2.5 * (render.vsy / 1080)
+	local cx = chamfer
+	local cy = chamfer
 
 	-- draw dark outline
-	glFunc.Color(0, 0, 0, 0.6)
-	glFunc.LineWidth((linewidth*1.5)+1)
+	glFunc.Color(0, 0, 0, 0.4)
+	glFunc.LineWidth(outlinewidth)
 	glFunc.BeginEnd(GL.LINE_LOOP, function()
 		-- Bottom edge
 		glFunc.Vertex(-halfWidth + cx, -halfHeight)
@@ -9589,7 +9661,7 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	end
 
 	-- draw bright line
-	glFunc.Color(r, g, b, 1)
+	glFunc.Color(r, g, b, 0.8)
 	glFunc.LineWidth(linewidth)
 	glFunc.BeginEnd(GL.LINE_LOOP, function()
 		-- Bottom edge
@@ -9640,7 +9712,12 @@ function widget:Update(dt)
 	-- Update mouse hover state
 	local mx, my = spFunc.GetMouseState()
 	local wasMouseOver = interactionState.isMouseOverPip
-	interactionState.isMouseOverPip = (mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t and not uiState.inMinMode)
+	-- Add nil safety for render.dim values
+	if render.dim.l and render.dim.r and render.dim.b and render.dim.t then
+		interactionState.isMouseOverPip = (mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t and not uiState.inMinMode)
+	else
+		interactionState.isMouseOverPip = false
+	end
 
 	-- Update hovered unit for icon highlighting (throttled for performance with many units)
 	-- Only check every 0.1 seconds or when mouse moves significantly
@@ -10293,7 +10370,9 @@ function widget:UnitSeismicPing(x, y, z, strength, allyTeam)
 	end
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+-- Helper function to create icon shatter effect for a unit
+-- unitVelX, unitVelZ are optional velocity components to add to fragments
+local function CreateIconShatter(unitID, unitDefID, unitTeam, unitVelX, unitVelZ)
 	if uiState.inMinMode then return end
 	-- Performance: limit max simultaneous shatters
 	if #cache.iconShatters >= cache.maxIconShatters then return end
@@ -10328,6 +10407,18 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	if not teamColor then return end
 	local teamR, teamG, teamB = teamColor[1], teamColor[2], teamColor[3]
 
+	-- Convert unit velocity from world units to screen units (if provided)
+	-- Scale by zoom to match fragment velocity scale
+	local velModX = 0
+	local velModZ = 0
+	if unitVelX and unitVelZ then
+		-- Convert world velocity to screen velocity (scale by zoom factor)
+		-- Multiply by a factor to make the effect clearly visible
+		local velScale = 10.0 / cameraState.zoom
+		velModX = unitVelX * velScale
+		velModZ = unitVelZ * velScale
+	end
+
 	-- Create fragments in a grid pattern - each fragment represents a unique piece of the texture
 	local fragments = {}
 	for gx = 0, grid - 1 do
@@ -10350,8 +10441,9 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 				-- Store world coordinates (not PiP-local)
 				wx = ux,
 				wz = uz,
-				vx = math.cos(angle) * speed,
-				vz = math.sin(angle) * speed,
+				-- Add unit velocity to fragment velocity
+				vx = math.cos(angle) * speed + velModX,
+				vz = math.sin(angle) * speed + velModZ,
 				-- UV coordinates map each fragment to its portion of the texture
 				-- Flip Y to match OpenGL texture coordinates (Y=0 at bottom)
 				uvx1 = gx / grid,
@@ -10384,7 +10476,21 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	})
 end
 
-function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
+-- Called by unit_crashing_aircraft gadget when an aircraft starts crashing
+function widget:CrashingAircraft(unitID, unitDefID, teamID)
+	miscState.crashingUnits[unitID] = true
+	
+	-- Create shatter effect with unit's current velocity
+	local vx, vy, vz = Spring.GetUnitVelocity(unitID)
+	CreateIconShatter(unitID, unitDefID, teamID, vx, vz)
+end
+
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	-- Note: We intentionally do NOT clear crashingUnits here because DrawScreen may run
+	-- after this callback in the same frame, and we need the entry to still exist so
+	-- the crashing unit icon doesn't flash for one frame when it dies.
+	-- Crashing units will shatter again when they hit the ground.
+	
 	if uiState.inMinMode then return end
 	-- Skip processing explosions when we're not rendering them due to zoom level
 	if cameraState.zoom < config.zoomExplosionDetail then return end
@@ -11525,7 +11631,7 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 		return true
 	end
 
-	-- Handle world icon drag (ALT+drag to move PIP window on screen)
+	-- Handle world icon drag (ALT+drag to move PIP camera position)
 	if alt and interactionState.worldIconClickStartX ~= 0 and not uiState.isAnimating then
 		local dragThreshold = 8  -- Pixels before considering it a drag
 		local dragDistX = math.abs(mx - interactionState.worldIconClickStartX)
@@ -11534,17 +11640,42 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 		if dragDistX > dragThreshold or dragDistY > dragThreshold or interactionState.worldIconDragging then
 			interactionState.worldIconDragging = true
 			
-			-- Move PIP window on screen (like the move button does)
-			render.dim.l = render.dim.l + dx
-			render.dim.r = render.dim.r + dx
-			render.dim.b = render.dim.b + dy
-			render.dim.t = render.dim.t + dy
-			CorrectScreenPosition()
-			RecalculateWorldCoordinates()
-			RecalculateGroundTextureCoordinates()
-			
-			-- Update guishader blur dimensions
-			UpdateGuishaderBlur()
+			-- Move PIP camera to keep the world position under the cursor
+			-- Get current world position under cursor and previous world position
+			local result, pos = Spring.TraceScreenRay(mx, my, true, false, false, true)
+			if result == "ground" and pos then
+				-- On first drag frame, store the initial world position under cursor
+				if not interactionState.worldIconDragStartWorldX then
+					interactionState.worldIconDragStartWorldX = pos[1]
+					interactionState.worldIconDragStartWorldZ = pos[3]
+					-- Store the initial camera position
+					interactionState.worldIconDragStartCamX = cameraState.wcx
+					interactionState.worldIconDragStartCamZ = cameraState.wcz
+				end
+				
+				-- Calculate how far the cursor has moved in world coordinates
+				local worldDeltaX = pos[1] - interactionState.worldIconDragStartWorldX
+				local worldDeltaZ = pos[3] - interactionState.worldIconDragStartWorldZ
+				
+				-- Move camera to compensate (opposite direction to keep world point under cursor)
+				cameraState.targetWcx = interactionState.worldIconDragStartCamX + worldDeltaX
+				cameraState.targetWcz = interactionState.worldIconDragStartCamZ + worldDeltaZ
+				
+				-- Clamp to map bounds
+				cameraState.targetWcx = math.max(0, math.min(mapInfo.mapSizeX, cameraState.targetWcx))
+				cameraState.targetWcz = math.max(0, math.min(mapInfo.mapSizeZ, cameraState.targetWcz))
+				
+				-- Apply immediately for responsiveness
+				cameraState.wcx = cameraState.targetWcx
+				cameraState.wcz = cameraState.targetWcz
+				
+				-- Also update locked icon position so it follows the drag
+				miscState.worldIconLockedX = cameraState.wcx
+				miscState.worldIconLockedZ = cameraState.wcz
+				
+				RecalculateWorldCoordinates()
+				RecalculateGroundTextureCoordinates()
+			end
 			
 			return true
 		end
@@ -11829,6 +11960,13 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 			cameraState.wcx = math.min(math.max(cameraState.wcx - panDx / cameraState.zoom, minWcx), maxWcx)
 			cameraState.wcz = math.min(math.max(cameraState.wcz + panDy / cameraState.zoom, minWcz), maxWcz)
 			cameraState.targetWcx, cameraState.targetWcz = cameraState.wcx, cameraState.wcz  -- Panning updates instantly, not smoothly
+			
+			-- Update locked icon position so world icon follows camera during panning
+			if miscState.worldIconLockedX then
+				miscState.worldIconLockedX = cameraState.wcx
+				miscState.worldIconLockedZ = cameraState.wcz
+			end
+			
 			RecalculateWorldCoordinates()
 			RecalculateGroundTextureCoordinates()
 
@@ -11955,6 +12093,10 @@ function widget:MouseRelease(mx, my, mButton)
 		interactionState.worldIconClickStartX = 0
 		interactionState.worldIconClickStartY = 0
 		interactionState.worldIconDragging = false
+		interactionState.worldIconDragStartWorldX = nil
+		interactionState.worldIconDragStartWorldZ = nil
+		interactionState.worldIconDragStartCamX = nil
+		interactionState.worldIconDragStartCamZ = nil
 		
 		-- If it was a click (not a drag), trigger minimize/maximize
 		if wasClick and not uiState.isAnimating then
