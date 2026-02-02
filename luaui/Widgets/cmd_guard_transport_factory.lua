@@ -125,7 +125,7 @@ local function getFactoryClearance(unitID, factoryID)
 		sizeX, sizeZ = unitSizeZ[factoryDefID], unitSizeX[factoryDefID]
 	end
 
-	local clearance = distanceFromRectangle(fx, fz, sizeX, sizeZ, ux, uz)
+	return distanceFromRectangle(fx, fz, sizeX, sizeZ, ux, uz)
 end
 
 local function timeToTarget(start, endpoint, speed)
