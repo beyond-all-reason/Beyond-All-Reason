@@ -220,8 +220,7 @@ local function removeLeadingMoveCommandsNearFactory(unitID, factoryID)
 		if cmdID == CMD.MOVE and distanceFromRectangle(fx, fz, sizeX, sizeZ, q1, q3) - unitRadius < FACTORY_CLEARANCE_DISTANCE then
             tags[#tags + 1] = qid
 		elseif tags[1] then
-			spGiveOrderToUnit(unitID, CMD_REMOVE, tags)
-			return
+			break
 		end
 	end
 
