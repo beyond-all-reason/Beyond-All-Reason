@@ -113,6 +113,7 @@ local function isAxisAligned(unitID)
 end
 
 local function getFactoryClearance(unitID, factoryID)
+	local unitRadius = Spring.GetUnitRadius(unitID)
 	local ux, uy, uz = Spring.GetUnitPosition(unitID)
 	local fx, fy, fz = Spring.GetUnitPosition(factoryID)
 
@@ -125,7 +126,7 @@ local function getFactoryClearance(unitID, factoryID)
 		sizeX, sizeZ = unitSizeZ[factoryDefID], unitSizeX[factoryDefID]
 	end
 
-	return distanceFromRectangle(fx, fz, sizeX, sizeZ, ux, uz)
+	return distanceFromRectangle(fx, fz, sizeX, sizeZ, ux, uz) - unitRadius -- can be < 0
 end
 
 local function timeToTarget(start, endpoint, speed)
@@ -202,6 +203,8 @@ end
 local function removeLeadingMoveCommandsNearFactory(unitID, factoryID)
     local tags = {}
 
+	local unitRadius = Spring.GetUnitRadius(unitID)
+
 	local fx, fy, fz = Spring.GetUnitPosition(factoryID)
 	local factoryDefID = Spring.GetUnitDefID(factoryID)
 	local sizeX, sizeZ
@@ -214,7 +217,7 @@ local function removeLeadingMoveCommandsNearFactory(unitID, factoryID)
 
     for i = 1, spGetUnitCommandCount(unitID) do
 		local cmdID, _, qid, q1, q2, q3 = spGetUnitCurrentCommand(unitID, i)
-		if cmdID == CMD.MOVE and distanceFromRectangle(fx, fz, sizeX, sizeZ, q1, q3) < FACTORY_CLEARANCE_DISTANCE * 2 then
+		if cmdID == CMD.MOVE and distanceFromRectangle(fx, fz, sizeX, sizeZ, q1, q3) - unitRadius < FACTORY_CLEARANCE_DISTANCE then
             tags[#tags + 1] = qid
 		elseif tags[1] then
 			spGiveOrderToUnit(unitID, CMD_REMOVE, tags)
