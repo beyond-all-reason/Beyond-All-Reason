@@ -11,13 +11,8 @@ function gadget:GetInfo()
 		author  = 'Rimilel',
 		date    = 'April 2024',
 		license = 'GNU GPL, v2 or later',
-<<<<<<< HEAD
-		layer   = 1, -- after unit_mex_upgrade_reclaimer and unit_geo_upgrade_reclaimer
-		enabled = Spring.GetModOptions().disable_assist_ally_construction or Spring.GetModOptions().easytax,
-=======
-		layer   = 0,
+		layer   = 1,
 		enabled = not assistEnabled,
->>>>>>> 57b5dc0bb9 (feat: auditable economy with waterfill solver)
 	}
 end
 
@@ -25,16 +20,14 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-<<<<<<< HEAD
-local spAreTeamsAllied = Spring.AreTeamsAllied
-local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local assistEnabled = Spring.GetModOptions()[SharedEnums.ModOptions.AlliedAssistMode] == SharedEnums.AlliedAssistMode.Enabled
+local modOptValue = Spring.GetModOptions()[SharedEnums.ModOptions.AlliedAssistMode]
+local assistEnabled = modOptValue == SharedEnums.AlliedAssistMode.Enabled
 if assistEnabled then
 	return false
 end
-=======
-Spring.Echo("[AlliedAssistMode] Gadget loaded - will block guard/assist commands to allies")
->>>>>>> 57b5dc0bb9 (feat: auditable economy with waterfill solver)
+
+local spAreTeamsAllied = Spring.AreTeamsAllied
+local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
@@ -57,12 +50,8 @@ local builderMoveStateCmdDesc = {
 
 local gaiaTeam = Spring.GetGaiaTeamID()
 
-<<<<<<< HEAD
 local isFactory = {}
-local canBuildStep = {} -- i.e. anything that spends resources when assisted
-=======
 local canBuildStep = {}
->>>>>>> 57b5dc0bb9 (feat: auditable economy with waterfill solver)
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	isFactory[unitDefID] = unitDef.isFactory
 	canBuildStep[unitDefID] = unitDef.isFactory or (unitDef.isBuilder and (unitDef.canBuild or unitDef.canAssist))
@@ -185,21 +174,12 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 end
 
 function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z, facing)
-	-- Identical blueprints placed on top of one another are converted to build assist.
 	if builderID and not isFactory[spGetUnitDefID(builderID)] then
 		local units = spGetUnitsInCylinder(x, z, footprintSize)
 		for _, unitID in pairs(units) do
 			if unitDefID == spGetUnitDefID(unitID) and not isComplete(unitID) and isAlliedUnit(builderTeam, unitID) then
 				return false, false
 			end
-		end
-	-- Also disallow assisting building (caused by a repair command) units under construction
-	-- Area repair doesn't cause assisting, so it's fine that we can't properly filter it
-	elseif cmdID == CMD_REPAIR and #cmdParams == 1 then
-		local targetID = cmdParams[1]
-		local targetTeam = Spring.GetUnitTeam(targetID)
-		if targetTeam and unitTeam ~= targetTeam and Spring.AreTeamsAllied(unitTeam, targetTeam) then
-			return false
 		end
 	end
 

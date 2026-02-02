@@ -22,10 +22,6 @@ return {
         [SharedEnums.ModOptions.PlayerMetalSendThreshold] = {
             value = 440,
             locked = false,
-            bounds = {
-                min = 0,
-                max = 100000,
-            }
         },
         [SharedEnums.ModOptions.PlayerEnergySendThreshold] = {
             value = 0,
@@ -34,7 +30,6 @@ return {
         [SharedEnums.ModOptions.TransportDropper] = {
             value = true,
             locked = false,
-            ui = "hidden",
         },
         [SharedEnums.ModOptions.AlliedUnitReclaimMode] = {
             value = SharedEnums.AlliedUnitReclaimMode.EnabledAutomationRestricted,
