@@ -327,16 +327,14 @@ local function removeLeadingMoveCommandsNearUnit(unitID)
     local unitLocation     = {Spring.GetUnitPosition(unitID)}
     local tags = {}
 
-    for i = spGetUnitCommandCount(unitID), 1, -1 do
+    for i = 1, spGetUnitCommandCount(unitID) do
 		local cmdID, _, qid, q1, q2, q3 = spGetUnitCurrentCommand(unitID, i)
 		if cmdID == CMD.MOVE and distance(unitLocation, { q1, q2, q3 }) < FACTORY_CLEARANCE_DISTANCE * 3 then
             tags[#tags + 1] = qid
-		else
-            if tags[1] then
-                spGiveOrderToUnit(unitID, CMD_REMOVE, tags)
-                return
-            end
-        end
+		elseif tags[1] then
+			spGiveOrderToUnit(unitID, CMD_REMOVE, tags)
+			return
+		end
 	end
 
 	if tags[1] then
