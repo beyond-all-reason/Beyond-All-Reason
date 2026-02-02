@@ -170,6 +170,7 @@ local state = {
 	showTextInput = false,
 	inputText = '',
 	inputTextPosition = 0,
+	inputSelectionStart = nil,
 	cursorBlinkTimer = 0,
 	cursorBlinkDuration = 1,
 	inputMode = nil,
@@ -186,6 +187,7 @@ local state = {
 local I18N, orgLines, chatLines, consoleLines = state.I18N, state.orgLines, state.chatLines, state.consoleLines
 local activationArea, font = state.activationArea, state.font
 local showTextInput, inputText, cursorBlinkTimer, cursorBlinkDuration = false, '', 0, 1
+local inputSelectionStart = nil
 local inputMode, inputHistory, autocompleteWords, prevAutocompleteLetters = nil, {}, {}, nil
 local scrolling, playSound, sndChatFile, sndChatFileVolume = false, config.playSound, config.sndChatFile, config.sndChatFileVolume
 local myName, mySpec = state.myName, state.mySpec
@@ -779,6 +781,7 @@ local function cancelChatInput()
 	end
 	inputText = ''
 	inputTextPosition = 0
+	inputSelectionStart = nil
 	inputTextInsertActive = false
 	inputHistoryCurrent = #inputHistory
 	autocompleteText = nil
@@ -1535,6 +1538,17 @@ drawChatInput = function()
 				usedFont:Print(':', inputButtonRect[3]-0.5, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "co")
 			end
 
+			-- text selection highlight
+			if inputSelectionStart and inputSelectionStart ~= inputTextPosition then
+				local selStart = math.min(inputSelectionStart, inputTextPosition)
+				local selEnd = math.max(inputSelectionStart, inputTextPosition)
+				local selStartPos = floor(usedFont:GetTextWidth(utf8.sub(inputText, 1, selStart)) * inputFontSize)
+				local selEndPos = floor(usedFont:GetTextWidth(utf8.sub(inputText, 1, selEnd)) * inputFontSize)
+				glColor(0.55, 0.55, 0.55, 0.5)
+				gl.Rect(textPosX + selStartPos, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)-(inputFontSize*0.6), textPosX + selEndPos, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)+(inputFontSize*0.64))
+				glColor(1,1,1,1)
+			end
+
 			-- text cursor
 			textCursorRect = { textPosX + textCursorPos, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)-(inputFontSize*0.6), textPosX + textCursorPos + textCursorWidth, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)+(inputFontSize*0.64) }
 			--a = 1 - (cursorBlinkTimer * (1 / cursorBlinkDuration)) + 0.15
@@ -2116,6 +2130,14 @@ end
 
 function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked it
 	if handleTextInput and not chobbyInterface and not Spring.IsGUIHidden() and showTextInput then
+		-- If there's a selection, delete it first
+		if inputSelectionStart and inputSelectionStart ~= inputTextPosition then
+			local selStart = math.min(inputSelectionStart, inputTextPosition)
+			local selEnd = math.max(inputSelectionStart, inputTextPosition)
+			inputText = utf8.sub(inputText, 1, selStart) .. utf8.sub(inputText, selEnd + 1)
+			inputTextPosition = selStart
+			inputSelectionStart = nil
+		end
 		if inputTextInsertActive then
 			inputText = utf8.sub(inputText, 1, inputTextPosition) .. char .. utf8.sub(inputText, inputTextPosition+2)
 			if inputTextPosition <= utf8.len(inputText) then
@@ -2180,6 +2202,13 @@ function widget:KeyPress(key)
 						end
 						lastMessage = inputText
 					end
+					-- Remove any duplicate of this message from earlier in history (move to front)
+					for i = #inputHistory - 1, 1, -1 do
+						if inputHistory[i] == inputText then
+							table.remove(inputHistory, i)
+							break  -- Only remove one duplicate (the most recent one)
+						end
+					end
 				end
 				cancelChatInput()
 			end
@@ -2220,6 +2249,14 @@ function widget:KeyPress(key)
 	end
 
 	if ctrl and key == 118 then -- CTRL + V
+		-- Delete selection if any
+		if inputSelectionStart and inputSelectionStart ~= inputTextPosition then
+			local selStart = math.min(inputSelectionStart, inputTextPosition)
+			local selEnd = math.max(inputSelectionStart, inputTextPosition)
+			inputText = utf8.sub(inputText, 1, selStart) .. utf8.sub(inputText, selEnd + 1)
+			inputTextPosition = selStart
+			inputSelectionStart = nil
+		end
 		local clipboardText = Spring.GetClipboard()
 		inputText = utf8.sub(inputText, 1, inputTextPosition) .. clipboardText .. utf8.sub(inputText, inputTextPosition+1)
 		inputTextPosition = inputTextPosition + utf8.len(clipboardText)
@@ -2233,11 +2270,90 @@ function widget:KeyPress(key)
 		cursorBlinkTimer = 0
 		autocomplete(inputText, true)
 
+	elseif ctrl and key == 99 then -- CTRL + C
+		if inputSelectionStart and inputSelectionStart ~= inputTextPosition then
+			local selStart = math.min(inputSelectionStart, inputTextPosition)
+			local selEnd = math.max(inputSelectionStart, inputTextPosition)
+			local selectedText = utf8.sub(inputText, selStart + 1, selEnd)
+			Spring.SetClipboard(selectedText)
+		end
+
+	elseif ctrl and key == 120 then -- CTRL + X
+		if inputSelectionStart and inputSelectionStart ~= inputTextPosition then
+			local selStart = math.min(inputSelectionStart, inputTextPosition)
+			local selEnd = math.max(inputSelectionStart, inputTextPosition)
+			local selectedText = utf8.sub(inputText, selStart + 1, selEnd)
+			Spring.SetClipboard(selectedText)
+			inputText = utf8.sub(inputText, 1, selStart) .. utf8.sub(inputText, selEnd + 1)
+			inputTextPosition = selStart
+			inputSelectionStart = nil
+			inputHistory[#inputHistory] = inputText
+			cursorBlinkTimer = 0
+			autocomplete(inputText, true)
+		end
+
+	elseif ctrl and key == 97 then -- CTRL + A
+		inputSelectionStart = 0
+		inputTextPosition = utf8.len(inputText)
+		cursorBlinkTimer = 0
+
+	elseif ctrl and key == 276 then -- CTRL + LEFT (word jump)
+		if shift then
+			if not inputSelectionStart then
+				inputSelectionStart = inputTextPosition
+			end
+		else
+			inputSelectionStart = nil
+		end
+		-- Move to previous word boundary
+		local pos = inputTextPosition
+		-- Skip any spaces before current position
+		while pos > 0 and utf8.sub(inputText, pos, pos):match("%s") do
+			pos = pos - 1
+		end
+		-- Skip the word
+		while pos > 0 and not utf8.sub(inputText, pos, pos):match("%s") do
+			pos = pos - 1
+		end
+		inputTextPosition = pos
+		cursorBlinkTimer = 0
+
+	elseif ctrl and key == 275 then -- CTRL + RIGHT (word jump)
+		if shift then
+			if not inputSelectionStart then
+				inputSelectionStart = inputTextPosition
+			end
+		else
+			inputSelectionStart = nil
+		end
+		-- Move to next word boundary
+		local textLen = utf8.len(inputText)
+		local pos = inputTextPosition
+		-- Skip the current word
+		while pos < textLen and not utf8.sub(inputText, pos + 1, pos + 1):match("%s") do
+			pos = pos + 1
+		end
+		-- Skip any spaces after the word
+		while pos < textLen and utf8.sub(inputText, pos + 1, pos + 1):match("%s") do
+			pos = pos + 1
+		end
+		inputTextPosition = pos
+		cursorBlinkTimer = 0
+
 	elseif not alt and not ctrl then
 		if key == 27 then -- ESC
 			cancelChatInput()
 		elseif key == 8 then -- BACKSPACE
-			if inputTextPosition > 0 then
+			if inputSelectionStart and inputSelectionStart ~= inputTextPosition then
+				-- Delete selection
+				local selStart = math.min(inputSelectionStart, inputTextPosition)
+				local selEnd = math.max(inputSelectionStart, inputTextPosition)
+				inputText = utf8.sub(inputText, 1, selStart) .. utf8.sub(inputText, selEnd + 1)
+				inputTextPosition = selStart
+				inputSelectionStart = nil
+				inputHistory[#inputHistory] = inputText
+				prevAutocompleteLetters = nil
+			elseif inputTextPosition > 0 then
 				inputText = utf8.sub(inputText, 1, inputTextPosition-1) .. utf8.sub(inputText, inputTextPosition+1)
 				inputTextPosition = inputTextPosition - 1
 				inputHistory[#inputHistory] = inputText
@@ -2248,7 +2364,15 @@ function widget:KeyPress(key)
 			cursorBlinkTimer = 0
 			autocomplete(inputText, not prevAutocompleteLetters)
 		elseif key == 127 then -- DELETE
-			if inputTextPosition < utf8.len(inputText) then
+			if inputSelectionStart and inputSelectionStart ~= inputTextPosition then
+				-- Delete selection
+				local selStart = math.min(inputSelectionStart, inputTextPosition)
+				local selEnd = math.max(inputSelectionStart, inputTextPosition)
+				inputText = utf8.sub(inputText, 1, selStart) .. utf8.sub(inputText, selEnd + 1)
+				inputTextPosition = selStart
+				inputSelectionStart = nil
+				inputHistory[#inputHistory] = inputText
+			elseif inputTextPosition < utf8.len(inputText) then
 				inputText = utf8.sub(inputText, 1, inputTextPosition) .. utf8.sub(inputText, inputTextPosition+2)
 				inputHistory[#inputHistory] = inputText
 			end
@@ -2257,24 +2381,57 @@ function widget:KeyPress(key)
 		elseif key == 277 then -- INSERT
 			inputTextInsertActive = not inputTextInsertActive
 		elseif key == 276 then -- LEFT
+			if shift then
+				-- Start or extend selection
+				if not inputSelectionStart then
+					inputSelectionStart = inputTextPosition
+				end
+			else
+				-- Clear selection
+				inputSelectionStart = nil
+			end
 			inputTextPosition = inputTextPosition - 1
 			if inputTextPosition < 0 then
 				inputTextPosition = 0
 			end
 			cursorBlinkTimer = 0
 		elseif key == 275 then -- RIGHT
+			if shift then
+				-- Start or extend selection
+				if not inputSelectionStart then
+					inputSelectionStart = inputTextPosition
+				end
+			else
+				-- Clear selection
+				inputSelectionStart = nil
+			end
 			inputTextPosition = inputTextPosition + 1
 			if inputTextPosition > utf8.len(inputText) then
 				inputTextPosition = utf8.len(inputText)
 			end
 			cursorBlinkTimer = 0
 		elseif key == 278 or key == 280 then -- HOME / PGUP
+			if shift then
+				if not inputSelectionStart then
+					inputSelectionStart = inputTextPosition
+				end
+			else
+				inputSelectionStart = nil
+			end
 			inputTextPosition = 0
 			cursorBlinkTimer = 0
 		elseif key == 279 or key == 281 then -- END / PGDN
+			if shift then
+				if not inputSelectionStart then
+					inputSelectionStart = inputTextPosition
+				end
+			else
+				inputSelectionStart = nil
+			end
 			inputTextPosition = utf8.len(inputText)
 			cursorBlinkTimer = 0
 		elseif key == 273 then -- UP
+			inputSelectionStart = nil
 			inputHistoryCurrent = inputHistoryCurrent - 1
 			if inputHistoryCurrent < 1 then
 				inputHistoryCurrent = 1
@@ -2287,6 +2444,7 @@ function widget:KeyPress(key)
 			cursorBlinkTimer = 0
 			autocomplete(inputText, true)
 		elseif key == 274 then -- DOWN
+			inputSelectionStart = nil
 			inputHistoryCurrent = inputHistoryCurrent + 1
 			if inputHistoryCurrent >= #inputHistory then
 				inputHistoryCurrent = #inputHistory
@@ -2296,6 +2454,7 @@ function widget:KeyPress(key)
 			cursorBlinkTimer = 0
 			autocomplete(inputText, true)
 		elseif key == 9 then -- TAB
+			inputSelectionStart = nil
 			if autocompleteText then
 				inputText = utf8.sub(inputText, 1, inputTextPosition) .. autocompleteText .. utf8.sub(inputText, inputTextPosition+1)
 				inputTextPosition = inputTextPosition + utf8.len(autocompleteText)
@@ -2734,7 +2893,7 @@ end
 function widget:GetConfigData(data)
 	local inputHistoryLimited = {}
 	for k,v in ipairs(inputHistory) do
-		if k >= (#inputHistory - 20) then
+		if k >= (#inputHistory - 50) then
 			inputHistoryLimited[#inputHistoryLimited+1] = v
 		end
 	end

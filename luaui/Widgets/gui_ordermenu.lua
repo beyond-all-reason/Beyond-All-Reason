@@ -465,6 +465,7 @@ function widget:Initialize()
 	WG['ordermenu'].setBottomPosition = function(value)
 		stickToBottom = value
 		doUpdate = true
+		widget:ViewResize()
 	end
 	WG['ordermenu'].getAlwaysShow = function()
 		return alwaysShow

@@ -1,5 +1,10 @@
--- This widget is a duplicate of gui_pip.lua
--- It includes all the code from that widget to create a second independent PiP window
+-- This widget replaces the standard minimap with a PIP-style minimap
+-- It uses pipNumber = 0 to trigger minimap replacement mode in gui_pip.lua
+-- Features:
+--   - Positioned at top-left like standard minimap
+--   - No screen margin restrictions (edge-to-edge)
+--   - No minimize button (always visible)
+--   - Calls DrawInMiniMap overlays from other widgets during R2T rendering
 
 local devUI = Spring.Utilities.ShowDevUI()
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
@@ -17,7 +22,7 @@ if not pipEnabled then
 	end
 end
 
-pipNumber = 2
+pipNumber = 0  -- Triggers minimap mode in gui_pip.lua
 
 VFS.Include("LuaUI/Widgets/gui_pip.lua")
 
@@ -25,13 +30,13 @@ VFS.Include("LuaUI/Widgets/gui_pip.lua")
 -- Override GetInfo to change the name and layer
 widget.GetInfo = function()
 	return {
-		name      = "Picture-in-Picture "..pipNumber,
-		desc      = "Second PiP window instance",
+		name      = "Picture-in-Picture Minimap",
+		desc      = "Replaces minimap with an interactive PIP-style map view. Supports panning, zooming, and unit tracking.",
 		author    = "Floris",
 		version   = "1.0",
-		date      = "November 2025",
+		date      = "January 2026",
 		license   = "GNU GPL, v2 or later",
-		layer     = -(990020-pipNumber),
+		layer     = -990000,
 		enabled   = false,
 		handler   = true,
 	}
