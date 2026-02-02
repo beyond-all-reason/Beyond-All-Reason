@@ -75,6 +75,8 @@ for id, def in pairs(UnitDefs) do
     }
 end
 
+local distanceFromRectangle = math.distanceFromRectangle
+
 local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
@@ -96,6 +98,34 @@ local function distance(point1, point2)
 	return math.diag(point1[1] - point2[1],
 	                 point1[2] - point2[2],
 	                 point1[3] - point2[3])
+end
+
+local unitSizeX = {}
+local unitSizeZ = {}
+
+for unitDefID, unitDef in ipairs(UnitDefs) do
+	unitSizeX[unitDefID] = unitDef.xsize
+	unitSizeZ[unitDefID] = unitDef.zsize
+end
+
+local function isAxisAligned(unitID)
+	return Spring.GetUnitBuildFacing(unitID) % 2 == 0
+end
+
+local function getFactoryClearance(unitID, factoryID)
+	local ux, uy, uz = Spring.GetUnitPosition(unitID)
+	local fx, fy, fz = Spring.GetUnitPosition(factoryID)
+
+	local sizeX, sizeZ
+	local factoryDefID = Spring.GetUnitDefID(factoryID)
+
+	if isAxisAligned(factoryID) then
+		sizeX, sizeZ = unitSizeX[factoryDefID], unitSizeZ[factoryDefID]
+	else
+		sizeX, sizeZ = unitSizeZ[factoryDefID], unitSizeX[factoryDefID]
+	end
+
+	local clearance = distanceFromRectangle(fx, fz, sizeX, sizeZ, ux, uz)
 end
 
 local function timeToTarget(start, endpoint, speed)
@@ -177,19 +207,17 @@ local function handleTransport(transportID, target)
     else
         -- Order the built unit to stop if it's out of the factory
         if transportState[transportID] == transport_states.picking_up then
-            local factoryLocation  = {Spring.GetUnitPosition(transportToFactory[transportID])}
-            local unitLocation     = {Spring.GetUnitPosition(target)}
-            local isFarFromFactory = distance(factoryLocation, unitLocation) > FACTORY_CLEARANCE_DISTANCE
-
             -- Check if we picked up the unit already
-            if isTransportingUnit(transportID, target) then                    
+            if isTransportingUnit(transportID, target) then
                 transportState[transportID] = transport_states.loaded
                 tryDeactivateWait(target)
                 Spring.GiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, unitToDestination[target], CMD.OPT_RIGHT)
                 return
             end
 
-            if isFarFromFactory then
+            local isFarFromFactory = getFactoryClearance(target, transportToFactory[transportID]) > FACTORY_CLEARANCE_DISTANCE
+
+			if isFarFromFactory then
                 tryActivateWait(target)
             end
 
@@ -221,9 +249,7 @@ local function handleTransport(transportID, target)
                 Spring.GiveOrderToUnit(transportID, CMD.LOAD_UNITS, target,  CMD.OPT_RIGHT) --Load Unit
             end
 
-            local factoryLocation  = {Spring.GetUnitPosition(transportToFactory[transportID])}
-            local unitLocation     = {Spring.GetUnitPosition(target)}
-            local isFarFromFactory = distance(factoryLocation, unitLocation) > FACTORY_CLEARANCE_DISTANCE
+			local isFarFromFactory = getFactoryClearance(target, transportToFactory[transportID]) > FACTORY_CLEARANCE_DISTANCE
 
             if isFarFromFactory then
                 tryActivateWait(target)
