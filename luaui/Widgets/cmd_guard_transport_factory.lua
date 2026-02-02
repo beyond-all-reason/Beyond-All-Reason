@@ -196,6 +196,37 @@ local function isTransportingUnit(transportID, unitID)
     end
 end
 
+-- The fab issues an inital move command to every unit to make sure it clears the factory.
+-- We want get rid of that command before picking up. Otherwise, it'll get picked up
+-- and dropped off, and then proceed to walk back to the factory and then to the rally.
+local function removeLeadingMoveCommandsNearFactory(unitID, factoryID)
+    local tags = {}
+
+	local fx, fy, fz = Spring.GetUnitPosition(factoryID)
+	local factoryDefID = Spring.GetUnitDefID(factoryID)
+	local sizeX, sizeZ
+
+	if isAxisAligned(factoryID) then
+		sizeX, sizeZ = unitSizeX[factoryDefID], unitSizeZ[factoryDefID]
+	else
+		sizeX, sizeZ = unitSizeZ[factoryDefID], unitSizeX[factoryDefID]
+	end
+
+    for i = 1, spGetUnitCommandCount(unitID) do
+		local cmdID, _, qid, q1, q2, q3 = spGetUnitCurrentCommand(unitID, i)
+		if cmdID == CMD.MOVE and distanceFromRectangle(fx, fz, sizeX, sizeZ, q1, q3) < FACTORY_CLEARANCE_DISTANCE * 2 then
+            tags[#tags + 1] = qid
+		elseif tags[1] then
+			spGiveOrderToUnit(unitID, CMD_REMOVE, tags)
+			return
+		end
+	end
+
+	if tags[1] then
+		spGiveOrderToUnit(unitID, CMD_REMOVE, tags)
+	end
+end
+
 local function handleTransport(transportID, target)
     -- Check if transport has loaded unit
     if not IsUnitAlive(target) then
@@ -215,10 +246,12 @@ local function handleTransport(transportID, target)
                 return
             end
 
-            local isFarFromFactory = getFactoryClearance(target, transportToFactory[transportID]) > FACTORY_CLEARANCE_DISTANCE
+			local factoryID = transportToFactory[transportID]
+            local isFarFromFactory = getFactoryClearance(target, factoryID) > FACTORY_CLEARANCE_DISTANCE
 
 			if isFarFromFactory then
                 tryActivateWait(target)
+				removeLeadingMoveCommandsNearFactory(target, factoryID)
             end
 
             return
@@ -249,10 +282,12 @@ local function handleTransport(transportID, target)
                 Spring.GiveOrderToUnit(transportID, CMD.LOAD_UNITS, target,  CMD.OPT_RIGHT) --Load Unit
             end
 
-			local isFarFromFactory = getFactoryClearance(target, transportToFactory[transportID]) > FACTORY_CLEARANCE_DISTANCE
+			local factoryID = transportToFactory[transportID]
+            local isFarFromFactory = getFactoryClearance(target, factoryID) > FACTORY_CLEARANCE_DISTANCE
 
-            if isFarFromFactory then
+			if isFarFromFactory then
                 tryActivateWait(target)
+				removeLeadingMoveCommandsNearFactory(target, factoryID)
             end
 
             return
@@ -323,37 +358,6 @@ local function canTransport(transportID, unitID)
 	return true
 end
 
--- The fab issues an inital move command to every unit to make sure it clears the factory.
--- We want get rid of that command before picking up. Otherwise, it'll get picked up
--- and dropped off, and then proceed to walk back to the factory and then to the rally.
-local function removeLeadingMoveCommandsNearFactory(unitID, factoryID)
-    local tags = {}
-
-	local fx, fy, fz = Spring.GetUnitPosition(factoryID)
-	local factoryDefID = Spring.GetUnitDefID(factoryID)
-	local sizeX, sizeZ
-
-	if isAxisAligned(factoryID) then
-		sizeX, sizeZ = unitSizeX[factoryDefID], unitSizeZ[factoryDefID]
-	else
-		sizeX, sizeZ = unitSizeZ[factoryDefID], unitSizeX[factoryDefID]
-	end
-
-    for i = 1, spGetUnitCommandCount(unitID) do
-		local cmdID, _, qid, q1, q2, q3 = spGetUnitCurrentCommand(unitID, i)
-		if cmdID == CMD.MOVE and distanceFromRectangle(fx, fz, sizeX, sizeZ, q1, q3) < FACTORY_CLEARANCE_DISTANCE * 2 then
-            tags[#tags + 1] = qid
-		elseif tags[1] then
-			spGiveOrderToUnit(unitID, CMD_REMOVE, tags)
-			return
-		end
-	end
-
-	if tags[1] then
-		spGiveOrderToUnit(unitID, CMD_REMOVE, tags)
-	end
-end
-
 function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
     local createdUnitID = unitID
     if Spring.AreTeamsAllied(unitTeam, Spring.GetLocalTeamID()) then
@@ -396,8 +400,6 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
                     end
                 end
             end
-
-            removeLeadingMoveCommandsNearFactory(createdUnitID, factID)
 
             if bestTransportID > -1 then
                 transportState[bestTransportID]         = transport_states.approaching
