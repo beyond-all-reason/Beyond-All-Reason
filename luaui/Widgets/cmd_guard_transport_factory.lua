@@ -323,6 +323,9 @@ local function canTransport(transportID, unitID)
 	return true
 end
 
+-- The fab issues an inital move command to every unit to make sure it clears the factory.
+-- We want get rid of that command before picking up. Otherwise, it'll get picked up
+-- and dropped off, and then proceed to walk back to the factory and then to the rally.
 local function removeLeadingMoveCommandsNearFactory(unitID, factoryID)
     local tags = {}
 
@@ -394,9 +397,6 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
                 end
             end
 
-            -- The fab issues an inital move command to every unit to make sure it clears the factory.
-            -- We want get rid of that command before picking up. Otherwise, it'll get picked up
-            -- and dropped off, and then proceed to walk back to the factory and then to the rally.
             removeLeadingMoveCommandsNearFactory(createdUnitID, factID)
 
             if bestTransportID > -1 then
