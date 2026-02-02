@@ -104,8 +104,8 @@ local unitSizeX = {}
 local unitSizeZ = {}
 
 for unitDefID, unitDef in ipairs(UnitDefs) do
-	unitSizeX[unitDefID] = unitDef.xsize
-	unitSizeZ[unitDefID] = unitDef.zsize
+	unitSizeX[unitDefID] = unitDef.xsize * Game.squareSize
+	unitSizeZ[unitDefID] = unitDef.zsize * Game.squareSize
 end
 
 local function isAxisAligned(unitID)
