@@ -215,7 +215,7 @@ local function removeLeadingMoveCommandsNearFactory(unitID, factoryID)
 		sizeX, sizeZ = unitSizeZ[factoryDefID], unitSizeX[factoryDefID]
 	end
 
-    for i = 1, spGetUnitCommandCount(unitID) do
+    for i = 1, math.min(spGetUnitCommandCount(unitID), 64) do
 		local cmdID, _, qid, q1, q2, q3 = spGetUnitCurrentCommand(unitID, i)
 		if cmdID == CMD.MOVE and distanceFromRectangle(fx, fz, sizeX, sizeZ, q1, q3) - unitRadius < FACTORY_CLEARANCE_DISTANCE then
             tags[#tags + 1] = qid
