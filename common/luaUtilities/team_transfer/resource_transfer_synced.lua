@@ -1,11 +1,11 @@
-local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+local GlobalEnums = VFS.Include("modes/global_enums.lua")
 local Comms = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_comms.lua")
 local Shared = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_shared.lua")
 local WaterfillSolver = VFS.Include("common/luaUtilities/economy/economy_waterfill_solver.lua")
 local EconomyLog = VFS.Include("common/luaUtilities/economy/economy_log.lua")
 local SharedConfig = VFS.Include("common/luaUtilities/economy/shared_config.lua")
 
-local ResourceType = SharedEnums.ResourceType
+local ResourceType = GlobalEnums.ResourceType
 
 local Gadgets = {
   SendTransferChatMessages = Comms.SendTransferChatMessages,
@@ -74,7 +74,7 @@ end
 local function TryDenyPolicy(ctx, resourceType)
   -- Globally disable any form of resource sharing if the modoption is turned off
   local modOpts = ctx.springRepo.GetModOptions()
-  local resourceSharingEnabled = modOpts[SharedEnums.ModOptions.ResourceSharingEnabled]
+  local resourceSharingEnabled = modOpts[GlobalEnums.ModOptions.ResourceSharingEnabled]
   if resourceSharingEnabled == false then
     return Shared.CreateDenyPolicy(ctx.senderTeamId, ctx.receiverTeamId, resourceType, ctx.springRepo)
   end
@@ -152,9 +152,9 @@ local policyResultPool = {}
 function Gadgets.BuildResultFactory(taxRate, metalThreshold, energyThreshold)
   ---@param resourceType ResourceType
   local function getThreshold(resourceType)
-    if resourceType == SharedEnums.ResourceType.METAL then
+    if resourceType == GlobalEnums.ResourceType.METAL then
       return metalThreshold
-    elseif resourceType == SharedEnums.ResourceType.ENERGY then
+    elseif resourceType == GlobalEnums.ResourceType.ENERGY then
       return energyThreshold
     end
   end
@@ -168,10 +168,10 @@ function Gadgets.BuildResultFactory(taxRate, metalThreshold, energyThreshold)
 
     local senderData
     local receiverData
-    if resourceType == SharedEnums.ResourceType.METAL then
+    if resourceType == GlobalEnums.ResourceType.METAL then
       senderData = ctx.sender.metal
       receiverData = ctx.receiver.metal
-    elseif resourceType == SharedEnums.ResourceType.ENERGY then
+    elseif resourceType == GlobalEnums.ResourceType.ENERGY then
       senderData = ctx.sender.energy
       receiverData = ctx.receiver.energy
     end

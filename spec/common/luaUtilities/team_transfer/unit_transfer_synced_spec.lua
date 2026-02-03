@@ -1,6 +1,6 @@
 ---@type Builders
 local Builders = VFS.Include("spec/builders/index.lua")
-local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+local GlobalEnums = VFS.Include("modes/global_enums.lua")
 local UnitTransfer = VFS.Include("common/luaUtilities/team_transfer/unit_transfer_synced.lua")
 local ContextFactoryModule = VFS.Include("common/luaUtilities/team_transfer/context_factory.lua")
 
@@ -17,24 +17,24 @@ local Units = {
 ---@field testUnits table<string, boolean> Map of unit names to expected outcomes
 
 local testConfigs = {
-	[SharedEnums.UnitSharingMode.Disabled] = {
-		mode = SharedEnums.UnitSharingMode.Disabled,
+	[GlobalEnums.UnitSharingMode.Disabled] = {
+		mode = GlobalEnums.UnitSharingMode.Disabled,
 		canShareUnits = false,
 		testUnits = {
 			[Units.AdvancedConstructor] = false,
 			[Units.Fusion] = false,
         }
 	},
-	[SharedEnums.UnitSharingMode.Enabled] = {
-		mode = SharedEnums.UnitSharingMode.Enabled, 
+	[GlobalEnums.UnitSharingMode.Enabled] = {
+		mode = GlobalEnums.UnitSharingMode.Enabled, 
 		canShareUnits = true,
 		testUnits = {
 			[Units.AdvancedConstructor] = true,
 			[Units.Fusion] = true,
         }
 	},
-	[SharedEnums.UnitSharingMode.CombatUnits] = {
-		mode = SharedEnums.UnitSharingMode.CombatUnits,
+	[GlobalEnums.UnitSharingMode.CombatUnits] = {
+		mode = GlobalEnums.UnitSharingMode.CombatUnits,
 		canShareUnits = true,
 		testUnits = {
             [Units.Pawn] = true,
@@ -43,8 +43,8 @@ local testConfigs = {
 			[Units.Fusion] = false,
         }
 	},
-	[SharedEnums.UnitSharingMode.Economic] = {
-		mode = SharedEnums.UnitSharingMode.Economic,
+	[GlobalEnums.UnitSharingMode.Economic] = {
+		mode = GlobalEnums.UnitSharingMode.Economic,
 		canShareUnits = true,
 		testUnits = {
 			[Units.Constructor] = true,
@@ -53,8 +53,8 @@ local testConfigs = {
 			[Units.Pawn] = false,
 		}
 	},
-	[SharedEnums.UnitSharingMode.EconomicPlusBuildings] = {
-		mode = SharedEnums.UnitSharingMode.EconomicPlusBuildings,
+	[GlobalEnums.UnitSharingMode.EconomicPlusBuildings] = {
+		mode = GlobalEnums.UnitSharingMode.EconomicPlusBuildings,
 		canShareUnits = true,
 		testUnits = {
 			[Units.AdvancedConstructor] = true,
@@ -63,8 +63,8 @@ local testConfigs = {
 			[Units.Pawn] = false,
 		}
 	},
-	[SharedEnums.UnitSharingMode.T2Cons] = {
-		mode = SharedEnums.UnitSharingMode.T2Cons,
+	[GlobalEnums.UnitSharingMode.T2Cons] = {
+		mode = GlobalEnums.UnitSharingMode.T2Cons,
 		canShareUnits = true,
 		testUnits = {
 			[Units.AdvancedConstructor] = true,
@@ -75,7 +75,7 @@ local testConfigs = {
 	}
 }
 
-describe(SharedEnums.ModOptions.UnitSharingMode .. " #policy", function()
+describe(GlobalEnums.ModOptions.UnitSharingMode .. " #policy", function()
     local sender = Builders.Team:new():Human()
     local receiver = Builders.Team:new():Human()
 
@@ -87,7 +87,7 @@ describe(SharedEnums.ModOptions.UnitSharingMode .. " #policy", function()
     -- Data-driven test execution
     for modeKey, config in pairs(testConfigs) do
         describe("WHEN unit sharing mode is set to " .. config.mode, function()
-            spring:WithModOption(SharedEnums.ModOptions.UnitSharingMode, config.mode)
+            spring:WithModOption(GlobalEnums.ModOptions.UnitSharingMode, config.mode)
             local result
             local unitIds = {}
             local api
@@ -178,7 +178,7 @@ describe("UnitTransfer #action", function()
             local ctx = {
                 senderTeamId = sender.id,
                 receiverTeamId = receiver.id,
-                transferCategory = SharedEnums.TransferCategory.UnitTransfer,
+                transferCategory = GlobalEnums.TransferCategory.UnitTransfer,
                 unitIds = unitIds,
                 given = false,
                 springRepo = spring,
@@ -193,7 +193,7 @@ describe("UnitTransfer #action", function()
                     energy = { current = 1000, storage = 1000, pull = 0, income = 0, expense = 0, shareSlider = 0, sent = 0, received = 0 },
                 },
                 validationResult = {
-                    status = SharedEnums.UnitValidationOutcome.Success,
+                    status = GlobalEnums.UnitValidationOutcome.Success,
                     validUnitIds = unitIds,
                     validUnitCount = #unitIds,
                     validUnitNames = {},
@@ -203,7 +203,7 @@ describe("UnitTransfer #action", function()
                 },
                 policyResult = {
                     canShare = true,
-                    sharingMode = SharedEnums.UnitSharingMode.Enabled,
+                    sharingMode = GlobalEnums.UnitSharingMode.Enabled,
                     senderTeamId = sender.id,
                     receiverTeamId = receiver.id,
                 },
@@ -212,7 +212,7 @@ describe("UnitTransfer #action", function()
             local transferSpy = spy.on(spring, "TransferUnit")
             result = UnitTransfer.UnitTransfer(ctx)
 
-            assert.equal(SharedEnums.UnitValidationOutcome.Success, result.outcome)
+            assert.equal(GlobalEnums.UnitValidationOutcome.Success, result.outcome)
             assert.equal(#unitIds, result.validationResult.validUnitCount)
             assert.equal(0, result.validationResult.invalidUnitCount)
             assert.spy(transferSpy).was.called(#unitIds)
@@ -227,7 +227,7 @@ describe("UnitTransfer #action", function()
             local ctx = {
                 senderTeamId = sender.id,
                 receiverTeamId = receiver.id,
-                transferCategory = SharedEnums.TransferCategory.UnitTransfer,
+                transferCategory = GlobalEnums.TransferCategory.UnitTransfer,
                 unitIds = mixedUnitIds,
                 given = false,
                 springRepo = spring,
@@ -242,7 +242,7 @@ describe("UnitTransfer #action", function()
                     energy = { current = 1000, storage = 1000, pull = 0, income = 0, expense = 0, shareSlider = 0, sent = 0, received = 0 },
                 },
                 validationResult = {
-                    status = SharedEnums.UnitValidationOutcome.PartialSuccess,
+                    status = GlobalEnums.UnitValidationOutcome.PartialSuccess,
                     validUnitIds = { mixedUnitIds[1], mixedUnitIds[3] },
                     validUnitCount = 2,
                     validUnitNames = {},
@@ -252,7 +252,7 @@ describe("UnitTransfer #action", function()
                 },
                 policyResult = {
                     canShare = true,
-                    sharingMode = SharedEnums.UnitSharingMode.Enabled,
+                    sharingMode = GlobalEnums.UnitSharingMode.Enabled,
                     senderTeamId = sender.id,
                     receiverTeamId = receiver.id,
                 },
@@ -260,7 +260,7 @@ describe("UnitTransfer #action", function()
 
             result = UnitTransfer.UnitTransfer(ctx)
 
-            assert.equal(SharedEnums.UnitValidationOutcome.PartialSuccess, result.outcome)
+            assert.equal(GlobalEnums.UnitValidationOutcome.PartialSuccess, result.outcome)
             assert.equal(2, result.validationResult.validUnitCount)
             assert.equal(1, result.validationResult.invalidUnitCount)
             assert.equal(9999, result.validationResult.invalidUnitIds[1])
@@ -271,7 +271,7 @@ describe("UnitTransfer #action", function()
             local ctx = {
                 senderTeamId = sender.id,
                 receiverTeamId = receiver.id,
-                transferCategory = SharedEnums.TransferCategory.UnitTransfer,
+                transferCategory = GlobalEnums.TransferCategory.UnitTransfer,
                 unitIds = {unitIds[1]},
                 given = true,  -- Test given parameter
                 springRepo = spring,
@@ -286,7 +286,7 @@ describe("UnitTransfer #action", function()
                     energy = { current = 1000, storage = 1000, pull = 0, income = 0, expense = 0, shareSlider = 0, sent = 0, received = 0 },
                 },
                 validationResult = {
-                    status = SharedEnums.UnitValidationOutcome.Success,
+                    status = GlobalEnums.UnitValidationOutcome.Success,
                     validUnitIds = { unitIds[1] },
                     validUnitCount = 1,
                     validUnitNames = {},
@@ -296,7 +296,7 @@ describe("UnitTransfer #action", function()
                 },
                 policyResult = {
                     canShare = true,
-                    sharingMode = SharedEnums.UnitSharingMode.Enabled,
+                    sharingMode = GlobalEnums.UnitSharingMode.Enabled,
                     senderTeamId = sender.id,
                     receiverTeamId = receiver.id,
                 },
@@ -304,7 +304,7 @@ describe("UnitTransfer #action", function()
 
             result = UnitTransfer.UnitTransfer(ctx)
 
-            assert.equal(SharedEnums.UnitValidationOutcome.Success, result.outcome)
+            assert.equal(GlobalEnums.UnitValidationOutcome.Success, result.outcome)
             assert.equal(1, result.validationResult.validUnitCount)
             assert.equal(0, result.validationResult.invalidUnitCount)
         end)
@@ -332,7 +332,7 @@ describe("UnitTransfer #action", function()
             local ctx = {
                 senderTeamId = sender.id,
                 receiverTeamId = receiver.id,
-                transferCategory = SharedEnums.TransferCategory.UnitTransfer,
+                transferCategory = GlobalEnums.TransferCategory.UnitTransfer,
                 unitIds = unitIds,
                 given = false,
                 springRepo = spring,
@@ -347,7 +347,7 @@ describe("UnitTransfer #action", function()
                     energy = { current = 1000, storage = 1000, pull = 0, income = 0, expense = 0, shareSlider = 0, sent = 0, received = 0 },
                 },
                 validationResult = {
-                    status = SharedEnums.UnitValidationOutcome.Success,
+                    status = GlobalEnums.UnitValidationOutcome.Success,
                     validUnitIds = unitIds,
                     validUnitCount = #unitIds,
                     validUnitNames = {},
@@ -357,7 +357,7 @@ describe("UnitTransfer #action", function()
                 },
                 policyResult = {
                     canShare = false,
-                    sharingMode = SharedEnums.UnitSharingMode.Disabled,
+                    sharingMode = GlobalEnums.UnitSharingMode.Disabled,
                     senderTeamId = sender.id,
                     receiverTeamId = receiver.id,
                 },
@@ -365,16 +365,16 @@ describe("UnitTransfer #action", function()
 
             result = UnitTransfer.UnitTransfer(ctx)
 
-            assert.equal(SharedEnums.UnitValidationOutcome.Success, result.validationResult.status)
+            assert.equal(GlobalEnums.UnitValidationOutcome.Success, result.validationResult.status)
             -- When sharing is disabled, outcome should be Failure and no transfers
-            assert.equal(SharedEnums.UnitValidationOutcome.Failure, result.outcome)
+            assert.equal(GlobalEnums.UnitValidationOutcome.Failure, result.outcome)
             assert.equal(#unitIds, result.validationResult.validUnitCount)
         end)
 
         it("should include policy result in response", function()
             local policyResult = {
                 canShare = false,
-                sharingMode = SharedEnums.UnitSharingMode.Disabled,
+                sharingMode = GlobalEnums.UnitSharingMode.Disabled,
                 senderTeamId = sender.id,
                 receiverTeamId = receiver.id,
             }
@@ -383,7 +383,7 @@ describe("UnitTransfer #action", function()
             local ctx = {
                 senderTeamId = sender.id,
                 receiverTeamId = receiver.id,
-                transferCategory = SharedEnums.TransferCategory.UnitTransfer,
+                transferCategory = GlobalEnums.TransferCategory.UnitTransfer,
                 unitIds = unitIds,
                 given = false,
                 springRepo = spring,
@@ -398,7 +398,7 @@ describe("UnitTransfer #action", function()
                     energy = { current = 1000, storage = 1000, pull = 0, income = 0, expense = 0, shareSlider = 0, sent = 0, received = 0 },
                 },
                 validationResult = {
-                    status = SharedEnums.UnitValidationOutcome.Success,
+                    status = GlobalEnums.UnitValidationOutcome.Success,
                     validUnitIds = unitIds,
                     validUnitCount = #unitIds,
                     validUnitNames = {},
@@ -421,7 +421,7 @@ describe("UnitTransfer #action", function()
             local ctx = {
                 senderTeamId = sender.id,
                 receiverTeamId = receiver.id,
-                transferCategory = SharedEnums.TransferCategory.UnitTransfer,
+                transferCategory = GlobalEnums.TransferCategory.UnitTransfer,
                 unitIds = {},
                 springRepo = spring,
                 areAlliedTeams = true,
@@ -435,7 +435,7 @@ describe("UnitTransfer #action", function()
                     energy = { current = 1000, storage = 1000, pull = 0, income = 0, expense = 0, shareSlider = 0, sent = 0, received = 0 },
                 },
                 validationResult = {
-                    status = SharedEnums.UnitValidationOutcome.Failure,
+                    status = GlobalEnums.UnitValidationOutcome.Failure,
                     validUnitIds = {},
                     validUnitCount = 0,
                     validUnitNames = {},
@@ -446,7 +446,7 @@ describe("UnitTransfer #action", function()
                 given = false,
                 policyResult = {
                     canShare = true,
-                    sharingMode = SharedEnums.UnitSharingMode.Enabled,
+                    sharingMode = GlobalEnums.UnitSharingMode.Enabled,
                     senderTeamId = sender.id,
                     receiverTeamId = receiver.id,
                 },
@@ -454,7 +454,7 @@ describe("UnitTransfer #action", function()
 
             result = UnitTransfer.UnitTransfer(ctx)
 
-            assert.equal(SharedEnums.UnitValidationOutcome.Failure, result.outcome)  -- No units to transfer
+            assert.equal(GlobalEnums.UnitValidationOutcome.Failure, result.outcome)  -- No units to transfer
             assert.equal(0, result.validationResult.validUnitCount)
             assert.equal(0, result.validationResult.invalidUnitCount)
         end)
@@ -464,7 +464,7 @@ describe("UnitTransfer #action", function()
             local ctx = {
                 senderTeamId = sender.id,
                 receiverTeamId = receiver.id,
-                transferCategory = SharedEnums.TransferCategory.UnitTransfer,
+                transferCategory = GlobalEnums.TransferCategory.UnitTransfer,
                 unitIds = {-1, 0, 9999},  -- All invalid
                 springRepo = spring,
                 areAlliedTeams = true,
@@ -478,7 +478,7 @@ describe("UnitTransfer #action", function()
                     energy = { current = 1000, storage = 1000, pull = 0, income = 0, expense = 0, shareSlider = 0, sent = 0, received = 0 },
                 },
                 validationResult = {
-                    status = SharedEnums.UnitValidationOutcome.Failure,
+                    status = GlobalEnums.UnitValidationOutcome.Failure,
                     validUnitIds = {},
                     validUnitCount = 0,
                     validUnitNames = {},
@@ -489,7 +489,7 @@ describe("UnitTransfer #action", function()
                 given = false,
                 policyResult = {
                     canShare = true,
-                    sharingMode = SharedEnums.UnitSharingMode.Enabled,
+                    sharingMode = GlobalEnums.UnitSharingMode.Enabled,
                     senderTeamId = sender.id,
                     receiverTeamId = receiver.id,
                 },
@@ -497,7 +497,7 @@ describe("UnitTransfer #action", function()
 
             result = UnitTransfer.UnitTransfer(ctx)
 
-            assert.equal(SharedEnums.UnitValidationOutcome.Failure, result.outcome)
+            assert.equal(GlobalEnums.UnitValidationOutcome.Failure, result.outcome)
             assert.equal(0, result.validationResult.validUnitCount)
             assert.equal(3, result.validationResult.invalidUnitCount)
         end)

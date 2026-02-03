@@ -1,6 +1,6 @@
 -- Ensure TeamData type is available
-local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
-local ResourceType = SharedEnums.ResourceType
+local GlobalEnums = VFS.Include("modes/global_enums.lua")
+local ResourceType = GlobalEnums.ResourceType
 
 VFS.Include("spec/builders/team_builder.lua")
 VFS.Include("common/stringFunctions.lua")

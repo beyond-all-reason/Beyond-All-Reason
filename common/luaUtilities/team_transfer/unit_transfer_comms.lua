@@ -1,4 +1,4 @@
-local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+local GlobalEnums = VFS.Include("modes/global_enums.lua")
 
 local Comms = {}
 Comms.__index = Comms
@@ -6,22 +6,22 @@ Comms.__index = Comms
 ---Decide communication case for unit sharing based on policy and optional validation results
 ---@param policy UnitPolicyResult
 ---@param validationResult UnitValidationResult?
----@return number SharedEnums.UnitCommunicationCase
+---@return number GlobalEnums.UnitCommunicationCase
 function Comms.DecideCommunicationCase(policy, validationResult)
   if policy.senderTeamId == policy.receiverTeamId then
-    return SharedEnums.UnitCommunicationCase.OnSelf
+    return GlobalEnums.UnitCommunicationCase.OnSelf
   elseif not policy.canShare then
-    return SharedEnums.UnitCommunicationCase.OnPolicyDisabled
+    return GlobalEnums.UnitCommunicationCase.OnPolicyDisabled
   elseif validationResult then
-    if validationResult.status == SharedEnums.UnitValidationOutcome.PartialSuccess then
-      return SharedEnums.UnitCommunicationCase.OnPartiallyShareable
-    elseif validationResult.status == SharedEnums.UnitValidationOutcome.Success then
-      return SharedEnums.UnitCommunicationCase.OnFullyShareable
+    if validationResult.status == GlobalEnums.UnitValidationOutcome.PartialSuccess then
+      return GlobalEnums.UnitCommunicationCase.OnPartiallyShareable
+    elseif validationResult.status == GlobalEnums.UnitValidationOutcome.Success then
+      return GlobalEnums.UnitCommunicationCase.OnFullyShareable
     else
-      return SharedEnums.UnitCommunicationCase.OnSelectionValidationFailed
+      return GlobalEnums.UnitCommunicationCase.OnSelectionValidationFailed
     end
   else
-    return SharedEnums.UnitCommunicationCase.OnFullyShareable
+    return GlobalEnums.UnitCommunicationCase.OnFullyShareable
   end
 end
 
@@ -38,13 +38,13 @@ function Comms.TooltipText(policy, validationResult)
     i18nData.secondInvalidUnitName = validationResult.invalidUnitNames[2] or ""
     i18nData.count = #validationResult.invalidUnitNames - 2
   end
-  if case == SharedEnums.UnitCommunicationCase.OnSelf then
+  if case == GlobalEnums.UnitCommunicationCase.OnSelf then
     return Spring.I18N(baseKey .. '.requestSupport')
-  elseif case == SharedEnums.UnitCommunicationCase.OnPolicyDisabled then
+  elseif case == GlobalEnums.UnitCommunicationCase.OnPolicyDisabled then
     return Spring.I18N(baseKey .. '.shareUnitsDisabled', i18nData)
-  elseif case == SharedEnums.UnitCommunicationCase.OnSelectionValidationFailed then
+  elseif case == GlobalEnums.UnitCommunicationCase.OnSelectionValidationFailed then
     return Spring.I18N(baseKey .. '.shareUnitsInvalid.all')
-  elseif case == SharedEnums.UnitCommunicationCase.OnPartiallyShareable then
+  elseif case == GlobalEnums.UnitCommunicationCase.OnPartiallyShareable then
     if not validationResult then error("This should not be possible.") end
 
     local invalidNames = validationResult.invalidUnitNames
@@ -61,7 +61,7 @@ function Comms.TooltipText(policy, validationResult)
     else
       return Spring.I18N(baseKey .. '.shareUnitsInvalid.other', i18nData)
     end
-  elseif case == SharedEnums.UnitCommunicationCase.OnFullyShareable then
+  elseif case == GlobalEnums.UnitCommunicationCase.OnFullyShareable then
     if validationResult then
       local i18nData = {
         validUnitCount = validationResult.validUnitCount,

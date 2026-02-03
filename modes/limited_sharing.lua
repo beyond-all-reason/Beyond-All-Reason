@@ -1,33 +1,33 @@
-local SharedEnums = VFS.Include("modes/global_enums.lua")
+local GlobalEnums = VFS.Include("modes/global_enums.lua")
 
 ---@type SharingModeConfig
 return {
-    key = SharedEnums.Modes.LimitedSharing,
+    key = GlobalEnums.Modes.LimitedSharing,
     name = "Limited Sharing",
     desc = "Allow T2 constructor sharing and payment, otherwise restrict sharing.",
     allowRanked = true,
     modOptions = {
-        [SharedEnums.ModOptions.UnitSharingMode] = {
-            value = SharedEnums.UnitSharingMode.T2Cons,
+        [GlobalEnums.ModOptions.UnitSharingMode] = {
+            value = GlobalEnums.UnitSharingMode.T2Cons,
             locked = true,
         },
-        [SharedEnums.ModOptions.ResourceSharingEnabled] = {
+        [GlobalEnums.ModOptions.ResourceSharingEnabled] = {
             value = true,
             locked = true,
         },
-        [SharedEnums.ModOptions.TaxResourceSharingAmount] = {
+        [GlobalEnums.ModOptions.TaxResourceSharingAmount] = {
             value = 0.30,
             locked = false,
         },
-        [SharedEnums.ModOptions.PlayerMetalSendThreshold] = {
+        [GlobalEnums.ModOptions.PlayerMetalSendThreshold] = {
             value = 440,
             locked = false,
         },
-        [SharedEnums.ModOptions.PlayerEnergySendThreshold] = {
+        [GlobalEnums.ModOptions.PlayerEnergySendThreshold] = {
             value = 0,
             locked = false,
         },
-        [SharedEnums.ModOptions.AlliedUnitReclaimMode] = {
+        [GlobalEnums.ModOptions.AlliedUnitReclaimMode] = {
             value = true,
             locked = false,
         },

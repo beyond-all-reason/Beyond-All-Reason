@@ -1,6 +1,6 @@
-local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
-local MOD_OPTIONS = SharedEnums.ModOptions
-local ResourceType = SharedEnums.ResourceType
+local GlobalEnums = VFS.Include("modes/global_enums.lua")
+local MOD_OPTIONS = GlobalEnums.ModOptions
+local ResourceType = GlobalEnums.ResourceType
 
 local M = {}
 

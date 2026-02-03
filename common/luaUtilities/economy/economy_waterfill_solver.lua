@@ -1,10 +1,10 @@
-local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+local GlobalEnums = VFS.Include("modes/global_enums.lua")
 local ResourceShared = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_shared.lua")
 local EconomyLog = VFS.Include("common/luaUtilities/economy/economy_log.lua")
 local SharedConfig = VFS.Include("common/luaUtilities/economy/shared_config.lua")
 
-local ResourceType = SharedEnums.ResourceType
-local RESOURCE_TYPES = SharedEnums.ResourceTypes
+local ResourceType = GlobalEnums.ResourceType
+local RESOURCE_TYPES = GlobalEnums.ResourceTypes
 
 local Gadgets = {}
 Gadgets.__index = Gadgets

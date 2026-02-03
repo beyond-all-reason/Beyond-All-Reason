@@ -1,9 +1,9 @@
-local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+local GlobalEnums = VFS.Include("modes/global_enums.lua")
 local Cache = VFS.Include("common/luaUtilities/team_transfer/team_transfer_serialization_helpers.lua")
 local FieldTypes = Cache.FieldTypes
 
 local Comms = {
-  ResourceCommunicationCase = SharedEnums.ResourceCommunicationCase,
+  ResourceCommunicationCase = GlobalEnums.ResourceCommunicationCase,
 }
 Comms.__index = Comms
 
@@ -12,18 +12,18 @@ Comms.__index = Comms
 ---@return integer
 function Comms.DecideCommunicationCase(policyResult)
   if policyResult.senderTeamId == policyResult.receiverTeamId then
-    return SharedEnums.ResourceCommunicationCase.OnSelf
+    return GlobalEnums.ResourceCommunicationCase.OnSelf
   end
   if not policyResult.canShare then
-    return SharedEnums.ResourceCommunicationCase.OnDisabled
+    return GlobalEnums.ResourceCommunicationCase.OnDisabled
   end
   if policyResult.taxRate <= 0 then
-    return SharedEnums.ResourceCommunicationCase.OnTaxFree
+    return GlobalEnums.ResourceCommunicationCase.OnTaxFree
   end
   if policyResult.resourceShareThreshold > 0 then
-    return SharedEnums.ResourceCommunicationCase.OnTaxedThreshold
+    return GlobalEnums.ResourceCommunicationCase.OnTaxedThreshold
   end
-  return SharedEnums.ResourceCommunicationCase.OnTaxed
+  return GlobalEnums.ResourceCommunicationCase.OnTaxed
 end
 
 ---Format a number for UI display by flooring it to whole numbers, this mirrors behavior in ResourceTransfer, which rounds down to the nearest percentage when interpreting commands from the slider
@@ -45,20 +45,20 @@ function Comms.TooltipText(policyResult)
   local baseKey = 'ui.playersList'
 
   local case = Comms.DecideCommunicationCase(policyResult)
-  if case == SharedEnums.ResourceCommunicationCase.OnSelf then
+  if case == GlobalEnums.ResourceCommunicationCase.OnSelf then
     return Spring.I18N(baseKey .. '.request' .. pascalResourceType)
-  elseif case == SharedEnums.ResourceCommunicationCase.OnTaxFree then
+  elseif case == GlobalEnums.ResourceCommunicationCase.OnTaxFree then
     return Spring.I18N(baseKey .. '.share' .. pascalResourceType)
-  elseif case == SharedEnums.ResourceCommunicationCase.OnDisabled then
+  elseif case == GlobalEnums.ResourceCommunicationCase.OnDisabled then
     return Spring.I18N(baseKey .. '.share' .. pascalResourceType .. 'Disabled')
-  elseif case == SharedEnums.ResourceCommunicationCase.OnTaxed then
+  elseif case == GlobalEnums.ResourceCommunicationCase.OnTaxed then
     local i18nData = {
       amountReceivable = FormatNumberForUI(policyResult.amountReceivable),
       amountSendable = FormatNumberForUI(policyResult.amountSendable),
       taxRatePercentage = FormatNumberForUI(policyResult.taxRate * 100),
     }
     return Spring.I18N(baseKey .. '.share' .. pascalResourceType .. 'Taxed', i18nData)
-  elseif case == SharedEnums.ResourceCommunicationCase.OnTaxedThreshold then
+  elseif case == GlobalEnums.ResourceCommunicationCase.OnTaxedThreshold then
     local i18nData = {
       amountReceivable = FormatNumberForUI(policyResult.amountReceivable),
       amountSendable = FormatNumberForUI(policyResult.amountSendable),
@@ -92,7 +92,7 @@ Comms.SendTransferChatMessageProtocolHighlights = {
 function Comms.SendTransferChatMessages(transferResult, policyResult)
   if transferResult.sent > 0 then
     local resourceType = policyResult.resourceType
-    local pascalResourceType = resourceType == SharedEnums.ResourceType.METAL and "Metal" or "Energy"
+    local pascalResourceType = resourceType == GlobalEnums.ResourceType.METAL and "Metal" or "Energy"
     local case = Comms.DecideCommunicationCase(policyResult)
     local cumulativeUntaxed = math.min(policyResult.resourceShareThreshold, policyResult.cumulativeSent)
     local chatParams = {
@@ -105,11 +105,11 @@ function Comms.SendTransferChatMessages(transferResult, policyResult)
     }
 
     local key
-    if case == SharedEnums.ResourceCommunicationCase.OnTaxFree then
+    if case == GlobalEnums.ResourceCommunicationCase.OnTaxFree then
       key = 'ui.playersList.chat.sent' .. pascalResourceType
-    elseif case == SharedEnums.ResourceCommunicationCase.OnTaxed then
+    elseif case == GlobalEnums.ResourceCommunicationCase.OnTaxed then
       key = 'ui.playersList.chat.sent' .. pascalResourceType .. 'Taxed'
-    elseif case == SharedEnums.ResourceCommunicationCase.OnTaxedThreshold then
+    elseif case == GlobalEnums.ResourceCommunicationCase.OnTaxedThreshold then
       key = 'ui.playersList.chat.sent' .. pascalResourceType .. 'TaxedThreshold'
     end
 

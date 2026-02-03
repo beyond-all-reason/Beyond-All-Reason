@@ -1,5 +1,5 @@
 --- Resource transfer helpers kept separate to reduce gui_advplayerslist.lua locals
-local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+local GlobalEnums = VFS.Include("modes/global_enums.lua")
 local ResourceShared = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_shared.lua")
 local LuaRulesMsg = VFS.Include("common/luaUtilities/lua_rules_msg.lua")
 
@@ -18,7 +18,7 @@ return function(policyHelpers)
 
     local case = ResourceShared.DecideCommunicationCase(policyResult)
 
-    if case == SharedEnums.ResourceCommunicationCase.OnSelf then
+    if case == GlobalEnums.ResourceCommunicationCase.OnSelf then
       if shareAmount > 0 then
         Spring.SendLuaRulesMsg('msg:ui.playersList.chat.need' .. pascalResourceType .. 'Amount:amount:' .. shareAmount)
       elseif policyResult.amountReceivable > 0 then

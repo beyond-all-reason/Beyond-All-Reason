@@ -21,57 +21,60 @@ if not gadgetHandler:IsSyncedCode() then
   return false
 end
 
-local SharedEnums = VFS.Include("modes/global_enums.lua")
+local GlobalEnums = VFS.Include("modes/global_enums.lua")
 local ContextFactoryModule = VFS.Include("common/luaUtilities/team_transfer/context_factory.lua")
 local Shared = VFS.Include("common/luaUtilities/team_transfer/unit_transfer_shared.lua")
 local UnitTransfer = VFS.Include("common/luaUtilities/team_transfer/unit_transfer_synced.lua")
 local LuaRulesMsg = VFS.Include("common/luaUtilities/lua_rules_msg.lua")
 
-local economicGroups = {
-  energy = true,
-  metal = true,
-}
-
-local builderGroups = {
-  builder = true,
-  buildert2 = true,
-  buildert3 = true,
-}
+---Map stun category to equivalent sharing mode for unit type lookup
+---@param stunCategory string
+---@return string|nil Equivalent UnitSharingMode
+local function stunCategoryToMode(stunCategory)
+  if stunCategory == GlobalEnums.UnitStunCategory.Combat then
+    return GlobalEnums.UnitSharingMode.CombatUnits
+  elseif stunCategory == GlobalEnums.UnitStunCategory.CombatT2Cons then
+    return GlobalEnums.UnitSharingMode.CombatT2Cons
+  elseif stunCategory == GlobalEnums.UnitStunCategory.Economic then
+    return GlobalEnums.UnitSharingMode.Economic
+  elseif stunCategory == GlobalEnums.UnitStunCategory.EconomicPlusBuildings then
+    return GlobalEnums.UnitSharingMode.EconomicPlusBuildings
+  elseif stunCategory == GlobalEnums.UnitStunCategory.T2Cons then
+    return GlobalEnums.UnitSharingMode.T2Cons
+  elseif stunCategory == GlobalEnums.UnitStunCategory.All then
+    return GlobalEnums.UnitSharingMode.Enabled
+  end
+  return nil
+end
 
 local function shouldStunUnit(unitDefID, stunCategory)
-  if stunCategory == SharedEnums.UnitStunCategory.All then
-    return true
-  end
-  if stunCategory == SharedEnums.UnitStunCategory.Disabled then
+  if not stunCategory then
     return false
   end
-
-  local unitDef = UnitDefs[unitDefID]
-  local group = unitDef and unitDef.customParams and unitDef.customParams.unitgroup
-  if not group then
+  
+  local equivalentMode = stunCategoryToMode(stunCategory)
+  if not equivalentMode then
     return false
   end
-
-  if stunCategory == SharedEnums.UnitStunCategory.Economic then
-    return economicGroups[group]
-  elseif stunCategory == SharedEnums.UnitStunCategory.Builders then
-    return builderGroups[group]
-  elseif stunCategory == SharedEnums.UnitStunCategory.EconomicAndBuilders then
-    return economicGroups[group] or builderGroups[group]
-  end
-
-  return false
+  
+  return Shared.IsShareableDef(unitDefID, equivalentMode, UnitDefs)
 end
 
 local function applyStun(unitID, unitDefID, policyResult)
-  if policyResult.stunSeconds <= 0 then
+  local stunSeconds = tonumber(policyResult.stunSeconds) or 0
+  if stunSeconds <= 0 then
     return
   end
-  if not shouldStunUnit(unitDefID, policyResult.stunCategory) then
+  local stunCategory = policyResult.stunCategory
+  if not shouldStunUnit(unitDefID, stunCategory) then
     return
   end
+  -- Apply stun using AddUnitDamage with high damage and paralyze time
+  -- The paralyze time parameter sets how long the paralyze effect lasts
   local _, maxHealth = Spring.GetUnitHealth(unitID)
-  Spring.AddUnitDamage(unitID, maxHealth * 5, policyResult.stunSeconds)
+  local paralyzeFrames = stunSeconds * 30
+  Spring.Echo("[UnitTransfer] Stunning unit " .. unitID .. " for " .. stunSeconds .. "s (" .. paralyzeFrames .. " frames)")
+  Spring.AddUnitDamage(unitID, maxHealth * 5, paralyzeFrames)
 end
 
 --------------------------------------------------------------------------------
@@ -162,17 +165,17 @@ function GG.ShareUnits(senderTeamID, targetTeamID, unitIDs)
   local policyResult = Shared.GetCachedPolicyResult(senderTeamID, targetTeamID, springRepo)
   local validation = Shared.ValidateUnits(policyResult, unitIDs, springRepo)
   
-  if not validation or validation.status == SharedEnums.UnitValidationOutcome.Failure then
+  if not validation or validation.status == GlobalEnums.UnitValidationOutcome.Failure then
     Spring.Echo(string.format("[UnitTransferController] Transfer denied: policy.canShare=%s validation.status=%s",
       tostring(policyResult and policyResult.canShare),
       tostring(validation and validation.status)))
     ---@type UnitTransferResult
     return {
       success = false,
-      outcome = validation and validation.status or SharedEnums.UnitValidationOutcome.Failure,
+      outcome = validation and validation.status or GlobalEnums.UnitValidationOutcome.Failure,
       senderTeamId = senderTeamID,
       receiverTeamId = targetTeamID,
-      validationResult = validation or { validUnitIds = {}, invalidUnitIds = unitIDs, status = SharedEnums.UnitValidationOutcome.Failure },
+      validationResult = validation or { validUnitIds = {}, invalidUnitIds = unitIDs, status = GlobalEnums.UnitValidationOutcome.Failure },
       policyResult = policyResult
     }
   end
@@ -184,6 +187,14 @@ function GG.ShareUnits(senderTeamID, targetTeamID, unitIDs)
     tostring(result.outcome), 
     #(result.validationResult.validUnitIds or {}),
     #(result.validationResult.invalidUnitIds or {})))
+  
+  -- Notify UI widget about transfer result for sound feedback
+  local outcome = result.outcome
+  if outcome == GlobalEnums.UnitValidationOutcome.Success or outcome == GlobalEnums.UnitValidationOutcome.PartialSuccess then
+    Spring.SendLuaUIMsg("unit_transfer:success:" .. senderTeamID)
+  else
+    Spring.SendLuaUIMsg("unit_transfer:failed:" .. senderTeamID)
+  end
   
   return result
 end
@@ -202,11 +213,21 @@ function UnitTransferController.AllowUnitTransfer(unitID, unitDefID, fromTeamID,
   if capture then
     return true
   end
+  
   local policyResult = Shared.GetCachedPolicyResult(fromTeamID, toTeamID, springRepo)
+  
+  -- Debug: log policy result
+  if policyResult then
+    Spring.Echo("[AllowUnitTransfer] Policy: stunSeconds=" .. tostring(policyResult.stunSeconds) .. " stunCategory=" .. tostring(policyResult.stunCategory))
+  else
+    Spring.Echo("[AllowUnitTransfer] WARNING: policyResult is nil!")
+  end
+  
   local validation = Shared.ValidateUnits(policyResult, { unitID }, springRepo)
   
-  local allowed = validation and validation.status ~= SharedEnums.UnitValidationOutcome.Failure
+  local allowed = validation and validation.status ~= GlobalEnums.UnitValidationOutcome.Failure
   
+  -- Apply stun if transfer allowed and stun applies to this unit
   if allowed and policyResult then
     applyStun(unitID, unitDefID, policyResult)
   end

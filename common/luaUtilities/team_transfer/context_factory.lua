@@ -1,4 +1,4 @@
-local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+local GlobalEnums = VFS.Include("modes/global_enums.lua")
 
 ---@class ContextFactory
 ---@field create fun(springRepo: ISpring): ContextFactory
@@ -19,14 +19,14 @@ function ContextFactory.create(springRepo)
   local function buildContext(senderTeamID, receiverTeamID, extensions)
     ---@type TeamResources
     local senderResources = {
-      metal = springRepo.GetTeamResourceData(senderTeamID, SharedEnums.ResourceType.METAL),
-      energy = springRepo.GetTeamResourceData(senderTeamID, SharedEnums.ResourceType.ENERGY)
+      metal = springRepo.GetTeamResourceData(senderTeamID, GlobalEnums.ResourceType.METAL),
+      energy = springRepo.GetTeamResourceData(senderTeamID, GlobalEnums.ResourceType.ENERGY)
     }
 
     ---@type TeamResources
     local receiverResources = {
-      metal = springRepo.GetTeamResourceData(receiverTeamID, SharedEnums.ResourceType.METAL),
-      energy = springRepo.GetTeamResourceData(receiverTeamID, SharedEnums.ResourceType.ENERGY)
+      metal = springRepo.GetTeamResourceData(receiverTeamID, GlobalEnums.ResourceType.METAL),
+      energy = springRepo.GetTeamResourceData(receiverTeamID, GlobalEnums.ResourceType.ENERGY)
     }
 
     ---@type PolicyContext
@@ -79,8 +79,8 @@ function ContextFactory.create(springRepo)
   ---@param policyResult ResourcePolicyResult
   ---@return ResourceTransferContext
   local function resourceTransfer(senderTeamId, receiverTeamId, resourceType, desiredAmount, policyResult)
-    local transferCategory = resourceType == SharedEnums.ResourceType.METAL and resourceType or
-        SharedEnums.TransferCategory.EnergyTransfer
+    local transferCategory = resourceType == GlobalEnums.ResourceType.METAL and resourceType or
+        GlobalEnums.TransferCategory.EnergyTransfer
     return buildContext(senderTeamId, receiverTeamId, {
       transferCategory = transferCategory,
       resourceType = resourceType,
@@ -99,7 +99,7 @@ function ContextFactory.create(springRepo)
   ---@return UnitTransferContext
   local function unitTransfer(senderTeamId, receiverTeamId, unitIds, given, policyResult, validationResult)
     return buildContext(senderTeamId, receiverTeamId, {
-        transferCategory = SharedEnums.TransferCategory.UnitTransfer,
+        transferCategory = GlobalEnums.TransferCategory.UnitTransfer,
         unitIds = unitIds,
         given = given,
         policyResult = policyResult,

@@ -16,8 +16,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
-local ResourceType = SharedEnums.ResourceType
+local GlobalEnums = VFS.Include("modes/global_enums.lua")
+local ResourceType = GlobalEnums.ResourceType
 
 
 local paralyzedUnits = {}

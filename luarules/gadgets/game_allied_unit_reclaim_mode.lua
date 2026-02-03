@@ -12,7 +12,7 @@ function gadget:GetInfo()
   }
 end
 
-local SharedEnums = VFS.Include("modes/global_enums.lua")
+local GlobalEnums = VFS.Include("modes/global_enums.lua")
 
 ----------------------------------------------------------------
 -- Synced only
@@ -21,7 +21,7 @@ if not gadgetHandler:IsSyncedCode() then
   return false
 end
 
-local reclaimEnabled = Spring.GetModOptions()[SharedEnums.ModOptions.AlliedUnitReclaimMode]
+local reclaimEnabled = Spring.GetModOptions()[GlobalEnums.ModOptions.AlliedUnitReclaimMode]
 if reclaimEnabled then
   return
 end

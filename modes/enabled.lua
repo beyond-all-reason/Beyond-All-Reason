@@ -1,40 +1,40 @@
-local SharedEnums = VFS.Include("modes/global_enums.lua")
+local GlobalEnums = VFS.Include("modes/global_enums.lua")
 
 ---@type SharingModeConfig
 return {
-    key = SharedEnums.Modes.Enabled,
+    key = GlobalEnums.Modes.Enabled,
     name = "Enabled",
     desc = "All sharing on with fixed defaults.",
     allowRanked = true,
     modOptions = {
-        [SharedEnums.ModOptions.UnitSharingMode] = {
-            value = SharedEnums.UnitSharingMode.Enabled,
+        [GlobalEnums.ModOptions.UnitSharingMode] = {
+            value = GlobalEnums.UnitSharingMode.Enabled,
             locked = true,
         },
-        [SharedEnums.ModOptions.ResourceSharingEnabled] = {
+        [GlobalEnums.ModOptions.ResourceSharingEnabled] = {
             value = true,
             locked = true,
         },
-        [SharedEnums.ModOptions.TaxResourceSharingAmount] = {
+        [GlobalEnums.ModOptions.TaxResourceSharingAmount] = {
             value = 0.0,
             locked = true,
             ui = "hidden"
         },
-        [SharedEnums.ModOptions.PlayerEnergySendThreshold] = {
+        [GlobalEnums.ModOptions.PlayerEnergySendThreshold] = {
             value = 0,
             locked = true,
             ui = "hidden"
         },
-        [SharedEnums.ModOptions.PlayerMetalSendThreshold] = {
+        [GlobalEnums.ModOptions.PlayerMetalSendThreshold] = {
             value = 0,
             locked = true,
             ui = "hidden"
         },
-        [SharedEnums.ModOptions.AlliedAssistMode] = {
+        [GlobalEnums.ModOptions.AlliedAssistMode] = {
             value = true,
             locked = true,
         },
-        [SharedEnums.ModOptions.AlliedUnitReclaimMode] = {
+        [GlobalEnums.ModOptions.AlliedUnitReclaimMode] = {
             value = true,
             locked = true,
         },

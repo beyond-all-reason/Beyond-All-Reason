@@ -1,8 +1,8 @@
 local gadget = gadget ---@type Gadget
 
-local SharedEnums = VFS.Include("modes/global_enums.lua")
+local GlobalEnums = VFS.Include("modes/global_enums.lua")
 
-local assistEnabled = Spring.GetModOptions()[SharedEnums.ModOptions.AlliedAssistMode]
+local assistEnabled = Spring.GetModOptions()[GlobalEnums.ModOptions.AlliedAssistMode]
 
 function gadget:GetInfo()
 	return {

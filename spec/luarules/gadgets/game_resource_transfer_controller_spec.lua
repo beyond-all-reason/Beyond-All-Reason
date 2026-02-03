@@ -1,9 +1,9 @@
 local Builders = VFS.Include("spec/builders/index.lua")
-local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+local GlobalEnums = VFS.Include("modes/global_enums.lua")
 local SharedConfig = VFS.Include("common/luaUtilities/economy/shared_config.lua")
 local WaterfillSolver = VFS.Include("common/luaUtilities/economy/economy_waterfill_solver.lua")
 
-local ResourceType = SharedEnums.ResourceType
+local ResourceType = GlobalEnums.ResourceType
 
 local function normalizeAllies(teams, allyTeamId)
   for i = 1, #teams do
@@ -30,9 +30,9 @@ end
 
 local function buildSpring(opts, teams)
   local builder = Builders.Spring.new()
-  builder:WithModOption(SharedEnums.ModOptions.TaxResourceSharingAmount, opts.taxRate or 0)
-  builder:WithModOption(SharedEnums.ModOptions.PlayerMetalSendThreshold, opts.metalThreshold or 0)
-  builder:WithModOption(SharedEnums.ModOptions.PlayerEnergySendThreshold, opts.energyThreshold or 0)
+  builder:WithModOption(GlobalEnums.ModOptions.TaxResourceSharingAmount, opts.taxRate or 0)
+  builder:WithModOption(GlobalEnums.ModOptions.PlayerMetalSendThreshold, opts.metalThreshold or 0)
+  builder:WithModOption(GlobalEnums.ModOptions.PlayerEnergySendThreshold, opts.energyThreshold or 0)
   for i = 1, #teams do
     builder:WithTeam(teams[i])
   end

@@ -347,9 +347,18 @@ function widget:CommandNotify(cmdID, cmdParams, _)
 		if #selectedUnits > 0 then
 			local msg = "share:units:" .. targetTeamID .. ":" .. table.concat(selectedUnits, ",")
 			Spring.SendLuaRulesMsg(msg)
-			PlaySoundFile("beep4", 1, 'ui')
+			-- Sound is now played when we receive success confirmation from gadget
 		end
 		return false
+	end
+end
+
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:find("^unit_transfer:success:") then
+		local senderTeamID = tonumber(msg:match("^unit_transfer:success:(%d+)"))
+		if senderTeamID == GetMyTeamID() then
+			PlaySoundFile("beep4", 1, 'ui')
+		end
 	end
 end
 

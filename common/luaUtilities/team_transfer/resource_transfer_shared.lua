@@ -1,4 +1,4 @@
-local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+local GlobalEnums = VFS.Include("modes/global_enums.lua")
 local PolicyShared = VFS.Include("common/luaUtilities/team_transfer/team_transfer_serialization_helpers.lua")
 local Comms = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_comms.lua")
 
@@ -26,8 +26,8 @@ Shared.ResourcePolicyFields = {
 ---@param resourceType ResourceType
 ---@return string
 function Shared.MakeBaseKey(receiverId, resourceType)
-  local transferCategory = resourceType == SharedEnums.ResourceType.METAL and SharedEnums.TransferCategory.MetalTransfer or
-  SharedEnums.TransferCategory.EnergyTransfer
+  local transferCategory = resourceType == GlobalEnums.ResourceType.METAL and GlobalEnums.TransferCategory.MetalTransfer or
+  GlobalEnums.TransferCategory.EnergyTransfer
   return PolicyShared.MakeBaseKey(receiverId, transferCategory)
 end
 
@@ -120,7 +120,7 @@ end
 ---@param resourceType ResourceType
 ---@return string
 function Shared.GetCumulativeParam(resourceType)
-  if resourceType == SharedEnums.ResourceType.METAL then
+  if resourceType == GlobalEnums.ResourceType.METAL then
     return "metal_share_cumulative_sent"
   else
     return "energy_share_cumulative_sent"
@@ -130,7 +130,7 @@ end
 ---@param resourceType ResourceType
 ---@return string
 function Shared.GetPassiveCumulativeParam(resourceType)
-  if resourceType == SharedEnums.ResourceType.METAL then
+  if resourceType == GlobalEnums.ResourceType.METAL then
     return "metal_passive_cumulative_sent"
   else
     return "energy_passive_cumulative_sent"
@@ -154,3 +154,15 @@ end
 ---@param teamId number
 ---@param resourceType ResourceType
 ---@param springRepo ISpring?
+---@return number
+function Shared.GetCumulativeSent(teamId, resourceType, springRepo)
+  local param = Shared.GetCumulativeParam(resourceType)
+  local spring = springRepo or Spring
+  local value = spring.GetTeamRulesParam(teamId, param)
+  if value == nil then
+    return 0
+  end
+  return tonumber(value) or 0
+end
+
+return Shared

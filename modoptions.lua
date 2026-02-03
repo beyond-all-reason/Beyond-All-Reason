@@ -1,4 +1,4 @@
-local SharedEnums = VFS.Include("modes/global_enums.lua")
+local GlobalEnums = VFS.Include("modes/global_enums.lua")
 
 --  Custom Options Definition Table format
 --  NOTES:
@@ -277,7 +277,7 @@ local options = {
     },
 
     {
-        key     = SharedEnums.ModOptions.SharingMode,
+        key     = GlobalEnums.ModOptions.SharingMode,
         name    = "Sharing Mode",
         desc    = "Controls overall sharing policy and locks/unlocks specific options, see `modes/` for more details",
         type    = "list",
@@ -295,26 +295,26 @@ local options = {
         def     =  true,
     },
 	{
-		key		= SharedEnums.ModOptions.UnitSharingMode,
+		key		= GlobalEnums.ModOptions.UnitSharingMode,
 		name	= "Unit Sharing",
 		desc	= "Controls which units can be shared",
 		type	= "list",
 		section	= "options_sharing",
-		def		= SharedEnums.UnitSharingMode.Enabled,
+		def		= GlobalEnums.UnitSharingMode.Enabled,
 		optional = true,
 		items	= {
-			{ key = SharedEnums.UnitSharingMode.Enabled, name = "Enabled", desc = "All unit sharing allowed" },
-			{ key = SharedEnums.UnitSharingMode.T2Cons, name = "T2 Constructor Sharing Only", desc = "Only T2 constructors can be shared between allies" },
-			{ key = SharedEnums.UnitSharingMode.CombatUnits, name = "Combat Units Only", desc = "Only combat units can be shared (no economic units, factories, or constructors)" },
-			{ key = SharedEnums.UnitSharingMode.CombatT2Cons, name = "Combat Units + T2 Constructors", desc = "Combat units and T2 constructors can be shared" },
-			{ key = SharedEnums.UnitSharingMode.Economic, name = "Economic Units Only", desc = "All economic mobile units can be shared but no combat units" },
-			{ key = SharedEnums.UnitSharingMode.EconomicPlusBuildings, name = "Economic Units and Buildings", desc = "All economic units and resource production buildings can be shared but no combat units" },
-			{ key = SharedEnums.UnitSharingMode.Disabled, name = "Disabled", desc = "No unit sharing allowed" },
+			{ key = GlobalEnums.UnitSharingMode.Enabled, name = "Enabled", desc = "All unit sharing allowed" },
+			{ key = GlobalEnums.UnitSharingMode.T2Cons, name = "T2 Constructor Sharing Only", desc = "Only T2 constructors can be shared between allies" },
+			{ key = GlobalEnums.UnitSharingMode.CombatUnits, name = "Combat Units Only", desc = "Only combat units can be shared (no economic units, factories, or constructors)" },
+			{ key = GlobalEnums.UnitSharingMode.CombatT2Cons, name = "Combat Units + T2 Constructors", desc = "Combat units and T2 constructors can be shared" },
+			{ key = GlobalEnums.UnitSharingMode.Economic, name = "Economic Units Only", desc = "All economic mobile units can be shared but no combat units" },
+			{ key = GlobalEnums.UnitSharingMode.EconomicPlusBuildings, name = "Economic Units and Buildings", desc = "All economic units and resource production buildings can be shared but no combat units" },
+			{ key = GlobalEnums.UnitSharingMode.Disabled, name = "Disabled", desc = "No unit sharing allowed" },
 		},
 	},
 	{
-		key		= SharedEnums.ModOptions.UnitShareStunSeconds,
-		name	= "Unit Share Stun Duration",
+		key		= GlobalEnums.ModOptions.UnitShareStunSeconds,
+		name	= "Unit Share Stun Duration (seconds)",
 		desc	= "Units matching the stun category are stunned for this many seconds when shared to an ally. Set to 0 to disable stun.",
 		type	= "number",
 		section	= "options_sharing",
@@ -326,20 +326,21 @@ local options = {
 		optional = true,
 	},
 	{
-		key		= SharedEnums.ModOptions.UnitStunCategory,
+		key		= GlobalEnums.ModOptions.UnitStunCategory,
 		name	= "Unit Stun Category",
 		desc	= "Which units are stunned when shared to an ally",
 		type	= "list",
 		section	= "options_sharing",
-		def		= SharedEnums.UnitStunCategory.EconomicAndBuilders,
+		def		= GlobalEnums.UnitStunCategory.EconomicPlusBuildings,
 		column	= 2,
 		optional = true,
 		items	= {
-			{ key = SharedEnums.UnitStunCategory.Disabled, name = "Disabled", desc = "No units are stunned on share" },
-			{ key = SharedEnums.UnitStunCategory.Economic, name = "Economic", desc = "Metal and energy structures are stunned" },
-			{ key = SharedEnums.UnitStunCategory.Builders, name = "Builders", desc = "Constructor units are stunned" },
-			{ key = SharedEnums.UnitStunCategory.EconomicAndBuilders, name = "Economic + Builders", desc = "Metal, energy, and constructor units are stunned" },
-			{ key = SharedEnums.UnitStunCategory.All, name = "All Units", desc = "All shared units are stunned" },
+			{ key = GlobalEnums.UnitStunCategory.Combat, name = "Combat Units", desc = "Combat units are stunned" },
+			{ key = GlobalEnums.UnitStunCategory.CombatT2Cons, name = "Combat + T2 Constructors", desc = "Combat units and T2 constructors are stunned" },
+			{ key = GlobalEnums.UnitStunCategory.Economic, name = "Economic", desc = "Metal and energy structures are stunned" },
+			{ key = GlobalEnums.UnitStunCategory.EconomicPlusBuildings, name = "Economic + Buildings", desc = "Economic units plus utility buildings are stunned" },
+			{ key = GlobalEnums.UnitStunCategory.T2Cons, name = "T2 Constructors Only", desc = "Only T2 constructor units are stunned" },
+			{ key = GlobalEnums.UnitStunCategory.All, name = "All Units", desc = "All shared units are stunned" },
 		},
 	},
 
@@ -352,7 +353,7 @@ local options = {
         def     =  true,
     },
 	{
-		key		= SharedEnums.ModOptions.ResourceSharingEnabled,
+		key		= GlobalEnums.ModOptions.ResourceSharingEnabled,
 		name	= "Resource Sharing",
 		desc	= "Enable or disable all player-to-player resource sharing and overflow",
 		type	= "bool",
@@ -362,7 +363,7 @@ local options = {
 		optional = true,
 	},
 	{
-		key		= SharedEnums.ModOptions.TaxResourceSharingAmount,
+		key		= GlobalEnums.ModOptions.TaxResourceSharingAmount,
 		name	= "Resource Sharing Tax Rate",
 		desc	= "Taxes resource sharing and overflow"..
 				  "Set to [0] to turn off. Recommended: [0.3]. (Ranges: 0 - 0.99)",
@@ -376,7 +377,7 @@ local options = {
 		optional = true,
 	},
 	{
-		key     = SharedEnums.ModOptions.PlayerMetalSendThreshold,
+		key     = GlobalEnums.ModOptions.PlayerMetalSendThreshold,
 		name    = "Player Metal Send Threshold",
 		desc    = "Max total metal a player can send tax-free cumulatively. Tax applies to amounts sent *after* this limit is reached. Set to 0 for immediate tax (if rate > 0).",
 		type    = "number",
@@ -389,7 +390,7 @@ local options = {
 		optional = true,
 	},
 	{
-		key     = SharedEnums.ModOptions.PlayerEnergySendThreshold,
+		key     = GlobalEnums.ModOptions.PlayerEnergySendThreshold,
 		name    = "Player Energy Send Threshold",
 		desc    = "Max total energy a player can send tax-free cumulatively. Tax applies to amounts sent *after* this limit is reached. Set to 0 for immediate tax (if rate > 0).",
 		type    = "number",
@@ -411,7 +412,7 @@ local options = {
         def     =  true,
     },
 	{
-		key		= SharedEnums.ModOptions.AlliedAssistMode,
+		key		= GlobalEnums.ModOptions.AlliedAssistMode,
 		name	= "Ally Assist",
 		desc	= "Allow units to assist allied construction and repair",
 		type	= "bool",
@@ -421,7 +422,7 @@ local options = {
 		optional = true,
 	},
 	{
-		key		= SharedEnums.ModOptions.AlliedUnitReclaimMode,
+		key		= GlobalEnums.ModOptions.AlliedUnitReclaimMode,
 		name	= "Ally Unit Reclaim",
 		desc	= "Allow reclaiming allied units and guarding allied units that can reclaim",
 		type	= "bool",
@@ -431,7 +432,7 @@ local options = {
 		optional = true,
 	},
 	{
-		key		= SharedEnums.ModOptions.AllowPartialResurrection,
+		key		= GlobalEnums.ModOptions.AllowPartialResurrection,
 		name	= "Allow Partial Resurrection",
 		desc	= "Allow resurrecting partly reclaimed wrecks (disabling prevents tax bypass)",
 		type	= "bool",

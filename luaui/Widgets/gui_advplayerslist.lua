@@ -74,7 +74,7 @@ local spGetSpectatingState = Spring.GetSpectatingState
     v47   (Attean): introduce a policy cache and TeamTransfer module, removing a lot of economic and unit specific code from this file and enabling unit_sharing_mode and player_[resource]_send_threshold modoptions
 ]]--
 
-local SharedEnums = VFS.Include('sharing_modes/shared_enums.lua')
+local GlobalEnums = VFS.Include('modes/global_enums.lua')
 local TeamTransfer = VFS.Include('common/luaUtilities/team_transfer/team_transfer_unsynced.lua')
 local ResourceTransfer = TeamTransfer.Resources
 local ApiExtensions = VFS.Include('common/luaUtilities/team_transfer/gui_advplayerlist/api_extensions.lua')
@@ -2252,7 +2252,7 @@ function DrawShareButtons(posY, unitPolicy, metalPolicy, energyPolicy, unitValid
     gl_Texture(pics["metalPic"])
     DrawRect(ModuleRefs.share.posX + widgetPosX + (33*playerScale), posY, ModuleRefs.share.posX + widgetPosX + (49*playerScale), posY + (16*playerScale))
 
-    local shareButtonEnabled = unitPolicy.canShare and (not unitValidationResult or unitValidationResult.status ~= SharedEnums.UnitValidationOutcome.Failure)
+    local shareButtonEnabled = unitPolicy.canShare and (not unitValidationResult or unitValidationResult.status ~= GlobalEnums.UnitValidationOutcome.Failure)
     DrawSharingIconOverlay(posY, shareButtonEnabled, 1 * playerScale)
     DrawSharingIconOverlay(posY, energyPolicy.amountSendable > 0, 17 * playerScale)
     DrawSharingIconOverlay(posY, metalPolicy.amountSendable > 0, 33 * playerScale)

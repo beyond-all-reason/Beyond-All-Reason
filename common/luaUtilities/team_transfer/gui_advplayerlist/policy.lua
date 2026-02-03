@@ -1,5 +1,5 @@
 --- Policy helpers that keep gui_advplayerslist.lua under the Lua local closure cap
-local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+local GlobalEnums = VFS.Include("modes/global_enums.lua")
 local UnitShared = VFS.Include("common/luaUtilities/team_transfer/unit_transfer_shared.lua")
 local ResourceShared = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_shared.lua")
 
@@ -18,10 +18,10 @@ local PolicyHelpers = {}
 ---@param senderTeamId number
 ---@return ResourcePolicyResult policyResult, string pascalResourceType
 function PolicyHelpers.GetPlayerResourcePolicy(player, resourceType, senderTeamId)
-  local transferCategory = resourceType == "metal" and SharedEnums.TransferCategory.MetalTransfer or
-      SharedEnums.TransferCategory.EnergyTransfer
+  local transferCategory = resourceType == "metal" and GlobalEnums.TransferCategory.MetalTransfer or
+      GlobalEnums.TransferCategory.EnergyTransfer
   local policyResult = PolicyHelpers.UnpackPolicyResult(transferCategory, player, senderTeamId, player.team)
-  local pascalResourceType = resourceType == SharedEnums.ResourceType.METAL and "Metal" or "Energy"
+  local pascalResourceType = resourceType == GlobalEnums.ResourceType.METAL and "Metal" or "Energy"
   return policyResult, pascalResourceType
 end
 
@@ -33,7 +33,7 @@ function PolicyHelpers.PackAllPoliciesForPlayer(playerData, myTeamID, playerTeam
   PolicyHelpers.PackEnergyPolicyResult(playerTeamID, myTeamID, playerData)
 
   local unitPolicy = UnitShared.GetCachedPolicyResult(myTeamID, playerTeamID, Spring)
-  PolicyHelpers.PackPolicyResult(SharedEnums.TransferCategory.UnitTransfer, unitPolicy, playerData)
+  PolicyHelpers.PackPolicyResult(GlobalEnums.TransferCategory.UnitTransfer, unitPolicy, playerData)
 end
 
 ---@param playerData table
@@ -41,30 +41,30 @@ end
 ---@param team number
 ---@return table, table, table
 function PolicyHelpers.UnpackAllPolicies(playerData, myTeamID, team)
-  local metalPolicy = PolicyHelpers.UnpackPolicyResult(SharedEnums.TransferCategory.MetalTransfer, playerData, myTeamID,
+  local metalPolicy = PolicyHelpers.UnpackPolicyResult(GlobalEnums.TransferCategory.MetalTransfer, playerData, myTeamID,
       team)
-  local energyPolicy = PolicyHelpers.UnpackPolicyResult(SharedEnums.TransferCategory.EnergyTransfer, playerData, myTeamID,
+  local energyPolicy = PolicyHelpers.UnpackPolicyResult(GlobalEnums.TransferCategory.EnergyTransfer, playerData, myTeamID,
       team)
   local unitPolicy = PolicyHelpers.UnpackUnitPolicyResult(playerData, myTeamID, team)
   return metalPolicy, energyPolicy, unitPolicy
 end
 
----@param transferCategory string SharedEnums.TransferCategory
+---@param transferCategory string GlobalEnums.TransferCategory
 ---@param playerData table
 ---@param senderTeamId number
 ---@param receiverTeamId number
 ---@return table
 function PolicyHelpers.UnpackPolicyResult(transferCategory, playerData, senderTeamId, receiverTeamId)
   local fields, prefix, scratch
-  if transferCategory == SharedEnums.TransferCategory.MetalTransfer then
+  if transferCategory == GlobalEnums.TransferCategory.MetalTransfer then
     fields = ResourceShared.ResourcePolicyFields
     prefix = METAL_POLICY_PREFIX
     scratch = metalPlayerScratch
-  elseif transferCategory == SharedEnums.TransferCategory.EnergyTransfer then
+  elseif transferCategory == GlobalEnums.TransferCategory.EnergyTransfer then
     fields = ResourceShared.ResourcePolicyFields
     prefix = ENERGY_POLICY_PREFIX
     scratch = energyPlayerScratch
-  elseif transferCategory == SharedEnums.TransferCategory.UnitTransfer then
+  elseif transferCategory == GlobalEnums.TransferCategory.UnitTransfer then
     fields = UnitShared.UnitPolicyFields
     prefix = UNIT_POLICY_PREFIX
     scratch = unitPlayerScratch
@@ -86,22 +86,22 @@ end
 ---@param receiverTeamId number
 ---@return UnitPolicyResult
 function PolicyHelpers.UnpackUnitPolicyResult(playerData, senderTeamId, receiverTeamId)
-  return PolicyHelpers.UnpackPolicyResult(SharedEnums.TransferCategory.UnitTransfer, playerData, senderTeamId,
+  return PolicyHelpers.UnpackPolicyResult(GlobalEnums.TransferCategory.UnitTransfer, playerData, senderTeamId,
     receiverTeamId)
 end
 
----@param transferCategory string SharedEnums.TransferCategory
+---@param transferCategory string GlobalEnums.TransferCategory
 ---@param policy table
 ---@param playerData table
 function PolicyHelpers.PackPolicyResult(transferCategory, policy, playerData)
   local fields, prefix
-  if transferCategory == SharedEnums.TransferCategory.MetalTransfer then
+  if transferCategory == GlobalEnums.TransferCategory.MetalTransfer then
     fields = ResourceShared.ResourcePolicyFields
     prefix = METAL_POLICY_PREFIX
-  elseif transferCategory == SharedEnums.TransferCategory.EnergyTransfer then
+  elseif transferCategory == GlobalEnums.TransferCategory.EnergyTransfer then
     fields = ResourceShared.ResourcePolicyFields
     prefix = ENERGY_POLICY_PREFIX
-  elseif transferCategory == SharedEnums.TransferCategory.UnitTransfer then
+  elseif transferCategory == GlobalEnums.TransferCategory.UnitTransfer then
     fields = UnitShared.UnitPolicyFields
     prefix = UNIT_POLICY_PREFIX
   else
@@ -116,16 +116,16 @@ end
 ---@param myTeamID number
 ---@param player table
 function PolicyHelpers.PackMetalPolicyResult(team, myTeamID, player)
-  local policyResult = ResourceShared.GetCachedPolicyResult(myTeamID, team, SharedEnums.ResourceType.METAL)
-  PolicyHelpers.PackPolicyResult(SharedEnums.TransferCategory.MetalTransfer, policyResult, player)
+  local policyResult = ResourceShared.GetCachedPolicyResult(myTeamID, team, GlobalEnums.ResourceType.METAL)
+  PolicyHelpers.PackPolicyResult(GlobalEnums.TransferCategory.MetalTransfer, policyResult, player)
 end
 
 ---@param team number
 ---@param myTeamID number
 ---@param player table
 function PolicyHelpers.PackEnergyPolicyResult(team, myTeamID, player)
-  local policyResult = ResourceShared.GetCachedPolicyResult(myTeamID, team, SharedEnums.ResourceType.ENERGY)
-  PolicyHelpers.PackPolicyResult(SharedEnums.TransferCategory.EnergyTransfer, policyResult, player)
+  local policyResult = ResourceShared.GetCachedPolicyResult(myTeamID, team, GlobalEnums.ResourceType.ENERGY)
+  PolicyHelpers.PackPolicyResult(GlobalEnums.TransferCategory.EnergyTransfer, policyResult, player)
 end
 
 return PolicyHelpers

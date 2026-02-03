@@ -1,4 +1,4 @@
-local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+local GlobalEnums = VFS.Include("modes/global_enums.lua")
 
 local M = {}
 
@@ -14,7 +14,7 @@ local serializeBuffer = {}
 
 ---Generate base key for policy caching using TransferCategory
 ---@param receiverId number
----@param transferCategory string SharedEnums.TransferCategory enum value
+---@param transferCategory string GlobalEnums.TransferCategory enum value
 ---@return string
 function M.MakeBaseKey(receiverId, transferCategory)
   local baseKeyPrefix = transferCategory

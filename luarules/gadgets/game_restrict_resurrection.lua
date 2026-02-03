@@ -1,8 +1,8 @@
 local gadget = gadget ---@type Gadget
 
-local SharedEnums = VFS.Include("modes/global_enums.lua")
+local GlobalEnums = VFS.Include("modes/global_enums.lua")
 
-local allowPartialResurrection = Spring.GetModOptions()[SharedEnums.ModOptions.AllowPartialResurrection]
+local allowPartialResurrection = Spring.GetModOptions()[GlobalEnums.ModOptions.AllowPartialResurrection]
 
 function gadget:GetInfo()
 	return {

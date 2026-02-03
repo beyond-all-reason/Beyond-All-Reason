@@ -51,8 +51,8 @@ local MakeHashedPosTable = VFS.Include("luarules/utilities/damgam_lib/hashpostab
 local HashPosTable = MakeHashedPosTable()
 
 local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
-local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
-local ResourceType = SharedEnums.ResourceType
+local GlobalEnums = VFS.Include("modes/global_enums.lua")
+local ResourceType = GlobalEnums.ResourceType
 
 -- manually appoint units to avoid making
 -- (note that transports, stockpilers and objects/walls are auto skipped)

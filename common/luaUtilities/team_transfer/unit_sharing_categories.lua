@@ -1,31 +1,31 @@
-local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+local GlobalEnums = VFS.Include("modes/global_enums.lua")
 
 local sharing = {}
 
 ---Classify a unit definition by type
 ---Each unit def resolves to exactly 1 category
 ---@param unitDef table Unit definition from UnitDefs
----@return string unitType One of SharedEnums.UnitType values
+---@return string unitType One of GlobalEnums.UnitType values
 function sharing.classifyUnitDef(unitDef)
 	-- Economic units include T2 constructors, so check economic first
 	if sharing.isEconomicUnitDef(unitDef) then
 		-- T2 constructors are a special subset of economic units
 		if sharing.isT2ConstructorDef(unitDef) then
-			return SharedEnums.UnitType.T2Constructor
+			return GlobalEnums.UnitType.T2Constructor
 		end
-		return SharedEnums.UnitType.Economic
+		return GlobalEnums.UnitType.Economic
 	end
 
 	if sharing.isUtilityUnitDef(unitDef) then
-		return SharedEnums.UnitType.Utility
+		return GlobalEnums.UnitType.Utility
 	end
 
 	if sharing.isCombatUnitDef(unitDef) then
-		return SharedEnums.UnitType.Combat
+		return GlobalEnums.UnitType.Combat
 	end
 
 	-- Default to combat for unclassified units
-	return SharedEnums.UnitType.Combat
+	return GlobalEnums.UnitType.Combat
 end
 
 ---Check if a unit definition is a T2 constructor
@@ -81,8 +81,8 @@ end
 function sharing.isUtilityUnitDef(unitDef)
 	-- Resource generation units: energy and metal producers/extractors
 	if unitDef.customParams and (
-				unitDef.customParams.unitgroup == SharedEnums.ResourceType.ENERGY or
-				unitDef.customParams.unitgroup == SharedEnums.ResourceType.METAL
+				unitDef.customParams.unitgroup == GlobalEnums.ResourceType.ENERGY or
+				unitDef.customParams.unitgroup == GlobalEnums.ResourceType.METAL
 			) then
 		return true
 	end

@@ -1,4 +1,4 @@
-local SharedEnums = VFS.Include("modes/global_enums.lua")
+local GlobalEnums = VFS.Include("modes/global_enums.lua")
 local Shared = VFS.Include("common/luaUtilities/team_transfer/unit_transfer_shared.lua")
 local PolicyShared = VFS.Include("common/luaUtilities/team_transfer/team_transfer_serialization_helpers.lua")
 
@@ -13,9 +13,9 @@ local Synced = {
 function Synced.GetPolicy(ctx)
   local modOptions = ctx.springRepo.GetModOptions()
   local mode = modOptions.unit_sharing_mode
-  local canShare = ctx.areAlliedTeams and mode ~= SharedEnums.UnitSharingMode.Disabled
-  local stunSeconds = modOptions[SharedEnums.ModOptions.UnitShareStunSeconds] or 0
-  local stunCategory = modOptions[SharedEnums.ModOptions.UnitStunCategory] or SharedEnums.UnitStunCategory.Disabled
+  local canShare = ctx.areAlliedTeams and mode ~= GlobalEnums.UnitSharingMode.Disabled
+  local stunSeconds = tonumber(modOptions[GlobalEnums.ModOptions.UnitShareStunSeconds]) or 0
+  local stunCategory = modOptions[GlobalEnums.ModOptions.UnitStunCategory] or GlobalEnums.UnitStunCategory.EconomicPlusBuildings
   return {
     canShare = canShare,
     senderTeamId = ctx.senderTeamId,
@@ -36,7 +36,7 @@ function Synced.UnitTransfer(ctx)
     ---@type UnitTransferResult
     return {
       success = false,
-      outcome = SharedEnums.UnitValidationOutcome.Failure,
+      outcome = GlobalEnums.UnitValidationOutcome.Failure,
       senderTeamId = ctx.senderTeamId,
       receiverTeamId = ctx.receiverTeamId,
       validationResult = ctx.validationResult,
@@ -76,7 +76,7 @@ end
 ---@param receiverId number
 ---@param policyResult UnitPolicyResult
 function Synced.CachePolicyResult(springRepo, senderId, receiverId, policyResult)
-  local baseKey = PolicyShared.MakeBaseKey(receiverId, SharedEnums.TransferCategory.UnitTransfer)
+  local baseKey = PolicyShared.MakeBaseKey(receiverId, GlobalEnums.TransferCategory.UnitTransfer)
   local serialized = Shared.SerializePolicy(policyResult)
   springRepo.SetTeamRulesParam(senderId, baseKey, serialized)
 end

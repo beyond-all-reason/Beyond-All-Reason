@@ -1,6 +1,6 @@
 ---@type Builders
 local Builders = VFS.Include("spec/builders/index.lua")
-local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+local GlobalEnums = VFS.Include("modes/global_enums.lua")
 local ContextFactoryModule = VFS.Include("common/luaUtilities/team_transfer/context_factory.lua")
 local ResourceTransfer = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_synced.lua")
 local ResourceShared = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_shared.lua")
@@ -22,7 +22,7 @@ local spring = Builders.Spring.new()
   :WithTeamRulesParam(receiver.id, "numActivePlayers", 1)
   :WithTeamRulesParam(sender.id, "numActivePlayers", 1)
 
-describe(SharedEnums.ModOptions.TaxResourceSharingAmount .. " #policy", function()
+describe(GlobalEnums.ModOptions.TaxResourceSharingAmount .. " #policy", function()
   local taxRate = 0.5
 
   describe("simple taxation", function()
@@ -35,10 +35,10 @@ describe(SharedEnums.ModOptions.TaxResourceSharingAmount .. " #policy", function
       sender:WithEnergy(500):WithMetal(500)
       receiver:WithEnergy(0):WithMetal(0)
 
-      spring:WithModOption(SharedEnums.ModOptions.TaxResourceSharingAmount, taxRate)
+      spring:WithModOption(GlobalEnums.ModOptions.TaxResourceSharingAmount, taxRate)
 
-      metalResult = buildResourceResult(spring, taxRate, 0, 0, sender, receiver, SharedEnums.ResourceType.METAL)
-      energyResult = buildResourceResult(spring, taxRate, 0, 0, sender, receiver, SharedEnums.ResourceType.ENERGY)
+      metalResult = buildResourceResult(spring, taxRate, 0, 0, sender, receiver, GlobalEnums.ResourceType.METAL)
+      energyResult = buildResourceResult(spring, taxRate, 0, 0, sender, receiver, GlobalEnums.ResourceType.ENERGY)
     end)
 
     it("should ALLOW sharing of both METAL and ENERGY", function()
@@ -76,8 +76,8 @@ describe(SharedEnums.ModOptions.TaxResourceSharingAmount .. " #policy", function
       sender:WithEnergy(500):WithMetal(500)
       receiver:WithEnergy(1000):WithMetal(1000)
 
-      metalResult = buildResourceResult(spring, taxRate, 0, 0, sender, receiver, SharedEnums.ResourceType.METAL)
-      energyResult = buildResourceResult(spring, taxRate, 0, 0, sender, receiver, SharedEnums.ResourceType.ENERGY)
+      metalResult = buildResourceResult(spring, taxRate, 0, 0, sender, receiver, GlobalEnums.ResourceType.METAL)
+      energyResult = buildResourceResult(spring, taxRate, 0, 0, sender, receiver, GlobalEnums.ResourceType.ENERGY)
     end)
 
     it("should NOT allow sharing when receiver is full", function()
@@ -95,7 +95,7 @@ describe(SharedEnums.ModOptions.TaxResourceSharingAmount .. " #policy", function
     it("should have an untaxed portion that is the threshold", function()
       sender:WithMetal(1000)
       receiver:WithMetal(980)
-      local metalResult = buildResourceResult(spring, taxRate, 0, 0, sender, receiver, SharedEnums.ResourceType.METAL)
+      local metalResult = buildResourceResult(spring, taxRate, 0, 0, sender, receiver, GlobalEnums.ResourceType.METAL)
       assert.equal(metalResult.amountSendable, 20)
     end)
   end)
@@ -106,12 +106,12 @@ describe(SharedEnums.ModOptions.TaxResourceSharingAmount .. " #policy", function
     local metalThreshold = 1000
 
     before_each(function()
-      spring:WithModOption(SharedEnums.ModOptions.TaxResourceSharingAmount, taxRate)
+      spring:WithModOption(GlobalEnums.ModOptions.TaxResourceSharingAmount, taxRate)
 
       sender:WithMetal(1000)
       receiver:WithMetalStorage(5000)
 
-      metalResult = buildResourceResult(spring, taxRate, metalThreshold, 0, sender, receiver, SharedEnums.ResourceType.METAL)
+      metalResult = buildResourceResult(spring, taxRate, metalThreshold, 0, sender, receiver, GlobalEnums.ResourceType.METAL)
     end)
 
     it("should be entirely tax free", function()
@@ -125,11 +125,11 @@ describe(SharedEnums.ModOptions.TaxResourceSharingAmount .. " #policy", function
     local testTaxRate = 0.7
 
     before_each(function()
-      spring:WithModOption(SharedEnums.ModOptions.TaxResourceSharingAmount, testTaxRate)
+      spring:WithModOption(GlobalEnums.ModOptions.TaxResourceSharingAmount, testTaxRate)
       sender:WithEnergy(1000)
       receiver:WithEnergyStorage(1000):WithEnergy(700)
 
-      energyResult = buildResourceResult(spring, testTaxRate, 0, 0, sender, receiver, SharedEnums.ResourceType.ENERGY)
+      energyResult = buildResourceResult(spring, testTaxRate, 0, 0, sender, receiver, GlobalEnums.ResourceType.ENERGY)
     end)
 
     it("should have amountReceivable set to receiver capacity and amountSendable == 300", function()
@@ -144,11 +144,11 @@ describe(SharedEnums.ModOptions.TaxResourceSharingAmount .. " #policy", function
     local testTaxRate = 0.7
 
     before_each(function()
-      spring:WithModOption(SharedEnums.ModOptions.TaxResourceSharingAmount, testTaxRate)
+      spring:WithModOption(GlobalEnums.ModOptions.TaxResourceSharingAmount, testTaxRate)
       sender:WithEnergy(1000)
       receiver:WithEnergyStorage(1000):WithEnergy(700)
 
-      energyResult = buildResourceResult(spring, testTaxRate, 0, 0, sender, receiver, SharedEnums.ResourceType.ENERGY)
+      energyResult = buildResourceResult(spring, testTaxRate, 0, 0, sender, receiver, GlobalEnums.ResourceType.ENERGY)
     end)
 
     it("should enable sharing", function()
@@ -168,31 +168,31 @@ describe(SharedEnums.ModOptions.TaxResourceSharingAmount .. " #policy", function
     local energyResult
 
     before_each(function()
-      spring:WithModOption(SharedEnums.ModOptions.TaxResourceSharingAmount, 0)
+      spring:WithModOption(GlobalEnums.ModOptions.TaxResourceSharingAmount, 0)
       receiver:WithEnergyStorage(1000):WithEnergy(0)
       receiver:WithMetalStorage(1000):WithMetal(0)
     end)
 
     it("should not tax metal transfers", function()
       sender:WithMetal(100)
-      metalResult = buildResourceResult(spring, 0, 0, 0, sender, receiver, SharedEnums.ResourceType.METAL)
+      metalResult = buildResourceResult(spring, 0, 0, 0, sender, receiver, GlobalEnums.ResourceType.METAL)
       assert.equal(1000, metalResult.amountReceivable)
       assert.equal(100, metalResult.amountSendable)
 
       sender:WithMetal(500)
-      metalResult = buildResourceResult(spring, 0, 0, 0, sender, receiver, SharedEnums.ResourceType.METAL)
+      metalResult = buildResourceResult(spring, 0, 0, 0, sender, receiver, GlobalEnums.ResourceType.METAL)
       assert.equal(1000, metalResult.amountReceivable)
       assert.equal(500, metalResult.amountSendable)
     end)
 
     it("should not tax energy transfers", function()
       sender:WithEnergy(100)
-      energyResult = buildResourceResult(spring, 0, 0, 0, sender, receiver, SharedEnums.ResourceType.ENERGY)
+      energyResult = buildResourceResult(spring, 0, 0, 0, sender, receiver, GlobalEnums.ResourceType.ENERGY)
       assert.equal(1000, energyResult.amountReceivable)
       assert.equal(100, energyResult.amountSendable)
 
       sender:WithEnergy(500)
-      energyResult = buildResourceResult(spring, 0, 0, 0, sender, receiver, SharedEnums.ResourceType.ENERGY)
+      energyResult = buildResourceResult(spring, 0, 0, 0, sender, receiver, GlobalEnums.ResourceType.ENERGY)
       assert.equal(1000, energyResult.amountReceivable)
       assert.equal(500, energyResult.amountSendable)
     end)
@@ -213,8 +213,8 @@ describe("ResourceTransfer #action", function()
       local ctx = {
         senderTeamId = sender.id,
         receiverTeamId = receiver.id,
-        transferCategory = SharedEnums.TransferCategory.MetalTransfer,
-        resourceType = SharedEnums.ResourceType.METAL,
+        transferCategory = GlobalEnums.TransferCategory.MetalTransfer,
+        resourceType = GlobalEnums.ResourceType.METAL,
         desiredAmount = 100,
         isCheatingEnabled = false,
         springRepo = spring,
@@ -265,7 +265,7 @@ describe("ResourceTransfer #action", function()
         },
         policyResult = {
           canShare = true,
-          resourceType = SharedEnums.ResourceType.METAL,
+          resourceType = GlobalEnums.ResourceType.METAL,
           amountSendable = 500,
           amountReceivable = 500,
           untaxedPortion = 150,         -- More than desired amount
@@ -291,8 +291,8 @@ describe("ResourceTransfer #action", function()
       local ctx = {
         senderTeamId = sender.id,
         receiverTeamId = receiver.id,
-        transferCategory = SharedEnums.TransferCategory.MetalTransfer,
-        resourceType = SharedEnums.ResourceType.METAL,
+        transferCategory = GlobalEnums.TransferCategory.MetalTransfer,
+        resourceType = GlobalEnums.ResourceType.METAL,
         desiredAmount = 200,
         isCheatingEnabled = false,
         springRepo = spring,
@@ -307,7 +307,7 @@ describe("ResourceTransfer #action", function()
         },
         policyResult = {
           canShare = true,
-          resourceType = SharedEnums.ResourceType.METAL,
+          resourceType = GlobalEnums.ResourceType.METAL,
           amountSendable = 500,
           amountReceivable = 500,
           untaxedPortion = 100,         -- Less than desired amount
@@ -336,8 +336,8 @@ describe("ResourceTransfer #action", function()
       local ctx = {
         senderTeamId = sender.id,
         receiverTeamId = receiver.id,
-        transferCategory = SharedEnums.TransferCategory.MetalTransfer,
-        resourceType = SharedEnums.ResourceType.METAL,
+        transferCategory = GlobalEnums.TransferCategory.MetalTransfer,
+        resourceType = GlobalEnums.ResourceType.METAL,
         desiredAmount = 200,
         isCheatingEnabled = false,
         springRepo = spring,
@@ -352,7 +352,7 @@ describe("ResourceTransfer #action", function()
         },
         policyResult = {
           canShare = true,
-          resourceType = SharedEnums.ResourceType.METAL,
+          resourceType = GlobalEnums.ResourceType.METAL,
           amountSendable = 500,
           amountReceivable = 500,
           untaxedPortion = 100,
@@ -380,14 +380,14 @@ describe("ResourceTransfer #action", function()
       --- @type ResourceTransferContext
       local ctx = {
         desiredAmount = 300,        -- Limited to amountSendable
-        transferCategory = SharedEnums.TransferCategory.MetalTransfer,
+        transferCategory = GlobalEnums.TransferCategory.MetalTransfer,
         isCheatingEnabled = false,
         senderTeamId = sender.id,
         receiverTeamId = receiver.id,
-        resourceType = SharedEnums.ResourceType.METAL,
+        resourceType = GlobalEnums.ResourceType.METAL,
         policyResult = {
           canShare = true,
-          resourceType = SharedEnums.ResourceType.METAL,
+          resourceType = GlobalEnums.ResourceType.METAL,
           amountSendable = 300,         -- Limit
           amountReceivable = 9999,
           untaxedPortion = 100,
@@ -422,7 +422,7 @@ describe("ResourceTransfer #action", function()
   describe("CalculateSenderTaxedAmount helper", function()
     it("caps by amountSendable and amountReceivable and computes sender cost", function()
       local policyResult = {
-        resourceType = SharedEnums.ResourceType.ENERGY,
+        resourceType = GlobalEnums.ResourceType.ENERGY,
         amountSendable = 820,       -- A=400, S=1000, r=0.3 => 400 + 600*0.7
         amountReceivable = 1000,
         untaxedPortion = 400,
@@ -439,7 +439,7 @@ describe("ResourceTransfer #action", function()
 
     it("caps desired by amountReceivable when it is lower", function()
       local policyResult = {
-        resourceType = SharedEnums.ResourceType.ENERGY,
+        resourceType = GlobalEnums.ResourceType.ENERGY,
         amountSendable = 500,
         amountReceivable = 300,
         untaxedPortion = 0,

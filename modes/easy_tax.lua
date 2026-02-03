@@ -1,49 +1,49 @@
-local SharedEnums = VFS.Include("modes/global_enums.lua")
+local GlobalEnums = VFS.Include("modes/global_enums.lua")
 
 ---@type SharingModeConfig
 return {
-    key = SharedEnums.Modes.EasyTax,
+    key = GlobalEnums.Modes.EasyTax,
     name = "Easy Tax",
     desc = "Anti co-op sharing tax mode. Leverages stun to penalize sharing.",
     allowRanked = true,
     modOptions = {
-        [SharedEnums.ModOptions.UnitSharingMode] = {
-            value = SharedEnums.UnitSharingMode.Enabled,
+        [GlobalEnums.ModOptions.UnitSharingMode] = {
+            value = GlobalEnums.UnitSharingMode.Enabled,
             locked = true,
         },
-        [SharedEnums.ModOptions.UnitShareStunSeconds] = {
+        [GlobalEnums.ModOptions.UnitShareStunSeconds] = {
             value = 30,
             locked = false,
         },
-        [SharedEnums.ModOptions.UnitStunCategory] = {
-            value = SharedEnums.UnitStunCategory.EconomicAndBuilders,
+        [GlobalEnums.ModOptions.UnitStunCategory] = {
+            value = GlobalEnums.UnitStunCategory.EconomicPlusBuildings,
             locked = false,
         },
-        [SharedEnums.ModOptions.ResourceSharingEnabled] = {
+        [GlobalEnums.ModOptions.ResourceSharingEnabled] = {
             value = true,
             locked = true,
         },
-        [SharedEnums.ModOptions.TaxResourceSharingAmount] = {
+        [GlobalEnums.ModOptions.TaxResourceSharingAmount] = {
             value = 0.30,
             locked = false,
         },
-        [SharedEnums.ModOptions.PlayerMetalSendThreshold] = {
+        [GlobalEnums.ModOptions.PlayerMetalSendThreshold] = {
             value = 0,
             locked = true,
         },
-        [SharedEnums.ModOptions.PlayerEnergySendThreshold] = {
+        [GlobalEnums.ModOptions.PlayerEnergySendThreshold] = {
             value = 0,
             locked = true,
         },
-        [SharedEnums.ModOptions.AlliedAssistMode] = {
+        [GlobalEnums.ModOptions.AlliedAssistMode] = {
             value = false,
             locked = true,
         },
-        [SharedEnums.ModOptions.AlliedUnitReclaimMode] = {
+        [GlobalEnums.ModOptions.AlliedUnitReclaimMode] = {
             value = true,
             locked = false,
         },
-        [SharedEnums.ModOptions.AllowPartialResurrection] = {
+        [GlobalEnums.ModOptions.AllowPartialResurrection] = {
             value = false,
             locked = true,
         },

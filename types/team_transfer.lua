@@ -34,7 +34,7 @@
 ---@field unitCount number
 
 ---@class UnitValidationResult
----@field status string SharedEnums.UnitValidationOutcome
+---@field status string GlobalEnums.UnitValidationOutcome
 ---@field invalidUnitCount number
 ---@field invalidUnitIds number[]
 ---@field invalidUnitNames string[]
@@ -43,7 +43,7 @@
 ---@field validUnitNames string[]
 
 ---@class UnitTransferResult
----@field outcome string SharedEnums.UnitValidationOutcome
+---@field outcome string GlobalEnums.UnitValidationOutcome
 ---@field senderTeamId number
 ---@field receiverTeamId number
 ---@field validationResult UnitValidationResult
@@ -104,7 +104,7 @@
 ---@field isCheatingEnabled boolean
 
 ---@class PolicyActionContext : PolicyContext
----@field transferCategory string SharedEnums.TransferCategory
+---@field transferCategory string GlobalEnums.TransferCategory
 
 ---@class EconomyShareMember
 ---@field teamId number

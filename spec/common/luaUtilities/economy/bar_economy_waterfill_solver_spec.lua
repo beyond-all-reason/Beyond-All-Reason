@@ -1,5 +1,5 @@
 local Builders = VFS.Include("spec/builders/index.lua")
-local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+local GlobalEnums = VFS.Include("modes/global_enums.lua")
 local ResourceShared = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_shared.lua")
 local BarEconomy = VFS.Include("common/luaUtilities/economy/economy_waterfill_solver.lua")
 local SharedConfig = VFS.Include("common/luaUtilities/economy/shared_config.lua")
@@ -37,9 +37,9 @@ end
 
 local function modOptions(opts)
   return {
-    [SharedEnums.ModOptions.TaxResourceSharingAmount] = opts.taxRate or 0,
-    [SharedEnums.ModOptions.PlayerMetalSendThreshold] = opts.metalThreshold or 0,
-    [SharedEnums.ModOptions.PlayerEnergySendThreshold] = opts.energyThreshold or 0,
+    [GlobalEnums.ModOptions.TaxResourceSharingAmount] = opts.taxRate or 0,
+    [GlobalEnums.ModOptions.PlayerMetalSendThreshold] = opts.metalThreshold or 0,
+    [GlobalEnums.ModOptions.PlayerEnergySendThreshold] = opts.energyThreshold or 0,
   }
 end
 
@@ -101,14 +101,14 @@ describe("Bar economy ProcessEconomy", function()
     assert.is_near(0, b.received, 1e-6)
     assert.is_near(366.67, c.received, 0.02)
 
-    local aFlow = flowFor(flows, teamA.id, SharedEnums.ResourceType.METAL)
-    local bFlow = flowFor(flows, teamB.id, SharedEnums.ResourceType.METAL)
-    local cFlow = flowFor(flows, teamC.id, SharedEnums.ResourceType.METAL)
+    local aFlow = flowFor(flows, teamA.id, GlobalEnums.ResourceType.METAL)
+    local bFlow = flowFor(flows, teamB.id, GlobalEnums.ResourceType.METAL)
+    local cFlow = flowFor(flows, teamC.id, GlobalEnums.ResourceType.METAL)
     assert.is_near(233.33, aFlow.taxed, 0.02)
     assert.is_near(133.33, bFlow.taxed, 0.02)
     assert.is_near(0, cFlow.taxed, 1e-6)
 
-    local cumulativeKey = ResourceShared.GetPassiveCumulativeParam(SharedEnums.ResourceType.METAL)
+    local cumulativeKey = ResourceShared.GetPassiveCumulativeParam(GlobalEnums.ResourceType.METAL)
     assert.is_near(a.sent, spring.GetTeamRulesParam(teamA.id, cumulativeKey) or 0, 0.02)
     assert.is_near(b.sent, spring.GetTeamRulesParam(teamB.id, cumulativeKey) or 0, 0.02)
     assert.equal(teamsList[teamC.id].metal.sent, spring.GetTeamRulesParam(teamC.id, cumulativeKey) or 0)
@@ -147,14 +147,14 @@ describe("Bar economy ProcessEconomy", function()
     assert.is_near(33.33, b.received, 0.02)
     assert.is_near(a.sent - b.received, 33.33, 0.05)
 
-    local aFlow = flowFor(flows, teamA.id, SharedEnums.ResourceType.METAL)
-    local bFlow = flowFor(flows, teamB.id, SharedEnums.ResourceType.METAL)
+    local aFlow = flowFor(flows, teamA.id, GlobalEnums.ResourceType.METAL)
+    local bFlow = flowFor(flows, teamB.id, GlobalEnums.ResourceType.METAL)
     assert.is_near(33.33, aFlow.taxed, 0.05)
     assert.is_near(0, aFlow.untaxed, 1e-6)
     assert.is_near(0, bFlow.taxed, 1e-6)
     assert.is_near(33.33, bFlow.received, 0.05)
 
-    local cumulativeKey = ResourceShared.GetPassiveCumulativeParam(SharedEnums.ResourceType.METAL)
+    local cumulativeKey = ResourceShared.GetPassiveCumulativeParam(GlobalEnums.ResourceType.METAL)
     assert.is_near(a.sent, spring.GetTeamRulesParam(teamA.id, cumulativeKey) or 0, 0.02)
     assert.equal(0, spring.GetTeamRulesParam(teamB.id, cumulativeKey) or 0)
   end)
@@ -191,13 +191,13 @@ describe("Bar economy ProcessEconomy", function()
     assert.is_near(0, b.sent, 1e-6)
     assert.is_near(100, b.received, 0.01)
 
-    local aFlow = flowFor(flows, teamA.id, SharedEnums.ResourceType.METAL)
-    local bFlow = flowFor(flows, teamB.id, SharedEnums.ResourceType.METAL)
+    local aFlow = flowFor(flows, teamA.id, GlobalEnums.ResourceType.METAL)
+    local bFlow = flowFor(flows, teamB.id, GlobalEnums.ResourceType.METAL)
     assert.is_near(0, aFlow.taxed, 1e-6)
     assert.is_near(100, aFlow.untaxed, 0.01)
     assert.is_near(100, bFlow.received, 0.01)
 
-    local cumulativeKey = ResourceShared.GetPassiveCumulativeParam(SharedEnums.ResourceType.METAL)
+    local cumulativeKey = ResourceShared.GetPassiveCumulativeParam(GlobalEnums.ResourceType.METAL)
     assert.is_near(100, spring.GetTeamRulesParam(teamA.id, cumulativeKey) or 0, 0.01)
     assert.equal(0, spring.GetTeamRulesParam(teamB.id, cumulativeKey) or 0)
   end)

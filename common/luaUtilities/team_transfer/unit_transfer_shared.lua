@@ -1,4 +1,4 @@
-local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+local GlobalEnums = VFS.Include("modes/global_enums.lua")
 local PolicyShared = VFS.Include("common/luaUtilities/team_transfer/team_transfer_serialization_helpers.lua")
 local UnitSharingCategories = VFS.Include("common/luaUtilities/team_transfer/unit_sharing_categories.lua")
 local Comms = VFS.Include("common/luaUtilities/team_transfer/unit_transfer_comms.lua")
@@ -15,6 +15,44 @@ Shared.UnitPolicyFields = {
 ---Returns a structured result object designed for UI consumption.
 ---We don't make decisions here on how to display unit names etc, we just collate the data and let the UI decide.
 ---@param policyResult UnitPolicyResult -- note that policyResult is useless right now but is passed in for future use
+---Map stun category to equivalent sharing mode for unit type lookup
+---@param stunCategory string
+---@return string|nil Equivalent UnitSharingMode
+local function stunCategoryToMode(stunCategory)
+  if stunCategory == GlobalEnums.UnitStunCategory.Combat then
+    return GlobalEnums.UnitSharingMode.CombatUnits
+  elseif stunCategory == GlobalEnums.UnitStunCategory.CombatT2Cons then
+    return GlobalEnums.UnitSharingMode.CombatT2Cons
+  elseif stunCategory == GlobalEnums.UnitStunCategory.Economic then
+    return GlobalEnums.UnitSharingMode.Economic
+  elseif stunCategory == GlobalEnums.UnitStunCategory.EconomicPlusBuildings then
+    return GlobalEnums.UnitSharingMode.EconomicPlusBuildings
+  elseif stunCategory == GlobalEnums.UnitStunCategory.T2Cons then
+    return GlobalEnums.UnitSharingMode.T2Cons
+  elseif stunCategory == GlobalEnums.UnitStunCategory.All then
+    return GlobalEnums.UnitSharingMode.Enabled
+  end
+  return nil
+end
+
+---Check if a unit should be stunned based on the stun category
+---@param unitDefID number
+---@param stunCategory string
+---@param defs table
+---@return boolean
+local function wouldBeStunned(unitDefID, stunCategory, defs)
+  if not stunCategory then
+    return false
+  end
+  
+  local equivalentMode = stunCategoryToMode(stunCategory)
+  if not equivalentMode then
+    return false
+  end
+  
+  return Shared.IsShareableDef(unitDefID, equivalentMode, defs)
+end
+
 ---@param unitIds number[]
 ---@param springApi ISpring?
 ---@param unitDefs table?
@@ -23,7 +61,7 @@ function Shared.ValidateUnits(policyResult, unitIds, springApi, unitDefs)
   local spring = springApi or Spring
   local defs = unitDefs or UnitDefs or (spring.GetUnitDefs and spring.GetUnitDefs()) or {}
   local out = {
-    status = SharedEnums.UnitValidationOutcome.Failure,
+    status = GlobalEnums.UnitValidationOutcome.Failure,
     validUnitCount = 0,
     validUnitNames = {},
     validUnitIds = {},
@@ -37,6 +75,9 @@ function Shared.ValidateUnits(policyResult, unitIds, springApi, unitDefs)
   end
 
   local mode = policyResult.sharingMode
+  local stunSeconds = tonumber(policyResult.stunSeconds) or 0
+  local stunCategory = policyResult.stunCategory
+  
   local validUnitNamesSet = {}
   local invalidUnitNamesSet = {}
   for _, unitId in ipairs(unitIds) do
@@ -51,6 +92,15 @@ function Shared.ValidateUnits(policyResult, unitIds, springApi, unitDefs)
       local ok = Shared.IsShareableDef(unitDefID, mode, defs)
       local def = defs[unitDefID] or defs[tostring(unitDefID)]
       local unitName = (def and (def.translatedHumanName or def.name)) or tostring(unitDefID)
+      
+      -- Block nanoframes for units that would be stunned (prevents tax bypass)
+      if ok and stunSeconds > 0 and wouldBeStunned(unitDefID, stunCategory, defs) then
+        local beingBuilt, buildProgress = spring.GetUnitIsBeingBuilt(unitId)
+        if beingBuilt and buildProgress > 0 then
+          ok = false -- Nanoframe transfer blocked for stun-category units
+        end
+      end
+      
       if ok then
         out.validUnitCount = out.validUnitCount + 1
         table.insert(out.validUnitIds, unitId)
@@ -70,11 +120,11 @@ function Shared.ValidateUnits(policyResult, unitIds, springApi, unitDefs)
   end
 
   if out.validUnitCount > 0 and out.invalidUnitCount == 0 then
-    out.status = SharedEnums.UnitValidationOutcome.Success
+    out.status = GlobalEnums.UnitValidationOutcome.Success
   elseif out.validUnitCount > 0 and out.invalidUnitCount > 0 then
-    out.status = SharedEnums.UnitValidationOutcome.PartialSuccess
+    out.status = GlobalEnums.UnitValidationOutcome.PartialSuccess
   else
-    out.status = SharedEnums.UnitValidationOutcome.Failure
+    out.status = GlobalEnums.UnitValidationOutcome.Failure
   end
 
   return out
@@ -87,18 +137,35 @@ end
 ---@return UnitPolicyResult
 function Shared.GetCachedPolicyResult(senderTeamId, receiverTeamId, springApi)
   local spring = springApi or Spring
-  local baseKey = PolicyShared.MakeBaseKey(receiverTeamId, SharedEnums.TransferCategory.UnitTransfer)
+  local baseKey = PolicyShared.MakeBaseKey(receiverTeamId, GlobalEnums.TransferCategory.UnitTransfer)
   local serialized = spring.GetTeamRulesParam(senderTeamId, baseKey)
+  
+  -- Always get stun config from mod options (not cached)
+  local modOptions = spring.GetModOptions()
+  local stunSeconds = tonumber(modOptions[GlobalEnums.ModOptions.UnitShareStunSeconds]) or 0
+  local stunCategory = modOptions[GlobalEnums.ModOptions.UnitStunCategory] or GlobalEnums.UnitStunCategory.EconomicPlusBuildings
+  
   if serialized == nil then
+    -- No cache - build default policy from mod options
+    local mode = modOptions.unit_sharing_mode or GlobalEnums.UnitSharingMode.Disabled
+    local areAllied = spring.AreTeamsAllied and spring.AreTeamsAllied(senderTeamId, receiverTeamId)
+    local canShare = areAllied and mode ~= GlobalEnums.UnitSharingMode.Disabled
     ---@type UnitPolicyResult
     return {
       senderTeamId = senderTeamId,
       receiverTeamId = receiverTeamId,
-      canShare = false,
-      sharingMode = SharedEnums.UnitSharingMode.Disabled,
+      canShare = canShare,
+      sharingMode = mode,
+      stunSeconds = stunSeconds,
+      stunCategory = stunCategory,
     }
   end
-  return Shared.DeserializePolicy(serialized, senderTeamId, receiverTeamId)
+  
+  local policy = Shared.DeserializePolicy(serialized, senderTeamId, receiverTeamId)
+  -- Ensure stun fields are always present from mod options
+  policy.stunSeconds = stunSeconds
+  policy.stunCategory = stunCategory
+  return policy
 end
 
 ---Serialize unit policy expose to compact string
@@ -121,37 +188,37 @@ function Shared.DeserializePolicy(serialized, senderId, receiverId)
 end
 
 function Shared.GetModeUnitTypes(mode)
-  if mode == SharedEnums.UnitSharingMode.Disabled then
+  if mode == GlobalEnums.UnitSharingMode.Disabled then
     return {}
   end
 
-  if mode == SharedEnums.UnitSharingMode.Enabled then
+  if mode == GlobalEnums.UnitSharingMode.Enabled then
     return {
-      SharedEnums.UnitType.Combat,
-      SharedEnums.UnitType.Economic,
-      SharedEnums.UnitType.Utility,
-      SharedEnums.UnitType.T2Constructor
+      GlobalEnums.UnitType.Combat,
+      GlobalEnums.UnitType.Economic,
+      GlobalEnums.UnitType.Utility,
+      GlobalEnums.UnitType.T2Constructor
     }
   end
 
-  if mode == SharedEnums.UnitSharingMode.CombatUnits then
-    return {SharedEnums.UnitType.Combat}
+  if mode == GlobalEnums.UnitSharingMode.CombatUnits then
+    return {GlobalEnums.UnitType.Combat}
   end
 
-  if mode == SharedEnums.UnitSharingMode.Economic then
-    return {SharedEnums.UnitType.Economic, SharedEnums.UnitType.T2Constructor}
+  if mode == GlobalEnums.UnitSharingMode.Economic then
+    return {GlobalEnums.UnitType.Economic, GlobalEnums.UnitType.T2Constructor}
   end
 
-  if mode == SharedEnums.UnitSharingMode.EconomicPlusBuildings then
-    return {SharedEnums.UnitType.Economic, SharedEnums.UnitType.T2Constructor, SharedEnums.UnitType.Utility}
+  if mode == GlobalEnums.UnitSharingMode.EconomicPlusBuildings then
+    return {GlobalEnums.UnitType.Economic, GlobalEnums.UnitType.T2Constructor, GlobalEnums.UnitType.Utility}
   end
 
-  if mode == SharedEnums.UnitSharingMode.T2Cons then
-    return {SharedEnums.UnitType.T2Constructor}
+  if mode == GlobalEnums.UnitSharingMode.T2Cons then
+    return {GlobalEnums.UnitType.T2Constructor}
   end
 
-  if mode == SharedEnums.UnitSharingMode.CombatT2Cons then
-    return {SharedEnums.UnitType.Combat, SharedEnums.UnitType.T2Constructor}
+  if mode == GlobalEnums.UnitSharingMode.CombatT2Cons then
+    return {GlobalEnums.UnitType.Combat, GlobalEnums.UnitType.T2Constructor}
   end
 
   error("Unknown mode: " .. mode)
@@ -172,11 +239,11 @@ local function EvaluateUnitForSharing(unitDef, mode)
   if not unitDef then return false end
 
   -- Simple cases
-  if mode == SharedEnums.UnitSharingMode.Disabled then
+  if mode == GlobalEnums.UnitSharingMode.Disabled then
     return false
   end
 
-  if mode == SharedEnums.UnitSharingMode.Enabled then
+  if mode == GlobalEnums.UnitSharingMode.Enabled then
     return true
   end
 

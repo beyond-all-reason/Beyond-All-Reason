@@ -77,10 +77,11 @@ M.UnitType = {
 }
 
 M.UnitStunCategory = {
-	Disabled = "disabled",
+	Combat = "combat",
+	CombatT2Cons = "combat_t2_cons",
 	Economic = "economic",
-	Builders = "builders",
-	EconomicAndBuilders = "economic_and_builders",
+	EconomicPlusBuildings = "economic_plus_buildings",
+	T2Cons = "t2_cons",
 	All = "all",
 }
 
