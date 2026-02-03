@@ -1374,6 +1374,8 @@
 				"anonymous_b": "Anonymous Blue",
 				"playercolors": "Simple team colors",
 				"simpleteamcolors": "simple",
+				"simpleteamcolorsfactionspecific": "Faction Color",
+				"simpleteamcolorsfactionspecific_descr": "Replaces Simple Team Colors with Faction Colors based on player's starting commander, useful for cinematics.",
 				"simpleteamcolors_reset": "Reset (Restart to reset sliders)",
 				"simpleteamcolors_use_gradient": "Use a different shade for each player.",
 				"simpleteamcolors_player_r": "Player Red",

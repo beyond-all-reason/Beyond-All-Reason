@@ -4883,6 +4883,12 @@ function init()
 			  Spring.SetConfigInt("UpdateTeamColors", 1)
 		  end,
 		},
+		{ id = "simpleteamcolorsfactionspecific", group = "accessibility", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.simpleteamcolorsfactionspecific'), type = "bool", value = tonumber(Spring.GetConfigInt("SimpleTeamColorsFactionSpecific", 0) or 0) == 1, description = Spring.I18N('ui.settings.option.simpleteamcolorsfactionspecific_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("SimpleTeamColorsFactionSpecific", (value and 1 or 0))
+			  Spring.SetConfigInt("UpdateTeamColors", 1)
+		  end,
+		},
 		{ id = "simpleteamcolors_player_r", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.simpleteamcolors_player_r'), type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerR", 0)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColorsPlayerR", value)
