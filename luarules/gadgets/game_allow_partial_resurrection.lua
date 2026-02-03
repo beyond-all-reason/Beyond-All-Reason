@@ -6,8 +6,8 @@ local allowPartialResurrection = Spring.GetModOptions()[GlobalEnums.ModOptions.A
 
 function gadget:GetInfo()
 	return {
-		name    = 'Restrict Partial Resurrection',
-		desc    = 'Prevents resurrecting partly reclaimed wrecks.',
+		name    = 'Allow Partial Resurrection',
+		desc    = 'Controls whether partly reclaimed wrecks can be resurrected.',
 		author  = 'RebelNode',
 		date    = 'January 2026',
 		license = 'GNU GPL, v2 or later',
