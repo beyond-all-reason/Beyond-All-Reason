@@ -46,13 +46,22 @@ local actions = {
 		parameters = { },
 	},
 
-	actionWithInvalidTeamIDAndInvalidUnitDefNameAndInvalidPosition = {
+	actionWithInvalidTeamIDAndInvalidUnitDefNameAndInvalidPositionAndInvalidFacing = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitDefName = 'invalidUnitDefName',
 			teamID = 6,
 			position = { x = 1800, invalidField = 1600 },
 			facing = 'invalidFacing',
+		},
+	},
+
+	actionAndInvalidFacingType = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			teamID = 0,
+			position = { x = 1800, z = 1600 },
+			facing = true,
 		},
 	},
 
