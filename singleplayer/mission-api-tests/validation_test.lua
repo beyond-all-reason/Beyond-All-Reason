@@ -161,6 +161,14 @@ local actions = {
 			area = { x = 0, radius = 100},
 		},
 	},
+
+	actionWithAreaRectangleWithInverseDimensions = {
+		type = actionTypes.NameUnits,
+		parameters = {
+			name = 'validName',
+			area = { x1 = 10, z1 = 10, x2 = 1, z2 = 1 },
+		},
+	},
 }
 
 return {

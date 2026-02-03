@@ -215,7 +215,7 @@ local customValidators = {
 		local isRectangle = area.x1 and area.z1 and area.x2 and area.z2
 		local isCircle = area.x and area.z and area.radius
 		if not isRectangle and not isCircle then
-			return { { "Invalid area parameter, must be rectangle { x1, z1, x2, z2 } or circle { x, z, radius }. " } }
+			return { { "Invalid area parameter, must be either rectangle { x1, z1, x2, z2 } with x1 < x2 and z1 < z2, or circle { x, z, radius }. " } }
 		else
 			local result = {}
 			for key, value in pairs(area) do
@@ -224,9 +224,20 @@ local customValidators = {
 					result[#result + 1] = fieldResult
 				end
 			end
+			if not table.isNilOrEmpty(result) then
+				return result
+			end
 		end
-
-		return result
+		if isRectangle then
+			local result = {}
+			if area.x1 >= area.x2 then
+				result[#result + 1] = { "Invalid area rectangle parameter, x1 must be less than x2. " }
+			end
+			if area.z1 >= area.z2 then
+				result[#result + 1] = { "Invalid area rectangle parameter, z1 must be less than z2. " }
+			end
+			return result
+		end
 	end,
 
 	----------------------------------------------------------------
@@ -248,6 +259,9 @@ local customValidators = {
 		local luaTypeResult = luaTypeValidators[Types.String](unitDefName)
 		if luaTypeResult then
 			return luaTypeResult
+		end
+		if not unitDefName then
+			return
 		end
 
 		if not UnitDefNames[unitDefName] then
@@ -275,6 +289,9 @@ local customValidators = {
 		local luaTypeResult = luaTypeValidators[Types.Number](teamID)
 		if luaTypeResult then
 			return luaTypeResult
+		end
+		if not teamID then
+			return
 		end
 
 		if not Spring.GetTeamAllyTeamID(teamID) then

@@ -182,13 +182,13 @@ local parameters = {
 		},
 		[4] = {
 			-- Examples:
-			-- Rectangle: { x1 = 0, z1 = 0, x2 = 123, z2 = 123 }
+			-- Rectangle: { x1 = 0, z1 = 0, x2 = 123, z2 = 123 } with x1 < x2 and z1 < z2
 			-- Circle: { x = 0, z = 0, radius = 123 }
 			name = 'area',
 			required = false,
 			type = Types.Area
 		},
-		requiresOneOf = { 'teamD', 'unitDefName', 'area' }
+		requiresOneOf = { 'teamID', 'unitDefName', 'area' }
 	},
 	[actionTypes.UnnameUnits] = {
 		[1] = {
