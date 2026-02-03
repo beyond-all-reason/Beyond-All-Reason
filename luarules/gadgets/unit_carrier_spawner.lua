@@ -1119,8 +1119,8 @@ local function updateCarrier(carrierID, carrierMetaData, frame)
 		end
 		if targetx and carrierx then
 			droneSendDistance = diag((carrierx-targetx), (carrierz-targetz))
+			attackOrder = true --attack order overrides set target
 		end
-		attackOrder = true --attack order overrides set target
 	end
 
 
@@ -1143,6 +1143,7 @@ local function updateCarrier(carrierID, carrierMetaData, frame)
 				targety = setTarget[2]
 				targetz = setTarget[3]
 				target = setTarget
+				fightOrder = true
 			end
 			if targetType == 1 then --targeting units
 				local target_id = setTarget
