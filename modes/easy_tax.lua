@@ -4,7 +4,7 @@ local SharedEnums = VFS.Include("modes/global_enums.lua")
 return {
     key = SharedEnums.Modes.EasyTax,
     name = "Easy Tax",
-    desc = "Anti co-op sharing tax mode. 30% tax on resource sharing, T2 constructor sharing only, allied assist disabled, eco units stunned on transfer.",
+    desc = "Anti co-op sharing tax mode. Leverages stun to penalize sharing.",
     allowRanked = true,
     modOptions = {
         [SharedEnums.ModOptions.UnitSharingMode] = {
