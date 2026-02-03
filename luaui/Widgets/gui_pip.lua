@@ -358,6 +358,7 @@ local miscState = {
 	worldIconTooltipShownThisGame = 0,  -- How many times tooltip shown this game
 	worldIconTooltipShownTotal = 0,  -- How many times tooltip shown ever (persistent)
 	hadSavedConfig = false,
+	savedGameID = nil,  -- GameID from saved config for new game detection
 	hasOpenedPIPThisGame = false,  -- Whether PIP has been opened/maximized at least once this game
 	worldIconLockedX = nil,  -- Locked world icon X position while hovering
 	worldIconLockedZ = nil,  -- Locked world icon Z position while hovering
@@ -1061,6 +1062,9 @@ function RecalculateGroundTextureCoordinates()
 end
 
 local function CorrectScreenPosition()
+	-- Guard against uninitialized render dimensions
+	if not render.dim.l or not render.dim.r or not render.dim.b or not render.dim.t then return end
+
 	-- In minimap mode, use different margin and allow edge-to-edge positioning
 	local screenMarginPx
 	if isMinimapMode then
@@ -3936,20 +3940,39 @@ end
 gameHasStarted = (Spring.GetGameFrame() > 0)
 miscState.startX, _, miscState.startZ = Spring.GetTeamStartPosition(Spring.GetMyTeamID())
 
--- For spectators on first maximize, center on map and zoom out more
+-- For spectators, center on map and zoom out more (always on new game, even if has saved config)
 local isSpectator = Spring.GetSpectatingState()
-if isSpectator and not miscState.hadSavedConfig then
+local gameFrame = Spring.GetGameFrame()
+local currentGameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID")
+-- Check if this is a new game by comparing with any saved gameID from SetConfigData
+local isNewGame = not miscState.savedGameID or miscState.savedGameID ~= currentGameID
+if isSpectator and isNewGame then
 	-- Center on map
 	cameraState.wcx = mapInfo.mapSizeX / 2
 	cameraState.wcz = mapInfo.mapSizeZ / 2
 	cameraState.targetWcx = cameraState.wcx
 	cameraState.targetWcz = cameraState.wcz
-	-- Zoom out more to see more of the map
-	cameraState.zoom = 0.3
-	cameraState.targetZoom = 0.3
+	-- Zoom out to cover most of the map
+	cameraState.zoom = 0.1
+	cameraState.targetZoom = 0.1
 elseif (not cameraState.wcx or not cameraState.wcz) and miscState.startX and miscState.startX >= 0 then
 	-- Only set camera position if not already loaded from config (for players)
-	cameraState.wcx, cameraState.wcz = miscState.startX, miscState.startZ
+	-- Set zoom to 0.5 for players
+	cameraState.zoom = 0.5
+	cameraState.targetZoom = 0.5
+	-- Apply map margin limits to start position
+	local pipWidth = render.dim.r - render.dim.l
+	local pipHeight = render.dim.t - render.dim.b
+	local visibleWorldWidth = pipWidth / cameraState.zoom
+	local visibleWorldHeight = pipHeight / cameraState.zoom
+	local smallerVisibleDimension = math.min(visibleWorldWidth, visibleWorldHeight)
+	local margin = smallerVisibleDimension * config.mapEdgeMargin
+	local minWcx = visibleWorldWidth / 2 - margin
+	local maxWcx = mapInfo.mapSizeX - (visibleWorldWidth / 2 - margin)
+	local minWcz = visibleWorldHeight / 2 - margin
+	local maxWcz = mapInfo.mapSizeZ - (visibleWorldHeight / 2 - margin)
+	cameraState.wcx = math.min(math.max(miscState.startX, minWcx), maxWcx)
+	cameraState.wcz = math.min(math.max(miscState.startZ, minWcz), maxWcz)
 	cameraState.targetWcx, cameraState.targetWcz = cameraState.wcx, cameraState.wcz  -- Initialize targets
 end
 
@@ -4537,6 +4560,7 @@ end
 function widget:SetConfigData(data)
 	--Spring.Echo(data)
 	miscState.hadSavedConfig = (data and next(data) ~= nil) -- Mark that we have saved config data
+	miscState.savedGameID = data and data.gameID -- Store saved gameID for new game detection in Initialize
 
 	-- Validate and sanitize position data to prevent corruption
 	local function isValidNumber(val, min, max)
@@ -6123,6 +6147,33 @@ local function DrawIcons()
 					glFunc.TexCoord(0, 1)
 					glFunc.Vertex(cx - blobSize, cy + blobSize)
 				end
+			end)
+			glFunc.Texture(false)
+		end
+	end
+
+	-- Draw start unit icon before game starts (when commander is not yet placed)
+	-- Skip in minimap mode (engine minimap replacement doesn't need this)
+	if not gameHasStarted and not isMinimapMode and miscState.startX and miscState.startX >= 0 then
+		local myTeamID = Spring.GetMyTeamID()
+		local startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+		if startDefID and cache.unitIcon[startDefID] then
+			local iconData = cache.unitIcon[startDefID]
+			local iconSize = iconRadiusZoomDistMult * iconData.size
+			local cx, cy = WorldToPipCoords(miscState.startX, miscState.startZ)
+			local teamColor = teamColors[myTeamID] or {1, 1, 1}
+			
+			glFunc.Texture(iconData.bitmap)
+			glFunc.BeginEnd(glConst.QUADS, function()
+				glFunc.Color(teamColor[1], teamColor[2], teamColor[3], 1)
+				glFunc.TexCoord(texInset, 1 - texInset)
+				glFunc.Vertex(cx - iconSize, cy - iconSize)
+				glFunc.TexCoord(1 - texInset, 1 - texInset)
+				glFunc.Vertex(cx + iconSize, cy - iconSize)
+				glFunc.TexCoord(1 - texInset, texInset)
+				glFunc.Vertex(cx + iconSize, cy + iconSize)
+				glFunc.TexCoord(texInset, texInset)
+				glFunc.Vertex(cx - iconSize, cy + iconSize)
 			end)
 			glFunc.Texture(false)
 		end
@@ -9331,8 +9382,9 @@ end
 function widget:DrawWorld()
 	-- When fully minimized (not animating), draw maximize icon at PIP camera location
 	-- Don't show if tracking player camera, or if spectator (unless showWorldIconForSpectators is enabled)
+	-- Also don't show before game starts
 	local shouldShowWorldIcon = config.showWorldIcon and not interactionState.trackingPlayerID and 
-		(not cameraState.mySpecState or config.showWorldIconForSpectators)
+		(not cameraState.mySpecState or config.showWorldIconForSpectators) and gameHasStarted
 	if uiState.inMinMode and not uiState.isAnimating and shouldShowWorldIcon then
 		local alt = Spring.GetModKeyState()
 		local iconSize = 16  -- World units
@@ -9468,8 +9520,8 @@ function widget:DrawWorld()
 		glFunc.Color(r, g, b, 0.045)
 		glFunc.BeginEnd(glConst.LINE_STRIP, DrawGroundBox, render.world.l+innerLineDist, render.world.r-innerLineDist, render.world.b-innerLineDist, render.world.t+innerLineDist, cornerSize*0.65)
 		
-		-- Draw minimize icon at center of PIP boundary (if enabled and not tracking player)
-		if config.showWorldIcon and not interactionState.trackingPlayerID then
+		-- Draw minimize icon at center of PIP boundary (if enabled and not tracking player, and game has started)
+		if config.showWorldIcon and not interactionState.trackingPlayerID and gameHasStarted then
 			local alt = Spring.GetModKeyState()
 			local iconSize = 16  -- World units
 			-- Use locked position if hovering, otherwise current camera center
@@ -9910,10 +9962,10 @@ function widget:Update(dt)
 	interactionState.worldMaximizeIconHovered = false
 	
 	local alt = Spring.GetModKeyState()
-	-- Also check for spectator (unless showWorldIconForSpectators is enabled)
+	-- Also check for spectator (unless showWorldIconForSpectators is enabled), and game must have started
 	local shouldCheckWorldIcon = config.showWorldIcon and not uiState.isAnimating and 
 		not interactionState.isMouseOverPip and not interactionState.trackingPlayerID and
-		(not cameraState.mySpecState or config.showWorldIconForSpectators)
+		(not cameraState.mySpecState or config.showWorldIconForSpectators) and gameHasStarted
 	if shouldCheckWorldIcon then
 		local _, pos = Spring.TraceScreenRay(mx, my, true)
 		if pos then
@@ -10282,7 +10334,19 @@ function widget:Update(dt)
 			local newX, _, newZ = Spring.GetTeamStartPosition(Spring.GetMyTeamID())
 			if newX ~= miscState.startX then
 				miscState.startX, miscState.startZ = newX, newZ
-				cameraState.wcx, cameraState.wcz = miscState.startX, miscState.startZ
+				-- Apply map margin limits to start position
+				local pipWidth = render.dim.r - render.dim.l
+				local pipHeight = render.dim.t - render.dim.b
+				local visibleWorldWidth = pipWidth / cameraState.zoom
+				local visibleWorldHeight = pipHeight / cameraState.zoom
+				local smallerVisibleDimension = math.min(visibleWorldWidth, visibleWorldHeight)
+				local margin = smallerVisibleDimension * config.mapEdgeMargin
+				local minWcx = visibleWorldWidth / 2 - margin
+				local maxWcx = mapInfo.mapSizeX - (visibleWorldWidth / 2 - margin)
+				local minWcz = visibleWorldHeight / 2 - margin
+				local maxWcz = mapInfo.mapSizeZ - (visibleWorldHeight / 2 - margin)
+				cameraState.wcx = math.min(math.max(newX, minWcx), maxWcx)
+				cameraState.wcz = math.min(math.max(newZ, minWcz), maxWcz)
 				cameraState.targetWcx, cameraState.targetWcz = cameraState.wcx, cameraState.wcz  -- Set targets instantly for start position
 				RecalculateWorldCoordinates()
 				RecalculateGroundTextureCoordinates()
@@ -10915,6 +10979,9 @@ function widget:MouseWheel(up, value)
 end
 
 function widget:MousePress(mx, my, mButton)
+	-- Guard against uninitialized render dimensions
+	if not render.dim.l or not render.dim.r or not render.dim.b or not render.dim.t then return end
+
 	-- Track mapmark initiation position if mouse is over PiP (for point markers with double-click)
 	if mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t and not uiState.inMinMode then
 		miscState.mapmarkInitScreenX = mx
