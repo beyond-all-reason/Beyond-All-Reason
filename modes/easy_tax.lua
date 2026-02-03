@@ -8,7 +8,7 @@ return {
     allowRanked = true,
     modOptions = {
         [SharedEnums.ModOptions.UnitSharingMode] = {
-            value = SharedEnums.UnitSharingMode.CombatUnits,
+            value = SharedEnums.UnitSharingMode.Enabled,
             locked = true,
         },
         [SharedEnums.ModOptions.UnitShareStunSeconds] = {

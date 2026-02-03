@@ -11,6 +11,14 @@ return {
             value = SharedEnums.UnitSharingMode.Enabled,
             locked = false,
         },
+        [SharedEnums.ModOptions.UnitShareStunSeconds] = {
+            value = 30,
+            locked = false,
+        },
+        [SharedEnums.ModOptions.UnitStunCategory] = {
+            value = SharedEnums.UnitStunCategory.EconomicAndBuilders,
+            locked = false,
+        },
         [SharedEnums.ModOptions.ResourceSharingEnabled] = {
             value = true,
             locked = false,
@@ -34,6 +42,10 @@ return {
         [SharedEnums.ModOptions.AlliedUnitReclaimMode] = {
             value = true,
             locked = false
+        },
+        [SharedEnums.ModOptions.AllowPartialResurrection] = {
+            value = true,
+            locked = false,
         },
     }
 }
