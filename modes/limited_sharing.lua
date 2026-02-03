@@ -1,8 +1,8 @@
-local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+local SharedEnums = VFS.Include("modes/global_enums.lua")
 
 ---@type SharingModeConfig
 return {
-    key = SharedEnums.SharingModes.LimitedSharing,
+    key = SharedEnums.Modes.LimitedSharing,
     name = "Limited Sharing",
     desc = "Allow T2 constructor sharing and payment, otherwise restrict sharing.",
     allowRanked = true,
@@ -27,12 +27,8 @@ return {
             value = 0,
             locked = false,
         },
-        [SharedEnums.ModOptions.TransportDropper] = {
-            value = true,
-            locked = false,
-        },
         [SharedEnums.ModOptions.AlliedUnitReclaimMode] = {
-            value = SharedEnums.AlliedUnitReclaimMode.EnabledAutomationRestricted,
+            value = true,
             locked = false,
         },
     }

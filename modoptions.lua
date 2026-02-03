@@ -1,4 +1,4 @@
-local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+local SharedEnums = VFS.Include("modes/global_enums.lua")
 
 --  Custom Options Definition Table format
 --  NOTES:
@@ -279,12 +279,12 @@ local options = {
     {
         key     = SharedEnums.ModOptions.SharingMode,
         name    = "Sharing Mode",
-        desc    = "Controls overall sharing policy and locks/unlocks specific options, see `sharing_modes/` for more details",
+        desc    = "Controls overall sharing policy and locks/unlocks specific options, see `modes/` for more details",
         type    = "list",
         section = "options_sharing",
         optional = true,
         def     = "enabled",
-        items   = {}, -- Will be populated dynamically by Chobby from sharing_modes/ directory
+        items   = {}, -- Will be populated dynamically by Chobby from modes/ directory
     },
 
     {
@@ -301,6 +301,7 @@ local options = {
 		type	= "list",
 		section	= "options_sharing",
 		def		= SharedEnums.UnitSharingMode.Enabled,
+		optional = true,
 		items	= {
 			{ key = SharedEnums.UnitSharingMode.Enabled, name = "Enabled", desc = "All unit sharing allowed" },
 			{ key = SharedEnums.UnitSharingMode.T2Cons, name = "T2 Constructor Sharing Only", desc = "Only T2 constructors can be shared between allies" },
@@ -309,6 +310,36 @@ local options = {
 			{ key = SharedEnums.UnitSharingMode.Economic, name = "Economic Units Only", desc = "All economic mobile units can be shared but no combat units" },
 			{ key = SharedEnums.UnitSharingMode.EconomicPlusBuildings, name = "Economic Units and Buildings", desc = "All economic units and resource production buildings can be shared but no combat units" },
 			{ key = SharedEnums.UnitSharingMode.Disabled, name = "Disabled", desc = "No unit sharing allowed" },
+		},
+	},
+	{
+		key		= SharedEnums.ModOptions.UnitShareStunSeconds,
+		name	= "Unit Share Stun Duration",
+		desc	= "Units matching the stun category are stunned for this many seconds when shared to an ally. Set to 0 to disable stun.",
+		type	= "number",
+		section	= "options_sharing",
+		def		= 0,
+		min		= 0,
+		max		= 120,
+		step	= 1,
+		column	= 1,
+		optional = true,
+	},
+	{
+		key		= SharedEnums.ModOptions.UnitStunCategory,
+		name	= "Unit Stun Category",
+		desc	= "Which units are stunned when shared to an ally",
+		type	= "list",
+		section	= "options_sharing",
+		def		= SharedEnums.UnitStunCategory.EconomicAndBuilders,
+		column	= 2,
+		optional = true,
+		items	= {
+			{ key = SharedEnums.UnitStunCategory.Disabled, name = "Disabled", desc = "No units are stunned on share" },
+			{ key = SharedEnums.UnitStunCategory.Economic, name = "Economic", desc = "Metal and energy structures are stunned" },
+			{ key = SharedEnums.UnitStunCategory.Builders, name = "Builders", desc = "Constructor units are stunned" },
+			{ key = SharedEnums.UnitStunCategory.EconomicAndBuilders, name = "Economic + Builders", desc = "Metal, energy, and constructor units are stunned" },
+			{ key = SharedEnums.UnitStunCategory.All, name = "All Units", desc = "All shared units are stunned" },
 		},
 	},
 
@@ -328,6 +359,7 @@ local options = {
 		section	= "options_sharing",
 		def		= true,
 		column  = 1,
+		optional = true,
 	},
 	{
 		key		= SharedEnums.ModOptions.TaxResourceSharingAmount,
@@ -341,6 +373,7 @@ local options = {
 		step	= 0.01,
 		section	= "options_sharing",
 		column	= 1,
+		optional = true,
 	},
 	{
 		key     = SharedEnums.ModOptions.PlayerMetalSendThreshold,
@@ -353,6 +386,7 @@ local options = {
 		step    = 10,
 		section = "options_sharing",
 		column  = 1,
+		optional = true,
 	},
 	{
 		key     = SharedEnums.ModOptions.PlayerEnergySendThreshold,
@@ -365,6 +399,7 @@ local options = {
 		step    = 10,
 		section = "options_sharing",
 		column  = 2,
+		optional = true,
 	},
 
     {
@@ -378,27 +413,32 @@ local options = {
 	{
 		key		= SharedEnums.ModOptions.AlliedAssistMode,
 		name	= "Ally Assist",
-		desc	= "Controls whether units can assist allied construction and repair",
-		type	= "list",
+		desc	= "Allow units to assist allied construction and repair",
+		type	= "bool",
 		section	= "options_sharing",
-		def		= SharedEnums.AlliedAssistMode.Enabled,
+		def		= true,
 		column	= 1,
-		items	= {
-			{ key = SharedEnums.AlliedAssistMode.Disabled, name = "Disabled", desc = "Units cannot assist allied construction and repair" },
-			{ key = SharedEnums.AlliedAssistMode.Enabled,  name = "Enabled",  desc = "Units can assist allied construction and repair" },
-		},
+		optional = true,
 	},
 	{
 		key		= SharedEnums.ModOptions.AlliedUnitReclaimMode,
 		name	= "Ally Unit Reclaim",
-		desc	= "Controls reclaiming allied units and guarding allied units that can reclaim",
-		type	= "list",
+		desc	= "Allow reclaiming allied units and guarding allied units that can reclaim",
+		type	= "bool",
 		section	= "options_sharing",
-		def		= SharedEnums.AlliedUnitReclaimMode.EnabledAutomationRestricted,
-		items	= {
-			{ key = SharedEnums.AlliedUnitReclaimMode.Disabled, name = "Disabled", desc = "Allied reclaim is disabled" },
-			{ key = SharedEnums.AlliedUnitReclaimMode.EnabledAutomationRestricted, name = "Enabled", desc = "Allied reclaim is allowed" },
-		},
+		def		= true,
+		column	= 1,
+		optional = true,
+	},
+	{
+		key		= SharedEnums.ModOptions.AllowPartialResurrection,
+		name	= "Allow Partial Resurrection",
+		desc	= "Allow resurrecting partly reclaimed wrecks (disabling prevents tax bypass)",
+		type	= "bool",
+		section	= "options_sharing",
+		def		= true,
+		column	= 1,
+		optional = true,
 	},
 
     {
@@ -1717,28 +1757,6 @@ local options = {
         type    = "link",
         link    = "https://discord.com/channels/549281623154229250/1063217502898884701/1441480747629412675",
         width   = 275,
-        column  = 1.65,
-        linkheight = 325,
-        linkwidth = 350,
-    },
-
-    {
-        key 	= "easytax",
-        name 	= "Easy Sharing Tax",
-        desc 	= "Anti co-op sharing tax mod. Overwrites other tax settings. Don't combine with other sharing restriction mods, everything you need is included with easy tax.",
-        type 	= "bool",
-        section = "options_experimental",
-        def 	= false,
-    },
-
-    {
-        key     = "easytax_link",
-        name    = "Changelog",
-        desc    = "Easy Sharing Tax description.",
-        section = "options_experimental",
-        type    = "link",
-        link    = "https://gist.github.com/RebelNode/43b986f29b9cfacbe95cf634cac25c49",
-        width   = 215,
         column  = 1.65,
         linkheight = 325,
         linkwidth = 350,

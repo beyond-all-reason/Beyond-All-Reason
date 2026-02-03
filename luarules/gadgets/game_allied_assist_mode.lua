@@ -1,13 +1,13 @@
 local gadget = gadget ---@type Gadget
 
-local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+local SharedEnums = VFS.Include("modes/global_enums.lua")
+
+local assistEnabled = Spring.GetModOptions()[SharedEnums.ModOptions.AlliedAssistMode]
 
 function gadget:GetInfo()
-	local modOptValue = Spring.GetModOptions()[SharedEnums.ModOptions.AlliedAssistMode]
-	local assistEnabled = modOptValue == SharedEnums.AlliedAssistMode.Enabled
 	return {
 		name    = 'Disable Assist Ally Construction',
-		desc    = 'Disable assisting allied units (e.g. labs and units/buildings under construction) when modoption is enabled',
+		desc    = 'Disable assisting allied units (e.g. labs and units/buildings under construction) when modoption is disabled',
 		author  = 'Rimilel',
 		date    = 'April 2024',
 		license = 'GNU GPL, v2 or later',
@@ -20,8 +20,6 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local modOptValue = Spring.GetModOptions()[SharedEnums.ModOptions.AlliedAssistMode]
-local assistEnabled = modOptValue == SharedEnums.AlliedAssistMode.Enabled
 if assistEnabled then
 	return false
 end

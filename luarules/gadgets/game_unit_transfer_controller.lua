@@ -21,11 +21,58 @@ if not gadgetHandler:IsSyncedCode() then
   return false
 end
 
-local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+local SharedEnums = VFS.Include("modes/global_enums.lua")
 local ContextFactoryModule = VFS.Include("common/luaUtilities/team_transfer/context_factory.lua")
 local Shared = VFS.Include("common/luaUtilities/team_transfer/unit_transfer_shared.lua")
 local UnitTransfer = VFS.Include("common/luaUtilities/team_transfer/unit_transfer_synced.lua")
 local LuaRulesMsg = VFS.Include("common/luaUtilities/lua_rules_msg.lua")
+
+local economicGroups = {
+  energy = true,
+  metal = true,
+}
+
+local builderGroups = {
+  builder = true,
+  buildert2 = true,
+  buildert3 = true,
+}
+
+local function shouldStunUnit(unitDefID, stunCategory)
+  if stunCategory == SharedEnums.UnitStunCategory.All then
+    return true
+  end
+  if stunCategory == SharedEnums.UnitStunCategory.Disabled then
+    return false
+  end
+
+  local unitDef = UnitDefs[unitDefID]
+  local group = unitDef and unitDef.customParams and unitDef.customParams.unitgroup
+  if not group then
+    return false
+  end
+
+  if stunCategory == SharedEnums.UnitStunCategory.Economic then
+    return economicGroups[group]
+  elseif stunCategory == SharedEnums.UnitStunCategory.Builders then
+    return builderGroups[group]
+  elseif stunCategory == SharedEnums.UnitStunCategory.EconomicAndBuilders then
+    return economicGroups[group] or builderGroups[group]
+  end
+
+  return false
+end
+
+local function applyStun(unitID, unitDefID, policyResult)
+  if policyResult.stunSeconds <= 0 then
+    return
+  end
+  if not shouldStunUnit(unitDefID, policyResult.stunCategory) then
+    return
+  end
+  local _, maxHealth = Spring.GetUnitHealth(unitID)
+  Spring.AddUnitDamage(unitID, maxHealth * 5, policyResult.stunSeconds)
+end
 
 --------------------------------------------------------------------------------
 -- GameUnitTransferController
@@ -152,7 +199,6 @@ end
 ---@param capture boolean
 ---@return boolean
 function UnitTransferController.AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
-  Spring.Echo(string.format("[AllowUnitTransfer] unitID=%d from=%d to=%d capture=%s", unitID, fromTeamID, toTeamID, tostring(capture)))
   if capture then
     return true
   end
@@ -160,10 +206,10 @@ function UnitTransferController.AllowUnitTransfer(unitID, unitDefID, fromTeamID,
   local validation = Shared.ValidateUnits(policyResult, { unitID }, springRepo)
   
   local allowed = validation and validation.status ~= SharedEnums.UnitValidationOutcome.Failure
-  Spring.Echo(string.format("[AllowUnitTransfer] policy.canShare=%s validation.status=%s allowed=%s", 
-    tostring(policyResult and policyResult.canShare), 
-    tostring(validation and validation.status), 
-    tostring(allowed)))
+  
+  if allowed and policyResult then
+    applyStun(unitID, unitDefID, policyResult)
+  end
   
   return allowed
 end

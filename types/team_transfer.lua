@@ -18,6 +18,8 @@
 ---@class UnitPolicyResult : PolicyResult
 ---@field canShare boolean
 ---@field sharingMode string
+---@field stunSeconds number
+---@field stunCategory string
 
 ---@class UnitTransferContext : PolicyActionContext
 ---@field unitIds number[]

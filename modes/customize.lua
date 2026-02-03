@@ -1,8 +1,8 @@
-local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+local SharedEnums = VFS.Include("modes/global_enums.lua")
 
 ---@type SharingModeConfig
 return {
-    key = SharedEnums.SharingModes.Customize,
+    key = SharedEnums.Modes.Customize,
     name = "Customize",
     desc = "Choose your own settings.",
     allowRanked = true,
@@ -28,11 +28,11 @@ return {
             locked = false
         },
         [SharedEnums.ModOptions.AlliedAssistMode] = {
-            value = SharedEnums.AlliedAssistMode.Enabled,
+            value = true,
             locked = false
         },
         [SharedEnums.ModOptions.AlliedUnitReclaimMode] = {
-            value = SharedEnums.AlliedUnitReclaimMode.EnabledAutomationRestricted,
+            value = true,
             locked = false
         },
     }

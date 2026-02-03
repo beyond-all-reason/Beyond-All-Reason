@@ -7,14 +7,18 @@ M.ModOptions = {
 	PlayerEnergySendThreshold = "player_energy_send_threshold",
 	PlayerMetalSendThreshold = "player_metal_send_threshold",
 	ResourceSharingEnabled = "resource_sharing_enabled",
+	AllowPartialResurrection = "allow_partial_resurrection",
 	SharingMode = "sharing_mode",
 	TaxResourceSharingAmount = "tax_resource_sharing_amount",
 	UnitSharingMode = "unit_sharing_mode",
+	UnitShareStunSeconds = "unit_share_stun_seconds",
+	UnitStunCategory = "unit_stun_category",
 }
 
-M.SharingModes = {
+M.Modes = {
 	NoSharing = "no_sharing",
 	LimitedSharing = "limited_sharing",
+	EasyTax = "easy_tax",
 	Enabled = "enabled",
 	Customize = "customize",
 }
@@ -72,14 +76,12 @@ M.UnitType = {
 	T2Constructor = "t2_constructor",
 }
 
-M.AlliedAssistMode = {
+M.UnitStunCategory = {
 	Disabled = "disabled",
-	Enabled = "enabled",
-}
-
-M.AlliedUnitReclaimMode = {
-	Disabled = "disabled",
-	EnabledAutomationRestricted = "enabled_automation_restricted",
+	Economic = "economic",
+	Builders = "builders",
+	EconomicAndBuilders = "economic_and_builders",
+	All = "all",
 }
 
 return M

@@ -105,7 +105,7 @@ local modrules = {
 		pfUpdateRateScale = 1,			-- default: 1.  Multiplier for the update rate
 		pfRawMoveSpeedThreshold = 0,	-- default: 0.  Controls the speed modifier (which includes typemap boosts and up/down hill modifiers) under which units will never do raw move, regardless of distance etc. Defaults to 0, which means units will not try to raw-move into unpathable terrain (e.g. typemapped lava, cliffs, water). You can set it to some positive value to make them avoid pathable but very slow terrain (for example if you set it to 0.2 then they will not raw-move across terrain where they move at 20% speed or less, and will use normal pathing instead - which may still end up taking them through that path).
 		pfHcostMult = 0.2,				-- default: 0.2.  A float value between 0 and 2. Controls how aggressively the pathing search prioritizes nodes going in the direction of the goal. Higher values mean pathing is cheaper, but can start producing degenerate paths where the unit goes straight at the goal and then has to hug a wall.
-		nativeExcessSharing = Spring.GetModOptions().easytax==false and Spring.GetModOptions().tax_resource_sharing_amount==0,	-- default: true.  If true, the engine will handle resource overflow sharing between allied teams. If false, overflow sharing is disabled and we use Lua implementation in game_tax_resource_sharing.lua gadget.
+		nativeExcessSharing = Spring.GetModOptions().tax_resource_sharing_amount == 0,	-- default: true.  If true, the engine will handle resource overflow sharing between allied teams. If false, overflow sharing is disabled and we use Lua implementation in game_tax_resource_sharing.lua gadget.
 	},
 
 	transportability = {

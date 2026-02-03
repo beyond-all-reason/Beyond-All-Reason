@@ -1,4 +1,4 @@
-local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+local SharedEnums = VFS.Include("modes/global_enums.lua")
 local Shared = VFS.Include("common/luaUtilities/team_transfer/unit_transfer_shared.lua")
 local PolicyShared = VFS.Include("common/luaUtilities/team_transfer/team_transfer_serialization_helpers.lua")
 
@@ -11,13 +11,18 @@ local Synced = {
 ---@param ctx PolicyContext
 ---@return UnitPolicyResult
 function Synced.GetPolicy(ctx)
-  local mode = ctx.springRepo.GetModOptions().unit_sharing_mode
+  local modOptions = ctx.springRepo.GetModOptions()
+  local mode = modOptions.unit_sharing_mode
   local canShare = ctx.areAlliedTeams and mode ~= SharedEnums.UnitSharingMode.Disabled
+  local stunSeconds = modOptions[SharedEnums.ModOptions.UnitShareStunSeconds] or 0
+  local stunCategory = modOptions[SharedEnums.ModOptions.UnitStunCategory] or SharedEnums.UnitStunCategory.Disabled
   return {
     canShare = canShare,
     senderTeamId = ctx.senderTeamId,
     receiverTeamId = ctx.receiverTeamId,
     sharingMode = mode,
+    stunSeconds = stunSeconds,
+    stunCategory = stunCategory,
   }
 end
 
