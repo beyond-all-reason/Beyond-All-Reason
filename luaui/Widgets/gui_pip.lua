@@ -119,7 +119,8 @@ local config = {
 	zoomMax = 0.95,
 	zoomFeatures = 0.2,
 	zoomProjectileDetail = 0.12,
-	zoomExplosionDetail = 0.06,
+	zoomExplosionDetail = 0.12,  -- Legacy, now using graduated visibility
+	drawExplosions = true,  -- Separate from projectiles
 	
 	-- Feature and overlay settings
 	hideEnergyOnlyFeatures = false,
@@ -2311,7 +2312,7 @@ local function DrawProjectile(pID)
 				if trail.isStarburst then
 					trailLifetime = 1.6  -- 3x longer for starburst
 					invTrailLifetime = 0.625  -- 1/trailLifetime
-					trailColorR, trailColorG, trailColorB = 0.15, 0.15, 0.15  -- Darker smoke
+					trailColorR, trailColorG, trailColorB = 0.12, 0.12, 0.12  -- Darker smoke
 				elseif trail.isAA then
 					trailLifetime = 0.7
 					invTrailLifetime = 1.4286  -- 1/trailLifetime
@@ -2319,7 +2320,7 @@ local function DrawProjectile(pID)
 				else
 					trailLifetime = 0.7
 					invTrailLifetime = 1.4286  -- 1/trailLifetime
-					trailColorR, trailColorG, trailColorB = 0.3, 0.3, 0.3
+					trailColorR, trailColorG, trailColorB = 0.22, 0.22, 0.22
 				end
 				local wcx, wcz = cameraState.wcx, cameraState.wcz
 				local positions = trail.positions
@@ -2934,6 +2935,9 @@ local function DrawExplosions()
 	local i = 1
 	local wcx_cached = cameraState.wcx
 	local wcz_cached = cameraState.wcz
+	
+	-- Current zoom level for graduated visibility check
+	local currentZoom = cameraState.zoom
 
 	mapInfo.rad2deg = 57.29577951308232 -- Precompute radians to degrees conversion
 
@@ -2947,6 +2951,19 @@ local function DrawExplosions()
 		local explosion = cache.explosions[i]
 		if not explosion or not explosion.x then
 			table.remove(cache.explosions, i)
+		else
+		-- Graduated visibility: larger explosions visible at lower zoom levels
+		-- radius 100+: always visible
+		-- radius 60-100: visible at zoom >= 0.04
+		-- radius 40-60: visible at zoom >= 0.06
+		-- radius 20-40: visible at zoom >= 0.09
+		-- radius < 20: visible at zoom >= 0.12
+		local minZoom = 0
+		if explosion.radius < 100 then
+			minZoom = math.max(0, 0.14 - explosion.radius * 0.0014)
+		end
+		if currentZoom < minZoom then
+			i = i + 1
 		else
 		local age = gameTime - explosion.startTime
 
@@ -3167,6 +3184,7 @@ local function DrawExplosions()
 				i = i + 1
 			end
 		end
+		end -- end of graduated visibility else block
 		end -- end of "if not explosion" else block
 	end
 	glFunc.LineWidth(1)
@@ -6542,14 +6560,21 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 				-- Draw laser beams
 				DrawLaserBeams()
 			end
-
-			-- Draw explosions
-			DrawExplosions()
 		end
 
 		-- Draw seismic pings (always visible at any zoom level)
 		DrawSeismicPings()
 		
+		gl.DepthTest(true)
+		gl.Blending(false)
+	end
+	
+	-- Draw explosions independently (graduated visibility based on radius)
+	if config.drawExplosions then
+		gl.Blending(true)
+		gl.DepthTest(false)
+		glFunc.Texture(false)
+		DrawExplosions()
 		gl.DepthTest(true)
 		gl.Blending(false)
 	end
@@ -10821,14 +10846,30 @@ end
 -- Handle explosions from weapons (called when a visible explosion occurs)
 function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 	if uiState.inMinMode then return end
-	-- Skip processing explosions when we're not rendering them due to zoom level
-	if cameraState.zoom < config.zoomExplosionDetail then return end
-	if not config.drawProjectiles then return end
+	if not config.drawExplosions then return end
 	
 	-- Skip specific weapons using cached data (e.g., footstep effects)
 	if weaponID and cache.weaponSkipExplosion[weaponID] then
 		return
 	end
+	
+	-- Get explosion radius for visibility check
+	local radius = 10
+	if weaponID and cache.weaponExplosionRadius[weaponID] then
+		radius = cache.weaponExplosionRadius[weaponID]
+	end
+	
+	-- Graduated visibility: larger explosions visible at lower zoom levels
+	-- radius 100+: always visible
+	-- radius 60-100: visible at zoom >= 0.04
+	-- radius 40-60: visible at zoom >= 0.06
+	-- radius 20-40: visible at zoom >= 0.09
+	-- radius < 20: visible at zoom >= 0.12
+	local minZoom = 0
+	if radius < 100 then
+		minZoom = math.max(0, 0.14 - radius * 0.0014)
+	end
+	if cameraState.zoom < minZoom then return end
 
 	-- Check if this is a lightning weapon
 	local isLightning = weaponID and cache.weaponIsLightning[weaponID]
@@ -10836,8 +10877,9 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 	-- Check if this is a paralyze weapon
 	local isParalyze = weaponID and cache.weaponIsParalyze[weaponID]
 	
-	-- Check if this is an anti-air weapon
+	-- Check if this is an anti-air weapon (skip AA explosions for now)
 	local isAA = weaponID and cache.weaponIsAA[weaponID]
+	if isAA then return end
 
 	-- Add explosion to list with radius from cached weapon data
 	local radius = 10 -- Default radius
