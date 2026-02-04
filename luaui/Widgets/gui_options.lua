@@ -3556,6 +3556,7 @@ function init()
 			  end
 		  end,
 		},
+		{ id = "minimappip", group = "ui", category = types.advanced, widget = "Picture-in-Picture Minimap", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimappip'), type = "bool", value = GetWidgetToggleValue("Picture-in-Picture Minimap"), description = Spring.I18N('ui.settings.option.minimappip_descr') },
 
 
 		{ id = "pip", group = "ui", category = types.advanced, widget = "Picture-in-Picture", name = Spring.I18N('ui.settings.option.pip'), type = "bool", value = GetWidgetToggleValue("Picture-in-Picture"), description = Spring.I18N('ui.settings.option.pip_descr') },
@@ -6375,7 +6376,7 @@ function init()
 				local dirname = string.gsub(string.sub(file, 14, string.len(file)-1), "\\", "/")
 				local setAlreadyIn = false
 				for i = 1,#sets do
-					if dirname == sets[i] then setAlreadyIn = true break end 
+					if dirname == sets[i] then setAlreadyIn = true break end
 				end
 				if not setAlreadyIn then
 					sets[#sets+1] = dirname
