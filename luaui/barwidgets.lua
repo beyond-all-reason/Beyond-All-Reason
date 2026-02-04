@@ -2561,10 +2561,10 @@ function widgetHandler:UnitLeftAir(unitID, unitDefID, unitTeam)
 	return
 end
 
-function widgetHandler:UnitSeismicPing(x, y, z, strength, allyTeam)
+function widgetHandler:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
 	tracy.ZoneBeginN("W:UnitSeismicPing")
 	for _, w in ipairs(self.UnitSeismicPingList) do
-		w:UnitSeismicPing(x, y, z, strength, allyTeam)
+		w:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
 	end
 	tracy.ZoneEnd()
 	return

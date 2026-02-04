@@ -967,6 +967,9 @@ local worldToPipOffsetX = 0
 local worldToPipOffsetZ = 0
 
 function RecalculateWorldCoordinates()
+	-- Guard against uninitialized render dimensions
+	if not render.dim.l or not render.dim.r or not render.dim.b or not render.dim.t then return end
+	
 	local hw, hh = 0.5 * (render.dim.r - render.dim.l) / cameraState.zoom, 0.5 * (render.dim.t - render.dim.b) / cameraState.zoom
 	
 	-- At 90/270 degrees, the content is rotated inside the rectangular PIP window
@@ -4200,8 +4203,8 @@ function widget:ViewResize()
 			maxHeight = maxWidth / mapRatio
 		end
 		
-		local usedWidth = math.floor(maxWidth * render.vsy)
-		local usedHeight = math.floor(maxHeight * render.vsy)
+		local usedWidth = math.floor((maxWidth * render.vsy) + 0.5)
+		local usedHeight = math.floor((maxHeight * render.vsy) + 0.5)
 		
 		-- Position at top-left corner touching the screen edges (no padding offset)
 		render.dim.l = 0
@@ -4217,9 +4220,9 @@ function widget:ViewResize()
 		-- Calculate zoom based on which dimension is the limiting factor
 		local zoomForWidth = contentWidth / mapInfo.mapSizeX
 		local zoomForHeight = contentHeight / mapInfo.mapSizeZ
-		-- Reduce by 0.5% to ensure entire map is visible with a small margin
-		local fitZoom = math.min(zoomForWidth, zoomForHeight) * 0.995
 		
+		local fitZoom = math.min(zoomForWidth, zoomForHeight) * 0.99	-- Reduce by 1% to ensure entire map is visible with a small margin
+
 		-- Store as both min and max zoom to lock at this level (no zooming in minimap mode)
 		minimapModeMinZoom = fitZoom
 		
@@ -4512,6 +4515,9 @@ end
 
 function widget:GetConfigData()
 	CorrectScreenPosition()
+
+	-- Guard against uninitialized render dimensions
+	if not render.dim.l or not render.dim.r or not render.dim.b or not render.dim.t then return {} end
 
 	-- When in min mode, save the expanded dimensions from uiState.savedDimensions
 	local saveL, saveR, saveB, saveT
@@ -10029,38 +10035,43 @@ function widget:Update(dt)
 
 	-- Handle minimize/maximize animation
 	if uiState.isAnimating then
-		uiState.animationProgress = uiState.animationProgress + (dt / uiState.animationDuration)
-		pipR2T.contentNeedsUpdate = true  -- Update during animation
-		pipR2T.frameNeedsUpdate = true  -- Frame also needs update during animation
-
-		if uiState.animationProgress >= 1 then
-			-- Animation complete
-			uiState.animationProgress = 1
+		-- Guard: ensure animStartDim and animEndDim are properly initialized
+		if not uiState.animStartDim.l or not uiState.animEndDim.l then
 			uiState.isAnimating = false
-			render.dim.l = uiState.animEndDim.l
-			render.dim.r = uiState.animEndDim.r
-			render.dim.b = uiState.animEndDim.b
-			render.dim.t = uiState.animEndDim.t
-			-- Recalculate world coordinates for final dimensions
-			RecalculateWorldCoordinates()
-			RecalculateGroundTextureCoordinates()
-			pipR2T.frameNeedsUpdate = true  -- Final update after animation
-			-- Update guishader blur after animation completes
-			UpdateGuishaderBlur()
 		else
-			-- Interpolate dimensions with easing (ease-in-out)
-			local t = uiState.animationProgress
-			local ease = t < 0.5 and 2 * t * t or 1 - math.pow(-2 * t + 2, 2) / 2
+			uiState.animationProgress = uiState.animationProgress + (dt / uiState.animationDuration)
+			pipR2T.contentNeedsUpdate = true  -- Update during animation
+			pipR2T.frameNeedsUpdate = true  -- Frame also needs update during animation
 
-			render.dim.l = uiState.animStartDim.l + (uiState.animEndDim.l - uiState.animStartDim.l) * ease
-			render.dim.r = uiState.animStartDim.r + (uiState.animEndDim.r - uiState.animStartDim.r) * ease
-			render.dim.b = uiState.animStartDim.b + (uiState.animEndDim.b - uiState.animStartDim.b) * ease
-			render.dim.t = uiState.animStartDim.t + (uiState.animEndDim.t - uiState.animStartDim.t) * ease
+			if uiState.animationProgress >= 1 then
+				-- Animation complete
+				uiState.animationProgress = 1
+				uiState.isAnimating = false
+				render.dim.l = uiState.animEndDim.l
+				render.dim.r = uiState.animEndDim.r
+				render.dim.b = uiState.animEndDim.b
+				render.dim.t = uiState.animEndDim.t
+				-- Recalculate world coordinates for final dimensions
+				RecalculateWorldCoordinates()
+				RecalculateGroundTextureCoordinates()
+				pipR2T.frameNeedsUpdate = true  -- Final update after animation
+				-- Update guishader blur after animation completes
+				UpdateGuishaderBlur()
+			else
+				-- Interpolate dimensions with easing (ease-in-out)
+				local t = uiState.animationProgress
+				local ease = t < 0.5 and 2 * t * t or 1 - math.pow(-2 * t + 2, 2) / 2
 
-			RecalculateWorldCoordinates()
-			RecalculateGroundTextureCoordinates()
-			-- Update guishader blur continuously during animation
-			UpdateGuishaderBlur()
+				render.dim.l = uiState.animStartDim.l + (uiState.animEndDim.l - uiState.animStartDim.l) * ease
+				render.dim.r = uiState.animStartDim.r + (uiState.animEndDim.r - uiState.animStartDim.r) * ease
+				render.dim.b = uiState.animStartDim.b + (uiState.animEndDim.b - uiState.animStartDim.b) * ease
+				render.dim.t = uiState.animStartDim.t + (uiState.animEndDim.t - uiState.animStartDim.t) * ease
+
+				RecalculateWorldCoordinates()
+				RecalculateGroundTextureCoordinates()
+				-- Update guishader blur continuously during animation
+				UpdateGuishaderBlur()
+			end
 		end
 	end
 
@@ -10435,14 +10446,14 @@ function widget:GameStart()
 	end
 end
 
-function widget:UnitSeismicPing(x, y, z, strength, allyTeam)
+function widget:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
 	if uiState.inMinMode then return end
 
-	
 	local myAllyTeam = Spring.GetMyAllyTeamID()
-	--local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
+	local spec, fullview = Spring.GetSpectatingState()
+	local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
 
-	if (spec or allyTeam == myAllyTeam) then
+	if (spec or allyTeam == myAllyTeam) and unitAllyTeam ~= allyTeam then
 		-- Calculate ping radius based on strength (strength is typically 1-10)
 		-- Use larger base radius for visibility
 		local maxRadius = 100 + math.min(strength, 20) * 15
@@ -10824,6 +10835,9 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 end
 
 function widget:IsAbove(mx, my)
+	-- Guard against uninitialized render dimensions
+	if not render.dim.l or not render.dim.r or not render.dim.b or not render.dim.t then return false end
+	
 	-- Claim mouse interaction when cursor is over the PIP window
 	if uiState.isAnimating then
 		-- During animation, check both start and end positions to ensure we capture the animated area
@@ -11160,6 +11174,10 @@ function widget:MousePress(mx, my, mButton)
 				render.dim.r = uiState.savedDimensions.r
 				render.dim.b = uiState.savedDimensions.b
 				render.dim.t = uiState.savedDimensions.t
+				
+				-- Guard against nil saved dimensions
+				if not render.dim.l or not render.dim.r or not render.dim.b or not render.dim.t then return end
+				
 				CorrectScreenPosition()
 
 				-- Update camera to tracked units immediately before maximizing
