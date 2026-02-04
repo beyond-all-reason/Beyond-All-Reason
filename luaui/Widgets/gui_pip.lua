@@ -152,12 +152,15 @@ local config = {
 	minimapHoverHeightPercent = 0.15,  -- Minimap height when hovering over PIP
 	
 	-- Performance settings
+	pipFloorUpdateRate = 10,
 	pipMinUpdateRate = 30,
 	pipMaxUpdateRate = 120,
 	pipZoomThresholdMin = 0.15,
 	pipZoomThresholdMax = 0.4,
 	pipTargetDrawTime = 0.003,
 	pipPerformanceAdjustSpeed = 0.1,
+	pipFrameTimeThreshold = 0.001,  -- threshold before starting to lower FPS
+	pipFrameTimeHistorySize = 8,  -- Number of frames to average
 	
 	radarWobbleSpeed = 1,
 	CMD_AREA_MEX = GameCMD and GameCMD.AREA_MEX or 10000,
@@ -257,6 +260,9 @@ local pipR2T = {
 	contentLastWidth = 0,
 	contentLastHeight = 0,
 	contentLastDrawTime = 0,  -- Last measured draw time for performance monitoring
+	contentDrawTimeHistory = {},  -- Ring buffer of last 6 frame times
+	contentDrawTimeHistoryIndex = 0,  -- Current index in ring buffer
+	contentDrawTimeAverage = 0,  -- Average of last 6 frame times
 	contentPerformanceFactor = 1.0,  -- Multiplier applied to update rate based on performance (1.0 = no adjustment)
 	frameBackgroundTex = nil,
 	frameButtonsTex = nil,
@@ -8597,6 +8603,7 @@ end
 
 -- Helper function to calculate dynamic update rate
 local function CalculateDynamicUpdateRate()
+	-- Base rate from zoom level
 	local dynamicUpdateRate = config.pipMinUpdateRate
 	if cameraState.zoom >= config.pipZoomThresholdMax then
 		dynamicUpdateRate = config.pipMaxUpdateRate
@@ -8604,15 +8611,24 @@ local function CalculateDynamicUpdateRate()
 		dynamicUpdateRate = config.pipMinUpdateRate + (config.pipMaxUpdateRate - config.pipMinUpdateRate) * ((cameraState.zoom - config.pipZoomThresholdMin) / (config.pipZoomThresholdMax - config.pipZoomThresholdMin))
 	end
 
-	if pipR2T.contentLastDrawTime > 0 then
-		local targetPerformanceFactor = 1.0
-		if pipR2T.contentLastDrawTime > config.pipTargetDrawTime then
-			targetPerformanceFactor = math.max(0.5, config.pipTargetDrawTime / pipR2T.contentLastDrawTime)
-		elseif pipR2T.contentLastDrawTime < config.pipTargetDrawTime * 0.7 then
-			targetPerformanceFactor = math.min(1.0, pipR2T.contentPerformanceFactor * 1.02)
+	-- Apply performance-based adjustment using averaged frame times
+	local avgDrawTime = pipR2T.contentDrawTimeAverage
+	if avgDrawTime > 0 then
+		-- If average frame time exceeds threshold, progressively lower FPS towards floor rate
+		if avgDrawTime > config.pipFrameTimeThreshold then
+			-- Calculate how much over threshold we are (0 = at threshold, 1 = at 2x threshold)
+			local overThreshold = math.min(1, (avgDrawTime - config.pipFrameTimeThreshold) / config.pipFrameTimeThreshold)
+			-- Lerp from current dynamicUpdateRate towards pipFloorUpdateRate
+			local targetRate = dynamicUpdateRate - (dynamicUpdateRate - config.pipFloorUpdateRate) * overThreshold
+			-- Smooth transition
+			local targetFactor = targetRate / dynamicUpdateRate
+			pipR2T.contentPerformanceFactor = pipR2T.contentPerformanceFactor + (targetFactor - pipR2T.contentPerformanceFactor) * config.pipPerformanceAdjustSpeed
+		else
+			-- Below threshold, gradually recover towards 1.0
+			pipR2T.contentPerformanceFactor = pipR2T.contentPerformanceFactor + (1.0 - pipR2T.contentPerformanceFactor) * config.pipPerformanceAdjustSpeed * 0.5
 		end
-		pipR2T.contentPerformanceFactor = pipR2T.contentPerformanceFactor + (targetPerformanceFactor - pipR2T.contentPerformanceFactor) * config.pipPerformanceAdjustSpeed
-		dynamicUpdateRate = math.max(10, dynamicUpdateRate * pipR2T.contentPerformanceFactor)
+		-- Apply performance factor, ensuring we don't go below floor rate
+		dynamicUpdateRate = math.max(config.pipFloorUpdateRate, dynamicUpdateRate * pipR2T.contentPerformanceFactor)
 	end
 
 	pipR2T.contentCurrentUpdateRate = dynamicUpdateRate
@@ -9296,7 +9312,23 @@ function widget:DrawScreen()
 		-- Measure time to render
 		local drawStartTime = os.clock()
 		UpdateR2TContent(currentTime, pipUpdateInterval, pipWidth, pipHeight)
-		pipR2T.contentLastDrawTime = os.clock() - drawStartTime
+		local drawTime = os.clock() - drawStartTime
+		pipR2T.contentLastDrawTime = drawTime
+		
+		-- Add to frame time history (ring buffer of last N frames)
+		pipR2T.contentDrawTimeHistoryIndex = (pipR2T.contentDrawTimeHistoryIndex % config.pipFrameTimeHistorySize) + 1
+		pipR2T.contentDrawTimeHistory[pipR2T.contentDrawTimeHistoryIndex] = drawTime
+		
+		-- Calculate average of frame times
+		local sum = 0
+		local count = 0
+		for i = 1, config.pipFrameTimeHistorySize do
+			if pipR2T.contentDrawTimeHistory[i] then
+				sum = sum + pipR2T.contentDrawTimeHistory[i]
+				count = count + 1
+			end
+		end
+		pipR2T.contentDrawTimeAverage = count > 0 and (sum / count) or 0
 
 		-- Update content mask display list if dimensions or position changed
 		local maskNeedsUpdate = (math.floor(pipWidth) ~= pipR2T.contentMaskLastWidth or 
@@ -9604,13 +9636,13 @@ function widget:DrawScreen()
 		DrawFormationDotsOverlay()
 
 		-- Display current max update rate (top-left corner)
-		if showPipFps then
-			local fontSize = 11
-			local padding = 8
+		if config.showPipFps then
+			local fontSize = 12
+			local padding = 12
 			font:Begin()
 			font:SetTextColor(0.85, 0.85, 0.85, 1)
 			font:SetOutlineColor(0, 0, 0, 0.5)
-			font:Print(string.format("%.0f FPS", pipR2T.contentCurrentUpdateRate), render.dim.l + padding, render.dim.t - (fontSize*1.6) - padding, fontSize*2, "no")
+			font:Print(string.format("%.0f FPS", pipR2T.contentCurrentUpdateRate)..'\n'..pipR2T.contentDrawTimeAverage, render.dim.l + padding, render.dim.t - (fontSize*1.6) - padding, fontSize*2, "no")
 			font:End()
 		end
 	end
