@@ -304,8 +304,8 @@ local function removePreDestinationMoveCommands(unitID, destination)
     for i = spGetUnitCommandCount(unitID), 1, -1 do
         local cmdID, options, tag, targetX, targetY, targetZ = Spring.GetUnitCurrentCommand(unitID, i)
 		if cmdID == CMD.MOVE then
-            local isDifferentDestination = targetX == destination[0] and targetY == destination[1] and targetZ == destination[2]
-            if isDifferentDestination then
+            local isSameMoveDestination = targetX == destination[0] and targetY == destination[1] and targetZ == destination[2]
+            if not isSameMoveDestination then
                 tags[#tags + 1] = qid
             end
 		else
