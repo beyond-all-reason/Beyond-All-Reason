@@ -13,6 +13,8 @@ function widget:GetInfo()
 	}
 end
 
+Spring.LoadSoundDef("gamedata/soundsVoice.lua")
+
 -- Localized functions for performance
 local mathRandom = math.random
 local tableSort = table.sort
@@ -69,9 +71,9 @@ local gameover = false
 local lockPlayerID
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
-local soundFolder = "sounds/voice/" .. voiceSet .. "/"
-local soundEffectsFolder = "sounds/voice-soundeffects/"
-local defaultSoundFolder = "sounds/voice/" .. defaultVoiceSet .. "/"
+local soundFolder = string.gsub("sounds/voice/" .. voiceSet .. "/", "\\", "/")
+local soundEffectsFolder = string.gsub("sounds/voice-soundeffects/", "\\", "/")
+local defaultSoundFolder = string.gsub("sounds/voice/" .. defaultVoiceSet .. "/", "\\", "/")
 
 -- load and parse sound files/notifications
 local notificationTable = VFS.Include('sounds/voice/config.lua')
