@@ -50,16 +50,21 @@ local always, LOS, radar, jam, radar2
 local spSetLosViewColors = Spring.SetLosViewColors
 
 
+local function lerp(a, b, t)
+	return a + (b - a) * t
+end
+
 local function applyOpacity(colors)
 	local newColors = table.copy(colors)
 	for i,c in pairs(newColors.fog) do
-		newColors.fog[i] = c * opacity
-		newColors.los[i] = c / ((1+opacity)/2)
+		newColors.fog[i] = lerp(0, c, opacity)
+		newColors.radar2[i] = lerp(0.3, c, opacity)
 	end
 	return newColors
 end
 
 local function updateLOS(colors)
+	colors = applyOpacity(colors)
 	spSetLosViewColors(colors.fog, colors.los, colors.radar, colors.jam, colors.radar2)
 end
 
