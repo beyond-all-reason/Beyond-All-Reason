@@ -20,6 +20,16 @@ pipNumber = pipNumber or 1
 local isMinimapMode = (pipNumber == 0)  -- When pipNumber == 0, act as minimap replacement
 local minimapModeMinZoom = nil  -- Calculated zoom to fit entire map (only used in minimap mode)
 
+-- Minimap mode API upvalues (updated each frame, avoids per-frame closure allocations)
+local minimapApiNormLeft, minimapApiNormRight, minimapApiNormBottom, minimapApiNormTop = 0, 1, 1, 0
+local minimapApiZoomLevel = 1
+local minimapApiGetNormalizedVisibleArea = function()
+	return minimapApiNormLeft, minimapApiNormRight, minimapApiNormBottom, minimapApiNormTop
+end
+local minimapApiGetZoomLevel = function()
+	return minimapApiZoomLevel
+end
+
 -- Helper function to get effective zoom minimum (accounts for minimap mode)
 local function GetEffectiveZoomMin()
 	if isMinimapMode and minimapModeMinZoom then
@@ -409,6 +419,19 @@ local pools = {
 	projectileColor = {1, 0.5, 0, 1}, -- Reused for DrawProjectile default color
 	trackingMerge = {}, -- Reused for tracking unit merge operations
 	trackingTempSet = {}, -- Reused for tracking unit deduplication
+	-- Icon sorting pools
+	groundDefaults = {}, -- Reused for sorting ground default icons
+	elevatedDefaults = {}, -- Reused for sorting elevated default icons
+	elevatedKeyCache = {}, -- Cache for texture .. "_elevated" strings to avoid per-frame allocations
+	trackedByTexture = {}, -- Reused for tracked units texture grouping
+	-- Radar and projectile pools
+	knownRadarUnits = {}, -- Reused for radar units with known types
+	unknownRadarUnits = {}, -- Reused for radar units with unknown types
+	radarIconsByTexture = {}, -- Reused for grouping radar icons by texture
+	activeTrails = {}, -- Reused for tracking active missile trails
+	-- Texture size tracking pools
+	textureSizes = {}, -- Reused for tracking icon counts per texture
+	unitpicSizes = {}, -- Reused for tracking unitpic counts per texture
 }
 
 -- Consolidated cache tables
@@ -446,9 +469,12 @@ local cache = {
 	weaponIsBlaster = {},
 	weaponIsPlasma = {},
 	weaponIsMissile = {},
+	weaponIsStarburst = {},
 	weaponIsLightning = {},
 	weaponIsFlame = {},
 	weaponIsParalyze = {},
+	weaponIsAA = {},
+	missileTrails = {},  -- Stores trail positions for missiles {[pID] = {positions = {{x,z,time},...}, lastUpdate = time}}
 	weaponSize = {},
 	weaponRange = {},
 	weaponThickness = {},
@@ -526,6 +552,18 @@ local positionCmds = {
 ----------------------------------------------------------------------------------------------------
 -- Speedups
 ----------------------------------------------------------------------------------------------------
+
+-- String function speedups (critical for inner loops)
+local strFind = string.find
+local strGsub = string.gsub
+
+-- Icon sorting comparator (defined once, uses upvalues set before sort)
+local sortIconY, sortIconUnitID
+local function iconSortComparator(a, b)
+	local ya, yb = sortIconY[a], sortIconY[b]
+	if ya ~= yb then return ya < yb end
+	return sortIconUnitID[a] < sortIconUnitID[b]
+end
 
 -- GL constants
 local glConst = {
@@ -1600,9 +1638,8 @@ local function DrawUnit(uID)
 	-- Don't return early if uDefID is nil - unit might be radar-only
 
 	-- Skip crashing aircraft (they should not have icons)
-	-- Check both our tracking table and the engine's crashing rules param
+	-- Crashing state is tracked via CrashingAircraft callback from unit_crashing_aircraft gadget
 	if miscState.crashingUnits[uID] then return end
-	if (Spring.GetUnitRulesParam(uID, "crashing") or 0) == 1 then return end
 
 	local uTeam = spFunc.GetUnitTeam(uID)
 	local ux, uy, uz = spFunc.GetUnitBasePosition(uID)
@@ -2208,6 +2245,119 @@ local function DrawProjectile(pID)
 		if vx and (vx ~= 0 or vz ~= 0) then
 			-- Calculate angle based on velocity direction
 			angle = math.atan2(vx, vz) * mapInfo.rad2deg
+		end
+		
+		-- Add smoke trail for missiles (including starburst)
+		do
+			-- Get or create trail data for this projectile
+			local trail = cache.missileTrails[pID]
+			local isStarburst = cache.weaponIsStarburst[pDefID]
+			local isAA = cache.weaponIsAA[pDefID]
+			if not trail then
+				-- Pre-allocate position slots to avoid repeated table creation
+				-- Use ring buffer pattern: positions stored at indices, head points to newest
+				local missileSize = cache.weaponSize[pDefID] or 1
+				trail = {positions = {}, head = 0, count = 0, lastUpdate = 0, isStarburst = isStarburst, isAA = isAA, size = missileSize}
+				cache.missileTrails[pID] = trail
+			end
+			
+			-- Calculate trail length based on zoom level (more positions = longer trail)
+			local zoomNorm = (cameraState.zoom - 0.05) * 1.333  -- Pre-computed: 1/(0.8-0.05) ≈ 1.333
+			if zoomNorm < 0 then zoomNorm = 0 elseif zoomNorm > 1 then zoomNorm = 1 end
+			local maxTrailLength = 2 + math.floor(zoomNorm * 5)  -- 2-7 positions
+			
+			-- Add 1-3 extra positions for fast missiles (speed 5-20+ elmos/frame)
+			if vx then
+				local speed = math.sqrt(vx*vx + vz*vz)
+				local speedBonus = math.floor((speed - 5) * 0.2)  -- +1 per 5 elmos/frame above 5
+				if speedBonus < 0 then speedBonus = 0 elseif speedBonus > 3 then speedBonus = 3 end
+				maxTrailLength = maxTrailLength + speedBonus
+			end
+			
+			-- Starburst missiles need more positions to cover 3x longer trail lifetime
+			-- With 0.12s interval and 2.1s lifetime, need ~18 positions minimum
+			if isStarburst then
+				maxTrailLength = math.max(maxTrailLength, 18)
+			end
+			
+			-- Add current position to trail using ring buffer (O(1) instead of O(n))
+			-- Starburst missiles use 3x longer update interval for longer trails without more positions
+			local trailUpdateInterval = isStarburst and 0.12 or 0.04
+			if gameTime - trail.lastUpdate >= trailUpdateInterval then
+				trail.head = trail.head + 1
+				if trail.head > maxTrailLength then trail.head = 1 end
+				
+				-- Reuse existing position table or create new one
+				local pos = trail.positions[trail.head]
+				if pos then
+					pos.x, pos.z, pos.time = px, pz, gameTime
+				else
+					trail.positions[trail.head] = {x = px, z = pz, time = gameTime}
+				end
+				
+				trail.lastUpdate = gameTime
+				if trail.count < maxTrailLength then
+					trail.count = trail.count + 1
+				end
+			end
+			
+			-- Draw smoke trail (dark semi-transparent lines fading away)
+			local trailCount = trail.count
+			if trailCount >= 2 then
+				-- Longer trailLifetime = slower fade = trail visible longer
+				-- Starburst missiles get 3x longer trails and darker color
+				-- AA missiles get rose pink colored exhaust
+				local trailLifetime, invTrailLifetime, trailColorR, trailColorG, trailColorB
+				if trail.isStarburst then
+					trailLifetime = 1.6  -- 3x longer for starburst
+					invTrailLifetime = 0.625  -- 1/trailLifetime
+					trailColorR, trailColorG, trailColorB = 0.15, 0.15, 0.15  -- Darker smoke
+				elseif trail.isAA then
+					trailLifetime = 0.7
+					invTrailLifetime = 1.4286  -- 1/trailLifetime
+					trailColorR, trailColorG, trailColorB = 0.85, 0.45, 0.55  -- Rose pink
+				else
+					trailLifetime = 0.7
+					invTrailLifetime = 1.4286  -- 1/trailLifetime
+					trailColorR, trailColorG, trailColorB = 0.3, 0.3, 0.3
+				end
+				local wcx, wcz = cameraState.wcx, cameraState.wcz
+				local positions = trail.positions
+				local head = trail.head
+				
+				-- Set line width based on missile size (scaled by zoom)
+				local trailWidth = math.max(1, (0.8 + trail.size * 0.5) * zoomScale)
+				glFunc.LineWidth(trailWidth)
+				
+				-- Batch all trail lines in a single BeginEnd call
+				glFunc.BeginEnd(glConst.LINES, function()
+					for i = 0, trailCount - 2 do
+						-- Ring buffer indexing: head is newest, go backwards
+						local idx1 = head - i
+						if idx1 < 1 then idx1 = idx1 + maxTrailLength end
+						local idx2 = head - i - 1
+						if idx2 < 1 then idx2 = idx2 + maxTrailLength end
+						
+						local p1 = positions[idx1]
+						local p2 = positions[idx2]
+						if p1 and p2 then
+							-- Calculate fade (simplified: avoid function calls)
+							local fade1 = 1 - (gameTime - p1.time) * invTrailLifetime
+							local fade2 = 1 - (gameTime - p2.time) * invTrailLifetime
+							if fade1 < 0 then fade1 = 0 end
+							if fade2 < 0 then fade2 = 0 end
+							
+							if fade1 > 0 or fade2 > 0 then
+								glFunc.Color(trailColorR, trailColorG, trailColorB, 0.5 * fade1)
+								glFunc.Vertex(p1.x - wcx, wcz - p1.z, 0)
+								glFunc.Color(trailColorR, trailColorG, trailColorB, 0.5 * fade2)
+								glFunc.Vertex(p2.x - wcx, wcz - p2.z, 0)
+							end
+						end
+					end
+				end)
+				glFunc.LineWidth(1)
+			end
 		end
 	end
 
@@ -2938,6 +3088,9 @@ local function DrawExplosions()
 					if explosion.isParalyze then
 						-- Paralyze explosions: blue-white-ish
 						r, g, b = 0.75, 0.85, 1
+					elseif explosion.isAA then
+						-- Anti-air explosions: rose pink tinted
+						r, g, b = 1, 0.6, 0.7
 					elseif explosion.radius > 150 then
 						-- Nuke explosions: white to yellow-orange
 						r, g, b = 1, 0.9, 0.6
@@ -3891,6 +4044,9 @@ function widget:Initialize()
 			cache.weaponIsPlasma[wDefID] = true -- Cannon/PlasmaCannon = traveling ball projectile
 		elseif wDef.type == "MissileLauncher" or wDef.type == "StarburstLauncher" or wDef.type == "TorpedoLauncher" then
 			cache.weaponIsMissile[wDefID] = true
+			if wDef.type == "StarburstLauncher" then
+				cache.weaponIsStarburst[wDefID] = true
+			end
 		elseif wDef.type == "LightningCannon" then
 			cache.weaponIsLightning[wDefID] = true
 		elseif wDef.type == "Flame" then
@@ -3937,6 +4093,11 @@ function widget:Initialize()
 	-- Check if weapon is paralyze damage
 	if wDef.damages and wDef.damages.paralyzeDamageTime and wDef.damages.paralyzeDamageTime > 0 then
 		cache.weaponIsParalyze[wDefID] = true
+	end
+	
+	-- Check if weapon is anti-air via cegTag
+	if wDef.cegTag and string.find(wDef.cegTag, 'aa') then
+		cache.weaponIsAA[wDefID] = true
 	end
 end
 
@@ -5302,7 +5463,7 @@ local function DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
 	glFunc.Texture(false)
 end
 
--- Helper function to draw icons (when zoomed out)
+-- Helper function to draw icons
 local function DrawIcons()
 	-- Batch icon drawing by texture to minimize state changes
 	local distMult = math.min(math.max(1, 2.2-(cameraState.zoom*3.3)), 3)
@@ -5333,9 +5494,10 @@ local function DrawIcons()
 	local iconsByTexture = pools.iconsByTexture
 	local unitpicsByTexture = pools.unitpicsByTexture
 	local defaultIconIndices = pools.defaultIconIndices
+	local textureSizes = pools.textureSizes
+	local unitpicSizes = pools.unitpicSizes
 
-	-- Clear pool tables from previous frame and track sizes
-	local textureSizes = {}
+	-- Clear pool tables from previous frame and reset sizes
 	for k in pairs(iconsByTexture) do
 		local t = iconsByTexture[k]
 		for i = #t, 1, -1 do
@@ -5344,7 +5506,6 @@ local function DrawIcons()
 		textureSizes[k] = 0
 	end
 	-- Clear unitpic pool tables
-	local unitpicSizes = {}
 	for k in pairs(unitpicsByTexture) do
 		local t = unitpicsByTexture[k]
 		for i = #t, 1, -1 do
@@ -5355,16 +5516,33 @@ local function DrawIcons()
 	local defaultCount = 0
 	local defaultElevatedCount = 0
 
+	-- Cache for elevated key lookups to avoid string concatenation per-icon
+	local elevatedKeyCache = pools.elevatedKeyCache
 	local iconCount = #drawData.iconTeam
+	local iconUdef = drawData.iconUdef
+	local cacheCanFly = cache.canFly
+	local cacheUnitIcon = cache.unitIcon
+	local cacheUnitPic = cache.unitPic
+	
 	for i = 1, iconCount do
-		local udef = drawData.iconUdef[i]
+		local udef = iconUdef[i]
 		-- Aircraft are always drawn on top (use unitdef, not current Y position)
-		local isElevated = udef and cache.canFly[udef]
+		local isElevated = udef and cacheCanFly[udef]
 		
-		if udef and cache.unitIcon[udef] then
-			local bitmap = cache.unitIcon[udef].bitmap
+		if udef and cacheUnitIcon[udef] then
+			local bitmap = cacheUnitIcon[udef].bitmap
 			-- Use separate texture groups for ground and elevated units
-			local groupKey = isElevated and (bitmap .. "_elevated") or bitmap
+			-- Use cached elevated key to avoid string concatenation
+			local groupKey
+			if isElevated then
+				groupKey = elevatedKeyCache[bitmap]
+				if not groupKey then
+					groupKey = bitmap .. "_elevated"
+					elevatedKeyCache[bitmap] = groupKey
+				end
+			else
+				groupKey = bitmap
+			end
 			local texGroup = iconsByTexture[groupKey]
 			local groupSize = textureSizes[groupKey]
 			if not texGroup then
@@ -5378,8 +5556,17 @@ local function DrawIcons()
 			
 			-- Also group by unitpic if we're using unitpics
 			if useUnitpics then
-				local unitpic = cache.unitPic[udef]
-				local picGroupKey = isElevated and (unitpic .. "_elevated") or unitpic
+				local unitpic = cacheUnitPic[udef]
+				local picGroupKey
+				if isElevated then
+					picGroupKey = elevatedKeyCache[unitpic]
+					if not picGroupKey then
+						picGroupKey = unitpic .. "_elevated"
+						elevatedKeyCache[unitpic] = picGroupKey
+					end
+				else
+					picGroupKey = unitpic
+				end
 				local picGroup = unitpicsByTexture[picGroupKey]
 				local picGroupSize = unitpicSizes[picGroupKey]
 				if not picGroup then
@@ -5413,58 +5600,52 @@ local function DrawIcons()
 			-- This space is used for elevated indices, don't clear
 		end
 	end
-
 	-- Sort each texture group by screen Y (ascending) for proper depth ordering
 	-- Lower Y (further back) drawn first, higher Y (closer/in front) drawn on top
 	-- Use unit ID as tiebreaker for stable sorting (prevents z-fighting flicker)
 	local iconY = drawData.iconY
 	local iconUnitID = drawData.iconUnitID
+	-- Set upvalues for shared comparator (avoids closure allocation per sort call)
+	sortIconY = iconY
+	sortIconUnitID = iconUnitID
 	for _, indices in pairs(iconsByTexture) do
 		if #indices > 1 then
-			table.sort(indices, function(a, b)
-				local ya, yb = iconY[a], iconY[b]
-				if ya ~= yb then return ya < yb end
-				return iconUnitID[a] < iconUnitID[b]
-			end)
+			table.sort(indices, iconSortComparator)
 		end
 	end
 	-- Sort unitpic groups by Y as well
 	for _, indices in pairs(unitpicsByTexture) do
 		if #indices > 1 then
-			table.sort(indices, function(a, b)
-				local ya, yb = iconY[a], iconY[b]
-				if ya ~= yb then return ya < yb end
-				return iconUnitID[a] < iconUnitID[b]
-			end)
+			table.sort(indices, iconSortComparator)
 		end
 	end
 	-- Sort default ground icons (indices 1 to defaultCount)
 	if defaultCount > 1 then
-		-- Create temp array for sorting ground defaults
-		local groundDefaults = {}
+		-- Use pooled temp array for sorting ground defaults
+		local groundDefaults = pools.groundDefaults
 		for i = 1, defaultCount do
 			groundDefaults[i] = defaultIconIndices[i]
 		end
-		table.sort(groundDefaults, function(a, b)
-			local ya, yb = iconY[a], iconY[b]
-			if ya ~= yb then return ya < yb end
-			return iconUnitID[a] < iconUnitID[b]
-		end)
+		-- Clear excess entries from previous frame
+		for i = defaultCount + 1, #groundDefaults do
+			groundDefaults[i] = nil
+		end
+		table.sort(groundDefaults, iconSortComparator)
 		for i = 1, defaultCount do
 			defaultIconIndices[i] = groundDefaults[i]
 		end
 	end
 	-- Sort default elevated icons (indices iconCount+1 to iconCount+defaultElevatedCount)
 	if defaultElevatedCount > 1 then
-		local elevatedDefaults = {}
+		local elevatedDefaults = pools.elevatedDefaults
 		for i = 1, defaultElevatedCount do
 			elevatedDefaults[i] = defaultIconIndices[iconCount + i]
 		end
-		table.sort(elevatedDefaults, function(a, b)
-			local ya, yb = iconY[a], iconY[b]
-			if ya ~= yb then return ya < yb end
-			return iconUnitID[a] < iconUnitID[b]
-		end)
+		-- Clear excess entries from previous frame
+		for i = defaultElevatedCount + 1, #elevatedDefaults do
+			elevatedDefaults[i] = nil
+		end
+		table.sort(elevatedDefaults, iconSortComparator)
 		for i = 1, defaultElevatedCount do
 			defaultIconIndices[iconCount + i] = elevatedDefaults[i]
 		end
@@ -5652,7 +5833,7 @@ local function DrawIcons()
 		
 		-- PASS 1: Draw ground unitpics (sorted by Y within each group)
 		for groupKey, indices in pairs(unitpicsByTexture) do
-			if not string.find(groupKey, "_elevated") then
+			if not strFind(groupKey, "_elevated", 1, true) then
 				for j = 1, #indices do
 					drawUnitpic(indices[j], isRotated)
 				end
@@ -5661,7 +5842,7 @@ local function DrawIcons()
 		
 		-- PASS 2: Draw elevated unitpics on top (sorted by Y within each group)
 		for groupKey, indices in pairs(unitpicsByTexture) do
-			if string.find(groupKey, "_elevated") then
+			if strFind(groupKey, "_elevated", 1, true) then
 				for j = 1, #indices do
 					drawUnitpic(indices[j], isRotated)
 				end
@@ -5674,64 +5855,42 @@ local function DrawIcons()
 	-- Skip normal icon drawing when using unitpics
 	if not useUnitpics then
 
-	-- Draw white backgrounds for tracked units FIRST (before normal icons)
-	local trackedCount = #drawData.trackedIconIndices
-	if trackedCount > 0 then
-		--gl.Blending(GL.ONE, GL.ONE)  -- Full additive blending for bright white glow (when not inverted icon)
-		glFunc.Color(1, 1, 1, 0.5)
+		-- Draw white backgrounds for tracked units FIRST (before normal icons)
+		local trackedCount = #drawData.trackedIconIndices
+		if trackedCount > 0 then
+			--gl.Blending(GL.ONE, GL.ONE)  -- Full additive blending for bright white glow (when not inverted icon)
+			glFunc.Color(1, 1, 1, 0.5)
 
-		-- Group tracked units by texture for batching
-		local trackedByTexture = {}
-		for i = 1, trackedCount do
-			local idx = drawData.trackedIconIndices[i]
-			local udef = drawData.iconUdef[idx]
-			if udef and cache.unitIcon[udef] then
-				local texture = cache.unitIcon[udef].bitmap
-				if texture then
-					if not trackedByTexture[texture] then
-						trackedByTexture[texture] = {}
+			-- Group tracked units by texture for batching (reuse pooled table)
+			local trackedByTexture = pools.trackedByTexture
+			-- Clear from previous frame
+			for k, t in pairs(trackedByTexture) do
+				for i = #t, 1, -1 do t[i] = nil end
+			end
+			for i = 1, trackedCount do
+				local idx = drawData.trackedIconIndices[i]
+				local udef = drawData.iconUdef[idx]
+				if udef and cache.unitIcon[udef] then
+					local texture = cache.unitIcon[udef].bitmap
+					if texture then
+						local group = trackedByTexture[texture]
+						if not group then
+							group = {}
+							trackedByTexture[texture] = group
+						end
+						group[#group + 1] = idx
 					end
-					trackedByTexture[texture][#trackedByTexture[texture] + 1] = idx
 				end
 			end
-		end
 
-		-- Draw tracked unit backgrounds grouped by texture
-		for texture, indices in pairs(trackedByTexture) do
-			local invertedTexture = string.gsub(texture, "icons/", "icons/inverted/")
-			glFunc.Texture(invertedTexture)
-			
-			-- Draw with counter-rotation if map is rotated
-			if render.minimapRotation ~= 0 then
-				for j = 1, #indices do
-					local idx = indices[j]
-					if drawData.iconBuildProgress[idx] >= 1 then
-						local cx = drawData.iconX[idx]
-						local cy = drawData.iconY[idx]
-						local udef = drawData.iconUdef[idx]
-						local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size
-						local baseSize = cache.unitIcon[udef].size
-						local borderPixels = 0.09 / baseSize  -- Inverse relationship: smaller units get proportionally more border
-						local enlargedSize = iconSize * (1 + borderPixels)
-
-						glFunc.PushMatrix()
-						glFunc.Translate(cx, cy, 0)
-						glFunc.Rotate(-render.minimapRotation * 180 / math.pi, 0, 0, 1)
-						glFunc.BeginEnd(glConst.QUADS, function()
-							glFunc.TexCoord(texInset, 1 - texInset)
-							glFunc.Vertex(-enlargedSize, -enlargedSize)
-							glFunc.TexCoord(1 - texInset, 1 - texInset)
-							glFunc.Vertex(enlargedSize, -enlargedSize)
-							glFunc.TexCoord(1 - texInset, texInset)
-							glFunc.Vertex(enlargedSize, enlargedSize)
-							glFunc.TexCoord(texInset, texInset)
-							glFunc.Vertex(-enlargedSize, enlargedSize)
-						end)
-						glFunc.PopMatrix()
-					end
-				end
-			else
-				glFunc.BeginEnd(glConst.QUADS, function()
+			-- Draw tracked unit backgrounds grouped by texture
+			for texture, indices in pairs(trackedByTexture) do
+				if #indices > 0 then
+					local invertedTexture = strGsub(texture, "icons/", "icons/inverted/")
+					glFunc.Texture(invertedTexture)
+				
+				-- Draw with counter-rotation if map is rotated
+				if render.minimapRotation ~= 0 then
 					for j = 1, #indices do
 						local idx = indices[j]
 						if drawData.iconBuildProgress[idx] >= 1 then
@@ -5743,166 +5902,153 @@ local function DrawIcons()
 							local borderPixels = 0.09 / baseSize  -- Inverse relationship: smaller units get proportionally more border
 							local enlargedSize = iconSize * (1 + borderPixels)
 
-							glFunc.TexCoord(texInset, 1 - texInset)
-							glFunc.Vertex(cx - enlargedSize, cy - enlargedSize)
-							glFunc.TexCoord(1 - texInset, 1 - texInset)
-							glFunc.Vertex(cx + enlargedSize, cy - enlargedSize)
-							glFunc.TexCoord(1 - texInset, texInset)
-							glFunc.Vertex(cx + enlargedSize, cy + enlargedSize)
-							glFunc.TexCoord(texInset, texInset)
-							glFunc.Vertex(cx - enlargedSize, cy + enlargedSize)
+							glFunc.PushMatrix()
+							glFunc.Translate(cx, cy, 0)
+							glFunc.Rotate(-render.minimapRotation * 180 / math.pi, 0, 0, 1)
+							glFunc.BeginEnd(glConst.QUADS, function()
+								glFunc.TexCoord(texInset, 1 - texInset)
+								glFunc.Vertex(-enlargedSize, -enlargedSize)
+								glFunc.TexCoord(1 - texInset, 1 - texInset)
+								glFunc.Vertex(enlargedSize, -enlargedSize)
+								glFunc.TexCoord(1 - texInset, texInset)
+								glFunc.Vertex(enlargedSize, enlargedSize)
+								glFunc.TexCoord(texInset, texInset)
+								glFunc.Vertex(-enlargedSize, enlargedSize)
+							end)
+							glFunc.PopMatrix()
 						end
 					end
-				end)
-			end
-		end
-		glFunc.Texture(false)
-	end
-
-	-- Draw bright glow for hovered unit (when command is active)
-	if drawData.hoveredUnitID then
-		glFunc.Color(1, 0.95, 0, 0.66)  -- Bright yellow glow
-		gl.Blending(GL.SRC_ALPHA, GL.ONE)  -- Additive blending for bright glow
-
-		-- Find the hovered unit in the draw data
-		for i = 1, iconCount do
-			if drawData.iconUnitID[i] == drawData.hoveredUnitID and drawData.iconBuildProgress[i] >= 1 then
-				local cx = drawData.iconX[i]
-				local cy = drawData.iconY[i]
-				local udef = drawData.iconUdef[i]
-
-				if udef and cache.unitIcon[udef] then
-					local texture = cache.unitIcon[udef].bitmap
-					local invertedTexture = string.gsub(texture, "icons/", "icons/inverted/")
-					glFunc.Texture(invertedTexture)
-
-					local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size
-					local baseSize = cache.unitIcon[udef].size
-					local borderPixels = 0.15 / baseSize  -- Larger border for hover glow
-					local enlargedSize = iconSize * (1 + borderPixels)
-
-					if render.minimapRotation ~= 0 then
-						glFunc.PushMatrix()
-						glFunc.Translate(cx, cy, 0)
-						glFunc.Rotate(-render.minimapRotation * 180 / math.pi, 0, 0, 1)
-						glFunc.BeginEnd(glConst.QUADS, function()
-							glFunc.TexCoord(texInset, 1 - texInset)
-							glFunc.Vertex(-enlargedSize, -enlargedSize)
-							glFunc.TexCoord(1 - texInset, 1 - texInset)
-							glFunc.Vertex(enlargedSize, -enlargedSize)
-							glFunc.TexCoord(1 - texInset, texInset)
-							glFunc.Vertex(enlargedSize, enlargedSize)
-							glFunc.TexCoord(texInset, texInset)
-							glFunc.Vertex(-enlargedSize, enlargedSize)
-						end)
-						glFunc.PopMatrix()
-					else
-						glFunc.BeginEnd(glConst.QUADS, function()
-							glFunc.TexCoord(texInset, 1 - texInset)
-							glFunc.Vertex(cx - enlargedSize, cy - enlargedSize)
-							glFunc.TexCoord(1 - texInset, 1 - texInset)
-							glFunc.Vertex(cx + enlargedSize, cy - enlargedSize)
-							glFunc.TexCoord(1 - texInset, texInset)
-							glFunc.Vertex(cx + enlargedSize, cy + enlargedSize)
-							glFunc.TexCoord(texInset, texInset)
-							glFunc.Vertex(cx - enlargedSize, cy + enlargedSize)
-						end)
-					end
-					glFunc.Texture(false)
 				else
-					-- Default icon - draw circle glow
-					local defaultIconSize = config.iconRadius * 0.5 * cameraState.zoom * distMult
-					local glowSize = defaultIconSize * 1.4
-					glFunc.Texture('LuaUI/Images/pip/PipBlip.png')
-					
-					if render.minimapRotation ~= 0 then
-						glFunc.PushMatrix()
-						glFunc.Translate(cx, cy, 0)
-						glFunc.Rotate(-render.minimapRotation * 180 / math.pi, 0, 0, 1)
-						glFunc.BeginEnd(glConst.QUADS, function()
-							glFunc.TexCoord(texInset, 1 - texInset)
-							glFunc.Vertex(-glowSize, -glowSize)
-							glFunc.TexCoord(1 - texInset, 1 - texInset)
-							glFunc.Vertex(glowSize, -glowSize)
-							glFunc.TexCoord(1 - texInset, texInset)
-							glFunc.Vertex(glowSize, glowSize)
-							glFunc.TexCoord(texInset, texInset)
-							glFunc.Vertex(-glowSize, glowSize)
-						end)
-						glFunc.PopMatrix()
-					else
-						glFunc.BeginEnd(glConst.QUADS, function()
-							glFunc.TexCoord(texInset, 1 - texInset)
-							glFunc.Vertex(cx - glowSize, cy - glowSize)
-							glFunc.TexCoord(1 - texInset, 1 - texInset)
-							glFunc.Vertex(cx + glowSize, cy - glowSize)
-							glFunc.TexCoord(1 - texInset, texInset)
-							glFunc.Vertex(cx + glowSize, cy + glowSize)
-							glFunc.TexCoord(texInset, texInset)
-							glFunc.Vertex(cx - glowSize, cy + glowSize)
-						end)
-					end
-					glFunc.Texture(false)
+					glFunc.BeginEnd(glConst.QUADS, function()
+						for j = 1, #indices do
+							local idx = indices[j]
+							if drawData.iconBuildProgress[idx] >= 1 then
+								local cx = drawData.iconX[idx]
+								local cy = drawData.iconY[idx]
+								local udef = drawData.iconUdef[idx]
+								local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size
+								local baseSize = cache.unitIcon[udef].size
+								local borderPixels = 0.09 / baseSize  -- Inverse relationship: smaller units get proportionally more border
+								local enlargedSize = iconSize * (1 + borderPixels)
+
+								glFunc.TexCoord(texInset, 1 - texInset)
+								glFunc.Vertex(cx - enlargedSize, cy - enlargedSize)
+								glFunc.TexCoord(1 - texInset, 1 - texInset)
+								glFunc.Vertex(cx + enlargedSize, cy - enlargedSize)
+								glFunc.TexCoord(1 - texInset, texInset)
+								glFunc.Vertex(cx + enlargedSize, cy + enlargedSize)
+								glFunc.TexCoord(texInset, texInset)
+								glFunc.Vertex(cx - enlargedSize, cy + enlargedSize)
+							end
+						end
+					end)
 				end
-				break  -- Found the hovered unit, no need to continue
+				end  -- if #indices > 0
 			end
+			glFunc.Texture(false)
 		end
 
-		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)  -- Restore normal blending
-	end	-- Draw icons in two passes: ground units first, then elevated units on top
-	-- Uses texture batching within each pass for performance
-	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-	local defaultIconSize = config.iconRadius * 0.5 * cameraState.zoom * distMult
+		-- Draw bright glow for hovered unit (when command is active)
+		if drawData.hoveredUnitID then
+			glFunc.Color(1, 0.95, 0, 0.66)  -- Bright yellow glow
+			gl.Blending(GL.SRC_ALPHA, GL.ONE)  -- Additive blending for bright glow
+
+			-- Find the hovered unit in the draw data
+			for i = 1, iconCount do
+				if drawData.iconUnitID[i] == drawData.hoveredUnitID and drawData.iconBuildProgress[i] >= 1 then
+					local cx = drawData.iconX[i]
+					local cy = drawData.iconY[i]
+					local udef = drawData.iconUdef[i]
+
+					if udef and cache.unitIcon[udef] then
+						local texture = cache.unitIcon[udef].bitmap
+						local invertedTexture = strGsub(texture, "icons/", "icons/inverted/")
+						glFunc.Texture(invertedTexture)
+
+						local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size
+						local baseSize = cache.unitIcon[udef].size
+						local borderPixels = 0.15 / baseSize  -- Larger border for hover glow
+						local enlargedSize = iconSize * (1 + borderPixels)
+
+						if render.minimapRotation ~= 0 then
+							glFunc.PushMatrix()
+							glFunc.Translate(cx, cy, 0)
+							glFunc.Rotate(-render.minimapRotation * 180 / math.pi, 0, 0, 1)
+							glFunc.BeginEnd(glConst.QUADS, function()
+								glFunc.TexCoord(texInset, 1 - texInset)
+								glFunc.Vertex(-enlargedSize, -enlargedSize)
+								glFunc.TexCoord(1 - texInset, 1 - texInset)
+								glFunc.Vertex(enlargedSize, -enlargedSize)
+								glFunc.TexCoord(1 - texInset, texInset)
+								glFunc.Vertex(enlargedSize, enlargedSize)
+								glFunc.TexCoord(texInset, texInset)
+								glFunc.Vertex(-enlargedSize, enlargedSize)
+							end)
+							glFunc.PopMatrix()
+						else
+							glFunc.BeginEnd(glConst.QUADS, function()
+								glFunc.TexCoord(texInset, 1 - texInset)
+								glFunc.Vertex(cx - enlargedSize, cy - enlargedSize)
+								glFunc.TexCoord(1 - texInset, 1 - texInset)
+								glFunc.Vertex(cx + enlargedSize, cy - enlargedSize)
+								glFunc.TexCoord(1 - texInset, texInset)
+								glFunc.Vertex(cx + enlargedSize, cy + enlargedSize)
+								glFunc.TexCoord(texInset, texInset)
+								glFunc.Vertex(cx - enlargedSize, cy + enlargedSize)
+							end)
+						end
+						glFunc.Texture(false)
+					else
+						-- Default icon - draw circle glow
+						local defaultIconSize = config.iconRadius * 0.5 * cameraState.zoom * distMult
+						local glowSize = defaultIconSize * 1.4
+						glFunc.Texture('LuaUI/Images/pip/PipBlip.png')
+						
+						if render.minimapRotation ~= 0 then
+							glFunc.PushMatrix()
+							glFunc.Translate(cx, cy, 0)
+							glFunc.Rotate(-render.minimapRotation * 180 / math.pi, 0, 0, 1)
+							glFunc.BeginEnd(glConst.QUADS, function()
+								glFunc.TexCoord(texInset, 1 - texInset)
+								glFunc.Vertex(-glowSize, -glowSize)
+								glFunc.TexCoord(1 - texInset, 1 - texInset)
+								glFunc.Vertex(glowSize, -glowSize)
+								glFunc.TexCoord(1 - texInset, texInset)
+								glFunc.Vertex(glowSize, glowSize)
+								glFunc.TexCoord(texInset, texInset)
+								glFunc.Vertex(-glowSize, glowSize)
+							end)
+							glFunc.PopMatrix()
+						else
+							glFunc.BeginEnd(glConst.QUADS, function()
+								glFunc.TexCoord(texInset, 1 - texInset)
+								glFunc.Vertex(cx - glowSize, cy - glowSize)
+								glFunc.TexCoord(1 - texInset, 1 - texInset)
+								glFunc.Vertex(cx + glowSize, cy - glowSize)
+								glFunc.TexCoord(1 - texInset, texInset)
+								glFunc.Vertex(cx + glowSize, cy + glowSize)
+								glFunc.TexCoord(texInset, texInset)
+								glFunc.Vertex(cx - glowSize, cy + glowSize)
+							end)
+						end
+						glFunc.Texture(false)
+					end
+					break  -- Found the hovered unit, no need to continue
+				end
+			end
+
+			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)  -- Restore normal blending
+		end	-- Draw icons in two passes: ground units first, then elevated units on top
+		-- Uses texture batching within each pass for performance
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		local defaultIconSize = config.iconRadius * 0.5 * cameraState.zoom * distMult
 	
-	-- Helper function to draw a batch of icons for a texture group
-	local function drawIconBatch(texture, indices, isRotated)
-		glFunc.Texture(texture)
-		local indexCount = #indices
-		
-		if isRotated then
-			for j = 1, indexCount do
-				local i = indices[j]
-				local cx = drawData.iconX[i]
-				local cy = drawData.iconY[i]
-				local udef = drawData.iconUdef[i]
-				local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size
-
-				local buildProgress = drawData.iconBuildProgress[i]
-				local opacity = buildProgress >= 1 and 1.0 or (0.2 + (buildProgress * 0.5))
-				local isHovered = (drawData.hoveredUnitID and drawData.iconUnitID[i] == drawData.hoveredUnitID)
-
-				if drawData.iconSelected[i] then
-					if isHovered then
-						glFunc.Color(1, 1, 1, math.min(1.0, opacity * 1.3))
-					else
-						glFunc.Color(1, 1, 1, opacity)
-					end
-				else
-					local color = teamColors[drawData.iconTeam[i]]
-					if isHovered then
-						glFunc.Color(math.min(1.0, color[1] * 1.3), math.min(1.0, color[2] * 1.3), math.min(1.0, color[3] * 1.3), opacity)
-					else
-						glFunc.Color(color[1], color[2], color[3], opacity)
-					end
-				end
-				
-				glFunc.PushMatrix()
-				glFunc.Translate(cx, cy, 0)
-				glFunc.Rotate(-render.minimapRotation * 180 / math.pi, 0, 0, 1)
-				glFunc.BeginEnd(glConst.QUADS, function()
-					glFunc.TexCoord(texInset, 1 - texInset)
-					glFunc.Vertex(-iconSize, -iconSize)
-					glFunc.TexCoord(1 - texInset, 1 - texInset)
-					glFunc.Vertex(iconSize, -iconSize)
-					glFunc.TexCoord(1 - texInset, texInset)
-					glFunc.Vertex(iconSize, iconSize)
-					glFunc.TexCoord(texInset, texInset)
-					glFunc.Vertex(-iconSize, iconSize)
-				end)
-				glFunc.PopMatrix()
-			end
-		else
-			glFunc.BeginEnd(glConst.QUADS, function()
+		-- Helper function to draw a batch of icons for a texture group
+		local function drawIconBatch(texture, indices, isRotated)
+			glFunc.Texture(texture)
+			local indexCount = #indices
+			
+			if isRotated then
 				for j = 1, indexCount do
 					local i = indices[j]
 					local cx = drawData.iconX[i]
@@ -5928,66 +6074,68 @@ local function DrawIcons()
 							glFunc.Color(color[1], color[2], color[3], opacity)
 						end
 					end
-					glFunc.TexCoord(texInset, 1 - texInset)
-					glFunc.Vertex(cx - iconSize, cy - iconSize)
-					glFunc.TexCoord(1 - texInset, 1 - texInset)
-					glFunc.Vertex(cx + iconSize, cy - iconSize)
-					glFunc.TexCoord(1 - texInset, texInset)
-					glFunc.Vertex(cx + iconSize, cy + iconSize)
-					glFunc.TexCoord(texInset, texInset)
-					glFunc.Vertex(cx - iconSize, cy + iconSize)
+					
+					glFunc.PushMatrix()
+					glFunc.Translate(cx, cy, 0)
+					glFunc.Rotate(-render.minimapRotation * 180 / math.pi, 0, 0, 1)
+					glFunc.BeginEnd(glConst.QUADS, function()
+						glFunc.TexCoord(texInset, 1 - texInset)
+						glFunc.Vertex(-iconSize, -iconSize)
+						glFunc.TexCoord(1 - texInset, 1 - texInset)
+						glFunc.Vertex(iconSize, -iconSize)
+						glFunc.TexCoord(1 - texInset, texInset)
+						glFunc.Vertex(iconSize, iconSize)
+						glFunc.TexCoord(texInset, texInset)
+						glFunc.Vertex(-iconSize, iconSize)
+					end)
+					glFunc.PopMatrix()
 				end
-			end)
-		end
-	end
-	
-	-- Helper function to draw default icons
-	local function drawDefaultIconBatch(startIdx, count, isRotated)
-		if count <= 0 then return end
-		glFunc.Texture('LuaUI/Images/pip/PipBlip.png')
-		
-		if isRotated then
-			for j = startIdx, startIdx + count - 1 do
-				local i = defaultIconIndices[j]
-				local cx = drawData.iconX[i]
-				local cy = drawData.iconY[i]
-
-				local buildProgress = drawData.iconBuildProgress[i]
-				local opacity = buildProgress >= 1 and 1.0 or (0.2 + (buildProgress * 0.5))
-				local isHovered = (drawData.hoveredUnitID and drawData.iconUnitID[i] == drawData.hoveredUnitID)
-
-				if drawData.iconSelected[i] then
-					if isHovered then
-						glFunc.Color(1, 1, 1, math.min(1.0, opacity * 1.3))
-					else
-						glFunc.Color(1, 1, 1, opacity)
-					end
-				else
-					local color = teamColors[drawData.iconTeam[i]]
-					if isHovered then
-						glFunc.Color(math.min(1.0, color[1] * 1.55), math.min(1.0, color[2] * 1.55), math.min(1.0, color[3] * 1.55), opacity)
-					else
-						glFunc.Color(color[1], color[2], color[3], opacity)
-					end
-				end
-				
-				glFunc.PushMatrix()
-				glFunc.Translate(cx, cy, 0)
-				glFunc.Rotate(-render.minimapRotation * 180 / math.pi, 0, 0, 1)
+			else
 				glFunc.BeginEnd(glConst.QUADS, function()
-					glFunc.TexCoord(texInset, 1 - texInset)
-					glFunc.Vertex(-defaultIconSize, -defaultIconSize)
-					glFunc.TexCoord(1 - texInset, 1 - texInset)
-					glFunc.Vertex(defaultIconSize, -defaultIconSize)
-					glFunc.TexCoord(1 - texInset, texInset)
-					glFunc.Vertex(defaultIconSize, defaultIconSize)
-					glFunc.TexCoord(texInset, texInset)
-					glFunc.Vertex(-defaultIconSize, defaultIconSize)
+					for j = 1, indexCount do
+						local i = indices[j]
+						local cx = drawData.iconX[i]
+						local cy = drawData.iconY[i]
+						local udef = drawData.iconUdef[i]
+						local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size
+
+						local buildProgress = drawData.iconBuildProgress[i]
+						local opacity = buildProgress >= 1 and 1.0 or (0.2 + (buildProgress * 0.5))
+						local isHovered = (drawData.hoveredUnitID and drawData.iconUnitID[i] == drawData.hoveredUnitID)
+
+						if drawData.iconSelected[i] then
+							if isHovered then
+								glFunc.Color(1, 1, 1, math.min(1.0, opacity * 1.3))
+							else
+								glFunc.Color(1, 1, 1, opacity)
+							end
+						else
+							local color = teamColors[drawData.iconTeam[i]]
+							if isHovered then
+								glFunc.Color(math.min(1.0, color[1] * 1.3), math.min(1.0, color[2] * 1.3), math.min(1.0, color[3] * 1.3), opacity)
+							else
+								glFunc.Color(color[1], color[2], color[3], opacity)
+							end
+						end
+						glFunc.TexCoord(texInset, 1 - texInset)
+						glFunc.Vertex(cx - iconSize, cy - iconSize)
+						glFunc.TexCoord(1 - texInset, 1 - texInset)
+						glFunc.Vertex(cx + iconSize, cy - iconSize)
+						glFunc.TexCoord(1 - texInset, texInset)
+						glFunc.Vertex(cx + iconSize, cy + iconSize)
+						glFunc.TexCoord(texInset, texInset)
+						glFunc.Vertex(cx - iconSize, cy + iconSize)
+					end
 				end)
-				glFunc.PopMatrix()
 			end
-		else
-			glFunc.BeginEnd(glConst.QUADS, function()
+		end
+		
+		-- Helper function to draw default icons
+		local function drawDefaultIconBatch(startIdx, count, isRotated)
+			if count <= 0 then return end
+			glFunc.Texture('LuaUI/Images/pip/PipBlip.png')
+			
+			if isRotated then
 				for j = startIdx, startIdx + count - 1 do
 					local i = defaultIconIndices[j]
 					local cx = drawData.iconX[i]
@@ -6011,65 +6159,116 @@ local function DrawIcons()
 							glFunc.Color(color[1], color[2], color[3], opacity)
 						end
 					end
-					glFunc.TexCoord(texInset, 1 - texInset)
-					glFunc.Vertex(cx - defaultIconSize, cy - defaultIconSize)
-					glFunc.TexCoord(1 - texInset, 1 - texInset)
-					glFunc.Vertex(cx + defaultIconSize, cy - defaultIconSize)
-					glFunc.TexCoord(1 - texInset, texInset)
-					glFunc.Vertex(cx + defaultIconSize, cy + defaultIconSize)
-					glFunc.TexCoord(texInset, texInset)
-					glFunc.Vertex(cx - defaultIconSize, cy + defaultIconSize)
+					
+					glFunc.PushMatrix()
+					glFunc.Translate(cx, cy, 0)
+					glFunc.Rotate(-render.minimapRotation * 180 / math.pi, 0, 0, 1)
+					glFunc.BeginEnd(glConst.QUADS, function()
+						glFunc.TexCoord(texInset, 1 - texInset)
+						glFunc.Vertex(-defaultIconSize, -defaultIconSize)
+						glFunc.TexCoord(1 - texInset, 1 - texInset)
+						glFunc.Vertex(defaultIconSize, -defaultIconSize)
+						glFunc.TexCoord(1 - texInset, texInset)
+						glFunc.Vertex(defaultIconSize, defaultIconSize)
+						glFunc.TexCoord(texInset, texInset)
+						glFunc.Vertex(-defaultIconSize, defaultIconSize)
+					end)
+					glFunc.PopMatrix()
 				end
-			end)
+			else
+				glFunc.BeginEnd(glConst.QUADS, function()
+					for j = startIdx, startIdx + count - 1 do
+						local i = defaultIconIndices[j]
+						local cx = drawData.iconX[i]
+						local cy = drawData.iconY[i]
+
+						local buildProgress = drawData.iconBuildProgress[i]
+						local opacity = buildProgress >= 1 and 1.0 or (0.2 + (buildProgress * 0.5))
+						local isHovered = (drawData.hoveredUnitID and drawData.iconUnitID[i] == drawData.hoveredUnitID)
+
+						if drawData.iconSelected[i] then
+							if isHovered then
+								glFunc.Color(1, 1, 1, math.min(1.0, opacity * 1.3))
+							else
+								glFunc.Color(1, 1, 1, opacity)
+							end
+						else
+							local color = teamColors[drawData.iconTeam[i]]
+							if isHovered then
+								glFunc.Color(math.min(1.0, color[1] * 1.55), math.min(1.0, color[2] * 1.55), math.min(1.0, color[3] * 1.55), opacity)
+							else
+								glFunc.Color(color[1], color[2], color[3], opacity)
+							end
+						end
+						glFunc.TexCoord(texInset, 1 - texInset)
+						glFunc.Vertex(cx - defaultIconSize, cy - defaultIconSize)
+						glFunc.TexCoord(1 - texInset, 1 - texInset)
+						glFunc.Vertex(cx + defaultIconSize, cy - defaultIconSize)
+						glFunc.TexCoord(1 - texInset, texInset)
+						glFunc.Vertex(cx + defaultIconSize, cy + defaultIconSize)
+						glFunc.TexCoord(texInset, texInset)
+						glFunc.Vertex(cx - defaultIconSize, cy + defaultIconSize)
+					end
+				end)
+			end
 		end
-	end
-	
-	local isRotated = render.minimapRotation ~= 0
-	
-	-- PASS 1: Draw ground units (texture batched)
-	for groupKey, indices in pairs(iconsByTexture) do
-		-- Skip elevated groups in first pass
-		if not string.find(groupKey, "_elevated") then
-			local texture = groupKey  -- Ground groups use texture as key directly
-			drawIconBatch(texture, indices, isRotated)
+		
+		local isRotated = render.minimapRotation ~= 0
+		
+		-- PASS 1: Draw ground units (texture batched)
+		for groupKey, indices in pairs(iconsByTexture) do
+			-- Skip elevated groups in first pass (use cached strFind)
+			if not strFind(groupKey, "_elevated", 1, true) then
+				local texture = groupKey  -- Ground groups use texture as key directly
+				drawIconBatch(texture, indices, isRotated)
+			end
 		end
-	end
-	-- Draw ground default icons
-	drawDefaultIconBatch(1, defaultCount, isRotated)
-	
-	-- PASS 2: Draw elevated units on top (texture batched)
-	for groupKey, indices in pairs(iconsByTexture) do
-		-- Only draw elevated groups in second pass
-		if string.find(groupKey, "_elevated") then
-			local texture = string.gsub(groupKey, "_elevated", "")  -- Remove suffix to get actual texture
-			drawIconBatch(texture, indices, isRotated)
+		-- Draw ground default icons
+		drawDefaultIconBatch(1, defaultCount, isRotated)
+		
+		-- PASS 2: Draw elevated units on top (texture batched)
+		for groupKey, indices in pairs(iconsByTexture) do
+			-- Only draw elevated groups in second pass
+			if strFind(groupKey, "_elevated", 1, true) then
+				local texture = strGsub(groupKey, "_elevated", "")  -- Remove suffix to get actual texture
+				drawIconBatch(texture, indices, isRotated)
+			end
 		end
-	end
-	-- Draw elevated default icons
-	drawDefaultIconBatch(iconCount + 1, defaultElevatedCount, isRotated)
+		-- Draw elevated default icons
+		drawDefaultIconBatch(iconCount + 1, defaultElevatedCount, isRotated)
 
 	end  -- End of "if not useUnitpics" block
 
 	-- Draw radar blobs for units in radar but not in LOS
 	local radarBlobCount = #drawData.radarBlobX
 	if radarBlobCount > 0 then
-		-- Separate radar blobs into known types (draw as icons) and unknown types (draw as blobs)
-		local knownRadarUnits = {}  -- Has unit icon
-		local unknownRadarUnits = {}  -- No icon, draw as blob
+		-- Reuse pool tables instead of per-frame allocations
+		local knownRadarUnits = pools.knownRadarUnits
+		local unknownRadarUnits = pools.unknownRadarUnits
+		local knownCount = 0
+		local unknownCount = 0
 
 		for i = 1, radarBlobCount do
 			local udef = drawData.radarBlobUdef[i]
 			if udef and cache.unitIcon[udef] then
-				knownRadarUnits[#knownRadarUnits + 1] = i
+				knownCount = knownCount + 1
+				knownRadarUnits[knownCount] = i
 			else
-				unknownRadarUnits[#unknownRadarUnits + 1] = i
+				unknownCount = unknownCount + 1
+				unknownRadarUnits[unknownCount] = i
 			end
 		end
 
 		-- Draw known radar units as semi-transparent icons
-		if #knownRadarUnits > 0 then
-			local radarIconsByTexture = {}
-			for j = 1, #knownRadarUnits do
+		if knownCount > 0 then
+			-- Reuse pool table and clear previous entries
+			local radarIconsByTexture = pools.radarIconsByTexture
+			for k in pairs(radarIconsByTexture) do
+				local arr = radarIconsByTexture[k]
+				for j = #arr, 1, -1 do arr[j] = nil end
+			end
+			
+			for j = 1, knownCount do
 				local i = knownRadarUnits[j]
 				local udef = drawData.radarBlobUdef[i]
 				local bitmap = cache.unitIcon[udef].bitmap
@@ -6120,7 +6319,7 @@ local function DrawIcons()
 		end
 
 		-- Draw unknown radar units as circular blobs
-		if #unknownRadarUnits > 0 then
+		if unknownCount > 0 then
 			glFunc.Texture('LuaUI/Images/pip/PipBlip.png')
 			local blobSize = iconRadiusZoomDistMult * 0.5
 
@@ -6131,7 +6330,7 @@ local function DrawIcons()
 			local wobbleSpeedY = time * config.radarWobbleSpeed * 1.15
 
 			glFunc.BeginEnd(glConst.QUADS, function()
-				for j = 1, #unknownRadarUnits do
+				for j = 1, unknownCount do
 					local i = unknownRadarUnits[j]
 					local uID = drawData.radarBlobUnitID[i]
 					local teamID = drawData.radarBlobTeam[i]
@@ -6191,6 +6390,7 @@ local function DrawIcons()
 	return iconRadiusZoomDistMult
 end
 
+
 -- Helper function to draw units and features in PIP
 local function DrawUnitsAndFeatures(cachedSelectedUnits)
 
@@ -6218,11 +6418,8 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		miscState.pipUnits = spFunc.GetUnitsInRectangle(render.world.l - margin, render.world.t - margin, render.world.r + margin, render.world.b + margin)
 	end
 
-	miscState.pipFeatures = spFunc.GetFeaturesInRectangle(render.world.l - margin, render.world.t - margin, render.world.r + margin, render.world.b + margin)
-
 	-- Cache counts to avoid repeated length calculations
 	local unitCount = #miscState.pipUnits
-	local featureCount = #miscState.pipFeatures
 
 	-- Clear icon arrays (faster than iterating and setting to nil)
 	for i = #drawData.iconTeam, 1, -1 do
@@ -6287,6 +6484,9 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 
 	-- Draw features (3D models)
 	if cameraState.zoom >= config.zoomFeatures then  -- Only draw features if zoom is above threshold
+		-- Only get feature data when we're going to display them
+		miscState.pipFeatures = spFunc.GetFeaturesInRectangle(render.world.l - margin, render.world.t - margin, render.world.r + margin, render.world.b + margin)
+		local featureCount = #miscState.pipFeatures
 		glFunc.Texture(0, '$units')
 		for i = 1, featureCount do
 			DrawFeature(miscState.pipFeatures[i])
@@ -6297,7 +6497,9 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	for i = 1, unitCount do
 		DrawUnit(miscState.pipUnits[i])
 	end
-		-- Draw projectiles if enabled
+
+
+	-- Draw projectiles if enabled
 	if config.drawProjectiles then
 		glFunc.Texture(false)  -- Disable textures for colored projectiles
 		gl.Blending(true)
@@ -6306,10 +6508,28 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		if cameraState.zoom >= config.zoomProjectileDetail then
 			-- Get projectiles in the PIP window's world rectangle
 			local projectiles = spFunc.GetProjectilesInRectangle(render.world.l - margin, render.world.t - margin, render.world.r + margin, render.world.b + margin)
+			
+			-- Reuse pool table for active trails tracking (avoid per-frame allocations)
+			local activeTrails = pools.activeTrails
+			-- Clear previous frame's data
+			for k in pairs(activeTrails) do activeTrails[k] = nil end
+			
 			if projectiles then
 				local projectileCount = #projectiles
 				for i = 1, projectileCount do
-					DrawProjectile(projectiles[i])
+					local pID = projectiles[i]
+					DrawProjectile(pID)
+					-- Mark this trail as active if it exists
+					if cache.missileTrails[pID] then
+						activeTrails[pID] = true
+					end
+				end
+			end
+			
+			-- Clean up stale missile trails (projectiles that no longer exist)
+			for pID in pairs(cache.missileTrails) do
+				if not activeTrails[pID] then
+					cache.missileTrails[pID] = nil
 				end
 			end
 		end
@@ -6336,119 +6556,118 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 
 	glFunc.PopMatrix()
 
-
 	glFunc.Texture(0, false)
 	gl.Blending(true)
-		gl.DepthMask(false)
-		gl.DepthTest(false)
+	gl.DepthMask(false)
+	gl.DepthTest(false)
 
-		local _, _, _, shift = Spring.GetModKeyState()
-		if shift then
-			gl.LineStipple("springdefault")
-			local selUnits = Spring.GetSelectedUnits()
-			local selCount = #selUnits
-			for i = 1, selCount do
-				glFunc.BeginEnd(glConst.LINES, UnitQueueVertices, selUnits[i])
-			end
-			gl.LineStipple(false)
+	local _, _, _, shift = Spring.GetModKeyState()
+	if shift then
+		gl.LineStipple("springdefault")
+		local selUnits = Spring.GetSelectedUnits()
+		local selCount = #selUnits
+		for i = 1, selCount do
+			glFunc.BeginEnd(glConst.LINES, UnitQueueVertices, selUnits[i])
 		end
+		gl.LineStipple(false)
+	end
 
-		-- Draw icons (when zoomed out)
-		local iconRadiusZoomDistMult = DrawIcons()
+	-- Draw icons
+	local iconRadiusZoomDistMult = DrawIcons()
 
-		-- Draw ally cursors
-		if WG['allycursors'] and WG['allycursors'].getCursor and interactionState.trackingPlayerID then
-			local cursor, isNotIdle = WG['allycursors'].getCursor(interactionState.trackingPlayerID)
-			if cursor and isNotIdle then
-				local wx, wz = cursor[1], cursor[3]
-				local cx, cy = WorldToPipCoords(wx, wz)
-				local opacity = cursor[7] or 1
+	-- Draw ally cursors
+	if WG['allycursors'] and WG['allycursors'].getCursor and interactionState.trackingPlayerID then
+		local cursor, isNotIdle = WG['allycursors'].getCursor(interactionState.trackingPlayerID)
+		if cursor and isNotIdle then
+			local wx, wz = cursor[1], cursor[3]
+			local cx, cy = WorldToPipCoords(wx, wz)
+			local opacity = cursor[7] or 1
 
-				-- Get player's team color
-				local _, _, _, teamID = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
-				if teamID then
-					local r, g, b = Spring.GetTeamColor(teamID)
-					-- Scale cursor size: larger at low zoom, stays reasonable at high zoom
-					local cursorSize = render.vsy * 0.0073
-					Spring.Echo()
-					-- Draw crosshair lines to PIP boundaries (stop at cursor edge)
-					--glFunc.Color(r*1.5+0.5, g*1.5+0.5, b*1.5+0.5, 0.08)
-					--glFunc.LineWidth(render.vsy / 600)
-					-- glFunc.BeginEnd(glConst.LINES, function()
-					-- 	-- Horizontal line (left to cursor)
-					-- 	glFunc.Vertex(0, cy)
-					-- 	glFunc.Vertex(cx - cursorSize, cy)
-					-- 	-- Horizontal line (cursor to right)
-					-- 	glFunc.Vertex(cx + cursorSize, cy)
-					-- 	glFunc.Vertex(render.dim.r - render.dim.l, cy)
-					-- 	-- Vertical line (bottom to cursor)
-					-- 	glFunc.Vertex(cx, 0)
-					-- 	glFunc.Vertex(cx, cy - cursorSize)
-					-- 	-- Vertical line (cursor to top)
-					-- 	glFunc.Vertex(cx, cy + cursorSize)
-					-- 	glFunc.Vertex(cx, render.dim.t - render.dim.b)
-					-- end)
+			-- Get player's team color
+			local _, _, _, teamID = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
+			if teamID then
+				local r, g, b = Spring.GetTeamColor(teamID)
+				-- Scale cursor size: larger at low zoom, stays reasonable at high zoom
+				local cursorSize = render.vsy * 0.0073
+				Spring.Echo()
+				-- Draw crosshair lines to PIP boundaries (stop at cursor edge)
+				--glFunc.Color(r*1.5+0.5, g*1.5+0.5, b*1.5+0.5, 0.08)
+				--glFunc.LineWidth(render.vsy / 600)
+				-- glFunc.BeginEnd(glConst.LINES, function()
+				-- 	-- Horizontal line (left to cursor)
+				-- 	glFunc.Vertex(0, cy)
+				-- 	glFunc.Vertex(cx - cursorSize, cy)
+				-- 	-- Horizontal line (cursor to right)
+				-- 	glFunc.Vertex(cx + cursorSize, cy)
+				-- 	glFunc.Vertex(render.dim.r - render.dim.l, cy)
+				-- 	-- Vertical line (bottom to cursor)
+				-- 	glFunc.Vertex(cx, 0)
+				-- 	glFunc.Vertex(cx, cy - cursorSize)
+				-- 	-- Vertical line (cursor to top)
+				-- 	glFunc.Vertex(cx, cy + cursorSize)
+				-- 	glFunc.Vertex(cx, render.dim.t - render.dim.b)
+				-- end)
 
-					-- Draw cursor as broken circle (4 arcs with 4 gaps)
-					-- Each arc is 1/8 of circle, each gap is 1/8 of circle
-					-- Arcs centered at top (90°), right (0°), bottom (270°), left (180°)
-					local segments = 24
-					local pi = math.pi
+				-- Draw cursor as broken circle (4 arcs with 4 gaps)
+				-- Each arc is 1/8 of circle, each gap is 1/8 of circle
+				-- Arcs centered at top (90°), right (0°), bottom (270°), left (180°)
+				local segments = 24
+				local pi = math.pi
 
-					-- Define 4 arcs: each arc is 45° (pi/4), centered at cardinal directions
-					local arcs = {
-						{pi/2 - pi/8, pi/2 + pi/8},      -- Top arc (centered at 90°)
-						{0 - pi/8, 0 + pi/8},             -- Right arc (centered at 0°)
-						{3*pi/2 - pi/8, 3*pi/2 + pi/8},  -- Bottom arc (centered at 270°)
-						{pi - pi/8, pi + pi/8}            -- Left arc (centered at 180°)
-					}
+				-- Define 4 arcs: each arc is 45° (pi/4), centered at cardinal directions
+				local arcs = {
+					{pi/2 - pi/8, pi/2 + pi/8},      -- Top arc (centered at 90°)
+					{0 - pi/8, 0 + pi/8},             -- Right arc (centered at 0°)
+					{3*pi/2 - pi/8, 3*pi/2 + pi/8},  -- Bottom arc (centered at 270°)
+					{pi - pi/8, pi + pi/8}            -- Left arc (centered at 180°)
+				}
 
-					-- Draw black outline first (thicker)
-					glFunc.Color(0, 0, 0, 0.66)
-					glFunc.LineWidth(render.vsy / 500 + 2)
-					for _, arc in ipairs(arcs) do
-						glFunc.BeginEnd(GL.LINE_STRIP, function()
-							local startAngle, endAngle = arc[1], arc[2]
-							local arcSegments = math.floor(segments / 8) -- 1/8 of circle for each arc
-							for i = 0, arcSegments do
-								local t = i / arcSegments
-								local angle = startAngle + (endAngle - startAngle) * t
-								local x = cx + math.cos(angle) * cursorSize
-								local y = cy + math.sin(angle) * cursorSize
-								glFunc.Vertex(x, y)
-							end
-						end)
-					end
-
-					-- Draw colored arcs on top
-					glFunc.Color((r*1.3)+0.66, (g*1.3)+0.66, (b*1.3)+0.66, 1)
-					glFunc.LineWidth(render.vsy / 500)
-					for _, arc in ipairs(arcs) do
-						glFunc.BeginEnd(GL.LINE_STRIP, function()
-							local startAngle, endAngle = arc[1], arc[2]
-							local arcSegments = math.floor(segments / 8) -- 1/8 of circle for each arc
-							for i = 0, arcSegments do
-								local t = i / arcSegments
-								local angle = startAngle + (endAngle - startAngle) * t
-								local x = cx + math.cos(angle) * cursorSize
-								local y = cy + math.sin(angle) * cursorSize
-								glFunc.Vertex(x, y)
-							end
-						end)
-					end
-					glFunc.LineWidth(1.0)
+				-- Draw black outline first (thicker)
+				glFunc.Color(0, 0, 0, 0.66)
+				glFunc.LineWidth(render.vsy / 500 + 2)
+				for _, arc in ipairs(arcs) do
+					glFunc.BeginEnd(GL.LINE_STRIP, function()
+						local startAngle, endAngle = arc[1], arc[2]
+						local arcSegments = math.floor(segments / 8) -- 1/8 of circle for each arc
+						for i = 0, arcSegments do
+							local t = i / arcSegments
+							local angle = startAngle + (endAngle - startAngle) * t
+							local x = cx + math.cos(angle) * cursorSize
+							local y = cy + math.sin(angle) * cursorSize
+							glFunc.Vertex(x, y)
+						end
+					end)
 				end
+
+				-- Draw colored arcs on top
+				glFunc.Color((r*1.3)+0.66, (g*1.3)+0.66, (b*1.3)+0.66, 1)
+				glFunc.LineWidth(render.vsy / 500)
+				for _, arc in ipairs(arcs) do
+					glFunc.BeginEnd(GL.LINE_STRIP, function()
+						local startAngle, endAngle = arc[1], arc[2]
+						local arcSegments = math.floor(segments / 8) -- 1/8 of circle for each arc
+						for i = 0, arcSegments do
+							local t = i / arcSegments
+							local angle = startAngle + (endAngle - startAngle) * t
+							local x = cx + math.cos(angle) * cursorSize
+							local y = cy + math.sin(angle) * cursorSize
+							glFunc.Vertex(x, y)
+						end
+					end)
+				end
+				glFunc.LineWidth(1.0)
 			end
 		end
+	end
 
-		-- Draw build previews
-		local mx, my = spFunc.GetMouseState()
-		DrawBuildPreview(mx, my, iconRadiusZoomDistMult)
-		DrawBuildDragPreview(iconRadiusZoomDistMult)
-		DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
+	-- Draw build previews
+	local mx, my = spFunc.GetMouseState()
+	DrawBuildPreview(mx, my, iconRadiusZoomDistMult)
+	DrawBuildDragPreview(iconRadiusZoomDistMult)
+	DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
 
-		glFunc.LineWidth(1.0)
-		gl.Scissor(false)
+	glFunc.LineWidth(1.0)
+	gl.Scissor(false)
 end
 
 -- Helper function to render PIP frame background (static)
@@ -9132,23 +9351,17 @@ function widget:DrawScreen()
 				-- Set a flag that widgets can check during their DrawInMiniMap
 				WG['minimap'].isDrawingInPip = true
 				
-				-- Calculate the normalized coords of our visible area
+				-- Update module-level upvalues for the minimap API functions (avoids per-frame closures)
 				-- For shaders: pass in world-normalized coords (NOT Y-flipped), shaders do their own flip
-				local normVisLeft = worldL / mapInfo.mapSizeX
-				local normVisRight = worldR / mapInfo.mapSizeX
-				local normVisBottom = worldB / mapInfo.mapSizeZ  -- world Z coords, shader will flip
-				local normVisTop = worldT / mapInfo.mapSizeZ
+				minimapApiNormLeft = worldL / mapInfo.mapSizeX
+				minimapApiNormRight = worldR / mapInfo.mapSizeX
+				minimapApiNormBottom = worldB / mapInfo.mapSizeZ  -- world Z coords, shader will flip
+				minimapApiNormTop = worldT / mapInfo.mapSizeZ
+				minimapApiZoomLevel = mapInfo.mapSizeX / (worldR - worldL)
 				
-				-- Expose the normalized visible area for GL4 shader widgets to use
-				-- They need this to transform their fullscreen quad coords to the visible portion
-				WG['minimap'].getNormalizedVisibleArea = function()
-					return normVisLeft, normVisRight, normVisBottom, normVisTop
-				end
-				
-				-- Also expose zoom level (1.0 = full map visible, >1 = zoomed in)
-				WG['minimap'].getZoomLevel = function()
-					return mapInfo.mapSizeX / (worldR - worldL)
-				end
+				-- Expose pre-created functions (no per-frame allocation)
+				WG['minimap'].getNormalizedVisibleArea = minimapApiGetNormalizedVisibleArea
+				WG['minimap'].getZoomLevel = minimapApiGetZoomLevel
 				
 				-- Call widgets with proper matrix setup for fixed-function GL
 				-- 
@@ -9205,11 +9418,11 @@ function widget:DrawScreen()
 						-- Set viewport to PIP area so NDC [-1,1] maps to our PIP screen coords
 						gl.Viewport(render.dim.l, render.dim.b, minimapWidth, minimapHeight)
 						
-						local success, err = pcall(function()
-							w:DrawInMiniMap(minimapWidth, minimapHeight)
-						end)
-						if not success then
-							Spring.Log(widget:GetInfo().name, LOG.WARNING, "Error in " .. (w.whInfo and w.whInfo.name or "unknown") .. ":DrawInMiniMap: " .. tostring(err))
+						-- Direct call instead of pcall closure to avoid per-widget per-frame allocations
+						-- Errors will propagate but that's acceptable for performance
+						local drawFunc = w.DrawInMiniMap
+						if drawFunc then
+							drawFunc(w, minimapWidth, minimapHeight)
 						end
 						
 						-- Restore viewport to full screen
@@ -10594,106 +10807,121 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	-- Note: We intentionally do NOT clear crashingUnits here because DrawScreen may run
 	-- after this callback in the same frame, and we need the entry to still exist so
 	-- the crashing unit icon doesn't flash for one frame when it dies.
-	-- Crashing units will shatter again when they hit the ground.
+	-- The entry will remain in crashingUnits but this is harmless - it's just a boolean.
 	
+	-- Create shatter effect for non-crashing units (crashing units already shattered in CrashingAircraft)
+	if not miscState.crashingUnits[unitID] then
+		-- Get unit velocity so shatter fragments carry the unit's momentum
+		local vx, vy, vz = Spring.GetUnitVelocity(unitID)
+		CreateIconShatter(unitID, unitDefID, unitTeam, vx, vz)
+	end
+	-- Don't clear crashingUnits[unitID] here - let it persist to prevent icon flash
+end
+
+-- Handle explosions from weapons (called when a visible explosion occurs)
+function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 	if uiState.inMinMode then return end
 	-- Skip processing explosions when we're not rendering them due to zoom level
 	if cameraState.zoom < config.zoomExplosionDetail then return end
-	if config.drawProjectiles then
-		-- Skip specific weapons using cached data (e.g., footstep effects)
-		if weaponID and cache.weaponSkipExplosion[weaponID] then
-			return
+	if not config.drawProjectiles then return end
+	
+	-- Skip specific weapons using cached data (e.g., footstep effects)
+	if weaponID and cache.weaponSkipExplosion[weaponID] then
+		return
+	end
+
+	-- Check if this is a lightning weapon
+	local isLightning = weaponID and cache.weaponIsLightning[weaponID]
+	
+	-- Check if this is a paralyze weapon
+	local isParalyze = weaponID and cache.weaponIsParalyze[weaponID]
+	
+	-- Check if this is an anti-air weapon
+	local isAA = weaponID and cache.weaponIsAA[weaponID]
+
+	-- Add explosion to list with radius from cached weapon data
+	local radius = 10 -- Default radius
+	if weaponID and cache.weaponExplosionRadius[weaponID] then
+		radius = cache.weaponExplosionRadius[weaponID]
+	end
+
+	-- Skip very small explosions (below threshold), except for lightning
+	if radius < 8 and not isLightning then
+		return
+	end
+
+	-- Create explosion entry
+	local explosion = {
+		x = px,
+		y = py,
+		z = pz,
+		radius = radius,
+		startTime = gameTime,
+		randomSeed = math.random() * 1000,  -- For consistent per-explosion randomness
+		rotationSpeed = (math.random() - 0.5) * 4,  -- Random rotation speed
+		particles = {},  -- Will store particle debris
+		isLightning = isLightning,
+		isParalyze = isParalyze,
+		isAA = isAA
+	}
+
+	-- Add lightning sparks
+	if isLightning then
+		local sparkCount = 6 + math.floor(math.random() * 4) -- 6-9 sparks
+		for i = 1, sparkCount do
+			local angle = (i / sparkCount) * 2 * math.pi + (math.random() - 0.5) * 0.8
+			local speed = 15 + math.random() * 20
+			local vx = math.cos(angle) * speed
+			local vz = math.sin(angle) * speed
+
+			table.insert(explosion.particles, {
+				x = 0,
+				z = 0,
+				vx = vx,
+				vz = vz,
+				life = 0.3 + math.random() * 0.2, -- 0.3-0.5 seconds
+				size = 2 + math.random() * 2
+			})
+		end
+	end
+
+	table.insert(cache.explosions, explosion)
+
+	-- Add particle debris for larger explosions
+	if radius > 30 then
+		local explosion = cache.explosions[#cache.explosions]
+		local particleCount = math.min(12, math.floor(radius / 10))
+
+		-- Massive explosions get way more particles and additional effects
+		if radius > 150 then
+			particleCount = math.min(24, math.floor(radius / 8))  -- More particles for nukes
+		elseif radius > 80 then
+			particleCount = math.min(18, math.floor(radius / 9))  -- More for large explosions
 		end
 
-		-- Check if this is a lightning weapon
-		local isLightning = weaponID and cache.weaponIsLightning[weaponID]
-		
-		-- Check if this is a paralyze weapon
-		local isParalyze = weaponID and cache.weaponIsParalyze[weaponID]
-
-		-- Add explosion to list with radius from cached weapon data
-		local radius = 10 -- Default radius
-		if weaponID and cache.weaponExplosionRadius[weaponID] then
-			radius = cache.weaponExplosionRadius[weaponID]
-		end
-
-		-- Skip very small explosions (below threshold), except for lightning
-		if radius < 8 and not isLightning then
-			return
-		end
-
-		-- Create explosion entry
-		local explosion = {
-			x = px,
-			y = py,
-			z = pz,
-			radius = radius,
-			startTime = gameTime,
-			randomSeed = math.random() * 1000,  -- For consistent per-explosion randomness
-			rotationSpeed = (math.random() - 0.5) * 4,  -- Random rotation speed
-			particles = {},  -- Will store particle debris
-			isLightning = isLightning,
-			isParalyze = isParalyze
-		}
-
-		-- Add lightning sparks
-		if isLightning then
-			local sparkCount = 6 + math.floor(math.random() * 4) -- 6-9 sparks
-			for i = 1, sparkCount do
-				local angle = (i / sparkCount) * 2 * math.pi + (math.random() - 0.5) * 0.8
-				local speed = 15 + math.random() * 20
-				local vx = math.cos(angle) * speed
-				local vz = math.sin(angle) * speed
-
-				table.insert(explosion.particles, {
-					x = 0,
-					z = 0,
-					vx = vx,
-					vz = vz,
-					life = 0.3 + math.random() * 0.2, -- 0.3-0.5 seconds
-					size = 2 + math.random() * 2
-				})
-			end
-		end
-
-		table.insert(cache.explosions, explosion)
-
-		-- Add particle debris for larger explosions
-		if radius > 30 then
-			local explosion = cache.explosions[#cache.explosions]
-			local particleCount = math.min(12, math.floor(radius / 10))
-
-			-- Massive explosions get way more particles and additional effects
+		for i = 1, particleCount do
+			local angle = (i / particleCount) * 2 * math.pi + (math.random() - 0.5) * 0.5
+			local speed = 20 + math.random() * 30
+			-- Bigger explosions = faster flying particles
+			local speedMultiplier = 1
 			if radius > 150 then
-				particleCount = math.min(24, math.floor(radius / 8))  -- More particles for nukes
+				speedMultiplier = 4  -- Nukes fly MUCH further (was 2.5)
 			elseif radius > 80 then
-				particleCount = math.min(18, math.floor(radius / 9))  -- More for large explosions
+				speedMultiplier = 2.5  -- Large explosions fly further (was 1.8)
 			end
-
-			for i = 1, particleCount do
-				local angle = (i / particleCount) * 2 * math.pi + (math.random() - 0.5) * 0.5
-				local speed = 20 + math.random() * 30
-				-- Bigger explosions = faster flying particles
-				local speedMultiplier = 1
-				if radius > 150 then
-					speedMultiplier = 4  -- Nukes fly MUCH further (was 2.5)
-				elseif radius > 80 then
-					speedMultiplier = 2.5  -- Large explosions fly further (was 1.8)
-				end
-				-- Bigger particles for bigger explosions
-				local sizeMultiplier = 1
-				if radius > 150 then
-					sizeMultiplier = 1.5
-				elseif radius > 80 then
-					sizeMultiplier = 1.25
-				end
-				table.insert(explosion.particles, {
-					angle = angle,
-					speed = speed * speedMultiplier,
-					size = (2 + math.random() * 3) * 2 * sizeMultiplier,  -- Scaled by explosion size
-					lifetime = speedMultiplier * 1.5  -- Particles from bigger explosions live even longer (was 1x)
-				})
+			-- Bigger particles for bigger explosions
+			local sizeMultiplier = 1
+			if radius > 150 then
+				sizeMultiplier = 1.5
+			elseif radius > 80 then
+				sizeMultiplier = 1.25
 			end
+			table.insert(explosion.particles, {
+				angle = angle,
+				speed = speed * speedMultiplier,
+				size = (2 + math.random() * 3) * 2 * sizeMultiplier,  -- Scaled by explosion size
+				lifetime = speedMultiplier * 1.5  -- Particles from bigger explosions live even longer (was 1x)
+			})
 		end
 	end
 end
