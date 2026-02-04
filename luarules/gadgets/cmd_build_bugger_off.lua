@@ -17,33 +17,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local math_max = math.max
-local math_diag = math.diag
-local math_pointOnCircle = math.closestPointOnCircle
-
-local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
-local spGetUnitCommands = Spring.GetUnitCommands
-local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
-local spGetUnitIsDead = Spring.GetUnitIsDead
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitVelocity = Spring.GetUnitVelocity
-local spGetUnitTeam = Spring.GetUnitTeam
-
-local spAreTeamsAllied = Spring.AreTeamsAllied
-local spDestroyUnit = Spring.DestroyUnit
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spTestMoveOrder = Spring.TestMoveOrder
-
 local gameSpeed = Game.gameSpeed
 local footprint = Game.squareSize * Game.footprintScale
-
-local CMD_INSERT = CMD.INSERT
-local CMD_OPT_ALT = CMD.OPT_ALT
-local insertMoveParams = { 0, CMD.MOVE, CMD.OPT_INTERNAL, 0, 0, 0 }
 
 local cachedUnitDefs = {}
 local unitSpeedMax = 0
@@ -93,21 +68,21 @@ local USER_COMMAND_TIMEOUT	= 2 * gameSpeed
 local AREA_COMMAND_COOLDOWN = 2 * gameSpeed
 
 local function willBeNearTarget(unitID, tx, tz, maxDistance)
-	local ux, uy, uz = spGetUnitPosition(unitID)
+	local ux, uy, uz = Spring.GetUnitPosition(unitID)
 	if not ux then return false end
 
-	local vx, vy, vz = spGetUnitVelocity(unitID)
+	local vx, vy, vz = Spring.GetUnitVelocity(unitID)
 	if not vx then return false end
 
 	local sx = ux - tx
 	local sz = uz - tz
 
 	-- If unit starts in area, allow to leave quickly; else, check over a long period.
-	local seconds = math_diag(sx, sz) <= maxDistance and 0.5 or BUILDER_DELAY_SECONDS
+	local seconds = math.diag(sx, sz) <= maxDistance and 0.5 or BUILDER_DELAY_SECONDS
 	local dx = ux + vx * seconds - tx
 	local dz = uz + vz * seconds - tz
 
-	if math_diag(dx, dz) <= maxDistance then
+	if math.diag(dx, dz) <= maxDistance then
 		-- Unit ends within the area after `seconds`.
 		return true
 	end
@@ -115,7 +90,7 @@ local function willBeNearTarget(unitID, tx, tz, maxDistance)
 	local ix = tx - ux
 	local iz = tz - uz
 
-	if math_diag(ix , iz) > maxDistance then
+	if math.diag(ix , iz) > maxDistance then
 		-- The unit starts within the area but does not end in it.
 		return false
 	else
@@ -128,13 +103,13 @@ local function willBeNearTarget(unitID, tx, tz, maxDistance)
 end
 
 local function isInTargetArea(unitID, x, z, radius)
-	local ux, uy, uz = spGetUnitPosition(unitID)
+	local ux, uy, uz = Spring.GetUnitPosition(unitID)
 	if not ux then return false end
-	return math_diag(ux - x, uz - z) <= radius
+	return math.diag(ux - x, uz - z) <= radius
 end
 
 local function IsUnitRepeatOn(unitID)
-	local cmdDescs = spGetUnitCmdDescs(unitID)
+	local cmdDescs = Spring.GetUnitCmdDescs(unitID)
 	if not cmdDescs then return false end
 	for _, desc in ipairs(cmdDescs) do
 		if desc.id == CMD.REPEAT then
@@ -166,15 +141,15 @@ end
 
 local function ignoreBuggeroff(unitID, unitDefData)
 	return unitDefData.isImmobile
-		or spGetUnitIsDead(unitID) ~= false
-		or spGetUnitIsBeingBuilt(unitID) ~= false
+		or Spring.GetUnitIsDead(unitID) ~= false
+		or Spring.GetUnitIsBeingBuilt(unitID) ~= false
 		or gameFrame - (mostRecentCommandFrame[unitID] or -USER_COMMAND_TIMEOUT) < USER_COMMAND_TIMEOUT
 end
 
 local function shouldBuggeroff(unitID, unitDefData, visitedUnits, builderTeam)
 	if unitDefData.isBlocking then
 		visitedUnits[unitID] = true
-		spDestroyUnit(unitID, false, true)
+		Spring.DestroyUnit(unitID, false, true)
 		return false
 	end
 
@@ -182,7 +157,7 @@ local function shouldBuggeroff(unitID, unitDefData, visitedUnits, builderTeam)
 		visitedUnits[unitID] = true
 		return false
 
-	elseif spAreTeamsAllied(spGetUnitTeam(unitID), builderTeam) then
+	elseif Spring.AreTeamsAllied((Spring.GetUnitTeam(unitID)), builderTeam) then
 		visitedUnits[unitID] = true
 		return true
 	end
@@ -198,14 +173,12 @@ function gadget:GameFrame(frame)
 	local visitedUnits = {}
 	local cylinderCache = {}  -- Cache GetUnitsInCylinder results per location
 
-	local moveParams = insertMoveParams
-
 	for builderID, _ in pairs(watchedBuilders) do
-		local cmdID, _, _, targetX, targetY, targetZ = spGetUnitCurrentCommand(builderID, 1)
-		local isBuilding  	 = spGetUnitIsBuilding(builderID) ~= nil
-		local x, y, z		 = spGetUnitPosition(builderID)
-		local builderTeam    = spGetUnitTeam(builderID);
-		local targetDistance = targetZ and x and math_diag(targetX - x, targetZ - z)
+		local cmdID, _, _, targetX, targetY, targetZ = Spring.GetUnitCurrentCommand(builderID, 1)
+		local isBuilding  	 = Spring.GetUnitIsBuilding(builderID) ~= nil
+		local x, y, z		 = Spring.GetUnitPosition(builderID)
+		local builderTeam    = Spring.GetUnitTeam(builderID);
+		local targetDistance = targetZ and x and math.distance2d(targetX, targetZ, x, z)
 		local buildUnitDefData = cmdID and cachedUnitDefs[-cmdID]
 
 		if not x then
@@ -214,15 +187,15 @@ function gadget:GameFrame(frame)
 		elseif not buildUnitDefData or targetDistance > FAST_UPDATE_RADIUS then
 			slowWatchBuilder(builderID)
 
-		elseif not isBuilding and targetDistance < BUILDER_BUILD_RADIUS + buildUnitDefData.radius and spGetUnitIsBeingBuilt(builderID) == false then
+		elseif not isBuilding and targetDistance < BUILDER_BUILD_RADIUS + buildUnitDefData.radius and Spring.GetUnitIsBeingBuilt(builderID) == false then
 			local buildDefRadius    = buildUnitDefData.radius
 			local searchRadius		= SEARCH_RADIUS_OFFSET + buildDefRadius
 
 			-- Use cached cylinder lookup to reduce redundant API calls
-			local cacheKey = ("%.0f_%.0f_%.0f"):format(targetX, targetZ, searchRadius)
+			local cacheKey = string.format("%.0f_%.0f_%.0f", targetX, targetZ, searchRadius)
 			local interferingUnits = cylinderCache[cacheKey]
 			if not interferingUnits then
-				interferingUnits = spGetUnitsInCylinder(targetX, targetZ, searchRadius)
+				interferingUnits = Spring.GetUnitsInCylinder(targetX, targetZ, searchRadius)
 				cylinderCache[cacheKey] = interferingUnits
 			end
 
@@ -238,7 +211,7 @@ function gadget:GameFrame(frame)
 			end
 
 			for _, interferingID in ipairs(interferingUnits) do
-				local unitDefID = spGetUnitDefID(interferingID)
+				local unitDefID = Spring.GetUnitDefID(interferingID)
 				local unitDefData = unitDefID and cachedUnitDefs[unitDefID]
 
 				if not unitDefData or builderID == interferingID or visitedUnits[interferingID] then
@@ -246,17 +219,16 @@ function gadget:GameFrame(frame)
 				elseif shouldBuggeroff(interferingID, unitDefData, visitedUnits, builderTeam) then
 					-- todo: use blocking for "collision" detection, not unit radii, which are not the bounding radii (neither is bounding radius useful)
 					local unitRadius = unitDefData.radius
-					local areaRadius = math_max(buggerOffRadius, buildDefRadius + unitRadius)
+					local areaRadius = math.max(buggerOffRadius, buildDefRadius + unitRadius)
 
 					if willBeNearTarget(interferingID, targetX, targetZ, areaRadius) then
-						local unitX, _, unitZ = spGetUnitPosition(interferingID)
-						local speedX, _, speedZ = spGetUnitVelocity(interferingID)
+						local unitX, _, unitZ = Spring.GetUnitPosition(interferingID)
+						local speedX, _, speedZ = Spring.GetUnitVelocity(interferingID)
 						unitX, unitZ = unitX + speedX * BUGGEROFF_LOOKAHEAD, unitZ + speedZ * BUGGEROFF_LOOKAHEAD
-						local sendX, sendZ = math_pointOnCircle(targetX, targetZ, buggerOffRadius + unitRadius, unitX, unitZ)
+						local sendX, sendZ = math.closestPointOnCircle(targetX, targetZ, buggerOffRadius + unitRadius, unitX, unitZ)
 
-						if spTestMoveOrder(unitDefID, sendX, targetY, sendZ) then
-							moveParams[4], moveParams[5], moveParams[6] = sendX, targetY, sendZ
-							spGiveOrderToUnit(interferingID, CMD_INSERT, moveParams, CMD_OPT_ALT)
+						if Spring.TestMoveOrder(unitDefID, sendX, targetY, sendZ) then
+							Spring.GiveOrderToUnit(interferingID, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_INTERNAL, sendX, targetY, sendZ}, CMD.OPT_ALT)
 						end
 					end
 				end
@@ -274,19 +246,19 @@ function gadget:GameFrame(frame)
 		end
 	end
 
-	if needsUpdate or frame % SLOW_UPDATE_FREQUENCY ~= 0 then
+	if frame % SLOW_UPDATE_FREQUENCY ~= 0 and not needsUpdate then
 		return
 	end
 
 	needsUpdate = false
 
-	for builderID in pairs(slowUpdateBuilders) do
+	for builderID, _ in pairs(slowUpdateBuilders) do
 		-- Only check first few commands instead of entire queue for performance
-		local builderCommands = spGetUnitCommands(builderID, 5)
+		local builderCommands   = Spring.GetUnitCommands(builderID, 5)
 		local hasBuildCommand, buildCommandFirst = false, false
-		local targetX, targetZ = 0, 0
+		local targetX, targetZ  = 0, 0
 
-		if builderCommands then
+		if builderCommands ~= nil then
 			for idx, command in ipairs(builderCommands) do
 				if command.id < 0 then
 					hasBuildCommand = true
@@ -299,9 +271,12 @@ function gadget:GameFrame(frame)
 			end
 		end
 
+		local isBuilding  = false
+		if Spring.GetUnitIsBuilding(builderID) then isBuilding = true end
+
 		if not hasBuildCommand then
 			removeBuilder(builderID)
-		elseif buildCommandFirst and not spGetUnitIsBuilding(builderID) and isInTargetArea(builderID, targetX, targetZ, FAST_UPDATE_RADIUS) then
+		elseif buildCommandFirst and not isBuilding and isInTargetArea(builderID, targetX, targetZ, FAST_UPDATE_RADIUS) then
 			watchBuilder(builderID)
 		end
 	end
