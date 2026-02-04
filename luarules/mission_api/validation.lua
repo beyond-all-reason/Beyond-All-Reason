@@ -275,15 +275,17 @@ local customValidators = {
 		if not expectedTypes[actualType] then
 			return { { "Unexpected parameter type, expected string or number, got " .. actualType } }
 		end
-		local luaTypeResult = luaTypeValidators[Types.String](facing)
-		if luaTypeResult then
-			return luaTypeResult
-		end
 
-		local validFacings = { true, true, true, true, n = true, s = true, e = true, w = true, north = true, south = true, east = true, west = true }
-
-		if facing and not validFacings[facing] then
-			return { { "Invalid facing: " .. facing } }
+		if actualType == 'number' then
+			local validNumericalFacings = { true, true, true, true }
+			if not validNumericalFacings[facing + 1] then
+				return { { "Invalid facing number: " .. facing .. ". Must be between 0 and 3." } }
+			end
+		else
+			local validStringFacings = { n = true, s = true, e = true, w = true, north = true, south = true, east = true, west = true }
+			if facing and not validStringFacings[facing] then
+				return { { "Invalid facing: " .. facing .. ". Must be one of 'n', 's', 'e', 'w', 'north', 'south', 'east', 'west'." } }
+			end
 		end
 	end,
 

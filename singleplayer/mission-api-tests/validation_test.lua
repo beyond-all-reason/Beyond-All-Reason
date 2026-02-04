@@ -56,7 +56,16 @@ local actions = {
 		},
 	},
 
-	actionAndInvalidFacingType = {
+	actionWithInvalidFacingNumber = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			teamID = 0,
+			position = { x = 1800, z = 1600 },
+			facing = 4,
+		},
+	},
+
+	actionWithInvalidFacingType = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			teamID = 0,
