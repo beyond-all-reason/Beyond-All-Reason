@@ -22,6 +22,7 @@ Spring.SetLogSectionFilterLevel("Dynamic Difficulty", LOG.INFO)
 
 local config = VFS.Include('LuaRules/Configs/scav_spawn_defs.lua')
 local EnemyLib = VFS.Include('LuaRules/Gadgets/Include/SpawnerEnemyLib.lua')
+local PveTargeting = VFS.Include('LuaRules/Gadgets/Include/PveTargeting.lua')
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -188,6 +189,28 @@ if gadgetHandler:IsSyncedCode() then
 	local minDynamicDifficulty = 0.85
 	local maxDynamicDifficulty = 1.05
 
+	-- Targeting system rework
+	local useEcoTargeting = Spring.GetModOptions().scav_targeting_rework == "1" or Spring.GetModOptions().scav_targeting_rework == true
+	local targetingContext = nil
+	local lastSquadRebalanceFrame = 0
+	local squadRebalanceInterval = 10 * Game.gameSpeed -- 10 seconds
+
+	--[[
+		* damageEfficiencyAreas is intended to make the targeting more strategic/economic but needs more testing
+		* eco and tech weights are set to try to mimic the behavior implemented for raptors where ecoValue is multiplied by tech level.
+			In raptors tech level is afaik meant to counter-act the relative low count in high eco buildings but also
+			as a way to detect players that are ahead of the curve in eco, or will be because of the tech level achieved.
+		* evenPlayerSpread is untested but is meant to balance between challenging good players (low value) and evening out the workload between players (high value).
+		* unitRandom is set to 0 for temporarily disabling it until it is tested.
+	--]]
+	local scavTargetingWeights = {
+		damageEfficiencyAreas = 0.3,
+		eco = 0.9,
+		evenPlayerSpread = 0.2,
+		tech = 0.15,
+		unitRandom = 0,
+	}
+
 	--------------------------------------------------------------------------------
 	-- Teams
 	--------------------------------------------------------------------------------
@@ -206,6 +229,13 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	humanTeams[gaiaTeamID] = nil
+
+	-- Initialize targeting system if rework is enabled
+	if useEcoTargeting then
+		targetingContext = PveTargeting.Initialize(scavTeamID, scavAllyTeamID, {
+			gadgetWeights = scavTargetingWeights
+		})
+	end
 
 	function PutScavAlliesInScavTeam(n)
 		local players = Spring.GetPlayerList()
@@ -243,17 +273,10 @@ if gadgetHandler:IsSyncedCode() then
 	-- Utility
 	--
 
-	function SetToList(set)
-		local list = {}
-		local count = 0
-		for k in pairs(set) do
-			count = count + 1
-			list[count] = k
-		end
-		return list
-	end
-
 	function SetCount(set)
+		if set.count then
+			return set.count
+		end
 		local count = 0
 		for k in pairs(set) do
 			count = count + 1
@@ -268,7 +291,18 @@ if gadgetHandler:IsSyncedCode() then
 		return { x = x, y = y, z = z }
 	end
 
-	function getRandomEnemyPos()
+	function getRandomEnemyPos(unitDefID)
+
+		if useEcoTargeting and targetingContext then
+			local targetPos = PveTargeting.GetRandomTargetPosition(targetingContext, {unitDefID = unitDefID})
+
+			if targetPos and targetPos.target then
+				return {x = targetPos.x, y = targetPos.y, z = targetPos.z}, targetPos.target.unitID
+			elseif targetPos then
+				return {x = targetPos.x, y = targetPos.y, z = targetPos.z}, nil
+			end
+		end
+
 		local loops = 0
 		local targetCount = SetCount(squadPotentialTarget)
 		local highValueTargetCount = SetCount(squadPotentialHighValueTarget)
@@ -524,23 +558,24 @@ if gadgetHandler:IsSyncedCode() then
 					if ValidUnitID(unitID) and not GetUnitIsDead(unitID) and not GetUnitNeutral(unitID) then
 						-- Spring.Echo("GiveOrderToUnit #" .. i)
 						if not unitCowardCooldown[unitID] then
-							if config.scavBehaviours.ALWAYSMOVE[Spring.GetUnitDefID(unitID)] then
-								local pos = getRandomEnemyPos()
+							local unitDefID = Spring.GetUnitDefID(unitID)
+							if config.scavBehaviours.ALWAYSMOVE[unitDefID] then
+								local pos = getRandomEnemyPos(unitDefID)
 								Spring.GiveOrderToUnit(unitID, CMD.MOVE, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256)} , {"shift"})
-							elseif config.scavBehaviours.ALWAYSFIGHT[Spring.GetUnitDefID(unitID)] then
-								local pos = getRandomEnemyPos()
+							elseif config.scavBehaviours.ALWAYSFIGHT[unitDefID] then
+								local pos = getRandomEnemyPos(unitDefID)
 								Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256)} , {"shift"})
 							elseif role == "assault" or role == "artillery" then
 								Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {targetx+mRandom(-256, 256), targety, targetz+mRandom(-256, 256)} , {})
 							elseif role == "raid" then
 								Spring.GiveOrderToUnit(unitID, CMD.MOVE, {targetx+mRandom(-256, 256), targety, targetz+mRandom(-256, 256)} , {})
 							elseif role == "aircraft" then
-								local pos = getRandomEnemyPos()
+								local pos = getRandomEnemyPos(unitDefID)
 								Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256)} , {})
 							elseif role == "kamikaze" then
 								Spring.GiveOrderToUnit(unitID, CMD.MOVE, {targetx+mRandom(-256, 256), targety, targetz+mRandom(-256, 256)} , {})
 							elseif role == "healer" then
-								local pos = getRandomEnemyPos()
+								local pos = getRandomEnemyPos(unitDefID)
 								Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, {})
 								if math.random() < 0.75 then
 									Spring.GiveOrderToUnit(unitID, CMD.RESURRECT, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256), 20000} , {"shift"})
@@ -558,17 +593,31 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 				squadsTable[squadID].squadNeedsRefresh = false
-				if squadsTable[squadID].squadNeedsRegroup == true then
-					squadsTable[squadID].squadRegrouping = true
-				elseif squadsTable[squadID].squadNeedsRegroup == false then
-					squadsTable[squadID].squadRegrouping = false
-				end
+				squadsTable[squadID].squadRegrouping = squadsTable[squadID].squadNeedsRegroup
 			end
 		end
 	end
 
 	function refreshSquad(squadID) -- Get new target for a squad
-		local pos, pickedTarget = getRandomEnemyPos()
+		local units = squadsTable[squadID].squadUnits
+		local squadDefIDCounts = {}
+		for i = 1, #units do
+			if units[i] then
+				local unitDefID = Spring.GetUnitDefID(units[i])
+				if unitDefID then
+					squadDefIDCounts[unitDefID] = (squadDefIDCounts[unitDefID] or 0) + 1
+				end
+			end
+		end
+		local mostCommonDefID = nil
+		local mostCommonCount = 0
+		for unitDefID, count in pairs(squadDefIDCounts) do
+			if count > mostCommonCount then
+				mostCommonCount = count
+				mostCommonDefID = unitDefID
+			end
+		end
+		local pos, pickedTarget = getRandomEnemyPos(mostCommonDefID)
 		--Spring.Echo(pos.x, pos.y, pos.z, pickedTarget)
 		unitTargetPool[squadID] = pickedTarget
 		squadsTable[squadID].target = pos
@@ -652,6 +701,80 @@ if gadgetHandler:IsSyncedCode() then
 				if not hasTarget then
 					refreshSquad(i)
 				end
+			end
+		end
+	end
+
+	function distributeDistanceSquadTargets()
+		if not useEcoTargeting or not targetingContext then
+			return
+		end
+
+		-- Build squad data for the generic redistribution function
+		local squadData = {}
+		for i = 1, #squadsTable do
+			local squad = squadsTable[i]
+			if squad and SetCount(squad.squadUnits) > 0 and squad.target and squad.target.x then
+				-- Calculate squad center position
+				local sumX, sumY, sumZ = 0, 0, 0
+				local validUnits = 0
+
+				for _, unitID in pairs(squad.squadUnits) do
+					if ValidUnitID(unitID) and not GetUnitIsDead(unitID) then
+						local x, y, z = Spring.GetUnitPosition(unitID)
+						if x then
+							sumX = sumX + x
+							sumY = sumY + y
+							sumZ = sumZ + z
+							validUnits = validUnits + 1
+						end
+					end
+				end
+
+				if validUnits > 0 then
+					squadData[#squadData + 1] = {
+						squadID = i,
+						x = sumX / validUnits,
+						y = sumY / validUnits,
+						z = sumZ / validUnits,
+						currentTarget = {
+							x = squad.target.x,
+							y = squad.target.y,
+							z = squad.target.z,
+							unitID = unitTargetPool[i] -- Store original unit ID if available
+						},
+						unitCount = validUnits,
+						role = squad.squadRole
+					}
+				end
+			end
+		end
+
+		if #squadData == 0 then
+			return
+		end
+
+		local assignments = PveTargeting.RedistributeSquadTargets(squadData, {
+			allowMultipleUnitsPerTarget = false, -- Each target should only be assigned to one squad for better distribution
+			maxDistance = math.huge -- Don't limit distance since these are existing targets
+		})
+
+		local assignedCount = 0
+		for squadID, assignment in pairs(assignments) do
+			if squadsTable[squadID] and assignment.target then
+				squadsTable[squadID].target = {
+					x = assignment.target.x,
+					y = assignment.target.y,
+					z = assignment.target.z
+				}
+				squadCommanderGiveOrders(squadID, squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z)
+
+				-- Restore original unit ID if available
+				if assignment.metadata and assignment.metadata.unitID then
+					unitTargetPool[squadID] = assignment.metadata.unitID
+				end
+
+				assignedCount = assignedCount + 1
 			end
 		end
 	end
@@ -1083,7 +1206,7 @@ if gadgetHandler:IsSyncedCode() then
 			if bestBurrowID then
 				Spring.DestroyUnit(bestBurrowID, true, false)
 			end
-			return CreateUnit(config.bossName, sx, sy, sz, mRandom(0,3), scavTeamID), burrowID
+			return CreateUnit(config.bossName, sx, sy, sz, mRandom(0,3), scavTeamID), bestBurrowID
 		end
 
 		local x, z, y
@@ -1620,7 +1743,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
-
+		local impulse = 1
 		if attackerTeam == scavTeamID then
 			damage = damage * config.damageMod
 		end
@@ -1672,9 +1795,29 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				damage = 1
 			end
-			return damage
+			impulse = 0
 		end
-		return damage, 1
+
+		if useEcoTargeting and targetingContext then
+			local scavengersUnitID = attackerTeam == scavTeamID and attackerID or (unitTeam == scavTeamID and unitID or nil)
+			local scavengersUnitDefID = scavengersUnitID and Spring.GetUnitDefID(scavengersUnitID) or nil
+			if scavengersUnitID and scavengersUnitDefID and unitSquadTable[scavengersUnitID] and squadsTable[unitSquadTable[scavengersUnitID]] then
+				local target = squadsTable[unitSquadTable[scavengersUnitID]].target
+				if target then
+					local targetHealth, _, _, _, _ = Spring.GetUnitHealth(unitID)
+					local clampedDamage = math.max(0, math.min(damage, targetHealth))
+					if attackerTeam == scavTeamID and unitTeam ~= scavTeamID then
+						-- Scav damaged enemy - count as damage dealt, use attacker's unitDefID
+						PveTargeting.UpdateDamageStats(targetingContext, clampedDamage, 0, target, {unitDefID = scavengersUnitDefID})
+					elseif unitTeam == scavTeamID and attackerTeam ~= scavTeamID and attackerTeam ~= gaiaTeamID then
+						-- Enemy damaged scav - count as damage taken, use damaged unit's unitDefID
+						PveTargeting.UpdateDamageStats(targetingContext, 0, clampedDamage, target, {unitDefID = scavengersUnitDefID})
+					end
+				end
+			end
+		end
+
+		return damage, impulse
 	end
 
 	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
@@ -2010,6 +2153,15 @@ if gadgetHandler:IsSyncedCode() then
 			playerAggression = playerAggression*0.995
 			playerAggressionLevel = math.floor(playerAggression)
 			SetGameRulesParam("scavPlayerAggressionLevel", playerAggressionLevel)
+
+			if useEcoTargeting and n >= lastSquadRebalanceFrame + squadRebalanceInterval then
+				lastSquadRebalanceFrame = n
+				distributeDistanceSquadTargets()
+			end
+			-- Export damage efficiency areas to gamerulesparams for visualization
+			if useEcoTargeting and targetingContext then
+				PveTargeting.ExportDamageStatsToGameRules(targetingContext)
+			end
 			if nSpawnedBosses == 0 then
 				currentMaxWaveSize = (minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))
 			else
@@ -2077,13 +2229,18 @@ if gadgetHandler:IsSyncedCode() then
 		if n%((math.ceil(config.turretSpawnRate))*30) == 0 and n > 900 and scavTeamUnitCount < scavUnitCap then
 			spawnCreepStructuresWave()
 		end
-		local squadID = ((n % (#squadsTable*2))+1)/2 --*2 and /2 for lowering the rate of commands
-		if squadID and squadsTable[squadID] and squadsTable[squadID].squadRegroupEnabled then
-			local targetx, targety, targetz = squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z
-			if targetx then
-				squadCommanderGiveOrders(squadID, targetx, targety, targetz)
-			else
-				refreshSquad(squadID)
+
+		if #squadsTable > 0 then
+			local randomSquadID = math.random(#squadsTable)
+			if randomSquadID and squadsTable[randomSquadID] and squadsTable[randomSquadID].squadRegroupEnabled then
+				if squadsTable[randomSquadID].target then
+					local targetx, targety, targetz = squadsTable[randomSquadID].target.x, squadsTable[randomSquadID].target.y, squadsTable[randomSquadID].target.z
+					if targetx then
+						squadCommanderGiveOrders(randomSquadID, targetx, targety, targetz)
+					else
+						refreshSquad(randomSquadID)
+					end
+				end
 			end
 		end
 		if n%7 == 3 then
@@ -2111,7 +2268,7 @@ if gadgetHandler:IsSyncedCode() then
 								refreshSquad(squadID)
 							end
 						else
-							local pos = getRandomEnemyPos()
+							local pos = getRandomEnemyPos(Spring.GetUnitDefID(scavs[i]))
 							Spring.GiveOrderToUnit(scavs[i], CMD.STOP, {}, {})
 							if Spring.GetUnitDefID(scavs[i]) and config.scavBehaviours.HEALER[Spring.GetUnitDefID(scavs[i])] then
 								if math.random() < 0.75 then
@@ -2221,8 +2378,10 @@ if gadgetHandler:IsSyncedCode() then
 			squadPotentialTarget[unitID] = nil
 			squadPotentialHighValueTarget[unitID] = nil
 			capturableUnits[unitID] = nil
-			for squad in ipairs(unitTargetPool) do
-				if unitTargetPool[squad] == unitID then
+			for squad, target in pairs(unitTargetPool) do
+				if target == unitID then
+					unitTargetPool[squad] = nil
+					squadsTable[squad].squadRegroupEnabled = true
 					refreshSquad(squad)
 				end
 			end
@@ -2297,8 +2456,10 @@ if gadgetHandler:IsSyncedCode() then
 		squadPotentialTarget[unitID] = nil
 		squadPotentialHighValueTarget[unitID] = nil
 		capturableUnits[unitID] = nil
-		for squad in ipairs(unitTargetPool) do
-			if unitTargetPool[squad] == unitID then
+		for squad, target in pairs(unitTargetPool) do
+			if target == unitID then
+				unitTargetPool[squad] = nil
+				squadsTable[squad].squadRegroupEnabled = true
 				refreshSquad(squad)
 			end
 		end
