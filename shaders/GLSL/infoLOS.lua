@@ -63,11 +63,10 @@ return {
 			// wider lines and gaps.
 			xy *= 1000.0;
 
-			// We want to return a value between 0 and 1,
-			// so scale the sine wave amplitude and shift it up.
-			// Subtracting time causes the diagonal lines to move down
-			// from the top-left.
-			return sin(xy - time) * 0.5 + 0.5;
+                        // This is a sin wave, graphing it will help understand it.
+                        // Graph it on desmos or something: (sin(x) * 0.5 + 0.5)^2
+                        // The important thing is that all return values are between 0 and 1.
+			return pow(sin(xy - time) * 0.5 + 0.5, 2);
 		}
 
 		void main() {
@@ -82,7 +81,7 @@ return {
 			// Draw alternating diagonal lines for the fog of war.
 			// alwaysColor is the fog of war color.
 			// Squaring the diagLines sine wave causes more values to be near zero.
-			float diagonalLineStrength = pow(diagLines(texCoord), 2);
+			float diagonalLineStrength = diagLines(texCoord);
 			gl_FragColor = mix(alwaysColor, alwaysColor * 0.5, diagonalLineStrength);
 
 			// Radar
