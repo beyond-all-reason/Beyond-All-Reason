@@ -165,6 +165,15 @@ local config = {
 	
 	radarWobbleSpeed = 1,
 	CMD_AREA_MEX = GameCMD and GameCMD.AREA_MEX or 10000,
+
+	-- Middle-click teleport settings (click without drag moves world camera to clicked position)
+	middleClickTeleport = true,  -- Enable middle-click to teleport world camera
+	middleClickZoomMin = 0.2,    -- Maximum zoom in for teleport (lower = more zoomed in)
+	middleClickZoomMax = 0.95,    -- Maximum zoom out for teleport (higher = more zoomed out)
+	middleClickZoomOffset = -0.18,  -- Teleport slightly more zoomed out than PIP (0 = same as PIP)
+	minimapMiddleClickZoomMin = 0.2,  -- auto zoom in to this zoom level
+	minimapMiddleClickZoomMax = 0.95,  -- auto zoom out to this zoom level
+	minimapMiddleClickZoomOffset = 0.04,  -- Zoom in slightly more than current (positive = more zoomed in)
 	
 	-- Minimap mode settings (when pipNumber == 0)
 	minimapModeMaxHeight = 0.32,  -- Default max height (will be overridden by user's minimap config if available)
@@ -308,6 +317,8 @@ local interactionState = {
 	panToggleMode = false,
 	middleMousePressed = false,
 	middleMouseMoved = false,
+	middleMousePressX = 0,
+	middleMousePressY = 0,
 	leftMousePressed = false,
 	rightMousePressed = false,
 	areCentering = false,
@@ -11578,6 +11589,8 @@ function widget:MousePress(mx, my, mButton)
 
 			interactionState.middleMousePressed = true
 			interactionState.middleMouseMoved = false
+			interactionState.middleMousePressX = mx
+			interactionState.middleMousePressY = my
 			interactionState.panStartX = (render.dim.l + render.dim.r) / 2
 			interactionState.panStartY = (render.dim.b + render.dim.t) / 2
 			return true
@@ -13076,10 +13089,87 @@ function widget:MouseRelease(mx, my, mButton)
 	if mButton == 2 then
 		if interactionState.middleMousePressed then
 			-- Middle mouse was pressed in our window
-			-- Whether it was a drag or just a click, stop panning
+			-- Check if it was a click (not a drag) - if so, teleport world camera
+			local wasClick = not interactionState.middleMouseMoved
+			
+			if wasClick and config.middleClickTeleport then
+				-- Convert click position to world coordinates
+				local wx, wz = PipToWorldCoords(interactionState.middleMousePressX, interactionState.middleMousePressY)
+				local groundHeight = spFunc.GetGroundHeight(wx, wz) or 0
+				
+				-- Get current camera state
+				local curCamState = Spring.GetCameraState()
+				if curCamState then
+					-- Set position
+					curCamState.px = wx
+					curCamState.pz = wz
+					
+					-- Calculate zoom level for teleport
+					local targetZoom
+					local adjustZoom = true
+					
+					if isMinimapMode then
+						-- In minimap mode, preserve current camera zoom but apply offset and limits
+						-- Get current world camera zoom equivalent from height/dist
+						local referenceHeight = 1200  -- At zoom 1.0
+						local currentHeight = curCamState.height or curCamState.dist or 2000
+						local currentZoom = referenceHeight / currentHeight
+						
+						-- Apply zoom offset (positive = zoom in more since PIP is small part of screen)
+						local adjustedZoom = currentZoom + config.minimapMiddleClickZoomOffset
+						
+						-- Clamp to min/max bounds
+						targetZoom = math.max(config.minimapMiddleClickZoomMin, math.min(config.minimapMiddleClickZoomMax, adjustedZoom))
+						
+						-- Only adjust if actually changed
+						if math.abs(targetZoom - currentZoom) < 0.01 then
+							adjustZoom = false
+						end
+					else
+						-- Calculate world camera zoom based on PIP zoom
+						-- PIP zoom is in range [zoomMin, zoomMax], higher = more zoomed in
+						-- World camera height: higher height = more zoomed out
+						local pipZoom = cameraState.zoom
+						-- Apply zoom offset (slightly more zoomed out than PIP)
+						targetZoom = pipZoom - config.middleClickZoomOffset
+
+						-- Clamp to configured bounds
+						targetZoom = math.max(config.middleClickZoomMin, math.min(config.middleClickZoomMax, targetZoom))
+					end
+					
+					-- Only adjust height/dist if needed
+					if adjustZoom then
+						-- Convert zoom to camera height/dist: height = referenceHeight / zoom
+						-- Reference: at zoom 0.5, height is ~2400 elmos (typical gameplay view)
+						local referenceHeight = 1200  -- At zoom 1.0
+						local targetHeight = referenceHeight / targetZoom
+						
+						-- Set height/dist based on camera type
+						-- TA camera uses "height", Spring camera uses "dist"
+						if curCamState.name == "ta" or curCamState.name == "ov" then
+							curCamState.height = targetHeight
+						elseif curCamState.name == "spring" then
+							curCamState.dist = targetHeight
+						else
+							-- For other cameras (free, etc), try both
+							curCamState.height = targetHeight
+							curCamState.dist = targetHeight
+						end
+					end
+					
+					Spring.SetCameraState(curCamState, 0.2)
+				else
+					-- Fallback: just move camera target without zoom change
+					Spring.SetCameraTarget(wx, groundHeight, wz, 0.2)
+				end
+			end
+			
+			-- Stop panning
 			interactionState.arePanning = false
 			interactionState.middleMousePressed = false
 			interactionState.middleMouseMoved = false
+			interactionState.middleMousePressX = 0
+			interactionState.middleMousePressY = 0
 		elseif interactionState.panToggleMode then
 			-- Middle mouse released while in toggle mode (click was outside our window) - ignore
 		end
