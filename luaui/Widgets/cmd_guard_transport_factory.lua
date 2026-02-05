@@ -308,16 +308,10 @@ local function removePreDestinationMoveCommands(unitID, destination)
             if not isSameMoveDestination then
                 tags[#tags + 1] = tag
             else 
-                if tags[1] then
-                    spGiveOrderToUnit(unitID, CMD_REMOVE, tags)
-                    return
-                end
+                break
             end
 		else
-            if tags[1] then
-                spGiveOrderToUnit(unitID, CMD_REMOVE, tags)
-                return
-            end
+            break
         end
 	end
 
