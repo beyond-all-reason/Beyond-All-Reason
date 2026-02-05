@@ -49,6 +49,8 @@ local glCreateList = gl.CreateList
 local glColor = gl.Color
 local glDeleteList = gl.DeleteList
 local glLineWidth = gl.LineWidth
+local glLoadIdentity = gl.LoadIdentity
+local glPointSize = gl.PointSize
 local glPopMatrix = gl.PopMatrix
 local glPushMatrix = gl.PushMatrix
 local glRotate = gl.Rotate
@@ -59,7 +61,9 @@ local glDepthTest = gl.DepthTest
 
 local GL_LINE_LOOP = GL.LINE_LOOP
 local GL_LINES = GL.LINES
+local GL_LINE_STRIP = GL.LINE_STRIP
 local GL_TRIANGLE_STRIP = GL.TRIANGLE_STRIP
+local GL_POINTS = GL.POINTS
 
 --------------------------------------------------------------------------------
 -- Configuration
@@ -303,6 +307,13 @@ local function UpdateTrackedProjectiles()
 				if isSpectator or existingData.isOwnTeam then
 					activeIDs[proID] = true
 					newCount = newCount + 1
+					-- Update projectile position
+					local px, py, pz = spGetProjectilePosition(proID)
+					if px then
+						existingData.projectileX = px
+						existingData.projectileY = py
+						existingData.projectileZ = pz
+					end
 				end
 			else
 				-- New projectile - check team
@@ -330,6 +341,9 @@ local function UpdateTrackedProjectiles()
 							targetX = tx,
 							targetY = ty,
 							targetZ = tz,
+							projectileX = px,
+							projectileY = py,
+							projectileZ = pz,
 							startTime = currentTime,
 							initialFlightTime = estimatedFlightTime, -- Store initial for smooth progress
 							isOwnTeam = isOwnTeam,
@@ -487,4 +501,113 @@ function widget:DrawWorld()
 	glDepthTest(true)
 	glColor(1, 1, 1, 1)
 	glLineWidth(1)
+end
+
+function widget:DrawInMiniMap(sx, sy)
+	if trackedCount == 0 then return end
+
+	-- Check if any nukes are being tracked
+	local hasNukes = false
+	for _, data in pairs(trackedProjectiles) do
+		if data.weaponInfo.isNuke then
+			hasNukes = true
+			break
+		end
+	end
+	if not hasNukes then return end
+
+	-- Set up minimap coordinate system
+	-- Widgets draw in pixel coords [0, sx] x [0, sy] where (0,0) is top-left
+	-- World X maps to pixel X: worldX / mapSizeX * sx
+	-- World Z maps to pixel Y: (1 - worldZ / mapSizeZ) * sy (Y flipped, north=top)
+	--
+	-- For PIP mode: the PIP widget sets up gl.Ortho to transform these same pixel
+	-- coords to show only the visible portion, so we don't need special handling.
+
+	local currentTime = osClock()
+
+	-- Draw for each nuke
+	for _, data in pairs(trackedProjectiles) do
+		if data.weaponInfo.isNuke then
+			local tx, tz = data.targetX, data.targetZ
+			local px, pz = data.projectileX, data.projectileZ
+			local aoe = data.weaponInfo.aoe
+
+			-- Convert world coords to minimap pixel coords
+			local targetPixelX = tx / mapSizeX * sx
+			local targetPixelY = (1 - tz / mapSizeZ) * sy  -- Y flipped
+			local projPixelX = px / mapSizeX * sx
+			local projPixelY = (1 - pz / mapSizeZ) * sy  -- Y flipped
+
+			-- Calculate progress for animation
+			local elapsed = currentTime - data.startTime
+			local progress = elapsed / max(data.initialFlightTime, 0.1)
+			if progress > 1 then progress = 1 elseif progress < 0 then progress = 0 end
+
+			-- Animation calculations (matching DrawWorld)
+			local blinkPhase = 0
+			if Config.blinkSpeed > 0 then
+				local blinkFreq = Config.blinkSpeed * (1 + progress * 2)
+				blinkPhase = sin(currentTime * blinkFreq * tau)
+			end
+
+			-- Rotation
+			local avgSpeed = Config.rotationSpeedMax - (Config.rotationSpeedMax - Config.rotationSpeedMin) * progress * 0.5
+			local rotation = (elapsed * avgSpeed) % 360
+
+			-- Select color
+			local color = data.isAlly and Config.nukeAllyColor or Config.nukeEnemyColor
+
+			-- Draw line from projectile to target
+			glColor(1, 0.2, 0.2, 0.22)  -- Red line
+			glLineWidth(1.5)
+			glBeginEnd(GL_LINES, function()
+				glVertex(projPixelX, projPixelY, 0)
+				glVertex(targetPixelX, targetPixelY, 0)
+			end)
+
+			-- Trefoil symbol (scaled for minimap)
+			-- Scale: pixels per world elmo
+			local worldToPixelScale = sx / mapSizeX
+			local trefoilWorldSize = aoe * 0.75 * (0.6 + 0.08 * sin(currentTime * tau * 0.4))
+			local trefoilPixelSize = trefoilWorldSize * worldToPixelScale
+			-- Clamp to reasonable size
+			trefoilPixelSize = math.max(5, math.min(trefoilPixelSize, 40))
+
+			local trefoilOpacity = 0.5 + 0.15 * progress + 0.1 * blinkPhase
+
+			SetColor(color, trefoilOpacity)
+
+			-- Draw trefoil at target position
+			glPushMatrix()
+			glTranslate(targetPixelX, targetPixelY, 0)
+			glRotate(rotation, 0, 0, 1)  -- Rotate around Z since we're in 2D minimap space
+			glScale(trefoilPixelSize, trefoilPixelSize, 1)
+
+			-- Draw trefoil blades manually (since display list uses 3D coords)
+			local innerRadius = 0.18
+			local outerRadius = 0.85
+			local bladeAngle = rad(60)
+			local bladeSegments = 8  -- Fewer segments for minimap
+
+			for blade = 0, 2 do
+				local baseAngle = blade * rad(120) - rad(90)
+				local startAngle = baseAngle - bladeAngle / 2
+				local step = bladeAngle / bladeSegments
+
+				glBeginEnd(GL_TRIANGLE_STRIP, function()
+					for i = 0, bladeSegments do
+						local angle = startAngle + i * step
+						local cosA, sinA = cos(angle), sin(angle)
+						glVertex(cosA * innerRadius, sinA * innerRadius)
+						glVertex(cosA * outerRadius, sinA * outerRadius)
+					end
+				end)
+			end
+
+			glPopMatrix()
+		end
+	end
+
+	glColor(1, 1, 1, 1)
 end
