@@ -22,7 +22,7 @@ return {
 		idletime = 1800,
 		sightemitheight = 72,
 		mass = 5100,
-		health = 90,
+		health = 180,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/LEGRAD.s3o",
