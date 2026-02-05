@@ -298,15 +298,20 @@ local function canTransport(transportID, unitID)
 end
 
 local function removePreDestinationMoveCommands(unitID, destination)
-    local unitLocation     = {Spring.GetUnitPosition(unitID)}
     local tags = {}
+    if not destination then return end
 
-    for i = spGetUnitCommandCount(unitID), 1, -1 do
+    for i = 0, spGetUnitCommandCount(unitID), 1 do
         local cmdID, options, tag, targetX, targetY, targetZ = Spring.GetUnitCurrentCommand(unitID, i)
 		if cmdID == CMD.MOVE then
-            local isSameMoveDestination = targetX == destination[0] and targetY == destination[1] and targetZ == destination[2]
+            local isSameMoveDestination = targetX == destination[1] and targetY == destination[2] and targetZ == destination[3]
             if not isSameMoveDestination then
-                tags[#tags + 1] = qid
+                tags[#tags + 1] = tag
+            else 
+                if tags[1] then
+                    spGiveOrderToUnit(unitID, CMD_REMOVE, tags)
+                    return
+                end
             end
 		else
             if tags[1] then
@@ -364,11 +369,6 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
                 end
             end
 
-            -- The fab issues an inital move command to every unit to make sure it clears the factory.
-            -- We want get rid of that command before picking up. Otherwise, it'll get picked up
-            -- and dropped off, and then proceed to walk back to the factory and then to the rally.
-            removePreDestinationMoveCommands(createdUnitID, destination)
-
             if bestTransportID > -1 then
                 transportState[bestTransportID]         = transport_states.approaching
 
@@ -378,6 +378,10 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
 
                 activeTransportToUnit[bestTransportID] = createdUnitID
                 unitToDestination[createdUnitID] = getValidRallyCommandDestination(createdUnitID)
+                -- The fab issues an inital move command to every unit to make sure it clears the factory.
+                -- We want get rid of that command before picking up. Otherwise, it'll get picked up
+                -- and dropped off, and then proceed to walk back to the factory and then to the rally.
+                removePreDestinationMoveCommands(createdUnitID, destination)
             end
         end
     end
