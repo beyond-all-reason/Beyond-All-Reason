@@ -274,7 +274,7 @@ function gadget:GameFrame(frame)
 		end
 	end
 
-	if needsUpdate or frame % SLOW_UPDATE_FREQUENCY ~= 0 then
+	if frame % SLOW_UPDATE_FREQUENCY ~= 0 and not needsUpdate then
 		return
 	end
 
