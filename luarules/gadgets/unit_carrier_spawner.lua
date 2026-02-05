@@ -34,6 +34,7 @@ local spSetUnitVelocity     	= Spring.SetUnitVelocity
 local spUnitAttach 				= Spring.UnitAttach
 local spUnitDetach 				= Spring.UnitDetach
 local spSetUnitHealth 			= Spring.SetUnitHealth
+local spSetUnitMaxHealth 		= Spring.SetUnitMaxHealth
 local spGetGroundHeight 		= Spring.GetGroundHeight
 local spGetUnitNearestEnemy		= Spring.GetUnitNearestEnemy
 local spTransferUnit			= Spring.TransferUnit
@@ -535,7 +536,7 @@ local function spawnUnit(spawnData)
 									break
 								end
 							end
-							
+							local _, droneMaxHealth = spGetUnitHealth(subUnitID)
 							local droneData = {
 								dronetype =  carriedDroneType,
 								dronetypeIndex = dronetypeIndex,
@@ -553,6 +554,7 @@ local function spawnUnit(spawnData)
 								fighterStage = 0,
 								dockingPiece = dockingpiece,
 								dockingPieceIndex = dockingpieceindex,
+								originalMaxHealth = droneMaxHealth,
 							}
 							carrierData.subUnitsList[subUnitID] = droneData
 							totalDroneCount = totalDroneCount + 1
@@ -1008,6 +1010,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 							wild = wild,
 							decayRate = carrierMetaList[unitID].deathdecayRate,
 							idleRadius = carrierMetaList[unitID].radius,
+							originalMaxHealth = value.originalMaxHealth,
 							lastOrderUpdate = 0;
 						}
 						droneMetaList[subUnitID] = droneData
@@ -1052,8 +1055,8 @@ local function updateStandaloneDrones(frame)
 		end
 
 		if droneData.decayRate > 0 then
-			local droneCurrentHealth, droneMaxHealth = spGetUnitHealth(unitID)
-			healUnit(unitID, -droneData.decayRate, resourceFrames, droneCurrentHealth, droneMaxHealth)
+			local droneCurrentHealth, _ = spGetUnitHealth(unitID)
+			healUnit(unitID, -droneData.decayRate, resourceFrames, droneCurrentHealth, droneData.originalMaxHealth)
 		end
 	end
 end
@@ -1190,18 +1193,18 @@ local function updateCarrier(carrierID, carrierMetaData, frame)
 			local droneAlive = true
 			if droneCurrentHealth then
 				if carrierMetaData.dockedHealRate > 0 and droneDocked then
-					if droneCurrentHealth == droneMaxHealth then
+					if droneCurrentHealth == droneData.originalMaxHealth then
 						-- fully healed
 						droneData.stayDocked = false
 					else
 						-- still needs healing
 						droneData.stayDocked = true
-						droneAlive = healUnit(subUnitID, carrierMetaData.dockedHealRate, resourceFrames, droneCurrentHealth, droneMaxHealth)
+						droneAlive = healUnit(subUnitID, carrierMetaData.dockedHealRate, resourceFrames, droneCurrentHealth, droneData.originalMaxHealth)
 					end
 				elseif droneData.activeDocking == false then
-					droneAlive = healUnit(subUnitID, -carrierMetaData.decayRate, resourceFrames, droneCurrentHealth, droneMaxHealth)
+					droneAlive = healUnit(subUnitID, -carrierMetaData.decayRate, resourceFrames, droneCurrentHealth, droneData.originalMaxHealth)
 				end
-				if droneAlive and carrierMetaData.docking and 100*droneCurrentHealth/droneMaxHealth < carrierMetaData.dockToHealThreshold then
+				if droneAlive and carrierMetaData.docking and 100*droneCurrentHealth/droneData.originalMaxHealth < carrierMetaData.dockToHealThreshold then
 					dockUnitQueue(carrierID, subUnitID)
 				end
 			end
