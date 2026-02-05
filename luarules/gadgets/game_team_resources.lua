@@ -16,6 +16,9 @@ if not gadgetHandler:IsSyncedCode() then
     return false
 end
 
+local GlobalEnums = VFS.Include("modes/global_enums.lua")
+local ResourceType = GlobalEnums.ResourceType
+
 local minStorageMetal = 1000
 local minStorageEnergy = 1000
 local mathMax = math.max
@@ -59,19 +62,16 @@ local function setup(addResources)
             multiplier = teamPlayerCounts[teamID] or 1 -- Gaia has no players	
         end
 
-        --If starting bonus multiplication is enabled, multiply it.
         local teamMultiplier = 1;
         if (bonusMultiplierEnabled) then
             teamMultiplier = select(7, Spring.GetTeamInfo(teamID));
         end
 
-        -- Get starting resources and storage including any bonuses from mods
         local startingMetal = startMetal * teamMultiplier * multiplier
         local startingEnergy = startEnergy * teamMultiplier * multiplier
         local startingMetalStorage = startMetalStorage * teamMultiplier * multiplier
         local startingEnergyStorage = startEnergyStorage * teamMultiplier * multiplier
 
-        -- Get the player's start unit to make sure starting storage is no less than its storage
         local com = UnitDefs[Spring.GetTeamRulesParam(teamID, 'startUnit')]
         if com then
             commanderMinMetal = com.metalStorage or 0
@@ -100,6 +100,6 @@ function gadget:GameStart()
 end
 
 function gadget:TeamDied(teamID)
-    Spring.SetTeamShareLevel(teamID, 'metal', 0)
-    Spring.SetTeamShareLevel(teamID, 'energy', 0)
+    GG.SetTeamShareLevel(teamID, 'metal', 0)
+    GG.SetTeamShareLevel(teamID, 'energy', 0)
 end

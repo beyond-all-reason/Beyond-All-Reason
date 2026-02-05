@@ -71,7 +71,6 @@ local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
 local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
 local spEditUnitCmdDesc = Spring.EditUnitCmdDesc
-local spGetTeamResources = Spring.GetTeamResources
 local spGetTeamList = Spring.GetTeamList
 local spSetUnitRulesParam = Spring.SetUnitRulesParam
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
@@ -300,11 +299,11 @@ local function UpdatePassiveBuilders(teamID, interval)
 	local cur, stor, inc, share, sent, rec
 	local intervalOverSpeed = interval / simSpeed
 
-	cur, stor, _, inc, _, share, sent, rec = spGetTeamResources(teamID, "metal")
+	cur, stor, _, inc, _, share, sent, rec = GG.GetTeamResources(teamID, "metal")
 	stor = stor * share
 	local teamStallingMetal = cur - mathMax(inc*stallMarginInc, stor*stallMarginSto) - 1 + (interval)*(nonPassiveConsTotalExpenseMetal+inc+rec-sent)/simSpeed
 
-	cur, stor, _, inc, _, share, sent, rec = spGetTeamResources(teamID, "energy")
+	cur, stor, _, inc, _, share, sent, rec = GG.GetTeamResources(teamID, "energy")
 	stor = stor * share
 	local teamStallingEnergy = cur - mathMax(inc*stallMarginInc, stor*stallMarginSto) - 1 + (interval)*(nonPassiveConsTotalExpenseEnergy+inc+rec-sent)/simSpeed
 
@@ -349,7 +348,7 @@ local function GetUpdateInterval(teamID)
 	local maxInterval = 1
 	for i = 1, #resources do
 		local resName = resources[i]
-		local _, stor, _, inc = spGetTeamResources(teamID, resName)
+		local _, stor, _, inc = GG.GetTeamResources(teamID, resName)
 		local resMaxInterval
 		if inc > 0 then
 			resMaxInterval = mathFloor(stor*simSpeed/inc)+1 -- how many frames would it take to fill our current storage based on current income?

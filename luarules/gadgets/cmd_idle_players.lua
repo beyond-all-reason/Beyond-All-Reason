@@ -44,8 +44,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	local TransferUnit = Spring.TransferUnit
 	local GetPlayerList = Spring.GetPlayerList
-	local ShareTeamResource = Spring.ShareTeamResource
-	local GetTeamResources = Spring.GetTeamResources
 	local GetPlayerInfo = Spring.GetPlayerInfo
 	local GetTeamLuaAI = Spring.GetTeamLuaAI
 	local GetAIInfo = Spring.GetAIInfo
@@ -178,10 +176,10 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				-- send all resources en-block to the taker
 				for _, resourceName in ipairs(resourceList) do
-					local shareAmount = GetTeamResources(teamID, resourceName)
-					local current,storage,_,_,_,shareSlider = GetTeamResources(takerID, resourceName)
+					local shareAmount = GG.GetTeamResources(teamID, resourceName)
+					local current,storage,_,_,_,shareSlider = GG.GetTeamResources(takerID, resourceName)
 					shareAmount = math.min(shareAmount,shareSlider*storage-current)
-					ShareTeamResource( teamID, takerID, resourceName, shareAmount )
+					GG.ShareTeamResource(teamID, takerID, resourceName, shareAmount)
 				end
 			end
 		end
@@ -231,17 +229,6 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
-
-	function gadget:AllowResourceTransfer(fromTeamID, toTeamID, restype, level)
-		-- prevent resources to leak to uncontrolled teams
-		return GetTeamRulesParam(toTeamID,"numActivePlayers") ~= 0 or IsCheatingEnabled()
-	end
-
-	function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
-		-- prevent units to be shared to uncontrolled teams
-		return capture or GetTeamRulesParam(toTeamID,"numActivePlayers") ~= 0 or IsCheatingEnabled()
-	end
-
 
 else	-- UNSYNCED
 

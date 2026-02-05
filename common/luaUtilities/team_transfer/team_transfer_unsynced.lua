@@ -1,0 +1,12 @@
+local GlobalEnums = VFS.Include("modes/global_enums.lua")
+local ResourceShared = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_shared.lua")
+local UnitShared = VFS.Include("common/luaUtilities/team_transfer/unit_transfer_shared.lua")
+local UnitUnsynced = VFS.Include("common/luaUtilities/team_transfer/unit_transfer_unsynced.lua")
+
+local TeamTransfer = {}
+
+TeamTransfer.Resources = ResourceShared
+TeamTransfer.Units = UnitShared
+TeamTransfer.Units.ShareUnits = UnitUnsynced.ShareUnits
+
+return TeamTransfer

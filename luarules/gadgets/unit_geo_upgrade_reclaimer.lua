@@ -77,7 +77,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		if geo then
 			local geoTeamID = Spring.GetUnitTeam(geo)
 			Spring.DestroyUnit(geo, false, true)
-			Spring.AddTeamResource(unitTeam, "metal", isGeo[Spring.GetUnitDefID(geo)])
+			GG.AddTeamResource(unitTeam, "metal", isGeo[Spring.GetUnitDefID(geo)])
 			if not transferInstantly and geoTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(geoTeamID, false)) then
 				_G.transferredUnits[unitID] = Spring.GetGameFrame()
 				Spring.TransferUnit(unitID, geoTeamID)

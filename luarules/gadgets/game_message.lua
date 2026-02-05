@@ -13,9 +13,9 @@ function gadget:GetInfo()
 	}
 end
 
--- example usecase: Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needEnergyAmount:amount='..shareAmount)
+-- example usecase: Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needEnergyAmount:amount:'..shareAmount)
 
-local PACKET_HEADER = "msg"
+local PACKET_HEADER = "msg:"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 
 if gadgetHandler:IsSyncedCode() then
@@ -24,7 +24,7 @@ if gadgetHandler:IsSyncedCode() then
 		if string.sub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
 			return
 		end
-		SendToUnsynced("sendMsg", playerID, string.sub(msg, 4))
+		SendToUnsynced("sendMsg", playerID, string.sub(msg, PACKET_HEADER_LENGTH + 1))
 		return true
 	end
 

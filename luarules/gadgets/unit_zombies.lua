@@ -14,6 +14,9 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+local GlobalEnums = VFS.Include("modes/global_enums.lua")
+local ResourceType = GlobalEnums.ResourceType
+
 local modOptions                  = Spring.GetModOptions()
 
 local ZOMBIE_GUARD_RADIUS         = 500  -- Radius for zombies to guard allies
@@ -108,7 +111,6 @@ local spDestroyFeature            = Spring.DestroyFeature
 local spGetUnitIsDead             = Spring.GetUnitIsDead
 local spGiveOrderArrayToUnit      = Spring.GiveOrderArrayToUnit
 local spGetUnitsInCylinder        = Spring.GetUnitsInCylinder
-local spSetTeamResource           = Spring.SetTeamResource
 local spGetUnitHealth             = Spring.GetUnitHealth
 local spSetUnitHealth             = Spring.SetUnitHealth
 local spSetUnitRulesParam         = Spring.SetUnitRulesParam
@@ -299,14 +301,14 @@ local function setGaiaStorage()
 	local metalStorageToSet = 1000000
 	local energyStorageToSet = 1000000
 
-	local _, currentMetalStorage = Spring.GetTeamResources(gaiaTeamID, "metal")
+	local _, currentMetalStorage = GG.GetTeamResources(gaiaTeamID, "metal")
 	if currentMetalStorage and currentMetalStorage < metalStorageToSet then
-		spSetTeamResource(gaiaTeamID, "ms", metalStorageToSet)
+		GG.SetTeamResourceData(gaiaTeamID, { resourceType = ResourceType.METAL, storage = metalStorageToSet })
 	end
 
-	local _, currentEnergyStorage = Spring.GetTeamResources(gaiaTeamID, "energy")
+	local _, currentEnergyStorage = GG.GetTeamResources(gaiaTeamID, "energy")
 	if currentEnergyStorage and currentEnergyStorage < energyStorageToSet then
-		spSetTeamResource(gaiaTeamID, "es", energyStorageToSet)
+		GG.SetTeamResourceData(gaiaTeamID, { resourceType = ResourceType.ENERGY, storage = energyStorageToSet })
 	end
 end
 
@@ -724,8 +726,8 @@ function gadget:GameFrame(frame)
 	end
 
 	if frame % ZOMBIE_CHECK_INTERVAL == 0 then
-		Spring.AddTeamResource(gaiaTeamID, "metal", 1000000)
-		Spring.AddTeamResource(gaiaTeamID, "energy", 1000000)
+		GG.AddTeamResource(gaiaTeamID, "metal", 1000000)
+		GG.AddTeamResource(gaiaTeamID, "energy", 1000000)
 		for featureID, featureData in pairs(corpsesData) do
 			local featureX, featureY, featureZ = spGetFeaturePosition(featureID)
 			if not featureX then --doesn't exist anymore

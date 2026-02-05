@@ -1,14 +1,18 @@
 local gadget = gadget ---@type Gadget
 
+local GlobalEnums = VFS.Include("modes/global_enums.lua")
+
+local assistEnabled = Spring.GetModOptions()[GlobalEnums.ModOptions.AlliedAssistMode]
+
 function gadget:GetInfo()
 	return {
 		name    = 'Disable Assist Ally Construction',
-		desc    = 'Disable assisting allied units (e.g. labs and units/buildings under construction) when modoption is enabled',
+		desc    = 'Disable assisting allied units (e.g. labs and units/buildings under construction) when modoption is disabled',
 		author  = 'Rimilel',
 		date    = 'April 2024',
 		license = 'GNU GPL, v2 or later',
-		layer   = 1, -- after unit_mex_upgrade_reclaimer and unit_geo_upgrade_reclaimer
-		enabled = Spring.GetModOptions().disable_assist_ally_construction or Spring.GetModOptions().easytax,
+		layer   = 1,
+		enabled = not assistEnabled,
 	}
 end
 
@@ -16,8 +20,13 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+if assistEnabled then
+	return false
+end
+
 local spAreTeamsAllied = Spring.AreTeamsAllied
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
+
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitTeam = Spring.GetUnitTeam
@@ -40,7 +49,7 @@ local builderMoveStateCmdDesc = {
 local gaiaTeam = Spring.GetGaiaTeamID()
 
 local isFactory = {}
-local canBuildStep = {} -- i.e. anything that spends resources when assisted
+local canBuildStep = {}
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	isFactory[unitDefID] = unitDef.isFactory
 	canBuildStep[unitDefID] = unitDef.isFactory or (unitDef.isBuilder and (unitDef.canBuild or unitDef.canAssist))
@@ -163,7 +172,6 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 end
 
 function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z, facing)
-	-- Identical blueprints placed on top of one another are converted to build assist.
 	if builderID and not isFactory[spGetUnitDefID(builderID)] then
 		local units = spGetUnitsInCylinder(x, z, footprintSize)
 		for _, unitID in pairs(units) do
@@ -172,6 +180,7 @@ function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z, fa
 			end
 		end
 	end
+
 	return true, true
 end
 
