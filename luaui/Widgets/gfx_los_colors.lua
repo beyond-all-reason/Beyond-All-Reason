@@ -19,7 +19,7 @@ end
 local losWithRadarEnabled = false
 local colorize = false
 local specDetected = false
-local opacity = 1.0
+local opacity = 0.88
 
 local losColorsWithRadarsGray = {
 	fog =    {0.20, 0.20, 0.20},
