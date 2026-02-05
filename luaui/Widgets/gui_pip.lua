@@ -152,9 +152,10 @@ local config = {
 	minimapHoverHeightPercent = 0.15,  -- Minimap height when hovering over PIP
 	
 	-- Performance settings
-	pipFloorUpdateRate = 10,
-	pipMinUpdateRate = 30,
-	pipMaxUpdateRate = 120,
+	contentResolutionScale = 2,  -- Render texture at this multiple of PIP size (1 = 1:1, 2 = 2x resolution for (marginally) sharper content)
+	pipFloorUpdateRate = 10,	-- Minimum update rate for PIP content when performance is poor (will be smoothly applied based on measured frame times)
+	pipMinUpdateRate = 30,		-- Minimum update rate for PIP content when zoomed out
+	pipMaxUpdateRate = 120,		-- Maximum update rate for PIP content when zoomed in
 	pipZoomThresholdMin = 0.15,
 	pipZoomThresholdMax = 0.4,
 	pipTargetDrawTime = 0.003,
@@ -504,7 +505,8 @@ local seismicPingDlists = {
 	innerOutlines = {},
 }
 local gameHasStarted
-local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID()))
+local gaiaTeamID = Spring.GetGaiaTeamID()
+local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID))
 
 -- Command colors
 local cmdColors = {
@@ -1015,7 +1017,10 @@ function RecalculateWorldCoordinates()
 	-- Guard against uninitialized render dimensions
 	if not render.dim.l or not render.dim.r or not render.dim.b or not render.dim.t then return end
 	
-	local hw, hh = 0.5 * (render.dim.r - render.dim.l) / cameraState.zoom, 0.5 * (render.dim.t - render.dim.b) / cameraState.zoom
+	-- Use contentScale to calculate world bounds correctly when rendering to higher-res texture
+	-- (render.dim is scaled for scissoring, but world bounds should use logical dimensions)
+	local scale = render.contentScale or 1
+	local hw, hh = 0.5 * (render.dim.r - render.dim.l) / (cameraState.zoom * scale), 0.5 * (render.dim.t - render.dim.b) / (cameraState.zoom * scale)
 	
 	-- At 90/270 degrees, the content is rotated inside the rectangular PIP window
 	-- So we need to swap what the world considers width/height
@@ -5064,6 +5069,9 @@ local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 
 	for i = 1, unitCount do
 		local uID = unitsToShow[i]
+		-- Skip gaia units (neutral units don't have meaningful command queues)
+		local unitTeam = spFunc.GetUnitTeam(uID)
+		if unitTeam ~= gaiaTeamID then
 		local ux, uy, uz = spFunc.GetUnitPosition(uID)
 		if ux then
 			local startSX, startSY = WorldToPipCoords(ux, uz)
@@ -5146,6 +5154,7 @@ local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 				end
 			end
 		end
+		end -- end gaia team check
 	end
 
 	-- Draw all lines in ONE gl.BeginEnd call (massive performance improvement)
@@ -5162,15 +5171,17 @@ local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 
 	-- Draw all markers in ONE gl.BeginEnd call
 	if markerCount > 0 then
+		local resScale = render.contentScale or 1
+		local markerSize = 3 * resScale
 		glFunc.BeginEnd(GL.QUADS, function()
 			for i = 1, markerCount do
 				local marker = markerPool[i]
 				glFunc.Color(marker.r, marker.g, marker.b, 0.8)
 				local x, y = marker.x, marker.y
-				glFunc.Vertex(x - 3, y - 3)
-				glFunc.Vertex(x + 3, y - 3)
-				glFunc.Vertex(x + 3, y + 3)
-				glFunc.Vertex(x - 3, y + 3)
+				glFunc.Vertex(x - markerSize, y - markerSize)
+				glFunc.Vertex(x + markerSize, y - markerSize)
+				glFunc.Vertex(x + markerSize, y + markerSize)
+				glFunc.Vertex(x - markerSize, y + markerSize)
 			end
 		end)
 	end
@@ -5491,7 +5502,10 @@ end
 local function DrawIcons()
 	-- Batch icon drawing by texture to minimize state changes
 	local distMult = math.min(math.max(1, 2.2-(cameraState.zoom*3.3)), 3)
-	local iconRadiusZoom = config.iconRadius * cameraState.zoom
+	
+	-- Get resolution scale for R2T rendering (icons need to be scaled up to compensate for texture downscaling)
+	local resScale = render.contentScale or 1
+	local iconRadiusZoom = config.iconRadius * cameraState.zoom * resScale
 	
 	-- Apply MinimapIconScale from settings, scaled by zoom level
 	-- At minimum zoom (fully zoomed out), apply full MinimapIconScale effect
@@ -5682,9 +5696,9 @@ local function DrawIcons()
 		local unitpicSizeMult = 0.85
 		-- Texcoord inset for 30% zoom (0.15 on each side)
 		local picTexInset = 0.18 * (1 - (cameraState.zoom - config.unitpicZoomThreshold) / (1 - config.unitpicZoomThreshold))
-		-- Fixed border sizes in world units
-		local teamBorderSize = 3 * cameraState.zoom * distMult
-		local blackBorderSize = 4 * cameraState.zoom * distMult
+		-- Fixed border sizes in world units (scaled by resScale for R2T rendering)
+		local teamBorderSize = 3 * cameraState.zoom * distMult * resScale
+		local blackBorderSize = 4 * cameraState.zoom * distMult * resScale
 		-- Corner cut ratio (0.25 = cut 25% of each corner of the unitpic)
 		local cornerCutRatio = 0.25
 		
@@ -6482,6 +6496,9 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	local centerX = 0.5 * (render.dim.l + render.dim.r)
 	local centerY = 0.5 * (render.dim.b + render.dim.t)
 
+	-- Get resolution scale for R2T rendering (affects coordinate mapping, not icon sizes)
+	local resScale = render.contentScale or 1
+
 	-- Calculate content scale during minimize animation
 	local contentScale = 1.0
 	if uiState.isAnimating then
@@ -6501,9 +6518,12 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		-- When maximizing (uiState.inMinMode = false), keep contentScale = 1.0 to avoid oversized units
 	end
 
+	-- Apply contentScale for animation, and resScale for high-res R2T rendering
+	-- resScale is multiplied to match the enlarged coordinate space
+	local drawScale = cameraState.zoom * contentScale * resScale
 	glFunc.PushMatrix()
 	glFunc.Translate(centerX, centerY, 0)
-	glFunc.Scale(cameraState.zoom * contentScale, cameraState.zoom * contentScale, cameraState.zoom * contentScale)
+	glFunc.Scale(drawScale, drawScale, drawScale)
 
 
 	-- Draw features (3D models)
@@ -7023,10 +7043,11 @@ local function DrawMapMarkers()
 	local filterByAllyTeam = shouldShowLOS and losAllyTeam ~= nil
 	
 	local currentTime = os.clock()
-	local lineSize = math.floor(4 * render.widgetScale)
+	local resScale = render.contentScale or 1
+	local lineSize = math.floor(4 * render.widgetScale * resScale)
 	-- Scale baseSize based on zoom level (more zoomed out = slightly smaller markers)
 	local zoomScale = 0.45 + (cameraState.zoom * 0.66)  -- Scale between 0.7 and 1.0
-	local baseSize = 45 * render.widgetScale * zoomScale
+	local baseSize = 45 * render.widgetScale * zoomScale * resScale
 				
 	glFunc.Texture(false)
 	
@@ -7313,7 +7334,8 @@ local function DrawCameraViewBounds()
 	local tl_x, tl_y = WorldToPipCoords(topLeftX, topLeftZ)
 	
 	-- Calculate chamfer size (4 pixels at 1080p, scaled by resolution)
-	local chamfer = 2.5 * (render.vsy / 1080)
+	local resScale = render.contentScale or 1
+	local chamfer = 2.5 * (render.vsy / 1080) * resScale
 	
 	-- Calculate chamfer offsets for each corner
 	-- Always apply chamfers regardless of position
@@ -7349,7 +7371,7 @@ local function DrawCameraViewBounds()
 	glFunc.Texture(false)
 	
 	-- Draw shadow/outline first
-	glFunc.LineWidth(3 * ((vsx+1000) / 3000))
+	glFunc.LineWidth(3 * ((vsx+1000) / 3000) * resScale)
 	glFunc.Color(0, 0, 0, 0.4)
 	glFunc.BeginEnd(glConst.LINE_LOOP, function()
 		-- Bottom-left corner (2 vertices)
@@ -7367,7 +7389,7 @@ local function DrawCameraViewBounds()
 	end)
 	
 	-- Draw white line on top
-	glFunc.LineWidth(1.5 * ((vsx+1000) / 3000))
+	glFunc.LineWidth(1.5 * ((vsx+1000) / 3000) * resScale)
 	glFunc.Color(1, 1, 1, 0.8)
 	glFunc.BeginEnd(glConst.LINE_LOOP, function()
 		-- Bottom-left corner (2 vertices)
@@ -8676,9 +8698,10 @@ local function UpdateR2TContent(currentTime, pipUpdateInterval, pipWidth, pipHei
 		pipR2T.contentLastHeight = math.floor(pipHeight)
 	end
 
-	-- Create texture if needed
+	-- Create texture if needed (at scaled resolution for sharper content)
+	local resScale = config.contentResolutionScale
 	if not pipR2T.contentTex and pipWidth >= 1 and pipHeight >= 1 then
-		pipR2T.contentTex = gl.CreateTexture(math.floor(pipWidth), math.floor(pipHeight), {
+		pipR2T.contentTex = gl.CreateTexture(math.floor(pipWidth * resScale), math.floor(pipHeight * resScale), {
 			target = GL.TEXTURE_2D, format = GL.RGBA, fbo = true,
 		})
 		pipR2T.contentLastWidth = math.floor(pipWidth)
@@ -8697,18 +8720,28 @@ local function UpdateR2TContent(currentTime, pipUpdateInterval, pipWidth, pipHei
 			end
 		end
 		
+		-- Calculate scaled dimensions for rendering into the higher-resolution texture
+		local scaledWidth = pipWidth * resScale
+		local scaledHeight = pipHeight * resScale
+		
 		gl.R2tHelper.RenderToTexture(pipR2T.contentTex, function()
 			glFunc.Translate(-1, -1, 0)
-			glFunc.Scale(2 / pipWidth, 2 / pipHeight, 0)
+			-- Scale to map full texture coordinate space
+			glFunc.Scale(2 / scaledWidth, 2 / scaledHeight, 0)
 
 			-- Save current dimensions
 			pools.savedDim.l, pools.savedDim.r, pools.savedDim.b, pools.savedDim.t = render.dim.l, render.dim.r, render.dim.b, render.dim.t
 
-			render.dim.l, render.dim.b, render.dim.r, render.dim.t = 0, 0, pipWidth, pipHeight
+			-- Render at scaled dimensions for correct scissoring
+			-- contentScale tells RecalculateWorldCoordinates to adjust world bounds calculation
+			render.dim.l, render.dim.b, render.dim.r, render.dim.t = 0, 0, scaledWidth, scaledHeight
+			render.contentScale = resScale
 			RecalculateWorldCoordinates()
 			RecalculateGroundTextureCoordinates()
 			RenderPipContents()
 
+			-- Restore original values
+			render.contentScale = 1
 			render.dim.l, render.dim.r, render.dim.b, render.dim.t = pools.savedDim.l, pools.savedDim.r, pools.savedDim.b, pools.savedDim.t
 			RecalculateWorldCoordinates()
 			RecalculateGroundTextureCoordinates()
@@ -10721,7 +10754,7 @@ function widget:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
 
 	local myAllyTeam = Spring.GetMyAllyTeamID()
 	local spec, fullview = Spring.GetSpectatingState()
-	local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
+	local unitAllyTeam = unitID and Spring.GetUnitAllyTeam(unitID) or allyTeam
 
 	if (spec or allyTeam == myAllyTeam) and unitAllyTeam ~= allyTeam then
 		-- Calculate ping radius based on strength (strength is typically 1-10)
