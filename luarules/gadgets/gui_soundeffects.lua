@@ -42,7 +42,6 @@ local commandSoundCount = commandSoundLimit
 -- InitValues
 local PreviouslySelectedUnits = {}
 local ActiveStateTrackingUnitList = {}
-local ActiveStatePrevFrameTrackingUnitList = {}
 local selectionChanged = false
 
 local CommandUISoundDelayLastFrame = 0
@@ -55,7 +54,6 @@ local UnitBuildOrderSoundDelayLastFrame = 0
 local AllyUnitFinishedSoundDelayLastFrame = 0
 local AllyUnitCreatedSoundDelayLastFrame = 0
 local AllyCommandUnitDelayLastFrame = 0
-local SetTargetSoundDelayLastFrame = 0
 
 local CommandSoundEffects = {
 	[CMD.GROUPSELECT]	= {'cmd-reclaim', 0.8}, -- not working yet
@@ -76,8 +74,8 @@ local CommandSoundEffects = {
 	[GameCMD.UNIT_SET_TARGET] = {'cmd-settarget', 0.7},
 	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = {'cmd-settarget', 0.7},
 	[GameCMD.WANT_CLOAK] = {
-		on = {'cmd-on', 0.4},
-		off = {'cmd-off', 0.3},
+		on = {'cmd-on', 0.6},
+		off = {'cmd-off', 0.5},
 	},
 
 	--[CMD.ONOFF]			= {'cmd-onoff', 0.8},
@@ -143,12 +141,13 @@ local function pickSound(sound)
 end
 
 local function playSetTargetSounds(preferredUnitID, cmdID, forceUi)
+	-- for set-target SFX 
 	CurrentGameFrame = spGetGameFrame()
 	if forceUi then
+		-- Line/rectangle set-target: always play UI sound on user activation.
 		local soundDef = CommandSoundEffects[cmdID] or CommandSoundEffects[CMD_UNIT_SET_TARGET]
 		if soundDef then
 			spPlaySoundFile(soundDef[1], soundDef[2], 'ui')
-			SetTargetSoundDelayLastFrame = CurrentGameFrame + (math_random(-DelayRandomization, DelayRandomization))
 		end
 	else
 		if CurrentGameFrame >= CommandUISoundDelayLastFrame + CommandUISoundDelayFrames then
@@ -224,6 +223,8 @@ function gadget:Initialize()
 			unitsAllyTeam[unitID] = spGetUnitAllyTeam(unitID)
 		end
 	end
+	-- Line/rectangle set-target is initiated in synced code (unit_target_on_the_move.lua).
+	-- single sound trigger to unsynced via this sync action
 	gadgetHandler:AddSyncAction("settarget_line_sound", function(_, teamID, playerID, unitID, cmdID)
 		if not enabled then return end
 		if playerID ~= spGetMyPlayerID() then
@@ -251,6 +252,7 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		return
 	end
 
+	-- Single-click set-target flows through CommandNotify
 	playSetTargetSounds(nil, cmdID, false)
 end
 
