@@ -534,7 +534,7 @@ local function setupTeamColor(teamID, allyTeamID, isAI, localRun)
 			b = hex2RGB(gaiaGrayColor)[3],
 		}
 
-	elseif isSurvival and survivalColors[#Spring.GetTeamList()-2] then
+	elseif isSurvival and survivalColors[(#Spring.GetTeamList())-2] then
 		teamColorsTable[teamID] = {
 			r = hex2RGB(survivalColors[survivalColorNum])[1]
 				+ math.random(-survivalColorVariation, survivalColorVariation),
