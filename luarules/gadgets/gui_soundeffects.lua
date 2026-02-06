@@ -142,34 +142,35 @@ local function pickSound(sound)
 	return type(sound) == "string" and sound or sound[math_random(1, #sound)]
 end
 
-local function handleSetTargetSound(_, teamID, playerID, unitID)
-	if playerID ~= spGetMyPlayerID() then
-		if playerID ~= nil and playerID ~= -1 then
-			return
-		end
-		if teamID ~= spGetMyTeamID() then
-			return
-		end
-	end
+local function playSetTargetSounds(preferredUnitID, cmdID, forceUi)
 	CurrentGameFrame = spGetGameFrame()
-	if CurrentGameFrame >= SetTargetSoundDelayLastFrame + CommandUISoundDelayFrames then
-		local soundDef = CommandSoundEffects[CMD_UNIT_SET_TARGET]
+	if forceUi then
+		local soundDef = CommandSoundEffects[cmdID] or CommandSoundEffects[CMD_UNIT_SET_TARGET]
 		if soundDef then
 			spPlaySoundFile(soundDef[1], soundDef[2], 'ui')
 			SetTargetSoundDelayLastFrame = CurrentGameFrame + (math_random(-DelayRandomization, DelayRandomization))
 		end
+	else
+		if CurrentGameFrame >= CommandUISoundDelayLastFrame + CommandUISoundDelayFrames then
+			local soundDef = CommandSoundEffects[cmdID] or CommandSoundEffects[CMD_UNIT_SET_TARGET]
+			if soundDef then
+				spPlaySoundFile(soundDef[1], soundDef[2], 'ui')
+				CommandUISoundDelayLastFrame = CurrentGameFrame + (math_random(-DelayRandomization, DelayRandomization))
+			end
+		end
 	end
+
 	if CurrentGameFrame >= CommandUnitSoundDelayLastFrame + CommandUnitSoundDelayFrames then
 		local unitDefID
+		local unitID = preferredUnitID
 		if unitID and spIsUnitSelected(unitID) then
 			unitDefID = spGetUnitDefID(unitID)
-		end
-		if (not unitDefID) or (not GUIUnitSoundEffects[unitDefID]) then
+		else
 			local selectedUnitCount = spGetSelectedUnitsCount()
 			if selectedUnitCount > 0 then
 				local selUnits = spGetSelectedUnits()
-				unitDefID = spGetUnitDefID(selUnits[math_random(1, #selUnits)])
 				unitID = selUnits[math_random(1, #selUnits)]
+				unitDefID = spGetUnitDefID(unitID)
 			end
 		end
 		if unitID and unitDefID and GUIUnitSoundEffects[unitDefID] then
@@ -189,6 +190,7 @@ local function handleSetTargetSound(_, teamID, playerID, unitID)
 		end
 	end
 end
+
 
 local function PlaySelectSound(unitID)
 	local unitDefID = spGetUnitDefID(unitID)
@@ -222,11 +224,34 @@ function gadget:Initialize()
 			unitsAllyTeam[unitID] = spGetUnitAllyTeam(unitID)
 		end
 	end
-	gadgetHandler:AddSyncAction("settarget_sound", handleSetTargetSound)
+	gadgetHandler:AddSyncAction("settarget_line_sound", function(_, teamID, playerID, unitID, cmdID)
+		if not enabled then return end
+		if playerID ~= spGetMyPlayerID() then
+			if playerID ~= nil and playerID ~= -1 then
+				return
+			end
+			if teamID ~= spGetMyTeamID() then
+				return
+			end
+		end
+		playSetTargetSounds(unitID, cmdID or CMD_UNIT_SET_TARGET_RECTANGLE, true)
+	end)
 end
 
 function gadget:Shutdown()
-	gadgetHandler:RemoveSyncAction("settarget_sound")
+	gadgetHandler:RemoveSyncAction("settarget_line_sound")
+end
+
+function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
+	if not enabled then return end
+	if cmdID ~= CMD_UNIT_SET_TARGET and cmdID ~= CMD_UNIT_SET_TARGET_NO_GROUND and cmdID ~= GameCMD.UNIT_SET_TARGET_RECTANGLE then
+		return
+	end
+	if cmdOpts and cmdOpts.internal then
+		return
+	end
+
+	playSetTargetSounds(nil, cmdID, false)
 end
 
 local slowTimer, fastTimer = 0, 0
