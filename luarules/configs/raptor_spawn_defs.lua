@@ -2392,6 +2392,9 @@ end
 ---------------------------------------------
 
 local airStartAnger = 0 -- needed for air waves to work correctly.
+if Spring.GetModOptions().unit_restrictions_noair then
+	airStartAnger = 10000
+end
 --Scouts------------------------------------------------------------------------------------------------------
 
 addNewSquad({

@@ -13,6 +13,8 @@ function widget:GetInfo()
 	}
 end
 
+Spring.LoadSoundDef("gamedata/soundsVoice.lua")
+
 -- Localized functions for performance
 local mathRandom = math.random
 local tableSort = table.sort
@@ -30,6 +32,7 @@ local windFunctions = VFS.Include('common/wind_functions.lua')
 
 local useDefaultVoiceFallback = Spring.GetConfigInt('NotificationsSubstitute', 0) == 1 --false    -- when a voiceset has missing file, try to load the default voiceset file instead
 local playWelcome = Spring.GetConfigInt('WelcomeMessagePlayed', 0) == 0
+local playedWelcome = false
 
 local silentTime = 0.7    -- silent time between queued notifications
 local globalVolume = 0.7
@@ -68,9 +71,9 @@ local gameover = false
 local lockPlayerID
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
-local soundFolder = "sounds/voice/" .. voiceSet .. "/"
-local soundEffectsFolder = "sounds/voice-soundeffects/"
-local defaultSoundFolder = "sounds/voice/" .. defaultVoiceSet .. "/"
+local soundFolder = string.gsub("sounds/voice/" .. voiceSet .. "/", "\\", "/")
+local soundEffectsFolder = string.gsub("sounds/voice-soundeffects/", "\\", "/")
+local defaultSoundFolder = string.gsub("sounds/voice/" .. defaultVoiceSet .. "/", "\\", "/")
 
 -- load and parse sound files/notifications
 local notificationTable = VFS.Include('sounds/voice/config.lua')
@@ -768,8 +771,10 @@ local function playNextSound()
 		end
 
 		LastPlay[event] = spGetGameFrame()
-		if notification[event].resetOtherEventDelay then
-			LastPlay[notification[event].resetOtherEventDelay] = spGetGameFrame()
+		if notification[event].resetOtherEventDelay and #notification[event].resetOtherEventDelay > 0 then
+			for i = 1,#notification[event].resetOtherEventDelay do
+				LastPlay[notification[event].resetOtherEventDelay[i]] = spGetGameFrame()
+			end
 		end
 
 		-- for tutorial event: log number of plays
@@ -829,6 +834,10 @@ function widget:Update(dt)
 			Spring.SetConfigInt('WelcomeMessagePlayed', 1)
 			queueNotification('Welcome', true)
 			playWelcome = false
+			playedWelcome = true
+		elseif not playedWelcome then
+			queueNotification('WelcomeShort', true)
+			playedWelcome = true
 		end
 	end
 end

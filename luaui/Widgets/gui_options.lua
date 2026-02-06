@@ -57,8 +57,6 @@ elseif not Platform.glHaveGL4 then
 	isPotatoGpu = true
 end
 
-local hideOtherLanguagesVoicepacks = false	-- maybe later allow people to pick other language voicepacks
-
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 
 local devMode = Spring.Utilities.IsDevMode()
@@ -2963,7 +2961,7 @@ function init()
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
-			  Spring.SetConfigString("voiceset", (hideOtherLanguagesVoicepacks and Spring.GetConfigString('language', 'en')..'/' or '')..options[i].options[options[i].value])
+			  Spring.SetConfigString("voiceset", options[i].options[options[i].value])
 			  if widgetHandler.orderList["Notifications"] ~= nil then
 				  widgetHandler:DisableWidget("Notifications")
 				  widgetHandler:EnableWidget("Notifications")
@@ -3558,6 +3556,7 @@ function init()
 			  end
 		  end,
 		},
+		{ id = "minimappip", group = "ui", category = types.advanced, widget = "Picture-in-Picture Minimap", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimappip'), type = "bool", value = GetWidgetToggleValue("Picture-in-Picture Minimap"), description = Spring.I18N('ui.settings.option.minimappip_descr') },
 
 
 		{ id = "pip", group = "ui", category = types.advanced, widget = "Picture-in-Picture", name = Spring.I18N('ui.settings.option.pip'), type = "bool", value = GetWidgetToggleValue("Picture-in-Picture"), description = Spring.I18N('ui.settings.option.pip_descr') },
@@ -4880,6 +4879,12 @@ function init()
 		{ id = "simpleteamcolors_use_gradient", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.simpleteamcolors_use_gradient'), type = "bool", value = tonumber(Spring.GetConfigInt("SimpleTeamColorsUseGradient", 0) or 0) == 1,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColorsUseGradient", (value and 1 or 0))
+			  Spring.SetConfigInt("UpdateTeamColors", 1)
+		  end,
+		},
+		{ id = "simpleteamcolorsfactionspecific", group = "accessibility", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.simpleteamcolorsfactionspecific'), type = "bool", value = tonumber(Spring.GetConfigInt("SimpleTeamColorsFactionSpecific", 0) or 0) == 1, description = Spring.I18N('ui.settings.option.simpleteamcolorsfactionspecific_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("SimpleTeamColorsFactionSpecific", (value and 1 or 0))
 			  Spring.SetConfigInt("UpdateTeamColors", 1)
 		  end,
 		},
@@ -6364,23 +6369,16 @@ function init()
 		local sets = {}
 		local languageDirs = VFS.SubDirs('sounds/voice', '*')
 		local setCount = 0
-		if hideOtherLanguagesVoicepacks then
-			local language = Spring.GetConfigString('language', 'en')
-			local files = VFS.SubDirs('sounds/voice/'..language, '*')
+		for k, f in ipairs(languageDirs) do
+			local langDir = string.gsub(string.sub(f, 14, string.len(f)-1), "\\", "/")
+			local files = VFS.SubDirs('sounds/voice/'..langDir, '*')
 			for k, file in ipairs(files) do
-				local dirname = string.sub(file, 17, string.len(file)-1)
-				sets[#sets+1] = dirname
-				setCount = setCount + 1
-				if dirname == string.sub(voiceset, 4) then
-					currentVoiceSetOption = #sets
+				local dirname = string.gsub(string.sub(file, 14, string.len(file)-1), "\\", "/")
+				local setAlreadyIn = false
+				for i = 1,#sets do
+					if dirname == sets[i] then setAlreadyIn = true break end
 				end
-			end
-		else
-			for k, f in ipairs(languageDirs) do
-				local langDir = string.sub(f, 14, string.len(f)-1)
-				local files = VFS.SubDirs('sounds/voice/'..langDir, '*')
-				for k, file in ipairs(files) do
-					local dirname = string.sub(file, 14, string.len(file)-1)
+				if not setAlreadyIn then
 					sets[#sets+1] = dirname
 					setCount = setCount + 1
 					if dirname == voiceset then

@@ -84,6 +84,9 @@ return {
 					commanders = 2500,
 					default = 9500,
 				},
+				customparams = {
+					nuclear = 1,
+				},
 			},
 		},
 		weapons = {

@@ -2733,6 +2733,9 @@ end
 -- Settings -- Adjust these
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 local airStartAnger = 0 -- needed for air waves to work correctly.
+if Spring.GetModOptions().unit_restrictions_noair then -- Disable air waves when No Air restriction is enabled
+	airStartAnger = 10000
+end
 local useScum = true -- Use scum as space where turrets can spawn (requires scum gadget from Beyond All Reason)
 local useWaveMsg = true -- Show dropdown message whenever new wave is spawning
 local spawnSquare = 90 -- size of the scav spawn square centered on the burrow

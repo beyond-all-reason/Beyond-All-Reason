@@ -158,8 +158,10 @@
 			"uncamera": "Cancel camera tracking",
 			"move": "Move window",
 			"resize": "Resize window",
-			"minimize": "Minimize",
-			"maximize": "Maximize"
+			"minimize": "Minimize\nALT+CLICK-DRAG to Move",
+			"maximize": "Maximize\nALT+CLICK-DRAG to Move",
+			"worldminimize": "ALT+CLICK to Minimize PiP\nALT+CLICK-DRAG to Move PiP\nALT+SCROLL to zoom",
+			"worldmaximize": "ALT+CLICK Maximize PiP\nALT+CLICK-DRAG to Move PiP\nALT+SCROLL to zoom"
 		},
 		"teamEconomy": {
 			"tooltipTitle": "Team Income",
@@ -409,7 +411,6 @@
 				"title": "Queueing orders",
 				"append": "Add order to end of order queue",
 				"appendKey": "shift + (some order)",
-				"prependKey": "space + (some order)",
 				"prepend": "Add order to start of order queue"
 			},
 			"buildOrders": {
@@ -424,7 +425,6 @@
 				"intel": "Cycle through radar/defence/etc",
 				"factoriesKey": "v",
 				"factories": "Cycle through factories",
-				"rotateKey": "[ and ]",
 				"rotate": "Change facing of buildings"
 			},
 			"issueBuildOrders": {
@@ -437,16 +437,12 @@
 				"line": "Build in a line",
 				"gridKey": "shift + alt + (build order)",
 				"grid": "Build in a square",
-				"spacingUpKey": "alt+z",
 				"spacingUp": "Increase build spacing",
-				"spacingDownKey": "alt+x",
 				"spacingDown": "Decrease build spacing"
 			},
 			"massSelect": {
 				"title": "Group selection",
-				"allKey": "ctrl + a",
 				"all": "Select all units",
-				"buildersKey": "ctrl + b",
 				"builders": "Select all constructors",
 				"createGroupKey": "ctrl + (num)",
 				"createGroup": "Add units to group (num=1,2,..)",
@@ -456,7 +452,6 @@
 				"removeAutoGroup": "Remove unit type from autogroup",
 				"groupKey": "(num)",
 				"group": "Select all units assigned to group (num)",
-				"sameTypeKey": "ctrl + z",
 				"sameType": "Select all units of same type as selected"
 			},
 			"drawing": {
@@ -501,7 +496,11 @@
 			"unpausedthegame": "%{name} %{textColor}unpaused the game",
 			"connectionattemptfrom": "%{textColor}Connection attempt from: %{name}",
 			"leftthegamenormal": "%{name} %{textColor}left the game %{textColor2}(normal quit)",
-			"leftthegametimeout": "%{name} %{textColor}left the game %{textColor2}(timeout)"
+			"leftthegametimeout": "%{name} %{textColor}left the game %{textColor2}(timeout)",
+			"moderation": {
+				"prefix": "Moderation:",
+				"blocked": "Words such as \"%{badWord}\" can be against the Code of Conduct if they are being used to abuse other players. Please take a moment to reevaluate your intentions. If your message was blocked in error, then you can send it again to bypass the filter."
+			}
 		},
 		"teamStats": {
 			"player": "Player",
@@ -1375,6 +1374,8 @@
 				"anonymous_b": "Anonymous Blue",
 				"playercolors": "Simple team colors",
 				"simpleteamcolors": "simple",
+				"simpleteamcolorsfactionspecific": "Faction Color",
+				"simpleteamcolorsfactionspecific_descr": "Replaces Simple Team Colors with Faction Colors based on player's starting commander, useful for cinematics.",
 				"simpleteamcolors_reset": "Reset (Restart to reset sliders)",
 				"simpleteamcolors_use_gradient": "Use a different shade for each player.",
 				"simpleteamcolors_player_r": "Player Red",
@@ -1409,6 +1410,12 @@
 				"minimaprotation_none": "None",
 				"minimaprotation_autoflip": "Auto Flip 180 Degree",
 				"minimaprotation_autorotate": "Auto Rotate 90 Degree",
+				"minimappip": "advanced (pip style)",
+				"minimappip_descr": "Have a picture-in-picture style camera minimap implementation",
+				"pip": "picture-in-picture",
+				"pip_descr": "Displays a floating camera minimap style window",
+				"pip2": "picture-in-picture 2",
+				"pip2_descr": "Displays a floating camera minimap style window",
 				"gridmenu": "Use Gridmenu",
 				"gridmenu_descr": "Alternative build menu, designed for comprehensive hotkey use",
 				"gridmenu_alwaysreturn": "Grid always returns to categories",
@@ -1487,10 +1494,6 @@
 				"systemprivacy_descr": "disallow other players to view your system specifications (in player list tooltip)\napplies to next game",
 				"mascot": "mascot",
 				"mascot_descr": "Shows a mascot on top of the playerlist",
-				"pip": "picture-in-picture",
-				"pip_descr": "Displays a floating camera minimap style window",
-				"pip2": "picture-in-picture 2",
-				"pip2_descr": "Displays a floating camera minimap style window",
 				"unittotals": "unit totals",
 				"unittotals_descr": "Show your unit totals on top of the playerlist",
 				"musicplayer": "music player",

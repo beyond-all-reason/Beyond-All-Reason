@@ -195,6 +195,11 @@ function widget:MouseMove(x, y, dx, dy, button)
 	return false
 end
 function widget:DrawInMiniMap(minimapWidth, minimapHeight)
+	-- Skip if PIP minimap replacement is active (it handles its own selection box)
+	if WG['minimap'] and WG['minimap'].isPipMinimapActive and WG['minimap'].isPipMinimapActive() then
+		return
+	end
+
 	-- Draw selection for minimap-tracked selection
 	if not minimapSelectionActive then return end
 
