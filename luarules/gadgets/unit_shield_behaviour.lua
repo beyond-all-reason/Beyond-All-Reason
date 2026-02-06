@@ -48,7 +48,7 @@ if Spring.GetModOptions().experimentalshields:find("bounce") then
 				damage = originalShieldDamages[weaponDefID] or 0 -- to handle envDamageTypes
 			end
 
-			spSetUnitShieldState(shieldUnitID, max(0, power - damage))
+			spSetUnitShieldState(shieldUnitID, mathMax(0, power - damage))
 
 			if power >= damage then
 				return true, damage
@@ -108,7 +108,6 @@ local minDownTime					= 1 * Game.gameSpeed
 -- The maximum number of frames a shield is allowed to be offline from overkill. This is to handle very, very high single-attack damage which would otherwise cripple the shield for multiple minutes.
 local maxDownTime					= 20 * Game.gameSpeed
 
-local shieldModulo                  = Game.gameSpeed
 local shieldOnUnitRulesParamIndex   = 531313
 local INLOS                         = { inlos = true }
 
@@ -434,10 +433,10 @@ function gadget:GameFrame(frame)
 		end
 	end
 
-	for shieldUnitID, shieldData in pairs(shieldUnitsData) do
-		local shieldActive = spGetUnitIsActive(shieldUnitID)
+	if frame % 30 == 0 then
+		for shieldUnitID, shieldData in pairs(shieldUnitsData) do
+			local shieldActive = spGetUnitIsActive(shieldUnitID)
 
-		if frame % shieldModulo == 0 then
 			if shieldActive then
 				if shieldData.overKillDamage ~= 0 then
 					local usedEnergy = spUseUnitResource(shieldUnitID, "e", shieldData.shieldPowerRegenEnergy)
