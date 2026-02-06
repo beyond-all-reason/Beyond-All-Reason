@@ -270,6 +270,10 @@ local customValidators = {
 	end,
 
 	[Types.Facing] = function(facing)
+		if not facing then
+			return
+		end
+
 		local expectedTypes = { string = true, number = true }
 		local actualType = type(facing)
 		if not expectedTypes[actualType] then
