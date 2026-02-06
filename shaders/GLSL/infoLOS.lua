@@ -82,7 +82,7 @@ return {
 			// alwaysColor is the fog of war color.
 			// Squaring the diagLines sine wave causes more values to be near zero.
 			float diagonalLineStrength = diagLines(texCoord);
-			gl_FragColor = mix(alwaysColor, alwaysColor * 0.5, diagonalLineStrength);
+			gl_FragColor = mix(alwaysColor, max(vec4(0), (alwaysColor - 0.1) * 0.5), diagonalLineStrength);
 
 			// Radar
 			// radarColor2 is the color of ground covered by radar.
