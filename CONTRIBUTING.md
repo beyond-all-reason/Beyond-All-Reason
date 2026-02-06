@@ -79,7 +79,7 @@ You should prefer common functions, then, over potential shortcuts. For example,
 
 ## Licensing and versioning
 
-The license we prefer is “GNU GPL, v2 or later”. Code contributed outside this license falls outside the contributor guidelines so may fall afoul of the project altogether.
+The license we use is “GNU GPL, v2 or later”.
 
 Expect your code to be modified. We encourage you to use release versioning and to increment versions when modifying other contributor’s gadgets/widgets. This helps to distinguish the many copies of very-similar code that are sometimes floating around.
 
