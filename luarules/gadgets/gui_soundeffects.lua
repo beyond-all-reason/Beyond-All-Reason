@@ -12,7 +12,7 @@ function gadget:GetInfo()
 		author	= "Damgam",
 		date	= "2021",
 		license	= "GNU GPL, v2 or later",
-		layer	= -1,
+		layer	= 0,
 		enabled = true,
 	}
 end
@@ -86,6 +86,7 @@ local CommandSoundEffects = {
 local CMD_MOVE = CMD.MOVE
 local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
 local CMD_UNIT_SET_TARGET_NO_GROUND = GameCMD.UNIT_SET_TARGET_NO_GROUND
+local CMD_UNIT_SET_TARGET_RECTANGLE = GameCMD.UNIT_SET_TARGET_RECTANGLE
 local CMD_WANT_CLOAK = GameCMD.WANT_CLOAK
 
 VFS.Include('luarules/configs/gui_soundeffects.lua')
@@ -238,7 +239,7 @@ end
 
 function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if not enabled then return end
-	if cmdID ~= CMD_UNIT_SET_TARGET and cmdID ~= CMD_UNIT_SET_TARGET_NO_GROUND and cmdID ~= GameCMD.UNIT_SET_TARGET_RECTANGLE then
+	if cmdID ~= CMD_UNIT_SET_TARGET and cmdID ~= CMD_UNIT_SET_TARGET_NO_GROUND and cmdID ~= CMD_UNIT_SET_TARGET_RECTANGLE then
 		return
 	end
 	if cmdOpts and cmdOpts.internal then
