@@ -74,7 +74,7 @@ You should prefer common functions, then, over potential shortcuts. For example,
 * Constants can be treated as locals or globals or named using `ALL_CAPS`.  
 * Do not use abbreviations, with notable exceptions like `ID` for “identifier”.  
 * Do not use mathematical shorthands, with notable exceptions like “x” coordinates.  
-* Try, as possible, not to be unique. Use familiar names from similar code to your own.  
+* Try, as much as possible, not to be unique. Use familiar names from similar code to your own.  
 * Do not pollute method signatures with “\_” as an excluded argument to call-ins.
 
 ## Licensing and versioning
