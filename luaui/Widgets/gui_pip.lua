@@ -131,7 +131,7 @@ local config = {
 	allowCommandsWhenSpectating = false,  -- Allow giving commands as spectator when god mode is enabled
 	
 	-- Rendering settings
-	iconRadius = 40,
+	iconRadius = 44,
 	showUnitpics = true,      -- Show unitpics instead of icons when zoomed in
 	unitpicZoomThreshold = 0.7, -- Zoom level at which to switch to unitpics (higher = more zoomed in)
 	leftButtonPansCamera = false,
@@ -173,7 +173,6 @@ local config = {
 	middleClickZoomOffset = -0.18,  -- Teleport slightly more zoomed out than PIP (0 = same as PIP)
 	minimapMiddleClickZoomMin = 0.2,  -- auto zoom in to this zoom level
 	minimapMiddleClickZoomMax = 0.95,  -- auto zoom out to this zoom level
-	minimapMiddleClickZoomOffset = 0.04,  -- Zoom in slightly more than current (positive = more zoomed in)
 	
 	-- Minimap mode settings (when pipNumber == 0)
 	minimapModeMaxHeight = 0.32,  -- Default max height (will be overridden by user's minimap config if available)
@@ -439,9 +438,14 @@ local pools = {
 	trackingMerge = {}, -- Reused for tracking unit merge operations
 	trackingTempSet = {}, -- Reused for tracking unit deduplication
 	-- Icon sorting pools
+	structureDefaults = {}, -- Reused for sorting structure default icons
 	groundDefaults = {}, -- Reused for sorting ground default icons
+	commanderDefaults = {}, -- Reused for sorting commander default icons
 	elevatedDefaults = {}, -- Reused for sorting elevated default icons
 	elevatedKeyCache = {}, -- Cache for texture .. "_elevated" strings to avoid per-frame allocations
+	commanderKeyCache = {}, -- Cache for texture .. "_commander" strings to avoid per-frame allocations
+	structureKeyCache = {}, -- Cache for texture .. "_structure" strings to avoid per-frame allocations
+	iconCost = {}, -- Reused for per-icon cost lookup during sorting
 	trackedByTexture = {}, -- Reused for tracked units texture grouping
 	-- Radar and projectile pools
 	knownRadarUnits = {}, -- Reused for radar units with known types
@@ -481,6 +485,8 @@ local cache = {
 	canMove = {},
 	canFly = {},
 	isBuilding = {},
+	isCommander = {},
+	unitCost = {},
 	-- Combat properties
 	canAttack = {},
 	maxIconShatters = 20,
@@ -578,8 +584,11 @@ local strFind = string.find
 local strGsub = string.gsub
 
 -- Icon sorting comparator (defined once, uses upvalues set before sort)
-local sortIconY, sortIconUnitID
+-- Sorts by unit cost (ascending = cheap first, expensive drawn on top), then Y, then unitID
+local sortIconY, sortIconUnitID, sortIconCost
 local function iconSortComparator(a, b)
+	local ca, cb = sortIconCost[a], sortIconCost[b]
+	if ca ~= cb then return ca < cb end
 	local ya, yb = sortIconY[a], sortIconY[b]
 	if ya ~= yb then return ya < yb end
 	return sortIconUnitID[a] < sortIconUnitID[b]
@@ -995,7 +1004,11 @@ local waterShaderCode = {
 			// Apply water color where heightmap is black (water areas)
 			float waterAmount = 1.0 - height;
 			
-			gl_FragColor = vec4(waterColor.rgb, waterColor.a * waterAmount * 0.05);
+			// Use waterColor.a to control overall intensity:
+			// Low alpha (0.5 = normal water) gets subtle tinting via * 0.05
+			// High alpha (1.0 = void/lava) gets strong coverage
+			float alphaScale = mix(0.05, 1.0, waterColor.a);
+			gl_FragColor = vec4(waterColor.rgb, waterAmount * alphaScale);
 		}
 	]],
 	uniformInt = {
@@ -1827,6 +1840,8 @@ local function DrawProjectile(pID)
 	local px, py, pz = spFunc.GetProjectilePosition(pID)
 	if not px then return end
 
+	local resScale = render.contentScale or 1
+
 	-- Get projectile DefID - all projectiles from weapons will have this
 	local pDefID = spFunc.GetProjectileDefID(pID)
 
@@ -1983,8 +1998,8 @@ local function DrawProjectile(pID)
 
 					-- Precompute zoom-dependent scaling
 					local zoomScale = math.max(0.5, cameraState.zoom / 70)
-					local baseOuterWidth = thickness * 9 * zoomScale
-					local baseInnerWidth = thickness * 2.2 * zoomScale
+					local baseOuterWidth = thickness * 9 * zoomScale * resScale
+					local baseInnerWidth = thickness * 2.2 * zoomScale * resScale
 
 					-- Draw segments
 					local prevX = ox
@@ -2048,7 +2063,7 @@ local function DrawProjectile(pID)
 						prevBrightness = brightness
 					end
 
-					glFunc.LineWidth(1)
+					glFunc.LineWidth(1 * resScale)
 
 					-- Draw small explosion effect at target point immediately (instead of caching)
 					-- This is a simple white-blue flash that fades quickly
@@ -2268,6 +2283,9 @@ local function DrawProjectile(pID)
 		if vx and (vx ~= 0 or vz ~= 0) then
 			-- Calculate angle based on velocity direction
 			angle = math.atan2(vx, vz) * mapInfo.rad2deg
+		elseif cache.weaponIsStarburst[pDefID] then
+			-- Starburst missiles launching straight up (only vy) should point upward
+			angle = 180
 		end
 		
 		-- Add smoke trail for missiles (including starburst)
@@ -2348,10 +2366,11 @@ local function DrawProjectile(pID)
 				local positions = trail.positions
 				local head = trail.head
 				
-				-- Set line width based on missile size (scaled by zoom)
-				local trailWidth = math.max(1, (0.8 + trail.size * 0.5) * zoomScale)
+				-- Set line width based on missile size (scaled by zoom and content resolution)
+				local resScale = render.contentScale or 1
+				local trailWidth = math.max(1, (0.8 + trail.size * 0.5) * zoomScale * resScale)
 				glFunc.LineWidth(trailWidth)
-				
+
 				-- Batch all trail lines in a single BeginEnd call
 				glFunc.BeginEnd(glConst.LINES, function()
 					for i = 0, trailCount - 2 do
@@ -2379,7 +2398,7 @@ local function DrawProjectile(pID)
 						end
 					end
 				end)
-				glFunc.LineWidth(1)
+				glFunc.LineWidth(1 * resScale)
 			end
 		end
 	end
@@ -2522,6 +2541,7 @@ local function DrawLaserBeams()
 	local i = 1
 
 	-- Precompute zoom-dependent scaling once
+	local resScale = render.contentScale or 1
 	local zoomScale = math.max(0.5, cameraState.zoom / 70)
 	local wcx_cached = cameraState.wcx  -- Cache these for loop
 	local wcz_cached = cameraState.wcz
@@ -2572,8 +2592,8 @@ local function DrawLaserBeams()
 			if beam.isLightning then
 				-- Draw lightning bolt with jagged segments
 				local alpha = 1 - (age / 0.15) -- Fade out over lifetime				-- Base beam widths
-				local baseOuterWidth = beam.thickness * 9 * zoomScale
-				local baseInnerWidth = beam.thickness * 2.2 * zoomScale
+				local baseOuterWidth = beam.thickness * 9 * zoomScale * resScale
+				local baseInnerWidth = beam.thickness * 2.2 * zoomScale * resScale
 
 				-- Draw segments individually with variable brightness and thickness
 				for j = 1, #beam.segments - 1 do
@@ -2612,8 +2632,8 @@ local function DrawLaserBeams()
 				local alpha = 1 - (age / 0.15) -- Fade out over lifetime
 
 				-- Precompute beam widths once
-				local outerWidth = math.max(2, beam.thickness * 3 * zoomScale)
-				local innerWidth = math.max(1, beam.thickness * 1.5 * zoomScale)
+				local outerWidth = math.max(2 * resScale, beam.thickness * 3 * zoomScale * resScale)
+				local innerWidth = math.max(1 * resScale, beam.thickness * 1.5 * zoomScale * resScale)
 
 				-- Precompute vertex positions
 				local ox = beam.ox - wcx_cached
@@ -2649,7 +2669,7 @@ local function DrawLaserBeams()
 	end
 
 	-- Reset line width once at the end
-	glFunc.LineWidth(1)
+	glFunc.LineWidth(1 * resScale)
 end
 
 local function DrawIconShatters()
@@ -2748,7 +2768,7 @@ local function DrawIconShatters()
 					uvy2 = frag.uvy2,
 					r = shatter.teamR,
 					g = shatter.teamG,
-				b = shatter.teamB
+					b = shatter.teamB
 				}
 			end
 
@@ -2954,6 +2974,7 @@ end
 local function DrawExplosions()
 	if #cache.explosions == 0 then return end
 
+	local resScale = render.contentScale or 1
 	local i = 1
 	local wcx_cached = cameraState.wcx
 	local wcz_cached = cameraState.wcz
@@ -3098,7 +3119,7 @@ local function DrawExplosions()
 							local sparkDirX = particle.vx * 0.3
 							local sparkDirZ = particle.vz * 0.3
 
-							glFunc.LineWidth(math.max(1, particle.size * 0.8))
+							glFunc.LineWidth(math.max(1 * resScale, particle.size * 0.8 * resScale))
 							glFunc.Color(r, g, b, sparkAlpha)
 							glFunc.BeginEnd(glConst.LINES, function()
 								glFunc.Vertex(particle.x - sparkDirX, particle.z - sparkDirZ, 0)
@@ -3171,7 +3192,7 @@ local function DrawExplosions()
 						elseif explosion.radius > 80 then
 							lineWidth = 5
 						end
-						glFunc.LineWidth(lineWidth)
+						glFunc.LineWidth(lineWidth * resScale)
 						glFunc.Color(r, g, b, ringAlpha)
 						glFunc.BeginEnd(glConst.LINE_LOOP, function()
 							for j = 0, segments do
@@ -3209,7 +3230,7 @@ local function DrawExplosions()
 		end -- end of graduated visibility else block
 		end -- end of "if not explosion" else block
 	end
-	glFunc.LineWidth(1)
+	glFunc.LineWidth(1 * resScale)
 end
 
 local function GetUnitAtPoint(wx, wz)
@@ -4018,6 +4039,10 @@ function widget:Initialize()
 		if uDef.isBuilding then
 			cache.isBuilding[uDefID] = true
 		end
+		if uDef.customParams and uDef.customParams.iscommander then
+			cache.isCommander[uDefID] = true
+		end
+		cache.unitCost[uDefID] = uDef.metalCost + uDef.energyCost / 60
 		
 		-- Cache combat properties
 		if uDef.weapons and #uDef.weapons > 0 then
@@ -4397,7 +4422,24 @@ function widget:ViewResize()
 		-- Use mapEdgeMargin = 0 in minimap mode
 		config.mapEdgeMargin = 0
 
-		local mapRatio = Game.mapX / Game.mapY
+		-- Get current rotation to determine if dimensions should be swapped
+		-- When rotation is 90° or 270°, the map appears rotated so width/height swap visually
+		local minimapRotation = Spring.GetMiniMapRotation and Spring.GetMiniMapRotation() or 0
+		render.minimapRotation = minimapRotation
+		render.lastMinimapRotation = minimapRotation
+		
+		-- Check if rotation is near 90° or 270° (within a small tolerance)
+		local rotDeg = math.abs(minimapRotation * 180 / math.pi) % 360
+		local is90or270 = (rotDeg > 80 and rotDeg < 100) or (rotDeg > 260 and rotDeg < 280)
+		
+		-- Calculate map aspect ratio, swapping if rotated 90° or 270°
+		local mapRatio
+		if is90or270 then
+			mapRatio = Game.mapY / Game.mapX  -- Inverted for rotated view
+		else
+			mapRatio = Game.mapX / Game.mapY
+		end
+		
 		local maxHeight = config.minimapModeMaxHeight
 		local maxWidth = math.min(maxHeight * mapRatio, config.minimapModeMaxWidth * (render.vsx / render.vsy))
 		if maxWidth >= config.minimapModeMaxWidth * (render.vsx / render.vsy) then
@@ -4419,10 +4461,17 @@ function widget:ViewResize()
 		local contentHeight = usedHeight
 		
 		-- Calculate zoom based on which dimension is the limiting factor
-		local zoomForWidth = contentWidth / mapInfo.mapSizeX
-		local zoomForHeight = contentHeight / mapInfo.mapSizeZ
-		
-		local fitZoom = math.min(zoomForWidth, zoomForHeight) * 0.99	-- Reduce by 1% to ensure entire map is visible with a small margin
+		-- For rotated maps, the visible dimensions are swapped
+		local fitZoomX, fitZoomZ
+		if is90or270 then
+			-- When rotated 90/270, width constraint applies to Z, height to X
+			fitZoomX = contentHeight / mapInfo.mapSizeX
+			fitZoomZ = contentWidth / mapInfo.mapSizeZ
+		else
+			fitZoomX = contentWidth / mapInfo.mapSizeX
+			fitZoomZ = contentHeight / mapInfo.mapSizeZ
+		end
+		local fitZoom = math.min(fitZoomX, fitZoomZ) * 0.99	-- Reduce by 1% to ensure entire map is visible with a small margin
 
 		-- Store as both min and max zoom to lock at this level (no zooming in minimap mode)
 		minimapModeMinZoom = fitZoom
@@ -4472,6 +4521,15 @@ function widget:ViewResize()
 			uiState.savedDimensions = {}
 		end
 		render.dim.l, render.dim.r, render.dim.b, render.dim.t = math.floor(render.dim.l*render.vsx), math.floor(render.dim.r*render.vsx), math.floor(render.dim.b*render.vsy), math.floor(render.dim.t*render.vsy)
+		
+		-- Clamp oversized dimensions to max constraints (auto-correct errors from previous sessions)
+		local maxSize = math.floor(render.vsy * config.maxPanelSizeVsy)
+		if render.dim.r - render.dim.l > maxSize then
+			render.dim.r = render.dim.l + maxSize
+		end
+		if render.dim.t - render.dim.b > maxSize then
+			render.dim.b = render.dim.t - maxSize
+		end
 	end
 
 	render.widgetScale = (render.vsy / 2000) * render.uiScale
@@ -4557,6 +4615,15 @@ function widget:ViewResize()
 	-- Clamp camera position to respect margin after view resize
 	local pipWidth = render.dim.r - render.dim.l
 	local pipHeight = render.dim.t - render.dim.b
+	
+	-- Swap dimensions when rotated 90°/270°
+	if render.minimapRotation then
+		local rotDeg = math.abs(render.minimapRotation * 180 / math.pi) % 180
+		if rotDeg > 45 and rotDeg < 135 then
+			pipWidth, pipHeight = pipHeight, pipWidth
+		end
+	end
+	
 	local visibleWorldWidth = pipWidth / cameraState.zoom
 	local visibleWorldHeight = pipHeight / cameraState.zoom
 	local smallerVisibleDimension = math.min(visibleWorldWidth, visibleWorldHeight)
@@ -4765,7 +4832,8 @@ function widget:GetConfigData()
 end
 
 function widget:SetConfigData(data)
-	--Spring.Echo(data)
+	if not data or not data.gameID then return end	-- prevent loading empty/corrupted data
+
 	miscState.hadSavedConfig = (data and next(data) ~= nil) -- Mark that we have saved config data
 	miscState.savedGameID = data and data.gameID -- Store saved gameID for new game detection in Initialize
 
@@ -4791,8 +4859,19 @@ function widget:SetConfigData(data)
 			
 			-- Additional sanity check: ensure dimensions are within screen bounds
 			local minSize = math.floor(config.minPanelSize * render.widgetScale)
+			local maxSize = math.floor(render.vsy * config.maxPanelSizeVsy)
 			local windowWidth = tempR - tempL
 			local windowHeight = tempT - tempB
+			
+			-- Clamp oversized dimensions to max constraints
+			if windowWidth > maxSize then
+				tempR = tempL + maxSize
+				windowWidth = maxSize
+			end
+			if windowHeight > maxSize then
+				tempB = tempT - maxSize
+				windowHeight = maxSize
+			end
 			
 			if windowWidth >= minSize and windowHeight >= minSize and
 			   tempL >= 0 and tempR <= render.vsx and
@@ -5068,7 +5147,8 @@ local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 	end
 
 	gl.Scissor(render.dim.l, render.dim.b, render.dim.r - render.dim.l, render.dim.t - render.dim.b)
-	glFunc.LineWidth(1.0)
+	local resScale = render.contentScale or 1
+	glFunc.LineWidth(1.0 * resScale)
 	gl.LineStipple("springdefault")
 
 	-- Collect all line segments and markers into batches (massively reduces closure allocations)
@@ -5182,7 +5262,6 @@ local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 
 	-- Draw all markers in ONE gl.BeginEnd call
 	if markerCount > 0 then
-		local resScale = render.contentScale or 1
 		local markerSize = 3 * resScale
 		glFunc.BeginEnd(GL.QUADS, function()
 			for i = 1, markerCount do
@@ -5531,7 +5610,17 @@ local function DrawIcons()
 	local scaleFactor = (minimapIconScale - 1.0) * 0.22
 	local effectiveScale = 1.0 + scaleFactor * (1.0 - zoomNormalized) * (1.0 - zoomNormalized)
 	
-	local iconRadiusZoomDistMult = iconRadiusZoom * distMult * effectiveScale
+	-- Compensate for map size: icons should maintain similar pixel size regardless of map size
+	-- The engine minimap renders icons at a fixed pixel size, but PIP icon size is proportional
+	-- to zoom (= pipPixels/mapSize), causing smaller icons on larger maps.
+	-- Use sqrt scaling for a gentler compensation that doesn't over-inflate on huge maps.
+	local mapSizeRef = 10240  -- Reference map size: 10x10 map (10 * 1024 elmos)
+	local mapSizeMax = math.max(mapInfo.mapSizeX, mapInfo.mapSizeZ)
+	local mapSizeCompensation = math.sqrt(mapSizeMax / mapSizeRef)
+	-- Only apply when zoomed out (near min zoom), fade out as we zoom in
+	local mapSizeScale = 1.0 + (mapSizeCompensation - 1.0) * (1.0 - zoomNormalized) * (1.0 - zoomNormalized)
+	
+	local iconRadiusZoomDistMult = iconRadiusZoom * distMult * effectiveScale * mapSizeScale
 
 	-- Check if we should use unitpics instead of icons
 	local useUnitpics = config.showUnitpics and cameraState.zoom >= config.unitpicZoomThreshold
@@ -5562,14 +5651,20 @@ local function DrawIcons()
 		end
 		unitpicSizes[k] = 0
 	end
+	local defaultStructureCount = 0
 	local defaultCount = 0
+	local defaultCommanderCount = 0
 	local defaultElevatedCount = 0
 
-	-- Cache for elevated key lookups to avoid string concatenation per-icon
+	-- Cache for key lookups to avoid string concatenation per-icon
 	local elevatedKeyCache = pools.elevatedKeyCache
+	local commanderKeyCache = pools.commanderKeyCache
+	local structureKeyCache = pools.structureKeyCache
 	local iconCount = #drawData.iconTeam
 	local iconUdef = drawData.iconUdef
 	local cacheCanFly = cache.canFly
+	local cacheIsBuilding = cache.isBuilding
+	local cacheIsCommander = cache.isCommander
 	local cacheUnitIcon = cache.unitIcon
 	local cacheUnitPic = cache.unitPic
 	
@@ -5577,17 +5672,33 @@ local function DrawIcons()
 		local udef = iconUdef[i]
 		-- Aircraft are always drawn on top (use unitdef, not current Y position)
 		local isElevated = udef and cacheCanFly[udef]
+		-- Commanders drawn above ground units but below air
+		local isCommander = not isElevated and udef and cacheIsCommander[udef]
+		-- Structures drawn below mobile ground units
+		local isStructure = not isElevated and not isCommander and udef and cacheIsBuilding[udef]
 		
 		if udef and cacheUnitIcon[udef] then
 			local bitmap = cacheUnitIcon[udef].bitmap
-			-- Use separate texture groups for ground and elevated units
-			-- Use cached elevated key to avoid string concatenation
+			-- Use separate texture groups for structure, ground, commander, and elevated units
+			-- Use cached key to avoid string concatenation
 			local groupKey
 			if isElevated then
 				groupKey = elevatedKeyCache[bitmap]
 				if not groupKey then
 					groupKey = bitmap .. "_elevated"
 					elevatedKeyCache[bitmap] = groupKey
+				end
+			elseif isCommander then
+				groupKey = commanderKeyCache[bitmap]
+				if not groupKey then
+					groupKey = bitmap .. "_commander"
+					commanderKeyCache[bitmap] = groupKey
+				end
+			elseif isStructure then
+				groupKey = structureKeyCache[bitmap]
+				if not groupKey then
+					groupKey = bitmap .. "_structure"
+					structureKeyCache[bitmap] = groupKey
 				end
 			else
 				groupKey = bitmap
@@ -5613,6 +5724,18 @@ local function DrawIcons()
 						picGroupKey = unitpic .. "_elevated"
 						elevatedKeyCache[unitpic] = picGroupKey
 					end
+				elseif isCommander then
+					picGroupKey = commanderKeyCache[unitpic]
+					if not picGroupKey then
+						picGroupKey = unitpic .. "_commander"
+						commanderKeyCache[unitpic] = picGroupKey
+					end
+				elseif isStructure then
+					picGroupKey = structureKeyCache[unitpic]
+					if not picGroupKey then
+						picGroupKey = unitpic .. "_structure"
+						structureKeyCache[unitpic] = picGroupKey
+					end
 				else
 					picGroupKey = unitpic
 				end
@@ -5630,73 +5753,112 @@ local function DrawIcons()
 		else
 			if isElevated then
 				defaultElevatedCount = defaultElevatedCount + 1
-				-- Store elevated defaults at end of array (after ground defaults)
-				defaultIconIndices[iconCount + defaultElevatedCount] = i
+				defaultIconIndices[iconCount * 3 + defaultElevatedCount] = i
+			elseif isCommander then
+				defaultCommanderCount = defaultCommanderCount + 1
+				defaultIconIndices[iconCount * 2 + defaultCommanderCount] = i
+			elseif isStructure then
+				defaultStructureCount = defaultStructureCount + 1
+				defaultIconIndices[defaultStructureCount] = i
 			else
 				defaultCount = defaultCount + 1
-				defaultIconIndices[defaultCount] = i
+				defaultIconIndices[iconCount + defaultCount] = i
 			end
 		end
 	end
 
-	-- Clear leftover default indices
-	for i = defaultCount + defaultElevatedCount + 1, #defaultIconIndices do
+	-- Clear leftover default indices in each tier's region
+	for i = defaultStructureCount + 1, iconCount do
 		defaultIconIndices[i] = nil
 	end
-	-- Also clear the gap between ground and elevated if any
-	for i = defaultCount + 1, iconCount do
-		if i < iconCount + 1 then
-			-- This space is used for elevated indices, don't clear
-		end
+	for i = iconCount + defaultCount + 1, iconCount * 2 do
+		defaultIconIndices[i] = nil
 	end
-	-- Sort each texture group by screen Y (ascending) for proper depth ordering
-	-- Lower Y (further back) drawn first, higher Y (closer/in front) drawn on top
-	-- Use unit ID as tiebreaker for stable sorting (prevents z-fighting flicker)
+	for i = iconCount * 2 + defaultCommanderCount + 1, iconCount * 3 do
+		defaultIconIndices[i] = nil
+	end
+	for i = iconCount * 3 + defaultElevatedCount + 1, #defaultIconIndices do
+		defaultIconIndices[i] = nil
+	end
+	-- Sort each texture group by cost (ascending = cheap first, expensive on top)
+	-- Then Y position, then unit ID as tiebreaker for stable sorting
 	local iconY = drawData.iconY
 	local iconUnitID = drawData.iconUnitID
+	-- Build per-icon cost lookup from unitdef cache (avoids table creation per frame)
+	local iconCost = pools.iconCost
+	for i = 1, iconCount do
+		local udef = iconUdef[i]
+		iconCost[i] = udef and cache.unitCost[udef] or 0
+	end
 	-- Set upvalues for shared comparator (avoids closure allocation per sort call)
 	sortIconY = iconY
 	sortIconUnitID = iconUnitID
+	sortIconCost = iconCost
 	for _, indices in pairs(iconsByTexture) do
 		if #indices > 1 then
 			table.sort(indices, iconSortComparator)
 		end
 	end
-	-- Sort unitpic groups by Y as well
+	-- Sort unitpic groups as well
 	for _, indices in pairs(unitpicsByTexture) do
 		if #indices > 1 then
 			table.sort(indices, iconSortComparator)
 		end
 	end
-	-- Sort default ground icons (indices 1 to defaultCount)
+	-- Sort default structure icons (indices 1 to defaultStructureCount)
+	if defaultStructureCount > 1 then
+		local structureDefaults = pools.structureDefaults
+		for i = 1, defaultStructureCount do
+			structureDefaults[i] = defaultIconIndices[i]
+		end
+		for i = defaultStructureCount + 1, #structureDefaults do
+			structureDefaults[i] = nil
+		end
+		table.sort(structureDefaults, iconSortComparator)
+		for i = 1, defaultStructureCount do
+			defaultIconIndices[i] = structureDefaults[i]
+		end
+	end
+	-- Sort default ground mobile icons (indices iconCount+1 to iconCount+defaultCount)
 	if defaultCount > 1 then
-		-- Use pooled temp array for sorting ground defaults
 		local groundDefaults = pools.groundDefaults
 		for i = 1, defaultCount do
-			groundDefaults[i] = defaultIconIndices[i]
+			groundDefaults[i] = defaultIconIndices[iconCount + i]
 		end
-		-- Clear excess entries from previous frame
 		for i = defaultCount + 1, #groundDefaults do
 			groundDefaults[i] = nil
 		end
 		table.sort(groundDefaults, iconSortComparator)
 		for i = 1, defaultCount do
-			defaultIconIndices[i] = groundDefaults[i]
+			defaultIconIndices[iconCount + i] = groundDefaults[i]
 		end
 	end
-	-- Sort default elevated icons (indices iconCount+1 to iconCount+defaultElevatedCount)
+	-- Sort default commander icons (indices iconCount*2+1 to iconCount*2+defaultCommanderCount)
+	if defaultCommanderCount > 1 then
+		local commanderDefaults = pools.commanderDefaults
+		for i = 1, defaultCommanderCount do
+			commanderDefaults[i] = defaultIconIndices[iconCount * 2 + i]
+		end
+		for i = defaultCommanderCount + 1, #commanderDefaults do
+			commanderDefaults[i] = nil
+		end
+		table.sort(commanderDefaults, iconSortComparator)
+		for i = 1, defaultCommanderCount do
+			defaultIconIndices[iconCount * 2 + i] = commanderDefaults[i]
+		end
+	end
+	-- Sort default elevated icons (indices iconCount*3+1 to iconCount*3+defaultElevatedCount)
 	if defaultElevatedCount > 1 then
 		local elevatedDefaults = pools.elevatedDefaults
 		for i = 1, defaultElevatedCount do
-			elevatedDefaults[i] = defaultIconIndices[iconCount + i]
+			elevatedDefaults[i] = defaultIconIndices[iconCount * 3 + i]
 		end
-		-- Clear excess entries from previous frame
 		for i = defaultElevatedCount + 1, #elevatedDefaults do
 			elevatedDefaults[i] = nil
 		end
 		table.sort(elevatedDefaults, iconSortComparator)
 		for i = 1, defaultElevatedCount do
-			defaultIconIndices[iconCount + i] = elevatedDefaults[i]
+			defaultIconIndices[iconCount * 3 + i] = elevatedDefaults[i]
 		end
 	end
 
@@ -5880,16 +6042,34 @@ local function DrawIcons()
 		
 		local isRotated = render.minimapRotation ~= 0
 		
-		-- PASS 1: Draw ground unitpics (sorted by Y within each group)
+		-- PASS 1: Draw structure unitpics (sorted by cost within each group)
 		for groupKey, indices in pairs(unitpicsByTexture) do
-			if not strFind(groupKey, "_elevated", 1, true) then
+			if strFind(groupKey, "_structure", 1, true) then
 				for j = 1, #indices do
 					drawUnitpic(indices[j], isRotated)
 				end
 			end
 		end
 		
-		-- PASS 2: Draw elevated unitpics on top (sorted by Y within each group)
+		-- PASS 2: Draw ground mobile unitpics
+		for groupKey, indices in pairs(unitpicsByTexture) do
+			if not strFind(groupKey, "_elevated", 1, true) and not strFind(groupKey, "_commander", 1, true) and not strFind(groupKey, "_structure", 1, true) then
+				for j = 1, #indices do
+					drawUnitpic(indices[j], isRotated)
+				end
+			end
+		end
+		
+		-- PASS 3: Draw commander unitpics on top of ground
+		for groupKey, indices in pairs(unitpicsByTexture) do
+			if strFind(groupKey, "_commander", 1, true) then
+				for j = 1, #indices do
+					drawUnitpic(indices[j], isRotated)
+				end
+			end
+		end
+		
+		-- PASS 4: Draw elevated unitpics on top
 		for groupKey, indices in pairs(unitpicsByTexture) do
 			if strFind(groupKey, "_elevated", 1, true) then
 				for j = 1, #indices do
@@ -6264,27 +6444,45 @@ local function DrawIcons()
 		
 		local isRotated = render.minimapRotation ~= 0
 		
-		-- PASS 1: Draw ground units (texture batched)
+		-- PASS 1: Draw structure units (texture batched)
 		for groupKey, indices in pairs(iconsByTexture) do
-			-- Skip elevated groups in first pass (use cached strFind)
-			if not strFind(groupKey, "_elevated", 1, true) then
+			if strFind(groupKey, "_structure", 1, true) then
+				local texture = strGsub(groupKey, "_structure", "")
+				drawIconBatch(texture, indices, isRotated)
+			end
+		end
+		-- Draw structure default icons
+		drawDefaultIconBatch(1, defaultStructureCount, isRotated)
+		
+		-- PASS 2: Draw ground mobile units (texture batched)
+		for groupKey, indices in pairs(iconsByTexture) do
+			if not strFind(groupKey, "_elevated", 1, true) and not strFind(groupKey, "_commander", 1, true) and not strFind(groupKey, "_structure", 1, true) then
 				local texture = groupKey  -- Ground groups use texture as key directly
 				drawIconBatch(texture, indices, isRotated)
 			end
 		end
 		-- Draw ground default icons
-		drawDefaultIconBatch(1, defaultCount, isRotated)
+		drawDefaultIconBatch(iconCount + 1, defaultCount, isRotated)
 		
-		-- PASS 2: Draw elevated units on top (texture batched)
+		-- PASS 3: Draw commander units on top of ground (texture batched)
 		for groupKey, indices in pairs(iconsByTexture) do
-			-- Only draw elevated groups in second pass
+			if strFind(groupKey, "_commander", 1, true) then
+				local texture = strGsub(groupKey, "_commander", "")
+				drawIconBatch(texture, indices, isRotated)
+			end
+		end
+		-- Draw commander default icons
+		drawDefaultIconBatch(iconCount * 2 + 1, defaultCommanderCount, isRotated)
+		
+		-- PASS 4: Draw elevated units on top (texture batched)
+		for groupKey, indices in pairs(iconsByTexture) do
 			if strFind(groupKey, "_elevated", 1, true) then
-				local texture = strGsub(groupKey, "_elevated", "")  -- Remove suffix to get actual texture
+				local texture = strGsub(groupKey, "_elevated", "")
 				drawIconBatch(texture, indices, isRotated)
 			end
 		end
 		-- Draw elevated default icons
-		drawDefaultIconBatch(iconCount + 1, defaultElevatedCount, isRotated)
+		drawDefaultIconBatch(iconCount * 3 + 1, defaultElevatedCount, isRotated)
 
 	end  -- End of "if not useUnitpics" block
 
@@ -6650,8 +6848,8 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 			if teamID then
 				local r, g, b = Spring.GetTeamColor(teamID)
 				-- Scale cursor size: larger at low zoom, stays reasonable at high zoom
-				local cursorSize = render.vsy * 0.0073
-				Spring.Echo()
+				local resScale = config.contentResolutionScale or 1
+				local cursorSize = render.vsy * 0.0073 * resScale
 				-- Draw crosshair lines to PIP boundaries (stop at cursor edge)
 				--glFunc.Color(r*1.5+0.5, g*1.5+0.5, b*1.5+0.5, 0.08)
 				--glFunc.LineWidth(render.vsy / 600)
@@ -6686,7 +6884,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 
 				-- Draw black outline first (thicker)
 				glFunc.Color(0, 0, 0, 0.66)
-				glFunc.LineWidth(render.vsy / 500 + 2)
+				glFunc.LineWidth((render.vsy / 500 + 2) * resScale)
 				for _, arc in ipairs(arcs) do
 					glFunc.BeginEnd(GL.LINE_STRIP, function()
 						local startAngle, endAngle = arc[1], arc[2]
@@ -6703,7 +6901,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 
 				-- Draw colored arcs on top
 				glFunc.Color((r*1.3)+0.66, (g*1.3)+0.66, (b*1.3)+0.66, 1)
-				glFunc.LineWidth(render.vsy / 500)
+				glFunc.LineWidth((render.vsy / 500) * resScale)
 				for _, arc in ipairs(arcs) do
 					glFunc.BeginEnd(GL.LINE_STRIP, function()
 						local startAngle, endAngle = arc[1], arc[2]
@@ -6978,12 +7176,14 @@ end
 -- Helper function to draw water and LOS overlays
 local function DrawWaterAndLOSOverlays()
 	-- Draw water overlay using shader
-	if mapInfo.hasWater and waterShader and not mapInfo.voidWater then
+	if mapInfo.hasWater and waterShader then
 		gl.UseShader(waterShader)
 		
-		-- Set water color based on lava/water
+		-- Set water color based on lava/water/void
 		local r, g, b, a
-		if mapInfo.isLava then
+		if mapInfo.voidWater then
+			r, g, b, a = 0, 0, 0, 1
+		elseif mapInfo.isLava then
 			r, g, b, a = 0.22, 0, 0, 1
 		else
 			r, g, b, a = 0.08, 0.11, 0.22, 0.5
@@ -8472,11 +8672,13 @@ local function DrawTrackedPlayerMinimap()
 	end)
 	glFunc.Texture(false)
 
-	-- Draw water/lava overlay
-	if mapInfo.hasWater and waterShader and not mapInfo.voidWater then
+	-- Draw water/lava/void overlay
+	if mapInfo.hasWater and waterShader then
 		gl.UseShader(waterShader)
 		local r, g, b, a
-		if mapInfo.isLava then
+		if mapInfo.voidWater then
+			r, g, b, a = 0, 0, 0, 1
+		elseif mapInfo.isLava then
 			r, g, b, a = 0.22, 0, 0, 1
 		else
 			r, g, b, a = 0.08, 0.11, 0.22, 0.5
@@ -8749,9 +8951,14 @@ local function UpdateR2TContent(currentTime, pipUpdateInterval, pipWidth, pipHei
 			render.contentScale = resScale
 			RecalculateWorldCoordinates()
 			RecalculateGroundTextureCoordinates()
-			RenderPipContents()
 
-			-- Restore original values
+			-- Use pcall so restore always runs even if RenderPipContents errors
+			local ok, err = pcall(RenderPipContents)
+			if not ok then
+				Spring.Echo("[PIP] Render error: " .. tostring(err))
+			end
+
+			-- Restore original values (must always execute to prevent corrupted state)
 			render.contentScale = 1
 			render.dim.l, render.dim.r, render.dim.b, render.dim.t = pools.savedDim.l, pools.savedDim.r, pools.savedDim.b, pools.savedDim.t
 			RecalculateWorldCoordinates()
@@ -10090,6 +10297,41 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 end
 
 function widget:Update(dt)
+	-- In minimap mode, check if rotation changed and recalculate dimensions if needed
+	if isMinimapMode then
+		local currentRotation = Spring.GetMiniMapRotation and Spring.GetMiniMapRotation() or 0
+		
+		-- Only care about rotation category changes (0°/180° vs 90°/270°)
+		local function getRotationCategory(rot)
+			local rotDeg = math.abs(rot * 180 / math.pi) % 360
+			if (rotDeg > 80 and rotDeg < 100) or (rotDeg > 260 and rotDeg < 280) then
+				return 1  -- 90° or 270°
+			else
+				return 0  -- 0° or 180°
+			end
+		end
+		
+		local currentCategory = getRotationCategory(currentRotation)
+		local lastCategory = getRotationCategory(render.lastMinimapRotation or 0)
+		
+		if currentCategory ~= lastCategory then
+			-- Rotation category changed, recalculate dimensions
+			render.lastMinimapRotation = currentRotation
+			-- Force zoom recalculation by temporarily clearing the restored flag
+			local wasRestored = miscState.minimapCameraRestored
+			miscState.minimapCameraRestored = false
+			widget:ViewResize()  -- This will recalculate dimensions with the new rotation
+			miscState.minimapCameraRestored = wasRestored
+			-- Snap zoom and position instantly (no smooth interpolation)
+			cameraState.zoom = cameraState.targetZoom
+			cameraState.wcx = cameraState.targetWcx
+			cameraState.wcz = cameraState.targetWcz
+		else
+			-- Just update the stored rotation for rendering
+			render.minimapRotation = currentRotation
+		end
+	end
+	
 	-- In minimap mode, ensure the old minimap widget stays disabled
 	-- (it may load after us due to widget layer ordering)
 	if isMinimapMode and not miscState.minimapWidgetDisabled then
@@ -10454,8 +10696,21 @@ function widget:Update(dt)
 		end
 
 		-- Calculate bounds for CURRENT zoom level
+		-- When rotated 90°/270°, swap pip dimensions for world coordinate calculations
 		local pipWidth = render.dim.r - render.dim.l
 		local pipHeight = render.dim.t - render.dim.b
+		
+		-- Check if we're rotated 90° or 270°
+		local isRotated90 = false
+		if render.minimapRotation then
+			local rotDeg = math.abs(render.minimapRotation * 180 / math.pi) % 180
+			if rotDeg > 45 and rotDeg < 135 then
+				isRotated90 = true
+				-- Swap dimensions for world calculations when rotated
+				pipWidth, pipHeight = pipHeight, pipWidth
+			end
+		end
+		
 		local currentVisibleWorldWidth = pipWidth / cameraState.zoom
 		local currentVisibleWorldHeight = pipHeight / cameraState.zoom
 		local currentSmallerDimension = math.min(currentVisibleWorldWidth, currentVisibleWorldHeight)
@@ -10589,6 +10844,14 @@ function widget:Update(dt)
 		-- Use current zoom for current position, target zoom for target position
 		local pipWidth = render.dim.r - render.dim.l
 		local pipHeight = render.dim.t - render.dim.b
+		
+		-- Swap dimensions when rotated 90°/270°
+		if render.minimapRotation then
+			local rotDeg = math.abs(render.minimapRotation * 180 / math.pi) % 180
+			if rotDeg > 45 and rotDeg < 135 then
+				pipWidth, pipHeight = pipHeight, pipWidth
+			end
+		end
 
 		-- Clamp current animated position
 		local currentVisibleWorldWidth = pipWidth / cameraState.zoom
@@ -10626,6 +10889,14 @@ function widget:Update(dt)
 		-- Use current zoom for current position, target zoom for target position
 		local pipWidth = render.dim.r - render.dim.l
 		local pipHeight = render.dim.t - render.dim.b
+		
+		-- Swap dimensions when rotated 90°/270°
+		if render.minimapRotation then
+			local rotDeg = math.abs(render.minimapRotation * 180 / math.pi) % 180
+			if rotDeg > 45 and rotDeg < 135 then
+				pipWidth, pipHeight = pipHeight, pipWidth
+			end
+		end
 
 		-- Clamp current animated position
 		local currentVisibleWorldWidth = pipWidth / cameraState.zoom
@@ -12317,18 +12588,30 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 		local maxSize = math.floor(render.vsy * config.maxPanelSizeVsy)
 		
 		-- Apply width constraint
-		if render.dim.r+dx - render.dim.l >= minSize then 
-			local newWidth = render.dim.r + dx - render.dim.l
-			if newWidth <= maxSize then
+		local currentWidth = render.dim.r - render.dim.l
+		local newWidth = render.dim.r + dx - render.dim.l
+		if newWidth >= minSize then
+			-- Allow resize if within max, OR if shrinking toward max (window was oversized)
+			if newWidth <= maxSize or newWidth < currentWidth then
 				render.dim.r = render.dim.r + dx
+				-- Clamp to maxSize if still above it after shrink
+				if render.dim.r - render.dim.l > maxSize then
+					render.dim.r = render.dim.l + maxSize
+				end
 			end
 		end
 		
 		-- Apply height constraint  
-		if render.dim.t-dy - render.dim.b >= minSize then 
-			local newHeight = render.dim.t - dy - render.dim.b
-			if newHeight <= maxSize then
+		local currentHeight = render.dim.t - render.dim.b
+		local newHeight = render.dim.t - dy - render.dim.b
+		if newHeight >= minSize then
+			-- Allow resize if within max, OR if shrinking toward max (window was oversized)
+			if newHeight <= maxSize or newHeight < currentHeight then
 				render.dim.b = render.dim.b + dy
+				-- Clamp to maxSize if still above it after shrink
+				if render.dim.t - render.dim.b > maxSize then
+					render.dim.b = render.dim.t - maxSize
+				end
 			end
 		end
 		
@@ -13115,11 +13398,8 @@ function widget:MouseRelease(mx, my, mButton)
 						local currentHeight = curCamState.height or curCamState.dist or 2000
 						local currentZoom = referenceHeight / currentHeight
 						
-						-- Apply zoom offset (positive = zoom in more since PIP is small part of screen)
-						local adjustedZoom = currentZoom + config.minimapMiddleClickZoomOffset
-						
 						-- Clamp to min/max bounds
-						targetZoom = math.max(config.minimapMiddleClickZoomMin, math.min(config.minimapMiddleClickZoomMax, adjustedZoom))
+						targetZoom = math.max(config.minimapMiddleClickZoomMin, math.min(config.minimapMiddleClickZoomMax, currentZoom))
 						
 						-- Only adjust if actually changed
 						if math.abs(targetZoom - currentZoom) < 0.01 then
