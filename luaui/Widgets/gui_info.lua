@@ -913,6 +913,24 @@ end
 local killCountCache = {}
 local killCountCacheTime = 0
 
+-- Get the target type if any units of this unitDefID have a persistent target set
+local function getTargetTypeForUnitDef(unitsSortedForDef)
+	if not WG['unittargeting'] then
+		return nil
+	end
+
+	-- Check if any unit of this type has a persistent target
+	for i = 1, #unitsSortedForDef do
+		local unitID = unitsSortedForDef[i]
+		local targetDefID = WG['unittargeting'].getTargetType(unitID)
+		if targetDefID then
+			return targetDefID
+		end
+	end
+
+	return nil
+end
+
 local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 	if not usedZoom then
 		usedZoom = defaultCellZoom
@@ -976,6 +994,49 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 		--font2:Begin(useRenderToTexture)
 		font2:Print(cachedColorStrings.white..kills, cellRect[cellID][3] - (size * 0.5)+(cellPadding*0.5), cellRect[cellID][4] -(cellPadding*0.5)- (size * 0.5) - (fontSize * 0.19), fontSize * 0.66, "oc")
 		--font2:End()
+	end
+
+	-- persistent target type indicator (bottom-left corner)
+	if selUnitsSorted and selUnitsSorted[uDefID] then
+		local targetDefID = getTargetTypeForUnitDef(selUnitsSorted[uDefID])
+		if targetDefID then
+			local size = math_floor((cellRect[cellID][3] - (cellRect[cellID][1] + (cellPadding*0.5)))*0.33)
+			local targetIconPadding = cellPadding * 0.5
+
+			-- Draw semi-transparent background for contrast
+			glColor(0, 0, 0, 0.5)
+			RectRound(
+				cellRect[cellID][1] + targetIconPadding,
+				cellRect[cellID][2] + targetIconPadding,
+				cellRect[cellID][1] + targetIconPadding + size,
+				cellRect[cellID][2] + targetIconPadding + size,
+				size * 0.1
+			)
+
+			-- Draw target unit thumbnail
+			glColor(1, 1, 1, 0.85)
+			glTexture("#" .. targetDefID)
+			glTexRect(
+				cellRect[cellID][1] + targetIconPadding,
+				cellRect[cellID][2] + targetIconPadding,
+				cellRect[cellID][1] + targetIconPadding + size,
+				cellRect[cellID][2] + targetIconPadding + size
+			)
+			glTexture(false)
+
+			-- Draw red border overlay to indicate "targeting"
+			glColor(1, 0.3, 0.3, 0.6)
+			RectRound(
+				cellRect[cellID][1] + targetIconPadding,
+				cellRect[cellID][2] + targetIconPadding,
+				cellRect[cellID][1] + targetIconPadding + size,
+				cellRect[cellID][2] + targetIconPadding + size,
+				size * 0.1, 0, 0, 0, 0,
+				{0, 0, 0, 0}, {1, 0.3, 0.3, 0.6}
+			)
+
+			glColor(1, 1, 1, 1)
+		end
 	end
 end
 
@@ -1601,7 +1662,13 @@ local function drawUnitInfo()
 					end
 				end
 			end
-
+			-- persistent target
+			if displayUnitID and WG['unittargeting'] then
+				local targetDefID = WG['unittargeting'].getTargetType(displayUnitID)
+				if targetDefID then
+					addTextInfo("Targeting: ", unitDefInfo[targetDefID].translatedHumanName)
+				end
+			end
 			-- basic dps display
 			if mindps and mindps > 0 and mindps == maxdps then
 				local dps = round(mindps/ reloadTimeSpeedup, 0)
