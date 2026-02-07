@@ -87,6 +87,7 @@ local DonatorAINames = {
     "Shadowisper",
     "Sinbearer",
     "SkyFire",
+    "Snowpocalypse", --$40
     "Sovgut",
     "Spanker",
     "Spooler", --$40

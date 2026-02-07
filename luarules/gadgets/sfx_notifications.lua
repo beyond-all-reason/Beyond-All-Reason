@@ -267,7 +267,7 @@ else
 					end
 				end
 			end
-			if not isSpec then
+			if (not isSpec) and (unitTeam ~= myTeamID) then
 				if numTeams > 1 and not playingAsHorde then
 					local players =  PlayersInAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
 					for ct, player in pairs (players) do

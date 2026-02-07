@@ -1704,21 +1704,17 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	-- Deduplicate buildoptions (various modoptions or later mods can add the same units)
-	-- Multiple unit defs can share the same table reference, so we create a new table for each
-	if uDef.buildoptions and #uDef.buildoptions > 0 then
-		local seen = {}
-		local dedupedBuildoptions = {}
-		
-		for i = 1, #uDef.buildoptions do
-			local unitName = uDef.buildoptions[i]
-			if type(unitName) == "string" and unitName ~= "" and not seen[unitName] then
-				seen[unitName] = true
-				dedupedBuildoptions[#dedupedBuildoptions + 1] = unitName
+	if uDef.buildoptions and next(uDef.buildoptions) then
+		-- Remove invalid unit defs.
+		for index, option in pairs(uDef.buildoptions) do
+			if not UnitDefs[option] then
+				Spring.Log("AllDefs", LOG.INFO, "Removed buildoption (unit not loaded?): " .. tostring(option))
+				uDef.buildoptions[index] = nil
 			end
 		end
-		
-		uDef.buildoptions = dedupedBuildoptions
+		-- Deduplicate buildoptions (various modoptions or later mods can add the same units)
+		-- Multiple unit defs can share the same table reference, so we create a new table for each
+		uDef.buildoptions = table.getUniqueArray(uDef.buildoptions)
 	end
 end
 

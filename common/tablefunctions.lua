@@ -186,6 +186,45 @@ if not table.invert then
 	end
 end
 
+if not table.getUniqueArray then
+	local sort, floor = table.sort, math.floor
+
+	local lookup = {}
+	local function sortLookup(a, b)
+		return lookup[a] < lookup[b]
+	end
+
+	---Produces a new table that contains no duplicate and/or non-sequence-able entries.
+	---
+	---Values with non-integer keys are _ignored_. Values with integer keys are _sorted_.
+	---
+	---The final/sorted array forms a compact sequence with no gaps so can have new keys.
+	---@param tbl table may contain array, hash, or mixed data and can have gaps
+	---@return table sequence containing only unique entries, ordered by their integer indices
+	function table.getUniqueArray(tbl)
+		local unique, count = {}, 0
+		local invert = {}
+
+		-- Iterate the hash part to pull hashed integer keys back into the array part.
+		for index, option in pairs(tbl) do
+			if type(index) == "number" and index >= 1 and index == floor(index) then
+				if not invert[option] then
+					count = count + 1
+					unique[count] = option
+					invert[option] = index
+				elseif invert[option] > index then
+					invert[option] = index
+				end
+			end
+		end
+
+		lookup = invert
+		sort(unique, sortLookup)
+
+		return unique
+	end
+end
+
 if not table.append then
 	function table.append(appendTarget, appendData)
 		for _, value in pairs(appendData) do

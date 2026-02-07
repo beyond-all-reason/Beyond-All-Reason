@@ -1382,10 +1382,16 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 end
 
 
+local inUnitCommand = false
+
 function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
     --if carrierMetaList[unitID] and carrierMetaList[unitID].ignorenextcommand then
      --   carrierMetaList[unitID].ignorenextcommand = false
 	--else
+	if inUnitCommand then
+		return
+	end
+	inUnitCommand = true
 	if carrierMetaList[unitID] and cmdID == CMD.STOP then
 		carrierMetaList[unitID].subUnitsCommand.cmdID = nil
 	 	carrierMetaList[unitID].subUnitsCommand.cmdParams = nil
@@ -1404,6 +1410,7 @@ function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmd
 		local f = Spring.GetGameFrame()
 		UpdateCarrier(unitID, carrierMetaList[unitID], f)
 	end
+	inUnitCommand = false
 end
 
 local function DockUnits(dockingqueue, queuestart, queueend)

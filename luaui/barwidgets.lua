@@ -1742,6 +1742,13 @@ end
 
 function widgetHandler:DrawInMiniMap(xSize, ySize)
 	tracy.ZoneBeginN("W:DrawInMiniMap")
+	-- When PIP minimap replacement is active, skip normal DrawInMiniMap calls
+	-- The PIP widget will call these functions itself with proper coordinate transformations
+	-- during its render-to-texture pass in RenderPipContents()
+	if widgetHandler.minimap and widgetHandler.minimap.isPipMinimapActive and widgetHandler.minimap.isPipMinimapActive() then
+		tracy.ZoneEnd()
+		return
+	end
 	for _, w in r_ipairs(self.DrawInMiniMapList) do
 		w:DrawInMiniMap(xSize, ySize)
 	end
@@ -2554,10 +2561,10 @@ function widgetHandler:UnitLeftAir(unitID, unitDefID, unitTeam)
 	return
 end
 
-function widgetHandler:UnitSeismicPing(x, y, z, strength, allyTeam)
+function widgetHandler:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
 	tracy.ZoneBeginN("W:UnitSeismicPing")
 	for _, w in ipairs(self.UnitSeismicPingList) do
-		w:UnitSeismicPing(x, y, z, strength, allyTeam)
+		w:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
 	end
 	tracy.ZoneEnd()
 	return
