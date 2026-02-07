@@ -268,10 +268,7 @@ local customValidators = {
 			return { { message = "Unexpected parameter type, expected string or number, got " .. actualType } }
 		end
 
-		if actualType == 'number' then
-			facing = facing + 1
-		end
-		local validFacings = { true, true, true, true, n = true, s = true, e = true, w = true, north = true, south = true, east = true, west = true }
+		local validFacings = { [0] = true, [1] = true, [2] = true, [3] = true, n = true, s = true, e = true, w = true, north = true, south = true, east = true, west = true }
 		if not validFacings[facing] then
 			return { { message = "Invalid facing: " .. facing .. ". Must be one of 'n', 's', 'e', 'w', 'north', 'south', 'east', 'west'." } }
 		end
