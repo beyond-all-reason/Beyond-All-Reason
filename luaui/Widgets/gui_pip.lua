@@ -19,6 +19,7 @@ pipNumber = pipNumber or 1
 -- Special mode flags
 local isMinimapMode = (pipNumber == 0)  -- When pipNumber == 0, act as minimap replacement
 local minimapModeMinZoom = nil  -- Calculated zoom to fit entire map (only used in minimap mode)
+local pipModeMinZoom = nil  -- Dynamic min zoom calculated from PIP/map dimensions (normal PIP mode)
 
 -- Minimap mode API upvalues (updated each frame, avoids per-frame closure allocations)
 local minimapApiNormLeft, minimapApiNormRight, minimapApiNormBottom, minimapApiNormTop = 0, 1, 1, 0
@@ -35,7 +36,7 @@ local function GetEffectiveZoomMin()
 	if isMinimapMode and minimapModeMinZoom then
 		return minimapModeMinZoom
 	end
-	return 0.04  -- Default config.zoomMin value
+	return pipModeMinZoom or 0.04
 end
 
 -- Helper function to get effective zoom maximum (accounts for minimap mode)
@@ -139,7 +140,7 @@ local config = {
 	screenMargin = 0.045,
 	drawProjectiles = true,
 	zoomToCursor = true,
-	mapEdgeMargin = 0.15,
+	mapEdgeMargin = 0,
 	showButtonsOnHoverOnly = true,
 	switchInheritsTracking = false,
 	switchTransitionTime = 0.15,
@@ -152,7 +153,7 @@ local config = {
 	minimapHoverHeightPercent = 0.15,  -- Minimap height when hovering over PIP
 	
 	-- Performance settings
-	contentResolutionScale = 2,  -- Render texture at this multiple of PIP size (1 = 1:1, 2 = 2x resolution for (marginally) sharper content)
+	contentResolutionScale = 1,  -- Render texture at this multiple of PIP size (1 = 1:1, 2 = 2x resolution for (marginally) sharper content)
 	pipFloorUpdateRate = 10,	-- Minimum update rate for PIP content when performance is poor (will be smoothly applied based on measured frame times)
 	pipMinUpdateRate = 30,		-- Minimum update rate for PIP content when zoomed out
 	pipMaxUpdateRate = 120,		-- Maximum update rate for PIP content when zoomed in
@@ -1037,6 +1038,32 @@ local worldToPipScaleZ = 1
 local worldToPipOffsetX = 0
 local worldToPipOffsetZ = 0
 
+-- Get PIP dimensions for world coordinate calculations, accounting for rotation
+-- When rotated 90°/270°, width and height are swapped for world calculations
+local function GetEffectivePipDimensions()
+	local pipWidth = render.dim.r - render.dim.l
+	local pipHeight = render.dim.t - render.dim.b
+	if render.minimapRotation then
+		local rotDeg = math.abs(render.minimapRotation * 180 / math.pi) % 180
+		if rotDeg > 45 and rotDeg < 135 then
+			return pipHeight, pipWidth  -- Swapped
+		end
+	end
+	return pipWidth, pipHeight
+end
+
+-- Clamp a camera position along one axis, centering when view exceeds the map
+-- marginFraction: fraction of visibleSize allowed past map edge (e.g. 0.15)
+local function ClampCameraAxis(pos, visibleSize, mapSize, marginFraction)
+	local margin = visibleSize * marginFraction
+	local minPos = visibleSize / 2 - margin
+	local maxPos = mapSize - (visibleSize / 2 - margin)
+	if minPos >= maxPos then
+		return mapSize / 2
+	end
+	return math.min(math.max(pos, minPos), maxPos)
+end
+
 function RecalculateWorldCoordinates()
 	-- Guard against uninitialized render dimensions
 	if not render.dim.l or not render.dim.r or not render.dim.b or not render.dim.t then return end
@@ -1273,22 +1300,13 @@ local function UpdateTracking()
 
 		-- Apply map edge margin constraints
 		-- Use TARGET zoom level so panning and zooming are in sync when tracking near edges
-		local pipWidth = render.dim.r - render.dim.l
-		local pipHeight = render.dim.t - render.dim.b
+		local pipWidth, pipHeight = GetEffectivePipDimensions()
 		local visibleWorldWidth = pipWidth / cameraState.targetZoom
 		local visibleWorldHeight = pipHeight / cameraState.targetZoom
-		local smallerVisibleDimension = math.min(visibleWorldWidth, visibleWorldHeight)
-		local margin = smallerVisibleDimension * config.mapEdgeMargin
-
-		-- Calculate min/max camera positions to keep margin from map edges
-		local minWcx = visibleWorldWidth / 2 - margin
-		local maxWcx = mapInfo.mapSizeX - (visibleWorldWidth / 2 - margin)
-		local minWcz = visibleWorldHeight / 2 - margin
-		local maxWcz = mapInfo.mapSizeZ - (visibleWorldHeight / 2 - margin)
 
 		-- Set only the target positions for smooth camera transition, clamped to margins
-		cameraState.targetWcx = math.min(math.max(newTargetWcx, minWcx), maxWcx)
-		cameraState.targetWcz = math.min(math.max(newTargetWcz, minWcz), maxWcz)
+		cameraState.targetWcx = ClampCameraAxis(newTargetWcx, visibleWorldWidth, mapInfo.mapSizeX, config.mapEdgeMargin)
+		cameraState.targetWcz = ClampCameraAxis(newTargetWcz, visibleWorldHeight, mapInfo.mapSizeZ, config.mapEdgeMargin)
 
 		-- Don't update cameraState.wcx/cameraState.wcz immediately - let the smooth interpolation system handle it
 		-- RecalculateWorldCoordinates() and RecalculateGroundTextureCoordinates() will be called in Update()
@@ -1531,20 +1549,12 @@ local function UpdatePlayerTracking()
 		end
 
 		-- Apply map edge margin constraints
-		local pipWidth = render.dim.r - render.dim.l
-		local pipHeight = render.dim.t - render.dim.b
+		local pipWidth, pipHeight = GetEffectivePipDimensions()
 		local visibleWorldWidth = pipWidth / cameraState.targetZoom
 		local visibleWorldHeight = pipHeight / cameraState.targetZoom
-		local smallerVisibleDimension = math.min(visibleWorldWidth, visibleWorldHeight)
-		local margin = smallerVisibleDimension * config.mapEdgeMargin
 
-		local minWcx = visibleWorldWidth / 2 - margin
-		local maxWcx = mapInfo.mapSizeX - (visibleWorldWidth / 2 - margin)
-		local minWcz = visibleWorldHeight / 2 - margin
-		local maxWcz = mapInfo.mapSizeZ - (visibleWorldHeight / 2 - margin)
-
-		cameraState.targetWcx = math.min(math.max(cameraState.targetWcx, minWcx), maxWcx)
-		cameraState.targetWcz = math.min(math.max(cameraState.targetWcz, minWcz), maxWcz)
+		cameraState.targetWcx = ClampCameraAxis(cameraState.targetWcx, visibleWorldWidth, mapInfo.mapSizeX, config.mapEdgeMargin)
+		cameraState.targetWcz = ClampCameraAxis(cameraState.targetWcz, visibleWorldHeight, mapInfo.mapSizeZ, config.mapEdgeMargin)
 	end
 end
 
@@ -4190,18 +4200,11 @@ elseif (not cameraState.wcx or not cameraState.wcz) and miscState.startX and mis
 	cameraState.zoom = 0.5
 	cameraState.targetZoom = 0.5
 	-- Apply map margin limits to start position
-	local pipWidth = render.dim.r - render.dim.l
-	local pipHeight = render.dim.t - render.dim.b
+	local pipWidth, pipHeight = GetEffectivePipDimensions()
 	local visibleWorldWidth = pipWidth / cameraState.zoom
 	local visibleWorldHeight = pipHeight / cameraState.zoom
-	local smallerVisibleDimension = math.min(visibleWorldWidth, visibleWorldHeight)
-	local margin = smallerVisibleDimension * config.mapEdgeMargin
-	local minWcx = visibleWorldWidth / 2 - margin
-	local maxWcx = mapInfo.mapSizeX - (visibleWorldWidth / 2 - margin)
-	local minWcz = visibleWorldHeight / 2 - margin
-	local maxWcz = mapInfo.mapSizeZ - (visibleWorldHeight / 2 - margin)
-	cameraState.wcx = math.min(math.max(miscState.startX, minWcx), maxWcx)
-	cameraState.wcz = math.min(math.max(miscState.startZ, minWcz), maxWcz)
+	cameraState.wcx = ClampCameraAxis(miscState.startX, visibleWorldWidth, mapInfo.mapSizeX, config.mapEdgeMargin)
+	cameraState.wcz = ClampCameraAxis(miscState.startZ, visibleWorldHeight, mapInfo.mapSizeZ, config.mapEdgeMargin)
 	cameraState.targetWcx, cameraState.targetWcz = cameraState.wcx, cameraState.wcz  -- Initialize targets
 end
 
@@ -4471,9 +4474,9 @@ function widget:ViewResize()
 			fitZoomX = contentWidth / mapInfo.mapSizeX
 			fitZoomZ = contentHeight / mapInfo.mapSizeZ
 		end
-		local fitZoom = math.min(fitZoomX, fitZoomZ) * 0.99	-- Reduce by 1% to ensure entire map is visible with a small margin
+		local fitZoom = math.min(fitZoomX, fitZoomZ)  -- Use min to ensure full map is visible at max zoom-out
 
-		-- Store as both min and max zoom to lock at this level (no zooming in minimap mode)
+		-- Set min zoom for current orientation (recalculated on rotation change via ViewResize)
 		minimapModeMinZoom = fitZoom
 		
 		-- Only set camera defaults if not restored from config (i.e., not a luaui reload)
@@ -4623,19 +4626,24 @@ function widget:ViewResize()
 			pipWidth, pipHeight = pipHeight, pipWidth
 		end
 	end
+
+	-- Calculate dynamic min zoom so full map is visible at max zoom-out
+	-- Use raw (non-rotated) dimensions and take min(dim)/max(mapSize) so zoom limit is the same regardless of rotation
+	if not isMinimapMode then
+		local rawW = render.dim.r - render.dim.l
+		local rawH = render.dim.t - render.dim.b
+		pipModeMinZoom = math.min(rawW, rawH) / math.max(mapInfo.mapSizeX, mapInfo.mapSizeZ)
+		if cameraState.zoom < pipModeMinZoom then
+			cameraState.zoom = pipModeMinZoom
+			cameraState.targetZoom = pipModeMinZoom
+		end
+	end
 	
 	local visibleWorldWidth = pipWidth / cameraState.zoom
 	local visibleWorldHeight = pipHeight / cameraState.zoom
-	local smallerVisibleDimension = math.min(visibleWorldWidth, visibleWorldHeight)
-	local margin = smallerVisibleDimension * config.mapEdgeMargin
 
-	local minWcx = visibleWorldWidth / 2 - margin
-	local maxWcx = mapInfo.mapSizeX - (visibleWorldWidth / 2 - margin)
-	local minWcz = visibleWorldHeight / 2 - margin
-	local maxWcz = mapInfo.mapSizeZ - (visibleWorldHeight / 2 - margin)
-
-	cameraState.wcx = math.min(math.max(cameraState.wcx, minWcx), maxWcx)
-	cameraState.wcz = math.min(math.max(cameraState.wcz, minWcz), maxWcz)
+	cameraState.wcx = ClampCameraAxis(cameraState.wcx, visibleWorldWidth, mapInfo.mapSizeX, config.mapEdgeMargin)
+	cameraState.wcz = ClampCameraAxis(cameraState.wcz, visibleWorldHeight, mapInfo.mapSizeZ, config.mapEdgeMargin)
 	cameraState.targetWcx = cameraState.wcx
 	cameraState.targetWcz = cameraState.wcz
 
@@ -7775,15 +7783,21 @@ local function UpdateMapRulerTexture()
 				local horizWorldRange = horizWorldR - horizWorldL
 				local vertWorldRange = vertWorldT - vertWorldB
 				
-				-- Calculate how many pixels each spacing level would take on screen
-				local smallestScreenSpacing = pipWidth * (smallestSpacing / math.abs(horizWorldRange))
-				local mediumScreenSpacing = pipWidth * (mediumSpacing / math.abs(horizWorldRange))
-				local largestScreenSpacing = pipWidth * (largestSpacing / math.abs(horizWorldRange))
+				-- Calculate how many pixels each spacing level would take on screen (per axis)
+				local hSmallestScreenSpacing = pipWidth * (smallestSpacing / math.abs(horizWorldRange))
+				local hMediumScreenSpacing = pipWidth * (mediumSpacing / math.abs(horizWorldRange))
+				local hLargestScreenSpacing = pipWidth * (largestSpacing / math.abs(horizWorldRange))
+				local vSmallestScreenSpacing = pipHeight * (smallestSpacing / math.abs(vertWorldRange))
+				local vMediumScreenSpacing = pipHeight * (mediumSpacing / math.abs(vertWorldRange))
+				local vLargestScreenSpacing = pipHeight * (largestSpacing / math.abs(vertWorldRange))
 
-				-- Show different levels based on screen spacing
-				local showSmallest = smallestScreenSpacing >= 8
-				local showMedium = mediumScreenSpacing >= 8
-				local showLargest = largestScreenSpacing >= 8
+				-- Show different levels based on screen spacing (per axis)
+				local hShowSmallest = hSmallestScreenSpacing >= 8
+				local hShowMedium = hMediumScreenSpacing >= 8
+				local hShowLargest = hLargestScreenSpacing >= 8
+				local vShowSmallest = vSmallestScreenSpacing >= 8
+				local vShowMedium = vMediumScreenSpacing >= 8
+				local vShowLargest = vLargestScreenSpacing >= 8
 				
 				glFunc.Texture(false)
 				glFunc.Color(1, 1, 1, 0.18)
@@ -7799,11 +7813,11 @@ local function UpdateMapRulerTexture()
 						local is4x = (h % mediumSpacing == 0)
 						
 						local markType
-						if is16x and showLargest then
+						if is16x and hShowLargest then
 							markType = 3
-						elseif is4x and showMedium then
+						elseif is4x and hShowMedium then
 							markType = 2
-						elseif showSmallest then
+						elseif hShowSmallest then
 							markType = 1
 						end
 						
@@ -7833,11 +7847,11 @@ local function UpdateMapRulerTexture()
 						local is4x = (v % mediumSpacing == 0)
 						
 						local markType
-						if is16x and showLargest then
+						if is16x and vShowLargest then
 							markType = 3
-						elseif is4x and showMedium then
+						elseif is4x and vShowMedium then
 							markType = 2
-						elseif showSmallest then
+						elseif vShowSmallest then
 							markType = 1
 						end
 						
@@ -7893,15 +7907,6 @@ local function RenderPipContents()
 		
 		-- Draw water and LOS overlays
 		DrawWaterAndLOSOverlays()
-		
-		-- Blit map ruler at edges (on top of map+LOS but under units)
-		-- Note: ruler texture is updated outside R2T context in UpdateMapRulerTexture()
-		if config.showMapRuler then
-			local _, _, spec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
-			if not spec then
-				BlitMapRuler()
-			end
-		end
 	end
 
 	-- Measure draw time for performance monitoring
@@ -7920,6 +7925,15 @@ local function RenderPipContents()
 	-- Pop rotation matrix if it was applied
 	if render.minimapRotation ~= 0 then
 		glFunc.PopMatrix()
+	end
+	
+	-- Blit map ruler AFTER rotation pop so marks stay at screen edges
+	-- The ruler texture already maps world coordinates for the current rotation angle
+	if uiState.drawingGround and config.showMapRuler then
+		local _, _, spec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+		if not spec then
+			BlitMapRuler()
+		end
 	end
 	
 	-- NOTE: DrawInMiniMap overlays are now rendered in DrawScreen after the R2T is blitted,
@@ -8525,8 +8539,31 @@ local function DrawTrackedPlayerMinimap()
 	local pipHeight = render.dim.t - render.dim.b
 	local heightPercent = showForHover and config.minimapHoverHeightPercent or config.minimapHeightPercent
 	local minimapHeight = math.floor(pipHeight * heightPercent)
-	local mapAspect = mapInfo.mapSizeX / mapInfo.mapSizeZ
-	local minimapWidth = math.floor(minimapHeight * mapAspect)
+	
+	-- Check if map is rotated 90°/270° — swap aspect ratio so minimap container matches rotated content
+	local isRotated90 = false
+	if render.minimapRotation then
+		local rotDeg = math.abs(render.minimapRotation * 180 / math.pi) % 180
+		if rotDeg > 45 and rotDeg < 135 then
+			isRotated90 = true
+		end
+	end
+	local naturalAspect = mapInfo.mapSizeX / mapInfo.mapSizeZ  -- true (unrotated) map aspect
+	local mapAspect = isRotated90 and (mapInfo.mapSizeZ / mapInfo.mapSizeX) or naturalAspect
+	local minimapWidth
+	if isRotated90 and naturalAspect > 1 then
+		-- Wide map rotated: keep the longest dimension the same as unrotated
+		-- Unrotated width would be minimapHeight * naturalAspect (the longest dim)
+		-- Use that as the new height, derive width from rotated aspect
+		local unrotatedWidth = math.floor(minimapHeight * naturalAspect)
+		minimapHeight = unrotatedWidth
+		minimapWidth = math.floor(minimapHeight * mapAspect)
+	elseif isRotated90 and naturalAspect <= 1 then
+		-- Tall map rotated: it becomes wide, keep height as-is
+		minimapWidth = math.floor(minimapHeight * mapAspect)
+	else
+		minimapWidth = math.floor(minimapHeight * naturalAspect)
+	end
 
 	-- Clamp to reasonable size
 	minimapWidth = math.min(minimapWidth, math.floor(pipWidth * 0.35))
@@ -8654,6 +8691,23 @@ local function DrawTrackedPlayerMinimap()
 	-- Apply rotation for minimap content
 	local mmCenterX = (mmLeft + mmRight) / 2
 	local mmCenterY = (mmBottom + mmTop) / 2
+
+	-- When rotated 90°/270°, content inside the rotation matrix must use swapped width/height
+	-- so that after rotation it visually fills the container (which has the rotated aspect ratio)
+	local cLeft, cRight, cBottom, cTop, cWidth, cHeight
+	if isRotated90 then
+		cWidth = minimapHeight  -- container height becomes content width (will rotate to visual height)
+		cHeight = minimapWidth  -- container width becomes content height (will rotate to visual width)
+		cLeft = mmCenterX - cWidth / 2
+		cRight = mmCenterX + cWidth / 2
+		cBottom = mmCenterY - cHeight / 2
+		cTop = mmCenterY + cHeight / 2
+	else
+		cLeft, cRight, cBottom, cTop = mmLeft, mmRight, mmBottom, mmTop
+		cWidth = minimapWidth
+		cHeight = minimapHeight
+	end
+
 	if render.minimapRotation ~= 0 then
 		glFunc.PushMatrix()
 		glFunc.Translate(mmCenterX, mmCenterY, 0)
@@ -8665,10 +8719,10 @@ local function DrawTrackedPlayerMinimap()
 	glFunc.Color(1, 1, 1, 1)
 	glFunc.Texture('$minimap')
 	glFunc.BeginEnd(GL.QUADS, function()
-		glFunc.TexCoord(0, 0); glFunc.Vertex(mmLeft, mmTop)
-		glFunc.TexCoord(1, 0); glFunc.Vertex(mmRight, mmTop)
-		glFunc.TexCoord(1, 1); glFunc.Vertex(mmRight, mmBottom)
-		glFunc.TexCoord(0, 1); glFunc.Vertex(mmLeft, mmBottom)
+		glFunc.TexCoord(0, 0); glFunc.Vertex(cLeft, cTop)
+		glFunc.TexCoord(1, 0); glFunc.Vertex(cRight, cTop)
+		glFunc.TexCoord(1, 1); glFunc.Vertex(cRight, cBottom)
+		glFunc.TexCoord(0, 1); glFunc.Vertex(cLeft, cBottom)
 	end)
 	glFunc.Texture(false)
 
@@ -8688,10 +8742,10 @@ local function DrawTrackedPlayerMinimap()
 		glFunc.Texture(0, '$heightmap')
 		glFunc.Color(1, 1, 1, 1)
 		glFunc.BeginEnd(GL.QUADS, function()
-			glFunc.TexCoord(0, 0); glFunc.Vertex(mmLeft, mmTop)
-			glFunc.TexCoord(1, 0); glFunc.Vertex(mmRight, mmTop)
-			glFunc.TexCoord(1, 1); glFunc.Vertex(mmRight, mmBottom)
-			glFunc.TexCoord(0, 1); glFunc.Vertex(mmLeft, mmBottom)
+			glFunc.TexCoord(0, 0); glFunc.Vertex(cLeft, cTop)
+			glFunc.TexCoord(1, 0); glFunc.Vertex(cRight, cTop)
+			glFunc.TexCoord(1, 1); glFunc.Vertex(cRight, cBottom)
+			glFunc.TexCoord(0, 1); glFunc.Vertex(cLeft, cBottom)
 		end)
 		glFunc.Texture(0, false)
 		gl.UseShader(0)
@@ -8704,10 +8758,10 @@ local function DrawTrackedPlayerMinimap()
 		glFunc.Color(1, 1, 1, 1)
 		glFunc.Texture(pipR2T.losTex)
 		glFunc.BeginEnd(GL.QUADS, function()
-			glFunc.TexCoord(0, 0); glFunc.Vertex(mmLeft, mmTop)
-			glFunc.TexCoord(1, 0); glFunc.Vertex(mmRight, mmTop)
-			glFunc.TexCoord(1, 1); glFunc.Vertex(mmRight, mmBottom)
-			glFunc.TexCoord(0, 1); glFunc.Vertex(mmLeft, mmBottom)
+			glFunc.TexCoord(0, 0); glFunc.Vertex(cLeft, cTop)
+			glFunc.TexCoord(1, 0); glFunc.Vertex(cRight, cTop)
+			glFunc.TexCoord(1, 1); glFunc.Vertex(cRight, cBottom)
+			glFunc.TexCoord(0, 1); glFunc.Vertex(cLeft, cBottom)
 		end)
 		glFunc.Texture(false)
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
@@ -8719,10 +8773,10 @@ local function DrawTrackedPlayerMinimap()
 	local worldT = math.max(0, math.min(mapInfo.mapSizeZ, render.world.t))
 	local worldB = math.max(0, math.min(mapInfo.mapSizeZ, render.world.b))
 
-	local viewL = mmLeft + (worldL / mapInfo.mapSizeX) * minimapWidth
-	local viewR = mmLeft + (worldR / mapInfo.mapSizeX) * minimapWidth
-	local viewT = mmTop - (worldT / mapInfo.mapSizeZ) * minimapHeight
-	local viewB = mmTop - (worldB / mapInfo.mapSizeZ) * minimapHeight
+	local viewL = cLeft + (worldL / mapInfo.mapSizeX) * cWidth
+	local viewR = cLeft + (worldR / mapInfo.mapSizeX) * cWidth
+	local viewT = cTop - (worldT / mapInfo.mapSizeZ) * cHeight
+	local viewB = cTop - (worldB / mapInfo.mapSizeZ) * cHeight
 
 	glFunc.Color(1, 1, 1, 0.9)
 	glFunc.LineWidth(2)
@@ -9671,29 +9725,47 @@ function widget:DrawScreen()
 				WG['minimap'].getNormalizedVisibleArea = minimapApiGetNormalizedVisibleArea
 				WG['minimap'].getZoomLevel = minimapApiGetZoomLevel
 				
-				-- Call widgets with proper matrix setup for fixed-function GL
-				-- 
-				-- The goal: Widgets draw using pixel coordinates [0, minimapWidth] x [0, minimapHeight]
-				-- where (0,0) is top-left and world position maps as:
-				--   pixelX = worldX / mapSizeX * minimapWidth
-				--   pixelY = (1 - worldZ / mapSizeZ) * minimapHeight  (Y flipped: north=top)
+				-- Compute rotation-aware ortho bounds for fixed-function GL widgets.
+				-- Widgets handle rotation themselves via getCurrentMiniMapRotationOption(),
+				-- so we do NOT apply GL rotation. Instead we compute ortho bounds that match
+				-- each rotation's pixel coordinate mapping.
 				--
-				-- We need to transform those pixel coords to show only the visible portion of the map.
-				-- The visible area in world coords is [worldL, worldR] x [worldB, worldT].
+				-- Widget pixel coordinate conventions per rotation:
+				--   DEG_0:   pixelX = worldX/mapX * sx,            pixelY = sz - worldZ/mapZ * sz
+				--   DEG_90:  pixelX = worldZ/mapZ * sx,            pixelY = worldX/mapX * sz
+				--   DEG_180: pixelX = sx - worldX/mapX * sx,       pixelY = worldZ/mapZ * sz
+				--   DEG_270: pixelX = sx - worldZ/mapZ * sx,       pixelY = sz - worldX/mapX * sz
 				--
-				-- Widget pixel coords that correspond to the visible area:
-				--   visPixelLeft = worldL / mapSizeX * minimapWidth
-				--   visPixelRight = worldR / mapSizeX * minimapWidth
-				--   visPixelTop = (1 - worldT / mapSizeZ) * minimapHeight  (north edge)
-				--   visPixelBottom = (1 - worldB / mapSizeZ) * minimapHeight  (south edge)
-				--
-				-- We set up ortho projection so that [visPixelLeft, visPixelRight, visPixelTop, visPixelBottom]
-				-- maps to the full viewport. This way widget drawing at those pixel coords fills the PIP.
+				-- We compute the ortho bounds [left, right, bottom, top] so that the pixel
+				-- range corresponding to the visible world area maps to the full viewport.
 				
-				local visPixelLeft = worldL / mapInfo.mapSizeX * minimapWidth
-				local visPixelRight = worldR / mapInfo.mapSizeX * minimapWidth
-				local visPixelTop = (1 - worldT / mapInfo.mapSizeZ) * minimapHeight  -- north edge (smaller Y)
-				local visPixelBottom = (1 - worldB / mapInfo.mapSizeZ) * minimapHeight  -- south edge (larger Y)
+				local rotCategory = 0
+				if render.minimapRotation then
+					rotCategory = math.floor((render.minimapRotation / math.pi * 2 + 0.5) % 4)
+				end
+				
+				local visPixelLeft, visPixelRight, visPixelTop, visPixelBottom
+				if rotCategory == 1 then -- 90°
+					visPixelLeft   = worldT / mapInfo.mapSizeZ * minimapWidth
+					visPixelRight  = worldB / mapInfo.mapSizeZ * minimapWidth
+					visPixelBottom = worldL / mapInfo.mapSizeX * minimapHeight
+					visPixelTop    = worldR / mapInfo.mapSizeX * minimapHeight
+				elseif rotCategory == 2 then -- 180°
+					visPixelLeft   = (1 - worldR / mapInfo.mapSizeX) * minimapWidth
+					visPixelRight  = (1 - worldL / mapInfo.mapSizeX) * minimapWidth
+					visPixelTop    = worldB / mapInfo.mapSizeZ * minimapHeight
+					visPixelBottom = worldT / mapInfo.mapSizeZ * minimapHeight
+				elseif rotCategory == 3 then -- 270°
+					visPixelLeft   = (1 - worldB / mapInfo.mapSizeZ) * minimapWidth
+					visPixelRight  = (1 - worldT / mapInfo.mapSizeZ) * minimapWidth
+					visPixelBottom = (1 - worldR / mapInfo.mapSizeX) * minimapHeight
+					visPixelTop    = (1 - worldL / mapInfo.mapSizeX) * minimapHeight
+				else -- 0° (default)
+					visPixelLeft   = worldL / mapInfo.mapSizeX * minimapWidth
+					visPixelRight  = worldR / mapInfo.mapSizeX * minimapWidth
+					visPixelTop    = (1 - worldT / mapInfo.mapSizeZ) * minimapHeight
+					visPixelBottom = (1 - worldB / mapInfo.mapSizeZ) * minimapHeight
+				end
 				
 				for _, w in ipairs(widgetHandler.DrawInMiniMapList) do
 					if w ~= widget then  -- Don't recursively call ourselves
@@ -9702,21 +9774,8 @@ function widget:DrawScreen()
 						glFunc.PushMatrix()
 						gl.LoadIdentity()
 						
-						-- Handle minimap rotation around the center of the visible area
-						if render.minimapRotation and render.minimapRotation ~= 0 then
-							-- For rotation, we need to rotate around the center of what we're viewing
-							local centerX = (visPixelLeft + visPixelRight) / 2
-							local centerY = (visPixelTop + visPixelBottom) / 2
-							glFunc.Translate(centerX, centerY, 0)
-							glFunc.Rotate(render.minimapRotation * 180 / math.pi, 0, 0, 1)
-							glFunc.Translate(-centerX, -centerY, 0)
-						end
-						
-						-- Ortho maps [left, right, bottom, top] to NDC [-1,1], which maps to viewport
-						-- Note: OpenGL ortho bottom/top are in screen space (bottom < top in screen Y)
-						-- Since widgets draw with Y increasing downward (0=top), we need:
-						--   ortho bottom = visPixelBottom (larger value, bottom of screen)
-						--   ortho top = visPixelTop (smaller value, top of screen)
+						-- Ortho maps the visible pixel range to NDC [-1,1], which maps to viewport.
+						-- bottom > top flips Y so widget Y-down coords map correctly to screen.
 						gl.Ortho(visPixelLeft, visPixelRight, visPixelBottom, visPixelTop, -1, 1)
 						
 						gl.MatrixMode(GL.MODELVIEW)
@@ -10315,20 +10374,59 @@ function widget:Update(dt)
 		local lastCategory = getRotationCategory(render.lastMinimapRotation or 0)
 		
 		if currentCategory ~= lastCategory then
-			-- Rotation category changed, recalculate dimensions
+			-- Rotation category changed, recalculate dimensions preserving relative zoom
 			render.lastMinimapRotation = currentRotation
-			-- Force zoom recalculation by temporarily clearing the restored flag
-			local wasRestored = miscState.minimapCameraRestored
-			miscState.minimapCameraRestored = false
-			widget:ViewResize()  -- This will recalculate dimensions with the new rotation
-			miscState.minimapCameraRestored = wasRestored
-			-- Snap zoom and position instantly (no smooth interpolation)
-			cameraState.zoom = cameraState.targetZoom
+			local oldMin = minimapModeMinZoom or cameraState.zoom
+			-- Calculate zoom ratio relative to old fitZoom (1.0 = fully zoomed out)
+			local zoomRatio = cameraState.zoom / oldMin
+			local targetZoomRatio = cameraState.targetZoom / oldMin
+			miscState.minimapCameraRestored = true
+			widget:ViewResize()  -- Recalculates dimensions and minimapModeMinZoom
+			-- Apply same ratio to new fitZoom so relative zoom is preserved
+			local newMin = minimapModeMinZoom or oldMin
+			cameraState.zoom = math.max(newMin * zoomRatio, newMin)
+			cameraState.targetZoom = math.max(newMin * targetZoomRatio, newMin)
 			cameraState.wcx = cameraState.targetWcx
 			cameraState.wcz = cameraState.targetWcz
 		else
 			-- Just update the stored rotation for rendering
 			render.minimapRotation = currentRotation
+		end
+	else
+		-- Non-minimap mode: detect rotation category changes and re-clamp camera
+		local currentRotation = Spring.GetMiniMapRotation and Spring.GetMiniMapRotation() or 0
+		local function getRotCat(rot)
+			local rotDeg = math.abs(rot * 180 / math.pi) % 180
+			return (rotDeg > 45 and rotDeg < 135) and 1 or 0
+		end
+		local curCat = getRotCat(currentRotation)
+		local lastCat = getRotCat(render.lastMinimapRotation or 0)
+		render.minimapRotation = currentRotation
+		if curCat ~= lastCat then
+			render.lastMinimapRotation = currentRotation
+			-- Recalculate dynamic min zoom (rotation-independent)
+			local pipWidth, pipHeight = GetEffectivePipDimensions()
+			local rawW = render.dim.r - render.dim.l
+			local rawH = render.dim.t - render.dim.b
+			local newMinZoom = math.min(rawW, rawH) / math.max(mapInfo.mapSizeX, mapInfo.mapSizeZ)
+			pipModeMinZoom = newMinZoom
+			-- Clamp zoom to new min if needed
+			if cameraState.zoom < pipModeMinZoom then
+				cameraState.zoom = pipModeMinZoom
+				cameraState.targetZoom = pipModeMinZoom
+			end
+			if cameraState.targetZoom < pipModeMinZoom then
+				cameraState.targetZoom = pipModeMinZoom
+			end
+			-- Re-clamp camera position with new effective dimensions
+			local visibleWorldWidth = pipWidth / cameraState.zoom
+			local visibleWorldHeight = pipHeight / cameraState.zoom
+			cameraState.wcx = ClampCameraAxis(cameraState.wcx, visibleWorldWidth, mapInfo.mapSizeX, config.mapEdgeMargin)
+			cameraState.wcz = ClampCameraAxis(cameraState.wcz, visibleWorldHeight, mapInfo.mapSizeZ, config.mapEdgeMargin)
+			cameraState.targetWcx = cameraState.wcx
+			cameraState.targetWcz = cameraState.wcz
+			RecalculateWorldCoordinates()
+			RecalculateGroundTextureCoordinates()
 		end
 	end
 	
@@ -10662,29 +10760,18 @@ function widget:Update(dt)
 		cameraState.targetWcz = cameraState.zoomToCursorWorldZ + screenOffsetY / cameraState.targetZoom
 
 		-- Apply same margin-based clamping as panning
-		local pipWidth = render.dim.r - render.dim.l
-		local pipHeight = render.dim.t - render.dim.b
+		local pipWidth, pipHeight = GetEffectivePipDimensions()
 		local visibleWorldWidth = pipWidth / cameraState.targetZoom
 		local visibleWorldHeight = pipHeight / cameraState.targetZoom
 
-		-- Use the smaller dimension for consistent visual margin
-		local smallerVisibleDimension = math.min(visibleWorldWidth, visibleWorldHeight)
-		local margin = smallerVisibleDimension * config.mapEdgeMargin
-
-		-- Calculate min/max camera positions to keep margin from map edges
-		local minWcx = visibleWorldWidth / 2 - margin
-		local maxWcx = mapInfo.mapSizeX - (visibleWorldWidth / 2 - margin)
-		local minWcz = visibleWorldHeight / 2 - margin
-		local maxWcz = mapInfo.mapSizeZ - (visibleWorldHeight / 2 - margin)
-
-		-- Clamp with margin-based boundaries
+		-- Clamp with per-axis margins (centers on axis when view exceeds map)
 		-- In minimap mode at minimum zoom, force center on map
 		if IsAtMinimumZoom(cameraState.targetZoom) then
 			cameraState.targetWcx = mapInfo.mapSizeX / 2
 			cameraState.targetWcz = mapInfo.mapSizeZ / 2
 		else
-			cameraState.targetWcx = math.min(math.max(cameraState.targetWcx, minWcx), maxWcx)
-			cameraState.targetWcz = math.min(math.max(cameraState.targetWcz, minWcz), maxWcz)
+			cameraState.targetWcx = ClampCameraAxis(cameraState.targetWcx, visibleWorldWidth, mapInfo.mapSizeX, config.mapEdgeMargin)
+			cameraState.targetWcz = ClampCameraAxis(cameraState.targetWcz, visibleWorldHeight, mapInfo.mapSizeZ, config.mapEdgeMargin)
 		end
 
 		centerNeedsUpdate = true  -- Force center update
@@ -10693,6 +10780,11 @@ function widget:Update(dt)
 	if zoomNeedsUpdate or centerNeedsUpdate then
 		if zoomNeedsUpdate then
 			cameraState.zoom = cameraState.zoom + (cameraState.targetZoom - cameraState.zoom) * math.min(dt * config.zoomSmoothness, 1)
+			-- Snap to target when close enough to avoid the asymptotic interpolation
+			-- never reaching exact fitZoom (which would leave a sliver of void)
+			if math.abs(cameraState.zoom - cameraState.targetZoom) < 0.002 then
+				cameraState.zoom = cameraState.targetZoom
+			end
 		end
 
 		-- Calculate bounds for CURRENT zoom level
@@ -10713,31 +10805,52 @@ function widget:Update(dt)
 		
 		local currentVisibleWorldWidth = pipWidth / cameraState.zoom
 		local currentVisibleWorldHeight = pipHeight / cameraState.zoom
-		local currentSmallerDimension = math.min(currentVisibleWorldWidth, currentVisibleWorldHeight)
-		local currentMargin = currentSmallerDimension * config.mapEdgeMargin
+		local currentMarginX = currentVisibleWorldWidth * config.mapEdgeMargin
+		local currentMarginZ = currentVisibleWorldHeight * config.mapEdgeMargin
 
-		local currentMinWcx = currentVisibleWorldWidth / 2 - currentMargin
-		local currentMaxWcx = mapInfo.mapSizeX - (currentVisibleWorldWidth / 2 - currentMargin)
-		local currentMinWcz = currentVisibleWorldHeight / 2 - currentMargin
-		local currentMaxWcz = mapInfo.mapSizeZ - (currentVisibleWorldHeight / 2 - currentMargin)
+		local currentMinWcx = currentVisibleWorldWidth / 2 - currentMarginX
+		local currentMaxWcx = mapInfo.mapSizeX - (currentVisibleWorldWidth / 2 - currentMarginX)
+		local currentMinWcz = currentVisibleWorldHeight / 2 - currentMarginZ
+		local currentMaxWcz = mapInfo.mapSizeZ - (currentVisibleWorldHeight / 2 - currentMarginZ)
+
+		-- When view exceeds map in an axis, force center (min >= max means view > map + 2*margin)
+		local currentForceCenterX = currentMinWcx >= currentMaxWcx
+		local currentForceCenterZ = currentMinWcz >= currentMaxWcz
+		if currentForceCenterX then
+			currentMinWcx = mapInfo.mapSizeX / 2
+			currentMaxWcx = mapInfo.mapSizeX / 2
+		end
+		if currentForceCenterZ then
+			currentMinWcz = mapInfo.mapSizeZ / 2
+			currentMaxWcz = mapInfo.mapSizeZ / 2
+		end
 
 		-- Also calculate bounds for TARGET zoom level to detect if we WILL hit an edge
 		local targetVisibleWorldWidth = pipWidth / cameraState.targetZoom
 		local targetVisibleWorldHeight = pipHeight / cameraState.targetZoom
-		local targetSmallerDimension = math.min(targetVisibleWorldWidth, targetVisibleWorldHeight)
-		local targetMargin = targetSmallerDimension * config.mapEdgeMargin
+		local targetMarginX = targetVisibleWorldWidth * config.mapEdgeMargin
+		local targetMarginZ = targetVisibleWorldHeight * config.mapEdgeMargin
 
-		local targetMinWcx = targetVisibleWorldWidth / 2 - targetMargin
-		local targetMaxWcx = mapInfo.mapSizeX - (targetVisibleWorldWidth / 2 - targetMargin)
-		local targetMinWcz = targetVisibleWorldHeight / 2 - targetMargin
-		local targetMaxWcz = mapInfo.mapSizeZ - (targetVisibleWorldHeight / 2 - targetMargin)
+		local targetMinWcx = targetVisibleWorldWidth / 2 - targetMarginX
+		local targetMaxWcx = mapInfo.mapSizeX - (targetVisibleWorldWidth / 2 - targetMarginX)
+		local targetMinWcz = targetVisibleWorldHeight / 2 - targetMarginZ
+		local targetMaxWcz = mapInfo.mapSizeZ - (targetVisibleWorldHeight / 2 - targetMarginZ)
+
+		if targetMinWcx >= targetMaxWcx then
+			targetMinWcx = mapInfo.mapSizeX / 2
+			targetMaxWcx = mapInfo.mapSizeX / 2
+		end
+		if targetMinWcz >= targetMaxWcz then
+			targetMinWcz = mapInfo.mapSizeZ / 2
+			targetMaxWcz = mapInfo.mapSizeZ / 2
+		end
 
 		-- Detect if at edge: either currently at edge, OR would be pushed by target zoom bounds
 		-- This handles both zooming from outside map AND zooming near edges inside map
-		local atLeftEdge = cameraState.wcx <= currentMinWcx + 1 or cameraState.wcx <= targetMinWcx + 1
-		local atRightEdge = cameraState.wcx >= currentMaxWcx - 1 or cameraState.wcx >= targetMaxWcx - 1
-		local atTopEdge = cameraState.wcz <= currentMinWcz + 1 or cameraState.wcz <= targetMinWcz + 1
-		local atBottomEdge = cameraState.wcz >= currentMaxWcz - 1 or cameraState.wcz >= targetMaxWcz - 1
+		local atLeftEdge = currentForceCenterX or cameraState.wcx <= currentMinWcx + 1 or cameraState.wcx <= targetMinWcx + 1
+		local atRightEdge = currentForceCenterX or cameraState.wcx >= currentMaxWcx - 1 or cameraState.wcx >= targetMaxWcx - 1
+		local atTopEdge = currentForceCenterZ or cameraState.wcz <= currentMinWcz + 1 or cameraState.wcz <= targetMinWcz + 1
+		local atBottomEdge = currentForceCenterZ or cameraState.wcz >= currentMaxWcz - 1 or cameraState.wcz >= targetMaxWcz - 1
 
 		if centerNeedsUpdate then
 			-- Use different smoothness values depending on context
@@ -10856,30 +10969,16 @@ function widget:Update(dt)
 		-- Clamp current animated position
 		local currentVisibleWorldWidth = pipWidth / cameraState.zoom
 		local currentVisibleWorldHeight = pipHeight / cameraState.zoom
-		local currentSmallerDimension = math.min(currentVisibleWorldWidth, currentVisibleWorldHeight)
-		local currentMargin = currentSmallerDimension * config.mapEdgeMargin
 
-		local currentMinWcx = currentVisibleWorldWidth / 2 - currentMargin
-		local currentMaxWcx = mapInfo.mapSizeX - (currentVisibleWorldWidth / 2 - currentMargin)
-		local currentMinWcz = currentVisibleWorldHeight / 2 - currentMargin
-		local currentMaxWcz = mapInfo.mapSizeZ - (currentVisibleWorldHeight / 2 - currentMargin)
-
-		cameraState.wcx = math.min(math.max(cameraState.wcx, currentMinWcx), currentMaxWcx)
-		cameraState.wcz = math.min(math.max(cameraState.wcz, currentMinWcz), currentMaxWcz)
+		cameraState.wcx = ClampCameraAxis(cameraState.wcx, currentVisibleWorldWidth, mapInfo.mapSizeX, config.mapEdgeMargin)
+		cameraState.wcz = ClampCameraAxis(cameraState.wcz, currentVisibleWorldHeight, mapInfo.mapSizeZ, config.mapEdgeMargin)
 
 		-- Clamp target position
 		local targetVisibleWorldWidth = pipWidth / cameraState.targetZoom
 		local targetVisibleWorldHeight = pipHeight / cameraState.targetZoom
-		local targetSmallerDimension = math.min(targetVisibleWorldWidth, targetVisibleWorldHeight)
-		local targetMargin = targetSmallerDimension * config.mapEdgeMargin
 
-		local targetMinWcx = targetVisibleWorldWidth / 2 - targetMargin
-		local targetMaxWcx = mapInfo.mapSizeX - (targetVisibleWorldWidth / 2 - targetMargin)
-		local targetMinWcz = targetVisibleWorldHeight / 2 - targetMargin
-		local targetMaxWcz = mapInfo.mapSizeZ - (targetVisibleWorldHeight / 2 - targetMargin)
-
-		cameraState.targetWcx = math.min(math.max(cameraState.targetWcx, targetMinWcx), targetMaxWcx)
-		cameraState.targetWcz = math.min(math.max(cameraState.targetWcz, targetMinWcz), targetMaxWcz)
+		cameraState.targetWcx = ClampCameraAxis(cameraState.targetWcx, targetVisibleWorldWidth, mapInfo.mapSizeX, config.mapEdgeMargin)
+		cameraState.targetWcz = ClampCameraAxis(cameraState.targetWcz, targetVisibleWorldHeight, mapInfo.mapSizeZ, config.mapEdgeMargin)
 
 		-- Don't recalculate here - will be done below in the main zoom/center update block
 	elseif interactionState.areDecreasingZoom then
@@ -10901,23 +11000,16 @@ function widget:Update(dt)
 		-- Clamp current animated position
 		local currentVisibleWorldWidth = pipWidth / cameraState.zoom
 		local currentVisibleWorldHeight = pipHeight / cameraState.zoom
-		local currentSmallerDimension = math.min(currentVisibleWorldWidth, currentVisibleWorldHeight)
-		local currentMargin = currentSmallerDimension * config.mapEdgeMargin
 
-		local currentMinWcx = currentVisibleWorldWidth / 2 - currentMargin
-		local currentMaxWcx = mapInfo.mapSizeX - (currentVisibleWorldWidth / 2 - currentMargin)
-		local currentMinWcz = currentVisibleWorldHeight / 2 - currentMargin
-		local currentMaxWcz = mapInfo.mapSizeZ - (currentVisibleWorldHeight / 2 - currentMargin)
-
-		cameraState.wcx = math.min(math.max(cameraState.wcx, currentMinWcx), currentMaxWcx)
-		cameraState.wcz = math.min(math.max(cameraState.wcz, currentMinWcz), currentMaxWcz)
+		cameraState.wcx = ClampCameraAxis(cameraState.wcx, currentVisibleWorldWidth, mapInfo.mapSizeX, config.mapEdgeMargin)
+		cameraState.wcz = ClampCameraAxis(cameraState.wcz, currentVisibleWorldHeight, mapInfo.mapSizeZ, config.mapEdgeMargin)
 
 		-- Clamp target position
 		local targetVisibleWorldWidth = pipWidth / cameraState.targetZoom
 		local targetVisibleWorldHeight = pipHeight / cameraState.targetZoom
-		local targetSmallerDimension = math.min(targetVisibleWorldWidth, targetVisibleWorldHeight)
-	local targetMargin = targetSmallerDimension * config.mapEdgeMargin
-		cameraState.targetWcz = math.min(math.max(cameraState.targetWcz, targetMinWcz), targetMaxWcz)
+
+		cameraState.targetWcx = ClampCameraAxis(cameraState.targetWcx, targetVisibleWorldWidth, mapInfo.mapSizeX, config.mapEdgeMargin)
+		cameraState.targetWcz = ClampCameraAxis(cameraState.targetWcz, targetVisibleWorldHeight, mapInfo.mapSizeZ, config.mapEdgeMargin)
 
 		-- Don't recalculate here - will be done below in the main zoom/center update block
 	end
@@ -10931,18 +11023,11 @@ function widget:Update(dt)
 			if newX ~= miscState.startX then
 				miscState.startX, miscState.startZ = newX, newZ
 				-- Apply map margin limits to start position
-				local pipWidth = render.dim.r - render.dim.l
-				local pipHeight = render.dim.t - render.dim.b
+				local pipWidth, pipHeight = GetEffectivePipDimensions()
 				local visibleWorldWidth = pipWidth / cameraState.zoom
 				local visibleWorldHeight = pipHeight / cameraState.zoom
-				local smallerVisibleDimension = math.min(visibleWorldWidth, visibleWorldHeight)
-				local margin = smallerVisibleDimension * config.mapEdgeMargin
-				local minWcx = visibleWorldWidth / 2 - margin
-				local maxWcx = mapInfo.mapSizeX - (visibleWorldWidth / 2 - margin)
-				local minWcz = visibleWorldHeight / 2 - margin
-				local maxWcz = mapInfo.mapSizeZ - (visibleWorldHeight / 2 - margin)
-				cameraState.wcx = math.min(math.max(newX, minWcx), maxWcx)
-				cameraState.wcz = math.min(math.max(newZ, minWcz), maxWcz)
+				cameraState.wcx = ClampCameraAxis(newX, visibleWorldWidth, mapInfo.mapSizeX, config.mapEdgeMargin)
+				cameraState.wcz = ClampCameraAxis(newZ, visibleWorldHeight, mapInfo.mapSizeZ, config.mapEdgeMargin)
 				cameraState.targetWcx, cameraState.targetWcz = cameraState.wcx, cameraState.wcz  -- Set targets instantly for start position
 				RecalculateWorldCoordinates()
 				RecalculateGroundTextureCoordinates()
@@ -11569,36 +11654,21 @@ function widget:MouseWheel(up, value)
 				cameraState.zoomToCursorActive = false
 
 				-- Clamp BOTH current and target camera positions to respect margin
-				local pipWidth = render.dim.r - render.dim.l
-				local pipHeight = render.dim.t - render.dim.b
+				local pipWidth, pipHeight = GetEffectivePipDimensions()
 
 				-- Clamp current animated position
 				local currentVisibleWorldWidth = pipWidth / cameraState.zoom
 				local currentVisibleWorldHeight = pipHeight / cameraState.zoom
-				local currentSmallerDimension = math.min(currentVisibleWorldWidth, currentVisibleWorldHeight)
-				local currentMargin = currentSmallerDimension * config.mapEdgeMargin
 
-				local currentMinWcx = currentVisibleWorldWidth / 2 - currentMargin
-				local currentMaxWcx = mapInfo.mapSizeX - (currentVisibleWorldWidth / 2 - currentMargin)
-				local currentMinWcz = currentVisibleWorldHeight / 2 - currentMargin
-				local currentMaxWcz = mapInfo.mapSizeZ - (currentVisibleWorldHeight / 2 - currentMargin)
-
-				cameraState.wcx = math.min(math.max(cameraState.wcx, currentMinWcx), currentMaxWcx)
-				cameraState.wcz = math.min(math.max(cameraState.wcz, currentMinWcz), currentMaxWcz)
+				cameraState.wcx = ClampCameraAxis(cameraState.wcx, currentVisibleWorldWidth, mapInfo.mapSizeX, config.mapEdgeMargin)
+				cameraState.wcz = ClampCameraAxis(cameraState.wcz, currentVisibleWorldHeight, mapInfo.mapSizeZ, config.mapEdgeMargin)
 
 				-- Clamp target position
 				local targetVisibleWorldWidth = pipWidth / cameraState.targetZoom
 				local targetVisibleWorldHeight = pipHeight / cameraState.targetZoom
-				local targetSmallerDimension = math.min(targetVisibleWorldWidth, targetVisibleWorldHeight)
-				local targetMargin = targetSmallerDimension * config.mapEdgeMargin
 
-				local targetMinWcx = targetVisibleWorldWidth / 2 - targetMargin
-				local targetMaxWcx = mapInfo.mapSizeX - (targetVisibleWorldWidth / 2 - targetMargin)
-				local targetMinWcz = targetVisibleWorldHeight / 2 - targetMargin
-				local targetMaxWcz = mapInfo.mapSizeZ - (targetVisibleWorldHeight / 2 - targetMargin)
-
-				cameraState.targetWcx = math.min(math.max(cameraState.targetWcx, targetMinWcx), targetMaxWcx)
-				cameraState.targetWcz = math.min(math.max(cameraState.targetWcz, targetMinWcz), targetMaxWcz)
+				cameraState.targetWcx = ClampCameraAxis(cameraState.targetWcx, targetVisibleWorldWidth, mapInfo.mapSizeX, config.mapEdgeMargin)
+				cameraState.targetWcz = ClampCameraAxis(cameraState.targetWcz, targetVisibleWorldHeight, mapInfo.mapSizeZ, config.mapEdgeMargin)
 
 				RecalculateWorldCoordinates()
 				RecalculateGroundTextureCoordinates()
@@ -11633,26 +11703,9 @@ function widget:MousePress(mx, my, mButton)
 			-- Apply rotation to account for minimap rotation
 			local minimapRotation = Spring.GetMiniMapRotation()
 			if minimapRotation ~= 0 then
-				-- Get map aspect ratio for coordinate scaling at 90/270 degrees
-				local mapAspect = mapInfo.mapSizeX / mapInfo.mapSizeZ
-				
 				-- Convert to center-based coordinates (0.5, 0.5 is center)
 				local centeredX = relX - 0.5
 				local centeredY = relY - 0.5
-				
-				-- At 90/270 degrees, the visual box aspect doesn't match the rotated content
-				-- We need to scale coordinates to account for this
-				-- The minimap box was created with mapAspect = mapSizeX/mapSizeZ
-				-- At 90/270, the content is rotated so X becomes Y and vice versa
-				local rotDegrees = math.abs(minimapRotation * 180 / math.pi)
-				local is90or270 = (rotDegrees > 45 and rotDegrees < 135) or (rotDegrees > 225 and rotDegrees < 315)
-				
-				if is90or270 and mapAspect ~= 1 then
-					-- Scale coordinates to account for aspect ratio mismatch
-					-- At 90/270, the rotated content has inverted aspect ratio
-					centeredX = centeredX * mapAspect
-					centeredY = centeredY / mapAspect
-				end
 				
 				-- Apply rotation (positive direction - Spring's rotation is CCW)
 				local cosR = math.cos(minimapRotation)
@@ -12303,22 +12356,9 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 			-- Apply inverse rotation to account for minimap rotation
 			local minimapRotation = Spring.GetMiniMapRotation()
 			if minimapRotation ~= 0 then
-				-- Get map aspect ratio for coordinate scaling at 90/270 degrees
-				local mapAspect = mapInfo.mapSizeX / mapInfo.mapSizeZ
-				
 				-- Convert to center-based coordinates (0.5, 0.5 is center)
 				local centeredX = relX - 0.5
 				local centeredY = relY - 0.5
-				
-				-- At 90/270 degrees, the visual box aspect doesn't match the rotated content
-				local rotDegrees = math.abs(minimapRotation * 180 / math.pi)
-				local is90or270 = (rotDegrees > 45 and rotDegrees < 135) or (rotDegrees > 225 and rotDegrees < 315)
-				
-				if is90or270 and mapAspect ~= 1 then
-					-- Scale coordinates to account for aspect ratio mismatch
-					centeredX = centeredX * mapAspect
-					centeredY = centeredY / mapAspect
-				end
 				
 				-- Apply rotation (positive direction - Spring's rotation is CCW)
 				local cosR = math.cos(minimapRotation)
@@ -12334,27 +12374,18 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 			local worldZ = relY * mapInfo.mapSizeZ
 			
 			-- Apply map edge margin constraints (same as UpdateTracking)
-			local pipWidth = render.dim.r - render.dim.l
-			local pipHeight = render.dim.t - render.dim.b
+			local pipWidth, pipHeight = GetEffectivePipDimensions()
 			local visibleWorldWidth = pipWidth / cameraState.zoom
 			local visibleWorldHeight = pipHeight / cameraState.zoom
-			local smallerVisibleDimension = math.min(visibleWorldWidth, visibleWorldHeight)
-			local margin = smallerVisibleDimension * config.mapEdgeMargin
 			
-			-- Calculate min/max camera positions to keep margin from map edges
-			local minWcx = visibleWorldWidth / 2 - margin
-			local maxWcx = mapInfo.mapSizeX - (visibleWorldWidth / 2 - margin)
-			local minWcz = visibleWorldHeight / 2 - margin
-			local maxWcz = mapInfo.mapSizeZ - (visibleWorldHeight / 2 - margin)
-			
-			-- Set camera target clamped to margins
+			-- Set camera target clamped to per-axis margins (centers on axis when view exceeds map)
 			-- In minimap mode at minimum zoom, force center on map
 			if IsAtMinimumZoom(cameraState.zoom) then
 				cameraState.targetWcx = mapInfo.mapSizeX / 2
 				cameraState.targetWcz = mapInfo.mapSizeZ / 2
 			else
-				cameraState.targetWcx = math.min(math.max(worldX, minWcx), maxWcx)
-				cameraState.targetWcz = math.min(math.max(worldZ, minWcz), maxWcz)
+				cameraState.targetWcx = ClampCameraAxis(worldX, visibleWorldWidth, mapInfo.mapSizeX, config.mapEdgeMargin)
+				cameraState.targetWcz = ClampCameraAxis(worldZ, visibleWorldHeight, mapInfo.mapSizeZ, config.mapEdgeMargin)
 			end
 			-- Also set current position for immediate response during drag
 			cameraState.wcx = cameraState.targetWcx
@@ -12623,20 +12654,25 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 		UpdateGuishaderBlur()
 
 		-- Clamp camera position to respect margin after resize
-		local pipWidth = render.dim.r - render.dim.l
-		local pipHeight = render.dim.t - render.dim.b
+		local pipWidth, pipHeight = GetEffectivePipDimensions()
+
+		-- Update dynamic min zoom so full map is visible at max zoom-out
+		-- Use raw (non-rotated) dimensions so zoom limit is the same regardless of rotation
+		if not isMinimapMode then
+			local rawW = render.dim.r - render.dim.l
+			local rawH = render.dim.t - render.dim.b
+			pipModeMinZoom = math.min(rawW, rawH) / math.max(mapInfo.mapSizeX, mapInfo.mapSizeZ)
+			if cameraState.zoom < pipModeMinZoom then
+				cameraState.zoom = pipModeMinZoom
+				cameraState.targetZoom = pipModeMinZoom
+			end
+		end
+
 		local visibleWorldWidth = pipWidth / cameraState.zoom
 		local visibleWorldHeight = pipHeight / cameraState.zoom
-		local smallerVisibleDimension = math.min(visibleWorldWidth, visibleWorldHeight)
-		local margin = smallerVisibleDimension * config.mapEdgeMargin
 
-		local minWcx = visibleWorldWidth / 2 - margin
-		local maxWcx = mapInfo.mapSizeX - (visibleWorldWidth / 2 - margin)
-		local minWcz = visibleWorldHeight / 2 - margin
-		local maxWcz = mapInfo.mapSizeZ - (visibleWorldHeight / 2 - margin)
-
-		cameraState.wcx = math.min(math.max(cameraState.wcx, minWcx), maxWcx)
-		cameraState.wcz = math.min(math.max(cameraState.wcz, minWcz), maxWcz)
+		cameraState.wcx = ClampCameraAxis(cameraState.wcx, visibleWorldWidth, mapInfo.mapSizeX, config.mapEdgeMargin)
+		cameraState.wcz = ClampCameraAxis(cameraState.wcz, visibleWorldHeight, mapInfo.mapSizeZ, config.mapEdgeMargin)
 		cameraState.targetWcx = cameraState.wcx
 		cameraState.targetWcz = cameraState.wcz
 		RecalculateWorldCoordinates()
@@ -12692,19 +12728,9 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 				end
 			end
 
-			-- Use the smaller dimension for consistent visual margin
-			local smallerVisibleDimension = math.min(visibleWorldWidth, visibleWorldHeight)
-			local margin = smallerVisibleDimension * config.mapEdgeMargin
-
-			-- Calculate min/max camera positions to keep margin from map edges
-			local minWcx = visibleWorldWidth / 2 - margin
-			local maxWcx = mapInfo.mapSizeX - (visibleWorldWidth / 2 - margin)
-			local minWcz = visibleWorldHeight / 2 - margin
-			local maxWcz = mapInfo.mapSizeZ - (visibleWorldHeight / 2 - margin)
-
-			-- Apply panning with margin-based limits (using rotated deltas)
-			cameraState.wcx = math.min(math.max(cameraState.wcx - panDx / cameraState.zoom, minWcx), maxWcx)
-			cameraState.wcz = math.min(math.max(cameraState.wcz + panDy / cameraState.zoom, minWcz), maxWcz)
+			-- Apply panning with per-axis margin limits (using rotated deltas, centers on axis when view exceeds map)
+			cameraState.wcx = ClampCameraAxis(cameraState.wcx - panDx / cameraState.zoom, visibleWorldWidth, mapInfo.mapSizeX, config.mapEdgeMargin)
+			cameraState.wcz = ClampCameraAxis(cameraState.wcz + panDy / cameraState.zoom, visibleWorldHeight, mapInfo.mapSizeZ, config.mapEdgeMargin)
 			cameraState.targetWcx, cameraState.targetWcz = cameraState.wcx, cameraState.wcz  -- Panning updates instantly, not smoothly
 			
 			-- Update locked icon position so world icon follows camera during panning
