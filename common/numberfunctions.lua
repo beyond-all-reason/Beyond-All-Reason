@@ -219,4 +219,27 @@ if not math.HSLtoRGB then
 			return bestPos
 		end
 	end
+	if not math.getClosestPositionOnLine then
+		-- Returns closest position and progress along line AB
+		---@param Ax number
+		---@param Az number
+		---@param Bx number
+		---@param Bz number
+		---@param Px number
+		---@param Pz number
+		function math.getClosestPositionOnLine(Ax, Az, Bx, Bz, Px, Pz)
+		-- Nil Check inputs to be safe
+		if not Ax or not Az or not Bx or not Bz or not Px or not Pz then return 0,0,0 end
+		
+		local APx, APz = Px - Ax, Pz - Az
+		local ABx, ABz = Bx - Ax, Bz - Az
+		local ab2 = ABx*ABx + ABz*ABz
+		local ap_ab = APx*ABx + APz*ABz
+		if ab2 <= 0.001 then return Ax, Az, 0 end
+		local t = ap_ab / ab2
+		if t < 0 then t = 0 end
+		if t > 1 then t = 1 end
+		return Ax + ABx * t, Az + ABz * t, t
+	end
+	end
 end
