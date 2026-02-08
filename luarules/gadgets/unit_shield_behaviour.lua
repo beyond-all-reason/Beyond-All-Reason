@@ -633,8 +633,13 @@ end
 local function getUnitShieldWeaponPosition(shieldUnitID, unitData)
 	if unitData.x then
 		return unitData.x, unitData.y, unitData.z, unitData.radius -- from dead unit
+	elseif unitData.shieldWeaponNumber then
+		local x, y, z = spGetUnitWeaponVectors(shieldUnitID, unitData.shieldWeaponNumber)
+		return x, y, z, unitData.radius
 	else
-		local x, y, z = spGetUnitWeaponVectors(shieldUnitID, unitData.shieldWeaponNumber or 1)
+		-- The unit may have died without ever receiving shield damage, so has no weapon number.
+		-- TODO: But why is that even a thing? This is not a significant obstacle to overcome.
+		local x, y, z = spGetUnitPosition(shieldUnitID, true)
 		return x, y, z, unitData.radius
 	end
 end
