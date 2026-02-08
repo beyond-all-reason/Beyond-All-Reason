@@ -7,8 +7,76 @@ EventName = {
 							For example, UnitLost, is a general notif for losing units, but we have MetalExtractorLost, or RadarLost. I want those to reset UnitLost as well.
 	soundEffect = string - Sound Effect to play alongside the notification, located in 'sounds/voice-soundeffects'
 	notext = bool - hide the text part of the notification
+	notifText = string - This is intended for custom widgets that cannot write I18N directly, overrides the I18N visible text.
 	tutorial = bool - Sound effect used for the tutorial messages, there's a whole different handling of those. (WIP)
 }
+]]
+
+--[[
+	-- Custom Widgets can now create custom notifications as well!
+	-- Here's an example of widget code that makes it work!
+	-- Copy Paste this entire block into a new widget and start using it!
+
+	function widget:GetInfo()
+		return {
+			name = "Custom Notifications Example",
+			desc = "Does various voice/text notifications",
+			author = "Damgam",
+			date = "2026",
+			license = "GNU GPL, v2 or later",
+			version = 1,
+			layer = 5,
+			enabled = true,
+	        handler = true,
+
+		}
+	end
+
+	local widgetInfo = widget:GetInfo()
+
+	local function init()
+	    WG['notifications'].registerCustomNotifWidget(widgetInfo.name) -- Register the custom notifs widget.
+
+	    -- Adding Custom Notification Defs. See the original config file for instructions: https://github.com/beyond-all-reason/Beyond-All-Reason/blob/master/sounds/voice/config.lua
+	    local customNotifDefs = {
+
+	        PawnDetected = {
+	            delay = 25,
+	    		stackedDelay = true,
+	            notifText = "Pawn Detected",
+	            soundEffect = "NukeAlert",
+	        },
+	        GruntDetected = {
+	            delay = 25,
+	    		stackedDelay = true,
+	            notifText = "Grunt Detected",
+	            soundEffect = "NukeAlert",
+	        },
+	        ThisIsATest = {
+	            delay = 10,
+	            notifText = "Can you hear me?",
+	            soundEffect = "AllyRequest",
+	        },
+
+	    }
+	    WG['notifications'].addNotificationDefs(customNotifDefs) -- Calling out the Notifications widget to add these custom definitions
+
+	    WG['notifications'].addUnitDetected("armpw", "PawnDetected") -- Adds Pawn to units of interest and assigns the PawnDetected notification to it.
+	    WG['notifications'].addUnitDetected("corak", "GruntDetected") -- Adds Grunt to units of interest and assigns the GruntDetected notification to it.
+
+	    if widgetHandler:IsWidgetKnown("Options") then -- Restart Options widget to load all your custom notifs to the list of notifs.
+	        widgetHandler:DisableWidget("Options")
+		    widgetHandler:EnableWidget("Options")
+	    end
+	end
+
+	function widget:Update(dt)
+	    if not WG['notifications'].registeredCustomNotifWidgets()[widgetInfo.name] then -- Checks if the widget have been registered in the notifications. If not, initialise it.
+	        init()
+	    end
+
+	    WG['notifications'].queueNotification("ThisIsATest") -- Calls a notification based on an event, in this case though, every frame
+	end
 ]]
 
 
