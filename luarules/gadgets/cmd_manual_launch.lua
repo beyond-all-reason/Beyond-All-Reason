@@ -16,6 +16,8 @@ end
 
 local CMD_MANUAL_LAUNCH = GameCMD.MANUAL_LAUNCH
 
+local reissueOrder = Game.Commands.ReissueOrder
+
 local manualLaunchUnits = {}
 for unitDefId, unitDef in pairs(UnitDefs) do
 	local decoyFor = unitDef.customParams.decoyfor
@@ -33,17 +35,9 @@ local launchCommand = {
 	type = CMDTYPE.ICON_UNIT_OR_MAP,
 }
 
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
-	if cmdID == CMD.INSERT and cmdParams[2] == CMD_MANUAL_LAUNCH then
-		cmdParams[2] = CMD.MANUALFIRE
-		Spring.GiveOrderToUnit(unitID, CMD.INSERT, cmdParams, cmdOptions.coded)
-		return false
-	elseif cmdID == CMD_MANUAL_LAUNCH then
-		Spring.GiveOrderToUnit(unitID, CMD.MANUALFIRE, cmdParams, cmdOptions.coded)
-		return false
-	end
-
-	return true
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua, fromInsert)
+	reissueOrder(unitID, CMD.MANUALFIRE, cmdParams, cmdOptions, cmdTag, fromInsert)
+	return false
 end
 
 function gadget:UnitCreated(unitID, unitDefID, teamID)
