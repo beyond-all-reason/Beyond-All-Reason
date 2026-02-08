@@ -57,9 +57,7 @@ if gadgetHandler:IsSyncedCode() then
 	local nukeWeapons = {}
 	for id, def in pairs(WeaponDefs) do
 		if def.targetable and def.targetable == 1 then
-			if def.name ~= "raptor_allterrain_arty_basic_t4_v1_meteorlauncher" then	-- to not drive them mad
-				nukeWeapons[id] = true
-			end
+			nukeWeapons[id] = true
 		end
 	end
 
@@ -85,13 +83,20 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	-- NUKE LAUNCH send to all but ally team
+	-- NUKE LAUNCH
 	function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 		if nukeWeapons[Spring.GetProjectileDefID(proID)] then
 			local players = AllButAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(proOwnerID)))
 			for ct, player in pairs (players) do
 				if tostring(player) then
 					GG["notifications"].queueNotification("NukeLaunched", "playerID", tostring(player))
+				end
+			end
+
+			local players = PlayersInAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(proOwnerID)))
+			for ct, player in pairs (players) do
+				if tostring(player) then
+					GG["notifications"].queueNotification("AlliedNukeLaunched", "playerID", tostring(player))
 				end
 			end
 		end
@@ -121,11 +126,16 @@ else
 	local isRadar = {}
 	local isMex = {}
 	local isLrpc = {}
+	local isEconomy = {}
+	local isFactory = {}
 	local isBuilding = {}
 	local hasWeapons = {}
+	local isObjectified = {}
+	local isDefenseTurret = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		-- not critter/raptor/object
 		if not string.find(unitDef.name, 'critter') and not string.find(unitDef.name, 'raptor') and (not unitDef.modCategories or not unitDef.modCategories.object) then
+			isBuilding[unitDefID] = unitDef.isBuilding or unitDef.isFactory
 			if unitDef.customParams.iscommander or unitDef.customParams.isscavcommander then
 				isCommander[unitDefID] = true
 			end
@@ -141,7 +151,20 @@ else
 			if unitDef.weapons and #unitDef.weapons > 0 then
 				hasWeapons[unitDefID] = true
 			end
-			isBuilding[unitDefID] = unitDef.isBuilding or unitDef.isFactory
+			if (unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10)) or (unitDef.windGenerator > 0) or unitDef.tidalGenerator > 0 or unitDef.customParams.solar then
+				isEconomy[unitDefID] = true
+			elseif unitDef.customParams.energyconv_capacity and unitDef.customParams.energyconv_efficiency then
+				isEconomy[unitDefID] = true
+			end
+			if unitDef.isFactory then
+				isFactory[unitDefID] = true
+			end
+			if unitDef.customParams.objectify then
+				isObjectified[unitDefID] = true
+			end
+			if isBuilding[unitDefID] and hasWeapons[unitDefID] and unitDef.maxWeaponRange <= 2000 then
+				isDefenseTurret[unitDefID] = true
+			end
 		end
 	end
 
@@ -180,7 +203,7 @@ else
 		if isCommander[unitDefID] then
 			commanderLastDamaged[unitID] = Spring.GetGameFrame()
 		end
-		if unitTeam == myTeamID and attackerTeam and GetAllyTeamID(attackerTeam) ~= myAllyTeamID then
+		if unitTeam == myTeamID and attackerTeam and GetAllyTeamID(attackerTeam) ~= myAllyTeamID and (not isObjectified[unitDefID]) then
 			if isCommander[unitDefID] then
 				local health, maxhealth = Spring.GetUnitHealth(unitID)
 				local healthPercent = health/maxhealth
@@ -189,9 +212,13 @@ else
 				else
 					GG["notifications"].queueNotification('CommanderUnderAttack', "playerID", tostring(myPlayerID))
 				end
-			elseif isBuilding[unitDefID] == true and (not isMex[unitDefID]) and (not hasWeapons[unitDefID]) and (not isRadar[unitDefID]) then
-				GG["notifications"].queueNotification('BaseUnderAttack', "playerID", tostring(myPlayerID))
-			elseif isBuilding[unitDefID] == false then
+			elseif isFactory[unitDefID] then
+				GG["notifications"].queueNotification('FactoryUnderAttack', "playerID", tostring(myPlayerID))
+			elseif isBuilding[unitDefID] == true and (not isMex[unitDefID]) and (isEconomy[unitDefID]) then
+				GG["notifications"].queueNotification('EconomyUnderAttack', "playerID", tostring(myPlayerID))
+			elseif isBuilding[unitDefID] == true and (not isMex[unitDefID]) and isDefenseTurret[unitDefID] then
+				GG["notifications"].queueNotification('DefenseUnderAttack', "playerID", tostring(myPlayerID))
+			else
 				GG["notifications"].queueNotification('UnitsUnderAttack', "playerID", tostring(myPlayerID))
 			end
 		end
@@ -205,7 +232,7 @@ else
 		--local unitInView = Spring.IsUnitInView(unitID)
 
 		-- if own and not killed by yourself
-		if not isSpec and unitTeam == myTeamID and attackerTeam and attackerTeam ~= unitTeam then -- and not unitInView
+		if not isSpec and unitTeam == myTeamID and attackerTeam and attackerTeam ~= unitTeam and (not isObjectified[unitDefID]) then -- and not unitInView
 			if isRadar[unitDefID] then
 				local event = isRadar[unitDefID] > 2800 and 'AdvRadarLost' or 'RadarLost'
 				GG["notifications"].queueNotification(event, "playerID", tostring(myPlayerID))
@@ -240,7 +267,7 @@ else
 					end
 				end
 			end
-			if not isSpec then
+			if (not isSpec) and (unitTeam ~= myTeamID) then
 				if numTeams > 1 and not playingAsHorde then
 					local players =  PlayersInAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
 					for ct, player in pairs (players) do

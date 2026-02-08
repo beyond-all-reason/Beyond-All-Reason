@@ -21,7 +21,7 @@ end
 -- Configuration ---------------------------------------------------------------
 
 local damageInterval = 0.7333 ---@type number in seconds, time between procs
-local damageLimit = 100 ---@type number in damage per second, soft-cap across multiple areas
+local damageLimit = 120 ---@type number in damage per second, soft-cap across multiple areas
 local damageExcessRate = 0.2 ---@type number %damage dealt above limit [0, 1)
 local damageCegMinScalar = 30 ---@type number in damage, minimum to show hit CEG
 local damageCegMinMultiple = 1 / 3 ---@type number in %damage, minimum to show hit CEG
@@ -64,6 +64,11 @@ local sqrt                    = math.sqrt
 local round                   = math.round
 local diag                    = math.diag
 local normalize               = math.normalize
+local stringFind              = string.find
+local stringGsub              = string.gsub
+local stringLower             = string.lower
+local tableInsert             = table.insert
+local tableRemove             = table.remove
 
 local spAddUnitDamage         = Spring.AddUnitDamage
 local spGetFeatureHealth      = Spring.GetFeatureHealth
@@ -76,17 +81,7 @@ local spGetUnitPosition       = Spring.GetUnitPosition
 local spGetUnitsInCylinder    = Spring.GetUnitsInCylinder
 local spSetFeatureHealth      = Spring.SetFeatureHealth
 local spSpawnCEG              = Spring.SpawnCEG
-local spGetAllFeatures        = Spring.GetAllFeatures
-local spGetFeatureDefID       = Spring.GetFeatureDefID
-local spGetAllUnits           = Spring.GetAllUnits
-local spGetUnitIsBeingBuilt   = Spring.GetUnitIsBeingBuilt
-local spGetUnitHealth         = Spring.GetUnitHealth
 local spDestroyFeature        = Spring.DestroyFeature
-local stringFind              = string.find
-local stringGsub              = string.gsub
-local stringLower             = string.lower
-local tableInsert             = table.insert
-local tableRemove             = table.remove
 
 local gameSpeed               = Game.gameSpeed
 
@@ -99,17 +94,15 @@ local frameWaitTime = round(Game.gameSpeed * factoryWaitTime)
 
 local timedDamageWeapons = {}
 local unitDamageImmunity = {}
-local featDamageImmunity = {}
-
+local featureDamageImmunity = {}
 local isFactory = {}
-local isNewUnit = {}
 
 local aliveExplosions = {}
 local frameExplosions = {}
 local frameNumber = 0
 
-local unitDamageTaken = {}
-local featDamageTaken = {}
+local unitData = {}
+local featureData = {}
 local unitDamageReset = {}
 local featDamageReset = {}
 
@@ -240,7 +233,7 @@ end
 ---We prefer the target's midpoint if it is in the radius since the damaged CEGs are easier to see higher up
 ---on the model, but if it is too high/awkward then the base position is fine, with a small vertical offset.
 ---@param area table contains the timed area properties
----@param baseX number unit base position coordinates <x, y, z>
+---@param baseX? number unit base position coordinates <x, y, z>
 ---@param baseY number
 ---@param baseZ number
 ---@param midX number unit midpoint position coordinates <x, y, z>
@@ -250,6 +243,10 @@ end
 ---@return number? hitY
 ---@return number? hitZ
 local function getAreaHitPosition(area, baseX, baseY, baseZ, midX, midY, midZ)
+	if not baseX then
+		return
+	end
+
 	local radius = area.range
 
 	if midY >= area.ymin and midY <= area.ymax then
@@ -304,7 +301,7 @@ end
 local function damageTargetsInAreas(timedAreas, gameFrame)
     local length = #timedAreas
 
-    local resetNewUnit = {}
+    local reset = {}
     local count = 0
 
     for index = length, 1, -1 do
@@ -315,32 +312,35 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
 
         for j = 1, #unitsInRange do
             local unitID = unitsInRange[j]
-            if not unitDamageImmunity[spGetUnitDefID(unitID)][area.resistance] and not isNewUnit[unitID] then
-                local damageTaken = unitDamageTaken[unitID]
-                if not damageTaken then
-                    damageTaken = 0
-                    count = count + 1
-                    resetNewUnit[count] = unitID
-                end
-                local damage, showDamageCeg = getLimitedDamage(area.damage, damageTaken)
-                if showDamageCeg then
-                    local ux, uy, uz = spGetUnitPosition(unitID)
-                    spSpawnCEG(area.damageCeg, ux, uy, uz)
-                end
-                spAddUnitDamage(unitID, damage, nil, area.owner, area.weapon)
-                unitDamageTaken[unitID] = damageTaken + damage
+			local data = unitData[unitID]
+            if data and not data.resistances[area.resistance] and data.immuneUntil < gameFrame then
+                local hitX, hitY, hitZ = getAreaHitPosition(area, spGetUnitPosition(unitID, true))
+
+				if hitX then
+					local damageTaken = data.damageTaken
+					if damageTaken == 0 then
+						count = count + 1
+						reset[count] = data
+					end
+					local damage, showDamageCeg = getLimitedDamage(area.damage, damageTaken)
+					if showDamageCeg then
+						spSpawnCEG(area.damageCeg, hitX, hitY, hitZ)
+					end
+					data.damageTaken = damageTaken + damage
+					spAddUnitDamage(unitID, damage, nil, area.owner, area.weapon)
+				end
             end
         end
     end
 
-    for _, unitID in ipairs(unitDamageReset[gameFrame]) do
-        unitDamageTaken[unitID] = nil
-    end
+	for _, data in ipairs(unitDamageReset[gameFrame]) do
+		data.damageTaken = 0
+	end
 
     unitDamageReset[gameFrame] = nil
-    unitDamageReset[gameFrame + gameSpeed] = resetNewUnit
+    unitDamageReset[gameFrame + gameSpeed] = reset
 
-    local resetNewFeat = {}
+    reset = {}
     count = 0
 
     for index = length, 1, -1 do
@@ -351,30 +351,25 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
 
         for j = 1, #featuresInRange do
             local featureID = featuresInRange[j]
+			local data = featureData[featureID]
 
-            if not featDamageImmunity[featureID] then
+            if data and not data.damageImmune then
                 local hitX, hitY, hitZ = getAreaHitPosition(area, spGetFeaturePosition(featureID, true))
 
                 if hitX then
-                    local damageTaken = featDamageTaken[featureID]
-
-                    if not damageTaken then
-                        damageTaken = 0
+                    local damageTaken = data.damageTaken
+                    if damageTaken == 0 then
                         count = count + 1
-                        resetNewFeat[count] = featureID
+                        reset[count] = data
                     end
-
                     local damageDealt, showDamageCeg = getLimitedDamage(area.damage, damageTaken)
-
                     if showDamageCeg then
                         spSpawnCEG(area.damageCeg, hitX, hitY, hitZ)
                     end
-
                     local health = spGetFeatureHealth(featureID) - damageDealt
-
                     if health > 1 then
                         spSetFeatureHealth(featureID, health)
-                        featDamageTaken[featureID] = damageTaken + damageDealt
+                        data.damageTaken = damageTaken + damageDealt
                     else
                         spDestroyFeature(featureID)
                     end
@@ -387,23 +382,12 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
         end
     end
 
-    for _, featID in ipairs(featDamageReset[gameFrame]) do
-        featDamageTaken[featID] = nil
-    end
+	for _, data in ipairs(featDamageReset[gameFrame]) do
+		data.damageTaken = 0
+	end
 
     featDamageReset[gameFrame] = nil
-    featDamageReset[gameFrame + gameSpeed] = resetNewFeat
-end
-
-local function removeFromArrays(arrays, value)
-    for _, array in pairs(arrays) do
-        for i = 1, #array do
-            if value == array[i] then
-                array[#array], array[i] = array[i], nil
-                return
-            end
-        end
-    end
+    featDamageReset[gameFrame + gameSpeed] = reset
 end
 
 --------------------------------------------------------------------------------
@@ -447,6 +431,16 @@ function gadget:Initialize()
         end
     end
 
+    if not next(timedDamageWeapons) then
+		Spring.Log(gadget:GetInfo().name, LOG.INFO, "No timed areas found. Removing gadget.")
+        gadgetHandler:RemoveGadget(self)
+		return
+	end
+
+	for weaponDefID in pairs(timedDamageWeapons) do
+		Script.SetWatchExplosion(weaponDefID, true)
+	end
+
     unitDamageImmunity = {}
     local areaDamageTypes = {}
     for weaponDefID, params in pairs(timedDamageWeapons) do
@@ -483,49 +477,30 @@ function gadget:Initialize()
         unitDamageImmunity[unitDefID] = unitImmunity
     end
 
-    featDamageImmunity = {}
-    for i = 1, #spGetAllFeatures() do
-        local featureID = spGetAllFeatures()[i]
-        local featureDefID = spGetFeatureDefID(featureID)
-        local featureDef = FeatureDefs[featureDefID]
-        if featureDef.indestructible or featureDef.geoThermal then
-            featDamageImmunity[featureID] = true
-        end
-    end
+    featureDamageImmunity = {}
+	for featureDefID, featureDef in ipairs(FeatureDefs) do
+		featureDamageImmunity[featureDefID] = featureDef.indestructible or featureDef.geoThermal
+	end
 
-    if next(timedDamageWeapons) then
-        for weaponDefID in pairs(timedDamageWeapons) do
-            Script.SetWatchExplosion(weaponDefID, true)
-        end
+	aliveExplosions = {}
+	for ii = 1, frameInterval do
+		aliveExplosions[ii] = {}
+	end
 
-        aliveExplosions = {}
-        for ii = 1, frameInterval do
-            aliveExplosions[ii] = {}
-        end
-        frameNumber = Spring.GetGameFrame()
-        frameExplosions = aliveExplosions[1 + (frameNumber % frameInterval)]
-        for frame = frameNumber - 1, frameNumber + gameSpeed do
-            unitDamageReset[frame] = {}
-            featDamageReset[frame] = {}
-        end
+	frameNumber = Spring.GetGameFrame()
+	frameExplosions = aliveExplosions[1 + (frameNumber % frameInterval)]
+	for frame = frameNumber - 1, frameNumber + gameSpeed do
+		unitDamageReset[frame] = {}
+		featDamageReset[frame] = {}
+	end
 
-        isNewUnit = {}
-		local progressMax = 0.05 -- Assuming 20s build time. Any guess is fine (for /luarules reload).
-		local beingBuilt, progress, health, healthMax, framesRemaining
-        local allUnits = spGetAllUnits()
-        for i = 1, #allUnits do
-            local unitID = allUnits[i]
-            beingBuilt, progress = spGetUnitIsBeingBuilt(unitID)
-			health, healthMax = spGetUnitHealth(unitID)
-            if beingBuilt and min(progress, health / healthMax) <= progressMax then
-                framesRemaining = frameInterval * (1 - 0.5 * min(progress, health / healthMax) / progressMax)
-                isNewUnit[unitID] = frameNumber + max(1, framesRemaining)
-            end
-        end
-    else
-        Spring.Log(gadget:GetInfo().name, LOG.INFO, "No timed areas found. Removing gadget.")
-        gadgetHandler:RemoveGadget(self)
-    end
+	for _, unitID in ipairs(Spring.GetAllUnits()) do
+		gadget:UnitCreated(unitID, spGetUnitDefID(unitID))
+	end
+
+	for _, featureID in ipairs(Spring.GetAllFeatures()) do
+		gadget:FeatureCreated(featureID)
+	end
 end
 
 function gadget:Explosion(weaponDefID, px, py, pz, attackerID, projectileID)
@@ -544,35 +519,28 @@ function gadget:GameFrame(frame)
 
     frameExplosions = frameAreas
     frameNumber = frame
-
-    for unitID, expire in pairs(isNewUnit) do
-        if expire > frame then
-            isNewUnit[unitID] = nil
-        end
-    end
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-    if builderID and isFactory[builderID] then
-        isNewUnit[unitID] = frameNumber + frameWaitTime
-    end
-end
-
-function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	isNewUnit[unitID] = nil
+	unitData[unitID] = {
+		damageTaken = 0,
+		immuneUntil = (builderID and isFactory[spGetUnitDefID(builderID)] and frameNumber + frameWaitTime) or 0,
+		resistances = unitDamageImmunity[unitDefID],
+	}
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-    if unitDamageTaken[unitID] then
-        unitDamageTaken[unitID] = nil
-        removeFromArrays(unitDamageReset, unitID)
-    end
-    isNewUnit[unitID] = nil
+	unitData[unitID] = nil
+end
+
+function gadget:FeatureCreated(featureID, allyTeam)
+	local featureDefID = Spring.GetFeatureDefID(featureID)
+	featureData[featureID] = {
+		damageTaken = 0,
+		damageImmune = featureDamageImmunity[featureDefID],
+	}
 end
 
 function gadget:FeatureDestroyed(featureID, allyTeam)
-    if featDamageTaken[featureID] then
-        featDamageTaken[featureID] = nil
-        removeFromArrays(featDamageReset, featureID)
-    end
+	featureData[featureID] = nil
 end

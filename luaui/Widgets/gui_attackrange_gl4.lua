@@ -1,6 +1,6 @@
 include("keysym.h.lua")
 
-local versionNumber = "1.1"
+local versionNumber = "1.2"
 
 local widget = widget ---@type Widget
 
@@ -62,7 +62,9 @@ InterceptorOff
 local autoReload = false
 
 ---------------------------------------------------------------------------------------------------------------------------
--- Bindable action:   cursor_range_toggle
+-- Bindable actions:	cursor_range_toggle - Toggles display of the attack range of the unit under the mouse cursor.
+-- 						attack_range_inc - Cycle to next attack range display config for current unit type.
+-- 						attack_range_dec - Cycle to previous attack range display config for current unit type.
 -- The widget's individual unit type's display setup is saved in LuaUI/config/AttackRangeConfig2.lua
 ---------------------------------------------------------------------------------------------------------------------------
 local shift_only = false -- only show ranges when shift is held down
@@ -72,6 +74,8 @@ local selectionDisableThresholdMult = 0.7
 
 ---------------------------------------------------------------------------------------------------------------------------
 ------------------ CONFIGURABLES --------------
+
+local DYNAMIC_RANGE_UPDATE_RATE = 3.0
 
 local buttonConfig = {
 	ally = { ground = true, AA = true, nano = true },
@@ -208,6 +212,7 @@ local unitBuildDistance = {}
 local unitBuilder = {}
 local unitOnOffable = {}
 local unitOnOffName = {}
+local unitDefRangeScale = {}
 for udid, ud in pairs(UnitDefs) do
 	unitBuilder[udid] = ud.isBuilder and (ud.canAssist or ud.canReclaim) and not (ud.isFactory and #ud.buildOptions > 0)
 	if unitBuilder[udid] then
@@ -219,6 +224,9 @@ for udid, ud in pairs(UnitDefs) do
 	unitOnOffable[udid] = ud.onOffable
 	if ud.customParams.onoffname then
 		unitOnOffName[udid] = ud.customParams.onoffname
+	end
+	if ud.customParams.rangexpscale then
+		unitDefRangeScale[udid] = ud.customParams.rangexpscale
 	end
 end
 
@@ -471,6 +479,7 @@ local GL_REPLACE            = GL.REPLACE --GL.KEEP
 local spGetUnitDefID        = Spring.GetUnitDefID
 local spGetUnitPosition     = Spring.GetUnitPosition
 local spGetUnitWeaponVectors=Spring.GetUnitWeaponVectors
+local spGetUnitWeaponState = Spring.GetUnitWeaponState
 local spGetUnitAllyTeam     = Spring.GetUnitAllyTeam
 local spGetMouseState       = Spring.GetMouseState
 local spTraceScreenRay      = Spring.TraceScreenRay
@@ -565,6 +574,7 @@ local shaderSourceCache = {
 		selBuilderCount = 1.0,
 		selUnitCount = 1.0,
 		inMiniMap = 0.0,
+		pipVisibleArea = {0, 1, 0, 1}, -- left, right, bottom, top in normalized [0,1] coords for PIP minimap
 	},
 }
 
@@ -587,10 +597,12 @@ local mouseUnit
 local mouseovers = {} -- mirroring selections, but for mouseovers
 
 local unitsOnOff = {} -- unit weapon toggle states, tracked from CommandNotify (also building on off status)
+local unitRangeScale = { selections = {}, mouseovers = {} } -- stores info for units with scaling ranges
+local numScalingUnits = 0
 local myTeam = spGetMyTeamID()
 
 -- mirrors functionality of UnitDetected
-local function AddSelectedUnit(unitID, mouseover)
+local function AddSelectedUnit(unitID, mouseover, newRange)
 	--if not show_selected_weapon_ranges then return end
 	local collections = selections
 	if mouseover then
@@ -652,6 +664,22 @@ local function AddSelectedUnit(unitID, mouseover)
 		initializeUnitDefRing(unitDefID)
 	end
 
+	local scalingUnitDefs = unitDefRangeScale
+	local scalingUnitParams = unitRangeScale.selections
+	if mouseover then scalingUnitParams = unitRangeScale.mouseovers end
+	local oldRange = {}
+	if scalingUnitDefs[unitDefID] and alliedUnit then	-- Can't read enemy unit ranges.
+		if not newRange then newRange = {} end
+		scalingUnitParams[unitID] = { oldRange = {} }
+		numScalingUnits = numScalingUnits + 1
+		oldRange[unitID] = {}
+		for weaponNum = 1, #weapons do
+			if not newRange[weaponNum] then	-- Prevent unnecessary duplicate engine calls.
+				newRange[weaponNum] = spGetUnitWeaponState(unitID, weaponNum, "range")
+			end
+			oldRange[unitID][weaponNum] = {weaponNum, newRange[weaponNum]}
+		end
+	end
 
 	local x, y, z, mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition(unitID, true, true)
 
@@ -687,7 +715,15 @@ local function AddSelectedUnit(unitID, mouseover)
 			end
 		end
 
-		local ringParams = unitDefRings[unitDefID]['rings'][j]
+		local ringParams = {}
+		if newRange then
+			for i = 2, 17 do	-- See line 405.
+				ringParams[i] = unitDefRings[unitDefID]['rings'][j][i]	-- Preserves default range from unitDefs for use with enemy units.
+			end
+			ringParams[1] = newRange[j]
+		else
+			ringParams = unitDefRings[unitDefID]['rings'][j]
+		end
 		if drawIt and ringParams[1] > 0 then
 
 			local weaponID = j
@@ -741,6 +777,9 @@ local function AddSelectedUnit(unitID, mouseover)
 				}
 			end
 			collections[unitID].vaokeys[instanceID] = vaokey
+			if newRange then
+				scalingUnitParams[unitID].oldRange[instanceID] = oldRange[unitID][j]
+			end
 		end
 	end
 	-- we cheat here and update builder count
@@ -753,6 +792,8 @@ local function RemoveSelectedUnit(unitID, mouseover)
 	--if not show_selected_weapon_ranges then return end
 	local collections = selections
 	if mouseover then collections = mouseovers end
+	local scalingUnitParams = unitRangeScale.selections
+	if mouseover then scalingUnitParams = unitRangeScale.mouseovers end
 
 	local removedRings = 0
 	if collections[unitID] then
@@ -768,6 +809,10 @@ local function RemoveSelectedUnit(unitID, mouseover)
 			selBuilderCount = selBuilderCount - 1
 		end
 		collections[unitID] = nil
+		if scalingUnitParams[unitID] then
+			scalingUnitParams[unitID] = nil
+			numScalingUnits = numScalingUnits - 1
+		end
 	end
 end
 
@@ -785,7 +830,7 @@ local function InitializeBuilders()
 end
 
 local function makeShaders()
-	attackRangeShader = LuaShader.CheckShaderUpdates(shaderSourceCache, 0)
+	attackRangeShader = LuaShader.CheckShaderUpdates(shaderSourceCache, 0) or attackRangeShader
 	if not attackRangeShader then
 		goodbye("Failed to compile attackRangeShader GL4 ")
 		return false
@@ -819,119 +864,30 @@ local function initGL4()
 	return makeShaders()
 end
 
-local function toggleShowSelectedRanges(on)
-	if show_selected_weapon_ranges == on then return end
-	show_selected_weapon_ranges = on
-end
-
-local function toggleCursorRange(_, _, args)
-	cursor_unit_range = not cursor_unit_range
-	spEcho("Cursor unit range set to: " .. (cursor_unit_range and "ON" or "OFF"))
-end
-
-function widget:PlayerChanged(playerID)
-    myAllyTeamID = Spring.GetLocalAllyTeamID()
-    myTeamID = Spring.GetLocalTeamID()
-
-	InitializeBuilders()
-end
-
-function widget:Initialize()
-	initUnitList()
-
-	if initGL4() == false then
-		widgetHandler:RemoveWidget(self)
-		return
-	end
-
-	unitTogglesChunked = unitTogglesChunked or {}
-	for i, v in pairs(unitTogglesChunked) do
-		unitToggles[i] = v
-	end
-
-	widgetHandler:AddAction("cursor_range_toggle", toggleCursorRange, nil, "p")
-
-	myAllyTeam = Spring.GetMyAllyTeamID()
-	myTeamID = spGetMyTeamID()
-
-	updateSelection = true
-	local _, _, _, shift = GetModKeyState()
-	if shift_only and not shift then
-		toggleShowSelectedRanges(false)
-	end
-	InitializeBuilders()
-
-	WG.attackrange = {}
-	WG.attackrange.getShiftOnly = function()
-		return shift_only
-	end
-	WG.attackrange.setShiftOnly = function(value)
-		shift_only = value
-		widget:Initialize()
-	end
-	WG.attackrange.getCursorUnitRange = function()
-		return cursor_unit_range
-	end
-	WG.attackrange.setCursorUnitRange = function(value)
-		cursor_unit_range = value
-		widget:Initialize()
-	end
-	WG.attackrange.getNumRangesMult = function()
-		return selectionDisableThresholdMult
-	end
-	WG.attackrange.setNumRangesMult = function(value)
-		selectionDisableThresholdMult = value
-	end
-end
-
-function widget:Shutdown()
-	widgetHandler:RemoveAction("cursor_range_toggle", "p")
-end
-
-local gameFrame = 0
-
-function widget:GameFrame(gf)
-	gameFrame = gf
-end
-
-local function RefreshSelectedUnits()
-	local newSelUnits = {}
-	for i, unitID in ipairs(selectedUnits) do
-		newSelUnits[unitID] = true
-		if not selUnits[unitID] and selUnitCount < mathFloor(selectionDisableThreshold * selectionDisableThresholdMult) then
-			AddSelectedUnit(unitID)
+local function DoRangeUpdate(unitID, scalingUnit, mouseover)
+	local newRange = {}
+	local update
+	for instanceID, oldRange in pairs(scalingUnit.oldRange) do
+		local weaponNum = oldRange[1]
+		newRange[weaponNum] = spGetUnitWeaponState(unitID, weaponNum, "range")
+		if oldRange[2] ~= newRange[weaponNum] then
+			update = true
 		end
 	end
-	for unitID, _ in pairs(selUnits) do
-		if not newSelUnits[unitID] then
-			RemoveSelectedUnit(unitID)
-		end
+	if update then
+		RemoveSelectedUnit(unitID, mouseover)			-- need to refresh this unit's ring
+		AddSelectedUnit(unitID, mouseover, newRange)
 	end
-	selUnits = newSelUnits
 end
 
-local function UpdateSelectedUnits()
-	selectedUnits = GetSelectedUnits()
-	selUnitCount = #selectedUnits
-	updateSelection = false
-
-	RefreshSelectedUnits()
-end
-
--- whether to draw the build range of all builders - only happens when isBuilding
-local function DrawBuilders()
-	if isBuilding then
-		for unitID, _ in pairs(builders) do
-			if not selUnits[unitID] then
-				AddSelectedUnit(unitID)
-			end
-		end
-	else -- not building, we remove all builders that aren't selected
-		for unitID, _ in pairs(builders) do
-			if not selUnits[unitID] then
-				RemoveSelectedUnit(unitID)
-			end
-		end
+local function UpdateScalingRange()			-- This function, and anything related to unitRangeScale, scalingUnitParams, and newRange are parts of a hook for Gunslingers or future/modded units that gain range with EXP.
+	local scalingUnitParams = unitRangeScale
+	for unitID, scalingUnit  in pairs(scalingUnitParams.selections) do
+		DoRangeUpdate(unitID, scalingUnit)
+	end
+	for unitID, scalingUnit  in pairs(scalingUnitParams.mouseovers) do
+		local mouseover = true
+		DoRangeUpdate(unitID, scalingUnit, mouseover)
 	end
 end
 
@@ -944,12 +900,24 @@ local function RefreshEverything()
 	selectedUnits = {}
 	selUnits = {}
 	mouseovers = {}
+	unitRangeScale = { selections = {}, mouseovers = {} }
+	numScalingUnits = 0
 
 	widget:Initialize()
 end
 
+local function toggleShowSelectedRanges(on)
+	if show_selected_weapon_ranges == on then return end
+	show_selected_weapon_ranges = on
+end
+
+local function toggleCursorRange(_, _, args)
+	cursor_unit_range = not cursor_unit_range
+	spEcho("Cursor unit range set to: " .. (cursor_unit_range and "ON" or "OFF"))
+end
+
 -- direction should be 1 or -1 (next or previous bitmap value)
-local function CycleUnitDisplay(direction)
+local function cycleUnitDisplay(direction)
 	if (selUnitCount > 1) or (selUnitCount == 0) then
 		spEcho("Please select only one unit to change display setting!")
 		return
@@ -1005,15 +973,125 @@ local function CycleUnitDisplay(direction)
 	RefreshEverything()
 end
 
+local function cycleUnitDisplayHandler(_, _, _, data)
+	local data = data or {}
+	local direction = data["direction"]
+	cycleUnitDisplay(direction)
+end
+
+function widget:PlayerChanged(playerID)
+    myAllyTeamID = Spring.GetLocalAllyTeamID()
+    myTeamID = Spring.GetLocalTeamID()
+
+	InitializeBuilders()
+end
+
+function widget:Initialize()
+	initUnitList()
+
+	if initGL4() == false then
+		widgetHandler:RemoveWidget(self)
+		return
+	end
+
+	unitTogglesChunked = unitTogglesChunked or {}
+	for i, v in pairs(unitTogglesChunked) do
+		unitToggles[i] = v
+	end
+
+	widgetHandler:AddAction("cursor_range_toggle", toggleCursorRange, nil, "p")
+	widgetHandler:AddAction("attack_range_inc", cycleUnitDisplayHandler, {direction = 1}, "p")
+	widgetHandler:AddAction("attack_range_dec", cycleUnitDisplayHandler, {direction = -1}, "p")
+
+	myAllyTeam = Spring.GetMyAllyTeamID()
+	myTeamID = spGetMyTeamID()
+
+	updateSelection = true
+	local _, _, _, shift = GetModKeyState()
+	if shift_only and not shift then
+		toggleShowSelectedRanges(false)
+	end
+	InitializeBuilders()
+
+	WG.attackrange = {}
+	WG.attackrange.getShiftOnly = function()
+		return shift_only
+	end
+	WG.attackrange.setShiftOnly = function(value)
+		shift_only = value
+		widget:Initialize()
+	end
+	WG.attackrange.getCursorUnitRange = function()
+		return cursor_unit_range
+	end
+	WG.attackrange.setCursorUnitRange = function(value)
+		cursor_unit_range = value
+		widget:Initialize()
+	end
+	WG.attackrange.getNumRangesMult = function()
+		return selectionDisableThresholdMult
+	end
+	WG.attackrange.setNumRangesMult = function(value)
+		selectionDisableThresholdMult = value
+	end
+end
+
+function widget:Shutdown()
+	widgetHandler:RemoveAction("cursor_range_toggle", "p")
+	widgetHandler:RemoveAction("attack_range_inc", "p")
+	widgetHandler:RemoveAction("attack_range_dec", "p")
+end
+
+local gameFrame = 0
+
+function widget:GameFrame(gf)
+	gameFrame = gf
+end
+
+local function RefreshSelectedUnits()
+	local newSelUnits = {}
+	for i, unitID in ipairs(selectedUnits) do
+		newSelUnits[unitID] = true
+		if not selUnits[unitID] and selUnitCount < mathFloor(selectionDisableThreshold * selectionDisableThresholdMult) then
+			AddSelectedUnit(unitID)
+		end
+	end
+	for unitID, _ in pairs(selUnits) do
+		if not newSelUnits[unitID] then
+			RemoveSelectedUnit(unitID)
+		end
+	end
+	selUnits = newSelUnits
+end
+
+local function UpdateSelectedUnits()
+	selectedUnits = GetSelectedUnits()
+	selUnitCount = #selectedUnits
+	updateSelection = false
+
+	RefreshSelectedUnits()
+end
+
+-- whether to draw the build range of all builders - only happens when isBuilding
+local function DrawBuilders()
+	if isBuilding then
+		for unitID, _ in pairs(builders) do
+			if not selUnits[unitID] then
+				AddSelectedUnit(unitID)
+			end
+		end
+	else -- not building, we remove all builders that aren't selected
+		for unitID, _ in pairs(builders) do
+			if not selUnits[unitID] then
+				RemoveSelectedUnit(unitID)
+			end
+		end
+	end
+end
+
 function widget:KeyPress(key, mods, isRepeat)
 	if key == 304 then
 		shifted = true
-	end
-	if key == 46 and mods.alt then
-		CycleUnitDisplay(1) -- cycle forward
-	end
-	if key == 44 and mods.alt then
-		CycleUnitDisplay(-1) -- cycle backward
 	end
 end
 
@@ -1023,9 +1101,21 @@ function widget:KeyRelease(key, mods, isRepeat)
 	end
 end
 
+local timeSinceLastRangeUpdate = 0
 function widget:Update(dt)
 	if updateSelection and gameFrame % 3 == 0 then
 		UpdateSelectedUnits()
+	end
+
+	if numScalingUnits > 0 then
+		timeSinceLastRangeUpdate = timeSinceLastRangeUpdate + dt
+	else
+		timeSinceLastRangeUpdate = 0
+	end
+
+	if timeSinceLastRangeUpdate > DYNAMIC_RANGE_UPDATE_RATE then
+		UpdateScalingRange()			-- This function is relatively expensive, so we only run it when we need to.
+		timeSinceLastRangeUpdate = 0
 	end
 
 	if show_selected_weapon_ranges and cursor_unit_range and gameFrame % 3 == 1 then
@@ -1144,7 +1234,13 @@ function widget:DrawWorld(inMiniMap)
 
 	if chobbyInterface or not (selUnitCount > 0 or mouseUnit) then return end
 	if not Spring.IsGUIHidden() and (not WG['topbar'] or not WG['topbar'].showingQuit()) then
-		cameraHeightFactor = GetCameraHeightFactor() * 0.5 + 0.5
+		-- For PIP minimap, use thicker lines since PIP is larger than engine minimap
+		local inPip = inMiniMap and WG['minimap'] and WG['minimap'].isDrawingInPip
+		if inPip then
+			cameraHeightFactor = 2.5  -- PIP is larger, needs thicker lines
+		else
+			cameraHeightFactor = GetCameraHeightFactor() * 0.5 + 0.5
+		end
 		glTexture(0, "$heightmap")
 		glTexture(1, "$info")
 		-- glTexture(2, '$normals')
@@ -1171,6 +1267,14 @@ function widget:DrawWorld(inMiniMap)
 			attackRangeShader:SetUniformInt("rotationMiniMap", getCurrentMiniMapRotationOption() or ROTATION.DEG_0)
 			attackRangeShader:SetUniform("drawAlpha", colorConfig.fill_alpha)
 			attackRangeShader:SetUniform("fadeDistOffset", colorConfig.outer_fade_height_difference)
+
+			-- Pass PIP visible area if drawing in PIP minimap
+			if inMiniMap and WG['minimap'] and WG['minimap'].isDrawingInPip and WG['minimap'].getNormalizedVisibleArea then
+				local left, right, bottom, top = WG['minimap'].getNormalizedVisibleArea()
+				attackRangeShader:SetUniform("pipVisibleArea", left, right, bottom, top)
+			else
+				attackRangeShader:SetUniform("pipVisibleArea", 0, 1, 0, 1)
+			end
 
 			DRAWRINGS(GL_TRIANGLE_FAN) -- FILL THE CIRCLES
 

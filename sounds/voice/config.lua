@@ -3,12 +3,80 @@ EventName = {
 	delay = integrer - Minimum seconds that have to pass to play this notification again.
 	stackedDelay = bool - Reset the delay even when attempted to play the notif under cooldown. 
 							Useful for stuff you want to be able to hear often, but not repeatedly if the condition didn't change.
-	resetOtherEventDelay = string - Name of 'fallback' event that will get it's delay reset. 
+	resetOtherEventDelay = table - Names of other events that will get it's delay reset. 
 							For example, UnitLost, is a general notif for losing units, but we have MetalExtractorLost, or RadarLost. I want those to reset UnitLost as well.
 	soundEffect = string - Sound Effect to play alongside the notification, located in 'sounds/voice-soundeffects'
 	notext = bool - hide the text part of the notification
+	notifText = string - This is intended for custom widgets that cannot write I18N directly, overrides the I18N visible text.
 	tutorial = bool - Sound effect used for the tutorial messages, there's a whole different handling of those. (WIP)
 }
+]]
+
+--[[
+	-- Custom Widgets can now create custom notifications as well!
+	-- Here's an example of widget code that makes it work!
+	-- Copy Paste this entire block into a new widget and start using it!
+
+	function widget:GetInfo()
+		return {
+			name = "Custom Notifications Example",
+			desc = "Does various voice/text notifications",
+			author = "Damgam",
+			date = "2026",
+			license = "GNU GPL, v2 or later",
+			version = 1,
+			layer = 5,
+			enabled = true,
+	        handler = true,
+
+		}
+	end
+
+	local widgetInfo = widget:GetInfo()
+
+	local function init()
+	    WG['notifications'].registerCustomNotifWidget(widgetInfo.name) -- Register the custom notifs widget.
+
+	    -- Adding Custom Notification Defs. See the original config file for instructions: https://github.com/beyond-all-reason/Beyond-All-Reason/blob/master/sounds/voice/config.lua
+	    local customNotifDefs = {
+
+	        PawnDetected = {
+	            delay = 25,
+	    		stackedDelay = true,
+	            notifText = "Pawn Detected",
+	            soundEffect = "NukeAlert",
+	        },
+	        GruntDetected = {
+	            delay = 25,
+	    		stackedDelay = true,
+	            notifText = "Grunt Detected",
+	            soundEffect = "NukeAlert",
+	        },
+	        ThisIsATest = {
+	            delay = 10,
+	            notifText = "Can you hear me?",
+	            soundEffect = "AllyRequest",
+	        },
+
+	    }
+	    WG['notifications'].addNotificationDefs(customNotifDefs) -- Calling out the Notifications widget to add these custom definitions
+
+	    WG['notifications'].addUnitDetected("armpw", "PawnDetected") -- Adds Pawn to units of interest and assigns the PawnDetected notification to it.
+	    WG['notifications'].addUnitDetected("corak", "GruntDetected") -- Adds Grunt to units of interest and assigns the GruntDetected notification to it.
+
+	    if widgetHandler:IsWidgetKnown("Options") then -- Restart Options widget to load all your custom notifs to the list of notifs.
+	        widgetHandler:DisableWidget("Options")
+		    widgetHandler:EnableWidget("Options")
+	    end
+	end
+
+	function widget:Update(dt)
+	    if not WG['notifications'].registeredCustomNotifWidgets()[widgetInfo.name] then -- Checks if the widget have been registered in the notifications. If not, initialise it.
+	        init()
+	    end
+
+	    WG['notifications'].queueNotification("ThisIsATest") -- Calls a notification based on an event, in this case though, every frame
+	end
 ]]
 
 
@@ -18,17 +86,17 @@ return {
 	EnemyCommanderDied = {
 		delay = 1,
 		soundEffect = "EnemyComDead",
-		resetOtherEventDelay = "NeutralCommanderDied",
+		resetOtherEventDelay = {"NeutralCommanderDied"},
 	},
 	FriendlyCommanderDied = {
 		delay = 1,
 		soundEffect = "FriendlyComDead",
-		resetOtherEventDelay = "NeutralCommanderDied",
+		resetOtherEventDelay = {"NeutralCommanderDied"},
 	},
 	FriendlyCommanderSelfD = {
 		delay = 1,
 		soundEffect = "FriendlyComDead",
-		resetOtherEventDelay = "NeutralCommanderSelfD",
+		resetOtherEventDelay = {"NeutralCommanderSelfD"},
 	},
 	NeutralCommanderDied = {
 		delay = 1,
@@ -38,23 +106,7 @@ return {
 		delay = 1,
 		soundEffect = "NeutralComDead",
 	},
-	EnemyTeamEliminated = {
-		delay = 2,
-	},
-	YourTeamEliminated = {
-		delay = 2,
-	},
-	GainedLead = {
-		delay = 20,
-	},
-	LostLead = {
-		delay = 20,
-	},
-	ComHeavyDamage = {
-		delay = 10,
-		stackedDelay = true,
-		soundEffect = "CommanderHeavilyDamaged",
-	},
+
 	TeamDownLastCommander = {
 		delay = 30,
 		soundEffect = "YourTeamHasTheLastCommander",
@@ -64,9 +116,23 @@ return {
 		soundEffect = "YouHaveTheLastCommander",
 	},
 
+	["RespawningCommanders/CommanderTransposed"] = {
+		delay = 5,
+	},
+	["RespawningCommanders/AlliedCommanderTransposed"] = {
+		delay = 5,
+	},
+	["RespawningCommanders/EnemyCommanderTransposed"] = {
+		delay = 5,
+	},
+	["RespawningCommanders/CommanderEffigyLost"] = {
+		delay = 5,
+	},
+
 	-- Game Status
 	ChooseStartLoc = {
 		delay = 90,
+		notext = true,
 	},
 	GameStarted = {
 		delay = 1,
@@ -89,55 +155,67 @@ return {
 	GamePaused = {
 		delay = 1,
 	},
+	["TerritorialDomination/EnemyTeamEliminated"] = {
+		delay = 2,
+	},
+	["TerritorialDomination/YourTeamEliminated"] = {
+		delay = 2,
+	},
+	["TerritorialDomination/GainedLead"] = {
+		delay = 20,
+	},
+	["TerritorialDomination/LostLead"] = {
+		delay = 20,
+	},
 
 	TeammateCaughtUp = {
 		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerCaughtUp",
+		resetOtherEventDelay = {"NeutralPlayerCaughtUp"},
 	},
 	TeammateDisconnected = {
 		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerDisconnected",
+		resetOtherEventDelay = {"NeutralPlayerDisconnected"},
 	},
 	TeammateLagging = {
 		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerLagging",
+		resetOtherEventDelay = {"NeutralPlayerLagging"},
 	},
 	TeammateReconnected = {
 		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerReconnected",
+		resetOtherEventDelay = {"NeutralPlayerReconnected"},
 	},
 	TeammateResigned = {
 		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerResigned",
+		resetOtherEventDelay = {"NeutralPlayerResigned"},
 	},
 	TeammateTimedout = {
 		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerTimedout",
+		resetOtherEventDelay = {"NeutralPlayerTimedout"},
 	},
 
 	EnemyPlayerCaughtUp = {
 		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerCaughtUp",
+		resetOtherEventDelay = {"NeutralPlayerCaughtUp"},
 	},
 	EnemyPlayerDisconnected = {
 		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerDisconnected",
+		resetOtherEventDelay = {"NeutralPlayerDisconnected"},
 	},
 	EnemyPlayerLagging = {
 		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerLagging",
+		resetOtherEventDelay = {"NeutralPlayerLagging"},
 	},
 	EnemyPlayerReconnected = {
 		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerReconnected",
+		resetOtherEventDelay = {"NeutralPlayerReconnected"},
 	},
 	EnemyPlayerResigned = {
 		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerResigned",
+		resetOtherEventDelay = {"NeutralPlayerResigned"},
 	},
 	EnemyPlayerTimedout = {
 		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerTimedout",
+		resetOtherEventDelay = {"NeutralPlayerTimedout"},
 	},
 
 	NeutralPlayerCaughtUp = {
@@ -164,13 +242,8 @@ return {
 
 	-- Awareness
 	MaxUnitsReached = {
-		delay = 90,
-	},
-	BaseUnderAttack = {
-		delay = 30,
+		delay = 10,
 		stackedDelay = true,
-		resetOtherEventDelay = "UnitsUnderAttack",
-		soundEffect = "UnitUnderAttack",
 	},
 	UnitsCaptured = {
 		delay = 5,
@@ -178,38 +251,70 @@ return {
 	UnitsReceived = {
 		delay = 5,
 	},
-	CommanderUnderAttack = {
-		delay = 10,
-		stackedDelay = true,
-		resetOtherEventDelay = "UnitsUnderAttack",
-		soundEffect = "CommanderUnderAttack",
-	},
+
+
 	UnitsUnderAttack = {
 		delay = 60,
 		stackedDelay = true,
+		resetOtherEventDelay = {"DefenseUnderAttack"},
 		soundEffect = "UnitUnderAttack",
 	},
-	UnitLost = {
+	DefenseUnderAttack = {
+		delay = 60,
+		stackedDelay = true,
+		resetOtherEventDelay = {"UnitsUnderAttack"},
+		soundEffect = "UnitUnderAttack",
+	},
+
+	EconomyUnderAttack = {
+		delay = 30,
+		stackedDelay = true,
+		resetOtherEventDelay = {"UnitsUnderAttack", "DefenseUnderAttack"},
+		soundEffect = "UnitUnderAttack",
+	},
+	FactoryUnderAttack = {
+		delay = 30,
+		stackedDelay = true,
+		resetOtherEventDelay = {"UnitsUnderAttack", "DefenseUnderAttack"},
+		soundEffect = "UnitUnderAttack",
+	},
+	CommanderUnderAttack = {
+		delay = 10,
+		stackedDelay = true,
+		resetOtherEventDelay = {"UnitsUnderAttack", "DefenseUnderAttack"},
+		soundEffect = "CommanderUnderAttack",
+	},
+	ComHeavyDamage = {
+		delay = 10,
+		stackedDelay = true,
+		resetOtherEventDelay = {"UnitsUnderAttack", "DefenseUnderAttack", "CommanderUnderAttack"},
+		soundEffect = "CommanderHeavilyDamaged",
+	},
+
+
+	UnitLost = { -- Master Event
 		delay = 60,
 		stackedDelay = true,
 		soundEffect = "UnitUnderAttack",
 	},
+
 	RadarLost = {
 		delay = 30,
 		stackedDelay = true,
-		resetOtherEventDelay = "UnitLost",
+		resetOtherEventDelay = {"UnitLost", "RadarLost"},
 		soundEffect = "UnitUnderAttack",
 	},
 	AdvancedRadarLost = {
 		delay = 30,
 		stackedDelay = true,
-		resetOtherEventDelay = "UnitLost",
+		resetOtherEventDelay = {"UnitLost", "AdvancedRadarLost"},
 		soundEffect = "UnitUnderAttack",
 	},
+
 	MetalExtractorLost = {
 		delay = 30,
 		stackedDelay = true,
-		resetOtherEventDelay = "UnitLost",
+		resetOtherEventDelay = {"UnitLost"},
 		soundEffect = "UnitUnderAttack",
 	},
 
@@ -238,11 +343,36 @@ return {
 		delay = 10,
 		stackedDelay = true,
 	},
+	LowMetal = {
+		delay = 20,
+		stackedDelay = true,
+	},
+	AllyRequestEnergy = {
+		delay = 10,
+		stackedDelay = true,
+		soundEffect = "AllyRequest",
+	},
+	AllyRequestMetal = {
+		delay = 10,
+		stackedDelay = true,
+		soundEffect = "AllyRequest",
+	},
+	IdleConstructors = {
+		delay = 45,
+		stackedDelay = true,
+	},
 
 	-- Alerts
 	NukeLaunched = {
-		delay = 3,
+		delay = 5,
 		soundEffect = "NukeAlert",
+		resetOtherEventDelay = {"AlliedNukeLaunched"},
+		stackedDelay = true,
+	},
+	AlliedNukeLaunched = {
+		delay = 5,
+		soundEffect = "NukeAlert",
+		stackedDelay = true,
 	},
 	LrpcTargetUnits = {
 		delay = 30,
@@ -403,6 +533,10 @@ return {
 		delay = 120,
 		stackedDelay = true,
 	},
+	DroneDetected = {
+		delay = 120,
+		stackedDelay = true,
+	},
 
 	-- Lava
 	LavaRising = {
@@ -417,6 +551,10 @@ return {
 	-- Tutorial / tips
 	Welcome = {
 		delay = 9999999,
+	},
+	WelcomeShort = {
+		delay = 0,
+		notext = true,
 	},
 	BuildMetal = {
 		delay = 9999999,

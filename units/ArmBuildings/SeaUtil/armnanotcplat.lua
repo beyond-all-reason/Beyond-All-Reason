@@ -11,11 +11,11 @@ return {
 		canreclaim = true,
 		canrepeat = false,
 		canstop = true,
-		cantbetransported = true, -- transports cannot drop them back into water, reenable once that works
+		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "31 50 31",
 		collisionvolumetype = "CylY",
-		energycost = 2600,
+		energycost = 3200,
 		explodeas = "nanoboom",
 		floater = true,
 		footprintx = 3,

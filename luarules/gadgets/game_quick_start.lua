@@ -22,24 +22,55 @@ local shouldRunGadget = modOptions and modOptions.quick_start and (
 )
 if not shouldRunGadget then return false end
 
+local overridesEnabled = modOptions.enable_quickstart_overrides
+local overrideQuickStartBudget = overridesEnabled and tonumber(modOptions.override_quick_start_budget)
+
 local shouldApplyFactoryDiscount = modOptions.quick_start == "factory_discount" or 
 	modOptions.quick_start == "factory_discount_only" or
 	(modOptions.quick_start == "default" and (modOptions.temp_enable_territorial_domination or modOptions.deathmode == "territorial_domination"))
 
 
-----------------------------Configuration----------------------------------------
 local FACTORY_DISCOUNT_MULTIPLIER = 0.90 -- The factory discount will be the budget cost of the cheapest listed factory multiplied by this value.
-
--- how far things will be be instantly built for the commander.
-local INSTANT_BUILD_RANGE = modOptions.override_quick_start_range > 0 and modOptions.override_quick_start_range or 600
 
 local QUICK_START_COST_ENERGY = 400      --will be deducted from commander's energy upon start.
 local QUICK_START_COST_METAL = 800       --will be deducted from commander's metal upon start.
+local READY_REFUNDABLE_BUDGET = 800       -- Budget threshold when players are allowed to "ready" the game
 local quickStartAmountConfig = {
-	small = 800,
-	normal = 1200,
-	large = 2400,
+	small = {
+		budget = 800,
+		range = 435,
+		baseGenerationRange = 435,
+		traversabilityGridRange = 480 --must match the value in gui_quick_start.lua. It has to be slightly larger than the instant build range to account for traversability_grid snapping at TRAVERSABILITY_GRID_RESOLUTION intervals
+	},
+	normal = {
+		budget = 1200,
+		range = 435,
+		baseGenerationRange = 435,
+		traversabilityGridRange = 480
+	},
+	large = {
+		budget = 2400,
+		range = 600,
+		baseGenerationRange = 500,
+		traversabilityGridRange = 544
+	},
 }
+
+local MIN_OVERRIDE_BUILD_RANGE = 200
+
+local configKey = modOptions.quick_start_amount or "normal"
+local selectedConfig = quickStartAmountConfig[configKey] or quickStartAmountConfig.normal
+local BUDGET = overrideQuickStartBudget or selectedConfig.budget
+local overrideQuickStartRange = nil
+if overridesEnabled then
+	local overrideRangeValue = tonumber(modOptions.override_quick_start_range) or 0
+	if overrideRangeValue > 0 then
+		overrideQuickStartRange = math.max(overrideRangeValue, MIN_OVERRIDE_BUILD_RANGE)
+	end
+end
+local INSTANT_BUILD_RANGE = overrideQuickStartRange or selectedConfig.range
+local BASE_GENERATION_RANGE = selectedConfig.baseGenerationRange
+local TRAVERSABILITY_GRID_GENERATION_RANGE = selectedConfig.traversabilityGridRange
 
 local BUILD_TIME_VALUE_CONVERSION_MULTIPLIER = 1/300 --300 being a representative of commander workertime, statically defined so future com unitdef adjustments don't change this.
 local ENERGY_VALUE_CONVERSION_MULTIPLIER = 1/60 --60 being the energy conversion rate of t2 energy converters, statically defined so future changes not to affect this.
@@ -54,7 +85,6 @@ local UNOCCUPIED = 2
 local BUILD_SPACING = 64
 local COMMANDER_NO_GO_DISTANCE = 100
 local CONVERTER_GRID_DISTANCE = 200
-local BASE_GENERATION_RANGE = 500
 local FACTORY_DISCOUNT = math.huge
 local MAP_CENTER_X = Game.mapSizeX / 2
 local MAP_CENTER_Z = Game.mapSizeZ / 2
@@ -63,13 +93,11 @@ local PREGAME_DELAY_FRAMES = 61 --after gui_pregame_build.lua is loaded
 local SKIP_STEP = 3
 local UPDATE_FRAMES = Game.gameSpeed
 local BASE_NODE_COUNT = 8
-local MEX_OVERLAP_DISTANCE = Game.extractorRadius + Game.metalMapSquareSize
 local SAFETY_COUNT = 100
 local BUILT_ENOUGH_FOR_FULL = 0.9
 local MAX_HEIGHT_DIFFERENCE = 100
 local DEFAULT_FACING = 0
 local INITIAL_BUILD_PROGRESS = 0.01
-local TRAVERSABILITY_GRID_GENERATION_RANGE = 576 --must match the value in gui_quick_start.lua. It has to be slightly larger than the instant build range to account for traversability_grid snapping at TRAVERSABILITY_GRID_RESOLUTION intervals
 local TRAVERSABILITY_GRID_RESOLUTION = 32
 local GRID_CHECK_RESOLUTION_MULTIPLIER = 1
 
@@ -82,7 +110,6 @@ local spTestBuildOrder = Spring.TestBuildOrder
 local spSetUnitHealth = Spring.SetUnitHealth
 local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
-local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitHealth = Spring.GetUnitHealth
@@ -102,6 +129,7 @@ local cos = math.cos
 
 local config = VFS.Include('LuaRules/Configs/quick_start_build_defs.lua')
 local traversabilityGrid = VFS.Include('common/traversability_grid.lua')
+local overlapLines = VFS.Include('common/overlap_lines.lua')
 local commanderNonLabOptions = config.commanderNonLabOptions
 local discountableFactories = config.discountableFactories
 local optionsToNodeType = config.optionsToNodeType
@@ -120,7 +148,6 @@ local boostableCommanders = {}
 local commanders = {}
 local defMetergies = {}
 local commanderFactoryDiscounts = {}
-local mexDefs = {}
 local optionDefIDToTypes = {}
 local queuedCommanders = {}
 local buildsInProgress = {}
@@ -187,7 +214,8 @@ local function generateLocalGrid(commanderID)
 						local heightDiff = abs(searchY - originY)
 						if heightDiff <= MAX_HEIGHT_DIFFERENCE then
 							local snappedX, snappedY, snappedZ = spPos2BuildPos(buildDefID, testX, searchY, testZ)
-							if snappedX and spTestBuildOrder(buildDefID, snappedX, snappedY, snappedZ, DEFAULT_FACING) == UNOCCUPIED then
+							local isPastFriendlyLines = overlapLines.isPointPastLines(snappedX, snappedZ, originX, originZ, comData.overlapLines)
+							if snappedX and not isPastFriendlyLines and spTestBuildOrder(buildDefID, snappedX, snappedY, snappedZ, DEFAULT_FACING) == UNOCCUPIED then
 								local isTraversable = traversabilityGrid.canMoveToPosition(commanderID, snappedX, snappedZ, GRID_CHECK_RESOLUTION_MULTIPLIER) or false
 								if isTraversable then
 									local key = snappedX .. "_" .. snappedZ
@@ -209,9 +237,6 @@ end
 for unitDefID, unitDef in pairs(unitDefs) do
 	local metalCost, energyCost = unitDef.metalCost or 0, unitDef.energyCost or 0
 	defMetergies[unitDefID] = customRound(metalCost + energyCost * ENERGY_VALUE_CONVERSION_MULTIPLIER + unitDef.buildTime * BUILD_TIME_VALUE_CONVERSION_MULTIPLIER)
-	if unitDef.extractsMetal > 0 then
-		mexDefs[unitDefID] = true
-	end
 	if unitDef.customParams and unitDef.customParams.iscommander then
 		boostableCommanders[unitDefID] = true
 	end
@@ -276,41 +301,100 @@ local function queueBuildForProgression(unitID, unitDef, affordableBudget, fullB
 	return targetProgress
 end
 
+local function generateOverlapLines(commanderID)
+	local comData = commanders[commanderID]
+	if not comData then return end
+
+	local neighbors = {}
+	for _, otherTeamID in ipairs(allTeamsList) do
+		if otherTeamID ~= comData.teamID and Spring.AreTeamsAllied(comData.teamID, otherTeamID) then
+			local sx, sy, sz = Spring.GetTeamStartPosition(otherTeamID)
+			if sx and sx >= 0 then -- Check for valid start pos (allow 0, ignore -100)
+				table.insert(neighbors, {x = sx, z = sz})
+			end
+		end
+	end
+
+	comData.overlapLines = overlapLines.getOverlapLines(comData.spawnX, comData.spawnZ, neighbors, INSTANT_BUILD_RANGE)
+end
+
 local function getCommanderBuildQueue(commanderID)
 	local spawnQueue = {}
 	local commandsToRemove = {}
 	local comData = commanders[commanderID]
 	local commands = spGetUnitCommands(commanderID, ALL_COMMANDS)
 	local totalBudgetCost = 0
+	local discountUsedLocal = commanderFactoryDiscounts[commanderID]
+
+	if not comData.overlapLines then
+		generateOverlapLines(commanderID)
+	end
+
+	Spring.Echo(string.format("=== Validating Build Queue for Commander %d (Team %d) ===", commanderID, comData.teamID))
+
 	for i, cmd in ipairs(commands) do
 		if isBuildCommand(cmd.id) then
 			local unitDefID = -cmd.id
-			local spawnParams = { id = unitDefID, x = cmd.params[1], y = cmd.params[2], z = cmd.params[3], facing = cmd.params[4] or 1, cmdTag = cmd.tag }
+			local spawnParams = { id = unitDefID, x = cmd.params[1], y = cmd.params[2], z = cmd.params[3], facing = cmd.params[4] or 0, cmdTag = cmd.tag }
 			local unitDef = unitDefs[unitDefID]
+			local unitDefName = unitDef and unitDef.name or "UNKNOWN"
 			local distance = distance2d(comData.spawnX, comData.spawnZ, spawnParams.x, spawnParams.z)
 			local isTraversable = traversabilityGrid.canMoveToPosition(commanderID, spawnParams.x, spawnParams.z, GRID_CHECK_RESOLUTION_MULTIPLIER) or false
+			local isPastFriendlyLines = overlapLines.isPointPastLines(spawnParams.x, spawnParams.z, comData.spawnX, comData.spawnZ, comData.overlapLines)
 
-			if distance <= INSTANT_BUILD_RANGE and isTraversable then
+			local validationResults = {
+				distanceCheck = distance <= INSTANT_BUILD_RANGE,
+				traversableCheck = isTraversable,
+				notPastLinesCheck = not isPastFriendlyLines,
+				distance = distance,
+				maxDistance = INSTANT_BUILD_RANGE
+			}
+
+			if distance <= INSTANT_BUILD_RANGE and isTraversable and not isPastFriendlyLines then
 				local budgetCost = defMetergies[unitDefID] or 0
-				budgetCost = max(budgetCost - getFactoryDiscount(unitDef, commanderID), 0)
-
-				local affordableCost = min(budgetCost, comData.budget - totalBudgetCost)
-				if affordableCost > 0 then
-					table.insert(spawnQueue, spawnParams)
-					if cmd.tag then
-						table.insert(commandsToRemove, cmd.tag)
-					end
-					totalBudgetCost = totalBudgetCost + affordableCost
+				
+				local currentDiscount = 0
+				if shouldApplyFactoryDiscount and unitDef.isFactory and not discountUsedLocal then
+					currentDiscount = FACTORY_DISCOUNT
+				end
+				
+				budgetCost = max(budgetCost - currentDiscount, 0)
+				
+				if currentDiscount > 0 then
+					discountUsedLocal = true
 				end
 
-				if totalBudgetCost >= comData.budget then
+				table.insert(spawnQueue, spawnParams)
+				comData.hasBuildsIntercepted = true
+				
+				totalBudgetCost = totalBudgetCost + budgetCost
+				if totalBudgetCost > comData.budget then
+					Spring.Echo(string.format("  [%d] %s at (%.1f, %.1f, %.1f) facing: %d - REJECTED (Budget exceeded: %.1f > %.1f)", i, unitDefName, spawnParams.x, spawnParams.y, spawnParams.z, spawnParams.facing, totalBudgetCost, comData.budget))
 					comData.commandsToRemove = commandsToRemove
 					return spawnQueue
 				end
+				
+				if cmd.tag then
+					table.insert(commandsToRemove, cmd.tag)
+				end
+			else
+				local failReasons = {}
+				if not validationResults.distanceCheck then
+					table.insert(failReasons, string.format("OutOfRange(%.1f > %.1f)", validationResults.distance, validationResults.maxDistance))
+				end
+				if not validationResults.traversableCheck then
+					table.insert(failReasons, "NotTraversable")
+				end
+				if not validationResults.notPastLinesCheck then
+					table.insert(failReasons, "PastFriendlyLines")
+				end
+				local failReasonsStr = table.concat(failReasons, ", ")
+				Spring.Echo(string.format("  [%d] %s at (%.1f, %.1f, %.1f) facing: %d - REJECTED (%s)", i, unitDefName, spawnParams.x, spawnParams.y, spawnParams.z, spawnParams.facing, failReasonsStr))
 			end
 		end
 	end
 	comData.commandsToRemove = commandsToRemove
+	Spring.Echo(string.format("=== Accepted %d/%d build queue items ===", #spawnQueue, #commands))
 	return spawnQueue
 end
 
@@ -330,19 +414,8 @@ local function refreshAndCheckAvailableMexSpots(commanderID)
 			local groundY = spGetGroundHeight(spot.x, spot.z)
 			local buildX, buildY, buildZ = spPos2BuildPos(mexDefID, spot.x, groundY, spot.z)
 			if buildX and spTestBuildOrder(mexDefID, buildX, buildY, buildZ, DEFAULT_FACING) == UNOCCUPIED then
-				local nearbyUnits = spGetUnitsInCylinder(spot.x, spot.z, MEX_OVERLAP_DISTANCE)
-				local hasMex = false
-				for j = 1, #nearbyUnits do
-					local unitDefID = spGetUnitDefID(nearbyUnits[j])
-					if mexDefs[unitDefID] then
-						hasMex = true
-						break
-					end
-				end
-				if not hasMex then
-					spot.y = buildY
-					table.insert(validSpots, spot)
-				end
+				spot.y = buildY
+				table.insert(validSpots, spot)
 			end
 		end
 	end
@@ -515,12 +588,17 @@ local function populateNearbyMexes(commanderID)
 		return
 	end
 
+	if not comData.overlapLines then
+		generateOverlapLines(commanderID)
+	end
+
 	for i = 1, #metalSpotsList do
 		local metalSpot = metalSpotsList[i]
 		if metalSpot then
 			local distance = distance2d(metalSpot.x, metalSpot.z, commanderX, commanderZ)
 			local isTraversable = traversabilityGrid.canMoveToPosition(commanderID, metalSpot.x, metalSpot.z, GRID_CHECK_RESOLUTION_MULTIPLIER) or false
-			if distance <= INSTANT_BUILD_RANGE and isTraversable then
+			local isPastFriendlyLines = overlapLines.isPointPastLines(metalSpot.x, metalSpot.z, commanderX, commanderZ, comData.overlapLines)
+			if distance <= INSTANT_BUILD_RANGE and isTraversable and not isPastFriendlyLines then
 				table.insert(comData.nearbyMexes, {
 					x = metalSpot.x,
 					y = metalSpot.y,
@@ -549,7 +627,6 @@ local function initializeCommander(commanderID, teamID)
 
 	local currentMetal = Spring.GetTeamResources(teamID, "metal") or 0
 	local currentEnergy = Spring.GetTeamResources(teamID, "energy") or 0
-	local budget = (modOptions.override_quick_start_resources and modOptions.override_quick_start_resources > 0) and modOptions.override_quick_start_resources or quickStartAmountConfig[modOptions.quick_start_amount == "default" and "normal" or modOptions.quick_start_amount]
 
 	local commanderX, commanderY, commanderZ = spGetUnitPosition(commanderID)
 	if not commanderX or not commanderY or not commanderZ then
@@ -578,7 +655,7 @@ local function initializeCommander(commanderID, teamID)
 
 	commanders[commanderID] = {
 		teamID = teamID,
-		budget = budget,
+		budget = BUDGET,
 		thingsMade = {},
 		defaultFacing = defaultFacing,
 		isInWater = isInWater,
@@ -641,7 +718,12 @@ local function generateBuildCommands(commanderID)
 
 		if ((buildType == "mex" and not isMetalMap) and not refreshAndCheckAvailableMexSpots(commanderID)) then
 			shouldQueue = false
-		elseif cost > budgetRemaining then
+		elseif comData.hasBuildsIntercepted and budgetRemaining <= READY_REFUNDABLE_BUDGET or cost > budgetRemaining then
+			shouldQueue = false
+			local refundAmount = budgetRemaining
+			Spring.AddTeamResource(comData.teamID, "metal", refundAmount)
+			comData.budget = comData.budget - budgetRemaining
+			break
 		end
 
 		if shouldQueue then
@@ -673,11 +755,13 @@ end
 
 local function tryToSpawnBuild(commanderID, unitDefID, buildX, buildY, buildZ, facing)
 	local unitDef, comData = unitDefs[unitDefID], commanders[commanderID]
+	local unitDefName = unitDef and unitDef.name or "UNKNOWN"
 	local discount = getFactoryDiscount(unitDef, commanderID)
 	local cost = defMetergies[unitDefID] - discount
 
 	local unitID = spCreateUnit(unitDef.name, buildX, buildY, buildZ, facing, comData.teamID)
 	if not unitID then
+		Spring.Echo(string.format("  SPAWN FAILED: %s at (%.1f, %.1f, %.1f) facing: %d - CreateUnit returned nil (terrain/collision conflict)", unitDefName, buildX, buildY, buildZ, facing))
 		return false, nil
 	end
 
@@ -699,62 +783,6 @@ local function tryToSpawnBuild(commanderID, unitDefID, buildX, buildY, buildZ, f
 	end
 
 	return projectedBuildProgress >= 1
-end
-
-local function assignMexSpots()
-	local claimedSpots = {}
-	local toRemove = {}
-	for commanderID, comData in pairs(commanders) do
-		toRemove[commanderID] = {}
-		for i, buildItem in ipairs(comData.spawnQueue) do
-			local buildType = optionDefIDToTypes[buildItem.id]
-				if buildType == "mex" then
-					local spotHash
-					local mexSpot
-					if buildItem.x then
-						mexSpot = { x = buildItem.x, y = buildItem.y, z = buildItem.z }
-						spotHash = buildItem.x .. "_" .. buildItem.z
-					else
-						if comData.nearbyMexes and #comData.nearbyMexes > 0 then
-							mexSpot = comData.nearbyMexes[1]
-							table.remove(comData.nearbyMexes, 1)
-							spotHash = mexSpot.x .. "_" .. mexSpot.z
-						end
-					end
-					if spotHash and mexSpot then
-						local buildX = mexSpot.x
-						local buildZ = mexSpot.z
-						local distance = distance2d(buildX, buildZ, comData.spawnX, comData.spawnZ)
-						if claimedSpots[spotHash] then
-							if distance < claimedSpots[spotHash].distance then
-								local oldClaim = claimedSpots[spotHash]
-
-								table.insert(toRemove[oldClaim.commanderID], oldClaim.index)
-								claimedSpots[spotHash] = {commanderID = commanderID, index = i, distance = distance}
-								buildItem.x, buildItem.y, buildItem.z = mexSpot.x, mexSpot.y, mexSpot.z
-							else
-								table.insert(toRemove[commanderID], i)
-							end
-						else
-							claimedSpots[spotHash] = {commanderID = commanderID, index = i, distance = distance}
-							buildItem.x, buildItem.y, buildItem.z = mexSpot.x, mexSpot.y, mexSpot.z
-						end
-					else
-						table.insert(toRemove[commanderID], i)
-					end
-			end
-		end
-	end
-
-	for commanderID, indices in pairs(toRemove) do
-		if #indices > 0 then
-			table.sort(indices, function(a, b) return a > b end)
-			local comData = commanders[commanderID]
-			for _, index in ipairs(indices) do
-				table.remove(comData.spawnQueue, index)
-			end
-		end
-	end
 end
 
 function gadget:GameFrame(frame)
@@ -787,16 +815,19 @@ function gadget:GameFrame(frame)
 			break
 		end
 		local loop = modOptions.quick_start ~= "factory_discount_only"
+		if loop and gameFrameTryCount == 1 then
+			Spring.Echo("=== Beginning Quick Start Spawn Phase ===")
+		end
 		while loop do
 			loop = false
-			if not isMetalMap then
-				assignMexSpots()
-			end
 			for commanderID, comData in pairs(commanders) do
 				if comData.spawnQueue then
 					for i, buildItem in ipairs(comData.spawnQueue) do
 						local buildType = optionDefIDToTypes[buildItem.id]
+						local unitDef = unitDefs[buildItem.id]
+						local unitDefName = unitDef and unitDef.name or "UNKNOWN"
 						local buildX, buildY, buildZ = buildItem.x, buildItem.y, buildItem.z
+						local hadCoordinates = buildX and buildY and buildZ
 						if not buildX or not buildZ or not buildY then
 							buildX, buildY, buildZ = getBuildSpace(commanderID, buildType)
 						end
@@ -806,6 +837,22 @@ function gadget:GameFrame(frame)
 							if success then
 								loop = true
 							end
+						else
+							local failReasons = {}
+							if not buildItem.id then
+								table.insert(failReasons, "NoUnitDefID")
+							end
+							if not buildX then
+								table.insert(failReasons, hadCoordinates and "InvalidCoordinates" or "NoBuildSpaceAvailable")
+							end
+							if comData.budget <= 0 then
+								table.insert(failReasons, "NoBudget")
+							end
+							if #failReasons > 0 then
+								local failReasonsStr = table.concat(failReasons, ", ")
+								local coordsStr = buildItem.x and string.format("(%.1f, %.1f, %.1f)", buildItem.x, buildItem.y or 0, buildItem.z) or "(no coords)"
+								Spring.Echo(string.format("  SPAWN SKIPPED: %s at %s facing: %d - %s", unitDefName, coordsStr, facing, failReasonsStr))
+						end
 						end
 					end
 				end
@@ -890,8 +937,6 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 end
 
 function gadget:Initialize()
-	local minWind = Game.windMin
-	local maxWind = Game.windMax
 	for _, teamID in ipairs(Spring.GetTeamList()) do
 		Spring.SetTeamRulesParam(teamID, "quickStartFactoryDiscountUsed", nil)
 	end
@@ -900,14 +945,20 @@ function gadget:Initialize()
 	metalSpotsList = GG and GG["resource_spot_finder"] and GG["resource_spot_finder"].metalSpotsList
 
 	local frame = Spring.GetGameFrame()
-	local quickStartAmount = modOptions.quick_start_amount or "normal"
-	local immediateBudget = quickStartAmountConfig[quickStartAmount] or quickStartAmountConfig.normal
-	
-	local finalBudget = modOptions.override_quick_start_resources > 0 and modOptions.override_quick_start_resources or immediateBudget
-	Spring.SetGameRulesParam("quickStartBudgetBase", finalBudget)
+	Spring.SetGameRulesParam("quickStartBudgetBase", BUDGET)
 	Spring.SetGameRulesParam("quickStartFactoryDiscountAmount", FACTORY_DISCOUNT)
+	Spring.SetGameRulesParam("quickStartMetalDeduction", QUICK_START_COST_METAL)
+	Spring.SetGameRulesParam("quickStartTraversabilityGridRange", TRAVERSABILITY_GRID_GENERATION_RANGE)
 	local cheapestEconomicCost = calculateCheapestEconomicStructure()
-	Spring.SetGameRulesParam("quickStartBudgetThresholdToAllowStart", cheapestEconomicCost)
+	local anyCommanderHasBuildsIntercepted = false
+	for commanderID, comData in pairs(commanders) do
+		if comData.hasBuildsIntercepted then
+			anyCommanderHasBuildsIntercepted = true
+			break
+		end
+	end
+	local budgetThresholdToAllowStart = not anyCommanderHasBuildsIntercepted and READY_REFUNDABLE_BUDGET or cheapestEconomicCost
+	Spring.SetGameRulesParam("quickStartBudgetThresholdToAllowStart", budgetThresholdToAllowStart)
 	if modOptions.quick_start ~= "factory_discount_only" then
 		Spring.SetGameRulesParam("overridePregameBuildDistance", INSTANT_BUILD_RANGE)
 	end
@@ -919,6 +970,7 @@ function gadget:Initialize()
 			local unitTeam = spGetUnitTeam(unitID)
 			if boostableCommanders[unitDefinitionID] then
 				initializeCommander(unitID, unitTeam)
+				queuedCommanders[unitTeam] = nil
 			end
 		end
 	end

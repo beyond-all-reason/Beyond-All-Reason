@@ -80,6 +80,9 @@ return {
 					scavboss = 1,
 					default = 2500,
 				},
+				customparams = {
+					nuclear = 1,
+				},
 			},
 		},
 		weapons = {

@@ -116,6 +116,7 @@ return {
 				explosiongenerator = "custom:juno-explo",
 				flighttime = 400,
 				impulsefactor = 0,
+				interceptedbyshieldtype = 0,
 				metalpershot = 200,
 				model = "epulse.s3o",
 				name = "Anti radar/minefield/jammer magnetic impulse rocket",
@@ -141,7 +142,9 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 500,
 				customparams = {
+					junotype = "base",
 					nofire = true,
+					shield_aoe_penetration = true,
 					stockpilelimit = 20,
 					water_splash = 0,
 				},

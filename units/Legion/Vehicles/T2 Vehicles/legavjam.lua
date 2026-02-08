@@ -2,7 +2,7 @@ return {
 	legavjam = {
 		activatewhenbuilt = true,
 		buildpic = "LEGAVJAM.DDS",
-		buildtime = 5930,
+		buildtime = 6930,
 		canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",

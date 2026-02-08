@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		buildangle = 0,
 		buildpic = "CORAGEO.DDS",
-		buildtime = 32000,
+		buildtime = 48000,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "96 86 96",

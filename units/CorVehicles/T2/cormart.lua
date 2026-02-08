@@ -1,7 +1,7 @@
 return {
 	cormart = {
 		buildpic = "CORMART.DDS",
-		buildtime = 6500,
+		buildtime = 9000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "38 24 41",
@@ -134,7 +134,7 @@ return {
 				soundstart = "cannhvy2",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 349.5354,
+				weaponvelocity = 349,
 				damage = {
 					default = 420,
 					subs = 140,

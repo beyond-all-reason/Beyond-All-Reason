@@ -62,6 +62,7 @@ local cachedAlphaResults
 local cachedStartPosition
 local cachedQueueMetrics
 local cachedQueueLineVerts
+local forceRefreshCache = false
 
 local BUILD_MODE = {
 	SINGLE = 0,
@@ -76,6 +77,7 @@ local BUILD_SQUARE_SIZE = SQUARE_SIZE * 2
 local BUILDING_COUNT_FUDGE_FACTOR = 1.4
 local BUILDING_DETECTION_TOLERANCE = 10
 local HALF = 0.5
+local MAX_DRAG_BUILD_COUNT = 200
 
 local function buildFacingHandler(command, line, args)
 	if not (preGamestartPlayer and selBuildQueueDefID) then
@@ -290,6 +292,9 @@ function widget:Initialize()
 	WG["pregame-build"].getBuildPositions = function()
 		return buildModeState.buildPositions
 	end
+	WG["pregame-build"].forceRefresh = function()
+		forceRefreshCache = true
+	end
 	widgetHandler:RegisterGlobal("GetPreGameDefID", WG["pregame-build"].getPreGameDefID)
 	widgetHandler:RegisterGlobal("GetBuildQueue", WG["pregame-build"].getBuildQueue)
 end
@@ -332,6 +337,17 @@ local function fillRow(startX, startZ, stepX, stepZ, count, facing)
 		result[#result + 1] = { x = startX, y = groundY, z = startZ, facing = facing }
 		startX = startX + stepX
 		startZ = startZ + stepZ
+	end
+	return result
+end
+
+local function truncateBuildPositions(result)
+	if #result > MAX_DRAG_BUILD_COUNT then
+		local truncated = {}
+		for i = 1, MAX_DRAG_BUILD_COUNT do
+			truncated[i] = result[i]
+		end
+		return truncated
 	end
 	return result
 end
@@ -380,7 +396,8 @@ local function getBuildPositionsLine(unitDefID, facing, startPos, endPos, spacin
 		xStep = zStep * delta.x / (delta.z ~= 0 and delta.z or 1)
 	end
 
-	return fillRow(snappedStart.x, snappedStart.z, xStep, zStep, xGreaterThanZ and xCount or zCount, facing)
+	local result = fillRow(snappedStart.x, snappedStart.z, xStep, zStep, xGreaterThanZ and xCount or zCount, facing)
+	return truncateBuildPositions(result)
 end
 
 local function getBuildPositionsGrid(unitDefID, facing, startPos, endPos, spacing)
@@ -403,8 +420,8 @@ local function getBuildPositionsGrid(unitDefID, facing, startPos, endPos, spacin
 		end
 		currentRowZ = currentRowZ + zStep
 	end
-	
-	return result
+
+	return truncateBuildPositions(result)
 end
 
 local function getBuildPositionsBox(unitDefID, facing, startPos, endPos, spacing)
@@ -433,8 +450,8 @@ local function getBuildPositionsBox(unitDefID, facing, startPos, endPos, spacing
 	elseif zCount == 1 then
 		table.append(result, fillRow(snappedStart.x, snappedStart.z, xStep, 0, xCount, facing))
 	end
-	
-	return result
+
+	return truncateBuildPositions(result)
 end
 
 local function getBuildPositionsAround(unitDefID, facing, target)
@@ -1007,12 +1024,13 @@ local function hasCacheExpired(currentStartPos, currentSelBuildData)
 		)) or
 		(currentMetrics.firstItemCoords == nil) ~= (cachedQueueMetrics.firstItemCoords == nil)
 
-	if startPosChanged or queueChanged then
+	if startPosChanged or queueChanged or forceRefreshCache then
 		cachedStartPosition = {x = currentStartPos.x, y = currentStartPos.y, z = currentStartPos.z}
 		cachedQueueMetrics = {
 			firstItemCoords = currentMetrics.firstItemCoords and {unpack(currentMetrics.firstItemCoords)} or nil,
 			queueLength = currentMetrics.queueLength
 		}
+		forceRefreshCache = false
 		return true
 	end
 	return false
@@ -1079,7 +1097,7 @@ function widget:DrawWorld()
 
 		-- Draw start units build radius
 		gl.Color(BUILD_DISTANCE_COLOR)
-		local buildDistance = Spring.GetGameRulesParam("overridePregameBuildDistance") or UnitDefs[startDefID].buildDistance
+		local buildDistance = UnitDefs[startDefID].buildDistance
 		if buildDistance then
 			gl.DrawGroundCircle(sx, sy, sz, buildDistance, 40)
 		end
@@ -1422,6 +1440,24 @@ function widget:GameFrame(n)
 		end
 	end
 	if tasker then
+		local quickStartOption = Spring.GetModOptions().quick_start
+		local quickStartEnabled = quickStartOption ~= "disabled"
+		
+		if quickStartEnabled and #buildQueue > 0 then
+			--we have to temporary Echo data like this because there are reports of builds that should be spawned in quickstart not being spawned. 
+			--Widget data isn't caught in replays so we have to echo this for now. 1/12/26
+			Spring.Echo(string.format("=== Build Queue for Commander (unitID: %d) ===", tasker))
+			for b = 1, #buildQueue do
+				local buildData = buildQueue[b]
+				local unitDefID = buildData[1]
+				local unitDefName = unitDefID > 0 and UnitDefs[unitDefID] and UnitDefs[unitDefID].name or "MOVE_COMMAND"
+				local x, y, z = buildData[2], buildData[3], buildData[4]
+				local facing = buildData[5] or 0
+				Spring.Echo(string.format("  [%d] %s at (%.1f, %.1f, %.1f) facing: %d", b, unitDefName, x, y, z, facing))
+			end
+			Spring.Echo(string.format("=== Total queue items: %d ===", #buildQueue))
+		end
+		
 		for b = 1, #buildQueue do
 			local buildData = buildQueue[b]
 			Spring.GiveOrderToUnit(

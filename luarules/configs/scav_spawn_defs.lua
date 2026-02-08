@@ -651,6 +651,7 @@ local SeaUnitsList = {
 			["corsh_scav"] = 3,
 			--Legion
 			["legsh_scav"] = 3,
+			["legnavyscout_scav"] = 3,
 		},
 		[2] = {
 			--Armada
@@ -672,12 +673,16 @@ local SeaUnitsList = {
 			["armlship_scav"] = 3,
 			--Cortex
 			["corfship_scav"] = 3,
+			--Legion
+			["leganavyantiswarm_scav"] = 3,
 		},
 		[5] = {
 			--Armada
 			["armsubk_scav"] = 2,
 			--Cortex
 			["corshark_scav"] = 2,
+			--Legion
+			["leganavybattlesub_scav"] = 2,
 		},
 		[6] = {
 			--Armada
@@ -713,7 +718,9 @@ local SeaUnitsList = {
 			["corroy_scav"] = 2,
 			["corsnap_scav"] = 4,
 			--Legion
-			["legner_scav"] = 3,
+			["legnavyfrigate"] = 3,
+			["legner_scav"] = 4,
+			["legnavydestro_scav"] = 2,
 		},
 		[4] = {
 			--Armada
@@ -721,19 +728,25 @@ local SeaUnitsList = {
 			--Cortex
 			["corcrus_scav"] = 3,
 			["corhal_scav"] = 3,
+			--Legion
+			["leganavycruiser_scav"] = 3,
 		},
 		[5] = {
 			--Armada
 			["armbats_scav"] = 3,
 			--Cortex
 			["corbats_scav"] = 3,
+			--Legion
+			["leganavybattleship_scav"] = 3,
 		},
 		[6] = {
 			--Armada
 			["armpshipt3_scav"] = 2,
 			["armptt2_scav"] = 2,
 			--Cortex
-			["corblackhy_scav"] = 2,
+			["corprince_scav"] = 2,
+			--Legion
+			["leganavyartyship"] = 2,
 		},
 		[7] = {
 			--Armada
@@ -741,7 +754,9 @@ local SeaUnitsList = {
 			["armserpt3_scav"] = 2,
 			--Cortex
 			["coresuppt3_scav"] = 2,
-			["corprince_scav"] = 3,
+			["corblackhy_scav"] = 3,
+			--Legion
+			["leganavyflagship"] = 2,
 		},
 	},
 	Support = {
@@ -750,12 +765,16 @@ local SeaUnitsList = {
 			["armpt_scav"] = 2,
 			--Cortex
 			["corpt_scav"] = 2,
+			--Legion
+			["legnavyaaship_scav"] = 2,
 		},
 		[2] = {
 			--Armada
 			["armpt_scav"] = 2,
 			--Cortex
 			["corpt_scav"] = 2,
+			--Legion
+			["legnavyaaship_scav"] = 2,
 		},
 		[3] = {
 			--Armada
@@ -769,6 +788,7 @@ local SeaUnitsList = {
 			--Legion
 			["legah_scav"] = 2,
 			["legmh_scav"] = 2,
+			["leganavysub_scav"] = 2,
 		},
 		[4] = {
 			--Armada
@@ -779,6 +799,9 @@ local SeaUnitsList = {
 			["cordronecarry_scav"] = 2,
 			["corantiship_scav"] = 2,
 			["corarch_scav"] = 2,
+			--Legion
+			["leganavyantinukecarrier_scav"] = 4,
+			["leganavyaaship_scav"] = 2,
 		},
 		[5] = {
 			--Armada
@@ -792,7 +815,9 @@ local SeaUnitsList = {
 			["corsjam_scav"] = 2,
 			["corsentinel_scav"] = 2,
 			--Legion
-			["legvflak_scav"] = 2,
+			["leganavyheavysub_scav"] = 2,
+			["leganavymissileship_scav"] = 2,
+			["leganavyradjamship_scav"] = 2,
 		},
 		[6] = {
 			--Armada
@@ -821,7 +846,9 @@ local SeaUnitsList = {
 			["corcs_scav"] = 2,
 			["correcl_scav"] = 40,
 			["corch_scav"] = 2,
-			--Legion
+			--legion
+			["legnavyconship_scav"] = 2,
+			["legnavyrezsub_scav"] = 40,
 			["legch_scav"] = 2,
 		},
 		[2] = {
@@ -834,6 +861,8 @@ local SeaUnitsList = {
 			["correcl_scav"] = 40,
 			["corch_scav"] = 2,
 			--Legion
+			["legnavyconship_scav"] = 2,
+			["legnavyrezsub_scav"] = 40,
 			["legch_scav"] = 2,
 		},
 		[3] = {
@@ -846,6 +875,8 @@ local SeaUnitsList = {
 			["correcl_scav"] = 40,
 			["corch_scav"] = 2,
 			--Legion
+			["legnavyconship_scav"] = 2,
+			["legnavyrezsub_scav"] = 40,
 			["legch_scav"] = 2,
 		},
 		[4] = {
@@ -857,6 +888,10 @@ local SeaUnitsList = {
 			["coracsub_scav"] = 2,
 			["correcl_scav"] = 40,
 			["cormls_scav"] = 2,
+			--Legion
+			["leganavyconsub_scav"] = 2,
+			["legnavyrezsub_scav"] = 40,
+			["leganavyengineer_scav"] = 2,
 		},
 		[5] = {
 			--Armada
@@ -867,6 +902,10 @@ local SeaUnitsList = {
 			["coracsub_scav"] = 2,
 			["correcl_scav"] = 40,
 			["cormls_scav"] = 2,
+			--Legion
+			["leganavyconsub_scav"] = 2,
+			["legnavyrezsub_scav"] = 40,
+			["leganavyengineer_scav"] = 2,
 		},
 		[6] = {
 			--Armada
@@ -877,7 +916,10 @@ local SeaUnitsList = {
 			["coracsub_scav"] = 2,
 			["correcl_scav"] = 40,
 			["cormls_scav"] = 2,
-
+			--Legion
+			["leganavyconsub_scav"] = 2,
+			["legnavyrezsub_scav"] = 40,
+			["leganavyengineer_scav"] = 2,
 		},
 		[7] = {
 			--Armada
@@ -888,6 +930,10 @@ local SeaUnitsList = {
 			["coracsub_scav"] = 2,
 			["correcl_scav"] = 40,
 			["cormls_scav"] = 2,
+			--Legion
+			["leganavyconsub_scav"] = 2,
+			["legnavyrezsub_scav"] = 40,
+			["leganavyengineer_scav"] = 2,
 		},
 	},
 }
@@ -2687,6 +2733,9 @@ end
 -- Settings -- Adjust these
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 local airStartAnger = 0 -- needed for air waves to work correctly.
+if Spring.GetModOptions().unit_restrictions_noair then -- Disable air waves when No Air restriction is enabled
+	airStartAnger = 10000
+end
 local useScum = true -- Use scum as space where turrets can spawn (requires scum gadget from Beyond All Reason)
 local useWaveMsg = true -- Show dropdown message whenever new wave is spawning
 local spawnSquare = 90 -- size of the scav spawn square centered on the burrow

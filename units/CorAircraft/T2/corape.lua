@@ -2,7 +2,7 @@ return {
 	corape = {
 		blocking = false,
 		buildpic = "CORAPE.DDS",
-		buildtime = 14500,
+		buildtime = 18000,
 		canfly = true,
 		canmove = true,
 		collide = true,

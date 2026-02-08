@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		buildangle = 16384,
 		buildpic = "ARMEPOCH.DDS",
-		buildtime = 200000,
+		buildtime = 290000,
 		canattackground = true,
 		canmove = true,
 		collisionvolumeoffsets = "0 -6 3",

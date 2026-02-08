@@ -2,7 +2,7 @@ return {
 	legeallterrainmech = {
 		activatewhenbuilt = false,
 		buildpic = "legeallterrainmech.DDS",
-		buildtime = 95000,
+		buildtime = 120250,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 -20 0",
@@ -42,6 +42,10 @@ return {
 			subfolder = "Legion/T3",
 			techlevel = 3,
 			unitgroup = "weapon",
+			inheritxpratemultiplier = 1,
+			childreninheritxp = "DRONE",
+			parentsinheritxp = "DRONE",
+			disable_when_no_air = true,
 		},
 		featuredefs = {
 			dead = {
@@ -124,7 +128,7 @@ return {
 				name = "Heavy Long-Range Cluster Plasma Cannon",
 				noselfdamage = true,
 				range = 1100,
-				reloadtime = 2.2,
+				reloadtime = 2.3,
 				rgbcolor = "0.7 0.7 1.0",
 				soundhit = "xplomed2",
 				soundhitwet = "splsmed",
@@ -134,7 +138,7 @@ return {
 				weaponvelocity = 450,
 				customparams = {
 					cluster_def = 'cluster_munition',
-					cluster_number = 10,
+					cluster_number = 7,
 					exclude_preaim = true,
 					smart_priority = true,
 				},
@@ -164,8 +168,8 @@ return {
 				soundstart = "cannhvy5",
 				weapontype = "Cannon",
 				damage = {
-					default = 65,
-					lboats = 65,
+					default = 105,
+					lboats = 105,
 					subs = 15,
 					vtol = 15,
 				},
@@ -188,7 +192,7 @@ return {
 				name = "Heavy Long-Range High-Trajectory Cluster Plasma Cannon",
 				noselfdamage = true,
 				range = 1100,
-				reloadtime = 2.2,
+				reloadtime = 2.3,
 				rgbcolor = "0.7 0.7 1.0",
 				soundhit = "xplomed2",
 				soundhitwet = "splsmed",
@@ -198,7 +202,7 @@ return {
 				weaponvelocity = 450,
 				customparams = {
 					cluster_def = 'cluster_munition',
-					cluster_number = 10,
+					cluster_number = 7,
 					exclude_preaim = true,
 					smart_backup = true,
 				},

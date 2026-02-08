@@ -2,7 +2,7 @@ return {
 	armhavp = {
 		builder = true,
 		buildpic = "ARMHAVP.DDS",
-		buildtime = 61400,
+		buildtime = 85000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "180 120 166",
@@ -39,7 +39,7 @@ return {
 			[6] = "armjam",
 			[7] = "armgremlin",
 			[8] = "armlun",
-			[9] = "armlatnk"
+			[9] = "armlatnk",
 		},
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,

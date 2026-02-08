@@ -273,6 +273,12 @@ function widget:Initialize()
 	WG['allycursors'].getCursors = function()
 		return cursors, notIdle
 	end
+	WG['allycursors'].getCursor = function(playerID)
+		if not playerID then
+			return nil
+		end
+		return cursors[playerID], notIdle[playerID]
+	end
 
 	local now = clock() - (idleCursorTime * 0.95)
 	local pList = Spring.GetPlayerList()
