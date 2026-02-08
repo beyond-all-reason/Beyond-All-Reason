@@ -1472,7 +1472,13 @@ local function InitGL4Icons()
 	end
 
 	for bitmap, _ in pairs(uniqueBitmaps) do
-		gl.AddAtlasTexture(atlas, bitmap)
+		-- Validate texture exists before adding (gl.AddAtlasTexture crashes on missing textures)
+		local texInfo = gl.TextureInfo(bitmap)
+		if texInfo and texInfo.xsize > 0 and texInfo.ysize > 0 then
+			gl.AddAtlasTexture(atlas, bitmap)
+		else
+			uniqueBitmaps[bitmap] = nil  -- Remove so GetAtlasTexture loop skips it
+		end
 	end
 	gl.FinalizeTextureAtlas(atlas)
 
@@ -10456,8 +10462,11 @@ local function UpdateR2TUnits(currentTime, pipUpdateInterval, pipWidth, pipHeigh
 
 	-- Check if should update based on time
 	-- Zoom changes are handled by scaling the blit quad, so they don't force a re-render
+	-- During resize, sizeChanged defers to throttle instead of forcing immediate update —
+	-- this avoids texture alloc/dealloc/render on every frame of the drag
 	local timeSinceLastUpdate = currentTime - pipR2T.unitsLastUpdateTime
-	local shouldUpdate = pipR2T.unitsNeedsUpdate or sizeChanged or rotChanged or driftForced or
+	local shouldUpdate = pipR2T.unitsNeedsUpdate or rotChanged or driftForced or
+		(sizeChanged and not uiState.areResizing) or
 		pipUpdateInterval == 0 or
 		(pipUpdateInterval > 0 and timeSinceLastUpdate >= pipUpdateInterval)
 
@@ -10586,8 +10595,10 @@ local function UpdateR2TCheapLayers(currentTime, pipUpdateInterval, pipWidth, pi
 	end
 
 	-- Check if should update based on time
+	-- During resize, sizeChanged defers to throttle instead of forcing immediate update
 	local timeSinceLastUpdate = currentTime - pipR2T.contentLastUpdateTime
-	local shouldUpdate = pipR2T.contentNeedsUpdate or sizeChanged or rotChanged or driftForced or
+	local shouldUpdate = pipR2T.contentNeedsUpdate or rotChanged or driftForced or
+		(sizeChanged and not uiState.areResizing) or
 		pipUpdateInterval == 0 or
 		(pipUpdateInterval > 0 and timeSinceLastUpdate >= pipUpdateInterval)
 
@@ -14410,8 +14421,6 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 		end
 		
 		CorrectScreenPosition()
-		RecalculateWorldCoordinates()
-		RecalculateGroundTextureCoordinates()
 
 		-- Update guishader blur dimensions
 		UpdateGuishaderBlur()
