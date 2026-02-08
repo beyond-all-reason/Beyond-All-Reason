@@ -5,7 +5,7 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
 	return {
 		name      = "Blast Radius",
-		desc      = "Displays blast radius while placing buildings (META)\nand of selected units (META+X)",
+		desc      = "Displays blast radius while placing buildings (META)\nof selected units (META+X)\nand auto-shows radius when selected units are self-destructing",
 		author    = "very_bad_soldier",
 		date      = "April 7, 2009",
 		license   = "GNU GPL v2",
@@ -17,6 +17,7 @@ end
 --These can be modified if needed
 local blastCircleDivs = 96
 local blastLineWidth = 1.0
+local selfdLineWidth = 2.5 
 local blastAlphaValue = 0.5
 
 --------------------------------------------------------------------------------
@@ -63,6 +64,11 @@ local lower                 = string.lower
 
 local font, chobbyInterface
 
+-- Self-destruct tracking
+local selfDestructUnits = {}
+local spGetUnitSelfDTime = Spring.GetUnitSelfDTime
+local spGetAllUnits = Spring.GetAllUnits
+
 -----------------------------------------------------------------------------------
 
 function widget:Initialize()
@@ -71,6 +77,24 @@ end
 
 function widget:ViewResize()
 	font = WG['fonts'].getFont(1, 1.5)
+end
+
+function widget:GameFrame(frameNum)
+	if frameNum % 5 ~= 0 then -- check every 5 frames for responsive updates
+		return
+	end
+	
+	-- Update list of units with active self-destruct countdown
+	selfDestructUnits = {}
+	local allUnits = spGetAllUnits()
+	for i = 1, #allUnits do
+		local unitID = allUnits[i]
+		local selfdTime = spGetUnitSelfDTime(unitID)
+		if selfdTime and selfdTime > 0 then
+			local unitDefID = spGetUnitDefID(unitID)
+			selfDestructUnits[unitID] = unitDefID
+		end
+	end
 end
 
 local selectedUnits = Spring.GetSelectedUnits()
@@ -87,6 +111,25 @@ end
 function widget:DrawWorld()
 	if chobbyInterface then return end
 	DrawBuildMenuBlastRange()
+
+	-- Update color animation for self-destructing units
+	ChangeBlastColor()
+
+	-- Draw radius for self-destructing units that are also selected
+	for unitID, _ in pairs(selfDestructUnits) do
+		-- Check if unit is in selectedUnits
+		local isSelected = false
+		for i = 1, #selectedUnits do
+			if selectedUnits[i] == unitID then
+				isSelected = true
+				break
+			end
+		end
+		
+		if isSelected and Spring.GetUnitPosition(unitID) then  -- check if unit still exists
+			DrawUnitBlastRadius(unitID, false, true)  -- showExplosionRadius=false, isPulsing=true
+		end
+	end
 
 	--hardcoded: meta + X
 	local keyPressed = spGetKeyState( KEYSYMS.X )
@@ -187,7 +230,14 @@ function DrawBuildMenuBlastRange()
 	ChangeBlastColor()
 end
 
-function DrawUnitBlastRadius( unitID )
+function DrawUnitBlastRadius( unitID, showExplosionRadius, isPulsing )
+	if showExplosionRadius == nil then
+		showExplosionRadius = true
+	end
+	if isPulsing == nil then
+		isPulsing = false
+	end
+	
 	local unitDefID =  spGetUnitDefID(unitID)
 	local udef = udefTab[unitDefID]
 
@@ -205,8 +255,17 @@ function DrawUnitBlastRadius( unitID )
 
 		local height = Spring.GetGroundHeight(x,z)
 
-		glLineWidth(blastLineWidth)
-		glColor( blastColor[1], blastColor[2], blastColor[3], blastAlphaValue)
+		-- Use thicker line and existing pulsing color for self-destruct countdown
+		local lineWidth = blastLineWidth
+		local color = blastColor
+		if isPulsing then
+			lineWidth = selfdLineWidth
+			-- Use the already-cycling blastColor from ChangeBlastColor()
+			color = blastColor
+		end
+
+		glLineWidth(lineWidth)
+		glColor( color[1], color[2], color[3], blastAlphaValue)
 		glDrawGroundCircle( x,y,z, blastRadius, blastCircleDivs )
 
 		glPushMatrix()
@@ -221,7 +280,7 @@ function DrawUnitBlastRadius( unitID )
 		font:Print( text, 0.0, 0.0, sqrt(blastRadius) , "")
 		glPopMatrix()
 
-		if deathblastRadius ~= blastRadius then
+		if showExplosionRadius and deathblastRadius ~= blastRadius then
 			glColor( expBlastColor[1], expBlastColor[2], expBlastColor[3], expBlastAlphaValue)
 			glDrawGroundCircle( x,y,z, deathblastRadius, blastCircleDivs )
 
