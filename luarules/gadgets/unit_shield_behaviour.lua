@@ -556,6 +556,10 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
 		return true
 	end
 
+	if shieldWeaponNum and not shieldData.shieldWeaponNumber then
+		shieldData.shieldWeaponNumber = shieldWeaponNum
+	end
+
 	-- Process scripted weapon types first (dgun, cluster, overpen, area timed). These can override any behaviors, potentially.
 	for lookup, callback in pairs(scriptedShieldDamages) do
 		if lookup[proID] then -- TODO: filtering for beam weapons (projectileID == -1) is not especially effective here.
