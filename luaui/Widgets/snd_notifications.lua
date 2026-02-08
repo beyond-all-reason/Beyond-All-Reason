@@ -13,8 +13,6 @@ function widget:GetInfo()
 	}
 end
 
-Spring.LoadSoundDef("gamedata/soundsVoice.lua")
-
 -- Localized functions for performance
 local mathRandom = math.random
 local tableSort = table.sort
@@ -82,62 +80,74 @@ if VFS.FileExists(soundFolder .. 'config.lua') then
 	notificationTable = table.merge(notificationTable, voicesetNotificationTable)
 end
 
-for notifID, notifDef in pairs(notificationTable) do
-	local notifTexts = {}
-	local notifSounds = {}
-	local notifSoundsRare = {}
-	local currentEntry = 1
-	local currentEntryRare = 1
-	notifTexts[currentEntry] = 'tips.notifications.' .. string.sub(notifID, 1, 1):lower() .. string.sub(notifID, 2)
-	if VFS.FileExists(soundFolder .. notifID .. '.wav') then
-		notifSounds[currentEntry] = soundFolder .. notifID .. '.wav'
-	end
-	for i = 1, 20 do
-		if VFS.FileExists(soundFolder .. notifID .. i .. '.wav') then
-			currentEntry = currentEntry + 1
-			notifSounds[currentEntry] = soundFolder .. notifID .. i .. '.wav'
-		end
-	end
+local function processNotificationDefs()
+	notification = {}
+	notificationList = {}
+	notificationOrder = {}
 
-	if useDefaultVoiceFallback and #notifSounds == 0 then
-		if VFS.FileExists(defaultSoundFolder .. notifID .. '.wav') then
-			notifSounds[currentEntry] = defaultSoundFolder .. notifID .. '.wav'
+	for notifID, notifDef in pairs(notificationTable) do
+		local notifTexts = {}
+		local notifSounds = {}
+		local notifSoundsRare = {}
+		local currentEntry = 1
+		local currentEntryRare = 1
+		if notifDef.notifText then
+			notifTexts[currentEntry] = notifDef.notifText
+		else
+			notifTexts[currentEntry] = 'tips.notifications.' .. string.sub(notifID, 1, 1):lower() .. string.sub(notifID, 2)
+		end
+		if VFS.FileExists(soundFolder .. notifID .. '.wav') then
+			notifSounds[currentEntry] = soundFolder .. notifID .. '.wav'
 		end
 		for i = 1, 20 do
-			if VFS.FileExists(defaultSoundFolder .. notifID .. i .. '.wav') then
+			if VFS.FileExists(soundFolder .. notifID .. i .. '.wav') then
 				currentEntry = currentEntry + 1
-				notifSounds[currentEntry] = defaultSoundFolder .. notifID .. i .. '.wav'
+				notifSounds[currentEntry] = soundFolder .. notifID .. i .. '.wav'
 			end
 		end
-	end
 
-	if VFS.FileExists(soundFolder .. notifID .. '_rare' .. '.wav') then
-		notifSoundsRare[currentEntryRare] = soundFolder .. notifID .. '_rare' .. '.wav'
-	end
-	for i = 1, 20 do
-		if VFS.FileExists(soundFolder .. notifID .. '_rare' .. i .. '.wav') then
-			currentEntryRare = currentEntryRare + 1
-			notifSoundsRare[currentEntryRare] = soundFolder .. notifID .. '_rare' .. i .. '.wav'
+		if useDefaultVoiceFallback and #notifSounds == 0 then
+			if VFS.FileExists(defaultSoundFolder .. notifID .. '.wav') then
+				notifSounds[currentEntry] = defaultSoundFolder .. notifID .. '.wav'
+			end
+			for i = 1, 20 do
+				if VFS.FileExists(defaultSoundFolder .. notifID .. i .. '.wav') then
+					currentEntry = currentEntry + 1
+					notifSounds[currentEntry] = defaultSoundFolder .. notifID .. i .. '.wav'
+				end
+			end
+		end
+
+		if VFS.FileExists(soundFolder .. notifID .. '_rare' .. '.wav') then
+			notifSoundsRare[currentEntryRare] = soundFolder .. notifID .. '_rare' .. '.wav'
+		end
+		for i = 1, 20 do
+			if VFS.FileExists(soundFolder .. notifID .. '_rare' .. i .. '.wav') then
+				currentEntryRare = currentEntryRare + 1
+				notifSoundsRare[currentEntryRare] = soundFolder .. notifID .. '_rare' .. i .. '.wav'
+			end
+		end
+
+		notification[notifID] = {
+			delay = notifDef.delay or 2,
+			stackedDelay = notifDef.stackedDelay, -- reset delay even with failed play
+			textID = notifTexts[1],
+			notext = notifDef.notext,
+			customText = notifDef.notifText,
+			voiceFiles = notifSounds,
+			voiceFilesRare = notifSoundsRare,
+			tutorial = notifDef.tutorial,
+			soundEffect = notifDef.soundEffect,
+			resetOtherEventDelay = notifDef.resetOtherEventDelay,
+		}
+
+		notificationList[notifID] = true
+		if not notifDef.tutorial then
+			notificationOrder[#notificationOrder + 1] = notifID
 		end
 	end
-
-	notification[notifID] = {
-		delay = notifDef.delay or 2,
-		stackedDelay = notifDef.stackedDelay, -- reset delay even with failed play
-		textID = notifTexts[1],
-		notext = notifDef.notext,
-		voiceFiles = notifSounds,
-		voiceFilesRare = notifSoundsRare,
-		tutorial = notifDef.tutorial,
-		soundEffect = notifDef.soundEffect,
-		resetOtherEventDelay = notifDef.resetOtherEventDelay,
-	}
-
-	notificationList[notifID] = true
-	if not notifDef.tutorial then
-		notificationOrder[#notificationOrder + 1] = notifID
-	end
 end
+processNotificationDefs()
 
 local unitsOfInterestNames = {
 	armemp = 'EmpSiloDetected',
@@ -260,13 +270,6 @@ if UnitDefNames["armcom_scav"] then -- quick check if scav units exist
 	end
 	table.append(unitIsReadyTab, unitIsReadyScavAppend)
 end
-
-local numFactoryAir = 0
-local numFactorySeaplanes = 0
-local numFactoryVeh = 0
-local numFactoryBot = 0
-local numFactoryHover = 0
-local numFactoryShip = 0
 
 local hasMadeT2 = false
 
@@ -483,7 +486,11 @@ function widget:Initialize()
 				Spring.PlaySoundFile(soundEffectsFolder .. notification[event].soundEffect .. ".wav", globalVolume, 'ui')
 			end
 			if displayMessages and WG['messages'] and notification[event].textID and not notification[event].notext then
-				WG['messages'].addMessage(Spring.I18N(notification[event].textID))
+				if not notification[event].customText then
+					WG['messages'].addMessage(Spring.I18N(notification[event].textID))
+				else
+					WG['messages'].addMessage(notification[event].textID)
+				end
 			end
 		end
 	end
@@ -491,6 +498,38 @@ function widget:Initialize()
 	WG['notifications'].resetEventDelay = function(event)
 		LastPlay[event] = spGetGameFrame()
 	end
+
+	WG['notifications'].addNotificationDefs = function(tableOfNotifs)
+		notificationTable = table.merge(notificationTable, tableOfNotifs)
+		processNotificationDefs()
+	end
+
+	WG['notifications'].addUnitDetected = function(unitName, notifName)
+		if UnitDefNames[unitName] then
+			unitsOfInterest[UnitDefNames[unitName].id] = notifName
+		end
+		if UnitDefNames[unitName .. "_scav"] then
+			unitsOfInterest[UnitDefNames[unitName].id .. "_scav"] = notifName
+		end
+	end
+
+	RegisteredCustomNotifWidgets = {}
+	WG['notifications'].registerCustomNotifWidget = function(widgetName)
+		if not RegisteredCustomNotifWidgets[widgetName] then
+			RegisteredCustomNotifWidgets[widgetName] = true
+		end
+	end
+
+	WG['notifications'].registeredCustomNotifWidgets = function()
+		return RegisteredCustomNotifWidgets
+	end
+
+	if not WG.NotificationSoundDefsLoaded then -- To prevent reloads and warning spam when changing/refreshing announcers
+		Spring.LoadSoundDef("gamedata/soundsVoice.lua")
+		WG.NotificationSoundDefsLoaded = true
+		Spring.Echo("Notification Sound Items Loaded")
+	end
+
 
 	if Spring.Utilities.Gametype.IsRaptors() and Spring.Utilities.Gametype.IsScavengers() then
 		queueNotification('RaptorsAndScavsMixed')
