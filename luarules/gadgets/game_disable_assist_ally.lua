@@ -130,7 +130,6 @@ end
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_GUARD)
 	gadgetHandler:RegisterAllowCommand(CMD_REPAIR)
-	gadgetHandler:RegisterAllowCommand(CMD_INSERT)
 	gadgetHandler:RegisterAllowCommand(CMD_MOVESTATE)
 end
 

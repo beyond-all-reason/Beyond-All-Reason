@@ -374,7 +374,6 @@ if gadgetHandler:IsSyncedCode() then
 		-- register allowcommand callin
 		gadgetHandler:RegisterAllowCommand(CMD_STOP)
 		gadgetHandler:RegisterAllowCommand(CMD_DGUN)
-		gadgetHandler:RegisterAllowCommand(CMD.INSERT)
 		gadgetHandler:RegisterAllowCommand(CMD_UNIT_SET_TARGET_NO_GROUND)
 		gadgetHandler:RegisterAllowCommand(CMD_UNIT_SET_TARGET)
 		gadgetHandler:RegisterAllowCommand(CMD_UNIT_SET_TARGET_RECTANGLE)

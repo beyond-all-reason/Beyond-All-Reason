@@ -39,7 +39,6 @@ local metalSpotsList
 
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD.BUILD)
-	gadgetHandler:RegisterAllowCommand(CMD.INSERT)
 	local isMetalMap = GG["resource_spot_finder"].isMetalMap
 	if isMetalMap then
 		Spring.Log(gadget:GetInfo().name, LOG.INFO, "Metal map detected, removing self")

@@ -136,7 +136,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:Initialize()
 		gadgetHandler:RegisterAllowCommand(CMD_STOCKPILE)
-		gadgetHandler:RegisterAllowCommand(CMD_INSERT)
 		local units = Spring.GetAllUnits()
 		for i = 1, #units do
 			local unitDefID = Spring.GetUnitDefID(units[i])

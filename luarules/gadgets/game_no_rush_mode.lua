@@ -69,7 +69,6 @@ end
 if gadgetHandler:IsSyncedCode() then
 	function gadget:Initialize()
 		gadgetHandler:RegisterAllowCommand(CMD.BUILD)
-		gadgetHandler:RegisterAllowCommand(CMD.INSERT)
 
 		local registered = { [CMD.BUILD] = true, [CMD.INSERT] = true }
 

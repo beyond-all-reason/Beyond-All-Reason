@@ -56,6 +56,5 @@ end
 
 function gadget:Initialize()
 	gadgetHandler:RegisterCMDID(CMD_MANUAL_LAUNCH)
-	gadgetHandler:RegisterAllowCommand(CMD.INSERT)
 	gadgetHandler:RegisterAllowCommand(CMD_MANUAL_LAUNCH)
 end

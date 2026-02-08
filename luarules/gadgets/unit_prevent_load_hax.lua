@@ -39,7 +39,6 @@ local CMD_REMOVE = CMD.REMOVE
 local watchList = {}
 
 function gadget:Initialize()
-	gadgetHandler:RegisterAllowCommand(CMD_INSERT)
 	gadgetHandler:RegisterAllowCommand(CMD_REMOVE)
 	gadgetHandler:RegisterAllowCommand(CMD_LOAD_UNITS)
 end
