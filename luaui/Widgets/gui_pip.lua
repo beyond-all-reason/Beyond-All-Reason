@@ -124,6 +124,7 @@ local config = {
 	zoomMin = 0.04,
 	zoomMax = 0.95,
 	zoomFeatures = 0.2,
+	zoomFeaturesFadeRange = 0.06,  -- Zoom range over which features fade in/out
 	zoomProjectileDetail = 0.12,
 	zoomExplosionDetail = 0.12,  -- Legacy, now using graduated visibility
 	drawExplosions = true,  -- Separate from projectiles
@@ -2593,7 +2594,7 @@ local function DrawUnit(uID, checkAllyTeamID, playerSelections, trackingSet)
 	end
 end
 
-local function DrawFeature(fID)
+local function DrawFeature(fID, noTextures)
 	local fDefID = spFunc.GetFeatureDefID(fID)
 	if not fDefID or cache.noModelFeatures[fDefID] then return end
 
@@ -2615,7 +2616,9 @@ local function DrawFeature(fID)
 		glFunc.Translate(fx - cameraState.wcx, cameraState.wcz - fz, 0)
 		glFunc.Rotate(90, 1, 0, 0)
 		glFunc.Rotate(uHeading, 0, 1, 0)
-		glFunc.Texture(0, '%-' .. fDefID .. ':0')
+		if not noTextures then
+			glFunc.Texture(0, '%-' .. fDefID .. ':0')
+		end
 		gl.FeatureShape(fDefID, spFunc.GetFeatureTeam(fID))
 	glFunc.PopMatrix()
 end
@@ -4244,7 +4247,7 @@ local function UnitQueueVertices(uID)
 		end
 		return
 	end
-
+	
 	-- Fallback: fetch commands directly (first frame or uncached unit)
 	local uCmds = spFunc.GetUnitCommands(uID, 50)
 	if not uCmds or #uCmds == 0 then return end
@@ -7998,13 +8001,43 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 
 
 	-- Draw features (3D models)
-	if cameraState.zoom >= config.zoomFeatures then  -- Only draw features if zoom is above threshold
-		-- Only get feature data when we're going to display them
+	local featureFade = 0
+	if cameraState.zoom >= config.zoomFeatures then
+		featureFade = math.min(1, (cameraState.zoom - config.zoomFeatures) / config.zoomFeaturesFadeRange)
+	end
+	if featureFade > 0 then  -- Only draw features if zoom is above threshold
 		miscState.pipFeatures = spFunc.GetFeaturesInRectangle(render.world.l - margin, render.world.t - margin, render.world.r + margin, render.world.b + margin)
 		local featureCount = #miscState.pipFeatures
-		glFunc.Texture(0, '$units')
-		for i = 1, featureCount do
-			DrawFeature(miscState.pipFeatures[i])
+		if featureCount > 0 then
+			-- Premultiplied alpha: RGB = color * fade, A = fade
+			-- Pass 1: RGB only. Modulate by featureFade for premultiplied alpha.
+			-- Mask alpha writes because feature tex0.alpha is used
+			-- as a team-color/transparency mask and would cause semi-transparency
+			-- when the FBO is composited with premultiplied alpha.
+			gl.ColorMask(true, true, true, false)
+			glFunc.Color(featureFade, featureFade, featureFade, 1)
+			glFunc.Texture(0, '$units')
+			for i = 1, featureCount do
+				DrawFeature(miscState.pipFeatures[i])
+			end
+			-- Pass 2: alpha only. Write featureFade to alpha channel.
+			-- Re-render feature geometry without texture so the
+			-- fixed-function pipeline outputs glColor alpha.
+			-- Key: DepthTest must be LEQUAL (not default LESS) so fragments at the
+			-- same depth as pass 1 are accepted (D <= D = true).
+			gl.ColorMask(false, false, false, true)
+			gl.DepthTest(GL.LEQUAL)
+			gl.DepthMask(false)
+			glFunc.Texture(0, false)
+			glFunc.Color(1, 1, 1, featureFade)
+			for i = 1, featureCount do
+				DrawFeature(miscState.pipFeatures[i], true)  -- noTextures: skip texture bind
+			end
+			-- Restore
+			gl.ColorMask(true, true, true, true)
+			gl.DepthTest(true)
+			gl.DepthMask(true)
+			glFunc.Color(1, 1, 1, 1)
 		end
 	end
 
@@ -8125,16 +8158,8 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	gl.DepthMask(false)
 	gl.DepthTest(false)
 
-	local _, _, _, shift = Spring.GetModKeyState()
-	if shift then
-		gl.LineStipple("springdefault")
-		local selUnits = Spring.GetSelectedUnits()
-		local selCount = #selUnits
-		for i = 1, selCount do
-			glFunc.BeginEnd(glConst.LINES, UnitQueueVertices, selUnits[i])
-		end
-		gl.LineStipple(false)
-	end
+	-- Command queue drawing is handled by DrawCommandQueuesOverlay (called after this function)
+	-- which uses cached waypoints and batched rendering (GL4 or single BeginEnd calls).
 
 	-- Draw icons (GL4 instanced path or legacy CPU path)
 	local iconRadiusZoomDistMult
