@@ -676,7 +676,9 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			elseif cmdID == CMD_DGUN then
 				pauseTargetting(unitID)
-				waitingForInsertRemoval[unitID] = fromInsert ~= nil
+				if fromInsert then
+					waitingForInsertRemoval[unitID] = true
+				end
 			end
 		end
 		--tracy.ZoneEnd()
