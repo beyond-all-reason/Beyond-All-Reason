@@ -693,8 +693,11 @@ local mapInfo = {
 	voidWater = voidWater
 }
 mapInfo.minGroundHeight, mapInfo.maxGroundHeight = Spring.GetGroundExtremes()
-mapInfo.hasWater = mapInfo.minGroundHeight < 0
-mapInfo.isLava = mapInfo.hasWater and Spring.Lava.isLavaMap
+local waterIsLava = Spring.GetModOptions().map_waterislava
+mapInfo.isLava = Spring.Lava.isLavaMap or (waterIsLava and waterIsLava ~= 0 and waterIsLava ~= "0")
+mapInfo.hasWater = mapInfo.minGroundHeight < 0 or mapInfo.isLava
+mapInfo.dynamicWaterLevel = nil  -- current water/lava level (nil = static sea level = 0)
+mapInfo.lastCheckedWaterLevel = nil  -- for change detection
 
 
 ----------------------------------------------------------------------------------------------------
@@ -1019,13 +1022,16 @@ local waterShaderCode = {
 	fragment = [[
 		uniform sampler2D heightTex;
 		uniform vec4 waterColor;
+		uniform float waterLevel;  // water/lava surface level in elmos (world height units)
 		varying vec2 texCoord;
 		void main() {
-			float height = texture2D(heightTex, texCoord).r;
+			float height = texture2D(heightTex, texCoord).r;  // raw height in elmos
 			
-			// Heightmap: black (0.0) = water, white (1.0) = land
-			// Apply water color where heightmap is black (water areas)
-			float waterAmount = 1.0 - height;
+			// Depth below water/lava surface (positive = submerged)
+			float depth = waterLevel - height;
+			
+			// Smooth transition over 10 elmos depth for gradual coverage
+			float waterAmount = clamp(depth / 10.0, 0.0, 1.0);
 			
 			// Use waterColor.a to control overall intensity:
 			// Low alpha (0.5 = normal water) gets subtle tinting via * 0.05
@@ -1039,6 +1045,7 @@ local waterShaderCode = {
 	},
 	uniformFloat = {
 		waterColor = {0, 0.04, 0.25, 0.5},
+		waterLevel = 0,
 	},
 }
 
@@ -7221,6 +7228,12 @@ local function ShouldShowLOS()
 	return false, nil
 end
 
+-- Helper function to get the normalized water/lava threshold for the heightmap shader
+-- Returns a value in [0, 1] where 0 = min ground height, 1 = max ground height
+local function GetWaterLevel()
+	return mapInfo.dynamicWaterLevel or 0
+end
+
 -- Helper function to draw water and LOS overlays
 local function DrawWaterAndLOSOverlays()
 	-- Draw water overlay using shader
@@ -7237,6 +7250,7 @@ local function DrawWaterAndLOSOverlays()
 			r, g, b, a = 0.08, 0.11, 0.22, 0.5
 		end
 		gl.UniformFloat(gl.GetUniformLocation(waterShader, "waterColor"), r, g, b, a)
+		gl.UniformFloat(gl.GetUniformLocation(waterShader, "waterLevel"), GetWaterLevel())
 		
 		-- Bind heightmap texture
 		gl.UniformInt(gl.GetUniformLocation(waterShader, "heightTex"), 0)
@@ -8048,12 +8062,6 @@ local function RenderExpensiveLayers()
 
 	DrawCommandQueuesOverlay(cachedSelectedUnits)
 
-	-- Draw map markers
-	DrawMapMarkers()
-
-	-- Draw main camera view boundaries (minimap mode only)
-	DrawCameraViewBounds()
-
 	-- Pop rotation matrix if it was applied
 	if render.minimapRotation ~= 0 then
 		glFunc.PopMatrix()
@@ -8092,12 +8100,6 @@ local function RenderPipContents()
 	pipR2T.contentLastDrawTime = os.clock() - drawStartTime
 
 	DrawCommandQueuesOverlay(cachedSelectedUnits)
-	
-	-- Draw map markers
-	DrawMapMarkers()
-	
-	-- Draw main camera view boundaries (minimap mode only)
-	DrawCameraViewBounds()
 	
 	-- Pop rotation matrix if it was applied
 	if render.minimapRotation ~= 0 then
@@ -8915,6 +8917,7 @@ local function DrawTrackedPlayerMinimap()
 			r, g, b, a = 0.08, 0.11, 0.22, 0.5
 		end
 		gl.UniformFloat(gl.GetUniformLocation(waterShader, "waterColor"), r, g, b, a)
+		gl.UniformFloat(gl.GetUniformLocation(waterShader, "waterLevel"), GetWaterLevel())
 		gl.UniformInt(gl.GetUniformLocation(waterShader, "heightTex"), 0)
 		glFunc.Texture(0, '$heightmap')
 		glFunc.Color(1, 1, 1, 1)
@@ -10220,6 +10223,32 @@ function widget:DrawScreen()
 		end
 	end
 
+	-- Draw map markers and camera view bounds at full frame rate (not throttled with unitsTex)
+	-- Drawn after DrawInMiniMap overlays so they appear on top of everything
+	if isMinimapMode then
+		local minimapWidth = render.dim.r - render.dim.l
+		local minimapHeight = render.dim.t - render.dim.b
+		gl.Scissor(render.dim.l, render.dim.b, minimapWidth, minimapHeight)
+
+		if render.minimapRotation ~= 0 then
+			local centerX = render.dim.l + minimapWidth / 2
+			local centerY = render.dim.b + minimapHeight / 2
+			glFunc.PushMatrix()
+			glFunc.Translate(centerX, centerY, 0)
+			glFunc.Rotate(render.minimapRotation * 180 / math.pi, 0, 0, 1)
+			glFunc.Translate(-centerX, -centerY, 0)
+		end
+
+		DrawMapMarkers()
+		DrawCameraViewBounds()
+
+		if render.minimapRotation ~= 0 then
+			glFunc.PopMatrix()
+		end
+
+		gl.Scissor(false)
+	end
+
 	-- Draw tracking indicators
 	DrawTrackingIndicators()
 
@@ -10822,6 +10851,22 @@ function widget:Update(dt)
 			cameraState.targetWcz = cameraState.wcz
 			RecalculateWorldCoordinates()
 			RecalculateGroundTextureCoordinates()
+		end
+	end
+	
+	-- Monitor dynamic water/lava level changes
+	if mapInfo.isLava or mapInfo.hasWater then
+		local lavaLevel = Spring.GetGameRulesParam("lavaLevel")
+		if lavaLevel and lavaLevel ~= -99999 then
+			-- Lava gadget is active and has set a real level
+			if mapInfo.dynamicWaterLevel ~= lavaLevel then
+				local oldLevel = mapInfo.dynamicWaterLevel
+				mapInfo.dynamicWaterLevel = lavaLevel
+				-- Check if the level actually changed enough to warrant a redraw
+				if not oldLevel or math.abs(lavaLevel - oldLevel) > 0.5 then
+					pipR2T.contentNeedsUpdate = true
+				end
+			end
 		end
 	end
 	
