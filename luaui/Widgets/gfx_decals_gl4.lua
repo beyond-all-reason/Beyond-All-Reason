@@ -280,7 +280,6 @@ local function initGL4( DPATname)
 end
 
 local decalIndex = 0
-local decalTimes = {} -- maps instanceID to expected fadeout timeInfo
 local decalRemoveQueue = {} -- maps gameframes to list of decals that will be removed
 local decalRemoveList = {} -- maps instanceID's of decals that need to be batch removed to preserve order
 
@@ -483,7 +482,6 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 		true, -- update existing element
 		false) -- noupload, dont use unless you know what you want to batch push/pop
 	local deathtime = spawnframe + lifetime
-	decalTimes[decalIndex] = deathtime
 	if decalRemoveQueue[deathtime] == nil then
 		decalRemoveQueue[deathtime] = {decalIndex}
 	else
@@ -598,7 +596,6 @@ local function RemoveDecal(instanceID)
 	elseif decalExtraLargeVBO.instanceIDtoIndex[instanceID] then
 		popElementInstance(decalExtraLargeVBO, instanceID)
 	end
-	decalTimes[instanceID] = nil
 end
 
 local numDecalsToRemove = 0
@@ -1815,7 +1812,6 @@ local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, headin
 				true, -- update existing element
 				false) -- noupload, dont use unless you know what you want to batch push/pop
 			local deathtime = spawnframe + lifetime
-			decalTimes[decalIndex] = deathtime
 			if decalRemoveQueue[deathtime] == nil then
 				decalRemoveQueue[deathtime] = {decalIndex}
 			else
