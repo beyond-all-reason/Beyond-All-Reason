@@ -660,7 +660,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua, fromInsert)
 		--tracy.ZoneBeginN(string.format("AllowCommand %s %s", tostring(fromSynced), tostring(fromLua)))
 		--tracy.Message(string.format("Allowcommand params %s %s", table.toString(cmdOptions), table.toString(cmdParams)))
 		if spGetUnitCommandCount(unitID) == 0 or not cmdOptions.meta then
@@ -676,9 +676,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			elseif cmdID == CMD_DGUN then
 				pauseTargetting(unitID)
-			elseif (cmdID == CMD.INSERT and cmdParams[2] == CMD_DGUN) then
-				pauseTargetting(unitID)
-				waitingForInsertRemoval[unitID] = true
+				waitingForInsertRemoval[unitID] = fromInsert ~= nil
 			end
 		end
 		--tracy.ZoneEnd()

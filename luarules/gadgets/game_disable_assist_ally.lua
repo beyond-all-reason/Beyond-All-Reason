@@ -27,7 +27,6 @@ local CMD_GUARD = CMD.GUARD
 local CMD_REPAIR = CMD.REPAIR
 local CMD_MOVESTATE = CMD.MOVE_STATE
 local MOVESTATE_ROAM = CMD.MOVESTATE_ROAM
-local CMD_INSERT = CMD.INSERT
 
 local footprintSize = Game.squareSize * Game.footprintScale
 
@@ -103,28 +102,6 @@ local function validateCommands(unitID, unitTeam)
 	end
 end
 
-local PARAM = table.new(6, 0) -- need to check up to 5+1 arguments
-local EMPTY = {}
-local insertedCommands = {
-	[CMD_GUARD] = true,
-	[CMD_REPAIR] = true,
-	[CMD_MOVESTATE] = true,
-}
-
-local function resolveCommand(cmdParams)
-	local cmdID = cmdParams[2] or 0
-	if insertedCommands[cmdID] then
-		local p = PARAM
-		for i = 1, 6 do
-			p[i] = cmdParams[i + 3]
-		end
-		cmdParams = p
-	else
-		cmdID, cmdParams = 0, EMPTY
-	end
-	return cmdID, cmdParams
-end
-
 -- Engine call-ins
 
 function gadget:Initialize()
@@ -152,13 +129,9 @@ end
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
 	if not canBuildStep[unitDefID] then
 		return true
+	else
+		return isBuilderAllowedCommand(cmdID, cmdParams[1], cmdParams[2], cmdParams[5], cmdParams[6], unitTeam)
 	end
-
-	if cmdID == CMD_INSERT then
-		cmdID, cmdParams = resolveCommand(cmdParams)
-	end
-
-	return isBuilderAllowedCommand(cmdID, cmdParams[1], cmdParams[2], cmdParams[5], cmdParams[6], unitTeam)
 end
 
 function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z, facing)
