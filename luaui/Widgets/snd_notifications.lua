@@ -13,8 +13,6 @@ function widget:GetInfo()
 	}
 end
 
-Spring.LoadSoundDef("gamedata/soundsVoice.lua")
-
 -- Localized functions for performance
 local mathRandom = math.random
 local tableSort = table.sort
@@ -524,6 +522,12 @@ function widget:Initialize()
 
 	WG['notifications'].registeredCustomNotifWidgets = function()
 		return RegisteredCustomNotifWidgets
+	end
+
+	if not WG.NotificationSoundDefsLoaded then -- To prevent reloads and warning spam when changing/refreshing announcers
+		Spring.LoadSoundDef("gamedata/soundsVoice.lua")
+		WG.NotificationSoundDefsLoaded = true
+		Spring.Echo("Notification Sound Items Loaded")
 	end
 
 
