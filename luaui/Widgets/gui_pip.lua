@@ -617,6 +617,7 @@ local function iconSortComparator(a, b)
 end
 
 -- GL constants
+local GL_LINE_SMOOTH = 0x0B20  -- OpenGL GL_LINE_SMOOTH enum value
 local glConst = {
 	LINE_STRIP = GL.LINE_STRIP,
 	LINES = GL.LINES,
@@ -4465,8 +4466,17 @@ function widget:ViewResize()
 		end
 		
 		local maxHeight = config.minimapModeMaxHeight
-		local maxWidth = math.min(maxHeight * mapRatio, config.minimapModeMaxWidth * (render.vsx / render.vsy))
-		if maxWidth >= config.minimapModeMaxWidth * (render.vsx / render.vsy) then
+		-- Dynamically determine max width from topbar position (like gui_minimap does)
+		local effectiveMaxWidth = config.minimapModeMaxWidth
+		if WG['topbar'] and WG['topbar'].GetPosition then
+			local topbarArea = WG['topbar'].GetPosition()
+			if topbarArea and topbarArea[1] then
+				local margin = WG.FlowUI and (WG.FlowUI.elementMargin + WG.FlowUI.elementPadding) or 10
+				effectiveMaxWidth = (topbarArea[1] - margin) / render.vsx
+			end
+		end
+		local maxWidth = math.min(maxHeight * mapRatio, effectiveMaxWidth * (render.vsx / render.vsy))
+		if maxWidth >= effectiveMaxWidth * (render.vsx / render.vsy) then
 			maxHeight = maxWidth / mapRatio
 		end
 		
@@ -7306,7 +7316,7 @@ local function DrawMapMarkers()
 		local marker = miscState.mapMarkers[i]
 		local age = currentTime - marker.time
 		
-		if age > 4.5 then
+		if age > 5.85 or (marker.fadeStart and (currentTime - marker.fadeStart) > 0.5) then
 			table.remove(miscState.mapMarkers, i)
 		else
 			-- Filter markers by allyteam if LOS view is limited
@@ -7327,15 +7337,26 @@ local function DrawMapMarkers()
 				local rotation = (age * 180) % 360
 				
 				-- Size of the rectangle (in screen pixels) with pulsating scale
+				-- Start very large and quickly shrink to normal size, then pulsate
+				local burstScale = 1 + 7 * math.max(0, 1 - age * 2)^2  -- 8x size at t=0, settles to 1x by ~0.5s
 				local pulseScale = 1 + math.sin(age * 4.5) * 0.2  -- Pulsate between 0.8 and 1.2
-				local size = baseSize * pulseScale
+				local size = baseSize * pulseScale * burstScale
 				
-				-- Fade out over the last second
-				local alpha = age < 2.5 and 1 or (1 - (age - 2.5))
+				-- Fade out: normal fade in last 2s, or quick fade if superseded by nearby marker
+				local alpha
+				if marker.fadeStart then
+					local fadeDur = 0.5
+					local fadeAge = currentTime - marker.fadeStart
+					alpha = math.max(0, 1 - fadeAge / fadeDur)
+				else
+					alpha = age < 3 and 1 or (1 - (age - 3) / 2.6)
+				end
 				
-				-- Use team color or default
+				-- Use team color, white for spectators, or default yellow
 				local r, g, b = 1, 1, 0  -- Default yellow
-				if marker.teamID then
+				if marker.isSpectator then
+					r, g, b = 1, 1, 1  -- White for spectators
+				elseif marker.teamID then
 					r, g, b = Spring.GetTeamColor(marker.teamID)
 				end
 				
@@ -7345,8 +7366,8 @@ local function DrawMapMarkers()
 				glFunc.Rotate(rotation, 0, 0, 1)
 
 				-- background
-				glFunc.Color(0, 0, 0, alpha * 0.5)
-				glFunc.LineWidth(lineSize+2)
+				glFunc.Color(0, 0, 0, alpha * 0.7)
+				glFunc.LineWidth(lineSize+2.5)
 				gl.BeginEnd(GL.LINE_LOOP, function()
 					glFunc.Vertex(-size, -size)
 					glFunc.Vertex(size, -size)
@@ -7534,26 +7555,24 @@ local function DrawCameraViewBounds()
 	-- Get camera position for ray origin
 	local camX, camY, camZ = Spring.GetCameraPosition()
 	
-	-- Helper function to intersect a screen pixel ray with horizontal plane at y=0
-	-- Returns world X, Z coordinates or nil if ray points away from plane
-	local function screenToGroundPlane(sx, sy)
+	-- Get camera look-at ground height for a flat reference plane
+	-- Use ground height at the camera's XZ position (clamped to map) for a reasonable estimate
+	local lookX = math.max(0, math.min(camX, Game.mapSizeX))
+	local lookZ = math.max(0, math.min(camZ, Game.mapSizeZ))
+	local groundY = spFunc.GetGroundHeight(lookX, lookZ) or 0
+	if groundY < 0 then groundY = 0 end
+	
+	-- Helper function to intersect a screen pixel ray with a flat plane at groundY
+	-- Gives correct scale without terrain-induced skewing, works off-map
+	local function screenToGround(sx, sy)
 		local dirX, dirY, dirZ = Spring.GetPixelDir(sx, sy)
 		
-		-- Check if ray is pointing upward (will never hit ground plane at y=0)
 		if dirY >= 0 then
-			-- Ray points up or horizontal - extend it very far to show direction
-			-- Use a large distance to project the ray
 			local farDist = 50000
 			return camX + dirX * farDist, camZ + dirZ * farDist
 		end
 		
-		-- Calculate intersection with y=0 plane
-		-- Ray: P = camPos + t * dir
-		-- Plane: y = 0
-		-- Solve: camY + t * dirY = 0 => t = -camY / dirY
-		local t = -camY / dirY
-		
-		-- If intersection is behind camera, extend forward instead
+		local t = -(camY - groundY) / dirY
 		if t < 0 then
 			local farDist = 50000
 			return camX + dirX * farDist, camZ + dirZ * farDist
@@ -7565,12 +7584,11 @@ local function DrawCameraViewBounds()
 	-- Use inset from edges to avoid issues at exact corners
 	local inset = 1
 	
-	-- Get world coordinates for all 4 screen corners by intersecting with y=0 plane
-	-- This avoids terrain height issues and works when looking at sky
-	local bottomLeftX, bottomLeftZ = screenToGroundPlane(inset, inset)
-	local bottomRightX, bottomRightZ = screenToGroundPlane(vsx - inset, inset)
-	local topRightX, topRightZ = screenToGroundPlane(vsx - inset, vsy - inset)
-	local topLeftX, topLeftZ = screenToGroundPlane(inset, vsy - inset)
+	-- Get world coordinates for all 4 screen corners by tracing against terrain
+	local bottomLeftX, bottomLeftZ = screenToGround(inset, inset)
+	local bottomRightX, bottomRightZ = screenToGround(vsx - inset, inset)
+	local topRightX, topRightZ = screenToGround(vsx - inset, vsy - inset)
+	local topLeftX, topLeftZ = screenToGround(inset, vsy - inset)
 	
 	-- Don't clamp to map bounds - let the view representation extend off the map
 	-- This fixes the "sticking to edges" issue
@@ -7616,43 +7634,47 @@ local function DrawCameraViewBounds()
 	local tr_c1x, tr_c1y, tr_c2x, tr_c2y = getChamferVertices(br_x, br_y, tl_x, tl_y, tr_x, tr_y)
 	local tl_c1x, tl_c1y, tl_c2x, tl_c2y = getChamferVertices(tr_x, tr_y, bl_x, bl_y, tl_x, tl_y)
 	
-	-- Draw the view trapezoid with chamfered corners
+	-- Draw the view trapezoid with chamfered corners (anti-aliased)
 	glFunc.Texture(false)
 	
-	-- Draw shadow/outline first
-	glFunc.LineWidth(3 * ((vsx+1000) / 3000) * resScale)
-	glFunc.Color(0, 0, 0, 0.4)
-	glFunc.BeginEnd(glConst.LINE_LOOP, function()
-		-- Bottom-left corner (2 vertices)
-		glFunc.Vertex(bl_c1x, bl_c1y)  -- toward top-left
-		glFunc.Vertex(bl_c2x, bl_c2y)  -- toward bottom-right
-		-- Bottom-right corner (2 vertices)
-		glFunc.Vertex(br_c1x, br_c1y)  -- toward bottom-left
-		glFunc.Vertex(br_c2x, br_c2y)  -- toward top-right
-		-- Top-right corner (2 vertices)
-		glFunc.Vertex(tr_c1x, tr_c1y)  -- toward bottom-right
-		glFunc.Vertex(tr_c2x, tr_c2y)  -- toward top-left
-		-- Top-left corner (2 vertices)
-		glFunc.Vertex(tl_c1x, tl_c1y)  -- toward top-right
-		glFunc.Vertex(tl_c2x, tl_c2y)  -- toward bottom-left
-	end)
-	
-	-- Draw white line on top
-	glFunc.LineWidth(1.5 * ((vsx+1000) / 3000) * resScale)
-	glFunc.Color(1, 1, 1, 0.8)
-	glFunc.BeginEnd(glConst.LINE_LOOP, function()
-		-- Bottom-left corner (2 vertices)
-		glFunc.Vertex(bl_c1x, bl_c1y)
-		glFunc.Vertex(bl_c2x, bl_c2y)
-		-- Bottom-right corner (2 vertices)
-		glFunc.Vertex(br_c1x, br_c1y)
-		glFunc.Vertex(br_c2x, br_c2y)
-		-- Top-right corner (2 vertices)
-		glFunc.Vertex(tr_c1x, tr_c1y)
-		glFunc.Vertex(tr_c2x, tr_c2y)
-		-- Top-left corner (2 vertices)
-		glFunc.Vertex(tl_c1x, tl_c1y)
-		glFunc.Vertex(tl_c2x, tl_c2y)
+	gl.UnsafeState(GL_LINE_SMOOTH, function()
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		
+		-- Draw dark shadow outline first (thicker, behind the white line)
+		glFunc.LineWidth(4 * ((vsx+1000) / 3000) * resScale)
+		glFunc.Color(0, 0, 0, 0.55)
+		glFunc.BeginEnd(glConst.LINE_LOOP, function()
+			-- Bottom-left corner (2 vertices)
+			glFunc.Vertex(bl_c1x, bl_c1y)  -- toward top-left
+			glFunc.Vertex(bl_c2x, bl_c2y)  -- toward bottom-right
+			-- Bottom-right corner (2 vertices)
+			glFunc.Vertex(br_c1x, br_c1y)  -- toward bottom-left
+			glFunc.Vertex(br_c2x, br_c2y)  -- toward top-right
+			-- Top-right corner (2 vertices)
+			glFunc.Vertex(tr_c1x, tr_c1y)  -- toward bottom-right
+			glFunc.Vertex(tr_c2x, tr_c2y)  -- toward top-left
+			-- Top-left corner (2 vertices)
+			glFunc.Vertex(tl_c1x, tl_c1y)  -- toward top-right
+			glFunc.Vertex(tl_c2x, tl_c2y)  -- toward bottom-left
+		end)
+		
+		-- Draw white line on top
+		glFunc.LineWidth(1.5 * ((vsx+1000) / 3000) * resScale)
+		glFunc.Color(1, 1, 1, 0.8)
+		glFunc.BeginEnd(glConst.LINE_LOOP, function()
+			-- Bottom-left corner (2 vertices)
+			glFunc.Vertex(bl_c1x, bl_c1y)
+			glFunc.Vertex(bl_c2x, bl_c2y)
+			-- Bottom-right corner (2 vertices)
+			glFunc.Vertex(br_c1x, br_c1y)
+			glFunc.Vertex(br_c2x, br_c2y)
+			-- Top-right corner (2 vertices)
+			glFunc.Vertex(tr_c1x, tr_c1y)
+			glFunc.Vertex(tr_c2x, tr_c2y)
+			-- Top-left corner (2 vertices)
+			glFunc.Vertex(tl_c1x, tl_c1y)
+			glFunc.Vertex(tl_c2x, tl_c2y)
+		end)
 	end)
 	
 	glFunc.LineWidth(1.0)
@@ -8933,8 +8955,19 @@ local function DrawTrackedPlayerMinimap()
 	local viewT = cTop - (worldT / mapInfo.mapSizeZ) * cHeight
 	local viewB = cTop - (worldB / mapInfo.mapSizeZ) * cHeight
 
+	-- Draw dark shadow outline behind view rectangle
+	glFunc.Color(0, 0, 0, 0.33)
+	glFunc.LineWidth(3)
+	glFunc.BeginEnd(GL.LINE_LOOP, function()
+		glFunc.Vertex(viewL, viewB)
+		glFunc.Vertex(viewR, viewB)
+		glFunc.Vertex(viewR, viewT)
+		glFunc.Vertex(viewL, viewT)
+	end)
+
+	-- Draw white view rectangle on top
 	glFunc.Color(1, 1, 1, 0.9)
-	glFunc.LineWidth(2)
+	glFunc.LineWidth(1.5)
 	glFunc.BeginEnd(GL.LINE_LOOP, function()
 		glFunc.Vertex(viewL, viewB)
 		glFunc.Vertex(viewR, viewB)
@@ -9298,17 +9331,17 @@ local function UpdateR2TCheapLayers(currentTime, pipUpdateInterval, pipWidth, pi
 			-- Ensure clean blending state (may be dirty from previous R2T renders)
 			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
-			-- Fill entire texture with background color to prevent transparent gaps
+			-- Fill entire texture with transparent background
 			-- (rotation leaves corners uncovered by the ground texture)
 			gl.Blending(false)
 			if mapInfo.voidWater then
-				glFunc.Color(0, 0, 0, 1)
+				glFunc.Color(0, 0, 0, 0)
 			elseif mapInfo.isLava then
-				glFunc.Color(0.22, 0, 0, 1)
+				glFunc.Color(0.22, 0, 0, 0)
 			elseif mapInfo.hasWater then
-				glFunc.Color(0.08, 0.11, 0.22, 1)
+				glFunc.Color(0.08, 0.11, 0.22, 0)
 			else
-				glFunc.Color(0, 0, 0, 1)
+				glFunc.Color(0, 0, 0, 0)
 			end
 			glFunc.Texture(false)
 			glFunc.BeginEnd(glConst.QUADS, DrawTexturedQuad, 0, 0, cW, cH)
@@ -10029,7 +10062,7 @@ function widget:DrawScreen()
 			
 			-- Reset GL state — mask drawing dirties color/blending state
 			glFunc.Color(1, 1, 1, 1)
-			gl.Blending(false)  -- Content texture is fully opaque, no blending needed
+			gl.Blending(GL.ONE, GL.ONE_MINUS_SRC_ALPHA)  -- Premultiplied alpha: opaque map shows fully, transparent off-map areas pass through
 
 			-- Blit oversized content texture (cheap layers: ground, water, LOS) with camera shift
 			BlitShiftedTexture(pipR2T.contentTex, pipR2T.contentTexWidth, pipR2T.contentTexHeight,
@@ -11798,11 +11831,28 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 		-- Add marker if player is not a spectator, or if spectator pings are enabled in minimap mode
 		local showMarker = not isSpec or (isMinimapMode and config.showSpectatorPings)
 		if showMarker then
+			-- Shorten lifetime of older nearby markers from the same player
+			local now = os.clock()
+			local proximityDist = 500  -- World units — "same general area"
+			for j = #miscState.mapMarkers, 1, -1 do
+				local old = miscState.mapMarkers[j]
+				if old.playerID == playerID then
+					local dx = old.x - mx
+					local dz = old.z - mz
+					if dx*dx + dz*dz < proximityDist * proximityDist then
+						-- Mark for early fade-out (0.5s from now)
+						if not old.fadeStart then
+							old.fadeStart = now
+						end
+					end
+				end
+			end
+
 			-- Add marker to list
 			table.insert(miscState.mapMarkers, {
 				x = mx,
 				z = mz,
-				time = os.clock(),
+				time = now,
 				teamID = teamID,
 				playerID = playerID,
 				isSpectator = isSpec
