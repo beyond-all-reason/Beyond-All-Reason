@@ -104,6 +104,7 @@ local actions = {
 				{ CMD.MOVE, { 1850, 0, 1500 }, { 'shift' } },         -- valid order
 				{},                                                   -- empty order
 				{ CMD.MOVE },                                         -- missing parameters
+				{ CMD.MOVE, { 0, 0 } },                               -- missing a parameter
 				{ 99999, { 0, 0, 0 }, {} },                           -- invalid command ID
 				{ nil, { 0, 0, 0 }, {} },                             -- missing command ID
 				{ CMD.MOVE, {}, {} },                                 -- missing parameters
@@ -113,6 +114,11 @@ local actions = {
 				{ CMD.MOVE, { 1850, 0, 1800 }, { 'shift', 123 } },    -- invalid option type
 				{ CMD.MOVE, { 1850, 0, 1800 }, 'notATable' },         -- invalid options type
 				{ CMD.CLOAK, 'notANumber' },                          -- invalid parameters type
+				{ 'armllt' },                                         -- valid build order
+				{ 'invalidUnitDefName' },                             -- invalid unitDefName
+				{ 'armllt', { 1850, 0, 1800, 4 } },                   -- invalid facing
+				{ 'armllt', { 1850, 0 } },                            -- missing a parameter
+				{ 'armllt', { 1850, 0, 'nonNumber' } },               -- invalid parameter type
 			},
 		},
 	},

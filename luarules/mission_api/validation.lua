@@ -100,7 +100,9 @@ local customValidators = {
 
 		local result = {}
 
-		local function validateOrderCommandAndParams(commandID, params, orderNumber)
+		local function validateOrderCommandAndParams(order, orderNumber)
+			local commandID = order[1]
+			local params = order[2]
 			local function validateNumberArrayCurried(sizes, message)
 				return function()
 					local luaTypeResult = validateLuaType(params, 'table')
@@ -112,8 +114,8 @@ local customValidators = {
 						result[#result + 1] = { message = "Parameter must be an array of " .. message, parameterNameSuffix = '[' .. orderNumber .. '][2]' }
 						return
 					end
-					for i = 1, 3 do
-						local luaTypeRes = validateLuaType(params[i], 'number')
+					for i, param in ipairs(params or {}) do
+						local luaTypeRes = validateLuaType(param, 'number')
 						if luaTypeRes then
 							result[#result + 1] = { message = luaTypeRes, parameterNameSuffix = '[' .. orderNumber .. '][2][' .. i .. ']' }
 							return
@@ -159,6 +161,24 @@ local customValidators = {
 			}
 			if commandValidators[commandID] then
 				commandValidators[commandID]()
+			elseif type(commandID) == 'string' then
+				-- build command: See https://springrts.com/wiki/Lua_CMDs#CMD.INTERNAL
+				-- commandID is a unitDefName string, and must be converted to a negative unitDefID for the actual order
+				local unitDef = UnitDefNames[commandID]
+				if unitDef then
+					order[1] = -unitDef.id
+				else
+					result[#result + 1] = { message = "Invalid build order unitDefName: " .. commandID, parameterNameSuffix = '[' .. orderNumber .. '][1]' }
+				end
+
+				-- parameters must be 3 or 4 numbers {x, y, z, optional facing}, or empty for factories
+				validateNumberArrayCurried({ 0, 3, 4 }, "3 or 4 numbers {x, y, z, optional facing}, or no parameters for factories")()
+				if #(params or {}) == 4 then
+					local validFacings = { [0] = true, [1] = true, [2] = true, [3] = true }
+					if not validFacings[params[4]] then
+						result[#result + 1] = { message = "Invalid build order facing: " .. params[4] .. ". Must be one of 0, 1, 2, 3", parameterNameSuffix = '[' .. orderNumber .. '][2][4]' }
+					end
+				end
 			end
 		end
 
@@ -193,7 +213,7 @@ local customValidators = {
 			if fieldResult then
 				result[#result + 1] = fieldResult
 			else
-				validateOrderCommandAndParams(order[1], order[2], i)
+				validateOrderCommandAndParams(order, i)
 				validateOrderOptions(order[3], i)
 			end
 		end
@@ -323,9 +343,9 @@ local function validate(schemaParameters, actionOrTriggerType, actionOrTriggerPa
 	end
 end
 
-local triggersSchemaParameter = VFS.Include('luarules/mission_api/triggers_schema.lua').Parameters
+local triggersSchemaParameters = VFS.Include('luarules/mission_api/triggers_schema.lua').Parameters
 local function validateTrigger(triggerID, trigger)
-	validate(triggersSchemaParameter, trigger.type, trigger.parameters, 'Trigger', triggerID)
+	validate(triggersSchemaParameters, trigger.type, trigger.parameters, 'Trigger', triggerID)
 end
 
 local actionsSchemaParameters = VFS.Include('luarules/mission_api/actions_schema.lua').Parameters
