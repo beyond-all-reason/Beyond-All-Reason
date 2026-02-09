@@ -1170,10 +1170,6 @@ if gadgetHandler:IsSyncedCode() then
 		local couldDetermineDifficulty = calculateDifficultyMultiplier(peakScavPower, totalPlayerTeamPower)
 		squadManagerKillerLoop()
 
-		if not couldDetermineDifficulty then
-			return -- scavs were reported to have zero peak power, most likely
-		end
-
 		Spring.Log("Dynamic Difficulty", LOG.INFO, 'Scavengers dynamicDifficultyClamped:  ' .. tostring(dynamicDifficultyClamped))
 
 		waveParameters.baseCooldown = waveParameters.baseCooldown - 1
@@ -1185,6 +1181,10 @@ if gadgetHandler:IsSyncedCode() then
 		waveParameters.hugeWave.cooldown = waveParameters.hugeWave.cooldown - 1
 		waveParameters.epicWave.cooldown = waveParameters.epicWave.cooldown - 1
 		--waveParameters.frontbusters.cooldown = waveParameters.frontbusters.cooldown - 1
+
+		if not couldDetermineDifficulty then
+			return -- scavs were reported to have zero peak power, most likely
+		end
 
 		waveParameters.waveSpecialPercentage = mRandom(5,50)
 		waveParameters.waveAirPercentage = mRandom(10,25)
