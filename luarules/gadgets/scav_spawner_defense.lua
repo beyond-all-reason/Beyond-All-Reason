@@ -1167,11 +1167,14 @@ if gadgetHandler:IsSyncedCode() then
 
 		peakScavPower = GG.PowerLib.TeamPeakPower(scavTeamID)
 		totalPlayerTeamPower = GG.PowerLib.TotalPlayerTeamsPower()
-		if not calculateDifficultyMultiplier(peakScavPower, totalPlayerTeamPower) then
+		local couldDetermineDifficulty = calculateDifficultyMultiplier(peakScavPower, totalPlayerTeamPower)
+		squadManagerKillerLoop()
+
+		if not couldDetermineDifficulty then
 			return -- scavs were reported to have zero peak power, most likely
 		end
+
 		Spring.Log("Dynamic Difficulty", LOG.INFO, 'Scavengers dynamicDifficultyClamped:  ' .. tostring(dynamicDifficultyClamped))
-		squadManagerKillerLoop()
 
 		waveParameters.baseCooldown = waveParameters.baseCooldown - 1
 		waveParameters.airWave.cooldown = waveParameters.airWave.cooldown - 1
