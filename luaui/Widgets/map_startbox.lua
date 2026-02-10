@@ -650,10 +650,14 @@ local function DrawStartUnitIcons(sx, sz, inPip)
 				drawY = sz - worldZ * szOverMapZ
 			end
 
+			-- Snap to nearest pixel to eliminate sub-pixel jitter
+			drawX = math.floor(drawX + 0.5)
+			drawY = math.floor(drawY + 0.5)
+
 			-- Draw team-colored background with chamfered corners
 			local r, g, b = GetTeamColor(teamID)
 			glTexture(false)
-			local halfSize = iconSize * 0.5
+			local halfSize = iconSize * 0.535
 			-- Chamfer size: 1.5-3 pixels depending on resolution (scale with minimap size)
 			local chamfer = math.max(1.5, math.min(3, math.max(sx, sz) * 0.008))
 
