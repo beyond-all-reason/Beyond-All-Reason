@@ -20,6 +20,22 @@ local triggers = {
 		},
 		actions = { 'invalidActionID' },
 	},
+
+	triggerWithInvalidTypesInSettings = {
+		type = triggerTypes.TimeElapsed,
+		settings = {
+			prerequisites = { 'invalidTriggerID' },
+			repeating = 0,
+			maxRepeats = true,
+			difficulties = 0,
+			coop = 0,
+			active = 0,
+		},
+		parameters = {
+			gameFrame = math.maxinteger,
+		},
+		actions = { 'actionMissingType' },
+	},
 }
 
 local actions = {

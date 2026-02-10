@@ -322,7 +322,9 @@ local validators = table.merge(customValidators, luaTypeValidators)
 --- Trigger/Action Validation Functions:
 ----------------------------------------------------------------
 
-local triggersSchemaParameters = VFS.Include('luarules/mission_api/triggers_schema.lua').Parameters
+local triggersSchema = VFS.Include('luarules/mission_api/triggers_schema.lua')
+local triggersSchemaSettings = triggersSchema.Settings
+local triggersSchemaParameters = triggersSchema.Parameters
 local actionsSchemaParameters = VFS.Include('luarules/mission_api/actions_schema.lua').Parameters
 
 local function validate(schemaParameters, actionOrTriggerType, actionOrTriggerParameters, actionOrTrigger, actionOrTriggerID)
@@ -356,6 +358,25 @@ local function validate(schemaParameters, actionOrTriggerType, actionOrTriggerPa
 	end
 end
 
+local function validateTriggerSetting(trigger, triggerID, triggers)
+	local settings = trigger.settings or {}
+
+	-- Validate types of settings:
+	for schemaSetting, schemaType in pairs(triggersSchemaSettings) do
+		local luaTypeResult = validateLuaType(settings[schemaSetting], string.lower(schemaType))
+		if luaTypeResult then
+			logError(luaTypeResult .. ". Trigger: " .. triggerID .. ", Setting: " .. schemaSetting)
+		end
+	end
+
+	-- Validate prerequisites triggerIDs exist:
+	for _, prerequisiteTriggerID in pairs(settings.prerequisites or {}) do
+		if not triggers[prerequisiteTriggerID] then
+			logError("Trigger prerequisite does not exist. Trigger: " .. triggerID .. ", Prerequisite triggerID: " .. prerequisiteTriggerID)
+		end
+	end
+end
+
 local function validateTriggers(triggers, rawActions)
 	for triggerID, trigger in pairs(triggers) do
 		if table.isNilOrEmpty(trigger.actions) then
@@ -369,6 +390,7 @@ local function validateTriggers(triggers, rawActions)
 				end
 			end
 		end
+		validateTriggerSetting(trigger, triggerID, triggers)
 		validate(triggersSchemaParameters, trigger.type, trigger.parameters, 'Trigger', triggerID)
 	end
 end

@@ -43,6 +43,17 @@ local triggerTypes = {
 
 --============================================================--
 
+local settings = {
+	prerequisites = Types.Table,
+	repeating = Types.Boolean,
+	maxRepeats = Types.Number,
+	difficulties = Types.Table,
+	coop = Types.Boolean,
+	active = Types.Boolean,
+}
+
+--============================================================--
+
 local parameters = {
 	-- Time
 	[triggerTypes.TimeElapsed] = {
@@ -172,5 +183,6 @@ local parameters = {
 
 return {
 	Types = triggerTypes,
+	Settings = settings,
 	Parameters = parameters,
 }
