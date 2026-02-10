@@ -1,4 +1,4 @@
-local validateTrigger = VFS.Include('luarules/mission_api/validation.lua').ValidateTrigger
+local validateTriggers = VFS.Include('luarules/mission_api/validation.lua').ValidateTriggers
 
 -- Example trigger
 --[[
@@ -19,24 +19,6 @@ local validateTrigger = VFS.Include('luarules/mission_api/validation.lua').Valid
 		actions = { 'actionID1', 'actionID2' },
 	}
 ]]
-
-local function validateTriggers(triggers, rawActions)
-	for triggerID, trigger in pairs(triggers) do
-		if table.isNilOrEmpty(trigger.actions) then
-			Spring.Log('triggers_loader.lua', LOG.ERROR, "[Mission API] Trigger has no actions: " .. triggerID)
-		else
-			for _, action in pairs(trigger.actions) do
-				if action == nil or action == '' then
-					Spring.Log('triggers_loader.lua', LOG.ERROR, "[Mission API] Trigger has empty action ID: " .. triggerID)
-				elseif not rawActions[action] then
-					Spring.Log('triggers_loader.lua', LOG.ERROR, "[Mission API] Trigger has invalid action. Trigger: " .. triggerID .. ", Action: " .. action)
-				end
-			end
-		end
-
-		validateTrigger(triggerID, trigger)
-	end
-end
 
 local function processRawTriggers(rawTriggers, rawActions)
 	local triggers = {}

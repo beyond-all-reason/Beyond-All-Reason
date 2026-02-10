@@ -1,10 +1,15 @@
 ---
---- Validators for Mission API action and trigger parameters loaded from missions.
+--- Validators for Mission API actions and triggers loaded from missions.
 ---
 
 local function logError(message)
 	Spring.Log('validation.lua', LOG.ERROR, "[Mission API] " .. message)
 end
+
+
+----------------------------------------------------------------
+--- Parameter Type Validators:
+----------------------------------------------------------------
 
 local function validateLuaType(value, expectedType)
 	local actualType = type(value)
@@ -312,6 +317,14 @@ local customValidators = {
 
 local validators = table.merge(customValidators, luaTypeValidators)
 
+
+----------------------------------------------------------------
+--- Trigger/Action Validation Functions:
+----------------------------------------------------------------
+
+local triggersSchemaParameters = VFS.Include('luarules/mission_api/triggers_schema.lua').Parameters
+local actionsSchemaParameters = VFS.Include('luarules/mission_api/actions_schema.lua').Parameters
+
 local function validate(schemaParameters, actionOrTriggerType, actionOrTriggerParameters, actionOrTrigger, actionOrTriggerID)
 	if not actionOrTriggerType then
 		logError(actionOrTrigger .. " missing type. " .. actionOrTrigger .. ": " .. actionOrTriggerID)
@@ -343,14 +356,48 @@ local function validate(schemaParameters, actionOrTriggerType, actionOrTriggerPa
 	end
 end
 
-local triggersSchemaParameters = VFS.Include('luarules/mission_api/triggers_schema.lua').Parameters
-local function validateTrigger(triggerID, trigger)
-	validate(triggersSchemaParameters, trigger.type, trigger.parameters, 'Trigger', triggerID)
+local function validateTriggers(triggers, rawActions)
+	for triggerID, trigger in pairs(triggers) do
+		if table.isNilOrEmpty(trigger.actions) then
+			logError("Trigger has no actions: " .. triggerID)
+		else
+			for _, action in pairs(trigger.actions) do
+				if action == nil or action == '' then
+					logError("Trigger has empty action ID: " .. triggerID)
+				elseif not rawActions[action] then
+					logError("Trigger has invalid action ID: " .. triggerID .. ", Action: " .. action)
+				end
+			end
+		end
+		validate(triggersSchemaParameters, trigger.type, trigger.parameters, 'Trigger', triggerID)
+	end
 end
 
-local actionsSchemaParameters = VFS.Include('luarules/mission_api/actions_schema.lua').Parameters
-local function validateAction(actionID, action)
-	validate(actionsSchemaParameters, action.type, action.parameters, 'Action', actionID)
+local function getAllActionIDsReferencedByTriggers()
+	local allActionIDsReferencedByTriggers = {}
+	for _, trigger in pairs(GG['MissionAPI'].Triggers) do
+		if not table.isNilOrEmpty(trigger.actions) then
+			for _, actionID in pairs(trigger.actions) do
+				allActionIDsReferencedByTriggers[actionID] = true
+			end
+		end
+	end
+	return allActionIDsReferencedByTriggers
+end
+
+local function validateActions(actions)
+	local allActionIDsReferencedByTriggers = getAllActionIDsReferencedByTriggers()
+
+	local unreferencedActionIDs = {}
+	for actionID, action in pairs(actions) do
+		if not allActionIDsReferencedByTriggers[actionID] then
+			unreferencedActionIDs[#unreferencedActionIDs + 1] = actionID
+		end
+		validate(actionsSchemaParameters, action.type, action.parameters, 'Action', actionID)
+	end
+	if not table.isEmpty(unreferencedActionIDs) then
+		logError("Actions not referenced by any trigger: " .. table.concat(unreferencedActionIDs, ", "))
+	end
 end
 
 local function validateUnitNameReferences()
@@ -399,7 +446,7 @@ local function validateUnitNameReferences()
 end
 
 return {
-	ValidateTrigger = validateTrigger,
-	ValidateAction = validateAction,
+	ValidateTriggers = validateTriggers,
+	ValidateActions = validateActions,
 	ValidateUnitNameReferences = validateUnitNameReferences
 }
