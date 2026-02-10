@@ -111,99 +111,25 @@ end
 local mapX = Game.mapSizeX
 local mapZ = Game.mapSizeZ
 
+-- CONFIG maps command ID directly to colour {r, g, b, alpha} — flat lookup, no .colour indirection
 local CONFIG = {
-	[CMDS.ATTACK] = {
-		sizeMult = 1.4,
-		endSize = 0.28,
-		colour = { 1.0, 0.2, 0.2, 0.30 },
-	},
-	[CMDS.CAPTURE] = {
-		sizeMult = 1.4,
-		endSize = 0.28,
-		colour = { 1.0, 1.0, 0.3, 0.30 },
-	},
-	[CMDS.FIGHT] = {
-		sizeMult = 1.2,
-		endSize = 0.24,
-		colour = { 1.0, 0.2, 1.0, 0.25 },
-	},
-	[CMDS.GUARD] = {
-		sizeMult = 1,
-		endSize = 0.2,
-		colour = { 0.6, 1.0, 1.0, 0.25 },
-	},
-	[CMDS.LOAD_ONTO] = {
-		sizeMult = 1,
-		endSize = 0.2,
-		colour = { 0.4, 0.9, 0.9, 0.25 },
-	},
-	[CMDS.LOAD_UNITS] = {
-		sizeMult = 1,
-		endSize = 0.2,
-		colour = { 0.4, 0.9, 0.9, 0.30 },
-	},
-	[CMDS.MANUALFIRE] = {
-		sizeMult = 1.4,
-		endSize = 0.28,
-		colour = { 1.0, 0.0, 0.0, 0.30 },
-	},
-	[CMDS.MOVE] = {
-		sizeMult = 1,
-		endSize = 0.2,
-		colour = { 0.1, 1.0, 0.1, 0.25 },
-	},
-	[CMDS.RAW_MOVE] = {
-		sizeMult = 1,
-		endSize = 0.2,
-		colour = { 0.1, 1.0, 0.1, 0.25 },
-	},
-	[CMDS.PATROL] = {
-		sizeMult = 1,
-		endSize = 0.2,
-		colour = { 0.2, 0.5, 1.0, 0.25 },
-	},
-	[CMDS.RECLAIM] = {
-		sizeMult = 1,
-		endSize = 0,
-		colour = { 0.5, 1.00, 0.4, 0.4 },
-	},
-	[CMDS.REPAIR] = {
-		sizeMult = 1,
-		endSize = 0.2,
-		colour = { 1.0, 0.9, 0.2, 0.4 },
-	},
-	[CMDS.RESTORE] = {
-		sizeMult = 1,
-		endSize = 0.2,
-		colour = { 0.0, 0.5, 0.0, 0.25 },
-	},
-	[CMDS.RESURRECT] = {
-		sizeMult = 1,
-		endSize = 0.2,
-		colour = { 0.9, 0.5, 1.0, 0.25 },
-	},
-	--[[
-	[CMDS.SET_TARGET] = {
-		sizeMult = 1,
-		endSize = 0.2,
-		colour = {1.00 ,0.75 ,1.00 ,0.25},
-	},
-	]]
-	[CMDS.UNLOAD_UNIT] = {
-		sizeMult = 1,
-		endSize = 0.2,
-		colour = { 1.0, 0.8, 0.0, 0.25 },
-	},
-	[CMDS.UNLOAD_UNITS] = {
-		sizeMult = 1,
-		endSize = 0.2,
-		colour = { 1.0, 0.8, 0.0, 0.25 },
-	},
-	[CMDS.BUILD] = {
-		sizeMult = 1,
-		endSize = 0.2,
-		colour = { 0.00, 1.00, 0.00, 0.25 },
-	}
+	[CMDS.ATTACK]       = { 1.0, 0.2, 0.2, 0.30 },
+	[CMDS.CAPTURE]      = { 1.0, 1.0, 0.3, 0.30 },
+	[CMDS.FIGHT]        = { 1.0, 0.2, 1.0, 0.25 },
+	[CMDS.GUARD]        = { 0.6, 1.0, 1.0, 0.25 },
+	[CMDS.LOAD_ONTO]    = { 0.4, 0.9, 0.9, 0.25 },
+	[CMDS.LOAD_UNITS]   = { 0.4, 0.9, 0.9, 0.30 },
+	[CMDS.MANUALFIRE]   = { 1.0, 0.0, 0.0, 0.30 },
+	[CMDS.MOVE]         = { 0.1, 1.0, 0.1, 0.25 },
+	[CMDS.RAW_MOVE]     = { 0.1, 1.0, 0.1, 0.25 },
+	[CMDS.PATROL]       = { 0.2, 0.5, 1.0, 0.25 },
+	[CMDS.RECLAIM]      = { 0.5, 1.0, 0.4, 0.40 },
+	[CMDS.REPAIR]       = { 1.0, 0.9, 0.2, 0.40 },
+	[CMDS.RESTORE]      = { 0.0, 0.5, 0.0, 0.25 },
+	[CMDS.RESURRECT]    = { 0.9, 0.5, 1.0, 0.25 },
+	[CMDS.UNLOAD_UNIT]  = { 1.0, 0.8, 0.0, 0.25 },
+	[CMDS.UNLOAD_UNITS] = { 1.0, 0.8, 0.0, 0.25 },
+	[CMDS.BUILD]        = { 0.0, 1.0, 0.0, 0.25 },
 }
 
 --------------------------------------------------------------------------------
@@ -211,7 +137,6 @@ local CONFIG = {
 
 local enabledTeams = {}
 local commands = {}
-local monitorCommands = {}
 local maxCommand = 0
 local totalCommands = 0
 
@@ -220,16 +145,15 @@ local osClock
 
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitCommands = Spring.GetUnitCommands
-local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spIsUnitInView = Spring.IsUnitInView
 local spIsSphereInView = Spring.IsSphereInView
 local spValidUnitID = Spring.ValidUnitID
 local spValidFeatureID = Spring.ValidFeatureID
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spIsGUIHidden = Spring.IsGUIHidden
-local spIsUnitSelected = Spring.IsUnitSelected
 local spLoadCmdColorsConfig = Spring.LoadCmdColorsConfig
 local spGetGameFrame = Spring.GetGameFrame
+local spGetUnitTeam = Spring.GetUnitTeam
 
 local MAX_UNITS = Game.maxUnits
 
@@ -435,22 +359,19 @@ end
 local unitPosCacheX = {}
 local unitPosCacheY = {}
 local unitPosCacheZ = {}
-local unitPosCacheFrame = -1
+local currentGameFrame = -1
+
+local function clearPositionCache()
+	local k = next(unitPosCacheX)
+	while k do
+		unitPosCacheX[k] = nil
+		unitPosCacheY[k] = nil
+		unitPosCacheZ[k] = nil
+		k = next(unitPosCacheX)
+	end
+end
 
 local function getCachedUnitPosition(unitID)
-	local gf = spGetGameFrame()
-	if unitPosCacheFrame ~= gf then
-		-- Clear caches on new frame (wipe is cheaper than table creation)
-		local k = next(unitPosCacheX)
-		while k do
-			unitPosCacheX[k] = nil
-			unitPosCacheY[k] = nil
-			unitPosCacheZ[k] = nil
-			k = next(unitPosCacheX)
-		end
-		unitPosCacheFrame = gf
-	end
-
 	local cx = unitPosCacheX[unitID]
 	if cx then
 		return cx, unitPosCacheY[unitID], unitPosCacheZ[unitID]
@@ -580,19 +501,14 @@ local function RemovePreviousCommand(unitID)
 end
 
 local function addUnitCommand(unitID, unitDefID, cmdID)
-	-- record that a command was given (note: cmdID is not used, but useful to record for debugging)
 	if unitID and (CONFIG[cmdID] or cmdID == CMDS.INSERT or cmdID < 0) then
 		unprocessedCommandsNum = unprocessedCommandsNum + 1
 		local cmd = getTable()
-		cmd.ID = cmdID
-		cmd.time = os_clock()
 		cmd.unitID = unitID
 		cmd.draw = false
-		cmd.selected = spIsUnitSelected(unitID)
-		cmd.udid = unitDefID
-		unprocessedCommands[unprocessedCommandsNum] = cmd -- command queue is not updated until next gameframe
+		unprocessedCommands[unprocessedCommandsNum] = cmd
 		if useTeamColors or (mySpec and useTeamColorsWhenSpec) then
-			cmd.teamID = Spring.GetUnitTeam(unitID)
+			cmd.teamID = spGetUnitTeam(unitID)
 		end
 	end
 end
@@ -620,55 +536,69 @@ function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts
 	end
 end
 
-local function ExtractTargetLocation(a, b, c, d, cmdID)
-	-- input is first 4 parts of cmd.params table
-	local x, y, z
-	if c or d then
-		if cmdID == CMDS.RECLAIM and a >= MAX_UNITS and spValidFeatureID(a - MAX_UNITS) then
-			--ugh, but needed
-			x, y, z = spGetFeaturePosition(a - MAX_UNITS)
-		elseif cmdID == CMDS.REPAIR and spValidUnitID(a) then
-			x, y, z = spGetUnitPosition(a)
-		else
-			x = a
-			y = b
-			z = c
-		end
-	elseif a then
-		if a >= MAX_UNITS then
-			x, y, z = spGetFeaturePosition(a - MAX_UNITS)
-		else
-			x, y, z = spGetUnitPosition(a)
-		end
-	end
-	return x, y, z
-end
+-- Queue entry target types for pre-extracted positions
+local QTARGET_COORD = 1    -- static coordinate (MOVE, BUILD, PATROL, etc.)
+local QTARGET_UNIT = 2     -- unit target (needs live position each frame)
+local QTARGET_FEATURE = 3  -- feature target (needs live position each frame)
 
 local function getCommandsQueue(unitID)
-	local q = spGetUnitCommands(unitID, 35) or {} --limit to prevent mem leak, hax etc
+	local q = spGetUnitCommands(unitID, 35) or {}
 	local our_q = getTable()
 	local our_qCount = 0
 	for i = 1, #q do
-		if CONFIG[q[i].id] or q[i].id < 0 then
-			if q[i].id < 0 then
-				q[i].buildingID = -q[i].id;
-				q[i].id = CMDS.BUILD
-				if not q[i].params[4] then
-					q[i].params[4] = 0 --sometimes the facing param is missing (wtf)
+		local entry = q[i]
+		local id = entry.id
+		if CONFIG[id] or id < 0 then
+			local params = entry.params
+			local a, b, c, d = params[1], params[2], params[3], params[4]
+
+			if id < 0 then
+				entry.buildingID = -id
+				id = CMDS.BUILD
+				entry.id = id
+				entry.facing = d or 0
+			end
+
+			-- Pre-extract target position and classify target type
+			local ttype, tid
+			if c or d then
+				if id == CMDS.RECLAIM and a >= MAX_UNITS and spValidFeatureID(a - MAX_UNITS) then
+					tid = a - MAX_UNITS
+					ttype = QTARGET_FEATURE
+					entry.tx, entry.ty, entry.tz = spGetFeaturePosition(tid)
+				elseif id == CMDS.REPAIR and spValidUnitID(a) then
+					tid = a
+					ttype = QTARGET_UNIT
+					entry.tx, entry.ty, entry.tz = spGetUnitPosition(a)
+				else
+					ttype = QTARGET_COORD
+					entry.tx, entry.ty, entry.tz = a, b, c
+				end
+			elseif a then
+				if a >= MAX_UNITS then
+					tid = a - MAX_UNITS
+					ttype = QTARGET_FEATURE
+					entry.tx, entry.ty, entry.tz = spGetFeaturePosition(tid)
+				else
+					tid = a
+					ttype = QTARGET_UNIT
+					entry.tx, entry.ty, entry.tz = spGetUnitPosition(a)
 				end
 			end
+
+			entry.ttype = ttype
+			entry.targetID = tid
+			entry.colour = CONFIG[id]
+
 			our_qCount = our_qCount + 1
-			our_q[our_qCount] = q[i]
+			our_q[our_qCount] = entry
 		end
 	end
-	return our_q
+	return our_q, our_qCount
 end
 
-local prevGameframe = 0
 local sec = 0
 local lastUpdate = 0
-local sec2 = 0
-local lastUpdate2 = 0
 function widget:Update(dt)
 
 	sec = sec + dt
@@ -713,41 +643,37 @@ function widget:Update(dt)
 		-- process new commands (cant be done directly because at
 		-- widget:UnitCommand() the queue isnt updated yet)
 		for k = 1, #unprocessedCommands do
+			local cmd = unprocessedCommands[k]
 			if totalCommands <= maxTotalCommandCount then
 				maxCommand = maxCommand + 1
 				local i = maxCommand
-				commands[i] = unprocessedCommands[k]
+				commands[i] = cmd
 				totalCommands = totalCommands + 1
 
-				RemovePreviousCommand(unprocessedCommands[k].unitID)
-				unitCommand[unprocessedCommands[k].unitID] = i
+				RemovePreviousCommand(cmd.unitID)
+				unitCommand[cmd.unitID] = i
 
 				-- get pruned command queue
-				local our_q = getCommandsQueue(unprocessedCommands[k].unitID)
-				local qsize = #our_q
+				local our_q, qsize = getCommandsQueue(cmd.unitID)
 				commands[i].queue = our_q
 				commands[i].queueSize = qsize
-				if qsize > 1 then
-					monitorCommands[i] = qsize
-				end
 				if qsize > 0 then
 					commands[i].draw = true
 				end
 
-				-- get location of final command
-				local lastCmd = our_q[#our_q]
-				if lastCmd and lastCmd.params then
-					local x, y, z = ExtractTargetLocation(lastCmd.params[1], lastCmd.params[2], lastCmd.params[3], lastCmd.params[4], lastCmd.id)
-					if x then
-						commands[i].x = x
-						commands[i].y = y
-						commands[i].z = z
+				-- get location of final command (pre-extracted in getCommandsQueue)
+				if qsize > 0 then
+					local lastCmd = our_q[qsize]
+					if lastCmd.tx then
+						commands[i].x = lastCmd.tx
+						commands[i].y = lastCmd.ty
+						commands[i].z = lastCmd.tz
 					end
 				end
 				commands[i].time = os_clock()
 			else
 				-- If we didn't use this command, release it back to pool
-				releaseTable(unprocessedCommands[k])
+				releaseTable(cmd)
 			end
 		end
 		-- Clear unprocessedCommands array (tables already moved to commands or released)
@@ -755,39 +681,6 @@ function widget:Update(dt)
 			unprocessedCommands[k] = nil
 		end
 		unprocessedCommandsNum = 0
-
-		if sec2 > lastUpdate2 + 0.3 then
-			lastUpdate2 = sec2
-			if prevGameframe ~= gf then
-				prevGameframe = gf
-				-- update queue (in case unit has reached the nearest queue coordinate)
-				local qsize
-				for i = 1, #monitorCommands do
-					if commands[i] ~= nil then
-						qsize = monitorCommands[i]
-						if commands[i].draw == false then
-							monitorCommands[i] = nil
-						else
-							local q = spGetUnitCommandCount(commands[i].unitID)
-							if qsize ~= q then
-								local old_queue = commands[i].queue
-								local our_q = getCommandsQueue(commands[i].unitID)
-								commands[i].queue = our_q
-								commands[i].queueSize = #our_q
-								if old_queue then
-									releaseTable(old_queue)
-								end
-								if qsize > 1 then
-									monitorCommands[i] = qsize
-								else
-									monitorCommands[i] = nil
-								end
-							end
-						end
-					end
-				end
-			end
-		end
 	end
 end
 
@@ -821,12 +714,20 @@ function widget:DrawWorldPreUnit()
 	end
 	prevOsClock = os_clock()
 
+	-- Clear position cache once per game frame
+	local gf = spGetGameFrame()
+	if currentGameFrame ~= gf then
+		currentGameFrame = gf
+		clearPositionCache()
+	end
+
 	gl.DepthTest(false)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
 	-- Precompute values used in loop
 	local useTeamColorsForDraw = useTeamColors or (mySpec and useTeamColorsWhenSpec)
 	local lineWidthDelta = lineWidth - (lineWidth * lineWidthEnd)
+	local opacityMul = opacity * lineOpacity * 2
 	local segCount = 0
 	local segData = gl4.segData
 	buildGhosts.count = 0
@@ -846,7 +747,6 @@ function widget:DrawWorldPreUnit()
 				end
 				commands[i] = nil
 				totalCommands = totalCommands - 1
-				monitorCommands[i] = nil
 				if unitCommand[unitID] == i then
 					unitCommand[unitID] = nil
 				end
@@ -856,28 +756,30 @@ function widget:DrawWorldPreUnit()
 
 				-- draw command queue
 				local prevX, prevY, prevZ = getCachedUnitPosition(unitID)
-				if command.queueSize > 0 and prevX and commandCount < maxCommandCount then
+				local queueSize = command.queueSize
+				if queueSize > 0 and prevX and commandCount < maxCommandCount then
 
-					local lineAlphaMultiplier = 1 - progress
+					local lineAlphaMultiplier = opacityMul * (1 - progress)
 					local usedLineWidth = lineWidth - (progress * lineWidthDelta)
+					local queue = command.queue
+					local cmdTeamColour = useTeamColorsForDraw and command.teamID and teamColor[command.teamID]
 
-					for j = 1, command.queueSize do
-						local queueCmd = command.queue[j]
-						local X, Y, Z = ExtractTargetLocation(
-							queueCmd.params[1], queueCmd.params[2], queueCmd.params[3], queueCmd.params[4], queueCmd.id
-						)
-						local validCoord = X and Z and X >= 0 and X <= mapX and Z >= 0 and Z <= mapZ
-						-- draw
-						if X and validCoord then
+					for j = 1, queueSize do
+						local qe = queue[j]
+						-- Resolve position from pre-extracted data
+						local X, Y, Z
+						local ttype = qe.ttype
+						if ttype == QTARGET_COORD then
+							X, Y, Z = qe.tx, qe.ty, qe.tz
+						elseif ttype == QTARGET_UNIT then
+							X, Y, Z = getCachedUnitPosition(qe.targetID)
+						elseif ttype == QTARGET_FEATURE then
+							X, Y, Z = spGetFeaturePosition(qe.targetID)
+						end
+						if X and Z and X >= 0 and X <= mapX and Z >= 0 and Z <= mapZ then
 							commandCount = commandCount + 1
-							-- lines
-							local lineColour
-							if useTeamColorsForDraw and command.teamID then
-								lineColour = teamColor[command.teamID]
-							else
-								lineColour = CONFIG[queueCmd.id].colour
-							end
-							local lineAlpha = opacity * lineOpacity * (lineColour[4] * 2) * lineAlphaMultiplier
+							local lineColour = cmdTeamColour or qe.colour
+							local lineAlpha = lineColour[4] * lineAlphaMultiplier
 							if lineAlpha > 0 then
 								if segCount < GL4_MAX_SEGMENTS then
 									segCount = segCount + 1
@@ -893,17 +795,16 @@ function widget:DrawWorldPreUnit()
 									segData[base+9]  = lineColour[1]
 									segData[base+10] = lineColour[2]
 									segData[base+11] = lineColour[3]
-									segData[base+12] = texOffset or 0
+									segData[base+12] = texOffset
 								end
-								-- Build queue ghost (collected for deferred legacy pass)
-								if drawBuildQueue and queueCmd.buildingID then
+								if drawBuildQueue and qe.buildingID then
 									local gc = buildGhosts.count + 1
 									buildGhosts.count = gc
 									buildGhosts.x[gc] = X
 									buildGhosts.y[gc] = Y
 									buildGhosts.z[gc] = Z
-									buildGhosts.defID[gc] = queueCmd.buildingID
-									buildGhosts.facing[gc] = queueCmd.params[4] or 0
+									buildGhosts.defID[gc] = qe.buildingID
+									buildGhosts.facing[gc] = qe.facing
 									buildGhosts.r[gc] = lineColour[1]
 									buildGhosts.g[gc] = lineColour[2]
 									buildGhosts.b[gc] = lineColour[3]
