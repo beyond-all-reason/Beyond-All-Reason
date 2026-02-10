@@ -844,7 +844,10 @@ end
 
 -- Helper function to check if spectator messages should be hidden
 local function shouldHideSpecMessage()
-	return hideSpecChat and (not hideSpecChatPlayer or not mySpec)
+	-- Check config values directly to ensure we have the latest settings
+	local currentHideSpecChat = (Spring.GetConfigInt('HideSpecChat', 0) == 1)
+	local currentHideSpecChatPlayer = (Spring.GetConfigInt('HideSpecChatPlayer', 1) == 1)
+	return currentHideSpecChat and (not currentHideSpecChatPlayer or not mySpec)
 end
 
 -- Helper function to extract channel prefix and apply color
@@ -1393,13 +1396,23 @@ function widget:Update(dt)
 		-- detect spectator filter change
 		if hideSpecChat ~= (Spring.GetConfigInt('HideSpecChat', 0) == 1) or hideSpecChatPlayer ~= (Spring.GetConfigInt('HideSpecChatPlayer', 1) == 1) then
 			hideSpecChat = (Spring.GetConfigInt('HideSpecChat', 0) == 1)
-			HideSpecChatPlayer = (Spring.GetConfigInt('HideSpecChatPlayer', 1) == 1)
+			hideSpecChatPlayer = (Spring.GetConfigInt('HideSpecChatPlayer', 1) == 1)
 			for i=1, #chatLines do
 				if chatLines[i].lineType == LineTypes.Spectator then
-					if hideSpecChat then
+					if shouldHideSpecMessage() then
 						chatLines[i].ignore = true
 					else
 						chatLines[i].ignore = WG.ignoredAccounts[chatLines[i].playerName] and true or nil
+					end
+				elseif chatLines[i].lineType == LineTypes.Mapmark then
+					-- filter spectator map points
+					local spectator = playernames[chatLines[i].playerName] and playernames[chatLines[i].playerName][2] or false
+					if spectator then
+						if shouldHideSpecMessage() then
+							chatLines[i].ignore = true
+						else
+							chatLines[i].ignore = WG.ignoredAccounts[chatLines[i].playerName] and true or nil
+						end
 					end
 				end
 			end

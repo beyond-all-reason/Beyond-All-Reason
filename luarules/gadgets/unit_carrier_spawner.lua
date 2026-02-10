@@ -1426,7 +1426,13 @@ local function updateCarrier(carrierID, carrierMetaData, frame)
 end
 
 
+local inUnitCommand = false
+
 function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+	if inUnitCommand then
+		return
+	end
+	inUnitCommand = true
 	if carrierMetaList[unitID] and cmdID == CMD.STOP then
 		for subUnitID,value in pairsNext, carrierMetaList[unitID].subUnitsList do
 			if unitID == spGetUnitRulesParam(subUnitID, "carrier_host_unit_id") then
@@ -1440,6 +1446,7 @@ function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmd
 		local f = Spring.GetGameFrame()
 		updateCarrier(unitID, carrierMetaList[unitID], f)
 	end
+	inUnitCommand = false
 end
 
 local function dockUnits(dockingqueue, queuestart, queueend)
