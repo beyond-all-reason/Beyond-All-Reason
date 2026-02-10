@@ -1141,10 +1141,11 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function calculateDifficultyMultiplier(peakScavPower, totalPlayerTeamPower)
-		local ratio = peakScavPower / totalPlayerTeamPower
 		if peakScavPower == 0 or peakScavPower == nil or totalPlayerTeamPower == 0  or totalPlayerTeamPower == nil then
-			return
+			return false
 		end
+
+		local ratio = peakScavPower / totalPlayerTeamPower
 		if ratio >= upperScavPowerRatio then
 			dynamicDifficulty = 0
 		elseif ratio <= lowerScavPowerRatio then
@@ -1154,6 +1155,8 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		dynamicDifficultyClamped = minDynamicDifficulty + (dynamicDifficulty * (maxDynamicDifficulty - minDynamicDifficulty))
+
+		return true
 	end
 
 	function Wave()
@@ -1164,9 +1167,10 @@ if gadgetHandler:IsSyncedCode() then
 
 		peakScavPower = GG.PowerLib.TeamPeakPower(scavTeamID)
 		totalPlayerTeamPower = GG.PowerLib.TotalPlayerTeamsPower()
-		calculateDifficultyMultiplier(peakScavPower, totalPlayerTeamPower)
-		Spring.Log("Dynamic Difficulty", LOG.INFO, 'Scavengers dynamicDifficultyClamped:  ' .. tostring(dynamicDifficultyClamped))
+		local couldDetermineDifficulty = calculateDifficultyMultiplier(peakScavPower, totalPlayerTeamPower)
 		squadManagerKillerLoop()
+
+		Spring.Log("Dynamic Difficulty", LOG.INFO, 'Scavengers dynamicDifficultyClamped:  ' .. tostring(dynamicDifficultyClamped))
 
 		waveParameters.baseCooldown = waveParameters.baseCooldown - 1
 		waveParameters.airWave.cooldown = waveParameters.airWave.cooldown - 1
@@ -1177,6 +1181,10 @@ if gadgetHandler:IsSyncedCode() then
 		waveParameters.hugeWave.cooldown = waveParameters.hugeWave.cooldown - 1
 		waveParameters.epicWave.cooldown = waveParameters.epicWave.cooldown - 1
 		--waveParameters.frontbusters.cooldown = waveParameters.frontbusters.cooldown - 1
+
+		if not couldDetermineDifficulty then
+			return -- scavs were reported to have zero peak power, most likely
+		end
 
 		waveParameters.waveSpecialPercentage = mRandom(5,50)
 		waveParameters.waveAirPercentage = mRandom(10,25)
