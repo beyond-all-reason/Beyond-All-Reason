@@ -58,13 +58,13 @@ local function disableTrigger(triggerID)
 	triggers[triggerID].settings.active = false
 end
 
-local function issueOrders(name, orders)
-    if isNameUntracked(name) then return end
+local function issueOrders(unitNameRequired, orders)
+    if isNameUntracked(unitNameRequired) then return end
 
-	Spring.GiveOrderArrayToUnitArray(trackedUnitIDs[name], orders)
+	Spring.GiveOrderArrayToUnitArray(trackedUnitIDs[unitNameRequired], orders)
 end
 
-local function spawnUnits(name, unitDefName, teamID, position, quantity, facing, construction)
+local function spawnUnits(unitNameToGive, unitDefName, teamID, position, quantity, facing, construction)
 
 	if not UnitDefNames[unitDefName] then return end
 
@@ -82,17 +82,17 @@ local function spawnUnits(name, unitDefName, teamID, position, quantity, facing,
 	for _, pos in pairs(positions) do
 		pos.y = Spring.GetGroundHeight(pos.x, pos.z)
 		local unitID = Spring.CreateUnit(unitDefName, pos.x, pos.y, pos.z, facing or 's', teamID, construction)
-		trackUnit(name, unitID)
+		trackUnit(unitNameToGive, unitID)
 	end
 end
 
 ----------------------------------------------------------------
 
-local function despawnUnits(name, selfDestruct, reclaimed)
-	if isNameUntracked(name) then return end
+local function despawnUnits(unitNameRequired, selfDestruct, reclaimed)
+	if isNameUntracked(unitNameRequired) then return end
 
 	-- Copying table as UnitKilled trigger with SpawnUnits with the same name could cause infinite loop.
-	for _, unitID in pairs(table.copy(trackedUnitIDs[name])) do
+	for _, unitID in pairs(table.copy(trackedUnitIDs[unitNameRequired])) do
 		if Spring.GetUnitIsDead(unitID) == false then
 			Spring.DestroyUnit(unitID, selfDestruct, reclaimed)
 		end
@@ -101,16 +101,16 @@ end
 
 ----------------------------------------------------------------
 
-local function transferUnits(name, newTeam, given)
-	if isNameUntracked(name) then return end
+local function transferUnits(unitNameRequired, newTeam, given)
+	if isNameUntracked(unitNameRequired) then return end
 
 	-- Copying table as UnitExists trigger with TransferUnits with the same name could cause infinite loop.
-	for _, unitID in pairs(table.copy(trackedUnitIDs[name])) do
+	for _, unitID in pairs(table.copy(trackedUnitIDs[unitNameRequired])) do
 		Spring.TransferUnit(unitID, newTeam, given)
 	end
 end
 
-local function nameUnits(name, teamID, unitDefName, area)
+local function nameUnits(unitNameToGive, teamID, unitDefName, area)
 	local hasFilterOtherThanTeamID = unitDefName or area
 
 	local allUnitsOfTeam = {}
@@ -151,20 +151,20 @@ local function nameUnits(name, teamID, unitDefName, area)
 	end
 
 	for _, unitID in pairs(unitsToName) do
-		trackUnit(name, unitID)
+		trackUnit(unitNameToGive, unitID)
 	end
 end
 
-local function unnameUnits(name)
-	if isNameUntracked(name) then return end
+local function unnameUnits(unitNameRequired)
+	if isNameUntracked(unitNameRequired) then return end
 
-	for _, unitID in pairs(trackedUnitIDs[name]) do
-		table.removeAll(trackedUnitNames[unitID], name)
+	for _, unitID in pairs(trackedUnitIDs[unitNameRequired]) do
+		table.removeAll(trackedUnitNames[unitID], unitNameRequired)
 		if table.isEmpty(trackedUnitNames[unitID]) then
 			trackedUnitNames[unitID] = nil
 		end
 	end
-	trackedUnitIDs[name] = nil
+	trackedUnitIDs[unitNameRequired] = nil
 end
 
 local function spawnExplosion(position, direction, params)

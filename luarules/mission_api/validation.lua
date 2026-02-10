@@ -423,46 +423,34 @@ local function validateActions(actions)
 end
 
 local function validateUnitNameReferences()
-	-- Types need to be fetched here to avoid circular dependency
-	local triggerTypes = GG['MissionAPI'].TriggerTypes
-	local actionTypes = GG['MissionAPI'].ActionTypes
-
-	local triggersTypesNamingUnits = { }
-	local triggersTypesReferencingUnitNames = { }
-	local actionsTypesNamingUnits = {
-		[actionTypes.SpawnUnits] = true,
-		[actionTypes.NameUnits] = true,
-	}
-	local actionsTypesReferencingUnitNames = {
-		[actionTypes.IssueOrders] = true,
-		[actionTypes.UnnameUnits] = true,
-		[actionTypes.TransferUnits] = true,
-		[actionTypes.DespawnUnits] = true,
-		[actionTypes.TransferUnits] = true,
-	}
-
 	local createdUnitNames = {}
 	local referencedUnitNames = {}
-	local function recordUnitNameCreationsAndReferences(typesNamingUnits, typesReferencingUnitNames, actionsOrTriggers, label)
+	local function recordUnitNameCreationsAndReferences(actionsOrTriggers, label)
 		for actionOrTriggerID, actionOrTrigger in pairs(actionsOrTriggers) do
-			local unitName = (actionOrTrigger.parameters or {}).name
-			if unitName then
-				if typesNamingUnits[actionOrTrigger.type] then
-					createdUnitNames[unitName] = true
-				elseif typesReferencingUnitNames[actionOrTrigger.type] then
-					referencedUnitNames[unitName] = referencedUnitNames[unitName] or {}
-					referencedUnitNames[unitName][#referencedUnitNames[unitName] + 1] = label .. actionOrTriggerID
-				end
+			local unitNameToGive = (actionOrTrigger.parameters or {}).unitNameToGive
+			if unitNameToGive then
+				createdUnitNames[unitNameToGive] = createdUnitNames[unitNameToGive] or {}
+				createdUnitNames[unitNameToGive][#createdUnitNames[unitNameToGive] + 1] = label .. actionOrTriggerID
+			end
+			local unitNameRequired = (actionOrTrigger.parameters or {}).unitNameRequired
+			if unitNameRequired then
+				referencedUnitNames[unitNameRequired] = referencedUnitNames[unitNameRequired] or {}
+				referencedUnitNames[unitNameRequired][#referencedUnitNames[unitNameRequired] + 1] = label .. actionOrTriggerID
 			end
 		end
 	end
 
-	recordUnitNameCreationsAndReferences(triggersTypesNamingUnits, triggersTypesReferencingUnitNames, GG['MissionAPI'].Triggers, "trigger ")
-	recordUnitNameCreationsAndReferences(actionsTypesNamingUnits, actionsTypesReferencingUnitNames, GG['MissionAPI'].Actions, "action ")
+	recordUnitNameCreationsAndReferences(GG['MissionAPI'].Triggers, "trigger ")
+	recordUnitNameCreationsAndReferences(GG['MissionAPI'].Actions, "action ")
 
 	for unitName, labels in pairs(referencedUnitNames) do
 		if not createdUnitNames[unitName] then
 			logError("Unit name '" .. unitName .. "' not created in any trigger or action. Referenced in: " .. table.concat(labels, ", "))
+		end
+	end
+	for unitName, labels in pairs(createdUnitNames) do
+		if not referencedUnitNames[unitName] then
+			logError("Unit name '" .. unitName .. "' created, but not referenced by any trigger or action. Created in: " .. table.concat(labels, ", "))
 		end
 	end
 end

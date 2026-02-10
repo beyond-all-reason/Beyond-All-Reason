@@ -70,7 +70,7 @@ local parameters = {
 	-- Orders
 	[actionTypes.IssueOrders] = {
 		[1] = {
-			name = 'name',
+			name = 'unitNameRequired',
 			required = true,
 			type = Types.String
 		},
@@ -91,7 +91,7 @@ local parameters = {
 	-- Units
 	[actionTypes.SpawnUnits] = {
 		[1] = {
-			name = 'name',
+			name = 'unitNameToGive',
 			required = false,
 			type = Types.String,
 		},
@@ -128,7 +128,7 @@ local parameters = {
 
 	[actionTypes.DespawnUnits] = {
 		[1] = {
-			name = 'name',
+			name = 'unitNameRequired',
 			required = true,
 			type = Types.String,
 		},
@@ -148,7 +148,7 @@ local parameters = {
 	[actionTypes.SpawnEffects] = {},
 	[actionTypes.TransferUnits] = {
 		[1] = {
-			name = 'name',
+			name = 'unitNameRequired',
 			required = true,
 			type = Types.String
 		},
@@ -166,7 +166,7 @@ local parameters = {
 	},
 	[actionTypes.NameUnits] = {
 		[1] = {
-			name = 'name',
+			name = 'unitNameToGive',
 			required = true,
 			type = Types.String
 		},
@@ -192,7 +192,7 @@ local parameters = {
 	},
 	[actionTypes.UnnameUnits] = {
 		[1] = {
-			name = 'name',
+			name = 'unitNameRequired',
 			required = true,
 			type = Types.String
 		}
