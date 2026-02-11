@@ -72,7 +72,6 @@ local extractorRadius = Game.extractorRadius * 1.2
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGroundHeight = Spring.GetGroundHeight
-local spGetMapDrawMode  = Spring.GetMapDrawMode
 local spIsUnitAllied  = Spring.IsUnitAllied
 
 local mySpots = {} -- {spotKey  = {x = spot.x, y= spGetGroundHeight(spot.x, spot.z), z = spot.z, value = value, scale = scale, occupied = occupied, t = currentClock, ally = false, enemy = false, instanceID = "1024_1023"}}
@@ -502,8 +501,7 @@ function widget:GameFrame(gf)
 end
 
 function widget:DrawWorldPreUnit()
-	local mapDrawMode = spGetMapDrawMode()
-	if metalViewOnly and mapDrawMode ~= 'metal' then return end
+	if metalViewOnly and not WG.metalView then return end
 	if chobbyInterface then return end
 	if Spring.IsGUIHidden() then return end
 

@@ -119,7 +119,7 @@ bind        Ctrl+meta+6  viewspring
 bind        Ctrl+meta+7  HideInterface
 bind             meta+5  LastMsgPos
 bind             meta+6  ShowPathTraversability
-bind             meta+7  ShowMetalMap
+bind             meta+7  showinfometal
 bind             meta+8  ShowElevation
 
 bind                f10  options

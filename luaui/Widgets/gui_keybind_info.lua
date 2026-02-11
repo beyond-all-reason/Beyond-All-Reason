@@ -226,7 +226,7 @@ local function refreshText()
 		{ type = lineType.key, key = getActionHotkey('showelevation'),		text = Spring.I18N('ui.keybinds.cameraModes.heightmap')		},
 		{ type = lineType.key, key = getActionHotkey('showpathtraversability'),	text = Spring.I18N('ui.keybinds.cameraModes.traversability')},
 		{ type = lineType.key, key = getActionHotkey('lastmsgpos'),		text = Spring.I18N('ui.keybinds.cameraModes.mapmarks')		},
-		{ type = lineType.key, key = getActionHotkey('showmetalmap'),	text = Spring.I18N('ui.keybinds.cameraModes.resourceSpots')	},
+		{ type = lineType.key, key = getActionHotkey('showinfometal'),		text = Spring.I18N('ui.keybinds.cameraModes.resourceSpots')	},
 		{ type = lineType.key, key = getActionHotkey('hideinterface'),		text = Spring.I18N('ui.keybinds.cameraModes.interface')		},
 		{ type = lineType.blank },
 		{ type = lineType.title, text = Spring.I18N('ui.keybinds.sound.title') },

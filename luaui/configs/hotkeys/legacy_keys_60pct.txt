@@ -100,7 +100,7 @@ bind Ctrl+meta+5 viewfree
 bind meta+1 ShowElevation
 bind meta+2 ShowPathTraversability
 bind meta+3 LastMsgPos
-bind meta+4 ShowMetalMap
+bind meta+4 showinfometal
 bind meta+5 HideInterface
 bind meta+6 MuteSound
 bind meta+7 DynamicSky

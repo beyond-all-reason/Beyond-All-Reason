@@ -36,7 +36,6 @@ local spIsGUIHidden = Spring.IsGUIHidden
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGroundHeight = Spring.GetGroundHeight
-local spGetMapDrawMode  = Spring.GetMapDrawMode
 
 local spots = {}
 local previousOsClock = os.clock()
@@ -398,8 +397,7 @@ end
 
 
 function widget:DrawWorldPreUnit()
-	local mapDrawMode = spGetMapDrawMode()
-	if metalViewOnly and mapDrawMode ~= 'metal' then return end
+	if metalViewOnly and not WG.metalView then return end
 	if chobbyInterface then return end
 	if spIsGUIHidden() then return end
 
