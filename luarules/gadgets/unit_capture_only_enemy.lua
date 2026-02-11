@@ -32,6 +32,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 		end
 	elseif nParams == 4 then
 		-- Command is targeting an area.
+		return not cmdOptions.ctrl -- OPT_CTRL allows capturing allies with area commands.
 	end
 	return true
 end
