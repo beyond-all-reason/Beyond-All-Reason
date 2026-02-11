@@ -2078,6 +2078,152 @@ local function CorrectScreenPosition()
 	end
 end
 
+local function IsFiniteNumber(value)
+	return type(value) == "number" and value == value and value ~= math.huge and value ~= -math.huge
+end
+
+local function AreDimensionsValid(dim, minWidth, minHeight)
+	if type(dim) ~= "table" then
+		return false
+	end
+
+	local l, r, b, t = dim.l, dim.r, dim.b, dim.t
+	if not (IsFiniteNumber(l) and IsFiniteNumber(r) and IsFiniteNumber(b) and IsFiniteNumber(t)) then
+		return false
+	end
+
+	minWidth = minWidth or 1
+	minHeight = minHeight or 1
+	return (r - l) >= minWidth and (t - b) >= minHeight
+end
+
+local function AreExpandedDimensionsValid(dim)
+	local minSize = math.floor(config.minPanelSize * render.widgetScale)
+	return AreDimensionsValid(dim, minSize, minSize) and dim.r > minSize and dim.t > minSize
+end
+
+local function BuildDefaultExpandedDimensions()
+	local defaultL = math.floor(render.vsx * 0.7)
+	local defaultB = math.floor(render.vsy * 0.7)
+	local defaultW = math.floor(config.minPanelSize * render.widgetScale * 1.4)
+	local defaultH = math.floor(config.minPanelSize * render.widgetScale * 1.2)
+
+	return {
+		l = defaultL,
+		r = defaultL + defaultW,
+		b = defaultB,
+		t = defaultB + defaultH,
+	}
+end
+
+local function EnsureSavedExpandedDimensions()
+	if AreExpandedDimensionsValid(uiState.savedDimensions) then
+		return uiState.savedDimensions
+	end
+
+	local recoveredDimensions
+	if not uiState.inMinMode and AreExpandedDimensionsValid(render.dim) then
+		recoveredDimensions = {
+			l = render.dim.l,
+			r = render.dim.r,
+			b = render.dim.b,
+			t = render.dim.t,
+		}
+	else
+		recoveredDimensions = BuildDefaultExpandedDimensions()
+	end
+
+	uiState.savedDimensions = recoveredDimensions
+	return uiState.savedDimensions
+end
+
+local function StartMaximizeAnimation()
+	local buttonSize = math.floor(render.usedButtonSize * config.maximizeSizemult)
+	local screenMarginPx = math.floor(config.screenMargin * render.vsy)
+
+	if not IsFiniteNumber(uiState.minModeL) or not IsFiniteNumber(uiState.minModeB) then
+		uiState.minModeL = render.vsx - buttonSize - screenMarginPx
+		uiState.minModeB = render.vsy - buttonSize - screenMarginPx
+	end
+
+	local expandedDimensions = EnsureSavedExpandedDimensions()
+	render.dim.l = expandedDimensions.l
+	render.dim.r = expandedDimensions.r
+	render.dim.b = expandedDimensions.b
+	render.dim.t = expandedDimensions.t
+	CorrectScreenPosition()
+
+	-- Keep the clamped dimensions as the persisted expanded target.
+	uiState.savedDimensions = {
+		l = render.dim.l,
+		r = render.dim.r,
+		b = render.dim.b,
+		t = render.dim.t,
+	}
+
+	if interactionState.areTracking then
+		UpdateTracking()
+	end
+	RecalculateWorldCoordinates()
+	RecalculateGroundTextureCoordinates()
+
+	uiState.animStartDim = {
+		l = uiState.minModeL,
+		r = uiState.minModeL + buttonSize,
+		b = uiState.minModeB,
+		t = uiState.minModeB + buttonSize
+	}
+	uiState.animEndDim = {
+		l = render.dim.l,
+		r = render.dim.r,
+		b = render.dim.b,
+		t = render.dim.t
+	}
+	uiState.animationProgress = 0
+	uiState.isAnimating = true
+	uiState.inMinMode = false
+	miscState.hasOpenedPIPThisGame = true
+end
+
+local function RecoverInvalidAnimationState()
+	uiState.isAnimating = false
+
+	if uiState.inMinMode then
+		local buttonSize = math.floor(render.usedButtonSize * config.maximizeSizemult)
+		local screenMarginPx = math.floor(config.screenMargin * render.vsy)
+
+		if not IsFiniteNumber(uiState.minModeL) or not IsFiniteNumber(uiState.minModeB) then
+			uiState.minModeL = render.vsx - buttonSize - screenMarginPx
+			uiState.minModeB = render.vsy - buttonSize - screenMarginPx
+		end
+
+		render.dim.l = uiState.minModeL
+		render.dim.r = uiState.minModeL + buttonSize
+		render.dim.b = uiState.minModeB
+		render.dim.t = uiState.minModeB + buttonSize
+	else
+		local expandedDimensions = EnsureSavedExpandedDimensions()
+		render.dim.l = expandedDimensions.l
+		render.dim.r = expandedDimensions.r
+		render.dim.b = expandedDimensions.b
+		render.dim.t = expandedDimensions.t
+		CorrectScreenPosition()
+
+		uiState.savedDimensions = {
+			l = render.dim.l,
+			r = render.dim.r,
+			b = render.dim.b,
+			t = render.dim.t,
+		}
+	end
+
+	RecalculateWorldCoordinates()
+	RecalculateGroundTextureCoordinates()
+	pipR2T.contentNeedsUpdate = true
+	pipR2T.frameNeedsUpdate = true
+	UpdateGuishaderBlur()
+end
+
 local function UpdateGuishaderBlur()
 	if WG['guishader'] then
 		-- Determine the correct bounds based on mode
@@ -12563,8 +12709,8 @@ function widget:Update(dt)
 	-- Handle minimize/maximize animation
 	if uiState.isAnimating then
 		-- Guard: ensure animStartDim and animEndDim are properly initialized
-		if not uiState.animStartDim.l or not uiState.animEndDim.l then
-			uiState.isAnimating = false
+		if not AreDimensionsValid(uiState.animStartDim) or not AreDimensionsValid(uiState.animEndDim) then
+			RecoverInvalidAnimationState()
 		else
 			uiState.animationProgress = uiState.animationProgress + (dt / uiState.animationDuration)
 			pipR2T.contentNeedsUpdate = true  -- Update during animation
@@ -12950,33 +13096,7 @@ function widget:GameStart()
 
 	-- Automatically maximize for players (only for the first PIP instance)
 	if pipNumber == 1 and not cameraState.mySpecState and uiState.inMinMode then
-		-- Trigger maximize animation
-		render.usedButtonSize = math.floor(config.buttonSize * render.widgetScale * render.uiScale)
-		local buttonSizeWithScale = math.floor(render.usedButtonSize * config.maximizeSizemult)
-
-		-- Update camera to tracked units immediately before maximizing
-		if interactionState.areTracking then
-			UpdateTracking()
-		end
-		RecalculateWorldCoordinates()
-		RecalculateGroundTextureCoordinates()
-
-		uiState.animStartDim = {
-			l = uiState.minModeL,
-			r = uiState.minModeL + buttonSizeWithScale,
-			b = uiState.minModeB,
-			t = uiState.minModeB + buttonSizeWithScale
-		}
-		uiState.animEndDim = {
-			l = uiState.savedDimensions.l,
-			r = uiState.savedDimensions.r,
-			b = uiState.savedDimensions.b,
-			t = uiState.savedDimensions.t
-		}
-		uiState.animationProgress = 0
-		uiState.isAnimating = true
-		uiState.inMinMode = false
-		miscState.hasOpenedPIPThisGame = true
+		StartMaximizeAnimation()
 	end
 
 	-- Automatically track the commander at game start (not for spectators)
@@ -13498,6 +13618,9 @@ function widget:IsAbove(mx, my)
 		return mx >= uiState.minModeL and mx <= uiState.minModeL + buttonSize and my >= uiState.minModeB and my <= uiState.minModeB + buttonSize
 	else
 		-- In normal mode, check if over the PIP panel
+		if not AreExpandedDimensionsValid(render.dim) then
+			return false
+		end
 		return mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t
 	end
 end
@@ -13776,43 +13899,7 @@ function widget:MousePress(mx, my, mButton)
 			
 			-- Normal maximize (no ALT, left click only)
 			if mButton == 1 then
-				-- Start maximize animation - restore saved dimensions
-				local buttonSize = math.floor(render.usedButtonSize*config.maximizeSizemult)
-
-				-- Temporarily set dimensions to saved values to check if they're valid
-				render.dim.l = uiState.savedDimensions.l
-				render.dim.r = uiState.savedDimensions.r
-				render.dim.b = uiState.savedDimensions.b
-				render.dim.t = uiState.savedDimensions.t
-				
-				-- Guard against nil saved dimensions
-				if not render.dim.l or not render.dim.r or not render.dim.b or not render.dim.t then return end
-				
-				CorrectScreenPosition()
-
-				-- Update camera to tracked units immediately before maximizing
-				if interactionState.areTracking then
-					UpdateTracking()
-				end
-				RecalculateWorldCoordinates()
-				RecalculateGroundTextureCoordinates()
-
-				uiState.animStartDim = {
-					l = uiState.minModeL,
-					r = uiState.minModeL + buttonSize,
-					b = uiState.minModeB,
-					t = uiState.minModeB + buttonSize
-				}
-				uiState.animEndDim = {
-					l = render.dim.l,
-					r = render.dim.r,
-					b = render.dim.b,
-					t = render.dim.t
-				}
-				uiState.animationProgress = 0
-				uiState.isAnimating = true
-				uiState.inMinMode = false
-				miscState.hasOpenedPIPThisGame = true
+				StartMaximizeAnimation()
 				-- Update hover state after maximizing to check if mouse is over the restored PIP
 				interactionState.isMouseOverPip = (mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t)
 				return true
@@ -14411,7 +14498,7 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 				uiState.minModeB = math.max(screenMarginPx, math.min(render.vsy - screenMarginPx - buttonSize, uiState.minModeB))
 				
 				-- Also update saved dimensions so they stay relative to the button position
-				if uiState.savedDimensions then
+				if AreExpandedDimensionsValid(uiState.savedDimensions) then
 					uiState.savedDimensions.l = uiState.savedDimensions.l + dx
 					uiState.savedDimensions.r = uiState.savedDimensions.r + dx
 					uiState.savedDimensions.b = uiState.savedDimensions.b + dy
@@ -14818,34 +14905,7 @@ function widget:MouseRelease(mx, my, mButton)
 			
 			if uiState.inMinMode then
 				-- Maximize from world icon
-				render.dim.l = uiState.savedDimensions.l
-				render.dim.r = uiState.savedDimensions.r
-				render.dim.b = uiState.savedDimensions.b
-				render.dim.t = uiState.savedDimensions.t
-				CorrectScreenPosition()
-
-				if interactionState.areTracking then
-					UpdateTracking()
-				end
-				RecalculateWorldCoordinates()
-				RecalculateGroundTextureCoordinates()
-
-				uiState.animStartDim = {
-					l = uiState.minModeL,
-					r = uiState.minModeL + buttonSize,
-					b = uiState.minModeB,
-					t = uiState.minModeB + buttonSize
-				}
-				uiState.animEndDim = {
-					l = render.dim.l,
-					r = render.dim.r,
-					b = render.dim.b,
-					t = render.dim.t
-				}
-				uiState.animationProgress = 0
-				uiState.isAnimating = true
-				uiState.inMinMode = false
-				miscState.hasOpenedPIPThisGame = true
+				StartMaximizeAnimation()
 				interactionState.isMouseOverPip = false
 			else
 				-- Minimize from world icon
@@ -14895,36 +14955,7 @@ function widget:MouseRelease(mx, my, mButton)
 		if wasClick and mButton == 1 and not uiState.isAnimating then
 			if uiState.inMinMode then
 				-- Maximize (we were in minimized mode)
-				local buttonSize = math.floor(render.usedButtonSize*config.maximizeSizemult)
-				
-				render.dim.l = uiState.savedDimensions.l
-				render.dim.r = uiState.savedDimensions.r
-				render.dim.b = uiState.savedDimensions.b
-				render.dim.t = uiState.savedDimensions.t
-				CorrectScreenPosition()
-
-				if interactionState.areTracking then
-					UpdateTracking()
-				end
-				RecalculateWorldCoordinates()
-				RecalculateGroundTextureCoordinates()
-
-				uiState.animStartDim = {
-					l = uiState.minModeL,
-					r = uiState.minModeL + buttonSize,
-					b = uiState.minModeB,
-					t = uiState.minModeB + buttonSize
-				}
-				uiState.animEndDim = {
-					l = render.dim.l,
-					r = render.dim.r,
-					b = render.dim.b,
-					t = render.dim.t
-				}
-				uiState.animationProgress = 0
-				uiState.isAnimating = true
-				uiState.inMinMode = false
-				miscState.hasOpenedPIPThisGame = true
+				StartMaximizeAnimation()
 				interactionState.isMouseOverPip = false
 			else
 				-- Minimize (we were in maximized mode)
