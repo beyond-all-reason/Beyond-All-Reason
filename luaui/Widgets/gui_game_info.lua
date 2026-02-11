@@ -1,16 +1,8 @@
-local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
-
-if not scavengersAIEnabled then
-	return
-end
-
-local widget = widget ---@type Widget
-
 function widget:GetInfo()
 	return {
-		name    = "Scavenger Info",
-		desc    = "",
-		author  = "Floris",
+		name    = "Game Info",
+		desc    = "Displays information about game info.",
+		author  = "Floris, SethDGamre",
 		date    = "Jan 2020",
 		license = "GNU GPL, v2 or later",
 		layer   = -99990,
@@ -18,21 +10,141 @@ function widget:GetInfo()
 	}
 end
 
-
--- Localized functions for performance
 local mathFloor = math.floor
 local mathMax = math.max
-
--- Localized Spring API for performance
 local spGetViewGeometry = Spring.GetViewGeometry
 
-local show = true	-- gets disabled when it has been loaded before
+local modOptions = Spring.GetModOptions()
+local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
+
+local textTable = {}
+local seenGameInfo = {}
+local hasAlwaysShowGameInfo = false
+local hasUnseen = false
+local allText = nil
+local modOptionText = {}
+
+local function checkModOptions()
+	if not VFS.FileExists("modoptions.lua") then return end
+	local modOptionsDefs = VFS.Include("modoptions.lua")
+	if not modOptionsDefs then return end
+
+	local currentModOptions = Spring.GetModOptions()
+
+	local ignoredKeys = {
+		["date_year"] = true,
+		["date_month"] = true,
+		["date_day"] = true,
+		["date_hour"] = true,
+		["dummyboolfeelfreetotouch"] = true,
+		["tweakunits"] = true,
+		["tweakdefs"] = true,
+	}
+
+	for _, option in ipairs(modOptionsDefs) do
+		local key = option.key
+		local val = currentModOptions[key]
+
+		if key and val ~= nil and not ignoredKeys[key] then
+			local def = option.def
+			local changed = false
+			local description = option.desc
+			local name = option.name
+
+			local valueName = nil
+
+			if option.type == "bool" then
+				local boolVal
+				if type(val) == "string" then
+					boolVal = (val == "1" or val == "true")
+				elseif type(val) == "number" then
+					boolVal = (val ~= 0)
+				else
+					boolVal = val
+				end
+				if boolVal ~= def then
+					changed = true
+					if boolVal then
+						valueName = Spring.I18N("modoptions.enabled") or "Enabled"
+					else
+						valueName = Spring.I18N("modoptions.disabled") or "Disabled"
+					end
+				end
+			elseif option.type == "number" then
+				if tonumber(val) ~= tonumber(def) then
+					changed = true
+					valueName = val
+				end
+			elseif option.type == "list" then
+				if val ~= def then
+					changed = true
+					if option.items then
+						for _, item in ipairs(option.items) do
+							if item.key == val then
+								valueName = item.name
+								if item.desc then
+									description = item.desc
+								end
+								break
+							end
+						end
+					end
+				end
+			elseif option.type == "string" then
+				if val ~= def then
+					changed = true
+				end
+			end
+
+			if changed and name then
+				local header = string.upper(name)
+				local entry = header
+				if valueName then
+					entry = entry .. "\n-> " .. valueName
+				end
+				entry = entry .. "\n" .. (description or "")
+				table.insert(modOptionText, entry)
+			end
+		end
+	end
+end
+
+checkModOptions()
+
+-- alwaysShow: when true, show this info every time the game runs
+-- when false, only show it once and remember it's been seen
+local function loadGameInfoText(infoType, alwaysShow)
+	local infoText = Spring.I18N("gameinfo." .. infoType)
+	if infoText then
+		if alwaysShow then
+			table.insert(textTable, 1, infoText)
+			hasAlwaysShowGameInfo = true
+		else
+			if seenGameInfo[infoType] == nil then
+				seenGameInfo[infoType] = false
+			end
+
+			table.insert(textTable, 1, infoText)
+
+			if seenGameInfo[infoType] == false then
+				hasUnseen = true
+			end
+		end
+	else
+		Spring.Echo("Game info not found: " .. infoType)
+	end
+end
+
+local function initializeGameInfo()
+	if scavengersAIEnabled then
+		loadGameInfoText("scavengersMoveObjective", false)
+	end
+	-- add additional if statements to add info here. Multiple info entries work but it's best to only do one at a time.
+end
+
+local show = false
 
 local vsx,vsy = spGetViewGeometry()
-
-local textFile = VFS.LoadFile("gamedata/scavengers/infotext.txt")
-
-local numGames = 0
 
 local screenHeightOrg = 520
 local screenWidthOrg = 1050
@@ -122,7 +234,7 @@ function DrawTextarea(x,y,width,height,scrollbar)
 	end
 
 	-- draw textarea
-	if textFile then
+	if allText then
 		font:Begin()
 		local lineKey = startLine
 		local j = 1
@@ -165,7 +277,7 @@ function DrawWindow()
 	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 
 	-- title background
-	local title = Spring.I18N('ui.topbar.button.scavengers')
+	local title = Spring.I18N('ui.topbar.button.game')
 	local titleFontSize = 18 * widgetScale
 	titleRect = { screenX, screenY, mathFloor(screenX + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), mathFloor(screenY + (titleFontSize*1.7)) }
 
@@ -260,7 +372,7 @@ function widget:MouseRelease(x, y, button)
 end
 
 function mouseEvent(x, y, button, release)
-  if Spring.IsGUIHidden() then return end
+	if Spring.IsGUIHidden() then return end
 
 	if show then
 		-- on window
@@ -270,6 +382,14 @@ function mouseEvent(x, y, button, release)
 			if release then
 				showOnceMore = show        -- show once more because the guishader lags behind, though this will not fully fix it
 				show = false
+				
+				-- Mark all one-time game info as seen when the window is closed
+				for infoType, seen in pairs(seenGameInfo) do
+					if not seen then
+						seenGameInfo[infoType] = true
+					end
+				end
+				hasUnseen = false  -- All one-time game info have been seen now
 			end
 			return true
 		end
@@ -277,33 +397,104 @@ function mouseEvent(x, y, button, release)
 end
 
 function widget:Initialize()
-	if textFile then
+	textTable = {}
+	hasAlwaysShowGameInfo = false
+	hasUnseen = false
 
-		WG['scavengerinfo'] = {}
-		WG['scavengerinfo'].toggle = function(state)
-			if state ~= nil then
-				show = state
-			else
-				show = not show
+	initializeGameInfo()
+
+	if #modOptionText > 0 then
+		hasAlwaysShowGameInfo = true
+		for i = #modOptionText, 1, -1 do
+			table.insert(textTable, 1, modOptionText[i])
+		end
+	end
+
+	allText = table.concat(textTable, "\n______________________________________________________________________________\n\n")
+
+	show = hasAlwaysShowGameInfo or hasUnseen
+
+	-- Always register the WG API so other widgets can add info dynamically
+	WG['game_info'] = {}
+	WG['game_info'].toggle = function(state)
+		if state ~= nil then
+			show = state
+		else
+			show = not show
+		end
+
+		if not show then
+			local changed = false
+			for infoType, seen in pairs(seenGameInfo) do
+				if not seen then
+					seenGameInfo[infoType] = true
+					changed = true
+				end
+			end
+			if changed then
+				hasUnseen = false
 			end
 		end
-		WG['scavengerinfo'].isvisible = function()
-			return show
+	end
+	WG['game_info'].isvisible = function()
+		return show
+	end
+
+	WG['game_info'].hasGameInfo = function()
+		return #textTable > 0
+	end
+
+	WG['game_info'].addInfo = function(infoType, alwaysShow)
+		local infoText = Spring.I18N("gameinfo." .. infoType)
+		if infoText then
+			local shouldShow = false
+
+			if alwaysShow then
+				hasAlwaysShowGameInfo = true
+				table.insert(textTable, 1, infoText)
+				shouldShow = true
+			else
+				if seenGameInfo[infoType] == nil then
+					seenGameInfo[infoType] = false
+				end
+
+				table.insert(textTable, 1, infoText)
+
+				if seenGameInfo[infoType] == false then
+					hasUnseen = true
+					shouldShow = true
+				end
+			end
+
+			allText = table.concat(textTable, "\n______________________________________________________________________________\n\n")
+
+			textLines = string.lines(allText)
+			totalTextLines = #textLines
+
+			if textList then
+				glDeleteList(textList)
+			end
+			textList = gl.CreateList(DrawWindow)
+
+			if shouldShow then
+				show = true
+			end
+
+			if WG['topbar'] and WG['topbar'].refreshButtons then
+				WG['topbar'].refreshButtons()
+			end
+
+			return true
+		else
+			Spring.Echo("Game info not found: " .. infoType)
+			return false
 		end
+	end
 
-		-- somehow there are a few characters added at the start that we need to remove
-		--textFile = string.sub(textFile, 4)
-
-		-- store text into array
-		textLines = string.lines(textFile)
-
-		for i, line in ipairs(textLines) do
-			totalTextLines = i
-		end
+	if allText and allText ~= "" then
+		textLines = string.lines(allText)
+		totalTextLines = #textLines
 		widget:ViewResize()
-	else
-		Spring.Echo("Text: couldn't load the text file")
-		widgetHandler:RemoveWidget()
 	end
 end
 
@@ -317,21 +508,41 @@ function widget:Shutdown()
 	end
 end
 
-
-
 function widget:GetConfigData(data)
-	return {numGames	= numGames}
+	if show then
+		for infoType, seen in pairs(seenGameInfo) do
+			if not seen then
+				seenGameInfo[infoType] = true
+			end
+		end
+		hasUnseen = false
+	end
+	
+	return {
+		seenGameInfo = seenGameInfo
+	}
 end
 
 function widget:SetConfigData(data)
-	if data.numGames ~= nil then
-		numGames = data.numGames + 1
+	if data.seenGameInfo ~= nil then
+		seenGameInfo = data.seenGameInfo
+		
+		hasUnseen = false
+		for infoType, seen in pairs(seenGameInfo) do
+			if seen == false then
+				hasUnseen = true
+				break
+			end
+		end
 	end
-	if numGames > 1 then
-		show = false
-	end
+	
+	show = hasAlwaysShowGameInfo or hasUnseen
 end
 
 function widget:LanguageChanged()
-	widget:ViewResize()
+	if textList then
+		glDeleteList(textList)
+		textList = nil
+	end
+	widget:Initialize()
 end

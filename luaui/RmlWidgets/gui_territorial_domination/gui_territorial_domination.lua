@@ -1188,6 +1188,10 @@ function widget:Initialize()
 	end
 	updateHeaderVisibility()
 
+	if WG['game_info'] then
+		WG['game_info'].addInfo("howToPlayTerritorialDomination", false)
+	end
+
 	return true
 end
 
