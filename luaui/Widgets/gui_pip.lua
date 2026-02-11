@@ -61,12 +61,11 @@ function widget:GetInfo()
 		version   = "2.0",
 		date      = "October 2025",
 		license   = "GNU GPL, v2 or later",
-		layer     = -(990020-pipNumber),
+		layer     = -(99020-pipNumber),
 		enabled   = true,
 		handler   = true,
 	}
 end
-
 ----------------------------------------------------------------------------------------------------
 -- Keyboard config for hotkey display
 ----------------------------------------------------------------------------------------------------
@@ -6637,22 +6636,13 @@ end
 -- Instead of per-unit Lua→C API calls and per-icon texture switches, all icons are packed
 -- into a VBO and drawn with a single DrawArrays call through a texture atlas.
 local function GL4DrawIcons(checkAllyTeamID, selectedSet)
-	-- Compute icon sizes (same calculation as DrawIcons)
-	local distMult = math.min(math.max(1, 2.2 - (cameraState.zoom * 3.3)), 3)
+	-- Engine-matching icon size (MiniMap.cpp lines 518-526):
+	-- Engine dpr = unitBaseSize * (ppe^2 * mapX * mapZ / 40000)^0.25 where ppe = pixels/elmo = zoom.
+	-- Simplifies to: unitBaseSize * (mapX*mapZ/40000)^0.25 * sqrt(zoom).
+	-- Independent of PIP pixel dimensions (aspect ratio doesn't affect icon size).
 	local resScale = render.contentScale or 1
-	local iconRadiusZoom = config.iconRadius * cameraState.zoom * resScale
-	local minimapIconScale = Spring.GetConfigFloat("MinimapIconScale", 3.5) * (isMinimapMode and 0.8 or 0.7)
-	local zoomMin = GetEffectiveZoomMin()
-	local zoomMax = GetEffectiveZoomMax()
-	local zoomRange = zoomMax - zoomMin
-	local zoomNorm = math.max(0, math.min(1, (cameraState.zoom - zoomMin) / zoomRange))
-	local scaleFactor = (minimapIconScale - 1.0) * 0.16
-	local effectiveScale = 1.0 + scaleFactor * (1.0 - zoomNorm) * (1.0 - zoomNorm)
-	local mapSizeRef = 10240
-	local mapSizeMax = math.max(mapInfo.mapSizeX, mapInfo.mapSizeZ)
-	local mapSizeCompensation = (mapSizeMax / mapSizeRef) ^ 0.25  -- fourth-root: gentler than sqrt so big maps get smaller icons
-	local mapSizeScale = 1.0 + (mapSizeCompensation - 1.0) * (1.0 - zoomNorm) * (1.0 - zoomNorm)
-	local iconRadiusZoomDistMult = iconRadiusZoom * distMult * effectiveScale * mapSizeScale
+	local unitBaseSize = Spring.GetConfigFloat("MinimapIconScale", 3.5)
+	local iconRadiusZoomDistMult = unitBaseSize * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(cameraState.zoom) * resScale
 
 	-- Write directly into pre-allocated flat array (zero per-frame allocations)
 	local data = gl4Icons.instanceData
@@ -6822,37 +6812,13 @@ end
 
 -- Helper function to draw icons
 local function DrawIcons()
-	-- Batch icon drawing by texture to minimize state changes
-	local distMult = math.min(math.max(1, 2.2-(cameraState.zoom*3.3)), 3)
-	
-	-- Get resolution scale for R2T rendering (icons need to be scaled up to compensate for texture downscaling)
+	-- Engine-matching icon size (MiniMap.cpp lines 518-526):
+	-- Engine dpr = unitBaseSize * (ppe^2 * mapX * mapZ / 40000)^0.25 where ppe = pixels/elmo = zoom.
+	-- Simplifies to: unitBaseSize * (mapX*mapZ/40000)^0.25 * sqrt(zoom).
+	-- Independent of PIP pixel dimensions (aspect ratio doesn't affect icon size).
 	local resScale = render.contentScale or 1
-	local iconRadiusZoom = config.iconRadius * cameraState.zoom * resScale
-	
-	-- Apply MinimapIconScale from settings, scaled by zoom level
-	-- At minimum zoom (fully zoomed out), apply full MinimapIconScale effect
-	-- As you zoom in, icons become smaller more quickly
-	local minimapIconScale = Spring.GetConfigFloat("MinimapIconScale", 3.5) * (isMinimapMode and 0.8 or 0.7)
-	local zoomMin = GetEffectiveZoomMin()
-	local zoomMax = GetEffectiveZoomMax()
-	local zoomRange = zoomMax - zoomMin
-	local zoomNormalized = math.max(0, math.min(1, (cameraState.zoom - zoomMin) / zoomRange))  -- 0 at min zoom, 1 at max zoom
-	-- At min zoom: full minimapIconScale effect
-	-- As zoom increases: quickly reduce towards 1.0 (using squared curve for faster falloff)
-	local scaleFactor = (minimapIconScale - 1.0) * 0.16
-	local effectiveScale = 1.0 + scaleFactor * (1.0 - zoomNormalized) * (1.0 - zoomNormalized)
-	
-	-- Compensate for map size: icons should maintain similar pixel size regardless of map size
-	-- The engine minimap renders icons at a fixed pixel size, but PIP icon size is proportional
-	-- to zoom (= pipPixels/mapSize), causing smaller icons on larger maps.
-	-- Use fourth-root scaling for a gentle compensation that doesn't over-inflate on huge maps.
-	local mapSizeRef = 10240  -- Reference map size: 10x10 map (10 * 1024 elmos)
-	local mapSizeMax = math.max(mapInfo.mapSizeX, mapInfo.mapSizeZ)
-	local mapSizeCompensation = (mapSizeMax / mapSizeRef) ^ 0.25  -- fourth-root: gentler than sqrt so big maps get smaller icons
-	-- Only apply when zoomed out (near min zoom), fade out as we zoom in
-	local mapSizeScale = 1.0 + (mapSizeCompensation - 1.0) * (1.0 - zoomNormalized) * (1.0 - zoomNormalized)
-	
-	local iconRadiusZoomDistMult = iconRadiusZoom * distMult * effectiveScale * mapSizeScale
+	local unitBaseSize = Spring.GetConfigFloat("MinimapIconScale", 3.5)
+	local iconRadiusZoomDistMult = unitBaseSize * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(cameraState.zoom) * resScale
 
 	-- Check if we should use unitpics instead of icons
 	local useUnitpics = config.showUnitpics and cameraState.zoom >= config.unitpicZoomThreshold
@@ -7102,6 +7068,7 @@ local function DrawIcons()
 		-- Texcoord inset for 30% zoom (0.15 on each side)
 		local picTexInset = 0.18 * (1 - (cameraState.zoom - config.unitpicZoomThreshold) / (1 - config.unitpicZoomThreshold))
 		-- Fixed border sizes in world units (scaled by resScale for R2T rendering)
+		local distMult = math.min(math.max(1, 2.2-(cameraState.zoom*3.3)), 3)
 		local teamBorderSize = 3 * cameraState.zoom * distMult * resScale
 		local blackBorderSize = 4 * cameraState.zoom * distMult * resScale
 		-- Corner cut ratio (0.25 = cut 25% of each corner of the unitpic)
@@ -7461,7 +7428,7 @@ local function DrawIcons()
 						glFunc.Texture(false)
 					else
 						-- Default icon - draw circle glow
-						local defaultIconSize = config.iconRadius * 0.5 * cameraState.zoom * distMult
+						local defaultIconSize = iconRadiusZoomDistMult * 0.5
 						local glowSize = defaultIconSize * 1.4
 						glFunc.Texture('LuaUI/Images/pip/PipBlip.png')
 						
@@ -7502,7 +7469,7 @@ local function DrawIcons()
 		end	-- Draw icons in two passes: ground units first, then elevated units on top
 		-- Uses texture batching within each pass for performance
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-		local defaultIconSize = config.iconRadius * 0.5 * cameraState.zoom * distMult
+		local defaultIconSize = iconRadiusZoomDistMult * 0.5
 	
 		-- Helper function to draw a batch of icons for a texture group
 		local function drawIconBatch(texture, indices, isRotated)
@@ -8760,9 +8727,10 @@ local function DrawBuildCursorWithRotation()
 	if cache.unitIcon[buildDefID] then
 		local iconData = cache.unitIcon[buildDefID]
 		local texture = iconData.bitmap
-		local distMult = math.min(math.max(1, 2.2-(cameraState.zoom*3.3)), 3)
-		local iconRadiusZoom = config.iconRadius * cameraState.zoom
-		local iconSize = iconRadiusZoom * distMult * iconData.size
+		-- Engine-matching icon size (same as GL4DrawIcons/DrawIcons)
+		local resScale = render.contentScale or 1
+		local unitBaseSize = Spring.GetConfigFloat("MinimapIconScale", 3.5)
+		local iconSize = unitBaseSize * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(cameraState.zoom) * resScale * iconData.size
 		local sx, sy = WorldToPipCoords(wx, wz)
 
 		-- Counter-rotate icon to keep it upright
@@ -8908,10 +8876,15 @@ local function DrawCameraViewBounds()
 	
 	-- Convert to pip coordinates (no clamping, preserve true perspective shape)
 	-- Note: World Z maps to pip Y inversely (high Z = low Y in pip view)
+	-- Round to nearest pixel to eliminate sub-pixel jitter when the camera moves
 	local bl_x, bl_y = WorldToPipCoords(bottomLeftX, bottomLeftZ)
 	local br_x, br_y = WorldToPipCoords(bottomRightX, bottomRightZ)
 	local tr_x, tr_y = WorldToPipCoords(topRightX, topRightZ)
 	local tl_x, tl_y = WorldToPipCoords(topLeftX, topLeftZ)
+	bl_x = math.floor(bl_x + 0.5);  bl_y = math.floor(bl_y + 0.5)
+	br_x = math.floor(br_x + 0.5);  br_y = math.floor(br_y + 0.5)
+	tr_x = math.floor(tr_x + 0.5);  tr_y = math.floor(tr_y + 0.5)
+	tl_x = math.floor(tl_x + 0.5);  tl_y = math.floor(tl_y + 0.5)
 	
 	-- Calculate chamfer size (4 pixels at 1080p, scaled by resolution)
 	local resScale = render.contentScale or 1
@@ -9607,10 +9580,10 @@ local function DrawBuildCursor()
 		local iconData = cache.unitIcon[buildDefID]
 		local texture = iconData.bitmap
 
-		-- Calculate icon size (same as DrawIcons function)
-		local distMult = math.min(math.max(1, 2.2-(cameraState.zoom*3.3)), 3)
-		local iconRadiusZoom = config.iconRadius * cameraState.zoom
-		local iconSize = iconRadiusZoom * distMult * iconData.size
+		-- Engine-matching icon size (same as GL4DrawIcons/DrawIcons)
+		local resScale = render.contentScale or 1
+		local unitBaseSize = Spring.GetConfigFloat("MinimapIconScale", 3.5)
+		local iconSize = unitBaseSize * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(cameraState.zoom) * resScale * iconData.size
 
 		local sx, sy = WorldToPipCoords(wx, wz)
 
@@ -12909,10 +12882,10 @@ local function CreateIconShatter(unitID, unitDefID, unitTeam, unitVelX, unitVelZ
 	-- Get icon data
 	local iconData = cache.unitIcon[unitDefID]
 	if not iconData or not iconData.size then return end -- Ensure icon has size data
-	-- Calculate distMult the same way as icon rendering to match size at all zoom levels
-	local distMult = math.min(math.max(1, 2.2-(cameraState.zoom*3.3)), 3)
-	-- Use exact same formula as icon rendering: iconRadius * cameraState.zoom * iconData.size * distMult
-	local iconSize = config.iconRadius * cameraState.zoom * iconData.size * distMult
+	-- Engine-matching icon size (same as GL4DrawIcons/DrawIcons)
+	local resScale = render.contentScale or 1
+	local unitBaseSize = Spring.GetConfigFloat("MinimapIconScale", 3.5)
+	local iconSize = unitBaseSize * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(cameraState.zoom) * resScale * iconData.size
 
 	-- Use fixed 2x2 or 3x3 grid for fewer, bigger fragments
 	-- Adjust threshold based on actual rendered size
