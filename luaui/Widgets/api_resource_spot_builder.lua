@@ -320,21 +320,19 @@ local function sortBuilders(units, constructorIds, buildingId, shift)
 	-----------------------------------
 
 	-- order secondary builders to guard main builders, equally dispersed
-	local index = 1
+	-- Doo: Dispersion function changed; we don't care if #mainBuilder > #secondaryBuilders because secondary don't need to be give two guard cmds, so it's just a simple modulo function
+	
 	for i, uid in pairs(secondaryBuilders) do
-		local mainBuilderId = mainBuilders[index]
+		local targetIndex = (i%#mainBuilders ~= 0 and i%#mainBuilders) or #mainBuilders
+		local mainBuilderId = mainBuilders[targetIndex]
 		if not shift then
 			spGiveOrderToUnit(uid, CMD_GUARD, { mainBuilderId }, { })
-			index = index + 1
 		end
 		-- if we give a guard order on a unit already guarded with shift, it will get cancelled
 		-- so do some queue analysis and avoid duplicate commands
 		if shift and not hasExistingGuardOrder(uid) then
 			spGiveOrderToUnit(uid, CMD_GUARD, { mainBuilderId }, { "shift" })
-			index = index + 1
 		end
-
-		if index > #mainBuilders then index = 1 end
 	end
 
 	if #mainBuilders == 0 then return end
@@ -409,36 +407,68 @@ local function ApplyPreviewCmds(cmds, constructorIds, shift)
 		return
 	end
 
-	local _, _, meta, _ = Spring.GetModKeyState()
+	local _, ctrl , meta, _ = Spring.GetModKeyState()
+	
+	local insert = ctrl -- default is meta for split and ctrl for insert (maybe disable ctrl altogether)
+	local split = meta
+	
+	if meta and (#cmds == 1 or #mainBuilders <=1 ) then -- invert split/insert when single cmds or single units (no splitting can be done)
+		insert = meta
+		split = false
+	end
+
 
 	local unitArray = {} -- make unit array to avoid extra work
 	for i = 1, #mainBuilders do
 		unitArray[#unitArray + 1] = mainBuilders[i]
 	end
-
+	local fakeShift = {}
 	for i = 1, #cmds do
 		local cmd = cmds[i]
 		local orderParams = { cmd[2], cmd[3], cmd[4], cmd[5] }
 
-		if meta then -- put at front of queue
+		if insert then -- put at front of queue
 			-- cmd insert layout is really weird, it needs to be formatted like:
 			-- { CMD.INSERT, { queue_pos, cmd_id, opt, params_flattened, }, { "alt }}
 			-- this an engine command so index starts at 0. Increment position by command count
-			Spring.GiveOrderToUnitArray(unitArray, CMD.INSERT, {i-1, -buildingId, 0, unpack(orderParams) }, { "alt" })
+			if not split then -- Unchanged
+				Spring.GiveOrderToUnitArray(unitArray, CMD.INSERT, {i-1, -buildingId, 0, unpack(orderParams) }, { "alt" })
+			else
+				local temp =((i%(#unitArray) ~= 0) and (i%(#unitArray))) or #unitArray -- i turns into  (1;#unitArray) => this splits cmds across builders equally
+				while (temp) <= #unitArray do -- temp turns into temp + #cmds until temp > unitArray => this splits all builders across #cmds equally
+					Spring.GiveOrderToUnit(unitArray[temp],CMD.INSERT, {(math.floor(i/(#unitArray))), -buildingId, 0, unpack(orderParams) }, { "alt" })
+					temp = temp + #cmds
+				end
+			end
 		else
 			-- we don't want to give a stop command to clear queue because it plays an unwanted sound
 			-- issuing any command without shift will clear the queue for us,
 			-- so we use the real shift value for the first command, then we force shift for all the others
 			-- since any commands passed to this function are intended to be queued, not discarded.
 			-- NEVER USE TERNARIES WITH OUTCOME VALUES THAT CAN BE FALSE
-			local fakeShift = false
-			if i == 1 then
-				fakeShift = shift
+			if not split then -- Unchanged
+				fakeShift = false
+				if i == 1 then
+					fakeShift = shift
+				else
+					fakeShift = true
+				end
+				local opt = fakeShift and { "shift" } or { }
+				Spring.GiveOrderToUnitArray(unitArray, -buildingId, orderParams, opt)
 			else
-				fakeShift = true
+				local temp = ((i%(#unitArray) ~= 0) and (i%(#unitArray))) or #unitArray  -- i turns into  (1;#unitArray) => this splits cmds across builders equally
+				fakeShift[temp] = false
+				if (math.floor(i/(#unitArray))) == 0 then -- First command in temp's queue so we apply shift
+					fakeShift[temp] = shift
+				else -- next command in temp's queue so we don't apply shift anymore
+					fakeShift[temp] = true
+				end
+				local opt = fakeShift[temp] and { "shift" } or { }
+				while (temp) <= #unitArray do -- temp turns into temp + #cmds until temp > unitArray => this splits all builders across #cmds equally
+					Spring.GiveOrderToUnit(unitArray[temp], -buildingId, orderParams, opt)
+					temp = temp + #cmds
+				end
 			end
-			local opt = fakeShift and { "shift" } or { }
-			Spring.GiveOrderToUnitArray(unitArray, -buildingId, orderParams, opt)
 		end
 	end
 end
