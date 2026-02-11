@@ -22,10 +22,6 @@ local allowAll = Spring.Utilities.Gametype.isSinglePlayer()
 	or (Spring.Utilities.Gametype.isFFA() and not Spring.Utilities.Gametype.isTeams())
 	or Spring.Utilities.Gametype.isSandbox()
 
-local function allowAreaCapture(cmdOptions)
-	return allowAll or not cmdOptions.ctrl -- OPT_CTRL allows capturing allies with area commands.
-end
-
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
 	-- accepts: CMD.CAPTURE
 	local nParams = #cmdParams
@@ -40,7 +36,13 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 		end
 	elseif nParams == 4 then
 		-- Command is targeting an area.
-		return allowAreaCapture(cmdOptions)
+		if allowAll or not cmdOptions.ctrl then
+			return true
+		else
+			cmdOptions.ctrl = false
+			Spring.GiveOrderToUnit(unitID, cmdID, cmdParams, cmdOptions)
+			return false
+		end
 	end
 	return true
 end
