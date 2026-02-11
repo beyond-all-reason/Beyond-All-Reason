@@ -16,7 +16,7 @@ local triggers = {
 	triggerWithInvalidActionID = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = math.maxinteger,
+			gameFrame = 100000000,
 		},
 		actions = { 'invalidActionID' },
 	},
@@ -32,7 +32,7 @@ local triggers = {
 			active = 0,
 		},
 		parameters = {
-			gameFrame = math.maxinteger,
+			gameFrame = 100000000,
 		},
 		actions = { 'actionMissingType' },
 	},
