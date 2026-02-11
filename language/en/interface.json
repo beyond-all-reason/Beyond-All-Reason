@@ -710,6 +710,12 @@
 				"endless": "Endless"
 			}
 		},
+		"ordinals": {
+			"one": "%{count}st",
+			"two": "%{count}nd",
+			"few": "%{count}rd",
+			"other": "%{count}th"
+		},
 		"territorialDomination": {
 			"roundOverPopup": {
 				"gameOver": "Game Over",
