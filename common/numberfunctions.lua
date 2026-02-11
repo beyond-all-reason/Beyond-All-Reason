@@ -203,7 +203,7 @@ if not math.HSLtoRGB then
 		---@param positions {x:number, z:number}[] must have fields .x and .z
 		---@return {x:number, z:number}? position
 		function math.getClosestPosition(x, z, positions)
-			if not positions or #positions <= 0 then
+			if not (x and z and positions and positions[1]) then
 				return
 			end
 			local bestPos
