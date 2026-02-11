@@ -2137,6 +2137,8 @@ local function EnsureSavedExpandedDimensions()
 	return uiState.savedDimensions
 end
 
+local UpdateTracking  -- forward declaration (called in StartMaximizeAnimation, defined later)
+
 local function StartMaximizeAnimation()
 	local buttonSize = math.floor(render.usedButtonSize * config.maximizeSizemult)
 	local screenMarginPx = math.floor(config.screenMargin * render.vsy)
@@ -2282,7 +2284,7 @@ local function UpdateCentering(mx, my)
 	end
 end
 
-local function UpdateTracking()
+UpdateTracking = function()
 	local uCount = 0
 	local ax, az = 0, 0
 	local stillAlive = {}
@@ -13099,9 +13101,9 @@ function widget:GameStart()
 		StartMaximizeAnimation()
 	end
 
-	-- Automatically track the commander at game start (not for spectators)
+	-- Automatically track the commander at game start (not for spectators or minimap mode)
 	local spec = Spring.GetSpectatingState()
-	if not spec then
+	if not spec and not isMinimapMode then
 		local commanderID = FindMyCommander()
 		if commanderID then
 			interactionState.areTracking = {commanderID}  -- Store as table/array
