@@ -1105,6 +1105,8 @@
 				"teamcolors_descr": "Remplace les couleurs du salon par une palette de couleurs générée automatiquement\n\nNOTE : recharge tous les widgets car ceux-ci doivent mettre à jour leurs couleurs",
 				"sameteamcolors": "couleur d'équipe",
 				"sameteamcolors_descr": "Utilise la même couleur pour tous les membres d'une équipe\n\nNOTE: recharge tous les widgets pour mettre à jour les couleurs d'équipe",
+				"enablewhiteoutline": "Active le contour à haut contraste pour les textes colorés",
+				"enablewhiteoutline_descr": "Ajoute un contour blanc autour des noms de joueurs ayant une couleur sombre",
 				"anonymous_descr": "Définit la couleur du joueur anonyme utilisée pour l'interface\n(le changement de valeur prendra quelques secondes pour recharger l'interface).",
 				"anonymous_r": "Rouge Anonyme",
 				"anonymous_g": "Vert Anonyme",
