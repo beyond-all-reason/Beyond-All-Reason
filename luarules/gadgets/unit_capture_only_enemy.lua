@@ -1,5 +1,9 @@
 local gadget = gadget ---@type Gadget
 
+local disabled = Spring.Utilities.Gametype.isSinglePlayer()
+	or (Spring.Utilities.Gametype.isFFA() and not Spring.Utilities.Gametype.isTeams())
+	or Spring.Utilities.Gametype.isSandbox()
+
 function gadget:GetInfo()
 	return {
 		name = "Capture Only Enemy",
@@ -8,7 +12,7 @@ function gadget:GetInfo()
 		date = "March 2023",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = not disabled,
 	}
 end
 
