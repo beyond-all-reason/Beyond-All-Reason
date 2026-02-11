@@ -1,5 +1,6 @@
 return {
 	armfmine3 = {
+		activatewhenbuilt = true,
 		blocking = false,
 		buildpic = "ARMFMINE3.DDS",
 		buildtime = 400,
@@ -28,7 +29,9 @@ return {
 		mincloakdistance = 8,
 		minwaterdepth = 0,
 		nochasecategory = "VTOL",
+		noautofire = true,
 		objectname = "Units/ARMFMINE3.s3o",
+		onoffable = true,
 		script = "mines_lus.lua",
 		seismicsignature = 0,
 		selfdestructas = "FMINE_HEAVY",

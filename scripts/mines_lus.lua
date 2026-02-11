@@ -2,31 +2,11 @@
 local base = piece("base")
 local unitDefID = Spring.GetUnitDefID(unitID)
 local triggerRange = tonumber(UnitDefs[unitDefID].customParams.detonaterange) or 64
-
+local SpGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
 local math_sqrt = math.sqrt
+local stop_detect = 1
 
--- Author: Doo
--- Requires customParams.detonaterange in unitDefs or 64 elmos range will be used
--- Possible enhancements: Use GetUnitsInCylinder(or sphere) of detonaterange and check for any restriction on target units
-
-function GetClosestEnemyDistance()
-	targetID = Spring.GetUnitNearestEnemy(unitID, triggerRange)
-	if targetID then
-		local tx,ty,tz = Spring.GetUnitPosition(targetID)
-		local dis = distance(ux,uy,uz,tx,ty,tz)
-		return dis
-	else
-		return math.huge
-	end
-end
-
-function distance(x1,y1,z1,x2,y2,z2)
-	local x = (x1-x2)
-	local y = (y1-y2)
-	local z = (z1-z2)
-	local dist = math_sqrt(x*x + y*y + z*z)
-	return dist
-end
+-- Author: Doo update jan 2026
 
 function script.AimWeapon()
 	return false
@@ -44,22 +24,40 @@ function script.FireWeapon()
 end
 
 function script.Create()
-	ux,uy,uz = Spring.GetUnitPosition(unitID)
+	local inProgress = Spring.GetUnitIsBeingBuilt(unitID)
+	while (inProgress) do
+		inProgress = Spring.GetUnitIsBeingBuilt(unitID)
+		Sleep(500)
+	end
 	StartThread(EnemyDetect)
 end
 
 function EnemyDetect()
+	SetSignalMask(stop_detect)
 	while true do
-		local inProgress = Spring.GetUnitIsBeingBuilt(unitID)
-		local firestate = Spring.GetUnitStates(unitID, false)
-		local stunned = Spring.GetUnitIsStunned (unitID) 
-		if not inProgress and firestate and firestate > 0 and GetClosestEnemyDistance() <= triggerRange and not stunned then
-			StartThread(Detonate)
+		if SpGetUnitNearestEnemy(unitID, triggerRange) ~= nil then
+			StartThread(Detonate) -- I keep this because once the thread starts, a stop_detect signal should not prevent from autodesctruction
 			break
 		else
 			Sleep(1)
 		end
 	end
+end
+
+function SetStunned(a,b) -- called by unit_stun_script.lua
+	if b then
+		Signal(stop_detect)
+	else
+		StartThread(EnemyDetect)
+	end
+end
+
+function script.Activate() -- use on/off rather than firestate toggle
+	StartThread(EnemyDetect)
+end
+
+function script.Deactivate()
+	Signal(stop_detect)
 end
 
 function Detonate()
