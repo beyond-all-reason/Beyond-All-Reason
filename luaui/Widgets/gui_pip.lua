@@ -425,6 +425,18 @@ local miscState = {
 	minimapCameraRestored = false,  -- Whether minimap camera state was restored from config (for luaui reload)
 	crashingUnits = {},  -- Units that are crashing (no icon should be drawn)
 }
+
+-- Ghost building cache: enemy buildings seen but no longer in direct LOS
+-- Position is static (buildings don't move), drawn from cache when out of LOS
+-- Mirrors engine minimap ghost building behavior at last known position
+-- key = unitID, value = { defID = unitDefID, x = worldX, z = worldZ, teamID = teamID }
+local ghostBuildings = {}
+
+-- Building position caches: buildings never move, avoiding per-frame GetUnitBasePosition
+-- Shared across GL4 and legacy draw paths
+local ownBuildingPosX = {}  -- [unitID] = worldX
+local ownBuildingPosZ = {}  -- [unitID] = worldZ
+
 -- Consolidated drawing data
 local drawData = {
 	iconTeam = {},
@@ -2535,8 +2547,22 @@ local function DrawUnit(uID, checkAllyTeamID, playerSelections, trackingSet)
 	if miscState.crashingUnits[uID] then return end
 
 	local uTeam = spFunc.GetUnitTeam(uID)
-	local ux, uy, uz = spFunc.GetUnitBasePosition(uID)
-	if not ux then return end  -- Early exit if position is invalid
+
+	-- Get world position (cached for non-transportable buildings since they don't move)
+	local ux, uz
+	local cachedX = ownBuildingPosX[uID]
+	if cachedX then
+		ux = cachedX
+		uz = ownBuildingPosZ[uID]
+	else
+		local x, _, z = spFunc.GetUnitBasePosition(uID)
+		if not x then return end
+		ux, uz = x, z
+		if uDefID and cache.isBuilding[uDefID] and cache.cantBeTransported[uDefID] then
+			ownBuildingPosX[uID] = ux
+			ownBuildingPosZ[uID] = uz
+		end
+	end
 
 	-- Visibility check: only needed for enemy units when we have a specific ally team to check
 	if checkAllyTeamID then
@@ -5072,6 +5098,38 @@ miscState.startX, _, miscState.startZ = Spring.GetTeamStartPosition(Spring.GetMy
 InitGL4Icons()
 InitGL4Primitives()
 
+-- Ghost building sharing: merge data from any already-running sibling PIP
+-- This ensures all PIP instances share the same ghost history even on partial reload
+for n = 0, 4 do
+	if n ~= pipNumber and WG['pip' .. n] and WG['pip' .. n].GetGhostBuildings then
+		local siblingGhosts = WG['pip' .. n].GetGhostBuildings()
+		if siblingGhosts then
+			for gID, ghost in pairs(siblingGhosts) do
+				if not ghostBuildings[gID] then
+					ghostBuildings[gID] = { defID = ghost.defID, x = ghost.x, z = ghost.z, teamID = ghost.teamID }
+				end
+			end
+			break  -- All PIPs share the same LOS perspective, one source is sufficient
+		end
+	end
+end
+
+-- Scan currently-visible enemy buildings for ghost tracking (handles luaui reload mid-game)
+-- UnitEnteredLos won't fire for units already in LOS at widget init, so we pre-populate here
+if not Spring.GetSpectatingState() then
+	local myAllyTeam = Spring.GetMyAllyTeamID()
+	local allUnits = Spring.GetAllUnits()
+	for _, uID in ipairs(allUnits) do
+		local defID = Spring.GetUnitDefID(uID)
+		if defID and cache.isBuilding[defID] and not Spring.IsUnitAllied(uID) then
+			local x, _, z = Spring.GetUnitBasePosition(uID)
+			if x then
+				ghostBuildings[uID] = { defID = defID, x = x, z = z, teamID = Spring.GetUnitTeam(uID) }
+			end
+		end
+	end
+end
+
 -- For spectators, center on map and zoom out more (always on new game, even if has saved config)
 local isSpectator = Spring.GetSpectatingState()
 local gameFrame = Spring.GetGameFrame()
@@ -5213,6 +5271,10 @@ end
 	end
 	WG['pip'..pipNumber].GetCameraCenter = function()
 		return cameraState.wcx, cameraState.wcz
+	end
+	-- Expose ghost building cache so sibling PIPs can share data on reload
+	WG['pip'..pipNumber].GetGhostBuildings = function()
+		return ghostBuildings
 	end
 
 	-- In minimap mode, also register as WG.pip_minimap for compatibility
@@ -5580,6 +5642,13 @@ function widget:PlayerChanged(playerID)
 	-- Update spec state
 	cameraState.mySpecState = Spring.GetSpectatingState()
 
+	-- Clear ghost buildings when becoming spectator (spectators see everything)
+	if cameraState.mySpecState then
+		for k in pairs(ghostBuildings) do ghostBuildings[k] = nil end
+		for k in pairs(ownBuildingPosX) do ownBuildingPosX[k] = nil end
+		for k in pairs(ownBuildingPosZ) do ownBuildingPosZ[k] = nil end
+	end
+
 	-- Keep tracking even if fullview is disabled - tracking will resume when fullview is re-enabled
 end
 
@@ -5769,6 +5838,8 @@ function widget:GetConfigData()
 		minimapModeWcx = isMinimapMode and cameraState.wcx or nil,
 		minimapModeWcz = isMinimapMode and cameraState.wcz or nil,
 		minimapModeZoom = isMinimapMode and cameraState.zoom or nil,
+		-- Ghost building positions persist across luaui reload (same game only)
+		ghostBuildings = ghostBuildings,
 	}
 end
 
@@ -5923,6 +5994,11 @@ function widget:SetConfigData(data)
 
 	local currentGameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID")
 	local isSameGame = (data.gameID and currentGameID and data.gameID == currentGameID)
+
+	-- Restore ghost buildings from saved config (same game only — positions are game-specific)
+	if isSameGame and data.ghostBuildings then
+		ghostBuildings = data.ghostBuildings
+	end
 
 	if Spring.GetGameFrame() > 0 or isSameGame then
 		interactionState.areTracking = data.areTracking
@@ -6653,9 +6729,12 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet)
 	local atlasUVs = gl4Icons.atlasUVs
 	local defaultUV = gl4Icons.defaultUV
 	local cacheUnitIcon = cache.unitIcon
+	local cacheIsBuilding = cache.isBuilding
 	local crashingUnits = miscState.crashingUnits
 	local localTeamAllyTeamCache = teamAllyTeamCache
 	local localTeamColors = teamColors
+	local localBuildPosX = ownBuildingPosX
+	local localBuildPosZ = ownBuildingPosZ
 	local usedElements = 0
 	local maxInst = gl4Icons.maxInstances
 	local pipUnits = miscState.pipUnits
@@ -6687,9 +6766,21 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet)
 			unitTeamCacheTbl[uID] = uTeam
 		end
 
-		-- Get world position (must be per-frame — units move)
-		local ux, _, uz = spFunc.GetUnitBasePosition(uID)
-		if not ux then return usedEl end
+		-- Get world position (cached for non-transportable buildings since they don't move)
+		local ux, uz
+		local cachedX = localBuildPosX[uID]
+		if cachedX then
+			ux = cachedX
+			uz = localBuildPosZ[uID]
+		else
+			local x, _, z = spFunc.GetUnitBasePosition(uID)
+			if not x then return usedEl end
+			ux, uz = x, z
+			if uDefID and cacheIsBuilding[uDefID] and cache.cantBeTransported[uDefID] then
+				localBuildPosX[uID] = ux
+				localBuildPosZ[uID] = uz
+			end
+		end
 
 		-- LOS filtering for enemy units
 		local isRadar = false
@@ -6750,6 +6841,48 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet)
 		data[off+5] = uvs[1]; data[off+6] = uvs[2]; data[off+7] = uvs[3]; data[off+8] = uvs[4]
 		data[off+9] = r; data[off+10] = g; data[off+11] = b; data[off+12] = (uID * 0.37) % 6.2832
 		return usedEl + 1
+	end
+
+	-- Ghost building pass: enemy buildings previously seen but no longer in LOS
+	-- Rendered first (lowest VBO indices) so live icons overdraw them correctly
+	-- Zero per-frame API calls — all data is cached from UnitEnteredLos
+	if checkAllyTeamID then
+		-- Build set of currently-visible units to skip ghosts that are live
+		local pipUnitSet = {}
+		for i = 1, unitCount do
+			pipUnitSet[pipUnits[i]] = true
+		end
+
+		local viewL = render.world.l - 220
+		local viewR = render.world.r + 220
+		local viewT = render.world.t - 220
+		local viewB = render.world.b + 220
+
+		for gID, ghost in pairs(ghostBuildings) do
+			if usedElements >= maxInst then break end
+			if not pipUnitSet[gID] then
+				if ghost.x >= viewL and ghost.x <= viewR and ghost.z >= viewT and ghost.z <= viewB then
+					local uvs, sizeScale
+					if cacheUnitIcon[ghost.defID] then
+						local iconData = cacheUnitIcon[ghost.defID]
+						uvs = atlasUVs[iconData.bitmap] or defaultUV
+						sizeScale = iconData.size
+					else
+						uvs = defaultUV
+						sizeScale = 0.5
+					end
+					local color = localTeamColors[ghost.teamID]
+					-- Dim ghost icons to simulate being under FoW overlay (engine draws them below LOS layer)
+					local dim = 0.6
+					local r, g, b = (color and color[1] or 1) * dim, (color and color[2] or 1) * dim, (color and color[3] or 1) * dim
+					local off = usedElements * GL4_INSTANCE_STEP
+					data[off+1] = ghost.x; data[off+2] = ghost.z; data[off+3] = sizeScale; data[off+4] = 0.0
+					data[off+5] = uvs[1]; data[off+6] = uvs[2]; data[off+7] = uvs[3]; data[off+8] = uvs[4]
+					data[off+9] = r; data[off+10] = g; data[off+11] = b; data[off+12] = (gID * 0.37) % 6.2832
+					usedElements = usedElements + 1
+				end
+			end
+		end
 	end
 
 	-- 4-pass layer ordering: structures (bottom) → ground → commanders → air (top)
@@ -8019,6 +8152,30 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	if not useGL4ThisFrame then
 		for i = 1, unitCount do
 			DrawUnit(miscState.pipUnits[i], checkAllyTeamID, playerSelections, trackingSet)
+		end
+
+		-- Inject ghost buildings (enemy buildings seen but no longer in LOS)
+		if checkAllyTeamID then
+			local pipUnitSet = {}
+			for i = 1, unitCount do
+				pipUnitSet[miscState.pipUnits[i]] = true
+			end
+			for gID, ghost in pairs(ghostBuildings) do
+				if not pipUnitSet[gID] then
+					if ghost.x >= render.world.l - margin and ghost.x <= render.world.r + margin and
+					   ghost.z >= render.world.t - margin and ghost.z <= render.world.b + margin then
+						local idx = drawData.iconCount + 1
+						drawData.iconCount = idx
+						drawData.iconTeam[idx] = ghost.teamID
+						drawData.iconX[idx] = worldToPipOffsetX + ghost.x * worldToPipScaleX
+						drawData.iconY[idx] = worldToPipOffsetZ + ghost.z * worldToPipScaleZ
+						drawData.iconUdef[idx] = ghost.defID
+						drawData.iconUnitID[idx] = gID
+						drawData.iconSelected[idx] = false
+						drawData.iconBuildProgress[idx] = 1
+					end
+				end
+			end
 		end
 
 		-- Truncate stale entries from previous frame (ensures no stale data is visible)
@@ -12993,12 +13150,52 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	-- Clear GL4 caches for this unit
 	gl4Icons.unitDefCache[unitID] = nil
 	gl4Icons.unitTeamCache[unitID] = nil
+
+	-- Clear ghost building and position caches
+	ghostBuildings[unitID] = nil
+	ownBuildingPosX[unitID] = nil
+	ownBuildingPosZ[unitID] = nil
 end
 
 -- Handle unit team changes (give/take)
 function widget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
 	-- Clear GL4 cache so it picks up the new team color
 	gl4Icons.unitTeamCache[unitID] = nil
+end
+
+-- Handle buildings being picked up by transports — invalidate cached position
+function widget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
+	ownBuildingPosX[unitID] = nil
+	ownBuildingPosZ[unitID] = nil
+end
+
+-- Handle buildings being dropped by transports — update cached position and ghost
+function widget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
+	local x, _, z = spFunc.GetUnitBasePosition(unitID)
+	if x and cache.isBuilding[unitDefID] then
+		if cache.cantBeTransported[unitDefID] then
+			ownBuildingPosX[unitID] = x
+			ownBuildingPosZ[unitID] = z
+		end
+		-- Update ghost position if this was a tracked enemy building
+		if ghostBuildings[unitID] then
+			ghostBuildings[unitID].x = x
+			ghostBuildings[unitID].z = z
+		end
+	end
+end
+
+-- Track enemy building positions for ghost rendering on PIP
+-- UnitEnteredLos is only called for non-allied units entering the local player's LOS
+-- We record the building's position so we can draw its icon when it leaves LOS
+function widget:UnitEnteredLos(unitID, unitTeam)
+	if cameraState.mySpecState then return end
+	local unitDefID = spFunc.GetUnitDefID(unitID)
+	if not unitDefID then return end
+	if not cache.isBuilding[unitDefID] then return end
+	local x, _, z = spFunc.GetUnitBasePosition(unitID)
+	if not x then return end
+	ghostBuildings[unitID] = { defID = unitDefID, x = x, z = z, teamID = unitTeam }
 end
 
 -- Handle explosions from weapons (called when a visible explosion occurs)
