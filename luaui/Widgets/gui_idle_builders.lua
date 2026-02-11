@@ -36,6 +36,8 @@ local setHeight = 0.046
 local maxIcons = 9
 local showRez = true
 local doUpdateForce = true
+local justSelected = false
+local listSorted = {} -- listSorted[unitDefID]: set to nil when idle list is updated, set to true when idleList[unitDefID] is sorted
 
 local leftclick = 'LuaUI/Sounds/buildbar_add.wav'
 local rightclick = 'LuaUI/Sounds/buildbar_click.wav'
@@ -54,12 +56,14 @@ local spGetMouseState = Spring.GetMouseState
 local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spGetFactoryCommandCount = Spring.GetFactoryCommandCount
 local myTeamID = Spring.GetMyTeamID()
+local spGetUnitPosition = Spring.GetUnitPosition
 
 local floor = mathFloor
 local ceil = math.ceil
 local min = math.min
 local max = mathMax
 local math_isInRect = math.isInRect
+local math_distance2dSquared = math.distance2dSquared
 
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE = GL.ONE
@@ -306,6 +310,7 @@ local function updateList(force)
 	local prevIdleList = idleList
 	idleList = {}
 	local queue
+	listSorted = {}
 	for unitID, unitDefID in pairs(unitList) do
 		queue = unitConf[unitDefID] and spGetFactoryCommandCount(unitID) or spGetUnitCommandCount(unitID)
 		if queue == 0 then
@@ -744,12 +749,23 @@ function widget:MousePress(x, y, button)
 								if clicks[unitDefID] then
 									clicks[unitDefID] = clicks[unitDefID] + 1
 								else
-									clicks[unitDefID] = 1
+									clicks[unitDefID] = 0
 								end
 								num = (clicks[unitDefID]) % (#idleList[unitDefID]) + 1
 							end
+							if not listSorted[unitDefID] then
+								-- FIXME: should use center of screen rather than camera
+								local camX, _, camZ = Spring.GetCameraPosition()
+								table.sort(idleList[unitDefID], function (a, b)
+									local unitAX, _, unitAZ = spGetUnitPosition(a)
+									local unitBX, _, unitBZ = spGetUnitPosition(b)
+									return math_distance2dSquared(unitAX, unitAZ, camX, camZ) < math_distance2dSquared(unitBX, unitBZ, camX, camZ)
+								end)
+								listSorted[unitDefID] = true
+							end
 							units = { idleList[unitDefID][num] }
 						end
+						justSelected = true
 						Spring.SelectUnitArray(units)
 					end
 					if button == 3 then
@@ -768,6 +784,12 @@ end
 
 function widget:SelectionChanged(sel)
 	selectedUnits = sel or {}
+	if justSelected then
+		justSelected = false
+		return
+	end
+	listSorted = {}
+	clicks = {}
 end
 
 
