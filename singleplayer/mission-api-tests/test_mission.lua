@@ -61,7 +61,7 @@ local triggers = {
 		parameters = {
 			gameFrame = 1100,
 		},
-		actions = { 'transferCons1', 'messageTransferCons2' },
+		actions = { 'transferCons2', 'messageTransferCons2' },
 	},
 
 	despawnEnergyGrid1 = {
@@ -93,7 +93,7 @@ local actions = {
 	spawnCons1 = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			name = 'con-bots',
+			unitNameRequired = 'con-bots',
             unitDefName = 'corck',
 			teamID = 0,
 			position = { x = 1800, z = 1600 },
@@ -116,7 +116,7 @@ local actions = {
 	nameEnergyGrid1 = {
 		type = actionTypes.NameUnits,
 		parameters = {
-			name = 'fusions',
+			unitNameToGive = 'fusions',
 			teamID = 0,
 			unitDefName = 'armfus',
 			area = { x1 = 0, z1 = 0, x2 = 999999, z2 = 2200 },
@@ -126,10 +126,10 @@ local actions = {
 	moveCons1 = {
 		type = actionTypes.IssueOrders,
 		parameters = {
-			name = 'con-bots',
+			unitNameRequired = 'con-bots',
 			orders = {
-				{ CMD.MOVE, { 1850, 0, 1500 }, CMD.OPT_SHIFT },
-				{ CMD.MOVE, { 1850, 0, 1800 }, CMD.OPT_SHIFT },
+				{ CMD.MOVE, { 1850, 0, 1500 }, { 'shift' } },
+				{ CMD.MOVE, { 1850, 0, 1800 }, { 'shift' } },
 			},
 		},
 	},
@@ -137,7 +137,7 @@ local actions = {
 	killCons1 = {
 		type = actionTypes.DespawnUnits,
 		parameters = {
-			name = 'con-bots',
+			unitNameRequired = 'con-bots',
 			selfDestruct = false,
 			reclaimed = false
 		},
@@ -153,7 +153,7 @@ local actions = {
 	selfDestructCons1 = {
 		type = actionTypes.DespawnUnits,
 		parameters = {
-			name = 'con-bots',
+			unitNameRequired = 'con-bots',
 			selfDestruct = true,
 			reclaimed = false
 		},
@@ -169,7 +169,7 @@ local actions = {
 	despawnCons1 = {
 		type = actionTypes.DespawnUnits,
 		parameters = {
-			name = 'con-bots',
+			unitNameRequired = 'con-bots',
 			selfDestruct = false,
 			reclaimed = true
 		},
@@ -185,7 +185,7 @@ local actions = {
 	despawnEnergyGrid1 = {
 		type = actionTypes.DespawnUnits,
 		parameters = {
-			name = 'fusions',
+			unitNameRequired = 'fusions',
 			selfDestruct = false,
 			reclaimed = true
 		},
@@ -201,7 +201,7 @@ local actions = {
 	transferCons1 = {
 		type = actionTypes.TransferUnits,
 		parameters = {
-			name = 'con-bots',
+			unitNameRequired = 'con-bots',
 			newTeam = 1,
 			given = false
 		},
@@ -214,10 +214,10 @@ local actions = {
 		},
 	},
 
-	transferCons1 = {
+	transferCons2 = {
 		type = actionTypes.TransferUnits,
 		parameters = {
-			name = 'con-bots',
+			unitNameRequired = 'con-bots',
 			newTeam = 0,
 			given = false
 		},
@@ -233,7 +233,7 @@ local actions = {
 	unnameCons = {
 		type = actionTypes.UnnameUnits,
 		parameters = {
-			name = 'con-bots',
+			unitNameRequired = 'con-bots',
 		},
 	},
 
@@ -247,7 +247,7 @@ local actions = {
 	gameEnd = {
 		type = actionTypes.Defeat,
 		parameters = {
-			allyTeamIDs = {0},
+			allyTeamIDs = { 0 },
 		},
 	},
 }
