@@ -1,9 +1,5 @@
 local gadget = gadget ---@type Gadget
 
-local disabled = Spring.Utilities.Gametype.isSinglePlayer()
-	or (Spring.Utilities.Gametype.isFFA() and not Spring.Utilities.Gametype.isTeams())
-	or Spring.Utilities.Gametype.isSandbox()
-
 function gadget:GetInfo()
 	return {
 		name = "Capture Only Enemy",
@@ -12,7 +8,7 @@ function gadget:GetInfo()
 		date = "March 2023",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = not disabled,
+		enabled = true,
 	}
 end
 
@@ -21,6 +17,14 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local CMD_CAPTURE = CMD.CAPTURE
+
+local allowAll = Spring.Utilities.Gametype.isSinglePlayer()
+	or (Spring.Utilities.Gametype.isFFA() and not Spring.Utilities.Gametype.isTeams())
+	or Spring.Utilities.Gametype.isSandbox()
+
+local function allowAreaCapture(cmdOptions)
+	return allowAll or not cmdOptions.ctrl -- OPT_CTRL allows capturing allies with area commands.
+end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
 	-- accepts: CMD.CAPTURE
@@ -36,7 +40,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 		end
 	elseif nParams == 4 then
 		-- Command is targeting an area.
-		return not cmdOptions.ctrl -- OPT_CTRL allows capturing allies with area commands.
+		return allowAreaCapture(cmdOptions)
 	end
 	return true
 end
