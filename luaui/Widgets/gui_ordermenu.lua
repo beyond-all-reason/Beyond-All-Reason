@@ -26,6 +26,7 @@ local spGetSpectatingState = Spring.GetSpectatingState
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
+local stateHotkeyHints = VFS.Include("luaui/Include/state_hotkey_hints.lua")
 local currentLayout
 
 local cellZoom = 1
@@ -120,6 +121,8 @@ local commandRefreshDelay = 0.05  -- 50ms delay
 
 -- Cache for hotkey strings
 local hotkeyCache = {}
+local hotkeyHighlightColor = "\255\255\215\100"
+local hotkeyTextColor = "\255\240\240\240"
 
 -- Reusable tables to reduce allocations in hot paths
 local stateCommandsTemp = {}
@@ -450,6 +453,7 @@ end
 local function reloadBindings()
 	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
 	actionHotkeys = VFS.Include("luaui/Include/action_hotkeys.lua")
+	hotkeyCache = {}
 end
 
 function widget:Initialize()
@@ -794,6 +798,35 @@ local function drawOrders()
 	end
 end
 
+local function getStateHotkeyHintText(cmd)
+	local stateCount = #cmd.params - 1
+	if stateCount <= 1 then
+		return ""
+	end
+
+	local hints = stateHotkeyHints.buildStateHotkeyHints(
+		actionHotkeys,
+		cmd.action,
+		stateCount,
+		function(rawHotkey)
+			return keyConfig.sanitizeKey(rawHotkey, currentLayout)
+		end,
+		function(stateValue)
+			local stateName = cmd.params[stateValue + 2]
+			if stateName then
+				return getCachedTranslation('ui.orderMenu.' .. stateName)
+			end
+			return tostring(stateValue)
+		end
+	)
+
+	if #hints <= 1 then
+		return ""
+	end
+
+	return stateHotkeyHints.formatStateHotkeyHints(hints, hotkeyHighlightColor, hotkeyTextColor)
+end
+
 function widget:DrawScreen()
 	local x, y = Spring.GetMouseState()
 	local cellHovered
@@ -813,9 +846,21 @@ function widget:DrawScreen()
 								hotkeyCache[cmd.action] = keyConfig.sanitizeKey(actionHotkeys[cmd.action], currentLayout)
 							end
 							local hotkey = hotkeyCache[cmd.action]
+							local stateHotkeyHintText = ""
+							if isStateCommand[cmd.id] then
+								stateHotkeyHintText = getStateHotkeyHintText(cmd)
+							end
 
 							if tooltip ~= '' and hotkey ~= '' then
-								tooltip = getCachedTranslation('ui.orderMenu.hotkeyTooltip', { hotkey = hotkey:upper(), tooltip = tooltip, highlightColor = "\255\255\215\100", textColor = "\255\240\240\240" })
+								tooltip = getCachedTranslation('ui.orderMenu.hotkeyTooltip', {
+									hotkey = hotkey:upper(),
+									tooltip = tooltip,
+									highlightColor = hotkeyHighlightColor,
+									textColor = hotkeyTextColor
+								})
+							end
+							if tooltip ~= '' and stateHotkeyHintText ~= '' then
+								tooltip = tooltip .. "\n" .. stateHotkeyHintText
 							end
 							if tooltip ~= '' then
 								local title
