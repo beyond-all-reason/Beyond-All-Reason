@@ -1497,6 +1497,8 @@ end
 function gadgetHandler:AllowCommand(unitID, unitDefID, unitTeam,
 									cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	local fromInsert
+	-- NB: State commands can be inserted, so should not update state or produce other side effects from
+	-- within g:AllowCommand callins without checking if they were inserted, first (`fromInsert ~= nil`).
 	if cmdID == CMD_INSERT then
 		fromInsert = cmdOptions
 		cmdTag, cmdID, cmdOptions = unpackInsertParams(cmdParams)
