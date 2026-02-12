@@ -3,10 +3,10 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name      = "Cloak",	-- gadget copy from: Decloak when damaged
+		name      = "Cloak",	
 		desc      = "optionally: decloaks units when they are damged",
-		author    = "Google Frog",
-		date      = "Nov 25, 2009", -- Major rework 12 Feb 2014
+		author    = "Google Frog", 
+		date      = "Nov 25, 2009", -- changed Jan 6th 2026, by ZainMGit
 		license   = "GNU GPL, v2 or later",
 		layer     = 0,
 		enabled   = true
@@ -46,14 +46,34 @@ local spGetUnitVelocity = Spring.GetUnitVelocity
 local spUseUnitResource = Spring.UseUnitResource
 local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
 local spEditUnitCmdDesc = Spring.EditUnitCmdDesc
+local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spGetUnitStates = Spring.GetUnitStates -- firestate tracking for cloak/decloak
+local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
+local spGetUnitCommands = Spring.GetUnitCommands
+local spSetUnitTarget = Spring.SetUnitTarget -- clear auto-target when cloaking
+local spGetUnitWeaponState = Spring.GetUnitWeaponState
+local spSetUnitWeaponState = Spring.SetUnitWeaponState
 
 local CMD_CLOAK = CMD.CLOAK
+local CMD_ATTACK = CMD.ATTACK
+local CMD_DGUN = CMD.DGUN
+local CMD_MANUALFIRE = CMD.MANUALFIRE
+local CMD_FIRE_STATE = CMD.FIRE_STATE
+local CMD_FIGHT = CMD.FIGHT
+local CMD_REMOVE = CMD.REMOVE
+local CMD_UNIT_CANCEL_TARGET = GameCMD.UNIT_CANCEL_TARGET
+local FIRE_STATE_HOLD_FIRE = 0
+local WEAPON_HOLDFIRE_PAUSE = 100000
 local DEFAULT_DECLOAK_TIME = 128
 local UPDATE_FREQUENCY = 10
 local CLOAK_MOVE_THRESHOLD = math.sqrt(0.2)
 local recloakUnit = {}
 local recloakFrame = {}
 local currentFrame = 0
+local fireStateBackup = {} --  firestate saved at cloak toggle
+local holdFireUnits = {} -- units currently set to hold fire
+local holdFireWeaponBackup = {} -- unit cached reload timers for hold fire pause
+local isCommander = {}
 
 local canCloak = {}
 for udid, ud in pairs(UnitDefs) do
@@ -63,6 +83,9 @@ for udid, ud in pairs(UnitDefs) do
 			ud.cloakCostMoving,
 			ud.cloakCost,
 		}
+	end
+	if ud.customParams and ud.customParams.iscommander then
+		isCommander[udid] = true
 	end
 end
 
@@ -119,11 +142,48 @@ function gadget:GameFrame(n)
 				recloakUnit[unitID] = frames - UPDATE_FREQUENCY
 			end
 		end
-
+		--Removable after an engine update
+		for unitID in pairs(holdFireUnits) do
+			local fireState = select(1, spGetUnitStates(unitID, false))
+			if fireState ~= FIRE_STATE_HOLD_FIRE then
+				holdFireUnits[unitID] = nil
+				-- leaving hold fire: restore any paused commander weapon timers
+				local weaponData = holdFireWeaponBackup[unitID]
+				if weaponData then
+					for weaponID, data in pairs(weaponData) do
+						spSetUnitWeaponState(unitID, weaponID, {reloadTime = data.reloadTime, reloadState = currentFrame + data.remaining})
+					end
+					holdFireWeaponBackup[unitID] = nil
+				end
+			else
+				if not isCommander[spGetUnitDefID(unitID)] then
+					holdFireUnits[unitID] = nil
+				else
+				-- enforce hold fire for commanders, drop targets and remove attack orders repeatedly
+				spSetUnitTarget(unitID, nil)
+				local cmdID, _, cmdTag = spGetUnitCurrentCommand(unitID)
+				if cmdTag and (cmdID == CMD_ATTACK or cmdID == CMD_FIGHT or cmdID == CMD_DGUN) then
+					spGiveOrderToUnit(unitID, CMD_REMOVE, {cmdTag}, 0)
+				end
+				local commands = spGetUnitCommands(unitID, -1)
+				if commands then
+					for i = 1, #commands do
+						local cmd = commands[i]
+						if cmd.tag and (cmd.id == CMD_ATTACK or cmd.id == CMD_FIGHT or cmd.id == CMD_DGUN) then
+							spGiveOrderToUnit(unitID, CMD_REMOVE, {cmd.tag}, 0)
+						end
+					end
+				end
+				if CMD_UNIT_CANCEL_TARGET then
+					spGiveOrderToUnit(unitID, CMD_UNIT_CANCEL_TARGET, {}, 0)
+				end
+				end
+			end
+		end
 	end
 end
 
--- Only called with enemyID if an enemy is within decloak radius.
+-- Only called with enemyID if an enemy is within decloak radius
 function gadget:AllowUnitCloak(unitID, enemyID)
 	if enemyID then
 		return false
@@ -169,6 +229,7 @@ local function SetWantedCloaked(unitID, state)
 		return
 	end
 
+	local unitDefID = spGetUnitDefID(unitID)
 	local wantCloakState = spGetUnitRulesParam(unitID, 'wantcloak')
 	local cmdDescID = spFindUnitCmdDesc(unitID, CMD_WANT_CLOAK)
 	if cmdDescID then
@@ -176,13 +237,41 @@ local function SetWantedCloaked(unitID, state)
 	end
 
 	if state == 1 and wantCloakState ~= 1 then
+		-- preserve pre-cloak firestate for restore on decloak 
+		fireStateBackup[unitID] = select(1, spGetUnitStates(unitID, false))
 		local cannotCloak = spGetUnitRulesParam(unitID, 'cannotcloak')
 		local areaCloaked = spGetUnitRulesParam(unitID, 'areacloaked')
 		if cannotCloak ~= 1 and areaCloaked ~= 1 then
 			spSetUnitCloak(unitID, 1)
 		end
 		spSetUnitRulesParam(unitID, 'wantcloak', 1, alliedTrueTable)
+		local cmdID, _, cmdTag = spGetUnitCurrentCommand(unitID)
+		if cmdTag and (cmdID == CMD_ATTACK or cmdID == CMD_FIGHT or cmdID == CMD_DGUN) then
+			spGiveOrderToUnit(unitID, CMD_REMOVE, {cmdTag}, 0)
+		end
+		local commands = spGetUnitCommands(unitID, -1)
+		if commands then
+			for i = 1, #commands do
+				local cmd = commands[i]
+				if cmd.tag and (cmd.id == CMD_ATTACK or cmd.id == CMD_FIGHT or cmd.id == CMD_DGUN) then
+					spGiveOrderToUnit(unitID, CMD_REMOVE, {cmd.tag}, 0)
+				end
+			end
+		end
+		-- drop any current auto-target so fire at will cannot keep shooting
+		spSetUnitTarget(unitID, nil)
+		-- force hold fire while cloaked
+		spGiveOrderToUnit(unitID, CMD_FIRE_STATE, {FIRE_STATE_HOLD_FIRE}, 0)
+		if CMD_UNIT_CANCEL_TARGET then
+			spGiveOrderToUnit(unitID, CMD_UNIT_CANCEL_TARGET, {}, 0)
+		end
 	elseif state == 0 and wantCloakState == 1 then
+		-- restore firestate after uncloaking
+		local fireState = fireStateBackup[unitID]
+		if fireState ~= nil then
+			spGiveOrderToUnit(unitID, CMD_FIRE_STATE, {fireState}, 0)
+		end
+		fireStateBackup[unitID] = nil
 		local areaCloaked = spGetUnitRulesParam(unitID, 'areacloaked')
 		if areaCloaked ~= 1 then
 			spSetUnitCloak(unitID, 0)
@@ -194,7 +283,7 @@ end
 GG.SetWantedCloaked = SetWantedCloaked
 
 function gadget:AllowCommand_GetWantedCommand()
-	return {[CMD_CLOAK] = true, [CMD_WANT_CLOAK] = true}
+	return {[CMD_CLOAK] = true, [CMD_WANT_CLOAK] = true, [CMD_FIRE_STATE] = true, [CMD_MANUALFIRE] = true, [CMD_DGUN] = true, [CMD_ATTACK] = true}
 end
 
 function gadget:AllowCommand_GetWantedUnitDefID()
@@ -205,6 +294,75 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 	if cmdID == CMD_WANT_CLOAK then
 		if canCloak[unitDefID] then
 			SetWantedCloaked(unitID, cmdParams[1])
+		end
+		return true
+	elseif cmdID == CMD_ATTACK then
+		-- manual attack should decloak so the command can fire immediately (commanders only)
+		if isCommander[unitDefID] and spGetUnitRulesParam(unitID, 'wantcloak') == 1 then
+			SetWantedCloaked(unitID, 0)
+		end
+		return true
+	elseif cmdID == CMD_MANUALFIRE or cmdID == CMD_DGUN then
+		-- manual fire should always decloak so the shot can happen (commanders only)
+		if isCommander[unitDefID] and spGetUnitRulesParam(unitID, 'wantcloak') == 1 then
+			SetWantedCloaked(unitID, 0)
+		end
+		return true
+	elseif cmdID == CMD_FIRE_STATE then
+		if cmdParams[1] == FIRE_STATE_HOLD_FIRE and isCommander[unitDefID] then
+			holdFireUnits[unitID] = true
+			-- hold fire should immediately drop any auto/priority target for commanders
+			spSetUnitTarget(unitID, nil)
+			if isCommander[unitDefID] and not holdFireWeaponBackup[unitID] then
+				-- pause commander weapons so ongoing shots stop immediately
+				local weapons = UnitDefs[unitDefID].weapons
+				if weapons and #weapons > 0 then
+					local weaponData = {}
+					for i = 1, #weapons do
+						local reloadState = spGetUnitWeaponState(unitID, i, 'reloadState')
+						if reloadState then
+							local reloadTime = spGetUnitWeaponState(unitID, i, 'reloadTime')
+							local remaining = reloadState - currentFrame
+							if remaining < 0 then
+								remaining = 0
+							end
+							weaponData[i] = {
+								remaining = remaining,
+								reloadTime = reloadTime,
+							}
+							spSetUnitWeaponState(unitID, i, {reloadTime = WEAPON_HOLDFIRE_PAUSE, reloadState = currentFrame + WEAPON_HOLDFIRE_PAUSE})
+						end
+					end
+					if next(weaponData) then
+						holdFireWeaponBackup[unitID] = weaponData
+					end
+				end
+			end
+			local cmdIDCurrent, _, cmdTag = spGetUnitCurrentCommand(unitID)
+			if cmdTag and (cmdIDCurrent == CMD_ATTACK or cmdIDCurrent == CMD_FIGHT or cmdIDCurrent == CMD_DGUN) then
+				spGiveOrderToUnit(unitID, CMD_REMOVE, {cmdTag}, 0)
+			end
+			local commands = spGetUnitCommands(unitID, -1)
+			if commands then
+				for i = 1, #commands do
+					local cmd = commands[i]
+					if cmd.tag and (cmd.id == CMD_ATTACK or cmd.id == CMD_FIGHT or cmd.id == CMD_DGUN) then
+						spGiveOrderToUnit(unitID, CMD_REMOVE, {cmd.tag}, 0)
+					end
+				end
+			end
+			if CMD_UNIT_CANCEL_TARGET then
+				spGiveOrderToUnit(unitID, CMD_UNIT_CANCEL_TARGET, {}, 0)
+			end
+		else
+			holdFireUnits[unitID] = nil
+			local weaponData = holdFireWeaponBackup[unitID]
+			if weaponData then
+				for weaponID, data in pairs(weaponData) do
+					spSetUnitWeaponState(unitID, weaponID, {reloadTime = data.reloadTime, reloadState = currentFrame + data.remaining})
+				end
+				holdFireWeaponBackup[unitID] = nil
+			end
 		end
 		return true
 	else -- cmdID == CMD_CLOAK
@@ -227,9 +385,19 @@ function gadget:UnitCreated(unitID, unitDefID)
 	end
 end
 
+function gadget:UnitDestroyed(unitID)
+	fireStateBackup[unitID] = nil
+	holdFireUnits[unitID] = nil
+	holdFireWeaponBackup[unitID] = nil
+end
+
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_CLOAK)
 	gadgetHandler:RegisterAllowCommand(CMD_WANT_CLOAK)
+	gadgetHandler:RegisterAllowCommand(CMD_FIRE_STATE)
+	gadgetHandler:RegisterAllowCommand(CMD_MANUALFIRE)
+	gadgetHandler:RegisterAllowCommand(CMD_DGUN)
+	gadgetHandler:RegisterAllowCommand(CMD_ATTACK)
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		gadget:UnitCreated(unitID, spGetUnitDefID(unitID))
 	end
