@@ -38,5 +38,5 @@ changes so it's easier for reviewers to see what is different in this PR
 
 <!-- If relevant
 ### AI / LLM usage statement:
-Tell us if you used an AI or LLM in the creation of this code, which AI tool was used, and to what extent. See AI Policy.md for information on this policy.
+Tell us if you used an AI or LLM in the creation of this code, which AI tool was used, and to what extent.
 -->

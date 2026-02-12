@@ -20,7 +20,7 @@ Also, we use some custom bindings for Lua 5.1 — for security, functionality, a
   * High table and string creation increases garbage collection and heap compaction.
   * Prefer e.g. `GetUnitCurrentCommand` over `GetUnitCommands`.  
 
-_Even more Recoil-specific Lua conventions and best practices can be found in the [Recoil wupget guide](https://recoilengine.org/docs/guides/wupget/)_
+_Even more Recoil-specific Lua conventions and best practices can be found in the [Recoil wupget guide](https://recoilengine.org/docs/guides/wupget/)._
 
 #### Protected tables
 
@@ -62,6 +62,7 @@ You should prefer common functions, then, over potential shortcuts. For example,
 
 * Comments must explain reasons, not behavior. What your code does should be self-explanatory from reading the code. We want to know only “why”, not “what”.  
 * Do not use magic numbers. Constant values should be declared together toward the top of the file and labeled as configurable or not, when non-obvious.  
+* Prefer tab-indentation over space-indentation.
 * Do not avoid newlines in code. Add extra newlines after blocks (loops, if/then statements) to aid future readers and reviewers. You can skip some extra newlines, like between immediately-nested if/elseif/else/then/end statements.  
 * Do not keep dead code. This includes all dead (unreachable), unused (not called), or removed (commented) code in any file. Delete all code not in active use.  
 * Do not keep throwaway debug code. Logging invalid or unexpected state is ok, as is debug code gated behind a debug flag.
@@ -85,4 +86,4 @@ Expect your code to be modified. We encourage you to use release versioning and 
 
 ## AI Policy
 
-Refer to the [AI Policy](AI_POLICY.md) if you used an AI to generate production code.
+Refer to the [AI Usage Policy](AI_POLICY.md) if you used an AI to generate production code.
