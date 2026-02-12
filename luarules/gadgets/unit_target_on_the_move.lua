@@ -843,9 +843,12 @@ else	-- UNSYNCED
 			targetList[unitID].targets = {}
 		end
 		if targetA == nil then
-			table.remove(targetList[unitID].targets, index)
+			if targetList[unitID].targets then
+				table.remove(targetList[unitID].targets, index)
+			end
 			return
 		end
+		targetList[unitID].targets = targetList[unitID].targets or {}
 		targetList[unitID].targets[index] = {
 			alwaysSeen = alwaysSeen,
 			ignoreStop = ignoreStop,

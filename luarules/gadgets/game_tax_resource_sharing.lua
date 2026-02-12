@@ -153,6 +153,8 @@ function gadget:GameFrame(f)
 			eExcess = math.max(0.0, eExcess * (1-sharingTax))
 			mExcess = math.max(0.0, mExcess * (1-sharingTax))
 
+			de = 0.0
+			dm = 0.0
 			if eShare > 0.0 then
 				de = math.min(1.0, eExcess / eShare)
 			end

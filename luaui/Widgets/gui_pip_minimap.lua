@@ -36,8 +36,8 @@ widget.GetInfo = function()
 		version   = "1.0",
 		date      = "January 2026",
 		license   = "GNU GPL, v2 or later",
-		layer     = -990000,
-		enabled   = false,
+		layer     = -99000,
+		enabled   = true,
 		handler   = true,
 	}
 end

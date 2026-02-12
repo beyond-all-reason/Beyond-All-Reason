@@ -73,9 +73,12 @@ end
 local function calculatePowerDiffXP(childID, parentID) -- this function calculates the right proportion of XP to inherit from child as though they were attacking the target themself.
 	local childDefID = spGetUnitDefID(childID)
 	local parentDefID = spGetUnitDefID(parentID)
-	local childPower =  unitPowerDefs[childDefID]
-	local parentPower = unitPowerDefs[parentDefID]
-	return (childPower/parentPower)*inheritChildrenXP[parentDefID]
+	if not childDefID or not parentDefID then
+		return 0
+	end
+	local childPower = unitPowerDefs[childDefID] or 1
+	local parentPower = unitPowerDefs[parentDefID] or 1
+	return (childPower / parentPower) * (inheritChildrenXP[parentDefID] or 1)
 end
 
 local initializeList = {}

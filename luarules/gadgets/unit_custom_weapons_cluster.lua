@@ -432,7 +432,7 @@ local function spawnClusterProjectiles(data, x, y, z, attackerID, projectileID)
 	local nearShields = customShieldDeflect and getNearShields(x, y, z, projectileSpeed * subframeScatter, attackerTeam)
 	local shieldDamage = nearShields and damageToShields[clusterDefID]
 
-	if hitShields then
+	if hitShields and getShieldPosition then
 		deflectX, deflectY, deflectZ = getShieldDeflection(x, y, z, deflectX, deflectY, deflectZ, hitShields)
 	elseif y - spGetGroundHeight(x, z) < 0.5 then
 		-- Inherited momentum does not depend on deflection, nor account for it,
