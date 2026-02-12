@@ -186,6 +186,45 @@ if not table.invert then
 	end
 end
 
+if not table.getUniqueArray then
+	local sort, floor = table.sort, math.floor
+
+	local lookup = {}
+	local function sortLookup(a, b)
+		return lookup[a] < lookup[b]
+	end
+
+	---Produces a new table that contains no duplicate and/or non-sequence-able entries.
+	---
+	---Values with non-integer keys are _ignored_. Values with integer keys are _sorted_.
+	---
+	---The final/sorted array forms a compact sequence with no gaps so can have new keys.
+	---@param tbl table may contain array, hash, or mixed data and can have gaps
+	---@return table sequence containing only unique entries, ordered by their integer indices
+	function table.getUniqueArray(tbl)
+		local unique, count = {}, 0
+		local invert = {}
+
+		-- Iterate the hash part to pull hashed integer keys back into the array part.
+		for index, option in pairs(tbl) do
+			if type(index) == "number" and index >= 1 and index == floor(index) then
+				if not invert[option] then
+					count = count + 1
+					unique[count] = option
+					invert[option] = index
+				elseif invert[option] > index then
+					invert[option] = index
+				end
+			end
+		end
+
+		lookup = invert
+		sort(unique, sortLookup)
+
+		return unique
+	end
+end
+
 if not table.append then
 	function table.append(appendTarget, appendData)
 		for _, value in pairs(appendData) do
@@ -207,6 +246,24 @@ if not table.count then
 			count = count + 1
 		end
 		return count
+	end
+end
+
+if not table.isEmpty then
+	---Check if the table is empty.
+	---@param tbl table
+	---@return boolean
+	function table.isEmpty(tbl)
+		return next(tbl) == nil
+	end
+end
+
+if not table.isNilOrEmpty then
+	---Check if the table is empty.
+	---@param tbl table
+	---@return number
+	function table.isNilOrEmpty(tbl)
+		return tbl == nil or table.isEmpty(tbl)
 	end
 end
 
@@ -409,6 +466,41 @@ if not table.any then
 			end
 		end
 		return false
+	end
+end
+
+if not table.valueIntersection then
+	---Creates a new array-style table containing the intersection of all input arrays.
+	---Returns only unique elements that appear in all input arrays.
+	---@generic V
+	---@param ... V[] Any number of array-style tables.
+	---@return V[] A new array containing only values present in all input arrays.
+	function table.valueIntersection(...)
+		local tables = { ...}
+
+		-- Count occurrences of each value across all arrays
+		local valueCounts = {}
+		for _, tbl in pairs(tables) do
+			-- Use a set for each array to handle duplicates correctly
+			local seen = {}
+			for _, value in pairs(tbl) do
+				if not seen[value] then
+					seen[value] = true
+					valueCounts[value] = (valueCounts[value] or 0) + 1
+				end
+			end
+		end
+
+		-- Keep only values that appear in all arrays
+		local result = {}
+		local numTables = table.count(tables)
+		for value, count in pairs(valueCounts) do
+			if count == numTables then
+				result[#result + 1] = value
+			end
+		end
+
+		return result
 	end
 end
 

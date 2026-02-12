@@ -67,6 +67,10 @@
 • [Resurrection] Resurrected units regain their old XP.
 
 • [Legion changes] Updates relevant Legion unit stats to reflect Season 3 changes. Changelog is as follows:
+	- Cluster weapon damages and reloadtimes increased by ~30%, cluster secondary munition damage increased ~50% with lowered projectile counts
+	- Napalm weapon leadlimits set to 0, meaning they will always fire at the current location of its target instead of its predicted location
+	- Commander aa weapon reduced to 300 range
+	- Medusa tracking reduced to make retargeting weaker
 	- Martyr speed nerfed to 220 from 230, turnrate nerfed to 750 from 800
 	- Mosquito weapon AOE increased to 72 from 70, stockpile time reduced to 1.8 seconds from 2 seconds
 	- Spy bot became slightly cheaper and slower, buildtime reduced accordingly first to match other spybots

@@ -5,7 +5,7 @@ return {
 		energycost = 60000,
 		metalcost = 3500,
 		buildpic = "CORTHERMITE.DDS",
-		buildtime = 18800,
+		buildtime = 188000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "80 50 98",--40 26 48

@@ -40,6 +40,13 @@ local sp_TraceScreenRay = Spring.TraceScreenRay
 --------------------------------------------------------------------------------
 -- Initialization --------------------------------------------------------------
 
+-- Factories need to self-select because their commands go to their built units.
+local isFactory = {}
+for unitDefID, unitDef in ipairs(UnitDefs) do
+	-- todo: weird things to consider, like enqueued self-reclaim commands, etc.
+	isFactory[unitDefID] = unitDef.isFactory and unitDef.canGuard
+end
+
 local selectedUnitID -- widget ignores/sees through only a single unit
 local selectClickTime = 0
 local cx, cy
@@ -47,13 +54,6 @@ local cx, cy
 local restoreVolumeData = {}
 local isVolumeHidden = false
 local inActiveCommand = false
-
--- Factories need to self-select because their commands go to their built units.
-local isFactory = {}
-for unitDefID, unitDef in ipairs(UnitDefs) do
-	-- todo: weird things to consider, like enqueued self-reclaim commands, etc.
-	isFactory[unitDefID] = unitDef.isFactory and unitDef.canGuard
-end
 
 --------------------------------------------------------------------------------
 -- Local functions -------------------------------------------------------------
@@ -69,15 +69,33 @@ end
 -- Since the camera can be rotated to extreme perspectives, even units that do not allow any
 -- other unit underneath themselves will have their selection volumes shrunk to zero radius.
 local function removeSelectionVolume(unitID)
-	-- The xyz scale and volume shape are not kept; we want an unambiguous point volume.
+	-- The xyz scale and volume shape are unused. We want an unambiguous point volume.
 	local _, _, _, ox, oy, oz, _, cont, axis = sp_GetUnitSelectionVolumeData(unitID)
 	local shape = 1 -- spherical volume
+
+	-- Handle headless testing and/or godmode selection of invisible enemy units.
+	-- This creates a potential inconsistency in the test, dependent on your LOS.
+	if not ox then
+		selectedUnitID = nil
+		return
+	end
+
 	sp_SetUnitSelectionVolumeData(unitID, 0, 0, 0, ox, oy, oz, shape, cont, axis)
 	isVolumeHidden = true
 end
 
 local function restoreSelectionVolume(unitID)
-	sp_SetUnitSelectionVolumeData(unitID, unpack(restoreVolumeData))
+	local data = restoreVolumeData
+
+	if not data[1] then
+		cacheSelectionVolume(unitID)
+		data = restoreVolumeData
+		if not data[1] then
+			return -- godmode/LOS shenanigans
+		end
+	end
+
+	sp_SetUnitSelectionVolumeData(unitID, unpack(data))
 	isVolumeHidden = false
 end
 
@@ -171,6 +189,29 @@ function widget:ActiveCommandChanged(cmdid, type)
 		end
 	end
 end
+
+-- Godmode and headless testing LOS fixes.
+
+local function unitAccessLost(self, unitID, unitTeam, unitAllyTeam, unitDefID)
+	if unitID == selectedUnitID then
+		if isVolumeHidden then
+			restoreSelectionVolume(selectedUnitID)
+		end
+	end
+end
+
+local function unitAccessGained(self, unitID, unitTeam, unitAllyTeam, unitDefID)
+	if unitID == selectedUnitID then
+		if not isVolumeHidden and selectClickTime < 0 then
+			removeSelectionVolume(selectedUnitID)
+		end
+	end
+end
+
+widget.UnitLeftLos = unitAccessLost
+widget.UnitLeftRadar = unitAccessLost
+widget.UnitEnteredLos = unitAccessGained
+widget.UnitEnteredRadar = unitAccessGained
 
 -- Interwupget communications and compatability
 

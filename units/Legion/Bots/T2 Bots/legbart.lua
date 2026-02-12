@@ -114,6 +114,7 @@ return {
 				flamegfxtime = 1,
 				gravityaffected = "true",
 				impulsefactor = 0.123,
+				leadlimit = 0,
 				name = "HeavyCannon",
 				noselfdamage = true,
 				projectiles = 2,

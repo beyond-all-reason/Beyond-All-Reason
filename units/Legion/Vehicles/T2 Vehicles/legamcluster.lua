@@ -112,7 +112,7 @@ return {
 			},
 		},
 		weapondefs = {
-			arm_artillery = {
+			cluster_artillery = {
 				accuracy = 400,
 				areaofeffect = 130,
 				avoidfeature = false,
@@ -126,7 +126,7 @@ return {
 				name = "Long-range g2g plasma cannon",
 				noselfdamage = true,
 				range = 930,
-				reloadtime = 6,
+				reloadtime = 7.2,
 				rgbcolor = "0.7 0.7 1.0 1.0 1.0 1.0 1.0 1.0",
 				soundhit = "xplomed4",
 				soundhitwet = "splsmed",
@@ -136,12 +136,12 @@ return {
 				weaponvelocity = 345,
 				customparams = {
 					cluster_def = 'cluster_munition',
-					cluster_number = 7,
+					cluster_number = 5,
 				},
 				damage = {
-					default = 230,
-					subs = 55,
-					vtol = 55,
+					default = 300,
+					subs = 75,
+					vtol = 75,
 				},
 			},
 			cluster_munition = {
@@ -163,17 +163,17 @@ return {
 				soundstart = "cannhvy2",
 				weapontype = "Cannon",
 				damage = {
-					default = 62,
-					lboats = 62,
-					subs = 12,
-					vtol = 12,
+					default = 105,
+					lboats = 105,
+					subs = 18,
+					vtol = 18,
 				},
 			},
 		},
 		weapons = {
 			[1] = {
 				badtargetcategory = "NOTLAND",
-				def = "ARM_ARTILLERY",
+				def = "CLUSTER_ARTILLERY",
 				maindir = "0 0 1",
 				maxangledif = 180,
 				onlytargetcategory = "SURFACE",

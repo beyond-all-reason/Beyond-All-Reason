@@ -410,7 +410,7 @@ local function defeatAlly(allyID)
 			local allPlayers = Spring.GetPlayerList()
 			for _, playerID in ipairs(allPlayers) do
 				local _, _, _, _, playerAllyID = Spring.GetPlayerInfo(playerID, false)
-				local notificationEvent = (playerAllyID == allyID) and "YourTeamEliminated" or "EnemyTeamEliminated"
+				local notificationEvent = (playerAllyID == allyID) and "TerritorialDomination/YourTeamEliminated" or "TerritorialDomination/EnemyTeamEliminated"
 				SendToUnsynced("NotificationEvent", notificationEvent, tostring(playerID))
 			end
 		end

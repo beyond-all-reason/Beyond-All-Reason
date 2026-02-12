@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		version = '1.0',
 		date    = '2024-10',
 		license = 'GNU GPL, v2 or later',
-		layer   = -1, -- before unit_collision_damage_behavior, unit_shield_behaviour
+		layer   = 0,
 		enabled = true,
 	}
 end
@@ -81,7 +81,6 @@ local spGetUnitHealth          = Spring.GetUnitHealth
 local spGetUnitIsDead          = Spring.GetUnitIsDead
 local spGetUnitPosition        = Spring.GetUnitPosition
 local spGetUnitRadius          = Spring.GetUnitRadius
-local spGetUnitShieldState     = Spring.GetUnitShieldState
 local spGetWaterLevel          = Spring.GetWaterLevel
 
 local spSetFeatureHealth       = Spring.SetFeatureHealth
@@ -97,6 +96,9 @@ local spValidUnitID            = Spring.ValidUnitID
 
 local armorDefault = Game.armorTypes.default
 local armorShields = Game.armorTypes.shields
+
+local addShieldDamage, getUnitShieldState, damageToShields -- see unit_shield_behaviour
+local setVelocityControl -- see unit_collision_damage_behaviour
 
 --------------------------------------------------------------------------------
 -- Setup -----------------------------------------------------------------------
@@ -320,52 +322,10 @@ local function exhaust(projectileID, collision)
 	spDeleteProjectile(projectileID)
 end
 
----Generic damage against shields using the default engine shields.
--- TODO: Remove this function when shieldsrework modoption is made mandatory. However:
--- TODO: If future modoptions might override the rework, then keep this function.
-local function addShieldDamageDefault(shieldUnitID, shieldWeaponIndex, damageToShields, weaponDefID, projectileID)
-	local exhausted, damageDone = false, 0
-	local state, health = spGetUnitShieldState(shieldUnitID)
-	local SHIELD_STATE_ENABLED = 1 -- nb: not boolean
-	if state == SHIELD_STATE_ENABLED and health > 0 then
-		local healthLeft = max(0, health - damageToShields)
-		if shieldWeaponIndex then
-			Spring.SetUnitShieldState(shieldUnitID, shieldWeaponIndex, healthLeft)
-		else
-			Spring.SetUnitShieldState(shieldUnitID, healthLeft)
-		end
-		if healthLeft > 0 then
-			exhausted, damageDone = true, damageToShields
-		else
-			exhausted, damageDone = false, health
-		end
-	end
-	return exhausted, damageDone
-end
-
 --------------------------------------------------------------------------------
 -- Gadget call-ins -------------------------------------------------------------
 
-function gadget:Initialize()
-	if not loadPenetratorWeaponDefs() then
-		Spring.Log(gadget:GetInfo().name, LOG.INFO, "No weapons with over-penetration found. Removing.")
-		gadgetHandler:RemoveGadget(self)
-		return
-	end
-
-	for weaponDefID, params in pairs(weaponParams) do
-		Script.SetWatchProjectile(weaponDefID, true)
-	end
-
-	for unitDefID, unitDef in ipairs(UnitDefs) do
-		unitArmorType[unitDefID] = unitDef.armorType
-	end
-end
-
 local function _GameFramePost(collisionList)
-	local addShieldDamage = GG.AddShieldDamage or addShieldDamageDefault
-	local setVelocityControl = GG.SetVelocityControl
-
 	for projectileID, penetrator in pairs(collisionList) do
 		collisionList[projectileID] = nil
 		local collisions = penetrator.collisions
@@ -397,8 +357,8 @@ local function _GameFramePost(collisionList)
 			local damageDealt, damageBase = damageEngine * damageLeft, min(damageEngine, damageArmor) * damageLeft
 
 			if shieldNumber then
-				local deleted, damage = addShieldDamage(targetID, shieldNumber, damageDealt, weapon.weaponID, projectileID)
-				damageLeft = deleted and 0 or damageLeft - penalty - damage / damageDealt -- shields force falloff
+				local exhausted, damageDone = addShieldDamage(targetID, damageDealt)
+				damageLeft = exhausted and 0 or damageLeft - penalty - damageDone / damageDealt -- shields force falloff
 			else
 				if isTargetUnit then
 					local impulse = damageBase * factor * falloffRatio(damageLeft, 1) -- inverse ratio
@@ -412,7 +372,7 @@ local function _GameFramePost(collisionList)
 						penetrator.dirY * impulse,
 						penetrator.dirZ * impulse
 					)
-					setVelocityControl(targetID, true)
+					if setVelocityControl then setVelocityControl(targetID, true) end
 				else
 					local health = collision.health - damageDealt
 					if health > 1 then
@@ -500,7 +460,8 @@ function gadget:FeaturePreDamaged(featureID, featureDefID, featureTeam, damage, 
 	end
 end
 
-function gadget:ShieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, shieldUnitID, bounceProjectile, beamWeaponIndex, beamUnitID, startX, startY, startZ, hitX, hitY, hitZ)
+---@type ShieldPreDamagedCallback
+local function shieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, shieldUnitID, bounceProjectile, beamWeaponIndex, beamUnitID, startX, startY, startZ, hitX, hitY, hitZ)
 	if not spValidUnitID(shieldUnitID) then
 		return
 	end
@@ -510,24 +471,48 @@ function gadget:ShieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, sh
 		return
 	end
 
-	local damage = penetrator.params[armorShields]
-	if damage <= 1 then
-		return true
-	end
-
-	projectileHits[projectileID] = penetrator
-	local state, health = spGetUnitShieldState(shieldUnitID, shieldWeaponIndex)
+	local _, power = getUnitShieldState(shieldUnitID, shieldWeaponIndex)
 	local collisions = penetrator.collisions
 	collisions[#collisions+1] = {
 		targetID  = shieldUnitID,
 		shieldID  = shieldWeaponIndex,
 		armorType = armorShields,
-		healthMax = health,
-		damage    = damage,
+		healthMax = power,
+		damage    = damageToShields[penetrator.params.weaponID],
 		hitX      = hitX,
 		hitY      = hitY,
 		hitZ      = hitZ,
 	}
 
+	projectileHits[projectileID] = penetrator
+
 	return true
+end
+
+function gadget:Initialize()
+	if not loadPenetratorWeaponDefs() then
+		Spring.Log(gadget:GetInfo().name, LOG.INFO, "No weapons with over-penetration found. Removing.")
+		gadgetHandler:RemoveGadget(self)
+		return
+	end
+
+	for weaponDefID, params in pairs(weaponParams) do
+		Script.SetWatchProjectile(weaponDefID, true)
+	end
+
+	for unitDefID, unitDef in ipairs(UnitDefs) do
+		unitArmorType[unitDefID] = unitDef.armorType
+	end
+
+	setVelocityControl = GG.SetVelocityControl
+
+	if not GG.Shields then
+		Spring.Log("ScriptedWeapons", LOG.ERROR, "Shields API unavailable (overpen)")
+		return
+	end
+
+	addShieldDamage = GG.Shields.AddShieldDamage
+	damageToShields = GG.Shields.DamageToShields
+	getUnitShieldState = GG.Shields.GetUnitShieldState
+	GG.Shields.RegisterShieldPreDamaged(projectiles, shieldPreDamaged)
 end

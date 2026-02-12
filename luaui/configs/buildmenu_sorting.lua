@@ -666,10 +666,10 @@ local unitOrderTable = {
    ['corhllllt']      = 106500, --scavengers
    ['armhlt']         = 106600,
    ['corhlt']         = 106700,
-   ['leghive']  = 106800,
+   ['leghive']        = 106800,
    ['armguard']       = 106800,
    ['corpun']         = 106900,
-   ['legcluster']         = 106950,
+   ['legcluster']     = 106950,
 
    --DEFENSES LAND T2
    ['legmg']          = 107000, --land/AA machinegun

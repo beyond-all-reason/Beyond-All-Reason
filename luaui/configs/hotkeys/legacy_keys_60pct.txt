@@ -5,6 +5,9 @@
 keyload luaui/configs/hotkeys/chat_and_ui_keys.txt
 keyload luaui/configs/hotkeys/num_keys.txt
 
+unbindaction factory_preset
+unbindaction factory_preset_show
+
 bind Any+sc_h sharedialog
 bind sc_i customgameinfo
 
@@ -110,7 +113,7 @@ bind Alt+enter fullscreen
 bind Ctrl+sc_a select AllMap++_ClearSelection_SelectAll+
 bind Ctrl+sc_b select AllMap+_Builder_Idle+_ClearSelection_SelectOne+
 bind Ctrl+sc_c selectcomm focus
-bind Ctrl+sc_v select AllMap+_Not_Builder_Not_Commander_InPrevSel_Not_InHotkeyGroup+_SelectAll+
+bind Ctrl+sc_v select AllMap+_Not_Builder_InPrevSel_Not_InHotkeyGroup+_SelectAll+
 bind Ctrl+sc_w select AllMap+_Not_Aircraft_Weapons+_ClearSelection_SelectAll+
 bind Ctrl+sc_x select AllMap+_InPrevSel_Not_InHotkeyGroup+_SelectAll+
 bind Ctrl+sc_z select AllMap+_InPrevSel+_ClearSelection_SelectAll+

@@ -364,6 +364,7 @@ local function refreshUnitInfo()
 					unitDef.name == 'armguard'     or -- ignore high-trajectory modes
 					unitDef.name == 'corpun'       or
 					unitDef.name == 'legcluster'   or
+					unitDef.name == 'leglob'   or
 					unitDef.name == 'legnavyfrigate'   or
 					unitDef.name == 'armamb'       or
 					unitDef.name == 'cortoast'     or
@@ -2352,6 +2353,9 @@ function checkChanges()
 		local featureID = hoverData
 		local featureDefID = spGetFeatureDefID(featureID)
 		local featureDef = FeatureDefs[featureDefID]
+		if featureDef == nil then
+			return
+		end
 		local newTooltip = featureDef.translatedDescription or ''
 
 		if featureDef.reclaimable then
