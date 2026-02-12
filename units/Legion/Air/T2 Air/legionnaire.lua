@@ -136,7 +136,7 @@ return {
 				maindir = "0 0 1",
 				maxangledif = 18,
 				onlytargetcategory = "VTOL",
-				weaponAimAdjustPriority = 20,
+				weaponaimadjustpriority = 20,
 				fastAutoRetargeting = true,
 			},
 		},
