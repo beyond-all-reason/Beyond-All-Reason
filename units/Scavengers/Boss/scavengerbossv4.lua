@@ -593,6 +593,7 @@ for difficulty, stats in pairs(difficultyParams) do
 					area_onhit_damage = 20,
 					area_onhit_range = 150,
 					area_onhit_time = 12,
+					water_splash = 0,
 				},
 				damage = {
 					default = stats.shotgunDamage/3,

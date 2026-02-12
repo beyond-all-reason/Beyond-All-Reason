@@ -119,6 +119,7 @@ return {
 					area_onhit_damage = 40,
 					area_onhit_range = 75,
 					area_onhit_resistance = "_RAPTORACID_",
+					water_splash = 0,
 				},
 				damage = {
 					default = 1, --damage done in unit_area_timed_damage.lua

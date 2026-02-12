@@ -371,7 +371,7 @@ local BaseClasses = {
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 200,
 						distanceFalloff = 0.9, noiseStrength = 0.5, noiseScaleSpace = 0.7,
 						lifeTime = 200, decay = 150, rampUp = 50,
-						effectStrength = 1.2, --needed for shockwaves
+						effectStrength = 0.75, --needed for shockwaves
 						windAffected = -0.5, riseRate = 6, --used for width of shockwave
 						shockWidth = 6, refractiveIndex = -1.2, startRadius = 0.5,
 						onlyModelMap = 1,
@@ -1374,7 +1374,7 @@ explosionDistortionsNames['armstil_stiletto_bomb'] = {
 -- }
 
 explosionDistortionsNames['raptor_air_bomber_acid_t2_v1_acidbomb'] = {
-	GetDistortionClass("GroundAcidExplo", "SmallMedium", {
+	GetDistortionClass("GroundAcidExplo", "Small", { -- for 75 aoe
 		-- noiseStrength = 15.0, noiseScaleSpace = 0.90, distanceFalloff = 0.9, onlyModelMap = 1,
 		-- lifeTime = 190, effectStrength = 2,
 		-- windAffected = -1, riseRate = 6,
@@ -1384,7 +1384,7 @@ explosionDistortionsNames['raptor_air_bomber_acid_t2_v1_acidbomb'] = {
 }
 
 explosionDistortionsNames['raptor_land_assault_acid_t2_v1_acidspit'] = {
-	GetDistortionClass("GroundAcidExplo", "Medium", {
+	GetDistortionClass("GroundAcidExplo", "Medium", { -- for 150 aoe
 		-- noiseStrength = 15.0, noiseScaleSpace = 0.90, distanceFalloff = 0.9, onlyModelMap = 1,
 		-- lifeTime = 190, effectStrength = 2,
 		-- windAffected = -1, riseRate = 6,
