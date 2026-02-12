@@ -28,7 +28,7 @@ local unitListReclaimSpeed = {}
 
 for unitDefID, defs in pairs(UnitDefs) do
     if defs.reclaimSpeed > 0 then
-        unitListReclaimSpeed[unitDefID] = defs.reclaimSpeed / 30 --matches it to engine base reclaim speed
+        unitListReclaimSpeed[unitDefID] = defs.reclaimSpeed / Game.gameSpeed
     end
 end
 
