@@ -865,7 +865,7 @@ function UnitDef_Post(name, uDef)
 		uDef.hidedamage = true
 		uDef.mass = raptorHealth
 		uDef.canhover = true
-		uDef.autoheal = math.ceil(math.sqrt(raptorHealth * 0.4))
+		uDef.autoheal = math.ceil(math.sqrt(raptorHealth * 0.8))
 		uDef.customparams.paralyzemultiplier = uDef.customparams.paralyzemultiplier or .2
 		uDef.customparams.areadamageresistance = "_RAPTORACID_"
 		uDef.upright = false
