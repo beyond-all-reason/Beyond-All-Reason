@@ -2,7 +2,6 @@ return {
 	corpt = {
 		activatewhenbuilt = true,
 		airsightdistance = 800,
-		autoheal = 1.5,
 		buildpic = "CORPT.DDS",
 		buildtime = 2500,
 		canmove = true,

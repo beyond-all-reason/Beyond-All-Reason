@@ -2,7 +2,7 @@ return {
 	corroach = {
 		activatewhenbuilt = true,
 		buildpic = "CORROACH.DDS",
-		buildtime = 7900,
+		buildtime = 8000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "20 9 20",

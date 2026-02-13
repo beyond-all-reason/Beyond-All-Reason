@@ -15,7 +15,7 @@ return {
 		explodeas = "smallBuildingexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
-		health = 90,
+		health = 180,
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 5100,

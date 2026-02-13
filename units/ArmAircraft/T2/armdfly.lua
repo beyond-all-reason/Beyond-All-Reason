@@ -29,7 +29,7 @@ return {
 		script = "Units/ARMDFLY.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd",
-		sightdistance = 430,
+		sightdistance = 520,
 		speed = 225,
 		stealth = true,
 		transportcapacity = 1,

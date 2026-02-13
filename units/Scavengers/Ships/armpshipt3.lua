@@ -3,7 +3,6 @@ return {
 	armpshipt3 = {
 		maxacc = 0.04771,
 		airsightdistance = 470,
-		autoheal = 1.5,
 		blocking = true,
 		maxdec = 0.04771,
 		energycost = 200000,
