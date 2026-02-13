@@ -42,6 +42,8 @@ if Spring.GetModOptions().experimentallegionfaction then
 	spawnpads[UDN.legcom.id] = "legnanotcbase"
 end
 
+local spawnFrame = Game.spawnWarpInFrame + Game.gameSpeed * 2 -- add time to deconflict initial build orders
+
 function SpawnAssistTurret(unitID, unitDefID, unitTeam)
 	local posx, posy, posz = Spring.GetUnitPosition(unitID)
     local spawnpadunit = spawnpads[unitDefID]
@@ -84,7 +86,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function gadget:GameFrame(n)
-    if n == 150 then
+    if n == spawnFrame then
         for comID, _ in pairs(commandersList) do
             local comDefID = Spring.GetUnitDefID(comID)
             local comTeam = Spring.GetUnitTeam(comID)
