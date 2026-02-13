@@ -1,7 +1,3 @@
-# February
-• Idleautoheal standardised to 5hp/s after 60 seconds without getting hit, for everything. 
-	- Rezbots got a 5hp/s normal autoheal to replace their near-instant idleautoheal.
-
 # January 2026
 • [Incisor] 0.767s -> 0.8s reloadtime, 85.5 -> 85 speed, 2200 -> 2300 buildtime, 1040 -> 1100 energycost
 • [Blitz, Pawn] 500 -> 600 weaponvelocity
