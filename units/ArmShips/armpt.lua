@@ -2,7 +2,6 @@ return {
 	armpt = {
 		activatewhenbuilt = true,
 		airsightdistance = 800,
-		autoheal = 1.5,
 		buildpic = "ARMPT.DDS",
 		buildtime = 2700,
 		canmove = true,

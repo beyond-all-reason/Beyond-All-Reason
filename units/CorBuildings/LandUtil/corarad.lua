@@ -14,7 +14,7 @@ return {
 		explodeas = "smallBuildingExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
-		health = 365,
+		health = 500,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -27,7 +27,7 @@ return {
 		script = "Units/CORARAD.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallBuildingExplosionGenericSelfd",
-		sightdistance = 780,
+		sightdistance = 1000,
 		sightemitheight = 87,
 		yardmap = "oooo",
 		customparams = {

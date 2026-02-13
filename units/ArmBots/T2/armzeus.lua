@@ -113,7 +113,7 @@ return {
 				cratermult = 0,
 				duration = 1,
 				edgeeffectiveness = 0.15,
-				energypershot = 35,
+				energypershot = 10,
 				explosiongenerator = "custom:genericshellexplosion-medium-lightning2",
 				firestarter = 50,
 				impactonly = 1,
@@ -141,7 +141,6 @@ return {
 				},
 				damage = {
 					default = 22,
-					vtol = 6,
 				},
 			},
 		},

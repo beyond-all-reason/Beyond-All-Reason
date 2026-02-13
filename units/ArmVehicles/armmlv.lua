@@ -20,7 +20,7 @@ return {
 		footprintz = 3,
 		health = 335,
 		leavetracks = false,
-		mass = 1500,
+		mass = 740,
 		maxacc = 0.07135,
 		maxdec = 0.1427,
 		maxslope = 16,

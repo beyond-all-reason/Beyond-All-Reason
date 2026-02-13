@@ -1,13 +1,13 @@
 return {
 	armfboy = {
 		buildpic = "ARMFBOY.DDS",
-		buildtime = 28000,
+		buildtime = 32000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "34 40 42",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		energycost = 15000,
+		energycost = 20000,
 		explodeas = "largeExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,

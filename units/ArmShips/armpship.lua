@@ -1,6 +1,5 @@
 return {
 	armpship = {
-		autoheal = 1.5,
 		blocking = true,
 		buildpic = "ARMPSHIP.DDS",
 		buildtime = 4250,

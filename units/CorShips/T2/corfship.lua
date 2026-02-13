@@ -1,7 +1,6 @@
 return {
 	corfship = {
 		activatewhenbuilt = true,
-		autoheal = 1.5,
 		blocking = true,
 		buildpic = "CORFSHIP.DDS",
 		buildtime = 13000,

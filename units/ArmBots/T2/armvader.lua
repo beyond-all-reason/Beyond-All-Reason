@@ -2,7 +2,7 @@ return {
 	armvader = {
 		activatewhenbuilt = true,
 		buildpic = "ARMVADER.DDS",
-		buildtime = 7900,
+		buildtime = 8000,
 		canmove = true,
 		collisionvolumeoffsets = "0 2 0",
 		collisionvolumescales = "17 13 17",
