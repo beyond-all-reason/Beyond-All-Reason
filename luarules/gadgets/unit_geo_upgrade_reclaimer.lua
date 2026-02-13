@@ -24,7 +24,7 @@ _G.transferredUnits = {}
 
 local isGeo = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams.geothermal then
+	if unitDef.customParams.geothermal or unitDef.customParams.upgradeable then
 		isGeo[unitDefID] = unitDef.metalCost
 	end
 end
