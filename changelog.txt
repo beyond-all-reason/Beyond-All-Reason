@@ -14,7 +14,7 @@
 	- Removed reclaimspeed reduction -> +20% faster reclaim. Matches its usual buildpower now
 	- Autoheal 2hp/s -> 5hp/s (lost its idleautoheal of 3hp/s after 10s)
 	- +16% energycost, metalcost
-• [T1 AA ships and frigates] Autoheal removed
+• [T1 AA ships, subs, and frigates] Autoheal removed
 • Idleautoheal standardised to 5hp/s after 60 seconds without getting hit, for everything. 
 	- Rezbots got a 5hp/s normal autoheal to replace their near-instant idleautoheal.
 
