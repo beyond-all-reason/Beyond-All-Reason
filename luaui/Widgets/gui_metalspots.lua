@@ -24,6 +24,7 @@ local spGetGameFrame = Spring.GetGameFrame
 local spGetMyTeamID = Spring.GetMyTeamID
 local spEcho = Spring.Echo
 local spGetSpectatingState = Spring.GetSpectatingState
+local spLog = Spring.Log
 
 --2023.05.21 TODO list
 -- Add occupied circle to center
@@ -55,6 +56,7 @@ end
 local needsInit			= true
 local showValue			= false
 local metalViewOnly		= false
+local useDrawWaterPost	= false -- legacy name: toggles the high-visibility draw path (DrawWorld)
 
 local circleSpaceUsage	= 0.62
 local circleInnerOffset	= 0.28
@@ -81,6 +83,41 @@ local valueList = {}
 local previousOsClock = os.clock()
 local checkspots = true
 local sceduledCheckedSpotsFrame = spGetGameFrame()
+
+local lastLoggedDrawMode = nil
+local function LogInfo(msg)
+	if spLog then
+		spLog("VFS", "info", "[Metalspots] " .. msg)
+	else
+		spEcho("<Metalspots>", msg)
+	end
+end
+
+local function getEffectiveHighVisibility()
+	if useDrawWaterPost then
+		return true
+	end
+	local buildingGrid = WG and WG['buildinggrid']
+	if buildingGrid and buildingGrid.getIsVisible then
+		return buildingGrid.getIsVisible()
+	end
+	if buildingGrid and buildingGrid.getShownUnitDefID then
+		return buildingGrid.getShownUnitDefID() ~= nil
+	end
+	return false
+end
+
+local function MaybeLogDrawModeChange(mode, reason)
+	if lastLoggedDrawMode == mode then
+		return
+	end
+	lastLoggedDrawMode = mode
+	if reason and reason ~= "" then
+		LogInfo("draw mode: " .. mode .. " (" .. reason .. ")")
+	else
+		LogInfo("draw mode: " .. mode)
+	end
+end
 
 local isSpec, fullview = spGetSpectatingState()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
@@ -429,6 +466,14 @@ function widget:Initialize()
 	WG.metalspots.getMetalViewOnly = function()
 		return metalViewOnly
 	end
+	WG.metalspots.setUseDrawWaterPost = function(value)
+		useDrawWaterPost = (value and true) or false
+		lastLoggedDrawMode = nil
+		LogInfo("High visibility metal spots set to " .. tostring(useDrawWaterPost))
+	end
+	WG.metalspots.getUseDrawWaterPost = function()
+		return useDrawWaterPost
+	end
 
 	if not initGL4() then return end
 
@@ -501,12 +546,7 @@ function widget:GameFrame(gf)
 	end
 end
 
-function widget:DrawWorldPreUnit()
-	local mapDrawMode = spGetMapDrawMode()
-	if metalViewOnly and mapDrawMode ~= 'metal' then return end
-	if chobbyInterface then return end
-	if Spring.IsGUIHidden() then return end
-
+local function DrawMetalspots()
 	previousOsClock = os.clock()
 
 	gl.Culling(true)
@@ -518,21 +558,55 @@ function widget:DrawWorldPreUnit()
 	drawInstanceVBO(spotInstanceVBO)
 	spotShader:Deactivate()
 
+	gl.Culling(false)
+	gl.Texture(0, false)
+	gl.Texture(1, false)
+end
+
+function widget:DrawWorldPreUnit()
+	if getEffectiveHighVisibility() then
+		return
+	end
+
+	local mapDrawMode = spGetMapDrawMode()
+	if metalViewOnly and mapDrawMode ~= 'metal' then return end
+	if chobbyInterface then return end
+	if Spring.IsGUIHidden() then return end
+
+	if needsInit and spGetGameFrame() == 0 then
+		checkMetalspots()
+		needsInit = false
+	end
+	MaybeLogDrawModeChange("preunit", "legacy path")
+
+	DrawMetalspots()
+end
+
+function widget:DrawWorld()
+	if not getEffectiveHighVisibility() then
+		return
+	end
+
+	local mapDrawMode = spGetMapDrawMode()
+	if metalViewOnly and mapDrawMode ~= 'metal' then return end
+	if chobbyInterface then return end
+	if Spring.IsGUIHidden() then return end
+
 	if needsInit and spGetGameFrame() == 0 then
 		checkMetalspots()
 		needsInit = false
 	end
 
-	gl.Culling(false)
-	gl.Texture(0, false)
-	gl.Texture(1, false)
+	MaybeLogDrawModeChange("world", "high visibility path (build grid / forced)")
+	DrawMetalspots()
 end
 
 function widget:GetConfigData(data)
 	return {
 		showValue = showValue,
 		opacity = opacity,
-		metalViewOnly = metalViewOnly
+		metalViewOnly = metalViewOnly,
+		useDrawWaterPost = useDrawWaterPost,
 	}
 end
 
@@ -545,6 +619,9 @@ function widget:SetConfigData(data)
 	end
 	if data.metalViewOnly ~= nil then
 		metalViewOnly = data.metalViewOnly
+	end
+	if data.useDrawWaterPost ~= nil then
+		useDrawWaterPost = data.useDrawWaterPost
 	end
 end
 
