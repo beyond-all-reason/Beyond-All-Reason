@@ -19,11 +19,8 @@ local function isEngineMinVersion(major, minor, patch, commits)
 	return true
 end
 
-if Engine.FeatureSupport.targetBorderBug == nil then
-	local inRange = isEngineMinVersion(2025, 6, 4) and not isEngineMinVersion(2025, 6, 14)
-	---@type boolean Whether the `targetBorder` property is doubled for BeamLaser and LightningCannon.
-	Engine.FeatureSupport.targetBorderBug = inRange
-end
+---@type boolean Whether the `targetBorder` property is doubled for BeamLaser and LightningCannon.
+Engine.FeatureSupport.targetBorderBug = isEngineMinVersion(2025, 6, 4) and not isEngineMinVersion(2025, 6, 14)
 
 --------------------------------------------------------------------------------
 -- Extended LuaConst -----------------------------------------------------------
