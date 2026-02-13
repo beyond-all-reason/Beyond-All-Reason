@@ -19,8 +19,6 @@ return {
 		explodeas = "",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 5125,
 		maxwaterdepth = 0,
 		objectname = "Units/LEGMOHOBPCT.s3o",

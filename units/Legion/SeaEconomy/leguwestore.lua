@@ -14,8 +14,6 @@ return {
 		collisionvolumescales = "58 42 74",
 		collisionvolumetype = "CylY",
 		health = 2000,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 20,

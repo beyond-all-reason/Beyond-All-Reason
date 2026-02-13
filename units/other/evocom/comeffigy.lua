@@ -58,7 +58,6 @@ for lvl, stats in pairs(lvlParams) do
 		footprintz = 2,
 		hidedamage = true,
     	holdsteady = true,
-		idleautoheal = 5000,
 		initcloaked = true,
 		sightemitheight = 40,
 		mass = 4900,

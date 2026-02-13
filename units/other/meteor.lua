@@ -16,8 +16,6 @@ return {
 		explodeas = "",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 0,
-		idletime = 0,
 		levelground = false,
 		mass = 165.75,
 		health = 2,

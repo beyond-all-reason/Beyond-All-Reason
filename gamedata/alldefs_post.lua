@@ -865,10 +865,8 @@ function UnitDef_Post(name, uDef)
 		uDef.hidedamage = true
 		uDef.mass = raptorHealth
 		uDef.canhover = true
-		uDef.autoheal = math.ceil(math.sqrt(raptorHealth * 0.2))
+		uDef.autoheal = math.ceil(math.sqrt(raptorHealth * 0.8))
 		uDef.customparams.paralyzemultiplier = uDef.customparams.paralyzemultiplier or .2
-		uDef.idleautoheal = math.ceil(math.sqrt(raptorHealth * 0.2))
-		uDef.idletime = 1
 		uDef.customparams.areadamageresistance = "_RAPTORACID_"
 		uDef.upright = false
 		uDef.floater = true
@@ -1077,6 +1075,14 @@ function UnitDef_Post(name, uDef)
 		--if uDef.metalcost < healthmass then
 		--	Spring.Echo(name, uDef.mass, uDef.metalcost, uDef.mass - uDef.metalcost)
 		--end
+	end
+
+	-- Sets idleautoheal to 5hp/s after 1800 frames aka 1 minute. 
+	if uDef.idleautoheal == nil then
+		uDef.idleautoheal = 5
+	end
+	if uDef.idletime == nil then
+		uDef.idletime = 1800
 	end
 
 	--Juno Rework

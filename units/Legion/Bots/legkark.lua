@@ -15,8 +15,6 @@ return {
 		explodeas = "smallExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 1725,
 		maxslope = 17,
 		mass = 210, -- Testing: this unit has resistance to impulse 

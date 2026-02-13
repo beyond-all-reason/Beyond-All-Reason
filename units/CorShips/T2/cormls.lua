@@ -15,8 +15,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1600,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.03446,
 		maxdec = 0.03446,
 		metalcost = 200,

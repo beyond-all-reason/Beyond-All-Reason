@@ -16,8 +16,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 180,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 5100,
 		maxacc = 0,
 		maxdec = 0,

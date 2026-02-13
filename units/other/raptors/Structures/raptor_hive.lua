@@ -21,8 +21,6 @@ return {
 		explodeas = "ROOST_DEATH",
 		footprintx = 6,
 		footprintz = 6,
-		idleautoheal = 10,
-		idletime = 90,
 		levelground = false,
 		mass = 165.75,
 		health = 50000,

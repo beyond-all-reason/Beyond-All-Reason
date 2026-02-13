@@ -15,8 +15,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1200,
-		idleautoheal = 10,
-		idletime = 900,
 		maxacc = 0.03,
 		maxdec = 0.05,
 		minwaterdepth = 15,
