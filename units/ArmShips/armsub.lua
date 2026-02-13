@@ -1,7 +1,6 @@
 return {
 	armsub = {
 		activatewhenbuilt = true,
-		autoheal = 2,
 		buildpic = "ARMSUB.DDS",
 		buildtime = 5800,
 		canmove = true,

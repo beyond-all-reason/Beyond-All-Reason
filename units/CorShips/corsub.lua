@@ -1,7 +1,6 @@
 return {
 	corsub = {
 		activatewhenbuilt = true,
-		autoheal = 2,
 		buildpic = "CORSUB.DDS",
 		buildtime = 7200,
 		canmove = true,
