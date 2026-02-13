@@ -13,11 +13,10 @@ local function isEngineMinVersion(major, minor, patch, commits)
 		return tonumber(Engine.versionMinor) > minor
 	elseif patch and tonumber(Engine.versionPatchSet) ~= patch then
 		return tonumber(Engine.versionPatchSet) >= patch
-	elseif commits and tonumber(Engine.commitsNumber) ~= 0 then -- dev builds are > 0
+	elseif commits and tonumber(Engine.commitsNumber) ~= commits then
 		return tonumber(Engine.commitsNumber) >= commits
-	else
-		return true
 	end
+	return true
 end
 
 if Engine.FeatureSupport.targetBorderBug == nil then
