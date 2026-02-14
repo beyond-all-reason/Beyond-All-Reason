@@ -37,6 +37,8 @@ git clone --recurse-submodules https://github.com/beyond-all-reason/Beyond-All-R
 ```
 Ensure that you have the correct path by looking for the file `Beyond-All-Reason/data/games/BAR.sdd/modinfo.lua`
 
+(If you are on Linux and installed BAR with an appimage, the `games` subdirectory goes directly in the BAR install directory. For example, `~/.local/state/Beyond All Reason/games`. Modify the preceding instructions accordingly.)
+
 4. Now you have the game code launch the full game from the launcher as normal. Then go to `Settings > Developer > Singleplayer` and select `Beyond All Reason Dev`.
 
 5. Now you can launch a match normally through the game UI. This match will use the dev copy of the LUA code which is in `BAR-install-directory/data/games/BAR.sdd`.
