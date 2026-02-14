@@ -1,3 +1,23 @@
+# February
+• [Centurion] 330 -> 325 range
+• [Hound] buildtime 6230 -> 6500
+• [Fatboy] energycost 15000 -> 20000, buildtime 28000 -> 32000
+• [Sprinter] range 220 -> 230
+• [Abductor] sightdistance 430 -> 520
+• [Minelayers] Transportable by basic transport
+• [Mines] mincloakdistance 8 -> 30
+• [T2 radars] 820 -> 1000 sight, 355 -> 500 health
+• [T1 radars] 90 -> 180 health
+• [Castro] -13% m/e/bt cost
+• [Lightning weapons,except Thor] Firing takes -10e for all, used to vary between -5e to -35e
+• [Rez subs] 
+	- Removed reclaimspeed reduction -> +20% faster reclaim. Matches its usual buildpower now
+	- Autoheal 2hp/s -> 5hp/s (lost its idleautoheal of 3hp/s after 10s)
+	- +16% energycost, metalcost
+• [T1 AA ships, subs, and frigates] Autoheal removed
+• Idleautoheal standardised to 5hp/s after 60 seconds without getting hit, for everything. 
+	- Rezbots got a 5hp/s normal autoheal to replace their near-instant idleautoheal.
+
 # January 2026
 • [Incisor] 0.767s -> 0.8s reloadtime, 85.5 -> 85 speed, 2200 -> 2300 buildtime, 1040 -> 1100 energycost
 • [Blitz, Pawn] 500 -> 600 weaponvelocity

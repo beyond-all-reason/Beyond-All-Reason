@@ -22,8 +22,6 @@ return {
 		explodeas = "nanoboom",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavesghost = true,
 		mass = 700,
 		health = 560,

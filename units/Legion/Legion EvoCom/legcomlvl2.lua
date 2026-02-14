@@ -29,8 +29,6 @@ return {
 		footprintz = 2,
 		hidedamage = true,
     	holdsteady = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		sightemitheight = 40,
 		mass = 4999,
 		health = 6000,

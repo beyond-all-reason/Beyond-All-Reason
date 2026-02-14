@@ -16,8 +16,6 @@ return {
 		explodeas = "explosiont3",
 		footprintx = 5,
 		footprintz = 5,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxdamage = 16500,
 		maxslope = 16,

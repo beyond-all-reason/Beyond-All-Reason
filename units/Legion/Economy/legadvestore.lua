@@ -15,8 +15,6 @@ return {
 		footprintx = 5,
 		footprintz = 5,
 		health = 12700,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxslope = 20,
 		maxwaterdepth = 9999,
 		metalcost = 840,

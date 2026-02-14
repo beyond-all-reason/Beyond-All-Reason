@@ -1,6 +1,5 @@
 return {
 	armdrag = {
-		autoheal = 4,
 		blocking = true,
 		buildpic = "ARMDRAG.DDS",
 		buildtime = 255,
@@ -17,7 +16,6 @@ return {
 		footprintz = 2,
 		health = 2800,
 		hidedamage = true,
-		idleautoheal = 0,
 		levelground = false,
 		maxacc = 0,
 		maxdec = 0,

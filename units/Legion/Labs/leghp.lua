@@ -16,8 +16,6 @@ return {
 		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 6,
 		footprintz = 6,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 3750,
 		maxslope = 15,
 		maxwaterdepth = 0,

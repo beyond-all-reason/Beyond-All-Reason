@@ -627,6 +627,7 @@ local cache = {
 }
 
 local gameTime = 0 -- Accumulated game time (pauses when game is paused)
+local wallClockTime = 0 -- Wall-clock time (always advances, even when paused)
 
 local unitOutlineList = nil
 local radarDotList = nil
@@ -1160,50 +1161,69 @@ end
 -- GLSL shader for instanced icon rendering: points → quads via geometry shader
 local gl4IconShaderCode = {
 	vertex = [[
-		#version 330
-		layout(location = 0) in vec4 worldPos_size;  // worldX, worldZ, iconSizeScale, isRadarFlag
-		layout(location = 1) in vec4 atlasUV;         // u0, v0, u1, v1
-		layout(location = 2) in vec4 colorFlags;      // r, g, b, wobblePhase
+#version 330
+layout(location = 0) in vec4 worldPos_size;  // worldX, worldZ, iconSizeScale, flags (bitfield)
+layout(location = 1) in vec4 atlasUV;         // u0, v0, u1, v1
+layout(location = 2) in vec4 colorFlags;      // r, g, b, wobblePhase
 
-		uniform vec2 wtp_scale;      // worldToPipScaleX, worldToPipScaleZ
-		uniform vec2 wtp_offset;     // worldToPipOffsetX, worldToPipOffsetZ
-		uniform vec2 ndcScale;       // 2/fboW, 2/fboH
-		uniform vec2 rotSC;          // sin(mapRotation), cos(mapRotation)
-		uniform vec2 rotCenter;      // rotation center in PIP pixels
-		uniform float iconBaseSize;  // iconRadiusZoomDistMult (PIP pixels)
-		uniform float gameTime;      // for radar wobble animation
+uniform vec2 wtp_scale;      // worldToPipScaleX, worldToPipScaleZ
+uniform vec2 wtp_offset;     // worldToPipOffsetX, worldToPipOffsetZ
+uniform vec2 ndcScale;       // 2/fboW, 2/fboH
+uniform vec2 rotSC;          // sin(mapRotation), cos(mapRotation)
+uniform vec2 rotCenter;      // rotation center in PIP pixels
+uniform float iconBaseSize;  // iconRadiusZoomDistMult (PIP pixels)
+uniform float gameTime;      // for radar wobble (pauses with game)
+uniform float wallClockTime;  // for blink/pulse animations (always advances)
 
-		out vec4 v_atlasUV;
-		out vec4 v_color;
-		out vec2 v_halfSizeNDC;
+out vec4 v_atlasUV;
+out vec4 v_color;
+out vec2 v_halfSizeNDC;
 
-		void main() {
-			// World → PIP pixel coordinates
-			vec2 pipPos;
-			pipPos.x = wtp_offset.x + worldPos_size.x * wtp_scale.x;
-			pipPos.y = wtp_offset.y + worldPos_size.y * wtp_scale.y;
+void main() {
+// Decode bitfield flags: bit0=radar(1), bit1=takeable(2), bit2=stunned(4)
+float flags = worldPos_size.w;
+float isRadar    = mod(floor(flags      ), 2.0);  // bit 0
+float isTakeable = mod(floor(flags / 2.0 ), 2.0);  // bit 1
+float isStunned  = mod(floor(flags / 4.0 ), 2.0);  // bit 2
 
-			// Radar wobble (isRadar >= 1.0)
-			float isRadar = step(1.0, worldPos_size.w);
-			float wobbleAmp = iconBaseSize * 0.3 * isRadar;
-			float phase = colorFlags.w;
-			pipPos.x += sin(gameTime * 3.0 + phase) * wobbleAmp;
-			pipPos.y += cos(gameTime * 2.7 + phase * 1.3) * wobbleAmp;
+// World to PIP pixel coordinates
+vec2 pipPos;
+pipPos.x = wtp_offset.x + worldPos_size.x * wtp_scale.x;
+pipPos.y = wtp_offset.y + worldPos_size.y * wtp_scale.y;
 
-			// Map rotation around center
-			vec2 d = pipPos - rotCenter;
-			pipPos = rotCenter + vec2(
-				d.x * rotSC.y - d.y * rotSC.x,
-				d.x * rotSC.x + d.y * rotSC.y
-			);
+// Radar wobble (only for radar-only icons)
+float wobbleAmp = iconBaseSize * 0.3 * isRadar;
+float phase = colorFlags.w;
+pipPos.x += sin(gameTime * 3.0 + phase) * wobbleAmp;
+pipPos.y += cos(gameTime * 2.7 + phase * 1.3) * wobbleAmp;
 
-			// PIP pixels → NDC
-			gl_Position = vec4(pipPos * ndcScale - 1.0, 0.0, 1.0);
+// Map rotation around center
+vec2 d = pipPos - rotCenter;
+pipPos = rotCenter + vec2(
+d.x * rotSC.y - d.y * rotSC.x,
+d.x * rotSC.x + d.y * rotSC.y
+);
 
-			v_atlasUV = atlasUV;
-			v_color = vec4(colorFlags.rgb, 1.0 - 0.25 * isRadar);  // 1.0 normal, 0.75 radar
-			v_halfSizeNDC = vec2(iconBaseSize * worldPos_size.z) * ndcScale;
-		}
+// PIP pixels to NDC
+gl_Position = vec4(pipPos * ndcScale - 1.0, 0.0, 1.0);
+
+v_atlasUV = atlasUV;
+
+// Start with base color and alpha
+vec3 col = colorFlags.rgb;
+float alpha = 1.0 - 0.25 * isRadar;  // radar icons at 75% alpha
+
+// Takeable blink: full on/off cycle at ~1.5Hz
+float takeableBlink = step(0.0, sin(wallClockTime * 9.42));  // square wave ~1.5Hz
+alpha *= mix(1.0, takeableBlink, isTakeable);
+
+// Stunned: subtle white-blue tint pulse (~2Hz, gentle)
+float stunnedPulse = 0.5 + 0.5 * sin(wallClockTime * 12.57);  // ~2Hz sine
+col = mix(col, vec3(0.82, 0.85, 1.0), 0.45 * stunnedPulse * isStunned);
+
+v_color = vec4(col, alpha);
+v_halfSizeNDC = vec2(iconBaseSize * worldPos_size.z) * ndcScale;
+}
 	]],
 	geometry = [[
 		#version 330
@@ -1572,6 +1592,7 @@ local function InitGL4Icons()
 		rotCenter    = gl.GetUniformLocation(shader, "rotCenter"),
 		iconBaseSize = gl.GetUniformLocation(shader, "iconBaseSize"),
 		gameTime     = gl.GetUniformLocation(shader, "gameTime"),
+		wallClockTime = gl.GetUniformLocation(shader, "wallClockTime"),
 	}
 
 	gl4Icons.enabled = true
@@ -6893,6 +6914,16 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet)
 	local LOS_PREVLOS = 4
 	local LOS_CONTRADAR = 8
 
+	-- Compute takeable teams (leaderless, alive, non-AI)  refreshed every frame
+	local takeableTeams = {}
+	for _, tID in ipairs(Spring.GetTeamList()) do
+		local _, leader, isDead, hasAI = Spring.GetTeamInfo(tID, false)
+		if leader == -1 and not isDead and not hasAI then
+			takeableTeams[tID] = true
+		end
+	end
+
+
 	-- Process one unit: resolve LOS, look up icon, write to VBO array.
 	-- Returns updated usedElements. Defined once to avoid closure per-layer.
 	-- (inlined via local function for LuaJIT trace compilation)
@@ -6983,9 +7014,16 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet)
 			end
 		end
 
+		-- Stun detection (EMP/paralyze, not build-in-progress)
+		local isStunned = false
+		if not isRadar then
+			local stun, _, buildStun = Spring.GetUnitIsStunned(uID)
+			if stun and not buildStun then isStunned = true end
+		end
+
 		-- Write 12 floats directly into pre-allocated array
 		local off = usedEl * GL4_INSTANCE_STEP
-		data[off+1] = ux; data[off+2] = uz; data[off+3] = sizeScale; data[off+4] = isRadar and 1.0 or 0.0
+		data[off+1] = ux; data[off+2] = uz; data[off+3] = sizeScale; data[off+4] = (isRadar and 1 or 0) + (takeableTeams[uTeam] and 2 or 0) + (isStunned and 4 or 0)
 		data[off+5] = uvs[1]; data[off+6] = uvs[2]; data[off+7] = uvs[3]; data[off+8] = uvs[4]
 		data[off+9] = r; data[off+10] = g; data[off+11] = b; data[off+12] = (uID * 0.37) % 6.2832
 		return usedEl + 1
@@ -7009,25 +7047,31 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet)
 		for gID, ghost in pairs(ghostBuildings) do
 			if usedElements >= maxInst then break end
 			if not pipUnitSet[gID] then
-				if ghost.x >= viewL and ghost.x <= viewR and ghost.z >= viewT and ghost.z <= viewB then
-					local uvs, sizeScale
-					if cacheUnitIcon[ghost.defID] then
-						local iconData = cacheUnitIcon[ghost.defID]
-						uvs = atlasUVs[iconData.bitmap] or defaultUV
-						sizeScale = iconData.size
-					else
-						uvs = defaultUV
-						sizeScale = 0.5
+				-- If ghost position is currently in LOS but the unit is gone, remove the ghost
+				local gy = spFunc.GetGroundHeight(ghost.x, ghost.z)
+				if spFunc.IsPosInLos(ghost.x, gy, ghost.z, checkAllyTeamID) then
+					ghostBuildings[gID] = nil
+				else
+					if ghost.x >= viewL and ghost.x <= viewR and ghost.z >= viewT and ghost.z <= viewB then
+						local uvs, sizeScale
+						if cacheUnitIcon[ghost.defID] then
+							local iconData = cacheUnitIcon[ghost.defID]
+							uvs = atlasUVs[iconData.bitmap] or defaultUV
+							sizeScale = iconData.size
+						else
+							uvs = defaultUV
+							sizeScale = 0.5
+						end
+						local color = localTeamColors[ghost.teamID]
+						-- Dim ghost icons to simulate being under FoW overlay (engine draws them below LOS layer)
+						local dim = 0.6
+						local r, g, b = (color and color[1] or 1) * dim, (color and color[2] or 1) * dim, (color and color[3] or 1) * dim
+						local off = usedElements * GL4_INSTANCE_STEP
+						data[off+1] = ghost.x; data[off+2] = ghost.z; data[off+3] = sizeScale; data[off+4] = (takeableTeams[ghost.teamID] and 2 or 0)
+						data[off+5] = uvs[1]; data[off+6] = uvs[2]; data[off+7] = uvs[3]; data[off+8] = uvs[4]
+						data[off+9] = r; data[off+10] = g; data[off+11] = b; data[off+12] = (gID * 0.37) % 6.2832
+						usedElements = usedElements + 1
 					end
-					local color = localTeamColors[ghost.teamID]
-					-- Dim ghost icons to simulate being under FoW overlay (engine draws them below LOS layer)
-					local dim = 0.6
-					local r, g, b = (color and color[1] or 1) * dim, (color and color[2] or 1) * dim, (color and color[3] or 1) * dim
-					local off = usedElements * GL4_INSTANCE_STEP
-					data[off+1] = ghost.x; data[off+2] = ghost.z; data[off+3] = sizeScale; data[off+4] = 0.0
-					data[off+5] = uvs[1]; data[off+6] = uvs[2]; data[off+7] = uvs[3]; data[off+8] = uvs[4]
-					data[off+9] = r; data[off+10] = g; data[off+11] = b; data[off+12] = (gID * 0.37) % 6.2832
-					usedElements = usedElements + 1
 				end
 			end
 		end
@@ -7080,6 +7124,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet)
 	-- Icon size and time
 	gl.UniformFloat(ul.iconBaseSize, iconRadiusZoomDistMult)
 	gl.UniformFloat(ul.gameTime, gameTime)
+	gl.UniformFloat(ul.wallClockTime, wallClockTime)
 
 	-- Bind atlas texture and draw
 	glFunc.Texture(0, gl4Icons.atlas)
@@ -8310,17 +8355,23 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 			end
 			for gID, ghost in pairs(ghostBuildings) do
 				if not pipUnitSet[gID] then
-					if ghost.x >= render.world.l - margin and ghost.x <= render.world.r + margin and
-					   ghost.z >= render.world.t - margin and ghost.z <= render.world.b + margin then
-						local idx = drawData.iconCount + 1
-						drawData.iconCount = idx
-						drawData.iconTeam[idx] = ghost.teamID
-						drawData.iconX[idx] = worldToPipOffsetX + ghost.x * worldToPipScaleX
-						drawData.iconY[idx] = worldToPipOffsetZ + ghost.z * worldToPipScaleZ
-						drawData.iconUdef[idx] = ghost.defID
-						drawData.iconUnitID[idx] = gID
-						drawData.iconSelected[idx] = false
-						drawData.iconBuildProgress[idx] = 1
+					-- If ghost position is currently in LOS but the unit is gone, remove the ghost
+					local gy = spFunc.GetGroundHeight(ghost.x, ghost.z)
+					if spFunc.IsPosInLos(ghost.x, gy, ghost.z, checkAllyTeamID) then
+						ghostBuildings[gID] = nil
+					else
+						if ghost.x >= render.world.l - margin and ghost.x <= render.world.r + margin and
+						   ghost.z >= render.world.t - margin and ghost.z <= render.world.b + margin then
+							local idx = drawData.iconCount + 1
+							drawData.iconCount = idx
+							drawData.iconTeam[idx] = ghost.teamID
+							drawData.iconX[idx] = worldToPipOffsetX + ghost.x * worldToPipScaleX
+							drawData.iconY[idx] = worldToPipOffsetZ + ghost.z * worldToPipScaleZ
+							drawData.iconUdef[idx] = ghost.defID
+							drawData.iconUnitID[idx] = gID
+							drawData.iconSelected[idx] = false
+							drawData.iconBuildProgress[idx] = 1
+						end
 					end
 				end
 			end
@@ -12360,7 +12411,30 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	glFunc.PopMatrix()
 end
 
+-- Timer for periodic ghost building cleanup (checks ghosts outside PIP viewport)
+local ghostCleanupTimer = 0
+local ghostCleanupInterval = 1.0  -- Check every 1 second
+
 function widget:Update(dt)
+	-- Periodic ghost building cleanup: remove ghosts whose position is now in LOS
+	-- The draw-path check only catches ghosts within the PIP viewport; this catches all of them
+	if not cameraState.mySpecState then
+		ghostCleanupTimer = ghostCleanupTimer + dt
+		if ghostCleanupTimer >= ghostCleanupInterval then
+			ghostCleanupTimer = 0
+			local myAllyTeam = Spring.GetMyAllyTeamID()
+			for gID, ghost in pairs(ghostBuildings) do
+				local gy = spFunc.GetGroundHeight(ghost.x, ghost.z)
+				if spFunc.IsPosInLos(ghost.x, gy, ghost.z, myAllyTeam) then
+					-- Position is in LOS but unitID is not visible (not alive) — building was destroyed
+					if not spFunc.GetUnitDefID(gID) then
+						ghostBuildings[gID] = nil
+					end
+				end
+			end
+		end
+	end
+
 	-- In minimap mode, check if rotation changed and recalculate dimensions if needed
 	if isMinimapMode then
 		local currentRotation = Spring.GetMiniMapRotation and Spring.GetMiniMapRotation() or 0
@@ -12701,6 +12775,9 @@ function widget:Update(dt)
 		miscState.worldIconLockedX = nil
 		miscState.worldIconLockedZ = nil
 	end
+
+	-- Update wall-clock time (always advances, even when paused — used for blink/pulse animations)
+	wallClockTime = wallClockTime + dt
 
 	-- Update game time (only when game is not paused)
 	local _, _, isPaused = Spring.GetGameSpeed()

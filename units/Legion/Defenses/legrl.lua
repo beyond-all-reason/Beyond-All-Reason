@@ -16,8 +16,6 @@ return {
 		explodeas = "mediumBuildingExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 5100,
 		health = 335,
 		maxslope = 20,

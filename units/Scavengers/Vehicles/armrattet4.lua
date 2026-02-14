@@ -14,8 +14,6 @@ return {
 		explodeas = "bantha",
 		footprintx = 5,
 		footprintz = 5,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		mass = 1000000,
 		health = 83000,

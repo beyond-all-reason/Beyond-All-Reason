@@ -23,7 +23,6 @@ return {
 		floater = true,
 		footprintx = 1,
 		footprintz = 1,
-		idleautoheal = 0,
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 24,

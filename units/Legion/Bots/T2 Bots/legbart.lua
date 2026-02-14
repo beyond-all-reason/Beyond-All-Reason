@@ -14,8 +14,6 @@ return {
 		explodeas = "pyro",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 1780,
 		maxslope = 14,
 		speed = 60.0,

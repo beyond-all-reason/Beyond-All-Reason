@@ -1,7 +1,6 @@
 return {
 	legforti = {
 		maxacc = 0,
-		autoheal = 12,
 		blocking = true,
 		maxdec = 0,
 		buildangle = 0,
@@ -20,7 +19,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-		idleautoheal = 0,
 		levelground = false,
 		health = 8900,
 		maxslope = 24,

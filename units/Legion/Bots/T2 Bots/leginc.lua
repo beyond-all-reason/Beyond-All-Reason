@@ -14,8 +14,6 @@ return {
 		explodeas = "penetrator",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 5001,
 		health = 9000,
 		maxslope = 15,

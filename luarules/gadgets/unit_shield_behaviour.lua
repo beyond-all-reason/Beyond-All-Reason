@@ -241,6 +241,20 @@ end
 
 ----local functions----
 
+local function getUnitShieldWeaponPosition(shieldUnitID, unitData)
+	if unitData.x then
+		return unitData.x, unitData.y, unitData.z, unitData.radius -- from dead unit
+	elseif unitData.shieldWeaponNumber then
+		local x, y, z = spGetUnitWeaponVectors(shieldUnitID, unitData.shieldWeaponNumber)
+		return x, y, z, unitData.radius
+	else
+		-- The unit may have died without ever receiving shield damage, so has no weapon number.
+		-- TODO: But why is that even a thing? This is not a significant obstacle to overcome.
+		local x, y, z = spGetUnitPosition(shieldUnitID, true)
+		return x, y, z, unitData.radius
+	end
+end
+
 local function removeCoveredUnits(shieldUnitID)
 	for unitID, shieldList in pairs(shieldedUnits) do
 		if shieldList[shieldUnitID] then
@@ -304,7 +318,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		shieldUnitsData[unitID] = nil
 		-- Keep shield data for one frame, since the shieldsrework delays updates until then.
 		destroyedUnitData[unitID] = unitData
-		unitData.x, unitData.y, unitData.z = spGetUnitWeaponVectors(unitID, unitData.shieldWeaponNumber)
+		unitData.x, unitData.y, unitData.z = getUnitShieldWeaponPosition(unitID, unitData)
 		-- ! Prevent a possible error here, it seems shields are cleaned up faster than unit weapons:
 		local success, state, power = pcall(spGetUnitShieldState, unitID, unitData.shieldWeaponNumber)
 		unitData.power = (success and state == 1 and power) or unitData.power or 0
@@ -542,6 +556,10 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
 		return true
 	end
 
+	if shieldWeaponNum and not shieldData.shieldWeaponNumber then
+		shieldData.shieldWeaponNumber = shieldWeaponNum
+	end
+
 	-- Process scripted weapon types first (dgun, cluster, overpen, area timed). These can override any behaviors, potentially.
 	for lookup, callback in pairs(scriptedShieldDamages) do
 		if lookup[proID] then -- TODO: filtering for beam weapons (projectileID == -1) is not especially effective here.
@@ -628,15 +646,6 @@ local function addCustomShieldDamage(shieldUnitID, damage, weaponDefID)
 	end
 
 	return false, 0
-end
-
-local function getUnitShieldWeaponPosition(shieldUnitID, unitData)
-	if unitData.x then
-		return unitData.x, unitData.y, unitData.z, unitData.radius -- from dead unit
-	else
-		local x, y, z = spGetUnitWeaponVectors(shieldUnitID, unitData.shieldWeaponNumber or 1)
-		return x, y, z, unitData.radius
-	end
 end
 
 ---@return number? x xyz, emitter point of the shield weapon
