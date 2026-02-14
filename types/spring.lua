@@ -1,6 +1,15 @@
--- It would be better if LuaSyncedCtrl published this interface for us, until then we cope
----@class ISpring
----@field CMD table Spring command constants
+-- Forward-declare Spring as a named class so ISpring can inherit from it.
+-- This doesn't currently merge with recoil-lua-library's generated functions because the
+-- ---@class annotation must be on the Spring = {} assignment in the submodule.
+-- Once the engine publishes ---@class Spring in rts/Lua/library/Spring.lua, this local
+-- declaration and the duplicate field list below can be removed.
+---@class Spring
+
+-- BAR's DI contract: inherits from Spring (aspirational until engine publishes the class).
+-- Explicit fields are needed until the ---@class Spring annotation in the engine makes
+-- inheritance resolve the generated function signatures automatically.
+---@class ISpring : Spring
+---@field CMD table
 ---@field GetModOptions fun(): table
 ---@field GetGameFrame fun(): number, any
 ---@field IsCheatingEnabled fun(): boolean
@@ -11,19 +20,14 @@
 ---@field GetPlayerInfo fun(playerID: number, getUnread: boolean?): string, number, boolean, number
 ---@field GetTeamList fun(): number[]
 ---@field GetPlayerList fun(): number[]
----@field GetPlayerListUnpacked fun(): TeamData[]?
----@field GetPlayerIdsList fun(): number[]?
 ---@field AreTeamsAllied fun(team1ID: number, team2ID: number): boolean
 ---@field GetTeamUnits fun(teamID: number): number[]?
 ---@field GetUnitTeam fun(unitID: number): number?
 ---@field GetUnitDefID fun(unitID: number): number?
 ---@field GetUnitDefs fun(): table<string, UnitWrapper>
 ---@field GiveOrderToUnit fun(unitID: number, commandID: number, params: table, options: table)
----@field AddTeamResource fun(teamID: number, resourceType: ResourceName, amount: number) @deprecated Use SetTeamResourceData when game_economy is enabled
----@field ShareTeamResource fun(teamID_src: number, teamID_recv: number, resourceType: ResourceName, amount: number) @deprecated Use ProcessEconomy when game_economy is enabled
----@field GetTeamResourceData fun(teamID: number, resource: ResourceName): ResourceData
----@field SetTeamResourceData fun(teamID: number, data: ResourceData)
----@field SetTeamResource fun(teamID: number, resource: ResourceName, amount: number)
+---@field AddTeamResource fun(teamID: number, resourceType: ResourceName, amount: number)
+---@field ShareTeamResource fun(teamID_src: number, teamID_recv: number, resourceType: ResourceName, amount: number)
 ---@field SetTeamShareLevel fun(teamID: number, resource: ResourceName, level: number)
 ---@field GetGaiaTeamID fun(): number
 ---@field GetTeamInfo fun(teamID: number, getUnread: boolean?): string, number, boolean, boolean, string, number, table, number, number
@@ -31,9 +35,26 @@
 ---@field ValidUnitID fun(unitID: number): boolean
 ---@field TransferUnit fun(unitID: number, newTeamID: number, given: boolean): boolean
 ---@field GetUnitDefNames fun(): table<string, { id: number }>
+---@field GetPlayerListUnpacked fun(): TeamData[]?
+---@field GetPlayerIdsList fun(): number[]?
+---@field GetTeamResourceData fun(teamID: number, resource: ResourceName): ResourceData
+---@field SetTeamResourceData fun(teamID: number, data: ResourceData)
+---@field SetTeamResource fun(teamID: number, resource: ResourceName, amount: number)
 ---@field SetEconomyController fun(controller: GameEconomyController)
 ---@field SetUnitTransferController fun(controller: GameUnitTransferController)
 ---@field GetAuditTimer fun(): number
+---@field EconomyAuditLog fun(eventType: string, ...)
+---@field EconomyAuditLogRaw fun(eventType: string, ...)
+---@field IsEconomyAuditEnabled fun(): boolean
+---@field EconomyAuditBreakpoint fun(name: string)
+
+-- Engine types (temporary -- will move to recoil-lua-library when eco branch merges)
+---@class GameEconomyController
+---@field ProcessEconomy fun(frame: number, teams: table<number, TeamResourceData>): EconomyTeamResult[]
+
+---@class GameUnitTransferController
+---@field AllowUnitTransfer fun(unitID: number, unitDefID: number, fromTeamID: number, toTeamID: number, capture: boolean): boolean
+---@field TeamShare fun(srcTeamID: number, dstTeamID: number)
 
 ---@class EconomyTeamResult
 ---@field teamId number
@@ -42,42 +63,29 @@
 ---@field sent number
 ---@field received number
 
----@class GameEconomyController
----@field ProcessEconomy fun(frame: number, teams: table<number, TeamResourceData>): EconomyTeamResult[]
-
----@class GameUnitTransferController
----@field AllowUnitTransfer fun(unitID: number, unitDefID: number, fromTeamID: number, toTeamID: number, capture: boolean): boolean
----@field TeamShare fun(srcTeamID: number, dstTeamID: number)
-
----@class ResourceShareParams
----@field senderTeamID number
----@field targetTeamID number
----@field resourceType string
----@field amount number
-
----@class UnitWrapper
----@field unitDefId string
----@field unitDef table? -- Populated by SpringBuilder with real unit definition data
----@field [string] any Additional unit definition properties when loaded
-
----@alias ResourceName "metal"|"m"|"energy"|"e"
----@alias StorageName "metalStorage"|"ms"|"energyStorage"|"es"
-
 ---@class ResourceData
----@field resourceType ResourceName resource type identifier
----@field current number current stockpile (clamped to storage)
----@field storage number max storage capacity
----@field pull number requested usage
----@field income number production income
----@field expense number expenditure
----@field shareSlider number share threshold slider (0-1)
----@field excess number resources that overflowed storage this frame (for sharing)
+---@field resourceType ResourceName
+---@field current number
+---@field storage number
+---@field pull number
+---@field income number
+---@field expense number
+---@field shareSlider number
+---@field sent number
+---@field received number
+---@field excess number
 
 ---@class TeamResourceData
 ---@field allyTeam number
 ---@field isDead boolean
 ---@field metal ResourceData
 ---@field energy ResourceData
+
+-- Game-side types (permanent in BAR)
+---@class UnitWrapper
+---@field unitDefId string
+---@field unitDef table?
+---@field [string] any
 
 ---@class TeamData
 ---@field id number

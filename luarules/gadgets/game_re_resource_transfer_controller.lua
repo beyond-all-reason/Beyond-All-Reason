@@ -2,13 +2,13 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name      = "Resource Transfer Controller",
-		desc      = "Controls resource transfers via Water-Fill algorithm (ProcessEconomy path)",
+		name      = "RE Resource Transfer Controller",
+		desc      = "Controls resource transfers via Water-Fill algorithm (ResourceExcess path)",
 		author    = "Antigravity",
-		date      = "2024",
+		date      = "2025",
 		license   = "GPL-v2",
 		layer     = -200,
-		enabled   = Game.gameEconomy == true,
+		enabled   = not Game.gameEconomy,
 	}
 end
 
@@ -17,31 +17,10 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 --------------------------------------------------------------------------------
--- GG API (defined first so other gadgets can use them even if modules fail)
+-- GG API
 --------------------------------------------------------------------------------
 
 GG = GG or {}
-
-local function GetTeamResourceDataFallback(teamID, resource)
-	local cur, stor, pull, inc, exp, share, sent, recv = Spring.GetTeamResources(teamID, resource)
-	return {
-		resourceType = resource,
-		current = cur or 0,
-		storage = stor or 0,
-		pull = pull or 0,
-		income = inc or 0,
-		expense = exp or 0,
-		shareSlider = share or 0,
-		sent = sent or 0,
-		received = recv or 0,
-	}
-end
-
-local GetTeamResourceDataImpl = Spring.GetTeamResourceData or GetTeamResourceDataFallback
-
-function GG.GetTeamResourceData(teamID, resource)
-	return GetTeamResourceDataImpl(teamID, resource)
-end
 
 function GG.GetTeamResources(teamID, resource)
 	return Spring.GetTeamResources(teamID, resource)
@@ -63,7 +42,6 @@ local ResourceTransfer = VFS.Include("common/luaUtilities/team_transfer/resource
 local Shared = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_shared.lua")
 local Comms = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_comms.lua")
 local LuaRulesMsg = VFS.Include("common/luaUtilities/lua_rules_msg.lua")
-local EconomyLog = VFS.Include("common/luaUtilities/economy/economy_log.lua")
 
 local ResourceType = GlobalEnums.ResourceType
 local WaterfillSolver = VFS.Include("common/luaUtilities/economy/economy_waterfill_solver.lua")
@@ -76,18 +54,13 @@ local tracyAvailable = tracy and tracy.ZoneBeginN and tracy.ZoneEnd
 
 local contextFactory = ContextFactoryModule.create(Spring)
 local lastPolicyUpdate = 0
-local POLICY_UPDATE_RATE = 30 -- Update every SlowUpdate (1 second at 30fps)
+local POLICY_UPDATE_RATE = 30
 
 ---@type table<number, TeamResourceData>
 local teamsCache = {}
 local statsSentBuffer = { sent = { 0, 0 } }
 local statsRecvBuffer = { received = { 0, 0 } }
 
----@param teamID number Sender team ID
----@param targetTeamID number Receiver team ID  
----@param resource string|ResourceName Resource type
----@param amount number Desired amount to transfer
----@return ResourceTransferResult
 function GG.ShareTeamResource(teamID, targetTeamID, resource, amount)
 	local policyResult = Shared.GetCachedPolicyResult(teamID, targetTeamID, resource, Spring)
 	local ctx = contextFactory.resourceTransfer(teamID, targetTeamID, resource, amount, policyResult)
@@ -101,17 +74,11 @@ function GG.ShareTeamResource(teamID, targetTeamID, resource, amount)
 	return transferResult
 end
 
----@param teamID number
----@param resource string|ResourceName
----@param level number
 function GG.SetTeamShareLevel(teamID, resource, level)
 	Spring.SetTeamShareLevel(teamID, resource, level)
 	lastPolicyUpdate = 0
 end
 
----@param teamID number
----@param resource string|ResourceName
----@return number?
 function GG.GetTeamShareLevel(teamID, resource)
 	local _, _, _, _, _, share = Spring.GetTeamResources(teamID, resource)
 	return share
@@ -146,32 +113,105 @@ function gadget:PlayerAdded(playerID)
 end
 
 --------------------------------------------------------------------------------
--- ProcessEconomy Controller
+-- ResourceExcess handler
+-- 
+-- Standard gadget callin: engine fires this every frame with per-team excess.
+-- We query full team state, run the solver, and apply results via setters.
 --------------------------------------------------------------------------------
 
 local pendingPolicyUpdate = false
 local pendingPolicyFrame = 0
 
----@param frame number
----@param teams table<number, TeamResourceData>
----@return EconomyTeamResult[]
-local function ProcessEconomy(frame, teams)
-	if tracyAvailable then tracy.ZoneBeginN("PE_Lua") end
+---Build team data by querying Spring API
+---@param excesses table Excess values from engine (keyed by teamID)
+---@return table<number, TeamResourceData>
+local function BuildTeamData(excesses)
+	local teamList = Spring.GetTeamList() or {}
+	
+	for _, teamId in ipairs(teamList) do
+		local mCur, mStor, mPull, mInc, mExp, mShare = Spring.GetTeamResources(teamId, "metal")
+		local eCur, eStor, ePull, eInc, eExp, eShare = Spring.GetTeamResources(teamId, "energy")
+		
+		if mCur and eCur then
+			local _, _, isDead, _, _, allyTeam = Spring.GetTeamInfo(teamId)
+			
+			local team = teamsCache[teamId]
+			if not team then
+				team = {
+					metal = {},
+					energy = {},
+					allyTeam = allyTeam,
+					isDead = false,
+				}
+				teamsCache[teamId] = team
+			end
+			
+			team.allyTeam = allyTeam
+			team.isDead = (isDead == true)
+			
+			local metal = team.metal
+			metal.resourceType = "metal"
+			metal.current = mCur
+			metal.storage = mStor or 0
+			metal.pull = mPull or 0
+			metal.income = mInc or 0
+			metal.expense = mExp or 0
+			metal.shareSlider = mShare or 0
+			
+			local energy = team.energy
+			energy.resourceType = "energy"
+			energy.current = eCur
+			energy.storage = eStor or 0
+			energy.pull = ePull or 0
+			energy.income = eInc or 0
+			energy.expense = eExp or 0
+			energy.shareSlider = eShare or 0
+		end
+	end
+	
+	return teamsCache
+end
 
-	local results = WaterfillSolver.SolveToResults(Spring, teams)
+---Apply solver results to teams via Spring API
+---@param results EconomyTeamResult[]
+local function ApplyResults(results)
+	local teamStats = {}
 	
-	pendingPolicyUpdate = true
-	pendingPolicyFrame = frame
+	for _, result in ipairs(results) do
+		local teamId = result.teamId
+		local resName = result.resourceType == ResourceType.METAL and "metal" or "energy"
+		local resIdx = result.resourceType == ResourceType.METAL and 1 or 2
+		
+		Spring.SetTeamResource(teamId, resName, result.current)
+		
+		local stats = teamStats[teamId]
+		if not stats then
+			stats = { sent = { 0, 0 }, received = { 0, 0 } }
+			teamStats[teamId] = stats
+		end
+		stats.sent[resIdx] = result.sent
+		stats.received[resIdx] = result.received
+	end
 	
-	if tracyAvailable then tracy.ZoneEnd() end
-	return results
+	for teamId, stats in pairs(teamStats) do
+		if stats.sent[1] > 0 or stats.sent[2] > 0 then
+			statsSentBuffer.sent[1] = stats.sent[1]
+			statsSentBuffer.sent[2] = stats.sent[2]
+			Spring.AddTeamResourceStats(teamId, statsSentBuffer)
+		end
+		if stats.received[1] > 0 or stats.received[2] > 0 then
+			statsRecvBuffer.received[1] = stats.received[1]
+			statsRecvBuffer.received[2] = stats.received[2]
+			Spring.AddTeamResourceStats(teamId, statsRecvBuffer)
+		end
+	end
 end
 
 local function DeferredPolicyUpdate()
 	if not pendingPolicyUpdate then return end
 	pendingPolicyUpdate = false
 	
-	if tracyAvailable then tracy.ZoneBeginN("PE_PolicyCache_Deferred") end
+	if tracyAvailable then tracy.ZoneBeginN("RE_PolicyCache_Deferred") end
 	lastPolicyUpdate = ResourceTransfer.UpdatePolicyCache(
 		Spring, pendingPolicyFrame, lastPolicyUpdate, POLICY_UPDATE_RATE, contextFactory
 	)
@@ -181,6 +221,27 @@ end
 --------------------------------------------------------------------------------
 -- Gadget callins
 --------------------------------------------------------------------------------
+
+function gadget:ResourceExcess(excesses)
+	if tracyAvailable then tracy.ZoneBeginN("RE_Lua") end
+
+	local teams = BuildTeamData(excesses)
+	
+	local success, results = pcall(WaterfillSolver.SolveToResults, Spring, teams)
+	if not success then
+		if tracyAvailable then tracy.ZoneEnd() end
+		Spring.Log("REResourceTransferController", LOG.ERROR, "Solver: " .. tostring(results))
+		return false
+	end
+	
+	ApplyResults(results)
+	
+	pendingPolicyUpdate = true
+	pendingPolicyFrame = Spring.GetGameFrame()
+	
+	if tracyAvailable then tracy.ZoneEnd() end
+	return true
+end
 
 function gadget:RecvLuaMsg(msg, playerID)
 	local params = LuaRulesMsg.ParseResourceShare(msg)
@@ -192,43 +253,13 @@ function gadget:RecvLuaMsg(msg, playerID)
 end
 
 function gadget:Initialize()
-	Spring.Echo("[ResourceTransferController] Initialize (ProcessEconomy path)")
+	Spring.Echo("[REResourceTransferController] Initialize (ResourceExcess path)")
 	
 	local teamList = Spring.GetTeamList()
 	for _, senderTeamId in ipairs(teamList) do
 		InitializeNewTeam(senderTeamId)
 	end
 	lastPolicyUpdate = Spring.GetGameFrame()
-	
-	---@type GameEconomyController
-	local controller = { ProcessEconomy = ProcessEconomy }
-	Spring.SetEconomyController(controller)
-	Spring.Echo("[ResourceTransferController] Registered GameEconomyController")
-end
-
-function gadget:GameStart()
-	if not Spring.IsEconomyAuditEnabled() then return end
-	
-	local gaiaTeamId = Spring.GetGaiaTeamID()
-	local teamList = Spring.GetTeamList() or {}
-	for _, teamId in ipairs(teamList) do
-		local _, leader, _, isAI, _, allyTeam = Spring.GetTeamInfo(teamId)
-		local isGaia = (teamId == gaiaTeamId)
-		local name
-		if isAI then
-			local niceName = Spring.GetGameRulesParam('ainame_' .. teamId)
-			if niceName then
-				name = niceName
-			else
-				local _, aiName = Spring.GetAIInfo(teamId)
-				name = aiName or ("AI " .. teamId)
-			end
-		else
-			local playerName = leader and Spring.GetPlayerInfo(leader, false) or nil
-			name = playerName or ("Player " .. teamId)
-		end
-		EconomyLog.TeamInfo(teamId, name, isAI, allyTeam, isGaia)
-	end
 end
 
 function gadget:GameFrame(frame)

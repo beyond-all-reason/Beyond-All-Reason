@@ -15,8 +15,8 @@ local tracyAvailable = tracy and tracy.ZoneBeginN and tracy.ZoneEnd
 local memberCache = {} ---@type table<number, EconomyShareMember>
 local groupCache = {} ---@type table<number, EconomyShareMember[]>
 local groupSizes = {} ---@type table<number, number>
-local teamLedgerCache = {} ---@type table<number, table<ResourceType, EconomyFlowLedger>>
-local cumulativeCache = {} ---@type table<number, table<ResourceType, number>>
+local teamLedgerCache = {} ---@type table<number, table<ResourceName, EconomyFlowLedger>>
+local cumulativeCache = {} ---@type table<number, table<ResourceName, number>>
 local cppMembersCache = {} ---@type table[]
 local teamIdMapCache = {} ---@type number[]
 
@@ -39,8 +39,8 @@ local function normalizeSlider(value)
 end
 
 ---@param teamsList table<number, TeamResourceData>
----@param resourceType ResourceType
----@param thresholds table<ResourceType, number>
+---@param resourceType ResourceName
+---@param thresholds table<ResourceName, number>
 ---@param springRepo ISpring
 ---@return table<number, EconomyShareMember[]>, table<number, number>
 local function collectMembers(teamsList, resourceType, thresholds, springRepo)
@@ -324,7 +324,7 @@ local function applyDeltas(members, memberCount, lift, deltas, taxRate)
 end
 
 ---@param springRepo ISpring
----@param updates table<number, table<ResourceType, number>>
+---@param updates table<number, table<ResourceName, number>>
 local function updateCumulative(springRepo, updates)
   for teamId, perResource in pairs(updates) do
     for resourceType, value in pairs(perResource) do

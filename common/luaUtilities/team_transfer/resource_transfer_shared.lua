@@ -23,7 +23,7 @@ Shared.ResourcePolicyFields = {
 
 ---Generate base key for policy caching
 ---@param receiverId number
----@param resourceType ResourceType
+---@param resourceType ResourceName
 ---@return string
 function Shared.MakeBaseKey(receiverId, resourceType)
   local transferCategory = resourceType == GlobalEnums.ResourceType.METAL and GlobalEnums.TransferCategory.MetalTransfer or
@@ -52,7 +52,7 @@ end
 
 ---@param senderTeamId number
 ---@param receiverTeamId number
----@param resourceType ResourceType
+---@param resourceType ResourceName
 ---@param springApi ISpring?
 ---@return ResourcePolicyResult
 function Shared.CreateDenyPolicy(senderTeamId, receiverTeamId, resourceType, springApi)
@@ -104,7 +104,7 @@ end
 
 ---@param senderId number
 ---@param receiverId number
----@param resourceType ResourceType
+---@param resourceType ResourceName
 ---@param springApi ISpring?
 ---@return ResourcePolicyResult
 function Shared.GetCachedPolicyResult(senderId, receiverId, resourceType, springApi)
@@ -117,7 +117,7 @@ function Shared.GetCachedPolicyResult(senderId, receiverId, resourceType, spring
   return Shared.DeserializePolicyResult(serialized, senderId, receiverId)
 end
 
----@param resourceType ResourceType
+---@param resourceType ResourceName
 ---@return string
 function Shared.GetCumulativeParam(resourceType)
   if resourceType == GlobalEnums.ResourceType.METAL then
@@ -127,7 +127,7 @@ function Shared.GetCumulativeParam(resourceType)
   end
 end
 
----@param resourceType ResourceType
+---@param resourceType ResourceName
 ---@return string
 function Shared.GetPassiveCumulativeParam(resourceType)
   if resourceType == GlobalEnums.ResourceType.METAL then
@@ -138,7 +138,7 @@ function Shared.GetPassiveCumulativeParam(resourceType)
 end
 
 ---@param teamId number
----@param resourceType ResourceType
+---@param resourceType ResourceName
 ---@param springRepo ISpring?
 ---@return number
 function Shared.GetPassiveCumulativeSent(teamId, resourceType, springRepo)
@@ -152,7 +152,7 @@ function Shared.GetPassiveCumulativeSent(teamId, resourceType, springRepo)
 end
 
 ---@param teamId number
----@param resourceType ResourceType
+---@param resourceType ResourceName
 ---@param springRepo ISpring?
 ---@return number
 function Shared.GetCumulativeSent(teamId, resourceType, springRepo)

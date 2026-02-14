@@ -4,7 +4,7 @@ local GlobalEnums = VFS.Include("modes/global_enums.lua")
 ---@field create fun(springRepo: ISpring): ContextFactory
 ---@field policy fun(senderTeamID: number, receiverTeamID: number): PolicyContext
 ---@field action fun(senderTeamId: number, receiverTeamId: number, transferCategory: string): PolicyActionContext
----@field resourceTransfer fun(senderTeamId: number, receiverTeamId: number, resourceType: ResourceType, desiredAmount: number, policyResult: ResourcePolicyResult): ResourceTransferContext
+---@field resourceTransfer fun(senderTeamId: number, receiverTeamId: number, resourceType: ResourceName, desiredAmount: number, policyResult: ResourcePolicyResult): ResourceTransferContext
 ---@field unitTransfer fun(senderTeamId: number, receiverTeamId: number, unitIds: number[], given: boolean, policyResult: UnitPolicyResult, unitValidationResult: UnitValidationResult): UnitTransferContext
 local ContextFactory = {}
 
@@ -74,7 +74,7 @@ function ContextFactory.create(springRepo)
   ---Create resource transfer context for transfer actions
   ---@param senderTeamId number
   ---@param receiverTeamId number
-  ---@param resourceType ResourceType
+  ---@param resourceType ResourceName
   ---@param desiredAmount number
   ---@param policyResult ResourcePolicyResult
   ---@return ResourceTransferContext

@@ -69,7 +69,7 @@ end
 
 -- Encapsulate legacy AllowResourceTransfer gate rules
 ---@param ctx PolicyContext
----@param resourceType ResourceType
+---@param resourceType ResourceName
 ---@return ResourcePolicyResult|nil
 local function TryDenyPolicy(ctx, resourceType)
   -- Globally disable any form of resource sharing if the modoption is turned off
@@ -148,9 +148,9 @@ local policyResultPool = {}
 ---@param taxRate number
 ---@param metalThreshold number
 ---@param energyThreshold number
----@return fun(ctx: PolicyContext, resourceType: ResourceType) : ResourcePolicyResult
+---@return fun(ctx: PolicyContext, resourceType: ResourceName) : ResourcePolicyResult
 function Gadgets.BuildResultFactory(taxRate, metalThreshold, energyThreshold)
-  ---@param resourceType ResourceType
+  ---@param resourceType ResourceName
   local function getThreshold(resourceType)
     if resourceType == GlobalEnums.ResourceType.METAL then
       return metalThreshold
@@ -160,7 +160,7 @@ function Gadgets.BuildResultFactory(taxRate, metalThreshold, energyThreshold)
   end
 
   ---@param ctx PolicyContext
-  ---@param resourceType ResourceType
+  ---@param resourceType ResourceName
   ---@return ResourcePolicyResult
   local function calcResourcePolicyResult(ctx, resourceType)
     local rejected = TryDenyPolicy(ctx, resourceType)
@@ -227,7 +227,7 @@ end
 
 ---@param springApi ISpring
 ---@param teamId number
----@param resourceType ResourceType
+---@param resourceType ResourceName
 ---@param amountSent number
 function Gadgets.UpdateCumulativeSent(springApi, teamId, resourceType, amountSent)
   local param = Shared.GetCumulativeParam(resourceType)
@@ -342,7 +342,7 @@ end
 ---@param springRepo ISpring
 ---@param senderId number
 ---@param receiverId number
----@param resourceType ResourceType
+---@param resourceType ResourceName
 ---@param policyResult ResourcePolicyResult
 function Gadgets.CachePolicyResult(springRepo, senderId, receiverId, resourceType, policyResult)
   local baseKey = Shared.MakeBaseKey(receiverId, resourceType)

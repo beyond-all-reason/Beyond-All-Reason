@@ -2,7 +2,6 @@
 -- Minimal types focused on IntelliSense support and keeping the linter honest
 
 ---@alias TransferCategory "metal_transfer" | "energy_transfer" | "unit_transfer" | "guard_transfer" | "repair_transfer" | "reclaim_transfer"
----@alias ResourceType ResourceName
 
 ---@class ValidationResult
 ---@field ok boolean
@@ -64,14 +63,14 @@
 ---@field taxedPortion number
 ---@field untaxedPortion number
 ---@field taxRate number
----@field resourceType ResourceType
+---@field resourceType ResourceName
 ---@field remainingTaxFreeAllowance number
 ---@field resourceShareThreshold number
 ---@field cumulativeSent number
 ---@field taxExcess boolean Whether thresholds apply (true = use thresholds, false = always tax)
 
 ---@class ResourceTransferContext : PolicyActionContext
----@field resourceType ResourceType
+---@field resourceType ResourceName
 ---@field desiredAmount number
 ---@field policyResult ResourcePolicyResult
 
@@ -109,7 +108,7 @@
 ---@class EconomyShareMember
 ---@field teamId number
 ---@field allyTeam number
----@field resourceType ResourceType
+---@field resourceType ResourceName
 ---@field resource ResourceData
 ---@field current number effective current = resource.current + resource.excess
 ---@field storage number
@@ -125,9 +124,15 @@
 ---@field untaxed number
 ---@field taxed number
 
----@alias EconomyFlowSummary table<number, table<ResourceType, EconomyFlowLedger>>
+---@alias EconomyFlowSummary table<number, table<ResourceName, EconomyFlowLedger>>
 
 ---@class EconomyWaterFillSolution
 ---@field targetLift number
 ---@field needs table<number, number>
 ---@field supply table<number, number>
+
+---@class ResourceShareParams
+---@field senderTeamID number
+---@field targetTeamID number
+---@field resourceType string
+---@field amount number

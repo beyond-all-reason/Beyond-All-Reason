@@ -6,7 +6,7 @@ local M = {}
 
 ---@type number?
 local cachedTax = nil
----@type table<ResourceType, number>?
+---@type table<ResourceName, number>?
 local cachedThresholds = nil
 
 function M.resetCache()
@@ -16,7 +16,7 @@ end
 
 ---@param springRepo ISpring
 ---@return number tax
----@return table<ResourceType, number> thresholds
+---@return table<ResourceName, number> thresholds
 function M.getTaxConfig(springRepo)
   if cachedTax and cachedThresholds then
     return cachedTax, cachedThresholds
