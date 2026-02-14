@@ -48,6 +48,9 @@ function gadget:Initialize()
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+	if not UnitDefs[unitDefID].isTransport then
+		return false
+	end
 	if cmdID == CMD_LOAD_UNITS then
 		if #cmdParams == 1 then -- if unit is target
 			if ValidUnitID(cmdParams[1]) and GetUnitTeam(cmdParams[1]) ~= teamID and Nanos[GetUnitDefID(cmdParams[1])] then
