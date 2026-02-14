@@ -701,7 +701,9 @@ function widget:MouseRelease(mx, my, mButton)
                         end
                     end
                 end
-
+				if usingCmd == CMD_SETTARGET then
+					Spring.SendLuaRulesMsg("settarget_line")
+				end
                 spSetActiveCommand(0) -- Deselect command
             end
         end

@@ -63,6 +63,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitWeaponHaveFreeLineOfFire = Spring.GetUnitWeaponHaveFreeLineOfFire
 	local spGetGroundHeight = Spring.GetGroundHeight
 	local spGetAllUnits = Spring.GetAllUnits
+	local spGetPlayerInfo = Spring.GetPlayerInfo
 
 	local tremove = table.remove
 
@@ -421,6 +422,9 @@ if gadgetHandler:IsSyncedCode() then
 		--tracy.Message(string.format("processCommand params=%s oprt=%s", Json.encode(cmdParams), Json.encode(cmdOptions)))
 		if cmdID == CMD_UNIT_SET_TARGET_NO_GROUND or cmdID == CMD_UNIT_SET_TARGET or cmdID == CMD_UNIT_SET_TARGET_RECTANGLE then
 			if validUnits[unitDefID] then
+				if cmdParams and #cmdParams > 3 and not (cmdOptions and cmdOptions.internal) then
+					SendToUnsynced("settarget_line_sound", teamID, -1, unitID, cmdID)
+				end
 				local weaponList = unitWeapons[unitDefID]
 				local append = cmdOptions.shift or false
 				local userTarget = not cmdOptions.internal
@@ -664,6 +668,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 		--tracy.ZoneBeginN(string.format("AllowCommand %s %s", tostring(fromSynced), tostring(fromLua)))
 		--tracy.Message(string.format("Allowcommand params %s %s", table.toString(cmdOptions), table.toString(cmdParams)))
+		-- Line/rectangle set-target SFX is handled in processCommand for reliable cmdParams.
 		if spGetUnitCommandCount(unitID) == 0 or not cmdOptions.meta then
 			if processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, fromLua) then
 				--tracy.ZoneEnd()
@@ -684,6 +689,15 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		--tracy.ZoneEnd()
 		return true  -- command was not used OR was used but not fully processed, so don't block command
+	end
+
+	function gadget:RecvLuaMsg(msg, playerID)
+		if msg == "settarget_line" then
+			local _, _, _, teamID = spGetPlayerInfo(playerID)
+			if teamID then
+				SendToUnsynced("settarget_line_sound", teamID, playerID, nil, CMD_UNIT_SET_TARGET)
+			end
+		end
 	end
 
 	--------------------------------------------------------------------------------
