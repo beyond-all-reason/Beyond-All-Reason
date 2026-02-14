@@ -321,3 +321,7 @@ bind           Alt+sc_c  blueprint_create
 bind           Alt+sc_d  blueprint_delete
 bind           Alt+sc_[  blueprint_prev
 bind           Alt+sc_]  blueprint_next
+
+// undo/redo
+bind           alt+sc_r  undo
+bind           alt+sc_t  redo
