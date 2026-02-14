@@ -206,7 +206,7 @@ local function AllowUnitBuildStep(self, builderID, builderTeam, unitID, unitDefI
 	return true
 end
 
-local seed = math.random(91, 119) -- skip spawn-in frames
+local seed = math.random(Game.spawnWarpInFrame + 1, Game.spawnWarpInFrame + Game.gameSpeed - 1)
 
 function gadget:GameFrame(frame)
     if frame % seed == 0 then
