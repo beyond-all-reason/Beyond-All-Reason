@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "March 2023",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -18,12 +18,29 @@ end
 
 local CMD_CAPTURE = CMD.CAPTURE
 
+local allowAll = Spring.Utilities.Gametype.isSinglePlayer()
+	or (Spring.Utilities.Gametype.isFFA() and not Spring.Utilities.Gametype.isTeams())
+	or Spring.Utilities.Gametype.isSandbox()
+
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
 	-- accepts: CMD.CAPTURE
-	local targetTeamID = Spring.GetUnitTeam(cmdParams[1])
-	if targetTeamID then
-		local isDead = select(4, Spring.GetTeamInfo(targetTeamID))
-		if Spring.GetUnitAllyTeam(unitID) == Spring.GetUnitAllyTeam(cmdParams[1]) and not isDead and not Spring.GetTeamLuaAI(targetTeamID) then
+	local nParams = #cmdParams
+
+	if nParams == 1 or nParams == 5 then
+		-- Command is targeting a single unit.
+		local targetUnitID = cmdParams[1]
+		local targetTeamID = targetUnitID and Spring.GetUnitTeam(targetUnitID)
+		if targetTeamID then
+			local _, _, isDead, hasSkirmishAI, _, allyTeam = Spring.GetTeamInfo(targetTeamID, false)
+			return isDead or hasSkirmishAI or Spring.GetUnitAllyTeam(unitID) ~= allyTeam
+		end
+	elseif nParams == 4 then
+		-- Command is targeting an area.
+		if allowAll or not cmdOptions.ctrl then
+			return true
+		else
+			cmdOptions.ctrl = false
+			Spring.GiveOrderToUnit(unitID, cmdID, cmdParams, cmdOptions)
 			return false
 		end
 	end
