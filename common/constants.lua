@@ -6,28 +6,21 @@ if not Engine or not Spring then return end
 --------------------------------------------------------------------------------
 -- Version handling ------------------------------------------------------------
 
--- TODO: support Engine.commitsNumber
-local function isEngineMinVersion(major, minor, patch)
-    if tonumber(Engine.versionMajor) > major then
-        return true
-    elseif tonumber(Engine.versionMajor) < major then
-        return false
-    end
-
-    if tonumber(Engine.versionMinor) > minor then
-        return true
-    elseif tonumber(Engine.versionMinor) < minor then
-        return false
-    end
-
-    return tonumber(Engine.versionPatchSet) >= patch
+local function isEngineMinVersion(major, minor, patch, commits)
+	if major and tonumber(Engine.versionMajor) ~= major then
+		return tonumber(Engine.versionMajor) > major
+	elseif minor and tonumber(Engine.versionMinor) ~= minor then
+		return tonumber(Engine.versionMinor) > minor
+	elseif patch and tonumber(Engine.versionPatchSet) ~= patch then
+		return tonumber(Engine.versionPatchSet) >= patch
+	elseif commits and tonumber(Engine.commitsNumber) ~= commits then
+		return tonumber(Engine.commitsNumber) >= commits
+	end
+	return true
 end
 
--- An enhancement to add ellipsoidal and cylindrical targeting volumes was bugged briefly for BeamLaser and LightningCannon.
-if Engine.FeatureSupport.targetBorderBug == nil then
-	local inRange = isEngineMinVersion(2025, 6, 4) and not isEngineMinVersion(2025, 6, 14)
-	Engine.FeatureSupport.targetBorderBug = inRange
-end
+---@type boolean Whether the `targetBorder` property is doubled for BeamLaser and LightningCannon.
+Engine.FeatureSupport.targetBorderBug = isEngineMinVersion(2025, 6, 4) and not isEngineMinVersion(2025, 6, 14)
 
 --------------------------------------------------------------------------------
 -- Extended LuaConst -----------------------------------------------------------
