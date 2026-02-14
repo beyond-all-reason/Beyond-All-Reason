@@ -7047,25 +7047,31 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet)
 		for gID, ghost in pairs(ghostBuildings) do
 			if usedElements >= maxInst then break end
 			if not pipUnitSet[gID] then
-				if ghost.x >= viewL and ghost.x <= viewR and ghost.z >= viewT and ghost.z <= viewB then
-					local uvs, sizeScale
-					if cacheUnitIcon[ghost.defID] then
-						local iconData = cacheUnitIcon[ghost.defID]
-						uvs = atlasUVs[iconData.bitmap] or defaultUV
-						sizeScale = iconData.size
-					else
-						uvs = defaultUV
-						sizeScale = 0.5
+				-- If ghost position is currently in LOS but the unit is gone, remove the ghost
+				local gy = spFunc.GetGroundHeight(ghost.x, ghost.z)
+				if spFunc.IsPosInLos(ghost.x, gy, ghost.z, checkAllyTeamID) then
+					ghostBuildings[gID] = nil
+				else
+					if ghost.x >= viewL and ghost.x <= viewR and ghost.z >= viewT and ghost.z <= viewB then
+						local uvs, sizeScale
+						if cacheUnitIcon[ghost.defID] then
+							local iconData = cacheUnitIcon[ghost.defID]
+							uvs = atlasUVs[iconData.bitmap] or defaultUV
+							sizeScale = iconData.size
+						else
+							uvs = defaultUV
+							sizeScale = 0.5
+						end
+						local color = localTeamColors[ghost.teamID]
+						-- Dim ghost icons to simulate being under FoW overlay (engine draws them below LOS layer)
+						local dim = 0.6
+						local r, g, b = (color and color[1] or 1) * dim, (color and color[2] or 1) * dim, (color and color[3] or 1) * dim
+						local off = usedElements * GL4_INSTANCE_STEP
+						data[off+1] = ghost.x; data[off+2] = ghost.z; data[off+3] = sizeScale; data[off+4] = (takeableTeams[ghost.teamID] and 2 or 0)
+						data[off+5] = uvs[1]; data[off+6] = uvs[2]; data[off+7] = uvs[3]; data[off+8] = uvs[4]
+						data[off+9] = r; data[off+10] = g; data[off+11] = b; data[off+12] = (gID * 0.37) % 6.2832
+						usedElements = usedElements + 1
 					end
-					local color = localTeamColors[ghost.teamID]
-					-- Dim ghost icons to simulate being under FoW overlay (engine draws them below LOS layer)
-					local dim = 0.6
-					local r, g, b = (color and color[1] or 1) * dim, (color and color[2] or 1) * dim, (color and color[3] or 1) * dim
-					local off = usedElements * GL4_INSTANCE_STEP
-					data[off+1] = ghost.x; data[off+2] = ghost.z; data[off+3] = sizeScale; data[off+4] = (takeableTeams[ghost.teamID] and 2 or 0)
-					data[off+5] = uvs[1]; data[off+6] = uvs[2]; data[off+7] = uvs[3]; data[off+8] = uvs[4]
-					data[off+9] = r; data[off+10] = g; data[off+11] = b; data[off+12] = (gID * 0.37) % 6.2832
-					usedElements = usedElements + 1
 				end
 			end
 		end
@@ -8349,17 +8355,23 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 			end
 			for gID, ghost in pairs(ghostBuildings) do
 				if not pipUnitSet[gID] then
-					if ghost.x >= render.world.l - margin and ghost.x <= render.world.r + margin and
-					   ghost.z >= render.world.t - margin and ghost.z <= render.world.b + margin then
-						local idx = drawData.iconCount + 1
-						drawData.iconCount = idx
-						drawData.iconTeam[idx] = ghost.teamID
-						drawData.iconX[idx] = worldToPipOffsetX + ghost.x * worldToPipScaleX
-						drawData.iconY[idx] = worldToPipOffsetZ + ghost.z * worldToPipScaleZ
-						drawData.iconUdef[idx] = ghost.defID
-						drawData.iconUnitID[idx] = gID
-						drawData.iconSelected[idx] = false
-						drawData.iconBuildProgress[idx] = 1
+					-- If ghost position is currently in LOS but the unit is gone, remove the ghost
+					local gy = spFunc.GetGroundHeight(ghost.x, ghost.z)
+					if spFunc.IsPosInLos(ghost.x, gy, ghost.z, checkAllyTeamID) then
+						ghostBuildings[gID] = nil
+					else
+						if ghost.x >= render.world.l - margin and ghost.x <= render.world.r + margin and
+						   ghost.z >= render.world.t - margin and ghost.z <= render.world.b + margin then
+							local idx = drawData.iconCount + 1
+							drawData.iconCount = idx
+							drawData.iconTeam[idx] = ghost.teamID
+							drawData.iconX[idx] = worldToPipOffsetX + ghost.x * worldToPipScaleX
+							drawData.iconY[idx] = worldToPipOffsetZ + ghost.z * worldToPipScaleZ
+							drawData.iconUdef[idx] = ghost.defID
+							drawData.iconUnitID[idx] = gID
+							drawData.iconSelected[idx] = false
+							drawData.iconBuildProgress[idx] = 1
+						end
 					end
 				end
 			end
@@ -12399,7 +12411,30 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	glFunc.PopMatrix()
 end
 
+-- Timer for periodic ghost building cleanup (checks ghosts outside PIP viewport)
+local ghostCleanupTimer = 0
+local ghostCleanupInterval = 1.0  -- Check every 1 second
+
 function widget:Update(dt)
+	-- Periodic ghost building cleanup: remove ghosts whose position is now in LOS
+	-- The draw-path check only catches ghosts within the PIP viewport; this catches all of them
+	if not cameraState.mySpecState then
+		ghostCleanupTimer = ghostCleanupTimer + dt
+		if ghostCleanupTimer >= ghostCleanupInterval then
+			ghostCleanupTimer = 0
+			local myAllyTeam = Spring.GetMyAllyTeamID()
+			for gID, ghost in pairs(ghostBuildings) do
+				local gy = spFunc.GetGroundHeight(ghost.x, ghost.z)
+				if spFunc.IsPosInLos(ghost.x, gy, ghost.z, myAllyTeam) then
+					-- Position is in LOS but unitID is not visible (not alive) — building was destroyed
+					if not spFunc.GetUnitDefID(gID) then
+						ghostBuildings[gID] = nil
+					end
+				end
+			end
+		end
+	end
+
 	-- In minimap mode, check if rotation changed and recalculate dimensions if needed
 	if isMinimapMode then
 		local currentRotation = Spring.GetMiniMapRotation and Spring.GetMiniMapRotation() or 0
