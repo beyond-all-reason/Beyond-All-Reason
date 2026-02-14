@@ -36,9 +36,9 @@ local function SaveReplayMetadata()
 end
 
 function widget:Initialize()
-	local demoName = Spring.GetDemoName()
+	local replayFilePath = Spring.GetReplayRecordingFilePath()
 	-- strip off the .sdfz extension
-	local baseDemoName = demoName:match("(.+)%.sdfz")
+	local baseDemoName = replayFilePath:match("(.+)%.sdfz")
 	-- strip off the absolute path, because it looks like we cant write to absolute paths
 	baseDemoName = baseDemoName:match("([^/\\]+)$")
 	local filename = DEMO_SCRIPTS_DIRECTORY .. "/" .. baseDemoName .. ".json"
