@@ -180,6 +180,7 @@ local DEFAULT_DOCK_CHECK_FREQUENCY = 15		-- Checks the docking queue. Increasing
 	-- stockpilemetal = 10			Set it to the same as the drone cost when using stockpile for drones
 	-- stockpileenergy = 10			Set it to the same as the drone cost when using stockpile for drones
 	-- droneairtime = 30
+	-- dronedocktime = 2			Set the minimum docking time for drones
 	-- droneammo = 10
 
 
@@ -208,6 +209,7 @@ for weaponDefID = 1, #WeaponDefs do
 			local metalCost = wdcp.buildcostmetal or wdcp.metalcost or ""
 			local energyCost = wdcp.buildcostenergy or wdcp.energycost or ""
 			local droneAirTime = wdcp.droneAirTime or ""
+			local droneDockTime = wdcp.droneDockTime or ""
 			local droneAmmo = wdcp.droneammo or "0"
 		spawnDefs[weaponDefID] = {
 			name = strSplit(wdcp.carried_unit),
@@ -247,6 +249,7 @@ for weaponDefID = 1, #WeaponDefs do
 			cobundockparam = wdcp.cobundockparam,
 			droneundocksequence = wdcp.droneundocksequence,
 			droneAirTime = strSplit(droneAirTime),
+			droneDockTime = strSplit(droneDockTime),
 			droneAmmo = strSplit(droneAmmo),
 
 		}
@@ -569,6 +572,8 @@ local function spawnUnit(spawnData)
 								originalMaxHealth = droneMaxHealth,
 								droneAirTime = carrierData.droneAirTime[dronetypeIndex],
 								lastLiftOff = 0,
+								droneDockTime = carrierData.droneDockTime[dronetypeIndex],
+								lastLanding = 0,
 								remainingAmmo = 0,
 								maxAmmo = 50,--carrierData.droneAmmo[dronetypeIndex],
 							}
@@ -715,6 +720,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 					local metalCost = spawnDef.metalPerUnit
 					local energyCost = spawnDef.energyPerUnit
 					local droneAirTime = spawnDef.droneAirTime
+					local droneDockTime = spawnDef.droneDockTime
 					local droneAmmo = spawnDef.droneAmmo
 
 					local availableSections = {}
@@ -787,6 +793,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 						droneundocksequence = tonumber(spawnDef.droneundocksequence),
 						printerUnitDefID = nil,
 						droneAirTime = {},
+						droneDockTime = {},
 						droneAmmo = {},
 					}
 					for dronetypeIndex, _ in pairs(carrierData.dronenames) do
@@ -795,6 +802,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 						carrierData.metalCost[dronetypeIndex] = tonumber(metalCost[dronetypeIndex])
 						carrierData.energyCost[dronetypeIndex] = tonumber(energyCost[dronetypeIndex])
 						carrierData.droneAirTime[dronetypeIndex] = droneAirTime[dronetypeIndex] and tonumber(droneAirTime[dronetypeIndex])*30
+						carrierData.droneDockTime[dronetypeIndex] = droneDockTime[dronetypeIndex] and tonumber(droneDockTime[dronetypeIndex])*30
 						carrierData.droneAmmo[dronetypeIndex] = tonumber(droneAmmo[dronetypeIndex])
 						
 					end
@@ -846,18 +854,6 @@ function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 					bomberStage = bomberStage + 1
 				end
 				droneMetaData.bomberStage = bomberStage
-			elseif droneType == "fighter" and (cmdID == CMD.MOVE) and fighterStage > 0 then
-				local rx = cos((fighterStage/4)*(-2)*PI)
-				local rz = sin((fighterStage/4)*(-2)*PI)
-				local carrierx,carriery, carrierz = Spring.GetUnitPosition(carrierUnitID)
-				local idleRadius = 500
-				spGiveOrderToUnit(unitID, CMD.MOVE, {carrierx + rx*idleRadius, carriery, carrierz + rz*idleRadius}, CMD.OPT_SHIFT)
-				if fighterStage >= 4 then
-					fighterStage = 0
-				else
-					fighterStage = fighterStage + 1
-				end
-				droneMetaData.fighterStage = fighterStage
 			end
 		end
 	end
@@ -1244,7 +1240,7 @@ local function updateCarrier(carrierID, carrierMetaData, frame)
 			
 			if droneCurrentHealth then
 				if carrierMetaData.dockedHealRate > 0 and droneDocked then
-					if droneCurrentHealth == droneData.originalMaxHealth then
+					if droneCurrentHealth == droneData.originalMaxHealth and not droneData.droneDockTime or (droneCurrentHealth == droneData.originalMaxHealth and ((droneData.droneDockTime + droneData.lastLanding) < frame)) then
 						-- fully healed
 						droneData.stayDocked = false
 					else
