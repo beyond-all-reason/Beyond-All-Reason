@@ -127,6 +127,10 @@ local config = {
 	zoomProjectileDetail = 0.12,
 	zoomExplosionDetail = 0.12,  -- Legacy, now using graduated visibility
 	drawExplosions = true,  -- Separate from projectiles
+	drawCommandFX = true,  -- Show brief fading command lines when orders are given (like Commands FX widget)
+	commandFXIgnoreNewUnits = true,  -- Ignore commands given to newly finished units (rally point orders)
+	commandFXOpacity = 0.4,  -- Initial opacity of command FX lines
+	commandFXDuration = 0.75,  -- Seconds for command FX lines to fully fade out
 	
 	-- Feature and overlay settings
 	hideEnergyOnlyFeatures = false,
@@ -632,6 +636,14 @@ local wallClockTime = 0 -- Wall-clock time (always advances, even when paused)
 -- Fade duration in seconds, intensity proportional to damage relative to max health
 local damageFlash = {}
 local DAMAGE_FLASH_DURATION = 0.4  -- seconds to fade from full red to normal
+
+-- Command FX: brief fading command lines when orders are given (like Commands FX widget)
+-- Each entry: {unitID, targetX, targetZ, cmdID, time, unitX, unitZ}
+local commandFXList = {}  -- array of active command FX entries
+local commandFXCount = 0
+local commandFXLastTarget = {}  -- [unitID] = {x, z, time} — last command FX target per unit for chaining
+local commandFXNewUnits = {}  -- [unitID] = gameTime — tracks recently finished units to suppress rally commands
+local COMMAND_FX_MAX = 300  -- max simultaneous FX entries
 
 local unitOutlineList = nil
 local radarDotList = nil
@@ -6359,6 +6371,129 @@ local function DrawFormationDotsOverlay()
 end
 
 -- Helper function to draw command queues overlay
+-- Draw command FX: fading lines from unit to command target
+local function DrawCommandFXOverlay()
+	if not config.drawCommandFX then return end
+	if commandFXCount == 0 then return end
+
+	local useGL4 = gl4Prim.enabled
+	local resScale = render.contentScale or 1
+	local now = gameTime
+
+	-- Shorten FX duration when game is catching up (fast-forwarding)
+	-- Speed ratio 1x → multiplier 1.0, 10x → multiplier 0.25 (linear interpolation, clamped)
+	local baseDuration = config.commandFXDuration
+	local wantedSpeed, actualSpeed = Spring.GetGameSpeed()
+	local speedRatio = (wantedSpeed and wantedSpeed > 0) and (actualSpeed / wantedSpeed) or 1
+	local catchupMult = math.max(0.25, 1 - (speedRatio - 1) * (0.75 / 9))
+	local fxDuration = baseDuration * catchupMult
+	local fxAlpha = config.commandFXOpacity
+
+	-- Compact: remove expired entries and draw active ones
+	local writeIdx = 0
+
+	if useGL4 then
+		gl4Prim.normLines.count = 0
+
+		for i = 1, commandFXCount do
+			local fx = commandFXList[i]
+			local age = now - fx.time
+			if age < fxDuration then
+				writeIdx = writeIdx + 1
+				if writeIdx ~= i then
+					commandFXList[writeIdx] = fx
+				end
+				local progress = age / fxDuration
+				local alpha = fxAlpha * (1 - progress)
+				local color = fx.color
+				local r, g, b = color[1], color[2], color[3]
+
+				GL4AddNormLine(fx.unitX, fx.unitZ, fx.targetX, fx.targetZ,
+					r, g, b, alpha, r, g, b, alpha)
+			end
+		end
+
+		-- Clean up trailing entries
+		for i = writeIdx + 1, commandFXCount do
+			commandFXList[i] = nil
+		end
+		commandFXCount = writeIdx
+
+		-- Flush via GL4 shaders
+		if gl4Prim.normLines.count > 0 then
+			gl.Scissor(render.dim.l, render.dim.b, render.dim.r - render.dim.l, render.dim.t - render.dim.b)
+			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+			gl.DepthTest(false)
+
+			GL4SetPrimUniforms(gl4Prim.lineShader, gl4Prim.lineUniformLocs)
+			local ln = gl4Prim.normLines
+			ln.vbo:Upload(ln.data, nil, 0, 1, ln.count * gl4Prim.LINE_STEP)
+			glFunc.LineWidth(1.0 * resScale)
+			ln.vao:DrawArrays(GL.LINES, ln.count)
+			glFunc.LineWidth(1.0)
+			gl.UseShader(0)
+
+			gl.Scissor(false)
+		end
+	else
+		-- Legacy rendering path
+		gl.Scissor(render.dim.l, render.dim.b, render.dim.r - render.dim.l, render.dim.t - render.dim.b)
+		glFunc.LineWidth(1.0 * resScale)
+
+		local linePool = pools.commandLine
+		local lineCount = 0
+
+		for i = 1, commandFXCount do
+			local fx = commandFXList[i]
+			local age = now - fx.time
+			if age < fxDuration then
+				writeIdx = writeIdx + 1
+				if writeIdx ~= i then
+					commandFXList[writeIdx] = fx
+				end
+				local progress = age / fxDuration
+				local alpha = fxAlpha * (1 - progress)
+				local color = fx.color
+				local r, g, b = color[1], color[2], color[3]
+
+				local sx1, sy1 = WorldToPipCoords(fx.unitX, fx.unitZ)
+				local sx2, sy2 = WorldToPipCoords(fx.targetX, fx.targetZ)
+
+				lineCount = lineCount + 1
+				local lineData = linePool[lineCount]
+				if not lineData then
+					lineData = {}
+					linePool[lineCount] = lineData
+				end
+				lineData.x1, lineData.y1 = sx1, sy1
+				lineData.x2, lineData.y2 = sx2, sy2
+				lineData.r, lineData.g, lineData.b, lineData.a = r, g, b, alpha
+			end
+		end
+
+		-- Clean up trailing entries
+		for i = writeIdx + 1, commandFXCount do
+			commandFXList[i] = nil
+		end
+		commandFXCount = writeIdx
+
+		-- Draw lines
+		if lineCount > 0 then
+			glFunc.BeginEnd(GL.LINES, function()
+				for i = 1, lineCount do
+					local line = linePool[i]
+					glFunc.Color(line.r, line.g, line.b, line.a)
+					glFunc.Vertex(line.x1, line.y1)
+					glFunc.Vertex(line.x2, line.y2)
+				end
+			end)
+		end
+
+		glFunc.LineWidth(1.0)
+		gl.Scissor(false)
+	end
+end
+
 local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 	-- Check if Shift+Space (meta) is held to show all visible units
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
@@ -9877,6 +10012,7 @@ local function RenderExpensiveLayers()
 	pipR2T.contentLastDrawTime = os.clock() - drawStartTime
 
 	DrawCommandQueuesOverlay(cachedSelectedUnits)
+	DrawCommandFXOverlay()
 
 	-- Pop rotation matrix if it was applied
 	if render.minimapRotation ~= 0 then
@@ -9926,6 +10062,7 @@ local function RenderPipContents()
 	pipR2T.contentLastDrawTime = os.clock() - drawStartTime
 
 	DrawCommandQueuesOverlay(cachedSelectedUnits)
+	DrawCommandFXOverlay()
 	
 	-- Pop rotation matrix if it was applied
 	if render.minimapRotation ~= 0 then
@@ -13606,6 +13743,100 @@ function widget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transport
 end
 
 -- Track enemy building positions for ghost rendering on PIP
+-- Command FX: briefly show command lines when orders are given
+function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
+	if not config.drawCommandFX then return end
+	if uiState.inMinMode then return end
+
+	-- Only show commands for allied teams (or own team)
+	local myAllyTeam = Spring.GetMyAllyTeamID()
+	local _, _, _, _, _, unitAllyTeam = spFunc.GetTeamInfo(unitTeam, false)
+	if unitAllyTeam ~= myAllyTeam and not cameraState.mySpecState then return end
+
+	-- Skip gaia / critter units
+	if unitTeam == gaiaTeamID then return end
+
+	-- Skip commands to newly finished units (rally point / initial orders)
+	if config.commandFXIgnoreNewUnits then
+		local finishTime = commandFXNewUnits[unitID]
+		if finishTime then
+			if (gameTime - finishTime) < 0.3 then
+				return
+			else
+				commandFXNewUnits[unitID] = nil
+			end
+		end
+	end
+
+	-- Get command color (skip unknown commands)
+	local color = cmdColors[cmdID]
+	if not color and cmdID < 0 then
+		color = cmdColors.unknown  -- build commands
+	end
+	if not color then return end
+
+	-- Resolve target position from command params
+	local targetX, targetZ
+	local nParams = cmdParams and #cmdParams or 0
+	if nParams >= 3 then
+		-- Position-based command: params = {x, y, z, ...}
+		targetX, targetZ = cmdParams[1], cmdParams[3]
+	elseif nParams == 1 then
+		-- Unit or feature target
+		local targetID = cmdParams[1]
+		if targetID >= (Game.maxUnits or 32000) then
+			local fx, _, fz = spFunc.GetFeaturePosition(targetID - (Game.maxUnits or 32000))
+			if fx then targetX, targetZ = fx, fz end
+		else
+			local ux, _, uz = spFunc.GetUnitPosition(targetID)
+			if ux then targetX, targetZ = ux, uz end
+		end
+	end
+	if not targetX then return end
+
+	-- Get start position: chain from previous command target if recent, else use unit position
+	local startX, startZ
+	local lastTarget = commandFXLastTarget[unitID]
+	if lastTarget and (gameTime - lastTarget.time) < 0.15 then
+		-- Recent command in queue — chain from its target
+		startX, startZ = lastTarget.x, lastTarget.z
+	else
+		-- First command or stale — start from unit position
+		local ux, _, uz = spFunc.GetUnitPosition(unitID)
+		if not ux then return end
+		startX, startZ = ux, uz
+	end
+
+	-- Don't add if start and target are at same spot
+	if math.abs(startX - targetX) < 1 and math.abs(startZ - targetZ) < 1 then
+		-- Still update last target for further chaining
+		commandFXLastTarget[unitID] = { x = targetX, z = targetZ, time = gameTime }
+		return
+	end
+
+	-- Update last target for this unit (for chaining subsequent commands)
+	commandFXLastTarget[unitID] = { x = targetX, z = targetZ, time = gameTime }
+
+	-- Add to FX list (cap at max entries)
+	if commandFXCount < COMMAND_FX_MAX then
+		commandFXCount = commandFXCount + 1
+		commandFXList[commandFXCount] = {
+			unitX = startX, unitZ = startZ,
+			targetX = targetX, targetZ = targetZ,
+			cmdID = cmdID,
+			time = gameTime,
+			color = color,
+		}
+	end
+end
+
+-- Track newly finished units to suppress their initial rally point command FX
+function widget:UnitFinished(unitID, unitDefID, unitTeam)
+	if config.drawCommandFX and config.commandFXIgnoreNewUnits then
+		commandFXNewUnits[unitID] = gameTime
+	end
+end
+
 -- UnitEnteredLos is only called for non-allied units entering the local player's LOS
 -- We record the building's position so we can draw its icon when it leaves LOS
 function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
