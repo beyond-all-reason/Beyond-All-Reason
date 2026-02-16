@@ -121,7 +121,7 @@ local config = {
 	playerTrackingSmoothness = 4.5,
 	switchSmoothness = 30,
 	zoomMin = 0.04,
-	zoomMax = 0.95,
+	zoomMax = 1,
 	zoomFeatures = 0.2,
 	zoomFeaturesFadeRange = 0.06,  -- Zoom range over which features fade in/out
 	zoomProjectileDetail = 0.12,
@@ -626,6 +626,12 @@ local cache = {
 
 local gameTime = 0 -- Accumulated game time (pauses when game is paused)
 local wallClockTime = 0 -- Wall-clock time (always advances, even when paused)
+
+-- Damage flash effect: units briefly flash red when taking damage
+-- damageFlash[unitID] = {time = gameTime, intensity = clamp(damage/maxHP)}
+-- Fade duration in seconds, intensity proportional to damage relative to max health
+local damageFlash = {}
+local DAMAGE_FLASH_DURATION = 0.4  -- seconds to fade from full red to normal
 
 local unitOutlineList = nil
 local radarDotList = nil
@@ -1191,7 +1197,7 @@ gl4Icons.shaderCode = {
 #version 330
 layout(location = 0) in vec4 worldPos_size;  // worldX, worldZ, iconSizeScale, flags (bitfield)
 layout(location = 1) in vec4 atlasUV;         // u0, v0, u1, v1
-layout(location = 2) in vec4 colorFlags;      // r, g, b, wobblePhase
+layout(location = 2) in vec4 colorFlags;      // r, g, b, wobblePhase + flashFactor*100*7
 
 uniform vec2 wtp_scale;      // worldToPipScaleX, worldToPipScaleZ
 uniform vec2 wtp_offset;     // worldToPipOffsetX, worldToPipOffsetZ
@@ -1206,6 +1212,7 @@ uniform float outlinePass;   // 0 = normal icon draw, 1 = tracked unit outline p
 out vec4 v_atlasUV;
 out vec4 v_color;
 out vec2 v_halfSizeNDC;
+flat out float v_flash;
 
 void main() {
 // Decode bitfield flags: bit0=radar(1), bit1=takeable(2), bit2=stunned(4), bit3=tracked(8)
@@ -1215,6 +1222,12 @@ float isTakeable = mod(floor(flags / 2.0 ), 2.0);  // bit 1
 float isStunned  = mod(floor(flags / 4.0 ), 2.0);  // bit 2
 float isTracked  = mod(floor(flags / 8.0 ), 2.0);  // bit 3
 
+// Decode wobble phase and damage flash from packed value
+// wobblePhase in [0, 2pi), packed as: phase + floor(flash*100) * 7.0
+float packedW = colorFlags.w;
+float flashFactor = floor(packedW / 7.0) / 100.0;
+float phase = mod(packedW, 7.0);
+
 // World to PIP pixel coordinates
 vec2 pipPos;
 pipPos.x = wtp_offset.x + worldPos_size.x * wtp_scale.x;
@@ -1222,7 +1235,6 @@ pipPos.y = wtp_offset.y + worldPos_size.y * wtp_scale.y;
 
 // Radar wobble (only for radar-only icons)
 float wobbleAmp = iconBaseSize * 0.3 * isRadar;
-float phase = colorFlags.w;
 pipPos.x += sin(gameTime * 3.0 + phase) * wobbleAmp;
 pipPos.y += cos(gameTime * 2.7 + phase * 1.3) * wobbleAmp;
 
@@ -1261,6 +1273,7 @@ if (outlinePass > 0.5) {
 }
 
 v_color = vec4(col, alpha);
+v_flash = flashFactor;
 // Expand icon size slightly for outline pass (tracked units only)
 float sizeExpand = 1.0 + 0.12 * outlinePass * isTracked;
 v_halfSizeNDC = vec2(iconBaseSize * worldPos_size.z * sizeExpand) * ndcScale;
@@ -1274,15 +1287,18 @@ v_halfSizeNDC = vec2(iconBaseSize * worldPos_size.z * sizeExpand) * ndcScale;
 		in vec4 v_atlasUV[];
 		in vec4 v_color[];
 		in vec2 v_halfSizeNDC[];
+		flat in float v_flash[];
 
 		out vec2 f_texCoord;
 		out vec4 f_color;
+		flat out float f_flash;
 
 		void main() {
 			vec4 c = gl_in[0].gl_Position;
 			vec4 uv = v_atlasUV[0];
 			vec2 hs = v_halfSizeNDC[0];
 			f_color = v_color[0];
+			f_flash = v_flash[0];
 
 			// Bottom-left
 			gl_Position = vec4(c.x - hs.x, c.y - hs.y, c.z, 1.0);
@@ -1309,11 +1325,14 @@ v_halfSizeNDC = vec2(iconBaseSize * worldPos_size.z * sizeExpand) * ndcScale;
 		uniform sampler2D iconAtlas;
 		in vec2 f_texCoord;
 		in vec4 f_color;
+		flat in float f_flash;
 		out vec4 fragColor;
 
 		void main() {
 			vec4 texColor = texture(iconAtlas, f_texCoord);
 			vec4 result = texColor * f_color;
+			// Brighten dark (black) parts of the icon texture during damage flash
+			result.rgb += f_color.rgb * f_flash * (1.0 - texColor.rgb);
 			if (result.a < 0.01) discard;  // cull non-tracked icons during outline pass
 			fragColor = result;
 		}
@@ -2700,16 +2719,6 @@ local function GetChamferedCorners(l, b, r, t)
 	local bl = (atLeft or atBottom) and 0 or 1
 	
 	return tl, tr, br, bl
-end
-
-local function DrawPanel(l, r, b, t)
-	glFunc.Color(0.6,0.6,0.6,0.6)
-	local padL = l - render.elementPadding
-	local padB = b - render.elementPadding
-	local padR = r + render.elementPadding
-	local padT = t + render.elementPadding
-	local tl, tr, br, bl = GetChamferedCorners(padL, padB, padR, padT)
-	render.UiElement(padL, padB, padR, padT, tl, tr, br, bl, nil, nil, nil, nil, nil, nil, nil, nil)
 end
 
 local function DrawGroundLine(x1, z1, x2, z2)
@@ -7074,6 +7083,22 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 			end
 		end
 
+		-- Damage flash: briefly flash toward white when unit takes damage
+		local flashFactor = 0
+		local flash = damageFlash[uID]
+		if flash then
+			local elapsed = gameTime - flash.time
+			if elapsed < DAMAGE_FLASH_DURATION then
+				local f = flash.intensity * (1 - elapsed / DAMAGE_FLASH_DURATION)
+				flashFactor = f
+				r = r + (1 - r) * f
+				g = g + (1 - g) * f
+				b = b + (1 - b) * f
+			else
+				damageFlash[uID] = nil  -- expired, clean up
+			end
+		end
+
 		-- Stun detection (EMP/paralyze, not build-in-progress)
 		local isStunned = false
 		if not isRadar then
@@ -7085,7 +7110,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		local off = usedEl * gl4Icons.INSTANCE_STEP
 		data[off+1] = ux; data[off+2] = uz; data[off+3] = sizeScale; data[off+4] = (isRadar and 1 or 0) + (takeableTeams[uTeam] and 2 or 0) + (isStunned and 4 or 0) + (trackedSet and trackedSet[uID] and 8 or 0)
 		data[off+5] = uvs[1]; data[off+6] = uvs[2]; data[off+7] = uvs[3]; data[off+8] = uvs[4]
-		data[off+9] = r; data[off+10] = g; data[off+11] = b; data[off+12] = (uID * 0.37) % 6.2832
+		data[off+9] = r; data[off+10] = g; data[off+11] = b; data[off+12] = (uID * 0.37) % 6.2832 + math.floor(flashFactor * 100) * 7.0
 		return usedEl + 1
 	end
 
@@ -7867,6 +7892,21 @@ local function DrawIcons()
 		-- Uses texture batching within each pass for performance
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		local defaultIconSize = iconRadiusZoomDistMult * 0.5
+
+		-- Apply damage flash tint to a color (used by all icon batch functions)
+		local function applyDamageFlash(r, g, b, unitID)
+			local flash = damageFlash[unitID]
+			if flash then
+				local elapsed = gameTime - flash.time
+				if elapsed < DAMAGE_FLASH_DURATION then
+					local f = flash.intensity * (1 - elapsed / DAMAGE_FLASH_DURATION)
+					return r + (1 - r) * f, g + (1 - g) * f, b + (1 - b) * f
+				else
+					damageFlash[unitID] = nil
+				end
+			end
+			return r, g, b
+		end
 	
 		-- Helper function to draw a batch of icons for a texture group
 		local function drawIconBatch(texture, indices, isRotated)
@@ -7884,19 +7924,22 @@ local function DrawIcons()
 					local buildProgress = drawData.iconBuildProgress[i]
 					local opacity = buildProgress >= 1 and 1.0 or (0.2 + (buildProgress * 0.5))
 					local isHovered = (drawData.hoveredUnitID and drawData.iconUnitID[i] == drawData.hoveredUnitID)
+					local uID = drawData.iconUnitID[i]
 
 					if drawData.iconSelected[i] then
+						local fr, fg, fb = applyDamageFlash(1, 1, 1, uID)
 						if isHovered then
-							glFunc.Color(1, 1, 1, math.min(1.0, opacity * 1.3))
+							glFunc.Color(fr, fg, fb, math.min(1.0, opacity * 1.3))
 						else
-							glFunc.Color(1, 1, 1, opacity)
+							glFunc.Color(fr, fg, fb, opacity)
 						end
 					else
 						local color = teamColors[drawData.iconTeam[i]]
+						local fr, fg, fb = applyDamageFlash(color[1], color[2], color[3], uID)
 						if isHovered then
-							glFunc.Color(math.min(1.0, color[1] * 1.3), math.min(1.0, color[2] * 1.3), math.min(1.0, color[3] * 1.3), opacity)
+							glFunc.Color(math.min(1.0, fr * 1.3), math.min(1.0, fg * 1.3), math.min(1.0, fb * 1.3), opacity)
 						else
-							glFunc.Color(color[1], color[2], color[3], opacity)
+							glFunc.Color(fr, fg, fb, opacity)
 						end
 					end
 					
@@ -7927,19 +7970,22 @@ local function DrawIcons()
 						local buildProgress = drawData.iconBuildProgress[i]
 						local opacity = buildProgress >= 1 and 1.0 or (0.2 + (buildProgress * 0.5))
 						local isHovered = (drawData.hoveredUnitID and drawData.iconUnitID[i] == drawData.hoveredUnitID)
+						local uID = drawData.iconUnitID[i]
 
 						if drawData.iconSelected[i] then
+							local fr, fg, fb = applyDamageFlash(1, 1, 1, uID)
 							if isHovered then
-								glFunc.Color(1, 1, 1, math.min(1.0, opacity * 1.3))
+								glFunc.Color(fr, fg, fb, math.min(1.0, opacity * 1.3))
 							else
-								glFunc.Color(1, 1, 1, opacity)
+								glFunc.Color(fr, fg, fb, opacity)
 							end
 						else
 							local color = teamColors[drawData.iconTeam[i]]
+							local fr, fg, fb = applyDamageFlash(color[1], color[2], color[3], uID)
 							if isHovered then
-								glFunc.Color(math.min(1.0, color[1] * 1.3), math.min(1.0, color[2] * 1.3), math.min(1.0, color[3] * 1.3), opacity)
+								glFunc.Color(math.min(1.0, fr * 1.3), math.min(1.0, fg * 1.3), math.min(1.0, fb * 1.3), opacity)
 							else
-								glFunc.Color(color[1], color[2], color[3], opacity)
+								glFunc.Color(fr, fg, fb, opacity)
 							end
 						end
 						glFunc.TexCoord(texInset, 1 - texInset)
@@ -7969,19 +8015,22 @@ local function DrawIcons()
 					local buildProgress = drawData.iconBuildProgress[i]
 					local opacity = buildProgress >= 1 and 1.0 or (0.2 + (buildProgress * 0.5))
 					local isHovered = (drawData.hoveredUnitID and drawData.iconUnitID[i] == drawData.hoveredUnitID)
+					local uID = drawData.iconUnitID[i]
 
 					if drawData.iconSelected[i] then
+						local fr, fg, fb = applyDamageFlash(1, 1, 1, uID)
 						if isHovered then
-							glFunc.Color(1, 1, 1, math.min(1.0, opacity * 1.3))
+							glFunc.Color(fr, fg, fb, math.min(1.0, opacity * 1.3))
 						else
-							glFunc.Color(1, 1, 1, opacity)
+							glFunc.Color(fr, fg, fb, opacity)
 						end
 					else
 						local color = teamColors[drawData.iconTeam[i]]
+						local fr, fg, fb = applyDamageFlash(color[1], color[2], color[3], uID)
 						if isHovered then
-							glFunc.Color(math.min(1.0, color[1] * 1.55), math.min(1.0, color[2] * 1.55), math.min(1.0, color[3] * 1.55), opacity)
+							glFunc.Color(math.min(1.0, fr * 1.55), math.min(1.0, fg * 1.55), math.min(1.0, fb * 1.55), opacity)
 						else
-							glFunc.Color(color[1], color[2], color[3], opacity)
+							glFunc.Color(fr, fg, fb, opacity)
 						end
 					end
 					
@@ -8010,19 +8059,22 @@ local function DrawIcons()
 						local buildProgress = drawData.iconBuildProgress[i]
 						local opacity = buildProgress >= 1 and 1.0 or (0.2 + (buildProgress * 0.5))
 						local isHovered = (drawData.hoveredUnitID and drawData.iconUnitID[i] == drawData.hoveredUnitID)
+						local uID = drawData.iconUnitID[i]
 
 						if drawData.iconSelected[i] then
+							local fr, fg, fb = applyDamageFlash(1, 1, 1, uID)
 							if isHovered then
-								glFunc.Color(1, 1, 1, math.min(1.0, opacity * 1.3))
+								glFunc.Color(fr, fg, fb, math.min(1.0, opacity * 1.3))
 							else
-								glFunc.Color(1, 1, 1, opacity)
+								glFunc.Color(fr, fg, fb, opacity)
 							end
 						else
 							local color = teamColors[drawData.iconTeam[i]]
+							local fr, fg, fb = applyDamageFlash(color[1], color[2], color[3], uID)
 							if isHovered then
-								glFunc.Color(math.min(1.0, color[1] * 1.55), math.min(1.0, color[2] * 1.55), math.min(1.0, color[3] * 1.55), opacity)
+								glFunc.Color(math.min(1.0, fr * 1.55), math.min(1.0, fg * 1.55), math.min(1.0, fb * 1.55), opacity)
 							else
-								glFunc.Color(color[1], color[2], color[3], opacity)
+								glFunc.Color(fr, fg, fb, opacity)
 							end
 						end
 						glFunc.TexCoord(texInset, 1 - texInset)
@@ -9315,7 +9367,15 @@ local function DrawCameraViewBounds()
 	
 	-- Calculate chamfer size (4 pixels at 1080p, scaled by resolution)
 	local resScale = render.contentScale or 1
-	local chamfer = 2.5 * (render.vsy / 1080) * resScale
+	local chamfer = 2 * (render.vsy / 1080) * resScale
+	
+	-- Clamp chamfer so it never exceeds 5% of any edge length
+	local edgeBL_BR = math.sqrt((br_x-bl_x)^2 + (br_y-bl_y)^2)
+	local edgeBR_TR = math.sqrt((tr_x-br_x)^2 + (tr_y-br_y)^2)
+	local edgeTR_TL = math.sqrt((tl_x-tr_x)^2 + (tl_y-tr_y)^2)
+	local edgeTL_BL = math.sqrt((bl_x-tl_x)^2 + (bl_y-tl_y)^2)
+	local minEdge = math.min(edgeBL_BR, edgeBR_TR, edgeTR_TL, edgeTL_BL)
+	chamfer = math.min(chamfer, minEdge * 0.05)
 	
 	-- Calculate chamfer offsets for each corner
 	-- Always apply chamfers regardless of position
@@ -13456,6 +13516,9 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	gl4Icons.unitDefCache[unitID] = nil
 	gl4Icons.unitTeamCache[unitID] = nil
 
+	-- Clear damage flash
+	damageFlash[unitID] = nil
+
 	-- Clear ghost building and position caches
 	ghostBuildings[unitID] = nil
 	ownBuildingPosX[unitID] = nil
@@ -13493,6 +13556,21 @@ end
 -- Track enemy building positions for ghost rendering on PIP
 -- UnitEnteredLos is only called for non-allied units entering the local player's LOS
 -- We record the building's position so we can draw its icon when it leaves LOS
+function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
+	if paralyzer then return end  -- skip EMP/paralyze damage
+	if damage <= 0 then return end
+	local maxHP = UnitDefs[unitDefID] and UnitDefs[unitDefID].health or 1
+	local intensity = math.min(1.0, damage / maxHP * 3)  -- scale up so small hits are visible too
+	local existing = damageFlash[unitID]
+	if existing and (gameTime - existing.time) < DAMAGE_FLASH_DURATION then
+		-- Accumulate: boost intensity if already flashing
+		existing.intensity = math.min(1.0, existing.intensity + intensity * 0.5)
+		existing.time = gameTime
+	else
+		damageFlash[unitID] = { time = gameTime, intensity = intensity }
+	end
+end
+
 function widget:UnitEnteredLos(unitID, unitTeam)
 	if cameraState.mySpecState then return end
 	local unitDefID = spFunc.GetUnitDefID(unitID)
