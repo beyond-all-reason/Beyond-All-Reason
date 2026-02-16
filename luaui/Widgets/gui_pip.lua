@@ -516,13 +516,13 @@ local cmdQueueCache = {
 -- GPU-driven icon rendering: replaces the CPU-heavy DrawUnit+DrawIcons pipeline with a single
 -- instanced draw call via a texture atlas + VBO + geometry shader.
 -- Benefits: eliminates per-icon texture switches, per-icon draw calls, and most per-unit API calls.
-local GL4_INSTANCE_STEP = 12    -- floats per icon instance (3 x vec4)
-local GL4_MAX_INSTANCES = 16384  -- pre-allocated capacity (covers 16k units without resize)
-local GL4_LAYER_STRUCTURE = 0   -- structures drawn first (bottom)
-local GL4_LAYER_GROUND = 1      -- ground mobile units
-local GL4_LAYER_COMMANDER = 2   -- commanders above ground
-local GL4_LAYER_AIR = 3         -- air units drawn last (top)
 local gl4Icons = {
+	INSTANCE_STEP = 12,       -- floats per icon instance (3 x vec4)
+	MAX_INSTANCES = 16384,    -- pre-allocated capacity (covers 16k units without resize)
+	LAYER_STRUCTURE = 0,      -- structures drawn first (bottom)
+	LAYER_GROUND = 1,         -- ground mobile units
+	LAYER_COMMANDER = 2,      -- commanders above ground
+	LAYER_AIR = 3,            -- air units drawn last (top)
 	enabled = false,          -- Set true after successful init
 	atlas = nil,              -- Texture atlas handle (all icon bitmaps packed)
 	atlasUVs = {},            -- [bitmap_path] = {u0, v0, u1, v1} (UV rect in atlas, Y-flipped)
@@ -534,8 +534,7 @@ local gl4Icons = {
 	unitDefCache = {},        -- [unitID] = unitDefID (lazy-populated, cleared on unit death/give)
 	unitTeamCache = {},       -- [unitID] = teamID (lazy-populated, cleared on unit give)
 	unitDefLayer = {},        -- [unitDefID] = layer (0=structure,1=ground,2=commander,3=air) — built once at init
-	instanceData = nil,       -- Pre-allocated flat float array (GL4_MAX_INSTANCES * GL4_INSTANCE_STEP)
-	maxInstances = GL4_MAX_INSTANCES,
+	instanceData = nil,       -- Pre-allocated flat float array (MAX_INSTANCES * INSTANCE_STEP)
 }
 
 -- Cached factors for WorldToPipCoords (performance optimization)
@@ -546,14 +545,13 @@ local worldToPipOffsetX = 0
 local worldToPipOffsetZ = 0
 
 -- GL4 Primitive Rendering (explosions, projectiles, beams, command lines)
-local GL4_LINE_STEP = 6       -- floats per vertex: worldX, worldZ, r, g, b, a
-local GL4_LINE_MAX = 16384    -- max vertices (8192 line segments)
-local GL4_CIRCLE_STEP = 12    -- floats per instance: 3 x vec4
-local GL4_CIRCLE_MAX = 2048   -- max circle instances
-local GL4_QUAD_STEP = 12      -- floats per instance: 3 x vec4
-local GL4_QUAD_MAX = 4096     -- max quad instances
-
 local gl4Prim = {
+	LINE_STEP = 6,            -- floats per vertex: worldX, worldZ, r, g, b, a
+	LINE_MAX = 16384,         -- max vertices (8192 line segments)
+	CIRCLE_STEP = 12,         -- floats per instance: 3 x vec4
+	CIRCLE_MAX = 2048,        -- max circle instances
+	QUAD_STEP = 12,           -- floats per instance: 3 x vec4
+	QUAD_MAX = 4096,          -- max quad instances
 	enabled = false,
 	-- Circles (explosions, plasma, flame, lightning impacts)
 	circles = {
@@ -795,6 +793,8 @@ mapInfo.isLava = Spring.Lava.isLavaMap or (waterIsLava and waterIsLava ~= 0 and 
 mapInfo.hasWater = mapInfo.minGroundHeight < 0 or mapInfo.isLava
 mapInfo.dynamicWaterLevel = nil  -- current water/lava level (nil = static sea level = 0)
 mapInfo.lastCheckedWaterLevel = nil  -- for change detection
+
+
 
 
 ----------------------------------------------------------------------------------------------------
@@ -1058,91 +1058,118 @@ local buttons = {
 	},
 }
 
--- Shader for converting red-channel LOS texture to greyscale
-local losShader = nil
-local losShaderCode = {
-	vertex = [[
-		varying vec2 texCoord;
-		void main() {
-			texCoord = gl_MultiTexCoord0.st;
-			gl_Position = gl_Vertex;
-		}
-	]],
-	fragment = [[
-		uniform sampler2D losTex;
-		uniform sampler2D radarTex;
-		uniform float baseValue;
-		uniform float losScale;
-		uniform float showRadar;
-		varying vec2 texCoord;
-		void main() {
-			// Red channel of LOS texture: LOS (0.2-1.0 = in LOS, <0.2 = not in LOS)
-			float losValue = texture2D(losTex, texCoord).r;
-			// Red channel of radar texture: Radar coverage
-			float radarValue = texture2D(radarTex, texCoord).r;
-			
-			// Calculate grey based on LOS
-			float grey = baseValue + losValue * losScale;
-			
-			// If showRadar enabled, darken areas that have neither LOS nor radar
-			if (showRadar > 0.5) {
-				if (losValue < 0.2 && radarValue < 0.2) {
-					// Neither LOS nor radar - darken further
-					grey = grey * 0.5;
-				}
+-- Consolidated shader table (LOS overlay, minimap shading, water overlay)
+local shaders = {
+	-- LOS overlay: converts red-channel LOS texture to greyscale
+	los = nil,
+	losCode = {
+		vertex = [[
+			varying vec2 texCoord;
+			void main() {
+				texCoord = gl_MultiTexCoord0.st;
+				gl_Position = gl_Vertex;
 			}
+		]],
+		fragment = [[
+			uniform sampler2D losTex;
+			uniform sampler2D radarTex;
+			uniform float baseValue;
+			uniform float losScale;
+			uniform float showRadar;
+			varying vec2 texCoord;
+			void main() {
+				// Red channel of LOS texture: LOS (0.2-1.0 = in LOS, <0.2 = not in LOS)
+				float losValue = texture2D(losTex, texCoord).r;
+				// Red channel of radar texture: Radar coverage
+				float radarValue = texture2D(radarTex, texCoord).r;
+				
+				// Calculate grey based on LOS
+				float grey = baseValue + losValue * losScale;
+				
+				// If showRadar enabled, darken areas that have neither LOS nor radar
+				if (showRadar > 0.5) {
+					if (losValue < 0.2 && radarValue < 0.2) {
+						// Neither LOS nor radar - darken further
+						grey = grey * 0.5;
+					}
+				}
 
-			gl_FragColor = vec4(grey, grey, grey, 1.0);
-		}
-	]],
-	uniformFloat = {
-		baseValue = 1.0 - config.losOverlayOpacity,  -- Brightness in no-LOS areas
-		losScale = config.losOverlayOpacity,         -- Brightness added for LOS areas
-		showRadar = config.showLosRadar and 1.0 or 0.0,
+				gl_FragColor = vec4(grey, grey, grey, 1.0);
+			}
+		]],
+		uniformFloat = {
+			baseValue = 1.0 - config.losOverlayOpacity,  -- Brightness in no-LOS areas
+			losScale = config.losOverlayOpacity,         -- Brightness added for LOS areas
+			showRadar = config.showLosRadar and 1.0 or 0.0,
+		},
+		uniformInt = {
+			losTex = 0,
+			radarTex = 1,
+		},
 	},
-	uniformInt = {
-		losTex = 0,
-		radarTex = 1,
+	-- Minimap shading: composites minimap + shading in a single pass (matches engine MiniMapFragProg.glsl)
+	minimapShading = nil,
+	minimapShadingCode = {
+		vertex = [[
+			varying vec2 texCoord;
+			void main() {
+				texCoord = gl_MultiTexCoord0.st;
+				gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+			}
+		]],
+		fragment = [[
+			uniform sampler2D minimapTex;
+			uniform sampler2D shadingTex;
+			varying vec2 texCoord;
+			void main() {
+				vec4 minimapColor = texture2D(minimapTex, texCoord, -2.0);
+				vec4 shadingColor = texture2D(shadingTex, texCoord);
+				gl_FragColor = vec4(minimapColor.rgb * shadingColor.rgb, 1.0);
+			}
+		]],
+		uniformInt = {
+			minimapTex = 0,
+			shadingTex = 1,
+		},
 	},
-}
-
--- Shader for rendering water overlay based on heightmap
-local waterShader = nil
-local waterShaderCode = {
-	vertex = [[
-		varying vec2 texCoord;
-		void main() {
-			texCoord = gl_MultiTexCoord0.st;
-			gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
-		}
-	]],
-	fragment = [[
-		uniform sampler2D heightTex;
-		uniform vec4 waterColor;
-		uniform float waterLevel;  // water/lava surface level in elmos (world height units)
-		varying vec2 texCoord;
-		void main() {
-			float height = texture2D(heightTex, texCoord).r;  // raw height in elmos
-			
-			// Depth below water/lava surface (positive = submerged)
-			float depth = waterLevel - height;
-			
-			// Smooth transition over 10 elmos depth for gradual coverage
-			float waterAmount = clamp(depth / 10.0, 0.0, 1.0);
-			
-			// Use waterColor.a to control overall intensity:
-			// Low alpha (0.5 = normal water) gets subtle tinting via * 0.05
-			// High alpha (1.0 = void/lava) gets strong coverage
-			float alphaScale = mix(0.05, 1.0, waterColor.a);
-			gl_FragColor = vec4(waterColor.rgb, waterAmount * alphaScale);
-		}
-	]],
-	uniformInt = {
-		heightTex = 0,
-	},
-	uniformFloat = {
-		waterColor = {0, 0.04, 0.25, 0.5},
-		waterLevel = 0,
+	-- Water overlay: renders water/lava tinting based on heightmap
+	water = nil,
+	waterCode = {
+		vertex = [[
+			varying vec2 texCoord;
+			void main() {
+				texCoord = gl_MultiTexCoord0.st;
+				gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+			}
+		]],
+		fragment = [[
+			uniform sampler2D heightTex;
+			uniform vec4 waterColor;
+			uniform float waterLevel;  // water/lava surface level in elmos (world height units)
+			varying vec2 texCoord;
+			void main() {
+				float height = texture2D(heightTex, texCoord).r;  // raw height in elmos
+				
+				// Depth below water/lava surface (positive = submerged)
+				float depth = waterLevel - height;
+				
+				// Smooth transition over 10 elmos depth for gradual coverage
+				float waterAmount = clamp(depth / 10.0, 0.0, 1.0);
+				
+				// Use waterColor.a to control overall intensity:
+				// Low alpha (0.5 = normal water) gets subtle tinting via * 0.05
+				// High alpha (1.0 = void/lava) gets strong coverage
+				float alphaScale = mix(0.05, 1.0, waterColor.a);
+				gl_FragColor = vec4(waterColor.rgb, waterAmount * alphaScale);
+			}
+		]],
+		uniformInt = {
+			heightTex = 0,
+		},
+		uniformFloat = {
+			waterColor = {0, 0.04, 0.25, 0.5},
+			waterLevel = 0,
+		},
 	},
 }
 
@@ -1159,7 +1186,7 @@ end
 -- GL4 Icon Shader + Initialization
 ----------------------------------------------------------------------------------------------------
 -- GLSL shader for instanced icon rendering: points → quads via geometry shader
-local gl4IconShaderCode = {
+gl4Icons.shaderCode = {
 	vertex = [[
 #version 330
 layout(location = 0) in vec4 worldPos_size;  // worldX, worldZ, iconSizeScale, flags (bitfield)
@@ -1174,17 +1201,19 @@ uniform vec2 rotCenter;      // rotation center in PIP pixels
 uniform float iconBaseSize;  // iconRadiusZoomDistMult (PIP pixels)
 uniform float gameTime;      // for radar wobble (pauses with game)
 uniform float wallClockTime;  // for blink/pulse animations (always advances)
+uniform float outlinePass;   // 0 = normal icon draw, 1 = tracked unit outline pass
 
 out vec4 v_atlasUV;
 out vec4 v_color;
 out vec2 v_halfSizeNDC;
 
 void main() {
-// Decode bitfield flags: bit0=radar(1), bit1=takeable(2), bit2=stunned(4)
+// Decode bitfield flags: bit0=radar(1), bit1=takeable(2), bit2=stunned(4), bit3=tracked(8)
 float flags = worldPos_size.w;
 float isRadar    = mod(floor(flags      ), 2.0);  // bit 0
 float isTakeable = mod(floor(flags / 2.0 ), 2.0);  // bit 1
 float isStunned  = mod(floor(flags / 4.0 ), 2.0);  // bit 2
+float isTracked  = mod(floor(flags / 8.0 ), 2.0);  // bit 3
 
 // World to PIP pixel coordinates
 vec2 pipPos;
@@ -1221,8 +1250,20 @@ alpha *= mix(1.0, takeableBlink, isTakeable);
 float stunnedPulse = 0.5 + 0.5 * sin(wallClockTime * 12.57);  // ~2Hz sine
 col = mix(col, vec3(0.82, 0.85, 1.0), 0.45 * stunnedPulse * isStunned);
 
+// Outline pass: only tracked icons survive, enlarged + white
+if (outlinePass > 0.5) {
+  if (isTracked < 0.5) {
+    alpha = 0.0;  // cull non-tracked in outline pass
+  } else {
+    col = vec3(1.0, 1.0, 1.0);
+    alpha = 0.5;
+  }
+}
+
 v_color = vec4(col, alpha);
-v_halfSizeNDC = vec2(iconBaseSize * worldPos_size.z) * ndcScale;
+// Expand icon size slightly for outline pass (tracked units only)
+float sizeExpand = 1.0 + 0.12 * outlinePass * isTracked;
+v_halfSizeNDC = vec2(iconBaseSize * worldPos_size.z * sizeExpand) * ndcScale;
 }
 	]],
 	geometry = [[
@@ -1272,7 +1313,9 @@ v_halfSizeNDC = vec2(iconBaseSize * worldPos_size.z) * ndcScale;
 
 		void main() {
 			vec4 texColor = texture(iconAtlas, f_texCoord);
-			fragColor = texColor * f_color;
+			vec4 result = texColor * f_color;
+			if (result.a < 0.01) discard;  // cull non-tracked icons during outline pass
+			fragColor = result;
 		}
 	]],
 	uniformInt = {
@@ -1285,7 +1328,7 @@ v_halfSizeNDC = vec2(iconBaseSize * worldPos_size.z) * ndcScale;
 ----------------------------------------------------------------------------------------------------
 
 -- Circle shader: point → screen-space quad → pixel-perfect gradient circle in fragment shader
-local gl4CircleShaderCode = {
+gl4Prim.circleShaderCode = {
 	vertex = [[
 		#version 330
 		layout(location = 0) in vec4 posRadius;    // worldX, worldZ, radius, alpha
@@ -1371,7 +1414,7 @@ local gl4CircleShaderCode = {
 }
 
 -- Quad shader: point → rotated quad
-local gl4QuadShaderCode = {
+gl4Prim.quadShaderCode = {
 	vertex = [[
 		#version 330
 		layout(location = 0) in vec4 posSizeIn;     // worldX, worldZ, halfWidth, halfHeight
@@ -1441,7 +1484,7 @@ local gl4QuadShaderCode = {
 }
 
 -- Line shader: simple world-space → NDC vertex transform with per-vertex color
-local gl4LineShaderCode = {
+gl4Prim.lineShaderCode = {
 	vertex = [[
 		#version 330
 		layout(location = 0) in vec2 worldPos;
@@ -1546,11 +1589,11 @@ local function InitGL4Icons()
 		gl4Icons.atlas = nil
 		return
 	end
-	vbo:Define(GL4_MAX_INSTANCES, vboLayout)
+	vbo:Define(gl4Icons.MAX_INSTANCES, vboLayout)
 
 	-- Pre-allocate instance data array (avoids per-frame GC)
 	local instanceData = {}
-	for i = 1, GL4_MAX_INSTANCES * GL4_INSTANCE_STEP do
+	for i = 1, gl4Icons.MAX_INSTANCES * gl4Icons.INSTANCE_STEP do
 		instanceData[i] = 0
 	end
 	gl4Icons.instanceData = instanceData
@@ -1570,7 +1613,7 @@ local function InitGL4Icons()
 	gl4Icons.vao = vao
 
 	-- Compile shader
-	local shader = gl.CreateShader(gl4IconShaderCode)
+	local shader = gl.CreateShader(gl4Icons.shaderCode)
 	if not shader then
 		Spring.Echo("[PIP] GL4 icons: Shader compilation failed: " .. tostring(gl.GetShaderLog()))
 		vao:Delete()
@@ -1593,6 +1636,7 @@ local function InitGL4Icons()
 		iconBaseSize = gl.GetUniformLocation(shader, "iconBaseSize"),
 		gameTime     = gl.GetUniformLocation(shader, "gameTime"),
 		wallClockTime = gl.GetUniformLocation(shader, "wallClockTime"),
+		outlinePass  = gl.GetUniformLocation(shader, "outlinePass"),
 	}
 
 	gl4Icons.enabled = true
@@ -1636,7 +1680,7 @@ local function CreateLineVBOSet(maxVertices)
 	if not vao then vbo:Delete(); return nil, nil, nil end
 	vao:AttachVertexBuffer(vbo)
 	local data = {}
-	for i = 1, maxVertices * GL4_LINE_STEP do data[i] = 0 end
+	for i = 1, maxVertices * gl4Prim.LINE_STEP do data[i] = 0 end
 	return vbo, vao, data
 end
 
@@ -1652,12 +1696,12 @@ local function InitGL4Primitives()
 	}
 	local cVbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
 	if not cVbo then return end
-	cVbo:Define(GL4_CIRCLE_MAX, circleLayout)
+	cVbo:Define(gl4Prim.CIRCLE_MAX, circleLayout)
 	local cVao = gl.GetVAO()
 	if not cVao then cVbo:Delete(); return end
 	cVao:AttachVertexBuffer(cVbo)
 	local cData = {}
-	for i = 1, GL4_CIRCLE_MAX * GL4_CIRCLE_STEP do cData[i] = 0 end
+	for i = 1, gl4Prim.CIRCLE_MAX * gl4Prim.CIRCLE_STEP do cData[i] = 0 end
 	gl4Prim.circles.vbo = cVbo
 	gl4Prim.circles.vao = cVao
 	gl4Prim.circles.data = cData
@@ -1670,29 +1714,29 @@ local function InitGL4Primitives()
 	}
 	local qVbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
 	if not qVbo then cVao:Delete(); cVbo:Delete(); return end
-	qVbo:Define(GL4_QUAD_MAX, quadLayout)
+	qVbo:Define(gl4Prim.QUAD_MAX, quadLayout)
 	local qVao = gl.GetVAO()
 	if not qVao then qVbo:Delete(); cVao:Delete(); cVbo:Delete(); return end
 	qVao:AttachVertexBuffer(qVbo)
 	local qData = {}
-	for i = 1, GL4_QUAD_MAX * GL4_QUAD_STEP do qData[i] = 0 end
+	for i = 1, gl4Prim.QUAD_MAX * gl4Prim.QUAD_STEP do qData[i] = 0 end
 	gl4Prim.quads.vbo = qVbo
 	gl4Prim.quads.vao = qVao
 	gl4Prim.quads.data = qData
 
 	-- Line VBOs (3 categories share same shader)
-	local glVbo, glVao, glData = CreateLineVBOSet(GL4_LINE_MAX)
+	local glVbo, glVao, glData = CreateLineVBOSet(gl4Prim.LINE_MAX)
 	if not glVbo then qVao:Delete(); qVbo:Delete(); cVao:Delete(); cVbo:Delete(); return end
 	gl4Prim.glowLines.vbo, gl4Prim.glowLines.vao, gl4Prim.glowLines.data = glVbo, glVao, glData
 
-	local clVbo, clVao, clData = CreateLineVBOSet(GL4_LINE_MAX)
+	local clVbo, clVao, clData = CreateLineVBOSet(gl4Prim.LINE_MAX)
 	if not clVbo then
 		glVao:Delete(); glVbo:Delete(); qVao:Delete(); qVbo:Delete(); cVao:Delete(); cVbo:Delete()
 		return
 	end
 	gl4Prim.coreLines.vbo, gl4Prim.coreLines.vao, gl4Prim.coreLines.data = clVbo, clVao, clData
 
-	local nlVbo, nlVao, nlData = CreateLineVBOSet(GL4_LINE_MAX)
+	local nlVbo, nlVao, nlData = CreateLineVBOSet(gl4Prim.LINE_MAX)
 	if not nlVbo then
 		clVao:Delete(); clVbo:Delete(); glVao:Delete(); glVbo:Delete()
 		qVao:Delete(); qVbo:Delete(); cVao:Delete(); cVbo:Delete()
@@ -1701,7 +1745,7 @@ local function InitGL4Primitives()
 	gl4Prim.normLines.vbo, gl4Prim.normLines.vao, gl4Prim.normLines.data = nlVbo, nlVao, nlData
 
 	-- Compile shaders
-	local cShader = gl.CreateShader(gl4CircleShaderCode)
+	local cShader = gl.CreateShader(gl4Prim.circleShaderCode)
 	if not cShader then
 		Spring.Echo("[PIP] GL4 circle shader failed: " .. tostring(gl.GetShaderLog()))
 		-- cleanup all
@@ -1712,7 +1756,7 @@ local function InitGL4Primitives()
 	end
 	gl4Prim.circles.shader = cShader
 
-	local qShader = gl.CreateShader(gl4QuadShaderCode)
+	local qShader = gl.CreateShader(gl4Prim.quadShaderCode)
 	if not qShader then
 		Spring.Echo("[PIP] GL4 quad shader failed: " .. tostring(gl.GetShaderLog()))
 		gl.DeleteShader(cShader)
@@ -1723,7 +1767,7 @@ local function InitGL4Primitives()
 	end
 	gl4Prim.quads.shader = qShader
 
-	local lShader = gl.CreateShader(gl4LineShaderCode)
+	local lShader = gl.CreateShader(gl4Prim.lineShaderCode)
 	if not lShader then
 		Spring.Echo("[PIP] GL4 line shader failed: " .. tostring(gl.GetShaderLog()))
 		gl.DeleteShader(qShader); gl.DeleteShader(cShader)
@@ -1776,8 +1820,8 @@ end
 -- Helper: add a gradient circle (explosion, plasma, etc.)
 local function GL4AddCircle(worldX, worldZ, radius, alpha, coreR, coreG, coreB, edgeR, edgeG, edgeB, edgeAlpha, blendMode)
 	local c = gl4Prim.circles
-	if c.count >= GL4_CIRCLE_MAX then return end
-	local off = c.count * GL4_CIRCLE_STEP
+	if c.count >= gl4Prim.CIRCLE_MAX then return end
+	local off = c.count * gl4Prim.CIRCLE_STEP
 	local d = c.data
 	d[off+1] = worldX;  d[off+2] = worldZ; d[off+3] = radius; d[off+4] = alpha or 1
 	d[off+5] = coreR;   d[off+6] = coreG;  d[off+7] = coreB;  d[off+8] = edgeAlpha or 0
@@ -1788,8 +1832,8 @@ end
 -- Helper: add an oriented quad (missile, blaster)
 local function GL4AddQuad(worldX, worldZ, halfW, halfH, angleDeg, r, g, b, a)
 	local q = gl4Prim.quads
-	if q.count >= GL4_QUAD_MAX then return end
-	local off = q.count * GL4_QUAD_STEP
+	if q.count >= gl4Prim.QUAD_MAX then return end
+	local off = q.count * gl4Prim.QUAD_STEP
 	local d = q.data
 	d[off+1] = worldX; d[off+2] = worldZ; d[off+3] = halfW;  d[off+4] = halfH
 	d[off+5] = r;      d[off+6] = g;      d[off+7] = b;      d[off+8] = a or 1
@@ -1799,8 +1843,8 @@ end
 
 -- Helper: add a line vertex pair to a specific line category
 local function GL4AddLineToCategory(cat, x1, z1, x2, z2, r, g, b, a, r2, g2, b2, a2)
-	if cat.count + 2 > GL4_LINE_MAX then return end
-	local off = cat.count * GL4_LINE_STEP
+	if cat.count + 2 > gl4Prim.LINE_MAX then return end
+	local off = cat.count * gl4Prim.LINE_STEP
 	local d = cat.data
 	-- First vertex
 	d[off+1] = x1; d[off+2] = z1
@@ -1843,7 +1887,7 @@ local function GL4FlushEffects()
 	-- Circles
 	if gl4Prim.circles.count > 0 then
 		local c = gl4Prim.circles
-		c.vbo:Upload(c.data, nil, 0, 1, c.count * GL4_CIRCLE_STEP)
+		c.vbo:Upload(c.data, nil, 0, 1, c.count * gl4Prim.CIRCLE_STEP)
 		GL4SetPrimUniforms(c.shader, c.uniformLocs)
 		c.vao:DrawArrays(GL.POINTS, c.count)
 		gl.UseShader(0)
@@ -1852,7 +1896,7 @@ local function GL4FlushEffects()
 	-- Quads
 	if gl4Prim.quads.count > 0 then
 		local q = gl4Prim.quads
-		q.vbo:Upload(q.data, nil, 0, 1, q.count * GL4_QUAD_STEP)
+		q.vbo:Upload(q.data, nil, 0, 1, q.count * gl4Prim.QUAD_STEP)
 		GL4SetPrimUniforms(q.shader, q.uniformLocs)
 		q.vao:DrawArrays(GL.POINTS, q.count)
 		gl.UseShader(0)
@@ -1871,19 +1915,19 @@ local function GL4FlushEffects()
 
 		if gl4Prim.glowLines.count > 0 then
 			local ln = gl4Prim.glowLines
-			ln.vbo:Upload(ln.data, nil, 0, 1, ln.count * GL4_LINE_STEP)
+			ln.vbo:Upload(ln.data, nil, 0, 1, ln.count * gl4Prim.LINE_STEP)
 			glFunc.LineWidth(glowWidth)
 			ln.vao:DrawArrays(GL.LINES, ln.count)
 		end
 		if gl4Prim.coreLines.count > 0 then
 			local ln = gl4Prim.coreLines
-			ln.vbo:Upload(ln.data, nil, 0, 1, ln.count * GL4_LINE_STEP)
+			ln.vbo:Upload(ln.data, nil, 0, 1, ln.count * gl4Prim.LINE_STEP)
 			glFunc.LineWidth(coreWidth)
 			ln.vao:DrawArrays(GL.LINES, ln.count)
 		end
 		if gl4Prim.normLines.count > 0 then
 			local ln = gl4Prim.normLines
-			ln.vbo:Upload(ln.data, nil, 0, 1, ln.count * GL4_LINE_STEP)
+			ln.vbo:Upload(ln.data, nil, 0, 1, ln.count * gl4Prim.LINE_STEP)
 			glFunc.LineWidth(normWidth)
 			ln.vao:DrawArrays(GL.LINES, ln.count)
 		end
@@ -1903,7 +1947,7 @@ local function GL4FlushCommandLines()
 	GL4SetPrimUniforms(gl4Prim.lineShader, gl4Prim.lineUniformLocs)
 
 	local ln = gl4Prim.normLines
-	ln.vbo:Upload(ln.data, nil, 0, 1, ln.count * GL4_LINE_STEP)
+	ln.vbo:Upload(ln.data, nil, 0, 1, ln.count * gl4Prim.LINE_STEP)
 	glFunc.LineWidth(1 * resScale)
 	ln.vao:DrawArrays(GL.LINES, ln.count)
 
@@ -2634,6 +2678,8 @@ local function GroundTextureVertices()
 	glFunc.TexCoord(render.ground.coord.r, render.ground.coord.t); glFunc.Vertex(render.ground.view.r, render.ground.view.t)
 	glFunc.TexCoord(render.ground.coord.l, render.ground.coord.t); glFunc.Vertex(render.ground.view.l, render.ground.view.t)
 end
+
+
 
 -- Helper function to compute chamfered corner params based on screen bounds
 -- Returns tl, tr, br, bl (TopLeft, TopRight, BottomRight, BottomLeft)
@@ -5129,13 +5175,13 @@ function widget:Initialize()
 
 		-- Pre-compute icon draw layer for GL4 rendering (determines render order)
 		if uDef.canFly then
-			gl4Icons.unitDefLayer[uDefID] = GL4_LAYER_AIR
+			gl4Icons.unitDefLayer[uDefID] = gl4Icons.LAYER_AIR
 		elseif uDef.customParams and uDef.customParams.iscommander then
-			gl4Icons.unitDefLayer[uDefID] = GL4_LAYER_COMMANDER
+			gl4Icons.unitDefLayer[uDefID] = gl4Icons.LAYER_COMMANDER
 		elseif uDef.isBuilding then
-			gl4Icons.unitDefLayer[uDefID] = GL4_LAYER_STRUCTURE
+			gl4Icons.unitDefLayer[uDefID] = gl4Icons.LAYER_STRUCTURE
 		else
-			gl4Icons.unitDefLayer[uDefID] = GL4_LAYER_GROUND
+			gl4Icons.unitDefLayer[uDefID] = gl4Icons.LAYER_GROUND
 		end
 		
 		-- Cache combat properties
@@ -5173,8 +5219,8 @@ function widget:Initialize()
 	})
 
 	-- Initialize LOS shader for red-to-greyscale conversion
-	losShader = gl.CreateShader(losShaderCode)
-	if not losShader then
+	shaders.los = gl.CreateShader(shaders.losCode)
+	if not shaders.los then
 		Spring.Echo("PIP: Failed to compile LOS shader, LOS overlay will be disabled")
 		Spring.Echo("PIP: Shader log: " .. (gl.GetShaderLog() or "no log"))
 		if pipR2T.losTex then
@@ -5183,10 +5229,17 @@ function widget:Initialize()
 		end
 	end
 	
+	-- Initialize minimap+shading compositing shader
+	shaders.minimapShading = gl.CreateShader(shaders.minimapShadingCode)
+	if not shaders.minimapShading then
+		Spring.Echo("PIP: Failed to compile minimap shading shader")
+		Spring.Echo("PIP: Shader log: " .. (gl.GetShaderLog() or "no log"))
+	end
+
 	-- Initialize water shader if map has water
 	if mapInfo.hasWater then
-		waterShader = gl.CreateShader(waterShaderCode)
-		if not waterShader then
+		shaders.water = gl.CreateShader(shaders.waterCode)
+		if not shaders.water then
 			Spring.Echo("PIP: Failed to compile water shader")
 			Spring.Echo("PIP: Shader log: " .. (gl.GetShaderLog() or "no log"))
 		end
@@ -5843,14 +5896,19 @@ function widget:Shutdown()
 		gl.DeleteList(radarDotList)
 		DeleteSeismicPingDlists()
 
-		if losShader then
-			gl.DeleteShader(losShader)
-			losShader = nil
+		if shaders.los then
+			gl.DeleteShader(shaders.los)
+			shaders.los = nil
 		end
 
-		if waterShader then
-			gl.DeleteShader(waterShader)
-			waterShader = nil
+		if shaders.minimapShading then
+			gl.DeleteShader(shaders.minimapShading)
+			shaders.minimapShading = nil
+		end
+
+		if shaders.water then
+			gl.DeleteShader(shaders.water)
+			shaders.water = nil
 		end
 	else
 		-- Another PIP is still active — only disable GL4 flag (don't delete GPU resources)
@@ -6461,7 +6519,7 @@ local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 
 			if gl4Prim.circles.count > 0 then
 				local c = gl4Prim.circles
-				c.vbo:Upload(c.data, nil, 0, 1, c.count * GL4_CIRCLE_STEP)
+				c.vbo:Upload(c.data, nil, 0, 1, c.count * gl4Prim.CIRCLE_STEP)
 				GL4SetPrimUniforms(c.shader, c.uniformLocs)
 				c.vao:DrawArrays(GL.POINTS, c.count)
 				gl.UseShader(0)
@@ -6470,7 +6528,7 @@ local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 			if gl4Prim.normLines.count > 0 then
 				GL4SetPrimUniforms(gl4Prim.lineShader, gl4Prim.lineUniformLocs)
 				local ln = gl4Prim.normLines
-				ln.vbo:Upload(ln.data, nil, 0, 1, ln.count * GL4_LINE_STEP)
+				ln.vbo:Upload(ln.data, nil, 0, 1, ln.count * gl4Prim.LINE_STEP)
 				glFunc.LineWidth(1.0 * resScale)
 				ln.vao:DrawArrays(GL.LINES, ln.count)
 				glFunc.LineWidth(1.0)
@@ -6880,7 +6938,7 @@ end
 -- Replaces the DrawUnit loop + DrawIcons function with a single GPU instanced draw call.
 -- Instead of per-unit Lua→C API calls and per-icon texture switches, all icons are packed
 -- into a VBO and drawn with a single DrawArrays call through a texture atlas.
-local function GL4DrawIcons(checkAllyTeamID, selectedSet)
+local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	-- Engine-matching icon size (MiniMap.cpp lines 518-526):
 	-- Engine dpr = unitBaseSize * (ppe^2 * mapX * mapZ / 40000)^0.25 where ppe = pixels/elmo = zoom.
 	-- Simplifies to: unitBaseSize * (mapX*mapZ/40000)^0.25 * sqrt(zoom).
@@ -6905,7 +6963,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet)
 	local localBuildPosX = ownBuildingPosX
 	local localBuildPosZ = ownBuildingPosZ
 	local usedElements = 0
-	local maxInst = gl4Icons.maxInstances
+	local maxInst = gl4Icons.MAX_INSTANCES
 	local pipUnits = miscState.pipUnits
 
 	-- LOS bitmask constants (raw mode avoids table allocation per GetUnitLosState call)
@@ -6923,6 +6981,8 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet)
 		end
 	end
 
+	-- Build tracked set for O(1) lookup in processUnit (must be before processUnit definition)
+	local trackedSet = trackingSet
 
 	-- Process one unit: resolve LOS, look up icon, write to VBO array.
 	-- Returns updated usedElements. Defined once to avoid closure per-layer.
@@ -7022,8 +7082,8 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet)
 		end
 
 		-- Write 12 floats directly into pre-allocated array
-		local off = usedEl * GL4_INSTANCE_STEP
-		data[off+1] = ux; data[off+2] = uz; data[off+3] = sizeScale; data[off+4] = (isRadar and 1 or 0) + (takeableTeams[uTeam] and 2 or 0) + (isStunned and 4 or 0)
+		local off = usedEl * gl4Icons.INSTANCE_STEP
+		data[off+1] = ux; data[off+2] = uz; data[off+3] = sizeScale; data[off+4] = (isRadar and 1 or 0) + (takeableTeams[uTeam] and 2 or 0) + (isStunned and 4 or 0) + (trackedSet and trackedSet[uID] and 8 or 0)
 		data[off+5] = uvs[1]; data[off+6] = uvs[2]; data[off+7] = uvs[3]; data[off+8] = uvs[4]
 		data[off+9] = r; data[off+10] = g; data[off+11] = b; data[off+12] = (uID * 0.37) % 6.2832
 		return usedEl + 1
@@ -7066,7 +7126,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet)
 						-- Dim ghost icons to simulate being under FoW overlay (engine draws them below LOS layer)
 						local dim = 0.6
 						local r, g, b = (color and color[1] or 1) * dim, (color and color[2] or 1) * dim, (color and color[3] or 1) * dim
-						local off = usedElements * GL4_INSTANCE_STEP
+						local off = usedElements * gl4Icons.INSTANCE_STEP
 						data[off+1] = ghost.x; data[off+2] = ghost.z; data[off+3] = sizeScale; data[off+4] = (takeableTeams[ghost.teamID] and 2 or 0)
 						data[off+5] = uvs[1]; data[off+6] = uvs[2]; data[off+7] = uvs[3]; data[off+8] = uvs[4]
 						data[off+9] = r; data[off+10] = g; data[off+11] = b; data[off+12] = (gID * 0.37) % 6.2832
@@ -7081,12 +7141,12 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet)
 	-- Each pass iterates the unit list but only processes units matching the current layer.
 	-- The 3 skipped passes per unit cost ~1ns each (cache lookup + branch), which is
 	-- negligible vs the ~100ns API calls in the matching pass.
-	for layer = GL4_LAYER_STRUCTURE, GL4_LAYER_AIR do
+	for layer = gl4Icons.LAYER_STRUCTURE, gl4Icons.LAYER_AIR do
 		for i = 1, unitCount do
 			local uID = pipUnits[i]
 			local uDefID = unitDefCacheTbl[uID] or spFunc.GetUnitDefID(uID)
 			if not unitDefCacheTbl[uID] then unitDefCacheTbl[uID] = uDefID end
-			local unitLayer = unitDefLayerTbl[uDefID] or GL4_LAYER_GROUND
+			local unitLayer = unitDefLayerTbl[uDefID] or gl4Icons.LAYER_GROUND
 			if unitLayer == layer then
 				usedElements = processUnit(uID, usedElements)
 				if usedElements >= maxInst then break end
@@ -7100,7 +7160,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet)
 	end
 
 	-- Single bulk upload to GPU (only the used portion)
-	gl4Icons.vbo:Upload(data, nil, 0, 1, usedElements * GL4_INSTANCE_STEP)
+	gl4Icons.vbo:Upload(data, nil, 0, 1, usedElements * gl4Icons.INSTANCE_STEP)
 
 	-- Set up GL state for icon drawing
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
@@ -7126,9 +7186,20 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet)
 	gl.UniformFloat(ul.gameTime, gameTime)
 	gl.UniformFloat(ul.wallClockTime, wallClockTime)
 
-	-- Bind atlas texture and draw
+	-- Bind atlas texture
 	glFunc.Texture(0, gl4Icons.atlas)
+
+	-- Pass 1: Tracked unit outlines (slightly enlarged, white, semi-transparent)
+	-- Only runs when there are tracked units; the shader culls non-tracked icons via alpha=0
+	if trackedSet then
+		gl.UniformFloat(ul.outlinePass, 1.0)
+		gl4Icons.vao:DrawArrays(GL.POINTS, usedElements)
+	end
+
+	-- Pass 2: Normal icon draw
+	gl.UniformFloat(ul.outlinePass, 0.0)
 	gl4Icons.vao:DrawArrays(GL.POINTS, usedElements)
+
 	glFunc.Texture(0, false)
 
 	gl.UseShader(0)
@@ -8502,7 +8573,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 			selectedSet = {}
 			for si = 1, #selUnits2 do selectedSet[selUnits2[si]] = true end
 		end
-		iconRadiusZoomDistMult = GL4DrawIcons(checkAllyTeamID, selectedSet)
+		iconRadiusZoomDistMult = GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	else
 		iconRadiusZoomDistMult = DrawIcons()
 	end
@@ -8855,8 +8926,8 @@ end
 local function DrawWaterAndLOSOverlays()
 	
 	-- Draw water overlay using shader
-	if mapInfo.hasWater and waterShader then
-		gl.UseShader(waterShader)
+	if mapInfo.hasWater and shaders.water then
+		gl.UseShader(shaders.water)
 		
 		-- Set water color based on lava/water/void
 		local r, g, b, a
@@ -8867,11 +8938,11 @@ local function DrawWaterAndLOSOverlays()
 		else
 			r, g, b, a = 0.08, 0.11, 0.22, 0.5
 		end
-		gl.UniformFloat(gl.GetUniformLocation(waterShader, "waterColor"), r, g, b, a)
-		gl.UniformFloat(gl.GetUniformLocation(waterShader, "waterLevel"), GetWaterLevel())
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "waterColor"), r, g, b, a)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "waterLevel"), GetWaterLevel())
 		
 		-- Bind heightmap texture
-		gl.UniformInt(gl.GetUniformLocation(waterShader, "heightTex"), 0)
+		gl.UniformInt(gl.GetUniformLocation(shaders.water, "heightTex"), 0)
 		glFunc.Texture(0, '$heightmap')
 		
 		-- Draw water overlay
@@ -9652,11 +9723,21 @@ local function RenderCheapLayers()
 	end
 
 	if uiState.drawingGround then
-		-- Draw ground minimap
+		-- Draw ground minimap with shading in single pass (matches engine compositing)
 		glFunc.Color(1, 1, 1, 1)
-		glFunc.Texture('$minimap')
-		glFunc.BeginEnd(glConst.QUADS, GroundTextureVertices)
-		glFunc.Texture(false)
+		if shaders.minimapShading then
+			gl.UseShader(shaders.minimapShading)
+			glFunc.Texture(0, '$minimap')
+			glFunc.Texture(1, '$shading')
+			glFunc.BeginEnd(glConst.QUADS, GroundTextureVertices)
+			glFunc.Texture(0, false)
+			glFunc.Texture(1, false)
+			gl.UseShader(0)
+		else
+			glFunc.Texture('$minimap')
+			glFunc.BeginEnd(glConst.QUADS, GroundTextureVertices)
+			glFunc.Texture(false)
+		end
 
 		-- Draw water and LOS overlays
 		DrawWaterAndLOSOverlays()
@@ -9712,11 +9793,21 @@ local function RenderPipContents()
 	end
 	
 	if uiState.drawingGround then
-		-- Draw ground minimap
+		-- Draw ground minimap with shading in single pass (matches engine compositing)
 		glFunc.Color(1, 1, 1, 1)
-		glFunc.Texture('$minimap')
-		glFunc.BeginEnd(glConst.QUADS, GroundTextureVertices)
-		glFunc.Texture(false)
+		if shaders.minimapShading then
+			gl.UseShader(shaders.minimapShading)
+			glFunc.Texture(0, '$minimap')
+			glFunc.Texture(1, '$shading')
+			glFunc.BeginEnd(glConst.QUADS, GroundTextureVertices)
+			glFunc.Texture(0, false)
+			glFunc.Texture(1, false)
+			gl.UseShader(0)
+		else
+			glFunc.Texture('$minimap')
+			glFunc.BeginEnd(glConst.QUADS, GroundTextureVertices)
+			glFunc.Texture(false)
+		end
 		
 		-- Draw water and LOS overlays
 		DrawWaterAndLOSOverlays()
@@ -10522,20 +10613,35 @@ local function DrawTrackedPlayerMinimap()
 		glFunc.Translate(-mmCenterX, -mmCenterY, 0)
 	end
 
-	-- Draw minimap ground texture (UV: 0,0 = top-left/NW, 1,1 = bottom-right/SE)
+	-- Draw minimap ground texture with shading in single pass (matches engine compositing)
 	glFunc.Color(1, 1, 1, 1)
-	glFunc.Texture('$minimap')
-	glFunc.BeginEnd(GL.QUADS, function()
-		glFunc.TexCoord(0, 0); glFunc.Vertex(cLeft, cTop)
-		glFunc.TexCoord(1, 0); glFunc.Vertex(cRight, cTop)
-		glFunc.TexCoord(1, 1); glFunc.Vertex(cRight, cBottom)
-		glFunc.TexCoord(0, 1); glFunc.Vertex(cLeft, cBottom)
-	end)
-	glFunc.Texture(false)
+	if shaders.minimapShading then
+		gl.UseShader(shaders.minimapShading)
+		glFunc.Texture(0, '$minimap')
+		glFunc.Texture(1, '$shading')
+		glFunc.BeginEnd(GL.QUADS, function()
+			glFunc.TexCoord(0, 0); glFunc.Vertex(cLeft, cTop)
+			glFunc.TexCoord(1, 0); glFunc.Vertex(cRight, cTop)
+			glFunc.TexCoord(1, 1); glFunc.Vertex(cRight, cBottom)
+			glFunc.TexCoord(0, 1); glFunc.Vertex(cLeft, cBottom)
+		end)
+		glFunc.Texture(0, false)
+		glFunc.Texture(1, false)
+		gl.UseShader(0)
+	else
+		glFunc.Texture('$minimap')
+		glFunc.BeginEnd(GL.QUADS, function()
+			glFunc.TexCoord(0, 0); glFunc.Vertex(cLeft, cTop)
+			glFunc.TexCoord(1, 0); glFunc.Vertex(cRight, cTop)
+			glFunc.TexCoord(1, 1); glFunc.Vertex(cRight, cBottom)
+			glFunc.TexCoord(0, 1); glFunc.Vertex(cLeft, cBottom)
+		end)
+		glFunc.Texture(false)
+	end
 
 	-- Draw water/lava/void overlay
-	if mapInfo.hasWater and waterShader then
-		gl.UseShader(waterShader)
+	if mapInfo.hasWater and shaders.water then
+		gl.UseShader(shaders.water)
 		local r, g, b, a
 		if mapInfo.voidWater then
 			r, g, b, a = 0, 0, 0, 1
@@ -10544,9 +10650,9 @@ local function DrawTrackedPlayerMinimap()
 		else
 			r, g, b, a = 0.08, 0.11, 0.22, 0.5
 		end
-		gl.UniformFloat(gl.GetUniformLocation(waterShader, "waterColor"), r, g, b, a)
-		gl.UniformFloat(gl.GetUniformLocation(waterShader, "waterLevel"), GetWaterLevel())
-		gl.UniformInt(gl.GetUniformLocation(waterShader, "heightTex"), 0)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "waterColor"), r, g, b, a)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "waterLevel"), GetWaterLevel())
+		gl.UniformInt(gl.GetUniformLocation(shaders.water, "heightTex"), 0)
 		glFunc.Texture(0, '$heightmap')
 		glFunc.Color(1, 1, 1, 1)
 		glFunc.BeginEnd(GL.QUADS, function()
@@ -11097,17 +11203,17 @@ local function UpdateLOSTexture(currentTime)
 		if actualUseEngineLOS then
 			-- Use engine's LOS texture (fast, real-time)
 			-- Requires shader to convert red channel to greyscale
-			if not losShader then
+			if not shaders.los then
 				return
 			end
 				glFunc.Texture(0, '$info:los')
 				glFunc.Texture(1, '$info:radar')
 
 				-- Activate shader to convert red channel to greyscale
-				gl.UseShader(losShader)
+				gl.UseShader(shaders.los)
 				
 				-- Update shader uniforms (in case config changed)
-				gl.UniformFloat(gl.GetUniformLocation(losShader, "showRadar"), config.showLosRadar and 1.0 or 0.0)
+				gl.UniformFloat(gl.GetUniformLocation(shaders.los, "showRadar"), config.showLosRadar and 1.0 or 0.0)
 
 				-- Draw full-screen quad in normalized coordinates (-1 to 1)
 				glFunc.BeginEnd(glConst.QUADS, function()
@@ -12412,16 +12518,16 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 end
 
 -- Timer for periodic ghost building cleanup (checks ghosts outside PIP viewport)
-local ghostCleanupTimer = 0
-local ghostCleanupInterval = 1.0  -- Check every 1 second
+-- ghostCleanupTimer stored in cache table to avoid a top-level local
+cache.ghostCleanupTimer = 0
 
 function widget:Update(dt)
 	-- Periodic ghost building cleanup: remove ghosts whose position is now in LOS
 	-- The draw-path check only catches ghosts within the PIP viewport; this catches all of them
 	if not cameraState.mySpecState then
-		ghostCleanupTimer = ghostCleanupTimer + dt
-		if ghostCleanupTimer >= ghostCleanupInterval then
-			ghostCleanupTimer = 0
+		cache.ghostCleanupTimer = cache.ghostCleanupTimer + dt
+		if cache.ghostCleanupTimer >= 1.0 then  -- check every 1 second
+			cache.ghostCleanupTimer = 0
 			local myAllyTeam = Spring.GetMyAllyTeamID()
 			for gID, ghost in pairs(ghostBuildings) do
 				local gy = spFunc.GetGroundHeight(ghost.x, ghost.z)
