@@ -83,7 +83,9 @@ local footprintsPath = "luaui/images/decals_gl4/footprints/"	-- old: "luaui/imag
 local resolution = 16 -- 32 is 2k tris, a tad pricey...
 local largesizethreshold  = 512 -- if min(width,height)> than this, then we use the large version!
 local extralargesizeThreshold = 1024 -- if min(width,height)> than this, then we use the extra large version!
-local lifeTimeMult = 1.0 -- A global lifetime multiplier for configurability
+local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 2000) / 1000	-- used for the initial value of lifeTimeMult
+local lifeTimeMult = 0.8 + math.min(gpuMem / 5000, 2.5) -- A global lifetime multiplier for configurability
+local lifeTimeMultMult = 2 -- an additional liftime multiplier that isnt saved to user config, so changing thsi will affect everyones lifetiem regardless of their save config value
 
 local autoupdate = false -- auto update shader, for debugging only!
 
@@ -430,7 +432,7 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	heatstart = heatstart or 0
 	heatdecay = heatdecay or 1
 	alphastart = alphastart or 1
-	alphadecay = (alphadecay or 0) / lifeTimeMult
+	alphadecay = (alphadecay or 0) / (lifeTimeMult*lifeTimeMultMult)
 
 	bwfactor = bwfactor or 1 -- default force to black and white
 	glowsustain = glowsustain or 1 -- how many frames to keep max heat for
@@ -1807,7 +1809,7 @@ local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, headin
 			decalCache[14] = Spring.GetGroundHeight(posx, posz)
 			decalCache[15] = worldposz
 
-			decalCache[10] = decalTable.alphadecay / lifeTimeMult
+			decalCache[10] = decalTable.alphadecay / (lifeTimeMult*lifeTimeMultMult)
 
 			local spawnframe = spGetGameFrame()
 			decalCache[16] = spawnframe
@@ -1907,7 +1909,7 @@ function widget:Initialize()
 				decalTable.width, decalTable.height, 0,	decalTable.maxalpha,
 				p,q,s,t,
 				decalTable.alphastart or 1,
-				(decalTable.alphadecay) or 0 / lifeTimeMult,
+				(decalTable.alphadecay) or 0 / (lifeTimeMult*lifeTimeMultMult),
 				decalTable.heatstart or 0,
 				decalTable.heatdecay or 1,
 				0,0,0,0,
