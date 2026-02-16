@@ -283,6 +283,10 @@ local decalIndex = 0
 local decalRemoveQueue = {} -- maps gameframes to list of decals that will be removed
 local decalRemoveList = {} -- maps instanceID's of decals that need to be batch removed to preserve order
 
+-- Lightweight table of active decals for external widget consumption (e.g. minimap overlays)
+-- activeDecalData[decalIndex] = {posx, posz, size, alphastart, alphadecay, spawnframe}
+local activeDecalData = {}
+
 -----------------------------------------------------------------------------------------------
 -- This part is kinda useless for now, but we could prevent or control excessive decal spam right here!
 
@@ -489,6 +493,10 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	end
 
 	AddDecalToArea(decalIndex, posx, posz, width, length)
+
+	-- Track for external consumption (lightweight: only position, size, alpha params)
+	activeDecalData[decalIndex] = {posx, posz, math.max(width, length), alphastart, alphadecay, spawnframe}
+
 	return decalIndex, lifetime
 end
 
@@ -589,6 +597,7 @@ end
 
 local function RemoveDecal(instanceID)
 	RemoveDecalFromArea(instanceID)
+	activeDecalData[instanceID] = nil
 	if decalVBO.instanceIDtoIndex[instanceID] then
 		popElementInstance(decalVBO, instanceID)
 	elseif decalLargeVBO.instanceIDtoIndex[instanceID] then
@@ -605,6 +614,7 @@ function widget:GameFrame(n)
 		for i=1, #decalRemoveQueue[n] do
 			local decalID = decalRemoveQueue[n][i]
 			decalRemoveList[decalID] = true
+			activeDecalData[decalID] = nil
 			numDecalsToRemove = numDecalsToRemove + 1
 			--RemoveDecal(decalID)
 		end
@@ -1819,6 +1829,9 @@ local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, headin
 			end
 
 			AddDecalToArea(decalIndex, worldposx, worldposz, decalTable.width, decalTable.height)
+
+			-- Track for external consumption
+			activeDecalData[decalIndex] = {worldposx, worldposz, math.max(decalTable.width, decalTable.height), decalTable.alphastart or 1, decalCache[10], spawnframe}
 		end
 	end
 end
@@ -1863,6 +1876,8 @@ function widget:Initialize()
 	WG['decalsgl4'].SetLifeTimeMult = function(value)
 		lifeTimeMult = value
 	end
+	WG['decalsgl4'].GetActiveDecals = function() return activeDecalData end
+	WG['decalsgl4'].GetLifeTimeMult = function() return lifeTimeMult end
 
 	widgetHandler:RegisterGlobal('AddDecalGL4', WG['decalsgl4'].AddDecalGL4)
 	widgetHandler:RegisterGlobal('RemoveDecalGL4', WG['decalsgl4'].RemoveDecalGL4)

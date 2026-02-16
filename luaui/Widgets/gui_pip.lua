@@ -127,6 +127,7 @@ local config = {
 	zoomProjectileDetail = 0.12,
 	zoomExplosionDetail = 0.12,  -- Legacy, now using graduated visibility
 	drawExplosions = true,  -- Separate from projectiles
+	drawDecals = true,  -- Show ground decals (explosion scars, footprints) from the decals GL4 widget
 	drawCommandFX = true,  -- Show brief fading command lines when orders are given (like Commands FX widget)
 	commandFXIgnoreNewUnits = true,  -- Ignore commands given to newly finished units (rally point orders)
 	commandFXOpacity = 0.4,  -- Initial opacity of command FX lines
@@ -6370,6 +6371,94 @@ local function DrawFormationDotsOverlay()
 	glFunc.Texture(false)
 end
 
+-- Draw ground decals (explosion scars, footprints) from the decals GL4 widget
+-- Reads lightweight decal data exposed via WG API and renders as dark circles
+local function DrawDecalsOverlay()
+	if not config.drawDecals then return end
+
+	local decalsAPI = WG['decalsgl4']
+	if not decalsAPI or not decalsAPI.GetActiveDecals then return end
+
+	local activeDecals = decalsAPI.GetActiveDecals()
+	if not activeDecals then return end
+
+	local frame = Spring.GetGameFrame()
+	local lifeTimeMult = decalsAPI.GetLifeTimeMult and decalsAPI.GetLifeTimeMult() or 1
+
+	-- Visible world bounds for culling
+	local wl, wr = render.world.l, render.world.r
+	local wt, wb = render.world.t, render.world.b
+	-- Ensure wt < wb (world.t is north = small Z, world.b is south = large Z)
+	if wt > wb then wt, wb = wb, wt end
+
+	local useGL4 = gl4Prim.enabled
+
+	if useGL4 then
+		gl4Prim.circles.count = 0
+
+		for id, d in pairs(activeDecals) do
+			local dx, dz, dsize = d[1], d[2], d[3]
+			-- Cull decals outside visible area (with size margin)
+			if dx + dsize > wl and dx - dsize < wr and dz + dsize > wt and dz - dsize < wb then
+				local age = frame - d[6]  -- d[6] = spawnFrame
+				local alpha = d[4] - d[5] * age  -- d[4] = alphastart, d[5] = alphadecay
+				if alpha > 0 then
+					-- Clamp alpha for display (decals can have alphastart > 1)
+					local displayAlpha = math.min(alpha, 1.0) * 0.7
+					local halfSize = dsize * 0.5
+					GL4AddCircle(dx, dz, halfSize, displayAlpha,
+						0, 0, 0,             -- core: black
+						0.05, 0.05, 0.05,    -- edge: near-black
+						displayAlpha * 0.3,  -- edge alpha: fade out but not fully transparent
+						0)                   -- normal blend mode
+				end
+			end
+		end
+
+		-- Flush circles
+		if gl4Prim.circles.count > 0 then
+			gl.Scissor(render.dim.l, render.dim.b, render.dim.r - render.dim.l, render.dim.t - render.dim.b)
+			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+			gl.DepthTest(false)
+
+			local c = gl4Prim.circles
+			c.vbo:Upload(c.data, nil, 0, 1, c.count * gl4Prim.CIRCLE_STEP)
+			GL4SetPrimUniforms(c.shader, c.uniformLocs)
+			c.vao:DrawArrays(GL.POINTS, c.count)
+			gl.UseShader(0)
+
+			gl.Scissor(false)
+		end
+	else
+		-- Legacy rendering path: draw filled dark circles at decal positions
+		gl.Scissor(render.dim.l, render.dim.b, render.dim.r - render.dim.l, render.dim.t - render.dim.b)
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		gl.DepthTest(false)
+		glFunc.Texture(false)
+
+		for id, d in pairs(activeDecals) do
+			local dx, dz, dsize = d[1], d[2], d[3]
+			if dx + dsize > wl and dx - dsize < wr and dz + dsize > wt and dz - dsize < wb then
+				local age = frame - d[6]
+				local alpha = d[4] - d[5] * age
+				if alpha > 0 then
+					local displayAlpha = math.min(alpha, 1.0) * 0.7
+					local sx, sy = WorldToPipCoords(dx, dz)
+					local radius = dsize * 0.5 * math.abs(worldToPipScaleX)
+					if radius > 0.5 then  -- Skip sub-pixel decals
+						glFunc.Color(0, 0, 0, displayAlpha)
+						local r = math.max(1, radius)
+						glFunc.Rect(sx - r, sy - r, sx + r, sy + r)
+					end
+				end
+			end
+		end
+
+		glFunc.Color(1, 1, 1, 1)
+		gl.Scissor(false)
+	end
+end
+
 -- Helper function to draw command queues overlay
 -- Draw command FX: fading lines from unit to command target
 local function DrawCommandFXOverlay()
@@ -10006,6 +10095,9 @@ local function RenderExpensiveLayers()
 		glFunc.Translate(-centerX, -centerY, 0)
 	end
 
+	-- Draw ground decals (before units so they appear below)
+	DrawDecalsOverlay()
+
 	-- Measure draw time for performance monitoring
 	local drawStartTime = os.clock()
 	DrawUnitsAndFeatures(cachedSelectedUnits)
@@ -10055,6 +10147,9 @@ local function RenderPipContents()
 		-- Draw water and LOS overlays
 		DrawWaterAndLOSOverlays()
 	end
+
+	-- Draw ground decals (before units so they appear below)
+	DrawDecalsOverlay()
 
 	-- Measure draw time for performance monitoring
 	local drawStartTime = os.clock()
