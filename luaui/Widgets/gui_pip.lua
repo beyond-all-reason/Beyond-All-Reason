@@ -3282,9 +3282,11 @@ local function DrawProjectile(pID)
 		angle = 0
 	end
 
-	-- Scale projectiles to be visible at all zoom levels
-	-- Increase base size at high zoom (zoomed in close)
-	local zoomScale = 1 + (cameraState.zoom * 2) -- At zoom 0.05: 1.1x, at zoom 0.8: 2.6x
+	-- Scale projectiles to be visible at all zoom levels (smooth, no hard thresholds)
+	-- Low zoom (zoomed out): inversely scale so projectiles stay visible
+	-- High zoom (zoomed in): scale up proportionally
+	-- zoom 0.02: ~3.5x, zoom 0.05: ~2.7x, zoom 0.1: ~2.1x, zoom 0.2: ~1.7x, zoom 0.5: ~1.4x, zoom 0.8: ~2.6x
+	local zoomScale = 1 + (cameraState.zoom * 2) + 0.15 / (cameraState.zoom + 0.05)
 	width = width * zoomScale
 	height = height * zoomScale
 
@@ -3598,7 +3600,8 @@ local function DrawLaserBeams()
 
 	-- Precompute zoom-dependent scaling once
 	local resScale = render.contentScale or 1
-	local zoomScale = math.max(0.5, cameraState.zoom / 70)
+	-- Smooth beam width scaling: boost when zoomed out, no hard threshold
+	local zoomScale = math.max(0.5, cameraState.zoom / 70) + 0.08 / (cameraState.zoom + 0.04)
 	local wcx_cached = cameraState.wcx  -- Cache these for loop
 	local wcz_cached = cameraState.wcz
 
@@ -4060,9 +4063,6 @@ local function DrawExplosions()
 	local i = 1
 	local wcx_cached = cameraState.wcx
 	local wcz_cached = cameraState.wcz
-	
-	-- Current zoom level for graduated visibility check
-	local currentZoom = cameraState.zoom
 
 	mapInfo.rad2deg = 57.29577951308232 -- Precompute radians to degrees conversion
 
@@ -4072,22 +4072,36 @@ local function DrawExplosions()
 	local worldTop = render.world.t
 	local worldBottom = render.world.b
 
+	-- When too many explosions, compute minimum radius threshold to keep ~150
+	local MAX_EXPLOSIONS = 150
+	local explosionMinRadius = 0
+	if #cache.explosions > MAX_EXPLOSIONS then
+		-- Collect all radii, sort descending, pick threshold
+		local radii = pools.explosionRadii
+		if not radii then
+			radii = {}
+			pools.explosionRadii = radii
+		end
+		local rCount = 0
+		for j = 1, #cache.explosions do
+			local e = cache.explosions[j]
+			if e and e.x then
+				rCount = rCount + 1
+				radii[rCount] = e.radius
+			end
+		end
+		table.sort(radii, function(a, b) return a > b end)
+		explosionMinRadius = radii[MAX_EXPLOSIONS] or 0
+		for j = rCount + 1, #radii do radii[j] = nil end
+	end
+
 	while i <= #cache.explosions do
 		local explosion = cache.explosions[i]
 		if not explosion or not explosion.x then
 			table.remove(cache.explosions, i)
 		else
-		-- Graduated visibility: larger explosions visible at lower zoom levels
-		-- radius 100+: always visible
-		-- radius 60-100: visible at zoom >= 0.04
-		-- radius 40-60: visible at zoom >= 0.06
-		-- radius 20-40: visible at zoom >= 0.09
-		-- radius < 20: visible at zoom >= 0.12
-		local minZoom = 0
-		if explosion.radius < 100 then
-			minZoom = math.max(0, 0.14 - explosion.radius * 0.0014)
-		end
-		if currentZoom < minZoom then
+		-- Skip small explosions when over budget
+		if explosionMinRadius > 0 and explosion.radius < explosionMinRadius then
 			i = i + 1
 		else
 		local age = gameTime - explosion.startTime
@@ -4346,7 +4360,7 @@ local function DrawExplosions()
 				i = i + 1
 			end
 		end
-		end -- end of graduated visibility else block
+		end -- end of count-based filtering else block
 		end -- end of "if not explosion" else block
 	end
 	glFunc.LineWidth(1 * resScale)
@@ -8536,7 +8550,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		gl.Blending(true)
 		gl.DepthTest(false)
 
-		if cameraState.zoom >= config.zoomProjectileDetail then
+		do
 			-- Get projectiles in the PIP window's world rectangle
 			local projectiles = spFunc.GetProjectilesInRectangle(render.world.l - margin, render.world.t - margin, render.world.r + margin, render.world.b + margin)
 			
@@ -8547,9 +8561,46 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 			
 			if projectiles then
 				local projectileCount = #projectiles
+				local MAX_PROJECTILES = 150
+
+				-- When too many projectiles, compute a minimum explosion radius threshold
+				-- so only the ~150 biggest-damage ones are drawn
+				local minRadius = 0
+				if projectileCount > MAX_PROJECTILES then
+					-- Collect explosion radii for all projectiles
+					local radii = pools.projectileRadii
+					if not radii then
+						radii = {}
+						pools.projectileRadii = radii
+					end
+					local rCount = 0
+					for i = 1, projectileCount do
+						local pDefID = spFunc.GetProjectileDefID(projectiles[i])
+						local r = pDefID and cache.weaponExplosionRadius[pDefID] or 10
+						rCount = rCount + 1
+						radii[rCount] = r
+					end
+					-- Sort descending and pick the threshold at MAX_PROJECTILES
+					table.sort(radii, function(a, b) return a > b end)
+					minRadius = radii[MAX_PROJECTILES] or 0
+					-- Clear excess entries
+					for i = rCount + 1, #radii do radii[i] = nil end
+				end
+
 				for i = 1, projectileCount do
 					local pID = projectiles[i]
-					DrawProjectile(pID)
+					-- Filter small projectiles when over budget
+					local shouldDraw = true
+					if minRadius > 0 then
+						local pDefID = spFunc.GetProjectileDefID(pID)
+						local r = pDefID and cache.weaponExplosionRadius[pDefID] or 10
+						if r < minRadius then
+							shouldDraw = false
+						end
+					end
+					if shouldDraw then
+						DrawProjectile(pID)
+					end
 					-- Mark this trail as active if it exists
 					if cache.missileTrails[pID] then
 						activeTrails[pID] = true
@@ -8565,15 +8616,11 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 			end
 		end
 
-		if cameraState.zoom >= config.zoomExplosionDetail then
-			if cameraState.zoom >= config.zoomProjectileDetail then
-				-- Draw icon shatters
-				DrawIconShatters()
+		-- Draw icon shatters
+		DrawIconShatters()
 
-				-- Draw laser beams
-				DrawLaserBeams()
-			end
-		end
+		-- Draw laser beams
+		DrawLaserBeams()
 
 		-- Draw seismic pings (always visible at any zoom level)
 		DrawSeismicPings()
@@ -11616,8 +11663,13 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 					-- Generate tooltip with shortcut key on new line if available
 					local tooltipText = Spring.I18N(tooltipKey)
 					-- Use button's shortcut field first, fall back to getActionHotkey
+					-- In minimap mode, don't show shorcut for track units button
 					local shortcut = visibleButtons[i].shortcut
-					if not shortcut and visibleButtons[i].command then
+					local suppressShortcut = isMinimapMode and visibleButtons[i].command == 'pip_track'
+					if suppressShortcut then
+						shortcut = nil
+					end
+					if not shortcut and not suppressShortcut and visibleButtons[i].command then
 						shortcut = getActionHotkey(visibleButtons[i].command)
 					end
 					if shortcut and shortcut ~= "" then
@@ -13597,17 +13649,7 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 		radius = cache.weaponExplosionRadius[weaponID]
 	end
 	
-	-- Graduated visibility: larger explosions visible at lower zoom levels
-	-- radius 100+: always visible
-	-- radius 60-100: visible at zoom >= 0.04
-	-- radius 40-60: visible at zoom >= 0.06
-	-- radius 20-40: visible at zoom >= 0.09
-	-- radius < 20: visible at zoom >= 0.12
-	local minZoom = 0
-	if radius < 100 then
-		minZoom = math.max(0, 0.14 - radius * 0.0014)
-	end
-	if cameraState.zoom < minZoom then return end
+	-- No zoom-based rejection: count-based filtering happens in DrawExplosions
 
 	-- Check if this is a lightning weapon
 	local isLightning = weaponID and cache.weaponIsLightning[weaponID]
