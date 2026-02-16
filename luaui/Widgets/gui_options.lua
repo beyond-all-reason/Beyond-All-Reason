@@ -2613,7 +2613,7 @@ function init()
 		},
 
 		{ id = "decalsgl4", group = "gfx", category = types.basic, widget = "Decals GL4", name = Spring.I18N('ui.settings.option.decalsgl4'), type = "bool", value = GetWidgetToggleValue("Decals GL4") },
-		{ id = "decalsgl4_lifetime", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.decalsgl4_lifetime'), min = 0.5, max = 5, step = 0.1, type = "slider", value = 1, description = Spring.I18N('ui.settings.option.decalsgl4_lifetime_descr'),
+		{ id = "decalsgl4_lifetime", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.decalsgl4_lifetime'), min = 0.5, max = 8, step = 0.1, type = "slider", value = 1, description = Spring.I18N('ui.settings.option.decalsgl4_lifetime_descr'),
 		  onload = function(i)
 			  loadWidgetData("Decals GL4", "decalsgl4_lifetime", { 'lifeTimeMult' })
 		  end,

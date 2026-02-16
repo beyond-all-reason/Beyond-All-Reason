@@ -172,10 +172,10 @@ local config = {
 	pipMaxUpdateRate = 120,		-- Maximum update rate for PIP content when zoomed in
 	pipZoomThresholdMin = 0.15,
 	pipZoomThresholdMax = 0.4,
-	pipTargetDrawTime = 0.002,
-	pipPerformanceAdjustSpeed = 0.1,
-	pipFrameTimeThreshold = 0.005,  -- threshold before starting to lower FPS
-	pipFrameTimeHistorySize = 8,  -- Number of frames to average
+	pipTargetDrawTime = 0.0025,
+	pipPerformanceAdjustSpeed = 0.1,	-- Exponential smoothing factor (0-1) for the performance rate-limiter. Each frame, contentPerformanceFactor lerps toward its target by this fraction: higher = faster reaction to GPU load spikes, lower = smoother but slower adaptation.
+	pipFrameTimeThreshold = 0.007,  -- threshold before starting to lower FPS
+	pipFrameTimeHistorySize = 10,  -- Number of frames to average
 	
 	radarWobbleSpeed = 1,
 	CMD_AREA_MEX = GameCMD and GameCMD.AREA_MEX or 10000,
@@ -3409,9 +3409,13 @@ local function DrawProjectile(pID)
 				local positions = trail.positions
 				local head = trail.head
 				
-				-- Set line width based on missile size (scaled by zoom and content resolution)
+				-- Set line width proportional to missile body size
+				-- Missile bodies bypass zoomScale (fixed world-unit size), so trails should too
+				-- Gentle zoom factor: thin when zoomed out (matching tiny missile dots),
+				-- slightly wider when zoomed in
 				local resScale = render.contentScale or 1
-				local trailWidth = math.max(1, (0.8 + trail.size * 0.5) * zoomScale * resScale)
+				local trailZoom = 0.8 + cameraState.zoom * 2  -- 0.85 at zoom 0.024, 1.0 at 0.1, 1.8 at 0.5
+				local trailWidth = math.max(1.0 * resScale, trail.size * 0.5 * trailZoom * resScale)
 				glFunc.LineWidth(trailWidth)
 
 				-- Batch all trail lines in a single BeginEnd call
@@ -6372,7 +6376,9 @@ local function DrawFormationDotsOverlay()
 end
 
 -- Draw ground decals (explosion scars, footprints) from the decals GL4 widget
--- Reads lightweight decal data exposed via WG API and renders as dark circles
+-- Uses multiply blending (DST_COLOR * SRC_COLOR): circle fragment multiplies ground color.
+-- Core = darken factor (0.78–1.0), edge = 1.0 (no change). Alpha channel preserved via ONE,ZERO.
+-- Gentle per-decal darkening (20%) so overlapping areas don't compound to near-black.
 local function DrawDecalsOverlay()
 	if not config.drawDecals then return end
 
@@ -6382,8 +6388,14 @@ local function DrawDecalsOverlay()
 	local activeDecals = decalsAPI.GetActiveDecals()
 	if not activeDecals then return end
 
+	-- If activeDecalData is empty (e.g. after PIP re-enable / luaui reload),
+	-- ask the decals widget to rebuild from its VBO instance data
+	if not next(activeDecals) and decalsAPI.RebuildActiveDecalData then
+		activeDecals = decalsAPI.RebuildActiveDecalData()
+		if not activeDecals or not next(activeDecals) then return end
+	end
+
 	local frame = Spring.GetGameFrame()
-	local lifeTimeMult = decalsAPI.GetLifeTimeMult and decalsAPI.GetLifeTimeMult() or 1
 
 	-- Visible world bounds for culling
 	local wl, wr = render.world.l, render.world.r
@@ -6391,35 +6403,49 @@ local function DrawDecalsOverlay()
 	-- Ensure wt < wb (world.t is north = small Z, world.b is south = large Z)
 	if wt > wb then wt, wb = wb, wt end
 
+	local minSize = 15  -- Skip very small decals (world units)
+	local mathMin = math.min
+	local mathMax = math.max
+
 	local useGL4 = gl4Prim.enabled
 
 	if useGL4 then
 		gl4Prim.circles.count = 0
 
 		for id, d in pairs(activeDecals) do
+			if d[7] then -- skip footprints
+			-- skip
+			else
 			local dx, dz, dsize = d[1], d[2], d[3]
-			-- Cull decals outside visible area (with size margin)
-			if dx + dsize > wl and dx - dsize < wr and dz + dsize > wt and dz - dsize < wb then
-				local age = frame - d[6]  -- d[6] = spawnFrame
-				local alpha = d[4] - d[5] * age  -- d[4] = alphastart, d[5] = alphadecay
-				if alpha > 0 then
-					-- Clamp alpha for display (decals can have alphastart > 1)
-					local displayAlpha = math.min(alpha, 1.0) * 0.7
-					local halfSize = dsize * 0.5
-					GL4AddCircle(dx, dz, halfSize, displayAlpha,
-						0, 0, 0,             -- core: black
-						0.05, 0.05, 0.05,    -- edge: near-black
-						displayAlpha * 0.3,  -- edge alpha: fade out but not fully transparent
-						0)                   -- normal blend mode
+			if dsize >= minSize then
+				-- Cull decals outside visible area (with size margin)
+				if dx + dsize > wl and dx - dsize < wr and dz + dsize > wt and dz - dsize < wb then
+					local age = frame - d[6]  -- d[6] = spawnFrame
+					local alpha = d[4] - d[5] * age  -- d[4] = alphastart, d[5] = alphadecay
+					if alpha > 0 then
+						-- Multiply factor: 1.0 = no change, lower = darker
+						-- Gentle 20% max darkening per decal; floor at 0.78 limits overlap compounding
+						-- 1 decal → 0.80, 2 overlap → 0.64, 3 → 0.51, 5 → 0.33
+						local intensity = mathMin(alpha, 1.0) * 0.20
+						local darkenCore = mathMax(0.78, 1.0 - intensity)
+						local halfSize = dsize * 0.5
+						GL4AddCircle(dx, dz, halfSize, 1,
+							darkenCore, darkenCore, darkenCore,        -- core: multiply factor
+							1, 1, 1,                                  -- edge: no change (white=1.0)
+							1,                                         -- edge alpha
+							0)
+					end
 				end
 			end
+			end -- end else (not footprint)
 		end
 
-		-- Flush circles
+		-- Flush circles with multiply blending: result = ground_color * circle_color
 		if gl4Prim.circles.count > 0 then
 			gl.Scissor(render.dim.l, render.dim.b, render.dim.r - render.dim.l, render.dim.t - render.dim.b)
-			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 			gl.DepthTest(false)
+			-- Multiply blend: color = dst * src, alpha = dst (preserved)
+			gl.BlendFuncSeparate(GL.DST_COLOR, GL.ZERO, GL.ONE, GL.ZERO)
 
 			local c = gl4Prim.circles
 			c.vbo:Upload(c.data, nil, 0, 1, c.count * gl4Prim.CIRCLE_STEP)
@@ -6427,34 +6453,44 @@ local function DrawDecalsOverlay()
 			c.vao:DrawArrays(GL.POINTS, c.count)
 			gl.UseShader(0)
 
+			-- Restore standard blending
+			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 			gl.Scissor(false)
 		end
 	else
-		-- Legacy rendering path: draw filled dark circles at decal positions
+		-- Legacy rendering path
 		gl.Scissor(render.dim.l, render.dim.b, render.dim.r - render.dim.l, render.dim.t - render.dim.b)
-		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		gl.DepthTest(false)
+		gl.BlendFuncSeparate(GL.DST_COLOR, GL.ZERO, GL.ONE, GL.ZERO)
 		glFunc.Texture(false)
 
 		for id, d in pairs(activeDecals) do
+			if d[7] then -- skip footprints
+			-- skip
+			else
 			local dx, dz, dsize = d[1], d[2], d[3]
-			if dx + dsize > wl and dx - dsize < wr and dz + dsize > wt and dz - dsize < wb then
-				local age = frame - d[6]
-				local alpha = d[4] - d[5] * age
-				if alpha > 0 then
-					local displayAlpha = math.min(alpha, 1.0) * 0.7
-					local sx, sy = WorldToPipCoords(dx, dz)
-					local radius = dsize * 0.5 * math.abs(worldToPipScaleX)
-					if radius > 0.5 then  -- Skip sub-pixel decals
-						glFunc.Color(0, 0, 0, displayAlpha)
-						local r = math.max(1, radius)
-						glFunc.Rect(sx - r, sy - r, sx + r, sy + r)
+			if dsize >= minSize then
+				if dx + dsize > wl and dx - dsize < wr and dz + dsize > wt and dz - dsize < wb then
+					local age = frame - d[6]
+					local alpha = d[4] - d[5] * age
+					if alpha > 0 then
+						local intensity = mathMin(alpha, 1.0) * 0.20
+						local darken = mathMax(0.78, 1.0 - intensity)
+						local sx, sy = WorldToPipCoords(dx, dz)
+						local radius = dsize * 0.5 * math.abs(worldToPipScaleX)
+						if radius > 0.5 then
+							glFunc.Color(darken, darken, darken, 1)
+							local r = mathMax(1, radius)
+							glFunc.Rect(sx - r, sy - r, sx + r, sy + r)
+						end
 					end
 				end
 			end
+			end -- end else (not footprint)
 		end
 
 		glFunc.Color(1, 1, 1, 1)
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		gl.Scissor(false)
 	end
 end
@@ -10074,6 +10110,9 @@ local function RenderCheapLayers()
 		DrawWaterAndLOSOverlays()
 	end
 
+	-- Draw ground decals on top of ground/water/LOS (multiply-blends against ground color)
+	DrawDecalsOverlay()
+
 	-- Pop rotation matrix if it was applied
 	if render.minimapRotation ~= 0 then
 		glFunc.PopMatrix()
@@ -10094,9 +10133,6 @@ local function RenderExpensiveLayers()
 		glFunc.Rotate(render.minimapRotation * 180 / math.pi, 0, 0, 1)
 		glFunc.Translate(-centerX, -centerY, 0)
 	end
-
-	-- Draw ground decals (before units so they appear below)
-	DrawDecalsOverlay()
 
 	-- Measure draw time for performance monitoring
 	local drawStartTime = os.clock()
@@ -13843,10 +13879,29 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 	if not config.drawCommandFX then return end
 	if uiState.inMinMode then return end
 
-	-- Only show commands for allied teams (or own team)
-	local myAllyTeam = Spring.GetMyAllyTeamID()
+	-- Only show commands for the ally team we're "viewing as"
 	local _, _, _, _, _, unitAllyTeam = spFunc.GetTeamInfo(unitTeam, false)
-	if unitAllyTeam ~= myAllyTeam and not cameraState.mySpecState then return end
+	if cameraState.mySpecState then
+		-- Spectator: determine which ally team is relevant
+		local viewAllyTeam = nil  -- nil = show all (fullview spectator, no tracking)
+		if interactionState.trackingPlayerID then
+			local _, _, _, playerTeamID = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
+			if playerTeamID then
+				viewAllyTeam = teamAllyTeamCache[playerTeamID] or Spring.GetTeamAllyTeamID(playerTeamID)
+			end
+		elseif state.losViewEnabled and state.losViewAllyTeam then
+			viewAllyTeam = state.losViewAllyTeam
+		else
+			local _, fullview = Spring.GetSpectatingState()
+			if not fullview then
+				viewAllyTeam = Spring.GetMyAllyTeamID()
+			end
+		end
+		if viewAllyTeam and unitAllyTeam ~= viewAllyTeam then return end
+	else
+		local myAllyTeam = Spring.GetMyAllyTeamID()
+		if unitAllyTeam ~= myAllyTeam then return end
+	end
 
 	-- Skip gaia / critter units
 	if unitTeam == gaiaTeamID then return end
