@@ -41,3 +41,16 @@ if CMD then
 	CMD.a     = "ANY"
 	CMD.b     = "BUILD"
 end
+
+--------------------------------------------------------------------------------
+-- Game constants --------------------------------------------------------------
+
+if Game then
+	---The first frame that units are spawned. Used for scenario units and commanders.
+	---@type integer
+	Game.spawnInitialFrame = 2 * Game.gameSpeed
+
+	---Non-scenario starting units spend a number of frames warping/teleporting in.
+	---@type integer
+	Game.spawnWarpInFrame = 3 * Game.gameSpeed
+end

@@ -145,8 +145,10 @@ local function MatchPlayer(awardees, name, accountID)
 	return false
 end
 
+local spawnWarpInFrame = Game.spawnWarpInFrame
+
 function gadget:GameFrame(gf)
-	if gf == 90 then
+	if gf == spawnWarpInFrame then
 		for _, playerID in ipairs(Spring.GetPlayerList()) do
 
 			local accountID = false

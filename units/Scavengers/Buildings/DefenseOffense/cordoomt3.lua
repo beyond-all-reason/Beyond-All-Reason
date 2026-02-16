@@ -18,8 +18,6 @@ return {
 		explodeas = "fusionExplosion",
 		footprintx = 6,
 		footprintz = 6,
-		idleautoheal = 2,
-		idletime = 1800,
 		sightemitheight = 80,
 		health = 39000,
 		maxslope = 10,

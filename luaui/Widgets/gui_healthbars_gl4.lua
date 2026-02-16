@@ -369,14 +369,11 @@ local unitDefIgnore = {} -- commanders!
 local unitDefhasShield = {} -- value is shield max power
 local unitDefReactiveArmor = {} -- value is armor health
 local unitDefCanStockpile = {} -- 0/1?
-local unitDefReload = {} -- value is max reload time
 local unitDefHeights = {} -- maps unitDefs to height
 local unitDefHideDamage = {}
 local unitDefPrimaryWeapon = {} -- the index for reloadable weapon on unitdef weapons
 
 local unitBars = {} -- we need this additional table of {[unitID] = {barhealth, barrez, barreclaim}}
-local unitEmpWatch = {}
-local unitBeingBuiltWatch = {}
 local unitCaptureWatch = {}
 local unitShieldWatch = {} -- maps unitID to last shield value
 local unitReactiveArmorWatch = {}
@@ -507,8 +504,6 @@ for udefID, unitDef in pairs(UnitDefs) do
 	if unitDef.canStockpile then unitDefCanStockpile[udefID] = unitDef.canStockpile end
 	if reloadTime and reloadTime > minReloadTime then
 		if debugmode then spEcho("Unit with watched reload time:", unitDef.name, reloadTime, minReloadTime) end
-
-		unitDefReload[udefID] = reloadTime
 		unitDefPrimaryWeapon[udefID] = primaryWeapon
 	end
 	if unitDef.hideDamage == true then
@@ -617,12 +612,7 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 		unitBars[unitID] = 1
 	end
 
-	--local barpos = unitBars[unitID]
-	--if bartype == 'emp_damage' or bartype == 'paralyze' then
-	--	barpos = 33
-	--else
 	unitBars[unitID] = unitBars[unitID] + 1
-	--end -- to keep these on top
 
 	local effectiveScale = ((variableBarSizes and unitDefSizeMultipliers[unitDefID]) or 1.0) * barScale
 
@@ -670,11 +660,7 @@ local function removeBarFromUnit(unitID, barname, reason) -- this will bite me i
 	local instanceKey = unitID .. "_" .. barname
 	if healthBarVBO.instanceIDtoIndex[instanceKey] then
 		if debugmode then Spring.Debug.TraceEcho(reason) end
-		--if barname == 'emp_damage' or barname == 'paralyze' then
-			-- dont decrease counter for these
-		--else
-			unitBars[unitID] = unitBars[unitID] - 1
-		--end
+		unitBars[unitID] = unitBars[unitID] - 1
 		popElementInstance(healthBarVBO, instanceKey)
 	end
 end
@@ -720,16 +706,6 @@ local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason)
 	if health ~= nil then
 		if build < 1 then
 			addBarForUnit(unitID, unitDefID, "building", reason)
-			-- moved to CUS gl4
-			--uniformcache[1] = build
-			--unitBeingBuiltWatch[unitID] = build
-			--gl.SetUnitBufferUniforms(unitID, uniformcache, 0)
-			--uniformcache[1] = Spring.GetUnitHeight(unitID)
-			--gl.SetUnitBufferUniforms(unitID, uniformcache, 11)
-		else
-			-- Moved to CUS GL4:
-			--uniformcache[1] = -1.0 -- mean that the unit has been built, we init it to -1 always
-			--gl.SetUnitBufferUniforms(unitID, uniformcache, 0)
 		end
 		--spEcho(unitID, unitDefID, unitDefCanStockpile[unitDefID])
 		if debugmode then
@@ -782,7 +758,6 @@ local function removeBarsFromUnit(unitID, reason)
 	unitCaptureWatch[unitID] = nil
 	unitEmpDamagedWatch[unitID] = nil
 	unitParalyzedWatch[unitID] = nil
-	--unitBeingBuiltWatch[unitID] = nil
 	unitStockPileWatch[unitID] = nil
 	unitReloadWatch[unitID] = nil
 	unitBars[unitID] = nil
@@ -857,8 +832,6 @@ end
 
 local function init()
 	InstanceVBOTable.clearInstanceTable(healthBarVBO)
-	unitEmpWatch = {}
-	--unitBeingBuiltWatch = {}
 	unitCaptureWatch = {}
 	unitShieldWatch = {} -- maps unitID to last shield value
 	unitReactiveArmorWatch = {}
@@ -952,7 +925,6 @@ end
 
 --function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 local function UnitParalyzeDamageHealthbars(unitID, unitDefID, damage)
-	--spEcho()
 	if Spring.GetUnitIsStunned(unitID) then -- DO NOTE THAT: return: nil | bool stunned_or_inbuild, bool stunned, bool inbuild
 		if unitParalyzedWatch[unitID] == nil then  -- already paralyzed
 			unitParalyzedWatch[unitID] = 0.0
@@ -1062,7 +1034,6 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	unitCaptureWatch = {}
 	unitEmpDamagedWatch = {}
 	unitParalyzedWatch = {}
-	--unitBeingBuiltWatch = {}
 	unitStockPileWatch = {}
 	unitReloadWatch = {}
 	spec, fullview = spGetSpectatingState()
