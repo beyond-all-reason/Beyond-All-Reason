@@ -128,7 +128,7 @@ local config = {
 	zoomExplosionDetail = 0.12,  -- Legacy, now using graduated visibility
 	drawExplosions = true,  -- Separate from projectiles
 	explosionOverlay = true,  -- Re-render explosions on top of unit icons (additive glow)
-	explosionOverlayAlpha = 0.5,  -- Strength of the above-icons explosion overlay (0-1)
+	explosionOverlayAlpha = 0.6,  -- Strength of the above-icons explosion overlay (0-1)
 	drawDecals = true,  -- Show ground decals (explosion scars, footprints) from the decals GL4 widget
 	drawCommandFX = true,  -- Show brief fading command lines when orders are given (like Commands FX widget)
 	commandFXIgnoreNewUnits = true,  -- Ignore commands given to newly finished units (rally point orders)
@@ -486,7 +486,17 @@ local gl4Icons = {
 	unitTeamCache = {},       -- [unitID] = teamID (lazy-populated, cleared on unit give)
 	unitDefLayer = {},        -- [unitDefID] = layer (0=structure,1=ground,2=commander,3=air) — built once at init
 	instanceData = nil,       -- Pre-allocated flat float array (MAX_INSTANCES * INSTANCE_STEP)
+	sortKeys = {},            -- [unitID] = sortKey (layer*1e6 + x+z) for stable position-based draw order
 }
+
+-- Persistent sort comparator for icon draw order (avoids per-frame closure allocation)
+-- Two-level: primary key (layer + Z depth), tiebreaker is unitID (always unique → deterministic)
+local gl4IconSortKeys = gl4Icons.sortKeys
+local function gl4IconSortCmp(a, b)
+	local ka, kb = gl4IconSortKeys[a], gl4IconSortKeys[b]
+	if ka ~= kb then return ka < kb end
+	return a < b
+end
 
 -- Cached factors for WorldToPipCoords (performance optimization)
 -- Declared here (before GL4 primitive code) so GL4 helper functions can close over them.
@@ -567,6 +577,7 @@ local cache = {
 	weaponIsBomb = {},
 	weaponIsParalyze = {},
 	weaponIsAA = {},
+	weaponIsTorpedo = {},
 	missileTrails = {},  -- Stores trail positions for missiles {[pID] = {positions = {{x,z,time},...}, lastUpdate = time}}
 	weaponSize = {},
 	weaponRange = {},
@@ -3135,6 +3146,7 @@ local function DrawProjectile(pID)
 			local trail = cache.missileTrails[pID]
 			local isStarburst = cache.weaponIsStarburst[pDefID]
 			local isAA = cache.weaponIsAA[pDefID]
+			local isTorpedo = cache.weaponIsTorpedo[pDefID]
 			if not trail then
 				-- Pre-allocate position slots to avoid repeated table creation
 				-- Use ring buffer pattern: positions stored at indices, head points to newest
@@ -3164,7 +3176,7 @@ local function DrawProjectile(pID)
 				trailLen = math.ceil(trailLife / trailInterval) + 2
 
 				trail = {positions = {}, head = 0, count = 0, maxLen = trailLen,
-					lastUpdate = 0, isStarburst = isStarburst, isAA = isAA, size = missileSize,
+					lastUpdate = 0, isStarburst = isStarburst, isAA = isAA, isTorpedo = isTorpedo, size = missileSize,
 					speed = projSpeed, trailLife = trailLife}
 				cache.missileTrails[pID] = trail
 			end
@@ -3204,6 +3216,8 @@ local function DrawProjectile(pID)
 					trailColorR, trailColorG, trailColorB = 0.12, 0.12, 0.12  -- Darker smoke
 				elseif trail.isAA then
 					trailColorR, trailColorG, trailColorB = 0.85, 0.45, 0.55  -- Rose pink
+				elseif trail.isTorpedo then
+					trailColorR, trailColorG, trailColorB = 0.25, 0.3, 0.42  -- Grey-blue bubble trail
 				else
 					trailColorR, trailColorG, trailColorB = 0.22, 0.22, 0.22
 				end
@@ -3270,25 +3284,39 @@ local function DrawProjectile(pID)
 		local sinA = math.sin(rad)
 		local cosA = math.cos(rad)
 
+		-- Torpedo/depth charge: blue-tinted body
+		local bodyR, bodyG, bodyB = 0.88, 0.88, 0.84
+		local noseR, noseG, noseB = 0.92, 0.92, 0.88
+		local finR, finG, finB = 0.82, 0.82, 0.78
+		if cache.weaponIsTorpedo[pDefID] then
+			bodyR, bodyG, bodyB = 0.7, 0.78, 0.9
+			noseR, noseG, noseB = 0.75, 0.82, 0.95
+			finR, finG, finB = 0.6, 0.7, 0.85
+		end
+
 		-- Main body: shifted 0.2*height forward (matching legacy -0.7h to +0.3h center)
 		local bodyFwd = height * 0.2
 		GL4AddQuad(px + sinA * bodyFwd, pz + cosA * bodyFwd,
-			width, height * 0.5, angle, 0.88, 0.88, 0.84, color[4])
+			width, height * 0.5, angle, bodyR, bodyG, bodyB, color[4])
 
 		-- Nose cone: narrow tapered quad at the front tip
 		local noseFwd = height * 0.82
 		GL4AddQuad(px + sinA * noseFwd, pz + cosA * noseFwd,
-			width * 0.3, height * 0.2, angle, 0.92, 0.92, 0.88, color[4])
+			width * 0.3, height * 0.2, angle, noseR, noseG, noseB, color[4])
 
 		-- Tail fins: wider short quad at the back, swept shape
 		local finFwd = -height * 0.18
 		GL4AddQuad(px + sinA * finFwd, pz + cosA * finFwd,
-			width * 2.0, height * 0.18, angle, 0.82, 0.82, 0.78, color[4] * 0.85)
+			width * 2.0, height * 0.18, angle, finR, finG, finB, color[4] * 0.85)
 
 		-- Exhaust glow at the very back
 		local exhFwd = -height * 0.38
+		local exhR, exhG, exhB = 1.0, 0.7, 0.3
+		if cache.weaponIsTorpedo[pDefID] then
+			exhR, exhG, exhB = 0.5, 0.7, 1.0  -- Blue bubble exhaust
+		end
 		GL4AddQuad(px + sinA * exhFwd, pz + cosA * exhFwd,
-			width * 0.5, height * 0.1, angle, 1.0, 0.7, 0.3, color[4] * 0.6)
+			width * 0.5, height * 0.1, angle, exhR, exhG, exhB, color[4] * 0.6)
 	elseif pDefID and cache.weaponIsBomb[pDefID] then
 		-- Aircraft bomb: grey-white rectangle with pointy nose
 		local vx, vy, vz = spFunc.GetProjectileVelocity(pID)
@@ -4934,6 +4962,9 @@ function widget:Initialize()
 			if wDef.type == "StarburstLauncher" then
 				cache.weaponIsStarburst[wDefID] = true
 			end
+			if wDef.type == "TorpedoLauncher" then
+				cache.weaponIsTorpedo[wDefID] = true
+			end
 		elseif wDef.type == "LightningCannon" then
 			cache.weaponIsLightning[wDefID] = true
 		elseif wDef.type == "Flame" then
@@ -6112,15 +6143,10 @@ local function DrawCommandFXOverlay()
 
 	local useGL4 = gl4Prim.enabled
 	local resScale = render.contentScale or 1
-	local now = gameTime
+	local now = wallClockTime  -- Use wall-clock time so FX fades even when paused
 
-	-- Shorten FX duration when game is catching up (fast-forwarding)
-	-- Speed ratio 1x → multiplier 1.0, 10x → multiplier 0.25 (linear interpolation, clamped)
 	local baseDuration = config.commandFXDuration
-	local wantedSpeed, actualSpeed = Spring.GetGameSpeed()
-	local speedRatio = (wantedSpeed and wantedSpeed > 0) and (actualSpeed / wantedSpeed) or 1
-	local catchupMult = math.max(0.25, 1 - (speedRatio - 1) * (0.75 / 9))
-	local fxDuration = baseDuration * catchupMult
+	local fxDuration = baseDuration
 	local fxAlpha = config.commandFXOpacity
 
 	-- Compact: remove expired entries and draw active ones
@@ -6930,21 +6956,32 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		end
 	end
 
-	-- 4-pass layer ordering: structures (bottom) → ground → commanders → air (top)
-	-- Each pass iterates the unit list but only processes units matching the current layer.
-	-- The 3 skipped passes per unit cost ~1ns each (cache lookup + branch), which is
-	-- negligible vs the ~100ns API calls in the matching pass.
-	for layer = gl4Icons.LAYER_STRUCTURE, gl4Icons.LAYER_AIR do
-		for i = 1, unitCount do
-			local uID = pipUnits[i]
-			local uDefID = unitDefCacheTbl[uID] or spFunc.GetUnitDefID(uID)
-			if not unitDefCacheTbl[uID] then unitDefCacheTbl[uID] = uDefID end
-			local unitLayer = unitDefLayerTbl[uDefID] or gl4Icons.LAYER_GROUND
-			if unitLayer == layer then
-				usedElements = processUnit(uID, usedElements)
-				if usedElements >= maxInst then break end
-			end
+	-- Sort units by (layer, Z depth) with unitID tiebreaker for deterministic draw order.
+	-- Layer is primary (structures→ground→commanders→air). Z depth gives correct
+	-- front-to-back ordering (larger Z = further south = drawn on top).
+	-- UnitID tiebreaker in comparator prevents z-fighting from equal-Z units.
+	local mathFloor = math.floor
+	for i = 1, unitCount do
+		local uID = pipUnits[i]
+		local uDefID = unitDefCacheTbl[uID] or spFunc.GetUnitDefID(uID)
+		if not unitDefCacheTbl[uID] then unitDefCacheTbl[uID] = uDefID end
+		local layer = unitDefLayerTbl[uDefID] or gl4Icons.LAYER_GROUND
+		local cachedX = localBuildPosX[uID]
+		local zPos
+		if cachedX then
+			zPos = localBuildPosZ[uID]
+		else
+			local _, _, z = spFunc.GetUnitBasePosition(uID)
+			zPos = z or 0
 		end
+		gl4IconSortKeys[uID] = layer * 100000 + mathFloor(zPos)
+	end
+	table.sort(pipUnits, gl4IconSortCmp)
+
+	-- Single pass through sorted units (already ordered by layer then position)
+	for i = 1, unitCount do
+		usedElements = processUnit(pipUnits[i], usedElements)
+		if usedElements >= maxInst then break end
 	end
 
 	-- Skip draw if no icons
@@ -9840,6 +9877,14 @@ local function UpdateR2TUnits(currentTime, pipUpdateInterval, pipWidth, pipHeigh
 				driftForced = true
 			end
 		end
+		-- Zoom-out detection: force re-render when viewport outgrows the oversized texture
+		if not driftForced then
+			local zoomRatio = cameraState.zoom / pipR2T.unitsZoom
+			local safeRatio = 1 / (1 + 2 * margin)
+			if zoomRatio < safeRatio * 1.1 then
+				driftForced = true
+			end
+		end
 	end
 
 	-- Check if should update based on time
@@ -9971,6 +10016,17 @@ local function UpdateR2TCheapLayers(currentTime, pipUpdateInterval, pipWidth, pi
 			local effectiveDriftX = driftFracX * zoomRatio
 			local effectiveDriftZ = driftFracZ * zoomRatio
 			if effectiveDriftX > 0.7 or effectiveDriftZ > 0.7 then
+				driftForced = true
+			end
+		end
+		-- Zoom-out detection: if current zoom shrank enough that the oversized texture
+		-- no longer covers the viewport, force a re-render.
+		-- The texture covers (1+2*margin) × the viewport at the stored zoom,
+		-- so it can handle a zoom ratio down to ~1/(1+2*margin) before edges appear.
+		if not driftForced then
+			local zoomRatio = cameraState.zoom / pipR2T.contentZoom
+			local safeRatio = 1 / (1 + 2 * margin)
+			if zoomRatio < safeRatio * 1.1 then  -- 10% safety margin
 				driftForced = true
 			end
 		end
@@ -12077,6 +12133,9 @@ local function CreateIconShatter(unitID, unitDefID, unitTeam, unitVelX, unitVelZ
 	local unitBaseSize = Spring.GetConfigFloat("MinimapIconScale", 3.5)
 	local iconSize = unitBaseSize * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(cameraState.zoom) * resScale * iconData.size
 
+	-- Skip shattering for tiny icons (too small to see fragments when zoomed out)
+	if iconSize < 6 then return end
+
 	-- Use fixed 2x2 or 3x3 grid for fewer, bigger fragments
 	-- Adjust threshold based on actual rendered size
 	local grid = iconSize < 40 and 2 or 3
@@ -12297,7 +12356,7 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 	-- Get start position: chain from previous command target if recent, else use unit position
 	local startX, startZ
 	local lastTarget = commandFXLastTarget[unitID]
-	if lastTarget and (gameTime - lastTarget.time) < 0.15 then
+	if lastTarget and (wallClockTime - lastTarget.time) < 0.15 then
 		-- Recent command in queue — chain from its target
 		startX, startZ = lastTarget.x, lastTarget.z
 	else
@@ -12310,12 +12369,12 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 	-- Don't add if start and target are at same spot
 	if math.abs(startX - targetX) < 1 and math.abs(startZ - targetZ) < 1 then
 		-- Still update last target for further chaining
-		commandFXLastTarget[unitID] = { x = targetX, z = targetZ, time = gameTime }
+		commandFXLastTarget[unitID] = { x = targetX, z = targetZ, time = wallClockTime }
 		return
 	end
 
 	-- Update last target for this unit (for chaining subsequent commands)
-	commandFXLastTarget[unitID] = { x = targetX, z = targetZ, time = gameTime }
+	commandFXLastTarget[unitID] = { x = targetX, z = targetZ, time = wallClockTime }
 
 	-- Add to FX list (cap at max entries)
 	if commandFXCount < COMMAND_FX_MAX then
@@ -12324,7 +12383,7 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 			unitX = startX, unitZ = startZ,
 			targetX = targetX, targetZ = targetZ,
 			cmdID = cmdID,
-			time = gameTime,
+			time = wallClockTime,
 			color = color,
 		}
 	end
@@ -12333,15 +12392,15 @@ end
 -- Track newly finished units to suppress their initial rally point command FX
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	if config.drawCommandFX and config.commandFXIgnoreNewUnits then
-		commandFXNewUnits[unitID] = gameTime
+		commandFXNewUnits[unitID] = wallClockTime
 	end
 end
 
 -- UnitEnteredLos is only called for non-allied units entering the local player's LOS
 -- We record the building's position so we can draw its icon when it leaves LOS
 function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
-	if paralyzer then return end  -- skip EMP/paralyze damage
 	if damage <= 0 then return end
+	if paralyzer then damage = damage * 0.1 end  -- paralyzer visually counts for 1/10th
 	local maxHP = UnitDefs[unitDefID] and UnitDefs[unitDefID].health or 1
 	local intensity = math.min(1.0, damage / maxHP * 3)  -- scale up so small hits are visible too
 	local existing = damageFlash[unitID]
@@ -12675,17 +12734,24 @@ function widget:MouseWheel(up, value)
 
 			local oldZoom = cameraState.targetZoom
 
+			-- Use |value| to scale the zoom step — at low FPS the engine coalesces
+			-- multiple scroll ticks into a single MouseWheel call with a larger value.
+			-- Ignoring it makes zooming feel sluggish when frames are slow.
+			local absValue = math.abs(value)
+			if absValue < 1 then absValue = 1 end
+			local zoomFactor = config.zoomWheel ^ absValue
+
 			if Spring.GetConfigInt("ScrollWheelSpeed", 1) > 0 then
 				if up then
-					cameraState.targetZoom = math.max(cameraState.targetZoom / config.zoomWheel, GetEffectiveZoomMin())
+					cameraState.targetZoom = math.max(cameraState.targetZoom / zoomFactor, GetEffectiveZoomMin())
 				else
-					cameraState.targetZoom = math.min(cameraState.targetZoom * config.zoomWheel, GetEffectiveZoomMax())
+					cameraState.targetZoom = math.min(cameraState.targetZoom * zoomFactor, GetEffectiveZoomMax())
 				end
 			else
 				if not up then
-					cameraState.targetZoom = math.max(cameraState.targetZoom / config.zoomWheel, GetEffectiveZoomMin())
+					cameraState.targetZoom = math.max(cameraState.targetZoom / zoomFactor, GetEffectiveZoomMin())
 				else
-					cameraState.targetZoom = math.min(cameraState.targetZoom * config.zoomWheel, GetEffectiveZoomMax())
+					cameraState.targetZoom = math.min(cameraState.targetZoom * zoomFactor, GetEffectiveZoomMax())
 				end
 			end
 
