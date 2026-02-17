@@ -1,0 +1,58 @@
+[GAME]
+{
+	MapName=Supreme Isthmus v2.1;
+	GameType=Beyond All Reason $VERSION;
+	GameStartDelay=0;
+	StartPosType=0;
+	RecordDemo=0;
+	MyPlayerName=TestRunner;
+	IsHost=1;
+	FixedRNGSeed=1;
+	[MODOPTIONS]
+	{
+		debugcommands=1:cheat|2:godmode|3:globallos|30:runtestsheadless cmd_ai_raptor_hive_standoff;
+		deathmode=neverend;
+	}
+	[ALLYTEAM0]
+	{
+	}
+	[ALLYTEAM1]
+	{
+	}
+	[TEAM0]
+	{
+		allyteam=0;
+		teamleader=0;
+		side=Armada;
+	}
+	[TEAM1]
+	{
+		allyteam=0;
+		teamleader=0;
+		side=Armada;
+	}
+	[TEAM2]
+	{
+		allyteam=1;
+		teamleader=0;
+		side=Cortex;
+	}
+	[AI0]
+	{
+		Host=0;
+		Name=STAI(1);
+		ShortName=STAI;
+		Team=1;
+	}
+	[AI1]
+	{
+		Host=0;
+		Name=RaptorsDefenseAI(1);
+		ShortName=RaptorsAI;
+		Team=2;
+	}
+	[PLAYER0]
+	{
+		team=0;
+	}
+}
