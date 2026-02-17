@@ -107,7 +107,12 @@ local function runAINonHiveNonRegressionCase(teams)
 end
 
 function skip()
-	return Spring.GetGameFrame() <= 0
+	if Spring.GetGameFrame() <= 0 then
+		return true
+	end
+
+	local teams = getTestTeams()
+	return teams.aiTeamID == nil or teams.humanTeamID == nil or teams.raptorTeamID == nil
 end
 
 function setup()

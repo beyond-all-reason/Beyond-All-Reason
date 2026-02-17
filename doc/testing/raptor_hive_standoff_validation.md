@@ -49,3 +49,9 @@ The automated test contains three assertions:
 3. `AI -> non-hive target` remains direct `ATTACK` (no rewrite).
 
 These checks demonstrate the fix is active only on the intended command path, while human control and non-hive AI command behavior remain unchanged.
+
+## CI compatibility note
+
+The test now self-skips when the runtime does not include the required team composition
+(human + non-raptor AI + Raptors team). This prevents false negatives in generic headless runs
+that do not start a Raptors-mode match.
