@@ -154,8 +154,6 @@ local config = {
 	switchInheritsTracking = false,
 	switchTransitionTime = 0.15,
 	showMapRuler = true,
-	showWorldIcon = true,  -- Show minimize/maximize icon in world view at PIP camera location
-	showWorldIconForSpectators = false,  -- Also show world icon when spectating (default off)
 	cancelPlayerTrackingOnPan = true,  -- Cancel player camera tracking when trying to pan or ALT+drag
 	pipMinimapCorner = 3,  -- Corner for pip minimap: 1=bottom-left, 2=bottom-right, 3=top-left, 4=top-right
 	minimapHeightPercent = 0.12,  -- Minimap height as percent of PIP height (maintains aspect ratio)
@@ -385,18 +383,6 @@ local interactionState = {
 	lastHoverCheckTime = 0,
 	lastHoverCheckX = 0,
 	lastHoverCheckY = 0,
-	worldMinimizeIconHovered = false,  -- Hover state for world minimize icon
-	worldMaximizeIconHovered = false,  -- Hover state for world maximize icon
-	worldIconHoverStartTime = 0,  -- Time when hover started (for 1s delay)
-	worldIconTooltipDisplayStartTime = 0,  -- Time when tooltip started displaying (for 1s count)
-	worldIconTooltipShownThisHover = false,  -- Flag to only count tooltip once per hover
-	worldIconDragging = false,  -- Whether we're dragging via world icon to move PIP camera
-	worldIconClickStartX = 0,  -- Screen X when we started clicking world icon
-	worldIconClickStartY = 0,  -- Screen Y when we started clicking world icon
-	worldIconDragStartWorldX = nil,  -- World X under cursor when drag started
-	worldIconDragStartWorldZ = nil,  -- World Z under cursor when drag started
-	worldIconDragStartCamX = nil,  -- Camera X when drag started
-	worldIconDragStartCamZ = nil,  -- Camera Z when drag started
 	minimizeButtonDragging = false,  -- Whether we're dragging via minimize button to move PIP window
 	minimizeButtonClickStartX = 0,  -- Screen X when we started clicking minimize button
 	minimizeButtonClickStartY = 0,  -- Screen Y when we started clicking minimize button
@@ -415,13 +401,9 @@ local miscState = {
 	mapmarkInitTime = 0,
 	backupTracking = nil,
 	isSwitchingViews = false,
-	worldIconTooltipShownThisGame = 0,  -- How many times tooltip shown this game
-	worldIconTooltipShownTotal = 0,  -- How many times tooltip shown ever (persistent)
 	hadSavedConfig = false,
 	savedGameID = nil,  -- GameID from saved config for new game detection
 	hasOpenedPIPThisGame = false,  -- Whether PIP has been opened/maximized at least once this game
-	worldIconLockedX = nil,  -- Locked world icon X position while hovering
-	worldIconLockedZ = nil,  -- Locked world icon Z position while hovering
 	pipUnits = {},
 	pipFeatures = {},
 	mapMarkers = {},  -- Table to store active map markers
@@ -1041,7 +1023,8 @@ local buttons = {
 
 -- Consolidated shader table (LOS overlay, minimap shading, water overlay)
 local shaders = {
-	-- LOS overlay: converts red-channel LOS texture to greyscale
+	-- LOS overlay: outputs darkening amount for reverse-subtract compositing
+	-- Matches engine's additive-bias method: result = ground - darkening
 	los = nil,
 	losCode = {
 		vertex = [[
@@ -1054,7 +1037,6 @@ local shaders = {
 		fragment = [[
 			uniform sampler2D losTex;
 			uniform sampler2D radarTex;
-			uniform float baseValue;
 			uniform float losScale;
 			uniform float showRadar;
 			varying vec2 texCoord;
@@ -1064,23 +1046,21 @@ local shaders = {
 				// Red channel of radar texture: Radar coverage
 				float radarValue = texture2D(radarTex, texCoord).r;
 				
-				// Calculate grey based on LOS
-				float grey = baseValue + losValue * losScale;
+				// Engine-like additive-bias: output darkening amount
+				// (0 = no change, positive = darken by that amount)
+				// Composited via GL_FUNC_REVERSE_SUBTRACT: result = ground - darken
+				float darken = (1.0 - losValue) * losScale * 0.28;
 				
-				// If showRadar enabled, darken areas that have neither LOS nor radar
-				if (showRadar > 0.5) {
-					if (losValue < 0.2 && radarValue < 0.2) {
-						// Neither LOS nor radar - darken further
-						grey = grey * 0.5;
-					}
+				// Extra darkening for areas with neither LOS nor radar
+				if (showRadar > 0.5 && losValue < 0.2 && radarValue < 0.2) {
+					darken = darken + losScale * 0.1;
 				}
 
-				gl_FragColor = vec4(grey, grey, grey, 1.0);
+				gl_FragColor = vec4(darken, darken, darken, 1.0);
 			}
 		]],
 		uniformFloat = {
-			baseValue = 1.0 - config.losOverlayOpacity,  -- Brightness in no-LOS areas
-			losScale = config.losOverlayOpacity,         -- Brightness added for LOS areas
+			losScale = config.losOverlayOpacity,  -- Controls darkening intensity
 			showRadar = config.showLosRadar and 1.0 or 0.0,
 		},
 		uniformInt = {
@@ -5625,7 +5605,6 @@ function widget:GetConfigData()
 		showUnitpics=config.showUnitpics,
 		unitpicZoomThreshold=config.unitpicZoomThreshold,
 		gameID = Game.gameID or Spring.GetGameRulesParam("GameID"),
-		worldIconTooltipShownTotal = miscState.worldIconTooltipShownTotal,
 		-- Minimap mode settings
 		minimapModeMaxHeight = config.minimapModeMaxHeight,
 		leftButtonPansCamera = config.leftButtonPansCamera,
@@ -5773,11 +5752,6 @@ function widget:SetConfigData(data)
 	config.radarWobbleSpeed = data.radarWobbleSpeed or config.radarWobbleSpeed
 	if data.showUnitpics ~= nil then config.showUnitpics = data.showUnitpics end
 	--if data.unitpicZoomThreshold then config.unitpicZoomThreshold = data.unitpicZoomThreshold end
-	
-	-- Restore persistent tooltip counter
-	if data.worldIconTooltipShownTotal and type(data.worldIconTooltipShownTotal) == "number" then
-		miscState.worldIconTooltipShownTotal = data.worldIconTooltipShownTotal
-	end
 	
 	-- Restore minimap mode settings
 	if data.minimapModeMaxHeight and type(data.minimapModeMaxHeight) == "number" and data.minimapModeMaxHeight > 0 and data.minimapModeMaxHeight <= 1 then
@@ -7756,9 +7730,12 @@ local function DrawWaterAndLOSOverlays()
 			end
 		end
 
-		-- Draw LOS texture
-		gl.Blending(GL.DST_COLOR, GL.ZERO)  -- result = dst * src
-		glFunc.Color(1, 1, 1, 1)
+		-- Draw LOS texture using engine-like reverse-subtract blending
+		-- result_rgb = dst_rgb - src_rgb (subtractive darkening, like engine's additive-bias)
+		-- result_alpha = dst_alpha (preserve FBO alpha)
+		gl.BlendEquationSeparate(GL.FUNC_REVERSE_SUBTRACT, GL.FUNC_ADD)
+		gl.BlendFuncSeparate(GL.ONE, GL.ONE, GL.ZERO, GL.ONE)
+		glFunc.Color(1, 1, 1, 0)
 		glFunc.Texture(pipR2T.losTex)
 
 		-- Draw full-screen quad with map texture coordinates
@@ -7770,7 +7747,8 @@ local function DrawWaterAndLOSOverlays()
 		end)
 
 		glFunc.Texture(false)
-		-- Restore separate blend for alpha (maintains correct alpha accumulation in R2T FBOs)
+		-- Restore normal blend equation and separate alpha blend for R2T FBOs
+		gl.BlendEquation(GL.FUNC_ADD)
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		gl.BlendFuncSeparate(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA, GL.ONE, GL.ONE_MINUS_SRC_ALPHA)
 		
@@ -9478,8 +9456,10 @@ local function DrawTrackedPlayerMinimap()
 	-- Draw LOS overlay on minimap (only after game has started and when LOS should be shown)
 	local shouldShowLOS, _ = ShouldShowLOS()
 	if config.showLosOverlay and shouldShowLOS and pipR2T.losTex and gameHasStarted then
-		gl.Blending(GL.DST_COLOR, GL.ZERO)
-		glFunc.Color(1, 1, 1, 1)
+		-- Engine-like reverse-subtract: result_rgb = dst - src (subtractive darkening)
+		gl.BlendEquationSeparate(GL.FUNC_REVERSE_SUBTRACT, GL.FUNC_ADD)
+		gl.BlendFuncSeparate(GL.ONE, GL.ONE, GL.ZERO, GL.ONE)
+		glFunc.Color(1, 1, 1, 0)
 		glFunc.Texture(pipR2T.losTex)
 		glFunc.BeginEnd(GL.QUADS, function()
 			glFunc.TexCoord(0, 0); glFunc.Vertex(cLeft, cTop)
@@ -9488,6 +9468,7 @@ local function DrawTrackedPlayerMinimap()
 			glFunc.TexCoord(0, 1); glFunc.Vertex(cLeft, cBottom)
 		end)
 		glFunc.Texture(false)
+		gl.BlendEquation(GL.FUNC_ADD)
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	end
 
@@ -10038,25 +10019,26 @@ local function UpdateLOSTexture(currentTime)
 				glFunc.Texture(0, false)
 			else
 				-- Manually generate LOS texture using Spring.IsPosInLos (expensive)
-				-- Clear to darkest level (neither LOS nor radar)
-				local baseBrightness = 1.0 - config.losOverlayOpacity
-				local darkestBrightness = baseBrightness * 0.5  -- Same as shader: grey * 0.5
+				-- Output darkening amounts (matching engine-like additive-bias method)
+				-- 0 = no darkening (in LOS), positive = darken by that amount
+				local fogDarken = config.losOverlayOpacity * 0.28  -- Fog darkening amount
+				local noRadarDarken = fogDarken + config.losOverlayOpacity * 0.1  -- Extra for no-radar areas
 				local showRadar = config.showLosRadar
 				
 				if showRadar then
-					-- Start with darkest (no LOS, no radar)
-					gl.Clear(GL.COLOR_BUFFER_BIT, darkestBrightness, darkestBrightness, darkestBrightness, 1)
+					-- Start with maximum darkening (no LOS, no radar)
+					gl.Clear(GL.COLOR_BUFFER_BIT, noRadarDarken, noRadarDarken, noRadarDarken, 1)
 				else
-					-- No radar display, start with base darkness
-					gl.Clear(GL.COLOR_BUFFER_BIT, baseBrightness, baseBrightness, baseBrightness, 1)
+					-- No radar display, start with fog darkening
+					gl.Clear(GL.COLOR_BUFFER_BIT, fogDarken, fogDarken, fogDarken, 1)
 				end
 
 				local cellSizeX = mapInfo.mapSizeX / losTexWidth
 				local cellSizeZ = mapInfo.mapSizeZ / losTexHeight
 				
-				-- First pass: draw radar areas (medium brightness) if showRadar enabled
+				-- First pass: draw radar areas (moderate darkening) if showRadar enabled
 				if showRadar then
-					glFunc.Color(baseBrightness, baseBrightness, baseBrightness, 1)
+					glFunc.Color(fogDarken, fogDarken, fogDarken, 1)
 					glFunc.BeginEnd(glConst.QUADS, function()
 						for y = 0, losTexHeight - 1 do
 							for x = 0, losTexWidth - 1 do
@@ -10080,8 +10062,8 @@ local function UpdateLOSTexture(currentTime)
 					end)
 				end
 				
-				-- Second pass: draw LOS areas (brightest)
-				glFunc.Color(1, 1, 1, 1)
+				-- Second pass: draw LOS areas (no darkening)
+				glFunc.Color(0, 0, 0, 1)
 				glFunc.BeginEnd(glConst.QUADS, function()
 					for y = 0, losTexHeight - 1 do
 						for x = 0, losTexWidth - 1 do
@@ -10948,130 +10930,15 @@ function widget:DrawScreen()
 end
 
 function widget:DrawWorld()
-	-- When fully minimized (not animating), draw maximize icon at PIP camera location
-	-- Don't show if tracking player camera, or if spectator (unless showWorldIconForSpectators is enabled)
-	-- Also don't show before game starts
-	local shouldShowWorldIcon = config.showWorldIcon and not interactionState.trackingPlayerID and 
-		(not cameraState.mySpecState or config.showWorldIconForSpectators) and gameHasStarted
-	if uiState.inMinMode and not uiState.isAnimating and shouldShowWorldIcon then
-		local alt = Spring.GetModKeyState()
-		local iconSize = 16  -- World units
-		-- Use locked position if hovering, otherwise current camera center
-		local iconX = miscState.worldIconLockedX or cameraState.wcx
-		local iconZ = miscState.worldIconLockedZ or cameraState.wcz
-		local iconY = math.max(spFunc.GetGroundHeight(iconX, iconZ), 0) + 2  -- Above water level
-		
-		-- Calculate distance-based opacity (fade in when cursor approaches)
-		-- Use 18% of vertical screen height as the fade distance
-		local fadeDistance = render.vsy * 0.18
-		local distanceOpacityMult = 1.0
-		local mx, my = spFunc.GetMouseState()
-		local iconScreenX, iconScreenY = Spring.WorldToScreenCoords(iconX, iconY, iconZ)
-		if iconScreenX and iconScreenY then
-			local screenDist = math.sqrt((mx - iconScreenX)^2 + (my - iconScreenY)^2)
-			if screenDist >= fadeDistance then
-				distanceOpacityMult = 0
-			else
-				distanceOpacityMult = 1 - (screenDist / fadeDistance)
-			end
-		end
-		
-		-- Skip drawing entirely if too far away
-		if distanceOpacityMult <= 0 then
-			return
-		end
-		
-		-- Draw octagon border around icon (same style as PIP boundary but more distant)
-		local innerLineDist = 8
-		local cornerSize = 11 * 0.6  -- 60% of normal corner size
-		local lineWidthMult = 0.66 + (render.vsy / 4000)
-		local borderDist = iconSize + 16  -- More distance from icon
-		
-		-- Use team color if we were tracking a player, otherwise white
-		local r, g, b = 1, 1, 1
-		if interactionState.trackingPlayerID then
-			local _, _, _, teamID = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
-			if teamID then
-				r, g, b = Spring.GetTeamColor(teamID)
-			end
-		end
-		
-		gl.DepthTest(false)
-		
-		-- Draw border octagons (same opacity as non-minimized PIP boundary, scaled by distance)
-		glFunc.LineWidth(7*lineWidthMult)
-		glFunc.Color(0, 0, 0, 0.05 * distanceOpacityMult)
-		glFunc.BeginEnd(glConst.LINE_STRIP, DrawGroundBox, iconX - borderDist, iconX + borderDist, iconZ - borderDist, iconZ + borderDist, cornerSize)
-		glFunc.Color(0, 0, 0, 0.015 * distanceOpacityMult)
-		glFunc.BeginEnd(glConst.LINE_STRIP, DrawGroundBox, iconX - borderDist + innerLineDist, iconX + borderDist - innerLineDist, iconZ - borderDist + innerLineDist, iconZ + borderDist - innerLineDist, cornerSize*0.65)
-		glFunc.LineWidth(2.5*lineWidthMult)
-		glFunc.Color(r, g, b, 0.25 * distanceOpacityMult)
-		glFunc.BeginEnd(glConst.LINE_STRIP, DrawGroundBox, iconX - borderDist, iconX + borderDist, iconZ - borderDist, iconZ + borderDist, cornerSize)
-		glFunc.Color(r, g, b, 0.045 * distanceOpacityMult)
-		glFunc.BeginEnd(glConst.LINE_STRIP, DrawGroundBox, iconX - borderDist + innerLineDist, iconX + borderDist - innerLineDist, iconZ - borderDist + innerLineDist, iconZ + borderDist - innerLineDist, cornerSize*0.65)
-		
-		-- Draw maximize icon (flat on ground, facing up)
-		local iconOpacity = 0.2
-		if interactionState.worldMaximizeIconHovered then
-			iconOpacity = alt and 0.95 or 0.35
-		end
-		iconOpacity = iconOpacity * distanceOpacityMult
-		
-		glFunc.Color(1, 1, 1, iconOpacity)
-		glFunc.Texture('LuaUI/Images/pip/PipMaximize.png')
-		glFunc.BeginEnd(GL.QUADS, function()
-			glFunc.TexCoord(0, 0)
-			glFunc.Vertex(iconX - iconSize, iconY, iconZ + iconSize)
-			glFunc.TexCoord(1, 0)
-			glFunc.Vertex(iconX + iconSize, iconY, iconZ + iconSize)
-			glFunc.TexCoord(1, 1)
-			glFunc.Vertex(iconX + iconSize, iconY, iconZ - iconSize)
-			glFunc.TexCoord(0, 1)
-			glFunc.Vertex(iconX - iconSize, iconY, iconZ - iconSize)
-		end)
-		glFunc.Texture(false)
-		glFunc.Color(1, 1, 1, 1)
-		
-		-- Show tooltip when hovered for at least 1 second (max 5 times per game, 20 times total ever)
-		local currentTime = os.clock()
-		if interactionState.worldMaximizeIconHovered and WG['tooltip'] and 
-		   miscState.worldIconTooltipShownThisGame < 5 and miscState.worldIconTooltipShownTotal < 20 then
-			-- Only show tooltip after hovering for 1 second
-			if currentTime - interactionState.worldIconHoverStartTime >= 1.0 then
-				WG['tooltip'].ShowTooltip('pip_world_icon', Spring.I18N('ui.pip.worldmaximize'), nil, nil, nil)
-				-- Start tracking display time if not already
-				if interactionState.worldIconTooltipDisplayStartTime == 0 then
-					interactionState.worldIconTooltipDisplayStartTime = currentTime
-				end
-				-- Only count as shown after displaying for 1 second
-				if not interactionState.worldIconTooltipShownThisHover and 
-				   currentTime - interactionState.worldIconTooltipDisplayStartTime >= 1.0 then
-					interactionState.worldIconTooltipShownThisHover = true
-					miscState.worldIconTooltipShownThisGame = miscState.worldIconTooltipShownThisGame + 1
-					miscState.worldIconTooltipShownTotal = miscState.worldIconTooltipShownTotal + 1
-				end
-			end
-		end
-		return
-	end
-	
-	-- During animation or when not minimized, draw the PIP boundary
-	if uiState.inMinMode and not uiState.isAnimating then return end  -- Skip if fully minimized (handled above), but continue during animation
+	-- Skip if fully minimized (no world view to show)
+	if uiState.inMinMode and not uiState.isAnimating then return end
 	
 	-- In minimap mode, don't draw pip view rectangle in world
 	if isMinimapMode then return end
 
 	-- Draw rectangle outline in world view marking PIP boundaries
-	-- Don't show if tracking player camera, or if spectator (unless showWorldIconForSpectators is enabled)
-	if not interactionState.trackingPlayerID and (not cameraState.mySpecState or config.showWorldIconForSpectators) then
-		-- Use team color if tracking a player, otherwise white
+	if not interactionState.trackingPlayerID then
 		local r, g, b = 1, 1, 1
-		if interactionState.trackingPlayerID then
-			local _, _, _, teamID = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
-			if teamID then
-				r, g, b = Spring.GetTeamColor(teamID)
-			end
-		end
 
 		local innerLineDist = 8
 		local cornerSize = 11
@@ -11087,75 +10954,6 @@ function widget:DrawWorld()
 		glFunc.BeginEnd(glConst.LINE_STRIP, DrawGroundBox, render.world.l, render.world.r, render.world.b, render.world.t, cornerSize)
 		glFunc.Color(r, g, b, 0.045)
 		glFunc.BeginEnd(glConst.LINE_STRIP, DrawGroundBox, render.world.l+innerLineDist, render.world.r-innerLineDist, render.world.b-innerLineDist, render.world.t+innerLineDist, cornerSize*0.65)
-		
-		-- Draw minimize icon at center of PIP boundary (if enabled and not tracking player, and game has started)
-		if config.showWorldIcon and not interactionState.trackingPlayerID and gameHasStarted then
-			local alt = Spring.GetModKeyState()
-			local iconSize = 16  -- World units
-			-- Use locked position if hovering, otherwise current camera center
-			local iconX = miscState.worldIconLockedX or cameraState.wcx
-			local iconZ = miscState.worldIconLockedZ or cameraState.wcz
-			local iconY = math.max(spFunc.GetGroundHeight(iconX, iconZ), 0) + 2  -- Above water level
-			
-			-- Calculate distance-based opacity (fade in when cursor approaches)
-			-- Use 18% of vertical screen height as the fade distance
-			local fadeDistance = render.vsy * 0.22
-			local distanceOpacityMult = 1.0
-			local mx, my = spFunc.GetMouseState()
-			local iconScreenX, iconScreenY = Spring.WorldToScreenCoords(iconX, iconY, iconZ)
-			if iconScreenX and iconScreenY then
-				local screenDist = math.sqrt((mx - iconScreenX)^2 + (my - iconScreenY)^2)
-				if screenDist >= fadeDistance then
-					distanceOpacityMult = 0
-				else
-					distanceOpacityMult = 1 - (screenDist / fadeDistance)
-				end
-			end
-			
-			-- Only draw if close enough
-			if distanceOpacityMult > 0 then
-				local iconOpacity = 0.1
-				if interactionState.worldMinimizeIconHovered then
-					iconOpacity = alt and 0.95 or 0.25
-				end
-				iconOpacity = iconOpacity * distanceOpacityMult
-				
-				glFunc.Color(1, 1, 1, iconOpacity)
-				glFunc.Texture('LuaUI/Images/pip/PipMinimize.png')
-				glFunc.BeginEnd(GL.QUADS, function()
-					glFunc.TexCoord(0, 0)
-					glFunc.Vertex(iconX - iconSize, iconY, iconZ + iconSize)
-					glFunc.TexCoord(1, 0)
-					glFunc.Vertex(iconX + iconSize, iconY, iconZ + iconSize)
-					glFunc.TexCoord(1, 1)
-					glFunc.Vertex(iconX + iconSize, iconY, iconZ - iconSize)
-					glFunc.TexCoord(0, 1)
-					glFunc.Vertex(iconX - iconSize, iconY, iconZ - iconSize)
-				end)
-				glFunc.Texture(false)
-				
-				-- Show tooltip when hovered for at least 1 second (max 5 times per game, 20 times total ever)
-				local currentTime = os.clock()
-				if interactionState.worldMinimizeIconHovered and WG['tooltip'] and 
-				   miscState.worldIconTooltipShownThisGame < 5 and miscState.worldIconTooltipShownTotal < 20 then
-					-- Only show tooltip after hovering for 1 second
-					if currentTime - interactionState.worldIconHoverStartTime >= 1.0 then
-						WG['tooltip'].ShowTooltip('pip_world_icon', Spring.I18N('ui.pip.worldminimize'), nil, nil, nil)
-						-- Start tracking display time if not already
-						if interactionState.worldIconTooltipDisplayStartTime == 0 then
-							interactionState.worldIconTooltipDisplayStartTime = currentTime
-						end
-						-- Only count as shown after displaying for 1 second
-						if not interactionState.worldIconTooltipShownThisHover and 
-						   currentTime - interactionState.worldIconTooltipDisplayStartTime >= 1.0 then
-							interactionState.worldIconTooltipShownThisHover = true
-							miscState.worldIconTooltipShownThisGame = miscState.worldIconTooltipShownThisGame + 1
-							miscState.worldIconTooltipShownTotal = miscState.worldIconTooltipShownTotal + 1
-						end
-					end
-				end
-			end  -- end distanceOpacityMult > 0
-		end  -- end config.showWorldIcon
 	end
 
 	-- Note: Formation lines are not drawn in world view (customformations widget handles this)
@@ -11654,74 +11452,6 @@ function widget:Update(dt)
 	-- If no buttons are actually pressed but we think we're panning with left+right, stop panning
 	if interactionState.arePanning and not interactionState.panToggleMode and not leftButton and not rightButton and not middleButton then
 		interactionState.arePanning = false
-	end
-
-	-- Update world icon hover states (for minimize/maximize icons in world view)
-	-- Check if mouse is over the world icons using TraceScreenRay
-	-- Don't show/check world icon when tracking player camera
-	local wasMinimizeHovered = interactionState.worldMinimizeIconHovered
-	local wasMaximizeHovered = interactionState.worldMaximizeIconHovered
-	interactionState.worldMinimizeIconHovered = false
-	interactionState.worldMaximizeIconHovered = false
-	
-	local alt = Spring.GetModKeyState()
-	-- Also check for spectator (unless showWorldIconForSpectators is enabled), and game must have started
-	local shouldCheckWorldIcon = config.showWorldIcon and not uiState.isAnimating and 
-		not interactionState.isMouseOverPip and not interactionState.trackingPlayerID and
-		(not cameraState.mySpecState or config.showWorldIconForSpectators) and gameHasStarted
-	if shouldCheckWorldIcon then
-		local _, pos = Spring.TraceScreenRay(mx, my, true)
-		if pos then
-			local worldX, worldZ = pos[1], pos[3]
-			local iconSize = 16  -- Must match DrawWorld icon size
-			local iconClickRadius = iconSize + 8  -- Slightly larger for easier clicking
-			
-			if uiState.inMinMode then
-				-- Check maximize icon - use locked position if already hovering
-				local iconX = miscState.worldIconLockedX or cameraState.wcx
-				local iconZ = miscState.worldIconLockedZ or cameraState.wcz
-				local dx = math.abs(worldX - iconX)
-				local dz = math.abs(worldZ - iconZ)
-				if dx < iconClickRadius and dz < iconClickRadius then
-					interactionState.worldMaximizeIconHovered = true
-				end
-			else
-				-- Check minimize icon - use locked position if already hovering
-				local iconX = miscState.worldIconLockedX or cameraState.wcx
-				local iconZ = miscState.worldIconLockedZ or cameraState.wcz
-				local dx = math.abs(worldX - iconX)
-				local dz = math.abs(worldZ - iconZ)
-				if dx < iconClickRadius and dz < iconClickRadius then
-					interactionState.worldMinimizeIconHovered = true
-				end
-			end
-		end
-	end
-	
-	-- Track hover start time for tooltip delay and lock icon position
-	local isNowHovered = interactionState.worldMinimizeIconHovered or interactionState.worldMaximizeIconHovered
-	local wasHovered = wasMinimizeHovered or wasMaximizeHovered
-	
-	-- Start tracking hover time when we start hovering, and lock icon position
-	if isNowHovered and not wasHovered then
-		interactionState.worldIconHoverStartTime = os.clock()
-		-- Lock the icon position so it doesn't move while hovering
-		miscState.worldIconLockedX = cameraState.wcx
-		miscState.worldIconLockedZ = cameraState.wcz
-	end
-	
-	-- Reset all tooltip state and unlock position when we stop hovering either icon
-	-- But don't clear if we're in the middle of a drag operation
-	local isWorldIconDragging = interactionState.worldIconClickStartX ~= 0 or interactionState.worldIconDragging
-	if not isWorldIconDragging and
-	   ((wasMinimizeHovered and not interactionState.worldMinimizeIconHovered) or
-	    (wasMaximizeHovered and not interactionState.worldMaximizeIconHovered)) then
-		interactionState.worldIconTooltipShownThisHover = false
-		interactionState.worldIconHoverStartTime = 0
-		interactionState.worldIconTooltipDisplayStartTime = 0
-		-- Unlock icon position when no longer hovering
-		miscState.worldIconLockedX = nil
-		miscState.worldIconLockedZ = nil
 	end
 
 	-- Update wall-clock time (always advances, even when paused — used for blink/pulse animations)
@@ -12779,40 +12509,6 @@ function widget:IsAbove(mx, my)
 end
 
 function widget:MouseWheel(up, value)
-	-- Handle ALT+scroll when hovering world icon to zoom PIP
-	local alt = Spring.GetModKeyState()
-	if alt and config.showWorldIcon and (interactionState.worldMinimizeIconHovered or interactionState.worldMaximizeIconHovered) then
-		-- Don't allow zooming when tracking a player's camera
-		if interactionState.trackingPlayerID then
-			return true
-		end
-		
-		if Spring.GetConfigInt("ScrollWheelSpeed", 1) > 0 then
-			if up then
-				cameraState.targetZoom = math.max(cameraState.targetZoom / config.zoomWheel, GetEffectiveZoomMin())
-			else
-				cameraState.targetZoom = math.min(cameraState.targetZoom * config.zoomWheel, GetEffectiveZoomMax())
-			end
-		else
-			if not up then
-				cameraState.targetZoom = math.max(cameraState.targetZoom / config.zoomWheel, GetEffectiveZoomMin())
-			else
-				cameraState.targetZoom = math.min(cameraState.targetZoom * config.zoomWheel, GetEffectiveZoomMax())
-			end
-		end
-		
-		-- Update locked icon position to follow mouse cursor's world position after zoom
-		-- This keeps the icon under the cursor as zoom changes
-		local mx, my = spFunc.GetMouseState()
-		local _, pos = Spring.TraceScreenRay(mx, my, true)
-		if pos then
-			miscState.worldIconLockedX = pos[1]
-			miscState.worldIconLockedZ = pos[3]
-		end
-		
-		return true
-	end
-	
 	if not uiState.inMinMode then
 		local mx, my = spFunc.GetMouseState()
 		if mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t then
@@ -12951,18 +12647,6 @@ function widget:MousePress(mx, my, mButton)
 			interactionState.leftMousePressed = true
 			
 			return true  -- Consume the click
-		end
-	end
-
-	-- Handle ALT+click on world minimize/maximize icons - start tracking for drag vs click
-	local alt = Spring.GetModKeyState()
-	if config.showWorldIcon and mButton == 1 and alt and not uiState.isAnimating then
-		if (uiState.inMinMode and interactionState.worldMaximizeIconHovered) or 
-		   (not uiState.inMinMode and interactionState.worldMinimizeIconHovered) then
-			-- Start tracking for potential drag or click (screen coordinates only for window movement)
-			interactionState.worldIconClickStartX = mx
-			interactionState.worldIconClickStartY = my
-			return true  -- Capture the click
 		end
 	end
 
@@ -13580,56 +13264,6 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 		return true
 	end
 
-	-- Handle world icon drag (ALT+drag to move PIP camera position)
-	if alt and interactionState.worldIconClickStartX ~= 0 and not uiState.isAnimating then
-		local dragThreshold = 8  -- Pixels before considering it a drag
-		local dragDistX = math.abs(mx - interactionState.worldIconClickStartX)
-		local dragDistY = math.abs(my - interactionState.worldIconClickStartY)
-		
-		if dragDistX > dragThreshold or dragDistY > dragThreshold or interactionState.worldIconDragging then
-			interactionState.worldIconDragging = true
-			
-			-- Move PIP camera to keep the world position under the cursor
-			-- Get current world position under cursor and previous world position
-			local result, pos = Spring.TraceScreenRay(mx, my, true, false, false, true)
-			if result == "ground" and pos then
-				-- On first drag frame, store the initial world position under cursor
-				if not interactionState.worldIconDragStartWorldX then
-					interactionState.worldIconDragStartWorldX = pos[1]
-					interactionState.worldIconDragStartWorldZ = pos[3]
-					-- Store the initial camera position
-					interactionState.worldIconDragStartCamX = cameraState.wcx
-					interactionState.worldIconDragStartCamZ = cameraState.wcz
-				end
-				
-				-- Calculate how far the cursor has moved in world coordinates
-				local worldDeltaX = pos[1] - interactionState.worldIconDragStartWorldX
-				local worldDeltaZ = pos[3] - interactionState.worldIconDragStartWorldZ
-				
-				-- Move camera to compensate (opposite direction to keep world point under cursor)
-				cameraState.targetWcx = interactionState.worldIconDragStartCamX + worldDeltaX
-				cameraState.targetWcz = interactionState.worldIconDragStartCamZ + worldDeltaZ
-				
-				-- Clamp to map bounds
-				cameraState.targetWcx = math.max(0, math.min(mapInfo.mapSizeX, cameraState.targetWcx))
-				cameraState.targetWcz = math.max(0, math.min(mapInfo.mapSizeZ, cameraState.targetWcz))
-				
-				-- Apply immediately for responsiveness
-				cameraState.wcx = cameraState.targetWcx
-				cameraState.wcz = cameraState.targetWcz
-				
-				-- Also update locked icon position so it follows the drag
-				miscState.worldIconLockedX = cameraState.wcx
-				miscState.worldIconLockedZ = cameraState.wcz
-				
-				RecalculateWorldCoordinates()
-				RecalculateGroundTextureCoordinates()
-			end
-			
-			return true
-		end
-	end
-
 	-- Handle minimize button drag (ALT+drag to move PIP window on screen)
 	if interactionState.minimizeButtonClickStartX ~= 0 and not uiState.isAnimating then
 		local dragThreshold = 8  -- Pixels before considering it a drag
@@ -13915,12 +13549,6 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 			cameraState.wcz = ClampCameraAxis(cameraState.wcz + panDy / cameraState.zoom, visibleWorldHeight, mapInfo.mapSizeZ, config.mapEdgeMargin)
 			cameraState.targetWcx, cameraState.targetWcz = cameraState.wcx, cameraState.wcz  -- Panning updates instantly, not smoothly
 			
-			-- Update locked icon position so world icon follows camera during panning
-			if miscState.worldIconLockedX then
-				miscState.worldIconLockedX = cameraState.wcx
-				miscState.worldIconLockedZ = cameraState.wcz
-			end
-			
 			RecalculateWorldCoordinates()
 			RecalculateGroundTextureCoordinates()
 
@@ -14033,61 +13661,6 @@ function widget:MouseRelease(mx, my, mButton)
 	if mButton == 1 and interactionState.pipMinimapDragging then
 		interactionState.pipMinimapDragging = false
 		return true
-	end
-
-	-- Handle world icon click/drag release
-	if mButton == 1 and interactionState.worldIconClickStartX ~= 0 then
-		local wasDragging = interactionState.worldIconDragging
-		local dragThreshold = 8  -- Pixels before considering it a drag
-		local dragDistX = math.abs(mx - interactionState.worldIconClickStartX)
-		local dragDistY = math.abs(my - interactionState.worldIconClickStartY)
-		local wasClick = dragDistX <= dragThreshold and dragDistY <= dragThreshold
-		
-		-- Reset drag state
-		interactionState.worldIconClickStartX = 0
-		interactionState.worldIconClickStartY = 0
-		interactionState.worldIconDragging = false
-		interactionState.worldIconDragStartWorldX = nil
-		interactionState.worldIconDragStartWorldZ = nil
-		interactionState.worldIconDragStartCamX = nil
-		interactionState.worldIconDragStartCamZ = nil
-		
-		-- If it was a click (not a drag), trigger minimize/maximize
-		if wasClick and not uiState.isAnimating then
-			local buttonSize = math.floor(render.usedButtonSize*config.maximizeSizemult)
-			
-			if uiState.inMinMode then
-				-- Maximize from world icon
-				StartMaximizeAnimation()
-				interactionState.isMouseOverPip = false
-			else
-				-- Minimize from world icon
-				uiState.savedDimensions = {
-					l = render.dim.l,
-					r = render.dim.r,
-					b = render.dim.b,
-					t = render.dim.t
-				}
-
-				uiState.animStartDim = {
-					l = render.dim.l,
-					r = render.dim.r,
-					b = render.dim.b,
-					t = render.dim.t
-				}
-				uiState.animEndDim = {
-					l = uiState.minModeL,
-					r = uiState.minModeL + buttonSize,
-					b = uiState.minModeB,
-					t = uiState.minModeB + buttonSize
-				}
-				uiState.animationProgress = 0
-				uiState.isAnimating = true
-				uiState.inMinMode = true
-				interactionState.isMouseOverPip = false
-			end
-		end
-		return  -- Don't process further
 	end
 
 	-- Handle minimize button click/drag release (ALT+click to minimize, ALT/middle drag to move)
