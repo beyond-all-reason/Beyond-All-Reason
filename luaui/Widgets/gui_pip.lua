@@ -131,6 +131,8 @@ local config = {
 	explosionOverlayAlpha = 0.6,  -- Strength of the above-icons explosion overlay (0-1)
 	drawDecals = true,  -- Show ground decals (explosion scars, footprints) from the decals GL4 widget
 	maxDecals = 600,  -- Max number of decals to draw (if will skip smaller decals when reaching 75% of this)
+	decalZoomCutoff = 0.35,  -- Skip decals entirely when zoomed out past this (0=never skip, 1=always skip)
+	decalDrawTimeCutoff = 0.005,  -- Skip decals when total draw time exceeds this (seconds, 0.005 = 5ms)
 	drawCommandFX = true,  -- Show brief fading command lines when orders are given (like Commands FX widget)
 	commandFXIgnoreNewUnits = true,  -- Ignore commands given to newly finished units (rally point orders)
 	commandFXOpacity = 0.4,  -- Initial opacity of command FX lines
@@ -477,8 +479,8 @@ local gl4Icons = {
 	LAYER_COMMANDER = 2,      -- commanders above ground
 	LAYER_AIR = 3,            -- air units drawn last (top)
 	enabled = false,          -- Set true after successful init
-	atlas = nil,              -- Texture atlas handle (all icon bitmaps packed)
-	atlasUVs = {},            -- [bitmap_path] = {u0, v0, u1, v1} (UV rect in atlas, Y-flipped)
+	atlas = nil,              -- Engine '$icons' texture string
+	atlasUVs = {},            -- [unitDefID] = {u0, v0, u1, v1} (UV rect in atlas, Y-flipped)
 	defaultUV = nil,          -- UV for PipBlip fallback icon
 	vbo = nil,                -- Raw GL VBO (no InstanceVBOTable overhead)
 	vao = nil,                -- VAO with VBO attached
@@ -1545,63 +1547,47 @@ gl4Prim.lineShaderCode = {
 	]],
 }
 
--- Initialize GL4 icon rendering: create atlas, VBO, shader
+-- Initialize GL4 icon rendering: use engine $icons atlas, create VBO, shader
+-- atlasUVs is keyed by unitDefID for uniform lookup.
 local function InitGL4Icons()
 	if not gl.GetVAO or not gl.GetVBO then
 		Spring.Echo("[PIP] GL4 icons: VAO/VBO not available, falling back to legacy")
 		return
 	end
-	if not gl.CreateTextureAtlas then
-		Spring.Echo("[PIP] GL4 icons: CreateTextureAtlas not available, falling back to legacy")
+
+	if not Spring.GetIconData then
+		Spring.Echo("[PIP] GL4 icons: Spring.GetIconData not available, falling back to legacy")
 		return
 	end
 
-	-- Build texture atlas from all unique icon bitmaps
-	local uniqueBitmaps = {}
-	for uDefID, _ in pairs(UnitDefs) do
-		local iconData = cache.unitIcon[uDefID]
-		if iconData and iconData.bitmap then
-			uniqueBitmaps[iconData.bitmap] = true
-		end
-	end
-	uniqueBitmaps['LuaUI/Images/pip/PipBlip.png'] = true  -- fallback icon
-
-	local atlasSize = 4096
-	local atlas = gl.CreateTextureAtlas(atlasSize, atlasSize, 1)
-	if not atlas then
-		Spring.Echo("[PIP] GL4 icons: Failed to create texture atlas")
+	local defaultIconData = Spring.GetIconData("default")
+	if not defaultIconData or not defaultIconData.atlasTexCoords then
+		Spring.Echo("[PIP] GL4 icons: Engine icon atlas data not available, falling back to legacy")
 		return
 	end
 
-	for bitmap, _ in pairs(uniqueBitmaps) do
-		-- Validate texture exists before adding (gl.AddAtlasTexture crashes on missing textures)
-		local texInfo = gl.TextureInfo(bitmap)
-		if texInfo and texInfo.xsize > 0 and texInfo.ysize > 0 then
-			gl.AddAtlasTexture(atlas, bitmap)
-		else
-			uniqueBitmaps[bitmap] = nil  -- Remove so GetAtlasTexture loop skips it
-		end
+	local iconsTexInfo = gl.TextureInfo('$icons')
+	if not iconsTexInfo or iconsTexInfo.xsize <= 0 then
+		Spring.Echo("[PIP] GL4 icons: $icons texture not available, falling back to legacy")
+		return
 	end
-	gl.FinalizeTextureAtlas(atlas)
 
-	-- Store UV rects per bitmap (reorder from engine's u0,u1,v0,v1 to u0,v0,u1,v1)
-	-- Swap v0/v1 to fix Y-flip (atlas Y=0 is top, OpenGL Y=0 is bottom)
-	-- pcall because GetAtlasTexture throws if the bitmap failed to add (atlas full)
-	local addedCount, failedCount = 0, 0
-	for bitmap, _ in pairs(uniqueBitmaps) do
-		local ok, u0, u1, v0, v1 = pcall(gl.GetAtlasTexture, atlas, bitmap)
-		if ok and u0 then
-			gl4Icons.atlasUVs[bitmap] = {u0, v1, u1, v0}  -- swap v0/v1 for Y-flip
-			addedCount = addedCount + 1
+	local dtc = defaultIconData.atlasTexCoords
+	gl4Icons.defaultUV = {dtc.x0, dtc.y1, dtc.x1, dtc.y0}
+
+	for uDefID, uDef in pairs(UnitDefs) do
+		local iconName = uDef.iconType or "default"
+		local iconInfo = Spring.GetIconData(iconName)
+		if iconInfo and iconInfo.atlasTexCoords then
+			local atc = iconInfo.atlasTexCoords
+			gl4Icons.atlasUVs[uDefID] = {atc.x0, atc.y1, atc.x1, atc.y0}
 		else
-			failedCount = failedCount + 1
+			gl4Icons.atlasUVs[uDefID] = gl4Icons.defaultUV
 		end
 	end
-	if failedCount > 0 then
-		Spring.Echo("[PIP] GL4 icons: " .. failedCount .. " bitmaps failed to add to atlas (" .. addedCount .. " succeeded)")
-	end
-	gl4Icons.defaultUV = gl4Icons.atlasUVs['LuaUI/Images/pip/PipBlip.png'] or {0, 1, 1, 0}
-	gl4Icons.atlas = atlas
+
+	gl4Icons.atlas = '$icons'
+	Spring.Echo("[PIP] GL4 icons: Using engine icon atlas ($icons, " .. iconsTexInfo.xsize .. "x" .. iconsTexInfo.ysize .. ")")
 
 	-- Create raw VBO directly (no InstanceVBOTable — avoids per-frame table allocations)
 	-- Layout: 12 floats per instance (3 vec4 attributes)
@@ -1613,7 +1599,6 @@ local function InitGL4Icons()
 	local vbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
 	if not vbo then
 		Spring.Echo("[PIP] GL4 icons: Failed to create VBO")
-		gl.DeleteTextureAtlas(atlas)
 		gl4Icons.atlas = nil
 		return
 	end
@@ -1632,7 +1617,6 @@ local function InitGL4Icons()
 	if not vao then
 		Spring.Echo("[PIP] GL4 icons: Failed to create VAO")
 		vbo:Delete()
-		gl.DeleteTextureAtlas(atlas)
 		gl4Icons.atlas = nil
 		gl4Icons.vbo = nil
 		return
@@ -1646,7 +1630,6 @@ local function InitGL4Icons()
 		Spring.Echo("[PIP] GL4 icons: Shader compilation failed: " .. tostring(gl.GetShaderLog()))
 		vao:Delete()
 		vbo:Delete()
-		gl.DeleteTextureAtlas(atlas)
 		gl4Icons.atlas = nil
 		gl4Icons.vbo = nil
 		gl4Icons.vao = nil
@@ -1686,7 +1669,6 @@ local function DestroyGL4Icons()
 		gl4Icons.vbo = nil
 	end
 	if gl4Icons.atlas then
-		gl.DeleteTextureAtlas(gl4Icons.atlas)
 		gl4Icons.atlas = nil
 	end
 	gl4Icons.enabled = false
@@ -6169,6 +6151,12 @@ end
 local function DrawDecalsOverlay()
 	if not config.drawDecals then return end
 
+	-- Skip decals when zoomed out far (they're invisible at that scale)
+	if cameraState.zoom <= config.decalZoomCutoff then return end
+
+	-- Skip decals when draw time is already high (they're a luxury cosmetic)
+	if perfTimers.total > config.decalDrawTimeCutoff then return end
+
 	local decalsAPI = WG['decalsgl4']
 	if not decalsAPI or not decalsAPI.GetActiveDecals then return end
 
@@ -6468,10 +6456,6 @@ local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 		gl4Prim.normLines.count = 0
 		gl4Prim.circles.count = 0
 
-		local markerWorldRadius = 3 / cameraState.zoom
-		if markerWorldRadius < 4 then markerWorldRadius = 4
-		elseif markerWorldRadius > 60 then markerWorldRadius = 60 end
-
 		local wpCache = cmdQueueCache.waypoints
 		for i = 1, unitCount do
 			local uID = unitsToShow[i]
@@ -6488,8 +6472,6 @@ local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 
 						GL4AddNormLine(prevWX, prevWZ, cmdX, cmdZ,
 							r, g, b, 0.8, r, g, b, 0.8)
-						GL4AddCircle(cmdX, cmdZ, markerWorldRadius, 0.8,
-							r, g, b, r, g, b, 0.8, 0)
 
 						prevWX, prevWZ = cmdX, cmdZ
 					end
@@ -6962,9 +6944,8 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		-- Look up atlas UV and size scale
 		local uvs, sizeScale
 		if visibleDefID and cacheUnitIcon[visibleDefID] then
-			local iconData = cacheUnitIcon[visibleDefID]
-			uvs = atlasUVs[iconData.bitmap] or defaultUV
-			sizeScale = iconData.size
+			uvs = atlasUVs[visibleDefID] or defaultUV
+			sizeScale = cacheUnitIcon[visibleDefID].size
 		else
 			uvs = defaultUV
 			sizeScale = 0.5
@@ -7062,9 +7043,8 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 					if ghost.x >= viewL and ghost.x <= viewR and ghost.z >= viewT and ghost.z <= viewB then
 						local uvs, sizeScale
 						if cacheUnitIcon[ghost.defID] then
-							local iconData = cacheUnitIcon[ghost.defID]
-							uvs = atlasUVs[iconData.bitmap] or defaultUV
-							sizeScale = iconData.size
+							uvs = atlasUVs[ghost.defID] or defaultUV
+							sizeScale = cacheUnitIcon[ghost.defID].size
 						else
 							uvs = defaultUV
 							sizeScale = 0.5
@@ -7605,12 +7585,15 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 				for i = 1, projectileCount do
 					local pID = projectiles[i]
 					-- Filter small projectiles when over budget
+					-- Always draw lasers/lightning/blasters (they're visually important beams)
 					local shouldDraw = true
 					if minRadius > 0 then
 						local pDefID = spFunc.GetProjectileDefID(pID)
-						local r = pDefID and cache.weaponExplosionRadius[pDefID] or 10
-						if r < minRadius then
-							shouldDraw = false
+						if not (pDefID and (cache.weaponIsLaser[pDefID] or cache.weaponIsLightning[pDefID] or cache.weaponIsBlaster[pDefID])) then
+							local r = pDefID and cache.weaponExplosionRadius[pDefID] or 10
+							if r < minRadius then
+								shouldDraw = false
+							end
 						end
 					end
 					if shouldDraw then
