@@ -127,6 +127,8 @@ local config = {
 	zoomProjectileDetail = 0.12,
 	zoomExplosionDetail = 0.12,  -- Legacy, now using graduated visibility
 	drawExplosions = true,  -- Separate from projectiles
+	explosionOverlay = true,  -- Re-render explosions on top of unit icons (additive glow)
+	explosionOverlayAlpha = 0.5,  -- Strength of the above-icons explosion overlay (0-1)
 	drawDecals = true,  -- Show ground decals (explosion scars, footprints) from the decals GL4 widget
 	drawCommandFX = true,  -- Show brief fading command lines when orders are given (like Commands FX widget)
 	commandFXIgnoreNewUnits = true,  -- Ignore commands given to newly finished units (rally point orders)
@@ -153,7 +155,7 @@ local config = {
 	showButtonsOnHoverOnly = true,
 	switchInheritsTracking = false,
 	switchTransitionTime = 0.15,
-	showMapRuler = true,
+	showMapRuler = false,
 	cancelPlayerTrackingOnPan = true,  -- Cancel player camera tracking when trying to pan or ALT+drag
 	pipMinimapCorner = 3,  -- Corner for pip minimap: 1=bottom-left, 2=bottom-right, 3=top-left, 4=top-right
 	minimapHeightPercent = 0.12,  -- Minimap height as percent of PIP height (maintains aspect ratio)
@@ -562,6 +564,7 @@ local cache = {
 	weaponIsStarburst = {},
 	weaponIsLightning = {},
 	weaponIsFlame = {},
+	weaponIsBomb = {},
 	weaponIsParalyze = {},
 	weaponIsAA = {},
 	missileTrails = {},  -- Stores trail positions for missiles {[pID] = {positions = {{x,z,time},...}, lastUpdate = time}}
@@ -1907,6 +1910,17 @@ local function GL4FlushEffects()
 		glFunc.LineWidth(1 * resScale)
 		gl.UseShader(0)
 	end
+end
+
+-- Flush only circles with a caller-controlled blend mode (used for explosion overlay)
+local function GL4FlushCirclesOnly()
+	if not gl4Prim.enabled then return end
+	if gl4Prim.circles.count == 0 then return end
+	local c = gl4Prim.circles
+	c.vbo:Upload(c.data, nil, 0, 1, c.count * gl4Prim.CIRCLE_STEP)
+	GL4SetPrimUniforms(c.shader, c.uniformLocs)
+	c.vao:DrawArrays(GL.POINTS, c.count)
+	gl.UseShader(0)
 end
 
 -- Flush only command lines (called at end of DrawCommandQueuesOverlay)
@@ -3275,6 +3289,37 @@ local function DrawProjectile(pID)
 		local exhFwd = -height * 0.38
 		GL4AddQuad(px + sinA * exhFwd, pz + cosA * exhFwd,
 			width * 0.5, height * 0.1, angle, 1.0, 0.7, 0.3, color[4] * 0.6)
+	elseif pDefID and cache.weaponIsBomb[pDefID] then
+		-- Aircraft bomb: grey-white rectangle with pointy nose
+		local vx, vy, vz = spFunc.GetProjectileVelocity(pID)
+		local bombAngle = 0
+		if vx and (vx ~= 0 or vz ~= 0) then
+			bombAngle = math.atan2(vx, vz) * mapInfo.rad2deg
+		end
+
+		-- Scale bomb size with explosion radius as damage proxy (bigger AOE = bigger bomb)
+		local explosionR = cache.weaponExplosionRadius[pDefID] or 10
+		local damageFactor = 0.6 + math.min(0.6, explosionR * 0.004) -- 0.64 (small) to 1.2 (big AOE)
+		local bombSize = (cache.weaponSize[pDefID] or 2) * 0.7 * damageFactor
+		local bombW = bombSize * 1.3 * zoomScale
+		local bombH = bombSize * 1.8 * zoomScale
+
+		-- Main body: grey-white rectangle
+		local rad = bombAngle * 0.01745329
+		local sinA = math.sin(rad)
+		local cosA = math.cos(rad)
+
+		GL4AddQuad(px, pz, bombW, bombH * 0.45, bombAngle, 0.73, 0.73, 0.71, 1.0)
+
+		-- Pointy nose cone: narrow tapered quad at the front
+		local noseFwd = bombH * 0.6
+		GL4AddQuad(px + sinA * noseFwd, pz + cosA * noseFwd,
+			bombW * 0.33, bombH * 0.18, bombAngle, 0.73, 0.73, 0.71, 1.0)
+
+		-- Tail fins: wider short quad at the back
+		-- local finFwd = -bombH * 0.35
+		-- GL4AddQuad(px + sinA * finFwd, pz + cosA * finFwd,
+		-- 	bombW * 1.6, bombH * 0.12, bombAngle, 0.64, 0.64, 0.62, 0.9)
 	elseif pDefID and cache.weaponIsPlasma[pDefID] then
 		-- Plasma gradient circle (reduce size when zoomed in to stay proportional to world scale)
 		local plasmaZoomReduction = math.min(1, 0.45 + 0.55 * (1 - cameraState.zoom))
@@ -3831,47 +3876,86 @@ local function DrawExplosions()
 					local baseRadius = effectiveRadius * (0.3 + progress * 1.7) -- Expands to 2x size
 					local alpha = 1 - progress                  -- Fades out
 
-					-- Color based on size: small = yellow, large = red-orange to white (nuke-like)
-					local r, g, b
-					if explosion.isParalyze then
-						r, g, b = 0.75, 0.85, 1
-					elseif explosion.isAA then
-						r, g, b = 1, 0.6, 0.7
-					elseif explosion.radius > 150 then
-						r, g, b = 1, 0.9, 0.6
-					elseif explosion.radius > 80 then
-						r, g, b = 1, 0.7, 0.2
-					else
-						r, g, b = 1, 0.8 - (explosion.radius / 200), 0
+					-- Color: outer fireball (darker, smoky edge) and inner core (bright, hot)
+				-- Per-explosion random tint variation using stored seed
+				local seed = explosion.randomSeed
+				local rVar = math.sin(seed * 12.9898) * 0.06   -- ±0.06
+				local gVar = math.sin(seed * 78.233) * 0.08    -- ±0.08 (more warmth variety)
+				local bVar = math.sin(seed * 43.758) * 0.03    -- ±0.03
+
+				local r, g, b       -- Outer fireball color
+				local cr, cg, cb    -- Inner core color (hotter)
+				if explosion.isParalyze then
+					r, g, b = 0.5, 0.6, 0.85
+					cr, cg, cb = 0.8, 0.9, 1
+				elseif explosion.radius > 150 then
+					-- Nuke: bright orange-yellow
+					r = 0.9 + rVar
+					g = 0.55 + gVar
+					b = 0.15 + bVar
+					cr, cg, cb = 1, 0.95, 0.7
+				elseif explosion.radius > 80 then
+					-- Large: warm orange (less red than before)
+					r = 0.92 + rVar
+					g = 0.5 + gVar
+					b = 0.1 + bVar
+					cr = 1
+					cg = 0.88 + gVar * 0.5
+					cb = 0.4 + bVar
+				else
+					-- Small-to-medium: orange with gentle red shift (much less than before)
+					local sizeRatio = explosion.radius / 200
+					r = 0.92 + rVar
+					g = 0.55 - sizeRatio * 0.15 + gVar  -- Gentle shift (was 0.5 - sizeRatio)
+					b = 0.05 + bVar
+					cr = 1
+					cg = 0.92 - sizeRatio * 0.25 + gVar * 0.5
+					cb = 0.2 + bVar
 					end
 
 					-- Bigger explosions are more opaque
 					local coreAlpha = alpha
-					local edgeAlpha = alpha * 0.85
+					local edgeAlpha = alpha * 0.7
 					if explosion.radius > 150 then
 						coreAlpha = math.min(1, alpha * 1.2)
-						edgeAlpha = math.min(1, alpha * 1.1)
+						edgeAlpha = math.min(1, alpha * 0.95)
 					elseif explosion.radius > 80 then
 						coreAlpha = math.min(1, alpha * 1.1)
-						edgeAlpha = math.min(1, alpha * 0.95)
+						edgeAlpha = math.min(1, alpha * 0.85)
 					end
 
 					if gl4Prim.enabled then
-						-- GL4 path: one gradient circle for main body
+						-- Layer 1: Outer fireball body (dark edge → mid color)
 						GL4AddCircle(explosion.x, explosion.z, baseRadius, coreAlpha,
-							r, g, b,  r, g, b,  edgeAlpha, 0)
-						-- Nuke/paralyze flash as second brighter circle
-						if (explosion.isParalyze or explosion.radius > 150) and actualProgress < 0.45 then
-							local flashProgress = actualProgress / 0.45
-							local flashAlpha = (1 - flashProgress) * alpha
-							local flashRadius = baseRadius * 0.9
+							r, g, b,  r * 0.4, g * 0.25, b * 0.15,  edgeAlpha * 0.5, 0)
+
+						-- Layer 2: Inner hot core (bright center → fireball color)
+						local coreRadius = baseRadius * 0.5
+						local innerAlpha = math.min(1, coreAlpha * 1.15)
+						GL4AddCircle(explosion.x, explosion.z, coreRadius, innerAlpha,
+							cr, cg, cb,  r, g, b,  coreAlpha * 0.8, 0)
+
+						-- Layer 3: Initial flash (fast white-hot burst, first 30% of lifetime)
+						if actualProgress < 0.3 then
+							local flashT = actualProgress / 0.3
+							local flashAlpha = (1 - flashT * flashT) * 0.9  -- Quadratic falloff
+							local flashRadius = baseRadius * (0.6 + flashT * 0.8)
 							if explosion.isParalyze then
 								GL4AddCircle(explosion.x, explosion.z, flashRadius, flashAlpha,
-									0.65, 0.7, 1,  0.65, 0.7, 1,  flashAlpha * 0.5, 0)
+									0.8, 0.85, 1,  0.6, 0.7, 1,  flashAlpha * 0.35, 0)
 							else
 								GL4AddCircle(explosion.x, explosion.z, flashRadius, flashAlpha,
-									1, 1, 1,  1, 1, 1,  flashAlpha * 0.5, 0)
+									1, 1, 0.9,  1, 0.9, 0.5,  flashAlpha * 0.3, 0)
 							end
+						end
+
+						-- Layer 4: Nuke secondary flash (lingers longer)
+						if explosion.radius > 150 and actualProgress < 0.5 then
+							local flashProgress = actualProgress / 0.5
+							local flashAlpha = (1 - flashProgress) * alpha * 0.6
+							local flashRadius = baseRadius * 0.85
+							GL4AddCircle(explosion.x, explosion.z, flashRadius, flashAlpha,
+								1, 1, 1,  1, 0.95, 0.8,  flashAlpha * 0.4, 0)
 						end
 					end
 				end
@@ -3882,6 +3966,56 @@ local function DrawExplosions()
 		end -- end of "if not explosion" else block
 	end
 	glFunc.LineWidth(1 * resScale)
+end
+
+-- Simplified re-render of active explosions for the above-icons overlay pass.
+-- Does NOT remove expired entries (DrawExplosions already handled that this frame).
+-- Adds a single soft glow circle per explosion at reduced opacity.
+local function DrawExplosionOverlay()
+	if #cache.explosions == 0 then return end
+	if not gl4Prim.enabled then return end
+
+	for i = 1, #cache.explosions do
+		local explosion = cache.explosions[i]
+		if explosion and explosion.x and not explosion.isLightning then
+			local age = gameTime - explosion.startTime
+
+			-- Replicate lifetime logic from DrawExplosions
+			local lifetime = 0.4 + explosion.radius / 200
+			if explosion.radius > 150 then
+				lifetime = math.min(1.5, lifetime * 2)
+			elseif explosion.radius > 80 then
+				lifetime = math.min(1.0, lifetime * 1.5)
+			else
+				lifetime = math.min(0.8, lifetime)
+			end
+
+			if age <= lifetime then
+				local progress = 0.3 + (age / lifetime) * 0.7
+				local effectiveRadius = explosion.radius
+				if effectiveRadius > 80 then effectiveRadius = effectiveRadius * 0.75 end
+				local baseRadius = effectiveRadius * (0.3 + progress * 1.7)
+				local fade = 1 - (age / lifetime)
+
+				-- Saturated colored glow (additive blend adds these to the scene)
+				-- Use low green/blue to avoid washing out to white
+				local overlayAlpha = fade * config.explosionOverlayAlpha
+				local r, g, b
+				if explosion.isParalyze then
+					r, g, b = 0.25, 0.35, 0.9  -- Blue-purple tint
+				else
+					-- Warm orange-red: high R, moderate G, minimal B
+					local seed = explosion.randomSeed
+					local hueShift = math.sin(seed * 12.9898) * 0.08
+					r = 0.95
+					g = 0.4 + hueShift  -- 0.32-0.48: orange range
+					b = 0.05            -- Very little blue keeps it saturated
+				end
+				GL4AddCircle(explosion.x, explosion.z, baseRadius * 0.85, overlayAlpha,
+					r, g, b,  r * 0.3, g * 0.2, b * 0.1,  0, 0)
+			end
+		end
+	end
 end
 
 local function GetUnitAtPoint(wx, wz)
@@ -4804,6 +4938,8 @@ function widget:Initialize()
 			cache.weaponIsLightning[wDefID] = true
 		elseif wDef.type == "Flame" then
 			cache.weaponIsFlame[wDefID] = true
+		elseif wDef.type == "AircraftBomb" then
+			cache.weaponIsBomb[wDefID] = true
 		end
 
 		-- Cache weapon properties
@@ -5604,6 +5740,8 @@ function widget:GetConfigData()
 		losViewAllyTeam=state.losViewAllyTeam,
 		showUnitpics=config.showUnitpics,
 		unitpicZoomThreshold=config.unitpicZoomThreshold,
+		explosionOverlay=config.explosionOverlay,
+		explosionOverlayAlpha=config.explosionOverlayAlpha,
 		gameID = Game.gameID or Spring.GetGameRulesParam("GameID"),
 		-- Minimap mode settings
 		minimapModeMaxHeight = config.minimapModeMaxHeight,
@@ -5751,6 +5889,8 @@ function widget:SetConfigData(data)
 	config.trackingSmoothness = data.trackingSmoothness or config.trackingSmoothness
 	config.radarWobbleSpeed = data.radarWobbleSpeed or config.radarWobbleSpeed
 	if data.showUnitpics ~= nil then config.showUnitpics = data.showUnitpics end
+	if data.explosionOverlay ~= nil then config.explosionOverlay = data.explosionOverlay end
+	if data.explosionOverlayAlpha then config.explosionOverlayAlpha = data.explosionOverlayAlpha end
 	--if data.unitpicZoomThreshold then config.unitpicZoomThreshold = data.unitpicZoomThreshold end
 	
 	-- Restore minimap mode settings
@@ -6621,6 +6761,9 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 			unitTeamCacheTbl[uID] = uTeam
 		end
 
+		-- Skip gaia/neutral units (critters, wrecks-as-units, etc.)
+		if uTeam == gaiaTeamID then return usedEl end
+
 		-- Get world position (cached for non-transportable buildings since they don't move)
 		local ux, uz
 		local cachedX = localBuildPosX[uID]
@@ -7333,6 +7476,19 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		for si = 1, #selUnits2 do selectedSet[selUnits2[si]] = true end
 	end
 	iconRadiusZoomDistMult = GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
+
+	-- Explosion overlay: re-render explosions on top of icons with additive blend
+	-- This creates a "units engulfed in fire" effect using a single soft glow per explosion
+	if config.explosionOverlay and config.drawExplosions and #cache.explosions > 0 and gl4Prim.enabled then
+		GL4ResetPrimCounts()
+		DrawExplosionOverlay()
+		if gl4Prim.circles.count > 0 then
+			gl.Blending(GL.SRC_ALPHA, GL.ONE)  -- Additive blend
+			gl.DepthTest(false)
+			GL4FlushCirclesOnly()
+			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)  -- Restore
+		end
+	end
 
 	-- Draw ally cursors
 	if WG['allycursors'] and WG['allycursors'].getCursor and interactionState.trackingPlayerID then
@@ -8345,7 +8501,7 @@ local function UpdateMapRulerTexture()
 				local vShowLargest = vLargestScreenSpacing >= 8
 				
 				glFunc.Texture(false)
-				glFunc.Color(1, 1, 1, 0.18)
+				glFunc.Color(1, 1, 1, 0.12)
 				
 				-- Draw horizontal edge marks (top/bottom of screen)
 				local startH = math.ceil(math.min(horizWorldL, horizWorldR) / smallestSpacing) * smallestSpacing
