@@ -341,7 +341,7 @@ local pipR2T = {
 	decalTex = nil,
 	decalLastCheckFrame = 0,  -- last frame we ran the dirty check
 	decalCheckInterval = 30,  -- game frames between dirty checks (~1 second)
-	decalTexScale = 8,  -- X:1 ratio of map size to decal texture size
+	decalTexScale = 5,  -- X:1 ratio of map size to decal texture size
 }
 render.minModeDlist = nil  -- Display list for minimized mode button
 
@@ -1166,7 +1166,7 @@ uniform vec2 invMapSize;  // 2/mapSizeX, 2/mapSizeZ (factor of 2 because NDC spa
 
 out float v_alpha;
 out vec4 v_uv;        // p, q, s, t
-out vec2 v_halfNDC;   // half-size in NDC
+out vec2 v_halfWorld; // half-size in WORLD units (rotation must happen before NDC conversion)
 out float v_cosR;
 out float v_sinR;
 
@@ -1190,8 +1190,8 @@ void main() {
 	vec2 ndc = posRot.xy * invMapSize - 1.0;
 	gl_Position = vec4(ndc, 0.0, 1.0);
 
-	// Half-size in NDC units (invMapSize already includes 2x for NDC range)
-	v_halfNDC = sizeAlpha.xy * invMapSize;
+	// Pass world-space half-sizes; geometry shader rotates THEN converts to NDC
+	v_halfWorld = sizeAlpha.xy;
 
 	v_cosR = cos(posRot.z);
 	v_sinR = sin(posRot.z);
@@ -1202,9 +1202,11 @@ void main() {
 layout(points) in;
 layout(triangle_strip, max_vertices = 4) out;
 
+uniform vec2 invMapSize;
+
 in float v_alpha[];
 in vec4 v_uv[];
-in vec2 v_halfNDC[];
+in vec2 v_halfWorld[];
 in float v_cosR[];
 in float v_sinR[];
 
@@ -1216,15 +1218,17 @@ void main() {
 	if (alpha < 0.01) return;  // culled in vertex shader
 
 	vec4 c = gl_in[0].gl_Position;
-	vec2 hs = v_halfNDC[0];
+	vec2 hs = v_halfWorld[0];  // world-space half-sizes
 	vec4 uv = v_uv[0];  // p, q, s, t
 	float ca = v_cosR[0];
 	float sa = v_sinR[0];
 	f_alpha = alpha;
 
-	// Rotated corner offsets (X = length axis, Z = width axis)
-	vec2 dx = vec2(ca, sa) * hs.x;
-	vec2 dy = vec2(-sa, ca) * hs.y;
+	// Rotate in world space (equal X/Z scale), THEN convert to NDC per-component.
+	// Component-wise multiply (*invMapSize) applies correct scale to each axis,
+	// preventing elliptical distortion on non-square maps.
+	vec2 dx = vec2(ca, sa) * hs.x * invMapSize;
+	vec2 dy = vec2(-sa, ca) * hs.y * invMapSize;
 
 	// BL: UV(p, s)
 	gl_Position = vec4(c.xy - dx - dy, 0.0, 1.0);
