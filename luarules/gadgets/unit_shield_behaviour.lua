@@ -252,21 +252,25 @@ local function removeCoveredUnits(shieldUnitID)
 end
 
 local function setCoveredUnits(shieldUnitID)
-	local shieldData = shieldUnitsData[shieldUnitID]
 	removeCoveredUnits(shieldUnitID)
-	local x, y, z = spGetUnitPosition(shieldUnitID, true)
-	if not shieldData or not x then
+
+	local shieldData = shieldUnitsData[shieldUnitID]
+	if not shieldData then
 		return
-	else
-		local unitsTable = spGetUnitsInSphere(x, y, z, shieldData.radius)
-
-		for _, unitID in ipairs(unitsTable) do
-			shieldedUnits[unitID] = shieldedUnits[unitID] or {}
-			shieldedUnits[unitID][shieldUnitID] = true
-		end
-
-		shieldData.shieldCoverageChecked = true
 	end
+
+	local x, y, z, radius = getUnitShieldWeaponPosition(shieldUnitID, shieldData)
+	if not x then
+		return
+	end
+
+	local unitsTable = spGetUnitsInSphere(x, y, z, radius)
+	for _, unitID in ipairs(unitsTable) do
+		shieldedUnits[unitID] = shieldedUnits[unitID] or {}
+		shieldedUnits[unitID][shieldUnitID] = true
+	end
+
+	shieldData.shieldCoverageChecked = true
 end
 
 function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
