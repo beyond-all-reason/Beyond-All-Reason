@@ -4112,10 +4112,6 @@ local function DrawExplosions()
 			cache.explosions[n] = nil
 			n = n - 1
 		else
-		-- Skip small explosions when over budget
-		if explosionMinRadius > 0 and explosion.radius < explosionMinRadius then
-			i = i + 1
-		else
 		-- Age in seconds derived from game frames (freezes when paused)
 		local age = (currentFrame - explosion.startFrame) / 30
 
@@ -4143,6 +4139,9 @@ local function DrawExplosions()
 			cache.explosions[i] = cache.explosions[n]
 			cache.explosions[n] = nil
 			n = n - 1
+		-- Skip small explosions when over budget (but still expire them above)
+		elseif explosionMinRadius > 0 and explosion.radius < explosionMinRadius then
+			i = i + 1
 		else
 			-- Check if explosion is within visible world bounds
 			local explosionRadius = explosion.radius * 2 -- Account for expansion
@@ -4301,7 +4300,6 @@ local function DrawExplosions()
 				i = i + 1
 			end
 		end
-		end -- end of count-based filtering else block
 		end -- end of "if not explosion" else block
 	end
 	glFunc.LineWidth(1 * resScale)
@@ -6565,6 +6563,16 @@ local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 	-- only refresh periodically or when the unit list changes.
 	-- ========================================================================
 	cmdQueueCache.counter = cmdQueueCache.counter + 1
+
+	-- Periodically prune wpCache entries for dead units (~every 5 seconds at 60fps)
+	if cmdQueueCache.counter % 300 == 0 then
+		local wpCache = cmdQueueCache.waypoints
+		for uID in pairs(wpCache) do
+			if not spFunc.GetUnitPosition(uID) then
+				wpCache[uID] = nil
+			end
+		end
+	end
 
 	-- Quick hash to detect unit list changes: unitCount + first/last unitIDs
 	local unitHash = unitCount
