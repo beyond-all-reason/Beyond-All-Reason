@@ -115,8 +115,6 @@ local mathCeil                      = math.ceil
 local mathSqrt                      = math.sqrt
 local mathPi                        = math.pi
 
-local spGetUnitShieldState          = Spring.GetUnitShieldState
-local spSetUnitShieldState          = Spring.SetUnitShieldState
 local spSetUnitShieldRechargeDelay  = Spring.SetUnitShieldRechargeDelay
 local spDeleteProjectile            = Spring.DeleteProjectile
 local spGetProjectileDefID          = Spring.GetProjectileDefID
