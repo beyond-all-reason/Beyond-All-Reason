@@ -3522,9 +3522,12 @@ function init()
 			  saveOptionValue('Minimap', 'minimap', 'setMaxHeight', { 'maxHeight' }, value)
 		  end,
 		},
-		{ id = "minimapleftclick", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimapleftclick'), type = "bool", value = (WG['minimap'] ~= nil and WG['minimap'].getLeftClickMove ~= nil and WG['minimap'].getLeftClickMove()), description = Spring.I18N('ui.settings.option.minimapleftclick_descr'),
+		{ id = "minimapleftclick", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimapleftclick'), type = "bool", value = Spring.GetConfigInt("MinimapLeftClickMove", 1) == 1, description = Spring.I18N('ui.settings.option.minimapleftclick_descr'),
 		  onchange = function(i, value)
-			  saveOptionValue('Minimap', 'minimap', 'setLeftClickMove', { 'leftClickMove' }, value)
+			  Spring.SetConfigInt("MinimapLeftClickMove", value and 1 or 0)
+			  if WG['minimap'] and WG['minimap'].setLeftClickMove then
+				  WG['minimap'].setLeftClickMove(value)
+			  end
 		  end,
 		},
 		{ id = "minimapiconsize", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimapiconsize'), type = "slider", min = 2, max = 5, step = 0.25, value = tonumber(Spring.GetConfigFloat("MinimapIconScale", 3.5) or 1), description = '',

@@ -53,6 +53,9 @@ local function IsAtMinimumZoom(zoom)
 	return false
 end
 
+-- Forward declaration (defined after config and cameraState)
+local IsLeftClickPanActive
+
 function widget:GetInfo()
 	return {
 		name      = "Picture-in-Picture",
@@ -146,7 +149,7 @@ local config = {
 	iconRadius = 40,
 	showUnitpics = true,      -- Show unitpics instead of icons when zoomed in
 	unitpicZoomThreshold = 0.7, -- Zoom level at which to switch to unitpics (higher = more zoomed in)
-	leftButtonPansCamera = false,
+	leftButtonPansCamera = isMinimapMode and (Spring.GetConfigInt("MinimapLeftClickMove", 1) == 1) or false,
 	maximizeSizemult = 1.25,
 	screenMargin = 0.045,
 	drawProjectiles = true,
@@ -258,6 +261,11 @@ local cameraState = {
 	zoomToCursorScreenX = 0,
 	zoomToCursorScreenY = 0,
 }
+
+-- Helper: leftButtonPansCamera only active when at minimum zoom (fully zoomed out)
+IsLeftClickPanActive = function()
+	return config.leftButtonPansCamera and IsAtMinimumZoom(cameraState.zoom)
+end
 
 -- Consolidated UI state
 local uiState = {
@@ -5518,6 +5526,7 @@ end
 		end
 		WG['minimap'].setLeftClickMove = function(value)
 			config.leftButtonPansCamera = value
+			Spring.SetConfigInt("MinimapLeftClickMove", value and 1 or 0)
 		end
 		-- API for widgetHandler to detect PIP minimap mode and get transformation info
 		WG['minimap'].isPipMinimapActive = function()
@@ -5627,8 +5636,8 @@ function widget:ViewResize()
 			maxHeight = maxWidth / mapRatio
 		end
 		
-		local usedWidth = math.floor((maxWidth * render.vsy) + 0.5)
-		local usedHeight = math.floor((maxHeight * render.vsy) + 0.5)
+		local usedWidth = math.floor(maxWidth * render.vsy)
+		local usedHeight = math.floor(maxHeight * render.vsy)
 		
 		-- Position at top-left corner touching the screen edges (no padding offset)
 		render.dim.l = 0
@@ -6066,7 +6075,7 @@ function widget:GetConfigData()
 		gameID = Game.gameID or Spring.GetGameRulesParam("GameID"),
 		-- Minimap mode settings
 		minimapModeMaxHeight = config.minimapModeMaxHeight,
-		leftButtonPansCamera = config.leftButtonPansCamera,
+		-- leftButtonPansCamera now stored as Spring ConfigInt "MinimapLeftClickMove"
 		-- Minimap mode camera state (for luaui reload restoration)
 		minimapModeWcx = isMinimapMode and cameraState.wcx or nil,
 		minimapModeWcz = isMinimapMode and cameraState.wcz or nil,
@@ -6214,8 +6223,11 @@ function widget:SetConfigData(data)
 	if data.minimapModeMaxHeight and type(data.minimapModeMaxHeight) == "number" and data.minimapModeMaxHeight > 0 and data.minimapModeMaxHeight <= 1 then
 		config.minimapModeMaxHeight = data.minimapModeMaxHeight
 	end
-	if data.leftButtonPansCamera ~= nil then
+	-- leftButtonPansCamera now read from Spring ConfigInt "MinimapLeftClickMove"
+	if data.leftButtonPansCamera ~= nil and Spring.GetConfigInt("MinimapLeftClickMove", -1) == -1 then
+		-- Migrate old config data to new ConfigInt (one-time)
 		config.leftButtonPansCamera = data.leftButtonPansCamera
+		Spring.SetConfigInt("MinimapLeftClickMove", data.leftButtonPansCamera and 1 or 0)
 	end
 
 	local currentGameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID")
@@ -13886,7 +13898,7 @@ function widget:MousePress(mx, my, mButton)
 			local wx, wz = PipToWorldCoords(mx, my)
 			
 			-- In minimap mode with leftButtonPansCamera enabled, left-click moves the world camera
-			if isMinimapMode and config.leftButtonPansCamera then
+			if isMinimapMode and IsLeftClickPanActive() then
 				local _, cmdID = Spring.GetActiveCommand()
 				-- Only move world camera if there's no active command
 				if not cmdID or cmdID == 0 then
@@ -13988,7 +14000,7 @@ function widget:MousePress(mx, my, mButton)
 				-- Also don't allow box selection when tracking a player's camera
 				local alt, ctrl, meta, shift = Spring.GetModKeyState()
 				if not alt and not interactionState.trackingPlayerID then
-					if config.leftButtonPansCamera and not interactionState.trackingPlayerID then
+					if IsLeftClickPanActive() and not interactionState.trackingPlayerID then
 					interactionState.arePanning = true
 					interactionState.panStartX = mx
 					interactionState.panStartY = my
@@ -14711,7 +14723,7 @@ function widget:MouseRelease(mx, my, mButton)
 	-- Handle single left-click on empty space when using left-button panning mode
 	-- Must do this AFTER panning stops but BEFORE we clear button states
 	-- In panning mode, no box selection is started, so we need to handle deselection here
-	if mButton == 1 and mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t and not uiState.inMinMode and config.leftButtonPansCamera then
+	if mButton == 1 and mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t and not uiState.inMinMode and IsLeftClickPanActive() then
 		-- Check if this was a very short click (indicating panning was not actually used to pan)
 		local minDragDistance = 5
 		local dragDistX = math.abs(mx - interactionState.panStartX)
@@ -15123,7 +15135,7 @@ function widget:MouseRelease(mx, my, mButton)
 
 	-- Only stop panning from left button if not in toggle mode AND using leftButtonPansCamera mode
 	-- (Don't interfere with left+right button panning which handles its own cleanup above)
-	if interactionState.arePanning and not interactionState.panToggleMode and not interactionState.middleMousePressed and config.leftButtonPansCamera and mButton == 1 then
+	if interactionState.arePanning and not interactionState.panToggleMode and not interactionState.middleMousePressed and IsLeftClickPanActive() and mButton == 1 then
 		interactionState.arePanning = false
 	end
 
