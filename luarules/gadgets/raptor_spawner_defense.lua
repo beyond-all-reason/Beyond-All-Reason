@@ -65,6 +65,8 @@ if gadgetHandler:IsSyncedCode() then
 	local GetUnitHealth = Spring.GetUnitHealth
 	local SetUnitExperience = Spring.SetUnitExperience
 	local GetUnitIsDead = Spring.GetUnitIsDead
+	local SetUnitPosition = Spring.SetUnitPosition
+	local GetUnitSeparation = Spring.GetUnitSeparation
 
 	local mRandom = math.random
 	local math = math
@@ -1495,22 +1497,25 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
+		local gf = GetGameFrame()
 		if config.raptorBehaviours.SKIRMISH[attackerDefID] and (unitTeam ~= raptorTeamID) and attackerID and (mRandom() < config.raptorBehaviours.SKIRMISH[attackerDefID].chance) and unitTeam ~= attackerTeam then
 			local ux, uy, uz = GetUnitPosition(unitID)
 			local x, y, z = GetUnitPosition(attackerID)
 			if x and ux then
 				local angle = math.atan2(ux - x, uz - z)
+				local sinA, cosA = math.sin(angle), math.cos(angle)
 				local distance = mRandom(math.ceil(config.raptorBehaviours.SKIRMISH[attackerDefID].distance*0.75), math.floor(config.raptorBehaviours.SKIRMISH[attackerDefID].distance*1.25))
-				if config.raptorBehaviours.SKIRMISH[attackerDefID].teleport and (unitTeleportCooldown[attackerID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64, 30, false) and positionCheckLibrary.MapEdgeCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64) then
+				local dx, dz = sinA * distance, cosA * distance
+				if config.raptorBehaviours.SKIRMISH[attackerDefID].teleport and (unitTeleportCooldown[attackerID] or 1) < gf and positionCheckLibrary.FlatAreaCheck(x - dx, y, z - dz, 64, 30, false) and positionCheckLibrary.MapEdgeCheck(x - dx, y, z - dz, 64) then
 					GG.ScavengersSpawnEffectUnitDefID(attackerDefID, x, y, z)
-					Spring.SetUnitPosition(attackerID, x - (math.sin(angle) * distance), z - (math.cos(angle) * distance))
-					Spring.GiveOrderToUnit(attackerID, CMD.STOP, 0, 0)
-					GG.ScavengersSpawnEffectUnitDefID(attackerDefID, x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance))
-					unitTeleportCooldown[attackerID] = Spring.GetGameFrame() + config.raptorBehaviours.SKIRMISH[attackerDefID].teleportcooldown*30
+					SetUnitPosition(attackerID, x - dx, z - dz)
+					GiveOrderToUnit(attackerID, CMD.STOP, 0, 0)
+					GG.ScavengersSpawnEffectUnitDefID(attackerDefID, x - dx, y, z - dz)
+					unitTeleportCooldown[attackerID] = gf + config.raptorBehaviours.SKIRMISH[attackerDefID].teleportcooldown*30
 				else
-					Spring.GiveOrderToUnit(attackerID, CMD.MOVE, { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, {})
+					GiveOrderToUnit(attackerID, CMD.MOVE, { x - dx, y, z - dz}, {})
 				end
-				unitCowardCooldown[attackerID] = Spring.GetGameFrame() + 900
+				unitCowardCooldown[attackerID] = gf + 900
 			end
 		elseif config.raptorBehaviours.COWARD[unitDefID] and (unitTeam == raptorTeamID) and attackerID and (mRandom() < config.raptorBehaviours.COWARD[unitDefID].chance) and unitTeam ~= attackerTeam then
 			local curH, maxH = GetUnitHealth(unitID)
@@ -1519,54 +1524,56 @@ if gadgetHandler:IsSyncedCode() then
 				local x, y, z = GetUnitPosition(unitID)
 				if x and ax then
 					local angle = math.atan2(ax - x, az - z)
+					local sinA, cosA = math.sin(angle), math.cos(angle)
 					local distance = mRandom(math.ceil(config.raptorBehaviours.COWARD[unitDefID].distance*0.75), math.floor(config.raptorBehaviours.COWARD[unitDefID].distance*1.25))
-					if config.raptorBehaviours.COWARD[unitDefID].teleport and (unitTeleportCooldown[unitID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64, 30, false) and positionCheckLibrary.MapEdgeCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64) then
+					local dx, dz = sinA * distance, cosA * distance
+					if config.raptorBehaviours.COWARD[unitDefID].teleport and (unitTeleportCooldown[unitID] or 1) < gf and positionCheckLibrary.FlatAreaCheck(x - dx, y, z - dz, 64, 30, false) and positionCheckLibrary.MapEdgeCheck(x - dx, y, z - dz, 64) then
 						GG.ScavengersSpawnEffectUnitDefID(unitDefID, x, y, z)
-						Spring.SetUnitPosition(unitID, x - (math.sin(angle) * distance), z - (math.cos(angle) * distance))
-						Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
-						GG.ScavengersSpawnEffectUnitDefID(unitDefID, x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance))
-						unitTeleportCooldown[unitID] = Spring.GetGameFrame() + config.raptorBehaviours.COWARD[unitDefID].teleportcooldown*30
+						SetUnitPosition(unitID, x - dx, z - dz)
+						GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
+						GG.ScavengersSpawnEffectUnitDefID(unitDefID, x - dx, y, z - dz)
+						unitTeleportCooldown[unitID] = gf + config.raptorBehaviours.COWARD[unitDefID].teleportcooldown*30
 					else
-						Spring.GiveOrderToUnit(unitID, CMD.MOVE, { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, {})
+						GiveOrderToUnit(unitID, CMD.MOVE, { x - dx, y, z - dz}, {})
 					end
-					unitCowardCooldown[unitID] = Spring.GetGameFrame() + 900
+					unitCowardCooldown[unitID] = gf + 900
 				end
 			end
 		elseif config.raptorBehaviours.BERSERK[unitDefID] and (unitTeam == raptorTeamID) and attackerID and (mRandom() < config.raptorBehaviours.BERSERK[unitDefID].chance) and unitTeam ~= attackerTeam then
 			local ax, ay, az = GetUnitPosition(attackerID)
 			local x, y, z = GetUnitPosition(unitID)
-			local separation = Spring.GetUnitSeparation(unitID, attackerID)
+			local separation = GetUnitSeparation(unitID, attackerID)
 			if ax and separation < (config.raptorBehaviours.BERSERK[unitDefID].distance or 10000) then
-				if config.raptorBehaviours.BERSERK[unitDefID].teleport and (unitTeleportCooldown[unitID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
+				if config.raptorBehaviours.BERSERK[unitDefID].teleport and (unitTeleportCooldown[unitID] or 1) < gf and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
 					GG.ScavengersSpawnEffectUnitDefID(unitDefID, x, y, z)
 					ax = ax + mRandom(-64,64)
 					az = az + mRandom(-64,64)
-					Spring.SetUnitPosition(unitID, ax, ay, az)
-					Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
+					SetUnitPosition(unitID, ax, ay, az)
+					GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
 					GG.ScavengersSpawnEffectUnitDefID(attackerDefID, ax, ay, az)
-					unitTeleportCooldown[unitID] = Spring.GetGameFrame() + config.raptorBehaviours.BERSERK[unitDefID].teleportcooldown*30
+					unitTeleportCooldown[unitID] = gf + config.raptorBehaviours.BERSERK[unitDefID].teleportcooldown*30
 				else
-					Spring.GiveOrderToUnit(unitID, CMD.MOVE, { ax+mRandom(-64,64), ay, az+mRandom(-64,64)}, {})
+					GiveOrderToUnit(unitID, CMD.MOVE, { ax+mRandom(-64,64), ay, az+mRandom(-64,64)}, {})
 				end
-				unitCowardCooldown[unitID] = Spring.GetGameFrame() + 900
+				unitCowardCooldown[unitID] = gf + 900
 			end
 		elseif config.raptorBehaviours.BERSERK[attackerDefID] and (unitTeam ~= raptorTeamID) and attackerID and (mRandom() < config.raptorBehaviours.BERSERK[attackerDefID].chance) and unitTeam ~= attackerTeam then
 			local ax, ay, az = GetUnitPosition(unitID)
 			local x, y, z = GetUnitPosition(attackerID)
-			local separation = Spring.GetUnitSeparation(unitID, attackerID)
+			local separation = GetUnitSeparation(unitID, attackerID)
 			if ax and separation < (config.raptorBehaviours.BERSERK[attackerDefID].distance or 10000) then
-				if config.raptorBehaviours.BERSERK[attackerDefID].teleport and (unitTeleportCooldown[attackerID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
+				if config.raptorBehaviours.BERSERK[attackerDefID].teleport and (unitTeleportCooldown[attackerID] or 1) < gf and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
 					GG.ScavengersSpawnEffectUnitDefID(attackerDefID, x, y, z)
 					ax = ax + mRandom(-64,64)
 					az = az + mRandom(-64,64)
-					Spring.SetUnitPosition(attackerID, ax, ay, az)
-					Spring.GiveOrderToUnit(attackerID, CMD.STOP, 0, 0)
+					SetUnitPosition(attackerID, ax, ay, az)
+					GiveOrderToUnit(attackerID, CMD.STOP, 0, 0)
 					GG.ScavengersSpawnEffectUnitDefID(unitDefID, ax, ay, az)
-					unitTeleportCooldown[attackerID] = Spring.GetGameFrame() + config.raptorBehaviours.BERSERK[attackerDefID].teleportcooldown*30
+					unitTeleportCooldown[attackerID] = gf + config.raptorBehaviours.BERSERK[attackerDefID].teleportcooldown*30
 				else
-					Spring.GiveOrderToUnit(attackerID, CMD.MOVE, { ax+mRandom(-64,64), ay, az+mRandom(-64,64)}, {})
+					GiveOrderToUnit(attackerID, CMD.MOVE, { ax+mRandom(-64,64), ay, az+mRandom(-64,64)}, {})
 				end
-				unitCowardCooldown[attackerID] = Spring.GetGameFrame() + 900
+				unitCowardCooldown[attackerID] = gf + 900
 			end
 		end
 		if queenIDs[unitID] then
