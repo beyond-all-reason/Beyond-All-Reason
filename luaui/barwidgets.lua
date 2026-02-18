@@ -245,23 +245,6 @@ end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
---
---  Reverse integer iterator for drawing
---
-
-local function rev_iter(t, key)
-	if key <= 1 then
-		return nil
-	else
-		local nkey = key - 1
-		return nkey, t[nkey]
-	end
-end
-
-local function r_ipairs(t)
-	return rev_iter, t, (1 + #t)
-end
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -1646,8 +1629,9 @@ end
 
 function widgetHandler:DrawAlphaFeaturesLua(drawReflection, drawRefraction)
 	tracy.ZoneBeginN("W:DrawAlphaFeaturesLua")
-	for _, w in r_ipairs(self.DrawAlphaFeaturesLuaList) do
-		w:DrawAlphaFeaturesLua(drawReflection, drawRefraction)
+	local list = self.DrawAlphaFeaturesLuaList
+	for i = #list, 1, -1 do
+		list[i]:DrawAlphaFeaturesLua(drawReflection, drawRefraction)
 	end
 	tracy.ZoneEnd()
 	return
@@ -1655,8 +1639,9 @@ end
 
 function widgetHandler:DrawShadowUnitsLua()
 	tracy.ZoneBeginN("W:DrawShadowUnitsLua")
-	for _, w in r_ipairs(self.DrawShadowUnitsLuaList) do
-		w:DrawShadowUnitsLua()
+	local list = self.DrawShadowUnitsLuaList
+	for i = #list, 1, -1 do
+		list[i]:DrawShadowUnitsLua()
 	end
 	tracy.ZoneEnd()
 	return
@@ -1664,8 +1649,9 @@ end
 
 function widgetHandler:DrawShadowFeaturesLua()
 	tracy.ZoneBeginN("W:DrawShadowFeaturesLua")
-	for _, w in r_ipairs(self.DrawShadowFeaturesLuaList) do
-		w:DrawShadowFeaturesLua()
+	local list = self.DrawShadowFeaturesLuaList
+	for i = #list, 1, -1 do
+		list[i]:DrawShadowFeaturesLua()
 	end
 	tracy.ZoneEnd()
 	return
@@ -1673,8 +1659,9 @@ end
 
 function widgetHandler:DrawPreDecals()
 	tracy.ZoneBeginN("W:DrawPreDecals")
-	for _, w in r_ipairs(self.DrawPreDecalsList) do
-		w:DrawPreDecals()
+	local list = self.DrawPreDecalsList
+	for i = #list, 1, -1 do
+		list[i]:DrawPreDecals()
 	end
 	tracy.ZoneEnd()
 	return
@@ -1693,8 +1680,9 @@ function widgetHandler:DrawWorldPreParticles(drawAboveWater, drawBelowWater, dra
 	-- true, false, true, false
 	-- true, false, false, false
 	tracy.ZoneBeginN("W:DrawWorldPreParticles")
-	for _, w in r_ipairs(self.DrawWorldPreParticlesList) do
-		w:DrawWorldPreParticles(drawAboveWater, drawBelowWater, drawReflection, drawRefraction)
+	local list = self.DrawWorldPreParticlesList
+	for i = #list, 1, -1 do
+		list[i]:DrawWorldPreParticles(drawAboveWater, drawBelowWater, drawReflection, drawRefraction)
 	end
 	tracy.ZoneEnd()
 	return
@@ -1702,8 +1690,9 @@ end
 
 function widgetHandler:DrawWorldShadow()
 	tracy.ZoneBeginN("W:DrawWorldShadow")
-	for _, w in r_ipairs(self.DrawWorldShadowList) do
-		w:DrawWorldShadow()
+	local list = self.DrawWorldShadowList
+	for i = #list, 1, -1 do
+		list[i]:DrawWorldShadow()
 	end
 	tracy.ZoneEnd()
 	return
@@ -1711,8 +1700,9 @@ end
 
 function widgetHandler:DrawWorldReflection()
 	tracy.ZoneBeginN("W:DrawWorldReflection")
-	for _, w in r_ipairs(self.DrawWorldReflectionList) do
-		w:DrawWorldReflection()
+	local list = self.DrawWorldReflectionList
+	for i = #list, 1, -1 do
+		list[i]:DrawWorldReflection()
 	end
 	tracy.ZoneEnd()
 	return
@@ -1720,8 +1710,9 @@ end
 
 function widgetHandler:DrawWorldRefraction()
 	tracy.ZoneBeginN("W:DrawWorldRefraction")
-	for _, w in r_ipairs(self.DrawWorldRefractionList) do
-		w:DrawWorldRefraction()
+	local list = self.DrawWorldRefractionList
+	for i = #list, 1, -1 do
+		list[i]:DrawWorldRefraction()
 	end
 	tracy.ZoneEnd()
 	return
@@ -1729,8 +1720,9 @@ end
 
 function widgetHandler:DrawUnitsPostDeferred()
 	tracy.ZoneBeginN("W:DrawUnitsPostDeferred")
-	for _, w in r_ipairs(self.DrawUnitsPostDeferredList) do
-		w:DrawUnitsPostDeferred()
+	local list = self.DrawUnitsPostDeferredList
+	for i = #list, 1, -1 do
+		list[i]:DrawUnitsPostDeferred()
 	end
 	tracy.ZoneEnd()
 	return
@@ -1738,8 +1730,9 @@ end
 
 function widgetHandler:DrawFeaturesPostDeferred()
 	tracy.ZoneBeginN("W:DrawFeaturesPostDeferred")
-	for _, w in r_ipairs(self.DrawFeaturesPostDeferredList) do
-		w:DrawFeaturesPostDeferred()
+	local list = self.DrawFeaturesPostDeferredList
+	for i = #list, 1, -1 do
+		list[i]:DrawFeaturesPostDeferred()
 	end
 	tracy.ZoneEnd()
 	return
@@ -1747,8 +1740,10 @@ end
 
 function widgetHandler:DrawScreenEffects(vsx, vsy)
 	tracy.ZoneBeginN("W:DrawScreenEffects")
-	for _, w in r_ipairs(self.DrawScreenEffectsList) do
-		tracy.ZoneBeginN(w.whInfo.tracyName.DrawScreenEffects)
+	local list = self.DrawScreenEffectsList
+	for i = #list, 1, -1 do
+		local w = list[i]
+		tracy.ZoneBeginN(w._tracyName.DrawScreenEffects)
 		w:DrawScreenEffects(vsx, vsy)
 		tracy.ZoneEnd()
 	end
@@ -1758,8 +1753,10 @@ end
 
 function widgetHandler:DrawScreenPost()
 	tracy.ZoneBeginN("W:DrawScreenPost")
-	for _, w in r_ipairs(self.DrawScreenPostList) do
-		tracy.ZoneBeginN(w.whInfo.tracyName.DrawScreenPost)
+	local list = self.DrawScreenPostList
+	for i = #list, 1, -1 do
+		local w = list[i]
+		tracy.ZoneBeginN(w._tracyName.DrawScreenPost)
 		w:DrawScreenPost()
 		tracy.ZoneEnd()
 	end
@@ -1776,8 +1773,9 @@ function widgetHandler:DrawInMiniMap(xSize, ySize)
 		tracy.ZoneEnd()
 		return
 	end
-	for _, w in r_ipairs(self.DrawInMiniMapList) do
-		w:DrawInMiniMap(xSize, ySize)
+	local list = self.DrawInMiniMapList
+	for i = #list, 1, -1 do
+		list[i]:DrawInMiniMap(xSize, ySize)
 	end
 	tracy.ZoneEnd()
 	return
@@ -1786,8 +1784,9 @@ end
 function widgetHandler:SunChanged()
 	tracy.ZoneBeginN("W:SunChanged")
 	local nmp = _G['NightModeParams']
-	for _, w in r_ipairs(self.SunChangedList) do
-		w:SunChanged(nmp)
+	local list = self.SunChangedList
+	for i = #list, 1, -1 do
+		list[i]:SunChanged(nmp)
 	end
 	tracy.ZoneEnd()
 	return
@@ -1795,8 +1794,9 @@ end
 
 function widgetHandler:FontsChanged()
 	tracy.ZoneBeginN("FontsChanged")
-	for _, w in r_ipairs(self.FontsChangedList) do
-		w:FontsChanged()
+	local list = self.FontsChangedList
+	for i = #list, 1, -1 do
+		list[i]:FontsChanged()
 	end
 	tracy.ZoneEnd()
 	return
@@ -1872,8 +1872,9 @@ function widgetHandler:TextInput(utf8, ...)
 		return true
 	end
 
-	for _, w in r_ipairs(self.TextInputList) do
-		if w:TextInput(utf8, ...) then
+	local list = self.TextInputList
+	for i = #list, 1, -1 do
+		if list[i]:TextInput(utf8, ...) then
 			tracy.ZoneEnd()
 			return true
 		end
@@ -2097,7 +2098,7 @@ end
 function widgetHandler:GameStart()
 	tracy.ZoneBeginN("W:GameStart")
 	for _, w in ipairs(self.GameStartList) do
-		tracy.ZoneBeginN(w.whInfo.tracyName.GameStart)
+		tracy.ZoneBeginN(w._tracyName.GameStart)
 		w:GameStart()
 		tracy.ZoneEnd()
 	end
@@ -2165,7 +2166,7 @@ function widgetHandler:PlayerChanged(playerID)
 	end
 	tracy.ZoneBeginN("W:PlayerChanged")
 	for _, w in ipairs(self.PlayerChangedList) do
-		tracy.ZoneBeginN(w.whInfo.tracyName.PlayerChanged)
+		tracy.ZoneBeginN(w._tracyName.PlayerChanged)
 		w:PlayerChanged(playerID)
 		tracy.ZoneEnd()
 	end
@@ -2176,7 +2177,7 @@ end
 function widgetHandler:GameFrame(frameNum)
 	tracy.ZoneBeginN("W:GameFrame")
 	for _, w in ipairs(self.GameFrameList) do
-		tracy.ZoneBeginN(w.whInfo.tracyName.GameFrame)
+		tracy.ZoneBeginN(w._tracyName.GameFrame)
 		w:GameFrame(frameNum)
 		tracy.ZoneEnd()
 	end
@@ -2188,7 +2189,7 @@ end
 function widgetHandler:GameFramePost(frameNum)
 	tracy.ZoneBeginN("W:GameFramePost")
 	for _, w in ipairs(self.GameFramePostList) do
-		tracy.ZoneBeginN(w.whInfo.tracyName.GameFramePost)
+		tracy.ZoneBeginN(w._tracyName.GameFramePost)
 		w:GameFramePost(frameNum)
 		tracy.ZoneEnd()
 	end
@@ -2266,8 +2267,9 @@ end
 
 function widgetHandler:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
 	tracy.ZoneBeginN("W:UnsyncedHeightMapUpdate")
-	for _, w in r_ipairs(self.UnsyncedHeightMapUpdateList) do
-		w:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
+	local list = self.UnsyncedHeightMapUpdateList
+	for i = #list, 1, -1 do
+		list[i]:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
 	end
 	tracy.ZoneEnd()
 	return
@@ -2332,8 +2334,9 @@ end
 
 function widgetHandler:DefaultCommand(...)
 	tracy.ZoneBeginN("W:DefaultCommand")
-	for _, w in r_ipairs(self.DefaultCommandList) do
-		local result = w:DefaultCommand(...)
+	local list = self.DefaultCommandList
+	for i = #list, 1, -1 do
+		local result = list[i]:DefaultCommand(...)
 		if type(result) == 'number' then
 			tracy.ZoneEnd()
 			return result
@@ -2649,7 +2652,7 @@ function widgetHandler:RecvLuaMsg(msg, playerID)
 	tracy.ZoneBeginN("W:RecvLuaMsg")
 	local retval = false
 	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		self.chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
+		self.chobbyInterface = (msg:byte(19) == 49) -- 49 == string.byte('1')
 		retval = true
 	end
 	for _, w in ipairs(self.RecvLuaMsgList) do
@@ -2689,7 +2692,7 @@ end
 function widgetHandler:VisibleUnitsChanged(visibleUnits, numVisibleUnits)
 	tracy.ZoneBeginN("W:VisibleUnitsChanged")
 	for _, w in ipairs(self.VisibleUnitsChangedList) do
-		tracy.ZoneBeginN(w.whInfo.tracyName.VisibleUnitsChanged)
+		tracy.ZoneBeginN(w._tracyName.VisibleUnitsChanged)
 		w:VisibleUnitsChanged(visibleUnits, numVisibleUnits)
 		tracy.ZoneEnd()
 	end

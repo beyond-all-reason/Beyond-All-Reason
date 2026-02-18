@@ -553,8 +553,10 @@ function widget:DrawScreenEffects()	-- using DrawScreenEffects so that guishader
 				glPopMatrix()
 			end
 		end
-		-- Clear for next frame
-		drawScreenUnits = {}
+		-- Clear for next frame (wipe in-place to avoid table allocation)
+		for k in pairs(drawScreenUnits) do
+			drawScreenUnits[k] = nil
+		end
 
 		-- Clear icon scale cache periodically to avoid memory bloat
 		if spGetGameFrame() % 300 == 0 then

@@ -1161,7 +1161,7 @@ function widget:GameFrame(n)
 	end
 
 	-- check capture progress?
-	if (n % 1) == 0 then
+	if (n % 3) == 2 then
 		for unitID, captureprogress in pairs(unitCaptureWatch) do
 			local capture = select(4, spGetUnitHealth(unitID))
 			if capture and capture ~= captureprogress then
