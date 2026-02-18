@@ -18,6 +18,7 @@ end
 local mathFloor = math.floor
 local mathMin = math.min
 local mathRandom = math.random
+local round = math.round
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
@@ -286,7 +287,7 @@ local decalRemoveQueue = {} -- maps gameframes to list of decals that will be re
 local decalRemoveList = {} -- maps instanceID's of decals that need to be batch removed to preserve order
 
 -- Lightweight table of active decals for external widget consumption (e.g. minimap overlays)
--- activeDecalData[decalIndex] = {posx, posz, size, alphastart, alphadecay, spawnframe, isFootprint}
+-- activeDecalData[decalIndex] = {posx, posz, size, alphastart, alphadecay, spawnframe, isFootprint, width, length, rotation, p, q, s, t}
 local activeDecalData = {}
 local footprintDecalSet = {}  -- tracks which decalIndex values are footprints (for rebuild)
 
@@ -307,10 +308,15 @@ local function RebuildActiveDecalData()
 				local length = data[offset + 1]
 				local width = data[offset + 2]
 				local size = mathMax(length, width)
+				local rotation = data[offset + 3]
+				local p = data[offset + 5]
+				local q = data[offset + 6]
+				local s = data[offset + 7]
+				local t = data[offset + 8]
 				local alphastart = data[offset + 9]
 				local alphadecay = data[offset + 10]
 				local spawnframe = data[offset + 16]
-				activeDecalData[instanceID] = {posx, posz, size, alphastart, alphadecay, spawnframe, footprintDecalSet[instanceID] or false}
+				activeDecalData[instanceID] = {posx, posz, size, alphastart, alphadecay, spawnframe, footprintDecalSet[instanceID] or false, width, length, rotation, p, q, s, t}
 			end
 		end
 	end
@@ -524,9 +530,6 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 
 	AddDecalToArea(decalIndex, posx, posz, width, length)
 
-	-- Track for external consumption (lightweight: only position, size, alpha params)
-	activeDecalData[decalIndex] = {posx, posz, math.max(width, length), alphastart, alphadecay, spawnframe}
-
 	return decalIndex, lifetime
 end
 
@@ -627,7 +630,6 @@ end
 
 local function RemoveDecal(instanceID)
 	RemoveDecalFromArea(instanceID)
-	activeDecalData[instanceID] = nil
 	footprintDecalSet[instanceID] = nil
 	if decalVBO.instanceIDtoIndex[instanceID] then
 		popElementInstance(decalVBO, instanceID)
@@ -645,7 +647,6 @@ function widget:GameFrame(n)
 		for i=1, #decalRemoveQueue[n] do
 			local decalID = decalRemoveQueue[n][i]
 			decalRemoveList[decalID] = true
-			activeDecalData[decalID] = nil
 			footprintDecalSet[decalID] = nil
 			numDecalsToRemove = numDecalsToRemove + 1
 			--RemoveDecal(decalID)
@@ -1862,9 +1863,7 @@ local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, headin
 
 			AddDecalToArea(decalIndex, worldposx, worldposz, decalTable.width, decalTable.height)
 
-			-- Track for external consumption (footprint = true)
 			footprintDecalSet[decalIndex] = true
-			activeDecalData[decalIndex] = {worldposx, worldposz, math.max(decalTable.width, decalTable.height), decalTable.alphastart or 1, decalCache[10], spawnframe, true}
 		end
 	end
 end
@@ -1914,6 +1913,8 @@ function widget:Initialize()
 	WG['decalsgl4'].GetActiveDecals = function() return activeDecalData end
 	WG['decalsgl4'].GetLifeTimeMult = function() return lifeTimeMult end
 	WG['decalsgl4'].RebuildActiveDecalData = RebuildActiveDecalData
+	local vboTableCache = {decalVBO, decalLargeVBO, decalExtraLargeVBO}
+	WG['decalsgl4'].GetVBOData = function() return vboTableCache, footprintDecalSet end
 
 	widgetHandler:RegisterGlobal('AddDecalGL4', WG['decalsgl4'].AddDecalGL4)
 	widgetHandler:RegisterGlobal('RemoveDecalGL4', WG['decalsgl4'].RemoveDecalGL4)
@@ -1978,8 +1979,9 @@ function widget:Initialize()
 
 						local posx = vboEntry[13]
 						local posz = vboEntry[15]
+						local rotation = vboEntry[3]
+						local p, q2, s, t = vboEntry[5], vboEntry[6], vboEntry[7], vboEntry[8]
 						AddDecalToArea(decalIndex, posx, posz, width_v, length_v)
-						activeDecalData[decalIndex] = {posx, posz, math.max(width_v, length_v), alphastart, alphadecay, vboEntry[16]}
 						restoredCount = restoredCount + 1
 					end
 				end
@@ -2077,11 +2079,11 @@ function widget:GetConfigData(_) -- Called by RemoveWidget
 						floor(width),                            -- [2] width
 						floor(data[offset + 3] * 100) / 100,     -- [3] rotation
 						floor(data[offset + 4] * 100) / 100,     -- [4] maxalpha
-						floor(data[offset + 5] * 100) / 100,     -- [5] UV p
-						floor(data[offset + 6] * 100) / 100,     -- [6] UV q
-						floor(data[offset + 7] * 100) / 100,     -- [7] UV s
-						floor(data[offset + 8] * 100) / 100,     -- [8] UV t
-						floor(data[offset + 9] * 100) / 100,     -- [9] alphastart
+						round(data[offset + 5], 2),     -- [5] UV p
+						round(data[offset + 6], 2),     -- [6] UV q
+						round(data[offset + 7], 2),     -- [7] UV s
+						round(data[offset + 8], 2),     -- [8] UV t
+						round(data[offset + 9], 2),     -- [9] alphastart
 						data[offset + 10],                       -- [10] alphadecay
 						floor(data[offset + 13]),                -- [11] posx (int)
 						floor(data[offset + 15]),                -- [12] posz (int)

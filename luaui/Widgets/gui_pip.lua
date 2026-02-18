@@ -130,9 +130,6 @@ local config = {
 	explosionOverlay = true,  -- Re-render explosions on top of unit icons (additive glow)
 	explosionOverlayAlpha = 0.6,  -- Strength of the above-icons explosion overlay (0-1)
 	drawDecals = true,  -- Show ground decals (explosion scars, footprints) from the decals GL4 widget
-	maxDecals = 600,  -- Max number of decals to draw (if will skip smaller decals when reaching 75% of this)
-	decalZoomCutoff = 0.35,  -- Skip decals entirely when zoomed out past this (0=never skip, 1=always skip)
-	decalDrawTimeCutoff = 0.005,  -- Skip decals when total draw time exceeds this (seconds, 0.005 = 5ms)
 	drawCommandFX = true,  -- Show brief fading command lines when orders are given (like Commands FX widget)
 	commandFXIgnoreNewUnits = true,  -- Ignore commands given to newly finished units (rally point orders)
 	commandFXOpacity = 0.4,  -- Initial opacity of command FX lines
@@ -340,6 +337,11 @@ local pipR2T = {
 	unitsWcz = 0,  -- Camera Z position when unitsTex was rendered
 	unitsNeedsUpdate = true,  -- Flag to force unitsTex re-render
 	unitsLastUpdateTime = 0,  -- Last time unitsTex was rendered
+	-- Decal overlay texture state (render-to-texture)
+	decalTex = nil,
+	decalLastCheckFrame = 0,  -- last frame we ran the dirty check
+	decalCheckInterval = 30,  -- game frames between dirty checks (~1 second)
+	decalTexScale = 8,  -- X:1 ratio of map size to decal texture size
 }
 render.minModeDlist = nil  -- Display list for minimized mode button
 
@@ -513,10 +515,7 @@ end
 
 -- Cached factors for WorldToPipCoords (performance optimization)
 -- Declared here (before GL4 primitive code) so GL4 helper functions can close over them.
-local worldToPipScaleX = 1
-local worldToPipScaleZ = 1
-local worldToPipOffsetX = 0
-local worldToPipOffsetZ = 0
+local wtp = { scaleX = 1, scaleZ = 1, offsetX = 0, offsetZ = 0 }
 
 -- GL4 Primitive Rendering (explosions, projectiles, beams, command lines)
 local gl4Prim = {
@@ -650,11 +649,13 @@ local DAMAGE_FLASH_DURATION = 0.4  -- seconds to fade from full red to normal
 
 -- Command FX: brief fading command lines when orders are given (like Commands FX widget)
 -- Each entry: {unitID, targetX, targetZ, cmdID, time, unitX, unitZ}
-local commandFXList = {}  -- array of active command FX entries
-local commandFXCount = 0
-local commandFXLastTarget = {}  -- [unitID] = {x, z, time} — last command FX target per unit for chaining
-local commandFXNewUnits = {}  -- [unitID] = gameTime — tracks recently finished units to suppress rally commands
-local COMMAND_FX_MAX = 300  -- max simultaneous FX entries
+local commandFX = {
+	list = {},       -- array of active command FX entries
+	count = 0,
+	lastTarget = {}, -- [unitID] = {x, z, time} — last command FX target per unit for chaining
+	newUnits = {},   -- [unitID] = gameTime — tracks recently finished units to suppress rally commands
+	MAX = 300,       -- max simultaneous FX entries
+}
 
 local unitOutlineList = nil
 local radarDotList = nil
@@ -724,10 +725,6 @@ local positionCmds = {
 ----------------------------------------------------------------------------------------------------
 -- Speedups
 ----------------------------------------------------------------------------------------------------
-
--- String function speedups (critical for inner loops)
-local strFind = string.find
-local strGsub = string.gsub
 
 -- GL constants
 local GL_LINE_SMOOTH = 0x0B20  -- OpenGL GL_LINE_SMOOTH enum value
@@ -1148,6 +1145,127 @@ local shaders = {
 		uniformInt = {
 			minimapTex = 0,
 			shadingTex = 1,
+		},
+	},
+	-- GL4 instanced decal overlay: GPU computes alpha fade, single draw call
+	-- Vertex reads per-instance decal data, geometry shader expands to rotated textured quad
+	-- Fragment converts atlas alpha to darkening value matching world shader appearance
+	-- Used with GL_MIN blending to avoid overlap edge artifacts
+	decal = nil,
+	decalCode = {
+		vertex = [[
+#version 330
+// Per-instance decal data (one point = one decal)
+layout(location = 0) in vec4 posRot;        // worldX, worldZ, rotation (rad), maxalpha
+layout(location = 1) in vec4 sizeAlpha;     // halfLengthX, halfWidthZ, alphastart, alphadecay
+layout(location = 2) in vec4 uvCoords;      // p, q, s, t (atlas UV rect)
+layout(location = 3) in vec4 spawnParams;   // spawnframe, 0, 0, 0
+
+uniform float gameFrame;
+uniform vec2 invMapSize;  // 2/mapSizeX, 2/mapSizeZ (factor of 2 because NDC spans -1..1)
+
+out float v_alpha;
+out vec4 v_uv;        // p, q, s, t
+out vec2 v_halfNDC;   // half-size in NDC
+out float v_cosR;
+out float v_sinR;
+
+void main() {
+	// Compute current alpha on GPU (same formula as decals widget)
+	float lifetonow = gameFrame - spawnParams.x;
+	float currentAlpha = sizeAlpha.z - lifetonow * sizeAlpha.w;
+	currentAlpha = clamp(currentAlpha, 0.0, posRot.w);
+
+	// Skip expired/invisible decals
+	if (currentAlpha < 0.01) {
+		v_alpha = 0.0;
+		gl_Position = vec4(2.0, 2.0, 0.0, 1.0);  // off-screen
+		return;
+	}
+
+	v_alpha = currentAlpha;
+	v_uv = uvCoords;
+
+	// World position to NDC (-1..1)
+	vec2 ndc = posRot.xy * invMapSize - 1.0;
+	gl_Position = vec4(ndc, 0.0, 1.0);
+
+	// Half-size in NDC units (invMapSize already includes 2x for NDC range)
+	v_halfNDC = sizeAlpha.xy * invMapSize;
+
+	v_cosR = cos(posRot.z);
+	v_sinR = sin(posRot.z);
+}
+		]],
+		geometry = [[
+#version 330
+layout(points) in;
+layout(triangle_strip, max_vertices = 4) out;
+
+in float v_alpha[];
+in vec4 v_uv[];
+in vec2 v_halfNDC[];
+in float v_cosR[];
+in float v_sinR[];
+
+out vec2 f_texCoord;
+out float f_alpha;
+
+void main() {
+	float alpha = v_alpha[0];
+	if (alpha < 0.01) return;  // culled in vertex shader
+
+	vec4 c = gl_in[0].gl_Position;
+	vec2 hs = v_halfNDC[0];
+	vec4 uv = v_uv[0];  // p, q, s, t
+	float ca = v_cosR[0];
+	float sa = v_sinR[0];
+	f_alpha = alpha;
+
+	// Rotated corner offsets (X = length axis, Z = width axis)
+	vec2 dx = vec2(ca, sa) * hs.x;
+	vec2 dy = vec2(-sa, ca) * hs.y;
+
+	// BL: UV(p, s)
+	gl_Position = vec4(c.xy - dx - dy, 0.0, 1.0);
+	f_texCoord = vec2(uv.x, uv.z);
+	EmitVertex();
+	// BR: UV(q, s)
+	gl_Position = vec4(c.xy + dx - dy, 0.0, 1.0);
+	f_texCoord = vec2(uv.y, uv.z);
+	EmitVertex();
+	// TL: UV(p, t)
+	gl_Position = vec4(c.xy - dx + dy, 0.0, 1.0);
+	f_texCoord = vec2(uv.x, uv.w);
+	EmitVertex();
+	// TR: UV(q, t)
+	gl_Position = vec4(c.xy + dx + dy, 0.0, 1.0);
+	f_texCoord = vec2(uv.y, uv.w);
+	EmitVertex();
+
+	EndPrimitive();
+}
+		]],
+		fragment = [[
+#version 330
+uniform sampler2D atlasTex;
+in vec2 f_texCoord;
+in float f_alpha;
+out vec4 fragColor;
+
+void main() {
+	vec4 tex = texture(atlasTex, f_texCoord);
+	// Square alpha to match world decal shader (soft edge falloff)
+	float a = tex.a * tex.a * 0.999 * f_alpha;
+	// Brighten scar color toward mid-gray (world does tex * minimap * 2 + lighting)
+	vec3 scarColor = mix(tex.rgb, vec3(0.5), 0.35);
+	// Lerp from white toward scar color
+	vec3 result = mix(vec3(1.0), scarColor, a);
+	fragColor = vec4(result, 1.0);
+}
+		]],
+		uniformInt = {
+			atlasTex = 0,
 		},
 	},
 	-- Water overlay: renders water/lava tinting based on heightmap
@@ -1587,7 +1705,7 @@ local function InitGL4Icons()
 	end
 
 	gl4Icons.atlas = '$icons'
-	Spring.Echo("[PIP] GL4 icons: Using engine icon atlas ($icons, " .. iconsTexInfo.xsize .. "x" .. iconsTexInfo.ysize .. ")")
+	--Spring.Echo("[PIP] GL4 icons: Using engine icon atlas ($icons, " .. iconsTexInfo.xsize .. "x" .. iconsTexInfo.ysize .. ")")
 
 	-- Create raw VBO directly (no InstanceVBOTable — avoids per-frame table allocations)
 	-- Layout: 12 floats per instance (3 vec4 attributes)
@@ -1877,8 +1995,8 @@ end
 -- Set shared uniforms on a shader
 local function GL4SetPrimUniforms(shader, ulocs)
 	gl.UseShader(shader)
-	gl.UniformFloat(ulocs.wtp_scale, worldToPipScaleX, worldToPipScaleZ)
-	gl.UniformFloat(ulocs.wtp_offset, worldToPipOffsetX, worldToPipOffsetZ)
+	gl.UniformFloat(ulocs.wtp_scale, wtp.scaleX, wtp.scaleZ)
+	gl.UniformFloat(ulocs.wtp_offset, wtp.offsetX, wtp.offsetZ)
 	local fboW = render.dim.r - render.dim.l
 	local fboH = render.dim.t - render.dim.b
 	gl.UniformFloat(ulocs.ndcScale, 2.0 / fboW, 2.0 / fboH)
@@ -2045,15 +2163,15 @@ function RecalculateWorldCoordinates()
 			local dimR = centerX + halfHeight
 			local dimB = centerY - halfWidth
 			local dimT = centerY + halfWidth
-			worldToPipScaleX = (dimR - dimL) / worldWidth
-			worldToPipScaleZ = (dimT - dimB) / worldHeight
-			worldToPipOffsetX = dimL - render.world.l * worldToPipScaleX
-			worldToPipOffsetZ = dimB - render.world.b * worldToPipScaleZ
+			wtp.scaleX = (dimR - dimL) / worldWidth
+			wtp.scaleZ = (dimT - dimB) / worldHeight
+			wtp.offsetX = dimL - render.world.l * wtp.scaleX
+			wtp.offsetZ = dimB - render.world.b * wtp.scaleZ
 		else
-			worldToPipScaleX = (render.dim.r - render.dim.l) / worldWidth
-			worldToPipScaleZ = (render.dim.t - render.dim.b) / worldHeight
-			worldToPipOffsetX = render.dim.l - render.world.l * worldToPipScaleX
-			worldToPipOffsetZ = render.dim.b - render.world.b * worldToPipScaleZ
+			wtp.scaleX = (render.dim.r - render.dim.l) / worldWidth
+			wtp.scaleZ = (render.dim.t - render.dim.b) / worldHeight
+			wtp.offsetX = render.dim.l - render.world.l * wtp.scaleX
+			wtp.offsetZ = render.dim.b - render.world.b * wtp.scaleZ
 		end
 	end
 end
@@ -2223,6 +2341,9 @@ local function EnsureSavedExpandedDimensions()
 end
 
 local UpdateTracking  -- forward declaration (called in StartMaximizeAnimation, defined later)
+local InitGL4Decals   -- forward declaration (called in Initialize, defined after decalGL4 table)
+local DestroyGL4Decals -- forward declaration (called in Shutdown, defined after decalGL4 table)
+local decalGL4        -- forward declaration (referenced in DrawDecalsOverlay, defined later)
 
 local function StartMaximizeAnimation()
 	local buttonSize = math.floor(render.usedButtonSize * config.maximizeSizemult)
@@ -2695,8 +2816,8 @@ end
 local function WorldToPipCoords(wx, wz)
 	-- Use precalculated factors for performance (avoids repeated division)
 	-- Rotation is now handled by matrix transformation in RenderPipContents
-	return worldToPipOffsetX + wx * worldToPipScaleX,
-		   worldToPipOffsetZ + wz * worldToPipScaleZ
+	return wtp.offsetX + wx * wtp.scaleX,
+		   wtp.offsetZ + wz * wtp.scaleZ
 end
 
 -- Drawing
@@ -5022,6 +5143,20 @@ function widget:Initialize()
 		wrap_t = GL.CLAMP_TO_EDGE,
 	})
 
+	-- Initialize decal overlay texture (covers full map at reduced resolution)
+	-- White clear = multiply identity (no darkening); circles darken where decals exist
+	local decalTexWidth = math.max(1, math.floor(mapInfo.mapSizeX / pipR2T.decalTexScale))
+	local decalTexHeight = math.max(1, math.floor(mapInfo.mapSizeZ / pipR2T.decalTexScale))
+	pipR2T.decalTex = gl.CreateTexture(decalTexWidth, decalTexHeight, {
+		target = GL.TEXTURE_2D,
+		format = GL.RGBA8,
+		fbo = true,
+		min_filter = GL.LINEAR,
+		mag_filter = GL.LINEAR,
+		wrap_s = GL.CLAMP_TO_EDGE,
+		wrap_t = GL.CLAMP_TO_EDGE,
+	})
+
 	-- Initialize LOS shader for red-to-greyscale conversion
 	shaders.los = gl.CreateShader(shaders.losCode)
 	if not shaders.los then
@@ -5033,6 +5168,15 @@ function widget:Initialize()
 		end
 	end
 	
+	-- Initialize decal overlay shader + GL4 VBO/VAO
+	shaders.decal = gl.CreateShader(shaders.decalCode)
+	if not shaders.decal then
+		Spring.Echo("PIP: Failed to compile decal shader")
+		Spring.Echo("PIP: Shader log: " .. (gl.GetShaderLog() or "no log"))
+	else
+		InitGL4Decals()
+	end
+
 	-- Initialize minimap+shading compositing shader
 	shaders.minimapShading = gl.CreateShader(shaders.minimapShadingCode)
 	if not shaders.minimapShading then
@@ -5708,6 +5852,7 @@ function widget:Shutdown()
 		-- Safe to clean up all GPU resources — we're the last PIP instance
 		DestroyGL4Icons()
 		DestroyGL4Primitives()
+		DestroyGL4Decals()
 
 		gl.DeleteList(unitOutlineList)
 		gl.DeleteList(radarDotList)
@@ -5726,6 +5871,11 @@ function widget:Shutdown()
 		if shaders.water then
 			gl.DeleteShader(shaders.water)
 			shaders.water = nil
+		end
+
+		if shaders.decal then
+			gl.DeleteShader(shaders.decal)
+			shaders.decal = nil
 		end
 	else
 		-- Another PIP is still active — only disable GL4 flag (don't delete GPU resources)
@@ -5764,6 +5914,12 @@ function widget:Shutdown()
 	if pipR2T.losTex then
 		gl.DeleteTexture(pipR2T.losTex)
 		pipR2T.losTex = nil
+	end
+
+	-- Clean up decal overlay texture
+	if pipR2T.decalTex then
+		gl.DeleteTexture(pipR2T.decalTex)
+		pipR2T.decalTex = nil
 	end
 
 	-- Clean up minimize mode display list
@@ -6144,119 +6300,44 @@ local function DrawFormationDotsOverlay()
 	glFunc.Texture(false)
 end
 
--- Draw ground decals (explosion scars, footprints) from the decals GL4 widget
--- Uses multiply blending (DST_COLOR * SRC_COLOR): circle fragment multiplies ground color.
--- Core = darken factor (0.78–1.0), edge = 1.0 (no change). Alpha channel preserved via ONE,ZERO.
--- Gentle per-decal darkening (20%) so overlapping areas don't compound to near-black.
+-- Pre-created blit function for decal overlay (avoids per-frame closure allocation).
+-- References render.ground tables via upvalue; values update in-place so function stays valid.
+local function decalBlitQuad()
+	glFunc.TexCoord(render.ground.coord.l, render.ground.coord.b); glFunc.Vertex(render.ground.view.l, render.ground.view.b)
+	glFunc.TexCoord(render.ground.coord.r, render.ground.coord.b); glFunc.Vertex(render.ground.view.r, render.ground.view.b)
+	glFunc.TexCoord(render.ground.coord.r, render.ground.coord.t); glFunc.Vertex(render.ground.view.r, render.ground.view.t)
+	glFunc.TexCoord(render.ground.coord.l, render.ground.coord.t); glFunc.Vertex(render.ground.view.l, render.ground.view.t)
+end
+
+-- Draw ground decals (explosion scars) from the cached decal R2T texture.
+-- The decal texture covers the full map and is updated periodically by UpdateDecalTexture().
+-- Uses multiply blending to darken ground where decals exist; white = no change.
 local function DrawDecalsOverlay()
 	if not config.drawDecals then return end
+	if not pipR2T.decalTex then return end
+	if decalGL4.instanceCount == 0 then return end  -- no decals to draw
 
-	-- Skip decals when zoomed out far (they're invisible at that scale)
-	if cameraState.zoom <= config.decalZoomCutoff then return end
+	-- Blit decal texture with multiply blending: result = ground_color * decal_tex_color
+	-- Alpha: preserve destination alpha (prevents 3D world showing through PIP)
+	gl.Scissor(render.dim.l, render.dim.b, render.dim.r - render.dim.l, render.dim.t - render.dim.b)
+	gl.DepthTest(false)
+	gl.BlendFuncSeparate(GL.DST_COLOR, GL.ZERO, GL.ZERO, GL.ONE)
+	glFunc.Color(1, 1, 1, 1)
+	glFunc.Texture(pipR2T.decalTex)
 
-	-- Skip decals when draw time is already high (they're a luxury cosmetic)
-	if perfTimers.total > config.decalDrawTimeCutoff then return end
+	-- Map visible world portion to screen using pre-created function (no closure allocation)
+	glFunc.BeginEnd(GL.QUADS, decalBlitQuad)
 
-	local decalsAPI = WG['decalsgl4']
-	if not decalsAPI or not decalsAPI.GetActiveDecals then return end
-
-	local activeDecals = decalsAPI.GetActiveDecals()
-	if not activeDecals then return end
-
-	-- If activeDecalData is empty (e.g. after PIP re-enable / luaui reload),
-	-- ask the decals widget to rebuild from its VBO instance data
-	if not next(activeDecals) and decalsAPI.RebuildActiveDecalData then
-		activeDecals = decalsAPI.RebuildActiveDecalData()
-		if not activeDecals or not next(activeDecals) then return end
-	end
-
-	local frame = Spring.GetGameFrame()
-
-	-- Visible world bounds for culling
-	local wl, wr = render.world.l, render.world.r
-	local wt, wb = render.world.t, render.world.b
-	-- Ensure wt < wb (world.t is north = small Z, world.b is south = large Z)
-	if wt > wb then wt, wb = wb, wt end
-
-	-- Precompute minimum world-unit size threshold (combines pixel and world checks)
-	local pixelScale = math.abs(worldToPipScaleX)  -- world units -> PIP pixels
-	local minPipPixels = 2
-	local minWorldSize = 60  -- base minimum (world units)
-	if pixelScale > 0 then
-		local pixelMinWorld = minPipPixels / pixelScale * 2  -- min world size for pixel threshold
-		if pixelMinWorld > minWorldSize then minWorldSize = pixelMinWorld end
-	end
-
-	local useGL4 = gl4Prim.enabled
-	local MAX_DECALS = config.maxDecals
-	local DECAL_THROTTLE = math.floor(MAX_DECALS * 0.75)  -- at 75% capacity, raise size threshold
-	local throttleMinSize = minWorldSize * 3  -- only allow decals 3x the base minimum when throttling
-
-	if useGL4 then
-		-- Inline GL4AddCircle: write directly into circle data array
-		local c = gl4Prim.circles
-		local circleMax = gl4Prim.CIRCLE_MAX
-		local circleStep = gl4Prim.CIRCLE_STEP
-		local d = c.data
-		local count = 0
-		local effectiveMinSize = minWorldSize
-
-		for id, decal in pairs(activeDecals) do
-			if count >= MAX_DECALS then break end
-			-- Once past 75% capacity, only accept larger decals
-			if count >= DECAL_THROTTLE then
-				effectiveMinSize = throttleMinSize
-			end
-			if not decal[7] then  -- skip footprints
-				local dx, dz, dsize = decal[1], decal[2], decal[3]
-				if dsize >= effectiveMinSize then
-					-- Cull decals outside visible area (with size margin)
-					if dx + dsize > wl and dx - dsize < wr and dz + dsize > wt and dz - dsize < wb then
-						local alpha = decal[4] - decal[5] * (frame - decal[6])
-						if alpha > 0.02 then
-							if count >= circleMax then break end
-							-- Inline circle data write (avoids function call per decal)
-							local intensity = alpha
-							if intensity > 1.0 then intensity = 1.0 end
-							local darkenCore = 1.0 - intensity * 0.20
-							if darkenCore < 0.78 then darkenCore = 0.78 end
-							local off = count * circleStep
-							d[off+1] = dx; d[off+2] = dz; d[off+3] = dsize * 0.5; d[off+4] = 1
-							d[off+5] = darkenCore; d[off+6] = darkenCore; d[off+7] = darkenCore; d[off+8] = 1
-							d[off+9] = 1; d[off+10] = 1; d[off+11] = 1; d[off+12] = 0
-							count = count + 1
-						end
-					end
-				end
-			end
-		end
-
-		c.count = count
-
-		-- Flush circles with multiply blending: result = ground_color * circle_color
-		if count > 0 then
-			gl.Scissor(render.dim.l, render.dim.b, render.dim.r - render.dim.l, render.dim.t - render.dim.b)
-			gl.DepthTest(false)
-			-- Multiply blend: color = dst * src, alpha = dst (preserved)
-			gl.BlendFuncSeparate(GL.DST_COLOR, GL.ZERO, GL.ONE, GL.ZERO)
-
-			c.vbo:Upload(d, nil, 0, 1, count * circleStep)
-			GL4SetPrimUniforms(c.shader, c.uniformLocs)
-			c.vao:DrawArrays(GL.POINTS, count)
-			gl.UseShader(0)
-
-			-- Restore standard blending
-			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-			gl.Scissor(false)
-		end
-	end
+	glFunc.Texture(false)
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	gl.Scissor(false)
 end
 
 -- Helper function to draw command queues overlay
 -- Draw command FX: fading lines from unit to command target
 local function DrawCommandFXOverlay()
 	if not config.drawCommandFX then return end
-	if commandFXCount == 0 then return end
+	if commandFX.count == 0 then return end
 
 	local useGL4 = gl4Prim.enabled
 	local resScale = render.contentScale or 1
@@ -6272,13 +6353,13 @@ local function DrawCommandFXOverlay()
 	if useGL4 then
 		gl4Prim.normLines.count = 0
 
-		for i = 1, commandFXCount do
-			local fx = commandFXList[i]
+		for i = 1, commandFX.count do
+			local fx = commandFX.list[i]
 			local age = now - fx.time
 			if age < fxDuration then
 				writeIdx = writeIdx + 1
 				if writeIdx ~= i then
-					commandFXList[writeIdx] = fx
+					commandFX.list[writeIdx] = fx
 				end
 				local progress = age / fxDuration
 				local alpha = fxAlpha * (1 - progress)
@@ -6291,10 +6372,10 @@ local function DrawCommandFXOverlay()
 		end
 
 		-- Clean up trailing entries
-		for i = writeIdx + 1, commandFXCount do
-			commandFXList[i] = nil
+		for i = writeIdx + 1, commandFX.count do
+			commandFX.list[i] = nil
 		end
-		commandFXCount = writeIdx
+		commandFX.count = writeIdx
 
 		-- Flush via GL4 shaders
 		if gl4Prim.normLines.count > 0 then
@@ -6998,8 +7079,8 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 				up = {}
 				unitpicEntries[unitpicCount] = up
 			end
-			up[1] = worldToPipOffsetX + ux * worldToPipScaleX   -- pipX
-			up[2] = worldToPipOffsetZ + uz * worldToPipScaleZ   -- pipY
+			up[1] = wtp.offsetX + ux * wtp.scaleX   -- pipX
+			up[2] = wtp.offsetZ + uz * wtp.scaleZ   -- pipY
 			up[3] = visibleDefID
 			up[4] = uTeam
 			up[5] = (selectedSet and selectedSet[uID]) and true or false
@@ -7192,8 +7273,8 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	-- Activate shader and set uniforms
 	gl.UseShader(gl4Icons.shader)
 	local ul = gl4Icons.uniformLocs
-	gl.UniformFloat(ul.wtp_scale, worldToPipScaleX, worldToPipScaleZ)
-	gl.UniformFloat(ul.wtp_offset, worldToPipOffsetX, worldToPipOffsetZ)
+	gl.UniformFloat(ul.wtp_scale, wtp.scaleX, wtp.scaleZ)
+	gl.UniformFloat(ul.wtp_offset, wtp.offsetX, wtp.offsetZ)
 
 	-- FBO dimensions for NDC conversion
 	local fboW = render.dim.r - render.dim.l
@@ -10323,6 +10404,213 @@ local function UpdateR2TCheapLayers(currentTime, pipUpdateInterval, pipWidth, pi
 	end
 end
 
+-- GL4 instanced decal rendering: GPU computes alpha fade, single draw call
+-- VBO holds per-instance decal data, geometry shader expands points to rotated textured quads
+-- Instance data only uploaded when decals are added/removed (not every frame)
+decalGL4 = {
+	atlasPath = "luaui/images/decals_gl4/decalsgl4_atlas_diffuse.dds",
+	INSTANCE_STEP = 16,   -- floats per instance (4 x vec4)
+	MAX_INSTANCES = 16384,
+	vbo = nil,
+	vao = nil,
+	instanceData = nil,   -- pre-allocated flat float array
+	instanceCount = 0,    -- current number of valid instances
+	version = -1,         -- last usedElements sum (dirty check)
+	logCount = 0,
+	uniformLocs = nil,    -- cached uniform locations
+	renderFrame = 0,      -- game frame for GPU alpha computation (set before R2T draw)
+}
+
+-- Initialize GL4 decal resources (called during R2T setup)
+InitGL4Decals = function()
+	if not gl.GetVAO or not gl.GetVBO then return end
+	if not shaders.decal then return end
+
+	local vbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
+	if not vbo then
+		Spring.Echo("[PIP] GL4 decals: Failed to create VBO")
+		return
+	end
+	vbo:Define(decalGL4.MAX_INSTANCES, {
+		{id = 0, name = 'posRot',      size = 4},  -- worldX, worldZ, rotation, maxalpha
+		{id = 1, name = 'sizeAlpha',   size = 4},  -- halfLengthX, halfWidthZ, alphastart, alphadecay
+		{id = 2, name = 'uvCoords',    size = 4},  -- p, q, s, t
+		{id = 3, name = 'spawnParams', size = 4},  -- spawnframe, 0, 0, 0
+	})
+
+	local vao = gl.GetVAO()
+	if not vao then
+		Spring.Echo("[PIP] GL4 decals: Failed to create VAO")
+		vbo:Delete()
+		return
+	end
+	vao:AttachVertexBuffer(vbo)
+
+	-- Pre-allocate instance data array
+	local instanceData = {}
+	for i = 1, decalGL4.MAX_INSTANCES * decalGL4.INSTANCE_STEP do
+		instanceData[i] = 0
+	end
+
+	decalGL4.vbo = vbo
+	decalGL4.vao = vao
+	decalGL4.instanceData = instanceData
+
+	-- Cache uniform locations
+	decalGL4.uniformLocs = {
+		gameFrame  = gl.GetUniformLocation(shaders.decal, "gameFrame"),
+		invMapSize = gl.GetUniformLocation(shaders.decal, "invMapSize"),
+	}
+
+	Spring.Echo("[PIP] GL4 instanced decal rendering enabled")
+end
+
+-- Destroy GL4 decal resources
+DestroyGL4Decals = function()
+	if decalGL4.vao then decalGL4.vao:Delete(); decalGL4.vao = nil end
+	if decalGL4.vbo then decalGL4.vbo:Delete(); decalGL4.vbo = nil end
+	decalGL4.instanceData = nil
+	decalGL4.instanceCount = 0
+	decalGL4.version = -1
+	decalGL4.uniformLocs = nil
+end
+
+-- Rebuild VBO instance data from decal VBO tables (only when decals added/removed)
+-- Uses sequential index iteration (1..usedElements) instead of pairs() for speed.
+-- The VBO uses swap-with-last compaction so indices are always contiguous.
+local function RebuildDecalVBO(vboTables)
+	local data = decalGL4.instanceData
+	local step = decalGL4.INSTANCE_STEP
+	local count = 0
+	local maxInst = decalGL4.MAX_INSTANCES
+
+	for vi = 1, #vboTables do
+		local vbo = vboTables[vi]
+		if vbo and vbo.usedElements > 0 then
+			local srcStep = vbo.instanceStep
+			local srcData = vbo.instanceData
+			local used = vbo.usedElements
+			-- Sequential iteration: ~3x faster than pairs() over sparse hash table
+			for idx = 1, used do
+				if count >= maxInst then break end
+				local ofs = (idx - 1) * srcStep
+				local p = srcData[ofs + 5]
+				local s = srcData[ofs + 7]
+				-- Only include textured decals (skip untextured color-only)
+				if p and s then
+					local o = count * step
+					-- posRot: worldX, worldZ, rotation, maxalpha
+					data[o+1]  = srcData[ofs + 13]   -- posx
+					data[o+2]  = srcData[ofs + 15]   -- posz
+					data[o+3]  = srcData[ofs + 3]    -- rotation
+					data[o+4]  = srcData[ofs + 4]    -- maxalpha
+					-- sizeAlpha: halfLengthX, halfWidthZ, alphastart, alphadecay
+					data[o+5]  = srcData[ofs + 1] * 0.5  -- half length
+					data[o+6]  = srcData[ofs + 2] * 0.5  -- half width
+					data[o+7]  = srcData[ofs + 9]    -- alphastart
+					data[o+8]  = srcData[ofs + 10]   -- alphadecay
+					-- uvCoords: p, q, s, t
+					data[o+9]  = p
+					data[o+10] = srcData[ofs + 6]    -- q
+					data[o+11] = s
+					data[o+12] = srcData[ofs + 8]    -- t
+					-- spawnParams: spawnframe, 0, 0, 0
+					data[o+13] = srcData[ofs + 16]   -- spawnframe
+					data[o+14] = 0
+					data[o+15] = 0
+					data[o+16] = 0
+					count = count + 1
+				end
+			end
+		end
+	end
+
+	decalGL4.instanceCount = count
+
+	-- Upload to GPU
+	if count > 0 then
+		decalGL4.vbo:Upload(data, nil, 0, 1, count * step)
+	end
+end
+
+-- Pre-created closure for R2T clear quad (no per-call allocation)
+local function decalClearQuad()
+	glFunc.Vertex(-1, -1); glFunc.Vertex(1, -1)
+	glFunc.Vertex(1, 1); glFunc.Vertex(-1, 1)
+end
+
+-- Pre-created R2T draw function for GL4 decals (no per-call closure allocation)
+local function decalR2TDraw()
+	-- Clear to white (multiply identity)
+	glFunc.Texture(false)
+	gl.Blending(false)
+	glFunc.Color(1, 1, 1, 1)
+	glFunc.BeginEnd(GL.QUADS, decalClearQuad)
+
+	if decalGL4.instanceCount > 0 then
+		-- GL_MIN blending: darkest wins, no overlap fringing, alpha stays 1.0
+		gl.Blending(GL.ONE, GL.ONE)
+		gl.BlendEquation(0x8007)  -- GL_MIN
+
+		local atlasOK = glFunc.Texture(decalGL4.atlasPath)
+		if atlasOK then
+			gl.UseShader(shaders.decal)
+			local ul = decalGL4.uniformLocs
+			gl.UniformFloat(ul.gameFrame, decalGL4.renderFrame)
+			gl.UniformFloat(ul.invMapSize, 2.0 / mapInfo.mapSizeX, 2.0 / mapInfo.mapSizeZ)
+			decalGL4.vao:DrawArrays(GL.POINTS, decalGL4.instanceCount)
+			gl.UseShader(0)
+			glFunc.Texture(false)
+		end
+
+		gl.BlendEquation(GL.FUNC_ADD)
+	end
+
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+end
+
+local function UpdateDecalTexture()
+	if not config.drawDecals then return end
+	if not pipR2T.decalTex then return end
+	if not decalGL4.vao then return end
+
+	-- Rate-limit: only run dirty check every N game frames (~1 sec)
+	-- This is the single biggest cost saver — skips ALL work on 29/30 frames
+	local frame = Spring.GetGameFrame()
+	if (frame - pipR2T.decalLastCheckFrame) < pipR2T.decalCheckInterval then return end
+	pipR2T.decalLastCheckFrame = frame
+
+	local decalsAPI = WG['decalsgl4']
+	if not decalsAPI then return end
+	local getVBO = decalsAPI.GetVBOData
+	if not getVBO then return end
+	local vboTables = getVBO()
+	if not vboTables then return end
+
+	-- Cheap dirty check: sum of usedElements across all VBOs
+	local elemSum = 0
+	for vi = 1, #vboTables do
+		local vbo = vboTables[vi]
+		if vbo then elemSum = elemSum + (vbo.usedElements or 0) end
+	end
+
+	-- Only rebuild VBO + re-render R2T when decal count actually changed
+	if elemSum == decalGL4.version then return end
+
+	RebuildDecalVBO(vboTables)
+	decalGL4.version = elemSum
+	if decalGL4.logCount < 3 then
+		--Spring.Echo("[PIP Decals] GL4 VBO rebuilt: instances=" .. decalGL4.instanceCount .. " elems=" .. elemSum)
+		decalGL4.logCount = decalGL4.logCount + 1
+	end
+
+	if decalGL4.instanceCount == 0 then return end
+
+	-- Render into R2T texture: single instanced draw call, GPU computes alpha fade
+	decalGL4.renderFrame = frame
+	gl.R2tHelper.RenderToTexture(pipR2T.decalTex, decalR2TDraw)
+end
+
 -- Update LOS texture with current Line-of-Sight information
 local function UpdateLOSTexture(currentTime)
 	-- In minimap mode, skip until ViewResize has initialized
@@ -10924,6 +11212,9 @@ function widget:DrawScreen()
 
 		-- Update LOS texture
 		UpdateLOSTexture(currentTime)
+
+		-- Update decal overlay texture (~once per second, game-frame based)
+		UpdateDecalTexture()
 
 		-- Update oversized units texture at throttled rate (expensive layers)
 		local drawStartTime = os.clock()
@@ -12537,12 +12828,12 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 
 	-- Skip commands to newly finished units (rally point / initial orders)
 	if config.commandFXIgnoreNewUnits then
-		local finishTime = commandFXNewUnits[unitID]
+		local finishTime = commandFX.newUnits[unitID]
 		if finishTime then
 			if (gameTime - finishTime) < 0.3 then
 				return
 			else
-				commandFXNewUnits[unitID] = nil
+				commandFX.newUnits[unitID] = nil
 			end
 		end
 	end
@@ -12575,7 +12866,7 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 
 	-- Get start position: chain from previous command target if recent, else use unit position
 	local startX, startZ
-	local lastTarget = commandFXLastTarget[unitID]
+	local lastTarget = commandFX.lastTarget[unitID]
 	if lastTarget and (wallClockTime - lastTarget.time) < 0.15 then
 		-- Recent command in queue — chain from its target
 		startX, startZ = lastTarget.x, lastTarget.z
@@ -12589,17 +12880,17 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 	-- Don't add if start and target are at same spot
 	if math.abs(startX - targetX) < 1 and math.abs(startZ - targetZ) < 1 then
 		-- Still update last target for further chaining
-		commandFXLastTarget[unitID] = { x = targetX, z = targetZ, time = wallClockTime }
+		commandFX.lastTarget[unitID] = { x = targetX, z = targetZ, time = wallClockTime }
 		return
 	end
 
 	-- Update last target for this unit (for chaining subsequent commands)
-	commandFXLastTarget[unitID] = { x = targetX, z = targetZ, time = wallClockTime }
+	commandFX.lastTarget[unitID] = { x = targetX, z = targetZ, time = wallClockTime }
 
 	-- Add to FX list (cap at max entries)
-	if commandFXCount < COMMAND_FX_MAX then
-		commandFXCount = commandFXCount + 1
-		commandFXList[commandFXCount] = {
+	if commandFX.count < commandFX.MAX then
+		commandFX.count = commandFX.count + 1
+		commandFX.list[commandFX.count] = {
 			unitX = startX, unitZ = startZ,
 			targetX = targetX, targetZ = targetZ,
 			cmdID = cmdID,
@@ -12612,7 +12903,7 @@ end
 -- Track newly finished units to suppress their initial rally point command FX
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	if config.drawCommandFX and config.commandFXIgnoreNewUnits then
-		commandFXNewUnits[unitID] = wallClockTime
+		commandFX.newUnits[unitID] = wallClockTime
 	end
 end
 
@@ -12756,6 +13047,7 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 			})
 		end
 	end
+
 end
 
 function widget:DefaultCommand()
