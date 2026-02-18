@@ -198,6 +198,7 @@ local config = {
 	minimapModeShowButtons = false,  -- Hide buttons in minimap mode
 	minimapModeStartMinimized = false,  -- Don't start minimized in minimap mode
 	minimapModeHideMoveResize = true,  -- Hide move and resize buttons in minimap mode
+	hideAICommands = true,  -- Hide command queues from AI players (default: enabled)
 	showSpectatorPings = true,  -- Show map pings from spectators on the PIP minimap
 	showViewRectangleOnMinimap = false,  -- Show the PIP view rectangle on the engine minimap
 }
@@ -683,6 +684,26 @@ local seismicPingDlists = {
 local gameHasStarted
 local gaiaTeamID = Spring.GetGaiaTeamID()
 local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID))
+
+-- Build AI team lookup tables at load time
+-- aiTeams: all AI-controlled teams (for optional hiding)
+-- scavRaptorTeams: scavenger/raptor AI teams (always hidden regardless of setting)
+local aiTeams = {}
+local scavRaptorTeams = {}
+do
+	local teamList = Spring.GetTeamList()
+	for i = 1, #teamList do
+		local teamID = teamList[i]
+		local _, _, _, isAI = Spring.GetTeamInfo(teamID, false)
+		if isAI then
+			aiTeams[teamID] = true
+			local luaAI = Spring.GetTeamLuaAI(teamID) or ''
+			if string.find(luaAI, 'Scavenger') or string.find(luaAI, 'Raptor') then
+				scavRaptorTeams[teamID] = true
+			end
+		end
+	end
+end
 
 -- Command colors
 local cmdColors = {
@@ -6106,6 +6127,7 @@ function widget:GetConfigData()
 		unitpicZoomThreshold=config.unitpicZoomThreshold,
 		explosionOverlay=config.explosionOverlay,
 		explosionOverlayAlpha=config.explosionOverlayAlpha,
+		hideAICommands=config.hideAICommands,
 		gameID = Game.gameID or Spring.GetGameRulesParam("GameID"),
 		-- Minimap mode settings
 		minimapModeMaxHeight = config.minimapModeMaxHeight,
@@ -6251,6 +6273,7 @@ function widget:SetConfigData(data)
 	if data.showUnitpics ~= nil then config.showUnitpics = data.showUnitpics end
 	if data.explosionOverlay ~= nil then config.explosionOverlay = data.explosionOverlay end
 	if data.explosionOverlayAlpha then config.explosionOverlayAlpha = data.explosionOverlayAlpha end
+	if data.hideAICommands ~= nil then config.hideAICommands = data.hideAICommands end
 	--if data.unitpicZoomThreshold then config.unitpicZoomThreshold = data.unitpicZoomThreshold end
 	
 	-- Restore minimap mode settings
@@ -6490,8 +6513,13 @@ local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 		if miscState.pipUnits then
 			local pUnitCount = #miscState.pipUnits
 			for i = 1, pUnitCount do
-				unitCount = unitCount + 1
-				unitsToShow[unitCount] = miscState.pipUnits[i]
+				local uID = miscState.pipUnits[i]
+				-- Filter out AI units: always skip scavenger/raptor, optionally skip other AI
+				local uTeam = spFunc.GetUnitTeam(uID)
+				if not scavRaptorTeams[uTeam] and not (config.hideAICommands and aiTeams[uTeam]) then
+					unitCount = unitCount + 1
+					unitsToShow[unitCount] = uID
+				end
 			end
 		end
 	else
@@ -6553,7 +6581,8 @@ local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 		for i = 1, unitCount do
 			local uID = unitsToShow[i]
 			local unitTeam = spFunc.GetUnitTeam(uID)
-			if unitTeam ~= gaiaTeamID then
+			-- Skip gaia units, and skip AI units (always for scav/raptor, optionally for other AI)
+			if unitTeam ~= gaiaTeamID and not scavRaptorTeams[unitTeam] and not (config.hideAICommands and aiTeams[unitTeam]) then
 				local commands = spFunc.GetUnitCommands(uID, 30)
 				local cached = wpCache[uID]
 				if not cached then
