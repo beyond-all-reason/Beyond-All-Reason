@@ -626,6 +626,10 @@ local perfTimers = {
 	icKeysort = 0,    -- sort key computation + building/mobile split
 	icSort = 0,       -- table.sort calls
 	icProcess = 0,    -- processUnit loop
+	icProcBldg = 0,   -- processUnit: buildings sub-loop
+	icProcMobile = 0, -- processUnit: mobile units sub-loop
+	icProcBldgN = 0,  -- count of buildings processed
+	icProcMobileN = 0,-- count of mobile units processed
 	icUploadDraw = 0, -- VBO upload + shader setup + draw calls
 	icUnitpics = 0,   -- unitpic overlay rendering
 }
@@ -3185,24 +3189,25 @@ local function DrawProjectile(pID)
 			local colorData = cache.weaponColor[pDefID]
 			color = {colorData[1], colorData[2], colorData[3], 1}
 
-			-- Make blaster bolts elongated based on velocity
+			-- Bolt dimensions based on weapon size + damage (explosion radius as proxy)
+			local wSize = cache.weaponSize[pDefID] or 1
+			local explosionR = cache.weaponExplosionRadius[pDefID] or 10
+			-- Damage factor: small lasers (AOE<20) ~0.7, medium ~1.0, heavy (AOE>80) ~1.4
+			local damageFactor = 0.6 + math.min(0.8, explosionR * 0.01)
+
+			-- Gentle zoom boost: keeps bolts visible when zoomed out without ballooning
+			-- zoom 0.02: ~2.2x, zoom 0.05: ~1.8x, zoom 0.1: ~1.5x, zoom 0.3: ~1.2x
+			local blasterZoom = 1.6 + 0.6 / (cameraState.zoom + 0.1)
+
+			-- Bolt width: narrow but visible, proportional to damage
+			width = wSize * 0.5 * damageFactor * blasterZoom
+			-- Bolt length: elongated, proportional to damage
+			height = wSize * 2.5 * damageFactor * blasterZoom
+
+			-- Calculate angle from velocity direction
 			local vx, vy, vz = spFunc.GetProjectileVelocity(pID)
-			if vx and (vx ~= 0 or vy ~= 0 or vz ~= 0) then
-				-- Calculate bolt dimensions based on speed
-				local speed = math.sqrt(vx*vx + vy*vy + vz*vz)
-
-				-- Scale up width at low zoom (far back) for better visibility (but not length)
-				local zoomScale = math.max(1, math.min(3, 1 / cameraState.zoom))
-
-				-- Elongated blaster bolt (longer in direction of travel)
-				width = (cache.weaponSize[pDefID] or 2) * 0.8 * zoomScale
-				height = speed * 0.15 -- Length based on speed
-
-				-- Calculate angle based on velocity direction (like missiles)
+			if vx and (vx ~= 0 or vz ~= 0) then
 				angle = math.atan2(vx, vz) * mapInfo.rad2deg
-			else
-				-- Fallback: draw as regular sized projectile
-				size = math.max(3, cache.weaponSize[pDefID] * 2)
 			end
 		-- Non-laser, non-blaster weapon projectiles - use cached size data
 		elseif not cache.projectileSizes[pDefID] then
@@ -3253,8 +3258,11 @@ local function DrawProjectile(pID)
 	-- High zoom (zoomed in): scale up proportionally
 	-- zoom 0.02: ~3.5x, zoom 0.05: ~2.7x, zoom 0.1: ~2.1x, zoom 0.2: ~1.7x, zoom 0.5: ~1.4x, zoom 0.8: ~2.6x
 	local zoomScale = 1 + (cameraState.zoom * 2) + 0.15 / (cameraState.zoom + 0.05)
-	width = width * zoomScale
-	height = height * zoomScale
+	-- Blasters handle their own sizing (fixed world-scale bolts); skip general zoom scaling
+	if not (pDefID and cache.weaponIsBlaster[pDefID]) then
+		width = width * zoomScale
+		height = height * zoomScale
+	end
 
 	-- Make missiles longer rectangles and calculate orientation (using cached data)
 	if pDefID and cache.weaponIsMissile[pDefID] then
@@ -3418,14 +3426,14 @@ local function DrawProjectile(pID)
 
 	-- GL4 path: add projectile shapes directly in world coords
 	if pDefID and cache.weaponIsBlaster[pDefID] then
-		-- Outer glow quad
-		GL4AddQuad(px, pz, width * 1.3, height, angle, color[1], color[2], color[3], color[4] * 0.4)
-		-- Inner core quad (brighter, whiter)
-		local whiteness = 0.6
+		-- Outer glow: slightly wider and longer than core, semi-transparent weapon color
+		GL4AddQuad(px, pz, width * 1.6, height * 1.1, angle, color[1], color[2], color[3], color[4] * 0.35)
+		-- Inner core: narrow bright bolt, white-shifted for hot center
+		local whiteness = 0.7
 		local coreR = color[1] * (1 - whiteness) + whiteness
 		local coreG = color[2] * (1 - whiteness) + whiteness
 		local coreB = color[3] * (1 - whiteness) + whiteness
-		GL4AddQuad(px, pz, width * 0.6, height, angle, coreR, coreG, coreB, color[4] * 0.95)
+		GL4AddQuad(px, pz, width * 0.7, height * 0.85, angle, coreR, coreG, coreB, color[4] * 0.95)
 	elseif pDefID and cache.weaponIsMissile[pDefID] then
 		-- Missile shape: body + nose + tail fins offset along flight direction
 		local rad = angle * 0.01745329  -- pi/180
@@ -4031,6 +4039,8 @@ local function DrawExplosions()
 		for j = rCount + 1, #radii do radii[j] = nil end
 	end
 
+	local currentFrame = Spring.GetGameFrame()
+
 	local n = #cache.explosions
 	while i <= n do
 		local explosion = cache.explosions[i]
@@ -4043,7 +4053,8 @@ local function DrawExplosions()
 		if explosionMinRadius > 0 and explosion.radius < explosionMinRadius then
 			i = i + 1
 		else
-		local age = gameTime - explosion.startTime
+		-- Age in seconds derived from game frames (freezes when paused)
+		local age = (currentFrame - explosion.startFrame) / 30
 
 		-- Remove explosions older than 0.8 seconds (longer for large explosions)
 		local lifetime = 0.4 + explosion.radius / 200 -- Base lifetime calculation
@@ -4058,6 +4069,11 @@ local function DrawExplosions()
 			lifetime = math.min(1.0, lifetime * 1.5) -- Large explosions up to 1 second
 		else
 			lifetime = math.min(0.8, lifetime) -- Normal explosions up to 0.8 seconds
+		end
+
+		-- Unit death explosions last 40% longer
+		if explosion.isUnitExplosion then
+			lifetime = lifetime * 1.4
 		end
 
 		if age > lifetime then
@@ -4127,7 +4143,13 @@ local function DrawExplosions()
 						effectiveRadius = explosion.radius * 0.75
 					end
 
-					local baseRadius = effectiveRadius * (0.3 + progress * 1.7) -- Expands to 2x size
+					-- Unit death explosions are 33% larger
+					if explosion.isUnitExplosion then
+						effectiveRadius = effectiveRadius * 1.33
+					end
+
+					-- Fireball radius (20% smaller than before)
+					local baseRadius = effectiveRadius * (0.27 + progress * 1.8)
 					local alpha = 1 - progress                  -- Fades out
 
 					-- Color: outer fireball (darker, smoky edge) and inner core (bright, hot)
@@ -4189,17 +4211,17 @@ local function DrawExplosions()
 						GL4AddCircle(explosion.x, explosion.z, coreRadius, innerAlpha,
 							cr, cg, cb,  r, g, b,  coreAlpha * 0.8, 0)
 
-						-- Layer 3: Initial flash (fast white-hot burst, first 30% of lifetime)
-						if actualProgress < 0.3 then
-							local flashT = actualProgress / 0.3
-							local flashAlpha = (1 - flashT * flashT) * 0.9  -- Quadratic falloff
-							local flashRadius = baseRadius * (0.6 + flashT * 0.8)
+						-- Layer 3: Initial flash (fast white-hot burst, first 20% of lifetime)
+						if actualProgress < 0.2 then
+							local flashT = actualProgress / 0.2
+							local flashAlpha = (1 - flashT * flashT) * 0.95  -- Quadratic falloff, brighter peak
+							local flashRadius = baseRadius * (0.8 + flashT * 0.9)
 							if explosion.isParalyze then
 								GL4AddCircle(explosion.x, explosion.z, flashRadius, flashAlpha,
-									0.8, 0.85, 1,  0.6, 0.7, 1,  flashAlpha * 0.35, 0)
+									0.85, 0.9, 1,  0.65, 0.75, 1,  flashAlpha * 0.4, 0)
 							else
 								GL4AddCircle(explosion.x, explosion.z, flashRadius, flashAlpha,
-									1, 1, 0.9,  1, 0.9, 0.5,  flashAlpha * 0.3, 0)
+									1, 1, 1,  1, 0.95, 0.7,  flashAlpha * 0.35, 0)
 							end
 						end
 
@@ -4229,10 +4251,12 @@ local function DrawExplosionOverlay()
 	if #cache.explosions == 0 then return end
 	if not gl4Prim.enabled then return end
 
+	local currentFrame = Spring.GetGameFrame()
+
 	for i = 1, #cache.explosions do
 		local explosion = cache.explosions[i]
 		if explosion and explosion.x and not explosion.isLightning then
-			local age = gameTime - explosion.startTime
+			local age = (currentFrame - explosion.startFrame) / 30
 
 			-- Replicate lifetime logic from DrawExplosions
 			local lifetime = 0.4 + explosion.radius / 200
@@ -4244,11 +4268,17 @@ local function DrawExplosionOverlay()
 				lifetime = math.min(0.8, lifetime)
 			end
 
+			-- Unit death explosions last 40% longer
+			if explosion.isUnitExplosion then
+				lifetime = lifetime * 1.4
+			end
+
 			if age <= lifetime then
 				local progress = 0.3 + (age / lifetime) * 0.7
 				local effectiveRadius = explosion.radius
 				if effectiveRadius > 80 then effectiveRadius = effectiveRadius * 0.75 end
-				local baseRadius = effectiveRadius * (0.3 + progress * 1.7)
+				if explosion.isUnitExplosion then effectiveRadius = effectiveRadius * 1.33 end
+				local baseRadius = effectiveRadius * (0.24 + progress * 1.36)
 				local fade = 1 - (age / lifetime)
 
 				-- Saturated colored glow (additive blend adds these to the scene)
@@ -6950,6 +6980,37 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	local localCachePosX = gl4Icons.cachedPosX
 	local localCachePosZ = gl4Icons.cachedPosZ
 
+	-- Pre-build combined UV+size lookup (one array instead of two hash lookups per unit)
+	local uvSizeLookup = gl4Icons._uvSizeLookup
+	if not uvSizeLookup then
+		uvSizeLookup = {}
+		for uDefID, uvs in pairs(atlasUVs) do
+			local icon = cacheUnitIcon[uDefID]
+			local sz = icon and icon.size or 0.5
+			uvSizeLookup[uDefID] = {uvs[1], uvs[2], uvs[3], uvs[4], sz}
+		end
+		gl4Icons._uvSizeLookup = uvSizeLookup
+	end
+	local defaultUVSize = gl4Icons._defaultUVSize
+	if not defaultUVSize then
+		defaultUVSize = {defaultUV[1], defaultUV[2], defaultUV[3], defaultUV[4], 0.5}
+		gl4Icons._defaultUVSize = defaultUVSize
+	end
+
+	-- Pre-flatten team colors into separate R/G/B arrays (avoids nested table access per unit)
+	local teamColorR = gl4Icons._teamColorR
+	local teamColorG = gl4Icons._teamColorG
+	local teamColorB = gl4Icons._teamColorB
+	if not teamColorR then
+		teamColorR = {}; teamColorG = {}; teamColorB = {}
+		gl4Icons._teamColorR = teamColorR
+		gl4Icons._teamColorG = teamColorG
+		gl4Icons._teamColorB = teamColorB
+	end
+	for tID, c in pairs(localTeamColors) do
+		teamColorR[tID] = c[1]; teamColorG[tID] = c[2]; teamColorB[tID] = c[3]
+	end
+
 	-- At high unit counts, skip cosmetic-only features (stun tint, damage flash)
 	-- to reduce per-unit API calls. These are barely visible at the zoom levels
 	-- where thousands of units are on screen.
@@ -7026,27 +7087,17 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 
 		if not visibleDefID and not isRadar then return usedEl end
 
-		-- Look up atlas UV and size scale
-		local uvs, sizeScale
-		if visibleDefID and cacheUnitIcon[visibleDefID] then
-			uvs = atlasUVs[visibleDefID] or defaultUV
-			sizeScale = cacheUnitIcon[visibleDefID].size
-		else
-			uvs = defaultUV
-			sizeScale = 0.5
-		end
+		-- Look up atlas UV and size scale (combined single-table lookup)
+		local uvs = uvSizeLookup[visibleDefID] or defaultUVSize
 
-		-- Team color (white if selected)
+		-- Team color (white if selected, flattened lookup)
 		local r, g, b
 		if selectedSet and selectedSet[uID] then
 			r, g, b = 1, 1, 1
 		else
-			local color = localTeamColors[uTeam]
-			if color then
-				r, g, b = color[1], color[2], color[3]
-			else
-				r, g, b = 1, 1, 1
-			end
+			r = teamColorR[uTeam] or 1
+			g = teamColorG[uTeam] or 1
+			b = teamColorB[uTeam] or 1
 		end
 
 		-- Damage flash: briefly flash toward white when unit takes damage
@@ -7094,7 +7145,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 
 		-- Write 12 floats directly into pre-allocated array
 		local off = usedEl * instStep
-		data[off+1] = ux; data[off+2] = uz; data[off+3] = sizeScale; data[off+4] = (isRadar and 1 or 0) + (takeableTeams[uTeam] and 2 or 0) + (isStunned and 4 or 0) + (trackedSet and trackedSet[uID] and 8 or 0)
+		data[off+1] = ux; data[off+2] = uz; data[off+3] = uvs[5]; data[off+4] = (isRadar and 1 or 0) + (takeableTeams[uTeam] and 2 or 0) + (isStunned and 4 or 0) + (trackedSet and trackedSet[uID] and 8 or 0)
 		data[off+5] = uvs[1]; data[off+6] = uvs[2]; data[off+7] = uvs[3]; data[off+8] = uvs[4]
 		data[off+9] = r; data[off+10] = g; data[off+11] = b; data[off+12] = (uID * 0.37) % 6.2832 + mathFloor(flashFactor * 100) * 7.0
 		return usedEl + 1
@@ -7167,11 +7218,33 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	local bldgHash = 0
 	local defaultLayer = gl4Icons.LAYER_GROUND
 	local localGaiaTeamID = gaiaTeamID
+	-- Predict whether building block cache will be valid this frame.
+	-- If valid, we skip writing localCachePosX/Z for buildings (saves ~3600 table writes).
+	-- Prediction uses previous frame's bCount/hash — if buildings didn't change last frame,
+	-- they almost certainly won't this frame either. Worst case: one extra rebuild.
+	local bldgBlockWillRebuild = useUnitpics
+		or not gl4Icons._bldgBlock
+		or (Spring.GetGameFrame() - (gl4Icons._bldgBlockFrame or 0)) >= 30
 	for i = 1, unitCount do
 		local uID = pipUnits[i]
-		-- Skip crashing and gaia units early (avoids adding them to sort buffers)
+		-- Skip crashing units early
 		if crashingUnits[uID] then
 			-- skip
+		else
+		-- Fast path for known immobile buildings: skip all classification lookups
+		local cachedBldgX = localBuildPosX[uID]
+		if cachedBldgX then
+			-- On block-cache frames, skip position cache writes (processUnit won't run for buildings)
+			if not bldgBlockWillRebuild then
+				-- no-op: position not needed this frame
+			else
+				localCachePosX[uID] = cachedBldgX
+				localCachePosZ[uID] = localBuildPosZ[uID]
+			end
+			-- Sort key is stable (position never changes), already in gl4IconSortKeys
+			bCount = bCount + 1
+			buildingIDs[bCount] = uID
+			bldgHash = bldgHash + uID
 		else
 		local uDefID = unitDefCacheTbl[uID]
 		if not uDefID then
@@ -7186,16 +7259,9 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		end
 		if uTeam ~= localGaiaTeamID then
 		local layer = unitDefLayerTbl[uDefID] or defaultLayer
-		local cachedX = localBuildPosX[uID]
-		local xPos, zPos
-		if cachedX then
-			xPos = cachedX
-			zPos = localBuildPosZ[uID]
-		else
-			local x, _, z = spFunc.GetUnitBasePosition(uID)
-			xPos = x or 0
-			zPos = z or 0
-		end
+		local x, _, z = spFunc.GetUnitBasePosition(uID)
+		local xPos = x or 0
+		local zPos = z or 0
 		localCachePosX[uID] = xPos
 		localCachePosZ[uID] = zPos
 		local sortKey = layer * 100000 + mathFloor(zPos)
@@ -7204,10 +7270,8 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		local isImmobile = cacheIsBuilding[uDefID] and localCantBeTransported[uDefID]
 		if isImmobile then
 			-- Cache building positions (they never move)
-			if not cachedX then
-				localBuildPosX[uID] = xPos
-				localBuildPosZ[uID] = zPos
-			end
+			localBuildPosX[uID] = xPos
+			localBuildPosZ[uID] = zPos
 			bCount = bCount + 1
 			buildingIDs[bCount] = uID
 			bldgHash = bldgHash + uID  -- order-independent hash for set change detection
@@ -7216,6 +7280,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 			mobileIDs[mCount] = uID
 		end
 		end -- uTeam ~= gaia
+		end -- not cachedBldgX
 		end -- not crashing
 	end
 	-- Clear stale entries from previous frame
@@ -7229,8 +7294,8 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	local icT2 = os.clock()
 
 	-- Mobile units: sort every frame (positions change).
-	-- Skip sort at very high counts — z-ordering is cosmetic and invisible at this density.
-	if mCount <= 2500 then
+	-- Skip sort at high counts — z-ordering is cosmetic and invisible at this density.
+	if mCount <= 2000 then
 		table.sort(mobileIDs, gl4IconSortCmp)
 	end
 
@@ -7247,17 +7312,143 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 
 	local icT3 = os.clock()
 
-	-- Process in draw order: buildings first (layer 0 = lowest), then mobile units
-	for i = 1, bCount do
-		usedElements = processUnit(bldgSortedCache[i], usedElements)
-		if usedElements >= maxInst then break end
+	-- Building block VBO cache: instead of processing each building individually,
+	-- cache the entire building VBO output as a contiguous flat array.
+	-- On subsequent frames (while building set unchanged), copy the block in one
+	-- tight numeric loop (~0.05ms vs ~1.3ms per-building processing).
+	-- Dynamic state (selection, damage flash, tracking) is applied as overlays.
+	-- Block is rebuilt every 30 game frames to catch LOS/stun changes.
+	local currentGameFrame = Spring.GetGameFrame()
+	local bldgBlock = gl4Icons._bldgBlock
+	local bldgBlockValid = bldgBlock
+		and bCount == gl4Icons._bldgBlockBCount
+		and bldgHash == gl4Icons._bldgBlockHash
+		and (currentGameFrame - (gl4Icons._bldgBlockFrame or 0)) < 30
+		and not useUnitpics  -- unitpic collection needs per-unit data
+
+	local preProcessEl = usedElements
+
+	if bldgBlockValid then
+		-- Fast path: copy entire cached building block
+		local blockFloats = gl4Icons._bldgBlockN  -- total float count
+		local blockOffset = usedElements * instStep
+		-- Unrolled copy: 12 floats per building instance
+		local j = 1
+		while j + 11 <= blockFloats do
+			data[blockOffset+j]=bldgBlock[j]; data[blockOffset+j+1]=bldgBlock[j+1]
+			data[blockOffset+j+2]=bldgBlock[j+2]; data[blockOffset+j+3]=bldgBlock[j+3]
+			data[blockOffset+j+4]=bldgBlock[j+4]; data[blockOffset+j+5]=bldgBlock[j+5]
+			data[blockOffset+j+6]=bldgBlock[j+6]; data[blockOffset+j+7]=bldgBlock[j+7]
+			data[blockOffset+j+8]=bldgBlock[j+8]; data[blockOffset+j+9]=bldgBlock[j+9]
+			data[blockOffset+j+10]=bldgBlock[j+10]; data[blockOffset+j+11]=bldgBlock[j+11]
+			j = j + 12
+		end
+		while j <= blockFloats do
+			data[blockOffset + j] = bldgBlock[j]
+			j = j + 1
+		end
+		usedElements = usedElements + gl4Icons._bldgBlockCount
+
+		-- Dynamic overlays on top of cached data
+		local bldgIdx = gl4Icons._bldgBlockIdx
+
+		-- Selection overlay: selected buildings rendered white
+		if selectedSet then
+			for uID, _ in pairs(selectedSet) do
+				local idx = bldgIdx[uID]
+				if idx then
+					local off = (preProcessEl + idx - 1) * instStep
+					data[off + 9] = 1; data[off + 10] = 1; data[off + 11] = 1
+					data[off + 12] = (uID * 0.37) % 6.2832  -- reset flash encoding
+				end
+			end
+		end
+
+		-- Damage flash overlay
+		for uID, flash in pairs(damageFlash) do
+			local idx = bldgIdx[uID]
+			if idx then
+				local elapsed = gameTime - flash.time
+				if elapsed < DAMAGE_FLASH_DURATION then
+					local f = flash.intensity * (1 - elapsed / DAMAGE_FLASH_DURATION)
+					local off = (preProcessEl + idx - 1) * instStep
+					data[off + 9] = data[off + 9] + (1 - data[off + 9]) * f
+					data[off + 10] = data[off + 10] + (1 - data[off + 10]) * f
+					data[off + 11] = data[off + 11] + (1 - data[off + 11]) * f
+					data[off + 12] = (uID * 0.37) % 6.2832 + mathFloor(f * 100) * 7.0
+				else
+					damageFlash[uID] = nil
+				end
+			end
+		end
+
+		-- Tracking overlay: set tracking flag for tracked buildings
+		-- Block stores flags with tracking bit stripped; re-apply from current trackedSet
+		if trackedSet then
+			for uID, _ in pairs(trackedSet) do
+				local idx = bldgIdx[uID]
+				if idx then
+					local off = (preProcessEl + idx - 1) * instStep
+					data[off + 4] = data[off + 4] % 8 + 8  -- set tracking bit (bit 3)
+				end
+			end
+		end
+	else
+		-- Slow path: process each building individually, build block cache
+		local bldgIdx = gl4Icons._bldgBlockIdx
+		if not bldgIdx then
+			bldgIdx = {}
+			gl4Icons._bldgBlockIdx = bldgIdx
+		end
+		for k in pairs(bldgIdx) do bldgIdx[k] = nil end
+
+		local writeCount = 0
+		for i = 1, bCount do
+			local uID = bldgSortedCache[i]
+			if usedElements >= maxInst then break end
+			local prevEl = usedElements
+			usedElements = processUnit(uID, usedElements)
+			if usedElements > prevEl then
+				writeCount = writeCount + 1
+				bldgIdx[uID] = writeCount  -- 1-based index within block
+			end
+		end
+
+		-- Cache the building block for future frames
+		if not bldgBlock then
+			bldgBlock = {}
+			gl4Icons._bldgBlock = bldgBlock
+		end
+		local blockStart = preProcessEl * instStep
+		local blockFloats = (usedElements - preProcessEl) * instStep
+		for j = 1, blockFloats do
+			bldgBlock[j] = data[blockStart + j]
+		end
+		-- Strip tracking bit from cached flags so overlay always works cleanly
+		for i = 0, writeCount - 1 do
+			local j = i * instStep + 4  -- flags position within block (1-based: inst 0 → idx 4)
+			bldgBlock[j] = bldgBlock[j] % 8  -- clear tracking bit
+		end
+		-- Clear stale entries beyond current block
+		local prevBlockN = gl4Icons._bldgBlockN or 0
+		for j = blockFloats + 1, prevBlockN do bldgBlock[j] = nil end
+
+		gl4Icons._bldgBlockN = blockFloats
+		gl4Icons._bldgBlockCount = usedElements - preProcessEl
+		gl4Icons._bldgBlockBCount = bCount
+		gl4Icons._bldgBlockHash = bldgHash
+		gl4Icons._bldgBlockFrame = currentGameFrame
 	end
+	local icT3b = os.clock()
+	local bldgProcessed = usedElements - preProcessEl
+	local preMobileEl = usedElements
 	for i = 1, mCount do
 		usedElements = processUnit(mobileIDs[i], usedElements)
 		if usedElements >= maxInst then break end
 	end
 
 	local icT4 = os.clock()
+	local mobileProcessed = usedElements - preMobileEl
 
 	-- Skip draw if no icons
 	if usedElements == 0 then
@@ -7265,6 +7456,10 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		perfTimers.icKeysort = perfTimers.icKeysort + PERF_SMOOTH * ((icT2 - icT1) - perfTimers.icKeysort)
 		perfTimers.icSort = perfTimers.icSort + PERF_SMOOTH * ((icT3 - icT2) - perfTimers.icSort)
 		perfTimers.icProcess = perfTimers.icProcess + PERF_SMOOTH * ((icT4 - icT3) - perfTimers.icProcess)
+		perfTimers.icProcBldg = perfTimers.icProcBldg + PERF_SMOOTH * ((icT3b - icT3) - perfTimers.icProcBldg)
+		perfTimers.icProcMobile = perfTimers.icProcMobile + PERF_SMOOTH * ((icT4 - icT3b) - perfTimers.icProcMobile)
+		perfTimers.icProcBldgN = bldgProcessed
+		perfTimers.icProcMobileN = mobileProcessed
 		return iconRadiusZoomDistMult
 	end
 
@@ -7447,6 +7642,10 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	perfTimers.icKeysort = perfTimers.icKeysort + PERF_SMOOTH * ((icT2 - icT1) - perfTimers.icKeysort)
 	perfTimers.icSort = perfTimers.icSort + PERF_SMOOTH * ((icT3 - icT2) - perfTimers.icSort)
 	perfTimers.icProcess = perfTimers.icProcess + PERF_SMOOTH * ((icT4 - icT3) - perfTimers.icProcess)
+	perfTimers.icProcBldg = perfTimers.icProcBldg + PERF_SMOOTH * ((icT3b - icT3) - perfTimers.icProcBldg)
+	perfTimers.icProcMobile = perfTimers.icProcMobile + PERF_SMOOTH * ((icT4 - icT3b) - perfTimers.icProcMobile)
+	perfTimers.icProcBldgN = bldgProcessed
+	perfTimers.icProcMobileN = mobileProcessed
 	perfTimers.icUploadDraw = perfTimers.icUploadDraw + PERF_SMOOTH * ((icT5 - icT4) - perfTimers.icUploadDraw)
 	perfTimers.icUnitpics = perfTimers.icUnitpics + PERF_SMOOTH * ((icT6 - icT5) - perfTimers.icUnitpics)
 
@@ -7899,6 +8098,13 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 			perfTimers.icProcess * 1000,
 			perfTimers.icUploadDraw * 1000,
 			perfTimers.icUnitpics * 1000
+		))
+		Spring.Echo(string.format(
+			"    process: bldg=%.2fms(%d)  mobile=%.2fms(%d)",
+			perfTimers.icProcBldg * 1000,
+			perfTimers.icProcBldgN,
+			perfTimers.icProcMobile * 1000,
+			perfTimers.icProcMobileN
 		))
 	end
 end
@@ -10578,8 +10784,7 @@ local function UpdateDecalTexture()
 	if not pipR2T.decalTex then return end
 	if not decalGL4.vao then return end
 
-	-- Rate-limit: only run dirty check every N game frames (~1 sec)
-	-- This is the single biggest cost saver — skips ALL work on 29/30 frames
+	-- Rate-limit: only run every N game frames (~1 sec)
 	local frame = Spring.GetGameFrame()
 	if (frame - pipR2T.decalLastCheckFrame) < pipR2T.decalCheckInterval then return end
 	pipR2T.decalLastCheckFrame = frame
@@ -10591,22 +10796,9 @@ local function UpdateDecalTexture()
 	local vboTables = getVBO()
 	if not vboTables then return end
 
-	-- Cheap dirty check: sum of usedElements across all VBOs
-	local elemSum = 0
-	for vi = 1, #vboTables do
-		local vbo = vboTables[vi]
-		if vbo then elemSum = elemSum + (vbo.usedElements or 0) end
-	end
-
-	-- Only rebuild VBO + re-render R2T when decal count actually changed
-	if elemSum == decalGL4.version then return end
-
+	-- Always rebuild: usedElements sum can't detect add+remove in same interval
+	-- RebuildDecalVBO is cheap (~0.1ms for 1000 decals: sequential array copy, no alloc)
 	RebuildDecalVBO(vboTables)
-	decalGL4.version = elemSum
-	if decalGL4.logCount < 3 then
-		--Spring.Echo("[PIP Decals] GL4 VBO rebuilt: instances=" .. decalGL4.instanceCount .. " elems=" .. elemSum)
-		decalGL4.logCount = decalGL4.logCount + 1
-	end
 
 	if decalGL4.instanceCount == 0 then return end
 
@@ -12773,6 +12965,9 @@ end
 function widget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
 	-- Clear GL4 cache so it picks up the new team color
 	gl4Icons.unitTeamCache[unitID] = nil
+	-- Force re-classification in keysort (new team may change colors/LOS)
+	ownBuildingPosX[unitID] = nil
+	ownBuildingPosZ[unitID] = nil
 end
 
 -- Handle buildings being picked up by transports — invalidate cached position
@@ -12966,6 +13161,9 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 	local isAA = weaponID and cache.weaponIsAA[weaponID]
 	if isAA then return end
 
+	-- Detect unit death explosions (ownerID is the dying unit, already in crashingUnits)
+	local isUnitExplosion = ownerID and miscState.crashingUnits[ownerID] or false
+
 	-- Add explosion to list with radius from cached weapon data
 	local radius = 10 -- Default radius
 	if weaponID and cache.weaponExplosionRadius[weaponID] then
@@ -12983,13 +13181,14 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 		y = py,
 		z = pz,
 		radius = radius,
-		startTime = gameTime,
+		startFrame = Spring.GetGameFrame(),  -- game-frame based: freezes when paused
 		randomSeed = math.random() * 1000,  -- For consistent per-explosion randomness
 		rotationSpeed = (math.random() - 0.5) * 4,  -- Random rotation speed
 		particles = {},  -- Will store particle debris
 		isLightning = isLightning,
 		isParalyze = isParalyze,
-		isAA = isAA
+		isAA = isAA,
+		isUnitExplosion = isUnitExplosion
 	}
 
 	-- Add lightning sparks
