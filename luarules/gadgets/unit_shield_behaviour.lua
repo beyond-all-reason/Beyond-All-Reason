@@ -324,31 +324,24 @@ function gadget:ProjectileDestroyed(proID)
 	projectileShieldHitCache[proID] = nil
 end
 
-local function suspendShield(unitID)
-	local shieldData = shieldUnitsData[unitID]
-
+local function suspendShield(unitID, unitData)
 	-- Dummy shield disable via recharge delay. The engine does not support our "downtime" approach.
-	spSetUnitShieldRechargeDelay(unitID, shieldData.shieldWeaponNumber, engineRechargeDelayToDisable)
+	spSetUnitShieldRechargeDelay(unitID, unitData.shieldWeaponNumber, engineRechargeDelayToDisable)
 
-	spSetUnitShieldState(unitID, shieldData.shieldWeaponNumber, false)
-	shieldData.shieldEnabled = false
-	shieldData.shieldDownTime = gameFrame + minDownTime
-	shieldData.maxDownTime = gameFrame + maxDownTime
+	spSetUnitShieldState(unitID, unitData.shieldWeaponNumber, false)
+	unitData.shieldEnabled = false
+	unitData.shieldDownTime = gameFrame + minDownTime
+	unitData.maxDownTime = gameFrame + maxDownTime
 	spSetUnitRulesParam(unitID, shieldOnUnitRulesParamIndex, 0, INLOS)
 end
 
-local function activateShield(unitID)
-	local shieldData = shieldUnitsData[unitID]
-	if not shieldData then
-		return
-	end
-
-	shieldData.shieldEnabled = true
+local function activateShield(unitID, unitData)
+	unitData.shieldEnabled = true
 	spSetUnitRulesParam(unitID, shieldOnUnitRulesParamIndex, 1, INLOS)
-	spSetUnitShieldRechargeDelay(unitID, shieldData.shieldWeaponNumber, 0)
+	spSetUnitShieldRechargeDelay(unitID, unitData.shieldWeaponNumber, 0)
 
 	-- Allow projectiles already in the shield to damage units within the radius.
-	local x, y, z, radius = getUnitShieldWeaponPosition(unitID, shieldData)
+	local x, y, z, radius = getUnitShieldWeaponPosition(unitID, unitData)
 	local projectiles = spGetProjectilesInSphere(x, y, z, radius)
 	for i = 1, #projectiles do
 		projectileShieldHitCache[projectiles[i]] = true
@@ -405,7 +398,7 @@ function gadget:GameFrame(frame)
 				shieldData.shieldDamage = 0
 
 				if shieldPower <= 0 then
-					suspendShield(shieldUnitID)
+					suspendShield(shieldUnitID, shieldData)
 					removeCoveredUnits(shieldUnitID)
 				end
 			else
@@ -436,10 +429,10 @@ function gadget:GameFrame(frame)
 					spSetUnitShieldState(shieldUnitID, shieldData.shieldWeaponNumber, shieldData.overKillDamage)
 					shieldData.overKillDamage = 0
 				end
-				activateShield(shieldUnitID)
+				activateShield(shieldUnitID, shieldData)
 
 			elseif shieldData.maxDownTime < frame then
-				activateShield(shieldUnitID)
+				activateShield(shieldUnitID, shieldData)
 				shieldData.overKillDamage = 0
 			end
 		end
