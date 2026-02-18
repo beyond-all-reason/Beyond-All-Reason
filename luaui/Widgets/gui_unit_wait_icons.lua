@@ -30,7 +30,7 @@ local spec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 local spValidUnitID = Spring.ValidUnitID
 
-local spIsGUIHidden   = Spring.IsGUIHidden()
+local spIsGUIHidden   = Spring.IsGUIHidden
 local spGetConfigInt  = Spring.GetConfigInt
 
 local unitConf = {}
@@ -204,7 +204,7 @@ function widget:GameFrame(n)
 end
 
 function widget:DrawWorld()
-	if spIsGUIHidden then return end
+	if spIsGUIHidden() then return end
 	if iconVBO.usedElements > 0 then
 		local disticon = spGetConfigInt("UnitIconDistance", 200) * 27.5 -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		gl.DepthTest(true)

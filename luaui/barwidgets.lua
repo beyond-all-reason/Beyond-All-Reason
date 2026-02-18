@@ -52,6 +52,10 @@ if anonymousMode ~= "disabled" then
 	-- disabling individual Spring functions isnt really good enough
 	-- disabling user widget draw access would probably do the job but that wouldnt be easy to do
 	Spring.SetTeamColor = function() return true end
+
+	if not Spring.GetSpectatingState() then
+		Spring.SendCommands("info 0")
+	end
 end
 
 if Spring.IsReplay() or Spring.GetSpectatingState() then
@@ -739,6 +743,16 @@ function widgetHandler:FinalizeWidget(widget, filename, basename)
 		wi.enabled = info.enabled or false
 	end
 
+	-- Pre-cache tracy zone name strings to avoid per-frame string concatenation
+	local name = wi.name
+	wi.tracyName = {}
+	for _, ciName in ipairs(callInLists) do
+		wi.tracyName[ciName] = "W:" .. ciName .. ":" .. name
+	end
+
+	-- Store direct reference to tracyName on widget to bypass whInfo proxy metatable in hot paths
+	widget._tracyName = wi.tracyName
+
 	widget.whInfo = {}  --  a proxy table
 	local mt = {
 		__index = wi,
@@ -794,12 +808,11 @@ local function SafeWrapFuncGL(func, funcName)
 	return function(w, ...)
 		glPushAttrib(GL.ALL_ATTRIB_BITS)
 		glPopAttrib()
-		local r = { pcall(func, w, ...) }
-		if r[1] then
-			table.remove(r, 1)
-			return unpack(r)
+		local r1, r2, r3 = pcall(func, w, ...)
+		if r1 then
+			return r2, r3
 		else
-			return widgetFailure(w, funcName, r[2])
+			return widgetFailure(w, funcName, r2)
 		end
 	end
 end
@@ -1351,11 +1364,17 @@ function widgetHandler:BlankOut()
 end
 
 
+local gcCheckCounter = 0
+
 function widgetHandler:Update()
 
-	if collectgarbage("count") > 1200000 then
-		Spring.Echo("Warning: Emergency garbage collection due to exceeding 1.2GB LuaRAM")
-		collectgarbage("collect")
+	gcCheckCounter = gcCheckCounter + 1
+	if gcCheckCounter >= 30 then
+		gcCheckCounter = 0
+		if collectgarbage("count") > 1200000 then
+			Spring.Echo("Warning: Emergency garbage collection due to exceeding 1.2GB LuaRAM")
+			collectgarbage("collect")
+		end
 	end
 
 	local deltaTime = Spring.GetLastUpdateSeconds()
@@ -1363,7 +1382,7 @@ function widgetHandler:Update()
 	hourTimer = (hourTimer + deltaTime) % 3600.0
 	tracy.ZoneBeginN("W:Update")
 	for _, w in ipairs(self.UpdateList) do
-		tracy.ZoneBeginN("W:Update:" .. w.whInfo.name)
+		tracy.ZoneBeginN(w._tracyName.Update)
 		w:Update(deltaTime)
 		tracy.ZoneEnd()
 	end
@@ -1515,7 +1534,7 @@ function widgetHandler:ViewResize(vsx, vsy)
 		tracy.ZoneEnd()
 	end
 	for _, w in ipairs(self.ViewResizeList) do
-		tracy.ZoneBeginN("W:ViewResize:" .. w.whInfo.name)
+		tracy.ZoneBeginN(w._tracyName.ViewResize)
 		w:ViewResize(vsx, vsy)
 		tracy.ZoneEnd()
 	end
@@ -1525,14 +1544,13 @@ end
 
 
 function widgetHandler:DrawScreen()
-	if (not Spring.GetSpectatingState()) and anonymousMode ~= "disabled" then
-		Spring.SendCommands("info 0")
-	end
 	tracy.ZoneBeginN("W:DrawScreen")
 	if not Spring.IsGUIHidden() then
 		if not self.chobbyInterface  then
-			for _, w in r_ipairs(self.DrawScreenList) do
-				tracy.ZoneBeginN("W:DrawScreen:" .. w.whInfo.name)
+			local list = self.DrawScreenList
+			for i = #list, 1, -1 do
+				local w = list[i]
+				tracy.ZoneBeginN(w._tracyName.DrawScreen)
 				w:DrawScreen()
 				tracy.ZoneEnd()
 			end
@@ -1548,8 +1566,9 @@ end
 
 function widgetHandler:DrawGenesis()
 	tracy.ZoneBeginN("W:DrawGenesis")
-	for _, w in r_ipairs(self.DrawGenesisList) do
-		w:DrawGenesis()
+	local list = self.DrawGenesisList
+	for i = #list, 1, -1 do
+		list[i]:DrawGenesis()
 	end
 	tracy.ZoneEnd()
 	return
@@ -1557,8 +1576,9 @@ end
 
 function widgetHandler:DrawGroundDeferred()
 	tracy.ZoneBeginN("W:DrawGroundDeferred")
-	for _, w in r_ipairs(self.DrawGroundDeferredList) do
-		w:DrawGroundDeferred()
+	local list = self.DrawGroundDeferredList
+	for i = #list, 1, -1 do
+		list[i]:DrawGroundDeferred()
 	end
 	tracy.ZoneEnd()
 	return
@@ -1567,8 +1587,10 @@ end
 function widgetHandler:DrawWorld()
 	tracy.ZoneBeginN("W:DrawWorld")
 	if not self.chobbyInterface  then
-		for _, w in r_ipairs(self.DrawWorldList) do
-			tracy.ZoneBeginN("W:DrawWorld:" .. w.whInfo.name)
+		local list = self.DrawWorldList
+		for i = #list, 1, -1 do
+			local w = list[i]
+			tracy.ZoneBeginN(w._tracyName.DrawWorld)
 			w:DrawWorld()
 			tracy.ZoneEnd()
 		end
@@ -1580,8 +1602,10 @@ end
 function widgetHandler:DrawWorldPreUnit()
 	tracy.ZoneBeginN("W:DrawWorldPreUnit")
 	if not self.chobbyInterface  then
-		for _, w in r_ipairs(self.DrawWorldPreUnitList) do
-			tracy.ZoneBeginN("W:DrawWorldPreUnit:" .. w.whInfo.name)
+		local list = self.DrawWorldPreUnitList
+		for i = #list, 1, -1 do
+			local w = list[i]
+			tracy.ZoneBeginN(w._tracyName.DrawWorldPreUnit)
 			w:DrawWorldPreUnit()
 			tracy.ZoneEnd()
 		end
@@ -1592,8 +1616,9 @@ end
 
 function widgetHandler:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
 	tracy.ZoneBeginN("W:DrawOpaqueUnitsLua")
-	for _, w in r_ipairs(self.DrawOpaqueUnitsLuaList) do
-		w:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
+	local list = self.DrawOpaqueUnitsLuaList
+	for i = #list, 1, -1 do
+		list[i]:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
 	end
 	tracy.ZoneEnd()
 	return
@@ -1601,8 +1626,9 @@ end
 
 function widgetHandler:DrawOpaqueFeaturesLua(deferredPass, drawReflection, drawRefraction)
 	tracy.ZoneBeginN("W:DrawOpaqueFeaturesLua")
-	for _, w in r_ipairs(self.DrawOpaqueFeaturesLuaList) do
-		w:DrawOpaqueFeaturesLua(deferredPass, drawReflection, drawRefraction)
+	local list = self.DrawOpaqueFeaturesLuaList
+	for i = #list, 1, -1 do
+		list[i]:DrawOpaqueFeaturesLua(deferredPass, drawReflection, drawRefraction)
 	end
 	tracy.ZoneEnd()
 	return
@@ -1610,8 +1636,9 @@ end
 
 function widgetHandler:DrawAlphaUnitsLua(drawReflection, drawRefraction)
 	tracy.ZoneBeginN("W:DrawAlphaUnitsLua")
-	for _, w in r_ipairs(self.DrawAlphaUnitsLuaList) do
-		w:DrawAlphaUnitsLua(drawReflection, drawRefraction)
+	local list = self.DrawAlphaUnitsLuaList
+	for i = #list, 1, -1 do
+		list[i]:DrawAlphaUnitsLua(drawReflection, drawRefraction)
 	end
 	tracy.ZoneEnd()
 	return
@@ -1721,7 +1748,7 @@ end
 function widgetHandler:DrawScreenEffects(vsx, vsy)
 	tracy.ZoneBeginN("W:DrawScreenEffects")
 	for _, w in r_ipairs(self.DrawScreenEffectsList) do
-		tracy.ZoneBeginN("W:DrawScreenEffects:" .. w.whInfo.name)
+		tracy.ZoneBeginN(w.whInfo.tracyName.DrawScreenEffects)
 		w:DrawScreenEffects(vsx, vsy)
 		tracy.ZoneEnd()
 	end
@@ -1732,7 +1759,7 @@ end
 function widgetHandler:DrawScreenPost()
 	tracy.ZoneBeginN("W:DrawScreenPost")
 	for _, w in r_ipairs(self.DrawScreenPostList) do
-		tracy.ZoneBeginN("W:DrawScreenPost:" .. w.whInfo.name)
+		tracy.ZoneBeginN(w.whInfo.tracyName.DrawScreenPost)
 		w:DrawScreenPost()
 		tracy.ZoneEnd()
 	end
@@ -2070,7 +2097,7 @@ end
 function widgetHandler:GameStart()
 	tracy.ZoneBeginN("W:GameStart")
 	for _, w in ipairs(self.GameStartList) do
-		tracy.ZoneBeginN("W:GameStart:" .. w.whInfo.name)
+		tracy.ZoneBeginN(w.whInfo.tracyName.GameStart)
 		w:GameStart()
 		tracy.ZoneEnd()
 	end
@@ -2133,9 +2160,12 @@ function widgetHandler:PlayerRemoved(playerID, reason)
 end
 
 function widgetHandler:PlayerChanged(playerID)
+	if anonymousMode ~= "disabled" and not Spring.GetSpectatingState() then
+		Spring.SendCommands("info 0")
+	end
 	tracy.ZoneBeginN("W:PlayerChanged")
 	for _, w in ipairs(self.PlayerChangedList) do
-		tracy.ZoneBeginN("W:PlayerChanged:" .. w.whInfo.name)
+		tracy.ZoneBeginN(w.whInfo.tracyName.PlayerChanged)
 		w:PlayerChanged(playerID)
 		tracy.ZoneEnd()
 	end
@@ -2146,7 +2176,7 @@ end
 function widgetHandler:GameFrame(frameNum)
 	tracy.ZoneBeginN("W:GameFrame")
 	for _, w in ipairs(self.GameFrameList) do
-		tracy.ZoneBeginN("W:GameFrame:" .. w.whInfo.name)
+		tracy.ZoneBeginN(w.whInfo.tracyName.GameFrame)
 		w:GameFrame(frameNum)
 		tracy.ZoneEnd()
 	end
@@ -2158,7 +2188,7 @@ end
 function widgetHandler:GameFramePost(frameNum)
 	tracy.ZoneBeginN("W:GameFramePost")
 	for _, w in ipairs(self.GameFramePostList) do
-		tracy.ZoneBeginN("W:GameFramePost:" .. w.whInfo.name)
+		tracy.ZoneBeginN(w.whInfo.tracyName.GameFramePost)
 		w:GameFramePost(frameNum)
 		tracy.ZoneEnd()
 	end
@@ -2355,7 +2385,7 @@ end
 
 function widgetHandler:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	widgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
-	tracy.ZoneBegin("W:UnitCreated")
+	tracy.ZoneBeginN("W:UnitCreated")
 	for _, w in ipairs(self.UnitCreatedList) do
 
 		w:UnitCreated(unitID, unitDefID, unitTeam, builderID)
@@ -2659,7 +2689,7 @@ end
 function widgetHandler:VisibleUnitsChanged(visibleUnits, numVisibleUnits)
 	tracy.ZoneBeginN("W:VisibleUnitsChanged")
 	for _, w in ipairs(self.VisibleUnitsChangedList) do
-		tracy.ZoneBeginN("W:VisibleUnitsChanged:" .. w.whInfo.name)
+		tracy.ZoneBeginN(w.whInfo.tracyName.VisibleUnitsChanged)
 		w:VisibleUnitsChanged(visibleUnits, numVisibleUnits)
 		tracy.ZoneEnd()
 	end

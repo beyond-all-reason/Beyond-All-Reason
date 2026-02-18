@@ -262,11 +262,6 @@ local cameraState = {
 	zoomToCursorScreenY = 0,
 }
 
--- Helper: leftButtonPansCamera only active when at minimum zoom (fully zoomed out)
-IsLeftClickPanActive = function()
-	return config.leftButtonPansCamera and IsAtMinimumZoom(cameraState.zoom)
-end
-
 -- Consolidated UI state
 local uiState = {
 	inMinMode = false,
@@ -406,6 +401,11 @@ local interactionState = {
 	pipMinimapDragging = false,  -- Whether we're dragging the pip-minimap to move camera
 	worldCameraDragging = false,  -- Whether we're left-click dragging to move the world camera (leftButtonPansCamera mode)
 }
+
+-- Helper: leftButtonPansCamera only active when at minimum zoom (fully zoomed out) and not tracking a player
+IsLeftClickPanActive = function()
+	return config.leftButtonPansCamera and IsAtMinimumZoom(cameraState.zoom) and not interactionState.trackingPlayerID
+end
 
 -- Consolidated misc state
 local miscState = {
@@ -3587,45 +3587,79 @@ local function DrawLaserBeams()
 			end
 
 		-- Skip if beam is completely outside visible area
-		if beamMaxX < worldLeft - margin or beamMinX > worldRight + margin or
-		   beamMaxZ < worldTop - margin or beamMinZ > worldBottom + margin then
+		-- Check that at least one endpoint (origin OR target) overlaps the visible area
+		local beamMargin = 200
+		if beamMaxX < worldLeft - beamMargin or beamMinX > worldRight + beamMargin or
+		   beamMaxZ < worldTop - beamMargin or beamMinZ > worldBottom + beamMargin then
 			i = i + 1
 		else
 			-- Check if this is a lightning bolt (segmented) or regular laser beam
 			if beam.isLightning then
 				-- Draw lightning bolt with jagged segments
 				local alpha = 1 - (age / 0.15) -- Fade out over lifetime
-				local baseOuterWidth = beam.thickness * 9 * zoomScale * resScale
-				local baseInnerWidth = beam.thickness * 2.2 * zoomScale * resScale
+				local glowLW = math.max(1, beam.thickness * 4.5 * zoomScale * resScale)
+				local coreLW = math.max(1, beam.thickness * 1.4 * zoomScale * resScale)
+				local coreR = 0.9 + beam.r * 0.1
+				local coreG = 0.9 + beam.g * 0.1
+				local coreB = 0.95 + beam.b * 0.05
 
-				if gl4Prim.enabled then
-					for j = 1, #beam.segments - 1 do
-						local seg1 = beam.segments[j]
-						local seg2 = beam.segments[j + 1]
-						local avgBrightness = (seg1.brightness + seg2.brightness) * 0.5
-						local coreR = 0.9 + beam.r * 0.1
-						local coreG = 0.9 + beam.g * 0.1
-						local coreB = 0.95 + beam.b * 0.05
-						GL4AddGlowLine(seg1.x, seg1.z, seg2.x, seg2.z,
-							beam.r, beam.g, beam.b, alpha * 0.4 * avgBrightness)
-						GL4AddCoreLine(seg1.x, seg1.z, seg2.x, seg2.z,
-							coreR, coreG, coreB, alpha * 0.98 * avgBrightness)
-					end
+				for j = 1, #beam.segments - 1 do
+					local seg1 = beam.segments[j]
+					local seg2 = beam.segments[j + 1]
+					local avgBrightness = (seg1.brightness + seg2.brightness) * 0.5
+					local sx1 = seg1.x - cameraState.wcx
+					local sy1 = cameraState.wcz - seg1.z
+					local sx2 = seg2.x - cameraState.wcx
+					local sy2 = cameraState.wcz - seg2.z
+
+					glFunc.LineWidth(glowLW)
+					glFunc.Color(beam.r, beam.g, beam.b, alpha * 0.4 * avgBrightness)
+					glFunc.BeginEnd(GL.LINES, function()
+						glFunc.Vertex(sx1, sy1, 0)
+						glFunc.Vertex(sx2, sy2, 0)
+					end)
+					glFunc.LineWidth(coreLW)
+					glFunc.Color(coreR, coreG, coreB, alpha * 0.98 * avgBrightness)
+					glFunc.BeginEnd(GL.LINES, function()
+						glFunc.Vertex(sx1, sy1, 0)
+						glFunc.Vertex(sx2, sy2, 0)
+					end)
 				end
 			else
 				-- Draw regular laser beam as a line with glow effect
 				local alpha = 1 - (age / 0.15) -- Fade out over lifetime
+				local thickness = beam.thickness or 2
+				-- Exaggerate thickness differences: small (1) stays small, big (8) gets bigger
+				local scaledThickness = thickness * (0.6 + thickness * 0.12)
 
-				if gl4Prim.enabled then
-					local whiteness = 0.5 + (beam.thickness / 16) * 0.3
-					local coreR = beam.r * (1 - whiteness) + whiteness
-					local coreG = beam.g * (1 - whiteness) + whiteness
-					local coreB = beam.b * (1 - whiteness) + whiteness
-					GL4AddGlowLine(beam.ox, beam.oz, beam.tx, beam.tz,
-						beam.r, beam.g, beam.b, alpha * 0.3)
-					GL4AddCoreLine(beam.ox, beam.oz, beam.tx, beam.tz,
-						coreR, coreG, coreB, alpha * 0.95)
-				end
+				-- Draw directly with per-beam line width (immediate mode inside PushMatrix)
+				-- Transform world coords to PushMatrix local coords
+				local x1 = beam.ox - cameraState.wcx
+				local y1 = cameraState.wcz - beam.oz
+				local x2 = beam.tx - cameraState.wcx
+				local y2 = cameraState.wcz - beam.tz
+
+				-- Glow layer (outer, colored, additive-like via alpha)
+				local glowWidth = math.max(1, scaledThickness * 3.5 * zoomScale * resScale)
+				glFunc.LineWidth(glowWidth)
+				glFunc.Color(beam.r, beam.g, beam.b, alpha * 0.35)
+				glFunc.BeginEnd(GL.LINES, function()
+					glFunc.Vertex(x1, y1, 0)
+					glFunc.Vertex(x2, y2, 0)
+				end)
+
+				-- Core layer (inner, whitened, bright) — use higher proportion for big lasers
+				local whiteness = 0.4 + (thickness / 10) * 0.4
+				local coreR = beam.r * (1 - whiteness) + whiteness
+				local coreG = beam.g * (1 - whiteness) + whiteness
+				local coreB = beam.b * (1 - whiteness) + whiteness
+				local coreWidth = math.max(1, scaledThickness * 1.8 * zoomScale * resScale)
+				glFunc.LineWidth(coreWidth)
+				glFunc.Color(coreR, coreG, coreB, alpha * 0.98)
+				glFunc.BeginEnd(GL.LINES, function()
+					glFunc.Vertex(x1, y1, 0)
+					glFunc.Vertex(x2, y2, 0)
+				end)
 			end
 
 				i = i + 1
@@ -7843,7 +7877,10 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 
 		do
 			-- Get projectiles in the PIP window's world rectangle
-			local projectiles = spFunc.GetProjectilesInRectangle(render.world.l - margin, render.world.t - margin, render.world.r + margin, render.world.b + margin)
+			-- Use larger margin (1200) to catch beam/lightning projectiles whose impact point
+			-- is far from the visible area but whose origin (shooting unit) is in view
+			local projMargin = 1200
+			local projectiles = spFunc.GetProjectilesInRectangle(render.world.l - projMargin, render.world.t - projMargin, render.world.r + projMargin, render.world.b + projMargin)
 			
 			-- Reuse pool table for active trails tracking (avoid per-frame allocations)
 			local activeTrails = pools.activeTrails
