@@ -22,6 +22,7 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
+local mathRandom = math.random
 
 local CMD_GUARD = CMD.GUARD
 local CMD_REPAIR = CMD.REPAIR
@@ -199,14 +200,14 @@ end
 
 -- Temp anti-cheat-esque guard. We check on random frames for units bypassing the rules.
 local function AllowUnitBuildStep(self, builderID, builderTeam, unitID, unitDefID, part)
-    if part > 0 and builderTeam ~= spGetUnitTeam(unitID) and not isComplete(unitID) then
+    if part > 0 and builderTeam ~= spGetUnitTeam(unitID) and spGetUnitIsBeingBuilt(unitID) then
 		checkUnitCommandList[builderID] = builderTeam
 		return false
     end
 	return true
 end
 
-local seed = math.random(Game.spawnWarpInFrame + 1, Game.spawnWarpInFrame + Game.gameSpeed - 1)
+local seed = mathRandom(Game.spawnWarpInFrame + 1, Game.spawnWarpInFrame + Game.gameSpeed - 1)
 
 function gadget:GameFrame(frame)
     if frame % seed == 0 then
@@ -215,6 +216,6 @@ function gadget:GameFrame(frame)
     elseif gadget.AllowUnitBuildStep then
         gadget.AllowUnitBuildStep = nil
         gadgetHandler:UpdateCallIn("AllowUnitBuildStep")
-        seed = math.random(1, 119)
+        seed = mathRandom(1, 119)
     end
 end
