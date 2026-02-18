@@ -112,8 +112,6 @@ local shieldOnUnitRulesParamIndex   = 531313
 local INLOS                         = { inlos = true }
 
 local mathCeil                      = math.ceil
-local mathSqrt                      = math.sqrt
-local mathPi                        = math.pi
 
 local spSetUnitShieldRechargeDelay  = Spring.SetUnitShieldRechargeDelay
 local spDeleteProjectile            = Spring.DeleteProjectile
@@ -121,7 +119,6 @@ local spGetProjectileDefID          = Spring.GetProjectileDefID
 local spGetUnitPosition             = Spring.GetUnitPosition
 local spGetUnitWeaponVectors        = Spring.GetUnitWeaponVectors
 local spGetUnitsInSphere            = Spring.GetUnitsInSphere
-local spGetProjectilesInRectangle   = Spring.GetProjectilesInRectangle
 local spGetProjectilesInSphere   	= Spring.GetProjectilesInSphere
 local spAreTeamsAllied              = Spring.AreTeamsAllied
 local spGetUnitIsActive             = Spring.GetUnitIsActive
@@ -324,30 +321,6 @@ function gadget:ProjectileDestroyed(proID)
 	projectileShieldHitCache[proID] = nil
 end
 
-local function setProjectilesAlreadyInsideShield(shieldUnitID, radius)
-	-- This section is to allow slower moving projectiles already inside the shield when it comes back online to damage units within the radius.
-	local x, y, z = spGetUnitPosition(shieldUnitID)
-	if not x then
-		return -- Unit doesn't exist or is invalid
-	end
-	local projectiles
-	if spGetProjectilesInSphere then
-		projectiles = spGetProjectilesInSphere(x, y, z, radius)
-	else
-		-- Engine has GetProjectilesInRectangle, but not GetProjectilesInCircle, so we have to square the circle
-		-- TODO: Change to GetProjectilesInCircle once it is added
-		local radiusSquared = radius * mathSqrt(mathPi) / 2
-		local xmin = x - radiusSquared
-		local xmax = x + radiusSquared
-		local zmin = z - radiusSquared
-		local zmax = z + radiusSquared
-		projectiles = spGetProjectilesInRectangle(xmin, zmin, xmax, zmax)
-	end
-	for i = 1, #projectiles do
-		projectileShieldHitCache[projectiles[i]] = true
-	end
-end
-
 local function suspendShield(unitID)
 	local shieldData = shieldUnitsData[unitID]
 
@@ -366,13 +339,19 @@ end
 local function activateShield(unitID)
 	local shieldData = shieldUnitsData[unitID]
 	if not shieldData then
-		return -- Shield unit no longer exists
+		return
 	end
+
 	shieldData.shieldEnabled = true
 	spSetUnitRulesParam(unitID, shieldOnUnitRulesParamIndex, 1, INLOS)
 	spSetUnitShieldRechargeDelay(unitID, shieldData.shieldWeaponNumber, 0)
 
-	setProjectilesAlreadyInsideShield(unitID, shieldData.radius)
+	-- Allow projectiles already in the shield to damage units within the radius.
+	local x, y, z, radius = getUnitShieldWeaponPosition(unitID, shieldData)
+	local projectiles = spGetProjectilesInSphere(x, y, z, radius)
+	for i = 1, #projectiles do
+		projectileShieldHitCache[projectiles[i]] = true
+	end
 end
 
 local function shieldNegatesDamageCheck(unitID, unitTeam, attackerID, attackerTeam)
