@@ -73,7 +73,15 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, feature
 		local cached = processedFeatures[featureID]
 		local x = cached.x + cached.params.minX + (cached.params.rangeX * random())
 		local z = cached.z + cached.params.minZ + (cached.params.rangeZ * random())
-		cegList[featureID] = { ceg = cegs[random(1, #cegs)], x = x, y = cached.y, z = z }
+		local entry = cegList[featureID]
+		if not entry then
+			entry = {}
+			cegList[featureID] = entry
+		end
+		entry.ceg = cegs[random(1, #cegs)]
+		entry.x = x
+		entry.y = cached.y
+		entry.z = z
 	end
 	return true
 end
