@@ -14,8 +14,6 @@ return {
 		explodeas = "explosiont3med",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 14000,
 		maxslope = 17,
 		speed = 60.0,

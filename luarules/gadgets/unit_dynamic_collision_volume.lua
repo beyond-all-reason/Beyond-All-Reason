@@ -36,6 +36,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	local spArmor = Spring.GetUnitArmored
 	local pairs = pairs
+	local pieceIndexStr = {}
+	for i = 0, 99 do pieceIndexStr[i] = tostring(i) end
 	
 	local unitDefMidAndAimPos = {} -- this is a table read from customparams mapping unitDefID to 
 	local featureDefMidAndAimPos = {} -- this is a table read from customparams mapping unitDefID to 
@@ -302,7 +304,7 @@ if gadgetHandler:IsSyncedCode() then
 				if defs.perPiece then
 					t = dynamicPieceCollisionVolume[defs.name][stateString]
 					for pieceIndex=0, defs.numPieces do
-						p = t[tostring(pieceIndex)]
+						p = t[pieceIndexStr[pieceIndex]]
 						if p then
 							spSetPieceCollisionData(unitID, pieceIndex + 1, true, p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8])
 						else

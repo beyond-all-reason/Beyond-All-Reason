@@ -20,8 +20,6 @@ return {
 		extractsmetal = 0.0008,
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 275,
 		maxslope = 30,
 		metalstorage = 50,

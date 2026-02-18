@@ -68,6 +68,7 @@ local ContributorAINames = {
     "PtaQ",
     "Rachaelneco",
     "Raghna",
+    "Rasoul",
     "RebelNode",
     "Requiem",
 	"Robert82",

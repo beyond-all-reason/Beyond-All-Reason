@@ -24,45 +24,31 @@ local spGetSpectatingState = Spring.GetSpectatingState
 --                  handle set target
 --					quickfade on cmd cancel
 
-local CMD_RAW_MOVE = GameCMD.RAW_MOVE
-local CMD_ATTACK = CMD.ATTACK --icon unit or map
-local CMD_CAPTURE = CMD.CAPTURE --icon unit or area
-local CMD_FIGHT = CMD.FIGHT -- icon map
-local CMD_GUARD = CMD.GUARD -- icon unit
-local CMD_INSERT = CMD.INSERT
-local CMD_LOAD_ONTO = CMD.LOAD_ONTO -- icon unit
-local CMD_LOAD_UNITS = CMD.LOAD_UNITS -- icon unit or area
-local CMD_MANUALFIRE = CMD.MANUALFIRE -- icon unit or map (cmdtype edited by gadget)
-local CMD_MOVE = CMD.MOVE -- icon map
-local CMD_PATROL = CMD.PATROL --icon map
-local CMD_RECLAIM = CMD.RECLAIM --icon unit feature or area
-local CMD_REPAIR = CMD.REPAIR -- icon unit or area
-local CMD_RESTORE = CMD.RESTORE -- icon area
-local CMD_RESURRECT = CMD.RESURRECT -- icon unit feature or area
--- local CMD_SET_TARGET = GameCMD.UNIT_SET_TARGET -- custom command, doesn't go through UnitCommand
-local CMD_UNLOAD_UNIT = CMD.UNLOAD_UNIT -- icon map
-local CMD_UNLOAD_UNITS = CMD.UNLOAD_UNITS -- icon  unit or area
-local BUILD = -1
-
-local diag = math.diag
-local pi = math.pi
-local sin = math.sin
-local cos = math.cos
-local atan = math.atan
+-- Command IDs consolidated into single table to reduce upvalue count
+local CMDS = {
+	RAW_MOVE     = GameCMD.RAW_MOVE,
+	ATTACK       = CMD.ATTACK,
+	CAPTURE      = CMD.CAPTURE,
+	FIGHT        = CMD.FIGHT,
+	GUARD        = CMD.GUARD,
+	INSERT       = CMD.INSERT,
+	LOAD_ONTO    = CMD.LOAD_ONTO,
+	LOAD_UNITS   = CMD.LOAD_UNITS,
+	MANUALFIRE   = CMD.MANUALFIRE,
+	MOVE         = CMD.MOVE,
+	PATROL       = CMD.PATROL,
+	RECLAIM      = CMD.RECLAIM,
+	REPAIR       = CMD.REPAIR,
+	RESTORE      = CMD.RESTORE,
+	RESURRECT    = CMD.RESURRECT,
+	-- SET_TARGET = GameCMD.UNIT_SET_TARGET,  -- custom command, doesn't go through UnitCommand
+	UNLOAD_UNIT  = CMD.UNLOAD_UNIT,
+	UNLOAD_UNITS = CMD.UNLOAD_UNITS,
+	BUILD        = -1,
+}
 
 local os_clock = os.clock
-
-local glPushMatrix = gl.PushMatrix
-local glUnitShape = gl.UnitShape
-local glRotate = gl.Rotate
-local glTranslate = gl.Translate
-local glPopMatrix = gl.PopMatrix
-local glTexture = gl.Texture
-local glColor = gl.Color
-local glBeginEnd = gl.BeginEnd
-local glVertex = gl.Vertex
-local glTexCoord = gl.TexCoord
-local GL_QUADS = GL.QUADS
+local mathFloor = math.floor
 
 local GaiaTeamID = Spring.GetGaiaTeamID()
 local myTeamID = spGetMyTeamID()
@@ -103,8 +89,8 @@ local lineTextureLength = 3
 local lineTextureSpeed = 4
 
 -- limit amount of effects to keep performance sane
-local maxCommandCount = 500        -- dont draw more commands than this amount, but keep processing them
-local maxTotalCommandCount = 850        -- dont add more commands above this amount
+local maxCommandCount = 700        -- dont draw more commands than this amount, but keep processing them
+local maxTotalCommandCount = 1200        -- dont add more commands above this amount
 
 local lineImg = ":n:LuaUI/Images/commandsfx/line.dds"
 
@@ -125,99 +111,25 @@ end
 local mapX = Game.mapSizeX
 local mapZ = Game.mapSizeZ
 
+-- CONFIG maps command ID directly to colour {r, g, b, alpha} — flat lookup, no .colour indirection
 local CONFIG = {
-	[CMD_ATTACK] = {
-		sizeMult = 1.4,
-		endSize = 0.28,
-		colour = { 1.0, 0.2, 0.2, 0.30 },
-	},
-	[CMD_CAPTURE] = {
-		sizeMult = 1.4,
-		endSize = 0.28,
-		colour = { 1.0, 1.0, 0.3, 0.30 },
-	},
-	[CMD_FIGHT] = {
-		sizeMult = 1.2,
-		endSize = 0.24,
-		colour = { 1.0, 0.2, 1.0, 0.25 },
-	},
-	[CMD_GUARD] = {
-		sizeMult = 1,
-		endSize = 0.2,
-		colour = { 0.6, 1.0, 1.0, 0.25 },
-	},
-	[CMD_LOAD_ONTO] = {
-		sizeMult = 1,
-		endSize = 0.2,
-		colour = { 0.4, 0.9, 0.9, 0.25 },
-	},
-	[CMD_LOAD_UNITS] = {
-		sizeMult = 1,
-		endSize = 0.2,
-		colour = { 0.4, 0.9, 0.9, 0.30 },
-	},
-	[CMD_MANUALFIRE] = {
-		sizeMult = 1.4,
-		endSize = 0.28,
-		colour = { 1.0, 0.0, 0.0, 0.30 },
-	},
-	[CMD_MOVE] = {
-		sizeMult = 1,
-		endSize = 0.2,
-		colour = { 0.1, 1.0, 0.1, 0.25 },
-	},
-	[CMD_RAW_MOVE] = {
-		sizeMult = 1,
-		endSize = 0.2,
-		colour = { 0.1, 1.0, 0.1, 0.25 },
-	},
-	[CMD_PATROL] = {
-		sizeMult = 1,
-		endSize = 0.2,
-		colour = { 0.2, 0.5, 1.0, 0.25 },
-	},
-	[CMD_RECLAIM] = {
-		sizeMult = 1,
-		endSize = 0,
-		colour = { 0.5, 1.00, 0.4, 0.4 },
-	},
-	[CMD_REPAIR] = {
-		sizeMult = 1,
-		endSize = 0.2,
-		colour = { 1.0, 0.9, 0.2, 0.4 },
-	},
-	[CMD_RESTORE] = {
-		sizeMult = 1,
-		endSize = 0.2,
-		colour = { 0.0, 0.5, 0.0, 0.25 },
-	},
-	[CMD_RESURRECT] = {
-		sizeMult = 1,
-		endSize = 0.2,
-		colour = { 0.9, 0.5, 1.0, 0.25 },
-	},
-	--[[
-	[CMD_SET_TARGET] = {
-		sizeMult = 1,
-		endSize = 0.2,
-		colour = {1.00 ,0.75 ,1.00 ,0.25},
-	},
-	]]
-	[CMD_UNLOAD_UNIT] = {
-		sizeMult = 1,
-		endSize = 0.2,
-		colour = { 1.0, 0.8, 0.0, 0.25 },
-	},
-	[CMD_UNLOAD_UNITS] = {
-		sizeMult = 1,
-		endSize = 0.2,
-		colour = { 1.0, 0.8, 0.0, 0.25 },
-	},
-	[BUILD] = {
-		sizeMult = 1,
-		endSize = 0.2,
-		colour = { 0.00, 1.00, 0.00, 0.25 },
-	}
+	[CMDS.ATTACK]       = { 1.0, 0.2, 0.2, 0.30 },
+	[CMDS.CAPTURE]      = { 1.0, 1.0, 0.3, 0.30 },
+	[CMDS.FIGHT]        = { 1.0, 0.2, 1.0, 0.25 },
+	[CMDS.GUARD]        = { 0.6, 1.0, 1.0, 0.25 },
+	[CMDS.LOAD_ONTO]    = { 0.4, 0.9, 0.9, 0.25 },
+	[CMDS.LOAD_UNITS]   = { 0.4, 0.9, 0.9, 0.30 },
+	[CMDS.MANUALFIRE]   = { 1.0, 0.0, 0.0, 0.30 },
+	[CMDS.MOVE]         = { 0.1, 1.0, 0.1, 0.25 },
+	[CMDS.RAW_MOVE]     = { 0.1, 1.0, 0.1, 0.25 },
+	[CMDS.PATROL]       = { 0.2, 0.5, 1.0, 0.25 },
+	[CMDS.RECLAIM]      = { 0.5, 1.0, 0.4, 0.40 },
+	[CMDS.REPAIR]       = { 1.0, 0.9, 0.2, 0.40 },
+	[CMDS.RESTORE]      = { 0.0, 0.5, 0.0, 0.25 },
+	[CMDS.RESURRECT]    = { 0.9, 0.5, 1.0, 0.25 },
+	[CMDS.UNLOAD_UNIT]  = { 1.0, 0.8, 0.0, 0.25 },
+	[CMDS.UNLOAD_UNITS] = { 1.0, 0.8, 0.0, 0.25 },
+	[CMDS.BUILD]        = { 0.0, 1.0, 0.0, 0.25 },
 }
 
 --------------------------------------------------------------------------------
@@ -225,7 +137,6 @@ local CONFIG = {
 
 local enabledTeams = {}
 local commands = {}
-local monitorCommands = {}
 local maxCommand = 0
 local totalCommands = 0
 
@@ -234,21 +145,177 @@ local osClock
 
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitCommands = Spring.GetUnitCommands
-local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spIsUnitInView = Spring.IsUnitInView
 local spIsSphereInView = Spring.IsSphereInView
 local spValidUnitID = Spring.ValidUnitID
 local spValidFeatureID = Spring.ValidFeatureID
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spIsGUIHidden = Spring.IsGUIHidden
-local spIsUnitSelected = Spring.IsUnitSelected
 local spLoadCmdColorsConfig = Spring.LoadCmdColorsConfig
 local spGetGameFrame = Spring.GetGameFrame
-
-local GL_SRC_ALPHA = GL.SRC_ALPHA
-local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
+local spGetUnitTeam = Spring.GetUnitTeam
 
 local MAX_UNITS = Game.maxUnits
+
+--------------------------------------------------------------------------------
+-- GL4 instanced rendering
+--------------------------------------------------------------------------------
+
+local gl4 = nil  -- nil = not initialized, false = init failed, table = active
+local GL4_MAX_SEGMENTS = 4096
+local GL4_FLOATS_PER_SEG = 12  -- 3 vec4 attributes per instance
+
+-- Pre-allocated arrays for build queue ghost rendering (legacy pass)
+local buildGhosts = {
+	x = {}, y = {}, z = {},
+	defID = {}, facing = {},
+	r = {}, g = {}, b = {}, a = {},
+	count = 0,
+}
+
+local function InitGL4()
+	if not gl.GetVBO or not gl.GetVAO or not gl.CreateShader then
+		return false
+	end
+
+	local vertSrc = [[
+		#version 330
+
+		// Per-vertex (static quad corner)
+		layout(location = 0) in vec2 a_corner;
+
+		// Per-instance (line segment data)
+		layout(location = 1) in vec4 a_posStart;   // startX, startY, startZ, endX
+		layout(location = 2) in vec4 a_posEndW;    // endY, endZ, width, alpha
+		layout(location = 3) in vec4 a_colorTex;   // r, g, b, texOffset
+
+		uniform mat4 u_viewMat;
+		uniform mat4 u_projMat;
+		uniform float u_lineTexLen;
+		uniform float u_lineWidth;
+
+		out vec4 v_color;
+		out vec2 v_texCoord;
+
+		void main() {
+			vec3 sPos = a_posStart.xyz;
+			vec3 ePos = vec3(a_posStart.w, a_posEndW.xy);
+			float w = a_posEndW.z;
+
+			// Direction in XZ plane — perpendicular expansion only in XZ (matches legacy)
+			vec2 dXZ = ePos.xz - sPos.xz;
+			float lenXZ = length(dXZ);
+			vec2 perpXZ = (lenXZ > 0.001) ? vec2(-dXZ.y, dXZ.x) / lenXZ : vec2(0.0, 1.0);
+
+			float side  = a_corner.x * 2.0 - 1.0;  // -1 or +1
+			float along = a_corner.y;               // 0 = start, 1 = end
+
+			vec3 pos;
+			pos.xz = mix(sPos.xz, ePos.xz, along) + perpXZ * w * 0.5 * side;
+			pos.y  = mix(sPos.y,  ePos.y,  along);
+
+			gl_Position = u_projMat * u_viewMat * vec4(pos, 1.0);
+
+			v_color = vec4(a_colorTex.rgb, a_posEndW.w);
+
+			// Scrolling texture coordinates
+			float dist3D = length(ePos - sPos);
+			float texLen = dist3D / (u_lineTexLen * u_lineWidth);
+			v_texCoord.x = (1.0 - along) * (texLen + 1.0) - a_colorTex.w;
+			v_texCoord.y = a_corner.x;
+		}
+	]]
+
+	local fragSrc = [[
+		#version 330
+
+		uniform sampler2D u_tex;
+		uniform int u_useTex;
+
+		in vec4 v_color;
+		in vec2 v_texCoord;
+
+		out vec4 fragColor;
+
+		void main() {
+			if (u_useTex != 0) {
+				fragColor = v_color * texture(u_tex, v_texCoord);
+			} else {
+				fragColor = v_color;
+			}
+		}
+	]]
+
+	local shader = gl.CreateShader({
+		vertex = vertSrc,
+		fragment = fragSrc,
+		uniformInt = { u_tex = 0, u_useTex = 0 },
+		uniformFloat = { u_lineTexLen = lineTextureLength },
+	})
+	if not shader then
+		Spring.Echo("[CommandsFX2] GL4 shader failed: " .. tostring(gl.GetShaderLog()))
+		return false
+	end
+
+	local locs = {
+		viewMat    = gl.GetUniformLocation(shader, 'u_viewMat'),
+		projMat    = gl.GetUniformLocation(shader, 'u_projMat'),
+		lineTexLen = gl.GetUniformLocation(shader, 'u_lineTexLen'),
+		lineWidth  = gl.GetUniformLocation(shader, 'u_lineWidth'),
+		useTex     = gl.GetUniformLocation(shader, 'u_useTex'),
+	}
+
+	-- Static quad VBO (TRIANGLE_STRIP order: BL, BR, TL, TR)
+	local quadVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+	if not quadVBO then
+		gl.DeleteShader(shader)
+		return false
+	end
+	quadVBO:Define(4, { {id = 0, name = 'a_corner', size = 2} })
+	quadVBO:Upload({0,0, 1,0, 0,1, 1,1})
+
+	-- Instance VBO (streaming — rebuilt each frame)
+	local instVBO = gl.GetVBO(GL.ARRAY_BUFFER, true)
+	if not instVBO then
+		gl.DeleteShader(shader)
+		return false
+	end
+	instVBO:Define(GL4_MAX_SEGMENTS, {
+		{id = 1, name = 'a_posStart',  size = 4},
+		{id = 2, name = 'a_posEndW',   size = 4},
+		{id = 3, name = 'a_colorTex',  size = 4},
+	})
+
+	local vao = gl.GetVAO()
+	if not vao then
+		gl.DeleteShader(shader)
+		return false
+	end
+	vao:AttachVertexBuffer(quadVBO)
+	vao:AttachInstanceBuffer(instVBO)
+
+	gl4 = {
+		shader  = shader,
+		locs    = locs,
+		vao     = vao,
+		quadVBO = quadVBO,
+		instVBO = instVBO,
+		segData = {},  -- flat float array, pre-allocated on use
+		segCount = 0,
+	}
+	return true
+end
+
+local function ShutdownGL4()
+	if gl4 then
+		if gl4.shader then gl.DeleteShader(gl4.shader) end
+		-- VAO/VBO are garbage-collected by Spring but nil them for safety
+		gl4.vao = nil
+		gl4.instVBO = nil
+		gl4.quadVBO = nil
+		gl4 = nil
+	end
+end
 
 --------------------------------------------------------------------------------
 -- Table pools for performance (reuse tables instead of allocating new ones)
@@ -288,26 +355,33 @@ local function releaseTable(t)
 end
 
 -- Cache for unit positions to avoid repeated API calls per frame
-local unitPosCache = {}
-local unitPosCacheFrame = -1
+-- Uses 3 flat tables instead of {x,y,z} sub-tables to avoid per-unit allocation
+local unitPosCacheX = {}
+local unitPosCacheY = {}
+local unitPosCacheZ = {}
+local currentGameFrame = -1
+
+local function clearPositionCache()
+	local k = next(unitPosCacheX)
+	while k do
+		unitPosCacheX[k] = nil
+		unitPosCacheY[k] = nil
+		unitPosCacheZ[k] = nil
+		k = next(unitPosCacheX)
+	end
+end
 
 local function getCachedUnitPosition(unitID)
-	if unitPosCacheFrame ~= spGetGameFrame() then
-		-- Clear cache on new frame
-		for k in pairs(unitPosCache) do
-			unitPosCache[k] = nil
-		end
-		unitPosCacheFrame = spGetGameFrame()
+	local cx = unitPosCacheX[unitID]
+	if cx then
+		return cx, unitPosCacheY[unitID], unitPosCacheZ[unitID]
 	end
-	
-	local cached = unitPosCache[unitID]
-	if cached then
-		return cached[1], cached[2], cached[3]
-	end
-	
+
 	local x, y, z = spGetUnitPosition(unitID)
 	if x then
-		unitPosCache[unitID] = {x, y, z}
+		unitPosCacheX[unitID] = x
+		unitPosCacheY[unitID] = y
+		unitPosCacheZ[unitID] = z
 	end
 	return x, y, z
 end
@@ -404,144 +478,20 @@ function widget:Initialize()
 	WG['commandsfx'].setUseTeamColorsWhenSpec = function(value)
 		useTeamColorsWhenSpec = value
 	end
+
+	if not InitGL4() then
+		Spring.Echo("[CommandsFX2] GL4 initialization failed, disabling widget")
+		widgetHandler:RemoveWidget(self)
+		return
+	end
 end
 
 function widget:Shutdown()
+	ShutdownGL4()
 	--spLoadCmdColorsConfig('useQueueIcons  1 ')
 	spLoadCmdColorsConfig('queueIconScale  1 ')
 	spLoadCmdColorsConfig('queueIconAlpha  1 ')
 	setCmdLineColors(0.7)
-end
-
-local function DrawLineEnd(x1, y1, z1, x2, y2, z2, width)
-	y1 = y2
-
-	local distance = diag(x2 - x1, y2 - y1, z2 - z1)
-
-	-- for 2nd rounding
-	local distanceDivider = distance / (width / 2.25)
-	local x1_2 = x2 - ((x1 - x2) / distanceDivider)
-	local z1_2 = z2 - ((z1 - z2) / distanceDivider)
-
-	-- for first rounding
-	distanceDivider = distance / (width / 4.13)
-	x1 = x2 - ((x1 - x2) / distanceDivider)
-	z1 = z2 - ((z1 - z2) / distanceDivider)
-
-	local theta = (x1 ~= x2) and atan((z2 - z1) / (x2 - x1)) or pi / 2
-	local zOffset = cos(pi - theta) * width / 2
-	local xOffset = sin(pi - theta) * width / 2
-
-	local xOffset2 = xOffset / 1.35
-	local zOffset2 = zOffset / 1.35
-
-	-- first rounding
-	glVertex(x1 + xOffset2, y1, z1 + zOffset2)
-	glVertex(x1 - xOffset2, y1, z1 - zOffset2)
-
-	glVertex(x2 - xOffset, y2, z2 - zOffset)
-	glVertex(x2 + xOffset, y2, z2 + zOffset)
-
-	-- second rounding
-	glVertex(x1 + xOffset2, y1, z1 + zOffset2)
-	glVertex(x1 - xOffset2, y1, z1 - zOffset2)
-
-	xOffset2 = xOffset / 3.22
-	zOffset2 = zOffset / 3.22
-
-	glVertex(x1_2 - xOffset2, y1, z1_2 - zOffset2)
-	glVertex(x1_2 + xOffset2, y1, z1_2 + zOffset2)
-end
-
-local function DrawLineEndTex(x1, y1, z1, x2, y2, z2, width, texLength, texOffset)
-	y1 = y2
-
-	local distance = diag(x2 - x1, y2 - y1, z2 - z1)
-
-	-- for 2nd rounding
-	local distanceDivider = distance / (width / 2.25)
-	local x1_2 = x2 - ((x1 - x2) / distanceDivider)
-	local z1_2 = z2 - ((z1 - z2) / distanceDivider)
-
-	-- for first rounding
-	local distanceDivider2 = distance / (width / 4.13)
-	x1 = x2 - ((x1 - x2) / distanceDivider2)
-	z1 = z2 - ((z1 - z2) / distanceDivider2)
-
-	local theta = (x1 ~= x2) and atan((z2 - z1) / (x2 - x1)) or pi / 2
-	local zOffset = cos(pi - theta) * width / 2
-	local xOffset = sin(pi - theta) * width / 2
-
-	local xOffset2 = xOffset / 1.35
-	local zOffset2 = zOffset / 1.35
-
-	-- first rounding
-	glTexCoord(0.2 - texOffset, 0)
-	glVertex(x1 + xOffset2, y1, z1 + zOffset2)
-	glTexCoord(0.2 - texOffset, 1)
-	glVertex(x1 - xOffset2, y1, z1 - zOffset2)
-
-	glTexCoord(0.55 - texOffset, 0.85)
-	glVertex(x2 - xOffset, y2, z2 - zOffset)
-	glTexCoord(0.55 - texOffset, 0.15)
-	glVertex(x2 + xOffset, y2, z2 + zOffset)
-
-	-- second rounding
-	glTexCoord(0.8 - texOffset, 0.7)
-	glVertex(x1 + xOffset2, y1, z1 + zOffset2)
-	glTexCoord(0.8 - texOffset, 0.3)
-	glVertex(x1 - xOffset2, y1, z1 - zOffset2)
-
-	xOffset2 = xOffset / 3.22
-	zOffset2 = zOffset / 3.22
-
-	glTexCoord(0.55 - texOffset, 0.15)
-	glVertex(x1_2 - xOffset2, y1, z1_2 - zOffset2)
-	glTexCoord(0.55 - texOffset, 0.85)
-	glVertex(x1_2 + xOffset2, y1, z1_2 + zOffset2)
-end
-
-local function DrawLine(x1, y1, z1, x2, y2, z2, width)
-	-- long thin rectangle
-	local theta = (x1 ~= x2) and atan((z2 - z1) / (x2 - x1)) or pi / 2
-	local zOffset = cos(pi - theta) * width / 2
-	local xOffset = sin(pi - theta) * width / 2
-
-	glVertex(x1 + xOffset, y1, z1 + zOffset)
-	glVertex(x1 - xOffset, y1, z1 - zOffset)
-
-	glVertex(x2 - xOffset, y2, z2 - zOffset)
-	glVertex(x2 + xOffset, y2, z2 + zOffset)
-end
-
-local function DrawLineTex(x1, y1, z1, x2, y2, z2, width, texLength, texOffset)
-	-- long thin rectangle
-	local distance = diag(x2 - x1, y2 - y1, z2 - z1)
-
-	local theta = (x1 ~= x2) and atan((z2 - z1) / (x2 - x1)) or pi / 2
-	local zOffset = cos(pi - theta) * width / 2
-	local xOffset = sin(pi - theta) * width / 2
-
-	glTexCoord(((distance / width) / texLength) + 1 - texOffset, 1)
-	glVertex(x1 + xOffset, y1, z1 + zOffset)
-	glTexCoord(((distance / width) / texLength) + 1 - texOffset, 0)
-	glVertex(x1 - xOffset, y1, z1 - zOffset)
-
-	glTexCoord(0 - texOffset, 0)
-	glVertex(x2 - xOffset, y2, z2 - zOffset)
-	glTexCoord(0 - texOffset, 1)
-	glVertex(x2 + xOffset, y2, z2 + zOffset)
-end
-
-local function DrawGroundquad(x, y, z, size)
-	glTexCoord(0, 0)
-	glVertex(x - size, y, z - size)
-	glTexCoord(0, 1)
-	glVertex(x - size, y, z + size)
-	glTexCoord(1, 1)
-	glVertex(x + size, y, z + size)
-	glTexCoord(1, 0)
-	glVertex(x + size, y, z - size)
 end
 
 local function RemovePreviousCommand(unitID)
@@ -551,22 +501,21 @@ local function RemovePreviousCommand(unitID)
 end
 
 local function addUnitCommand(unitID, unitDefID, cmdID)
-	-- record that a command was given (note: cmdID is not used, but useful to record for debugging)
-	if unitID and (CONFIG[cmdID] or cmdID == CMD_INSERT or cmdID < 0) then
+	if unitID and (CONFIG[cmdID] or cmdID == CMDS.INSERT or cmdID < 0) then
 		unprocessedCommandsNum = unprocessedCommandsNum + 1
 		local cmd = getTable()
-		cmd.ID = cmdID
-		cmd.time = os_clock()
 		cmd.unitID = unitID
 		cmd.draw = false
-		cmd.selected = spIsUnitSelected(unitID)
-		cmd.udid = unitDefID
-		unprocessedCommands[unprocessedCommandsNum] = cmd -- command queue is not updated until next gameframe
+		unprocessedCommands[unprocessedCommandsNum] = cmd
 		if useTeamColors or (mySpec and useTeamColorsWhenSpec) then
-			cmd.teamID = Spring.GetUnitTeam(unitID)
+			cmd.teamID = spGetUnitTeam(unitID)
 		end
 	end
 end
+
+-- Parallel tables for deferred unit commands — avoids creating {unitDefID, cmdID} tables
+local deferredUnitDefID = {}
+local deferredUnitCmdID = {}
 
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	if enabledTeams[teamID] ~= nil and (not filterOwn or mySpec or teamID ~= myTeamID) then
@@ -577,62 +526,79 @@ function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts
 					addUnitCommand(unitID, unitDefID, cmdID)
 					newUnitCommands[unitID] = true
 				else
-					newUnitCommands[unitID] = { unitDefID, cmdID }
+					-- Store deferred command data in parallel flat tables (no table alloc)
+					newUnitCommands[unitID] = false
+					deferredUnitDefID[unitID] = unitDefID
+					deferredUnitCmdID[unitID] = cmdID
 				end
 			end
 		end
 	end
 end
 
-local function ExtractTargetLocation(a, b, c, d, cmdID)
-	-- input is first 4 parts of cmd.params table
-	local x, y, z
-	if c or d then
-		if cmdID == CMD_RECLAIM and a >= MAX_UNITS and spValidFeatureID(a - MAX_UNITS) then
-			--ugh, but needed
-			x, y, z = spGetFeaturePosition(a - MAX_UNITS)
-		elseif cmdID == CMD_REPAIR and spValidUnitID(a) then
-			x, y, z = spGetUnitPosition(a)
-		else
-			x = a
-			y = b
-			z = c
-		end
-	elseif a then
-		if a >= MAX_UNITS then
-			x, y, z = spGetFeaturePosition(a - MAX_UNITS)
-		else
-			x, y, z = spGetUnitPosition(a)
-		end
-	end
-	return x, y, z
-end
+-- Queue entry target types for pre-extracted positions
+local QTARGET_COORD = 1    -- static coordinate (MOVE, BUILD, PATROL, etc.)
+local QTARGET_UNIT = 2     -- unit target (needs live position each frame)
+local QTARGET_FEATURE = 3  -- feature target (needs live position each frame)
 
 local function getCommandsQueue(unitID)
-	local q = spGetUnitCommands(unitID, 35) or {} --limit to prevent mem leak, hax etc
+	local q = spGetUnitCommands(unitID, 35) or {}
 	local our_q = getTable()
 	local our_qCount = 0
 	for i = 1, #q do
-		if CONFIG[q[i].id] or q[i].id < 0 then
-			if q[i].id < 0 then
-				q[i].buildingID = -q[i].id;
-				q[i].id = BUILD
-				if not q[i].params[4] then
-					q[i].params[4] = 0 --sometimes the facing param is missing (wtf)
+		local entry = q[i]
+		local id = entry.id
+		if CONFIG[id] or id < 0 then
+			local params = entry.params
+			local a, b, c, d = params[1], params[2], params[3], params[4]
+
+			if id < 0 then
+				entry.buildingID = -id
+				id = CMDS.BUILD
+				entry.id = id
+				entry.facing = d or 0
+			end
+
+			-- Pre-extract target position and classify target type
+			local ttype, tid
+			if c or d then
+				if id == CMDS.RECLAIM and a >= MAX_UNITS and spValidFeatureID(a - MAX_UNITS) then
+					tid = a - MAX_UNITS
+					ttype = QTARGET_FEATURE
+					entry.tx, entry.ty, entry.tz = spGetFeaturePosition(tid)
+				elseif id == CMDS.REPAIR and spValidUnitID(a) then
+					tid = a
+					ttype = QTARGET_UNIT
+					entry.tx, entry.ty, entry.tz = spGetUnitPosition(a)
+				else
+					ttype = QTARGET_COORD
+					entry.tx, entry.ty, entry.tz = a, b, c
+				end
+			elseif a then
+				if a >= MAX_UNITS then
+					tid = a - MAX_UNITS
+					ttype = QTARGET_FEATURE
+					entry.tx, entry.ty, entry.tz = spGetFeaturePosition(tid)
+				else
+					tid = a
+					ttype = QTARGET_UNIT
+					entry.tx, entry.ty, entry.tz = spGetUnitPosition(a)
 				end
 			end
+
+			entry.ttype = ttype
+			entry.targetID = tid
+			entry.colour = CONFIG[id]
+
 			our_qCount = our_qCount + 1
-			our_q[our_qCount] = q[i]
+			our_q[our_qCount] = entry
 		end
 	end
-	return our_q
+	return our_q, our_qCount
 end
 
-local prevGameframe = 0
 local sec = 0
 local lastUpdate = 0
-local sec2 = 0
-local lastUpdate2 = 0
 function widget:Update(dt)
 
 	sec = sec + dt
@@ -659,54 +625,55 @@ function widget:Update(dt)
 		-- process newly given commands
 		-- (not done in widgetUnitCommand() because with huge build queue
 		-- it eats memory and can crash lua)
-		for unitID, v in pairs(newUnitCommands) do
-			if v ~= true and ignoreUnits[v[1]] == nil then
-				addUnitCommand(unitID, v[1], v[2])
+		local uid = next(newUnitCommands)
+		while uid do
+			local v = newUnitCommands[uid]
+			if v == false then
+				local dDefID = deferredUnitDefID[uid]
+				if ignoreUnits[dDefID] == nil then
+					addUnitCommand(uid, dDefID, deferredUnitCmdID[uid])
+				end
+				deferredUnitDefID[uid] = nil
+				deferredUnitCmdID[uid] = nil
 			end
-		end
-		-- Clear table without reallocating
-		for k in pairs(newUnitCommands) do
-			newUnitCommands[k] = nil
+			newUnitCommands[uid] = nil
+			uid = next(newUnitCommands)
 		end
 
 		-- process new commands (cant be done directly because at
 		-- widget:UnitCommand() the queue isnt updated yet)
 		for k = 1, #unprocessedCommands do
+			local cmd = unprocessedCommands[k]
 			if totalCommands <= maxTotalCommandCount then
 				maxCommand = maxCommand + 1
 				local i = maxCommand
-				commands[i] = unprocessedCommands[k]
+				commands[i] = cmd
 				totalCommands = totalCommands + 1
 
-				RemovePreviousCommand(unprocessedCommands[k].unitID)
-				unitCommand[unprocessedCommands[k].unitID] = i
+				RemovePreviousCommand(cmd.unitID)
+				unitCommand[cmd.unitID] = i
 
 				-- get pruned command queue
-				local our_q = getCommandsQueue(unprocessedCommands[k].unitID)
-				local qsize = #our_q
+				local our_q, qsize = getCommandsQueue(cmd.unitID)
 				commands[i].queue = our_q
 				commands[i].queueSize = qsize
-				if qsize > 1 then
-					monitorCommands[i] = qsize
-				end
 				if qsize > 0 then
 					commands[i].draw = true
 				end
 
-				-- get location of final command
-				local lastCmd = our_q[#our_q]
-				if lastCmd and lastCmd.params then
-					local x, y, z = ExtractTargetLocation(lastCmd.params[1], lastCmd.params[2], lastCmd.params[3], lastCmd.params[4], lastCmd.id)
-					if x then
-						commands[i].x = x
-						commands[i].y = y
-						commands[i].z = z
+				-- get location of final command (pre-extracted in getCommandsQueue)
+				if qsize > 0 then
+					local lastCmd = our_q[qsize]
+					if lastCmd.tx then
+						commands[i].x = lastCmd.tx
+						commands[i].y = lastCmd.ty
+						commands[i].z = lastCmd.tz
 					end
 				end
 				commands[i].time = os_clock()
 			else
 				-- If we didn't use this command, release it back to pool
-				releaseTable(unprocessedCommands[k])
+				releaseTable(cmd)
 			end
 		end
 		-- Clear unprocessedCommands array (tables already moved to commands or released)
@@ -714,39 +681,6 @@ function widget:Update(dt)
 			unprocessedCommands[k] = nil
 		end
 		unprocessedCommandsNum = 0
-
-		if sec2 > lastUpdate2 + 0.3 then
-			lastUpdate2 = sec2
-			if prevGameframe ~= gf then
-				prevGameframe = gf
-				-- update queue (in case unit has reached the nearest queue coordinate)
-				local qsize
-				for i = 1, #monitorCommands do
-					if commands[i] ~= nil then
-						qsize = monitorCommands[i]
-						if commands[i].draw == false then
-							monitorCommands[i] = nil
-						else
-							local q = spGetUnitCommandCount(commands[i].unitID)
-							if qsize ~= q then
-								local old_queue = commands[i].queue
-								local our_q = getCommandsQueue(commands[i].unitID)
-								commands[i].queue = our_q
-								commands[i].queueSize = #our_q
-								if old_queue then
-									releaseTable(old_queue)
-								end
-								if qsize > 1 then
-									monitorCommands[i] = qsize
-								else
-									monitorCommands[i] = nil
-								end
-							end
-						end
-					end
-				end
-			end
-		end
 	end
 end
 
@@ -757,6 +691,17 @@ local function IsPointInView(x, y, z)
 	return false
 end
 
+-- Hoisted closure for gl.ActiveShader to avoid per-frame allocation
+local gl4SegCount = 0
+local function gl4DrawFunc()
+	gl.UniformMatrix(gl4.locs.viewMat, "camera")
+	gl.UniformMatrix(gl4.locs.projMat, "projection")
+	gl.Uniform(gl4.locs.lineTexLen, lineTextureLength)
+	gl.Uniform(gl4.locs.lineWidth, lineWidth)
+	gl.UniformInt(gl4.locs.useTex, drawLineTexture and 1 or 0)
+	gl4.vao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, gl4SegCount)
+end
+
 function widget:DrawWorldPreUnit()
 	if hidden then return end
 	if spIsGUIHidden() then return end
@@ -764,20 +709,33 @@ function widget:DrawWorldPreUnit()
 	osClock = os_clock()
 	if drawLineTexture then
 		texOffset = prevTexOffset - ((osClock - prevOsClock) * lineTextureSpeed)
-		texOffset = texOffset - math.floor(texOffset)
+		texOffset = texOffset - mathFloor(texOffset)
 		prevTexOffset = texOffset
 	end
 	prevOsClock = os_clock()
 
+	-- Clear position cache once per game frame
+	local gf = spGetGameFrame()
+	if currentGameFrame ~= gf then
+		currentGameFrame = gf
+		clearPositionCache()
+	end
+
 	gl.DepthTest(false)
-	gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
 	-- Precompute values used in loop
 	local useTeamColorsForDraw = useTeamColors or (mySpec and useTeamColorsWhenSpec)
 	local lineWidthDelta = lineWidth - (lineWidth * lineWidthEnd)
-	
+	local opacityMul = opacity * lineOpacity * 2
+	local segCount = 0
+	local segData = gl4.segData
+	buildGhosts.count = 0
+
 	local commandCount = 0
-	for i in pairs(commands) do
+	local i = next(commands)
+	while i do
+		local nextI = next(commands, i)  -- grab next key before we might nil commands[i]
 		local command = commands[i]
 		if command and command.time then
 			local progress = (osClock - command.time) / duration
@@ -789,7 +747,6 @@ function widget:DrawWorldPreUnit()
 				end
 				commands[i] = nil
 				totalCommands = totalCommands - 1
-				monitorCommands[i] = nil
 				if unitCommand[unitID] == i then
 					unitCommand[unitID] = nil
 				end
@@ -799,69 +756,59 @@ function widget:DrawWorldPreUnit()
 
 				-- draw command queue
 				local prevX, prevY, prevZ = getCachedUnitPosition(unitID)
-				if command.queueSize > 0 and prevX and commandCount < maxCommandCount then
+				local queueSize = command.queueSize
+				if queueSize > 0 and prevX and commandCount < maxCommandCount then
 
-					local lineAlphaMultiplier = 1 - progress
+					local lineAlphaMultiplier = opacityMul * (1 - progress)
 					local usedLineWidth = lineWidth - (progress * lineWidthDelta)
-					
-					for j = 1, command.queueSize do
-						local queueCmd = command.queue[j]
-						local X, Y, Z = ExtractTargetLocation(
-							queueCmd.params[1], queueCmd.params[2], queueCmd.params[3], queueCmd.params[4], queueCmd.id
-						)
-						local validCoord = X and Z and X >= 0 and X <= mapX and Z >= 0 and Z <= mapZ
-						-- draw
-						if X and validCoord then
+					local queue = command.queue
+					local cmdTeamColour = useTeamColorsForDraw and command.teamID and teamColor[command.teamID]
+
+					for j = 1, queueSize do
+						local qe = queue[j]
+						-- Resolve position from pre-extracted data
+						local X, Y, Z
+						local ttype = qe.ttype
+						if ttype == QTARGET_COORD then
+							X, Y, Z = qe.tx, qe.ty, qe.tz
+						elseif ttype == QTARGET_UNIT then
+							X, Y, Z = getCachedUnitPosition(qe.targetID)
+						elseif ttype == QTARGET_FEATURE then
+							X, Y, Z = spGetFeaturePosition(qe.targetID)
+						end
+						if X and Z and X >= 0 and X <= mapX and Z >= 0 and Z <= mapZ then
 							commandCount = commandCount + 1
-							-- lines
-							local lineColour
-							if useTeamColorsForDraw and command.teamID then
-								lineColour = teamColor[command.teamID]
-							else
-								lineColour = CONFIG[queueCmd.id].colour
-							end
-							local lineAlpha = opacity * lineOpacity * (lineColour[4] * 2) * lineAlphaMultiplier
+							local lineColour = cmdTeamColour or qe.colour
+							local lineAlpha = lineColour[4] * lineAlphaMultiplier
 							if lineAlpha > 0 then
-								glColor(lineColour[1], lineColour[2], lineColour[3], lineAlpha)
-								if drawLineTexture then
-
-									glTexture(lineImg)
-									glBeginEnd(GL_QUADS, DrawLineTex, prevX, prevY, prevZ, X, Y, Z,
-										usedLineWidth, lineTextureLength * (lineWidth / usedLineWidth), texOffset)
-									glTexture(false)
-								else
-									glBeginEnd(GL_QUADS, DrawLine, prevX, prevY, prevZ, X, Y, Z, usedLineWidth)
+								if segCount < GL4_MAX_SEGMENTS then
+									segCount = segCount + 1
+									local base = (segCount - 1) * GL4_FLOATS_PER_SEG
+									segData[base+1]  = prevX
+									segData[base+2]  = prevY
+									segData[base+3]  = prevZ
+									segData[base+4]  = X
+									segData[base+5]  = Y
+									segData[base+6]  = Z
+									segData[base+7]  = usedLineWidth
+									segData[base+8]  = lineAlpha
+									segData[base+9]  = lineColour[1]
+									segData[base+10] = lineColour[2]
+									segData[base+11] = lineColour[3]
+									segData[base+12] = texOffset
 								end
-								-- ghost of build queue
-								if drawBuildQueue and queueCmd.buildingID then
-									glPushMatrix()
-									glTranslate(X, Y + 1, Z)
-									glRotate(90 * queueCmd.params[4], 0, 1, 0)
-									glUnitShape(queueCmd.buildingID, myTeamID, true, false, false)
-									glRotate(-90 * queueCmd.params[4], 0, 1, 0)
-									glTranslate(-X, -Y - 1, -Z)
-									glPopMatrix()
-								end
-								if j == 1 and not drawLineTexture then
-									-- draw startpoint rounding
-									glColor(lineColour[1], lineColour[2], lineColour[3], lineAlpha)
-									glBeginEnd(GL_QUADS, DrawLineEnd, X, Y, Z, prevX, prevY, prevZ, usedLineWidth)
-								end
-							end
-							if j == command.queueSize then
-
-								-- draw endpoint rounding
-								if drawLineTexture == false and lineAlpha > 0 then
-									if drawLineTexture then
-										glTexture(lineImg)
-										glColor(lineColour[1], lineColour[2], lineColour[3], lineAlpha)
-										glBeginEnd(GL_QUADS, DrawLineEndTex, prevX, prevY, prevZ, X, Y, Z,
-											usedLineWidth, lineTextureLength, texOffset)
-										glTexture(false)
-									else
-										glColor(lineColour[1], lineColour[2], lineColour[3], lineAlpha)
-										glBeginEnd(GL_QUADS, DrawLineEnd, prevX, prevY, prevZ, X, Y, Z, usedLineWidth)
-									end
+								if drawBuildQueue and qe.buildingID then
+									local gc = buildGhosts.count + 1
+									buildGhosts.count = gc
+									buildGhosts.x[gc] = X
+									buildGhosts.y[gc] = Y
+									buildGhosts.z[gc] = Z
+									buildGhosts.defID[gc] = qe.buildingID
+									buildGhosts.facing[gc] = qe.facing
+									buildGhosts.r[gc] = lineColour[1]
+									buildGhosts.g[gc] = lineColour[2]
+									buildGhosts.b[gc] = lineColour[3]
+									buildGhosts.a[gc] = lineAlpha
 								end
 							end
 							prevX, prevY, prevZ = X, Y, Z
@@ -870,8 +817,37 @@ function widget:DrawWorldPreUnit()
 				end
 			end
 		end -- end if command check
+		i = nextI
 	end
-	glColor(1, 1, 1, 1)
+
+	-- GL4 draw pass: one instanced draw call for all line segments
+	if segCount > 0 then
+		gl4.instVBO:Upload(segData, -1, 0, 1, segCount * GL4_FLOATS_PER_SEG)
+		if drawLineTexture then
+			gl.Texture(0, lineImg)
+		end
+		gl4SegCount = segCount
+		gl.ActiveShader(gl4.shader, gl4DrawFunc)
+		if drawLineTexture then
+			gl.Texture(0, false)
+		end
+	end
+
+	-- Build queue ghosts (legacy pass — requires gl.UnitShape)
+	if buildGhosts.count > 0 then
+		for k = 1, buildGhosts.count do
+			gl.Color(buildGhosts.r[k], buildGhosts.g[k], buildGhosts.b[k], buildGhosts.a[k])
+			gl.PushMatrix()
+			gl.Translate(buildGhosts.x[k], buildGhosts.y[k] + 1, buildGhosts.z[k])
+			gl.Rotate(90 * buildGhosts.facing[k], 0, 1, 0)
+			gl.UnitShape(buildGhosts.defID[k], myTeamID, true, false, false)
+			gl.Rotate(-90 * buildGhosts.facing[k], 0, 1, 0)
+			gl.Translate(-buildGhosts.x[k], -buildGhosts.y[k] - 1, -buildGhosts.z[k])
+			gl.PopMatrix()
+		end
+	end
+
+	gl.Color(1, 1, 1, 1)
 end
 
 
