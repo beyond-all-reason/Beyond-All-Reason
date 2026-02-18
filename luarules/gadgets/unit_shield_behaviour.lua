@@ -132,7 +132,6 @@ local spGetUnitArmored              = Spring.GetUnitArmored
 
 local shieldUnitDefs                = {}
 local shieldUnitsData               = {}
-local beamEmitterWeapons            = {}
 local forceDeleteWeapons            = {}
 local unitDefIDCache                = {}
 local projectileDefIDCache          = {}
@@ -221,15 +220,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			end
 		end
 		shieldUnitDefs[unitDefID] = data
-	end
-
-	if unitDef.weapons then
-		for index, weapon in ipairs(unitDef.weapons) do
-			local weaponDef = WeaponDefs[weapon.weaponDef]
-			if weaponDef.type == 'BeamLaser' or weaponDef.type == 'LightningCannon' then
-				beamEmitterWeapons[weaponDef.id] = { unitDefID, index }
-			end
-		end
 	end
 
 	if unitDef.armoredMultiple and unitDef.armoredMultiple < 1 and unitDef.armoredMultiple > 0 then
