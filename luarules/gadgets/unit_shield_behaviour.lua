@@ -108,6 +108,9 @@ local minDownTime					= 1 * Game.gameSpeed
 -- The maximum number of frames a shield is allowed to be offline from overkill. This is to handle very, very high single-attack damage which would otherwise cripple the shield for multiple minutes.
 local maxDownTime					= 20 * Game.gameSpeed
 
+-- Arbitrary large value used to ensure shield does not reactivate before we want it to, but using math.huge causes shield to instantly reactivate.
+local engineRechargeDelayToDisable  = 60 * Game.gameSpeed
+
 local shieldOnUnitRulesParamIndex   = 531313
 local INLOS                         = { inlos = true }
 
@@ -324,10 +327,8 @@ end
 local function suspendShield(unitID)
 	local shieldData = shieldUnitsData[unitID]
 
-	-- Dummy disable recharge delay, as engine does not support downtime
-	-- Arbitrary large value used to ensure shield does not reactivate before we want it to,
-	-- but using math.huge causes shield to instantly reactivate
-	spSetUnitShieldRechargeDelay(unitID, shieldData.shieldWeaponNumber, 3600)
+	-- Dummy shield disable via recharge delay. The engine does not support our "downtime" approach.
+	spSetUnitShieldRechargeDelay(unitID, shieldData.shieldWeaponNumber, engineRechargeDelayToDisable)
 
 	spSetUnitShieldState(unitID, shieldData.shieldWeaponNumber, false)
 	shieldData.shieldEnabled = false
