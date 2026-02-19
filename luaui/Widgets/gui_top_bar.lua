@@ -198,7 +198,8 @@ local leftclick = 'LuaUI/Sounds/tock.wav'
 local resourceclick = 'LuaUI/Sounds/buildbar_click.wav'
 
 -- Timers + intervals
-local now = os.clock()
+local osClock = os.clock
+local now = osClock()
 local nextStateCheck = 0
 local nextGuishaderCheck = 0
 local nextResBarUpdate = 0
@@ -1188,7 +1189,7 @@ local function hoveringElement(x, y)
 end
 
 function widget:Update(dt)
-	now = os.clock()
+	now = osClock()
 
 	windRotation = windRotation + (currentWind * bladeSpeedMultiplier * dt * 30)
 
@@ -1792,7 +1793,7 @@ local function renderComCounter()
 end
 
 function widget:DrawScreen()
-	now = os.clock()
+	now = osClock()
 
 	if showButtons ~= prevShowButtons then
 		prevShowButtons = showButtons
