@@ -71,6 +71,9 @@ function widget:GameFrame(gf)
 				end
 			end
 		end
+		if not next(monitorTargets) then
+			widgetHandler:RemoveCallIn('GameFrame')
+		end
 	end
 end
 
@@ -100,6 +103,9 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 				monitorTargets[targetBuildingID] = { targetBuildingPosX, targetBuildingPosY, targetBuildingPosZ, {} }
 			end
 			monitorTargets[targetBuildingID][4][unitID] = true
+			if not hasBomber then
+				widgetHandler:UpdateCallIn('GameFrame')
+			end
 			hasBomber = true
 		end
 	end

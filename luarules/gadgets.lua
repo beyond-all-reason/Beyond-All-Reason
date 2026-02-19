@@ -285,27 +285,6 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
---  array-table reverse iterator
---
---  used to invert layer ordering so draw and events will have inverse ordering
---
-local function r_ipairs(tbl)
-	local function r_iter(tbl, key)
-		if key <= 1 then
-			return nil
-		end
-
-		-- next idx, next val
-		return key - 1, tbl[key - 1]
-	end
-
-	return r_iter, tbl, (1 + #tbl)
-end
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---
 --  returns:  basename, dirname
 --
 
@@ -594,6 +573,16 @@ function gadgetHandler:FinalizeGadget(gadget, filename, basename)
 		gi.enabled = info.enabled or false
 	end
 
+	-- Pre-cache tracy zone name strings to avoid per-frame string concatenation
+	local name = gi.name
+	gi.tracyName = {}
+	for _, ciName in ipairs(callInLists) do
+		gi.tracyName[ciName] = "G:" .. ciName .. ":" .. name
+	end
+
+	-- Store direct reference to tracyName on gadget to bypass ghInfo proxy metatable in hot paths
+	gadget._tracyName = gi.tracyName
+
 	gadget.ghInfo = {}  --  a proxy table
 	local mt = {
 		__index = gi,
@@ -619,10 +608,9 @@ end
 local function SafeWrap(func, funcName)
 	local gh = gadgetHandler
 	return function(g, ...)
-		local r = { pcall(func, g, ...) }
-		if r[1] then
-			table.remove(r, 1)
-			return unpack(r)
+		local ok, r1, r2, r3 = pcall(func, g, ...)
+		if ok then
+			return r1, r2, r3
 		else
 			if funcName ~= 'Shutdown' then
 				gadgetHandler:RemoveGadget(g)
@@ -630,7 +618,7 @@ local function SafeWrap(func, funcName)
 				Spring.Log(LOG_SECTION, LOG.ERROR, 'Error in Shutdown')
 			end
 			local name = g.ghInfo.name
-			Spring.Log(LOG_SECTION, LOG.INFO, r[2])
+			Spring.Log(LOG_SECTION, LOG.INFO, r1)
 			Spring.Log(LOG_SECTION, LOG.INFO, 'Removed gadget: ' .. name)
 			return nil
 		end
@@ -1159,7 +1147,7 @@ function gadgetHandler:GameFrame(frameNum)
 	callinDepth = 1
 	tracy.ZoneBeginN("G:GameFrame")
 	for _, g in ipairs(self.GameFrameList) do
-		tracy.ZoneBeginN("G:GameFrame:" .. g.ghInfo.name)
+		tracy.ZoneBeginN(g._tracyName.GameFrame)
 		g:GameFrame(frameNum)
 		tracy.ZoneEnd()
 	end
@@ -1170,8 +1158,10 @@ end
 function gadgetHandler:GameFramePost(frameNum)
 	callinDepth = 1 -- See notes on GameFrame.
 	tracy.ZoneBeginN("G:GameFramePost")
-	for _, g in r_ipairs(self.GameFramePostList) do
-		tracy.ZoneBeginN("G:GameFramePost:" .. g.ghInfo.name)
+	local list = self.GameFramePostList
+	for i = #list, 1, -1 do
+		local g = list[i]
+		tracy.ZoneBeginN(g._tracyName.GameFramePost)
 		g:GameFramePost(frameNum)
 		tracy.ZoneEnd()
 	end
@@ -1281,7 +1271,7 @@ end
 function gadgetHandler:ViewResize(vsx, vsy)
 	tracy.ZoneBeginN("G:ViewResize")
 	for _, g in ipairs(self.ViewResizeList) do
-		tracy.ZoneBeginN("G:ViewResize:" .. g.ghInfo.name)
+		tracy.ZoneBeginN(g._tracyName.ViewResize)
 		g:ViewResize(vsx, vsy)
 		tracy.ZoneEnd()
 	end
@@ -1326,7 +1316,7 @@ end
 function gadgetHandler:PlayerChanged(playerID)
 	tracy.ZoneBeginN("G:PlayerChanged")
 	for _, g in ipairs(self.PlayerChangedList) do
-		tracy.ZoneBeginN("G:PlayerChanged:" .. g.ghInfo.name)
+		tracy.ZoneBeginN(g._tracyName.PlayerChanged)
 		g:PlayerChanged(playerID)
 		tracy.ZoneEnd()
 	end
@@ -1553,7 +1543,9 @@ function gadgetHandler:AllowUnitTransportLoad(transporterID, transporterUnitDefI
 end
 
 function gadgetHandler:AllowUnitTransportUnload(transporterID, transporterUnitDefID, transporterTeam, transporteeID, transporteeUnitDefID, transporteeTeam, unloadPosX, unloadPosY, unloadPosZ)
-	for _, g in r_ipairs(self.AllowUnitTransportUnloadList) do
+	local list = self.AllowUnitTransportUnloadList
+	for i = #list, 1, -1 do
+		local g = list[i]
 		if not g:AllowUnitTransportUnload(transporterID, transporterUnitDefID, transporterTeam, transporteeID, transporteeUnitDefID, transporteeTeam, unloadPosX, unloadPosY, unloadPosZ) then
 			return false
 		end
@@ -1770,14 +1762,18 @@ function gadgetHandler:UnitFromFactory(unitID, unitDefID, unitTeam,
 end
 
 function gadgetHandler:UnitReverseBuilt(unitID, unitDefID, unitTeam)
-	for _, g in r_ipairs(self.UnitReverseBuiltList) do
+	local list = self.UnitReverseBuiltList
+	for i = #list, 1, -1 do
+		local g = list[i]
 		g:UnitReverseBuilt(unitID, unitDefID, unitTeam)
 	end
 	return
 end
 
 function gadgetHandler:UnitStunned(unitID, unitDefID, unitTeam, stunned)
-	for _,g in r_ipairs(self.UnitStunnedList) do
+	local list = self.UnitStunnedList
+	for i = #list, 1, -1 do
+		local g = list[i]
 		g:UnitStunned(unitID, unitDefID, unitTeam, stunned)
 	end
 	return
@@ -1795,7 +1791,9 @@ function gadgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, at
 end
 
 function gadgetHandler:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
-	for _, g in r_ipairs(self.RenderUnitDestroyedList) do
+	local list = self.RenderUnitDestroyedList
+	for i = #list, 1, -1 do
+		local g = list[i]
 		g:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
 	end
 	return
@@ -1993,7 +1991,9 @@ function gadgetHandler:UnitUnitCollision(colliderID, collideeID)
 end
 
 function gadgetHandler:UnitFeatureCollision(colliderID, collideeID)
-	for _, g in r_ipairs(self.UnitFeatureCollisionList) do
+	local list = self.UnitFeatureCollisionList
+	for i = #list, 1, -1 do
+		local g = list[i]
 		if g:UnitFeatureCollision(colliderID, collideeID) then
 			return true
 		end
@@ -2131,7 +2131,9 @@ end
 
 function gadgetHandler:Explosion(weaponID, px, py, pz, ownerID, projectileID)
 	-- "noGfx = noGfx or ..." short-circuits, so equivalent to this
-	for _, g in r_ipairs(self.ExplosionList) do
+	local list = self.ExplosionList
+	for i = #list, 1, -1 do
+		local g = list[i]
 		if g:Explosion(weaponID, px, py, pz, ownerID, projectileID) then
 			return true
 		end
@@ -2156,7 +2158,7 @@ function gadgetHandler:Update()
 	local deltaTime = Spring.GetLastUpdateSeconds()
 	tracy.ZoneBeginN("G:Update")
 	for _, g in ipairs(self.UpdateList) do
-		tracy.ZoneBeginN("G:Update:" .. g.ghInfo.name)
+		tracy.ZoneBeginN(g._tracyName.Update)
 		g:Update(deltaTime)
 		tracy.ZoneEnd()
 	end
@@ -2181,13 +2183,17 @@ function gadgetHandler:ActiveCommandChanged(id, cmdType)
 end
 
 function gadgetHandler:CameraRotationChanged(rotx, roty, rotz)
-	for _, g in r_ipairs(self.CameraRotationChangedList) do
+	local list = self.CameraRotationChangedList
+	for i = #list, 1, -1 do
+		local g = list[i]
 		g:CameraRotationChanged(rotx, roty, rotz)
 	end
 end
 
 function gadgetHandler:CameraPositionChanged(posx, posy, posz)
-	for _, g in r_ipairs(self.CameraPositionChangedList) do
+	local list = self.CameraPositionChangedList
+	for i = #list, 1, -1 do
+		local g = list[i]
 		g:CameraPositionChanged(posx, posy, posz)
 	end
 end
@@ -2213,7 +2219,7 @@ end
 function gadgetHandler:DrawWorld()
 	tracy.ZoneBeginN("G:DrawWorld")
 	for _, g in ipairs(self.DrawWorldList) do
-		tracy.ZoneBeginN("G:DrawWorld:" .. g.ghInfo.name)
+		tracy.ZoneBeginN(g._tracyName.DrawWorld)
 		g:DrawWorld()
 		tracy.ZoneEnd()
 	end
@@ -2224,7 +2230,7 @@ end
 function gadgetHandler:DrawWorldPreUnit()
 	tracy.ZoneBeginN("G:DrawWorldPreUnit")
 	for _, g in ipairs(self.DrawWorldPreUnitList) do
-		tracy.ZoneBeginN("G:DrawWorldPreUnit:" .. g.ghInfo.name)
+		tracy.ZoneBeginN(g._tracyName.DrawWorldPreUnit)
 		g:DrawWorldPreUnit()
 		tracy.ZoneEnd()
 	end
@@ -2427,7 +2433,9 @@ function gadgetHandler:GetTooltip(x, y)
 end
 
 function gadgetHandler:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
-	for _, g in r_ipairs(self.UnsyncedHeightMapUpdateList) do
+	local list = self.UnsyncedHeightMapUpdateList
+	for i = #list, 1, -1 do
+		local g = list[i]
 		g:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
 	end
 	return
@@ -2470,9 +2478,11 @@ end
 --------------------------------------------------------------------------------
 
 function gadgetHandler:FontsChanged()
-	tracy.ZoneBeginN("FontsChanged")
-	for _, w in r_ipairs(self.FontsChangedList) do
-		w:FontsChanged()
+	tracy.ZoneBeginN("G:FontsChanged")
+	local list = self.FontsChangedList
+	for i = #list, 1, -1 do
+		local g = list[i]
+		g:FontsChanged()
 	end
 	tracy.ZoneEnd()
 	return

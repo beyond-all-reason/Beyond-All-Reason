@@ -34,23 +34,39 @@ if gadgetHandler:IsSyncedCode() then -- Synced
     VFS.Include('common/wav.lua')
     local cooldown = 0 -- 1 minute cooldown at the start
 
+    local mRandom = math.random
+    local spGetGroundHeight = Spring.GetGroundHeight
+    local spSpawnCEG = Spring.SpawnCEG
+    local spPlaySoundFile = Spring.PlaySoundFile
+    local spGetUnitPosition = Spring.GetUnitPosition
+    local spDestroyUnit = Spring.DestroyUnit
+    local spGetTeamUnitDefCount = Spring.GetTeamUnitDefCount
+    local spGetFeaturePosition = Spring.GetFeaturePosition
+    local spGetFeatureResurrect = Spring.GetFeatureResurrect
+    local spGetFeatureHealth = Spring.GetFeatureHealth
+    local spSetFeatureResurrect = Spring.SetFeatureResurrect
+    local spSetFeatureHealth = Spring.SetFeatureHealth
+    local spDestroyFeature = Spring.DestroyFeature
+    local spCreateUnit = Spring.CreateUnit
+    local SendToUnsynced = SendToUnsynced
+
     function gadget:GameFrame(frame)
         for _ = 1, cloudMult do
-            if math.random(0,10) == 0 then
-                local randomx = math.random(0, mapx)
-                local randomz = math.random(0, mapz)
-                local randomy = Spring.GetGroundHeight(randomx, randomz)
+            if mRandom(0,10) == 0 then
+                local randomx = mRandom(0, mapx)
+                local randomz = mRandom(0, mapz)
+                local randomy = spGetGroundHeight(randomx, randomz)
                 if GG.IsPosInRaptorScum(randomx, randomy, randomz) then
-                    Spring.SpawnCEG("scavradiation",randomx,randomy+100,randomz,0,0,0)
+                    spSpawnCEG("scavradiation",randomx,randomy+100,randomz,0,0,0)
                 end
 
-                randomx = math.random(0, mapx)
-                randomz = math.random(0, mapz)
-                randomy = Spring.GetGroundHeight(randomx, randomz)
+                randomx = mRandom(0, mapx)
+                randomz = mRandom(0, mapz)
+                randomy = spGetGroundHeight(randomx, randomz)
 
                 if GG.IsPosInRaptorScum(randomx, randomy, randomz) then
-                    Spring.SpawnCEG("scavradiation-lightning",randomx,randomy+100,randomz,0,0,0)
-                    Spring.PlaySoundFile("thunder" .. math.random(1,5), 1.5, randomx, randomy+100, randomz)
+                    spSpawnCEG("scavradiation-lightning",randomx,randomy+100,randomz,0,0,0)
+                    spPlaySoundFile("thunder" .. mRandom(1,5), 1.5, randomx, randomy+100, randomz)
 
                     --if math.random(0, 10) == 0 then
                     --    if Spring.GetGameRulesParam("scavTechAnger") > 10 and Spring.GetGameRulesParam("scavTechAnger") < 50 and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames["scavmist_scav"].id) < maxMists then
@@ -92,12 +108,12 @@ if gadgetHandler:IsSyncedCode() then -- Synced
                 end
 
                 for i = 1,5 do
-                    randomx = math.random(0, mapx)
-                    randomz = math.random(0, mapz)
-                    randomy = Spring.GetGroundHeight(randomx, randomz)
+                    randomx = mRandom(0, mapx)
+                    randomz = mRandom(0, mapz)
+                    randomy = spGetGroundHeight(randomx, randomz)
 
                     if GG.IsPosInRaptorScum(randomx, randomy, randomz) then
-                        Spring.SpawnCEG("scavmistxl",randomx,randomy+100,randomz,0,0,0)
+                        spSpawnCEG("scavmistxl",randomx,randomy+100,randomz,0,0,0)
                     end
                 end
             end
@@ -105,11 +121,11 @@ if gadgetHandler:IsSyncedCode() then -- Synced
 
         if frame%30 == 21 then
             for unitID, unitDefID in pairs(aliveMists) do
-                local posx, posy, posz = Spring.GetUnitPosition(unitID)
+                local posx, posy, posz = spGetUnitPosition(unitID)
                 if not GG.IsPosInRaptorScum(posx, posy, posz) then
-                    Spring.DestroyUnit(unitID, true, true)
-                elseif math.random(0,360) == 0 and Spring.GetTeamUnitDefCount(scavTeamID, unitDefID) > maxMists - math.ceil(maxMists*0.05) then
-                    Spring.DestroyUnit(unitID, true, true)
+                    spDestroyUnit(unitID, true, true)
+                elseif mRandom(0,360) == 0 and spGetTeamUnitDefCount(scavTeamID, unitDefID) > maxMists - math.ceil(maxMists*0.05) then
+                    spDestroyUnit(unitID, true, true)
                 end
             end
         end
@@ -117,34 +133,34 @@ if gadgetHandler:IsSyncedCode() then -- Synced
         for featureID, data in pairs(aliveWrecks) do
             if featureID%30 == frame%30 then
                 --Spring.Echo("featureID", featureID, frame)
-                local posx, posy, posz = Spring.GetFeaturePosition(featureID)
+                local posx, posy, posz = spGetFeaturePosition(featureID)
                 if GG.IsPosInRaptorScum(posx, posy, posz) then
                     --Spring.Echo("isInScum", GG.IsPosInRaptorScum(posx, posy, posz))
-                    aliveWrecks[featureID].resurrectable = Spring.GetFeatureResurrect(featureID)
+                    aliveWrecks[featureID].resurrectable = spGetFeatureResurrect(featureID)
                     if data.resurrectable and data.resurrectable ~= "" then
                         --Spring.Echo("resurrectable", data.resurrectable)
-                        if data.lastResurrectionCheck == select(3, Spring.GetFeatureHealth(featureID)) then
-                            local random = math.random()
-                            Spring.SetFeatureResurrect(featureID, data.ressurectable, data.facing, data.lastResurrectionCheck+(0.05*random*data.age))
+                        if data.lastResurrectionCheck == select(3, spGetFeatureHealth(featureID)) then
+                            local random = mRandom()
+                            spSetFeatureResurrect(featureID, data.ressurectable, data.facing, data.lastResurrectionCheck+(0.05*random*data.age))
                             GG.ScavengersSpawnEffectFeatureID(featureID)
                             --Spring.Echo("resurrecting", data.lastResurrectionCheck)
                             SendToUnsynced("featureReclaimFrame", featureID, data.lastResurrectionCheck+(0.05*random*data.age))
                         end
                         if aliveWrecks[featureID].lastResurrectionCheck >= 1 then
-                            Spring.CreateUnit(data.resurrectable, posx, posy, posz, data.facing, scavTeamID)
-                            Spring.DestroyFeature(featureID)
+                            spCreateUnit(data.resurrectable, posx, posy, posz, data.facing, scavTeamID)
+                            spDestroyFeature(featureID)
                         end
-                        aliveWrecks[featureID].lastResurrectionCheck = select(3, Spring.GetFeatureHealth(featureID))
+                        aliveWrecks[featureID].lastResurrectionCheck = select(3, spGetFeatureHealth(featureID))
                         aliveWrecks[featureID].age = aliveWrecks[featureID].age+0.0166
                     else
-                        local featureHealth, featureMaxHealth = Spring.GetFeatureHealth(featureID)
-                        Spring.SpawnCEG("scaspawn-trail", posx, posy, posz, 0,0,0)
-                        local random = math.random()
-                        Spring.SetFeatureHealth(featureID, featureHealth-(featureMaxHealth*0.05*random))
+                        local featureHealth, featureMaxHealth = spGetFeatureHealth(featureID)
+                        spSpawnCEG("scaspawn-trail", posx, posy, posz, 0,0,0)
+                        local random = mRandom()
+                        spSetFeatureHealth(featureID, featureHealth-(featureMaxHealth*0.05*random))
                         SendToUnsynced("featureReclaimFrame", featureID, featureHealth-(featureMaxHealth*0.05*random))
                         --Spring.Echo("killing", featureHealth)
                         if featureHealth <= 0 then
-                            Spring.DestroyFeature(featureID)
+                            spDestroyFeature(featureID)
                         end
                     end
                 end
@@ -153,14 +169,14 @@ if gadgetHandler:IsSyncedCode() then -- Synced
 
         cooldown = cooldown - 1
         --Spring.Echo("SoundStreamTime", Spring.GetSoundStreamTime())
-        local randomx = math.random(0, mapx)
-        local randomz = math.random(0, mapz)
-        local randomy = Spring.GetGroundHeight(randomx, randomz)
+        local randomx = mRandom(0, mapx)
+        local randomz = mRandom(0, mapz)
+        local randomy = spGetGroundHeight(randomx, randomz)
         if GG.IsPosInRaptorScum(randomx, randomy, randomz) then
             if cooldown < 0 then
-                local synth = "scavsynth" .. math.random(1,12)
-                Spring.PlaySoundFile(synth, 4, randomx, randomy, randomz)
-                cooldown = math.random(20,40)*30
+                local synth = "scavsynth" .. mRandom(1,12)
+                spPlaySoundFile(synth, 4, randomx, randomy, randomz)
+                cooldown = mRandom(20,40)*30
                 --cooldown = ReadWAV("sounds/atmos/scavsynth1").Length*30
             else
                 cooldown = cooldown - 2
@@ -181,7 +197,7 @@ if gadgetHandler:IsSyncedCode() then -- Synced
     end
 
     function gadget:FeatureCreated(featureID, featureAllyTeamID)
-        local resurrectable, facing = Spring.GetFeatureResurrect(featureID)
+        local resurrectable, facing = spGetFeatureResurrect(featureID)
         aliveWrecks[featureID] = {age = 0, resurrectable = resurrectable, facing = facing, lastResurrectionCheck = 0}
     end
 

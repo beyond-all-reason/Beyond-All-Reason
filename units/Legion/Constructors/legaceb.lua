@@ -18,8 +18,6 @@ return {
 		explodeas = "smallbuilder",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 830,
 		maxslope = 50,
 		speed = 75.0,

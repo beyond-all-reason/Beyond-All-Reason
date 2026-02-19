@@ -17,8 +17,6 @@ return {
 		explodeas = "tidal",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 395,
 		maxslope = 10,
 		minwaterdepth = 20,

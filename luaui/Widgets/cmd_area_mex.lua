@@ -4,7 +4,7 @@ function widget:GetInfo()
 	return {
 		name = "Area Mex",
 		desc = "Adds a command to cap mexes in an area.",
-		author = "Hobo Joe, Google Frog, NTG, Chojin , Doo, Floris, Tarte",
+		author = "Hobo Joe, Google Frog, NTG, Chojin , Doo, Floris, Tarte, Baldric",
 		date = "Oct 23, 2010, (last update: March 3, 2022)",
 		license = "GNU GPL, v2 or later",
 		handler = true,
@@ -16,6 +16,7 @@ end
 local CMD_AREA_MEX = GameCMD.AREA_MEX
 
 local spGetActiveCommand = Spring.GetActiveCommand
+local spGetCommandQueue = Spring.GetCommandQueue
 local spGetMapDrawMode = Spring.GetMapDrawMode
 local spGetUnitPosition = Spring.GetUnitPosition
 local spSendCommands = Spring.SendCommands
@@ -48,12 +49,30 @@ function widget:Initialize()
 end
 
 
----Finds all builders among selected units that can make the specified building, and gets their average position
+---Gets the position of the last command in a unit's queue, or nil if the queue is empty
+---@param unitID number
+---@return number|nil x
+---@return number|nil z
+local function getLastQueuedPosition(unitID)
+	local queue = spGetCommandQueue(unitID, -1)
+	if queue and #queue > 0 then
+		local lastCmd = queue[#queue]
+		if lastCmd.params and #lastCmd.params >= 3 then
+			return lastCmd.params[1], lastCmd.params[3]
+		end
+	end
+	return nil, nil
+end
+
+
+---Finds all builders among selected units that can make the specified building, and gets their average position.
+---When useQueueEnd is true, uses the position of the last queued command instead of the unit's current position.
 ---@param units table selected units
 ---@param constructorIds table All mex constructors
 ---@param buildingId number Specific mex that we want to build
+---@param useQueueEnd boolean Whether to use the end-of-queue position (for shift-queuing)
 ---@return table { x, z }
-local function getAvgPositionOfValidBuilders(units, constructorIds, buildingId)
+local function getAvgPositionOfValidBuilders(units, constructorIds, buildingId, useQueueEnd)
 	-- Add highest producing constructors to mainBuilders table + give guard orders to "inferior" constructors
 	local builderCount = 0
 	local tX, tZ = 0, 0
@@ -64,7 +83,14 @@ local function getAvgPositionOfValidBuilders(units, constructorIds, buildingId)
 			-- iterate over constructor options to see if it can make the chosen extractor
 			for _, buildable in pairs(constructor.building) do
 				if -buildable == buildingId then -- assume that it's a valid extractor based on previous steps
-					local x, _, z = spGetUnitPosition(id)
+					local x, z
+					if useQueueEnd then
+						x, z = getLastQueuedPosition(id)
+					end
+					if not x then
+						local _
+						x, _, z = spGetUnitPosition(id)
+					end
 					if z then
 						tX, tZ = tX+x, tZ+z
 						builderCount = builderCount + 1
@@ -119,8 +145,9 @@ end
 ---Nearest neighbor search. Spots are passed in to do minor weighting based on mex value
 ---@param cmds table
 ---@param spots table
-local function calculateCmdOrder(cmds, spots)
-	local builderPos = getAvgPositionOfValidBuilders(selectedUnits, mexConstructors, selectedMex)
+---@param shift boolean Whether shift was held (appending to existing queue)
+local function calculateCmdOrder(cmds, spots, shift)
+	local builderPos = getAvgPositionOfValidBuilders(selectedUnits, mexConstructors, selectedMex, shift)
 	if not builderPos then return end
 	local orderedCommands = {}
 	local pos = {}
@@ -160,7 +187,7 @@ function widget:CommandNotify(id, params, options)
 
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 	local cmds = getCmdsForValidSpots(spots, shift)
-	local sortedCmds = calculateCmdOrder(cmds, spots)
+	local sortedCmds = calculateCmdOrder(cmds, spots, shift)
 
 
 	WG['resource_spot_builder'].ApplyPreviewCmds(sortedCmds, mexConstructors, shift)

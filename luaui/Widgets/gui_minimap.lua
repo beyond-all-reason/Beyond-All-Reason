@@ -29,7 +29,7 @@ local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
 
 local maxAllowedWidth = 0.26
 local maxAllowedHeight = 0.32
-local leftClickMove = true
+local leftClickMove = Spring.GetConfigInt("MinimapLeftClickMove", 1) == 1
 
 local vsx, vsy, _, vpy = spGetViewGeometry()
 
@@ -163,6 +163,7 @@ function widget:Initialize()
 	end
 	WG['minimap'].setLeftClickMove = function(value)
 		leftClickMove = value
+		Spring.SetConfigInt("MinimapLeftClickMove", value and 1 or 0)
 	end
 end
 
@@ -300,7 +301,6 @@ end
 function widget:GetConfigData()
 	return {
 		maxHeight = maxAllowedHeight,
-		leftClickMove = leftClickMove
 	}
 end
 
@@ -308,8 +308,11 @@ function widget:SetConfigData(data)
 	if data.maxHeight ~= nil then
 		maxAllowedHeight = data.maxHeight
 	end
-	if data.leftClickMove ~= nil then
+	-- leftClickMove now stored as Spring ConfigInt "MinimapLeftClickMove"
+	if data.leftClickMove ~= nil and Spring.GetConfigInt("MinimapLeftClickMove", -1) == -1 then
+		-- Migrate old config data to new ConfigInt (one-time)
 		leftClickMove = data.leftClickMove
+		Spring.SetConfigInt("MinimapLeftClickMove", data.leftClickMove and 1 or 0)
 	end
 end
 

@@ -18,8 +18,6 @@ return {
 		footprintx = 1,
 		footprintz = 1,
 		health = 11,
-		idleautoheal = 10,
-		idletime = 300,
 		initcloaked = true,
 		maxacc = 0,
 		maxdec = 0,

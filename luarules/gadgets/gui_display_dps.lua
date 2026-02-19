@@ -57,6 +57,13 @@ local glDrawFuncAtUnit = gl.DrawFuncAtUnit
 local glPushMatrix = gl.PushMatrix
 local glPopMatrix = gl.PopMatrix
 local glCallList = gl.CallList
+local IsGUIHidden = Spring.IsGUIHidden
+local math_floor = math.floor
+local math_ceil = math.ceil
+local math_random = math.random
+local math_max = math.max
+local math_min = math.min
+local damageSortFunc = function(m1, m2) return m1.damage < m2.damage end
 
 local GL_GREATER = GL.GREATER
 local GL_SRC_ALPHA = GL.SRC_ALPHA
@@ -109,21 +116,21 @@ end
 
 local function getTextSize(damage, paralyze)
 	--if paralyze then sizeMod = 2.25 end
-	return 15 + math.floor(3 * (2 * (1 - (100 / (100 + damage / 10)))))
+	return 15 + math_floor(3 * (2 * (1 - (100 / (100 + damage / 10)))))
 end
 
 local function displayDamage(unitID, unitDefID, damage, paralyze)
 	damageTable[1] = {
 		unitID = unitID,
-		damage = math.ceil(damage - 0.5),
+		damage = math_ceil(damage - 0.5),
 		height = unitHeight(unitDefID),
-		offset = 10 - math.random(0, 12),
+		offset = 10 - math_random(0, 12),
 		textSize = getTextSize(damage, paralyze),
 		heightOffset = 0,
 		lifeSpan = 1,
 		paralyze = paralyze,
-		fadeTime = math.max((0.03 - (damage / 333333)), 0.015),
-		riseTime = (math.min((damage / 2500), 2) + 1) / 3,
+		fadeTime = math_max((0.03 - (damage / 333333)), 0.015),
+		riseTime = (math_min((damage / 2500), 2) + 1) / 3,
 	}
 end
 
@@ -134,14 +141,14 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	if unitDamage[unitID] then
 		local ux, uy, uz = GetUnitViewPosition(unitID)
 		if ux ~= nil then
-			local damage = math.ceil(unitDamage[unitID].damage - 0.5)
+			local damage = math_ceil(unitDamage[unitID].damage - 0.5)
 			deadList[1] = {
 				x = ux,
 				y = uy + unitHeight(unitDefID),
 				z = uz,
 				lifeSpan = 1,
-				fadeTime = math.max((0.03 - (damage / 333333)), 0.015) * 0.5,
-				riseTime = (math.min((damage / 2500), 2) + 1) / 3,
+				fadeTime = math_max((0.03 - (damage / 333333)), 0.015) * 0.5,
+				riseTime = (math_min((damage / 2500), 2) + 1) / 3,
 				damage = damage,
 				textSize = getTextSize(damage, false),
 				red = true,
@@ -343,7 +350,7 @@ function gadget:DrawWorld()
 	if chobbyInterface then
 		return
 	end
-	if Spring.IsGUIHidden() then
+	if IsGUIHidden() then
 		return
 	end
 
@@ -356,9 +363,7 @@ function gadget:DrawWorld()
 			calcDPS(unitParalyze, true, theTime)
 		end
 		if changed then
-			table.sort(damageTable, function(m1, m2)
-				return m1.damage < m2.damage
-			end)
+			table.sort(damageTable, damageSortFunc)
 			changed = false
 		end
 	end

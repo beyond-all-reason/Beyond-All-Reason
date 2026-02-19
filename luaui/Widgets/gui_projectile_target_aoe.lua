@@ -49,8 +49,6 @@ local glCreateList = gl.CreateList
 local glColor = gl.Color
 local glDeleteList = gl.DeleteList
 local glLineWidth = gl.LineWidth
-local glLoadIdentity = gl.LoadIdentity
-local glPointSize = gl.PointSize
 local glPopMatrix = gl.PopMatrix
 local glPushMatrix = gl.PushMatrix
 local glRotate = gl.Rotate
@@ -61,9 +59,7 @@ local glDepthTest = gl.DepthTest
 
 local GL_LINE_LOOP = GL.LINE_LOOP
 local GL_LINES = GL.LINES
-local GL_LINE_STRIP = GL.LINE_STRIP
 local GL_TRIANGLE_STRIP = GL.TRIANGLE_STRIP
-local GL_POINTS = GL.POINTS
 
 --------------------------------------------------------------------------------
 -- Configuration
@@ -80,6 +76,8 @@ local Config = {
 	paralyzerColor = { 0.2, 0.8, 1.0, 1.0 },      -- Cyan for paralyzer weapons
 	nukeAllyColor = { 1.0, 0.2, 0.0, 1.0 },       -- Orange for allied nukes
 	nukeEnemyColor = { 1.0, 0.0, 0.0, 1.0 },      -- Bright red for enemy nukes
+	junoAllyColor = { 0.2, 1.0, 0.2, 1.0 },       -- Green for allied juno missiles
+	junoEnemyColor = { 0.2, 1.0, 0.2, 1.0 },      -- Green for enemy juno missiles
 
 	-- Animation
 	blinkSpeed = 0,               -- Blinks per second at max urgency
@@ -122,12 +120,13 @@ local function BuildWeaponCache()
 					aoe = aoe,
 					isNuke = isNuke,
 					isParalyzer = isParalyzer,
+					isJuno = wd.name:lower():find("juno") ~= nil,
 					name = wd.name,
 					range = wd.range,
 					projectileSpeed = wd.projectilespeed or 1,
 				}
 				--Spring.Echo(wdid, wd.name, aoe, wd.range, isNuke, isParalyzer)
-			 end
+			end
 		end
 	end
 end
@@ -388,6 +387,8 @@ local function DrawImpactIndicator(data, currentTime)
 		color = Config.paralyzerColor
 	elseif isNuke then
 		color = data.isAlly and Config.nukeAllyColor or Config.nukeEnemyColor
+	elseif weaponInfo.isJuno then
+		color = data.isAlly and Config.junoAllyColor or Config.junoEnemyColor
 	else
 		color = data.isAlly and Config.allyColor or Config.enemyColor
 	end

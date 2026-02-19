@@ -26,7 +26,8 @@ local SHIELDONRULESPARAMINDEX = 531313 -- not a string due to perfmaxxing
 -----------------------------------------------------------------
 
 local function Norm(x, y, z)
-	return math.sqrt(x*x + y*y + z*z)
+	local sqrt = math.sqrt
+	return sqrt(x*x + y*y + z*z)
 end
 
 local function DotProduct(x1, y1, z1, x2, y2, z2)
@@ -44,12 +45,12 @@ local function GetSLerpedPoint(x1, y1, z1, x2, y2, z2, w1, w2)
 
 	local A = math.acos(dotP)
 	local sinA = math.sin(A)
-	
+
 	-- Safeguard against division by zero
 	if sinA == 0 or (w1 + w2) == 0 then
 		return x1, y1, z1
 	end
-	
+
 	local w = 1.0 - (w1 / (w1 + w2))
 
 	local x = (math.sin((1.0 - w) * A) * x1 + math.sin(w * A) * x2) / sinA
@@ -177,7 +178,7 @@ local shieldUnits = IterableMap.New()
 -- Rendering state
 local shieldShader
 local geometryLists = {}
-local renderBuckets
+local renderBuckets = {}
 local canOutline
 local haveTerrainOutline
 local haveUnitsOutline
@@ -306,6 +307,9 @@ end
 local AOE_SAME_SPOT = AOE_MAX / 3 -- ~0.13, angle threshold in radians.
 local AOE_SAME_SPOT_COS = math.cos(AOE_SAME_SPOT) -- about 0.99
 
+-- Pre-hoisted sort comparator to avoid closure allocation every 2 frames
+local hitDataSortFunc = function(a, b) return (((a and b) and a.dmg > b.dmg) or false) end
+
 --x, y, z here are normalized vectors
 local function DoAddShieldHitData(unitData, hitFrame, dmg, x, y, z, onlyMove)
 	local hitData = unitData.hitData
@@ -337,14 +341,14 @@ local function DoAddShieldHitData(unitData, hitFrame, dmg, x, y, z, onlyMove)
 
 	if not found then
 		local aoe = CalcAoE(dmg, unitData.capacity)
-		table.insert(hitData, {
+		hitData[#hitData + 1] = {
 			hitFrame = hitFrame,
 			dmg = dmg,
 			aoe = aoe,
 			x = x,
 			y = y,
 			z = z,
-		})
+		}
 	end
 	hitUpdateNeeded = true
 	unitData.needsUpdate = true
@@ -382,7 +386,7 @@ local function ProcessHitTable(unitData, gameFrame)
 	end
 	if unitData.needsUpdate then
 		hitUpdateNeeded = true
-		table.sort(hitData, function(a, b) return (((a and b) and a.dmg > b.dmg) or false) end)
+		table.sort(hitData, hitDataSortFunc)
 	end
 	return unitData.needsUpdate
 end
@@ -714,8 +718,11 @@ function gadget:DrawWorld()
 		return
 	end
 
-	-- BeginDraw
-	renderBuckets = {}
+	-- Clear renderBuckets in-place to avoid per-frame table allocation
+	for k, bucket in pairs(renderBuckets) do
+		for i = 1, #bucket do bucket[i] = nil end
+		renderBuckets[k] = nil
+	end
 	haveTerrainOutline = false
 	haveUnitsOutline = false
 	canOutline = gl.LuaShader.isDeferredShadingEnabled and gl.LuaShader.GetAdvShadingActive()
@@ -831,10 +838,10 @@ function gadget:DrawWorld()
 					local frac = charge / info.shieldCapacity
 
 					if frac > 1 then frac = 1 elseif frac < 0 then frac = 0 end
-					
+
 					-- Additional NaN safety check
 					if frac ~= frac then frac = 0 end -- NaN check (NaN != NaN)
-					
+
 					local fracinv = 1.0 - frac
 
 					local colormap1 = info.colormap1[1]
