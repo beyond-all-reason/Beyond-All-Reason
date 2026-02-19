@@ -139,6 +139,10 @@ local function processNotificationDefs()
 			tutorial = notifDef.tutorial,
 			soundEffect = notifDef.soundEffect,
 			resetOtherEventDelay = notifDef.resetOtherEventDelay,
+			rulesEnable = notifDef.rulesEnable,
+			rulesDisable = notifDef.rulesDisable,
+			rulesPlayOnlyIfEnabled = notifDef.rulesPlayOnlyIfEnabled,
+			rulesPlayOnlyIfDisabled = notifDef.rulesPlayOnlyIfDisabled,
 		}
 
 		notificationList[notifID] = true
@@ -348,13 +352,58 @@ local function isInQueue(event)
 	return false
 end
 
+local notifRulesMemory = {}
+local function checkNotificationRules(notifDef)
+
+	if notifDef.rulesPlayOnlyIfDisabled then
+		for i = 1,#notifDef.rulesPlayOnlyIfDisabled do
+			if notifRulesMemory[notifDef.rulesPlayOnlyIfDisabled[i]] then
+				return false
+			end
+		end
+	end
+
+	if notifDef.rulesPlayOnlyIfEnabled then
+		for i = 1,#notifDef.rulesPlayOnlyIfEnabled do
+			if not notifRulesMemory[notifDef.rulesPlayOnlyIfEnabled[i]] then
+				return false
+			end
+		end
+	end
+
+	return true
+end
+
+local function applyNotificationRules(notifDef)
+	if notifDef.rulesEnable then
+		for i = 1,#notifDef.rulesEnable do
+			if not notifRulesMemory[notifDef.rulesEnable[i]] then
+				notifRulesMemory[notifDef.rulesEnable[i]] = true
+			end
+		end
+	end
+
+	if notifDef.rulesDisable then
+		for i = 1,#notifDef.rulesEnable do
+			if notifRulesMemory[notifDef.rulesDisable[i]] then
+				notifRulesMemory[notifDef.rulesDisable[i]] = false
+			end
+		end
+	end
+end
+
 local function queueNotification(event, forceplay)
 	if Spring.GetGameFrame() > 20 or forceplay then
 		if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) or forceplay then
 			if notificationList[event] and notification[event] then
 				if not LastPlay[event] or (spGetGameFrame() >= LastPlay[event] + (notification[event].delay * 30)) then
 					if not isInQueue(event) then
-						soundQueue[#soundQueue + 1] = event
+						if checkNotificationRules(notificationList[event]) then
+							soundQueue[#soundQueue + 1] = event
+							applyNotificationRules(notificationList[event])
+						else
+							LastPlay[event] = spGetGameFrame() - ((notificationList[event].delay - 2)*30)
+						end
 					end
 				end
 

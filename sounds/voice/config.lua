@@ -1,14 +1,21 @@
 --[[
 EventName = {
-	delay = integrer - Minimum seconds that have to pass to play this notification again.
-	stackedDelay = bool - Reset the delay even when attempted to play the notif under cooldown. 
-							Useful for stuff you want to be able to hear often, but not repeatedly if the condition didn't change.
-	resetOtherEventDelay = table - Names of other events that will get it's delay reset. 
-							For example, UnitLost, is a general notif for losing units, but we have MetalExtractorLost, or RadarLost. I want those to reset UnitLost as well.
-	soundEffect = string - Sound Effect to play alongside the notification, located in 'sounds/voice-soundeffects'
-	notext = bool - hide the text part of the notification
-	notifText = string - This is intended for custom widgets that cannot write I18N directly, overrides the I18N visible text.
-	tutorial = bool - Sound effect used for the tutorial messages, there's a whole different handling of those. (WIP)
+	Regular stuff:
+		delay = integrer - Minimum seconds that have to pass to play this notification again.
+		stackedDelay = bool - Reset the delay even when attempted to play the notif under cooldown. 
+								Useful for stuff you want to be able to hear often, but not repeatedly if the condition didn't change.
+		resetOtherEventDelay = table of strings - Names of other events that will get it's delay reset. 
+								For example, UnitLost, is a general notif for losing units, but we have MetalExtractorLost, or RadarLost. I want those to reset UnitLost as well.
+		soundEffect = string - Sound Effect to play alongside the notification, located in 'sounds/voice-soundeffects'
+		notext = bool - hide the text part of the notification
+		notifText = string - This is intended for custom widgets that cannot write I18N directly, overrides the I18N visible text.
+		tutorial = bool - Sound effect used for the tutorial messages, there's a whole different handling of those. (WIP)
+
+	Conditional Rules: 
+		rulesEnable = table of strings - List of rules this notif will enable
+		rulesDisable = table of strings - List of rules this notif will disable
+		rulesPlayOnlyIfEnabled = table of strings - List of rules that are required to be enabled for this notification to work
+		rulesPlayOnlyIfDisabled = table of strings - List of rules that are required to be disabled for this notification to work
 }
 ]]
 
@@ -422,12 +429,15 @@ return {
 	},
 	Tech2UnitReady = {
 		delay = 9999999,
+		rulesEnable = {"PlayerHasTech2"},
 	},
 	Tech3UnitReady = {
 		delay = 9999999,
+		rulesEnable = {"PlayerHasTech2", "PlayerHasTech3"},
 	},
 	Tech4UnitReady = {
 		delay = 9999999,
+		rulesEnable = {"PlayerHasTech2", "PlayerHasTech3","PlayerHasTech4"},
 	},
 	Tech2TeamReached = {
 		delay = 9999999,
@@ -442,13 +452,23 @@ return {
 	-- Units Detected
 	Tech2UnitDetected = {
 		delay = 9999999,
+		rulesEnable = {"Tech2UnitDetected"},
 	},
 	Tech3UnitDetected = {
 		delay = 9999999,
+		rulesEnable = {"Tech2UnitDetected", "Tech3UnitDetected"},
 	},
 	Tech4UnitDetected = {
 		delay = 9999999,
+		rulesEnable = {"Tech2UnitDetected", "Tech3UnitDetected", "Tech4UnitDetected"},
 	},
+	--FatboyDetected = {
+	--	delay = 300,
+	--	stackedDelay = true,
+	--	rulesPlayOnlyIfDisabled = {"Tech3UnitDetected", "Tech4UnitDetected"},
+	--},
+
+	-- Generic Detected
 	EnemyDetected = {
 		delay = 120,
 		stackedDelay = true,
@@ -457,8 +477,40 @@ return {
 		delay = 120,
 		stackedDelay = true,
 	},
+	AirTransportDetected = {
+		delay = 120,
+		stackedDelay = true,
+	},
+	DroneDetected = {
+		delay = 120,
+		stackedDelay = true,
+	},
+
+	-- Game Enders - 30 sec delay
+	NuclearSiloDetected = {
+		delay = 30,
+		stackedDelay = true,
+	},
+	CalamityDetected = {
+		delay = 30,
+		stackedDelay = true,
+	},
+	RagnarokDetected = {
+		delay = 30,
+		stackedDelay = true,
+	},
+	StarfallDetected = {
+		delay = 30,
+		stackedDelay = true,
+	},
+
+	-- Urgent Generic - 30 sec delay
+	NuclearBomberDetected = {
+		delay = 30,
+		stackedDelay = true,
+	},
 	MinesDetected = {
-		delay = 60,
+		delay = 30,
 		stackedDelay = true,
 	},
 	StealthyUnitsDetected = {
@@ -466,41 +518,25 @@ return {
 		stackedDelay = true,
 	},
 	LrpcDetected = {
-		delay = 25,
+		delay = 30,
 		stackedDelay = true,
 	},
 	EmpSiloDetected = {
-		delay = 25,
+		delay = 30,
 		stackedDelay = true,
 	},
 	TacticalNukeSiloDetected = {
-		delay = 25,
+		delay = 30,
 		stackedDelay = true,
 	},
 	LongRangeNapalmLauncherDetected = {
-		delay = 25,
+		delay = 30,
 		stackedDelay = true,
 	},
-	NuclearSiloDetected = {
-		delay = 25,
-		stackedDelay = true,
-	},
-	CalamityDetected = {
-		delay = 25,
-		stackedDelay = true,
-	},
-	RagnarokDetected = {
-		delay = 25,
-		stackedDelay = true,
-	},
-	StarfallDetected = {
-		delay = 25,
-		stackedDelay = true,
-	},
-	NuclearBomberDetected = {
-		delay = 60,
-		stackedDelay = true,
-	},
+
+	-- Tech 4 - 120 sec delay
+
+	-- Tech 3.5 - 120 sec delay
 	BehemothDetected = {
 		delay = 120,
 		stackedDelay = true,
@@ -521,7 +557,7 @@ return {
 		delay = 120,
 		stackedDelay = true,
 	},
-	FlagshipDetected = {
+	FlagshipDetected = { -- Flagships should be considered T3 for this context, despite being built from T2 factory.
 		delay = 120,
 		stackedDelay = true,
 	},
@@ -529,14 +565,12 @@ return {
 		delay = 120,
 		stackedDelay = true,
 	},
-	AirTransportDetected = {
-		delay = 120,
-		stackedDelay = true,
-	},
-	DroneDetected = {
-		delay = 120,
-		stackedDelay = true,
-	},
+
+	-- Tech 3 - 180 sec delay
+
+	-- Tech 2.5 - 180 sec delay
+
+	-- Tech 2 - 240 sec delay
 
 	-- Lava
 	LavaRising = {
