@@ -41,11 +41,6 @@ end
 -- DEFS POST PROCESSING
 -------------------------
 
-local modOptions = Spring.GetModOptions()
-
-local wreckMetalRatio = math.clamp(modOptions.wreck_metal_ratio, 0, 1)
-local heapMetalRatio = math.clamp(modOptions.heap_metal_ratio, 0, wreckMetalRatio)
-
 --[[ Sanitize to whole frames (plus leeways because float arithmetic is bonkers).
      The engine uses full frames for actual reload times, but forwards the raw
      value to LuaUI (so for example calculated DPS is incorrect without sanitisation). ]]
@@ -923,14 +918,14 @@ function UnitDef_Post(name, uDef)
 			if uDef.featuredefs.dead then
 				uDef.featuredefs.dead.damage = uDef.health
 				if uDef.metalcost and uDef.energycost then
-					uDef.featuredefs.dead.metal = math.floor(uDef.metalcost * wreckMetalRatio)
+					uDef.featuredefs.dead.metal = math.floor(uDef.metalcost * modOptions.wreck_metal_ratio)
 				end
 			end
 			-- heaps
 			if uDef.featuredefs.heap then
 				uDef.featuredefs.heap.damage = uDef.health
 				if uDef.metalcost and uDef.energycost then
-					uDef.featuredefs.heap.metal = math.floor(uDef.metalcost * heapMetalRatio)
+					uDef.featuredefs.heap.metal = math.floor(uDef.metalcost * modOptions.heap_metal_ratio)
 				end
 			end
 		end

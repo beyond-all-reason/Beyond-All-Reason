@@ -513,7 +513,7 @@ local options = {
         type	= "number",
         section	= "options",
         def		= 0.6,
-        min		= 0, -- see usage in alldefs_post when changing actual bounds
+        min		= 0,
         max		= 1,
         step	= 0.05,
     },
@@ -527,7 +527,7 @@ local options = {
         section	= "options",
         def		= 0.25,
         min		= 0,
-        max		= 1, -- bounded in alldefs_post to wreck_metal_ratio
+        max		= 1,
         step	= 0.05,
     },
 
