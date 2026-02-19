@@ -6,8 +6,9 @@ if not Engine or not Spring then return end
 --------------------------------------------------------------------------------
 -- Version handling ------------------------------------------------------------
 
+---@param major integer
 local function isEngineMinVersion(major, minor, patch, commits)
-	if major and tonumber(Engine.versionMajor) ~= major then
+	if tonumber(Engine.versionMajor) ~= major then
 		return tonumber(Engine.versionMajor) > major
 	elseif minor and tonumber(Engine.versionMinor) ~= minor then
 		return tonumber(Engine.versionMinor) > minor
