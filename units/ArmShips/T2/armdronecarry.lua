@@ -145,13 +145,14 @@ return {
 				},
 				customparams = {
 					carried_unit = "armdrone",     --Name of the unit spawned by this carrier unit.
-					engagementrange = 1300,
+					engagementrange = 1350,
 					spawns_surface = "SEA",    	-- "LAND" or "SEA". The SEA option has not been tested currently.
 					spawnrate = 4, 				--Spawnrate roughly in seconds.
 					maxunits = 16,				--Will spawn units until this amount has been reached.
+					startingdronecount = 0,
 					energycost = 600,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					metalcost = 25,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					controlradius = 1400,		--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
+					controlradius = 1200,		--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
 					decayrate = 6,
 					attackformationspread = 120,--Used to spread out the drones when attacking from a docked state. Distance between each drone when spreading out.
 					attackformationoffset = 30,	--Used to spread out the drones when attacking from a docked state. Distance from the carrier when they start moving directly to the target. Given as a percentage of the distance to the target.
@@ -167,6 +168,9 @@ return {
 					stockpilemetal = 25,
 					stockpileenergy = 600,
 					dronesusestockpile = true,
+					dronedocktime = 2,
+					droneairtime = 60,
+					droneammo = 9,
 				}
 			},
 			aamissile = {
