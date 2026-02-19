@@ -26,9 +26,13 @@ if not gadgetHandler:IsSyncedCode() then return end
 local lateralMultiplier = 0.85
 local compoundingMultiplier = 1.1 --compounding multiplier that influences the arc at which projectiles are forced to descend
 local descentSpeedStartingMultiplier = 0.15
+local engineDescent = true
 
 local descentModulo = math.floor(Game.gameSpeed / 4)
 local leashModulo = math.ceil(Game.gameSpeed / 3)
+
+local mapGravity = Game.gravity / Game.gameSpeed ^ 2
+local descentGravity = -mapGravity * 5
 
 --functions
 local spGetUnitPosition = Spring.GetUnitPosition
@@ -40,6 +44,7 @@ local spSetProjectileCollision = Spring.SetProjectileCollision
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spSetProjectileVelocity = Spring.SetProjectileVelocity
 local spSetProjectileTimeToLive = Spring.SetProjectileTimeToLive
+local spSetProjectileGravity = Spring.SetProjectileGravity
 
 --tables
 local defWatchTable = {}
@@ -236,7 +241,12 @@ function gadget:GameFrame(frame)
 			if proData then
 				local defData = defWatchTable[proData.weaponDefID]
 				if defData.descentMethod then
-					descentTable[proID] = descentMultiplier
+					if engineDescent then
+						spSetProjectileTimeToLive(proID, 0)
+						spSetProjectileGravity(proID, descentGravity)
+					else
+						descentTable[proID] = descentMultiplier
+					end
 				elseif defData.expireMethod then
 					spSetProjectileTimeToLive(proID, frame)
 				else

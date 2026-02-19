@@ -1,7 +1,7 @@
 return {
 	armmerl = {
 		buildpic = "ARMMERL.DDS",
-		buildtime = 15500,
+		buildtime = 21000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "46 30 54",
@@ -12,8 +12,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1220,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.02489,
 		maxdec = 0.04978,

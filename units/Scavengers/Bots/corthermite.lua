@@ -5,7 +5,7 @@ return {
 		energycost = 60000,
 		metalcost = 3500,
 		buildpic = "CORTHERMITE.DDS",
-		buildtime = 18800,
+		buildtime = 188000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "80 50 98",--40 26 48
@@ -14,8 +14,6 @@ return {
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 15000,
 		mass = 150000,
 		maxslope = 50,

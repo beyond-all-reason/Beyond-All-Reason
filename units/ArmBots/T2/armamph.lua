@@ -1,7 +1,7 @@
 return {
 	armamph = {
 		buildpic = "ARMAMPH.DDS",
-		buildtime = 5200,
+		buildtime = 7000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 -1",
 		collisionvolumescales = "27 35 21",
@@ -13,8 +13,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1170,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.138,
 		maxdec = 0.6486,
 		maxslope = 14,

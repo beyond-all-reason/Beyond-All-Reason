@@ -109,7 +109,6 @@ local function scavUnitDef_Post(name, uDef)
 				if uDef.buildtime then uDef.buildtime = uDef.buildtime * 1.1 end
 			end
 			uDef.autoheal = math.ceil(math.sqrt(uDef.health * 0.1))
-			uDef.idleautoheal = math.ceil(math.sqrt(uDef.health * 0.1))
 		end
 	end
 
@@ -376,6 +375,13 @@ local function scavUnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 3] = "legnanotct2_scav" -- T2 Constructor Turret
 			uDef.buildoptions[numBuildoptions + 4] = "legrwall_scav" -- Dragon's Constitution - T2 (not Pop-up) Wall Turret
 			uDef.buildoptions[numBuildoptions + 5] = "leggatet3_scav" -- Elysium - Advanced Shield Generator
+		end
+
+		-- Legion T2 Sea Constructors
+		if name == "leganavyconsub_scav" then
+				local numBuildoptions = #uDef.buildoptions
+				uDef.buildoptions[numBuildoptions + 1] = "corfgate_scav"
+				uDef.buildoptions[numBuildoptions + 2] = "legnanotct2plat_scav"
 		end
 
 		-- Legion T3 Gantry

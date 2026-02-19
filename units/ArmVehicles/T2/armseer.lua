@@ -2,7 +2,7 @@ return {
 	armseer = {
 		activatewhenbuilt = true,
 		buildpic = "ARMSEER.DDS",
-		buildtime = 6200,
+		buildtime = 7500,
 		canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 -4 0",
@@ -14,8 +14,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 980,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.04878,
 		maxdec = 0.09757,

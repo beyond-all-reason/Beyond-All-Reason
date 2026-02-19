@@ -26,6 +26,7 @@ local spGetPlayerList = Spring.GetPlayerList
 local spGetTeamColor = Spring.GetTeamColor
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetAllUnits = Spring.GetAllUnits
+local spGetTeamUnitsByDefs = Spring.GetTeamUnitsByDefs
 local spIsUnitVisible = Spring.IsUnitVisible
 local spIsUnitIcon = Spring.IsUnitIcon
 local spGetCameraPosition = Spring.GetCameraPosition
@@ -63,6 +64,7 @@ local glPopMatrix = gl.PopMatrix
 local glDeleteList = gl.DeleteList
 local glCreateList = gl.CreateList
 local glLoadFont = gl.LoadFont
+local glDeleteFont = gl.DeleteFont
 
 --------------------------------------------------------------------------------
 -- config
@@ -149,9 +151,11 @@ local cameraMovedThisFrame = false
 local iconScaleCache = {} -- Cache icon scales to avoid recalculating
 
 local comHeight = {}
+local comDefIDList = {}  -- array of commander DefIDs for GetTeamUnitsByDefs
 for unitDefID, defs in pairs(UnitDefs) do
 	if defs.customParams.iscommander or defs.customParams.isdecoycommander or defs.customParams.isscavcommander or defs.customParams.isscavdecoycommander then
 		comHeight[unitDefID] = defs.height
+		comDefIDList[#comDefIDList + 1] = unitDefID
 	end
 end
 
@@ -362,25 +366,25 @@ local function CheckAllComs()
 	-- Only check team colors if needed
 	local colorChanged = CheckTeamColors()
 
-	-- check commanders - but only update if something changed
-	local allUnits = spGetAllUnits()
-	local allUnitsLen = #allUnits
+	-- check commanders using filtered query - much faster than scanning all units
 	local commsChanged = false
-	
-	for i = 1, allUnitsLen do
-		local unitID = allUnits[i]
-		local unitDefID = spGetUnitDefID(unitID)
-		local unitTeam = spGetUnitTeam(unitID)
-		
-		-- Quick check if this is a commander
-		if comHeight[unitDefID] and unitTeam ~= GaiaTeam then
-			if not comms[unitID] then
-				comms[unitID] = GetCommAttributes(unitID, unitDefID)
-				commsChanged = true
+
+	for _, teamID in ipairs(spGetTeamList()) do
+		if teamID ~= GaiaTeam then
+			local comUnits = spGetTeamUnitsByDefs(teamID, comDefIDList)
+			if comUnits then
+				for i = 1, #comUnits do
+					local unitID = comUnits[i]
+					if not comms[unitID] then
+						local unitDefID = spGetUnitDefID(unitID)
+						comms[unitID] = GetCommAttributes(unitID, unitDefID)
+						commsChanged = true
+					end
+				end
 			end
 		end
 	end
-	
+
 	-- If colors changed, force refresh of attributes
 	if colorChanged then
 		for unitID, _ in pairs(comms) do
@@ -397,7 +401,7 @@ local colorCheckSec = 0
 function widget:Update(dt)
 	sec = sec + dt
 	colorCheckSec = colorCheckSec + dt
-	
+
 	-- Check color palette changes less frequently (every 0.5 seconds instead of every frame)
 	if colorCheckSec > 0.5 then
 		colorCheckSec = 0
@@ -416,7 +420,7 @@ function widget:Update(dt)
 			CheckAllComs()
 			sec = 0
 		end
-		
+
 		if not singleTeams and playerColorPalette ~= nil and playerColorPalette.getSameTeamColors then
 			local currentTeamID = spGetMyTeamID()
 			if myTeamID ~= currentTeamID then
@@ -445,7 +449,7 @@ function widget:Update(dt)
 			end
 		end
 	end
-	
+
 	-- Check all commanders every 2 seconds instead of 1.2 (less frequent polling)
 	if sec > 2.0 then
 		sec = 0
@@ -478,6 +482,9 @@ function widget:ViewResize()
 		CheckAllComs()
 		fontfileScale = newFontfileScale
 		fontfileScale2 = fontfileScale * 0.66
+		glDeleteFont(font)
+		glDeleteFont(shadowFont)
+		glDeleteFont(fonticon)
 		font = glLoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 		shadowFont = glLoadFont(fontfile, fontfileSize * fontfileScale, 35 * fontfileScale, 1.6)
 		fonticon = glLoadFont(fontfile, fontfileSize * fontfileScale2, fontfileOutlineSize * fontfileScale2, fontfileOutlineStrength * 0.33)
@@ -523,11 +530,11 @@ function widget:DrawScreenEffects()	-- using DrawScreenEffects so that guishader
 			if not comnameIconList[attributes[1]] then
 				createComnameIconList(unitID, attributes)
 			end
-			
+
 			local x, y, z = spGetUnitPosition(unitID)
 			if x and y and z then
 				x, z = spWorldToScreenCoords(x, y + 50 + heightOffset, z)
-				
+
 				-- Cache the scale calculation to avoid repeated divisions
 				local camDist = attributes[5]
 				local scale = iconScaleCache[camDist]
@@ -538,7 +545,7 @@ function widget:DrawScreenEffects()	-- using DrawScreenEffects so that guishader
 					end
 					iconScaleCache[camDist] = scale
 				end
-				
+
 				glPushMatrix()
 				glTranslate(x, z, 0)
 				glScale(scale, scale, scale)
@@ -546,9 +553,11 @@ function widget:DrawScreenEffects()	-- using DrawScreenEffects so that guishader
 				glPopMatrix()
 			end
 		end
-		-- Clear for next frame
-		drawScreenUnits = {}
-		
+		-- Clear for next frame (wipe in-place to avoid table allocation)
+		for k in pairs(drawScreenUnits) do
+			drawScreenUnits[k] = nil
+		end
+
 		-- Clear icon scale cache periodically to avoid memory bloat
 		if spGetGameFrame() % 300 == 0 then
 			iconScaleCache = {}
@@ -581,7 +590,7 @@ function widget:DrawWorld()
 	if cameraMoved then
 		lastCameraPos[1], lastCameraPos[2], lastCameraPos[3] = camX, camY, camZ
 	end
-	
+
 	-- Process all commanders in a single pass
 	for unitID, attributes in pairs(comms) do
 		-- Combined visibility check - avoids multiple function calls
@@ -624,7 +633,9 @@ end
 
 function widget:Shutdown()
 	RemoveLists()
-	gl.DeleteFont(font)
+	glDeleteFont(font)
+	glDeleteFont(shadowFont)
+	glDeleteFont(fonticon)
 end
 
 function widget:PlayerChanged(playerID)

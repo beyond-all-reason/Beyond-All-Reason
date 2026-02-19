@@ -2,7 +2,7 @@ return {
 	corseap = {
 		blocking = false,
 		buildpic = "CORSEAP.DDS",
-		buildtime = 10700,
+		buildtime = 13000,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,
@@ -14,8 +14,6 @@ return {
 		footprintz = 3,
 		health = 1070,
 		hoverattack = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.22,
 		maxdec = 0.375,
 		maxslope = 10,

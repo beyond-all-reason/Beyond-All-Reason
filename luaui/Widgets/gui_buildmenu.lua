@@ -20,11 +20,13 @@ local mathMax = math.max
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
+local spGetGameSeconds = Spring.GetGameSeconds
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
 include("keysym.h.lua")
+local unitBlocking = VFS.Include('luaui/Include/unitBlocking.lua')
 
 local pairs = pairs
 local ipairs = ipairs
@@ -95,12 +97,14 @@ local math_isInRect = math.isInRect
 
 local buildmenuShows = false
 local refreshBuildmenu = true
+local delayRefresh
 
 local costOverrides = {}
 --[[ MODIFICATION START ]]
 -- New state variables for the robust update system
 local selectionUpdateTime = 0  -- Time-based debouncer for selection changes
 local raceConditionUpdateCountdown = 0 -- Timer for race conditions
+local blockedUnitsUpdateCounter = 0 -- Counter for periodic blocked units update
 local forceRefreshNextFrame = false   -- The failsafe retry flag
 local refreshRetryCounter = 0       -- Failsafe counter to prevent infinite retries
 --[[ MODIFICATION END ]]
@@ -269,20 +273,6 @@ local modKeyMultiplier = {
 	right = -1
 }
 
-local disableWind = ((Game.windMin + Game.windMax) / 2) < 5
-local voidWater = false
-local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
-if success and mapinfo then
-	voidWater = mapinfo.voidwater
-end
-
-local showWaterUnits = false
--- make them a disabled unit (instead of removing it entirely)
-if not showWaterUnits then
-	units.restrictWaterUnits(true)
-end
-
-
 local function checkGuishader(force)
 	if WG['guishader'] then
 		if force and dlistGuishader then
@@ -395,11 +385,11 @@ local function RefreshCommands()
 				cmdUnitdefsTemp[udefid] = i
 			end
 			for k, uDefID in ipairs(units.unitOrder) do
-				if cmdUnitdefsTemp[uDefID] then
+				if cmdUnitdefsTemp[uDefID] and not units.unitHidden[uDefID] then
 					cmdsCount = cmdsCount + 1
 					-- mimmick output of spGetActiveCmdDescs
 					cmds[cmdsCount] = {
-						id = uDefID * -1,
+						id = -uDefID,
 						name = unitName[uDefID],
 						params = emptyParams
 					}
@@ -415,12 +405,12 @@ local function RefreshCommands()
 			for index, cmd in ipairs(activeCmdDescs) do
 				if type(cmd) == "table" then
 					if not cmd.disabled and string_sub(cmd.action, 1, 10) == 'buildunit_' then
-						cmdUnitdefsTemp[cmd.id * -1] = index
+						cmdUnitdefsTemp[-cmd.id] = index
 					end
 				end
 			end
 			for k, uDefID in ipairs(units.unitOrder) do
-				if cmdUnitdefsTemp[uDefID] then
+				if cmdUnitdefsTemp[uDefID] and not units.unitHidden[uDefID] then
 					cmdsCount = cmdsCount + 1
 					cmds[cmdsCount] = activeCmdDescs[cmdUnitdefsTemp[uDefID]]
 				end
@@ -428,7 +418,8 @@ local function RefreshCommands()
 		else
 			for index, cmd in ipairs(activeCmdDescs) do
 				if type(cmd) == "table" then
-					if not cmd.disabled and string_sub(cmd.action, 1, 10) == 'buildunit_' then
+					local uDefID = -cmd.id
+					if not cmd.disabled and string_sub(cmd.action, 1, 10) == 'buildunit_' and not units.unitHidden[uDefID] then
 						cmdsCount = cmdsCount + 1
 						cmds[cmdsCount] = cmd
 					end
@@ -461,7 +452,7 @@ local function RefreshCommands()
 	for i = 1, numCellsPerPage do
 		local cellRectID = startCellID + i
 		if cmds[cellRectID] then
-			local uDefID = cmds[cellRectID].id * -1
+			local uDefID = -cmds[cellRectID].id
 			unitDefToCellMap[uDefID] = cellRectID
 		end
 	end
@@ -590,6 +581,11 @@ end
 local sec = 0
 local prevSelBuilderDefs = {}
 function widget:Update(dt)
+	if delayRefresh and spGetGameSeconds() >= delayRefresh then
+		clear()
+		doUpdate = true
+		delayRefresh = nil
+	end
 	--[[ MODIFICATION START ]]
 	-- Check failsafe retry flag
 	if forceRefreshNextFrame and refreshRetryCounter > 0 then
@@ -686,11 +682,6 @@ function widget:Update(dt)
 			widget:ViewResize()
 		end
 
-		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
-		if not voidWater and mapMinWater <= units.minWaterUnitDepth and not showWaterUnits then
-			showWaterUnits = true
-			units.restrictWaterUnits(false)
-		end
 
 		if stickToBottom then
 			if WG['advplayerlist_api'] ~= nil then
@@ -719,7 +710,7 @@ function drawBuildmenuBg()
 end
 
 local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
-	local uDefID = cmds[cellRectID].id * -1
+	local uDefID = -cmds[cellRectID].id
 
 	-- unit icon
 	if disabled then
@@ -917,7 +908,7 @@ function drawBuildmenu()
 			local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
 			local usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
 
-			drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, units.unitRestricted[cmds[cellRectID].id * -1])
+			drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, units.unitRestricted[-cmds[cellRectID].id])
 		end
 	end
 
@@ -1056,7 +1047,7 @@ function widget:DrawScreen()
 				for cellRectID, cellRect in pairs(cellRects) do
 					if math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) then
 						hoveredCellID = cellRectID
-						local uDefID = cmds[cellRectID].id * -1
+						local uDefID = -cmds[cellRectID].id
 						WG['buildmenu'].hoverID = uDefID
 						gl.Color(1, 1, 1, 1)
 						local alt, ctrl, meta, shift = Spring.GetModKeyState()
@@ -1124,7 +1115,7 @@ function widget:DrawScreen()
 
 				-- draw cell hover
 				if hoveredCellID then
-					local uDefID = cmds[hoveredCellID].id * -1
+					local uDefID = -cmds[hoveredCellID].id
 					local cellIsSelected = (activeCmd and cmds[hoveredCellID] and activeCmd == cmds[hoveredCellID].name)
 					if not prevHoveredCellID or hoveredCellID ~= prevHoveredCellID or uDefID ~= hoverUdefID or cellIsSelected ~= hoverCellSelected or b ~= prevB or b3 ~= prevB3 or cmds[hoveredCellID].params[1] ~= prevQueueNr then
 						prevQueueNr = cmds[hoveredCellID].params[1]
@@ -1275,8 +1266,6 @@ end
 function widget:GameStart()
 	preGamestartPlayer = false
 
-	units.checkGeothermalFeatures()
-
 	unbindBuildUnits()
 end
 
@@ -1389,7 +1378,7 @@ function widget:MousePress(x, y, button)
 									Spring.PlaySoundFile(sound_queue_rem, 0.75, 'ui')
 								end
 								if preGamestartPlayer then
-									setPreGamestartDefID(cmds[cellRectID].id * -1)
+									setPreGamestartDefID(-cmds[cellRectID].id)
 								elseif spGetCmdDescIndex(cmds[cellRectID].id) then
 									Spring.SetActiveCommand(spGetCmdDescIndex(cmds[cellRectID].id), 3, false, true, Spring.GetModKeyState())
 								end
@@ -1528,16 +1517,18 @@ end
 function widget:Initialize()
 	refreshUnitDefs()
 
+	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
+	for unitDefID, reasons in pairs(blockedUnitsData) do
+		units.unitRestricted[unitDefID] = next(reasons) ~= nil
+		units.unitHidden[unitDefID] = reasons["hidden"] ~= nil
+	end
+
 	if widgetHandler:IsWidgetKnown("Grid menu") then
 		-- Grid menu needs to be disabled right now and before we recreate
 		-- WG['buildmenu'] since its Shutdown will destroy it.
 		widgetHandler:DisableWidgetRaw("Grid menu")
 	end
 
-	units.checkGeothermalFeatures()
-	if disableWind then
-		units.restrictWindUnits(true)
-	end
 
 	-- Get our starting unit
 	if preGamestartPlayer then
@@ -1671,6 +1662,16 @@ function widget:Initialize()
 			end
 		end
 		clear()
+	end
+end
+
+
+
+function widget:UnitBlocked(unitDefID, reasons)
+	units.unitRestricted[unitDefID] = next(reasons) ~= nil
+	units.unitHidden[unitDefID] = reasons["hidden"] ~= nil
+	if not delayRefresh or delayRefresh < spGetGameSeconds() then
+		delayRefresh = spGetGameSeconds() + 0.5 -- delay so multiple sequential UnitBlocked calls are batched in a single update.
 	end
 end
 

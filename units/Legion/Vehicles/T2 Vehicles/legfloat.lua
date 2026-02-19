@@ -15,9 +15,7 @@ return {
 		explodeas = "mediumExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
 		usepiececollisionvolumes = 1,
-		idletime = 1800,
 		leavetracks = true,
 		maxdamage = 3500,
 		maxslope = 10,
@@ -47,7 +45,7 @@ return {
 			subfolder = "legvehicles/T2",
 			techlevel = 2,
 			enabled_on_no_sea_maps = true,
-			speedfactorwater = "1.3",
+			speedfactorinwater = 1.3,
 		},
 		featuredefs = {
 			dead = {

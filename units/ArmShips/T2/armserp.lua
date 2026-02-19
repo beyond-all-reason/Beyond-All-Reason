@@ -2,7 +2,7 @@ return {
 	armserp = {
 		activatewhenbuilt = true,
 		buildpic = "ARMSERP.DDS",
-		buildtime = 22770,
+		buildtime = 32000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "52 30 57",
@@ -13,8 +13,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 3550,
-		idleautoheal = 15,
-		idletime = 900,
 		maxacc = 0.02,
 		maxdec = 0.02,
 		metalcost = 1800,

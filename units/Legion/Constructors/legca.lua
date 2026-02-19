@@ -19,8 +19,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		hoverattack = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 151,
 		maxslope = 10,
 		speed = 215.0,

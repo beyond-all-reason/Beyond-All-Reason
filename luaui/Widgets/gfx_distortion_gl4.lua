@@ -7,7 +7,7 @@ function widget:GetInfo()
 		desc = "Renders screen-space distortion effects",
 		author = "Beherith",
 		date = "2022.06.10",
-		license = "Lua code is GPL V2, GLSL is (c) Beherith (mysterme@gmail.com)",
+		license = "GNU GPL v2",
 		layer = -999999999, -- should be the last call of DrawWorld
 		enabled = true,
 		depends = {'gl4'},

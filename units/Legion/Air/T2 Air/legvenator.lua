@@ -7,7 +7,7 @@ return {
 		energycost = 3200,
 		metalcost = 110,
 		buildpic = "legvenator.DDS",
-		buildtime = 8400,
+		buildtime = 9730,
 		canfly = true,
 		canmove = true,
 		collide = false,

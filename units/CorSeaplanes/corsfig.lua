@@ -3,7 +3,7 @@ return {
 		airsightdistance = 950,
 		blocking = false,
 		buildpic = "CORSFIG.DDS",
-		buildtime = 5200,
+		buildtime = 6500,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,

@@ -2,7 +2,7 @@ return {
 	armbanth = {
 		airsightdistance = 1100,
 		buildpic = "ARMBANTH.DDS",
-		buildtime = 276000,
+		buildtime = 360000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",
@@ -16,8 +16,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 69000,
-		idleautoheal = 25,
-		idletime = 900,
 		mass = 13500,
 		maxacc = 0.11845,
 		maxdec = 0.7521,

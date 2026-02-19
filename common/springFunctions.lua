@@ -33,6 +33,20 @@ local utilities = {
 		return (devUI > 0) and true or false
 	end,
 
+	--- Cached variant of IsDevMode, refreshed per call but avoids repeated lookups
+	--- within the same frame when multiple widgets query it.
+	_devModeCache = nil,
+	_devModeCacheFrame = -1,
+	IsDevModeCached = function()
+		local frame = Spring.GetGameFrame()
+		if frame ~= utilities._devModeCacheFrame then
+			local devMode = Spring.GetGameRulesParam('isDevMode')
+			utilities._devModeCache = (devMode and devMode > 0) and true or false
+			utilities._devModeCacheFrame = frame
+		end
+		return utilities._devModeCache
+	end,
+
 	CustomKeyToUsefulTable = tableFunctions.CustomKeyToUsefulTable,
 	SafeLuaTableParser = safeLuaTableParser.SafeLuaTableParser,
 

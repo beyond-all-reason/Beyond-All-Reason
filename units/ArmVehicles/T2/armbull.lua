@@ -1,7 +1,7 @@
 return {
 	armbull = {
 		buildpic = "ARMBULL.DDS",
-		buildtime = 17200,
+		buildtime = 23000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 2",
 		collisionvolumescales = "44 23 52",
@@ -12,8 +12,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 4650,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.03542,
 		maxdec = 0.07083,
@@ -27,7 +25,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 494,
-		speed = 60,
+		speed = 62,
 		trackoffset = 8,
 		trackstrength = 10,
 		tracktype = "armbull_tracks",

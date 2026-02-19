@@ -2,7 +2,7 @@ return {
 	armseap = {
 		blocking = false,
 		buildpic = "ARMSEAP.DDS",
-		buildtime = 14800,
+		buildtime = 18000,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,
@@ -14,8 +14,6 @@ return {
 		footprintz = 3,
 		health = 1380,
 		hoverattack = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.2,
 		maxdec = 0.375,
 		maxslope = 10,

@@ -1,7 +1,7 @@
 return {
 	legnavyscout = {
-		maxacc = 0.08,
-		maxdec = 0.08,
+		maxacc = 0.085,
+		maxdec = 0.085,
 		buildangle = 16384,
 		energycost = 1600,
 		metalcost = 120,
@@ -16,10 +16,8 @@ return {
 		floater = true,
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 700,
-		speed = 93,
+		speed = 97,
 		minwaterdepth = 12,
 		movementclass = "BOAT3",
 		nochasecategory = "UNDERWATER VTOL",
@@ -141,7 +139,7 @@ return {
 				weaponvelocity = 1050,
 				damage = {
 					default = 12,
-					vtol = 6,
+					vtol = 3,
 				},
 			},
 		},

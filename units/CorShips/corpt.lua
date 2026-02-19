@@ -2,7 +2,6 @@ return {
 	corpt = {
 		activatewhenbuilt = true,
 		airsightdistance = 800,
-		autoheal = 1.5,
 		buildpic = "CORPT.DDS",
 		buildtime = 2500,
 		canmove = true,
@@ -16,8 +15,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 890,
-		idleautoheal = 5,
-		idletime = 900,
 		maxacc = 0.05,
 		maxdec = 0.06473,
 		metalcost = 210,

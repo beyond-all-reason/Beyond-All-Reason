@@ -1,7 +1,7 @@
 return {
 	correap = {
 		buildpic = "CORREAP.DDS",
-		buildtime = 11500,
+		buildtime = 16000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -6 0",
 		collisionvolumescales = "34 34 38",
@@ -12,8 +12,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 5300,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.0362,
 		maxdec = 0.0724,

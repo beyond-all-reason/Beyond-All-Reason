@@ -1,7 +1,7 @@
 return {
 	armlatnk = {
 		buildpic = "ARMLATNK.DDS",
-		buildtime = 6030,
+		buildtime = 8000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "30 26 34",
@@ -12,8 +12,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1060,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.05833,
 		maxdec = 0.11666,
@@ -163,7 +161,7 @@ return {
 				cratermult = 0,
 				duration = 1,
 				edgeeffectiveness = 0.15,
-				energypershot = 5,
+				energypershot = 10,
 				explosiongenerator = "custom:genericshellexplosion-medium-lightning2",
 				firestarter = 50,
 				impactonly = 1,

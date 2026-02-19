@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		builder = true,
 		buildpic = "CORAAP.DDS",
-		buildtime = 67300,
+		buildtime = 92000,
 		canmove = true,
 		corpse = "DEAD",
 		energycost = 65000,
@@ -12,8 +12,6 @@ return {
 		footprintx = 12,
 		footprintz = 12,
 		health = 17800,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -30,7 +28,7 @@ return {
 		terraformspeed = 3000,
 		workertime = 1800,
 		yardmap = "oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo",
-		buildoptions = {		
+		buildoptions = {
 			[1] = "corhaca",
 			[2] = "corape",
 			[3] = "corhurc",

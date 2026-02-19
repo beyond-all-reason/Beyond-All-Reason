@@ -15,8 +15,6 @@ return {
 		explodeas = "smallExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 1725,
 		maxslope = 17,
 		mass = 210, -- Testing: this unit has resistance to impulse 
@@ -34,7 +32,6 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.99,
 		turnrate = 900,
-		upright = true,
 		customparams = {
 			unitgroup = 'weapon',
 			model_author = "Tharsis",

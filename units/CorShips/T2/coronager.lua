@@ -2,7 +2,7 @@ return {
 	coronager = {
 		activatewhenbuilt = true,
 		buildpic = "coronager.DDS",
-		buildtime = 20000,
+		buildtime = 26000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -5 0",
 		collisionvolumescales = "18 18 60",
@@ -13,8 +13,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1400,
-		idleautoheal = 10,
-		idletime = 900,
 		maxacc = 0.03,
 		maxdec = 0.05,
 		metalcost = 950,

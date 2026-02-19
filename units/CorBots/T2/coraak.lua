@@ -2,7 +2,7 @@ return {
 	coraak = {
 		airsightdistance = 1200,
 		buildpic = "CORAAK.DDS",
-		buildtime = 7600,
+		buildtime = 11000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "27 29 22",
@@ -13,8 +13,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 3200,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.138,
 		maxdec = 0.6486,
 		metalcost = 650,

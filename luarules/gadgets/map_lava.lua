@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		desc      = "lava",
 		author    = "knorke, Beherith, The_Yak, Anarchid, Kloot, Gajop, ivand, Damgam, Chronographer",
 		date      = "Feb 2011, Nov 2013, 2022!",
-		license   = "Lua: GNU GPL, v2 or later, GLSL: (c) Beherith (mysterme@gmail.com)",
+		license   = "GNU GPL v2",
 		layer     = -3,
 		enabled   = true
 	}

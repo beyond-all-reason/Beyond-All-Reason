@@ -11,8 +11,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 2500,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -144,6 +142,7 @@ return {
 					stockpilelimit = 20,
 					nofire = true,
 					water_splash = 0, -- juno can explode on water
+					junotype = "base",
 				},
 				damage = {
 					default = 1,

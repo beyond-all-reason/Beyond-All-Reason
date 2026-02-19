@@ -19,8 +19,6 @@ return {
         footprintx = 5,
         footprintz = 5,
         health = 8600,
-        idleautoheal = 18,
-        idletime = 1800,
 		radardistancejam = 500,
 		radardistance = 2100,
 		radaremitheight = 72,

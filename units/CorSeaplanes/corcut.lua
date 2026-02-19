@@ -2,7 +2,7 @@ return {
 	corcut = {
 		blocking = false,
 		buildpic = "CORCUT.DDS",
-		buildtime = 9470,
+		buildtime = 11500,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,
@@ -14,8 +14,6 @@ return {
 		footprintz = 3,
 		health = 1010,
 		hoverattack = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.18,
 		maxdec = 0.3938,
 		maxslope = 10,

@@ -2,7 +2,7 @@ return {
 	armpnix = {
 		blocking = false,
 		buildpic = "ARMPNIX.DDS",
-		buildtime = 21000,
+		buildtime = 25000,
 		canfly = true,
 		canmove = true,
 		collide = false,
@@ -12,8 +12,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1130,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.0525,
 		maxaileron = 0.01292,
 		maxbank = 0.8,

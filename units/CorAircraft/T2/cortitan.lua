@@ -2,7 +2,7 @@ return {
 	cortitan = {
 		blocking = false,
 		buildpic = "CORTITAN.DDS",
-		buildtime = 14700,
+		buildtime = 18000,
 		canfly = true,
 		canmove = true,
 		collide = true,
@@ -12,8 +12,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 1960,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.1325,
 		maxaileron = 0.01347,
 		maxbank = 0.8,

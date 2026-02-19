@@ -1,7 +1,7 @@
 return {
 	corjugg = {
 		buildpic = "CORJUGG.DDS",
-		buildtime = 630000,
+		buildtime = 780000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",
@@ -13,8 +13,6 @@ return {
 		footprintx = 7,
 		footprintz = 7,
 		health = 335000,
-		idleautoheal = 40,
-		idletime = 1800,
 		mass = 20000,
 		maxacc = 0.0552,
 		maxdec = 0.43125,

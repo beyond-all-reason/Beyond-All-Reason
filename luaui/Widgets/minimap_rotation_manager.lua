@@ -148,7 +148,12 @@ function widget:Initialize()
 			mode = newMode
 			prevSnap = nil
 			trackingLock = false
-			widget:CameraRotationChanged(Spring.GetCameraRotation()) -- Force update on mode change
+			if mode == CameraRotationModes.none then
+				-- Reset to default unrotated angle when switching to none
+				spSetMiniRot(0)
+			else
+				widget:CameraRotationChanged(Spring.GetCameraRotation()) -- Force update on mode change
+			end
 		end
 	end
 

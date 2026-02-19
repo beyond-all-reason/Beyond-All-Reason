@@ -18,8 +18,6 @@ return {						--costs should be same as legmohocon and legmohoconct
 		extractsmetal = 0.004,
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 3900,
 		maxslope = 30,
 		maxwaterdepth = 20,

@@ -1,7 +1,7 @@
 return {
 	armmar = {
 		buildpic = "ARMMAR.DDS",
-		buildtime = 26100,
+		buildtime = 33000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",
@@ -13,8 +13,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 4900,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 970,
 		maxacc = 0.253,
 		maxdec = 0.8211,

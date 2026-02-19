@@ -2,7 +2,7 @@ return {
 	armsubk = {
 		activatewhenbuilt = true,
 		buildpic = "ARMSUBK.DDS",
-		buildtime = 22000,
+		buildtime = 28000,
 		canmove = true,
 		collisionvolumeoffsets = "0 5 0",
 		collisionvolumescales = "30 30 64",
@@ -13,8 +13,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 2350,
-		idleautoheal = 10,
-		idletime = 900,
 		maxacc = 0.05,
 		maxdec = 0.05,
 		metalcost = 950,

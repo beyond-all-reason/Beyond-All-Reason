@@ -136,7 +136,6 @@
 	}
 }
 
-
 .qs-budget-bar {
 	position: relative;
 	width: 27vw;
@@ -169,6 +168,25 @@
 	decorator: vertical-gradient( #a300c4 #290031);
 	border-radius: 0.56vh;
 	z-index: 2;
+}
+
+.qs-budget-refund-overlay {
+	position: absolute;
+	left: 50%;
+	top: 4.3vh;
+	transform: translateX(-50%);
+	font-size: 1.35vh;
+	font-weight: bold;
+	color: rgb(255, 255, 255);
+	font-effect: outline(1dp black);
+	z-index: 1001;
+	decorator: image("/luaui/images/stripes-small.png" repeat);
+	image-color: rgba(20, 20, 20, 180);
+	padding: 1dp 4dp 3dp 4dp;
+	border-radius: 0.56vh;
+	border-width: 0.14vh;
+	border-color: rgba(30, 30, 30, 150);
+	text-align: center;
 }
 
 .qs-warning-text {
