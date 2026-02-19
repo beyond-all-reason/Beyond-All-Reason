@@ -25,8 +25,8 @@ local SHIELDONRULESPARAMINDEX = 531313 -- not a string due to perfmaxxing
 -- Vector math functions (used for hit impact calculations)
 -----------------------------------------------------------------
 
+local sqrt = math.sqrt
 local function Norm(x, y, z)
-	local sqrt = math.sqrt
 	return sqrt(x*x + y*y + z*z)
 end
 

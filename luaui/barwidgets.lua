@@ -726,16 +726,6 @@ function widgetHandler:FinalizeWidget(widget, filename, basename)
 		wi.enabled = info.enabled or false
 	end
 
-	-- Pre-cache tracy zone name strings to avoid per-frame string concatenation
-	local name = wi.name
-	wi.tracyName = {}
-	for _, ciName in ipairs(callInLists) do
-		wi.tracyName[ciName] = "W:" .. ciName .. ":" .. name
-	end
-
-	-- Store direct reference to tracyName on widget to bypass whInfo proxy metatable in hot paths
-	widget._tracyName = wi.tracyName
-
 	widget.whInfo = {}  --  a proxy table
 	local mt = {
 		__index = wi,
@@ -1365,7 +1355,7 @@ function widgetHandler:Update()
 	hourTimer = (hourTimer + deltaTime) % 3600.0
 	tracy.ZoneBeginN("W:Update")
 	for _, w in ipairs(self.UpdateList) do
-		tracy.ZoneBeginN(w._tracyName.Update)
+		tracy.ZoneBeginN("W:Update:"..w.whInfo.name)
 		w:Update(deltaTime)
 		tracy.ZoneEnd()
 	end
@@ -1517,7 +1507,7 @@ function widgetHandler:ViewResize(vsx, vsy)
 		tracy.ZoneEnd()
 	end
 	for _, w in ipairs(self.ViewResizeList) do
-		tracy.ZoneBeginN(w._tracyName.ViewResize)
+		tracy.ZoneBeginN("W:ViewResize:"..w.whInfo.name)
 		w:ViewResize(vsx, vsy)
 		tracy.ZoneEnd()
 	end
@@ -1533,7 +1523,7 @@ function widgetHandler:DrawScreen()
 			local list = self.DrawScreenList
 			for i = #list, 1, -1 do
 				local w = list[i]
-				tracy.ZoneBeginN(w._tracyName.DrawScreen)
+				tracy.ZoneBeginN("W:DrawScreen:"..w.whInfo.name)
 				w:DrawScreen()
 				tracy.ZoneEnd()
 			end
@@ -1573,7 +1563,7 @@ function widgetHandler:DrawWorld()
 		local list = self.DrawWorldList
 		for i = #list, 1, -1 do
 			local w = list[i]
-			tracy.ZoneBeginN(w._tracyName.DrawWorld)
+			tracy.ZoneBeginN("W:DrawWorld:"..w.whInfo.name)
 			w:DrawWorld()
 			tracy.ZoneEnd()
 		end
@@ -1588,7 +1578,7 @@ function widgetHandler:DrawWorldPreUnit()
 		local list = self.DrawWorldPreUnitList
 		for i = #list, 1, -1 do
 			local w = list[i]
-			tracy.ZoneBeginN(w._tracyName.DrawWorldPreUnit)
+			tracy.ZoneBeginN("W:DrawWorldPreUnit:"..w.whInfo.name)
 			w:DrawWorldPreUnit()
 			tracy.ZoneEnd()
 		end
@@ -1743,7 +1733,7 @@ function widgetHandler:DrawScreenEffects(vsx, vsy)
 	local list = self.DrawScreenEffectsList
 	for i = #list, 1, -1 do
 		local w = list[i]
-		tracy.ZoneBeginN(w._tracyName.DrawScreenEffects)
+		tracy.ZoneBeginN("W:DrawScreenEffects:"..w.whInfo.name)
 		w:DrawScreenEffects(vsx, vsy)
 		tracy.ZoneEnd()
 	end
@@ -1756,7 +1746,7 @@ function widgetHandler:DrawScreenPost()
 	local list = self.DrawScreenPostList
 	for i = #list, 1, -1 do
 		local w = list[i]
-		tracy.ZoneBeginN(w._tracyName.DrawScreenPost)
+		tracy.ZoneBeginN("W:DrawScreenPost:"..w.whInfo.name)
 		w:DrawScreenPost()
 		tracy.ZoneEnd()
 	end
@@ -2098,7 +2088,7 @@ end
 function widgetHandler:GameStart()
 	tracy.ZoneBeginN("W:GameStart")
 	for _, w in ipairs(self.GameStartList) do
-		tracy.ZoneBeginN(w._tracyName.GameStart)
+		tracy.ZoneBeginN("W:GameStart:"..w.whInfo.name)
 		w:GameStart()
 		tracy.ZoneEnd()
 	end
@@ -2166,7 +2156,7 @@ function widgetHandler:PlayerChanged(playerID)
 	end
 	tracy.ZoneBeginN("W:PlayerChanged")
 	for _, w in ipairs(self.PlayerChangedList) do
-		tracy.ZoneBeginN(w._tracyName.PlayerChanged)
+		tracy.ZoneBeginN("W:PlayerChanged:"..w.whInfo.name)
 		w:PlayerChanged(playerID)
 		tracy.ZoneEnd()
 	end
@@ -2177,7 +2167,7 @@ end
 function widgetHandler:GameFrame(frameNum)
 	tracy.ZoneBeginN("W:GameFrame")
 	for _, w in ipairs(self.GameFrameList) do
-		tracy.ZoneBeginN(w._tracyName.GameFrame)
+		tracy.ZoneBeginN("W:GameFrame:"..w.whInfo.name)
 		w:GameFrame(frameNum)
 		tracy.ZoneEnd()
 	end
@@ -2189,7 +2179,7 @@ end
 function widgetHandler:GameFramePost(frameNum)
 	tracy.ZoneBeginN("W:GameFramePost")
 	for _, w in ipairs(self.GameFramePostList) do
-		tracy.ZoneBeginN(w._tracyName.GameFramePost)
+		tracy.ZoneBeginN("W:GameFramePost:"..w.whInfo.name)
 		w:GameFramePost(frameNum)
 		tracy.ZoneEnd()
 	end
@@ -2692,7 +2682,7 @@ end
 function widgetHandler:VisibleUnitsChanged(visibleUnits, numVisibleUnits)
 	tracy.ZoneBeginN("W:VisibleUnitsChanged")
 	for _, w in ipairs(self.VisibleUnitsChangedList) do
-		tracy.ZoneBeginN(w._tracyName.VisibleUnitsChanged)
+		tracy.ZoneBeginN("W:VisibleUnitsChanged:"..w.whInfo.name)
 		w:VisibleUnitsChanged(visibleUnits, numVisibleUnits)
 		tracy.ZoneEnd()
 	end

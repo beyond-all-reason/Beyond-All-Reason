@@ -573,16 +573,6 @@ function gadgetHandler:FinalizeGadget(gadget, filename, basename)
 		gi.enabled = info.enabled or false
 	end
 
-	-- Pre-cache tracy zone name strings to avoid per-frame string concatenation
-	local name = gi.name
-	gi.tracyName = {}
-	for _, ciName in ipairs(callInLists) do
-		gi.tracyName[ciName] = "G:" .. ciName .. ":" .. name
-	end
-
-	-- Store direct reference to tracyName on gadget to bypass ghInfo proxy metatable in hot paths
-	gadget._tracyName = gi.tracyName
-
 	gadget.ghInfo = {}  --  a proxy table
 	local mt = {
 		__index = gi,
@@ -1147,7 +1137,7 @@ function gadgetHandler:GameFrame(frameNum)
 	callinDepth = 1
 	tracy.ZoneBeginN("G:GameFrame")
 	for _, g in ipairs(self.GameFrameList) do
-		tracy.ZoneBeginN(g._tracyName.GameFrame)
+		tracy.ZoneBeginN("G:GameFrame:"..g.ghInfo.name)
 		g:GameFrame(frameNum)
 		tracy.ZoneEnd()
 	end
@@ -1161,7 +1151,7 @@ function gadgetHandler:GameFramePost(frameNum)
 	local list = self.GameFramePostList
 	for i = #list, 1, -1 do
 		local g = list[i]
-		tracy.ZoneBeginN(g._tracyName.GameFramePost)
+		tracy.ZoneBeginN("G:GameFramePost:"..g.ghInfo.name)
 		g:GameFramePost(frameNum)
 		tracy.ZoneEnd()
 	end
@@ -1271,7 +1261,7 @@ end
 function gadgetHandler:ViewResize(vsx, vsy)
 	tracy.ZoneBeginN("G:ViewResize")
 	for _, g in ipairs(self.ViewResizeList) do
-		tracy.ZoneBeginN(g._tracyName.ViewResize)
+		tracy.ZoneBeginN("G:ViewResize:"..g.ghInfo.name)
 		g:ViewResize(vsx, vsy)
 		tracy.ZoneEnd()
 	end
@@ -1316,7 +1306,7 @@ end
 function gadgetHandler:PlayerChanged(playerID)
 	tracy.ZoneBeginN("G:PlayerChanged")
 	for _, g in ipairs(self.PlayerChangedList) do
-		tracy.ZoneBeginN(g._tracyName.PlayerChanged)
+		tracy.ZoneBeginN("G:PlayerChanged:"..g.ghInfo.name)
 		g:PlayerChanged(playerID)
 		tracy.ZoneEnd()
 	end
@@ -2158,7 +2148,7 @@ function gadgetHandler:Update()
 	local deltaTime = Spring.GetLastUpdateSeconds()
 	tracy.ZoneBeginN("G:Update")
 	for _, g in ipairs(self.UpdateList) do
-		tracy.ZoneBeginN(g._tracyName.Update)
+		tracy.ZoneBeginN("G:Update:"..g.ghInfo.name)
 		g:Update(deltaTime)
 		tracy.ZoneEnd()
 	end
@@ -2219,7 +2209,7 @@ end
 function gadgetHandler:DrawWorld()
 	tracy.ZoneBeginN("G:DrawWorld")
 	for _, g in ipairs(self.DrawWorldList) do
-		tracy.ZoneBeginN(g._tracyName.DrawWorld)
+		tracy.ZoneBeginN("G:DrawWorld:"..g.ghInfo.name)
 		g:DrawWorld()
 		tracy.ZoneEnd()
 	end
@@ -2230,7 +2220,7 @@ end
 function gadgetHandler:DrawWorldPreUnit()
 	tracy.ZoneBeginN("G:DrawWorldPreUnit")
 	for _, g in ipairs(self.DrawWorldPreUnitList) do
-		tracy.ZoneBeginN(g._tracyName.DrawWorldPreUnit)
+		tracy.ZoneBeginN("G:DrawWorldPreUnit:"..g.ghInfo.name)
 		g:DrawWorldPreUnit()
 		tracy.ZoneEnd()
 	end
