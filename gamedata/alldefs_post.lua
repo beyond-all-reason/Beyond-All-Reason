@@ -77,13 +77,10 @@ end
 
 
 function UnitDef_Post(name, uDef)
-<<<<<<< wreck-metal-modoption
-=======
 	if not modOptions then
 		modOptions = Spring.GetModOptions()
 	end
 
->>>>>>> master
 	local isScav = string.sub(name, -5, -1) == "_scav"
 	local basename = isScav and string.sub(name, 1, -6) or name
 
