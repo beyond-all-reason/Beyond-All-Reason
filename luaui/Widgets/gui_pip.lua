@@ -1021,11 +1021,42 @@ local buttons = {
 			if state.losViewEnabled then
 				-- Store the current allyteam when enabling LOS view
 				state.losViewAllyTeam = Spring.GetMyAllyTeamID()
+				-- Immediately scan enemy buildings the viewed allyteam knows about
+				-- Only include buildings the allyteam has seen (LOS_INLOS or LOS_PREVLOS)
+				if cameraState.mySpecState then
+					for k in pairs(ghostBuildings) do ghostBuildings[k] = nil end
+					local scanAllyTeam = state.losViewAllyTeam
+					local allUnits = Spring.GetAllUnits()
+					for _, uID in ipairs(allUnits) do
+						local defID = Spring.GetUnitDefID(uID)
+						if defID and cache.isBuilding[defID] then
+							local uTeam = Spring.GetUnitTeam(uID)
+							local uAllyTeam = Spring.GetTeamAllyTeamID(uTeam)
+							if uAllyTeam ~= scanAllyTeam then
+								-- Only ghost buildings the viewed allyteam has ever seen
+								local losBits = Spring.GetUnitLosState(uID, scanAllyTeam, true)
+								if losBits and (losBits % 2 >= 1 or losBits % 8 >= 4) then
+									local x, _, z = Spring.GetUnitBasePosition(uID)
+									if x then
+										ghostBuildings[uID] = { defID = defID, x = x, z = z, teamID = uTeam }
+									end
+								end
+							end
+						end
+					end
+				end
 			else
 				state.losViewAllyTeam = nil
+				-- Clear ghost buildings when disabling LOS view as spectator
+				-- (spectators with full view see everything, ghosts are meaningless)
+				if cameraState.mySpecState then
+					for k in pairs(ghostBuildings) do ghostBuildings[k] = nil end
+				end
 			end
 			pipR2T.losNeedsUpdate = true
 			pipR2T.frameNeedsUpdate = true
+			pipR2T.unitsNeedsUpdate = true
+			pipR2T.contentNeedsUpdate = true
 		end
 	},
 	{
@@ -5386,15 +5417,38 @@ end
 
 -- Scan currently-visible enemy buildings for ghost tracking (handles luaui reload mid-game)
 -- UnitEnteredLos won't fire for units already in LOS at widget init, so we pre-populate here
-if not Spring.GetSpectatingState() then
-	local myAllyTeam = Spring.GetMyAllyTeamID()
+-- For spectators with LOS view, also pre-scan to populate ghosts on reload
+local initScanAllyTeam = nil
+local initScanIsSpec = Spring.GetSpectatingState()
+if not initScanIsSpec then
+	initScanAllyTeam = Spring.GetMyAllyTeamID()
+elseif state.losViewEnabled and state.losViewAllyTeam then
+	initScanAllyTeam = state.losViewAllyTeam
+end
+if initScanAllyTeam then
 	local allUnits = Spring.GetAllUnits()
 	for _, uID in ipairs(allUnits) do
 		local defID = Spring.GetUnitDefID(uID)
-		if defID and cache.isBuilding[defID] and not Spring.IsUnitAllied(uID) then
-			local x, _, z = Spring.GetUnitBasePosition(uID)
-			if x then
-				ghostBuildings[uID] = { defID = defID, x = x, z = z, teamID = Spring.GetUnitTeam(uID) }
+		if defID and cache.isBuilding[defID] then
+			local uTeam = Spring.GetUnitTeam(uID)
+			local uAllyTeam = Spring.GetTeamAllyTeamID(uTeam)
+			if uAllyTeam ~= initScanAllyTeam then
+				if initScanIsSpec then
+					-- As spectator, only ghost buildings the viewed allyteam has ever seen
+					local losBits = Spring.GetUnitLosState(uID, initScanAllyTeam, true)
+					if losBits and (losBits % 2 >= 1 or losBits % 8 >= 4) then
+						local x, _, z = Spring.GetUnitBasePosition(uID)
+						if x then
+							ghostBuildings[uID] = { defID = defID, x = x, z = z, teamID = uTeam }
+						end
+					end
+				else
+					-- As player, we can see all units returned (only own-LOS units are returned)
+					local x, _, z = Spring.GetUnitBasePosition(uID)
+					if x then
+						ghostBuildings[uID] = { defID = defID, x = x, z = z, teamID = uTeam }
+					end
+				end
 			end
 		end
 	end
@@ -5921,14 +5975,29 @@ function widget:PlayerChanged(playerID)
 	-- Update spec state
 	cameraState.mySpecState = Spring.GetSpectatingState()
 
-	-- Clear ghost buildings when becoming spectator (spectators see everything)
-	if cameraState.mySpecState then
+	-- Clear ghost buildings when becoming spectator without LOS view
+	-- (spectators with full view see everything, ghosts are meaningless)
+	-- Keep ghosts if LOS view is active (they're still relevant for the viewed allyteam)
+	if cameraState.mySpecState and not state.losViewEnabled then
 		for k in pairs(ghostBuildings) do ghostBuildings[k] = nil end
 		for k in pairs(ownBuildingPosX) do ownBuildingPosX[k] = nil end
 		for k in pairs(ownBuildingPosZ) do ownBuildingPosZ[k] = nil end
 	end
 
 	-- Keep tracking even if fullview is disabled - tracking will resume when fullview is re-enabled
+end
+
+function widget:GameOver()
+	-- Disable LOS view on game over (spectators get full view, LOS filtering is no longer useful)
+	if state.losViewEnabled then
+		state.losViewEnabled = false
+		state.losViewAllyTeam = nil
+		for k in pairs(ghostBuildings) do ghostBuildings[k] = nil end
+		pipR2T.losNeedsUpdate = true
+		pipR2T.frameNeedsUpdate = true
+		pipR2T.unitsNeedsUpdate = true
+		pipR2T.contentNeedsUpdate = true
+	end
 end
 
 function widget:Shutdown()
@@ -7155,7 +7224,15 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 				if not losBits or losBits == 0 then
 					return usedEl
 				elseif losBits % (LOS_INLOS * 2) >= LOS_INLOS then
-					-- full LOS, draw normally
+					-- full LOS: draw normally, and record building ghost for when it leaves LOS
+					if cacheIsBuilding[uDefID] then
+						local g = ghostBuildings[uID]
+						if g then
+							g.defID = uDefID; g.x = ux; g.z = uz; g.teamID = uTeam
+						else
+							ghostBuildings[uID] = { defID = uDefID, x = ux, z = uz, teamID = uTeam }
+						end
+					end
 				elseif losBits % (LOS_INRADAR * 2) >= LOS_INRADAR then
 					isRadar = true
 					local typed = (losBits % (LOS_PREVLOS * 2) >= LOS_PREVLOS) or (losBits % (LOS_CONTRADAR * 2) >= LOS_CONTRADAR)
@@ -7228,7 +7305,9 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 
 		-- Write 12 floats directly into pre-allocated array
 		local off = usedEl * instStep
-		data[off+1] = ux; data[off+2] = uz; data[off+3] = uvs[5]; data[off+4] = (isRadar and 1 or 0) + (takeableTeams[uTeam] and 2 or 0) + (isStunned and 4 or 0) + (trackedSet and trackedSet[uID] and 8 or 0)
+		-- Takeable blink only for teams on the viewer's own allyteam (can't take enemy units)
+		local isTakeable = takeableTeams[uTeam] and checkAllyTeamID and localTeamAllyTeamCache[uTeam] == checkAllyTeamID
+		data[off+1] = ux; data[off+2] = uz; data[off+3] = uvs[5]; data[off+4] = (isRadar and 1 or 0) + (isTakeable and 2 or 0) + (isStunned and 4 or 0) + (trackedSet and trackedSet[uID] and 8 or 0)
 		data[off+5] = uvs[1]; data[off+6] = uvs[2]; data[off+7] = uvs[3]; data[off+8] = uvs[4]
 		data[off+9] = r; data[off+10] = g; data[off+11] = b; data[off+12] = (uID * 0.37) % 6.2832 + mathFloor(flashFactor * 100) * 7.0
 		return usedEl + 1
@@ -7238,14 +7317,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 
 	-- Ghost building pass: enemy buildings previously seen but no longer in LOS
 	-- Rendered first (lowest VBO indices) so live icons overdraw them correctly
-	-- Zero per-frame API calls — all data is cached from UnitEnteredLos
 	if checkAllyTeamID then
-		-- Build set of currently-visible units to skip ghosts that are live
-		local pipUnitSet = {}
-		for i = 1, unitCount do
-			pipUnitSet[pipUnits[i]] = true
-		end
-
 		local viewL = render.world.l - 220
 		local viewR = render.world.r + 220
 		local viewT = render.world.t - 220
@@ -7253,31 +7325,34 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 
 		for gID, ghost in pairs(ghostBuildings) do
 			if usedElements >= maxInst then break end
-			if not pipUnitSet[gID] then
-				-- If ghost position is currently in LOS but the unit is gone, remove the ghost
-				local gy = spFunc.GetGroundHeight(ghost.x, ghost.z)
-				if spFunc.IsPosInLos(ghost.x, gy, ghost.z, checkAllyTeamID) then
-					ghostBuildings[gID] = nil
-				else
-					if ghost.x >= viewL and ghost.x <= viewR and ghost.z >= viewT and ghost.z <= viewB then
-						local uvs, sizeScale
-						if cacheUnitIcon[ghost.defID] then
-							uvs = atlasUVs[ghost.defID] or defaultUV
-							sizeScale = cacheUnitIcon[ghost.defID].size
-						else
-							uvs = defaultUV
-							sizeScale = 0.5
-						end
-						local color = localTeamColors[ghost.teamID]
-						-- Dim ghost icons to simulate being under FoW overlay (engine draws them below LOS layer)
-						local dim = 0.6
-						local r, g, b = (color and color[1] or 1) * dim, (color and color[2] or 1) * dim, (color and color[3] or 1) * dim
-						local off = usedElements * gl4Icons.INSTANCE_STEP
-						data[off+1] = ghost.x; data[off+2] = ghost.z; data[off+3] = sizeScale; data[off+4] = (takeableTeams[ghost.teamID] and 2 or 0)
-						data[off+5] = uvs[1]; data[off+6] = uvs[2]; data[off+7] = uvs[3]; data[off+8] = uvs[4]
-						data[off+9] = r; data[off+10] = g; data[off+11] = b; data[off+12] = (gID * 0.37) % 6.2832
-						usedElements = usedElements + 1
+			-- Check if the ghost's position is in LOS: if so, either the unit is live (skip ghost)
+			-- or the unit is dead and was destroyed in LOS (remove ghost)
+			local gy = spFunc.GetGroundHeight(ghost.x, ghost.z)
+			if spFunc.IsPosInLos(ghost.x, gy, ghost.z, checkAllyTeamID) then
+				-- Position is in LOS — if unit is dead/gone, remove ghost; if alive, skip (drawn live)
+				if not spFunc.GetUnitPosition(gID) then
+					ghostBuildings[gID] = nil  -- unit destroyed while in LOS
+				end
+			else
+				if ghost.x >= viewL and ghost.x <= viewR and ghost.z >= viewT and ghost.z <= viewB then
+					local uvs, sizeScale
+					if cacheUnitIcon[ghost.defID] then
+						uvs = atlasUVs[ghost.defID] or defaultUV
+						sizeScale = cacheUnitIcon[ghost.defID].size
+					else
+						uvs = defaultUV
+						sizeScale = 0.5
 					end
+					local color = localTeamColors[ghost.teamID]
+					-- Dim ghost icons to simulate being under FoW overlay (engine draws them below LOS layer)
+					local dim = 0.6
+					local r, g, b = (color and color[1] or 1) * dim, (color and color[2] or 1) * dim, (color and color[3] or 1) * dim
+					local off = usedElements * gl4Icons.INSTANCE_STEP
+					-- Ghost buildings are always from a different allyteam (enemy) — never takeable
+					data[off+1] = ghost.x; data[off+2] = ghost.z; data[off+3] = sizeScale; data[off+4] = 0
+					data[off+5] = uvs[1]; data[off+6] = uvs[2]; data[off+7] = uvs[3]; data[off+8] = uvs[4]
+					data[off+9] = r; data[off+10] = g; data[off+11] = b; data[off+12] = (gID * 0.37) % 6.2832
+					usedElements = usedElements + 1
 				end
 			end
 		end
@@ -12135,19 +12210,36 @@ cache.ghostCleanupTimer = 0
 function widget:Update(dt)
 	-- Periodic ghost building cleanup: remove ghosts whose position is now in LOS
 	-- The draw-path check only catches ghosts within the PIP viewport; this catches all of them
+	local cleanupAllyTeam
 	if not cameraState.mySpecState then
+		cleanupAllyTeam = Spring.GetMyAllyTeamID()
+	elseif state.losViewEnabled and state.losViewAllyTeam then
+		cleanupAllyTeam = state.losViewAllyTeam
+	end
+	if cleanupAllyTeam then
 		cache.ghostCleanupTimer = cache.ghostCleanupTimer + dt
 		if cache.ghostCleanupTimer >= 1.0 then  -- check every 1 second
 			cache.ghostCleanupTimer = 0
-			local myAllyTeam = Spring.GetMyAllyTeamID()
 			for gID, ghost in pairs(ghostBuildings) do
 				local gy = spFunc.GetGroundHeight(ghost.x, ghost.z)
-				if spFunc.IsPosInLos(ghost.x, gy, ghost.z, myAllyTeam) then
+				if spFunc.IsPosInLos(ghost.x, gy, ghost.z, cleanupAllyTeam) then
 					-- Position is in LOS but unitID is not visible (not alive) — building was destroyed
 					if not spFunc.GetUnitDefID(gID) then
 						ghostBuildings[gID] = nil
 					end
 				end
+			end
+		end
+	end
+
+	-- Periodically re-read the leftClickMove config in case another widget changed it
+	if isMinimapMode then
+		cache.leftClickMoveTimer = (cache.leftClickMoveTimer or 0) + dt
+		if cache.leftClickMoveTimer >= 2.0 then
+			cache.leftClickMoveTimer = 0
+			local cur = Spring.GetConfigInt("MinimapLeftClickMove", 1) == 1
+			if cur ~= config.leftButtonPansCamera then
+				config.leftButtonPansCamera = cur
 			end
 		end
 	end
@@ -13041,8 +13133,21 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	-- Clear damage flash
 	damageFlash[unitID] = nil
 
-	-- Clear ghost building and position caches
-	ghostBuildings[unitID] = nil
+	-- Clear ghost building: only remove if we have LOS on the position (or no LOS filtering active)
+	-- For spectators with LOS view, the ghost should persist if the position is in FoW
+	-- (the viewed allyteam doesn't know the building was destroyed yet)
+	if ghostBuildings[unitID] then
+		local ghost = ghostBuildings[unitID]
+		if state.losViewEnabled and state.losViewAllyTeam then
+			local gy = Spring.GetGroundHeight(ghost.x, ghost.z)
+			if Spring.IsPosInLos(ghost.x, gy, ghost.z, state.losViewAllyTeam) then
+				ghostBuildings[unitID] = nil  -- destroyed in LOS, remove ghost
+			end
+			-- else: destroyed in FoW, ghost persists until LOS reaches the position
+		else
+			ghostBuildings[unitID] = nil
+		end
+	end
 	ownBuildingPosX[unitID] = nil
 	ownBuildingPosZ[unitID] = nil
 end
