@@ -92,6 +92,9 @@ local frameInterval = round(Game.gameSpeed * damageInterval)
 local frameCegShift = round(Game.gameSpeed * damageInterval * 0.5)
 local frameWaitTime = round(Game.gameSpeed * factoryWaitTime)
 
+-- Damage that bypasses the limit needs to be scaled to match its per-second value.
+local damageBypassScale = (Game.gameSpeed / frameInterval) ^ 2
+
 local timedDamageWeapons = {}
 local unitDamageImmunity = {}
 local featureDamageImmunity = {}
@@ -289,8 +292,8 @@ end
 ---@return number damageDealt
 ---@return boolean showDamageCeg
 local function getLimitedDamage(incoming, accumulated)
-    local ignoreLimit = max(0, incoming - damageLimit - accumulated)
-    local belowLimit = max(0, min(damageLimit - accumulated, incoming))
+    local ignoreLimit = max(0, incoming * damageBypassScale - damageLimit)
+    local belowLimit = max(0, min(incoming - ignoreLimit, damageLimit - accumulated))
     local aboveLimit = incoming - belowLimit - ignoreLimit
 
 	local damageDealt = ignoreLimit + belowLimit + aboveLimit * damageExcessRate
