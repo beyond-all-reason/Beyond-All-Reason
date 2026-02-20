@@ -154,76 +154,76 @@ end
 processNotificationDefs()
 
 local unitsOfInterestNames = {
-	armemp = 'EmpSiloDetected',
-	cortron = 'TacticalNukeSiloDetected',
-	legperdition = "LongRangeNapalmLauncherDetected",
-	armsilo = 'NuclearSiloDetected',
-	corsilo = 'NuclearSiloDetected',
-	corint = 'LrpcDetected',
-	armbrtha = 'LrpcDetected',
-	leglrpc = 'LrpcDetected',
-	corbuzz = 'CalamityDetected',
-	armvulc = 'RagnarokDetected',
-	legstarfall = 'StarfallDetected',
-	armliche = 'NuclearBomberDetected',
-	corjugg = 'BehemothDetected',
-	corkorg = 'JuggernautDetected',
-	armbanth = 'TitanDetected',
-	armthor = "ThorDetected",
-	legeheatraymech = 'SolinvictusDetected',
-	armatlas = 'AirTransportDetected',
-	corvalk = 'AirTransportDetected',
-	leglts = 'AirTransportDetected',
-	armhvytrans = 'AirTransportDetected',
-	corhvytrans = 'AirTransportDetected',
-	legatrans = 'AirTransportDetected',
-	armdfly = 'AirTransportDetected',
-	corseah = 'AirTransportDetected',
-	legstronghold = 'AirTransportDetected',
-	legelrpcmech = 'AstraeusDetected',
+	armemp             = 'UnitDetected/EmpSiloDetected',
+	cortron            = 'UnitDetected/TacticalNukeSiloDetected',
+	legperdition       = "UnitDetected/LongRangeNapalmLauncherDetected",
+	armsilo            = 'UnitDetected/NuclearSiloDetected',
+	corsilo            = 'UnitDetected/NuclearSiloDetected',
+	corint             = 'UnitDetected/LrpcDetected',
+	armbrtha           = 'UnitDetected/LrpcDetected',
+	leglrpc            = 'UnitDetected/LrpcDetected',
+	corbuzz            = 'UnitDetected/CalamityDetected',
+	armvulc            = 'UnitDetected/RagnarokDetected',
+	legstarfall        = 'UnitDetected/StarfallDetected',
+	armliche           = 'UnitDetected/NuclearBomberDetected',
+	corjugg            = 'UnitDetected/BehemothDetected',
+	corkorg            = 'UnitDetected/JuggernautDetected',
+	armbanth           = 'UnitDetected/TitanDetected',
+	armthor            = "UnitDetected/ThorDetected",
+	legeheatraymech    = 'UnitDetected/SolinvictusDetected',
+	armatlas           = 'UnitDetected/AirTransportDetected',
+	corvalk            = 'UnitDetected/AirTransportDetected',
+	leglts             = 'UnitDetected/AirTransportDetected',
+	armhvytrans        = 'UnitDetected/AirTransportDetected',
+	corhvytrans        = 'UnitDetected/AirTransportDetected',
+	legatrans          = 'UnitDetected/AirTransportDetected',
+	armdfly            = 'UnitDetected/AirTransportDetected',
+	corseah            = 'UnitDetected/AirTransportDetected',
+	legstronghold      = 'UnitDetected/AirTransportDetected',
+	legelrpcmech       = 'UnitDetected/AstraeusDetected',
 
-	armraz = "RazorbackDetected",
-	armmar = "MarauderDetected",
-	armvang = "VanguardDetected",
-	armlun = "LunkheadDetected",
-	armepoch = 'EpochDetected',
-	cordemon = "DemonDetected",
-	corshiva = "ShivaDetected",
-	corsok = "CataphractDetected",
-	corkarg = "KarganethDetected",
-	corcat = "CatapultDetected",
-	corblackhy = 'BlackHydraDetected',
-	legeshotgunmech = "PraetorianDetected",
-	legjav = "JavelinDetected",
-	legeallterrainmech = "MyrmidonDetected",
-	legkeres = "KeresDetected",
-	legehovertank = "CharybdisDetected",
-	legerailtank = "DaedalusDetected",
-	leganavyflagship = 'NeptuneDetected',
-	leganavyartyship = 'CorinthDetected',
+	armraz             = "UnitDetected/RazorbackDetected",
+	armmar             = "UnitDetected/MarauderDetected",
+	armvang            = "UnitDetected/VanguardDetected",
+	armlun             = "UnitDetected/LunkheadDetected",
+	armepoch           = 'UnitDetected/EpochDetected',
+	cordemon           = "UnitDetected/DemonDetected",
+	corshiva           = "UnitDetected/ShivaDetected",
+	corsok             = "UnitDetected/CataphractDetected",
+	corkarg            = "UnitDetected/KarganethDetected",
+	corcat             = "UnitDetected/CatapultDetected",
+	corblackhy         = 'UnitDetected/BlackHydraDetected',
+	legeshotgunmech    = "UnitDetected/PraetorianDetected",
+	legjav             = "UnitDetected/JavelinDetected",
+	legeallterrainmech = "UnitDetected/MyrmidonDetected",
+	legkeres           = "UnitDetected/KeresDetected",
+	legehovertank      = "UnitDetected/CharybdisDetected",
+	legerailtank       = "UnitDetected/DaedalusDetected",
+	leganavyflagship   = 'UnitDetected/NeptuneDetected',
+	leganavyartyship   = 'UnitDetected/CorinthDetected',
 
-	armmanni = "StarlightDetected",
-	armmerl = "AmbassadorDetected",
-	armfboy = "FatboyDetected",
-	corsumo = "MammothDetected",
-	corhrk = "ArbiterDetected",
-	corgol = "TzarDetected",
-	corvroc = "NegotiatorDetected",
-	cortrem = "TremorDetected",
-	corban = "BanisherDetected",
-	corcrwh = "DragonDetected",
-	leghrk = "ThanatosDetected",
-	legsrail = "ArquebusDetected",
-	leginc = "IncineratorDetected",
-	legaheattank = "PrometheusDetected",
-	legmed = "MedusaDetected",
-	leginf = "InfernoDetected",
-	legfort = "TyrannusDetected",
+	armmanni           = "UnitDetected/StarlightDetected",
+	armmerl            = "UnitDetected/AmbassadorDetected",
+	armfboy            = "UnitDetected/FatboyDetected",
+	corsumo            = "UnitDetected/MammothDetected",
+	corhrk             = "UnitDetected/ArbiterDetected",
+	corgol             = "UnitDetected/TzarDetected",
+	corvroc            = "UnitDetected/NegotiatorDetected",
+	cortrem            = "UnitDetected/TremorDetected",
+	corban             = "UnitDetected/BanisherDetected",
+	corcrwh            = "UnitDetected/DragonDetected",
+	leghrk             = "UnitDetected/ThanatosDetected",
+	legsrail           = "UnitDetected/ArquebusDetected",
+	leginc             = "UnitDetected/IncineratorDetected",
+	legaheattank       = "UnitDetected/PrometheusDetected",
+	legmed             = "UnitDetected/MedusaDetected",
+	leginf             = "UnitDetected/InfernoDetected",
+	legfort            = "UnitDetected/TyrannusDetected",
 }
 
 for name, unitDef in pairs(UnitDefNames) do
 	if unitDef.customParams.drone then
-		unitsOfInterestNames[name] = "DroneDetected"
+		unitsOfInterestNames[name] = "UnitDetected/DroneDetected"
 	end
 end
 
@@ -288,17 +288,17 @@ local tutorialPlayed = {}        -- store the number of times a tutorial event h
 local tutorialPlayedThisGame = {}    -- log that a tutorial event has played this game
 
 local unitIsReadyTab = {
-	{ UnitDefNames['armvulc'].id, 															'RagnarokIsReady' },
-	{ UnitDefNames['armbanth'].id, 															'TitanIsReady' },
-	{ UnitDefNames['armepoch'].id, 															'FlagshipIsReady' },
-	{ UnitDefNames['armthor'].id, 															'ThorIsReady' },
-	{ UnitDefNames['corbuzz'].id, 															'CalamityIsReady' },
-	{ UnitDefNames['corkorg'].id, 															'JuggernautIsReady' },
-	{ UnitDefNames['corjugg'].id, 															'BehemothIsReady' },
-	{ UnitDefNames['corblackhy'].id, 														'FlagshipIsReady' },
-	{ UnitDefNames['legstarfall'] and UnitDefNames['legstarfall'].id, 						'StarfallIsReady' },
-	{ UnitDefNames['legelrpcmech'] and UnitDefNames['legelrpcmech'].id, 					'AstraeusIsReady' },
-	{ UnitDefNames['legeheatraymech'] and UnitDefNames['legeheatraymech'].id, 				'SolinvictusIsReady' },
+	{ UnitDefNames['armvulc'].id, 															'UnitReady/RagnarokIsReady' },
+	{ UnitDefNames['armbanth'].id, 															'UnitReady/TitanIsReady' },
+	{ UnitDefNames['armepoch'].id, 															'UnitReady/FlagshipIsReady' },
+	{ UnitDefNames['armthor'].id, 															'UnitReady/ThorIsReady' },
+	{ UnitDefNames['corbuzz'].id, 															'UnitReady/CalamityIsReady' },
+	{ UnitDefNames['corkorg'].id, 															'UnitReady/JuggernautIsReady' },
+	{ UnitDefNames['corjugg'].id, 															'UnitReady/BehemothIsReady' },
+	{ UnitDefNames['corblackhy'].id, 														'UnitReady/FlagshipIsReady' },
+	{ UnitDefNames['legstarfall'] and UnitDefNames['legstarfall'].id, 						'UnitReady/StarfallIsReady' },
+	{ UnitDefNames['legelrpcmech'] and UnitDefNames['legelrpcmech'].id, 					'UnitReady/AstraeusIsReady' },
+	{ UnitDefNames['legeheatraymech'] and UnitDefNames['legeheatraymech'].id, 				'UnitReady/SolinvictusIsReady' },
 }
 
 if UnitDefNames["armcom_scav"] then -- quick check if scav units exist
@@ -745,24 +745,24 @@ function widget:UnitEnteredLos(unitID, unitTeam)
 	local udefID = spGetUnitDefID(unitID)
 
 	-- single detection events below
-	queueNotification('EnemyDetected')
+	queueNotification('UnitDetected/EnemyDetected')
 	if isAircraft[udefID] then
-		queueNotification('AircraftDetected')
+		queueNotification('UnitDetected/AircraftDetected')
 	end
 	if isT2mobile[udefID] then
-		queueNotification('Tech2UnitDetected')
+		queueNotification('UnitDetected/Tech2UnitDetected')
 	end
 	if isT3mobile[udefID] then
-		queueNotification('Tech3UnitDetected')
+		queueNotification('UnitDetected/Tech3UnitDetected')
 	end
 	if isT4mobile[udefID] then
-		queueNotification('Tech4UnitDetected')
+		queueNotification('UnitDetected/Tech4UnitDetected')
 	end
 	if isMine[udefID] then
 		-- ignore when far away
 		local x, _, z = spGetUnitPosition(unitID)
 		if #Spring.GetUnitsInCylinder(x, z, 1700, myTeamID) > 0 then
-			queueNotification('MinesDetected')
+			queueNotification('UnitDetected/MinesDetected')
 		end
 	end
 
