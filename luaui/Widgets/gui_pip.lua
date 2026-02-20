@@ -130,6 +130,7 @@ local config = {
 	zoomProjectileDetail = 0.12,
 	zoomExplosionDetail = 0.12,  -- Legacy, now using graduated visibility
 	drawExplosions = true,  -- Separate from projectiles
+	drawPlasmaTrails = true,  -- Show fading trails behind plasma/artillery projectiles
 	explosionOverlay = true,  -- Re-render explosions on top of unit icons (additive glow)
 	explosionOverlayAlpha = 0.66,  -- Strength of the above-icons explosion overlay (0-1)
 	drawDecals = true,  -- Show ground decals (explosion scars, footprints) from the decals GL4 widget
@@ -595,12 +596,16 @@ local cache = {
 	weaponIsStarburst = {},
 	weaponIsLightning = {},
 	weaponIsFlame = {},
+	flameLifetime = {},   -- [wDefID] = seconds, estimated particle lifetime for flame weapons
+	flameBirthTime = {},  -- [pID] = gameTime, when we first saw this flame particle
 	weaponIsBomb = {},
 	weaponIsParalyze = {},
 	weaponIsAA = {},
 	weaponIsJuno = {},
 	weaponIsTorpedo = {},
 	missileTrails = {},  -- Stores trail positions for missiles {[pID] = {positions = {{x,z,time},...}, lastUpdate = time}}
+	plasmaTrails = {},   -- Stores trail positions for plasma/artillery projectiles (simpler, shorter trails)
+	weaponPlasmaTrailColor = {},  -- {r, g, b} per wDefID, based on cegTag
 	weaponSize = {},
 	weaponRange = {},
 	weaponThickness = {},
@@ -3231,22 +3236,72 @@ local function DrawProjectile(pID)
 
 		-- Check if this is a flame weapon (Flame - particle stream effect)
 		if cache.weaponIsFlame[pDefID] then
-			local colorData = cache.weaponColor[pDefID]
-			local seed = pID * 123.456 + px * 10 + pz * 10
-			local particleSeed = seed * 789.012
+			-- Use ONLY pID for seeds so variation is stable per-particle across frames
+			local particleSeed = pID * 789.012
 			local offsetX = (math.sin(particleSeed * 12.9898) * 2 - 1) * 4
 			local offsetZ = (math.sin(particleSeed * 78.233) * 2 - 1) * 4
 			local particleSize = 10 + math.abs(math.sin(particleSeed * 43.758)) * 4
-			local colorVariation = math.abs(math.sin(particleSeed * 91.321))
-			local r = 1.0
-			local g = 0.45 + colorVariation * 0.3
-			local b = 0.05
+
+			-- Track particle birth time for time-based aging
+			if not cache.flameBirthTime[pID] then
+				cache.flameBirthTime[pID] = gameTime
+			end
+			local lifetime = cache.flameLifetime[pDefID] or 1.0
+			local age = math.min(1, (gameTime - cache.flameBirthTime[pID]) / lifetime)
+
+			-- Per-particle variation seeds
+			local v1 = math.abs(math.sin(particleSeed * 91.321))   -- 0-1
+			local v2 = math.abs(math.sin(particleSeed * 37.819))   -- 0-1
+			local v3 = math.sin(particleSeed * 63.241)              -- -1 to 1
+
+			local r, g, b, alpha
+
+			if age < 0.35 then
+				-- FRONT: white-hot to bright yellow — the active flame, longest phase
+				local t = age / 0.35
+				r = 1.0
+				g = 0.95 - t * (0.15 + v2 * 0.05)
+				b = 0.65 - t * (0.55 + v1 * 0.08)
+				alpha = 1.0
+			elseif age < 0.65 then
+				-- MID: yellow → orange → red, with variation
+				local t = (age - 0.35) / 0.3
+				r = 1.0 - t * 0.08 * v2
+				g = (0.75 - t * 0.5) * (0.7 + v1 * 0.3)
+				b = 0.1 * (1 - t) * v2
+				-- Occasionally inject brighter yellow patches
+				if v3 > 0.4 then
+					g = g + 0.12
+				end
+				alpha = 0.95 - t * 0.1
+			else
+				-- TAIL: dark red with heavy variation (age 0.65 → 1.0)
+				local t = (age - 0.65) / 0.35
+				local darkening = 0.25 + t * 0.5
+				-- Base: dark smoky red
+				r = (0.8 - darkening) * (0.6 + v1 * 0.4)
+				g = (0.15 - t * 0.1) * (0.3 + v2 * 0.7)
+				b = 0.02 * (1 - t)
+				-- Random flame bursts: some particles stay red-yellow
+				if v3 > 0.45 then
+					r = math.min(1, r + 0.35)
+					g = g + 0.15 * (1 - t)
+				end
+				-- Random near-black: some particles go very dark
+				if v3 < -0.3 then
+					r = r * 0.35
+					g = g * 0.25
+				end
+				alpha = 0.8 - t * 0.35
+			end
+
+			-- Grow particles as they age
+			particleSize = particleSize * (1 + age * 0.6)
 
 			if gl4Prim.enabled then
-				-- GL4 path: one circle for the flame particle
-				GL4AddCircle(px + offsetX, pz - offsetZ, particleSize, 1.0,
-					math.min(1, r*1.25), math.min(1, g*1.25), math.min(1, b*1.25),
-					r, g, b, 0.6, 0)
+				GL4AddCircle(px + offsetX, pz - offsetZ, particleSize, alpha,
+					math.min(1, r*1.2), math.min(1, g*1.2), math.min(1, b*1.2),
+					r, g, b, 0.55 * alpha, 0)
 			end
 			return -- Don't draw as regular projectile
 		end
@@ -3282,13 +3337,17 @@ local function DrawProjectile(pID)
 			-- Get size from cached weapon data
 			local wSize = cache.weaponSize[pDefID]
 			if wSize then
-				-- Scale smaller projectiles down more than larger ones
+				-- Scale smaller projectiles up more; diminishing returns for large ones
 				if wSize < 2 then
 					cache.projectileSizes[pDefID] = wSize * 1.2 -- Small projectiles: scale by 1.2
 				elseif wSize < 4 then
 					cache.projectileSizes[pDefID] = wSize * 1.5 -- Medium-small: scale by 1.5
+				elseif wSize < 6 then
+					cache.projectileSizes[pDefID] = wSize * 1.8 -- Medium: scale by 1.8
 				else
-					cache.projectileSizes[pDefID] = wSize * 2 -- Large projectiles: scale by 2
+					-- Large projectiles: logarithmic scaling to prevent oversized missiles
+					-- wSize 6 → 10.8, wSize 10 → 14.5, wSize 20 → 19.3
+					cache.projectileSizes[pDefID] = 6 * 1.8 * (1 + math.log(wSize / 6) * 0.55)
 				end
 			else
 				cache.projectileSizes[pDefID] = 4
@@ -3613,6 +3672,86 @@ local function DrawProjectile(pID)
 			outerB = math.max(0, color[3] - orangeTint * 0.5)
 		end
 		GL4AddCircle(px, pz, radius, color[4], coreR, coreG, coreB, outerR, outerG, outerB, color[4], 0)
+
+		-- Plasma trail: short fading trail for artillery/cannon projectiles with CEG trails
+		local trailColor = config.drawPlasmaTrails and cache.weaponPlasmaTrailColor[pDefID]
+		if trailColor and cameraState.zoom >= 0.08 then
+			local trail = cache.plasmaTrails[pID]
+			local now = os.clock()
+			if not trail then
+				-- Short ring buffer: 6 slots for max ~4 visible line segments
+				local projSpeed = 10
+				local wDef = WeaponDefs and WeaponDefs[pDefID]
+				if wDef and wDef.projectilespeed then
+					projSpeed = wDef.projectilespeed * 30
+				end
+				-- Slower projectiles get slightly longer trails
+				local trailLife = math.max(0.25, math.min(0.6, 0.8 - projSpeed * 0.03))
+				trail = {positions = {}, head = 0, count = 0, maxLen = 6,
+					lastUpdate = 0, trailLife = trailLife,
+					size = cache.weaponSize[pDefID] or 1}
+				cache.plasmaTrails[pID] = trail
+			end
+
+			-- Update position ring buffer
+			if now - trail.lastUpdate >= 0.06 then
+				trail.head = trail.head + 1
+				if trail.head > trail.maxLen then trail.head = 1 end
+				local pos = trail.positions[trail.head]
+				if pos then
+					pos.x, pos.z, pos.time = px, pz, now
+				else
+					trail.positions[trail.head] = {x = px, z = pz, time = now}
+				end
+				trail.lastUpdate = now
+				if trail.count < trail.maxLen then trail.count = trail.count + 1 end
+			end
+
+			-- Draw trail lines — each segment gets its own width (diminishing 15% per step)
+			local trailCount = trail.count
+			if trailCount >= 2 then
+				local invLife = 1 / trail.trailLife
+				local tR, tG, tB = trailColor[1], trailColor[2], trailColor[3]
+				local wcx, wcz = cameraState.wcx, cameraState.wcz
+				local positions = trail.positions
+				local head = trail.head
+				local maxLen = trail.maxLen
+				local resScale = render.contentScale or 1
+				-- Base width proportional to plasma ball, but dampen at low zoom
+				-- radius includes zoomScale inflation; counteract so trail doesn't balloon when zoomed out
+				-- At zoom 0.02 zoomScale≈3.5, at 0.1≈2.1, at 0.5≈1.4 — invert partially
+				local trailZoomDampen = math.min(1.0, 0.3 + cameraState.zoom * 3)  -- 0.36@z0.02, 0.6@z0.1, 1.0@z0.23+
+				local baseWidth = math.max(2.0 * resScale, radius * 3.0 * trailZoomDampen * resScale)
+
+				for j = 0, trailCount - 2 do
+					local idx1 = head - j
+					if idx1 < 1 then idx1 = idx1 + maxLen end
+					local idx2 = head - j - 1
+					if idx2 < 1 then idx2 = idx2 + maxLen end
+					local p1 = positions[idx1]
+					local p2 = positions[idx2]
+					if p1 and p2 then
+						local fade1 = 1 - (now - p1.time) * invLife
+						local fade2 = 1 - (now - p2.time) * invLife
+						if fade1 < 0 then fade1 = 0 end
+						if fade2 < 0 then fade2 = 0 end
+						if fade1 > 0 or fade2 > 0 then
+							-- Each successive segment is 15% thinner: width * 0.85^j
+							local segWidth = baseWidth * (0.85 ^ j)
+							if segWidth < 1.0 * resScale then segWidth = 1.0 * resScale end
+							glFunc.LineWidth(segWidth)
+							glFunc.BeginEnd(glConst.LINES, function()
+								glFunc.Color(tR, tG, tB, 0.88 * fade1)
+								glFunc.Vertex(p1.x - wcx, wcz - p1.z, 0)
+								glFunc.Color(tR, tG, tB, 0.88 * fade2)
+								glFunc.Vertex(p2.x - wcx, wcz - p2.z, 0)
+							end)
+						end
+					end
+				end
+				glFunc.LineWidth(1 * resScale)
+			end
+		end
 	end
 end
 
@@ -3710,8 +3849,14 @@ local function DrawLaserBeams()
 				-- Draw regular laser beam as a line with glow effect
 				local alpha = 1 - (age / 0.15) -- Fade out over lifetime
 				local thickness = beam.thickness or 2
-				-- Exaggerate thickness differences: small (1) stays small, big (8) gets bigger
-				local scaledThickness = thickness * (0.6 + thickness * 0.12)
+				-- Tighter thickness scaling to keep thin lasers thin
+				local scaledThickness = 0.5 + thickness * 0.35
+
+				-- Aggressive zoom dampening for thin beams
+				local thicknessFactor = math.min(1, math.max(0, (thickness - 2) * 0.33))
+				-- Also dampen by zoom level: at very zoomed-out PIP views, suppress inflation
+				local zoomDampen = math.min(1, cameraState.zoom * 20 + 0.15)
+				local beamZoomScale = 1 + (zoomScale - 1) * thicknessFactor * zoomDampen
 
 				-- Draw directly with per-beam line width (immediate mode inside PushMatrix)
 				-- Transform world coords to PushMatrix local coords
@@ -3721,7 +3866,7 @@ local function DrawLaserBeams()
 				local y2 = cameraState.wcz - beam.tz
 
 				-- Glow layer (outer, colored, additive-like via alpha)
-				local glowWidth = math.max(1, scaledThickness * 3.5 * zoomScale * resScale)
+				local glowWidth = math.max(1, math.min(10 * resScale, scaledThickness * 3.0 * beamZoomScale * resScale))
 				glFunc.LineWidth(glowWidth)
 				glFunc.Color(beam.r, beam.g, beam.b, alpha * 0.35)
 				glFunc.BeginEnd(GL.LINES, function()
@@ -3734,7 +3879,7 @@ local function DrawLaserBeams()
 				local coreR = beam.r * (1 - whiteness) + whiteness
 				local coreG = beam.g * (1 - whiteness) + whiteness
 				local coreB = beam.b * (1 - whiteness) + whiteness
-				local coreWidth = math.max(1, scaledThickness * 1.8 * zoomScale * resScale)
+				local coreWidth = math.max(1, math.min(4 * resScale, scaledThickness * 1.4 * beamZoomScale * resScale))
 				glFunc.LineWidth(coreWidth)
 				glFunc.Color(coreR, coreG, coreB, alpha * 0.98)
 				glFunc.BeginEnd(GL.LINES, function()
@@ -5422,6 +5567,10 @@ function widget:Initialize()
 			cache.weaponIsLightning[wDefID] = true
 		elseif wDef.type == "Flame" then
 			cache.weaponIsFlame[wDefID] = true
+			-- Actual flame particle flight time: range / speed in game frames, / 30 for seconds
+			local pSpeed = wDef.projectilespeed or 3
+			local range = wDef.range or 300
+			cache.flameLifetime[wDefID] = (range / pSpeed) / 30
 		elseif wDef.type == "AircraftBomb" then
 			cache.weaponIsBomb[wDefID] = true
 		end
@@ -5476,6 +5625,29 @@ function widget:Initialize()
 	-- Check if weapon is Juno via cegTag
 	if wDef.cegTag and string.find(wDef.cegTag, 'juno') then
 		cache.weaponIsJuno[wDefID] = true
+	end
+
+	-- Classify plasma trail color by cegTag (for plasma/cannon weapons with visible trails)
+	if wDef.type == "Cannon" and wDef.cegTag and wDef.cegTag ~= '' then
+		local tag = wDef.cegTag
+		if string.find(tag, 'flak') or string.find(tag, 'aa') then
+			-- AA flak: no trail (too small/fast)
+		elseif string.find(tag, 'botrail') then
+			cache.weaponPlasmaTrailColor[wDefID] = {0.44, 0.48, 0.9}   -- Blue bot trail
+		elseif string.find(tag, 'railgun') then
+			cache.weaponPlasmaTrailColor[wDefID] = {0.55, 0.42, 0.88}  -- Purple railgun
+		elseif string.find(tag, 'starfire') or string.find(tag, 'ministarfire') then
+			cache.weaponPlasmaTrailColor[wDefID] = {0.5, 0.55, 0.85}   -- Blue-white starfire
+		elseif string.find(tag, 'impulse') then
+			cache.weaponPlasmaTrailColor[wDefID] = {0.8, 0.6, 0.25}    -- Warm yellow impulse
+		elseif string.find(tag, 'Heavy') then
+			cache.weaponPlasmaTrailColor[wDefID] = {0.85, 0.5, 0.18}   -- Orange heavy plasma
+		elseif string.find(tag, 'arty') or string.find(tag, 'cannon') then
+			cache.weaponPlasmaTrailColor[wDefID] = {0.82, 0.52, 0.2}   -- Warm orange artillery
+		else
+			-- Generic cannon with a cegTag: subtle warm trail
+			cache.weaponPlasmaTrailColor[wDefID] = {0.7, 0.5, 0.25}
+		end
 	end
 end
 
@@ -8135,6 +8307,12 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 					if cache.missileTrails[pID] then
 						activeTrails[pID] = true
 					end
+					if cache.plasmaTrails[pID] then
+						activeTrails[pID] = true
+					end
+					if cache.flameBirthTime[pID] then
+						activeTrails[pID] = true
+					end
 				end
 			end
 			
@@ -8142,6 +8320,16 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 			for pID in pairs(cache.missileTrails) do
 				if not activeTrails[pID] then
 					cache.missileTrails[pID] = nil
+				end
+			end
+			for pID in pairs(cache.plasmaTrails) do
+				if not activeTrails[pID] then
+					cache.plasmaTrails[pID] = nil
+				end
+			end
+			for pID in pairs(cache.flameBirthTime) do
+				if not activeTrails[pID] then
+					cache.flameBirthTime[pID] = nil
 				end
 			end
 
