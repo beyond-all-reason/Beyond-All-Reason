@@ -171,8 +171,6 @@ local unitsOfInterestNames = {
 	armbanth = 'TitanDetected',
 	armthor = "ThorDetected",
 	legeheatraymech = 'SolinvictusDetected',
-	armepoch = 'FlagshipDetected',
-	corblackhy = 'FlagshipDetected',
 	armatlas = 'AirTransportDetected',
 	corvalk = 'AirTransportDetected',
 	leglts = 'AirTransportDetected',
@@ -183,6 +181,44 @@ local unitsOfInterestNames = {
 	corseah = 'AirTransportDetected',
 	legstronghold = 'AirTransportDetected',
 	legelrpcmech = 'AstraeusDetected',
+
+	armraz = "RazorbackDetected",
+	armmar = "MarauderDetected",
+	armvang = "VanguardDetected",
+	armlun = "LunkheadDetected",
+	armepoch = 'EpochDetected',
+	cordemon = "DemonDetected",
+	corshiva = "ShivaDetected",
+	corsok = "CataphractDetected",
+	corkarg = "KarganethDetected",
+	corcat = "CatapultDetected",
+	corblackhy = 'BlackHydraDetected',
+	legeshotgunmech = "PraetorianDetected",
+	legjav = "JavelinDetected",
+	legeallterrainmech = "MyrmidonDetected",
+	legkeres = "KeresDetected",
+	legehovertank = "CharybdisDetected",
+	legerailtank = "DaedalusDetected",
+	leganavyflagship = 'NeptuneDetected',
+	leganavyartyship = 'CorinthDetected',
+
+	armmanni = "StarlightDetected",
+	armmerl = "AmbassadorDetected",
+	armfboy = "FatboyDetected",
+	corsumo = "MammothDetected",
+	corhrk = "ArbiterDetected",
+	corgol = "TzarDetected",
+	corvroc = "NegotiatorDetected",
+	cortrem = "TremorDetected",
+	corban = "BanisherDetected",
+	corcrwh = "DragonDetected",
+	leghrk = "ThanatosDetected",
+	legsrail = "ArquebusDetected",
+	leginc = "IncineratorDetected",
+	legaheattank = "PrometheusDetected",
+	legmed = "MedusaDetected",
+	leginf = "InfernoDetected",
+	legfort = "TyrannusDetected",
 }
 
 for name, unitDef in pairs(UnitDefNames) do
@@ -398,11 +434,11 @@ local function queueNotification(event, forceplay)
 			if notificationList[event] and notification[event] then
 				if not LastPlay[event] or (spGetGameFrame() >= LastPlay[event] + (notification[event].delay * 30)) then
 					if not isInQueue(event) then
-						if checkNotificationRules(notificationList[event]) then
+						if checkNotificationRules(notification[event]) then
 							soundQueue[#soundQueue + 1] = event
-							applyNotificationRules(notificationList[event])
+							applyNotificationRules(notification[event])
 						else
-							LastPlay[event] = spGetGameFrame() - ((notificationList[event].delay - 2)*30)
+							LastPlay[event] = spGetGameFrame() - ((notification[event].delay - 2)*30)
 						end
 					end
 				end

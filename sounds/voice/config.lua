@@ -537,38 +537,276 @@ return {
 	-- Tech 4 - 120 sec delay
 
 	-- Tech 3.5 - 120 sec delay
-	BehemothDetected = {
-		delay = 120,
-		stackedDelay = true,
-	},
-	SolinvictusDetected = {
-		delay = 120,
-		stackedDelay = true,
-	},
-	JuggernautDetected = {
-		delay = 120,
-		stackedDelay = true,
-	},
+	-- Armada
 	TitanDetected = {
 		delay = 120,
 		stackedDelay = true,
+		rulesEnable = {"Tech3-5UnitDetected"},
 	},
 	ThorDetected = {
 		delay = 120,
 		stackedDelay = true,
+		rulesEnable = {"Tech3-5UnitDetected"},
 	},
-	FlagshipDetected = { -- Flagships should be considered T3 for this context, despite being built from T2 factory.
+	-- Cortex
+	JuggernautDetected = {
 		delay = 120,
 		stackedDelay = true,
+		rulesEnable = {"Tech3-5UnitDetected"},
+	},
+	BehemothDetected = {
+		delay = 120,
+		stackedDelay = true,
+		rulesEnable = {"Tech3-5UnitDetected"},
+	},
+	-- Legion
+	SolinvictusDetected = {
+		delay = 120,
+		stackedDelay = true,
+		rulesEnable = {"Tech3-5UnitDetected"},
 	},
 	AstraeusDetected = {
 		delay = 120,
 		stackedDelay = true,
+		rulesEnable = {"Tech3-5UnitDetected"},
 	},
 
 	-- Tech 3 - 180 sec delay
+	-- Armada
+	RazorbackDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	MarauderDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	VanguardDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	LunkheadDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	EpochDetected = { -- Flagships should be considered T3 for this context, despite being built from T2 factory.
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	-- Cortex
+	DemonDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	ShivaDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	CataphractDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	KarganethDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	CatapultDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	BlackHydraDetected = { -- Flagships should be considered T3 for this context, despite being built from T2 factory.
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	-- Legion
+	PraetorianDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	JavelinDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	MyrmidonDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	KeresDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	CharybdisDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	DaedalusDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	NeptuneDetected = { -- Flagships should be considered T3 for this context, despite being built from T2 factory.
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	CorinthDetected = { -- Flagships should be considered T3 for this context, despite being built from T2 factory.
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	-- Other
+	FlagshipDetected = { -- Flagships should be considered T3 for this context, despite being built from T2 factory.
+		delay = 180,
+		stackedDelay = true,
+	},
 
 	-- Tech 2.5 - 180 sec delay
+	-- Armada
+	StarlightDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	AmbassadorDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	FatboyDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	SharpshooterDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	-- Cortex
+	MammothDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	ArbiterDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	TzarDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	NegotiatorDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	TremorDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	BanisherDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	DragonDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	-- Legion
+	ThanatosDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	ArquebusDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	IncineratorDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	PrometheusDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	MedusaDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	InfernoDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	TyrannusDetected = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
 
 	-- Tech 2 - 240 sec delay
 
