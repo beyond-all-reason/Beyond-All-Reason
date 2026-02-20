@@ -131,12 +131,12 @@ local config = {
 	zoomExplosionDetail = 0.12,  -- Legacy, now using graduated visibility
 	drawExplosions = true,  -- Separate from projectiles
 	explosionOverlay = true,  -- Re-render explosions on top of unit icons (additive glow)
-	explosionOverlayAlpha = 0.6,  -- Strength of the above-icons explosion overlay (0-1)
+	explosionOverlayAlpha = 0.66,  -- Strength of the above-icons explosion overlay (0-1)
 	drawDecals = true,  -- Show ground decals (explosion scars, footprints) from the decals GL4 widget
 	drawCommandFX = true,  -- Show brief fading command lines when orders are given (like Commands FX widget)
 	commandFXIgnoreNewUnits = true,  -- Ignore commands given to newly finished units (rally point orders)
-	commandFXOpacity = 0.4,  -- Initial opacity of command FX lines
-	commandFXDuration = 0.75,  -- Seconds for command FX lines to fully fade out
+	commandFXOpacity = 0.35,  -- Initial opacity of command FX lines
+	commandFXDuration = 0.66,  -- Seconds for command FX lines to fully fade out
 	
 	-- Feature and overlay settings
 	hideEnergyOnlyFeatures = false,
@@ -598,6 +598,7 @@ local cache = {
 	weaponIsBomb = {},
 	weaponIsParalyze = {},
 	weaponIsAA = {},
+	weaponIsJuno = {},
 	weaponIsTorpedo = {},
 	missileTrails = {},  -- Stores trail positions for missiles {[pID] = {positions = {{x,z,time},...}, lastUpdate = time}}
 	weaponSize = {},
@@ -815,7 +816,6 @@ local spFunc = {
 	GetProjectileVelocity = Spring.GetProjectileVelocity,
 	GetUnitCommands = Spring.GetUnitCommands,
 	GetPlayerInfo = Spring.GetPlayerInfo,
-	GetCommandQueue = Spring.GetCommandQueue,
 	GetUnitIsStunned = Spring.GetUnitIsStunned,
 	GetTeamAllyTeamID = Spring.GetTeamAllyTeamID,
 }
@@ -843,6 +843,14 @@ mapInfo.isLava = Spring.Lava.isLavaMap or (waterIsLava and waterIsLava ~= 0 and 
 mapInfo.hasWater = mapInfo.minGroundHeight < 0 or mapInfo.isLava
 mapInfo.dynamicWaterLevel = nil  -- current water/lava level (nil = static sea level = 0)
 mapInfo.lastCheckedWaterLevel = nil  -- for change detection
+
+-- Eagerly read lava level if available (avoids wrong first R2T render on lava maps)
+if mapInfo.isLava or mapInfo.hasWater then
+	local initLavaLevel = Spring.GetGameRulesParam("lavaLevel")
+	if initLavaLevel and initLavaLevel ~= -99999 then
+		mapInfo.dynamicWaterLevel = initLavaLevel
+	end
+end
 
 
 
@@ -3363,6 +3371,8 @@ local function DrawProjectile(pID)
 			local isStarburst = cache.weaponIsStarburst[pDefID]
 			local isAA = cache.weaponIsAA[pDefID]
 			local isTorpedo = cache.weaponIsTorpedo[pDefID]
+			local isParalyze = cache.weaponIsParalyze[pDefID]
+			local isJuno = cache.weaponIsJuno[pDefID]
 			if not trail then
 				-- Pre-allocate position slots to avoid repeated table creation
 				-- Use ring buffer pattern: positions stored at indices, head points to newest
@@ -3392,7 +3402,7 @@ local function DrawProjectile(pID)
 				trailLen = math.ceil(trailLife / trailInterval) + 2
 
 				trail = {positions = {}, head = 0, count = 0, maxLen = trailLen,
-					lastUpdate = 0, isStarburst = isStarburst, isAA = isAA, isTorpedo = isTorpedo, size = missileSize,
+					lastUpdate = 0, isStarburst = isStarburst, isAA = isAA, isTorpedo = isTorpedo, isParalyze = isParalyze, isJuno = isJuno, size = missileSize,
 					speed = projSpeed, trailLife = trailLife}
 				cache.missileTrails[pID] = trail
 			end
@@ -3430,8 +3440,12 @@ local function DrawProjectile(pID)
 				invTrailLifetime = 1 / trailLifetime
 				if trail.isStarburst then
 					trailColorR, trailColorG, trailColorB = 0.12, 0.12, 0.12  -- Darker smoke
+				elseif trail.isJuno then
+					trailColorR, trailColorG, trailColorB = 0.2, 0.45, 0.2  -- Green Juno trail
 				elseif trail.isAA then
 					trailColorR, trailColorG, trailColorB = 0.85, 0.45, 0.55  -- Rose pink
+				elseif trail.isParalyze then
+					trailColorR, trailColorG, trailColorB = 0.4, 0.35, 0.75  -- Blue-violet paralyzer trail
 				elseif trail.isTorpedo then
 					trailColorR, trailColorG, trailColorB = 0.25, 0.3, 0.42  -- Grey-blue bubble trail
 				else
@@ -3500,11 +3514,22 @@ local function DrawProjectile(pID)
 		local sinA = math.sin(rad)
 		local cosA = math.cos(rad)
 
-		-- Torpedo/depth charge: blue-tinted body
+		-- Color variants for torpedo/paralyzer missiles
 		local bodyR, bodyG, bodyB = 0.88, 0.88, 0.84
 		local noseR, noseG, noseB = 0.92, 0.92, 0.88
 		local finR, finG, finB = 0.82, 0.82, 0.78
-		if cache.weaponIsTorpedo[pDefID] then
+		if cache.weaponIsJuno[pDefID] then
+			-- Juno: vivid green
+			bodyR, bodyG, bodyB = 0.3, 0.8, 0.3
+			noseR, noseG, noseB = 0.4, 0.9, 0.4
+			finR, finG, finB = 0.25, 0.7, 0.25
+		elseif cache.weaponIsParalyze[pDefID] then
+			-- Paralyzer: electric blue-violet (distinct from torpedo's steel blue)
+			bodyR, bodyG, bodyB = 0.45, 0.5, 0.95
+			noseR, noseG, noseB = 0.6, 0.65, 1.0
+			finR, finG, finB = 0.35, 0.4, 0.85
+		elseif cache.weaponIsTorpedo[pDefID] then
+			-- Torpedo: muted steel blue
 			bodyR, bodyG, bodyB = 0.7, 0.78, 0.9
 			noseR, noseG, noseB = 0.75, 0.82, 0.95
 			finR, finG, finB = 0.6, 0.7, 0.85
@@ -3528,7 +3553,11 @@ local function DrawProjectile(pID)
 		-- Exhaust glow at the very back
 		local exhFwd = -height * 0.38
 		local exhR, exhG, exhB = 1.0, 0.7, 0.3
-		if cache.weaponIsTorpedo[pDefID] then
+		if cache.weaponIsJuno[pDefID] then
+			exhR, exhG, exhB = 0.3, 1.0, 0.3  -- Bright green Juno exhaust
+		elseif cache.weaponIsParalyze[pDefID] then
+			exhR, exhG, exhB = 0.6, 0.5, 1.0  -- Blue-violet paralyzer exhaust
+		elseif cache.weaponIsTorpedo[pDefID] then
 			exhR, exhG, exhB = 0.5, 0.7, 1.0  -- Blue bubble exhaust
 		end
 		GL4AddQuad(px + sinA * exhFwd, pz + cosA * exhFwd,
@@ -3861,6 +3890,14 @@ local function DrawIconShatters()
 			end
 
 			-- Update fragment physics
+			-- Compute per-shatter flash factor: inherited damage flash fading out
+			-- Cubic decay + slight linear tail, so it's bright initially then lingers
+			local flashFactor = 0
+			if shatter.flashIntensity > 0 then
+				local ft = progress  -- 0 at birth, 1 at expiry
+				flashFactor = shatter.flashIntensity * math.min(1, (1-ft)*(1-ft)*(1-ft) * 1.3 + (1-ft) * 0.08)
+			end
+
 			local fragments = shatter.fragments
 			local fragCount = #fragments
 			for j = 1, fragCount do
@@ -3880,6 +3917,14 @@ local function DrawIconShatters()
 				local currentSize = frag.size * scale * zoomInv
 				local halfSize = currentSize * 0.5
 
+				-- Mix team color towards white based on flash factor
+				local fr, fg, fb = shatter.teamR, shatter.teamG, shatter.teamB
+				if flashFactor > 0.01 then
+					fr = fr + (1 - fr) * flashFactor
+					fg = fg + (1 - fg) * flashFactor
+					fb = fb + (1 - fb) * flashFactor
+				end
+
 				-- Add to batch for this texture (use counter instead of #texGroup)
 				texGroupSize = texGroupSize + 1
 				texGroup[texGroupSize] = {
@@ -3891,9 +3936,9 @@ local function DrawIconShatters()
 					uvy1 = frag.uvy1,
 					uvx2 = frag.uvx2,
 					uvy2 = frag.uvy2,
-					r = shatter.teamR,
-					g = shatter.teamG,
-					b = shatter.teamB
+					r = fr,
+					g = fg,
+					b = fb
 				}
 			end
 
@@ -4254,7 +4299,10 @@ local function DrawExplosions()
 
 				local r, g, b       -- Outer fireball color
 				local cr, cg, cb    -- Inner core color (hotter)
-				if explosion.isParalyze then
+				if explosion.isJuno then
+					r, g, b = 0.3, 0.75, 0.35
+					cr, cg, cb = 0.6, 1, 0.65
+				elseif explosion.isParalyze then
 					r, g, b = 0.5, 0.6, 0.85
 					cr, cg, cb = 0.8, 0.9, 1
 				elseif explosion.radius > 150 then
@@ -4309,7 +4357,10 @@ local function DrawExplosions()
 							local flashT = actualProgress / 0.2
 							local flashAlpha = (1 - flashT * flashT) * 0.95  -- Quadratic falloff, brighter peak
 							local flashRadius = baseRadius * (0.8 + flashT * 0.9)
-							if explosion.isParalyze then
+							if explosion.isJuno then
+								GL4AddCircle(explosion.x, explosion.z, flashRadius, flashAlpha,
+									0.7, 1, 0.75,  0.4, 0.85, 0.5,  flashAlpha * 0.4, 0)
+							elseif explosion.isParalyze then
 								GL4AddCircle(explosion.x, explosion.z, flashRadius, flashAlpha,
 									0.85, 0.9, 1,  0.65, 0.75, 1,  flashAlpha * 0.4, 0)
 							else
@@ -4325,6 +4376,26 @@ local function DrawExplosions()
 							local flashRadius = baseRadius * 0.85
 							GL4AddCircle(explosion.x, explosion.z, flashRadius, flashAlpha,
 								1, 1, 1,  1, 0.95, 0.8,  flashAlpha * 0.4, 0)
+						end
+
+						-- Layer 5: Big white flash (nukes, commanders, fusions)
+						-- Fades fast initially (cubic) then lingers slightly (linear tail)
+						if explosion.isBigFlash then
+							local ft = actualProgress
+							-- Cubic decay + small linear tail for gentle linger
+							local fa = math.min(1, (1-ft)*(1-ft)*(1-ft) * 1.2 + (1-ft) * 0.12)
+							-- Outer white pulse: starts large, expands slowly
+							local flashR = effectiveRadius * (1.8 + ft * 1.5)
+							GL4AddCircle(explosion.x, explosion.z, flashR, fa * 0.85,
+								1, 1, 1,  1, 0.97, 0.92,  fa * 0.25, 0)
+							-- Inner bright core: tight, fades faster
+							if ft < 0.45 then
+								local cft = ft / 0.45
+								local cfa = (1 - cft * cft) * 0.95
+								local coreR = effectiveRadius * (0.4 + cft * 0.6)
+								GL4AddCircle(explosion.x, explosion.z, coreR, cfa,
+									1, 1, 1,  1, 1, 0.97,  cfa * 0.5, 0)
+							end
 						end
 					end
 				end
@@ -4377,7 +4448,9 @@ local function DrawExplosionOverlay()
 				-- Use low green/blue to avoid washing out to white
 				local overlayAlpha = fade * config.explosionOverlayAlpha
 				local r, g, b
-				if explosion.isParalyze then
+				if explosion.isJuno then
+					r, g, b = 0.15, 0.8, 0.25  -- Green tint
+				elseif explosion.isParalyze then
 					r, g, b = 0.25, 0.35, 0.9  -- Blue-purple tint
 				else
 					-- Warm orange-red: high R, moderate G, minimal B
@@ -4389,6 +4462,15 @@ local function DrawExplosionOverlay()
 				end
 				GL4AddCircle(explosion.x, explosion.z, baseRadius * 0.85, overlayAlpha,
 					r, g, b,  r * 0.3, g * 0.2, b * 0.1,  0, 0)
+
+				-- Big flash overlay: white glow above icons for nukes/commanders/fusions
+				if explosion.isBigFlash then
+					local ft = age / lifetime
+					local fa = math.min(1, (1-ft)*(1-ft)*(1-ft) * 1.2 + (1-ft) * 0.12)
+					local flashR = effectiveRadius * (1.4 + ft * 1.2)
+					GL4AddCircle(explosion.x, explosion.z, flashR * 0.7, fa * config.explosionOverlayAlpha * 0.6,
+						1, 1, 1,  0.95, 0.93, 0.88,  0, 0)
+				end
 			end
 		end
 	end
@@ -5389,6 +5471,11 @@ function widget:Initialize()
 	-- Check if weapon is anti-air via cegTag
 	if wDef.cegTag and string.find(wDef.cegTag, 'aa') then
 		cache.weaponIsAA[wDefID] = true
+	end
+
+	-- Check if weapon is Juno via cegTag
+	if wDef.cegTag and string.find(wDef.cegTag, 'juno') then
+		cache.weaponIsJuno[wDefID] = true
 	end
 end
 
@@ -7022,7 +7109,7 @@ local function DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
 
 	for i = 1, selectedCount do
 		local unitID = selectedUnits[i]
-		local queue = spFunc.GetCommandQueue(unitID, -1)
+		local queue = spFunc.GetUnitCommands(unitID, -1)
 
 		if queue then
 			local queueLength = #queue
@@ -8514,9 +8601,22 @@ local function ShouldShowLOS()
 end
 
 -- Helper function to get the normalized water/lava threshold for the heightmap shader
--- Returns a value in [0, 1] where 0 = min ground height, 1 = max ground height
+-- Returns the water/lava surface level in elmos for the heightmap shader
+-- On lava maps, does a lazy read from the game rule if not yet known
 local function GetWaterLevel()
-	return mapInfo.dynamicWaterLevel or 0
+	if mapInfo.dynamicWaterLevel then
+		return mapInfo.dynamicWaterLevel
+	end
+	-- Lazy fallback: try reading game rule on first use (covers the gap between
+	-- widget init and the first Update() poll, avoiding wrong waterLevel=0 on lava maps)
+	if mapInfo.isLava then
+		local level = Spring.GetGameRulesParam("lavaLevel")
+		if level and level ~= -99999 then
+			mapInfo.dynamicWaterLevel = level
+			return level
+		end
+	end
+	return 0
 end
 
 -- Helper function to draw water and LOS overlays
@@ -10611,6 +10711,17 @@ local function UpdateR2TUnits(currentTime, pipUpdateInterval, pipWidth, pipHeigh
 			local ok, err = pcall(RenderExpensiveLayers)
 			if not ok then
 				Spring.Echo("[PIP] Units render error: " .. tostring(err))
+				-- Emergency GL state cleanup: RenderExpensiveLayers may have left dirty state
+				gl.UseShader(0)
+				glFunc.Texture(0, false)
+				glFunc.Texture(1, false)
+				glFunc.Texture(false)
+				gl.Scissor(false)
+				gl.BlendEquation(GL.FUNC_ADD)
+				-- Try to pop rotation matrix if it was pushed
+				if render.minimapRotation ~= 0 then
+					pcall(glFunc.PopMatrix)
+				end
 			end
 
 			-- Restore blending and original values
@@ -10756,6 +10867,20 @@ local function UpdateR2TCheapLayers(currentTime, pipUpdateInterval, pipWidth, pi
 			local ok, err = pcall(RenderCheapLayers)
 			if not ok then
 				Spring.Echo("[PIP] Cheap layers render error: " .. tostring(err))
+				-- Emergency GL state cleanup: RenderCheapLayers may have left dirty state
+				-- (active shader, wrong blend equation, pushed matrix, bound textures, scissor)
+				gl.UseShader(0)
+				glFunc.Texture(0, false)
+				glFunc.Texture(1, false)
+				glFunc.Texture(false)
+				gl.Scissor(false)
+				gl.BlendEquation(GL.FUNC_ADD)
+				gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+				gl.BlendFuncSeparate(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA, GL.ONE, GL.ONE_MINUS_SRC_ALPHA)
+				-- Try to pop rotation matrix if it was pushed
+				if render.minimapRotation ~= 0 then
+					pcall(glFunc.PopMatrix)
+				end
 			end
 
 			-- Restore
@@ -12949,6 +13074,18 @@ function widget:GameStart()
 			interactionState.areTracking = {commanderID}  -- Store as table/array
 		end
 	end
+
+	-- On lava/water maps, read the lava level now that the gadget has initialized
+	-- (may not have been available during widget module-level init)
+	if mapInfo.isLava or mapInfo.hasWater then
+		local lavaLevel = Spring.GetGameRulesParam("lavaLevel")
+		if lavaLevel and lavaLevel ~= -99999 then
+			if mapInfo.dynamicWaterLevel ~= lavaLevel then
+				mapInfo.dynamicWaterLevel = lavaLevel
+				pipR2T.contentNeedsUpdate = true
+			end
+		end
+	end
 end
 
 function widget:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
@@ -13089,6 +13226,16 @@ local function CreateIconShatter(unitID, unitDefID, unitTeam, unitVelX, unitVelZ
 	local baseLifetime = 0.4 + iconSize / 216
 	local lifetimeVariation = 0.6 + math.random() * 0.8  -- 0.6 to 1.4 (±40% variation)
 
+	-- Capture damage flash intensity at death time (for white flash on fragments)
+	local flashIntensity = 0
+	local flash = damageFlash[unitID]
+	if flash then
+		local flashAge = gameTime - flash.time
+		if flashAge < DAMAGE_FLASH_DURATION then
+			flashIntensity = flash.intensity * (1 - flashAge / DAMAGE_FLASH_DURATION)
+		end
+	end
+
 	table.insert(cache.iconShatters, {
 		startTime = gameTime,
 		fragments = fragments,
@@ -13097,7 +13244,8 @@ local function CreateIconShatter(unitID, unitDefID, unitTeam, unitVelX, unitVelZ
 		teamG = teamG,
 		teamB = teamB,
 		duration = baseLifetime * lifetimeVariation,
-		zoom = cameraState.zoom  -- Store zoom factor to compensate for gl.Scale during rendering
+		zoom = cameraState.zoom,  -- Store zoom factor to compensate for gl.Scale during rendering
+		flashIntensity = flashIntensity,  -- Inherited damage flash (0-1)
 	})
 end
 
@@ -13347,6 +13495,9 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 	
 	-- Check if this is a paralyze weapon
 	local isParalyze = weaponID and cache.weaponIsParalyze[weaponID]
+
+	-- Check if this is a Juno weapon
+	local isJuno = weaponID and cache.weaponIsJuno[weaponID]
 	
 	-- Check if this is an anti-air weapon (skip AA explosions for now)
 	local isAA = weaponID and cache.weaponIsAA[weaponID]
@@ -13378,9 +13529,24 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 		particles = {},  -- Will store particle debris
 		isLightning = isLightning,
 		isParalyze = isParalyze,
+		isJuno = isJuno,
 		isAA = isAA,
-		isUnitExplosion = isUnitExplosion
+		isUnitExplosion = isUnitExplosion,
+		isBigFlash = false,  -- set below
 	}
+
+	-- Detect big flash explosions: nukes, commanders, large unit death explosions
+	-- These get an additional white flash layer that fades fast then lingers
+	if not isLightning and not isParalyze then
+		if radius >= 100 then
+			explosion.isBigFlash = true
+		elseif isUnitExplosion and ownerID then
+			local ownerDefID = Spring.GetUnitDefID(ownerID)
+			if ownerDefID and cache.isCommander[ownerDefID] then
+				explosion.isBigFlash = true
+			end
+		end
+	end
 
 	-- Add lightning sparks
 	if isLightning then

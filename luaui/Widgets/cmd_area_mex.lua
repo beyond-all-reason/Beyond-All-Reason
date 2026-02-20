@@ -16,7 +16,7 @@ end
 local CMD_AREA_MEX = GameCMD.AREA_MEX
 
 local spGetActiveCommand = Spring.GetActiveCommand
-local spGetCommandQueue = Spring.GetCommandQueue
+local spGetUnitCommands = Spring.GetUnitCommands
 local spGetMapDrawMode = Spring.GetMapDrawMode
 local spGetUnitPosition = Spring.GetUnitPosition
 local spSendCommands = Spring.SendCommands
@@ -54,7 +54,7 @@ end
 ---@return number|nil x
 ---@return number|nil z
 local function getLastQueuedPosition(unitID)
-	local queue = spGetCommandQueue(unitID, -1)
+	local queue = spGetUnitCommands(unitID, -1)
 	if queue and #queue > 0 then
 		local lastCmd = queue[#queue]
 		if lastCmd.params and #lastCmd.params >= 3 then
