@@ -62,29 +62,29 @@ end
 UpdateTimer = 0
 function widget:Update(dt)
     UpdateTimer = UpdateTimer+dt
-    if UpdateTimer >= 1 and (not gameOver) then
+    if UpdateTimer >= 1 and (not gameOver) and Spring.GetGameFrame() > 90 then
         UpdateTimer = UpdateTimer - 1
         for playerName, data in pairs(PlayersInformationMemory) do
             local ping = select(6, spGetPlayerInfo(data.id))
-            if ping and ping > 10 and not PlayersInformationMemory[playerName].timingout then
+            if ping and ping > 5 and not PlayersInformationMemory[playerName].timingout then
                 if (not PlayersInformationMemory[playerName].spectator) and (not PlayersInformationMemory[playerName].resigned) then
                     if spGetSpectatingState() or PlayersInformationMemory[playerName].teamID == spGetLocalTeamID() then
-                        WG['notifications'].queueNotification("NeutralPlayerLagging")
+                        WG['notifications'].queueNotification("NeutralPlayerLagging", true)
                     elseif PlayersInformationMemory[playerName].allyTeamID == spGetLocalAllyTeamID() then
-                        WG['notifications'].queueNotification("TeammateLagging")
+                        WG['notifications'].queueNotification("TeammateLagging", true)
                     else
-                        WG['notifications'].queueNotification("EnemyPlayerLagging")
+                        WG['notifications'].queueNotification("EnemyPlayerLagging", true)
                     end
                 end
                 PlayersInformationMemory[playerName].timingout = true
             elseif ping and ping <= 2 and PlayersInformationMemory[playerName].timingout and (not PlayersInformationMemory[playerName].hasDisconnected) then
                 if (not PlayersInformationMemory[playerName].spectator) and (not PlayersInformationMemory[playerName].resigned) then
                     if spGetSpectatingState() or PlayersInformationMemory[playerName].teamID == spGetLocalTeamID() then
-                        WG['notifications'].queueNotification("NeutralPlayerCaughtUp")
+                        WG['notifications'].queueNotification("NeutralPlayerCaughtUp", true)
                     elseif PlayersInformationMemory[playerName].allyTeamID == spGetLocalAllyTeamID() then
-                        WG['notifications'].queueNotification("TeammateCaughtUp")
+                        WG['notifications'].queueNotification("TeammateCaughtUp", true)
                     else
-                        WG['notifications'].queueNotification("EnemyPlayerCaughtUp")
+                        WG['notifications'].queueNotification("EnemyPlayerCaughtUp", true)
                     end
                 end
                 PlayersInformationMemory[playerName].timingout = false

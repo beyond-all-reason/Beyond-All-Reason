@@ -165,7 +165,7 @@ local unitsOfInterestNames = {
 	corbuzz            = 'UnitDetected/CalamityDetected',
 	armvulc            = 'UnitDetected/RagnarokDetected',
 	legstarfall        = 'UnitDetected/StarfallDetected',
-	armliche           = 'UnitDetected/NuclearBomberDetected',
+	armliche           = 'UnitDetected/LicheDetected',
 	corjugg            = 'UnitDetected/BehemothDetected',
 	corkorg            = 'UnitDetected/JuggernautDetected',
 	armbanth           = 'UnitDetected/TitanDetected',
@@ -292,13 +292,28 @@ local unitIsReadyTab = {
 	{ UnitDefNames['armbanth'].id, 															'UnitReady/TitanIsReady' },
 	{ UnitDefNames['armepoch'].id, 															'UnitReady/FlagshipIsReady' },
 	{ UnitDefNames['armthor'].id, 															'UnitReady/ThorIsReady' },
+	{ UnitDefNames['armfus'].id, 															'UnitReady/FusionIsReady' },
+	{ UnitDefNames['armckfus'].id, 															'UnitReady/FusionIsReady' },
+	{ UnitDefNames['armuwfus'].id, 															'UnitReady/FusionIsReady' },
+	{ UnitDefNames['armafus'].id, 															'UnitReady/AdvancedFusionIsReady' },
+	{ UnitDefNames['armsilo'].id, 															'UnitReady/NuclearSiloIsReady' },
+
 	{ UnitDefNames['corbuzz'].id, 															'UnitReady/CalamityIsReady' },
 	{ UnitDefNames['corkorg'].id, 															'UnitReady/JuggernautIsReady' },
 	{ UnitDefNames['corjugg'].id, 															'UnitReady/BehemothIsReady' },
 	{ UnitDefNames['corblackhy'].id, 														'UnitReady/FlagshipIsReady' },
+	{ UnitDefNames['corfus'].id, 															'UnitReady/FusionIsReady' },
+	{ UnitDefNames['coruwfus'].id, 															'UnitReady/FusionIsReady' },
+	{ UnitDefNames['corafus'].id, 															'UnitReady/AdvancedFusionIsReady' },
+	{ UnitDefNames['corsilo'].id, 															'UnitReady/NuclearSiloIsReady' },
+
 	{ UnitDefNames['legstarfall'] and UnitDefNames['legstarfall'].id, 						'UnitReady/StarfallIsReady' },
 	{ UnitDefNames['legelrpcmech'] and UnitDefNames['legelrpcmech'].id, 					'UnitReady/AstraeusIsReady' },
 	{ UnitDefNames['legeheatraymech'] and UnitDefNames['legeheatraymech'].id, 				'UnitReady/SolinvictusIsReady' },
+	{ UnitDefNames['legfus'] and UnitDefNames['legfus'].id, 								'UnitReady/FusionIsReady' },
+	{ UnitDefNames['leganavalfusion'] and UnitDefNames['leganavalfusion'].id, 				'UnitReady/FusionIsReady' },
+	{ UnitDefNames['legafus'] and UnitDefNames['legafus'].id, 								'UnitReady/AdvancedFusionIsReady' },
+	{ UnitDefNames['legsilo'] and UnitDefNames['legsilo'].id,								'UnitReady/NuclearSiloIsReady' },
 }
 
 if UnitDefNames["armcom_scav"] then -- quick check if scav units exist

@@ -427,6 +427,20 @@ return {
 		delay = 120,
 		stackedDelay = true,
 	},
+	["UnitReady/FusionIsReady"] = {
+		delay = 120,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"AdvancedFusionIsReady"},
+	},
+	["UnitReady/AdvancedFusionIsReady"] = {
+		delay = 120,
+		stackedDelay = true,
+		rulesEnable = {"AdvancedFusionIsReady"},
+	},
+	["UnitReady/NuclearSiloIsReady"] = {
+		delay = 120,
+		stackedDelay = true,
+	},
 	["UnitReady/Tech2UnitReady"] = {
 		delay = 9999999,
 		rulesEnable = {"PlayerHasTech2"},
@@ -505,10 +519,6 @@ return {
 	},
 
 	-- Urgent Generic - 30 sec delay
-	["UnitDetected/NuclearBomberDetected"] = {
-		delay = 30,
-		stackedDelay = true,
-	},
 	["UnitDetected/MinesDetected"] = {
 		delay = 30,
 		stackedDelay = true,
@@ -806,6 +816,10 @@ return {
 		stackedDelay = true,
 		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
 		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	["UnitDetected/LicheDetected"] = { -- Scary one, so shorter delay
+		delay = 30,
+		stackedDelay = true,
 	},
 
 	-- Tech 2 - 240 sec delay
