@@ -462,6 +462,8 @@ local pools = {
 	buildCountByTexture = {}, -- Reused for DrawQueuedBuilds counts
 	savedDim = {l=0, r=0, b=0, t=0}, -- Reused for R2T dimension backup
 	projectileColor = {1, 0.5, 0, 1}, -- Reused for DrawProjectile default color
+	yellowColor = {1, 1, 0, 1}, -- Reused for non-blaster weapon projectile color
+	greyColor = {0.7, 0.7, 0.7, 1}, -- Reused for debris projectile color
 	trackingMerge = {}, -- Reused for tracking unit merge operations
 	trackingTempSet = {}, -- Reused for tracking unit deduplication
 	activeTrails = {}, -- Reused for tracking active missile trails
@@ -598,12 +600,14 @@ local cache = {
 	weaponIsFlame = {},
 	flameLifetime = {},   -- [wDefID] = seconds, estimated particle lifetime for flame weapons
 	flameBirthTime = {},  -- [pID] = gameTime, when we first saw this flame particle
+	flameSeeds = {},      -- [pID] = {offX, offZ, baseSize, v1, v2, v3} — stable per-particle variation
 	weaponIsBomb = {},
 	weaponIsParalyze = {},
 	weaponIsAA = {},
 	weaponIsJuno = {},
 	weaponIsTorpedo = {},
 	missileTrails = {},  -- Stores trail positions for missiles {[pID] = {positions = {{x,z,time},...}, lastUpdate = time}}
+	missileColors = {},  -- [wDefID] = {bodyR,bodyG,bodyB, noseR,noseG,noseB, finR,finG,finB, exhR,exhG,exhB}
 	plasmaTrails = {},   -- Stores trail positions for plasma/artillery projectiles (simpler, shorter trails)
 	weaponPlasmaTrailColor = {},  -- {r, g, b} per wDefID, based on cegTag
 	weaponSize = {},
@@ -3007,7 +3011,23 @@ local function DrawFeature(fID, noTextures)
 	glFunc.PopMatrix()
 end
 
+-- Shared state for beam line drawing (avoids per-beam closure allocation)
+local _line = {}
+local function drawLine()
+	glFunc.Vertex(_line.x1, _line.y1, 0)
+	glFunc.Vertex(_line.x2, _line.y2, 0)
+end
+
+-- Shared state for per-vertex-colored line drawing (plasma trails)
+local function drawColoredLine()
+	glFunc.Color(_line.r, _line.g, _line.b, _line.a1)
+	glFunc.Vertex(_line.x1, _line.y1, 0)
+	glFunc.Color(_line.r, _line.g, _line.b, _line.a2)
+	glFunc.Vertex(_line.x2, _line.y2, 0)
+end
+
 local function DrawProjectile(pID)
+	local mSin, mCos, mAtan2, mMin, mMax, mLog = math.sin, math.cos, math.atan2, math.min, math.max, math.log
 	local px, py, pz = spFunc.GetProjectilePosition(pID)
 	if not px then return end
 
@@ -3236,23 +3256,28 @@ local function DrawProjectile(pID)
 
 		-- Check if this is a flame weapon (Flame - particle stream effect)
 		if cache.weaponIsFlame[pDefID] then
-			-- Use ONLY pID for seeds so variation is stable per-particle across frames
-			local particleSeed = pID * 789.012
-			local offsetX = (math.sin(particleSeed * 12.9898) * 2 - 1) * 4
-			local offsetZ = (math.sin(particleSeed * 78.233) * 2 - 1) * 4
-			local particleSize = 10 + math.abs(math.sin(particleSeed * 43.758)) * 4
-
-			-- Track particle birth time for time-based aging
-			if not cache.flameBirthTime[pID] then
+			-- Get or create cached per-particle seeds (computed once at birth, not every frame)
+			local seeds = cache.flameSeeds[pID]
+			if not seeds then
+				local ps = pID * 789.012
+				seeds = {
+					(mSin(ps * 12.9898) * 2 - 1) * 4,   -- offX
+					(mSin(ps * 78.233) * 2 - 1) * 4,    -- offZ
+					10 + (mSin(ps * 43.758) % 1) * 4,   -- baseSize (abs via modulo)
+					(mSin(ps * 91.321) % 1),            -- v1 (0-1)
+					(mSin(ps * 37.819) % 1),            -- v2 (0-1)
+					mSin(ps * 63.241),                   -- v3 (-1 to 1)
+				}
+				cache.flameSeeds[pID] = seeds
 				cache.flameBirthTime[pID] = gameTime
 			end
-			local lifetime = cache.flameLifetime[pDefID] or 1.0
-			local age = math.min(1, (gameTime - cache.flameBirthTime[pID]) / lifetime)
+			local offsetX, offsetZ, particleSize = seeds[1], seeds[2], seeds[3]
+			local v1, v2, v3 = seeds[4], seeds[5], seeds[6]
 
-			-- Per-particle variation seeds
-			local v1 = math.abs(math.sin(particleSeed * 91.321))   -- 0-1
-			local v2 = math.abs(math.sin(particleSeed * 37.819))   -- 0-1
-			local v3 = math.sin(particleSeed * 63.241)              -- -1 to 1
+			-- Compute age from cached birth time
+			local lifetime = cache.flameLifetime[pDefID] or 1.0
+			local elapsed = gameTime - cache.flameBirthTime[pID]
+			local age = elapsed < lifetime and elapsed / lifetime or 1
 
 			local r, g, b, alpha
 
@@ -3284,7 +3309,7 @@ local function DrawProjectile(pID)
 				b = 0.02 * (1 - t)
 				-- Random flame bursts: some particles stay red-yellow
 				if v3 > 0.45 then
-					r = math.min(1, r + 0.35)
+						r = mMin(1, r + 0.35)
 					g = g + 0.15 * (1 - t)
 				end
 				-- Random near-black: some particles go very dark
@@ -3300,7 +3325,7 @@ local function DrawProjectile(pID)
 
 			if gl4Prim.enabled then
 				GL4AddCircle(px + offsetX, pz - offsetZ, particleSize, alpha,
-					math.min(1, r*1.2), math.min(1, g*1.2), math.min(1, b*1.2),
+					mMin(1, r*1.2), mMin(1, g*1.2), mMin(1, b*1.2),
 					r, g, b, 0.55 * alpha, 0)
 			end
 			return -- Don't draw as regular projectile
@@ -3330,7 +3355,7 @@ local function DrawProjectile(pID)
 			-- Calculate angle from velocity direction
 			local vx, vy, vz = spFunc.GetProjectileVelocity(pID)
 			if vx and (vx ~= 0 or vz ~= 0) then
-				angle = math.atan2(vx, vz) * mapInfo.rad2deg
+				angle = mAtan2(vx, vz) * mapInfo.rad2deg
 			end
 		-- Non-laser, non-blaster weapon projectiles - use cached size data
 		elseif not cache.projectileSizes[pDefID] then
@@ -3347,7 +3372,7 @@ local function DrawProjectile(pID)
 				else
 					-- Large projectiles: logarithmic scaling to prevent oversized missiles
 					-- wSize 6 → 10.8, wSize 10 → 14.5, wSize 20 → 19.3
-					cache.projectileSizes[pDefID] = 6 * 1.8 * (1 + math.log(wSize / 6) * 0.55)
+					cache.projectileSizes[pDefID] = 6 * 1.8 * (1 + mLog(wSize / 6) * 0.55)
 				end
 			else
 				cache.projectileSizes[pDefID] = 4
@@ -3359,12 +3384,12 @@ local function DrawProjectile(pID)
 
 	-- Only set color for non-blaster weapons
 		if not cache.weaponIsBlaster[pDefID] then
-			color = {1, 1, 0, 1}
+			color = pools.yellowColor
 		end
 	else
 		-- This is debris or other non-weapon projectile
 		size = 2
-		color = {0.7, 0.7, 0.7, 1} -- Light gray for debris
+		color = pools.greyColor
 	end
 
 	-- Draw projectile as a quad (rectangular for missiles, square for others)
@@ -3413,7 +3438,7 @@ local function DrawProjectile(pID)
 		local vx, vy, vz = spFunc.GetProjectileVelocity(pID)
 		if vx and (vx ~= 0 or vz ~= 0) then
 			-- Calculate angle based on velocity direction
-			angle = math.atan2(vx, vz) * mapInfo.rad2deg
+			angle = mAtan2(vx, vz) * mapInfo.rad2deg
 		elseif cache.weaponIsStarburst[pDefID] then
 			-- Starburst missiles launching straight up (only vy) should point upward
 			angle = 180
@@ -3570,29 +3595,15 @@ local function DrawProjectile(pID)
 	elseif pDefID and cache.weaponIsMissile[pDefID] then
 		-- Missile shape: body + nose + tail fins offset along flight direction
 		local rad = angle * 0.01745329  -- pi/180
-		local sinA = math.sin(rad)
-		local cosA = math.cos(rad)
+		local sinA = mSin(rad)
+		local cosA = mCos(rad)
 
-		-- Color variants for torpedo/paralyzer missiles
-		local bodyR, bodyG, bodyB = 0.88, 0.88, 0.84
-		local noseR, noseG, noseB = 0.92, 0.92, 0.88
-		local finR, finG, finB = 0.82, 0.82, 0.78
-		if cache.weaponIsJuno[pDefID] then
-			-- Juno: vivid green
-			bodyR, bodyG, bodyB = 0.3, 0.8, 0.3
-			noseR, noseG, noseB = 0.4, 0.9, 0.4
-			finR, finG, finB = 0.25, 0.7, 0.25
-		elseif cache.weaponIsParalyze[pDefID] then
-			-- Paralyzer: electric blue-violet (distinct from torpedo's steel blue)
-			bodyR, bodyG, bodyB = 0.45, 0.5, 0.95
-			noseR, noseG, noseB = 0.6, 0.65, 1.0
-			finR, finG, finB = 0.35, 0.4, 0.85
-		elseif cache.weaponIsTorpedo[pDefID] then
-			-- Torpedo: muted steel blue
-			bodyR, bodyG, bodyB = 0.7, 0.78, 0.9
-			noseR, noseG, noseB = 0.75, 0.82, 0.95
-			finR, finG, finB = 0.6, 0.7, 0.85
-		end
+		-- Color variants from cache (computed once at init)
+		local mc = cache.missileColors[pDefID]
+		if not mc then mc = cache.missileColors[0] end  -- fallback default
+		local bodyR, bodyG, bodyB = mc[1], mc[2], mc[3]
+		local noseR, noseG, noseB = mc[4], mc[5], mc[6]
+		local finR, finG, finB = mc[7], mc[8], mc[9]
 
 		-- Main body: shifted 0.2*height forward (matching legacy -0.7h to +0.3h center)
 		local bodyFwd = height * 0.2
@@ -3611,14 +3622,7 @@ local function DrawProjectile(pID)
 
 		-- Exhaust glow at the very back
 		local exhFwd = -height * 0.38
-		local exhR, exhG, exhB = 1.0, 0.7, 0.3
-		if cache.weaponIsJuno[pDefID] then
-			exhR, exhG, exhB = 0.3, 1.0, 0.3  -- Bright green Juno exhaust
-		elseif cache.weaponIsParalyze[pDefID] then
-			exhR, exhG, exhB = 0.6, 0.5, 1.0  -- Blue-violet paralyzer exhaust
-		elseif cache.weaponIsTorpedo[pDefID] then
-			exhR, exhG, exhB = 0.5, 0.7, 1.0  -- Blue bubble exhaust
-		end
+		local exhR, exhG, exhB = mc[10], mc[11], mc[12]
 		GL4AddQuad(px + sinA * exhFwd, pz + cosA * exhFwd,
 			width * 0.5, height * 0.1, angle, exhR, exhG, exhB, color[4] * 0.6)
 	elseif pDefID and cache.weaponIsBomb[pDefID] then
@@ -3626,20 +3630,20 @@ local function DrawProjectile(pID)
 		local vx, vy, vz = spFunc.GetProjectileVelocity(pID)
 		local bombAngle = 0
 		if vx and (vx ~= 0 or vz ~= 0) then
-			bombAngle = math.atan2(vx, vz) * mapInfo.rad2deg
+			bombAngle = mAtan2(vx, vz) * mapInfo.rad2deg
 		end
 
 		-- Scale bomb size with explosion radius as damage proxy (bigger AOE = bigger bomb)
 		local explosionR = cache.weaponExplosionRadius[pDefID] or 10
-		local damageFactor = 0.6 + math.min(0.6, explosionR * 0.004) -- 0.64 (small) to 1.2 (big AOE)
+		local damageFactor = 0.6 + mMin(0.6, explosionR * 0.004) -- 0.64 (small) to 1.2 (big AOE)
 		local bombSize = (cache.weaponSize[pDefID] or 2) * 0.7 * damageFactor
 		local bombW = bombSize * 1.3 * zoomScale
 		local bombH = bombSize * 1.8 * zoomScale
 
 		-- Main body: grey-white rectangle
 		local rad = bombAngle * 0.01745329
-		local sinA = math.sin(rad)
-		local cosA = math.cos(rad)
+		local sinA = mSin(rad)
+		local cosA = mCos(rad)
 
 		GL4AddQuad(px, pz, bombW, bombH * 0.45, bombAngle, 0.73, 0.73, 0.71, 1.0)
 
@@ -3654,8 +3658,8 @@ local function DrawProjectile(pID)
 		-- 	bombW * 1.6, bombH * 0.12, bombAngle, 0.64, 0.64, 0.62, 0.9)
 	elseif pDefID and cache.weaponIsPlasma[pDefID] then
 		-- Plasma gradient circle (reduce size when zoomed in to stay proportional to world scale)
-		local plasmaZoomReduction = math.min(1, 0.45 + 0.55 * (1 - cameraState.zoom))
-		local radius = math.max(width, height) * plasmaZoomReduction
+		local plasmaZoomReduction = mMin(1, 0.45 + 0.55 * (1 - cameraState.zoom))
+		local radius = mMax(width, height) * plasmaZoomReduction
 		local coreWhiteness = 0.9
 		local coreR, coreG, coreB, outerR, outerG, outerB
 		if cache.weaponIsAA[pDefID] then
@@ -3675,7 +3679,7 @@ local function DrawProjectile(pID)
 
 		-- Plasma trail: short fading trail for artillery/cannon projectiles with CEG trails
 		local trailColor = config.drawPlasmaTrails and cache.weaponPlasmaTrailColor[pDefID]
-		if trailColor and cameraState.zoom >= 0.08 then
+		if trailColor then
 			local trail = cache.plasmaTrails[pID]
 			local now = os.clock()
 			if not trail then
@@ -3686,7 +3690,7 @@ local function DrawProjectile(pID)
 					projSpeed = wDef.projectilespeed * 30
 				end
 				-- Slower projectiles get slightly longer trails
-				local trailLife = math.max(0.25, math.min(0.6, 0.8 - projSpeed * 0.03))
+				local trailLife = mMax(0.25, mMin(0.6, 0.8 - projSpeed * 0.03))
 				trail = {positions = {}, head = 0, count = 0, maxLen = 6,
 					lastUpdate = 0, trailLife = trailLife,
 					size = cache.weaponSize[pDefID] or 1}
@@ -3717,11 +3721,13 @@ local function DrawProjectile(pID)
 				local head = trail.head
 				local maxLen = trail.maxLen
 				local resScale = render.contentScale or 1
-				-- Base width proportional to plasma ball, but dampen at low zoom
-				-- radius includes zoomScale inflation; counteract so trail doesn't balloon when zoomed out
-				-- At zoom 0.02 zoomScale≈3.5, at 0.1≈2.1, at 0.5≈1.4 — invert partially
-				local trailZoomDampen = math.min(1.0, 0.3 + cameraState.zoom * 3)  -- 0.36@z0.02, 0.6@z0.1, 1.0@z0.23+
-				local baseWidth = math.max(2.0 * resScale, radius * 3.0 * trailZoomDampen * resScale)
+				-- Trail width = plasma ball's on-screen pixel diameter (via world-to-pixel scale)
+				-- wtp.scaleX converts world units to screen pixels; naturally shrinks when zoomed out
+				local baseWidth = mMin(radius * wtp.scaleX * 2, 14 * resScale)
+				if baseWidth < 1.5 * resScale then baseWidth = 1.5 * resScale end
+				local minSegW = 1.0 * resScale
+				local segDecay = 1.0
+				_line.r, _line.g, _line.b = tR, tG, tB
 
 				for j = 0, trailCount - 2 do
 					local idx1 = head - j
@@ -3736,18 +3742,19 @@ local function DrawProjectile(pID)
 						if fade1 < 0 then fade1 = 0 end
 						if fade2 < 0 then fade2 = 0 end
 						if fade1 > 0 or fade2 > 0 then
-							-- Each successive segment is 15% thinner: width * 0.85^j
-							local segWidth = baseWidth * (0.85 ^ j)
-							if segWidth < 1.0 * resScale then segWidth = 1.0 * resScale end
+							local segWidth = baseWidth * segDecay
+							if segWidth < minSegW then segWidth = minSegW end
+							_line.x1 = p1.x - wcx
+							_line.y1 = wcz - p1.z
+							_line.x2 = p2.x - wcx
+							_line.y2 = wcz - p2.z
+							_line.a1 = 0.75 * fade1
+							_line.a2 = 0.75 * fade2
 							glFunc.LineWidth(segWidth)
-							glFunc.BeginEnd(glConst.LINES, function()
-								glFunc.Color(tR, tG, tB, 0.88 * fade1)
-								glFunc.Vertex(p1.x - wcx, wcz - p1.z, 0)
-								glFunc.Color(tR, tG, tB, 0.88 * fade2)
-								glFunc.Vertex(p2.x - wcx, wcz - p2.z, 0)
-							end)
+							glFunc.BeginEnd(glConst.LINES, drawColoredLine)
 						end
 					end
+					segDecay = segDecay * 0.85
 				end
 				glFunc.LineWidth(1 * resScale)
 			end
@@ -3757,6 +3764,7 @@ end
 
 local function DrawLaserBeams()
 	if #cache.laserBeams == 0 then return end
+	local mMax, mMin = math.max, math.min
 
 	local n = #cache.laserBeams
 	local i = 1
@@ -3764,7 +3772,7 @@ local function DrawLaserBeams()
 	-- Precompute zoom-dependent scaling once
 	local resScale = render.contentScale or 1
 	-- Smooth beam width scaling: boost when zoomed out, no hard threshold
-	local zoomScale = math.max(0.5, cameraState.zoom / 70) + 0.08 / (cameraState.zoom + 0.04)
+	local zoomScale = mMax(0.5, cameraState.zoom / 70) + 0.08 / (cameraState.zoom + 0.04)
 	local wcx_cached = cameraState.wcx  -- Cache these for loop
 	local wcz_cached = cameraState.wcz
 
@@ -3793,17 +3801,17 @@ local function DrawLaserBeams()
 				beamMinZ, beamMaxZ = math.huge, -math.huge
 				for j = 1, #beam.segments do
 					local seg = beam.segments[j]
-					beamMinX = math.min(beamMinX, seg.x)
-					beamMaxX = math.max(beamMaxX, seg.x)
-					beamMinZ = math.min(beamMinZ, seg.z)
-					beamMaxZ = math.max(beamMaxZ, seg.z)
+					if seg.x < beamMinX then beamMinX = seg.x end
+					if seg.x > beamMaxX then beamMaxX = seg.x end
+					if seg.z < beamMinZ then beamMinZ = seg.z end
+					if seg.z > beamMaxZ then beamMaxZ = seg.z end
 				end
 			else
 				-- For regular beams, check origin and target
-				beamMinX = math.min(beam.ox, beam.tx)
-				beamMaxX = math.max(beam.ox, beam.tx)
-				beamMinZ = math.min(beam.oz, beam.tz)
-				beamMaxZ = math.max(beam.oz, beam.tz)
+				beamMinX = beam.ox < beam.tx and beam.ox or beam.tx
+				beamMaxX = beam.ox > beam.tx and beam.ox or beam.tx
+				beamMinZ = beam.oz < beam.tz and beam.oz or beam.tz
+				beamMaxZ = beam.oz > beam.tz and beam.oz or beam.tz
 			end
 
 		-- Skip if beam is completely outside visible area
@@ -3817,8 +3825,8 @@ local function DrawLaserBeams()
 			if beam.isLightning then
 				-- Draw lightning bolt with jagged segments
 				local alpha = 1 - (age / 0.15) -- Fade out over lifetime
-				local glowLW = math.max(1, beam.thickness * 4.5 * zoomScale * resScale)
-				local coreLW = math.max(1, beam.thickness * 1.4 * zoomScale * resScale)
+				local glowLW = mMax(1, beam.thickness * 4.5 * zoomScale * resScale)
+				local coreLW = mMax(1, beam.thickness * 1.4 * zoomScale * resScale)
 				local coreR = 0.9 + beam.r * 0.1
 				local coreG = 0.9 + beam.g * 0.1
 				local coreB = 0.95 + beam.b * 0.05
@@ -3827,23 +3835,17 @@ local function DrawLaserBeams()
 					local seg1 = beam.segments[j]
 					local seg2 = beam.segments[j + 1]
 					local avgBrightness = (seg1.brightness + seg2.brightness) * 0.5
-					local sx1 = seg1.x - cameraState.wcx
-					local sy1 = cameraState.wcz - seg1.z
-					local sx2 = seg2.x - cameraState.wcx
-					local sy2 = cameraState.wcz - seg2.z
+					_line.x1 = seg1.x - cameraState.wcx
+					_line.y1 = cameraState.wcz - seg1.z
+					_line.x2 = seg2.x - cameraState.wcx
+					_line.y2 = cameraState.wcz - seg2.z
 
 					glFunc.LineWidth(glowLW)
 					glFunc.Color(beam.r, beam.g, beam.b, alpha * 0.4 * avgBrightness)
-					glFunc.BeginEnd(GL.LINES, function()
-						glFunc.Vertex(sx1, sy1, 0)
-						glFunc.Vertex(sx2, sy2, 0)
-					end)
+					glFunc.BeginEnd(GL.LINES, drawLine)
 					glFunc.LineWidth(coreLW)
 					glFunc.Color(coreR, coreG, coreB, alpha * 0.98 * avgBrightness)
-					glFunc.BeginEnd(GL.LINES, function()
-						glFunc.Vertex(sx1, sy1, 0)
-						glFunc.Vertex(sx2, sy2, 0)
-					end)
+					glFunc.BeginEnd(GL.LINES, drawLine)
 				end
 			else
 				-- Draw regular laser beam as a line with glow effect
@@ -3853,39 +3855,32 @@ local function DrawLaserBeams()
 				local scaledThickness = 0.5 + thickness * 0.35
 
 				-- Aggressive zoom dampening for thin beams
-				local thicknessFactor = math.min(1, math.max(0, (thickness - 2) * 0.33))
+				local thicknessFactor = mMin(1, mMax(0, (thickness - 2) * 0.33))
 				-- Also dampen by zoom level: at very zoomed-out PIP views, suppress inflation
-				local zoomDampen = math.min(1, cameraState.zoom * 20 + 0.15)
+				local zoomDampen = mMin(1, cameraState.zoom * 20 + 0.15)
 				local beamZoomScale = 1 + (zoomScale - 1) * thicknessFactor * zoomDampen
 
-				-- Draw directly with per-beam line width (immediate mode inside PushMatrix)
 				-- Transform world coords to PushMatrix local coords
-				local x1 = beam.ox - cameraState.wcx
-				local y1 = cameraState.wcz - beam.oz
-				local x2 = beam.tx - cameraState.wcx
-				local y2 = cameraState.wcz - beam.tz
+				_line.x1 = beam.ox - cameraState.wcx
+				_line.y1 = cameraState.wcz - beam.oz
+				_line.x2 = beam.tx - cameraState.wcx
+				_line.y2 = cameraState.wcz - beam.tz
 
 				-- Glow layer (outer, colored, additive-like via alpha)
-				local glowWidth = math.max(1, math.min(10 * resScale, scaledThickness * 3.0 * beamZoomScale * resScale))
+				local glowWidth = mMax(1, mMin(10 * resScale, scaledThickness * 3.0 * beamZoomScale * resScale))
 				glFunc.LineWidth(glowWidth)
 				glFunc.Color(beam.r, beam.g, beam.b, alpha * 0.35)
-				glFunc.BeginEnd(GL.LINES, function()
-					glFunc.Vertex(x1, y1, 0)
-					glFunc.Vertex(x2, y2, 0)
-				end)
+				glFunc.BeginEnd(GL.LINES, drawLine)
 
 				-- Core layer (inner, whitened, bright) — use higher proportion for big lasers
 				local whiteness = 0.4 + (thickness / 10) * 0.4
 				local coreR = beam.r * (1 - whiteness) + whiteness
 				local coreG = beam.g * (1 - whiteness) + whiteness
 				local coreB = beam.b * (1 - whiteness) + whiteness
-				local coreWidth = math.max(1, math.min(4 * resScale, scaledThickness * 1.4 * beamZoomScale * resScale))
+				local coreWidth = mMax(1, mMin(4 * resScale, scaledThickness * 1.4 * beamZoomScale * resScale))
 				glFunc.LineWidth(coreWidth)
 				glFunc.Color(coreR, coreG, coreB, alpha * 0.98)
-				glFunc.BeginEnd(GL.LINES, function()
-					glFunc.Vertex(x1, y1, 0)
-					glFunc.Vertex(x2, y2, 0)
-				end)
+				glFunc.BeginEnd(GL.LINES, drawLine)
 			end
 
 				i = i + 1
@@ -5547,6 +5542,8 @@ function widget:Initialize()
 	end
 
 	-- Localize weapon data for performance
+	-- Default missile colors fallback (wDefID 0)
+	cache.missileColors[0] = {0.88,0.88,0.84, 0.92,0.92,0.88, 0.82,0.82,0.78, 1.0,0.7,0.3}
 	for wDefID, wDef in pairs(WeaponDefs) do
 		-- Check weapon type
 		if wDef.type == "BeamLaser" then
@@ -5625,6 +5622,19 @@ function widget:Initialize()
 	-- Check if weapon is Juno via cegTag
 	if wDef.cegTag and string.find(wDef.cegTag, 'juno') then
 		cache.weaponIsJuno[wDefID] = true
+	end
+
+	-- Cache missile body/nose/fin/exhaust colors per-wDefID (avoids per-frame branching)
+	if cache.weaponIsMissile[wDefID] then
+		if cache.weaponIsJuno[wDefID] then
+			cache.missileColors[wDefID] = {0.3,0.8,0.3, 0.4,0.9,0.4, 0.25,0.7,0.25, 0.3,1.0,0.3}
+		elseif cache.weaponIsParalyze[wDefID] then
+			cache.missileColors[wDefID] = {0.45,0.5,0.95, 0.6,0.65,1.0, 0.35,0.4,0.85, 0.6,0.5,1.0}
+		elseif cache.weaponIsTorpedo[wDefID] then
+			cache.missileColors[wDefID] = {0.7,0.78,0.9, 0.75,0.82,0.95, 0.6,0.7,0.85, 0.5,0.7,1.0}
+		else
+			cache.missileColors[wDefID] = {0.88,0.88,0.84, 0.92,0.92,0.88, 0.82,0.82,0.78, 1.0,0.7,0.3}
+		end
 	end
 
 	-- Classify plasma trail color by cegTag (for plasma/cannon weapons with visible trails)
@@ -8303,14 +8313,8 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 					if shouldDraw then
 						DrawProjectile(pID)
 					end
-					-- Mark this trail as active if it exists
-					if cache.missileTrails[pID] then
-						activeTrails[pID] = true
-					end
-					if cache.plasmaTrails[pID] then
-						activeTrails[pID] = true
-					end
-					if cache.flameBirthTime[pID] then
+					-- Mark this trail as active if it exists (for stale cleanup)
+					if cache.missileTrails[pID] or cache.plasmaTrails[pID] or cache.flameBirthTime[pID] then
 						activeTrails[pID] = true
 					end
 				end
@@ -8330,6 +8334,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 			for pID in pairs(cache.flameBirthTime) do
 				if not activeTrails[pID] then
 					cache.flameBirthTime[pID] = nil
+					cache.flameSeeds[pID] = nil
 				end
 			end
 
