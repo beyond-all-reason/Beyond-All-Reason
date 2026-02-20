@@ -402,6 +402,9 @@ local interactionState = {
 	pipMinimapBounds = nil,  -- {l, r, b, t} bounds of pip-minimap when visible, nil otherwise
 	pipMinimapDragging = false,  -- Whether we're dragging the pip-minimap to move camera
 	worldCameraDragging = false,  -- Whether we're left-click dragging to move the world camera (leftButtonPansCamera mode)
+	lastHoverCursorCheckTime = 0,  -- Throttle timer for GetUnitAtPoint hover checks
+	lastHoveredUnitID = nil,       -- Last unit found under cursor (for cursor icon updates)
+	lastHoveredFeatureID = nil,    -- Last feature found under cursor (for info widget)
 }
 
 -- Helper: leftButtonPansCamera only active when at minimum zoom (fully zoomed out) and not tracking a player
@@ -670,6 +673,13 @@ end
 local damageFlash = {}
 local DAMAGE_FLASH_DURATION = 0.4  -- seconds to fade from full red to normal
 
+-- Self-destruct tracking: event-driven set of units with active self-destruct countdown
+-- Maintained via UnitCommand callin + periodic refresh (every ~30 frames)
+-- selfDUnits[unitID] = true when unit has an active self-destruct countdown
+local selfDUnits = {}
+local selfDRefreshCounter = 0
+local SELFD_REFRESH_INTERVAL = 30  -- frames between full refresh scans
+
 -- Command FX: brief fading command lines when orders are given (like Commands FX widget)
 -- Each entry: {unitID, targetX, targetZ, cmdID, time, unitX, unitZ}
 local commandFX = {
@@ -827,6 +837,7 @@ local spFunc = {
 	GetPlayerInfo = Spring.GetPlayerInfo,
 	GetUnitIsStunned = Spring.GetUnitIsStunned,
 	GetTeamAllyTeamID = Spring.GetTeamAllyTeamID,
+	GetUnitSelfDTime = Spring.GetUnitSelfDTime,
 }
 
 local success, mapinfo = pcall(VFS.Include,"mapinfo.lua")
@@ -1430,12 +1441,13 @@ out vec2 v_halfSizeNDC;
 flat out float v_flash;
 
 void main() {
-// Decode bitfield flags: bit0=radar(1), bit1=takeable(2), bit2=stunned(4), bit3=tracked(8)
+// Decode bitfield flags: bit0=radar(1), bit1=takeable(2), bit2=stunned(4), bit3=tracked(8), bit4=selfD(16)
 float flags = worldPos_size.w;
 float isRadar    = mod(floor(flags      ), 2.0);  // bit 0
 float isTakeable = mod(floor(flags / 2.0 ), 2.0);  // bit 1
 float isStunned  = mod(floor(flags / 4.0 ), 2.0);  // bit 2
 float isTracked  = mod(floor(flags / 8.0 ), 2.0);  // bit 3
+float isSelfD    = mod(floor(flags / 16.0), 2.0);  // bit 4
 
 // Decode wobble phase and damage flash from packed value
 // wobblePhase in [0, 2pi), packed as: phase + floor(flash*100) * 7.0
@@ -1477,10 +1489,20 @@ alpha *= mix(1.0, takeableBlink, isTakeable);
 float stunnedPulse = 0.5 + 0.5 * sin(wallClockTime * 12.57);  // ~2Hz sine
 col = mix(col, vec3(0.82, 0.85, 1.0), 0.45 * stunnedPulse * isStunned);
 
-// Outline pass: only tracked icons survive, enlarged + white
+// Self-destruct: red-orange pulsing tint (~3Hz, urgent)
+float selfDPulse = 0.55 + 0.45 * sin(wallClockTime * 18.85);  // ~3Hz sine
+col = mix(col, vec3(1.0, 0.25, 0.0), 0.7 * selfDPulse * isSelfD);
+
+// Outline pass: tracked icons get white outline, selfD icons get red-orange pulsing outline
 if (outlinePass > 0.5) {
-  if (isTracked < 0.5) {
-    alpha = 0.0;  // cull non-tracked in outline pass
+  float hasOutline = max(isTracked, isSelfD);
+  if (hasOutline < 0.5) {
+    alpha = 0.0;  // cull icons without outlines
+  } else if (isSelfD > 0.5) {
+    // Self-destruct: red-orange pulsing outline
+    float selfDOutlinePulse = 0.5 + 0.5 * sin(wallClockTime * 18.85);
+    col = vec3(1.0, 0.3, 0.0);
+    alpha = 0.4 + 0.4 * selfDOutlinePulse;
   } else {
     col = vec3(1.0, 1.0, 1.0);
     alpha = 0.5;
@@ -1489,8 +1511,9 @@ if (outlinePass > 0.5) {
 
 v_color = vec4(col, alpha);
 v_flash = flashFactor;
-// Expand icon size slightly for outline pass (tracked units only)
-float sizeExpand = 1.0 + 0.12 * outlinePass * isTracked;
+// Expand icon size slightly for outline pass (tracked or selfD units)
+float hasOutline = max(isTracked, isSelfD);
+float sizeExpand = 1.0 + 0.12 * outlinePass * hasOutline;
 v_halfSizeNDC = vec2(iconBaseSize * worldPos_size.z * sizeExpand) * ndcScale;
 }
 	]],
@@ -5687,6 +5710,7 @@ end
 -- Scan currently-visible enemy buildings for ghost tracking (handles luaui reload mid-game)
 -- UnitEnteredLos won't fire for units already in LOS at widget init, so we pre-populate here
 -- For spectators with LOS view, also pre-scan to populate ghosts on reload
+do
 local initScanAllyTeam = nil
 local initScanIsSpec = Spring.GetSpectatingState()
 if not initScanIsSpec then
@@ -5722,6 +5746,7 @@ if initScanAllyTeam then
 		end
 	end
 end
+end -- do block for initScan locals
 
 -- For spectators, center on map and zoom out more (always on new game, even if has saved config)
 do
@@ -6263,10 +6288,26 @@ function widget:GameOver()
 		state.losViewAllyTeam = nil
 		for k in pairs(ghostBuildings) do ghostBuildings[k] = nil end
 		pipR2T.losNeedsUpdate = true
-		pipR2T.frameNeedsUpdate = true
-		pipR2T.unitsNeedsUpdate = true
-		pipR2T.contentNeedsUpdate = true
 	end
+
+	-- Cancel unit tracking
+	interactionState.areTracking = nil
+	interactionState.trackingPlayerID = nil
+
+	-- Zoom out to full map view and center
+	local zoomMin = GetEffectiveZoomMin()
+	cameraState.zoom = zoomMin
+	cameraState.targetZoom = zoomMin
+	cameraState.wcx = mapInfo.mapSizeX / 2
+	cameraState.wcz = mapInfo.mapSizeZ / 2
+	cameraState.targetWcx = cameraState.wcx
+	cameraState.targetWcz = cameraState.wcz
+	RecalculateWorldCoordinates()
+	RecalculateGroundTextureCoordinates()
+
+	pipR2T.frameNeedsUpdate = true
+	pipR2T.unitsNeedsUpdate = true
+	pipR2T.contentNeedsUpdate = true
 end
 
 function widget:Shutdown()
@@ -7275,8 +7316,23 @@ end
 
 -- Helper function to draw queued building ghosts
 local function DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
-	local selectedUnits = cachedSelectedUnits
-	local selectedCount = selectedUnits and #selectedUnits or 0
+	-- When tracking another player, use their selected units instead of the local player's
+	local selectedUnits
+	local selectedCount = 0
+	if interactionState.trackingPlayerID then
+		local playerSelections = WG['allyselectedunits'] and WG['allyselectedunits'].getPlayerSelectedUnits(interactionState.trackingPlayerID)
+		if playerSelections then
+			-- Convert set to array (reuse cachedSelectedUnits table to avoid alloc)
+			selectedUnits = cachedSelectedUnits or {}
+			for unitID, _ in pairs(playerSelections) do
+				selectedCount = selectedCount + 1
+				selectedUnits[selectedCount] = unitID
+			end
+		end
+	else
+		selectedUnits = cachedSelectedUnits
+		selectedCount = selectedUnits and #selectedUnits or 0
+	end
 	if selectedCount == 0 then
 		return
 	end
@@ -7554,6 +7610,9 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 			if stun and not buildStun then isStunned = true end
 		end
 
+		-- Self-destruct: use event-driven cache (no per-unit API call)
+		local isSelfD = not isRadar and selfDUnits[uID] or false
+
 		-- Collect unitpic data when zoomed in (only for fully visible, non-radar units)
 		if useUnitpics and not isRadar and visibleDefID then
 			local _, _, _, _, bp = spFunc.GetUnitHealth(uID)
@@ -7576,7 +7635,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		local off = usedEl * instStep
 		-- Takeable blink only for teams on the viewer's own allyteam (can't take enemy units)
 		local isTakeable = takeableTeams[uTeam] and checkAllyTeamID and localTeamAllyTeamCache[uTeam] == checkAllyTeamID
-		data[off+1] = ux; data[off+2] = uz; data[off+3] = uvs[5]; data[off+4] = (isRadar and 1 or 0) + (isTakeable and 2 or 0) + (isStunned and 4 or 0) + (trackedSet and trackedSet[uID] and 8 or 0)
+		data[off+1] = ux; data[off+2] = uz; data[off+3] = uvs[5]; data[off+4] = (isRadar and 1 or 0) + (isTakeable and 2 or 0) + (isStunned and 4 or 0) + (trackedSet and trackedSet[uID] and 8 or 0) + (isSelfD and 16 or 0)
 		data[off+5] = uvs[1]; data[off+6] = uvs[2]; data[off+7] = uvs[3]; data[off+8] = uvs[4]
 		data[off+9] = r; data[off+10] = g; data[off+11] = b; data[off+12] = (uID * 0.37) % 6.2832 + mathFloor(flashFactor * 100) * 7.0
 		return usedEl + 1
@@ -7920,9 +7979,10 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	-- Bind atlas texture
 	glFunc.Texture(0, gl4Icons.atlas)
 
-	-- Pass 1: Tracked unit outlines (slightly enlarged, white, semi-transparent)
-	-- Only runs when there are tracked units; the shader culls non-tracked icons via alpha=0
-	if trackedSet then
+	-- Pass 1: Outlines for tracked units (white) and self-destructing units (red-orange pulse)
+	-- Only runs when there are tracked or selfD units; the shader culls others via alpha=0
+	local hasSelfD = next(selfDUnits) ~= nil
+	if trackedSet or hasSelfD then
 		gl.UniformFloat(ul.outlinePass, 1.0)
 		gl4Icons.vao:DrawArrays(GL.POINTS, usedElements)
 	end
@@ -10328,7 +10388,8 @@ end
 -- Also shown for players (not just spectators tracking others) and when hovering
 local function DrawTrackedPlayerMinimap()
 	-- In minimap mode, don't show the pip-minimap overlay (we ARE the minimap)
-	if isMinimapMode then
+	-- Exception: when tracking a player camera, the minimap is zoomed in so we need the overview
+	if isMinimapMode and not interactionState.trackingPlayerID then
 		interactionState.pipMinimapBounds = nil
 		return
 	end
@@ -11490,9 +11551,6 @@ local function DrawTrackingIndicators()
 end
 
 -- Helper function to handle hover and cursor updates
-local lastHoverCursorCheckTime = 0
-local lastHoveredUnitID = nil
-local lastHoveredFeatureID = nil
 local function HandleHoverAndCursor(mx, my)
 	if interactionState.arePanning then
 		return
@@ -11502,18 +11560,18 @@ local function HandleHoverAndCursor(mx, my)
 		if WG['info'] and WG['info'].clearCustomHover then
 			WG['info'].clearCustomHover()
 		end
-		lastHoveredUnitID = nil
-		lastHoveredFeatureID = nil
+		interactionState.lastHoveredUnitID = nil
+		interactionState.lastHoveredFeatureID = nil
 		return
 	end
 
 	-- Throttle expensive GetUnitAtPoint calls for performance (but not during active zoom)
 	local currentTime = os.clock()
-	local shouldCheckUnit = (currentTime - lastHoverCursorCheckTime) >= 0.1
+	local shouldCheckUnit = (currentTime - interactionState.lastHoverCursorCheckTime) >= 0.1
 	local isZooming = interactionState.areIncreasingZoom or interactionState.areDecreasingZoom
 
 	if shouldCheckUnit and not isZooming then
-		lastHoverCursorCheckTime = currentTime
+		interactionState.lastHoverCursorCheckTime = currentTime
 
 		-- Update info widget with custom hover
 		if WG['info'] and WG['info'].setCustomHover then
@@ -11521,25 +11579,25 @@ local function HandleHoverAndCursor(mx, my)
 			local uID = GetUnitAtPoint(wx, wz)
 			if uID then
 				WG['info'].setCustomHover('unit', uID)
-				lastHoveredUnitID = uID
-				lastHoveredFeatureID = nil
+				interactionState.lastHoveredUnitID = uID
+				interactionState.lastHoveredFeatureID = nil
 			else
 				-- Only check features if zoom level is high enough to render them
 				if cameraState.zoom >= config.zoomFeatures then
 					local fID = GetFeatureAtPoint(wx, wz)
 					if fID then
 						WG['info'].setCustomHover('feature', fID)
-						lastHoveredFeatureID = fID
-						lastHoveredUnitID = nil
+						interactionState.lastHoveredFeatureID = fID
+						interactionState.lastHoveredUnitID = nil
 					else
 						WG['info'].clearCustomHover()
-						lastHoveredUnitID = nil
-						lastHoveredFeatureID = nil
+						interactionState.lastHoveredUnitID = nil
+						interactionState.lastHoveredFeatureID = nil
 					end
 				else
 					WG['info'].clearCustomHover()
-					lastHoveredUnitID = nil
-					lastHoveredFeatureID = nil
+					interactionState.lastHoveredUnitID = nil
+					interactionState.lastHoveredFeatureID = nil
 				end
 			end
 		end
@@ -11549,6 +11607,7 @@ local function HandleHoverAndCursor(mx, my)
 	-- Don't change cursor for spectators (unless config allows it)
 	local isSpec = Spring.GetSpectatingState()
 	local canGiveCommands = not isSpec or config.allowCommandsWhenSpectating
+	local lastHoveredUnitID = interactionState.lastHoveredUnitID
 	if canGiveCommands then
 		local _, activeCmdID = Spring.GetActiveCommand()
 		if not activeCmdID then
@@ -12550,6 +12609,19 @@ function widget:Update(dt)
 		end
 	end
 
+	-- Periodic self-destruct refresh: validate cached selfDUnits set every SELFD_REFRESH_INTERVAL frames
+	-- Catches edge cases where UnitCommand callin might miss a cancellation (e.g. from synced code)
+	selfDRefreshCounter = selfDRefreshCounter + 1
+	if selfDRefreshCounter >= SELFD_REFRESH_INTERVAL then
+		selfDRefreshCounter = 0
+		for uID in pairs(selfDUnits) do
+			local selfDTime = spFunc.GetUnitSelfDTime(uID)
+			if not selfDTime or selfDTime <= 0 then
+				selfDUnits[uID] = nil
+			end
+		end
+	end
+
 	-- Periodically re-read the leftClickMove config in case another widget changed it
 	if isMinimapMode then
 		cache.leftClickMoveTimer = (cache.leftClickMoveTimer or 0) + dt
@@ -12964,6 +13036,10 @@ function widget:Update(dt)
 			if math.abs(cameraState.zoom - cameraState.targetZoom) < 0.002 then
 				cameraState.zoom = cameraState.targetZoom
 			end
+			-- Enforce zoom floor (can go stale after PIP resize / rotation change)
+			local zoomMin = GetEffectiveZoomMin()
+			if cameraState.zoom < zoomMin then cameraState.zoom = zoomMin end
+			if cameraState.targetZoom < zoomMin then cameraState.targetZoom = zoomMin end
 		end
 
 		-- Calculate bounds for CURRENT zoom level
@@ -13445,6 +13521,7 @@ end
 -- Called by unit_crashing_aircraft gadget when an aircraft starts crashing
 function widget:CrashingAircraft(unitID, unitDefID, teamID)
 	miscState.crashingUnits[unitID] = true
+	selfDUnits[unitID] = nil
 	
 	-- Create shatter effect with unit's current velocity
 	local vx, vy, vz = Spring.GetUnitVelocity(unitID)
@@ -13471,8 +13548,9 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	gl4Icons.unitDefCache[unitID] = nil
 	gl4Icons.unitTeamCache[unitID] = nil
 
-	-- Clear damage flash
+	-- Clear damage flash and self-destruct tracking
 	damageFlash[unitID] = nil
+	selfDUnits[unitID] = nil
 
 	-- Clear ghost building: only remove if we have LOS on the position (or no LOS filtering active)
 	-- For spectators with LOS view, the ghost should persist if the position is in FoW
@@ -13525,8 +13603,22 @@ function widget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transport
 end
 
 -- Track enemy building positions for ghost rendering on PIP
--- Command FX: briefly show command lines when orders are given
+-- Self-destruct tracking + Command FX
 function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
+	-- Self-destruct tracking (event-driven, avoids per-frame GetUnitSelfDTime calls)
+	if cmdID == CMD.SELFD then
+		-- SELFD toggles: if already counting down, this cancels it; otherwise starts it
+		local selfDTime = spFunc.GetUnitSelfDTime(unitID)
+		if selfDTime and selfDTime > 0 then
+			selfDUnits[unitID] = nil  -- was counting down, this command cancels it
+		else
+			selfDUnits[unitID] = true  -- start countdown
+		end
+	elseif cmdID == CMD.STOP then
+		-- Stop cancels self-destruct
+		selfDUnits[unitID] = nil
+	end
+
 	if not config.drawCommandFX then return end
 	if uiState.inMinMode then return end
 
@@ -14960,8 +15052,24 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 		local pipWidth, pipHeight = GetEffectivePipDimensions()
 
 		-- Update dynamic min zoom so full map is visible at max zoom-out
-		-- Use raw (non-rotated) dimensions so zoom limit is the same regardless of rotation
-		if not isMinimapMode then
+		if isMinimapMode then
+			-- Recalculate minimapModeMinZoom for the new PIP dimensions
+			local rawW = render.dim.r - render.dim.l
+			local rawH = render.dim.t - render.dim.b
+			local is90 = false
+			if render.minimapRotation then
+				local rotDeg = math.abs(render.minimapRotation * 180 / math.pi) % 180
+				if rotDeg > 45 and rotDeg < 135 then is90 = true end
+			end
+			local fzx = is90 and (rawH / mapInfo.mapSizeX) or (rawW / mapInfo.mapSizeX)
+			local fzz = is90 and (rawW / mapInfo.mapSizeZ) or (rawH / mapInfo.mapSizeZ)
+			minimapModeMinZoom = math.min(fzx, fzz)
+			if cameraState.zoom < minimapModeMinZoom then
+				cameraState.zoom = minimapModeMinZoom
+				cameraState.targetZoom = minimapModeMinZoom
+			end
+		else
+			-- Use raw (non-rotated) dimensions so zoom limit is the same regardless of rotation
 			local rawW = render.dim.r - render.dim.l
 			local rawH = render.dim.t - render.dim.b
 			pipModeMinZoom = math.min(rawW, rawH) / math.max(mapInfo.mapSizeX, mapInfo.mapSizeZ)
