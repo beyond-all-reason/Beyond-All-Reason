@@ -133,7 +133,7 @@ local config = {
 	drawPlasmaTrails = true,  -- Show fading trails behind plasma/artillery projectiles
 	explosionOverlay = true,  -- Re-render explosions on top of unit icons (additive glow)
 	explosionOverlayAlpha = 0.66,  -- Strength of the above-icons explosion overlay (0-1)
-	healthDarkenMax = 0.22,  -- Maximum darkening for damaged units on GL4 icons (0-1, 0.22 = 22%)
+	healthDarkenMax = 0.2,  -- Maximum darkening for damaged units on GL4 icons (0-1, 0.18 = 18%)
 	drawDecals = true,  -- Show ground decals (explosion scars, footprints) from the decals GL4 widget
 	drawCommandFX = true,  -- Show brief fading command lines when orders are given (like Commands FX widget)
 	commandFXIgnoreNewUnits = true,  -- Ignore commands given to newly finished units (rally point orders)
@@ -1496,13 +1496,9 @@ float alpha = 1.0 - 0.25 * isRadar;  // radar icons at 75% alpha
 float takeableBlink = step(0.0, sin(wallClockTime * 9.42));  // square wave ~1.5Hz
 alpha *= mix(1.0, takeableBlink, isTakeable);
 
-// Health indication: darken and red-tint damaged units
-// Subtle at light damage, prominent at critical health
+// Health indication: darken damaged units (darkening only, no color shift)
 float damage = 1.0 - healthFrac;  // 0=full health, 1=dead
-col *= 1.0 - damage * healthDarkenMax;  // darken up to healthDarkenMax
-float redShift = smoothstep(0.3, 0.8, damage);
-col.g *= 1.0 - redShift * 0.5;
-col.b *= 1.0 - redShift * 0.6;
+col = max(col - vec3(damage * healthDarkenMax), vec3(0.0));  // flat darken
 
 // Stunned: subtle white-blue tint pulse (~2Hz, gentle)
 float stunnedPulse = 0.5 + 0.5 * sin(wallClockTime * 12.57);  // ~2Hz sine
@@ -4576,8 +4572,9 @@ local function DrawExplosions()
 
 						-- Layer 5: Big white flash (nukes, commanders, fusions)
 						-- Fades fast initially (cubic) then lingers slightly (linear tail)
-						if explosion.isBigFlash then
-							local ft = actualProgress
+						-- Flash runs at 1.7x speed so it fades out before the fireball ends
+						if explosion.isBigFlash and actualProgress < 0.75 then
+							local ft = actualProgress / 0.75  -- compress into 75% of explosion lifetime
 							-- Cubic decay + small linear tail for gentle linger
 							local fa = math.min(1, (1-ft)*(1-ft)*(1-ft) * 1.2 + (1-ft) * 0.12)
 							-- Outer white pulse: starts large, expands slowly
@@ -4660,8 +4657,9 @@ local function DrawExplosionOverlay()
 					r, g, b,  r * 0.3, g * 0.2, b * 0.1,  0, 0)
 
 				-- Big flash overlay: white glow above icons for nukes/commanders/fusions
-				if explosion.isBigFlash then
-					local ft = age / lifetime
+				-- Flash runs at 1.7x speed matching Layer 5 timing
+				if explosion.isBigFlash and age / lifetime < 0.75 then
+					local ft = (age / lifetime) / 0.75  -- compress into 75% of explosion lifetime
 					local fa = math.min(1, (1-ft)*(1-ft)*(1-ft) * 1.2 + (1-ft) * 0.12)
 					local flashR = effectiveRadius * (1.4 + ft * 1.2)
 					GL4AddCircle(explosion.x, explosion.z, flashR * 0.7, fa * config.explosionOverlayAlpha * 0.6,
@@ -6545,7 +6543,6 @@ function widget:GetConfigData()
 		unitpicZoomThreshold=config.unitpicZoomThreshold,
 		explosionOverlay=config.explosionOverlay,
 		explosionOverlayAlpha=config.explosionOverlayAlpha,
-		healthDarkenMax=config.healthDarkenMax,
 		hideAICommands=config.hideAICommands,
 		gameID = Game.gameID or Spring.GetGameRulesParam("GameID"),
 		-- Minimap mode settings
@@ -6692,7 +6689,6 @@ function widget:SetConfigData(data)
 	if data.showUnitpics ~= nil then config.showUnitpics = data.showUnitpics end
 	if data.explosionOverlay ~= nil then config.explosionOverlay = data.explosionOverlay end
 	if data.explosionOverlayAlpha then config.explosionOverlayAlpha = data.explosionOverlayAlpha end
-	if data.healthDarkenMax then config.healthDarkenMax = data.healthDarkenMax end
 	if data.hideAICommands ~= nil then config.hideAICommands = data.hideAICommands end
 	--if data.unitpicZoomThreshold then config.unitpicZoomThreshold = data.unitpicZoomThreshold end
 	
