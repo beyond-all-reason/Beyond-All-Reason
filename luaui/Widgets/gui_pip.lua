@@ -133,6 +133,7 @@ local config = {
 	drawPlasmaTrails = true,  -- Show fading trails behind plasma/artillery projectiles
 	explosionOverlay = true,  -- Re-render explosions on top of unit icons (additive glow)
 	explosionOverlayAlpha = 0.66,  -- Strength of the above-icons explosion overlay (0-1)
+	healthDarkenMax = 0.22,  -- Maximum darkening for damaged units on GL4 icons (0-1, 0.22 = 22%)
 	drawDecals = true,  -- Show ground decals (explosion scars, footprints) from the decals GL4 widget
 	drawCommandFX = true,  -- Show brief fading command lines when orders are given (like Commands FX widget)
 	commandFXIgnoreNewUnits = true,  -- Ignore commands given to newly finished units (rally point orders)
@@ -1439,6 +1440,7 @@ uniform float iconBaseSize;  // iconRadiusZoomDistMult (PIP pixels)
 uniform float gameTime;      // for radar wobble (pauses with game)
 uniform float wallClockTime;  // for blink/pulse animations (always advances)
 uniform float outlinePass;   // 0 = normal icon draw, 1 = tracked unit outline pass
+uniform float healthDarkenMax;  // max darkening fraction for damaged units
 
 out vec4 v_atlasUV;
 out vec4 v_color;
@@ -1446,13 +1448,17 @@ out vec2 v_halfSizeNDC;
 flat out float v_flash;
 
 void main() {
-// Decode bitfield flags: bit0=radar(1), bit1=takeable(2), bit2=stunned(4), bit3=tracked(8), bit4=selfD(16)
+// Decode bitfield flags: bits 0-4 = status flags, bits 5+ = health percentage (0-100)
+// Packed as: healthPct * 32 + bitFlags
 float flags = worldPos_size.w;
-float isRadar    = mod(floor(flags      ), 2.0);  // bit 0
-float isTakeable = mod(floor(flags / 2.0 ), 2.0);  // bit 1
-float isStunned  = mod(floor(flags / 4.0 ), 2.0);  // bit 2
-float isTracked  = mod(floor(flags / 8.0 ), 2.0);  // bit 3
-float isSelfD    = mod(floor(flags / 16.0), 2.0);  // bit 4
+float bitFlags = mod(flags, 32.0);
+float healthPct = floor(flags / 32.0);  // 0-100
+float healthFrac = clamp(healthPct / 100.0, 0.0, 1.0);  // 0.0-1.0
+float isRadar    = mod(floor(bitFlags      ), 2.0);  // bit 0
+float isTakeable = mod(floor(bitFlags / 2.0 ), 2.0);  // bit 1
+float isStunned  = mod(floor(bitFlags / 4.0 ), 2.0);  // bit 2
+float isTracked  = mod(floor(bitFlags / 8.0 ), 2.0);  // bit 3
+float isSelfD    = mod(floor(bitFlags / 16.0), 2.0);  // bit 4
 
 // Decode wobble phase and damage flash from packed value
 // wobblePhase in [0, 2pi), packed as: phase + floor(flash*100) * 7.0
@@ -1489,6 +1495,14 @@ float alpha = 1.0 - 0.25 * isRadar;  // radar icons at 75% alpha
 // Takeable blink: full on/off cycle at ~1.5Hz
 float takeableBlink = step(0.0, sin(wallClockTime * 9.42));  // square wave ~1.5Hz
 alpha *= mix(1.0, takeableBlink, isTakeable);
+
+// Health indication: darken and red-tint damaged units
+// Subtle at light damage, prominent at critical health
+float damage = 1.0 - healthFrac;  // 0=full health, 1=dead
+col *= 1.0 - damage * healthDarkenMax;  // darken up to healthDarkenMax
+float redShift = smoothstep(0.3, 0.8, damage);
+col.g *= 1.0 - redShift * 0.5;
+col.b *= 1.0 - redShift * 0.6;
 
 // Stunned: subtle white-blue tint pulse (~2Hz, gentle)
 float stunnedPulse = 0.5 + 0.5 * sin(wallClockTime * 12.57);  // ~2Hz sine
@@ -1892,6 +1906,7 @@ local function InitGL4Icons()
 		gameTime     = gl.GetUniformLocation(shader, "gameTime"),
 		wallClockTime = gl.GetUniformLocation(shader, "wallClockTime"),
 		outlinePass  = gl.GetUniformLocation(shader, "outlinePass"),
+		healthDarkenMax = gl.GetUniformLocation(shader, "healthDarkenMax"),
 	}
 
 	gl4Icons.enabled = true
@@ -6530,6 +6545,7 @@ function widget:GetConfigData()
 		unitpicZoomThreshold=config.unitpicZoomThreshold,
 		explosionOverlay=config.explosionOverlay,
 		explosionOverlayAlpha=config.explosionOverlayAlpha,
+		healthDarkenMax=config.healthDarkenMax,
 		hideAICommands=config.hideAICommands,
 		gameID = Game.gameID or Spring.GetGameRulesParam("GameID"),
 		-- Minimap mode settings
@@ -6676,6 +6692,7 @@ function widget:SetConfigData(data)
 	if data.showUnitpics ~= nil then config.showUnitpics = data.showUnitpics end
 	if data.explosionOverlay ~= nil then config.explosionOverlay = data.explosionOverlay end
 	if data.explosionOverlayAlpha then config.explosionOverlayAlpha = data.explosionOverlayAlpha end
+	if data.healthDarkenMax then config.healthDarkenMax = data.healthDarkenMax end
 	if data.hideAICommands ~= nil then config.hideAICommands = data.hideAICommands end
 	--if data.unitpicZoomThreshold then config.unitpicZoomThreshold = data.unitpicZoomThreshold end
 	
@@ -7645,6 +7662,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		-- Stun detection (EMP/paralyze, not build-in-progress)
 		-- Skipped at high unit counts (cosmetic gray tint, saves API call per unit)
 		local isStunned = false
+		local healthPct = 100  -- default full health
 		if not skipCosmetics and not isRadar then
 			local stun, _, buildStun = spFunc.GetUnitIsStunned(uID)
 			if stun and not buildStun then isStunned = true end
@@ -7654,8 +7672,12 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		local isSelfD = not isRadar and selfDUnits[uID] or false
 
 		-- Collect unitpic data when zoomed in (only for fully visible, non-radar units)
+		-- Also fetch health for damage indication (icon tint + unitpic health bar)
 		if useUnitpics and not isRadar and visibleDefID then
-			local _, _, _, _, bp = spFunc.GetUnitHealth(uID)
+			local hp, maxHP, _, _, bp = spFunc.GetUnitHealth(uID)
+			if hp and maxHP and maxHP > 0 then
+				healthPct = math.max(0, math.min(100, mathFloor(hp / maxHP * 100)))
+			end
 			unitpicCount = unitpicCount + 1
 			local up = unitpicEntries[unitpicCount]
 			if not up then
@@ -7669,13 +7691,20 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 			up[5] = (selectedSet and selectedSet[uID]) and true or false
 			up[6] = bp or 1  -- buildProgress
 			up[7] = uID
+			up[8] = healthPct / 100  -- health fraction for health bar
+		elseif not skipCosmetics and not isRadar then
+			-- Non-unitpic zoom: still fetch health for icon damage tint
+			local hp, maxHP = spFunc.GetUnitHealth(uID)
+			if hp and maxHP and maxHP > 0 then
+				healthPct = math.max(0, math.min(100, mathFloor(hp / maxHP * 100)))
+			end
 		end
 
 		-- Write 12 floats directly into pre-allocated array
 		local off = usedEl * instStep
 		-- Takeable blink only for teams on the viewer's own allyteam (can't take enemy units)
 		local isTakeable = takeableTeams[uTeam] and checkAllyTeamID and localTeamAllyTeamCache[uTeam] == checkAllyTeamID
-		data[off+1] = ux; data[off+2] = uz; data[off+3] = uvs[5]; data[off+4] = (isRadar and 1 or 0) + (isTakeable and 2 or 0) + (isStunned and 4 or 0) + (trackedSet and trackedSet[uID] and 8 or 0) + (isSelfD and 16 or 0)
+		data[off+1] = ux; data[off+2] = uz; data[off+3] = uvs[5]; data[off+4] = healthPct * 32 + (isRadar and 1 or 0) + (isTakeable and 2 or 0) + (isStunned and 4 or 0) + (trackedSet and trackedSet[uID] and 8 or 0) + (isSelfD and 16 or 0)
 		data[off+5] = uvs[1]; data[off+6] = uvs[2]; data[off+7] = uvs[3]; data[off+8] = uvs[4]
 		data[off+9] = r; data[off+10] = g; data[off+11] = b; data[off+12] = (uID * 0.37) % 6.2832 + mathFloor(flashFactor * 100) * 7.0
 		return usedEl + 1
@@ -7740,7 +7769,8 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 					local r, g, b = (color and color[1] or 1) * dim, (color and color[2] or 1) * dim, (color and color[3] or 1) * dim
 					local off = usedElements * gl4Icons.INSTANCE_STEP
 					-- Ghost buildings are always from a different allyteam (enemy) — never takeable
-					data[off+1] = ghost.x; data[off+2] = ghost.z; data[off+3] = sizeScale; data[off+4] = 0
+					-- Health=100 (full) so shader doesn't apply damage darkening on top of ghost dim
+					data[off+1] = ghost.x; data[off+2] = ghost.z; data[off+3] = sizeScale; data[off+4] = 100 * 32
 					data[off+5] = uvs[1]; data[off+6] = uvs[2]; data[off+7] = uvs[3]; data[off+8] = uvs[4]
 					data[off+9] = r; data[off+10] = g; data[off+11] = b; data[off+12] = (gID * 0.37) % 6.2832
 					usedElements = usedElements + 1
@@ -7937,15 +7967,24 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 			end
 		end
 
-		-- Tracking overlay: set tracking flag for tracked buildings
-		-- Block stores flags with tracking bit stripped; re-apply from current trackedSet
+		-- Tracking overlay: re-apply tracking flag for tracked buildings
+		-- Block stores flags with bits 3-4 stripped; re-apply from current trackedSet
 		if trackedSet then
 			for uID, _ in pairs(trackedSet) do
 				local idx = bldgIdx[uID]
 				if idx then
 					local off = (preProcessEl + idx - 1) * instStep
-					data[off + 4] = data[off + 4] % 8 + 8  -- set tracking bit (bit 3)
+					data[off + 4] = data[off + 4] + 8  -- set tracking bit (bit 3)
 				end
+			end
+		end
+
+		-- SelfD overlay: re-apply selfD flag for self-destructing buildings
+		for uID in pairs(selfDUnits) do
+			local idx = bldgIdx[uID]
+			if idx then
+				local off = (preProcessEl + idx - 1) * instStep
+				data[off + 4] = data[off + 4] + 16 -- set selfD bit (bit 4)
 			end
 		end
 	else
@@ -7979,10 +8018,12 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		for j = 1, blockFloats do
 			bldgBlock[j] = data[blockStart + j]
 		end
-		-- Strip tracking bit from cached flags so overlay always works cleanly
+		-- Strip tracked + selfD bits from cached flags, preserving health and bits 0-2
+		-- Flags format: healthPct*32 + bitFlags. Clear bits 3-4 (tracked=8, selfD=16)
 		for i = 0, writeCount - 1 do
 			local j = i * instStep + 4  -- flags position within block (1-based: inst 0 → idx 4)
-			bldgBlock[j] = bldgBlock[j] % 8  -- clear tracking bit
+			local f = bldgBlock[j]
+			bldgBlock[j] = f - f % 32 + f % 8  -- keep health*32 + bits 0-2, clear bits 3-4
 		end
 		-- Clear stale entries beyond current block
 		local prevBlockN = gl4Icons._bldgBlockN or 0
@@ -8045,6 +8086,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	gl.UniformFloat(ul.iconBaseSize, iconRadiusZoomDistMult)
 	gl.UniformFloat(ul.gameTime, gameTime)
 	gl.UniformFloat(ul.wallClockTime, wallClockTime)
+	gl.UniformFloat(ul.healthDarkenMax, config.healthDarkenMax)
 
 	-- Bind atlas texture
 	glFunc.Texture(0, gl4Icons.atlas)
@@ -8075,7 +8117,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		local distMult = math.min(math.max(1, 2.2-(cameraState.zoom*3.3)), 3)
 		local teamBorderSize = 3 * cameraState.zoom * distMult * resScale
 		local blackBorderSize = 4 * cameraState.zoom * distMult * resScale
-		local cornerCutRatio = 0.25
+		local cornerCutRatio = 0.2
 		local isRotated = render.minimapRotation ~= 0
 		local hoveredID = drawData.hoveredUnitID
 		local cacheUnitPic = cache.unitPic
@@ -8131,6 +8173,34 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 					glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawTexturedOctagonVertices, 0, 0, iconSize, crnrCut, picTexInset)
 				end
 
+				-- Health bar (only for damaged units, inside the icon area)
+				local healthFrac = up[8] or 1
+				if healthFrac < 0.99 then
+					local barW = iconSize * 0.82
+					local barH = math.max(1, iconSize * 0.13)
+					local barY = iconSize - barH * 1.5
+					glFunc.Texture(false)
+					-- Background
+					glFunc.Color(0, 0, 0, 0.7)
+					glFunc.BeginEnd(glConst.QUADS, function()
+						glFunc.Vertex(-barW, barY, 0)
+						glFunc.Vertex(barW, barY, 0)
+						glFunc.Vertex(barW, barY + barH, 0)
+						glFunc.Vertex(-barW, barY + barH, 0)
+					end)
+					-- Fill with green→yellow→red gradient
+					local hr = healthFrac < 0.5 and 1.0 or (1.0 - (healthFrac - 0.5) * 2)
+					local hg = healthFrac > 0.5 and 1.0 or (healthFrac * 2)
+					local fillW = barW * 2 * healthFrac - barW
+					glFunc.Color(hr, hg, 0, 0.9)
+					glFunc.BeginEnd(glConst.QUADS, function()
+						glFunc.Vertex(-barW, barY, 0)
+						glFunc.Vertex(fillW, barY, 0)
+						glFunc.Vertex(fillW, barY + barH, 0)
+						glFunc.Vertex(-barW, barY + barH, 0)
+					end)
+				end
+
 				glFunc.PopMatrix()
 			else
 				-- Black border
@@ -8159,6 +8229,34 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 						glFunc.Color(brightness, brightness, brightness, opacity)
 					end
 					glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawTexturedOctagonVertices, px, py, iconSize, crnrCut, picTexInset)
+				end
+
+				-- Health bar (only for damaged units, inside the icon area)
+				local healthFrac = up[8] or 1
+				if healthFrac < 0.99 then
+					local barW = iconSize * 0.82
+					local barH = math.max(1, iconSize * 0.13)
+					local barY = py + iconSize - barH * 1.5
+					glFunc.Texture(false)
+					-- Background
+					glFunc.Color(0, 0, 0, 0.7)
+					glFunc.BeginEnd(glConst.QUADS, function()
+						glFunc.Vertex(px - barW, barY, 0)
+						glFunc.Vertex(px + barW, barY, 0)
+						glFunc.Vertex(px + barW, barY + barH, 0)
+						glFunc.Vertex(px - barW, barY + barH, 0)
+					end)
+					-- Fill with green→yellow→red gradient
+					local hr = healthFrac < 0.5 and 1.0 or (1.0 - (healthFrac - 0.5) * 2)
+					local hg = healthFrac > 0.5 and 1.0 or (healthFrac * 2)
+					local fillW = barW * 2 * healthFrac - barW
+					glFunc.Color(hr, hg, 0, 0.9)
+					glFunc.BeginEnd(glConst.QUADS, function()
+						glFunc.Vertex(px - barW, barY, 0)
+						glFunc.Vertex(px + fillW, barY, 0)
+						glFunc.Vertex(px + fillW, barY + barH, 0)
+						glFunc.Vertex(px - barW, barY + barH, 0)
+					end)
 				end
 			end
 		end
