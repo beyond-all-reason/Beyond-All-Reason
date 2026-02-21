@@ -16,8 +16,6 @@ return {
 		explodeas = "mediumExplosionGeneric-uw",
 		footprintx = 6,
 		footprintz = 6,
-		idleautoheal = 15,
-		idletime = 900,
 		health = 26500,
 		speed = 45.0,
 		minwaterdepth = 30,

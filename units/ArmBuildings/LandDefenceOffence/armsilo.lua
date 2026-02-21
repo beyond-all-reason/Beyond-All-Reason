@@ -12,8 +12,6 @@ return {
 		footprintx = 7,
 		footprintz = 7,
 		health = 5900,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -175,6 +173,7 @@ return {
 					place_target_on_ground = "true",
 					shield_aoe_penetration = true,
 					stockpilelimit = 10,
+					nuclear = 1,
 				},
 				damage = {
 					commanders = 2500,

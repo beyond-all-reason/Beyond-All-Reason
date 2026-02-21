@@ -67,7 +67,7 @@ local function doSwapMex(unitID, unitTeam, unitData)
 
 	local isUnitNeutral = Spring.GetUnitNeutral(unitID)
 	local unitHealth = spGetUnitHealth(unitID)
-	local unitExtraction = Spring.GetUnitMetalExtraction(unitID) or 0
+	--local unitExtraction = Spring.GetUnitMetalExtraction(unitID) or 0
 
 	Spring.DestroyUnit(unitID, false, true) -- clears unitID from mexesToSwap in g:UnitDestroyed
 
@@ -150,7 +150,13 @@ end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	if mexTurretDefID[unitDefID] then
-		Spring.TransferUnit(pairedUnits[unitID], newTeam)
+		local pairedID = pairedUnits[unitID]
+		if not pairedID and Spring.GetUnitRulesParam then
+			pairedID = Spring.GetUnitRulesParam(unitID, "pairedUnitID")
+		end
+		if pairedID and pairedID ~= 0 then
+			Spring.TransferUnit(pairedID, newTeam)
+		end
     end
 end
 

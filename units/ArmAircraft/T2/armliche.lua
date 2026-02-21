@@ -13,8 +13,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 2300,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.1075,
 		maxaileron = 0.01325,
 		maxbank = 0.8,
@@ -117,6 +115,7 @@ return {
 				weaponvelocity = 420,
 				customparams = {
 					norangering = 1,
+					nuclear = 1,
 				},
 				damage = {
 					commanders = 3150,
@@ -159,6 +158,9 @@ return {
 					default = 5625,
 					subs = 1000,
 					vtol = 562,
+				},
+				customparams = {
+					nuclear = 1,
 				},
 			},
 		},

@@ -13,8 +13,6 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "41 21 43",
 		collisionvolumetype = "CylY",
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,

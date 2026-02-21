@@ -353,7 +353,7 @@ function gadget:GameFrame(frame)
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
-    if smartUnitDefs[unitDefID] and cmdID == CMD_SMART_TOGGLE then
+    if smartUnitDefs[unitDefID] then
         toggleTrajectory(unitID, cmdParams[1])
         return false  -- command was used
     end

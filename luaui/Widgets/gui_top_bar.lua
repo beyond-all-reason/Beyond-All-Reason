@@ -45,6 +45,7 @@ local borderPadding = 5
 local bladeSpeedMultiplier = 0.2
 local escapeKeyPressesQuit = false
 local allowSavegame = true -- Spring.Utilities.ShowDevUI()
+local spawnWarpInFrame = Game.spawnWarpInFrame
 
 -- System
 local guishaderEnabled = false
@@ -197,7 +198,8 @@ local leftclick = 'LuaUI/Sounds/tock.wav'
 local resourceclick = 'LuaUI/Sounds/buildbar_click.wav'
 
 -- Timers + intervals
-local now = os.clock()
+local osClock = os.clock
+local now = osClock()
 local nextStateCheck = 0
 local nextGuishaderCheck = 0
 local nextResBarUpdate = 0
@@ -587,7 +589,7 @@ local function updateResbarText(res, force)
 		end
 	end
 
-	if not spec and gameFrame > 90 then
+	if not spec and gameFrame > spawnWarpInFrame then
 		-- display overflow notification
 		if (res == 'metal' and (allyteamOverflowingMetal or overflowingMetal)) or (res == 'energy' and (allyteamOverflowingEnergy or overflowingEnergy)) then
 			if not showOverflowTooltip[res] then showOverflowTooltip[res] = now + 1.1 end
@@ -1187,7 +1189,7 @@ local function hoveringElement(x, y)
 end
 
 function widget:Update(dt)
-	now = os.clock()
+	now = osClock()
 
 	windRotation = windRotation + (currentWind * bladeSpeedMultiplier * dt * 30)
 
@@ -1389,7 +1391,7 @@ local function drawResBars()
 		if not useRenderToTexture then
 			glCallList(dlistResbar[res][1])
 		end
-		if not spec and gameFrame > 90 and dlistResbar[res][4] then
+		if not spec and gameFrame > spawnWarpInFrame and dlistResbar[res][4] then
 			glBlending(GL.SRC_ALPHA, GL.ONE)
 			if allyteamOverflowingMetal then
 				gl.Color(1, 0, 0, 0.1 * allyteamOverflowingMetal * blinkProgress)
@@ -1436,7 +1438,7 @@ local function drawResBars()
 			glCallList(dlistResbar[res][1])
 		end
 
-		if not spec and gameFrame > 90 and dlistResbar[res][4] then
+		if not spec and gameFrame > spawnWarpInFrame and dlistResbar[res][4] then
 			glBlending(GL.SRC_ALPHA, GL.ONE)
 			if allyteamOverflowingEnergy then
 				gl.Color(1, 0, 0, 0.1 * allyteamOverflowingEnergy * blinkProgress)
@@ -1791,7 +1793,7 @@ local function renderComCounter()
 end
 
 function widget:DrawScreen()
-	now = os.clock()
+	now = osClock()
 
 	if showButtons ~= prevShowButtons then
 		prevShowButtons = showButtons

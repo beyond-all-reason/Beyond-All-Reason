@@ -77,8 +77,6 @@ for difficulty, stats in pairs(difficultyParams) do
 		footprintz = 2,
 		hidedamage = true,
 		holdsteady = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		sightemitheight = 40,
 		mass = 9999999,
 		health = stats.health, --4450,

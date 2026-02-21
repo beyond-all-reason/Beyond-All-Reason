@@ -14,8 +14,6 @@ return {
 		explodeas = "empblast",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 600,
 		mass = 5000,
 		health = 28000,
 		speed = 36.0,

@@ -46,6 +46,9 @@ if gadgetHandler:IsSyncedCode() then
 
 	local allowEnemyAIPlacement = Spring.GetModOptions().allow_enemy_ai_spawn_placement or false
 
+	local spawnInitialFrame = Game.spawnInitialFrame
+	local spawnWarpInFrame = Game.spawnWarpInFrame
+
 	----------------------------------------------------------------
 	-- Vars
 	----------------------------------------------------------------
@@ -690,7 +693,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:GameFrame(n)
 		if not scenarioSpawnsUnits then
-            if n == 60 then
+            if n == spawnInitialFrame then
 
                 for i = 1, #startUnitList do
                     local x = startUnitList[i].x
@@ -701,7 +704,7 @@ if gadgetHandler:IsSyncedCode() then
 
                 end
             end
-            if n == 90 then
+            if n == spawnWarpInFrame then
                 for i = 1, #startUnitList do
                     local unitID = startUnitList[i].unitID
                     Spring.MoveCtrl.Disable(unitID)
@@ -714,7 +717,7 @@ if gadgetHandler:IsSyncedCode() then
                 end
             end
 		end
-		if n > 90 then
+		if n > spawnWarpInFrame then
 			gadgetHandler:RemoveGadget(self)
 		end
 	end
@@ -766,12 +769,15 @@ else -- UNSYNCED
 		gadgetHandler:AddSyncAction("PositionTooClose", positionTooClose)
 	end
 
+	local spawnInitialFrame = Game.spawnInitialFrame
+	local spawnWarpInFrame = Game.spawnWarpInFrame
+
 	function gadget:GameFrame(n)
-		if n == 60 then
+		if n == spawnInitialFrame then
 			Spring.PlaySoundFile("commanderspawn", 0.6, 'ui')
 			sendStartPositions()
 		end
-		if n > 90 then
+		if n > spawnWarpInFrame then
 			gadgetHandler:RemoveGadget(self)
 		end
 	end

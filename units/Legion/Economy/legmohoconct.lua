@@ -24,8 +24,6 @@ return {						--costs should be same as legmohocon and legmohoconin
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 700,
 		health = 3900,
 		maxslope = 10,

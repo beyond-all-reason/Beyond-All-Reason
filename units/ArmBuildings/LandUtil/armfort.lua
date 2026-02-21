@@ -1,6 +1,5 @@
 return {
 	armfort = {
-		autoheal = 12,
 		blocking = true,
 		buildangle = 0,
 		buildpic = "ARMFORT.DDS",
@@ -18,7 +17,6 @@ return {
 		footprintz = 2,
 		health = 8900,
 		hidedamage = true,
-		idleautoheal = 0,
 		levelground = false,
 		maxacc = 0,
 		maxdec = 0,

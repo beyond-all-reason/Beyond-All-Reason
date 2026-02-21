@@ -33,16 +33,15 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
-	if (capture) then
+	if (capture) and (not Spring.AreTeamsAllied(fromTeamID, toTeamID)) then
 		return true
 	end
 	beingBuilt, buildProgress = Spring.GetUnitIsBeingBuilt(unitID)
-	if beingBuilt and buildProgress > 0 then
-		return false -- sharing partly built nanoframes is not allowed because letting it decay bypasses taxation
+	if beingBuilt and buildProgress > 0 and next(Spring.GetPlayerList(fromTeamID)) ~= nil then
+		return false -- Sharing partly built nanoframes is not allowed because letting it decay bypasses taxation. Also you can't assist ally build so unit could get stuck in factory.
 	end
 	if commanders[unitDefID] then
-		_,_,isDead = Spring.GetTeamInfo(fromTeamID,false)
-		if isDead or Spring.GetTeamRulesParam(fromTeamID, "numActivePlayers") == 0 then -- this is /take
+		if next(Spring.GetPlayerList(fromTeamID)) == nil then -- There are no players in the fromTeam, therefore this is /take.
 			return true
 		end
 		return false

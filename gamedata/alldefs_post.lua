@@ -865,10 +865,8 @@ function UnitDef_Post(name, uDef)
 		uDef.hidedamage = true
 		uDef.mass = raptorHealth
 		uDef.canhover = true
-		uDef.autoheal = math.ceil(math.sqrt(raptorHealth * 0.2))
+		uDef.autoheal = math.ceil(math.sqrt(raptorHealth * 0.8))
 		uDef.customparams.paralyzemultiplier = uDef.customparams.paralyzemultiplier or .2
-		uDef.idleautoheal = math.ceil(math.sqrt(raptorHealth * 0.2))
-		uDef.idletime = 1
 		uDef.customparams.areadamageresistance = "_RAPTORACID_"
 		uDef.upright = false
 		uDef.floater = true
@@ -1077,6 +1075,14 @@ function UnitDef_Post(name, uDef)
 		--if uDef.metalcost < healthmass then
 		--	Spring.Echo(name, uDef.mass, uDef.metalcost, uDef.mass - uDef.metalcost)
 		--end
+	end
+
+	-- Sets idleautoheal to 5hp/s after 1800 frames aka 1 minute. 
+	if uDef.idleautoheal == nil then
+		uDef.idleautoheal = 5
+	end
+	if uDef.idletime == nil then
+		uDef.idletime = 1800
 	end
 
 	--Juno Rework
@@ -1704,21 +1710,17 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	-- Deduplicate buildoptions (various modoptions or later mods can add the same units)
-	-- Multiple unit defs can share the same table reference, so we create a new table for each
-	if uDef.buildoptions and #uDef.buildoptions > 0 then
-		local seen = {}
-		local dedupedBuildoptions = {}
-		
-		for i = 1, #uDef.buildoptions do
-			local unitName = uDef.buildoptions[i]
-			if type(unitName) == "string" and unitName ~= "" and not seen[unitName] then
-				seen[unitName] = true
-				dedupedBuildoptions[#dedupedBuildoptions + 1] = unitName
+	if uDef.buildoptions and next(uDef.buildoptions) then
+		-- Remove invalid unit defs.
+		for index, option in pairs(uDef.buildoptions) do
+			if not UnitDefs[option] then
+				Spring.Log("AllDefs", LOG.INFO, "Removed buildoption (unit not loaded?): " .. tostring(option))
+				uDef.buildoptions[index] = nil
 			end
 		end
-		
-		uDef.buildoptions = dedupedBuildoptions
+		-- Deduplicate buildoptions (various modoptions or later mods can add the same units)
+		-- Multiple unit defs can share the same table reference, so we create a new table for each
+		uDef.buildoptions = table.getUniqueArray(uDef.buildoptions)
 	end
 end
 
