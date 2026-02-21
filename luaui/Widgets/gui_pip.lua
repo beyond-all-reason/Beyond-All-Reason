@@ -136,7 +136,7 @@ local config = {
 	drawDecals = true,  -- Show ground decals (explosion scars, footprints) from the decals GL4 widget
 	drawCommandFX = true,  -- Show brief fading command lines when orders are given (like Commands FX widget)
 	commandFXIgnoreNewUnits = true,  -- Ignore commands given to newly finished units (rally point orders)
-	commandFXOpacity = 0.35,  -- Initial opacity of command FX lines
+	commandFXOpacity = 0.3,  -- Initial opacity of command FX lines
 	commandFXDuration = 0.66,  -- Seconds for command FX lines to fully fade out
 	
 	-- Feature and overlay settings
@@ -432,6 +432,11 @@ local miscState = {
 	minimapCameraRestored = false,  -- Whether minimap camera state was restored from config (for luaui reload)
 	minimapMinimized = false,  -- Whether the minimap is hidden via MinimapMinimize config (minimap mode only)
 	crashingUnits = {},  -- Units that are crashing (no icon should be drawn)
+	gameOverZoomingOut = false,  -- True while GameOver zoom-out animation is in progress
+	isGameOver = false,  -- True after GameOver callin fires (disables takeable blink etc.)
+	lastFullview = nil,  -- Previous fullview state, used to detect fullview ON→OFF transitions
+	specGhostScanDone = false,  -- Whether we've done a full ghost scan while fullview is ON
+	specGhostScanTime = 0,  -- Last time we ran the ghost scan (to throttle periodic rescans)
 }
 
 -- Ghost building cache: enemy buildings seen but no longer in direct LOS
@@ -493,8 +498,8 @@ local gl4Icons = {
 	MAX_INSTANCES = 16384,    -- pre-allocated capacity (covers 16k units without resize)
 	LAYER_STRUCTURE = 0,      -- structures drawn first (bottom)
 	LAYER_GROUND = 1,         -- ground mobile units
-	LAYER_COMMANDER = 2,      -- commanders above ground
-	LAYER_AIR = 3,            -- air units drawn last (top)
+	LAYER_AIR = 2,            -- air units above ground
+	LAYER_COMMANDER = 3,      -- commanders drawn last (top, above air)
 	enabled = false,          -- Set true after successful init
 	atlas = nil,              -- Engine '$icons' texture string
 	atlasUVs = {},            -- [unitDefID] = {u0, v0, u1, v1} (UV rect in atlas, Y-flipped)
@@ -505,7 +510,7 @@ local gl4Icons = {
 	uniformLocs = {},         -- Cached uniform locations
 	unitDefCache = {},        -- [unitID] = unitDefID (lazy-populated, cleared on unit death/give)
 	unitTeamCache = {},       -- [unitID] = teamID (lazy-populated, cleared on unit give)
-	unitDefLayer = {},        -- [unitDefID] = layer (0=structure,1=ground,2=commander,3=air) — built once at init
+	unitDefLayer = {},        -- [unitDefID] = layer (0=structure,1=ground,2=air,3=commander) — built once at init
 	instanceData = nil,       -- Pre-allocated flat float array (MAX_INSTANCES * INSTANCE_STEP)
 	sortKeys = {},            -- [unitID] = sortKey (layer*1e6 + x+z) for stable position-based draw order
 	cachedPosX = {},          -- [unitID] = worldX (cached from sort pass, reused in processUnit)
@@ -1685,8 +1690,10 @@ gl4Prim.quadShaderCode = {
 		uniform vec2 rotCenter;
 
 		out vec4 v_color;
-		out vec2 v_halfSizeNDC;
+		out vec2 v_halfSizePx;
 		out float v_angle;
+		out vec2 v_ndcScale;
+		out vec2 v_rotSC;
 
 		void main() {
 			vec2 pipPos = wtp_offset + posSizeIn.xy * wtp_scale;
@@ -1695,8 +1702,9 @@ gl4Prim.quadShaderCode = {
 			gl_Position = vec4(pipPos * ndcScale - 1.0, 0.0, 1.0);
 
 			float scalePIP = abs(wtp_scale.x);
-			v_halfSizeNDC = vec2(posSizeIn.z * scalePIP * ndcScale.x,
-			                     posSizeIn.w * scalePIP * ndcScale.y);
+			v_halfSizePx = vec2(posSizeIn.z * scalePIP, posSizeIn.w * scalePIP);
+			v_ndcScale = ndcScale;
+			v_rotSC = rotSC;
 			v_color = colorIn;
 			v_angle = radians(angleFlags.x);
 		}
@@ -1707,26 +1715,36 @@ gl4Prim.quadShaderCode = {
 		layout(triangle_strip, max_vertices = 4) out;
 
 		in vec4 v_color[];
-		in vec2 v_halfSizeNDC[];
+		in vec2 v_halfSizePx[];
 		in float v_angle[];
+		in vec2 v_ndcScale[];
+		in vec2 v_rotSC[];
 
 		out vec4 f_color;
 
 		void main() {
 			vec4 c = gl_in[0].gl_Position;
-			vec2 hs = v_halfSizeNDC[0];
+			vec2 hs = v_halfSizePx[0];
+			vec2 ndc = v_ndcScale[0];
+			vec2 rsc = v_rotSC[0];
 			f_color = v_color[0];
 			float a = v_angle[0];
 			float sa = sin(a), ca = cos(a);
 
-			// Rotated corner offsets
-			vec2 dx = vec2(ca, sa) * hs.x;
-			vec2 dy = vec2(-sa, ca) * hs.y;
+			// Combine quad rotation with map rotation to get total rotation
+			// sin(a+m) = sa*cos(m) + ca*sin(m), cos(a+m) = ca*cos(m) - sa*sin(m)
+			float sT = sa * rsc.y + ca * rsc.x;
+			float cT = ca * rsc.y - sa * rsc.x;
 
-			gl_Position = vec4(c.xy - dx - dy, 0, 1); EmitVertex();
-			gl_Position = vec4(c.xy + dx - dy, 0, 1); EmitVertex();
-			gl_Position = vec4(c.xy - dx + dy, 0, 1); EmitVertex();
-			gl_Position = vec4(c.xy + dx + dy, 0, 1); EmitVertex();
+			// Rotate in pixel space (uniform coordinates) to avoid aspect-ratio distortion
+			vec2 dx = vec2(cT, sT) * hs.x;
+			vec2 dy = vec2(-sT, cT) * hs.y;
+
+			// Convert pixel offsets to NDC
+			gl_Position = vec4(c.xy + (-dx - dy) * ndc, 0, 1); EmitVertex();
+			gl_Position = vec4(c.xy + ( dx - dy) * ndc, 0, 1); EmitVertex();
+			gl_Position = vec4(c.xy + (-dx + dy) * ndc, 0, 1); EmitVertex();
+			gl_Position = vec4(c.xy + ( dx + dy) * ndc, 0, 1); EmitVertex();
 			EndPrimitive();
 		}
 	]],
@@ -5712,11 +5730,14 @@ end
 -- For spectators with LOS view, also pre-scan to populate ghosts on reload
 do
 local initScanAllyTeam = nil
-local initScanIsSpec = Spring.GetSpectatingState()
+local initScanIsSpec, initScanFullview = Spring.GetSpectatingState()
 if not initScanIsSpec then
 	initScanAllyTeam = Spring.GetMyAllyTeamID()
 elseif state.losViewEnabled and state.losViewAllyTeam then
 	initScanAllyTeam = state.losViewAllyTeam
+elseif initScanIsSpec and not initScanFullview then
+	-- Spectator without fullview: scan ghosts from their allyteam's perspective
+	initScanAllyTeam = Spring.GetMyAllyTeamID()
 end
 if initScanAllyTeam then
 	local allUnits = Spring.GetAllUnits()
@@ -6218,8 +6239,15 @@ function widget:ViewResize()
 	-- Calculate dynamic min zoom so full map is visible at max zoom-out
 	-- Use raw (non-rotated) dimensions and take min(dim)/max(mapSize) so zoom limit is the same regardless of rotation
 	if not isMinimapMode then
-		local rawW = render.dim.r - render.dim.l
-		local rawH = render.dim.t - render.dim.b
+		-- When minimized, use saved expanded dimensions (not the tiny button size)
+		local rawW, rawH
+		if uiState.inMinMode and uiState.savedDimensions.l and uiState.savedDimensions.r then
+			rawW = uiState.savedDimensions.r - uiState.savedDimensions.l
+			rawH = uiState.savedDimensions.t - uiState.savedDimensions.b
+		else
+			rawW = render.dim.r - render.dim.l
+			rawH = render.dim.t - render.dim.b
+		end
 		pipModeMinZoom = math.min(rawW, rawH) / math.max(mapInfo.mapSizeX, mapInfo.mapSizeZ)
 		if cameraState.zoom < pipModeMinZoom then
 			cameraState.zoom = pipModeMinZoom
@@ -6269,14 +6297,9 @@ function widget:PlayerChanged(playerID)
 	-- Update spec state
 	cameraState.mySpecState = Spring.GetSpectatingState()
 
-	-- Clear ghost buildings when becoming spectator without LOS view
-	-- (spectators with full view see everything, ghosts are meaningless)
-	-- Keep ghosts if LOS view is active (they're still relevant for the viewed allyteam)
-	if cameraState.mySpecState and not state.losViewEnabled then
-		for k in pairs(ghostBuildings) do ghostBuildings[k] = nil end
-		for k in pairs(ownBuildingPosX) do ownBuildingPosX[k] = nil end
-		for k in pairs(ownBuildingPosZ) do ownBuildingPosZ[k] = nil end
-	end
+	-- Don't clear ghost buildings here: PlayerChanged fires frequently (on any player's
+	-- state change, team switches, etc.) and clearing ghosts causes them to vanish.
+	-- The periodic ghost scan uses mark-and-sweep to keep ghosts fresh.
 
 	-- Keep tracking even if fullview is disabled - tracking will resume when fullview is re-enabled
 end
@@ -6294,16 +6317,19 @@ function widget:GameOver()
 	interactionState.areTracking = nil
 	interactionState.trackingPlayerID = nil
 
-	-- Zoom out to full map view and center
+	-- Start smooth zoom-out to full map view and center
+	-- Only set targetZoom (not zoom) so the Update loop animates the zoom-out smoothly
 	local zoomMin = GetEffectiveZoomMin()
-	cameraState.zoom = zoomMin
 	cameraState.targetZoom = zoomMin
-	cameraState.wcx = mapInfo.mapSizeX / 2
-	cameraState.wcz = mapInfo.mapSizeZ / 2
-	cameraState.targetWcx = cameraState.wcx
-	cameraState.targetWcz = cameraState.wcz
-	RecalculateWorldCoordinates()
-	RecalculateGroundTextureCoordinates()
+	cameraState.targetWcx = mapInfo.mapSizeX / 2
+	cameraState.targetWcz = mapInfo.mapSizeZ / 2
+
+	-- Flag to protect the zoom-out animation from being overridden
+	miscState.gameOverZoomingOut = true
+	miscState.isGameOver = true
+
+	-- Clear takeable teams cache so icons stop blinking (no one can take units after game over)
+	cachedTakeableTeams = {}
 
 	pipR2T.frameNeedsUpdate = true
 	pipR2T.unitsNeedsUpdate = true
@@ -7501,7 +7527,8 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	local LOS_CONTRADAR = 8
 
 	-- Compute takeable teams (leaderless, alive, non-AI)  cached, invalidated on PlayerChanged
-	if not cachedTakeableTeams then
+	-- After GameOver, takeable is always empty (no point blinking — game is done)
+	if not cachedTakeableTeams and not miscState.isGameOver then
 		cachedTakeableTeams = {}
 		for _, tID in ipairs(Spring.GetTeamList()) do
 			local _, leader, isDead, hasAI = Spring.GetTeamInfo(tID, false)
@@ -7559,12 +7586,25 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 						end
 					end
 				elseif losBits % (LOS_INRADAR * 2) >= LOS_INRADAR then
-					isRadar = true
+					-- Buildings in radar: don't wobble (they're stationary, position is known)
+					if not cacheIsBuilding[uDefID] then
+						isRadar = true
+					end
 					local typed = (losBits % (LOS_PREVLOS * 2) >= LOS_PREVLOS) or (losBits % (LOS_CONTRADAR * 2) >= LOS_CONTRADAR)
 					if not (typed and uDefID) then
 						visibleDefID = nil
 					end
 				else
+					-- Not in LOS or radar, but has some bits (e.g. PREVLOS).
+					-- Record ghost for previously-seen buildings so they appear as ghosts.
+					if cacheIsBuilding[uDefID] and losBits % (LOS_PREVLOS * 2) >= LOS_PREVLOS then
+						local g = ghostBuildings[uID]
+						if g then
+							g.defID = uDefID; g.x = ux; g.z = uz; g.teamID = uTeam
+						else
+							ghostBuildings[uID] = { defID = uDefID, x = ux, z = uz, teamID = uTeam }
+						end
+					end
 					return usedEl
 				end
 			end
@@ -7644,8 +7684,28 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	local icT0 = os.clock()
 
 	-- Ghost building pass: enemy buildings previously seen but no longer in LOS
-	-- Rendered first (lowest VBO indices) so live icons overdraw them correctly
+	-- Rendered first (lowest VBO indices) so live icons overdraw them correctly.
+	--
+	-- Two visibility strategies depending on mode:
+	-- 1) LOS view (fullview still ON): use GetUnitLosState to query the viewed allyteam's
+	--    actual LOS. Reliable because fullview is ON and engine returns accurate per-allyteam data.
+	-- 2) Fullview OFF: use pipUnits membership (from GetUnitsInRectangle). Engine LOS APIs
+	--    are unreliable for spectators who toggled fullview OFF, but GetUnitsInRectangle
+	--    correctly filters to visible units only.
 	if checkAllyTeamID then
+		-- Determine which visibility check to use
+		local isLosViewMode = state.losViewEnabled and state.losViewAllyTeam
+
+		-- For non-LOS-view mode: build O(1) lookup of units returned by GetUnitsInRectangle
+		local liveSet
+		if not isLosViewMode then
+			liveSet = {}
+			local localPipUnits = miscState.pipUnits
+			for i = 1, #localPipUnits do
+				liveSet[localPipUnits[i]] = true
+			end
+		end
+
 		local viewL = render.world.l - 220
 		local viewR = render.world.r + 220
 		local viewT = render.world.t - 220
@@ -7653,15 +7713,18 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 
 		for gID, ghost in pairs(ghostBuildings) do
 			if usedElements >= maxInst then break end
-			-- Check if the ghost's position is in LOS: if so, either the unit is live (skip ghost)
-			-- or the unit is dead and was destroyed in LOS (remove ghost)
-			local gy = spFunc.GetGroundHeight(ghost.x, ghost.z)
-			if spFunc.IsPosInLos(ghost.x, gy, ghost.z, checkAllyTeamID) then
-				-- Position is in LOS — if unit is dead/gone, remove ghost; if alive, skip (drawn live)
-				if not spFunc.GetUnitPosition(gID) then
-					ghostBuildings[gID] = nil  -- unit destroyed while in LOS
-				end
+			-- Determine if this ghost is currently visible to the viewer
+			local isVisible
+			if isLosViewMode then
+				-- LOS view: check if the building is in LOS or radar for the viewed allyteam
+				local lb = spFunc.GetUnitLosState(gID, checkAllyTeamID, true)
+				isVisible = lb and (lb % 2 >= 1 or lb % 4 >= 2)  -- INLOS or INRADAR
 			else
+				-- Fullview OFF: check if the building is in pipUnits (engine-enforced visibility)
+				isVisible = liveSet[gID]
+			end
+			if not isVisible then
+				-- Building is in fog-of-war for the viewer. Draw a dimmed ghost icon.
 				if ghost.x >= viewL and ghost.x <= viewR and ghost.z >= viewT and ghost.z <= viewB then
 					local uvs, sizeScale
 					if cacheUnitIcon[ghost.defID] then
@@ -7683,13 +7746,18 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 					usedElements = usedElements + 1
 				end
 			end
+			-- If liveSet[gID] is true, processUnit will draw the live icon (which overdraws
+			-- the ghost at its VBO index). Ghost data stays in the table for when the building
+			-- leaves LOS/radar again. Dead-building cleanup is handled by UnitDestroyed callback
+			-- (fires for units visible to the viewed allyteam) and by the periodic fullview scan
+			-- (dead units are absent from GetAllUnits, so stale ghosts are cleared on next rescan).
 		end
 	end
 
 	local icT1 = os.clock()
 
 	-- Sort units by (layer, Z depth) with unitID tiebreaker for deterministic draw order.
-	-- Layer is primary (structures→ground→commanders→air). Z depth gives correct
+	-- Layer is primary (structures→ground→air→commanders). Z depth gives correct
 	-- front-to-back ordering (larger Z = further south = drawn on top).
 	-- UnitID tiebreaker in comparator prevents z-fighting from equal-Z units.
 	-- Position is cached here so processUnit can reuse it without a second API call.
@@ -7809,6 +7877,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	local bldgBlockValid = bldgBlock
 		and bCount == gl4Icons._bldgBlockBCount
 		and bldgHash == gl4Icons._bldgBlockHash
+		and checkAllyTeamID == gl4Icons._bldgBlockCheckAlly  -- LOS filtering context changed
 		and (currentGameFrame - (gl4Icons._bldgBlockFrame or 0)) < 30
 		and not useUnitpics  -- unitpic collection needs per-unit data
 
@@ -7923,6 +7992,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		gl4Icons._bldgBlockCount = usedElements - preProcessEl
 		gl4Icons._bldgBlockBCount = bCount
 		gl4Icons._bldgBlockHash = bldgHash
+		gl4Icons._bldgBlockCheckAlly = checkAllyTeamID
 		gl4Icons._bldgBlockFrame = currentGameFrame
 	end
 	local icT3b = os.clock()
@@ -11950,6 +12020,16 @@ function widget:DrawScreen()
 		-- Update decal overlay texture (~once per second, game-frame based)
 		UpdateDecalTexture()
 
+		-- Force immediate units re-render when fullview state changes.
+		-- The main transition detection code (below) runs AFTER UpdateR2TUnits,
+		-- so detect the change here to ensure the ghost pass runs on the same frame.
+		do
+			local _, fv = Spring.GetSpectatingState()
+			if miscState.lastFullview ~= nil and miscState.lastFullview ~= fv then
+				pipR2T.unitsNeedsUpdate = true
+			end
+		end
+
 		-- Update oversized units texture at throttled rate (expensive layers)
 		local drawStartTime = os.clock()
 		local prevUnitsTime = pipR2T.unitsLastUpdateTime
@@ -12760,11 +12840,79 @@ function widget:Update(dt)
 	
 	-- Update spectating state and check if it changed
 	local oldSpecState = cameraState.mySpecState
-	cameraState.mySpecState = Spring.GetSpectatingState()
+	local specState, fullviewState = Spring.GetSpectatingState()
+	cameraState.mySpecState = specState
 
 	-- If spec state changed, update LOS texture
 	if oldSpecState ~= cameraState.mySpecState then
 		pipR2T.losNeedsUpdate = true
+	end
+
+	-- Detect fullview transitions BEFORE the periodic scan, so timer resets
+	-- take effect on the same frame (avoids 1-frame delay).
+	if miscState.lastFullview ~= nil and miscState.lastFullview and not fullviewState and specState then
+		pipR2T.losNeedsUpdate = true
+		pipR2T.contentNeedsUpdate = true
+		pipR2T.unitsNeedsUpdate = true
+	elseif miscState.lastFullview ~= nil and not miscState.lastFullview and fullviewState and specState then
+		-- Fullview OFF→ON: do NOT clear ghosts (fullview state can oscillate across frames).
+		-- Force immediate rescan so ghosts are populated before a possible quick OFF toggle.
+		miscState.specGhostScanTime = 0
+		pipR2T.losNeedsUpdate = true
+		pipR2T.contentNeedsUpdate = true
+		pipR2T.unitsNeedsUpdate = true
+	end
+	miscState.lastFullview = fullviewState
+
+	-- While fullview is ON, periodically scan enemy buildings and record ghosts
+	-- for buildings the viewed allyteam has seen (INLOS or PREVLOS).
+	-- Uses mark-and-sweep: marks existing ghosts, unmarks those found alive,
+	-- then sweeps stale entries (destroyed buildings).
+	-- Scan every 2 seconds for responsive ghost updates.
+	if specState and fullviewState then
+		local now = os.clock()
+		if now - miscState.specGhostScanTime >= 2.0 then
+			miscState.specGhostScanTime = now
+			-- Use losViewAllyTeam when LOS view is active, otherwise GetMyAllyTeamID()
+			local scanAllyTeam = (state.losViewEnabled and state.losViewAllyTeam) or Spring.GetMyAllyTeamID()
+			-- Mark all existing ghosts for sweep
+			local stale = {}
+			for gID in pairs(ghostBuildings) do stale[gID] = true end
+			local allUnits = Spring.GetAllUnits()
+			for i = 1, #allUnits do
+				local uID = allUnits[i]
+				local defID = Spring.GetUnitDefID(uID)
+				if defID and cache.isBuilding[defID] then
+					local uTeam = Spring.GetUnitTeam(uID)
+					if uTeam then
+						local uAllyTeam = Spring.GetTeamAllyTeamID(uTeam)
+						if uAllyTeam ~= scanAllyTeam then
+							-- Only record/keep buildings the viewed allyteam has seen (INLOS or PREVLOS).
+							-- With fullview, GetUnitLosState reliably returns any allyteam's LOS.
+							-- stale[uID] is only cleared inside the PREVLOS check so ghosts for
+							-- buildings the allyteam has NEVER seen get swept (not preserved).
+							local losBits = Spring.GetUnitLosState(uID, scanAllyTeam, true)
+							if losBits and (losBits % 2 >= 1 or losBits % 8 >= 4) then
+								stale[uID] = nil  -- seen and still alive, don't sweep
+								local x, _, z = Spring.GetUnitBasePosition(uID)
+								if x then
+									local g = ghostBuildings[uID]
+									if g then
+										g.defID = defID; g.x = x; g.z = z; g.teamID = uTeam
+									else
+										ghostBuildings[uID] = { defID = defID, x = x, z = z, teamID = uTeam }
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+			-- Sweep stale ghosts (buildings destroyed while we had fullview)
+			for gID in pairs(stale) do
+				ghostBuildings[gID] = nil
+			end
+		end
 	end
 
 	-- Update mouse hover state
@@ -12956,6 +13104,19 @@ function widget:Update(dt)
 				render.dim.r = uiState.animEndDim.r
 				render.dim.b = uiState.animEndDim.b
 				render.dim.t = uiState.animEndDim.t
+				-- Recalculate min zoom from final dimensions (fixes zoom limit after expanding from minimized)
+				if not isMinimapMode then
+					local rawW = render.dim.r - render.dim.l
+					local rawH = render.dim.t - render.dim.b
+					pipModeMinZoom = math.min(rawW, rawH) / math.max(mapInfo.mapSizeX, mapInfo.mapSizeZ)
+					if cameraState.zoom < pipModeMinZoom then
+						cameraState.zoom = pipModeMinZoom
+						cameraState.targetZoom = pipModeMinZoom
+					end
+					if cameraState.targetZoom < pipModeMinZoom then
+						cameraState.targetZoom = pipModeMinZoom
+					end
+				end
 				-- Recalculate world coordinates for final dimensions
 				RecalculateWorldCoordinates()
 				RecalculateGroundTextureCoordinates()
@@ -12984,11 +13145,15 @@ function widget:Update(dt)
 	local zoomNeedsUpdate = math.abs(cameraState.zoom - cameraState.targetZoom) > 0.001
 	local centerNeedsUpdate = math.abs(cameraState.wcx - cameraState.targetWcx) > 0.1 or math.abs(cameraState.wcz - cameraState.targetWcz) > 0.1
 
-	-- Don't force immediate updates during zoom/pan - let dynamic update rate handle it for better performance
-	-- Only mark for update on significant changes (tracked player switching, etc.)
-	-- if zoomNeedsUpdate or centerNeedsUpdate then
-	-- 	pipR2T.contentNeedsUpdate = true
-	-- end
+	-- GameOver zoom-out animation: keep updating content until complete
+	if miscState.gameOverZoomingOut then
+		if zoomNeedsUpdate or centerNeedsUpdate then
+			pipR2T.contentNeedsUpdate = true
+		else
+			-- Zoom-out animation complete
+			miscState.gameOverZoomingOut = false
+		end
+	end
 
 	-- If zoom-to-cursor is active, continuously recalculate target center to keep world position under cursor
 	-- Disable this when tracking units - we want to keep the camera centered on tracked units
@@ -13728,6 +13893,23 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	if config.drawCommandFX and config.commandFXIgnoreNewUnits then
 		commandFX.newUnits[unitID] = wallClockTime
 	end
+
+	-- Record newly completed enemy buildings as ghosts for spectators
+	-- Catches buildings built outside the PIP viewport while fullview is ON
+	-- Only ghost buildings the viewed allyteam has actually seen (PREVLOS or INLOS)
+	if cameraState.mySpecState and cache.isBuilding[unitDefID] then
+		local myAllyTeam = Spring.GetMyAllyTeamID()
+		local uAllyTeam = Spring.GetTeamAllyTeamID(unitTeam)
+		if uAllyTeam ~= myAllyTeam then
+			local losBits = Spring.GetUnitLosState(unitID, myAllyTeam, true)
+			if losBits and (losBits % 2 >= 1 or losBits % 8 >= 4) then
+				local x, _, z = Spring.GetUnitBasePosition(unitID)
+				if x then
+					ghostBuildings[unitID] = { defID = unitDefID, x = x, z = z, teamID = unitTeam }
+				end
+			end
+		end
+	end
 end
 
 -- UnitEnteredLos is only called for non-allied units entering the local player's LOS
@@ -13748,7 +13930,11 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 end
 
 function widget:UnitEnteredLos(unitID, unitTeam)
-	if cameraState.mySpecState then return end
+	-- Skip for fullview spectators (they see everything, ghosts are recorded in processUnit)
+	if cameraState.mySpecState then
+		local _, fullview = Spring.GetSpectatingState()
+		if fullview then return end
+	end
 	local unitDefID = spFunc.GetUnitDefID(unitID)
 	if not unitDefID then return end
 	if not cache.isBuilding[unitDefID] then return end
