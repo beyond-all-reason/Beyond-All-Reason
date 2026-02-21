@@ -1270,7 +1270,7 @@ local function updateCarrier(carrierID, carrierMetaData, frame)
 			
 			if droneCurrentHealth then
 				if carrierMetaData.dockedHealRate > 0 and droneDocked then
-					if droneCurrentHealth == droneData.originalMaxHealth and not droneData.droneDockTime or (droneCurrentHealth == droneData.originalMaxHealth and ((droneData.droneDockTime + droneData.lastLanding) < frame)) then
+					if droneCurrentHealth >= droneData.originalMaxHealth and not droneData.droneDockTime or (droneCurrentHealth >= droneData.originalMaxHealth and ((droneData.droneDockTime + droneData.lastLanding) < frame)) then
 						-- fully healed
 						droneData.stayDocked = false
 					else
