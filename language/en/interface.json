@@ -157,6 +157,8 @@
 			"camera": "View selected player's camera",
 			"uncamera": "Cancel camera tracking",
 			"move": "Move window",
+			"activity": "Briefly focus camera onto recently placed map markers",
+			"unactivity": "Disable map marker camera focus",
 			"resize": "Resize window",
 			"minimize": "Minimize\nALT+CLICK-DRAG to Move",
 			"maximize": "Maximize\nALT+CLICK-DRAG to Move",

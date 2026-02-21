@@ -134,6 +134,7 @@ local config = {
 	explosionOverlay = true,  -- Re-render explosions on top of unit icons (additive glow)
 	explosionOverlayAlpha = 0.66,  -- Strength of the above-icons explosion overlay (0-1)
 	healthDarkenMax = 0.2,  -- Maximum darkening for damaged units on GL4 icons (0-1, 0.18 = 18%)
+	activityFocusIgnoreSpectators = true,  -- Don't trigger camera focus for spectator map markers
 	drawDecals = true,  -- Show ground decals (explosion scars, footprints) from the decals GL4 widget
 	drawCommandFX = true,  -- Show brief fading command lines when orders are given (like Commands FX widget)
 	commandFXIgnoreNewUnits = true,  -- Ignore commands given to newly finished units (rally point orders)
@@ -203,6 +204,7 @@ local config = {
 	hideAICommands = true,  -- Hide command queues from AI players (default: enabled)
 	showSpectatorPings = true,  -- Show map pings from spectators on the PIP minimap
 	showViewRectangleOnMinimap = false,  -- Show the PIP view rectangle on the engine minimap
+	showViewRectangleInWorld = false,  -- Show the PIP view rectangle as an outline in the 3D world
 }
 
 -- State variables
@@ -435,6 +437,17 @@ local miscState = {
 	crashingUnits = {},  -- Units that are crashing (no icon should be drawn)
 	gameOverZoomingOut = false,  -- True while GameOver zoom-out animation is in progress
 	isGameOver = false,  -- True after GameOver callin fires (disables takeable blink etc.)
+	-- Activity focus: briefly pan camera to map markers then restore
+	activityFocusEnabled = false,  -- Toggle state for the button
+	activityFocusSavedWcx = nil,   -- Saved camera X before focus
+	activityFocusSavedWcz = nil,   -- Saved camera Z before focus
+	activityFocusSavedZoom = nil,  -- Saved zoom before focus
+	activityFocusTime = 0,         -- os.clock() when we started focusing on a marker
+	activityFocusActive = false,   -- True while camera is focused on a marker (waiting to restore)
+	activityFocusDuration = 2.5,   -- Seconds to hold focus before restoring
+	activityFocusZoom = 0.22,      -- Zoom level to use when focusing on marker
+	activityFocusTargetX = nil,    -- World X of the marker being focused on
+	activityFocusTargetZ = nil,    -- World Z of the marker being focused on
 	lastFullview = nil,  -- Previous fullview state, used to detect fullview ON→OFF transitions
 	specGhostScanDone = false,  -- Whether we've done a full ghost scan while fullview is ON
 	specGhostScanTime = 0,  -- Last time we ran the ghost scan (to throttle periodic rescans)
@@ -1161,6 +1174,25 @@ local buttons = {
 					end
 				end
 			end
+		end
+	},
+	{
+		texture = 'LuaUI/Images/pip/PipActivity.png',
+		tooltipKey = 'ui.pip.activity',
+		tooltipActiveKey = 'ui.pip.unactivity',
+		command = 'pip_activity',
+		OnPress = function()
+			miscState.activityFocusEnabled = not miscState.activityFocusEnabled
+			if not miscState.activityFocusEnabled and miscState.activityFocusActive then
+				-- Immediately restore camera when disabling
+				if miscState.activityFocusSavedWcx then
+					cameraState.targetWcx = miscState.activityFocusSavedWcx
+					cameraState.targetWcz = miscState.activityFocusSavedWcz
+					cameraState.targetZoom = miscState.activityFocusSavedZoom
+				end
+				miscState.activityFocusActive = false
+			end
+			pipR2T.frameNeedsUpdate = true
 		end
 	},
 	{
@@ -5687,7 +5719,7 @@ function widget:Initialize()
 		elseif cache.weaponIsTorpedo[wDefID] then
 			cache.missileColors[wDefID] = {0.7,0.78,0.9, 0.75,0.82,0.95, 0.6,0.7,0.85, 0.5,0.7,1.0}
 		else
-			cache.missileColors[wDefID] = {0.88,0.88,0.84, 0.92,0.92,0.88, 0.82,0.82,0.78, 1.0,0.7,0.3}
+			cache.missileColors[wDefID] = {0.8,0.8,0.76, 0.84,0.84,0.8, 0.74,0.74,0.7, 1.0,0.7,0.3}
 		end
 	end
 
@@ -6543,6 +6575,9 @@ function widget:GetConfigData()
 		unitpicZoomThreshold=config.unitpicZoomThreshold,
 		explosionOverlay=config.explosionOverlay,
 		explosionOverlayAlpha=config.explosionOverlayAlpha,
+		healthDarkenMax=config.healthDarkenMax,
+		activityFocusEnabled=miscState.activityFocusEnabled,
+		activityFocusIgnoreSpectators=config.activityFocusIgnoreSpectators,
 		hideAICommands=config.hideAICommands,
 		gameID = Game.gameID or Spring.GetGameRulesParam("GameID"),
 		-- Minimap mode settings
@@ -6690,6 +6725,9 @@ function widget:SetConfigData(data)
 	if data.explosionOverlay ~= nil then config.explosionOverlay = data.explosionOverlay end
 	if data.explosionOverlayAlpha then config.explosionOverlayAlpha = data.explosionOverlayAlpha end
 	if data.hideAICommands ~= nil then config.hideAICommands = data.hideAICommands end
+	if data.healthDarkenMax ~= nil then config.healthDarkenMax = data.healthDarkenMax end
+	if data.activityFocusEnabled ~= nil then miscState.activityFocusEnabled = data.activityFocusEnabled end
+	if data.activityFocusIgnoreSpectators ~= nil then config.activityFocusIgnoreSpectators = data.activityFocusIgnoreSpectators end
 	--if data.unitpicZoomThreshold then config.unitpicZoomThreshold = data.unitpicZoomThreshold end
 	
 	-- Restore minimap mode settings
@@ -8175,9 +8213,18 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 					local barW = iconSize * 0.82
 					local barH = math.max(1, iconSize * 0.13)
 					local barY = iconSize - barH * 1.5
+					local outl = math.max(1, barH * 0.2)
 					glFunc.Texture(false)
+					-- Outline
+					glFunc.Color(0, 0, 0, 0.9)
+					glFunc.BeginEnd(glConst.QUADS, function()
+						glFunc.Vertex(-barW - outl, barY - outl, 0)
+						glFunc.Vertex(barW + outl, barY - outl, 0)
+						glFunc.Vertex(barW + outl, barY + barH + outl, 0)
+						glFunc.Vertex(-barW - outl, barY + barH + outl, 0)
+					end)
 					-- Background
-					glFunc.Color(0, 0, 0, 0.7)
+					glFunc.Color(0.15, 0.15, 0.15, 0.8)
 					glFunc.BeginEnd(glConst.QUADS, function()
 						glFunc.Vertex(-barW, barY, 0)
 						glFunc.Vertex(barW, barY, 0)
@@ -8233,9 +8280,18 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 					local barW = iconSize * 0.82
 					local barH = math.max(1, iconSize * 0.13)
 					local barY = py + iconSize - barH * 1.5
+					local outl = math.max(1, barH * 0.2)
 					glFunc.Texture(false)
+					-- Outline
+					glFunc.Color(0, 0, 0, 0.9)
+					glFunc.BeginEnd(glConst.QUADS, function()
+						glFunc.Vertex(px - barW - outl, barY - outl, 0)
+						glFunc.Vertex(px + barW + outl, barY - outl, 0)
+						glFunc.Vertex(px + barW + outl, barY + barH + outl, 0)
+						glFunc.Vertex(px - barW - outl, barY + barH + outl, 0)
+					end)
 					-- Background
-					glFunc.Color(0, 0, 0, 0.7)
+					glFunc.Color(0.15, 0.15, 0.15, 0.8)
 					glFunc.BeginEnd(glConst.QUADS, function()
 						glFunc.Vertex(px - barW, barY, 0)
 						glFunc.Vertex(px + barW, barY, 0)
@@ -8956,7 +9012,8 @@ local function RenderFrameButtons()
 	for i = 1, buttonCount do
 		local isActive = (visibleButtons[i].command == 'pip_track' and interactionState.areTracking) or
 		                 (visibleButtons[i].command == 'pip_trackplayer' and interactionState.trackingPlayerID) or
-		                 (visibleButtons[i].command == 'pip_view' and state.losViewEnabled)
+		                 (visibleButtons[i].command == 'pip_view' and state.losViewEnabled) or
+		                 (visibleButtons[i].command == 'pip_activity' and miscState.activityFocusEnabled)
 		
 		if isActive then
 			glFunc.Color(config.panelBorderColorLight)
@@ -11914,7 +11971,8 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 			for i = 1, #visibleButtons do
 				if (visibleButtons[i].command == 'pip_track' and interactionState.areTracking) or
 				   (visibleButtons[i].command == 'pip_trackplayer' and interactionState.trackingPlayerID) or
-				   (visibleButtons[i].command == 'pip_view' and state.losViewEnabled) then
+				   (visibleButtons[i].command == 'pip_view' and state.losViewEnabled) or
+				   (visibleButtons[i].command == 'pip_activity' and miscState.activityFocusEnabled) then
 					glFunc.Color(config.panelBorderColorLight)
 					glFunc.Texture(false)
 					render.RectRound(bx, render.dim.b, bx + render.usedButtonSize, render.dim.b + render.usedButtonSize, render.elementCorner*0.4, 1, 1, 1, 1)
@@ -11938,7 +11996,8 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 					if visibleButtons[i].tooltipActiveKey then
 						if (visibleButtons[i].command == 'pip_track' and interactionState.areTracking) or
 						   (visibleButtons[i].command == 'pip_trackplayer' and interactionState.trackingPlayerID) or
-						   (visibleButtons[i].command == 'pip_view' and state.losViewEnabled) then
+						   (visibleButtons[i].command == 'pip_view' and state.losViewEnabled) or
+						   (visibleButtons[i].command == 'pip_activity' and miscState.activityFocusEnabled) then
 							tooltipKey = visibleButtons[i].tooltipActiveKey
 						end
 					end
@@ -11964,7 +12023,8 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 				render.RectRound(bx, render.dim.b, bx + render.usedButtonSize, render.dim.b + render.usedButtonSize, render.elementCorner*0.4, 1, 1, 1, 1)
 				if (visibleButtons[i].command == 'pip_track' and interactionState.areTracking) or
 				   (visibleButtons[i].command == 'pip_trackplayer' and interactionState.trackingPlayerID) or
-				   (visibleButtons[i].command == 'pip_view' and state.losViewEnabled) then
+				   (visibleButtons[i].command == 'pip_view' and state.losViewEnabled) or
+				   (visibleButtons[i].command == 'pip_activity' and miscState.activityFocusEnabled) then
 					glFunc.Color(config.panelBorderColorDark)
 				else
 					glFunc.Color(1, 1, 1, 1)
@@ -12556,7 +12616,7 @@ function widget:DrawWorld()
 	if isMinimapMode then return end
 
 	-- Draw rectangle outline in world view marking PIP boundaries
-	if not interactionState.trackingPlayerID then
+	if config.showViewRectangleInWorld and not interactionState.trackingPlayerID then
 		local r, g, b = 1, 1, 1
 
 		local innerLineDist = 8
@@ -13235,6 +13295,20 @@ function widget:Update(dt)
 		end
 	end
 
+	-- Activity focus: restore camera after hold duration expires
+	if miscState.activityFocusActive and miscState.activityFocusEnabled then
+		local elapsed = os.clock() - miscState.activityFocusTime
+		if elapsed >= miscState.activityFocusDuration then
+			-- Restore saved camera position
+			if miscState.activityFocusSavedWcx then
+				cameraState.targetWcx = miscState.activityFocusSavedWcx
+				cameraState.targetWcz = miscState.activityFocusSavedWcz
+				cameraState.targetZoom = miscState.activityFocusSavedZoom
+			end
+			miscState.activityFocusActive = false
+		end
+	end
+
 	-- Smooth zoom and camera center interpolation
 	local zoomNeedsUpdate = math.abs(cameraState.zoom - cameraState.targetZoom) > 0.001
 	local centerNeedsUpdate = math.abs(cameraState.wcx - cameraState.targetWcx) > 0.1 or math.abs(cameraState.wcz - cameraState.targetWcz) > 0.1
@@ -13462,6 +13536,15 @@ function widget:Update(dt)
 		-- Zoom and center have reached their targets, disable zoom-to-cursor and switch transition
 		cameraState.zoomToCursorActive = false
 		miscState.isSwitchingViews = false
+	end
+
+	-- Activity focus: re-assert target position each frame while active
+	-- Edge/center clamping at low zoom levels overwrites targetWcx/targetWcz;
+	-- re-applying from stored marker coords ensures the camera reaches the marker
+	if miscState.activityFocusActive and miscState.activityFocusTargetX then
+		cameraState.targetWcx = miscState.activityFocusTargetX
+		cameraState.targetWcz = miscState.activityFocusTargetZ
+		cameraState.targetZoom = math.max(miscState.activityFocusZoom, GetEffectiveZoomMin())
 	end
 
 	if interactionState.areIncreasingZoom then
@@ -14240,6 +14323,34 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 			
 			-- Force PIP content update to show marker immediately
 			pipR2T.contentNeedsUpdate = true
+
+			-- Activity focus: briefly move camera to this marker
+			local triggerFocus = miscState.activityFocusEnabled
+			if triggerFocus and isSpec and config.activityFocusIgnoreSpectators then
+				triggerFocus = false
+			end
+			if triggerFocus and not miscState.activityFocusActive then
+				-- Save current camera position before focusing
+				miscState.activityFocusSavedWcx = cameraState.targetWcx
+				miscState.activityFocusSavedWcz = cameraState.targetWcz
+				miscState.activityFocusSavedZoom = cameraState.targetZoom
+				-- Store marker position (re-asserted each frame to survive edge clamping)
+				miscState.activityFocusTargetX = mx
+				miscState.activityFocusTargetZ = mz
+				-- Move camera to marker
+				cameraState.targetWcx = mx
+				cameraState.targetWcz = mz
+				cameraState.targetZoom = math.max(miscState.activityFocusZoom, cameraState.targetZoom)
+				miscState.activityFocusTime = os.clock()
+				miscState.activityFocusActive = true
+			elseif triggerFocus and miscState.activityFocusActive then
+				-- Already focusing: update target to new marker, reset timer
+				miscState.activityFocusTargetX = mx
+				miscState.activityFocusTargetZ = mz
+				cameraState.targetWcx = mx
+				cameraState.targetWcz = mz
+				miscState.activityFocusTime = os.clock()
+			end
 		end
 	end
 
