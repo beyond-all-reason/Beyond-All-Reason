@@ -16,17 +16,12 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local CMD_INSERT = CMD.INSERT
-local CMD_REMOVE = CMD.REMOVE
-
 function gadget:Initialize()
-	gadgetHandler:RegisterAllowCommand(CMD_INSERT)
+	gadgetHandler:RegisterAllowCommand(CMD.INSERT)
+	gadgetHandler:RegisterAllowCommand(CMD.REMOVE)
 end
 
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-	-- accepts: CMD.INSERT
-	if CMD_REMOVE == cmdParams[2] or CMD_INSERT == cmdParams[2] then
-		return false
-	end
-	return true
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua, fromInsert)
+	-- accepts: CMD.REMOVE, CMD.INSERT
+	return fromInsert == nil
 end

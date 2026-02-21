@@ -1336,6 +1336,9 @@ end
 local CMD_ANY = CMD.ANY
 local CMD_NIL = CMD.NIL
 local CMD_BUILD = CMD.BUILD
+local CMD_INSERT = CMD.INSERT
+local unpackInsertParams = Game.Commands.UnpackInsertParams
+
 local allowCommandList = {[CMD_ANY] = {}}
 
 function gadgetHandler:ReorderAllowCommands(gadget, f)
@@ -1473,6 +1476,14 @@ end
 
 function gadgetHandler:AllowCommand(unitID, unitDefID, unitTeam,
 									cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+	local fromInsert
+	-- NB: State commands can be inserted, so should not update state or produce other side effects from
+	-- within g:AllowCommand callins without checking if they were inserted, first (`fromInsert ~= nil`).
+	if cmdID == CMD_INSERT then
+		fromInsert = cmdOptions
+		cmdTag, cmdID, cmdOptions = unpackInsertParams(cmdParams)
+	end
+
 	local cmdKey = cmdID or CMD_NIL
 	if not allowCommandList[cmdKey] then
 		if type(cmdKey) == "number" and cmdKey < 0 then
@@ -1485,7 +1496,7 @@ function gadgetHandler:AllowCommand(unitID, unitDefID, unitTeam,
 	tracy.ZoneBeginN("G:AllowCommand")
 	for _, g in ipairs(allowCommandList[cmdKey]) do
 		--tracy.ZoneBeginN("G:AllowCommand:"..g.ghInfo.name)
-		if not g:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua) then
+		if not g:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua, fromInsert) then
 			--tracy.ZoneEnd()
 			tracy.ZoneEnd()
 			return false

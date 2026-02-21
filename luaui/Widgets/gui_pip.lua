@@ -130,13 +130,15 @@ local config = {
 	zoomProjectileDetail = 0.12,
 	zoomExplosionDetail = 0.12,  -- Legacy, now using graduated visibility
 	drawExplosions = true,  -- Separate from projectiles
+	drawPlasmaTrails = true,  -- Show fading trails behind plasma/artillery projectiles
 	explosionOverlay = true,  -- Re-render explosions on top of unit icons (additive glow)
-	explosionOverlayAlpha = 0.6,  -- Strength of the above-icons explosion overlay (0-1)
+	explosionOverlayAlpha = 0.66,  -- Strength of the above-icons explosion overlay (0-1)
+	healthDarkenMax = 0.2,  -- Maximum darkening for damaged units on GL4 icons (0-1, 0.18 = 18%)
 	drawDecals = true,  -- Show ground decals (explosion scars, footprints) from the decals GL4 widget
 	drawCommandFX = true,  -- Show brief fading command lines when orders are given (like Commands FX widget)
 	commandFXIgnoreNewUnits = true,  -- Ignore commands given to newly finished units (rally point orders)
-	commandFXOpacity = 0.4,  -- Initial opacity of command FX lines
-	commandFXDuration = 0.75,  -- Seconds for command FX lines to fully fade out
+	commandFXOpacity = 0.3,  -- Initial opacity of command FX lines
+	commandFXDuration = 0.66,  -- Seconds for command FX lines to fully fade out
 	
 	-- Feature and overlay settings
 	hideEnergyOnlyFeatures = false,
@@ -401,6 +403,9 @@ local interactionState = {
 	pipMinimapBounds = nil,  -- {l, r, b, t} bounds of pip-minimap when visible, nil otherwise
 	pipMinimapDragging = false,  -- Whether we're dragging the pip-minimap to move camera
 	worldCameraDragging = false,  -- Whether we're left-click dragging to move the world camera (leftButtonPansCamera mode)
+	lastHoverCursorCheckTime = 0,  -- Throttle timer for GetUnitAtPoint hover checks
+	lastHoveredUnitID = nil,       -- Last unit found under cursor (for cursor icon updates)
+	lastHoveredFeatureID = nil,    -- Last feature found under cursor (for info widget)
 }
 
 -- Helper: leftButtonPansCamera only active when at minimum zoom (fully zoomed out) and not tracking a player
@@ -428,6 +433,11 @@ local miscState = {
 	minimapCameraRestored = false,  -- Whether minimap camera state was restored from config (for luaui reload)
 	minimapMinimized = false,  -- Whether the minimap is hidden via MinimapMinimize config (minimap mode only)
 	crashingUnits = {},  -- Units that are crashing (no icon should be drawn)
+	gameOverZoomingOut = false,  -- True while GameOver zoom-out animation is in progress
+	isGameOver = false,  -- True after GameOver callin fires (disables takeable blink etc.)
+	lastFullview = nil,  -- Previous fullview state, used to detect fullview ON→OFF transitions
+	specGhostScanDone = false,  -- Whether we've done a full ghost scan while fullview is ON
+	specGhostScanTime = 0,  -- Last time we ran the ghost scan (to throttle periodic rescans)
 }
 
 -- Ghost building cache: enemy buildings seen but no longer in direct LOS
@@ -461,6 +471,8 @@ local pools = {
 	buildCountByTexture = {}, -- Reused for DrawQueuedBuilds counts
 	savedDim = {l=0, r=0, b=0, t=0}, -- Reused for R2T dimension backup
 	projectileColor = {1, 0.5, 0, 1}, -- Reused for DrawProjectile default color
+	yellowColor = {1, 1, 0, 1}, -- Reused for non-blaster weapon projectile color
+	greyColor = {0.7, 0.7, 0.7, 1}, -- Reused for debris projectile color
 	trackingMerge = {}, -- Reused for tracking unit merge operations
 	trackingTempSet = {}, -- Reused for tracking unit deduplication
 	activeTrails = {}, -- Reused for tracking active missile trails
@@ -487,8 +499,8 @@ local gl4Icons = {
 	MAX_INSTANCES = 16384,    -- pre-allocated capacity (covers 16k units without resize)
 	LAYER_STRUCTURE = 0,      -- structures drawn first (bottom)
 	LAYER_GROUND = 1,         -- ground mobile units
-	LAYER_COMMANDER = 2,      -- commanders above ground
-	LAYER_AIR = 3,            -- air units drawn last (top)
+	LAYER_AIR = 2,            -- air units above ground
+	LAYER_COMMANDER = 3,      -- commanders drawn last (top, above air)
 	enabled = false,          -- Set true after successful init
 	atlas = nil,              -- Engine '$icons' texture string
 	atlasUVs = {},            -- [unitDefID] = {u0, v0, u1, v1} (UV rect in atlas, Y-flipped)
@@ -499,7 +511,7 @@ local gl4Icons = {
 	uniformLocs = {},         -- Cached uniform locations
 	unitDefCache = {},        -- [unitID] = unitDefID (lazy-populated, cleared on unit death/give)
 	unitTeamCache = {},       -- [unitID] = teamID (lazy-populated, cleared on unit give)
-	unitDefLayer = {},        -- [unitDefID] = layer (0=structure,1=ground,2=commander,3=air) — built once at init
+	unitDefLayer = {},        -- [unitDefID] = layer (0=structure,1=ground,2=air,3=commander) — built once at init
 	instanceData = nil,       -- Pre-allocated flat float array (MAX_INSTANCES * INSTANCE_STEP)
 	sortKeys = {},            -- [unitID] = sortKey (layer*1e6 + x+z) for stable position-based draw order
 	cachedPosX = {},          -- [unitID] = worldX (cached from sort pass, reused in processUnit)
@@ -595,11 +607,18 @@ local cache = {
 	weaponIsStarburst = {},
 	weaponIsLightning = {},
 	weaponIsFlame = {},
+	flameLifetime = {},   -- [wDefID] = seconds, estimated particle lifetime for flame weapons
+	flameBirthTime = {},  -- [pID] = gameTime, when we first saw this flame particle
+	flameSeeds = {},      -- [pID] = {offX, offZ, baseSize, v1, v2, v3} — stable per-particle variation
 	weaponIsBomb = {},
 	weaponIsParalyze = {},
 	weaponIsAA = {},
+	weaponIsJuno = {},
 	weaponIsTorpedo = {},
 	missileTrails = {},  -- Stores trail positions for missiles {[pID] = {positions = {{x,z,time},...}, lastUpdate = time}}
+	missileColors = {},  -- [wDefID] = {bodyR,bodyG,bodyB, noseR,noseG,noseB, finR,finG,finB, exhR,exhG,exhB}
+	plasmaTrails = {},   -- Stores trail positions for plasma/artillery projectiles (simpler, shorter trails)
+	weaponPlasmaTrailColor = {},  -- {r, g, b} per wDefID, based on cegTag
 	weaponSize = {},
 	weaponRange = {},
 	weaponThickness = {},
@@ -659,6 +678,13 @@ end
 -- Fade duration in seconds, intensity proportional to damage relative to max health
 local damageFlash = {}
 local DAMAGE_FLASH_DURATION = 0.4  -- seconds to fade from full red to normal
+
+-- Self-destruct tracking: event-driven set of units with active self-destruct countdown
+-- Maintained via UnitCommand callin + periodic refresh (every ~30 frames)
+-- selfDUnits[unitID] = true when unit has an active self-destruct countdown
+local selfDUnits = {}
+local selfDRefreshCounter = 0
+local SELFD_REFRESH_INTERVAL = 30  -- frames between full refresh scans
 
 -- Command FX: brief fading command lines when orders are given (like Commands FX widget)
 -- Each entry: {unitID, targetX, targetZ, cmdID, time, unitX, unitZ}
@@ -815,9 +841,9 @@ local spFunc = {
 	GetProjectileVelocity = Spring.GetProjectileVelocity,
 	GetUnitCommands = Spring.GetUnitCommands,
 	GetPlayerInfo = Spring.GetPlayerInfo,
-	GetCommandQueue = Spring.GetCommandQueue,
 	GetUnitIsStunned = Spring.GetUnitIsStunned,
 	GetTeamAllyTeamID = Spring.GetTeamAllyTeamID,
+	GetUnitSelfDTime = Spring.GetUnitSelfDTime,
 }
 
 local success, mapinfo = pcall(VFS.Include,"mapinfo.lua")
@@ -843,6 +869,14 @@ mapInfo.isLava = Spring.Lava.isLavaMap or (waterIsLava and waterIsLava ~= 0 and 
 mapInfo.hasWater = mapInfo.minGroundHeight < 0 or mapInfo.isLava
 mapInfo.dynamicWaterLevel = nil  -- current water/lava level (nil = static sea level = 0)
 mapInfo.lastCheckedWaterLevel = nil  -- for change detection
+
+-- Eagerly read lava level if available (avoids wrong first R2T render on lava maps)
+if mapInfo.isLava or mapInfo.hasWater then
+	local initLavaLevel = Spring.GetGameRulesParam("lavaLevel")
+	if initLavaLevel and initLavaLevel ~= -99999 then
+		mapInfo.dynamicWaterLevel = initLavaLevel
+	end
+end
 
 
 
@@ -1021,11 +1055,42 @@ local buttons = {
 			if state.losViewEnabled then
 				-- Store the current allyteam when enabling LOS view
 				state.losViewAllyTeam = Spring.GetMyAllyTeamID()
+				-- Immediately scan enemy buildings the viewed allyteam knows about
+				-- Only include buildings the allyteam has seen (LOS_INLOS or LOS_PREVLOS)
+				if cameraState.mySpecState then
+					for k in pairs(ghostBuildings) do ghostBuildings[k] = nil end
+					local scanAllyTeam = state.losViewAllyTeam
+					local allUnits = Spring.GetAllUnits()
+					for _, uID in ipairs(allUnits) do
+						local defID = Spring.GetUnitDefID(uID)
+						if defID and cache.isBuilding[defID] then
+							local uTeam = Spring.GetUnitTeam(uID)
+							local uAllyTeam = Spring.GetTeamAllyTeamID(uTeam)
+							if uAllyTeam ~= scanAllyTeam then
+								-- Only ghost buildings the viewed allyteam has ever seen
+								local losBits = Spring.GetUnitLosState(uID, scanAllyTeam, true)
+								if losBits and (losBits % 2 >= 1 or losBits % 8 >= 4) then
+									local x, _, z = Spring.GetUnitBasePosition(uID)
+									if x then
+										ghostBuildings[uID] = { defID = defID, x = x, z = z, teamID = uTeam }
+									end
+								end
+							end
+						end
+					end
+				end
 			else
 				state.losViewAllyTeam = nil
+				-- Clear ghost buildings when disabling LOS view as spectator
+				-- (spectators with full view see everything, ghosts are meaningless)
+				if cameraState.mySpecState then
+					for k in pairs(ghostBuildings) do ghostBuildings[k] = nil end
+				end
 			end
 			pipR2T.losNeedsUpdate = true
 			pipR2T.frameNeedsUpdate = true
+			pipR2T.unitsNeedsUpdate = true
+			pipR2T.contentNeedsUpdate = true
 		end
 	},
 	{
@@ -1375,6 +1440,7 @@ uniform float iconBaseSize;  // iconRadiusZoomDistMult (PIP pixels)
 uniform float gameTime;      // for radar wobble (pauses with game)
 uniform float wallClockTime;  // for blink/pulse animations (always advances)
 uniform float outlinePass;   // 0 = normal icon draw, 1 = tracked unit outline pass
+uniform float healthDarkenMax;  // max darkening fraction for damaged units
 
 out vec4 v_atlasUV;
 out vec4 v_color;
@@ -1382,12 +1448,17 @@ out vec2 v_halfSizeNDC;
 flat out float v_flash;
 
 void main() {
-// Decode bitfield flags: bit0=radar(1), bit1=takeable(2), bit2=stunned(4), bit3=tracked(8)
+// Decode bitfield flags: bits 0-4 = status flags, bits 5+ = health percentage (0-100)
+// Packed as: healthPct * 32 + bitFlags
 float flags = worldPos_size.w;
-float isRadar    = mod(floor(flags      ), 2.0);  // bit 0
-float isTakeable = mod(floor(flags / 2.0 ), 2.0);  // bit 1
-float isStunned  = mod(floor(flags / 4.0 ), 2.0);  // bit 2
-float isTracked  = mod(floor(flags / 8.0 ), 2.0);  // bit 3
+float bitFlags = mod(flags, 32.0);
+float healthPct = floor(flags / 32.0);  // 0-100
+float healthFrac = clamp(healthPct / 100.0, 0.0, 1.0);  // 0.0-1.0
+float isRadar    = mod(floor(bitFlags      ), 2.0);  // bit 0
+float isTakeable = mod(floor(bitFlags / 2.0 ), 2.0);  // bit 1
+float isStunned  = mod(floor(bitFlags / 4.0 ), 2.0);  // bit 2
+float isTracked  = mod(floor(bitFlags / 8.0 ), 2.0);  // bit 3
+float isSelfD    = mod(floor(bitFlags / 16.0), 2.0);  // bit 4
 
 // Decode wobble phase and damage flash from packed value
 // wobblePhase in [0, 2pi), packed as: phase + floor(flash*100) * 7.0
@@ -1425,14 +1496,28 @@ float alpha = 1.0 - 0.25 * isRadar;  // radar icons at 75% alpha
 float takeableBlink = step(0.0, sin(wallClockTime * 9.42));  // square wave ~1.5Hz
 alpha *= mix(1.0, takeableBlink, isTakeable);
 
+// Health indication: darken damaged units (darkening only, no color shift)
+float damage = 1.0 - healthFrac;  // 0=full health, 1=dead
+col = max(col - vec3(damage * healthDarkenMax), vec3(0.0));  // flat darken
+
 // Stunned: subtle white-blue tint pulse (~2Hz, gentle)
 float stunnedPulse = 0.5 + 0.5 * sin(wallClockTime * 12.57);  // ~2Hz sine
 col = mix(col, vec3(0.82, 0.85, 1.0), 0.45 * stunnedPulse * isStunned);
 
-// Outline pass: only tracked icons survive, enlarged + white
+// Self-destruct: red-orange pulsing tint (~3Hz, urgent)
+float selfDPulse = 0.55 + 0.45 * sin(wallClockTime * 18.85);  // ~3Hz sine
+col = mix(col, vec3(1.0, 0.25, 0.0), 0.7 * selfDPulse * isSelfD);
+
+// Outline pass: tracked icons get white outline, selfD icons get red-orange pulsing outline
 if (outlinePass > 0.5) {
-  if (isTracked < 0.5) {
-    alpha = 0.0;  // cull non-tracked in outline pass
+  float hasOutline = max(isTracked, isSelfD);
+  if (hasOutline < 0.5) {
+    alpha = 0.0;  // cull icons without outlines
+  } else if (isSelfD > 0.5) {
+    // Self-destruct: red-orange pulsing outline
+    float selfDOutlinePulse = 0.5 + 0.5 * sin(wallClockTime * 18.85);
+    col = vec3(1.0, 0.3, 0.0);
+    alpha = 0.4 + 0.4 * selfDOutlinePulse;
   } else {
     col = vec3(1.0, 1.0, 1.0);
     alpha = 0.5;
@@ -1441,8 +1526,9 @@ if (outlinePass > 0.5) {
 
 v_color = vec4(col, alpha);
 v_flash = flashFactor;
-// Expand icon size slightly for outline pass (tracked units only)
-float sizeExpand = 1.0 + 0.12 * outlinePass * isTracked;
+// Expand icon size slightly for outline pass (tracked or selfD units)
+float hasOutline = max(isTracked, isSelfD);
+float sizeExpand = 1.0 + 0.12 * outlinePass * hasOutline;
 v_halfSizeNDC = vec2(iconBaseSize * worldPos_size.z * sizeExpand) * ndcScale;
 }
 	]],
@@ -1614,8 +1700,10 @@ gl4Prim.quadShaderCode = {
 		uniform vec2 rotCenter;
 
 		out vec4 v_color;
-		out vec2 v_halfSizeNDC;
+		out vec2 v_halfSizePx;
 		out float v_angle;
+		out vec2 v_ndcScale;
+		out vec2 v_rotSC;
 
 		void main() {
 			vec2 pipPos = wtp_offset + posSizeIn.xy * wtp_scale;
@@ -1624,8 +1712,9 @@ gl4Prim.quadShaderCode = {
 			gl_Position = vec4(pipPos * ndcScale - 1.0, 0.0, 1.0);
 
 			float scalePIP = abs(wtp_scale.x);
-			v_halfSizeNDC = vec2(posSizeIn.z * scalePIP * ndcScale.x,
-			                     posSizeIn.w * scalePIP * ndcScale.y);
+			v_halfSizePx = vec2(posSizeIn.z * scalePIP, posSizeIn.w * scalePIP);
+			v_ndcScale = ndcScale;
+			v_rotSC = rotSC;
 			v_color = colorIn;
 			v_angle = radians(angleFlags.x);
 		}
@@ -1636,26 +1725,36 @@ gl4Prim.quadShaderCode = {
 		layout(triangle_strip, max_vertices = 4) out;
 
 		in vec4 v_color[];
-		in vec2 v_halfSizeNDC[];
+		in vec2 v_halfSizePx[];
 		in float v_angle[];
+		in vec2 v_ndcScale[];
+		in vec2 v_rotSC[];
 
 		out vec4 f_color;
 
 		void main() {
 			vec4 c = gl_in[0].gl_Position;
-			vec2 hs = v_halfSizeNDC[0];
+			vec2 hs = v_halfSizePx[0];
+			vec2 ndc = v_ndcScale[0];
+			vec2 rsc = v_rotSC[0];
 			f_color = v_color[0];
 			float a = v_angle[0];
 			float sa = sin(a), ca = cos(a);
 
-			// Rotated corner offsets
-			vec2 dx = vec2(ca, sa) * hs.x;
-			vec2 dy = vec2(-sa, ca) * hs.y;
+			// Combine quad rotation with map rotation to get total rotation
+			// sin(a+m) = sa*cos(m) + ca*sin(m), cos(a+m) = ca*cos(m) - sa*sin(m)
+			float sT = sa * rsc.y + ca * rsc.x;
+			float cT = ca * rsc.y - sa * rsc.x;
 
-			gl_Position = vec4(c.xy - dx - dy, 0, 1); EmitVertex();
-			gl_Position = vec4(c.xy + dx - dy, 0, 1); EmitVertex();
-			gl_Position = vec4(c.xy - dx + dy, 0, 1); EmitVertex();
-			gl_Position = vec4(c.xy + dx + dy, 0, 1); EmitVertex();
+			// Rotate in pixel space (uniform coordinates) to avoid aspect-ratio distortion
+			vec2 dx = vec2(cT, sT) * hs.x;
+			vec2 dy = vec2(-sT, cT) * hs.y;
+
+			// Convert pixel offsets to NDC
+			gl_Position = vec4(c.xy + (-dx - dy) * ndc, 0, 1); EmitVertex();
+			gl_Position = vec4(c.xy + ( dx - dy) * ndc, 0, 1); EmitVertex();
+			gl_Position = vec4(c.xy + (-dx + dy) * ndc, 0, 1); EmitVertex();
+			gl_Position = vec4(c.xy + ( dx + dy) * ndc, 0, 1); EmitVertex();
 			EndPrimitive();
 		}
 	]],
@@ -1803,6 +1902,7 @@ local function InitGL4Icons()
 		gameTime     = gl.GetUniformLocation(shader, "gameTime"),
 		wallClockTime = gl.GetUniformLocation(shader, "wallClockTime"),
 		outlinePass  = gl.GetUniformLocation(shader, "outlinePass"),
+		healthDarkenMax = gl.GetUniformLocation(shader, "healthDarkenMax"),
 	}
 
 	gl4Icons.enabled = true
@@ -2963,7 +3063,23 @@ local function DrawFeature(fID, noTextures)
 	glFunc.PopMatrix()
 end
 
+-- Shared state for beam line drawing (avoids per-beam closure allocation)
+local _line = {}
+local function drawLine()
+	glFunc.Vertex(_line.x1, _line.y1, 0)
+	glFunc.Vertex(_line.x2, _line.y2, 0)
+end
+
+-- Shared state for per-vertex-colored line drawing (plasma trails)
+local function drawColoredLine()
+	glFunc.Color(_line.r, _line.g, _line.b, _line.a1)
+	glFunc.Vertex(_line.x1, _line.y1, 0)
+	glFunc.Color(_line.r, _line.g, _line.b, _line.a2)
+	glFunc.Vertex(_line.x2, _line.y2, 0)
+end
+
 local function DrawProjectile(pID)
+	local mSin, mCos, mAtan2, mMin, mMax, mLog = math.sin, math.cos, math.atan2, math.min, math.max, math.log
 	local px, py, pz = spFunc.GetProjectilePosition(pID)
 	if not px then return end
 
@@ -3192,22 +3308,77 @@ local function DrawProjectile(pID)
 
 		-- Check if this is a flame weapon (Flame - particle stream effect)
 		if cache.weaponIsFlame[pDefID] then
-			local colorData = cache.weaponColor[pDefID]
-			local seed = pID * 123.456 + px * 10 + pz * 10
-			local particleSeed = seed * 789.012
-			local offsetX = (math.sin(particleSeed * 12.9898) * 2 - 1) * 4
-			local offsetZ = (math.sin(particleSeed * 78.233) * 2 - 1) * 4
-			local particleSize = 10 + math.abs(math.sin(particleSeed * 43.758)) * 4
-			local colorVariation = math.abs(math.sin(particleSeed * 91.321))
-			local r = 1.0
-			local g = 0.45 + colorVariation * 0.3
-			local b = 0.05
+			-- Get or create cached per-particle seeds (computed once at birth, not every frame)
+			local seeds = cache.flameSeeds[pID]
+			if not seeds then
+				local ps = pID * 789.012
+				seeds = {
+					(mSin(ps * 12.9898) * 2 - 1) * 4,   -- offX
+					(mSin(ps * 78.233) * 2 - 1) * 4,    -- offZ
+					10 + (mSin(ps * 43.758) % 1) * 4,   -- baseSize (abs via modulo)
+					(mSin(ps * 91.321) % 1),            -- v1 (0-1)
+					(mSin(ps * 37.819) % 1),            -- v2 (0-1)
+					mSin(ps * 63.241),                   -- v3 (-1 to 1)
+				}
+				cache.flameSeeds[pID] = seeds
+				cache.flameBirthTime[pID] = gameTime
+			end
+			local offsetX, offsetZ, particleSize = seeds[1], seeds[2], seeds[3]
+			local v1, v2, v3 = seeds[4], seeds[5], seeds[6]
+
+			-- Compute age from cached birth time
+			local lifetime = cache.flameLifetime[pDefID] or 1.0
+			local elapsed = gameTime - cache.flameBirthTime[pID]
+			local age = elapsed < lifetime and elapsed / lifetime or 1
+
+			local r, g, b, alpha
+
+			if age < 0.35 then
+				-- FRONT: white-hot to bright yellow — the active flame, longest phase
+				local t = age / 0.35
+				r = 1.0
+				g = 0.95 - t * (0.15 + v2 * 0.05)
+				b = 0.65 - t * (0.55 + v1 * 0.08)
+				alpha = 1.0
+			elseif age < 0.65 then
+				-- MID: yellow → orange → red, with variation
+				local t = (age - 0.35) / 0.3
+				r = 1.0 - t * 0.08 * v2
+				g = (0.75 - t * 0.5) * (0.7 + v1 * 0.3)
+				b = 0.1 * (1 - t) * v2
+				-- Occasionally inject brighter yellow patches
+				if v3 > 0.4 then
+					g = g + 0.12
+				end
+				alpha = 0.95 - t * 0.1
+			else
+				-- TAIL: dark red with heavy variation (age 0.65 → 1.0)
+				local t = (age - 0.65) / 0.35
+				local darkening = 0.25 + t * 0.5
+				-- Base: dark smoky red
+				r = (0.8 - darkening) * (0.6 + v1 * 0.4)
+				g = (0.15 - t * 0.1) * (0.3 + v2 * 0.7)
+				b = 0.02 * (1 - t)
+				-- Random flame bursts: some particles stay red-yellow
+				if v3 > 0.45 then
+						r = mMin(1, r + 0.35)
+					g = g + 0.15 * (1 - t)
+				end
+				-- Random near-black: some particles go very dark
+				if v3 < -0.3 then
+					r = r * 0.35
+					g = g * 0.25
+				end
+				alpha = 0.8 - t * 0.35
+			end
+
+			-- Grow particles as they age
+			particleSize = particleSize * (1 + age * 0.6)
 
 			if gl4Prim.enabled then
-				-- GL4 path: one circle for the flame particle
-				GL4AddCircle(px + offsetX, pz - offsetZ, particleSize, 1.0,
-					math.min(1, r*1.25), math.min(1, g*1.25), math.min(1, b*1.25),
-					r, g, b, 0.6, 0)
+				GL4AddCircle(px + offsetX, pz - offsetZ, particleSize, alpha,
+					mMin(1, r*1.2), mMin(1, g*1.2), mMin(1, b*1.2),
+					r, g, b, 0.55 * alpha, 0)
 			end
 			return -- Don't draw as regular projectile
 		end
@@ -3236,20 +3407,24 @@ local function DrawProjectile(pID)
 			-- Calculate angle from velocity direction
 			local vx, vy, vz = spFunc.GetProjectileVelocity(pID)
 			if vx and (vx ~= 0 or vz ~= 0) then
-				angle = math.atan2(vx, vz) * mapInfo.rad2deg
+				angle = mAtan2(vx, vz) * mapInfo.rad2deg
 			end
 		-- Non-laser, non-blaster weapon projectiles - use cached size data
 		elseif not cache.projectileSizes[pDefID] then
 			-- Get size from cached weapon data
 			local wSize = cache.weaponSize[pDefID]
 			if wSize then
-				-- Scale smaller projectiles down more than larger ones
+				-- Scale smaller projectiles up more; diminishing returns for large ones
 				if wSize < 2 then
 					cache.projectileSizes[pDefID] = wSize * 1.2 -- Small projectiles: scale by 1.2
 				elseif wSize < 4 then
 					cache.projectileSizes[pDefID] = wSize * 1.5 -- Medium-small: scale by 1.5
+				elseif wSize < 6 then
+					cache.projectileSizes[pDefID] = wSize * 1.8 -- Medium: scale by 1.8
 				else
-					cache.projectileSizes[pDefID] = wSize * 2 -- Large projectiles: scale by 2
+					-- Large projectiles: logarithmic scaling to prevent oversized missiles
+					-- wSize 6 → 10.8, wSize 10 → 14.5, wSize 20 → 19.3
+					cache.projectileSizes[pDefID] = 6 * 1.8 * (1 + mLog(wSize / 6) * 0.55)
 				end
 			else
 				cache.projectileSizes[pDefID] = 4
@@ -3261,12 +3436,12 @@ local function DrawProjectile(pID)
 
 	-- Only set color for non-blaster weapons
 		if not cache.weaponIsBlaster[pDefID] then
-			color = {1, 1, 0, 1}
+			color = pools.yellowColor
 		end
 	else
 		-- This is debris or other non-weapon projectile
 		size = 2
-		color = {0.7, 0.7, 0.7, 1} -- Light gray for debris
+		color = pools.greyColor
 	end
 
 	-- Draw projectile as a quad (rectangular for missiles, square for others)
@@ -3315,7 +3490,7 @@ local function DrawProjectile(pID)
 		local vx, vy, vz = spFunc.GetProjectileVelocity(pID)
 		if vx and (vx ~= 0 or vz ~= 0) then
 			-- Calculate angle based on velocity direction
-			angle = math.atan2(vx, vz) * mapInfo.rad2deg
+			angle = mAtan2(vx, vz) * mapInfo.rad2deg
 		elseif cache.weaponIsStarburst[pDefID] then
 			-- Starburst missiles launching straight up (only vy) should point upward
 			angle = 180
@@ -3332,6 +3507,8 @@ local function DrawProjectile(pID)
 			local isStarburst = cache.weaponIsStarburst[pDefID]
 			local isAA = cache.weaponIsAA[pDefID]
 			local isTorpedo = cache.weaponIsTorpedo[pDefID]
+			local isParalyze = cache.weaponIsParalyze[pDefID]
+			local isJuno = cache.weaponIsJuno[pDefID]
 			if not trail then
 				-- Pre-allocate position slots to avoid repeated table creation
 				-- Use ring buffer pattern: positions stored at indices, head points to newest
@@ -3361,7 +3538,7 @@ local function DrawProjectile(pID)
 				trailLen = math.ceil(trailLife / trailInterval) + 2
 
 				trail = {positions = {}, head = 0, count = 0, maxLen = trailLen,
-					lastUpdate = 0, isStarburst = isStarburst, isAA = isAA, isTorpedo = isTorpedo, size = missileSize,
+					lastUpdate = 0, isStarburst = isStarburst, isAA = isAA, isTorpedo = isTorpedo, isParalyze = isParalyze, isJuno = isJuno, size = missileSize,
 					speed = projSpeed, trailLife = trailLife}
 				cache.missileTrails[pID] = trail
 			end
@@ -3399,8 +3576,12 @@ local function DrawProjectile(pID)
 				invTrailLifetime = 1 / trailLifetime
 				if trail.isStarburst then
 					trailColorR, trailColorG, trailColorB = 0.12, 0.12, 0.12  -- Darker smoke
+				elseif trail.isJuno then
+					trailColorR, trailColorG, trailColorB = 0.2, 0.45, 0.2  -- Green Juno trail
 				elseif trail.isAA then
 					trailColorR, trailColorG, trailColorB = 0.85, 0.45, 0.55  -- Rose pink
+				elseif trail.isParalyze then
+					trailColorR, trailColorG, trailColorB = 0.4, 0.35, 0.75  -- Blue-violet paralyzer trail
 				elseif trail.isTorpedo then
 					trailColorR, trailColorG, trailColorB = 0.25, 0.3, 0.42  -- Grey-blue bubble trail
 				else
@@ -3466,18 +3647,15 @@ local function DrawProjectile(pID)
 	elseif pDefID and cache.weaponIsMissile[pDefID] then
 		-- Missile shape: body + nose + tail fins offset along flight direction
 		local rad = angle * 0.01745329  -- pi/180
-		local sinA = math.sin(rad)
-		local cosA = math.cos(rad)
+		local sinA = mSin(rad)
+		local cosA = mCos(rad)
 
-		-- Torpedo/depth charge: blue-tinted body
-		local bodyR, bodyG, bodyB = 0.88, 0.88, 0.84
-		local noseR, noseG, noseB = 0.92, 0.92, 0.88
-		local finR, finG, finB = 0.82, 0.82, 0.78
-		if cache.weaponIsTorpedo[pDefID] then
-			bodyR, bodyG, bodyB = 0.7, 0.78, 0.9
-			noseR, noseG, noseB = 0.75, 0.82, 0.95
-			finR, finG, finB = 0.6, 0.7, 0.85
-		end
+		-- Color variants from cache (computed once at init)
+		local mc = cache.missileColors[pDefID]
+		if not mc then mc = cache.missileColors[0] end  -- fallback default
+		local bodyR, bodyG, bodyB = mc[1], mc[2], mc[3]
+		local noseR, noseG, noseB = mc[4], mc[5], mc[6]
+		local finR, finG, finB = mc[7], mc[8], mc[9]
 
 		-- Main body: shifted 0.2*height forward (matching legacy -0.7h to +0.3h center)
 		local bodyFwd = height * 0.2
@@ -3496,10 +3674,7 @@ local function DrawProjectile(pID)
 
 		-- Exhaust glow at the very back
 		local exhFwd = -height * 0.38
-		local exhR, exhG, exhB = 1.0, 0.7, 0.3
-		if cache.weaponIsTorpedo[pDefID] then
-			exhR, exhG, exhB = 0.5, 0.7, 1.0  -- Blue bubble exhaust
-		end
+		local exhR, exhG, exhB = mc[10], mc[11], mc[12]
 		GL4AddQuad(px + sinA * exhFwd, pz + cosA * exhFwd,
 			width * 0.5, height * 0.1, angle, exhR, exhG, exhB, color[4] * 0.6)
 	elseif pDefID and cache.weaponIsBomb[pDefID] then
@@ -3507,20 +3682,20 @@ local function DrawProjectile(pID)
 		local vx, vy, vz = spFunc.GetProjectileVelocity(pID)
 		local bombAngle = 0
 		if vx and (vx ~= 0 or vz ~= 0) then
-			bombAngle = math.atan2(vx, vz) * mapInfo.rad2deg
+			bombAngle = mAtan2(vx, vz) * mapInfo.rad2deg
 		end
 
 		-- Scale bomb size with explosion radius as damage proxy (bigger AOE = bigger bomb)
 		local explosionR = cache.weaponExplosionRadius[pDefID] or 10
-		local damageFactor = 0.6 + math.min(0.6, explosionR * 0.004) -- 0.64 (small) to 1.2 (big AOE)
+		local damageFactor = 0.6 + mMin(0.6, explosionR * 0.004) -- 0.64 (small) to 1.2 (big AOE)
 		local bombSize = (cache.weaponSize[pDefID] or 2) * 0.7 * damageFactor
 		local bombW = bombSize * 1.3 * zoomScale
 		local bombH = bombSize * 1.8 * zoomScale
 
 		-- Main body: grey-white rectangle
 		local rad = bombAngle * 0.01745329
-		local sinA = math.sin(rad)
-		local cosA = math.cos(rad)
+		local sinA = mSin(rad)
+		local cosA = mCos(rad)
 
 		GL4AddQuad(px, pz, bombW, bombH * 0.45, bombAngle, 0.73, 0.73, 0.71, 1.0)
 
@@ -3535,8 +3710,8 @@ local function DrawProjectile(pID)
 		-- 	bombW * 1.6, bombH * 0.12, bombAngle, 0.64, 0.64, 0.62, 0.9)
 	elseif pDefID and cache.weaponIsPlasma[pDefID] then
 		-- Plasma gradient circle (reduce size when zoomed in to stay proportional to world scale)
-		local plasmaZoomReduction = math.min(1, 0.45 + 0.55 * (1 - cameraState.zoom))
-		local radius = math.max(width, height) * plasmaZoomReduction
+		local plasmaZoomReduction = mMin(1, 0.45 + 0.55 * (1 - cameraState.zoom))
+		local radius = mMax(width, height) * plasmaZoomReduction
 		local coreWhiteness = 0.9
 		local coreR, coreG, coreB, outerR, outerG, outerB
 		if cache.weaponIsAA[pDefID] then
@@ -3553,11 +3728,95 @@ local function DrawProjectile(pID)
 			outerB = math.max(0, color[3] - orangeTint * 0.5)
 		end
 		GL4AddCircle(px, pz, radius, color[4], coreR, coreG, coreB, outerR, outerG, outerB, color[4], 0)
+
+		-- Plasma trail: short fading trail for artillery/cannon projectiles with CEG trails
+		local trailColor = config.drawPlasmaTrails and cache.weaponPlasmaTrailColor[pDefID]
+		if trailColor then
+			local trail = cache.plasmaTrails[pID]
+			local now = os.clock()
+			if not trail then
+				-- Short ring buffer: 6 slots for max ~4 visible line segments
+				local projSpeed = 10
+				local wDef = WeaponDefs and WeaponDefs[pDefID]
+				if wDef and wDef.projectilespeed then
+					projSpeed = wDef.projectilespeed * 30
+				end
+				-- Slower projectiles get slightly longer trails
+				local trailLife = mMax(0.25, mMin(0.6, 0.8 - projSpeed * 0.03))
+				trail = {positions = {}, head = 0, count = 0, maxLen = 6,
+					lastUpdate = 0, trailLife = trailLife,
+					size = cache.weaponSize[pDefID] or 1}
+				cache.plasmaTrails[pID] = trail
+			end
+
+			-- Update position ring buffer
+			if now - trail.lastUpdate >= 0.06 then
+				trail.head = trail.head + 1
+				if trail.head > trail.maxLen then trail.head = 1 end
+				local pos = trail.positions[trail.head]
+				if pos then
+					pos.x, pos.z, pos.time = px, pz, now
+				else
+					trail.positions[trail.head] = {x = px, z = pz, time = now}
+				end
+				trail.lastUpdate = now
+				if trail.count < trail.maxLen then trail.count = trail.count + 1 end
+			end
+
+			-- Draw trail lines — each segment gets its own width (diminishing 15% per step)
+			local trailCount = trail.count
+			if trailCount >= 2 then
+				local invLife = 1 / trail.trailLife
+				local tR, tG, tB = trailColor[1], trailColor[2], trailColor[3]
+				local wcx, wcz = cameraState.wcx, cameraState.wcz
+				local positions = trail.positions
+				local head = trail.head
+				local maxLen = trail.maxLen
+				local resScale = render.contentScale or 1
+				-- Trail width = plasma ball's on-screen pixel diameter (via world-to-pixel scale)
+				-- wtp.scaleX converts world units to screen pixels; naturally shrinks when zoomed out
+				local baseWidth = mMin(radius * wtp.scaleX * 2, 14 * resScale)
+				if baseWidth < 1.5 * resScale then baseWidth = 1.5 * resScale end
+				local minSegW = 1.0 * resScale
+				local segDecay = 1.0
+				_line.r, _line.g, _line.b = tR, tG, tB
+
+				for j = 0, trailCount - 2 do
+					local idx1 = head - j
+					if idx1 < 1 then idx1 = idx1 + maxLen end
+					local idx2 = head - j - 1
+					if idx2 < 1 then idx2 = idx2 + maxLen end
+					local p1 = positions[idx1]
+					local p2 = positions[idx2]
+					if p1 and p2 then
+						local fade1 = 1 - (now - p1.time) * invLife
+						local fade2 = 1 - (now - p2.time) * invLife
+						if fade1 < 0 then fade1 = 0 end
+						if fade2 < 0 then fade2 = 0 end
+						if fade1 > 0 or fade2 > 0 then
+							local segWidth = baseWidth * segDecay
+							if segWidth < minSegW then segWidth = minSegW end
+							_line.x1 = p1.x - wcx
+							_line.y1 = wcz - p1.z
+							_line.x2 = p2.x - wcx
+							_line.y2 = wcz - p2.z
+							_line.a1 = 0.75 * fade1
+							_line.a2 = 0.75 * fade2
+							glFunc.LineWidth(segWidth)
+							glFunc.BeginEnd(glConst.LINES, drawColoredLine)
+						end
+					end
+					segDecay = segDecay * 0.85
+				end
+				glFunc.LineWidth(1 * resScale)
+			end
+		end
 	end
 end
 
 local function DrawLaserBeams()
 	if #cache.laserBeams == 0 then return end
+	local mMax, mMin = math.max, math.min
 
 	local n = #cache.laserBeams
 	local i = 1
@@ -3565,7 +3824,7 @@ local function DrawLaserBeams()
 	-- Precompute zoom-dependent scaling once
 	local resScale = render.contentScale or 1
 	-- Smooth beam width scaling: boost when zoomed out, no hard threshold
-	local zoomScale = math.max(0.5, cameraState.zoom / 70) + 0.08 / (cameraState.zoom + 0.04)
+	local zoomScale = mMax(0.5, cameraState.zoom / 70) + 0.08 / (cameraState.zoom + 0.04)
 	local wcx_cached = cameraState.wcx  -- Cache these for loop
 	local wcz_cached = cameraState.wcz
 
@@ -3594,17 +3853,17 @@ local function DrawLaserBeams()
 				beamMinZ, beamMaxZ = math.huge, -math.huge
 				for j = 1, #beam.segments do
 					local seg = beam.segments[j]
-					beamMinX = math.min(beamMinX, seg.x)
-					beamMaxX = math.max(beamMaxX, seg.x)
-					beamMinZ = math.min(beamMinZ, seg.z)
-					beamMaxZ = math.max(beamMaxZ, seg.z)
+					if seg.x < beamMinX then beamMinX = seg.x end
+					if seg.x > beamMaxX then beamMaxX = seg.x end
+					if seg.z < beamMinZ then beamMinZ = seg.z end
+					if seg.z > beamMaxZ then beamMaxZ = seg.z end
 				end
 			else
 				-- For regular beams, check origin and target
-				beamMinX = math.min(beam.ox, beam.tx)
-				beamMaxX = math.max(beam.ox, beam.tx)
-				beamMinZ = math.min(beam.oz, beam.tz)
-				beamMaxZ = math.max(beam.oz, beam.tz)
+				beamMinX = beam.ox < beam.tx and beam.ox or beam.tx
+				beamMaxX = beam.ox > beam.tx and beam.ox or beam.tx
+				beamMinZ = beam.oz < beam.tz and beam.oz or beam.tz
+				beamMaxZ = beam.oz > beam.tz and beam.oz or beam.tz
 			end
 
 		-- Skip if beam is completely outside visible area
@@ -3618,8 +3877,8 @@ local function DrawLaserBeams()
 			if beam.isLightning then
 				-- Draw lightning bolt with jagged segments
 				local alpha = 1 - (age / 0.15) -- Fade out over lifetime
-				local glowLW = math.max(1, beam.thickness * 4.5 * zoomScale * resScale)
-				local coreLW = math.max(1, beam.thickness * 1.4 * zoomScale * resScale)
+				local glowLW = mMax(1, beam.thickness * 4.5 * zoomScale * resScale)
+				local coreLW = mMax(1, beam.thickness * 1.4 * zoomScale * resScale)
 				local coreR = 0.9 + beam.r * 0.1
 				local coreG = 0.9 + beam.g * 0.1
 				local coreB = 0.95 + beam.b * 0.05
@@ -3628,59 +3887,52 @@ local function DrawLaserBeams()
 					local seg1 = beam.segments[j]
 					local seg2 = beam.segments[j + 1]
 					local avgBrightness = (seg1.brightness + seg2.brightness) * 0.5
-					local sx1 = seg1.x - cameraState.wcx
-					local sy1 = cameraState.wcz - seg1.z
-					local sx2 = seg2.x - cameraState.wcx
-					local sy2 = cameraState.wcz - seg2.z
+					_line.x1 = seg1.x - cameraState.wcx
+					_line.y1 = cameraState.wcz - seg1.z
+					_line.x2 = seg2.x - cameraState.wcx
+					_line.y2 = cameraState.wcz - seg2.z
 
 					glFunc.LineWidth(glowLW)
 					glFunc.Color(beam.r, beam.g, beam.b, alpha * 0.4 * avgBrightness)
-					glFunc.BeginEnd(GL.LINES, function()
-						glFunc.Vertex(sx1, sy1, 0)
-						glFunc.Vertex(sx2, sy2, 0)
-					end)
+					glFunc.BeginEnd(GL.LINES, drawLine)
 					glFunc.LineWidth(coreLW)
 					glFunc.Color(coreR, coreG, coreB, alpha * 0.98 * avgBrightness)
-					glFunc.BeginEnd(GL.LINES, function()
-						glFunc.Vertex(sx1, sy1, 0)
-						glFunc.Vertex(sx2, sy2, 0)
-					end)
+					glFunc.BeginEnd(GL.LINES, drawLine)
 				end
 			else
 				-- Draw regular laser beam as a line with glow effect
 				local alpha = 1 - (age / 0.15) -- Fade out over lifetime
 				local thickness = beam.thickness or 2
-				-- Exaggerate thickness differences: small (1) stays small, big (8) gets bigger
-				local scaledThickness = thickness * (0.6 + thickness * 0.12)
+				-- Tighter thickness scaling to keep thin lasers thin
+				local scaledThickness = 0.5 + thickness * 0.35
 
-				-- Draw directly with per-beam line width (immediate mode inside PushMatrix)
+				-- Aggressive zoom dampening for thin beams
+				local thicknessFactor = mMin(1, mMax(0, (thickness - 2) * 0.33))
+				-- Also dampen by zoom level: at very zoomed-out PIP views, suppress inflation
+				local zoomDampen = mMin(1, cameraState.zoom * 20 + 0.15)
+				local beamZoomScale = 1 + (zoomScale - 1) * thicknessFactor * zoomDampen
+
 				-- Transform world coords to PushMatrix local coords
-				local x1 = beam.ox - cameraState.wcx
-				local y1 = cameraState.wcz - beam.oz
-				local x2 = beam.tx - cameraState.wcx
-				local y2 = cameraState.wcz - beam.tz
+				_line.x1 = beam.ox - cameraState.wcx
+				_line.y1 = cameraState.wcz - beam.oz
+				_line.x2 = beam.tx - cameraState.wcx
+				_line.y2 = cameraState.wcz - beam.tz
 
 				-- Glow layer (outer, colored, additive-like via alpha)
-				local glowWidth = math.max(1, scaledThickness * 3.5 * zoomScale * resScale)
+				local glowWidth = mMax(1, mMin(10 * resScale, scaledThickness * 3.0 * beamZoomScale * resScale))
 				glFunc.LineWidth(glowWidth)
 				glFunc.Color(beam.r, beam.g, beam.b, alpha * 0.35)
-				glFunc.BeginEnd(GL.LINES, function()
-					glFunc.Vertex(x1, y1, 0)
-					glFunc.Vertex(x2, y2, 0)
-				end)
+				glFunc.BeginEnd(GL.LINES, drawLine)
 
 				-- Core layer (inner, whitened, bright) — use higher proportion for big lasers
 				local whiteness = 0.4 + (thickness / 10) * 0.4
 				local coreR = beam.r * (1 - whiteness) + whiteness
 				local coreG = beam.g * (1 - whiteness) + whiteness
 				local coreB = beam.b * (1 - whiteness) + whiteness
-				local coreWidth = math.max(1, scaledThickness * 1.8 * zoomScale * resScale)
+				local coreWidth = mMax(1, mMin(4 * resScale, scaledThickness * 1.4 * beamZoomScale * resScale))
 				glFunc.LineWidth(coreWidth)
 				glFunc.Color(coreR, coreG, coreB, alpha * 0.98)
-				glFunc.BeginEnd(GL.LINES, function()
-					glFunc.Vertex(x1, y1, 0)
-					glFunc.Vertex(x2, y2, 0)
-				end)
+				glFunc.BeginEnd(GL.LINES, drawLine)
 			end
 
 				i = i + 1
@@ -3830,6 +4082,14 @@ local function DrawIconShatters()
 			end
 
 			-- Update fragment physics
+			-- Compute per-shatter flash factor: inherited damage flash fading out
+			-- Cubic decay + slight linear tail, so it's bright initially then lingers
+			local flashFactor = 0
+			if shatter.flashIntensity > 0 then
+				local ft = progress  -- 0 at birth, 1 at expiry
+				flashFactor = shatter.flashIntensity * math.min(1, (1-ft)*(1-ft)*(1-ft) * 1.3 + (1-ft) * 0.08)
+			end
+
 			local fragments = shatter.fragments
 			local fragCount = #fragments
 			for j = 1, fragCount do
@@ -3849,6 +4109,14 @@ local function DrawIconShatters()
 				local currentSize = frag.size * scale * zoomInv
 				local halfSize = currentSize * 0.5
 
+				-- Mix team color towards white based on flash factor
+				local fr, fg, fb = shatter.teamR, shatter.teamG, shatter.teamB
+				if flashFactor > 0.01 then
+					fr = fr + (1 - fr) * flashFactor
+					fg = fg + (1 - fg) * flashFactor
+					fb = fb + (1 - fb) * flashFactor
+				end
+
 				-- Add to batch for this texture (use counter instead of #texGroup)
 				texGroupSize = texGroupSize + 1
 				texGroup[texGroupSize] = {
@@ -3860,9 +4128,9 @@ local function DrawIconShatters()
 					uvy1 = frag.uvy1,
 					uvx2 = frag.uvx2,
 					uvy2 = frag.uvy2,
-					r = shatter.teamR,
-					g = shatter.teamG,
-					b = shatter.teamB
+					r = fr,
+					g = fg,
+					b = fb
 				}
 			end
 
@@ -4223,7 +4491,10 @@ local function DrawExplosions()
 
 				local r, g, b       -- Outer fireball color
 				local cr, cg, cb    -- Inner core color (hotter)
-				if explosion.isParalyze then
+				if explosion.isJuno then
+					r, g, b = 0.3, 0.75, 0.35
+					cr, cg, cb = 0.6, 1, 0.65
+				elseif explosion.isParalyze then
 					r, g, b = 0.5, 0.6, 0.85
 					cr, cg, cb = 0.8, 0.9, 1
 				elseif explosion.radius > 150 then
@@ -4278,7 +4549,10 @@ local function DrawExplosions()
 							local flashT = actualProgress / 0.2
 							local flashAlpha = (1 - flashT * flashT) * 0.95  -- Quadratic falloff, brighter peak
 							local flashRadius = baseRadius * (0.8 + flashT * 0.9)
-							if explosion.isParalyze then
+							if explosion.isJuno then
+								GL4AddCircle(explosion.x, explosion.z, flashRadius, flashAlpha,
+									0.7, 1, 0.75,  0.4, 0.85, 0.5,  flashAlpha * 0.4, 0)
+							elseif explosion.isParalyze then
 								GL4AddCircle(explosion.x, explosion.z, flashRadius, flashAlpha,
 									0.85, 0.9, 1,  0.65, 0.75, 1,  flashAlpha * 0.4, 0)
 							else
@@ -4294,6 +4568,27 @@ local function DrawExplosions()
 							local flashRadius = baseRadius * 0.85
 							GL4AddCircle(explosion.x, explosion.z, flashRadius, flashAlpha,
 								1, 1, 1,  1, 0.95, 0.8,  flashAlpha * 0.4, 0)
+						end
+
+						-- Layer 5: Big white flash (nukes, commanders, fusions)
+						-- Fades fast initially (cubic) then lingers slightly (linear tail)
+						-- Flash runs at 1.7x speed so it fades out before the fireball ends
+						if explosion.isBigFlash and actualProgress < 0.75 then
+							local ft = actualProgress / 0.75  -- compress into 75% of explosion lifetime
+							-- Cubic decay + small linear tail for gentle linger
+							local fa = math.min(1, (1-ft)*(1-ft)*(1-ft) * 1.2 + (1-ft) * 0.12)
+							-- Outer white pulse: starts large, expands slowly
+							local flashR = effectiveRadius * (1.8 + ft * 1.5)
+							GL4AddCircle(explosion.x, explosion.z, flashR, fa * 0.85,
+								1, 1, 1,  1, 0.97, 0.92,  fa * 0.25, 0)
+							-- Inner bright core: tight, fades faster
+							if ft < 0.45 then
+								local cft = ft / 0.45
+								local cfa = (1 - cft * cft) * 0.95
+								local coreR = effectiveRadius * (0.4 + cft * 0.6)
+								GL4AddCircle(explosion.x, explosion.z, coreR, cfa,
+									1, 1, 1,  1, 1, 0.97,  cfa * 0.5, 0)
+							end
 						end
 					end
 				end
@@ -4346,7 +4641,9 @@ local function DrawExplosionOverlay()
 				-- Use low green/blue to avoid washing out to white
 				local overlayAlpha = fade * config.explosionOverlayAlpha
 				local r, g, b
-				if explosion.isParalyze then
+				if explosion.isJuno then
+					r, g, b = 0.15, 0.8, 0.25  -- Green tint
+				elseif explosion.isParalyze then
 					r, g, b = 0.25, 0.35, 0.9  -- Blue-purple tint
 				else
 					-- Warm orange-red: high R, moderate G, minimal B
@@ -4358,6 +4655,16 @@ local function DrawExplosionOverlay()
 				end
 				GL4AddCircle(explosion.x, explosion.z, baseRadius * 0.85, overlayAlpha,
 					r, g, b,  r * 0.3, g * 0.2, b * 0.1,  0, 0)
+
+				-- Big flash overlay: white glow above icons for nukes/commanders/fusions
+				-- Flash runs at 1.7x speed matching Layer 5 timing
+				if explosion.isBigFlash and age / lifetime < 0.75 then
+					local ft = (age / lifetime) / 0.75  -- compress into 75% of explosion lifetime
+					local fa = math.min(1, (1-ft)*(1-ft)*(1-ft) * 1.2 + (1-ft) * 0.12)
+					local flashR = effectiveRadius * (1.4 + ft * 1.2)
+					GL4AddCircle(explosion.x, explosion.z, flashR * 0.7, fa * config.explosionOverlayAlpha * 0.6,
+						1, 1, 1,  0.95, 0.93, 0.88,  0, 0)
+				end
 			end
 		end
 	end
@@ -5289,6 +5596,8 @@ function widget:Initialize()
 	end
 
 	-- Localize weapon data for performance
+	-- Default missile colors fallback (wDefID 0)
+	cache.missileColors[0] = {0.88,0.88,0.84, 0.92,0.92,0.88, 0.82,0.82,0.78, 1.0,0.7,0.3}
 	for wDefID, wDef in pairs(WeaponDefs) do
 		-- Check weapon type
 		if wDef.type == "BeamLaser" then
@@ -5309,6 +5618,10 @@ function widget:Initialize()
 			cache.weaponIsLightning[wDefID] = true
 		elseif wDef.type == "Flame" then
 			cache.weaponIsFlame[wDefID] = true
+			-- Actual flame particle flight time: range / speed in game frames, / 30 for seconds
+			local pSpeed = wDef.projectilespeed or 3
+			local range = wDef.range or 300
+			cache.flameLifetime[wDefID] = (range / pSpeed) / 30
 		elseif wDef.type == "AircraftBomb" then
 			cache.weaponIsBomb[wDefID] = true
 		end
@@ -5359,6 +5672,47 @@ function widget:Initialize()
 	if wDef.cegTag and string.find(wDef.cegTag, 'aa') then
 		cache.weaponIsAA[wDefID] = true
 	end
+
+	-- Check if weapon is Juno via cegTag
+	if wDef.cegTag and string.find(wDef.cegTag, 'juno') then
+		cache.weaponIsJuno[wDefID] = true
+	end
+
+	-- Cache missile body/nose/fin/exhaust colors per-wDefID (avoids per-frame branching)
+	if cache.weaponIsMissile[wDefID] then
+		if cache.weaponIsJuno[wDefID] then
+			cache.missileColors[wDefID] = {0.3,0.8,0.3, 0.4,0.9,0.4, 0.25,0.7,0.25, 0.3,1.0,0.3}
+		elseif cache.weaponIsParalyze[wDefID] then
+			cache.missileColors[wDefID] = {0.45,0.5,0.95, 0.6,0.65,1.0, 0.35,0.4,0.85, 0.6,0.5,1.0}
+		elseif cache.weaponIsTorpedo[wDefID] then
+			cache.missileColors[wDefID] = {0.7,0.78,0.9, 0.75,0.82,0.95, 0.6,0.7,0.85, 0.5,0.7,1.0}
+		else
+			cache.missileColors[wDefID] = {0.88,0.88,0.84, 0.92,0.92,0.88, 0.82,0.82,0.78, 1.0,0.7,0.3}
+		end
+	end
+
+	-- Classify plasma trail color by cegTag (for plasma/cannon weapons with visible trails)
+	if wDef.type == "Cannon" and wDef.cegTag and wDef.cegTag ~= '' then
+		local tag = wDef.cegTag
+		if string.find(tag, 'flak') or string.find(tag, 'aa') then
+			-- AA flak: no trail (too small/fast)
+		elseif string.find(tag, 'botrail') then
+			cache.weaponPlasmaTrailColor[wDefID] = {0.44, 0.48, 0.9}   -- Blue bot trail
+		elseif string.find(tag, 'railgun') then
+			cache.weaponPlasmaTrailColor[wDefID] = {0.55, 0.42, 0.88}  -- Purple railgun
+		elseif string.find(tag, 'starfire') or string.find(tag, 'ministarfire') then
+			cache.weaponPlasmaTrailColor[wDefID] = {0.5, 0.55, 0.85}   -- Blue-white starfire
+		elseif string.find(tag, 'impulse') then
+			cache.weaponPlasmaTrailColor[wDefID] = {0.8, 0.6, 0.25}    -- Warm yellow impulse
+		elseif string.find(tag, 'Heavy') then
+			cache.weaponPlasmaTrailColor[wDefID] = {0.85, 0.5, 0.18}   -- Orange heavy plasma
+		elseif string.find(tag, 'arty') or string.find(tag, 'cannon') then
+			cache.weaponPlasmaTrailColor[wDefID] = {0.82, 0.52, 0.2}   -- Warm orange artillery
+		else
+			-- Generic cannon with a cegTag: subtle warm trail
+			cache.weaponPlasmaTrailColor[wDefID] = {0.7, 0.5, 0.25}
+		end
+	end
 end
 
 gameHasStarted = (Spring.GetGameFrame() > 0)
@@ -5386,19 +5740,47 @@ end
 
 -- Scan currently-visible enemy buildings for ghost tracking (handles luaui reload mid-game)
 -- UnitEnteredLos won't fire for units already in LOS at widget init, so we pre-populate here
-if not Spring.GetSpectatingState() then
-	local myAllyTeam = Spring.GetMyAllyTeamID()
+-- For spectators with LOS view, also pre-scan to populate ghosts on reload
+do
+local initScanAllyTeam = nil
+local initScanIsSpec, initScanFullview = Spring.GetSpectatingState()
+if not initScanIsSpec then
+	initScanAllyTeam = Spring.GetMyAllyTeamID()
+elseif state.losViewEnabled and state.losViewAllyTeam then
+	initScanAllyTeam = state.losViewAllyTeam
+elseif initScanIsSpec and not initScanFullview then
+	-- Spectator without fullview: scan ghosts from their allyteam's perspective
+	initScanAllyTeam = Spring.GetMyAllyTeamID()
+end
+if initScanAllyTeam then
 	local allUnits = Spring.GetAllUnits()
 	for _, uID in ipairs(allUnits) do
 		local defID = Spring.GetUnitDefID(uID)
-		if defID and cache.isBuilding[defID] and not Spring.IsUnitAllied(uID) then
-			local x, _, z = Spring.GetUnitBasePosition(uID)
-			if x then
-				ghostBuildings[uID] = { defID = defID, x = x, z = z, teamID = Spring.GetUnitTeam(uID) }
+		if defID and cache.isBuilding[defID] then
+			local uTeam = Spring.GetUnitTeam(uID)
+			local uAllyTeam = Spring.GetTeamAllyTeamID(uTeam)
+			if uAllyTeam ~= initScanAllyTeam then
+				if initScanIsSpec then
+					-- As spectator, only ghost buildings the viewed allyteam has ever seen
+					local losBits = Spring.GetUnitLosState(uID, initScanAllyTeam, true)
+					if losBits and (losBits % 2 >= 1 or losBits % 8 >= 4) then
+						local x, _, z = Spring.GetUnitBasePosition(uID)
+						if x then
+							ghostBuildings[uID] = { defID = defID, x = x, z = z, teamID = uTeam }
+						end
+					end
+				else
+					-- As player, we can see all units returned (only own-LOS units are returned)
+					local x, _, z = Spring.GetUnitBasePosition(uID)
+					if x then
+						ghostBuildings[uID] = { defID = defID, x = x, z = z, teamID = uTeam }
+					end
+				end
 			end
 		end
 	end
 end
+end -- do block for initScan locals
 
 -- For spectators, center on map and zoom out more (always on new game, even if has saved config)
 do
@@ -5870,8 +6252,15 @@ function widget:ViewResize()
 	-- Calculate dynamic min zoom so full map is visible at max zoom-out
 	-- Use raw (non-rotated) dimensions and take min(dim)/max(mapSize) so zoom limit is the same regardless of rotation
 	if not isMinimapMode then
-		local rawW = render.dim.r - render.dim.l
-		local rawH = render.dim.t - render.dim.b
+		-- When minimized, use saved expanded dimensions (not the tiny button size)
+		local rawW, rawH
+		if uiState.inMinMode and uiState.savedDimensions.l and uiState.savedDimensions.r then
+			rawW = uiState.savedDimensions.r - uiState.savedDimensions.l
+			rawH = uiState.savedDimensions.t - uiState.savedDimensions.b
+		else
+			rawW = render.dim.r - render.dim.l
+			rawH = render.dim.t - render.dim.b
+		end
 		pipModeMinZoom = math.min(rawW, rawH) / math.max(mapInfo.mapSizeX, mapInfo.mapSizeZ)
 		if cameraState.zoom < pipModeMinZoom then
 			cameraState.zoom = pipModeMinZoom
@@ -5921,14 +6310,43 @@ function widget:PlayerChanged(playerID)
 	-- Update spec state
 	cameraState.mySpecState = Spring.GetSpectatingState()
 
-	-- Clear ghost buildings when becoming spectator (spectators see everything)
-	if cameraState.mySpecState then
-		for k in pairs(ghostBuildings) do ghostBuildings[k] = nil end
-		for k in pairs(ownBuildingPosX) do ownBuildingPosX[k] = nil end
-		for k in pairs(ownBuildingPosZ) do ownBuildingPosZ[k] = nil end
-	end
+	-- Don't clear ghost buildings here: PlayerChanged fires frequently (on any player's
+	-- state change, team switches, etc.) and clearing ghosts causes them to vanish.
+	-- The periodic ghost scan uses mark-and-sweep to keep ghosts fresh.
 
 	-- Keep tracking even if fullview is disabled - tracking will resume when fullview is re-enabled
+end
+
+function widget:GameOver()
+	-- Disable LOS view on game over (spectators get full view, LOS filtering is no longer useful)
+	if state.losViewEnabled then
+		state.losViewEnabled = false
+		state.losViewAllyTeam = nil
+		for k in pairs(ghostBuildings) do ghostBuildings[k] = nil end
+		pipR2T.losNeedsUpdate = true
+	end
+
+	-- Cancel unit tracking
+	interactionState.areTracking = nil
+	interactionState.trackingPlayerID = nil
+
+	-- Start smooth zoom-out to full map view and center
+	-- Only set targetZoom (not zoom) so the Update loop animates the zoom-out smoothly
+	local zoomMin = GetEffectiveZoomMin()
+	cameraState.targetZoom = zoomMin
+	cameraState.targetWcx = mapInfo.mapSizeX / 2
+	cameraState.targetWcz = mapInfo.mapSizeZ / 2
+
+	-- Flag to protect the zoom-out animation from being overridden
+	miscState.gameOverZoomingOut = true
+	miscState.isGameOver = true
+
+	-- Clear takeable teams cache so icons stop blinking (no one can take units after game over)
+	cachedTakeableTeams = {}
+
+	pipR2T.frameNeedsUpdate = true
+	pipR2T.unitsNeedsUpdate = true
+	pipR2T.contentNeedsUpdate = true
 end
 
 function widget:Shutdown()
@@ -6937,8 +7355,23 @@ end
 
 -- Helper function to draw queued building ghosts
 local function DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
-	local selectedUnits = cachedSelectedUnits
-	local selectedCount = selectedUnits and #selectedUnits or 0
+	-- When tracking another player, use their selected units instead of the local player's
+	local selectedUnits
+	local selectedCount = 0
+	if interactionState.trackingPlayerID then
+		local playerSelections = WG['allyselectedunits'] and WG['allyselectedunits'].getPlayerSelectedUnits(interactionState.trackingPlayerID)
+		if playerSelections then
+			-- Convert set to array (reuse cachedSelectedUnits table to avoid alloc)
+			selectedUnits = cachedSelectedUnits or {}
+			for unitID, _ in pairs(playerSelections) do
+				selectedCount = selectedCount + 1
+				selectedUnits[selectedCount] = unitID
+			end
+		end
+	else
+		selectedUnits = cachedSelectedUnits
+		selectedCount = selectedUnits and #selectedUnits or 0
+	end
 	if selectedCount == 0 then
 		return
 	end
@@ -6953,7 +7386,7 @@ local function DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
 
 	for i = 1, selectedCount do
 		local unitID = selectedUnits[i]
-		local queue = spFunc.GetCommandQueue(unitID, -1)
+		local queue = spFunc.GetUnitCommands(unitID, -1)
 
 		if queue then
 			local queueLength = #queue
@@ -7107,7 +7540,8 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	local LOS_CONTRADAR = 8
 
 	-- Compute takeable teams (leaderless, alive, non-AI)  cached, invalidated on PlayerChanged
-	if not cachedTakeableTeams then
+	-- After GameOver, takeable is always empty (no point blinking — game is done)
+	if not cachedTakeableTeams and not miscState.isGameOver then
 		cachedTakeableTeams = {}
 		for _, tID in ipairs(Spring.GetTeamList()) do
 			local _, leader, isDead, hasAI = Spring.GetTeamInfo(tID, false)
@@ -7155,14 +7589,35 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 				if not losBits or losBits == 0 then
 					return usedEl
 				elseif losBits % (LOS_INLOS * 2) >= LOS_INLOS then
-					-- full LOS, draw normally
+					-- full LOS: draw normally, and record building ghost for when it leaves LOS
+					if cacheIsBuilding[uDefID] then
+						local g = ghostBuildings[uID]
+						if g then
+							g.defID = uDefID; g.x = ux; g.z = uz; g.teamID = uTeam
+						else
+							ghostBuildings[uID] = { defID = uDefID, x = ux, z = uz, teamID = uTeam }
+						end
+					end
 				elseif losBits % (LOS_INRADAR * 2) >= LOS_INRADAR then
-					isRadar = true
+					-- Buildings in radar: don't wobble (they're stationary, position is known)
+					if not cacheIsBuilding[uDefID] then
+						isRadar = true
+					end
 					local typed = (losBits % (LOS_PREVLOS * 2) >= LOS_PREVLOS) or (losBits % (LOS_CONTRADAR * 2) >= LOS_CONTRADAR)
 					if not (typed and uDefID) then
 						visibleDefID = nil
 					end
 				else
+					-- Not in LOS or radar, but has some bits (e.g. PREVLOS).
+					-- Record ghost for previously-seen buildings so they appear as ghosts.
+					if cacheIsBuilding[uDefID] and losBits % (LOS_PREVLOS * 2) >= LOS_PREVLOS then
+						local g = ghostBuildings[uID]
+						if g then
+							g.defID = uDefID; g.x = ux; g.z = uz; g.teamID = uTeam
+						else
+							ghostBuildings[uID] = { defID = uDefID, x = ux, z = uz, teamID = uTeam }
+						end
+					end
 					return usedEl
 				end
 			end
@@ -7203,14 +7658,22 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		-- Stun detection (EMP/paralyze, not build-in-progress)
 		-- Skipped at high unit counts (cosmetic gray tint, saves API call per unit)
 		local isStunned = false
+		local healthPct = 100  -- default full health
 		if not skipCosmetics and not isRadar then
 			local stun, _, buildStun = spFunc.GetUnitIsStunned(uID)
 			if stun and not buildStun then isStunned = true end
 		end
 
+		-- Self-destruct: use event-driven cache (no per-unit API call)
+		local isSelfD = not isRadar and selfDUnits[uID] or false
+
 		-- Collect unitpic data when zoomed in (only for fully visible, non-radar units)
+		-- Also fetch health for damage indication (icon tint + unitpic health bar)
 		if useUnitpics and not isRadar and visibleDefID then
-			local _, _, _, _, bp = spFunc.GetUnitHealth(uID)
+			local hp, maxHP, _, _, bp = spFunc.GetUnitHealth(uID)
+			if hp and maxHP and maxHP > 0 then
+				healthPct = math.max(0, math.min(100, mathFloor(hp / maxHP * 100)))
+			end
 			unitpicCount = unitpicCount + 1
 			local up = unitpicEntries[unitpicCount]
 			if not up then
@@ -7224,11 +7687,20 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 			up[5] = (selectedSet and selectedSet[uID]) and true or false
 			up[6] = bp or 1  -- buildProgress
 			up[7] = uID
+			up[8] = healthPct / 100  -- health fraction for health bar
+		elseif not skipCosmetics and not isRadar then
+			-- Non-unitpic zoom: still fetch health for icon damage tint
+			local hp, maxHP = spFunc.GetUnitHealth(uID)
+			if hp and maxHP and maxHP > 0 then
+				healthPct = math.max(0, math.min(100, mathFloor(hp / maxHP * 100)))
+			end
 		end
 
 		-- Write 12 floats directly into pre-allocated array
 		local off = usedEl * instStep
-		data[off+1] = ux; data[off+2] = uz; data[off+3] = uvs[5]; data[off+4] = (isRadar and 1 or 0) + (takeableTeams[uTeam] and 2 or 0) + (isStunned and 4 or 0) + (trackedSet and trackedSet[uID] and 8 or 0)
+		-- Takeable blink only for teams on the viewer's own allyteam (can't take enemy units)
+		local isTakeable = takeableTeams[uTeam] and checkAllyTeamID and localTeamAllyTeamCache[uTeam] == checkAllyTeamID
+		data[off+1] = ux; data[off+2] = uz; data[off+3] = uvs[5]; data[off+4] = healthPct * 32 + (isRadar and 1 or 0) + (isTakeable and 2 or 0) + (isStunned and 4 or 0) + (trackedSet and trackedSet[uID] and 8 or 0) + (isSelfD and 16 or 0)
 		data[off+5] = uvs[1]; data[off+6] = uvs[2]; data[off+7] = uvs[3]; data[off+8] = uvs[4]
 		data[off+9] = r; data[off+10] = g; data[off+11] = b; data[off+12] = (uID * 0.37) % 6.2832 + mathFloor(flashFactor * 100) * 7.0
 		return usedEl + 1
@@ -7237,13 +7709,26 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	local icT0 = os.clock()
 
 	-- Ghost building pass: enemy buildings previously seen but no longer in LOS
-	-- Rendered first (lowest VBO indices) so live icons overdraw them correctly
-	-- Zero per-frame API calls — all data is cached from UnitEnteredLos
+	-- Rendered first (lowest VBO indices) so live icons overdraw them correctly.
+	--
+	-- Two visibility strategies depending on mode:
+	-- 1) LOS view (fullview still ON): use GetUnitLosState to query the viewed allyteam's
+	--    actual LOS. Reliable because fullview is ON and engine returns accurate per-allyteam data.
+	-- 2) Fullview OFF: use pipUnits membership (from GetUnitsInRectangle). Engine LOS APIs
+	--    are unreliable for spectators who toggled fullview OFF, but GetUnitsInRectangle
+	--    correctly filters to visible units only.
 	if checkAllyTeamID then
-		-- Build set of currently-visible units to skip ghosts that are live
-		local pipUnitSet = {}
-		for i = 1, unitCount do
-			pipUnitSet[pipUnits[i]] = true
+		-- Determine which visibility check to use
+		local isLosViewMode = state.losViewEnabled and state.losViewAllyTeam
+
+		-- For non-LOS-view mode: build O(1) lookup of units returned by GetUnitsInRectangle
+		local liveSet
+		if not isLosViewMode then
+			liveSet = {}
+			local localPipUnits = miscState.pipUnits
+			for i = 1, #localPipUnits do
+				liveSet[localPipUnits[i]] = true
+			end
 		end
 
 		local viewL = render.world.l - 220
@@ -7253,40 +7738,52 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 
 		for gID, ghost in pairs(ghostBuildings) do
 			if usedElements >= maxInst then break end
-			if not pipUnitSet[gID] then
-				-- If ghost position is currently in LOS but the unit is gone, remove the ghost
-				local gy = spFunc.GetGroundHeight(ghost.x, ghost.z)
-				if spFunc.IsPosInLos(ghost.x, gy, ghost.z, checkAllyTeamID) then
-					ghostBuildings[gID] = nil
-				else
-					if ghost.x >= viewL and ghost.x <= viewR and ghost.z >= viewT and ghost.z <= viewB then
-						local uvs, sizeScale
-						if cacheUnitIcon[ghost.defID] then
-							uvs = atlasUVs[ghost.defID] or defaultUV
-							sizeScale = cacheUnitIcon[ghost.defID].size
-						else
-							uvs = defaultUV
-							sizeScale = 0.5
-						end
-						local color = localTeamColors[ghost.teamID]
-						-- Dim ghost icons to simulate being under FoW overlay (engine draws them below LOS layer)
-						local dim = 0.6
-						local r, g, b = (color and color[1] or 1) * dim, (color and color[2] or 1) * dim, (color and color[3] or 1) * dim
-						local off = usedElements * gl4Icons.INSTANCE_STEP
-						data[off+1] = ghost.x; data[off+2] = ghost.z; data[off+3] = sizeScale; data[off+4] = (takeableTeams[ghost.teamID] and 2 or 0)
-						data[off+5] = uvs[1]; data[off+6] = uvs[2]; data[off+7] = uvs[3]; data[off+8] = uvs[4]
-						data[off+9] = r; data[off+10] = g; data[off+11] = b; data[off+12] = (gID * 0.37) % 6.2832
-						usedElements = usedElements + 1
+			-- Determine if this ghost is currently visible to the viewer
+			local isVisible
+			if isLosViewMode then
+				-- LOS view: check if the building is in LOS or radar for the viewed allyteam
+				local lb = spFunc.GetUnitLosState(gID, checkAllyTeamID, true)
+				isVisible = lb and (lb % 2 >= 1 or lb % 4 >= 2)  -- INLOS or INRADAR
+			else
+				-- Fullview OFF: check if the building is in pipUnits (engine-enforced visibility)
+				isVisible = liveSet[gID]
+			end
+			if not isVisible then
+				-- Building is in fog-of-war for the viewer. Draw a dimmed ghost icon.
+				if ghost.x >= viewL and ghost.x <= viewR and ghost.z >= viewT and ghost.z <= viewB then
+					local uvs, sizeScale
+					if cacheUnitIcon[ghost.defID] then
+						uvs = atlasUVs[ghost.defID] or defaultUV
+						sizeScale = cacheUnitIcon[ghost.defID].size
+					else
+						uvs = defaultUV
+						sizeScale = 0.5
 					end
+					local color = localTeamColors[ghost.teamID]
+					-- Dim ghost icons to simulate being under FoW overlay (engine draws them below LOS layer)
+					local dim = 0.6
+					local r, g, b = (color and color[1] or 1) * dim, (color and color[2] or 1) * dim, (color and color[3] or 1) * dim
+					local off = usedElements * gl4Icons.INSTANCE_STEP
+					-- Ghost buildings are always from a different allyteam (enemy) — never takeable
+					-- Health=100 (full) so shader doesn't apply damage darkening on top of ghost dim
+					data[off+1] = ghost.x; data[off+2] = ghost.z; data[off+3] = sizeScale; data[off+4] = 100 * 32
+					data[off+5] = uvs[1]; data[off+6] = uvs[2]; data[off+7] = uvs[3]; data[off+8] = uvs[4]
+					data[off+9] = r; data[off+10] = g; data[off+11] = b; data[off+12] = (gID * 0.37) % 6.2832
+					usedElements = usedElements + 1
 				end
 			end
+			-- If liveSet[gID] is true, processUnit will draw the live icon (which overdraws
+			-- the ghost at its VBO index). Ghost data stays in the table for when the building
+			-- leaves LOS/radar again. Dead-building cleanup is handled by UnitDestroyed callback
+			-- (fires for units visible to the viewed allyteam) and by the periodic fullview scan
+			-- (dead units are absent from GetAllUnits, so stale ghosts are cleared on next rescan).
 		end
 	end
 
 	local icT1 = os.clock()
 
 	-- Sort units by (layer, Z depth) with unitID tiebreaker for deterministic draw order.
-	-- Layer is primary (structures→ground→commanders→air). Z depth gives correct
+	-- Layer is primary (structures→ground→air→commanders). Z depth gives correct
 	-- front-to-back ordering (larger Z = further south = drawn on top).
 	-- UnitID tiebreaker in comparator prevents z-fighting from equal-Z units.
 	-- Position is cached here so processUnit can reuse it without a second API call.
@@ -7406,6 +7903,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	local bldgBlockValid = bldgBlock
 		and bCount == gl4Icons._bldgBlockBCount
 		and bldgHash == gl4Icons._bldgBlockHash
+		and checkAllyTeamID == gl4Icons._bldgBlockCheckAlly  -- LOS filtering context changed
 		and (currentGameFrame - (gl4Icons._bldgBlockFrame or 0)) < 30
 		and not useUnitpics  -- unitpic collection needs per-unit data
 
@@ -7465,15 +7963,24 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 			end
 		end
 
-		-- Tracking overlay: set tracking flag for tracked buildings
-		-- Block stores flags with tracking bit stripped; re-apply from current trackedSet
+		-- Tracking overlay: re-apply tracking flag for tracked buildings
+		-- Block stores flags with bits 3-4 stripped; re-apply from current trackedSet
 		if trackedSet then
 			for uID, _ in pairs(trackedSet) do
 				local idx = bldgIdx[uID]
 				if idx then
 					local off = (preProcessEl + idx - 1) * instStep
-					data[off + 4] = data[off + 4] % 8 + 8  -- set tracking bit (bit 3)
+					data[off + 4] = data[off + 4] + 8  -- set tracking bit (bit 3)
 				end
+			end
+		end
+
+		-- SelfD overlay: re-apply selfD flag for self-destructing buildings
+		for uID in pairs(selfDUnits) do
+			local idx = bldgIdx[uID]
+			if idx then
+				local off = (preProcessEl + idx - 1) * instStep
+				data[off + 4] = data[off + 4] + 16 -- set selfD bit (bit 4)
 			end
 		end
 	else
@@ -7507,10 +8014,12 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		for j = 1, blockFloats do
 			bldgBlock[j] = data[blockStart + j]
 		end
-		-- Strip tracking bit from cached flags so overlay always works cleanly
+		-- Strip tracked + selfD bits from cached flags, preserving health and bits 0-2
+		-- Flags format: healthPct*32 + bitFlags. Clear bits 3-4 (tracked=8, selfD=16)
 		for i = 0, writeCount - 1 do
 			local j = i * instStep + 4  -- flags position within block (1-based: inst 0 → idx 4)
-			bldgBlock[j] = bldgBlock[j] % 8  -- clear tracking bit
+			local f = bldgBlock[j]
+			bldgBlock[j] = f - f % 32 + f % 8  -- keep health*32 + bits 0-2, clear bits 3-4
 		end
 		-- Clear stale entries beyond current block
 		local prevBlockN = gl4Icons._bldgBlockN or 0
@@ -7520,6 +8029,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		gl4Icons._bldgBlockCount = usedElements - preProcessEl
 		gl4Icons._bldgBlockBCount = bCount
 		gl4Icons._bldgBlockHash = bldgHash
+		gl4Icons._bldgBlockCheckAlly = checkAllyTeamID
 		gl4Icons._bldgBlockFrame = currentGameFrame
 	end
 	local icT3b = os.clock()
@@ -7572,13 +8082,15 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	gl.UniformFloat(ul.iconBaseSize, iconRadiusZoomDistMult)
 	gl.UniformFloat(ul.gameTime, gameTime)
 	gl.UniformFloat(ul.wallClockTime, wallClockTime)
+	gl.UniformFloat(ul.healthDarkenMax, config.healthDarkenMax)
 
 	-- Bind atlas texture
 	glFunc.Texture(0, gl4Icons.atlas)
 
-	-- Pass 1: Tracked unit outlines (slightly enlarged, white, semi-transparent)
-	-- Only runs when there are tracked units; the shader culls non-tracked icons via alpha=0
-	if trackedSet then
+	-- Pass 1: Outlines for tracked units (white) and self-destructing units (red-orange pulse)
+	-- Only runs when there are tracked or selfD units; the shader culls others via alpha=0
+	local hasSelfD = next(selfDUnits) ~= nil
+	if trackedSet or hasSelfD then
 		gl.UniformFloat(ul.outlinePass, 1.0)
 		gl4Icons.vao:DrawArrays(GL.POINTS, usedElements)
 	end
@@ -7601,7 +8113,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		local distMult = math.min(math.max(1, 2.2-(cameraState.zoom*3.3)), 3)
 		local teamBorderSize = 3 * cameraState.zoom * distMult * resScale
 		local blackBorderSize = 4 * cameraState.zoom * distMult * resScale
-		local cornerCutRatio = 0.25
+		local cornerCutRatio = 0.2
 		local isRotated = render.minimapRotation ~= 0
 		local hoveredID = drawData.hoveredUnitID
 		local cacheUnitPic = cache.unitPic
@@ -7657,6 +8169,34 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 					glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawTexturedOctagonVertices, 0, 0, iconSize, crnrCut, picTexInset)
 				end
 
+				-- Health bar (only for damaged units, inside the icon area)
+				local healthFrac = up[8] or 1
+				if healthFrac < 0.99 then
+					local barW = iconSize * 0.82
+					local barH = math.max(1, iconSize * 0.13)
+					local barY = iconSize - barH * 1.5
+					glFunc.Texture(false)
+					-- Background
+					glFunc.Color(0, 0, 0, 0.7)
+					glFunc.BeginEnd(glConst.QUADS, function()
+						glFunc.Vertex(-barW, barY, 0)
+						glFunc.Vertex(barW, barY, 0)
+						glFunc.Vertex(barW, barY + barH, 0)
+						glFunc.Vertex(-barW, barY + barH, 0)
+					end)
+					-- Fill with green→yellow→red gradient
+					local hr = healthFrac < 0.5 and 1.0 or (1.0 - (healthFrac - 0.5) * 2)
+					local hg = healthFrac > 0.5 and 1.0 or (healthFrac * 2)
+					local fillW = barW * 2 * healthFrac - barW
+					glFunc.Color(hr, hg, 0, 0.9)
+					glFunc.BeginEnd(glConst.QUADS, function()
+						glFunc.Vertex(-barW, barY, 0)
+						glFunc.Vertex(fillW, barY, 0)
+						glFunc.Vertex(fillW, barY + barH, 0)
+						glFunc.Vertex(-barW, barY + barH, 0)
+					end)
+				end
+
 				glFunc.PopMatrix()
 			else
 				-- Black border
@@ -7685,6 +8225,34 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 						glFunc.Color(brightness, brightness, brightness, opacity)
 					end
 					glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawTexturedOctagonVertices, px, py, iconSize, crnrCut, picTexInset)
+				end
+
+				-- Health bar (only for damaged units, inside the icon area)
+				local healthFrac = up[8] or 1
+				if healthFrac < 0.99 then
+					local barW = iconSize * 0.82
+					local barH = math.max(1, iconSize * 0.13)
+					local barY = py + iconSize - barH * 1.5
+					glFunc.Texture(false)
+					-- Background
+					glFunc.Color(0, 0, 0, 0.7)
+					glFunc.BeginEnd(glConst.QUADS, function()
+						glFunc.Vertex(px - barW, barY, 0)
+						glFunc.Vertex(px + barW, barY, 0)
+						glFunc.Vertex(px + barW, barY + barH, 0)
+						glFunc.Vertex(px - barW, barY + barH, 0)
+					end)
+					-- Fill with green→yellow→red gradient
+					local hr = healthFrac < 0.5 and 1.0 or (1.0 - (healthFrac - 0.5) * 2)
+					local hg = healthFrac > 0.5 and 1.0 or (healthFrac * 2)
+					local fillW = barW * 2 * healthFrac - barW
+					glFunc.Color(hr, hg, 0, 0.9)
+					glFunc.BeginEnd(glConst.QUADS, function()
+						glFunc.Vertex(px - barW, barY, 0)
+						glFunc.Vertex(px + fillW, barY, 0)
+						glFunc.Vertex(px + fillW, barY + barH, 0)
+						glFunc.Vertex(px - barW, barY + barH, 0)
+					end)
 				end
 			end
 		end
@@ -7969,8 +8537,8 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 					if shouldDraw then
 						DrawProjectile(pID)
 					end
-					-- Mark this trail as active if it exists
-					if cache.missileTrails[pID] then
+					-- Mark this trail as active if it exists (for stale cleanup)
+					if cache.missileTrails[pID] or cache.plasmaTrails[pID] or cache.flameBirthTime[pID] then
 						activeTrails[pID] = true
 					end
 				end
@@ -7980,6 +8548,17 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 			for pID in pairs(cache.missileTrails) do
 				if not activeTrails[pID] then
 					cache.missileTrails[pID] = nil
+				end
+			end
+			for pID in pairs(cache.plasmaTrails) do
+				if not activeTrails[pID] then
+					cache.plasmaTrails[pID] = nil
+				end
+			end
+			for pID in pairs(cache.flameBirthTime) do
+				if not activeTrails[pID] then
+					cache.flameBirthTime[pID] = nil
+					cache.flameSeeds[pID] = nil
 				end
 			end
 
@@ -8439,9 +9018,22 @@ local function ShouldShowLOS()
 end
 
 -- Helper function to get the normalized water/lava threshold for the heightmap shader
--- Returns a value in [0, 1] where 0 = min ground height, 1 = max ground height
+-- Returns the water/lava surface level in elmos for the heightmap shader
+-- On lava maps, does a lazy read from the game rule if not yet known
 local function GetWaterLevel()
-	return mapInfo.dynamicWaterLevel or 0
+	if mapInfo.dynamicWaterLevel then
+		return mapInfo.dynamicWaterLevel
+	end
+	-- Lazy fallback: try reading game rule on first use (covers the gap between
+	-- widget init and the first Update() poll, avoiding wrong waterLevel=0 on lava maps)
+	if mapInfo.isLava then
+		local level = Spring.GetGameRulesParam("lavaLevel")
+		if level and level ~= -99999 then
+			mapInfo.dynamicWaterLevel = level
+			return level
+		end
+	end
+	return 0
 end
 
 -- Helper function to draw water and LOS overlays
@@ -9960,7 +10552,8 @@ end
 -- Also shown for players (not just spectators tracking others) and when hovering
 local function DrawTrackedPlayerMinimap()
 	-- In minimap mode, don't show the pip-minimap overlay (we ARE the minimap)
-	if isMinimapMode then
+	-- Exception: when tracking a player camera, the minimap is zoomed in so we need the overview
+	if isMinimapMode and not interactionState.trackingPlayerID then
 		interactionState.pipMinimapBounds = nil
 		return
 	end
@@ -10536,6 +11129,17 @@ local function UpdateR2TUnits(currentTime, pipUpdateInterval, pipWidth, pipHeigh
 			local ok, err = pcall(RenderExpensiveLayers)
 			if not ok then
 				Spring.Echo("[PIP] Units render error: " .. tostring(err))
+				-- Emergency GL state cleanup: RenderExpensiveLayers may have left dirty state
+				gl.UseShader(0)
+				glFunc.Texture(0, false)
+				glFunc.Texture(1, false)
+				glFunc.Texture(false)
+				gl.Scissor(false)
+				gl.BlendEquation(GL.FUNC_ADD)
+				-- Try to pop rotation matrix if it was pushed
+				if render.minimapRotation ~= 0 then
+					pcall(glFunc.PopMatrix)
+				end
 			end
 
 			-- Restore blending and original values
@@ -10681,6 +11285,20 @@ local function UpdateR2TCheapLayers(currentTime, pipUpdateInterval, pipWidth, pi
 			local ok, err = pcall(RenderCheapLayers)
 			if not ok then
 				Spring.Echo("[PIP] Cheap layers render error: " .. tostring(err))
+				-- Emergency GL state cleanup: RenderCheapLayers may have left dirty state
+				-- (active shader, wrong blend equation, pushed matrix, bound textures, scissor)
+				gl.UseShader(0)
+				glFunc.Texture(0, false)
+				glFunc.Texture(1, false)
+				glFunc.Texture(false)
+				gl.Scissor(false)
+				gl.BlendEquation(GL.FUNC_ADD)
+				gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+				gl.BlendFuncSeparate(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA, GL.ONE, GL.ONE_MINUS_SRC_ALPHA)
+				-- Try to pop rotation matrix if it was pushed
+				if render.minimapRotation ~= 0 then
+					pcall(glFunc.PopMatrix)
+				end
 			end
 
 			-- Restore
@@ -11097,9 +11715,6 @@ local function DrawTrackingIndicators()
 end
 
 -- Helper function to handle hover and cursor updates
-local lastHoverCursorCheckTime = 0
-local lastHoveredUnitID = nil
-local lastHoveredFeatureID = nil
 local function HandleHoverAndCursor(mx, my)
 	if interactionState.arePanning then
 		return
@@ -11109,18 +11724,18 @@ local function HandleHoverAndCursor(mx, my)
 		if WG['info'] and WG['info'].clearCustomHover then
 			WG['info'].clearCustomHover()
 		end
-		lastHoveredUnitID = nil
-		lastHoveredFeatureID = nil
+		interactionState.lastHoveredUnitID = nil
+		interactionState.lastHoveredFeatureID = nil
 		return
 	end
 
 	-- Throttle expensive GetUnitAtPoint calls for performance (but not during active zoom)
 	local currentTime = os.clock()
-	local shouldCheckUnit = (currentTime - lastHoverCursorCheckTime) >= 0.1
+	local shouldCheckUnit = (currentTime - interactionState.lastHoverCursorCheckTime) >= 0.1
 	local isZooming = interactionState.areIncreasingZoom or interactionState.areDecreasingZoom
 
 	if shouldCheckUnit and not isZooming then
-		lastHoverCursorCheckTime = currentTime
+		interactionState.lastHoverCursorCheckTime = currentTime
 
 		-- Update info widget with custom hover
 		if WG['info'] and WG['info'].setCustomHover then
@@ -11128,25 +11743,25 @@ local function HandleHoverAndCursor(mx, my)
 			local uID = GetUnitAtPoint(wx, wz)
 			if uID then
 				WG['info'].setCustomHover('unit', uID)
-				lastHoveredUnitID = uID
-				lastHoveredFeatureID = nil
+				interactionState.lastHoveredUnitID = uID
+				interactionState.lastHoveredFeatureID = nil
 			else
 				-- Only check features if zoom level is high enough to render them
 				if cameraState.zoom >= config.zoomFeatures then
 					local fID = GetFeatureAtPoint(wx, wz)
 					if fID then
 						WG['info'].setCustomHover('feature', fID)
-						lastHoveredFeatureID = fID
-						lastHoveredUnitID = nil
+						interactionState.lastHoveredFeatureID = fID
+						interactionState.lastHoveredUnitID = nil
 					else
 						WG['info'].clearCustomHover()
-						lastHoveredUnitID = nil
-						lastHoveredFeatureID = nil
+						interactionState.lastHoveredUnitID = nil
+						interactionState.lastHoveredFeatureID = nil
 					end
 				else
 					WG['info'].clearCustomHover()
-					lastHoveredUnitID = nil
-					lastHoveredFeatureID = nil
+					interactionState.lastHoveredUnitID = nil
+					interactionState.lastHoveredFeatureID = nil
 				end
 			end
 		end
@@ -11156,6 +11771,7 @@ local function HandleHoverAndCursor(mx, my)
 	-- Don't change cursor for spectators (unless config allows it)
 	local isSpec = Spring.GetSpectatingState()
 	local canGiveCommands = not isSpec or config.allowCommandsWhenSpectating
+	local lastHoveredUnitID = interactionState.lastHoveredUnitID
 	if canGiveCommands then
 		local _, activeCmdID = Spring.GetActiveCommand()
 		if not activeCmdID then
@@ -11497,6 +12113,16 @@ function widget:DrawScreen()
 
 		-- Update decal overlay texture (~once per second, game-frame based)
 		UpdateDecalTexture()
+
+		-- Force immediate units re-render when fullview state changes.
+		-- The main transition detection code (below) runs AFTER UpdateR2TUnits,
+		-- so detect the change here to ensure the ghost pass runs on the same frame.
+		do
+			local _, fv = Spring.GetSpectatingState()
+			if miscState.lastFullview ~= nil and miscState.lastFullview ~= fv then
+				pipR2T.unitsNeedsUpdate = true
+			end
+		end
 
 		-- Update oversized units texture at throttled rate (expensive layers)
 		local drawStartTime = os.clock()
@@ -12135,19 +12761,49 @@ cache.ghostCleanupTimer = 0
 function widget:Update(dt)
 	-- Periodic ghost building cleanup: remove ghosts whose position is now in LOS
 	-- The draw-path check only catches ghosts within the PIP viewport; this catches all of them
+	local cleanupAllyTeam
 	if not cameraState.mySpecState then
+		cleanupAllyTeam = Spring.GetMyAllyTeamID()
+	elseif state.losViewEnabled and state.losViewAllyTeam then
+		cleanupAllyTeam = state.losViewAllyTeam
+	end
+	if cleanupAllyTeam then
 		cache.ghostCleanupTimer = cache.ghostCleanupTimer + dt
 		if cache.ghostCleanupTimer >= 1.0 then  -- check every 1 second
 			cache.ghostCleanupTimer = 0
-			local myAllyTeam = Spring.GetMyAllyTeamID()
 			for gID, ghost in pairs(ghostBuildings) do
 				local gy = spFunc.GetGroundHeight(ghost.x, ghost.z)
-				if spFunc.IsPosInLos(ghost.x, gy, ghost.z, myAllyTeam) then
+				if spFunc.IsPosInLos(ghost.x, gy, ghost.z, cleanupAllyTeam) then
 					-- Position is in LOS but unitID is not visible (not alive) — building was destroyed
 					if not spFunc.GetUnitDefID(gID) then
 						ghostBuildings[gID] = nil
 					end
 				end
+			end
+		end
+	end
+
+	-- Periodic self-destruct refresh: validate cached selfDUnits set every SELFD_REFRESH_INTERVAL frames
+	-- Catches edge cases where UnitCommand callin might miss a cancellation (e.g. from synced code)
+	selfDRefreshCounter = selfDRefreshCounter + 1
+	if selfDRefreshCounter >= SELFD_REFRESH_INTERVAL then
+		selfDRefreshCounter = 0
+		for uID in pairs(selfDUnits) do
+			local selfDTime = spFunc.GetUnitSelfDTime(uID)
+			if not selfDTime or selfDTime <= 0 then
+				selfDUnits[uID] = nil
+			end
+		end
+	end
+
+	-- Periodically re-read the leftClickMove config in case another widget changed it
+	if isMinimapMode then
+		cache.leftClickMoveTimer = (cache.leftClickMoveTimer or 0) + dt
+		if cache.leftClickMoveTimer >= 2.0 then
+			cache.leftClickMoveTimer = 0
+			local cur = Spring.GetConfigInt("MinimapLeftClickMove", 1) == 1
+			if cur ~= config.leftButtonPansCamera then
+				config.leftButtonPansCamera = cur
 			end
 		end
 	end
@@ -12278,11 +12934,79 @@ function widget:Update(dt)
 	
 	-- Update spectating state and check if it changed
 	local oldSpecState = cameraState.mySpecState
-	cameraState.mySpecState = Spring.GetSpectatingState()
+	local specState, fullviewState = Spring.GetSpectatingState()
+	cameraState.mySpecState = specState
 
 	-- If spec state changed, update LOS texture
 	if oldSpecState ~= cameraState.mySpecState then
 		pipR2T.losNeedsUpdate = true
+	end
+
+	-- Detect fullview transitions BEFORE the periodic scan, so timer resets
+	-- take effect on the same frame (avoids 1-frame delay).
+	if miscState.lastFullview ~= nil and miscState.lastFullview and not fullviewState and specState then
+		pipR2T.losNeedsUpdate = true
+		pipR2T.contentNeedsUpdate = true
+		pipR2T.unitsNeedsUpdate = true
+	elseif miscState.lastFullview ~= nil and not miscState.lastFullview and fullviewState and specState then
+		-- Fullview OFF→ON: do NOT clear ghosts (fullview state can oscillate across frames).
+		-- Force immediate rescan so ghosts are populated before a possible quick OFF toggle.
+		miscState.specGhostScanTime = 0
+		pipR2T.losNeedsUpdate = true
+		pipR2T.contentNeedsUpdate = true
+		pipR2T.unitsNeedsUpdate = true
+	end
+	miscState.lastFullview = fullviewState
+
+	-- While fullview is ON, periodically scan enemy buildings and record ghosts
+	-- for buildings the viewed allyteam has seen (INLOS or PREVLOS).
+	-- Uses mark-and-sweep: marks existing ghosts, unmarks those found alive,
+	-- then sweeps stale entries (destroyed buildings).
+	-- Scan every 2 seconds for responsive ghost updates.
+	if specState and fullviewState then
+		local now = os.clock()
+		if now - miscState.specGhostScanTime >= 2.0 then
+			miscState.specGhostScanTime = now
+			-- Use losViewAllyTeam when LOS view is active, otherwise GetMyAllyTeamID()
+			local scanAllyTeam = (state.losViewEnabled and state.losViewAllyTeam) or Spring.GetMyAllyTeamID()
+			-- Mark all existing ghosts for sweep
+			local stale = {}
+			for gID in pairs(ghostBuildings) do stale[gID] = true end
+			local allUnits = Spring.GetAllUnits()
+			for i = 1, #allUnits do
+				local uID = allUnits[i]
+				local defID = Spring.GetUnitDefID(uID)
+				if defID and cache.isBuilding[defID] then
+					local uTeam = Spring.GetUnitTeam(uID)
+					if uTeam then
+						local uAllyTeam = Spring.GetTeamAllyTeamID(uTeam)
+						if uAllyTeam ~= scanAllyTeam then
+							-- Only record/keep buildings the viewed allyteam has seen (INLOS or PREVLOS).
+							-- With fullview, GetUnitLosState reliably returns any allyteam's LOS.
+							-- stale[uID] is only cleared inside the PREVLOS check so ghosts for
+							-- buildings the allyteam has NEVER seen get swept (not preserved).
+							local losBits = Spring.GetUnitLosState(uID, scanAllyTeam, true)
+							if losBits and (losBits % 2 >= 1 or losBits % 8 >= 4) then
+								stale[uID] = nil  -- seen and still alive, don't sweep
+								local x, _, z = Spring.GetUnitBasePosition(uID)
+								if x then
+									local g = ghostBuildings[uID]
+									if g then
+										g.defID = defID; g.x = x; g.z = z; g.teamID = uTeam
+									else
+										ghostBuildings[uID] = { defID = defID, x = x, z = z, teamID = uTeam }
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+			-- Sweep stale ghosts (buildings destroyed while we had fullview)
+			for gID in pairs(stale) do
+				ghostBuildings[gID] = nil
+			end
+		end
 	end
 
 	-- Update mouse hover state
@@ -12474,6 +13198,19 @@ function widget:Update(dt)
 				render.dim.r = uiState.animEndDim.r
 				render.dim.b = uiState.animEndDim.b
 				render.dim.t = uiState.animEndDim.t
+				-- Recalculate min zoom from final dimensions (fixes zoom limit after expanding from minimized)
+				if not isMinimapMode then
+					local rawW = render.dim.r - render.dim.l
+					local rawH = render.dim.t - render.dim.b
+					pipModeMinZoom = math.min(rawW, rawH) / math.max(mapInfo.mapSizeX, mapInfo.mapSizeZ)
+					if cameraState.zoom < pipModeMinZoom then
+						cameraState.zoom = pipModeMinZoom
+						cameraState.targetZoom = pipModeMinZoom
+					end
+					if cameraState.targetZoom < pipModeMinZoom then
+						cameraState.targetZoom = pipModeMinZoom
+					end
+				end
 				-- Recalculate world coordinates for final dimensions
 				RecalculateWorldCoordinates()
 				RecalculateGroundTextureCoordinates()
@@ -12502,11 +13239,15 @@ function widget:Update(dt)
 	local zoomNeedsUpdate = math.abs(cameraState.zoom - cameraState.targetZoom) > 0.001
 	local centerNeedsUpdate = math.abs(cameraState.wcx - cameraState.targetWcx) > 0.1 or math.abs(cameraState.wcz - cameraState.targetWcz) > 0.1
 
-	-- Don't force immediate updates during zoom/pan - let dynamic update rate handle it for better performance
-	-- Only mark for update on significant changes (tracked player switching, etc.)
-	-- if zoomNeedsUpdate or centerNeedsUpdate then
-	-- 	pipR2T.contentNeedsUpdate = true
-	-- end
+	-- GameOver zoom-out animation: keep updating content until complete
+	if miscState.gameOverZoomingOut then
+		if zoomNeedsUpdate or centerNeedsUpdate then
+			pipR2T.contentNeedsUpdate = true
+		else
+			-- Zoom-out animation complete
+			miscState.gameOverZoomingOut = false
+		end
+	end
 
 	-- If zoom-to-cursor is active, continuously recalculate target center to keep world position under cursor
 	-- Disable this when tracking units - we want to keep the camera centered on tracked units
@@ -12554,6 +13295,10 @@ function widget:Update(dt)
 			if math.abs(cameraState.zoom - cameraState.targetZoom) < 0.002 then
 				cameraState.zoom = cameraState.targetZoom
 			end
+			-- Enforce zoom floor (can go stale after PIP resize / rotation change)
+			local zoomMin = GetEffectiveZoomMin()
+			if cameraState.zoom < zoomMin then cameraState.zoom = zoomMin end
+			if cameraState.targetZoom < zoomMin then cameraState.targetZoom = zoomMin end
 		end
 
 		-- Calculate bounds for CURRENT zoom level
@@ -12857,6 +13602,18 @@ function widget:GameStart()
 			interactionState.areTracking = {commanderID}  -- Store as table/array
 		end
 	end
+
+	-- On lava/water maps, read the lava level now that the gadget has initialized
+	-- (may not have been available during widget module-level init)
+	if mapInfo.isLava or mapInfo.hasWater then
+		local lavaLevel = Spring.GetGameRulesParam("lavaLevel")
+		if lavaLevel and lavaLevel ~= -99999 then
+			if mapInfo.dynamicWaterLevel ~= lavaLevel then
+				mapInfo.dynamicWaterLevel = lavaLevel
+				pipR2T.contentNeedsUpdate = true
+			end
+		end
+	end
 end
 
 function widget:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
@@ -12997,6 +13754,16 @@ local function CreateIconShatter(unitID, unitDefID, unitTeam, unitVelX, unitVelZ
 	local baseLifetime = 0.4 + iconSize / 216
 	local lifetimeVariation = 0.6 + math.random() * 0.8  -- 0.6 to 1.4 (±40% variation)
 
+	-- Capture damage flash intensity at death time (for white flash on fragments)
+	local flashIntensity = 0
+	local flash = damageFlash[unitID]
+	if flash then
+		local flashAge = gameTime - flash.time
+		if flashAge < DAMAGE_FLASH_DURATION then
+			flashIntensity = flash.intensity * (1 - flashAge / DAMAGE_FLASH_DURATION)
+		end
+	end
+
 	table.insert(cache.iconShatters, {
 		startTime = gameTime,
 		fragments = fragments,
@@ -13005,13 +13772,15 @@ local function CreateIconShatter(unitID, unitDefID, unitTeam, unitVelX, unitVelZ
 		teamG = teamG,
 		teamB = teamB,
 		duration = baseLifetime * lifetimeVariation,
-		zoom = cameraState.zoom  -- Store zoom factor to compensate for gl.Scale during rendering
+		zoom = cameraState.zoom,  -- Store zoom factor to compensate for gl.Scale during rendering
+		flashIntensity = flashIntensity,  -- Inherited damage flash (0-1)
 	})
 end
 
 -- Called by unit_crashing_aircraft gadget when an aircraft starts crashing
 function widget:CrashingAircraft(unitID, unitDefID, teamID)
 	miscState.crashingUnits[unitID] = true
+	selfDUnits[unitID] = nil
 	
 	-- Create shatter effect with unit's current velocity
 	local vx, vy, vz = Spring.GetUnitVelocity(unitID)
@@ -13038,11 +13807,25 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	gl4Icons.unitDefCache[unitID] = nil
 	gl4Icons.unitTeamCache[unitID] = nil
 
-	-- Clear damage flash
+	-- Clear damage flash and self-destruct tracking
 	damageFlash[unitID] = nil
+	selfDUnits[unitID] = nil
 
-	-- Clear ghost building and position caches
-	ghostBuildings[unitID] = nil
+	-- Clear ghost building: only remove if we have LOS on the position (or no LOS filtering active)
+	-- For spectators with LOS view, the ghost should persist if the position is in FoW
+	-- (the viewed allyteam doesn't know the building was destroyed yet)
+	if ghostBuildings[unitID] then
+		local ghost = ghostBuildings[unitID]
+		if state.losViewEnabled and state.losViewAllyTeam then
+			local gy = Spring.GetGroundHeight(ghost.x, ghost.z)
+			if Spring.IsPosInLos(ghost.x, gy, ghost.z, state.losViewAllyTeam) then
+				ghostBuildings[unitID] = nil  -- destroyed in LOS, remove ghost
+			end
+			-- else: destroyed in FoW, ghost persists until LOS reaches the position
+		else
+			ghostBuildings[unitID] = nil
+		end
+	end
 	ownBuildingPosX[unitID] = nil
 	ownBuildingPosZ[unitID] = nil
 end
@@ -13079,8 +13862,22 @@ function widget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transport
 end
 
 -- Track enemy building positions for ghost rendering on PIP
--- Command FX: briefly show command lines when orders are given
+-- Self-destruct tracking + Command FX
 function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
+	-- Self-destruct tracking (event-driven, avoids per-frame GetUnitSelfDTime calls)
+	if cmdID == CMD.SELFD then
+		-- SELFD toggles: if already counting down, this cancels it; otherwise starts it
+		local selfDTime = spFunc.GetUnitSelfDTime(unitID)
+		if selfDTime and selfDTime > 0 then
+			selfDUnits[unitID] = nil  -- was counting down, this command cancels it
+		else
+			selfDUnits[unitID] = true  -- start countdown
+		end
+	elseif cmdID == CMD.STOP then
+		-- Stop cancels self-destruct
+		selfDUnits[unitID] = nil
+	end
+
 	if not config.drawCommandFX then return end
 	if uiState.inMinMode then return end
 
@@ -13190,6 +13987,23 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	if config.drawCommandFX and config.commandFXIgnoreNewUnits then
 		commandFX.newUnits[unitID] = wallClockTime
 	end
+
+	-- Record newly completed enemy buildings as ghosts for spectators
+	-- Catches buildings built outside the PIP viewport while fullview is ON
+	-- Only ghost buildings the viewed allyteam has actually seen (PREVLOS or INLOS)
+	if cameraState.mySpecState and cache.isBuilding[unitDefID] then
+		local myAllyTeam = Spring.GetMyAllyTeamID()
+		local uAllyTeam = Spring.GetTeamAllyTeamID(unitTeam)
+		if uAllyTeam ~= myAllyTeam then
+			local losBits = Spring.GetUnitLosState(unitID, myAllyTeam, true)
+			if losBits and (losBits % 2 >= 1 or losBits % 8 >= 4) then
+				local x, _, z = Spring.GetUnitBasePosition(unitID)
+				if x then
+					ghostBuildings[unitID] = { defID = unitDefID, x = x, z = z, teamID = unitTeam }
+				end
+			end
+		end
+	end
 end
 
 -- UnitEnteredLos is only called for non-allied units entering the local player's LOS
@@ -13210,7 +14024,11 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 end
 
 function widget:UnitEnteredLos(unitID, unitTeam)
-	if cameraState.mySpecState then return end
+	-- Skip for fullview spectators (they see everything, ghosts are recorded in processUnit)
+	if cameraState.mySpecState then
+		local _, fullview = Spring.GetSpectatingState()
+		if fullview then return end
+	end
 	local unitDefID = spFunc.GetUnitDefID(unitID)
 	if not unitDefID then return end
 	if not cache.isBuilding[unitDefID] then return end
@@ -13242,6 +14060,9 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 	
 	-- Check if this is a paralyze weapon
 	local isParalyze = weaponID and cache.weaponIsParalyze[weaponID]
+
+	-- Check if this is a Juno weapon
+	local isJuno = weaponID and cache.weaponIsJuno[weaponID]
 	
 	-- Check if this is an anti-air weapon (skip AA explosions for now)
 	local isAA = weaponID and cache.weaponIsAA[weaponID]
@@ -13273,9 +14094,24 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 		particles = {},  -- Will store particle debris
 		isLightning = isLightning,
 		isParalyze = isParalyze,
+		isJuno = isJuno,
 		isAA = isAA,
-		isUnitExplosion = isUnitExplosion
+		isUnitExplosion = isUnitExplosion,
+		isBigFlash = false,  -- set below
 	}
+
+	-- Detect big flash explosions: nukes, commanders, large unit death explosions
+	-- These get an additional white flash layer that fades fast then lingers
+	if not isLightning and not isParalyze then
+		if radius >= 100 then
+			explosion.isBigFlash = true
+		elseif isUnitExplosion and ownerID then
+			local ownerDefID = Spring.GetUnitDefID(ownerID)
+			if ownerDefID and cache.isCommander[ownerDefID] then
+				explosion.isBigFlash = true
+			end
+		end
+	end
 
 	-- Add lightning sparks
 	if isLightning then
@@ -14496,8 +15332,24 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 		local pipWidth, pipHeight = GetEffectivePipDimensions()
 
 		-- Update dynamic min zoom so full map is visible at max zoom-out
-		-- Use raw (non-rotated) dimensions so zoom limit is the same regardless of rotation
-		if not isMinimapMode then
+		if isMinimapMode then
+			-- Recalculate minimapModeMinZoom for the new PIP dimensions
+			local rawW = render.dim.r - render.dim.l
+			local rawH = render.dim.t - render.dim.b
+			local is90 = false
+			if render.minimapRotation then
+				local rotDeg = math.abs(render.minimapRotation * 180 / math.pi) % 180
+				if rotDeg > 45 and rotDeg < 135 then is90 = true end
+			end
+			local fzx = is90 and (rawH / mapInfo.mapSizeX) or (rawW / mapInfo.mapSizeX)
+			local fzz = is90 and (rawW / mapInfo.mapSizeZ) or (rawH / mapInfo.mapSizeZ)
+			minimapModeMinZoom = math.min(fzx, fzz)
+			if cameraState.zoom < minimapModeMinZoom then
+				cameraState.zoom = minimapModeMinZoom
+				cameraState.targetZoom = minimapModeMinZoom
+			end
+		else
+			-- Use raw (non-rotated) dimensions so zoom limit is the same regardless of rotation
 			local rawW = render.dim.r - render.dim.l
 			local rawH = render.dim.t - render.dim.b
 			pipModeMinZoom = math.min(rawW, rawH) / math.max(mapInfo.mapSizeX, mapInfo.mapSizeZ)

@@ -37,8 +37,6 @@ local areaSizePresets = {
 
 -- Customparams and defaults:
 local prefixes = { unit = 'area_ondeath_', weapon = 'area_onhit_' }
-local damage, time, range, resistance = 30, 10, 75, "none"
-
 --[[
     customparams = {
         <prefix>_damage     := <number>    The damage done per second
@@ -92,6 +90,9 @@ local frameInterval = round(Game.gameSpeed * damageInterval)
 local frameCegShift = round(Game.gameSpeed * damageInterval * 0.5)
 local frameWaitTime = round(Game.gameSpeed * factoryWaitTime)
 
+-- Damage that bypasses the limit needs to be scaled to match its per-second value.
+local damageBypassScale = (Game.gameSpeed / frameInterval) ^ 2
+
 local timedDamageWeapons = {}
 local unitDamageImmunity = {}
 local featureDamageImmunity = {}
@@ -115,20 +116,36 @@ local regexCegToRadius = regexArea.."("..regexDigits..")"..regexRepeat
 -- Local functions -------------------------------------------------------------
 
 local function getExplosionParams(def, prefix)
-    local params = {
-        ceg        = def.customParams[ prefix.."ceg"        ],
-        damageCeg  = def.customParams[ prefix.."damageceg"  ],
-        resistance = def.customParams[ prefix.."resistance" ] or resistance,
-        damage     = def.customParams[ prefix.."damage"     ] or damage,
-        frames     = def.customParams[ prefix.."time"       ] or time,
-        range      = def.customParams[ prefix.."range"      ] or range,
-    }
-    params.damage = tonumber(params.damage) * (frameInterval/Game.gameSpeed)
-    params.frames = tonumber(params.frames) * Game.gameSpeed
-    params.frames = round(params.frames / frameInterval) * frameInterval
-    params.range = tonumber(params.range)
-    params.resistance = stringLower(params.resistance)
-    return params
+	local ceg        = def.customParams[prefix .. "ceg"       ]
+	local damageCeg  = def.customParams[prefix .. "damageceg" ]
+	local resistance = def.customParams[prefix .. "resistance"]
+	local damage     = def.customParams[prefix .. "damage"    ]
+	local frames     = def.customParams[prefix .. "time"      ]
+	local range      = def.customParams[prefix .. "range"     ]
+
+    resistance = stringLower(resistance or "none")
+	damage = tonumber(damage) * (frameInterval / Game.gameSpeed)
+    range = tonumber(range)
+
+	frames = tonumber(frames) * Game.gameSpeed
+	local framesActual = round(frames / frameInterval) * frameInterval
+	local framesExtra, damageExtra
+
+	if frames - framesActual > 0 then
+		framesExtra = frames - framesActual
+		damageExtra = framesExtra > 0 and damage * framesExtra / Game.gameSpeed
+	end
+
+	return {
+		ceg         = ceg,
+		damageCeg   = damageCeg,
+		resistance  = resistance,
+		damage      = damage,
+		range       = range,
+		frames      = framesActual,
+		extraFrames = framesExtra,
+		extraDamage = damageExtra,
+	}
 end
 
 local function getNearestCEG(params)
@@ -289,8 +306,8 @@ end
 ---@return number damageDealt
 ---@return boolean showDamageCeg
 local function getLimitedDamage(incoming, accumulated)
-    local ignoreLimit = max(0, incoming - damageLimit - accumulated)
-    local belowLimit = max(0, min(damageLimit - accumulated, incoming))
+    local ignoreLimit = max(0, incoming * damageBypassScale - damageLimit)
+    local belowLimit = max(0, min(incoming - ignoreLimit, damageLimit - accumulated))
     local aboveLimit = incoming - belowLimit - ignoreLimit
 
 	local damageDealt = ignoreLimit + belowLimit + aboveLimit * damageExcessRate
@@ -379,6 +396,13 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
 
         if area.endFrame <= gameFrame then
             tableRemove(timedAreas, index)
+			-- Handle areas with durations that are shorter than intended.
+			if area.extraFrames then
+				area.endFrame = area.extraFrames + gameFrame
+				area.damage = area.extraDamage
+				area.extraFrames = nil
+				area.extraDamage = nil
+			end
         end
     end
 
