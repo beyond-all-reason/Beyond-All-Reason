@@ -136,7 +136,7 @@ local config = {
 	healthDarkenMax = 0.2,  -- Maximum darkening for damaged units on GL4 icons (0-1, 0.18 = 18%)
 	activityFocusIgnoreSpectators = true,  -- Don't trigger camera focus for spectator map markers
 	activityFocusHideForSpectators = true,  -- Hide the activity focus button when spectating (default: disabled for spectators)
-	activityFocusDuration = 2,  -- Seconds to hold focus on a marker before restoring camera
+	activityFocusDuration = 1.8,  -- Seconds to hold focus on a marker before restoring camera
 	activityFocusZoom = 0.28,  -- Zoom level when focusing on a marker (higher = more zoomed in)
 	activityFocusShowMinimap = true,  -- Temporarily show pip-minimap overlay while focused on a map marker
 	activityFocusCooldown = 3,  -- Minimum seconds between focus triggers from the same player

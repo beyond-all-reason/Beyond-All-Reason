@@ -3535,7 +3535,7 @@ function init()
 			  Spring.SetConfigInt("MinimapMinimize", (value and '1' or '0'))
 		  end,
 		},
-		{ id = "minimaprotation", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimaprotation'), type = "select", options = { Spring.I18N('ui.settings.option.minimaprotation_none'), Spring.I18N('ui.settings.option.minimaprotation_autoflip'), Spring.I18N('ui.settings.option.minimaprotation_autorotate')}, description = Spring.I18N('ui.settings.option.minimaprotation_descr'),
+		{ id = "minimaprotation", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimaprotation'), type = "select", options = { Spring.I18N('ui.settings.option.minimaprotation_none'), Spring.I18N('ui.settings.option.minimaprotation_autoflip'), Spring.I18N('ui.settings.option.minimaprotation_autorotate'), Spring.I18N('ui.settings.option.minimaprotation_autolandscape')}, description = Spring.I18N('ui.settings.option.minimaprotation_descr'),
 		  onload = function(i)
 			  loadWidgetData("Minimap Rotation Manager", "minimaprotation", { 'mode' })
 			  if options[i].value == nil then -- first load to migrate from old behavior smoothly, might wanna remove it later
@@ -3547,18 +3547,6 @@ function init()
 				  saveOptionValue("Minimap Rotation Manager", "minimaprotationmanager", "setMode", { 'mode' }, value)
 			  else
 				  widgetHandler:EnableWidget("Minimap Rotation Manager") -- Widget has auto sync
-			  end
-		  end,
-		},
-		{ id = "minimapautofit", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimapautofit'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.minimapautofit_descr'),
-		  onload = function(i)
-			  if WG['minimaprotationmanager'] ~= nil and WG['minimaprotationmanager'].getAutoFitRotation ~= nil then
-				  options[i].value = WG['minimaprotationmanager'].getAutoFitRotation()
-			  end
-		  end,
-		  onchange = function(i, value)
-			  if WG['minimaprotationmanager'] ~= nil and WG['minimaprotationmanager'].setAutoFitRotation ~= nil then
-				  WG['minimaprotationmanager'].setAutoFitRotation(value)
 			  end
 		  end,
 		},

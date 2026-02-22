@@ -23,10 +23,11 @@ local spEcho = Spring.Echo
 	Manages and handles the rotation of the minimap based on camera rotation (Automatic rotation) or Manual Commands (Keybinds).
 	Via Engine calls, it can automatically adjust the minimap rotation to match the camera's orientation (90 or 180 degree increments).
 
-	Supports three modes:
+	Supports four modes:
 	1. none - No automatic rotation, manual control only.
 	2. autoFlip - Automatically flips the minimap to match the camera's orientation (180 degrees).
 	3. autoRotate - Automatically rotates the minimap in 90-degree increments to match the camera's orientation.
+	4. autoLandscape - Automatically rotates portrait maps by 90° at game start so they display in landscape, then only allows flipping between the two landscape orientations.
 
 	Modes can be set via the settings menu or utilising the keybinds that come with this manager.
 
@@ -52,12 +53,12 @@ local CameraRotationModes = {
 	none = 1,
 	autoFlip = 2,
 	autoRotate = 3,
+	autoLandscape = 4,
 }
 
 local mode
 local prevSnap
 local trackingLock = false
-local autoFitRotation = false
 local autoFitApplied = false
 local autoFitPending = false
 local autoFitTargetRot = nil
@@ -92,7 +93,8 @@ local function minimapRotateHandler(_, _, args)
 			["autoFlip"] = CameraRotationModes.autoFlip,
 			["180"] = CameraRotationModes.autoFlip,
 			["autoRotate"] = CameraRotationModes.autoRotate,
-			["90"] = CameraRotationModes.autoRotate
+			["90"] = CameraRotationModes.autoRotate,
+			["autoLandscape"] = CameraRotationModes.autoLandscape,
 		}
 
 		local newMode = modeMap[args[2]]
@@ -145,34 +147,39 @@ end
 
 local function isValidOption(num)
 	if num == nil then return false end
-	if num < CameraRotationModes.none or num > CameraRotationModes.autoRotate then return false end
+	if num < CameraRotationModes.none or num > CameraRotationModes.autoLandscape then return false end
 	return true
 end
 
 local function applyAutoFitRotation()
-	if not autoFitRotation then return end
+	if mode ~= CameraRotationModes.autoLandscape then return end
 	local mapSizeX = Game.mapSizeX
 	local mapSizeZ = Game.mapSizeZ
 	if mapSizeZ > mapSizeX then
 		-- Map is portrait-oriented: rotate 90 degrees so it fills the wider minimap GUI area
-		-- Choose +90 or -90 based on sun direction for best front-lighting
 		if not autoFitTargetRot then
 			local camState = Spring.GetCameraState()
 			local ry = (camState and camState.ry) or 0
 			local sunX, _, sunZ = gl.GetSun("pos")
-			local dot = -math.cos(ry) * sunX + math.sin(ry) * sunZ
-			autoFitTargetRot = dot >= 0 and HALFPI or -HALFPI
+			-- Compute forward dot sun for both candidate rotations
+			local ryPlus = ry + HALFPI
+			local ryMinus = ry - HALFPI
+			local dotPlus = math.sin(ryPlus) * sunX + math.cos(ryPlus) * sunZ
+			local dotMinus = math.sin(ryMinus) * sunX + math.cos(ryMinus) * sunZ
+			autoFitTargetRot = dotPlus > dotMinus and HALFPI or -HALFPI
+			spEcho("[MinimapManager] AutoFit: sun=(" .. sunX .. ", " .. sunZ .. ") ry=" .. ry .. " dotPlus=" .. dotPlus .. " dotMinus=" .. dotMinus .. " -> " .. (autoFitTargetRot > 0 and "+90" or "-90"))
 		end
 
 		spSetMiniRot(autoFitTargetRot)
 
-		-- Only rotate the camera once
+		-- Rotate the camera once per game
 		if not autoFitCameraApplied then
 			local camState = Spring.GetCameraState()
 			if camState then
 				camState.ry = (camState.ry or 0) + autoFitTargetRot
 				Spring.SetCameraState(camState, 0)
 				autoFitCameraApplied = true
+				spEcho("[MinimapManager] AutoFit: camera rotated to ry=" .. camState.ry)
 			end
 		end
 
@@ -185,6 +192,7 @@ local function applyAutoFitRotation()
 			autoFitPending = true
 		end
 	else
+		-- Landscape or square map: no initial rotation needed
 		autoFitApplied = true
 		autoFitPending = false
 	end
@@ -200,6 +208,12 @@ function widget:Initialize()
 			if mode == CameraRotationModes.none then
 				-- Reset to default unrotated angle when switching to none
 				spSetMiniRot(0)
+			elseif mode == CameraRotationModes.autoLandscape then
+				-- Reset autofit state so it re-applies
+				autoFitApplied = false
+				autoFitTargetRot = nil
+				autoFitCameraApplied = false
+				applyAutoFitRotation()
 			else
 				widget:CameraRotationChanged(Spring.GetCameraRotation()) -- Force update on mode change
 			end
@@ -208,17 +222,6 @@ function widget:Initialize()
 
 	WG['minimaprotationmanager'].getMode = function()
 		return mode
-	end
-
-	WG['minimaprotationmanager'].setAutoFitRotation = function(value)
-		autoFitRotation = value
-		if value and not autoFitApplied then
-			applyAutoFitRotation()
-		end
-	end
-
-	WG['minimaprotationmanager'].getAutoFitRotation = function()
-		return autoFitRotation
 	end
 
 	local temp = WG['options'].getOptionValue("minimaprotation")
@@ -230,12 +233,7 @@ function widget:Initialize()
 
 	widgetHandler:AddAction("minimap_rotate", minimapRotateHandler, nil, "p")
 
-	local autoFitTemp = WG['options'] and WG['options'].getOptionValue("minimapautofit")
-	if autoFitTemp ~= nil then
-		autoFitRotation = autoFitTemp
-	end
-
-	-- Auto-fit will be applied in widget:Update once game is loaded
+	-- Auto-landscape will be applied in widget:Update once game is loaded
 end
 
 function widget:Shutdown()
@@ -243,56 +241,71 @@ function widget:Shutdown()
 end
 
 function widget:Update()
-	if not autoFitRotation or autoFitApplied then return end
-
-	if autoFitPending then
-		-- Keep retrying until it takes effect
-		applyAutoFitRotation()
-		return
-	end
+	if mode ~= CameraRotationModes.autoLandscape or autoFitApplied then return end
 
 	local currentGameID = Game.gameID or Spring.GetGameRulesParam("GameID")
-	if currentGameID and currentGameID ~= lastGameID then
+	if not currentGameID then return end  -- game not loaded yet
+
+	if currentGameID ~= lastGameID then
+		-- New game: reset so it recalculates direction
 		lastGameID = currentGameID
-		autoFitTargetRot = nil  -- Recalculate for new game
+		autoFitTargetRot = nil
 		autoFitCameraApplied = false
-		applyAutoFitRotation()
 	end
+
+	-- Always try to apply when not yet applied (handles widget reload too)
+	applyAutoFitRotation()
 end
 
 function widget:CameraRotationChanged(_, roty)
 	if trackingLock then return end
 
-	if autoFitRotation then
-		-- Auto-fit: only allow the two landscape orientations
-		if mode == CameraRotationModes.none then return end
-		local newRot
-		local distFromBoundary
+	if mode == CameraRotationModes.autoLandscape then
 		if Game.mapSizeZ > Game.mapSizeX then
-			-- Portrait map: landscape orientations are 90° and 270°
+			-- Portrait map: only allow the two landscape orientations (90° and 270°)
+			local newRot
+			local distFromBoundary
 			-- Boundaries at 0° and 180° (midpoints between 90° and 270°)
 			newRot = (PI * mathFloor(((roty - HALFPI) / PI) + 0.5) + HALFPI) % TWOPI
 			-- Distance from nearest boundary (0° or 180°)
 			local rem = roty % PI
 			distFromBoundary = math.min(rem, PI - rem)
-		else
-			-- Landscape map: landscape orientations are 0° and 180°
-			-- Boundaries at 90° and 270°
-			newRot = (PI * mathFloor((roty / PI) + 0.5)) % TWOPI
-			-- Distance from nearest boundary (90° or 270°)
-			distFromBoundary = math.abs((roty % PI) - HALFPI)
-		end
-		-- Hysteresis: only flip when camera is well past the midpoint boundary
-		if prevSnap ~= nil and newRot ~= prevSnap then
-			if distFromBoundary < AUTOFIT_HYSTERESIS then
-				return  -- too close to boundary, keep current orientation
+			-- Hysteresis: only flip when camera is well past the midpoint boundary
+			if prevSnap ~= nil and newRot ~= prevSnap then
+				if distFromBoundary < AUTOFIT_HYSTERESIS then
+					return  -- too close to boundary, keep current orientation
+				end
 			end
+			if newRot ~= prevSnap then
+				prevSnap = newRot
+				spSetMiniRot(newRot)
+			end
+			return
+		elseif Game.mapSizeX > Game.mapSizeZ then
+			-- Landscape map: only allow 0° and 180°
+			local newRot
+			local distFromBoundary
+			newRot = (PI * mathFloor((roty / PI) + 0.5)) % TWOPI
+			distFromBoundary = math.abs((roty % PI) - HALFPI)
+			if prevSnap ~= nil and newRot ~= prevSnap then
+				if distFromBoundary < AUTOFIT_HYSTERESIS then
+					return
+				end
+			end
+			if newRot ~= prevSnap then
+				prevSnap = newRot
+				spSetMiniRot(newRot)
+			end
+			return
+		else
+			-- Square map: free 90° rotation like autoRotate
+			local newRot = HALFPI * (mathFloor((roty/HALFPI) + 0.5) % 4)
+			if newRot ~= prevSnap then
+				prevSnap = newRot
+				spSetMiniRot(newRot)
+			end
+			return
 		end
-		if newRot ~= prevSnap then
-			prevSnap = newRot
-			spSetMiniRot(newRot)
-		end
-		return
 	end
 
 	if mode == CameraRotationModes.none then return end
@@ -311,8 +324,8 @@ end
 function widget:GetConfigData()
 	return {
 		mode = mode,
-		autoFitRotation = autoFitRotation,
 		lastGameID = lastGameID,
+		autoFitCameraApplied = autoFitCameraApplied,
 	}
 end
 
@@ -320,10 +333,10 @@ function widget:SetConfigData(data)
 	if data.mode ~= nil then
 		mode = data.mode
 	end
-	if data.autoFitRotation ~= nil then
-		autoFitRotation = data.autoFitRotation
-	end
 	if data.lastGameID ~= nil then
 		lastGameID = data.lastGameID
+	end
+	if data.autoFitCameraApplied ~= nil then
+		autoFitCameraApplied = data.autoFitCameraApplied
 	end
 end
