@@ -59,6 +59,10 @@ local prevSnap
 local trackingLock = false
 local autoFitRotation = false
 local autoFitApplied = false
+local autoFitPending = false
+local autoFitTargetRot = nil
+local autoFitCameraApplied = false
+local lastGameID = nil
 
 
 --------------------------------------------------------------------------------
@@ -150,22 +154,37 @@ local function applyAutoFitRotation()
 	if mapSizeZ > mapSizeX then
 		-- Map is portrait-oriented: rotate 90 degrees so it fills the wider minimap GUI area
 		-- Choose +90 or -90 based on sun direction for best front-lighting
-		local camState = Spring.GetCameraState()
-		local ry = (camState and camState.ry) or 0
-		local sunX, _, sunZ = gl.GetSun("pos")
-		-- Dot product of camera forward at (ry + HALFPI) with sun direction
-		-- camForward = (-sin(ry), -cos(ry)); for ry+HALFPI: (-cos(ry), sin(ry))
-		local dot = -math.cos(ry) * sunX + math.sin(ry) * sunZ
-		local rotation = dot >= 0 and HALFPI or -HALFPI
-
-		spSetMiniRot(rotation)
-		if camState then
-			camState.ry = ry + rotation
-			Spring.SetCameraState(camState, 0)
+		if not autoFitTargetRot then
+			local camState = Spring.GetCameraState()
+			local ry = (camState and camState.ry) or 0
+			local sunX, _, sunZ = gl.GetSun("pos")
+			local dot = -math.cos(ry) * sunX + math.sin(ry) * sunZ
+			autoFitTargetRot = dot >= 0 and HALFPI or -HALFPI
 		end
-		autoFitApplied = true
+
+		spSetMiniRot(autoFitTargetRot)
+
+		-- Only rotate the camera once
+		if not autoFitCameraApplied then
+			local camState = Spring.GetCameraState()
+			if camState then
+				camState.ry = (camState.ry or 0) + autoFitTargetRot
+				Spring.SetCameraState(camState, 0)
+				autoFitCameraApplied = true
+			end
+		end
+
+		-- Verify minimap rotation actually took effect
+		local currentRot = spGetMiniRot()
+		if currentRot and math.abs(currentRot - autoFitTargetRot) < 0.01 then
+			autoFitApplied = true
+			autoFitPending = false
+		else
+			autoFitPending = true
+		end
 	else
-		autoFitApplied = false
+		autoFitApplied = true
+		autoFitPending = false
 	end
 end
 
@@ -191,6 +210,9 @@ function widget:Initialize()
 
 	WG['minimaprotationmanager'].setAutoFitRotation = function(value)
 		autoFitRotation = value
+		if value and not autoFitApplied then
+			applyAutoFitRotation()
+		end
 	end
 
 	WG['minimaprotationmanager'].getAutoFitRotation = function()
@@ -210,10 +232,30 @@ function widget:Initialize()
 	if autoFitTemp ~= nil then
 		autoFitRotation = autoFitTemp
 	end
+
+	-- Auto-fit will be applied in widget:Update once game is loaded
 end
 
 function widget:Shutdown()
 	WG['minimaprotationmanager'] = nil
+end
+
+function widget:Update()
+	if not autoFitRotation or autoFitApplied then return end
+
+	if autoFitPending then
+		-- Keep retrying until it takes effect
+		applyAutoFitRotation()
+		return
+	end
+
+	local currentGameID = Game.gameID or Spring.GetGameRulesParam("GameID")
+	if currentGameID and currentGameID ~= lastGameID then
+		lastGameID = currentGameID
+		autoFitTargetRot = nil  -- Recalculate for new game
+		autoFitCameraApplied = false
+		applyAutoFitRotation()
+	end
 end
 
 function widget:CameraRotationChanged(_, roty)
@@ -230,14 +272,11 @@ function widget:CameraRotationChanged(_, roty)
 	end
 end
 
-function widget:GameStart()
-	applyAutoFitRotation()
-end
-
 function widget:GetConfigData()
 	return {
 		mode = mode,
 		autoFitRotation = autoFitRotation,
+		lastGameID = lastGameID,
 	}
 end
 
@@ -247,5 +286,8 @@ function widget:SetConfigData(data)
 	end
 	if data.autoFitRotation ~= nil then
 		autoFitRotation = data.autoFitRotation
+	end
+	if data.lastGameID ~= nil then
+		lastGameID = data.lastGameID
 	end
 end
