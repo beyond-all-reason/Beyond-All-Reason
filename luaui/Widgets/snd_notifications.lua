@@ -34,7 +34,6 @@ local playedWelcome = false
 
 local silentTime = 0.7    -- silent time between queued notifications
 local globalVolume = 0.7
-local playTrackedPlayerNotifs = false
 local muteWhenIdle = true
 --local idleTime = 10        -- after this much sec: mark user as idle
 local displayMessages = true
@@ -445,7 +444,7 @@ end
 
 local function queueNotification(event, forceplay)
 	if Spring.GetGameFrame() > 20 or forceplay then
-		if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) or forceplay then
+		if not isSpec or (isSpec and lockPlayerID ~= nil) or forceplay then
 			if notificationList[event] and notification[event] then
 				if not LastPlay[event] or (spGetGameFrame() >= LastPlay[event] + (notification[event].delay * 30)) then
 					if not isInQueue(event) then
@@ -489,7 +488,7 @@ local function gadgetNotificationEvent(msg)
 	end
 
 	local forceplay = (string.sub(msg, string.len(msg) - 1) == ' y')
-	if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) or forceplay then
+	if not isSpec or (isSpec and lockPlayerID ~= nil) or forceplay then
 		local event = string.sub(msg, 1, string.find(msg, " ", nil, true) - 1)
 		local player = string.sub(msg, string.find(msg, " ", nil, true) + 1, string.len(msg))
 		if forceplay or (tonumber(player) and (tonumber(player) == Spring.GetMyPlayerID())) or (isSpec and tonumber(player) == lockPlayerID) then
@@ -554,12 +553,6 @@ function widget:Initialize()
 	end
 	WG['notifications'].setMessages = function(value)
 		displayMessages = value
-	end
-	WG['notifications'].getPlayTrackedPlayerNotifs = function()
-		return playTrackedPlayerNotifs
-	end
-	WG['notifications'].setPlayTrackedPlayerNotifs = function(value)
-		playTrackedPlayerNotifs = value
 	end
 	WG['notifications'].addEvent = function(value, force)
 		if notification[value] then
@@ -1042,7 +1035,6 @@ function widget:GetConfigData(data)
 		globalVolume = globalVolume,
 		spoken = spoken,
 		displayMessages = displayMessages,
-		playTrackedPlayerNotifs = playTrackedPlayerNotifs,
 		LastPlay = LastPlay,
 		tutorialMode = tutorialMode,
 		tutorialPlayed = tutorialPlayed,
@@ -1067,9 +1059,6 @@ function widget:SetConfigData(data)
 	end
 	if data.displayMessages ~= nil then
 		displayMessages = data.displayMessages
-	end
-	if data.playTrackedPlayerNotifs ~= nil then
-		playTrackedPlayerNotifs = data.playTrackedPlayerNotifs
 	end
 	if data.tutorialPlayed ~= nil then
 		tutorialPlayed = data.tutorialPlayed
