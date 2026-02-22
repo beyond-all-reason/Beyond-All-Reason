@@ -520,6 +520,13 @@ local function spawnUnit(spawnData)
 								subUnitID = spCreateUnit(dronename, spawnData.x, spawnData.y, spawnData.z, 0, spawnData.teamID)
 								if subUnitID then
 									startingDroneCount = startingDroneCount - 1
+									if carrierData.usestockpile then
+										local stockpile,_,stockpilepercentage = spGetUnitStockpile(ownerID)
+										stockpile = stockpile + 1
+										spSetUnitStockpile(ownerID, stockpile, stockpilepercentage)
+										spGiveOrderToUnit(ownerID, CMD.STOCKPILE, {}, {"right"})
+										carrierMetaList[ownerID].stockpilecount = carrierMetaList[ownerID].stockpilecount + 1
+									end
 									if startingDroneCount > 0 then
 										startingDronesLeft = true
 									end
@@ -1671,7 +1678,9 @@ end
 
 function gadget:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
 	if carrierMetaList[unitID] then
-		if carrierMetaList[unitID].usestockpile and newCount > oldCount then
+		if carrierMetaList[unitID].startingWithDrones then
+			return
+		elseif carrierMetaList[unitID].usestockpile and newCount > oldCount then
 			local spawnData = carrierMetaList[unitID].subInitialSpawnData
 				local x, y, z = spGetUnitPosition(unitID)
 				spawnData.x = x
