@@ -4,7 +4,7 @@ return {
 		builddistance = 136,
 		builder = true,
 		buildpic = "LEGACA.DDS",
-		buildtime = 48000,
+		buildtime = 58000,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,
@@ -18,8 +18,6 @@ return {
 		footprintz = 2,
 		health = 435,
 		hoverattack = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.072,
 		maxdec = 0.4275,
 		maxslope = 10,
@@ -73,8 +71,8 @@ return {
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorSeaplanes",
-			unitgroup = "buildert2",
 			techlevel = 2,
+			unitgroup = "buildert2",
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

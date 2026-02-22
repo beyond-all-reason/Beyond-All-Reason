@@ -12,6 +12,13 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+
 local showRejoinUI = false
 local CATCH_UP_THRESHOLD = 11 * Game.gameSpeed    -- only show the window if behind this much
 local UPDATE_RATE_F = 5 -- frames
@@ -26,7 +33,7 @@ local stripesTexture = "LuaUI/Images/stripes.png"
 local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
 local rejoinArea = {}
-local gameStarted = (Spring.GetGameFrame() > 0)
+local gameStarted = (spGetGameFrame() > 0)
 local isReplay = Spring.IsReplay()
 local RectRound, TexturedRectRound, UiElement, font2
 local dlistRejoin, dlistRejoinGuishader, serverFrame
@@ -51,7 +58,7 @@ local function updateRejoin()
 
 	if showRejoinUI and serverFrame then
 		local area = rejoinArea
-		local catchup = Spring.GetGameFrame() / serverFrame
+		local catchup = spGetGameFrame() / serverFrame
 		if not dlistRejoinGuishader then
 			dlistRejoinGuishader = gl.CreateList(function()
 				RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
@@ -67,16 +74,16 @@ local function updateRejoin()
 		dlistRejoin = gl.CreateList(function()
 			UiElement(area[1], area[2], area[3], area[4], 1, 1, 1, 1)
 
-			local barHeight = math.floor((height * widgetScale / 7.5) + 0.5)
-			local barHeightPadding = 1+math.floor(vsy*0.007)
+			local barHeight = mathFloor((height * widgetScale / 7.5) + 0.5)
+			local barHeightPadding = 1+mathFloor(vsy*0.007)
 			local barLeftPadding = barHeightPadding
 			local barRightPadding = barHeightPadding
 			local barArea = { area[1] + barLeftPadding, area[2] + barHeightPadding, area[3] - barRightPadding, area[2] + barHeight + barHeightPadding }
 			local barWidth = barArea[3] - barArea[1]
 
 			-- Bar background
-			local edgeWidth = math.max(1, math.floor(vsy / 1100))
-			local addedSize = math.floor(((barArea[4] - barArea[2]) * 0.15) + 0.5)
+			local edgeWidth = math.max(1, mathFloor(vsy / 1100))
+			local addedSize = mathFloor(((barArea[4] - barArea[2]) * 0.15) + 0.5)
 			RectRound(barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, { 0, 0, 0, 0.03 }, { 0, 0, 0, 0.03 })
 			RectRound(barArea[1] - addedSize, barArea[2] - addedSize, barArea[3] + addedSize, barArea[4] + addedSize, barHeight * 0.33, 1, 1, 1, 1, { 0.15, 0.15, 0.15, 0.2 }, { 0.8, 0.8, 0.8, 0.16 })
 
@@ -122,12 +129,12 @@ local function updateRejoin()
 			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 			gl.Color(1,1,1,1)
 
-			local mins = math.floor(serverFrame / 30 / 60)
-			local secs = math.floor(((serverFrame / 30 / 60) - mins) * 60)
+			local mins = mathFloor(serverFrame / 30 / 60)
+			local secs = mathFloor(((serverFrame / 30 / 60) - mins) * 60)
 			local gametime = mins..':'..(secs < 10 and '0'..secs or secs)
 
 			-- Text
-			local fontsize = math.floor(height*0.34)
+			local fontsize = mathFloor(height*0.34)
 			font2:Begin()
 			font2:SetTextColor(0.92, 0.92, 0.92, 1)
 			font2:SetOutlineColor(0, 0, 0, 1)
@@ -157,7 +164,7 @@ function widget:Update(dt)
 				serverFrame = serverFrame + (speedFactor * UPDATE_RATE_F)
 			end
 
-			local framesLeft = serverFrame - Spring.GetGameFrame()
+			local framesLeft = serverFrame - spGetGameFrame()
 			if framesLeft > CATCH_UP_THRESHOLD then
 				showRejoinUI = true
 				updateRejoin()
@@ -183,8 +190,8 @@ end
 
 function widget:ViewResize()
 	vsx, vsy = gl.GetViewSizes()
-	width = math.floor(vsy*0.23)
-	height = math.floor(vsy*0.046)
+	width = mathFloor(vsy*0.23)
+	height = mathFloor(vsy*0.046)
 	widgetScale = (vsy / height) * 0.0425
 	widgetScale = widgetScale * ui_scale
 
@@ -194,7 +201,7 @@ function widget:ViewResize()
 
 	font2 = WG['fonts'].getFont(2)
 
-	rejoinArea = { math.floor(0.5*vsx)-math.floor(width*0.5), math.floor(posY*vsy)-math.floor(height*0.5), math.floor(0.5*vsx) + math.floor(width*0.5), math.floor(posY*vsy)+math.floor(height*0.5) }
+	rejoinArea = { mathFloor(0.5*vsx)-mathFloor(width*0.5), mathFloor(posY*vsy)-mathFloor(height*0.5), mathFloor(0.5*vsx) + mathFloor(width*0.5), mathFloor(posY*vsy)+mathFloor(height*0.5) }
 
 	if dlistRejoinGuishader ~= nil then
 		if WG['guishader'] then

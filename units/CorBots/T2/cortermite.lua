@@ -1,7 +1,7 @@
 return {
 	cortermite = {
 		buildpic = "CORTERMITE.DDS",
-		buildtime = 13500,
+		buildtime = 17000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "40 26 48",
@@ -12,8 +12,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 3100,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.19665,
 		maxdec = 0.60375,
 		maxslope = 50,

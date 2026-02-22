@@ -12,12 +12,16 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 local export_folder_path = "json_export"
 
 local function TableToFile(tbl, filename)
 	local file, err = io.open(filename, "w")
 	if not file then
-		Spring.Echo("Error opening file: " .. err)
+		spEcho("Error opening file: " .. err)
 		return
 	end
 	file:write(Json.encode(tbl))
@@ -30,7 +34,7 @@ local function ExportDefs()
 	end
 
 	for id, unitDef in pairs(UnitDefs) do
-		Spring.Echo(string.format("Exporting unitdef: %s", unitDef.name))
+		spEcho(string.format("Exporting unitdef: %s", unitDef.name))
 		local tbl = {}
 
 		-- embed higher-level "computed" fields like translatedHumanName, translatedTooltip, etc.

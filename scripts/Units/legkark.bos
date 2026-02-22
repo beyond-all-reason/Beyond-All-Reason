@@ -6,13 +6,12 @@ piece 	base, torso, lshoulder, rshoulder, lsleeve, rsleeve, lbarrel, heatraycoil
 		armorlshoulder, armorrshoulder, armorlsleeve, armortorso, armorflleg, armorfrleg, armorblleg, armorbrleg, 
 		torsopivot, aimx, lflare1, lflare2, rflare;
 
-static-var  isMoving, isAiming, restore_delay, gun_1, wpn1_lasthead, moveSpeed, tdamage, shieldup, torsoHeading, shotcount;
+static-var  isMoving, isAiming, restore_delay, gun_1, wpn1_lasthead, moveSpeed, explosions, shieldup, torsoHeading, shotcount;
 
 // signal definitions
 #define SIGNAL_AIM1			2
 #define SIGNAL_MOVE			4
 #define SIGNAL_AIM2			8
-#define SIGNAL_REPAIR		16
 
 #define BASEPIECE base
 #define HITSPEED <55.0>
@@ -365,64 +364,106 @@ HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage i
 	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
 }
 
-// Disable armored state when 1500 damage is taken
 HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
 {
-	signal SIGNAL_REPAIR;
 	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
-	tdamage = dmg + tdamage;
-	start-script repairShield();
-	if ((tdamage > 30000) AND (shieldup == 1))
-	{
-		// Start Animation: Break Shield; Only explode 2 pieces to reduce clutter
-		explode armortorso type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode armorlsleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		
-		hide armortorso;
-		hide armorflleg;
-		hide armorfrleg;
-		hide armorrshoulder;
-		hide armorlsleeve;
-		// End Animation
-		
-		set ARMORED to 0;
-		shieldup = 0;
-		
-	}
 	return (100); //return damage percent
 }
 
-// Restore this units hume shield after 15000ms / 15 seconds, restore armored state
-repairShield()
+// Set armored state at begin/end of animations
+
+ReactiveArmorBreak()
 {
-	set-signal-mask SIGNAL_REPAIR;
-	sleep 11000;
-	
-	// Start Animation: 5 second countdown
-	show armorflleg;
-	emit-sfx 1024 + 1 from armorflleg;
-	sleep 1000;
-	
-	show armorfrleg;
-	emit-sfx 1024 + 1 from armorfrleg;
-	sleep 1000;
-	
-	show armorrshoulder;
-	emit-sfx 1024 + 1 from armorrshoulder;
-	sleep 1000;
-	
-	show armorlsleeve;
-	emit-sfx 1024 + 1 from armorlsleeve;
-	sleep 1000;
-	
-	show armortorso;
-	emit-sfx 1024 + 1 from armortorso;
-	// End Animation
-	
-	// Reset shield status 
+	set ARMORED to 0;
+	shieldup = 0;
+}
+
+ReactiveArmorRestore()
+{
 	shieldup = 1;
 	set ARMORED to 1;
-	tdamage = 0;
+}
+
+// Break pieces individually from damage:
+
+LimitExplosions()
+{
+	while (TRUE)
+	{
+		explosions = 0;
+		sleep 85;
+	}
+}
+
+ReactiveArmorBreak1()
+{
+	hide armorfrleg;
+	++explosions;
+	explode armorfrleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+}
+ReactiveArmorBreak2()
+{
+	hide armorflleg;
+	++explosions;
+	if (explosions == 1)
+	{
+		explode armorflleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	}
+}
+ReactiveArmorBreak3()
+{
+	hide armorrshoulder;
+	++explosions;
+	if (explosions == 1 OR explosions == 3)
+	{
+		explode armorrshoulder type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	}
+}
+ReactiveArmorBreak4()
+{
+	hide armorlsleeve;
+	++explosions;
+	if (explosions == 1 OR explosions == 3)
+	{
+		explode armorlsleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	}
+}
+ReactiveArmorBreak5()
+{
+	hide armortorso;
+	++explosions;
+	if (explosions == 1 OR explosions == 3 OR explosions == 5)
+	{
+		explode armortorso type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	}
+}
+
+// Restore pieces individually over time:
+
+ReactiveArmorRestore1()
+{
+	show armortorso;
+	emit-sfx 1024 + 1 from armortorso;
+}
+ReactiveArmorRestore2()
+{
+	show armorlsleeve;
+	emit-sfx 1024 + 1 from armorlsleeve;
+}
+ReactiveArmorRestore3()
+{
+	show armorrshoulder;
+	emit-sfx 1024 + 1 from armorrshoulder;
+}
+ReactiveArmorRestore4()
+{
+	show armorflleg;
+	emit-sfx 1024 + 1 from armorflleg;
+}
+ReactiveArmorRestore5()
+{
+	show armorfrleg;
+	emit-sfx 1024 + 1 from armorfrleg;
 }
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
@@ -470,7 +511,7 @@ Create()
 	
 	torsoHeading = 0;
 	gun_1 = 0;
-	tdamage = 0;
+	explosions = 0;
 	shieldup = 1;
 	set ARMORED to 1;
 	animSpeed = 5;
@@ -485,6 +526,7 @@ Create()
 	
 	start-script SmokeUnit();
 	start-script UnitSpeed();
+	start-script LimitExplosions();
 }
 
 SetMaxReloadTime(Func_Var_1)
@@ -631,7 +673,6 @@ DeathAnim() {// For C:\Users\logst\Downloads\BAR\legkark anim.blend Created by h
 	signal SIGNAL_MOVE;
 	signal SIGNAL_AIM1;
 	signal SIGNAL_AIM2;
-	signal SIGNAL_REPAIR;
 	
 	call-script StopWalking();
 	turn torso to y-axis <0> speed <120>;

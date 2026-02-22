@@ -19,8 +19,6 @@ return {
 		floater = true,
 		footprintx = 6,
 		footprintz = 6,
-		idleautoheal = 15,
-		idletime = 600,
 		losemitheight = 56,
 		mass = 5000,
 		maxdamage = 3800,

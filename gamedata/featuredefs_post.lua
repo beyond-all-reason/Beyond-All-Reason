@@ -97,6 +97,7 @@ local function isModelOK(featureDef)
 	local modelPath = "objects3d/" .. featureDef.object
 	return VFS.FileExists(modelPath          , VFS.ZIP)
 	    or VFS.FileExists(modelPath .. ".3do", VFS.ZIP)
+	    or VFS.FileExists(modelPath .. ".s3o", VFS.ZIP)
 end
 
 for name, def in pairs(FeatureDefs) do

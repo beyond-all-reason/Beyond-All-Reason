@@ -2,7 +2,7 @@ return {
 	corsjam = {
 		activatewhenbuilt = true,
 		buildpic = "CORSJAM.DDS",
-		buildtime = 14500,
+		buildtime = 17000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -5 0",
 		collisionvolumescales = "28 36 70",
@@ -15,8 +15,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1450,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.03574,
 		maxdec = 0.03574,
 		metalcost = 280,

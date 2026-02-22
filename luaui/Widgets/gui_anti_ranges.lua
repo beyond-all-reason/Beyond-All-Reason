@@ -14,6 +14,10 @@ function widget:GetInfo()
     }
 end
 
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 -- project page on github: https://github.com/jamerlan/gui_mobile_anti_defence_range
 
 --Changelog
@@ -60,11 +64,14 @@ local spGetPositionLosState 	= Spring.GetPositionLosState
 local spGetCameraPosition		= Spring.GetCameraPosition
 local spGetUnitStockpile		= Spring.GetUnitStockpile
 local spGetAllUnits    			= Spring.GetAllUnits
+local spGetTeamUnitsByDefs	= Spring.GetTeamUnitsByDefs
+local spGetTeamList			= Spring.GetTeamList
 local GetUnitIsStunned     		= Spring.GetUnitIsStunned
 
 local antiInLos					= {}
 local antiOutLos				= {}
 local antiNukeDefs              = {}
+local antiNukeDefIDList         = {}  -- array of DefIDs for GetTeamUnitsByDefs
 
 local diag = math.diag
 
@@ -86,6 +93,7 @@ function identifyAntiNukeUnits()
             local weaponDef = WeaponDefs[weapons[i].weaponDef]
             if weaponDef and weaponDef.interceptor and weaponDef.interceptor == 1 then
                 antiNukeDefs[unitDefID] = weaponDef.coverageRange
+                antiNukeDefIDList[#antiNukeDefIDList + 1] = unitDefID
                 break
             end
         end
@@ -250,10 +258,15 @@ function checkAllUnits()
 	antiInLos				= {}
 	antiOutLos				= {}
 
-	local allUnits = spGetAllUnits()
-    for i=1,#allUnits do
-        processVisibleUnit(allUnits[i])
-    end
+	if #antiNukeDefIDList == 0 then return end
+	for _, allyTeamID in ipairs(spGetTeamList()) do
+		local units = spGetTeamUnitsByDefs(allyTeamID, antiNukeDefIDList)
+		if units then
+			for i = 1, #units do
+				processVisibleUnit(units[i])
+			end
+		end
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -274,17 +287,17 @@ function widget:TextCommand(command)
     if (string.find(command, "antiranges_glow", nil, true) == 1  and  string.len(command) == 15) then
 		showLineGlow2 = not showLineGlow2
 		if showLineGlow2 then
-			Spring.Echo("Anti Ranges:  Glow on")
+			spEcho("Anti Ranges:  Glow on")
 		else
-			Spring.Echo("Anti Ranges:  Glow off")
+			spEcho("Anti Ranges:  Glow off")
 		end
 	end
     if (string.find(command, "antiranges_fade", nil, true) == 1  and  string.len(command) == 15) then
 		fadeOnCloseup = not fadeOnCloseup
 		if fadeOnCloseup then
-			Spring.Echo("Anti Ranges:  Fade-out on closeup enabled")
+			spEcho("Anti Ranges:  Fade-out on closeup enabled")
 		else
-			Spring.Echo("Anti Ranges:  Fade-out on closeup disabled")
+			spEcho("Anti Ranges:  Fade-out on closeup disabled")
 		end
 	end
 end

@@ -160,6 +160,16 @@ if Spring.GetConfigInt("version", 0) < version then
 
 	Spring.SetConfigInt("ui_rendertotexture", 1)
 end
+version = 8
+if Spring.GetConfigInt("version", 0) < version then
+	Spring.SetConfigInt("version", version)
+
+	local voiceset = Spring.GetConfigString("voiceset", '')
+	if voiceset == 'en/allison' then
+		Spring.SetConfigString("voiceset", 'en/cephis')
+	end
+end
+
 
 -- apply the old pre-engine implementation stored camera minimum zoom level
 local oldMinCamHeight = Spring.GetConfigInt("MinimumCameraHeight", -1)
@@ -172,7 +182,7 @@ end
 -- in case we forget to save it once again
 Spring.SetConfigInt("version", version)
 
-Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1) * Spring.GetConfigInt("VSyncFraction", 1))
+Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1))
 
 -- Configure sane keychain settings, this is to provide a standard experience
 -- for users that is acceptable
@@ -208,11 +218,6 @@ Spring.SetConfigInt("MouseDragSelectionThreshold", baseDragThreshold)
 Spring.SetConfigInt("MouseDragCircleCommandThreshold", baseDragThreshold + 16)
 Spring.SetConfigInt("MouseDragBoxCommandThreshold", baseDragThreshold + 16)
 Spring.SetConfigInt("MouseDragFrontCommandThreshold", baseDragThreshold + 16)
-
--- These config ints control some multithreading functionality, and are now set to their enabled state for performance
-Spring.SetConfigInt("AnimationMT", 1)
-Spring.SetConfigInt("UpdateBoundingVolumeMT", 1)
-Spring.SetConfigInt("UpdateWeaponVectorsMT", 1)
 
 Spring.SetConfigInt("MaxFontTries", 5)
 Spring.SetConfigInt("UseFontConfigLib", 1)

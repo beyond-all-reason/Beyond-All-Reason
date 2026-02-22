@@ -17,8 +17,6 @@ return {
 		floater = true,
 		footprintx = 8,
 		footprintz = 8,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 89000,
 		speed = 75.0,
 		minwaterdepth = 12,

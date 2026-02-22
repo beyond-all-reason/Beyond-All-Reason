@@ -1,6 +1,7 @@
 local DonatorAINames = {
     -- Supporters ($40+ Donation & Personal Request)
 	"Arkounay",
+    "AurenTheAbsolute", --2x $20
 	"BamBamRVW",
 	"Buzzwellman",
 	"Chungus",
@@ -15,6 +16,7 @@ local DonatorAINames = {
     "[SMRT]RobotRobert03",
     "aeon",
     "Aknaroth",
+    "Aldreagon", --$40
     "Anteep", --$40
     "badosu",
     "Barscrewl",
@@ -31,6 +33,7 @@ local DonatorAINames = {
     "danielquinn",
     "Dave",
     "Diana",
+    "DreamtBlue",
     "EnJoY",
     "ewang",
     "FishouseMike",
@@ -53,6 +56,7 @@ local DonatorAINames = {
     "keithphw",
     "Kelin",
     "Kodiak",
+    "LethalSpirit",
     "L0v3",
     "Lightjohn",
     "LoloJojo",
@@ -69,9 +73,11 @@ local DonatorAINames = {
     "obliterator",
     "OmegaWolf",
     "outerorbit",
+    "panzerjaeger",
     "Poops",
     "Prime_Federator",
     "principal",
+    "PsychoPewPew", --$40
     "Requiem_TV",
     "Rezol",
     "Rikerss",
@@ -82,6 +88,7 @@ local DonatorAINames = {
     "Shadowisper",
     "Sinbearer",
     "SkyFire",
+    "Snowpocalypse", --$40
     "Sovgut",
     "Spanker",
     "Spooler", --$40

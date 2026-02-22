@@ -1,0 +1,211 @@
+
+#include "../recoil_common_includes.h"
+
+piece  
+	base, 
+	armorPlating, 
+	greebles, 
+	exhaust1, 
+	exhaust2, 
+	exhaust3, 
+	lightBase1, 
+	light1, 
+	conLight1a, 
+	conLight1b, 
+	nanoStruts, 
+	nanoBarrels, 
+	nanoFlare1, 
+	nanoFlare2,
+    turretBase,
+    turretTop,
+    turretStrut, 
+	wake
+;
+
+static-var  readyToBuild, whichBarrel;
+
+// Signal definitions
+#define SIGNAL_MOVE 1
+#define SIGNAL_BUILD 2
+
+
+#define BASEPIECE base
+#define HITSPEED <20.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 3
+#define MAXTILT 200
+HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage is multiplied by 100
+{
+	var amount;//, speedz, speedx;
+	amount = damage / (100 * UNITSIZE);
+	if (amount < 3  ) return (0);
+	if (amount > MAXTILT) amount = MAXTILT;
+	//get PRINT(anglex, anglez, amount, damage);
+	//speedz = HITSPEED * get ABS(anglez) / 500; //nevermind this, the random error this produces actually looks better than the accurate version
+	turn BASEPIECE to z-axis (anglez * amount) / 100  speed HITSPEED;
+	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
+	wait-for-turn BASEPIECE around z-axis;
+	wait-for-turn BASEPIECE around x-axis;
+	turn BASEPIECE to z-axis <0.0> speed HITSPEED / 4;
+	turn BASEPIECE to x-axis <0.0> speed HITSPEED / 4;
+}
+HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
+{
+	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
+	return (100); //return damage percent
+}
+
+
+#define TB_BASE base 
+#define TB_TURNRATE <30.0> 
+#define TB_TILT_X <-0.32>
+#define TB_BANK_Z <0.5> // Do not define this if you dont want banking
+#define TB_WAKE_PIECE exhaust1
+#define TB_WAKE_PIECE2 exhaust2
+#define TB_WAKE_PIECE3 exhaust3
+#include "../tilt_bank_submarine.h"
+
+
+StartMoving(reversing)
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	START_TILTBANK;
+}
+
+StopMoving()
+{
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
+}
+
+
+Create()
+{
+	hide nanoFlare1;
+    hide nanoFlare2;
+    hide conLight1a;
+    hide conLight1b;
+
+    whichBarrel = 0;
+
+    move nanoBarrels to z-axis [-3] now;
+    move nanoStruts to z-axis [-2] now;
+    move turretStrut to y-axis [-2.75] now;
+    move light1 to y-axis [-1] now;
+
+	readyToBuild = FALSE;
+	call-script TB_Init();
+}
+
+StartBuilding(heading, pitch)
+{
+	signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;
+	if (!readyToBuild){
+
+        move turretStrut to y-axis [0] speed [2.75];
+        wait-for-move turretStrut along y-axis;
+        move nanoStruts to z-axis [0] speed [4];
+        wait-for-move nanoStruts along z-axis;
+        move nanoBarrels to z-axis [0] speed [6];
+        move light1 to y-axis [1] speed [2];
+        wait-for-move nanoBarrels along z-axis;
+		readyToBuild = TRUE;
+	}
+	turn turretStrut to y-axis heading speed <60>;
+	wait-for-turn turretStrut around y-axis;
+
+    spin light1 around y-axis speed <90> accelerate <3>;
+    show conLight1a;
+    show conLight1b;
+	show nanoFlare1;
+    show nanoFlare2;
+	set INBUILDSTANCE to 1;
+}
+
+StopBuilding()
+{
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+	hide nanoFlare1;
+    hide nanoFlare2;
+    hide conLight1a;
+    hide conLight1b;
+    stop-spin light1 around y-axis decelerate <1>;
+
+	sleep 6000;
+    turn turretStrut to y-axis <0> speed <60>;
+
+	readyToBuild = FALSE;
+	set INBUILDSTANCE to 0;
+
+    wait-for-turn turretStrut around y-axis;
+
+    move light1 to y-axis [0] speed [1];
+    move nanoStruts to z-axis [-2] speed [2];
+    wait-for-move nanoStruts along z-axis;
+    move nanoBarrels to z-axis [-3] speed [3];
+    wait-for-move nanoBarrels along z-axis;
+    move turretStrut to y-axis [-2.75] speed [2.75];
+    
+}
+
+QueryNanoPiece(pieceIndex)
+{
+	if (whichBarrel == 0){
+        pieceIndex = nanoFlare1;
+        whichBarrel = 1;
+    }
+    else if (whichBarrel == 1){
+        pieceIndex =  nanoFlare2;
+        whichBarrel = 0;
+    }
+    else if (whichBarrel > 1){
+        whichBarrel = 0;
+    }
+
+}
+
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		// explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode door2 type BITMAPONLY | NOHEATCLOUD;
+		// explode door1 type BITMAPONLY | NOHEATCLOUD;
+		// explode neck type BITMAPONLY | NOHEATCLOUD;
+		// explode gun type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		// explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode door2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode neck type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode gun type FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		// explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode door2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode neck type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode gun type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		// explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode door2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode neck type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		// explode gun type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

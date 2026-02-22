@@ -1312,23 +1312,34 @@ local function AssignObjectToBin(objectID, objectDefID, flag, shader, textures, 
 	end
 end
 
+local spGetUnitDefID = Spring.GetUnitDefID
+local spValidUnitID = Spring.ValidUnitID
+local spSetUnitEngineDrawMask = Spring.SetUnitEngineDrawMask
+local spGetFeatureDefID = Spring.GetFeatureDefID
+local spValidFeatureID = Spring.ValidFeatureID
+local spSetFeatureEngineDrawMask = Spring.SetFeatureEngineDrawMask
+local spSetFeatureNoDraw = Spring.SetFeatureNoDraw
+local spSetFeatureFade = Spring.SetFeatureFade
+local glSetUnitBufferUniforms = gl.SetUnitBufferUniforms
+
 local function AddObject(objectID, drawFlag, reason)
-	if debugmode then Spring.Echo("AddObject",objectID, objectDefID, drawFlag, reason) end
 	if (drawFlag >= 128) then --icon
 		return
 	end
 
 	local objectDefID
 	if objectID >= 0 then
-		objectDefID = Spring.GetUnitDefID(objectID)
+		objectDefID = spGetUnitDefID(objectID)
 		objectIDtoDefID[objectID] = objectDefID
 	else
-		objectDefID = -1 *  Spring.GetFeatureDefID(-1 * objectID)
+		objectDefID = -1 * spGetFeatureDefID(-1 * objectID)
 		objectIDtoDefID[objectID] = objectDefID
 	end
+	if debugmode then Spring.Echo("AddObject",objectID, objectDefID, drawFlag, reason) end
 	if objectDefID == nil then return end -- This bail is needed so that we dont add/update units that dont actually exist any more, when cached from the catchup phase
 
-	for k = 1, #drawBinKeys do
+	local drawBinKeysLen = #drawBinKeys
+	for k = 1, drawBinKeysLen do
 		local flag = drawBinKeys[k]
 		if HasAllBits(drawFlag, flag) then
 			if overrideDrawFlagsCombined[flag] then
@@ -1338,22 +1349,22 @@ local function AddObject(objectID, drawFlag, reason)
 		end
 	end
 	if objectID >= 0 then
-		Spring.SetUnitEngineDrawMask(objectID, 255 - overrideDrawFlag) -- ~overrideDrawFlag & 255
+		spSetUnitEngineDrawMask(objectID, 255 - overrideDrawFlag) -- ~overrideDrawFlag & 255
 		cusUnitIDtoDrawFlag[objectID] = drawFlag
 		local health, maxHealth, paralyzeDamage, capture, build = spGetUnitHealth(objectID)
 		if health then 
 			uniformCache[1] = ((build < 1) and build) or -1
-			gl.SetUnitBufferUniforms(objectID, uniformCache, 0) -- buildprogress (0.x)
+			glSetUnitBufferUniforms(objectID, uniformCache, 0) -- buildprogress (0.x)
 			if build < 1 then buildProgresses[objectID] = build end
 			
 			--uniformCache[1] = spGetUnitHeight(objectID)
-			--gl.SetUnitBufferUniforms(objectID, uniformCache, 11) -- height is 11 (2.w)
+			--glSetUnitBufferUniforms(objectID, uniformCache, 11) -- height is 11 (2.w)
 		end
 	else
-		if Spring.ValidFeatureID(-1 * objectID) == false then Spring.Echo("Invalid feature for drawmask", objectID, objectDefID) end
-		Spring.SetFeatureEngineDrawMask(-1 * objectID, 255 - overrideDrawFlag) -- ~overrideDrawFlag & 255
-		Spring.SetFeatureNoDraw(-1 * objectID, false) -- ~overrideDrawFlag & 255
-		Spring.SetFeatureFade(-1 * objectID, true) -- ~overrideDrawFlag & 255
+		if spValidFeatureID(-1 * objectID) == false then Spring.Echo("Invalid feature for drawmask", objectID, objectDefID) end
+		spSetFeatureEngineDrawMask(-1 * objectID, 255 - overrideDrawFlag) -- ~overrideDrawFlag & 255
+		spSetFeatureNoDraw(-1 * objectID, false) -- ~overrideDrawFlag & 255
+		spSetFeatureFade(-1 * objectID, true) -- ~overrideDrawFlag & 255
 		cusFeatureIDtoDrawFlag[-1 *objectID] = drawFlag
 	end
 	--cusUnitIDtoDrawFlag[unitID] = overrideDrawFlag
@@ -1435,15 +1446,12 @@ local function UpdateObject(objectID, drawFlag, reason)
 	local objectDefID = objectIDtoDefID[objectID]
 
 	--if debugmode then Spring.Debug.TraceEcho("UpdateObject", objectID, drawFlag, objectDefID) end
-	for k = 1, #drawBinKeys do
+	local oldDrawFlag = (objectID >= 0) and cusUnitIDtoDrawFlag[objectID] or cusFeatureIDtoDrawFlag[-1 * objectID]
+	local drawBinKeysLen = #drawBinKeys
+	for k = 1, drawBinKeysLen do
 		local flag = drawBinKeys[k]
-		local hasFlagOld
-		if objectID >= 0 then
-			hasFlagOld = HasAllBits(cusUnitIDtoDrawFlag[objectID], flag)
-		else
-			hasFlagOld = HasAllBits(cusFeatureIDtoDrawFlag[-1 * objectID], flag)
-		end
-		local hasFlagNew = HasAllBits(               drawFlag, flag)
+		local hasFlagOld = HasAllBits(oldDrawFlag, flag)
+		local hasFlagNew = HasAllBits(drawFlag, flag)
 
 		if hasFlagOld ~= hasFlagNew and overrideDrawFlagsCombined[flag] then
 			local shader = GetShaderName(flag, objectDefID)
@@ -1488,14 +1496,16 @@ local function RemoveObject(objectID, reason) -- we get pos/neg objectID here
 		oldFlag = cusFeatureIDtoDrawFlag[-1 * objectID]
 	end
 	
-	for k = 1, #drawBinKeys do --drawBinKeys = {1, 1 + 4, 16}
+	local shader = GetShaderName(1, objectDefID)
+	local texKey = fastObjectDefIDtoTextureKey[objectDefID]
+	local uniformBinID = GetUniformBinID(objectDefID,'RemoveObject')
+	
+	local drawBinKeysLen = #drawBinKeys
+	for k = 1, drawBinKeysLen do --drawBinKeys = {1, 1 + 4, 16}
 		local flag = drawBinKeys[k]
 		if (oldFlag < flag) then break end -- if shadows are off, then dont even try to remove from them
 		if debugmode then Spring.Echo("RemoveObject Flags", objectID, flag, overrideDrawFlagsCombined[flag] ) end
 		if overrideDrawFlagsCombined[flag] then
-			local shader = GetShaderName(flag, objectDefID)
-			local texKey  = fastObjectDefIDtoTextureKey[objectDefID]
-			local uniformBinID = GetUniformBinID(objectDefID,'RemoveObject')
 			RemoveObjectFromBin(objectID, objectDefID, texKey, shader, flag, uniformBinID, "removeobject")
 			--if flag == 1 then
 			--	RemoveObjectFromBin(objectID, objectDefID, texKey, nil, 0, uniformBinID)
@@ -1506,17 +1516,20 @@ local function RemoveObject(objectID, reason) -- we get pos/neg objectID here
 	if objectID >= 0 then
 		cusUnitIDtoDrawFlag[objectID] = nil
 		buildProgresses[objectID] = nil
-		Spring.SetUnitEngineDrawMask(objectID, 255)
+		spSetUnitEngineDrawMask(objectID, 255)
 	else
 		cusFeatureIDtoDrawFlag[-1 * objectID] = nil
-		Spring.SetFeatureEngineDrawMask(-1 * objectID, 255)
+		spSetFeatureEngineDrawMask(-1 * objectID, 255)
 	end
 end
 
 local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
+local spValidUnitID = Spring.ValidUnitID
+local glSetUnitBufferUniforms = gl.SetUnitBufferUniforms
 
 local function ProcessUnits(units, drawFlags, reason)
-	for i = 1, #units do
+	local numUnits = #units
+	for i = 1, numUnits do
 		local unitID = units[i]
 		local drawFlag = drawFlags[i]
 		if debugmode then Spring.Echo("ProcessUnits", unitID, drawFlag, reason) end
@@ -1527,7 +1540,8 @@ local function ProcessUnits(units, drawFlags, reason)
 			drawFlag = 1
 		end
 		
-		if drawFlag % 4 > 1 then -- check if its at least in opaque or alpha pass
+		local drawFlagMod4 = drawFlag % 4
+		if drawFlagMod4 > 1 then -- check if its at least in opaque or alpha pass
 			if unitsInViewport[unitID] == nil then
 				-- CALL the UnitViewportAPI
 				numUnitsInViewport = numUnitsInViewport + 1
@@ -1544,28 +1558,33 @@ local function ProcessUnits(units, drawFlags, reason)
 		if (drawFlag == 0) or (drawFlag >= 128) then
 			RemoveObject(unitID, reason)
 		else
-			if cusUnitIDtoDrawFlag[unitID] == nil then --object was not seen
-				if Spring.ValidUnitID(unitID) and (not spGetUnitIsCloaked(unitID)) then
+			local oldDrawFlag = cusUnitIDtoDrawFlag[unitID]
+			if oldDrawFlag == nil then --object was not seen
+				if spValidUnitID(unitID) and (not spGetUnitIsCloaked(unitID)) then
 					uniformCache[1] = 0
-					gl.SetUnitBufferUniforms(unitID, uniformCache, 12) -- cloak
+					glSetUnitBufferUniforms(unitID, uniformCache, 12) -- cloak
 				end
 				AddObject(unitID, drawFlag, reason)
-			elseif cusUnitIDtoDrawFlag[unitID] ~= drawFlag then --flags have changed
+			elseif oldDrawFlag ~= drawFlag then --flags have changed
 				UpdateObject(unitID, drawFlag, reason)
 			end
 		end
 	end
 
 end
-
+local spValidFeatureID = Spring.ValidFeatureID
+local spSetFeatureEngineDrawMask = Spring.SetFeatureEngineDrawMask
+local spSetFeatureNoDraw = Spring.SetFeatureNoDraw
+local spSetFeatureFade = Spring.SetFeatureFade
 
 local function ProcessFeatures(features, drawFlags, reason)
-
-	for i = 1, #features do
+	local numFeatures = #features
+	for i = 1, numFeatures do
 		local featureID = features[i]
 		local drawFlag = drawFlags[i]
 
-		if drawFlag % 4 > 1 then
+		local drawFlagMod4 = drawFlag % 4
+		if drawFlagMod4 > 1 then
 			if featuresInViewport[featureID] == nil then
 				-- CALL the UnitViewportAPI
 				numFeaturesInViewport = numFeaturesInViewport + 1
@@ -1589,10 +1608,13 @@ local function ProcessFeatures(features, drawFlags, reason)
 			end
 			if (drawFlag == 0) or (drawFlag >= 128) then
 				RemoveObject(-1 * featureID, reason)
-			elseif cusFeatureIDtoDrawFlag[featureID] == nil then --object was not seen
-				AddObject(-1 * featureID, drawFlag, reason)
-			else --if cusFeatureIDtoDrawFlag[featureID] ~= drawFlag then --flags have changed
-				UpdateObject(-1 * featureID, drawFlag, reason)
+			else
+				local oldDrawFlag = cusFeatureIDtoDrawFlag[featureID]
+				if oldDrawFlag == nil then --object was not seen
+					AddObject(-1 * featureID, drawFlag, reason)
+				elseif oldDrawFlag ~= drawFlag then --flags have changed
+					UpdateObject(-1 * featureID, drawFlag, reason)
+				end
 			end
 		end
 	end

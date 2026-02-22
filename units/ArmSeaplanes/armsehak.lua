@@ -2,7 +2,7 @@ return {
 	armsehak = {
 		blocking = false,
 		buildpic = "ARMSEHAK.DDS",
-		buildtime = 9050,
+		buildtime = 11000,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,
@@ -13,8 +13,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 580,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.1325,
 		maxaileron = 0.01403,
 		maxbank = 0.8,

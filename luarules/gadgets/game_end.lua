@@ -194,8 +194,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function CheckAllPlayers()
 		playerList = GetPlayerList()
-		for _, playerID in ipairs(playerList) do
-			CheckPlayer(playerID)
+		for i = 1, #playerList do
+			CheckPlayer(playerList[i])
 		end
 	end
 

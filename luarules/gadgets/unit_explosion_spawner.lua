@@ -39,6 +39,12 @@ local spSetUnitRulesParam     = Spring.SetUnitRulesParam
 local spSpawnCEG 			  = Spring.SpawnCEG
 local spGetUnitHealth 		  = Spring.GetUnitHealth
 local spSetUnitHealth		  = Spring.SetUnitHealth
+local spGetUnitPosition       = Spring.GetUnitPosition
+local spGetGroundHeight       = Spring.GetGroundHeight
+local spGetUnitTeam           = Spring.GetUnitTeam
+local spSetUnitDirection      = Spring.SetUnitDirection
+local spAddUnitImpulse        = Spring.AddUnitImpulse
+local spEcho                  = Spring.Echo
 
 local mapsizeX 				  = Game.mapSizeX
 local mapsizeZ 				  = Game.mapSizeZ
@@ -46,6 +52,9 @@ local mapsizeZ 				  = Game.mapSizeZ
 local random = math.random
 local sin    = math.sin
 local cos    = math.cos
+local mathMax = math.max
+local mathSqrt = math.sqrt
+local stringFind = string.find
 local strSplit = string.split
 
 local GAME_SPEED = Game.gameSpeed
@@ -74,8 +83,10 @@ local minWaterDepth = -12 --calibrated off of the armpw's (minimum found) maxwat
 for weaponDefID = 1, #WeaponDefs do
 	local wdcp = WeaponDefs[weaponDefID].customParams
 	if wdcp.spawns_name then
+		local unitNames = strSplit(wdcp.spawns_name)
 		spawnDefs[weaponDefID] = {
 			name = wdcp.spawns_name,
+			unitNames = unitNames, -- pre-split for performance
 			expire = wdcp.spawns_expire and (tonumber(wdcp.spawns_expire) * GAME_SPEED),
 			feature = wdcp.spawns_feature,
 			surface = wdcp.spawns_surface,
@@ -116,70 +127,72 @@ local function SpawnUnit(spawnData)
 			local rot = random() * TAU
 			spSetFeatureDirection(featureID, cos(rot), 0, sin(rot))
 		else
-			local validSurface = false
-			local removeWreck = false
-			if not spawnDef.surface then
-				validSurface = true
-			end
-			if spawnData.x > 0 and spawnData.x < mapsizeX and spawnData.z > 0 and spawnData.z < mapsizeZ then
-				local y = Spring.GetGroundHeight(spawnData.x, spawnData.z)
-				if spawnData.y < math.max(y+32, 32) then
-					if string.find(spawnDef.surface, "LAND") and y > minWaterDepth then
-						validSurface = true
-					elseif string.find(spawnDef.surface, "SEA") and y <= 0 then
-						validSurface = true
-					end
-				else
-					validSurface = false
-				end
-			else
-				removeWreck = true
+			-- Early validation checks
+			local x, z = spawnData.x, spawnData.z
+			if x <= 0 or x >= mapsizeX or z <= 0 or z >= mapsizeZ then
+				return -- Out of bounds
 			end
 			
-			local unitID = nil
-			if validSurface == true then
-				local ownerID = spawnData.ownerID
-				local weaponDefID = spawnData.weaponDefID
-				local spawnUnitName
-				if ownerID and weaponDefID and spawnNames[ownerID] and spawnNames[ownerID].weapon[weaponDefID] then
-					if spawnDef.mode == "random" then
-						local randomUnit = random(#spawnNames[ownerID].weapon[weaponDefID].names)
-						spawnUnitName = spawnNames[ownerID].weapon[weaponDefID].names[randomUnit]
-					elseif spawnDef.mode == "sequential" then
-						local unitNumber = spawnNames[ownerID].weapon[weaponDefID].unitSequence
-						spawnUnitName = spawnNames[ownerID].weapon[weaponDefID].names[unitNumber]
-						if unitNumber < #spawnNames[ownerID].weapon[weaponDefID].names then
-							spawnNames[ownerID].weapon[weaponDefID].unitSequence = unitNumber + 1
-						else
-							spawnNames[ownerID].weapon[weaponDefID].unitSequence = 1
-							
-						end
-						
-					elseif spawnDef.mode == "random_locked" then
-						local unitNumber = spawnNames[ownerID].weapon[weaponDefID].unitSequence
-						spawnUnitName = spawnNames[ownerID].weapon[weaponDefID].names[unitNumber]
-						
-					else
-						spawnUnitName = spawnNames[ownerID].weapon[weaponDefID].names[1]
-
-					end
-				else
-					local unitName = strSplit(spawnDef.name)
-					spawnUnitName = unitName[1]
-				end
-				if UnitDefNames[spawnUnitName] then
-					unitID = spCreateUnit(spawnUnitName, spawnData.x, spawnData.y, spawnData.z, 0, spawnData.teamID)
-				else
-					Spring.Echo('INVALID UNIT NAME IN UNIT EXPLOSION SPAWNER', spawnUnitName)
+			local validSurface = false
+			local y = spGetGroundHeight(x, z)
+			
+			if not spawnDef.surface then
+				validSurface = true
+			elseif spawnData.y < mathMax(y+32, 32) then
+				local surface = spawnDef.surface
+				if stringFind(surface, "LAND", 1, true) and y > minWaterDepth then
+					validSurface = true
+				elseif stringFind(surface, "SEA", 1, true) and y <= 0 then
+					validSurface = true
 				end
 			end
-			if not unitID then
-				-- unit limit hit or invalid spawn surface
+
+			if not validSurface then
 				return
 			end
 
+			-- Cache owner/weapon lookup
+			local ownerID = spawnData.ownerID
+			local weaponDefID = spawnData.weaponDefID
+			local weaponSpawnData = ownerID and weaponDefID and spawnNames[ownerID] and spawnNames[ownerID].weapon[weaponDefID]
+			
+			local spawnUnitName
+			if weaponSpawnData then
+				local mode = spawnDef.mode
+				if mode == "random" then
+					local randomUnit = random(#weaponSpawnData.names)
+					spawnUnitName = weaponSpawnData.names[randomUnit]
+				elseif mode == "sequential" then
+					local unitNumber = weaponSpawnData.unitSequence
+					spawnUnitName = weaponSpawnData.names[unitNumber]
+					local namesCount = #weaponSpawnData.names
+					if unitNumber < namesCount then
+						weaponSpawnData.unitSequence = unitNumber + 1
+					else
+						weaponSpawnData.unitSequence = 1
+					end
+				elseif mode == "random_locked" then
+					spawnUnitName = weaponSpawnData.names[weaponSpawnData.unitSequence]
+				else
+					spawnUnitName = weaponSpawnData.names[1]
+				end
+			else
+				-- Fallback: use pre-split names
+				spawnUnitName = spawnDef.unitNames and spawnDef.unitNames[1]
+			end
+			
+			if not spawnUnitName or not UnitDefNames[spawnUnitName] then
+				spEcho('INVALID UNIT NAME IN UNIT EXPLOSION SPAWNER', spawnUnitName)
+				return
+			end
+			
+			local unitID = spCreateUnit(spawnUnitName, x, spawnData.y, z, 0, spawnData.teamID)
+			if not unitID then
+				return -- Unit limit hit
+			end
+
 			if spawnDef.ceg then
-					spSpawnCEG(spawnDef.ceg, spawnData.x, spawnData.y, spawnData.z, 0,0,0)
+				spSpawnCEG(spawnDef.ceg, x, spawnData.y, z, 0,0,0)
 			end
 
 			if spawnDef.stun then
@@ -188,38 +201,34 @@ local function SpawnUnit(spawnData)
 				spSetUnitHealth(unitID, {paralyze = paralyzeTime })
 			end
 
-			local ownerID = spawnData.ownerID
 			if ownerID then
 				spSetUnitRulesParam(unitID, "parent_unit_id", ownerID, PRIVATE)
-			end
-      
-			if ownerID then
-				local ownx, owny, ownz = Spring.GetUnitPosition(ownerID)
 				
+				local ownx, owny, ownz = spGetUnitPosition(ownerID)
 				if ownx then
-				local dx = (spawnData.x  - ownx) 
-				local dz = (spawnData.z - ownz)
-				local l = math.sqrt((dx*dx) + (dz*dz))
-				dx = dx/l
-				dz = dz/l
-				Spring.SetUnitDirection(unitID, dx, 0, dz) 
-				Spring.AddUnitImpulse(unitID, dx, 0.5, dz, 1.0) 
+					local dx = (x - ownx)
+					local dz = (z - ownz)
+					local l = mathSqrt((dx*dx) + (dz*dz))
+					dx = dx/l
+					dz = dz/l
+					spSetUnitDirection(unitID, dx, 0, dz)
+					spAddUnitImpulse(unitID, dx, 0.5, dz, 1.0)
 				end
 			end
-      
 
 			if spawnDef.expire then
 				expireCount = expireCount + 1
 				expireByID[unitID] = expireCount
 				expireID[expireCount] = unitID
-				if Spring.GetUnitTeam(unitID) ~= scavengerAITeamID then
-					expireList[expireCount] = spGetGameFrame() + spawnDef.expire
+				local currentFrame = spGetGameFrame()
+				if spGetUnitTeam(unitID) ~= scavengerAITeamID then
+					expireList[expireCount] = currentFrame + spawnDef.expire
 				else
-					expireList[expireCount] = spGetGameFrame() + 99999
+					expireList[expireCount] = currentFrame + 99999
 				end
 			end
 
-			-- force a slowupdate to make the unit act immediately
+			-- Force a slowupdate to make the unit act immediately
 			spGiveOrderToUnit(unitID, CMD_WAIT, EMPTY_TABLE, 0)
 			spGiveOrderToUnit(unitID, CMD_WAIT, EMPTY_TABLE, 0)
 
@@ -231,7 +240,9 @@ end
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
 	-- Catch units that are expirable right before they die, so they don't create wreck on death.
 	if expireByID[unitID] then
-		if Spring.GetUnitHealth(unitID) and damage and damage > Spring.GetUnitHealth(unitID) then
+		-- Cache health call to avoid calling twice
+		local health = spGetUnitHealth(unitID)
+		if health and damage and damage > health then
 			if attackerID then
 				Spring.DestroyUnit(unitID, true, false, attackerID)
 			else
@@ -257,7 +268,7 @@ function gadget:Explosion(weaponDefID, x, y, z, ownerID, proID)
 	if spawnDefs[weaponDefID] then
 		local spawnDef = spawnDefs[weaponDefID] -- guaranteed not nil by Explosion_GetWantedWeaponDef
 		local teamID = spGetProjectileTeamID(proID)
-		
+
 		-- Don't let awakening children embrace the glory of their birthright
 		-- i.e. relegate spawn to GameFrame not to be damaged by the very explosion that bore them
 		spawnCount = spawnCount + 1
@@ -296,8 +307,9 @@ end
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	local unitDef = UnitDefs[unitDefID]
 	local weaponList = unitDef.weapons
-	
-	for i = 1, #weaponList do
+	local weaponCount = #weaponList
+
+	for i = 1, weaponCount do
 		local weapon = weaponList[i]
 		local weaponDefID = weapon.weaponDef
 		if weaponDefID and spawnDefs[weaponDefID] then
@@ -309,32 +321,36 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			    }
 			end
 			if spawnNames[unitID] then
+    			-- Use pre-split unitNames from spawnDef instead of splitting on every unit creation
     			spawnNames[unitID].weapon[weaponDefID] = {
-    			    names = strSplit(spawnDef.name),
+    			    names = spawnDef.unitNames,
     			    unitSequence = 1,
     			}
     			if spawnDef.mode == "random_locked" then
     			    spawnNames[unitID].weapon[weaponDefID].unitSequence = random(#spawnNames[unitID].weapon[weaponDefID].names)
     			end
 		    end
-			
+
 		end
 	end
 end
 
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	local index = expireByID[unitID]
+	-- Clean up spawn names
 	if spawnNames[unitID] then
 	    spawnNames[unitID] = nil
 	end
-    
+
+	-- Clean up expire tracking
+	local index = expireByID[unitID]
 	if not index then
 		return
 	end
 
 	local lastUnitID = expireID[expireCount]
 
+	-- Swap with last element for O(1) deletion
 	expireList[index] = expireList[expireCount]
 	expireID[index] = lastUnitID
 	expireByID[lastUnitID] = index
@@ -346,8 +362,10 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function gadget:GameFrame(f)
-	if spawnCount > 0 then
-		for i = 1, spawnCount do
+	-- Cache spawnCount to avoid repeated table lookups
+	local localSpawnCount = spawnCount
+	if localSpawnCount > 0 then
+		for i = 1, localSpawnCount do
 			SpawnUnit(spawnList[i])
 			-- NB: no subtable deallocation, they are reused to avoid having to alloc them again anyway
 		end
@@ -358,10 +376,13 @@ function gadget:GameFrame(f)
 		return
 	end
 
+	-- Cache expireCount for loop optimization
+	local localExpireCount = expireCount
 	local i = 1
-	while i <= expireCount do -- not for-loop because Destroy decrements count
+	while i <= localExpireCount do -- not for-loop because Destroy decrements count
 		if expireList[i] < f then
 			spDestroyUnit(expireID[i], true)
+			localExpireCount = expireCount -- update after destruction
 		else
 			i = i + 1 -- conditional because Destroy replaces current element with last
 		end

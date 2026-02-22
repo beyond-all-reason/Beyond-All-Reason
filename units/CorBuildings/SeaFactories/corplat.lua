@@ -13,8 +13,6 @@ return {
 		footprintx = 6,
 		footprintz = 6,
 		health = 2200,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		metalcost = 1400,
@@ -27,7 +25,7 @@ return {
 		sonardistance = 800,
 		terraformspeed = 1000,
 		waterline = 43,
-		workertime = 200,
+		workertime = 300,
 		yardmap = "wwwwww weeeew weeeew weeeew weeeew wwwwww",
 		buildoptions = {
 			[1] = "corcsa",

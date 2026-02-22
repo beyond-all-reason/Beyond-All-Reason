@@ -2,7 +2,6 @@
 #include "../../unit.as"
 #include "../../task.as"
 #include "../misc/commander.as"
-#include "economy.as"
 
 
 namespace Factory {
@@ -47,10 +46,12 @@ string legalab ("legalab");
 string legvp   ("legvp");
 string legavp  ("legavp");
 string legap   ("legap");
+string legsy   ("legsy");
+string legadvshipyard   ("legadvshipyard");
 string legaap  ("legaap");
 string leggant ("leggant");
 
-int switchInterval = MakeSwitchInterval();
+float switchLimit = MakeSwitchLimit();
 
 IUnitTask@ AiMakeTask(CCircuitUnit@ unit)
 {
@@ -67,7 +68,6 @@ void AiTaskRemoved(IUnitTask@ task, bool done)
 
 void AiUnitAdded(CCircuitUnit@ unit, Unit::UseAs usage)
 {
-//	if (!factories.empty() || (this->circuit->GetBuilderManager()->GetWorkerCount() > 2)) return;
 	if (usage != Unit::UseAs::FACTORY)
 		return;
 
@@ -75,7 +75,6 @@ void AiUnitAdded(CCircuitUnit@ unit, Unit::UseAs usage)
 	if (userData[facDef.id].attr & Attr::T3 != 0) {
 		// if (ai.teamId != ai.GetLeadTeamId()) then this change affects only target selection,
 		// while threatmap still counts "ignored" here units.
-// 		AiLog("ignore newly created armpw, corak, armflea, armfav, corfav");
 		array<string> spam = {"armpw", "corak", "armflea", "armfav", "corfav", "leggob", "legscout"};
 		for (uint i = 0; i < spam.length(); ++i) {
 			CCircuitDef@ cdef = ai.GetCircuitDef(spam[i]);
@@ -125,8 +124,9 @@ void AiSave(OStream& ostream)
  */
 bool AiIsSwitchTime(int lastSwitchFrame)
 {
-	if (lastSwitchFrame + switchInterval <= ai.frame) {
-		switchInterval = MakeSwitchInterval();
+	const float value = pow((ai.frame - lastSwitchFrame), 0.9) * aiEconomyMgr.metal.income + (aiEconomyMgr.metal.current * 7);
+	if (value > switchLimit) {
+		switchLimit = MakeSwitchLimit();
 		return true;
 	}
 	return false;
@@ -134,10 +134,7 @@ bool AiIsSwitchTime(int lastSwitchFrame)
 
 bool AiIsSwitchAllowed(CCircuitDef@ facDef)
 {
-	const bool isOK = (aiMilitaryMgr.armyCost > 1.2f * facDef.costM * aiFactoryMgr.GetFactoryCount())
-		|| (aiEconomyMgr.metal.current > facDef.costM);
-	aiFactoryMgr.isAssistRequired = Economy::isSwitchAssist = !isOK;
-	return isOK;
+	return true;
 }
 
 CCircuitDef@ AiGetFactoryToBuild(const AIFloat3& in pos, bool isStart, bool isReset)
@@ -147,9 +144,9 @@ CCircuitDef@ AiGetFactoryToBuild(const AIFloat3& in pos, bool isStart, bool isRe
 
 /* --- Utils --- */
 
-int MakeSwitchInterval()
+float MakeSwitchLimit()
 {
-	return AiRandom(550, 900) * SECOND;
+	return AiRandom(8000, 12000) * SECOND;
 }
 
 }  // namespace Factory

@@ -14,6 +14,10 @@ function widget:GetInfo()
 end
 
 
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+
 local iconTypes = VFS.Include("gamedata/icontypes.lua")
 local vsx, vsy = Spring.GetViewGeometry()
 local delayedCacheUnitIcons
@@ -70,13 +74,35 @@ local function cacheUnitIcons()
 	gl.Translate(vsx, 0, 0)
 end
 
-
-function widget:DrawScreen()
-	if not delayedCacheUnitIcons and Spring.GetGameFrame() > 0 then
+function widget:Initialize()
+	-- Only run this widget at game start (frame 0), disable on reconnect/late join
+	if spGetGameFrame() > 0 then
 		widgetHandler:RemoveWidget()
 		return
 	end
-	if delayedCacheUnitIcons and os.clock() > delayedCacheUnitIconsTimer then
+end
+
+function widget:DrawScreen()
+	-- Cache start units and setup delayed caching (only at game frame 0)
+	if not cachedUnitIcons then
+		if spGetGameFrame() == 0 then
+			cachedUnitIcons = true
+			cacheUnitIcons()
+		else
+			-- Safety: game started without caching, remove widget
+			widgetHandler:RemoveWidget()
+			return
+		end
+	end
+
+	-- Safety check: if no delayed cache was created, remove widget
+	if not delayedCacheUnitIcons then
+		widgetHandler:RemoveWidget()
+		return
+	end
+
+	-- Process delayed icon caching
+	if os.clock() > delayedCacheUnitIconsTimer then
 		gl.Translate(-vsx, 0, 0)
 		gl.Color(1, 1, 1, 0.001)
 		local id
@@ -84,6 +110,7 @@ function widget:DrawScreen()
 			delayedCachePos = delayedCachePos + 1
 			id = delayedCacheUnitIcons[delayedCachePos]
 			if not id then
+				-- All icons cached, remove widget
 				delayedCacheUnitIcons = nil
 				widgetHandler:RemoveWidget()
 				break
@@ -93,10 +120,5 @@ function widget:DrawScreen()
 		end
 		gl.Color(1, 1, 1, 1)
 		gl.Translate(vsx, 0, 0)
-	end
-
-	if (not cachedUnitIcons) and Spring.GetGameFrame() == 0 then
-		cachedUnitIcons = true
-		cacheUnitIcons()
 	end
 end

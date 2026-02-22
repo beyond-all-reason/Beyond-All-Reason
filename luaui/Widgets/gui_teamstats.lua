@@ -13,7 +13,18 @@ function widget:GetInfo()
 	}
 end
 
-local vsx,vsy = Spring.GetViewGeometry()
+
+-- Localized functions for performance
+local mathFloor = math.floor
+local mathMax = math.max
+local mathMin = math.min
+
+-- Localized Spring API for performance
+local spGetMouseState = Spring.GetMouseState
+local spGetViewGeometry = Spring.GetViewGeometry
+local spGetSpectatingState = Spring.GetSpectatingState
+
+local vsx,vsy = spGetViewGeometry()
 
 local fontSize = 22		-- is caclulated somewhere else anyway
 local fontSizePercentage = 0.6 -- fontSize * X = actual fontsize
@@ -90,12 +101,12 @@ local GetTeamList			= Spring.GetTeamList
 local GetTeamStatsHistory	= Spring.GetTeamStatsHistory
 local GetTeamInfo			= Spring.GetTeamInfo
 local GetPlayerInfo			= Spring.GetPlayerInfo
-local GetMouseState			= Spring.GetMouseState
+local GetMouseState			= spGetMouseState
 local GetGameFrame			= Spring.GetGameFrame
-local min					= math.min
-local max					= math.max
+local min					= mathMin
+local max					= mathMax
 local clamp					= math.clamp
-local floor					= math.floor
+local floor					= mathFloor
 local huge					= math.huge
 local sort					= table.sort
 local log10					= math.log10
@@ -110,7 +121,7 @@ local font, font2, backgroundGuishader, gameStarted, bgpadding, gameover
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
-local isSpec = Spring.GetSpectatingState()
+local isSpec = spGetSpectatingState()
 
 
 local playerScale = math.clamp(25 / #Spring.GetTeamList(), 0.3, 1)
@@ -197,7 +208,7 @@ function calcAbsSizes()
 end
 
 function widget:ViewResize()
-	vsx,vsy = Spring.GetViewGeometry()
+	vsx,vsy = spGetViewGeometry()
 	widgetScale = (vsy / 1080)
 
 	font = WG['fonts'].getFont()
@@ -298,7 +309,7 @@ function compareTeams(a,b)
 end
 
 function widget:PlayerChanged()
-	isSpec = Spring.GetSpectatingState()
+	isSpec = spGetSpectatingState()
 	widget:GameFrame(GetGameFrame(),true)
 end
 
@@ -499,7 +510,7 @@ function updateFontSize()
 	fontSize = 11*widgetScale + floor(fakeColumnSize/maxColumnTextSize)
 	fontSize = fontSize * playerScale
 	lineHeight = fontSize
-	fontSize = fontSize + math.min(fontSize * 0.5, (fontSize * ((1-playerScale)*0.7)))
+	fontSize = fontSize + mathMin(fontSize * 0.5, (fontSize * ((1-playerScale)*0.7)))
 end
 
 function widget:MouseMove(mx,my,dx,dy)
@@ -532,8 +543,8 @@ local function DrawBackground()
 	end
 
 	gl.Color(0,0,0,WG['guishader'] and 0.8 or 0.85)
-	local x1,y1,x2,y2 = math.floor(guiData.mainPanel.absSizes.x.min), math.floor(guiData.mainPanel.absSizes.y.min), math.floor(guiData.mainPanel.absSizes.x.max), math.floor(guiData.mainPanel.absSizes.y.max)
-	UiElement(x1-bgpadding,y1-bgpadding,x2+bgpadding,y2+bgpadding, 1, 1, 1, 1, 1,1,1,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+	local x1,y1,x2,y2 = mathFloor(guiData.mainPanel.absSizes.x.min), mathFloor(guiData.mainPanel.absSizes.y.min), mathFloor(guiData.mainPanel.absSizes.x.max), mathFloor(guiData.mainPanel.absSizes.y.max)
+	UiElement(x1-bgpadding,y1-bgpadding,x2+bgpadding,y2+bgpadding, 1, 1, 1, 1, 1,1,1,1, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 	if WG['guishader'] then
 		if backgroundGuishader ~= nil then
 			glDeleteList(backgroundGuishader)
@@ -569,8 +580,8 @@ function widget:DrawScreen()
 	DrawBackground()
 	DrawAllStats()
 
-	local mx, my = Spring.GetMouseState()
-	local x1,y1,x2,y2 = math.floor(guiData.mainPanel.absSizes.x.min), math.floor(guiData.mainPanel.absSizes.y.min), math.floor(guiData.mainPanel.absSizes.x.max), math.floor(guiData.mainPanel.absSizes.y.max)
+	local mx, my = spGetMouseState()
+	local x1,y1,x2,y2 = mathFloor(guiData.mainPanel.absSizes.x.min), mathFloor(guiData.mainPanel.absSizes.y.min), mathFloor(guiData.mainPanel.absSizes.x.max), mathFloor(guiData.mainPanel.absSizes.y.max)
 	if math_isInRect(mx, my, x1,y1,x2,y2) then
 		Spring.SetMouseCursor('cursornormal')
 	end
@@ -593,10 +604,10 @@ function ReGenerateBackgroundDisplayList()
 		glColor(colour)
 		if evenLineColour and lineCount > 2 then
 			local bottomCorner = 0
-			if math.floor(boxSizes.x.min) >= guiData.mainPanel.absSizes.y.min then
+			if mathFloor(boxSizes.x.min) >= guiData.mainPanel.absSizes.y.min then
 				bottomCorner = 1
 			end
-			RectRound(math.floor(boxSizes.x.min), math.floor(boxSizes.y.max -lineCount*lineHeight), math.floor(boxSizes.x.max), math.floor(boxSizes.y.max -(lineCount-1)*lineHeight), bgpadding, 0,0,bottomCorner,bottomCorner, {colour[1],colour[2],colour[3],colour[4]*ui_opacity}, {colour[1],colour[2],colour[3],colour[4]*3*ui_opacity})
+			RectRound(mathFloor(boxSizes.x.min), mathFloor(boxSizes.y.max -lineCount*lineHeight), mathFloor(boxSizes.x.max), mathFloor(boxSizes.y.max -(lineCount-1)*lineHeight), bgpadding, 0,0,bottomCorner,bottomCorner, {colour[1],colour[2],colour[3],colour[4]*ui_opacity}, {colour[1],colour[2],colour[3],colour[4]*3*ui_opacity})
 		elseif lineCount == 1 then
 			--RectRound(boxSizes.x.min, boxSizes.y.max -(lineCount+1)*lineHeight, boxSizes.x.max, boxSizes.y.max -(lineCount-1)*lineHeight, 3*widgetScale)
 		end
@@ -607,7 +618,7 @@ function ReGenerateBackgroundDisplayList()
 		else
 			glColor(sortHighLightColourDesc[1], sortHighLightColourDesc[2], sortHighLightColourDesc[3], sortHighLightColourDesc[4]*ui_opacity)
 		end
-		RectRound(math.floor(boxSizes.x.min +(selectedColumn)*columnSize-columnSize/2), math.floor(boxSizes.y.max -2*lineHeight), math.floor(boxSizes.x.min +(selectedColumn+1)*columnSize-columnSize/2), math.floor(boxSizes.y.max), bgpadding, 0,0,1,1)
+		RectRound(mathFloor(boxSizes.x.min +(selectedColumn)*columnSize-columnSize/2), mathFloor(boxSizes.y.max -2*lineHeight), mathFloor(boxSizes.x.min +(selectedColumn+1)*columnSize-columnSize/2), mathFloor(boxSizes.y.max), bgpadding, 0,0,1,1)
 	end
 	for selectedIndex, headerName in ipairs(header) do
 		if sortVar == headerName then
@@ -616,7 +627,7 @@ function ReGenerateBackgroundDisplayList()
 			else
 				glColor(activeSortColourDesc[1], activeSortColourDesc[2], activeSortColourDesc[3], activeSortColourDesc[4]*ui_opacity)
 			end
-			RectRound(math.floor(boxSizes.x.min +(selectedIndex)*columnSize-columnSize/2), math.floor(boxSizes.y.max -2*lineHeight), math.floor(boxSizes.x.min +(selectedIndex+1)*columnSize-columnSize/2), math.floor(boxSizes.y.max), bgpadding, 0,0,1,1)
+			RectRound(mathFloor(boxSizes.x.min +(selectedIndex)*columnSize-columnSize/2), mathFloor(boxSizes.y.max -2*lineHeight), mathFloor(boxSizes.x.min +(selectedIndex+1)*columnSize-columnSize/2), mathFloor(boxSizes.y.max), bgpadding, 0,0,1,1)
 			break
 		end
 	end

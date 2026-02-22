@@ -13,8 +13,6 @@ return {
 		footprintx = 6,
 		footprintz = 6,
 		health = 2000,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		metalcost = 1450,
@@ -29,7 +27,7 @@ return {
 		sonardistance = 600,
 		terraformspeed = 1000,
 		waterline = 39,
-		workertime = 200,
+		workertime = 300,
 		yardmap = "wwwwww weeeew weeeew weeeew weeeew wwwwww",
 		buildoptions = {
 			[1] = "armcsa",

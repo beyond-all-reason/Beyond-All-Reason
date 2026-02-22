@@ -1,7 +1,7 @@
 return {
 	legjav = {
 		buildpic = "legjav.DDS",
-		buildtime = 32000,
+		buildtime = 39850,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",
@@ -13,8 +13,6 @@ return {
 		footprintx = 5,
 		footprintz = 5,
 		health = 7200,
-		idleautoheal = 16,
-		idletime = 1800,
 		mass = 1200,
 		maxacc = 0.1750,
 		maxdec = 0.7500,

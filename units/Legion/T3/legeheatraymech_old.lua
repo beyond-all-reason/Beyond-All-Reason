@@ -1,7 +1,7 @@
 return {
 	legeheatraymech_old = {
 		buildpic = "legeheatraymech_old.DDS",
-		buildtime = 500000,
+		buildtime = 666250,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 -10 0",
@@ -15,8 +15,6 @@ return {
 		footprintx = 6,
 		footprintz = 6,
 		health = 110000,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 27000,
 		maxacc = 0.1750,
 		maxdec = 0.7500,

@@ -12,8 +12,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 3550,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -116,6 +114,7 @@ return {
 				firestarter = 0,
 				flighttime = 400,
 				impulsefactor = 1.1,
+				interceptedbyshieldtype = 0,
 				metalpershot = 550,
 				model = "cortronmissile.s3o",
 				name = "Long range tactical g2g nuclear warheads",
@@ -142,8 +141,10 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 1200,
 				customparams = {
+					shield_aoe_penetration = true,
 					water_splash_ceg = "splash-gigantic", -- 1 bigger than it would get
 					stockpilelimit = 10,
+					nuclear = 1,
 				},
 				damage = {
 					commanders = 750,

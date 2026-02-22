@@ -386,6 +386,8 @@ function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 			end
 
 			local posx, posy, posz = spGetUnitPosition(unitID)
+			if not posz then return end
+
 			local ValidCommandSound = false
 
 			if CurrentGameFrame >= CommandUISoundDelayLastFrame + CommandUISoundDelayFrames then

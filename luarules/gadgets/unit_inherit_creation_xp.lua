@@ -26,6 +26,7 @@ local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spGetUnitDefID = Spring.GetUnitDefID
 
 local inheritChildrenXP = {} -- stores the value of XP rate to be derived from unitdef
+local inheritCreationXP = {} -- multiplier of XP to inherit to newly created units, indexed by unitID
 local childrenInheritXP = {} -- stores the string that represents the types of units that will inherit the parent's XP when created
 local parentsInheritXP = {} -- stores the string that represents the types of units the parent will gain xp from
 local childrenWithParents = {} --stores the parent/child relationships format. Each entry stores key of unitID with an array of {unitID, builderID, xpInheritance}
@@ -36,6 +37,9 @@ local unitPowerDefs = {}
 for id, def in pairs(UnitDefs) do
 	if def.customParams.inheritxpratemultiplier then
 		inheritChildrenXP[id] = def.customParams.inheritxpratemultiplier or 1
+	end
+	if def.customParams.inheritcreationxpmultiplier then
+		inheritCreationXP[id] = def.customParams.inheritcreationxpmultiplier or 1
 	end
 	if def.customParams.parentsinheritxp then
 		parentsInheritXP[id] = def.customParams.parentsinheritxp or " "
@@ -69,28 +73,33 @@ end
 local function calculatePowerDiffXP(childID, parentID) -- this function calculates the right proportion of XP to inherit from child as though they were attacking the target themself.
 	local childDefID = spGetUnitDefID(childID)
 	local parentDefID = spGetUnitDefID(parentID)
-	local childPower =  unitPowerDefs[childDefID]
-	local parentPower = unitPowerDefs[parentDefID]
-	return (childPower/parentPower)*inheritChildrenXP[parentDefID]
+	if not childDefID or not parentDefID then
+		return 0
+	end
+	local childPower = unitPowerDefs[childDefID] or 1
+	local parentPower = unitPowerDefs[parentDefID] or 1
+	return (childPower / parentPower) * (inheritChildrenXP[parentDefID] or 1)
 end
 
 local initializeList = {}
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	if  builderID and mobileUnits[spGetUnitDefID(unitID)] and string.find(parentsInheritXP[spGetUnitDefID(builderID)], "MOBILEBUILT") then -- only mobile combat units will pass xp
+	local createdDefID = spGetUnitDefID(unitID)
+	local builderDefID = builderID and spGetUnitDefID(builderID)
+	if  builderID and mobileUnits[createdDefID] and string.find(parentsInheritXP[builderDefID], "MOBILEBUILT") then -- only mobile combat units will pass xp
 		childrenWithParents[unitID] = {
 			unitid = unitID,
 			parentunitid = builderID,
 			parentxpmultiplier = calculatePowerDiffXP(unitID, builderID),
-			childinheritsXP = childrenInheritXP[spGetUnitDefID(unitID)],
+			childinheritsXP = childrenInheritXP[createdDefID],
 			childtype = "MOBILEBUILT",
 		}
 	end
-	if  builderID and turretUnits[spGetUnitDefID(unitID)] and string.find(parentsInheritXP[spGetUnitDefID(builderID)], "TURRET") then -- only immobile combat units will pass xp
+	if  builderID and turretUnits[createdDefID] and string.find(parentsInheritXP[builderDefID], "TURRET") then -- only immobile combat units will pass xp
 		childrenWithParents[unitID] = {
 			unitid = unitID,
 			parentunitid = builderID,
 			parentxpmultiplier = calculatePowerDiffXP(unitID, builderID),
-			childinheritsXP = childrenInheritXP[spGetUnitDefID(unitID)],
+			childinheritsXP = childrenInheritXP[createdDefID],
 			childtype = "TURRET",
 		}
 end
@@ -142,7 +151,11 @@ function gadget:GameFrame(frame)
 				if string.find(parentTypes, childrenWithParents[unitID].childtype) then -- if child is correct type, set xp
 					local parentXP = spGetUnitExperience(parentID)
 					spSetUnitExperience(unitID, parentXP)
-					oldChildXPValues[unitID] = parentXP	--add parent xp to the oldxp value to exclude it from inheritance
+					oldChildXPValues[unitID] = parentXP --add parent xp to the oldxp value to exclude it from inheritance
+					local initMult = inheritCreationXP[parentDefID] or 1
+					local childInitXP = parentXP * initMult
+					spSetUnitExperience(unitID, childInitXP)
+					oldChildXPValues[unitID] = childInitXP  --add parent xp to the oldxp value to exclude it from inheritance
 				end
 			end
 

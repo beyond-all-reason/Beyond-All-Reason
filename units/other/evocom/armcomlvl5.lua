@@ -32,8 +32,6 @@ return {
 		hidedamage = true,
     	holdsteady = true,
 		icontype = "armcom",
-		idleautoheal = 77,
-		idletime = 900,
 		sightemitheight = 40,
 		mass = 4900,
 		health = 8700,

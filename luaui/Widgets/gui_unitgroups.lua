@@ -12,6 +12,15 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+local mathMax = math.max
+
+-- Localized Spring API for performance
+local spGetViewGeometry = Spring.GetViewGeometry
+local spGetSpectatingState = Spring.GetSpectatingState
+
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 
 local alwaysShow = true		-- always show AT LEAST the label
@@ -27,9 +36,9 @@ local setHeight = 0.046
 local leftclick = 'LuaUI/Sounds/buildbar_add.wav'
 local rightclick = 'LuaUI/Sounds/buildbar_click.wav'
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 
-local spec = Spring.GetSpectatingState()
+local spec = spGetSpectatingState()
 
 local widgetSpaceMargin, backgroundPadding, elementCorner, RectRound, UiElement, UiUnit
 
@@ -37,10 +46,10 @@ local spGetGroupList = Spring.GetGroupList
 local spGetGroupUnitsCounts = Spring.GetGroupUnitsCounts
 local spGetGroupUnitsCount = Spring.GetGroupUnitsCount
 local spGetMouseState = Spring.GetMouseState
-local floor = math.floor
+local floor = mathFloor
 local ceil = math.ceil
 local min = math.min
-local max = math.max
+local max = mathMax
 local math_isInRect = math.isInRect
 
 local GL_SRC_ALPHA = GL.SRC_ALPHA
@@ -70,7 +79,7 @@ local buildmenuAlwaysShow = false
 local buildmenuShowingPosY = 0
 
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 	height = setHeight * uiScale
 
 	font2 = WG['fonts'].getFont()
@@ -127,7 +136,7 @@ function widget:ViewResize()
 end
 
 function widget:PlayerChanged(playerID)
-	spec = Spring.GetSpectatingState()
+	spec = spGetSpectatingState()
 	if not showWhenSpec and Spring.GetGameFrame() > 1 and spec then
 		widgetHandler:RemoveWidget()
 		return
@@ -187,7 +196,7 @@ local function drawIcon(unitDefID, rect, lightness, zoom, texSize, highlightOpac
 		rect[1], rect[2], rect[3], rect[4],
 		ceil(backgroundPadding*0.5), 1,1,1,1,
 		zoom,
-		nil, math.max(0.1, highlightOpacity or 0.1),
+		nil, mathMax(0.1, highlightOpacity or 0.1),
 		'#'..unitDefID,
 		nil, nil, nil, nil
 	)
@@ -443,13 +452,14 @@ local function updateList()
 		end
 
 		local prevBackgroundX2 = backgroundRect and backgroundRect[3] or 0
+		local prevBackgroundY1 = backgroundRect and backgroundRect[2] or 0
 		backgroundRect = {
 			floor(posX * vsx),
 			floor(posY * vsy),
 			floor(posX * vsx) + usedWidth,
 			floor(posY * vsy) + usedHeight
 		}
-		if backgroundRect and backgroundRect[3] ~= prevBackgroundX2 then
+		if backgroundRect and (backgroundRect[3] ~= prevBackgroundX2 or backgroundRect[2] ~= prevBackgroundY1) then
 			if uiBgTex then
 				gl.DeleteTexture(uiBgTex)
 				uiBgTex = nil
@@ -459,7 +469,7 @@ local function updateList()
 
 		if useRenderToTexture then
 			if not uiBgTex then
-				uiBgTex = gl.CreateTexture(math.floor(uiTexWidth), math.floor(backgroundRect[4]-backgroundRect[2]), {
+				uiBgTex = gl.CreateTexture(mathFloor(uiTexWidth), mathFloor(backgroundRect[4]-backgroundRect[2]), {
 					target = GL.TEXTURE_2D,
 					format = GL.RGBA,
 					fbo = true,
@@ -475,7 +485,7 @@ local function updateList()
 				)
 			end
 			if not uiTex then
-				uiTex = gl.CreateTexture(math.floor(uiTexWidth)*2, math.floor(backgroundRect[4]-backgroundRect[2])*2, {
+				uiTex = gl.CreateTexture(mathFloor(uiTexWidth)*2, mathFloor(backgroundRect[4]-backgroundRect[2])*2, {
 					target = GL.TEXTURE_2D,
 					format = GL.RGBA,
 					fbo = true,

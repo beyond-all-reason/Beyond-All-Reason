@@ -12,10 +12,22 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathAbs = math.abs
+local mathFloor = math.floor
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spGetMyTeamID = Spring.GetMyTeamID
+local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spGetViewGeometry = Spring.GetViewGeometry
+local spGetSpectatingState = Spring.GetSpectatingState
+
 local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
 local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 local useRenderToTexture = false  -- Disabled for now due to issues
 
@@ -81,7 +93,7 @@ local repeatPic = ":l:LuaUI/Images/repeat.png"
 
 local iconSizeY = 65		-- reset in ViewResize
 local iconSizeX = iconSizeY
-local repIcoSize = math.floor(iconSizeY * 0.6)   --repeat iconsize
+local repIcoSize = mathFloor(iconSizeY * 0.6)   --repeat iconsize
 
 local msx = Game.mapX * 512
 local msz = Game.mapY * 512
@@ -100,7 +112,7 @@ local GL_ONE = GL.ONE
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local glBlending = gl.Blending
-local math_floor = math.floor
+local math_floor = mathFloor
 local math_ceil = math.ceil
 local GetUnitDefID = Spring.GetUnitDefID
 local GetMouseState = Spring.GetMouseState
@@ -166,7 +178,7 @@ end
 -------------------------------------------------------------------------------
 
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 
 	bgpadding = WG.FlowUI.elementPadding
 	elementCorner = WG.FlowUI.elementCorner
@@ -178,9 +190,9 @@ function widget:ViewResize()
 
 	font = WG['fonts'].getFont(2)
 
-	iconSizeY = math.floor((vsy / 19) * (1 + (ui_scale - 1) / 1.5))
+	iconSizeY = mathFloor((vsy / 19) * (1 + (ui_scale - 1) / 1.5))
 	iconSizeX = iconSizeY
-	repIcoSize = math.floor(iconSizeY * 0.4)
+	repIcoSize = mathFloor(iconSizeY * 0.4)
 
 	-- Invalidate textures on resize
 	if factoryTex then
@@ -227,7 +239,7 @@ local function clampScreen(mid, half, vsd)
 	elseif mid + half > vsd then
 		return vsd - half * 2, vsd
 	else
-		local val = math.floor(mid - half)
+		local val = mathFloor(mid - half)
 		return val, val + half * 2
 	end
 end
@@ -247,7 +259,7 @@ local function setupDimensions(count)
 		-- vertical (left or right bar)
 		vsa, iconSizeA, vsb, iconSizeB = vsy, iconSizeY, vsx, iconSizeX
 	end
-	length = math.floor(iconSizeA * count)
+	length = mathFloor(iconSizeA * count)
 	mid = vsa * 0.5 + bar_offset
 
 	-- setup expanding direction
@@ -277,28 +289,28 @@ local function setupSubDimensions()
 	if bar_horizontal then
 		--please note the factorylist is horizontal not the buildlist!!!
 
-		boptRect[1] = math.floor(facRect[1] + iconSizeX * openedMenu)
+		boptRect[1] = mathFloor(facRect[1] + iconSizeX * openedMenu)
 		boptRect[3] = boptRect[1] + iconSizeX
 		if bar_side == 2 then
 			--top
 			boptRect[2] = vsy - iconSizeY
-			boptRect[4] = boptRect[2] - math.floor(iconSizeY * buildListn)
+			boptRect[4] = boptRect[2] - mathFloor(iconSizeY * buildListn)
 		else
 			--bottom
 			boptRect[4] = iconSizeY
-			boptRect[2] = iconSizeY + math.floor(iconSizeY * buildListn)
+			boptRect[2] = iconSizeY + mathFloor(iconSizeY * buildListn)
 		end
 	else
-		boptRect[2] = math.floor(facRect[2] - iconSizeY * openedMenu)
+		boptRect[2] = mathFloor(facRect[2] - iconSizeY * openedMenu)
 		boptRect[4] = boptRect[2] - iconSizeY
 		if bar_side == 0 then
 			--left
 			boptRect[1] = iconSizeX
-			boptRect[3] = iconSizeX + math.floor(iconSizeX * buildListn)
+			boptRect[3] = iconSizeX + mathFloor(iconSizeX * buildListn)
 		else
 			--right
 			boptRect[3] = vsx - iconSizeX
-			boptRect[1] = boptRect[3] - math.floor(iconSizeX * buildListn)
+			boptRect[1] = boptRect[3] - mathFloor(iconSizeX * buildListn)
 		end
 	end
 end
@@ -367,7 +379,7 @@ function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 end
 
 function widget:PlayerChanged()
-	if Spring.GetSpectatingState() then
+	if spGetSpectatingState() then
 		widgetHandler:RemoveWidget()
 	end
 end
@@ -405,17 +417,17 @@ function widget:Initialize()
 
 	widget:ViewResize()
 
-	myTeamID = Spring.GetMyTeamID()
+	myTeamID = spGetMyTeamID()
 
 	updateFactoryList()
 
-	if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
+	if spGetGameFrame() > 0 and spGetSpectatingState() then
 		widgetHandler:RemoveWidget()
 	end
 end
 
 function widget:GameStart()
-	if Spring.GetSpectatingState() then
+	if spGetSpectatingState() then
 		widgetHandler:RemoveWidget()
 	end
 end
@@ -524,7 +536,7 @@ end
 
 local function drawOptionsBackground()
 	local addDist = math_floor(bgpadding*0.5)
-	backgroundOptionsRect = {boptRect[1]-addDist, boptRect[4]-addDist, boptRect[3] - math.floor(bgpadding/2), boptRect[2]+addDist}
+	backgroundOptionsRect = {boptRect[1]-addDist, boptRect[4]-addDist, boptRect[3] - mathFloor(bgpadding/2), boptRect[2]+addDist}
 	UiElement(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], 1,1,1,1)
 end
 
@@ -593,9 +605,9 @@ local function mouseOverIcon(x, y)
 	if x >= facRect[1] and x <= facRect[3] and y >= facRect[4] and y <= facRect[2] then
 		local icon
 		if bar_horizontal then
-			icon = math.floor((x - facRect[1]) / fac_inext[1])
+			icon = mathFloor((x - facRect[1]) / fac_inext[1])
 		else
-			icon = math.floor((y - facRect[2]) / fac_inext[2])
+			icon = mathFloor((y - facRect[2]) / fac_inext[2])
 		end
 
 		if icon >= #facs then
@@ -613,14 +625,14 @@ local function mouseOverSubIcon(x, y)
 	if openedMenu >= 0 and x >= boptRect[1] and x <= boptRect[3] and y >= boptRect[4] and y <= boptRect[2] then
 		local icon
 		if bar_side == 0 then
-			icon = math.floor((x - boptRect[1]) / bopt_inext[1])
+			icon = mathFloor((x - boptRect[1]) / bopt_inext[1])
 		elseif bar_side == 2 then
-			icon = math.floor((y - boptRect[2]) / bopt_inext[2])
+			icon = mathFloor((y - boptRect[2]) / bopt_inext[2])
 		elseif bar_side == 1 then
-			icon = math.floor((x - boptRect[3]) / bopt_inext[1])
+			icon = mathFloor((x - boptRect[3]) / bopt_inext[1])
 		else
 			--bar_side==3
-			icon = math.floor((y - boptRect[4]) / bopt_inext[2])
+			icon = mathFloor((y - boptRect[4]) / bopt_inext[2])
 		end
 
 		if facs[openedMenu + 1] and icon > #facs[openedMenu + 1].buildList - 1 then
@@ -636,11 +648,11 @@ end
 local sec = 0
 function widget:Update(dt)
 
-	if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
+	if spGetGameFrame() > 0 and spGetSpectatingState() then
 		widgetHandler:RemoveWidget()
 	end
-	if myTeamID ~= Spring.GetMyTeamID() then
-		myTeamID = Spring.GetMyTeamID()
+	if myTeamID ~= spGetMyTeamID() then
+		myTeamID = spGetMyTeamID()
 		updateFactoryList()
 	end
 	if WG['topbar'] and WG['topbar'].showingQuit() then
@@ -1044,7 +1056,7 @@ local function renderBuildOptions(mx, my, lb, mb, rb, moffscreen)
 					-- Draw background for build options first
 					if boptRect then
 						local addDist = math_floor(bgpadding*0.5)
-						backgroundOptionsRect = {boptRect[1]-addDist, boptRect[4]-addDist, boptRect[3] - math.floor(bgpadding/2), boptRect[2]+addDist}
+						backgroundOptionsRect = {boptRect[1]-addDist, boptRect[4]-addDist, boptRect[3] - mathFloor(bgpadding/2), boptRect[2]+addDist}
 						UiElement(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], 1,1,1,1)
 					end
 
@@ -1259,8 +1271,8 @@ function widget:DrawScreen()
 	if useRenderToTexture and factoriesArea and #dlists > 0 then
 		-- Create/update factory texture if needed
 		if updateFactoryTex then
-			local width = math.abs(factoriesArea[3] - factoriesArea[1])
-			local height = math.abs(factoriesArea[4] - factoriesArea[2])
+			local width = mathAbs(factoriesArea[3] - factoriesArea[1])
+			local height = mathAbs(factoriesArea[4] - factoriesArea[2])
 			
 			if not factoryTex and width > 0 and height > 0 then
 				factoryTex = gl.CreateTexture(math_floor(width), math_floor(height), {
@@ -1274,7 +1286,7 @@ function widget:DrawScreen()
 				gl.R2tHelper.RenderToTexture(factoryTex,
 					function()
 						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / math.abs(factoriesArea[3] - factoriesArea[1]), 2 / math.abs(factoriesArea[4] - factoriesArea[2]), 0)
+						gl.Scale(2 / mathAbs(factoriesArea[3] - factoriesArea[1]), 2 / mathAbs(factoriesArea[4] - factoriesArea[2]), 0)
 						gl.Translate(-factoriesArea[1], -factoriesArea[2], 0)
 						renderFactoryList()
 					end,
@@ -1377,7 +1389,7 @@ function widget:DrawInMiniMap(sx, sy)
 		else
 			r, g, b = Spring.GetTeamColor(myTeamID)
 		end
-		local alpha = 0.5 + math.abs((Spring.GetGameSeconds() % 0.25) * 4 - 0.5)
+		local alpha = 0.5 + mathAbs((Spring.GetGameSeconds() % 0.25) * 4 - 0.5)
 		local x, _, z = Spring.GetUnitBasePosition(facs[openedMenu + 1].unitID)
 
 		if x ~= nil then
@@ -1414,7 +1426,7 @@ local function menuHandler(x, y, button)
 			if select(4, GetUnitStates(factoryUnitID, false, true)) then
 				onoff = { 0 }
 			end
-			Spring.GiveOrderToUnit(factoryUnitID, CMD.REPEAT, onoff, 0)
+			spGiveOrderToUnit(factoryUnitID, CMD.REPEAT, onoff, 0)
 			Spring.PlaySoundFile(sound_click, 0.8, 'ui')
 		else
 			Spring.SelectUnitArray({ factoryUnitID })
@@ -1444,11 +1456,11 @@ local function buildHandler(button)
 	end
 
 	if button == 1 then
-		Spring.GiveOrderToUnit(facs[openedMenu + 1].unitID, -(facs[openedMenu + 1].buildList[pressedBOpt + 1]), {}, opt)
+		spGiveOrderToUnit(facs[openedMenu + 1].unitID, -(facs[openedMenu + 1].buildList[pressedBOpt + 1]), {}, opt)
 		Spring.PlaySoundFile(sound_queue_add, 0.75, 'ui')
 	elseif button == 3 then
 		opt[#opt + 1] = "right"
-		Spring.GiveOrderToUnit(facs[openedMenu + 1].unitID, -(facs[openedMenu + 1].buildList[pressedBOpt + 1]), {}, opt)
+		spGiveOrderToUnit(facs[openedMenu + 1].unitID, -(facs[openedMenu + 1].buildList[pressedBOpt + 1]), {}, opt)
 		Spring.PlaySoundFile(sound_queue_rem, 0.75, 'ui')
 	end
 end

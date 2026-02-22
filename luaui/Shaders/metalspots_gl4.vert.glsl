@@ -3,7 +3,9 @@
 uniform sampler2D heightMap;
 
 uniform vec4 visibilitycontrols;
-// This shader is (c) Beherith (mysterme@gmail.com)
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 Beherith (mysterme@gmail.com)
+// This shader is part of the Beyond All Reason repository.  
 
 layout (location = 0) in vec4 localpos_dir_angle;
 layout (location = 1) in vec4 worldpos_radius;

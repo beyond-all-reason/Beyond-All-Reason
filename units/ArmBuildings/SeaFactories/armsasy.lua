@@ -2,7 +2,7 @@ return {
 	armsasy = {
 		builder = true,
 		buildpic = "ARMASY.DDS",
-		buildtime = 16000,
+		buildtime = 30000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -9 -2",
 		collisionvolumescales = "192 60 192",
@@ -14,8 +14,6 @@ return {
 		footprintx = 12,
 		footprintz = 12,
 		health = 6000,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		metalcost = 3500,

@@ -2,7 +2,7 @@ return {
 	armaser = {
 		activatewhenbuilt = true,
 		buildpic = "ARMASER.DDS",
-		buildtime = 4940,
+		buildtime = 6000,
 		canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 -7 2",
@@ -15,8 +15,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 340,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.138,
 		maxdec = 0.5175,
 		maxslope = 32,

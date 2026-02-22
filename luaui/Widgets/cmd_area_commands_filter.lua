@@ -1,8 +1,9 @@
 local widget = widget ---@type RulesUnsyncedCallins
 
 -- When performing an area command for one of the `allowedCommands` below:
--- - If Ctrl is pressed and hovering over a unit, targets all units with the same alliance (enemy/allied) in the area.
--- - If Alt is pressed and hovering over a unit, targets all units that share the same unitdefid in the area.
+-- - If enemy unit is targeted then targetAllegiance=ENEMY_UNITS otherwise targetAllegiance=targetTeamId
+-- - If Ctrl is pressed and hovering over a unit, targets all units in the area. For wrecks, it targets all wrecks with the same tech level
+-- - If Alt is pressed and hovering over a unit, targets all units that share the same unitDefId in the area.
 -- - If Meta is pressed, orders are put in front of the order queue.
 -- - If Meta and Shift are pressed, splits orders between selected units. Orders are placed at the end of the queue
 function widget:GetInfo()
@@ -12,10 +13,17 @@ function widget:GetInfo()
 		author = "SuperKitowiec. Based on Specific Unit Reclaimer and Loader by Google Frog",
 		date = "October 16, 2025",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
+		layer = -1, -- Has to be run before Smart Area Reclaim widget
 		enabled = true
 	}
 end
+
+
+-- Localized functions for performance
+local tableInsert = table.insert
+local tableSort = table.sort
+local mathFloor = math.floor
+local mathMax = math.max
 
 local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
 local spGetSelectedUnits = Spring.GetSelectedUnits
@@ -24,10 +32,10 @@ local spWorldToScreenCoords = Spring.WorldToScreenCoords
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+local spGetUnitTeam = Spring.GetUnitTeam
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetFeaturesInCylinder = Spring.GetFeaturesInCylinder
 local spGetSpectatingState = Spring.GetSpectatingState
-local spGetMyTeamID = Spring.GetMyTeamID
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
 local spGetUnitPosition = Spring.GetUnitPosition
@@ -35,7 +43,14 @@ local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetUnitArrayCentroid = Spring.GetUnitArrayCentroid
 local spGetFeatureResurrect = Spring.GetFeatureResurrect
 
-local myTeamID
+local ENEMY_UNITS = Spring.ENEMY_UNITS
+local ALLY_UNITS = Spring.ALLY_UNITS
+local ALL_UNITS = Spring.ALL_UNITS
+local FEATURE = "feature"
+local UNIT = "unit"
+
+local commandLimit = 2000
+
 local myAllyTeamID
 
 ---------------------------------------------------------------------------------------
@@ -97,28 +112,33 @@ local function distributeTargetsToTransports(transports, targets)
 	-- 1. Find transports with capacity
 	for _, transportUnitId in ipairs(transports) do
 		local transportDefId = spGetUnitDefID(transportUnitId)
-		local transportedUnits = spGetUnitIsTransporting(transportUnitId)
-		local maxCapacity = transportDefs[transportDefId].maxCapacity
-		local remainingCapacity = maxCapacity - (transportedUnits and #transportedUnits or 0)
+		if transportDefId then
+			local transportDef = transportDefs[transportDefId]
+			if transportDef then
+				local transportedUnits = spGetUnitIsTransporting(transportUnitId)
+				local maxCapacity = transportDef.maxCapacity
+				local remainingCapacity = maxCapacity - (transportedUnits and #transportedUnits or 0)
 
-		if remainingCapacity > 0 then
-			if not transportTypeDataMap[transportDefId] then
-				---@class TransportData
-				---@field transportsInfo table<number,TransportInfo>
-				transportTypeDataMap[transportDefId] = {
-					transportsInfo = {},
-					transportIdsList = {},
-					allValidPassengers = {},
-					passengersByPriority = {},
-					maxPriority = -1,
-					transportHealth = transportDefs[transportDefId].health
-				}
+				if remainingCapacity > 0 then
+					if not transportTypeDataMap[transportDefId] then
+						---@class TransportData
+						---@field transportsInfo table<number,TransportInfo>
+						transportTypeDataMap[transportDefId] = {
+							transportsInfo = {},
+							transportIdsList = {},
+							allValidPassengers = {},
+							passengersByPriority = {},
+							maxPriority = -1,
+							transportHealth = transportDef.health
+						}
+					end
+					local position = toPositionTable(spGetUnitPosition(transportUnitId))
+					---@class TransportInfo
+					local transportInfo = { capacity = remainingCapacity, position = position }
+					transportTypeDataMap[transportDefId].transportsInfo[transportUnitId] = transportInfo
+					tableInsert(transportTypeDataMap[transportDefId].transportIdsList, transportUnitId)
+				end
 			end
-			local position = toPositionTable(spGetUnitPosition(transportUnitId))
-			---@class TransportInfo
-			local transportInfo = { capacity = remainingCapacity, position = position }
-			transportTypeDataMap[transportDefId].transportsInfo[transportUnitId] = transportInfo
-			table.insert(transportTypeDataMap[transportDefId].transportIdsList, transportUnitId)
 		end
 	end
 
@@ -146,7 +166,7 @@ local function distributeTargetsToTransports(transports, targets)
 			end
 			if isValid then
 				passengerPriorities[targetId] = (passengerPriorities[targetId] or 0) + 1
-				table.insert(transportTypeData.allValidPassengers, targetId)
+				tableInsert(transportTypeData.allValidPassengers, targetId)
 			end
 		end
 		if #transportTypeData.allValidPassengers == 0 then
@@ -160,7 +180,7 @@ local function distributeTargetsToTransports(transports, targets)
 		local maxPriority = -1
 
 		-- 3. Sort passengers (hardest to transport first)
-		table.sort(transportTypeData.allValidPassengers, function(a, b)
+		tableSort(transportTypeData.allValidPassengers, function(a, b)
 			return passengerPriorities[a] < passengerPriorities[b]
 		end)
 
@@ -173,15 +193,15 @@ local function distributeTargetsToTransports(transports, targets)
 			if not transportTypeData.passengersByPriority[priority] then
 				transportTypeData.passengersByPriority[priority] = {}
 			end
-			table.insert(transportTypeData.passengersByPriority[priority], passengerId)
+			tableInsert(transportTypeData.passengersByPriority[priority], passengerId)
 		end
 		transportTypeData.maxPriority = maxPriority
 
-		table.insert(orderedTransportDefs, transDefId)
+		tableInsert(orderedTransportDefs, transDefId)
 	end
 
 	-- 5. Sort transport types
-	table.sort(orderedTransportDefs, function(a, b)
+	tableSort(orderedTransportDefs, function(a, b)
 		local passengerA = transportTypeDataMap[a].allValidPassengers[1]
 		local passengerB = transportTypeDataMap[b].allValidPassengers[1]
 
@@ -243,7 +263,7 @@ local function distributeTargetsToTransports(transports, targets)
 							if not passengerAssignments[transportId] then
 								passengerAssignments[transportId] = {}
 							end
-							table.insert(passengerAssignments[transportId], bestPassengerId)
+							tableInsert(passengerAssignments[transportId], bestPassengerId)
 
 							alreadyAssignedPassengers[bestPassengerId] = true
 							transportInfo.capacity = transportInfo.capacity - 1
@@ -270,7 +290,7 @@ end
 
 local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst)
 	local avgPosition = toPositionTable(spGetUnitArrayCentroid(selectedUnits))
-	table.sort(filteredTargets, function(targetIdA, targetIdB)
+	tableSort(filteredTargets, function(targetIdA, targetIdB)
 		local positionA, positionB
 
 		-- Have to convert back to featureId
@@ -290,19 +310,24 @@ local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirs
 	end)
 end
 
-local function giveOrders(cmdId, selectedUnits, filteredTargets, options)
-	local count = 0
-	for _, targetId in ipairs(filteredTargets) do
+local function giveOrders(cmdId, selectedUnits, filteredTargets, options, maxCommands)
+	maxCommands = maxCommands or commandLimit
+	local firstTarget = true
+	local selectedUnitsLen = #selectedUnits
+	for i, targetId in ipairs(filteredTargets) do
 		local cmdOpts = {}
-		if count > 0 or options.shift then
-			table.insert(cmdOpts, "shift")
+		if not firstTarget or options.shift then
+			tableInsert(cmdOpts, "shift")
 		end
 		if options.meta and not options.shift then
 			spGiveOrderToUnitArray(selectedUnits, CMD.INSERT, { 0, cmdId, 0, targetId }, CMD.OPT_ALT)
 		else
 			spGiveOrderToUnitArray(selectedUnits, cmdId, { targetId }, cmdOpts)
 		end
-		count = count + 1
+		firstTarget = false
+		if i * selectedUnitsLen > maxCommands then
+			return
+		end
 	end
 end
 
@@ -312,7 +337,7 @@ local function splitTargets(selectedUnits, filteredTargets)
 		unitTargetsMap[selectedUnitId] = {}
 		for targetIdx, targetUnitId in ipairs(filteredTargets) do
 			if targetIdx % #filteredTargets == unitIdx % #filteredTargets or unitIdx % #selectedUnits == targetIdx % #selectedUnits then
-				table.insert(unitTargetsMap[selectedUnitId], targetUnitId)
+				tableInsert(unitTargetsMap[selectedUnitId], targetUnitId)
 			end
 		end
 	end
@@ -321,11 +346,14 @@ end
 
 --- Each unit gets a chunk of the queue
 local function splitOrders(cmdId, selectedUnits, filteredTargets, options)
+	local selectedUnitsLen = #selectedUnits
+	local maxAllowedTargetsPerUnit = mathMax(mathFloor(commandLimit / selectedUnitsLen), 1)
+
 	local unitTargetsMap = splitTargets(selectedUnits, filteredTargets)
 	for selectedUnitId, targets in pairs(unitTargetsMap) do
 		local selectedUnitTable = { selectedUnitId }
 		sortTargetsByDistance(selectedUnitTable, targets, true)
-		giveOrders(cmdId, selectedUnitTable, targets, options)
+		giveOrders(cmdId, selectedUnitTable, targets, options, maxAllowedTargetsPerUnit)
 	end
 end
 
@@ -344,71 +372,102 @@ end
 
 --- Each transport picks one target
 local function loadUnitsHandler(cmdId, selectedUnits, filteredTargets, options)
-	local passengerAssignments = distributeTargetsToTransports(selectedUnits, filteredTargets)
+	local transports = {}
+	for _, unitId in ipairs(selectedUnits) do
+		local unitDefId = spGetUnitDefID(unitId)
+		if unitDefId and transportDefs[unitDefId] then
+			transports[#transports + 1] = unitId
+		end
+	end
+	if #transports == 0 then
+		return
+	end
+	local passengerAssignments = distributeTargetsToTransports(transports, filteredTargets)
 	-- distributeTargetsToTransports already sorted the targets so no sortTargetsByDistance call here
 	for transportId, targetIds in pairs(passengerAssignments) do
 		giveOrders(cmdId, { transportId }, targetIds, options)
 	end
 end
 
-local FEATURE = "feature"
-local UNIT = "unit"
-
 ---@class CommandConfig
 ---@field handle function
 ---@field allowedTargetTypes table
----@field skipAlliedUnits? boolean
+---@field targetAllegiance number AllUnits = -1, MyUnits = -2, AllyUnits = -3, EnemyUnits = -4
+
+local function commandConfig(targetTypes, targetAllegiance, handler)
+	local allowedTargetTypes = {}
+	for _, targetType in ipairs(targetTypes) do
+		allowedTargetTypes[targetType] = true
+	end
+	local config = {} --- @type CommandConfig
+	config.handle = handler or defaultHandler
+	config.allowedTargetTypes = allowedTargetTypes
+	config.targetAllegiance = targetAllegiance
+	return config
+end
 
 ---@type table<number, CommandConfig>
 local allowedCommands = {
-	[CMD.ATTACK] = { handle = defaultHandler, allowedTargetTypes = { [UNIT] = true }, skipAlliedUnits = true },
-	[CMD.GUARD] = { handle = defaultHandler, allowedTargetTypes = { [UNIT] = true } },
-	[CMD.RECLAIM] = { handle = defaultHandler, allowedTargetTypes = { [UNIT] = true, [FEATURE] = true } },
-	[CMD.REPAIR] = { handle = defaultHandler, allowedTargetTypes = { [UNIT] = true } },
-	[CMD.CAPTURE] = { handle = defaultHandler, allowedTargetTypes = { [UNIT] = true } },
-	[GameCMD.UNIT_SET_TARGET] = { handle = defaultHandler, allowedTargetTypes = { [UNIT] = true } },
-	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = { handle = defaultHandler, allowedTargetTypes = { [UNIT] = true } },
-	[CMD.RESURRECT] = { handle = defaultHandler, allowedTargetTypes = { [FEATURE] = true } },
-	[CMD.LOAD_UNITS] = { handle = loadUnitsHandler, allowedTargetTypes = { [UNIT] = true } },
+	[CMD.ATTACK] = commandConfig({ UNIT }, ENEMY_UNITS),
+	[CMD.CAPTURE] = commandConfig({ UNIT }, ENEMY_UNITS),
+	[GameCMD.UNIT_SET_TARGET] = commandConfig({ UNIT }, ENEMY_UNITS),
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandConfig({ UNIT }, ENEMY_UNITS),
+	[CMD.GUARD] = commandConfig({ UNIT }, ALLY_UNITS),
+	[CMD.REPAIR] = commandConfig({ UNIT }, ALLY_UNITS),
+	[CMD.RECLAIM] = commandConfig({ UNIT, FEATURE }, ALL_UNITS),
+	[CMD.LOAD_UNITS] = commandConfig({ UNIT }, ALL_UNITS, loadUnitsHandler),
+	[CMD.RESURRECT] = commandConfig({ FEATURE }),
 }
 
-local function filterUnits(targetId, cmdX, cmdZ, radius, options, skipAlliedUnits)
+local function filterUnits(targetId, cmdX, cmdZ, radius, options, targetAllegiance)
+	local alt = options.alt
+	local ctrl = options.ctrl
 	local filteredTargets = {}
 	local unitDefId = spGetUnitDefID(targetId)
 	if not unitDefId then
 		return nil
 	end
 
-	local isEnemyTarget = (spGetUnitAllyTeam(targetId) ~= myAllyTeamID)
-
-	local unitsInArea
-	if isEnemyTarget then
-		unitsInArea = spGetUnitsInCylinder(cmdX, cmdZ, radius, Spring.ENEMY_UNITS)
-	elseif not skipAlliedUnits then
-		unitsInArea = spGetUnitsInCylinder(cmdX, cmdZ, radius, myTeamID)
+	local isEnemyTarget = spGetUnitAllyTeam(targetId) ~= myAllyTeamID
+	if isEnemyTarget and targetAllegiance ~= ALL_UNITS and targetAllegiance ~= ENEMY_UNITS then
+		-- targeting enemy when only allies are allowed
+		return nil
 	end
+
+	if isEnemyTarget then
+		targetAllegiance = ENEMY_UNITS
+	else
+		targetAllegiance = spGetUnitTeam(targetId)
+	end
+
+	local unitsInArea = spGetUnitsInCylinder(cmdX, cmdZ, radius, targetAllegiance)
+
 	if not unitsInArea then
 		return nil
 	end
 
-	if options.ctrl then
+	if ctrl then
 		return unitsInArea
 	end
 
 	for i = 1, #unitsInArea do
 		local unitID = unitsInArea[i]
 		if spGetUnitDefID(unitID) == unitDefId then
-			table.insert(filteredTargets, unitID)
+			tableInsert(filteredTargets, unitID)
 		end
 	end
+
 	return filteredTargets
 end
 
-local function filterFeatures(targetId, cmdX, cmdZ, radius, options)
-	if not options.alt then
-		return nil
-	end
+local function getTechLevel(unitDefName)
+	local unitDef = UnitDefNames[unitDefName]
+	return unitDef and unitDef.customParams.techlevel
+end
 
+local function filterFeatures(targetId, cmdX, cmdZ, radius, options, targetUnitDefName)
+	local alt = options.alt
+	local ctrl = options.ctrl
 	local filteredTargets = {}
 	local featureDefId = spGetFeatureDefID(targetId)
 	if not featureDefId then
@@ -420,14 +479,30 @@ local function filterFeatures(targetId, cmdX, cmdZ, radius, options)
 		return nil
 	end
 
+	local targetTechLevel
+	if ctrl then
+		targetTechLevel = getTechLevel(targetUnitDefName)
+	end
+
 	for i = 1, #featuresInArea do
 		local featureId = featuresInArea[i]
-		if spGetFeatureDefID(featureId) == featureDefId then
-			-- featureId is normalised to Game.maxUnits + featureId because of:
-			-- https://springrts.com/wiki/Lua_CMDs#CMDTYPE.ICON_UNIT_FEATURE_OR_AREA
-			-- "expect 1 parameter in return (unitid or Game.maxUnits+featureid)"
-			featureId = Game.maxUnits + featureId
-			table.insert(filteredTargets, featureId)
+		local shouldInsert = alt and spGetFeatureDefID(featureId) == featureDefId
+		if ctrl then
+			local unitDefName = spGetFeatureResurrect(featureId)
+			local unitTechLevel = getTechLevel(unitDefName)
+			if unitTechLevel == targetTechLevel then
+				shouldInsert = true
+			end
+		end
+		if shouldInsert then
+			if not Engine.FeatureSupport.noOffsetForFeatureID then
+				-- featureId is normalised to Game.maxUnits + featureId because of:
+				-- https://springrts.com/wiki/Lua_CMDs#CMDTYPE.ICON_UNIT_FEATURE_OR_AREA
+				-- "expect 1 parameter in return (unitd or Game.maxUnits+featureid)"
+				-- offset due to be removed in future engine version
+				featureId = featureId + Game.maxUnits
+			end
+			tableInsert(filteredTargets, featureId)
 		end
 	end
 	return filteredTargets
@@ -463,14 +538,14 @@ function widget:CommandNotify(cmdId, params, options)
 	local filteredTargets
 
 	if targetType == UNIT then
-		filteredTargets = filterUnits(targetId, cmdX, cmdZ, radius, options, currentCommand.skipAlliedUnits)
+		filteredTargets = filterUnits(targetId, cmdX, cmdZ, radius, options, currentCommand.targetAllegiance)
 	elseif targetType == FEATURE then
-		local featureDefName = spGetFeatureResurrect(targetId)
+		local unitDefName = spGetFeatureResurrect(targetId)
 		-- filter only wrecks which can be resurrected
-		if featureDefName == nil or featureDefName == "" then
+		if unitDefName == nil or unitDefName == "" then
 			return false
 		end
-		filteredTargets = filterFeatures(targetId, cmdX, cmdZ, radius, options)
+		filteredTargets = filterFeatures(targetId, cmdX, cmdZ, radius, options, unitDefName)
 	end
 
 	if not filteredTargets or #filteredTargets == 0 then
@@ -485,7 +560,6 @@ local function initialize()
 	if spGetSpectatingState() then
 		widgetHandler:RemoveWidget()
 	end
-	myTeamID = spGetMyTeamID()
 	myAllyTeamID = spGetMyAllyTeamID()
 end
 

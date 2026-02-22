@@ -16,10 +16,10 @@
 
 			// Commander hides if ("time" elapsed) and ("threat" exceeds value or enemy has "air")
 			"hide": {
-				"time": 270,  // seconds
-				"threat": 7,
+				"time": 420,  // seconds
+				"threat": 8,
 				"air": true,
-				"task_rad": [3300.0, 1000.0]  // [<peace_radius>, <danger_radius>]
+				"task_rad": [2000.0, 800.0]  // [<peace_radius>, <danger_radius>]
 			},
 
 			"assist_fac": 3,  // commander assists factory with high priority till number of constructors reached

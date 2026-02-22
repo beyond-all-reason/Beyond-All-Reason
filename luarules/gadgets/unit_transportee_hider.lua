@@ -21,6 +21,8 @@ local SetUnitStealth = Spring.SetUnitStealth
 local SetUnitSonarStealth = Spring.SetUnitSonarStealth
 local GetUnitDefID = Spring.GetUnitDefID
 local GiveOrderToUnit = Spring.GiveOrderToUnit
+local GetAllUnits = Spring.GetAllUnits
+local GetUnitTeam = Spring.GetUnitTeam
 
 local CMD_LOAD_ONTO = CMD.LOAD_ONTO
 local CMD_STOP = CMD.STOP
@@ -63,9 +65,10 @@ end
 
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_LOAD_ONTO)
-	local allUnits = Spring.GetAllUnits()
-	for _, unitID in ipairs(allUnits) do
-		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+	local allUnits = GetAllUnits()
+	for i = 1, #allUnits do
+		local unitID = allUnits[i]
+		gadget:UnitCreated(unitID, GetUnitDefID(unitID), GetUnitTeam(unitID))
 	end
 end
 

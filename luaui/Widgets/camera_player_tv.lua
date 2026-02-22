@@ -12,6 +12,18 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+local mathRandom = math.random
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMouseState = Spring.GetMouseState
+local spGetViewGeometry = Spring.GetViewGeometry
+local spGetSpectatingState = Spring.GetSpectatingState
+
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 
 --[[ Commands
@@ -31,7 +43,7 @@ local drawlistsPlayername = {}
 local fontSize = 12    -- countdown font
 local top, left, bottom, right = 0, 0, 0, 0
 local rejoining = false
-local initGameframe = Spring.GetGameFrame()
+local initGameframe = spGetGameFrame()
 local prevOrderID = 1
 
 local currentTrackedPlayer
@@ -41,10 +53,10 @@ local nextTrackingPlayerChange = os.clock() - 200
 local tsOrderedPlayers = {}
 
 local teamList = Spring.GetTeamList()
-local isSpec, fullview = Spring.GetSpectatingState()
-local myTeamID = Spring.GetMyTeamID()
+local isSpec, fullview = spGetSpectatingState()
+local myTeamID = spGetMyTeamID()
 local myTeamPlayerID = select(2, Spring.GetTeamInfo(myTeamID))
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 local widgetScale = (0.7 + (vsx * vsy / 5000000))
 
 local toggled = false
@@ -114,7 +126,7 @@ local function SelectTrackingPlayer(playerID)
 		for _, playerID in ipairs(playersList) do
 			local _, active, spec = spGetPlayerInfo(playerID, false)
 			if not spec and active then
-				if playersTS[playerID] ~= nil and playersTS[playerID] > highestTs+math.random(-10,10) then
+				if playersTS[playerID] ~= nil and playersTS[playerID] > highestTs+mathRandom(-10,10) then
 					highestTs = playersTS[playerID]
 					newTrackedPlayer = playerID
 				end
@@ -195,7 +207,7 @@ local function refreshUiDrawing()
 			text = '\255\255\255\255   ' .. Spring.I18N('ui.playerTV.playerCamera') .. '   '
 			color1 = { 0.6*mult, 0.6*mult, 0.6*mult, buttonOpacity }
 			color2 = { 0.4*mult, 0.4*mult, 0.4*mult, buttonOpacity }
-			textWidth = math.floor(font:GetTextWidth(text) * fontSize)
+			textWidth = mathFloor(font:GetTextWidth(text) * fontSize)
 			toggleButton3 = { toggleButton[1] - textWidth-bgpadding, bottom, toggleButton[1]-bgpadding, top }
 			RectRound(toggleButton3[1], toggleButton3[2], toggleButton3[3], toggleButton3[4], elementCorner, 1, 1, 0, toggleButton3[1] < left and 1 or 0, color1, color2)
 			RectRound(toggleButton3[1] + bgpadding, toggleButton3[2], toggleButton3[3]-bgpadding, toggleButton3[4] - bgpadding, elementCorner*0.66, 1, 1, 0, toggleButton3[1] < left and 1 or 0, { 0.3, 0.3, 0.3, 0.25*mult }, { 0.05, 0.05, 0.05, 0.25*mult })
@@ -214,7 +226,7 @@ local function refreshUiDrawing()
 			color1 = { 0.88*mult, 0.1*mult, 0.1*mult, buttonOpacity }
 			color2 = { 0.6*mult, 0.05*mult, 0.05*mult, buttonOpacity }
 		end
-		textWidth = math.floor(font:GetTextWidth(text) * fontSize)
+		textWidth = mathFloor(font:GetTextWidth(text) * fontSize)
 		if toggled or lockPlayerID or aiTeams[myTeamID] then
 			toggleButton2 = { toggleButton[1] - textWidth-bgpadding, bottom, toggleButton[1]-bgpadding, top }
 		else
@@ -243,7 +255,7 @@ local function refreshUiDrawing()
 			text = '\255\225\255\225   ' .. Spring.I18N('ui.playerTV.playerTV') .. '    '
 		end
 		local fontSize = (widgetHeight * widgetScale) * 0.5 * math.clamp(1+((1-(vsy/1200))*0.33), 1, 1.15)
-		local textWidth = math.floor(font:GetTextWidth(text) * fontSize)
+		local textWidth = mathFloor(font:GetTextWidth(text) * fontSize)
 		font:Begin()
 		font:SetOutlineColor(0.15, 0.15, 0.15, 1)
 		font:Print(text, toggleButton[3] - (textWidth / 2), toggleButton[2] + (0.32 * widgetHeight * widgetScale), fontSize, 'oc')
@@ -265,7 +277,7 @@ local function refreshUiDrawing()
 			text = '\255\255\255\255   ' .. Spring.I18N('ui.playerTV.playerView') .. '   '
 		end
 		local fontSize = (widgetHeight * widgetScale) * 0.5 * math.clamp(1+((1-(vsy/1200))*0.33), 1, 1.15)
-		local textWidth = math.floor(font:GetTextWidth(text) * fontSize)
+		local textWidth = mathFloor(font:GetTextWidth(text) * fontSize)
 		font:Begin()
 		font:SetOutlineColor(0.15, 0.15, 0.15, 1)
 		font:Print(text, toggleButton2[3] - (textWidth / 2), toggleButton2[2] + (0.32 * widgetHeight * widgetScale), fontSize, 'oc')
@@ -285,7 +297,7 @@ local function refreshUiDrawing()
 
 			local text = '\255\255\255\244   ' .. Spring.I18N('ui.playerTV.playerCamera') .. '   '
 			local fontSize = (widgetHeight * widgetScale) * 0.5 * math.clamp(1+((1-(vsy/1200))*0.33), 1, 1.15)
-			local textWidth = math.floor(font:GetTextWidth(text) * fontSize)
+			local textWidth = mathFloor(font:GetTextWidth(text) * fontSize)
 			font:Begin()
 			font:SetOutlineColor(0.15, 0.15, 0.15, 1)
 			font:Print(text, toggleButton3[3] - (textWidth / 2), toggleButton3[2] + (0.32 * widgetHeight * widgetScale), fontSize, 'oc')
@@ -331,7 +343,7 @@ local function updatePosition()
 		left = parentPos[2]
 		bottom = parentPos[1]
 		right = parentPos[4]
-		top = parentPos[1] + math.floor(widgetHeight * parentPos[5])
+		top = parentPos[1] + mathFloor(widgetHeight * parentPos[5])
 		widgetScale = parentPos[5]
 		if prevPos[1] == nil or prevPos[1] ~= parentPos[1] or prevPos[2] ~= parentPos[2] or prevPos[5] ~= parentPos[5] then
 			widget:ViewResize()
@@ -340,7 +352,7 @@ local function updatePosition()
 end
 
 function widget:GameStart()
-	isSpec, fullview = Spring.GetSpectatingState()
+	isSpec, fullview = spGetSpectatingState()
 	nextTrackingPlayerChange = os.clock()-0.3
 	tsOrderPlayers()
 	if isSpec and not rejoining and toggled then
@@ -352,9 +364,9 @@ function widget:GameStart()
 end
 
 function widget:PlayerChanged(playerID)
-	myTeamID = Spring.GetMyTeamID()
+	myTeamID = spGetMyTeamID()
 	myTeamPlayerID = select(2, Spring.GetTeamInfo(myTeamID))
-	isSpec, fullview = Spring.GetSpectatingState()
+	isSpec, fullview = spGetSpectatingState()
 	tsOrderPlayers()
 	local receateLists = false
 	if not rejoining then
@@ -382,18 +394,18 @@ end
 local function switchPlayerCam()
 	nextTrackingPlayerChange = os.clock() + playerChangeDelay
 	local tsOrderedPlayerCount = #tsOrderedPlayers
-	local scope = 1 + math.floor(1 + tsOrderedPlayerCount / 1.33)
+	local scope = 1 + mathFloor(1 + tsOrderedPlayerCount / 1.33)
 	if tsOrderedPlayerCount <= 2 then
 		scope = 2
 	elseif tsOrderedPlayerCount <= 6 then
-		scope = 1 + math.floor(1 + tsOrderedPlayerCount / 1.15)
+		scope = 1 + mathFloor(1 + tsOrderedPlayerCount / 1.15)
 	elseif tsOrderedPlayerCount <= 10 then
-		scope = 1 + math.floor(1 + tsOrderedPlayerCount / 1.22)
+		scope = 1 + mathFloor(1 + tsOrderedPlayerCount / 1.22)
 	end
-	local orderID = math.random(1, scope)
+	local orderID = mathRandom(1, scope)
 
-	local r = math.random()
-	orderID = 1 + math.floor((r * (r * r)) * scope)
+	local r = mathRandom()
+	orderID = 1 + mathFloor((r * (r * r)) * scope)
 	if orderID == prevOrderID then
 		-- prevent same player POV again
 		orderID = orderID - 1
@@ -446,7 +458,7 @@ function widget:Update(dt)
 	if WG['rejoin'] then
 		rejoining = WG['rejoin'].showingRejoining()
 	end
-	if isSpec and toggled and Spring.GetGameFrame() % 30 == 5 then
+	if isSpec and toggled and spGetGameFrame() % 30 == 5 then
 		if rejoining and prevRejoining ~= rejoining then
 			SelectTrackingPlayer()
 		elseif rejoining and WG.lockcamera and WG.lockcamera.GetPlayerID() ~= nil then
@@ -471,7 +483,7 @@ function widget:Update(dt)
 
 	updatePosition()
 
-	local mx, my = Spring.GetMouseState()
+	local mx, my = spGetMouseState()
 	local prevButtonHovered = buttonHovered
 	buttonHovered = nil
 	if math_isInRect(mx, my, left, bottom, right, top) then
@@ -506,14 +518,14 @@ function widget:Update(dt)
 		end
 
 		-- Player TV: switch player
-		if toggled and os.clock() > nextTrackingPlayerChange and Spring.GetGameFrame() > initGameframe + 70 then
+		if toggled and os.clock() > nextTrackingPlayerChange and spGetGameFrame() > initGameframe + 70 then
 			switchPlayerCam()
 		end
 	end
 end
 
 local function drawContent()
-	local gameFrame = Spring.GetGameFrame()
+	local gameFrame = spGetGameFrame()
 	if (rejoining or gameFrame == 0) and not lockPlayerID then
 		if WG['guishader'] then
 			WG['guishader'].RemoveDlist('playertv')
@@ -528,7 +540,7 @@ local function drawContent()
 		gl.PushMatrix()
 		gl.CallList(drawlist[1])
 		gl.PopMatrix()
-		local mx, my, mb = Spring.GetMouseState()
+		local mx, my, mb = spGetMouseState()
 		if (isSpec or lockPlayerID) and toggleButton ~= nil and drawlist[2] and math_isInRect(mx, my, toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4]) then
 			gl.CallList(drawlist[2])
 		end
@@ -541,7 +553,7 @@ local function drawContent()
 	end
 
 	if toggled and not rejoining then
-		local countDown = math.floor(nextTrackingPlayerChange - os.clock())
+		local countDown = mathFloor(nextTrackingPlayerChange - os.clock())
 		if drawlistsCountdown[countDown] ~= nil then
 			gl.PushMatrix()
 			gl.CallList(drawlistsCountdown[countDown])
@@ -610,10 +622,10 @@ function widget:DrawScreen()
 		refreshUiDrawing()
 		if useRenderToTexture then
 			if right-left >= 1 and top-bottom >= 1 then
-				uiTexTopExtra = math.floor(vsy*0.06)
-				uiTexLeftExtra = math.floor(vsy*0.08)
+				uiTexTopExtra = mathFloor(vsy*0.06)
+				uiTexLeftExtra = mathFloor(vsy*0.08)
 				if not uiTex then
-					uiTex = gl.CreateTexture((math.floor(right-left)+uiTexLeftExtra), (math.floor(top-bottom)+uiTexTopExtra), {
+					uiTex = gl.CreateTexture((mathFloor(right-left)+uiTexLeftExtra), (mathFloor(top-bottom)+uiTexTopExtra), {
 						target = GL.TEXTURE_2D,
 						format = GL.RGBA,
 						fbo = true,
@@ -735,7 +747,7 @@ end
 
 function widget:Initialize()
 	widget:ViewResize()
-	isSpec, fullview = Spring.GetSpectatingState()
+	isSpec, fullview = spGetSpectatingState()
 
 	if isSpec and not fullview then
 		toggled2 = true
@@ -801,7 +813,7 @@ function widget:MousePress(mx, my, mb)
 		end
 		-- player viewpoint
 		if isSpec and toggleButton2 ~= nil and math_isInRect(mx, my, toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4]) then
-			isSpec, fullview = Spring.GetSpectatingState()
+			isSpec, fullview = spGetSpectatingState()
 			if mb == 1 then
 				togglePlayerView()
 			end
@@ -809,7 +821,7 @@ function widget:MousePress(mx, my, mb)
 		end
 		-- player camera
 		if (isSpec or lockPlayerID) and toggleButton3 ~= nil and math_isInRect(mx, my, toggleButton3[1], toggleButton3[2], toggleButton3[3], toggleButton3[4]) then
-			isSpec, fullview = Spring.GetSpectatingState()
+			isSpec, fullview = spGetSpectatingState()
 			if mb == 1 then
 				togglePlayerCamera()
 			end
@@ -819,7 +831,7 @@ function widget:MousePress(mx, my, mb)
 end
 
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 
 	bgpadding = WG.FlowUI.elementPadding
 	elementCorner = WG.FlowUI.elementCorner
@@ -895,7 +907,7 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
-	if Spring.GetGameFrame() > 0 and data.toggled ~= nil then
+	if spGetGameFrame() > 0 and data.toggled ~= nil then
 		toggled = data.toggled
 	end
 	if data.alwaysDisplayName ~= nil then

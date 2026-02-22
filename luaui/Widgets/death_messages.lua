@@ -12,6 +12,10 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local tableInsert = table.insert
+
 local deathMessageKeys = {
 	'bowOut',
 	'gone',
@@ -40,14 +44,14 @@ local function getTeamNames(teamID)
 			name = niceName
 		end
 
-		table.insert(playerNames, name)
+		tableInsert(playerNames, name)
 	else
 		local players = Spring.GetPlayerList(teamID)
 
 		for _, playerID in pairs(players) do
 			local name = Spring.GetPlayerInfo(playerID, false)
 			name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
-			table.insert(playerNames, name)
+			tableInsert(playerNames, name)
 		end
 	end
 

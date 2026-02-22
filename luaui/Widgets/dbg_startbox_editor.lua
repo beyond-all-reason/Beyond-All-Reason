@@ -13,6 +13,15 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathAbs = math.abs
+local mathFloor = math.floor
+
+-- Localized Spring API for performance
+local spTraceScreenRay = Spring.TraceScreenRay
+local spGetGroundHeight = Spring.GetGroundHeight
+
 -- this is not ZK copy, its is modified
 
 --[[ tl;dr
@@ -34,7 +43,7 @@ local exportSuffix = "}\n"
 function widget:MousePress(mx, my, button)
 	widgetHandler:UpdateCallIn("MapDrawCmd")
 
-	local pos = select(2, Spring.TraceScreenRay(mx, my, true, true))
+	local pos = select(2, spTraceScreenRay(mx, my, true, true))
 	if not pos then
 		return true
 	end
@@ -42,8 +51,8 @@ function widget:MousePress(mx, my, button)
 	if #polygon == 0 then
 		polygon[#polygon+1] = pos
 	else
-		local dx = math.abs(pos[1] - polygon[#polygon][1])
-		local dz = math.abs(pos[3] - polygon[#polygon][3])
+		local dx = mathAbs(pos[1] - polygon[#polygon][1])
+		local dz = mathAbs(pos[3] - polygon[#polygon][3])
 		if (dx > 10 or dz > 10) then
 			polygon[#polygon+1] = pos
 		end
@@ -62,7 +71,7 @@ function widget:MouseRelease(mx, my, button)
 end
 
 function widget:MouseMove(mx, my)
-	local pos = select(2, Spring.TraceScreenRay(mx, my, true))
+	local pos = select(2, spTraceScreenRay(mx, my, true))
 	if not pos then
 		return
 	end
@@ -70,8 +79,8 @@ function widget:MouseMove(mx, my)
 	if #polygon == 0 then
 		polygon[1] = pos
 	else
-		local dx = math.abs(pos[1] - polygon[#polygon][1])
-		local dz = math.abs(pos[3] - polygon[#polygon][3])
+		local dx = mathAbs(pos[1] - polygon[#polygon][1])
+		local dz = mathAbs(pos[3] - polygon[#polygon][3])
 		if dx > 10 or dz > 10 then
 			polygon[#polygon+1] = pos
 		end
@@ -93,7 +102,7 @@ function widget:KeyPress(key)
 			local polygon = final_polygons[j]
 			for i = 1, #polygon do
 				local pos = polygon[i]
-				str = str .. "\t\t\t\t{" .. math.floor(pos[1]) .. ", " .. math.floor(pos[3]) .. "},\n"
+				str = str .. "\t\t\t\t{" .. mathFloor(pos[1]) .. ", " .. mathFloor(pos[3]) .. "},\n"
 			end
 			str = str .. "\t\t\t},\n"
 		end
@@ -119,12 +128,12 @@ local function DrawLine()
 	for i = 1, #polygon do
 		local x = polygon[i][1]
 		local z = polygon[i][3]
-		local y = Spring.GetGroundHeight(x, z)
+		local y = spGetGroundHeight(x, z)
 		gl.Vertex(x,y,z)
 	end
 
 	local mx,my = Spring.GetMouseState()
-	local pos = select(2, Spring.TraceScreenRay(mx, my, true))
+	local pos = select(2, spTraceScreenRay(mx, my, true))
 	if pos then
 		gl.Vertex(pos[1],pos[2],pos[3])
 	end
@@ -135,7 +144,7 @@ local function DrawFinalLine(fpi)
 	for i = 1, #poly do
 		local x = poly[i][1]
 		local z = poly[i][3]
-		local y = Spring.GetGroundHeight(x, z)
+		local y = spGetGroundHeight(x, z)
 		gl.Vertex(x,y,z)
 	end
 

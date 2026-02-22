@@ -2,7 +2,7 @@ return {
 	corvrad = {
 		activatewhenbuilt = true,
 		buildpic = "CORVRAD.DDS",
-		buildtime = 4220,
+		buildtime = 5000,
 		canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
@@ -14,8 +14,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 570,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.02086,
 		maxdec = 0.04172,

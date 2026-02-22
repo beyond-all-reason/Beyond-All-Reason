@@ -1,10 +1,9 @@
 return {
 	corfship = {
 		activatewhenbuilt = true,
-		autoheal = 1.5,
 		blocking = true,
 		buildpic = "CORFSHIP.DDS",
-		buildtime = 9400,
+		buildtime = 13000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -5 -2",
 		collisionvolumescales = "27 20 81",
@@ -16,8 +15,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 2700,
-		idleautoheal = 2,
-		idletime = 900,
 		maxacc = 0.06,
 		maxdec = 0.06,
 		metalcost = 630,

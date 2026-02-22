@@ -28,8 +28,6 @@ return {
 		footprintx = 5,
 		footprintz = 5,
 		hidedamage = true,
-		idleautoheal = 2000,
-		idletime = 1800,
 		sightemitheight = 100,
 		mass = 500000,
 		health = 300000,

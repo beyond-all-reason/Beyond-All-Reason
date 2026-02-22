@@ -2,7 +2,7 @@ return {
 	armbrawl = {
 		blocking = false,
 		buildpic = "ARMBRAWL.DDS",
-		buildtime = 13500,
+		buildtime = 17000,
 		canfly = true,
 		canmove = true,
 		collide = true,
@@ -13,8 +13,6 @@ return {
 		footprintz = 3,
 		health = 1780,
 		hoverattack = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.24,
 		maxdec = 0.44,
 		maxslope = 10,
@@ -77,7 +75,7 @@ return {
 		},
 		weapondefs = {
 			vtol_emg = {
-				areaofeffect = 16,
+				areaofeffect = 40,
 				avoidfeature = false,
 				burst = 4,
 				burstrate = 0.15,
@@ -86,6 +84,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:plasmahit-medium",
+				gravityaffected = "true",
 				impulsefactor = 0.123,
 				intensity = 0.8,
 				name = "Rapid-fire a2g plasma guns",
@@ -101,7 +100,7 @@ return {
 				turret = false,
 				weapontimer = 1,
 				weapontype = "Cannon",
-				weaponvelocity = 800,
+				weaponvelocity = 1000,
 				damage = {
 					default = 16,
 					vtol = 2,

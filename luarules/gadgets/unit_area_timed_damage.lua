@@ -21,7 +21,7 @@ end
 -- Configuration ---------------------------------------------------------------
 
 local damageInterval = 0.7333 ---@type number in seconds, time between procs
-local damageLimit = 100 ---@type number in damage per second, soft-cap across multiple areas
+local damageLimit = 120 ---@type number in damage per second, soft-cap across multiple areas
 local damageExcessRate = 0.2 ---@type number %damage dealt above limit [0, 1)
 local damageCegMinScalar = 30 ---@type number in damage, minimum to show hit CEG
 local damageCegMinMultiple = 1 / 3 ---@type number in %damage, minimum to show hit CEG
@@ -37,8 +37,6 @@ local areaSizePresets = {
 
 -- Customparams and defaults:
 local prefixes = { unit = 'area_ondeath_', weapon = 'area_onhit_' }
-local damage, time, range, resistance = 30, 10, 75, "none"
-
 --[[
     customparams = {
         <prefix>_damage     := <number>    The damage done per second
@@ -61,8 +59,14 @@ local max                     = math.max
 local min                     = math.min
 local floor                   = math.floor
 local sqrt                    = math.sqrt
+local round                   = math.round
 local diag                    = math.diag
 local normalize               = math.normalize
+local stringFind              = string.find
+local stringGsub              = string.gsub
+local stringLower             = string.lower
+local tableInsert             = table.insert
+local tableRemove             = table.remove
 
 local spAddUnitDamage         = Spring.AddUnitDamage
 local spGetFeatureHealth      = Spring.GetFeatureHealth
@@ -75,29 +79,31 @@ local spGetUnitPosition       = Spring.GetUnitPosition
 local spGetUnitsInCylinder    = Spring.GetUnitsInCylinder
 local spSetFeatureHealth      = Spring.SetFeatureHealth
 local spSpawnCEG              = Spring.SpawnCEG
+local spDestroyFeature        = Spring.DestroyFeature
 
 local gameSpeed               = Game.gameSpeed
 
 --------------------------------------------------------------------------------
 -- Local variables -------------------------------------------------------------
 
-local frameInterval = math.round(Game.gameSpeed * damageInterval)
-local frameCegShift = math.round(Game.gameSpeed * damageInterval * 0.5)
-local frameWaitTime = math.round(Game.gameSpeed * factoryWaitTime)
+local frameInterval = round(Game.gameSpeed * damageInterval)
+local frameCegShift = round(Game.gameSpeed * damageInterval * 0.5)
+local frameWaitTime = round(Game.gameSpeed * factoryWaitTime)
+
+-- Damage that bypasses the limit needs to be scaled to match its per-second value.
+local damageBypassScale = (Game.gameSpeed / frameInterval) ^ 2
 
 local timedDamageWeapons = {}
 local unitDamageImmunity = {}
-local featDamageImmunity = {}
-
+local featureDamageImmunity = {}
 local isFactory = {}
-local isNewUnit = {}
 
 local aliveExplosions = {}
 local frameExplosions = {}
 local frameNumber = 0
 
-local unitDamageTaken = {}
-local featDamageTaken = {}
+local unitData = {}
+local featureData = {}
 local unitDamageReset = {}
 local featDamageReset = {}
 
@@ -110,29 +116,45 @@ local regexCegToRadius = regexArea.."("..regexDigits..")"..regexRepeat
 -- Local functions -------------------------------------------------------------
 
 local function getExplosionParams(def, prefix)
-    local params = {
-        ceg        = def.customParams[ prefix.."ceg"        ],
-        damageCeg  = def.customParams[ prefix.."damageceg"  ],
-        resistance = def.customParams[ prefix.."resistance" ] or resistance,
-        damage     = def.customParams[ prefix.."damage"     ] or damage,
-        frames     = def.customParams[ prefix.."time"       ] or time,
-        range      = def.customParams[ prefix.."range"      ] or range,
-    }
-    params.damage = tonumber(params.damage) * (frameInterval/Game.gameSpeed)
-    params.frames = tonumber(params.frames) * Game.gameSpeed
-    params.frames = math.round(params.frames / frameInterval) * frameInterval
-    params.range = tonumber(params.range)
-    params.resistance = string.lower(params.resistance)
-    return params
+	local ceg        = def.customParams[prefix .. "ceg"       ]
+	local damageCeg  = def.customParams[prefix .. "damageceg" ]
+	local resistance = def.customParams[prefix .. "resistance"]
+	local damage     = def.customParams[prefix .. "damage"    ]
+	local frames     = def.customParams[prefix .. "time"      ]
+	local range      = def.customParams[prefix .. "range"     ]
+
+    resistance = stringLower(resistance or "none")
+	damage = tonumber(damage) * (frameInterval / Game.gameSpeed)
+    range = tonumber(range)
+
+	frames = tonumber(frames) * Game.gameSpeed
+	local framesActual = round(frames / frameInterval) * frameInterval
+	local framesExtra, damageExtra
+
+	if frames - framesActual > 0 then
+		framesExtra = frames - framesActual
+		damageExtra = framesExtra > 0 and damage * framesExtra / Game.gameSpeed
+	end
+
+	return {
+		ceg         = ceg,
+		damageCeg   = damageCeg,
+		resistance  = resistance,
+		damage      = damage,
+		range       = range,
+		frames      = framesActual,
+		extraFrames = framesExtra,
+		extraDamage = damageExtra,
+	}
 end
 
 local function getNearestCEG(params)
     local ceg, range = params.ceg, params.range
 
     -- We can't check properties of the ceg, so use the name to compare 'size'. Yes, "that is bad".
-    if string.find(ceg, "-"..math.floor(range).."-", nil, true) then
-        local _, _, _, namedRange = string.find(ceg, regexCegToRadius, nil, true)
-        if tonumber(namedRange) == math.floor(range) then
+    if stringFind(ceg, "-"..floor(range).."-", nil, true) then
+        local _, _, _, namedRange = stringFind(ceg, regexCegToRadius, nil, true)
+        if tonumber(namedRange) == floor(range) then
             return ceg, range
         end
     end
@@ -148,7 +170,7 @@ local function getNearestCEG(params)
         end
     end
     if sizeBest < math.huge then
-        ceg = string.gsub(ceg, regexDigits, sizeBest, 1)
+        ceg = stringGsub(ceg, regexDigits, sizeBest, 1)
         return ceg, sizeBest
     end
 end
@@ -215,7 +237,7 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
         }
 
         local index = bisectDamage(frameExplosions, area.damage, 1, #frameExplosions)
-        table.insert(frameExplosions, index, area)
+        tableInsert(frameExplosions, index, area)
     end
 end
 
@@ -228,7 +250,7 @@ end
 ---We prefer the target's midpoint if it is in the radius since the damaged CEGs are easier to see higher up
 ---on the model, but if it is too high/awkward then the base position is fine, with a small vertical offset.
 ---@param area table contains the timed area properties
----@param baseX number unit base position coordinates <x, y, z>
+---@param baseX? number unit base position coordinates <x, y, z>
 ---@param baseY number
 ---@param baseZ number
 ---@param midX number unit midpoint position coordinates <x, y, z>
@@ -238,6 +260,10 @@ end
 ---@return number? hitY
 ---@return number? hitZ
 local function getAreaHitPosition(area, baseX, baseY, baseZ, midX, midY, midZ)
+	if not baseX then
+		return
+	end
+
 	local radius = area.range
 
 	if midY >= area.ymin and midY <= area.ymax then
@@ -280,8 +306,8 @@ end
 ---@return number damageDealt
 ---@return boolean showDamageCeg
 local function getLimitedDamage(incoming, accumulated)
-    local ignoreLimit = max(0, incoming - damageLimit - accumulated)
-    local belowLimit = max(0, min(damageLimit - accumulated, incoming))
+    local ignoreLimit = max(0, incoming * damageBypassScale - damageLimit)
+    local belowLimit = max(0, min(incoming - ignoreLimit, damageLimit - accumulated))
     local aboveLimit = incoming - belowLimit - ignoreLimit
 
 	local damageDealt = ignoreLimit + belowLimit + aboveLimit * damageExcessRate
@@ -292,7 +318,7 @@ end
 local function damageTargetsInAreas(timedAreas, gameFrame)
     local length = #timedAreas
 
-    local resetNewUnit = {}
+    local reset = {}
     local count = 0
 
     for index = length, 1, -1 do
@@ -303,32 +329,35 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
 
         for j = 1, #unitsInRange do
             local unitID = unitsInRange[j]
-            if not unitDamageImmunity[spGetUnitDefID(unitID)][area.resistance] and not isNewUnit[unitID] then
-                local damageTaken = unitDamageTaken[unitID]
-                if not damageTaken then
-                    damageTaken = 0
-                    count = count + 1
-                    resetNewUnit[count] = unitID
-                end
-                local damage, showDamageCeg = getLimitedDamage(area.damage, damageTaken)
-                if showDamageCeg then
-                    local ux, uy, uz = spGetUnitPosition(unitID)
-                    spSpawnCEG(area.damageCeg, ux, uy, uz)
-                end
-                spAddUnitDamage(unitID, damage, nil, area.owner, area.weapon)
-                unitDamageTaken[unitID] = damageTaken + damage
+			local data = unitData[unitID]
+            if data and not data.resistances[area.resistance] and data.immuneUntil < gameFrame then
+                local hitX, hitY, hitZ = getAreaHitPosition(area, spGetUnitPosition(unitID, true))
+
+				if hitX then
+					local damageTaken = data.damageTaken
+					if damageTaken == 0 then
+						count = count + 1
+						reset[count] = data
+					end
+					local damage, showDamageCeg = getLimitedDamage(area.damage, damageTaken)
+					if showDamageCeg then
+						spSpawnCEG(area.damageCeg, hitX, hitY, hitZ)
+					end
+					data.damageTaken = damageTaken + damage
+					spAddUnitDamage(unitID, damage, nil, area.owner, area.weapon)
+				end
             end
         end
     end
 
-    for _, unitID in ipairs(unitDamageReset[gameFrame]) do
-        unitDamageTaken[unitID] = nil
-    end
+	for _, data in ipairs(unitDamageReset[gameFrame]) do
+		data.damageTaken = 0
+	end
 
     unitDamageReset[gameFrame] = nil
-    unitDamageReset[gameFrame + gameSpeed] = resetNewUnit
+    unitDamageReset[gameFrame + gameSpeed] = reset
 
-    local resetNewFeat = {}
+    reset = {}
     count = 0
 
     for index = length, 1, -1 do
@@ -339,59 +368,50 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
 
         for j = 1, #featuresInRange do
             local featureID = featuresInRange[j]
+			local data = featureData[featureID]
 
-            if not featDamageImmunity[featureID] then
+            if data and not data.damageImmune then
                 local hitX, hitY, hitZ = getAreaHitPosition(area, spGetFeaturePosition(featureID, true))
 
                 if hitX then
-                    local damageTaken = featDamageTaken[featureID]
-
-                    if not damageTaken then
-                        damageTaken = 0
+                    local damageTaken = data.damageTaken
+                    if damageTaken == 0 then
                         count = count + 1
-                        resetNewFeat[count] = featureID
+                        reset[count] = data
                     end
-
                     local damageDealt, showDamageCeg = getLimitedDamage(area.damage, damageTaken)
-
                     if showDamageCeg then
                         spSpawnCEG(area.damageCeg, hitX, hitY, hitZ)
                     end
-
                     local health = spGetFeatureHealth(featureID) - damageDealt
-
                     if health > 1 then
                         spSetFeatureHealth(featureID, health)
-                        featDamageTaken[featureID] = damageTaken + damageDealt
+                        data.damageTaken = damageTaken + damageDealt
                     else
-                        Spring.DestroyFeature(featureID)
+                        spDestroyFeature(featureID)
                     end
                 end
             end
         end
 
         if area.endFrame <= gameFrame then
-            table.remove(timedAreas, index)
+            tableRemove(timedAreas, index)
+			-- Handle areas with durations that are shorter than intended.
+			if area.extraFrames then
+				area.endFrame = area.extraFrames + gameFrame
+				area.damage = area.extraDamage
+				area.extraFrames = nil
+				area.extraDamage = nil
+			end
         end
     end
 
-    for _, featID in ipairs(featDamageReset[gameFrame]) do
-        featDamageTaken[featID] = nil
-    end
+	for _, data in ipairs(featDamageReset[gameFrame]) do
+		data.damageTaken = 0
+	end
 
     featDamageReset[gameFrame] = nil
-    featDamageReset[gameFrame + gameSpeed] = resetNewFeat
-end
-
-local function removeFromArrays(arrays, value)
-    for _, array in pairs(arrays) do
-        for i = 1, #array do
-            if value == array[i] then
-                array[#array], array[i] = array[i], nil
-                return
-            end
-        end
-    end
+    featDamageReset[gameFrame + gameSpeed] = reset
 end
 
 --------------------------------------------------------------------------------
@@ -435,6 +455,16 @@ function gadget:Initialize()
         end
     end
 
+    if not next(timedDamageWeapons) then
+		Spring.Log(gadget:GetInfo().name, LOG.INFO, "No timed areas found. Removing gadget.")
+        gadgetHandler:RemoveGadget(self)
+		return
+	end
+
+	for weaponDefID in pairs(timedDamageWeapons) do
+		Script.SetWatchExplosion(weaponDefID, true)
+	end
+
     unitDamageImmunity = {}
     local areaDamageTypes = {}
     for weaponDefID, params in pairs(timedDamageWeapons) do
@@ -471,46 +501,30 @@ function gadget:Initialize()
         unitDamageImmunity[unitDefID] = unitImmunity
     end
 
-    featDamageImmunity = {}
-    for _, featureID in ipairs(Spring.GetAllFeatures()) do
-        local featureDefID = Spring.GetFeatureDefID(featureID)
-        local featureDef = FeatureDefs[featureDefID]
-        if featureDef.indestructible or featureDef.geoThermal then
-            featDamageImmunity[featureID] = true
-        end
-    end
+    featureDamageImmunity = {}
+	for featureDefID, featureDef in ipairs(FeatureDefs) do
+		featureDamageImmunity[featureDefID] = featureDef.indestructible or featureDef.geoThermal
+	end
 
-    if next(timedDamageWeapons) then
-        for weaponDefID in pairs(timedDamageWeapons) do
-            Script.SetWatchExplosion(weaponDefID, true)
-        end
+	aliveExplosions = {}
+	for ii = 1, frameInterval do
+		aliveExplosions[ii] = {}
+	end
 
-        aliveExplosions = {}
-        for ii = 1, frameInterval do
-            aliveExplosions[ii] = {}
-        end
-        frameNumber = Spring.GetGameFrame()
-        frameExplosions = aliveExplosions[1 + (frameNumber % frameInterval)]
-        for frame = frameNumber - 1, frameNumber + gameSpeed do
-            unitDamageReset[frame] = {}
-            featDamageReset[frame] = {}
-        end
+	frameNumber = Spring.GetGameFrame()
+	frameExplosions = aliveExplosions[1 + (frameNumber % frameInterval)]
+	for frame = frameNumber - 1, frameNumber + gameSpeed do
+		unitDamageReset[frame] = {}
+		featDamageReset[frame] = {}
+	end
 
-        isNewUnit = {}
-		local progressMax = 0.05 -- Assuming 20s build time. Any guess is fine (for /luarules reload).
-		local beingBuilt, progress, health, healthMax, framesRemaining
-        for _, unitID in ipairs(Spring.GetAllUnits()) do
-            beingBuilt, progress = Spring.GetUnitIsBeingBuilt(unitID)
-			health, healthMax = Spring.GetUnitHealth(unitID)
-            if beingBuilt and min(progress, health / healthMax) <= progressMax then
-                framesRemaining = frameInterval * (1 - 0.5 * min(progress, health / healthMax) / progressMax)
-                isNewUnit[unitID] = frameNumber + max(1, framesRemaining)
-            end
-        end
-    else
-        Spring.Log(gadget:GetInfo().name, LOG.INFO, "No timed areas found. Removing gadget.")
-        gadgetHandler:RemoveGadget(self)
-    end
+	for _, unitID in ipairs(Spring.GetAllUnits()) do
+		gadget:UnitCreated(unitID, spGetUnitDefID(unitID))
+	end
+
+	for _, featureID in ipairs(Spring.GetAllFeatures()) do
+		gadget:FeatureCreated(featureID)
+	end
 end
 
 function gadget:Explosion(weaponDefID, px, py, pz, attackerID, projectileID)
@@ -529,35 +543,28 @@ function gadget:GameFrame(frame)
 
     frameExplosions = frameAreas
     frameNumber = frame
-
-    for unitID, expire in pairs(isNewUnit) do
-        if expire > frame then
-            isNewUnit[unitID] = nil
-        end
-    end
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-    if builderID and isFactory[builderID] then
-        isNewUnit[unitID] = frameNumber + frameWaitTime
-    end
-end
-
-function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	isNewUnit[unitID] = nil
+	unitData[unitID] = {
+		damageTaken = 0,
+		immuneUntil = (builderID and isFactory[spGetUnitDefID(builderID)] and frameNumber + frameWaitTime) or 0,
+		resistances = unitDamageImmunity[unitDefID],
+	}
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-    if unitDamageTaken[unitID] then
-        unitDamageTaken[unitID] = nil
-        removeFromArrays(unitDamageReset, unitID)
-    end
-    isNewUnit[unitID] = nil
+	unitData[unitID] = nil
+end
+
+function gadget:FeatureCreated(featureID, allyTeam)
+	local featureDefID = Spring.GetFeatureDefID(featureID)
+	featureData[featureID] = {
+		damageTaken = 0,
+		damageImmune = featureDamageImmunity[featureDefID],
+	}
 end
 
 function gadget:FeatureDestroyed(featureID, allyTeam)
-    if featDamageTaken[featureID] then
-        featDamageTaken[featureID] = nil
-        removeFromArrays(featDamageReset, featureID)
-    end
+	featureData[featureID] = nil
 end

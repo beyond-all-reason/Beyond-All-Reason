@@ -15,6 +15,11 @@ function widget:GetInfo()
     }
 end
 
+
+-- Localized Spring API for performance
+local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
+
 -- Behavior:
 -- To give a line command: select command, then right click & drag
 -- To give a command within an area: select command, then left click and drag
@@ -174,8 +179,8 @@ local CMD_OPT_SHIFT = CMD.OPT_SHIFT
 local CMD_OPT_RIGHT = CMD.OPT_RIGHT
 
 local keyShift = 304
-local selectedUnits = Spring.GetSelectedUnits()
-local selectedUnitsCount = Spring.GetSelectedUnitsCount()
+local selectedUnits = spGetSelectedUnits()
+local selectedUnitsCount = spGetSelectedUnitsCount()
 
 --------------------------------------------------------------------------------
 -- Helper Functions
@@ -186,7 +191,7 @@ local function GetModKeys()
     if spGetInvertQueueKey() then -- Shift inversion
         shift = not shift
     end
-    
+
     -- Check if PiP widget wants to force shift for right-click drags
     if WG.pipForceShift then
         shift = true
@@ -388,7 +393,7 @@ end
 
 function widget:SelectionChanged(sel)
     selectedUnits = sel
-    selectedUnitsCount = Spring.GetSelectedUnitsCount()
+    selectedUnitsCount = spGetSelectedUnitsCount()
 end
 
 
@@ -505,8 +510,12 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
         -- If the line is a path, start the units moving to this node
         if pathCandidate then
 
-            local alt, ctrl, meta, shift = GetModKeys()
-            local cmdOpts = GetCmdOpts(false, ctrl, meta, shift, usingRMB) -- using alt uses springs box formation, so we set it off always
+            -- For the first path command, use raw shift state to decide whether to clear queue
+            -- This ensures queue is cleared unless user explicitly holds shift
+            local alt, ctrl, meta, _ = GetModKeys()
+            local _, _, _, rawShift = spGetModKeyState()
+            if spGetInvertQueueKey() then rawShift = not rawShift end
+            local cmdOpts = GetCmdOpts(false, ctrl, meta, rawShift, usingRMB) -- using alt uses springs box formation, so we set it off always
 
             GiveNotifyingOrder(usingCmd, pos, cmdOpts)
             lastPathPos = pos
@@ -1392,8 +1401,10 @@ function widget:Initialize()
 	WG.customformations.setRepeatForSingleUnit = function(value)
 		repeatForSingleUnit = value
 	end
-	
+
 	-- External formation dragging API (for PIP window, etc.)
+	local isFirstPathCommand = true -- Track whether next path command should clear queue
+
 	WG.customformations.StartFormation = function(worldPos, cmdID, fromMinimap)
 		-- Reset state
 		fNodes = {}
@@ -1406,12 +1417,13 @@ function widget:Initialize()
 		pathPositions = {}
 		overriddenCmd = nil
 		overriddenTarget = nil
-		
+		isFirstPathCommand = true -- Reset for new formation
+
 		-- Set command
 		usingCmd = cmdID or CMD_MOVE
 		usingRMB = true
 		inMinimap = fromMinimap or false
-		
+
 		-- Add first node
 		if AddFNode(worldPos) then
 			local alt, ctrl, meta, shift = spGetModKeyState()
@@ -1420,18 +1432,18 @@ function widget:Initialize()
 		end
 		return false
 	end
-	
+
 	WG.customformations.AddFormationNode = function(worldPos)
 		if #fNodes == 0 then return false end
-		
+
 		local added = AddFNode(worldPos)
-		
+
 		-- Start drawing when we have 2+ nodes
 		if #fNodes == 2 then
 			widgetHandler:UpdateWidgetCallIn("DrawWorld", self)
 			widgetHandler:UpdateWidgetCallIn("DrawInMiniMap", self)
 		end
-		
+
 		-- Path handling
 		if #fNodes > 1 and pathCandidate then
 			local minDist = minPathSpacingSq
@@ -1449,11 +1461,18 @@ function widget:Initialize()
 							break
 						end
 					end
-					
+
 					-- Only add command if it's not too close to any previous position
 					if not tooClose then
 						draggingPath = true
+						-- Use raw shift for first path command, GetModKeys for subsequent
 						local alt, ctrl, meta, shift = GetModKeys()
+						if isFirstPathCommand then
+							-- First command: use raw shift to decide queue clearing
+							_, _, _, shift = spGetModKeyState()
+							if spGetInvertQueueKey() then shift = not shift end
+							isFirstPathCommand = false
+						end
 						local cmdOpts = GetCmdOpts(alt, ctrl, meta, shift, usingRMB)
 						GiveNotifyingOrder(usingCmd, worldPos, cmdOpts)
 						lastPathPos = worldPos
@@ -1465,31 +1484,37 @@ function widget:Initialize()
 				pathPositions[1] = {worldPos[1], worldPos[2], worldPos[3]}
 			end
 		end
-		
+
 		return added
 	end
-	
+
 	WG.customformations.EndFormation = function(worldPos, cmdID)
 		if #fNodes == 0 then return false end
-		
+
 		-- Add final position
 		if worldPos then
 			AddFNode(worldPos)
 		end
-		
+
 		-- Determine if we used the formation
 		local usingFormation = not draggingPath
 		local result = false
-		
+
 		if usingFormation then
+			-- Use raw shift for single-click orders (first command should clear queue unless user holds shift)
 			local alt, ctrl, meta, shift = GetModKeys()
+			if isFirstPathCommand then
+				-- This is effectively a single click or very short drag - use raw shift
+				_, _, _, shift = spGetModKeyState()
+				if spGetInvertQueueKey() then shift = not shift end
+			end
 			local cmdOpts = GetCmdOpts(alt, ctrl, meta, shift, usingRMB)
-			
+
 			-- Get drag threshold
 			local selectionThreshold = Spring.GetConfigInt("MouseDragFrontCommandThreshold") or 20
 			local dragDelta = selectionThreshold -- Approximate for external callers
 			local adjustedMinFormationLength = max(dragDelta, minFormationLength)
-			
+
 			if fDists[#fNodes] < adjustedMinFormationLength or (usingCmd == CMD.UNLOAD_UNIT and fDists[#fNodes] < 64*(selectedUnitsCount - 1)) then
 				-- Single-click style order
 				if usingCmd == CMD_MOVE and #fNodes > 0 then
@@ -1507,7 +1532,7 @@ function widget:Initialize()
 					else
 						orders = GetOrdersNoX(interpNodes, mUnits, #mUnits, shift and not meta)
 					end
-					
+
 					local unitArr = {}
 					local orderArr = {}
 					if meta then
@@ -1537,7 +1562,7 @@ function widget:Initialize()
 				end
 			end
 		end
-		
+
 		-- Show dimming line
 		if #fNodes > 1 then
 			dimmCmd = usingCmd
@@ -1545,15 +1570,15 @@ function widget:Initialize()
 			dimmAlpha = 1.0
 			widgetHandler:UpdateWidgetCallIn("Update", self)
 		end
-		
+
 		-- Reset
 		fNodes = {}
 		fDists = {}
 		draggingPath = false
-		
+
 		return result
 	end
-	
+
 	WG.customformations.CancelFormation = function()
 		fNodes = {}
 		fDists = {}
@@ -1562,23 +1587,23 @@ function widget:Initialize()
 		pathPositions = {}
 		return true
 	end
-	
+
 	WG.customformations.IsFormationActive = function()
 		return #fNodes > 0
 	end
-	
+
 	WG.customformations.GetFormationNodes = function()
 		return fNodes
 	end
-	
+
 	WG.customformations.GetFormationCommand = function()
 		return usingCmd
 	end
-	
+
 	WG.customformations.GetFormationLineLength = function()
 		return lineLength
 	end
-	
+
 	WG.customformations.GetSelectedUnitsCount = function()
 		return selectedUnitsCount
 	end

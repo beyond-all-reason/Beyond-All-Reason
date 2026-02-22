@@ -11,8 +11,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 2800,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		metalcost = 1050,
@@ -80,7 +78,7 @@ return {
 		weapondefs = {
 			coratl_torpedo = {
 				areaofeffect = 16,
-				avoidfriendly = false,
+				avoidfriendly = true,
 				burnblow = true,
 				cegtag = "torpedotrail-small",
 				collidefriendly = false,

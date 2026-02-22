@@ -1,7 +1,7 @@
 return {
 	armraz = {
 		buildpic = "ARMRAZ.DDS",
-		buildtime = 88600,
+		buildtime = 120000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",
@@ -13,8 +13,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 13300,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 3800,
 		maxacc = 0.2369,
 		maxdec = 0.9039,

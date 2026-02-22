@@ -37,7 +37,7 @@ local function DefCat(enumKey, unitTable) -- Made local to definitions.lua
 end
 
 function DefinitionsModule.defineUnitCategories()
-    Spring.Log("BlueprintDefs", LOG.INFO, "Defining static unit categories START...")
+    Spring.Log("BlueprintDefs", LOG.DEBUG, "Defining static unit categories START...")
     local SIDES = DefinitionsModule.SIDES -- Use SIDES from the module
 
     -- Clear existing tables (important if this function could be called multiple times on the same module instance, though typically not)
@@ -152,7 +152,7 @@ function DefinitionsModule.defineUnitCategories()
     end
     local categoryCount = 0
     for _ in pairs(DefinitionsModule.UNIT_CATEGORIES) do categoryCount = categoryCount + 1 end
-    Spring.Log("BlueprintDefs", LOG.INFO, string.format("Defined %d categories covering %d units. END", categoryCount, unitCount))
+    Spring.Log("BlueprintDefs", LOG.DEBUG, string.format("Defined %d categories covering %d units. END", categoryCount, unitCount))
 end
 
 DefinitionsModule.defineUnitCategories() -- Call it once to populate the module table

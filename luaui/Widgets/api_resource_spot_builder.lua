@@ -13,6 +13,14 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathAbs = math.abs
+local mathMax = math.max
+
+-- Localized Spring API for performance
+local spGetUnitTeam = Spring.GetUnitTeam
+
 ------------------------------------------------------------
 -- Speedups
 ------------------------------------------------------------
@@ -67,7 +75,7 @@ for uDefID, uDef in pairs(UnitDefs) do
 		local maxProduceEnergy = 0
 		for _, option in ipairs(uDef.buildOptions) do
 			if mexBuildings[option] then
-				maxExtractMetal = math.max(maxExtractMetal, mexBuildings[option])
+				maxExtractMetal = mathMax(maxExtractMetal, mexBuildings[option])
 				if mexConstructorsDef[uDefID] then
 					mexConstructorsDef[uDefID].buildings = mexConstructorsDef[uDefID].buildings + 1
 					mexConstructorsDef[uDefID].building[mexConstructorsDef[uDefID].buildings] = option * -1
@@ -76,7 +84,7 @@ for uDefID, uDef in pairs(UnitDefs) do
 				end
 			end
 			if geoBuildings[option] then
-				maxProduceEnergy = math.max(maxProduceEnergy, geoBuildings[option])
+				maxProduceEnergy = mathMax(maxProduceEnergy, geoBuildings[option])
 				if geoConstructorsDef[uDefID] then
 					geoConstructorsDef[uDefID].buildings = geoConstructorsDef[uDefID].buildings + 1
 					geoConstructorsDef[uDefID].building[geoConstructorsDef[uDefID].buildings] = option * -1
@@ -176,7 +184,7 @@ end
 ---@param currentExtractorUuid number uuid of current extractor
 ---@param newExtractorId number unitDefID of new extractor
 local function extractorCanBeUpgraded(currentExtractorUuid, newExtractorId)
-	local isAllied = Spring.AreTeamsAllied(spGetMyTeamID(), Spring.GetUnitTeam(currentExtractorUuid))
+	local isAllied = Spring.AreTeamsAllied(spGetMyTeamID(), spGetUnitTeam(currentExtractorUuid))
 	if not isAllied then
 		return false
 	end
@@ -341,7 +349,7 @@ local function previewMetalMapExtractorCommand(params, extractor)
 	local targetOwner = spGetMyTeamID()
 
 	if x and z then
-		return { math.abs(buildingId), x, y, z, facing, targetOwner }
+		return { mathAbs(buildingId), x, y, z, facing, targetOwner }
 	end
 	return nil
 end
@@ -375,7 +383,7 @@ local function PreviewExtractorCommand(params, extractor, spot, metalMap)
 	if occupiedSpot then
 		local occupiedPos = { spGetUnitPosition(occupiedSpot) }
 		targetPos = { x=occupiedPos[1], y=occupiedPos[2], z=occupiedPos[3] }
-		targetOwner = Spring.GetUnitTeam(occupiedSpot)	-- because gadget "Mex Upgrade Reclaimer" will share a t2 mex build upon ally t1 mex
+		targetOwner = spGetUnitTeam(occupiedSpot)	-- because gadget "Mex Upgrade Reclaimer" will share a t2 mex build upon ally t1 mex
 	else
 		local buildingPositions = WG['resource_spot_finder'].GetBuildingPositions(spot, -buildingId, 0, true)
 		targetPos = math.getClosestPosition(cmdX, cmdZ, buildingPositions)
@@ -383,7 +391,7 @@ local function PreviewExtractorCommand(params, extractor, spot, metalMap)
 	end
 	if targetPos then
 		local newx, newz = targetPos.x, targetPos.z
-		finalCommand = { math.abs(buildingId), newx, spGetGroundHeight(newx, newz), newz, facing, targetOwner }
+		finalCommand = { mathAbs(buildingId), newx, spGetGroundHeight(newx, newz), newz, facing, targetOwner }
 	end
 	return finalCommand
 end

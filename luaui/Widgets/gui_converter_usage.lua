@@ -12,6 +12,10 @@ function widget:GetInfo()
     }
   end
 
+
+-- Localized Spring API for performance
+local spGetMouseState = Spring.GetMouseState
+
 local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = (0.80 + (vsx * vsy / 6000000))
 
@@ -123,7 +127,7 @@ function widget:DrawScreen()
         glCallList(dlistCU)
     end
     if area[1] then
-        local x, y = Spring.GetMouseState()
+        local x, y = spGetMouseState()
         if math.isInRect(x, y, area[1], area[2], area[3], area[4]) then
             Spring.SetMouseCursor('cursornormal')
         end
@@ -132,7 +136,7 @@ end
 
 function widget:MousePress(x, y, button)
     if area[1] then
-        local x, y = Spring.GetMouseState()
+        local x, y = spGetMouseState()
         if math.isInRect(x, y, area[1], area[2], area[3], area[4]) then
             return true
         end
@@ -175,19 +179,21 @@ function widget:GameFrame()
 
     local myTeamID = spGetMyTeamID()
     eConverted = spGetTeamRulesParam(myTeamID, "mmUse")
-    mConverted = eConverted * spGetTeamRulesParam(myTeamID, "mmAvgEffi")
-    eConvertedMax = spGetTeamRulesParam(myTeamID, "mmCapacity")
-    converterUse = 0
+	if eConverted then
+		mConverted = eConverted * spGetTeamRulesParam(myTeamID, "mmAvgEffi")
+		eConvertedMax = spGetTeamRulesParam(myTeamID, "mmCapacity")
+		converterUse = 0
 
-    if eConvertedMax <= 0 then return end
+		if eConvertedMax <= 0 then return end
 
-    converterUse = floor(100 * eConverted / eConvertedMax)
-    eConverted = floor(eConverted)
-    mConvertedRemainder = mConvertedRemainder + (mConverted - floor(mConverted))
-    mConverted = floor(mConverted)
-    if mConvertedRemainder >= 1 then
-      mConverted = mConverted + 1
-      mConvertedRemainder = mConvertedRemainder - 1
+		converterUse = floor(100 * eConverted / eConvertedMax)
+		eConverted = floor(eConverted)
+		mConvertedRemainder = mConvertedRemainder + (mConverted - floor(mConverted))
+		mConverted = floor(mConverted)
+		if mConvertedRemainder >= 1 then
+			mConverted = mConverted + 1
+			mConvertedRemainder = mConvertedRemainder - 1
+		end
     end
 end
 
@@ -200,7 +206,7 @@ function widget:Update(dt)
 
     sec = 0
 
-    if eConvertedMax > 0 then
+    if eConvertedMax and eConvertedMax > 0 then
         updateUI()
         return
     end

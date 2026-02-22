@@ -2,7 +2,7 @@ return {
 	corphantom = {
 		activatewhenbuilt = true,
 		buildpic = "CORPHANTOM.DDS",
-		buildtime = 9000,
+		buildtime = 11500,
 		canmove = true,
 		cloakcost = 10,
 		cloakcostmoving = 30,
@@ -15,8 +15,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 1400,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = false,
 		maxacc = 0.0697,
 		maxdec = 0.13939,

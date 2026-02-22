@@ -1,7 +1,7 @@
 return {
 	cormabm = {
 		buildpic = "CORMABM.DDS",
-		buildtime = 42000,
+		buildtime = 52000,
 		canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 -1 0",
@@ -14,8 +14,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 870,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.03721,
 		maxdec = 0.07443,

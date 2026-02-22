@@ -26,6 +26,17 @@ function widget:GetInfo()
   }
 end
 
+
+-- Localized functions for performance
+local tableInsert = table.insert
+local tableRemove = table.remove
+
+-- Localized Spring API for performance
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetMyTeamID = Spring.GetMyTeamID
+local spGetTeamUnits = Spring.GetTeamUnits
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -92,7 +103,7 @@ function StartPoints:getInstance()
   function StartPoints:add(unitID)
     local startPoint = StartPoint:new(unitID)
     if not table.contains(self, startPoint) then
-      table.insert(self, startPoint)
+      tableInsert(self, startPoint)
       return true
     end
 
@@ -103,7 +114,7 @@ function StartPoints:getInstance()
   ---@return boolean # true if start point was removed, false otherwise
   function StartPoints:remove(unitID)
     local startPoint = StartPoint:new(unitID)
-    local wasRemoved = table.removeFirst(self, startPoint)
+    local wasRemoved = tableRemoveFirst(self, startPoint)
     if wasRemoved then
       byAllyTeamCount:removeStartPoint(startPoint)
     end
@@ -187,7 +198,7 @@ function ByAllyTeamCount:getInstance()
     end
 
     if not table.contains(self[allyTeamCount], layout) then
-      table.insert(self[allyTeamCount], layout)
+      tableInsert(self[allyTeamCount], layout)
       return true
     end
 
@@ -200,7 +211,7 @@ function ByAllyTeamCount:getInstance()
     local wasRemoved
     local allyTeamCount = table.count(layout)
     if self[allyTeamCount] then
-      wasRemoved = table.removeFirst(self[allyTeamCount], layout)
+      wasRemoved = tableRemoveFirst(self[allyTeamCount], layout)
     end
     if wasRemoved then
       self:cleanEmptyIndexes()
@@ -267,9 +278,9 @@ function ConfigFile:new(config)
       for _, layout in pairs(layouts) do
         local indexes = {}
         for index, _ in pairsByKeys(layout) do
-          table.insert(indexes, index)
+          tableInsert(indexes, index)
         end
-        table.insert(self.byAllyTeamCount[allyTeamCount], indexes)
+        tableInsert(self.byAllyTeamCount[allyTeamCount], indexes)
       end
     end
   end
@@ -333,7 +344,7 @@ return {
           for _, index in ipairs(indexes) do
             local startPoint = startPoints[index]
             if startPoint then
-              table.insert(unitIDs, startPoint.unitID)
+              tableInsert(unitIDs, startPoint.unitID)
             end
           end
           local layout = Layout:new(unitIDs)
@@ -353,14 +364,14 @@ local configLoadCoroutine
 local startPointUnitDefId = UnitDefNames[startPointUnitName].id
 
 local function addStartPoint(unitID, unitDefID)
-  unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
+  unitDefID = unitDefID or spGetUnitDefID(unitID)
   if unitDefID == startPointUnitDefId then
     startPoints:add(unitID)
   end
 end
 
 local function initializeStartPoints(widget)
-  local units = Spring.GetTeamUnits(Spring.GetMyTeamID())
+  local units = spGetTeamUnits(spGetMyTeamID())
   for _, unitID in pairs(units) do
     addStartPoint(unitID)
   end
@@ -379,7 +390,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 end
 
 local function removeStartPoint(unitID, unitDefID)
-  unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
+  unitDefID = unitDefID or spGetUnitDefID(unitID)
   if unitDefID == startPointUnitDefId then
     startPoints:remove(unitID)
   end
@@ -436,7 +447,7 @@ end
 
 local function doLoad(config)
   -- remove all existing startpoints
-  local existingUnits = Spring.GetTeamUnits(Spring.GetMyTeamID())
+  local existingUnits = spGetTeamUnits(spGetMyTeamID())
   for _, unitID in pairs(existingUnits) do
     startPoints:remove(unitID)
   end
@@ -470,7 +481,7 @@ local function removeSelectedStartPoints()
 end
 
 local function addLayout()
-  local selectedUnits = Spring.GetSelectedUnits()
+  local selectedUnits = spGetSelectedUnits()
   -- don't consider anything less than 3-way layouts
   if #selectedUnits >= 3 then
     local layout = Layout:new(selectedUnits)
@@ -483,7 +494,7 @@ local function addLayout()
 end
 
 local function removeLayout()
-  local selectedUnits = Spring.GetSelectedUnits()
+  local selectedUnits = spGetSelectedUnits()
   if #selectedUnits >= 3 then
     local layout = Layout:new(selectedUnits)
     if not byAllyTeamCount:removeLayout(layout) then
