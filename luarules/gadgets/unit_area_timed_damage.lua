@@ -133,7 +133,7 @@ local function getExplosionParams(def, prefix)
 
 	if frames - framesActual > 0 then
 		framesExtra = frames - framesActual
-		damageExtra = framesExtra > 0 and damage * framesExtra / Game.gameSpeed
+		damageExtra = damage * framesExtra / Game.gameSpeed
 	end
 
 	return {
