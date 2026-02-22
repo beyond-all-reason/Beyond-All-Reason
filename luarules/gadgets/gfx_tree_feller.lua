@@ -107,6 +107,9 @@ if gadgetHandler:IsSyncedCode() then
 	local falltime = 55.0 -- in frames
 	local fallspeed = 25.0
 
+	local lastLavaLevel = -99999
+	local lavaCheckInterval = 30
+
 	local treeMass = {}
 	local treeScaleY = {}
 	local treeName = {}
@@ -325,6 +328,60 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:GameFrame(gf)
+		-- Check for lava level rise and ignite trees submerged by lava
+		if gf % lavaCheckInterval == 0 then
+			local lavaLevel = Spring.GetGameRulesParam("lavaLevel")
+			if lavaLevel and lavaLevel > -99999 and lavaLevel > lastLavaLevel then
+				local allFeatures = Spring.GetAllFeatures()
+				for i = 1, #allFeatures do
+					local featureID = allFeatures[i]
+					if not treesdying[featureID] then
+						local featureDefID = Spring.GetFeatureDefID(featureID)
+						if treeMass[featureDefID] and not geothermals[featureDefID] then
+							local remainingMetal, maxMetal, remainingEnergy, maxEnergy = GetFeatureResources(featureID)
+							if maxMetal == 0 and maxEnergy > 0 then
+								local fx, fy, fz = GetFeaturePosition(featureID)
+								if fx and fy <= lavaLevel then
+									local dx, dy, dz = GetFeatureDirection(featureID)
+									local dissapearSpeed = 1.7
+									local size = 'medium'
+									if treeScaleY[featureDefID] then
+										if treeScaleY[featureDefID] < 40 then
+											size = 'tiny'
+										elseif treeScaleY[featureDefID] < 50 then
+											size = 'small'
+										elseif treeScaleY[featureDefID] > 65 then
+											size = 'large'
+										end
+										dissapearSpeed = 0.15 + Spring.GetFeatureHeight(featureID) / math_random(3700, 4700)
+									end
+									local destroyFrame = gf + falltime + 150 + (dissapearSpeed * 4000)
+									local dmg = treeMass[featureDefID] * 2
+									SetFeatureBlocking(featureID, false, false, false, false, false, false, false)
+									spSetFeatureResources(0, 0, 0, 0)
+									Spring.SetFeatureNoSelect(featureID, true)
+									treesdying[featureID] = {
+										frame = gf,
+										posx = fx, posy = fy, posz = fz,
+										fDefID = featureDefID,
+										dirx = dx, diry = dy, dirz = dz,
+										px = fx + math_random(-10, 10), py = fy, pz = fz + math_random(-10, 10),
+										strength = 1,
+										fire = true,
+										size = size,
+										treeburnCEG = 'treeburn-' .. size,
+										dissapearSpeed = dissapearSpeed,
+										destroyFrame = destroyFrame,
+									}
+								end
+							end
+						end
+					end
+				end
+				lastLavaLevel = lavaLevel
+			end
+		end
+
 		for featureID, featureinfo in pairs(treesdying) do
 			local fx, fy, fz = GetFeaturePosition(featureID)
 			if not fx then
