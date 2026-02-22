@@ -135,6 +135,15 @@ local config = {
 	explosionOverlayAlpha = 0.66,  -- Strength of the above-icons explosion overlay (0-1)
 	healthDarkenMax = 0.2,  -- Maximum darkening for damaged units on GL4 icons (0-1, 0.18 = 18%)
 	activityFocusIgnoreSpectators = true,  -- Don't trigger camera focus for spectator map markers
+	activityFocusHideForSpectators = true,  -- Hide the activity focus button when spectating (default: disabled for spectators)
+	activityFocusDuration = 2,  -- Seconds to hold focus on a marker before restoring camera
+	activityFocusZoom = 0.28,  -- Zoom level when focusing on a marker (higher = more zoomed in)
+	activityFocusCooldown = 3,  -- Minimum seconds between focus triggers from the same player
+	activityFocusThrottleWindow = 10,  -- Time window (seconds) to count markers from a player
+	activityFocusThrottleCount = 3,  -- After this many markers in the window, ignore that player temporarily
+	activityFocusThrottleDuration = 15,  -- Seconds to ignore a throttled player
+	activityFocusMuteCount = 6,  -- After this many markers in the window, mute that player entirely
+	activityFocusMuteDuration = 60,  -- Seconds to mute a heavily spamming player
 	drawDecals = true,  -- Show ground decals (explosion scars, footprints) from the decals GL4 widget
 	drawCommandFX = true,  -- Show brief fading command lines when orders are given (like Commands FX widget)
 	commandFXIgnoreNewUnits = true,  -- Ignore commands given to newly finished units (rally point orders)
@@ -438,16 +447,15 @@ local miscState = {
 	gameOverZoomingOut = false,  -- True while GameOver zoom-out animation is in progress
 	isGameOver = false,  -- True after GameOver callin fires (disables takeable blink etc.)
 	-- Activity focus: briefly pan camera to map markers then restore
-	activityFocusEnabled = false,  -- Toggle state for the button
+	activityFocusEnabled = isMinimapMode,  -- Toggle state for the button (default on for minimap mode)
 	activityFocusSavedWcx = nil,   -- Saved camera X before focus
 	activityFocusSavedWcz = nil,   -- Saved camera Z before focus
 	activityFocusSavedZoom = nil,  -- Saved zoom before focus
 	activityFocusTime = 0,         -- os.clock() when we started focusing on a marker
 	activityFocusActive = false,   -- True while camera is focused on a marker (waiting to restore)
-	activityFocusDuration = 2.5,   -- Seconds to hold focus before restoring
-	activityFocusZoom = 0.22,      -- Zoom level to use when focusing on marker
 	activityFocusTargetX = nil,    -- World X of the marker being focused on
 	activityFocusTargetZ = nil,    -- World Z of the marker being focused on
+	activityFocusPlayerHistory = {},  -- Per-player spam tracking: [playerID] = { timestamps={}, mutedUntil=0, throttledUntil=0 }
 	lastFullview = nil,  -- Previous fullview state, used to detect fullview ON→OFF transitions
 	specGhostScanDone = false,  -- Whether we've done a full ghost scan while fullview is ON
 	specGhostScanTime = 0,  -- Last time we ran the ghost scan (to throttle periodic rescans)
@@ -6156,36 +6164,57 @@ function widget:ViewResize()
 		RecalculateGroundTextureCoordinates()
 	else
 		-- Normal PIP mode: scale dimensions with screen size
-		-- Validate that dimensions are reasonable (not at origin/bottom-left which indicates corruption)
+		-- When in minMode, render.dim is the tiny button — use savedDimensions as the real dimensions
 		local minSize = math.floor(config.minPanelSize * render.widgetScale)
-		local dimsValid = render.dim.l and render.dim.r and render.dim.b and render.dim.t and
-		                  oldVsx > 0 and oldVsy > 0 and
-		                  (render.dim.r - render.dim.l) >= minSize and
-		                  (render.dim.t - render.dim.b) >= minSize and
-		                  render.dim.r > minSize and  -- Not stuck at bottom-left
-		                  render.dim.t > minSize
 		
-		if dimsValid then
-			render.dim.l, render.dim.r, render.dim.b, render.dim.t = render.dim.l/oldVsx, render.dim.r/oldVsx, render.dim.b/oldVsy, render.dim.t/oldVsy
+		-- Rescale savedDimensions to match new resolution (they're in old pixel coords)
+		if uiState.savedDimensions.l and uiState.savedDimensions.r and
+		   uiState.savedDimensions.b and uiState.savedDimensions.t and
+		   oldVsx > 0 and oldVsy > 0 then
+			uiState.savedDimensions.l = math.floor(uiState.savedDimensions.l / oldVsx * render.vsx)
+			uiState.savedDimensions.r = math.floor(uiState.savedDimensions.r / oldVsx * render.vsx)
+			uiState.savedDimensions.b = math.floor(uiState.savedDimensions.b / oldVsy * render.vsy)
+			uiState.savedDimensions.t = math.floor(uiState.savedDimensions.t / oldVsy * render.vsy)
+		end
+		
+		if uiState.inMinMode then
+			-- In min mode, render.dim is the tiny button — don't validate it as expanded dims.
+			-- Just ensure we have valid savedDimensions (or build defaults).
+			if not AreExpandedDimensionsValid(uiState.savedDimensions) then
+				uiState.savedDimensions = BuildDefaultExpandedDimensions()
+			end
+			-- render.dim will be overwritten to the button position below
 		else
-			-- Initialize with default values positioned in upper-right area of screen
-			Spring.Echo("PIP: Detected invalid dimensions, resetting to default position")
-			render.dim.l = 0.7
-			render.dim.r = 0.7 + (config.minPanelSize * render.widgetScale * 1.4) / render.vsx
-			render.dim.b = 0.7
-			render.dim.t = 0.7 + (config.minPanelSize * render.widgetScale * 1.2) / render.vsy
-			-- Also clear saved dimensions since they may be corrupted too
-			uiState.savedDimensions = {}
-		end
-		render.dim.l, render.dim.r, render.dim.b, render.dim.t = math.floor(render.dim.l*render.vsx), math.floor(render.dim.r*render.vsx), math.floor(render.dim.b*render.vsy), math.floor(render.dim.t*render.vsy)
-		
-		-- Clamp oversized dimensions to max constraints (auto-correct errors from previous sessions)
-		local maxSize = math.floor(render.vsy * config.maxPanelSizeVsy)
-		if render.dim.r - render.dim.l > maxSize then
-			render.dim.r = render.dim.l + maxSize
-		end
-		if render.dim.t - render.dim.b > maxSize then
-			render.dim.b = render.dim.t - maxSize
+			-- Validate that dimensions are reasonable (not at origin/bottom-left which indicates corruption)
+			local dimsValid = render.dim.l and render.dim.r and render.dim.b and render.dim.t and
+			                  oldVsx > 0 and oldVsy > 0 and
+			                  (render.dim.r - render.dim.l) >= minSize and
+			                  (render.dim.t - render.dim.b) >= minSize and
+			                  render.dim.r > minSize and  -- Not stuck at bottom-left
+			                  render.dim.t > minSize
+			
+			if dimsValid then
+				render.dim.l, render.dim.r, render.dim.b, render.dim.t = render.dim.l/oldVsx, render.dim.r/oldVsx, render.dim.b/oldVsy, render.dim.t/oldVsy
+			else
+				-- Initialize with default values positioned in upper-right area of screen
+				Spring.Echo("PIP: Detected invalid dimensions, resetting to default position")
+				render.dim.l = 0.7
+				render.dim.r = 0.7 + (config.minPanelSize * render.widgetScale * 1.4) / render.vsx
+				render.dim.b = 0.7
+				render.dim.t = 0.7 + (config.minPanelSize * render.widgetScale * 1.2) / render.vsy
+				-- Also clear saved dimensions since they may be corrupted too
+				uiState.savedDimensions = {}
+			end
+			render.dim.l, render.dim.r, render.dim.b, render.dim.t = math.floor(render.dim.l*render.vsx), math.floor(render.dim.r*render.vsx), math.floor(render.dim.b*render.vsy), math.floor(render.dim.t*render.vsy)
+			
+			-- Clamp oversized dimensions to max constraints (auto-correct errors from previous sessions)
+			local maxSize = math.floor(render.vsy * config.maxPanelSizeVsy)
+			if render.dim.r - render.dim.l > maxSize then
+				render.dim.r = render.dim.l + maxSize
+			end
+			if render.dim.t - render.dim.b > maxSize then
+				render.dim.b = render.dim.t - maxSize
+			end
 		end
 	end
 
@@ -8995,6 +9024,11 @@ local function RenderFrameButtons()
 			-- Show pip_view button only for spectators
 			elseif btn.command == 'pip_view' then
 				if showPlayerTrackButton then
+					visibleButtons[#visibleButtons + 1] = btn
+				end
+			-- Hide pip_activity in singleplayer, when tracking, or optionally for spectators
+			elseif btn.command == 'pip_activity' then
+				if not isSinglePlayer and not interactionState.trackingPlayerID and not (config.activityFocusHideForSpectators and cameraState.mySpecState) then
 					visibleButtons[#visibleButtons + 1] = btn
 				end
 			else
@@ -11955,6 +11989,10 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 				if spec then
 					visibleButtons[#visibleButtons + 1] = btn
 				end
+			elseif btn.command == 'pip_activity' then
+				if not isSinglePlayer and not interactionState.trackingPlayerID and not (config.activityFocusHideForSpectators and cameraState.mySpecState) then
+					visibleButtons[#visibleButtons + 1] = btn
+				end
 			else
 				visibleButtons[#visibleButtons + 1] = btn
 			end
@@ -13298,7 +13336,7 @@ function widget:Update(dt)
 	-- Activity focus: restore camera after hold duration expires
 	if miscState.activityFocusActive and miscState.activityFocusEnabled then
 		local elapsed = os.clock() - miscState.activityFocusTime
-		if elapsed >= miscState.activityFocusDuration then
+		if elapsed >= config.activityFocusDuration then
 			-- Restore saved camera position
 			if miscState.activityFocusSavedWcx then
 				cameraState.targetWcx = miscState.activityFocusSavedWcx
@@ -13544,7 +13582,7 @@ function widget:Update(dt)
 	if miscState.activityFocusActive and miscState.activityFocusTargetX then
 		cameraState.targetWcx = miscState.activityFocusTargetX
 		cameraState.targetWcz = miscState.activityFocusTargetZ
-		cameraState.targetZoom = math.max(miscState.activityFocusZoom, GetEffectiveZoomMin())
+		cameraState.targetZoom = math.max(config.activityFocusZoom, GetEffectiveZoomMin())
 	end
 
 	if interactionState.areIncreasingZoom then
@@ -14326,8 +14364,62 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 
 			-- Activity focus: briefly move camera to this marker
 			local triggerFocus = miscState.activityFocusEnabled
+			if triggerFocus and playerID == Spring.GetMyPlayerID() then
+				triggerFocus = false
+			end
 			if triggerFocus and isSpec and config.activityFocusIgnoreSpectators then
 				triggerFocus = false
+			end
+			if triggerFocus and interactionState.trackingPlayerID then
+				triggerFocus = false
+			end
+			if triggerFocus and interactionState.isMouseOverPip then
+				triggerFocus = false
+			end
+			if triggerFocus and not gameHasStarted then
+				triggerFocus = false
+			end
+			-- Per-player spam protection: cooldown, throttle, and mute
+			if triggerFocus then
+				local now = os.clock()
+				local hist = miscState.activityFocusPlayerHistory[playerID]
+				if not hist then
+					hist = { timestamps = {}, mutedUntil = 0, throttledUntil = 0 }
+					miscState.activityFocusPlayerHistory[playerID] = hist
+				end
+				-- Check if player is muted
+				if now < hist.mutedUntil then
+					triggerFocus = false
+				-- Check if player is throttled
+				elseif now < hist.throttledUntil then
+					triggerFocus = false
+				else
+					-- Prune old timestamps outside the window
+					local window = config.activityFocusThrottleWindow
+					local pruned = {}
+					for i = 1, #hist.timestamps do
+						if now - hist.timestamps[i] < window then
+							pruned[#pruned + 1] = hist.timestamps[i]
+						end
+					end
+					hist.timestamps = pruned
+					local count = #pruned
+					-- Check mute threshold (most severe)
+					if count >= config.activityFocusMuteCount then
+						hist.mutedUntil = now + config.activityFocusMuteDuration
+						hist.timestamps = {}
+						triggerFocus = false
+					-- Check throttle threshold
+					elseif count >= config.activityFocusThrottleCount then
+						hist.throttledUntil = now + config.activityFocusThrottleDuration
+						triggerFocus = false
+					-- Check per-marker cooldown (time since last marker from this player)
+					elseif count > 0 and (now - pruned[count]) < config.activityFocusCooldown then
+						triggerFocus = false
+					end
+					-- Record this marker timestamp (even if suppressed by cooldown)
+					hist.timestamps[#hist.timestamps + 1] = now
+				end
 			end
 			if triggerFocus and not miscState.activityFocusActive then
 				-- Save current camera position before focusing
@@ -14340,7 +14432,7 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 				-- Move camera to marker
 				cameraState.targetWcx = mx
 				cameraState.targetWcz = mz
-				cameraState.targetZoom = math.max(miscState.activityFocusZoom, cameraState.targetZoom)
+				cameraState.targetZoom = math.max(config.activityFocusZoom, cameraState.targetZoom)
 				miscState.activityFocusTime = os.clock()
 				miscState.activityFocusActive = true
 			elseif triggerFocus and miscState.activityFocusActive then
@@ -14901,13 +14993,16 @@ function widget:MousePress(mx, my, mButton)
 							if spec then
 								visibleButtons[#visibleButtons + 1] = btn
 							end
+						elseif btn.command == 'pip_activity' then
+							if not isSinglePlayer and not interactionState.trackingPlayerID and not (config.activityFocusHideForSpectators and cameraState.mySpecState) then
+								visibleButtons[#visibleButtons + 1] = btn
+							end
 						else
 							visibleButtons[#visibleButtons + 1] = btn
 						end
 					end
 				end
 				local buttonIndex = 1 + math.floor((mx - render.dim.l) / render.usedButtonSize)
-				
 				local pressedButton = visibleButtons[buttonIndex]
 				if pressedButton then
 					pressedButton.OnPress()
