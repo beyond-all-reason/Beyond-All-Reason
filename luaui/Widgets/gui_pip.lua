@@ -139,12 +139,31 @@ local config = {
 	activityFocusDuration = 1.8,  -- Seconds to hold focus on a marker before restoring camera
 	activityFocusZoom = 0.28,  -- Zoom level when focusing on a marker (higher = more zoomed in)
 	activityFocusShowMinimap = true,  -- Temporarily show pip-minimap overlay while focused on a map marker
+	activityFocusBlockIgnoredPlayers = true,  -- Completely block activity focus for players on your ignore list (WG.ignoredAccounts)
 	activityFocusCooldown = 3,  -- Minimum seconds between focus triggers from the same player
 	activityFocusThrottleWindow = 10,  -- Time window (seconds) to count markers from a player
 	activityFocusThrottleCount = 3,  -- After this many markers in the window, ignore that player temporarily
 	activityFocusThrottleDuration = 15,  -- Seconds to ignore a throttled player
 	activityFocusMuteCount = 6,  -- After this many markers in the window, mute that player entirely
 	activityFocusMuteDuration = 60,  -- Seconds to mute a heavily spamming player
+	-- TV mode settings (spectator auto-camera)
+	tvModeSpectatorsOnly = true,  -- Only allow TV mode for spectators
+	tvMaxZoom = 0.63,              -- Maximum zoom level for TV mode (never close enough for unitpics)
+	tvMinZoom = 0.08,             -- Minimum zoom level for TV overview shots
+	tvOverviewZoom = 0.12,        -- Zoom level for periodic overview shots
+	tvCloseupZoom = 0.45,         -- Zoom level for close-up action shots
+	tvFocusDuration = 6.0,        -- Base seconds to hold focus on a hotspot before considering switch
+	tvOverviewDuration = 2.5,     -- Seconds to hold an overview shot
+	tvOverviewInterval = 18,      -- Seconds between periodic overview shots
+	tvSwitchCooldown = 3.5,       -- Minimum seconds between camera switches
+	tvEventDecayTime = 12,        -- Seconds for events to fully decay
+	tvHotspotRadius = 800,        -- World units: events within this distance merge into one hotspot
+	tvMaxEvents = 200,            -- Max tracked events (ring buffer)
+	tvVarietyBonus = 0.3,         -- Weight bonus for unvisited areas (0-1)
+	tvPanSpeed = 3.0,             -- Camera pan smoothness (higher = faster convergence)
+	tvZoomSpeed = 2.5,            -- Camera zoom smoothness
+	tvUnitFinishedCostThreshold = 800,  -- Minimum unit cost to trigger a "big unit finished" event
+
 	drawDecals = true,  -- Show ground decals (explosion scars, footprints) from the decals GL4 widget
 	drawCommandFX = true,  -- Show brief fading command lines when orders are given (like Commands FX widget)
 	commandFXIgnoreNewUnits = true,  -- Ignore commands given to newly finished units (rally point orders)
@@ -460,7 +479,523 @@ local miscState = {
 	lastFullview = nil,  -- Previous fullview state, used to detect fullview ON→OFF transitions
 	specGhostScanDone = false,  -- Whether we've done a full ghost scan while fullview is ON
 	specGhostScanTime = 0,  -- Last time we ran the ghost scan (to throttle periodic rescans)
+	tvEnabled = false,  -- TV mode toggle state
 }
+
+----------------------------------------------------------------------------------------------------
+-- TV Mode: Automatic spectator camera that tracks areas of interest
+-- Architecture: Event Tracker → Hotspot Clustering → Director (selects target) → Camera Controller
+----------------------------------------------------------------------------------------------------
+local pipTV = {
+	-- Event ring buffer: { x, z, weight, time, type }
+	events = {},
+	eventHead = 0,       -- Next write index (wraps at config.tvMaxEvents)
+	eventCount = 0,      -- Total events currently stored
+
+	-- Hotspot clustering: rebuilt each director tick from recent events
+	hotspots = {},       -- { x, z, weight, eventCount, lastEventTime }
+	hotspotCount = 0,
+
+	-- Director state: decides WHAT to look at
+	director = {
+		currentHotspotX = nil,    -- World X of current focus
+		currentHotspotZ = nil,    -- World Z of current focus
+		currentWeight = 0,        -- Weight of current focus
+		focusStartTime = 0,       -- When we started focusing on current target
+		lastSwitchTime = 0,       -- When we last switched targets
+		lastOverviewTime = 0,     -- When we last did an overview shot
+		isOverviewShot = false,   -- Currently doing a wide overview
+		visitedAreas = {},        -- Recently visited positions for variety [{x,z,time}]
+		visitedCount = 0,
+		idle = true,              -- No interesting events yet
+	},
+
+	-- Camera controller: manages HOW to move the camera (smooth interpolation)
+	camera = {
+		targetX = nil,   -- World X target (set by director)
+		targetZ = nil,   -- World Z target
+		targetZoom = 0.2,  -- Zoom target
+		active = false,  -- Whether TV camera is currently controlling the PIP camera
+		savedWcx = nil,  -- Saved camera before TV mode
+		savedWcz = nil,
+		savedZoom = nil,
+	},
+}
+
+-- TV Mode: Add an event to the ring buffer
+-- type: 'combat', 'explosion', 'death', 'finished', 'marker'
+function pipTV.AddEvent(x, z, weight, eventType)
+	if not miscState.tvEnabled then return end
+	if not x or not z then return end
+	local maxEv = config.tvMaxEvents
+	pipTV.eventHead = (pipTV.eventHead % maxEv) + 1
+	local idx = pipTV.eventHead
+	local ev = pipTV.events[idx]
+	if not ev then
+		ev = {}
+		pipTV.events[idx] = ev
+	end
+	ev.x = x
+	ev.z = z
+	ev.weight = weight or 1
+	ev.time = os.clock()
+	ev.type = eventType or 'combat'
+	if pipTV.eventCount < maxEv then
+		pipTV.eventCount = pipTV.eventCount + 1
+	end
+end
+
+-- TV Mode: Rebuild hotspot clusters from recent events
+function pipTV.BuildHotspots()
+	local now = os.clock()
+	local decayTime = config.tvEventDecayTime
+	local radius = config.tvHotspotRadius
+	local radiusSq = radius * radius
+	local hs = pipTV.hotspots
+	local hsCount = 0
+
+	-- When LOS view is enabled, only consider events visible to the tracked allyteam
+	local losFilter = state.losViewEnabled and state.losViewAllyTeam
+
+	-- Clear old hotspots
+	for i = 1, #hs do hs[i] = nil end
+
+	-- Process each event, merge into nearby hotspot or create new one
+	local events = pipTV.events
+	for i = 1, pipTV.eventCount do
+		local ev = events[i]
+		if ev then
+			local age = now - ev.time
+			if age < decayTime and (not losFilter or Spring.IsPosInLos(ev.x, 0, ev.z, losFilter)) then
+				-- Time-based decay: linear falloff
+				local decayFactor = 1 - (age / decayTime)
+				local w = ev.weight * decayFactor
+
+				-- Try to merge into existing hotspot
+				local merged = false
+				for j = 1, hsCount do
+					local h = hs[j]
+					local dx = h.x - ev.x
+					local dz = h.z - ev.z
+					if dx * dx + dz * dz < radiusSq then
+						-- Weighted average position
+						local totalW = h.weight + w
+						h.x = (h.x * h.weight + ev.x * w) / totalW
+						h.z = (h.z * h.weight + ev.z * w) / totalW
+						h.weight = totalW
+						h.eventCount = h.eventCount + 1
+						if ev.time > h.lastEventTime then
+							h.lastEventTime = ev.time
+						end
+						merged = true
+						break
+					end
+				end
+
+				if not merged then
+					hsCount = hsCount + 1
+					local h = hs[hsCount]
+					if not h then
+						h = {}
+						hs[hsCount] = h
+					end
+					h.x = ev.x
+					h.z = ev.z
+					h.weight = w
+					h.eventCount = 1
+					h.lastEventTime = ev.time
+				end
+			end
+		end
+	end
+	pipTV.hotspotCount = hsCount
+end
+
+-- TV Mode: Calculate variety bonus (areas not recently visited get a boost)
+function pipTV.GetVarietyBonus(x, z)
+	local visited = pipTV.director.visitedAreas
+	local now = os.clock()
+	local maxPenalty = 0
+	for i = 1, pipTV.director.visitedCount do
+		local v = visited[i]
+		if v then
+			local age = now - v.time
+			if age < 30 then  -- 30s memory for visited areas
+				local dx = v.x - x
+				local dz = v.z - z
+				local dist = math.sqrt(dx * dx + dz * dz)
+				if dist < config.tvHotspotRadius * 2 then
+					-- Closer and more recent = more penalty
+					local distFactor = 1 - math.min(1, dist / (config.tvHotspotRadius * 2))
+					local timeFactor = 1 - (age / 30)
+					local penalty = distFactor * timeFactor
+					if penalty > maxPenalty then maxPenalty = penalty end
+				end
+			end
+		end
+	end
+	return config.tvVarietyBonus * (1 - maxPenalty)
+end
+
+-- TV Mode: Record that we visited an area
+function pipTV.RecordVisit(x, z)
+	local dir = pipTV.director
+	local idx = (dir.visitedCount % 20) + 1  -- Keep last 20 visits
+	local v = dir.visitedAreas[idx]
+	if not v then
+		v = {}
+		dir.visitedAreas[idx] = v
+	end
+	v.x = x
+	v.z = z
+	v.time = os.clock()
+	if dir.visitedCount < 20 then
+		dir.visitedCount = dir.visitedCount + 1
+	end
+end
+
+-- TV Mode: Director tick — selects the best hotspot to focus on
+-- Called from Update(), returns targetX, targetZ, targetZoom or nil if nothing interesting
+function pipTV.DirectorTick(dt)
+	local now = os.clock()
+	local dir = pipTV.director
+
+	-- Rebuild hotspots from recent events
+	pipTV.BuildHotspots()
+
+	-- Helper: check if a position is too close to another PIP's TV focus or planned target
+	-- Returns a multiplier 0..1 (0 = fully overlapping, 1 = no overlap)
+	-- Checks both current focus AND planned next target of other PIPs
+	-- Higher-numbered PIPs use a larger exclusion radius to stay further away
+	local pipRole = pipNumber or 0  -- pip0 (minimap) = main camera, pip1+ = B-roll cameras
+	local coordRadiusMult = 4 + pipRole * 2  -- pip0: 4x, pip1: 6x, pip2: 8x, pip3: 10x
+	local function getCoordinationFactor(x, z)
+		local tvFoci = WG.pipTVFocus
+		if not tvFoci then return 1 end
+		local worstFactor = 1
+		local coordRadius = config.tvHotspotRadius * coordRadiusMult
+		for otherPip, focus in pairs(tvFoci) do
+			if otherPip ~= pipNumber then
+				-- Higher-numbered PIPs yield harder to lower-numbered ones
+				local yieldBonus = (otherPip < (pipNumber or 1)) and 1.0 or 0.7
+
+				-- PRIMARY CHECK: Is this hotspot inside what the other PIP is actually showing?
+				-- Uses the real camera position + zoom-derived view radius, updated every frame
+				if focus.camX and focus.viewRadius then
+					local cdx = x - focus.camX
+					local cdz = z - focus.camZ
+					local cdist = math.sqrt(cdx * cdx + cdz * cdz)
+					local vr = focus.viewRadius * (1 + pipRole * 0.3)  -- B-roll PIPs use wider exclusion
+					if cdist < vr then
+						-- Inside the other PIP's view — heavy penalty, scaled by how centered it is
+						local overlap = 1 - (cdist / vr)
+						local penalty = overlap * overlap * yieldBonus
+						local penalized = 1 - penalty * 0.98  -- Up to 98% score reduction
+						if penalized < worstFactor then worstFactor = penalized end
+					end
+				end
+
+				-- SECONDARY CHECK: Director target focus (for when camera hasn't arrived yet)
+				local fdx = x - focus.x
+				local fdz = z - focus.z
+				local fdist = math.sqrt(fdx * fdx + fdz * fdz)
+				if fdist < coordRadius then
+					local overlap = 1 - (fdist / coordRadius)
+					local factor = overlap * overlap * yieldBonus
+					local penalized = 1 - factor * 0.97
+					if penalized < worstFactor then worstFactor = penalized end
+				end
+				-- Also check planned target (where the other PIP intends to go next)
+				if focus.plannedX then
+					local pdx = x - focus.plannedX
+					local pdz = z - focus.plannedZ
+					local pdist = math.sqrt(pdx * pdx + pdz * pdz)
+					if pdist < coordRadius then
+						local overlap = 1 - (pdist / coordRadius)
+						local factor = overlap * overlap * yieldBonus
+						local penalized = 1 - factor * 0.85
+						if penalized < worstFactor then worstFactor = penalized end
+					end
+				end
+			end
+		end
+		return worstFactor
+	end
+
+	-- No hotspots at all — idle mode, do a slow overview
+	if pipTV.hotspotCount == 0 then
+		if dir.idle then return nil end
+		dir.idle = true
+		-- Stagger overview position per PIP to avoid identical views
+		local offsetX = (pipNumber or 0) * Game.mapSizeX * 0.15
+		local overviewX = math.min(Game.mapSizeX * 0.85, Game.mapSizeX / 2 + offsetX)
+		return overviewX, Game.mapSizeZ / 2, config.tvOverviewZoom
+	end
+
+	dir.idle = false
+
+	-- Check if it's time for a periodic overview shot
+	-- Stagger overview timing per PIP so they don't all overview simultaneously
+	local overviewInterval = config.tvOverviewInterval + (pipNumber or 0) * 3
+	local timeSinceOverview = now - dir.lastOverviewTime
+	if timeSinceOverview >= overviewInterval and not dir.isOverviewShot then
+		dir.isOverviewShot = true
+		dir.focusStartTime = now
+		dir.lastSwitchTime = now
+		dir.lastOverviewTime = now
+		local offsetX = (pipNumber or 0) * Game.mapSizeX * 0.15
+		local overviewX = math.min(Game.mapSizeX * 0.85, Game.mapSizeX / 2 + offsetX)
+		return overviewX, Game.mapSizeZ / 2, config.tvOverviewZoom
+	end
+
+	-- If in overview, check if duration expired
+	if dir.isOverviewShot then
+		if (now - dir.focusStartTime) >= config.tvOverviewDuration then
+			dir.isOverviewShot = false
+			-- Fall through to pick a hotspot
+		else
+			return nil  -- Keep current overview
+		end
+	end
+
+	-- Time since last switch
+	local timeSinceSwitch = now - dir.lastSwitchTime
+	local focusTime = now - dir.focusStartTime
+
+	-- Don't switch too fast
+	if timeSinceSwitch < config.tvSwitchCooldown then
+		-- Keep re-asserting current target if we have one (in case hotspot moved)
+		if dir.currentHotspotX then
+			-- If another PIP is now watching our area, skip cooldown and force re-evaluation
+			local coordFactor = getCoordinationFactor(dir.currentHotspotX, dir.currentHotspotZ)
+			if coordFactor < 0.3 then
+				-- Another PIP is very close — break cooldown and fall through to scoring
+				dir.lastSwitchTime = 0  -- Allow immediate switch
+			else
+				-- Find the closest hotspot to our current focus to track drift
+				local bestDist = math.huge
+				local bestH = nil
+				for i = 1, pipTV.hotspotCount do
+					local h = pipTV.hotspots[i]
+					local dx = h.x - dir.currentHotspotX
+					local dz = h.z - dir.currentHotspotZ
+					local d = dx * dx + dz * dz
+					if d < bestDist then
+						bestDist = d
+						bestH = h
+					end
+				end
+				if bestH and bestDist < config.tvHotspotRadius * config.tvHotspotRadius then
+					dir.currentHotspotX = bestH.x
+					dir.currentHotspotZ = bestH.z
+					dir.currentWeight = bestH.weight
+				end
+				-- Calculate zoom based on weight: heavier events = closer
+				local zoom = config.tvOverviewZoom + (config.tvCloseupZoom - config.tvOverviewZoom) *
+					math.min(1, dir.currentWeight / 15)
+				zoom = math.min(zoom, config.tvMaxZoom)
+				return dir.currentHotspotX, dir.currentHotspotZ, zoom
+			end
+		end
+		if dir.currentHotspotX then return nil end  -- Still in cooldown, no coord conflict
+		return nil
+	end
+
+	-- Score each hotspot
+	-- Higher-numbered PIPs act as "B-roll cameras": they prefer secondary/minor action
+	-- pipRole 0 (pip1) = main camera, scores normally
+	-- pipRole 1+ = B-roll, dampens high weights and boosts low weights (seeks secondary action)
+	local bestScore = -math.huge
+	local bestH = nil
+	local secondBestScore = -math.huge
+	local secondBestH = nil
+	for i = 1, pipTV.hotspotCount do
+		local h = pipTV.hotspots[i]
+		local score = h.weight
+
+		-- B-roll scoring: higher PIPs prefer less dominant hotspots
+		-- Compress weight range: score = weight^(1/(1+pipRole))
+		-- pip1: score = weight^1 (unchanged), pip2: score = weight^0.5 (sqrt), pip3: weight^0.33
+		if pipRole > 0 then
+			score = math.pow(math.max(score, 0.01), 1 / (1 + pipRole))
+		end
+
+		-- Recency boost: hotspots with very recent events get a big boost
+		local recency = now - h.lastEventTime
+		if recency < 2 then
+			score = score * (2 - recency)  -- Up to 2x for events < 2s ago
+		end
+
+		-- Variety bonus: areas we haven't visited recently score higher
+		-- Higher PIPs get stronger variety bonus to roam more
+		score = score + pipTV.GetVarietyBonus(h.x, h.z) * (1 + pipRole * 0.5)
+
+		-- Cross-PIP coordination: heavily penalize hotspots watched by another PIP
+		score = score * getCoordinationFactor(h.x, h.z)
+
+		-- Penalty for being too close to current focus (encourage switching)
+		if dir.currentHotspotX and focusTime > config.tvFocusDuration then
+			local dx = h.x - dir.currentHotspotX
+			local dz = h.z - dir.currentHotspotZ
+			local dist = math.sqrt(dx * dx + dz * dz)
+			if dist < config.tvHotspotRadius then
+				score = score * 0.5  -- Penalize staying on same spot too long
+			end
+		end
+
+		if score > bestScore then
+			secondBestScore = bestScore
+			secondBestH = bestH
+			bestScore = score
+			bestH = h
+		elseif score > secondBestScore then
+			secondBestScore = score
+			secondBestH = h
+		end
+	end
+
+	if not bestH then return nil end
+
+	-- Publish our planned next target so other PIPs can avoid it
+	if WG.pipTVFocus and WG.pipTVFocus[pipNumber] then
+		WG.pipTVFocus[pipNumber].plannedX = bestH.x
+		WG.pipTVFocus[pipNumber].plannedZ = bestH.z
+		-- Also publish 2nd-best as fallback info
+		if secondBestH then
+			WG.pipTVFocus[pipNumber].altX = secondBestH.x
+			WG.pipTVFocus[pipNumber].altZ = secondBestH.z
+		end
+	end
+
+	-- Decide whether to switch from current target
+	-- Higher-numbered PIPs stay longer on their (secondary) targets
+	local effectiveFocusDuration = config.tvFocusDuration * (1 + pipRole * 0.5)  -- pip2: 1.5x, pip3: 2x
+	local shouldSwitch = false
+	if not dir.currentHotspotX then
+		shouldSwitch = true
+	elseif focusTime >= effectiveFocusDuration then
+		-- Time to consider switching
+		-- Switch if new target is significantly more interesting OR we've been here too long
+		if bestScore > dir.currentWeight * 1.3 or focusTime > effectiveFocusDuration * 2 then
+			shouldSwitch = true
+		end
+	elseif bestScore > dir.currentWeight * 3.5 then
+		-- Emergency switch: something much more interesting happened elsewhere
+		shouldSwitch = true
+	end
+
+	if shouldSwitch then
+		-- Proximity check: if the new target is close to current, just drift there
+		-- without resetting focus timer (avoids unnecessary "switch" churn)
+		local isNearbyDrift = false
+		if dir.currentHotspotX then
+			local sdx = bestH.x - dir.currentHotspotX
+			local sdz = bestH.z - dir.currentHotspotZ
+			local switchDist = math.sqrt(sdx * sdx + sdz * sdz)
+			if switchDist < config.tvHotspotRadius * 1.5 then
+				isNearbyDrift = true
+			end
+		end
+
+		dir.currentHotspotX = bestH.x
+		dir.currentHotspotZ = bestH.z
+		dir.currentWeight = bestH.weight
+		if not isNearbyDrift then
+			-- Full switch: reset timers, record visit
+			dir.focusStartTime = now
+			dir.lastSwitchTime = now
+			pipTV.RecordVisit(bestH.x, bestH.z)
+		end
+		-- Update shared focus for cross-PIP coordination
+		if WG.pipTVFocus and WG.pipTVFocus[pipNumber] then
+			WG.pipTVFocus[pipNumber].x = bestH.x
+			WG.pipTVFocus[pipNumber].z = bestH.z
+		end
+	else
+		-- Not switching: keep currentWeight up to date with the hotspot's live weight
+		-- so the switch threshold stays calibrated (prevents stale-weight easy switches)
+		if dir.currentHotspotX then
+			for i = 1, pipTV.hotspotCount do
+				local h = pipTV.hotspots[i]
+				local dx = h.x - dir.currentHotspotX
+				local dz = h.z - dir.currentHotspotZ
+				if dx * dx + dz * dz < config.tvHotspotRadius * config.tvHotspotRadius then
+					dir.currentWeight = math.max(dir.currentWeight, h.weight)
+					break
+				end
+			end
+		end
+	end
+
+	-- Calculate zoom based on weight: heavier hotspot = zoom in closer
+	local zoom = config.tvOverviewZoom + (config.tvCloseupZoom - config.tvOverviewZoom) *
+		math.min(1, dir.currentWeight / 15)
+	zoom = math.min(zoom, config.tvMaxZoom)
+
+	return dir.currentHotspotX, dir.currentHotspotZ, zoom
+end
+
+-- TV Mode: Camera controller tick — smoothly moves PIP camera toward director target
+-- This is separate from the director; it only handles interpolation
+function pipTV.CameraUpdate(dt)
+	if not pipTV.camera.active then return end
+
+	local tx, tz, tzoom = pipTV.DirectorTick(dt)
+	if tx then
+		pipTV.camera.targetX = tx
+		pipTV.camera.targetZ = tz
+		pipTV.camera.targetZoom = math.max(tzoom, GetEffectiveZoomMin())
+	end
+
+	-- Apply camera targets with smooth interpolation
+	if pipTV.camera.targetX then
+		local dx = pipTV.camera.targetX - cameraState.targetWcx
+		local dz = pipTV.camera.targetZ - cameraState.targetWcz
+		local dist = math.sqrt(dx * dx + dz * dz)
+		local dZoom = pipTV.camera.targetZoom - cameraState.targetZoom
+
+		-- Snap to target when close enough (eliminates end-point jitter)
+		if dist < 2 then
+			cameraState.targetWcx = pipTV.camera.targetX
+			cameraState.targetWcz = pipTV.camera.targetZ
+		else
+			-- Adaptive speed: faster for long-distance switches, gentler for nearby tracking
+			local speedMult = 1
+			if dist > 3000 then
+				speedMult = 1.8  -- Faster pan for very long switches
+			elseif dist > 1500 then
+				speedMult = 1.3
+			elseif dist < 400 then
+				speedMult = 0.7  -- Gentle drift for nearby targets
+			end
+
+			-- Critically-damped-style smoothing: faster approach that decelerates cleanly
+			local panFactor = 1 - math.exp(-dt * config.tvPanSpeed * speedMult)
+			cameraState.targetWcx = cameraState.targetWcx + dx * panFactor
+			cameraState.targetWcz = cameraState.targetWcz + dz * panFactor
+		end
+
+		-- Snap zoom when close enough
+		if math.abs(dZoom) < 0.001 then
+			cameraState.targetZoom = pipTV.camera.targetZoom
+		else
+			local zoomFactor = 1 - math.exp(-dt * config.tvZoomSpeed)
+			cameraState.targetZoom = cameraState.targetZoom + dZoom * zoomFactor
+		end
+	end
+
+	-- Continuously publish actual camera position + view radius so other PIPs know
+	-- exactly what this PIP is currently showing on screen
+	if WG.pipTVFocus and WG.pipTVFocus[pipNumber] then
+		WG.pipTVFocus[pipNumber].camX = cameraState.targetWcx
+		WG.pipTVFocus[pipNumber].camZ = cameraState.targetWcz
+		-- View radius scales inversely with zoom: lower zoom = showing more map
+		-- At zoom 0.1 (overview) the camera sees ~4000+ units of map
+		-- At zoom 0.5 (closeup) the camera sees ~1000 units
+		local zoom = cameraState.targetZoom or 0.15
+		WG.pipTVFocus[pipNumber].viewRadius = 1200 / math.max(zoom, 0.05)
+	end
+end
 
 -- Ghost building cache: enemy buildings seen but no longer in direct LOS
 -- Position is static (buildings don't move), drawn from cache when out of LOS
@@ -1183,6 +1718,47 @@ local buttons = {
 					end
 				end
 			end
+		end
+	},
+	{
+		texture = 'LuaUI/Images/pip/PipTV.png',
+		tooltipKey = 'ui.pip.tv',
+		tooltipActiveKey = 'ui.pip.untv',
+		command = 'pip_tv',
+		OnPress = function()
+			miscState.tvEnabled = not miscState.tvEnabled
+			if miscState.tvEnabled then
+				-- Save current camera and activate TV camera
+				pipTV.camera.savedWcx = cameraState.targetWcx
+				pipTV.camera.savedWcz = cameraState.targetWcz
+				pipTV.camera.savedZoom = cameraState.targetZoom
+				pipTV.camera.active = true
+				pipTV.director.idle = true
+				pipTV.director.lastOverviewTime = os.clock()
+				-- Register in shared focus table for cross-PIP coordination
+				if not WG.pipTVFocus then WG.pipTVFocus = {} end
+				WG.pipTVFocus[pipNumber] = { x = cameraState.targetWcx, z = cameraState.targetWcz }
+				-- Disable activity focus and player tracking when TV mode is on
+				if miscState.activityFocusActive then
+					miscState.activityFocusActive = false
+				end
+				interactionState.trackingPlayerID = nil
+				interactionState.areTracking = nil
+			else
+				-- Restore camera
+				if pipTV.camera.savedWcx then
+					cameraState.targetWcx = pipTV.camera.savedWcx
+					cameraState.targetWcz = pipTV.camera.savedWcz
+					cameraState.targetZoom = pipTV.camera.savedZoom
+				end
+				pipTV.camera.active = false
+				-- Unregister from shared focus table
+				if WG.pipTVFocus then
+					WG.pipTVFocus[pipNumber] = nil
+					if not next(WG.pipTVFocus) then WG.pipTVFocus = nil end
+				end
+			end
+			pipR2T.frameNeedsUpdate = true
 		end
 	},
 	{
@@ -6399,6 +6975,11 @@ function widget:GameOver()
 	cameraState.targetWcx = mapInfo.mapSizeX / 2
 	cameraState.targetWcz = mapInfo.mapSizeZ / 2
 
+	-- Deactivate TV camera so it stops overriding camera targets
+	if pipTV.camera.active then
+		pipTV.camera.active = false
+	end
+
 	-- Flag to protect the zoom-out animation from being overridden
 	miscState.gameOverZoomingOut = true
 	miscState.isGameOver = true
@@ -6545,6 +7126,12 @@ function widget:Shutdown()
 		end
 	end
 
+	-- Clean up TV focus coordination
+	if WG.pipTVFocus then
+		WG.pipTVFocus[pipNumber] = nil
+		if not next(WG.pipTVFocus) then WG.pipTVFocus = nil end
+	end
+
 	-- Clean up API (must happen AFTER the anotherPipActive check above)
 	WG['pip'..pipNumber] = nil
 	if isMinimapMode then
@@ -6608,6 +7195,7 @@ function widget:GetConfigData()
 		healthDarkenMax=config.healthDarkenMax,
 		activityFocusEnabled=miscState.activityFocusEnabled,
 		activityFocusIgnoreSpectators=config.activityFocusIgnoreSpectators,
+		tvEnabled=miscState.tvEnabled,
 		hideAICommands=config.hideAICommands,
 		gameID = Game.gameID or Spring.GetGameRulesParam("GameID"),
 		-- Minimap mode settings
@@ -6758,6 +7346,14 @@ function widget:SetConfigData(data)
 	if data.healthDarkenMax ~= nil then config.healthDarkenMax = data.healthDarkenMax end
 	if data.activityFocusEnabled ~= nil then miscState.activityFocusEnabled = data.activityFocusEnabled end
 	if data.activityFocusIgnoreSpectators ~= nil then config.activityFocusIgnoreSpectators = data.activityFocusIgnoreSpectators end
+	if data.tvEnabled ~= nil then
+		miscState.tvEnabled = data.tvEnabled
+		if miscState.tvEnabled then
+			pipTV.camera.active = true
+			pipTV.director.idle = true
+			pipTV.director.lastOverviewTime = os.clock()
+		end
+	end
 	--if data.unitpicZoomThreshold then config.unitpicZoomThreshold = data.unitpicZoomThreshold end
 	
 	-- Restore minimap mode settings
@@ -9021,9 +9617,9 @@ local function RenderFrameButtons()
 				if hasSelection or isTracking then
 					visibleButtons[#visibleButtons + 1] = btn
 				end
-			-- Show pip_trackplayer button if lockcamera is available or already tracking
+			-- Show pip_trackplayer button if lockcamera is available or already tracking (hidden during TV)
 			elseif btn.command == 'pip_trackplayer' then
-				if showPlayerTrackButton then
+				if showPlayerTrackButton and not miscState.tvEnabled then
 					visibleButtons[#visibleButtons + 1] = btn
 				end
 			-- Show pip_view button only for spectators
@@ -9033,7 +9629,12 @@ local function RenderFrameButtons()
 				end
 			-- Hide pip_activity in singleplayer, when tracking, or optionally for spectators
 			elseif btn.command == 'pip_activity' then
-				if not isSinglePlayer and not interactionState.trackingPlayerID and not (config.activityFocusHideForSpectators and cameraState.mySpecState) then
+				if not isSinglePlayer and not interactionState.trackingPlayerID and not miscState.tvEnabled and not (config.activityFocusHideForSpectators and cameraState.mySpecState) then
+					visibleButtons[#visibleButtons + 1] = btn
+				end
+			-- Show pip_tv button for spectators only (or always if not spectator-only)
+			elseif btn.command == 'pip_tv' then
+				if not config.tvModeSpectatorsOnly or cameraState.mySpecState then
 					visibleButtons[#visibleButtons + 1] = btn
 				end
 			else
@@ -9052,7 +9653,8 @@ local function RenderFrameButtons()
 		local isActive = (visibleButtons[i].command == 'pip_track' and interactionState.areTracking) or
 		                 (visibleButtons[i].command == 'pip_trackplayer' and interactionState.trackingPlayerID) or
 		                 (visibleButtons[i].command == 'pip_view' and state.losViewEnabled) or
-		                 (visibleButtons[i].command == 'pip_activity' and miscState.activityFocusEnabled)
+		                 (visibleButtons[i].command == 'pip_activity' and miscState.activityFocusEnabled) or
+		                 (visibleButtons[i].command == 'pip_tv' and miscState.tvEnabled)
 		
 		if isActive then
 			glFunc.Color(config.panelBorderColorLight)
@@ -10648,8 +11250,8 @@ end
 -- Also shown for players (not just spectators tracking others) and when hovering
 local function DrawTrackedPlayerMinimap()
 	-- In minimap mode, don't show the pip-minimap overlay (we ARE the minimap)
-	-- Exception: when tracking a player camera, the minimap is zoomed in so we need the overview
-	if isMinimapMode and not interactionState.trackingPlayerID then
+	-- Exception: when tracking a player camera or TV mode, the minimap is zoomed in so we need the overview
+	if isMinimapMode and not interactionState.trackingPlayerID and not miscState.tvEnabled then
 		interactionState.pipMinimapBounds = nil
 		return
 	end
@@ -10659,8 +11261,9 @@ local function DrawTrackedPlayerMinimap()
 	local showForTracking = interactionState.trackingPlayerID ~= nil  -- Show when tracking
 	local showForHover = interactionState.isMouseOverPip  -- Show when hovering
 	local showForActivityFocus = config.activityFocusShowMinimap and miscState.activityFocusActive  -- Show during map marker focus
+	local showForTV = miscState.tvEnabled  -- Show during TV mode
 	
-	if not showForPlayer and not showForTracking and not showForHover and not showForActivityFocus then
+	if not showForPlayer and not showForTracking and not showForHover and not showForActivityFocus and not showForTV then
 		interactionState.pipMinimapBounds = nil
 		return
 	end
@@ -10679,10 +11282,11 @@ local function DrawTrackedPlayerMinimap()
 		return
 	end
 
-	-- Calculate minimap dimensions - use hover size if hovering, otherwise normal size
+	-- Calculate minimap dimensions - use hover size if hovering or TV/activity active, otherwise normal size
 	local pipWidth = render.dim.r - render.dim.l
 	local pipHeight = render.dim.t - render.dim.b
-	local heightPercent = showForHover and config.minimapHoverHeightPercent or config.minimapHeightPercent
+	local useEnlargedSize = showForHover or showForTV or showForActivityFocus
+	local heightPercent = useEnlargedSize and config.minimapHoverHeightPercent or config.minimapHeightPercent
 	local minimapHeight = math.floor(pipHeight * heightPercent)
 	
 	-- Check if map is rotated 90°/270° — swap aspect ratio so minimap container matches rotated content
@@ -11987,7 +12591,7 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 			elseif btn.command == 'pip_trackplayer' then
 				local _, _, spec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
 				local aliveTeammates = GetAliveTeammates()
-				if interactionState.trackingPlayerID or spec or (#aliveTeammates > 0) then
+				if (interactionState.trackingPlayerID or spec or (#aliveTeammates > 0)) and not miscState.tvEnabled then
 					visibleButtons[#visibleButtons + 1] = btn
 				end
 			elseif btn.command == 'pip_view' then
@@ -11996,7 +12600,11 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 					visibleButtons[#visibleButtons + 1] = btn
 				end
 			elseif btn.command == 'pip_activity' then
-				if not isSinglePlayer and not interactionState.trackingPlayerID and not (config.activityFocusHideForSpectators and cameraState.mySpecState) then
+				if not isSinglePlayer and not interactionState.trackingPlayerID and not miscState.tvEnabled and not (config.activityFocusHideForSpectators and cameraState.mySpecState) then
+					visibleButtons[#visibleButtons + 1] = btn
+				end
+			elseif btn.command == 'pip_tv' then
+				if not config.tvModeSpectatorsOnly or cameraState.mySpecState then
 					visibleButtons[#visibleButtons + 1] = btn
 				end
 			else
@@ -12016,7 +12624,8 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 				if (visibleButtons[i].command == 'pip_track' and interactionState.areTracking) or
 				   (visibleButtons[i].command == 'pip_trackplayer' and interactionState.trackingPlayerID) or
 				   (visibleButtons[i].command == 'pip_view' and state.losViewEnabled) or
-				   (visibleButtons[i].command == 'pip_activity' and miscState.activityFocusEnabled) then
+				   (visibleButtons[i].command == 'pip_activity' and miscState.activityFocusEnabled) or
+				   (visibleButtons[i].command == 'pip_tv' and miscState.tvEnabled) then
 					glFunc.Color(config.panelBorderColorLight)
 					glFunc.Texture(false)
 					render.RectRound(bx, render.dim.b, bx + render.usedButtonSize, render.dim.b + render.usedButtonSize, render.elementCorner*0.4, 1, 1, 1, 1)
@@ -12041,7 +12650,8 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 						if (visibleButtons[i].command == 'pip_track' and interactionState.areTracking) or
 						   (visibleButtons[i].command == 'pip_trackplayer' and interactionState.trackingPlayerID) or
 						   (visibleButtons[i].command == 'pip_view' and state.losViewEnabled) or
-						   (visibleButtons[i].command == 'pip_activity' and miscState.activityFocusEnabled) then
+						   (visibleButtons[i].command == 'pip_activity' and miscState.activityFocusEnabled) or
+						   (visibleButtons[i].command == 'pip_tv' and miscState.tvEnabled) then
 							tooltipKey = visibleButtons[i].tooltipActiveKey
 						end
 					end
@@ -12068,7 +12678,8 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 				if (visibleButtons[i].command == 'pip_track' and interactionState.areTracking) or
 				   (visibleButtons[i].command == 'pip_trackplayer' and interactionState.trackingPlayerID) or
 				   (visibleButtons[i].command == 'pip_view' and state.losViewEnabled) or
-				   (visibleButtons[i].command == 'pip_activity' and miscState.activityFocusEnabled) then
+				   (visibleButtons[i].command == 'pip_activity' and miscState.activityFocusEnabled) or
+				   (visibleButtons[i].command == 'pip_tv' and miscState.tvEnabled) then
 					glFunc.Color(config.panelBorderColorDark)
 				else
 					glFunc.Color(1, 1, 1, 1)
@@ -13353,6 +13964,27 @@ function widget:Update(dt)
 		end
 	end
 
+	-- TV mode: auto-camera controller (drives camera targets each frame)
+	-- Pause TV camera when user is manually interacting or hovering, with a resume delay
+	-- Stop entirely at game over so the zoom-out animation plays uninterrupted
+	if miscState.tvEnabled and pipTV.camera.active and not miscState.isGameOver then
+		local userInteracting = interactionState.arePanning
+			or interactionState.areIncreasingZoom
+			or interactionState.areDecreasingZoom
+			or interactionState.isMouseOverPip
+		if userInteracting then
+			-- Record when user last interacted, don't update TV camera
+			pipTV.camera.lastUserInteraction = os.clock()
+		elseif pipTV.camera.lastUserInteraction and (os.clock() - pipTV.camera.lastUserInteraction) < 0.6 then
+			-- Resume delay: wait 0.6s after user stops interacting
+		else
+			pipTV.camera.lastUserInteraction = nil
+			pipTV.CameraUpdate(dt)
+			-- TV mode always needs content update since camera is continuously moving
+			pipR2T.contentNeedsUpdate = true
+		end
+	end
+
 	-- Smooth zoom and camera center interpolation
 	local zoomNeedsUpdate = math.abs(cameraState.zoom - cameraState.targetZoom) > 0.001
 	local centerNeedsUpdate = math.abs(cameraState.wcx - cameraState.targetWcx) > 0.1 or math.abs(cameraState.wcz - cameraState.targetWcz) > 0.1
@@ -13925,7 +14557,17 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	-- after this callback in the same frame, and we need the entry to still exist so
 	-- the crashing unit icon doesn't flash for one frame when it dies.
 	-- The entry will remain in crashingUnits but this is harmless - it's just a boolean.
-	
+
+	-- TV mode: unit death event — weight based on unit cost
+	if miscState.tvEnabled and unitDefID then
+		local cost = cache.unitCost[unitDefID] or 100
+		local weight = math.min(5, cost / 200)
+		if weight > 0.2 then
+			local x, _, z = spFunc.GetUnitBasePosition(unitID)
+			if x then pipTV.AddEvent(x, z, weight, 'death') end
+		end
+	end
+
 	-- Create shatter effect for non-crashing units (crashing units already shattered in CrashingAircraft)
 	if not miscState.crashingUnits[unitID] then
 		-- Get unit velocity so shatter fragments carry the unit's momentum
@@ -14137,6 +14779,16 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 			end
 		end
 	end
+
+	-- TV mode: big unit finished event
+	if miscState.tvEnabled and unitDefID then
+		local cost = cache.unitCost[unitDefID] or 0
+		if cost >= config.tvUnitFinishedCostThreshold then
+			local weight = math.min(4, cost / 500)
+			local x, _, z = spFunc.GetUnitBasePosition(unitID)
+			if x then pipTV.AddEvent(x, z, weight, 'finished') end
+		end
+	end
 end
 
 -- UnitEnteredLos is only called for non-allied units entering the local player's LOS
@@ -14153,6 +14805,16 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 		existing.time = gameTime
 	else
 		damageFlash[unitID] = { time = gameTime, intensity = intensity }
+	end
+
+	-- TV mode: combat event — weight based on damage/cost ratio
+	if miscState.tvEnabled then
+		local cost = cache.unitCost[unitDefID] or 100
+		local weight = math.min(3, (damage / math.max(cost, 50)) * 2)
+		if weight > 0.1 then
+			local x, _, z = spFunc.GetUnitBasePosition(unitID)
+			if x then pipTV.AddEvent(x, z, weight, 'combat') end
+		end
 	end
 end
 
@@ -14268,6 +14930,12 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 
 	table.insert(cache.explosions, explosion)
 
+	-- TV mode: explosion event — weight based on radius
+	if miscState.tvEnabled and radius >= 20 then
+		local weight = math.min(4, radius / 60)
+		pipTV.AddEvent(px, pz, weight, 'explosion')
+	end
+
 	-- Add particle debris for larger explosions
 	if radius > 30 then
 		local explosion = cache.explosions[#cache.explosions]
@@ -14374,8 +15042,13 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 			-- Force PIP content update to show marker immediately
 			pipR2T.contentNeedsUpdate = true
 
+			-- TV mode: map marker event (moderate weight)
+			if miscState.tvEnabled then
+				pipTV.AddEvent(mx, mz, 2.5, 'marker')
+			end
+
 			-- Activity focus: briefly move camera to this marker
-			local triggerFocus = miscState.activityFocusEnabled
+			local triggerFocus = miscState.activityFocusEnabled and not miscState.tvEnabled
 			if triggerFocus and config.activityFocusHideForSpectators and cameraState.mySpecState then
 				triggerFocus = false
 			end
@@ -14384,6 +15057,14 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 			end
 			if triggerFocus and isSpec and config.activityFocusIgnoreSpectators then
 				triggerFocus = false
+			end
+			-- Block activity focus for ignored players (uses WG.ignoredAccounts from api_ignore widget)
+			if triggerFocus and config.activityFocusBlockIgnoredPlayers and WG.ignoredAccounts then
+				local pName, _, _, _, _, _, _, _, _, _, pInfo = Spring.GetPlayerInfo(playerID)
+				local pAccountID = pInfo and pInfo.accountid and tonumber(pInfo.accountid)
+				if (pName and WG.ignoredAccounts[pName]) or (pAccountID and WG.ignoredAccounts[pAccountID]) then
+					triggerFocus = false
+				end
 			end
 			if triggerFocus and interactionState.trackingPlayerID then
 				triggerFocus = false
@@ -14997,9 +15678,9 @@ function widget:MousePress(mx, my, mButton)
 							if hasSelection or isTracking then
 								visibleButtons[#visibleButtons + 1] = btn
 							end
-						-- Show pip_trackplayer button if lockcamera is available or already tracking
+						-- Show pip_trackplayer button if lockcamera is available or already tracking (hidden during TV)
 						elseif btn.command == 'pip_trackplayer' then
-							if showPlayerTrackButton then
+							if showPlayerTrackButton and not miscState.tvEnabled then
 								visibleButtons[#visibleButtons + 1] = btn
 							end
 						-- Show pip_view button only for spectators
@@ -15009,7 +15690,11 @@ function widget:MousePress(mx, my, mButton)
 								visibleButtons[#visibleButtons + 1] = btn
 							end
 						elseif btn.command == 'pip_activity' then
-							if not isSinglePlayer and not interactionState.trackingPlayerID and not (config.activityFocusHideForSpectators and cameraState.mySpecState) then
+							if not isSinglePlayer and not interactionState.trackingPlayerID and not miscState.tvEnabled and not (config.activityFocusHideForSpectators and cameraState.mySpecState) then
+								visibleButtons[#visibleButtons + 1] = btn
+							end
+						elseif btn.command == 'pip_tv' then
+							if not config.tvModeSpectatorsOnly or cameraState.mySpecState then
 								visibleButtons[#visibleButtons + 1] = btn
 							end
 						else

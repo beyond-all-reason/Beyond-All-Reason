@@ -159,6 +159,8 @@
 			"move": "Move window",
 			"activity": "Briefly focus camera onto recently placed map markers",
 			"unactivity": "Disable map marker camera focus",
+			"tv": "Enable TV mode\nAuto-camera follows the action",
+			"untv": "Disable TV mode",
 			"resize": "Resize window",
 			"minimize": "Minimize\nALT+CLICK-DRAG to Move",
 			"maximize": "Maximize\nALT+CLICK-DRAG to Move",
