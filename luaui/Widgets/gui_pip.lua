@@ -13579,10 +13579,16 @@ function widget:Update(dt)
 	-- Activity focus: re-assert target position each frame while active
 	-- Edge/center clamping at low zoom levels overwrites targetWcx/targetWcz;
 	-- re-applying from stored marker coords ensures the camera reaches the marker
+	-- Cancel if the user is actively panning or zooming the PIP
 	if miscState.activityFocusActive and miscState.activityFocusTargetX then
-		cameraState.targetWcx = miscState.activityFocusTargetX
-		cameraState.targetWcz = miscState.activityFocusTargetZ
-		cameraState.targetZoom = math.max(config.activityFocusZoom, GetEffectiveZoomMin())
+		if interactionState.arePanning or interactionState.areIncreasingZoom or interactionState.areDecreasingZoom then
+			-- User is interacting — cancel focus and don't restore saved camera
+			miscState.activityFocusActive = false
+		else
+			cameraState.targetWcx = miscState.activityFocusTargetX
+			cameraState.targetWcz = miscState.activityFocusTargetZ
+			cameraState.targetZoom = math.max(config.activityFocusZoom, GetEffectiveZoomMin())
+		end
 	end
 
 	if interactionState.areIncreasingZoom then
@@ -14364,6 +14370,9 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 
 			-- Activity focus: briefly move camera to this marker
 			local triggerFocus = miscState.activityFocusEnabled
+			if triggerFocus and config.activityFocusHideForSpectators and cameraState.mySpecState then
+				triggerFocus = false
+			end
 			if triggerFocus and playerID == Spring.GetMyPlayerID() then
 				triggerFocus = false
 			end
