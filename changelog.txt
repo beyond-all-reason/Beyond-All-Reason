@@ -17,6 +17,15 @@
 • [T1 AA ships, subs, and frigates] Autoheal removed
 • Idleautoheal standardised to 5hp/s after 60 seconds without getting hit, for everything. 
 	- Rezbots got a 5hp/s normal autoheal to replace their near-instant idleautoheal.
+• [Legion changes]
+	- Carriers all start with half of their drones pre-built, with the cost of those drones added to the carrier
+	- T1 Drone health reduced 415->325, acceleration increased, drones retreat after taking 1 aa shot
+	- T2 Drone health reduced 2250->1650
+	- Removed health scaling for drones when gaining xp
+	- Drones no longer have health decay while in the air when the carrier is alive but decay quickly once the carrier is dead
+	- T1 drones now have to return to carrier to reload after firing 12 shots
+	- Reduced overall range of drones and made them more tied to their actual ranges to prevent range extension abuse
+
 
 # January 2026
 • [Incisor] 0.767s -> 0.8s reloadtime, 85.5 -> 85 speed, 2200 -> 2300 buildtime, 1040 -> 1100 energycost
