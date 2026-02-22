@@ -4,8 +4,8 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0.01722,
 		buildangle = 16384,
-		buildcostenergy = 9000,
-		buildcostmetal = 1000,
+		buildcostenergy = 10500,
+		buildcostmetal = 1050,
 		buildpic = "armtrident.dds",
 		buildtime = 18000,
 		canmove = true,
@@ -153,7 +153,7 @@ return {
 					spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently.
 					spawnrate = 5, 				--Spawnrate roughly in seconds.
 					maxunits = 4,				--Will spawn units until this amount has been reached.
-					startingdronecount = 0,
+					startingdronecount = 2,
 					buildcostenergy = 750,--650,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					buildcostmetal = 30,--29,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					controlradius = 1400,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.

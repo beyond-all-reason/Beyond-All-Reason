@@ -4,10 +4,10 @@ return {
 		activatewhenbuilt = true,
 		maxdec = 0.01722,
 		buildangle = 16384,
-		energycost = 13000,
-		metalcost = 1300,
+		energycost = 17000,
+		metalcost = 1700,
 		buildpic = "ARMDRONECARRY.DDS",
-		buildtime = 20000,
+		buildtime = 24000,
 		canmove = true,
 		canreclaim = false,
 		canrepair = false,
@@ -149,7 +149,7 @@ return {
 					spawns_surface = "SEA",    	-- "LAND" or "SEA". The SEA option has not been tested currently.
 					spawnrate = 4, 				--Spawnrate roughly in seconds.
 					maxunits = 16,				--Will spawn units until this amount has been reached.
-					startingdronecount = 0,
+					startingdronecount = 8,
 					energycost = 600,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					metalcost = 25,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					controlradius = 1200,		--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.

@@ -14,7 +14,7 @@ return {
 		collisionvolumescales = "59 52 154",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		energycost = 12000,
+		energycost = 13000,
 		energymake = 300,
 		energypershot = 7500,
 		energystorage = 1500,
@@ -26,7 +26,7 @@ return {
 		mass = 10000,
 		maxacc = 0.01722,
 		maxdec = 0.01722,
-		metalcost = 1400,
+		metalcost = 1600,
 		minwaterdepth = 15,
 		movementclass = "BOAT5",
 		movestate = 0,
@@ -209,15 +209,15 @@ return {
 					-- spawns_surface = "LAND",    -- "LAND" or "SEA". The SEA option has not been tested currently.
 					spawnrate = 7, 				--Spawnrate roughly in seconds.
 					maxunits = 6,--"6 1",				--Will spawn units until this amount has been reached.
-					startingdronecount = 0,--"0 0",
+					startingdronecount = 3,--"0 0",
 					energycost = 500,--"500 1000",			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					metalcost = 15,--"15 90",				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					controlradius = 1200,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
-					deathdecayrate = 4,
+					deathdecayrate = 20,
 					carrierdeaththroe = "release",
 					dockingarmor = 0.2,
-					dockinghealrate = 24,
-					docktohealthreshold = 66,
+					dockinghealrate = 30,
+					docktohealthreshold = 75,
 					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
 					dockingpieces = "16 17 18 19 20 21", --"16 17 18 19 20 , 21",
@@ -228,7 +228,7 @@ return {
 					-- dronesusestockpile = true,
 					dronedocktime = 2,
 					droneairtime = 60,--"60 90",
-					droneammo = 9,--"9 0",
+					droneammo = 12,--"9 0",
 				}
 			},
 		},
