@@ -57,6 +57,8 @@ local CameraRotationModes = {
 local mode
 local prevSnap
 local trackingLock = false
+local autoFitRotation = false
+local autoFitApplied = false
 
 
 --------------------------------------------------------------------------------
@@ -141,6 +143,32 @@ local function isValidOption(num)
 	return true
 end
 
+local function applyAutoFitRotation()
+	if not autoFitRotation then return end
+	local mapSizeX = Game.mapSizeX
+	local mapSizeZ = Game.mapSizeZ
+	if mapSizeZ > mapSizeX then
+		-- Map is portrait-oriented: rotate 90 degrees so it fills the wider minimap GUI area
+		-- Choose +90 or -90 based on sun direction for best front-lighting
+		local camState = Spring.GetCameraState()
+		local ry = (camState and camState.ry) or 0
+		local sunX, _, sunZ = gl.GetSun("pos")
+		-- Dot product of camera forward at (ry + HALFPI) with sun direction
+		-- camForward = (-sin(ry), -cos(ry)); for ry+HALFPI: (-cos(ry), sin(ry))
+		local dot = -math.cos(ry) * sunX + math.sin(ry) * sunZ
+		local rotation = dot >= 0 and HALFPI or -HALFPI
+
+		spSetMiniRot(rotation)
+		if camState then
+			camState.ry = ry + rotation
+			Spring.SetCameraState(camState, 0)
+		end
+		autoFitApplied = true
+	else
+		autoFitApplied = false
+	end
+end
+
 function widget:Initialize()
 	WG['minimaprotationmanager'] = {}
 	WG['minimaprotationmanager'].setMode = function(newMode)
@@ -161,6 +189,14 @@ function widget:Initialize()
 		return mode
 	end
 
+	WG['minimaprotationmanager'].setAutoFitRotation = function(value)
+		autoFitRotation = value
+	end
+
+	WG['minimaprotationmanager'].getAutoFitRotation = function()
+		return autoFitRotation
+	end
+
 	local temp = WG['options'].getOptionValue("minimaprotation")
 	if isValidOption(temp) then -- Sync up when the widget was unloaded
 		mode = temp
@@ -169,6 +205,11 @@ function widget:Initialize()
 	Spring.SetConfigInt("MiniMapCanFlip", 0)
 
 	widgetHandler:AddAction("minimap_rotate", minimapRotateHandler, nil, "p")
+
+	local autoFitTemp = WG['options'] and WG['options'].getOptionValue("minimapautofit")
+	if autoFitTemp ~= nil then
+		autoFitRotation = autoFitTemp
+	end
 end
 
 function widget:Shutdown()
@@ -189,14 +230,22 @@ function widget:CameraRotationChanged(_, roty)
 	end
 end
 
+function widget:GameStart()
+	applyAutoFitRotation()
+end
+
 function widget:GetConfigData()
 	return {
-		mode = mode
+		mode = mode,
+		autoFitRotation = autoFitRotation,
 	}
 end
 
 function widget:SetConfigData(data)
 	if data.mode ~= nil then
 		mode = data.mode
+	end
+	if data.autoFitRotation ~= nil then
+		autoFitRotation = data.autoFitRotation
 	end
 end

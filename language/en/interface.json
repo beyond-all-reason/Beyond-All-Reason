@@ -1412,6 +1412,8 @@
 				"minimaprotation_none": "None",
 				"minimaprotation_autoflip": "Auto Flip 180 Degree",
 				"minimaprotation_autorotate": "Auto Rotate 90 Degree",
+				"minimapautofit": "auto-fit rotation",
+				"minimapautofit_descr": "Automatically rotate the minimap and camera by 90 degrees on game start for portrait maps, so the minimap fills more of the available GUI space",
 				"minimappip": "advanced (pip style)",
 				"minimappip_descr": "Have a picture-in-picture style camera minimap implementation",
 				"pip": "picture-in-picture",

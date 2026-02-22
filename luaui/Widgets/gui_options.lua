@@ -3550,6 +3550,18 @@ function init()
 			  end
 		  end,
 		},
+		{ id = "minimapautofit", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimapautofit'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.minimapautofit_descr'),
+		  onload = function(i)
+			  if WG['minimaprotationmanager'] ~= nil and WG['minimaprotationmanager'].getAutoFitRotation ~= nil then
+				  options[i].value = WG['minimaprotationmanager'].getAutoFitRotation()
+			  end
+		  end,
+		  onchange = function(i, value)
+			  if WG['minimaprotationmanager'] ~= nil and WG['minimaprotationmanager'].setAutoFitRotation ~= nil then
+				  WG['minimaprotationmanager'].setAutoFitRotation(value)
+			  end
+		  end,
+		},
 		{ id = "minimappip", group = "ui", category = types.advanced, widget = "Picture-in-Picture Minimap", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimappip'), type = "bool", value = GetWidgetToggleValue("Picture-in-Picture Minimap"), description = Spring.I18N('ui.settings.option.minimappip_descr') },
 
 

@@ -138,6 +138,7 @@ local config = {
 	activityFocusHideForSpectators = true,  -- Hide the activity focus button when spectating (default: disabled for spectators)
 	activityFocusDuration = 2,  -- Seconds to hold focus on a marker before restoring camera
 	activityFocusZoom = 0.28,  -- Zoom level when focusing on a marker (higher = more zoomed in)
+	activityFocusShowMinimap = true,  -- Temporarily show pip-minimap overlay while focused on a map marker
 	activityFocusCooldown = 3,  -- Minimum seconds between focus triggers from the same player
 	activityFocusThrottleWindow = 10,  -- Time window (seconds) to count markers from a player
 	activityFocusThrottleCount = 3,  -- After this many markers in the window, ignore that player temporarily
@@ -7755,6 +7756,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 			up[6] = bp or 1  -- buildProgress
 			up[7] = uID
 			up[8] = healthPct / 100  -- health fraction for health bar
+			return usedEl  -- Skip GL4 icon — unitpic will be drawn on top instead
 		elseif not skipCosmetics and not isRadar then
 			-- Non-unitpic zoom: still fetch health for icon damage tint
 			local hp, maxHP = spFunc.GetUnitHealth(uID)
@@ -8110,8 +8112,8 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	local icT4 = os.clock()
 	local mobileProcessed = usedElements - preMobileEl
 
-	-- Skip draw if no icons
-	if usedElements == 0 then
+	-- Skip draw if no icons and no unitpics
+	if usedElements == 0 and unitpicCount == 0 then
 		perfTimers.icGhost = perfTimers.icGhost + PERF_SMOOTH * ((icT1 - icT0) - perfTimers.icGhost)
 		perfTimers.icKeysort = perfTimers.icKeysort + PERF_SMOOTH * ((icT2 - icT1) - perfTimers.icKeysort)
 		perfTimers.icSort = perfTimers.icSort + PERF_SMOOTH * ((icT3 - icT2) - perfTimers.icSort)
@@ -8123,52 +8125,55 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		return iconRadiusZoomDistMult
 	end
 
-	-- Single bulk upload to GPU (only the used portion)
-	gl4Icons.vbo:Upload(data, nil, 0, 1, usedElements * gl4Icons.INSTANCE_STEP)
+	-- Draw GL4 icons (skip VBO upload/draw when all units are rendered as unitpics)
+	if usedElements > 0 then
+		-- Single bulk upload to GPU (only the used portion)
+		gl4Icons.vbo:Upload(data, nil, 0, 1, usedElements * gl4Icons.INSTANCE_STEP)
 
-	-- Set up GL state for icon drawing
-	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		-- Set up GL state for icon drawing
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
-	-- Activate shader and set uniforms
-	gl.UseShader(gl4Icons.shader)
-	local ul = gl4Icons.uniformLocs
-	gl.UniformFloat(ul.wtp_scale, wtp.scaleX, wtp.scaleZ)
-	gl.UniformFloat(ul.wtp_offset, wtp.offsetX, wtp.offsetZ)
+		-- Activate shader and set uniforms
+		gl.UseShader(gl4Icons.shader)
+		local ul = gl4Icons.uniformLocs
+		gl.UniformFloat(ul.wtp_scale, wtp.scaleX, wtp.scaleZ)
+		gl.UniformFloat(ul.wtp_offset, wtp.offsetX, wtp.offsetZ)
 
-	-- FBO dimensions for NDC conversion
-	local fboW = render.dim.r - render.dim.l
-	local fboH = render.dim.t - render.dim.b
-	gl.UniformFloat(ul.ndcScale, 2.0 / fboW, 2.0 / fboH)
+		-- FBO dimensions for NDC conversion
+		local fboW = render.dim.r - render.dim.l
+		local fboH = render.dim.t - render.dim.b
+		gl.UniformFloat(ul.ndcScale, 2.0 / fboW, 2.0 / fboH)
 
-	-- Map rotation
-	local rot = render.minimapRotation or 0
-	gl.UniformFloat(ul.rotSC, math.sin(rot), math.cos(rot))
-	gl.UniformFloat(ul.rotCenter, fboW * 0.5, fboH * 0.5)
+		-- Map rotation
+		local rot = render.minimapRotation or 0
+		gl.UniformFloat(ul.rotSC, math.sin(rot), math.cos(rot))
+		gl.UniformFloat(ul.rotCenter, fboW * 0.5, fboH * 0.5)
 
-	-- Icon size and time
-	gl.UniformFloat(ul.iconBaseSize, iconRadiusZoomDistMult)
-	gl.UniformFloat(ul.gameTime, gameTime)
-	gl.UniformFloat(ul.wallClockTime, wallClockTime)
-	gl.UniformFloat(ul.healthDarkenMax, config.healthDarkenMax)
+		-- Icon size and time
+		gl.UniformFloat(ul.iconBaseSize, iconRadiusZoomDistMult)
+		gl.UniformFloat(ul.gameTime, gameTime)
+		gl.UniformFloat(ul.wallClockTime, wallClockTime)
+		gl.UniformFloat(ul.healthDarkenMax, config.healthDarkenMax)
 
-	-- Bind atlas texture
-	glFunc.Texture(0, gl4Icons.atlas)
+		-- Bind atlas texture
+		glFunc.Texture(0, gl4Icons.atlas)
 
-	-- Pass 1: Outlines for tracked units (white) and self-destructing units (red-orange pulse)
-	-- Only runs when there are tracked or selfD units; the shader culls others via alpha=0
-	local hasSelfD = next(selfDUnits) ~= nil
-	if trackedSet or hasSelfD then
-		gl.UniformFloat(ul.outlinePass, 1.0)
+		-- Pass 1: Outlines for tracked units (white) and self-destructing units (red-orange pulse)
+		-- Only runs when there are tracked or selfD units; the shader culls others via alpha=0
+		local hasSelfD = next(selfDUnits) ~= nil
+		if trackedSet or hasSelfD then
+			gl.UniformFloat(ul.outlinePass, 1.0)
+			gl4Icons.vao:DrawArrays(GL.POINTS, usedElements)
+		end
+
+		-- Pass 2: Normal icon draw
+		gl.UniformFloat(ul.outlinePass, 0.0)
 		gl4Icons.vao:DrawArrays(GL.POINTS, usedElements)
+
+		glFunc.Texture(0, false)
+
+		gl.UseShader(0)
 	end
-
-	-- Pass 2: Normal icon draw
-	gl.UniformFloat(ul.outlinePass, 0.0)
-	gl4Icons.vao:DrawArrays(GL.POINTS, usedElements)
-
-	glFunc.Texture(0, false)
-
-	gl.UseShader(0)
 
 	local icT5 = os.clock()
 
@@ -10649,12 +10654,13 @@ local function DrawTrackedPlayerMinimap()
 		return
 	end
 	
-	-- Show for players OR when tracking a player camera OR when hovering
+	-- Show for players OR when tracking a player camera OR when hovering OR during activity focus
 	local showForPlayer = not cameraState.mySpecState  -- Show for players
 	local showForTracking = interactionState.trackingPlayerID ~= nil  -- Show when tracking
 	local showForHover = interactionState.isMouseOverPip  -- Show when hovering
+	local showForActivityFocus = config.activityFocusShowMinimap and miscState.activityFocusActive  -- Show during map marker focus
 	
-	if not showForPlayer and not showForTracking and not showForHover then
+	if not showForPlayer and not showForTracking and not showForHover and not showForActivityFocus then
 		interactionState.pipMinimapBounds = nil
 		return
 	end
