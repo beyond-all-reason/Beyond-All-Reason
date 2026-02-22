@@ -72,6 +72,8 @@ local spSetMiniRot		= 	Spring.SetMiniMapRotation
 local spGetMiniRot		= 	Spring.GetMiniMapRotation
 local PI = math.pi
 local HALFPI = PI / 2
+local TWOPI = PI * 2
+local AUTOFIT_HYSTERESIS = PI / 6  -- ~30°: camera must move this far past the midpoint before the minimap flips
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -259,14 +261,48 @@ function widget:Update()
 end
 
 function widget:CameraRotationChanged(_, roty)
-	if mode == CameraRotationModes.none or trackingLock then return end
+	if trackingLock then return end
+
+	if autoFitRotation then
+		-- Auto-fit: only allow the two landscape orientations
+		if mode == CameraRotationModes.none then return end
+		local newRot
+		local distFromBoundary
+		if Game.mapSizeZ > Game.mapSizeX then
+			-- Portrait map: landscape orientations are 90° and 270°
+			-- Boundaries at 0° and 180° (midpoints between 90° and 270°)
+			newRot = (PI * mathFloor(((roty - HALFPI) / PI) + 0.5) + HALFPI) % TWOPI
+			-- Distance from nearest boundary (0° or 180°)
+			local rem = roty % PI
+			distFromBoundary = math.min(rem, PI - rem)
+		else
+			-- Landscape map: landscape orientations are 0° and 180°
+			-- Boundaries at 90° and 270°
+			newRot = (PI * mathFloor((roty / PI) + 0.5)) % TWOPI
+			-- Distance from nearest boundary (90° or 270°)
+			distFromBoundary = math.abs((roty % PI) - HALFPI)
+		end
+		-- Hysteresis: only flip when camera is well past the midpoint boundary
+		if prevSnap ~= nil and newRot ~= prevSnap then
+			if distFromBoundary < AUTOFIT_HYSTERESIS then
+				return  -- too close to boundary, keep current orientation
+			end
+		end
+		if newRot ~= prevSnap then
+			prevSnap = newRot
+			spSetMiniRot(newRot)
+		end
+		return
+	end
+
+	if mode == CameraRotationModes.none then return end
 	local newRot
 	if mode == CameraRotationModes.autoFlip then
 		newRot = PI * mathFloor((roty/PI) + 0.5)
 	elseif mode == CameraRotationModes.autoRotate then
 		newRot = HALFPI * (mathFloor((roty/HALFPI) + 0.5) % 4)
 	end
-	if newRot ~= prevSnap then
+	if newRot and newRot ~= prevSnap then
 		prevSnap = newRot
 		spSetMiniRot(newRot)
 	end
