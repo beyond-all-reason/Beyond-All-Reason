@@ -508,6 +508,7 @@ local pipTV = {
 		visitedAreas = {},        -- Recently visited positions for variety [{x,z,time}]
 		visitedCount = 0,
 		idle = true,              -- No interesting events yet
+		peakActivity = 0,         -- Highest hotspot weight seen so far (tracks game intensity)
 	},
 
 	-- Camera controller: manages HOW to move the camera (smooth interpolation)
@@ -519,6 +520,9 @@ local pipTV = {
 		savedWcx = nil,  -- Saved camera before TV mode
 		savedWcz = nil,
 		savedZoom = nil,
+		directorTimer = 0,   -- Throttle director ticks (runs at ~7 Hz, not every frame)
+		lastPublishX = 0,    -- Last published camera X for WG.pipTVFocus (reduce writes)
+		lastPublishZ = 0,    -- Last published camera Z
 	},
 }
 
@@ -546,8 +550,8 @@ function pipTV.AddEvent(x, z, weight, eventType)
 end
 
 -- TV Mode: Rebuild hotspot clusters from recent events
-function pipTV.BuildHotspots()
-	local now = os.clock()
+-- @param now: cached os.clock() from caller to avoid redundant system call
+function pipTV.BuildHotspots(now)
 	local decayTime = config.tvEventDecayTime
 	local radius = config.tvHotspotRadius
 	local radiusSq = radius * radius
@@ -612,10 +616,13 @@ function pipTV.BuildHotspots()
 end
 
 -- TV Mode: Calculate variety bonus (areas not recently visited get a boost)
-function pipTV.GetVarietyBonus(x, z)
+-- Optimized: pre-compute squared threshold, sqrt only for entries that pass
+-- @param now: cached os.clock() from caller
+function pipTV.GetVarietyBonus(x, z, now)
 	local visited = pipTV.director.visitedAreas
-	local now = os.clock()
 	local maxPenalty = 0
+	local varietyRadius = config.tvHotspotRadius * 2
+	local varietyRadiusSq = varietyRadius * varietyRadius
 	for i = 1, pipTV.director.visitedCount do
 		local v = visited[i]
 		if v then
@@ -623,10 +630,11 @@ function pipTV.GetVarietyBonus(x, z)
 			if age < 30 then  -- 30s memory for visited areas
 				local dx = v.x - x
 				local dz = v.z - z
-				local dist = math.sqrt(dx * dx + dz * dz)
-				if dist < config.tvHotspotRadius * 2 then
-					-- Closer and more recent = more penalty
-					local distFactor = 1 - math.min(1, dist / (config.tvHotspotRadius * 2))
+				local distSq = dx * dx + dz * dz
+				if distSq < varietyRadiusSq then
+					-- Closer and more recent = more penalty (sqrt only on hit)
+					local dist = math.sqrt(distSq)
+					local distFactor = 1 - (dist / varietyRadius)
 					local timeFactor = 1 - (age / 30)
 					local penalty = distFactor * timeFactor
 					if penalty > maxPenalty then maxPenalty = penalty end
@@ -660,8 +668,24 @@ function pipTV.DirectorTick(dt)
 	local now = os.clock()
 	local dir = pipTV.director
 
-	-- Rebuild hotspots from recent events
-	pipTV.BuildHotspots()
+	-- Rebuild hotspots from recent events (pass cached clock to avoid redundant syscall)
+	pipTV.BuildHotspots(now)
+
+	-- Early game ramp: blend of time and activity level
+	-- Time factor: 0→1 over first 2 minutes (baseline)
+	-- Activity factor: 0→1 as peak hotspot weight reaches combat levels (~10+)
+	-- Use whichever is higher — so early fights on small maps instantly ramp up
+	local gameFrame = Spring.GetGameFrame()
+	local timeFactor = math.min(1, gameFrame / (30 * 60 * 2))  -- 0→1 over 2 minutes
+
+	-- Track peak activity across all current hotspots
+	for i = 1, pipTV.hotspotCount do
+		local hw = pipTV.hotspots[i].weight
+		if hw > dir.peakActivity then dir.peakActivity = hw end
+	end
+	-- Activity ramp: light skirmishes (weight ~5) → 0.5, real combat (weight ~10+) → 1.0
+	local activityFactor = math.min(1, dir.peakActivity / 10)
+	local gameMinutes = math.max(timeFactor, activityFactor)
 
 	-- Helper: check if a position is too close to another PIP's TV focus or planned target
 	-- Returns a multiplier 0..1 (0 = fully overlapping, 1 = no overlap)
@@ -669,49 +693,53 @@ function pipTV.DirectorTick(dt)
 	-- Higher-numbered PIPs use a larger exclusion radius to stay further away
 	local pipRole = pipNumber or 0  -- pip0 (minimap) = main camera, pip1+ = B-roll cameras
 	local coordRadiusMult = 4 + pipRole * 2  -- pip0: 4x, pip1: 6x, pip2: 8x, pip3: 10x
+	-- Pre-compute squared radii to avoid sqrt in distance comparisons
+	local hotspotRadiusSq = config.tvHotspotRadius * config.tvHotspotRadius
+	local coordRadius = config.tvHotspotRadius * coordRadiusMult
+	local coordRadiusSq = coordRadius * coordRadius
+	local nearbyDriftRadiusSq = (config.tvHotspotRadius * 1.5) * (config.tvHotspotRadius * 1.5)
 	local function getCoordinationFactor(x, z)
 		local tvFoci = WG.pipTVFocus
 		if not tvFoci then return 1 end
 		local worstFactor = 1
-		local coordRadius = config.tvHotspotRadius * coordRadiusMult
 		for otherPip, focus in pairs(tvFoci) do
 			if otherPip ~= pipNumber then
 				-- Higher-numbered PIPs yield harder to lower-numbered ones
 				local yieldBonus = (otherPip < (pipNumber or 1)) and 1.0 or 0.7
 
 				-- PRIMARY CHECK: Is this hotspot inside what the other PIP is actually showing?
-				-- Uses the real camera position + zoom-derived view radius, updated every frame
+				-- Uses the real camera position + zoom-derived view radius
 				if focus.camX and focus.viewRadius then
 					local cdx = x - focus.camX
 					local cdz = z - focus.camZ
-					local cdist = math.sqrt(cdx * cdx + cdz * cdz)
-					local vr = focus.viewRadius * (1 + pipRole * 0.3)  -- B-roll PIPs use wider exclusion
-					if cdist < vr then
-						-- Inside the other PIP's view — heavy penalty, scaled by how centered it is
-						local overlap = 1 - (cdist / vr)
+					local cdistSq = cdx * cdx + cdz * cdz
+					local vr = focus.viewRadius * (1 + pipRole * 0.3)
+					if cdistSq < vr * vr then
+						-- Inside the other PIP's view — sqrt only needed for overlap ratio
+						local overlap = 1 - (math.sqrt(cdistSq) / vr)
 						local penalty = overlap * overlap * yieldBonus
-						local penalized = 1 - penalty * 0.98  -- Up to 98% score reduction
+						local penalized = 1 - penalty * 0.98
 						if penalized < worstFactor then worstFactor = penalized end
 					end
 				end
 
-				-- SECONDARY CHECK: Director target focus (for when camera hasn't arrived yet)
+				-- SECONDARY CHECK: Director target focus (squared distance, sqrt only on hit)
 				local fdx = x - focus.x
 				local fdz = z - focus.z
-				local fdist = math.sqrt(fdx * fdx + fdz * fdz)
-				if fdist < coordRadius then
-					local overlap = 1 - (fdist / coordRadius)
+				local fdistSq = fdx * fdx + fdz * fdz
+				if fdistSq < coordRadiusSq then
+					local overlap = 1 - (math.sqrt(fdistSq) / coordRadius)
 					local factor = overlap * overlap * yieldBonus
 					local penalized = 1 - factor * 0.97
 					if penalized < worstFactor then worstFactor = penalized end
 				end
-				-- Also check planned target (where the other PIP intends to go next)
+				-- Also check planned target (squared distance, sqrt only on hit)
 				if focus.plannedX then
 					local pdx = x - focus.plannedX
 					local pdz = z - focus.plannedZ
-					local pdist = math.sqrt(pdx * pdx + pdz * pdz)
-					if pdist < coordRadius then
-						local overlap = 1 - (pdist / coordRadius)
+					local pdistSq = pdx * pdx + pdz * pdz
+					if pdistSq < coordRadiusSq then
+						local overlap = 1 - (math.sqrt(pdistSq) / coordRadius)
 						local factor = overlap * overlap * yieldBonus
 						local penalized = 1 - factor * 0.85
 						if penalized < worstFactor then worstFactor = penalized end
@@ -736,7 +764,8 @@ function pipTV.DirectorTick(dt)
 
 	-- Check if it's time for a periodic overview shot
 	-- Stagger overview timing per PIP so they don't all overview simultaneously
-	local overviewInterval = config.tvOverviewInterval + (pipNumber or 0) * 3
+	-- Early game: overview every ~6s instead of every ~18s, scaling up as game progresses
+	local overviewInterval = (config.tvOverviewInterval * (0.3 + 0.7 * gameMinutes)) + (pipNumber or 0) * 3
 	local timeSinceOverview = now - dir.lastOverviewTime
 	if timeSinceOverview >= overviewInterval and not dir.isOverviewShot then
 		dir.isOverviewShot = true
@@ -791,8 +820,10 @@ function pipTV.DirectorTick(dt)
 					dir.currentWeight = bestH.weight
 				end
 				-- Calculate zoom based on weight: heavier events = closer
+				-- Early game: stay more zoomed out
+				local cooldownWeightForZoom = dir.currentWeight / (15 + (1 - gameMinutes) * 25)
 				local zoom = config.tvOverviewZoom + (config.tvCloseupZoom - config.tvOverviewZoom) *
-					math.min(1, dir.currentWeight / 15)
+					math.min(1, cooldownWeightForZoom)
 				zoom = math.min(zoom, config.tvMaxZoom)
 				return dir.currentHotspotX, dir.currentHotspotZ, zoom
 			end
@@ -828,17 +859,17 @@ function pipTV.DirectorTick(dt)
 
 		-- Variety bonus: areas we haven't visited recently score higher
 		-- Higher PIPs get stronger variety bonus to roam more
-		score = score + pipTV.GetVarietyBonus(h.x, h.z) * (1 + pipRole * 0.5)
+		score = score + pipTV.GetVarietyBonus(h.x, h.z, now) * (1 + pipRole * 0.5)
 
 		-- Cross-PIP coordination: heavily penalize hotspots watched by another PIP
 		score = score * getCoordinationFactor(h.x, h.z)
 
 		-- Penalty for being too close to current focus (encourage switching)
+		-- Uses squared distance to avoid sqrt
 		if dir.currentHotspotX and focusTime > config.tvFocusDuration then
 			local dx = h.x - dir.currentHotspotX
 			local dz = h.z - dir.currentHotspotZ
-			local dist = math.sqrt(dx * dx + dz * dz)
-			if dist < config.tvHotspotRadius then
+			if dx * dx + dz * dz < hotspotRadiusSq then
 				score = score * 0.5  -- Penalize staying on same spot too long
 			end
 		end
@@ -887,12 +918,12 @@ function pipTV.DirectorTick(dt)
 	if shouldSwitch then
 		-- Proximity check: if the new target is close to current, just drift there
 		-- without resetting focus timer (avoids unnecessary "switch" churn)
+		-- Uses pre-computed nearbyDriftRadiusSq to avoid sqrt
 		local isNearbyDrift = false
 		if dir.currentHotspotX then
 			local sdx = bestH.x - dir.currentHotspotX
 			local sdz = bestH.z - dir.currentHotspotZ
-			local switchDist = math.sqrt(sdx * sdx + sdz * sdz)
-			if switchDist < config.tvHotspotRadius * 1.5 then
+			if sdx * sdx + sdz * sdz < nearbyDriftRadiusSq then
 				isNearbyDrift = true
 			end
 		end
@@ -900,10 +931,13 @@ function pipTV.DirectorTick(dt)
 		dir.currentHotspotX = bestH.x
 		dir.currentHotspotZ = bestH.z
 		dir.currentWeight = bestH.weight
+		-- Always reset lastSwitchTime to enforce cooldown even for nearby drifts.
+		-- Without this, two close hotspots trading "best" score ping-pong every
+		-- director tick (~0.15s) because the cooldown check never triggers.
+		dir.lastSwitchTime = now
 		if not isNearbyDrift then
-			-- Full switch: reset timers, record visit
+			-- Full switch: also reset focus timer and record visit
 			dir.focusStartTime = now
-			dir.lastSwitchTime = now
 			pipTV.RecordVisit(bestH.x, bestH.z)
 		end
 		-- Update shared focus for cross-PIP coordination
@@ -928,8 +962,10 @@ function pipTV.DirectorTick(dt)
 	end
 
 	-- Calculate zoom based on weight: heavier hotspot = zoom in closer
+	-- Early game: stay more zoomed out (need more weight to zoom in)
+	local weightForZoom = dir.currentWeight / (15 + (1 - gameMinutes) * 25)  -- early: need ~40 weight for max zoom
 	local zoom = config.tvOverviewZoom + (config.tvCloseupZoom - config.tvOverviewZoom) *
-		math.min(1, dir.currentWeight / 15)
+		math.min(1, weightForZoom)
 	zoom = math.min(zoom, config.tvMaxZoom)
 
 	return dir.currentHotspotX, dir.currentHotspotZ, zoom
@@ -940,37 +976,58 @@ end
 function pipTV.CameraUpdate(dt)
 	if not pipTV.camera.active then return end
 
-	local tx, tz, tzoom = pipTV.DirectorTick(dt)
-	if tx then
-		pipTV.camera.targetX = tx
-		pipTV.camera.targetZ = tz
-		pipTV.camera.targetZoom = math.max(tzoom, GetEffectiveZoomMin())
+	-- Throttle director: run heavy decision-making (hotspot clustering + scoring) at ~7 Hz
+	-- Camera interpolation still runs every frame for smooth movement
+	local cam = pipTV.camera
+	cam.directorTimer = cam.directorTimer + dt
+	if cam.directorTimer >= 0.15 then
+		cam.directorTimer = 0
+		local tx, tz, tzoom = pipTV.DirectorTick(dt)
+		if tx then
+			cam.targetX = tx
+			cam.targetZ = tz
+			local newZoom = math.max(tzoom, GetEffectiveZoomMin())
+			-- Low-pass filter on zoom target: blend 60% toward the new value per director tick.
+			-- This prevents momentary weight spikes (big explosion → decay) from causing
+			-- abrupt zoom target jumps that the camera then has to chase and reverse.
+			-- Takes ~3 director ticks (~0.45s) to converge on a sustained change.
+			if cam.targetZoom then
+				cam.targetZoom = cam.targetZoom + (newZoom - cam.targetZoom) * 0.6
+			else
+				cam.targetZoom = newZoom
+			end
+		end
 	end
 
 	-- Smoothly interpolate camera position and zoom toward director targets
 	-- Uses exponential smoothing (1 - exp(-dt * speed)) which is frame-rate independent
 	-- and produces clean deceleration without stepping artifacts at the tail end
-	if pipTV.camera.targetX then
-		local dx = pipTV.camera.targetX - cameraState.targetWcx
-		local dz = pipTV.camera.targetZ - cameraState.targetWcz
-		local dist = math.sqrt(dx * dx + dz * dz)
-		local dZoom = pipTV.camera.targetZoom - cameraState.targetZoom
+	if cam.targetX then
+		local dx = cam.targetX - cameraState.targetWcx
+		local dz = cam.targetZ - cameraState.targetWcz
+		local distSq = dx * dx + dz * dz
+		local dZoom = cam.targetZoom - cameraState.targetZoom
 
-		-- Position smoothing
-		if dist < 1 then
-			cameraState.targetWcx = pipTV.camera.targetX
-			cameraState.targetWcz = pipTV.camera.targetZ
+		-- Position smoothing (use distSq to avoid sqrt)
+		if distSq < 1 then
+			cameraState.targetWcx = cam.targetX
+			cameraState.targetWcz = cam.targetZ
 		else
 			local panFactor = 1 - math.exp(-dt * config.tvPanSpeed)
 			cameraState.targetWcx = cameraState.targetWcx + dx * panFactor
 			cameraState.targetWcz = cameraState.targetWcz + dz * panFactor
 		end
 
-		-- Zoom smoothing
+		-- Zoom smoothing (asymmetric: zoom-in is responsive, zoom-out is gentle)
+		-- Prevents the "zoom in far then snap back out" artifact when hotspot weight
+		-- spikes temporarily from an explosion then decays
 		if math.abs(dZoom) < 0.0005 then
-			cameraState.targetZoom = pipTV.camera.targetZoom
+			cameraState.targetZoom = cam.targetZoom
 		else
-			local zoomFactor = 1 - math.exp(-dt * config.tvZoomSpeed)
+			-- dZoom > 0 means zooming in (higher zoom = closer), use normal speed
+			-- dZoom < 0 means zooming out, use 35% speed for a graceful pullback
+			local speed = dZoom > 0 and config.tvZoomSpeed or (config.tvZoomSpeed * 0.35)
+			local zoomFactor = 1 - math.exp(-dt * speed)
 			cameraState.targetZoom = cameraState.targetZoom + dZoom * zoomFactor
 		end
 
@@ -1012,16 +1069,19 @@ function pipTV.CameraUpdate(dt)
 		cameraState.wcz = cameraState.targetWcz
 	end
 
-	-- Continuously publish actual camera position + view radius so other PIPs know
-	-- exactly what this PIP is currently showing on screen
+	-- Publish actual camera position + view radius for cross-PIP coordination
+	-- Only update when position changed significantly (>50 world units) to reduce table writes
 	if WG.pipTVFocus and WG.pipTVFocus[pipNumber] then
-		WG.pipTVFocus[pipNumber].camX = cameraState.targetWcx
-		WG.pipTVFocus[pipNumber].camZ = cameraState.targetWcz
-		-- View radius scales inversely with zoom: lower zoom = showing more map
-		-- At zoom 0.1 (overview) the camera sees ~4000+ units of map
-		-- At zoom 0.5 (closeup) the camera sees ~1000 units
-		local zoom = cameraState.targetZoom or 0.15
-		WG.pipTVFocus[pipNumber].viewRadius = 1200 / math.max(zoom, 0.05)
+		local pubDx = cameraState.targetWcx - cam.lastPublishX
+		local pubDz = cameraState.targetWcz - cam.lastPublishZ
+		if pubDx * pubDx + pubDz * pubDz > 2500 then  -- 50^2
+			cam.lastPublishX = cameraState.targetWcx
+			cam.lastPublishZ = cameraState.targetWcz
+			WG.pipTVFocus[pipNumber].camX = cameraState.targetWcx
+			WG.pipTVFocus[pipNumber].camZ = cameraState.targetWcz
+			local zoom = cameraState.targetZoom or 0.15
+			WG.pipTVFocus[pipNumber].viewRadius = 1200 / math.max(zoom, 0.05)
+		end
 	end
 end
 
@@ -13502,6 +13562,13 @@ end
 cache.ghostCleanupTimer = 0
 
 function widget:Update(dt)
+	-- Skip ALL heavy processing when minimized and not animating.
+	-- DrawScreen/DrawWorld already return early when minimized, so ghost cleanup,
+	-- TV camera, zoom interpolation, hover detection, etc. are pure waste.
+	if uiState.inMinMode and not uiState.isAnimating then
+		return
+	end
+
 	-- Periodic ghost building cleanup: remove ghosts whose position is now in LOS
 	-- The draw-path check only catches ghosts within the PIP viewport; this catches all of them
 	local cleanupAllyTeam
@@ -14008,8 +14075,11 @@ function widget:Update(dt)
 		else
 			pipTV.camera.lastUserInteraction = nil
 			pipTV.CameraUpdate(dt)
-			-- TV mode always needs content update since camera is continuously moving
-			pipR2T.contentNeedsUpdate = true
+			-- NOTE: We intentionally do NOT set pipR2T.contentNeedsUpdate = true here.
+			-- The oversized texture + UV-drift system handles camera movement smoothly,
+			-- re-rendering only when camera drift exceeds the texture margin (~70% consumed).
+			-- Forcing contentNeedsUpdate every frame would bypass this optimization and
+			-- cause expensive full R2T re-renders at 60fps instead of ~3-5fps.
 		end
 	end
 
@@ -14575,9 +14645,11 @@ function widget:CrashingAircraft(unitID, unitDefID, teamID)
 	miscState.crashingUnits[unitID] = true
 	selfDUnits[unitID] = nil
 	
-	-- Create shatter effect with unit's current velocity
-	local vx, vy, vz = Spring.GetUnitVelocity(unitID)
-	CreateIconShatter(unitID, unitDefID, teamID, vx, vz)
+	-- Create shatter effect with unit's current velocity (skip when minimized)
+	if not uiState.inMinMode then
+		local vx, vy, vz = Spring.GetUnitVelocity(unitID)
+		CreateIconShatter(unitID, unitDefID, teamID, vx, vz)
+	end
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
@@ -14597,7 +14669,8 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	end
 
 	-- Create shatter effect for non-crashing units (crashing units already shattered in CrashingAircraft)
-	if not miscState.crashingUnits[unitID] then
+	-- Skip when minimized — nothing is being drawn, shatters would be wasted
+	if not miscState.crashingUnits[unitID] and not uiState.inMinMode then
 		-- Get unit velocity so shatter fragments carry the unit's momentum
 		local vx, vy, vz = Spring.GetUnitVelocity(unitID)
 		CreateIconShatter(unitID, unitDefID, unitTeam, vx, vz)
@@ -14822,6 +14895,7 @@ end
 -- UnitEnteredLos is only called for non-allied units entering the local player's LOS
 -- We record the building's position so we can draw its icon when it leaves LOS
 function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
+	if uiState.inMinMode then return end  -- Skip damage flash + TV events when not visible
 	if damage <= 0 then return end
 	if paralyzer then damage = damage * 0.1 end  -- paralyzer visually counts for 1/10th
 	local maxHP = UnitDefs[unitDefID] and UnitDefs[unitDefID].health or 1
