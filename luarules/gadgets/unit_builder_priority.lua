@@ -75,6 +75,7 @@ local spGetTeamResources = Spring.GetTeamResources
 local spGetTeamList = Spring.GetTeamList
 local spSetUnitRulesParam = Spring.SetUnitRulesParam
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
+local spGetTeamRulesParam = Spring.GetTeamRulesParam
 local spSetUnitBuildSpeed = Spring.SetUnitBuildSpeed
 local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
 local spValidUnitID = Spring.ValidUnitID
@@ -204,7 +205,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
     -- track which cons are set to passive
     if canPassive[unitDefID] then
         local cmdIdx = spFindUnitCmdDesc(unitID, CMD_PRIORITY)
-        local suspend = Spring.GetTeamRulesParam(teamID, "suspendbuilderpriority") or 0
+        local suspend = spGetTeamRulesParam(teamID, "suspendbuilderpriority") or 0
         if cmdIdx and suspend == 0 then
             local cmdDesc = spGetUnitCmdDescs(unitID, cmdIdx, cmdIdx)[1]
             cmdDesc.params[1] = cmdParams[1]
@@ -236,7 +237,7 @@ local function UpdatePassiveBuilders(teamID, interval)
 	end
 
 	local passiveTeamCons = passiveCons[teamID]
-	suspendBuilderPriority = Spring.GetTeamRulesParam(teamID, "suspendbuilderpriority")
+	suspendBuilderPriority = spGetTeamRulesParam(teamID, "suspendbuilderpriority")
 
 	if suspendBuilderPriority ~= 0 then
 		return
@@ -373,7 +374,7 @@ function gadget:GameFrame(n)
 	for teamID, owners in pairs(buildTargetOwnersByTeam) do
 		for builderID, builtUnit in pairs(owners) do
 			if spValidUnitID(builderID) and spGetUnitIsBuilding(builderID) == builtUnit then
-				local suspend = Spring.GetTeamRulesParam(teamID, "suspendbuilderpriority")
+				local suspend = spGetTeamRulesParam(teamID, "suspendbuilderpriority")
 				if not isTeamSavingMetal(teamID) and suspend == 0 then
 					local buildSpeed = currentBuildSpeed[builderID] or realBuildSpeed[builderID]
 					if buildSpeed then

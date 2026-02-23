@@ -18,8 +18,6 @@ return {
 		explodeas = "smallexplosiongeneric-builder",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 630,
 		maxslope = 20,
 		speed = 39,

@@ -1,14 +1,21 @@
 --[[
 EventName = {
-	delay = integrer - Minimum seconds that have to pass to play this notification again.
-	stackedDelay = bool - Reset the delay even when attempted to play the notif under cooldown. 
-							Useful for stuff you want to be able to hear often, but not repeatedly if the condition didn't change.
-	resetOtherEventDelay = table - Names of other events that will get it's delay reset. 
-							For example, UnitLost, is a general notif for losing units, but we have MetalExtractorLost, or RadarLost. I want those to reset UnitLost as well.
-	soundEffect = string - Sound Effect to play alongside the notification, located in 'sounds/voice-soundeffects'
-	notext = bool - hide the text part of the notification
-	notifText = string - This is intended for custom widgets that cannot write I18N directly, overrides the I18N visible text.
-	tutorial = bool - Sound effect used for the tutorial messages, there's a whole different handling of those. (WIP)
+	Regular stuff:
+		delay = integrer - Minimum seconds that have to pass to play this notification again.
+		stackedDelay = bool - Reset the delay even when attempted to play the notif under cooldown. 
+								Useful for stuff you want to be able to hear often, but not repeatedly if the condition didn't change.
+		resetOtherEventDelay = table of strings - Names of other events that will get it's delay reset. 
+								For example, UnitLost, is a general notif for losing units, but we have MetalExtractorLost, or RadarLost. I want those to reset UnitLost as well.
+		soundEffect = string - Sound Effect to play alongside the notification, located in 'sounds/voice-soundeffects'
+		notext = bool - hide the text part of the notification
+		notifText = string - This is intended for custom widgets that cannot write I18N directly, overrides the I18N visible text.
+		tutorial = bool - Sound effect used for the tutorial messages, there's a whole different handling of those. (WIP)
+
+	Conditional Rules: 
+		rulesEnable = table of strings - List of rules this notif will enable
+		rulesDisable = table of strings - List of rules this notif will disable
+		rulesPlayOnlyIfEnabled = table of strings - List of rules that are required to be enabled for this notification to work
+		rulesPlayOnlyIfDisabled = table of strings - List of rules that are required to be disabled for this notification to work
 }
 ]]
 
@@ -380,54 +387,71 @@ return {
 	},
 
 	-- Unit Ready
-	RagnarokIsReady = {
+	["UnitReady/RagnarokIsReady"] = {
 		delay = 120,
 		stackedDelay = true,
 	},
-	CalamityIsReady = {
+	["UnitReady/CalamityIsReady"] = {
 		delay = 120,
 		stackedDelay = true,
 	},
-	StarfallIsReady = {
+	["UnitReady/StarfallIsReady"] = {
 		delay = 120,
 		stackedDelay = true,
 	},
-	AstraeusIsReady = {
+	["UnitReady/AstraeusIsReady"] = {
 		delay = 120,
 		stackedDelay = true,
 	},
-	SolinvictusIsReady = {
+	["UnitReady/SolinvictusIsReady"] = {
 		delay = 120,
 		stackedDelay = true,
 	},
-	TitanIsReady = {
+	["UnitReady/TitanIsReady"] = {
 		delay = 120,
 		stackedDelay = true,
 	},
-	ThorIsReady = {
+	["UnitReady/ThorIsReady"] = {
 		delay = 120,
 		stackedDelay = true,
 	},
-	JuggernautIsReady = {
+	["UnitReady/JuggernautIsReady"] = {
 		delay = 120,
 		stackedDelay = true,
 	},
-	BehemothIsReady = {
+	["UnitReady/BehemothIsReady"] = {
 		delay = 120,
 		stackedDelay = true,
 	},
-	FlagshipIsReady = {
+	["UnitReady/FlagshipIsReady"] = {
 		delay = 120,
 		stackedDelay = true,
 	},
-	Tech2UnitReady = {
+	["UnitReady/FusionIsReady"] = {
+		delay = 120,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"AdvancedFusionIsReady"},
+	},
+	["UnitReady/AdvancedFusionIsReady"] = {
+		delay = 120,
+		stackedDelay = true,
+		rulesEnable = {"AdvancedFusionIsReady"},
+	},
+	["UnitReady/NuclearSiloIsReady"] = {
+		delay = 120,
+		stackedDelay = true,
+	},
+	["UnitReady/Tech2UnitReady"] = {
 		delay = 9999999,
+		rulesEnable = {"PlayerHasTech2"},
 	},
-	Tech3UnitReady = {
+	["UnitReady/Tech3UnitReady"] = {
 		delay = 9999999,
+		rulesEnable = {"PlayerHasTech2", "PlayerHasTech3"},
 	},
-	Tech4UnitReady = {
+	["UnitReady/Tech4UnitReady"] = {
 		delay = 9999999,
+		rulesEnable = {"PlayerHasTech2", "PlayerHasTech3","PlayerHasTech4"},
 	},
 	Tech2TeamReached = {
 		delay = 9999999,
@@ -440,103 +464,365 @@ return {
 	},
 
 	-- Units Detected
-	Tech2UnitDetected = {
+	["UnitDetected/Tech2UnitDetected"] = {
 		delay = 9999999,
+		rulesEnable = {"Tech2UnitDetected"},
 	},
-	Tech3UnitDetected = {
+	["UnitDetected/Tech3UnitDetected"] = {
 		delay = 9999999,
+		rulesEnable = {"Tech2UnitDetected", "Tech3UnitDetected"},
 	},
-	Tech4UnitDetected = {
+	["UnitDetected/Tech4UnitDetected"] = {
 		delay = 9999999,
+		rulesEnable = {"Tech2UnitDetected", "Tech3UnitDetected", "Tech4UnitDetected"},
 	},
-	EnemyDetected = {
+	--FatboyDetected = {
+	--	delay = 300,
+	--	stackedDelay = true,
+	--	rulesPlayOnlyIfDisabled = {"Tech3UnitDetected", "Tech4UnitDetected"},
+	--},
+
+	-- Generic Detected
+	["UnitDetected/EnemyDetected"] = {
 		delay = 120,
 		stackedDelay = true,
 	},
-	AircraftDetected = {
+	["UnitDetected/AircraftDetected"] = {
 		delay = 120,
 		stackedDelay = true,
 	},
-	MinesDetected = {
-		delay = 60,
+	["UnitDetected/AirTransportDetected"] = {
+		delay = 120,
 		stackedDelay = true,
 	},
-	StealthyUnitsDetected = {
+	["UnitDetected/DroneDetected"] = {
+		delay = 120,
+		stackedDelay = true,
+	},
+
+	-- Game Enders - 30 sec delay
+	["UnitDetected/NuclearSiloDetected"] = {
 		delay = 30,
 		stackedDelay = true,
 	},
-	LrpcDetected = {
-		delay = 25,
+	["UnitDetected/CalamityDetected"] = {
+		delay = 30,
 		stackedDelay = true,
 	},
-	EmpSiloDetected = {
-		delay = 25,
+	["UnitDetected/RagnarokDetected"] = {
+		delay = 30,
 		stackedDelay = true,
 	},
-	TacticalNukeSiloDetected = {
-		delay = 25,
+	["UnitDetected/StarfallDetected"] = {
+		delay = 30,
 		stackedDelay = true,
 	},
-	LongRangeNapalmLauncherDetected = {
-		delay = 25,
+
+	-- Urgent Generic - 30 sec delay
+	["UnitDetected/MinesDetected"] = {
+		delay = 30,
 		stackedDelay = true,
 	},
-	NuclearSiloDetected = {
-		delay = 25,
+	["UnitDetected/StealthyUnitsDetected"] = {
+		delay = 30,
 		stackedDelay = true,
 	},
-	CalamityDetected = {
-		delay = 25,
+	["UnitDetected/LrpcDetected"] = {
+		delay = 30,
 		stackedDelay = true,
 	},
-	RagnarokDetected = {
-		delay = 25,
+	["UnitDetected/EmpSiloDetected"] = {
+		delay = 30,
 		stackedDelay = true,
 	},
-	StarfallDetected = {
-		delay = 25,
+	["UnitDetected/TacticalNukeSiloDetected"] = {
+		delay = 30,
 		stackedDelay = true,
 	},
-	NuclearBomberDetected = {
-		delay = 60,
+	["UnitDetected/LongRangeNapalmLauncherDetected"] = {
+		delay = 30,
 		stackedDelay = true,
 	},
-	BehemothDetected = {
+
+	-- Tech 4 - 120 sec delay
+
+	-- Tech 3.5 - 120 sec delay
+	-- Armada
+	["UnitDetected/TitanDetected"] = {
 		delay = 120,
 		stackedDelay = true,
+		rulesEnable = {"Tech3-5UnitDetected"},
 	},
-	SolinvictusDetected = {
+	["UnitDetected/ThorDetected"] = {
 		delay = 120,
 		stackedDelay = true,
+		rulesEnable = {"Tech3-5UnitDetected"},
 	},
-	JuggernautDetected = {
+	-- Cortex
+	["UnitDetected/JuggernautDetected"] = {
 		delay = 120,
 		stackedDelay = true,
+		rulesEnable = {"Tech3-5UnitDetected"},
 	},
-	TitanDetected = {
+	["UnitDetected/BehemothDetected"] = {
 		delay = 120,
 		stackedDelay = true,
+		rulesEnable = {"Tech3-5UnitDetected"},
 	},
-	ThorDetected = {
+	-- Legion
+	["UnitDetected/SolinvictusDetected"] = {
 		delay = 120,
 		stackedDelay = true,
+		rulesEnable = {"Tech3-5UnitDetected"},
 	},
-	FlagshipDetected = {
+	["UnitDetected/AstraeusDetected"] = {
 		delay = 120,
 		stackedDelay = true,
+		rulesEnable = {"Tech3-5UnitDetected"},
 	},
-	AstraeusDetected = {
-		delay = 120,
+
+	-- Tech 3 - 180 sec delay
+	-- Armada
+	["UnitDetected/RazorbackDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	["UnitDetected/MarauderDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	["UnitDetected/VanguardDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	["UnitDetected/LunkheadDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	["UnitDetected/EpochDetected"] = { -- Flagships should be considered T3 for this context, despite being built from T2 factory.
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	-- Cortex
+	["UnitDetected/DemonDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	["UnitDetected/ShivaDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	["UnitDetected/CataphractDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	["UnitDetected/KarganethDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	["UnitDetected/CatapultDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	["UnitDetected/BlackHydraDetected"] = { -- Flagships should be considered T3 for this context, despite being built from T2 factory.
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	-- Legion
+	["UnitDetected/PraetorianDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	["UnitDetected/JavelinDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	["UnitDetected/MyrmidonDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	["UnitDetected/KeresDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	["UnitDetected/CharybdisDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	["UnitDetected/DaedalusDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	["UnitDetected/NeptuneDetected"] = { -- Flagships should be considered T3 for this context, despite being built from T2 factory.
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	["UnitDetected/CorinthDetected"] = { -- Flagships should be considered T3 for this context, despite being built from T2 factory.
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech4UnitDetected"},
+		rulesEnable = {"Tech3UnitDetected"},
+	},
+	-- Other
+	["UnitDetected/FlagshipDetected"] = { -- Flagships should be considered T3 for this context, despite being built from T2 factory.
+		delay = 180,
 		stackedDelay = true,
 	},
-	AirTransportDetected = {
-		delay = 120,
+
+	-- Tech 2.5 - 180 sec delay
+	-- Armada
+	["UnitDetected/StarlightDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	["UnitDetected/AmbassadorDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	["UnitDetected/FatboyDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	["UnitDetected/SharpshooterDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	-- Cortex
+	["UnitDetected/MammothDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	["UnitDetected/ArbiterDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	["UnitDetected/TzarDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	["UnitDetected/NegotiatorDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	["UnitDetected/TremorDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	["UnitDetected/BanisherDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	["UnitDetected/DragonDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	-- Legion
+	["UnitDetected/ThanatosDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	["UnitDetected/ArquebusDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	["UnitDetected/IncineratorDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	["UnitDetected/PrometheusDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	["UnitDetected/MedusaDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	["UnitDetected/InfernoDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	["UnitDetected/TyrannusDetected"] = {
+		delay = 180,
+		stackedDelay = true,
+		rulesPlayOnlyIfDisabled = {"Tech3-5UnitDetected", "Tech4UnitDetected"},
+		rulesEnable = {"Tech2-5UnitDetected"},
+	},
+	["UnitDetected/LicheDetected"] = { -- Scary one, so shorter delay
+		delay = 30,
 		stackedDelay = true,
 	},
-	DroneDetected = {
-		delay = 120,
-		stackedDelay = true,
-	},
+
+	-- Tech 2 - 240 sec delay
 
 	-- Lava
 	LavaRising = {
@@ -556,68 +842,6 @@ return {
 		delay = 0,
 		notext = true,
 	},
-	BuildMetal = {
-		delay = 9999999,
-		tutorial = true,
-	},
-	BuildEnergy = {
-		delay = 9999999,
-		tutorial = true,
-	},
-	BuildFactory = {
-		delay = 9999999,
-		tutorial = true,
-	},
-	BuildRadar = {
-		delay = 9999999,
-		tutorial = true,
-	},
-	FactoryAir = {
-		delay = 9999999,
-		tutorial = true,
-	},
-	FactoryAirplanes = {
-		delay = 9999999,
-		tutorial = true,
-	},
-	FactoryBots = {
-		delay = 9999999,
-		tutorial = true,
-	},
-	FactoryHovercraft = {
-		delay = 9999999,
-		tutorial = true,
-	},
-	FactoryVehicles = {
-		delay = 9999999,
-		tutorial = true,
-	},
-	FactoryShips = {
-		delay = 9999999,
-		tutorial = true,
-	},
-	ReadyForTech2 = {
-		delay = 9999999,
-		tutorial = true,
-	},
-	BuildIntrusionCounterMeasure = {
-		delay = 9999999,
-		tutorial = true,
-	},
-	-- UpgradeMexT2 = {
-	-- 	delay = 9999999,
-	-- 	tutorial = true,
-	-- },
-	-- for the future
-	DuplicateFactory = {
-		delay = 9999999,
-		tutorial = true,
-	},
-	Paralyzer = {
-		delay = 9999999,
-		tutorial = true,
-	},
-
 	-- Raptors/Scavs ----------------------------------------------------------------------
 	["PvE/AntiNukeReminder"] = {
 		delay = 10,

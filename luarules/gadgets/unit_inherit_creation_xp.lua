@@ -83,21 +83,23 @@ end
 
 local initializeList = {}
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	if  builderID and mobileUnits[spGetUnitDefID(unitID)] and string.find(parentsInheritXP[spGetUnitDefID(builderID)], "MOBILEBUILT") then -- only mobile combat units will pass xp
+	local createdDefID = spGetUnitDefID(unitID)
+	local builderDefID = builderID and spGetUnitDefID(builderID)
+	if  builderID and mobileUnits[createdDefID] and string.find(parentsInheritXP[builderDefID], "MOBILEBUILT") then -- only mobile combat units will pass xp
 		childrenWithParents[unitID] = {
 			unitid = unitID,
 			parentunitid = builderID,
 			parentxpmultiplier = calculatePowerDiffXP(unitID, builderID),
-			childinheritsXP = childrenInheritXP[spGetUnitDefID(unitID)],
+			childinheritsXP = childrenInheritXP[createdDefID],
 			childtype = "MOBILEBUILT",
 		}
 	end
-	if  builderID and turretUnits[spGetUnitDefID(unitID)] and string.find(parentsInheritXP[spGetUnitDefID(builderID)], "TURRET") then -- only immobile combat units will pass xp
+	if  builderID and turretUnits[createdDefID] and string.find(parentsInheritXP[builderDefID], "TURRET") then -- only immobile combat units will pass xp
 		childrenWithParents[unitID] = {
 			unitid = unitID,
 			parentunitid = builderID,
 			parentxpmultiplier = calculatePowerDiffXP(unitID, builderID),
-			childinheritsXP = childrenInheritXP[spGetUnitDefID(unitID)],
+			childinheritsXP = childrenInheritXP[createdDefID],
 			childtype = "TURRET",
 		}
 end

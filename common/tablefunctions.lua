@@ -228,7 +228,7 @@ end
 if not table.append then
 	function table.append(appendTarget, appendData)
 		for _, value in pairs(appendData) do
-			table.insert(appendTarget, value)
+			appendTarget[#appendTarget + 1] = value
 		end
 	end
 end

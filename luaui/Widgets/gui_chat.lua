@@ -2000,7 +2000,16 @@ function widget:DrawScreen()
 				gl.DeleteTexture(uiTex)
 				uiTex = nil
 			end
-			rttArea = {consoleActivationArea[1], activationArea[2]+floor(vsy*(scrollingPosY-posY)), consoleActivationArea[3], consoleActivationArea[4]}
+			-- Always use maxLinesScrollFull for texture sizing so the texture is large enough
+			-- regardless of whether maxLinesScroll is currently reduced (e.g. chat input mode = 9 lines)
+			local rttScrollPosY = scrollingPosY
+			if topbarArea then
+				rttScrollPosY = floor(topbarArea[2] - elementMargin - backgroundPadding - backgroundPadding - (lineHeight*maxLinesScrollFull)) / vsy
+			end
+			-- Extra space below for the "show new chat" notification in history mode
+			-- (drawn at scrollingPosY - 0.02 - backgroundPadding, plus the line itself)
+			local notifExtra = floor(0.02 * vsy) + backgroundPadding + lineHeight
+			rttArea = {consoleActivationArea[1], activationArea[2]+floor(vsy*(rttScrollPosY-posY)) - notifExtra, consoleActivationArea[3], consoleActivationArea[4]}
 			local texWidth = mathFloor(rttArea[3]-rttArea[1])
 			local texHeight = mathFloor(rttArea[4]-rttArea[2])
 			if texWidth > 0 and texHeight > 0 then

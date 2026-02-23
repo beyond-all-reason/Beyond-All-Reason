@@ -219,11 +219,17 @@ function gadget:GameFrame(frame)
 			local searchRadius		= SEARCH_RADIUS_OFFSET + buildDefRadius
 
 			-- Use cached cylinder lookup to reduce redundant API calls
-			local cacheKey = ("%.0f_%.0f_%.0f"):format(targetX, targetZ, searchRadius)
-			local interferingUnits = cylinderCache[cacheKey]
+			-- Nested numeric tables avoid string format allocation/GC overhead
+			local cache1 = cylinderCache[targetX]
+			if not cache1 then
+				cache1 = {}
+				cylinderCache[targetX] = cache1
+			end
+			local cacheKey2 = targetZ * 10000 + searchRadius
+			local interferingUnits = cache1[cacheKey2]
 			if not interferingUnits then
 				interferingUnits = spGetUnitsInCylinder(targetX, targetZ, searchRadius)
-				cylinderCache[cacheKey] = interferingUnits
+				cache1[cacheKey2] = interferingUnits
 			end
 
 			-- Escalate the radius every update. We want to send units away the minimum distance, but

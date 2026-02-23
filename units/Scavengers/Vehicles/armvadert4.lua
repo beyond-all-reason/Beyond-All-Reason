@@ -15,8 +15,6 @@ return {
 		firestate = 0,
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 1500000,
 		health = 67000,
 		maxslope = 32,

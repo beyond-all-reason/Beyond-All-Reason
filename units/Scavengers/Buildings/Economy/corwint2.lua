@@ -16,8 +16,6 @@ return {
 		explodeas = "windboom",
 		footprintx = 6,
 		footprintz = 6,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 1990,
 		maxslope = 10,
 		maxwaterdepth = 0,

@@ -213,6 +213,8 @@ local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local vsx, vsy = gl.GetViewSizes()
 local minHeight, maxHeight = Spring.GetGroundExtremes()
 local removedBelowHeight
+local lastLavaLevel
+local lavaCheckInterval = 30 -- check every N game frames
 
 local processChanges = false	-- auto enabled when map has grass or editmode toggles
 
@@ -576,6 +578,17 @@ function widget:GameFrame(gf)
 			removeUnitGrassQueue[unitID] = removeUnitGrassQueue[unitID] - 1
 			if count <= 1 then
 				removeUnitGrassQueue[unitID] = nil
+			end
+		end
+	end
+
+	-- check lava level and remove grass where lava is higher than ground
+	if gf % lavaCheckInterval == 0 then
+		local lavaLevel = Spring.GetGameRulesParam("lavaLevel")
+		if lavaLevel and lavaLevel ~= -99999 and (not lastLavaLevel or lavaLevel > lastLavaLevel) then
+			lastLavaLevel = lavaLevel
+			if WG['grassgl4'] and WG['grassgl4'].removeGrassBelowHeight then
+				WG['grassgl4'].removeGrassBelowHeight(lavaLevel)
 			end
 		end
 	end
@@ -951,6 +964,12 @@ function widget:Initialize()
 	clearMetalspotGrass()
 	if Game.waterDamage > 0 then
 		WG['grassgl4'].removeGrassBelowHeight(20)
+	end
+	-- initial lava check
+	local initLavaLevel = Spring.GetGameRulesParam("lavaLevel")
+	if initLavaLevel and initLavaLevel ~= -99999 then
+		lastLavaLevel = initLavaLevel
+		WG['grassgl4'].removeGrassBelowHeight(initLavaLevel)
 	end
 	widgetHandler:RegisterGlobal('GadgetRemoveGrass', WG['grassgl4'].removeGrass)
 
