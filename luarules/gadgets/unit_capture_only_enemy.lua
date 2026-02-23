@@ -16,13 +16,12 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local CMD_CAPTURE = CMD.CAPTURE
-
 local reissueOrder = Game.Commands.ReissueOrder
 
-local allowAll = Spring.Utilities.Gametype.isSinglePlayer()
-	or (Spring.Utilities.Gametype.isFFA() and not Spring.Utilities.Gametype.isTeams())
-	or Spring.Utilities.Gametype.isSandbox()
+local allowAreaCapture = false
+	or Spring.Utilities.Gametype.isSinglePlayer() -- Other teams are AI.
+	or (Spring.Utilities.Gametype.isFFA() and not Spring.Utilities.Gametype.isTeams()) -- Other teams are enemies.
+	or Spring.Utilities.Gametype.isSandbox() -- There is only one ally team.
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, fromSynced, fromLua, fromInsert)
 	-- accepts: CMD.CAPTURE
@@ -38,7 +37,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 		end
 	elseif nParams == 4 then
 		-- Command is targeting an area.
-		if allowAll or not cmdOptions.ctrl then
+		if allowAreaCapture or not cmdOptions.ctrl then
 			return true
 		else
 			cmdOptions.ctrl = false
@@ -50,5 +49,5 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 end
 
 function gadget:Initialize()
-	gadgetHandler:RegisterAllowCommand(CMD_CAPTURE)
+	gadgetHandler:RegisterAllowCommand(CMD.CAPTURE)
 end
