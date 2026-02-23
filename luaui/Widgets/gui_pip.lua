@@ -21,14 +21,13 @@ local isMinimapMode = (pipNumber == 0)  -- When pipNumber == 0, act as minimap r
 local minimapModeMinZoom = nil  -- Calculated zoom to fit entire map (only used in minimap mode)
 local pipModeMinZoom = nil  -- Dynamic min zoom calculated from PIP/map dimensions (normal PIP mode)
 
--- Minimap mode API upvalues (updated each frame, avoids per-frame closure allocations)
-local minimapApiNormLeft, minimapApiNormRight, minimapApiNormBottom, minimapApiNormTop = 0, 1, 1, 0
-local minimapApiZoomLevel = 1
-local minimapApiGetNormalizedVisibleArea = function()
-	return minimapApiNormLeft, minimapApiNormRight, minimapApiNormBottom, minimapApiNormTop
+-- Minimap mode API state (updated each frame, avoids per-frame closure allocations)
+local minimapApi = { left = 0, right = 1, bottom = 1, top = 0, zoom = 1 }
+minimapApi.getNormalizedVisibleArea = function()
+	return minimapApi.left, minimapApi.right, minimapApi.bottom, minimapApi.top
 end
-local minimapApiGetZoomLevel = function()
-	return minimapApiZoomLevel
+minimapApi.getZoomLevel = function()
+	return minimapApi.zoom
 end
 
 -- Helper function to get effective zoom minimum (accounts for minimap mode)
@@ -181,6 +180,8 @@ local config = {
 	iconRadius = 40,
 	showUnitpics = true,      -- Show unitpics instead of icons when zoomed in
 	unitpicZoomThreshold = 0.7, -- Zoom level at which to switch to unitpics (higher = more zoomed in)
+	drawComNametags = true,    -- Draw player names above commander icons
+	comNametagZoomThreshold = 0.12, -- Minimum zoom to show nametags (below this they'd overlap)
 	leftButtonPansCamera = isMinimapMode and (Spring.GetConfigInt("MinimapLeftClickMove", 1) == 1) or false,
 	maximizeSizemult = 1.25,
 	screenMargin = 0.045,
@@ -509,6 +510,9 @@ local pipTV = {
 		visitedCount = 0,
 		idle = true,              -- No interesting events yet
 		peakActivity = 0,         -- Highest hotspot weight seen so far (tracks game intensity)
+		lastAnticipationScan = 0, -- os.clock() of last anticipation scan
+		lastAliveCheck = 0,       -- os.clock() of last alive-allyteam check
+		effectiveGameOver = false, -- True when only one non-gaia allyteam is alive (game is decided)
 	},
 
 	-- Camera controller: manages HOW to move the camera (smooth interpolation)
@@ -662,14 +666,245 @@ function pipTV.RecordVisit(x, z)
 	end
 end
 
+-- TV Mode: Periodic anticipation scan — generates events for dramatic situations
+-- Scans for: air attackers near enemies, low-HP commanders near enemies, low-HP eco buildings
+-- Runs ~once per second from DirectorTick (throttled). Lightweight: iterates known units
+-- and uses squared-distance checks to avoid expensive engine API calls per pair.
+function pipTV.ScanAnticipation(now)
+	local cache = pipTV.cache
+	if not cache then return end  -- cache not yet initialized
+	-- Proximity threshold: air attackers within this radius of enemies are "on approach"
+	local raidRadiusSq = 1200 * 1200  -- 1200 world units
+	-- Danger radius for low-HP units near enemies
+	local dangerRadiusSq = 900 * 900
+
+	-- Gather all visible units with their positions. Use Spring.GetAllUnits (spectator-safe).
+	-- We batch-collect positions to avoid N*M GetUnitPosition calls.
+	local allUnits = Spring.GetAllUnits()
+	if not allUnits or #allUnits == 0 then return end
+
+	-- Collect interesting units and positions in one pass
+	local airAttackers = {}  -- { {x, z, ally} }
+	local airAttackerCount = 0
+	local lowHPCommanders = {}  -- { {x, z, ally, hpFrac} }
+	local lowHPCommanderCount = 0
+	local lowHPEcoBuildings = {}  -- { {x, z, ally, hpFrac, cost} }
+	local lowHPEcoCount = 0
+	local groundUnitPositions = {}  -- { {x, z, ally} } — all non-air mobile units for danger checks
+	local groundCount = 0
+	local highValueBuildings = {}  -- { {x, z, ally, cost} } — buildings/eco/factories for air raid target checks
+	local hvbCount = 0
+
+	for i = 1, #allUnits do
+		local uID = allUnits[i]
+		local defID = Spring.GetUnitDefID(uID)
+		if defID then
+			local teamID = Spring.GetUnitTeam(uID)
+			local allyTeam = teamID and Spring.GetTeamAllyTeamID(teamID)
+			local x, _, z = Spring.GetUnitBasePosition(uID)
+			if x and allyTeam then
+				-- Collect non-air ground/sea units for proximity checks (low-HP danger detection)
+				if not cache.canFly[defID] then
+					groundCount = groundCount + 1
+					local gp = groundUnitPositions[groundCount]
+					if not gp then
+						gp = {}
+						groundUnitPositions[groundCount] = gp
+					end
+					gp.x = x; gp.z = z; gp.ally = allyTeam
+				end
+
+				-- Collect high-value buildings: eco buildings, factories, commanders
+				-- These are what air raids target — check air attackers against these
+				local unitCost = cache.unitCost[defID] or 0
+				if cache.isBuilding[defID] and unitCost >= 200 then
+					hvbCount = hvbCount + 1
+					local hv = highValueBuildings[hvbCount]
+					if not hv then
+						hv = {}
+						highValueBuildings[hvbCount] = hv
+					end
+					hv.x = x; hv.z = z; hv.ally = allyTeam; hv.cost = unitCost
+				elseif cache.isCommander[defID] then
+					hvbCount = hvbCount + 1
+					local hv = highValueBuildings[hvbCount]
+					if not hv then
+						hv = {}
+						highValueBuildings[hvbCount] = hv
+					end
+					hv.x = x; hv.z = z; hv.ally = allyTeam; hv.cost = unitCost
+				end
+
+				-- Air attackers
+				if cache.isAirAttacker[defID] then
+					airAttackerCount = airAttackerCount + 1
+					local aa = airAttackers[airAttackerCount]
+					if not aa then
+						aa = {}
+						airAttackers[airAttackerCount] = aa
+					end
+					aa.x = x; aa.z = z; aa.ally = allyTeam
+				end
+
+				-- Low-HP commanders (health < 50%)
+				if cache.isCommander[defID] then
+					local hp, maxHP = Spring.GetUnitHealth(uID)
+					if hp and maxHP and maxHP > 0 then
+						local hpFrac = hp / maxHP
+						if hpFrac < 0.5 then
+							lowHPCommanderCount = lowHPCommanderCount + 1
+							local lc = lowHPCommanders[lowHPCommanderCount]
+							if not lc then
+								lc = {}
+								lowHPCommanders[lowHPCommanderCount] = lc
+							end
+							lc.x = x; lc.z = z; lc.ally = allyTeam; lc.hpFrac = hpFrac
+						end
+					end
+				end
+
+				-- Low-HP expensive eco buildings (health < 40%)
+				if cache.isExpensiveEco[defID] then
+					local hp, maxHP = Spring.GetUnitHealth(uID)
+					if hp and maxHP and maxHP > 0 then
+						local hpFrac = hp / maxHP
+						if hpFrac < 0.4 then
+							lowHPEcoCount = lowHPEcoCount + 1
+							local le = lowHPEcoBuildings[lowHPEcoCount]
+							if not le then
+								le = {}
+								lowHPEcoBuildings[lowHPEcoCount] = le
+							end
+							le.x = x; le.z = z; le.ally = allyTeam; le.hpFrac = hpFrac
+							le.cost = cache.unitCost[defID] or 1000
+						end
+					end
+				end
+			end
+		end
+	end
+
+	-- Check air attackers near enemy high-value buildings (raid approach detection)
+	-- Weight scales with target cost: T1 buildings (200-500) → 1.5, T2 eco/factories (1000+) → 3.0+
+	for i = 1, airAttackerCount do
+		local aa = airAttackers[i]
+		local bestWeight = 0
+		local bestX, bestZ
+		for j = 1, hvbCount do
+			local hv = highValueBuildings[j]
+			if hv.ally ~= aa.ally then  -- Different alliance = enemy
+				local dx = aa.x - hv.x
+				local dz = aa.z - hv.z
+				if dx * dx + dz * dz < raidRadiusSq then
+					-- Air attacker near enemy building — weight by target value
+					local w = 1.5 + math.min(2.0, hv.cost / 1000)  -- 1.5→3.5 by cost
+					if w > bestWeight then
+						bestWeight = w
+						bestX = hv.x; bestZ = hv.z
+					end
+				end
+			end
+		end
+		if bestWeight > 0 then
+			-- Event at the target building (where the drama will happen), not at the attacker
+			pipTV.AddEvent(bestX, bestZ, bestWeight, 'combat')
+		end
+	end
+
+	-- Check low-HP commanders near enemy ground units
+	for i = 1, lowHPCommanderCount do
+		local lc = lowHPCommanders[i]
+		for j = 1, groundCount do
+			local gp = groundUnitPositions[j]
+			if gp.ally ~= lc.ally then
+				local dx = lc.x - gp.x
+				local dz = lc.z - gp.z
+				if dx * dx + dz * dz < dangerRadiusSq then
+					-- Low-HP commander near enemies — high drama, scale by how injured
+					local weight = 3 + (1 - lc.hpFrac) * 4  -- 3→7 as HP goes 50%→0%
+					pipTV.AddEvent(lc.x, lc.z, weight, 'combat')
+					break
+				end
+			end
+		end
+	end
+
+	-- Check low-HP expensive eco buildings near enemy ground units
+	for i = 1, lowHPEcoCount do
+		local le = lowHPEcoBuildings[i]
+		for j = 1, groundCount do
+			local gp = groundUnitPositions[j]
+			if gp.ally ~= le.ally then
+				local dx = le.x - gp.x
+				local dz = le.z - gp.z
+				if dx * dx + dz * dz < dangerRadiusSq then
+					-- Low-HP eco building near enemies — scale by cost and injury
+					local costFactor = math.min(2.5, le.cost / 1500)
+					local weight = 2 + (1 - le.hpFrac) * costFactor  -- 2→4.5 for expensive
+					pipTV.AddEvent(le.x, le.z, weight, 'combat')
+					break
+				end
+			end
+		end
+	end
+end
+
 -- TV Mode: Director tick — selects the best hotspot to focus on
 -- Called from Update(), returns targetX, targetZ, targetZoom or nil if nothing interesting
 function pipTV.DirectorTick(dt)
 	local now = os.clock()
 	local dir = pipTV.director
 
+	-- Check if only one non-gaia allyteam is alive (~every 2s, after game starts)
+	-- When detected, signal effective game-over so Update() can trigger zoom-out
+	if not dir.effectiveGameOver and now - dir.lastAliveCheck >= 2.0 then
+		dir.lastAliveCheck = now
+		local gf = Spring.GetGameFrame()
+		if gf > 30 * 30 then  -- Only check after first 30 seconds (avoid false positive at spawn)
+			local gaiaAT = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID()))
+			local aliveCount = 0
+			local allyTeams = Spring.GetAllyTeamList()
+			for a = 1, #allyTeams do
+				local atID = allyTeams[a]
+				if atID ~= gaiaAT then
+					-- Check if any team in this allyteam is still alive
+					local teams = Spring.GetTeamList(atID)
+					for t = 1, #teams do
+						local _, _, isDead = Spring.GetTeamInfo(teams[t], false)
+						if not isDead then
+							aliveCount = aliveCount + 1
+							break  -- This allyteam is alive, move to next
+						end
+					end
+				end
+			end
+			if aliveCount <= 1 then
+				dir.effectiveGameOver = true  -- Signal to Update() to trigger zoom-out
+			end
+		end
+	end
+
+	-- If game is effectively over, return overview (Update will handle the zoom-out transition)
+	if dir.effectiveGameOver then
+		return Game.mapSizeX / 2, Game.mapSizeZ / 2, config.tvOverviewZoom
+	end
+
+	-- Anticipation scan: detect dramatic situations before they happen (~1 Hz)
+	if now - dir.lastAnticipationScan >= 1.0 then
+		dir.lastAnticipationScan = now
+		pipTV.ScanAnticipation(now)
+	end
+
 	-- Rebuild hotspots from recent events (pass cached clock to avoid redundant syscall)
 	pipTV.BuildHotspots(now)
+
+	-- Before game start, stay on overview — pre-game map markers shouldn't move the camera
+	-- Note: can't use gameHasStarted (declared later in file), so check gameFrame directly
+	if gameFrame == 0 then
+		local offsetX = (pipNumber or 0) * Game.mapSizeX * 0.15
+		local overviewX = math.min(Game.mapSizeX * 0.85, Game.mapSizeX / 2 + offsetX)
+		return overviewX, Game.mapSizeZ / 2, config.tvOverviewZoom
+	end
 
 	-- Early game ramp: blend of time and activity level
 	-- Time factor: 0→1 over first 2 minutes (baseline)
@@ -1013,7 +1248,14 @@ function pipTV.CameraUpdate(dt)
 			cameraState.targetWcx = cam.targetX
 			cameraState.targetWcz = cam.targetZ
 		else
-			local panFactor = 1 - math.exp(-dt * config.tvPanSpeed)
+			-- Scale pan speed by distance: nearby targets get a gentler, slower pan
+			-- so short transitions don't look like instant snaps.
+			-- At 2000+ world units: full tvPanSpeed (3.0)
+			-- At 200 world units: ~40% speed — takes ~1s instead of ~0.3s
+			-- sqrt only computed here (not in hot scoring loops)
+			local dist = math.sqrt(distSq)
+			local distScale = math.min(1.0, 0.3 + dist / 3000)
+			local panFactor = 1 - math.exp(-dt * config.tvPanSpeed * distScale)
 			cameraState.targetWcx = cameraState.targetWcx + dx * panFactor
 			cameraState.targetWcz = cameraState.targetWcz + dz * panFactor
 		end
@@ -1126,7 +1368,6 @@ local pools = {
 -- Command queue waypoint cache: avoids calling GetUnitCommands every frame.
 -- GetUnitCommands allocates ~60 tables per unit per call (outer + cmd + params tables),
 -- which causes massive GC pressure. Caching and only refreshing every N frames eliminates this.
-local CMD_CACHE_INTERVAL = 6  -- refresh commands every 6 draw frames (~100ms at 60fps)
 local cmdQueueCache = {
 	waypoints = {},       -- [unitID] = { n = wpCount, [1]={x,z,cmdID}, [2]={x,z,cmdID}, ... }
 	counter = 0,          -- draw-call counter for throttling
@@ -1172,9 +1413,8 @@ local gl4Icons = {
 
 -- Persistent sort comparator for icon draw order (avoids per-frame closure allocation)
 -- Two-level: primary key (layer + Z depth), tiebreaker is unitID (always unique → deterministic)
-local gl4IconSortKeys = gl4Icons.sortKeys
 local function gl4IconSortCmp(a, b)
-	local ka, kb = gl4IconSortKeys[a], gl4IconSortKeys[b]
+	local ka, kb = gl4Icons.sortKeys[a], gl4Icons.sortKeys[b]
 	if ka ~= kb then return ka < kb end
 	return a < b
 end
@@ -1244,6 +1484,8 @@ local cache = {
 	unitCost = {},
 	-- Combat properties
 	canAttack = {},
+	isAirAttacker = {},   -- Air units with ground/sea attack weapons (bombers, gunships)
+	isExpensiveEco = {},  -- Non-commander buildings with cost >= 1000 (T2 mexes, fusions, etc.)
 	maxIconShatters = 20,
 	weaponIsLaser = {},
 	weaponIsBlaster = {},
@@ -1271,6 +1513,7 @@ local cache = {
 	weaponExplosionRadius = {},
 	weaponSkipExplosion = {},
 }
+pipTV.cache = cache  -- Expose cache to early-defined pipTV functions (ScanAnticipation)
 
 local gameTime = 0 -- Accumulated game time (pauses when game is paused)
 local wallClockTime = 0 -- Wall-clock time (always advances, even when paused)
@@ -1278,8 +1521,7 @@ local wallClockTime = 0 -- Wall-clock time (always advances, even when paused)
 -- Pre-defined descending sort comparator (avoids per-call closure allocation)
 local function sortDescending(a, b) return a > b end
 
--- Cached takeable teams (leaderless, alive, non-AI) — invalidated by PlayerChanged
-local cachedTakeableTeams = nil  -- nil = needs rebuild
+-- Cached takeable teams: miscState.cachedTakeableTeams (nil = needs rebuild, invalidated by PlayerChanged)
 
 -- Performance timers: per-section timing for the expensive render pass
 -- Smoothed with exponential moving average for stable debug readout
@@ -1328,8 +1570,6 @@ local DAMAGE_FLASH_DURATION = 0.4  -- seconds to fade from full red to normal
 -- Maintained via UnitCommand callin + periodic refresh (every ~30 frames)
 -- selfDUnits[unitID] = true when unit has an active self-destruct countdown
 local selfDUnits = {}
-local selfDRefreshCounter = 0
-local SELFD_REFRESH_INTERVAL = 30  -- frames between full refresh scans
 
 -- Command FX: brief fading command lines when orders are given (like Commands FX widget)
 -- Each entry: {unitID, targetX, targetZ, cmdID, time, unitX, unitZ}
@@ -1361,6 +1601,11 @@ local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID))
 -- scavRaptorTeams: scavenger/raptor AI teams (always hidden regardless of setting)
 local aiTeams = {}
 local scavRaptorTeams = {}
+
+-- Commander nametag cache: teamID → {name, outlineR, outlineG, outlineB}
+-- Rebuilt periodically (every ~3s) and on player changes
+local comNametagCache = { dirty = true, lastRefresh = 0 }
+
 do
 	local teamList = Spring.GetTeamList()
 	for i = 1, #teamList do
@@ -1431,7 +1676,6 @@ local positionCmds = {
 ----------------------------------------------------------------------------------------------------
 
 -- GL constants
-local GL_LINE_SMOOTH = 0x0B20  -- OpenGL GL_LINE_SMOOTH enum value
 local glConst = {
 	LINE_STRIP = GL.LINE_STRIP,
 	LINES = GL.LINES,
@@ -6216,15 +6460,31 @@ function widget:Initialize()
 		end
 		
 		-- Cache combat properties
+		local hasGroundAttack = false
 		if uDef.weapons and #uDef.weapons > 0 then
 			-- Check if unit has any non-shield weapons
 			for _, weapon in ipairs(uDef.weapons) do
 				local weaponDef = WeaponDefs[weapon.weaponDef]
 				if weaponDef and not weaponDef.isShield then
 					cache.canAttack[uDefID] = true
+					-- Check if this weapon can hit ground/sea targets (for air attacker detection)
+					if not weaponDef.onlyTargets then
+						hasGroundAttack = true
+					elseif weaponDef.onlyTargets and not weaponDef.onlyTargets.vtol then
+						hasGroundAttack = true
+					end
 					break
 				end
 			end
+		end
+		-- Air attacker: flying unit that can hit ground units (bombers, gunships, strike fighters)
+		if uDef.canFly and hasGroundAttack then
+			cache.isAirAttacker[uDefID] = true
+		end
+		-- Expensive eco building: non-commander building with high cost (T2+ mex, fusion, etc.)
+		local unitCost = cache.unitCost[uDefID] or 0
+		if uDef.isBuilding and unitCost >= 1000 and not (uDef.customParams and uDef.customParams.iscommander) then
+			cache.isExpensiveEco[uDefID] = true
 		end
 	end
 
@@ -7030,7 +7290,7 @@ function widget:PlayerChanged(playerID)
 	pipR2T.losNeedsUpdate = true
 
 	-- Invalidate cached takeable teams (leadership may have changed)
-	cachedTakeableTeams = nil
+	miscState.cachedTakeableTeams = nil
 
 	-- Update spec state
 	cameraState.mySpecState = Spring.GetSpectatingState()
@@ -7038,6 +7298,9 @@ function widget:PlayerChanged(playerID)
 	-- Don't clear ghost buildings here: PlayerChanged fires frequently (on any player's
 	-- state change, team switches, etc.) and clearing ghosts causes them to vanish.
 	-- The periodic ghost scan uses mark-and-sweep to keep ghosts fresh.
+
+	-- Invalidate commander nametag cache (player names/teams may have changed)
+	comNametagCache.dirty = true
 
 	-- Keep tracking even if fullview is disabled - tracking will resume when fullview is re-enabled
 end
@@ -7072,7 +7335,7 @@ function widget:GameOver()
 	miscState.isGameOver = true
 
 	-- Clear takeable teams cache so icons stop blinking (no one can take units after game over)
-	cachedTakeableTeams = {}
+	miscState.cachedTakeableTeams = {}
 
 	pipR2T.frameNeedsUpdate = true
 	pipR2T.unitsNeedsUpdate = true
@@ -7749,7 +8012,7 @@ local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 	if unitCount > 1 then unitHash = unitHash + unitsToShow[unitCount] end
 	if unitCount > 2 then unitHash = unitHash + unitsToShow[math.floor(unitCount / 2)] end
 
-	local needRefresh = (cmdQueueCache.counter % CMD_CACHE_INTERVAL == 0)
+	local needRefresh = (cmdQueueCache.counter % 6 == 0)  -- CMD_CACHE_INTERVAL: refresh every ~100ms
 		or (unitHash ~= cmdQueueCache.lastUnitHash)
 	cmdQueueCache.lastUnitHash = unitHash
 
@@ -8292,16 +8555,18 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 
 	-- Compute takeable teams (leaderless, alive, non-AI)  cached, invalidated on PlayerChanged
 	-- After GameOver, takeable is always empty (no point blinking — game is done)
-	if not cachedTakeableTeams and not miscState.isGameOver then
-		cachedTakeableTeams = {}
-		for _, tID in ipairs(Spring.GetTeamList()) do
-			local _, leader, isDead, hasAI = Spring.GetTeamInfo(tID, false)
-			if leader == -1 and not isDead and not hasAI then
-				cachedTakeableTeams[tID] = true
+	if not miscState.cachedTakeableTeams then
+		miscState.cachedTakeableTeams = {}
+		if not miscState.isGameOver then
+			for _, tID in ipairs(Spring.GetTeamList()) do
+				local _, leader, isDead, hasAI = Spring.GetTeamInfo(tID, false)
+				if leader == -1 and not isDead and not hasAI then
+					miscState.cachedTakeableTeams[tID] = true
+				end
 			end
 		end
 	end
-	local takeableTeams = cachedTakeableTeams
+	local takeableTeams = miscState.cachedTakeableTeams
 
 	-- Build tracked set for O(1) lookup in processUnit (must be before processUnit definition)
 	local trackedSet = trackingSet
@@ -8597,7 +8862,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		localCachePosX[uID] = xPos
 		localCachePosZ[uID] = zPos
 		local sortKey = layer * 100000 + mathFloor(zPos)
-		gl4IconSortKeys[uID] = sortKey
+		gl4Icons.sortKeys[uID] = sortKey
 		-- Separate immobile buildings from mobile units for split sorting
 		local isImmobile = cacheIsBuilding[uDefID] and localCantBeTransported[uDefID]
 		if isImmobile then
@@ -9398,6 +9663,136 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		for si = 1, #selUnits2 do selectedSet[selUnits2[si]] = true end
 	end
 	iconRadiusZoomDistMult = GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
+
+	-- Draw commander nametags above icons
+	if config.drawComNametags and cameraState.zoom >= config.comNametagZoomThreshold then
+		-- Periodic refresh every 5 seconds (catches team color changes, player swaps)
+		local nowClock = os.clock()
+		if nowClock - comNametagCache.lastRefresh >= 5.0 then
+			comNametagCache.dirty = true
+			comNametagCache.lastRefresh = nowClock
+		end
+		-- Rebuild name cache if dirty (player changed, periodic refresh)
+		if comNametagCache.dirty then
+			comNametagCache.dirty = false
+			local tList = Spring.GetTeamList()
+			for ti = 1, #tList do
+				local tID = tList[ti]
+				if tID ~= gaiaTeamID and not scavRaptorTeams[tID] then
+					local name
+					local luaAI = Spring.GetTeamLuaAI(tID) or ''
+					if luaAI ~= '' then
+						-- AI team: use AI display name from game rules
+						local aiDisplayName = Spring.GetGameRulesParam('ainame_' .. tID)
+						if aiDisplayName then
+							name = aiDisplayName
+						else
+							name = luaAI
+						end
+					else
+						-- Human player: find the best player on this team
+						-- Prefer active non-spec, fall back to any non-spec (disconnected), then any player
+						local players = Spring.GetPlayerList(tID)
+						if players then
+							local fallbackName
+							for pi = 1, #players do
+								local pID = players[pi]
+								local pname, active, isspec = Spring.GetPlayerInfo(pID, false)
+								if not isspec then
+									local resolvedName = (WG.playernames and WG.playernames.getPlayername and WG.playernames.getPlayername(pID)) or pname
+									if active then
+										name = resolvedName
+										break
+									elseif not fallbackName then
+										fallbackName = resolvedName
+									end
+								end
+							end
+							if not name then name = fallbackName end
+						end
+					end
+					if name then
+						local tc = teamColors[tID]
+						local r, g, b = tc and tc[1] or 1, tc and tc[2] or 1, tc and tc[3] or 1
+						-- Dark team colors get white outline, light colors get black
+						local lum = r * 0.299 + g * 0.587 + b * 0.114
+						local oR, oG, oB = 0, 0, 0
+						if lum < 0.36 then oR, oG, oB = 1, 1, 1 end
+						comNametagCache[tID] = { name = name, r = r, g = g, b = b, oR = oR, oG = oG, oB = oB }
+					else
+						comNametagCache[tID] = nil
+					end
+				end
+			end
+		end
+
+		-- Draw nametags for visible commanders
+		-- Pop the rotation matrix so font text stays upright, then manually rotate positions
+		-- to match where the shader placed the icons
+		local rot = render.minimapRotation
+		local isRotated = (rot ~= 0)
+		local rotCos, rotSin, rotCX, rotCY
+		if isRotated then
+			glFunc.PopMatrix()
+			rotCos = math.cos(rot)
+			rotSin = math.sin(rot)
+			rotCX = (render.dim.l + render.dim.r) * 0.5
+			rotCY = (render.dim.b + render.dim.t) * 0.5
+		end
+
+		local posX = gl4Icons.cachedPosX
+		local posZ = gl4Icons.cachedPosZ
+		local defCache = gl4Icons.unitDefCache
+		local teamCache = gl4Icons.unitTeamCache
+		local localIsCommander = cache.isCommander
+		local localCacheUnitIcon = cache.unitIcon
+		local resScale = render.contentScale or 1
+		-- Font size scales with zoom: grows when zoomed in, floors at readable minimum
+		local zoomFactor = math.sqrt(cameraState.zoom / 0.12)  -- 1.0 at threshold, grows with zoom
+		local nametagFontSize = math.max(8, math.floor(11 * resScale * zoomFactor))
+		-- Fade in over a narrow zoom range so nametags don't pop in
+		local fadeStart = config.comNametagZoomThreshold
+		local nametagAlpha = math.min(1.0, (cameraState.zoom - fadeStart) / 0.04)
+
+		font:Begin()
+		local pipUnits = miscState.pipUnits
+		for i = 1, unitCount do
+			local uID = pipUnits[i]
+			local dID = defCache[uID]
+			if dID and localIsCommander[dID] then
+				local tID = teamCache[uID]
+				local entry = tID and comNametagCache[tID]
+				if entry then
+					local wx = posX[uID]
+					if wx then
+						local cx, cy = WorldToPipCoords(wx, posZ[uID])
+						local iconInfo = localCacheUnitIcon[dID]
+						local iconHalf = iconRadiusZoomDistMult * (iconInfo and iconInfo.size or 0.5)
+						-- Rotate the icon center to match where the shader placed it
+						if isRotated then
+							local dx, dy = cx - rotCX, cy - rotCY
+							cx = rotCX + dx * rotCos - dy * rotSin
+							cy = rotCY + dx * rotSin + dy * rotCos
+						end
+						-- Offset above the icon in screen space (always +Y, after rotation)
+						cy = cy + iconHalf + nametagFontSize * 0.35
+						font:SetTextColor(entry.r, entry.g, entry.b, nametagAlpha)
+						font:SetOutlineColor(entry.oR, entry.oG, entry.oB, nametagAlpha * 0.8)
+						font:Print(entry.name, cx, cy, nametagFontSize, "con")
+					end
+				end
+			end
+		end
+		font:End()
+
+		-- Re-push rotation matrix for subsequent drawing
+		if isRotated then
+			glFunc.PushMatrix()
+			glFunc.Translate(rotCX, rotCY, 0)
+			glFunc.Rotate(rot * 180 / math.pi, 0, 0, 1)
+			glFunc.Translate(-rotCX, -rotCY, 0)
+		end
+	end
 
 	local t4 = os.clock()
 	perfTimers.icons = perfTimers.icons + PERF_SMOOTH * ((t4 - t3) - perfTimers.icons)
@@ -10277,7 +10672,7 @@ local function DrawCameraViewBounds()
 	-- Draw the view trapezoid with chamfered corners (anti-aliased)
 	glFunc.Texture(false)
 	
-	gl.UnsafeState(GL_LINE_SMOOTH, function()
+	gl.UnsafeState(0x0B20, function()  -- GL_LINE_SMOOTH
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		
 		-- Draw dark shadow outline first (thicker, behind the white line)
@@ -13066,15 +13461,15 @@ function widget:DrawScreen()
 				
 				-- Update module-level upvalues for the minimap API functions (avoids per-frame closures)
 				-- For shaders: pass in world-normalized coords (NOT Y-flipped), shaders do their own flip
-				minimapApiNormLeft = worldL / mapInfo.mapSizeX
-				minimapApiNormRight = worldR / mapInfo.mapSizeX
-				minimapApiNormBottom = worldB / mapInfo.mapSizeZ  -- world Z coords, shader will flip
-				minimapApiNormTop = worldT / mapInfo.mapSizeZ
-				minimapApiZoomLevel = mapInfo.mapSizeX / (worldR - worldL)
+				minimapApi.left = worldL / mapInfo.mapSizeX
+				minimapApi.right = worldR / mapInfo.mapSizeX
+				minimapApi.bottom = worldB / mapInfo.mapSizeZ  -- world Z coords, shader will flip
+				minimapApi.top = worldT / mapInfo.mapSizeZ
+				minimapApi.zoom = mapInfo.mapSizeX / (worldR - worldL)
 				
 				-- Expose pre-created functions (no per-frame allocation)
-				WG['minimap'].getNormalizedVisibleArea = minimapApiGetNormalizedVisibleArea
-				WG['minimap'].getZoomLevel = minimapApiGetZoomLevel
+				WG['minimap'].getNormalizedVisibleArea = minimapApi.getNormalizedVisibleArea
+				WG['minimap'].getZoomLevel = minimapApi.getZoomLevel
 				
 				-- Compute rotation-aware ortho bounds for fixed-function GL widgets.
 				-- Widgets handle rotation themselves via getCurrentMiniMapRotationOption(),
@@ -13593,11 +13988,11 @@ function widget:Update(dt)
 		end
 	end
 
-	-- Periodic self-destruct refresh: validate cached selfDUnits set every SELFD_REFRESH_INTERVAL frames
+	-- Periodic self-destruct refresh: validate cached selfDUnits set every 30 frames
 	-- Catches edge cases where UnitCommand callin might miss a cancellation (e.g. from synced code)
-	selfDRefreshCounter = selfDRefreshCounter + 1
-	if selfDRefreshCounter >= SELFD_REFRESH_INTERVAL then
-		selfDRefreshCounter = 0
+	miscState.selfDRefreshCounter = (miscState.selfDRefreshCounter or 0) + 1
+	if miscState.selfDRefreshCounter >= 30 then
+		miscState.selfDRefreshCounter = 0
 		for uID in pairs(selfDUnits) do
 			local selfDTime = spFunc.GetUnitSelfDTime(uID)
 			if not selfDTime or selfDTime <= 0 then
@@ -14059,10 +14454,24 @@ function widget:Update(dt)
 		end
 	end
 
+	-- TV mode: detect effective game-over (only one allyteam alive) and trigger zoom-out
+	if miscState.tvEnabled and pipTV.director.effectiveGameOver and not miscState.isGameOver then
+		-- Trigger the same zoom-out as GameOver but don't wait for the engine callin
+		local zoomMin = GetEffectiveZoomMin()
+		cameraState.targetZoom = zoomMin
+		cameraState.targetWcx = mapInfo.mapSizeX / 2
+		cameraState.targetWcz = mapInfo.mapSizeZ / 2
+		pipTV.camera.active = false
+		miscState.gameOverZoomingOut = true
+		miscState.isGameOver = true
+		pipR2T.contentNeedsUpdate = true
+	end
+
 	-- TV mode: auto-camera controller (drives camera targets each frame)
 	-- Pause TV camera when user is manually interacting or hovering, with a resume delay
 	-- Stop entirely at game over so the zoom-out animation plays uninterrupted
-	if miscState.tvEnabled and pipTV.camera.active and not miscState.isGameOver then
+	-- Skip before game start so pre-game markers don't move the camera
+	if miscState.tvEnabled and pipTV.camera.active and not miscState.isGameOver and gameHasStarted then
 		local userInteracting = interactionState.arePanning
 			or interactionState.areIncreasingZoom
 			or interactionState.areDecreasingZoom
@@ -14136,8 +14545,12 @@ function widget:Update(dt)
 	end
 
 	if zoomNeedsUpdate or centerNeedsUpdate then
+		-- Game-over zoom-out uses a much slower smoothness for a dramatic pull-back (~4 seconds)
+		local gameOverSlow = miscState.gameOverZoomingOut and 1.2 or nil
+
 		if zoomNeedsUpdate then
-			cameraState.zoom = cameraState.zoom + (cameraState.targetZoom - cameraState.zoom) * math.min(dt * config.zoomSmoothness, 1)
+			local zoomSmooth = gameOverSlow or config.zoomSmoothness
+			cameraState.zoom = cameraState.zoom + (cameraState.targetZoom - cameraState.zoom) * math.min(dt * zoomSmooth, 1)
 			-- Snap to target when close enough to avoid the asymptotic interpolation
 			-- never reaching exact fitZoom (which would leave a sliver of void)
 			if math.abs(cameraState.zoom - cameraState.targetZoom) < 0.002 then
@@ -14217,7 +14630,9 @@ function widget:Update(dt)
 		if centerNeedsUpdate then
 			-- Use different smoothness values depending on context
 			local smoothnessToUse = config.centerSmoothness -- Default for zoom-to-cursor and panning
-			if miscState.isSwitchingViews then
+			if gameOverSlow then
+				smoothnessToUse = gameOverSlow  -- Slow dramatic pan to center during game-over
+			elseif miscState.isSwitchingViews then
 				smoothnessToUse = config.switchSmoothness -- Fast transition for view switching
 			elseif interactionState.trackingPlayerID then
 				smoothnessToUse = config.playerTrackingSmoothness -- Slower, smoother tracking for player camera
@@ -14250,7 +14665,8 @@ function widget:Update(dt)
 						cameraState.wcx = currentMinWcx
 					else
 						-- Approaching edge - smoothly transition toward it
-						local edgeFactor = math.min(dt * config.zoomSmoothness * 0.5, 1)
+						local edgeSmooth = gameOverSlow or config.zoomSmoothness
+						local edgeFactor = math.min(dt * edgeSmooth * 0.5, 1)
 						cameraState.wcx = cameraState.wcx + (currentMinWcx - cameraState.wcx) * edgeFactor
 					end
 					cameraState.targetWcx = currentMinWcx
@@ -14258,7 +14674,8 @@ function widget:Update(dt)
 					if atCurrentRightEdge then
 						cameraState.wcx = currentMaxWcx
 					else
-						local edgeFactor = math.min(dt * config.zoomSmoothness * 0.5, 1)
+						local edgeSmooth = gameOverSlow or config.zoomSmoothness
+						local edgeFactor = math.min(dt * edgeSmooth * 0.5, 1)
 						cameraState.wcx = cameraState.wcx + (currentMaxWcx - cameraState.wcx) * edgeFactor
 					end
 					cameraState.targetWcx = currentMaxWcx
@@ -14270,7 +14687,8 @@ function widget:Update(dt)
 					if atCurrentTopEdge then
 						cameraState.wcz = currentMinWcz
 					else
-						local edgeFactor = math.min(dt * config.zoomSmoothness * 0.5, 1)
+						local edgeSmooth = gameOverSlow or config.zoomSmoothness
+						local edgeFactor = math.min(dt * edgeSmooth * 0.5, 1)
 						cameraState.wcz = cameraState.wcz + (currentMinWcz - cameraState.wcz) * edgeFactor
 					end
 					cameraState.targetWcz = currentMinWcz
@@ -14278,7 +14696,8 @@ function widget:Update(dt)
 					if atCurrentBottomEdge then
 						cameraState.wcz = currentMaxWcz
 					else
-						local edgeFactor = math.min(dt * config.zoomSmoothness * 0.5, 1)
+						local edgeSmooth = gameOverSlow or config.zoomSmoothness
+						local edgeFactor = math.min(dt * edgeSmooth * 0.5, 1)
 						cameraState.wcz = cameraState.wcz + (currentMaxWcz - cameraState.wcz) * edgeFactor
 					end
 					cameraState.targetWcz = currentMaxWcz
