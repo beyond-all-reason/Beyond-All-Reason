@@ -15,6 +15,7 @@ uniform int rotationMiniMap = 0;
 uniform vec4 startBoxes[NUM_BOXES]; // all in xyXY format
 uniform int noRushTimer;
 uniform vec4 pingData; // x,y,z = ping pos, w = ping time
+uniform vec4 pipVisibleArea = vec4(0, 1, 0, 1); // left, right, bottom, top in normalized [0,1] coords for PIP minimap
 float noRushFramesLeft;
 
 
@@ -27,7 +28,6 @@ layout (std430, binding = 4) buffer startPolygonBuffer {
 in DataVS {
 	vec4 v_position;
 };
-
 uniform sampler2D mapDepths;
 uniform sampler2D mapNormals;
 uniform sampler2D heightMapTex;
@@ -186,7 +186,14 @@ void main(void)
 	// Transform screen-space depth to world-space position
 	if (isMiniMap == 1) {
 		mapWorldPos.y = (MINY + MAXY) * 0.5;
-		mapWorldPos.xz = (v_position.xy * 0.5 + 0.5);
+		
+		// Check if PIP mode (visible area not default)
+		bool isPip = (pipVisibleArea.x != 0.0 || pipVisibleArea.y != 1.0 || pipVisibleArea.z != 0.0 || pipVisibleArea.w != 1.0);
+		
+		// Start with NDC coords [-1,1] -> normalized coords [0,1]
+		vec2 normCoords = v_position.xy * 0.5 + 0.5;
+		
+		mapWorldPos.xz = normCoords;
 		if (rotationMiniMap == 0){
 			mapWorldPos.z = 1.0 - mapWorldPos.z;
 		}else if (rotationMiniMap == 1){
@@ -194,9 +201,21 @@ void main(void)
 		}else if (rotationMiniMap == 2){
 			mapWorldPos.x = 1.0 - mapWorldPos.x;
 		}else if (rotationMiniMap == 3){
-			mapWorldPos.z = 1.0 - mapWorldPos.x;
-			mapWorldPos.x = 1.0 - mapWorldPos.x;
+			float tmpX = mapWorldPos.x;
+			mapWorldPos.x = 1.0 - mapWorldPos.z;
+			mapWorldPos.z = 1.0 - tmpX;
 		}
+		
+		// For PIP: remap the [0,1] world-normalized coords to visible area
+		// AFTER rotation has been applied
+		if (isPip) {
+			// mapWorldPos.xz is now in [0,1] world-normalized space
+			// Map screen [0,1] to visible portion of world [visL,visR] x [visB,visT]
+			mapWorldPos.x = mix(pipVisibleArea.x, pipVisibleArea.y, mapWorldPos.x);
+			// Flip Y: screen top (1) -> visB, screen bottom (0) -> visT
+			mapWorldPos.z = mix(pipVisibleArea.w, pipVisibleArea.z, mapWorldPos.z);
+		}
+		
 		mapWorldPos.xz *= mapSize.xy;
 		
 		fragColor.rgba = vec4(0.5);

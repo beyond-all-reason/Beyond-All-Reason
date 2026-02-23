@@ -105,8 +105,20 @@ local glTranslate = gl.Translate
 local glCallList = gl.CallList
 local glPushMatrix = gl.PushMatrix
 local glPopMatrix = gl.PopMatrix
+local glTexture = gl.Texture
+local glTexRect = gl.TexRect
+local glColor = gl.Color
+local glBeginEnd = gl.BeginEnd
+local glVertex = gl.Vertex
+local glTexCoord = gl.TexCoord
+local GL_POLYGON = GL.POLYGON
+local GL_QUADS = GL.QUADS
 
 local hasStartbox = false
+
+-- Cache for start unit textures
+local mapSizeX = Game.mapSizeX
+local mapSizeZ = Game.mapSizeZ
 
 local coopStartPoints = {}
 local aiCurrentlyBeingPlaced = nil
@@ -356,7 +368,7 @@ local function notifySpawnPositionsChanged()
 	if not WG["quick_start_updateSpawnPositions"] then
 		return
 	end
-	
+
 	for k in pairs(allSpawnPositions) do allSpawnPositions[k] = nil end
 	for _, teamID in ipairs(cachedTeamList) do
 		local shouldRender, x, y, z = shouldRenderTeam(teamID, false)
@@ -432,6 +444,7 @@ local shaderSourceCache = {
 		uniformFloat = {
 			pingData = {0,0,0,-10000}, -- x,y,z, time
 			isMiniMap = 0,
+			pipVisibleArea = {0, 1, 0, 1}, -- left, right, bottom, top in normalized [0,1] coords for PIP minimap
 		},
 		shaderName = "Start Polygons GL4",
 		shaderConfig = {
@@ -458,6 +471,7 @@ local coneShaderSourceCache = {
 	},
 	uniformFloat = {
 		isMiniMap = 0,
+		pipVisibleArea = {0, 1, 0, 1}, -- left, right, bottom, top in normalized [0,1] coords for PIP minimap
 	},
 	shaderName = "Start Cones GL4",
 	shaderConfig = {
@@ -503,6 +517,14 @@ local function DrawStartPolygons(inminimap)
 	startPolygonShader:SetUniformInt("rotationMiniMap", getCurrentMiniMapRotationOption() or ROTATION.DEG_0)
 	startPolygonShader:SetUniformInt("myAllyTeamID", myAllyTeamID or -1)
 
+	-- Pass PIP visible area if drawing in PIP minimap
+	if inminimap and WG['minimap'] and WG['minimap'].isDrawingInPip and WG['minimap'].getNormalizedVisibleArea then
+		local left, right, bottom, top = WG['minimap'].getNormalizedVisibleArea()
+		startPolygonShader:SetUniform("pipVisibleArea", left, right, bottom, top)
+	else
+		startPolygonShader:SetUniform("pipVisibleArea", 0, 1, 0, 1)
+	end
+
 	fullScreenRectVAO:DrawArrays(GL_TRIANGLES)
 	startPolygonShader:Deactivate()
 	gl.Texture(1, false)
@@ -518,10 +540,213 @@ local function DrawStartCones(inminimap)
 	startConeShader:SetUniform("isMinimap", inminimap and 1 or 0)
 	startConeShader:SetUniformInt("rotationMiniMap", getCurrentMiniMapRotationOption() or ROTATION.DEG_0)
 
+	-- Pass PIP visible area if drawing in PIP minimap
+	if inminimap and WG['minimap'] and WG['minimap'].isDrawingInPip and WG['minimap'].getNormalizedVisibleArea then
+		local left, right, bottom, top = WG['minimap'].getNormalizedVisibleArea()
+		startConeShader:SetUniform("pipVisibleArea", left, right, bottom, top)
+	else
+		startConeShader:SetUniform("pipVisibleArea", 0, 1, 0, 1)
+	end
+
 	startConeShader:SetUniformFloat("startPosScale", startPosScale)
 
 	startConeVBOTable:draw()
 	startConeShader:Deactivate()
+end
+
+local cacheTable = {}
+local circlesToDraw = {}
+local function getCircleEntry(index)
+	if not circlesToDraw[index] then
+		circlesToDraw[index] = {0, 0, 0}
+	end
+	return circlesToDraw[index]
+end
+
+local teamsToRender = {}
+local teamsToRenderCount = 0
+
+local function updateTeamsToRender()
+	teamsToRenderCount = 0
+	for _, teamID in ipairs(cachedTeamList) do
+		local shouldRender, x, y, z, isAI = shouldRenderTeam(teamID, false)
+		if shouldRender then
+			teamsToRenderCount = teamsToRenderCount + 1
+			local entry = teamsToRender[teamsToRenderCount]
+			if not entry then
+				entry = {}
+				teamsToRender[teamsToRenderCount] = entry
+			end
+			entry.teamID = teamID
+			entry.x = x
+			entry.y = y
+			entry.z = z
+			entry.isAI = isAI
+		end
+	end
+end
+
+local function getStartUnitTexture(teamID)
+	-- Don't cache - need to update when player changes faction
+	local startUnitDefID = spGetTeamRulesParam(teamID, 'startUnit')
+	if startUnitDefID then
+		local uDef = UnitDefs[startUnitDefID]
+		if uDef then
+			-- Check if it's a "random" faction (dummy unit)
+			if uDef.name == "yourmomdummy" or string.sub(uDef.name, 1, 3) == "dum" then
+				return 'unitpics/other/dice.dds'
+			end
+			return 'unitpics/' .. uDef.name .. '.dds'
+		end
+	end
+	-- Fallback: dice for unknown/random
+	return 'unitpics/other/dice.dds'
+end
+
+local function DrawStartUnitIcons(sx, sz, inPip)
+	-- Ensure teams data is populated (DrawInMiniMap may be called before DrawWorld)
+	if not teamsToRenderCount or teamsToRenderCount == 0 then
+		clearPosCache()
+		updateTeamsToRender()
+	end
+
+	local rotation = getCurrentMiniMapRotationOption() or ROTATION.DEG_0
+
+	-- Icon size in pixels (same for both engine minimap and PIP)
+	-- PIP sets up GL transforms so pixel coords work the same way
+	local iconSize = math.max(sx, sz) * 0.06
+
+	-- Precompute scale factors
+	local sxOverMapX = sx / mapSizeX
+	local szOverMapZ = sz / mapSizeZ
+	local sxOverMapZ = sx / mapSizeZ
+	local szOverMapX = sz / mapSizeX
+
+	for i = 1, (teamsToRenderCount or 0) do
+		local entry = teamsToRender[i]
+		local teamID = entry.teamID
+		local worldX, worldZ = entry.x, entry.z
+
+		-- Get the texture for this team's start unit
+		local texPath = getStartUnitTexture(teamID)
+		if texPath then
+			-- Apply minimap rotation and convert to pixel coords
+			-- Match the coordinate system used by other widgets (e.g., unit_share_tracker)
+			local drawX, drawY
+			if rotation == ROTATION.DEG_0 then
+				drawX = worldX * sxOverMapX
+				drawY = sz - worldZ * szOverMapZ
+			elseif rotation == ROTATION.DEG_90 then
+				drawX = worldZ * sxOverMapZ
+				drawY = worldX * szOverMapX
+			elseif rotation == ROTATION.DEG_180 then
+				drawX = sx - worldX * sxOverMapX
+				drawY = worldZ * szOverMapZ
+			elseif rotation == ROTATION.DEG_270 then
+				drawX = sx - worldZ * sxOverMapZ
+				drawY = sz - worldX * szOverMapX
+			else
+				drawX = worldX * sxOverMapX
+				drawY = sz - worldZ * szOverMapZ
+			end
+
+			-- Snap to nearest pixel to eliminate sub-pixel jitter
+			drawX = math.floor(drawX + 0.5)
+			drawY = math.floor(drawY + 0.5)
+
+			-- Draw team-colored background with chamfered corners
+			local r, g, b = GetTeamColor(teamID)
+			glTexture(false)
+			local halfSize = iconSize * 0.535
+			-- Chamfer size: 1.5-3 pixels depending on resolution (scale with minimap size)
+			local chamfer = math.max(1.5, math.min(3, math.max(sx, sz) * 0.008))
+
+			-- Draw octagon (rectangle with chamfered corners)
+			local x1, y1 = drawX - halfSize, drawY - halfSize
+			local x2, y2 = drawX + halfSize, drawY + halfSize
+
+			-- Draw dark border octagon (slightly larger)
+			local borderSize = 1
+			local bx1, by1 = x1 - borderSize, y1 - borderSize
+			local bx2, by2 = x2 + borderSize, y2 + borderSize
+			local borderChamfer = chamfer + borderSize * 0.7
+			glColor(0, 0, 0, 0.25)
+			glBeginEnd(GL_POLYGON, function()
+				glVertex(bx1 + borderChamfer, by1)
+				glVertex(bx2 - borderChamfer, by1)
+				glVertex(bx2, by1 + borderChamfer)
+				glVertex(bx2, by2 - borderChamfer)
+				glVertex(bx2 - borderChamfer, by2)
+				glVertex(bx1 + borderChamfer, by2)
+				glVertex(bx1, by2 - borderChamfer)
+				glVertex(bx1, by1 + borderChamfer)
+			end)
+
+			-- Draw team-colored octagon
+			glColor(r, g, b, 0.7)
+			glBeginEnd(GL_POLYGON, function()
+				-- Bottom edge (left to right)
+				glVertex(x1 + chamfer, y1)
+				glVertex(x2 - chamfer, y1)
+				-- Bottom-right corner
+				glVertex(x2, y1 + chamfer)
+				-- Right edge
+				glVertex(x2, y2 - chamfer)
+				-- Top-right corner
+				glVertex(x2 - chamfer, y2)
+				-- Top edge (right to left)
+				glVertex(x1 + chamfer, y2)
+				-- Top-left corner
+				glVertex(x1, y2 - chamfer)
+				-- Left edge
+				glVertex(x1, y1 + chamfer)
+				-- Bottom-left corner closes the loop
+			end)
+
+			-- Draw the unit icon with chamfered corners and slight zoom
+			glColor(1, 1, 1, 1)
+			glTexture(texPath)
+			local iconHalf = iconSize * 0.45
+			local ix1, iy1 = drawX - iconHalf, drawY - iconHalf
+			local ix2, iy2 = drawX + iconHalf, drawY + iconHalf
+			local texZoom = 0.035  -- 7% zoom means 3.5% border on each side
+			local iconChamfer = chamfer * 0.7  -- Slightly smaller chamfer for inner icon
+
+			-- Calculate chamfer in texture space
+			local iconSize2 = iconHalf * 2
+			local texChamfer = (iconChamfer / iconSize2) * (1 - 2 * texZoom)
+
+			-- Draw octagon with textured chamfered corners (flip Y by swapping texcoord Y)
+			glBeginEnd(GL_POLYGON, function()
+				-- Bottom edge (left to right) - tex Y flipped: bottom = 1-texZoom
+				glTexCoord(texZoom + texChamfer, 1 - texZoom)
+				glVertex(ix1 + iconChamfer, iy1)
+				glTexCoord(1 - texZoom - texChamfer, 1 - texZoom)
+				glVertex(ix2 - iconChamfer, iy1)
+				-- Bottom-right corner
+				glTexCoord(1 - texZoom, 1 - texZoom - texChamfer)
+				glVertex(ix2, iy1 + iconChamfer)
+				-- Right edge
+				glTexCoord(1 - texZoom, texZoom + texChamfer)
+				glVertex(ix2, iy2 - iconChamfer)
+				-- Top-right corner - tex Y flipped: top = texZoom
+				glTexCoord(1 - texZoom - texChamfer, texZoom)
+				glVertex(ix2 - iconChamfer, iy2)
+				-- Top edge (right to left)
+				glTexCoord(texZoom + texChamfer, texZoom)
+				glVertex(ix1 + iconChamfer, iy2)
+				-- Top-left corner
+				glTexCoord(texZoom, texZoom + texChamfer)
+				glVertex(ix1, iy2 - iconChamfer)
+				-- Left edge
+				glTexCoord(texZoom, 1 - texZoom - texChamfer)
+				glVertex(ix1, iy1 + iconChamfer)
+			end)
+		end
+	end
+
+	glTexture(false)
+	glColor(1, 1, 1, 1)
 end
 
 
@@ -670,7 +895,7 @@ function widget:Initialize()
 			if isAI then
 				local startX, _, startZ = spGetTeamStartPosition(teamID)
 				local aiManualPlacement = spGetTeamRulesParam(teamID, "aiManualPlacement")
-				
+
 				if (startX and startZ and startX > 0 and startZ > 0) or aiManualPlacement then
 					if aiManualPlacement then
 						local mx, mz = string.match(aiManualPlacement, "([%d%.]+),([%d%.]+)")
@@ -678,7 +903,7 @@ function widget:Initialize()
 							startX, startZ = tonumber(mx), tonumber(mz)
 						end
 					end
-					
+
 					if startX and startZ then
 						aiPlacedPositions[teamID] = {x = startX, z = startZ}
 						aiPlacementStatus[teamID] = true
@@ -738,33 +963,10 @@ local function getCircleEntry(index)
 	return circlesToDraw[index]
 end
 
-local teamsToRender = {}
-local teamsToRenderCount = 0
-
-local function updateTeamsToRender()
-	teamsToRenderCount = 0
-	for _, teamID in ipairs(cachedTeamList) do
-		local shouldRender, x, y, z, isAI = shouldRenderTeam(teamID, false)
-		if shouldRender then
-			teamsToRenderCount = teamsToRenderCount + 1
-			local entry = teamsToRender[teamsToRenderCount]
-			if not entry then
-				entry = {}
-				teamsToRender[teamsToRenderCount] = entry
-			end
-			entry.teamID = teamID
-			entry.x = x
-			entry.y = y
-			entry.z = z
-			entry.isAI = isAI
-		end
-	end
-end
-
 function widget:DrawWorld()
 	clearPosCache()
 	updateTeamsToRender() -- Calculate visibility once per frame
-	
+
 	gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 	local time = Spring.DiffTimers(Spring.GetTimer(), startTimer)
@@ -779,9 +981,9 @@ function widget:DrawWorld()
 		local teamID = entry.teamID
 		local x, y, z = entry.x, entry.y, entry.z
 		local isAI = entry.isAI
-		
+
 		local r, g, b = GetTeamColor(teamID)
-		
+
 		cacheTable[1], cacheTable[2], cacheTable[3], cacheTable[4] = x, y, z, 1
 		cacheTable[5], cacheTable[6], cacheTable[7], cacheTable[8] = r, g, b, alpha
 		pushElementInstance(startConeVBOTable,
@@ -800,7 +1002,7 @@ function widget:DrawWorld()
 
 	InstanceVBOTable.uploadAllElements(startConeVBOTable)
 
-	DrawStartCones(false)
+	--DrawStartCones(false)
 
 	if cCount > 0 then
 		gl.Color(1.0, 0.0, 0.0, 0.3)
@@ -818,7 +1020,7 @@ function widget:DrawScreenEffects()
 		local teamID = entry.teamID
 		local x, y, z = entry.x, entry.y, entry.z
 		local isAI = entry.isAI
-		
+
 		local _, playerID = spGetTeamInfo(teamID, false)
 		local name = spGetPlayerInfo(playerID, false)
 
@@ -827,7 +1029,7 @@ function widget:DrawScreenEffects()
 		else
 			name = WG.playernames and WG.playernames.getPlayername(playerID) or name
 		end
-		
+
 		if name then
 			local sx, sy, sz = Spring.WorldToScreenCoords(x, y + 120, z)
 			if sz < 1 then
@@ -853,8 +1055,11 @@ function widget:DrawInMiniMap(sx, sz)
 		return
 	end
 
+	-- Check if we're being called from PIP minimap
+	local inPip = WG['minimap'] and WG['minimap'].isDrawingInPip
+
 	DrawStartPolygons(true)
-	DrawStartCones(true)
+	DrawStartUnitIcons(sx, sz, inPip)
 
 end
 
@@ -919,13 +1124,13 @@ function widget:Update(delta)
 			removeLists()
 		end
 	end
-	
+
 	if gameFrame <= 0 and Game.startPosType == 2 then
 		updateCounter = updateCounter + 1
 		if updateCounter % 30 == 0 then
 			for k in pairs(currentPlacements) do currentPlacements[k] = nil end
 			updateTeamList()
-			
+
 			local hasResync = false
 			for _, teamID in ipairs(cachedTeamList) do
 				if teamID ~= gaiaTeamID then
@@ -1000,19 +1205,19 @@ function widget:Update(delta)
 					end
 				end
 			end
-			
+
 			local hasChanges = hasResync
 			if not hasChanges then
 				for teamID, placement in pairs(currentPlacements) do
-					if not lastKnownPlacements[teamID] or 
-					   lastKnownPlacements[teamID].x ~= placement.x or 
+					if not lastKnownPlacements[teamID] or
+					   lastKnownPlacements[teamID].x ~= placement.x or
 					   lastKnownPlacements[teamID].z ~= placement.z then
 						hasChanges = true
 						break
 					end
 				end
 			end
-			
+
 			if not hasChanges then
 				for teamID, placement in pairs(lastKnownPlacements) do
 					if not currentPlacements[teamID] then
@@ -1021,7 +1226,7 @@ function widget:Update(delta)
 					end
 				end
 			end
-			
+
 			if hasChanges then
 				for k in pairs(lastKnownPlacements) do lastKnownPlacements[k] = nil end
 				for teamID, placement in pairs(currentPlacements) do
@@ -1032,7 +1237,7 @@ function widget:Update(delta)
 						lastKnownPlacements[teamID] = {x = placement.x, z = placement.z}
 					end
 				end
-				
+
 				for k in pairs(aiPredictedPositions) do aiPredictedPositions[k] = nil end
 				for k in pairs(startPointTable) do startPointTable[k] = nil end
 				for teamID, placement in pairs(currentPlacements) do
@@ -1043,7 +1248,7 @@ function widget:Update(delta)
 						startPointTable[teamID] = {placement.x, placement.z}
 					end
 				end
-				
+
 				for _, teamID in ipairs(cachedTeamList) do
 					if teamID ~= gaiaTeamID then
 						local _, _, _, isAI, _, allyTeamID = spGetTeamInfo(teamID, false)
@@ -1066,7 +1271,7 @@ function widget:Update(delta)
 						end
 					end
 				end
-				
+
 				if hasChanges then
 					notifySpawnPositionsChanged()
 				end
@@ -1105,7 +1310,7 @@ function widget:RecvLuaMsg(msg)
 				aiLocationI18NTable.aiName = getAIName(teamID)
 				Spring.SendMessage(Spring.I18N('ui.startbox.aiStartLocationChanged', aiLocationI18NTable))
 			end
-			
+
 			notifySpawnPositionsChanged()
 		end
 	end
@@ -1161,7 +1366,7 @@ function widget:MousePress(x, y, button)
 	if aiCurrentlyBeingPlaced then
 		local aiTeamID = aiCurrentlyBeingPlaced
 		local _, _, _, _, _, aiAllyTeamID = spGetTeamInfo(aiTeamID, false)
-		
+
 		local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(aiAllyTeamID)
 		if xmin < xmax and zmin < zmax then
 			if worldX >= xmin and worldX <= xmax and worldZ >= zmin and worldZ <= zmax then

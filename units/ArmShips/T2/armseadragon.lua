@@ -16,8 +16,6 @@ return {
 		footprintx = 7,
 		footprintz = 7,
 		health = 2400,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.03,
 		maxdec = 0.05,
 		maxslope = 10,
@@ -199,6 +197,7 @@ return {
 					place_target_on_ground = "true",
 					scavforcecommandfire = true,
 					stockpilelimit = 10,
+					nuclear = 1,
 				},
 				damage = {
 					commanders = 2500,

@@ -984,11 +984,11 @@ local function updatePlayerDisplay()
 	if isNowInLead ~= widgetState.lastWasInLead then
 		if isNowInLead then
 			if WG['notifications'] and WG['notifications'].addEvent then
-				WG['notifications'].addEvent('GainedLead', false)
+				WG['notifications'].addEvent('TerritorialDomination/GainedLead', false)
 			end
 		else
 			if WG['notifications'] and WG['notifications'].addEvent then
-				WG['notifications'].addEvent('LostLead', false)
+				WG['notifications'].addEvent('TerritorialDomination/LostLead', false)
 			end
 		end
 		widgetState.lastWasInLead = isNowInLead

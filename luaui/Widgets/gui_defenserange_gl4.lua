@@ -326,6 +326,7 @@ local function initUnitList()
 		['legacluster'] = { weapons = { 'cannon' } }, --T2 arty
 		['legdtr'] = { weapons = { 'ground' } }, --dragons jaw
 		['leghive'] = { weapons = { 'ground' } }, --Drone-defense
+		['legfhive'] = { weapons = { 'ground' } }, --Drone-defense
 		['legmg'] = { weapons = { 'ground' } }, --ground-AA MG defense
 		['legfmg'] = { weapons = { 'ground' } },  --cyclops
 		['legnavaldefturret'] = { weapons = { 'ground' } },  --cyclops

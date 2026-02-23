@@ -1336,7 +1336,7 @@ else	-- UNSYNCED
 			words[2] = words[1]
 			words[1] = Spring.GetMyPlayerID()
 		end
-		if tonumber(words[2]) < #Spring.GetTeamList()-1 then
+		if tonumber(words[2]) < (#Spring.GetTeamList())-1 then
 			Spring.SendLuaRulesMsg(PACKET_HEADER .. ':playertoteam:' .. words[1] .. ':' .. words[2])
 		end
 	end

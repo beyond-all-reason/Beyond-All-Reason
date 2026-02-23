@@ -476,7 +476,24 @@ local function setupTeamColor(teamID, allyTeamID, isAI, localRun)
 			maxColorVariation = 60
 		end
 		local color = hex2RGB(ffaColors[allyTeamID+1] or '#333333')
-		if teamID == gaiaTeamID then
+		if Spring.GetConfigInt("SimpleTeamColorsFactionSpecific", 0) == 1 then
+			if isAI and string.find(isAI, "Scavenger") then
+				color = hex2RGB(scavPurpColor)
+			elseif isAI and string.find(isAI, "Raptor") then
+				color = hex2RGB(raptorOrangeColor)
+			elseif teamID == gaiaTeamID then
+				color = hex2RGB(gaiaGrayColor)
+			elseif Spring.GetTeamRulesParam(teamID, 'startUnit') and anonymousMode ~= "allred" then
+				local side = string.sub(UnitDefs[Spring.GetTeamRulesParam(teamID, 'startUnit')].name, 1, 3)
+				if side == "arm" then
+					color = hex2RGB(armBlueColor)
+				elseif side == "cor" then
+					color = hex2RGB(corRedColor)
+				elseif side == "leg" then
+					color = hex2RGB(legGreenColor)
+				end
+			end
+		elseif teamID == gaiaTeamID then
 			brightnessVariation = 0
 			maxColorVariation = 0
 			color = hex2RGB(gaiaGrayColor)
@@ -517,7 +534,7 @@ local function setupTeamColor(teamID, allyTeamID, isAI, localRun)
 			b = hex2RGB(gaiaGrayColor)[3],
 		}
 
-	elseif isSurvival and survivalColors[#Spring.GetTeamList()-2] then
+	elseif isSurvival and survivalColors[(#Spring.GetTeamList())-2] then
 		teamColorsTable[teamID] = {
 			r = hex2RGB(survivalColors[survivalColorNum])[1]
 				+ math.random(-survivalColorVariation, survivalColorVariation),
@@ -712,6 +729,8 @@ else	-- UNSYNCED
 			updateTeamColors()
 			Spring.SetConfigInt("UpdateTeamColors", 0)
 			Spring.SetConfigInt("SimpleTeamColors_Reset", 0)
+		elseif Spring.GetConfigInt("SimpleTeamColors", 0) == 1 and Spring.GetConfigInt("SimpleTeamColorsFactionSpecific", 0) == 1 and Spring.GetGameFrame() < 300 then
+			Spring.SetConfigInt("UpdateTeamColors", 1)
 		end
 	end
 

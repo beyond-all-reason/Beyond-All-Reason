@@ -2684,6 +2684,10 @@ local icontypes = {
 		bitmap = "icons/defence_t15_dronecarry.png",
 		size = 1.65999997
 	},
+	legfhive = {
+		bitmap = "icons/defence_t15_dronecarry.png",
+		size = 1.65999997
+	},
 	legdrone = {
 		bitmap = "icons/air_hover.png",
 		size = 0.66

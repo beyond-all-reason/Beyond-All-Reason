@@ -57,8 +57,6 @@ elseif not Platform.glHaveGL4 then
 	isPotatoGpu = true
 end
 
-local hideOtherLanguagesVoicepacks = false	-- maybe later allow people to pick other language voicepacks
-
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 
 local devMode = Spring.Utilities.IsDevMode()
@@ -2615,7 +2613,7 @@ function init()
 		},
 
 		{ id = "decalsgl4", group = "gfx", category = types.basic, widget = "Decals GL4", name = Spring.I18N('ui.settings.option.decalsgl4'), type = "bool", value = GetWidgetToggleValue("Decals GL4") },
-		{ id = "decalsgl4_lifetime", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.decalsgl4_lifetime'), min = 0.5, max = 5, step = 0.1, type = "slider", value = 1, description = Spring.I18N('ui.settings.option.decalsgl4_lifetime_descr'),
+		{ id = "decalsgl4_lifetime", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.decalsgl4_lifetime'), min = 0.5, max = 8, step = 0.1, type = "slider", value = 1, description = Spring.I18N('ui.settings.option.decalsgl4_lifetime_descr'),
 		  onload = function(i)
 			  loadWidgetData("Decals GL4", "decalsgl4_lifetime", { 'lifeTimeMult' })
 		  end,
@@ -2855,16 +2853,7 @@ function init()
 				end
 			end
 		},
-		{ id = "soundtrackCustom", group = "sound", category = types.advanced, name = Spring.I18N('ui.settings.option.soundtrackcustom'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackCustom', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackcustom_descr'),
-			onchange = function(i, value)
-				Spring.SetConfigInt('UseSoundtrackCustom', value and 1 or 0)
-				if WG['music'] and WG['music'].RefreshTrackList then
-					WG['music'].RefreshTrackList()
-					init()
-				end
-			end
-		},
-		{ id = "soundtrackRaptors", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackraptors'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackRaptors', 0) == 1, description = Spring.I18N('ui.settings.option.soundtrackraptors_descr'),
+		{ id = "soundtrackRaptors", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.soundtrackraptors'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackRaptors', 0) == 1, description = Spring.I18N('ui.settings.option.soundtrackraptors_descr'),
 		onchange = function(i, value)
 			Spring.SetConfigInt('UseSoundtrackRaptors', value and 1 or 0)
 			if WG['music'] and WG['music'].RefreshTrackList then
@@ -2873,7 +2862,7 @@ function init()
 			end
 		end
 		},
-		{ id = "soundtrackScavengers", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackscavengers'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackScavengers', 0) == 1, description = Spring.I18N('ui.settings.option.soundtrackscavengers_descr'),
+		{ id = "soundtrackScavengers", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.soundtrackscavengers'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackScavengers', 0) == 1, description = Spring.I18N('ui.settings.option.soundtrackscavengers_descr'),
 		onchange = function(i, value)
 			Spring.SetConfigInt('UseSoundtrackScavengers', value and 1 or 0)
 			if WG['music'] and WG['music'].RefreshTrackList then
@@ -2882,7 +2871,7 @@ function init()
 			end
 		end
 		},
-		{ id = "soundtrackAprilFools", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackaprilfools'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackAprilFools', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackaprilfools_descr'),
+		{ id = "soundtrackAprilFools", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.soundtrackaprilfools'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackAprilFools', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackaprilfools_descr'),
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackAprilFools', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshTrackList then
@@ -2891,7 +2880,7 @@ function init()
 				end
 			end
 		},
-		{ id = "soundtrackAprilFoolsPostEvent", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackaprilfoolspostevent'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackAprilFoolsPostEvent', 0) == 1, description = Spring.I18N('ui.settings.option.soundtrackaprilfoolspostevent_descr'),
+		{ id = "soundtrackAprilFoolsPostEvent", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.soundtrackaprilfoolspostevent'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackAprilFoolsPostEvent', 0) == 1, description = Spring.I18N('ui.settings.option.soundtrackaprilfoolspostevent_descr'),
 		onchange = function(i, value)
 			Spring.SetConfigInt('UseSoundtrackAprilFoolsPostEvent', value and 1 or 0)
 			if WG['music'] and WG['music'].RefreshTrackList then
@@ -2900,7 +2889,7 @@ function init()
 			end
 		end
 		},
-		{ id = "soundtrackHalloween", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackhalloween'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackHalloween', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackhalloween_descr'),
+		{ id = "soundtrackHalloween", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.soundtrackhalloween'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackHalloween', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackhalloween_descr'),
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackHalloween', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshTrackList then
@@ -2909,7 +2898,7 @@ function init()
 				end
 			end
 		},
-		{ id = "soundtrackHalloweenPostEvent", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackhalloweenpostevent'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackHalloweenPostEvent', 0) == 1, description = Spring.I18N('ui.settings.option.soundtrackhalloweenpostevent_descr'),
+		{ id = "soundtrackHalloweenPostEvent", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.soundtrackhalloweenpostevent'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackHalloweenPostEvent', 0) == 1, description = Spring.I18N('ui.settings.option.soundtrackhalloweenpostevent_descr'),
 		onchange = function(i, value)
 			Spring.SetConfigInt('UseSoundtrackHalloweenPostEvent', value and 1 or 0)
 			if WG['music'] and WG['music'].RefreshTrackList then
@@ -2918,7 +2907,7 @@ function init()
 			end
 		end
 		},
-		{ id = "soundtrackXmas", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackxmas'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackXmas', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackxmas_descr'),
+		{ id = "soundtrackXmas", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.soundtrackxmas'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackXmas', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackxmas_descr'),
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackXmas', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshTrackList then
@@ -2927,7 +2916,7 @@ function init()
 				end
 			end
 		},
-		{ id = "soundtrackXmasPostEvent", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackxmaspostevent'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackXmasPostEvent', 0) == 1, description = Spring.I18N('ui.settings.option.soundtrackxmaspostevent_descr'),
+		{ id = "soundtrackXmasPostEvent", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.soundtrackxmaspostevent'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackXmasPostEvent', 0) == 1, description = Spring.I18N('ui.settings.option.soundtrackxmaspostevent_descr'),
 		onchange = function(i, value)
 			Spring.SetConfigInt('UseSoundtrackXmasPostEvent', value and 1 or 0)
 			if WG['music'] and WG['music'].RefreshTrackList then
@@ -2935,6 +2924,15 @@ function init()
 				init()
 			end
 		end
+		},
+		{ id = "soundtrackCustom", group = "sound", category = types.advanced, name = Spring.I18N('ui.settings.option.soundtrackcustom'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackCustom', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackcustom_descr'),
+			onchange = function(i, value)
+				Spring.SetConfigInt('UseSoundtrackCustom', value and 1 or 0)
+				if WG['music'] and WG['music'].RefreshTrackList then
+					WG['music'].RefreshTrackList()
+					init()
+				end
+			end
 		},
 		{ id = "soundtrackInterruption", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackinterruption'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackinterruption_descr'),
 			onchange = function(i, value)
@@ -2963,7 +2961,7 @@ function init()
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
-			  Spring.SetConfigString("voiceset", (hideOtherLanguagesVoicepacks and Spring.GetConfigString('language', 'en')..'/' or '')..options[i].options[options[i].value])
+			  Spring.SetConfigString("voiceset", options[i].options[options[i].value])
 			  if widgetHandler.orderList["Notifications"] ~= nil then
 				  widgetHandler:DisableWidget("Notifications")
 				  widgetHandler:EnableWidget("Notifications")
@@ -3004,15 +3002,6 @@ function init()
 			  saveOptionValue('Notifications', 'notifications', 'setVolume', { 'globalVolume' }, value)
 		  end,
 		},
-		-- FixMe, it doesn't work
-		--{ id = "notifications_playtrackedplayernotifs", category = types.advanced, group = "notif", name = Spring.I18N('ui.settings.option.notifications_playtrackedplayernotifs'), type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getPlayTrackedPlayerNotifs()), description = Spring.I18N('ui.settings.option.notifications_playtrackedplayernotifs_descr'),
-		--  onload = function(i)
-		--	  loadWidgetData("Notifications", "notifications_playtrackedplayernotifs", { 'playTrackedPlayerNotifs' })
-		--  end,
-		--  onchange = function(i, value)
-		--	  saveOptionValue('Notifications', 'notifications', 'setPlayTrackedPlayerNotifs', { 'playTrackedPlayerNotifs' }, value)
-		--  end,
-		--},
 		{ id = "notifications_substitute", group = "notif", category = types.advanced, name = Spring.I18N('ui.settings.option.notifications_substitute'), type = "bool", value = Spring.GetConfigInt('NotificationsSubstitute', 0) == 1, description = Spring.I18N('ui.settings.option.notifications_substitute_descr'),
 		  onchange = function(i, value)
 				Spring.SetConfigInt('NotificationsSubstitute', value and 1 or 0)
@@ -3524,9 +3513,12 @@ function init()
 			  saveOptionValue('Minimap', 'minimap', 'setMaxHeight', { 'maxHeight' }, value)
 		  end,
 		},
-		{ id = "minimapleftclick", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimapleftclick'), type = "bool", value = (WG['minimap'] ~= nil and WG['minimap'].getLeftClickMove ~= nil and WG['minimap'].getLeftClickMove()), description = Spring.I18N('ui.settings.option.minimapleftclick_descr'),
+		{ id = "minimapleftclick", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimapleftclick'), type = "bool", value = Spring.GetConfigInt("MinimapLeftClickMove", 1) == 1, description = Spring.I18N('ui.settings.option.minimapleftclick_descr'),
 		  onchange = function(i, value)
-			  saveOptionValue('Minimap', 'minimap', 'setLeftClickMove', { 'leftClickMove' }, value)
+			  Spring.SetConfigInt("MinimapLeftClickMove", value and 1 or 0)
+			  if WG['minimap'] and WG['minimap'].setLeftClickMove then
+				  WG['minimap'].setLeftClickMove(value)
+			  end
 		  end,
 		},
 		{ id = "minimapiconsize", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimapiconsize'), type = "slider", min = 2, max = 5, step = 0.25, value = tonumber(Spring.GetConfigFloat("MinimapIconScale", 3.5) or 1), description = '',
@@ -3543,7 +3535,7 @@ function init()
 			  Spring.SetConfigInt("MinimapMinimize", (value and '1' or '0'))
 		  end,
 		},
-		{ id = "minimaprotation", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimaprotation'), type = "select", options = { Spring.I18N('ui.settings.option.minimaprotation_none'), Spring.I18N('ui.settings.option.minimaprotation_autoflip'), Spring.I18N('ui.settings.option.minimaprotation_autorotate')}, description = Spring.I18N('ui.settings.option.minimaprotation_descr'),
+		{ id = "minimaprotation", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimaprotation'), type = "select", options = { Spring.I18N('ui.settings.option.minimaprotation_none'), Spring.I18N('ui.settings.option.minimaprotation_autoflip'), Spring.I18N('ui.settings.option.minimaprotation_autorotate'), Spring.I18N('ui.settings.option.minimaprotation_autolandscape')}, description = Spring.I18N('ui.settings.option.minimaprotation_descr'),
 		  onload = function(i)
 			  loadWidgetData("Minimap Rotation Manager", "minimaprotation", { 'mode' })
 			  if options[i].value == nil then -- first load to migrate from old behavior smoothly, might wanna remove it later
@@ -3558,6 +3550,7 @@ function init()
 			  end
 		  end,
 		},
+		{ id = "minimappip", group = "ui", category = types.advanced, widget = "Picture-in-Picture Minimap", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimappip'), type = "bool", value = GetWidgetToggleValue("Picture-in-Picture Minimap"), description = Spring.I18N('ui.settings.option.minimappip_descr') },
 
 
 		{ id = "pip", group = "ui", category = types.advanced, widget = "Picture-in-Picture", name = Spring.I18N('ui.settings.option.pip'), type = "bool", value = GetWidgetToggleValue("Picture-in-Picture"), description = Spring.I18N('ui.settings.option.pip_descr') },
@@ -3619,7 +3612,7 @@ function init()
 			  saveOptionValue('Order menu', 'ordermenu', 'setBottomPosition', { 'stickToBottom' }, value)
 		  end,
 		},
-		{ id = "ordermenu_colorize", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.ordermenu_colorize'), type = "slider", min = 0, max = 1, step = 0.1, value = 0, description = '',
+		{ id = "ordermenu_colorize", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.ordermenu_colorize'), type = "slider", min = 0, max = 1, step = 0.1, value = 0.5, description = '',
 		  onload = function(i)
 			  loadWidgetData("Order menu", "ordermenu_colorize", { 'colorize' })
 		  end,
@@ -4880,6 +4873,12 @@ function init()
 		{ id = "simpleteamcolors_use_gradient", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.simpleteamcolors_use_gradient'), type = "bool", value = tonumber(Spring.GetConfigInt("SimpleTeamColorsUseGradient", 0) or 0) == 1,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColorsUseGradient", (value and 1 or 0))
+			  Spring.SetConfigInt("UpdateTeamColors", 1)
+		  end,
+		},
+		{ id = "simpleteamcolorsfactionspecific", group = "accessibility", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.simpleteamcolorsfactionspecific'), type = "bool", value = tonumber(Spring.GetConfigInt("SimpleTeamColorsFactionSpecific", 0) or 0) == 1, description = Spring.I18N('ui.settings.option.simpleteamcolorsfactionspecific_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("SimpleTeamColorsFactionSpecific", (value and 1 or 0))
 			  Spring.SetConfigInt("UpdateTeamColors", 1)
 		  end,
 		},
@@ -6364,23 +6363,16 @@ function init()
 		local sets = {}
 		local languageDirs = VFS.SubDirs('sounds/voice', '*')
 		local setCount = 0
-		if hideOtherLanguagesVoicepacks then
-			local language = Spring.GetConfigString('language', 'en')
-			local files = VFS.SubDirs('sounds/voice/'..language, '*')
+		for k, f in ipairs(languageDirs) do
+			local langDir = string.gsub(string.sub(f, 14, string.len(f)-1), "\\", "/")
+			local files = VFS.SubDirs('sounds/voice/'..langDir, '*')
 			for k, file in ipairs(files) do
-				local dirname = string.sub(file, 17, string.len(file)-1)
-				sets[#sets+1] = dirname
-				setCount = setCount + 1
-				if dirname == string.sub(voiceset, 4) then
-					currentVoiceSetOption = #sets
+				local dirname = string.gsub(string.sub(file, 14, string.len(file)-1), "\\", "/")
+				local setAlreadyIn = false
+				for i = 1,#sets do
+					if dirname == sets[i] then setAlreadyIn = true break end
 				end
-			end
-		else
-			for k, f in ipairs(languageDirs) do
-				local langDir = string.sub(f, 14, string.len(f)-1)
-				local files = VFS.SubDirs('sounds/voice/'..langDir, '*')
-				for k, file in ipairs(files) do
-					local dirname = string.sub(file, 14, string.len(file)-1)
+				if not setAlreadyIn then
 					sets[#sets+1] = dirname
 					setCount = setCount + 1
 					if dirname == voiceset then

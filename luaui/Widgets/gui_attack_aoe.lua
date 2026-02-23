@@ -51,6 +51,7 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetTeamResources = Spring.GetTeamResources
 local spGetUnitWeaponTestRange = Spring.GetUnitWeaponTestRange
 local spGetUnitStockpile = Spring.GetUnitStockpile
+local spGetViewGeometry = Spring.GetViewGeometry
 
 local CMD_ATTACK = CMD.ATTACK
 local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
@@ -68,6 +69,7 @@ local glDrawGroundCircle = gl.DrawGroundCircle
 local glLineWidth = gl.LineWidth
 local glPopMatrix = gl.PopMatrix
 local glPushMatrix = gl.PushMatrix
+local glRotate = gl.Rotate
 local glScale = gl.Scale
 local glTranslate = gl.Translate
 local glVertex = gl.Vertex
@@ -103,9 +105,11 @@ local Config = {
 		aoeLineWidthMult = 64,
 		aoeDiskBandCount = 12,
 		circleDivs = 96,
-		maxFilledCircleAlpha = 0.4,
-		minFilledCircleAlpha = 0.2,
+		maxFilledCircleAlpha = 0.35,
+		minFilledCircleAlpha = 0.15,
 		ringDamageLevels = { 0.8, 0.6, 0.4, 0.2 },
+		outerRingAlpha = 0.33,  -- Transparency for outer AOE circle
+		baseLineWidth = 1,     -- Base line width (scaled by screen resolution)
 	},
 	Animation = {
 		salvoSpeed = 0.1,
@@ -118,6 +122,16 @@ local Config = {
 Config.Animation.fadeDuration = 1 - Config.Animation.waveDuration
 local g = Game.gravity
 local gravityPerFrame = g / pow(Config.General.gameSpeed, 2)
+
+-- Screen-based line width scale (1.0 at 1080p, ~2.3 at 2160p)
+-- Uses linear interpolation: scale = 1 + (screenHeight - 1080) * (2.3 - 1) / (2160 - 1080)
+local screenLineWidthScale = 1.0
+local function UpdateScreenScale()
+	local _, screenHeight = spGetViewGeometry()
+	-- Linear scale: 1.0 at 1080p, 2.3 at 2160p
+	screenLineWidthScale = 1.0 + (screenHeight - 1080) * (2 / 1080)
+	if screenLineWidthScale < 0.5 then screenLineWidthScale = 0.5 end  -- Minimum for low res
+end
 
 --------------------------------------------------------------------------------
 -- SHADER
@@ -188,6 +202,7 @@ local State = {
 	pulsePhase = 0,
 	circleList = 0,
 	unitDiskList = 0,
+	nuclearTrefoilList = 0,
 
 	aimData = defaultAimData
 }
@@ -570,6 +585,7 @@ local function BuildWeaponInfo(unitDef, weaponDef, weaponNum)
 	info.ee = weaponDef.edgeEffectiveness
 	info.weaponNum = weaponNum
 	info.hasStockpile = weaponDef.stockpile
+	info.isNuke = weaponDef.customParams and weaponDef.customParams.nuclear
 
 	if weaponDef.paralyzer then
 		info.color = Config.Colors.emp
@@ -618,13 +634,23 @@ local function BuildWeaponInfo(unitDef, weaponDef, weaponNum)
 			info.range = weaponDef.range
 		end
 	elseif weaponType == "AircraftBomb" then
-		info.type = "dropped"
-		info.scatter = scatter
-		info.v = unitDef.speed
-		info.salvoSize = weaponDef.salvoSize
-		info.salvoDelay = weaponDef.salvoDelay
+		-- Check for nuclear bombs (like armliche's atomic bomb)
+		if info.isNuke then
+			info.type = "nuke"
+		else
+			info.type = "dropped"
+			info.scatter = scatter
+			info.v = unitDef.speed
+			info.salvoSize = weaponDef.salvoSize
+			info.salvoDelay = weaponDef.salvoDelay
+		end
 	elseif weaponType == "StarburstLauncher" then
-		info.type = weaponDef.tracks and "tracking" or "cruise"
+		-- Check for nuclear weapons (customParams.nuclear)
+		if info.isNuke then
+			info.type = "nuke"
+		else
+			info.type = weaponDef.tracks and "tracking" or "cruise"
+		end
 		info.range = weaponDef.range
 	elseif weaponType == "TorpedoLauncher" then
 		if weaponDef.tracks then
@@ -700,11 +726,36 @@ local function SetupDisplayLists()
 			end
 		end)
 	end)
+
+	-- Nuclear trefoil (radiation symbol) display list
+	-- Consists of 3 fan blades at 120° intervals and a center hole
+	State.nuclearTrefoilList = glCreateList(function()
+		local innerRadius = 0.18  -- Center hole radius
+		local outerRadius = 0.85  -- Blade outer radius
+		local bladeAngle = rad(60)  -- Each blade spans 60 degrees
+		local bladeSegments = 16
+
+		for blade = 0, 2 do
+			local baseAngle = blade * rad(120) - rad(90)  -- Start at top, 120° apart
+			local startAngle = baseAngle - bladeAngle / 2
+			local step = bladeAngle / bladeSegments
+
+			glBeginEnd(GL_TRIANGLE_STRIP, function()
+				for i = 0, bladeSegments do
+					local angle = startAngle + i * step
+					local cosA, sinA = cos(angle), sin(angle)
+					glVertex(cosA * innerRadius, 0, sinA * innerRadius)
+					glVertex(cosA * outerRadius, 0, sinA * outerRadius)
+				end
+			end)
+		end
+	end)
 end
 
 local function DeleteDisplayLists()
 	glDeleteList(State.circleList)
 	glDeleteList(State.unitDiskList)
+	glDeleteList(State.nuclearTrefoilList)
 end
 
 --------------------------------------------------------------------------------
@@ -921,8 +972,8 @@ local function DrawAoe(data, baseColorOverride, targetOverride, ringAlphaMult, p
 	end
 
 	-- draw a max radius outline for clarity
-	SetGlColor(1, color)
-	glLineWidth(1)
+	SetGlColor(Config.Render.outerRingAlpha, color)
+	glLineWidth(screenLineWidthScale)
 	DrawCircle(tx, ty, tz, aoe)
 
 	glColor(1, 1, 1, 1)
@@ -973,8 +1024,8 @@ local function DrawJunoArea(data)
 	end)
 	glPopMatrix()
 
-	SetGlColor(1, color)
-	glLineWidth(1)
+	SetGlColor(Config.Render.outerRingAlpha, color)
+	glLineWidth(screenLineWidthScale)
 	DrawCircle(tx, ty, tz, aoe)
 	DrawCircle(tx, ty, tz, areaDenialRadius)
 
@@ -994,7 +1045,19 @@ local function DrawStockpileProgress(data, buildPercent, barColor, bgColor)
 	local tx, ty, tz = data.target.x, data.target.y, data.target.z
 	local circles = Cache.Calculated.unitCircles
 	local divs = Config.Render.circleDivs
+	local isNuke = data.weaponInfo.isNuke
 
+	if not isNuke then
+		-- Draw regular filled circle for non-nuke stockpile weapons
+		SetGlColor(progressBarAlpha * 0.6, bgColor)
+		glPushMatrix()
+		glTranslate(tx, ty, tz)
+		glScale(aoe * 0.5, aoe * 0.5, aoe * 0.5)
+		glCallList(State.unitDiskList)
+		glPopMatrix()
+	end
+
+	-- Draw outer progress ring
 	SetGlColor(progressBarAlpha, bgColor)
 	glLineWidth(max(Config.Render.aoeLineWidthMult * aoe / 2 / dist, 2))
 
@@ -1616,6 +1679,53 @@ local function DrawJuno(data)
 	end
 end
 
+---@param data IndicatorDrawData
+local function DrawNuke(data)
+	local tx, ty, tz = data.target.x, data.target.y, data.target.z
+	local aoe = data.weaponInfo.aoe
+	local edgeEffectiveness = data.weaponInfo.ee
+	local color = data.colors.base
+	local phase = State.pulsePhase - floor(State.pulsePhase)
+
+	glLineWidth(max(Config.Render.aoeLineWidthMult * aoe / data.distanceFromCamera, 0.5))
+
+	-- Draw outer damage rings (skip the innermost ring at index 1)
+	local damageLevels = Config.Render.ringDamageLevels
+	local triggerTimes = Cache.Calculated.ringWaveTriggerTimes
+	local minRingRadius = Config.General.minRingRadius
+
+	for ringIndex, damageLevel in ipairs(damageLevels) do
+		if ringIndex > 1 then  -- Skip innermost ring
+			local ringRadius = GetRadiusForDamageLevel(aoe, damageLevel, edgeEffectiveness)
+			if ringRadius >= minRingRadius then
+				local alphaFactor = GetAlphaFactorForRing(damageLevel, damageLevel + 0.4, ringIndex, phase, 1, triggerTimes)
+				SetGlColor(alphaFactor, color)
+				DrawCircle(tx, ty, tz, ringRadius)
+			end
+		end
+	end
+
+	-- Draw outer AOE circle
+	SetGlColor(Config.Render.outerRingAlpha, color)
+	glLineWidth(screenLineWidthScale)
+	DrawCircle(tx, ty, tz, aoe)
+
+	-- Draw rotating nuclear trefoil symbol with pulsing opacity
+	-- Opacity synced with ring animation phase (0.4 ± 0.1)
+	-- Scale so outer edge of trefoil (0.85 * scale) is smaller than innermost ring (~26% of aoe)
+	local trefoilOpacity = 0.4 + 0.08 * sin(phase * tau)
+	SetGlColor(trefoilOpacity, color)
+	glPushMatrix()
+	glTranslate(tx, ty, tz)
+	glRotate(osClock() * 30, 0, 1, 0)  -- Slow rotation: 30 degrees per second
+	glScale(aoe * 0.55, aoe * 0.55, aoe * 0.55)
+	glCallList(State.nuclearTrefoilList)
+	glPopMatrix()
+
+	glColor(1, 1, 1, 1)
+	glLineWidth(1)
+end
+
 local WeaponTypeHandlers = {
 	sector = DrawSectorScatter,
 	ballistic = DrawBallistic,
@@ -1625,6 +1735,7 @@ local WeaponTypeHandlers = {
 	wobble = DrawWobble,
 	dgun = DrawDGun,
 	juno = DrawJuno,
+	nuke = DrawNuke,
 }
 
 --------------------------------------------------------------------------------
@@ -1637,6 +1748,12 @@ function widget:Initialize()
 		SetupUnitDef(unitDefID, unitDef)
 	end
 	SetupDisplayLists()
+	UpdateScreenScale()
+	UpdateSelection()
+end
+
+function widget:ViewResize()
+	UpdateScreenScale()
 end
 
 function widget:Shutdown()

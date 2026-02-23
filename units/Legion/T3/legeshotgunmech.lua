@@ -15,8 +15,6 @@ return {
 		explodeas = "explosiont3",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 25,
-		idletime = 900,
 		mass = 200000,
 		health = 25000,
 		maxslope = 17,
@@ -199,7 +197,7 @@ return {
 				weaponvelocity = 350,
 				customparams = {
 					cluster_def = 'cluster_munition',
-					cluster_number = 6,
+					cluster_number = 4,
 					exclude_preaim = true,
 				},
 				damage = {
@@ -230,8 +228,8 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 450,
 				damage = {
-					default = 65,
-					lboats = 65,
+					default = 105,
+					lboats = 105,
 					subs = 20,
 					vtol = 20,
 				},

@@ -16,8 +16,6 @@ return {
 		firestate = 0,
 		footprintx = 8,
 		footprintz = 8,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 4450,
 		maxslope = 12,
 		maxwaterdepth = 0,

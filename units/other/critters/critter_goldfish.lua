@@ -20,8 +20,6 @@ return {
 		explodeas = "TINYBUG_DEATH",
 		footprintx = 1,
 		footprintz = 1,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 1,
 		health = 11,
 		speed = 18.0,

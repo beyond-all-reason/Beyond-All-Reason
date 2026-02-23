@@ -30,10 +30,10 @@ local windFunctions = VFS.Include('common/wind_functions.lua')
 
 local useDefaultVoiceFallback = Spring.GetConfigInt('NotificationsSubstitute', 0) == 1 --false    -- when a voiceset has missing file, try to load the default voiceset file instead
 local playWelcome = Spring.GetConfigInt('WelcomeMessagePlayed', 0) == 0
+local playedWelcome = false
 
 local silentTime = 0.7    -- silent time between queued notifications
 local globalVolume = 0.7
-local playTrackedPlayerNotifs = false
 local muteWhenIdle = true
 --local idleTime = 10        -- after this much sec: mark user as idle
 local displayMessages = true
@@ -68,9 +68,9 @@ local gameover = false
 local lockPlayerID
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
-local soundFolder = "sounds/voice/" .. voiceSet .. "/"
-local soundEffectsFolder = "sounds/voice-soundeffects/"
-local defaultSoundFolder = "sounds/voice/" .. defaultVoiceSet .. "/"
+local soundFolder = string.gsub("sounds/voice/" .. voiceSet .. "/", "\\", "/")
+local soundEffectsFolder = string.gsub("sounds/voice-soundeffects/", "\\", "/")
+local defaultSoundFolder = string.gsub("sounds/voice/" .. defaultVoiceSet .. "/", "\\", "/")
 
 -- load and parse sound files/notifications
 local notificationTable = VFS.Include('sounds/voice/config.lua')
@@ -79,98 +79,150 @@ if VFS.FileExists(soundFolder .. 'config.lua') then
 	notificationTable = table.merge(notificationTable, voicesetNotificationTable)
 end
 
-for notifID, notifDef in pairs(notificationTable) do
-	local notifTexts = {}
-	local notifSounds = {}
-	local notifSoundsRare = {}
-	local currentEntry = 1
-	local currentEntryRare = 1
-	notifTexts[currentEntry] = 'tips.notifications.' .. string.sub(notifID, 1, 1):lower() .. string.sub(notifID, 2)
-	if VFS.FileExists(soundFolder .. notifID .. '.wav') then
-		notifSounds[currentEntry] = soundFolder .. notifID .. '.wav'
-	end
-	for i = 1, 20 do
-		if VFS.FileExists(soundFolder .. notifID .. i .. '.wav') then
-			currentEntry = currentEntry + 1
-			notifSounds[currentEntry] = soundFolder .. notifID .. i .. '.wav'
-		end
-	end
+local function processNotificationDefs()
+	notification = {}
+	notificationList = {}
+	notificationOrder = {}
 
-	if useDefaultVoiceFallback and #notifSounds == 0 then
-		if VFS.FileExists(defaultSoundFolder .. notifID .. '.wav') then
-			notifSounds[currentEntry] = defaultSoundFolder .. notifID .. '.wav'
+	for notifID, notifDef in pairs(notificationTable) do
+		local notifTexts = {}
+		local notifSounds = {}
+		local notifSoundsRare = {}
+		local currentEntry = 1
+		local currentEntryRare = 1
+		if notifDef.notifText then
+			notifTexts[currentEntry] = notifDef.notifText
+		else
+			notifTexts[currentEntry] = 'tips.notifications.' .. string.sub(notifID, 1, 1):lower() .. string.sub(notifID, 2)
+		end
+		if VFS.FileExists(soundFolder .. notifID .. '.wav') then
+			notifSounds[currentEntry] = soundFolder .. notifID .. '.wav'
 		end
 		for i = 1, 20 do
-			if VFS.FileExists(defaultSoundFolder .. notifID .. i .. '.wav') then
+			if VFS.FileExists(soundFolder .. notifID .. i .. '.wav') then
 				currentEntry = currentEntry + 1
-				notifSounds[currentEntry] = defaultSoundFolder .. notifID .. i .. '.wav'
+				notifSounds[currentEntry] = soundFolder .. notifID .. i .. '.wav'
 			end
 		end
-	end
 
-	if VFS.FileExists(soundFolder .. notifID .. '_rare' .. '.wav') then
-		notifSoundsRare[currentEntryRare] = soundFolder .. notifID .. '_rare' .. '.wav'
-	end
-	for i = 1, 20 do
-		if VFS.FileExists(soundFolder .. notifID .. '_rare' .. i .. '.wav') then
-			currentEntryRare = currentEntryRare + 1
-			notifSoundsRare[currentEntryRare] = soundFolder .. notifID .. '_rare' .. i .. '.wav'
+		if useDefaultVoiceFallback and #notifSounds == 0 then
+			if VFS.FileExists(defaultSoundFolder .. notifID .. '.wav') then
+				notifSounds[currentEntry] = defaultSoundFolder .. notifID .. '.wav'
+			end
+			for i = 1, 20 do
+				if VFS.FileExists(defaultSoundFolder .. notifID .. i .. '.wav') then
+					currentEntry = currentEntry + 1
+					notifSounds[currentEntry] = defaultSoundFolder .. notifID .. i .. '.wav'
+				end
+			end
+		end
+
+		if VFS.FileExists(soundFolder .. notifID .. '_rare' .. '.wav') then
+			notifSoundsRare[currentEntryRare] = soundFolder .. notifID .. '_rare' .. '.wav'
+		end
+		for i = 1, 20 do
+			if VFS.FileExists(soundFolder .. notifID .. '_rare' .. i .. '.wav') then
+				currentEntryRare = currentEntryRare + 1
+				notifSoundsRare[currentEntryRare] = soundFolder .. notifID .. '_rare' .. i .. '.wav'
+			end
+		end
+
+		notification[notifID] = {
+			delay = notifDef.delay or 2,
+			stackedDelay = notifDef.stackedDelay, -- reset delay even with failed play
+			textID = notifTexts[1],
+			notext = notifDef.notext,
+			customText = notifDef.notifText,
+			voiceFiles = notifSounds,
+			voiceFilesRare = notifSoundsRare,
+			tutorial = notifDef.tutorial,
+			soundEffect = notifDef.soundEffect,
+			resetOtherEventDelay = notifDef.resetOtherEventDelay,
+			rulesEnable = notifDef.rulesEnable,
+			rulesDisable = notifDef.rulesDisable,
+			rulesPlayOnlyIfEnabled = notifDef.rulesPlayOnlyIfEnabled,
+			rulesPlayOnlyIfDisabled = notifDef.rulesPlayOnlyIfDisabled,
+		}
+
+		notificationList[notifID] = true
+		if not notifDef.tutorial then
+			notificationOrder[#notificationOrder + 1] = notifID
 		end
 	end
-
-	notification[notifID] = {
-		delay = notifDef.delay or 2,
-		stackedDelay = notifDef.stackedDelay, -- reset delay even with failed play
-		textID = notifTexts[1],
-		notext = notifDef.notext,
-		voiceFiles = notifSounds,
-		voiceFilesRare = notifSoundsRare,
-		tutorial = notifDef.tutorial,
-		soundEffect = notifDef.soundEffect,
-		resetOtherEventDelay = notifDef.resetOtherEventDelay,
-	}
-
-	notificationList[notifID] = true
-	if not notifDef.tutorial then
-		notificationOrder[#notificationOrder + 1] = notifID
-	end
 end
+processNotificationDefs()
 
 local unitsOfInterestNames = {
-	armemp = 'EmpSiloDetected',
-	cortron = 'TacticalNukeSiloDetected',
-	legperdition = "LongRangeNapalmLauncherDetected",
-	armsilo = 'NuclearSiloDetected',
-	corsilo = 'NuclearSiloDetected',
-	corint = 'LrpcDetected',
-	armbrtha = 'LrpcDetected',
-	leglrpc = 'LrpcDetected',
-	corbuzz = 'CalamityDetected',
-	armvulc = 'RagnarokDetected',
-	legstarfall = 'StarfallDetected',
-	armliche = 'NuclearBomberDetected',
-	corjugg = 'BehemothDetected',
-	corkorg = 'JuggernautDetected',
-	armbanth = 'TitanDetected',
-	armthor = "ThorDetected",
-	legeheatraymech = 'SolinvictusDetected',
-	armepoch = 'FlagshipDetected',
-	corblackhy = 'FlagshipDetected',
-	armatlas = 'AirTransportDetected',
-	corvalk = 'AirTransportDetected',
-	leglts = 'AirTransportDetected',
-	armhvytrans = 'AirTransportDetected',
-	corhvytrans = 'AirTransportDetected',
-	legatrans = 'AirTransportDetected',
-	armdfly = 'AirTransportDetected',
-	corseah = 'AirTransportDetected',
-	legstronghold = 'AirTransportDetected',
-	legelrpcmech = 'AstraeusDetected',
+	armemp             = 'UnitDetected/EmpSiloDetected',
+	cortron            = 'UnitDetected/TacticalNukeSiloDetected',
+	legperdition       = "UnitDetected/LongRangeNapalmLauncherDetected",
+	armsilo            = 'UnitDetected/NuclearSiloDetected',
+	corsilo            = 'UnitDetected/NuclearSiloDetected',
+	corint             = 'UnitDetected/LrpcDetected',
+	armbrtha           = 'UnitDetected/LrpcDetected',
+	leglrpc            = 'UnitDetected/LrpcDetected',
+	corbuzz            = 'UnitDetected/CalamityDetected',
+	armvulc            = 'UnitDetected/RagnarokDetected',
+	legstarfall        = 'UnitDetected/StarfallDetected',
+	armliche           = 'UnitDetected/LicheDetected',
+	corjugg            = 'UnitDetected/BehemothDetected',
+	corkorg            = 'UnitDetected/JuggernautDetected',
+	armbanth           = 'UnitDetected/TitanDetected',
+	armthor            = "UnitDetected/ThorDetected",
+	legeheatraymech    = 'UnitDetected/SolinvictusDetected',
+	armatlas           = 'UnitDetected/AirTransportDetected',
+	corvalk            = 'UnitDetected/AirTransportDetected',
+	leglts             = 'UnitDetected/AirTransportDetected',
+	armhvytrans        = 'UnitDetected/AirTransportDetected',
+	corhvytrans        = 'UnitDetected/AirTransportDetected',
+	legatrans          = 'UnitDetected/AirTransportDetected',
+	armdfly            = 'UnitDetected/AirTransportDetected',
+	corseah            = 'UnitDetected/AirTransportDetected',
+	legstronghold      = 'UnitDetected/AirTransportDetected',
+	legelrpcmech       = 'UnitDetected/AstraeusDetected',
+
+	armraz             = "UnitDetected/RazorbackDetected",
+	armmar             = "UnitDetected/MarauderDetected",
+	armvang            = "UnitDetected/VanguardDetected",
+	armlun             = "UnitDetected/LunkheadDetected",
+	armepoch           = 'UnitDetected/EpochDetected',
+	cordemon           = "UnitDetected/DemonDetected",
+	corshiva           = "UnitDetected/ShivaDetected",
+	corsok             = "UnitDetected/CataphractDetected",
+	corkarg            = "UnitDetected/KarganethDetected",
+	corcat             = "UnitDetected/CatapultDetected",
+	corblackhy         = 'UnitDetected/BlackHydraDetected',
+	legeshotgunmech    = "UnitDetected/PraetorianDetected",
+	legjav             = "UnitDetected/JavelinDetected",
+	legeallterrainmech = "UnitDetected/MyrmidonDetected",
+	legkeres           = "UnitDetected/KeresDetected",
+	legehovertank      = "UnitDetected/CharybdisDetected",
+	legerailtank       = "UnitDetected/DaedalusDetected",
+	leganavyflagship   = 'UnitDetected/NeptuneDetected',
+	leganavyartyship   = 'UnitDetected/CorinthDetected',
+
+	armmanni           = "UnitDetected/StarlightDetected",
+	armmerl            = "UnitDetected/AmbassadorDetected",
+	armfboy            = "UnitDetected/FatboyDetected",
+	corsumo            = "UnitDetected/MammothDetected",
+	corhrk             = "UnitDetected/ArbiterDetected",
+	corgol             = "UnitDetected/TzarDetected",
+	corvroc            = "UnitDetected/NegotiatorDetected",
+	cortrem            = "UnitDetected/TremorDetected",
+	corban             = "UnitDetected/BanisherDetected",
+	corcrwh            = "UnitDetected/DragonDetected",
+	leghrk             = "UnitDetected/ThanatosDetected",
+	legsrail           = "UnitDetected/ArquebusDetected",
+	leginc             = "UnitDetected/IncineratorDetected",
+	legaheattank       = "UnitDetected/PrometheusDetected",
+	legmed             = "UnitDetected/MedusaDetected",
+	leginf             = "UnitDetected/InfernoDetected",
+	legfort            = "UnitDetected/TyrannusDetected",
 }
 
 for name, unitDef in pairs(UnitDefNames) do
 	if unitDef.customParams.drone then
-		unitsOfInterestNames[name] = "DroneDetected"
+		unitsOfInterestNames[name] = "UnitDetected/DroneDetected"
 	end
 end
 
@@ -235,17 +287,32 @@ local tutorialPlayed = {}        -- store the number of times a tutorial event h
 local tutorialPlayedThisGame = {}    -- log that a tutorial event has played this game
 
 local unitIsReadyTab = {
-	{ UnitDefNames['armvulc'].id, 															'RagnarokIsReady' },
-	{ UnitDefNames['armbanth'].id, 															'TitanIsReady' },
-	{ UnitDefNames['armepoch'].id, 															'FlagshipIsReady' },
-	{ UnitDefNames['armthor'].id, 															'ThorIsReady' },
-	{ UnitDefNames['corbuzz'].id, 															'CalamityIsReady' },
-	{ UnitDefNames['corkorg'].id, 															'JuggernautIsReady' },
-	{ UnitDefNames['corjugg'].id, 															'BehemothIsReady' },
-	{ UnitDefNames['corblackhy'].id, 														'FlagshipIsReady' },
-	{ UnitDefNames['legstarfall'] and UnitDefNames['legstarfall'].id, 						'StarfallIsReady' },
-	{ UnitDefNames['legelrpcmech'] and UnitDefNames['legelrpcmech'].id, 					'AstraeusIsReady' },
-	{ UnitDefNames['legeheatraymech'] and UnitDefNames['legeheatraymech'].id, 				'SolinvictusIsReady' },
+	{ UnitDefNames['armvulc'].id, 															'UnitReady/RagnarokIsReady' },
+	{ UnitDefNames['armbanth'].id, 															'UnitReady/TitanIsReady' },
+	{ UnitDefNames['armepoch'].id, 															'UnitReady/FlagshipIsReady' },
+	{ UnitDefNames['armthor'].id, 															'UnitReady/ThorIsReady' },
+	{ UnitDefNames['armfus'].id, 															'UnitReady/FusionIsReady' },
+	{ UnitDefNames['armckfus'].id, 															'UnitReady/FusionIsReady' },
+	{ UnitDefNames['armuwfus'].id, 															'UnitReady/FusionIsReady' },
+	{ UnitDefNames['armafus'].id, 															'UnitReady/AdvancedFusionIsReady' },
+	{ UnitDefNames['armsilo'].id, 															'UnitReady/NuclearSiloIsReady' },
+
+	{ UnitDefNames['corbuzz'].id, 															'UnitReady/CalamityIsReady' },
+	{ UnitDefNames['corkorg'].id, 															'UnitReady/JuggernautIsReady' },
+	{ UnitDefNames['corjugg'].id, 															'UnitReady/BehemothIsReady' },
+	{ UnitDefNames['corblackhy'].id, 														'UnitReady/FlagshipIsReady' },
+	{ UnitDefNames['corfus'].id, 															'UnitReady/FusionIsReady' },
+	{ UnitDefNames['coruwfus'].id, 															'UnitReady/FusionIsReady' },
+	{ UnitDefNames['corafus'].id, 															'UnitReady/AdvancedFusionIsReady' },
+	{ UnitDefNames['corsilo'].id, 															'UnitReady/NuclearSiloIsReady' },
+
+	{ UnitDefNames['legstarfall'] and UnitDefNames['legstarfall'].id, 						'UnitReady/StarfallIsReady' },
+	{ UnitDefNames['legelrpcmech'] and UnitDefNames['legelrpcmech'].id, 					'UnitReady/AstraeusIsReady' },
+	{ UnitDefNames['legeheatraymech'] and UnitDefNames['legeheatraymech'].id, 				'UnitReady/SolinvictusIsReady' },
+	{ UnitDefNames['legfus'] and UnitDefNames['legfus'].id, 								'UnitReady/FusionIsReady' },
+	{ UnitDefNames['leganavalfusion'] and UnitDefNames['leganavalfusion'].id, 				'UnitReady/FusionIsReady' },
+	{ UnitDefNames['legafus'] and UnitDefNames['legafus'].id, 								'UnitReady/AdvancedFusionIsReady' },
+	{ UnitDefNames['legsilo'] and UnitDefNames['legsilo'].id,								'UnitReady/NuclearSiloIsReady' },
 }
 
 if UnitDefNames["armcom_scav"] then -- quick check if scav units exist
@@ -257,13 +324,6 @@ if UnitDefNames["armcom_scav"] then -- quick check if scav units exist
 	end
 	table.append(unitIsReadyTab, unitIsReadyScavAppend)
 end
-
-local numFactoryAir = 0
-local numFactorySeaplanes = 0
-local numFactoryVeh = 0
-local numFactoryBot = 0
-local numFactoryHover = 0
-local numFactoryShip = 0
 
 local hasMadeT2 = false
 
@@ -342,13 +402,58 @@ local function isInQueue(event)
 	return false
 end
 
+local notifRulesMemory = {}
+local function checkNotificationRules(notifDef)
+
+	if notifDef.rulesPlayOnlyIfDisabled then
+		for i = 1,#notifDef.rulesPlayOnlyIfDisabled do
+			if notifRulesMemory[notifDef.rulesPlayOnlyIfDisabled[i]] then
+				return false
+			end
+		end
+	end
+
+	if notifDef.rulesPlayOnlyIfEnabled then
+		for i = 1,#notifDef.rulesPlayOnlyIfEnabled do
+			if not notifRulesMemory[notifDef.rulesPlayOnlyIfEnabled[i]] then
+				return false
+			end
+		end
+	end
+
+	return true
+end
+
+local function applyNotificationRules(notifDef)
+	if notifDef.rulesEnable then
+		for i = 1,#notifDef.rulesEnable do
+			if not notifRulesMemory[notifDef.rulesEnable[i]] then
+				notifRulesMemory[notifDef.rulesEnable[i]] = true
+			end
+		end
+	end
+
+	if notifDef.rulesDisable then
+		for i = 1,#notifDef.rulesEnable do
+			if notifRulesMemory[notifDef.rulesDisable[i]] then
+				notifRulesMemory[notifDef.rulesDisable[i]] = false
+			end
+		end
+	end
+end
+
 local function queueNotification(event, forceplay)
 	if Spring.GetGameFrame() > 20 or forceplay then
-		if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) or forceplay then
+		if not isSpec or (isSpec and lockPlayerID ~= nil) or forceplay then
 			if notificationList[event] and notification[event] then
 				if not LastPlay[event] or (spGetGameFrame() >= LastPlay[event] + (notification[event].delay * 30)) then
 					if not isInQueue(event) then
-						soundQueue[#soundQueue + 1] = event
+						if checkNotificationRules(notification[event]) then
+							soundQueue[#soundQueue + 1] = event
+							applyNotificationRules(notification[event])
+						else
+							LastPlay[event] = spGetGameFrame() - ((notification[event].delay - 2)*30)
+						end
 					end
 				end
 
@@ -383,7 +488,7 @@ local function gadgetNotificationEvent(msg)
 	end
 
 	local forceplay = (string.sub(msg, string.len(msg) - 1) == ' y')
-	if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) or forceplay then
+	if not isSpec or (isSpec and lockPlayerID ~= nil) or forceplay then
 		local event = string.sub(msg, 1, string.find(msg, " ", nil, true) - 1)
 		local player = string.sub(msg, string.find(msg, " ", nil, true) + 1, string.len(msg))
 		if forceplay or (tonumber(player) and (tonumber(player) == Spring.GetMyPlayerID())) or (isSpec and tonumber(player) == lockPlayerID) then
@@ -449,12 +554,6 @@ function widget:Initialize()
 	WG['notifications'].setMessages = function(value)
 		displayMessages = value
 	end
-	WG['notifications'].getPlayTrackedPlayerNotifs = function()
-		return playTrackedPlayerNotifs
-	end
-	WG['notifications'].setPlayTrackedPlayerNotifs = function(value)
-		playTrackedPlayerNotifs = value
-	end
 	WG['notifications'].addEvent = function(value, force)
 		if notification[value] then
 			queueNotification(value, force)
@@ -480,7 +579,11 @@ function widget:Initialize()
 				Spring.PlaySoundFile(soundEffectsFolder .. notification[event].soundEffect .. ".wav", globalVolume, 'ui')
 			end
 			if displayMessages and WG['messages'] and notification[event].textID and not notification[event].notext then
-				WG['messages'].addMessage(Spring.I18N(notification[event].textID))
+				if not notification[event].customText then
+					WG['messages'].addMessage(Spring.I18N(notification[event].textID))
+				else
+					WG['messages'].addMessage(notification[event].textID)
+				end
 			end
 		end
 	end
@@ -488,6 +591,38 @@ function widget:Initialize()
 	WG['notifications'].resetEventDelay = function(event)
 		LastPlay[event] = spGetGameFrame()
 	end
+
+	WG['notifications'].addNotificationDefs = function(tableOfNotifs)
+		notificationTable = table.merge(notificationTable, tableOfNotifs)
+		processNotificationDefs()
+	end
+
+	WG['notifications'].addUnitDetected = function(unitName, notifName)
+		if UnitDefNames[unitName] then
+			unitsOfInterest[UnitDefNames[unitName].id] = notifName
+		end
+		if UnitDefNames[unitName .. "_scav"] then
+			unitsOfInterest[UnitDefNames[unitName].id .. "_scav"] = notifName
+		end
+	end
+
+	RegisteredCustomNotifWidgets = {}
+	WG['notifications'].registerCustomNotifWidget = function(widgetName)
+		if not RegisteredCustomNotifWidgets[widgetName] then
+			RegisteredCustomNotifWidgets[widgetName] = true
+		end
+	end
+
+	WG['notifications'].registeredCustomNotifWidgets = function()
+		return RegisteredCustomNotifWidgets
+	end
+
+	if not WG.NotificationSoundDefsLoaded then -- To prevent reloads and warning spam when changing/refreshing announcers
+		Spring.LoadSoundDef("gamedata/soundsVoice.lua")
+		WG.NotificationSoundDefsLoaded = true
+		Spring.Echo("Notification Sound Items Loaded")
+	end
+
 
 	if Spring.Utilities.Gametype.IsRaptors() and Spring.Utilities.Gametype.IsScavengers() then
 		queueNotification('RaptorsAndScavsMixed')
@@ -618,24 +753,24 @@ function widget:UnitEnteredLos(unitID, unitTeam)
 	local udefID = spGetUnitDefID(unitID)
 
 	-- single detection events below
-	queueNotification('EnemyDetected')
+	queueNotification('UnitDetected/EnemyDetected')
 	if isAircraft[udefID] then
-		queueNotification('AircraftDetected')
+		queueNotification('UnitDetected/AircraftDetected')
 	end
 	if isT2mobile[udefID] then
-		queueNotification('Tech2UnitDetected')
+		queueNotification('UnitDetected/Tech2UnitDetected')
 	end
 	if isT3mobile[udefID] then
-		queueNotification('Tech3UnitDetected')
+		queueNotification('UnitDetected/Tech3UnitDetected')
 	end
 	if isT4mobile[udefID] then
-		queueNotification('Tech4UnitDetected')
+		queueNotification('UnitDetected/Tech4UnitDetected')
 	end
 	if isMine[udefID] then
 		-- ignore when far away
 		local x, _, z = spGetUnitPosition(unitID)
 		if #Spring.GetUnitsInCylinder(x, z, 1700, myTeamID) > 0 then
-			queueNotification('MinesDetected')
+			queueNotification('UnitDetected/MinesDetected')
 		end
 	end
 
@@ -768,8 +903,10 @@ local function playNextSound()
 		end
 
 		LastPlay[event] = spGetGameFrame()
-		if notification[event].resetOtherEventDelay then
-			LastPlay[notification[event].resetOtherEventDelay] = spGetGameFrame()
+		if notification[event].resetOtherEventDelay and #notification[event].resetOtherEventDelay > 0 then
+			for i = 1,#notification[event].resetOtherEventDelay do
+				LastPlay[notification[event].resetOtherEventDelay[i]] = spGetGameFrame()
+			end
 		end
 
 		-- for tutorial event: log number of plays
@@ -829,6 +966,10 @@ function widget:Update(dt)
 			Spring.SetConfigInt('WelcomeMessagePlayed', 1)
 			queueNotification('Welcome', true)
 			playWelcome = false
+			playedWelcome = true
+		elseif not playedWelcome then
+			queueNotification('WelcomeShort', true)
+			playedWelcome = true
 		end
 	end
 end
@@ -894,7 +1035,6 @@ function widget:GetConfigData(data)
 		globalVolume = globalVolume,
 		spoken = spoken,
 		displayMessages = displayMessages,
-		playTrackedPlayerNotifs = playTrackedPlayerNotifs,
 		LastPlay = LastPlay,
 		tutorialMode = tutorialMode,
 		tutorialPlayed = tutorialPlayed,
@@ -919,9 +1059,6 @@ function widget:SetConfigData(data)
 	end
 	if data.displayMessages ~= nil then
 		displayMessages = data.displayMessages
-	end
-	if data.playTrackedPlayerNotifs ~= nil then
-		playTrackedPlayerNotifs = data.playTrackedPlayerNotifs
 	end
 	if data.tutorialPlayed ~= nil then
 		tutorialPlayed = data.tutorialPlayed

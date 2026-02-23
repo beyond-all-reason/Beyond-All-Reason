@@ -56,7 +56,7 @@ local ContributorAINames = {
     "Nightmare",
     "Nihilore",
     "Nikuksis",
-    "NortySpock"
+    "NortySpock",
     "OPMan",
     "Odin",
     "Okema",
@@ -68,6 +68,7 @@ local ContributorAINames = {
     "PtaQ",
     "Rachaelneco",
     "Raghna",
+    "Rasoul",
     "RebelNode",
     "Requiem",
 	"Robert82",

@@ -145,6 +145,8 @@ if gadgetHandler:IsSyncedCode() then
 	local SpDestroyUnit = Spring.DestroyUnit
 	local SpGetUnitDefID = Spring.GetUnitDefID
 	local SpValidUnitID = Spring.ValidUnitID
+	local SpGetUnitPosition = Spring.GetUnitPosition
+	local SpSpawnCEG = Spring.SpawnCEG
 	local Mmin = math.min
 
 
@@ -170,9 +172,9 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, projID, aID, aDefID, aTeam)
 		if junoWeapons[weaponID] and tokillUnits[uDefID] then
 			if uID and SpValidUnitID(uID) then
-				local px, py, pz = Spring.GetUnitPosition(uID)
+				local px, py, pz = SpGetUnitPosition(uID)
 				if px then
-					Spring.SpawnCEG("juno-damage", px, py + 8, pz, 0, 1, 0)
+					SpSpawnCEG("juno-damage", px, py + 8, pz, 0, 1, 0)
 				end
 				if aID and SpValidUnitID(aID) then
 					SpDestroyUnit(uID, false, false, aID)
@@ -235,13 +237,13 @@ if gadgetHandler:IsSyncedCode() then
 					-- linear and not O(n^2)
 					local unitID = unitIDsBig[i]
 					local unitDefID = SpGetUnitDefID(unitID)
-					if todenyUnits[unitDefID] then
-						local px, py, pz = Spring.GetUnitPosition(unitID)
+				if todenyUnits[unitDefID] then
+						local px, py, pz = SpGetUnitPosition(unitID)
 						local dx = expl.x - px
 						local dz = expl.z - pz
 						if (dx * dx + dz * dz) > (q * (radius - width)) * (q * (radius - width)) then
 							-- linear and not O(n^2)
-							Spring.SpawnCEG("juno-damage", px, py + 8, pz, 0, 1, 0)
+							SpSpawnCEG("juno-damage", px, py + 8, pz, 0, 1, 0)
 							SpDestroyUnit(unitID, true, false)
 						end
 					end

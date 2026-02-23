@@ -8,8 +8,10 @@ if not string.split then
 	function string.split(val, delimiter)
 		delimiter = delimiter or "%s"
 		local results = {}
+		local n = 0
 		for part in string.gmatch(val, "[^" .. delimiter .. "]+") do
-			table.insert(results, part)
+			n = n + 1
+			results[n] = part
 		end
 		return results
 	end
@@ -84,19 +86,10 @@ if not string.formatTime then
 		local hours = math.floor(self / 3600)
 		local minutes = math.floor((self % 3600) / 60)
 		local seconds = math.floor(self % 60)
-		local hoursString = tostring(hours)
-		local minutesString = tostring(minutes)
-		local secondsString = tostring(seconds)
-		if seconds < 10 then
-			secondsString = "0" .. secondsString
-		end
-		if hours > 0 and minutes < 10 then
-			minutesString = "0" .. minutesString
-		end
 		if hours > 0 then
-			return hoursString .. ":" .. minutesString .. ":" .. secondsString
+			return string.format("%d:%02d:%02d", hours, minutes, seconds)
 		else
-			return minutesString .. ":" .. secondsString
+			return string.format("%d:%02d", minutes, seconds)
 		end
 	end
 end
