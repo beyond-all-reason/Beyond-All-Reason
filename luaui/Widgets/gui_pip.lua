@@ -166,7 +166,7 @@ local config = {
 	drawDecals = true,  -- Show ground decals (explosion scars, footprints) from the decals GL4 widget
 	drawCommandFX = true,  -- Show brief fading command lines when orders are given (like Commands FX widget)
 	commandFXIgnoreNewUnits = true,  -- Ignore commands given to newly finished units (rally point orders)
-	commandFXOpacity = 0.3,  -- Initial opacity of command FX lines
+	commandFXOpacity = 0.2,  -- Initial opacity of command FX lines
 	commandFXDuration = 0.66,  -- Seconds for command FX lines to fully fade out
 	
 	-- Feature and overlay settings
@@ -8196,6 +8196,7 @@ local function DrawBuildPreview(mx, my, iconRadiusZoomDistMult)
 					local buildIcon = cache.unitIcon[selectedMex]
 					if buildIcon then
 						local iconSize = iconRadiusZoomDistMult * buildIcon.size * 0.8
+						local mapRotDeg = render.minimapRotation ~= 0 and (-render.minimapRotation * 180 / math.pi) or 0
 
 						for i = 1, #metalSpots do
 							local spot = metalSpots[i]
@@ -8204,7 +8205,15 @@ local function DrawBuildPreview(mx, my, iconRadiusZoomDistMult)
 								local cx, cy = WorldToPipCoords(spot.x, spot.z)
 								glFunc.Color(1, 1, 1, 0.3)
 								glFunc.Texture(buildIcon.bitmap)
-								glFunc.TexRect(cx - iconSize, cy - iconSize, cx + iconSize, cy + iconSize)
+								if mapRotDeg ~= 0 then
+									glFunc.PushMatrix()
+									glFunc.Translate(cx, cy, 0)
+									glFunc.Rotate(mapRotDeg, 0, 0, 1)
+									glFunc.TexRect(-iconSize, -iconSize, iconSize, iconSize)
+									glFunc.PopMatrix()
+								else
+									glFunc.TexRect(cx - iconSize, cy - iconSize, cx + iconSize, cy + iconSize)
+								end
 							end
 						end
 						glFunc.Texture(false)
@@ -8282,10 +8291,13 @@ local function DrawBuildPreview(mx, my, iconRadiusZoomDistMult)
 
 			glFunc.Texture(buildIcon.bitmap)
 
-			if rotation ~= 0 then
+			-- Counter-rotate by minimap rotation to stay upright like GL4 icons
+			local mapRotDeg = render.minimapRotation ~= 0 and (-render.minimapRotation * 180 / math.pi) or 0
+			local totalRot = rotation + mapRotDeg
+			if totalRot ~= 0 then
 				glFunc.PushMatrix()
 				glFunc.Translate(cx, cy, 0)
-				glFunc.Rotate(rotation, 0, 0, 1)
+				glFunc.Rotate(totalRot, 0, 0, 1)
 				glFunc.TexRect(-iconSize, -iconSize, iconSize, iconSize)
 				glFunc.PopMatrix()
 			else
@@ -8353,10 +8365,13 @@ local function DrawBuildDragPreview(iconRadiusZoomDistMult)
 			glFunc.Color(1, 0, 0, alpha)
 		end
 
-		if rotation ~= 0 then
+		-- Counter-rotate by minimap rotation to stay upright like GL4 icons
+		local mapRotDeg = render.minimapRotation ~= 0 and (-render.minimapRotation * 180 / math.pi) or 0
+		local totalRot = rotation + mapRotDeg
+		if totalRot ~= 0 then
 			glFunc.PushMatrix()
 			glFunc.Translate(cx, cy, 0)
-			glFunc.Rotate(rotation, 0, 0, 1)
+			glFunc.Rotate(totalRot, 0, 0, 1)
 			glFunc.TexRect(-iconSize, -iconSize, iconSize, iconSize)
 			glFunc.PopMatrix()
 		else
@@ -8443,6 +8458,10 @@ local function DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
 		end
 	end
 
+	-- Counter-rotate by minimap rotation so build queue icons stay upright,
+	-- matching the GL4 shader icons which handle rotation in the vertex shader
+	local mapRotDeg = render.minimapRotation ~= 0 and (-render.minimapRotation * 180 / math.pi) or 0
+
 	glFunc.Color(0.5, 1, 0.5, 0.4)
 	for bitmap, builds in pairs(pools.buildsByTexture) do
 		glFunc.Texture(bitmap)
@@ -8450,11 +8469,12 @@ local function DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
 		for i = 1, buildCount do
 			local build = builds[i]
 			local cx, cy, iconSize, rotation = build.cx, build.cy, build.iconSize, build.rotation
+			local totalRot = rotation + mapRotDeg
 
-			if rotation ~= 0 then
+			if totalRot ~= 0 then
 				glFunc.PushMatrix()
 				glFunc.Translate(cx, cy, 0)
-				glFunc.Rotate(rotation, 0, 0, 1)
+				glFunc.Rotate(totalRot, 0, 0, 1)
 				glFunc.TexRect(-iconSize, -iconSize, iconSize, iconSize)
 				glFunc.PopMatrix()
 			else
@@ -8493,6 +8513,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	local unitDefLayerTbl = gl4Icons.unitDefLayer
 	local atlasUVs = gl4Icons.atlasUVs
 	local defaultUV = gl4Icons.defaultUV
+	if not defaultUV then return 1 end  -- Atlas not built yet, skip icon drawing
 	local cacheUnitIcon = cache.unitIcon
 	local cacheIsBuilding = cache.isBuilding
 	local localCantBeTransported = cache.cantBeTransported
@@ -9133,7 +9154,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		local distMult = math.min(math.max(1, 2.2-(cameraState.zoom*3.3)), 3)
 		local teamBorderSize = 3 * cameraState.zoom * distMult * resScale
 		local blackBorderSize = 4 * cameraState.zoom * distMult * resScale
-		local cornerCutRatio = 0.2
+		local cornerCutRatio = 0.18
 		local isRotated = render.minimapRotation ~= 0
 		local hoveredID = drawData.hoveredUnitID
 		local cacheUnitPic = cache.unitPic
@@ -9141,16 +9162,26 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		-- Draw each unitpic (already in correct layer order from 4-pass processing)
 		for j = 1, unitpicCount do
 			local up = unitpicEntries[j]
-			local px, py = up[1], up[2]
 			local uDefID, uTeam = up[3], up[4]
 			local isSelected, buildProgress, uID = up[5], up[6], up[7]
 
 			local iconData = cacheUnitIcon[uDefID]
-			local iconSize = iconRadiusZoomDistMult * (iconData and iconData.size or 0.5) * unitpicSizeMult
-			local bdrSize = iconSize + teamBorderSize + blackBorderSize
-			local teamBdrSize = iconSize + teamBorderSize
-			local crnrCut = bdrSize * cornerCutRatio
-			local crnrCutOuter = bdrSize * cornerCutRatio * 1.2
+			local rawIconSize = iconRadiusZoomDistMult * (iconData and iconData.size or 0.5) * unitpicSizeMult
+			-- Pixel-align center and round sizes to whole pixels so all concentric
+			-- octagons (black border, team border, icon) are symmetric on every side
+			local px = mathFloor(up[1] + 0.5)
+			local py = mathFloor(up[2] + 0.5)
+			local iconSize = mathFloor(rawIconSize + 0.5)
+			local teamBdrSize = iconSize + mathFloor(teamBorderSize + 0.5)
+			local bdrSize = teamBdrSize + mathFloor(blackBorderSize + 0.5)
+			local crnrCut = mathFloor(bdrSize * cornerCutRatio + 0.5)
+			local crnrCutOuter = mathFloor(bdrSize * cornerCutRatio * 1.2 + 0.5)
+			-- Reduce inner corner cut so diagonal border matches straight border thickness
+			-- Without this, the diagonal gap between team octagon and icon octagon is √2× wider
+			local teamGap = teamBdrSize - iconSize
+			local crnrCutInner = math.max(0, mathFloor(crnrCut - teamGap * 0.5858 + 0.5))
+			local blackGap = bdrSize - teamBdrSize
+			local crnrCutTeam = math.max(0, mathFloor(crnrCutOuter - blackGap * 0.5858 + 0.5))
 			local opacity = buildProgress >= 1 and 1.0 or (0.2 + (buildProgress * 0.5))
 			local isHovered = hoveredID and uID == hoveredID
 			local color = localTeamColors[uTeam]
@@ -9174,7 +9205,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 				else
 					glFunc.Color(1, 1, 1, 1)
 				end
-				glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, 0, 0, teamBdrSize, crnrCut)
+				glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, 0, 0, teamBdrSize, crnrCutTeam)
 
 				-- Unitpic texture
 				if unitpic then
@@ -9186,7 +9217,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 						if isHovered then brightness = brightness * 1.2 end
 						glFunc.Color(brightness, brightness, brightness, opacity)
 					end
-					glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawTexturedOctagonVertices, 0, 0, iconSize, crnrCut, picTexInset)
+					glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawTexturedOctagonVertices, 0, 0, iconSize, crnrCutInner, picTexInset)
 				end
 
 				-- Health bar (only for damaged units, inside the icon area)
@@ -9241,7 +9272,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 				else
 					glFunc.Color(1, 1, 1, 1)
 				end
-				glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, px, py, teamBdrSize, crnrCut)
+				glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, px, py, teamBdrSize, crnrCutTeam)
 
 				-- Unitpic texture
 				if unitpic then
@@ -9253,7 +9284,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 						if isHovered then brightness = brightness * 1.2 end
 						glFunc.Color(brightness, brightness, brightness, opacity)
 					end
-					glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawTexturedOctagonVertices, px, py, iconSize, crnrCut, picTexInset)
+					glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawTexturedOctagonVertices, px, py, iconSize, crnrCutInner, picTexInset)
 				end
 
 				-- Health bar (only for damaged units, inside the icon area)
@@ -9714,10 +9745,10 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 					if name then
 						local tc = teamColors[tID]
 						local r, g, b = tc and tc[1] or 1, tc and tc[2] or 1, tc and tc[3] or 1
-						-- Dark team colors get white outline, light colors get black
-						local lum = r * 0.299 + g * 0.587 + b * 0.114
+						-- Match the nametags widget's ColorIsDark formula for outline color
+						local isDark = (r + g * 1.2 + b * 0.4) < 0.65
 						local oR, oG, oB = 0, 0, 0
-						if lum < 0.36 then oR, oG, oB = 1, 1, 1 end
+						if isDark then oR, oG, oB = 1, 1, 1 end
 						comNametagCache[tID] = { name = name, r = r, g = g, b = b, oR = oR, oG = oG, oB = oB }
 					else
 						comNametagCache[tID] = nil
@@ -9777,7 +9808,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 						-- Offset above the icon in screen space (always +Y, after rotation)
 						cy = cy + iconHalf + nametagFontSize * 0.35
 						font:SetTextColor(entry.r, entry.g, entry.b, nametagAlpha)
-						font:SetOutlineColor(entry.oR, entry.oG, entry.oB, nametagAlpha * 0.8)
+						font:SetOutlineColor(entry.oR, entry.oG, entry.oB, nametagAlpha)
 						font:Print(entry.name, cx, cy, nametagFontSize, "con")
 					end
 				end
