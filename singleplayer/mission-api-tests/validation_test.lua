@@ -107,7 +107,7 @@ local actions = {
 	actionWithInvalidTeamIDAndUnknownUnitName = {
 		type = actionTypes.TransferUnits,
 		parameters = {
-			unitNameRequired = 'unknownUnitName',
+			unitName = 'unknownUnitName',
 			newTeam = 777,
 		},
 	},
@@ -115,7 +115,7 @@ local actions = {
 	actionWithInvalidOrders = {
 		type = actionTypes.IssueOrders,
 		parameters = {
-			unitNameRequired = 'validName',
+			unitName = 'validName',
 			orders = {
 				{ CMD.MOVE, { 1850, 0, 1500 }, { 'shift' } },         -- valid order
 				{},                                                   -- empty order
@@ -142,7 +142,7 @@ local actions = {
 	actionWithNoOrders = {
 		type = actionTypes.IssueOrders,
 		parameters = {
-			unitNameRequired = 'validName',
+			unitName = 'validName',
 			orders = {},
 		},
 	},
@@ -150,14 +150,14 @@ local actions = {
 	actionMissing1of3requiredParamsAndUnusedUnitName = {
 		type = actionTypes.NameUnits,
 		parameters = {
-			unitNameToGive = 'unusedUnitName',
+			unitName = 'unusedUnitName',
 		},
 	},
 
 	actionWithAreaWithInvalidFieldInRectangle = {
 		type = actionTypes.NameUnits,
 		parameters = {
-			unitNameToGive = 'validName',
+			unitName = 'validName',
 			area = { x1 = 0, z1 = 0, x2 = 0, invalidField = 0 },
 		},
 	},
@@ -165,7 +165,7 @@ local actions = {
 	actionWithAreaWithInvalidFieldTypeInRectangle = {
 		type = actionTypes.NameUnits,
 		parameters = {
-			unitNameToGive = 'validName',
+			unitName = 'validName',
 			area = { x1 = 0, z1 = 0, x2 = 0, z2 = 'invalidType' },
 		},
 	},
@@ -173,7 +173,7 @@ local actions = {
 	actionWithAreaWithMissingParmInRectangle = {
 		type = actionTypes.NameUnits,
 		parameters = {
-			unitNameToGive = 'validName',
+			unitName = 'validName',
 			area = { x1 = 0, z1 = 0, x2 = 0 },
 		},
 	},
@@ -181,7 +181,7 @@ local actions = {
 	actionWithAreaWithInvalidFieldInCircle = {
 		type = actionTypes.NameUnits,
 		parameters = {
-			unitNameToGive = 'validName',
+			unitName = 'validName',
 			area = { x = 0, z = 0, invalidField = 100 },
 		},
 	},
@@ -189,7 +189,7 @@ local actions = {
 	actionWithAreaWithInvalidFieldTypeInCircle = {
 		type = actionTypes.NameUnits,
 		parameters = {
-			unitNameToGive = 'validName',
+			unitName = 'validName',
 			area = { x = 0, z = 0, radius = 'invalidType' },
 		},
 	},
@@ -197,7 +197,7 @@ local actions = {
 	actionWithAreaWithMissingParmInCircle = {
 		type = actionTypes.NameUnits,
 		parameters = {
-			unitNameToGive = 'validName',
+			unitName = 'validName',
 			area = { x = 0, radius = 100},
 		},
 	},
@@ -205,7 +205,7 @@ local actions = {
 	actionWithAreaRectangleWithInverseDimensions = {
 		type = actionTypes.NameUnits,
 		parameters = {
-			unitNameToGive = 'validName',
+			unitName = 'validName',
 			area = { x1 = 10, z1 = 10, x2 = 1, z2 = 1 },
 		},
 	},

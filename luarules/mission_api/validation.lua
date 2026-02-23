@@ -425,15 +425,15 @@ local function validateUnitNameReferences()
 	local referencedUnitNames = {}
 	local function recordUnitNameCreationsAndReferences(actionsOrTriggers, label)
 		for actionOrTriggerID, actionOrTrigger in pairs(actionsOrTriggers) do
-			local unitNameToGive = (actionOrTrigger.parameters or {}).unitNameToGive
-			if unitNameToGive then
-				createdUnitNames[unitNameToGive] = createdUnitNames[unitNameToGive] or {}
-				createdUnitNames[unitNameToGive][#createdUnitNames[unitNameToGive] + 1] = label .. actionOrTriggerID
+			local unitName = (actionOrTrigger.parameters or {}).unitName
+			if unitName then
+				createdUnitNames[unitName] = createdUnitNames[unitName] or {}
+				createdUnitNames[unitName][#createdUnitNames[unitName] + 1] = label .. actionOrTriggerID
 			end
-			local unitNameRequired = (actionOrTrigger.parameters or {}).unitNameRequired
-			if unitNameRequired then
-				referencedUnitNames[unitNameRequired] = referencedUnitNames[unitNameRequired] or {}
-				referencedUnitNames[unitNameRequired][#referencedUnitNames[unitNameRequired] + 1] = label .. actionOrTriggerID
+			local unitName = (actionOrTrigger.parameters or {}).unitName
+			if unitName then
+				referencedUnitNames[unitName] = referencedUnitNames[unitName] or {}
+				referencedUnitNames[unitName][#referencedUnitNames[unitName] + 1] = label .. actionOrTriggerID
 			end
 		end
 	end
