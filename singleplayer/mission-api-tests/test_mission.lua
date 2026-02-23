@@ -93,7 +93,7 @@ local actions = {
 	spawnCons1 = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitNameRequired = 'con-bots',
+			unitNameToGive = 'con-bots',
             unitDefName = 'corck',
 			teamID = 0,
 			position = { x = 1800, z = 1600 },
