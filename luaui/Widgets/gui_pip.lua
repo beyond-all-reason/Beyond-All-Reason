@@ -150,7 +150,7 @@ local config = {
 	tvModeSpectatorsOnly = true,  -- Only allow TV mode for spectators
 	tvMaxZoom = 0.63,              -- Maximum zoom level for TV mode (never close enough for unitpics)
 	tvMinZoom = 0.08,             -- Minimum zoom level for TV overview shots
-	tvOverviewZoom = 0.12,        -- Zoom level for periodic overview shots
+	tvOverviewZoom = 0.07,        -- Zoom level for periodic overview shots (wider view of the map)
 	tvCloseupZoom = 0.45,         -- Zoom level for close-up action shots
 	tvFocusDuration = 6.0,        -- Base seconds to hold focus on a hotspot before considering switch
 	tvOverviewDuration = 2.5,     -- Seconds to hold an overview shot
@@ -947,41 +947,69 @@ function pipTV.CameraUpdate(dt)
 		pipTV.camera.targetZoom = math.max(tzoom, GetEffectiveZoomMin())
 	end
 
-	-- Apply camera targets with smooth interpolation
+	-- Smoothly interpolate camera position and zoom toward director targets
+	-- Uses exponential smoothing (1 - exp(-dt * speed)) which is frame-rate independent
+	-- and produces clean deceleration without stepping artifacts at the tail end
 	if pipTV.camera.targetX then
 		local dx = pipTV.camera.targetX - cameraState.targetWcx
 		local dz = pipTV.camera.targetZ - cameraState.targetWcz
 		local dist = math.sqrt(dx * dx + dz * dz)
 		local dZoom = pipTV.camera.targetZoom - cameraState.targetZoom
 
-		-- Snap to target when close enough (eliminates end-point jitter)
-		if dist < 2 then
+		-- Position smoothing
+		if dist < 1 then
 			cameraState.targetWcx = pipTV.camera.targetX
 			cameraState.targetWcz = pipTV.camera.targetZ
 		else
-			-- Adaptive speed: faster for long-distance switches, gentler for nearby tracking
-			local speedMult = 1
-			if dist > 3000 then
-				speedMult = 1.8  -- Faster pan for very long switches
-			elseif dist > 1500 then
-				speedMult = 1.3
-			elseif dist < 400 then
-				speedMult = 0.7  -- Gentle drift for nearby targets
-			end
-
-			-- Critically-damped-style smoothing: faster approach that decelerates cleanly
-			local panFactor = 1 - math.exp(-dt * config.tvPanSpeed * speedMult)
+			local panFactor = 1 - math.exp(-dt * config.tvPanSpeed)
 			cameraState.targetWcx = cameraState.targetWcx + dx * panFactor
 			cameraState.targetWcz = cameraState.targetWcz + dz * panFactor
 		end
 
-		-- Snap zoom when close enough
-		if math.abs(dZoom) < 0.001 then
+		-- Zoom smoothing
+		if math.abs(dZoom) < 0.0005 then
 			cameraState.targetZoom = pipTV.camera.targetZoom
 		else
 			local zoomFactor = 1 - math.exp(-dt * config.tvZoomSpeed)
 			cameraState.targetZoom = cameraState.targetZoom + dZoom * zoomFactor
 		end
+
+		-- For TV mode, also drive .zoom and .wcx/.wcz directly to bypass the main loop's
+		-- linear lerp (which causes stepping). We are the sole authority on camera position.
+		cameraState.zoom = cameraState.targetZoom
+
+		-- Clamp position to map bounds so we never show void outside the map
+		local pipWidth = render.dim.r - render.dim.l
+		local pipHeight = render.dim.t - render.dim.b
+		if render.minimapRotation then
+			local rotDeg = math.abs(render.minimapRotation * 180 / math.pi) % 180
+			if rotDeg > 45 and rotDeg < 135 then
+				pipWidth, pipHeight = pipHeight, pipWidth
+			end
+		end
+		local visW = pipWidth / cameraState.zoom
+		local visH = pipHeight / cameraState.zoom
+		local marginFrac = config.mapEdgeMargin or 0
+		-- Clamp X axis
+		local marginX = visW * marginFrac
+		local minX = visW / 2 - marginX
+		local maxX = Game.mapSizeX - (visW / 2 - marginX)
+		if minX >= maxX then
+			cameraState.targetWcx = Game.mapSizeX / 2
+		else
+			cameraState.targetWcx = math.min(math.max(cameraState.targetWcx, minX), maxX)
+		end
+		-- Clamp Z axis
+		local marginZ = visH * marginFrac
+		local minZ = visH / 2 - marginZ
+		local maxZ = Game.mapSizeZ - (visH / 2 - marginZ)
+		if minZ >= maxZ then
+			cameraState.targetWcz = Game.mapSizeZ / 2
+		else
+			cameraState.targetWcz = math.min(math.max(cameraState.targetWcz, minZ), maxZ)
+		end
+		cameraState.wcx = cameraState.targetWcx
+		cameraState.wcz = cameraState.targetWcz
 	end
 
 	-- Continuously publish actual camera position + view radius so other PIPs know
@@ -4141,14 +4169,14 @@ local function DrawProjectile(pID)
 				end
 
 				-- Slower missiles get longer-lingering trails
-				-- speed 3 → 2.4s, speed 10 → 1.5s, speed 20+ → 0.7s
+				-- speed 3 → 3.5s, speed 10 → 2.3s, speed 20+ → 1.0s
 				local trailLife
 				local trailInterval
 				if isStarburst then
-					trailLife = 2.4
+					trailLife = 3.0
 					trailInterval = 0.12
 				else
-					trailLife = math.max(0.7, 2.4 - projSpeed * 0.085)
+					trailLife = math.max(1.0, 3.5 - projSpeed * 0.125)
 					trailInterval = 0.04
 				end
 				-- Enough ring buffer slots to cover the full lifetime + small margin
@@ -4237,9 +4265,9 @@ local function DrawProjectile(pID)
 							if fade2 < 0 then fade2 = 0 end
 							
 							if fade1 > 0 or fade2 > 0 then
-								glFunc.Color(trailColorR, trailColorG, trailColorB, 0.5 * fade1)
+								glFunc.Color(trailColorR, trailColorG, trailColorB, 0.7 * fade1)
 								glFunc.Vertex(p1.x - wcx, wcz - p1.z, 0)
-								glFunc.Color(trailColorR, trailColorG, trailColorB, 0.5 * fade2)
+								glFunc.Color(trailColorR, trailColorG, trailColorB, 0.7 * fade2)
 								glFunc.Vertex(p2.x - wcx, wcz - p2.z, 0)
 							end
 						end
@@ -4347,10 +4375,11 @@ local function DrawProjectile(pID)
 		GL4AddCircle(px, pz, radius, color[4], coreR, coreG, coreB, outerR, outerG, outerB, color[4], 0)
 
 		-- Plasma trail: short fading trail for artillery/cannon projectiles with CEG trails
+		-- Uses game frames instead of os.clock() so trails don't elongate during catchup
 		local trailColor = config.drawPlasmaTrails and cache.weaponPlasmaTrailColor[pDefID]
 		if trailColor then
 			local trail = cache.plasmaTrails[pID]
-			local now = os.clock()
+			local gameFrame = Spring.GetGameFrame()
 			if not trail then
 				-- Short ring buffer: 6 slots for max ~4 visible line segments
 				local projSpeed = 10
@@ -4358,32 +4387,35 @@ local function DrawProjectile(pID)
 				if wDef and wDef.projectilespeed then
 					projSpeed = wDef.projectilespeed * 30
 				end
-				-- Slower projectiles get slightly longer trails
-				local trailLife = mMax(0.25, mMin(0.6, 0.8 - projSpeed * 0.03))
+				-- Slower projectiles get slightly longer trails (in game frames, 30fps)
+				-- speed 3 → 18 frames (0.6s), speed 10 → ~15 frames (0.5s), speed 20+ → ~8 frames (0.25s)
+				local trailLifeFrames = mMax(8, mMin(18, math.floor((0.8 - projSpeed * 0.03) * 30)))
+				local trailUpdateInterval = 2  -- Record position every 2 game frames
 				trail = {positions = {}, head = 0, count = 0, maxLen = 6,
-					lastUpdate = 0, trailLife = trailLife,
+					lastUpdate = 0, trailLifeFrames = trailLifeFrames,
+					updateInterval = trailUpdateInterval,
 					size = cache.weaponSize[pDefID] or 1}
 				cache.plasmaTrails[pID] = trail
 			end
 
-			-- Update position ring buffer
-			if now - trail.lastUpdate >= 0.06 then
+			-- Update position ring buffer (game frame based)
+			if gameFrame - trail.lastUpdate >= trail.updateInterval then
 				trail.head = trail.head + 1
 				if trail.head > trail.maxLen then trail.head = 1 end
 				local pos = trail.positions[trail.head]
 				if pos then
-					pos.x, pos.z, pos.time = px, pz, now
+					pos.x, pos.z, pos.frame = px, pz, gameFrame
 				else
-					trail.positions[trail.head] = {x = px, z = pz, time = now}
+					trail.positions[trail.head] = {x = px, z = pz, frame = gameFrame}
 				end
-				trail.lastUpdate = now
+				trail.lastUpdate = gameFrame
 				if trail.count < trail.maxLen then trail.count = trail.count + 1 end
 			end
 
 			-- Draw trail lines — each segment gets its own width (diminishing 15% per step)
 			local trailCount = trail.count
 			if trailCount >= 2 then
-				local invLife = 1 / trail.trailLife
+				local invLife = 1 / trail.trailLifeFrames
 				local tR, tG, tB = trailColor[1], trailColor[2], trailColor[3]
 				local wcx, wcz = cameraState.wcx, cameraState.wcz
 				local positions = trail.positions
@@ -4406,8 +4438,8 @@ local function DrawProjectile(pID)
 					local p1 = positions[idx1]
 					local p2 = positions[idx2]
 					if p1 and p2 then
-						local fade1 = 1 - (now - p1.time) * invLife
-						local fade2 = 1 - (now - p2.time) * invLife
+						local fade1 = 1 - (gameFrame - p1.frame) * invLife
+						local fade2 = 1 - (gameFrame - p2.frame) * invLife
 						if fade1 < 0 then fade1 = 0 end
 						if fade2 < 0 then fade2 = 0 end
 						if fade1 > 0 or fade2 > 0 then
@@ -4440,8 +4472,9 @@ local function DrawLaserBeams()
 
 	-- Precompute zoom-dependent scaling once
 	local resScale = render.contentScale or 1
-	-- Smooth beam width scaling: boost when zoomed out, no hard threshold
-	local zoomScale = mMax(0.5, cameraState.zoom / 70) + 0.08 / (cameraState.zoom + 0.04)
+	-- Zoom-dependent beam width: scale down when zoomed out so beams don't dominate the view
+	-- At zoom 0.024 (full map): ~0.55, at zoom 0.1: ~0.85, at zoom 0.3+: ~1.0
+	local zoomScale = mMin(1.0, 0.4 + cameraState.zoom * 4)
 	local wcx_cached = cameraState.wcx  -- Cache these for loop
 	local wcz_cached = cameraState.wcz
 
@@ -4520,14 +4553,8 @@ local function DrawLaserBeams()
 				-- Draw regular laser beam as a line with glow effect
 				local alpha = 1 - (age / 0.15) -- Fade out over lifetime
 				local thickness = beam.thickness or 2
-				-- Tighter thickness scaling to keep thin lasers thin
-				local scaledThickness = 0.5 + thickness * 0.35
-
-				-- Aggressive zoom dampening for thin beams
-				local thicknessFactor = mMin(1, mMax(0, (thickness - 2) * 0.33))
-				-- Also dampen by zoom level: at very zoomed-out PIP views, suppress inflation
-				local zoomDampen = mMin(1, cameraState.zoom * 20 + 0.15)
-				local beamZoomScale = 1 + (zoomScale - 1) * thicknessFactor * zoomDampen
+				-- Scale thickness: thin beams stay thin, thick beams get moderate presence
+				local scaledThickness = (0.4 + thickness * 0.3) * zoomScale
 
 				-- Transform world coords to PushMatrix local coords
 				_line.x1 = beam.ox - cameraState.wcx
@@ -4536,7 +4563,7 @@ local function DrawLaserBeams()
 				_line.y2 = cameraState.wcz - beam.tz
 
 				-- Glow layer (outer, colored, additive-like via alpha)
-				local glowWidth = mMax(1, mMin(10 * resScale, scaledThickness * 3.0 * beamZoomScale * resScale))
+				local glowWidth = mMax(1, mMin(8 * resScale, scaledThickness * 2.8 * resScale))
 				glFunc.LineWidth(glowWidth)
 				glFunc.Color(beam.r, beam.g, beam.b, alpha * 0.35)
 				glFunc.BeginEnd(GL.LINES, drawLine)
@@ -4546,7 +4573,7 @@ local function DrawLaserBeams()
 				local coreR = beam.r * (1 - whiteness) + whiteness
 				local coreG = beam.g * (1 - whiteness) + whiteness
 				local coreB = beam.b * (1 - whiteness) + whiteness
-				local coreWidth = mMax(1, mMin(4 * resScale, scaledThickness * 1.4 * beamZoomScale * resScale))
+				local coreWidth = mMax(1, mMin(3 * resScale, scaledThickness * 1.2 * resScale))
 				glFunc.LineWidth(coreWidth)
 				glFunc.Color(coreR, coreG, coreB, alpha * 0.98)
 				glFunc.BeginEnd(GL.LINES, drawLine)
@@ -10083,8 +10110,9 @@ end
 
 -- Draw the main camera's view boundaries on the PIP (for minimap mode)
 local function DrawCameraViewBounds()
-	-- Only draw in minimap mode when not tracking a player camera
-	if not isMinimapMode or interactionState.trackingPlayerID then
+	-- Only draw in minimap mode when not tracking a player camera and not in TV mode
+	-- TV mode has its own auto-camera, so showing the main camera viewport is misleading
+	if not isMinimapMode or interactionState.trackingPlayerID or miscState.tvEnabled then
 		return
 	end
 	
@@ -14897,7 +14925,7 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 
 	-- Detect big flash explosions: nukes, commanders, large unit death explosions
 	-- These get an additional white flash layer that fades fast then lingers
-	if not isLightning and not isParalyze then
+	if not isLightning and not isParalyze and not isJuno then
 		if radius >= 100 then
 			explosion.isBigFlash = true
 		elseif isUnitExplosion and ownerID then
