@@ -29,18 +29,21 @@ local spEcho = Spring.Echo
 local mathFloor = math.floor
 local mathAbs = math.abs
 local mathMin = math.min
-local stringFormat = string.format
 local tableInsert = table.insert
 local tableRemove = table.remove
 local pairs = pairs
 local ipairs = ipairs
-local osClock = os.clock
 
 --------------------------------------------------------------------------------
 -- Constants
 --------------------------------------------------------------------------------
 
 local MAX_QUEUE_DEPTH = 2000
+local MAX_UNITS_PROCESSED_PER_UPDATE = 50
+local PERIODIC_CHECK_DIVISOR = 30 -- every n ticks of UPDATE_INTERVAL
+local DEEP_CHECK_DIVISOR = 150 -- every n ticks of UPDATE_INTERVAL
+local PERIODIC_UPDATE_INTERVAL = 0.12 -- in seconds
+local COMMAND_PROCESSING_DELAY = 0.13
 
 --------------------------------------------------------------------------------
 -- State Management
@@ -53,6 +56,8 @@ local commandIdToCreatedUnitIdMap = {}
 local createdUnitIdToCommandIdMap = {}
 local unitsAwaitingCommandProcessing = {}
 local buildersList = {}
+local lastQueueDepth = {}
+local commandLookup = {}
 
 -- Event system for notifying consumers
 local Event = {
@@ -61,7 +66,6 @@ local Event = {
 	onUnitCreated = 'onUnitCreated',
 	onUnitFinished = 'onUnitFinished',
 	onBuilderDestroyed = 'onBuilderDestroyed',
-
 }
 
 local eventCallbacks = {
@@ -73,12 +77,29 @@ local eventCallbacks = {
 }
 
 local elapsedSeconds = 0
-local lastUpdateTime = 0
-local nextUpdateTime = 0.12
+local nextUpdateTime = PERIODIC_UPDATE_INTERVAL
 local periodicCheckCounter = 1
 
--- Reusable table for checkBuilder to reduce allocations
-local tempCurrentCommands = {}
+local tablePool = {}
+local tablePoolSize = 0
+
+local function getTable()
+	if tablePoolSize > 0 then
+		local t = tablePool[tablePoolSize]
+		tablePool[tablePoolSize] = nil
+		tablePoolSize = tablePoolSize - 1
+		return t
+	end
+	return {}
+end
+
+local function releaseTable(t)
+	for k in pairs(t) do
+		t[k] = nil
+	end
+	tablePoolSize = tablePoolSize + 1
+	tablePool[tablePoolSize] = t
+end
 
 -- Pool for buildCommand objects to reduce allocations
 local buildCommandPool = {}
@@ -96,6 +117,7 @@ end
 
 local function recycleBuildCommand(cmd)
 	-- Clear the command data
+	cmd.id = nil
 	cmd.builderCount = nil
 	cmd.unitDefId = nil
 	cmd.teamId = nil
@@ -103,12 +125,14 @@ local function recycleBuildCommand(cmd)
 	cmd.positionY = nil
 	cmd.positionZ = nil
 	cmd.rotation = nil
+	cmd.isCreated = nil
+	cmd.isFinished = nil
 	if cmd.builderIds then
 		for k in pairs(cmd.builderIds) do
 			cmd.builderIds[k] = nil
 		end
 	end
-	
+
 	-- Return to pool
 	poolSize = poolSize + 1
 	buildCommandPool[poolSize] = cmd
@@ -173,9 +197,8 @@ end
 --------------------------------------------------------------------------------
 -- Core Functions
 --------------------------------------------------------------------------------
----
+
 local function generateId(unitDefId, positionX, positionZ)
-	-- Direct concatenation is faster than string.format for simple cases
 	return unitDefId .. '_' .. positionX .. '_' .. positionZ
 end
 
@@ -184,81 +207,113 @@ local function removeBuilderFromCommand(commandId, unitId)
 	if command and command.builderIds[unitId] then
 		command.builderIds[unitId] = nil
 		command.builderCount = command.builderCount - 1
+
 		if command.builderCount == 0 then
+			local uDef = command.unitDefId
+			local pX = command.positionX
+			local pZ = command.positionZ
+			if commandLookup[uDef] and commandLookup[uDef][pX] then
+				commandLookup[uDef][pX][pZ] = nil
+			end
+
+			local createdUnitId = commandIdToCreatedUnitIdMap[commandId]
+			if createdUnitId then
+				createdUnitIdToCommandIdMap[createdUnitId] = nil
+				commandIdToCreatedUnitIdMap[commandId] = nil
+			end
+
 			local commandData = command
 			buildCommands[commandId] = nil
-			recycleBuildCommand(commandData)
 			notifyEvent(Event.onBuildCommandRemoved, commandId, commandData)
+			recycleBuildCommand(commandData)
 		end
 	end
 end
 
 local function clearBuilderCommands(unitId)
-	if not unitBuildCommands[unitId] then
+	lastQueueDepth[unitId] = nil
+	local oldCommands = unitBuildCommands[unitId]
+	if not oldCommands then
 		return
 	end
 
-	for commandId, _ in pairs(unitBuildCommands[unitId]) do
+	for commandId, _ in pairs(oldCommands) do
 		removeBuilderFromCommand(commandId, unitId)
 	end
+	releaseTable(oldCommands)
 	unitBuildCommands[unitId] = nil
 end
 
-local function checkBuilder(unitId)
+local function checkBuilder(unitId, forceUpdate)
 	local queueDepth = spGetUnitCommandCount(unitId)
 	if not queueDepth or queueDepth <= 0 then
 		clearBuilderCommands(unitId)
 		return
 	end
 
-	-- Reuse table instead of creating new one every call
-	local currentCommands = tempCurrentCommands
-	-- Clear previous data
-	for k in pairs(currentCommands) do
-		currentCommands[k] = nil
+	if not forceUpdate and lastQueueDepth[unitId] == queueDepth then
+		return
 	end
+	lastQueueDepth[unitId] = queueDepth
 
 	local queue = spGetUnitCommands(unitId, mathMin(queueDepth, MAX_QUEUE_DEPTH))
+	if not queue then return end
+
+	local newCommands = getTable()
 
 	-- Step 1: Process the current queue and identify active commands
 	local queueLen = #queue
 	for i = 1, queueLen do
 		local queueCommand = queue[i]
 		local cmdId = queueCommand.id
+
 		if cmdId < 0 then
 			local unitDefId = mathAbs(cmdId)
 			local params = queueCommand.params
 			local positionX = mathFloor(params[1])
 			local positionZ = mathFloor(params[3])
-			local commandId = generateId(unitDefId, positionX, positionZ)
 
-			currentCommands[commandId] = true
+			local lookupX = commandLookup[unitDefId]
+			if not lookupX then
+				lookupX = {}
+				commandLookup[unitDefId] = lookupX
+			end
+			local lookupZ = lookupX[positionX]
+			if not lookupZ then
+				lookupZ = {}
+				lookupX[positionX] = lookupZ
+			end
 
-			if commandIdToCreatedUnitIdMap[commandId] == nil then
-				local isNewCommand = false
-				local buildCommand = buildCommands[commandId]
-				if buildCommand == nil then
-					buildCommand = getBuildCommand() --- @class BuildCommandEntry
-					buildCommand.builderCount = 0
-					buildCommand.unitDefId = unitDefId
-					buildCommand.teamId = spGetUnitTeam(unitId)
-					buildCommand.positionX = positionX
-					buildCommand.positionY = mathFloor(params[2])
-					buildCommand.positionZ = positionZ
-					buildCommand.rotation = params[4] and mathFloor(params[4]) or 0
-					buildCommand.builderIds = buildCommand.builderIds or {}
-					buildCommands[commandId] = buildCommand
-					isNewCommand = true
-				end
+			local commandId = lookupZ[positionZ]
+			if not commandId then
+				commandId = generateId(unitDefId, positionX, positionZ)
+				lookupZ[positionZ] = commandId
+			end
 
-				if not buildCommand.builderIds[unitId] then
-					buildCommand.builderIds[unitId] = true
-					buildCommand.builderCount = buildCommand.builderCount + 1
-				end
+			local buildCommand = buildCommands[commandId]
+			if not buildCommand then
+				buildCommand = getBuildCommand() --- @class BuildCommandEntry
+				buildCommand.id = commandId
+				buildCommand.builderCount = 0
+				buildCommand.unitDefId = unitDefId
+				buildCommand.teamId = spGetUnitTeam(unitId)
+				buildCommand.positionX = positionX
+				buildCommand.positionY = mathFloor(params[2])
+				buildCommand.positionZ = positionZ
+				buildCommand.rotation = params[4] and mathFloor(params[4]) or 0
+				buildCommand.isCreated = false
+				buildCommand.isFinished = false
+				buildCommand.builderIds = buildCommand.builderIds or {}
 
-				if isNewCommand then
-					notifyEvent(Event.onBuildCommandAdded, commandId, buildCommand)
-				end
+				buildCommands[commandId] = buildCommand
+				notifyEvent(Event.onBuildCommandAdded, commandId, buildCommand)
+			end
+
+			newCommands[commandId] = true
+
+			if not buildCommand.builderIds[unitId] then
+				buildCommand.builderIds[unitId] = true
+				buildCommand.builderCount = buildCommand.builderCount + 1
 			end
 		end
 	end
@@ -267,41 +322,38 @@ local function checkBuilder(unitId)
 	local oldCommands = unitBuildCommands[unitId]
 	if oldCommands then
 		for oldCommandId, _ in pairs(oldCommands) do
-			if not currentCommands[oldCommandId] then
+			if not newCommands[oldCommandId] then
 				removeBuilderFromCommand(oldCommandId, unitId)
 			end
 		end
+		releaseTable(oldCommands)
 	end
 
-	-- Store current commands for this unit (create new table since we reuse tempCurrentCommands)
-	local commandsCopy = {}
-	for cmdId in pairs(currentCommands) do
-		commandsCopy[cmdId] = true
-	end
-	unitBuildCommands[unitId] = commandsCopy
+	unitBuildCommands[unitId] = newCommands
 end
 
 local function clearUnit(unitId)
-	if not createdUnitIdToCommandIdMap[unitId] then
-		return
-	end
 	local commandId = createdUnitIdToCommandIdMap[unitId]
+	if not commandId then return end
+
 	local commandData = buildCommands[commandId]
-	buildCommands[commandId] = nil
-	commandIdToCreatedUnitIdMap[commandId] = nil
-	createdUnitIdToCommandIdMap[unitId] = nil
 	if commandData then
-		recycleBuildCommand(commandData)
+		commandData.isFinished = true
+		notifyEvent(Event.onUnitFinished, unitId, commandId, commandData)
 	end
-	notifyEvent(Event.onUnitFinished, unitId, commandId, commandData)
 end
 
 local function processNewBuildCommands()
-	local currentTime = osClock()
+	local processedUnits = 0
 	for unitId, commandClockTime in pairs(unitsAwaitingCommandProcessing) do
-		if currentTime > commandClockTime then
-			checkBuilder(unitId)
+		if elapsedSeconds > commandClockTime then
+			checkBuilder(unitId, true)
 			unitsAwaitingCommandProcessing[unitId] = nil
+
+			processedUnits = processedUnits + 1
+			if processedUnits >= MAX_UNITS_PROCESSED_PER_UPDATE then
+				break
+			end
 		end
 	end
 end
@@ -309,9 +361,9 @@ end
 local function periodicBuilderCheck()
 	periodicCheckCounter = periodicCheckCounter + 1
 	for unitId, _ in pairs(unitBuildCommands) do
-		--- Load balancer which ensures that at most 30 units are checked per frame
-		if (unitId + periodicCheckCounter) % 30 == 1 and not unitsAwaitingCommandProcessing[unitId] then
-			checkBuilder(unitId)
+		if (unitId + periodicCheckCounter) % PERIODIC_CHECK_DIVISOR == 1 and not unitsAwaitingCommandProcessing[unitId] then
+			local forceDeepCheck = ((unitId + periodicCheckCounter) % DEEP_CHECK_DIVISOR == 1)
+			checkBuilder(unitId, forceDeepCheck)
 		end
 	end
 end
@@ -322,6 +374,10 @@ local function resetStateAndReinitialize()
 	commandIdToCreatedUnitIdMap = {}
 	createdUnitIdToCommandIdMap = {}
 	unitsAwaitingCommandProcessing = {}
+	lastQueueDepth = {}
+	commandLookup = {}
+	tablePool = {}
+	tablePoolSize = 0
 
 	-- Re-scan all units
 	local allUnits = spGetAllUnits()
@@ -329,7 +385,7 @@ local function resetStateAndReinitialize()
 	for i = 1, allUnitsLen do
 		local unitId = allUnits[i]
 		if buildersList[spGetUnitDefID(unitId)] then
-			checkBuilder(unitId)
+			checkBuilder(unitId, true)
 		end
 	end
 end
@@ -344,7 +400,8 @@ local BuilderQueueApi = {}
 ---@param callback fun(commandId: string, data: BuildCommandEntry)
 function BuilderQueueApi.ForEachActiveBuildCommand(callback)
 	for commandId, commandEntry in pairs(buildCommands) do
-		if commandEntry.builderCount > 0 then
+		-- Only yield commands that haven't been created yet to mirror old behavior
+		if commandEntry.builderCount > 0 and not commandEntry.isCreated then
 			callback(commandId, commandEntry)
 		end
 	end
@@ -368,9 +425,11 @@ end
 
 function widget:Update(dt)
 	elapsedSeconds = elapsedSeconds + dt
+
+	processNewBuildCommands()
+
 	if elapsedSeconds > nextUpdateTime then
-		nextUpdateTime = elapsedSeconds + 0.12
-		processNewBuildCommands()
+		nextUpdateTime = elapsedSeconds + PERIODIC_UPDATE_INTERVAL
 		periodicBuilderCheck()
 	end
 end
@@ -385,19 +444,34 @@ end
 
 function widget:UnitCommand(unitId, unitDefId)
 	if buildersList[unitDefId] then
-		unitsAwaitingCommandProcessing[unitId] = osClock() + 0.13
+		unitsAwaitingCommandProcessing[unitId] = elapsedSeconds + COMMAND_PROCESSING_DELAY
 	end
 end
 
 function widget:UnitCreated(unitId, unitDefId)
 	local x, _, z = spGetUnitPosition(unitId)
 	if x then
-		local commandId = generateId(unitDefId, mathFloor(x), mathFloor(z))
+		local positionX = mathFloor(x)
+		local positionZ = mathFloor(z)
+
+		local commandId
+		if commandLookup[unitDefId] and commandLookup[unitDefId][positionX] then
+			commandId = commandLookup[unitDefId][positionX][positionZ]
+		end
+
+		if not commandId then
+			commandId = generateId(unitDefId, positionX, positionZ)
+		end
+
 		local commandData = buildCommands[commandId]
-		buildCommands[commandId] = nil
-		commandIdToCreatedUnitIdMap[commandId] = unitId
-		createdUnitIdToCommandIdMap[unitId] = commandId
-		notifyEvent(Event.onUnitCreated, unitId, unitDefId, commandId, commandData)
+		if commandData then
+			-- Just flag it, let removeBuilderFromCommand clean the memory
+			commandData.isCreated = true
+			commandIdToCreatedUnitIdMap[commandId] = unitId
+			createdUnitIdToCommandIdMap[unitId] = commandId
+
+			notifyEvent(Event.onUnitCreated, unitId, unitDefId, commandId, commandData)
+		end
 	end
 end
 
