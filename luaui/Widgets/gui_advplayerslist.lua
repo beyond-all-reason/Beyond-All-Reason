@@ -316,6 +316,7 @@ local firstclick = 0
 local dblclickPeriod = 0.4
 local backgroundMargin = 8
 local widgetRelRight = 0
+local lastUsedPipNum = 0
 
 --------------------------------------------------------------------------------
 -- GEOMETRY VARIABLES
@@ -345,6 +346,7 @@ local teamN
 local prevClickTime = os.clock()
 local specListShow = true
 local enemyListShow = true
+local enemyListShowUserPref = true  -- Stores user preference, separate from auto-disabled state
 local forceMainListRefresh = true
 
 --------------------------------------------------
@@ -1451,6 +1453,7 @@ function SortList()
         initiated = true
         if aliveTeams > 40 then
             enemyListShow = false
+            -- Don't update enemyListShowUserPref - this is auto-disabled, not user choice
         end
     end
     local deadTeamSize = 0.66
@@ -3311,6 +3314,7 @@ function widget:MousePress(x, y, button)
         posY = widgetPosY + widgetHeight - enemyLabelOffset
         if numberOfEnemies > 0 and IsOnRect(x, y, widgetPosX + 2, posY + 2, widgetPosX + widgetWidth - 2, posY + 20) then
             enemyListShow = not enemyListShow
+            enemyListShowUserPref = enemyListShow  -- User explicitly toggled, update preference
             SortList()
             SetModulesPositionX() --why?
             CreateLists()
@@ -3346,6 +3350,19 @@ function widget:MousePress(x, y, button)
                     if m_name.active and clickedPlayer.name ~= absentName and IsOnRect(x, y, widgetPosX, posY, widgetPosX + widgetWidth, posY + (playerOffset*playerScale)) then
                         if ctrl and i < specOffset then
                             Spring_SendCommands("toggleignore " .. (clickedPlayer.accountID and clickedPlayer.accountID or clickedPlayer.name))
+                            return true
+                        elseif alt and not clickedPlayer.ai then
+                            -- ALT+click: track player camera in PIP
+                            -- Try other PIPs first before cycling back to the last used one
+                            for offset = 1, 5 do
+                                local pipNum = ((lastUsedPipNum + offset - 1) % 5) + 1
+                                if WG['pip'..pipNum] and WG['pip'..pipNum].TrackPlayer then
+                                    if WG['pip'..pipNum].TrackPlayer(i) then
+                                        lastUsedPipNum = pipNum
+                                        return true
+                                    end
+                                end
+                            end
                             return true
                         elseif not player[i].spec then
                             if i ~= myTeamPlayerID then
@@ -3450,6 +3467,20 @@ function widget:MousePress(x, y, button)
                         if m_name.active and clickedPlayer.name ~= absentName and IsOnRect(x, y, m_name.posX + widgetPosX + 1, posY, m_name.posX + widgetPosX + m_name.width, posY + 12) then
                             if ctrl then
                                 Spring_SendCommands("toggleignore " .. (clickedPlayer.accountID and clickedPlayer.accountID or clickedPlayer.name))
+                                return true
+                            end
+                            if alt and not clickedPlayer.ai then
+                                -- ALT+click: track player camera in PIP
+                                -- Try other PIPs first before cycling back to the last used one
+                                for offset = 1, 5 do
+                                    local pipNum = ((lastUsedPipNum + offset - 1) % 5) + 1
+                                    if WG['pip'..pipNum] and WG['pip'..pipNum].TrackPlayer then
+                                        if WG['pip'..pipNum].TrackPlayer(i) then
+                                            lastUsedPipNum = pipNum
+                                            return true
+                                        end
+                                    end
+                                end
                                 return true
                             end
                             if (mySpecStatus or player[i].allyteam == myAllyTeamID) and clickTime - prevClickTime < dblclickPeriod and clickedPlayer == prevClickedPlayer then
@@ -3613,7 +3644,7 @@ function widget:GetConfigData()
             m_takeActive = m_take.active,
             m_active_Table = m_active_Table,
             specListShow = specListShow,
-            enemyListShow = enemyListShow,
+            enemyListShow = enemyListShowUserPref,  -- Save user preference, not auto-disabled state
             gameFrame = spGetGameFrame(),
             lastSystemData = lastSystemData,
             alwaysHideSpecs = alwaysHideSpecs,
@@ -3643,6 +3674,7 @@ function widget:SetConfigData(data)
 
     if data.enemyListShow ~= nil then
         enemyListShow = data.enemyListShow
+        enemyListShowUserPref = data.enemyListShow  -- Restore user preference
     end
 
     if data.version ~= nil and data.alwaysHideSpecs ~= nil then

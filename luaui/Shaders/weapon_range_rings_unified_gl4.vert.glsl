@@ -21,6 +21,7 @@ uniform float cannonmode = 0.0;
 uniform float fadeDistOffset = 0.0;
 uniform float inMiniMap = 0.0;
 uniform int rotationMiniMap = 0;
+uniform vec4 pipVisibleArea = vec4(0.0, 1.0, 0.0, 1.0); // left, right, bottom, top in normalized [0,1] coords for PIP minimap
 
 
 uniform float selUnitCount = 1.0;
@@ -450,13 +451,44 @@ void main() {
 		//pull 16 elmos forward in Z:
 		gl_Position.z = (gl_Position.z) - 128.0 / (gl_Position.w); // send 16 elmos forward in Z
 	} else {
-		vec4 ndcxy = mmDrawViewProj * vec4(circleWorldPos.xyz, 1.0);
-		if (rotationMiniMap == 1) {
-			ndcxy.xy = vec2(-ndcxy.y, ndcxy.x);
-		}else if (rotationMiniMap == 2) {
-			ndcxy.xy = -ndcxy.xy;
-		}else if (rotationMiniMap == 3) {
-			ndcxy.xy = vec2(ndcxy.y, -ndcxy.x);
+		// Check if PIP mode (visible area not default)
+		bool isPip = (pipVisibleArea.x != 0.0 || pipVisibleArea.y != 1.0 || pipVisibleArea.z != 0.0 || pipVisibleArea.w != 1.0);
+		
+		vec4 ndcxy;
+		if (isPip) {
+			// For PIP: calculate screen position based on visible area
+			// Convert world position to normalized [0,1] map coords
+			vec2 normPos = circleWorldPos.xz / mapSize.xy;
+			
+			// Map from world [0,1] to screen position based on visible area
+			vec2 screenPos;
+			screenPos.x = (normPos.x - pipVisibleArea.x) / (pipVisibleArea.y - pipVisibleArea.x);
+			// Flip Y: world Z in [visB, visT] -> screen Y flipped
+			screenPos.y = 1.0 - (normPos.y - pipVisibleArea.z) / (pipVisibleArea.w - pipVisibleArea.z);
+			
+			// Apply rotation
+			if (rotationMiniMap == 0) {
+				screenPos.y = 1.0 - screenPos.y;
+			} else if (rotationMiniMap == 1) {
+				screenPos.xy = screenPos.yx;
+			} else if (rotationMiniMap == 2) {
+				screenPos.x = 1.0 - screenPos.x;
+			} else if (rotationMiniMap == 3) {
+				screenPos.xy = vec2(1.0) - screenPos.yx;
+			}
+			
+			// Convert to NDC [-1,1]
+			ndcxy = vec4(screenPos * 2.0 - 1.0, 0.0, 1.0);
+		} else {
+			// Normal minimap mode - use engine matrix
+			ndcxy = mmDrawViewProj * vec4(circleWorldPos.xyz, 1.0);
+			if (rotationMiniMap == 1) {
+				ndcxy.xy = vec2(-ndcxy.y, ndcxy.x);
+			}else if (rotationMiniMap == 2) {
+				ndcxy.xy = -ndcxy.xy;
+			}else if (rotationMiniMap == 3) {
+				ndcxy.xy = vec2(ndcxy.y, -ndcxy.x);
+			}
 		}
 		gl_Position = ndcxy;
 	}

@@ -18,8 +18,6 @@ return {
 		explodeas = "geo",
 		footprintx = 5,
 		footprintz = 5,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 2050,
 		maxslope = 15,
 		maxwaterdepth = 5,

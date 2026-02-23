@@ -16,8 +16,6 @@ return {
 		energystorage = 1000,
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 10,
-		idletime = 90,
 		levelground = false,
 		mass = 165.75,
 		health = 5900,
@@ -80,6 +78,9 @@ return {
 				damage = {
 					commanders = 2500,
 					default = 9500,
+				},
+				customparams = {
+					nuclear = 1,
 				},
 			},
 		},

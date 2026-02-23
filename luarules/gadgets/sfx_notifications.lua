@@ -104,7 +104,7 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	function gadget:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
-		local event = "StealthyUnitsDetected"
+		local event = "UnitDetected/StealthyUnitsDetected"
 		local players = Spring.GetPlayerList()
 		local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
 		local _, _, spec, _, playerAllyTeam
@@ -267,7 +267,7 @@ else
 					end
 				end
 			end
-			if not isSpec then
+			if (not isSpec) and (unitTeam ~= myTeamID) then
 				if numTeams > 1 and not playingAsHorde then
 					local players =  PlayersInAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
 					for ct, player in pairs (players) do

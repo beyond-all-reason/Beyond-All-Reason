@@ -18,8 +18,6 @@ return {
 		firestate = 0,
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.6,
 		maxaileron = 0.028,
 		maxbank = 0.8,

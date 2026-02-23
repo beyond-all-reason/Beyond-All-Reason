@@ -370,6 +370,7 @@ function widget:GameFrame(n)
 		myPlayerID = Spring.GetMyPlayerID()
 		myPlayerName, _, mySpec, myTeamID, myAllyTeamID = Spring.GetPlayerInfo(myPlayerID, false)
 	end
+	widgetHandler:RemoveCallIn('GameFrame')
 end
 
 local function colourNames(teamID)

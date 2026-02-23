@@ -17,8 +17,6 @@ return {
 		firestate = 0,
 		footprintx = 9,
 		footprintz = 9,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 26000,
 		maxslope = 13,
 		maxwaterdepth = 0,
@@ -80,8 +78,7 @@ return {
 				[4] = "custom:railgun-old",
 				[5] = "custom:smokegen-part",
 				[6] = "custom:smokegen-part2",
-				[7] = "custom:lightning-stormbig",
-				[8] = "custom:ventair-puff",
+				[7] = "custom:ventair-puff",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg3",

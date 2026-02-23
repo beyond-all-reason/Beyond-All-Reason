@@ -15,8 +15,6 @@ return {
 		explodeas = "fusionExplosion",
 		footprintx = 5,
 		footprintz = 5,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 560,
 		maxslope = 20,
 		maxwaterdepth = 0,

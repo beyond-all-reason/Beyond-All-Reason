@@ -19,9 +19,8 @@ if gadgetHandler:IsSyncedCode() then
 	local defaultStockpileLimit = 99
 
 	local CMD_STOCKPILE = CMD.STOCKPILE
-	local CMD_INSERT = CMD.INSERT
-	local StockpileDesiredTarget = {}
 
+	local StockpileDesiredTarget = {}
 	local unitStockpileLimit = {}
 
 	local GetUnitStockpile	= Spring.GetUnitStockpile
@@ -85,34 +84,33 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua) -- Can't use StockPileChanged because that doesn't get called when the stockpile queue changes
+		-- accepts CMD_STOCKPILE
 		if unitID then
-			if cmdID == CMD_STOCKPILE or (cmdID == CMD_INSERT and cmdParams[2] == CMD_STOCKPILE) then
-				local stock, _ = GetUnitStockpile(unitID)
-				if stock == nil then
-					return true
-				end
-				local addQ = 1
-				if cmdOptions.shift then
-					if cmdOptions.ctrl then
-						addQ = 100
-					else
-						addQ = 5
-					end
-				elseif cmdOptions.ctrl then
-					addQ = 20
-				end
-				if cmdOptions.right then
-					addQ = -addQ
-				end
-				if fromLua == true and fromSynced == true then 	-- fromLua is *true* if command is sent from a gadget and *false* if it's sent by a player.
-					return true
+			local stock, _ = GetUnitStockpile(unitID)
+			if stock == nil then
+				return true
+			end
+			local addQ = 1
+			if cmdOptions.shift then
+				if cmdOptions.ctrl then
+					addQ = 100
 				else
-					if StockpileDesiredTarget[unitID] and unitStockpileLimit[unitDefID] then
-						StockpileDesiredTarget[unitID] = mathClamp(StockpileDesiredTarget[unitID] + addQ, 0, unitStockpileLimit[unitDefID])
-						UpdateStockpile(unitID, unitDefID)
-					end
-					return false
+					addQ = 5
 				end
+			elseif cmdOptions.ctrl then
+				addQ = 20
+			end
+			if cmdOptions.right then
+				addQ = -addQ
+			end
+			if fromLua == true and fromSynced == true then 	-- fromLua is *true* if command is sent from a gadget and *false* if it's sent by a player.
+				return true
+			else
+				if StockpileDesiredTarget[unitID] and unitStockpileLimit[unitDefID] then
+					StockpileDesiredTarget[unitID] = mathClamp(StockpileDesiredTarget[unitID] + addQ, 0, unitStockpileLimit[unitDefID])
+					UpdateStockpile(unitID, unitDefID)
+				end
+				return false
 			end
 		end
 		return true
@@ -136,7 +134,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:Initialize()
 		gadgetHandler:RegisterAllowCommand(CMD_STOCKPILE)
-		gadgetHandler:RegisterAllowCommand(CMD_INSERT)
 		local units = Spring.GetAllUnits()
 		for i = 1, #units do
 			local unitDefID = Spring.GetUnitDefID(units[i])

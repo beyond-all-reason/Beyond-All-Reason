@@ -28,8 +28,6 @@ return {
 		footprintz = 3,
 		hidedamage = true,
    		holdsteady = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 4900,
 		health = 3700,
 		maxslope = 20,

@@ -14,8 +14,6 @@ return {
 		explodeas = "crawl_blastsml",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 1500,
 		health = 550,
 		maxslope = 32,

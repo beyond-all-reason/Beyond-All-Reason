@@ -113,7 +113,7 @@ local options = {
     {
         key    	= "maxunits",
         name   	= "Max Units Per Player",
-        desc   	= "Keep in mind there is an absolute limit of units, 32000, divided between each team. If you set this value higher than possible it will force itself down to the maximum it can be.",
+        desc   	= "Keep in mind there is an absolute limit of units, 32 000, divided between each team. If you set this value higher than possible it will force itself down to the maximum it can be.",
         type   	= "number",
         def    	= 2000,
         min    	= 500,
@@ -256,12 +256,13 @@ local options = {
 			"PLEASE NOTE: For this to work, the game needs to have set startboxes.\n"..
 			-- tabs don't do much in chobby
 			"                          It won't work in FFA mode without boxes.\n"..
-			"                          Also, it does not affect Scavengers and Raptors.",
+			"                          Also, it does not affect Scavengers and Raptors.\n"..
+			"\255\75\0\100".."WARNING: No Rush Time over 30 minutes may cause performance or stability issues due to excessive unit buildup.",
         type   	= "number",
         section	= "options_main",
         def    	= 0,
         min    	= 0,
-        max    	= 30,
+        max    	= 120,
         step   	= 1,
     },
 
@@ -2145,7 +2146,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
     {
         key		= "startmetal",
         name	= "Starting Metal",
-        desc	= "(Range 0 - 10000). Determines amount of metal and metal storage that each player will start with",
+        desc	= "(Range 0 - 10 000). Determines amount of metal and metal storage that each player will start with",
         type	= "number",
         section	= "options_cheats",
         def		= 1000,
@@ -2157,7 +2158,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
     {
         key		= "startmetalstorage",
         name	= "Starting Metal Storage",
-        desc	= "(Range 1000 - 20000). Only works if it's higher than Starting metal. Determines amount of metal and metal storage that each player will start with",
+        desc	= "(Range 1000 - 20 000). Only works if it's higher than Starting metal. Determines amount of metal and metal storage that each player will start with",
         type	= "number",
         section	= "options_cheats",
         def		= 1000,
@@ -2169,7 +2170,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
     {
         key		= "startenergy",
         name	= "Starting Energy",
-        desc	= "(Range 0 - 10000). Determines amount of energy and energy storage that each player will start with",
+        desc	= "(Range 0 - 10 000). Determines amount of energy and energy storage that each player will start with",
         type	= "number",
         section	= "options_cheats",
         def		= 1000,
@@ -2181,7 +2182,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
     {
         key		= "startenergystorage",
         name	= "Starting Energy Storage",
-        desc	= "(Range 1000 - 20000). Only works if it's higher than Starting energy. Determines amount of energy and energy storage that each player will start with",
+        desc	= "(Range 1000 - 20 000). Only works if it's higher than Starting energy. Determines amount of energy and energy storage that each player will start with",
         type	= "number",
         section	= "options_cheats",
         def		= 1000,

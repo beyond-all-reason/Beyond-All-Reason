@@ -1,3 +1,5 @@
+local Types = VFS.Include('luarules/mission_api/parameter_types.lua').Types
+
 local triggerTypes = {
 	-- Time
 	TimeElapsed          = 100, --
@@ -41,99 +43,110 @@ local triggerTypes = {
 
 --============================================================--
 
+local settings = {
+	prerequisites = Types.Table,
+	repeating = Types.Boolean,
+	maxRepeats = Types.Number,
+	difficulties = Types.Table,
+	coop = Types.Boolean,
+	active = Types.Boolean,
+}
+
+--============================================================--
+
 local parameters = {
 	-- Time
 	[triggerTypes.TimeElapsed] = {
 		[1] = {
 			name = 'gameFrame',
 			required = true,
-			type = 'number',
+			type = Types.Number,
 		},
 		[2] = {
 			name = 'interval',
 			required = false,
-			type = 'number',
+			type = Types.Number,
 		},
 	},
-	
+
 	-- Units
-	[triggerTypes.UnitExists] = { 
+	[triggerTypes.UnitExists] = {
 		[1] = {
 			name = 'unitDefID',
 			required = true,
-			type = 'number',
+			type = Types.Number,
 		},
 		[2] = {
 			name = 'teamID',
 			required = false,
-			type = 'number',
+			type = Types.Number,
 		},
 		[3] = {
 			name = 'quantity',
 			required = false,
-			type = 'number',
+			type = Types.Number,
 		},
 	},
-	[triggerTypes.UnitNotExists] = { 
+	[triggerTypes.UnitNotExists] = {
 		[1] = {
 			name = 'unit',
 			required = true,
-			type = 'string',
+			type = Types.String,
 		},
 	},
-	[triggerTypes.UnitKilled] = { 
+	[triggerTypes.UnitKilled] = {
 		[1] = {
 			name = 'unit',
 			required = true,
-			type = 'string'
+			type = Types.String
 		},
 	},
-	[triggerTypes.UnitCaptured] = { 
+	[triggerTypes.UnitCaptured] = {
 		[1] = {
 			name = 'unit',
 			required = true,
-			type = 'string'
+			type = Types.String
 		},
 	},
 	[triggerTypes.UnitResurrected] = {  },
-	[triggerTypes.UnitEnteredLocation] = { 
+	[triggerTypes.UnitEnteredLocation] = {
 		[1] = {
 			name = 'unit',
 			required = true,
-			type = 'string'
+			type = Types.String
 		},
 		[2] = {
 			name = 'position',
 			required = true,
-			type = 'table',
+			type = Types.Table,
 		},
 		[3] = {
 			name = 'width',
 			required = true,
-			type = 'number',
+			type = Types.Number,
 		},
 		[4] = {
 			name = 'height',
 			required = false,
-			type = 'number',
+			type = Types.Number,
 		},
 	},
 	[triggerTypes.UnitLeftLocation] = {  },
 	[triggerTypes.UnitDwellLocation] = {  },
 	[triggerTypes.UnitSpotted] = {  },
 	[triggerTypes.UnitUnspotted] = {  },
-	[triggerTypes.ConstructionStarted] = { 
+	[triggerTypes.ConstructionStarted] = {
 		[1] = {
 			name = 'unit',
 			required = true,
-			type = 'string',
+			type = Types.String,
 		},
 	 },
-	[triggerTypes.ConstructionFinished] = { 
+	[triggerTypes.ConstructionFinished] = {
 		[1] = {
 			name = 'unit',
 			required = true,
-			type = 'string',
+			type = Types.String,
 		},
 	 },
 
@@ -153,11 +166,11 @@ local parameters = {
 	[triggerTypes.TotalUnitsCaptured] = {  },
 
 	-- Team
-	[triggerTypes.TeamDestroyed] = { 
+	[triggerTypes.TeamDestroyed] = {
 		[1] = {
 			name = 'teamID',
 			required = true,
-			type = 'number',
+			type = Types.Number,
 		},
 	 },
 
@@ -170,5 +183,6 @@ local parameters = {
 
 return {
 	Types = triggerTypes,
+	Settings = settings,
 	Parameters = parameters,
 }

@@ -865,10 +865,8 @@ function UnitDef_Post(name, uDef)
 		uDef.hidedamage = true
 		uDef.mass = raptorHealth
 		uDef.canhover = true
-		uDef.autoheal = math.ceil(math.sqrt(raptorHealth * 0.2))
+		uDef.autoheal = math.ceil(math.sqrt(raptorHealth * 0.8))
 		uDef.customparams.paralyzemultiplier = uDef.customparams.paralyzemultiplier or .2
-		uDef.idleautoheal = math.ceil(math.sqrt(raptorHealth * 0.2))
-		uDef.idletime = 1
 		uDef.customparams.areadamageresistance = "_RAPTORACID_"
 		uDef.upright = false
 		uDef.floater = true
@@ -1077,6 +1075,14 @@ function UnitDef_Post(name, uDef)
 		--if uDef.metalcost < healthmass then
 		--	Spring.Echo(name, uDef.mass, uDef.metalcost, uDef.mass - uDef.metalcost)
 		--end
+	end
+
+	-- Sets idleautoheal to 5hp/s after 1800 frames aka 1 minute. 
+	if uDef.idleautoheal == nil then
+		uDef.idleautoheal = 5
+	end
+	if uDef.idletime == nil then
+		uDef.idletime = 1800
 	end
 
 	--Juno Rework
@@ -1704,17 +1710,17 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	-- Deduplicate buildoptions (various modoptions or later mods can add the same units)
-	if uDef.buildoptions then
-		local seen = {}
-		local dedupedBuildoptions = {}
-		for _, unitName in ipairs(uDef.buildoptions) do
-			if not seen[unitName] then
-				seen[unitName] = true
-				dedupedBuildoptions[#dedupedBuildoptions + 1] = unitName
+	if uDef.buildoptions and next(uDef.buildoptions) then
+		-- Remove invalid unit defs.
+		for index, option in pairs(uDef.buildoptions) do
+			if not UnitDefs[option] then
+				Spring.Log("AllDefs", LOG.INFO, "Removed buildoption (unit not loaded?): " .. tostring(option))
+				uDef.buildoptions[index] = nil
 			end
 		end
-		uDef.buildoptions = dedupedBuildoptions
+		-- Deduplicate buildoptions (various modoptions or later mods can add the same units)
+		-- Multiple unit defs can share the same table reference, so we create a new table for each
+		uDef.buildoptions = table.getUniqueArray(uDef.buildoptions)
 	end
 end
 
@@ -1934,14 +1940,11 @@ function WeaponDef_Post(name, wDef)
 		end
 		----------------------------------------
 
-		-- Target borders of unit hitboxes rather than center (-1 = far border, 0 = center, 1 = near border)
-		-- wDef.targetborder = 1.0
-
 		--Controls whether the weapon aims for the center or the edge of its target's collision volume. Clamped between -1.0 - target the far border, and 1.0 - target the near border.
 		if wDef.targetborder == nil then
 			wDef.targetborder = 1 --Aim for just inside the hitsphere
 
-			if wDef.weapontype == "BeamLaser" or wDef.weapontype == "LightningCannon" then
+			if Engine.FeatureSupport.targetBorderBug and wDef.weapontype == "BeamLaser" or wDef.weapontype == "LightningCannon" then
 				wDef.targetborder = 0.33 --approximates in current engine with bugged calculation, to targetborder = 1.
 			end
 		end

@@ -18,6 +18,7 @@ end
 local mathFloor = math.floor
 local mathMin = math.min
 local mathRandom = math.random
+local round = math.round
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
@@ -83,7 +84,9 @@ local footprintsPath = "luaui/images/decals_gl4/footprints/"	-- old: "luaui/imag
 local resolution = 16 -- 32 is 2k tris, a tad pricey...
 local largesizethreshold  = 512 -- if min(width,height)> than this, then we use the large version!
 local extralargesizeThreshold = 1024 -- if min(width,height)> than this, then we use the extra large version!
-local lifeTimeMult = 1.0 -- A global lifetime multiplier for configurability
+local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 2000) / 1000	-- used for the initial value of lifeTimeMult
+local lifeTimeMult = 0.7 + math.min(gpuMem / 6000, 2.3) -- A global lifetime multiplier for configurability
+local lifeTimeMultMult = 1.5 -- an additional liftime multiplier that isnt saved to user config, so changing thsi will affect everyones lifetiem regardless of their save config value
 
 local autoupdate = false -- auto update shader, for debugging only!
 
@@ -280,9 +283,45 @@ local function initGL4( DPATname)
 end
 
 local decalIndex = 0
-local decalTimes = {} -- maps instanceID to expected fadeout timeInfo
 local decalRemoveQueue = {} -- maps gameframes to list of decals that will be removed
 local decalRemoveList = {} -- maps instanceID's of decals that need to be batch removed to preserve order
+
+-- Lightweight table of active decals for external widget consumption (e.g. minimap overlays)
+-- activeDecalData[decalIndex] = {posx, posz, size, alphastart, alphadecay, spawnframe, isFootprint, width, length, rotation, p, q, s, t}
+local activeDecalData = {}
+local footprintDecalSet = {}  -- tracks which decalIndex values are footprints (for rebuild)
+
+-- Rebuild activeDecalData from existing VBO instance data.
+-- Called when external consumers (e.g. PIP) need the current decal state after a reload or re-enable.
+local function RebuildActiveDecalData()
+	activeDecalData = {}
+	local mathMax = math.max
+	local vboTables = {decalVBO, decalLargeVBO, decalExtraLargeVBO}
+	for _, vbo in ipairs(vboTables) do
+		if vbo and vbo.usedElements > 0 then
+			local step = vbo.instanceStep
+			local data = vbo.instanceData
+			for instanceID, instanceIndex in pairs(vbo.instanceIDtoIndex) do
+				local offset = (instanceIndex - 1) * step
+				local posx = data[offset + 13]
+				local posz = data[offset + 15]
+				local length = data[offset + 1]
+				local width = data[offset + 2]
+				local size = mathMax(length, width)
+				local rotation = data[offset + 3]
+				local p = data[offset + 5]
+				local q = data[offset + 6]
+				local s = data[offset + 7]
+				local t = data[offset + 8]
+				local alphastart = data[offset + 9]
+				local alphadecay = data[offset + 10]
+				local spawnframe = data[offset + 16]
+				activeDecalData[instanceID] = {posx, posz, size, alphastart, alphadecay, spawnframe, footprintDecalSet[instanceID] or false, width, length, rotation, p, q, s, t}
+			end
+		end
+	end
+	return activeDecalData
+end
 
 -----------------------------------------------------------------------------------------------
 -- This part is kinda useless for now, but we could prevent or control excessive decal spam right here!
@@ -427,7 +466,7 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	heatstart = heatstart or 0
 	heatdecay = heatdecay or 1
 	alphastart = alphastart or 1
-	alphadecay = (alphadecay or 0) / lifeTimeMult
+	alphadecay = (alphadecay or 0) / (lifeTimeMult*lifeTimeMultMult)
 
 	bwfactor = bwfactor or 1 -- default force to black and white
 	glowsustain = glowsustain or 1 -- how many frames to keep max heat for
@@ -483,7 +522,6 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 		true, -- update existing element
 		false) -- noupload, dont use unless you know what you want to batch push/pop
 	local deathtime = spawnframe + lifetime
-	decalTimes[decalIndex] = deathtime
 	if decalRemoveQueue[deathtime] == nil then
 		decalRemoveQueue[deathtime] = {decalIndex}
 	else
@@ -491,6 +529,7 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	end
 
 	AddDecalToArea(decalIndex, posx, posz, width, length)
+
 	return decalIndex, lifetime
 end
 
@@ -591,6 +630,7 @@ end
 
 local function RemoveDecal(instanceID)
 	RemoveDecalFromArea(instanceID)
+	footprintDecalSet[instanceID] = nil
 	if decalVBO.instanceIDtoIndex[instanceID] then
 		popElementInstance(decalVBO, instanceID)
 	elseif decalLargeVBO.instanceIDtoIndex[instanceID] then
@@ -598,7 +638,6 @@ local function RemoveDecal(instanceID)
 	elseif decalExtraLargeVBO.instanceIDtoIndex[instanceID] then
 		popElementInstance(decalExtraLargeVBO, instanceID)
 	end
-	decalTimes[instanceID] = nil
 end
 
 local numDecalsToRemove = 0
@@ -608,6 +647,7 @@ function widget:GameFrame(n)
 		for i=1, #decalRemoveQueue[n] do
 			local decalID = decalRemoveQueue[n][i]
 			decalRemoveList[decalID] = true
+			footprintDecalSet[decalID] = nil
 			numDecalsToRemove = numDecalsToRemove + 1
 			--RemoveDecal(decalID)
 		end
@@ -1800,7 +1840,7 @@ local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, headin
 			decalCache[14] = Spring.GetGroundHeight(posx, posz)
 			decalCache[15] = worldposz
 
-			decalCache[10] = decalTable.alphadecay / lifeTimeMult
+			decalCache[10] = decalTable.alphadecay / (lifeTimeMult*lifeTimeMultMult)
 
 			local spawnframe = spGetGameFrame()
 			decalCache[16] = spawnframe
@@ -1815,7 +1855,6 @@ local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, headin
 				true, -- update existing element
 				false) -- noupload, dont use unless you know what you want to batch push/pop
 			local deathtime = spawnframe + lifetime
-			decalTimes[decalIndex] = deathtime
 			if decalRemoveQueue[deathtime] == nil then
 				decalRemoveQueue[deathtime] = {decalIndex}
 			else
@@ -1823,9 +1862,13 @@ local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, headin
 			end
 
 			AddDecalToArea(decalIndex, worldposx, worldposz, decalTable.width, decalTable.height)
+
+			footprintDecalSet[decalIndex] = true
 		end
 	end
 end
+
+local pendingRestore = nil  -- Holds saved decal data between SetConfigData and Initialize
 
 function widget:Initialize()
 	--if makeAtlases() == false then
@@ -1867,12 +1910,93 @@ function widget:Initialize()
 	WG['decalsgl4'].SetLifeTimeMult = function(value)
 		lifeTimeMult = value
 	end
+	WG['decalsgl4'].GetActiveDecals = function() return activeDecalData end
+	WG['decalsgl4'].GetLifeTimeMult = function() return lifeTimeMult end
+	WG['decalsgl4'].RebuildActiveDecalData = RebuildActiveDecalData
+	local vboTableCache = {decalVBO, decalLargeVBO, decalExtraLargeVBO}
+	WG['decalsgl4'].GetVBOData = function() return vboTableCache, footprintDecalSet end
 
 	widgetHandler:RegisterGlobal('AddDecalGL4', WG['decalsgl4'].AddDecalGL4)
 	widgetHandler:RegisterGlobal('RemoveDecalGL4', WG['decalsgl4'].RemoveDecalGL4)
 	widgetHandler:RegisterGlobal('UnitScriptDecal', UnitScriptDecal)
 	--spEcho(string.format("Decals GL4 loaded %d textures in %.3fs",numFiles, Spring.DiffTimers(Spring.GetTimer(), t0)))
 	--spEcho("Trying to access _G[NightModeParams]", _G["NightModeParams"])
+
+	-- Restore saved decals from a previous luaui reload (skip if game just started)
+	if pendingRestore and pendingRestore.decals then
+		local curFrame = spGetGameFrame()
+		if curFrame > 0 then
+		local restoredCount = 0
+		local frameOffset = curFrame - (pendingRestore.saveFrame or 0)
+		for _, entry in ipairs(pendingRestore.decals) do
+			local step = #entry
+			-- Support compact 13-field format and legacy 20-field format
+			local vboEntry
+			if step == 13 then
+				-- Compact: reconstruct full 20-float VBO entry
+				local posx, posz = entry[11], entry[12]
+				local posy = Spring.GetGroundHeight(posx, posz) or 0
+				vboEntry = {
+					entry[1],  entry[2],  entry[3],  entry[4],   -- length, width, rotation, maxalpha
+					entry[5],  entry[6],  entry[7],  entry[8],   -- UV p,q,s,t
+					entry[9],  entry[10], 0,         0,           -- alphastart, alphadecay, heatstart=0, heatdecay=0
+					posx,      posy,      posz,      entry[13],   -- posx, posy, posz, spawnframe
+					0.5,       0,         0,         0,           -- bwfactor=0.5, glowsustain=0, glowadd=0, fadeintime=0
+				}
+			elseif step == 20 then
+				vboEntry = entry
+			end
+			if vboEntry then
+				-- Adjust spawnframe by the elapsed time between save and restore
+				vboEntry[16] = vboEntry[16] + frameOffset
+
+				local alphastart = vboEntry[9]
+				local alphadecay = vboEntry[10]
+				if alphadecay > 0 then
+					local age = curFrame - vboEntry[16]
+					local alpha = alphastart - alphadecay * age
+					if alpha > 0 then
+						local lifetime = mathFloor(alphastart / alphadecay)
+						decalIndex = decalIndex + 1
+
+						local length_v = vboEntry[1]
+						local width_v = vboEntry[2]
+						local targetVBO = decalVBO
+						if mathMin(width_v, length_v) > extralargesizeThreshold then
+							targetVBO = decalExtraLargeVBO
+						elseif mathMin(width_v, length_v) > largesizethreshold then
+							targetVBO = decalLargeVBO
+						end
+
+						pushElementInstance(targetVBO, vboEntry, decalIndex, true, true)
+
+						local deathtime = vboEntry[16] + lifetime
+						if decalRemoveQueue[deathtime] == nil then
+							decalRemoveQueue[deathtime] = {decalIndex}
+						else
+							decalRemoveQueue[deathtime][#decalRemoveQueue[deathtime] + 1] = decalIndex
+						end
+
+						local posx = vboEntry[13]
+						local posz = vboEntry[15]
+						local rotation = vboEntry[3]
+						local p, q2, s, t = vboEntry[5], vboEntry[6], vboEntry[7], vboEntry[8]
+						AddDecalToArea(decalIndex, posx, posz, width_v, length_v)
+						restoredCount = restoredCount + 1
+					end
+				end
+			end
+		end
+		-- Batch upload all restored decals
+		if decalVBO.dirty then uploadAllElements(decalVBO) end
+		if decalLargeVBO.dirty then uploadAllElements(decalLargeVBO) end
+		if decalExtraLargeVBO.dirty then uploadAllElements(decalExtraLargeVBO) end
+		if restoredCount > 0 then
+			spEcho(string.format("[DecalsGL4] Restored %d decals from previous session", restoredCount))
+		end
+		end -- curFrame > 0
+		pendingRestore = nil
+	end
 
 	--pre-optimize UnitScriptDecals:
 	for unitDefID, UnitScriptDecalSet in pairs(UnitScriptDecals) do
@@ -1896,7 +2020,7 @@ function widget:Initialize()
 				decalTable.width, decalTable.height, 0,	decalTable.maxalpha,
 				p,q,s,t,
 				decalTable.alphastart or 1,
-				(decalTable.alphadecay) or 0 / lifeTimeMult,
+				(decalTable.alphadecay) or 0 / (lifeTimeMult*lifeTimeMultMult),
 				decalTable.heatstart or 0,
 				decalTable.heatdecay or 1,
 				0,0,0,0,
@@ -1925,8 +2049,79 @@ function widget:ShutDown()
 end
 
 function widget:GetConfigData(_) -- Called by RemoveWidget
+	-- Save the biggest active decals for restoration after luaui reload (cap at 1500)
+	-- Priority: biggest scars first, then biggest footprints if room remains
+	local maxSave = 1500
+	local frame = spGetGameFrame()
+	local scars = {}
+	local footprints = {}
+	local vboTables = {decalVBO, decalLargeVBO, decalExtraLargeVBO}
+	local floor = mathFloor
+	for _, vbo in ipairs(vboTables) do
+		if vbo and vbo.usedElements > 0 then
+			local step = vbo.instanceStep
+			local data = vbo.instanceData
+			for instanceID, instanceIndex in pairs(vbo.instanceIDtoIndex) do
+				local offset = (instanceIndex - 1) * step
+				local alphastart = data[offset + 9]
+				local alphadecay = data[offset + 10]
+				local spawnframe = data[offset + 16]
+				local age = frame - spawnframe
+				local alpha = alphastart - alphadecay * age
+				if alpha > 0 then
+					local length = data[offset + 1]
+					local width = data[offset + 2]
+					local size = math.max(length, width)
+					-- Compact format: 13 fields instead of 20
+					-- Drops: posy (recalculated), heatstart, heatdecay, bwfactor, glowsustain, glowadd, fadeintime
+					local entry = {
+						floor(length),                           -- [1] length
+						floor(width),                            -- [2] width
+						floor(data[offset + 3] * 100) / 100,     -- [3] rotation
+						floor(data[offset + 4] * 100) / 100,     -- [4] maxalpha
+						round(data[offset + 5], 2),     -- [5] UV p
+						round(data[offset + 6], 2),     -- [6] UV q
+						round(data[offset + 7], 2),     -- [7] UV s
+						round(data[offset + 8], 2),     -- [8] UV t
+						round(data[offset + 9], 2),     -- [9] alphastart
+						data[offset + 10],                       -- [10] alphadecay
+						floor(data[offset + 13]),                -- [11] posx (int)
+						floor(data[offset + 15]),                -- [12] posz (int)
+						spawnframe,                              -- [13] spawnframe
+					}
+					if footprintDecalSet[instanceID] then
+						footprints[#footprints + 1] = {size = size, data = entry}
+					else
+						scars[#scars + 1] = {size = size, data = entry}
+					end
+				end
+			end
+		end
+	end
+
+	-- Sort both lists by size descending (biggest first)
+	table.sort(scars, function(a, b) return a.size > b.size end)
+	table.sort(footprints, function(a, b) return a.size > b.size end)
+
+	local savedDecals = {}
+	local savedCount = 0
+	-- Add biggest scars first
+	for i = 1, #scars do
+		if savedCount >= maxSave then break end
+		savedCount = savedCount + 1
+		savedDecals[savedCount] = scars[i].data
+	end
+	-- Fill remaining slots with biggest footprints
+	for i = 1, #footprints do
+		if savedCount >= maxSave then break end
+		savedCount = savedCount + 1
+		savedDecals[savedCount] = footprints[i].data
+	end
+
 	local savedTable = {
 		lifeTimeMult = lifeTimeMult,
+		savedDecals = savedDecals,
+		saveFrame = frame,
 	}
 	return savedTable
 end
@@ -1934,5 +2129,11 @@ end
 function widget:SetConfigData(data) -- Called on load (and config change), just before Initialize!
 	if data.lifeTimeMult ~= nil then
 		lifeTimeMult = data.lifeTimeMult
+	end
+	if data.savedDecals and #data.savedDecals > 0 then
+		pendingRestore = {
+			decals = data.savedDecals,
+			saveFrame = data.saveFrame or 0,
+		}
 	end
 end

@@ -1,3 +1,5 @@
+local Types = VFS.Include('luarules/mission_api/parameter_types.lua').Types
+
 local actionTypes = {
 	-- Triggers
 	EnableTrigger      = 100,       --
@@ -56,7 +58,7 @@ local parameters = {
 		[1] = {
 			name = 'triggerID',
 			required = true,
-			type = 'string',
+			type = Types.TriggerID
 		},
 	},
 
@@ -64,21 +66,21 @@ local parameters = {
 		[1] = {
 			name = 'triggerID',
 			required = true,
-			type = 'string',
+			type = Types.TriggerID
 		},
 	},
 
 	-- Orders
 	[actionTypes.IssueOrders] = {
 		[1] = {
-			name = 'name',
+			name = 'unitName',
 			required = true,
-			type = 'string'
+			type = Types.String
 		},
 		[2] = {
 			name = 'orders',
 			required = true,
-			type = 'table'
+			type = Types.Orders
 		}
 	},
 	[actionTypes.AllowCommands] = {},
@@ -92,108 +94,110 @@ local parameters = {
 	-- Units
 	[actionTypes.SpawnUnits] = {
 		[1] = {
-			name = 'name',
+			name = 'unitName',
 			required = false,
-			type = 'string',
+			type = Types.String,
 		},
 		[2] = {
 			name = 'unitDefName',
 			required = true,
-			type = 'string',
+			type = Types.UnitDefName
 		},
 		[3] = {
 			name = 'teamID',
 			required = true,
-			type = 'number'
+			type = Types.TeamID
 		},
 		[4] = {
 			name = 'position',
 			required = true,
-			type = 'table'
+			type = Types.Position
 		},
 		[5] = {
 			name = 'quantity',
 			required = false,
-			type = 'number',		},
+			type = Types.Number,		},
 		[6] = {
 			name = 'facing',
 			required = false,
-			type = 'string'
+			type = Types.Facing
 		},
 		[7] = {
 			name = 'construction',
 			required = false,
-			type = 'boolean'
+			type = Types.Boolean
 		}
 	},
 
 	[actionTypes.DespawnUnits] = {
 		[1] = {
-			name = 'name',
+			name = 'unitName',
 			required = true,
-			type = 'string',
+			type = Types.String,
 		},
 		[2] = {
 			name = 'selfDestruct',
 			required = false,
-			type = 'boolean',
+			type = Types.Boolean,
 		},
 		[3] = {
+			-- when true, selfDestruct param has no effect
 			name = 'reclaimed',
 			required = false,
-			type = 'boolean',
+			type = Types.Boolean,
 		},
 	},
 	[actionTypes.SpawnWeapons] = {},
 	[actionTypes.SpawnEffects] = {},
 	[actionTypes.TransferUnits] = {
 		[1] = {
-			name = 'name',
+			name = 'unitName',
 			required = true,
-			type = 'string'
+			type = Types.String
 		},
 		[2] = {
 			name = 'newTeam',
 			required = true,
-			type = 'number'
+			type = Types.TeamID
 		},
 		[3] = {
 			-- can only transfer to other allyTeam if given=false
 			name = 'given',
 			required = false,
-			type = 'boolean'
+			type = Types.Boolean
 		}
 	},
 	[actionTypes.NameUnits] = {
 		[1] = {
-			name = 'name',
+			name = 'unitName',
 			required = true,
-			type = 'string'
+			type = Types.String
 		},
 		[2] = {
 			name = 'teamID',
 			required = false,
-			type = 'number'
+			type = Types.Number
 		},
 		[3] = {
 			name = 'unitDefName',
 			required = false,
-			type = 'string'
+			type = Types.String
 		},
 		[4] = {
 			-- Examples:
-			-- Rectangle: { x1 = 0, z1 = 0, x2 = 123, z2 = 123 }
+			-- Rectangle: { x1 = 0, z1 = 0, x2 = 123, z2 = 123 } with x1 < x2 and z1 < z2
 			-- Circle: { x = 0, z = 0, radius = 123 }
 			name = 'area',
 			required = false,
-			type = 'table'
+			type = Types.Area
 		},
+		requiresOneOf = { 'teamID', 'unitDefName', 'area' }
 	},
 	[actionTypes.UnnameUnits] = {
 		[1] = {
-			name = 'name',
+			name = 'unitName',
 			required = true,
-			type = 'string'
+			type = Types.String
 		}
 	},
 
@@ -202,17 +206,17 @@ local parameters = {
 		[1] = {
 			name = 'position',
 			required = true,
-			type = 'table'
+			type = Types.Position
 		},
 		[2] = {
 			name = 'direction',
 			required = true,
-			type = 'table'
+			type = Types.Position
 		},
 		[3] = {
 			name = 'params',
 			required = true,
-			type = 'table'
+			type = Types.Table
 		}
 	},
 
@@ -231,7 +235,7 @@ local parameters = {
 		[1] = {
 			name = 'message',
 			required = true,
-			type = 'string',
+			type = Types.String,
 		}
 	},
 	[actionTypes.AddMarker] = {
@@ -282,14 +286,14 @@ local parameters = {
 		[1] = {
 			name = 'allyTeamIDs',
 			required = true,
-			type = 'table'
+			type = Types.AllyTeamIDs
 		}
 	},
 	[actionTypes.Defeat] = {
 		[1] = {
 			name = 'allyTeamIDs',
 			required = true,
-			type = 'table'
+			type = Types.AllyTeamIDs
 		}
 	},
 
@@ -298,7 +302,7 @@ local parameters = {
 		[1] = {
 			name = 'function',
 			required = true,
-			type = 'function',
+			type = Types.Function,
 		},
 	},
 }
