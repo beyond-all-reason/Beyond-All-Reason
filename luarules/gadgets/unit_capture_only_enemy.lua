@@ -18,11 +18,13 @@ end
 
 local CMD_CAPTURE = CMD.CAPTURE
 
+local reissueOrder = Game.Commands.ReissueOrder
+
 local allowAll = Spring.Utilities.Gametype.isSinglePlayer()
 	or (Spring.Utilities.Gametype.isFFA() and not Spring.Utilities.Gametype.isTeams())
 	or Spring.Utilities.Gametype.isSandbox()
 
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, fromSynced, fromLua, fromInsert)
 	-- accepts: CMD.CAPTURE
 	local nParams = #cmdParams
 
@@ -40,7 +42,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 			return true
 		else
 			cmdOptions.ctrl = false
-			Spring.GiveOrderToUnit(unitID, cmdID, cmdParams, cmdOptions)
+			reissueOrder(unitID, cmdID, cmdParams, cmdOptions, cmdTag, fromInsert)
 			return false
 		end
 	end
