@@ -13,7 +13,7 @@ local triggers = {
 			gameFrame = 1,
 			interval = 280,
 		},
-		actions = { 'spawnCons1', 'moveCons1' },
+		actions = { 'spawnCons1' },
 	},
 
 	spawnEnergyGrid1 = {
@@ -120,17 +120,6 @@ local actions = {
 			teamID = 0,
 			unitDefName = 'armfus',
 			area = { x1 = 0, z1 = 0, x2 = 999999, z2 = 2200 },
-		},
-	},
-
-	moveCons1 = {
-		type = actionTypes.IssueOrders,
-		parameters = {
-			unitName = 'con-bots',
-			orders = {
-				{ CMD.MOVE, { 1850, 0, 1500 }, { 'shift' } },
-				{ CMD.MOVE, { 1850, 0, 1800 }, { 'shift' } },
-			},
 		},
 	},
 

@@ -108,8 +108,19 @@ local customValidators = {
 		local function validateOrderCommandAndParams(order, orderNumber)
 			local commandID = order[1]
 			local params = order[2]
-			local function validateNumberArrayCurried(sizes, message)
+			local function validateLuaTypeCurried(type)
 				return function()
+					local luaTypeResult = validateLuaType(params, type)
+					if luaTypeResult then
+						result[#result + 1] = { luaTypeResult[1], '[' .. orderNumber .. '][2]' }
+					end
+				end
+			end
+			local function validateNumberArrayCurried(sizes, message, acceptString)
+				return function()
+					if acceptString and type(params) == 'string' then
+						return
+					end
 					local luaTypeResult = validateLuaType(params, 'table')
 					if luaTypeResult then
 						result[#result + 1] = { message = luaTypeResult, parameterNameSuffix = '[' .. orderNumber .. '][2]' }
@@ -128,36 +139,39 @@ local customValidators = {
 					end
 				end
 			end
+			local validateNumber = validateLuaTypeCurried('number')
+			local validateString = validateLuaTypeCurried('string')
+			-- TODO: make y optional? as in: {123, nil, 123}
 			local validate3 = validateNumberArrayCurried({ 3 }, "3 numbers {x, y, z}")
-			local validate4 = validateNumberArrayCurried({ 4 }, "4 numbers {x, y, z, radius}")
+			local validate3orName = validateNumberArrayCurried({ 3 }, "3 numbers {x, y, z}, or a unit name", true)
 			local validate3or4 = validateNumberArrayCurried({ 3, 4 }, "3 or 4 numbers {x, y, z, optional radius}")
-			local function validateNumber()
-				local luaTypeResult = validateLuaType(params, 'number')
-				if luaTypeResult then
-					result[#result + 1] = { message = luaTypeResult, parameterNameSuffix = '[' .. orderNumber .. '][2]' }
-				end
-			end
+			local validate4 = validateNumberArrayCurried({ 4 }, "4 numbers {x, y, z, radius}")
+			local validate4orName = validateNumberArrayCurried({ 4 }, "4 numbers {x, y, z, radius}, or a unit name", true)
+
 			local commandValidators = {
-				-- No parameters:SpawnUnits:
+				-- No parameters:
 				[CMD.STOP] = false,
 				[CMD.SELFD] = false,
-				[CMD.GUARD] = false,
+				-- Name parameter:
+				[CMD.GUARD] = validateString,
 				-- 3 number parameters:
 				[CMD.DGUN] = validate3,
 				[CMD.MOVE] = validate3,
 				[CMD.FIGHT] = validate3,
 				[CMD.PATROL] = validate3,
+				-- 3 or 4 number parameters:
+				[CMD.UNLOAD_UNITS] = validate3or4,
 				-- 4 number parameters:
-				[CMD.RECLAIM] = validate4,
 				[CMD.RESURRECT] = validate4,
-				[CMD.CAPTURE] = validate4,
 				[CMD.AREA_ATTACK] = validate4,
 				[CMD.RESTORE] = validate4,
-				-- 3 or 4 number parameters:
-				[CMD.ATTACK] = validate3or4,
-				[CMD.REPAIR] = validate3or4,
-				[CMD.UNLOAD_UNITS] = validate3or4,
-				[CMD.LOAD_UNITS] = validate3or4,
+				-- 3 number parameters, or unit name:
+				[CMD.ATTACK] = validate3orName,
+				-- 4 number parameters, or unit name:
+				[CMD.RECLAIM] = validate4orName,
+				[CMD.CAPTURE] = validate4orName,
+				[CMD.REPAIR] = validate4orName,
+				[CMD.LOAD_UNITS] = validate4orName,
 				-- Single number parameter:
 				[CMD.CLOAK] = validateNumber,
 				[CMD.ONOFF] = validateNumber,
