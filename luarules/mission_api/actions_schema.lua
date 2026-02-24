@@ -242,29 +242,29 @@ local parameters = {
 		[1] = {
 			name = 'position',
 			required = true,
-			type = 'table'
+			type = Types.Position,
 		},
 		[2] = {
 			name = 'label',
 			required = false,
-			type = 'string',
+			type = Types.String,
 		},
 		[3] = {
 			name = 'playerID',
 			required = false,
-			type = 'number',
+			type = Types.PlayerID,
 		}
 	},
 	[actionTypes.EraseMarker] = {
 		[1] = {
 			name = 'position',
 			required = true,
-			type = 'table'
+			type = Types.Position,
 		},
 		[2] = {
 			name = 'playerID',
 			required = false,
-			type = 'number',
+			type = Types.PlayerID
 		}
 	},
 	[actionTypes.DrawLines] = {
@@ -272,12 +272,12 @@ local parameters = {
 			-- must be even number of positions
 			name = 'positions',
 			required = true,
-			type = 'table'
+			type = Types.Positions
 		},
 		[2] = {
 			name = 'playerID',
 			required = false,
-			type = 'number',
+			type = Types.PlayerID
 		}
 	},
 

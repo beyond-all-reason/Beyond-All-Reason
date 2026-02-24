@@ -20,8 +20,7 @@ end
 
 local function validateField(value, fieldName, expectedType)
 	if not value then
-		return { message = "Missing required parameter. ", "." .. fieldName }
-
+		return { message = "Missing required parameter", parameterNameSuffix = "." .. fieldName }
 	end
 	if type(value) ~= expectedType then
 		return { message = "Unexpected parameter type, expected " .. expectedType .. ", got " .. type(value), parameterNameSuffix = "." .. fieldName }
@@ -30,29 +29,25 @@ end
 
 local Types = VFS.Include('luarules/mission_api/parameter_types.lua').Types
 
-local function validateSimpleTypeCurried(expectedType)
+local validators = {}
+
+--- Lua type validators:
+local function validateLuaTypeCurried(expectedType)
 	return function(value)
 		local luaTypeResult = validateLuaType(value, expectedType)
 		return luaTypeResult and { { message = luaTypeResult } } or nil
 	end
 end
-local luaTypeValidators = {
-	-- These need to be here to be available in customValidators below
-	[Types.Table] = validateSimpleTypeCurried('table'),
-	[Types.String] = validateSimpleTypeCurried('string'),
-	[Types.Number] = validateSimpleTypeCurried('number'),
-	[Types.Boolean] = validateSimpleTypeCurried('boolean'),
-	[Types.Function] = validateSimpleTypeCurried('function'),
-}
+validators[Types.Table] = validateLuaTypeCurried('table')
+validators[Types.String] = validateLuaTypeCurried('string')
+validators[Types.Number] = validateLuaTypeCurried('number')
+validators[Types.Boolean] = validateLuaTypeCurried('boolean')
+validators[Types.Function] = validateLuaTypeCurried('function')
 
-local customValidators = {
+--- Table Validators:
 
-	----------------------------------------------------------------
-	--- Table Validators:
-	----------------------------------------------------------------
-
-	[Types.Position] = function(position)
-		local luaTypeResult = luaTypeValidators[Types.Table](position)
+validators[Types.Position] = function(position)
+		local luaTypeResult = validators[Types.Table](position)
 		if luaTypeResult then
 			return luaTypeResult
 		end
@@ -76,16 +71,49 @@ local customValidators = {
 		end
 
 		return result
-	end,
+	end
 
-	[Types.AllyTeamIDs] = function(allyTeamIDs)
-		local luaTypeResult = luaTypeValidators[Types.Table](allyTeamIDs)
+validators[Types.Positions] = function(positions)
+		local luaTypeResult = validators[Types.Table](positions)
+		if luaTypeResult then
+			return luaTypeResult
+		end
+
+		if table.isNilOrEmpty(positions) then
+			return { { message = "Positions table is empty" } }
+		end
+
+		local result = {}
+		if #positions %2 ~= 0 then
+			result[#result + 1] = { message = "Positions table does not have even size" }
+		end
+
+		for i, position in pairs(positions) do
+			local fieldResult = validateField(position, "position #" .. i, 'table')
+			if fieldResult then
+				result[#result + 1] = fieldResult
+			else
+				local positionResult = validators[Types.Position](position)
+				if positionResult then
+					for _, validationResult in pairs(positionResult) do
+						validationResult.parameterNameSuffix = "[" .. i .. "]" .. (validationResult.parameterNameSuffix or '')
+						result[#result + 1] = validationResult
+					end
+				end
+			end
+		end
+
+		return result
+	end
+
+validators[Types.AllyTeamIDs] = function(allyTeamIDs)
+		local luaTypeResult = validators[Types.Table](allyTeamIDs)
 		if luaTypeResult then
 			return luaTypeResult
 		end
 
 		if table.isNilOrEmpty(allyTeamIDs) then
-			return { { message = "allyTeamIDs table is empty. " } }
+			return { { message = "allyTeamIDs table is empty" } }
 		end
 
 		local result = {}
@@ -99,9 +127,9 @@ local customValidators = {
 		end
 
 		return result
-	end,
+	end
 
-	[Types.Orders] = function(orders)
+validators[Types.Orders] = function(orders)
 
 		local result = {}
 
@@ -204,13 +232,13 @@ local customValidators = {
 			end
 		end
 
-		local luaTypeResult = luaTypeValidators[Types.Table](orders)
+		local luaTypeResult = validators[Types.Table](orders)
 		if luaTypeResult then
 			return luaTypeResult
 		end
 
 		if #orders == 0 then
-			return { { message = "Orders table is empty. " } }
+			return { { message = "Orders table is empty" } }
 		end
 
 		for i, order in pairs(orders) do
@@ -224,10 +252,10 @@ local customValidators = {
 		end
 
 		return result
-	end,
+	end
 
-	[Types.Area] = function(area)
-		local luaTypeResult = luaTypeValidators[Types.Table](area)
+validators[Types.Area] = function(area)
+		local luaTypeResult = validators[Types.Table](area)
 		if luaTypeResult then
 			return luaTypeResult
 		end
@@ -235,7 +263,7 @@ local customValidators = {
 		local isRectangle = area.x1 and area.z1 and area.x2 and area.z2
 		local isCircle = area.x and area.z and area.radius
 		if not isRectangle and not isCircle then
-			return { { message = "Invalid area parameter, must be either rectangle { x1, z1, x2, z2 } with x1 < x2 and z1 < z2, or circle { x, z, radius }. " } }
+			return { { message = "Invalid area parameter, must be either rectangle { x1, z1, x2, z2 } with x1 < x2 and z1 < z2, or circle { x, z, radius }" } }
 		else
 			local result = {}
 			for key, value in pairs(area) do
@@ -251,21 +279,19 @@ local customValidators = {
 		if isRectangle then
 			local result = {}
 			if area.x1 >= area.x2 then
-				result[#result + 1] = { message = "Invalid area rectangle parameter, x1 must be less than x2. " }
+				result[#result + 1] = { message = "Invalid area rectangle parameter, x1 must be less than x2" }
 			end
 			if area.z1 >= area.z2 then
-				result[#result + 1] = { message = "Invalid area rectangle parameter, z1 must be less than z2. " }
+				result[#result + 1] = { message = "Invalid area rectangle parameter, z1 must be less than z2" }
 			end
 			return result
 		end
-	end,
+	end
 
-	----------------------------------------------------------------
-	--- String Validators:
-	----------------------------------------------------------------
+--- String Validators:
 
-	[Types.TriggerID] = function(triggerID)
-		local luaTypeResult = luaTypeValidators[Types.String](triggerID)
+validators[Types.TriggerID] = function(triggerID)
+		local luaTypeResult = validators[Types.String](triggerID)
 		if luaTypeResult then
 			return luaTypeResult
 		end
@@ -273,10 +299,10 @@ local customValidators = {
 		if not GG['MissionAPI'].Triggers[triggerID] then
 			return { { message = "Invalid triggerID: " .. triggerID } }
 		end
-	end,
+	end
 
-	[Types.UnitDefName] = function(unitDefName)
-		local luaTypeResult = luaTypeValidators[Types.String](unitDefName)
+validators[Types.UnitDefName] = function(unitDefName)
+		local luaTypeResult = validators[Types.String](unitDefName)
 		if luaTypeResult then
 			return luaTypeResult
 		end
@@ -284,9 +310,9 @@ local customValidators = {
 		if not UnitDefNames[unitDefName] then
 			return { { message = "Invalid unitDefName: " .. unitDefName } }
 		end
-	end,
+	end
 
-	[Types.Facing] = function(facing)
+validators[Types.Facing] = function(facing)
 		local expectedTypes = { string = true, number = true }
 		local actualType = type(facing)
 		if not expectedTypes[actualType] then
@@ -297,14 +323,12 @@ local customValidators = {
 		if not validFacings[facing] then
 			return { { message = "Invalid facing: " .. facing .. ". Must be one of 'n', 's', 'e', 'w', 'north', 'south', 'east', 'west'." } }
 		end
-	end,
+	end
 
-	----------------------------------------------------------------
-	--- Number Validators:
-	----------------------------------------------------------------
+--- Number Validators:
 
-	[Types.TeamID] = function(teamID)
-		local luaTypeResult = luaTypeValidators[Types.Number](teamID)
+validators[Types.TeamID] = function(teamID)
+		local luaTypeResult = validators[Types.Number](teamID)
 		if luaTypeResult then
 			return luaTypeResult
 		end
@@ -312,10 +336,18 @@ local customValidators = {
 		if not Spring.GetTeamAllyTeamID(teamID) then
 			return { { message = "Invalid teamID: " .. teamID } }
 		end
-	end,
-}
+	end
 
-local validators = table.merge(customValidators, luaTypeValidators)
+validators[Types.PlayerID] = function(playerID)
+		local luaTypeResult = validators[Types.Number](playerID)
+		if luaTypeResult then
+			return luaTypeResult
+		end
+
+		if not Spring.GetPlayerInfo(playerID) then
+			return { { message = "Invalid playerID: " .. playerID } }
+		end
+	end
 
 
 ----------------------------------------------------------------

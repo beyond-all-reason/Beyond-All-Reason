@@ -209,6 +209,28 @@ local actions = {
 			area = { x1 = 10, z1 = 10, x2 = 1, z2 = 1 },
 		},
 	},
+
+	actionWithInvalidPlayerID = {
+		type = actionTypes.AddMarker,
+		parameters = {
+			position = { x = 1900, z = 2200 },
+			playerID = 777,
+		},
+	},
+
+	actionWithNoPositions = {
+		type = actionTypes.DrawLines,
+		parameters = {
+			positions = { },
+		},
+	},
+
+	actionWithOddNumberOfPositionsAndOneInvalid = {
+		type = actionTypes.DrawLines,
+		parameters = {
+			positions = { { x = 1600, z = 2100 }, { x = 1800, z = 2300 }, { x = 1800, invalidField = 2100 } },
+		},
+	},
 }
 
 return {
