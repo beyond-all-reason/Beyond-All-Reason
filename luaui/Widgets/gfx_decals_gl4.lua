@@ -878,6 +878,17 @@ for weaponDefID=1, #WeaponDefs do
 			--glowadd = 2.5
 			bwfactor = 0.05
 
+		elseif string.find(weaponDef.name, 'death_acid') then
+			textures = { "t_groundcrack_26_a.tga" }
+			radius = (radius * 5.5)-- * (mathRandom() * 0.25 + 0.75)
+			alpha = 6
+			heatstart = 550
+			heatdecay = 0.1
+			alphadecay = 0.012
+			glowadd = 2.5
+			fadeintime = 200
+			bwfactor = 0.17
+
 		elseif string.find(weaponDef.name, 'acid') then
 			textures = { "t_groundcrack_26_a.tga" }
 			radius = (radius * 5)-- * (mathRandom() * 0.15 + 0.85)
@@ -927,17 +938,6 @@ for weaponDefID=1, #WeaponDefs do
 			glowsustain = 100
 			glowadd = 1.5
 			bwfactor = 0.1
-
-		elseif string.find(weaponDef.name, 'death_acid') then
-			textures = { "t_groundcrack_26_a.tga" }
-			radius = (radius * 5.5)-- * (mathRandom() * 0.25 + 0.75)
-			alpha = 6
-			heatstart = 550
-			heatdecay = 0.1
-			alphadecay = 0.012
-			glowadd = 2.5
-			fadeintime = 200
-			bwfactor = 0.17
 
 		elseif string.find(weaponDef.name, 'flamebug') then
 			textures = { "t_groundcrack_23_a.tga", "t_groundcrack_24_a.tga", "t_groundcrack_25_a.tga", "t_groundcrack_27_a.tga" }
