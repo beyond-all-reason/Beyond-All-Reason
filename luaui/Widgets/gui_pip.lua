@@ -2539,7 +2539,10 @@ void main() {
 					float alpha = max(lavaAlpha, coastfactor * 0.85);
 					gl_FragColor = vec4(baseColor, alpha);
 				} else {
-					float waterAmount = clamp(depth / 10.0, 0.0, 1.0);
+					// S-curve alpha: very shallow water stays nearly transparent
+					// so sand/ground shows through, then ramps up smoothly with depth.
+					// Caps at 0.75 so underwater terrain detail remains visible.
+					float waterAmount = smoothstep(0.0, 35.0, depth) * 0.58;
 
 					if (waterColor.a > 0.95) {
 						// Void water: solid color overlay (no animation)
@@ -2551,9 +2554,12 @@ void main() {
 
 						// Depth-based absorption coloring (from BumpWater):
 						// deeper water absorbs more light, trending toward minColor
-						float depthFactor = min(depth * 0.02, 1.0);
+						float depthFactor = min(depth * 0.04, 1.0);
 						vec3 depthColor = wBaseColor - wAbsorbColor * depthFactor;
 						depthColor = max(depthColor, wMinColor);
+						// Additional darkening for very deep water
+						float deepDarken = mix(1.0, 0.55, smoothstep(10.0, 80.0, depth));
+						depthColor *= deepDarken;
 
 						// Surface color (BumpWater uses surfaceColor * 0.4 at top-down view)
 						vec3 surfColor = wSurfColor * 0.4;
