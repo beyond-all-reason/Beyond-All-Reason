@@ -1759,6 +1759,30 @@ mapInfo.hasWater = mapInfo.minGroundHeight < 0 or mapInfo.isLava
 mapInfo.dynamicWaterLevel = nil  -- current water/lava level (nil = static sea level = 0)
 mapInfo.lastCheckedWaterLevel = nil  -- for change detection
 
+-- Parse lava config from Spring.Lava for minimap overlay shader
+mapInfo.lavaCoastWidth = 25.0  -- default
+mapInfo.lavaCoastColor = {2.0, 0.5, 0.0}  -- default: bright orange (HDR)
+mapInfo.lavaDiffuseEmitTex = nil
+mapInfo.lavaUvScale = 2.0
+mapInfo.lavaSwirlFreq = 0.025
+mapInfo.lavaSwirlAmp = 0.003
+mapInfo.mapRatio = Game.mapSizeZ / Game.mapSizeX  -- Y/X aspect ratio for square-texel tiling
+if mapInfo.isLava then
+	mapInfo.lavaCoastWidth = Spring.Lava.coastWidth or 25.0
+	mapInfo.lavaUvScale = Spring.Lava.uvScale or 2.0
+	mapInfo.lavaSwirlFreq = Spring.Lava.swirlFreq or 0.025
+	mapInfo.lavaSwirlAmp = Spring.Lava.swirlAmp or 0.003
+	mapInfo.lavaDiffuseEmitTex = Spring.Lava.diffuseEmitTex  -- e.g. "LuaUI/images/lava/lava2_diffuseemit.dds"
+	mapInfo.lavaDistortionTex = "LuaUI/images/lavadistortion.png"  -- big flowing distortion texture
+	local cc = Spring.Lava.coastColor
+	if cc and type(cc) == "string" then
+		local cr, cg, cb = cc:match("vec3%s*%((.-),%s*(.-),%s*(.-)%)")
+		if cr then
+			mapInfo.lavaCoastColor = {tonumber(cr) or 2.0, tonumber(cg) or 0.5, tonumber(cb) or 0.0}
+		end
+	end
+end
+
 -- Eagerly read lava level if available (avoids wrong first R2T render on lava maps)
 if mapInfo.isLava or mapInfo.hasWater then
 	local initLavaLevel = Spring.GetGameRulesParam("lavaLevel")
@@ -2331,31 +2355,153 @@ void main() {
 		]],
 		fragment = [[
 			uniform sampler2D heightTex;
+			uniform sampler2D lavaDiffuseTex;
+			uniform sampler2D lavaDistortTex;
 			uniform vec4 waterColor;
-			uniform float waterLevel;  // water/lava surface level in elmos (world height units)
+			uniform float waterLevel;
+			uniform float isLava;
+			uniform float hasLavaTex;
+			uniform float hasDistortTex;
+			uniform float gameFrames;    // exact Spring.GetGameFrame()
+			uniform vec3 lavaCoastColor;
+			uniform float lavaCoastWidth;
+			uniform float lavaUvScale;    // WORLDUVSCALE
+			uniform float lavaSwirlFreq;  // SWIRLFREQUENCY
+			uniform float lavaSwirlAmp;   // SWIRLAMPLITUDE
+			uniform float mapRatio;       // mapSizeZ / mapSizeX
+			uniform float sunDirY;        // sun direction Y for flat-surface lighting
 			varying vec2 texCoord;
+
+			float rand(vec2 co) {
+				return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
+			}
+			float vnoise(vec2 p) {
+				vec2 i = floor(p);
+				vec2 f = fract(p);
+				f = f * f * (3.0 - 2.0 * f);
+				return mix(
+					mix(rand(i), rand(i + vec2(1.0, 0.0)), f.x),
+					mix(rand(i + vec2(0.0, 1.0)), rand(i + vec2(1.0, 1.0)), f.x),
+					f.y);
+			}
+
 			void main() {
-				float height = texture2D(heightTex, texCoord).r;  // raw height in elmos
-				
-				// Depth below water/lava surface (positive = submerged)
+				float height = texture2D(heightTex, texCoord).r;
 				float depth = waterLevel - height;
-				
-				// Smooth transition over 10 elmos depth for gradual coverage
-				float waterAmount = clamp(depth / 10.0, 0.0, 1.0);
-				
-				// Use waterColor.a to control overall intensity:
-				// Low alpha (0.5 = normal water) gets subtle tinting via * 0.05
-				// High alpha (1.0 = void/lava) gets strong coverage
-				float alphaScale = mix(0.05, 1.0, waterColor.a);
-				gl_FragColor = vec4(waterColor.rgb, waterAmount * alphaScale);
+
+				if (isLava > 0.5) {
+					float lavaAlpha = clamp(depth / 5.0, 0.0, 1.0);
+
+					// Coast factor (HEIGHTOFFSET=2.0)
+					float coastfactor = clamp((height - waterLevel + lavaCoastWidth + 2.0) / lavaCoastWidth, 0.0, 1.0);
+					if (coastfactor > 0.90) {
+						coastfactor = 9.0 * (1.0 - coastfactor);
+					} else {
+						coastfactor = pow(coastfactor / 0.9, 3.0);
+					}
+
+					// worldUV: texCoord 0-1 across map, Y *= mapRatio for square tiling
+					vec2 worldUV = texCoord;
+					worldUV.y *= mapRatio;
+
+					// Global rotate: GLOBALROTATEFREQUENCY=0.0001, AMPLITUDE=0.05
+					// Real shader: worldRotTime = timeInfo.x + timeInfo.w  (frame + subframe)
+					worldUV += vec2(sin(gameFrames * 0.0001), cos(gameFrames * 0.0001)) * 0.05;
+
+					// Pre-sample emissive for distortion modulation
+					vec4 nodiffuseEmit = vec4(0.5);
+					if (hasLavaTex > 0.5) {
+						nodiffuseEmit = texture2D(lavaDiffuseTex, worldUV * lavaUvScale);
+					}
+
+					// Per-pixel swirl (approximates real shader's per-vertex random oscillation)
+					float gametime = gameFrames * lavaSwirlFreq;
+					vec2 cellPos = texCoord * 8.0;
+					vec2 cellID = floor(cellPos);
+					vec2 cellFrac = fract(cellPos);
+					cellFrac = cellFrac * cellFrac * (3.0 - 2.0 * cellFrac);
+
+					float r00 = rand(cellID);
+					float r10 = rand(cellID + vec2(1.0, 0.0));
+					float r01 = rand(cellID + vec2(0.0, 1.0));
+					float r11 = rand(cellID + vec2(1.0, 1.0));
+					float rX = mix(mix(r00, r10, cellFrac.x), mix(r01, r11, cellFrac.x), cellFrac.y);
+					float rY = mix(mix(rand(cellID * 17.876), rand((cellID + vec2(1,0)) * 17.876), cellFrac.x),
+					              mix(rand((cellID + vec2(0,1)) * 17.876), rand((cellID + vec2(1,1)) * 17.876), cellFrac.x), cellFrac.y);
+
+					vec2 swirlPhase = sin(vec2(rX, rY) + gametime * (0.5 + vec2(rX, rY)));
+					vec2 swirl = swirlPhase * lavaSwirlAmp;
+
+					// Distortion texture at worldUV * 45.2
+					// Real shader adds camshift (camera-dependent drift) but we can't replicate it,
+					// so we sample without camshift for best static alignment
+					vec2 distortion;
+					if (hasDistortTex > 0.5) {
+						vec4 distTex = texture2D(lavaDistortTex, worldUV * 45.2);
+						distortion = distTex.xy * 0.2 * 0.02;
+					} else {
+						float dn1 = vnoise(worldUV * 45.2);
+						float dn2 = vnoise(worldUV * 45.2 * 1.7 + vec2(3.7, 1.2));
+						distortion = vec2(dn1, dn2) * 0.004;
+					}
+					distortion *= clamp(nodiffuseEmit.a * 0.5 + coastfactor, 0.2, 2.0);
+
+					// Final UV = worldUV * UVSCALE + distortion + swirl
+					vec2 finalUV = worldUV * lavaUvScale + distortion + swirl;
+
+					vec3 baseColor;
+					float emissive;
+					if (hasLavaTex > 0.5) {
+						vec4 lavaSample = texture2D(lavaDiffuseTex, finalUV);
+						baseColor = lavaSample.rgb;
+						emissive = lavaSample.a;
+					} else {
+						float n1 = vnoise(finalUV * 12.0);
+						float n2 = vnoise(finalUV * 28.0);
+						float nv = n1 * 0.65 + n2 * 0.35;
+						baseColor = mix(waterColor.rgb, waterColor.rgb * 2.5 + vec3(0.3, 0.08, 0.0), nv * 0.4);
+						emissive = nv;
+					}
+
+					// Apply sun lighting (flat surface, normal ≈ (0,1,0))
+					// Real shader: lightamount = clamp(dot(sunDir, normal), 0.2, 1.0) * max(0.5, shadow)
+					float lightamount = clamp(sunDirY, 0.2, 1.0);
+					baseColor *= lightamount;
+
+					// Coast glow (applied after lighting, matching real shader order)
+					baseColor += lavaCoastColor * coastfactor;
+
+					// Emissive glow (applied after coast, matching real shader order)
+					baseColor += baseColor * (emissive * distortion.y * 700.0);
+
+					float alpha = max(lavaAlpha, coastfactor * 0.85);
+					gl_FragColor = vec4(baseColor, alpha);
+				} else {
+					float waterAmount = clamp(depth / 10.0, 0.0, 1.0);
+					float alphaScale = mix(0.05, 1.0, waterColor.a);
+					gl_FragColor = vec4(waterColor.rgb, waterAmount * alphaScale);
+				}
 			}
 		]],
 		uniformInt = {
 			heightTex = 0,
+			lavaDiffuseTex = 1,
+			lavaDistortTex = 2,
 		},
 		uniformFloat = {
 			waterColor = {0, 0.04, 0.25, 0.5},
 			waterLevel = 0,
+			isLava = 0,
+			hasLavaTex = 0,
+			hasDistortTex = 0,
+			gameFrames = 0,
+			lavaCoastColor = {2.0, 0.5, 0.0},
+			lavaCoastWidth = 25.0,
+			lavaUvScale = 2.0,
+			lavaSwirlFreq = 0.025,
+			lavaSwirlAmp = 0.003,
+			mapRatio = 1.0,
+			sunDirY = 0.5,
 		},
 	},
 }
@@ -10265,16 +10411,39 @@ local function DrawWaterAndLOSOverlays()
 		end
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "waterColor"), r, g, b, a)
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "waterLevel"), GetWaterLevel())
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "isLava"), mapInfo.isLava and 1.0 or 0.0)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "hasLavaTex"), mapInfo.lavaDiffuseEmitTex and 1.0 or 0.0)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "gameFrames"), Spring.GetGameFrame())
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaCoastColor"), mapInfo.lavaCoastColor[1], mapInfo.lavaCoastColor[2], mapInfo.lavaCoastColor[3])
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaCoastWidth"), mapInfo.lavaCoastWidth)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaUvScale"), mapInfo.lavaUvScale)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaSwirlFreq"), mapInfo.lavaSwirlFreq)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaSwirlAmp"), mapInfo.lavaSwirlAmp)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "mapRatio"), mapInfo.mapRatio)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "hasDistortTex"), mapInfo.lavaDistortionTex and 1.0 or 0.0)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "sunDirY"), select(2, gl.GetSun("pos")))
 		
 		-- Bind heightmap texture
 		gl.UniformInt(gl.GetUniformLocation(shaders.water, "heightTex"), 0)
 		glFunc.Texture(0, '$heightmap')
+		-- Bind lava diffuse+emit texture if available
+		if mapInfo.lavaDiffuseEmitTex then
+			gl.UniformInt(gl.GetUniformLocation(shaders.water, "lavaDiffuseTex"), 1)
+			glFunc.Texture(1, mapInfo.lavaDiffuseEmitTex)
+		end
+		-- Bind lava distortion texture if available
+		if mapInfo.lavaDistortionTex then
+			gl.UniformInt(gl.GetUniformLocation(shaders.water, "lavaDistortTex"), 2)
+			glFunc.Texture(2, mapInfo.lavaDistortionTex)
+		end
 		
 		-- Draw water overlay
 		glFunc.Color(1, 1, 1, 1)
 		glFunc.BeginEnd(glConst.QUADS, GroundTextureVertices)
 		
 		glFunc.Texture(0, false)
+		if mapInfo.lavaDiffuseEmitTex then glFunc.Texture(1, false) end
+		if mapInfo.lavaDistortionTex then glFunc.Texture(2, false) end
 		gl.UseShader(0)
 	end
 
@@ -12017,8 +12186,27 @@ local function DrawTrackedPlayerMinimap()
 		end
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "waterColor"), r, g, b, a)
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "waterLevel"), GetWaterLevel())
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "isLava"), mapInfo.isLava and 1.0 or 0.0)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "hasLavaTex"), mapInfo.lavaDiffuseEmitTex and 1.0 or 0.0)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "gameFrames"), Spring.GetGameFrame())
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaCoastColor"), mapInfo.lavaCoastColor[1], mapInfo.lavaCoastColor[2], mapInfo.lavaCoastColor[3])
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaCoastWidth"), mapInfo.lavaCoastWidth)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaUvScale"), mapInfo.lavaUvScale)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaSwirlFreq"), mapInfo.lavaSwirlFreq)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaSwirlAmp"), mapInfo.lavaSwirlAmp)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "mapRatio"), mapInfo.mapRatio)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "hasDistortTex"), mapInfo.lavaDistortionTex and 1.0 or 0.0)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "sunDirY"), select(2, gl.GetSun("pos")))
 		gl.UniformInt(gl.GetUniformLocation(shaders.water, "heightTex"), 0)
 		glFunc.Texture(0, '$heightmap')
+		if mapInfo.lavaDiffuseEmitTex then
+			gl.UniformInt(gl.GetUniformLocation(shaders.water, "lavaDiffuseTex"), 1)
+			glFunc.Texture(1, mapInfo.lavaDiffuseEmitTex)
+		end
+		if mapInfo.lavaDistortionTex then
+			gl.UniformInt(gl.GetUniformLocation(shaders.water, "lavaDistortTex"), 2)
+			glFunc.Texture(2, mapInfo.lavaDistortionTex)
+		end
 		glFunc.Color(1, 1, 1, 1)
 		glFunc.BeginEnd(GL.QUADS, function()
 			glFunc.TexCoord(0, 0); glFunc.Vertex(cLeft, cTop)
@@ -12027,6 +12215,8 @@ local function DrawTrackedPlayerMinimap()
 			glFunc.TexCoord(0, 1); glFunc.Vertex(cLeft, cBottom)
 		end)
 		glFunc.Texture(0, false)
+		if mapInfo.lavaDiffuseEmitTex then glFunc.Texture(1, false) end
+		if mapInfo.lavaDistortionTex then glFunc.Texture(2, false) end
 		gl.UseShader(0)
 	end
 
