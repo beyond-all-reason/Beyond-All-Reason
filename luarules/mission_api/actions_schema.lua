@@ -123,6 +123,11 @@ local parameters = {
 			name = 'construction',
 			required = false,
 			type = Types.Boolean
+		},
+		[8] = {
+			name = 'spacing',
+			required = false,
+			type = Types.Number
 		}
 	},
 

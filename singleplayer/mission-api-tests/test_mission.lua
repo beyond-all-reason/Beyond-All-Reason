@@ -99,6 +99,7 @@ local actions = {
 			position = { x = 1800, z = 1600 },
 			quantity = 9,
 			facing = 'n',
+			spacing = 32,
 		},
 	},
 
