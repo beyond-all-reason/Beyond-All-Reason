@@ -1785,6 +1785,23 @@ if mapInfo.isLava then
 	end
 end
 
+-- Read BumpWater rendering properties for animated water overlay (non-lava water maps)
+if mapInfo.hasWater and not mapInfo.isLava then
+	local sr, sg, sb = gl.GetWaterRendering("surfaceColor")
+	mapInfo.waterSurfaceColor = {sr or 0.75, sg or 0.8, sb or 0.85}
+	mapInfo.waterSurfaceAlpha = gl.GetWaterRendering("surfaceAlpha") or 0.55
+	local ar, ag, ab = gl.GetWaterRendering("absorb")
+	mapInfo.waterAbsorbColor = {ar or 0, ag or 0, ab or 0}
+	local br, bg, bb = gl.GetWaterRendering("baseColor")
+	mapInfo.waterBaseColorRGB = {br or 0.6, bg or 0.6, bb or 0.75}
+	local mr, mg, mb = gl.GetWaterRendering("minColor")
+	mapInfo.waterMinColor = {mr or 0, mg or 0, mb or 0}
+	mapInfo.waterCausticsStrength = gl.GetWaterRendering("causticsStrength") or 0.08
+	mapInfo.waterPerlinStartFreq = gl.GetWaterRendering("perlinStartFreq") or 8
+	mapInfo.waterPerlinLacunarity = gl.GetWaterRendering("perlinLacunarity") or 3
+	mapInfo.waterPerlinAmplitude = gl.GetWaterRendering("perlinAmplitude") or 0.9
+end
+
 -- Lava render state is shared across ALL PIP instances via WG.lavaRenderState.
 -- If the gadget has been modified to push LavaRenderState, use those values.
 -- Otherwise, compute tide level and heat distortion locally (same formulas as the gadget).
@@ -2396,6 +2413,16 @@ void main() {
 			uniform float sunDirY;        // sun direction Y for flat-surface lighting
 			uniform float heatDistortX;   // camera-based distortion drift (from gadget)
 			uniform float heatDistortZ;   // camera-based distortion drift (from gadget)
+			// BumpWater properties for non-lava water rendering
+			uniform vec3 wSurfColor;      // surfaceColor from map water config
+			uniform float wSurfAlpha;     // surfaceAlpha
+			uniform vec3 wAbsorbColor;    // absorb color (light absorption per depth)
+			uniform vec3 wBaseColor;      // baseColor (shallow water color)
+			uniform vec3 wMinColor;       // minColor (deepest water floor)
+			uniform float wCausticsStr;   // causticsStrength
+			uniform float wPerlinStart;   // perlinStartFreq
+			uniform float wPerlinLacun;   // perlinLacunarity
+			uniform float wPerlinAmp;     // perlinAmplitude
 			varying vec2 texCoord;
 
 			float rand(vec2 co) {
@@ -2513,8 +2540,60 @@ void main() {
 					gl_FragColor = vec4(baseColor, alpha);
 				} else {
 					float waterAmount = clamp(depth / 10.0, 0.0, 1.0);
-					float alphaScale = mix(0.05, 1.0, waterColor.a);
-					gl_FragColor = vec4(waterColor.rgb, waterAmount * alphaScale);
+
+					if (waterColor.a > 0.95) {
+						// Void water: solid color overlay (no animation)
+						gl_FragColor = vec4(waterColor.rgb, waterAmount);
+					} else {
+						// BumpWater-style animated water rendering for minimap
+						vec2 worldUV = texCoord;
+						worldUV.y *= mapRatio;
+
+						// Depth-based absorption coloring (from BumpWater):
+						// deeper water absorbs more light, trending toward minColor
+						float depthFactor = min(depth * 0.02, 1.0);
+						vec3 depthColor = wBaseColor - wAbsorbColor * depthFactor;
+						depthColor = max(depthColor, wMinColor);
+
+						// Surface color (BumpWater uses surfaceColor * 0.4 at top-down view)
+						vec3 surfColor = wSurfColor * 0.4;
+
+						// Animated Perlin-like noise: 3 octaves scrolling at different speeds
+						float waveTime = gameFrames * 0.0005;
+						float freq1 = wPerlinStart;
+						float freq2 = freq1 * wPerlinLacun;
+						float freq3 = freq2 * wPerlinLacun;
+						float wave1 = vnoise(worldUV * freq1 + vec2(waveTime * 0.3, waveTime * 0.2));
+						float wave2 = vnoise(worldUV * freq2 + vec2(-waveTime * 0.4, waveTime * 0.35) + vec2(3.7, 1.2));
+						float wave3 = vnoise(worldUV * freq3 + vec2(waveTime * 0.5, -waveTime * 0.45) + vec2(7.3, 5.9));
+						float ampTotal = 1.0 + wPerlinAmp + wPerlinAmp * wPerlinAmp;
+						float waveNoise = (wave1 + wave2 * wPerlinAmp + wave3 * wPerlinAmp * wPerlinAmp) / ampTotal;
+
+						// Surface variation: subtle brightness modulation from wave bumps
+						float surfaceVar = mix(0.92, 1.08, waveNoise);
+
+						// Caustics: animated bright patterns at medium depth (5-30 elmo)
+						float causticsDepthScale = smoothstep(0.0, 5.0, depth) * smoothstep(40.0, 15.0, depth);
+						float c1 = vnoise(worldUV * 20.0 + vec2(waveTime * 0.6, -waveTime * 0.3));
+						float c2 = vnoise(worldUV * 35.0 + vec2(-waveTime * 0.4, waveTime * 0.7) + vec2(5.3, 8.7));
+						float caustics = pow(c1 * 0.5 + c2 * 0.5, 2.0) * wCausticsStr * 6.0 * causticsDepthScale;
+
+						// Shore foam: white froth at very shallow depths
+						float shoreFactor = smoothstep(3.0, 0.0, depth) * smoothstep(-0.5, 0.5, depth);
+						float foamNoise = vnoise(worldUV * 40.0 + vec2(waveTime * 2.0, -waveTime * 1.5));
+						float foam = shoreFactor * foamNoise * 0.4;
+
+						// Combine: depth color blended with surface tint, then add effects
+						vec3 waterResult = mix(depthColor, surfColor, wSurfAlpha) * surfaceVar;
+						waterResult += vec3(caustics);
+						waterResult += vec3(foam);
+
+						// Sun lighting (partial darkening, same as lava branch)
+						float lightamount = mix(1.0, clamp(sunDirY, 0.2, 1.0), 0.5);
+						waterResult *= lightamount;
+
+						gl_FragColor = vec4(waterResult, waterAmount);
+					}
 				}
 			}
 		]],
@@ -2539,6 +2618,16 @@ void main() {
 			sunDirY = 0.5,
 			heatDistortX = 0,
 			heatDistortZ = 0,
+			-- BumpWater defaults (overridden at draw time from map config)
+			wSurfColor = {0.3, 0.32, 0.34},
+			wSurfAlpha = 0.55,
+			wAbsorbColor = {0, 0, 0},
+			wBaseColor = {0.6, 0.6, 0.75},
+			wMinColor = {0, 0, 0},
+			wCausticsStr = 0.08,
+			wPerlinStart = 8.0,
+			wPerlinLacun = 3.0,
+			wPerlinAmp = 0.9,
 		},
 	},
 }
@@ -10515,6 +10604,19 @@ local function DrawWaterAndLOSOverlays()
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "heatDistortX"), lavaHdx)
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "heatDistortZ"), lavaHdz)
 		
+		-- BumpWater properties for animated water overlay (non-lava maps)
+		if mapInfo.waterSurfaceColor then
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wSurfColor"), mapInfo.waterSurfaceColor[1], mapInfo.waterSurfaceColor[2], mapInfo.waterSurfaceColor[3])
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wSurfAlpha"), mapInfo.waterSurfaceAlpha)
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wAbsorbColor"), mapInfo.waterAbsorbColor[1], mapInfo.waterAbsorbColor[2], mapInfo.waterAbsorbColor[3])
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wBaseColor"), mapInfo.waterBaseColorRGB[1], mapInfo.waterBaseColorRGB[2], mapInfo.waterBaseColorRGB[3])
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wMinColor"), mapInfo.waterMinColor[1], mapInfo.waterMinColor[2], mapInfo.waterMinColor[3])
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wCausticsStr"), mapInfo.waterCausticsStrength)
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wPerlinStart"), mapInfo.waterPerlinStartFreq)
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wPerlinLacun"), mapInfo.waterPerlinLacunarity)
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wPerlinAmp"), mapInfo.waterPerlinAmplitude)
+		end
+		
 		-- Bind heightmap texture
 		gl.UniformInt(gl.GetUniformLocation(shaders.water, "heightTex"), 0)
 		glFunc.Texture(0, '$heightmap')
@@ -12295,6 +12397,18 @@ local function DrawTrackedPlayerMinimap()
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "sunDirY"), select(2, gl.GetSun("pos")))
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "heatDistortX"), lavaHdx)
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "heatDistortZ"), lavaHdz)
+		-- BumpWater properties for animated water overlay (non-lava maps)
+		if mapInfo.waterSurfaceColor then
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wSurfColor"), mapInfo.waterSurfaceColor[1], mapInfo.waterSurfaceColor[2], mapInfo.waterSurfaceColor[3])
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wSurfAlpha"), mapInfo.waterSurfaceAlpha)
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wAbsorbColor"), mapInfo.waterAbsorbColor[1], mapInfo.waterAbsorbColor[2], mapInfo.waterAbsorbColor[3])
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wBaseColor"), mapInfo.waterBaseColorRGB[1], mapInfo.waterBaseColorRGB[2], mapInfo.waterBaseColorRGB[3])
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wMinColor"), mapInfo.waterMinColor[1], mapInfo.waterMinColor[2], mapInfo.waterMinColor[3])
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wCausticsStr"), mapInfo.waterCausticsStrength)
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wPerlinStart"), mapInfo.waterPerlinStartFreq)
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wPerlinLacun"), mapInfo.waterPerlinLacunarity)
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wPerlinAmp"), mapInfo.waterPerlinAmplitude)
+		end
 		gl.UniformInt(gl.GetUniformLocation(shaders.water, "heightTex"), 0)
 		glFunc.Texture(0, '$heightmap')
 		if mapInfo.lavaDiffuseEmitTex then
@@ -14416,6 +14530,11 @@ function widget:Update(dt)
 			mapInfo.dynamicWaterLevel = lrs.level
 		end
 	elseif mapInfo.hasWater then
+		-- Force R2T content refresh on water maps so the water overlay animates
+		-- (Perlin noise waves + caustics need gameFrames to advance)
+		if not mapInfo.voidWater then
+			pipR2T.contentNeedsUpdate = true
+		end
 		-- Non-lava water: poll base water level from game rules
 		local lavaLevel = Spring.GetGameRulesParam("lavaLevel")
 		if lavaLevel and lavaLevel ~= -99999 then
