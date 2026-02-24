@@ -182,6 +182,7 @@ local config = {
 	unitpicZoomThreshold = 0.7, -- Zoom level at which to switch to unitpics (higher = more zoomed in)
 	drawComNametags = true,    -- Draw player names above commander icons
 	comNametagZoomThreshold = 0.12, -- Minimum zoom to show nametags (below this they'd overlap)
+	drawComHealthBars = true,  -- Draw health bars below commander icons when health < 99%
 	leftButtonPansCamera = isMinimapMode and (Spring.GetConfigInt("MinimapLeftClickMove", 1) == 1) or false,
 	maximizeSizemult = 1.25,
 	screenMargin = 0.045,
@@ -1800,6 +1801,8 @@ if mapInfo.hasWater and not mapInfo.isLava then
 	mapInfo.waterPerlinStartFreq = gl.GetWaterRendering("perlinStartFreq") or 8
 	mapInfo.waterPerlinLacunarity = gl.GetWaterRendering("perlinLacunarity") or 3
 	mapInfo.waterPerlinAmplitude = gl.GetWaterRendering("perlinAmplitude") or 0.9
+	mapInfo.waterFresnelMin = gl.GetWaterRendering("fresnelMin") or 0.2
+	mapInfo.waterDiffuseFactor = gl.GetWaterRendering("diffuseFactor") or 1.0
 end
 
 -- Lava render state is shared across ALL PIP instances via WG.lavaRenderState.
@@ -2423,6 +2426,8 @@ void main() {
 			uniform float wPerlinStart;   // perlinStartFreq
 			uniform float wPerlinLacun;   // perlinLacunarity
 			uniform float wPerlinAmp;     // perlinAmplitude
+			uniform float wFresnelMin;    // fresnelMin (top-down reflectivity)
+			uniform float wDiffuseFactor; // diffuseFactor (surface brightness)
 			varying vec2 texCoord;
 
 			float rand(vec2 co) {
@@ -2557,12 +2562,33 @@ void main() {
 						float depthFactor = min(depth * 0.04, 1.0);
 						vec3 depthColor = wBaseColor - wAbsorbColor * depthFactor;
 						depthColor = max(depthColor, wMinColor);
+						// Enforce blue tint: ensure blue channel dominates over green
+						// to prevent maps with green-tinted water settings from looking swampy
+						float blueShift = max(depthColor.g - depthColor.b, 0.0) * 0.8;
+						depthColor.g -= blueShift;
+						depthColor.b += blueShift * 0.5;
+						// Per-map brightness: fresnelMin controls top-down reflectivity
+						// (how bright the surface looks from above). diffuseFactor adds
+						// extra surface lighting intensity. Together they differentiate
+						// reflective bright maps from dark moody ones.
+						// Reflectivity boost: fresnelMin=0.2 -> 1.0x, fresnelMin=0.8 -> 1.6x
+						float reflectBright = 1.0 + (wFresnelMin - 0.2) * 1.0;
+						// Diffuse boost: diffuseFactor=1 -> 1.0x, diffuseFactor=3 -> 1.3x
+						float diffuseBright = 1.0 + (wDiffuseFactor - 1.0) * 0.15;
+						float mapBrightness = clamp(reflectBright * diffuseBright, 0.6, 2.0);
+
+						// Overall darkening modulated by per-map brightness
+						depthColor *= 0.45 * mapBrightness;
 						// Additional darkening for very deep water
-						float deepDarken = mix(1.0, 0.55, smoothstep(10.0, 80.0, depth));
+						float deepDarken = mix(1.0, 0.6, smoothstep(10.0, 80.0, depth));
 						depthColor *= deepDarken;
 
-						// Surface color (BumpWater uses surfaceColor * 0.4 at top-down view)
-						vec3 surfColor = wSurfColor * 0.4;
+						// Surface color modulated by per-map brightness
+						vec3 surfColor = wSurfColor * 0.25 * mapBrightness;
+						// Apply same blue-shift to surface color
+						float surfBlueShift = max(surfColor.g - surfColor.b, 0.0) * 0.8;
+						surfColor.g -= surfBlueShift;
+						surfColor.b += surfBlueShift * 0.5;
 
 						// Animated Perlin-like noise: 3 octaves scrolling at different speeds
 						float waveTime = gameFrames * 0.0005;
@@ -2590,7 +2616,8 @@ void main() {
 						float foam = shoreFactor * foamNoise * 0.4;
 
 						// Combine: depth color blended with surface tint, then add effects
-						vec3 waterResult = mix(depthColor, surfColor, wSurfAlpha) * surfaceVar;
+						// Use reduced surface blend (0.3) so depth/ground darkness dominates
+						vec3 waterResult = mix(depthColor, surfColor, wSurfAlpha * 0.3) * surfaceVar;
 						waterResult += vec3(caustics);
 						waterResult += vec3(foam);
 
@@ -2634,6 +2661,8 @@ void main() {
 			wPerlinStart = 8.0,
 			wPerlinLacun = 3.0,
 			wPerlinAmp = 0.9,
+			wFresnelMin = 0.2,
+			wDiffuseFactor = 1.0,
 		},
 	},
 }
@@ -6721,7 +6750,7 @@ function widget:Initialize()
 		if uDef.isBuilding then
 			cache.isBuilding[uDefID] = true
 		end
-		if uDef.customParams and uDef.customParams.iscommander then
+		if uDef.customParams and (uDef.customParams.iscommander or uDef.customParams.isdecoycommander or uDef.customParams.isscavcommander or uDef.customParams.isscavdecoycommander) then
 			cache.isCommander[uDefID] = true
 		end
 		cache.unitCost[uDefID] = uDef.metalCost + uDef.energyCost / 60
@@ -6729,7 +6758,7 @@ function widget:Initialize()
 		-- Pre-compute icon draw layer for GL4 rendering (determines render order)
 		if uDef.canFly then
 			gl4Icons.unitDefLayer[uDefID] = gl4Icons.LAYER_AIR
-		elseif uDef.customParams and uDef.customParams.iscommander then
+		elseif uDef.customParams and (uDef.customParams.iscommander or uDef.customParams.isdecoycommander or uDef.customParams.isscavcommander or uDef.customParams.isscavdecoycommander) then
 			gl4Icons.unitDefLayer[uDefID] = gl4Icons.LAYER_COMMANDER
 		elseif uDef.isBuilding then
 			gl4Icons.unitDefLayer[uDefID] = gl4Icons.LAYER_STRUCTURE
@@ -7827,6 +7856,7 @@ function widget:GetConfigData()
 		explosionOverlay=config.explosionOverlay,
 		explosionOverlayAlpha=config.explosionOverlayAlpha,
 		healthDarkenMax=config.healthDarkenMax,
+		drawComHealthBars=config.drawComHealthBars,
 		activityFocusEnabled=miscState.activityFocusEnabled,
 		activityFocusIgnoreSpectators=config.activityFocusIgnoreSpectators,
 		tvEnabled=miscState.tvEnabled,
@@ -7978,6 +8008,7 @@ function widget:SetConfigData(data)
 	if data.explosionOverlayAlpha then config.explosionOverlayAlpha = data.explosionOverlayAlpha end
 	if data.hideAICommands ~= nil then config.hideAICommands = data.hideAICommands end
 	if data.healthDarkenMax ~= nil then config.healthDarkenMax = data.healthDarkenMax end
+	if data.drawComHealthBars ~= nil then config.drawComHealthBars = data.drawComHealthBars end
 	if data.activityFocusEnabled ~= nil then miscState.activityFocusEnabled = data.activityFocusEnabled end
 	if data.activityFocusIgnoreSpectators ~= nil then config.activityFocusIgnoreSpectators = data.activityFocusIgnoreSpectators end
 	if data.tvEnabled ~= nil then
@@ -9997,13 +10028,16 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 					local name
 					local luaAI = Spring.GetTeamLuaAI(tID) or ''
 					if luaAI ~= '' then
-						-- AI team: use AI display name from game rules
+						-- Lua AI team (e.g. Scavengers): use AI display name from game rules
 						local aiDisplayName = Spring.GetGameRulesParam('ainame_' .. tID)
 						if aiDisplayName then
-							name = aiDisplayName
+							name = aiDisplayName .. ' (AI)'
 						else
-							name = luaAI
+							name = luaAI .. ' (AI)'
 						end
+					elseif Spring.GetGameRulesParam('ainame_' .. tID) then
+						-- Native/C++ AI team (e.g. BARb): no LuaAI, but has ainame_ game rule
+						name = Spring.GetGameRulesParam('ainame_' .. tID) .. ' (AI)'
 					else
 						-- Human player: find the best player on this team
 						-- Prefer active non-spec, fall back to any non-spec (disconnected), then any player
@@ -10071,34 +10105,90 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 
 		font:Begin()
 		local pipUnits = miscState.pipUnits
+		-- Collect commander positions, draw nametags, and gather health bar data
+		-- (health bars only when unitpics are NOT shown, since unitpics have their own)
+		local unitpicsActive = config.showUnitpics and cameraState.zoom >= config.unitpicZoomThreshold
+		local comHealthBars = (config.drawComHealthBars and not unitpicsActive) and {} or nil
+		local comHealthCount = 0
 		for i = 1, unitCount do
 			local uID = pipUnits[i]
 			local dID = defCache[uID]
 			if dID and localIsCommander[dID] then
 				local tID = teamCache[uID]
-				local entry = tID and comNametagCache[tID]
-				if entry then
-					local wx = posX[uID]
-					if wx then
-						local cx, cy = WorldToPipCoords(wx, posZ[uID])
-						local iconInfo = localCacheUnitIcon[dID]
-						local iconHalf = iconRadiusZoomDistMult * (iconInfo and iconInfo.size or 0.5)
-						-- Rotate the icon center to match where the shader placed it
-						if isRotated then
-							local dx, dy = cx - rotCX, cy - rotCY
-							cx = rotCX + dx * rotCos - dy * rotSin
-							cy = rotCY + dx * rotSin + dy * rotCos
-						end
-						-- Offset above the icon in screen space (always +Y, after rotation)
-						cy = cy + iconHalf + nametagFontSize * 0.35
+				local wx = posX[uID]
+				if wx then
+					local cx, cy = WorldToPipCoords(wx, posZ[uID])
+					local iconInfo = localCacheUnitIcon[dID]
+					local iconHalf = iconRadiusZoomDistMult * (iconInfo and iconInfo.size or 0.5)
+					-- Rotate the icon center to match where the shader placed it
+					if isRotated then
+						local dx, dy = cx - rotCX, cy - rotCY
+						cx = rotCX + dx * rotCos - dy * rotSin
+						cy = rotCY + dx * rotSin + dy * rotCos
+					end
+					-- Draw nametag above icon
+					local entry = tID and comNametagCache[tID]
+					if entry then
+						local nameY = cy + iconHalf + nametagFontSize * 0.35
 						font:SetTextColor(entry.r, entry.g, entry.b, nametagAlpha)
 						font:SetOutlineColor(entry.oR, entry.oG, entry.oB, nametagAlpha)
-						font:Print(entry.name, cx, cy, nametagFontSize, "con")
+						font:Print(entry.name, cx, nameY, nametagFontSize, "con")
+					end
+					-- Collect health bar data (drawn after font:End)
+					if comHealthBars then
+						local hp, maxHP = spFunc.GetUnitHealth(uID)
+						if hp and maxHP and maxHP > 0 then
+							local hpFrac = hp / maxHP
+							if hpFrac < 0.99 then
+								comHealthCount = comHealthCount + 1
+								comHealthBars[comHealthCount] = { cx = cx, cy = cy, half = iconHalf, frac = hpFrac }
+							end
+						end
 					end
 				end
 			end
 		end
 		font:End()
+
+		-- Draw commander health bars below icons (matches unitpic health bar style)
+		if comHealthCount > 0 then
+			glFunc.Texture(false)
+			for hi = 1, comHealthCount do
+				local hb = comHealthBars[hi]
+				local barW = hb.half * 0.82
+				local barH = math.max(1, hb.half * 0.13)
+				local barY = hb.cy - hb.half + (hb.half * 2) - barH * 1.5
+				local outl = math.max(1, barH * 0.2)
+				-- Outline (black border)
+				glFunc.Color(0, 0, 0, 0.9 * nametagAlpha)
+				glFunc.BeginEnd(GL.QUADS, function()
+					glFunc.Vertex(hb.cx - barW - outl, barY - outl)
+					glFunc.Vertex(hb.cx + barW + outl, barY - outl)
+					glFunc.Vertex(hb.cx + barW + outl, barY + barH + outl)
+					glFunc.Vertex(hb.cx - barW - outl, barY + barH + outl)
+				end)
+				-- Background (dark gray)
+				glFunc.Color(0.15, 0.15, 0.15, 0.8 * nametagAlpha)
+				glFunc.BeginEnd(GL.QUADS, function()
+					glFunc.Vertex(hb.cx - barW, barY)
+					glFunc.Vertex(hb.cx + barW, barY)
+					glFunc.Vertex(hb.cx + barW, barY + barH)
+					glFunc.Vertex(hb.cx - barW, barY + barH)
+				end)
+				-- Fill: green→yellow→red gradient
+				local hr = hb.frac < 0.5 and 1.0 or (1.0 - (hb.frac - 0.5) * 2)
+				local hg = hb.frac > 0.5 and 1.0 or (hb.frac * 2)
+				local fillW = barW * 2 * hb.frac - barW
+				glFunc.Color(hr, hg, 0, 0.9 * nametagAlpha)
+				glFunc.BeginEnd(GL.QUADS, function()
+					glFunc.Vertex(hb.cx - barW, barY)
+					glFunc.Vertex(hb.cx + fillW, barY)
+					glFunc.Vertex(hb.cx + fillW, barY + barH)
+					glFunc.Vertex(hb.cx - barW, barY + barH)
+				end)
+			end
+			glFunc.Color(1, 1, 1, 1)
+		end
 
 		-- Re-push rotation matrix for subsequent drawing
 		if isRotated then
@@ -10621,6 +10711,8 @@ local function DrawWaterAndLOSOverlays()
 			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wPerlinStart"), mapInfo.waterPerlinStartFreq)
 			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wPerlinLacun"), mapInfo.waterPerlinLacunarity)
 			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wPerlinAmp"), mapInfo.waterPerlinAmplitude)
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wFresnelMin"), mapInfo.waterFresnelMin)
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wDiffuseFactor"), mapInfo.waterDiffuseFactor)
 		end
 		
 		-- Bind heightmap texture
@@ -12414,6 +12506,8 @@ local function DrawTrackedPlayerMinimap()
 			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wPerlinStart"), mapInfo.waterPerlinStartFreq)
 			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wPerlinLacun"), mapInfo.waterPerlinLacunarity)
 			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wPerlinAmp"), mapInfo.waterPerlinAmplitude)
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wFresnelMin"), mapInfo.waterFresnelMin)
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wDiffuseFactor"), mapInfo.waterDiffuseFactor)
 		end
 		gl.UniformInt(gl.GetUniformLocation(shaders.water, "heightTex"), 0)
 		glFunc.Texture(0, '$heightmap')
