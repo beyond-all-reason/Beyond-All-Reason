@@ -1513,6 +1513,7 @@ local cache = {
 	weaponColor = {},
 	weaponExplosionRadius = {},
 	weaponSkipExplosion = {},
+	weaponExplosionDim = {},    -- [wDefID] = 0..1 dimming multiplier for rapid-fire/flame weapon explosions
 }
 pipTV.cache = cache  -- Expose cache to early-defined pipTV functions (ScanAnticipation)
 
@@ -5735,7 +5736,7 @@ local function DrawExplosions()
 
 					-- Fireball radius (20% smaller than before)
 					local baseRadius = effectiveRadius * (0.27 + progress * 1.8)
-					local alpha = 1 - progress                  -- Fades out
+					local alpha = (1 - progress) * (explosion.dimFactor or 1)  -- Fades out, dimmed for rapid-fire
 
 					-- Color: outer fireball (darker, smoky edge) and inner core (bright, hot)
 				-- Per-explosion random tint variation using stored seed
@@ -6932,6 +6933,21 @@ function widget:Initialize()
 		-- Check if weapon should skip explosion rendering (e.g., footstep effects)
 		if wDef.name and string.find(string.lower(wDef.name), "footstep") then
 			cache.weaponSkipExplosion[wDefID] = true
+		end
+
+		-- Dim factor for rapid-fire and flame weapons (reduces stacking whiteout)
+		-- Flame weapons always get dimmed; other weapons dimmed by effective fire rate
+		if cache.weaponIsFlame[wDefID] then
+			cache.weaponExplosionDim[wDefID] = 0.3
+		else
+			local reload = wDef.reload or 1
+			local salvoSize = wDef.salvoSize or 1
+			local burst = wDef.projectiles or 1
+			local effectiveRate = salvoSize * burst / reload  -- shots per second
+			if effectiveRate > 5 then
+				-- Scale dim from 0.7 at 5/s down to 0.3 at 20+/s
+				cache.weaponExplosionDim[wDefID] = math.max(0.3, 0.7 - (effectiveRate - 5) * 0.027)
+			end
 		end
 	
 	-- Check if weapon is paralyze damage
@@ -10115,6 +10131,23 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 			local dID = defCache[uID]
 			if dID and localIsCommander[dID] then
 				local tID = teamCache[uID]
+				-- LOS check: determine visibility state (skip units not in LOS or radar)
+				local inLos = true
+				local inRadar = false
+				if checkAllyTeamID and tID then
+					local unitAllyTeam = teamAllyTeamCache[tID] or spFunc.GetTeamAllyTeamID(tID)
+					if unitAllyTeam ~= checkAllyTeamID then
+						local losBits = spFunc.GetUnitLosState(uID, checkAllyTeamID, true)
+						if not losBits or losBits % 4 < 1 then  -- neither LOS (bit 0) nor radar (bit 1)
+							inLos = false
+							-- skip entirely: no icon drawn, so no nametag/health bar
+						else
+							inLos = losBits % 2 >= 1  -- bit 0 = LOS_INLOS
+							inRadar = not inLos       -- in radar but not LOS
+						end
+					end
+				end
+				if inLos or inRadar then
 				local wx = posX[uID]
 				if wx then
 					local cx, cy = WorldToPipCoords(wx, posZ[uID])
@@ -10126,7 +10159,14 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 						cx = rotCX + dx * rotCos - dy * rotSin
 						cy = rotCY + dx * rotSin + dy * rotCos
 					end
-					-- Draw nametag above icon
+					-- Apply radar wobble to match the icon's shader wobble
+					if inRadar then
+						local phase = (uID * 0.37) % 6.2832
+						local wobbleAmp = iconHalf * 0.3
+						cx = cx + math.sin(gameTime * 3.0 + phase) * wobbleAmp
+						cy = cy + math.cos(gameTime * 2.7 + phase * 1.3) * wobbleAmp
+					end
+					-- Draw nametag above icon (always, including radar blips)
 					local entry = tID and comNametagCache[tID]
 					if entry then
 						local nameY = cy + iconHalf + nametagFontSize * 0.35
@@ -10134,8 +10174,8 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 						font:SetOutlineColor(entry.oR, entry.oG, entry.oB, nametagAlpha)
 						font:Print(entry.name, cx, nameY, nametagFontSize, "con")
 					end
-					-- Collect health bar data (drawn after font:End)
-					if comHealthBars then
+					-- Collect health bar data (only when in actual LOS, not radar)
+					if comHealthBars and inLos then
 						local hp, maxHP = spFunc.GetUnitHealth(uID)
 						if hp and maxHP and maxHP > 0 then
 							local hpFrac = hp / maxHP
@@ -10146,6 +10186,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 						end
 					end
 				end
+				end -- inLos or inRadar
 			end
 		end
 		font:End()
@@ -10167,8 +10208,15 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 					glFunc.Vertex(hb.cx + barW + outl, barY + barH + outl)
 					glFunc.Vertex(hb.cx - barW - outl, barY + barH + outl)
 				end)
-				-- Background (dark gray)
-				glFunc.Color(0.15, 0.15, 0.15, 0.8 * nametagAlpha)
+				-- Background (dark gray, blinks red when health <= 30%)
+				local bgR, bgG, bgB = 0.25, 0.25, 0.25
+				if hb.frac <= 0.30 then
+					-- Intensity scales from 0.15 at 30% to 0.30 at 0%, blinks via sin wave
+					local urgency = 0.3 + (1 - hb.frac / 0.30) * 0.3
+					local blink = (math.sin(gameTime * 11.0) * 0.5 + 0.5)  -- 0..1 pulsing
+					bgR = 0.11 + urgency * blink
+				end
+				glFunc.Color(bgR, bgG, bgB, 0.8 * nametagAlpha)
 				glFunc.BeginEnd(GL.QUADS, function()
 					glFunc.Vertex(hb.cx - barW, barY)
 					glFunc.Vertex(hb.cx + barW, barY)
@@ -13855,6 +13903,16 @@ function widget:DrawScreen()
 			end
 		end
 
+		-- Force immediate units re-render when unitpic display state changes
+		-- (zooming out from unitpics to icons or vice versa)
+		do
+			local nowUseUnitpics = config.showUnitpics and cameraState.zoom >= config.unitpicZoomThreshold
+			if miscState._lastUseUnitpics ~= nil and miscState._lastUseUnitpics ~= nowUseUnitpics then
+				pipR2T.unitsNeedsUpdate = true
+			end
+			miscState._lastUseUnitpics = nowUseUnitpics
+		end
+
 		-- Update oversized units texture at throttled rate (expensive layers)
 		local drawStartTime = os.clock()
 		local prevUnitsTime = pipR2T.unitsLastUpdateTime
@@ -15877,6 +15935,24 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	if miscState.tvEnabled then
 		local cost = cache.unitCost[unitDefID] or 100
 		local weight = math.min(3, (damage / math.max(cost, 50)) * 2)
+
+		-- Commander in danger bonus: low-health commander being hit with enemies nearby
+		if cache.isCommander[unitDefID] then
+			local hp, maxHP = spFunc.GetUnitHealth(unitID)
+			if hp and maxHP and maxHP > 0 then
+				local healthFrac = hp / maxHP
+				if healthFrac < 0.5 then
+					-- Bonus scales from +3 at 50% HP to +12 at 0% HP
+					local dangerBonus = (1 - healthFrac * 2) * 12
+					-- Verify enemy is actually nearby (within 600 elmos)
+					local nearestEnemy = Spring.GetUnitNearestEnemy(unitID, 600, true)
+					if nearestEnemy then
+						weight = weight + dangerBonus
+					end
+				end
+			end
+		end
+
 		if weight > 0.1 then
 			local x, _, z = spFunc.GetUnitBasePosition(unitID)
 			if x then pipTV.AddEvent(x, z, weight, 'combat') end
@@ -15913,12 +15989,16 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 	if weaponID and cache.weaponExplosionRadius[weaponID] then
 		radius = cache.weaponExplosionRadius[weaponID]
 	end
+	-- Skip very small explosions
+	if radius < 8 then
+		return
+	end
 	
 	-- No zoom-based rejection: count-based filtering happens in DrawExplosions
 
 	-- Check if this is a lightning weapon
 	local isLightning = weaponID and cache.weaponIsLightning[weaponID]
-	
+
 	-- Check if this is a paralyze weapon
 	local isParalyze = weaponID and cache.weaponIsParalyze[weaponID]
 
@@ -15932,16 +16012,8 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 	-- Detect unit death explosions (ownerID is the dying unit, already in crashingUnits)
 	local isUnitExplosion = ownerID and miscState.crashingUnits[ownerID] or false
 
-	-- Add explosion to list with radius from cached weapon data
-	local radius = 10 -- Default radius
-	if weaponID and cache.weaponExplosionRadius[weaponID] then
-		radius = cache.weaponExplosionRadius[weaponID]
-	end
-
-	-- Skip very small explosions (below threshold), except for lightning
-	if radius < 8 and not isLightning then
-		return
-	end
+	-- Dim factor for rapid-fire / flame weapon explosions
+	local dimFactor = weaponID and cache.weaponExplosionDim[weaponID] or 1
 
 	-- Create explosion entry
 	local explosion = {
@@ -15959,6 +16031,7 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 		isAA = isAA,
 		isUnitExplosion = isUnitExplosion,
 		isBigFlash = false,  -- set below
+		dimFactor = dimFactor,  -- alpha multiplier for rapid-fire/flame weapons
 	}
 
 	-- Detect big flash explosions: nukes, commanders, large unit death explosions
