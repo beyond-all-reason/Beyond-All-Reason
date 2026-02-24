@@ -209,6 +209,20 @@ local actions = {
 			area = { x1 = 10, z1 = 10, x2 = 1, z2 = 1 },
 		},
 	},
+
+	actionWithNonExistentSoundfile = {
+		type = actionTypes.PlaySound,
+		parameters = {
+			soundfile = 'nonExistentSoundfile',
+		},
+	},
+
+	actionWithNonWavSoundfile = {
+		type = actionTypes.PlaySound,
+		parameters = {
+			soundfile = 'README.md',
+		},
+	},
 }
 
 return {

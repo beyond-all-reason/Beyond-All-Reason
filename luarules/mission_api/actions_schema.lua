@@ -36,7 +36,7 @@ local actionTypes = {
 	ControlCamera      = 700,
 	Pause              = 701,
 	Unpause            = 702,
-	PlayMedia          = 703,
+	PlaySound          = 703,
 	SendMessage        = 704,
 
 	-- Win Condition
@@ -226,7 +226,30 @@ local parameters = {
 	[actionTypes.ControlCamera] = {},
 	[actionTypes.Pause] = {},
 	[actionTypes.Unpause] = {},
-	[actionTypes.PlayMedia] = {},
+	[actionTypes.PlaySound] = {
+		[1] = {
+			-- file path from repo root
+			name = 'soundfile',
+			required = true,
+			type = Types.SoundFile,
+		},
+		[2] = {
+			name = 'volume',
+			required = false,
+			type = Types.Number,
+		},
+		[3] = {
+			name = 'position',
+			required = false,
+			type = Types.Position,
+		},
+		[4] = {
+			-- whether to play in sequence with other enqueued sounds, or to play immediately
+			name = 'enqueue',
+			required = false,
+			type = Types.Boolean,
+		},
+	},
 
 	[actionTypes.SendMessage] = {
 		[1] = {

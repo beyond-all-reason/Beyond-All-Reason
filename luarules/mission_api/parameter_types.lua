@@ -16,6 +16,7 @@ local types = {
 	TriggerID = 'TriggerID',
 	UnitDefName = 'UnitDefName',
 	Facing = 'Facing',
+	SoundFile = 'SoundFile',
 
 	-- Number Validators:
 	Number = 'Number',

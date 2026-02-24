@@ -2,6 +2,8 @@
 --- Validators for Mission API actions and triggers loaded from missions.
 ---
 
+VFS.Include('common/wav.lua')
+
 local function logError(message)
 	Spring.Log('validation.lua', LOG.ERROR, "[Mission API] " .. message)
 end
@@ -297,6 +299,24 @@ local customValidators = {
 		if not validFacings[facing] then
 			return { { message = "Invalid facing: " .. facing .. ". Must be one of 'n', 's', 'e', 'w', 'north', 'south', 'east', 'west'." } }
 		end
+	end,
+
+	[Types.SoundFile] = function(soundfile)
+		local luaTypeResult = luaTypeValidators[Types.String](soundfile)
+		if luaTypeResult then
+			return luaTypeResult
+		end
+
+		if not VFS.FileExists(soundfile) then
+			return { { message = "Invalid soundfile: " .. soundfile .. ". File does not exist" } }
+		end
+
+		local wavData = ReadWAV(soundfile)
+		if not wavData then
+			return { { message = "Invalid soundfile: " .. soundfile .. ". File is not a RIFF .wav file" } }
+		end
+
+		GG['MissionAPI'].soundFiles[soundfile] = wavData.Length
 	end,
 
 	----------------------------------------------------------------
