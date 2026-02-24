@@ -218,17 +218,12 @@ local actions = {
 		},
 	},
 
-	actionWithNoPositions = {
+	actionWithJustOneInvalidPosition = {
 		type = actionTypes.DrawLines,
 		parameters = {
-			positions = { },
-		},
-	},
-
-	actionWithOddNumberOfPositionsAndOneInvalid = {
-		type = actionTypes.DrawLines,
-		parameters = {
-			positions = { { x = 1600, z = 2100 }, { x = 1800, z = 2300 }, { x = 1800, invalidField = 2100 } },
+			positions = {
+				{ x = 1800, invalidField = 2100 }
+			},
 		},
 	},
 }

@@ -270,7 +270,6 @@ local parameters = {
 	},
 	[actionTypes.DrawLines] = {
 		[1] = {
-			-- must be even number of positions
 			name = 'positions',
 			required = true,
 			type = Types.Positions

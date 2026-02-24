@@ -54,14 +54,20 @@ local actions = {
 	drawLines = {
 		type = actionTypes.DrawLines,
 		parameters = {
-			positions = { { x = 1600, z = 2100 }, { x = 1800, z = 2300 }, { x = 1800, z = 2100 }, { x = 1600, z = 2300 } },
+			positions = {
+				{ x = 1600, z = 2100 },
+				{ x = 1600, z = 2300 },
+				{ x = 1800, z = 2300 },
+				{ x = 1800, z = 2100 },
+				{ x = 1600, z = 2100 },
+			},
 		},
 	},
 
 	messageDrawLines = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Let's draw a big X.",
+			message = "Let's draw a box.",
 		},
 	},
 

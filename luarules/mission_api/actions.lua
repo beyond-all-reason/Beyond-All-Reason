@@ -185,19 +185,16 @@ local function eraseMarker(position, playerID)
 	Spring.MarkerErasePosition(position.x, position.y, position.z, nil, false, playerID, true)
 end
 
-local function clearAllMarkers()
-	Spring.SendCommands("clearmapmarks")
+local function drawLines(positions, playerID)
+	for i = 1, #positions - 1 do
+		local pos1 = positions[i]
+		local pos2 = positions[i + 1]
+		Spring.MarkerAddLine(pos1.x, pos1.y, pos1.z, pos2.x, pos2.y, pos2.z, nil, false, playerID)
+	end
 end
 
-local function drawLines(positions, playerID)
-	for _, pos in pairs(positions) do
-		pos.y = pos.y or Spring.GetGroundHeight(pos.x, pos.z)
-	end
-	for i = 1, #positions, 2 do
-		pos1 = positions[i]
-		pos2 = positions[i + 1]
-		Spring.MarkerAddLine(pos1.x, pos1.y, pos1.z, pos2.x, pos2.y, pos2.z, false, playerID)
-	end
+local function clearAllMarkers()
+	Spring.SendCommands("clearmapmarks")
 end
 
 local function victory(winningAllyTeamIDs)

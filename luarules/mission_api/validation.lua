@@ -79,13 +79,9 @@ validators[Types.Positions] = function(positions)
 			return luaTypeResult
 		end
 
-		if table.isNilOrEmpty(positions) then
-			return { { message = "Positions table is empty" } }
-		end
-
 		local result = {}
-		if #positions %2 ~= 0 then
-			result[#result + 1] = { message = "Positions table does not have even size" }
+		if not positions or #positions < 2 then
+			result[#result + 1] = { message = "Positions table needs at least two positions" }
 		end
 
 		for i, position in pairs(positions) do
