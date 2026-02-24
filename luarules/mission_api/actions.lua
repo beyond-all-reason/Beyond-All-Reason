@@ -185,6 +185,10 @@ local function eraseMarker(position, playerID)
 	Spring.MarkerErasePosition(position.x, position.y, position.z, nil, false, playerID, true)
 end
 
+local function clearAllMarkers()
+	Spring.SendCommands("clearmapmarks")
+end
+
 local function drawLines(positions, playerID)
 	for _, pos in pairs(positions) do
 		pos.y = pos.y or Spring.GetGroundHeight(pos.x, pos.z)
@@ -242,6 +246,7 @@ return {
 	AddMarker = addMarker,
 	DrawLines = drawLines,
 	EraseMarker = eraseMarker,
+	ClearAllMarkers = clearAllMarkers,
 
 	-- Win Condition
 	Victory = victory,
