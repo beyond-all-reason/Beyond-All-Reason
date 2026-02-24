@@ -126,6 +126,12 @@ local labGrids = {
 		"corpship", "corroy", "", "", "", "",                    -- frigate, destroyer, transport ("cortship",)
 		"corsub", "", "corpt",                                   -- sub, missile boat
 	},
+
+	legsy = {
+		"legnavyconship", "legnavyrezsub", "legnavyscout", "", "", "",      -- T1 sea con, rez sub, scout
+		"legnavyfrigate", "legnavydestro", "legnavyartyship", "", "", "",   -- frigate, destroyer, artillery
+		"legnavysub", "", "legnavyaaship",                                  -- sub, aa support
+	},
 	-- T2 boats
 	armasy = {
 		"armacsub", "armmls", "armcrus", "armmship", "", "",            -- T2 con sub, naval engineer, cruiser, rocket ship
@@ -137,6 +143,12 @@ local labGrids = {
 		"coracsub", "cormls", "corcrus", "cormship", "", "",            -- T2 con sub, naval engineer, cruiser, rocket ship
 		"corantiship", "corsjam", "corbats", "corblackhy", "", "",      -- carrier, jammer, battleship, flagship
 		"corshark", "corssub", "corarch", "corfship", "", "",           -- sub killer, battlesub, AA, flamer ship
+	},
+
+	legadvshipyard = {
+		"leganavyconsub", "leganavyengineer", "leganavycruiser", "leganavymissileship", "leganavyantiswarm", "",      -- T2 con sub, naval engineer, cruiser, rocket ship, anti-swarm
+		"leganavyantinukecarrier", "leganavyradjamship", "leganavybattleship", "leganavyflagship", "", "",            -- carrier, jammer, battleship, flagship
+		"leganavybattlesub", "leganavyheavysub", "leganavyaaship", "leganavyartyship", "", "",                        -- sub killer, battlesub, AA	, artillery
 	},
 	-- amphibious labs
 	armamsub = {
