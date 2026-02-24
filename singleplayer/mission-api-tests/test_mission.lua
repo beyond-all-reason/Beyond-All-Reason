@@ -99,6 +99,7 @@ local actions = {
 			position = { x = 1800, z = 1600 },
 			quantity = 9,
 			facing = 'n',
+			spacing = 32,
 		},
 	},
 
@@ -203,7 +204,6 @@ local actions = {
 		parameters = {
 			unitName = 'con-bots',
 			newTeam = 1,
-			given = false
 		},
 	},
 
@@ -219,7 +219,6 @@ local actions = {
 		parameters = {
 			unitName = 'con-bots',
 			newTeam = 0,
-			given = false
 		},
 	},
 

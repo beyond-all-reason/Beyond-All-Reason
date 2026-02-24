@@ -127,6 +127,11 @@ local parameters = {
 			name = 'construction',
 			required = false,
 			type = Types.Boolean
+		},
+		[8] = {
+			name = 'spacing',
+			required = false,
+			type = Types.Number
 		}
 	},
 
@@ -161,12 +166,6 @@ local parameters = {
 			required = true,
 			type = Types.TeamID
 		},
-		[3] = {
-			-- can only transfer to other allyTeam if given=false
-			name = 'given',
-			required = false,
-			type = Types.Boolean
-		}
 	},
 	[actionTypes.NameUnits] = {
 		[1] = {
