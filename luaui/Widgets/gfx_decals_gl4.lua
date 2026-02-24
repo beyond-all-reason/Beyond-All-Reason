@@ -1064,7 +1064,7 @@ for weaponDefID=1, #WeaponDefs do
 			positionVariation = buildingExplosionPositionVariation[weaponDef.name]
 		end
 
-		weaponConfig[weaponDef.id] = {
+		weaponConfig[weaponDefID] = {
 			--[[  1 ]] textures,
 			--[[  2 ]] radius,
 			--[[  3 ]] radiusVariation,
