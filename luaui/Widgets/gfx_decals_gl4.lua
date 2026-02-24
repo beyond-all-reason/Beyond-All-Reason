@@ -708,39 +708,28 @@ local buildingExplosionPositionVariation = {
 	--mediumBuildingExplosionGenericSelfd = 1, --coradvsol
 	}
 local globalDamageMult = Spring.GetModOptions().multiplier_weapondamage or 1
+local damageCoefficient = (1 / globalDamageMult + 0.25 * globalDamageMult - 0.25) -- for sane values with high modifiers
+
 local weaponConfig = {}
 for weaponDefID=1, #WeaponDefs do
 	local weaponDef = WeaponDefs[weaponDefID]
 	local nodecal = (weaponDef.customParams and weaponDef.customParams.nodecal)
 	if (not nodecal) and (not string.find(weaponDef.cegTag, 'aa')) then
-		local radius = weaponDef.damageAreaOfEffect * 1.4
+		--[[  1 ]] local textures          = { "t_groundcrack_17_a.tga", "t_groundcrack_21_a.tga", "t_groundcrack_10_a.tga" }
+		--[[  2 ]] local radius            = weaponDef.damageAreaOfEffect * 1.4
+		--[[  3 ]] local radiusVariation   = 0.3 -- 0.3 -> 30% larger or smaller radius
+		--[[  4 ]] local heatstart         = nil
+		--[[  5 ]] local heatdecay         = nil
+		--[[  6 ]] local alpha             = nil
+		--[[  7 ]] local alphadecay        = nil
+		--[[  8 ]] local bwfactor          = 0.5 -- the mix factor of the diffuse texture to black and whiteness, 0 is original color, 1 is black and white
+		--[[  9 ]] local glowsustain       = nil
+		--[[ 10 ]] local glowadd           = nil
+		--[[ 11 ]] local radiusToHeatDecay = weaponDef.damageAreaOfEffect / 2250 -- scaling value as a fallback for heatdecay
+		--[[ 12 ]] local damage            = weaponDef.damages[Game.armorTypes.default] * damageCoefficient
+		--[[ 13 ]] local fadeintime        = nil
+		--[[ 14 ]] local positionVariation = 0
 
-		local damage = 100
-		for cat=0, #weaponDef.damages do
-			if Game.armorTypes[cat] and Game.armorTypes[cat] == 'default' then
-				damage = weaponDef.damages[cat]
-				break
-			end
-		end
-
-		-- correct damage multiplier modoption to more sane value
-		damage = (damage / globalDamageMult) + ((damage * (globalDamageMult-1))*0.25)
-
-		--local damageEffectiveness = weaponDef.edgeEffectiveness
-
-		local bwfactor = 0.5 --the mix factor of the diffuse texture to black and whiteness, 0 is original cololr, 1 is black and white
-		local radiusVariation = 0.3	-- 0.3 -> 30% larger or smaller radius
-		local alpha
-		local alphadecay
-		local heatstart
-		local heatdecay
-		local glowsustain
-		local glowadd
-		local fadeintime
-		local positionVariation = 0
-
-
-		local textures = { "t_groundcrack_17_a.tga", "t_groundcrack_21_a.tga", "t_groundcrack_10_a.tga" }
 		if weaponDef.paralyzer then
 			textures = { "t_groundcrack_17_a.tga", "t_groundcrack_10_a.tga", "t_groundcrack_10_a.tga" }
 			heatstart = 0
@@ -1061,23 +1050,22 @@ for weaponDefID=1, #WeaponDefs do
 			positionVariation = buildingExplosionPositionVariation[weaponDef.name]
 		end
 
-		weaponConfig[weaponDefID] = {
-			textures,
-			radius,
-			radiusVariation,
-			heatstart, -- 4
-			heatdecay, -- 5
-			alpha, -- 6
-			alphadecay, -- 7
-			bwfactor,	-- 8
-			glowsustain, --9
-			glowadd, -- 10
-			weaponDef.damageAreaOfEffect,	-- 11
-			damage,	-- 12
-			fadeintime, -- 13
-			positionVariation, --14
+		weaponConfig[weaponDef.id] = {
+			--[[  1 ]] textures,
+			--[[  2 ]] radius,
+			--[[  3 ]] radiusVariation,
+			--[[  4 ]] heatstart,
+			--[[  5 ]] heatdecay,
+			--[[  6 ]] alpha,
+			--[[  7 ]] alphadecay,
+			--[[  8 ]] bwfactor,
+			--[[  9 ]] glowsustain,
+			--[[ 10 ]] glowadd,
+			--[[ 11 ]] radiusToHeatDecay,
+			--[[ 12 ]] damage,
+			--[[ 13 ]] fadeintime,
+			--[[ 14 ]] positionVariation,
 		}
-
 	end
 end
 
@@ -1100,7 +1088,7 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 	local heightMult = 1 - (exploHeight / radius)
 
 	local heatstart = params[4] or ((random() * 0.2 + 0.9) * 4900)
-	local heatdecay = params[5] or ((random() * 0.4 + 2.0) - (params[11]/2250))
+	local heatdecay = params[5] or ((random() * 0.4 + 2.0) - params[11])
 
 	local alpha = params[6] or ((random() * 1.0 + 1.5) * (1.0 - exploHeight/radius) * heightMult)
 	local alphadecay = params[7] or (params[7] or ((random() * 0.3 + 0.2) / (4 * radius)))
