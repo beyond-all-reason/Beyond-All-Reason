@@ -738,7 +738,7 @@ for weaponDefID=1, #WeaponDefs do
 		--[[ 12 ]] local damage            = weaponDef.damages[Game.armorTypes.default] * damageCoefficient
 		--[[ 13 ]] local fadeintime        = nil
 		--[[ 14 ]] local positionVariation = 0
-		--[[ 15 ]] local waterDepthRatio   = isWaterVoid and 1 or 1.5 -- increased extinction in water height (vs air height)
+		--[[ 15 ]] local waterDepthRatio   = isWaterVoid and 1 or 2.5 -- increased extinction in water height (vs air height)
 
 		if weaponDef.paralyzer then
 			textures = { "t_groundcrack_17_a.tga", "t_groundcrack_10_a.tga", "t_groundcrack_10_a.tga" }
@@ -815,7 +815,7 @@ for weaponDefID=1, #WeaponDefs do
 			--glowadd = 2
 			fadeintime = 15
 			bwfactor = 0.8
-			waterDepthRatio = 3
+			waterDepthRatio = 5
 
 		elseif weaponDef.type == 'BeamLaser' then
 
