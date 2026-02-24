@@ -1774,6 +1774,8 @@ if mapInfo.isLava then
 	mapInfo.lavaSwirlAmp = Spring.Lava.swirlAmp or 0.003
 	mapInfo.lavaDiffuseEmitTex = Spring.Lava.diffuseEmitTex  -- e.g. "LuaUI/images/lava/lava2_diffuseemit.dds"
 	mapInfo.lavaDistortionTex = "LuaUI/images/lavadistortion.png"  -- big flowing distortion texture
+	mapInfo.lavaTideAmplitude = Spring.Lava.tideAmplitude or 2
+	mapInfo.lavaTidePeriod = Spring.Lava.tidePeriod or 200
 	local cc = Spring.Lava.coastColor
 	if cc and type(cc) == "string" then
 		local cr, cg, cb = cc:match("vec3%s*%((.-),%s*(.-),%s*(.-)%)")
@@ -1781,6 +1783,28 @@ if mapInfo.isLava then
 			mapInfo.lavaCoastColor = {tonumber(cr) or 2.0, tonumber(cg) or 0.5, tonumber(cb) or 0.0}
 		end
 	end
+end
+
+-- Lava render state is shared across ALL PIP instances via WG.lavaRenderState.
+-- If the gadget has been modified to push LavaRenderState, use those values.
+-- Otherwise, compute tide level and heat distortion locally (same formulas as the gadget).
+if mapInfo.isLava and not WG.lavaRenderState then
+	WG.lavaRenderState = {
+		level = nil,
+		heatDistortX = 0,
+		heatDistortZ = 0,
+		smoothFPS = 15,
+		gadgetPushed = false,  -- true once gadget pushes data (means gadget is modified)
+	}
+	widgetHandler:RegisterGlobal("LavaRenderState", function(tideLevel, heatDistortX, heatDistortZ)
+		local lrs = WG.lavaRenderState
+		if lrs then
+			lrs.level = tideLevel
+			lrs.heatDistortX = heatDistortX or 0
+			lrs.heatDistortZ = heatDistortZ or 0
+			lrs.gadgetPushed = true
+		end
+	end)
 end
 
 -- Eagerly read lava level if available (avoids wrong first R2T render on lava maps)
@@ -2370,6 +2394,8 @@ void main() {
 			uniform float lavaSwirlAmp;   // SWIRLAMPLITUDE
 			uniform float mapRatio;       // mapSizeZ / mapSizeX
 			uniform float sunDirY;        // sun direction Y for flat-surface lighting
+			uniform float heatDistortX;   // camera-based distortion drift (from gadget)
+			uniform float heatDistortZ;   // camera-based distortion drift (from gadget)
 			varying vec2 texCoord;
 
 			float rand(vec2 co) {
@@ -2408,45 +2434,51 @@ void main() {
 					// Real shader: worldRotTime = timeInfo.x + timeInfo.w  (frame + subframe)
 					worldUV += vec2(sin(gameFrames * 0.0001), cos(gameFrames * 0.0001)) * 0.05;
 
-					// Pre-sample emissive for distortion modulation
+					// Camshift: camera-based distortion drift (same as real shader)
+					vec2 camshift = vec2(heatDistortX, heatDistortZ) * 0.001;
+
+					// Pre-sample emissive for distortion modulation (matches real shader:
+					// texture(lavaDiffuseEmit, worldUV.xy * WORLDUVSCALE) — no camshift)
 					vec4 nodiffuseEmit = vec4(0.5);
 					if (hasLavaTex > 0.5) {
 						nodiffuseEmit = texture2D(lavaDiffuseTex, worldUV * lavaUvScale);
 					}
 
-					// Per-pixel swirl (approximates real shader's per-vertex random oscillation)
-					float gametime = gameFrames * lavaSwirlFreq;
-					vec2 cellPos = texCoord * 8.0;
-					vec2 cellID = floor(cellPos);
-					vec2 cellFrac = fract(cellPos);
-					cellFrac = cellFrac * cellFrac * (3.0 - 2.0 * cellFrac);
+					// Flowing displacement: replaces real shader's per-vertex mesh swirl.
+					// Uses layered value noise with time-varying offsets to create smooth,
+					// organic flowing lava motion without cell-grid seams.
+					// Two octaves at different scales + speeds for natural layered flow.
+					float flowTime = gameFrames * 0.001;
+					vec2 flowUV = worldUV * 3.0;
 
-					float r00 = rand(cellID);
-					float r10 = rand(cellID + vec2(1.0, 0.0));
-					float r01 = rand(cellID + vec2(0.0, 1.0));
-					float r11 = rand(cellID + vec2(1.0, 1.0));
-					float rX = mix(mix(r00, r10, cellFrac.x), mix(r01, r11, cellFrac.x), cellFrac.y);
-					float rY = mix(mix(rand(cellID * 17.876), rand((cellID + vec2(1,0)) * 17.876), cellFrac.x),
-					              mix(rand((cellID + vec2(0,1)) * 17.876), rand((cellID + vec2(1,1)) * 17.876), cellFrac.x), cellFrac.y);
+					// Octave 1: large-scale slow flow
+					float flow1x = vnoise(flowUV + vec2(flowTime * 0.7, flowTime * 0.3)) - 0.5;
+					float flow1y = vnoise(flowUV + vec2(-flowTime * 0.5, flowTime * 0.6) + vec2(7.3, 3.1)) - 0.5;
 
-					vec2 swirlPhase = sin(vec2(rX, rY) + gametime * (0.5 + vec2(rX, rY)));
-					vec2 swirl = swirlPhase * lavaSwirlAmp;
+					// Octave 2: mid-scale faster flow for detail
+					float flow2x = vnoise(flowUV * 2.5 + vec2(flowTime * 1.1, -flowTime * 0.8) + vec2(13.7, 5.9)) - 0.5;
+					float flow2y = vnoise(flowUV * 2.5 + vec2(-flowTime * 0.9, flowTime * 1.3) + vec2(2.1, 11.4)) - 0.5;
 
-					// Distortion texture at worldUV * 45.2
-					// Real shader adds camshift (camera-dependent drift) but we can't replicate it,
-					// so we sample without camshift for best static alignment
+					vec2 swirl = vec2(flow1x + flow2x * 0.5, flow1y + flow2y * 0.5) * 0.06;
+
+					// Distortion texture — adapted for minimap scale:
+					// Real shader uses 45.2x UV tiling, but at minimap zoom each pixel
+					// covers too much of the texture, so mipmapping averages out the
+					// variation.  Lower tiling + higher magnitude creates visible warping.
 					vec2 distortion;
 					if (hasDistortTex > 0.5) {
-						vec4 distTex = texture2D(lavaDistortTex, worldUV * 45.2);
-						distortion = distTex.xy * 0.2 * 0.02;
+						vec4 distTex = texture2D(lavaDistortTex, (worldUV + camshift) * 8.0);
+						distortion = distTex.xy * 0.2 * 0.15;
 					} else {
-						float dn1 = vnoise(worldUV * 45.2);
-						float dn2 = vnoise(worldUV * 45.2 * 1.7 + vec2(3.7, 1.2));
-						distortion = vec2(dn1, dn2) * 0.004;
+						float dn1 = vnoise((worldUV + camshift) * 8.0);
+						float dn2 = vnoise((worldUV + camshift) * 8.0 * 1.7 + vec2(3.7, 1.2));
+						distortion = vec2(dn1, dn2) * 0.03;
 					}
 					distortion *= clamp(nodiffuseEmit.a * 0.5 + coastfactor, 0.2, 2.0);
 
-					// Final UV = worldUV * UVSCALE + distortion + swirl
+					// Final UV: worldUV * UVSCALE + distortion + swirl
+					// camshift is NOT in the main UV — it only shifts the distortion
+					// texture lookup above, so the PIP stays in sync with the gadget.
 					vec2 finalUV = worldUV * lavaUvScale + distortion + swirl;
 
 					vec3 baseColor;
@@ -2463,16 +2495,19 @@ void main() {
 						emissive = nv;
 					}
 
-					// Apply sun lighting (flat surface, normal ≈ (0,1,0))
-					// Real shader: lightamount = clamp(dot(sunDir, normal), 0.2, 1.0) * max(0.5, shadow)
-					float lightamount = clamp(sunDirY, 0.2, 1.0);
+					// Apply softened sun lighting (flat surface, normal ≈ (0,1,0))
+					// Real shader has normal mapping + specular that brighten it back;
+					// we only apply partial darkening to compensate
+					float lightamount = mix(1.0, clamp(sunDirY, 0.2, 1.0), 0.5);
 					baseColor *= lightamount;
 
 					// Coast glow (applied after lighting, matching real shader order)
 					baseColor += lavaCoastColor * coastfactor;
 
 					// Emissive glow (applied after coast, matching real shader order)
-					baseColor += baseColor * (emissive * distortion.y * 700.0);
+					// distortion magnitude is boosted for minimap visibility, so
+					// constant is reduced to keep glow intensity proportional
+					baseColor += baseColor * (emissive * distortion.y * 140.0);
 
 					float alpha = max(lavaAlpha, coastfactor * 0.85);
 					gl_FragColor = vec4(baseColor, alpha);
@@ -2502,6 +2537,8 @@ void main() {
 			lavaSwirlAmp = 0.003,
 			mapRatio = 1.0,
 			sunDirY = 0.5,
+			heatDistortX = 0,
+			heatDistortZ = 0,
 		},
 	},
 }
@@ -7622,6 +7659,12 @@ function widget:Shutdown()
 		end
 	end
 
+	-- Clean up shared lava render state (only when last PIP shuts down)
+	if not anotherPipActive and WG.lavaRenderState then
+		widgetHandler:DeregisterGlobal("LavaRenderState")
+		WG.lavaRenderState = nil
+	end
+
 	-- Clean up TV focus coordination
 	if WG.pipTVFocus then
 		WG.pipTVFocus[pipNumber] = nil
@@ -10378,6 +10421,11 @@ end
 -- Returns the water/lava surface level in elmos for the heightmap shader
 -- On lava maps, does a lazy read from the game rule if not yet known
 local function GetWaterLevel()
+	-- Prefer tide-adjusted level from shared WG (whether from gadget push or local computation)
+	local lrs = WG.lavaRenderState
+	if lrs and lrs.level then
+		return lrs.level
+	end
 	if mapInfo.dynamicWaterLevel then
 		return mapInfo.dynamicWaterLevel
 	end
@@ -10393,9 +10441,50 @@ local function GetWaterLevel()
 	return 0
 end
 
+-- Get heat distortion values from shared WG state
+local function GetLavaHeatDistort()
+	local lrs = WG.lavaRenderState
+	if lrs then
+		return lrs.heatDistortX, lrs.heatDistortZ
+	end
+	return 0, 0
+end
+
+-- Update lava render state locally (called every draw frame, replicates gadget's computations)
+-- This ensures animation works even without the gadget modification.
+-- If the gadget IS modified and pushing data, those values take priority (gadgetPushed flag).
+local function UpdateLavaRenderState()
+	local lrs = WG.lavaRenderState
+	if not lrs or lrs.gadgetPushed then return end  -- gadget is handling it
+
+	-- Compute tide-adjusted level (same formula as gadget's GameFrame)
+	local baseLavaLevel = Spring.GetGameRulesParam("lavaLevel")
+	if baseLavaLevel and baseLavaLevel ~= -99999 then
+		local gameFrame = Spring.GetGameFrame()
+		local tidePeriod = mapInfo.lavaTidePeriod or 200
+		local tideAmplitude = mapInfo.lavaTideAmplitude or 2
+		lrs.level = math.sin(gameFrame / tidePeriod) * tideAmplitude + baseLavaLevel
+	end
+
+	-- Compute heat distortion (same formula as gadget's DrawWorldPreUnit)
+	local _, _, isPaused = Spring.GetGameSpeed()
+	if not isPaused then
+		local camX, camY, camZ = Spring.GetCameraDirection()
+		local camvlength = math.sqrt(camX * camX + camZ * camZ + 0.01)
+		lrs.smoothFPS = 0.9 * lrs.smoothFPS + 0.1 * math.max(Spring.GetFPS(), 15)
+		lrs.heatDistortX = lrs.heatDistortX - camX / (camvlength * lrs.smoothFPS)
+		lrs.heatDistortZ = lrs.heatDistortZ - camZ / (camvlength * lrs.smoothFPS)
+	end
+end
+
 -- Helper function to draw water and LOS overlays
 local function DrawWaterAndLOSOverlays()
 	
+	-- Update lava animation state (tide level + heat distortion) locally each draw frame
+	if mapInfo.isLava then
+		UpdateLavaRenderState()
+	end
+
 	-- Draw water overlay using shader
 	if mapInfo.hasWater and shaders.water then
 		gl.UseShader(shaders.water)
@@ -10421,7 +10510,10 @@ local function DrawWaterAndLOSOverlays()
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaSwirlAmp"), mapInfo.lavaSwirlAmp)
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "mapRatio"), mapInfo.mapRatio)
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "hasDistortTex"), mapInfo.lavaDistortionTex and 1.0 or 0.0)
+		local lavaHdx, lavaHdz = GetLavaHeatDistort()
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "sunDirY"), select(2, gl.GetSun("pos")))
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "heatDistortX"), lavaHdx)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "heatDistortZ"), lavaHdz)
 		
 		-- Bind heightmap texture
 		gl.UniformInt(gl.GetUniformLocation(shaders.water, "heightTex"), 0)
@@ -12174,6 +12266,9 @@ local function DrawTrackedPlayerMinimap()
 	end
 
 	-- Draw water/lava/void overlay
+	if mapInfo.isLava then
+		UpdateLavaRenderState()
+	end
 	if mapInfo.hasWater and shaders.water then
 		gl.UseShader(shaders.water)
 		local r, g, b, a
@@ -12196,7 +12291,10 @@ local function DrawTrackedPlayerMinimap()
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaSwirlAmp"), mapInfo.lavaSwirlAmp)
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "mapRatio"), mapInfo.mapRatio)
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "hasDistortTex"), mapInfo.lavaDistortionTex and 1.0 or 0.0)
+		local lavaHdx, lavaHdz = GetLavaHeatDistort()
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "sunDirY"), select(2, gl.GetSun("pos")))
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "heatDistortX"), lavaHdx)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "heatDistortZ"), lavaHdz)
 		gl.UniformInt(gl.GetUniformLocation(shaders.water, "heightTex"), 0)
 		glFunc.Texture(0, '$heightmap')
 		if mapInfo.lavaDiffuseEmitTex then
@@ -14308,15 +14406,22 @@ function widget:Update(dt)
 		end
 	end
 	
-	-- Monitor dynamic water/lava level changes
-	if mapInfo.isLava or mapInfo.hasWater then
+	-- Sync lava/water level for R2T redraw triggers
+	if mapInfo.isLava then
+		-- Force R2T content refresh on lava maps so the lava overlay animates
+		pipR2T.contentNeedsUpdate = true
+		-- Also sync dynamic water level from computed tide level
+		local lrs = WG.lavaRenderState
+		if lrs and lrs.level then
+			mapInfo.dynamicWaterLevel = lrs.level
+		end
+	elseif mapInfo.hasWater then
+		-- Non-lava water: poll base water level from game rules
 		local lavaLevel = Spring.GetGameRulesParam("lavaLevel")
 		if lavaLevel and lavaLevel ~= -99999 then
-			-- Lava gadget is active and has set a real level
 			if mapInfo.dynamicWaterLevel ~= lavaLevel then
 				local oldLevel = mapInfo.dynamicWaterLevel
 				mapInfo.dynamicWaterLevel = lavaLevel
-				-- Check if the level actually changed enough to warrant a redraw
 				if not oldLevel or math.abs(lavaLevel - oldLevel) > 0.5 then
 					pipR2T.contentNeedsUpdate = true
 				end
