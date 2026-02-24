@@ -175,13 +175,20 @@ local function sendMessage(message)
 	Spring.Echo(message)
 end
 
-local function addMarker(position, label, playerID)
-	position.y = position.y or Spring.GetGroundHeight(position.x, position.z)
+local markerNames = {}
+local function addMarker(position, label, playerID, name)
+	if name then
+		markerNames[name] = position
+	end
 	Spring.MarkerAddPoint(position.x, position.y, position.z, label, false, playerID)
 end
 
-local function eraseMarker(position, playerID)
-	position.y = position.y or Spring.GetGroundHeight(position.x, position.z)
+local function eraseMarker(name, playerID)
+	local position = markerNames[name]
+
+	if not position then return end
+
+	markerNames[name] = nil
 	Spring.MarkerErasePosition(position.x, position.y, position.z, nil, false, playerID, true)
 end
 
@@ -194,6 +201,7 @@ local function drawLines(positions, playerID)
 end
 
 local function clearAllMarkers()
+	markerNames = {}
 	Spring.SendCommands("clearmapmarks")
 end
 

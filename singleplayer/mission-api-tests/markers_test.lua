@@ -41,6 +41,7 @@ local actions = {
 		parameters = {
 			position = { x = 1900, z = 2200 },
 			label = 'This marker will be erased soon.',
+			name = 'markerWithLabel',
 		},
 	},
 
@@ -74,7 +75,7 @@ local actions = {
 	eraseMarker = {
 		type = actionTypes.EraseMarker,
 		parameters = {
-			position = { x = 1900, z = 2200 },
+			name = 'markerWithLabel',
 		},
 	},
 

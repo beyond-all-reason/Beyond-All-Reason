@@ -254,13 +254,18 @@ local parameters = {
 			name = 'playerID',
 			required = false,
 			type = Types.PlayerID,
+		},
+		[4] = {
+			name = 'name',
+			required = false,
+			type = Types.String,
 		}
 	},
 	[actionTypes.EraseMarker] = {
 		[1] = {
-			name = 'position',
+			name = 'name',
 			required = true,
-			type = Types.Position,
+			type = Types.String,
 		},
 		[2] = {
 			name = 'playerID',

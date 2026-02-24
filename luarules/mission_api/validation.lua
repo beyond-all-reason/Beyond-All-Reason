@@ -448,11 +448,7 @@ local function validateActions(actions)
 	end
 end
 
-local function validateUnitNameReferences()
-	-- Types need to be fetched here to avoid circular dependency
-	local triggerTypes = GG['MissionAPI'].TriggerTypes
-	local actionTypes = GG['MissionAPI'].ActionTypes
-
+local function validateUnitNameReferences(triggerTypes, actionTypes, triggers, actions)
 	local triggerTypesReferencingUnitNames = { }
 	local actionTypesNamingUnits = {
 		[actionTypes.SpawnUnits] = true,
@@ -483,8 +479,8 @@ local function validateUnitNameReferences()
 		end
 	end
 
-	recordUnitNameCreationsAndReferences({}, triggerTypesReferencingUnitNames, GG['MissionAPI'].Triggers, "trigger ")
-	recordUnitNameCreationsAndReferences(actionTypesNamingUnits, actionTypesReferencingUnitNames, GG['MissionAPI'].Actions, "action ")
+	recordUnitNameCreationsAndReferences({}, triggerTypesReferencingUnitNames, triggers, "trigger ")
+	recordUnitNameCreationsAndReferences(actionTypesNamingUnits, actionTypesReferencingUnitNames, actions, "action ")
 
 	for unitName, labels in pairs(referencedUnitNames) do
 		if not createdUnitNames[unitName] then
@@ -498,8 +494,49 @@ local function validateUnitNameReferences()
 	end
 end
 
+local function validateMarkerNameReferences(actionTypes, actions)
+	local createdMarkerNames = {}
+	local referencedMarkerNames = {}
+	for actionID, action in pairs(actions) do
+		if action.type == actionTypes.AddMarker then
+			local markerName = action.parameters.name
+			if markerName then
+				createdMarkerNames[markerName] = createdMarkerNames[markerName] or {}
+				createdMarkerNames[markerName][#createdMarkerNames[markerName] + 1] = actionID
+			end
+		elseif action.type == actionTypes.EraseMarker then
+			local markerName = action.parameters.name
+			if markerName then
+				referencedMarkerNames[markerName] = referencedMarkerNames[markerName] or {}
+				referencedMarkerNames[markerName][#referencedMarkerNames[markerName] + 1] = actionID
+			end
+		end
+	end
+
+	for markerName, actionIDs in pairs(referencedMarkerNames) do
+		if not createdMarkerNames[markerName] then
+			logError("Marker name '" .. markerName .. "' is not created in any action. Referenced in: " .. table.concat(actionIDs, ", "))
+		end
+	end
+	for markerName, actionIDs in pairs(createdMarkerNames) do
+		if not referencedMarkerNames[markerName] then
+			logError("Marker name '" .. markerName .. "' is not referenced by any action. Referenced in: " .. table.concat(actionIDs, ", "))
+		end
+	end
+end
+
+local function validateReferences()
+	-- Types need to be fetched here to avoid circular dependency
+	local triggerTypes = GG['MissionAPI'].TriggerTypes
+	local actionTypes = GG['MissionAPI'].ActionTypes
+	local triggers = GG['MissionAPI'].Triggers
+	local actions = GG['MissionAPI'].Actions
+	validateUnitNameReferences(triggerTypes, actionTypes, triggers, actions)
+	validateMarkerNameReferences(actionTypes, actions)
+end
+
 return {
 	ValidateTriggers = validateTriggers,
 	ValidateActions = validateActions,
-	ValidateUnitNameReferences = validateUnitNameReferences
+	ValidateReferences = validateReferences
 }
