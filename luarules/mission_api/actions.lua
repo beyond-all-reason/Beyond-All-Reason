@@ -101,11 +101,12 @@ end
 
 ----------------------------------------------------------------
 
-local function transferUnits(unitName, newTeam, given)
+local function transferUnits(unitName, newTeam)
 	if isNameUntracked(unitName) then return end
 
 	-- Copying table as UnitExists trigger with TransferUnits with the same name could cause infinite loop.
 	for _, unitID in pairs(table.copy(trackedUnitIDs[unitName])) do
+		local given = Spring.GetUnitAllyTeam(unitID) == Spring.GetTeamAllyTeamID(newTeam)
 		Spring.TransferUnit(unitID, newTeam, given)
 	end
 end

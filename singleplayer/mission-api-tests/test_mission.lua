@@ -204,7 +204,6 @@ local actions = {
 		parameters = {
 			unitName = 'con-bots',
 			newTeam = 1,
-			given = false
 		},
 	},
 
@@ -220,7 +219,6 @@ local actions = {
 		parameters = {
 			unitName = 'con-bots',
 			newTeam = 0,
-			given = false
 		},
 	},
 
