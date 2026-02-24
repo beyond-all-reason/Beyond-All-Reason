@@ -64,13 +64,13 @@ local function issueOrders(unitName, orders)
 	Spring.GiveOrderArrayToUnitArray(trackedUnitIDs[unitName], orders)
 end
 
-local function spawnUnits(unitName, unitDefName, teamID, position, quantity, facing, construction)
+local function spawnUnits(unitName, unitDefName, teamID, position, quantity, facing, construction, spacing)
 
-	if not UnitDefNames[unitDefName] then return end
+	spacing = spacing or 0
 
 	local unitDef = UnitDefs[UnitDefNames[unitDefName].id]
-	local xsize = unitDef.xsize * Game.squareSize
-	local zsize = unitDef.zsize * Game.squareSize
+	local xsize = unitDef.xsize * Game.squareSize + spacing
+	local zsize = unitDef.zsize * Game.squareSize + spacing
 
 	-- adjust for facing of non-square units
 	if facing == 'e' or facing == 'w' then
@@ -101,11 +101,12 @@ end
 
 ----------------------------------------------------------------
 
-local function transferUnits(unitName, newTeam, given)
+local function transferUnits(unitName, newTeam)
 	if isNameUntracked(unitName) then return end
 
 	-- Copying table as UnitExists trigger with TransferUnits with the same name could cause infinite loop.
 	for _, unitID in pairs(table.copy(trackedUnitIDs[unitName])) do
+		local given = Spring.GetUnitAllyTeam(unitID) == Spring.GetTeamAllyTeamID(newTeam)
 		Spring.TransferUnit(unitID, newTeam, given)
 	end
 end
