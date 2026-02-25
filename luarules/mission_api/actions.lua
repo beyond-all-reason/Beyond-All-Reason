@@ -177,27 +177,27 @@ local function sendMessage(message)
 end
 
 local markerNames = {}
-local function addMarker(position, label, playerID, name)
+local function addMarker(position, label, name)
 	if name then
 		markerNames[name] = position
 	end
-	Spring.MarkerAddPoint(position.x, position.y, position.z, label, false, playerID)
+	Spring.MarkerAddPoint(position.x, position.y, position.z, label, false)
 end
 
-local function eraseMarker(name, playerID)
+local function eraseMarker(name)
 	local position = markerNames[name]
 
 	if not position then return end
 
 	markerNames[name] = nil
-	Spring.MarkerErasePosition(position.x, position.y, position.z, nil, false, playerID, true)
+	Spring.MarkerErasePosition(position.x, position.y, position.z, nil, false, nil, true)
 end
 
-local function drawLines(positions, playerID)
+local function drawLines(positions)
 	for i = 1, #positions - 1 do
 		local pos1 = positions[i]
 		local pos2 = positions[i + 1]
-		Spring.MarkerAddLine(pos1.x, pos1.y, pos1.z, pos2.x, pos2.y, pos2.z, nil, false, playerID)
+		Spring.MarkerAddLine(pos1.x, pos1.y, pos1.z, pos2.x, pos2.y, pos2.z, nil, false)
 	end
 end
 

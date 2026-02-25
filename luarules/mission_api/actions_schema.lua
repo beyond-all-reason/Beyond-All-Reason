@@ -250,11 +250,6 @@ local parameters = {
 			type = Types.String,
 		},
 		[3] = {
-			name = 'playerID',
-			required = false,
-			type = Types.PlayerID,
-		},
-		[4] = {
 			name = 'name',
 			required = false,
 			type = Types.String,
@@ -266,11 +261,6 @@ local parameters = {
 			required = true,
 			type = Types.String,
 		},
-		[2] = {
-			name = 'playerID',
-			required = false,
-			type = Types.PlayerID
-		}
 	},
 	[actionTypes.DrawLines] = {
 		[1] = {
@@ -278,11 +268,6 @@ local parameters = {
 			required = true,
 			type = Types.Positions
 		},
-		[2] = {
-			name = 'playerID',
-			required = false,
-			type = Types.PlayerID
-		}
 	},
 	[actionTypes.ClearAllMarkers] = { },
 
