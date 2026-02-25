@@ -22,7 +22,6 @@ local types = {
 	-- Number Validators:
 	Number = 'Number',
 	TeamID = 'TeamID',
-	PlayerID = 'PlayerID',
 
 	-- Boolean Validators:
 	Boolean = 'Boolean',
