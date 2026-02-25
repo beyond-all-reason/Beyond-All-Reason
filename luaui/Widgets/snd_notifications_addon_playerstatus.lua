@@ -17,6 +17,7 @@ local spGetLocalAllyTeamID = Spring.GetLocalAllyTeamID
 local spGetLocalTeamID = Spring.GetLocalTeamID
 
 local gameOver = false
+local lockPlayerID
 
 PlayersInformationMemory = {}
 
@@ -64,11 +65,14 @@ function widget:Update(dt)
     UpdateTimer = UpdateTimer+dt
     if UpdateTimer >= 1 and (not gameOver) and Spring.GetGameFrame() > 90 then
         UpdateTimer = UpdateTimer - 1
+        if WG.lockcamera and WG.lockcamera.GetPlayerID ~= nil then
+			lockPlayerID = WG.lockcamera.GetPlayerID()
+		end
         for playerName, data in pairs(PlayersInformationMemory) do
             local ping = select(6, spGetPlayerInfo(data.id))
             if ping and ping > 5 and not PlayersInformationMemory[playerName].timingout then
                 if (not PlayersInformationMemory[playerName].spectator) and (not PlayersInformationMemory[playerName].resigned) then
-                    if spGetSpectatingState() or PlayersInformationMemory[playerName].teamID == spGetLocalTeamID() then
+                    if (spGetSpectatingState() and lockPlayerID == nil) or PlayersInformationMemory[playerName].teamID == spGetLocalTeamID() then
                         WG['notifications'].queueNotification("NeutralPlayerLagging", true)
                     elseif PlayersInformationMemory[playerName].allyTeamID == spGetLocalAllyTeamID() then
                         WG['notifications'].queueNotification("TeammateLagging", true)
@@ -79,7 +83,7 @@ function widget:Update(dt)
                 PlayersInformationMemory[playerName].timingout = true
             elseif ping and ping <= 2 and PlayersInformationMemory[playerName].timingout and (not PlayersInformationMemory[playerName].hasDisconnected) then
                 if (not PlayersInformationMemory[playerName].spectator) and (not PlayersInformationMemory[playerName].resigned) then
-                    if spGetSpectatingState() or PlayersInformationMemory[playerName].teamID == spGetLocalTeamID() then
+                    if (spGetSpectatingState() and lockPlayerID == nil) or PlayersInformationMemory[playerName].teamID == spGetLocalTeamID() then
                         WG['notifications'].queueNotification("NeutralPlayerCaughtUp", true)
                     elseif PlayersInformationMemory[playerName].allyTeamID == spGetLocalAllyTeamID() then
                         WG['notifications'].queueNotification("TeammateCaughtUp", true)
@@ -109,7 +113,7 @@ function widget:PlayerChanged(playerID)
 
             if (not PlayersInformationMemory[playerName].resigned) then
                 if Differences.spectator then
-                    if spGetSpectatingState() or PlayersInformationMemory[playerName].teamID == spGetLocalTeamID() then
+                    if (spGetSpectatingState() and lockPlayerID == nil) or PlayersInformationMemory[playerName].teamID == spGetLocalTeamID() then
                         WG['notifications'].queueNotification("NeutralPlayerResigned", true)
                     elseif PlayersInformationMemory[playerName].allyTeamID == spGetLocalAllyTeamID() then
                         WG['notifications'].queueNotification("TeammateResigned", true)
@@ -119,7 +123,7 @@ function widget:PlayerChanged(playerID)
                     PlayersInformationMemory[playerName].resigned = true
                 end
                 if PlayersInformationMemory[playerName].hasDisconnected and (not (Differences.spectator or PlayersInformationMemory[playerName].spectator)) then
-                    if spGetSpectatingState() or PlayersInformationMemory[playerName].teamID == spGetLocalTeamID() then
+                    if (spGetSpectatingState() and lockPlayerID == nil) or PlayersInformationMemory[playerName].teamID == spGetLocalTeamID() then
                         WG['notifications'].queueNotification("NeutralPlayerReconnected", true)
                     elseif PlayersInformationMemory[playerName].allyTeamID == spGetLocalAllyTeamID() then
                         WG['notifications'].queueNotification("TeammateReconnected", true)
@@ -144,7 +148,7 @@ function widget:PlayerRemoved(playerID)
 
             if (not PlayersInformationMemory[playerName].spectator) and (not PlayersInformationMemory[playerName].resigned) then
                 if PlayersInformationMemory[playerName].timingout then
-                    if spGetSpectatingState() or PlayersInformationMemory[playerName].teamID == spGetLocalTeamID() then
+                    if (spGetSpectatingState() and lockPlayerID == nil) or PlayersInformationMemory[playerName].teamID == spGetLocalTeamID() then
                         WG['notifications'].queueNotification("NeutralPlayerTimedout", true)
                     elseif PlayersInformationMemory[playerName].allyTeamID == spGetLocalAllyTeamID() then
                         WG['notifications'].queueNotification("TeammateTimedout", true)
@@ -152,7 +156,7 @@ function widget:PlayerRemoved(playerID)
                         WG['notifications'].queueNotification("EnemyPlayerTimedout", true)
                     end
                 else
-                    if spGetSpectatingState() or PlayersInformationMemory[playerName].teamID == spGetLocalTeamID() then
+                    if (spGetSpectatingState() and lockPlayerID == nil) or PlayersInformationMemory[playerName].teamID == spGetLocalTeamID() then
                         WG['notifications'].queueNotification("NeutralPlayerDisconnected", true)
                     elseif PlayersInformationMemory[playerName].allyTeamID == spGetLocalAllyTeamID() then
                         WG['notifications'].queueNotification("TeammateDisconnected", true)

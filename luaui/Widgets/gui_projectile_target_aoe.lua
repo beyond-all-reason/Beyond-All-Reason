@@ -17,6 +17,7 @@ end
 -- Localized functions
 --------------------------------------------------------------------------------
 local max = math.max
+local floor = math.floor
 local sqrt = math.sqrt
 local sin = math.sin
 local cos = math.cos
@@ -81,14 +82,24 @@ local Config = {
 
 	-- Animation
 	blinkSpeed = 0,               -- Blinks per second at max urgency
-	rotationSpeedMax = 120,        -- Degrees per second at start
-	rotationSpeedMin = 40,        -- Degrees per second at end
+	rotationSpeedMax = 100,        -- Degrees per second at start
+	rotationSpeedMin = 30,        -- Degrees per second at end
 	pulseMinOpacity = 0.2,
 	pulseMaxOpacity = 0.4,
 
 	-- Ring animation
 	ringCount = 4,                -- Number of concentric rings
-	ringPulseSpeed = 0.02,        -- Ring pulse animation speed
+	ringPulseSpeed = 0.015,       -- Ring pulse animation speed
+
+	-- Nuke sub-layer animation
+	nukeSubLayerMin = 12,         -- Minimum sub-layers per trefoil blade
+	nukeSubLayerMax = 64,         -- Maximum sub-layers per trefoil blade
+	nukeSubLayerAoeDivisor = 40,  -- AOE / this = number of sub-layers
+	nukeWaveSpeed = 1,            -- Wave cycles per second (outside to inside)
+	nukeWaveCount = 1.2,          -- Number of wave bands visible across the shape at once
+	nukeSubLayerGap = 0.25,       -- Gap between sub-layers as fraction of layer thickness
+	nukeBaseOpacity = 0.9,        -- Overall opacity multiplier for nuke trefoil indicator (0-1)
+	nukeGradientStrength = 0.75,  -- Gradient strength: 0 = uniform, 1 = outer fully bright / inner fully dim
 }
 
 --------------------------------------------------------------------------------
@@ -98,7 +109,6 @@ local trackedProjectiles = {}     -- Active projectiles we're tracking
 local trackedCount = 0            -- Number of tracked projectiles (avoids pairs iteration)
 local starburstWeapons = {}       -- Cache of starburst weapon info
 local circleList = nil            -- Display list for circle
-local trefoilList = nil           -- Display list for nuclear trefoil
 local targetMarkerList = nil      -- Display list for target marker
 local screenLineWidthScale = 1.0
 local myAllyTeamID = 0
@@ -170,33 +180,11 @@ local function CreateDisplayLists()
 		end
 	end)
 
-	-- Nuclear trefoil display list
-	trefoilList = glCreateList(function()
-		local innerRadius = 0.18
-		local outerRadius = 0.85
-		local bladeAngle = rad(60)
-		local bladeSegments = 16
 
-		for blade = 0, 2 do
-			local baseAngle = blade * rad(120) - rad(90)
-			local startAngle = baseAngle - bladeAngle / 2
-			local step = bladeAngle / bladeSegments
-
-			glBeginEnd(GL_TRIANGLE_STRIP, function()
-				for i = 0, bladeSegments do
-					local angle = startAngle + i * step
-					local cosA, sinA = cos(angle), sin(angle)
-					glVertex(cosA * innerRadius, 0, sinA * innerRadius)
-					glVertex(cosA * outerRadius, 0, sinA * outerRadius)
-				end
-			end)
-		end
-	end)
 end
 
 local function DeleteDisplayLists()
 	if circleList then glDeleteList(circleList) end
-	if trefoilList then glDeleteList(trefoilList) end
 	if targetMarkerList then glDeleteList(targetMarkerList) end
 end
 
@@ -220,12 +208,52 @@ local function DrawCircle(x, y, z, radius)
 	glPopMatrix()
 end
 
-local function DrawTrefoil(x, y, z, radius, rotation)
+local function DrawNukeSubLayers(x, y, z, radius, rotation, color, baseOpacity, currentTime, aoe)
+	local innerRadius = 0.18
+	local outerRadius = 0.85
+	local bladeAngle = rad(60)
+	local bladeSegments = 16
+
+	local numLayers = max(Config.nukeSubLayerMin, math.min(Config.nukeSubLayerMax, floor(aoe / Config.nukeSubLayerAoeDivisor)))
+	local layerThickness = (outerRadius - innerRadius) / numLayers
+	local gap = layerThickness * Config.nukeSubLayerGap
+
 	glPushMatrix()
 	glTranslate(x, y, z)
 	glRotate(rotation, 0, 1, 0)
 	glScale(radius, radius, radius)
-	glCallList(trefoilList)
+
+	for layer = 1, numLayers do
+		local layerInner = innerRadius + (layer - 1) * layerThickness + gap * 0.5
+		local layerOuter = innerRadius + layer * layerThickness - gap * 0.5
+
+		-- Wave animation: outside to inside convergence
+		local normalizedPos = (layer - 1) / max(1, numLayers - 1)  -- 0=inner, 1=outer
+		local wavePhase = (currentTime * Config.nukeWaveSpeed + normalizedPos * Config.nukeWaveCount) * tau
+		local waveBrightness = 0.25 + 0.75 * max(0, sin(wavePhase))
+
+		-- Gradient: outer layers brighter, inner layers dimmer
+		local gradientMul = 1 - Config.nukeGradientStrength * (1 - normalizedPos)
+
+		local layerOpacity = baseOpacity * waveBrightness * gradientMul
+		glColor(color[1], color[2], color[3], color[4] * layerOpacity)
+
+		for blade = 0, 2 do
+			local baseAngle = blade * rad(120) - rad(90)
+			local startAngle = baseAngle - bladeAngle / 2
+			local step = bladeAngle / bladeSegments
+
+			glBeginEnd(GL_TRIANGLE_STRIP, function()
+				for i = 0, bladeSegments do
+					local angle = startAngle + i * step
+					local cosA, sinA = cos(angle), sin(angle)
+					glVertex(cosA * layerInner, 0, sinA * layerInner)
+					glVertex(cosA * layerOuter, 0, sinA * layerOuter)
+				end
+			end)
+		end
+	end
+
 	glPopMatrix()
 end
 
@@ -420,11 +448,10 @@ local function DrawImpactIndicator(data, currentTime)
 	if groundY and groundY > ty then ty = groundY end
 
 	if isNuke then
-		-- Trefoil symbol in center (rotating, pulsing)
+		-- Trefoil symbol with sub-layered blades (rotating, pulsing, converging wave)
 		local trefoilSize = aoe * 0.75 * (0.6 + 0.08 * sin(currentTime * tau * 0.4))
-		local trefoilOpacity = 0.35 + 0.1 * progress + 0.1 * blinkPhase
-		SetColor(color, trefoilOpacity)
-		DrawTrefoil(tx, ty + 3, tz, trefoilSize, rotation)
+		local trefoilOpacity = Config.nukeBaseOpacity * (0.7 + 0.2 * progress + 0.1 * blinkPhase)
+		DrawNukeSubLayers(tx, ty + 3, tz, trefoilSize, rotation, color, trefoilOpacity, currentTime, aoe)
 	else
 		-- Regular starburst - draw target marker and rings
 		-- Inner progress rings (shrinking as impact approaches)
@@ -575,35 +602,50 @@ function widget:DrawInMiniMap(sx, sy)
 			-- Clamp to reasonable size
 			trefoilPixelSize = math.max(5, math.min(trefoilPixelSize, 40))
 
-			local trefoilOpacity = 0.5 + 0.15 * progress + 0.1 * blinkPhase
+			local trefoilOpacity = Config.nukeBaseOpacity * (0.8 + 0.15 * progress + 0.1 * blinkPhase)
 
-			SetColor(color, trefoilOpacity)
-
-			-- Draw trefoil at target position
-			glPushMatrix()
-			glTranslate(targetPixelX, targetPixelY, 0)
-			glRotate(rotation, 0, 0, 1)  -- Rotate around Z since we're in 2D minimap space
-			glScale(trefoilPixelSize, trefoilPixelSize, 1)
-
-			-- Draw trefoil blades manually (since display list uses 3D coords)
+			-- Draw trefoil at target position with sub-layers
 			local innerRadius = 0.18
 			local outerRadius = 0.85
 			local bladeAngle = rad(60)
 			local bladeSegments = 8  -- Fewer segments for minimap
 
-			for blade = 0, 2 do
-				local baseAngle = blade * rad(120) - rad(90)
-				local startAngle = baseAngle - bladeAngle / 2
-				local step = bladeAngle / bladeSegments
+			local aoe = data.weaponInfo.aoe
+			local numLayers = max(Config.nukeSubLayerMin, math.min(Config.nukeSubLayerMax, floor(aoe / Config.nukeSubLayerAoeDivisor)))
+			local layerThickness = (outerRadius - innerRadius) / numLayers
+			local gap = layerThickness * Config.nukeSubLayerGap
 
-				glBeginEnd(GL_TRIANGLE_STRIP, function()
-					for i = 0, bladeSegments do
-						local angle = startAngle + i * step
-						local cosA, sinA = cos(angle), sin(angle)
-						glVertex(cosA * innerRadius, sinA * innerRadius)
-						glVertex(cosA * outerRadius, sinA * outerRadius)
-					end
-				end)
+			glPushMatrix()
+			glTranslate(targetPixelX, targetPixelY, 0)
+			glRotate(rotation, 0, 0, 1)  -- Rotate around Z since we're in 2D minimap space
+			glScale(trefoilPixelSize, trefoilPixelSize, 1)
+
+			for layer = 1, numLayers do
+				local layerInner = innerRadius + (layer - 1) * layerThickness + gap * 0.5
+				local layerOuter = innerRadius + layer * layerThickness - gap * 0.5
+
+				local normalizedPos = (layer - 1) / max(1, numLayers - 1)
+				local wavePhase = (currentTime * Config.nukeWaveSpeed + normalizedPos * Config.nukeWaveCount) * tau
+				local waveBrightness = 0.25 + 0.75 * max(0, sin(wavePhase))
+
+				local gradientMul = 1 - Config.nukeGradientStrength * (1 - normalizedPos)
+
+				glColor(color[1], color[2], color[3], color[4] * trefoilOpacity * waveBrightness * gradientMul)
+
+				for blade = 0, 2 do
+					local baseAngle = blade * rad(120) - rad(90)
+					local startAngle = baseAngle - bladeAngle / 2
+					local step = bladeAngle / bladeSegments
+
+					glBeginEnd(GL_TRIANGLE_STRIP, function()
+						for i = 0, bladeSegments do
+							local angle = startAngle + i * step
+							local cosA, sinA = cos(angle), sin(angle)
+							glVertex(cosA * layerInner, sinA * layerInner)
+							glVertex(cosA * layerOuter, sinA * layerOuter)
+						end
+					end)
+				end
 			end
 
 			glPopMatrix()
