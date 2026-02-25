@@ -8028,11 +8028,16 @@ function widget:SetConfigData(data)
 	if data.activityFocusEnabled ~= nil then miscState.activityFocusEnabled = data.activityFocusEnabled end
 	if data.activityFocusIgnoreSpectators ~= nil then config.activityFocusIgnoreSpectators = data.activityFocusIgnoreSpectators end
 	if data.tvEnabled ~= nil then
-		miscState.tvEnabled = data.tvEnabled
-		if miscState.tvEnabled then
-			pipTV.camera.active = true
-			pipTV.director.idle = true
-			pipTV.director.lastOverviewTime = os.clock()
+		-- Only restore TV mode if we're a spectator (or tvModeSpectatorsOnly is off)
+		if data.tvEnabled and config.tvModeSpectatorsOnly and not Spring.GetSpectatingState() then
+			miscState.tvEnabled = false
+		else
+			miscState.tvEnabled = data.tvEnabled
+			if miscState.tvEnabled then
+				pipTV.camera.active = true
+				pipTV.director.idle = true
+				pipTV.director.lastOverviewTime = os.clock()
+			end
 		end
 	end
 	--if data.unitpicZoomThreshold then config.unitpicZoomThreshold = data.unitpicZoomThreshold end
@@ -14748,6 +14753,22 @@ function widget:Update(dt)
 	-- If spec state changed, update LOS texture
 	if oldSpecState ~= cameraState.mySpecState then
 		pipR2T.losNeedsUpdate = true
+
+		-- Deactivate TV mode when transitioning from spectator to player
+		if not cameraState.mySpecState and config.tvModeSpectatorsOnly and miscState.tvEnabled then
+			miscState.tvEnabled = false
+			if pipTV.camera.savedWcx then
+				cameraState.targetWcx = pipTV.camera.savedWcx
+				cameraState.targetWcz = pipTV.camera.savedWcz
+				cameraState.targetZoom = pipTV.camera.savedZoom
+			end
+			pipTV.camera.active = false
+			if WG.pipTVFocus then
+				WG.pipTVFocus[pipNumber] = nil
+				if not next(WG.pipTVFocus) then WG.pipTVFocus = nil end
+			end
+			pipR2T.frameNeedsUpdate = true
+		end
 	end
 
 	-- Detect fullview transitions BEFORE the periodic scan, so timer resets
@@ -15074,6 +15095,11 @@ function widget:Update(dt)
 	-- Pause TV camera when user is manually interacting or hovering, with a resume delay
 	-- Stop entirely at game over so the zoom-out animation plays uninterrupted
 	-- Skip before game start so pre-game markers don't move the camera
+	-- Safety: don't run TV mode for non-spectators when tvModeSpectatorsOnly is set
+	if miscState.tvEnabled and config.tvModeSpectatorsOnly and not cameraState.mySpecState then
+		miscState.tvEnabled = false
+		pipTV.camera.active = false
+	end
 	if miscState.tvEnabled and pipTV.camera.active and not miscState.isGameOver and gameHasStarted then
 		local userInteracting = interactionState.arePanning
 			or interactionState.areIncreasingZoom
