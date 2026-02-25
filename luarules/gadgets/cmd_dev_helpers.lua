@@ -577,6 +577,8 @@ if gadgetHandler:IsSyncedCode() then
 			ExecuteRemoveUnitDefName(words[2])
 		elseif words[1] == "clearwrecks" then
 			ClearWrecks()
+		elseif words[1] == "reducewrecks" then
+			ReduceWrecksAndHeaps()
 		elseif words[1] == "fightertest" then
 			fightertest(words)
 		elseif words[1] == "globallos" then
@@ -890,6 +892,22 @@ if gadgetHandler:IsSyncedCode() then
 		Spring.Echo(string.format("Removed %i wrecks and heaps", removedwrecks))
 	end
 
+	function ReduceWrecksAndHeaps()
+		local allfeatures = Spring.GetAllFeatures()
+		local removedwrecks, removedheaps = 0, 0
+		for i, featureID in pairs(allfeatures) do
+			local featureDefName = FeatureDefs[Spring.GetFeatureDefID(featureID)].name
+			if featureDefName:find("_dead", nil, true) then
+				Spring.AddFeatureDamage(featureID, Spring.GetFeatureHealth(featureID) + 0.001)
+				removedwrecks = removedwrecks + 1
+			elseif featureDefName:find("_heap", nil, true) then
+				Spring.AddFeatureDamage(featureID, Spring.GetFeatureHealth(featureID) + 0.001)
+				removedheaps = removedheaps + 1
+			end
+		end
+		Spring.Echo(string.format("Removed %i wrecks and %i heaps", removedwrecks, removedheaps))
+	end
+
 
 
 else	-- UNSYNCED
@@ -918,6 +936,7 @@ else	-- UNSYNCED
 		gadgetHandler:AddChatAction('dumpfeatures', dumpFeatures, "") -- /luarules dumpfeatures dumps all features into infolog.txt
 		gadgetHandler:AddChatAction('removeunitdef', removeUnitDef, "") -- /luarules removeunitdef armflash removes all units, their wrecks and heaps too
 		gadgetHandler:AddChatAction('clearwrecks', clearWrecks, "") -- /luarules clearwrecks removes all wrecks and heaps from the map
+		gadgetHandler:AddChatAction('reducewrecks', reduceWrecks, "") -- /luarules reducewrecks applies damage to reduce wrecks to heaps and to destroy heaps
 
 		gadgetHandler:AddChatAction('fightertest', fightertest, "") -- /luarules fightertest unitdefname1 unitdefname2 count
 		gadgetHandler:AddChatAction('globallos', globallos, "") -- /luarules globallos [1|0] [allyteam] -- sets global los for all teams, 1 = on, 0 = off  (allyteam is optional)
@@ -941,6 +960,7 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction('dumpfeatures')
 		gadgetHandler:RemoveChatAction('removeunitdefs')
 		gadgetHandler:RemoveChatAction('clearwrecks')
+		gadgetHandler:RemoveChatAction('reducewrecks')
 		gadgetHandler:RemoveChatAction('fightertest')
 		gadgetHandler:RemoveChatAction('globallos')
 		gadgetHandler:RemoveChatAction('playertoteam')
@@ -988,6 +1008,13 @@ else	-- UNSYNCED
 			return
 		end
 		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':clearwrecks')
+	end
+
+	function reduceWrecks(_, line, words, playerID)
+		if not isAuthorized(Spring.GetMyPlayerID()) then
+			return
+		end
+		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':reducewrecks')
 	end
 
 	function processUnits(_, line, words, playerID, action)
