@@ -872,6 +872,10 @@ local function playNextSound()
 		local event = soundQueue[1]
 		if not muteWhenIdle or not isIdle or notification[event].tutorial then
 			if spoken and #notification[event].voiceFiles > 0 then
+				if Spring.GetGameFrame() < 30 then
+					math.randomseed(tonumber(math.ceil(os.clock()*10))) -- brute force this because early game random seems not very random.
+					Spring.Echo(os.clock())
+				end
 				local m = #notification[event].voiceFiles > 1 and mathRandom(1, #notification[event].voiceFiles) or 1
 				local mRare = #notification[event].voiceFilesRare > 1 and mathRandom(1, #notification[event].voiceFilesRare) or 1
 				if math.random() < 0.05 and notification[event].voiceFilesRare[mRare] then
