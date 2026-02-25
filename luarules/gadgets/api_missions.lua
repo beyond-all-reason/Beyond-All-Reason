@@ -33,7 +33,8 @@ function gadget:Initialize()
 	-- TODO: Actually pass script path
 	--scriptPath = 'mission-api-tests/validation_test.lua'
 	--scriptPath = 'mission-api-tests/test_mission.lua'
-	scriptPath = 'mission-api-tests/unit_triggers_test.lua'
+	--scriptPath = 'mission-api-tests/unit_triggers_test.lua'
+	scriptPath = 'mission-api-tests/provided_values_test.lua'
 
 	if not scriptPath then
 		gadgetHandler:RemoveGadget()

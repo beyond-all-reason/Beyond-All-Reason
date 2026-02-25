@@ -56,7 +56,7 @@ local function isTriggerValid(trigger)
 	return true
 end
 
-local function activateTrigger(trigger)
+local function activateTrigger(trigger, provided)
 	if not isTriggerValid(trigger) then
 		return
 	end
@@ -65,7 +65,7 @@ local function activateTrigger(trigger)
 	trigger.repeatCount = trigger.repeatCount + 1
 
 	for _, actionID in ipairs(trigger.actions) do
-		actionsDispatcher.Invoke(actionID)
+		actionsDispatcher.Invoke(actionID, provided)
 	end
 end
 
@@ -190,7 +190,8 @@ local function checkUnitEnteredLocation(trigger, triggerID)
 	previousUnitsInAreas[triggerID] = unitsInArea
 
 	if not table.isNilOrEmpty(unitsEnteredArea) then
-		activateTrigger(trigger)
+		local x, y, z = Spring.GetUnitBasePosition(unitsEnteredArea[1])
+		activateTrigger(trigger, { position = { x = x, y = y, z = z }})
 	end
 end
 
