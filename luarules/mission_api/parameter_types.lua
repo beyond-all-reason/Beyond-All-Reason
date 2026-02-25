@@ -7,6 +7,7 @@ local types = {
 	-- Table Validators:
 	Table = 'Table',
 	Position = 'Position',
+	Positions = 'Positions',
 	AllyTeamIDs = 'AllyTeamIDs',
 	Orders = 'Orders',
 	Area = 'Area',
@@ -21,6 +22,7 @@ local types = {
 	-- Number Validators:
 	Number = 'Number',
 	TeamID = 'TeamID',
+	PlayerID = 'PlayerID',
 
 	-- Boolean Validators:
 	Boolean = 'Boolean',

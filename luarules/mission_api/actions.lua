@@ -65,13 +65,13 @@ local function issueOrders(unitName, orders)
 	Spring.GiveOrderArrayToUnitArray(trackedUnitIDs[unitName], orders)
 end
 
-local function spawnUnits(unitName, unitDefName, teamID, position, quantity, facing, construction)
+local function spawnUnits(unitName, unitDefName, teamID, position, quantity, facing, construction, spacing)
 
-	if not UnitDefNames[unitDefName] then return end
+	spacing = spacing or 0
 
 	local unitDef = UnitDefs[UnitDefNames[unitDefName].id]
-	local xsize = unitDef.xsize * Game.squareSize
-	local zsize = unitDef.zsize * Game.squareSize
+	local xsize = unitDef.xsize * Game.squareSize + spacing
+	local zsize = unitDef.zsize * Game.squareSize + spacing
 
 	-- adjust for facing of non-square units
 	if facing == 'e' or facing == 'w' then
@@ -102,11 +102,12 @@ end
 
 ----------------------------------------------------------------
 
-local function transferUnits(unitName, newTeam, given)
+local function transferUnits(unitName, newTeam)
 	if isNameUntracked(unitName) then return end
 
 	-- Copying table as UnitExists trigger with TransferUnits with the same name could cause infinite loop.
 	for _, unitID in pairs(table.copy(trackedUnitIDs[unitName])) do
+		local given = Spring.GetUnitAllyTeam(unitID) == Spring.GetTeamAllyTeamID(newTeam)
 		Spring.TransferUnit(unitID, newTeam, given)
 	end
 end
@@ -184,6 +185,36 @@ local function sendMessage(message)
 	Spring.Echo(message)
 end
 
+local markerNames = {}
+local function addMarker(position, label, name)
+	if name then
+		markerNames[name] = position
+	end
+	Spring.MarkerAddPoint(position.x, position.y, position.z, label, false)
+end
+
+local function eraseMarker(name)
+	local position = markerNames[name]
+
+	if not position then return end
+
+	markerNames[name] = nil
+	Spring.MarkerErasePosition(position.x, position.y, position.z, nil, false, nil, true)
+end
+
+local function drawLines(positions)
+	for i = 1, #positions - 1 do
+		local pos1 = positions[i]
+		local pos2 = positions[i + 1]
+		Spring.MarkerAddLine(pos1.x, pos1.y, pos1.z, pos2.x, pos2.y, pos2.z, nil, false)
+	end
+end
+
+local function clearAllMarkers()
+	markerNames = {}
+	Spring.SendCommands("clearmapmarks")
+end
+
 local function victory(winningAllyTeamIDs)
 	Spring.GameOver({ unpack(winningAllyTeamIDs) })
 end
@@ -228,6 +259,10 @@ return {
 	-- Media
 	PlaySound = playSound,
 	SendMessage = sendMessage,
+	AddMarker = addMarker,
+	DrawLines = drawLines,
+	EraseMarker = eraseMarker,
+	ClearAllMarkers = clearAllMarkers,
 
 	-- Win Condition
 	Victory = victory,

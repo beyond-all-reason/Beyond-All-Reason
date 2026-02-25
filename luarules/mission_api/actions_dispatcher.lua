@@ -31,6 +31,10 @@ local typeMapping = {
 	-- [types.Unpause] = ,
 	[types.PlaySound] = actionFunctions.PlaySound,
 	[types.SendMessage] = actionFunctions.SendMessage,
+	[types.AddMarker] = actionFunctions.AddMarker,
+	[types.EraseMarker] = actionFunctions.EraseMarker,
+	[types.DrawLines] = actionFunctions.DrawLines,
+	[types.ClearAllMarkers] = actionFunctions.ClearAllMarkers,
 	[types.Victory] = actionFunctions.Victory,
 	[types.Defeat] = actionFunctions.Defeat,
 }

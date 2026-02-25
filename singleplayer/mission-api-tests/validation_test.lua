@@ -210,6 +210,30 @@ local actions = {
 		},
 	},
 
+	actionWithJustOneInvalidPosition = {
+		type = actionTypes.DrawLines,
+		parameters = {
+			positions = {
+				{ x = 1800, invalidField = 2100 }
+			},
+		},
+	},
+
+	actionWithUnusedMarkerName = {
+		type = actionTypes.AddMarker,
+		parameters = {
+			position = { x = 1900, z = 2200 },
+			name = 'unusedMarkerName',
+		},
+	},
+
+	actionWithInvalidMarkerName = {
+		type = actionTypes.EraseMarker,
+		parameters = {
+			name = 'invalidMarkerName',
+		},
+	},
+
 	actionWithNonExistentSoundfile = {
 		type = actionTypes.PlaySound,
 		parameters = {
