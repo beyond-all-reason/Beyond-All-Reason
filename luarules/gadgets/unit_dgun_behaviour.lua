@@ -135,10 +135,6 @@ end
 
 function gadget:GameFrame(frame)
 	for proID in pairsNext, flyingDGuns do
-		-- Fireball is hitscan while in flight, engine only applies AoE damage after hitting the ground,
-		-- so we need to add the AoE damage manually for flying projectiles
-		addVolumetricDamage(proID)
-
 		local x, y, z = spGetProjectilePosition(proID)
 		local h = spGetGroundHeight(x, z)
 
@@ -171,6 +167,12 @@ function gadget:GameFrame(frame)
 end
 
 function gadget:GameFramePost(frame)
+	-- Fireball is hitscan while in flight, engine only applies AoE damage after hitting the ground,
+	-- so we need to add the AoE damage manually for flying projectiles by setting off explosions.
+	for proID in pairsNext, flyingDGuns do
+		addVolumetricDamage(proID)
+	end
+
 	-- Without a manual time to live, the projectile lives until its maximum range.
 	-- This means it would deal infinite damage to shields until it depleted them.
 	-- We delete in GameFramePost so the projectile hits shields on the last frame.
