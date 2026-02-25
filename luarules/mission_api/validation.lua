@@ -313,6 +313,17 @@ local customValidators = {
 			return { { message = "Invalid teamID: " .. teamID } }
 		end
 	end,
+
+	[Types.AllyTeamID] = function(allyTeamID)
+		local luaTypeResult = luaTypeValidators[Types.Number](allyTeamID)
+		if luaTypeResult then
+			return luaTypeResult
+		end
+
+		if not table.contains(Spring.GetAllyTeamList(), allyTeamID) then
+			return { { message = "Invalid allyTeamID: " .. allyTeamID } }
+		end
+	end,
 }
 
 local validators = table.merge(customValidators, luaTypeValidators)
