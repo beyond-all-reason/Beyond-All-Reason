@@ -189,7 +189,7 @@ local function checkUnitEnteredLocation(trigger, triggerID)
 	end)
 	previousUnitsInAreas[triggerID] = unitsInArea
 
-	if not table.isNilOrEmpty(unitsEnteredArea) then
+	for _, unitID in ipairs(unitsEnteredArea) do
 		activateTrigger(trigger)
 	end
 end
@@ -208,7 +208,7 @@ local function checkUnitLeftLocation(trigger, triggerID)
 	end)
 	previousUnitsInAreas[triggerID] = unitsInArea
 
-	if not table.isNilOrEmpty(unitsLeftArea) then
+	for _, unitID in ipairs(unitsLeftArea) do
 		activateTrigger(trigger)
 	end
 end
