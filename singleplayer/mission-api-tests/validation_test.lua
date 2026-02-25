@@ -209,6 +209,38 @@ local actions = {
 			area = { x1 = 10, z1 = 10, x2 = 1, z2 = 1 },
 		},
 	},
+
+	actionWithInvalidPlayerID = {
+		type = actionTypes.AddMarker,
+		parameters = {
+			position = { x = 1900, z = 2200 },
+			playerID = 777,
+		},
+	},
+
+	actionWithJustOneInvalidPosition = {
+		type = actionTypes.DrawLines,
+		parameters = {
+			positions = {
+				{ x = 1800, invalidField = 2100 }
+			},
+		},
+	},
+
+	actionWithUnusedMarkerName = {
+		type = actionTypes.AddMarker,
+		parameters = {
+			position = { x = 1900, z = 2200 },
+			name = 'unusedMarkerName',
+		},
+	},
+
+	actionWithInvalidMarkerName = {
+		type = actionTypes.EraseMarker,
+		parameters = {
+			name = 'invalidMarkerName',
+		},
+	},
 }
 
 return {

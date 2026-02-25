@@ -2,11 +2,11 @@ local Types = VFS.Include('luarules/mission_api/parameter_types.lua').Types
 
 local actionTypes = {
 	-- Triggers
-	EnableTrigger      = 100,       --
-	DisableTrigger     = 101,       --
+	EnableTrigger      = 100,
+	DisableTrigger     = 101,
 
 	-- Orders
-	IssueOrders        = 200,       --
+	IssueOrders        = 200,
 	AllowCommands      = 201,
 	RestrictCommands   = 202,
 
@@ -16,14 +16,14 @@ local actionTypes = {
 	DisableBuildOption = 302,
 
 	-- Units
-	SpawnUnits         = 400,       --
-	DespawnUnits       = 401,       --
-	TransferUnits      = 404,       --
-	NameUnits	       = 405,       --
-	UnnameUnits	       = 406,       --
+	SpawnUnits         = 400,
+	DespawnUnits       = 401,
+	TransferUnits      = 404,
+	NameUnits	       = 405,
+	UnnameUnits	       = 406,
 
 	-- SFX
-	SpawnExplosion     = 500,       --
+	SpawnExplosion     = 500,
 	SpawnWeapons       = 501,
 	SpawnEffects       = 502,
 
@@ -38,13 +38,17 @@ local actionTypes = {
 	Unpause            = 702,
 	PlayMedia          = 703,
 	SendMessage        = 704,
+	AddMarker          = 705,
+	EraseMarker        = 706,
+	DrawLines          = 707,
+	ClearAllMarkers    = 708,
 
 	-- Win Condition
 	Victory            = 800,
 	Defeat             = 801,
 
 	-- Custom
-	Custom             = 900,       --
+	Custom             = 900,
 }
 
 --============================================================--
@@ -234,6 +238,38 @@ local parameters = {
 			type = Types.String,
 		}
 	},
+	[actionTypes.AddMarker] = {
+		[1] = {
+			name = 'position',
+			required = true,
+			type = Types.Position,
+		},
+		[2] = {
+			name = 'label',
+			required = false,
+			type = Types.String,
+		},
+		[3] = {
+			name = 'name',
+			required = false,
+			type = Types.String,
+		}
+	},
+	[actionTypes.EraseMarker] = {
+		[1] = {
+			name = 'name',
+			required = true,
+			type = Types.String,
+		},
+	},
+	[actionTypes.DrawLines] = {
+		[1] = {
+			name = 'positions',
+			required = true,
+			type = Types.Positions
+		},
+	},
+	[actionTypes.ClearAllMarkers] = { },
 
 	-- Win Condition
 	[actionTypes.Victory] = {

@@ -25,14 +25,16 @@ local function loadMission()
 	GG['MissionAPI'].Triggers = triggersController.ProcessRawTriggers(rawTriggers, rawActions)
 	GG['MissionAPI'].Actions = actionsController.ProcessRawActions(rawActions)
 
-	local validateUnitNameReferences = VFS.Include('luarules/mission_api/validation.lua').ValidateUnitNameReferences
-	validateUnitNameReferences()
+	local validateReferences = VFS.Include('luarules/mission_api/validation.lua').ValidateReferences
+	validateReferences()
 end
 
 function gadget:Initialize()
 	-- TODO: Actually pass script path
 	--scriptPath = 'mission-api-tests/validation_test.lua'
-	scriptPath = 'mission-api-tests/test_mission.lua'
+	-- scriptPath = 'mission-api-tests/test_mission.lua'
+	 scriptPath = 'mission-api-tests/validation_test.lua'
+	--scriptPath = 'mission-api-tests/markers_test.lua'
 
 	if not scriptPath then
 		gadgetHandler:RemoveGadget()
