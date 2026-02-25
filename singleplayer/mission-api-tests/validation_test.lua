@@ -241,6 +241,14 @@ local actions = {
 			name = 'invalidMarkerName',
 		},
 	},
+
+	actionWithInvalidWeaponDefName = {
+		type = actionTypes.SpawnExplosion,
+		parameters = {
+			weaponDefName = 'invalidWeaponDefName',
+			position = { x = 1500, z = 2200 },
+		},
+	},
 }
 
 return {
