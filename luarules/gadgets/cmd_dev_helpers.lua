@@ -898,10 +898,10 @@ if gadgetHandler:IsSyncedCode() then
 		for i, featureID in pairs(allfeatures) do
 			local featureDefName = FeatureDefs[Spring.GetFeatureDefID(featureID)].name
 			if featureDefName:find("_dead", nil, true) then
-				Spring.AddFeatureDamage(featureID, Spring.GetFeatureHealth(featureID) * 1.001)
+				Spring.AddFeatureDamage(featureID, Spring.GetFeatureHealth(featureID))
 				removedwrecks = removedwrecks + 1
 			elseif featureDefName:find("_heap", nil, true) then
-				Spring.AddFeatureDamage(featureID, Spring.GetFeatureHealth(featureID) * 1.001)
+				Spring.AddFeatureDamage(featureID, Spring.GetFeatureHealth(featureID))
 				removedheaps = removedheaps + 1
 			end
 		end
