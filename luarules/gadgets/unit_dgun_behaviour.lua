@@ -21,7 +21,7 @@ local spGetProjectileDirection = Spring.GetProjectileDirection
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spGetGroundHeight = Spring.GetGroundHeight
 local spDeleteProjectile = Spring.DeleteProjectile
-local spSpawnExplosion = Spring.SpawnExplosion
+local spSetProjectileCollision = Spring.SetProjectileCollision
 local spGetUnitPosition = Spring.GetUnitPosition
 local spSpawnCEG = Spring.SpawnCEG
 local spGetGameFrame = Spring.GetGameFrame
@@ -94,29 +94,6 @@ commanderNames = nil
 local flyingDGuns = {}
 local groundedDGuns = {}
 
-local function addVolumetricDamage(projectileID)
-	local projectileData = dgunData[projectileID]
-	local weaponDefID = projectileData.weaponDefID
-	local x, y, z = spGetProjectilePosition(projectileID)
-	local explosionParame = {
-		weaponDef = weaponDefID,
-		owner = projectileData.proOwnerID,
-		projectileID = projectileID,
-		damages = dgunDef[weaponDefID].damages,
-		hitUnit = 1,
-		hitFeature = 1,
-		craterAreaOfEffect = dgunDef[weaponDefID].craterAreaOfEffect,
-		damageAreaOfEffect = dgunDef[weaponDefID].damageAreaOfEffect,
-		edgeEffectiveness = dgunDef[weaponDefID].edgeEffectiveness,
-		explosionSpeed = dgunDef[weaponDefID].explosionSpeed,
-		impactOnly = dgunDef[weaponDefID].impactOnly,
-		ignoreOwner = dgunDef[weaponDefID].noSelfDamage,
-		damageGround = true,
-	}
-
-	spSpawnExplosion(x, y, z, 0, 0, 0, explosionParame)
-end
-
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 	if dgunDef[weaponDefID] then
 		dgunData[proID] = { proOwnerID = proOwnerID, weaponDefID = weaponDefID }
@@ -170,7 +147,7 @@ function gadget:GameFramePost(frame)
 	-- Fireball is hitscan while in flight, engine only applies AoE damage after hitting the ground,
 	-- so we need to add the AoE damage manually for flying projectiles by setting off explosions.
 	for proID in pairsNext, flyingDGuns do
-		addVolumetricDamage(proID)
+		spSetProjectileCollision(proID)
 	end
 
 	-- Without a manual time to live, the projectile lives until its maximum range.
