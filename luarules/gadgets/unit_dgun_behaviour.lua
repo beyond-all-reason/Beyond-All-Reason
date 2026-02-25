@@ -168,14 +168,15 @@ function gadget:GameFrame(frame)
 
 		-- NB: no removal; do this every frame so that it doesn't fly off a cliff or something
 	end
+end
 
-	-- Without defining a time to live (TTL) for the DGun, it will live forever until it reaches maximum range. This means it would deal infinite damage to shields until it depleted them.
+function gadget:GameFramePost(frame)
+	-- Without a manual time to live, the projectile lives until its maximum range.
+	-- This means it would deal infinite damage to shields until it depleted them.
+	-- We delete in GameFramePost so the projectile hits shields on the last frame.
 	for proID, timeout in pairsNext, dgunTimeouts do
 		if frame > timeout then
 			spDeleteProjectile(proID)
-			flyingDGuns[proID] = nil
-			groundedDGuns[proID] = nil
-			dgunTimeouts[proID] = nil
 		end
 	end
 end
