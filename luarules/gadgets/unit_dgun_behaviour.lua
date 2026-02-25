@@ -115,7 +115,7 @@ function gadget:GameFrame(frame)
 		local x, y, z = spGetProjectilePosition(proID)
 		local h = spGetGroundHeight(x, z)
 
-		if y < h + 1 or y < 0 then -- assume ground or water collision
+		if y < h + 1 or y < 1 then -- assume ground or water collision
 			-- normalize horizontal velocity
 			local dx, _, dz, speed = spGetProjectileVelocity(proID)
 			local horizontalMagnitude = mathSqrt(dx ^ 2 + dz ^ 2)
