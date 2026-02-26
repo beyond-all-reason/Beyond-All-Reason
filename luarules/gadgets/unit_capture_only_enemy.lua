@@ -16,6 +16,10 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+local spGetUnitTeam = Spring.GetUnitTeam
+local spGetTeamInfo = Spring.GetTeamInfo
+local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+
 local reissueOrder = Game.Commands.ReissueOrder
 
 local allowAreaCapture = false
@@ -30,10 +34,10 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 	if nParams == 1 or nParams == 5 then
 		-- Command is targeting a single unit.
 		local targetUnitID = cmdParams[1]
-		local targetTeamID = targetUnitID and Spring.GetUnitTeam(targetUnitID)
+		local targetTeamID = targetUnitID and spGetUnitTeam(targetUnitID)
 		if targetTeamID then
-			local _, _, isDead, hasSkirmishAI, _, allyTeam = Spring.GetTeamInfo(targetTeamID, false)
-			return isDead or hasSkirmishAI or Spring.GetUnitAllyTeam(unitID) ~= allyTeam
+			local _, _, isDead, hasSkirmishAI, _, allyTeam = spGetTeamInfo(targetTeamID, false)
+			return isDead or hasSkirmishAI or spGetUnitAllyTeam(unitID) ~= allyTeam
 		end
 	elseif nParams == 4 then
 		-- Command is targeting an area.
