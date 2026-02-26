@@ -53,7 +53,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 	
 	local targetUnitDefId = Spring.GetUnitDefID(targetUnitId)
 	if not targetUnitDefId or UnitDefs[targetUnitDefId] == nil then
-		return false
+		return true
 	 end
 
 	if unEmpableUnits[targetUnitDefId] then
