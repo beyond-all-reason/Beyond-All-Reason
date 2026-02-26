@@ -119,6 +119,7 @@ return {
 					area_onhit_damage = 100,
 					area_onhit_range = 150,
 					area_onhit_resistance = "_RAPTORACID_",
+					nofire = true,
 				},
 				damage = {
 					default = 1,
