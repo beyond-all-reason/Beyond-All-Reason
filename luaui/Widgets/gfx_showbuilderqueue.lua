@@ -13,7 +13,6 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized functions for performance
 local tableInsert = table.insert
 
@@ -51,6 +50,11 @@ local builderQueueApiCallbacks = {} --- @type BuilderQueueEventCallback[]
 
 -- Used to ensure proper display of submerged buildings
 local unitWaterlineMap = {}
+for unitDefId, unitDefinition in ipairs(UnitDefs) do
+	if unitDefinition.waterline and unitDefinition.waterline > 0 then
+		unitWaterlineMap[unitDefId] = unitDefinition.waterline
+	end
+end
 
 --- @param buildCommand BuildCommandEntry
 local function drawUnitShape(shapeId, unitDefId, groundHeight, buildCommand)
@@ -128,12 +132,6 @@ function widget:Initialize()
 
 	builderQueueAPI = WG.BuilderQueueApi
 
-	for unitDefId, unitDefinition in ipairs(UnitDefs) do
-		if unitDefinition.waterline and unitDefinition.waterline > 0 then
-			unitWaterlineMap[unitDefId] = unitDefinition.waterline
-		end
-	end
-
 	-- Register event callbacks
 	tableInsert(builderQueueApiCallbacks, builderQueueAPI.OnBuildCommandAdded(onBuildCommandAdded))
 	tableInsert(builderQueueApiCallbacks, builderQueueAPI.OnBuildCommandRemoved(onBuildCommandRemoved))
@@ -156,8 +154,11 @@ function widget:Shutdown()
 			removeUnitShape(shapeId)
 		end
 	end
-	for _, callbackData in ipairs(builderQueueApiCallbacks) do
+
+	for i = 1, #builderQueueApiCallbacks do
+		local callbackData = builderQueueApiCallbacks[i]
 		builderQueueAPI.UnregisterCallback(callbackData.eventName, callbackData.callback)
+		builderQueueApiCallbacks[i] = nil
 	end
 end
 
@@ -172,20 +173,31 @@ end
 local prevGuiHidden = Spring.IsGUIHidden()
 
 function widget:Update()
-	if not Spring.IsGUIHidden() then
+	if not WG.BuilderQueueApi then
+		error("API Builder Queue is disabled")
+		widget:Shutdown()
+		return
+	end
+
+	local isGuiHidden = Spring.IsGUIHidden()
+
+	if not isGuiHidden then
 		if reInitialize then
 			reInitialize = nil
 			widget:Initialize()
 		end
-		removedUnitShapes = {}
+
+		for k in pairs(removedUnitShapes) do
+			removedUnitShapes[k] = nil
+		end
 	end
-	if Spring.IsGUIHidden() ~= prevGuiHidden then
-		prevGuiHidden = Spring.IsGUIHidden()
-		if prevGuiHidden then
+
+	if isGuiHidden ~= prevGuiHidden then
+		prevGuiHidden = isGuiHidden
+		if isGuiHidden then
 			widget:Shutdown()
 		else
 			widget:Initialize()
 		end
 	end
 end
-
