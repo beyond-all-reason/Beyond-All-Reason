@@ -900,10 +900,10 @@ if gadgetHandler:IsSyncedCode() then
 			local featureDef = FeatureDefs[Spring.GetFeatureDefID(featureID)]
 			local category = featureDef.customParams.category
 			if category == "corpses" then
-				Spring.AddFeatureDamage(featureID, Spring.GetFeatureHealth(featureID))
+				Spring.AddFeatureDamage(featureID, (Spring.GetFeatureHealth(featureID)))
 				removedwrecks = removedwrecks + 1
 			elseif category == "heaps" then
-				Spring.AddFeatureDamage(featureID, Spring.GetFeatureHealth(featureID))
+				Spring.AddFeatureDamage(featureID, (Spring.GetFeatureHealth(featureID)))
 				removedheaps = removedheaps + 1
 			end
 		end
