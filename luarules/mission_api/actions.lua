@@ -58,6 +58,14 @@ local function disableTrigger(triggerID)
 	triggers[triggerID].settings.active = false
 end
 
+local function changeStage(stage)
+	GG['MissionAPI'].CurrentStage = stage
+
+	local newStage = GG['MissionAPI'].Stages[stage]
+	Spring.Echo("Stage changed to: " .. stage .. " - " .. (newStage.title or ""))
+	-- TODO: update UI with newStage.title
+end
+
 local function issueOrders(unitName, orders)
     if isNameUntracked(unitName) then return end
 
@@ -229,6 +237,7 @@ return {
 	-- Triggers
 	EnableTrigger = enableTrigger,
 	DisableTrigger = disableTrigger,
+	ChangeStage = changeStage,
 
 	-- Orders
 	IssueOrders = issueOrders,

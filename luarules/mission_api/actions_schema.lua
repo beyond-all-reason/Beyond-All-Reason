@@ -4,6 +4,7 @@ local actionTypes = {
 	-- Triggers
 	EnableTrigger      = 100,
 	DisableTrigger     = 101,
+	ChangeStage        = 102,
 
 	-- Orders
 	IssueOrders        = 200,
@@ -68,6 +69,14 @@ local parameters = {
 			name = 'triggerID',
 			required = true,
 			type = Types.TriggerID
+		},
+	},
+
+	[actionTypes.ChangeStage] = {
+		[1] = {
+			name = 'stageID',
+			required = true,
+			type = Types.StageID
 		},
 	},
 

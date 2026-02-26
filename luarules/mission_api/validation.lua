@@ -286,6 +286,17 @@ validators[Types.Area] = function(area)
 
 --- String Validators:
 
+validators[Types.StageID] = function(stageID)
+	local luaTypeResult = validators[Types.String](stageID)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	if not GG['MissionAPI'].Stages[stageID] then
+		return { { message = "Invalid stageID: " .. stageID } }
+	end
+end
+
 validators[Types.TriggerID] = function(triggerID)
 		local luaTypeResult = validators[Types.String](triggerID)
 		if luaTypeResult then
@@ -386,8 +397,8 @@ local function validate(schemaParameters, actionOrTriggerType, actionOrTriggerPa
 	end
 end
 
-local function validateTriggerSetting(trigger, triggerID, triggers)
-	-- Validate types of settings:
+local function validateTriggerSettings(trigger, triggerID, triggers)
+	-- Validate Lua types of settings:
 	for schemaSetting, schemaType in pairs(triggersSchemaSettings) do
 		local luaTypeResult = validateLuaType(trigger.settings[schemaSetting], string.lower(schemaType))
 		if luaTypeResult then
@@ -395,11 +406,38 @@ local function validateTriggerSetting(trigger, triggerID, triggers)
 		end
 	end
 
+	-- Validate maxRepeats is only set if repeating is true:
+	if trigger.settings.maxRepeats and not trigger.settings.repeating then
+		logError("Trigger has maxRepeats setting but is not set to repeating. Trigger: " .. triggerID)
+	end
+
 	-- Validate prerequisites triggerIDs exist:
 	for _, prerequisiteTriggerID in pairs(trigger.settings.prerequisites) do
 		if not triggers[prerequisiteTriggerID] then
 			logError("Trigger prerequisite does not exist. Trigger: " .. triggerID .. ", Prerequisite triggerID: " .. prerequisiteTriggerID)
 		end
+	end
+
+	-- Validate stages exist:
+	if trigger.settings.stages then
+		for _, stage in pairs(trigger.settings.stages) do
+			if not GG['MissionAPI'].Stages[stage] then
+				logError("Trigger refers to non-existent stage. Trigger: " .. triggerID .. ", Stage: " .. stage)
+			end
+		end
+	end
+end
+
+local function validateStages(stages, initialStage)
+	for stageID, stage in pairs(stages) do
+		if not stage.title then
+			logError("Stage missing title: " .. stageID)
+		elseif stage.title == '' then
+			logError("Stage has empty title: " .. stageID)
+		end
+	end
+	if not stages[initialStage] then
+		logError("Initial stage does not exist in stages: " .. initialStage)
 	end
 end
 
@@ -416,7 +454,7 @@ local function validateTriggers(triggers, rawActions)
 				end
 			end
 		end
-		validateTriggerSetting(trigger, triggerID, triggers)
+		validateTriggerSettings(trigger, triggerID, triggers)
 		validate(triggersSchemaParameters, trigger.type, trigger.parameters, 'Trigger', triggerID)
 	end
 end
@@ -536,6 +574,7 @@ local function validateReferences()
 end
 
 return {
+	ValidateStages = validateStages,
 	ValidateTriggers = validateTriggers,
 	ValidateActions = validateActions,
 	ValidateReferences = validateReferences

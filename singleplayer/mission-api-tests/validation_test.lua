@@ -5,6 +5,8 @@
 local triggerTypes = GG['MissionAPI'].TriggerTypes
 local actionTypes = GG['MissionAPI'].ActionTypes
 
+local initialStage = 'invalidStage'
+
 local triggers = {
 
 	triggerMissingTypeAndActions = {},
@@ -241,9 +243,17 @@ local actions = {
 			name = 'invalidMarkerName',
 		},
 	},
+
+	actionWithInvalidStageID = {
+		type = actionTypes.ChangeStage,
+		parameters = {
+			stageID = 'invalidStageID',
+		},
+	}
 }
 
 return {
+	InitialStage = initialStage,
 	Triggers = triggers,
 	Actions = actions,
 }

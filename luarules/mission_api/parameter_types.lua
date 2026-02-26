@@ -14,6 +14,7 @@ local types = {
 
 	-- String Validators:
 	String = 'String',
+	StageID = 'StageID',
 	TriggerID = 'TriggerID',
 	UnitDefName = 'UnitDefName',
 	Facing = 'Facing',

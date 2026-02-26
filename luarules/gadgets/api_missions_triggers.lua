@@ -18,12 +18,14 @@ local actionsDispatcher, trackedUnitIDs, trackedUnitNames
 
 local types, triggers
 
-local function triggerValid(trigger)
+local function isTriggerValid(trigger)
 	if not trigger.settings.active then return false end
 
 	for _, prerequisiteTrigger in pairs(trigger.settings.prerequisites) do
 		if not prerequisiteTrigger.triggered then return false end
 	end
+
+	if not table.isNilOrEmpty(trigger.settings.stages) and not table.contains(trigger.settings.stages, GG['MissionAPI'].CurrentStage) then return false end
 
 	if trigger.triggered and not trigger.settings.repeating then return false end
 	if trigger.settings.repeating and trigger.settings.maxRepeats ~= nil and trigger.repeatCount > trigger.settings.maxRepeats then return false end
@@ -38,7 +40,7 @@ local function triggerValid(trigger)
 end
 
 local function activateTrigger(trigger)
-	if not triggerValid(trigger) then
+	if not isTriggerValid(trigger) then
 		return
 	end
 
