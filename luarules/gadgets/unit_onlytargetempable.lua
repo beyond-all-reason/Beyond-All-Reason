@@ -60,8 +60,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 		return false
 	end
 
-	local x, y, z = Spring.GetUnitPosition(targetUnitId)
-	local groundLevel = Spring.GetGroundHeight(x, z)
-	local isAboveGround = (y ~= nil) and (y >= groundLevel)
-	return isAboveGround
+	local _,_,_,_, y = Spring.GetUnitPosition(targetUnitId, true)
+	local isAboveSurface = (y ~= nil) and (y >= 0)
+	return isAboveSurface
 end
