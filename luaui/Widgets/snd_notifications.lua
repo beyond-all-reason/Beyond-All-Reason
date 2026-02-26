@@ -467,7 +467,7 @@ local function queueNotification(event, forceplay)
 end
 
 function widget:RecvLuaMsg(message)
-	if message:find("suspendNotifications|") then
+	if message:find("suspendNotifications ") then
 		local duration = tonumber(message:sub(22))
 		if duration and duration > 0 then
 			suspendUntilSec = sec + duration
