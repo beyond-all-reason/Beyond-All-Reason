@@ -24,7 +24,7 @@ local reissueOrder = Game.Commands.ReissueOrder
 
 local allowAreaCapture = false
 	or Spring.Utilities.Gametype.isSinglePlayer() -- Other teams are AI.
-	or (Spring.Utilities.Gametype.isFFA() and not Spring.Utilities.Gametype.isTeams()) -- Other teams are enemies.
+	or (not Spring.Utilities.Gametype.isTeams()) -- Other teams are enemies.
 	or Spring.Utilities.Gametype.isSandbox() -- There is only one ally team.
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, fromSynced, fromLua, fromInsert)
