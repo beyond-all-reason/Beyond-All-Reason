@@ -86,12 +86,12 @@ local gameSpeed               = Game.gameSpeed
 --------------------------------------------------------------------------------
 -- Local variables -------------------------------------------------------------
 
-local frameInterval = round(Game.gameSpeed * damageInterval)
-local frameCegShift = round(Game.gameSpeed * damageInterval * 0.5)
-local frameWaitTime = round(Game.gameSpeed * factoryWaitTime)
+local frameInterval = round(gameSpeed * damageInterval)
+local frameCegShift = round(gameSpeed * damageInterval * 0.5)
+local frameWaitTime = round(gameSpeed * factoryWaitTime)
 
 -- Damage that bypasses the limit needs to be scaled to match its per-second value.
-local damageBypassScale = (Game.gameSpeed / frameInterval) ^ 2
+local damageBypassScale = (gameSpeed / frameInterval) ^ 2
 
 local timedDamageWeapons = {}
 local unitDamageImmunity = {}
@@ -115,36 +115,73 @@ local regexCegToRadius = regexArea.."("..regexDigits..")"..regexRepeat
 --------------------------------------------------------------------------------
 -- Local functions -------------------------------------------------------------
 
+---Area damage has "soft stacking" to prevent infinite damage shenanigans and to
+---avoid drawbacks of single-stack area damage — differences in area damage, and
+---accidental area overlap arbitrarily halving/thirdsing/etc. your total damage.
+local function getLimitedDamage(incoming, accumulated)
+    local ignoreLimit = max(0, incoming * damageBypassScale - damageLimit)
+    local belowLimit = max(0, min(incoming - ignoreLimit, damageLimit - accumulated))
+    local aboveLimit = incoming - belowLimit - ignoreLimit
+
+	local damageDealt = ignoreLimit + belowLimit + aboveLimit * damageExcessRate
+	local showDamageCeg = (damageDealt >= incoming * damageCegMinMultiple) or (damageDealt >= damageCegMinScalar)
+
+	return damageDealt, showDamageCeg
+end
+
 local function getExplosionParams(def, prefix)
 	local ceg        = def.customParams[prefix .. "ceg"       ]
 	local damageCeg  = def.customParams[prefix .. "damageceg" ]
 	local resistance = def.customParams[prefix .. "resistance"]
-	local damage     = def.customParams[prefix .. "damage"    ]
-	local frames     = def.customParams[prefix .. "time"      ]
+	local dpsWanted  = def.customParams[prefix .. "damage"    ]
+	local duration   = def.customParams[prefix .. "time"      ]
 	local range      = def.customParams[prefix .. "range"     ]
 
     resistance = stringLower(resistance or "none")
-	damage = tonumber(damage) * (frameInterval / Game.gameSpeed)
     range = tonumber(range)
+	dpsWanted = tonumber(dpsWanted)
+	duration = tonumber(duration)
 
-	frames = tonumber(frames) * Game.gameSpeed
-	local framesActual = round(frames / frameInterval) * frameInterval
-	local framesExtra, damageExtra
+	-- With ticks between explosions, we're unable to perfectly match all weapondefs.
+	-- So we fix the last explosion to make up for any excessive/lost time or damage.
+	local damagePerTick = dpsWanted * (frameInterval / gameSpeed)
+	local framesWanted = duration * gameSpeed
 
-	if frames - framesActual > 0 then
-		framesExtra = frames - framesActual
-		damageExtra = framesExtra > 0 and damage * framesExtra / Game.gameSpeed
+	local framesFull = floor(framesWanted / frameInterval) * frameInterval
+	if framesFull == round(framesWanted) then
+		framesFull = framesFull - frameInterval
 	end
 
+	-- It is easier math to simulate the total damage than to calculate it directly.
+	local damageTotal = 0
+	local damageFrames = frameInterval
+	local accumulated, accumulateFrames = 0, gameSpeed
+    for _ = 1, floor(framesFull) do
+		accumulateFrames, damageFrames = accumulateFrames - 1, damageFrames - 1
+        if damageFrames == 0 then
+			damageFrames = frameInterval
+			local damage = getLimitedDamage(damagePerTick, accumulated)
+            damageTotal = damageTotal + damage
+			accumulated = accumulated + damage
+        end
+		if accumulateFrames == 0 then
+			accumulateFrames = gameSpeed
+			accumulated = 0
+		end
+    end
+
+	local framesPartial = round(framesWanted) - framesFull
+	local damagePartial = (dpsWanted * duration) - damageTotal
+
 	return {
-		ceg         = ceg,
-		damageCeg   = damageCeg,
-		resistance  = resistance,
-		damage      = damage,
-		range       = range,
-		frames      = framesActual,
-		extraFrames = framesExtra,
-		extraDamage = damageExtra,
+		ceg        = ceg,
+		damageCeg  = damageCeg,
+		resistance = resistance,
+		damage     = damagePerTick,
+		range      = range,
+		frames     = framesFull,
+		lastFrames = framesPartial,
+		lastDamage = damagePartial,
 	}
 end
 
@@ -200,6 +237,11 @@ local function bisectDamage(array, damage, low, high)
     return low
 end
 
+local function addToExplosions(explosions, area)
+	local index = bisectDamage(explosions, area.damage, 1, #explosions)
+	tableInsert(explosions, index, area)
+end
+
 local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectileID)
     local explosion = timedDamageWeapons[weaponDefID]
     local elevation = max(spGetGroundHeight(px, pz), 0)
@@ -218,27 +260,38 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
         end
 
         local area = {
-            weapon     = weaponDefID,
-            owner      = attackerID,
-            x          = px,
-            y          = elevation,
-            z          = pz,
-            ymin       = minY,
-            ymax       = elevation + explosion.range,
-            dx         = dx,
-            dy         = dy,
-            dz         = dz,
-            ceg        = explosion.ceg,
-            range      = explosion.range,
-            resistance = explosion.resistance,
-            damage     = explosion.damage,
-            damageCeg  = explosion.damageCeg,
-            endFrame   = explosion.frames + frameNumber,
+            weapon      = weaponDefID,
+            owner       = attackerID,
+            x           = px,
+            y           = elevation,
+            z           = pz,
+            ymin        = minY,
+            ymax        = elevation + explosion.range,
+            dx          = dx,
+            dy          = dy,
+            dz          = dz,
+            ceg         = explosion.ceg,
+            range       = explosion.range,
+            resistance  = explosion.resistance,
+            damage      = explosion.damage,
+            damageCeg   = explosion.damageCeg,
+            endFrame    = explosion.frames + frameNumber,
+			lastFrames  = explosion.lastFrames,
+			lastDamage  = explosion.lastDamage,
         }
 
-        local index = bisectDamage(frameExplosions, area.damage, 1, #frameExplosions)
-        tableInsert(frameExplosions, index, area)
+		addToExplosions(frameExplosions, area)
     end
+end
+
+---Add any remaining frames of area duration and any remaining damage to the final damage tick.
+---This lets us set an exact intended total damage on the area weapon: a simple dps × duration.
+local function extendTimedExplosion(area, gameFrame)
+	area.endFrame = area.endFrame + area.lastFrames
+	area.damage = area.lastDamage
+	area.lastFrames = nil
+	area.lastDamage = nil
+	addToExplosions(aliveExplosions[1 + (area.endFrame % frameInterval)], area)
 end
 
 local function spawnAreaCEGs(loopIndex)
@@ -296,23 +349,6 @@ local function getAreaHitPosition(area, baseX, baseY, baseZ, midX, midY, midZ)
 				midZ + t * rz
 		end
 	end
-end
-
----Applies a simple formula to keep damage under a limit when many areas of effect overlap.
----Stronger areas partially ignore the preset limit but not damage accumulation on the target.
----Damage may be reduced enough that the CEG effect for indicating damage should not be shown.
----@param incoming number The area weapon's damage to the target
----@param accumulated number The target's area damage taken in the current interval
----@return number damageDealt
----@return boolean showDamageCeg
-local function getLimitedDamage(incoming, accumulated)
-    local ignoreLimit = max(0, incoming * damageBypassScale - damageLimit)
-    local belowLimit = max(0, min(incoming - ignoreLimit, damageLimit - accumulated))
-    local aboveLimit = incoming - belowLimit - ignoreLimit
-
-	local damageDealt = ignoreLimit + belowLimit + aboveLimit * damageExcessRate
-
-	return damageDealt, damageDealt >= incoming * damageCegMinMultiple or damageDealt >= damageCegMinScalar
 end
 
 local function damageTargetsInAreas(timedAreas, gameFrame)
@@ -396,12 +432,8 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
 
         if area.endFrame <= gameFrame then
             tableRemove(timedAreas, index)
-			-- Handle areas with durations that are shorter than intended.
-			if area.extraFrames then
-				area.endFrame = area.extraFrames + gameFrame
-				area.damage = area.extraDamage
-				area.extraFrames = nil
-				area.extraDamage = nil
+			if area.lastFrames then
+				extendTimedExplosion(area, gameFrame)
 			end
         end
     end

@@ -96,7 +96,7 @@ function widget:DrawScreen()
 	end
 
 	-- Safety check: if no delayed cache was created, remove widget
-	if not delayedCacheUnitIcons then
+	if not delayedCacheUnitIcons or spGetGameFrame() > 2000 then
 		widgetHandler:RemoveWidget()
 		return
 	end
