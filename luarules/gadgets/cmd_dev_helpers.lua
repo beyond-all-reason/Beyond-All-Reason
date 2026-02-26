@@ -883,8 +883,9 @@ if gadgetHandler:IsSyncedCode() then
 		local allfeatures = Spring.GetAllFeatures()
 		local removedwrecks = 0
 		for i, featureID in pairs(allfeatures) do
-			local featureDefName = FeatureDefs[Spring.GetFeatureDefID(featureID)].name
-			if string.find(featureDefName, "_dead", nil, true) or string.find(featureDefName, "_heap", nil, true) then
+			local featureDef = FeatureDefs[Spring.GetFeatureDefID(featureID)]
+			local category = featureDef.customParams.category
+			if category == "corpses" or category == "heaps" then
 				Spring.DestroyFeature(featureID)
 				removedwrecks = removedwrecks + 1
 			end
@@ -896,11 +897,12 @@ if gadgetHandler:IsSyncedCode() then
 		local allfeatures = Spring.GetAllFeatures()
 		local removedwrecks, removedheaps = 0, 0
 		for i, featureID in pairs(allfeatures) do
-			local featureDefName = FeatureDefs[Spring.GetFeatureDefID(featureID)].name
-			if featureDefName:find("_dead", nil, true) then
+			local featureDef = FeatureDefs[Spring.GetFeatureDefID(featureID)]
+			local category = featureDef.customParams.category
+			if category == "corpses" then
 				Spring.AddFeatureDamage(featureID, Spring.GetFeatureHealth(featureID))
 				removedwrecks = removedwrecks + 1
-			elseif featureDefName:find("_heap", nil, true) then
+			elseif category == "heaps" then
 				Spring.AddFeatureDamage(featureID, Spring.GetFeatureHealth(featureID))
 				removedheaps = removedheaps + 1
 			end
