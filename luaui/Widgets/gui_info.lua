@@ -2373,12 +2373,13 @@ function checkChanges()
 	elseif SelectedUnitsCount == 1 then
 		displayMode = 'unit'
 		displayUnitID = selectedUnits[1]
-		displayUnitDefID = spGetUnitDefID(selectedUnits[1])
-		if lastUpdateClock + 0.4 < os_clock() then
-			-- unit stats could have changed meanwhile
-			doUpdate = true
+		if displayUnitID then
+			displayUnitDefID = spGetUnitDefID(displayUnitID)
+			if lastUpdateClock + 0.4 < os_clock() then
+				-- unit stats could have changed meanwhile
+				doUpdate = true
+			end
 		end
-
 		-- selection
 	elseif SelectedUnitsCount > 1 then
 		displayMode = 'selection'
