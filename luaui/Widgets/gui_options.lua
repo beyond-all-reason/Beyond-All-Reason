@@ -4770,7 +4770,7 @@ function init()
 		{ id = "transportOrderedUnits", 
 		group = "game",
 		category = types.basic,
-		name = "Ferry blacklist ordered units",
+		name = "Ferry ignores units with manual orders",
 		type = "bool",
 		value = (WG['transportFactoryGuard'] ~= nil and WG['transportFactoryGuard'].getBlacklistOrderedUnits ~= nil and WG['transportFactoryGuard'].getBlacklistOrderedUnits()),
 		description = "If enabled, transports guarding factories will not transport units that were given explicit orders during construction to their move waypoint.",
