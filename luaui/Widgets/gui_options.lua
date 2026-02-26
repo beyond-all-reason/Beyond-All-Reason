@@ -4798,11 +4798,7 @@ function init()
 
 		{ id = "unitreclaimer", group = "game", category = types.basic, widget = "Specific Unit Reclaimer", name = Spring.I18N('ui.settings.option.unitreclaimer'), type = "bool", value = GetWidgetToggleValue("Specific Unit Reclaimer"), description = Spring.I18N('ui.settings.option.unitreclaimer_descr') },
 
-		{ id = "autogroup_immediate",
-		group = "game", category = types.basic, 
-		name = Spring.I18N('ui.settings.option.autogroup_immediate'),
-		type = "bool", value = (WG['autogroup'] ~= nil and WG['autogroup'].getImmediate ~= nil and WG['autogroup'].getImmediate()),
-		description = Spring.I18N('ui.settings.option.autogroup_immediate_descr'),
+		{ id = "autogroup_immediate", group = "game", category = types.basic, name = Spring.I18N('ui.settings.option.autogroup_immediate'), type = "bool", value = (WG['autogroup'] ~= nil and WG['autogroup'].getImmediate ~= nil and WG['autogroup'].getImmediate()), description = Spring.I18N('ui.settings.option.autogroup_immediate_descr'),
 		  onload = function(i)
 			  loadWidgetData("Auto Group", "autogroup_immediate", { 'immediate' })
 		  end,
