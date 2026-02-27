@@ -44,14 +44,11 @@ if gadgetHandler:IsSyncedCode() then
 	-- speedups
 	local spAddUnitDamage = Spring.AddUnitDamage
 	local spAddFeatureDamage = Spring.AddFeatureDamage
-	local spDestroyFeature = Spring.DestroyFeature
 	local spGetAllUnits = Spring.GetAllUnits
 	local spGetFeatureDefID = Spring.GetFeatureDefID
 	local spGetFeaturePosition = Spring.GetFeaturePosition
-	local spGetFeatureResources = Spring.GetFeatureResources
 	local spGetUnitBasePosition = Spring.GetUnitBasePosition
 	local spGetUnitDefID = Spring.GetUnitDefID
-	local spSetFeatureResources = Spring.SetFeatureResources
 	local spGetMoveData = Spring.GetUnitMoveTypeData
 	local spMoveCtrlEnabled = Spring.MoveCtrl.IsEnabled
 	local spSetMoveData = Spring.MoveCtrl.SetGroundMoveTypeData
