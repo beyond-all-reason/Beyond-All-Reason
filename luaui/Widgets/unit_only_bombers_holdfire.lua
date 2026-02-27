@@ -24,9 +24,11 @@ local function UnitDefIsBomber(ud)
     if not ud or not ud.weapons then
         return false
     end
-    if ud.name and (string.find(ud.name, 'armstil') then -- excluding Stiletto as it's an EMP bomber, friednly fire's not that much of a concern
+    
+    if ud.name and (string.find(ud.name, 'armstil')) then -- excluding Stiletto as it's an EMP bomber, friednly fire's not that much of a concern
         return false
     end
+
     for i = 1, #ud.weapons do
         local wname = ud.weapons[i].weaponDef
         if wname and WeaponDefs and WeaponDefs[wname] then
@@ -37,6 +39,7 @@ local function UnitDefIsBomber(ud)
             end
         end
     end
+
     return false
 end
 
