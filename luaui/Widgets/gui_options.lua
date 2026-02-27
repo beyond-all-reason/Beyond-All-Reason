@@ -4770,6 +4770,7 @@ function init()
 		{ id = "transportai", group = "game", category = types.basic, widget = "Transport AI", name = Spring.I18N('ui.settings.option.transportai'), type = "bool", value = GetWidgetToggleValue("Transport AI"), description = Spring.I18N('ui.settings.option.transportai_descr') },
 
 		{ id = "onlyfighterspatrol", group = "game", category = types.basic, widget = "OnlyFightersPatrol", name = Spring.I18N('ui.settings.option.onlyfighterspatrol'), type = "bool", value = GetWidgetToggleValue("Autoquit"), description = Spring.I18N('ui.settings.option.onlyfighterspatrol_descr') },
+		{ id = "bombersholdfire", group = "game", category = types.basic, widget = "BombersHoldFire", name = Spring.I18N('ui.settings.option.onlybombersholdfire'), type = "bool", value = GetWidgetToggleValue("BombersHoldFire"), description = Spring.I18N('ui.settings.option.onlybombersholdfire_descr') },
 		{ id = "fightersfly", group = "game", category = types.basic, widget = "Set fighters on Fly mode", name = Spring.I18N('ui.settings.option.fightersfly'), type = "bool", value = GetWidgetToggleValue("Set fighters on Fly mode"), description = Spring.I18N('ui.settings.option.fightersfly_descr') },
 
 		{ id = "settargetdefault", group = "game", category = types.basic, widget = "Set target default", name = Spring.I18N('ui.settings.option.settargetdefault'), type = "bool", value = GetWidgetToggleValue("Set target default"), description = Spring.I18N('ui.settings.option.settargetdefault_descr') },

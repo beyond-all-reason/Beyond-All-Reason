@@ -1712,6 +1712,8 @@
 				"smartselect_includejammer_descr": "When rectangle-drag-selecting an area, exclude jammer units (hold Shift to override)",
 				"onlyfighterspatrol": "Only fighters patrol",
 				"onlyfighterspatrol_descr": "Only fighters obey a factory's patrol route after leaving airlab.",
+				"onlybombersholdfire": "Only bombers hold fire",
+				"onlybombersholdfire_descr": "Sets produced bombers to Hold Position after leaving airlab.",
 				"fightersfly": "Set fighters on Fly mode",
 				"fightersfly_descr": "Setting fighters on Fly mode when created",
 				"prioconturrets": "Priority construction turrets",
