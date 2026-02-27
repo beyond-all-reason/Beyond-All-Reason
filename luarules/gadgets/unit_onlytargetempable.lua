@@ -35,32 +35,23 @@ function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD.ATTACK)
 end
 
--- accepts: CMD.ATTACK only
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-	if not empUnits[unitDefID] then
-		return true 
-	end
-
-	local isTargetingGround = cmdParams[2] ~= nil
-	if isTargetingGround then
-		return true 
-	end
-
-	local targetUnitId = cmdParams[1]
-	if type(targetUnitId) ~= 'number' then
+	-- accepts: CMD.ATTACK
+	if empUnits[unitDefID]
+		and cmdParams[2] == nil
+		and type(cmdParams[1]) == 'number'
+		and UnitDefs[Spring.GetUnitDefID(cmdParams[1])] ~= nil then
+		if unEmpableUnits[Spring.GetUnitDefID(cmdParams[1])] then --	and UnitDefs[Spring.GetUnitDefID(cmdParams[1])].customParams.paralyzemultiplier == '0' then
+			return false
+		else
+			local _,_,_,_, y = Spring.GetUnitPosition(cmdParams[1], true)
+			if y and y >= 0 then
+				return true
+			else
+				return false
+			end
+		end
+	else
 		return true
-	 end
-	
-	local targetUnitDefId = Spring.GetUnitDefID(targetUnitId)
-	if not targetUnitDefId or UnitDefs[targetUnitDefId] == nil then
-		return true
-	 end
-
-	if unEmpableUnits[targetUnitDefId] then
-		return false
 	end
-
-	local _,_,_,_, y = Spring.GetUnitPosition(targetUnitId, true)
-	local isAboveSurface = (y ~= nil) and (y >= 0)
-	return isAboveSurface
 end
