@@ -31,10 +31,9 @@ local function UnitDefIsBomber(ud)
 
     for i = 1, #ud.weapons do
         local wname = ud.weapons[i].weaponDef
-        if wname and WeaponDefs and WeaponDefs[wname] then
-            local wdef = WeaponDefs[wname]
-            local wtype = wdef.type or wdef.weapontype
-            if wtype == "AircraftBomb" then
+        local weaponDef = WeaponDefs[wname]
+        if weaponDef then
+            if weaponDef.type == "AircraftBomb" then
                 return true
             end
         end
@@ -47,19 +46,10 @@ for udid, ud in pairs(UnitDefs) do
     if UnitDefIsBomber(ud) then
         isBomber[udid] = true
     end
-    if ud.isFactory and ud.customParams and ud.customParams.airfactory then
-        airFactories[udid] = true
-    end
 end
 
-function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
+function widget:UnitCreated(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
     if unitTeam ~= myTeamID then
-        return
-    end
-    if userOrders then
-        return
-    end
-    if not airFactories[factDefID] then
         return
     end
     if isBomber[unitDefID] then
