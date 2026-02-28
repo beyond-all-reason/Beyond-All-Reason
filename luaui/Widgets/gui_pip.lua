@@ -30,6 +30,9 @@ minimapApi.getZoomLevel = function()
 	return minimapApi.zoom
 end
 
+-- Forward-declare config so zoom helpers can reference it (config table defined below)
+local config
+
 -- Helper function to get effective zoom minimum (accounts for minimap mode)
 local function GetEffectiveZoomMin()
 	if isMinimapMode and minimapModeMinZoom then
@@ -41,7 +44,7 @@ end
 -- Helper function to get effective zoom maximum (accounts for minimap mode)
 local function GetEffectiveZoomMax()
 	-- In minimap mode, still allow zooming IN (higher zoom values)
-	return 0.95  -- Default config.zoomMax value
+	return config and config.zoomMax or 2
 end
 
 -- Helper function to check if at minimum zoom (fully zoomed out) in minimap mode
@@ -106,7 +109,7 @@ end
 ----------------------------------------------------------------------------------------------------
 -- Config
 ----------------------------------------------------------------------------------------------------
-local config = {
+config = {
 	-- UI colors and sizing
 	panelBorderColorLight = {0.75, 0.75, 0.75, 1},
 	panelBorderColorDark = {0.2, 0.2, 0.2, 1},
@@ -123,7 +126,7 @@ local config = {
 	playerTrackingSmoothness = 4.5,
 	switchSmoothness = 30,
 	zoomMin = 0.04,
-	zoomMax = 1,
+	zoomMax = 2,
 	zoomFeatures = 0.2,
 	zoomFeaturesFadeRange = 0.06,  -- Zoom range over which features fade in/out
 	zoomProjectileDetail = 0.12,
@@ -7996,7 +7999,7 @@ function widget:SetConfigData(data)
 			end
 			cameraState.targetWcx, cameraState.targetWcz = cameraState.wcx, cameraState.wcz
 			
-			if data.minimapModeZoom and isValidNumber(data.minimapModeZoom, 0, 1) then
+			if data.minimapModeZoom and isValidNumber(data.minimapModeZoom, 0, GetEffectiveZoomMax()) then
 				cameraState.zoom = data.minimapModeZoom
 				cameraState.targetZoom = cameraState.zoom
 				miscState.minimapCameraRestored = true  -- Flag that we restored camera state
@@ -8013,8 +8016,8 @@ function widget:SetConfigData(data)
 		end
 		cameraState.targetWcx, cameraState.targetWcz = cameraState.wcx, cameraState.wcz  -- Initialize targets from config
 		
-		-- Validate zoom level (must be between 0 and 1)
-		if data.zoom and isValidNumber(data.zoom, 0, 1) then
+		-- Validate zoom level (must be between 0 and zoomMax)
+		if data.zoom and isValidNumber(data.zoom, 0, GetEffectiveZoomMax()) then
 			cameraState.zoom = data.zoom
 		end
 	end
@@ -9460,7 +9463,10 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		gl.UniformFloat(ul.rotCenter, fboW * 0.5, fboH * 0.5)
 
 		-- Icon size and time
-		gl.UniformFloat(ul.iconBaseSize, iconRadiusZoomDistMult)
+		-- Cap icon texture size at the 0.95-zoom equivalent so icons don't grow into
+		-- oversized blobs at extreme zoom levels (world keeps zooming, icons stay readable)
+		local iconSizeCap = unitBaseSize * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(0.95) * resScale
+		gl.UniformFloat(ul.iconBaseSize, math.min(iconRadiusZoomDistMult, iconSizeCap))
 		gl.UniformFloat(ul.gameTime, gameTime)
 		gl.UniformFloat(ul.wallClockTime, wallClockTime)
 		gl.UniformFloat(ul.healthDarkenMax, config.healthDarkenMax)
@@ -9491,7 +9497,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	if useUnitpics and unitpicCount > 0 then
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		local unitpicSizeMult = 0.85
-		local picTexInset = 0.18 * (1 - (cameraState.zoom - config.unitpicZoomThreshold) / (1 - config.unitpicZoomThreshold))
+		local picTexInset = math.max(0, 0.18 * (1 - (cameraState.zoom - config.unitpicZoomThreshold) / (1 - config.unitpicZoomThreshold)))
 		local distMult = math.min(math.max(1, 2.2-(cameraState.zoom*3.3)), 3)
 		local teamBorderSize = 3 * cameraState.zoom * distMult * resScale
 		local blackBorderSize = 4 * cameraState.zoom * distMult * resScale
@@ -9565,7 +9571,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 				local healthFrac = up[8] or 1
 				if healthFrac < 0.99 then
 					local barW = iconSize * 0.82
-					local barH = math.max(1, iconSize * 0.13)
+					local barH = math.max(1, iconSize * 0.1508)
 					local barY = iconSize - barH * 1.5
 					local outl = math.max(1, barH * 0.2)
 					glFunc.Texture(false)
@@ -9632,9 +9638,9 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 				local healthFrac = up[8] or 1
 				if healthFrac < 0.99 then
 					local barW = iconSize * 0.82
-					local barH = math.max(1, iconSize * 0.13)
+					local barH = math.max(1, iconSize * 0.185)
 					local barY = py + iconSize - barH * 1.5
-					local outl = math.max(1, barH * 0.2)
+					local outl = math.max(1, barH * 0.4)
 					glFunc.Texture(false)
 					-- Outline
 					glFunc.Color(0, 0, 0, 0.9)
@@ -10122,6 +10128,9 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		local localIsCommander = cache.isCommander
 		local localCacheUnitIcon = cache.unitIcon
 		local resScale = render.contentScale or 1
+		-- Cap icon size for nametag/health bar positioning to match the capped shader icons
+		local cappedIconRadius = math.min(iconRadiusZoomDistMult,
+			Spring.GetConfigFloat("MinimapIconScale", 3.5) * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(0.95) * resScale)
 		-- Font size scales with zoom: grows when zoomed in, floors at readable minimum
 		local zoomFactor = math.sqrt(cameraState.zoom / 0.12)  -- 1.0 at threshold, grows with zoom
 		local nametagFontSize = math.max(8, math.floor(11 * resScale * zoomFactor))
@@ -10162,7 +10171,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 				if wx then
 					local cx, cy = WorldToPipCoords(wx, posZ[uID])
 					local iconInfo = localCacheUnitIcon[dID]
-					local iconHalf = iconRadiusZoomDistMult * (iconInfo and iconInfo.size or 0.5)
+					local iconHalf = cappedIconRadius * (iconInfo and iconInfo.size or 0.5)
 					-- Rotate the icon center to match where the shader placed it
 					if isRotated then
 						local dx, dy = cx - rotCX, cy - rotCY
@@ -10206,10 +10215,10 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 			glFunc.Texture(false)
 			for hi = 1, comHealthCount do
 				local hb = comHealthBars[hi]
-				local barW = hb.half * 0.82
-				local barH = math.max(1, hb.half * 0.13)
+				local barW = hb.half * 0.78
+				local barH = math.max(1, hb.half * 0.18)
 				local barY = hb.cy - hb.half + (hb.half * 2) - barH * 1.5
-				local outl = math.max(1, barH * 0.2)
+				local outl = math.max(1, barH * 0.45)
 				-- Outline (black border)
 				glFunc.Color(0, 0, 0, 0.9 * nametagAlpha)
 				glFunc.BeginEnd(GL.QUADS, function()
