@@ -30,7 +30,7 @@ local gameStarted
 
 local hasSetTarget = {}
 for udid, ud in pairs(UnitDefs) do
-	if ( ud.canMove and ud.speed > 0 and not ud.canFly and ud.canAttack and ud.maxWeaponRange and ud.maxWeaponRange > 0 ) or ud.isFactory then
+	if ( ud.canMove and ud.speed > 0 and ud.canAttack and ud.maxWeaponRange and ud.maxWeaponRange > 0 ) or ud.isFactory then
 		hasSetTarget[udid] = true
 	end
 end
