@@ -126,7 +126,7 @@ config = {
 	playerTrackingSmoothness = 4.5,
 	switchSmoothness = 30,
 	zoomMin = 0.04,
-	zoomMax = 2,
+	zoomMax = 1.6,
 	zoomFeatures = 0.2,
 	zoomFeaturesFadeRange = 0.06,  -- Zoom range over which features fade in/out
 	zoomProjectileDetail = 0.12,
@@ -1788,6 +1788,16 @@ if mapInfo.isLava then
 			mapInfo.lavaCoastColor = {tonumber(cr) or 2.0, tonumber(cg) or 0.5, tonumber(cb) or 0.0}
 		end
 	end
+	-- Parse colorCorrection: a final color multiplier applied to ALL lava output.
+	-- Acid/green lava maps use e.g. vec3(0.15, 1.0, 0.45) while red lava uses (1,1,1).
+	mapInfo.lavaColorCorrection = {1.0, 1.0, 1.0}
+	local ccStr = Spring.Lava.colorCorrection
+	if ccStr and type(ccStr) == "string" then
+		local cr2, cg2, cb2 = ccStr:match("vec3%s*%((.-),%s*(.-),%s*(.-)%)")
+		if cr2 then
+			mapInfo.lavaColorCorrection = {tonumber(cr2) or 1.0, tonumber(cg2) or 1.0, tonumber(cb2) or 1.0}
+		end
+	end
 end
 
 -- Read BumpWater rendering properties for animated water overlay (non-lava water maps)
@@ -2412,6 +2422,8 @@ void main() {
 			uniform float hasDistortTex;
 			uniform float gameFrames;    // exact Spring.GetGameFrame()
 			uniform vec3 lavaCoastColor;
+			uniform vec3 lavaHighlightColor; // bright glow added in noise hot spots
+			uniform vec3 colorCorrection;    // final color multiplier from map lava config (e.g. green for acid)
 			uniform float lavaCoastWidth;
 			uniform float lavaUvScale;    // WORLDUVSCALE
 			uniform float lavaSwirlFreq;  // SWIRLFREQUENCY
@@ -2527,7 +2539,7 @@ void main() {
 						float n1 = vnoise(finalUV * 12.0);
 						float n2 = vnoise(finalUV * 28.0);
 						float nv = n1 * 0.65 + n2 * 0.35;
-						baseColor = mix(waterColor.rgb, waterColor.rgb * 2.5 + vec3(0.3, 0.08, 0.0), nv * 0.4);
+						baseColor = mix(waterColor.rgb, waterColor.rgb * 2.5 + lavaHighlightColor, nv * 0.4);
 						emissive = nv;
 					}
 
@@ -2544,6 +2556,9 @@ void main() {
 					// distortion magnitude is boosted for minimap visibility, so
 					// constant is reduced to keep glow intensity proportional
 					baseColor += baseColor * (emissive * distortion.y * 140.0);
+
+					// Apply map's colorCorrection (e.g. green tint for acid lava)
+					baseColor *= colorCorrection;
 
 					float alpha = max(lavaAlpha, coastfactor * 0.85);
 					gl_FragColor = vec4(baseColor, alpha);
@@ -2647,6 +2662,8 @@ void main() {
 			hasDistortTex = 0,
 			gameFrames = 0,
 			lavaCoastColor = {2.0, 0.5, 0.0},
+			lavaHighlightColor = {0.3, 0.08, 0.0},
+			colorCorrection = {1.0, 1.0, 1.0},
 			lavaCoastWidth = 25.0,
 			lavaUvScale = 2.0,
 			lavaSwirlFreq = 0.025,
@@ -3064,6 +3081,9 @@ gl4Prim.lineShaderCode = {
 -- Initialize GL4 icon rendering: use engine $icons atlas, create VBO, shader
 -- atlasUVs is keyed by unitDefID for uniform lookup.
 local function InitGL4Icons()
+	-- Already initialized — skip to avoid leaking GPU resources
+	if gl4Icons.enabled then return end
+
 	if not gl.GetVAO or not gl.GetVBO then
 		Spring.Echo("[PIP] GL4 icons: VAO/VBO not available, falling back to legacy")
 		return
@@ -8855,7 +8875,14 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	local unitDefLayerTbl = gl4Icons.unitDefLayer
 	local atlasUVs = gl4Icons.atlasUVs
 	local defaultUV = gl4Icons.defaultUV
-	if not defaultUV then return 1 end  -- Atlas not built yet, skip icon drawing
+	if not defaultUV then
+		-- Atlas wasn't ready during Initialize() (race condition at game start).
+		-- Retry once — by now the engine should have finalized the $icons atlas.
+		InitGL4Icons()
+		defaultUV = gl4Icons.defaultUV
+		atlasUVs = gl4Icons.atlasUVs
+		if not defaultUV then return 1 end  -- Still not available, skip icon drawing
+	end
 	local cacheUnitIcon = cache.unitIcon
 	local cacheIsBuilding = cache.isBuilding
 	local localCantBeTransported = cache.cantBeTransported
@@ -9497,7 +9524,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	if useUnitpics and unitpicCount > 0 then
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		local unitpicSizeMult = 0.85
-		local picTexInset = math.max(0, 0.18 * (1 - (cameraState.zoom - config.unitpicZoomThreshold) / (1 - config.unitpicZoomThreshold)))
+		local picTexInset = math.max(0.125, 0.2 * (1 - (cameraState.zoom - config.unitpicZoomThreshold) / (1 - config.unitpicZoomThreshold)))
 		local distMult = math.min(math.max(1, 2.2-(cameraState.zoom*3.3)), 3)
 		local teamBorderSize = 3 * cameraState.zoom * distMult * resScale
 		local blackBorderSize = 4 * cameraState.zoom * distMult * resScale
@@ -10756,6 +10783,7 @@ local function DrawWaterAndLOSOverlays()
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "hasLavaTex"), mapInfo.lavaDiffuseEmitTex and 1.0 or 0.0)
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "gameFrames"), Spring.GetGameFrame())
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaCoastColor"), mapInfo.lavaCoastColor[1], mapInfo.lavaCoastColor[2], mapInfo.lavaCoastColor[3])
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "colorCorrection"), mapInfo.lavaColorCorrection[1], mapInfo.lavaColorCorrection[2], mapInfo.lavaColorCorrection[3])
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaCoastWidth"), mapInfo.lavaCoastWidth)
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaUvScale"), mapInfo.lavaUvScale)
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaSwirlFreq"), mapInfo.lavaSwirlFreq)
@@ -12552,6 +12580,7 @@ local function DrawTrackedPlayerMinimap()
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "hasLavaTex"), mapInfo.lavaDiffuseEmitTex and 1.0 or 0.0)
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "gameFrames"), Spring.GetGameFrame())
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaCoastColor"), mapInfo.lavaCoastColor[1], mapInfo.lavaCoastColor[2], mapInfo.lavaCoastColor[3])
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "colorCorrection"), mapInfo.lavaColorCorrection[1], mapInfo.lavaColorCorrection[2], mapInfo.lavaColorCorrection[3])
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaCoastWidth"), mapInfo.lavaCoastWidth)
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaUvScale"), mapInfo.lavaUvScale)
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaSwirlFreq"), mapInfo.lavaSwirlFreq)
