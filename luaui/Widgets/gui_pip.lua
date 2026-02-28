@@ -8837,7 +8837,10 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	local iconRadiusZoomDistMult = unitBaseSize * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(cameraState.zoom) * resScale
 
 	-- Check if unitpics should be shown at this zoom level
-	local useUnitpics = config.showUnitpics and cameraState.zoom >= config.unitpicZoomThreshold
+	-- Use targetZoom (instant scroll response) instead of smooth zoom so the transition from
+	-- unitpics to icons happens immediately when the user scrolls out, not after the smooth
+	-- zoom animation catches up (which would leave a visible gap with no icons/unitpics).
+	local useUnitpics = config.showUnitpics and cameraState.targetZoom >= config.unitpicZoomThreshold
 	local unitpicEntries = {}
 	local unitpicCount = 0
 
@@ -9280,6 +9283,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		and checkAllyTeamID == gl4Icons._bldgBlockCheckAlly  -- LOS filtering context changed
 		and (currentGameFrame - (gl4Icons._bldgBlockFrame or 0)) < 30
 		and not useUnitpics  -- unitpic collection needs per-unit data
+		and not gl4Icons._bldgBlockBuiltDuringUnitpics  -- block built with 0 icons during unitpics is invalid
 
 	local preProcessEl = usedElements
 
@@ -9405,6 +9409,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		gl4Icons._bldgBlockHash = bldgHash
 		gl4Icons._bldgBlockCheckAlly = checkAllyTeamID
 		gl4Icons._bldgBlockFrame = currentGameFrame
+		gl4Icons._bldgBlockBuiltDuringUnitpics = useUnitpics  -- block has 0 icons when unitpics active
 	end
 	local icT3b = os.clock()
 	local bldgProcessed = usedElements - preProcessEl
@@ -10128,7 +10133,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		local pipUnits = miscState.pipUnits
 		-- Collect commander positions, draw nametags, and gather health bar data
 		-- (health bars only when unitpics are NOT shown, since unitpics have their own)
-		local unitpicsActive = config.showUnitpics and cameraState.zoom >= config.unitpicZoomThreshold
+		local unitpicsActive = config.showUnitpics and cameraState.targetZoom >= config.unitpicZoomThreshold
 		local comHealthBars = (config.drawComHealthBars and not unitpicsActive) and {} or nil
 		local comHealthCount = 0
 		for i = 1, unitCount do
@@ -13910,8 +13915,10 @@ function widget:DrawScreen()
 
 		-- Force immediate units re-render when unitpic display state changes
 		-- (zooming out from unitpics to icons or vice versa)
+		-- Uses targetZoom (same as GL4DrawIcons) so the transition is detected on the
+		-- same frame the user scrolls, not after the smooth zoom animation catches up.
 		do
-			local nowUseUnitpics = config.showUnitpics and cameraState.zoom >= config.unitpicZoomThreshold
+			local nowUseUnitpics = config.showUnitpics and cameraState.targetZoom >= config.unitpicZoomThreshold
 			if miscState._lastUseUnitpics ~= nil and miscState._lastUseUnitpics ~= nowUseUnitpics then
 				pipR2T.unitsNeedsUpdate = true
 			end
