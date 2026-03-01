@@ -1,3 +1,10 @@
+# March
+• [Legion changes]
+	- Telchine (T2 amphib bot) script and targeting improvements, range increased 400->450
+	- Incinerator firing E cost 500->300E/s
+	- Dolus (T2 radar/jammer ship) speed increased 36->42
+	- Phoenix (T2 heatray bomber) movement behavior adjusted to reduce heatray range/damage exploits
+	
 # February
 • [Centurion] 330 -> 325 range
 • [Hound] buildtime 6230 -> 6500
