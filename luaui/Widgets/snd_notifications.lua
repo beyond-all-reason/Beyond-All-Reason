@@ -259,6 +259,7 @@ local commanders = {}
 local commandersDamages = {}
 local passedTime = 0
 local sec = 0
+local suspendUntilSec = 0
 
 local windNotGood = windFunctions.isWindBad()
 
@@ -465,10 +466,12 @@ local function queueNotification(event, forceplay)
 	end
 end
 
-
-local function queueTutorialNotification(event)
-	if doTutorialMode and (not tutorialPlayed[event] or tutorialPlayed[event] < tutorialPlayLimit) then
-		queueNotification(event)
+function widget:RecvLuaMsg(message)
+	if message:find("suspendNotifications ") then
+		local duration = tonumber(message:sub(22))
+		if duration and duration > 0 then
+			suspendUntilSec = sec + duration
+		end
 	end
 end
 
@@ -945,7 +948,7 @@ function widget:Update(dt)
 		end
 
 		-- process sound queue
-		if sec >= nextSoundQueued then
+		if sec >= nextSoundQueued and sec >= suspendUntilSec then
 			playNextSound()
 		end
 
@@ -1042,7 +1045,6 @@ function widget:GetConfigData(data)
 		tutorialMode = tutorialMode,
 		tutorialPlayed = tutorialPlayed,
 		tutorialPlayedThisGame = tutorialPlayedThisGame,
-		
 	}
 end
 
