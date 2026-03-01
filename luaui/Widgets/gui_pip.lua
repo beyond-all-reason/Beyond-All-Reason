@@ -30,6 +30,9 @@ minimapApi.getZoomLevel = function()
 	return minimapApi.zoom
 end
 
+-- Forward-declare config so zoom helpers can reference it (config table defined below)
+local config
+
 -- Helper function to get effective zoom minimum (accounts for minimap mode)
 local function GetEffectiveZoomMin()
 	if isMinimapMode and minimapModeMinZoom then
@@ -41,7 +44,7 @@ end
 -- Helper function to get effective zoom maximum (accounts for minimap mode)
 local function GetEffectiveZoomMax()
 	-- In minimap mode, still allow zooming IN (higher zoom values)
-	return 0.95  -- Default config.zoomMax value
+	return config and config.zoomMax or 2
 end
 
 -- Helper function to check if at minimum zoom (fully zoomed out) in minimap mode
@@ -106,7 +109,7 @@ end
 ----------------------------------------------------------------------------------------------------
 -- Config
 ----------------------------------------------------------------------------------------------------
-local config = {
+config = {
 	-- UI colors and sizing
 	panelBorderColorLight = {0.75, 0.75, 0.75, 1},
 	panelBorderColorDark = {0.2, 0.2, 0.2, 1},
@@ -123,7 +126,7 @@ local config = {
 	playerTrackingSmoothness = 4.5,
 	switchSmoothness = 30,
 	zoomMin = 0.04,
-	zoomMax = 1,
+	zoomMax = 2,
 	zoomFeatures = 0.2,
 	zoomFeaturesFadeRange = 0.06,  -- Zoom range over which features fade in/out
 	zoomProjectileDetail = 0.12,
@@ -182,6 +185,7 @@ local config = {
 	unitpicZoomThreshold = 0.7, -- Zoom level at which to switch to unitpics (higher = more zoomed in)
 	drawComNametags = true,    -- Draw player names above commander icons
 	comNametagZoomThreshold = 0.12, -- Minimum zoom to show nametags (below this they'd overlap)
+	drawComHealthBars = true,  -- Draw health bars below commander icons when health < 99%
 	leftButtonPansCamera = isMinimapMode and (Spring.GetConfigInt("MinimapLeftClickMove", 1) == 1) or false,
 	maximizeSizemult = 1.25,
 	screenMargin = 0.045,
@@ -1512,6 +1516,7 @@ local cache = {
 	weaponColor = {},
 	weaponExplosionRadius = {},
 	weaponSkipExplosion = {},
+	weaponExplosionDim = {},    -- [wDefID] = 0..1 dimming multiplier for rapid-fire/flame weapon explosions
 }
 pipTV.cache = cache  -- Expose cache to early-defined pipTV functions (ScanAnticipation)
 
@@ -1758,6 +1763,73 @@ mapInfo.isLava = Spring.Lava.isLavaMap or (waterIsLava and waterIsLava ~= 0 and 
 mapInfo.hasWater = mapInfo.minGroundHeight < 0 or mapInfo.isLava
 mapInfo.dynamicWaterLevel = nil  -- current water/lava level (nil = static sea level = 0)
 mapInfo.lastCheckedWaterLevel = nil  -- for change detection
+
+-- Parse lava config from Spring.Lava for minimap overlay shader
+mapInfo.lavaCoastWidth = 25.0  -- default
+mapInfo.lavaCoastColor = {2.0, 0.5, 0.0}  -- default: bright orange (HDR)
+mapInfo.lavaDiffuseEmitTex = nil
+mapInfo.lavaUvScale = 2.0
+mapInfo.lavaSwirlFreq = 0.025
+mapInfo.lavaSwirlAmp = 0.003
+mapInfo.mapRatio = Game.mapSizeZ / Game.mapSizeX  -- Y/X aspect ratio for square-texel tiling
+if mapInfo.isLava then
+	mapInfo.lavaCoastWidth = Spring.Lava.coastWidth or 25.0
+	mapInfo.lavaUvScale = Spring.Lava.uvScale or 2.0
+	mapInfo.lavaSwirlFreq = Spring.Lava.swirlFreq or 0.025
+	mapInfo.lavaSwirlAmp = Spring.Lava.swirlAmp or 0.003
+	mapInfo.lavaDiffuseEmitTex = Spring.Lava.diffuseEmitTex  -- e.g. "LuaUI/images/lava/lava2_diffuseemit.dds"
+	mapInfo.lavaDistortionTex = "LuaUI/images/lavadistortion.png"  -- big flowing distortion texture
+	mapInfo.lavaTideAmplitude = Spring.Lava.tideAmplitude or 2
+	mapInfo.lavaTidePeriod = Spring.Lava.tidePeriod or 200
+	local cc = Spring.Lava.coastColor
+	if cc and type(cc) == "string" then
+		local cr, cg, cb = cc:match("vec3%s*%((.-),%s*(.-),%s*(.-)%)")
+		if cr then
+			mapInfo.lavaCoastColor = {tonumber(cr) or 2.0, tonumber(cg) or 0.5, tonumber(cb) or 0.0}
+		end
+	end
+end
+
+-- Read BumpWater rendering properties for animated water overlay (non-lava water maps)
+if mapInfo.hasWater and not mapInfo.isLava then
+	local sr, sg, sb = gl.GetWaterRendering("surfaceColor")
+	mapInfo.waterSurfaceColor = {sr or 0.75, sg or 0.8, sb or 0.85}
+	mapInfo.waterSurfaceAlpha = gl.GetWaterRendering("surfaceAlpha") or 0.55
+	local ar, ag, ab = gl.GetWaterRendering("absorb")
+	mapInfo.waterAbsorbColor = {ar or 0, ag or 0, ab or 0}
+	local br, bg, bb = gl.GetWaterRendering("baseColor")
+	mapInfo.waterBaseColorRGB = {br or 0.6, bg or 0.6, bb or 0.75}
+	local mr, mg, mb = gl.GetWaterRendering("minColor")
+	mapInfo.waterMinColor = {mr or 0, mg or 0, mb or 0}
+	mapInfo.waterCausticsStrength = gl.GetWaterRendering("causticsStrength") or 0.08
+	mapInfo.waterPerlinStartFreq = gl.GetWaterRendering("perlinStartFreq") or 8
+	mapInfo.waterPerlinLacunarity = gl.GetWaterRendering("perlinLacunarity") or 3
+	mapInfo.waterPerlinAmplitude = gl.GetWaterRendering("perlinAmplitude") or 0.9
+	mapInfo.waterFresnelMin = gl.GetWaterRendering("fresnelMin") or 0.2
+	mapInfo.waterDiffuseFactor = gl.GetWaterRendering("diffuseFactor") or 1.0
+end
+
+-- Lava render state is shared across ALL PIP instances via WG.lavaRenderState.
+-- If the gadget has been modified to push LavaRenderState, use those values.
+-- Otherwise, compute tide level and heat distortion locally (same formulas as the gadget).
+if mapInfo.isLava and not WG.lavaRenderState then
+	WG.lavaRenderState = {
+		level = nil,
+		heatDistortX = 0,
+		heatDistortZ = 0,
+		smoothFPS = 15,
+		gadgetPushed = false,  -- true once gadget pushes data (means gadget is modified)
+	}
+	widgetHandler:RegisterGlobal("LavaRenderState", function(tideLevel, heatDistortX, heatDistortZ)
+		local lrs = WG.lavaRenderState
+		if lrs then
+			lrs.level = tideLevel
+			lrs.heatDistortX = heatDistortX or 0
+			lrs.heatDistortZ = heatDistortZ or 0
+			lrs.gadgetPushed = true
+		end
+	end)
+end
 
 -- Eagerly read lava level if available (avoids wrong first R2T render on lava maps)
 if mapInfo.isLava or mapInfo.hasWater then
@@ -2331,31 +2403,270 @@ void main() {
 		]],
 		fragment = [[
 			uniform sampler2D heightTex;
+			uniform sampler2D lavaDiffuseTex;
+			uniform sampler2D lavaDistortTex;
 			uniform vec4 waterColor;
-			uniform float waterLevel;  // water/lava surface level in elmos (world height units)
+			uniform float waterLevel;
+			uniform float isLava;
+			uniform float hasLavaTex;
+			uniform float hasDistortTex;
+			uniform float gameFrames;    // exact Spring.GetGameFrame()
+			uniform vec3 lavaCoastColor;
+			uniform float lavaCoastWidth;
+			uniform float lavaUvScale;    // WORLDUVSCALE
+			uniform float lavaSwirlFreq;  // SWIRLFREQUENCY
+			uniform float lavaSwirlAmp;   // SWIRLAMPLITUDE
+			uniform float mapRatio;       // mapSizeZ / mapSizeX
+			uniform float sunDirY;        // sun direction Y for flat-surface lighting
+			uniform float heatDistortX;   // camera-based distortion drift (from gadget)
+			uniform float heatDistortZ;   // camera-based distortion drift (from gadget)
+			// BumpWater properties for non-lava water rendering
+			uniform vec3 wSurfColor;      // surfaceColor from map water config
+			uniform float wSurfAlpha;     // surfaceAlpha
+			uniform vec3 wAbsorbColor;    // absorb color (light absorption per depth)
+			uniform vec3 wBaseColor;      // baseColor (shallow water color)
+			uniform vec3 wMinColor;       // minColor (deepest water floor)
+			uniform float wCausticsStr;   // causticsStrength
+			uniform float wPerlinStart;   // perlinStartFreq
+			uniform float wPerlinLacun;   // perlinLacunarity
+			uniform float wPerlinAmp;     // perlinAmplitude
+			uniform float wFresnelMin;    // fresnelMin (top-down reflectivity)
+			uniform float wDiffuseFactor; // diffuseFactor (surface brightness)
 			varying vec2 texCoord;
+
+			float rand(vec2 co) {
+				return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
+			}
+			float vnoise(vec2 p) {
+				vec2 i = floor(p);
+				vec2 f = fract(p);
+				f = f * f * (3.0 - 2.0 * f);
+				return mix(
+					mix(rand(i), rand(i + vec2(1.0, 0.0)), f.x),
+					mix(rand(i + vec2(0.0, 1.0)), rand(i + vec2(1.0, 1.0)), f.x),
+					f.y);
+			}
+
 			void main() {
-				float height = texture2D(heightTex, texCoord).r;  // raw height in elmos
-				
-				// Depth below water/lava surface (positive = submerged)
+				float height = texture2D(heightTex, texCoord).r;
 				float depth = waterLevel - height;
-				
-				// Smooth transition over 10 elmos depth for gradual coverage
-				float waterAmount = clamp(depth / 10.0, 0.0, 1.0);
-				
-				// Use waterColor.a to control overall intensity:
-				// Low alpha (0.5 = normal water) gets subtle tinting via * 0.05
-				// High alpha (1.0 = void/lava) gets strong coverage
-				float alphaScale = mix(0.05, 1.0, waterColor.a);
-				gl_FragColor = vec4(waterColor.rgb, waterAmount * alphaScale);
+
+				if (isLava > 0.5) {
+					float lavaAlpha = clamp(depth / 5.0, 0.0, 1.0);
+
+					// Coast factor (HEIGHTOFFSET=2.0)
+					float coastfactor = clamp((height - waterLevel + lavaCoastWidth + 2.0) / lavaCoastWidth, 0.0, 1.0);
+					if (coastfactor > 0.90) {
+						coastfactor = 9.0 * (1.0 - coastfactor);
+					} else {
+						coastfactor = pow(coastfactor / 0.9, 3.0);
+					}
+
+					// worldUV: texCoord 0-1 across map, Y *= mapRatio for square tiling
+					vec2 worldUV = texCoord;
+					worldUV.y *= mapRatio;
+
+					// Global rotate: GLOBALROTATEFREQUENCY=0.0001, AMPLITUDE=0.05
+					// Real shader: worldRotTime = timeInfo.x + timeInfo.w  (frame + subframe)
+					worldUV += vec2(sin(gameFrames * 0.0001), cos(gameFrames * 0.0001)) * 0.05;
+
+					// Camshift: camera-based distortion drift (same as real shader)
+					vec2 camshift = vec2(heatDistortX, heatDistortZ) * 0.001;
+
+					// Pre-sample emissive for distortion modulation (matches real shader:
+					// texture(lavaDiffuseEmit, worldUV.xy * WORLDUVSCALE) — no camshift)
+					vec4 nodiffuseEmit = vec4(0.5);
+					if (hasLavaTex > 0.5) {
+						nodiffuseEmit = texture2D(lavaDiffuseTex, worldUV * lavaUvScale);
+					}
+
+					// Flowing displacement: replaces real shader's per-vertex mesh swirl.
+					// Uses layered value noise with time-varying offsets to create smooth,
+					// organic flowing lava motion without cell-grid seams.
+					// Two octaves at different scales + speeds for natural layered flow.
+					float flowTime = gameFrames * 0.001;
+					vec2 flowUV = worldUV * 3.0;
+
+					// Octave 1: large-scale slow flow
+					float flow1x = vnoise(flowUV + vec2(flowTime * 0.7, flowTime * 0.3)) - 0.5;
+					float flow1y = vnoise(flowUV + vec2(-flowTime * 0.5, flowTime * 0.6) + vec2(7.3, 3.1)) - 0.5;
+
+					// Octave 2: mid-scale faster flow for detail
+					float flow2x = vnoise(flowUV * 2.5 + vec2(flowTime * 1.1, -flowTime * 0.8) + vec2(13.7, 5.9)) - 0.5;
+					float flow2y = vnoise(flowUV * 2.5 + vec2(-flowTime * 0.9, flowTime * 1.3) + vec2(2.1, 11.4)) - 0.5;
+
+					vec2 swirl = vec2(flow1x + flow2x * 0.5, flow1y + flow2y * 0.5) * 0.06;
+
+					// Distortion texture — adapted for minimap scale:
+					// Real shader uses 45.2x UV tiling, but at minimap zoom each pixel
+					// covers too much of the texture, so mipmapping averages out the
+					// variation.  Lower tiling + higher magnitude creates visible warping.
+					vec2 distortion;
+					if (hasDistortTex > 0.5) {
+						vec4 distTex = texture2D(lavaDistortTex, (worldUV + camshift) * 8.0);
+						distortion = distTex.xy * 0.2 * 0.15;
+					} else {
+						float dn1 = vnoise((worldUV + camshift) * 8.0);
+						float dn2 = vnoise((worldUV + camshift) * 8.0 * 1.7 + vec2(3.7, 1.2));
+						distortion = vec2(dn1, dn2) * 0.03;
+					}
+					distortion *= clamp(nodiffuseEmit.a * 0.5 + coastfactor, 0.2, 2.0);
+
+					// Final UV: worldUV * UVSCALE + distortion + swirl
+					// camshift is NOT in the main UV — it only shifts the distortion
+					// texture lookup above, so the PIP stays in sync with the gadget.
+					vec2 finalUV = worldUV * lavaUvScale + distortion + swirl;
+
+					vec3 baseColor;
+					float emissive;
+					if (hasLavaTex > 0.5) {
+						vec4 lavaSample = texture2D(lavaDiffuseTex, finalUV);
+						baseColor = lavaSample.rgb;
+						emissive = lavaSample.a;
+					} else {
+						float n1 = vnoise(finalUV * 12.0);
+						float n2 = vnoise(finalUV * 28.0);
+						float nv = n1 * 0.65 + n2 * 0.35;
+						baseColor = mix(waterColor.rgb, waterColor.rgb * 2.5 + vec3(0.3, 0.08, 0.0), nv * 0.4);
+						emissive = nv;
+					}
+
+					// Apply softened sun lighting (flat surface, normal ≈ (0,1,0))
+					// Real shader has normal mapping + specular that brighten it back;
+					// we only apply partial darkening to compensate
+					float lightamount = mix(1.0, clamp(sunDirY, 0.2, 1.0), 0.5);
+					baseColor *= lightamount;
+
+					// Coast glow (applied after lighting, matching real shader order)
+					baseColor += lavaCoastColor * coastfactor;
+
+					// Emissive glow (applied after coast, matching real shader order)
+					// distortion magnitude is boosted for minimap visibility, so
+					// constant is reduced to keep glow intensity proportional
+					baseColor += baseColor * (emissive * distortion.y * 140.0);
+
+					float alpha = max(lavaAlpha, coastfactor * 0.85);
+					gl_FragColor = vec4(baseColor, alpha);
+				} else {
+					// S-curve alpha: very shallow water stays nearly transparent
+					// so sand/ground shows through, then ramps up smoothly with depth.
+					// Caps at 0.75 so underwater terrain detail remains visible.
+					float waterAmount = smoothstep(0.0, 35.0, depth) * 0.58;
+
+					if (waterColor.a > 0.95) {
+						// Void water: solid color overlay (no animation)
+						gl_FragColor = vec4(waterColor.rgb, waterAmount);
+					} else {
+						// BumpWater-style animated water rendering for minimap
+						vec2 worldUV = texCoord;
+						worldUV.y *= mapRatio;
+
+						// Depth-based absorption coloring (from BumpWater):
+						// deeper water absorbs more light, trending toward minColor
+						float depthFactor = min(depth * 0.04, 1.0);
+						vec3 depthColor = wBaseColor - wAbsorbColor * depthFactor;
+						depthColor = max(depthColor, wMinColor);
+						// Enforce blue tint: ensure blue channel dominates over green
+						// to prevent maps with green-tinted water settings from looking swampy
+						float blueShift = max(depthColor.g - depthColor.b, 0.0) * 0.8;
+						depthColor.g -= blueShift;
+						depthColor.b += blueShift * 0.5;
+						// Per-map brightness: fresnelMin controls top-down reflectivity
+						// (how bright the surface looks from above). diffuseFactor adds
+						// extra surface lighting intensity. Together they differentiate
+						// reflective bright maps from dark moody ones.
+						// Reflectivity boost: fresnelMin=0.2 -> 1.0x, fresnelMin=0.8 -> 1.6x
+						float reflectBright = 1.0 + (wFresnelMin - 0.2) * 1.0;
+						// Diffuse boost: diffuseFactor=1 -> 1.0x, diffuseFactor=3 -> 1.3x
+						float diffuseBright = 1.0 + (wDiffuseFactor - 1.0) * 0.15;
+						float mapBrightness = clamp(reflectBright * diffuseBright, 0.6, 2.0);
+
+						// Overall darkening modulated by per-map brightness
+						depthColor *= 0.45 * mapBrightness;
+						// Additional darkening for very deep water
+						float deepDarken = mix(1.0, 0.6, smoothstep(10.0, 80.0, depth));
+						depthColor *= deepDarken;
+
+						// Surface color modulated by per-map brightness
+						vec3 surfColor = wSurfColor * 0.25 * mapBrightness;
+						// Apply same blue-shift to surface color
+						float surfBlueShift = max(surfColor.g - surfColor.b, 0.0) * 0.8;
+						surfColor.g -= surfBlueShift;
+						surfColor.b += surfBlueShift * 0.5;
+
+						// Animated Perlin-like noise: 3 octaves scrolling at different speeds
+						float waveTime = gameFrames * 0.0005;
+						float freq1 = wPerlinStart;
+						float freq2 = freq1 * wPerlinLacun;
+						float freq3 = freq2 * wPerlinLacun;
+						float wave1 = vnoise(worldUV * freq1 + vec2(waveTime * 0.3, waveTime * 0.2));
+						float wave2 = vnoise(worldUV * freq2 + vec2(-waveTime * 0.4, waveTime * 0.35) + vec2(3.7, 1.2));
+						float wave3 = vnoise(worldUV * freq3 + vec2(waveTime * 0.5, -waveTime * 0.45) + vec2(7.3, 5.9));
+						float ampTotal = 1.0 + wPerlinAmp + wPerlinAmp * wPerlinAmp;
+						float waveNoise = (wave1 + wave2 * wPerlinAmp + wave3 * wPerlinAmp * wPerlinAmp) / ampTotal;
+
+						// Surface variation: subtle brightness modulation from wave bumps
+						float surfaceVar = mix(0.92, 1.08, waveNoise);
+
+						// Caustics: animated bright patterns at medium depth (5-30 elmo)
+						float causticsDepthScale = smoothstep(0.0, 5.0, depth) * smoothstep(40.0, 15.0, depth);
+						float c1 = vnoise(worldUV * 20.0 + vec2(waveTime * 0.6, -waveTime * 0.3));
+						float c2 = vnoise(worldUV * 35.0 + vec2(-waveTime * 0.4, waveTime * 0.7) + vec2(5.3, 8.7));
+						float caustics = pow(c1 * 0.5 + c2 * 0.5, 2.0) * wCausticsStr * 6.0 * causticsDepthScale;
+
+						// Shore foam: white froth at very shallow depths
+						float shoreFactor = smoothstep(3.0, 0.0, depth) * smoothstep(-0.5, 0.5, depth);
+						float foamNoise = vnoise(worldUV * 40.0 + vec2(waveTime * 2.0, -waveTime * 1.5));
+						float foam = shoreFactor * foamNoise * 0.4;
+
+						// Combine: depth color blended with surface tint, then add effects
+						// Use reduced surface blend (0.3) so depth/ground darkness dominates
+						vec3 waterResult = mix(depthColor, surfColor, wSurfAlpha * 0.3) * surfaceVar;
+						waterResult += vec3(caustics);
+						waterResult += vec3(foam);
+
+						// Sun lighting (partial darkening, same as lava branch)
+						float lightamount = mix(1.0, clamp(sunDirY, 0.2, 1.0), 0.5);
+						waterResult *= lightamount;
+
+						gl_FragColor = vec4(waterResult, waterAmount);
+					}
+				}
 			}
 		]],
 		uniformInt = {
 			heightTex = 0,
+			lavaDiffuseTex = 1,
+			lavaDistortTex = 2,
 		},
 		uniformFloat = {
 			waterColor = {0, 0.04, 0.25, 0.5},
 			waterLevel = 0,
+			isLava = 0,
+			hasLavaTex = 0,
+			hasDistortTex = 0,
+			gameFrames = 0,
+			lavaCoastColor = {2.0, 0.5, 0.0},
+			lavaCoastWidth = 25.0,
+			lavaUvScale = 2.0,
+			lavaSwirlFreq = 0.025,
+			lavaSwirlAmp = 0.003,
+			mapRatio = 1.0,
+			sunDirY = 0.5,
+			heatDistortX = 0,
+			heatDistortZ = 0,
+			-- BumpWater defaults (overridden at draw time from map config)
+			wSurfColor = {0.3, 0.32, 0.34},
+			wSurfAlpha = 0.55,
+			wAbsorbColor = {0, 0, 0},
+			wBaseColor = {0.6, 0.6, 0.75},
+			wMinColor = {0, 0, 0},
+			wCausticsStr = 0.08,
+			wPerlinStart = 8.0,
+			wPerlinLacun = 3.0,
+			wPerlinAmp = 0.9,
+			wFresnelMin = 0.2,
+			wDiffuseFactor = 1.0,
 		},
 	},
 }
@@ -5428,7 +5739,7 @@ local function DrawExplosions()
 
 					-- Fireball radius (20% smaller than before)
 					local baseRadius = effectiveRadius * (0.27 + progress * 1.8)
-					local alpha = 1 - progress                  -- Fades out
+					local alpha = (1 - progress) * (explosion.dimFactor or 1)  -- Fades out, dimmed for rapid-fire
 
 					-- Color: outer fireball (darker, smoky edge) and inner core (bright, hot)
 				-- Per-explosion random tint variation using stored seed
@@ -6443,7 +6754,7 @@ function widget:Initialize()
 		if uDef.isBuilding then
 			cache.isBuilding[uDefID] = true
 		end
-		if uDef.customParams and uDef.customParams.iscommander then
+		if uDef.customParams and (uDef.customParams.iscommander or uDef.customParams.isdecoycommander or uDef.customParams.isscavcommander or uDef.customParams.isscavdecoycommander) then
 			cache.isCommander[uDefID] = true
 		end
 		cache.unitCost[uDefID] = uDef.metalCost + uDef.energyCost / 60
@@ -6451,7 +6762,7 @@ function widget:Initialize()
 		-- Pre-compute icon draw layer for GL4 rendering (determines render order)
 		if uDef.canFly then
 			gl4Icons.unitDefLayer[uDefID] = gl4Icons.LAYER_AIR
-		elseif uDef.customParams and uDef.customParams.iscommander then
+		elseif uDef.customParams and (uDef.customParams.iscommander or uDef.customParams.isdecoycommander or uDef.customParams.isscavcommander or uDef.customParams.isscavdecoycommander) then
 			gl4Icons.unitDefLayer[uDefID] = gl4Icons.LAYER_COMMANDER
 		elseif uDef.isBuilding then
 			gl4Icons.unitDefLayer[uDefID] = gl4Icons.LAYER_STRUCTURE
@@ -6625,6 +6936,21 @@ function widget:Initialize()
 		-- Check if weapon should skip explosion rendering (e.g., footstep effects)
 		if wDef.name and string.find(string.lower(wDef.name), "footstep") then
 			cache.weaponSkipExplosion[wDefID] = true
+		end
+
+		-- Dim factor for rapid-fire and flame weapons (reduces stacking whiteout)
+		-- Flame weapons always get dimmed; other weapons dimmed by effective fire rate
+		if cache.weaponIsFlame[wDefID] then
+			cache.weaponExplosionDim[wDefID] = 0.3
+		else
+			local reload = wDef.reload or 1
+			local salvoSize = wDef.salvoSize or 1
+			local burst = wDef.projectiles or 1
+			local effectiveRate = salvoSize * burst / reload  -- shots per second
+			if effectiveRate > 5 then
+				-- Scale dim from 0.7 at 5/s down to 0.3 at 20+/s
+				cache.weaponExplosionDim[wDefID] = math.max(0.3, 0.7 - (effectiveRate - 5) * 0.027)
+			end
 		end
 	
 	-- Check if weapon is paralyze damage
@@ -7476,6 +7802,12 @@ function widget:Shutdown()
 		end
 	end
 
+	-- Clean up shared lava render state (only when last PIP shuts down)
+	if not anotherPipActive and WG.lavaRenderState then
+		widgetHandler:DeregisterGlobal("LavaRenderState")
+		WG.lavaRenderState = nil
+	end
+
 	-- Clean up TV focus coordination
 	if WG.pipTVFocus then
 		WG.pipTVFocus[pipNumber] = nil
@@ -7543,6 +7875,7 @@ function widget:GetConfigData()
 		explosionOverlay=config.explosionOverlay,
 		explosionOverlayAlpha=config.explosionOverlayAlpha,
 		healthDarkenMax=config.healthDarkenMax,
+		drawComHealthBars=config.drawComHealthBars,
 		activityFocusEnabled=miscState.activityFocusEnabled,
 		activityFocusIgnoreSpectators=config.activityFocusIgnoreSpectators,
 		tvEnabled=miscState.tvEnabled,
@@ -7666,7 +7999,7 @@ function widget:SetConfigData(data)
 			end
 			cameraState.targetWcx, cameraState.targetWcz = cameraState.wcx, cameraState.wcz
 			
-			if data.minimapModeZoom and isValidNumber(data.minimapModeZoom, 0, 1) then
+			if data.minimapModeZoom and isValidNumber(data.minimapModeZoom, 0, GetEffectiveZoomMax()) then
 				cameraState.zoom = data.minimapModeZoom
 				cameraState.targetZoom = cameraState.zoom
 				miscState.minimapCameraRestored = true  -- Flag that we restored camera state
@@ -7683,8 +8016,8 @@ function widget:SetConfigData(data)
 		end
 		cameraState.targetWcx, cameraState.targetWcz = cameraState.wcx, cameraState.wcz  -- Initialize targets from config
 		
-		-- Validate zoom level (must be between 0 and 1)
-		if data.zoom and isValidNumber(data.zoom, 0, 1) then
+		-- Validate zoom level (must be between 0 and zoomMax)
+		if data.zoom and isValidNumber(data.zoom, 0, GetEffectiveZoomMax()) then
 			cameraState.zoom = data.zoom
 		end
 	end
@@ -7694,14 +8027,20 @@ function widget:SetConfigData(data)
 	if data.explosionOverlayAlpha then config.explosionOverlayAlpha = data.explosionOverlayAlpha end
 	if data.hideAICommands ~= nil then config.hideAICommands = data.hideAICommands end
 	if data.healthDarkenMax ~= nil then config.healthDarkenMax = data.healthDarkenMax end
+	if data.drawComHealthBars ~= nil then config.drawComHealthBars = data.drawComHealthBars end
 	if data.activityFocusEnabled ~= nil then miscState.activityFocusEnabled = data.activityFocusEnabled end
 	if data.activityFocusIgnoreSpectators ~= nil then config.activityFocusIgnoreSpectators = data.activityFocusIgnoreSpectators end
 	if data.tvEnabled ~= nil then
-		miscState.tvEnabled = data.tvEnabled
-		if miscState.tvEnabled then
-			pipTV.camera.active = true
-			pipTV.director.idle = true
-			pipTV.director.lastOverviewTime = os.clock()
+		-- Only restore TV mode if we're a spectator (or tvModeSpectatorsOnly is off)
+		if data.tvEnabled and config.tvModeSpectatorsOnly and not Spring.GetSpectatingState() then
+			miscState.tvEnabled = false
+		else
+			miscState.tvEnabled = data.tvEnabled
+			if miscState.tvEnabled then
+				pipTV.camera.active = true
+				pipTV.director.idle = true
+				pipTV.director.lastOverviewTime = os.clock()
+			end
 		end
 	end
 	--if data.unitpicZoomThreshold then config.unitpicZoomThreshold = data.unitpicZoomThreshold end
@@ -8501,7 +8840,10 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	local iconRadiusZoomDistMult = unitBaseSize * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(cameraState.zoom) * resScale
 
 	-- Check if unitpics should be shown at this zoom level
-	local useUnitpics = config.showUnitpics and cameraState.zoom >= config.unitpicZoomThreshold
+	-- Use targetZoom (instant scroll response) instead of smooth zoom so the transition from
+	-- unitpics to icons happens immediately when the user scrolls out, not after the smooth
+	-- zoom animation catches up (which would leave a visible gap with no icons/unitpics).
+	local useUnitpics = config.showUnitpics and cameraState.targetZoom >= config.unitpicZoomThreshold
 	local unitpicEntries = {}
 	local unitpicCount = 0
 
@@ -8944,6 +9286,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		and checkAllyTeamID == gl4Icons._bldgBlockCheckAlly  -- LOS filtering context changed
 		and (currentGameFrame - (gl4Icons._bldgBlockFrame or 0)) < 30
 		and not useUnitpics  -- unitpic collection needs per-unit data
+		and not gl4Icons._bldgBlockBuiltDuringUnitpics  -- block built with 0 icons during unitpics is invalid
 
 	local preProcessEl = usedElements
 
@@ -9069,6 +9412,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		gl4Icons._bldgBlockHash = bldgHash
 		gl4Icons._bldgBlockCheckAlly = checkAllyTeamID
 		gl4Icons._bldgBlockFrame = currentGameFrame
+		gl4Icons._bldgBlockBuiltDuringUnitpics = useUnitpics  -- block has 0 icons when unitpics active
 	end
 	local icT3b = os.clock()
 	local bldgProcessed = usedElements - preProcessEl
@@ -9119,7 +9463,10 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		gl.UniformFloat(ul.rotCenter, fboW * 0.5, fboH * 0.5)
 
 		-- Icon size and time
-		gl.UniformFloat(ul.iconBaseSize, iconRadiusZoomDistMult)
+		-- Cap icon texture size at the 0.95-zoom equivalent so icons don't grow into
+		-- oversized blobs at extreme zoom levels (world keeps zooming, icons stay readable)
+		local iconSizeCap = unitBaseSize * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(0.95) * resScale
+		gl.UniformFloat(ul.iconBaseSize, math.min(iconRadiusZoomDistMult, iconSizeCap))
 		gl.UniformFloat(ul.gameTime, gameTime)
 		gl.UniformFloat(ul.wallClockTime, wallClockTime)
 		gl.UniformFloat(ul.healthDarkenMax, config.healthDarkenMax)
@@ -9150,7 +9497,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	if useUnitpics and unitpicCount > 0 then
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		local unitpicSizeMult = 0.85
-		local picTexInset = 0.18 * (1 - (cameraState.zoom - config.unitpicZoomThreshold) / (1 - config.unitpicZoomThreshold))
+		local picTexInset = math.max(0, 0.18 * (1 - (cameraState.zoom - config.unitpicZoomThreshold) / (1 - config.unitpicZoomThreshold)))
 		local distMult = math.min(math.max(1, 2.2-(cameraState.zoom*3.3)), 3)
 		local teamBorderSize = 3 * cameraState.zoom * distMult * resScale
 		local blackBorderSize = 4 * cameraState.zoom * distMult * resScale
@@ -9224,7 +9571,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 				local healthFrac = up[8] or 1
 				if healthFrac < 0.99 then
 					local barW = iconSize * 0.82
-					local barH = math.max(1, iconSize * 0.13)
+					local barH = math.max(1, iconSize * 0.1508)
 					local barY = iconSize - barH * 1.5
 					local outl = math.max(1, barH * 0.2)
 					glFunc.Texture(false)
@@ -9291,9 +9638,9 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 				local healthFrac = up[8] or 1
 				if healthFrac < 0.99 then
 					local barW = iconSize * 0.82
-					local barH = math.max(1, iconSize * 0.13)
+					local barH = math.max(1, iconSize * 0.185)
 					local barY = py + iconSize - barH * 1.5
-					local outl = math.max(1, barH * 0.2)
+					local outl = math.max(1, barH * 0.4)
 					glFunc.Texture(false)
 					-- Outline
 					glFunc.Color(0, 0, 0, 0.9)
@@ -9713,13 +10060,16 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 					local name
 					local luaAI = Spring.GetTeamLuaAI(tID) or ''
 					if luaAI ~= '' then
-						-- AI team: use AI display name from game rules
+						-- Lua AI team (e.g. Scavengers): use AI display name from game rules
 						local aiDisplayName = Spring.GetGameRulesParam('ainame_' .. tID)
 						if aiDisplayName then
-							name = aiDisplayName
+							name = aiDisplayName .. ' (AI)'
 						else
-							name = luaAI
+							name = luaAI .. ' (AI)'
 						end
+					elseif Spring.GetGameRulesParam('ainame_' .. tID) then
+						-- Native/C++ AI team (e.g. BARb): no LuaAI, but has ainame_ game rule
+						name = Spring.GetGameRulesParam('ainame_' .. tID) .. ' (AI)'
 					else
 						-- Human player: find the best player on this team
 						-- Prefer active non-spec, fall back to any non-spec (disconnected), then any player
@@ -9778,6 +10128,9 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		local localIsCommander = cache.isCommander
 		local localCacheUnitIcon = cache.unitIcon
 		local resScale = render.contentScale or 1
+		-- Cap icon size for nametag/health bar positioning to match the capped shader icons
+		local cappedIconRadius = math.min(iconRadiusZoomDistMult,
+			Spring.GetConfigFloat("MinimapIconScale", 3.5) * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(0.95) * resScale)
 		-- Font size scales with zoom: grows when zoomed in, floors at readable minimum
 		local zoomFactor = math.sqrt(cameraState.zoom / 0.12)  -- 1.0 at threshold, grows with zoom
 		local nametagFontSize = math.max(8, math.floor(11 * resScale * zoomFactor))
@@ -9787,34 +10140,122 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 
 		font:Begin()
 		local pipUnits = miscState.pipUnits
+		-- Collect commander positions, draw nametags, and gather health bar data
+		-- (health bars only when unitpics are NOT shown, since unitpics have their own)
+		local unitpicsActive = config.showUnitpics and cameraState.targetZoom >= config.unitpicZoomThreshold
+		local comHealthBars = (config.drawComHealthBars and not unitpicsActive) and {} or nil
+		local comHealthCount = 0
 		for i = 1, unitCount do
 			local uID = pipUnits[i]
 			local dID = defCache[uID]
 			if dID and localIsCommander[dID] then
 				local tID = teamCache[uID]
-				local entry = tID and comNametagCache[tID]
-				if entry then
-					local wx = posX[uID]
-					if wx then
-						local cx, cy = WorldToPipCoords(wx, posZ[uID])
-						local iconInfo = localCacheUnitIcon[dID]
-						local iconHalf = iconRadiusZoomDistMult * (iconInfo and iconInfo.size or 0.5)
-						-- Rotate the icon center to match where the shader placed it
-						if isRotated then
-							local dx, dy = cx - rotCX, cy - rotCY
-							cx = rotCX + dx * rotCos - dy * rotSin
-							cy = rotCY + dx * rotSin + dy * rotCos
+				-- LOS check: determine visibility state (skip units not in LOS or radar)
+				local inLos = true
+				local inRadar = false
+				if checkAllyTeamID and tID then
+					local unitAllyTeam = teamAllyTeamCache[tID] or spFunc.GetTeamAllyTeamID(tID)
+					if unitAllyTeam ~= checkAllyTeamID then
+						local losBits = spFunc.GetUnitLosState(uID, checkAllyTeamID, true)
+						if not losBits or losBits % 4 < 1 then  -- neither LOS (bit 0) nor radar (bit 1)
+							inLos = false
+							-- skip entirely: no icon drawn, so no nametag/health bar
+						else
+							inLos = losBits % 2 >= 1  -- bit 0 = LOS_INLOS
+							inRadar = not inLos       -- in radar but not LOS
 						end
-						-- Offset above the icon in screen space (always +Y, after rotation)
-						cy = cy + iconHalf + nametagFontSize * 0.35
-						font:SetTextColor(entry.r, entry.g, entry.b, nametagAlpha)
-						font:SetOutlineColor(entry.oR, entry.oG, entry.oB, nametagAlpha)
-						font:Print(entry.name, cx, cy, nametagFontSize, "con")
 					end
 				end
+				if inLos or inRadar then
+				local wx = posX[uID]
+				if wx then
+					local cx, cy = WorldToPipCoords(wx, posZ[uID])
+					local iconInfo = localCacheUnitIcon[dID]
+					local iconHalf = cappedIconRadius * (iconInfo and iconInfo.size or 0.5)
+					-- Rotate the icon center to match where the shader placed it
+					if isRotated then
+						local dx, dy = cx - rotCX, cy - rotCY
+						cx = rotCX + dx * rotCos - dy * rotSin
+						cy = rotCY + dx * rotSin + dy * rotCos
+					end
+					-- Apply radar wobble to match the icon's shader wobble
+					if inRadar then
+						local phase = (uID * 0.37) % 6.2832
+						local wobbleAmp = iconHalf * 0.3
+						cx = cx + math.sin(gameTime * 3.0 + phase) * wobbleAmp
+						cy = cy + math.cos(gameTime * 2.7 + phase * 1.3) * wobbleAmp
+					end
+					-- Draw nametag above icon (always, including radar blips)
+					local entry = tID and comNametagCache[tID]
+					if entry then
+						local nameY = cy + iconHalf + nametagFontSize * 0.35
+						font:SetTextColor(entry.r, entry.g, entry.b, nametagAlpha)
+						font:SetOutlineColor(entry.oR, entry.oG, entry.oB, nametagAlpha)
+						font:Print(entry.name, cx, nameY, nametagFontSize, "con")
+					end
+					-- Collect health bar data (only when in actual LOS, not radar)
+					if comHealthBars and inLos then
+						local hp, maxHP = spFunc.GetUnitHealth(uID)
+						if hp and maxHP and maxHP > 0 then
+							local hpFrac = hp / maxHP
+							if hpFrac < 0.99 then
+								comHealthCount = comHealthCount + 1
+								comHealthBars[comHealthCount] = { cx = cx, cy = cy, half = iconHalf, frac = hpFrac }
+							end
+						end
+					end
+				end
+				end -- inLos or inRadar
 			end
 		end
 		font:End()
+
+		-- Draw commander health bars below icons (matches unitpic health bar style)
+		if comHealthCount > 0 then
+			glFunc.Texture(false)
+			for hi = 1, comHealthCount do
+				local hb = comHealthBars[hi]
+				local barW = hb.half * 0.78
+				local barH = math.max(1, hb.half * 0.18)
+				local barY = hb.cy - hb.half + (hb.half * 2) - barH * 1.5
+				local outl = math.max(1, barH * 0.45)
+				-- Outline (black border)
+				glFunc.Color(0, 0, 0, 0.9 * nametagAlpha)
+				glFunc.BeginEnd(GL.QUADS, function()
+					glFunc.Vertex(hb.cx - barW - outl, barY - outl)
+					glFunc.Vertex(hb.cx + barW + outl, barY - outl)
+					glFunc.Vertex(hb.cx + barW + outl, barY + barH + outl)
+					glFunc.Vertex(hb.cx - barW - outl, barY + barH + outl)
+				end)
+				-- Background (dark gray, blinks red when health <= 30%)
+				local bgR, bgG, bgB = 0.25, 0.25, 0.25
+				if hb.frac <= 0.30 then
+					-- Intensity scales from 0.15 at 30% to 0.30 at 0%, blinks via sin wave
+					local urgency = 0.3 + (1 - hb.frac / 0.30) * 0.3
+					local blink = (math.sin(gameTime * 11.0) * 0.5 + 0.5)  -- 0..1 pulsing
+					bgR = 0.11 + urgency * blink
+				end
+				glFunc.Color(bgR, bgG, bgB, 0.8 * nametagAlpha)
+				glFunc.BeginEnd(GL.QUADS, function()
+					glFunc.Vertex(hb.cx - barW, barY)
+					glFunc.Vertex(hb.cx + barW, barY)
+					glFunc.Vertex(hb.cx + barW, barY + barH)
+					glFunc.Vertex(hb.cx - barW, barY + barH)
+				end)
+				-- Fill: green→yellow→red gradient
+				local hr = hb.frac < 0.5 and 1.0 or (1.0 - (hb.frac - 0.5) * 2)
+				local hg = hb.frac > 0.5 and 1.0 or (hb.frac * 2)
+				local fillW = barW * 2 * hb.frac - barW
+				glFunc.Color(hr, hg, 0, 0.9 * nametagAlpha)
+				glFunc.BeginEnd(GL.QUADS, function()
+					glFunc.Vertex(hb.cx - barW, barY)
+					glFunc.Vertex(hb.cx + fillW, barY)
+					glFunc.Vertex(hb.cx + fillW, barY + barH)
+					glFunc.Vertex(hb.cx - barW, barY + barH)
+				end)
+			end
+			glFunc.Color(1, 1, 1, 1)
+		end
 
 		-- Re-push rotation matrix for subsequent drawing
 		if isRotated then
@@ -10232,6 +10673,11 @@ end
 -- Returns the water/lava surface level in elmos for the heightmap shader
 -- On lava maps, does a lazy read from the game rule if not yet known
 local function GetWaterLevel()
+	-- Prefer tide-adjusted level from shared WG (whether from gadget push or local computation)
+	local lrs = WG.lavaRenderState
+	if lrs and lrs.level then
+		return lrs.level
+	end
 	if mapInfo.dynamicWaterLevel then
 		return mapInfo.dynamicWaterLevel
 	end
@@ -10247,9 +10693,50 @@ local function GetWaterLevel()
 	return 0
 end
 
+-- Get heat distortion values from shared WG state
+local function GetLavaHeatDistort()
+	local lrs = WG.lavaRenderState
+	if lrs then
+		return lrs.heatDistortX, lrs.heatDistortZ
+	end
+	return 0, 0
+end
+
+-- Update lava render state locally (called every draw frame, replicates gadget's computations)
+-- This ensures animation works even without the gadget modification.
+-- If the gadget IS modified and pushing data, those values take priority (gadgetPushed flag).
+local function UpdateLavaRenderState()
+	local lrs = WG.lavaRenderState
+	if not lrs or lrs.gadgetPushed then return end  -- gadget is handling it
+
+	-- Compute tide-adjusted level (same formula as gadget's GameFrame)
+	local baseLavaLevel = Spring.GetGameRulesParam("lavaLevel")
+	if baseLavaLevel and baseLavaLevel ~= -99999 then
+		local gameFrame = Spring.GetGameFrame()
+		local tidePeriod = mapInfo.lavaTidePeriod or 200
+		local tideAmplitude = mapInfo.lavaTideAmplitude or 2
+		lrs.level = math.sin(gameFrame / tidePeriod) * tideAmplitude + baseLavaLevel
+	end
+
+	-- Compute heat distortion (same formula as gadget's DrawWorldPreUnit)
+	local _, _, isPaused = Spring.GetGameSpeed()
+	if not isPaused then
+		local camX, camY, camZ = Spring.GetCameraDirection()
+		local camvlength = math.sqrt(camX * camX + camZ * camZ + 0.01)
+		lrs.smoothFPS = 0.9 * lrs.smoothFPS + 0.1 * math.max(Spring.GetFPS(), 15)
+		lrs.heatDistortX = lrs.heatDistortX - camX / (camvlength * lrs.smoothFPS)
+		lrs.heatDistortZ = lrs.heatDistortZ - camZ / (camvlength * lrs.smoothFPS)
+	end
+end
+
 -- Helper function to draw water and LOS overlays
 local function DrawWaterAndLOSOverlays()
 	
+	-- Update lava animation state (tide level + heat distortion) locally each draw frame
+	if mapInfo.isLava then
+		UpdateLavaRenderState()
+	end
+
 	-- Draw water overlay using shader
 	if mapInfo.hasWater and shaders.water then
 		gl.UseShader(shaders.water)
@@ -10265,16 +10752,57 @@ local function DrawWaterAndLOSOverlays()
 		end
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "waterColor"), r, g, b, a)
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "waterLevel"), GetWaterLevel())
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "isLava"), mapInfo.isLava and 1.0 or 0.0)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "hasLavaTex"), mapInfo.lavaDiffuseEmitTex and 1.0 or 0.0)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "gameFrames"), Spring.GetGameFrame())
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaCoastColor"), mapInfo.lavaCoastColor[1], mapInfo.lavaCoastColor[2], mapInfo.lavaCoastColor[3])
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaCoastWidth"), mapInfo.lavaCoastWidth)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaUvScale"), mapInfo.lavaUvScale)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaSwirlFreq"), mapInfo.lavaSwirlFreq)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaSwirlAmp"), mapInfo.lavaSwirlAmp)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "mapRatio"), mapInfo.mapRatio)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "hasDistortTex"), mapInfo.lavaDistortionTex and 1.0 or 0.0)
+		local lavaHdx, lavaHdz = GetLavaHeatDistort()
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "sunDirY"), select(2, gl.GetSun("pos")))
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "heatDistortX"), lavaHdx)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "heatDistortZ"), lavaHdz)
+		
+		-- BumpWater properties for animated water overlay (non-lava maps)
+		if mapInfo.waterSurfaceColor then
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wSurfColor"), mapInfo.waterSurfaceColor[1], mapInfo.waterSurfaceColor[2], mapInfo.waterSurfaceColor[3])
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wSurfAlpha"), mapInfo.waterSurfaceAlpha)
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wAbsorbColor"), mapInfo.waterAbsorbColor[1], mapInfo.waterAbsorbColor[2], mapInfo.waterAbsorbColor[3])
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wBaseColor"), mapInfo.waterBaseColorRGB[1], mapInfo.waterBaseColorRGB[2], mapInfo.waterBaseColorRGB[3])
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wMinColor"), mapInfo.waterMinColor[1], mapInfo.waterMinColor[2], mapInfo.waterMinColor[3])
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wCausticsStr"), mapInfo.waterCausticsStrength)
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wPerlinStart"), mapInfo.waterPerlinStartFreq)
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wPerlinLacun"), mapInfo.waterPerlinLacunarity)
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wPerlinAmp"), mapInfo.waterPerlinAmplitude)
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wFresnelMin"), mapInfo.waterFresnelMin)
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wDiffuseFactor"), mapInfo.waterDiffuseFactor)
+		end
 		
 		-- Bind heightmap texture
 		gl.UniformInt(gl.GetUniformLocation(shaders.water, "heightTex"), 0)
 		glFunc.Texture(0, '$heightmap')
+		-- Bind lava diffuse+emit texture if available
+		if mapInfo.lavaDiffuseEmitTex then
+			gl.UniformInt(gl.GetUniformLocation(shaders.water, "lavaDiffuseTex"), 1)
+			glFunc.Texture(1, mapInfo.lavaDiffuseEmitTex)
+		end
+		-- Bind lava distortion texture if available
+		if mapInfo.lavaDistortionTex then
+			gl.UniformInt(gl.GetUniformLocation(shaders.water, "lavaDistortTex"), 2)
+			glFunc.Texture(2, mapInfo.lavaDistortionTex)
+		end
 		
 		-- Draw water overlay
 		glFunc.Color(1, 1, 1, 1)
 		glFunc.BeginEnd(glConst.QUADS, GroundTextureVertices)
 		
 		glFunc.Texture(0, false)
+		if mapInfo.lavaDiffuseEmitTex then glFunc.Texture(1, false) end
+		if mapInfo.lavaDistortionTex then glFunc.Texture(2, false) end
 		gl.UseShader(0)
 	end
 
@@ -12005,6 +12533,9 @@ local function DrawTrackedPlayerMinimap()
 	end
 
 	-- Draw water/lava/void overlay
+	if mapInfo.isLava then
+		UpdateLavaRenderState()
+	end
 	if mapInfo.hasWater and shaders.water then
 		gl.UseShader(shaders.water)
 		local r, g, b, a
@@ -12017,8 +12548,44 @@ local function DrawTrackedPlayerMinimap()
 		end
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "waterColor"), r, g, b, a)
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "waterLevel"), GetWaterLevel())
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "isLava"), mapInfo.isLava and 1.0 or 0.0)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "hasLavaTex"), mapInfo.lavaDiffuseEmitTex and 1.0 or 0.0)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "gameFrames"), Spring.GetGameFrame())
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaCoastColor"), mapInfo.lavaCoastColor[1], mapInfo.lavaCoastColor[2], mapInfo.lavaCoastColor[3])
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaCoastWidth"), mapInfo.lavaCoastWidth)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaUvScale"), mapInfo.lavaUvScale)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaSwirlFreq"), mapInfo.lavaSwirlFreq)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaSwirlAmp"), mapInfo.lavaSwirlAmp)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "mapRatio"), mapInfo.mapRatio)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "hasDistortTex"), mapInfo.lavaDistortionTex and 1.0 or 0.0)
+		local lavaHdx, lavaHdz = GetLavaHeatDistort()
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "sunDirY"), select(2, gl.GetSun("pos")))
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "heatDistortX"), lavaHdx)
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "heatDistortZ"), lavaHdz)
+		-- BumpWater properties for animated water overlay (non-lava maps)
+		if mapInfo.waterSurfaceColor then
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wSurfColor"), mapInfo.waterSurfaceColor[1], mapInfo.waterSurfaceColor[2], mapInfo.waterSurfaceColor[3])
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wSurfAlpha"), mapInfo.waterSurfaceAlpha)
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wAbsorbColor"), mapInfo.waterAbsorbColor[1], mapInfo.waterAbsorbColor[2], mapInfo.waterAbsorbColor[3])
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wBaseColor"), mapInfo.waterBaseColorRGB[1], mapInfo.waterBaseColorRGB[2], mapInfo.waterBaseColorRGB[3])
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wMinColor"), mapInfo.waterMinColor[1], mapInfo.waterMinColor[2], mapInfo.waterMinColor[3])
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wCausticsStr"), mapInfo.waterCausticsStrength)
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wPerlinStart"), mapInfo.waterPerlinStartFreq)
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wPerlinLacun"), mapInfo.waterPerlinLacunarity)
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wPerlinAmp"), mapInfo.waterPerlinAmplitude)
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wFresnelMin"), mapInfo.waterFresnelMin)
+			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wDiffuseFactor"), mapInfo.waterDiffuseFactor)
+		end
 		gl.UniformInt(gl.GetUniformLocation(shaders.water, "heightTex"), 0)
 		glFunc.Texture(0, '$heightmap')
+		if mapInfo.lavaDiffuseEmitTex then
+			gl.UniformInt(gl.GetUniformLocation(shaders.water, "lavaDiffuseTex"), 1)
+			glFunc.Texture(1, mapInfo.lavaDiffuseEmitTex)
+		end
+		if mapInfo.lavaDistortionTex then
+			gl.UniformInt(gl.GetUniformLocation(shaders.water, "lavaDistortTex"), 2)
+			glFunc.Texture(2, mapInfo.lavaDistortionTex)
+		end
 		glFunc.Color(1, 1, 1, 1)
 		glFunc.BeginEnd(GL.QUADS, function()
 			glFunc.TexCoord(0, 0); glFunc.Vertex(cLeft, cTop)
@@ -12027,6 +12594,8 @@ local function DrawTrackedPlayerMinimap()
 			glFunc.TexCoord(0, 1); glFunc.Vertex(cLeft, cBottom)
 		end)
 		glFunc.Texture(0, false)
+		if mapInfo.lavaDiffuseEmitTex then glFunc.Texture(1, false) end
+		if mapInfo.lavaDistortionTex then glFunc.Texture(2, false) end
 		gl.UseShader(0)
 	end
 
@@ -13353,6 +13922,18 @@ function widget:DrawScreen()
 			end
 		end
 
+		-- Force immediate units re-render when unitpic display state changes
+		-- (zooming out from unitpics to icons or vice versa)
+		-- Uses targetZoom (same as GL4DrawIcons) so the transition is detected on the
+		-- same frame the user scrolls, not after the smooth zoom animation catches up.
+		do
+			local nowUseUnitpics = config.showUnitpics and cameraState.targetZoom >= config.unitpicZoomThreshold
+			if miscState._lastUseUnitpics ~= nil and miscState._lastUseUnitpics ~= nowUseUnitpics then
+				pipR2T.unitsNeedsUpdate = true
+			end
+			miscState._lastUseUnitpics = nowUseUnitpics
+		end
+
 		-- Update oversized units texture at throttled rate (expensive layers)
 		local drawStartTime = os.clock()
 		local prevUnitsTime = pipR2T.unitsLastUpdateTime
@@ -14118,15 +14699,27 @@ function widget:Update(dt)
 		end
 	end
 	
-	-- Monitor dynamic water/lava level changes
-	if mapInfo.isLava or mapInfo.hasWater then
+	-- Sync lava/water level for R2T redraw triggers
+	if mapInfo.isLava then
+		-- Force R2T content refresh on lava maps so the lava overlay animates
+		pipR2T.contentNeedsUpdate = true
+		-- Also sync dynamic water level from computed tide level
+		local lrs = WG.lavaRenderState
+		if lrs and lrs.level then
+			mapInfo.dynamicWaterLevel = lrs.level
+		end
+	elseif mapInfo.hasWater then
+		-- Force R2T content refresh on water maps so the water overlay animates
+		-- (Perlin noise waves + caustics need gameFrames to advance)
+		if not mapInfo.voidWater then
+			pipR2T.contentNeedsUpdate = true
+		end
+		-- Non-lava water: poll base water level from game rules
 		local lavaLevel = Spring.GetGameRulesParam("lavaLevel")
 		if lavaLevel and lavaLevel ~= -99999 then
-			-- Lava gadget is active and has set a real level
 			if mapInfo.dynamicWaterLevel ~= lavaLevel then
 				local oldLevel = mapInfo.dynamicWaterLevel
 				mapInfo.dynamicWaterLevel = lavaLevel
-				-- Check if the level actually changed enough to warrant a redraw
 				if not oldLevel or math.abs(lavaLevel - oldLevel) > 0.5 then
 					pipR2T.contentNeedsUpdate = true
 				end
@@ -14176,6 +14769,22 @@ function widget:Update(dt)
 	-- If spec state changed, update LOS texture
 	if oldSpecState ~= cameraState.mySpecState then
 		pipR2T.losNeedsUpdate = true
+
+		-- Deactivate TV mode when transitioning from spectator to player
+		if not cameraState.mySpecState and config.tvModeSpectatorsOnly and miscState.tvEnabled then
+			miscState.tvEnabled = false
+			if pipTV.camera.savedWcx then
+				cameraState.targetWcx = pipTV.camera.savedWcx
+				cameraState.targetWcz = pipTV.camera.savedWcz
+				cameraState.targetZoom = pipTV.camera.savedZoom
+			end
+			pipTV.camera.active = false
+			if WG.pipTVFocus then
+				WG.pipTVFocus[pipNumber] = nil
+				if not next(WG.pipTVFocus) then WG.pipTVFocus = nil end
+			end
+			pipR2T.frameNeedsUpdate = true
+		end
 	end
 
 	-- Detect fullview transitions BEFORE the periodic scan, so timer resets
@@ -14502,6 +15111,11 @@ function widget:Update(dt)
 	-- Pause TV camera when user is manually interacting or hovering, with a resume delay
 	-- Stop entirely at game over so the zoom-out animation plays uninterrupted
 	-- Skip before game start so pre-game markers don't move the camera
+	-- Safety: don't run TV mode for non-spectators when tvModeSpectatorsOnly is set
+	if miscState.tvEnabled and config.tvModeSpectatorsOnly and not cameraState.mySpecState then
+		miscState.tvEnabled = false
+		pipTV.camera.active = false
+	end
 	if miscState.tvEnabled and pipTV.camera.active and not miscState.isGameOver and gameHasStarted then
 		local userInteracting = interactionState.arePanning
 			or interactionState.areIncreasingZoom
@@ -15363,6 +15977,24 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	if miscState.tvEnabled then
 		local cost = cache.unitCost[unitDefID] or 100
 		local weight = math.min(3, (damage / math.max(cost, 50)) * 2)
+
+		-- Commander in danger bonus: low-health commander being hit with enemies nearby
+		if cache.isCommander[unitDefID] then
+			local hp, maxHP = spFunc.GetUnitHealth(unitID)
+			if hp and maxHP and maxHP > 0 then
+				local healthFrac = hp / maxHP
+				if healthFrac < 0.5 then
+					-- Bonus scales from +3 at 50% HP to +12 at 0% HP
+					local dangerBonus = (1 - healthFrac * 2) * 12
+					-- Verify enemy is actually nearby (within 600 elmos)
+					local nearestEnemy = Spring.GetUnitNearestEnemy(unitID, 600, true)
+					if nearestEnemy then
+						weight = weight + dangerBonus
+					end
+				end
+			end
+		end
+
 		if weight > 0.1 then
 			local x, _, z = spFunc.GetUnitBasePosition(unitID)
 			if x then pipTV.AddEvent(x, z, weight, 'combat') end
@@ -15399,12 +16031,16 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 	if weaponID and cache.weaponExplosionRadius[weaponID] then
 		radius = cache.weaponExplosionRadius[weaponID]
 	end
+	-- Skip very small explosions
+	if radius < 8 then
+		return
+	end
 	
 	-- No zoom-based rejection: count-based filtering happens in DrawExplosions
 
 	-- Check if this is a lightning weapon
 	local isLightning = weaponID and cache.weaponIsLightning[weaponID]
-	
+
 	-- Check if this is a paralyze weapon
 	local isParalyze = weaponID and cache.weaponIsParalyze[weaponID]
 
@@ -15418,16 +16054,8 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 	-- Detect unit death explosions (ownerID is the dying unit, already in crashingUnits)
 	local isUnitExplosion = ownerID and miscState.crashingUnits[ownerID] or false
 
-	-- Add explosion to list with radius from cached weapon data
-	local radius = 10 -- Default radius
-	if weaponID and cache.weaponExplosionRadius[weaponID] then
-		radius = cache.weaponExplosionRadius[weaponID]
-	end
-
-	-- Skip very small explosions (below threshold), except for lightning
-	if radius < 8 and not isLightning then
-		return
-	end
+	-- Dim factor for rapid-fire / flame weapon explosions
+	local dimFactor = weaponID and cache.weaponExplosionDim[weaponID] or 1
 
 	-- Create explosion entry
 	local explosion = {
@@ -15445,6 +16073,7 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 		isAA = isAA,
 		isUnitExplosion = isUnitExplosion,
 		isBigFlash = false,  -- set below
+		dimFactor = dimFactor,  -- alpha multiplier for rapid-fire/flame weapons
 	}
 
 	-- Detect big flash explosions: nukes, commanders, large unit death explosions

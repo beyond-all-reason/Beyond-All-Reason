@@ -467,7 +467,7 @@ local function queueNotification(event, forceplay)
 end
 
 function widget:RecvLuaMsg(message)
-	if message:find("suspendNotifications|") then
+	if message:find("suspendNotifications ") then
 		local duration = tonumber(message:sub(22))
 		if duration and duration > 0 then
 			suspendUntilSec = sec + duration
@@ -875,6 +875,9 @@ local function playNextSound()
 		local event = soundQueue[1]
 		if not muteWhenIdle or not isIdle or notification[event].tutorial then
 			if spoken and #notification[event].voiceFiles > 0 then
+				if Spring.GetGameFrame() < 30 then
+					math.randomseed(tonumber(math.ceil(os.clock()*10))) -- brute force this because early game random seems not very random.
+				end
 				local m = #notification[event].voiceFiles > 1 and mathRandom(1, #notification[event].voiceFiles) or 1
 				local mRare = #notification[event].voiceFilesRare > 1 and mathRandom(1, #notification[event].voiceFilesRare) or 1
 				if math.random() < 0.05 and notification[event].voiceFilesRare[mRare] then
@@ -1042,7 +1045,6 @@ function widget:GetConfigData(data)
 		tutorialMode = tutorialMode,
 		tutorialPlayed = tutorialPlayed,
 		tutorialPlayedThisGame = tutorialPlayedThisGame,
-
 	}
 end
 
