@@ -9,6 +9,7 @@ local typeMapping = {
 	[types.EnableTrigger] = actionFunctions.EnableTrigger,
 	[types.DisableTrigger] = actionFunctions.DisableTrigger,
 	[types.ChangeStage] = actionFunctions.ChangeStage,
+	[types.UpdateObjective] = actionFunctions.UpdateObjective,
 	[types.IssueOrders] = actionFunctions.IssueOrders,
 	-- [types.AllowCommands] = ,
 	-- [types.RestrictCommands] = ,

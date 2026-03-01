@@ -62,8 +62,48 @@ local function changeStage(stage)
 	GG['MissionAPI'].CurrentStage = stage
 
 	local newStage = GG['MissionAPI'].Stages[stage]
-	Spring.Echo("Stage changed to: " .. stage .. " - " .. (newStage.title or ""))
-	-- TODO: update UI with newStage.title
+	-- TODO: instead, update UI with newStage.title and objectives
+	Spring.Echo("Stage changed to: " .. stage .. " - " .. (newStage.title or "") .. ", with objectives: " .. table.concat(newStage.objectives or {}, ", "))
+end
+
+local function updateObjective(objectiveID, completed, text, unitName, featureName)
+	local objective = GG['MissionAPI'].Objectives[objectiveID]
+
+	if objective.completed then return end
+
+	if text then
+		objective.text = text
+	end
+	if unitName then
+		objective.progress = #(trackedUnitIDs[unitName] or {})
+	elseif featureName then
+		-- TODO
+	end
+
+	if completed ~= nil then
+		objective.completed = completed
+	elseif objective.amount ~= nil then
+		if objective.amount == 0 then
+			objective.completed = objective.progress == 0
+		else
+			objective.completed = objective.progress >= objective.amount
+		end
+	end
+
+	-- TODO: instead, update objective in UI
+	if objective.amount ~= nil then
+		if objective.amount > 0 then
+			Spring.Echo("Objective updated: " .. objectiveID .. " - " .. (objective.text) .. " " .. (objective.progress) .. "/" .. (objective.amount))
+		else
+			Spring.Echo("Objective updated: " .. objectiveID .. " - " .. (objective.text) .. " " .. (objective.progress) .. " remaining")
+		end
+	else
+		Spring.Echo("Objective updated: " .. objectiveID .. " - " .. (objective.text))
+	end
+
+	if objective.completed then
+		Spring.Echo("Objective completed: " .. objectiveID .. " - " .. (objective.text))
+	end
 end
 
 local function issueOrders(unitName, orders)
@@ -237,7 +277,10 @@ return {
 	-- Triggers
 	EnableTrigger = enableTrigger,
 	DisableTrigger = disableTrigger,
+
+	-- Stages & Objectives
 	ChangeStage = changeStage,
+	UpdateObjective = updateObjective,
 
 	-- Orders
 	IssueOrders = issueOrders,

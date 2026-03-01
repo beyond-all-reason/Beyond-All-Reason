@@ -15,16 +15,18 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local scriptPath
-local stagesController, triggersController, actionsController
+local stagesController, objectivesController, triggersController, actionsController
 
 local function loadMission()
 	local mission = VFS.Include("singleplayer/" .. scriptPath)
 	local initialStage = mission.InitialStage or "initialStage"
+	local rawObjectives = mission.Objectives or {}
 	local rawStages = mission.Stages or {}
 	local rawTriggers = mission.Triggers or {}
 	local rawActions = mission.Actions or {}
 
 	GG['MissionAPI'].CurrentStage = initialStage
+	GG['MissionAPI'].Objectives = objectivesController.ProcessRawObjectives(rawObjectives)
 	GG['MissionAPI'].Stages = stagesController.ProcessRawStages(rawStages, initialStage)
 	GG['MissionAPI'].Triggers = triggersController.ProcessRawTriggers(rawTriggers, rawActions)
 	GG['MissionAPI'].Actions = actionsController.ProcessRawActions(rawActions)
@@ -35,10 +37,10 @@ end
 
 function gadget:Initialize()
 	-- TODO: Actually pass script path
-	--scriptPath = 'mission-api-tests/validation_test.lua'
+	scriptPath = 'mission-api-tests/validation_test.lua'
 	--scriptPath = 'mission-api-tests/test_mission.lua'
 	--scriptPath = 'mission-api-tests/markers_test.lua'
-	scriptPath = 'mission-api-tests/stages_test.lua'
+	--scriptPath = 'mission-api-tests/stages_and_objectives_test.lua'
 
 	if not scriptPath then
 		gadgetHandler:RemoveGadget()
@@ -55,6 +57,7 @@ function gadget:Initialize()
 	GG['MissionAPI'].trackedUnitIDs = {}
 	GG['MissionAPI'].trackedUnitNames = {}
 
+	objectivesController = VFS.Include('luarules/mission_api/objectives_loader.lua')
 	stagesController = VFS.Include('luarules/mission_api/stages_loader.lua')
 	triggersController = VFS.Include('luarules/mission_api/triggers_loader.lua')
 	actionsController = VFS.Include('luarules/mission_api/actions_loader.lua')

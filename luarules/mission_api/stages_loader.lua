@@ -3,6 +3,7 @@ local validateStages = VFS.Include('luarules/mission_api/validation.lua').Valida
 --[[
 	stageID = {
 		title = "Destroy their base",
+		objectives = { 'objectiveID1', 'objectiveID2' },
 	}
 ]]
 
