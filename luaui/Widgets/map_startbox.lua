@@ -603,6 +603,7 @@ local function getStartUnitTexture(teamID)
 	return 'unitpics/other/dice.dds'
 end
 
+local totalTeams = #Spring.GetTeamList()-1
 local function DrawStartUnitIcons(sx, sz, inPip)
 	-- Ensure teams data is populated (DrawInMiniMap may be called before DrawWorld)
 	if not teamsToRenderCount or teamsToRenderCount == 0 then
@@ -615,6 +616,12 @@ local function DrawStartUnitIcons(sx, sz, inPip)
 	-- Icon size in pixels (same for both engine minimap and PIP)
 	-- PIP sets up GL transforms so pixel coords work the same way
 	local iconSize = math.max(sx, sz) * 0.06
+
+	-- Scale down icons when there are many players (>24), down to 50% at 140+
+	if totalTeams > 24 then
+		local t = math.min((totalTeams - 24) / (140 - 24), 1)  -- 0 at 24, 1 at 140+
+		iconSize = iconSize * (1 - 0.5 * t)
+	end
 
 	-- Precompute scale factors
 	local sxOverMapX = sx / mapSizeX
