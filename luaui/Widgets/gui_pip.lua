@@ -167,8 +167,8 @@ config = {
 	tvUnitFinishedCostThreshold = 800,  -- Minimum unit cost to trigger a "big unit finished" event
 
 	iconDensityScaling = true,  -- Reduce icon sizes when unit count is high (prevents overlap at zoomed-out levels)
-	iconDensityMaxUnits = 20000,  -- Unit count at which maximum reduction is reached
-	iconDensityMinScale = 0.4,  -- Minimum icon scale at max unit count (0.5 = 50% size)
+	iconDensityMaxUnits = 18000,  -- Unit count at which maximum reduction is reached
+	iconDensityMinScale = 0.5,  -- Minimum icon scale at max unit count (0.5 = 50% size)
 	iconDensityZoomFadeStart = 0.3,  -- Zoom level above which density scaling starts fading out (1.0 = fully zoomed in)
 	iconDensityZoomFadeEnd = 0.8,  -- Zoom level above which density scaling is completely off
 
@@ -241,6 +241,7 @@ config = {
 	minimapModeShowButtons = false,  -- Hide buttons in minimap mode
 	minimapModeStartMinimized = false,  -- Don't start minimized in minimap mode
 	minimapModeHideMoveResize = true,  -- Hide move and resize buttons in minimap mode
+	autoMaximizeOnGameStart = false,  -- Automatically maximize PIP when the game starts (players only, not spectators)
 	hideAICommands = true,  -- Hide command queues from AI players (default: enabled)
 	showSpectatorPings = true,  -- Show map pings from spectators on the PIP minimap
 	showViewRectangleOnMinimap = false,  -- Show the PIP view rectangle on the engine minimap
@@ -1778,6 +1779,7 @@ mapInfo.lavaUvScale = 2.0
 mapInfo.lavaSwirlFreq = 0.025
 mapInfo.lavaSwirlAmp = 0.003
 mapInfo.mapRatio = Game.mapSizeZ / Game.mapSizeX  -- Y/X aspect ratio for square-texel tiling
+mapInfo.lavaColorCorrection = {1.0, 1.0, 1.0}  -- default: no color correction
 if mapInfo.isLava then
 	mapInfo.lavaCoastWidth = Spring.Lava.coastWidth or 25.0
 	mapInfo.lavaUvScale = Spring.Lava.uvScale or 2.0
@@ -7354,6 +7356,9 @@ function widget:ViewResize()
 		-- Use mapEdgeMargin = 0 in minimap mode
 		config.mapEdgeMargin = 0
 
+		-- Capture old minimap PIP width before recalculating layout
+		local oldMinimapWidth = (render.dim.r and render.dim.l) and (render.dim.r - render.dim.l) or nil
+
 		-- Get current rotation to determine if dimensions should be swapped
 		-- When rotation is 90° or 270°, the map appears rotated so width/height swap visually
 		local minimapRotation = Spring.GetMiniMapRotation and Spring.GetMiniMapRotation() or 0
@@ -7419,7 +7424,14 @@ function widget:ViewResize()
 		
 		-- Only set camera defaults if not restored from config (i.e., not a luaui reload)
 		if miscState.minimapCameraRestored then
-			-- Restored from config - just ensure zoom isn't below minimum
+			-- Restored from config — scale zoom proportionally to PIP size change
+			-- so the same world area stays visible after window resize
+			if oldMinimapWidth and oldMinimapWidth > 0 and usedWidth ~= oldMinimapWidth then
+				local zoomScale = usedWidth / oldMinimapWidth
+				cameraState.zoom = cameraState.zoom * zoomScale
+				cameraState.targetZoom = cameraState.targetZoom * zoomScale
+			end
+			-- Ensure zoom isn't below minimum
 			if cameraState.zoom < fitZoom then
 				cameraState.zoom = fitZoom
 				cameraState.targetZoom = fitZoom
@@ -7442,6 +7454,14 @@ function widget:ViewResize()
 		-- Normal PIP mode: scale dimensions with screen size
 		-- When in minMode, render.dim is the tiny button — use savedDimensions as the real dimensions
 		local minSize = math.floor(config.minPanelSize * render.widgetScale)
+		
+		-- Capture old PIP width before rescaling so we can adjust zoom proportionally
+		local oldPipWidth
+		if not uiState.inMinMode and render.dim.r and render.dim.l then
+			oldPipWidth = render.dim.r - render.dim.l
+		elseif uiState.savedDimensions.r and uiState.savedDimensions.l then
+			oldPipWidth = uiState.savedDimensions.r - uiState.savedDimensions.l
+		end
 		
 		-- Rescale savedDimensions to match new resolution (they're in old pixel coords)
 		if uiState.savedDimensions.l and uiState.savedDimensions.r and
@@ -7490,6 +7510,22 @@ function widget:ViewResize()
 			end
 			if render.dim.t - render.dim.b > maxSize then
 				render.dim.b = render.dim.t - maxSize
+			end
+		end
+
+		-- Scale zoom to compensate for PIP size change so the same world area stays visible.
+		-- Zoom is pixels/elmo, so if the PIP shrinks, we must lower zoom proportionally.
+		if oldPipWidth and oldPipWidth > 0 then
+			local newPipWidth
+			if not uiState.inMinMode then
+				newPipWidth = render.dim.r - render.dim.l
+			elseif uiState.savedDimensions.r and uiState.savedDimensions.l then
+				newPipWidth = uiState.savedDimensions.r - uiState.savedDimensions.l
+			end
+			if newPipWidth and newPipWidth > 0 and newPipWidth ~= oldPipWidth then
+				local zoomScale = newPipWidth / oldPipWidth
+				cameraState.zoom = cameraState.zoom * zoomScale
+				cameraState.targetZoom = cameraState.targetZoom * zoomScale
 			end
 		end
 	end
@@ -15562,7 +15598,7 @@ function widget:GameStart()
 	gameHasStarted = true
 
 	-- Automatically maximize for players (only for the first PIP instance)
-	if pipNumber == 1 and not cameraState.mySpecState and uiState.inMinMode then
+	if pipNumber == 1 and config.autoMaximizeOnGameStart and not cameraState.mySpecState and uiState.inMinMode then
 		StartMaximizeAnimation()
 	end
 

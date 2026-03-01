@@ -617,10 +617,10 @@ local function DrawStartUnitIcons(sx, sz, inPip)
 	-- PIP sets up GL transforms so pixel coords work the same way
 	local iconSize = math.max(sx, sz) * 0.06
 
-	-- Scale down icons when there are many players (>24), down to 50% at 140+
+	-- Scale down icons when there are many players (>24), down to 60% at 140+
 	if totalTeams > 24 then
 		local t = math.min((totalTeams - 24) / (140 - 24), 1)  -- 0 at 24, 1 at 140+
-		iconSize = iconSize * (1 - 0.5 * t)
+		iconSize = iconSize * (1 - 0.4 * t)
 	end
 
 	-- Precompute scale factors
