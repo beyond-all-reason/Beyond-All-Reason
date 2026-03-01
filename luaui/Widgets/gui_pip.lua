@@ -11256,15 +11256,35 @@ local function DrawCameraViewBounds()
 	
 	-- Convert to pip coordinates (no clamping, preserve true perspective shape)
 	-- Note: World Z maps to pip Y inversely (high Z = low Y in pip view)
-	-- Round to nearest pixel to eliminate sub-pixel jitter when the camera moves
 	local bl_x, bl_y = WorldToPipCoords(bottomLeftX, bottomLeftZ)
 	local br_x, br_y = WorldToPipCoords(bottomRightX, bottomRightZ)
 	local tr_x, tr_y = WorldToPipCoords(topRightX, topRightZ)
 	local tl_x, tl_y = WorldToPipCoords(topLeftX, topLeftZ)
-	bl_x = math.floor(bl_x + 0.5);  bl_y = math.floor(bl_y + 0.5)
-	br_x = math.floor(br_x + 0.5);  br_y = math.floor(br_y + 0.5)
-	tr_x = math.floor(tr_x + 0.5);  tr_y = math.floor(tr_y + 0.5)
-	tl_x = math.floor(tl_x + 0.5);  tl_y = math.floor(tl_y + 0.5)
+	
+	-- Apply minimap rotation manually (this function is drawn outside the GL rotation matrix)
+	local rotation = render.minimapRotation or 0
+	if rotation ~= 0 then
+		local centerX = (render.dim.l + render.dim.r) / 2
+		local centerY = (render.dim.b + render.dim.t) / 2
+		local cosA = math.cos(rotation)
+		local sinA = math.sin(rotation)
+		local function rotPt(x, y)
+			local dx, dy = x - centerX, y - centerY
+			return centerX + dx * cosA - dy * sinA,
+			       centerY + dx * sinA + dy * cosA
+		end
+		bl_x, bl_y = rotPt(bl_x, bl_y)
+		br_x, br_y = rotPt(br_x, br_y)
+		tr_x, tr_y = rotPt(tr_x, tr_y)
+		tl_x, tl_y = rotPt(tl_x, tl_y)
+	end
+	
+	-- Round to pixel centers after rotation for crisp screen-space alignment
+	-- OpenGL lines render crisply at half-pixel positions (0.5, 1.5, 2.5, ...)
+	bl_x = math.floor(bl_x) + 0.5;  bl_y = math.floor(bl_y) + 0.5
+	br_x = math.floor(br_x) + 0.5;  br_y = math.floor(br_y) + 0.5
+	tr_x = math.floor(tr_x) + 0.5;  tr_y = math.floor(tr_y) + 0.5
+	tl_x = math.floor(tl_x) + 0.5;  tl_y = math.floor(tl_y) + 0.5
 	
 	-- Calculate chamfer size (4 pixels at 1080p, scaled by resolution)
 	local resScale = render.contentScale or 1
@@ -11293,11 +11313,11 @@ local function DrawCameraViewBounds()
 			return cornerX, cornerY, cornerX, cornerY
 		end
 		
-		-- Chamfer points along each edge from the corner
-		local c1x = cornerX + (dx1 / len1) * chamfer
-		local c1y = cornerY + (dy1 / len1) * chamfer
-		local c2x = cornerX + (dx2 / len2) * chamfer
-		local c2y = cornerY + (dy2 / len2) * chamfer
+		-- Chamfer points along each edge from the corner (pixel-center aligned)
+		local c1x = math.floor(cornerX + (dx1 / len1) * chamfer) + 0.5
+		local c1y = math.floor(cornerY + (dy1 / len1) * chamfer) + 0.5
+		local c2x = math.floor(cornerX + (dx2 / len2) * chamfer) + 0.5
+		local c2y = math.floor(cornerY + (dy2 / len2) * chamfer) + 0.5
 		
 		return c1x, c1y, c2x, c2y
 	end
@@ -11308,50 +11328,52 @@ local function DrawCameraViewBounds()
 	local tr_c1x, tr_c1y, tr_c2x, tr_c2y = getChamferVertices(br_x, br_y, tl_x, tl_y, tr_x, tr_y)
 	local tl_c1x, tl_c1y, tl_c2x, tl_c2y = getChamferVertices(tr_x, tr_y, bl_x, bl_y, tl_x, tl_y)
 	
-	-- Draw the view trapezoid with chamfered corners (anti-aliased)
+	-- Build ordered vertex list for the chamfered shape (clockwise from bottom-left)
+	local verts = {
+		{bl_c1x, bl_c1y}, {bl_c2x, bl_c2y},  -- bottom-left chamfer
+		{br_c1x, br_c1y}, {br_c2x, br_c2y},  -- bottom-right chamfer
+		{tr_c1x, tr_c1y}, {tr_c2x, tr_c2y},  -- top-right chamfer
+		{tl_c1x, tl_c1y}, {tl_c2x, tl_c2y},  -- top-left chamfer
+	}
+	local nv = #verts
+	
+	-- Helper: emit a quad-based line segment with uniform visual thickness
+	-- perpendicular to the edge direction, regardless of angle.
+	local function emitEdgeQuad(x1, y1, x2, y2, halfW)
+		local dx, dy = x2 - x1, y2 - y1
+		local len = math.sqrt(dx * dx + dy * dy)
+		if len < 0.001 then return end
+		-- Perpendicular normal (unit length, scaled by half-width)
+		local nx, ny = (-dy / len) * halfW, (dx / len) * halfW
+		glFunc.Vertex(x1 - nx, y1 - ny)
+		glFunc.Vertex(x1 + nx, y1 + ny)
+		glFunc.Vertex(x2 + nx, y2 + ny)
+		glFunc.Vertex(x2 - nx, y2 - ny)
+	end
+	
+	-- Draw the view trapezoid with chamfered corners using quad-based outlines
+	-- This gives uniform visual thickness on all edges regardless of angle.
 	glFunc.Texture(false)
 	
-	gl.UnsafeState(0x0B20, function()  -- GL_LINE_SMOOTH
-		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-		
-		-- Draw dark shadow outline first (thicker, behind the white line)
-		glFunc.LineWidth(3 * ((vsx+1000) / 3000) * resScale)
-		glFunc.Color(0, 0, 0, 0.35)
-		glFunc.BeginEnd(glConst.LINE_LOOP, function()
-			-- Bottom-left corner (2 vertices)
-			glFunc.Vertex(bl_c1x, bl_c1y)  -- toward top-left
-			glFunc.Vertex(bl_c2x, bl_c2y)  -- toward bottom-right
-			-- Bottom-right corner (2 vertices)
-			glFunc.Vertex(br_c1x, br_c1y)  -- toward bottom-left
-			glFunc.Vertex(br_c2x, br_c2y)  -- toward top-right
-			-- Top-right corner (2 vertices)
-			glFunc.Vertex(tr_c1x, tr_c1y)  -- toward bottom-right
-			glFunc.Vertex(tr_c2x, tr_c2y)  -- toward top-left
-			-- Top-left corner (2 vertices)
-			glFunc.Vertex(tl_c1x, tl_c1y)  -- toward top-right
-			glFunc.Vertex(tl_c2x, tl_c2y)  -- toward bottom-left
-		end)
-		
-		-- Draw white line on top
-		glFunc.LineWidth(1.3 * ((vsx+1000) / 3000) * resScale)
-		glFunc.Color(1, 1, 1, 0.8)
-		glFunc.BeginEnd(glConst.LINE_LOOP, function()
-			-- Bottom-left corner (2 vertices)
-			glFunc.Vertex(bl_c1x, bl_c1y)
-			glFunc.Vertex(bl_c2x, bl_c2y)
-			-- Bottom-right corner (2 vertices)
-			glFunc.Vertex(br_c1x, br_c1y)
-			glFunc.Vertex(br_c2x, br_c2y)
-			-- Top-right corner (2 vertices)
-			glFunc.Vertex(tr_c1x, tr_c1y)
-			glFunc.Vertex(tr_c2x, tr_c2y)
-			-- Top-left corner (2 vertices)
-			glFunc.Vertex(tl_c1x, tl_c1y)
-			glFunc.Vertex(tl_c2x, tl_c2y)
-		end)
+	-- Draw dark shadow outline first (thicker, behind the white line)
+	local shadowHalfW = math.max(0.5, 1.5 * ((vsx+1000) / 3000) * resScale)
+	glFunc.Color(0, 0, 0, 0.35)
+	glFunc.BeginEnd(GL.QUADS, function()
+		for i = 1, nv do
+			local j = (i % nv) + 1
+			emitEdgeQuad(verts[i][1], verts[i][2], verts[j][1], verts[j][2], shadowHalfW)
+		end
 	end)
 	
-	glFunc.LineWidth(1.0)
+	-- Draw white line on top
+	local whiteHalfW = math.max(0.5, 0.65 * ((vsx+1000) / 3000) * resScale)
+	glFunc.Color(1, 1, 1, 0.8)
+	glFunc.BeginEnd(GL.QUADS, function()
+		for i = 1, nv do
+			local j = (i % nv) + 1
+			emitEdgeQuad(verts[i][1], verts[i][2], verts[j][1], verts[j][2], whiteHalfW)
+		end
+	end)
 end
 
 
@@ -14281,11 +14303,13 @@ function widget:DrawScreen()
 		end
 
 		DrawMapMarkers()
-		DrawCameraViewBounds()
 
 		if render.minimapRotation ~= 0 then
 			glFunc.PopMatrix()
 		end
+
+		-- Draw camera view bounds OUTSIDE the rotation matrix so it can pixel-align after rotation
+		DrawCameraViewBounds()
 
 		gl.Scissor(false)
 	end
