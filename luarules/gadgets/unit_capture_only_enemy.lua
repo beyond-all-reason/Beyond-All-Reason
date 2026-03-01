@@ -22,11 +22,6 @@ local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 
 local reissueOrder = Game.Commands.ReissueOrder
 
-local allowAreaCapture = false
-	or Spring.Utilities.Gametype.isSinglePlayer() -- Other teams are AI.
-	or (not Spring.Utilities.Gametype.isTeams()) -- Other teams are enemies.
-	or Spring.Utilities.Gametype.isSandbox() -- There is only one ally team.
-
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, fromSynced, fromLua, fromInsert)
 	-- accepts: CMD.CAPTURE
 	local nParams = #cmdParams
@@ -41,9 +36,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 		end
 	elseif nParams == 4 then
 		-- Command is targeting an area.
-		if allowAreaCapture or not cmdOptions.ctrl then
-			return true
-		else
+		if cmdOptions.ctrl then
 			cmdOptions.ctrl = false
 			reissueOrder(unitID, cmdID, cmdParams, cmdOptions, cmdTag, fromInsert)
 			return false
