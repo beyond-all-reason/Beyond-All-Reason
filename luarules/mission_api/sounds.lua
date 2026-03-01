@@ -31,7 +31,7 @@ local function processSoundQueue(frameNumber)
 	end
 
 	local sound = table.remove(soundQueue, 1)
-	Spring.SendLuaUIMsg("suspendNotifications|"..sound.length)
+	Spring.SendLuaUIMsg("suspendNotifications "..sound.length)
 	nextSoundAt = frameNumber + (sound.length * 30)
 	playSound(sound.soundfile, sound.volume, sound.position)
 end

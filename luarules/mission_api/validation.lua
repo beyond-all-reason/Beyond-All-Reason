@@ -324,7 +324,7 @@ validators[Types.Facing] = function(facing)
 	end
 
 validators[Types.SoundFile] = function(soundfile)
-	local luaTypeResult = luaTypeValidators[Types.String](soundfile)
+	local luaTypeResult = validators[Types.String](soundfile)
 	if luaTypeResult then
 		return luaTypeResult
 	end
