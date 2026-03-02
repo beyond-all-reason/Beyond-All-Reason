@@ -245,7 +245,7 @@ function homeOptionsForBuilder(builderId, buildOptions)
 			end
 			optionsInRow = 0
 		end
-		-- Replace the top of row with the first unused priority unit in each category
+		-- Replace the top row with the first unused priority unit in each category
 		local row = 3
         for cat = 1, #priorityOpts do
             local priorityUnits = priorityOpts[cat]
