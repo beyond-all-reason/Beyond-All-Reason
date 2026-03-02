@@ -30,6 +30,9 @@ minimapApi.getZoomLevel = function()
 	return minimapApi.zoom
 end
 
+-- Forward-declare config so zoom helpers can reference it (config table defined below)
+local config
+
 -- Helper function to get effective zoom minimum (accounts for minimap mode)
 local function GetEffectiveZoomMin()
 	if isMinimapMode and minimapModeMinZoom then
@@ -41,7 +44,7 @@ end
 -- Helper function to get effective zoom maximum (accounts for minimap mode)
 local function GetEffectiveZoomMax()
 	-- In minimap mode, still allow zooming IN (higher zoom values)
-	return 0.95  -- Default config.zoomMax value
+	return config and config.zoomMax or 2
 end
 
 -- Helper function to check if at minimum zoom (fully zoomed out) in minimap mode
@@ -106,7 +109,7 @@ end
 ----------------------------------------------------------------------------------------------------
 -- Config
 ----------------------------------------------------------------------------------------------------
-local config = {
+config = {
 	-- UI colors and sizing
 	panelBorderColorLight = {0.75, 0.75, 0.75, 1},
 	panelBorderColorDark = {0.2, 0.2, 0.2, 1},
@@ -123,7 +126,7 @@ local config = {
 	playerTrackingSmoothness = 4.5,
 	switchSmoothness = 30,
 	zoomMin = 0.04,
-	zoomMax = 1,
+	zoomMax = 1.6,
 	zoomFeatures = 0.2,
 	zoomFeaturesFadeRange = 0.06,  -- Zoom range over which features fade in/out
 	zoomProjectileDetail = 0.12,
@@ -162,6 +165,12 @@ local config = {
 	tvPanSpeed = 3.0,             -- Camera pan smoothness (higher = faster convergence)
 	tvZoomSpeed = 2.5,            -- Camera zoom smoothness
 	tvUnitFinishedCostThreshold = 800,  -- Minimum unit cost to trigger a "big unit finished" event
+
+	iconDensityScaling = true,  -- Reduce icon sizes when unit count is high (prevents overlap at zoomed-out levels)
+	iconDensityMaxUnits = 18000,  -- Unit count at which maximum reduction is reached
+	iconDensityMinScale = 0.5,  -- Minimum icon scale at max unit count (0.5 = 50% size)
+	iconDensityZoomFadeStart = 0.3,  -- Zoom level above which density scaling starts fading out (1.0 = fully zoomed in)
+	iconDensityZoomFadeEnd = 0.8,  -- Zoom level above which density scaling is completely off
 
 	drawDecals = true,  -- Show ground decals (explosion scars, footprints) from the decals GL4 widget
 	drawCommandFX = true,  -- Show brief fading command lines when orders are given (like Commands FX widget)
@@ -232,6 +241,7 @@ local config = {
 	minimapModeShowButtons = false,  -- Hide buttons in minimap mode
 	minimapModeStartMinimized = false,  -- Don't start minimized in minimap mode
 	minimapModeHideMoveResize = true,  -- Hide move and resize buttons in minimap mode
+	autoMaximizeOnGameStart = false,  -- Automatically maximize PIP when the game starts (players only, not spectators)
 	hideAICommands = true,  -- Hide command queues from AI players (default: enabled)
 	showSpectatorPings = true,  -- Show map pings from spectators on the PIP minimap
 	showViewRectangleOnMinimap = false,  -- Show the PIP view rectangle on the engine minimap
@@ -1482,6 +1492,8 @@ local cache = {
 	canFly = {},
 	isBuilding = {},
 	isCommander = {},
+	isDecoyCommander = {},  -- Commanders with customParams.decoyfor (show 'Decoy' instead of player name)
+	isScavCommander = {},   -- Scavenger commanders (show scav-specific name for decoys)
 	unitCost = {},
 	-- Combat properties
 	canAttack = {},
@@ -1769,6 +1781,7 @@ mapInfo.lavaUvScale = 2.0
 mapInfo.lavaSwirlFreq = 0.025
 mapInfo.lavaSwirlAmp = 0.003
 mapInfo.mapRatio = Game.mapSizeZ / Game.mapSizeX  -- Y/X aspect ratio for square-texel tiling
+mapInfo.lavaColorCorrection = {1.0, 1.0, 1.0}  -- default: no color correction
 if mapInfo.isLava then
 	mapInfo.lavaCoastWidth = Spring.Lava.coastWidth or 25.0
 	mapInfo.lavaUvScale = Spring.Lava.uvScale or 2.0
@@ -1783,6 +1796,16 @@ if mapInfo.isLava then
 		local cr, cg, cb = cc:match("vec3%s*%((.-),%s*(.-),%s*(.-)%)")
 		if cr then
 			mapInfo.lavaCoastColor = {tonumber(cr) or 2.0, tonumber(cg) or 0.5, tonumber(cb) or 0.0}
+		end
+	end
+	-- Parse colorCorrection: a final color multiplier applied to ALL lava output.
+	-- Acid/green lava maps use e.g. vec3(0.15, 1.0, 0.45) while red lava uses (1,1,1).
+	mapInfo.lavaColorCorrection = {1.0, 1.0, 1.0}
+	local ccStr = Spring.Lava.colorCorrection
+	if ccStr and type(ccStr) == "string" then
+		local cr2, cg2, cb2 = ccStr:match("vec3%s*%((.-),%s*(.-),%s*(.-)%)")
+		if cr2 then
+			mapInfo.lavaColorCorrection = {tonumber(cr2) or 1.0, tonumber(cg2) or 1.0, tonumber(cb2) or 1.0}
 		end
 	end
 end
@@ -2409,6 +2432,8 @@ void main() {
 			uniform float hasDistortTex;
 			uniform float gameFrames;    // exact Spring.GetGameFrame()
 			uniform vec3 lavaCoastColor;
+			uniform vec3 lavaHighlightColor; // bright glow added in noise hot spots
+			uniform vec3 colorCorrection;    // final color multiplier from map lava config (e.g. green for acid)
 			uniform float lavaCoastWidth;
 			uniform float lavaUvScale;    // WORLDUVSCALE
 			uniform float lavaSwirlFreq;  // SWIRLFREQUENCY
@@ -2524,7 +2549,7 @@ void main() {
 						float n1 = vnoise(finalUV * 12.0);
 						float n2 = vnoise(finalUV * 28.0);
 						float nv = n1 * 0.65 + n2 * 0.35;
-						baseColor = mix(waterColor.rgb, waterColor.rgb * 2.5 + vec3(0.3, 0.08, 0.0), nv * 0.4);
+						baseColor = mix(waterColor.rgb, waterColor.rgb * 2.5 + lavaHighlightColor, nv * 0.4);
 						emissive = nv;
 					}
 
@@ -2541,6 +2566,9 @@ void main() {
 					// distortion magnitude is boosted for minimap visibility, so
 					// constant is reduced to keep glow intensity proportional
 					baseColor += baseColor * (emissive * distortion.y * 140.0);
+
+					// Apply map's colorCorrection (e.g. green tint for acid lava)
+					baseColor *= colorCorrection;
 
 					float alpha = max(lavaAlpha, coastfactor * 0.85);
 					gl_FragColor = vec4(baseColor, alpha);
@@ -2644,6 +2672,8 @@ void main() {
 			hasDistortTex = 0,
 			gameFrames = 0,
 			lavaCoastColor = {2.0, 0.5, 0.0},
+			lavaHighlightColor = {0.3, 0.08, 0.0},
+			colorCorrection = {1.0, 1.0, 1.0},
 			lavaCoastWidth = 25.0,
 			lavaUvScale = 2.0,
 			lavaSwirlFreq = 0.025,
@@ -3061,6 +3091,9 @@ gl4Prim.lineShaderCode = {
 -- Initialize GL4 icon rendering: use engine $icons atlas, create VBO, shader
 -- atlasUVs is keyed by unitDefID for uniform lookup.
 local function InitGL4Icons()
+	-- Already initialized — skip to avoid leaking GPU resources
+	if gl4Icons.enabled then return end
+
 	if not gl.GetVAO or not gl.GetVBO then
 		Spring.Echo("[PIP] GL4 icons: VAO/VBO not available, falling back to legacy")
 		return
@@ -6753,6 +6786,12 @@ function widget:Initialize()
 		end
 		if uDef.customParams and (uDef.customParams.iscommander or uDef.customParams.isdecoycommander or uDef.customParams.isscavcommander or uDef.customParams.isscavdecoycommander) then
 			cache.isCommander[uDefID] = true
+			if uDef.customParams.decoyfor then
+				cache.isDecoyCommander[uDefID] = true
+			end
+			if uDef.customParams.isscavcommander or uDef.customParams.isscavdecoycommander then
+				cache.isScavCommander[uDefID] = true
+			end
 		end
 		cache.unitCost[uDefID] = uDef.metalCost + uDef.energyCost / 60
 
@@ -7325,6 +7364,9 @@ function widget:ViewResize()
 		-- Use mapEdgeMargin = 0 in minimap mode
 		config.mapEdgeMargin = 0
 
+		-- Capture old minimap PIP width before recalculating layout
+		local oldMinimapWidth = (render.dim.r and render.dim.l) and (render.dim.r - render.dim.l) or nil
+
 		-- Get current rotation to determine if dimensions should be swapped
 		-- When rotation is 90° or 270°, the map appears rotated so width/height swap visually
 		local minimapRotation = Spring.GetMiniMapRotation and Spring.GetMiniMapRotation() or 0
@@ -7390,7 +7432,14 @@ function widget:ViewResize()
 		
 		-- Only set camera defaults if not restored from config (i.e., not a luaui reload)
 		if miscState.minimapCameraRestored then
-			-- Restored from config - just ensure zoom isn't below minimum
+			-- Restored from config — scale zoom proportionally to PIP size change
+			-- so the same world area stays visible after window resize
+			if oldMinimapWidth and oldMinimapWidth > 0 and usedWidth ~= oldMinimapWidth then
+				local zoomScale = usedWidth / oldMinimapWidth
+				cameraState.zoom = cameraState.zoom * zoomScale
+				cameraState.targetZoom = cameraState.targetZoom * zoomScale
+			end
+			-- Ensure zoom isn't below minimum
 			if cameraState.zoom < fitZoom then
 				cameraState.zoom = fitZoom
 				cameraState.targetZoom = fitZoom
@@ -7413,6 +7462,14 @@ function widget:ViewResize()
 		-- Normal PIP mode: scale dimensions with screen size
 		-- When in minMode, render.dim is the tiny button — use savedDimensions as the real dimensions
 		local minSize = math.floor(config.minPanelSize * render.widgetScale)
+		
+		-- Capture old PIP width before rescaling so we can adjust zoom proportionally
+		local oldPipWidth
+		if not uiState.inMinMode and render.dim.r and render.dim.l then
+			oldPipWidth = render.dim.r - render.dim.l
+		elseif uiState.savedDimensions.r and uiState.savedDimensions.l then
+			oldPipWidth = uiState.savedDimensions.r - uiState.savedDimensions.l
+		end
 		
 		-- Rescale savedDimensions to match new resolution (they're in old pixel coords)
 		if uiState.savedDimensions.l and uiState.savedDimensions.r and
@@ -7461,6 +7518,22 @@ function widget:ViewResize()
 			end
 			if render.dim.t - render.dim.b > maxSize then
 				render.dim.b = render.dim.t - maxSize
+			end
+		end
+
+		-- Scale zoom to compensate for PIP size change so the same world area stays visible.
+		-- Zoom is pixels/elmo, so if the PIP shrinks, we must lower zoom proportionally.
+		if oldPipWidth and oldPipWidth > 0 then
+			local newPipWidth
+			if not uiState.inMinMode then
+				newPipWidth = render.dim.r - render.dim.l
+			elseif uiState.savedDimensions.r and uiState.savedDimensions.l then
+				newPipWidth = uiState.savedDimensions.r - uiState.savedDimensions.l
+			end
+			if newPipWidth and newPipWidth > 0 and newPipWidth ~= oldPipWidth then
+				local zoomScale = newPipWidth / oldPipWidth
+				cameraState.zoom = cameraState.zoom * zoomScale
+				cameraState.targetZoom = cameraState.targetZoom * zoomScale
 			end
 		end
 	end
@@ -7996,7 +8069,7 @@ function widget:SetConfigData(data)
 			end
 			cameraState.targetWcx, cameraState.targetWcz = cameraState.wcx, cameraState.wcz
 			
-			if data.minimapModeZoom and isValidNumber(data.minimapModeZoom, 0, 1) then
+			if data.minimapModeZoom and isValidNumber(data.minimapModeZoom, 0, GetEffectiveZoomMax()) then
 				cameraState.zoom = data.minimapModeZoom
 				cameraState.targetZoom = cameraState.zoom
 				miscState.minimapCameraRestored = true  -- Flag that we restored camera state
@@ -8013,8 +8086,8 @@ function widget:SetConfigData(data)
 		end
 		cameraState.targetWcx, cameraState.targetWcz = cameraState.wcx, cameraState.wcz  -- Initialize targets from config
 		
-		-- Validate zoom level (must be between 0 and 1)
-		if data.zoom and isValidNumber(data.zoom, 0, 1) then
+		-- Validate zoom level (must be between 0 and zoomMax)
+		if data.zoom and isValidNumber(data.zoom, 0, GetEffectiveZoomMax()) then
 			cameraState.zoom = data.zoom
 		end
 	end
@@ -8836,8 +8909,21 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	local unitBaseSize = Spring.GetConfigFloat("MinimapIconScale", 3.5)
 	local iconRadiusZoomDistMult = unitBaseSize * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(cameraState.zoom) * resScale
 
+	-- Unit-count density scaling: shrink icons when there are many units, fading out at higher zoom
+	if config.iconDensityScaling then
+		local totalUnits = #miscState.pipUnits
+		local unitFraction = math.min(totalUnits / config.iconDensityMaxUnits, 1.0)
+		local densityScale = 1.0 - (1.0 - config.iconDensityMinScale) * unitFraction
+		-- Fade out the reduction at higher zoom levels (zoomed in) so close-up icons stay full size
+		local zoomFade = 1.0 - math.min(math.max((cameraState.zoom - config.iconDensityZoomFadeStart) / (config.iconDensityZoomFadeEnd - config.iconDensityZoomFadeStart), 0), 1)
+		iconRadiusZoomDistMult = iconRadiusZoomDistMult * (1.0 - (1.0 - densityScale) * zoomFade)
+	end
+
 	-- Check if unitpics should be shown at this zoom level
-	local useUnitpics = config.showUnitpics and cameraState.zoom >= config.unitpicZoomThreshold
+	-- Use targetZoom (instant scroll response) instead of smooth zoom so the transition from
+	-- unitpics to icons happens immediately when the user scrolls out, not after the smooth
+	-- zoom animation catches up (which would leave a visible gap with no icons/unitpics).
+	local useUnitpics = config.showUnitpics and cameraState.targetZoom >= config.unitpicZoomThreshold
 	local unitpicEntries = {}
 	local unitpicCount = 0
 
@@ -8849,7 +8935,14 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	local unitDefLayerTbl = gl4Icons.unitDefLayer
 	local atlasUVs = gl4Icons.atlasUVs
 	local defaultUV = gl4Icons.defaultUV
-	if not defaultUV then return 1 end  -- Atlas not built yet, skip icon drawing
+	if not defaultUV then
+		-- Atlas wasn't ready during Initialize() (race condition at game start).
+		-- Retry once — by now the engine should have finalized the $icons atlas.
+		InitGL4Icons()
+		defaultUV = gl4Icons.defaultUV
+		atlasUVs = gl4Icons.atlasUVs
+		if not defaultUV then return 1 end  -- Still not available, skip icon drawing
+	end
 	local cacheUnitIcon = cache.unitIcon
 	local cacheIsBuilding = cache.isBuilding
 	local localCantBeTransported = cache.cantBeTransported
@@ -9280,6 +9373,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		and checkAllyTeamID == gl4Icons._bldgBlockCheckAlly  -- LOS filtering context changed
 		and (currentGameFrame - (gl4Icons._bldgBlockFrame or 0)) < 30
 		and not useUnitpics  -- unitpic collection needs per-unit data
+		and not gl4Icons._bldgBlockBuiltDuringUnitpics  -- block built with 0 icons during unitpics is invalid
 
 	local preProcessEl = usedElements
 
@@ -9405,6 +9499,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		gl4Icons._bldgBlockHash = bldgHash
 		gl4Icons._bldgBlockCheckAlly = checkAllyTeamID
 		gl4Icons._bldgBlockFrame = currentGameFrame
+		gl4Icons._bldgBlockBuiltDuringUnitpics = useUnitpics  -- block has 0 icons when unitpics active
 	end
 	local icT3b = os.clock()
 	local bldgProcessed = usedElements - preProcessEl
@@ -9455,7 +9550,10 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		gl.UniformFloat(ul.rotCenter, fboW * 0.5, fboH * 0.5)
 
 		-- Icon size and time
-		gl.UniformFloat(ul.iconBaseSize, iconRadiusZoomDistMult)
+		-- Cap icon texture size at the 0.95-zoom equivalent so icons don't grow into
+		-- oversized blobs at extreme zoom levels (world keeps zooming, icons stay readable)
+		local iconSizeCap = unitBaseSize * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(0.95) * resScale
+		gl.UniformFloat(ul.iconBaseSize, math.min(iconRadiusZoomDistMult, iconSizeCap))
 		gl.UniformFloat(ul.gameTime, gameTime)
 		gl.UniformFloat(ul.wallClockTime, wallClockTime)
 		gl.UniformFloat(ul.healthDarkenMax, config.healthDarkenMax)
@@ -9486,7 +9584,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	if useUnitpics and unitpicCount > 0 then
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		local unitpicSizeMult = 0.85
-		local picTexInset = 0.18 * (1 - (cameraState.zoom - config.unitpicZoomThreshold) / (1 - config.unitpicZoomThreshold))
+		local picTexInset = math.max(0.125, 0.2 * (1 - (cameraState.zoom - config.unitpicZoomThreshold) / (1 - config.unitpicZoomThreshold)))
 		local distMult = math.min(math.max(1, 2.2-(cameraState.zoom*3.3)), 3)
 		local teamBorderSize = 3 * cameraState.zoom * distMult * resScale
 		local blackBorderSize = 4 * cameraState.zoom * distMult * resScale
@@ -9560,7 +9658,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 				local healthFrac = up[8] or 1
 				if healthFrac < 0.99 then
 					local barW = iconSize * 0.82
-					local barH = math.max(1, iconSize * 0.13)
+					local barH = math.max(1, iconSize * 0.1508)
 					local barY = iconSize - barH * 1.5
 					local outl = math.max(1, barH * 0.2)
 					glFunc.Texture(false)
@@ -9627,9 +9725,9 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 				local healthFrac = up[8] or 1
 				if healthFrac < 0.99 then
 					local barW = iconSize * 0.82
-					local barH = math.max(1, iconSize * 0.13)
+					local barH = math.max(1, iconSize * 0.185)
 					local barY = py + iconSize - barH * 1.5
-					local outl = math.max(1, barH * 0.2)
+					local outl = math.max(1, barH * 0.4)
 					glFunc.Texture(false)
 					-- Outline
 					glFunc.Color(0, 0, 0, 0.9)
@@ -10117,6 +10215,9 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		local localIsCommander = cache.isCommander
 		local localCacheUnitIcon = cache.unitIcon
 		local resScale = render.contentScale or 1
+		-- Cap icon size for nametag/health bar positioning to match the capped shader icons
+		local cappedIconRadius = math.min(iconRadiusZoomDistMult,
+			Spring.GetConfigFloat("MinimapIconScale", 3.5) * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(0.95) * resScale)
 		-- Font size scales with zoom: grows when zoomed in, floors at readable minimum
 		local zoomFactor = math.sqrt(cameraState.zoom / 0.12)  -- 1.0 at threshold, grows with zoom
 		local nametagFontSize = math.max(8, math.floor(11 * resScale * zoomFactor))
@@ -10128,7 +10229,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		local pipUnits = miscState.pipUnits
 		-- Collect commander positions, draw nametags, and gather health bar data
 		-- (health bars only when unitpics are NOT shown, since unitpics have their own)
-		local unitpicsActive = config.showUnitpics and cameraState.zoom >= config.unitpicZoomThreshold
+		local unitpicsActive = config.showUnitpics and cameraState.targetZoom >= config.unitpicZoomThreshold
 		local comHealthBars = (config.drawComHealthBars and not unitpicsActive) and {} or nil
 		local comHealthCount = 0
 		for i = 1, unitCount do
@@ -10157,7 +10258,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 				if wx then
 					local cx, cy = WorldToPipCoords(wx, posZ[uID])
 					local iconInfo = localCacheUnitIcon[dID]
-					local iconHalf = iconRadiusZoomDistMult * (iconInfo and iconInfo.size or 0.5)
+					local iconHalf = cappedIconRadius * (iconInfo and iconInfo.size or 0.5)
 					-- Rotate the icon center to match where the shader placed it
 					if isRotated then
 						local dx, dy = cx - rotCX, cy - rotCY
@@ -10173,11 +10274,33 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 					end
 					-- Draw nametag above icon (always, including radar blips)
 					local entry = tID and comNametagCache[tID]
-					if entry then
+					-- For scav/raptor commanders: no cache entry, but still show a name
+					local displayName
+					if cache.isDecoyCommander[dID] then
+						if cache.isScavCommander[dID] then
+							displayName = Spring.I18N('units.scavDecoyCommanderNameTag')
+						else
+							displayName = Spring.I18N('units.decoyCommanderNameTag')
+						end
+					elseif cache.isScavCommander[dID] then
+						displayName = Spring.I18N('units.scavCommanderNameTag')
+					elseif entry then
+						displayName = entry.name
+					end
+					if displayName then
 						local nameY = cy + iconHalf + nametagFontSize * 0.35
-						font:SetTextColor(entry.r, entry.g, entry.b, nametagAlpha)
-						font:SetOutlineColor(entry.oR, entry.oG, entry.oB, nametagAlpha)
-						font:Print(entry.name, cx, nameY, nametagFontSize, "con")
+						if entry then
+							font:SetTextColor(entry.r, entry.g, entry.b, nametagAlpha)
+							font:SetOutlineColor(entry.oR, entry.oG, entry.oB, nametagAlpha)
+						else
+							-- Fallback color for scav/raptor teams without cache entry
+							local tc = teamColors[tID]
+							local r, g, b = tc and tc[1] or 1, tc and tc[2] or 1, tc and tc[3] or 1
+							local isDark = (r + g * 1.2 + b * 0.4) < 0.65
+							font:SetTextColor(r, g, b, nametagAlpha)
+							font:SetOutlineColor(isDark and 1 or 0, isDark and 1 or 0, isDark and 1 or 0, nametagAlpha)
+						end
+						font:Print(displayName, cx, nameY, nametagFontSize, "con")
 					end
 					-- Collect health bar data (only when in actual LOS, not radar)
 					if comHealthBars and inLos then
@@ -10201,10 +10324,10 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 			glFunc.Texture(false)
 			for hi = 1, comHealthCount do
 				local hb = comHealthBars[hi]
-				local barW = hb.half * 0.82
-				local barH = math.max(1, hb.half * 0.13)
+				local barW = hb.half * 0.78
+				local barH = math.max(1, hb.half * 0.18)
 				local barY = hb.cy - hb.half + (hb.half * 2) - barH * 1.5
-				local outl = math.max(1, barH * 0.2)
+				local outl = math.max(1, barH * 0.45)
 				-- Outline (black border)
 				glFunc.Color(0, 0, 0, 0.9 * nametagAlpha)
 				glFunc.BeginEnd(GL.QUADS, function()
@@ -10742,6 +10865,7 @@ local function DrawWaterAndLOSOverlays()
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "hasLavaTex"), mapInfo.lavaDiffuseEmitTex and 1.0 or 0.0)
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "gameFrames"), Spring.GetGameFrame())
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaCoastColor"), mapInfo.lavaCoastColor[1], mapInfo.lavaCoastColor[2], mapInfo.lavaCoastColor[3])
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "colorCorrection"), mapInfo.lavaColorCorrection[1], mapInfo.lavaColorCorrection[2], mapInfo.lavaColorCorrection[3])
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaCoastWidth"), mapInfo.lavaCoastWidth)
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaUvScale"), mapInfo.lavaUvScale)
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaSwirlFreq"), mapInfo.lavaSwirlFreq)
@@ -11162,15 +11286,35 @@ local function DrawCameraViewBounds()
 	
 	-- Convert to pip coordinates (no clamping, preserve true perspective shape)
 	-- Note: World Z maps to pip Y inversely (high Z = low Y in pip view)
-	-- Round to nearest pixel to eliminate sub-pixel jitter when the camera moves
 	local bl_x, bl_y = WorldToPipCoords(bottomLeftX, bottomLeftZ)
 	local br_x, br_y = WorldToPipCoords(bottomRightX, bottomRightZ)
 	local tr_x, tr_y = WorldToPipCoords(topRightX, topRightZ)
 	local tl_x, tl_y = WorldToPipCoords(topLeftX, topLeftZ)
-	bl_x = math.floor(bl_x + 0.5);  bl_y = math.floor(bl_y + 0.5)
-	br_x = math.floor(br_x + 0.5);  br_y = math.floor(br_y + 0.5)
-	tr_x = math.floor(tr_x + 0.5);  tr_y = math.floor(tr_y + 0.5)
-	tl_x = math.floor(tl_x + 0.5);  tl_y = math.floor(tl_y + 0.5)
+	
+	-- Apply minimap rotation manually (this function is drawn outside the GL rotation matrix)
+	local rotation = render.minimapRotation or 0
+	if rotation ~= 0 then
+		local centerX = (render.dim.l + render.dim.r) / 2
+		local centerY = (render.dim.b + render.dim.t) / 2
+		local cosA = math.cos(rotation)
+		local sinA = math.sin(rotation)
+		local function rotPt(x, y)
+			local dx, dy = x - centerX, y - centerY
+			return centerX + dx * cosA - dy * sinA,
+			       centerY + dx * sinA + dy * cosA
+		end
+		bl_x, bl_y = rotPt(bl_x, bl_y)
+		br_x, br_y = rotPt(br_x, br_y)
+		tr_x, tr_y = rotPt(tr_x, tr_y)
+		tl_x, tl_y = rotPt(tl_x, tl_y)
+	end
+	
+	-- Round to pixel centers after rotation for crisp screen-space alignment
+	-- OpenGL lines render crisply at half-pixel positions (0.5, 1.5, 2.5, ...)
+	bl_x = math.floor(bl_x) + 0.5;  bl_y = math.floor(bl_y) + 0.5
+	br_x = math.floor(br_x) + 0.5;  br_y = math.floor(br_y) + 0.5
+	tr_x = math.floor(tr_x) + 0.5;  tr_y = math.floor(tr_y) + 0.5
+	tl_x = math.floor(tl_x) + 0.5;  tl_y = math.floor(tl_y) + 0.5
 	
 	-- Calculate chamfer size (4 pixels at 1080p, scaled by resolution)
 	local resScale = render.contentScale or 1
@@ -11199,11 +11343,11 @@ local function DrawCameraViewBounds()
 			return cornerX, cornerY, cornerX, cornerY
 		end
 		
-		-- Chamfer points along each edge from the corner
-		local c1x = cornerX + (dx1 / len1) * chamfer
-		local c1y = cornerY + (dy1 / len1) * chamfer
-		local c2x = cornerX + (dx2 / len2) * chamfer
-		local c2y = cornerY + (dy2 / len2) * chamfer
+		-- Chamfer points along each edge from the corner (pixel-center aligned)
+		local c1x = math.floor(cornerX + (dx1 / len1) * chamfer) + 0.5
+		local c1y = math.floor(cornerY + (dy1 / len1) * chamfer) + 0.5
+		local c2x = math.floor(cornerX + (dx2 / len2) * chamfer) + 0.5
+		local c2y = math.floor(cornerY + (dy2 / len2) * chamfer) + 0.5
 		
 		return c1x, c1y, c2x, c2y
 	end
@@ -11214,50 +11358,52 @@ local function DrawCameraViewBounds()
 	local tr_c1x, tr_c1y, tr_c2x, tr_c2y = getChamferVertices(br_x, br_y, tl_x, tl_y, tr_x, tr_y)
 	local tl_c1x, tl_c1y, tl_c2x, tl_c2y = getChamferVertices(tr_x, tr_y, bl_x, bl_y, tl_x, tl_y)
 	
-	-- Draw the view trapezoid with chamfered corners (anti-aliased)
+	-- Build ordered vertex list for the chamfered shape (clockwise from bottom-left)
+	local verts = {
+		{bl_c1x, bl_c1y}, {bl_c2x, bl_c2y},  -- bottom-left chamfer
+		{br_c1x, br_c1y}, {br_c2x, br_c2y},  -- bottom-right chamfer
+		{tr_c1x, tr_c1y}, {tr_c2x, tr_c2y},  -- top-right chamfer
+		{tl_c1x, tl_c1y}, {tl_c2x, tl_c2y},  -- top-left chamfer
+	}
+	local nv = #verts
+	
+	-- Helper: emit a quad-based line segment with uniform visual thickness
+	-- perpendicular to the edge direction, regardless of angle.
+	local function emitEdgeQuad(x1, y1, x2, y2, halfW)
+		local dx, dy = x2 - x1, y2 - y1
+		local len = math.sqrt(dx * dx + dy * dy)
+		if len < 0.001 then return end
+		-- Perpendicular normal (unit length, scaled by half-width)
+		local nx, ny = (-dy / len) * halfW, (dx / len) * halfW
+		glFunc.Vertex(x1 - nx, y1 - ny)
+		glFunc.Vertex(x1 + nx, y1 + ny)
+		glFunc.Vertex(x2 + nx, y2 + ny)
+		glFunc.Vertex(x2 - nx, y2 - ny)
+	end
+	
+	-- Draw the view trapezoid with chamfered corners using quad-based outlines
+	-- This gives uniform visual thickness on all edges regardless of angle.
 	glFunc.Texture(false)
 	
-	gl.UnsafeState(0x0B20, function()  -- GL_LINE_SMOOTH
-		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-		
-		-- Draw dark shadow outline first (thicker, behind the white line)
-		glFunc.LineWidth(3 * ((vsx+1000) / 3000) * resScale)
-		glFunc.Color(0, 0, 0, 0.35)
-		glFunc.BeginEnd(glConst.LINE_LOOP, function()
-			-- Bottom-left corner (2 vertices)
-			glFunc.Vertex(bl_c1x, bl_c1y)  -- toward top-left
-			glFunc.Vertex(bl_c2x, bl_c2y)  -- toward bottom-right
-			-- Bottom-right corner (2 vertices)
-			glFunc.Vertex(br_c1x, br_c1y)  -- toward bottom-left
-			glFunc.Vertex(br_c2x, br_c2y)  -- toward top-right
-			-- Top-right corner (2 vertices)
-			glFunc.Vertex(tr_c1x, tr_c1y)  -- toward bottom-right
-			glFunc.Vertex(tr_c2x, tr_c2y)  -- toward top-left
-			-- Top-left corner (2 vertices)
-			glFunc.Vertex(tl_c1x, tl_c1y)  -- toward top-right
-			glFunc.Vertex(tl_c2x, tl_c2y)  -- toward bottom-left
-		end)
-		
-		-- Draw white line on top
-		glFunc.LineWidth(1.3 * ((vsx+1000) / 3000) * resScale)
-		glFunc.Color(1, 1, 1, 0.8)
-		glFunc.BeginEnd(glConst.LINE_LOOP, function()
-			-- Bottom-left corner (2 vertices)
-			glFunc.Vertex(bl_c1x, bl_c1y)
-			glFunc.Vertex(bl_c2x, bl_c2y)
-			-- Bottom-right corner (2 vertices)
-			glFunc.Vertex(br_c1x, br_c1y)
-			glFunc.Vertex(br_c2x, br_c2y)
-			-- Top-right corner (2 vertices)
-			glFunc.Vertex(tr_c1x, tr_c1y)
-			glFunc.Vertex(tr_c2x, tr_c2y)
-			-- Top-left corner (2 vertices)
-			glFunc.Vertex(tl_c1x, tl_c1y)
-			glFunc.Vertex(tl_c2x, tl_c2y)
-		end)
+	-- Draw dark shadow outline first (thicker, behind the white line)
+	local shadowHalfW = math.max(0.5, 1.5 * ((vsx+1000) / 3000) * resScale)
+	glFunc.Color(0, 0, 0, 0.35)
+	glFunc.BeginEnd(GL.QUADS, function()
+		for i = 1, nv do
+			local j = (i % nv) + 1
+			emitEdgeQuad(verts[i][1], verts[i][2], verts[j][1], verts[j][2], shadowHalfW)
+		end
 	end)
 	
-	glFunc.LineWidth(1.0)
+	-- Draw white line on top
+	local whiteHalfW = math.max(0.5, 0.65 * ((vsx+1000) / 3000) * resScale)
+	glFunc.Color(1, 1, 1, 0.8)
+	glFunc.BeginEnd(GL.QUADS, function()
+		for i = 1, nv do
+			local j = (i % nv) + 1
+			emitEdgeQuad(verts[i][1], verts[i][2], verts[j][1], verts[j][2], whiteHalfW)
+		end
+	end)
 end
 
 
@@ -12291,6 +12437,11 @@ local function DrawTrackedPlayerMinimap()
 	local showForActivityFocus = config.activityFocusShowMinimap and miscState.activityFocusActive  -- Show during map marker focus
 	local showForTV = miscState.tvEnabled  -- Show during TV mode
 	
+	-- Hide pip-minimap when the game is over and TV is zooming out to overview (already showing the whole map)
+	if showForTV and (miscState.isGameOver or pipTV.director.effectiveGameOver) then
+		showForTV = false
+	end
+	
 	if not showForPlayer and not showForTracking and not showForHover and not showForActivityFocus and not showForTV then
 		interactionState.pipMinimapBounds = nil
 		return
@@ -12538,6 +12689,7 @@ local function DrawTrackedPlayerMinimap()
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "hasLavaTex"), mapInfo.lavaDiffuseEmitTex and 1.0 or 0.0)
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "gameFrames"), Spring.GetGameFrame())
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaCoastColor"), mapInfo.lavaCoastColor[1], mapInfo.lavaCoastColor[2], mapInfo.lavaCoastColor[3])
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "colorCorrection"), mapInfo.lavaColorCorrection[1], mapInfo.lavaColorCorrection[2], mapInfo.lavaColorCorrection[3])
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaCoastWidth"), mapInfo.lavaCoastWidth)
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaUvScale"), mapInfo.lavaUvScale)
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaSwirlFreq"), mapInfo.lavaSwirlFreq)
@@ -13910,8 +14062,10 @@ function widget:DrawScreen()
 
 		-- Force immediate units re-render when unitpic display state changes
 		-- (zooming out from unitpics to icons or vice versa)
+		-- Uses targetZoom (same as GL4DrawIcons) so the transition is detected on the
+		-- same frame the user scrolls, not after the smooth zoom animation catches up.
 		do
-			local nowUseUnitpics = config.showUnitpics and cameraState.zoom >= config.unitpicZoomThreshold
+			local nowUseUnitpics = config.showUnitpics and cameraState.targetZoom >= config.unitpicZoomThreshold
 			if miscState._lastUseUnitpics ~= nil and miscState._lastUseUnitpics ~= nowUseUnitpics then
 				pipR2T.unitsNeedsUpdate = true
 			end
@@ -14184,11 +14338,13 @@ function widget:DrawScreen()
 		end
 
 		DrawMapMarkers()
-		DrawCameraViewBounds()
 
 		if render.minimapRotation ~= 0 then
 			glFunc.PopMatrix()
 		end
+
+		-- Draw camera view bounds OUTSIDE the rotation matrix so it can pixel-align after rotation
+		DrawCameraViewBounds()
 
 		gl.Scissor(false)
 	end
@@ -15501,7 +15657,7 @@ function widget:GameStart()
 	gameHasStarted = true
 
 	-- Automatically maximize for players (only for the first PIP instance)
-	if pipNumber == 1 and not cameraState.mySpecState and uiState.inMinMode then
+	if pipNumber == 1 and config.autoMaximizeOnGameStart and not cameraState.mySpecState and uiState.inMinMode then
 		StartMaximizeAnimation()
 	end
 

@@ -109,7 +109,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
-				energypershot = 17,
+				energypershot = 10,
 				explosiongenerator = "custom:heatray-large",
 				firestarter = 90,
 				firetolerance = 100,
