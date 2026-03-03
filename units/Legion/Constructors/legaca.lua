@@ -40,7 +40,7 @@ return {
 			"leganavaladvgeo",
 			"legrampart",
 			"legmoho",
-			"legmohocon",
+			--"legmohocon",
 			"legadveconv",
 			"legadvestore",
 			"legamstor",
