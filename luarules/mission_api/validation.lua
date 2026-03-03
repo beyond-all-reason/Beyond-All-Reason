@@ -286,6 +286,17 @@ local customValidators = {
 		end
 	end,
 
+	[Types.FeatureDefName] = function(featureDefName)
+		local luaTypeResult = luaTypeValidators[Types.String](featureDefName)
+		if luaTypeResult then
+			return luaTypeResult
+		end
+
+		if not FeatureDefNames[featureDefName] then
+			return { { message = "Invalid featureDefName: " .. featureDefName } }
+		end
+	end,
+
 	[Types.Facing] = function(facing)
 		local expectedTypes = { string = true, number = true }
 		local actualType = type(facing)
@@ -431,26 +442,49 @@ local function validateActions(actions)
 	end
 end
 
-local function validateUnitNameReferences()
+local function validateUnitNameReferences(triggerTypes, actionTypes, triggers, actions)
+	local triggerTypesReferencingUnitNames = {
+		[triggerTypes.UnitNotExists] = true,
+		[triggerTypes.UnitKilled] = true,
+		[triggerTypes.UnitCaptured] = true,
+		[triggerTypes.UnitEnteredLocation] = true,
+		[triggerTypes.UnitLeftLocation] = true,
+		[triggerTypes.UnitDwellLocation] = true,
+		[triggerTypes.UnitSpotted] = true,
+		[triggerTypes.UnitUnspotted] = true,
+		[triggerTypes.ConstructionFinished] = true,
+	}
+	local actionTypesNamingUnits = {
+		[actionTypes.SpawnUnits] = true,
+		[actionTypes.NameUnits] = true,
+	}
+	local actionTypesReferencingUnitNames = {
+		[actionTypes.IssueOrders] = true,
+		[actionTypes.UnnameUnits] = true,
+		[actionTypes.TransferUnits] = true,
+		[actionTypes.DespawnUnits] = true,
+		[actionTypes.TransferUnits] = true,
+	}
+
 	local createdUnitNames = {}
 	local referencedUnitNames = {}
-	local function recordUnitNameCreationsAndReferences(actionsOrTriggers, label)
+	local function recordUnitNameCreationsAndReferences(typesNamingUnits, typesReferencingUnitNames, actionsOrTriggers, label)
 		for actionOrTriggerID, actionOrTrigger in pairs(actionsOrTriggers) do
 			local unitName = (actionOrTrigger.parameters or {}).unitName
 			if unitName then
-				createdUnitNames[unitName] = createdUnitNames[unitName] or {}
-				createdUnitNames[unitName][#createdUnitNames[unitName] + 1] = label .. actionOrTriggerID
-			end
-			local unitName = (actionOrTrigger.parameters or {}).unitName
-			if unitName then
-				referencedUnitNames[unitName] = referencedUnitNames[unitName] or {}
-				referencedUnitNames[unitName][#referencedUnitNames[unitName] + 1] = label .. actionOrTriggerID
+				if typesNamingUnits[actionOrTrigger.type] then
+					createdUnitNames[unitName] = createdUnitNames[unitName] or {}
+					createdUnitNames[unitName][#createdUnitNames[unitName] + 1] = label .. actionOrTriggerID
+				elseif typesReferencingUnitNames[actionOrTrigger.type] then
+					referencedUnitNames[unitName] = referencedUnitNames[unitName] or {}
+					referencedUnitNames[unitName][#referencedUnitNames[unitName] + 1] = label .. actionOrTriggerID
+				end
 			end
 		end
 	end
 
-	recordUnitNameCreationsAndReferences(GG['MissionAPI'].Triggers, "trigger ")
-	recordUnitNameCreationsAndReferences(GG['MissionAPI'].Actions, "action ")
+	recordUnitNameCreationsAndReferences({}, triggerTypesReferencingUnitNames, triggers, "trigger ")
+	recordUnitNameCreationsAndReferences(actionTypesNamingUnits, actionTypesReferencingUnitNames, actions, "action ")
 
 	for unitName, labels in pairs(referencedUnitNames) do
 		if not createdUnitNames[unitName] then
@@ -464,8 +498,54 @@ local function validateUnitNameReferences()
 	end
 end
 
+local function validateFeatureNameReferences(triggerTypes, actionTypes, triggers, actions)
+	local triggerTypesReferencingFeatureNames = {
+		[triggerTypes.FeatureCreated]   = true,
+		[triggerTypes.FeatureReclaimed] = true,
+		[triggerTypes.FeatureDestroyed] = true,
+	}
+	local actionTypesNamingFeatures = {
+		[actionTypes.CreateFeature] = true,
+	}
+	local actionTypesReferencingFeatureNames = {
+		[actionTypes.DestroyFeature] = true,
+	}
+
+	local createdFeatureNames = {}
+	local referencedFeatureNames = {}
+	local function recordFeatureNameCreationsAndReferences(typesNamingFeatures, typesReferencingFeatureNames, actionsOrTriggers, label)
+		for actionOrTriggerID, actionOrTrigger in pairs(actionsOrTriggers) do
+			local featureName = (actionOrTrigger.parameters or {}).featureName
+			if featureName then
+				if typesNamingFeatures[actionOrTrigger.type] then
+					createdFeatureNames[featureName] = createdFeatureNames[featureName] or {}
+					createdFeatureNames[featureName][#createdFeatureNames[featureName] + 1] = label .. actionOrTriggerID
+				elseif typesReferencingFeatureNames[actionOrTrigger.type] then
+					referencedFeatureNames[featureName] = referencedFeatureNames[featureName] or {}
+					referencedFeatureNames[featureName][#referencedFeatureNames[featureName] + 1] = label .. actionOrTriggerID
+				end
+			end
+		end
+	end
+
+	recordFeatureNameCreationsAndReferences({}, triggerTypesReferencingFeatureNames, triggers, "trigger ")
+	recordFeatureNameCreationsAndReferences(actionTypesNamingFeatures, actionTypesReferencingFeatureNames, actions, "action ")
+
+	for featureName, labels in pairs(referencedFeatureNames) do
+		if not createdFeatureNames[featureName] then
+			logError("Feature name '" .. featureName .. "' not created in any trigger or action. Referenced in: " .. table.concat(labels, ", "))
+		end
+	end
+	for featureName, labels in pairs(createdFeatureNames) do
+		if not referencedFeatureNames[featureName] then
+			logError("Feature name '" .. featureName .. "' created, but not referenced by any trigger or action. Created in: " .. table.concat(labels, ", "))
+		end
+	end
+end
+
 return {
-	ValidateTriggers = validateTriggers,
-	ValidateActions = validateActions,
-	ValidateUnitNameReferences = validateUnitNameReferences
+	ValidateTriggers             = validateTriggers,
+	ValidateActions              = validateActions,
+	ValidateUnitNameReferences   = validateUnitNameReferences,
+	ValidateFeatureNameReferences = validateFeatureNameReferences,
 }

@@ -1,10 +1,13 @@
 local tracking = VFS.Include('luarules/mission_api/tracking.lua')
-local initializeTracking = tracking.InitializeTracking
-local trackUnit = tracking.TrackUnit
-local isNameUntracked = tracking.IsNameUntracked
-local untrackUnitName = tracking.UntrackUnitName
+local initializeTracking     = tracking.InitializeTracking
+local trackUnit              = tracking.TrackUnit
+local isUnitNameUntracked    = tracking.IsUnitNameUntracked
+local untrackUnitName        = tracking.UntrackUnitName
+local trackFeature           = tracking.TrackFeature
+local isFeatureNameUntracked = tracking.IsFeatureNameUntracked
 
-local trackedUnitIDs = GG['MissionAPI'].trackedUnitIDs
+local trackedUnitIDs    = GG['MissionAPI'].trackedUnitIDs
+local trackedFeatureIDs = GG['MissionAPI'].trackedFeatureIDs
 local triggers = GG['MissionAPI'].Triggers
 
 initializeTracking()
@@ -46,7 +49,7 @@ local function disableTrigger(triggerID)
 end
 
 local function issueOrders(unitName, orders)
-    if isNameUntracked(unitName) then return end
+    if isUnitNameUntracked(unitName) then return end
 
 	Spring.GiveOrderArrayToUnitArray(trackedUnitIDs[unitName], orders)
 end
@@ -76,7 +79,7 @@ end
 ----------------------------------------------------------------
 
 local function despawnUnits(unitName, selfDestruct, reclaimed)
-	if isNameUntracked(unitName) then return end
+	if isUnitNameUntracked(unitName) then return end
 
 	-- Copying table as UnitKilled trigger with SpawnUnits with the same name could cause infinite loop.
 	for _, unitID in pairs(table.copy(trackedUnitIDs[unitName])) do
@@ -89,7 +92,7 @@ end
 ----------------------------------------------------------------
 
 local function transferUnits(unitName, newTeam, given)
-	if isNameUntracked(unitName) then return end
+	if isUnitNameUntracked(unitName) then return end
 
 	-- Copying table as UnitExists trigger with TransferUnits with the same name could cause infinite loop.
 	for _, unitID in pairs(table.copy(trackedUnitIDs[unitName])) do
@@ -146,6 +149,36 @@ local function unnameUnits(unitName)
 	untrackUnitName(unitName)
 end
 
+----------------------------------------------------------------
+
+local function createFeature(featureDefName, position, featureName, facing)
+	if not FeatureDefNames[featureDefName] then return end
+
+	-- Convert named facing to a heading integer (Spring uses 0-65535 headings)
+	local facingToHeading = { s = 0, n = 32768, e = 16384, w = 49152,
+		south = 0, north = 32768, east = 16384, west = 49152,
+		[0] = 0, [1] = 32768, [2] = 16384, [3] = 49152 }
+	local heading = facing and (facingToHeading[facing] or 0) or 0
+
+	local featureID = Spring.CreateFeature(featureDefName, position.x, position.y, position.z, heading)
+	if featureID and featureName then
+		trackFeature(featureName, featureID)
+	end
+end
+
+local function destroyFeature(featureName)
+	if isFeatureNameUntracked(featureName) then return end
+
+	-- Copy table to avoid mutation while iterating
+	for _, featureID in pairs(table.copy(trackedFeatureIDs[featureName])) do
+		if Spring.ValidFeatureID(featureID) then
+			Spring.DestroyFeature(featureID)
+		end
+	end
+end
+
+----------------------------------------------------------------
+
 local function spawnExplosion(position, direction, params)
 	spawnExplosion(position[1], position[2], position[3], direction[1], direction[2], direction[3], params)
 end
@@ -189,6 +222,10 @@ return {
 	TransferUnits = transferUnits,
 	NameUnits = nameUnits,
 	UnnameUnits = unnameUnits,
+
+	-- Features
+	CreateFeature = createFeature,
+	DestroyFeature = destroyFeature,
 
 	-- SFX
 	SpawnExplosion = spawnExplosion,

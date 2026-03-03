@@ -1,9 +1,11 @@
 local gadget = gadget ---@type Gadget
 
 local tracking = VFS.Include('luarules/mission_api/tracking.lua')
-local initializeTracking = tracking.InitializeTracking
-local doesUnitHaveName = tracking.DoesUnitHaveName
-local untrackUnitID = tracking.UntrackUnitID
+local initializeTracking  = tracking.InitializeTracking
+local doesUnitHaveName    = tracking.DoesUnitHaveName
+local untrackUnitID       = tracking.UntrackUnitID
+local doesFeatureHaveName = tracking.DoesFeatureHaveName
+local untrackFeatureID    = tracking.UntrackFeatureID
 
 function gadget:GetInfo()
 	return {
@@ -294,6 +296,58 @@ local function checkTeamDestroyed(trigger, teamID)
 	end
 end
 
+local function isFeatureInArea(featureID, area)
+	local featureX, _, featureZ = Spring.GetFeaturePosition(featureID)
+	if area.x1 then
+		return featureX >= area.x1 and featureX <= area.x2 and featureZ >= area.z1 and featureZ <= area.z2
+	else
+		local dx, dz = featureX - area.x, featureZ - area.z
+		return dx * dx + dz * dz <= area.radius * area.radius
+	end
+end
+
+local function checkFeatureCreated(trigger, featureID, featureDefID)
+	if trigger.parameters.featureDefName and trigger.parameters.featureDefName ~= FeatureDefs[featureDefID].name then
+		return
+	end
+	if trigger.parameters.area and not isFeatureInArea(featureID, trigger.parameters.area) then
+		return
+	end
+	activateTrigger(trigger)
+end
+
+local function checkFeatureReclaimed(trigger, featureID, featureDefID, teamID)
+	if trigger.parameters.featureName and not doesFeatureHaveName(featureID, trigger.parameters.featureName) then
+		return
+	end
+	if trigger.parameters.featureDefName and trigger.parameters.featureDefName ~= FeatureDefs[featureDefID].name then
+		return
+	end
+	if trigger.parameters.teamID and teamID ~= trigger.parameters.teamID then
+		return
+	end
+	if trigger.parameters.area and not isFeatureInArea(featureID, trigger.parameters.area) then
+		return
+	end
+	activateTrigger(trigger)
+end
+
+local function checkFeatureDestroyed(trigger, featureID, featureDefID, attackerAllyTeamID)
+	if trigger.parameters.featureName and not doesFeatureHaveName(featureID, trigger.parameters.featureName) then
+		return
+	end
+	if trigger.parameters.featureDefName and trigger.parameters.featureDefName ~= FeatureDefs[featureDefID].name then
+		return
+	end
+	if trigger.parameters.allyTeamID and attackerAllyTeamID ~= trigger.parameters.allyTeamID then
+		return
+	end
+	if trigger.parameters.area and not isFeatureInArea(featureID, trigger.parameters.area) then
+		return
+	end
+	activateTrigger(trigger)
+end
+
 
 ----------------------------------------------------------------
 --- Call-ins:
@@ -385,4 +439,40 @@ function gadget:TeamDied(teamID)
 	processTriggersOfType(types.TeamDestroyed, function(trigger, _)
 		checkTeamDestroyed(trigger, teamID)
 	end)
+end
+
+local reclaimedFeatures = {}
+function gadget:AllowFeatureBuildStep(builderID, builderTeamID, featureID, featureDefID, buildStep)
+	if buildStep < 0 then
+		-- Negative buildStep means reclaim
+		reclaimedFeatures[featureID] = builderTeamID
+	end
+	return true
+end
+
+function gadget:FeatureCreated(featureID, allyTeamID, userID)
+	local featureDefID = Spring.GetFeatureDefID(featureID)
+	processTriggersOfType(types.FeatureCreated, function(trigger, _)
+		checkFeatureCreated(trigger, featureID, featureDefID)
+	end)
+end
+
+function gadget:FeatureDestroyed(featureID, attackerAllyTeamID)
+	local featureDefID = Spring.GetFeatureDefID(featureID)
+	local reclaimerTeamID = reclaimedFeatures[featureID]
+
+	if reclaimerTeamID then
+		-- Feature was fully reclaimed
+		reclaimedFeatures[featureID] = nil
+		processTriggersOfType(types.FeatureReclaimed, function(trigger, _)
+			checkFeatureReclaimed(trigger, featureID, featureDefID, reclaimerTeamID)
+		end)
+	else
+		-- Feature was destroyed, allyTeamID is the attacker's ally team.
+		processTriggersOfType(types.FeatureDestroyed, function(trigger, _)
+			checkFeatureDestroyed(trigger, featureID, featureDefID, attackerAllyTeamID)
+		end)
+	end
+
+	untrackFeatureID(featureID)
 end

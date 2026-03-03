@@ -25,15 +25,21 @@ local function loadMission()
 	GG['MissionAPI'].Triggers = triggersController.ProcessRawTriggers(rawTriggers, rawActions)
 	GG['MissionAPI'].Actions = actionsController.ProcessRawActions(rawActions)
 
-	local validateUnitNameReferences = VFS.Include('luarules/mission_api/validation.lua').ValidateUnitNameReferences
-	validateUnitNameReferences()
+	local validation   = VFS.Include('luarules/mission_api/validation.lua')
+	local triggerTypes = GG['MissionAPI'].TriggerTypes
+	local actionTypes  = GG['MissionAPI'].ActionTypes
+	local triggers     = GG['MissionAPI'].Triggers
+	local actions      = GG['MissionAPI'].Actions
+	validation.ValidateUnitNameReferences(triggerTypes, actionTypes, triggers, actions)
+	validation.ValidateFeatureNameReferences(triggerTypes, actionTypes, triggers, actions)
 end
 
 function gadget:Initialize()
 	-- TODO: Actually pass script path
 	--scriptPath = 'mission-api-tests/validation_test.lua'
 	--scriptPath = 'mission-api-tests/test_mission.lua'
-	scriptPath = 'mission-api-tests/unit_triggers_test.lua'
+	--scriptPath = 'mission-api-tests/unit_triggers_test.lua'
+	scriptPath = 'mission-api-tests/feature_triggers_test.lua'
 
 	if not scriptPath then
 		gadgetHandler:RemoveGadget()
@@ -47,8 +53,10 @@ function gadget:Initialize()
 	local actionsSchema = VFS.Include('luarules/mission_api/actions_schema.lua')
 	GG['MissionAPI'].TriggerTypes = triggersSchema.Types
 	GG['MissionAPI'].ActionTypes = actionsSchema.Types
-	GG['MissionAPI'].trackedUnitIDs = {}
-	GG['MissionAPI'].trackedUnitNames = {}
+	GG['MissionAPI'].trackedUnitIDs      = {}
+	GG['MissionAPI'].trackedUnitNames    = {}
+	GG['MissionAPI'].trackedFeatureIDs   = {}
+	GG['MissionAPI'].trackedFeatureNames = {}
 
 	triggersController = VFS.Include('luarules/mission_api/triggers_loader.lua')
 	actionsController = VFS.Include('luarules/mission_api/actions_loader.lua')

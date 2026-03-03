@@ -15,6 +15,7 @@ local types = {
 	String = 'String',
 	TriggerID = 'TriggerID',
 	UnitDefName = 'UnitDefName',
+	FeatureDefName = 'FeatureDefName',
 	Facing = 'Facing',
 
 	-- Number Validators:

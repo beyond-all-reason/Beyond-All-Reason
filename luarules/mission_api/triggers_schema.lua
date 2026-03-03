@@ -320,9 +320,62 @@ local parameters = {
 	 },
 
 	-- Features
-	[triggerTypes.FeatureCreated] = {  },
-	[triggerTypes.FeatureReclaimed] = {  },
-	[triggerTypes.FeatureDestroyed] = {  },
+	[triggerTypes.FeatureCreated] = {
+		[1] = {
+			name = 'featureDefName',
+			required = false,
+			type = Types.FeatureDefName,
+		},
+		[2] = {
+			name = 'area',
+			required = false,
+			type = Types.Area,
+		},
+	},
+	[triggerTypes.FeatureReclaimed] = {
+		[1] = {
+			name = 'featureName',
+			required = false,
+			type = Types.String,
+		},
+		[2] = {
+			name = 'featureDefName',
+			required = false,
+			type = Types.FeatureDefName,
+		},
+		[3] = {
+			name = 'teamID',
+			required = false,
+			type = Types.TeamID,
+		},
+		[4] = {
+			name = 'area',
+			required = false,
+			type = Types.Area,
+		},
+	},
+	[triggerTypes.FeatureDestroyed] = {
+		[1] = {
+			name = 'featureName',
+			required = false,
+			type = Types.String,
+		},
+		[2] = {
+			name = 'featureDefName',
+			required = false,
+			type = Types.FeatureDefName,
+		},
+		[3] = {
+			name = 'allyTeamID',
+			required = false,
+			type = Types.AllyTeamID,
+		},
+		[4] = {
+			name = 'area',
+			required = false,
+			type = Types.Area,
+		},
+	},
 
 	-- Resources
 	[triggerTypes.ResourceStored] = {  },

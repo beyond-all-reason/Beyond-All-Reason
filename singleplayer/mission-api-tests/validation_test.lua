@@ -44,6 +44,14 @@ local triggers = {
 		},
 		actions = { 'actionMissingType' },
 	},
+
+	triggerWithInvalidAreaType = {
+		type = triggerTypes.FeatureCreated,
+		parameters = {
+			area = 'notATable',
+		},
+		actions = { 'actionMissingType' },
+	},
 }
 
 local actions = {
@@ -215,6 +223,23 @@ local actions = {
 		parameters = {
 			unitName = 'validName',
 			area = { x1 = 10, z1 = 10, x2 = 1, z2 = 1 },
+		},
+	},
+
+	actionWithInvalidFeatureDefNameAndInvalidFacingAndUnusedFeatureName = {
+		type = actionTypes.CreateFeature,
+		parameters = {
+			featureDefName = 'invalidFeatureDefName',
+			position = { x = 1800, z = 1600 },
+			featureName = 'unusedFeatureName',
+			facing = 'invalidFacing',
+		},
+	},
+
+	actionWithUnknownFeatureName = {
+		type = actionTypes.DestroyFeature,
+		parameters = {
+			featureName = 'unknownFeatureName',
 		},
 	},
 }

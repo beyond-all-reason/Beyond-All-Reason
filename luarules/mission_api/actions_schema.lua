@@ -22,6 +22,10 @@ local actionTypes = {
 	NameUnits	       = 405,       --
 	UnnameUnits	       = 406,       --
 
+	-- Features
+	CreateFeature      = 450,
+	DestroyFeature     = 451,
+
 	-- SFX
 	SpawnExplosion     = 500,       --
 	SpawnWeapons       = 501,
@@ -196,6 +200,37 @@ local parameters = {
 			required = true,
 			type = Types.String
 		}
+	},
+
+	-- Features
+	[actionTypes.CreateFeature] = {
+		[1] = {
+			name = 'featureDefName',
+			required = true,
+			type = Types.FeatureDefName,
+		},
+		[2] = {
+			name = 'position',
+			required = true,
+			type = Types.Position,
+		},
+		[3] = {
+			name = 'featureName',
+			required = false,
+			type = Types.String,
+		},
+		[4] = {
+			name = 'facing',
+			required = false,
+			type = Types.Facing,
+		},
+	},
+	[actionTypes.DestroyFeature] = {
+		[1] = {
+			name = 'featureName',
+			required = true,
+			type = Types.String,
+		},
 	},
 
 	-- SFX
