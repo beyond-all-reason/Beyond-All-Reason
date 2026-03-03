@@ -166,6 +166,12 @@ config = {
 	tvZoomSpeed = 2.5,            -- Camera zoom smoothness
 	tvUnitFinishedCostThreshold = 800,  -- Minimum unit cost to trigger a "big unit finished" event
 
+	iconDensityScaling = true,  -- Reduce icon sizes when unit count is high (prevents overlap at zoomed-out levels)
+	iconDensityMaxUnits = 18000,  -- Unit count at which maximum reduction is reached
+	iconDensityMinScale = 0.5,  -- Minimum icon scale at max unit count (0.5 = 50% size)
+	iconDensityZoomFadeStart = 0.3,  -- Zoom level above which density scaling starts fading out (1.0 = fully zoomed in)
+	iconDensityZoomFadeEnd = 0.8,  -- Zoom level above which density scaling is completely off
+
 	drawDecals = true,  -- Show ground decals (explosion scars, footprints) from the decals GL4 widget
 	drawCommandFX = true,  -- Show brief fading command lines when orders are given (like Commands FX widget)
 	commandFXIgnoreNewUnits = true,  -- Ignore commands given to newly finished units (rally point orders)
@@ -235,6 +241,7 @@ config = {
 	minimapModeShowButtons = false,  -- Hide buttons in minimap mode
 	minimapModeStartMinimized = false,  -- Don't start minimized in minimap mode
 	minimapModeHideMoveResize = true,  -- Hide move and resize buttons in minimap mode
+	autoMaximizeOnGameStart = false,  -- Automatically maximize PIP when the game starts (players only, not spectators)
 	hideAICommands = true,  -- Hide command queues from AI players (default: enabled)
 	showSpectatorPings = true,  -- Show map pings from spectators on the PIP minimap
 	showViewRectangleOnMinimap = false,  -- Show the PIP view rectangle on the engine minimap
@@ -1485,6 +1492,8 @@ local cache = {
 	canFly = {},
 	isBuilding = {},
 	isCommander = {},
+	isDecoyCommander = {},  -- Commanders with customParams.decoyfor (show 'Decoy' instead of player name)
+	isScavCommander = {},   -- Scavenger commanders (show scav-specific name for decoys)
 	unitCost = {},
 	-- Combat properties
 	canAttack = {},
@@ -1772,6 +1781,7 @@ mapInfo.lavaUvScale = 2.0
 mapInfo.lavaSwirlFreq = 0.025
 mapInfo.lavaSwirlAmp = 0.003
 mapInfo.mapRatio = Game.mapSizeZ / Game.mapSizeX  -- Y/X aspect ratio for square-texel tiling
+mapInfo.lavaColorCorrection = {1.0, 1.0, 1.0}  -- default: no color correction
 if mapInfo.isLava then
 	mapInfo.lavaCoastWidth = Spring.Lava.coastWidth or 25.0
 	mapInfo.lavaUvScale = Spring.Lava.uvScale or 2.0
@@ -1860,7 +1870,6 @@ local buttons = {
 		texture = 'LuaUI/Images/pip/PipCopy.png',
 		tooltipKey = 'ui.pip.copy',
 		command = 'pip_copy',
-		shortcut = 'Alt + Q',
 		OnPress = function()
 				local sizex, sizez = Spring.GetWindowGeometry()
 				local _, pos = Spring.TraceScreenRay(sizex/2, sizez/2, true)
@@ -1890,7 +1899,6 @@ local buttons = {
 		texture = 'LuaUI/Images/pip/PipSwitch.png',
 		tooltipKey = 'ui.pip.switch',
 		command = 'pip_switch',
-		shortcut = 'Shift + Q',
 		OnPress = function()
 				local sizex, sizez = Spring.GetWindowGeometry()
 				local _, pos = Spring.TraceScreenRay(sizex/2, sizez/2, true)
@@ -1972,7 +1980,6 @@ local buttons = {
 		tooltipKey = 'ui.pip.track',
 		tooltipActiveKey = 'ui.pip.untrack',
 		command = 'pip_track',
-		shortcut = 'Alt + A',
 		OnPress = function()
 			local selectedUnits = Spring.GetSelectedUnits()
 			if #selectedUnits > 0 then
@@ -2203,6 +2210,52 @@ local buttons = {
 		end
 	},
 }
+
+-- Per-pip keyboard shortcuts: command → keybind string
+-- pip1 has the original shortcuts; pip0 and pip2 have none by default.
+-- Modify the table for other pips to assign shortcuts (e.g. pip_copy = 'alt+w').
+local pipShortcuts = {
+	[0] = {
+		-- pip_copy = nil,
+		-- pip_switch = nil,
+		-- pip_track = nil,
+	},
+	[1] = {
+		pip_copy = 'alt+q',
+		pip_switch = 'shift+q',
+		pip_track = 'alt+a',
+	},
+	[2] = {
+		-- pip_copy = nil,
+		-- pip_switch = nil,
+		-- pip_track = nil,
+	},
+}
+
+-- Helper: convert a keybind string like 'alt+q' to display format 'Alt + Q'
+local function formatShortcutDisplay(keybind)
+	if not keybind then return nil end
+	local parts = {}
+	for part in keybind:gmatch('[^+]+') do
+		part = part:match('^%s*(.-)%s*$')  -- trim whitespace
+		parts[#parts + 1] = part:sub(1, 1):upper() .. part:sub(2)
+	end
+	return table.concat(parts, ' + ')
+end
+
+-- Compute per-pip action names and shortcut display text for each button
+local myShortcuts = pipShortcuts[pipNumber] or {}
+for i = 1, #buttons do
+	local btn = buttons[i]
+	if btn.command then
+		-- Unique action name per pip instance (e.g. pip_copy → pip1_copy)
+		btn.actionName = 'pip' .. pipNumber .. '_' .. btn.command:sub(5)
+		-- Set display shortcut from per-pip config
+		local keybind = myShortcuts[btn.command]
+		btn.shortcut = formatShortcutDisplay(keybind)
+		btn.keybind = keybind  -- raw keybind string for bind/unbind
+	end
+end
 
 -- Consolidated shader table (LOS overlay, minimap shading, water overlay)
 local shaders = {
@@ -6776,6 +6829,12 @@ function widget:Initialize()
 		end
 		if uDef.customParams and (uDef.customParams.iscommander or uDef.customParams.isdecoycommander or uDef.customParams.isscavcommander or uDef.customParams.isscavdecoycommander) then
 			cache.isCommander[uDefID] = true
+			if uDef.customParams.decoyfor then
+				cache.isDecoyCommander[uDefID] = true
+			end
+			if uDef.customParams.isscavcommander or uDef.customParams.isscavdecoycommander then
+				cache.isScavCommander[uDefID] = true
+			end
 		end
 		cache.unitCost[uDefID] = uDef.metalCost + uDef.energyCost / 60
 
@@ -7316,18 +7375,13 @@ end
 	for i = 1, #buttons do
 		local button = buttons[i]
 		if button.command then
-			widgetHandler.actionHandler:AddAction(self, button.command, button.OnPress, nil, 'p')
+			-- Register with pip-specific action name so each pip instance has unique commands
+			widgetHandler.actionHandler:AddAction(self, button.actionName, button.OnPress, nil, 'p')
 
-			-- Bind hotkeys for specific commands
-			if button.command == 'pip_copy' then
-				Spring.SendCommands("unbindkeyset alt+q")
-				Spring.SendCommands("bind alt+q pip_copy")
-			elseif button.command == 'pip_switch' then
-				Spring.SendCommands("unbindkeyset shift+q")
-				Spring.SendCommands("bind shift+q pip_switch")
-			elseif button.command == 'pip_track' then
-				Spring.SendCommands("unbindkeyset alt+a")
-				Spring.SendCommands("bind alt+a pip_track")
+			-- Bind per-pip hotkey if configured
+			if button.keybind then
+				Spring.SendCommands("unbindkeyset " .. button.keybind)
+				Spring.SendCommands("bind " .. button.keybind .. " " .. button.actionName)
 			end
 		end
 	end
@@ -7347,6 +7401,9 @@ function widget:ViewResize()
 	if isMinimapMode then
 		-- Use mapEdgeMargin = 0 in minimap mode
 		config.mapEdgeMargin = 0
+
+		-- Capture old minimap PIP width before recalculating layout
+		local oldMinimapWidth = (render.dim.r and render.dim.l) and (render.dim.r - render.dim.l) or nil
 
 		-- Get current rotation to determine if dimensions should be swapped
 		-- When rotation is 90° or 270°, the map appears rotated so width/height swap visually
@@ -7413,7 +7470,14 @@ function widget:ViewResize()
 		
 		-- Only set camera defaults if not restored from config (i.e., not a luaui reload)
 		if miscState.minimapCameraRestored then
-			-- Restored from config - just ensure zoom isn't below minimum
+			-- Restored from config — scale zoom proportionally to PIP size change
+			-- so the same world area stays visible after window resize
+			if oldMinimapWidth and oldMinimapWidth > 0 and usedWidth ~= oldMinimapWidth then
+				local zoomScale = usedWidth / oldMinimapWidth
+				cameraState.zoom = cameraState.zoom * zoomScale
+				cameraState.targetZoom = cameraState.targetZoom * zoomScale
+			end
+			-- Ensure zoom isn't below minimum
 			if cameraState.zoom < fitZoom then
 				cameraState.zoom = fitZoom
 				cameraState.targetZoom = fitZoom
@@ -7436,6 +7500,14 @@ function widget:ViewResize()
 		-- Normal PIP mode: scale dimensions with screen size
 		-- When in minMode, render.dim is the tiny button — use savedDimensions as the real dimensions
 		local minSize = math.floor(config.minPanelSize * render.widgetScale)
+		
+		-- Capture old PIP width before rescaling so we can adjust zoom proportionally
+		local oldPipWidth
+		if not uiState.inMinMode and render.dim.r and render.dim.l then
+			oldPipWidth = render.dim.r - render.dim.l
+		elseif uiState.savedDimensions.r and uiState.savedDimensions.l then
+			oldPipWidth = uiState.savedDimensions.r - uiState.savedDimensions.l
+		end
 		
 		-- Rescale savedDimensions to match new resolution (they're in old pixel coords)
 		if uiState.savedDimensions.l and uiState.savedDimensions.r and
@@ -7484,6 +7556,22 @@ function widget:ViewResize()
 			end
 			if render.dim.t - render.dim.b > maxSize then
 				render.dim.b = render.dim.t - maxSize
+			end
+		end
+
+		-- Scale zoom to compensate for PIP size change so the same world area stays visible.
+		-- Zoom is pixels/elmo, so if the PIP shrinks, we must lower zoom proportionally.
+		if oldPipWidth and oldPipWidth > 0 then
+			local newPipWidth
+			if not uiState.inMinMode then
+				newPipWidth = render.dim.r - render.dim.l
+			elseif uiState.savedDimensions.r and uiState.savedDimensions.l then
+				newPipWidth = uiState.savedDimensions.r - uiState.savedDimensions.l
+			end
+			if newPipWidth and newPipWidth > 0 and newPipWidth ~= oldPipWidth then
+				local zoomScale = newPipWidth / oldPipWidth
+				cameraState.zoom = cameraState.zoom * zoomScale
+				cameraState.targetZoom = cameraState.targetZoom * zoomScale
 			end
 		end
 	end
@@ -7844,15 +7932,11 @@ function widget:Shutdown()
 	for i = 1, #buttons do
 		local button = buttons[i]
 		if button.command then
-			widgetHandler.actionHandler:RemoveAction(self, button.command)
+			widgetHandler.actionHandler:RemoveAction(self, button.actionName)
 
-			-- Unbind hotkeys for specific commands
-			if button.command == 'pip_copy' then
-				Spring.SendCommands("unbind Alt+Q pip_copy")
-			elseif button.command == 'pip_switch' then
-				Spring.SendCommands("unbind Shift+Q pip_switch")
-			elseif button.command == 'pip_track' then
-				Spring.SendCommands("unbind Alt+A pip_track")
+			-- Unbind per-pip hotkey if configured
+			if button.keybind then
+				Spring.SendCommands("unbind " .. button.keybind .. " " .. button.actionName)
 			end
 		end
 	end
@@ -8858,6 +8942,16 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	local resScale = render.contentScale or 1
 	local unitBaseSize = Spring.GetConfigFloat("MinimapIconScale", 3.5)
 	local iconRadiusZoomDistMult = unitBaseSize * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(cameraState.zoom) * resScale
+
+	-- Unit-count density scaling: shrink icons when there are many units, fading out at higher zoom
+	if config.iconDensityScaling then
+		local totalUnits = #miscState.pipUnits
+		local unitFraction = math.min(totalUnits / config.iconDensityMaxUnits, 1.0)
+		local densityScale = 1.0 - (1.0 - config.iconDensityMinScale) * unitFraction
+		-- Fade out the reduction at higher zoom levels (zoomed in) so close-up icons stay full size
+		local zoomFade = 1.0 - math.min(math.max((cameraState.zoom - config.iconDensityZoomFadeStart) / (config.iconDensityZoomFadeEnd - config.iconDensityZoomFadeStart), 0), 1)
+		iconRadiusZoomDistMult = iconRadiusZoomDistMult * (1.0 - (1.0 - densityScale) * zoomFade)
+	end
 
 	-- Check if unitpics should be shown at this zoom level
 	-- Use targetZoom (instant scroll response) instead of smooth zoom so the transition from
@@ -10214,11 +10308,33 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 					end
 					-- Draw nametag above icon (always, including radar blips)
 					local entry = tID and comNametagCache[tID]
-					if entry then
+					-- For scav/raptor commanders: no cache entry, but still show a name
+					local displayName
+					if cache.isDecoyCommander[dID] then
+						if cache.isScavCommander[dID] then
+							displayName = Spring.I18N('units.scavDecoyCommanderNameTag')
+						else
+							displayName = Spring.I18N('units.decoyCommanderNameTag')
+						end
+					elseif cache.isScavCommander[dID] then
+						displayName = Spring.I18N('units.scavCommanderNameTag')
+					elseif entry then
+						displayName = entry.name
+					end
+					if displayName then
 						local nameY = cy + iconHalf + nametagFontSize * 0.35
-						font:SetTextColor(entry.r, entry.g, entry.b, nametagAlpha)
-						font:SetOutlineColor(entry.oR, entry.oG, entry.oB, nametagAlpha)
-						font:Print(entry.name, cx, nameY, nametagFontSize, "con")
+						if entry then
+							font:SetTextColor(entry.r, entry.g, entry.b, nametagAlpha)
+							font:SetOutlineColor(entry.oR, entry.oG, entry.oB, nametagAlpha)
+						else
+							-- Fallback color for scav/raptor teams without cache entry
+							local tc = teamColors[tID]
+							local r, g, b = tc and tc[1] or 1, tc and tc[2] or 1, tc and tc[3] or 1
+							local isDark = (r + g * 1.2 + b * 0.4) < 0.65
+							font:SetTextColor(r, g, b, nametagAlpha)
+							font:SetOutlineColor(isDark and 1 or 0, isDark and 1 or 0, isDark and 1 or 0, nametagAlpha)
+						end
+						font:Print(displayName, cx, nameY, nametagFontSize, "con")
 					end
 					-- Collect health bar data (only when in actual LOS, not radar)
 					if comHealthBars and inLos then
@@ -11204,15 +11320,35 @@ local function DrawCameraViewBounds()
 	
 	-- Convert to pip coordinates (no clamping, preserve true perspective shape)
 	-- Note: World Z maps to pip Y inversely (high Z = low Y in pip view)
-	-- Round to nearest pixel to eliminate sub-pixel jitter when the camera moves
 	local bl_x, bl_y = WorldToPipCoords(bottomLeftX, bottomLeftZ)
 	local br_x, br_y = WorldToPipCoords(bottomRightX, bottomRightZ)
 	local tr_x, tr_y = WorldToPipCoords(topRightX, topRightZ)
 	local tl_x, tl_y = WorldToPipCoords(topLeftX, topLeftZ)
-	bl_x = math.floor(bl_x + 0.5);  bl_y = math.floor(bl_y + 0.5)
-	br_x = math.floor(br_x + 0.5);  br_y = math.floor(br_y + 0.5)
-	tr_x = math.floor(tr_x + 0.5);  tr_y = math.floor(tr_y + 0.5)
-	tl_x = math.floor(tl_x + 0.5);  tl_y = math.floor(tl_y + 0.5)
+	
+	-- Apply minimap rotation manually (this function is drawn outside the GL rotation matrix)
+	local rotation = render.minimapRotation or 0
+	if rotation ~= 0 then
+		local centerX = (render.dim.l + render.dim.r) / 2
+		local centerY = (render.dim.b + render.dim.t) / 2
+		local cosA = math.cos(rotation)
+		local sinA = math.sin(rotation)
+		local function rotPt(x, y)
+			local dx, dy = x - centerX, y - centerY
+			return centerX + dx * cosA - dy * sinA,
+			       centerY + dx * sinA + dy * cosA
+		end
+		bl_x, bl_y = rotPt(bl_x, bl_y)
+		br_x, br_y = rotPt(br_x, br_y)
+		tr_x, tr_y = rotPt(tr_x, tr_y)
+		tl_x, tl_y = rotPt(tl_x, tl_y)
+	end
+	
+	-- Round to pixel centers after rotation for crisp screen-space alignment
+	-- OpenGL lines render crisply at half-pixel positions (0.5, 1.5, 2.5, ...)
+	bl_x = math.floor(bl_x) + 0.5;  bl_y = math.floor(bl_y) + 0.5
+	br_x = math.floor(br_x) + 0.5;  br_y = math.floor(br_y) + 0.5
+	tr_x = math.floor(tr_x) + 0.5;  tr_y = math.floor(tr_y) + 0.5
+	tl_x = math.floor(tl_x) + 0.5;  tl_y = math.floor(tl_y) + 0.5
 	
 	-- Calculate chamfer size (4 pixels at 1080p, scaled by resolution)
 	local resScale = render.contentScale or 1
@@ -11241,11 +11377,11 @@ local function DrawCameraViewBounds()
 			return cornerX, cornerY, cornerX, cornerY
 		end
 		
-		-- Chamfer points along each edge from the corner
-		local c1x = cornerX + (dx1 / len1) * chamfer
-		local c1y = cornerY + (dy1 / len1) * chamfer
-		local c2x = cornerX + (dx2 / len2) * chamfer
-		local c2y = cornerY + (dy2 / len2) * chamfer
+		-- Chamfer points along each edge from the corner (pixel-center aligned)
+		local c1x = math.floor(cornerX + (dx1 / len1) * chamfer) + 0.5
+		local c1y = math.floor(cornerY + (dy1 / len1) * chamfer) + 0.5
+		local c2x = math.floor(cornerX + (dx2 / len2) * chamfer) + 0.5
+		local c2y = math.floor(cornerY + (dy2 / len2) * chamfer) + 0.5
 		
 		return c1x, c1y, c2x, c2y
 	end
@@ -11256,50 +11392,52 @@ local function DrawCameraViewBounds()
 	local tr_c1x, tr_c1y, tr_c2x, tr_c2y = getChamferVertices(br_x, br_y, tl_x, tl_y, tr_x, tr_y)
 	local tl_c1x, tl_c1y, tl_c2x, tl_c2y = getChamferVertices(tr_x, tr_y, bl_x, bl_y, tl_x, tl_y)
 	
-	-- Draw the view trapezoid with chamfered corners (anti-aliased)
+	-- Build ordered vertex list for the chamfered shape (clockwise from bottom-left)
+	local verts = {
+		{bl_c1x, bl_c1y}, {bl_c2x, bl_c2y},  -- bottom-left chamfer
+		{br_c1x, br_c1y}, {br_c2x, br_c2y},  -- bottom-right chamfer
+		{tr_c1x, tr_c1y}, {tr_c2x, tr_c2y},  -- top-right chamfer
+		{tl_c1x, tl_c1y}, {tl_c2x, tl_c2y},  -- top-left chamfer
+	}
+	local nv = #verts
+	
+	-- Helper: emit a quad-based line segment with uniform visual thickness
+	-- perpendicular to the edge direction, regardless of angle.
+	local function emitEdgeQuad(x1, y1, x2, y2, halfW)
+		local dx, dy = x2 - x1, y2 - y1
+		local len = math.sqrt(dx * dx + dy * dy)
+		if len < 0.001 then return end
+		-- Perpendicular normal (unit length, scaled by half-width)
+		local nx, ny = (-dy / len) * halfW, (dx / len) * halfW
+		glFunc.Vertex(x1 - nx, y1 - ny)
+		glFunc.Vertex(x1 + nx, y1 + ny)
+		glFunc.Vertex(x2 + nx, y2 + ny)
+		glFunc.Vertex(x2 - nx, y2 - ny)
+	end
+	
+	-- Draw the view trapezoid with chamfered corners using quad-based outlines
+	-- This gives uniform visual thickness on all edges regardless of angle.
 	glFunc.Texture(false)
 	
-	gl.UnsafeState(0x0B20, function()  -- GL_LINE_SMOOTH
-		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-		
-		-- Draw dark shadow outline first (thicker, behind the white line)
-		glFunc.LineWidth(3 * ((vsx+1000) / 3000) * resScale)
-		glFunc.Color(0, 0, 0, 0.35)
-		glFunc.BeginEnd(glConst.LINE_LOOP, function()
-			-- Bottom-left corner (2 vertices)
-			glFunc.Vertex(bl_c1x, bl_c1y)  -- toward top-left
-			glFunc.Vertex(bl_c2x, bl_c2y)  -- toward bottom-right
-			-- Bottom-right corner (2 vertices)
-			glFunc.Vertex(br_c1x, br_c1y)  -- toward bottom-left
-			glFunc.Vertex(br_c2x, br_c2y)  -- toward top-right
-			-- Top-right corner (2 vertices)
-			glFunc.Vertex(tr_c1x, tr_c1y)  -- toward bottom-right
-			glFunc.Vertex(tr_c2x, tr_c2y)  -- toward top-left
-			-- Top-left corner (2 vertices)
-			glFunc.Vertex(tl_c1x, tl_c1y)  -- toward top-right
-			glFunc.Vertex(tl_c2x, tl_c2y)  -- toward bottom-left
-		end)
-		
-		-- Draw white line on top
-		glFunc.LineWidth(1.3 * ((vsx+1000) / 3000) * resScale)
-		glFunc.Color(1, 1, 1, 0.8)
-		glFunc.BeginEnd(glConst.LINE_LOOP, function()
-			-- Bottom-left corner (2 vertices)
-			glFunc.Vertex(bl_c1x, bl_c1y)
-			glFunc.Vertex(bl_c2x, bl_c2y)
-			-- Bottom-right corner (2 vertices)
-			glFunc.Vertex(br_c1x, br_c1y)
-			glFunc.Vertex(br_c2x, br_c2y)
-			-- Top-right corner (2 vertices)
-			glFunc.Vertex(tr_c1x, tr_c1y)
-			glFunc.Vertex(tr_c2x, tr_c2y)
-			-- Top-left corner (2 vertices)
-			glFunc.Vertex(tl_c1x, tl_c1y)
-			glFunc.Vertex(tl_c2x, tl_c2y)
-		end)
+	-- Draw dark shadow outline first (thicker, behind the white line)
+	local shadowHalfW = math.max(0.5, 1.5 * ((vsx+1000) / 3000) * resScale)
+	glFunc.Color(0, 0, 0, 0.35)
+	glFunc.BeginEnd(GL.QUADS, function()
+		for i = 1, nv do
+			local j = (i % nv) + 1
+			emitEdgeQuad(verts[i][1], verts[i][2], verts[j][1], verts[j][2], shadowHalfW)
+		end
 	end)
 	
-	glFunc.LineWidth(1.0)
+	-- Draw white line on top
+	local whiteHalfW = math.max(0.5, 0.65 * ((vsx+1000) / 3000) * resScale)
+	glFunc.Color(1, 1, 1, 0.8)
+	glFunc.BeginEnd(GL.QUADS, function()
+		for i = 1, nv do
+			local j = (i % nv) + 1
+			emitEdgeQuad(verts[i][1], verts[i][2], verts[j][1], verts[j][2], whiteHalfW)
+		end
+	end)
 end
 
 
@@ -12332,6 +12470,11 @@ local function DrawTrackedPlayerMinimap()
 	local showForHover = interactionState.isMouseOverPip  -- Show when hovering
 	local showForActivityFocus = config.activityFocusShowMinimap and miscState.activityFocusActive  -- Show during map marker focus
 	local showForTV = miscState.tvEnabled  -- Show during TV mode
+	
+	-- Hide pip-minimap when the game is over and TV is zooming out to overview (already showing the whole map)
+	if showForTV and (miscState.isGameOver or pipTV.director.effectiveGameOver) then
+		showForTV = false
+	end
 	
 	if not showForPlayer and not showForTracking and not showForHover and not showForActivityFocus and not showForTV then
 		interactionState.pipMinimapBounds = nil
@@ -13776,8 +13919,8 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 					if suppressShortcut then
 						shortcut = nil
 					end
-					if not shortcut and not suppressShortcut and visibleButtons[i].command then
-						shortcut = getActionHotkey(visibleButtons[i].command)
+					if not shortcut and not suppressShortcut and visibleButtons[i].actionName then
+						shortcut = getActionHotkey(visibleButtons[i].actionName)
 					end
 					if shortcut and shortcut ~= "" then
 						tooltipText = tooltipText .. "\n" .. shortcut
@@ -14229,11 +14372,13 @@ function widget:DrawScreen()
 		end
 
 		DrawMapMarkers()
-		DrawCameraViewBounds()
 
 		if render.minimapRotation ~= 0 then
 			glFunc.PopMatrix()
 		end
+
+		-- Draw camera view bounds OUTSIDE the rotation matrix so it can pixel-align after rotation
+		DrawCameraViewBounds()
 
 		gl.Scissor(false)
 	end
@@ -15546,7 +15691,7 @@ function widget:GameStart()
 	gameHasStarted = true
 
 	-- Automatically maximize for players (only for the first PIP instance)
-	if pipNumber == 1 and not cameraState.mySpecState and uiState.inMinMode then
+	if pipNumber == 1 and config.autoMaximizeOnGameStart and not cameraState.mySpecState and uiState.inMinMode then
 		StartMaximizeAnimation()
 	end
 
