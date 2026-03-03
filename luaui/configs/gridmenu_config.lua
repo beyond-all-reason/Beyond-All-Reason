@@ -199,22 +199,17 @@ local function getGridForCategory(builderId, buildOptions, currentCategory)
 	end
 end
 
-local function filterByPriority(uncategorizedOpts, homePriority)
-    if not uncategorizedOpts then
-		return nil
+local function filterByPriority(categoryOpts, homePriority)
+    local priorityOpts = {}
+	if not categoryOpts or next(homePriority) == nil then
+		return priorityOpts
 	end
 
-	local priorityOpts = {}
-    	for catIndex, cat in ipairs(uncategorizedOpts) do
-        	local filteredCat = {}
-
-        	for _, unitID in ipairs(cat) do
-               	if homePriority[unitID] then
-                   	table.insert(filteredCat, unitID)
-				end
-        	end
-			priorityOpts[catIndex] = filteredCat
-    	end
+    for _, unitID in ipairs(categoryOpts) do
+		if homePriority[unitID] then
+			table.insert(priorityOpts, unitID)
+		end
+	end
 
     return priorityOpts
 end
@@ -227,8 +222,7 @@ end
 function homeOptionsForBuilder(builderId, buildOptions)
 	local options = {}
 	local uncategorizedOpts = homeGridPos[builderId]
-	local priorityOpts = filterByPriority(uncategorizedOpts, homePriority)
-
+	
 	if uncategorizedOpts then
 		local usedOptions = {}
 		local optionsInRow = 0
@@ -243,25 +237,25 @@ function homeOptionsForBuilder(builderId, buildOptions)
                 options[index] = constructBuildOption(uDefID)
                 usedOptions[uDefID] = true
 			end
-			optionsInRow = 0
-		end
-		-- Replace the top row with the first unused priority unit in each category
-		local row = 3
-        for cat = 1, #priorityOpts do
-            local priorityUnits = priorityOpts[cat]
-            if priorityUnits then
+			-- Replace the top row with the first unused priority unit in each category
+			local priorityOpts = filterByPriority(uncategorizedOpts[cat], homePriority)
+			local row = 3 
+			if next(priorityOpts) ~= nil then
 				local index = cat + ((row - 1) * columns)
 				local currentOption = -1*options[index].id
 				if not homePriority[currentOption] then -- Don't replace an already prioritized unit with another one
-					for i = 1, #priorityUnits do
-						if not usedOptions[priorityUnits[i]] then
-							options[index] = constructBuildOption(priorityUnits[i])
+					for i = 1, #priorityOpts do
+						if not usedOptions[priorityOpts[i]] then
+							options[index] = constructBuildOption(priorityOpts[i])
 							break
 						end
 					end
 				end
         	end
-    	end
+
+			optionsInRow = 0
+		end
+
 	else
 		-- if the unit doesn't have a predefined grid we still want the "home" page to have units
 		-- So we build all the categories and grab the first 3 items from each one
