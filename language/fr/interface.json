@@ -222,7 +222,6 @@
 			"trajectory_tooltip": "Définit la trajectoire des tirs en mode artillerie (tir parabolique ou tir direct)",
 			"hound_weapon_plasma": "Plasma lourd",
 			"hound_weapon_gauss": "Canon gauss",
-			"hound_weapon_toggle_tooltip": "Bascule entre Canon Gauss et Plasma lourd",
 
 			"customOnOff": {
 				"lowTrajectory": "Tir direct",

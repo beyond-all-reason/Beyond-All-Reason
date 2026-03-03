@@ -2,8 +2,8 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
     return {
-        name    = "OnlyBombersHoldFire",
-        desc    = "Sets produced bombers to Hold Position after leaving airlab.",
+        name    = "BombersManualTargeting",
+        desc    = "Sets produced bombers to Manual Targeting after leaving an airlab. Also hides the Move mode for bombers.",
         author  = "Pexo",
         date    = "2026-02-27",
         license = "GNU GPL, v2 or later",
@@ -12,20 +12,21 @@ function widget:GetInfo()
     }
 end
 
+local CMD_BOMBER_TARGETING = GameCMD.BOMBER_TARGETING
+local gameStarted = false
+local isBomber = {}
+
 local spGetGameFrame = Spring.GetGameFrame
 local spGetMyTeamID = Spring.GetMyTeamID
+local spGiveOrder = Spring.GiveOrderToUnit
 local myTeamID = spGetMyTeamID()
-local gameStarted = false
-
-local isBomber = {}
-local airFactories = {}
 
 local function UnitDefIsBomber(ud)
     if not ud or not ud.weapons then
         return false
     end
     
-    if ud.name and (string.find(ud.name, 'armstil')) then -- excluding Stiletto as it's an EMP bomber, friednly fire's not that much of a concern
+    if ud.name and (string.find(ud.name, 'armstil')) then -- excluding Stiletto. It's an EMP bomber so friendly fire is not that much of a concern
         return false
     end
 
@@ -53,8 +54,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, factID, factDefID, user
         return
     end
     if isBomber[unitDefID] then
-        Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, { 0 }, 0) -- Hold Fire
-        Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { 0 }, 0) -- Hold Position
+       spGiveOrder(unitID, CMD_BOMBER_TARGETING, { 0 }, 0)
     end
 end
 
