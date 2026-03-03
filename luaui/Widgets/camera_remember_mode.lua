@@ -48,6 +48,7 @@ function widget:GetConfigData()
     local camState = Spring.GetCameraState()
     local data = {}
     data = table.copy(camState)
+	data.ry = math.clampRadians(camState.ry)
     return data
 end
 
