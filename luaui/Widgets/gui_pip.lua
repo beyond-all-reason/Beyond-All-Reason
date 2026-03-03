@@ -1870,7 +1870,6 @@ local buttons = {
 		texture = 'LuaUI/Images/pip/PipCopy.png',
 		tooltipKey = 'ui.pip.copy',
 		command = 'pip_copy',
-		shortcut = 'Alt + Q',
 		OnPress = function()
 				local sizex, sizez = Spring.GetWindowGeometry()
 				local _, pos = Spring.TraceScreenRay(sizex/2, sizez/2, true)
@@ -1900,7 +1899,6 @@ local buttons = {
 		texture = 'LuaUI/Images/pip/PipSwitch.png',
 		tooltipKey = 'ui.pip.switch',
 		command = 'pip_switch',
-		shortcut = 'Shift + Q',
 		OnPress = function()
 				local sizex, sizez = Spring.GetWindowGeometry()
 				local _, pos = Spring.TraceScreenRay(sizex/2, sizez/2, true)
@@ -1982,7 +1980,6 @@ local buttons = {
 		tooltipKey = 'ui.pip.track',
 		tooltipActiveKey = 'ui.pip.untrack',
 		command = 'pip_track',
-		shortcut = 'Alt + A',
 		OnPress = function()
 			local selectedUnits = Spring.GetSelectedUnits()
 			if #selectedUnits > 0 then
@@ -2213,6 +2210,52 @@ local buttons = {
 		end
 	},
 }
+
+-- Per-pip keyboard shortcuts: command → keybind string
+-- pip1 has the original shortcuts; pip0 and pip2 have none by default.
+-- Modify the table for other pips to assign shortcuts (e.g. pip_copy = 'alt+w').
+local pipShortcuts = {
+	[0] = {
+		-- pip_copy = nil,
+		-- pip_switch = nil,
+		-- pip_track = nil,
+	},
+	[1] = {
+		pip_copy = 'alt+q',
+		pip_switch = 'shift+q',
+		pip_track = 'alt+a',
+	},
+	[2] = {
+		-- pip_copy = nil,
+		-- pip_switch = nil,
+		-- pip_track = nil,
+	},
+}
+
+-- Helper: convert a keybind string like 'alt+q' to display format 'Alt + Q'
+local function formatShortcutDisplay(keybind)
+	if not keybind then return nil end
+	local parts = {}
+	for part in keybind:gmatch('[^+]+') do
+		part = part:match('^%s*(.-)%s*$')  -- trim whitespace
+		parts[#parts + 1] = part:sub(1, 1):upper() .. part:sub(2)
+	end
+	return table.concat(parts, ' + ')
+end
+
+-- Compute per-pip action names and shortcut display text for each button
+local myShortcuts = pipShortcuts[pipNumber] or {}
+for i = 1, #buttons do
+	local btn = buttons[i]
+	if btn.command then
+		-- Unique action name per pip instance (e.g. pip_copy → pip1_copy)
+		btn.actionName = 'pip' .. pipNumber .. '_' .. btn.command:sub(5)
+		-- Set display shortcut from per-pip config
+		local keybind = myShortcuts[btn.command]
+		btn.shortcut = formatShortcutDisplay(keybind)
+		btn.keybind = keybind  -- raw keybind string for bind/unbind
+	end
+end
 
 -- Consolidated shader table (LOS overlay, minimap shading, water overlay)
 local shaders = {
@@ -7332,18 +7375,13 @@ end
 	for i = 1, #buttons do
 		local button = buttons[i]
 		if button.command then
-			widgetHandler.actionHandler:AddAction(self, button.command, button.OnPress, nil, 'p')
+			-- Register with pip-specific action name so each pip instance has unique commands
+			widgetHandler.actionHandler:AddAction(self, button.actionName, button.OnPress, nil, 'p')
 
-			-- Bind hotkeys for specific commands
-			if button.command == 'pip_copy' then
-				Spring.SendCommands("unbindkeyset alt+q")
-				Spring.SendCommands("bind alt+q pip_copy")
-			elseif button.command == 'pip_switch' then
-				Spring.SendCommands("unbindkeyset shift+q")
-				Spring.SendCommands("bind shift+q pip_switch")
-			elseif button.command == 'pip_track' then
-				Spring.SendCommands("unbindkeyset alt+a")
-				Spring.SendCommands("bind alt+a pip_track")
+			-- Bind per-pip hotkey if configured
+			if button.keybind then
+				Spring.SendCommands("unbindkeyset " .. button.keybind)
+				Spring.SendCommands("bind " .. button.keybind .. " " .. button.actionName)
 			end
 		end
 	end
@@ -7894,15 +7932,11 @@ function widget:Shutdown()
 	for i = 1, #buttons do
 		local button = buttons[i]
 		if button.command then
-			widgetHandler.actionHandler:RemoveAction(self, button.command)
+			widgetHandler.actionHandler:RemoveAction(self, button.actionName)
 
-			-- Unbind hotkeys for specific commands
-			if button.command == 'pip_copy' then
-				Spring.SendCommands("unbind Alt+Q pip_copy")
-			elseif button.command == 'pip_switch' then
-				Spring.SendCommands("unbind Shift+Q pip_switch")
-			elseif button.command == 'pip_track' then
-				Spring.SendCommands("unbind Alt+A pip_track")
+			-- Unbind per-pip hotkey if configured
+			if button.keybind then
+				Spring.SendCommands("unbind " .. button.keybind .. " " .. button.actionName)
 			end
 		end
 	end
@@ -13885,8 +13919,8 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 					if suppressShortcut then
 						shortcut = nil
 					end
-					if not shortcut and not suppressShortcut and visibleButtons[i].command then
-						shortcut = getActionHotkey(visibleButtons[i].command)
+					if not shortcut and not suppressShortcut and visibleButtons[i].actionName then
+						shortcut = getActionHotkey(visibleButtons[i].actionName)
 					end
 					if shortcut and shortcut ~= "" then
 						tooltipText = tooltipText .. "\n" .. shortcut
