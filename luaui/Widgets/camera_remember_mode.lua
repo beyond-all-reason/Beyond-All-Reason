@@ -45,10 +45,11 @@ function avoidOverviewCam()
 end
 
 function widget:GetConfigData()
-    local camState = Spring.GetCameraState()
-    local data = {}
-    data = table.copy(camState)
-	data.ry = math.clampRadians(camState.ry)
-    return data
+	local camState = Spring.GetCameraState()
+	local data = {}
+	data = table.copy(camState)
+	if data.ry then
+		data.ry = math.clampRadians(camState.ry)
+	end
+	return data
 end
-
