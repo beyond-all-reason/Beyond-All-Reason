@@ -1609,10 +1609,6 @@ end
 ---@param data IndicatorDrawData
 local function DrawDropped(data)
 	local weaponInfo = data.weaponInfo
-	if not weaponInfo.salvoSize or weaponInfo.salvoSize <= 1 then
-		DrawAoe(data)
-		return
-	end
 
 	local ux, uz = data.source.x, data.source.z
 	local tx, tz = data.target.x, data.target.z
