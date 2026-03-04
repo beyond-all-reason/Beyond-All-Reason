@@ -31,6 +31,7 @@ local function loadMission(scriptPath)
 
 	GG['MissionAPI'].Triggers = triggersController.ProcessRawTriggers(rawTriggers, rawActions)
 	GG['MissionAPI'].Actions = actionsController.ProcessRawActions(rawActions)
+	GG['MissionAPI'].Loadout = mission.Loadout
 
 	local validateReferences = VFS.Include('luarules/mission_api/validation.lua').ValidateReferences
 	validateReferences()

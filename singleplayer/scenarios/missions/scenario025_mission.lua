@@ -211,7 +211,46 @@ local actions = {
 	},
 }
 
+-- ============================================================
+-- LOADOUT
+-- ============================================================
+-- Starting units for both teams. Defined here rather than in the scenario file
+-- so that the mission script is the single source of truth for all game state.
+
+local loadout = {
+	unitloadout = {
+		-- Player (team 0) starting forces
+		{ name = 'armcom',   x = 2157, y = 154, z = 6976, rot = 16384,  team = 0 },
+		{ name = 'armck',    x = 2100, y = 154, z = 6850, rot = 16384,  team = 0 },
+		{ name = 'armck',    x = 2200, y = 154, z = 7050, rot = 16384,  team = 0 },
+		{ name = 'armsolar', x = 2040, y = 154, z = 6800, rot = 16384,  team = 0 },
+		{ name = 'armwin',   x = 1990, y = 154, z = 7100, rot = 16384,  team = 0 },
+		{ name = 'armwin',   x = 2040, y = 154, z = 7100, rot = 16384,  team = 0 },
+		{ name = 'armmex',   x = 2050, y = 154, z = 6970, rot = 16384,  team = 0 },
+		{ name = 'armmex',   x = 1760, y = 154, z = 7740, rot = 16384,  team = 0 },
+
+		-- Enemy (team 1) starting forces — forward base across the crossing
+		{ name = 'corcom',   x = 4800, y = 52,  z = 3600, rot = -16384, team = 1 },
+		{ name = 'corck',    x = 4750, y = 52,  z = 3200, rot = -16384, team = 1 },
+		{ name = 'corck',    x = 4800, y = 52,  z = 3000, rot = -16384, team = 1 },
+		{ name = 'corsolar', x = 5000, y = 52,  z = 3200, rot = 0,      team = 1 },
+		{ name = 'corwin',   x = 4950, y = 52,  z = 3300, rot = 0,      team = 1 },
+		{ name = 'cormex',   x = 5040, y = 52,  z = 2540, rot = 0,      team = 1 },
+		{ name = 'cormex',   x = 5650, y = 52,  z = 2480, rot = 0,      team = 1 },
+		{ name = 'corllt',   x = 4900, y = 52,  z = 3380, rot = -16384, team = 1 },
+	},
+	featureloadout = {
+		-- Wreckage near the crossing — evidence of an earlier skirmish.
+		{ name = 'armflea_dead',  x = 3700, y = 100, z = 4300, rot = 12000, resurrectas = 'armflea'  },
+		{ name = 'armflea_dead',  x = 3850, y = 100, z = 4450, rot = 4000,  resurrectas = 'armflea'  },
+		{ name = 'corak_dead',    x = 4000, y = 100, z = 4200, rot = 28000, resurrectas = 'corak'    },
+		{ name = 'corak_dead',    x = 4150, y = 100, z = 4400, rot = 8000,  resurrectas = 'corak'    },
+		{ name = 'armpw_dead',    x = 3900, y = 100, z = 4600, rot = 20000, resurrectas = 'armck'    },
+	},
+}
+
 return {
 	Triggers = triggers,
 	Actions  = actions,
+	Loadout  = loadout,
 }

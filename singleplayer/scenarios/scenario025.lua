@@ -39,32 +39,22 @@ Scoring:
 	unitlimits       = {},
 
 	scenariooptions = {
-		scenarioid         = "firstcontact025", -- MUST match scenarioid above
+		scenarioid           = "firstcontact025", -- MUST match scenarioid above
 		disablefactionpicker = true,
-		missionscript      = "scenarios/missions/scenario025_mission.lua",
+		missionscript        = "scenarios/missions/scenario025_mission.lua",
 
+		-- These units are merged with the Loadout defined in the mission script.
 		unitloadout = {
-			-- Player (team 0) starting forces
-			{ name = 'armcom',   x = 2157, y = 154, z = 6976, rot = 16384, team = 0 },
-			{ name = 'armck',    x = 2100, y = 154, z = 6850, rot = 16384, team = 0 },
-			{ name = 'armck',    x = 2200, y = 154, z = 7050, rot = 16384, team = 0 },
-			{ name = 'armsolar', x = 2040, y = 154, z = 6800, rot = 16384, team = 0 },
-			{ name = 'armwin',   x = 1990, y = 154, z = 7100, rot = 16384, team = 0 },
-			{ name = 'armwin',   x = 2040, y = 154, z = 7100, rot = 16384, team = 0 },
-			{ name = 'armmex',   x = 2050, y = 154, z = 6970, rot = 16384, team = 0 },
-			{ name = 'armmex',   x = 1760, y = 154, z = 7740, rot = 16384, team = 0 },
-
-			-- Enemy (team 1) starting forces — forward base across the crossing
-			{ name = 'corcom',   x = 4800, y = 52,  z = 3600, rot = -16384, team = 1 },
-			{ name = 'corck',    x = 4750, y = 52,  z = 3200, rot = -16384, team = 1 },
-			{ name = 'corck',    x = 4800, y = 52,  z = 3000, rot = -16384, team = 1 },
-			{ name = 'corsolar', x = 5000, y = 52,  z = 3200, rot =      0, team = 1 },
-			{ name = 'corwin',   x = 4950, y = 52,  z = 3300, rot =      0, team = 1 },
-			{ name = 'cormex',   x = 5040, y = 52,  z = 2540, rot =      0, team = 1 },
-			{ name = 'cormex',   x = 5650, y = 52,  z = 2480, rot =      0, team = 1 },
-			{ name = 'corllt',   x = 4900, y = 52,  z = 3380, rot = -16384, team = 1 },
+			-- Player (team 0) scout patrol — spawned in addition to the base from the mission script
+			{ name = 'armflea', x = 2250, y = 154, z = 6800, rot = 16384, team = 0 },
+			{ name = 'armflea', x = 2250, y = 154, z = 6900, rot = 16384, team = 0 },
+			{ name = 'armflea', x = 2200, y = 154, z = 7000, rot = 16384, team = 0 },
 		},
-		featureloadout = {},
+		-- Wrecks near the player base — merged with featureloadout from the mission script.
+		featureloadout = {
+			{ name = 'armpw_dead', x = 2320, y = 154, z = 6300, rot = 5000,  resurrectas = 'armflea' },
+			{ name = 'corak_dead', x = 2250, y = 154, z = 6350, rot = 18000, resurrectas = 'corak'   },
+		},
 	},
 
 	-- https://github.com/spring/spring/blob/105.0/doc/StartScriptFormat.txt
