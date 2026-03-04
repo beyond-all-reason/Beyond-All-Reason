@@ -14,10 +14,17 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local scriptPath
 local triggersController, actionsController
 
-local function loadMission()
+local function getMissionScriptPath()
+	local scenarioOptions = Spring.GetModOptions().scenariooptions
+	if not scenarioOptions then return end
+
+	local scenarioOptionsDecoded = Json.decode(string.base64Decode(scenarioOptions))
+	return scenarioOptionsDecoded and scenarioOptionsDecoded.missionscript or nil
+end
+
+local function loadMission(scriptPath)
 	local mission = VFS.Include("singleplayer/" .. scriptPath)
 	local rawTriggers = mission.Triggers
 	local rawActions = mission.Actions
@@ -30,11 +37,11 @@ local function loadMission()
 end
 
 function gadget:Initialize()
-	-- TODO: Actually pass script path
 	--scriptPath = 'mission-api-tests/validation_test.lua'
-	-- scriptPath = 'mission-api-tests/test_mission.lua'
-	 scriptPath = 'mission-api-tests/validation_test.lua'
+	--scriptPath = 'mission-api-tests/test_mission.lua'
+	--scriptPath = 'mission-api-tests/validation_test.lua'
 	--scriptPath = 'mission-api-tests/markers_test.lua'
+	local scriptPath = getMissionScriptPath()
 
 	if not scriptPath then
 		gadgetHandler:RemoveGadget()
@@ -54,7 +61,7 @@ function gadget:Initialize()
 	triggersController = VFS.Include('luarules/mission_api/triggers_loader.lua')
 	actionsController = VFS.Include('luarules/mission_api/actions_loader.lua')
 
-	loadMission();
+	loadMission(scriptPath)
 end
 
 function gadget:Shutdown()
