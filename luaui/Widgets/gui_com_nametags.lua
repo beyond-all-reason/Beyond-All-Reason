@@ -539,8 +539,12 @@ function widget:DrawScreenEffects()	-- using DrawScreenEffects so that guishader
 				local camDist = attributes[5]
 				local scale = iconScaleCache[camDist]
 				if not scale then
-					scale = 1 - (camDist / 25000)
-					if scale < 0.5 then
+					if camDist and camDist == camDist and camDist < math.huge then
+						scale = 1 - (camDist / 25000)
+						if scale < 0.5 then
+							scale = 0.5
+						end
+					else
 						scale = 0.5
 					end
 					iconScaleCache[camDist] = scale

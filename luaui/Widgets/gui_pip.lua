@@ -1492,6 +1492,8 @@ local cache = {
 	canFly = {},
 	isBuilding = {},
 	isCommander = {},
+	isDecoyCommander = {},  -- Commanders with customParams.decoyfor (show 'Decoy' instead of player name)
+	isScavCommander = {},   -- Scavenger commanders (show scav-specific name for decoys)
 	unitCost = {},
 	-- Combat properties
 	canAttack = {},
@@ -1868,7 +1870,6 @@ local buttons = {
 		texture = 'LuaUI/Images/pip/PipCopy.png',
 		tooltipKey = 'ui.pip.copy',
 		command = 'pip_copy',
-		shortcut = 'Alt + Q',
 		OnPress = function()
 				local sizex, sizez = Spring.GetWindowGeometry()
 				local _, pos = Spring.TraceScreenRay(sizex/2, sizez/2, true)
@@ -1898,7 +1899,6 @@ local buttons = {
 		texture = 'LuaUI/Images/pip/PipSwitch.png',
 		tooltipKey = 'ui.pip.switch',
 		command = 'pip_switch',
-		shortcut = 'Shift + Q',
 		OnPress = function()
 				local sizex, sizez = Spring.GetWindowGeometry()
 				local _, pos = Spring.TraceScreenRay(sizex/2, sizez/2, true)
@@ -1980,7 +1980,6 @@ local buttons = {
 		tooltipKey = 'ui.pip.track',
 		tooltipActiveKey = 'ui.pip.untrack',
 		command = 'pip_track',
-		shortcut = 'Alt + A',
 		OnPress = function()
 			local selectedUnits = Spring.GetSelectedUnits()
 			if #selectedUnits > 0 then
@@ -2211,6 +2210,52 @@ local buttons = {
 		end
 	},
 }
+
+-- Per-pip keyboard shortcuts: command → keybind string
+-- pip1 has the original shortcuts; pip0 and pip2 have none by default.
+-- Modify the table for other pips to assign shortcuts (e.g. pip_copy = 'alt+w').
+local pipShortcuts = {
+	[0] = {
+		-- pip_copy = nil,
+		-- pip_switch = nil,
+		-- pip_track = nil,
+	},
+	[1] = {
+		pip_copy = 'alt+q',
+		pip_switch = 'shift+q',
+		pip_track = 'alt+a',
+	},
+	[2] = {
+		-- pip_copy = nil,
+		-- pip_switch = nil,
+		-- pip_track = nil,
+	},
+}
+
+-- Helper: convert a keybind string like 'alt+q' to display format 'Alt + Q'
+local function formatShortcutDisplay(keybind)
+	if not keybind then return nil end
+	local parts = {}
+	for part in keybind:gmatch('[^+]+') do
+		part = part:match('^%s*(.-)%s*$')  -- trim whitespace
+		parts[#parts + 1] = part:sub(1, 1):upper() .. part:sub(2)
+	end
+	return table.concat(parts, ' + ')
+end
+
+-- Compute per-pip action names and shortcut display text for each button
+local myShortcuts = pipShortcuts[pipNumber] or {}
+for i = 1, #buttons do
+	local btn = buttons[i]
+	if btn.command then
+		-- Unique action name per pip instance (e.g. pip_copy → pip1_copy)
+		btn.actionName = 'pip' .. pipNumber .. '_' .. btn.command:sub(5)
+		-- Set display shortcut from per-pip config
+		local keybind = myShortcuts[btn.command]
+		btn.shortcut = formatShortcutDisplay(keybind)
+		btn.keybind = keybind  -- raw keybind string for bind/unbind
+	end
+end
 
 -- Consolidated shader table (LOS overlay, minimap shading, water overlay)
 local shaders = {
@@ -5127,6 +5172,9 @@ local function DrawLaserBeams()
 	local worldTop = render.world.t
 	local worldBottom = render.world.b
 
+	-- When LOS view is active, hide beams whose origin is outside the viewed allyteam's LOS
+	local beamLosAlly = state.losViewEnabled and state.losViewAllyTeam or nil
+
 	while i <= n do
 		local beam = cache.laserBeams[i]
 		local age = gameTime - beam.startTime
@@ -5136,6 +5184,9 @@ local function DrawLaserBeams()
 			cache.laserBeams[i] = cache.laserBeams[n]
 			cache.laserBeams[n] = nil
 			n = n - 1
+		-- LOS view filter: skip beams whose origin is outside the viewed allyteam's LOS
+		elseif beamLosAlly and not spFunc.IsPosInLos(beam.ox, 0, beam.oz, beamLosAlly) then
+			i = i + 1
 		else
 			-- Check if beam is within visible world bounds (with small margin for beam thickness)
 			local margin = 50
@@ -5330,6 +5381,9 @@ local function DrawIconShatters()
 		end
 	end
 
+	-- When LOS view is active, hide shatters whose origin is outside the viewed allyteam's LOS
+	local shatterLosAlly = state.losViewEnabled and state.losViewAllyTeam or nil
+
 	local n = #cache.iconShatters
 	local i = 1
 	while i <= n do
@@ -5342,6 +5396,9 @@ local function DrawIconShatters()
 			cache.iconShatters[i] = cache.iconShatters[n]
 			cache.iconShatters[n] = nil
 			n = n - 1
+		-- LOS view filter: skip shatters whose origin is outside the viewed allyteam's LOS
+		elseif shatterLosAlly and shatter.originX and not spFunc.IsPosInLos(shatter.originX, 0, shatter.originZ, shatterLosAlly) then
+			i = i + 1
 		else
 			local fade = 1 - progress			-- Calculate scale: stays at 1.0 for first 50% of duration, then shrinks to 0 (earlier than before)
 			local scale
@@ -5488,6 +5545,9 @@ local function DrawSeismicPings()
 			-- Filter by allyteam if tracking a player
 			if trackedAllyTeam and ping.allyTeam and ping.allyTeam ~= trackedAllyTeam then
 				i = i + 1
+			-- LOS view filter: only show pings from the viewed allyteam
+			elseif state.losViewEnabled and state.losViewAllyTeam and ping.allyTeam and ping.allyTeam ~= state.losViewAllyTeam then
+				i = i + 1
 			-- Check if ping is within visible world bounds
 			elseif ping.x + ping.maxRadius < worldLeft or ping.x - ping.maxRadius > worldRight or
 				ping.z + ping.maxRadius < worldTop or ping.z - ping.maxRadius > worldBottom then
@@ -5626,6 +5686,9 @@ local function DrawExplosions()
 	local wcx_cached = cameraState.wcx
 	local wcz_cached = cameraState.wcz
 
+	-- When LOS view is active, hide explosions outside the viewed allyteam's LOS
+	local expLosAlly = state.losViewEnabled and state.losViewAllyTeam or nil
+
 	mapInfo.rad2deg = 57.29577951308232 -- Precompute radians to degrees conversion
 
 	-- Cache world boundaries for culling
@@ -5696,6 +5759,9 @@ local function DrawExplosions()
 			n = n - 1
 		-- Skip small explosions when over budget (but still expire them above)
 		elseif explosionMinRadius > 0 and explosion.radius < explosionMinRadius then
+			i = i + 1
+		-- LOS view filter: skip explosions outside the viewed allyteam's LOS
+		elseif expLosAlly and not spFunc.IsPosInLos(explosion.x, 0, explosion.z, expLosAlly) then
 			i = i + 1
 		else
 			-- Check if explosion is within visible world bounds
@@ -5896,9 +5962,16 @@ local function DrawExplosionOverlay()
 
 	local currentFrame = Spring.GetGameFrame()
 
+	-- When LOS view is active, hide explosions outside the viewed allyteam's LOS
+	local expLosAlly = state.losViewEnabled and state.losViewAllyTeam or nil
+
 	for i = 1, #cache.explosions do
 		local explosion = cache.explosions[i]
 		if explosion and explosion.x and not explosion.isLightning then
+			-- LOS view filter: skip explosions outside the viewed allyteam's LOS
+			if expLosAlly and not spFunc.IsPosInLos(explosion.x, 0, explosion.z, expLosAlly) then
+				-- skip
+			else
 			local age = (currentFrame - explosion.startFrame) / 30
 
 			-- Replicate lifetime logic from DrawExplosions
@@ -5953,6 +6026,7 @@ local function DrawExplosionOverlay()
 						1, 1, 1,  0.95, 0.93, 0.88,  0, 0)
 				end
 			end
+			end -- LOS view filter else
 		end
 	end
 end
@@ -6784,6 +6858,12 @@ function widget:Initialize()
 		end
 		if uDef.customParams and (uDef.customParams.iscommander or uDef.customParams.isdecoycommander or uDef.customParams.isscavcommander or uDef.customParams.isscavdecoycommander) then
 			cache.isCommander[uDefID] = true
+			if uDef.customParams.decoyfor then
+				cache.isDecoyCommander[uDefID] = true
+			end
+			if uDef.customParams.isscavcommander or uDef.customParams.isscavdecoycommander then
+				cache.isScavCommander[uDefID] = true
+			end
 		end
 		cache.unitCost[uDefID] = uDef.metalCost + uDef.energyCost / 60
 
@@ -7324,18 +7404,13 @@ end
 	for i = 1, #buttons do
 		local button = buttons[i]
 		if button.command then
-			widgetHandler.actionHandler:AddAction(self, button.command, button.OnPress, nil, 'p')
+			-- Register with pip-specific action name so each pip instance has unique commands
+			widgetHandler.actionHandler:AddAction(self, button.actionName, button.OnPress, nil, 'p')
 
-			-- Bind hotkeys for specific commands
-			if button.command == 'pip_copy' then
-				Spring.SendCommands("unbindkeyset alt+q")
-				Spring.SendCommands("bind alt+q pip_copy")
-			elseif button.command == 'pip_switch' then
-				Spring.SendCommands("unbindkeyset shift+q")
-				Spring.SendCommands("bind shift+q pip_switch")
-			elseif button.command == 'pip_track' then
-				Spring.SendCommands("unbindkeyset alt+a")
-				Spring.SendCommands("bind alt+a pip_track")
+			-- Bind per-pip hotkey if configured
+			if button.keybind then
+				Spring.SendCommands("unbindkeyset " .. button.keybind)
+				Spring.SendCommands("bind " .. button.keybind .. " " .. button.actionName)
 			end
 		end
 	end
@@ -7886,15 +7961,11 @@ function widget:Shutdown()
 	for i = 1, #buttons do
 		local button = buttons[i]
 		if button.command then
-			widgetHandler.actionHandler:RemoveAction(self, button.command)
+			widgetHandler.actionHandler:RemoveAction(self, button.actionName)
 
-			-- Unbind hotkeys for specific commands
-			if button.command == 'pip_copy' then
-				Spring.SendCommands("unbind Alt+Q pip_copy")
-			elseif button.command == 'pip_switch' then
-				Spring.SendCommands("unbind Shift+Q pip_switch")
-			elseif button.command == 'pip_track' then
-				Spring.SendCommands("unbind Alt+A pip_track")
+			-- Unbind per-pip hotkey if configured
+			if button.keybind then
+				Spring.SendCommands("unbind " .. button.keybind .. " " .. button.actionName)
 			end
 		end
 	end
@@ -10015,6 +10086,9 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 					for i = rCount + 1, #radii do radii[i] = nil end
 				end
 
+				-- When LOS view is active, only show projectiles at positions in LOS
+				local projLosAlly = state.losViewEnabled and state.losViewAllyTeam or nil
+
 				for i = 1, projectileCount do
 					local pID = projectiles[i]
 					-- Filter small projectiles when over budget
@@ -10027,6 +10101,13 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 							if r < minRadius then
 								shouldDraw = false
 							end
+						end
+					end
+					-- LOS view filter: skip projectiles outside the viewed allyteam's LOS
+					if shouldDraw and projLosAlly then
+						local ppx, _, ppz = spFunc.GetProjectilePosition(pID)
+						if ppx and not spFunc.IsPosInLos(ppx, 0, ppz, projLosAlly) then
+							shouldDraw = false
 						end
 					end
 					if shouldDraw then
@@ -10266,11 +10347,33 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 					end
 					-- Draw nametag above icon (always, including radar blips)
 					local entry = tID and comNametagCache[tID]
-					if entry then
+					-- For scav/raptor commanders: no cache entry, but still show a name
+					local displayName
+					if cache.isDecoyCommander[dID] then
+						if cache.isScavCommander[dID] then
+							displayName = Spring.I18N('units.scavDecoyCommanderNameTag')
+						else
+							displayName = Spring.I18N('units.decoyCommanderNameTag')
+						end
+					elseif cache.isScavCommander[dID] then
+						displayName = Spring.I18N('units.scavCommanderNameTag')
+					elseif entry then
+						displayName = entry.name
+					end
+					if displayName then
 						local nameY = cy + iconHalf + nametagFontSize * 0.35
-						font:SetTextColor(entry.r, entry.g, entry.b, nametagAlpha)
-						font:SetOutlineColor(entry.oR, entry.oG, entry.oB, nametagAlpha)
-						font:Print(entry.name, cx, nameY, nametagFontSize, "con")
+						if entry then
+							font:SetTextColor(entry.r, entry.g, entry.b, nametagAlpha)
+							font:SetOutlineColor(entry.oR, entry.oG, entry.oB, nametagAlpha)
+						else
+							-- Fallback color for scav/raptor teams without cache entry
+							local tc = teamColors[tID]
+							local r, g, b = tc and tc[1] or 1, tc and tc[2] or 1, tc and tc[3] or 1
+							local isDark = (r + g * 1.2 + b * 0.4) < 0.65
+							font:SetTextColor(r, g, b, nametagAlpha)
+							font:SetOutlineColor(isDark and 1 or 0, isDark and 1 or 0, isDark and 1 or 0, nametagAlpha)
+						end
+						font:Print(displayName, cx, nameY, nametagFontSize, "con")
 					end
 					-- Collect health bar data (only when in actual LOS, not radar)
 					if comHealthBars and inLos then
@@ -12407,6 +12510,11 @@ local function DrawTrackedPlayerMinimap()
 	local showForActivityFocus = config.activityFocusShowMinimap and miscState.activityFocusActive  -- Show during map marker focus
 	local showForTV = miscState.tvEnabled  -- Show during TV mode
 	
+	-- Hide pip-minimap when the game is over and TV is zooming out to overview (already showing the whole map)
+	if showForTV and (miscState.isGameOver or pipTV.director.effectiveGameOver) then
+		showForTV = false
+	end
+	
 	if not showForPlayer and not showForTracking and not showForHover and not showForActivityFocus and not showForTV then
 		interactionState.pipMinimapBounds = nil
 		return
@@ -13850,8 +13958,8 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 					if suppressShortcut then
 						shortcut = nil
 					end
-					if not shortcut and not suppressShortcut and visibleButtons[i].command then
-						shortcut = getActionHotkey(visibleButtons[i].command)
+					if not shortcut and not suppressShortcut and visibleButtons[i].actionName then
+						shortcut = getActionHotkey(visibleButtons[i].actionName)
 					end
 					if shortcut and shortcut ~= "" then
 						tooltipText = tooltipText .. "\n" .. shortcut
@@ -14681,6 +14789,34 @@ function widget:Update(dt)
 		return
 	end
 
+	-- Auto-disable LOS view when the watched allyteam is fully dead
+	if state.losViewEnabled and state.losViewAllyTeam then
+		local allDead = true
+		local teams = Spring.GetTeamList(state.losViewAllyTeam)
+		if teams then
+			for t = 1, #teams do
+				local _, _, isDead = Spring.GetTeamInfo(teams[t], false)
+				if not isDead then
+					allDead = false
+					break
+				end
+			end
+		else
+			allDead = true
+		end
+		if allDead then
+			state.losViewEnabled = false
+			state.losViewAllyTeam = nil
+			if cameraState.mySpecState then
+				for k in pairs(ghostBuildings) do ghostBuildings[k] = nil end
+			end
+			pipR2T.losNeedsUpdate = true
+			pipR2T.frameNeedsUpdate = true
+			pipR2T.unitsNeedsUpdate = true
+			pipR2T.contentNeedsUpdate = true
+		end
+	end
+
 	-- Periodic ghost building cleanup: remove ghosts whose position is now in LOS
 	-- The draw-path check only catches ghosts within the PIP viewport; this catches all of them
 	local cleanupAllyTeam
@@ -15140,7 +15276,11 @@ function widget:Update(dt)
 			pipR2T.contentNeedsUpdate = true  -- Update during animation
 			pipR2T.frameNeedsUpdate = true  -- Frame also needs update during animation
 
-			if uiState.animationProgress >= 1 then
+			-- Safety: if animationProgress becomes NaN (e.g. dt or animationDuration is 0/NaN),
+			-- recover immediately so we don't get stuck forever.
+			if uiState.animationProgress ~= uiState.animationProgress then -- NaN check
+				RecoverInvalidAnimationState()
+			elseif uiState.animationProgress >= 1 then
 				-- Animation complete
 				uiState.animationProgress = 1
 				uiState.isAnimating = false
@@ -15707,6 +15847,13 @@ local function CreateIconShatter(unitID, unitDefID, unitTeam, unitVelX, unitVelZ
 	local ux, uy, uz = spFunc.GetUnitPosition(unitID)
 	if not ux then return end
 
+	-- LOS view filter: skip shatters for units outside the viewed allyteam's LOS
+	if state.losViewEnabled and state.losViewAllyTeam then
+		if not spFunc.IsPosInLos(ux, 0, uz, state.losViewAllyTeam) then
+			return
+		end
+	end
+
 	-- Get icon data
 	local iconData = cache.unitIcon[unitDefID]
 	if not iconData or not iconData.size then return end -- Ensure icon has size data
@@ -15806,6 +15953,8 @@ local function CreateIconShatter(unitID, unitDefID, unitTeam, unitVelX, unitVelZ
 		duration = baseLifetime * lifetimeVariation,
 		zoom = cameraState.zoom,  -- Store zoom factor to compensate for gl.Scale during rendering
 		flashIntensity = flashIntensity,  -- Inherited damage flash (0-1)
+		originX = ux,  -- World origin for LOS filtering during rendering
+		originZ = uz,
 	})
 end
 
@@ -16125,7 +16274,14 @@ end
 function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 	if uiState.inMinMode then return end
 	if not config.drawExplosions then return end
-	
+
+	-- When LOS view is active, skip explosions outside the viewed allyteam's LOS
+	if state.losViewEnabled and state.losViewAllyTeam then
+		if not spFunc.IsPosInLos(px, 0, pz, state.losViewAllyTeam) then
+			return
+		end
+	end
+
 	-- Skip specific weapons using cached data (e.g., footstep effects)
 	if weaponID and cache.weaponSkipExplosion[weaponID] then
 		return
@@ -16639,6 +16795,10 @@ function widget:MousePress(mx, my, mButton)
 	-- Guard against uninitialized render dimensions
 	if not render.dim.l or not render.dim.r or not render.dim.b or not render.dim.t then return end
 
+	-- Block all mouse interaction during minimize/maximize animation to prevent
+	-- double-click from triggering an accidental minimize (which corrupts savedDimensions)
+	if uiState.isAnimating then return end
+
 	-- Track mapmark initiation position if mouse is over PiP (for point markers with double-click)
 	if mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t and not uiState.inMinMode then
 		miscState.mapmarkInitScreenX = mx
@@ -16706,7 +16866,8 @@ function widget:MousePress(mx, my, mButton)
 
 	-- Check for left+right mouse button combination for panning (laptop friendly)
 	-- Only start panning if we just pressed the SECOND button (the other was already down)
-	if interactionState.leftMousePressed and interactionState.rightMousePressed and mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t then
+	-- Skip when minimized — panning makes no sense for the tiny button and would steal maximize clicks
+	if not uiState.inMinMode and interactionState.leftMousePressed and interactionState.rightMousePressed and mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t then
 		-- Check if this button press completes the combo (other button was already pressed)
 		local isSecondButton = (mButton == 1 and wasRightPressed) or (mButton == 3 and wasLeftPressed)
 
@@ -17364,7 +17525,8 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 	end
 
 	-- Check for left+right mouse button combination for panning (if not already panning)
-	if interactionState.leftMousePressed and interactionState.rightMousePressed and not interactionState.arePanning and mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t then
+	-- Skip when minimized — panning makes no sense for the tiny button
+	if not uiState.inMinMode and interactionState.leftMousePressed and interactionState.rightMousePressed and not interactionState.arePanning and mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t then
 		-- Check if there's actual movement (not just mouse jitter)
 		if math.abs(dx) > 2 or math.abs(dy) > 2 then
 			-- Cancel any ongoing operations
