@@ -40,11 +40,11 @@ local mexTurretDefID = {} -- the con, which is interactive and shows in GUI, etc
 
 for unitName, unitPair in pairs(unitDefData) do
 	local buildDef = UnitDefNames[unitName]
-	local conDef = UnitDefNames[unitPair.mex]
-	local mexDef = UnitDefNames[unitPair.con]
+	local conDef = UnitDefNames[unitPair.con]
+	local mexDef = UnitDefNames[unitPair.mex]
 
 	if buildDef and conDef and mexDef then
-		fakeBuildDefID[buildDef.id] = { mex = conDef.id, con = mexDef.id }
+		fakeBuildDefID[buildDef.id] = { con = conDef.id, mex = mexDef.id }
 		mexActualDefID[mexDef.id] = true
 		mexTurretDefID[conDef.id] = unitName -- for heaps/wrecks
 	end
@@ -99,7 +99,7 @@ local function doSwapMex(unitID, unitTeam, unitData)
 	Spring.SetUnitHealth(conID, unitHealth)
 
 	-- TODO: Get attachment piece by customparam.
-	Spring.UnitAttach(mexID, conID, 6)
+	Spring.UnitAttach(mexID, conID, 6, true)
 	Spring.SetUnitRulesParam(conID, "pairedUnitID", mexID)
 	Spring.SetUnitRulesParam(mexID, "pairedUnitID", conID)
 	pairedUnits[conID] = mexID
@@ -198,10 +198,11 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	if mexActualDefID[unitDefID] or mexTurretDefID[unitDefID] then
 		local pairedUnitID = pairedUnits[unitID]
 		if pairedUnitID then
+			pairedUnits[unitID] = nil
 			pairedUnits[pairedUnitID] = nil
 			Spring.DestroyUnit(pairedUnitID, false, true)
 		end
-    end
+	end
 end
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua, fromInsert)
