@@ -641,6 +641,7 @@ local function BuildWeaponInfo(unitDef, weaponDef, weaponNum)
 			info.type = "dropped"
 			info.scatter = scatter
 			info.v = unitDef.speed
+			info.range = weaponDef.range + (unitDef.isHoveringAirUnit and 0 or unitDef.speed) -- TODO: there are many WTFs
 			info.salvoSize = weaponDef.salvoSize
 			info.salvoDelay = weaponDef.salvoDelay
 		end
