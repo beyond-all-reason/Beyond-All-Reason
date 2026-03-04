@@ -3552,6 +3552,17 @@ function init()
 		},
 		{ id = "minimappip", group = "ui", category = types.advanced, widget = "Picture-in-Picture Minimap", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimappip'), type = "bool", value = GetWidgetToggleValue("Picture-in-Picture Minimap"), description = Spring.I18N('ui.settings.option.minimappip_descr') },
 
+		{ id = "pip_commandfx", group = "ui", category = types.advanced, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.pip_commandfx'), type = "bool", value = Spring.GetConfigInt("PipDrawCommandFX", 1) == 1, description = Spring.I18N('ui.settings.option.pip_commandfx_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("PipDrawCommandFX", value and 1 or 0)
+			  for _, n in ipairs({0, 1, 2, 3, 4}) do
+				  if WG['pip' .. n] and WG['pip' .. n].setDrawCommandFX then
+					  WG['pip' .. n].setDrawCommandFX(value)
+				  end
+			  end
+		  end,
+		},
+
 
 		{ id = "pip", group = "ui", category = types.advanced, widget = "Picture-in-Picture", name = Spring.I18N('ui.settings.option.pip'), type = "bool", value = GetWidgetToggleValue("Picture-in-Picture"), description = Spring.I18N('ui.settings.option.pip_descr') },
 		{ id = "pip2", group = "ui", category = types.advanced, widget = "Picture-in-Picture 2", name = Spring.I18N('ui.settings.option.pip2'), type = "bool", value = GetWidgetToggleValue("Picture-in-Picture 2"), description = Spring.I18N('ui.settings.option.pip2_descr') },

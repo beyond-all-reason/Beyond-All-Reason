@@ -1417,6 +1417,8 @@
 				"minimaprotation_autolandscape": "Auto-landscape",
 				"minimappip": "advanced (pip style)",
 				"minimappip_descr": "Have a picture-in-picture style camera minimap implementation",
+				"pip_commandfx": "command FX lines",
+				"pip_commandfx_descr": "Show brief fading lines when orders are given in the PIP minimap",
 				"pip": "picture-in-picture",
 				"pip_descr": "Displays a floating camera minimap style window",
 				"pip2": "picture-in-picture 2",
