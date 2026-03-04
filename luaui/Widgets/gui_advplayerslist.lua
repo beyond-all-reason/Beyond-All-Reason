@@ -4049,12 +4049,7 @@ function widget:ViewResize()
 
 	font = WG['fonts'].getFont()
     
-    -- When EnableWhiteOutline is true, increase the outline size and weight
-	if Spring.GetConfigInt("EnableWhiteOutline", 0) == 1 then
-        font2 = WG['fonts'].getFont(2, 1.5, 0.25, 15.)
-    else
-        font2 = WG['fonts'].getFont(2, 1.5)
-    end
+    font2 = WG['fonts'].getFont(2, 1.5, 0.25, 15.)
 	--local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
     --font2 = WG['fonts'].getFont(2, 1.1, 0.2 * outlineMult, 1.7+(outlineMult*0.2))
 
