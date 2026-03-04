@@ -243,16 +243,21 @@ end
 local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectileID)
     local explosion = timedDamageWeapons[weaponDefID]
     local elevation = max(spGetGroundHeight(px, pz), 0)
+    local areaRange = explosion.range
 
-    if py <= elevation + explosion.range then
+    if py <= elevation + areaRange then
+        local frames = explosion.frames
         local dx, dy, dz
         if elevation > 0 then
             dx, dy, dz = spGetGroundNormal(px, pz, true)
         else
+            -- Napalm and acid on water are not entirely wanted so we cut the duration.
+            -- Reduce the duration by half and further add some penalty from dispersal:
+            frames = round(frames * (1 - 0.5 * py / areaRange) * 0.5)
             dx, dy, dz = 0, 1, 0
         end
 
-        local minY = elevation - explosion.range
+        local minY = elevation - areaRange
         if minY < 0 then
             minY = minY * (1 - dy * 0.5) -- avoid damage to submerged targets
         end
@@ -264,12 +269,12 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
             y           = elevation,
             z           = pz,
             ymin        = minY,
-            ymax        = elevation + explosion.range,
+            ymax        = elevation + areaRange,
             dx          = dx,
             dy          = dy,
             dz          = dz,
             ceg         = explosion.ceg,
-            range       = explosion.range,
+            range       = areaRange,
             resistance  = explosion.resistance,
             damage      = explosion.damage,
             damageCeg   = explosion.damageCeg,
@@ -502,7 +507,7 @@ function gadget:Initialize()
     local immunities = { all = areaDamageTypes, none = {} }
     for unitDefID, unitDef in ipairs(UnitDefs) do
         local unitImmunity
-        if unitDef.canFly or unitDef.armorType == Game.armorTypes.indestructible then
+        if unitDef.isSubmarine or unitDef.canFly or unitDef.armorType == Game.armorTypes.indestructible then
             unitImmunity = immunities.all
         elseif unitDef.customParams.areadamageresistance == nil then
             unitImmunity = immunities.none
