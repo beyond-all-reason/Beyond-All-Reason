@@ -222,7 +222,17 @@ function gadget:Initialize()
 
 	for _, unitID in pairs(Spring.GetAllUnits()) do
 		if not Spring.GetUnitIsBeingBuilt(unitID) then
-			gadget:UnitFinished(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+			local unitDefID = Spring.GetUnitDefID(unitID)
+			gadget:UnitFinished(unitID, unitDefID)
+
+			if mexActualDefID[unitDefID] then
+				local pairedUnitID = Spring.GetUnitRulesParam(unitID, "pairedUnitID")
+				if pairedUnitID then
+					pairedUnits[unitID] = pairedUnitID
+					pairedUnits[pairedUnitID] = unitID
+					setExtractionRate(pairedUnitID, unitID)
+				end
+			end
 		end
 	end
 end
