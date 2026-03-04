@@ -19,6 +19,8 @@ end
 
 local spGetUnitHealth = Spring.GetUnitHealth
 
+local reissueOrder = Game.Commands.ReissueOrder
+
 -- TODO: do not use hardcoded unit names
 local unitDefData = {
 	legmohocon = { mex = "legmohoconin", con = "legmohoconct" },
@@ -62,12 +64,16 @@ end
 local mexesToSwap = {}
 local pairedUnits = {}
 
+local function setExtractionRate(conID, mexID)
+	local extractionRate = Spring.GetUnitMetalExtraction(mexID)
+	Spring.CallCOBScript(conID, "SetSpeed", 0, (extractionRate or 0) * 1000) -- COB is scaled for integer-only
+end
+
 local function doSwapMex(unitID, unitTeam, unitData)
 	local Spring = Spring
 
 	local isUnitNeutral = Spring.GetUnitNeutral(unitID)
 	local unitHealth = spGetUnitHealth(unitID)
-	--local unitExtraction = Spring.GetUnitMetalExtraction(unitID) or 0
 
 	Spring.DestroyUnit(unitID, false, true) -- clears unitID from mexesToSwap in g:UnitDestroyed
 
@@ -81,6 +87,7 @@ local function doSwapMex(unitID, unitTeam, unitData)
 	end
 	Spring.SetUnitBlocking(mexID, true, true, false)
 	Spring.SetUnitNoSelect(mexID, true)
+	Spring.SetUnitStealth(mexID, true)
 
 	local conID = Spring.CreateUnit(unitData.swapDefs.con, ux, uy, uz, unitFacing, unitTeam)
 	if not conID then
@@ -89,15 +96,15 @@ local function doSwapMex(unitID, unitTeam, unitData)
 		Spring.AddTeamResource(unitTeam, "e", unitData.energy)
 		return
 	end
+	Spring.SetUnitHealth(conID, unitHealth)
+
 	-- TODO: Get attachment piece by customparam.
 	Spring.UnitAttach(mexID, conID, 6)
 	Spring.SetUnitRulesParam(conID, "pairedUnitID", mexID)
 	Spring.SetUnitRulesParam(mexID, "pairedUnitID", conID)
 	pairedUnits[conID] = mexID
 	pairedUnits[mexID] = conID
-
-	Spring.SetUnitHealth(conID, unitHealth)
-	Spring.SetUnitStealth(conID, true)
+	setExtractionRate(conID, mexID) -- used in unit animations
 
 	if isUnitNeutral then
 		Spring.SetUnitNeutral(mexID, true)
@@ -197,7 +204,21 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
     end
 end
 
+function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua, fromInsert)
+	-- accepts CMD.ONOFF:
+	if mexTurretDefID[unitDefID] then
+		local mexID = pairedUnits[unitID]
+		if mexID then
+			reissueOrder(mexID, cmdID, cmdParams, cmdOptions, cmdTag, fromInsert)
+			setExtractionRate(unitID, mexID)
+		end
+	end
+	return true
+end
+
 function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD.ONOFF)
+
 	for _, unitID in pairs(Spring.GetAllUnits()) do
 		if not Spring.GetUnitIsBeingBuilt(unitID) then
 			gadget:UnitFinished(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
