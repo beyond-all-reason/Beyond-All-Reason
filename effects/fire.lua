@@ -1282,6 +1282,7 @@ local definitions = {
       count      = 1,
       air        = true,
       ground     = true,
+      water      = true,
       properties = {
         airdrag             = 0.9,
         colormap            =
