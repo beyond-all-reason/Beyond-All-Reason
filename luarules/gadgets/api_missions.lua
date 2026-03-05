@@ -14,10 +14,10 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local scriptPath
 local triggersController, actionsController
+local missionUnitLoadout, missionFeatureLoadout
 
-local function loadMission()
+local function loadMission(scriptPath)
 	local mission = VFS.Include("singleplayer/" .. scriptPath)
 	local rawTriggers = mission.Triggers
 	local rawActions = mission.Actions
@@ -30,16 +30,22 @@ local function loadMission()
 	local actionTypes  = GG['MissionAPI'].ActionTypes
 	local triggers     = GG['MissionAPI'].Triggers
 	local actions      = GG['MissionAPI'].Actions
-	validation.ValidateUnitNameReferences(triggerTypes, actionTypes, triggers, actions)
-	validation.ValidateFeatureNameReferences(triggerTypes, actionTypes, triggers, actions)
+
+	missionUnitLoadout    = mission.UnitLoadout
+	missionFeatureLoadout = mission.FeatureLoadout
+
+	validation.ValidateLoadouts(missionUnitLoadout, missionFeatureLoadout)
+	validation.ValidateUnitNameReferences(triggerTypes, actionTypes, triggers, actions, missionUnitLoadout)
+	validation.ValidateFeatureNameReferences(triggerTypes, actionTypes, triggers, actions, missionFeatureLoadout)
 end
 
 function gadget:Initialize()
 	-- TODO: Actually pass script path
-	--scriptPath = 'mission-api-tests/validation_test.lua'
-	--scriptPath = 'mission-api-tests/test_mission.lua'
-	--scriptPath = 'mission-api-tests/unit_triggers_test.lua'
-	scriptPath = 'mission-api-tests/feature_triggers_test.lua'
+	--local scriptPath = 'mission-api-tests/validation_test.lua'
+	--local scriptPath = 'mission-api-tests/test_mission.lua'
+	--local scriptPath = 'mission-api-tests/unit_triggers_test.lua'
+	--local scriptPath = 'mission-api-tests/feature_triggers_test.lua'
+	local scriptPath = 'mission-api-tests/loadout_test.lua'
 
 	if not scriptPath then
 		gadgetHandler:RemoveGadget()
@@ -61,7 +67,28 @@ function gadget:Initialize()
 	triggersController = VFS.Include('luarules/mission_api/triggers_loader.lua')
 	actionsController = VFS.Include('luarules/mission_api/actions_loader.lua')
 
-	loadMission();
+	loadMission(scriptPath)
+end
+
+function gadget:GamePreload()
+	if Spring.GetGameRulesParam("loadedGame") == 1 then
+		Spring.Echo("Mission API: Loading saved game, skipping loadout")
+		return
+	end
+
+	if missionUnitLoadout then
+		Spring.Echo("Mission API: Creating unit loadout")
+	end
+	if missionFeatureLoadout then
+		Spring.Echo("Mission API: Creating feature loadout")
+	end
+
+	local tracking = VFS.Include('luarules/mission_api/tracking.lua')
+	tracking.InitializeTracking()
+
+	local loadoutModule = VFS.Include('luarules/mission_api/loadout.lua')
+	loadoutModule.SpawnUnitLoadout(missionUnitLoadout, tracking.TrackUnit)
+	loadoutModule.SpawnFeatureLoadout(missionFeatureLoadout, tracking.TrackFeature)
 end
 
 function gadget:Shutdown()

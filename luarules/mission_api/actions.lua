@@ -6,6 +6,8 @@ local untrackUnitName        = tracking.UntrackUnitName
 local trackFeature           = tracking.TrackFeature
 local isFeatureNameUntracked = tracking.IsFeatureNameUntracked
 
+local loadout = VFS.Include('luarules/mission_api/loadout.lua')
+
 local trackedUnitIDs    = GG['MissionAPI'].trackedUnitIDs
 local trackedFeatureIDs = GG['MissionAPI'].trackedFeatureIDs
 local triggers = GG['MissionAPI'].Triggers
@@ -177,6 +179,11 @@ local function destroyFeature(featureName)
 	end
 end
 
+local function spawnLoadout(unitLoadout, featureLoadout)
+	loadout.SpawnUnitLoadout(unitLoadout, trackUnit)
+	loadout.SpawnFeatureLoadout(featureLoadout, trackFeature)
+end
+
 ----------------------------------------------------------------
 
 local function spawnExplosion(position, direction, params)
@@ -222,6 +229,7 @@ return {
 	TransferUnits = transferUnits,
 	NameUnits = nameUnits,
 	UnnameUnits = unnameUnits,
+	SpawnLoadout = spawnLoadout,
 
 	-- Features
 	CreateFeature = createFeature,

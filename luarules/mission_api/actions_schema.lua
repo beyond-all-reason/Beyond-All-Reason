@@ -21,6 +21,7 @@ local actionTypes = {
 	TransferUnits      = 404,       --
 	NameUnits	       = 405,       --
 	UnnameUnits	       = 406,       --
+	SpawnLoadout       = 407,
 
 	-- Features
 	CreateFeature      = 450,
@@ -231,6 +232,20 @@ local parameters = {
 			required = true,
 			type = Types.String,
 		},
+	},
+
+	[actionTypes.SpawnLoadout] = {
+		[1] = {
+			name = 'unitLoadout',
+			required = false,
+			type = Types.UnitLoadout,
+		},
+		[2] = {
+			name = 'featureLoadout',
+			required = false,
+			type = Types.FeatureLoadout,
+		},
+		requiresOneOf = { 'unitLoadout', 'featureLoadout' },
 	},
 
 	-- SFX

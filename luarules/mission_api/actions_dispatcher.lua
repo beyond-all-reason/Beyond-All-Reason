@@ -4,38 +4,12 @@ local parameterSchema = actionsSchema.Parameters
 local types = GG['MissionAPI'].ActionTypes
 local actions = GG['MissionAPI'].Actions
 
-local typeMapping = {
--- TODO: Since the names are all the same, could we ditch this mapping and do it dynamically instead?
-	[types.EnableTrigger] = actionFunctions.EnableTrigger,
-	[types.DisableTrigger] = actionFunctions.DisableTrigger,
-	[types.IssueOrders] = actionFunctions.IssueOrders,
-	-- [types.AllowCommands] = ,
-	-- [types.RestrictCommands] = ,
-	-- [types.AlterBuildlist] = ,
-	-- [types.EnableBuildOption] = ,
-	-- [types.DisableBuildOption] = ,
-	[types.SpawnUnits] = actionFunctions.SpawnUnits,
-	-- [types.SpawnConstruction] = ,
-	[types.DespawnUnits] = actionFunctions.DespawnUnits,
-	-- [types.SpawnWeapons] = ,
-	-- [types.SpawnEffects] = ,
-	[types.TransferUnits] = actionFunctions.TransferUnits,
-	[types.NameUnits] = actionFunctions.NameUnits,
-	[types.UnnameUnits] = actionFunctions.UnnameUnits,
-	[types.CreateFeature] = actionFunctions.CreateFeature,
-	[types.DestroyFeature] = actionFunctions.DestroyFeature,
-	[types.SpawnExplosion] = actionFunctions.SpawnExplosion,
-	-- [types.RevealLOS] = ,
-	-- [types.UnrevealLOS] = ,
-	-- [types.AlterMapZones] = ,
-	-- [types.ControlCamera] = ,
-	-- [types.Pause] = ,
-	-- [types.Unpause] = ,
-	-- [types.PlayMedia] = ,
-	[types.SendMessage] = actionFunctions.SendMessage,
-	[types.Victory] = actionFunctions.Victory,
-	[types.Defeat] = actionFunctions.Defeat,
-}
+local typeMapping = {}
+for name, typeId in pairs(types) do
+	if actionFunctions[name] then
+		typeMapping[typeId] = actionFunctions[name]
+	end
+end
 
 -- unpack() does not handle optional parameters, as it cannot pass a value as nil
 local function unpackActionParameters(actionId, i)

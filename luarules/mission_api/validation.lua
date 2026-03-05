@@ -442,7 +442,151 @@ local function validateActions(actions)
 	end
 end
 
-local function validateUnitNameReferences(triggerTypes, actionTypes, triggers, actions)
+----------------------------------------------------------------
+--- Loadout Validation:
+----------------------------------------------------------------
+
+local function validateUnitLoadoutEntry(entry, index, context)
+	local prefix = (context or "UnitLoadout") .. " entry #" .. index
+
+	if type(entry) ~= 'table' then
+		logError(prefix .. ": entry must be a table, got " .. type(entry))
+		return
+	end
+
+	-- Required fields
+	if entry.name == nil then
+		logError(prefix .. ": missing required field 'name'")
+	else
+		local nameResult = validators[Types.UnitDefName](entry.name)
+		if nameResult and not table.isEmpty(nameResult) then
+			logError(prefix .. ", field 'name': " .. (nameResult[1] and nameResult[1].message or "invalid"))
+		end
+	end
+
+	local positionResult = validators[Types.Position](entry)
+	for _, positionError in ipairs(positionResult or {}) do
+		logError(prefix .. ", " .. positionError.message .. (positionError.parameterNameSuffix or ""))
+	end
+
+	if entry.team == nil then
+		logError(prefix .. ": missing required field 'team'")
+	else
+		local teamResult = validators[Types.TeamID](entry.team)
+		if teamResult and not table.isEmpty(teamResult) then
+			logError(prefix .. ", field 'team': " .. (teamResult[1] and teamResult[1].message or "invalid"))
+		end
+	end
+
+	-- Optional fields
+	if entry.facing ~= nil then
+		local facingResult = validators[Types.Facing](entry.facing)
+		if facingResult and not table.isEmpty(facingResult) then
+			logError(prefix .. ", field 'facing': " .. (facingResult[1] and facingResult[1].message or "invalid"))
+		end
+	end
+
+	if entry.unitName ~= nil then
+		local unitNameResult = validators[Types.String](entry.unitName)
+		if unitNameResult and not table.isEmpty(unitNameResult) then
+			logError(prefix .. ", field 'unitName': " .. (unitNameResult[1] and unitNameResult[1].message or "invalid"))
+		end
+	end
+
+	if entry.neutral ~= nil then
+		local neutralResult = validators[Types.Boolean](entry.neutral)
+		if neutralResult and not table.isEmpty(neutralResult) then
+			logError(prefix .. ", field 'neutral': " .. (neutralResult[1] and neutralResult[1].message or "invalid"))
+		end
+	end
+end
+
+local function validateFeatureLoadoutEntry(entry, index, context)
+	local prefix = (context or "FeatureLoadout") .. " entry #" .. index
+
+	if type(entry) ~= 'table' then
+		logError(prefix .. ": entry must be a table, got " .. type(entry))
+		return
+	end
+
+	-- Required fields
+	if entry.name == nil then
+		logError(prefix .. ": missing required field 'name'")
+	else
+		local nameResult = validators[Types.FeatureDefName](entry.name)
+		if nameResult and not table.isEmpty(nameResult) then
+			logError(prefix .. ", field 'name': " .. (nameResult[1] and nameResult[1].message or "invalid"))
+		end
+	end
+
+	local positionResult = validators[Types.Position](entry)
+	for _, positionError in ipairs(positionResult or {}) do
+		logError(prefix .. ", " .. positionError.message .. (positionError.parameterNameSuffix or ""))
+	end
+
+	-- Optional fields
+	if entry.facing ~= nil then
+		local facingResult = validators[Types.Facing](entry.facing)
+		if facingResult and not table.isEmpty(facingResult) then
+			logError(prefix .. ", field 'facing': " .. (facingResult[1] and facingResult[1].message or "invalid"))
+		end
+	end
+
+	if entry.featureName ~= nil then
+		local featureNameResult = validators[Types.String](entry.featureName)
+		if featureNameResult and not table.isEmpty(featureNameResult) then
+			logError(prefix .. ", field 'featureName': " .. (featureNameResult[1] and featureNameResult[1].message or "invalid"))
+		end
+	end
+
+	if entry.resurrectAs ~= nil then
+		local resurrectAsResult = validators[Types.UnitDefName](entry.resurrectAs)
+		if resurrectAsResult and not table.isEmpty(resurrectasResult) then
+			logError(prefix .. ", field 'resurrectas': " .. (resurrectasResult[1] and resurrectasResult[1].message or "invalid"))
+		end
+	end
+end
+
+--- Validator for a unitLoadout table (array of unit entries).
+--- Errors are logged directly by the entry helper; this returns {} so the
+--- generic validate() machinery has nothing extra to report.
+local function validateUnitLoadout(unitLoadout, actionOrTrigger, actionOrTriggerID, parameterName)
+	if type(unitLoadout) ~= 'table' then
+		return { { message = "UnitLoadout must be a table, got " .. type(unitLoadout) } }
+	end
+	local context = actionOrTriggerID and (actionOrTrigger .. " '" .. actionOrTriggerID .. "' " .. (parameterName or "unitLoadout"))
+	for i, entry in ipairs(unitLoadout) do
+		validateUnitLoadoutEntry(entry, i, context)
+	end
+	return {}
+end
+
+--- Validator for a featureLoadout table (array of feature entries).
+local function validateFeatureLoadout(featureLoadout, actionOrTrigger, actionOrTriggerID, parameterName)
+	if type(featureLoadout) ~= 'table' then
+		return { { message = "FeatureLoadout must be a table, got " .. type(featureLoadout) } }
+	end
+	local context = actionOrTriggerID and (actionOrTrigger .. " '" .. actionOrTriggerID .. "' " .. (parameterName or "featureLoadout"))
+	for i, entry in ipairs(featureLoadout) do
+		validateFeatureLoadoutEntry(entry, i, context)
+	end
+	return {}
+end
+
+-- Patch the new types into the validators table now that the functions exist.
+validators[Types.UnitLoadout]    = validateUnitLoadout
+validators[Types.FeatureLoadout] = validateFeatureLoadout
+
+local function validateLoadouts(unitLoadout, featureLoadout)
+	if unitLoadout ~= nil then
+		validateUnitLoadout(unitLoadout)
+	end
+	if featureLoadout ~= nil then
+		validateFeatureLoadout(featureLoadout)
+	end
+end
+
+local function validateUnitNameReferences(triggerTypes, actionTypes, triggers, actions, unitLoadout)
 	local triggerTypesReferencingUnitNames = {
 		[triggerTypes.UnitNotExists] = true,
 		[triggerTypes.UnitKilled] = true,
@@ -468,6 +612,27 @@ local function validateUnitNameReferences(triggerTypes, actionTypes, triggers, a
 
 	local createdUnitNames = {}
 	local referencedUnitNames = {}
+
+	-- Loadout entries with a unitName count as creating that name.
+	for i, entry in ipairs(unitLoadout or {}) do
+		if type(entry) == 'table' and entry.unitName then
+			createdUnitNames[entry.unitName] = createdUnitNames[entry.unitName] or {}
+			createdUnitNames[entry.unitName][#createdUnitNames[entry.unitName] + 1] = "UnitLoadout entry #" .. i
+		end
+	end
+
+	-- SpawnLoadout actions with inline unitLoadout entries also create names.
+	for actionID, action in pairs(actions) do
+		if action.type == actionTypes.SpawnLoadout and action.parameters and action.parameters.unitLoadout then
+			for i, entry in ipairs(action.parameters.unitLoadout) do
+				if type(entry) == 'table' and entry.unitName then
+					createdUnitNames[entry.unitName] = createdUnitNames[entry.unitName] or {}
+					createdUnitNames[entry.unitName][#createdUnitNames[entry.unitName] + 1] = "action " .. actionID .. ", unitLoadout entry #" .. i
+				end
+			end
+		end
+	end
+
 	local function recordUnitNameCreationsAndReferences(typesNamingUnits, typesReferencingUnitNames, actionsOrTriggers, label)
 		for actionOrTriggerID, actionOrTrigger in pairs(actionsOrTriggers) do
 			local unitName = (actionOrTrigger.parameters or {}).unitName
@@ -498,7 +663,7 @@ local function validateUnitNameReferences(triggerTypes, actionTypes, triggers, a
 	end
 end
 
-local function validateFeatureNameReferences(triggerTypes, actionTypes, triggers, actions)
+local function validateFeatureNameReferences(triggerTypes, actionTypes, triggers, actions, featureLoadout)
 	local triggerTypesReferencingFeatureNames = {
 		[triggerTypes.FeatureCreated]   = true,
 		[triggerTypes.FeatureReclaimed] = true,
@@ -513,6 +678,27 @@ local function validateFeatureNameReferences(triggerTypes, actionTypes, triggers
 
 	local createdFeatureNames = {}
 	local referencedFeatureNames = {}
+
+	-- Loadout entries with a featureName count as creating that name.
+	for i, entry in ipairs(featureLoadout or {}) do
+		if type(entry) == 'table' and entry.featureName then
+			createdFeatureNames[entry.featureName] = createdFeatureNames[entry.featureName] or {}
+			createdFeatureNames[entry.featureName][#createdFeatureNames[entry.featureName] + 1] = "FeatureLoadout entry #" .. i
+		end
+	end
+
+	-- SpawnLoadout actions with inline featureLoadout entries also create names.
+	for actionID, action in pairs(actions) do
+		if action.type == actionTypes.SpawnLoadout and action.parameters and action.parameters.featureLoadout then
+			for i, entry in ipairs(action.parameters.featureLoadout) do
+				if type(entry) == 'table' and entry.featureName then
+					createdFeatureNames[entry.featureName] = createdFeatureNames[entry.featureName] or {}
+					createdFeatureNames[entry.featureName][#createdFeatureNames[entry.featureName] + 1] = "action " .. actionID .. ", featureLoadout entry #" .. i
+				end
+			end
+		end
+	end
+
 	local function recordFeatureNameCreationsAndReferences(typesNamingFeatures, typesReferencingFeatureNames, actionsOrTriggers, label)
 		for actionOrTriggerID, actionOrTrigger in pairs(actionsOrTriggers) do
 			local featureName = (actionOrTrigger.parameters or {}).featureName
@@ -544,8 +730,9 @@ local function validateFeatureNameReferences(triggerTypes, actionTypes, triggers
 end
 
 return {
-	ValidateTriggers             = validateTriggers,
-	ValidateActions              = validateActions,
-	ValidateUnitNameReferences   = validateUnitNameReferences,
+	ValidateTriggers              = validateTriggers,
+	ValidateActions               = validateActions,
+	ValidateLoadouts              = validateLoadouts,
+	ValidateUnitNameReferences    = validateUnitNameReferences,
 	ValidateFeatureNameReferences = validateFeatureNameReferences,
 }

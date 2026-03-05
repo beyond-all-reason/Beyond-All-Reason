@@ -242,9 +242,114 @@ local actions = {
 			featureName = 'unknownFeatureName',
 		},
 	},
+
+	-- Valid SpawnLoadout - both names are referenced in the following 2 actions.
+	actionSpawnLoadoutValid = {
+		type = actionTypes.SpawnLoadout,
+		parameters = {
+			unitLoadout = {
+				{ name = 'armcom', x = 2000, z = 2000, facing = 'n', team = 0, unitName = 'spawnedCom' },
+			},
+			featureLoadout = {
+				{ name = 'corak_dead', x = 2100, z = 2000, facing = 's', resurrectAs = 'corcom', featureName = 'spawnedWreck' },
+			},
+		},
+	},
+
+	actionReferencingSpawnLoadoutUnitName = {
+		type = actionTypes.DespawnUnits,
+		parameters = {
+			unitName = 'spawnedCom',
+		},
+	},
+
+	actionReferencingSpawnLoadoutFeatureName = {
+		type = actionTypes.DestroyFeature,
+		parameters = {
+			featureName = 'spawnedWreck',
+		},
+	},
+
+	actionSpawnLoadoutWithInvalidEntries = {
+		type = actionTypes.SpawnLoadout,
+		parameters = {
+			unitLoadout = {
+				{ name = 'invalidUnit', x = 100, z = 100, facing = 'n', team = 0 },
+				{ name = 'armcom',      x = 100, z = 100, facing = 'n' }, -- missing 'team'
+			},
+			featureLoadout = {
+				{ name = 'corcom_dead', x = 100, z = 100, facing = 'invalidFacing' },
+				{ name = 'corcom_dead', x = 100, z = 100, facing = 's', resurrectAs = 'invalidUnit' },
+			},
+		},
+	},
+
+	-- This valid action references a featureName that only exists in FeatureLoadout;
+	actionReferencingLoadoutFeatureName = {
+		type = actionTypes.DestroyFeature,
+		parameters = {
+			featureName = 'loadoutWreck',
+		},
+	},
+
+	-- This valid action references a unitName that only exists in UnitLoadout;
+	actionReferencingLoadoutUnitName = {
+		type = actionTypes.DespawnUnits,
+		parameters = {
+			unitName = 'loadoutCom',
+		},
+	},
+}
+
+local unitLoadout = {
+	-- #1: valid entry (unitName is referenced by 'actionReferencingLoadoutUnitName')
+	{ name = 'armcom', x = 1200, z = 800, facing = 'e', team = 0, unitName = 'loadoutCom' },
+
+	-- #2: invalid unitDefName
+	{ name = 'invalidUnit', x = 1200, z = 800, facing = 'n', team = 0 },
+
+	-- #3: missing required field 'z'
+	{ name = 'armcom', x = 1200, facing = 'n', team = 0 },
+
+	-- #4: missing required field 'team'
+	{ name = 'armcom', x = 1200, z = 800, facing = 'n' },
+
+	-- #5: invalid facing value
+	{ name = 'armcom', x = 1200, z = 800, facing = 'q', team = 0 },
+
+	-- #6: invalid type for 'neutral'
+	{ name = 'armcom', x = 1200, z = 800, facing = 's', team = 0, neutral = 1 },
+
+	-- #7: unitName that is never referenced – should produce an "unreferenced" warning
+	{ name = 'armcom', x = 1300, z = 900, facing = 's', team = 0, unitName = 'unusedLoadoutUnitName' },
+}
+
+local featureLoadout = {
+	-- #1: valid entry (featureName is referenced by 'actionReferencingLoadoutFeatureName')
+	{ name = 'corcom_dead', x = 2000, z = 1500, facing = 's', resurrectAs = 'corcom', featureName = 'loadoutWreck' },
+
+	-- #2: invalid featureDefName
+	{ name = 'invalidFeature', x = 2000, z = 1500, facing = 's' },
+
+	-- #3: missing required field 'x'
+	{ name = 'corcom_dead', z = 1500, facing = 's' },
+
+	-- #4: invalid facing value
+	{ name = 'corcom_dead', x = 2000, z = 1500, facing = 'invalidFacing' },
+
+	-- #5: invalid resurrectAs
+	{ name = 'corcom_dead', x = 2000, z = 1500, facing = 's', resurrectAs = 'invalidUnit' },
+
+	-- #6: invalid type for 'featureName'
+	{ name = 'corcom_dead', x = 2000, z = 1500, facing = 's', featureName = 42 },
+
+	-- #7: featureName that is never referenced – should produce an "unreferenced" warning
+	{ name = 'corcom_dead', x = 2200, z = 1500, facing = 's', featureName = 'unusedLoadoutFeatureName' },
 }
 
 return {
-	Triggers = triggers,
-	Actions = actions,
+	Triggers       = triggers,
+	Actions        = actions,
+	UnitLoadout    = unitLoadout,
+	FeatureLoadout = featureLoadout,
 }
