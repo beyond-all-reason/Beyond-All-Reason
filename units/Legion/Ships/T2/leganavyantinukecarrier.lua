@@ -48,6 +48,7 @@ return {
 		waterline = 0,
 		workertime = 1000,
 		customparams = {
+			maxrange = 1300,
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Ships/T2",
