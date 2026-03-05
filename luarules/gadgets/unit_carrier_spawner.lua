@@ -657,6 +657,7 @@ local function spawnUnit(spawnData)
 							end
 						else
 							spGiveOrderToUnit(subUnitID, CMD.MOVE, {spawnData.x, spawnData.y, spawnData.z}, 0)
+							spSetUnitUseAirLos(subUnitID, droneMetaData.isAirUnit)
 						end
 
 						if not carrierData.manualDrones then
