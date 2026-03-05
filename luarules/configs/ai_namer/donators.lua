@@ -71,6 +71,7 @@ local DonatorAINames = {
     "niftybeaks",
     "Nunnsey",
     "obliterator",
+    "OConquor", --$40
     "OmegaWolf",
     "outerorbit",
     "panzerjaeger",
