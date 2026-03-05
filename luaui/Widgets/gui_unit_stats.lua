@@ -608,21 +608,23 @@ local function drawStats(uDefID, uID)
 		local baseArmorIndex = defaultArmorDamage >= damages[armorTypes.vtol] and defaultArmorIndex or armorTypes.vtol
 		local baseArmorDamage = damages[baseArmorIndex]
 
-		if uWep.customParams then
-			if uWep.customParams.spark_basedamage then
-				local spDamage = uWep.customParams.spark_basedamage * uWep.customParams.spark_forkdamage
-				local spCount = uWep.customParams.spark_maxunits
-				baseArmorDamage = baseArmorDamage + spDamage * spCount
-			elseif uWep.customParams.speceffect == "split" then
-				burst = burst * (uWep.customParams.number or 1)
-				uWep = WeaponDefNames[uWep.customParams.speceffect_def] or uWep
-				baseArmorDamage = damages[defaultArmorIndex]
-			elseif uWep.customParams.cluster then
-				local munition = uDef.name .. '_' .. uWep.customParams.cluster_def
-				local cmNumber = uWep.customParams.cluster_number
-				local cmDamage = WeaponDefNames[munition].damages[defaultArmorIndex]
-				baseArmorDamage = baseArmorDamage + cmDamage * cmNumber
-			end
+		local custom = uWep.customParams
+
+		if custom.spark_basedamage then
+			local spDamage = custom.spark_basedamage * custom.spark_forkdamage
+			local spCount = custom.spark_maxunits
+			baseArmorDamage = baseArmorDamage + spDamage * spCount
+
+		elseif custom.speceffect == "split" then
+			burst = burst * (custom.number or 1)
+			uWep = WeaponDefNames[custom.speceffect_def] or uWep
+			baseArmorDamage = damages[defaultArmorIndex]
+
+		elseif custom.cluster then
+			local munition = uDef.name .. '_' .. custom.cluster_def
+			local cmNumber = custom.cluster_number
+			local cmDamage = WeaponDefNames[munition].damages[defaultArmorIndex]
+			baseArmorDamage = baseArmorDamage + cmDamage * cmNumber
 		end
 
 		if range > 0 then
@@ -685,6 +687,11 @@ local function drawStats(uDefID, uID)
 					damageString = texts.burst.." = "..(format(yellow .. "%d", burstDamage))..white.."."
 				else
 					local dps = burstDamage / (useExp and reload or uWep.reload)
+					if custom.area_onhit_damage and custom.area_onhit_time then
+						local areaDps = custom.area_onhit_damage * burst
+						local duration = custom.area_onhit_time
+						dps = max(dps + areaDps, areaDps * duration / (useExp and reload or uWep.reload))
+					end
 					totaldps = totaldps + wepCount*dps
 					totalbDamages = totalbDamages + wepCount* burstDamage
 					damageString = texts.dps.." = "..(format(yellow .. "%d", dps))..white.."; "..texts.burst.." = "..(format(yellow .. "%d", burstDamage)) .. white .. (wepCount > 1 and (" ("..texts.each..").") or ("."))

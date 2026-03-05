@@ -320,6 +320,16 @@ local function refreshUnitInfo()
 		end
 
 
+		local function calculateAreaDPS(def, damage)
+			local burst = def.salvoSize * def.projectiles
+			local impactDps = damage * burst / def.reload
+			local areaDps = def.customParams.area_onhit_damage -- by definition
+			local damageMax = math_max(impactDps + areaDps, areaDps * burst * def.customParams.area_onhit_time / def.reload)
+			unitDefInfo[unitDefID].mindps = math_floor((unitDefInfo[unitDefID].mindps or 0) + impactDps)
+			unitDefInfo[unitDefID].maxdps = math_floor((unitDefInfo[unitDefID].maxdps or 0) + damageMax)
+		end
+
+
 		local function setEnergyAndMetalCosts(def)
 			if def.energyCost > 0 and (not unitDefInfo[unitDefID].energyPerShot or def.energyCost > unitDefInfo[unitDefID].energyPerShot) then
 				unitDefInfo[unitDefID].energyPerShot = def.energyCost
@@ -402,26 +412,27 @@ local function refreshUnitInfo()
 						calculateWeaponDPS(weaponDef, weaponDef.damages[0]) --Damage to default armor category
 					end
 
-				elseif weaponDef.customParams then
-					if weaponDef.customParams.cluster then -- Bullets that explode into other, smaller bullets
-						unitExempt = true
-						calculateClusterDPS(weaponDef, weaponDef.damages[0])
-					elseif weaponDef.customParams.speceffect == "split" then -- Bullets that split into other, smaller bullets
-						unitExempt = true
-						local splitd = WeaponDefNames[weaponDef.customParams.speceffect_def].damages[0]
-						local splitn = weaponDef.customParams.number or 1
-						calculateWeaponDPS(weaponDef, splitd * splitn)
-					elseif weaponDef.customParams.spark_basedamage then -- Lightning
-						unitExempt = true
-						local forkd = weaponDef.customParams.spark_forkdamage
-						local forkn = weaponDef.customParams.spark_maxunits or 1
-						calculateWeaponDPS(weaponDef, weaponDef.damages[0] * (1 + forkd * forkn))
-						if unitExempt and weaponDef.paralyzer then -- DPS => EMP
-							unitDefInfo[unitDefID].minemp = unitDefInfo[unitDefID].mindps
-							unitDefInfo[unitDefID].maxemp = unitDefInfo[unitDefID].maxdps
-							unitDefInfo[unitDefID].mindps = nil
-							unitDefInfo[unitDefID].maxdps = nil
-						end
+				elseif weaponDef.customParams.area_onhit_damage and weaponDef.customParams.area_onhit_time then
+					unitExempt = true
+					calculateAreaDPS(weaponDef, weaponDef.damages[0])
+				elseif weaponDef.customParams.cluster then -- Bullets that explode into other, smaller bullets
+					unitExempt = true
+					calculateClusterDPS(weaponDef, weaponDef.damages[0])
+				elseif weaponDef.customParams.speceffect == "split" then -- Bullets that split into other, smaller bullets
+					unitExempt = true
+					local splitd = WeaponDefNames[weaponDef.customParams.speceffect_def].damages[0]
+					local splitn = weaponDef.customParams.number or 1
+					calculateWeaponDPS(weaponDef, splitd * splitn)
+				elseif weaponDef.customParams.spark_basedamage then -- Lightning
+					unitExempt = true
+					local forkd = weaponDef.customParams.spark_forkdamage
+					local forkn = weaponDef.customParams.spark_maxunits or 1
+					calculateWeaponDPS(weaponDef, weaponDef.damages[0] * (1 + forkd * forkn))
+					if unitExempt and weaponDef.paralyzer then -- DPS => EMP
+						unitDefInfo[unitDefID].minemp = unitDefInfo[unitDefID].mindps
+						unitDefInfo[unitDefID].maxemp = unitDefInfo[unitDefID].maxdps
+						unitDefInfo[unitDefID].mindps = nil
+						unitDefInfo[unitDefID].maxdps = nil
 					end
 				end
 
