@@ -55,6 +55,7 @@ local prefixes = { unit = 'area_ondeath_', weapon = 'area_onhit_' }
 --------------------------------------------------------------------------------
 -- Cached globals --------------------------------------------------------------
 
+local abs                     = math.abs
 local max                     = math.max
 local min                     = math.min
 local floor                   = math.floor
@@ -77,14 +78,23 @@ local spGetGroundNormal       = Spring.GetGroundNormal
 local spGetUnitDefID          = Spring.GetUnitDefID
 local spGetUnitPosition       = Spring.GetUnitPosition
 local spGetUnitsInCylinder    = Spring.GetUnitsInCylinder
+local spGetWaterPlaneLevel    = Spring.GetWaterPlaneLevel
 local spSpawnCEG              = Spring.SpawnCEG
 
 local gameSpeed               = Game.gameSpeed
+
+local waterPlaneLevel         = spGetWaterPlaneLevel()
+local lavaWater               = Spring.Lava.isLavaMap
 local voidWater               = false
 
 local success, mapinfo = pcall(VFS.Include, "mapinfo.lua")
 if success and mapinfo and mapinfo.voidwater then
+	lavaWater = false
 	voidWater = true
+end
+
+local function updateWaterPlane()
+	waterPlaneLevel = spGetWaterPlaneLevel()
 end
 
 --------------------------------------------------------------------------------
@@ -204,7 +214,7 @@ local function getNearestCEG(params)
     local sizeBest, diffBest = math.huge, math.huge
     for ii = 1, #areaSizePresets do
         local size = areaSizePresets[ii]
-        local diff = math.abs(range / size - size / range)
+        local diff = abs(range / size - size / range)
         if diff < diffBest then
             diffBest = diff
             sizeBest = size
@@ -248,26 +258,27 @@ end
 
 local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectileID)
     local explosion = timedDamageWeapons[weaponDefID]
-    local elevation = max(spGetGroundHeight(px, pz), 0)
+    local elevation = max(spGetGroundHeight(px, pz), waterPlaneLevel)
+	local dispersal = abs(py - elevation) -- death explosions can be underneath lava
     local areaRange = explosion.range
 
-    if py <= elevation + areaRange then
+    if dispersal <= areaRange then
         local frames = explosion.frames
         local dx, dy, dz
-        if elevation > 0 then
+        if elevation > waterPlaneLevel then
             dx, dy, dz = spGetGroundNormal(px, pz, true)
 		else
 			if voidWater then
 				return
 			end
             -- Napalm and acid on water are not entirely wanted so we cut the duration.
-            -- Reduce the duration by half and further add some penalty from dispersal:
-            frames = round(frames * (1 - 0.5 * py / areaRange) * 0.5)
+            -- Reduce the duration by half and then up to 1/8th penalty from dispersal:
+            frames = round(frames * 0.5 * (1 - 0.5 * dispersal / areaRange))
             dx, dy, dz = 0, 1, 0
         end
 
         local minY = elevation - areaRange
-        if minY < 0 then
+        if minY < waterPlaneLevel then
             minY = minY * (1 - dy * 0.5) -- avoid damage to submerged targets
         end
 
@@ -573,6 +584,8 @@ function gadget:Explosion(weaponDefID, px, py, pz, attackerID, projectileID)
 end
 
 function gadget:GameFrame(frame)
+	updateWaterPlane()
+
     local indexDamage = 1 + (frame % frameInterval)
     local indexExpGen = 1 + ((frame + frameCegShift) % frameInterval)
     local frameAreas = aliveExplosions[indexDamage]
@@ -606,4 +619,76 @@ end
 
 function gadget:FeatureDestroyed(featureID, allyTeam)
 	featureData[featureID] = nil
+end
+
+if lavaWater then
+	local positionError = 24
+
+	local clamp	= math.clamp
+	local spGetProjectilePosition = Spring.GetProjectilePosition
+	local spSetProjectileCollision = Spring.SetProjectileCollision
+
+	local projectiles = {}
+	local lastAreaElevation = waterPlaneLevel
+
+	local function updateAreaPosition(area, elevation, lavaLevel)
+		local areaRange = area.range
+
+		local dx, dy, dz
+        if elevation > lavaLevel then
+            dx, dy, dz = spGetGroundNormal(px, pz, true)
+		else
+            dx, dy, dz = 0, 1, 0
+        end
+
+        local minY = elevation - areaRange
+        if minY < lavaLevel then
+            minY = minY * (1 - dy * 0.5)
+        end
+
+		area.y    = elevation
+		area.ymin = minY
+		area.ymax = elevation + areaRange
+		area.dx   = dx
+		area.dy   = dy
+		area.dz   = dz
+	end
+
+	updateWaterPlane = function()
+		local lavaLevel = _G.lavaLevel -- TODO: Predict near-future lava level for this to act nicely.
+		waterPlaneLevel = lavaLevel
+
+		if abs(lavaLevel - lastAreaElevation) >= positionError then
+			lastAreaElevation = lavaLevel
+
+			for frame, areas in pairs(aliveExplosions) do
+				for i, area in ipairs(areas) do
+					local elevation = max(spGetGroundHeight(area.x, area.z), lavaLevel)
+					local difference = area.y - elevation
+					-- Areas can be subsumed by lava but cannot remain suspended in the air.
+					-- The difference also should exceed lava's sinusoidal height variations.
+					if difference > 1 then
+						updateAreaPosition(area, elevation, lavaLevel)
+					end
+				end
+			end
+		end
+
+		for projectileID in pairs(projectiles) do
+			local _, y = spGetProjectilePosition(projectileID)
+			if y and y < lavaLevel then
+				spSetProjectileCollision(projectileID)
+			end
+		end
+	end
+
+	function gadget:ProjectileCreated(projectileID, ownerID, weaponDefID)
+		if timedDamageWeapons[weaponDefID] then
+			projectiles[projectileID] = true
+		end
+	end
+
+	function gadget:ProjectileDestroyed(projectileID, ownerID, weaponDefID)
+		projectiles[projectileID] = nil
+	end
 end
