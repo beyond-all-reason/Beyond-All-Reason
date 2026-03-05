@@ -80,6 +80,12 @@ local spGetUnitsInCylinder    = Spring.GetUnitsInCylinder
 local spSpawnCEG              = Spring.SpawnCEG
 
 local gameSpeed               = Game.gameSpeed
+local voidWater               = false
+
+local success, mapinfo = pcall(VFS.Include, "mapinfo.lua")
+if success and mapinfo and mapinfo.voidwater then
+	voidWater = true
+end
 
 --------------------------------------------------------------------------------
 -- Local variables -------------------------------------------------------------
@@ -250,7 +256,10 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
         local dx, dy, dz
         if elevation > 0 then
             dx, dy, dz = spGetGroundNormal(px, pz, true)
-        else
+		else
+			if voidWater then
+				return
+			end
             -- Napalm and acid on water are not entirely wanted so we cut the duration.
             -- Reduce the duration by half and further add some penalty from dispersal:
             frames = round(frames * (1 - 0.5 * py / areaRange) * 0.5)
