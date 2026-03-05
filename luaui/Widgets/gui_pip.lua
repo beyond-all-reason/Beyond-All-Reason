@@ -7213,6 +7213,63 @@ do
 	end
 end
 
+-- Register (or re-register) WG['minimap'] API for full compatibility with widgets
+-- expecting the original minimap API. Called from Initialize and again from DrawScreen
+-- when the standard Minimap widget is found active and needs to be disabled (its Initialize
+-- may have overwritten our WG['minimap'] registration due to widget layer ordering).
+local function RegisterMinimapWGAPI()
+	if not isMinimapMode then return end
+	WG['minimap'] = {}
+	WG['minimap'].getHeight = function()
+		if miscState.minimapMinimized then return 0 end
+		local padding = WG.FlowUI and WG.FlowUI.elementPadding or 5
+		return (render.dim.t - render.dim.b) + padding
+	end
+	WG['minimap'].getMaxHeight = function()
+		return math.floor(config.minimapModeMaxHeight * render.vsy), config.minimapModeMaxHeight
+	end
+	WG['minimap'].setMaxHeight = function(value)
+		config.minimapModeMaxHeight = value
+		widget:ViewResize()
+	end
+	WG['minimap'].getLeftClickMove = function()
+		return config.leftButtonPansCamera
+	end
+	WG['minimap'].setLeftClickMove = function(value)
+		config.leftButtonPansCamera = value
+		Spring.SetConfigInt("MinimapLeftClickMove", value and 1 or 0)
+	end
+	WG['minimap'].isPipMinimapActive = function()
+		return true
+	end
+	WG['minimap'].isDrawingInPip = false
+	WG['minimap'].getScreenBounds = function()
+		return render.dim.l, render.dim.b, render.dim.r, render.dim.t
+	end
+	WG['minimap'].getVisibleWorldArea = function()
+		return render.world.l, render.world.r, render.world.b, render.world.t
+	end
+	WG['minimap'].getRotation = function()
+		return render.minimapRotation or 0
+	end
+	WG['minimap'].getNormalizedVisibleArea = function()
+		local normVisLeft = render.world.l / mapInfo.mapSizeX
+		local normVisRight = render.world.r / mapInfo.mapSizeX
+		local normVisBottom = render.world.b / mapInfo.mapSizeZ
+		local normVisTop = render.world.t / mapInfo.mapSizeZ
+		return normVisLeft, normVisRight, normVisBottom, normVisTop
+	end
+	WG['minimap'].getZoomLevel = function()
+		return mapInfo.mapSizeX / (render.world.r - render.world.l)
+	end
+	WG['minimap'].getShowSpectatorPings = function()
+		return config.showSpectatorPings
+	end
+	WG['minimap'].setShowSpectatorPings = function(value)
+		config.showSpectatorPings = value
+	end
+end
+
 -- Minimap mode: hide the engine minimap since we're replacing it
 if isMinimapMode then
 	-- Store original minimap geometry and minimize state for restoration on shutdown
@@ -7352,64 +7409,7 @@ end
 		end
 		
 		-- Register as WG['minimap'] for full compatibility with widgets expecting the original minimap API
-		WG['minimap'] = {}
-		WG['minimap'].getHeight = function()
-			if miscState.minimapMinimized then return 0 end
-			local padding = WG.FlowUI and WG.FlowUI.elementPadding or 5
-			return (render.dim.t - render.dim.b) + padding
-		end
-		WG['minimap'].getMaxHeight = function()
-			return math.floor(config.minimapModeMaxHeight * render.vsy), config.minimapModeMaxHeight
-		end
-		WG['minimap'].setMaxHeight = function(value)
-			config.minimapModeMaxHeight = value
-			widget:ViewResize()
-		end
-		WG['minimap'].getLeftClickMove = function()
-			return config.leftButtonPansCamera
-		end
-		WG['minimap'].setLeftClickMove = function(value)
-			config.leftButtonPansCamera = value
-			Spring.SetConfigInt("MinimapLeftClickMove", value and 1 or 0)
-		end
-		-- API for widgetHandler to detect PIP minimap mode and get transformation info
-		WG['minimap'].isPipMinimapActive = function()
-			return true  -- Always true when this widget is active in minimap mode
-		end
-		-- Flag set during DrawInMiniMap calls from PIP (widgets can check this)
-		WG['minimap'].isDrawingInPip = false
-		-- Get the screen bounds of the PIP minimap for the widgetHandler to use
-		WG['minimap'].getScreenBounds = function()
-			return render.dim.l, render.dim.b, render.dim.r, render.dim.t
-		end
-		-- Get the world coordinates visible in the PIP
-		WG['minimap'].getVisibleWorldArea = function()
-			return render.world.l, render.world.r, render.world.b, render.world.t
-		end
-		-- Get the current minimap rotation
-		WG['minimap'].getRotation = function()
-			return render.minimapRotation or 0
-		end
-		-- Get normalized visible area for GL4 shader widgets (startbox, point_tracker, etc.)
-		-- Returns left, right, bottom, top in [0,1] world-normalized coords (NOT Y-flipped)
-		WG['minimap'].getNormalizedVisibleArea = function()
-			local normVisLeft = render.world.l / mapInfo.mapSizeX
-			local normVisRight = render.world.r / mapInfo.mapSizeX
-			local normVisBottom = render.world.b / mapInfo.mapSizeZ
-			local normVisTop = render.world.t / mapInfo.mapSizeZ
-			return normVisLeft, normVisRight, normVisBottom, normVisTop
-		end
-		-- Get zoom level (1.0 = full map visible, >1 = zoomed in)
-		WG['minimap'].getZoomLevel = function()
-			return mapInfo.mapSizeX / (render.world.r - render.world.l)
-		end
-		-- Get/set whether to show spectator pings on the PIP minimap
-		WG['minimap'].getShowSpectatorPings = function()
-			return config.showSpectatorPings
-		end
-		WG['minimap'].setShowSpectatorPings = function(value)
-			config.showSpectatorPings = value
-		end
+		RegisterMinimapWGAPI()
 	end
 
 	for i = 1, #buttons do
@@ -15056,6 +15056,10 @@ function widget:Update(dt)
 		end
 		-- Also ensure the engine minimap stays minimized
 		Spring.SendCommands("minimap minimize 1")
+		-- Re-register WG['minimap'] API: the standard Minimap widget's Initialize
+		-- may have overwritten our registration (it has a higher layer number so
+		-- it initializes after us during luaui reload)
+		RegisterMinimapWGAPI()
 		miscState.minimapWidgetDisabled = true
 	end
 
