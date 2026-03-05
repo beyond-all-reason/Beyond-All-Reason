@@ -260,9 +260,10 @@ local function UpdatePassiveBuilders(teamID, interval)
 		local builtUnit = spGetUnitIsBuilding(builderID)
 		if builtUnit then
 			local targetCosts = costID[builtUnit]
-			if targetCosts then
+			local buildSpeed = realBuildSpeed[builderID]
+			if targetCosts and buildSpeed then
 				local mcost, ecost = targetCosts[1], targetCosts[2]
-				local rate = realBuildSpeed[builderID] / targetCosts[3]
+				local rate = buildSpeed / targetCosts[3]
 				-- Add an exception for basic metal converters, which each cost 1 metal.
 				-- Don't stall over something so small and that may be needed to recover.
 				mcost = mcost <= 1 and 0 or mcost * rate
@@ -284,9 +285,10 @@ local function UpdatePassiveBuilders(teamID, interval)
 				local builtUnit = spGetUnitIsBuilding(builderID)
 				if builtUnit then
 					local targetCosts = costID[builtUnit]
-					if targetCosts then
+					local buildSpeed = realBuildSpeed[builderID]
+					if targetCosts and buildSpeed then
 						local mcost, ecost = targetCosts[1], targetCosts[2]
-						local rate = realBuildSpeed[builderID] / targetCosts[3]
+						local rate = buildSpeed / targetCosts[3]
 						mcost = mcost <= 1 and 0 or mcost * rate
 						ecost = ecost * rate
 						nonPassiveConsTotalExpenseMetal = nonPassiveConsTotalExpenseMetal + mcost

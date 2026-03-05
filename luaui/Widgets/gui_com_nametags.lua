@@ -121,7 +121,7 @@ local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 local anonymousMode = spGetModOptions().teamcolors_anonymous_mode
 local anonymousName = '?????'
 
-local usedFontSize
+local usedFontSize = fontSize
 
 local comms = {}
 local comnameList = {}
@@ -467,7 +467,6 @@ local function DrawName(attributes)
 		glScale(usedFontSize / fontSize, usedFontSize / fontSize, usedFontSize / fontSize)
 	end
 	glCallList(comnameList[attributes[1]])
-
 	if nameScaling then
 		glScale(1, 1, 1)
 	end
@@ -602,7 +601,7 @@ function widget:DrawWorld()
 			local x, y, z = spGetUnitPosition(unitID)
 			if x and y and z then
 				-- Calculate distance once and store it
-				local camDistance = mathDiag(camX - x, camY - y, camZ - z)
+				local camDistance = math.max(150, mathDiag(camX - x, camY - y, camZ - z))
 
 				if drawForIcon and spIsUnitIcon(unitID) then
 					attributes[5] = camDistance

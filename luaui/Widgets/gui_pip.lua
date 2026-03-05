@@ -173,7 +173,7 @@ config = {
 	iconDensityZoomFadeEnd = 0.8,  -- Zoom level above which density scaling is completely off
 
 	drawDecals = true,  -- Show ground decals (explosion scars, footprints) from the decals GL4 widget
-	drawCommandFX = true,  -- Show brief fading command lines when orders are given (like Commands FX widget)
+	drawCommandFX = Spring.GetConfigInt("PipDrawCommandFX", 1) == 1,  -- Show brief fading command lines when orders are given (like Commands FX widget)
 	commandFXIgnoreNewUnits = true,  -- Ignore commands given to newly finished units (rally point orders)
 	commandFXOpacity = 0.2,  -- Initial opacity of command FX lines
 	commandFXDuration = 0.66,  -- Seconds for command FX lines to fully fade out
@@ -391,6 +391,10 @@ local pipR2T = {
 	decalLastCheckFrame = 0,  -- last frame we ran the dirty check
 	decalCheckInterval = 30,  -- game frames between dirty checks (~1 second)
 	decalTexScale = 5,  -- X:1 ratio of map size to decal texture size
+	-- Grace period: after ViewResize or GL state disruption, force re-render for several
+	-- frames so cached textures aren't stale (engine textures like $minimap may need a
+	-- frame or two to become valid again after graphics preset changes).
+	forceRefreshFrames = 0,
 }
 render.minModeDlist = nil  -- Display list for minimized mode button
 
@@ -6793,6 +6797,63 @@ local function DeleteSeismicPingDlists()
 	if seismicPingDlists.centerCircle then gl.DeleteList(seismicPingDlists.centerCircle) end
 end
 
+-- Register (or re-register) WG['minimap'] API for full compatibility with widgets
+-- expecting the original minimap API. Called from Initialize and again from DrawScreen
+-- when the standard Minimap widget is found active and needs to be disabled (its Initialize
+-- may have overwritten our WG['minimap'] registration due to widget layer ordering).
+local function RegisterMinimapWGAPI()
+	if not isMinimapMode then return end
+	WG['minimap'] = {}
+	WG['minimap'].getHeight = function()
+		if miscState.minimapMinimized then return 0 end
+		local padding = WG.FlowUI and WG.FlowUI.elementPadding or 5
+		return (render.dim.t - render.dim.b) + padding
+	end
+	WG['minimap'].getMaxHeight = function()
+		return math.floor(config.minimapModeMaxHeight * render.vsy), config.minimapModeMaxHeight
+	end
+	WG['minimap'].setMaxHeight = function(value)
+		config.minimapModeMaxHeight = value
+		widget:ViewResize()
+	end
+	WG['minimap'].getLeftClickMove = function()
+		return config.leftButtonPansCamera
+	end
+	WG['minimap'].setLeftClickMove = function(value)
+		config.leftButtonPansCamera = value
+		Spring.SetConfigInt("MinimapLeftClickMove", value and 1 or 0)
+	end
+	WG['minimap'].isPipMinimapActive = function()
+		return true
+	end
+	WG['minimap'].isDrawingInPip = false
+	WG['minimap'].getScreenBounds = function()
+		return render.dim.l, render.dim.b, render.dim.r, render.dim.t
+	end
+	WG['minimap'].getVisibleWorldArea = function()
+		return render.world.l, render.world.r, render.world.b, render.world.t
+	end
+	WG['minimap'].getRotation = function()
+		return render.minimapRotation or 0
+	end
+	WG['minimap'].getNormalizedVisibleArea = function()
+		local normVisLeft = render.world.l / mapInfo.mapSizeX
+		local normVisRight = render.world.r / mapInfo.mapSizeX
+		local normVisBottom = render.world.b / mapInfo.mapSizeZ
+		local normVisTop = render.world.t / mapInfo.mapSizeZ
+		return normVisLeft, normVisRight, normVisBottom, normVisTop
+	end
+	WG['minimap'].getZoomLevel = function()
+		return mapInfo.mapSizeX / (render.world.r - render.world.l)
+	end
+	WG['minimap'].getShowSpectatorPings = function()
+		return config.showSpectatorPings
+	end
+	WG['minimap'].setShowSpectatorPings = function(value)
+		config.showSpectatorPings = value
+	end
+end
+
 function widget:Initialize()
 
 	-- Create seismic ping display lists
@@ -7329,6 +7390,13 @@ end
 	WG['pip'..pipNumber].GetGhostBuildings = function()
 		return ghostBuildings
 	end
+	WG['pip'..pipNumber].getDrawCommandFX = function()
+		return config.drawCommandFX
+	end
+	WG['pip'..pipNumber].setDrawCommandFX = function(value)
+		config.drawCommandFX = value
+		pipR2T.unitsNeedsUpdate = true
+	end
 
 	-- In minimap mode, also register as WG.pip_minimap for compatibility
 	if isMinimapMode then
@@ -7341,64 +7409,7 @@ end
 		end
 		
 		-- Register as WG['minimap'] for full compatibility with widgets expecting the original minimap API
-		WG['minimap'] = {}
-		WG['minimap'].getHeight = function()
-			if miscState.minimapMinimized then return 0 end
-			local padding = WG.FlowUI and WG.FlowUI.elementPadding or 5
-			return (render.dim.t - render.dim.b) + padding
-		end
-		WG['minimap'].getMaxHeight = function()
-			return math.floor(config.minimapModeMaxHeight * render.vsy), config.minimapModeMaxHeight
-		end
-		WG['minimap'].setMaxHeight = function(value)
-			config.minimapModeMaxHeight = value
-			widget:ViewResize()
-		end
-		WG['minimap'].getLeftClickMove = function()
-			return config.leftButtonPansCamera
-		end
-		WG['minimap'].setLeftClickMove = function(value)
-			config.leftButtonPansCamera = value
-			Spring.SetConfigInt("MinimapLeftClickMove", value and 1 or 0)
-		end
-		-- API for widgetHandler to detect PIP minimap mode and get transformation info
-		WG['minimap'].isPipMinimapActive = function()
-			return true  -- Always true when this widget is active in minimap mode
-		end
-		-- Flag set during DrawInMiniMap calls from PIP (widgets can check this)
-		WG['minimap'].isDrawingInPip = false
-		-- Get the screen bounds of the PIP minimap for the widgetHandler to use
-		WG['minimap'].getScreenBounds = function()
-			return render.dim.l, render.dim.b, render.dim.r, render.dim.t
-		end
-		-- Get the world coordinates visible in the PIP
-		WG['minimap'].getVisibleWorldArea = function()
-			return render.world.l, render.world.r, render.world.b, render.world.t
-		end
-		-- Get the current minimap rotation
-		WG['minimap'].getRotation = function()
-			return render.minimapRotation or 0
-		end
-		-- Get normalized visible area for GL4 shader widgets (startbox, point_tracker, etc.)
-		-- Returns left, right, bottom, top in [0,1] world-normalized coords (NOT Y-flipped)
-		WG['minimap'].getNormalizedVisibleArea = function()
-			local normVisLeft = render.world.l / mapInfo.mapSizeX
-			local normVisRight = render.world.r / mapInfo.mapSizeX
-			local normVisBottom = render.world.b / mapInfo.mapSizeZ
-			local normVisTop = render.world.t / mapInfo.mapSizeZ
-			return normVisLeft, normVisRight, normVisBottom, normVisTop
-		end
-		-- Get zoom level (1.0 = full map visible, >1 = zoomed in)
-		WG['minimap'].getZoomLevel = function()
-			return mapInfo.mapSizeX / (render.world.r - render.world.l)
-		end
-		-- Get/set whether to show spectator pings on the PIP minimap
-		WG['minimap'].getShowSpectatorPings = function()
-			return config.showSpectatorPings
-		end
-		WG['minimap'].setShowSpectatorPings = function(value)
-			config.showSpectatorPings = value
-		end
+		RegisterMinimapWGAPI()
 	end
 
 	for i = 1, #buttons do
@@ -7743,6 +7754,10 @@ function widget:ViewResize()
 	pipR2T.contentMaskLastB = -1
 	pipR2T.contentNeedsUpdate = true
 	pipR2T.unitsNeedsUpdate = true
+
+	-- Force several frames of re-rendering so engine textures ($minimap, $shading)
+	-- have time to become valid again after graphics preset / shadow changes
+	pipR2T.forceRefreshFrames = 5
 
 	-- Update guishader blur dimensions
 	UpdateGuishaderBlur()
@@ -11809,6 +11824,16 @@ local function RenderCheapLayers()
 	end
 
 	if uiState.drawingGround then
+		-- Validate engine textures are available (may be regenerating after preset change)
+		local minimapTexInfo = gl.TextureInfo('$minimap')
+		if not minimapTexInfo or minimapTexInfo.xsize <= 0 then
+			pipR2T.contentNeedsUpdate = true
+			if render.minimapRotation ~= 0 then
+				glFunc.PopMatrix()
+			end
+			return
+		end
+
 		-- Draw ground minimap with shading in single pass (matches engine compositing)
 		glFunc.Color(1, 1, 1, 1)
 		if shaders.minimapShading then
@@ -11883,6 +11908,16 @@ local function RenderPipContents()
 	end
 	
 	if uiState.drawingGround then
+		-- Validate engine textures are available (may be regenerating after preset change)
+		local minimapTexInfo = gl.TextureInfo('$minimap')
+		if not minimapTexInfo or minimapTexInfo.xsize <= 0 then
+			pipR2T.contentNeedsUpdate = true
+			if render.minimapRotation ~= 0 then
+				glFunc.PopMatrix()
+			end
+			return
+		end
+
 		-- Draw ground minimap with shading in single pass (matches engine compositing)
 		glFunc.Color(1, 1, 1, 1)
 		if shaders.minimapShading then
@@ -13061,6 +13096,11 @@ local function UpdateR2TUnits(currentTime, pipUpdateInterval, pipWidth, pipHeigh
 		pipUpdateInterval == 0 or
 		(pipUpdateInterval > 0 and timeSinceLastUpdate >= pipUpdateInterval)
 
+	-- Force update during refresh grace period (graphics preset change, ViewResize)
+	if pipR2T.forceRefreshFrames > 0 then
+		shouldUpdate = true
+	end
+
 	-- If size changed but we're throttled, defer the update
 	if sizeChanged and not shouldUpdate then
 		pipR2T.unitsNeedsUpdate = true
@@ -13068,6 +13108,12 @@ local function UpdateR2TUnits(currentTime, pipUpdateInterval, pipWidth, pipHeigh
 
 	if not shouldUpdate then
 		return
+	end
+
+	-- During force-refresh, always delete and recreate textures (old FBOs may be stale)
+	if pipR2T.forceRefreshFrames > 0 and pipR2T.unitsTex then
+		gl.DeleteTexture(pipR2T.unitsTex)
+		pipR2T.unitsTex = nil
 	end
 
 	-- Delete old texture if size changed
@@ -13215,12 +13261,23 @@ local function UpdateR2TCheapLayers(currentTime, pipUpdateInterval, pipWidth, pi
 		pipUpdateInterval == 0 or
 		(pipUpdateInterval > 0 and timeSinceLastUpdate >= pipUpdateInterval)
 
+	-- Force update during refresh grace period (graphics preset change, ViewResize)
+	if pipR2T.forceRefreshFrames > 0 then
+		shouldUpdate = true
+	end
+
 	if sizeChanged and not shouldUpdate then
 		pipR2T.contentNeedsUpdate = true
 	end
 
 	if not shouldUpdate then
 		return
+	end
+
+	-- During force-refresh, always delete and recreate textures (old FBOs may be stale)
+	if pipR2T.forceRefreshFrames > 0 and pipR2T.contentTex then
+		gl.DeleteTexture(pipR2T.contentTex)
+		pipR2T.contentTex = nil
 	end
 
 	-- Delete old texture if size changed
@@ -14117,6 +14174,11 @@ function widget:DrawScreen()
 		local dynamicUpdateRate = CalculateDynamicUpdateRate()
 		local pipUpdateInterval = dynamicUpdateRate > 0 and (1 / dynamicUpdateRate) or 0
 
+		-- Decrement the force-refresh counter (grace period after ViewResize / preset change)
+		if pipR2T.forceRefreshFrames > 0 then
+			pipR2T.forceRefreshFrames = pipR2T.forceRefreshFrames - 1
+		end
+
 		-- Update LOS texture
 		UpdateLOSTexture(currentTime)
 
@@ -14216,6 +14278,23 @@ function widget:DrawScreen()
 		end
 
 		-- Blit the pre-rendered texture with rounded corner stencil mask
+		if pipR2T.contentTex then
+			-- Validate texture is still usable (may have been invalidated by engine GL changes)
+			local texInfo = gl.TextureInfo(pipR2T.contentTex)
+			if not texInfo or texInfo.xsize <= 0 then
+				gl.DeleteTexture(pipR2T.contentTex)
+				pipR2T.contentTex = nil
+				pipR2T.contentNeedsUpdate = true
+			end
+		end
+		if pipR2T.unitsTex then
+			local texInfo = gl.TextureInfo(pipR2T.unitsTex)
+			if not texInfo or texInfo.xsize <= 0 then
+				gl.DeleteTexture(pipR2T.unitsTex)
+				pipR2T.unitsTex = nil
+				pipR2T.unitsNeedsUpdate = true
+			end
+		end
 		if pipR2T.contentTex then
 			-- Set up stencil buffer to clip to rounded corners
 			gl.Clear(GL.STENCIL_BUFFER_BIT)
@@ -14977,6 +15056,10 @@ function widget:Update(dt)
 		end
 		-- Also ensure the engine minimap stays minimized
 		Spring.SendCommands("minimap minimize 1")
+		-- Re-register WG['minimap'] API: the standard Minimap widget's Initialize
+		-- may have overwritten our registration (it has a higher layer number so
+		-- it initializes after us during luaui reload)
+		RegisterMinimapWGAPI()
 		miscState.minimapWidgetDisabled = true
 	end
 
