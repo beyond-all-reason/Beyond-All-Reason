@@ -1281,6 +1281,7 @@ local function updateCarrier(carrierID, carrierMetaData, frame)
 			
 			if droneDocked and droneData.maxAmmo > 0 then 
 				droneData.remainingAmmo = droneData.maxAmmo
+				spSetUnitUseAirLos(subUnitID, carrierMetaData.isAirUnit)
 			end
 			
 			if droneCurrentHealth then
