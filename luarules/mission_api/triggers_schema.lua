@@ -184,6 +184,7 @@ local parameters = {
 			required = false,
 			type = Types.UnitDefName
 		},
+		provides = { 'position' },
 	},
 	[triggerTypes.UnitLeftLocation] = {
 		[1] = {
