@@ -68,9 +68,10 @@ elseif Platform.glHaveIntel then
 elseif Platform.glHaveAMD then
 	-- AMD discrete GPUs contain "RX" (modern, 2016+) or "R9" (older high-end) in their name
 	-- Integrated: "AMD Radeon(TM) Graphics", "AMD Radeon Vega 8", "AMD Radeon 780M", etc.
-	-- gpuMemorySize is 0 for AMD so we can't use VRAM size (also AMD integrated can report incorrect gpuMemorySize)
+	-- gpuMemorySize is 0 for AMD so we can't use VRAM size
 	if not (string.find(glRendererLower, "rx") or string.find(glRendererLower, "r9 ")) then
 		isPotatoGpu = true
+		gpuMem = 0	-- AMD integrated can report incorrect gpuMemorySize, so set to 0 to avoid false positives for low VRAM
 	end
 else
 	-- Unknown/Mesa vendor without specific detection — assume low-end
@@ -2452,24 +2453,14 @@ function init()
 		{ id = "label_gfx_lighting_spacer", group = "gfx", category = types.basic },
 
 
-		{ id = "advmapshading", group = "gfx", category = types.dev, name = Spring.I18N('ui.settings.option.advmapshading'), type = "bool", value = (Spring.GetConfigInt("AdvMapShading", 1) == 1), description = Spring.I18N('ui.settings.option.advmapshading_descr'),
+		{ id = "advmapshading", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.advmapshading'), type = "bool", value = (Spring.GetConfigInt("AdvMapShading", 1) == 1), description = Spring.I18N('ui.settings.option.advmapshading_descr'),
 		 onchange = function(i, value)
 			  Spring.SetConfigInt("AdvMapShading", (value and 1 or 0))
 			  Spring.SendCommands("advmapshading "..(value and '1' or '0'))
 		 end,
 		},
 
-		-- luaintro sets grounddetail to 200 every launch anyway
-		--{ id = "grounddetail", group = "gfx", category = types.dev, name = Spring.I18N('ui.settings.option.grounddetail'), type = "slider", min = 50, max = 200, step = 1, value = tonumber(Spring.GetConfigInt("GroundDetail", 150) or 150), description = Spring.I18N('ui.settings.option.grounddetail_descr'),
-		--  onload = function(i)
-		--  end,
-		--  onchange = function(i, value)
-		--	  Spring.SetConfigInt("GroundDetail", value)
-		--	  Spring.SendCommands("GroundDetail " .. value)
-		--  end,
-		--},
-
-		{ id = "cusgl4", group = "gfx", name = Spring.I18N('ui.settings.option.cus'), category = types.advanced, type = "bool", value = (Spring.GetConfigInt("cus2", 1) == 1), description = Spring.I18N('ui.settings.option.cus_descr'),
+		{ id = "cusgl4", group = "gfx", name = Spring.I18N('ui.settings.option.cus'), category = types.basic, type = "bool", value = (Spring.GetConfigInt("cus2", 1) == 1), description = Spring.I18N('ui.settings.option.cus_descr'),
 		  onchange = function(i, value)
 			  if value == 0.5 then
 				  Spring.SendCommands("luarules disablecusgl4")
@@ -2617,17 +2608,6 @@ function init()
 			  saveOptionValue('LOS colors', 'los', 'setOpacity', { 'opacity' }, value)
 		  end,
 		},
-
-		-- { id = "water", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.water'), type = "select", options = { 'basic', 'reflective', 'dynamic', 'reflective&refractive', 'bump-mapped' }, value = desiredWaterValue + 1,
-		--   onload = function(i)
-		--   end,
-		--   onchange = function(i, value)
-		-- 	  desiredWaterValue = value - 1
-		-- 	  if waterDetected then
-		-- 		  Spring.SendCommands("water " .. desiredWaterValue)
-		-- 	  end
-		--   end,
-		-- },
 
 		{ id = "water", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.water'), type = "select", options = { Spring.I18N('ui.settings.option.select_low'), Spring.I18N('ui.settings.option.select_high') }, value = desiredWaterValue == 4 and 2 or 1,
 		  onload = function(i)
@@ -6317,7 +6297,6 @@ function init()
 			local id = getOptionByID('cusgl4')
 			options[id].onchange(id, 1)
 		end
-		options[getOptionByID('cusgl4')] = nil
 
 		--local id = getOptionByID('shadowslider')
 		--options[id].options[1] = nil
@@ -6330,7 +6309,11 @@ function init()
 			Spring.SendCommands("water 4")
 			Spring.SetConfigInt("Water", 4)
 		end
-		options[getOptionByID('water')] = nil
+		
+		if not devMode and not devUI then
+			options[getOptionByID('cusgl4')] = nil
+			options[getOptionByID('water')] = nil
+		end
 	end
 
 	if not isPotatoGpu and not devMode and not devUI then
