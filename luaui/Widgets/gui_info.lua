@@ -347,8 +347,18 @@ local function refreshUnitInfo()
 			local weaponDef = WeaponDefs[weapons[i].weaponDef]
 			if weaponDef.interceptor ~= 0 and weaponDef.coverageRange then
 				unitDefInfo[unitDefID].maxCoverage = math.max(unitDefInfo[unitDefID].maxCoverage or 1, weaponDef.coverageRange)
-			end
-			if weaponDef.damages then
+
+			elseif weaponDef.shieldRadius and weaponDef.shieldRadius > 0 then
+				if #weapons <= 1 then
+					unitDefInfo[unitDefID].weapons = {}
+					unitDefInfo[unitDefID].shieldOnly = true
+				end
+				unitDefInfo[unitDefID].shieldRange = weaponDef.shieldRadius
+				unitDefInfo[unitDefID].shieldCapacity = weaponDef.shieldPower
+				unitDefInfo[unitDefID].shieldRechargeRate = weaponDef.shieldPowerRegen
+				unitDefInfo[unitDefID].shieldRechargeCost = weaponDef.shieldPowerRegenEnergy
+
+			else
 				if unitDef.name == 'armamb' or unitDef.name == 'cortoast' then -- weapons with low/high traj, this list is incomplete
 					unitExempt = true
 					if i==1 then                                --Calculating using first weapon only
@@ -492,23 +502,6 @@ local function refreshUnitInfo()
 			end
 			if weapons[i].onlyTargets['vtol'] ~= nil then
 				unitDefInfo[unitDefID].isAaUnit = true
-			end
-
-			--shield params
-			if weaponDef.shieldRadius and weaponDef.shieldRadius > 0 then
-				if #weapons <= 1 then
-					unitDefInfo[unitDefID].weapons = {}
-					unitDefInfo[unitDefID].mindps = 0
-					unitDefInfo[unitDefID].maxdps = 0
-					unitDefInfo[unitDefID].range = 0
-					unitDefInfo[unitDefID].reloadTime = 0
-					unitDefInfo[unitDefID].mainWeapon = 1
-					unitDefInfo[unitDefID].shieldOnly = true
-				end
-				unitDefInfo[unitDefID].shieldRange = weaponDef.shieldRadius
-				unitDefInfo[unitDefID].shieldCapacity = weaponDef.shieldPower
-				unitDefInfo[unitDefID].shieldRechargeRate = weaponDef.shieldPowerRegen
-				unitDefInfo[unitDefID].shieldRechargeCost = weaponDef.shieldPowerRegenEnergy
 			end
 		end
 
