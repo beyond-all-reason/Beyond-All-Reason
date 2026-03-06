@@ -2,6 +2,8 @@
 --- Validators for Mission API actions and triggers loaded from missions.
 ---
 
+VFS.Include('common/wav.lua')
+
 local function logError(message)
 	Spring.Log('validation.lua', LOG.ERROR, "[Mission API] " .. message)
 end
@@ -53,21 +55,12 @@ validators[Types.Position] = function(position)
 		end
 
 		local result = {}
-		for _, field in pairs({ "x", "z"}) do
+		local fields = position.y ~= nil and { "x", "y", "z" } or { "x", "z" }
+		for _, field in pairs(fields) do
 			local fieldResult = validateField(position[field], field, 'number')
 			if fieldResult then
 				result[#result + 1] = fieldResult
 			end
-		end
-
-		if not table.isEmpty(result) then
-			return result
-		end
-
-		position.y = position.y or Spring.GetGroundHeight(position.x, position.z)
-		local fieldResult = validateField(position.y, 'y', 'number')
-		if fieldResult then
-			result[#result + 1] = fieldResult
 		end
 
 		return result
@@ -92,8 +85,10 @@ validators[Types.Positions] = function(positions)
 				local positionResult = validators[Types.Position](position)
 				if positionResult then
 					for _, validationResult in pairs(positionResult) do
-						validationResult.parameterNameSuffix = "[" .. i .. "]" .. (validationResult.parameterNameSuffix or '')
-						result[#result + 1] = validationResult
+						result[#result + 1] = {
+							message = validationResult.message,
+							parameterNameSuffix = "[" .. i .. "]" .. (validationResult.parameterNameSuffix or ''),
+						}
 					end
 				end
 			end
@@ -192,11 +187,9 @@ validators[Types.Orders] = function(orders)
 				commandValidators[commandID]()
 			elseif type(commandID) == 'string' then
 				-- build command: See https://springrts.com/wiki/Lua_CMDs#CMD.INTERNAL
-				-- commandID is a unitDefName string, and must be converted to a negative unitDefID for the actual order
+				-- commandID is a unitDefName string
 				local unitDef = UnitDefNames[commandID]
-				if unitDef then
-					order[1] = -unitDef.id
-				else
+				if not unitDef then
 					result[#result + 1] = { message = "Invalid build order unitDefName: " .. commandID, parameterNameSuffix = '[' .. orderNumber .. '][1]' }
 				end
 
@@ -321,6 +314,22 @@ validators[Types.Facing] = function(facing)
 		end
 	end
 
+validators[Types.SoundFile] = function(soundfile)
+	local luaTypeResult = validators[Types.String](soundfile)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	if not VFS.FileExists(soundfile) then
+		return { { message = "Invalid soundfile: " .. soundfile .. ". File does not exist" } }
+	end
+
+	local wavData = ReadWAV(soundfile)
+	if not wavData then
+		return { { message = "Invalid soundfile: " .. soundfile .. ". File is not a RIFF .wav file" } }
+	end
+end
+
 --- Number Validators:
 
 validators[Types.TeamID] = function(teamID)
@@ -333,18 +342,6 @@ validators[Types.TeamID] = function(teamID)
 			return { { message = "Invalid teamID: " .. teamID } }
 		end
 	end
-
-validators[Types.PlayerID] = function(playerID)
-		local luaTypeResult = validators[Types.Number](playerID)
-		if luaTypeResult then
-			return luaTypeResult
-		end
-
-		if not Spring.GetPlayerInfo(playerID) then
-			return { { message = "Invalid playerID: " .. playerID } }
-		end
-	end
-
 
 ----------------------------------------------------------------
 --- Trigger/Action Validation Functions:
@@ -373,11 +370,9 @@ local function validate(schemaParameters, actionOrTriggerType, actionOrTriggerPa
 			if value == nil then
 				if parameter.required then
 					logError(actionOrTrigger .. " missing required parameter. " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameter.name)
-				else
-					-- Optional parameter not provided, no need to validate
 				end
 			else
-				local validationResults = validators[parameter.type](value, actionOrTrigger, actionOrTriggerID, parameter.name) or {}
+				local validationResults = validators[parameter.type](value) or {}
 				for _, validationResult in pairs(validationResults) do
 					logError(validationResult.message .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameter.name .. (validationResult.parameterNameSuffix or ''))
 				end
@@ -386,7 +381,7 @@ local function validate(schemaParameters, actionOrTriggerType, actionOrTriggerPa
 	end
 end
 
-local function validateTriggerSetting(trigger, triggerID, triggers)
+local function validateTriggerSettings(trigger, triggerID, triggers)
 	-- Validate types of settings:
 	for schemaSetting, schemaType in pairs(triggersSchemaSettings) do
 		local luaTypeResult = validateLuaType(trigger.settings[schemaSetting], string.lower(schemaType))
@@ -416,7 +411,7 @@ local function validateTriggers(triggers, rawActions)
 				end
 			end
 		end
-		validateTriggerSetting(trigger, triggerID, triggers)
+		validateTriggerSettings(trigger, triggerID, triggers)
 		validate(triggersSchemaParameters, trigger.type, trigger.parameters, 'Trigger', triggerID)
 	end
 end
@@ -538,5 +533,5 @@ end
 return {
 	ValidateTriggers = validateTriggers,
 	ValidateActions = validateActions,
-	ValidateReferences = validateReferences
+	ValidateReferences = validateReferences,
 }

@@ -210,14 +210,6 @@ local actions = {
 		},
 	},
 
-	actionWithInvalidPlayerID = {
-		type = actionTypes.AddMarker,
-		parameters = {
-			position = { x = 1900, z = 2200 },
-			playerID = 777,
-		},
-	},
-
 	actionWithJustOneInvalidPosition = {
 		type = actionTypes.DrawLines,
 		parameters = {
@@ -239,6 +231,20 @@ local actions = {
 		type = actionTypes.EraseMarker,
 		parameters = {
 			name = 'invalidMarkerName',
+		},
+	},
+
+	actionWithNonExistentSoundfile = {
+		type = actionTypes.PlaySound,
+		parameters = {
+			soundfile = 'nonExistentSoundfile',
+		},
+	},
+
+	actionWithNonWavSoundfile = {
+		type = actionTypes.PlaySound,
+		parameters = {
+			soundfile = 'README.md',
 		},
 	},
 }
