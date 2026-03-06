@@ -3757,6 +3757,14 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'skill' }, value, { 'skill', value })
 		  end,
 		},
+		{ id = "advplayerlist_colourtooltip", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_colourtooltip'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.advplayerlist_colourtooltip_descr'),
+		  onload = function(i)
+			  loadWidgetData("AdvPlayersList", "advplayerlist_showcolortooltip", { 'm_active_Table', 'colourTooltip' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'colourTooltip' }, value, { 'colourTooltip', value })
+		  end,
+		},
 		{ id = "advplayerlist_cpuping", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_cpuping'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.advplayerlist_cpuping_descr'),
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "advplayerlist_cpuping", { 'm_active_Table', 'cpuping' })
