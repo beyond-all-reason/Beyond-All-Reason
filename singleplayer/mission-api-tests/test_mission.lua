@@ -80,10 +80,18 @@ local triggers = {
 		actions = { 'unnameCons', 'killCons1', 'messageConsNotKilled' },
 	},
 
-	gameEnd = {
+	explosionOnFusions = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			gameFrame = 1500,
+		},
+		actions = { 'spawnExplosion' },
+	},
+
+	gameEnd = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = 1700,
 		},
 		actions = { 'gameEnd' },
 	},
@@ -99,6 +107,7 @@ local actions = {
 			position = { x = 1800, z = 1600 },
 			quantity = 9,
 			facing = 'n',
+			spacing = 32,
 		},
 	},
 
@@ -192,7 +201,6 @@ local actions = {
 		parameters = {
 			unitName = 'con-bots',
 			newTeam = 1,
-			given = false
 		},
 	},
 
@@ -208,7 +216,6 @@ local actions = {
 		parameters = {
 			unitName = 'con-bots',
 			newTeam = 0,
-			given = false
 		},
 	},
 
@@ -230,6 +237,14 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = "Let's unname the bots so we don't kill them.",
+		},
+	},
+
+	spawnExplosion = {
+		type = actionTypes.SpawnExplosion,
+		parameters = {
+			weaponDefName = 'armsilo_nuclear_missile',
+			position = { x = 1500, z = 2200 },
 		},
 	},
 
