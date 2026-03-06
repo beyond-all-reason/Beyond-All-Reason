@@ -136,6 +136,7 @@ local armorTypes = Game.armorTypes
 local max = mathMax
 local floor = mathFloor
 local ceil = math.ceil
+local bit_and = math.bit_and
 local format = string.format
 local char = string.char
 
@@ -176,6 +177,12 @@ local showStats = false
 
 -- TODO: Shield damages are overridden in the shields rework (now in main game)
 local shieldsRework = not Spring.GetModOptions().experimentalshields:find("bounce")
+
+-- TODO: Localize, same as armorTypes
+-- TODO: Compose this list somewhere and reinclude it here
+local targetableTypes = {
+	[1] = "nuclear missiles",
+}
 
 ------------------------------------------------------------------------------------
 -- Functions
@@ -678,6 +685,16 @@ local function drawStats(uDefID, uID)
 			-- Draw the damage and damage modifiers strings.
 			if string.find(uWep.name, "disintegrator") then
 				DrawText(texts.dmg..": ", texts.infinite)
+			elseif uWep.interceptor ~= 0 then
+				DrawText(texts.dmg..": ", texts.burst.." = "..yellow..format("%d", defaultArmorDamage * burst))
+				local interceptor = uWep.interceptor
+				local intercepts = {}
+				for mask, targetType in pairs(targetableTypes) do
+					if bit_and(interceptor, mask) ~= 0 then
+						intercepts[#intercepts+1] = targetType
+					end
+				end
+				DrawText(texts.intercepts..":", table.concat(intercepts, white.."; ") .. white .. ".")
 			elseif baseArmorDamage > 0 and not uWep.customParams.bogus then
 				local damageString = ""
 				local burstDamage = baseArmorDamage * burst
