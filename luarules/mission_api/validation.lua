@@ -355,7 +355,7 @@ validators[Types.TeamID] = function(teamID)
 	end
 
 validators[Types.AllyTeamID] = function(allyTeamID)
-	local luaTypeResult = luaTypeValidators[Types.Number](allyTeamID)
+	local luaTypeResult = validators[Types.Number](allyTeamID)
 	if luaTypeResult then
 		return luaTypeResult
 	end
@@ -467,7 +467,17 @@ local function validateActions(actions)
 end
 
 local function validateUnitNameReferences(triggerTypes, actionTypes, triggers, actions)
-	local triggerTypesReferencingUnitNames = { }
+	local triggerTypesReferencingUnitNames = {
+		[triggerTypes.UnitNotExists] = true,
+		[triggerTypes.UnitKilled] = true,
+		[triggerTypes.UnitCaptured] = true,
+		[triggerTypes.UnitEnteredLocation] = true,
+		[triggerTypes.UnitLeftLocation] = true,
+		[triggerTypes.UnitDwellLocation] = true,
+		[triggerTypes.UnitSpotted] = true,
+		[triggerTypes.UnitUnspotted] = true,
+		[triggerTypes.ConstructionFinished] = true,
+	}
 	local actionTypesNamingUnits = {
 		[actionTypes.SpawnUnits] = true,
 		[actionTypes.NameUnits] = true,
