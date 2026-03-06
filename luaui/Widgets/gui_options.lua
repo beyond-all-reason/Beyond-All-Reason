@@ -47,17 +47,34 @@ end
 -- detect potatos
 local isPotatoCpu = false
 local isPotatoGpu = false
-local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 1000
-if not gpuMem then
-	gpuMem = 0
-end
-if gpuMem > 0 and gpuMem < 2500 then
+local gpuMem = (Platform.gpuMemorySize or 0) / 1000 -- gpuMemorySize is in KB (only Nvidia reports nonzero), /1000 ≈ MB
+local glRendererLower = Platform.glRenderer and string.lower(Platform.glRenderer) or ""
+
+if not Platform.glHaveGL4 then
+	-- No GL4 support means the engine can't use modern rendering paths
 	isPotatoGpu = true
-elseif not Platform.glHaveGL4 then
+elseif Platform.glHaveNVidia then
+	-- Nvidia reliably reports gpuMemorySize; < ~2.5 GB VRAM = low-end
+	if gpuMem > 0 and gpuMem < 2500 then
+		isPotatoGpu = true
+	end
+elseif Platform.glHaveIntel then
+	-- All Intel GPUs are integrated except the Arc series (discrete)
+	-- Integrated: "Intel(R) HD Graphics ...", "Intel(R) UHD Graphics ...", "Intel(R) Iris ..."
+	-- Discrete:   "Intel(R) Arc(TM) A770", "Intel(R) Arc(TM) B580", etc.
+	if not string.find(glRendererLower, "arc") then
+		isPotatoGpu = true
+	end
+elseif Platform.glHaveAMD then
+	-- AMD discrete GPUs contain "RX" (modern, 2016+) or "R9" (older high-end) in their name
+	-- Integrated: "AMD Radeon(TM) Graphics", "AMD Radeon Vega 8", "AMD Radeon 780M", etc.
+	-- gpuMemorySize is 0 for AMD so we can't use VRAM size (also AMD integrated can report incorrect gpuMemorySize)
+	if not (string.find(glRendererLower, "rx") or string.find(glRendererLower, "r9 ")) then
+		isPotatoGpu = true
+	end
+else
+	-- Unknown/Mesa vendor without specific detection — assume low-end
 	isPotatoGpu = true
-elseif Platform.glRenderer and Platform.glRenderer =="AMD Radeon(TM) Graphics" then	-- integrated GFX
-	isPotatoGpu = true
-	gpuMem = 0
 end
 
 local devMode = Spring.Utilities.IsDevMode()
@@ -2147,7 +2164,17 @@ function init()
 		end
 	end
 	-- restric gfx preset options for potato gpu, lowest preset is added and high preset is removed
-	if isPotatoGpu then
+	if devMode or devUI then
+		-- dev mode: show all presets so every quality level can be tested
+		presetNames = {
+			Spring.I18N('ui.settings.option.select_lowest'),
+			Spring.I18N('ui.settings.option.select_low'),
+			Spring.I18N('ui.settings.option.select_medium'),
+			Spring.I18N('ui.settings.option.select_high'),
+			Spring.I18N('ui.settings.option.select_ultra'),
+			Spring.I18N('ui.settings.option.select_custom')
+		}
+	elseif isPotatoGpu then
 		presetNames = {
 			Spring.I18N('ui.settings.option.select_lowest'),
 			Spring.I18N('ui.settings.option.select_low'),
@@ -6061,7 +6088,7 @@ function init()
 		--planeColor = {number r, number g, number b},
 	}
 
-	if not isPotatoGpu then
+	if not isPotatoGpu and not devMode and not devUI then
 		options[getOptionByID('advmapshading')] = nil
 		Spring.SetConfigInt("AdvMapShading", 1)
 		Spring.SendCommands("advmapshading 1")
@@ -6221,8 +6248,8 @@ function init()
 		options[getOptionByID('dualmode_minimap_aspectratio')] = nil
 	end
 
-	-- reduce options for potatoes
-	if isPotatoGpu or isPotatoCpu then
+	-- reduce options for potatoes (skip in dev mode to keep all options available)
+	if (isPotatoGpu or isPotatoCpu) and not devMode and not devUI then
 		--local id = getOptionByID('shadowslider')
 		--options[id].options = { 1, 2, 3 }
 		--if options[id].value > 3 then
@@ -6238,8 +6265,6 @@ function init()
 		end
 
 		if isPotatoGpu then
-			--Spring.SendCommands("luarules disablecusgl4")
-			--options[getOptionByID('cusgl4')] = nil
 
 			-- limit available msaa levels to 'off' and 'x2'
 			if options[getOptionByID('msaa')] then
@@ -6306,6 +6331,10 @@ function init()
 			Spring.SetConfigInt("Water", 4)
 		end
 		options[getOptionByID('water')] = nil
+	end
+
+	if not isPotatoGpu and not devMode and not devUI then
+		options[getOptionByID('cusgl4')] = nil
 	end
 
 	-- loads values via stored game config in luaui/configs
