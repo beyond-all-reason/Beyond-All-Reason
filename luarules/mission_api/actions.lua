@@ -169,8 +169,24 @@ local function unnameUnits(unitName)
 	trackedUnitIDs[unitName] = nil
 end
 
-local function spawnExplosion(position, direction, params)
-	spawnExplosion(position[1], position[2], position[3], direction[1], direction[2], direction[3], params)
+local function spawnExplosion(weaponDefName, position, direction)
+	direction = direction or { x = 0, y = 0, z = 0 }
+	local weaponDef = WeaponDefNames[weaponDefName]
+	local params = {
+		weaponDef = weaponDef.id,
+		owner = -1,
+		damages = weaponDef.damages,
+		hitUnit = 1,
+		hitFeature = 1,
+		craterAreaOfEffect = weaponDef.craterAreaOfEffect,
+		damageAreaOfEffect = weaponDef.damageAreaOfEffect,
+		edgeEffectiveness = weaponDef.edgeEffectiveness,
+		explosionSpeed = weaponDef.explosionSpeed,
+		impactOnly = weaponDef.impactOnly,
+		ignoreOwner = weaponDef.noSelfDamage,
+		damageGround = true,
+	}
+	Spring.SpawnExplosion(position.x, position.y, position.z, direction.x, direction.y, direction.z, params)
 end
 
 local function playSound(soundfile, volume, position, enqueue)

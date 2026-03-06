@@ -234,6 +234,14 @@ local actions = {
 		},
 	},
 
+	actionWithInvalidWeaponDefName = {
+		type = actionTypes.SpawnExplosion,
+		parameters = {
+			weaponDefName = 'invalidWeaponDefName',
+			position = { x = 1500, z = 2200 },
+		},
+	},
+	
 	actionWithNonExistentSoundfile = {
 		type = actionTypes.PlaySound,
 		parameters = {

@@ -301,6 +301,17 @@ validators[Types.UnitDefName] = function(unitDefName)
 		end
 	end
 
+validators[Types.WeaponDefName] = function(weaponDefName)
+	local luaTypeResult = validators[Types.String](weaponDefName)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	if not WeaponDefNames[weaponDefName] then
+		return { { message = "Invalid weaponDefName: " .. weaponDefName } }
+	end
+end
+
 validators[Types.Facing] = function(facing)
 		local expectedTypes = { string = true, number = true }
 		local actualType = type(facing)
