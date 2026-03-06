@@ -131,7 +131,7 @@ validators[Types.Orders] = function(orders)
 				return function()
 					local luaTypeResult = validateLuaType(params, type)
 					if luaTypeResult then
-						result[#result + 1] = { luaTypeResult[1], '[' .. orderNumber .. '][2]' }
+						result[#result + 1] = { message = luaTypeResult, parameterNameSuffix = '[' .. orderNumber .. '][2]' }
 					end
 				end
 			end
