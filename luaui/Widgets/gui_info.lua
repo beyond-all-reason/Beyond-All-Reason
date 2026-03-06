@@ -286,8 +286,8 @@ local function refreshUnitInfo()
 			minIntensity = math.max(def.minIntensity, 0.5)
 			local prevMinDps = unitDefInfo[unitDefID].mindps or 0
 			local prevMaxDps = unitDefInfo[unitDefID].maxdps or 0
-			local mindps = math_floor(minIntensity*(damage * def.salvoSize / def.reload))
-			local maxdps = math_floor(damage * def.salvoSize / def.reload)
+			local mindps = minIntensity*(damage * def.salvoSize / def.reload)
+			local maxdps = damage * def.salvoSize / def.reload
 
 			unitDefInfo[unitDefID].mindps = mindps + prevMinDps
 			unitDefInfo[unitDefID].maxdps = maxdps + prevMaxDps
@@ -298,8 +298,8 @@ local function refreshUnitInfo()
 		local function calculateWeaponDPS(def, damage)
 			local prevMinDps = unitDefInfo[unitDefID].mindps or 0
 			local prevMaxDps = unitDefInfo[unitDefID].maxdps or 0
-			local newDps = math_floor(damage * (def.salvoSize * def.projectiles) / def.reload)
-			local stockpileDps = math_floor(damage * (def.salvoSize * def.projectiles) / (def.stockpile and def.stockpileTime/30 or def.reload))
+			local newDps = damage * (def.salvoSize * def.projectiles) / def.reload
+			local stockpileDps = damage * (def.salvoSize * def.projectiles) / (def.stockpile and def.stockpileTime/30 or def.reload)
 			unitDefInfo[unitDefID].mindps = math_min(newDps, stockpileDps) + prevMinDps
 			unitDefInfo[unitDefID].maxdps = math_max(newDps, stockpileDps) + prevMaxDps
 		end
@@ -313,8 +313,8 @@ local function refreshUnitInfo()
 			local cmNumber = def.customParams.cluster_number
 			local cmDamage = WeaponDefNames[munition].damages[0]
 
-			local mainDps = math_floor((def.salvoSize * def.projectiles) / def.reload * (damage))
-			local cmunDps = math_floor((def.salvoSize * def.projectiles) / def.reload * (cmNumber * cmDamage))
+			local mainDps = (def.salvoSize * def.projectiles) / def.reload * (damage)
+			local cmunDps = (def.salvoSize * def.projectiles) / def.reload * (cmNumber * cmDamage)
 			unitDefInfo[unitDefID].mindps = prevMinDps + mainDps
 			unitDefInfo[unitDefID].maxdps = prevMaxDps + mainDps + cmunDps
 		end
@@ -325,8 +325,8 @@ local function refreshUnitInfo()
 			local impactDps = damage * burst / def.reload
 			local areaDps = def.customParams.area_onhit_damage -- by definition
 			local damageMax = math_max(impactDps + areaDps, areaDps * burst * def.customParams.area_onhit_time / def.reload)
-			unitDefInfo[unitDefID].mindps = math_floor((unitDefInfo[unitDefID].mindps or 0) + impactDps)
-			unitDefInfo[unitDefID].maxdps = math_floor((unitDefInfo[unitDefID].maxdps or 0) + damageMax)
+			unitDefInfo[unitDefID].mindps = (unitDefInfo[unitDefID].mindps or 0) + impactDps
+			unitDefInfo[unitDefID].maxdps = (unitDefInfo[unitDefID].maxdps or 0) + damageMax
 		end
 
 
@@ -470,11 +470,11 @@ local function refreshUnitInfo()
 						end
 					else
 						-- calculate laser emp dmg
-						minIntensity = math.max(weaponDef.minIntensity, 0.5)
+						local minIntensity = math.max(weaponDef.minIntensity, 0.5)
 						local prevMinDps = unitDefInfo[unitDefID].minemp or 0
 						local prevMaxDps = unitDefInfo[unitDefID].maxemp or 0
-						local mindps = math_floor(minIntensity*(weaponDef.damages[0] * weaponDef.salvoSize / weaponDef.reload))
-						local maxdps = math_floor(weaponDef.damages[0] * weaponDef.salvoSize / weaponDef.reload)
+						local mindps = minIntensity*(weaponDef.damages[0] * weaponDef.salvoSize / weaponDef.reload)
+						local maxdps = weaponDef.damages[0] * weaponDef.salvoSize / weaponDef.reload
 
 						unitDefInfo[unitDefID].minemp = mindps + prevMinDps
 						unitDefInfo[unitDefID].maxemp = maxdps + prevMaxDps
@@ -556,9 +556,19 @@ local function refreshUnitInfo()
 
 				for _, key in ipairs(maxs) do
 					if droneInfo[key] then
-						unitInfo[key] = (unitInfo[key] or 0) + math_floor(droneInfo[key] * droneCount)
+						unitInfo[key] = (unitInfo[key] or 0) + (droneInfo[key] * droneCount)
 					end
 				end
+			end
+		end
+	end
+
+	-- Convert aggregated values to display formats last to avoid rounding errors.
+	local summedKeys = { "mindps", "maxdps", "minemp", "maxemp", }
+	for unitDefID, unitInfo in pairs(unitDefInfo) do
+		for _, key in pairs(summedKeys) do
+			if type(unitInfo[key]) == "number" then
+				unitInfo[key] = math_floor(unitInfo[key])
 			end
 		end
 	end
