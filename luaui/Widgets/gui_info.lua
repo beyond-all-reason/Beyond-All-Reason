@@ -438,7 +438,9 @@ local function refreshUnitInfo()
 
 				if unitDefInfo[unitDefID].mainWeapon == i then
 					unitDefInfo[unitDefID].range = weaponDef.range
-					unitDefInfo[unitDefID].reloadTime = weaponDef.reload
+					unitDefInfo[unitDefID].reloadTime = weaponDef.customParams.dronesuesestockpile
+						and weaponDef.stockpileTime
+						or  weaponDef.reload
 				end
 				if weaponDef.type == "BeamLaser" and not unitExempt then	-- BeamLaser dps calc
 
@@ -530,6 +532,33 @@ local function refreshUnitInfo()
 				unitDefInfo[unitDefID].mindps = dmg
 				unitDefInfo[unitDefID].maxdps = dmg
 				unitDefInfo[unitDefID].reloadTime = nil
+			end
+		end
+	end
+
+	-- Account for sub-unit damages, namely carriers and drones.
+	local mins = { "mindps", "minemp", }
+	local maxs = { "maxdps", "maxemp", }
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		local unitInfo = unitDefInfo[unitDefID]
+		for index, weapon in ipairs(unitDef.weapons) do
+			local weaponDef = WeaponDefs[weapon.weaponDef]
+			if weaponDef.customParams.carried_unit and UnitDefNames[weaponDef.customParams.carried_unit] then
+				local droneCount = weaponDef.customParams.maxunits or 1
+				local droneDef = UnitDefNames[weaponDef.customParams.carried_unit]
+				local droneInfo = unitDefInfo[droneDef.id]
+
+				for _, key in ipairs(mins) do
+					if droneInfo[key] then
+						unitInfo[key] = (unitInfo[key] or 0) -- times zero drones == zero
+					end
+				end
+
+				for _, key in ipairs(maxs) do
+					if droneInfo[key] then
+						unitInfo[key] = (unitInfo[key] or 0) + math_floor(droneInfo[key] * droneCount)
+					end
+				end
 			end
 		end
 	end
@@ -1560,7 +1589,6 @@ local function drawUnitInfo()
 			separator = ',   '
 		end
 
-
 		-- unit specific info
 		if unitDefInfo[displayUnitDefID].mindps then
 			mindps = unitDefInfo[displayUnitDefID].mindps
@@ -1615,11 +1643,12 @@ local function drawUnitInfo()
 
 			-- basic dps display
 			if mindps and mindps > 0 and mindps == maxdps then
+
 				local dps = round(mindps/ reloadTimeSpeedup, 0)
 				addTextInfo(Spring.I18N('ui.info.dps'), dps)
 
 			-- dps range
-			elseif mindps and mindps > 0 and mindps ~= maxdps then
+			elseif mindps ~= maxdps then
 				local min = round(mindps/ reloadTimeSpeedup, 0)
 				local max = round(maxdps/ reloadTimeSpeedup, 0)
 				addTextInfo("DPS", min.."-"..max)
@@ -1632,7 +1661,7 @@ local function drawUnitInfo()
 				addTextInfo("DPS(EMP)", emp)
 
 			-- more emp dps
-			elseif minemp and minemp and minemp ~= maxemp then
+			elseif minemp ~= maxemp then
 				local min = round(minemp/ reloadTimeSpeedup, 0)
 				local max = round(maxemp/ reloadTimeSpeedup, 0)
 				addTextInfo("DPS(EMP)", min.."-"..max)
