@@ -168,6 +168,23 @@ local unloadParams = { 0, 0, 0, 0 }  -- x, y, z, unitID
 local viewSelectionCmd = { "viewselection" }
 
 local function refreshUnitInfo()
+	local builderTraits = {
+		canBuild   = function(def) return def.isFactory or next(def.buildOptions) ~= nil end,
+		canAssist  = function(def) return not def.isFactory and def.canAssist end,
+		canCapture = function(def) return not def.isFactory and def.canCapture and def.buildDistance > 0 end,
+		canReclaim = function(def) return not def.isFactory and def.canReclaim and def.buildDistance > 0 end,
+		canRepair  = function(def) return not def.isFactory and def.canRepair and def.buildDistance > 0 end,
+		canRestore = function(def) return not def.isFactory and def.canRestore and def.buildDistance > 0 end,
+	}
+	local function hasBuilderTrait(def)
+		for trait, check in pairs(builderTraits) do
+			if check(def) then
+				return true
+			end
+		end
+		return false
+	end
+
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		unitDefInfo[unitDefID] = {}
 
@@ -266,7 +283,7 @@ local function refreshUnitInfo()
 		if unitDef.canStockpile then
 			unitDefInfo[unitDefID].canStockpile = true
 		end
-		if unitDef.buildSpeed > 0 then
+		if unitDef.buildSpeed > 0 and hasBuilderTrait(unitDef) then
 			unitDefInfo[unitDefID].buildSpeed = unitDef.buildSpeed
 		end
 		if unitDef.buildOptions[1] then
