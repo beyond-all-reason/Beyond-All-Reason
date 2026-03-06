@@ -88,13 +88,14 @@ local function prototype(t)
 end
 
 local function AdjustTeamCapacity(teamID, adjustment, e)
-	local newCapacity = teamCapacities[teamID][e] + adjustment
-	teamCapacities[teamID][e] = newCapacity
+	local teamCaps = teamCapacities[teamID]
+	local newCapacity = teamCaps[e] + adjustment
+	teamCaps[e] = newCapacity
 
 	local totalCapacity = 0
 	local eStepsCount = #eSteps
 	for j = 1, eStepsCount do
-		totalCapacity = totalCapacity + teamCapacities[teamID][eSteps[j]]
+		totalCapacity = totalCapacity + teamCaps[eSteps[j]]
 	end
 	spSetTeamRulesParam(teamID, mmCapacityParamName, totalCapacity)
 end
@@ -107,40 +108,44 @@ end
 local function UpdateMetalMakers(teamID, energyUse)
 	-- Only skip if there are no converters at all (nothing to turn on or off)
 	-- We need to process even when energyUse <= 0 to turn off active converters
-	if teamActiveMM[teamID] == 0 and energyUse <= 0 then
+	local activeCount = teamActiveMM[teamID]
+	if activeCount == 0 and energyUse <= 0 then
 		return
 	end
-	
+
+	local teamMM = teamMMList[teamID]
 	local eStepsCount = #eSteps
 	for j = 1, eStepsCount do
 		local eStep = eSteps[j]
-		local teamMMUnits = teamMMList[teamID][eStep]
+		local teamMMUnits = teamMM[eStep]
 		for unitID, defs in pairs(teamMMUnits) do
 			if defs.built then
 				if not defs.emped and energyUse > 0 then
-					local amount = (energyUse < defs.capacity and energyUse or defs.capacity)    -- alternative math.min method
+					local cap = defs.capacity
+					local amount = energyUse < cap and energyUse or cap
 					if amount < 0 then
 						amount = 0
 					end
-					energyUse = (energyUse - defs.capacity)
+					energyUse = energyUse - cap
 					updateUnitConversion(unitID, amount, eStep)
 
 					if defs.status == 0 then
 						spCallCOBScript(unitID, "MMStatus", 0, 1)
 						defs.status = 1
-						teamActiveMM[teamID] = (teamActiveMM[teamID] + 1)
+						activeCount = activeCount + 1
 					end
 				else
 					if defs.status == 1 then
 						updateUnitConversion(unitID, 0, 0)
 						spCallCOBScript(unitID, "MMStatus", 0, 0)
 						defs.status = 0
-						teamActiveMM[teamID] = (teamActiveMM[teamID] - 1)
+						activeCount = activeCount - 1
 					end
 				end
 			end
 		end
 	end
+	teamActiveMM[teamID] = activeCount
 end
 
 ----------------------------------------------------------------
@@ -148,20 +153,22 @@ end
 ----------------------------------------------------------------
 
 local function UnitParalysed(uID, uDefID, uTeam)
-	if convertCapacities[uDefID] then
-		local cDefs = convertCapacities[uDefID]
-		if teamMMList[uTeam][cDefs.e][uID].built then
-			teamMMList[uTeam][cDefs.e][uID].emped = true
+	local cDefs = convertCapacities[uDefID]
+	if cDefs then
+		local unitData = teamMMList[uTeam][cDefs.e][uID]
+		if unitData and unitData.built then
+			unitData.emped = true
 			AdjustTeamCapacity(uTeam, -cDefs.c, cDefs.e)
 		end
 	end
 end
 
 local function UnitParalysisOver(uID, uDefID, uTeam)
-	if convertCapacities[uDefID] then
-		local cDefs = convertCapacities[uDefID]
-		if teamMMList[uTeam][cDefs.e][uID] and teamMMList[uTeam][cDefs.e][uID].built then
-			teamMMList[uTeam][cDefs.e][uID].emped = false
+	local cDefs = convertCapacities[uDefID]
+	if cDefs then
+		local unitData = teamMMList[uTeam][cDefs.e][uID]
+		if unitData and unitData.built then
+			unitData.emped = false
 			AdjustTeamCapacity(uTeam, cDefs.c, cDefs.e)
 		end
 	end
@@ -213,8 +220,15 @@ function Efficiencies:avg()
 end
 
 function Efficiencies:push(o)
-	self.buffer[self.pointer + 1] = o
-	self.pointer = (self.pointer + 1) % self.size
+	local idx = self.pointer + 1
+	local entry = self.buffer[idx]
+	if entry then
+		entry.m = o.m
+		entry.e = o.e
+	else
+		self.buffer[idx] = o
+	end
+	self.pointer = idx % self.size
 end
 
 function Efficiencies:init(tID)
@@ -295,11 +309,12 @@ function gadget:GameFrame(n)
 				local eCur, eStor = spGetTeamResources(tID, 'energy')
 				local mmLevel = spGetTeamRulesParam(tID, mmLevelParamName)
 				local convertAmount = eCur - eStor * mmLevel
-				local _, _, eConverted, mConverted, teamUsages = 0, 0, 0, 0, 0
+				local eConverted, mConverted, teamUsages = 0, 0, 0
 
+				local teamCaps = teamCapacities[tID]
 				for j = 1, eStepsCount do
 					local eStep = eSteps[j]
-					local teamCapacity = teamCapacities[tID][eStep]
+					local teamCapacity = teamCaps[eStep]
 					if teamCapacity > 1 then
 						if convertAmount > 1 then
 							local convertStep = teamCapacity * resourceFraction
@@ -342,16 +357,16 @@ function gadget:UnitFinished(uID, uDefID, uTeam)
 	if not cDefs then
 		return
 	end
-	
+
 	local teamMM = teamMMList[uTeam][cDefs.e]
 	if not teamMM[uID] then
 		teamMM[uID] = { capacity = 0, status = 0, built = false, emped = false }
 	end
-	
+
 	local unitData = teamMM[uID]
 	unitData.capacity = cDefs.c
 	unitData.built = true
-	
+
 	if not unitData.emped then
 		unitData.status = 1
 		teamActiveMM[uTeam] = teamActiveMM[uTeam] + 1
@@ -375,13 +390,13 @@ function gadget:UnitDestroyed(uID, uDefID, uTeam)
 	if not cDefs then
 		return
 	end
-	
+
 	local teamMM = teamMMList[uTeam][cDefs.e]
 	local unitData = teamMM[uID]
 	if not unitData then
 		return
 	end
-	
+
 	if unitData.built then
 		if unitData.status == 1 then
 			teamActiveMM[uTeam] = teamActiveMM[uTeam] - 1
@@ -399,13 +414,13 @@ function gadget:UnitGiven(uID, uDefID, newTeam, oldTeam)
 	if not cDefs then
 		return
 	end
-	
+
 	local oldTeamMM = teamMMList[oldTeam][cDefs.e]
 	local oldUnitData = oldTeamMM[uID]
 	if not oldUnitData then
 		return
 	end
-	
+
 	if oldUnitData.built then
 		if not oldUnitData.emped then
 			AdjustTeamCapacity(oldTeam, -cDefs.c, cDefs.e)

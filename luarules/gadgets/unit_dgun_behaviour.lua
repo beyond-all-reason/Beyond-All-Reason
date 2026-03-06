@@ -21,7 +21,7 @@ local spGetProjectileDirection = Spring.GetProjectileDirection
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spGetGroundHeight = Spring.GetGroundHeight
 local spDeleteProjectile = Spring.DeleteProjectile
-local spSpawnExplosion = Spring.SpawnExplosion
+local spSetProjectileCollision = Spring.SetProjectileCollision
 local spGetUnitPosition = Spring.GetUnitPosition
 local spSpawnCEG = Spring.SpawnCEG
 local spGetGameFrame = Spring.GetGameFrame
@@ -94,29 +94,6 @@ commanderNames = nil
 local flyingDGuns = {}
 local groundedDGuns = {}
 
-local function addVolumetricDamage(projectileID)
-	local projectileData = dgunData[projectileID]
-	local weaponDefID = projectileData.weaponDefID
-	local x, y, z = spGetProjectilePosition(projectileID)
-	local explosionParame = {
-		weaponDef = weaponDefID,
-		owner = projectileData.proOwnerID,
-		projectileID = projectileID,
-		damages = dgunDef[weaponDefID].damages,
-		hitUnit = 1,
-		hitFeature = 1,
-		craterAreaOfEffect = dgunDef[weaponDefID].craterAreaOfEffect,
-		damageAreaOfEffect = dgunDef[weaponDefID].damageAreaOfEffect,
-		edgeEffectiveness = dgunDef[weaponDefID].edgeEffectiveness,
-		explosionSpeed = dgunDef[weaponDefID].explosionSpeed,
-		impactOnly = dgunDef[weaponDefID].impactOnly,
-		ignoreOwner = dgunDef[weaponDefID].noSelfDamage,
-		damageGround = true,
-	}
-
-	spSpawnExplosion(x, y, z, 0, 0, 0, explosionParame)
-end
-
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 	if dgunDef[weaponDefID] then
 		dgunData[proID] = { proOwnerID = proOwnerID, weaponDefID = weaponDefID }
@@ -135,14 +112,10 @@ end
 
 function gadget:GameFrame(frame)
 	for proID in pairsNext, flyingDGuns do
-		-- Fireball is hitscan while in flight, engine only applies AoE damage after hitting the ground,
-		-- so we need to add the AoE damage manually for flying projectiles
-		addVolumetricDamage(proID)
-
 		local x, y, z = spGetProjectilePosition(proID)
 		local h = spGetGroundHeight(x, z)
 
-		if y < h + 1 or y < 0 then -- assume ground or water collision
+		if y < h + 1 or y < 1 then -- assume ground or water collision
 			-- normalize horizontal velocity
 			local dx, _, dz, speed = spGetProjectileVelocity(proID)
 			local horizontalMagnitude = mathSqrt(dx ^ 2 + dz ^ 2)
@@ -168,14 +141,21 @@ function gadget:GameFrame(frame)
 
 		-- NB: no removal; do this every frame so that it doesn't fly off a cliff or something
 	end
+end
 
-	-- Without defining a time to live (TTL) for the DGun, it will live forever until it reaches maximum range. This means it would deal infinite damage to shields until it depleted them.
+function gadget:GameFramePost(frame)
+	-- Fireball is hitscan while in flight, engine only applies AoE damage after hitting the ground,
+	-- so we need to add the AoE damage manually for flying projectiles by setting off explosions.
+	for proID in pairsNext, flyingDGuns do
+		spSetProjectileCollision(proID)
+	end
+
+	-- Without a manual time to live, the projectile lives until its maximum range.
+	-- This means it would deal infinite damage to shields until it depleted them.
+	-- We delete in GameFramePost so the projectile hits shields on the last frame.
 	for proID, timeout in pairsNext, dgunTimeouts do
 		if frame > timeout then
 			spDeleteProjectile(proID)
-			flyingDGuns[proID] = nil
-			groundedDGuns[proID] = nil
-			dgunTimeouts[proID] = nil
 		end
 	end
 end
