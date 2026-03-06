@@ -947,6 +947,7 @@
 			"infinite": "infinite",
 			"burst": "Burst",
 			"modifiers": "Modifiers",
+			"intercepts": "Intercepts",
 			"each": "each",
 			"dps": "DPS",
 			"persecond": "per second",
