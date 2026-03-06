@@ -18,11 +18,11 @@ local types = {
 	UnitDefName = 'UnitDefName',
 	WeaponDefName = 'WeaponDefName',
 	Facing = 'Facing',
+	SoundFile = 'SoundFile',
 
 	-- Number Validators:
 	Number = 'Number',
 	TeamID = 'TeamID',
-	PlayerID = 'PlayerID',
 
 	-- Boolean Validators:
 	Boolean = 'Boolean',

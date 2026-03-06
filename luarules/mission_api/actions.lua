@@ -2,6 +2,7 @@ local trackedUnitIDs = GG['MissionAPI'].trackedUnitIDs
 local trackedUnitNames = GG['MissionAPI'].trackedUnitNames
 local triggers = GG['MissionAPI'].Triggers
 
+local sounds = VFS.Include('luarules/mission_api/sounds.lua')
 
 ----------------------------------------------------------------
 --- Utility Functions:
@@ -188,6 +189,14 @@ local function spawnExplosion(weaponDefName, position, direction)
 	Spring.SpawnExplosion(position.x, position.y, position.z, direction.x, direction.y, direction.z, params)
 end
 
+local function playSound(soundfile, volume, position, enqueue)
+	if enqueue then
+		sounds.EnqueueSound(soundfile, volume, position)
+	else
+		sounds.PlaySound(soundfile, volume, position)
+	end
+end
+
 local function sendMessage(message)
 	Spring.Echo(message)
 end
@@ -264,6 +273,7 @@ return {
 	-- Map
 
 	-- Media
+	PlaySound = playSound,
 	SendMessage = sendMessage,
 	AddMarker = addMarker,
 	DrawLines = drawLines,
