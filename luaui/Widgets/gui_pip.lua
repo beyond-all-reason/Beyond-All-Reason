@@ -10788,7 +10788,7 @@ local function RenderFrameButtons()
 				end
 			-- Show pip_view button only for spectators
 			elseif btn.command == 'pip_view' then
-				if showPlayerTrackButton then
+				if spec then
 					visibleButtons[#visibleButtons + 1] = btn
 				end
 			-- Hide pip_activity in singleplayer, when tracking, or optionally for spectators
@@ -10801,11 +10801,8 @@ local function RenderFrameButtons()
 				if not config.tvModeSpectatorsOnly or cameraState.mySpecState then
 					visibleButtons[#visibleButtons + 1] = btn
 				end
-			-- Show pip_help button only in minimap mode
 			elseif btn.command == 'pip_help' then
-				if isMinimapMode then
-					visibleButtons[#visibleButtons + 1] = btn
-				end
+				visibleButtons[#visibleButtons + 1] = btn
 			else
 				visibleButtons[#visibleButtons + 1] = btn
 			end
@@ -13976,6 +13973,8 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 				if not config.tvModeSpectatorsOnly or cameraState.mySpecState then
 					visibleButtons[#visibleButtons + 1] = btn
 				end
+			elseif btn.command == 'pip_help' then
+				visibleButtons[#visibleButtons + 1] = btn
 			else
 				visibleButtons[#visibleButtons + 1] = btn
 			end
@@ -17250,9 +17249,7 @@ function widget:MousePress(mx, my, mButton)
 								visibleButtons[#visibleButtons + 1] = btn
 							end
 						elseif btn.command == 'pip_help' then
-							if isMinimapMode then
-								visibleButtons[#visibleButtons + 1] = btn
-							end
+							visibleButtons[#visibleButtons + 1] = btn
 						else
 							visibleButtons[#visibleButtons + 1] = btn
 						end
@@ -17270,7 +17267,9 @@ function widget:MousePress(mx, my, mButton)
 			local wx, wz = PipToWorldCoords(mx, my)
 			
 			-- In minimap mode with leftButtonPansCamera enabled, left-click moves the world camera
-			if isMinimapMode and IsLeftClickPanActive() then
+			-- Skip when ALT is held (ALT+left-click is used for panning)
+			local alt = Spring.GetModKeyState()
+			if isMinimapMode and IsLeftClickPanActive() and not alt then
 				local _, cmdID = Spring.GetActiveCommand()
 				-- Only move world camera if there's no active command
 				if not cmdID or cmdID == 0 then
