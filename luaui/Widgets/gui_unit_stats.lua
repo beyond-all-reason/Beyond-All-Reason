@@ -694,7 +694,7 @@ local function drawStats(uDefID, uID)
 						intercepts[#intercepts+1] = targetType
 					end
 				end
-				DrawText(texts.intercepts..":", table.concat(intercepts, white.."; ") .. white .. ".")
+				DrawText(texts.intercepts..":", table.concat(intercepts, "; ")..white..".")
 			elseif baseArmorDamage > 0 and not uWep.customParams.bogus then
 				local damageString = ""
 				local burstDamage = baseArmorDamage * burst
