@@ -114,7 +114,7 @@ config = {
 	playerTrackingSmoothness = 4.5,
 	switchSmoothness = 30,
 	zoomMin = 0.04,
-	zoomMax = 1.6,
+	zoomMax = 2,
 	zoomFeatures = 0.2,
 	zoomFeaturesFadeRange = 0.06,  -- Zoom range over which features fade in/out
 	zoomProjectileDetail = 0.12,
@@ -9656,7 +9656,9 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	-- Draw unitpics overlay when zoomed in close (rendered on top of GL4 icons)
 	if useUnitpics and unitpicCount > 0 then
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-		local unitpicSizeMult = 0.85
+		-- Scale unitpics up progressively with zoom to better match real-world unit sizes
+		local zoomFrac = math.max(0, (cameraState.zoom - config.unitpicZoomThreshold) / (1 - config.unitpicZoomThreshold))
+		local unitpicSizeMult = 0.88 + 0.05 * zoomFrac
 		local picTexInset = math.max(0.125, 0.2 * (1 - (cameraState.zoom - config.unitpicZoomThreshold) / (1 - config.unitpicZoomThreshold)))
 		local distMult = math.min(math.max(1, 2.2-(cameraState.zoom*3.3)), 3)
 		local teamBorderSize = 3 * cameraState.zoom * distMult * resScale
