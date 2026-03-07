@@ -63,6 +63,7 @@ end
 
 local mexesToSwap = {}
 local pairedUnits = {}
+local setMexSpeed = {}
 
 local function setExtractionRate(conID, mexID)
 	local extractionRate = Spring.GetUnitMetalExtraction(mexID)
@@ -104,7 +105,7 @@ local function doSwapMex(unitID, unitTeam, unitData)
 	Spring.SetUnitRulesParam(mexID, "pairedUnitID", conID)
 	pairedUnits[conID] = mexID
 	pairedUnits[mexID] = conID
-	setExtractionRate(conID, mexID) -- used in unit animations
+	setMexSpeed[conID] = mexID
 
 	if isUnitNeutral then
 		Spring.SetUnitNeutral(mexID, true)
@@ -133,6 +134,10 @@ function gadget:GameFrame(frame)
 		if frame > unitData.frame then
 			trySwapMex(unitID, unitData)
 		end
+	end
+
+	for conID, mexID in pairs(setMexSpeed) do
+		setExtractionRate(conID, mexID) -- used in unit animations
 	end
 end
 
@@ -211,7 +216,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 		local mexID = pairedUnits[unitID]
 		if mexID then
 			reissueOrder(mexID, cmdID, cmdParams, cmdOptions, cmdTag, fromInsert)
-			setExtractionRate(unitID, mexID)
+			setMexSpeed[unitID] = mexID
 		end
 	end
 	return true
@@ -230,7 +235,7 @@ function gadget:Initialize()
 				if pairedUnitID then
 					pairedUnits[unitID] = pairedUnitID
 					pairedUnits[pairedUnitID] = unitID
-					setExtractionRate(pairedUnitID, unitID)
+					setMexSpeed[pairedUnitID] = unitID
 				end
 			end
 		end
