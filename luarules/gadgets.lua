@@ -1147,7 +1147,7 @@ function gadgetHandler:GameStart()
 end
 
 function gadgetHandler:Shutdown()
-	for _, g in ipairs(self.ShutdownList) do
+	for _, g in r_ipairs(self.ShutdownList) do
 		g:Shutdown()
 	end
 	return
@@ -1296,7 +1296,7 @@ end
 --
 
 function gadgetHandler:GameOver(winningAllyTeams)
-	for _, g in ipairs(self.GameOverList) do
+	for _, g in r_ipairs(self.GameOverList) do
 		g:GameOver(winningAllyTeams)
 	end
 	return
