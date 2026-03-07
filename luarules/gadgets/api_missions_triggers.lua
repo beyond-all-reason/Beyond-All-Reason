@@ -348,6 +348,21 @@ local function checkFeatureDestroyed(trigger, featureID, featureDefID, attackerA
 	activateTrigger(trigger)
 end
 
+-- Per-team running totals, incremented by call-ins and checked by statistics triggers:
+local totalUnitsLost     = {}
+local totalUnitsKilled   = {}
+local totalUnitsBuilt    = {}
+local totalUnitsCaptured = {}
+local function checkStatisticsTriggers(triggerType, counters, teamID)
+	processTriggersOfType(triggerType, function(trigger, _)
+		if trigger.parameters.teamID ~= teamID then return end
+		local count = counters[teamID] or 0
+		if count >= trigger.parameters.quantity then
+			activateTrigger(trigger)
+		end
+	end)
+end
+
 
 ----------------------------------------------------------------
 --- Call-ins:
@@ -404,10 +419,25 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	end)
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, _, _, _)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	processTriggersOfType(types.UnitKilled, function(trigger, _)
 		checkUnitRemoved(trigger, unitID, unitDefID, unitTeam)
 	end)
+
+	-- The unit's team lost a unit:
+	totalUnitsLost[unitTeam] = (totalUnitsLost[unitTeam] or 0) + 1
+	checkStatisticsTriggers(types.TotalUnitsLost, totalUnitsLost, unitTeam)
+
+	-- The attacker's team kills an enemy unit:
+	if attackerTeam ~= nil and attackerTeam ~= unitTeam then
+		local unitAllyTeam     = Spring.GetTeamAllyTeamID(unitTeam)
+		local attackerAllyTeam = Spring.GetTeamAllyTeamID(attackerTeam)
+		if unitAllyTeam and attackerAllyTeam and unitAllyTeam ~= attackerAllyTeam then
+			totalUnitsKilled[attackerTeam] = (totalUnitsKilled[attackerTeam] or 0) + 1
+			checkStatisticsTriggers(types.TotalUnitsKilled, totalUnitsKilled, attackerTeam)
+		end
+	end
+
 	untrackUnitID(unitID)
 end
 
@@ -415,6 +445,9 @@ function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
 	processTriggersOfType(types.UnitCaptured, function(trigger, _)
 		checkUnitCaptured(trigger, unitID, unitDefID, oldTeam, newTeam)
 	end)
+
+	totalUnitsCaptured[newTeam] = (totalUnitsCaptured[newTeam] or 0) + 1
+	checkStatisticsTriggers(types.TotalUnitsCaptured, totalUnitsCaptured, newTeam)
 end
 
 function gadget:UnitEnteredLos(unitID, unitTeam, allyTeamID, unitDefID)
@@ -433,6 +466,13 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	processTriggersOfType(types.ConstructionFinished, function(trigger, _)
 		checkConstructionFinished(trigger, unitID, unitDefID, unitTeam)
 	end)
+
+	-- Don't count units spawned by SpawnUnits action
+	if GG['MissionAPI'].spawningUnit then return end
+	-- Don't count starting commanders, initial loadout, etc.
+	if Spring.GetGameFrame() <= 0 then return end
+	totalUnitsBuilt[unitTeam] = (totalUnitsBuilt[unitTeam] or 0) + 1
+	checkStatisticsTriggers(types.TotalUnitsBuilt, totalUnitsBuilt, unitTeam)
 end
 
 function gadget:TeamDied(teamID)

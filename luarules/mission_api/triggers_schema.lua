@@ -382,10 +382,54 @@ local parameters = {
 	[triggerTypes.ResourceProduction] = {  },
 
 	-- Statistics
-	[triggerTypes.TotalUnitsLost] = {  },
-	[triggerTypes.TotalUnitsBuilt] = {  },
-	[triggerTypes.TotalUnitsKilled] = {  },
-	[triggerTypes.TotalUnitsCaptured] = {  },
+	[triggerTypes.TotalUnitsLost] = {
+		[1] = {
+			name = 'teamID',
+			required = true,
+			type = Types.TeamID,
+		},
+		[2] = {
+			name = 'quantity',
+			required = true,
+			type = Types.Number,
+		},
+	},
+	[triggerTypes.TotalUnitsBuilt] = {
+		[1] = {
+			name = 'teamID',
+			required = true,
+			type = Types.TeamID,
+		},
+		[2] = {
+			name = 'quantity',
+			required = true,
+			type = Types.Number,
+		},
+	},
+	[triggerTypes.TotalUnitsKilled] = {
+		[1] = {
+			name = 'teamID',
+			required = true,
+			type = Types.TeamID,
+		},
+		[2] = {
+			name = 'quantity',
+			required = true,
+			type = Types.Number,
+		},
+	},
+	[triggerTypes.TotalUnitsCaptured] = {
+		[1] = {
+			name = 'teamID',
+			required = true,
+			type = Types.TeamID,
+		},
+		[2] = {
+			name = 'quantity',
+			required = true,
+			type = Types.Number,
+		},
+	},
 
 	-- Team
 	[triggerTypes.TeamDestroyed] = {
