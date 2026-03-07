@@ -35,7 +35,6 @@ local typeMapping = {
 	[types.SendMessage] = actionFunctions.SendMessage,
 	[types.Victory] = actionFunctions.Victory,
 	[types.Defeat] = actionFunctions.Defeat,
-	[types.AddResources] = actionFunctions.AddResources,
 }
 
 -- unpack() does not handle optional parameters, as it cannot pass a value as nil

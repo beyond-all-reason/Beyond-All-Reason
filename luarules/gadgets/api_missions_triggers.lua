@@ -21,7 +21,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local gameFrameTriggersCheckInterval = 15
+local unitLocationCheckInterval = 15
 
 local actionsDispatcher
 local types, triggers
@@ -222,7 +222,7 @@ local function checkUnitDwellLocation(trigger, triggerID)
 	for _, unitID in pairs(unitsInArea) do
 		-- If unit already dwelling in area, increase dwelling time:
 		if dwellingUnitsInAreas[triggerID] and dwellingUnitsInAreas[triggerID][unitID] ~= nil then
-			dwellingUnitsInAreas[triggerID][unitID] = dwellingUnitsInAreas[triggerID][unitID] + gameFrameTriggersCheckInterval
+			dwellingUnitsInAreas[triggerID][unitID] = dwellingUnitsInAreas[triggerID][unitID] + unitLocationCheckInterval
 
 			-- Check duration, and if unit still has required name:
 			if dwellingUnitsInAreas[triggerID][unitID] >= trigger.parameters.duration and
@@ -348,27 +348,6 @@ local function checkFeatureDestroyed(trigger, featureID, featureDefID, attackerA
 	activateTrigger(trigger)
 end
 
-local resourceConsecutiveFrames = {}
-local function checkResources(trigger, triggerID, index)
-	local conditionMet = true
-	if trigger.parameters.metal and select(index, Spring.GetTeamResources(trigger.parameters.teamID, "metal")) < trigger.parameters.metal then
-		conditionMet = false
-	end
-	if trigger.parameters.energy and select(index, Spring.GetTeamResources(trigger.parameters.teamID, "energy")) < trigger.parameters.energy then
-		conditionMet = false
-	end
-
-	local requiredConsecutiveFrames = trigger.parameters.stableFrames or 0
-	if conditionMet then
-		resourceConsecutiveFrames[triggerID] = (resourceConsecutiveFrames[triggerID] or 0) + gameFrameTriggersCheckInterval
-		if resourceConsecutiveFrames[triggerID] >= requiredConsecutiveFrames then
-			activateTrigger(trigger)
-		end
-	else
-		resourceConsecutiveFrames[triggerID] = 0
-	end
-end
-
 
 ----------------------------------------------------------------
 --- Call-ins:
@@ -390,7 +369,7 @@ function gadget:GameFrame(frameNumber)
 	processTriggersOfType(types.TimeElapsed, function(trigger, _)
 		checkTimeElapsed(trigger, frameNumber)
 	end)
-	if frameNumber % gameFrameTriggersCheckInterval == 0 then
+	if frameNumber % unitLocationCheckInterval == 0 then
 		processTriggersOfType(types.UnitEnteredLocation, function(trigger, triggerID)
 			checkUnitEnteredLocation(trigger, triggerID)
 		end)
@@ -399,18 +378,6 @@ function gadget:GameFrame(frameNumber)
 		end)
 		processTriggersOfType(types.UnitDwellLocation, function(trigger, triggerID)
 			checkUnitDwellLocation(trigger, triggerID)
-		end)
-		processTriggersOfType(types.ResourceStored, function(trigger, triggerID)
-			checkResources(trigger, triggerID, 1)
-		end)
-		processTriggersOfType(types.ResourceIncome, function(trigger, triggerID)
-			checkResources(trigger, triggerID, 4)
-		end)
-		processTriggersOfType(types.ResourceExpense, function(trigger, triggerID)
-			checkResources(trigger, triggerID, 5)
-		end)
-		processTriggersOfType(types.ResourcePull, function(trigger, triggerID)
-			checkResources(trigger, triggerID, 3)
 		end)
 	end
 end

@@ -25,9 +25,7 @@ local triggerTypes = {
 
 	-- Resources
 	ResourceStored       = 400,
-	ResourceIncome       = 401,
-	ResourceExpense      = 402,
-	ResourcePull         = 403,
+	ResourceProduction   = 401,
 
 	-- Statistics
 	TotalUnitsLost       = 500,
@@ -380,93 +378,8 @@ local parameters = {
 	},
 
 	-- Resources
-	[triggerTypes.ResourceStored] = {
-		[1] = {
-			name = 'teamID',
-			required = true,
-			type = Types.TeamID,
-		},
-		[2] = {
-			name = 'metal',
-			required = false,
-			type = Types.Number,
-		},
-		[3] = {
-			name = 'energy',
-			required = false,
-			type = Types.Number,
-		},
-		requiresOneOf = { 'metal', 'energy', },
-	},
-	[triggerTypes.ResourceIncome] = {
-		[1] = {
-			name = 'teamID',
-			required = true,
-			type = Types.TeamID,
-		},
-		[2] = {
-			name = 'metal',
-			required = false,
-			type = Types.Number,
-		},
-		[3] = {
-			name = 'energy',
-			required = false,
-			type = Types.Number,
-		},
-		[4] = {
-			name = 'stableFrames',
-			required = false,
-			type = Types.Number,
-		},
-		requiresOneOf = { 'metal', 'energy', },
-	},
-	[triggerTypes.ResourceExpense] = {
-		[1] = {
-			name = 'teamID',
-			required = true,
-			type = Types.TeamID,
-		},
-		[2] = {
-			name = 'metal',
-			required = false,
-			type = Types.Number,
-		},
-		[3] = {
-			name = 'energy',
-			required = false,
-			type = Types.Number,
-		},
-		[4] = {
-			name = 'stableFrames',
-			required = false,
-			type = Types.Number,
-		},
-		requiresOneOf = { 'metal', 'energy', },
-	},
-	[triggerTypes.ResourcePull] = {
-		[1] = {
-			name = 'teamID',
-			required = true,
-			type = Types.TeamID,
-		},
-		[2] = {
-			name = 'metal',
-			required = false,
-			type = Types.Number,
-		},
-		[3] = {
-			name = 'energy',
-			required = false,
-			type = Types.Number,
-		},
-		[4] = {
-			name = 'stableFrames',
-			required = false,
-			type = Types.Number,
-		},
-		requiresOneOf = { 'metal', 'energy', },
-	},
+	[triggerTypes.ResourceStored] = {  },
+	[triggerTypes.ResourceProduction] = {  },
 
 	-- Statistics
 	[triggerTypes.TotalUnitsLost] = {  },
