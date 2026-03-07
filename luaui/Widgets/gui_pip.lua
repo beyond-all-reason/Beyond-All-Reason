@@ -10303,6 +10303,16 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		-- Cap icon size for nametag/health bar positioning to match the capped shader icons
 		local cappedIconRadius = math.min(iconRadiusZoomDistMult,
 			Spring.GetConfigFloat("MinimapIconScale", 3.5) * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(0.95) * resScale)
+		-- When unitpics are shown, icons are rendered larger (unitpicSizeMult + borders).
+		-- Precompute the per-icon multiplier and total border size to position nametags correctly.
+		local unitpicsActive = config.showUnitpics and cameraState.targetZoom >= config.unitpicZoomThreshold
+		local unitpicBaseMult, unitpicBorderTotal
+		if unitpicsActive then
+			local zoomFrac = math.max(0, (cameraState.zoom - config.unitpicZoomThreshold) / (1 - config.unitpicZoomThreshold))
+			unitpicBaseMult = 0.88 + 0.05 * zoomFrac
+			local distMult = math.min(math.max(1, 2.2 - (cameraState.zoom * 3.3)), 3)
+			unitpicBorderTotal = (3 + 4) * cameraState.zoom * distMult * resScale
+		end
 		-- Font size scales with zoom: grows when zoomed in, floors at readable minimum
 		local zoomFactor = math.sqrt(cameraState.zoom / 0.12)  -- 1.0 at threshold, grows with zoom
 		local nametagFontSize = math.max(8, math.floor(11 * resScale * zoomFactor))
@@ -10314,7 +10324,6 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		local pipUnits = miscState.pipUnits
 		-- Collect commander positions, draw nametags, and gather health bar data
 		-- (health bars only when unitpics are NOT shown, since unitpics have their own)
-		local unitpicsActive = config.showUnitpics and cameraState.targetZoom >= config.unitpicZoomThreshold
 		local comHealthBars = (config.drawComHealthBars and not unitpicsActive) and {} or nil
 		local comHealthCount = 0
 		for i = 1, unitCount do
@@ -10343,7 +10352,14 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 				if wx then
 					local cx, cy = WorldToPipCoords(wx, posZ[uID])
 					local iconInfo = localCacheUnitIcon[dID]
-					local iconHalf = cappedIconRadius * (iconInfo and iconInfo.size or 0.5)
+					-- When unitpics are active, use the actual rendered outer edge (icon*sizeMult + borders)
+					-- instead of the base icon radius, so nametags clear the unitpic frame
+					local iconHalf
+					if unitpicsActive then
+						iconHalf = iconRadiusZoomDistMult * (iconInfo and iconInfo.size or 0.5) * unitpicBaseMult + unitpicBorderTotal
+					else
+						iconHalf = cappedIconRadius * (iconInfo and iconInfo.size or 0.5)
+					end
 					-- Rotate the icon center to match where the shader placed it
 					if isRotated then
 						local dx, dy = cx - rotCX, cy - rotCY
