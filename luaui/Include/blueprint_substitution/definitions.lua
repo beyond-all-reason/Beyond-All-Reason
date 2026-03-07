@@ -49,12 +49,12 @@ function DefinitionsModule.defineUnitCategories()
     DefCat("METAL_EXTRACTOR", {[SIDES.ARMADA]="armmex", [SIDES.CORTEX]="cormex", [SIDES.LEGION]="legmex"})
     DefCat("EXPLOITER", {[SIDES.ARMADA]="armamex", [SIDES.CORTEX]="corexp", [SIDES.LEGION]="legmext15"})
     DefCat("ADVANCED_EXTRACTOR", {[SIDES.ARMADA]="armmoho", [SIDES.CORTEX]="cormoho", [SIDES.LEGION]="legmoho"})
-    DefCat("ADVANCED_EXPLOITER", {[SIDES.ARMADA]="armmoho", [SIDES.CORTEX]="cormexp", [SIDES.LEGION]="legmohocon"}) -- NOT WORKING
+    DefCat("ADVANCED_EXPLOITER", {[SIDES.ARMADA]="armmoho", [SIDES.CORTEX]="cormexp", [SIDES.LEGION]="legmohocon"})
     DefCat("UW_EXTRACTOR", {[SIDES.ARMADA]="armuwmex", [SIDES.CORTEX]="coruwmex", [SIDES.LEGION]="leguwmex"})
     DefCat("ADVANCED_UW_EXTRACTOR", {[SIDES.ARMADA]="armuwmme", [SIDES.CORTEX]="coruwmme", [SIDES.LEGION]="leguwmme"})
     DefCat("METAL_STORAGE", {[SIDES.ARMADA]="armmstor", [SIDES.CORTEX]="cormstor", [SIDES.LEGION]="legmstor"})
     DefCat("ADVANCED_METAL_STORAGE", {[SIDES.ARMADA]="armuwadvms", [SIDES.CORTEX]="coramstor", [SIDES.LEGION]="legamstor"})
-    DefCat("UW_METAL_STORAGE", {[SIDES.ARMADA]="armuwms", [SIDES.CORTEX]="coruwms", [SIDES.LEGION]="leguwmstore"}) -- NOT WORKING
+    DefCat("UW_METAL_STORAGE", {[SIDES.ARMADA]="armuwms", [SIDES.CORTEX]="coruwms", [SIDES.LEGION]="leguwmstore"})
     DefCat("UW_ADVANCED_METAL_STORAGE", {[SIDES.ARMADA]="armuwadvms", [SIDES.CORTEX]="coruwadvms", [SIDES.LEGION]="coruwadvms"})
 
     -- Energy buildings
