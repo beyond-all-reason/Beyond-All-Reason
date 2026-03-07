@@ -47,17 +47,36 @@ end
 -- detect potatos
 local isPotatoCpu = false
 local isPotatoGpu = false
-local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 1000
-if not gpuMem then
-	gpuMem = 0
-end
-if gpuMem > 0 and gpuMem < 2500 then
-	isPotatoGpu = true
-elseif not Platform.glHaveGL4 then
-	isPotatoGpu = true
-end
+local gpuMem = (Platform.gpuMemorySize or 0) / 1000 -- gpuMemorySize is in KB (only Nvidia reports nonzero), /1000 ≈ MB
+local glRendererLower = Platform.glRenderer and string.lower(Platform.glRenderer) or ""
 
-local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
+if not Platform.glHaveGL4 then
+	-- No GL4 support means the engine can't use modern rendering paths
+	isPotatoGpu = true
+elseif Platform.glHaveNVidia then
+	-- Nvidia reliably reports gpuMemorySize; < ~2.5 GB VRAM = low-end
+	if gpuMem > 0 and gpuMem < 2500 then
+		isPotatoGpu = true
+	end
+elseif Platform.glHaveIntel then
+	-- All Intel GPUs are integrated except the Arc series (discrete)
+	-- Integrated: "Intel(R) HD Graphics ...", "Intel(R) UHD Graphics ...", "Intel(R) Iris ..."
+	-- Discrete:   "Intel(R) Arc(TM) A770", "Intel(R) Arc(TM) B580", etc.
+	if not string.find(glRendererLower, "arc") then
+		isPotatoGpu = true
+	end
+elseif Platform.glHaveAMD then
+	-- AMD discrete GPUs contain "RX" (modern, 2016+) or "R9" (older high-end) in their name
+	-- Integrated: "AMD Radeon(TM) Graphics", "AMD Radeon Vega 8", "AMD Radeon 780M", etc.
+	-- gpuMemorySize is 0 for AMD so we can't use VRAM size
+	if not (string.find(glRendererLower, "rx") or string.find(glRendererLower, "r9 ")) then
+		isPotatoGpu = true
+		gpuMem = 0	-- AMD integrated can report incorrect gpuMemorySize, so set to 0 to avoid false positives for low VRAM
+	end
+else
+	-- Unknown/Mesa vendor without specific detection — assume low-end
+	isPotatoGpu = true
+end
 
 local devMode = Spring.Utilities.IsDevMode()
 local devUI = Spring.Utilities.ShowDevUI()
@@ -1862,7 +1881,7 @@ function applyOptionValue(i, newValue, skipRedrawWindow, force)
 
 	if options[i].id ~= 'preset' and presets.lowest[options[i].id] ~= nil and manualChange then
 		if options[getOptionByID('preset')] then
-			options[getOptionByID('preset')].value = Spring.I18N('ui.settings.option.preset_custom')
+			options[getOptionByID('preset')].value = Spring.I18N('ui.settings.option.select_custom')
 			Spring.SetConfigString('graphicsPreset', 'custom')
 		end
 	end
@@ -1956,9 +1975,11 @@ function init()
 			decals = 0,
 			shadowslider = 1,
 			grass = false,
-			cusgl4 = false,
 			losrange = false,
 			attackrange_numrangesmult = 0.3,
+			cusgl4 = false,
+			water = 1,
+			advmapshading = false,
 		},
 		low = {
 			bloomdeferred = true,
@@ -1977,9 +1998,11 @@ function init()
 			decals = 1,
 			shadowslider = 3,
 			grass = false,
-			cusgl4 = true,
 			losrange = false,
 			attackrange_numrangesmult = 0.5,
+			cusgl4 = true,
+			water = 2,
+			advmapshading = true,
 		},
 		medium = {
 		 	bloomdeferred = true,
@@ -1989,7 +2012,7 @@ function init()
 		 	mapedgeextension = true,
 		 	lighteffects = true,
 		 	lighteffects_additionalflashes = true,
-			 lighteffects_screenspaceshadows = 2,
+			lighteffects_screenspaceshadows = 2,
 			distortioneffects = true,
 		 	snow = true,
 		 	particles = 20000,
@@ -1997,9 +2020,11 @@ function init()
 		 	decals = 2,
 			shadowslider = 4,
 		 	grass = true,
-			cusgl4 = true,
 			losrange = true,
 			attackrange_numrangesmult = 0.7,
+			cusgl4 = true,
+			water = 2,
+			advmapshading = true,
 		},
 		high = {
 			bloomdeferred = true,
@@ -2017,9 +2042,11 @@ function init()
 			decals = 3,
 			shadowslider = 5,
 			grass = true,
-			cusgl4 = true,
 			losrange = true,
 			attackrange_numrangesmult = 0.9,
+			cusgl4 = true,
+			water = 2,
+			advmapshading = true,
 		},
 		ultra = {
 			bloomdeferred = true,
@@ -2037,9 +2064,11 @@ function init()
 			decals = 4,
 			shadowslider = 6,
 			grass = true,
-			cusgl4 = true,
 			losrange = true,
 			attackrange_numrangesmult = 1,
+			cusgl4 = true,
+			water = 2,
+			advmapshading = true,
 		},
 		custom = {},
 	}
@@ -2134,11 +2163,32 @@ function init()
 		if isPotatoGpu then
 			Spring.Echo('potato Graphics Card detected')
 		end
+	end
+	-- restric gfx preset options for potato gpu, lowest preset is added and high preset is removed
+	if devMode or devUI then
+		-- dev mode: show all presets so every quality level can be tested
 		presetNames = {
-			Spring.I18N('ui.settings.option.preset_lowest'),
-			Spring.I18N('ui.settings.option.preset_low'),
-			Spring.I18N('ui.settings.option.preset_medium'),
-			Spring.I18N('ui.settings.option.preset_custom')
+			Spring.I18N('ui.settings.option.select_lowest'),
+			Spring.I18N('ui.settings.option.select_low'),
+			Spring.I18N('ui.settings.option.select_medium'),
+			Spring.I18N('ui.settings.option.select_high'),
+			Spring.I18N('ui.settings.option.select_ultra'),
+			Spring.I18N('ui.settings.option.select_custom')
+		}
+	elseif isPotatoGpu then
+		presetNames = {
+			Spring.I18N('ui.settings.option.select_lowest'),
+			Spring.I18N('ui.settings.option.select_low'),
+			Spring.I18N('ui.settings.option.select_medium'),
+			Spring.I18N('ui.settings.option.select_custom')
+		}
+	else
+		presetNames = {
+			Spring.I18N('ui.settings.option.select_low'),
+			Spring.I18N('ui.settings.option.select_medium'),
+			Spring.I18N('ui.settings.option.select_high'),
+			Spring.I18N('ui.settings.option.select_ultra'),
+			Spring.I18N('ui.settings.option.select_custom')
 		}
 	end
 
@@ -2178,7 +2228,7 @@ function init()
 
 	options = {
 		--GFX
-		{ id = "preset", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.preset'), type = "select", options = { Spring.I18N('ui.settings.option.select_lowest'), Spring.I18N('ui.settings.option.select_low'), Spring.I18N('ui.settings.option.select_medium'), Spring.I18N('ui.settings.option.select_high'), Spring.I18N('ui.settings.option.select_ultra'), Spring.I18N('ui.settings.option.select_custom') },
+		{ id = "preset", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.preset'), type = "select", options = presetNames,
 			onload = function(i)
 				local preset = Spring.GetConfigString('graphicsPreset', 'custom')
 				local configSettingValues = { 'lowest', 'low', 'medium', 'high', 'ultra', 'custom' }
@@ -2403,24 +2453,14 @@ function init()
 		{ id = "label_gfx_lighting_spacer", group = "gfx", category = types.basic },
 
 
-		--{ id = "advmapshading", group = "gfx", category = types.dev, name = Spring.I18N('ui.settings.option.advmapshading'), type = "bool", value = (Spring.GetConfigInt("AdvMapShading", 1) == 1), description = Spring.I18N('ui.settings.option.advmapshading_descr'),
-		--  onchange = function(i, value)
-		--	  Spring.SetConfigInt("AdvMapShading", (value and 1 or 0))
-		--	  Spring.SendCommands("advmapshading "..(value and '1' or '0'))
-		--  end,
-		--},
+		{ id = "advmapshading", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.advmapshading'), type = "bool", value = (Spring.GetConfigInt("AdvMapShading", 1) == 1), description = Spring.I18N('ui.settings.option.advmapshading_descr'),
+		 onchange = function(i, value)
+			  Spring.SetConfigInt("AdvMapShading", (value and 1 or 0))
+			  Spring.SendCommands("advmapshading "..(value and '1' or '0'))
+		 end,
+		},
 
-		-- luaintro sets grounddetail to 200 every launch anyway
-		--{ id = "grounddetail", group = "gfx", category = types.dev, name = Spring.I18N('ui.settings.option.grounddetail'), type = "slider", min = 50, max = 200, step = 1, value = tonumber(Spring.GetConfigInt("GroundDetail", 150) or 150), description = Spring.I18N('ui.settings.option.grounddetail_descr'),
-		--  onload = function(i)
-		--  end,
-		--  onchange = function(i, value)
-		--	  Spring.SetConfigInt("GroundDetail", value)
-		--	  Spring.SendCommands("GroundDetail " .. value)
-		--  end,
-		--},
-
-		{ id = "cusgl4", group = "gfx", name = Spring.I18N('ui.settings.option.cus'), category = types.advanced, type = "bool", value = (Spring.GetConfigInt("cus2", 1) == 1), description = Spring.I18N('ui.settings.option.cus_descr'),
+		{ id = "cusgl4", group = "gfx", name = Spring.I18N('ui.settings.option.cus'), category = types.basic, type = "bool", value = (Spring.GetConfigInt("cus2", 1) == 1), description = Spring.I18N('ui.settings.option.cus_descr'),
 		  onchange = function(i, value)
 			  if value == 0.5 then
 				  Spring.SendCommands("luarules disablecusgl4")
@@ -2568,17 +2608,6 @@ function init()
 			  saveOptionValue('LOS colors', 'los', 'setOpacity', { 'opacity' }, value)
 		  end,
 		},
-
-		-- { id = "water", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.water'), type = "select", options = { 'basic', 'reflective', 'dynamic', 'reflective&refractive', 'bump-mapped' }, value = desiredWaterValue + 1,
-		--   onload = function(i)
-		--   end,
-		--   onchange = function(i, value)
-		-- 	  desiredWaterValue = value - 1
-		-- 	  if waterDetected then
-		-- 		  Spring.SendCommands("water " .. desiredWaterValue)
-		-- 	  end
-		--   end,
-		-- },
 
 		{ id = "water", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.water'), type = "select", options = { Spring.I18N('ui.settings.option.select_low'), Spring.I18N('ui.settings.option.select_high') }, value = desiredWaterValue == 4 and 2 or 1,
 		  onload = function(i)
@@ -3551,6 +3580,17 @@ function init()
 		  end,
 		},
 		{ id = "minimappip", group = "ui", category = types.advanced, widget = "Picture-in-Picture Minimap", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimappip'), type = "bool", value = GetWidgetToggleValue("Picture-in-Picture Minimap"), description = Spring.I18N('ui.settings.option.minimappip_descr') },
+
+		{ id = "pip_commandfx", group = "ui", category = types.advanced, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.pip_commandfx'), type = "bool", value = Spring.GetConfigInt("PipDrawCommandFX", 1) == 1, description = Spring.I18N('ui.settings.option.pip_commandfx_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("PipDrawCommandFX", value and 1 or 0)
+			  for _, n in ipairs({0, 1, 2, 3, 4}) do
+				  if WG['pip' .. n] and WG['pip' .. n].setDrawCommandFX then
+					  WG['pip' .. n].setDrawCommandFX(value)
+				  end
+			  end
+		  end,
+		},
 
 
 		{ id = "pip", group = "ui", category = types.advanced, widget = "Picture-in-Picture", name = Spring.I18N('ui.settings.option.pip'), type = "bool", value = GetWidgetToggleValue("Picture-in-Picture"), description = Spring.I18N('ui.settings.option.pip_descr') },
@@ -6028,9 +6068,11 @@ function init()
 		--planeColor = {number r, number g, number b},
 	}
 
-	--if not isPotatoGpu and gpuMem <= 4500 then
-	--	options[getOptionByID('advmapshading')].category = types.basic
-	--end
+	if not isPotatoGpu and not devMode and not devUI then
+		options[getOptionByID('advmapshading')] = nil
+		Spring.SetConfigInt("AdvMapShading", 1)
+		Spring.SendCommands("advmapshading 1")
+	end
 
 	-- reset tonemap defaults (only once)
 	if not resettedTonemapDefault then
@@ -6186,8 +6228,8 @@ function init()
 		options[getOptionByID('dualmode_minimap_aspectratio')] = nil
 	end
 
-	-- reduce options for potatoes
-	if isPotatoGpu or isPotatoCpu then
+	-- reduce options for potatoes (skip in dev mode to keep all options available)
+	if (isPotatoGpu or isPotatoCpu) and not devMode and not devUI then
 		--local id = getOptionByID('shadowslider')
 		--options[id].options = { 1, 2, 3 }
 		--if options[id].value > 3 then
@@ -6203,8 +6245,6 @@ function init()
 		end
 
 		if isPotatoGpu then
-			Spring.SendCommands("luarules disablecusgl4")
-			options[getOptionByID('cusgl4')] = nil
 
 			-- limit available msaa levels to 'off' and 'x2'
 			if options[getOptionByID('msaa')] then
@@ -6231,32 +6271,25 @@ function init()
 			options[getOptionByID('bloom_brightness')] = nil
 			options[getOptionByID('bloom_quality')] = nil
 
-			id = getOptionByID('guishader')
-			if id and GetWidgetToggleValue(options[id].widget) then
-				widgetHandler:DisableWidget(options[id].widget)
-			end
-			options[id] = nil
-
-			id = getOptionByID('dof')
-			if id and GetWidgetToggleValue(options[id].widget) then
-				widgetHandler:DisableWidget(options[id].widget)
-			end
-			options[id] = nil
-			options[getOptionByID('dof_autofocus')] = nil
-			options[getOptionByID('dof_fstop')] = nil
+			-- id = getOptionByID('dof')
+			-- if id and GetWidgetToggleValue(options[id].widget) then
+			-- 	widgetHandler:DisableWidget(options[id].widget)
+			-- end
+			-- options[id] = nil
+			-- options[getOptionByID('dof_autofocus')] = nil
+			-- options[getOptionByID('dof_fstop')] = nil
 
 			id = getOptionByID('clouds')
 			if id and GetWidgetToggleValue(options[id].widget) then
 				widgetHandler:DisableWidget(options[id].widget)
 			end
 			options[id] = nil
-			options[getOptionByID('could_opacity')] = nil
+			options[getOptionByID('clouds_opacity')] = nil
 
 			-- set lowest quality shadows for Intel GPU (they eat fps but dont show)
 			--if Platform ~= nil and Platform.gpuVendor == 'Intel' and gpuMem < 2500 then
 			--	Spring.SendCommands("advmapshading 0")
 			--end
-
 		end
 
 	elseif gpuMem >= 3000 then
@@ -6264,7 +6297,6 @@ function init()
 			local id = getOptionByID('cusgl4')
 			options[id].onchange(id, 1)
 		end
-		options[getOptionByID('cusgl4')] = nil
 
 		--local id = getOptionByID('shadowslider')
 		--options[id].options[1] = nil
@@ -6277,7 +6309,15 @@ function init()
 			Spring.SendCommands("water 4")
 			Spring.SetConfigInt("Water", 4)
 		end
-		options[getOptionByID('water')] = nil
+		
+		if not devMode and not devUI then
+			options[getOptionByID('cusgl4')] = nil
+			options[getOptionByID('water')] = nil
+		end
+	end
+
+	if not isPotatoGpu and not devMode and not devUI then
+		options[getOptionByID('cusgl4')] = nil
 	end
 
 	-- loads values via stored game config in luaui/configs
@@ -6858,7 +6898,9 @@ function widget:Initialize()
 
 		-- Set lower defaults for lower end/potato systems
 		if gpuMem < 3300 then
-			Spring.SetConfigInt("MSAALevel", 2)
+			if Spring.GetConfigInt("MSAALevel", 2) > 2 then
+				Spring.SetConfigInt("MSAALevel", 2)
+			end
 		end
 		if isPotatoGpu then
 			Spring.SendCommands("water 0")
@@ -6867,6 +6909,7 @@ function widget:Initialize()
 			--Spring.SetConfigInt("AdvMapShading", 0)
 			--Spring.SendCommands("advmapshading 0")
 			Spring.SendCommands("Shadows 0 1024")
+			Spring.SetConfigInt("Shadows", 0)
 			Spring.GetConfigInt("ShadowQuality", 0)
 			Spring.SetConfigInt("ShadowMapSize", 1024)
 			Spring.SetConfigInt("Shadows", 0)
@@ -6900,24 +6943,6 @@ function widget:Initialize()
 			Spring.SetConfigInt("MaxSounds", 128)
 		end
 
-		-- limit music volume -- why?
-		-- if Spring.GetConfigInt("snd_volmusic", 50) > 50 then
-		-- 	Spring.SetConfigInt("snd_volmusic", 50)
-		-- end
-
-		-- enable normal mapping
-		if Spring.GetConfigInt("NormalMapping", 0) ~= 1 then
-			Spring.SetConfigInt("NormalMapping", 1)
-			Spring.SendCommands("luarules normalmapping 1")
-		end
-		-- disable clouds
-		if Spring.GetConfigInt("AdvSky", 0) ~= 0 then
-			Spring.SetConfigInt("AdvSky", 0)
-		end
-		-- disable grass
-		if Spring.GetConfigInt("GrassDetail", 0) ~= 0 then
-			Spring.SetConfigInt("GrassDetail", 0)
-		end
 		-- limit MSAA
 		if Spring.GetConfigInt("MSAALevel", 0) > 8 then
 			Spring.SetConfigInt("MSAALevel", 8)

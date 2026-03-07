@@ -4,8 +4,10 @@
 piece  base, armor, dishbase, blob, dish1, dish2, dish3, dish4, thighfl, legfl, footfl, thighbl, legbl, footbl, thighfr, legfr, footfr, thighbr, legbr, footbr;
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, Stunned;
+static-var recently_damaged, desired_activation;
 
 // Signal definitions
+#define SIGNAL_OFF 	    8
 #define SIGNAL_TURNON 	4
 #define SIGNAL_MOVE 	1
 
@@ -355,7 +357,7 @@ StopMoving(){
 #define UNITSIZE 2
 #define MAXTILT 100
 
-#include "../unit_hitbyweaponid_and_smoke.h"
+#include "../damagedsmoke.h"
 
 Lights()
 {
@@ -366,8 +368,22 @@ Lights()
 	start-script Lights();
 }
 
-Create()
+StartSpin()
 {
+	spin dishbase around y-axis speed <100.0> accelerate <5.0>;
+	show blob;
+	move dish4 to z-axis [0] speed [2];
+	move dish3 to x-axis [0] speed [2];
+	move dish2 to z-axis [0] speed [2];
+	move dish1 to x-axis [0] speed [2];
+	turn dish4 to y-axis <0> speed <20>;
+	turn dish3 to y-axis <0> speed <20>;
+	turn dish2 to y-axis <0> speed <20>;
+	turn dish1 to y-axis <0> speed <20>;
+}
+StopSpin()
+{
+	stop-spin dishbase around y-axis decelerate <10.0>;
 	hide blob;
 	move dish4 to z-axis [-1] now;
 	move dish3 to x-axis [-1] now;
@@ -377,7 +393,15 @@ Create()
 	turn dish3 to y-axis <10> now;
 	turn dish2 to y-axis <10> now;
 	turn dish1 to y-axis <10> now;
-	
+}
+
+Create()
+{
+	start-script StopSpin();
+
+	recently_damaged = 0;
+	desired_activation = 1;
+
 	isMoving = FALSE;
 	animSpeed = 4;
 	start-script StopMoving();
@@ -390,38 +414,32 @@ Activate()
 {
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	
-	spin dishbase around y-axis speed <100.0> accelerate <5.0>;
-	show blob;
-	move dish4 to z-axis [0] speed [2];
-	move dish3 to x-axis [0] speed [2];
-	move dish2 to z-axis [0] speed [2];
-	move dish1 to x-axis [0] speed [2];
-	turn dish4 to y-axis <0> speed <20>;
-	turn dish3 to y-axis <0> speed <20>;
-	turn dish2 to y-axis <0> speed <20>;
-	turn dish1 to y-axis <0> speed <20>;
-	
+
+	desired_activation = 1;
+	if (recently_damaged == 1)
+	{
+		set ACTIVATION to 0;
+		return(0);
+	}
+
+	start-script StartSpin();
 	start-script Lights();
 	return (0);
 }
 
 Deactivate()
 {
+	// Wait since unit_paralyze_on_off deactivates the unit before it is actually turned off
+	// so we need to delay the check for whether the unit is "damaged" by a paralyzer weapon
+	sleep 100;
+	if (recently_damaged == 0)
+	{
+		desired_activation = 0;
+	}
+
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	
-	stop-spin dishbase around y-axis decelerate <10.0>;
-	hide blob;
-	move dish4 to z-axis [-1] speed [2];
-	move dish3 to x-axis [-1] speed [2];
-	move dish2 to z-axis [1] speed [2];
-	move dish1 to x-axis [1] speed [2];
-	turn dish4 to y-axis <10> speed <20>;
-	turn dish3 to y-axis <10> speed <20>;
-	turn dish2 to y-axis <10> speed <20>;
-	turn dish1 to y-axis <10> speed <20>;
-	
+	start-script StopSpin();	
 	return (0);
 }
 
@@ -434,8 +452,21 @@ SetStunned(State)
 	}
 }
 
-
-
+OffOnHit()
+{
+	signal SIGNAL_OFF;
+	set-signal-mask SIGNAL_OFF;
+	recently_damaged = 1;
+	set ACTIVATION to 0; // turn off unit
+	sleep 8000; //hardcoded time to stay off after being hit
+	recently_damaged = 0;
+	set ACTIVATION to desired_activation;
+}
+HitByWeapon(anglex, anglez)
+{
+	if (!(get BUILD_PERCENT_LEFT)) start-script OffOnHit();
+	return (0);
+}
 
 Killed(severity, corpsetype)
 {

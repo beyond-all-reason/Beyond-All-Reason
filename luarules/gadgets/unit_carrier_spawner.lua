@@ -35,6 +35,7 @@ local spUnitAttach 				= Spring.UnitAttach
 local spUnitDetach 				= Spring.UnitDetach
 local spSetUnitHealth 			= Spring.SetUnitHealth
 local spSetUnitMaxHealth 		= Spring.SetUnitMaxHealth
+local spSetUnitUseAirLos        = Spring.SetUnitUseAirLos
 local spGetGroundHeight 		= Spring.GetGroundHeight
 local spGetUnitNearestEnemy		= Spring.GetUnitNearestEnemy
 local spTransferUnit			= Spring.TransferUnit
@@ -366,6 +367,7 @@ local function undockUnit(unitID, subUnitID)
 			if not carrierMetaList[unitID].manualDrones then
 				SetUnitNoSelect(subUnitID, true)
 			end
+			spSetUnitUseAirLos(subUnitID, droneMetaData.isAirUnit)
 			droneMetaData.docked = false
 			carrierMetaList[unitID].activeDocking = false
 			droneMetaData.activeDocking = false
@@ -564,6 +566,7 @@ local function spawnUnit(spawnData)
 							spSetUnitRulesParam(subUnitID, "carrier_host_unit_id", ownerID, PRIVATE)
 							local subUnitCount = carrierData.subUnitCount[dronetypeIndex]
 							local subunitDefID	= spGetUnitDefID(subUnitID)
+							local subUnitDef = UnitDefs[subunitDefID]
 							subUnitCount = subUnitCount + 1
 							carrierData.subUnitCount[dronetypeIndex] = subUnitCount
 							local dockingpieceindex
@@ -590,10 +593,11 @@ local function spawnUnit(spawnData)
 								engaged = false,
 								bomberStage = 0,
 								lastBombing = 0,
-								originalmaxrudder = UnitDefs[subunitDefID].maxRudder,
+								originalmaxrudder = subUnitDef.maxRudder,
 								fighterStage = 0,
 								dockingPiece = dockingpiece,
 								dockingPieceIndex = dockingpieceindex,
+								isAirUnit = subUnitDef.isAirUnit,
 								originalMaxHealth = droneMaxHealth,
 								droneAirTime = carrierData.droneAirTime[dronetypeIndex],
 								lastLiftOff = 0,
@@ -636,6 +640,7 @@ local function spawnUnit(spawnData)
 							if not carrierData.manualDrones then
 								SetUnitNoSelect(subUnitID, true)
 							end
+							spSetUnitUseAirLos(subUnitID, carrierData.isAirUnit)
 
 							droneMetaData.docked = true
 							droneMetaData.activeDocking = false
@@ -652,6 +657,7 @@ local function spawnUnit(spawnData)
 							end
 						else
 							spGiveOrderToUnit(subUnitID, CMD.MOVE, {spawnData.x, spawnData.y, spawnData.z}, 0)
+							spSetUnitUseAirLos(subUnitID, droneMetaData.isAirUnit)
 						end
 
 						if not carrierData.manualDrones then
@@ -724,6 +730,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		local weapon = weaponList[i]
 		local weaponDefID = weapon.weaponDef
 		if weaponDefID and spawnDefs[weaponDefID] then
+			local isAirUnit = unitDef.isAirUnit
 
 			local spawnDef = spawnDefs[weaponDefID]
 			if spawnDef.radius then
@@ -827,6 +834,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 						droneAirTime = {},
 						droneDockTime = {},
 						droneAmmo = {},
+						isAirUnit = isAirUnit,
 					}
 					for dronetypeIndex, _ in pairs(carrierData.dronenames) do
 						carrierData.subUnitCount[dronetypeIndex] = 0
@@ -1273,6 +1281,7 @@ local function updateCarrier(carrierID, carrierMetaData, frame)
 			
 			if droneDocked and droneData.maxAmmo > 0 then 
 				droneData.remainingAmmo = droneData.maxAmmo
+				spSetUnitUseAirLos(subUnitID, carrierMetaData.isAirUnit)
 			end
 			
 			if droneCurrentHealth then
@@ -1621,6 +1630,7 @@ local function dockUnits(dockingqueue, queuestart, queueend)
 								if not carrierMetaList[unitID].manualDrones then
 									SetUnitNoSelect(subUnitID, true)
 								end
+								spSetUnitUseAirLos(subUnitID, carrierMetaList[unitID].isAirUnit)
 								droneDocked = true
 								droneMetaData.docked = true
 								droneMetaData.activeDocking = false

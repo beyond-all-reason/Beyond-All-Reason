@@ -1056,11 +1056,16 @@ if gadgetHandler:IsSyncedCode() then
 				totalMaxHealth = totalMaxHealth + status.maxHealth
 			else
 				local health, maxHealth = GetUnitHealth(bossID)
-				table.mergeInPlace(status, {health = health, maxHealth = maxHealth})
+				if not health then
+					status.isDead = true
+					totalMaxHealth = totalMaxHealth + status.maxHealth
+				else
+					table.mergeInPlace(status, {health = health, maxHealth = maxHealth})
 
-				totalHealth = totalHealth + health
-				aliveBossesMaxHealth = aliveBossesMaxHealth + maxHealth
-				totalMaxHealth = totalMaxHealth + maxHealth
+					totalHealth = totalHealth + health
+					aliveBossesMaxHealth = aliveBossesMaxHealth + maxHealth
+					totalMaxHealth = totalMaxHealth + maxHealth
+				end
 			end
 		end
 

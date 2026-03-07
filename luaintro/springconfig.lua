@@ -34,11 +34,14 @@ end
 Spring.SetConfigInt("CubeTexGenerateMipMaps", 1)
 Spring.SetConfigInt("CubeTexSizeReflection", 1024)
 
+
+Spring.SetConfigInt("AdvSky", 0)
+
 -- disable grass
 Spring.SetConfigInt("GrassDetail", 0)
 
 -- adv map shading
-Spring.SetConfigInt("AdvMapShading", 1)
+--Spring.SetConfigInt("AdvMapShading", 1)
 
 -- make sure default/minimum ui opacity is set
 if Spring.GetConfigFloat("ui_opacity", 0.6) < 0.3 then
