@@ -49,6 +49,9 @@ local actionTypes = {
 
 	-- Custom
 	Custom             = 900,       --
+
+	-- Other
+	AddResources       = 1000,
 }
 
 --============================================================--
@@ -294,6 +297,26 @@ local parameters = {
 			required = true,
 			type = Types.Function,
 		},
+	},
+
+	-- Other
+	[actionTypes.AddResources] = {
+		[1] = {
+			name = 'teamID',
+			required = true,
+			type = Types.TeamID,
+		},
+		[2] = {
+			name = 'metal',
+			required = false,
+			type = Types.Number,
+		},
+		[3] = {
+			name = 'energy',
+			required = false,
+			type = Types.Number,
+		},
+		requiresOneOf = { 'metal', 'energy', },
 	},
 }
 
