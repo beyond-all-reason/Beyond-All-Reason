@@ -2194,6 +2194,14 @@ local buttons = {
 		end
 	},
 	{
+		texture = 'LuaUI/Images/pip/PipHelp.png',
+		tooltipKey = 'ui.pip.help',
+		command = 'pip_help',
+		OnPress = function()
+			-- No action: the help button only shows its tooltip on hover
+		end
+	},
+	{
 		texture = 'LuaUI/Images/pip/PipMove.png',
 		tooltipKey = 'ui.pip.move',  -- No command, no shortcut
 		command = nil,
@@ -10775,6 +10783,11 @@ local function RenderFrameButtons()
 				if not config.tvModeSpectatorsOnly or cameraState.mySpecState then
 					visibleButtons[#visibleButtons + 1] = btn
 				end
+			-- Show pip_help button only in minimap mode
+			elseif btn.command == 'pip_help' then
+				if isMinimapMode then
+					visibleButtons[#visibleButtons + 1] = btn
+				end
 			else
 				visibleButtons[#visibleButtons + 1] = btn
 			end
@@ -13995,6 +14008,10 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 					end
 					-- Generate tooltip with shortcut key on new line if available
 					local tooltipText = Spring.I18N(tooltipKey)
+					-- For help button: append left-click hint only when leftButtonPansCamera is enabled
+					if visibleButtons[i].command == 'pip_help' and config.leftButtonPansCamera then
+						tooltipText = tooltipText .. Spring.I18N('ui.pip.help_leftclick')
+					end
 					-- Use button's shortcut field first, fall back to getActionHotkey
 					-- In minimap mode, don't show shorcut for track units button
 					local shortcut = visibleButtons[i].shortcut
@@ -17212,6 +17229,10 @@ function widget:MousePress(mx, my, mButton)
 							end
 						elseif btn.command == 'pip_tv' then
 							if not config.tvModeSpectatorsOnly or cameraState.mySpecState then
+								visibleButtons[#visibleButtons + 1] = btn
+							end
+						elseif btn.command == 'pip_help' then
+							if isMinimapMode then
 								visibleButtons[#visibleButtons + 1] = btn
 							end
 						else
