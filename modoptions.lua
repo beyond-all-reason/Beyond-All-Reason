@@ -251,13 +251,13 @@ local options = {
 
     {
         key    	= "norushtimer",
-        name   	= "No Rush Time".."\255\128\128\128".." [minutes]",
+        name   	= "No Rush Time [minutes]",
         desc   	= "Set timer in which players cannot get out of their startbox, so you have time to prepare before fighting.\n"..
 			"PLEASE NOTE: For this to work, the game needs to have set startboxes.\n"..
 			-- tabs don't do much in chobby
 			"                          It won't work in FFA mode without boxes.\n"..
 			"                          Also, it does not affect Scavengers and Raptors.\n"..
-			"\255\75\0\100".."WARNING: No Rush Time over 30 minutes may cause performance or stability issues due to excessive unit buildup.",
+			"WARNING: No Rush Time over 30 minutes may cause performance or stability issues due to excessive unit buildup.",
         type   	= "number",
         section	= "options_main",
         def    	= 0,
@@ -281,7 +281,7 @@ local options = {
 	{
 		key		= "tax_resource_sharing_amount",
 		name	= "Resource Sharing Tax",
-		desc	=	"Taxes resource sharing".."\255\128\128\128".." and overflow (engine TODO:)\n"..
+		desc	=	"Taxes resource sharing and overflow (engine TODO:)\n"..
 					"Set to [0] to turn off. Recommended: [0.4]. (Ranges: 0 - 0.99)",
 		type	= "number",
 		def		= 0,
@@ -2034,7 +2034,7 @@ local options = {
     { key     = "date_hour", name    = "Hour", desc    = "Spads (Multiplayer) / Skirmish Interface (Singleplayer) fed, auto-overwriten", section = "dev", type = "number", def = 0, min = 0, max = 24, step = 1, },
     {
         key     = "factionlimiter",
-        name    = "Faction Limiter:".."\255\255\191\76".." ON\n".."\255\125\125\125".."BITMASK",
+        name    = "Faction Limiter: ON\n".."BITMASK",
         desc    = [[BITMASK to be used via custom ui, only visible when boss
 Set to [0] To disable.
 Otherwise: 0th, 1st and 2nd bit are armada, cortex and legion respectively.
