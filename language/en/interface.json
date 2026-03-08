@@ -935,6 +935,7 @@
 			"aim": "aim",
 			"firerate": "firerate",
 			"range": "range",
+			"coverage": "coverage",
 			"aoe": "aoe",
 			"edge": "edge",
 			"s": "s",

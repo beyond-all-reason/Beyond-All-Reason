@@ -663,22 +663,26 @@ local function drawStats(uDefID, uID)
 			end
 
 			local infoText = ""
-			if wpnName == texts.deathexplosion or wpnName == texts.selfdestruct then
-				infoText = format("%d "..texts.aoe..", %d%% "..texts.edge, uWep.damageAreaOfEffect, 100 * uWep.edgeEffectiveness)
-			else
-				infoText = format("%.2f", (useExp and reload or uWep.reload))..texts.s.." "..texts.reload..", "..format("%d "..texts.range..", %d "..texts.aoe..", %d%% "..texts.edge, useExp and range or uWep.range, uWep.damageAreaOfEffect, 100 * uWep.edgeEffectiveness)
-			end
-			if damages.paralyzeDamageTime > 0 then
-				infoText = format("%s, %ds "..texts.paralyze, infoText, damages.paralyzeDamageTime)
-			end
-			if damages.impulseFactor > 0.123 then
-				infoText = format("%s, %d "..texts.impulse, infoText, damages.impulseFactor*100)
-			end
-			if damages.craterBoost > 0 then
-				infoText = format("%s, %d "..texts.crater, infoText, damages.craterBoost*100)
-			end
 			if string.find(uWep.name, "disintegrator") then
 				infoText = format("%.2f", (useExp and reload or uWep.reload)).."s "..texts.reload..", "..format("%d "..texts.range, useExp and range or uWep.range)
+			elseif uWep.interceptor ~= 0 and uWep.coverageRange > 0 then
+				local stockpile, coverage = uWep.stockpileTime / simSpeed, uWep.coverageRange
+				infoText = format("%.2f%s %s (%d%s %s), %d %s", useExp and reload or uWep.reload, texts.s, texts.reload, stockpile, texts.s, texts.stockpile:lower(), coverage, texts.coverage)
+			else
+				if wpnName == texts.deathexplosion or wpnName == texts.selfdestruct then
+					infoText = format("%d "..texts.aoe..", %d%% "..texts.edge, uWep.damageAreaOfEffect, 100 * uWep.edgeEffectiveness)
+				else
+					infoText = format("%.2f", (useExp and reload or uWep.reload))..texts.s.." "..texts.reload..", "..format("%d "..texts.range..", %d "..texts.aoe..", %d%% "..texts.edge, useExp and range or uWep.range, uWep.damageAreaOfEffect, 100 * uWep.edgeEffectiveness)
+				end
+				if damages.paralyzeDamageTime > 0 then
+					infoText = format("%s, %ds "..texts.paralyze, infoText, damages.paralyzeDamageTime)
+				end
+				if damages.impulseFactor > 0.123 then
+					infoText = format("%s, %d "..texts.impulse, infoText, damages.impulseFactor*100)
+				end
+				if damages.craterBoost > 0 then
+					infoText = format("%s, %d "..texts.crater, infoText, damages.craterBoost*100)
+				end
 			end
 			DrawText(texts.info..":", infoText)
 
