@@ -126,13 +126,17 @@ config = {
 	playerTrackingSmoothness = 4.5,
 	switchSmoothness = 30,
 	zoomMin = 0.04,
-	zoomMax = 1.6,
+	zoomMax = 2,
 	zoomFeatures = 0.2,
 	zoomFeaturesFadeRange = 0.06,  -- Zoom range over which features fade in/out
 	zoomProjectileDetail = 0.12,
 	zoomExplosionDetail = 0.12,  -- Legacy, now using graduated visibility
 	drawExplosions = true,  -- Separate from projectiles
 	drawPlasmaTrails = true,  -- Show fading trails behind plasma/artillery projectiles
+	trailSkipThreshold = 100,  -- Skip missile/plasma trails when drawn projectile count exceeds this (0 = never skip)
+	iconPosRefreshThreshold = 4000,  -- Cache mobile unit positions above this count (refresh 1/3 per frame)
+	iconGhostSkipThreshold = 6000,  -- Skip ghost building pass above this count
+	iconMobileBlockThreshold = 5000,  -- Cache mobile VBO data above this count (rebuild every 2nd frame)
 	explosionOverlay = true,  -- Re-render explosions on top of unit icons (additive glow)
 	explosionOverlayAlpha = 0.66,  -- Strength of the above-icons explosion overlay (0-1)
 	healthDarkenMax = 0.2,  -- Maximum darkening for damaged units on GL4 icons (0-1, 0.18 = 18%)
@@ -1568,6 +1572,15 @@ local perfTimers = {
 }
 local PERF_SMOOTH = 0.1  -- EMA smoothing factor
 
+-- Per-frame trail skip flag: set before the projectile draw loop, checked inside DrawProjectile.
+-- When true, missile smoke trails and plasma trails are skipped to save GL calls.
+local skipProjectileTrails = false
+-- EMA-smoothed count of visible projectiles (with trails) in the PIP viewport.
+-- Updated each frame after drawing; used NEXT frame to decide skipProjectileTrails.
+local visibleProjEMA = 0
+local TRAIL_EMA_UP = 0.35   -- Fast rise: respond quickly when projectile count spikes
+local TRAIL_EMA_DOWN = 0.12 -- Slow fall: don't flicker trails back on immediately
+
 -- Dynamic detail caps: reduce max explosions/projectiles when workload is high
 -- Returns adjusted cap based on last frame's item count
 local function GetDetailCap(baseCap)
@@ -2203,6 +2216,14 @@ local buttons = {
 				miscState.activityFocusActive = false
 			end
 			pipR2T.frameNeedsUpdate = true
+		end
+	},
+	{
+		texture = 'LuaUI/Images/pip/PipHelp.png',
+		tooltipKey = 'ui.pip.help',
+		command = 'pip_help',
+		OnPress = function()
+			-- No action: the help button only shows its tooltip on hover
 		end
 	},
 	{
@@ -3755,6 +3776,39 @@ local function CorrectScreenPosition()
 	end
 end
 
+-- Clamp an arbitrary {l, r, b, t} dimensions table to screen bounds with margins.
+-- Unlike CorrectScreenPosition (which operates on render.dim), this works on any dims table.
+local function ClampDimensionsToScreen(dims)
+	if not dims or not dims.l or not dims.r or not dims.b or not dims.t then return end
+
+	local screenMarginPx
+	if isMinimapMode then
+		screenMarginPx = math.floor(config.minimapModeScreenMargin * render.vsy)
+	else
+		screenMarginPx = math.floor(config.screenMargin * render.vsy)
+	end
+
+	local windowWidth = dims.r - dims.l
+	local windowHeight = dims.t - dims.b
+
+	if dims.l < screenMarginPx then
+		dims.l = screenMarginPx
+		dims.r = dims.l + windowWidth
+	end
+	if dims.r > render.vsx - screenMarginPx then
+		dims.r = render.vsx - screenMarginPx
+		dims.l = dims.r - windowWidth
+	end
+	if dims.b < screenMarginPx then
+		dims.b = screenMarginPx
+		dims.t = dims.b + windowHeight
+	end
+	if dims.t > render.vsy - screenMarginPx then
+		dims.t = render.vsy - screenMarginPx
+		dims.b = dims.t - windowHeight
+	end
+end
+
 local function IsFiniteNumber(value)
 	return type(value) == "number" and value == value and value ~= math.huge and value ~= -math.huge
 end
@@ -4835,8 +4889,11 @@ local function DrawProjectile(pID)
 		
 		-- Add smoke trail for missiles (including starburst)
 		-- Skip trails for small missiles when zoomed out (they're just tiny dots)
+		-- Also skip all trails when projectile count is high (too many GL calls)
+		-- Only process trails for projectiles actually inside the PIP viewport
 		local missileSize = cache.weaponSize[pDefID] or 1
-		local showTrail = missileSize >= 3 or cameraState.zoom >= 0.15 or isNuke
+		local inViewport = px >= render.world.l and px <= render.world.r and pz >= render.world.t and pz <= render.world.b
+		local showTrail = inViewport and not skipProjectileTrails and (missileSize >= 3 or cameraState.zoom >= 0.15 or isNuke)
 		if showTrail then
 		do
 			-- Get or create trail data for this projectile
@@ -5047,7 +5104,7 @@ local function DrawProjectile(pID)
 		-- 	bombW * 1.6, bombH * 0.12, bombAngle, 0.64, 0.64, 0.62, 0.9)
 	elseif pDefID and cache.weaponIsPlasma[pDefID] then
 		-- Plasma gradient circle (reduce size when zoomed in to stay proportional to world scale)
-		local plasmaZoomReduction = mMin(1, 0.45 + 0.55 * (1 - cameraState.zoom))
+		local plasmaZoomReduction = mMax(0.15, mMin(1, 0.45 + 0.55 * (1 - cameraState.zoom)))
 		local radius = mMax(width, height) * plasmaZoomReduction
 		local coreWhiteness = 0.9
 		local coreR, coreG, coreB, outerR, outerG, outerB
@@ -5068,7 +5125,10 @@ local function DrawProjectile(pID)
 
 		-- Plasma trail: short fading trail for artillery/cannon projectiles with CEG trails
 		-- Uses game frames instead of os.clock() so trails don't elongate during catchup
-		local trailColor = config.drawPlasmaTrails and cache.weaponPlasmaTrailColor[pDefID]
+		-- Skip trails entirely when projectile count is high (per-segment GL calls are expensive)
+		-- Only process trails for projectiles actually inside the PIP viewport
+		local inPlasmaViewport = px >= render.world.l and px <= render.world.r and pz >= render.world.t and pz <= render.world.b
+		local trailColor = inPlasmaViewport and not skipProjectileTrails and config.drawPlasmaTrails and cache.weaponPlasmaTrailColor[pDefID]
 		if trailColor then
 			local trail = cache.plasmaTrails[pID]
 			local gameFrame = Spring.GetGameFrame()
@@ -7557,6 +7617,8 @@ function widget:ViewResize()
 			uiState.savedDimensions.r = math.floor(uiState.savedDimensions.r / oldVsx * render.vsx)
 			uiState.savedDimensions.b = math.floor(uiState.savedDimensions.b / oldVsy * render.vsy)
 			uiState.savedDimensions.t = math.floor(uiState.savedDimensions.t / oldVsy * render.vsy)
+			-- Clamp rescaled savedDimensions to screen bounds with margins
+			ClampDimensionsToScreen(uiState.savedDimensions)
 		end
 		
 		if uiState.inMinMode then
@@ -7678,10 +7740,17 @@ function widget:ViewResize()
 		uiState.minModeB = render.vsy - buttonSizeScaled - screenMarginPx
 	end
 	
-	-- Validate minMode position isn't at bottom-left (indicating corruption)
-	if uiState.minModeL < buttonSizeScaled and uiState.minModeB < buttonSizeScaled then
-		-- Corrupted position, reset to top-right corner
+	-- Clamp minMode button position to screen bounds
+	if uiState.minModeL < screenMarginPx then
+		uiState.minModeL = screenMarginPx
+	end
+	if uiState.minModeL + buttonSizeScaled > render.vsx - screenMarginPx then
 		uiState.minModeL = render.vsx - buttonSizeScaled - screenMarginPx
+	end
+	if uiState.minModeB < screenMarginPx then
+		uiState.minModeB = screenMarginPx
+	end
+	if uiState.minModeB + buttonSizeScaled > render.vsy - screenMarginPx then
 		uiState.minModeB = render.vsy - buttonSizeScaled - screenMarginPx
 	end
 
@@ -8099,6 +8168,11 @@ function widget:SetConfigData(data)
 				render.dim.b = uiState.savedDimensions.b
 				render.dim.t = uiState.savedDimensions.t
 				CorrectScreenPosition()
+				-- Sync corrected position back to savedDimensions
+				uiState.savedDimensions.l = render.dim.l
+				uiState.savedDimensions.r = render.dim.r
+				uiState.savedDimensions.b = render.dim.b
+				uiState.savedDimensions.t = render.dim.t
 			else
 				-- Invalid dimensions - use default center position
 				Spring.Echo("PIP: Invalid saved dimensions detected, resetting to default position")
@@ -9073,6 +9147,33 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	-- to reduce per-unit API calls. These are barely visible at the zoom levels
 	-- where thousands of units are on screen.
 	local skipCosmetics = unitCount > 2000
+
+	-- At very high unit counts, skip position refresh for most mobile units to reduce
+	-- GetUnitBasePosition() API calls. Each unit refreshes every 3rd frame (round-robin).
+	local skipMobilePosRefresh = unitCount > config.iconPosRefreshThreshold
+	local posRefreshSlot
+	if skipMobilePosRefresh then
+		gl4Icons._posRefreshCounter = ((gl4Icons._posRefreshCounter or 0) + 1) % 3
+		posRefreshSlot = gl4Icons._posRefreshCounter
+	end
+
+	-- At extreme unit counts, ghost buildings add little visual value but cost ~1ms+.
+	local skipGhosts = unitCount > config.iconGhostSkipThreshold
+
+	-- Mobile VBO block cache: like buildings, cache the VBO output for mobile units
+	-- and rebuild every 2nd frame. Saves ~2-3ms of processUnit calls on skip frames.
+	local useMobileBlockCache = unitCount > config.iconMobileBlockThreshold and not useUnitpics
+	local mobileBlockRebuild = true
+	if useMobileBlockCache then
+		gl4Icons._mobileBlockAge = (gl4Icons._mobileBlockAge or 0) + 1
+		if gl4Icons._mobileBlock
+			and gl4Icons._mobileBlockAge < 2
+			and checkAllyTeamID == gl4Icons._mobileBlockCheckAlly then
+			mobileBlockRebuild = false
+		else
+			gl4Icons._mobileBlockAge = 0
+		end
+	end
 	local mathFloor = math.floor
 
 	-- LOS bitmask constants (raw mode avoids table allocation per GetUnitLosState call)
@@ -9262,7 +9363,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	-- 2) Fullview OFF: use pipUnits membership (from GetUnitsInRectangle). Engine LOS APIs
 	--    are unreliable for spectators who toggled fullview OFF, but GetUnitsInRectangle
 	--    correctly filters to visible units only.
-	if checkAllyTeamID then
+	if checkAllyTeamID and not skipGhosts then
 		-- Determine which visibility check to use
 		local isLosViewMode = state.losViewEnabled and state.losViewAllyTeam
 
@@ -9371,6 +9472,14 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 			buildingIDs[bCount] = uID
 			bldgHash = bldgHash + uID
 		else
+		-- At high counts, known mobile units reuse cached position on non-refresh frames.
+		-- Each unit refreshes 1 out of every 3 frames (round-robin by unitID).
+		-- New units (no cached position) always get a fresh position.
+		-- defID/team are already persistent in cache from the unit's first full pass.
+		if skipMobilePosRefresh and localCachePosX[uID] and uID % 3 ~= posRefreshSlot then
+			mCount = mCount + 1
+			mobileIDs[mCount] = uID
+		else
 		local uDefID = unitDefCacheTbl[uID]
 		if not uDefID then
 			uDefID = spFunc.GetUnitDefID(uID)
@@ -9403,8 +9512,9 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		else
 			mCount = mCount + 1
 			mobileIDs[mCount] = uID
-		end
+		end -- isImmobile
 		end -- uTeam ~= gaia
+		end -- skipMobilePosRefresh
 		end -- not cachedBldgX
 		end -- not crashing
 	end
@@ -9582,9 +9692,128 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	local icT3b = os.clock()
 	local bldgProcessed = usedElements - preProcessEl
 	local preMobileEl = usedElements
-	for i = 1, mCount do
-		usedElements = processUnit(mobileIDs[i], usedElements)
-		if usedElements >= maxInst then break end
+
+	if useMobileBlockCache and not mobileBlockRebuild then
+		-- Fast path: copy entire cached mobile block (saves all processUnit calls)
+		local mobileBlock = gl4Icons._mobileBlock
+		local blockFloats = gl4Icons._mobileBlockN or 0
+		local blockOffset = usedElements * instStep
+		-- Unrolled copy: 12 floats per mobile instance
+		local j = 1
+		while j + 11 <= blockFloats do
+			data[blockOffset+j]=mobileBlock[j]; data[blockOffset+j+1]=mobileBlock[j+1]
+			data[blockOffset+j+2]=mobileBlock[j+2]; data[blockOffset+j+3]=mobileBlock[j+3]
+			data[blockOffset+j+4]=mobileBlock[j+4]; data[blockOffset+j+5]=mobileBlock[j+5]
+			data[blockOffset+j+6]=mobileBlock[j+6]; data[blockOffset+j+7]=mobileBlock[j+7]
+			data[blockOffset+j+8]=mobileBlock[j+8]; data[blockOffset+j+9]=mobileBlock[j+9]
+			data[blockOffset+j+10]=mobileBlock[j+10]; data[blockOffset+j+11]=mobileBlock[j+11]
+			j = j + 12
+		end
+		while j <= blockFloats do
+			data[blockOffset + j] = mobileBlock[j]
+			j = j + 1
+		end
+		usedElements = usedElements + (gl4Icons._mobileBlockCount or 0)
+
+		-- Dynamic overlays on top of cached mobile data
+		local mobileIdx = gl4Icons._mobileBlockIdx
+		if mobileIdx then
+			-- Selection overlay: selected units rendered white
+			if selectedSet then
+				for uID, _ in pairs(selectedSet) do
+					local idx = mobileIdx[uID]
+					if idx then
+						local off = (preMobileEl + idx - 1) * instStep
+						data[off + 9] = 1; data[off + 10] = 1; data[off + 11] = 1
+						data[off + 12] = (uID * 0.37) % 6.2832
+					end
+				end
+			end
+			-- Damage flash overlay
+			for uID, flash in pairs(damageFlash) do
+				local idx = mobileIdx[uID]
+				if idx then
+					local elapsed = gameTime - flash.time
+					if elapsed < DAMAGE_FLASH_DURATION then
+						local f = flash.intensity * (1 - elapsed / DAMAGE_FLASH_DURATION)
+						local off = (preMobileEl + idx - 1) * instStep
+						data[off + 9] = data[off + 9] + (1 - data[off + 9]) * f
+						data[off + 10] = data[off + 10] + (1 - data[off + 10]) * f
+						data[off + 11] = data[off + 11] + (1 - data[off + 11]) * f
+						data[off + 12] = (uID * 0.37) % 6.2832 + mathFloor(f * 100) * 7.0
+					else
+						damageFlash[uID] = nil
+					end
+				end
+			end
+			-- Tracking overlay
+			if trackedSet then
+				for uID, _ in pairs(trackedSet) do
+					local idx = mobileIdx[uID]
+					if idx then
+						local off = (preMobileEl + idx - 1) * instStep
+						data[off + 4] = data[off + 4] + 8
+					end
+				end
+			end
+			-- SelfD overlay
+			for uID in pairs(selfDUnits) do
+				local idx = mobileIdx[uID]
+				if idx then
+					local off = (preMobileEl + idx - 1) * instStep
+					data[off + 4] = data[off + 4] + 16
+				end
+			end
+		end
+	else
+		-- Full path: process each mobile unit individually
+		local mobileIdx
+		if useMobileBlockCache then
+			mobileIdx = gl4Icons._mobileBlockIdx
+			if not mobileIdx then
+				mobileIdx = {}
+				gl4Icons._mobileBlockIdx = mobileIdx
+			end
+			for k in pairs(mobileIdx) do mobileIdx[k] = nil end
+		end
+
+		local writeCount = 0
+		for i = 1, mCount do
+			local uID = mobileIDs[i]
+			if usedElements >= maxInst then break end
+			local prevEl = usedElements
+			usedElements = processUnit(uID, usedElements)
+			if useMobileBlockCache and usedElements > prevEl then
+				writeCount = writeCount + 1
+				mobileIdx[uID] = writeCount
+			end
+		end
+
+		-- Cache the mobile block for future frames
+		if useMobileBlockCache then
+			local mobileBlock = gl4Icons._mobileBlock
+			if not mobileBlock then
+				mobileBlock = {}
+				gl4Icons._mobileBlock = mobileBlock
+			end
+			local blockStart = preMobileEl * instStep
+			local blockFloats = (usedElements - preMobileEl) * instStep
+			for j = 1, blockFloats do
+				mobileBlock[j] = data[blockStart + j]
+			end
+			-- Strip tracked + selfD bits from cached flags (same as building block)
+			for i = 0, writeCount - 1 do
+				local j = i * instStep + 4
+				local f = mobileBlock[j]
+				mobileBlock[j] = f - f % 32 + f % 8
+			end
+			-- Clear stale entries
+			local prevBlockN = gl4Icons._mobileBlockN or 0
+			for j = blockFloats + 1, prevBlockN do mobileBlock[j] = nil end
+			gl4Icons._mobileBlockN = blockFloats
+			gl4Icons._mobileBlockCount = usedElements - preMobileEl
+			gl4Icons._mobileBlockCheckAlly = checkAllyTeamID
+		end
 	end
 
 	local icT4 = os.clock()
@@ -9661,7 +9890,9 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	-- Draw unitpics overlay when zoomed in close (rendered on top of GL4 icons)
 	if useUnitpics and unitpicCount > 0 then
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-		local unitpicSizeMult = 0.85
+		-- Scale unitpics up progressively with zoom to better match real-world unit sizes
+		local zoomFrac = math.max(0, (cameraState.zoom - config.unitpicZoomThreshold) / (1 - config.unitpicZoomThreshold))
+		local unitpicSizeMult = 0.88 + 0.05 * zoomFrac
 		local picTexInset = math.max(0.125, 0.2 * (1 - (cameraState.zoom - config.unitpicZoomThreshold) / (1 - config.unitpicZoomThreshold)))
 		local distMult = math.min(math.max(1, 2.2-(cameraState.zoom*3.3)), 3)
 		local teamBorderSize = 3 * cameraState.zoom * distMult * resScale
@@ -10077,6 +10308,33 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 				local projectileCount = #projectiles
 				local MAX_PROJECTILES = GetDetailCap(150)
 
+				-- Trail skip decision: use smoothed visible count from previous frames.
+				-- Hysteresis: skip at threshold, re-enable at 75% of threshold to avoid flickering.
+				local trailThreshold = config.trailSkipThreshold
+				if trailThreshold > 0 then
+					if skipProjectileTrails then
+						-- Currently skipping: only re-enable when smoothed count drops well below threshold
+						if visibleProjEMA < trailThreshold * 0.75 then
+							skipProjectileTrails = false
+							-- Clear stale trail data so we don't get long trails from old positions
+							for k in pairs(cache.missileTrails) do cache.missileTrails[k] = nil end
+							for k in pairs(cache.plasmaTrails) do cache.plasmaTrails[k] = nil end
+						end
+					else
+						-- Currently drawing: skip when smoothed count exceeds threshold
+						if visibleProjEMA > trailThreshold then
+							skipProjectileTrails = true
+						end
+					end
+				else
+					skipProjectileTrails = false
+				end
+
+				-- Track visible-in-viewport projectiles this frame for next frame's EMA
+				local visibleThisFrame = 0
+				local worldL, worldR = render.world.l, render.world.r
+				local worldT, worldB = render.world.t, render.world.b
+
 				-- When too many projectiles, compute a minimum explosion radius threshold
 				-- so only the ~150 biggest-damage ones are drawn
 				local minRadius = 0
@@ -10128,11 +10386,26 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 					if shouldDraw then
 						DrawProjectile(pID)
 					end
+					-- Count projectiles with trails inside the actual PIP viewport for EMA
+					if trailThreshold > 0 then
+						local pDefID2 = spFunc.GetProjectileDefID(pID)
+						if pDefID2 and (cache.weaponIsMissile[pDefID2] or cache.weaponIsPlasma[pDefID2]) then
+							local ppx, _, ppz = spFunc.GetProjectilePosition(pID)
+							if ppx and ppx >= worldL and ppx <= worldR and ppz >= worldT and ppz <= worldB then
+								visibleThisFrame = visibleThisFrame + 1
+							end
+						end
+					end
 					-- Mark this trail as active if it exists (for stale cleanup)
 					if cache.missileTrails[pID] or cache.plasmaTrails[pID] or cache.flameBirthTime[pID] then
 						activeTrails[pID] = true
 					end
 				end
+
+				-- Update EMA of visible trail-bearing projectiles for next frame's skip decision
+				-- Asymmetric smoothing: fast rise (quick to skip), slow fall (stable re-enable)
+				local emaFactor = visibleThisFrame > visibleProjEMA and TRAIL_EMA_UP or TRAIL_EMA_DOWN
+				visibleProjEMA = visibleProjEMA + emaFactor * (visibleThisFrame - visibleProjEMA)
 			end
 			
 			-- Clean up stale missile trails (projectiles that no longer exist)
@@ -10306,6 +10579,16 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		-- Cap icon size for nametag/health bar positioning to match the capped shader icons
 		local cappedIconRadius = math.min(iconRadiusZoomDistMult,
 			Spring.GetConfigFloat("MinimapIconScale", 3.5) * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(0.95) * resScale)
+		-- When unitpics are shown, icons are rendered larger (unitpicSizeMult + borders).
+		-- Precompute the per-icon multiplier and total border size to position nametags correctly.
+		local unitpicsActive = config.showUnitpics and cameraState.targetZoom >= config.unitpicZoomThreshold
+		local unitpicBaseMult, unitpicBorderTotal
+		if unitpicsActive then
+			local zoomFrac = math.max(0, (cameraState.zoom - config.unitpicZoomThreshold) / (1 - config.unitpicZoomThreshold))
+			unitpicBaseMult = 0.88 + 0.05 * zoomFrac
+			local distMult = math.min(math.max(1, 2.2 - (cameraState.zoom * 3.3)), 3)
+			unitpicBorderTotal = (3 + 4) * cameraState.zoom * distMult * resScale
+		end
 		-- Font size scales with zoom: grows when zoomed in, floors at readable minimum
 		local zoomFactor = math.sqrt(cameraState.zoom / 0.12)  -- 1.0 at threshold, grows with zoom
 		local nametagFontSize = math.max(8, math.floor(11 * resScale * zoomFactor))
@@ -10317,7 +10600,6 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		local pipUnits = miscState.pipUnits
 		-- Collect commander positions, draw nametags, and gather health bar data
 		-- (health bars only when unitpics are NOT shown, since unitpics have their own)
-		local unitpicsActive = config.showUnitpics and cameraState.targetZoom >= config.unitpicZoomThreshold
 		local comHealthBars = (config.drawComHealthBars and not unitpicsActive) and {} or nil
 		local comHealthCount = 0
 		for i = 1, unitCount do
@@ -10346,7 +10628,14 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 				if wx then
 					local cx, cy = WorldToPipCoords(wx, posZ[uID])
 					local iconInfo = localCacheUnitIcon[dID]
-					local iconHalf = cappedIconRadius * (iconInfo and iconInfo.size or 0.5)
+					-- When unitpics are active, use the actual rendered outer edge (icon*sizeMult + borders)
+					-- instead of the base icon radius, so nametags clear the unitpic frame
+					local iconHalf
+					if unitpicsActive then
+						iconHalf = iconRadiusZoomDistMult * (iconInfo and iconInfo.size or 0.5) * unitpicBaseMult + unitpicBorderTotal
+					else
+						iconHalf = cappedIconRadius * (iconInfo and iconInfo.size or 0.5)
+					end
 					-- Rotate the icon center to match where the shader placed it
 					if isRotated then
 						local dx, dy = cx - rotCX, cy - rotCY
@@ -10775,7 +11064,7 @@ local function RenderFrameButtons()
 				end
 			-- Show pip_view button only for spectators
 			elseif btn.command == 'pip_view' then
-				if showPlayerTrackButton then
+				if spec then
 					visibleButtons[#visibleButtons + 1] = btn
 				end
 			-- Hide pip_activity in singleplayer, when tracking, or optionally for spectators
@@ -10788,6 +11077,8 @@ local function RenderFrameButtons()
 				if not config.tvModeSpectatorsOnly or cameraState.mySpecState then
 					visibleButtons[#visibleButtons + 1] = btn
 				end
+			elseif btn.command == 'pip_help' then
+				visibleButtons[#visibleButtons + 1] = btn
 			else
 				visibleButtons[#visibleButtons + 1] = btn
 			end
@@ -13958,6 +14249,8 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 				if not config.tvModeSpectatorsOnly or cameraState.mySpecState then
 					visibleButtons[#visibleButtons + 1] = btn
 				end
+			elseif btn.command == 'pip_help' then
+				visibleButtons[#visibleButtons + 1] = btn
 			else
 				visibleButtons[#visibleButtons + 1] = btn
 			end
@@ -14008,6 +14301,10 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 					end
 					-- Generate tooltip with shortcut key on new line if available
 					local tooltipText = Spring.I18N(tooltipKey)
+					-- For help button: append left-click hint only when leftButtonPansCamera is enabled
+					if visibleButtons[i].command == 'pip_help' and config.leftButtonPansCamera then
+						tooltipText = tooltipText .. Spring.I18N('ui.pip.help_leftclick')
+					end
 					-- Use button's shortcut field first, fall back to getActionHotkey
 					-- In minimap mode, don't show shorcut for track units button
 					local shortcut = visibleButtons[i].shortcut
@@ -17227,6 +17524,8 @@ function widget:MousePress(mx, my, mButton)
 							if not config.tvModeSpectatorsOnly or cameraState.mySpecState then
 								visibleButtons[#visibleButtons + 1] = btn
 							end
+						elseif btn.command == 'pip_help' then
+							visibleButtons[#visibleButtons + 1] = btn
 						else
 							visibleButtons[#visibleButtons + 1] = btn
 						end
@@ -17244,7 +17543,9 @@ function widget:MousePress(mx, my, mButton)
 			local wx, wz = PipToWorldCoords(mx, my)
 			
 			-- In minimap mode with leftButtonPansCamera enabled, left-click moves the world camera
-			if isMinimapMode and IsLeftClickPanActive() then
+			-- Skip when ALT is held (ALT+left-click is used for panning)
+			local alt = Spring.GetModKeyState()
+			if isMinimapMode and IsLeftClickPanActive() and not alt then
 				local _, cmdID = Spring.GetActiveCommand()
 				-- Only move world camera if there's no active command
 				if not cmdID or cmdID == 0 then
