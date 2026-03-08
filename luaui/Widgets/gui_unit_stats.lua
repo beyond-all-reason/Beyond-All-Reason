@@ -745,21 +745,14 @@ local function drawStats(uDefID, uID)
 			end
 
 			if uWep.metalCost > 0 or uWep.energyCost > 0 then
-
-				-- Stockpiling weapons are weird
-				-- They take the correct amount of resources overall
-				-- They take the correct amount of time
-				-- They drain ((simSpeed+2)/simSpeed) times more resources than they should (And the listed drain is real, having lower income than listed drain WILL stall you)
-				local drainAdjust = uWep.stockpile and (simSpeed+2)/simSpeed or 1
-
 				DrawText(texts.cost..':', format(metalColor .. '%d' .. white .. ', ' ..
 					energyColor .. '%d' .. white .. ' = ' ..
 					metalColor .. '-%d' .. white .. ', ' ..
 					energyColor .. '-%d' .. white .. ' '..texts.persecond,
 					uWep.metalCost,
 					uWep.energyCost,
-					drainAdjust * uWep.metalCost / oRld,
-					drainAdjust * uWep.energyCost / oRld))
+					uWep.metalCost / oRld,
+					uWep.energyCost / oRld))
 			end
 
 
