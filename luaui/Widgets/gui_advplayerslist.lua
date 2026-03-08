@@ -465,7 +465,7 @@ m_skill = {
 position = position + 1
 
 m_color = {
-    name = "colourTooltip",
+    name = "colorTooltip",
     spec = true,
     play = true,
     active = false,
@@ -2371,7 +2371,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
 		end
 	end
     if tipY and (accountID or m_color.active) then
-        NameTip(mouseX, playerID, accountID, nameIsAlias)
+        NameTip(mouseX, playerID, accountID, nameIsAlias, spec)
     end
     if not spec then
         --player
@@ -3098,13 +3098,13 @@ function TakeTip(mouseX)
     end
 end
 
-function NameTip(mouseX, playerID, accountID, nameIsAlias)
+function NameTip(mouseX, playerID, accountID, nameIsAlias, spec)
 	if mouseX >= widgetPosX + (m_name.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_name.posX + m_name.width) * widgetScale and WG.playernames then
         local text = ''
         local title = ''
 
         -- Player color
-        if m_color.active then
+        if m_color.active and not spec then
             local r, g, b = colourNames(player[playerID].team, true)
             local cname = ConvertRGBToClosestName(r, g, b)
             title = " \255\255\255\255" .. "[" .. cname .. "]"
@@ -3146,8 +3146,7 @@ function NameTip(mouseX, playerID, accountID, nameIsAlias)
         end
            
         if #text > 0 or #title > 0 then
-            -- tipTextTitle = (spec and "\255\240\240\240" or colourNames(player[playerID].team)) .. player[playerID].name .. title
-            tipTextTitle = (originalColourNames[playerID] and colourNames(player[playerID].team) or "\255\255\255\255") .. player[playerID].name .. title
+            tipTextTitle = (spec and "\255\240\240\240" or colourNames(player[playerID].team) or "\255\255\255\255") .. player[playerID].name .. title
             tipText = text
             tipTextTime = os.clock()
         end
