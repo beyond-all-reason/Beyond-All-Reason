@@ -958,18 +958,20 @@ function UnitDef_Post(name, uDef)
 	-- Wreck and heap standardization
 	if not uDef.customparams.iscommander and not uDef.customparams.iseffigy then
 		if uDef.featuredefs and uDef.health then
+			local wreckRatio = modOptions.wreck_metal_ratio or 0.6
+			local heapRatio = modOptions.heap_metal_ratio or 0.25
 			-- wrecks
 			if uDef.featuredefs.dead then
 				uDef.featuredefs.dead.damage = uDef.health
 				if uDef.metalcost and uDef.energycost then
-					uDef.featuredefs.dead.metal = math.floor(uDef.metalcost * modOptions.wreck_metal_ratio)
+					uDef.featuredefs.dead.metal = math.floor(uDef.metalcost * wreckRatio)
 				end
 			end
 			-- heaps
 			if uDef.featuredefs.heap then
 				uDef.featuredefs.heap.damage = uDef.health
 				if uDef.metalcost and uDef.energycost then
-					uDef.featuredefs.heap.metal = math.floor(uDef.metalcost * modOptions.heap_metal_ratio)
+					uDef.featuredefs.heap.metal = math.floor(uDef.metalcost * heapRatio)
 				end
 			end
 		end
