@@ -357,7 +357,7 @@ local forceMainListRefresh = true
 --------------------------------------------------
 
 local modules = {}
-local m_indent, m_rank, m_side, m_allyID, m_playerID, m_ID, m_name, m_share, m_chat, m_cpuping, m_country, m_alliance, m_skill, m_colour, m_resources, m_income
+local m_indent, m_rank, m_side, m_allyID, m_playerID, m_ID, m_name, m_share, m_chat, m_cpuping, m_country, m_alliance, m_skill, m_color, m_resources, m_income
 
 -- these are not considered as normal module since they dont take any place and wont affect other's position
 -- (they have no module.width and are not part of modules)
@@ -464,7 +464,7 @@ m_skill = {
 }
 position = position + 1
 
-m_colour = {
+m_color = {
     name = "colourTooltip",
     spec = true,
     play = true,
@@ -580,7 +580,7 @@ modules = {
     m_ID,
     m_playerID,
     --m_side,
-    m_colour,
+    m_color,
     m_name,
     m_skill,
     m_resources,
@@ -1861,7 +1861,8 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function ConvertRGBToClosestName(r, g, b)
-    -- TODO: Find where colours are defined in Spring and google the actual names of those rgb truplets
+    -- TODO: Find where colors are defined in Spring and google the actual names of those rgb truplets
+    -- Current set of colors are exact RGB match for 
     local palette = {
         {name = "Blue", r = 11, g = 62, b = 243},
         {name = "Lime", r = 12, g = 233, b = 8},
@@ -1881,10 +1882,10 @@ function ConvertRGBToClosestName(r, g, b)
         {name = "Bronze", r = 200, g = 139, b = 47}
     }
     local bestName = "Unknown"
-    local bestDist = 4196
+    local bestDist = math.huge
     for _, c in ipairs(palette) do
-        local dr, dg, db = r - c.r, g - c.g, b - c.b
-        local d = dr*dr + dg*dg + db*db
+        local dr, dg, db, dw = r - c.r, g - c.g, b - c.b, (r + g + b) - (c.r + c.g + c.b)
+        local d = dr*dr + dg*dg + db*db + dw*dw / 3
         if d < bestDist then
             bestDist = d
             bestName = c.name
@@ -2369,7 +2370,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
 			DrawPlayerID(playerID, posY, dark, spec)
 		end
 	end
-    if tipY and (accountID or m_colour.active) then
+    if tipY and (accountID or m_color.active) then
         NameTip(mouseX, playerID, accountID, nameIsAlias)
     end
     if not spec then
@@ -3103,7 +3104,7 @@ function NameTip(mouseX, playerID, accountID, nameIsAlias)
         local title = ''
 
         -- Player color
-        if m_colour.active then
+        if m_color.active then
             local r, g, b = colourNames(player[playerID].team, true)
             local cname = ConvertRGBToClosestName(r, g, b)
             title = " \255\255\255\255" .. "[" .. cname .. "]"
@@ -3145,7 +3146,8 @@ function NameTip(mouseX, playerID, accountID, nameIsAlias)
         end
            
         if #text > 0 or #title > 0 then
-            tipTextTitle = (spec and "\255\240\240\240" or colourNames(player[playerID].team)) .. player[playerID].name .. title
+            -- tipTextTitle = (spec and "\255\240\240\240" or colourNames(player[playerID].team)) .. player[playerID].name .. title
+            tipTextTitle = (originalColourNames[playerID] and colourNames(player[playerID].team) or "\255\255\255\255") .. player[playerID].name .. title
             tipText = text
             tipTextTime = os.clock()
         end
