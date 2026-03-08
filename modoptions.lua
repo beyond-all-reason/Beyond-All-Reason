@@ -2523,4 +2523,28 @@ for i = 1, 9 do
     }
 end
 
+
+Json = Json or VFS.Include('common/luaUtilities/json.lua')
+
+local file = io.open("modoptions.json", "w")
+if file then
+	file:write(Json.encode(options))
+	file:close()
+else
+	error("Cannot write modoption! ")
+end
+
 return options
+
+-- local base = _G
+-- local print = base.print
+-- if Spring and Spring.Echo then print = Spring.Echo end
+--
+-- local path = "modoptions.json"
+-- local jsonOptionsFile = VFS.LoadFile(path)
+-- print("coucou1 " .. jsonOptionsFile)
+-- if not jsonOptionsFile then
+-- 	error("Cannot open modoption file at " .. path)
+-- else
+-- 	return Json.decode(jsonOptionsFile)
+-- end
