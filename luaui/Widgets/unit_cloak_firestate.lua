@@ -26,6 +26,9 @@ local spGetMyTeamID = Spring.GetMyTeamID
 local GiveOrderToUnit   = Spring.GiveOrderToUnit
 local GetUnitStates     = Spring.GetUnitStates
 local CMD_WANT_CLOAK    = GameCMD.WANT_CLOAK
+local CMD_UNIT_CANCEL_TARGET = GameCMD.UNIT_CANCEL_TARGET
+local CMD_INSERT = CMD.INSERT
+local CMD_STOP = CMD.STOP
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -72,6 +75,10 @@ function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts
 			if decloakFireState[unitID] ~= 0 then
 				GiveOrderToUnit(unitID, CMD.FIRE_STATE, { 0 }, 0)
 			end
+			-- Mirrors the new holdfire behavior for cloak
+			-- inserts STOP and CANCEL_TARGET at the front to break current target immediately
+			GiveOrderToUnit(unitID, CMD_INSERT, {0, CMD_STOP, 0}, {"alt"})
+			GiveOrderToUnit(unitID, CMD_INSERT, {0, CMD_UNIT_CANCEL_TARGET, 0}, {"alt"})
 		else -- decloak and restore previous fire state
 			if select(1, GetUnitStates(unitID, false)) == 0 then
 				local targetState = decloakFireState[unitID] or 0 -- default to hold fire if no cached state is found

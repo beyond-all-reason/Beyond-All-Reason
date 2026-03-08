@@ -20,6 +20,7 @@ local spGetGameFrame = Spring.GetGameFrame
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local CMD_INSERT = CMD.INSERT
 local CMD_STOP = CMD.STOP
+local CMD_UNIT_CANCEL_TARGET = GameCMD.UNIT_CANCEL_TARGET
 local spGiveOrder = Spring.GiveOrder
 local gameStarted
 
@@ -46,6 +47,8 @@ end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if cmdID == CMD_FIRE_STATE and cmdParams[1] == 0 then
+		-- STOP clears attack orders, UNIT_CANCEL_TARGET clears an active lock 
 		spGiveOrder(CMD_INSERT, {0, CMD_STOP, 0}, {"alt"})
+		spGiveOrder(CMD_INSERT, {0, CMD_UNIT_CANCEL_TARGET, 0}, {"alt"})
 	end
 end
