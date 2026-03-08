@@ -106,7 +106,7 @@ return {
 				reloadtime = 10,
 				weapontype = "AircraftBomb",
 				customparams = {
-					bogus = true,
+					bogus = 1,
 				},
 				damage = {
 					default = 1,
@@ -132,7 +132,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1000,
 				customparams = {
-					bogus = true,
+					bogus = 1,
 				},
 				damage = {
 					vtol = 1000,
