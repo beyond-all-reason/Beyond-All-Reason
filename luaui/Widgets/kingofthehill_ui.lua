@@ -400,12 +400,12 @@ local playerListPosition
 --The shaders for the progress bars
 local progressBarShader = gl.CreateShader({vertex = VFS.LoadFile(progressBarVertexShaderPath),
 												fragment = VFS.LoadFile(progressBarFragmentShaderPath)})
-Spring.Log("KingOfTheHill_ui", "error", "Shader Log: \n" .. gl.GetShaderLog())
+--Spring.Log("KingOfTheHill_ui", "error", "Shader Log: \n" .. gl.GetShaderLog())
 
 --The shaders for the area outlines
 local mapAreaShader = gl.CreateShader({vertex = VFS.LoadFile(mapAreaVertexShaderPath):gsub("//##UBO##", gl.GetEngineUniformBufferDef(0)),
 											fragment = VFS.LoadFile(mapAreaFragmentShaderPath)})
-Spring.Log("KingOfTheHill_ui", "error", "Shader Log: \n" .. gl.GetShaderLog())
+--Spring.Log("KingOfTheHill_ui", "error", "Shader Log: \n" .. gl.GetShaderLog())
 
 --A UBO containing an array of ally team colors
 local allyTeamColorsUBO
@@ -820,7 +820,7 @@ function RectMapArea.new(args)
 	args.centerX = (args.left + args.right) / 2
 	args.centerZ = (args.top + args.bottom) / 2
 	args.xSize = args.right - args.left
-	args.zSize = args.top - args.bottom
+	args.zSize = args.bottom - args.top
 	
 	--Populate the XZ vertex coordinates
 	local left, right, top, bottom, xSize, zSize = args.left, args.right, args.top, args.bottom, args.xSize, args.zSize
@@ -838,8 +838,8 @@ function RectMapArea.new(args)
 	local rightSide = {{right, top}}--the vertices along the right edge starting with the top right corner moving down not including the bottom right corner
 	local leftSide = {{left, bottom}}--the vertices along the left edge starting with the bottom left corner moving up not including the top left corner
 	for i = 1, numZPoints, 1 do
-		table.insert(rightSide, {right, top - (zDelim * i)})
-		table.insert(leftSide, {left, bottom + (zDelim * i)})
+		table.insert(rightSide, {right, top + (zDelim * i)})
+		table.insert(leftSide, {left, bottom - (zDelim * i)})
 	end
 	local xzVertices = {}
 	insertArrayIntoArray(topSide, xzVertices)
@@ -853,11 +853,11 @@ function RectMapArea.new(args)
 	return args
 end
 function RectMapArea:isPointInside(x, z)
-	return x >= self.left and x <= self.right and z >= self.bottom and z <= self.top
+	return x >= self.left and x <= self.right and z <= self.bottom and z >= self.top
 end
 function RectMapArea:isBuildingInside(x, z, sizeX, sizeZ)
-	local top, right, bottom, left = z + sizeZ/2, x + sizeX/2, z - sizeZ/2, x - sizeX/2
-	return top <= self.top and right <= self.right and bottom >= self.bottom and left >= self.left
+	local top, right, bottom, left = z - sizeZ/2, x + sizeX/2, z + sizeZ/2, x - sizeX/2
+	return top >= self.top and right <= self.right and bottom <= self.bottom and left >= self.left
 end
 
 local CircleMapArea = {
@@ -888,7 +888,7 @@ function CircleMapArea:isPointInside(x, z)
 	return distance(x, z, self.x, self.z) <= self.radius
 end
 function CircleMapArea:isBuildingInside(x, z, sizeX, sizeZ)
-	local top, right, bottom, left = z + sizeZ/2, x + sizeX/2, z - sizeZ/2, x - sizeX/2
+	local top, right, bottom, left = z - sizeZ/2, x + sizeX/2, z + sizeZ/2, x - sizeX/2
 	return self:isPointInside(left, top) and self:isPointInside(right, top) and self:isPointInside(right, bottom) and self:isPointInside(left, bottom)
 end
 
@@ -965,8 +965,8 @@ end
 -- Parses the modoptions that define the hill area and returns args for a MapArea constructor
 local function parseAreaModOptions(left, right, top, bottom, type)
 	if type == "rect" then
-		-- Coords from mod options have 0 at top left corner
-		return {type = type, left = left*mapSizeX/mapAreaScale, top = (1 - top/mapAreaScale)*mapSizeZ, right = right*mapSizeX/mapAreaScale, bottom = (1 - bottom/mapAreaScale)*mapSizeZ}
+		-- Map coords have 0 at top left corner
+		return {type = type, left = left*mapSizeX/mapAreaScale, top = top*mapSizeZ/mapAreaScale, right = right*mapSizeX/mapAreaScale, bottom = bottom*mapSizeZ/mapAreaScale}
 	elseif type == "circle" then
 		--Make sure that the area defined by left, right, top, bottom is square for a circle
 		--Mod option coords are always [0,200] but map is not always square
@@ -1041,8 +1041,8 @@ function widget:Initialize()
 			allyTeamKingTime[allyTeamId] = 0
 			disqualifiedTeamChecks[allyTeamId] = 1--Check once initially in case a team starts disqualified (e.g. if the widget is reloaded)
 			
-			local left, bottom, right, top = Spring.GetAllyTeamStartBox(allyTeamId)
-			local startBox = RectMapArea.new{left = left, top = top, right = right, bottom = bottom, allyTeam = allyTeamId}
+			local xMin, zMin, xMax, zMax = Spring.GetAllyTeamStartBox(allyTeamId)
+			local startBox = RectMapArea.new{left = xMin, top = zMin, right = xMax, bottom = zMax, allyTeam = allyTeamId}
 			startBoxes[allyTeamId] = startBox
 			
 			local red, green, blue = 0, 0, 0

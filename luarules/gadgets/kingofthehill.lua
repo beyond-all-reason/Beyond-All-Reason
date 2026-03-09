@@ -197,18 +197,23 @@ function RulesParamDataWrapper.new(args)
 		error("Missing one or more arguments for new RulesParamDataWrapper", 2)
 	end
 	setmetatable(args, RulesParamDataWrapper.mt)
-	args:setAndSend(args.value)
+	args:set(args.value)
+	args:forceSend()--force send so that initial nil values are sent when gadget is reloaded
 	return args
 end
 -- Sets the value but does not send it
 function RulesParamDataWrapper:set(value)
 	self.value = value
 end
+-- Sends the value no matter what
+function RulesParamDataWrapper:forceSend()
+	Spring.SetGameRulesParam(self.paramName, self.value)
+	self.lastSentValue = self.value
+end
 -- Sends the value if it is different from the last sent value
 function RulesParamDataWrapper:send()
 	if self.value ~= self.lastSentValue then
-		Spring.SetGameRulesParam(self.paramName, self.value)
-		self.lastSentValue = self.value
+		self:forceSend()
 	end
 end
 -- Sets the value and sends it if it is different from the last sent value
@@ -292,14 +297,15 @@ function RectMapArea.new(args)
 	return args
 end
 function RectMapArea:isPointInside(x, z)
-	return x >= self.left and x <= self.right and z >= self.bottom and z <= self.top
+	return x >= self.left and x <= self.right and z <= self.bottom and z >= self.top
 end
 function RectMapArea:isBuildingInside(x, z, sizeX, sizeZ)
-	local top, right, bottom, left = z + sizeZ/2, x + sizeX/2, z - sizeZ/2, x - sizeX/2
-	return top <= self.top and right <= self.right and bottom >= self.bottom and left >= self.left
+	local top, right, bottom, left = z - sizeZ/2, x + sizeX/2, z + sizeZ/2, x - sizeX/2
+	--Spring.Log("KingoftheHill", "error", "x: " .. x .. " z: " .. z .. " sizeX: " .. sizeX .. " sizeZ: " .. sizeZ .. " l: " .. left .. " t: " .. top .. " r: " .. right .. " b: " .. bottom)
+	return top >= self.top and right <= self.right and bottom <= self.bottom and left >= self.left
 end
 function RectMapArea:getUnitsInside()
-	return Spring.GetUnitsInRectangle(self.left, self.bottom, self.right, self.top)
+	return Spring.GetUnitsInRectangle(self.left, self.top, self.right, self.bottom)
 end
 
 local CircleMapArea = {
@@ -320,7 +326,7 @@ function CircleMapArea:isPointInside(x, z)
 	return distance(x, z, self.x, self.z) <= self.radius
 end
 function CircleMapArea:isBuildingInside(x, z, sizeX, sizeZ)
-	local top, right, bottom, left = z + sizeZ/2, x + sizeX/2, z - sizeZ/2, x - sizeX/2
+	local top, right, bottom, left = z - sizeZ/2, x + sizeX/2, z + sizeZ/2, x - sizeX/2
 	return self:isPointInside(left, top) and self:isPointInside(right, top) and self:isPointInside(right, bottom) and self:isPointInside(left, bottom)
 end
 function CircleMapArea:getUnitsInside()
@@ -442,8 +448,8 @@ local capturingCountingUp = RulesParamDataWrapper.new({paramName = "capturingCou
 -- Parses the modoptions that define the hill area and returns a MapArea object
 local function parseAreaModOptions(left, right, top, bottom, type)
 	if type == "rect" then
-		-- Coords from mod options have 0 at top left corner
-		return RectMapArea.new({left = left*mapSizeX/mapAreaScale, top = (1 - top/mapAreaScale)*mapSizeZ, right = right*mapSizeX/mapAreaScale, bottom = (1 - bottom/mapAreaScale)*mapSizeZ})
+		-- Map coords have 0 at top left corner
+		return RectMapArea.new({left = left*mapSizeX/mapAreaScale, top = top*mapSizeZ/mapAreaScale, right = right*mapSizeX/mapAreaScale, bottom = bottom*mapSizeZ/mapAreaScale})
 	elseif type == "circle" then
 		--Make sure that the area defined by left, right, top, bottom is square for a circle
 		--Mod option coords are always [0,200] but map is not always square
@@ -538,7 +544,12 @@ function gadget:Initialize()
 	explodehillunits = modOptions.kingofthehillexplodehillunits
 	
 	--If the widget was reloaded, buildings in the hill area have to be registered
-	hillBuildings:addAll(table.unpack(hillArea:getUnitsInside()))
+	for _, unitId in ipairs(hillArea:getUnitsInside()) do
+		local unitDef = UnitDefs[Spring.GetUnitDefID(unitId)]
+		if unitDef.isBuilding or unitDef.isStaticBuilder then
+			hillBuildings:add(unitId)
+		end
+	end
 	
 	local gaiaAllyTeamID
 	if Spring.GetGaiaTeamID() then
@@ -551,24 +562,25 @@ function gadget:Initialize()
 	--existing capture qualified units, and register any units in the hill
 	for _, allyTeamId in ipairs(Spring.GetAllyTeamList()) do
 		if allyTeamId ~= gaiaAllyTeamID then
-			local left, bottom, right, top = Spring.GetAllyTeamStartBox(allyTeamId)
-			startBoxes[allyTeamId] = RectMapArea.new{left = left, top = top, right = right, bottom = bottom}
+			local xMin, zMin, xMax, zMax = Spring.GetAllyTeamStartBox(allyTeamId)
+			startBoxes[allyTeamId] = RectMapArea.new{left = xMin, top = zMin, right = xMax, bottom = xMax}
 			local numAliveTeams = 0
 			for _, teamId in ipairs(Spring.GetTeamList(allyTeamId)) do
 				teamToAllyTeam[teamId] = allyTeamId
 				local isDead = select(3, Spring.GetTeamInfo(teamId))
-				Spring.Log("KingOfTheHill", "error", "isDead: " .. isDead)
-				numAliveTeams = numAliveTeams + (1 - isDead)
+				if not isDead then
+					numAliveTeams = numAliveTeams + 1
+				end
 				--Register all capture qualified units from this team
 				for _, unitId in ipairs(Spring.GetTeamUnitsByDefs(teamId, {captureQualifiedUnitDefIds:unpack()})) do
 					captureQualifiedUnits[unitId] = allyTeamId
 				end
 			end
+			allyTeamLives[allyTeamId] = numAliveTeams
+			allyTeamKingTime[allyTeamId] = RulesParamDataWrapper.new({paramName = "allyTeamKingTime" .. allyTeamId, value = 0})
 			if numAliveTeams <= 0 then
 				disqualifyAllyTeam(allyTeamId)
 			end
-			allyTeamLives[allyTeamId] = numAliveTeams
-			allyTeamKingTime[allyTeamId] = RulesParamDataWrapper.new({paramName = "allyTeamKingTime" .. allyTeamId, value = 0})
 		end
 	end
 	
@@ -730,6 +742,25 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 		local allyTeamId = teamToAllyTeam[unitTeam]
 		local allyTeamStartRect = startBoxes[allyTeamId]
 		if allyTeamStartRect:isBuildingInside(cmdX, cmdZ, sizeX, sizeZ) or (kingAllyTeam.value == allyTeamId and hillArea:isBuildingInside(cmdX, cmdZ, sizeX, sizeZ)) then
+			return true
+		end
+		return false
+	end
+	return true
+end
+
+--Called just before unit is created.
+--Used to block buildings from being created outside of permitted areas if buildOutsideBoxes is false
+--It is possible to queue a build command and then loose the hill, thus we need to block the unit creation in addition to the commands
+function gadget:AllowUnitCreation(unitDefId, builderId, builderTeam, x, y, z, facing)
+	local buildingUnitDef = UnitDefs[unitDefId]
+	if buildingUnitDef and (buildingUnitDef.isBuilding or buildingUnitDef.isStaticBuilder) then
+		-- facing 0=south(-z), 1=east(+x), 2=north(+z), 3=west(-x), unitDef sizeX and sizeZ seem to refer to north/south orientation
+		local sizeX = (facing % 2 == 0 and buildingUnitDef.xsize or buildingUnitDef.zsize) * squareSize
+		local sizeZ = (facing % 2 == 0 and buildingUnitDef.zsize or buildingUnitDef.xsize) * squareSize
+		local allyTeamId = teamToAllyTeam[builderTeam]
+		local allyTeamStartRect = startBoxes[allyTeamId]
+		if allyTeamStartRect:isBuildingInside(x, z, sizeX, sizeZ) or (kingAllyTeam.value == allyTeamId and hillArea:isBuildingInside(x, z, sizeX, sizeZ)) then
 			return true
 		end
 		return false

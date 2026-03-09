@@ -327,7 +327,9 @@ end
 
 local function updatePosition()
 	local prevPos = parentPos
-	if WG['displayinfo'] ~= nil then
+	if WG['kingofthehill_ui'] ~= nil then
+		parentPos = WG['kingofthehill_ui'].GetPosition()        -- returns {top,left,bottom,right,widgetScale}
+	elseif WG['displayinfo'] ~= nil then
 		parentPos = WG['displayinfo'].GetPosition()        -- returns {top,left,bottom,right,widgetScale}
 	elseif WG['unittotals'] ~= nil then
 		parentPos = WG['unittotals'].GetPosition()        -- returns {top,left,bottom,right,widgetScale}
