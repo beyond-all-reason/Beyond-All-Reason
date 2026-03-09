@@ -4,10 +4,10 @@ return {
 		activatewhenbuilt = true,
 		maxdec = 0.01722,
 		buildangle = 16384,
-		energycost = 13000,
-		metalcost = 1300,
+		energycost = 17000,
+		metalcost = 1700,
 		buildpic = "CORDRONECARRY.DDS",
-		buildtime = 20000,
+		buildtime = 24000,
 		canmove = true,
 		canreclaim = false,
 		canrepair = false,
@@ -145,13 +145,14 @@ return {
 				},
 				customparams = {
 					carried_unit = "cordrone",     --Name of the unit spawned by this carrier unit.
-					engagementrange = 1300,
+					engagementrange = 1350,
 					spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently.
 					spawnrate = 6, 				--Spawnrate roughly in seconds.
 					maxunits = 10,				--Will spawn units until this amount has been reached.
+					startingdronecount = 5,
 					energycost = 750,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					metalcost = 30,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					controlradius = 1400,		--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
+					controlradius = 1200,		--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
 					decayrate = 9,
 					attackformationspread = 200,--Used to spread out the drones when attacking from a docked state. Distance between each drone when spreading out.
 					attackformationoffset = 30,	--Used to spread out the drones when attacking from a docked state. Distance from the carrier when they start moving directly to the target. Given as a percentage of the distance to the target.
@@ -167,6 +168,8 @@ return {
 					stockpilemetal = 30,
 					stockpileenergy = 750,
 					dronesusestockpile = true,
+					dronedocktime = 2,
+					droneairtime = 30,
 				}
 			},
 			aamissile = {

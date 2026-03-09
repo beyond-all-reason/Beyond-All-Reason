@@ -106,6 +106,8 @@ if gadgetHandler:IsSyncedCode() then
 		spGiveOrderToUnit(unitID, CMD_WAIT, EMPTY, 0) -- If a factory is waiting, it will not clear the current build command, even if the cmd is removed.
 		-- See: http://zero-k.info/Forum/Post/237176#237176 for details.
 		SendToUnsynced(identifier, unitID, unitDefID, unitTeam, cmdID)
+
+		return false
 	end
 
 	-- Add the command to factories

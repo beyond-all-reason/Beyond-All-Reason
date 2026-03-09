@@ -22,6 +22,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local pveTeamID = Spring.Utilities.GetScavTeamID() or Spring.Utilities.GetRaptorTeamID()
+local raptorQueenCount = Spring.GetModOptions().raptor_queen_count
 
 local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
 
@@ -262,7 +263,7 @@ local unitListNames = {
             fightRadius = 1000,
             spawnedPerWave = 1,
             maxAllowed = 8,
-            spawnTimer = 1,
+            spawnTimer = 10*raptorQueenCount,
         },
         [2] = {
             name = "raptor_air_bomber_basic_t1_v1",
@@ -271,7 +272,7 @@ local unitListNames = {
             fightRadius = 1000,
             spawnedPerWave = 1,
             maxAllowed = 2,
-            spawnTimer = 1,
+            spawnTimer = 10*raptorQueenCount,
         },
         [3] = {
             name = "raptor_land_swarmer_brood_t4_v1",
@@ -280,7 +281,7 @@ local unitListNames = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 1,
-            spawnTimer = 10,
+            spawnTimer = 10*raptorQueenCount,
         },
         [4] = {
             name = "raptor_land_swarmer_heal_t4_v1",
@@ -289,7 +290,7 @@ local unitListNames = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 1,
-            spawnTimer = 10,
+            spawnTimer = 10*raptorQueenCount,
         },
     },
     ["raptor_queen_easy"] = {
@@ -300,7 +301,7 @@ local unitListNames = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 12,
-            spawnTimer = 1,
+            spawnTimer = 10*raptorQueenCount,
         },
         [2] = {
             name = "raptor_air_bomber_basic_t1_v1",
@@ -309,7 +310,7 @@ local unitListNames = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 3,
-            spawnTimer = 1,
+            spawnTimer = 10*raptorQueenCount,
         },
         [3] = {
             name = "raptor_land_swarmer_brood_t4_v1",
@@ -318,7 +319,7 @@ local unitListNames = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 2,
-            spawnTimer = 10,
+            spawnTimer = 10*raptorQueenCount,
         },
         [4] = {
             name = "raptor_land_swarmer_heal_t4_v1",
@@ -327,7 +328,7 @@ local unitListNames = {
             fightRadius = 500,
             spawnedPerWave = 2,
             maxAllowed = 2,
-            spawnTimer = 10,
+            spawnTimer = 10*raptorQueenCount,
         },
     },
     ["raptor_queen_normal"] = {
@@ -338,7 +339,7 @@ local unitListNames = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 16,
-            spawnTimer = 1,
+            spawnTimer = 10*raptorQueenCount,
         },
         [2] = {
             name = "raptor_air_bomber_basic_t1_v1",
@@ -347,7 +348,7 @@ local unitListNames = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 4,
-            spawnTimer = 1,
+            spawnTimer = 10*raptorQueenCount,
         },
         [3] = {
             name = "raptor_land_swarmer_brood_t4_v1",
@@ -356,7 +357,7 @@ local unitListNames = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 3,
-            spawnTimer = 10,
+            spawnTimer = 10*raptorQueenCount,
         },
         [4] = {
             name = "raptor_land_swarmer_heal_t4_v1",
@@ -365,7 +366,7 @@ local unitListNames = {
             fightRadius = 500,
             spawnedPerWave = 3,
             maxAllowed = 3,
-            spawnTimer = 10,
+            spawnTimer = 10*raptorQueenCount,
         },
     },
     ["raptor_queen_hard"] = {
@@ -376,7 +377,7 @@ local unitListNames = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 20,
-            spawnTimer = 1,
+            spawnTimer = 10*raptorQueenCount,
         },
         [2] = {
             name = "raptor_air_bomber_basic_t2_v1",
@@ -385,7 +386,7 @@ local unitListNames = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 5,
-            spawnTimer = 1,
+            spawnTimer = 10*raptorQueenCount,
         },
         [3] = {
             name = "raptor_air_kamikaze_basic_t2_v1",
@@ -394,7 +395,7 @@ local unitListNames = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 10,
-            spawnTimer = 1,
+            spawnTimer = 10*raptorQueenCount,
         },
         [4] = {
             name = "raptor_land_swarmer_brood_t4_v1",
@@ -403,7 +404,7 @@ local unitListNames = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 4,
-            spawnTimer = 10,
+            spawnTimer = 10*raptorQueenCount,
         },
         [5] = {
             name = "raptor_land_swarmer_heal_t4_v1",
@@ -412,7 +413,7 @@ local unitListNames = {
             fightRadius = 500,
             spawnedPerWave = 4,
             maxAllowed = 4,
-            spawnTimer = 10,
+            spawnTimer = 10*raptorQueenCount,
         },
     },
     ["raptor_queen_veryhard"] = {
@@ -423,7 +424,7 @@ local unitListNames = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 24,
-            spawnTimer = 1,
+            spawnTimer = 10*raptorQueenCount,
         },
         [2] = {
             name = "raptor_air_bomber_basic_t2_v1",
@@ -432,7 +433,7 @@ local unitListNames = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 6,
-            spawnTimer = 1,
+            spawnTimer = 10*raptorQueenCount,
         },
         [3] = {
             name = "raptor_air_kamikaze_basic_t2_v1",
@@ -441,7 +442,7 @@ local unitListNames = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 12,
-            spawnTimer = 1,
+            spawnTimer = 10*raptorQueenCount,
         },
         [4] = {
             name = "raptor_land_swarmer_brood_t4_v1",
@@ -450,7 +451,7 @@ local unitListNames = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 5,
-            spawnTimer = 10,
+            spawnTimer = 10*raptorQueenCount,
         },
         [5] = {
             name = "raptor_land_swarmer_heal_t4_v1",
@@ -459,7 +460,7 @@ local unitListNames = {
             fightRadius = 500,
             spawnedPerWave = 5,
             maxAllowed = 5,
-            spawnTimer = 10,
+            spawnTimer = 10*raptorQueenCount,
         },
     },
     ["raptor_queen_epic"] = {
@@ -470,7 +471,7 @@ local unitListNames = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 28,
-            spawnTimer = 1,
+            spawnTimer = 10*raptorQueenCount,
         },
         [2] = {
             name = "raptor_air_bomber_basic_t4_v1",
@@ -479,7 +480,7 @@ local unitListNames = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 7,
-            spawnTimer = 1,
+            spawnTimer = 10*raptorQueenCount,
         },
         [3] = {
             name = "raptor_air_kamikaze_basic_t2_v1",
@@ -488,7 +489,7 @@ local unitListNames = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 14,
-            spawnTimer = 1,
+            spawnTimer = 10*raptorQueenCount,
         },
         [4] = {
             name = "raptor_land_swarmer_brood_t4_v1",
@@ -497,7 +498,7 @@ local unitListNames = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 6,
-            spawnTimer = 10,
+            spawnTimer = 10*raptorQueenCount,
         },
         [5] = {
             name = "raptor_land_swarmer_heal_t4_v1",
@@ -506,7 +507,7 @@ local unitListNames = {
             fightRadius = 500,
             spawnedPerWave = 6,
             maxAllowed = 6,
-            spawnTimer = 10,
+            spawnTimer = 10*raptorQueenCount,
         },
     },
 }

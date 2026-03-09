@@ -57,7 +57,9 @@ function scav_Wdef_Post(name, wDef)
         end
         if wDef.customparams.carried_unit and (not string.find(wDef.customparams.carried_unit, "_scav")) then
             wDef.customparams.carried_unit = wDef.customparams.carried_unit .. "_scav"
-            wDef.customparams.spawnrate = 1
+            if not wDef.customparams.spawnrate then
+                wDef.customparams.spawnrate = 10
+            end
         end
         if wDef.customparams.spawns_name and (not string.find(wDef.customparams.spawns_name, "_scav")) then
             local spawnNames = string.split(wDef.customparams.spawns_name)

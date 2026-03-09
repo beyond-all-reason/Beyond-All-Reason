@@ -17,6 +17,7 @@ end
 -- Localized functions
 --------------------------------------------------------------------------------
 local max = math.max
+local floor = math.floor
 local sqrt = math.sqrt
 local sin = math.sin
 local cos = math.cos
@@ -39,6 +40,7 @@ local spGetViewGeometry = Spring.GetViewGeometry
 local spIsGUIHidden = Spring.IsGUIHidden
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetMyTeamID = Spring.GetMyTeamID
+local spIsSphereInView = Spring.IsSphereInView
 
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
@@ -49,8 +51,6 @@ local glCreateList = gl.CreateList
 local glColor = gl.Color
 local glDeleteList = gl.DeleteList
 local glLineWidth = gl.LineWidth
-local glLoadIdentity = gl.LoadIdentity
-local glPointSize = gl.PointSize
 local glPopMatrix = gl.PopMatrix
 local glPushMatrix = gl.PushMatrix
 local glRotate = gl.Rotate
@@ -61,9 +61,7 @@ local glDepthTest = gl.DepthTest
 
 local GL_LINE_LOOP = GL.LINE_LOOP
 local GL_LINES = GL.LINES
-local GL_LINE_STRIP = GL.LINE_STRIP
-local GL_TRIANGLE_STRIP = GL.TRIANGLE_STRIP
-local GL_POINTS = GL.POINTS
+local GL_TRIANGLES = GL.TRIANGLES
 
 --------------------------------------------------------------------------------
 -- Configuration
@@ -80,17 +78,29 @@ local Config = {
 	paralyzerColor = { 0.2, 0.8, 1.0, 1.0 },      -- Cyan for paralyzer weapons
 	nukeAllyColor = { 1.0, 0.2, 0.0, 1.0 },       -- Orange for allied nukes
 	nukeEnemyColor = { 1.0, 0.0, 0.0, 1.0 },      -- Bright red for enemy nukes
+	junoAllyColor = { 0.2, 1.0, 0.2, 1.0 },       -- Green for allied juno missiles
+	junoEnemyColor = { 0.2, 1.0, 0.2, 1.0 },      -- Green for enemy juno missiles
 
 	-- Animation
 	blinkSpeed = 0,               -- Blinks per second at max urgency
-	rotationSpeedMax = 120,        -- Degrees per second at start
-	rotationSpeedMin = 40,        -- Degrees per second at end
+	rotationSpeedMax = 100,        -- Degrees per second at start
+	rotationSpeedMin = 30,        -- Degrees per second at end
 	pulseMinOpacity = 0.2,
 	pulseMaxOpacity = 0.4,
 
 	-- Ring animation
 	ringCount = 4,                -- Number of concentric rings
-	ringPulseSpeed = 0.02,        -- Ring pulse animation speed
+	ringPulseSpeed = 0.015,       -- Ring pulse animation speed
+
+	-- Nuke sub-layer animation
+	nukeSubLayerMin = 12,         -- Minimum sub-layers per trefoil blade
+	nukeSubLayerMax = 64,         -- Maximum sub-layers per trefoil blade
+	nukeSubLayerAoeDivisor = 40,  -- AOE / this = number of sub-layers
+	nukeWaveSpeed = 1,            -- Wave cycles per second (outside to inside)
+	nukeWaveCount = 1.2,          -- Number of wave bands visible across the shape at once
+	nukeSubLayerGap = 0.25,       -- Gap between sub-layers as fraction of layer thickness
+	nukeBaseOpacity = 0.9,        -- Overall opacity multiplier for nuke trefoil indicator (0-1)
+	nukeGradientStrength = 0.75,  -- Gradient strength: 0 = uniform, 1 = outer fully bright / inner fully dim
 }
 
 --------------------------------------------------------------------------------
@@ -98,15 +108,16 @@ local Config = {
 --------------------------------------------------------------------------------
 local trackedProjectiles = {}     -- Active projectiles we're tracking
 local trackedCount = 0            -- Number of tracked projectiles (avoids pairs iteration)
+local trackedNukeCount = 0        -- Number of tracked nuke projectiles (avoids iteration)
 local starburstWeapons = {}       -- Cache of starburst weapon info
 local circleList = nil            -- Display list for circle
-local trefoilList = nil           -- Display list for nuclear trefoil
 local targetMarkerList = nil      -- Display list for target marker
 local screenLineWidthScale = 1.0
 local myAllyTeamID = 0
 local myTeamID = 0
 local isSpectator = false
 local updateAccum = 0             -- Accumulator for update rate limiting
+local currentGeneration = 0       -- Generation counter for tracking (avoids temp table allocation)
 
 --------------------------------------------------------------------------------
 -- Initialization - Build weapon cache
@@ -122,12 +133,13 @@ local function BuildWeaponCache()
 					aoe = aoe,
 					isNuke = isNuke,
 					isParalyzer = isParalyzer,
+					isJuno = wd.name:lower():find("juno") ~= nil,
 					name = wd.name,
 					range = wd.range,
 					projectileSpeed = wd.projectilespeed or 1,
 				}
 				--Spring.Echo(wdid, wd.name, aoe, wd.range, isNuke, isParalyzer)
-			 end
+			end
 		end
 	end
 end
@@ -171,34 +183,46 @@ local function CreateDisplayLists()
 		end
 	end)
 
-	-- Nuclear trefoil display list
-	trefoilList = glCreateList(function()
-		local innerRadius = 0.18
-		local outerRadius = 0.85
-		local bladeAngle = rad(60)
-		local bladeSegments = 16
 
-		for blade = 0, 2 do
-			local baseAngle = blade * rad(120) - rad(90)
-			local startAngle = baseAngle - bladeAngle / 2
-			local step = bladeAngle / bladeSegments
-
-			glBeginEnd(GL_TRIANGLE_STRIP, function()
-				for i = 0, bladeSegments do
-					local angle = startAngle + i * step
-					local cosA, sinA = cos(angle), sin(angle)
-					glVertex(cosA * innerRadius, 0, sinA * innerRadius)
-					glVertex(cosA * outerRadius, 0, sinA * outerRadius)
-				end
-			end)
-		end
-	end)
 end
 
 local function DeleteDisplayLists()
 	if circleList then glDeleteList(circleList) end
-	if trefoilList then glDeleteList(trefoilList) end
 	if targetMarkerList then glDeleteList(targetMarkerList) end
+end
+
+--------------------------------------------------------------------------------
+-- Pre-computed blade geometry (avoids per-frame trig)
+--------------------------------------------------------------------------------
+local BLADE_SEGMENTS = 16
+local BLADE_SEGMENTS_MINI = 8
+local bladeGeometry = {}       -- [blade][segment] = {cos, sin} for world
+local bladeGeometryMini = {}   -- [blade][segment] = {cos, sin} for minimap
+
+local function PrecomputeBladeGeometry()
+	local bladeAngle = rad(60)
+	-- World-space (16 segments)
+	for blade = 0, 2 do
+		bladeGeometry[blade] = {}
+		local baseAngle = blade * rad(120) - rad(90)
+		local startAngle = baseAngle - bladeAngle / 2
+		local step = bladeAngle / BLADE_SEGMENTS
+		for i = 0, BLADE_SEGMENTS do
+			local angle = startAngle + i * step
+			bladeGeometry[blade][i] = { cos(angle), sin(angle) }
+		end
+	end
+	-- Minimap (8 segments)
+	for blade = 0, 2 do
+		bladeGeometryMini[blade] = {}
+		local baseAngle = blade * rad(120) - rad(90)
+		local startAngle = baseAngle - bladeAngle / 2
+		local step = bladeAngle / BLADE_SEGMENTS_MINI
+		for i = 0, BLADE_SEGMENTS_MINI do
+			local angle = startAngle + i * step
+			bladeGeometryMini[blade][i] = { cos(angle), sin(angle) }
+		end
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -221,13 +245,171 @@ local function DrawCircle(x, y, z, radius)
 	glPopMatrix()
 end
 
-local function DrawTrefoil(x, y, z, radius, rotation)
-	glPushMatrix()
-	glTranslate(x, y, z)
-	glRotate(rotation, 0, 1, 0)
-	glScale(radius, radius, radius)
-	glCallList(trefoilList)
-	glPopMatrix()
+--------------------------------------------------------------------------------
+-- Batched nuke drawing (world) — single closure, manual Y-axis rotation
+-- Eliminates per-nuke closure allocation, matrix stack ops, and draw calls
+--------------------------------------------------------------------------------
+local nukeBatch = {}
+local nukeBatchSize = 0
+
+local function drawAllNukeGeometry()
+	local innerR = 0.18
+	local outerR = 0.85
+	local nukeSubLayerMin = Config.nukeSubLayerMin
+	local nukeSubLayerMax = Config.nukeSubLayerMax
+	local nukeSubLayerAoeDivisor = Config.nukeSubLayerAoeDivisor
+	local nukeSubLayerGap = Config.nukeSubLayerGap
+	local nukeWaveCount = Config.nukeWaveCount
+	local nukeGradientStrength = Config.nukeGradientStrength
+
+	for n = 1, nukeBatchSize do
+		local nd = nukeBatch[n]
+		local tx, ty, tz = nd.tx, nd.ty, nd.tz
+		local radius = nd.radius
+		local cosR, sinR = nd.cosR, nd.sinR
+		local cr, cg, cb, ca = nd.cr, nd.cg, nd.cb, nd.ca
+		local baseOpacity = nd.baseOpacity
+		local waveBase = nd.waveBase
+		local aoe = nd.aoe
+
+		local numLayers = max(nukeSubLayerMin, math.min(nukeSubLayerMax, floor(aoe / nukeSubLayerAoeDivisor)))
+		if nukeBatchSize > 4 then
+			numLayers = max(nukeSubLayerMin, floor(numLayers * 4 / nukeBatchSize))
+		end
+
+		local useGeo = (nukeBatchSize > 8) and bladeGeometryMini or bladeGeometry
+		local useSegs = (nukeBatchSize > 8) and BLADE_SEGMENTS_MINI or BLADE_SEGMENTS
+
+		local layerThickness = (outerR - innerR) / numLayers
+		local gap = layerThickness * nukeSubLayerGap
+		local invNumLayers = 1 / max(1, numLayers - 1)
+
+		for layer = 1, numLayers do
+			local layerInner = innerR + (layer - 1) * layerThickness + gap * 0.5
+			local layerOuter = innerR + layer * layerThickness - gap * 0.5
+
+			local normalizedPos = (layer - 1) * invNumLayers
+			local wavePhase = (waveBase + normalizedPos * nukeWaveCount) * tau
+			local waveBrightness = 0.25 + 0.75 * max(0, sin(wavePhase))
+			local gradientMul = 1 - nukeGradientStrength * (1 - normalizedPos)
+			local layerAlpha = ca * baseOpacity * waveBrightness * gradientMul
+
+			if layerAlpha > 0.005 then  -- skip invisible layers
+				glColor(cr, cg, cb, layerAlpha)
+				local rI = radius * layerInner
+				local rO = radius * layerOuter
+
+				for blade = 0, 2 do
+					local bg = useGeo[blade]
+					for i = 0, useSegs - 1 do
+						local v0 = bg[i]
+						local v1 = bg[i + 1]
+						local c0, s0 = v0[1], v0[2]
+						local c1, s1 = v1[1], v1[2]
+						-- Manual Y-axis rotation (eliminates glPushMatrix/glRotate/glPopMatrix per nuke)
+						local rc0 = c0 * cosR + s0 * sinR
+						local rs0 = -c0 * sinR + s0 * cosR
+						local rc1 = c1 * cosR + s1 * sinR
+						local rs1 = -c1 * sinR + s1 * cosR
+
+						glVertex(tx + rI * rc0, ty, tz + rI * rs0)
+						glVertex(tx + rO * rc0, ty, tz + rO * rs0)
+						glVertex(tx + rI * rc1, ty, tz + rI * rs1)
+
+						glVertex(tx + rI * rc1, ty, tz + rI * rs1)
+						glVertex(tx + rO * rc0, ty, tz + rO * rs0)
+						glVertex(tx + rO * rc1, ty, tz + rO * rs1)
+					end
+				end
+			end
+		end
+	end
+end
+
+--------------------------------------------------------------------------------
+-- Batched nuke drawing (minimap) — single closures, manual Z-axis rotation
+--------------------------------------------------------------------------------
+local minimapNukeBatch = {}
+local minimapNukeBatchSize = 0
+
+local function drawMinimapNukeLines()
+	glColor(1, 0.2, 0.2, 0.22)
+	for n = 1, minimapNukeBatchSize do
+		local nd = minimapNukeBatch[n]
+		glVertex(nd.projPX, nd.projPY, 0)
+		glVertex(nd.targPX, nd.targPY, 0)
+	end
+end
+
+local function drawMinimapNukeTrefoils()
+	local innerR = 0.18
+	local outerR = 0.85
+	local nukeSubLayerMin = Config.nukeSubLayerMin
+	local nukeSubLayerMax = Config.nukeSubLayerMax
+	local nukeSubLayerAoeDivisor = Config.nukeSubLayerAoeDivisor
+	local nukeSubLayerGap = Config.nukeSubLayerGap
+	local nukeWaveCount = Config.nukeWaveCount
+	local nukeGradientStrength = Config.nukeGradientStrength
+
+	for n = 1, minimapNukeBatchSize do
+		local nd = minimapNukeBatch[n]
+		local px, py = nd.targPX, nd.targPY
+		local size = nd.size
+		local cosR, sinR = nd.cosR, nd.sinR
+		local cr, cg, cb, ca = nd.cr, nd.cg, nd.cb, nd.ca
+		local trefoilOpacity = nd.opacity
+		local waveBase = nd.waveBase
+		local aoe = nd.aoe
+
+		local numLayers = max(nukeSubLayerMin, math.min(nukeSubLayerMax, floor(aoe / nukeSubLayerAoeDivisor)))
+		if minimapNukeBatchSize > 4 then
+			numLayers = max(nukeSubLayerMin, floor(numLayers * 4 / minimapNukeBatchSize))
+		end
+
+		local layerThickness = (outerR - innerR) / numLayers
+		local gap = layerThickness * nukeSubLayerGap
+		local invNumLayers = 1 / max(1, numLayers - 1)
+
+		for layer = 1, numLayers do
+			local layerInner = innerR + (layer - 1) * layerThickness + gap * 0.5
+			local layerOuter = innerR + layer * layerThickness - gap * 0.5
+
+			local normalizedPos = (layer - 1) * invNumLayers
+			local wavePhase = (waveBase + normalizedPos * nukeWaveCount) * tau
+			local waveBrightness = 0.25 + 0.75 * max(0, sin(wavePhase))
+			local gradientMul = 1 - nukeGradientStrength * (1 - normalizedPos)
+			local layerAlpha = ca * trefoilOpacity * waveBrightness * gradientMul
+
+			if layerAlpha > 0.005 then
+				glColor(cr, cg, cb, layerAlpha)
+				local rI = size * layerInner
+				local rO = size * layerOuter
+
+				for blade = 0, 2 do
+					local bg = bladeGeometryMini[blade]
+					for i = 0, BLADE_SEGMENTS_MINI - 1 do
+						local v0 = bg[i]
+						local v1 = bg[i + 1]
+						local c0, s0 = v0[1], v0[2]
+						local c1, s1 = v1[1], v1[2]
+						-- Manual Z-axis rotation for 2D minimap
+						local rc0 = c0 * cosR - s0 * sinR
+						local rs0 = c0 * sinR + s0 * cosR
+						local rc1 = c1 * cosR - s1 * sinR
+						local rs1 = c1 * sinR + s1 * cosR
+
+						glVertex(px + rI * rc0, py + rI * rs0)
+						glVertex(px + rO * rc0, py + rO * rs0)
+						glVertex(px + rI * rc1, py + rI * rs1)
+
+						glVertex(px + rI * rc1, py + rI * rs1)
+						glVertex(px + rO * rc0, py + rO * rs0)
+						glVertex(px + rO * rc1, py + rO * rs1)
+					end
+				end
+			end
+		end
+	end
 end
 
 local function DrawTargetMarker(x, y, z, radius, rotation)
@@ -280,16 +462,18 @@ local function GetProjectileTargetPos(proID)
 end
 
 local function UpdateTrackedProjectiles()
+	currentGeneration = currentGeneration + 1
+	local gen = currentGeneration
 	local currentTime = osClock()
 	local allProjectiles = spGetProjectilesInRectangle(0, 0, mapSizeX, mapSizeZ)
-	local activeIDs = {}
 	local newCount = 0
+	local newNukeCount = 0
 
 	if not allProjectiles then
-		-- Clear all tracked if no projectiles exist
 		if trackedCount > 0 then
 			trackedProjectiles = {}
 			trackedCount = 0
+			trackedNukeCount = 0
 		end
 		return
 	end
@@ -303,11 +487,10 @@ local function UpdateTrackedProjectiles()
 			local existingData = trackedProjectiles[proID]
 
 			if existingData then
-				-- Spectators see all, players only see their own team
 				if isSpectator or existingData.isOwnTeam then
-					activeIDs[proID] = true
+					existingData.generation = gen
 					newCount = newCount + 1
-					-- Update projectile position
+					if existingData.weaponInfo.isNuke then newNukeCount = newNukeCount + 1 end
 					local px, py, pz = spGetProjectilePosition(proID)
 					if px then
 						existingData.projectileX = px
@@ -316,13 +499,11 @@ local function UpdateTrackedProjectiles()
 					end
 				end
 			else
-				-- New projectile - check team
 				local teamID = spGetProjectileTeamID(proID)
 				local isOwnTeam = (teamID == myTeamID)
 				local _, _, _, _, _, allyTeamID = spGetTeamInfo(teamID)
 				local isAlly = (allyTeamID == myAllyTeamID)
 
-				-- Spectators see all, players only see their own team's projectiles
 				if isSpectator or isOwnTeam then
 					local tx, ty, tz = GetProjectileTargetPos(proID)
 					local px, py, pz = spGetProjectilePosition(proID)
@@ -330,13 +511,18 @@ local function UpdateTrackedProjectiles()
 					if tx and px then
 						local dx, dy, dz = tx - px, ty - py, tz - pz
 						local distance = sqrt(dx * dx + dy * dy + dz * dz)
-						local speed = max(weaponInfo.projectileSpeed * 30, 1) -- Cache speed
+						local speed = max(weaponInfo.projectileSpeed * 30, 1)
 						local estimatedFlightTime = distance / speed
 
-						activeIDs[proID] = true
 						newCount = newCount + 1
+						if weaponInfo.isNuke then newNukeCount = newNukeCount + 1 end
+
+						-- Cache ground-adjusted target Y at creation (avoids per-frame API call)
+						local groundY = spGetGroundHeight(tx, tz)
+						if groundY and groundY > ty then ty = groundY end
 
 						trackedProjectiles[proID] = {
+							generation = gen,
 							weaponInfo = weaponInfo,
 							targetX = tx,
 							targetY = ty,
@@ -345,10 +531,10 @@ local function UpdateTrackedProjectiles()
 							projectileY = py,
 							projectileZ = pz,
 							startTime = currentTime,
-							initialFlightTime = estimatedFlightTime, -- Store initial for smooth progress
+							initialFlightTime = estimatedFlightTime,
 							isOwnTeam = isOwnTeam,
 							isAlly = isAlly,
-							speed = speed,  -- Cache speed in data
+							speed = speed,
 						}
 					end
 				end
@@ -356,43 +542,41 @@ local function UpdateTrackedProjectiles()
 		end
 	end
 
-	-- Remove projectiles that no longer exist
+	-- Remove stale projectiles (generation-based, no temp table needed)
 	if trackedCount > 0 then
-		for proID in pairs(trackedProjectiles) do
-			if not activeIDs[proID] then
+		for proID, data in pairs(trackedProjectiles) do
+			if data.generation ~= gen then
 				trackedProjectiles[proID] = nil
 			end
 		end
 	end
 
 	trackedCount = newCount
+	trackedNukeCount = newNukeCount
 end
 
 --------------------------------------------------------------------------------
 -- Drawing
 --------------------------------------------------------------------------------
+-- Draws non-nuke starburst indicators (nukes are batched separately in DrawWorld)
 local function DrawImpactIndicator(data, currentTime)
-	local tx, ty, tz = data.targetX, data.targetY, data.targetZ
+	local tx, ty, tz = data.targetX, data.targetY, data.targetZ  -- targetY already ground-adjusted
 	local weaponInfo = data.weaponInfo
 	local aoe = weaponInfo.aoe
-	local isNuke = weaponInfo.isNuke
 
-	-- Calculate progress using initial flight time for smooth animation
 	local elapsed = currentTime - data.startTime
 	local progress = elapsed / max(data.initialFlightTime, 0.1)
 	if progress > 1 then progress = 1 elseif progress < 0 then progress = 0 end
 
-	-- Select color based on paralyzer, nuke, and ally/enemy status
 	local color
 	if weaponInfo.isParalyzer then
 		color = Config.paralyzerColor
-	elseif isNuke then
-		color = data.isAlly and Config.nukeAllyColor or Config.nukeEnemyColor
+	elseif weaponInfo.isJuno then
+		color = data.isAlly and Config.junoAllyColor or Config.junoEnemyColor
 	else
 		color = data.isAlly and Config.allyColor or Config.enemyColor
 	end
 
-	-- Animation calculations (simplified - blinkSpeed is 0 by default)
 	local blinkPhase = 0
 	if Config.blinkSpeed > 0 then
 		local blinkFreq = Config.blinkSpeed * (1 + progress * 2)
@@ -403,48 +587,31 @@ local function DrawImpactIndicator(data, currentTime)
 	local minOpacity = Config.pulseMinOpacity + progress * 0.3
 	local opacity = minOpacity > baseOpacity and minOpacity or baseOpacity
 
-	-- Fade in during first half of flight time
 	if progress < 0.5 then
 		opacity = opacity * (progress * 2)
 	end
 
-	-- Rotation - integrate variable speed for smooth deceleration
-	-- Speed decreases linearly from max to min as progress goes 0->1
-	-- Integral gives: rotation = elapsed * (maxSpeed - (maxSpeed - minSpeed) * progress / 2)
 	local avgSpeed = Config.rotationSpeedMax - (Config.rotationSpeedMax - Config.rotationSpeedMin) * progress * 0.5
 	local rotation = (elapsed * avgSpeed) % 360
 
-	-- Ensure target Y is at ground level
-	local groundY = spGetGroundHeight(tx, tz)
-	if groundY and groundY > ty then ty = groundY end
+	-- Inner progress rings (shrinking as impact approaches)
+	local ringCount = Config.ringCount
+	for i = 1, ringCount do
+		local ringProgress = i / ringCount
+		local ringRadius = aoe * (1 - progress * 0.5) * ringProgress
+		local ringOpacity = opacity * (0.2 + 0.3 * ringProgress)
+		local ringPhase = sin(currentTime * tau * 1.5 + i * pi / 3)
+		ringOpacity = ringOpacity * (0.6 + 0.4 * ringPhase)
 
-	if isNuke then
-		-- Trefoil symbol in center (rotating, pulsing)
-		local trefoilSize = aoe * 0.75 * (0.6 + 0.08 * sin(currentTime * tau * 0.4))
-		local trefoilOpacity = 0.35 + 0.1 * progress + 0.1 * blinkPhase
-		SetColor(color, trefoilOpacity)
-		DrawTrefoil(tx, ty + 3, tz, trefoilSize, rotation)
-	else
-		-- Regular starburst - draw target marker and rings
-		-- Inner progress rings (shrinking as impact approaches)
-		local ringCount = Config.ringCount
-		for i = 1, ringCount do
-			local ringProgress = i / ringCount
-			local ringRadius = aoe * (1 - progress * 0.5) * ringProgress
-			local ringOpacity = opacity * (0.2 + 0.3 * ringProgress)
-			local ringPhase = sin(currentTime * tau * 1.5 + i * pi / 3)
-			ringOpacity = ringOpacity * (0.6 + 0.4 * ringPhase)
-
-			SetColor(color, ringOpacity)
-			DrawCircle(tx, ty + 2, tz, ringRadius)
-		end
-
-		-- Center target marker (rotating)
-		local markerSize = aoe * 0.4
-		local markerOpacity = 0.6 + 0.3 * blinkPhase
-		SetColor(color, markerOpacity)
-		DrawTargetMarker(tx, ty + 3, tz, markerSize, -rotation * 0.5)
+		SetColor(color, ringOpacity)
+		DrawCircle(tx, ty + 2, tz, ringRadius)
 	end
+
+	-- Center target marker (rotating)
+	local markerSize = aoe * 0.4
+	local markerOpacity = 0.6 + 0.3 * blinkPhase
+	SetColor(color, markerOpacity)
+	DrawTargetMarker(tx, ty + 3, tz, markerSize, -rotation * 0.5)
 end
 
 --------------------------------------------------------------------------------
@@ -456,6 +623,7 @@ function widget:Initialize()
 	isSpectator = spGetSpectatingState()
 	BuildWeaponCache()
 	CreateDisplayLists()
+	PrecomputeBladeGeometry()
 	UpdateScreenScale()
 end
 
@@ -474,6 +642,7 @@ function widget:PlayerChanged(playerID)
 	-- Clear tracked projectiles when player state changes
 	trackedProjectiles = {}
 	trackedCount = 0
+	trackedNukeCount = 0
 end
 
 function widget:Update(dt)
@@ -488,126 +657,124 @@ end
 function widget:DrawWorld()
 	if spIsGUIHidden() or trackedCount == 0 then return end
 
-	-- Set GL state once for all indicators
 	glDepthTest(false)
 	glLineWidth(Config.baseLineWidth * screenLineWidthScale)
 
 	local currentTime = osClock()
+	nukeBatchSize = 0
+
 	for _, data in pairs(trackedProjectiles) do
-		DrawImpactIndicator(data, currentTime)
+		local aoe = data.weaponInfo.aoe
+		if spIsSphereInView(data.targetX, data.targetY, data.targetZ, aoe) then
+			if data.weaponInfo.isNuke then
+				-- Collect nuke into batch for single-draw-call rendering
+				local elapsed = currentTime - data.startTime
+				local progress = elapsed / max(data.initialFlightTime, 0.1)
+				if progress > 1 then progress = 1 elseif progress < 0 then progress = 0 end
+
+				local blinkPhase = 0
+				if Config.blinkSpeed > 0 then
+					local blinkFreq = Config.blinkSpeed * (1 + progress * 2)
+					blinkPhase = sin(currentTime * blinkFreq * tau)
+				end
+
+				local avgSpeed = Config.rotationSpeedMax - (Config.rotationSpeedMax - Config.rotationSpeedMin) * progress * 0.5
+				local rotRad = ((elapsed * avgSpeed) % 360) * pi / 180
+
+				local color = data.isAlly and Config.nukeAllyColor or Config.nukeEnemyColor
+
+				nukeBatchSize = nukeBatchSize + 1
+				local nd = nukeBatch[nukeBatchSize]
+				if not nd then nd = {}; nukeBatch[nukeBatchSize] = nd end
+				nd.tx = data.targetX
+				nd.ty = data.targetY + 3
+				nd.tz = data.targetZ
+				nd.radius = aoe * 0.75 * (0.6 + 0.08 * sin(currentTime * tau * 0.4))
+				nd.cosR = cos(rotRad)
+				nd.sinR = sin(rotRad)
+				nd.cr = color[1]
+				nd.cg = color[2]
+				nd.cb = color[3]
+				nd.ca = color[4]
+				nd.baseOpacity = Config.nukeBaseOpacity * (0.7 + 0.2 * progress + 0.1 * blinkPhase)
+				nd.waveBase = currentTime * Config.nukeWaveSpeed
+				nd.aoe = aoe
+			else
+				DrawImpactIndicator(data, currentTime)
+			end
+		end
 	end
 
-	-- Restore GL state
+	-- Batch draw all visible nukes in ONE draw call (no per-nuke closure/matrix ops)
+	if nukeBatchSize > 0 then
+		glBeginEnd(GL_TRIANGLES, drawAllNukeGeometry)
+	end
+
 	glDepthTest(true)
 	glColor(1, 1, 1, 1)
 	glLineWidth(1)
 end
 
 function widget:DrawInMiniMap(sx, sy)
-	if trackedCount == 0 then return end
-
-	-- Check if any nukes are being tracked
-	local hasNukes = false
-	for _, data in pairs(trackedProjectiles) do
-		if data.weaponInfo.isNuke then
-			hasNukes = true
-			break
-		end
-	end
-	if not hasNukes then return end
-
-	-- Set up minimap coordinate system
-	-- Widgets draw in pixel coords [0, sx] x [0, sy] where (0,0) is top-left
-	-- World X maps to pixel X: worldX / mapSizeX * sx
-	-- World Z maps to pixel Y: (1 - worldZ / mapSizeZ) * sy (Y flipped, north=top)
-	--
-	-- For PIP mode: the PIP widget sets up gl.Ortho to transform these same pixel
-	-- coords to show only the visible portion, so we don't need special handling.
+	if trackedNukeCount == 0 then return end
 
 	local currentTime = osClock()
+	local worldToPixelX = sx / mapSizeX
+	local worldToPixelY = sy / mapSizeZ
+	local waveBase = currentTime * Config.nukeWaveSpeed
 
-	-- Draw for each nuke
+	-- Collect all nuke data into minimap batch (reuses tables)
+	minimapNukeBatchSize = 0
 	for _, data in pairs(trackedProjectiles) do
 		if data.weaponInfo.isNuke then
-			local tx, tz = data.targetX, data.targetZ
-			local px, pz = data.projectileX, data.projectileZ
-			local aoe = data.weaponInfo.aoe
-
-			-- Convert world coords to minimap pixel coords
-			local targetPixelX = tx / mapSizeX * sx
-			local targetPixelY = (1 - tz / mapSizeZ) * sy  -- Y flipped
-			local projPixelX = px / mapSizeX * sx
-			local projPixelY = (1 - pz / mapSizeZ) * sy  -- Y flipped
-
-			-- Calculate progress for animation
 			local elapsed = currentTime - data.startTime
 			local progress = elapsed / max(data.initialFlightTime, 0.1)
 			if progress > 1 then progress = 1 elseif progress < 0 then progress = 0 end
 
-			-- Animation calculations (matching DrawWorld)
 			local blinkPhase = 0
 			if Config.blinkSpeed > 0 then
 				local blinkFreq = Config.blinkSpeed * (1 + progress * 2)
 				blinkPhase = sin(currentTime * blinkFreq * tau)
 			end
 
-			-- Rotation
 			local avgSpeed = Config.rotationSpeedMax - (Config.rotationSpeedMax - Config.rotationSpeedMin) * progress * 0.5
-			local rotation = (elapsed * avgSpeed) % 360
+			local rotRad = ((elapsed * avgSpeed) % 360) * pi / 180
 
-			-- Select color
 			local color = data.isAlly and Config.nukeAllyColor or Config.nukeEnemyColor
+			local aoe = data.weaponInfo.aoe
 
-			-- Draw line from projectile to target
-			glColor(1, 0.2, 0.2, 0.22)  -- Red line
-			glLineWidth(1.5)
-			glBeginEnd(GL_LINES, function()
-				glVertex(projPixelX, projPixelY, 0)
-				glVertex(targetPixelX, targetPixelY, 0)
-			end)
-
-			-- Trefoil symbol (scaled for minimap)
-			-- Scale: pixels per world elmo
-			local worldToPixelScale = sx / mapSizeX
 			local trefoilWorldSize = aoe * 0.75 * (0.6 + 0.08 * sin(currentTime * tau * 0.4))
-			local trefoilPixelSize = trefoilWorldSize * worldToPixelScale
-			-- Clamp to reasonable size
-			trefoilPixelSize = math.max(5, math.min(trefoilPixelSize, 40))
+			local trefoilPixelSize = trefoilWorldSize * worldToPixelX
+			if trefoilPixelSize < 5 then trefoilPixelSize = 5 elseif trefoilPixelSize > 40 then trefoilPixelSize = 40 end
 
-			local trefoilOpacity = 0.5 + 0.15 * progress + 0.1 * blinkPhase
-
-			SetColor(color, trefoilOpacity)
-
-			-- Draw trefoil at target position
-			glPushMatrix()
-			glTranslate(targetPixelX, targetPixelY, 0)
-			glRotate(rotation, 0, 0, 1)  -- Rotate around Z since we're in 2D minimap space
-			glScale(trefoilPixelSize, trefoilPixelSize, 1)
-
-			-- Draw trefoil blades manually (since display list uses 3D coords)
-			local innerRadius = 0.18
-			local outerRadius = 0.85
-			local bladeAngle = rad(60)
-			local bladeSegments = 8  -- Fewer segments for minimap
-
-			for blade = 0, 2 do
-				local baseAngle = blade * rad(120) - rad(90)
-				local startAngle = baseAngle - bladeAngle / 2
-				local step = bladeAngle / bladeSegments
-
-				glBeginEnd(GL_TRIANGLE_STRIP, function()
-					for i = 0, bladeSegments do
-						local angle = startAngle + i * step
-						local cosA, sinA = cos(angle), sin(angle)
-						glVertex(cosA * innerRadius, sinA * innerRadius)
-						glVertex(cosA * outerRadius, sinA * outerRadius)
-					end
-				end)
-			end
-
-			glPopMatrix()
+			minimapNukeBatchSize = minimapNukeBatchSize + 1
+			local nd = minimapNukeBatch[minimapNukeBatchSize]
+			if not nd then nd = {}; minimapNukeBatch[minimapNukeBatchSize] = nd end
+			nd.targPX = data.targetX * worldToPixelX
+			nd.targPY = (1 - data.targetZ / mapSizeZ) * sy
+			nd.projPX = data.projectileX * worldToPixelX
+			nd.projPY = (1 - data.projectileZ / mapSizeZ) * sy
+			nd.size = trefoilPixelSize
+			nd.cosR = cos(rotRad)
+			nd.sinR = sin(rotRad)
+			nd.cr = color[1]
+			nd.cg = color[2]
+			nd.cb = color[3]
+			nd.ca = color[4]
+			nd.opacity = Config.nukeBaseOpacity * (0.8 + 0.15 * progress + 0.1 * blinkPhase)
+			nd.waveBase = waveBase
+			nd.aoe = aoe
 		end
 	end
+
+	if minimapNukeBatchSize == 0 then return end
+
+	-- Batch all lines in ONE draw call
+	glLineWidth(1.5)
+	glBeginEnd(GL_LINES, drawMinimapNukeLines)
+
+	-- Batch all trefoils in ONE draw call
+	glBeginEnd(GL_TRIANGLES, drawMinimapNukeTrefoils)
 
 	glColor(1, 1, 1, 1)
 end

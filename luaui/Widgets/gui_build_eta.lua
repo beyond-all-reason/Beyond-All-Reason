@@ -35,6 +35,10 @@ local etaTable = {}
 local etaMaxDist = 750000 -- max dist at which to draw ETA
 local blinkTime = 20
 
+-- Pre-cache I18N strings to avoid per-unit per-frame lookups
+local i18n_buildTime = "\255\255\255\1" .. Spring.I18N('ui.buildEstimate.time') .. "\255\255\255\255 "
+local i18n_cancelled = Spring.I18N('ui.buildEstimate.cancelled') .. " "
+
 local unitHeight = {}
 for udid, unitDef in pairs(UnitDefs) do
 	unitHeight[udid] = unitDef.height
@@ -78,6 +82,11 @@ end
 function widget:Initialize()
 	widget:ViewResize()
 	init()
+end
+
+function widget:LanguageChanged()
+	i18n_buildTime = "\255\255\255\1" .. Spring.I18N('ui.buildEstimate.time') .. "\255\255\255\255 "
+	i18n_cancelled = Spring.I18N('ui.buildEstimate.cancelled') .. " "
 end
 
 function widget:Update(dt)
@@ -175,12 +184,12 @@ end
 
 local function drawEtaText(timeLeft, yoffset)
 	local etaText
-	local etaPrefix = "\255\255\255\1" .. Spring.I18N('ui.buildEstimate.time') .. "\255\255\255\255 "
+	local etaPrefix = i18n_buildTime
 	if timeLeft == nil then
 		etaText = etaPrefix .. "\255\1\1\255???"
 	else
 		local canceled = timeLeft<0
-		etaPrefix = (not canceled and etaPrefix) or (((spGetGameFrame()%blinkTime>=blinkTime/2) and "\255\255\255\255" or"\255\255\1\1")..Spring.I18N('ui.buildEstimate.cancelled').." ")
+		etaPrefix = (not canceled and etaPrefix) or (((spGetGameFrame()%blinkTime>=blinkTime/2) and "\255\255\255\255" or"\255\255\1\1")..i18n_cancelled)
 		timeLeft = math.abs(timeLeft)
 		local minutes = timeLeft / 60
 		local seconds = timeLeft % 60

@@ -276,12 +276,13 @@ return {
 					carried_unit = "legheavydronesmall",     --Name of the unit spawned by this carrier unit.
 					engagementrange = 1600,
 					spawns_surface = "LAND",    -- "LAND" or "SEA". The SEA option has not been tested currently.
-					spawnrate = 8, 				--Spawnrate roughly in seconds.
+					spawnrate = 12, 				--Spawnrate roughly in seconds.
 					maxunits = 2,				--Will spawn units until this amount has been reached.
+					startingdronecount = 0,
 					energycost = 1000,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					metalcost = 90,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					controlradius = 1800,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
-					decayrate = 4,
+					controlradius = 1500,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
+					deathdecayrate = 50,
 					carrierdeaththroe = "release",
 					dockingarmor = 0.2,
 					dockinghealrate = 256,
@@ -294,6 +295,8 @@ return {
 					stockpilemetal = 90,
 					stockpileenergy = 1000,
 					dronesusestockpile = true,
+					dronedocktime = 2,
+					droneairtime = 90,
 				}
 			},
 			light_antiair_missile = {

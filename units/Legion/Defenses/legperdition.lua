@@ -167,7 +167,7 @@ return {
 				},
 				damage = {
 					commanders = 700,
-					default = 1200, -- with area damage, 3000, minus some self-interference, so about 2750
+					default = 1200, -- with area damage, 3000, minus some self-interference, so about 2900
 				},
 			},
 		},

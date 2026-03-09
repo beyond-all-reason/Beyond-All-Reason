@@ -58,6 +58,7 @@ local spGetTeamStartPosition = Spring.GetTeamStartPosition
 local spGetTeamUnitDefCount = Spring.GetTeamUnitDefCount
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetAllUnits = Spring.GetAllUnits
+local spGetTeamUnitsByDefs = Spring.GetTeamUnitsByDefs
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetMouseState = Spring.GetMouseState
@@ -182,9 +183,11 @@ local images = {
 
 local comDefs = {}
 local reclaimerUnitDefs = {}
+local reclaimerDefIDList = {}
 for udefID, def in ipairs(UnitDefs) do
 	if def.isBuilder and not def.isFactory then
 		reclaimerUnitDefs[udefID] = { def.metalMake, def.energyMake }
+		reclaimerDefIDList[#reclaimerDefIDList + 1] = udefID
 	end
 	if def.customParams.iscommander then
 		comDefs[udefID] = true
@@ -582,15 +585,12 @@ local function setReclaimerUnits()
 	for i = 1, teamListLen do
 		local tID = teamList[i]
 		reclaimerUnits[tID] = {}
-	end
-	local allUnits = spGetAllUnits()
-	local allUnitsLen = #allUnits
-	for i = 1, allUnitsLen do
-		local unitID = allUnits[i]
-		local uDefID = spGetUnitDefID(unitID)
-		if reclaimerUnitDefs[uDefID] then
-			local unitTeam = spGetUnitTeam(unitID)
-			reclaimerUnits[unitTeam][unitID] = uDefID
+		local teamUnits = spGetTeamUnitsByDefs(tID, reclaimerDefIDList)
+		if teamUnits then
+			for j = 1, #teamUnits do
+				local unitID = teamUnits[j]
+				reclaimerUnits[tID][unitID] = spGetUnitDefID(unitID)
+			end
 		end
 	end
 end
