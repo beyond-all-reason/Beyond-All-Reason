@@ -603,86 +603,6 @@ local function getStartUnitTexture(teamID)
 	return 'unitpics/other/dice.dds'
 end
 
-local factionMarkerUnitDefIDs = {}
-do
-	local markerDefs = {
-		arm = "arm_startmodel_placeholder",
-		cor = "cor_startmodel_placeholder",
-		leg = "leg_startmodel_placeholder",
-	}
-	for prefix, defName in pairs(markerDefs) do
-		local def = UnitDefNames and UnitDefNames[defName]
-		if def then
-			factionMarkerUnitDefIDs[prefix] = def.id
-		end
-	end
-end
-
-local factionMarkerShapeIDs = {}
-local factionMarkerState = {}
-local renderedFactionTeams = {}
-
-local function getFactionMarkerUnitDefID(teamID)
-	local startUnitDefID = spGetTeamRulesParam(teamID, 'startUnit')
-	if not startUnitDefID then
-		return nil
-	end
-
-	local uDef = UnitDefs[startUnitDefID]
-	if not uDef or not uDef.name then
-		return nil
-	end
-
-	return factionMarkerUnitDefIDs[string.sub(uDef.name, 1, 3)]
-end
-
-local function stopFactionMarker(teamID)
-	local markerShapeID = factionMarkerShapeIDs[teamID]
-	if markerShapeID and WG.StopDrawUnitShapeGL4 then
-		WG.StopDrawUnitShapeGL4(markerShapeID)
-	end
-	factionMarkerShapeIDs[teamID] = nil
-end
-
-local function clearFactionMarkers()
-	for teamID in pairs(factionMarkerShapeIDs) do
-		stopFactionMarker(teamID)
-	end
-	for k in pairs(factionMarkerState) do factionMarkerState[k] = nil end
-end
-
-local function updateFactionMarker(teamID, x, y, z)
-	if not WG.DrawUnitShapeGL4 then
-		return
-	end
-
-	local markerUnitDefID = getFactionMarkerUnitDefID(teamID)
-	if not markerUnitDefID then
-		stopFactionMarker(teamID)
-		factionMarkerState[teamID] = nil
-		return
-	end
-
-	local markerState = factionMarkerState[teamID]
-	if markerState and markerState.unitDefID == markerUnitDefID and markerState.x == x and markerState.y == y and markerState.z == z then
-		return
-	end
-
-	stopFactionMarker(teamID)
-
-	local markerShapeID = WG.DrawUnitShapeGL4(markerUnitDefID, x, y, z, 0, 1, teamID, 0, 0)
-	factionMarkerShapeIDs[teamID] = markerShapeID
-	local state = factionMarkerState[teamID]
-	if not state then
-		state = {}
-		factionMarkerState[teamID] = state
-	end
-	state.unitDefID = markerUnitDefID
-	state.x = x
-	state.y = y
-	state.z = z
-end
-
 local totalTeams = #Spring.GetTeamList()-1
 local function DrawStartUnitIcons(sx, sz, inPip)
 	-- Ensure teams data is populated (DrawInMiniMap may be called before DrawWorld)
@@ -1022,7 +942,6 @@ local function removeLists()
 end
 
 function widget:Shutdown()
-	clearFactionMarkers()
 	removeLists()
 	gl.DeleteFont(font)
 	gl.DeleteFont(font2)
@@ -1063,7 +982,6 @@ function widget:DrawWorld()
 	InstanceVBOTable.clearInstanceTable(startConeVBOTable)
 
 	local cCount = 0
-	for k in pairs(renderedFactionTeams) do renderedFactionTeams[k] = nil end
 
 	for i = 1, teamsToRenderCount do
 		local entry = teamsToRender[i]
@@ -1078,8 +996,6 @@ function widget:DrawWorld()
 		pushElementInstance(startConeVBOTable,
 			cacheTable,
 			nil, nil, true)
-		updateFactionMarker(teamID, x, y, z)
-		renderedFactionTeams[teamID] = true
 		if teamID == myTeamID then
 			amPlaced = true
 		end
@@ -1088,13 +1004,6 @@ function widget:DrawWorld()
 			cCount = cCount + 1
 			local circleEntry = getCircleEntry(cCount)
 			circleEntry[1], circleEntry[2], circleEntry[3] = x, y, z
-		end
-	end
-
-	for teamID in pairs(factionMarkerState) do
-		if not renderedFactionTeams[teamID] then
-			stopFactionMarker(teamID)
-			factionMarkerState[teamID] = nil
 		end
 	end
 
