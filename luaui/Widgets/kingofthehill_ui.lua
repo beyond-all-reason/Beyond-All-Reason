@@ -314,8 +314,14 @@ local captureDelayFrames
 -- health multiplier for capture qualified units
 local healthMultiplier
 
---Whether the king has globalLOS
+-- whether the king has globalLOS
 local kingGlobalLos
+
+-- whether units are immune to damage in their start boxes
+local noDamageInBoxes
+
+-- whether all units in the hill will explode when the king changes
+local explodehillunits
 
 -- #endregion
 
@@ -810,7 +816,7 @@ function RectMapArea.new(args)
 	if not args.left or not args.right or not args.top or not args.bottom then
 		error("Missing one or more arguments for new RectMapArea", 2)
 	end
-	args.type = "rect"
+	args.type = args.type or "rect"
 	args.centerX = (args.left + args.right) / 2
 	args.centerZ = (args.top + args.bottom) / 2
 	args.xSize = args.right - args.left
@@ -863,7 +869,7 @@ function CircleMapArea.new(args)
 	if not args.x or not args.z or not args.radius then
 		error("Missing one or more arguments for new CircleMapArea", 2)
 	end
-	args.type = "circle"
+	args.type = args.type or "circle"
 	args.circumference = 2 * math.pi * args.radius
 	
 	--Populate the XZ vertex coordinates
@@ -956,40 +962,30 @@ end
 -- #endregion
 --///////////////
 
--- Parses the string modoption that defines the hill area and returns args for a MapArea constructor
-local function parseAreaString(string)
-	local words = splitStr(string)
-	if #words < 4 then
-		Spring.Log("KingOfTheHill_ui", "error", "Not enough arguments in area string. Resorting to default area box.")
-		return defaultHillAreaArgs
-	end
-	local shape = words[1]
-	local nums = {}
-	local numArgumentCount
-	if shape == "rect" then
-		numArgumentCount = 4
-	elseif shape == "circle" then
-		numArgumentCount = 3
-	else
-		Spring.Log("KingOfTheHill_ui", "error", "Invalid shape in area string. Resorting to default area box.")
-		return defaultHillAreaArgs
-	end
-	
-	for i = 1, numArgumentCount, 1 do
-		local num = tonumber(words[i+1])
-		if not num or num < 0 or num > mapAreaScale then
-			Spring.Log("KingOfTheHill_ui", "error", "Invalid number in area string. Resorting to default area box.")
-			return defaultHillAreaArgs
+-- Parses the modoptions that define the hill area and returns args for a MapArea constructor
+local function parseAreaModOptions(left, right, top, bottom, type)
+	if type == "rect" then
+		-- Coords from mod options have 0 at top left corner
+		return {type = type, left = left*mapSizeX/mapAreaScale, top = (1 - top/mapAreaScale)*mapSizeZ, right = right*mapSizeX/mapAreaScale, bottom = (1 - bottom/mapAreaScale)*mapSizeZ}
+	elseif type == "circle" then
+		--Make sure that the area defined by left, right, top, bottom is square for a circle
+		--Mod option coords are always [0,200] but map is not always square
+		--Same code as used in lobby 'gui_battle_room_window.lua'
+		--Invalid mod option coords must produce same circle as is rendered in lobby
+		local currentAreaWidth = right - left
+		local currentAreaHeight = bottom - top
+		local currentAreaAspectRatio = currentAreaWidth / currentAreaHeight
+		local targetAspectRatio =  mapSizeZ / mapSizeX
+		if targetAspectRatio >= currentAreaAspectRatio then--needs to be made more wide and less tall, so keep width same and reduce height
+			local newHeight = currentAreaWidth / targetAspectRatio
+			bottom = top + newHeight
+		else--needs to be made more tall and less wide, so keep height the same and reduce width
+			local newWidth = currentAreaHeight * targetAspectRatio
+			right = left + newWidth
 		end
-		nums[i] = num
+		
+		return {type = type, x = ((left + right)/2)*mapSizeX/mapAreaScale, z = ((top + bottom)/2)*mapSizeZ/mapAreaScale, radius = ((right - left)/2)*mapSizeX/mapAreaScale}
 	end
-	
-	if shape == "rect" then
-		return {type = shape, left = nums[1]*mapSizeX/mapAreaScale, top = nums[2]*mapSizeZ/mapAreaScale, right = nums[3]*mapSizeX/mapAreaScale, bottom = nums[4]*mapSizeZ/mapAreaScale}
-	elseif shape == "circle" then
-		return {type = shape, x = nums[1]*mapSizeX/mapAreaScale, z = nums[2]*mapSizeZ/mapAreaScale, radius = nums[3]*math.max(mapSizeX, mapSizeZ)/mapAreaScale}
-	end
-	
 end
 
 --Called when the addon is (re)loaded.
@@ -1005,7 +1001,9 @@ function widget:Initialize()
 	end
 	
 	--Get and parse KOTH related mod options
-	local hillAreaArgs = parseAreaString(modOptions.kingofthehillarea)
+	local hillAreaArgs = parseAreaModOptions(modOptions.kingofthehillarealeft, modOptions.kingofthehillarearight,
+								modOptions.kingofthehillareatop, modOptions.kingofthehillareabottom,
+								modOptions.kingofthehillareatype)
 	hillAreaArgs.allyTeam = false
 	hillAreaArgs.flags = UIMapArea.Flags.HILL_AREA
 	hillArea = hillAreaArgs.type == "circle" and CircleMapArea.new(hillAreaArgs) or RectMapArea.new(hillAreaArgs)
@@ -1016,6 +1014,8 @@ function widget:Initialize()
 	captureDelayFrames = fps * captureDelay / 1000
 	healthMultiplier = tonumber(modOptions.kingofthehillhealthmultiplier) or 1
 	kingGlobalLos = modOptions.kingofthehillkinggloballos
+	noDamageInBoxes = modOptions.kingofthehillnodamageinboxes
+	explodehillunits = modOptions.kingofthehillexplodehillunits
 	
 	--Arrays for data in uniforms and UBO
 	local allyTeamColorsVec4Array = {}
@@ -1227,15 +1227,15 @@ function widget:MousePress(x, y, button)
 	return false
 end
 
-local updateCounter = 0
+local updateCounter = framesPerUpdate
 -- Called for every game simulation frame
 -- Used to update the progress bar when there is a king
 function widget:GameFrame(frame)
-	updateCounter = updateCounter + 1
-	if updateCounter < framesPerUpdate then
+	updateCounter = updateCounter - 1
+	if updateCounter > 0 then
 		return
 	end
-	updateCounter = 0
+	updateCounter = framesPerUpdate
 	
 	local newKingStartFrame = Spring.GetGameRulesParam("kingStartFrame")
 	local kingChanged = newKingStartFrame ~= kingStartFrame--King may still be the same if it changed and then changed back before we updated

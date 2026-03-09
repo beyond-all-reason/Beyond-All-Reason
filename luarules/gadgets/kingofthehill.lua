@@ -70,13 +70,9 @@
 --
 -- Goals (TODO)
 --
---   Add mod options for buildings exploding in hill and no damage in startbox
---
 --   Figure out a way to have global LOS just inside the hill
 --     Would be possible for circular hills with some sort of unit that gives LOS, but that
 --     would not work for rectangular hills
---
---   Figure out how to make a better lobby interface for setting the hill region (like the start box interface)
 --
 --   Handle saved games
 --
@@ -109,6 +105,7 @@ local squareSize = Game.squareSize
 local UnitDefs = UnitDefs
 local UnitDefNames = UnitDefNames
 local fps = Game.gameSpeed
+local dayFrames = fps * 24 * 60 * 60
 -- #endregion
 
 -- /////////////////////////////
@@ -289,6 +286,7 @@ function RectMapArea.new(args)
 	if not args.left or not args.right or not args.top or not args.bottom then
 		error("Missing one or more arguments for new RectMapArea", 2)
 	end
+	args.type = args.type or "rect"
 	args = MapArea.new(args)
 	setmetatable(args, RectMapArea.mt)
 	return args
@@ -300,6 +298,9 @@ function RectMapArea:isBuildingInside(x, z, sizeX, sizeZ)
 	local top, right, bottom, left = z + sizeZ/2, x + sizeX/2, z - sizeZ/2, x - sizeX/2
 	return top <= self.top and right <= self.right and bottom >= self.bottom and left >= self.left
 end
+function RectMapArea:getUnitsInside()
+	return Spring.GetUnitsInRectangle(self.left, self.bottom, self.right, self.top)
+end
 
 local CircleMapArea = {
 	mt = {}
@@ -310,6 +311,7 @@ function CircleMapArea.new(args)
 	if not args.x or not args.z or not args.radius then
 		error("Missing one or more arguments for new CircleMapArea", 2)
 	end
+	args.type = args.type or "circle"
 	args = MapArea.new(args)
 	setmetatable(args, CircleMapArea.mt)
 	return args
@@ -321,12 +323,15 @@ function CircleMapArea:isBuildingInside(x, z, sizeX, sizeZ)
 	local top, right, bottom, left = z + sizeZ/2, x + sizeX/2, z - sizeZ/2, x - sizeX/2
 	return self:isPointInside(left, top) and self:isPointInside(right, top) and self:isPointInside(right, bottom) and self:isPointInside(left, bottom)
 end
+function CircleMapArea:getUnitsInside()
+	return Spring.GetUnitsInCylinder(self.x, self.z, self.radius)
+end
 
 -- #endregion
 
 -- #region Configuration Constants
 
---Defines the maximum value of the coordinate system used in the hill area mod option
+--Defines the maximum value of the coordinate system used in the hill area mod options
 local mapAreaScale = 200
 
 --Defines the default hill area used if the mod option string is invalid
@@ -376,8 +381,14 @@ local captureDelayFrames
 -- health multiplier for capture qualified units
 local healthMultiplier
 
---Whether the king has globalLOS
+-- whether the king has globalLOS
 local kingGlobalLos
+
+-- whether units are immune to damage in their start boxes
+local noDamageInBoxes
+
+-- whether all units in the hill will explode when the king changes
+local explodehillunits
 
 -- #endregion
 
@@ -428,40 +439,72 @@ local capturingCountingUp = RulesParamDataWrapper.new({paramName = "capturingCou
 
 -- #endregion
 
--- Parses the string modoption that defines the hill area and returns a MapArea object
-local function parseAreaString(string)
-	local words = splitStr(string)
-	if #words < 4 then
-		Spring.Log("KingOfTheHill", "error", "Not enough arguments in area string. Resorting to default area box.")
-		return defaultHillArea
-	end
-	local shape = words[1]
-	local nums = {}
-	local numArgumentCount
-	if shape == "rect" then
-		numArgumentCount = 4
-	elseif shape == "circle" then
-		numArgumentCount = 3
-	else
-		Spring.Log("KingOfTheHill", "error", "Invalid shape in area string. Resorting to default area box.")
-		return defaultHillArea
-	end
-	
-	for i = 1, numArgumentCount, 1 do
-		local num = tonumber(words[i+1])
-		if not num or num < 0 or num > mapAreaScale then
-			Spring.Log("KingOfTheHill", "error", "Invalid number in area string. Resorting to default area box.")
-			return defaultHillArea
+-- Parses the modoptions that define the hill area and returns a MapArea object
+local function parseAreaModOptions(left, right, top, bottom, type)
+	if type == "rect" then
+		-- Coords from mod options have 0 at top left corner
+		return RectMapArea.new({left = left*mapSizeX/mapAreaScale, top = (1 - top/mapAreaScale)*mapSizeZ, right = right*mapSizeX/mapAreaScale, bottom = (1 - bottom/mapAreaScale)*mapSizeZ})
+	elseif type == "circle" then
+		--Make sure that the area defined by left, right, top, bottom is square for a circle
+		--Mod option coords are always [0,200] but map is not always square
+		--Same code as used in lobby 'gui_battle_room_window.lua'
+		--Invalid mod option coords must produce same circle as is rendered in lobby
+		local currentAreaWidth = right - left
+		local currentAreaHeight = bottom - top
+		local currentAreaAspectRatio = currentAreaWidth / currentAreaHeight
+		local targetAspectRatio =  mapSizeZ / mapSizeX
+		if targetAspectRatio >= currentAreaAspectRatio then--needs to be made more wide and less tall, so keep width same and reduce height
+			local newHeight = currentAreaWidth / targetAspectRatio
+			bottom = top + newHeight
+		else--needs to be made more tall and less wide, so keep height the same and reduce width
+			local newWidth = currentAreaHeight * targetAspectRatio
+			right = left + newWidth
 		end
-		nums[i] = num
+		
+		return CircleMapArea.new({x = ((left + right)/2)*mapSizeX/mapAreaScale, z = ((top + bottom)/2)*mapSizeZ/mapAreaScale, radius = ((right - left)/2)*mapSizeX/mapAreaScale})
 	end
-	
-	if shape == "rect" then
-		return RectMapArea.new({left = nums[1]*mapSizeX/mapAreaScale, top = nums[2]*mapSizeZ/mapAreaScale, right = nums[3]*mapSizeX/mapAreaScale, bottom = nums[4]*mapSizeZ/mapAreaScale})
-	elseif shape == "circle" then
-		return CircleMapArea.new({x = nums[1]*mapSizeX/mapAreaScale, z = nums[2]*mapSizeZ/mapAreaScale, radius = nums[3]*math.max(mapSizeX, mapSizeZ)/mapAreaScale})
+end
+
+-- Sets the current king's global LOS to the value only if the mod option is enabled
+local function setKingGlobalLOS(value)
+	if kingGlobalLos and kingAllyTeam.value then
+		Spring.SetGlobalLos(kingAllyTeam.value, value)
 	end
-	
+end
+
+-- Destroys all hill buildings only if the mod option is enabled
+local function destroyHillBuildings()
+	if not explodehillunits then
+		return
+	end
+	for building in hillBuildings:iter() do
+		Spring.DestroyUnit(building)
+	end
+	hillBuildings:clear()
+end
+
+-- Removes the current king if any and resets the capturing timer to zero
+local function resetKingAndCapturing()
+	setKingGlobalLOS(false)
+	kingAllyTeam:setAndSend(nil)
+	capturingAllyTeam:setAndSend(nil)
+	capturingCompleteFrame:setAndSend(0)
+	capturingCountingUp:setAndSend(false)
+	kingWinFrame = math.huge
+	destroyHillBuildings()
+end
+
+--Disqualifies the specified ally team (sets the king time to negative to indicate disqualified)
+local function disqualifyAllyTeam(allyTeamId)
+	local kingTime = allyTeamKingTime[allyTeamId]
+	if kingAllyTeam.value == allyTeamId then
+		--Add current time to king time before removing king
+		local currentDayFrames, days = Spring.GetGameFrame()
+		local frame = currentDayFrames + (days * dayFrames)
+		kingTime:set(kingTime.value + frame - kingStartFrame.value)
+		resetKingAndCapturing()
+	end
+	kingTime:setAndSend(math.min(-kingTime.value, -1e-16)) --negative value indicates disqualified, set to very small negative value if it is zero because negative zero doesn't work
 end
 
 --Called when the addon is (re)loaded.
@@ -481,7 +524,9 @@ function gadget:Initialize()
 	end
 	
 	--Get and parse KOTH related mod options
-	hillArea = parseAreaString(modOptions.kingofthehillarea)
+	hillArea = parseAreaModOptions(modOptions.kingofthehillarealeft, modOptions.kingofthehillarearight,
+								modOptions.kingofthehillareatop, modOptions.kingofthehillareabottom,
+								modOptions.kingofthehillareatype)
 	buildOutsideBoxes = not modOptions.kingofthehillbuildoutsideboxes
 	winKingTime = (tonumber(modOptions.kingofthehillwinkingtime) or 10) * 60 * 1000
 	winKingTimeFrames = fps * winKingTime / 1000
@@ -489,6 +534,11 @@ function gadget:Initialize()
 	captureDelayFrames = fps * captureDelay / 1000
 	healthMultiplier = tonumber(modOptions.kingofthehillhealthmultiplier) or 1
 	kingGlobalLos = modOptions.kingofthehillkinggloballos
+	noDamageInBoxes = modOptions.kingofthehillnodamageinboxes
+	explodehillunits = modOptions.kingofthehillexplodehillunits
+	
+	--If the widget was reloaded, buildings in the hill area have to be registered
+	hillBuildings:addAll(table.unpack(hillArea:getUnitsInside()))
 	
 	local gaiaAllyTeamID
 	if Spring.GetGaiaTeamID() then
@@ -497,16 +547,27 @@ function gadget:Initialize()
 	
 	--Populate the startBoxes table with all allyTeam start boxes in the form of RectMapAreas
 	--and populate teamAllyTeams, allyTeamLives, and allyTeamKingTime tables
+	--Also, in case the gadget is being reloaded, disqualify any dead teams, register any
+	--existing capture qualified units, and register any units in the hill
 	for _, allyTeamId in ipairs(Spring.GetAllyTeamList()) do
 		if allyTeamId ~= gaiaAllyTeamID then
 			local left, bottom, right, top = Spring.GetAllyTeamStartBox(allyTeamId)
 			startBoxes[allyTeamId] = RectMapArea.new{left = left, top = top, right = right, bottom = bottom}
-			local numTeams = 0
+			local numAliveTeams = 0
 			for _, teamId in ipairs(Spring.GetTeamList(allyTeamId)) do
 				teamToAllyTeam[teamId] = allyTeamId
-				numTeams = numTeams + 1
+				local isDead = select(3, Spring.GetTeamInfo(teamId))
+				Spring.Log("KingOfTheHill", "error", "isDead: " .. isDead)
+				numAliveTeams = numAliveTeams + (1 - isDead)
+				--Register all capture qualified units from this team
+				for _, unitId in ipairs(Spring.GetTeamUnitsByDefs(teamId, {captureQualifiedUnitDefIds:unpack()})) do
+					captureQualifiedUnits[unitId] = allyTeamId
+				end
 			end
-			allyTeamLives[allyTeamId] = numTeams
+			if numAliveTeams <= 0 then
+				disqualifyAllyTeam(allyTeamId)
+			end
+			allyTeamLives[allyTeamId] = numAliveTeams
 			allyTeamKingTime[allyTeamId] = RulesParamDataWrapper.new({paramName = "allyTeamKingTime" .. allyTeamId, value = 0})
 		end
 	end
@@ -514,6 +575,10 @@ function gadget:Initialize()
 	--Remove the call-in that cancels unpermitted build commands if building outside boxes is allowed
 	if buildOutsideBoxes then
 		gadgetHandler.RemoveCallIn(nil, "AllowCommand")
+	end
+	--Remove the call-in that cancels damage inside a unit's own start area if that mod option is disabled
+	if not noDamageInBoxes then
+		gadgetHandler.RemoveCallIn(nil, "UnitPreDamaged")
 	end
 end
 
@@ -527,21 +592,6 @@ function gadget:GameStart()
 	
 end
 
--- Sets the current king's global LOS to the value only if the mod option is enabled
-local function setKingGlobalLOS(value)
-	if kingGlobalLos and kingAllyTeam.value then
-		Spring.SetGlobalLos(kingAllyTeam.value, value)
-	end
-end
-
--- Destroys all hill buildings only if the mod option is enabled
-local function destroyHillBuildings()
-	for building in hillBuildings:iter() do
-		Spring.DestroyUnit(building)
-	end
-	hillBuildings:clear()
-end
-
 -- A function that updates capturingCompleteFrame when capturingCountingUp is reversed
 local function setCapturingCountingUp(value, currentFrame)
 	if(value == capturingCountingUp.value) then
@@ -553,13 +603,16 @@ local function setCapturingCountingUp(value, currentFrame)
 	capturingCompleteFrame:setAndSend(currentFrame + captureDelayFrames - remainingFrames)
 end
 
+local updateCounter = framesPerUpdate
 --Called for every game simulation frame
 --Used to check if capture qualified units are in hill, conduct king changes, and check if the game is over
 --In general, performs updates to main KOTH states based on current game conditions
 function gadget:GameFrame(frame)
-	if frame % framesPerUpdate ~= 0 then
+	updateCounter = updateCounter - 1
+	if updateCounter > 0 then
 		return
 	end
+	updateCounter = framesPerUpdate
 	
 	-- Get all ally teams that are in the hill to determine if it is being captured
 	local allyTeamsInHill = Set.new()
@@ -654,30 +707,13 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	hillBuildings:remove(unitID)
 end
 
--- Removes the current king if any and resets the capturing timer to zero
-local function resetKingAndCapturing()
-	setKingGlobalLOS(false)
-	kingAllyTeam:setAndSend(nil)
-	capturingAllyTeam:setAndSend(nil)
-	capturingCompleteFrame:setAndSend(0)
-	capturingCountingUp:setAndSend(false)
-	kingWinFrame = math.huge
-	destroyHillBuildings()
-end
-
 --Called when a team dies. Used to disqualify allyTeams with no remaining alive teams.
 function gadget:TeamDied(teamID)
 	local allyTeamId = teamToAllyTeam[teamID]
 	local newLives = allyTeamLives[allyTeamId] - 1
 	allyTeamLives[allyTeamId] = newLives
 	if newLives <= 0 then
-		local kingTime = allyTeamKingTime[allyTeamId]
-		if kingAllyTeam.value == allyTeamId then
-			--Add current time to king time before removing king
-			kingTime:set(kingTime.value + frame - kingStartFrame.value)
-			resetKingAndCapturing()
-		end
-		kingTime:setAndSend(math.min(-kingTime.value, -1e-16))--negative value indicates disqualified, set to very small negative value if it is zero because negative zero doesn't work
+		disqualifyAllyTeam(allyTeamId)
 	end
 end
 

@@ -1910,6 +1910,71 @@ local options = {
     },
     
     {
+        key    	= "kingofthehillareatype",
+        name   	= "Hill Area Shape",
+        desc   	= "The shape of the hill area.",
+        type   	= "list",
+        section = "options_experimental",
+        def  	= "rect",
+        items 	= {
+            { key = "rect",      name = "Rectangle",   desc = "Rectangular Hill Area" },
+            { key = "circle",    name = "Circle",      desc = "Circular Hill Area" },
+        }
+    },
+    
+    {
+        key    	= "kingofthehillarealeft",
+        name   	= "Hill Left",
+        desc   	= "The left coordinate",
+        type   	= "number",
+        section = "options_experimental",
+        hidden  = true,
+        def  	= 75,
+        min    	= 0,
+        max    	= 200,
+        step   	= 1,
+    },
+    
+    {
+        key    	= "kingofthehillarearight",
+        name   	= "Hill Right",
+        desc   	= "The right coordinate",
+        type   	= "number",
+        section = "options_experimental",
+        hidden  = true,
+        def  	= 125,
+        min    	= 0,
+        max    	= 200,
+        step   	= 1,
+    },
+    
+    {
+        key    	= "kingofthehillareatop",
+        name   	= "Hill Top",
+        desc   	= "The top coordinate",
+        type   	= "number",
+        section = "options_experimental",
+        hidden  = true,
+        def  	= 75,
+        min    	= 0,
+        max    	= 200,
+        step   	= 1,
+    },
+    
+    {
+        key    	= "kingofthehillareabottom",
+        name   	= "Hill Bottom",
+        desc   	= "The bottom coordinate",
+        type   	= "number",
+        section = "options_experimental",
+        hidden  = true,
+        def  	= 125,
+        min    	= 0,
+        max    	= 200,
+        step   	= 1,
+    },
+    
+    {
         key    	= "kingofthehillwinkingtime",
         name   	= "Win After Time",
         desc   	= "A team will win once they have spent this number of minutes as the king",
@@ -1919,15 +1984,6 @@ local options = {
         min    	= 0.01,
         max    	= 28000,
         step   	= 0.01,
-    },
-    
-    {
-        key    	= "kingofthehillarea",
-        name   	= "Hill Area",
-        desc   	= "Define the hill area. Can be either a rectangle or a circle. Arguments are as follows.\n\"rect {left} {top} {right} {bottom}\"\n\"circle {x} {z} {radius}\"\nValues are from 0 to 200 where (0,0) is bottom left and (200,200) is top right.",
-        type   	= "string",
-        section = "options_experimental",
-        def  	= "rect 75 125 125 75",
     },
     
     {
@@ -1958,6 +2014,24 @@ local options = {
         key    	= "kingofthehillbuildoutsideboxes",
         name   	= "Prevent Building Outside Start Areas",
         desc   	= "If enabled, players can only build inside their team's starting area and the hill when captured",
+        type   	= "bool",
+        section = "options_experimental",
+        def  	= true,
+    },
+    
+    {
+        key    	= "kingofthehillnodamageinboxes",
+        name   	= "Disable Taking Damage in Start Areas",
+        desc   	= "If enabled, units cannot take damage inside of their team's starting area",
+        type   	= "bool",
+        section = "options_experimental",
+        def  	= true,
+    },
+    
+    {
+        key    	= "kingofthehillexplodehillunits",
+        name   	= "Destroy Units in Hill",
+        desc   	= "If enabled, all units in the hill area will be exploded when the king changes",
         type   	= "bool",
         section = "options_experimental",
         def  	= true,
