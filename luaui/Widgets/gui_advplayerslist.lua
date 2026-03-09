@@ -71,6 +71,7 @@ local spGetSpectatingState = Spring.GetSpectatingState
 	v44   (Floris): added rendertotexture draw method
 	v45   (Floris): support PvE team ranking leaderboard style
 	v46   (Floris): support alternative (historic) playernames based on accountID's
+    v47   (JosephGarrone): add support for text description of player colours within player tooltip
 ]]--
 
 --------------------------------------------------------------------------------
@@ -254,11 +255,13 @@ local tookFrame = -120
 local playSounds = true
 local sliderdrag = LUAUI_DIRNAME .. 'Sounds/buildbar_rem.wav'
 
-local lastActivity = {}
-local lastFpsData = {}
-local lastApmData = {}
-local lastSystemData = {}
-local lastGpuMemData = {}
+local last = {
+    activity = {},
+    fpsData = {},
+    apmData = {},
+    systemData = {},
+    gpuMemData = {}
+}
 
 --------------------------------------------------------------------------------
 -- Players counts and info
@@ -354,7 +357,7 @@ local forceMainListRefresh = true
 --------------------------------------------------
 
 local modules = {}
-local m_indent, m_rank, m_side, m_allyID, m_playerID, m_ID, m_name, m_share, m_chat, m_cpuping, m_country, m_alliance, m_skill, m_resources, m_income
+local m_indent, m_rank, m_side, m_allyID, m_playerID, m_ID, m_name, m_share, m_chat, m_cpuping, m_country, m_alliance, m_skill, m_color, m_resources, m_income
 
 -- these are not considered as normal module since they dont take any place and wont affect other's position
 -- (they have no module.width and are not part of modules)
@@ -458,6 +461,18 @@ m_skill = {
     position = position,
     posX = 0,
     pic = pics["tsPic"],
+}
+position = position + 1
+
+m_color = {
+    name = "colorTooltip",
+    spec = true,
+    play = true,
+    active = false,
+    default = false,
+    width = 0,
+    position = position,
+    posX = 0
 }
 position = position + 1
 
@@ -565,6 +580,7 @@ modules = {
     m_ID,
     m_playerID,
     --m_side,
+    m_color,
     m_name,
     m_skill,
     m_resources,
@@ -734,11 +750,11 @@ local function LockCamera(playerID)
 end
 
 function GpuMemEvent(playerID, percentage)
-    lastGpuMemData[playerID] = percentage
+    last.gpuMemData[playerID] = percentage
 end
 
 function FpsEvent(playerID, fps)
-	lastFpsData[playerID] = fps
+	last.fpsData[playerID] = fps
 	WG.playerFPS = WG.playerFPS or {}
 	WG.playerFPS[playerID] = fps
 end
@@ -750,7 +766,7 @@ function RankingEvent(allyTeamRanking)
 end
 
 function ApmEvent(teamID, fps)
-	lastApmData[teamID] = fps
+	last.apmData[teamID] = fps
 	WG.teamAPM = WG.teamAPM or {}
 	WG.teamAPM[teamID] = fps
 end
@@ -765,14 +781,14 @@ function SystemEvent(playerID, system)
         return ""
     end
     helper( system:gsub("(.-)\r?\n", helper) )
-    lastSystemData[playerID] = system
+    last.systemData[playerID] = system
 
     WG.playerSystemData = WG.playerSystemData or {}
     WG.playerSystemData[playerID] = system
 end
 
 function ActivityEvent(playerID)
-    lastActivity[playerID] = os.clock()
+    last.activity[playerID] = os.clock()
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -1841,6 +1857,44 @@ function doCreateLists(onlyMainList, onlyMainList2, onlyMainList3)
 end
 
 ---------------------------------------------------------------------------------------------------
+--  Helper functions
+---------------------------------------------------------------------------------------------------
+
+function ConvertRGBToClosestName(r, g, b)
+    -- TODO: Find where colors are defined in Spring and google the actual names of those rgb truplets
+    -- Current set of colors are exact RGB match for 
+    local palette = {
+        {name = "Blue", r = 11, g = 62, b = 243},
+        {name = "Lime", r = 12, g = 233, b = 8},
+        {name = "Aqua", r = 0, g = 245, b = 229},
+        {name = "Purple", r = 105, g = 65, b = 242},
+        {name = "Mint", r = 143, g = 255, b = 148},
+        {name = "Green", r = 27, g = 112, b = 47},
+        {name = "Light Blue", r = 124, g = 194, b = 255},
+        {name = "Lavender", r = 162, g = 148, b = 255},
+        {name = "Red", r = 255, g = 16, b = 5},
+        {name = "Yellow", r = 255, g = 210, b = 0},
+        {name = "Orange", r = 255, g = 97, b = 7},
+        {name = "Pink", r = 248, g = 8, b = 137},
+        {name = "Cream", r = 252, g = 238, b = 164},
+        {name = "Maroon", r = 138, g = 40, b = 40},
+        {name = "Rose", r = 241, g = 144, b = 179},
+        {name = "Bronze", r = 200, g = 139, b = 47}
+    }
+    local bestName = "Unknown"
+    local bestDist = math.huge
+    for _, c in ipairs(palette) do
+        local dr, dg, db, dw = r - c.r, g - c.g, b - c.b, (r + g + b) - (c.r + c.g + c.b)
+        local d = dr*dr + dg*dg + db*db + dw*dw / 3
+        if d < bestDist then
+            bestDist = d
+            bestName = c.name
+        end
+    end
+    return bestName
+end
+
+---------------------------------------------------------------------------------------------------
 --  Background gllist
 ---------------------------------------------------------------------------------------------------
 
@@ -2287,8 +2341,8 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
     local alphaActivity = 0
 
     -- keyboard/mouse activity
-    if lastActivity[playerID] ~= nil and type(lastActivity[playerID]) == "number" then
-        alphaActivity = math.clamp((8 - mathFloor(now - lastActivity[playerID])) / 5.5, 0, 1)
+    if last.activity[playerID] ~= nil and type(last.activity[playerID]) == "number" then
+        alphaActivity = math.clamp((8 - mathFloor(now - last.activity[playerID])) / 5.5, 0, 1)
         alphaActivity = 0.33 + (alphaActivity * 0.21)
         alpha = alphaActivity
     end
@@ -2316,8 +2370,8 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
 			DrawPlayerID(playerID, posY, dark, spec)
 		end
 	end
-    if tipY and accountID then
-        NameTip(mouseX, playerID, accountID, nameIsAlias)
+    if tipY and (accountID or m_color.active) then
+        NameTip(mouseX, playerID, accountID, nameIsAlias, spec)
     end
     if not spec then
         --player
@@ -2422,9 +2476,9 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
     if onlyMainList2 and m_cpuping.active and not isSinglePlayer then
         if cpuLvl ~= nil then
             -- draws CPU usage and ping icons (except AI and ghost teams)
-            DrawPingCpu(pingLvl, cpuLvl, posY, spec, cpu, lastFpsData[playerID])
+            DrawPingCpu(pingLvl, cpuLvl, posY, spec, cpu, last.fpsData[playerID])
             if tipY then
-                PingCpuTip(mouseX, ping, cpu, lastFpsData[playerID], lastGpuMemData[playerID], lastSystemData[playerID], name, team, spec, lastApmData[team])
+                PingCpuTip(mouseX, ping, cpu, last.fpsData[playerID], last.gpuMemData[playerID], last.systemData[playerID], name, team, spec, last.apmData[team])
             end
         end
     end
@@ -3044,36 +3098,58 @@ function TakeTip(mouseX)
     end
 end
 
-function NameTip(mouseX, playerID, accountID, nameIsAlias)
-	if accountID and mouseX >= widgetPosX + (m_name.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_name.posX + m_name.width) * widgetScale and WG.playernames then
-		if WG.playernames and not player[playerID].history then
-			player[playerID].history = WG.playernames.getAccountHistory(accountID) or {}
-		end
-		if player[playerID].history and (nameIsAlias or #player[playerID].history > 1) then
-			local text = ''
-		 	local c = 0
+function NameTip(mouseX, playerID, accountID, nameIsAlias, spec)
+	if mouseX >= widgetPosX + (m_name.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_name.posX + m_name.width) * widgetScale and WG.playernames then
+        local text = ''
+        local title = ''
 
-            local pname = Spring.GetPlayerInfo(playerID, false)
-			for i, name in ipairs(player[playerID].history) do
-				if player[playerID].name ~= name then
-					if c > 0 then
-						text = text .. '\n'
-					end
-                    if name == pname then
-                        text = text .. '> '
-                    else
-                        text = text .. '  '
+        -- Player color
+        if m_color.active and not spec then
+            local r, g, b = colourNames(player[playerID].team, true)
+            local cname = ConvertRGBToClosestName(r, g, b)
+            title = " \255\255\255\255" .. "[" .. cname .. "]"
+        end
+
+        -- Player historical names
+        if accountID then
+            if WG.playernames and not player[playerID].history then
+                player[playerID].history = WG.playernames.getAccountHistory(accountID) or {}
+            end
+            if player[playerID].history and (nameIsAlias or #player[playerID].history > 1) then
+                local historicalNames = ''
+                local c = 0
+                local pname = Spring.GetPlayerInfo(playerID, false)
+
+                for i, name in ipairs(player[playerID].history) do
+                    if player[playerID].name ~= name then
+                        if c > 0 then
+                            historicalNames = historicalNames .. '\n'
+                        end
+                        if name == pname then
+                            historicalNames = historicalNames .. '> '
+                        else
+                            historicalNames = historicalNames .. '  '
+                        end
+                        historicalNames = historicalNames .. name
+                        c = c + 1
                     end
-					text = text .. name
-		 			c = c + 1
-				end
-			end
-			if c > 0 then
-				tipText = text
-				tipTextTime = os.clock()
-				tipTextTitle = (originalColourNames[playerID] and colourNames(player[playerID].team) or "\255\255\255\255") .. player[playerID].name
-			end
-		end
+                end
+
+                -- If there's other text in tooltip before us, add a newline
+                if c > 0 then
+                    if #text > 0 then
+                        text = text .. '\n'
+                    end
+                    text = text .. historicalNames
+                end
+            end
+        end
+           
+        if #text > 0 or #title > 0 then
+            tipTextTitle = (spec and "\255\240\240\240" or colourNames(player[playerID].team) or "\255\255\255\255") .. player[playerID].name .. title
+            tipText = text
+            tipTextTime = os.clock()
+        end
 	end
 end
 
@@ -3646,7 +3722,7 @@ function widget:GetConfigData()
             specListShow = specListShow,
             enemyListShow = enemyListShowUserPref,  -- Save user preference, not auto-disabled state
             gameFrame = spGetGameFrame(),
-            lastSystemData = lastSystemData,
+            lastSystemData = last.systemData,
             alwaysHideSpecs = alwaysHideSpecs,
             transitionTime = transitionTime,
             hasresetskill = true,
@@ -3752,7 +3828,7 @@ function widget:SetConfigData(data)
     SetModulesPositionX()
 
     if data.lastSystemData ~= nil and data.gameFrame ~= nil and data.gameFrame <= spGetGameFrame() and data.gameFrame > spGetGameFrame() - 300 then
-        lastSystemData = data.lastSystemData
+        last.systemData = data.lastSystemData
     end
 end
 
