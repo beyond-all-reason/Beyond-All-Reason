@@ -1903,7 +1903,7 @@ local options = {
     {
         key    	= "kingofthehillenabled",
         name   	= "Enable King of the Hill Game Mode",
-        desc   	= "The team that occupies the \"hill\" for the longest time wins",
+        desc   	= "The team that occupies the hill for the longest time wins",
         type   	= "bool",
         section = "options_experimental",
         def  	= false,
