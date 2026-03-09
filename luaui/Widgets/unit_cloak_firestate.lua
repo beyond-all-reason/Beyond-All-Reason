@@ -27,7 +27,6 @@ local GiveOrderToUnit   = Spring.GiveOrderToUnit
 local GetUnitStates     = Spring.GetUnitStates
 local CMD_WANT_CLOAK    = GameCMD.WANT_CLOAK
 
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 local myTeam = spGetMyTeamID()
@@ -73,7 +72,6 @@ function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts
 			if decloakFireState[unitID] ~= 0 then
 				GiveOrderToUnit(unitID, CMD.FIRE_STATE, { 0 }, 0)
 			end
-
 		else -- decloak and restore previous fire state
 			if select(1, GetUnitStates(unitID, false)) == 0 then
 				local targetState = decloakFireState[unitID] or 0 -- default to hold fire if no cached state is found
