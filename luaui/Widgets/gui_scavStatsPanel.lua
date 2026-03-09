@@ -197,10 +197,10 @@ end
 
 local function getMarqueeMessage(scavEventArgs)
 	local messages = {}
-	--if scavEventArgs.type == "firstWave" then
-	--	messages[1] = textColor .. Spring.I18N('ui.scavs.firstWave1')
-	--	messages[2] = textColor .. Spring.I18N('ui.scavs.firstWave2')
-	--else
+	if scavEventArgs.type == "firstWave" then
+		messages[1] = textColor .. Spring.I18N('ui.scavs.firstWave1')
+		messages[2] = textColor .. Spring.I18N('ui.scavs.firstWave2')
+	else
 	if scavEventArgs.type == "boss" then
 		messages[1] = textColor .. Spring.I18N('ui.scavs.bossIsAngry1', { count = nBosses })
 		messages[2] = textColor .. Spring.I18N('ui.scavs.bossIsAngry2')
