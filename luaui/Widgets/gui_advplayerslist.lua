@@ -20,6 +20,9 @@ local mathFloor = math.floor
 local mathMax = math.max
 local mathMin = math.min
 local tableSort = table.sort
+local strChar = string.char
+local strUpper = string.upper
+local osClock = os.clock
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
@@ -195,6 +198,13 @@ local pics = {
     rank7 = images['imageDirectory'] .. "ranks/8.png",
 }
 
+local rankPics = {
+    [0] = pics["rank0"], [1] = pics["rank1"], [2] = pics["rank2"], [3] = pics["rank3"],
+    [4] = pics["rank4"], [5] = pics["rank5"], [6] = pics["rank6"], [7] = pics["rank7"],
+}
+
+local countryFlagCache = {}  -- country code -> texture path or false
+
 local sidePics = {}  -- loaded in SetSidePics function
 local originalColourNames = {} -- loaded in SetOriginalColourNames, format is originalColourNames['name'] = colourString
 
@@ -264,6 +274,9 @@ local lastFpsData = {}
 local lastApmData = {}
 local lastSystemData = {}
 local lastGpuMemData = {}
+
+local activeDrawPlayers = {}  -- set of playerIDs with active point/pencil/eraser timers
+local accountIDLookup = {}    -- accountID -> playerID for fast duplicate detection
 
 --------------------------------------------------------------------------------
 -- Players counts and info
@@ -349,7 +362,13 @@ local specScale = 1
 local specVertOffset = 12
 local drawList = {}
 local teamN
-local prevClickTime = os.clock()
+local prevClickTime = osClock()
+
+-- Cached font scale factors (only depend on vsy, updated in ViewResize)
+local fontScaleHigh = 1   -- math.clamp(1+((1-(vsy/1200))*0.75), 1, 1.25)
+local fontScaleMed = 1    -- math.clamp(1+((1-(vsy/1200))*0.5), 1, 1.2)
+local fontScaleLow = 1    -- math.clamp(1+((1-(vsy/1200))*0.4), 1, 1.15)
+local fontScaleSpec = 1   -- math.clamp(1+((1-(vsy/1200))*0.66), 1, 1.33)
 local specListShow = true
 local enemyListShow = true
 local enemyListShowUserPref = true  -- Stores user preference, separate from auto-disabled state
@@ -709,16 +728,31 @@ end
 
 local function UpdateAlliances()
     local playerList = sp.GetPlayerList()
-    for _, playerID in pairs(playerList) do
-        if player[playerID] and not player[playerID].spec then
-            local alliances = {}
-            for _, player2ID in pairs(playerList) do
-                if player[player2ID] and not player[playerID].spec and not player[player2ID].spec and playerID ~= player2ID and player[playerID].team ~= nil and player[player2ID].team ~= nil and player[playerID].allyteam ~= player[player2ID].allyteam and sp.AreTeamsAllied(player[player2ID].team, player[playerID].team) then
-                    alliances[#alliances + 1] = player2ID
+    -- Pre-filter to only active non-spec players with valid teams
+    local activePlayers = {}
+    for _, playerID in ipairs(playerList) do
+        local p = player[playerID]
+        if p and not p.spec and p.team ~= nil then
+            activePlayers[#activePlayers + 1] = playerID
+        end
+    end
+    -- Find cross-allyteam allies with cached lookups
+    for i = 1, #activePlayers do
+        local pid = activePlayers[i]
+        local p = player[pid]
+        local pAllyteam = p.allyteam
+        local pTeam = p.team
+        local alliances = {}
+        for j = 1, #activePlayers do
+            if i ~= j then
+                local p2id = activePlayers[j]
+                local p2 = player[p2id]
+                if pAllyteam ~= p2.allyteam and sp.AreTeamsAllied(p2.team, pTeam) then
+                    alliances[#alliances + 1] = p2id
                 end
             end
-            player[playerID].alliances = alliances
         end
+        p.alliances = alliances
     end
 end
 
@@ -778,7 +812,7 @@ function SystemEvent(playerID, system)
 end
 
 function ActivityEvent(playerID)
-    lastActivity[playerID] = os.clock()
+    lastActivity[playerID] = osClock()
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -1144,13 +1178,13 @@ function GetSkill(playerID)
         osSkill = osMu and tonumber(osMu:match("-?%d+%.?%d*")) or 0
         osSkill = round(osSkill, 0)
         if string.find(osMu, ")", nil, true) then
-            osSkill = "\255" .. string.char(190) .. string.char(140) .. string.char(140) .. osSkill -- ')' means inferred from lobby rank
+            osSkill = "\255" .. strChar(190) .. strChar(140) .. strChar(140) .. osSkill -- ')' means inferred from lobby rank
         else
             -- show privacy mode
             local priv = ""
             if string.find(osMu, "~", nil, true) then
                 -- '~' means privacy mode is on
-                priv = "\255" .. string.char(200) .. string.char(200) .. string.char(200) .. "*"
+                priv = "\255" .. strChar(200) .. strChar(200) .. strChar(200) .. "*"
             end
 
             -- show sigma
@@ -1162,14 +1196,14 @@ function GetSkill(playerID)
                 tsRed, tsGreen, tsBlue = mathFloor(255 * color), mathFloor(255 * color2), mathFloor(255 * color2)
             end
             if not osSigma or tonumber(osSigma) > 6.65 then
-                osSkill = priv .. "\255" .. string.char(tsRed) .. string.char(tsGreen) .. string.char(tsBlue) .. "??"
+                osSkill = priv .. "\255" .. strChar(tsRed) .. strChar(tsGreen) .. strChar(tsBlue) .. "??"
             else
-                osSkill = priv .. "\255" .. string.char(tsRed) .. string.char(tsGreen) .. string.char(tsBlue) .. osSkill
+                osSkill = priv .. "\255" .. strChar(tsRed) .. strChar(tsGreen) .. strChar(tsBlue) .. osSkill
             end
 
         end
     else
-        osSkill = "\255" .. string.char(160) .. string.char(160) .. string.char(160) .. "?"
+        osSkill = "\255" .. strChar(160) .. strChar(160) .. strChar(160) .. "?"
     end
     return osSkill
 end
@@ -1181,13 +1215,12 @@ function CreatePlayer(playerID)
 	end
 	-- late added spectators dont get a new/unique accountid, instead they get a duplicate of the last playerID one ...so we need to remove it!
 	if accountID then
-        -- look for duplicate and remove it
-		for i, player in ipairs(player) do
-			if i ~= playerID and player.accountID and player.accountID == accountID then
-				accountID = nil
-                break
-			end
-		end
+        local existingID = accountIDLookup[accountID]
+        if existingID ~= nil and existingID ~= playerID then
+            accountID = nil
+        else
+            accountIDLookup[accountID] = playerID
+        end
 	end
 	local history = (accountID and WG.playernames) and WG.playernames.getAccountHistory(accountID) or {}
 	local pname = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID) or tname
@@ -1357,12 +1390,13 @@ function UpdatePlayerResources()
     local energyIncome, metalIncome
     local displayedPlayers = 0
     for playerID, _ in pairs(player) do
-        if (playerID < specOffset or player[playerID].ai) and player[playerID].name and not player[playerID].spec and player[playerID].team then        -- maybe not filter out specs cause resigned players can still hold storage
-			if aliveAllyTeams[player[playerID].allyteam] ~= nil and (mySpecStatus or myAllyTeamID == player[playerID].allyteam) then
-				if (mySpecStatus and enemyListShow) or player[playerID].allyteam == myAllyTeamID then	-- only keep track when its being displayed
+        local p = player[playerID]
+        if (playerID < specOffset or p.ai) and p.name and not p.spec and p.team then        -- maybe not filter out specs cause resigned players can still hold storage
+			if aliveAllyTeams[p.allyteam] ~= nil and (mySpecStatus or myAllyTeamID == p.allyteam) then
+				if (mySpecStatus and enemyListShow) or p.allyteam == myAllyTeamID then	-- only keep track when its being displayed
                     displayedPlayers = displayedPlayers + 1
-					energy, energyStorage, _, energyIncome, _, energyShare = sp.GetTeamResources(player[playerID].team, "energy")
-					metal, metalStorage, _, metalIncome, _, metalShare = sp.GetTeamResources(player[playerID].team, "metal")
+					energy, energyStorage, _, energyIncome, _, energyShare = sp.GetTeamResources(p.team, "energy")
+					metal, metalStorage, _, metalIncome, _, metalShare = sp.GetTeamResources(p.team, "metal")
 					if energy == nil then
 						-- need to be there for when you do /specfullview
 						energy, energyStorage, energyIncome, metal, metalStorage, metalIncome = 0, 0, 0, 0, 0, 0
@@ -1376,25 +1410,27 @@ function UpdatePlayerResources()
 							metal = 0
 						end
 					end
-					player[playerID].energy = energy
-					player[playerID].energyIncome = energyIncome
-					player[playerID].energyStorage = energyStorage
-					player[playerID].energyShare = energyShare
-					player[playerID].metal = metal
-					player[playerID].metalIncome = metalIncome
-					player[playerID].metalStorage = metalStorage
-					player[playerID].metalShare = metalShare
-                    if not player[playerID].spec then
-                        player[playerID].energyConversion = Spring.GetTeamRulesParam(player[playerID].team, 'mmLevel')
+					p.energy = energy
+					p.energyIncome = energyIncome
+					p.energyStorage = energyStorage
+					p.energyShare = energyShare
+					p.metal = metal
+					p.metalIncome = metalIncome
+					p.metalStorage = metalStorage
+					p.metalShare = metalShare
+                    if not p.spec then
+                        p.energyConversion = Spring.GetTeamRulesParam(p.team, 'mmLevel')
                     end
-					if not allyTeamMaxStorage[player[playerID].allyteam] then
-						allyTeamMaxStorage[player[playerID].allyteam] = {}
+					local pAllyteam = p.allyteam
+					if not allyTeamMaxStorage[pAllyteam] then
+						allyTeamMaxStorage[pAllyteam] = {}
 					end
-					if not allyTeamMaxStorage[player[playerID].allyteam][1] or energyStorage > allyTeamMaxStorage[player[playerID].allyteam][1] then
-						allyTeamMaxStorage[player[playerID].allyteam][1] = energyStorage
+					local ats = allyTeamMaxStorage[pAllyteam]
+					if not ats[1] or energyStorage > ats[1] then
+						ats[1] = energyStorage
 					end
-					if not allyTeamMaxStorage[player[playerID].allyteam][2] or metalStorage > allyTeamMaxStorage[player[playerID].allyteam][2] then
-						allyTeamMaxStorage[player[playerID].allyteam][2] = metalStorage
+					if not ats[2] or metalStorage > ats[2] then
+						ats[2] = metalStorage
 					end
 				end
 			end
@@ -1624,40 +1660,38 @@ end
 
 function SortSpecs(vOffset)
     local playersList = sp.GetPlayerList(-1, true)
-    local numSpecs = 0
+    -- Single pass: collect active specs and count them
+    local activeSpecs = {}
     for _, playerID in ipairs(playersList) do
         local _, active, spec = sp.GetPlayerInfo(playerID, false)
         if spec and active then
-            numSpecs = numSpecs + 1
+            activeSpecs[#activeSpecs + 1] = playerID
         end
     end
-    specScale = math.clamp(45 / numSpecs, 0.45, 1)
+    specScale = math.clamp(45 / #activeSpecs, 0.45, 1)
 
     -- Adds specs to the draw list
     local noSpec = true
-    for _, playerID in ipairs(playersList) do
-        local _, active, spec = sp.GetPlayerInfo(playerID, false)
-        if spec and active then
-            if player[playerID] and player[playerID].name ~= nil then
+    for _, playerID in ipairs(activeSpecs) do
+        if player[playerID] and player[playerID].name ~= nil then
 
-                -- add "Specs" label if first spec
-                if noSpec then
-                    vOffset = vOffset + ((specVertOffset+1)*specScale)
-                    vOffset = vOffset + labelOffset - (2*specScale)
-                    drawListOffset[#drawListOffset + 1] = vOffset
-                    drawList[#drawList + 1] = -5
-                    noSpec = false
-                    specJoinedOnce = true
-                    vOffset = vOffset + 4
-                end
+            -- add "Specs" label if first spec
+            if noSpec then
+                vOffset = vOffset + ((specVertOffset+1)*specScale)
+                vOffset = vOffset + labelOffset - (2*specScale)
+                drawListOffset[#drawListOffset + 1] = vOffset
+                drawList[#drawList + 1] = -5
+                noSpec = false
+                specJoinedOnce = true
+                vOffset = vOffset + 4
+            end
 
-                -- add spectator
-                if specListShow then
-                    vOffset = vOffset + (specVertOffset*specScale)
-                    drawListOffset[#drawListOffset + 1] = vOffset
-                    drawList[#drawList + 1] = playerID
-                    player[playerID].posY = vOffset
-                end
+            -- add spectator
+            if specListShow then
+                vOffset = vOffset + (specVertOffset*specScale)
+                drawListOffset[#drawListOffset + 1] = vOffset
+                drawList[#drawList + 1] = playerID
+                player[playerID].posY = vOffset
             end
         end
     end
@@ -1720,20 +1754,20 @@ function widget:DrawScreen()
         gl.Translate(scaleDiffX, scaleDiffY, 0)
         for i, drawObject in ipairs(drawList) do
             if drawObject >= 0 then
-                local posY = widgetPosY + widgetHeight - drawListOffset[i]
-                if player[drawObject].pointTime ~= nil then
-                    if player[drawObject].allyteam == myAllyTeamID or mySpecStatus then
-                        DrawPoint(posY, player[drawObject].pointTime - now)
-                    end
-                end
-                if player[drawObject].pencilTime ~= nil then
-                    if player[drawObject].allyteam == myAllyTeamID or mySpecStatus then
-                        DrawPencil(posY, player[drawObject].pencilTime - now)
-                    end
-                end
-                if player[drawObject].eraserTime ~= nil then
-                    if player[drawObject].allyteam == myAllyTeamID or mySpecStatus then
-                        DrawEraser(posY, player[drawObject].eraserTime - now)
+                local p = player[drawObject]
+                if p.pointTime ~= nil or p.pencilTime ~= nil or p.eraserTime ~= nil then
+                    local posY = widgetPosY + widgetHeight - drawListOffset[i]
+                    local isAllyOrSpec = p.allyteam == myAllyTeamID or mySpecStatus
+                    if isAllyOrSpec then
+                        if p.pointTime ~= nil then
+                            DrawPoint(posY, p.pointTime - now)
+                        end
+                        if p.pencilTime ~= nil then
+                            DrawPencil(posY, p.pencilTime - now)
+                        end
+                        if p.eraserTime ~= nil then
+                            DrawEraser(posY, p.eraserTime - now)
+                        end
                     end
                 end
             end
@@ -1768,9 +1802,10 @@ function widget:DrawScreen()
     local x, y, b = spGetMouseState()
     for _, i in ipairs(drawList) do
         if i > -1 then -- and i < specOffset
-            posY = widgetPosY + widgetHeight - (player[i].posY or 0)
-            if myTeamID ~= player[i].team and not player[i].spec and not player[i].dead and player[i].name ~= absentName and IsOnRect(x, y, widgetPosX, posY, widgetPosX + widgetWidth, posY + (playerOffset*playerScale)) then
-                if mySpecStatus or (myAllyTeamID == player[i].allyteam and not sliderPosition) then
+            local p = player[i]
+            posY = widgetPosY + widgetHeight - (p.posY or 0)
+            if myTeamID ~= p.team and not p.spec and not p.dead and p.name ~= absentName and IsOnRect(x, y, widgetPosX, posY, widgetPosX + widgetWidth, posY + (playerOffset*playerScale)) then
+                if mySpecStatus or (myAllyTeamID == p.allyteam and not sliderPosition) then
                     UiSelectHighlight(widgetPosX, posY, widgetPosX + widgetPosX + 2 + 4, posY + (playerOffset*playerScale), nil, b and 0.28 or 0.14)
                 end
             end
@@ -1819,7 +1854,7 @@ function doCreateLists(onlyMainList, onlyMainList2, onlyMainList3)
     end
 	CheckTime() --this also calls CheckPlayers
     if onlyMainList2 then
-        if tipTextTime+(updateFastRate*updateFastRateMult) < os.clock() then
+        if tipTextTime+(updateFastRate*updateFastRateMult) < osClock() then
             tipText = nil
             tipTextTitle = nil
             drawTipText = nil
@@ -1977,31 +2012,44 @@ end
 
 function CheckTime()
     local period = 0.5
-    now = os.clock()
+    now = osClock()
     if now > (lastTime + period) then
         lastTime = now
         CheckPlayersChange()
         blink = not blink
-        for playerID = 0, specOffset-1 do
-            if player[playerID] ~= nil then
-                if player[playerID].pointTime ~= nil then
-                    if player[playerID].pointTime <= now then
-                        player[playerID].pointX = nil
-                        player[playerID].pointY = nil
-                        player[playerID].pointZ = nil
-                        player[playerID].pointTime = nil
+        for playerID in pairs(activeDrawPlayers) do
+            local p = player[playerID]
+            if p then
+                local stillActive = false
+                if p.pointTime ~= nil then
+                    if p.pointTime <= now then
+                        p.pointX = nil
+                        p.pointY = nil
+                        p.pointZ = nil
+                        p.pointTime = nil
+                    else
+                        stillActive = true
                     end
                 end
-                if player[playerID].pencilTime ~= nil then
-                    if player[playerID].pencilTime <= now then
-                        player[playerID].pencilTime = nil
+                if p.pencilTime ~= nil then
+                    if p.pencilTime <= now then
+                        p.pencilTime = nil
+                    else
+                        stillActive = true
                     end
                 end
-                if player[playerID].eraserTime ~= nil then
-                    if player[playerID].eraserTime <= now then
-                        player[playerID].eraserTime = nil
+                if p.eraserTime ~= nil then
+                    if p.eraserTime <= now then
+                        p.eraserTime = nil
+                    else
+                        stillActive = true
                     end
                 end
+                if not stillActive then
+                    activeDrawPlayers[playerID] = nil
+                end
+            else
+                activeDrawPlayers[playerID] = nil
             end
         end
     end
@@ -2075,7 +2123,7 @@ function drawMainList()
 
     if drawTipText ~= nil then
         tipText = drawTipText
-        tipTextTime = os.clock()
+        tipTextTime = osClock()
     end
 end
 
@@ -2252,42 +2300,40 @@ end
 -- onlyMainList2 to only draw dynamic stuff like ping/alliances/buttons
 -- onlyMainList3 to only draw resources
 function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onlyMainList2, onlyMainList3)
-    player[playerID].posY = vOffset
+    local p = player[playerID]
+    p.posY = vOffset
 
     tipY = nil
 
     local dark, rank, skill, country
     if onlyMainList then
-        --local red = player[playerID].red
-        --local green = player[playerID].green
-        --local blue = player[playerID].blue
-        dark = player[playerID].dark
-        rank = player[playerID].rank
-        skill = player[playerID].skill
-        country = player[playerID].country
+        dark = p.dark
+        rank = p.rank
+        skill = p.skill
+        country = p.country
     end
 
-    local name = player[playerID].name
-	local nameIsAlias = player[playerID].nameIsAlias
-    local team = player[playerID].team
+    local name = p.name
+	local nameIsAlias = p.nameIsAlias
+    local team = p.team
     if not team then return end -- this prevents error when co-op / joinas is active
 
-    local allyteam = player[playerID].allyteam
-    local pingLvl = player[playerID].pingLvl
-    local cpuLvl = player[playerID].cpuLvl
-    local ping = player[playerID].ping
-    local cpu = player[playerID].cpu
-    local spec = player[playerID].spec
-    local totake = player[playerID].totake
-    local needm = player[playerID].needm
-    local neede = player[playerID].neede
-    local dead = player[playerID].dead
-    local ai = player[playerID].ai
-    local alliances = player[playerID].alliances
+    local allyteam = p.allyteam
+    local pingLvl = p.pingLvl
+    local cpuLvl = p.cpuLvl
+    local ping = p.ping
+    local cpu = p.cpu
+    local spec = p.spec
+    local totake = p.totake
+    local needm = p.needm
+    local neede = p.neede
+    local dead = p.dead
+    local ai = p.ai
+    local alliances = p.alliances
     local posY = widgetPosY + widgetHeight - vOffset
     local tipPosY = widgetPosY + ((widgetHeight - vOffset) * widgetScale)
-	local desynced = player[playerID].desynced
-	local accountID = player[playerID].accountID
+	local desynced = p.desynced
+	local accountID = p.accountID
 
     local alpha = 0.33
     local alphaActivity = 0
@@ -2388,20 +2434,20 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
         end
 
         if onlyMainList2 and m_alliance.active and drawAllyButton and not mySpecStatus and not dead and team ~= myTeamID then
-            DrawAlly(posY, player[playerID].team)
+            DrawAlly(posY, p.team)
         end
 
-        if (onlyMainList2 or onlyMainList3) and not isSingle and (m_resources.active or m_income.active) and aliveAllyTeams[allyteam] ~= nil and player[playerID].energy ~= nil then
+        if (onlyMainList2 or onlyMainList3) and not isSingle and (m_resources.active or m_income.active) and aliveAllyTeams[allyteam] ~= nil and p.energy ~= nil then
             if (mySpecStatus and enemyListShow) or myAllyTeamID == allyteam then
-                local e = player[playerID].energy
-                local es = player[playerID].energyStorage
-                local ei = player[playerID].energyIncome
-                local esh = player[playerID].energyShare
-                local ec = player[playerID].energyConversion
-                local m = player[playerID].metal
-                local ms = player[playerID].metalStorage
-                local mi = player[playerID].metalIncome
-                local msh = player[playerID].metalShare
+                local e = p.energy
+                local es = p.energyStorage
+                local ei = p.energyIncome
+                local esh = p.energyShare
+                local ec = p.energyConversion
+                local m = p.metal
+                local ms = p.metalStorage
+                local mi = p.metalIncome
+                local msh = p.metalShare
                 if es and es > 0 then
                     if onlyMainList3 and m_resources.active and e and (not dead or (e > 0 or m > 0)) then
                         DrawResources(e, es, esh, ec, m, ms, msh, posY, dead, (absoluteResbarValues and (allyTeamMaxStorage[allyteam] and allyTeamMaxStorage[allyteam][1])), (absoluteResbarValues and (allyTeamMaxStorage[allyteam] and allyTeamMaxStorage[allyteam][2])))
@@ -2603,7 +2649,7 @@ function DrawResources(energy, energyStorage, energyShare, energyConversion, met
 end
 
 function DrawIncome(energy, metal, posY, dead)
-    local fontsize = (dead and 4.5 or 8.5) * math.clamp(1+((1-(vsy/1200))*0.4), 1, 1.15)
+    local fontsize = (dead and 4.5 or 8.5) * fontScaleLow
     local sizeMult = playerScale + ((1-playerScale)*0.22)
     fontsize = fontsize * sizeMult
     font:Begin(useRenderToTexture)
@@ -2645,24 +2691,9 @@ function DrawSidePic(team, playerID, posY, leader, dark, ai)
 end
 
 function DrawRank(rank, posY)
-    if rank == 0 then
-        DrawRankImage(pics["rank0"], posY)
-    elseif rank == 1 then
-        DrawRankImage(pics["rank1"], posY)
-    elseif rank == 2 then
-        DrawRankImage(pics["rank2"], posY)
-    elseif rank == 3 then
-        DrawRankImage(pics["rank3"], posY)
-    elseif rank == 4 then
-        DrawRankImage(pics["rank4"], posY)
-    elseif rank == 5 then
-        DrawRankImage(pics["rank5"], posY)
-    elseif rank == 6 then
-        DrawRankImage(pics["rank6"], posY)
-    elseif rank == 7 then
-        DrawRankImage(pics["rank7"], posY)
-    else
-
+    local rankPic = rankPics[rank]
+    if rankPic then
+        DrawRankImage(rankPic, posY)
     end
 end
 
@@ -2699,8 +2730,19 @@ function DrawAlly(posY, team)
 end
 
 function DrawCountry(country, posY)
-    if country ~= nil and country ~= "??" and VFS.FileExists(images['imgDir'] .. "flags/"  .. string.upper(country) .. images['flagsExt']) then
-        gl_Texture(images['imgDir'] .. "flags/" .. string.upper(country) .. images['flagsExt'])
+    if country == nil or country == "??" then return end
+    local cached = countryFlagCache[country]
+    if cached == nil then
+        local path = images['imgDir'] .. "flags/" .. strUpper(country) .. images['flagsExt']
+        if VFS.FileExists(path) then
+            cached = path
+        else
+            cached = false
+        end
+        countryFlagCache[country] = cached
+    end
+    if cached then
+        gl_Texture(cached)
         gl_Color(1, 1, 1, 1)
         DrawRect(m_country.posX + widgetPosX + (3*playerScale), posY + (8*playerScale) - ((images['flagHeight']/2)*playerScale), m_country.posX + widgetPosX + (17*playerScale), posY + (8*playerScale) + ((images['flagHeight']/2)*playerScale))
     end
@@ -2762,11 +2804,12 @@ function DrawAlliances(alliances, posY)
     local width = m_name.width / #alliances
     local padding = 2
     local drawn = false
-    for i, playerID in pairs(alliances) do
-        if player[playerID] ~= nil and player[playerID].red ~= nil then
+    for i, allyPlayerID in pairs(alliances) do
+        local ap = player[allyPlayerID]
+        if ap ~= nil and ap.red ~= nil then
             gl_Color(0, 0, 0, 0.25)
             RectRound(posX + (width * (i - 1)), posY - (3*playerScale), posX + (width * i), posY + (19*playerScale), (2*playerScale))
-            gl_Color(player[playerID].red, player[playerID].green, player[playerID].blue, 0.5)
+            gl_Color(ap.red, ap.green, ap.blue, 0.5)
             RectRound(posX + (width * (i - 1)) + padding, posY - (3*playerScale) + padding, posX + (width * i) - padding, posY + (19*playerScale) - padding, (2*playerScale))
             drawn = true
         end
@@ -2799,12 +2842,13 @@ function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desy
     end
 
     local nameText = name
-	if WG.playernames and not player[playerID].history then
-		player[playerID].history = WG.playernames.getAccountHistory(accountID) or {}
+	local pDraw = player[playerID]
+	if WG.playernames and not pDraw.history then
+		pDraw.history = WG.playernames.getAccountHistory(accountID) or {}
 	end
 	if nameIsAlias then
 		nameText = "." .. nameText
-	elseif player[playerID].history and #player[playerID].history > 1 then
+	elseif pDraw.history and #pDraw.history > 1 then
 		nameText = "*" .. nameText
 	else
 		nameText = " " .. nameText
@@ -2819,7 +2863,7 @@ function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desy
     end
 
     font2:Begin(useRenderToTexture)
-    local fontsize = (isAbsent and 9 or 14) * math.clamp(1+((1-(vsy/1200))*0.5), 1, 1.2)
+    local fontsize = (isAbsent and 9 or 14) * fontScaleMed
     fontsize = fontsize * (playerScale + ((1-playerScale)*0.25))
     if dark then
         font2:SetOutlineColor(0.75, 0.75, 0.75, 1)
@@ -2845,16 +2889,16 @@ function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desy
         end
 		font2:SetTextColor(1,0.45,0.45,1)
 		font2:Print(Spring.I18N('ui.playersList.desynced'), m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14*pScale), posY + (5.7*playerScale), 8*pScale, "o")
-	elseif player[playerID] and not player[playerID].dead and player[playerID].incomeMultiplier and player[playerID].incomeMultiplier ~= 1 then
+	elseif pDraw and not pDraw.dead and pDraw.incomeMultiplier and pDraw.incomeMultiplier ~= 1 then
         if dark then
             font2:SetOutlineColor(0, 0, 0, 1)
         end
-        if player[playerID].incomeMultiplier > 1 then
+        if pDraw.incomeMultiplier > 1 then
             font2:SetTextColor(0.5,1,0.5,1)
-            font2:Print('+'..mathFloor((player[playerID].incomeMultiplier-1+0.005)*100)..'%', m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14*pScale), posY + (5.7*playerScale), 8*pScale, "o")
+            font2:Print('+'..mathFloor((pDraw.incomeMultiplier-1+0.005)*100)..'%', m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14*pScale), posY + (5.7*playerScale), 8*pScale, "o")
         else
             font2:SetTextColor(1,0.5,0.5,1)
-            font2:Print(mathFloor((player[playerID].incomeMultiplier-1+0.005)*100)..'%', m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14*pScale), posY + (5.7*playerScale), 8*pScale, "o")
+            font2:Print(mathFloor((pDraw.incomeMultiplier-1+0.005)*100)..'%', m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14*pScale), posY + (5.7*playerScale), 8*pScale, "o")
         end
     end
     font2:End()
@@ -2886,12 +2930,13 @@ function DrawSmallName(name, nameIsAlias, team, posY, dark, playerID, accountID,
     end
 
     local nameText = name
-	if WG.playernames and not player[playerID].history then
-		player[playerID].history = WG.playernames.getAccountHistory(accountID) or {}
+	local pSmall = player[playerID]
+	if WG.playernames and not pSmall.history then
+		pSmall.history = WG.playernames.getAccountHistory(accountID) or {}
 	end
 	if nameIsAlias then
 		nameText = "." .. name
-	elseif player[playerID].history and #player[playerID].history > 1 then
+	elseif pSmall.history and #pSmall.history > 1 then
 		nameText = "*" .. name
     elseif not accountID then    -- these are spectators that joined late and would have a duplicate accountID (we)
         nameText =  "    " .. name
@@ -2899,13 +2944,14 @@ function DrawSmallName(name, nameIsAlias, team, posY, dark, playerID, accountID,
 		nameText = " " .. name
 	end
     if originalColourNames[playerID] then
-        nameText = "\255" .. string.char(originalColourNames[playerID][1]) .. string.char(originalColourNames[playerID][2]) .. string.char(originalColourNames[playerID][3]) .. nameText
+        local oc = originalColourNames[playerID]
+        nameText = "\255" .. strChar(oc[1]) .. strChar(oc[2]) .. strChar(oc[3]) .. nameText
     end
 
     font2:Begin(useRenderToTexture)
     font2:SetOutlineColor(0.15+(alpha*0.33), 0.15+(alpha*0.33), 0.15+(alpha*0.33), 0.55)
     font2:SetTextColor(alpha, alpha, alpha, 1)
-    font2:Print(nameText, m_name.posX + textindent + widgetPosX + 3, posY + (4*specScale), (10*specScale * math.clamp(1+((1-(vsy/1200))*0.66), 1, 1.33)), "n")
+    font2:Print(nameText, m_name.posX + textindent + widgetPosX + 3, posY + (4*specScale), (10*specScale * fontScaleSpec), "n")
     font2:End()
 
     if ignored then
@@ -2925,7 +2971,7 @@ function DrawAllyID(allyID, posY, dark, dead)
     if allyID < 10 then
         spacer = " "
     end
-    local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25)) * math.clamp(1+((1-(vsy/1200))*0.75), 1, 1.25)
+    local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25)) * fontScaleHigh
     font:Begin(useRenderToTexture)
 	font:SetTextColor(0.9, 0.7, 0.9, 1)
 	font:SetOutlineColor(0.18, 0.18, 0.18, 1)
@@ -2939,7 +2985,7 @@ function DrawPlayerID(playerID, posY, dark, spec)
         spacer = " "
     end
 	local usedScale = spec and specScale or playerScale
-    local fontsize = 9.5 * (usedScale + ((1-usedScale)*0.25)) * math.clamp(1+((1-(vsy/1200))*0.75), 1, 1.25)
+    local fontsize = 9.5 * (usedScale + ((1-usedScale)*0.25)) * fontScaleHigh
 	fontsize = fontsize * (spec and 0.82 or 1)
     font:Begin(useRenderToTexture)
 	font:SetTextColor(0.7, 0.9, 0.7, spec and 0.5 or 1)
@@ -2953,7 +2999,7 @@ function DrawID(teamID, posY, dark, dead)
     if teamID < 10 then
         spacer = " "
     end
-    local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25)) * math.clamp(1+((1-(vsy/1200))*0.75), 1, 1.25)
+    local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25)) * fontScaleHigh
     font:Begin(useRenderToTexture)
 	font:SetTextColor(0.7, 0.7, 0.7, 1)
 	font:SetOutlineColor(0.18, 0.18, 0.18, 1)
@@ -2962,14 +3008,14 @@ function DrawID(teamID, posY, dark, dead)
 end
 
 function DrawSkill(skill, posY, dark)
-    local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25)) * math.clamp(1+((1-(vsy/1200))*0.75), 1, 1.25)
+    local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25)) * fontScaleHigh
     font:Begin(useRenderToTexture)
     font:Print(skill, m_skill.posX + widgetPosX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "o")
     font:End()
 end
 
 function DrawPingCpu(pingLvl, cpuLvl, posY, spec, cpu, fps)
-	local fontScale = math.clamp(1+((1-(vsy/1200))*0.75), 1, 1.25)
+	local fontScale = fontScaleHigh
 
     gl_Texture(pics["pingPic"])
     local grayvalue
@@ -3046,22 +3092,23 @@ end
 function TakeTip(mouseX)
     if mouseX >= widgetPosX - 57 * widgetScale and mouseX <= widgetPosX - 1 * widgetScale then
         tipText = Spring.I18N('ui.playersList.takeUnits')
-        tipTextTime = os.clock()
+        tipTextTime = osClock()
     end
 end
 
 function NameTip(mouseX, playerID, accountID, nameIsAlias)
+	local pTip = player[playerID]
 	if accountID and mouseX >= widgetPosX + (m_name.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_name.posX + m_name.width) * widgetScale and WG.playernames then
-		if WG.playernames and not player[playerID].history then
-			player[playerID].history = WG.playernames.getAccountHistory(accountID) or {}
+		if WG.playernames and not pTip.history then
+			pTip.history = WG.playernames.getAccountHistory(accountID) or {}
 		end
-		if player[playerID].history and (nameIsAlias or #player[playerID].history > 1) then
+		if pTip.history and (nameIsAlias or #pTip.history > 1) then
 			local text = ''
 		 	local c = 0
 
             local pname = Spring.GetPlayerInfo(playerID, false)
-			for i, name in ipairs(player[playerID].history) do
-				if player[playerID].name ~= name then
+			for i, name in ipairs(pTip.history) do
+				if pTip.name ~= name then
 					if c > 0 then
 						text = text .. '\n'
 					end
@@ -3076,8 +3123,8 @@ function NameTip(mouseX, playerID, accountID, nameIsAlias)
 			end
 			if c > 0 then
 				tipText = text
-				tipTextTime = os.clock()
-				tipTextTitle = (originalColourNames[playerID] and colourNames(player[playerID].team) or "\255\255\255\255") .. player[playerID].name
+				tipTextTime = osClock()
+				tipTextTitle = (originalColourNames[playerID] and colourNames(pTip.team) or "\255\255\255\255") .. pTip.name
 			end
 		end
 	end
@@ -3087,24 +3134,24 @@ function ShareTip(mouseX, playerID)
     if playerID == myPlayerID then
         if mouseX >= widgetPosX + (m_share.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (17*playerScale)) * widgetScale then
             tipText = Spring.I18N('ui.playersList.requestSupport')
-            tipTextTime = os.clock()
+            tipTextTime = osClock()
         elseif mouseX >= widgetPosX + (m_share.posX + (19*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (35*playerScale)) * widgetScale then
             tipText = Spring.I18N('ui.playersList.requestEnergy')
-            tipTextTime = os.clock()
+            tipTextTime = osClock()
         elseif mouseX >= widgetPosX + (m_share.posX + (37*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (53*playerScale)) * widgetScale then
             tipText = Spring.I18N('ui.playersList.requestMetal')
-            tipTextTime = os.clock()
+            tipTextTime = osClock()
         end
     else
         if mouseX >= widgetPosX + (m_share.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (17*playerScale)) * widgetScale then
             tipText = Spring.I18N('ui.playersList.shareUnits')
-            tipTextTime = os.clock()
+            tipTextTime = osClock()
         elseif mouseX >= widgetPosX + (m_share.posX + (19*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (35*playerScale)) * widgetScale then
             tipText = Spring.I18N('ui.playersList.shareEnergy')
-            tipTextTime = os.clock()
+            tipTextTime = osClock()
         elseif mouseX >= widgetPosX + (m_share.posX + (37*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (53*playerScale)) * widgetScale then
             tipText = Spring.I18N('ui.playersList.shareMetal')
-            tipTextTime = os.clock()
+            tipTextTime = osClock()
         end
     end
 end
@@ -3113,10 +3160,10 @@ function AllyTip(mouseX, playerID)
     if mouseX >= widgetPosX + (m_alliance.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_alliance.posX + (11*playerScale)) * widgetScale then
         if sp.AreTeamsAllied(player[playerID].team, myTeamID) then
             tipText = Spring.I18N('ui.playersList.becomeEnemy')
-            tipTextTime = os.clock()
+            tipTextTime = osClock()
         else
             tipText = Spring.I18N('ui.playersList.becomeAlly')
-            tipTextTime = os.clock()
+            tipTextTime = osClock()
         end
     end
 end
@@ -3161,7 +3208,7 @@ function ResourcesTip(mouseX, energy, energyStorage, energyIncome, metal, metalS
         end
         tipTextTitle = (spec and "\255\240\240\240" or colourNames(teamID)) .. name
         tipText = "\255\255\255\255+" .. metalIncome.. "\n\255\255\255\255" .. metal .. "\n\255\255\255\000" .. energy .. "\n\255\255\255\000+" .. energyIncome
-        tipTextTime = os.clock()
+        tipTextTime = osClock()
     end
 end
 
@@ -3189,7 +3236,7 @@ function IncomeTip(mouseX, energyIncome, metalIncome, name, teamID)
         end
         tipTextTitle = (spec and "\255\240\240\240" or colourNames(teamID)) .. name
         tipText = Spring.I18N('ui.playersList.resincome') .. "\n\255\255\255\000+" .. energyIncome .. "\n\255\255\255\255+" .. metalIncome
-        tipTextTime = os.clock()
+        tipTextTime = osClock()
     end
 end
 
@@ -3202,7 +3249,7 @@ function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID, 
         end
         tipText = Spring.I18N('ui.playersList.commandDelay', { labelColor = "\255\190\190\190", delayColor = "\255\255\255\255", delay = pingLvl })
         tipTextTitle = (spec and "\255\240\240\240" or colourNames(teamID)) .. name
-        tipTextTime = os.clock()
+        tipTextTime = osClock()
     elseif mouseX >= widgetPosX + (m_cpuping.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_cpuping.posX + (11*playerScale)) * widgetScale then
 		tipText = ''
 		if not spec and apm ~= nil then
@@ -3219,14 +3266,14 @@ function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID, 
         if system ~= nil then
             tipText = tipText .. system
         end
-        tipTextTime = os.clock()
+        tipTextTime = osClock()
     end
 end
 
 function PointTip(mouseX)
     if mouseX >= widgetPosX - 28 * widgetScale and mouseX <= widgetPosX - 1 * widgetScale then
         tipText = Spring.I18N('ui.playersList.pointClickTooltip')
-        tipTextTime = os.clock()
+        tipTextTime = osClock()
     end
 end
 
@@ -3270,20 +3317,28 @@ function CreateShareSlider()
     end)
 end
 
+-- Pre-extract thresholds for fast lookup (avoids table access in hot path)
+local cpuThresholds = {}
+local pingThresholds = {}
+for level, data in ipairs(pingLevelData) do
+    cpuThresholds[level] = data.cpuThreshold
+    pingThresholds[level] = data.pingThreshold
+end
+
 function GetCpuLvl(cpuUsage)
-    for level, data in ipairs(pingLevelData) do
-        if cpuUsage < data.cpuThreshold then
-            return level
-        end
-    end
+    if cpuUsage < cpuThresholds[1] then return 1
+    elseif cpuUsage < cpuThresholds[2] then return 2
+    elseif cpuUsage < cpuThresholds[3] then return 3
+    elseif cpuUsage < cpuThresholds[4] then return 4
+    else return 5 end
 end
 
 function GetPingLvl(ping)
-    for level, data in ipairs(pingLevelData) do
-        if ping < data.pingThreshold then
-            return level
-        end
-    end
+    if ping < pingThresholds[1] then return 1
+    elseif ping < pingThresholds[2] then return 2
+    elseif ping < pingThresholds[3] then return 3
+    elseif ping < pingThresholds[4] then return 4
+    else return 5 end
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -3295,7 +3350,7 @@ function widget:MousePress(x, y, button)
     local t = false       -- true if the object is a team leader
     local clickedPlayer
     local posY
-    local clickTime = os.clock()
+    local clickTime = osClock()
 
     if IsOnRect(x, y, apiAbsPosition[2], apiAbsPosition[3], apiAbsPosition[4], apiAbsPosition[1]) then
         forceMainListRefresh = true
@@ -3372,7 +3427,7 @@ function widget:MousePress(x, y, button)
                             return true
                         elseif not player[i].spec then
                             if i ~= myTeamPlayerID then
-                                clickedPlayerTime = os.clock()
+                                clickedPlayerTime = osClock()
                                 clickedPlayerID = clickedPlayer.id
                                 -- handled in Update() after dblclick delay
                             end
@@ -3522,8 +3577,8 @@ function widget:MouseMove(x, y, dx, dy, button)
         end
         local prevAmountEM = shareAmount
         UpdateResources()
-        if playSounds and (lastSliderSound == nil or os.clock() - lastSliderSound > 0.05) and shareAmount ~= prevAmountEM then
-            lastSliderSound = os.clock()
+        if playSounds and (lastSliderSound == nil or osClock() - lastSliderSound > 0.05) and shareAmount ~= prevAmountEM then
+            lastSliderSound = osClock()
             Spring.PlaySoundFile(sliderdrag, 0.3, 'ui')
         end
     end
@@ -3768,87 +3823,90 @@ end
 
 function CheckPlayersChange()
     local sorting = false
+    local curGameFrame = spGetGameFrame()
     for i = 0, specOffset-1 do
         local name, active, spec, teamID, allyTeamID, pingTime, cpuUsage, _, rank, _, _, desynced = sp.GetPlayerInfo(i, false)
         name = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(i) or name
+        local p = player[i]
         if active == false then
-            if player[i].name ~= nil then
+            if p.name ~= nil then
                 -- NON SPEC PLAYER LEAVING
-                if player[i].spec == false then
-                    if table.maxn(sp.GetPlayerList(player[i].team, true)) == 0 then
-                        player[player[i].team + specOffset] = CreatePlayerFromTeam(player[i].team)
+                if p.spec == false then
+                    if table.maxn(sp.GetPlayerList(p.team, true)) == 0 then
+                        player[p.team + specOffset] = CreatePlayerFromTeam(p.team)
                         sorting = true
                     end
                 end
             end
         elseif active and name ~= nil then
-            if spec ~= player[i].spec then
+            if spec ~= p.spec then
                 -- PLAYER SWITCHING TO SPEC STATUS
                 if spec then
-                    if table.maxn(sp.GetPlayerList(player[i].team, true)) == 0 then
+                    if table.maxn(sp.GetPlayerList(p.team, true)) == 0 then
                         -- (update the no players team)
-                        player[player[i].team + specOffset] = CreatePlayerFromTeam(player[i].team)
+                        player[p.team + specOffset] = CreatePlayerFromTeam(p.team)
                     end
-                    player[i].team = nil -- remove team
+                    p.team = nil -- remove team
                 end
-                player[i].spec = spec -- consider player as spec
+                p.spec = spec -- consider player as spec
                 sorting = true
             end
-            if teamID ~= player[i].team then
+            if teamID ~= p.team then
                 -- PLAYER CHANGING TEAM
-                if table.maxn(sp.GetPlayerList(player[i].team, true)) == 0 then
+                if table.maxn(sp.GetPlayerList(p.team, true)) == 0 then
                     -- check if there is no more player in the team + update
-                    player[player[i].team + specOffset] = CreatePlayerFromTeam(player[i].team)
+                    player[p.team + specOffset] = CreatePlayerFromTeam(p.team)
                 end
-                player[i].team = teamID
+                p.team = teamID
 				if (not mySpecStatus) and anonymousMode ~= "disabled" and teamID ~= myTeamID then
-					player[i].red, player[i].green, player[i].blue = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
+					p.red, p.green, p.blue = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 				else
-					player[i].red, player[i].green, player[i].blue = sp.GetTeamColor(teamID)
+					p.red, p.green, p.blue = sp.GetTeamColor(teamID)
 				end
-                player[i].dark = Color.IsDark(player[i].red, player[i].green, player[i].blue)
-                player[i].skill = GetSkill(i)
+                p.dark = Color.IsDark(p.red, p.green, p.blue)
+                p.skill = GetSkill(i)
                 sorting = true
             end
-            if player[i].name == nil then
+            if p.name == nil then
                 player[i] = CreatePlayer(i)
-                if player[i].name ~= nil then
+                p = player[i]  -- refresh after reassignment
+                if p.name ~= nil then
                     forceMainListRefresh = true
                 end
             end
-            if allyTeamID ~= player[i].allyteam then
-                player[i].allyteam = allyTeamID
+            if allyTeamID ~= p.allyteam then
+                p.allyteam = allyTeamID
                 updateTake(allyTeamID)
                 sorting = true
             end
-            if desynced ~= player[i].desynced then
+            if desynced ~= p.desynced then
                 forceMainListRefresh = true
                 sorting = true
             end
             -- Update stall / cpu / ping info for each player
-            if player[i].spec == false then
-                player[i].needm = GetNeed("metal", player[i].team)
-                player[i].neede = GetNeed("energy", player[i].team)
-                player[i].rank = rank
+            if p.spec == false then
+                p.needm = GetNeed("metal", p.team)
+                p.neede = GetNeed("energy", p.team)
+                p.rank = rank
             else
-                player[i].needm = false
-                player[i].neede = false
+                p.needm = false
+                p.neede = false
             end
 
-            player[i].pingLvl = GetPingLvl(pingTime)
-            player[i].cpuLvl = GetCpuLvl(cpuUsage)
-            player[i].ping = pingTime * 1000 - ((pingTime * 1000) % 1)
-            player[i].cpu = cpuUsage * 100 - ((cpuUsage * 100) % 1)
-			player[i].desynced = desynced
+            p.pingLvl = GetPingLvl(pingTime)
+            p.cpuLvl = GetCpuLvl(cpuUsage)
+            p.ping = pingTime * 1000 - ((pingTime * 1000) % 1)
+            p.cpu = cpuUsage * 100 - ((cpuUsage * 100) % 1)
+			p.desynced = desynced
         end
 
-        if teamID and spGetGameFrame() > 0 then
+        if teamID and curGameFrame > 0 then
             local totake = IsTakeable(teamID)
-            player[i].totake = totake
+            p.totake = totake
             if totake then
                 sorting = true
             else
-                player[i].name = name
+                p.name = name
             end
         end
     end
@@ -3925,7 +3983,7 @@ function widget:Update(delta)
 				    tipTextTitle = Spring.I18N('ui.playersList.leaderboard')
                     tipText = Spring.I18N('ui.playersList.leaderboardTooltip')
                 end
-				tipTextTime = os.clock()
+				tipTextTime = osClock()
 			end
 		end
 
@@ -3937,7 +3995,7 @@ function widget:Update(delta)
 
     lockPlayerID = WG.lockcamera and WG.lockcamera.GetPlayerID() or false
 
-    if clickedPlayerTime and os.clock() - clickedPlayerTime > dblclickPeriod then
+    if clickedPlayerTime and osClock() - clickedPlayerTime > dblclickPeriod then
         Spec(player[clickedPlayerID].team)
         if lockPlayerID then
             LockCamera(player[clickedPlayerID].ai and nil or clickedPlayerID)
@@ -4052,6 +4110,13 @@ end
 function widget:ViewResize()
     vsx, vsy = spGetViewGeometry()
 
+    -- Update cached font scale factors
+    local vsyRatio = 1 - (vsy / 1200)
+    fontScaleHigh = math.clamp(1 + (vsyRatio * 0.75), 1, 1.25)
+    fontScaleMed  = math.clamp(1 + (vsyRatio * 0.5), 1, 1.2)
+    fontScaleLow  = math.clamp(1 + (vsyRatio * 0.4), 1, 1.15)
+    fontScaleSpec = math.clamp(1 + (vsyRatio * 0.66), 1, 1.33)
+
     bgpadding = WG.FlowUI.elementPadding
     elementCorner = WG.FlowUI.elementCorner
 
@@ -4090,10 +4155,13 @@ function widget:MapDrawCmd(playerID, cmdType, px, py, pz)
             player[playerID].pointY = py
             player[playerID].pointZ = pz
             player[playerID].pointTime = now + pointDuration
+            activeDrawPlayers[playerID] = true
         elseif cmdType == 'line' then
             player[playerID].pencilTime = now + pencilDuration
+            activeDrawPlayers[playerID] = true
         elseif cmdType == 'erase' then
             player[playerID].eraserTime = now + pencilDuration
+            activeDrawPlayers[playerID] = true
         end
     end
 end
