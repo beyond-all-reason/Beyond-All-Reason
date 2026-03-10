@@ -172,22 +172,30 @@ local function applyAutoFitRotation()
 
 		spSetMiniRot(autoFitTargetRot)
 
-		-- Rotate the camera once per game
-		if not autoFitCameraApplied then
-			local camState = Spring.GetCameraState()
-			if camState then
-				camState.ry = (camState.ry or 0) + autoFitTargetRot
-				Spring.SetCameraState(camState, 0)
-				autoFitCameraApplied = true
-				spEcho("[MinimapManager] AutoFit: camera rotated to ry=" .. camState.ry)
-			end
-		end
-
 		-- Verify minimap rotation actually took effect
 		local currentRot = spGetMiniRot()
 		if currentRot and math.abs(currentRot - autoFitTargetRot) < 0.01 then
-			autoFitApplied = true
-			autoFitPending = false
+			-- Minimap confirmed, now rotate the camera (only after minimap is verified)
+			if not autoFitCameraApplied then
+				local camState = Spring.GetCameraState()
+				if camState then
+					local targetRy = (camState.ry or 0) - autoFitTargetRot
+					camState.ry = targetRy
+					Spring.SetCameraState(camState, 0)
+					-- Verify camera rotation took effect
+					local verifyCam = Spring.GetCameraState()
+					if verifyCam and math.abs((verifyCam.ry or 0) - targetRy) < 0.1 then
+						autoFitCameraApplied = true
+						spEcho("[MinimapManager] AutoFit: camera rotated to ry=" .. targetRy)
+					else
+						spEcho("[MinimapManager] AutoFit: camera rotation not yet applied, retrying...")
+					end
+				end
+			end
+			if autoFitCameraApplied then
+				autoFitApplied = true
+				autoFitPending = false
+			end
 		else
 			autoFitPending = true
 		end
@@ -325,7 +333,6 @@ function widget:GetConfigData()
 	return {
 		mode = mode,
 		lastGameID = lastGameID,
-		autoFitCameraApplied = autoFitCameraApplied,
 	}
 end
 
@@ -335,8 +342,5 @@ function widget:SetConfigData(data)
 	end
 	if data.lastGameID ~= nil then
 		lastGameID = data.lastGameID
-	end
-	if data.autoFitCameraApplied ~= nil then
-		autoFitCameraApplied = data.autoFitCameraApplied
 	end
 end

@@ -1,4 +1,5 @@
 local validateActions = VFS.Include('luarules/mission_api/validation.lua').ValidateActions
+local processActionsParameters = VFS.Include('luarules/mission_api/parameter_processing.lua').ProcessActionsParameters
 
 --[[
 	actionID = {
@@ -12,6 +13,7 @@ local validateActions = VFS.Include('luarules/mission_api/validation.lua').Valid
 local function processRawActions(rawActions)
 	local actions = table.map(rawActions, table.copy)
 	validateActions(actions)
+	processActionsParameters(actions)
 	return actions
 end
 

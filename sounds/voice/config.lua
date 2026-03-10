@@ -347,11 +347,11 @@ return {
 		stackedDelay = true,
 	},
 	LowPower = {
-		delay = 10,
+		delay = 15,
 		stackedDelay = true,
 	},
 	LowMetal = {
-		delay = 20,
+		delay = 30,
 		stackedDelay = true,
 	},
 	AllyRequestEnergy = {
