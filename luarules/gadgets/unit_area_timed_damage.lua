@@ -69,7 +69,7 @@ local tableInsert             = table.insert
 local tableRemove             = table.remove
 
 local spAddUnitDamage         = Spring.AddUnitDamage
-local spGetFeatureHealth      = Spring.GetFeatureHealth
+local spAddFeatureDamage      = Spring.AddFeatureDamage
 local spGetFeaturePosition    = Spring.GetFeaturePosition
 local spGetFeaturesInCylinder = Spring.GetFeaturesInCylinder
 local spGetGroundHeight       = Spring.GetGroundHeight
@@ -77,9 +77,7 @@ local spGetGroundNormal       = Spring.GetGroundNormal
 local spGetUnitDefID          = Spring.GetUnitDefID
 local spGetUnitPosition       = Spring.GetUnitPosition
 local spGetUnitsInCylinder    = Spring.GetUnitsInCylinder
-local spSetFeatureHealth      = Spring.SetFeatureHealth
 local spSpawnCEG              = Spring.SpawnCEG
-local spDestroyFeature        = Spring.DestroyFeature
 
 local gameSpeed               = Game.gameSpeed
 
@@ -419,13 +417,8 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
                     if showDamageCeg then
                         spSpawnCEG(area.damageCeg, hitX, hitY, hitZ)
                     end
-                    local health = spGetFeatureHealth(featureID) - damageDealt
-                    if health > 1 then
-                        spSetFeatureHealth(featureID, health)
-                        data.damageTaken = damageTaken + damageDealt
-                    else
-                        spDestroyFeature(featureID)
-                    end
+					data.damageTaken = damageTaken + damageDealt
+					spAddFeatureDamage(featureID, damageDealt, nil, area.owner, area.weapon)
                 end
             end
         end

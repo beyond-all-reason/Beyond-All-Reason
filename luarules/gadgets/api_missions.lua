@@ -14,6 +14,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+local sounds = VFS.Include('luarules/mission_api/sounds.lua')
+
 local scriptPath
 local stagesController, objectivesController, triggersController, actionsController
 local initialStateBroadcast = false
@@ -45,6 +47,7 @@ function gadget:Initialize()
 	-- TODO: Actually pass script path
 	--scriptPath = 'mission-api-tests/validation_test.lua'
 	--scriptPath = 'mission-api-tests/test_mission.lua'
+	--scriptPath = 'mission-api-tests/sound_test.lua'
 	--scriptPath = 'mission-api-tests/markers_test.lua'
 	scriptPath = 'mission-api-tests/stages_and_objectives_test.lua'
 
@@ -62,6 +65,8 @@ function gadget:Initialize()
 	GG['MissionAPI'].ActionTypes = actionsSchema.Types
 	GG['MissionAPI'].trackedUnitIDs = {}
 	GG['MissionAPI'].trackedUnitNames = {}
+	GG['MissionAPI'].soundFiles = {}
+	GG['MissionAPI'].soundQueue = {}
 
 	broadcast = VFS.Include('luarules/mission_api/broadcast.lua')
 
@@ -78,6 +83,10 @@ function gadget:GameFrame()
 		broadcastInitialState()
 		initialStateBroadcast = true
 	end
+end
+
+function gadget:GameFrame(frameNumber)
+	sounds.ProcessSoundQueue(frameNumber)
 end
 
 function gadget:Shutdown()

@@ -28,8 +28,8 @@ local actionTypes = {
 
 	-- SFX
 	SpawnExplosion     = 500,
-	SpawnWeapons       = 501,
-	SpawnEffects       = 502,
+	SpawnWeapon        = 501, -- maybe this should be renamed to SpawnProjectile to match the Spring function?
+	SpawnEffect        = 502,
 
 	-- Map
 	RevealLOS          = 600,
@@ -40,7 +40,7 @@ local actionTypes = {
 	ControlCamera      = 700,
 	Pause              = 701,
 	Unpause            = 702,
-	PlayMedia          = 703,
+	PlaySound          = 703,
 	SendMessage        = 704,
 	AddMarker          = 705,
 	EraseMarker        = 706,
@@ -195,8 +195,6 @@ local parameters = {
 			type = Types.Boolean,
 		},
 	},
-	[actionTypes.SpawnWeapons] = {},
-	[actionTypes.SpawnEffects] = {},
 	[actionTypes.TransferUnits] = {
 		[1] = {
 			name = 'unitName',
@@ -246,21 +244,24 @@ local parameters = {
 	-- SFX
 	[actionTypes.SpawnExplosion] = {
 		[1] = {
-			name = 'position',
+			name = 'weaponDefName',
 			required = true,
-			type = Types.Position
+			type = Types.WeaponDefName,
 		},
 		[2] = {
-			name = 'direction',
+			-- position on a unit?
+			name = 'position',
 			required = true,
-			type = Types.Position
+			type = Types.Position,
 		},
 		[3] = {
-			name = 'params',
-			required = true,
-			type = Types.Table
-		}
+			name = 'direction',
+			required = false,
+			type = Types.Position,
+		},
 	},
+	[actionTypes.SpawnWeapon] = { }, -- nukes will need an owner unit for the voice alert
+	[actionTypes.SpawnEffect] = { },
 
 	-- Map
 	[actionTypes.RevealLOS] = {},
@@ -271,7 +272,30 @@ local parameters = {
 	[actionTypes.ControlCamera] = {},
 	[actionTypes.Pause] = {},
 	[actionTypes.Unpause] = {},
-	[actionTypes.PlayMedia] = {},
+	[actionTypes.PlaySound] = {
+		[1] = {
+			-- file path from repo root
+			name = 'soundfile',
+			required = true,
+			type = Types.SoundFile,
+		},
+		[2] = {
+			name = 'volume',
+			required = false,
+			type = Types.Number,
+		},
+		[3] = {
+			name = 'position',
+			required = false,
+			type = Types.Position,
+		},
+		[4] = {
+			-- whether to play in sequence with other enqueued sounds, or to play immediately
+			name = 'enqueue',
+			required = false,
+			type = Types.Boolean,
+		},
+	},
 
 	[actionTypes.SendMessage] = {
 		[1] = {
