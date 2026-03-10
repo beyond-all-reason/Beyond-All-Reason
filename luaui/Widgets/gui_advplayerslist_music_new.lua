@@ -502,6 +502,7 @@ local widgetHeight = 22
 local top, left, bottom, right = 0,0,0,0
 local borderPadding = bgpadding
 local updateDrawing = false
+local guishaderWasActive = false
 
 local vsx, vsy = spGetViewGeometry()
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
@@ -1264,6 +1265,15 @@ function widget:DrawScreen()
 	end
 
 	showTrackname = not (not mouseover and not draggingSlider and playing and volume > 0 and playedTime < totalTime)
+
+	-- detect guishader widget being toggled back on
+	local guishaderNow = WG['guishader'] ~= nil
+	if guishaderNow and not guishaderWasActive then
+		guishaderList = glDeleteList(guishaderList)
+		updateDrawing = true
+	end
+	guishaderWasActive = guishaderNow
+
 	if updateDrawing or (useRenderToTexture and mouseover ~= prevMouseover) or showTrackname ~= prevShowTrackname then
 		updateDrawing = false
 		refreshUiDrawing()
