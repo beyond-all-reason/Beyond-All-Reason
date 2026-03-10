@@ -49,7 +49,7 @@ local function untrackUnitID(unitID)
 	if isUnitIDUntracked(unitID) then return end
 
 	for _, name in pairs(trackedUnitNames[unitID]) do
-		table.removeAll(trackedUnitIDs[name], unitID)
+		table.removeFirst(trackedUnitIDs[name], unitID)
 		if table.isEmpty(trackedUnitIDs[name]) then
 			trackedUnitIDs[name] = nil
 		end
@@ -62,7 +62,7 @@ local function untrackUnitName(name)
 	if isUnitNameUntracked(name) then return end
 
 	for _, unitID in pairs(trackedUnitIDs[name]) do
-		table.removeAll(trackedUnitNames[unitID], name)
+		table.removeFirst(trackedUnitNames[unitID], name)
 		if table.isEmpty(trackedUnitNames[unitID]) then
 			trackedUnitNames[unitID] = nil
 		end
@@ -106,7 +106,7 @@ local function untrackFeatureID(featureID)
 	if isFeatureIDUntracked(featureID) then return end
 
 	for _, name in pairs(trackedFeatureNames[featureID]) do
-		table.removeAll(trackedFeatureIDs[name], featureID)
+		table.removeFirst(trackedFeatureIDs[name], featureID)
 		if table.isEmpty(trackedFeatureIDs[name]) then
 			trackedFeatureIDs[name] = nil
 		end
@@ -119,7 +119,7 @@ local function untrackFeatureName(name)
 	if isFeatureNameUntracked(name) then return end
 
 	for _, featureID in pairs(trackedFeatureIDs[name]) do
-		table.removeAll(trackedFeatureNames[featureID], name)
+		table.removeFirst(trackedFeatureNames[featureID], name)
 		if table.isEmpty(trackedFeatureNames[featureID]) then
 			trackedFeatureNames[featureID] = nil
 		end
