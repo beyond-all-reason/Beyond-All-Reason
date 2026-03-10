@@ -315,6 +315,9 @@ local startBoxes = {}
 -- a table of allyTeamId to the average color of all the constituent teams
 local allyTeamColors = {}
 
+-- the user's playerId
+local myPlayerId
+
 -- the user's ally team
 local myAllyTeam
 
@@ -1027,6 +1030,7 @@ function widget:Initialize()
 	allyTeamColorsUBO:Define(1, fragmentShaderMaxTeams)--seconds arg expects size in number of Vec4s
 	allyTeamColorsUBO:Upload(allyTeamColorsVec4Array)
 	
+	myPlayerId = Spring.GetMyPlayerID()
 	myAllyTeam = Spring.GetMyAllyTeamID()
 	myStartBox = startBoxes[myAllyTeam]
 	
@@ -1138,9 +1142,13 @@ function widget:ViewResize(vs_x, vs_y)
 end
 
 -- Called whenever a player's status changes e.g. becoming a spectator. Also called when changing teams.
--- Used to resize ui box whenever the player list box below changes size
+-- Used to resize ui box whenever the player list box below changes size and update myAllyTeam and myStartBox
 function widget:PlayerChanged(playerID)
 	triggerUIBoxResize()
+	if playerID == myPlayerId then
+		myAllyTeam = Spring.GetMyAllyTeamID()
+		myStartBox = startBoxes[myAllyTeam]
+	end
 end
 
 -- Called whenever a new player joins the game.
