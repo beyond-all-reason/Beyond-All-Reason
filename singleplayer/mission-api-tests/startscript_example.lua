@@ -17,7 +17,7 @@ maps of custom names to IDs of ally teams, teams, and AIs, needed for triggers a
 
 local startScript = {
 
-	texts = { -- display in lobby, as in https://www.figma.com/design/XmKdpNvdclGEVwW6c2EaKH/BAR_new-client?node-id=228-2&p=f&t=m6SWIi6tC92CRpZi-0
+	texts = { -- display in lobby, inspired by https://www.figma.com/design/XmKdpNvdclGEVwW6c2EaKH/BAR_new-client?node-id=228-2&p=f&t=m6SWIi6tC92CRpZi-0
 		title = "The Stars are Falling",
 		description = "Lorem Ipsum ...",
 		alliesPresent = { "Fortified Outpost", "Reinforcements en route" },
@@ -31,6 +31,7 @@ local startScript = {
 
 	mapName = "Fallendell V4", -- as displayed in the map selection screen, must be exact. Lobby to replace spaces with underscores
 	startPosType = 'chooseBeforeGame', -- lobby to map this: fixed = 0, random = 1, chooseInGame = 2, chooseBeforeGame = 3
+	imageFile = "startscript_example.jpg", -- placed next to lua file (or relative to VFS root?)
 	unitLimits = {
 		armavp = 0, -- example of a unit limit, set to 0 to disable the unit
 		coravp = 5,
