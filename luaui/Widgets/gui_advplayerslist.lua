@@ -101,29 +101,33 @@ local AdvPlayersListAtlas
 -- SPEED UPS
 --------------------------------------------------------------------------------
 
-local Spring_GetAllyTeamList = Spring.GetAllyTeamList
-local Spring_GetTeamInfo = Spring.GetTeamInfo
-local Spring_GetTeamList = Spring.GetTeamList
-local Spring_GetPlayerInfo = Spring.GetPlayerInfo
-local Spring_GetPlayerList = Spring.GetPlayerList
-local Spring_GetTeamColor = Spring.GetTeamColor
-local Spring_GetLocalAllyTeamID = Spring.GetLocalAllyTeamID
-local Spring_GetLocalTeamID = Spring.GetLocalTeamID
-local Spring_GetLocalPlayerID = Spring.GetLocalPlayerID
-local Spring_ShareResources = Spring.ShareResources
-local Spring_GetTeamUnitCount = Spring.GetTeamUnitCount
-local Spring_GetTeamResources = Spring.GetTeamResources
-local Spring_SendCommands = Spring.SendCommands
-local Spring_GetMouseState = spGetMouseState
-local Spring_GetAIInfo = Spring.GetAIInfo
-local Spring_GetTeamRulesParam = Spring.GetTeamRulesParam
-local Spring_GetMyTeamID = Spring.GetMyTeamID
-local Spring_AreTeamsAllied = Spring.AreTeamsAllied
-local Spring_GetTeamStatsHistory = Spring.GetTeamStatsHistory
+local sp = {
+	GetAllyTeamList = Spring.GetAllyTeamList,
+	GetTeamInfo = Spring.GetTeamInfo,
+	GetTeamList = Spring.GetTeamList,
+	GetPlayerInfo = Spring.GetPlayerInfo,
+	GetPlayerList = Spring.GetPlayerList,
+	GetTeamColor = Spring.GetTeamColor,
+	GetLocalAllyTeamID = Spring.GetLocalAllyTeamID,
+	GetLocalTeamID = Spring.GetLocalTeamID,
+	GetLocalPlayerID = Spring.GetLocalPlayerID,
+	ShareResources = Spring.ShareResources,
+	GetTeamUnitCount = Spring.GetTeamUnitCount,
+	GetTeamResources = Spring.GetTeamResources,
+	SendCommands = Spring.SendCommands,
+	GetMouseState = spGetMouseState,
+	GetAIInfo = Spring.GetAIInfo,
+	GetTeamRulesParam = Spring.GetTeamRulesParam,
+	GetMyTeamID = Spring.GetMyTeamID,
+	AreTeamsAllied = Spring.AreTeamsAllied,
+	GetTeamStatsHistory = Spring.GetTeamStatsHistory,
+}
 
-local ColorString = Spring.Utilities.Color.ToString
-local ColorArray = Spring.Utilities.Color.ToIntArray
-local ColorIsDark = Spring.Utilities.Color.ColorIsDark
+local Color = {
+	ToString = Spring.Utilities.Color.ToString,
+	ToIntArray = Spring.Utilities.Color.ToIntArray,
+	IsDark = Spring.Utilities.Color.ColorIsDark,
+}
 
 local gl_Texture = gl.Texture
 local gl_Color = gl.Color
@@ -239,6 +243,7 @@ local allyTeamMaxStorage = {}
 
 local tipTextTime = 0
 local Background, ShareSlider, BackgroundGuishader, tipText, tipTextTitle, drawTipText, tipY
+local guishaderWasActive = false
 --local specJoinedOnce, scheduledSpecFullView
 --local prevClickedPlayer, clickedPlayerTime, clickedPlayerID
 local lockPlayerID  --leftPosX, lastSliderSound, release
@@ -279,13 +284,14 @@ local numberOfSpecs = 0
 local numberOfEnemies = 0
 
 --To determine faction at start
-local sideOneDefID = UnitDefNames.armcom and UnitDefNames.armcom.id
-local sideTwoDefID = UnitDefNames.corcom and UnitDefNames.corcom.id
-local sideThreeDefID = UnitDefNames.legcom and UnitDefNames.legcom.id
-
-local teamSideOne = "armada"
-local teamSideTwo = "cortex"
-local teamSideThree = "legion"
+local sideDefs = {
+	oneDefID = UnitDefNames.armcom and UnitDefNames.armcom.id,
+	twoDefID = UnitDefNames.corcom and UnitDefNames.corcom.id,
+	threeDefID = UnitDefNames.legcom and UnitDefNames.legcom.id,
+	teamOne = "armada",
+	teamTwo = "cortex",
+	teamThree = "legion",
+}
 
 --Name for absent/resigned players
 local absentName = " --- "
@@ -657,13 +663,13 @@ end
 
 function SetMaxPlayerNameWidth()
     -- determines the maximal player name width (in order to set the width of the widget)
-    local t = Spring_GetPlayerList()
+    local t = sp.GetPlayerList()
     local maxWidth = 14 * (font2 and font2:GetTextWidth(absentName) or 100) + 8 -- 8 is minimal width
 
     for _, wplayer in ipairs(t) do
-        local name, _, spec, teamID = Spring_GetPlayerInfo(wplayer, false)
+        local name, _, spec, teamID = sp.GetPlayerInfo(wplayer, false)
         name = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(wplayer) or name
-        if not select(4, Spring_GetTeamInfo(teamID, false)) then
+        if not select(4, sp.GetTeamInfo(teamID, false)) then
             -- is not AI?
             local nextWidth = (spec and 11 or 14) * (font2 and font2:GetTextWidth(name) or 100) + 10
             if nextWidth > maxWidth then
@@ -672,11 +678,11 @@ function SetMaxPlayerNameWidth()
         end
     end
 
-    local teamList = Spring_GetTeamList()
+    local teamList = sp.GetTeamList()
     for i = 1, #teamList do
         local teamID = teamList[i]
         if teamID ~= gaiaTeamID then
-            local _, _, _, isAiTeam = Spring_GetTeamInfo(teamID, false)
+            local _, _, _, isAiTeam = sp.GetTeamInfo(teamID, false)
             if isAiTeam then
                 local name = GetAIName(teamID)
 
@@ -702,12 +708,12 @@ function GeometryChange()
 end
 
 local function UpdateAlliances()
-    local playerList = Spring_GetPlayerList()
+    local playerList = sp.GetPlayerList()
     for _, playerID in pairs(playerList) do
         if player[playerID] and not player[playerID].spec then
             local alliances = {}
             for _, player2ID in pairs(playerList) do
-                if player[player2ID] and not player[playerID].spec and not player[player2ID].spec and playerID ~= player2ID and player[playerID].team ~= nil and player[player2ID].team ~= nil and player[playerID].allyteam ~= player[player2ID].allyteam and Spring_AreTeamsAllied(player[player2ID].team, player[playerID].team) then
+                if player[player2ID] and not player[playerID].spec and not player[player2ID].spec and playerID ~= player2ID and player[playerID].team ~= nil and player[player2ID].team ~= nil and player[playerID].allyteam ~= player[player2ID].allyteam and sp.AreTeamsAllied(player[player2ID].team, player[playerID].team) then
                     alliances[#alliances + 1] = player2ID
                 end
             end
@@ -830,16 +836,16 @@ end
 local function rankTeamPlayers()
     local rankingChanged = false
     local scores = {}
-    for _,allyTeamID in ipairs(Spring_GetAllyTeamList()) do
-        local teams = Spring_GetTeamList(allyTeamID)
+    for _,allyTeamID in ipairs(sp.GetAllyTeamList()) do
+        local teams = sp.GetTeamList(allyTeamID)
         if #teams > 1 then
             for _,teamID in ipairs(teams) do
                 if teamID ~= gaiaTeamID then
                     if not scores[allyTeamID] then
                         scores[allyTeamID] = {}
                     end
-                    local range = Spring_GetTeamStatsHistory(teamID)
-                    local history = Spring_GetTeamStatsHistory(teamID,range)
+                    local range = sp.GetTeamStatsHistory(teamID)
+                    local history = sp.GetTeamStatsHistory(teamID,range)
                     if history then
                         history = history[#history]
                         scores[allyTeamID][#scores[allyTeamID]+1] = { teamID = teamID, score = mathFloor((history.metalUsed + history.energyUsed/60 + history.damageDealt) / 1000) }
@@ -1054,22 +1060,22 @@ function SetSidePics()
     end
 
     --set factions, from TeamRulesParam when possible and from initial info if not
-    local teamList = Spring_GetTeamList()
+    local teamList = sp.GetTeamList()
     for _, team in ipairs(teamList) do
         local teamSide
-        if Spring_GetTeamRulesParam(team, 'startUnit') then
-            local startunit = Spring_GetTeamRulesParam(team, 'startUnit')
-            if startunit == sideOneDefID then
-                teamSide = teamSideOne
+        if sp.GetTeamRulesParam(team, 'startUnit') then
+            local startunit = sp.GetTeamRulesParam(team, 'startUnit')
+            if startunit == sideDefs.oneDefID then
+                teamSide = sideDefs.teamOne
             end
-            if startunit == sideTwoDefID then
-                teamSide = teamSideTwo
+            if startunit == sideDefs.twoDefID then
+                teamSide = sideDefs.teamTwo
             end
-            if startunit == sideThreeDefID then
-                teamSide = teamSideThree
+            if startunit == sideDefs.threeDefID then
+                teamSide = sideDefs.teamThree
             end
         else
-            _, _, _, _, teamSide = Spring_GetTeamInfo(team, false)
+            _, _, _, _, teamSide = sp.GetTeamInfo(team, false)
         end
 
         if teamSide then
@@ -1081,18 +1087,18 @@ function SetSidePics()
 end
 
 function GetAllPlayers()
-    local allteams = Spring_GetTeamList()
+    local allteams = sp.GetTeamList()
     teamN = table.maxn(allteams) - 1 --remove gaia
     for i = 0, teamN - 1 do
-        local teamPlayers = Spring_GetPlayerList(i, true)
+        local teamPlayers = sp.GetPlayerList(i, true)
         player[i + specOffset] = CreatePlayerFromTeam(i)
         for _, playerID in ipairs(teamPlayers) do
             player[playerID] = CreatePlayer(playerID)
         end
     end
-    local specPlayers = Spring_GetTeamList()
+    local specPlayers = sp.GetTeamList()
     for _, playerID in ipairs(specPlayers) do
-        local name, active, spec = Spring_GetPlayerInfo(playerID, false)
+        local name, active, spec = sp.GetPlayerInfo(playerID, false)
         if spec then
             if name then
                 player[playerID] = CreatePlayer(playerID)
@@ -1102,9 +1108,9 @@ function GetAllPlayers()
 end
 
 function InitializePlayers()
-    myPlayerID = Spring_GetLocalPlayerID()
-    myTeamID = Spring_GetLocalTeamID()
-    myAllyTeamID = Spring_GetLocalAllyTeamID()
+    myPlayerID = sp.GetLocalPlayerID()
+    myTeamID = sp.GetLocalTeamID()
+    myAllyTeamID = sp.GetLocalAllyTeamID()
     for i = 0, specOffset*2 do
         player[i] = {}
     end
@@ -1113,11 +1119,11 @@ end
 
 function GetAliveAllyTeams()
     aliveAllyTeams = {}
-    local allteams = Spring_GetTeamList()
+    local allteams = sp.GetTeamList()
     teamN = table.maxn(allteams) - 1 --remove gaia
 	local gf = spGetGameFrame()
     for i = 0, teamN - 1 do
-        local _, _, isDead, _, _, allyTeam = Spring_GetTeamInfo(i, false)
+        local _, _, isDead, _, _, allyTeam = sp.GetTeamInfo(i, false)
         if not isDead or gf == 0 then
             aliveAllyTeams[allyTeam] = true
         end
@@ -1169,7 +1175,7 @@ function GetSkill(playerID)
 end
 
 function CreatePlayer(playerID)
-    local tname, _, tspec, tteam, tallyteam, tping, tcpu, tcountry, trank, _, accountInfo, desynced = Spring_GetPlayerInfo(playerID)
+    local tname, _, tspec, tteam, tallyteam, tping, tcpu, tcountry, trank, _, accountInfo, desynced = sp.GetPlayerInfo(playerID)
 	if accountInfo and accountInfo.accountid then
 		accountID = tonumber(accountInfo.accountid)
 	end
@@ -1187,8 +1193,8 @@ function CreatePlayer(playerID)
 	local pname = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID) or tname
 	local isAliasName = tname ~= pname
 	tname = pname
-    local _, _, _, _, tside, tallyteam, tincomeMultiplier = Spring_GetTeamInfo(tteam, false)
-    local tred, tgreen, tblue = Spring_GetTeamColor(tteam)
+    local _, _, _, _, tside, tallyteam, tincomeMultiplier = sp.GetTeamInfo(tteam, false)
+    local tred, tgreen, tblue = sp.GetTeamColor(tteam)
 	if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
 		tred, tgreen, tblue = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 	end
@@ -1205,8 +1211,8 @@ function CreatePlayer(playerID)
     -- resources
     local energy, energyStorage, energyIncome, energyShare, metal, metalStorage, metalIncome, metalShare = 0, 1, 0, 0, 1, 0, 0, 0
     if aliveAllyTeams[tallyteam] ~= nil and (mySpecStatus or myAllyTeamID == tallyteam) then
-        energy, energyStorage, _, energyIncome, _, energyShare = Spring_GetTeamResources(tteam, "energy")
-        metal, metalStorage, _, metalIncome, _, metalShare = Spring_GetTeamResources(tteam, "metal")
+        energy, energyStorage, _, energyIncome, _, energyShare = sp.GetTeamResources(tteam, "energy")
+        metal, metalStorage, _, metalIncome, _, metalShare = sp.GetTeamResources(tteam, "metal")
         if energy then
             energy = mathFloor(energy)
             metal = mathFloor(metal)
@@ -1232,7 +1238,7 @@ function CreatePlayer(playerID)
         red = tred,
         green = tgreen,
         blue = tblue,
-        dark = ColorIsDark(tred, tgreen, tblue),
+        dark = Color.IsDark(tred, tgreen, tblue),
         side = tside,
         pingLvl = tpingLvl,
         cpuLvl = tcpuLvl,
@@ -1257,7 +1263,7 @@ function CreatePlayer(playerID)
 end
 
 function GetAIName(teamID)
-    local _, _, _, name, _, options = Spring_GetAIInfo(teamID)
+    local _, _, _, name, _, options = sp.GetAIInfo(teamID)
     local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
 
     if niceName then
@@ -1273,8 +1279,8 @@ end
 
 function CreatePlayerFromTeam(teamID)
     -- for when we don't have a human player occupying the slot, also when a player changes team (dies)
-    local _, _, isDead, isAI, tside, tallyteam, tincomeMultiplier = Spring_GetTeamInfo(teamID, false)
-    local tred, tgreen, tblue = Spring_GetTeamColor(teamID)
+    local _, _, isDead, isAI, tside, tallyteam, tincomeMultiplier = sp.GetTeamInfo(teamID, false)
+    local tred, tgreen, tblue = sp.GetTeamColor(teamID)
     if (not mySpecStatus) and anonymousMode ~= "disabled" and teamID ~= myTeamID then
         tred, tgreen, tblue = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
     end
@@ -1306,8 +1312,8 @@ function CreatePlayerFromTeam(teamID)
     -- resources
     local energy, energyStorage, energyIncome, energyShare, metal, metalStorage, metalIncome, metalShare = 0, 1, 0, 0, 1, 0, 0, 0
     if aliveAllyTeams[tallyteam] ~= nil and (mySpecStatus or myAllyTeamID == tallyteam) then
-        energy, energyStorage, _, energyIncome, _, energyShare = Spring_GetTeamResources(teamID, "energy")
-        metal, metalStorage, _, metalIncome, _, metalShare = Spring_GetTeamResources(teamID, "metal")
+        energy, energyStorage, _, energyIncome, _, energyShare = sp.GetTeamResources(teamID, "energy")
+        metal, metalStorage, _, metalIncome, _, metalShare = sp.GetTeamResources(teamID, "metal")
         energy = mathFloor(energy or 0)
         metal = mathFloor(metal or 0)
         if energy < 0 then
@@ -1328,7 +1334,7 @@ function CreatePlayerFromTeam(teamID)
         red = tred,
         green = tgreen,
         blue = tblue,
-        dark = ColorIsDark(tred, tgreen, tblue),
+        dark = Color.IsDark(tred, tgreen, tblue),
         side = tside,
         totake = ttotake,
         dead = tdead,
@@ -1355,8 +1361,8 @@ function UpdatePlayerResources()
 			if aliveAllyTeams[player[playerID].allyteam] ~= nil and (mySpecStatus or myAllyTeamID == player[playerID].allyteam) then
 				if (mySpecStatus and enemyListShow) or player[playerID].allyteam == myAllyTeamID then	-- only keep track when its being displayed
                     displayedPlayers = displayedPlayers + 1
-					energy, energyStorage, _, energyIncome, _, energyShare = Spring_GetTeamResources(player[playerID].team, "energy")
-					metal, metalStorage, _, metalIncome, _, metalShare = Spring_GetTeamResources(player[playerID].team, "metal")
+					energy, energyStorage, _, energyIncome, _, energyShare = sp.GetTeamResources(player[playerID].team, "energy")
+					metal, metalStorage, _, metalIncome, _, metalShare = sp.GetTeamResources(player[playerID].team, "metal")
 					if energy == nil then
 						-- need to be there for when you do /specfullview
 						energy, energyStorage, energyIncome, metal, metalStorage, metalIncome = 0, 0, 0, 0, 0, 0
@@ -1407,19 +1413,19 @@ end
 function SortList()
     local myOldSpecStatus = mySpecStatus
 
-    mySpecStatus = select(3, Spring_GetPlayerInfo(myPlayerID, false))
+    mySpecStatus = select(3, sp.GetPlayerInfo(myPlayerID, false))
 
     -- checks if a team has died
     local teamList
     if enemyListShow then
-        teamList = Spring_GetTeamList()
+        teamList = sp.GetTeamList()
     else
-        teamList = Spring_GetTeamList(myAllyTeamID)
+        teamList = sp.GetTeamList(myAllyTeamID)
     end
     if mySpecStatus ~= myOldSpecStatus then
         if mySpecStatus then
             for _, team in ipairs(teamList) do
-                if not select(3, Spring_GetTeamInfo(team, false)) then
+                if not select(3, sp.GetTeamInfo(team, false)) then
                     -- not dead
                     Spec(team)
                     break
@@ -1428,8 +1434,8 @@ function SortList()
         end
     end
 
-    myAllyTeamID = Spring_GetLocalAllyTeamID()
-    myTeamID = Spring_GetLocalTeamID()
+    myAllyTeamID = sp.GetLocalAllyTeamID()
+    myTeamID = sp.GetLocalTeamID()
 
     drawList = {}
     drawListOffset = {}
@@ -1439,7 +1445,7 @@ function SortList()
     local aliveTeams = 0
     local deadTeams = 0
     for _, teamID in ipairs(teamList) do
-        local _, _, alive, _, _, allyTeamID = Spring_GetTeamInfo(teamID, false)
+        local _, _, alive, _, _, allyTeamID = sp.GetTeamInfo(teamID, false)
         if aliveAllyTeams[allyTeamID] then
             if not alive then
                 aliveTeams = aliveTeams  + 1
@@ -1458,8 +1464,8 @@ function SortList()
     end
     local deadTeamSize = 0.66
     playerScale = mathMin(1, 35 / (aliveTeams+(deadTeams*deadTeamSize)))
-    if #Spring_GetAllyTeamList() > 24 then
-        playerScale = playerScale - 0.05 - (playerScale * ((#Spring_GetAllyTeamList()-2)/200))  -- reduce size some more when mega ffa
+    if #sp.GetAllyTeamList() > 24 then
+        playerScale = playerScale - 0.05 - (playerScale * ((#sp.GetAllyTeamList()-2)/200))  -- reduce size some more when mega ffa
     end
     if playerScale < 0.9 then
         playerScale = playerScale - (playerScale * (Spring.GetConfigFloat("ui_scale", 1)-1))
@@ -1484,7 +1490,7 @@ end
 function SortAllyTeams(vOffset)
     -- adds ally teams to the draw list (own ally team first)
     -- (labels and separators are drawn)
-    local allyTeamList = Spring_GetAllyTeamList()
+    local allyTeamList = sp.GetAllyTeamList()
 	if WG.allyTeamRanking then
 		allyTeamList = WG.allyTeamRanking
 	end
@@ -1540,7 +1546,7 @@ end
 function SortTeams(allyTeamID, vOffset)
     -- Adds teams to the draw list (own team first)
     -- (teams are not visible as such unless they are empty or AI)
-    local teamsList = Spring_GetTeamList(allyTeamID)
+    local teamsList = sp.GetTeamList(allyTeamID)
     if teamRanking[allyTeamID] then
         teamsList = teamRanking[allyTeamID]
     end
@@ -1555,7 +1561,7 @@ end
 
 function SortPlayers(teamID, allyTeamID, vOffset)
     -- Adds players to the draw list (self first)
-    local playersList = Spring_GetPlayerList(teamID, true)
+    local playersList = sp.GetPlayerList(teamID, true)
     local noPlayer = true
 
     -- add own player (if not spec)
@@ -1589,7 +1595,7 @@ function SortPlayers(teamID, allyTeamID, vOffset)
     end
 
     -- add AI teams
-    if select(4, Spring_GetTeamInfo(teamID, false)) then
+    if select(4, sp.GetTeamInfo(teamID, false)) then
         if enemyListShow or player[specOffset + teamID].allyteam == myAllyTeamID then
             -- is AI
             vOffset = vOffset + (playerOffset*playerScale)
@@ -1617,10 +1623,10 @@ function SortPlayers(teamID, allyTeamID, vOffset)
 end
 
 function SortSpecs(vOffset)
-    local playersList = Spring_GetPlayerList(-1, true)
+    local playersList = sp.GetPlayerList(-1, true)
     local numSpecs = 0
     for _, playerID in ipairs(playersList) do
-        local _, active, spec = Spring_GetPlayerInfo(playerID, false)
+        local _, active, spec = sp.GetPlayerInfo(playerID, false)
         if spec and active then
             numSpecs = numSpecs + 1
         end
@@ -1630,7 +1636,7 @@ function SortSpecs(vOffset)
     -- Adds specs to the draw list
     local noSpec = true
     for _, playerID in ipairs(playersList) do
-        local _, active, spec = Spring_GetPlayerInfo(playerID, false)
+        local _, active, spec = sp.GetPlayerInfo(playerID, false)
         if spec and active then
             if player[playerID] and player[playerID].name ~= nil then
 
@@ -1939,13 +1945,13 @@ function UpdateResources()
     if sliderPosition then
         if energyPlayer ~= nil then
 			if energyPlayer.team == myTeamID then
-				local current, storage = Spring_GetTeamResources(myTeamID, "energy")
+				local current, storage = sp.GetTeamResources(myTeamID, "energy")
 				maxShareAmount = storage - current
 				shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
 				shareAmount = shareAmount - (shareAmount % 1)
 			else
-				maxShareAmount = Spring_GetTeamResources(myTeamID, "energy")
-				local energy, energyStorage, _, _, _, shareSliderPos = Spring_GetTeamResources(energyPlayer.team, "energy")
+				maxShareAmount = sp.GetTeamResources(myTeamID, "energy")
+				local energy, energyStorage, _, _, _, shareSliderPos = sp.GetTeamResources(energyPlayer.team, "energy")
 				maxShareAmount = mathMin(maxShareAmount, ((energyStorage*shareSliderPos) - energy))
                 shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
                 shareAmount = shareAmount - (shareAmount % 1)
@@ -1954,13 +1960,13 @@ function UpdateResources()
 
         if metalPlayer ~= nil then
             if metalPlayer.team == myTeamID then
-                local current, storage = Spring_GetTeamResources(myTeamID, "metal")
+                local current, storage = sp.GetTeamResources(myTeamID, "metal")
                 maxShareAmount = storage - current
                 shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
                 shareAmount = shareAmount - (shareAmount % 1)
             else
-                maxShareAmount = Spring_GetTeamResources(myTeamID, "metal")
-				local metal, metalStorage, _, _, _, shareSliderPos = Spring_GetTeamResources(metalPlayer.team, "metal")
+                maxShareAmount = sp.GetTeamResources(myTeamID, "metal")
+				local metal, metalStorage, _, _, _, shareSliderPos = sp.GetTeamResources(metalPlayer.team, "metal")
 				maxShareAmount = mathMin(maxShareAmount, ((metalStorage*shareSliderPos) - metal))
                 shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
                 shareAmount = shareAmount - (shareAmount % 1)
@@ -2056,7 +2062,7 @@ function drawMainList()
             leader = true
         else
             if not mouseX then
-                mouseX, mouseY = Spring_GetMouseState()
+                mouseX, mouseY = sp.GetMouseState()
             end
             DrawPlayer(drawObject, leader, drawListOffset[i], mouseX, mouseY, true, false, false)
         end
@@ -2074,7 +2080,7 @@ function drawMainList()
 end
 
 function drawMainList2()
-    local mouseX, mouseY = Spring_GetMouseState()
+    local mouseX, mouseY = sp.GetMouseState()
 	local leader
 	for i, drawObject in ipairs(drawList) do
 		if drawObject == -1 then
@@ -2088,28 +2094,28 @@ end
 function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
     forceMainListRefresh = false
 
-    local mouseX, mouseY = Spring_GetMouseState()
+    local mouseX, mouseY = sp.GetMouseState()
 
     local prevNumberOfSpecs = numberOfSpecs
     local prevNumberOfEnemies = numberOfEnemies
     numberOfSpecs = 0
     numberOfEnemies = 0
     local active, spec
-    local playerList = Spring_GetPlayerList()
+    local playerList = sp.GetPlayerList()
     for _, playerID in ipairs(playerList) do
-        _, active, spec = Spring_GetPlayerInfo(playerID, false)
+        _, active, spec = sp.GetPlayerInfo(playerID, false)
         if active and spec then
             numberOfSpecs = numberOfSpecs + 1
         end
     end
     local playerID, isAiTeam, allyTeamID
-    local teamList = Spring_GetTeamList()
+    local teamList = sp.GetTeamList()
     for i = 1, #teamList do
         local teamID = teamList[i]
         if teamID ~= gaiaTeamID then
-            _, playerID, _, isAiTeam, _, allyTeamID = Spring_GetTeamInfo(teamID, false)
+            _, playerID, _, isAiTeam, _, allyTeamID = sp.GetTeamInfo(teamID, false)
             if aliveAllyTeams[allyTeamID] then
-                _, active = Spring_GetPlayerInfo(playerID, false)
+                _, active = sp.GetPlayerInfo(playerID, false)
                 if active or isAiTeam then
                     if allyTeamID ~= myAllyTeamID then
                         numberOfEnemies = numberOfEnemies + 1
@@ -2351,7 +2357,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
                     end
                 end
             else
-                if onlyMainList and m_indent.active and Spring_GetMyTeamID() == team then
+                if onlyMainList and m_indent.active and sp.GetMyTeamID() == team then
                     DrawDot(posY)
                 end
             end
@@ -2684,7 +2690,7 @@ end
 
 function DrawAlly(posY, team)
     gl_Color(1, 1, 1, 0.66)
-    if Spring_AreTeamsAllied(team, myTeamID) then
+    if sp.AreTeamsAllied(team, myTeamID) then
         gl_Texture(pics["unallyPic"])
     else
         gl_Texture(pics["allyPic"])
@@ -2717,14 +2723,14 @@ function DrawCamera(posY, active)
 end
 
 function colourNames(teamID, returnRgb)
-    local nameColourR, nameColourG, nameColourB, nameColourA = Spring_GetTeamColor(teamID)
+    local nameColourR, nameColourG, nameColourB, nameColourA = sp.GetTeamColor(teamID)
 	if (not mySpecStatus) and anonymousMode ~= "disabled" and teamID ~= myTeamID then
 		nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 	end
     if returnRgb then
-        return ColorArray(nameColourR, nameColourG, nameColourB)
+        return Color.ToIntArray(nameColourR, nameColourG, nameColourB)
     else
-        return ColorString(nameColourR, nameColourG, nameColourB)
+        return Color.ToString(nameColourR, nameColourG, nameColourB)
     end
 end
 
@@ -2823,7 +2829,7 @@ function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desy
     if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
         font2:SetTextColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3], 1)
     else
-        font2:SetTextColor(Spring_GetTeamColor(team))
+        font2:SetTextColor(sp.GetTeamColor(team))
     end
     if isAbsent then
         font2:SetOutlineColor(0, 0, 0, 0.4)
@@ -3105,7 +3111,7 @@ end
 
 function AllyTip(mouseX, playerID)
     if mouseX >= widgetPosX + (m_alliance.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_alliance.posX + (11*playerScale)) * widgetScale then
-        if Spring_AreTeamsAllied(player[playerID].team, myTeamID) then
+        if sp.AreTeamsAllied(player[playerID].team, myTeamID) then
             tipText = Spring.I18N('ui.playersList.becomeEnemy')
             tipTextTime = os.clock()
         else
@@ -3349,7 +3355,7 @@ function widget:MousePress(x, y, button)
                 if i > -1 then -- and i < specOffset
                     if m_name.active and clickedPlayer.name ~= absentName and IsOnRect(x, y, widgetPosX, posY, widgetPosX + widgetWidth, posY + (playerOffset*playerScale)) then
                         if ctrl and i < specOffset then
-                            Spring_SendCommands("toggleignore " .. (clickedPlayer.accountID and clickedPlayer.accountID or clickedPlayer.name))
+                            sp.SendCommands("toggleignore " .. (clickedPlayer.accountID and clickedPlayer.accountID or clickedPlayer.name))
                             return true
                         elseif alt and not clickedPlayer.ai then
                             -- ALT+click: track player camera in PIP
@@ -3403,10 +3409,10 @@ function widget:MousePress(x, y, button)
                                 if release ~= nil then
                                     if release >= now then
                                         if clickedPlayer.team == myTeamID then
-                                            --Spring_SendCommands("say a: " .. Spring.I18N('ui.playersList.chat.needSupport'))
+                                            --sp.SendCommands("say a: " .. Spring.I18N('ui.playersList.chat.needSupport'))
 											Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needSupport')
                                         else
-                                            Spring_ShareResources(clickedPlayer.team, "units")
+                                            sp.ShareResources(clickedPlayer.team, "units")
                                             Spring.PlaySoundFile("beep4", 1, 'ui')
                                         end
                                     end
@@ -3437,17 +3443,17 @@ function widget:MousePress(x, y, button)
                         --chat button
                         if m_chat.active then
                             if IsOnRect(x, y, m_chat.posX + widgetPosX + 1, posY, m_chat.posX + widgetPosX + 17, posY + (playerOffset*playerScale)) then
-                                Spring_SendCommands("chatall", "pastetext /w " .. clickedPlayer.name .. ' \1')
+                                sp.SendCommands("chatall", "pastetext /w " .. clickedPlayer.name .. ' \1')
                                 return true
                             end
                         end
                         --ally button
                         if m_alliance.active and drawAllyButton and not mySpecStatus and player[i] ~= nil and player[i].dead ~= true and i ~= myPlayerID then
                             if IsOnRect(x, y, m_alliance.posX + widgetPosX + 1, posY, m_alliance.posX + widgetPosX + m_alliance.width, posY + (playerOffset*playerScale)) then
-                                if Spring_AreTeamsAllied(player[i].team, myTeamID) then
-                                    Spring_SendCommands("ally " .. player[i].allyteam .. " 0")
+                                if sp.AreTeamsAllied(player[i].team, myTeamID) then
+                                    sp.SendCommands("ally " .. player[i].allyteam .. " 0")
                                 else
-                                    Spring_SendCommands("ally " .. player[i].allyteam .. " 1")
+                                    sp.SendCommands("ally " .. player[i].allyteam .. " 1")
                                 end
                                 return true
                             end
@@ -3466,7 +3472,7 @@ function widget:MousePress(x, y, button)
                         --name
                         if m_name.active and clickedPlayer.name ~= absentName and IsOnRect(x, y, m_name.posX + widgetPosX + 1, posY, m_name.posX + widgetPosX + m_name.width, posY + 12) then
                             if ctrl then
-                                Spring_SendCommands("toggleignore " .. (clickedPlayer.accountID and clickedPlayer.accountID or clickedPlayer.name))
+                                sp.SendCommands("toggleignore " .. (clickedPlayer.accountID and clickedPlayer.accountID or clickedPlayer.name))
                                 return true
                             end
                             if alt and not clickedPlayer.ai then
@@ -3537,15 +3543,15 @@ function widget:MouseRelease(x, y, button)
             if energyPlayer.team == myTeamID then
                 Spring.SendLuaUIMsg('alert:allyRequest:energy', 'allies')
                 if shareAmount == 0 then
-                    --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needEnergy'))
+                    --sp.SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needEnergy'))
 					Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needEnergy')
                 else
-                    --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needEnergyAmount', { amount = shareAmount }))
+                    --sp.SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needEnergyAmount', { amount = shareAmount }))
 					Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needEnergyAmount:amount='..shareAmount)
                 end
             elseif shareAmount > 0 then
-                Spring_ShareResources(energyPlayer.team, "energy", shareAmount)
-                --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveEnergy', { amount = shareAmount, name = energyPlayer.name }))
+                sp.ShareResources(energyPlayer.team, "energy", shareAmount)
+                --sp.SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveEnergy', { amount = shareAmount, name = energyPlayer.name }))
                 if sharingTax and sharingTax > 0 then
                     local amount2 = mathFloor(shareAmount * (1- sharingTax))
                     Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveEnergy_taxed:amount='..shareAmount..':name='..(energyPlayer.orgname or energyPlayer.name)..':amount2='..amount2)
@@ -3565,15 +3571,15 @@ function widget:MouseRelease(x, y, button)
             if metalPlayer.team == myTeamID then
                 Spring.SendLuaUIMsg('alert:allyRequest:metal', 'allies')
                 if shareAmount == 0 then
-                    --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needMetal'))
+                    --sp.SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needMetal'))
 					Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needMetal')
                 else
-                    --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needMetalAmount', { amount = shareAmount }))
+                    --sp.SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needMetalAmount', { amount = shareAmount }))
 					Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needMetalAmount:amount='..shareAmount)
                 end
             elseif shareAmount > 0 then
-                Spring_ShareResources(metalPlayer.team, "metal", shareAmount)
-                --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveMetal', { amount = shareAmount, name = metalPlayer.name }))
+                sp.ShareResources(metalPlayer.team, "metal", shareAmount)
+                --sp.SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveMetal', { amount = shareAmount, name = metalPlayer.name }))
                 if sharingTax and sharingTax > 0 then
                     local amount2 = mathFloor(shareAmount * (1- sharingTax))
                     Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveMetal_taxed:amount='..shareAmount..':name='..(metalPlayer.orgname or metalPlayer.name)..':amount2='..amount2)
@@ -3593,7 +3599,7 @@ end
 
 function Spec(teamID)
     local oldMapDrawMode = Spring.GetMapDrawMode()
-    Spring_SendCommands("specteam " .. teamID)
+    sp.SendCommands("specteam " .. teamID)
     -- restore current los drawmode (doing specteam makes it non normal non los view)
     local newMapDrawMode = Spring.GetMapDrawMode()
     if oldMapDrawMode == 'los' and oldMapDrawMode ~= newMapDrawMode then
@@ -3763,13 +3769,13 @@ end
 function CheckPlayersChange()
     local sorting = false
     for i = 0, specOffset-1 do
-        local name, active, spec, teamID, allyTeamID, pingTime, cpuUsage, _, rank, _, _, desynced = Spring_GetPlayerInfo(i, false)
+        local name, active, spec, teamID, allyTeamID, pingTime, cpuUsage, _, rank, _, _, desynced = sp.GetPlayerInfo(i, false)
         name = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(i) or name
         if active == false then
             if player[i].name ~= nil then
                 -- NON SPEC PLAYER LEAVING
                 if player[i].spec == false then
-                    if table.maxn(Spring_GetPlayerList(player[i].team, true)) == 0 then
+                    if table.maxn(sp.GetPlayerList(player[i].team, true)) == 0 then
                         player[player[i].team + specOffset] = CreatePlayerFromTeam(player[i].team)
                         sorting = true
                     end
@@ -3779,7 +3785,7 @@ function CheckPlayersChange()
             if spec ~= player[i].spec then
                 -- PLAYER SWITCHING TO SPEC STATUS
                 if spec then
-                    if table.maxn(Spring_GetPlayerList(player[i].team, true)) == 0 then
+                    if table.maxn(sp.GetPlayerList(player[i].team, true)) == 0 then
                         -- (update the no players team)
                         player[player[i].team + specOffset] = CreatePlayerFromTeam(player[i].team)
                     end
@@ -3790,7 +3796,7 @@ function CheckPlayersChange()
             end
             if teamID ~= player[i].team then
                 -- PLAYER CHANGING TEAM
-                if table.maxn(Spring_GetPlayerList(player[i].team, true)) == 0 then
+                if table.maxn(sp.GetPlayerList(player[i].team, true)) == 0 then
                     -- check if there is no more player in the team + update
                     player[player[i].team + specOffset] = CreatePlayerFromTeam(player[i].team)
                 end
@@ -3798,9 +3804,9 @@ function CheckPlayersChange()
 				if (not mySpecStatus) and anonymousMode ~= "disabled" and teamID ~= myTeamID then
 					player[i].red, player[i].green, player[i].blue = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 				else
-					player[i].red, player[i].green, player[i].blue = Spring_GetTeamColor(teamID)
+					player[i].red, player[i].green, player[i].blue = sp.GetTeamColor(teamID)
 				end
-                player[i].dark = ColorIsDark(player[i].red, player[i].green, player[i].blue)
+                player[i].dark = Color.IsDark(player[i].red, player[i].green, player[i].blue)
                 player[i].skill = GetSkill(i)
                 sorting = true
             end
@@ -3856,7 +3862,7 @@ function CheckPlayersChange()
 end
 
 function GetNeed(resType, teamID)
-    local current, _, pull, income = Spring_GetTeamResources(teamID, resType)
+    local current, _, pull, income = sp.GetTeamResources(teamID, resType)
     if current == nil then
         return false
     end
@@ -3880,7 +3886,7 @@ function Take(teamID, name, i)
     tookTeamID = teamID
     tookTeamName = name
     tookFrame = spGetGameFrame()
-    Spring_SendCommands("luarules take2 " .. teamID)
+    sp.SendCommands("luarules take2 " .. teamID)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -3888,10 +3894,10 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function IsTakeable(teamID)
-    if Spring_GetTeamRulesParam(teamID, "numActivePlayers") == 0 then
-        local units = Spring_GetTeamUnitCount(teamID)
-        local energy = Spring_GetTeamResources(teamID, "energy")
-        local metal = Spring_GetTeamResources(teamID, "metal")
+    if sp.GetTeamRulesParam(teamID, "numActivePlayers") == 0 then
+        local units = sp.GetTeamUnitCount(teamID)
+        local energy = sp.GetTeamResources(teamID, "energy")
+        local metal = sp.GetTeamResources(teamID, "metal")
         if units and energy and metal then
             if units > 0 or energy > 1000 or metal > 100 then
                 return true
@@ -3964,9 +3970,9 @@ function widget:Update(delta)
     if curFrame >= 30 + tookFrame then
         if lastTakeMsg + 120 < tookFrame and reportTake then
             local teamID = tookTeamID
-            local afterE = Spring_GetTeamResources(teamID, "energy")
-            local afterM = Spring_GetTeamResources(teamID, "metal")
-            local afterU = Spring_GetTeamUnitCount(teamID)
+            local afterE = sp.GetTeamResources(teamID, "energy")
+            local afterM = sp.GetTeamResources(teamID, "metal")
+            local afterU = sp.GetTeamUnitCount(teamID)
 			local detailedToSay = false
             if afterE and afterM and afterU then
                 if afterE > 1.0 or afterM > 1.0 or afterU > 0 then
@@ -4000,6 +4006,14 @@ function widget:Update(delta)
         gameStartRefreshed = true
         forceMainListRefresh = true
     end
+
+    -- detect guishader widget being toggled back on
+    local guishaderNow = WG['guishader'] ~= nil
+    if guishaderNow and not guishaderWasActive then
+        BackgroundGuishader = gl_DeleteList(BackgroundGuishader)
+        forceMainListRefresh = true
+    end
+    guishaderWasActive = guishaderNow
 
     if forceMainListRefresh then
         SortList()
