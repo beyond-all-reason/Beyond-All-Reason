@@ -51,7 +51,7 @@ end
 local function issueOrders(unitName, orders)
     if isUnitNameUntracked(unitName) then return end
 
-	Spring.GiveOrderArrayToUnitArray(trackedUnitIDs[unitName], orders)
+	Spring.GiveOrderArrayToUnitArray(table.keys(trackedUnitIDs[unitName]), orders)
 end
 
 local function spawnUnits(unitName, unitDefName, teamID, position, quantity, facing, construction)
@@ -82,7 +82,7 @@ local function despawnUnits(unitName, selfDestruct, reclaimed)
 	if isUnitNameUntracked(unitName) then return end
 
 	-- Copying table as UnitKilled trigger with SpawnUnits with the same name could cause infinite loop.
-	for _, unitID in pairs(table.copy(trackedUnitIDs[unitName])) do
+	for unitID in pairs(table.copy(trackedUnitIDs[unitName])) do
 		if Spring.GetUnitIsDead(unitID) == false then
 			Spring.DestroyUnit(unitID, selfDestruct, reclaimed)
 		end
@@ -95,7 +95,7 @@ local function transferUnits(unitName, newTeam, given)
 	if isUnitNameUntracked(unitName) then return end
 
 	-- Copying table as UnitExists trigger with TransferUnits with the same name could cause infinite loop.
-	for _, unitID in pairs(table.copy(trackedUnitIDs[unitName])) do
+	for unitID in pairs(table.copy(trackedUnitIDs[unitName])) do
 		Spring.TransferUnit(unitID, newTeam, given)
 	end
 end
@@ -170,7 +170,7 @@ local function destroyFeature(featureName)
 	if isFeatureNameUntracked(featureName) then return end
 
 	-- Copy table to avoid mutation while iterating
-	for _, featureID in pairs(table.copy(trackedFeatureIDs[featureName])) do
+	for featureID in pairs(table.copy(trackedFeatureIDs[featureName])) do
 		if Spring.ValidFeatureID(featureID) then
 			Spring.DestroyFeature(featureID)
 		end
