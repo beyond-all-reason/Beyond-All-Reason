@@ -1,6 +1,7 @@
 local trackedUnitIDs = GG['MissionAPI'].trackedUnitIDs
 local trackedUnitNames = GG['MissionAPI'].trackedUnitNames
 local triggers = GG['MissionAPI'].Triggers
+local broadcast = VFS.Include('luarules/mission_api/broadcast.lua')
 
 
 ----------------------------------------------------------------
@@ -60,10 +61,7 @@ end
 
 local function changeStage(stage)
 	GG['MissionAPI'].CurrentStage = stage
-
-	local newStage = GG['MissionAPI'].Stages[stage]
-	-- TODO: instead, update UI with newStage.title and objectives
-	Spring.Echo("Stage changed to: " .. stage .. " - " .. (newStage.title or "") .. ", with objectives: " .. table.concat(newStage.objectives or {}, ", "))
+	broadcast.StageChanged(stage)
 end
 
 local function updateObjective(objectiveID, completed, text, unitName, featureName)
@@ -90,20 +88,7 @@ local function updateObjective(objectiveID, completed, text, unitName, featureNa
 		end
 	end
 
-	-- TODO: instead, update objective in UI
-	if objective.amount ~= nil then
-		if objective.amount > 0 then
-			Spring.Echo("Objective updated: " .. objectiveID .. " - " .. (objective.text) .. " " .. (objective.progress) .. "/" .. (objective.amount))
-		else
-			Spring.Echo("Objective updated: " .. objectiveID .. " - " .. (objective.text) .. " " .. (objective.progress) .. " remaining")
-		end
-	else
-		Spring.Echo("Objective updated: " .. objectiveID .. " - " .. (objective.text))
-	end
-
-	if objective.completed then
-		Spring.Echo("Objective completed: " .. objectiveID .. " - " .. (objective.text))
-	end
+	broadcast.ObjectiveUpdated(objectiveID, objective.text, objective.progress, objective.amount, objective.completed)
 end
 
 local function issueOrders(unitName, orders)

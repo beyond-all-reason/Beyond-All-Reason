@@ -30,7 +30,7 @@ local stages = {
 
 	thirdStage = {
 		title = "The Third Stage",
-		objectives = { 'destroyBots' },
+		objectives = { 'buildBots', 'destroyBots' },
 	},
 }
 
@@ -80,7 +80,7 @@ local triggers = {
 			repeating = false,
 		},
 		parameters = {
-			gameFrame = 120,
+			gameFrame = 150,
 		},
 		actions = { 'changeToSecondStage' },
 	},
@@ -111,14 +111,14 @@ local triggers = {
 	},
 
 	destroyBots = {
-		type = triggerTypes.TimeElapsed,
+		type = triggerTypes.TimeElapsed, -- since UnitDestroyed is not implemented yet
 		settings = {
 			repeating = true,
 			stages = { 'thirdStage' },
 		},
 		parameters = {
 			gameFrame = 1,
-			interval = 1,
+			interval = 15,
 		},
 		actions = { 'updateDestroyBotsObjective' },
 	},
@@ -145,6 +145,7 @@ local actions = {
 		parameters = {
 			objectiveID = 'wait',
 			completed = true,
+			text = "Wait a bit - TEXT UPDATED!",
 		},
 	},
 

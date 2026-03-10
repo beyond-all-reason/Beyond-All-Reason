@@ -16,6 +16,12 @@ end
 
 local scriptPath
 local stagesController, objectivesController, triggersController, actionsController
+local initialStateBroadcast = false
+local broadcast
+
+local function broadcastInitialState()
+	broadcast.StageChanged(GG['MissionAPI'].CurrentStage)
+end
 
 local function loadMission()
 	local mission = VFS.Include("singleplayer/" .. scriptPath)
@@ -37,10 +43,10 @@ end
 
 function gadget:Initialize()
 	-- TODO: Actually pass script path
-	scriptPath = 'mission-api-tests/validation_test.lua'
+	--scriptPath = 'mission-api-tests/validation_test.lua'
 	--scriptPath = 'mission-api-tests/test_mission.lua'
 	--scriptPath = 'mission-api-tests/markers_test.lua'
-	--scriptPath = 'mission-api-tests/stages_and_objectives_test.lua'
+	scriptPath = 'mission-api-tests/stages_and_objectives_test.lua'
 
 	if not scriptPath then
 		gadgetHandler:RemoveGadget()
@@ -57,12 +63,21 @@ function gadget:Initialize()
 	GG['MissionAPI'].trackedUnitIDs = {}
 	GG['MissionAPI'].trackedUnitNames = {}
 
+	broadcast = VFS.Include('luarules/mission_api/broadcast.lua')
+
 	objectivesController = VFS.Include('luarules/mission_api/objectives_loader.lua')
 	stagesController = VFS.Include('luarules/mission_api/stages_loader.lua')
 	triggersController = VFS.Include('luarules/mission_api/triggers_loader.lua')
 	actionsController = VFS.Include('luarules/mission_api/actions_loader.lua')
 
-	loadMission();
+	loadMission()
+end
+
+function gadget:GameFrame()
+	if not initialStateBroadcast then
+		broadcastInitialState()
+		initialStateBroadcast = true
+	end
 end
 
 function gadget:Shutdown()
