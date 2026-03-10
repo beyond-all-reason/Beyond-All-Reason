@@ -43,7 +43,7 @@ local function untrackUnitID(unitID)
 	end
 
 	for _, name in pairs(trackedUnitNames[unitID]) do
-		table.removeAll(trackedUnitIDs[name], unitID)
+		table.removeFirst(trackedUnitIDs[name], unitID)
 		if table.isEmpty(trackedUnitIDs[name]) then
 			trackedUnitIDs[name] = nil
 		end
