@@ -451,6 +451,8 @@ local function validateObjectives(objectives)
 			logError("Objective missing text: " .. objectiveID)
 		elseif objective.text == '' then
 			logError("Objective has empty text: " .. objectiveID)
+		elseif string.find(objective.text, '|') then
+			logError("Objective text cannot contain the | character: " .. objectiveID)
 		end
 	end
 end
@@ -461,6 +463,8 @@ local function validateStages(stages, initialStage)
 			logError("Stage missing title: " .. stageID)
 		elseif stage.title == '' then
 			logError("Stage has empty title: " .. stageID)
+		elseif string.find(stage.title, '|') then
+			logError("Stage title cannot contain the | character: " .. stageID)
 		end
 		for _, objectiveID in pairs(stage.objectives or {}) do
 			if not GG['MissionAPI'].Objectives[objectiveID] then
