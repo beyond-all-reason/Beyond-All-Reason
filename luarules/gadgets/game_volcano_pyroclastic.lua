@@ -1,5 +1,5 @@
 --------------------------------------------------------------------------------
--- VOLCANO PYROCLASTIC ERUPTIONS — 
+-- VOLCANO PYROCLASTIC ERUPTIONS —
 --------------------------------------------------------------------------------
 
 function gadget:GetInfo()
@@ -171,7 +171,7 @@ end
 --------------------------------------------------------------------------------
 -- FIRE HELPERS
 --------------------------------------------------------------------------------
-local FIRE_CEG = "fire-area-150"
+local FIRE_CEG = "volcano_fire-area"
 
 local FIRE_RIM_RADIUS = 160 * 1.20
 local VRIM_FIRE_HEIGHT = VRIM
@@ -387,7 +387,7 @@ function gadget:GameFrame(f)
                 baseY,
                 VZ
             )
-	   
+
         end
     end
 end

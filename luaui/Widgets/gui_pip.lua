@@ -217,9 +217,9 @@ config = {
 	contentResolutionScale = 2,  -- Render texture at this multiple of PIP size (1 = 1:1, 2 = 2x resolution for (marginally) sharper content)
 	smoothCameraMargin = 0.05,  -- Oversized texture margin for expensive layers (units, features, projectiles)
 	smoothCameraMarginCheap = 0.15,  -- Oversized texture margin for cheap layers (ground, water, LOS) — larger since rendering is cheap
-	pipFloorUpdateRate = 10,	-- Minimum update rate for PIP content when performance is poor (will be smoothly applied based on measured frame times)
-	pipMinUpdateRate = 30,		-- Minimum update rate for PIP content when zoomed out
-	pipMaxUpdateRate = 120,		-- Maximum update rate for PIP content when zoomed in
+	pipFloorUpdateRate = 7,	-- Minimum update rate for PIP content when performance is poor (will be smoothly applied based on measured frame times)
+	pipMinUpdateRate = 20,		-- Minimum update rate for PIP content when zoomed out
+	pipMaxUpdateRate = 100,		-- Maximum update rate for PIP content when zoomed in
 	pipZoomThresholdMin = 0.15,
 	pipZoomThresholdMax = 0.4,
 	pipTargetDrawTime = 0.0025,
@@ -482,6 +482,7 @@ local miscState = {
 	mapMarkers = {},  -- Table to store active map markers
 	minimapWidgetDisabled = false,  -- Whether we've disabled the old minimap widget (for minimap mode)
 	minimapCameraRestored = false,  -- Whether minimap camera state was restored from config (for luaui reload)
+	minimapRestoreAtMinZoom = false,  -- Whether the restored minimap camera was at minimum zoom (snap to recalculated min)
 	minimapMinimized = false,  -- Whether the minimap is hidden via MinimapMinimize config (minimap mode only)
 	crashingUnits = {},  -- Units that are crashing (no icon should be drawn)
 	gameOverZoomingOut = false,  -- True while GameOver zoom-out animation is in progress
@@ -7570,17 +7571,24 @@ function widget:ViewResize()
 		
 		-- Only set camera defaults if not restored from config (i.e., not a luaui reload)
 		if miscState.minimapCameraRestored then
-			-- Restored from config — scale zoom proportionally to PIP size change
-			-- so the same world area stays visible after window resize
-			if oldMinimapWidth and oldMinimapWidth > 0 and usedWidth ~= oldMinimapWidth then
-				local zoomScale = usedWidth / oldMinimapWidth
-				cameraState.zoom = cameraState.zoom * zoomScale
-				cameraState.targetZoom = cameraState.targetZoom * zoomScale
-			end
-			-- Ensure zoom isn't below minimum
-			if cameraState.zoom < fitZoom then
+			if miscState.minimapRestoreAtMinZoom then
+				-- Was at minimum zoom when saved — snap to current fitZoom regardless
+				-- of layout changes (topbar position may differ on re-enable)
 				cameraState.zoom = fitZoom
 				cameraState.targetZoom = fitZoom
+			else
+				-- Restored from config — scale zoom proportionally to PIP size change
+				-- so the same world area stays visible after window resize
+				if oldMinimapWidth and oldMinimapWidth > 0 and usedWidth ~= oldMinimapWidth then
+					local zoomScale = usedWidth / oldMinimapWidth
+					cameraState.zoom = cameraState.zoom * zoomScale
+					cameraState.targetZoom = cameraState.targetZoom * zoomScale
+				end
+				-- Ensure zoom isn't below minimum
+				if cameraState.zoom < fitZoom then
+					cameraState.zoom = fitZoom
+					cameraState.targetZoom = fitZoom
+				end
 			end
 		else
 			-- Not restored - set to fit full map
@@ -8105,6 +8113,7 @@ function widget:GetConfigData()
 		minimapModeWcx = isMinimapMode and cameraState.wcx or nil,
 		minimapModeWcz = isMinimapMode and cameraState.wcz or nil,
 		minimapModeZoom = isMinimapMode and cameraState.zoom or nil,
+		minimapModeAtMinZoom = isMinimapMode and IsAtMinimumZoom(cameraState.zoom) or nil,
 		-- Ghost building positions persist across luaui reload (same game only)
 		ghostBuildings = ghostBuildings,
 	}
@@ -8225,6 +8234,7 @@ function widget:SetConfigData(data)
 				cameraState.zoom = data.minimapModeZoom
 				cameraState.targetZoom = cameraState.zoom
 				miscState.minimapCameraRestored = true  -- Flag that we restored camera state
+				miscState.minimapRestoreAtMinZoom = data.minimapModeAtMinZoom or false
 			end
 		end
 		-- If not same game, leave camera at defaults (centered, min zoom) set in Initialize
@@ -9448,9 +9458,11 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	-- If valid, we skip writing localCachePosX/Z for buildings (saves ~3600 table writes).
 	-- Prediction uses previous frame's bCount/hash — if buildings didn't change last frame,
 	-- they almost certainly won't this frame either. Worst case: one extra rebuild.
+	-- At low zoom, extend forced rebuild interval (LOS changes less visible at full-map view)
+	local bldgBlockGameFrameLimit = cameraState.zoom < 0.15 and 90 or 30
 	local bldgBlockWillRebuild = useUnitpics
 		or not gl4Icons._bldgBlock
-		or (Spring.GetGameFrame() - (gl4Icons._bldgBlockFrame or 0)) >= 30
+		or (Spring.GetGameFrame() - (gl4Icons._bldgBlockFrame or 0)) >= bldgBlockGameFrameLimit
 	for i = 1, unitCount do
 		local uID = pipUnits[i]
 		-- Skip crashing units early
@@ -9534,16 +9546,9 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		table.sort(mobileIDs, gl4IconSortCmp)
 	end
 
-	-- Buildings: sort only when the visible set changes (positions are immutable).
-	-- Detected via count + additive hash of unit IDs — virtually collision-free.
+	-- Building sort deferred to the processing slow path (only needed when block cache
+	-- is rebuilt). Avoids wasting ~1.9ms on sort during fast-path cache-hit frames.
 	local bldgSortedCache = gl4Icons._bldgSortedCache
-	if bCount ~= gl4Icons._lastBldgCount or bldgHash ~= gl4Icons._lastBldgHash then
-		table.sort(buildingIDs, gl4IconSortCmp)
-		for i = 1, bCount do bldgSortedCache[i] = buildingIDs[i] end
-		bldgSortedCache[bCount + 1] = nil
-		gl4Icons._lastBldgCount = bCount
-		gl4Icons._lastBldgHash = bldgHash
-	end
 
 	local icT3 = os.clock()
 
@@ -9559,9 +9564,22 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		and bCount == gl4Icons._bldgBlockBCount
 		and bldgHash == gl4Icons._bldgBlockHash
 		and checkAllyTeamID == gl4Icons._bldgBlockCheckAlly  -- LOS filtering context changed
-		and (currentGameFrame - (gl4Icons._bldgBlockFrame or 0)) < 30
+		and (currentGameFrame - (gl4Icons._bldgBlockFrame or 0)) < bldgBlockGameFrameLimit
 		and not useUnitpics  -- unitpic collection needs per-unit data
 		and not gl4Icons._bldgBlockBuiltDuringUnitpics  -- block built with 0 icons during unitpics is invalid
+
+	-- Building block stale-cache tolerance: at high building counts, accept stale cache
+	-- when only the building set changed (camera panning edges). This prevents constant
+	-- ~3ms rebuilds every frame. Rebuilds are throttled to 1 per 5 render frames.
+	gl4Icons._bldgRenderFrame = (gl4Icons._bldgRenderFrame or 0) + 1
+	if not bldgBlockValid and bldgBlock and bCount > 3000
+		and checkAllyTeamID == gl4Icons._bldgBlockCheckAlly
+		and (currentGameFrame - (gl4Icons._bldgBlockFrame or 0)) < bldgBlockGameFrameLimit
+		and not useUnitpics
+		and not gl4Icons._bldgBlockBuiltDuringUnitpics
+		and (gl4Icons._bldgRenderFrame - (gl4Icons._bldgBlockRebuildRenderFrame or 0)) < 5 then
+		bldgBlockValid = true  -- reuse stale cache despite count/hash mismatch
+	end
 
 	local preProcessEl = usedElements
 
@@ -9641,6 +9659,20 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		end
 	else
 		-- Slow path: process each building individually, build block cache
+
+		-- Deferred building sort: only sort when actually rebuilding the block.
+		-- Skip sort entirely at >3000 buildings — z-ordering is cosmetic at this density.
+		local bldgSetChanged = bCount ~= gl4Icons._lastBldgCount or bldgHash ~= gl4Icons._lastBldgHash
+		if bldgSetChanged then
+			if bCount <= 3000 then
+				table.sort(buildingIDs, gl4IconSortCmp)
+			end
+			for i = 1, bCount do bldgSortedCache[i] = buildingIDs[i] end
+			bldgSortedCache[bCount + 1] = nil
+			gl4Icons._lastBldgCount = bCount
+			gl4Icons._lastBldgHash = bldgHash
+		end
+
 		local bldgIdx = gl4Icons._bldgBlockIdx
 		if not bldgIdx then
 			bldgIdx = {}
@@ -9687,6 +9719,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		gl4Icons._bldgBlockHash = bldgHash
 		gl4Icons._bldgBlockCheckAlly = checkAllyTeamID
 		gl4Icons._bldgBlockFrame = currentGameFrame
+		gl4Icons._bldgBlockRebuildRenderFrame = gl4Icons._bldgRenderFrame
 		gl4Icons._bldgBlockBuiltDuringUnitpics = useUnitpics  -- block has 0 icons when unitpics active
 	end
 	local icT3b = os.clock()
