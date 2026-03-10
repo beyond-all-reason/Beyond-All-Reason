@@ -71,7 +71,6 @@ local GL = GL
 local VFS = VFS
 
 local tonumber = tonumber
-local string = string
 local math = math
 table.unpack = table.unpack or unpack
 local table = table
@@ -169,32 +168,6 @@ local function insertArrayIntoArray(valueArray, containerArray)
 	end
 end
 
--- copied from https://stackoverflow.com/a/7615129
-local function splitStr(inputstr, sep)
-	if sep == nil then
-		sep = "%s"
-	end
-	local t = {}
-	for str in string.gmatch(inputstr, "([^" .. sep .. "]+)") do
-		table.insert(t, str)
-	end
-	return t
-end
-
---Converts tables into strings. For debugging only. Copied from https://stackoverflow.com/a/27028488
-local function dump(o)
-	if type(o) == 'table' then
-	   local s = '{ '
-	   for k,v in pairs(o) do
-		  if type(k) ~= 'number' then k = '"'..k..'"' end
-		  s = s .. '['..k..'] = ' .. dump(v) .. ','
-	   end
-	   return s .. '} '
-	else
-	   return tostring(o)
-	end
-end
-
 -- /////////////////////////////
 -- #endregion
 -- /////////////////////////////
@@ -215,9 +188,6 @@ local mapAreaLineWidth = 1.5
 
 --Defines how much to add the the y coordinate of each vertex of the map area outlines
 local mapAreaLineVertexVerticalShift = 5
-
---Defines the default hill area used if the mod option string is invalid
-local defaultHillAreaArgs = {left = 75*mapSizeX/mapAreaScale, right = 125*mapSizeX/mapAreaScale, top = 125*mapSizeZ/mapAreaScale, bottom = 75*mapSizeZ/mapAreaScale}
 
 --Defines the name of the player list widget for ui box positioning
 local playerListWidgetName = "advplayerlist_api"
@@ -386,7 +356,6 @@ local disqualifiedTeamChecks = {}
 -- ------------
 
 --Constants
-local screenCopyManager = WG['screencopymanager']
 local flowUIDraw
 
 --Contains the position of the UI box. Used for WG API function 'GetPosition'
@@ -435,7 +404,7 @@ local screenResizeCountdown = 0
 -- UI Util Functions
 -- -----------------
 
--- Converts the given x and y screen coordinates to clip space (-1 to 1)
+-- Converts the given x and y screen coordinates to clip space [-1, 1]
 local function convertToClipSpace(x, y)
 	if x and y then
 		return 2*x/vsx - 1, 2*y/vsy - 1
@@ -448,7 +417,7 @@ local function convertToClipSpace(x, y)
 	end
 end
 
--- Prevents switching shaders if it is currently active
+-- Prevents switching to a shader if it is currently active
 local currentShader = nil
 local function useShader(shader)
 	if currentShader ~= shader then
@@ -484,34 +453,6 @@ local function setLineWidth(width)
 end
 local function resetLineWidth()
 	currentLineWidth = -1
-end
-
--- Gets the depth buffer based on various conditions
--- The logic in this function was copied from Beherith's Start Polygons widget
-local advGroundShading = select(2, Spring.HaveAdvShading())
-local function getDepthBufferTexture()
-	if advGroundShading then
-		return "$map_gbuffer_zvaltex"
-	else
-		return screenCopyManager.GetDepthCopy()
-	end
-end
-
--- Gets the map normals texture depending on what kind of map/shading is used
-local isSSMFMap = gl.TextureInfo("$ssmf_normals") ~= nil;
-local function getMapNormalsTexture()
-	--[[
-	if advGroundShading then
-		return "$map_gbuffer_normtex"
-	elseif isSSMFMap then
-		return "$ssmf_normals"
-	else
-		return "$normals"
-	end
-	]]
-	
-	--The other textures are too fine and cause artifacts
-	return "$normals"
 end
 
 -- UI Classes
@@ -963,6 +904,7 @@ end
 --///////////////
 
 -- Parses the modoptions that define the hill area and returns args for a MapArea constructor
+-- Returns args instead of MapArea object because we still need to set some args after this function in widget:Initialize
 local function parseAreaModOptions(left, right, top, bottom, type)
 	if type == "rect" then
 		-- Map coords have 0 at top left corner
@@ -1028,11 +970,7 @@ function widget:Initialize()
 		gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID()))
 	end
 	
-	--Populate the startBoxes table with all allyTeam start boxes in the form of RectMapAreas
-	--Populate teamAllyTeams
-	--Compute average color for ally team
-	--Populate allyTeamProgressBars
-	--Populate ally team colors UBO array
+	--Populate per team data such as start boxes, average color, porgress bars, etc.
 	for index, allyTeamId in ipairs(Spring.GetAllyTeamList()) do
 		if allyTeamId ~= gaiaAllyTeamID then
 			table.insert(allyTeams, allyTeamId)
@@ -1100,6 +1038,7 @@ function widget:Initialize()
 	vsx, vsy = Spring.GetViewGeometry()
 	widget:ViewResize(vsx, vsy)
 	
+	--Register the API function used by other widgets to stack boxes in the bottom right corner of the screen
 	WG.kingofthehill_ui = {}
 	WG.kingofthehill_ui.GetPosition = function()
 		return {uiBoxPosition.top, uiBoxPosition.left, uiBoxPosition.bottom, uiBoxPosition.right, uiBoxPosition.scale}
@@ -1181,7 +1120,7 @@ end
 
 -- Triggers the UI box position to be updated for the next couple frames.
 -- This is used because we don't know the order of the updating of the boxes below ours, so
--- so we just update many times.
+-- we just update many times.
 local function triggerUIBoxResize()
 	updateUIBoxPosition()
 	screenResizeCountdown = maxScreenResizeCountdown
@@ -1239,7 +1178,7 @@ function widget:GameFrame(frame)
 	
 	local newKingStartFrame = Spring.GetGameRulesParam("kingStartFrame")
 	local kingChanged = newKingStartFrame ~= kingStartFrame--King may still be the same if it changed and then changed back before we updated
-	--														 but we still need to updated times if that is the case
+	--														 but we still need to update king times if that is the case
 	
 	if kingChanged then
 		local newKingAllyTeam = Spring.GetGameRulesParam("kingAllyTeam")

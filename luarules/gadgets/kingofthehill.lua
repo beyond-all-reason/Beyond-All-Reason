@@ -106,6 +106,11 @@ local UnitDefs = UnitDefs
 local UnitDefNames = UnitDefNames
 local fps = Game.gameSpeed
 local dayFrames = fps * 24 * 60 * 60
+
+local tonumber = tonumber
+local math = math
+table.unpack = table.unpack or unpack
+local table = table
 -- #endregion
 
 -- /////////////////////////////
@@ -225,45 +230,9 @@ end
 -- ---- Util Functions & Variables ----
 -- ------------------------------------
 
-local tonumber = tonumber
-
-local string = string
-
-local math = math
-
-table.unpack = table.unpack or unpack
-
-local table = table
-
 local function distance(x1, z1, x2, z2)
 	return math.sqrt((x2-x1)^2 + (z2-z1)^2)
 end
-
--- copied from https://stackoverflow.com/a/7615129
-local function splitStr(inputstr, sep)
-	if sep == nil then
-		sep = "%s"
-	end
-	local t = {}
-	for str in string.gmatch(inputstr, "([^" .. sep .. "]+)") do
-		table.insert(t, str)
-	end
-	return t
-end
-
---Converts tables into strings. For debugging only. Copied from https://stackoverflow.com/a/27028488
-local function dump(o)
-	if type(o) == 'table' then
-	   local s = '{ '
-	   for k,v in pairs(o) do
-		  if type(k) ~= 'number' then k = '"'..k..'"' end
-		  s = s .. '['..k..'] = ' .. dump(v) .. ','
-	   end
-	   return s .. '} '
-	else
-	   return tostring(o)
-	end
- end
 
 -- /////////////////////////////
 -- #endregion  Utils
@@ -339,9 +308,6 @@ end
 
 --Defines the maximum value of the coordinate system used in the hill area mod options
 local mapAreaScale = 200
-
---Defines the default hill area used if the mod option string is invalid
-local defaultHillArea = RectMapArea.new{left = 75*mapSizeX/mapAreaScale, right = 125*mapSizeX/mapAreaScale, top = 125*mapSizeZ/mapAreaScale, bottom = 75*mapSizeZ/mapAreaScale}
 
 --Defines a set of unit def ids that are capable of capturing the hill (currently all commanders)
 local captureQualifiedUnitNames = {
@@ -556,8 +522,7 @@ function gadget:Initialize()
 		gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID()))
 	end
 	
-	--Populate the startBoxes table with all allyTeam start boxes in the form of RectMapAreas
-	--and populate teamAllyTeams, allyTeamLives, and allyTeamKingTime tables
+	--Populate per team data such as start boxes, team lives, etc.
 	--Also, in case the gadget is being reloaded, disqualify any dead teams, register any
 	--existing capture qualified units, and register any units in the hill
 	for _, allyTeamId in ipairs(Spring.GetAllyTeamList()) do
@@ -596,11 +561,6 @@ end
 
 --Called when the addon or the game is shutdown.
 function gadget:Shutdown()
-	
-end
-
---Called upon the start of the game.
-function gadget:GameStart()
 	
 end
 
@@ -679,7 +639,7 @@ function gadget:GameFrame(frame)
 end
 
 --Called when a unit is transferred between teams. Used to keep track of all capture-qualified units and their ally teams
---Note: I assume this function is called when enemy units are captured, otherwise it is not needed since you cannot give units outside your allyTeam
+--I think this function is called when enemy units are captured, otherwise it is not needed since you cannot give units outside your allyTeam
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	if not captureQualifiedUnitDefIds:contains(unitDefID) then
 		return
@@ -706,6 +666,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 end
 
 --Called at the moment the unit is completed [constructed]. Used to start tracking capture-qualified units.
+--Start tracking capture qualified units here instead of in UnitCreated so that only fully constructed units can capture the hill.
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if not captureQualifiedUnitDefIds:contains(unitDefID) then
 		return
