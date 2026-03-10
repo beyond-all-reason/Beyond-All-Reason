@@ -53,6 +53,7 @@ local spDestroyUnit = Spring.DestroyUnit
 local mathMin = math.min
 local mathMax = math.max
 local mathAbs = math.abs
+local mathSqrt = math.sqrt
 
 local fallDamageMultipliers = {}
 local unitsMaxImpulse = {}
@@ -212,7 +213,7 @@ function gadget:GameFrame(frame)
 			local velX, velY, velZ, velocityLength = spGetUnitVelocity(unitID)
 			if not data.velocityReduced and velocityLength > data.velocityCap then
 				local verticalVelocityCapThreshold = 0.07 --value derived from empirical testing to prevent fall damage and goofy trajectories from impulse
-				local horizontalVelocity = math.sqrt(velX^2 + velZ^2)
+				local horizontalVelocity = mathSqrt(velX^2 + velZ^2)
 				local newVelY = mathAbs(mathMin(horizontalVelocity * verticalVelocityCapThreshold, velY))
 				local newVelYToOldVelYRatio
 				if velY ~= 0 then

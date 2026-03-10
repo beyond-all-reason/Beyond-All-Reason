@@ -113,7 +113,7 @@ local options = {
     {
         key    	= "maxunits",
         name   	= "Max Units Per Player",
-        desc   	= "Keep in mind there is an absolute limit of units, 32000, divided between each team. If you set this value higher than possible it will force itself down to the maximum it can be.",
+        desc   	= "Keep in mind there is an absolute limit of units, 32 000, divided between each team. If you set this value higher than possible it will force itself down to the maximum it can be.",
         type   	= "number",
         def    	= 2000,
         min    	= 500,
@@ -517,6 +517,32 @@ local options = {
     },
 
     {
+        key		= "wreck_metal_ratio",
+        name	= "Wreck Metal Percent",
+        desc	= "Percent of unit metal that is left in its wrecks",
+        hidden 	= true,
+        type	= "number",
+        section	= "options",
+        def		= 0.6,
+        min		= 0,
+        max		= 1,
+        step	= 0.05,
+    },
+
+    {
+        key		= "heap_metal_ratio",
+        name	= "Heap Metal Percent",
+        desc	= "Percent of unit metal that is left in its heaps",
+        hidden 	= true,
+        type	= "number",
+        section	= "options",
+        def		= 0.25,
+        min		= 0,
+        max		= 1,
+        step	= 0.05,
+    },
+
+    {
         key		= "coop",
         name	= "Cooperative mode",
         desc	= "Adds extra commanders to id-sharing teams, 1 com per player",
@@ -870,6 +896,18 @@ local options = {
         def		= 1,
         min		= 1,
         max		= 5,
+        step	= 0.1,
+        section	= "scav_defense_options",
+    },
+
+    {
+        key		= "scav_graceperiodmult",
+        name	= "Grace Period Time Multiplier",
+        desc	= "(Range: 0.1 - 3). Time before Scavs become active. ",
+        type	= "number",
+        def		= 1,
+        min		= 0.1,
+        max		= 3,
         step	= 0.1,
         section	= "scav_defense_options",
     },
@@ -1535,7 +1573,7 @@ local options = {
             unlock = {"community_balance_commando", "community_balance_cortermite", "community_balance_armwar", "community_balance_armfast", "community_balance_corjamt"} },
         }
     },
-    
+
     {
         key     = "community_balance_patch_changelog_link",
         name    = "Changelog",
@@ -1845,6 +1883,16 @@ local options = {
         column  = 1.65,
         linkheight = 325,
         linkwidth = 350,
+    },
+
+    {
+        key     = "forge_volcano",
+        name    = "Forge Volcano Event",
+        desc    = "Enable the cinematic volcano eruption event on Forge v2.3.",
+        type    = "bool",
+        hidden 	= true,
+        section = "options_experimental",
+        def     = false,
     },
 
     {
@@ -2313,7 +2361,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
     {
         key		= "startmetal",
         name	= "Starting Metal",
-        desc	= "(Range 0 - 10000). Determines amount of metal and metal storage that each player will start with",
+        desc	= "(Range 0 - 10 000). Determines amount of metal and metal storage that each player will start with",
         type	= "number",
         section	= "options_cheats",
         def		= 1000,
@@ -2321,11 +2369,11 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
         max		= 10000,
         step	= 1,
     },
-    
+
     {
         key		= "startmetalstorage",
         name	= "Starting Metal Storage",
-        desc	= "(Range 1000 - 20000). Only works if it's higher than Starting metal. Determines amount of metal and metal storage that each player will start with",
+        desc	= "(Range 1000 - 20 000). Only works if it's higher than Starting metal. Determines amount of metal and metal storage that each player will start with",
         type	= "number",
         section	= "options_cheats",
         def		= 1000,
@@ -2337,7 +2385,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
     {
         key		= "startenergy",
         name	= "Starting Energy",
-        desc	= "(Range 0 - 10000). Determines amount of energy and energy storage that each player will start with",
+        desc	= "(Range 0 - 10 000). Determines amount of energy and energy storage that each player will start with",
         type	= "number",
         section	= "options_cheats",
         def		= 1000,
@@ -2349,7 +2397,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
     {
         key		= "startenergystorage",
         name	= "Starting Energy Storage",
-        desc	= "(Range 1000 - 20000). Only works if it's higher than Starting energy. Determines amount of energy and energy storage that each player will start with",
+        desc	= "(Range 1000 - 20 000). Only works if it's higher than Starting energy. Determines amount of energy and energy storage that each player will start with",
         type	= "number",
         section	= "options_cheats",
         def		= 1000,

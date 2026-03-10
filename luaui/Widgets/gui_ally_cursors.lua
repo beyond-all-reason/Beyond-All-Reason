@@ -295,6 +295,7 @@ end
 
 function widget:PlayerChanged(playerID)
 	myTeamID = spGetMyTeamID()
+	fullview = select(2, spGetSpectatingState())
 	local _, _, isSpec, teamID = spGetPlayerInfo(playerID, false)
 	specList[playerID] = isSpec
 	local r, g, b = spGetTeamColor(teamID)
@@ -542,8 +543,6 @@ function widget:DrawWorldPreUnit()
 	if spIsGUIHidden() then
 		return
 	end
-
-	fullview = select(2, spGetSpectatingState())
 
 	gl.DepthTest(GL.ALWAYS)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)

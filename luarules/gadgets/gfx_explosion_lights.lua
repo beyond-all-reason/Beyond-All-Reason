@@ -15,6 +15,9 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
+    local SendToUnsynced = SendToUnsynced
+    local spGetProjectilePosition = Spring.GetProjectilePosition
+
     local cannonWeapons = {}
 
     function gadget:Initialize()
@@ -73,7 +76,7 @@ if gadgetHandler:IsSyncedCode() then
 
     function gadget:ProjectileCreated(projectileID, ownerID, weaponID)		-- needs: Script.SetWatchProjectile(weaponDefID, true)
 		if cannonWeapons[weaponID] then	-- optionally disable this to pass through missiles too
-			local px, py, pz = Spring.GetProjectilePosition(projectileID)
+			local px, py, pz = spGetProjectilePosition(projectileID)
 			SendToUnsynced("barrelfire_light", px, py, pz, weaponID, ownerID)
 		end
     end

@@ -2536,6 +2536,10 @@ local icontypes = {
 		bitmap = "icons/air_trans.png",
 		size = 1.5
 	},
+	legavantinuke = {
+		bitmap = "icons/antinukevehicle.png",
+		size = 1.46999991
+	},
 	legavp = {
 		bitmap = "icons/factory_vehicle_t2.png",
 		size = 1.9425
