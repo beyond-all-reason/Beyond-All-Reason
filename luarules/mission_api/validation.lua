@@ -313,7 +313,7 @@ validators[Types.WeaponDefName] = function(weaponDefName)
 end
 
 validators[Types.FeatureDefName] = function(featureDefName)
-	local luaTypeResult = luaTypeValidators[Types.String](featureDefName)
+	local luaTypeResult = validators[Types.String](featureDefName)
 	if luaTypeResult then
 		return luaTypeResult
 	end
