@@ -302,11 +302,12 @@ if not table.keys then
 	---@param tbl table<K, any>
 	---@return K[]
 	function table.keys(tbl)
-		local keys = {}
+		local keys, count = {}, 0
 		for key in pairs(tbl) do
-			keys[#keys + 1] = key
+			count = count + 1
+			keys[count] = key
 		end
-		return keys
+		return keys, count
 	end
 end
 
