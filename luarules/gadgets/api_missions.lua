@@ -78,14 +78,12 @@ function gadget:Initialize()
 	loadMission()
 end
 
-function gadget:GameFrame()
+function gadget:GameFrame(frameNumber)
 	if not initialStateBroadcast then
 		broadcastInitialState()
 		initialStateBroadcast = true
 	end
-end
 
-function gadget:GameFrame(frameNumber)
 	sounds.ProcessSoundQueue(frameNumber)
 end
 
