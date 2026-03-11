@@ -2,6 +2,8 @@
 --- Validators for Mission API actions and triggers loaded from missions.
 ---
 
+VFS.Include('common/wav.lua')
+
 local function logError(message)
 	Spring.Log('validation.lua', LOG.ERROR, "[Mission API] " .. message)
 end
@@ -20,8 +22,7 @@ end
 
 local function validateField(value, fieldName, expectedType)
 	if not value then
-		return { message = "Missing required parameter. ", "." .. fieldName }
-
+		return { message = "Missing required parameter", parameterNameSuffix = "." .. fieldName }
 	end
 	if type(value) ~= expectedType then
 		return { message = "Unexpected parameter type, expected " .. expectedType .. ", got " .. type(value), parameterNameSuffix = "." .. fieldName }
@@ -30,62 +31,80 @@ end
 
 local Types = VFS.Include('luarules/mission_api/parameter_types.lua').Types
 
-local function validateSimpleTypeCurried(expectedType)
+local validators = {}
+
+--- Lua type validators:
+local function validateLuaTypeCurried(expectedType)
 	return function(value)
 		local luaTypeResult = validateLuaType(value, expectedType)
 		return luaTypeResult and { { message = luaTypeResult } } or nil
 	end
 end
-local luaTypeValidators = {
-	-- These need to be here to be available in customValidators below
-	[Types.Table] = validateSimpleTypeCurried('table'),
-	[Types.String] = validateSimpleTypeCurried('string'),
-	[Types.Number] = validateSimpleTypeCurried('number'),
-	[Types.Boolean] = validateSimpleTypeCurried('boolean'),
-	[Types.Function] = validateSimpleTypeCurried('function'),
-}
+validators[Types.Table] = validateLuaTypeCurried('table')
+validators[Types.String] = validateLuaTypeCurried('string')
+validators[Types.Number] = validateLuaTypeCurried('number')
+validators[Types.Boolean] = validateLuaTypeCurried('boolean')
+validators[Types.Function] = validateLuaTypeCurried('function')
 
-local customValidators = {
+--- Table Validators:
 
-	----------------------------------------------------------------
-	--- Table Validators:
-	----------------------------------------------------------------
-
-	[Types.Position] = function(position)
-		local luaTypeResult = luaTypeValidators[Types.Table](position)
+validators[Types.Position] = function(position)
+		local luaTypeResult = validators[Types.Table](position)
 		if luaTypeResult then
 			return luaTypeResult
 		end
 
 		local result = {}
-		for _, field in pairs({ "x", "z"}) do
+		local fields = position.y ~= nil and { "x", "y", "z" } or { "x", "z" }
+		for _, field in pairs(fields) do
 			local fieldResult = validateField(position[field], field, 'number')
 			if fieldResult then
 				result[#result + 1] = fieldResult
 			end
 		end
 
-		if not table.isEmpty(result) then
-			return result
+		return result
+	end
+
+validators[Types.Positions] = function(positions)
+		local luaTypeResult = validators[Types.Table](positions)
+		if luaTypeResult then
+			return luaTypeResult
 		end
 
-		position.y = position.y or Spring.GetGroundHeight(position.x, position.z)
-		local fieldResult = validateField(position.y, 'y', 'number')
-		if fieldResult then
-			result[#result + 1] = fieldResult
+		local result = {}
+		if not positions or #positions < 2 then
+			result[#result + 1] = { message = "Positions table needs at least two positions" }
+		end
+
+		for i, position in pairs(positions) do
+			local fieldResult = validateField(position, "position #" .. i, 'table')
+			if fieldResult then
+				result[#result + 1] = fieldResult
+			else
+				local positionResult = validators[Types.Position](position)
+				if positionResult then
+					for _, validationResult in pairs(positionResult) do
+						result[#result + 1] = {
+							message = validationResult.message,
+							parameterNameSuffix = "[" .. i .. "]" .. (validationResult.parameterNameSuffix or ''),
+						}
+					end
+				end
+			end
 		end
 
 		return result
-	end,
+	end
 
-	[Types.AllyTeamIDs] = function(allyTeamIDs)
-		local luaTypeResult = luaTypeValidators[Types.Table](allyTeamIDs)
+validators[Types.AllyTeamIDs] = function(allyTeamIDs)
+		local luaTypeResult = validators[Types.Table](allyTeamIDs)
 		if luaTypeResult then
 			return luaTypeResult
 		end
 
 		if table.isNilOrEmpty(allyTeamIDs) then
-			return { { message = "allyTeamIDs table is empty. " } }
+			return { { message = "allyTeamIDs table is empty" } }
 		end
 
 		local result = {}
@@ -99,9 +118,9 @@ local customValidators = {
 		end
 
 		return result
-	end,
+	end
 
-	[Types.Orders] = function(orders)
+validators[Types.Orders] = function(orders)
 
 		local result = {}
 
@@ -168,11 +187,9 @@ local customValidators = {
 				commandValidators[commandID]()
 			elseif type(commandID) == 'string' then
 				-- build command: See https://springrts.com/wiki/Lua_CMDs#CMD.INTERNAL
-				-- commandID is a unitDefName string, and must be converted to a negative unitDefID for the actual order
+				-- commandID is a unitDefName string
 				local unitDef = UnitDefNames[commandID]
-				if unitDef then
-					order[1] = -unitDef.id
-				else
+				if not unitDef then
 					result[#result + 1] = { message = "Invalid build order unitDefName: " .. commandID, parameterNameSuffix = '[' .. orderNumber .. '][1]' }
 				end
 
@@ -204,13 +221,13 @@ local customValidators = {
 			end
 		end
 
-		local luaTypeResult = luaTypeValidators[Types.Table](orders)
+		local luaTypeResult = validators[Types.Table](orders)
 		if luaTypeResult then
 			return luaTypeResult
 		end
 
 		if #orders == 0 then
-			return { { message = "Orders table is empty. " } }
+			return { { message = "Orders table is empty" } }
 		end
 
 		for i, order in pairs(orders) do
@@ -224,10 +241,10 @@ local customValidators = {
 		end
 
 		return result
-	end,
+	end
 
-	[Types.Area] = function(area)
-		local luaTypeResult = luaTypeValidators[Types.Table](area)
+validators[Types.Area] = function(area)
+		local luaTypeResult = validators[Types.Table](area)
 		if luaTypeResult then
 			return luaTypeResult
 		end
@@ -235,7 +252,7 @@ local customValidators = {
 		local isRectangle = area.x1 and area.z1 and area.x2 and area.z2
 		local isCircle = area.x and area.z and area.radius
 		if not isRectangle and not isCircle then
-			return { { message = "Invalid area parameter, must be either rectangle { x1, z1, x2, z2 } with x1 < x2 and z1 < z2, or circle { x, z, radius }. " } }
+			return { { message = "Invalid area parameter, must be either rectangle { x1, z1, x2, z2 } with x1 < x2 and z1 < z2, or circle { x, z, radius }" } }
 		else
 			local result = {}
 			for key, value in pairs(area) do
@@ -251,21 +268,19 @@ local customValidators = {
 		if isRectangle then
 			local result = {}
 			if area.x1 >= area.x2 then
-				result[#result + 1] = { message = "Invalid area rectangle parameter, x1 must be less than x2. " }
+				result[#result + 1] = { message = "Invalid area rectangle parameter, x1 must be less than x2" }
 			end
 			if area.z1 >= area.z2 then
-				result[#result + 1] = { message = "Invalid area rectangle parameter, z1 must be less than z2. " }
+				result[#result + 1] = { message = "Invalid area rectangle parameter, z1 must be less than z2" }
 			end
 			return result
 		end
-	end,
+	end
 
-	----------------------------------------------------------------
-	--- String Validators:
-	----------------------------------------------------------------
+--- String Validators:
 
-	[Types.TriggerID] = function(triggerID)
-		local luaTypeResult = luaTypeValidators[Types.String](triggerID)
+validators[Types.TriggerID] = function(triggerID)
+		local luaTypeResult = validators[Types.String](triggerID)
 		if luaTypeResult then
 			return luaTypeResult
 		end
@@ -273,10 +288,10 @@ local customValidators = {
 		if not GG['MissionAPI'].Triggers[triggerID] then
 			return { { message = "Invalid triggerID: " .. triggerID } }
 		end
-	end,
+	end
 
-	[Types.UnitDefName] = function(unitDefName)
-		local luaTypeResult = luaTypeValidators[Types.String](unitDefName)
+validators[Types.UnitDefName] = function(unitDefName)
+		local luaTypeResult = validators[Types.String](unitDefName)
 		if luaTypeResult then
 			return luaTypeResult
 		end
@@ -284,20 +299,31 @@ local customValidators = {
 		if not UnitDefNames[unitDefName] then
 			return { { message = "Invalid unitDefName: " .. unitDefName } }
 		end
-	end,
+	end
 
-	[Types.FeatureDefName] = function(featureDefName)
-		local luaTypeResult = luaTypeValidators[Types.String](featureDefName)
-		if luaTypeResult then
-			return luaTypeResult
-		end
+validators[Types.WeaponDefName] = function(weaponDefName)
+	local luaTypeResult = validators[Types.String](weaponDefName)
+	if luaTypeResult then
+		return luaTypeResult
+	end
 
-		if not FeatureDefNames[featureDefName] then
-			return { { message = "Invalid featureDefName: " .. featureDefName } }
-		end
-	end,
+	if not WeaponDefNames[weaponDefName] then
+		return { { message = "Invalid weaponDefName: " .. weaponDefName } }
+	end
+end
 
-	[Types.Facing] = function(facing)
+validators[Types.FeatureDefName] = function(featureDefName)
+	local luaTypeResult = validators[Types.String](featureDefName)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	if not FeatureDefNames[featureDefName] then
+		return { { message = "Invalid featureDefName: " .. featureDefName } }
+	end
+end
+
+validators[Types.Facing] = function(facing)
 		local expectedTypes = { string = true, number = true }
 		local actualType = type(facing)
 		if not expectedTypes[actualType] then
@@ -308,14 +334,28 @@ local customValidators = {
 		if not validFacings[facing] then
 			return { { message = "Invalid facing: " .. facing .. ". Must be one of 'n', 's', 'e', 'w', 'north', 'south', 'east', 'west'." } }
 		end
-	end,
+	end
 
-	----------------------------------------------------------------
-	--- Number Validators:
-	----------------------------------------------------------------
+validators[Types.SoundFile] = function(soundfile)
+	local luaTypeResult = validators[Types.String](soundfile)
+	if luaTypeResult then
+		return luaTypeResult
+	end
 
-	[Types.TeamID] = function(teamID)
-		local luaTypeResult = luaTypeValidators[Types.Number](teamID)
+	if not VFS.FileExists(soundfile) then
+		return { { message = "Invalid soundfile: " .. soundfile .. ". File does not exist" } }
+	end
+
+	local wavData = ReadWAV(soundfile)
+	if not wavData then
+		return { { message = "Invalid soundfile: " .. soundfile .. ". File is not a RIFF .wav file" } }
+	end
+end
+
+--- Number Validators:
+
+validators[Types.TeamID] = function(teamID)
+		local luaTypeResult = validators[Types.Number](teamID)
 		if luaTypeResult then
 			return luaTypeResult
 		end
@@ -323,21 +363,18 @@ local customValidators = {
 		if not Spring.GetTeamAllyTeamID(teamID) then
 			return { { message = "Invalid teamID: " .. teamID } }
 		end
-	end,
+	end
 
-	[Types.AllyTeamID] = function(allyTeamID)
-		local luaTypeResult = luaTypeValidators[Types.Number](allyTeamID)
-		if luaTypeResult then
-			return luaTypeResult
-		end
+validators[Types.AllyTeamID] = function(allyTeamID)
+	local luaTypeResult = validators[Types.Number](allyTeamID)
+	if luaTypeResult then
+		return luaTypeResult
+	end
 
-		if not table.contains(Spring.GetAllyTeamList(), allyTeamID) then
-			return { { message = "Invalid allyTeamID: " .. allyTeamID } }
-		end
-	end,
-}
-
-local validators = table.merge(customValidators, luaTypeValidators)
+	if not table.contains(Spring.GetAllyTeamList(), allyTeamID) then
+		return { { message = "Invalid allyTeamID: " .. allyTeamID } }
+	end
+end
 
 
 ----------------------------------------------------------------
@@ -367,11 +404,9 @@ local function validate(schemaParameters, actionOrTriggerType, actionOrTriggerPa
 			if value == nil then
 				if parameter.required then
 					logError(actionOrTrigger .. " missing required parameter. " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameter.name)
-				else
-					-- Optional parameter not provided, no need to validate
 				end
 			else
-				local validationResults = validators[parameter.type](value, actionOrTrigger, actionOrTriggerID, parameter.name) or {}
+				local validationResults = validators[parameter.type](value) or {}
 				for _, validationResult in pairs(validationResults) do
 					logError(validationResult.message .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameter.name .. (validationResult.parameterNameSuffix or ''))
 				end
@@ -380,7 +415,7 @@ local function validate(schemaParameters, actionOrTriggerType, actionOrTriggerPa
 	end
 end
 
-local function validateTriggerSetting(trigger, triggerID, triggers)
+local function validateTriggerSettings(trigger, triggerID, triggers)
 	-- Validate types of settings:
 	for schemaSetting, schemaType in pairs(triggersSchemaSettings) do
 		local luaTypeResult = validateLuaType(trigger.settings[schemaSetting], string.lower(schemaType))
@@ -410,7 +445,7 @@ local function validateTriggers(triggers, rawActions)
 				end
 			end
 		end
-		validateTriggerSetting(trigger, triggerID, triggers)
+		validateTriggerSettings(trigger, triggerID, triggers)
 		validate(triggersSchemaParameters, trigger.type, trigger.parameters, 'Trigger', triggerID)
 	end
 end
@@ -543,9 +578,50 @@ local function validateFeatureNameReferences(triggerTypes, actionTypes, triggers
 	end
 end
 
+local function validateMarkerNameReferences(actionTypes, actions)
+	local createdMarkerNames = {}
+	local referencedMarkerNames = {}
+	for actionID, action in pairs(actions) do
+		if action.type == actionTypes.AddMarker then
+			local markerName = action.parameters.name
+			if markerName then
+				createdMarkerNames[markerName] = createdMarkerNames[markerName] or {}
+				createdMarkerNames[markerName][#createdMarkerNames[markerName] + 1] = actionID
+			end
+		elseif action.type == actionTypes.EraseMarker then
+			local markerName = action.parameters.name
+			if markerName then
+				referencedMarkerNames[markerName] = referencedMarkerNames[markerName] or {}
+				referencedMarkerNames[markerName][#referencedMarkerNames[markerName] + 1] = actionID
+			end
+		end
+	end
+
+	for markerName, actionIDs in pairs(referencedMarkerNames) do
+		if not createdMarkerNames[markerName] then
+			logError("Marker name '" .. markerName .. "' is not created in any action. Referenced in: " .. table.concat(actionIDs, ", "))
+		end
+	end
+	for markerName, actionIDs in pairs(createdMarkerNames) do
+		if not referencedMarkerNames[markerName] then
+			logError("Marker name '" .. markerName .. "' is not referenced by any action. Referenced in: " .. table.concat(actionIDs, ", "))
+		end
+	end
+end
+
+local function validateReferences()
+	-- Types need to be fetched here to avoid circular dependency
+	local triggerTypes = GG['MissionAPI'].TriggerTypes
+	local actionTypes = GG['MissionAPI'].ActionTypes
+	local triggers = GG['MissionAPI'].Triggers
+	local actions = GG['MissionAPI'].Actions
+	validateUnitNameReferences(triggerTypes, actionTypes, triggers, actions)
+	validateFeatureNameReferences(triggerTypes, actionTypes, triggers, actions)
+	validateMarkerNameReferences(actionTypes, actions)
+end
+
 return {
-	ValidateTriggers             = validateTriggers,
-	ValidateActions              = validateActions,
-	ValidateUnitNameReferences   = validateUnitNameReferences,
-	ValidateFeatureNameReferences = validateFeatureNameReferences,
+	ValidateTriggers   = validateTriggers,
+	ValidateActions    = validateActions,
+	ValidateReferences = validateReferences,
 }
