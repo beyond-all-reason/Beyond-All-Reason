@@ -541,8 +541,8 @@ local function validateFeatureLoadoutEntry(entry, index, context)
 
 	if entry.resurrectAs ~= nil then
 		local resurrectAsResult = validators[Types.UnitDefName](entry.resurrectAs)
-		if resurrectAsResult and not table.isEmpty(resurrectasResult) then
-			logError(prefix .. ", field 'resurrectas': " .. (resurrectasResult[1] and resurrectasResult[1].message or "invalid"))
+		if resurrectAsResult and not table.isEmpty(resurrectAsResult) then
+			logError(prefix .. ", field 'resurrectAs': " .. (resurrectAsResult[1] and resurrectAsResult[1].message or "invalid"))
 		end
 	end
 end
