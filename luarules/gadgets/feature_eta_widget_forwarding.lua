@@ -89,21 +89,40 @@ if gadgetHandler:IsSyncedCode() then
 
 else
 	
+	local myPlayerID = Spring.GetMyPlayerID()
 	local myAllyTeamID = Spring.GetMyAllyTeamID()
 	local _, fullview = Spring.GetSpectatingState()
+	
+	--Map of allyTeamID to set of featureIDs. Used to resend ETAs when player changes ally team
+	local featureETATeamCache = {}
 
 	function gadget:PlayerChanged(playerID)
-		myAllyTeamID = Spring.GetMyAllyTeamID()
-		_, fullview = Spring.GetSpectatingState()
+		if playerID == myPlayerID then
+			myAllyTeamID = Spring.GetMyAllyTeamID()
+			_, fullview = Spring.GetSpectatingState()
+			
+			--Resend feature ETAs when team changes so that we can see active ETAs of new team and stop seeing ETAs of old team
+			local myAllyTeamCache = featureETATeamCache[myAllyTeamID]
+			for _, featureIDs in pairs(featureETATeamCache) do
+				for featureID, _ in pairs(featureIDs) do
+					local step = (fullview or myAllyTeamCache[featureID]) and 0.001 or 0
+					Script.LuaUI.FeatureReclaimStartedETA(featureID, step)
+				end
+			end
+		end
 	end
 
 	local function etaFeatureReclaimStartFrame(cmd, featureID, allyTeamID, step)
 		if (fullview or allyTeamID == myAllyTeamID) and Script.LuaUI("FeatureReclaimStartedETA") then
 			Script.LuaUI.FeatureReclaimStartedETA(featureID, step)
 		end
+		featureETATeamCache[allyTeamID][featureID] = step ~= 0 and true or nil
 	end
 
 	function gadget:Initialize()
+		for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
+			featureETATeamCache[allyTeamID] = {}
+		end
 		gadgetHandler:AddSyncAction("etaFeatureReclaimStartFrame", etaFeatureReclaimStartFrame)
 	end
 

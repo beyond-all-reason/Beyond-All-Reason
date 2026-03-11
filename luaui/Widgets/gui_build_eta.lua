@@ -7,7 +7,7 @@ function widget:GetInfo()
 		author = "trepan (modified by jK)",
 		date = "2007",
 		license = "GNU GPL, v2 or later",
-		layer = -9999999,
+		layer = -9,
 		enabled = true
 	}
 end
@@ -36,8 +36,8 @@ local glPushPopMatrix = gl.PushPopMatrix
 
 local font
 
-local unitETATable
-local featureETATable
+local unitETATable = {}
+local featureETATable = {}
 local etaMaxDist = 750000 -- max dist at which to draw ETA
 local blinkTime = 20
 
@@ -100,7 +100,6 @@ end
 
 local function init()
 	unitETATable = {}
-	featureETATable = {}
 	local units = Spring.GetAllUnits()
 	for i=1, #units do
 		local unitID = units[i]
