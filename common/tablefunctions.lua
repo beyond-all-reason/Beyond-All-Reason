@@ -297,10 +297,11 @@ if not table.contains then
 end
 
 if not table.keys then
-	---Returns all keys of a table as an array.
+	---Returns all keys of a table as an array, and the count of keys.
 	---@generic K
 	---@param tbl table<K, any>
-	---@return K[]
+	---@return K[] keys
+	---@return number count
 	function table.keys(tbl)
 		local keys, count = {}, 0
 		for key in pairs(tbl) do
