@@ -44,14 +44,11 @@ if gadgetHandler:IsSyncedCode() then
 	-- speedups
 	local spAddUnitDamage = Spring.AddUnitDamage
 	local spAddFeatureDamage = Spring.AddFeatureDamage
-	local spDestroyFeature = Spring.DestroyFeature
 	local spGetAllUnits = Spring.GetAllUnits
 	local spGetFeatureDefID = Spring.GetFeatureDefID
 	local spGetFeaturePosition = Spring.GetFeaturePosition
-	local spGetFeatureResources = Spring.GetFeatureResources
 	local spGetUnitBasePosition = Spring.GetUnitBasePosition
 	local spGetUnitDefID = Spring.GetUnitDefID
-	local spSetFeatureResources = Spring.SetFeatureResources
 	local spGetMoveData = Spring.GetUnitMoveTypeData
 	local spMoveCtrlEnabled = Spring.MoveCtrl.IsEnabled
 	local spSetMoveData = Spring.MoveCtrl.SetGroundMoveTypeData
@@ -70,7 +67,7 @@ if gadgetHandler:IsSyncedCode() then
 		unitMoveDef[unitDefID] = unitDef.moveDef -- Will remove this when decision on hovercraft is made
 		if unitDef.canFly then
 			canFly[unitDefID] = true
-		else 
+		else
 			speedDefs[unitDefID] = unitDef.speed
 			turnDefs[unitDefID] = unitDef.turnRate
 			accDefs[unitDefID] = unitDef.maxAcc
@@ -146,14 +143,14 @@ if gadgetHandler:IsSyncedCode() then
 						local turnRate = turnDefs[unitDefID]
 						local accelRate = accDefs[unitDefID]
 						if (moveType == "ground") and (maxSpeed and maxSpeed ~= 0) and (turnRate and turnRate ~= 0) and (accelRate and accelRate ~= 0)then
-							lavaUnits[unitID] = {currentSlow = 1, slowed = true} 
+							lavaUnits[unitID] = {currentSlow = 1, slowed = true}
 						else
 							lavaUnits[unitID] = {slowed = false}
 						end
 					end
 					if lavaUnits[unitID].slowed and (unitSlow ~= lavaUnits[unitID].currentSlow) then
 						local sucess = updateSlow(unitID, unitDefID, unitSlow)
-						if sucess then 
+						if sucess then
 							lavaUnits[unitID].currentSlow = unitSlow
 						end
 					end
@@ -163,7 +160,7 @@ if gadgetHandler:IsSyncedCode() then
 					if lavaUnits[unitID].slowed then
 						local sucess = updateSlow(unitID, unitDefID, 1)
 					end
-					if sucess then 
+					if sucess then
 						lavaUnits[unitID] = nil
 					end
 				end
@@ -470,6 +467,11 @@ else  -- UNSYCNED
 				heatdistortz = heatdistortz - camZ / (camvlength * smoothFPS)
 			end
 			--Spring.Echo(camX, camZ, heatdistortx, heatdistortz,gameSpeed, isPaused)
+
+			-- Expose lava render state to widgets (e.g., PIP minimap overlay)
+			if Script.LuaUI("LavaRenderState") then
+				Script.LuaUI.LavaRenderState(lavatidelevel, heatdistortx, heatdistortz)
+			end
 
 			if autoreload then
 				lavaShader = LuaShader.CheckShaderUpdates(lavaShaderSourceCache) or lavaShader

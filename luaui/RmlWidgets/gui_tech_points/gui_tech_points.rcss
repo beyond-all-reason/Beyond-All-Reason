@@ -1,6 +1,11 @@
 /* Tech Points Display - Responsive design using vh, vw, dp units */
 
+body {
+    pointer-events: none;
+}
+
 .tech-points-root {
+    pointer-events: auto;
     position: fixed;
     /* Center the panel on screen using viewport units */
     left: 27.54vw;

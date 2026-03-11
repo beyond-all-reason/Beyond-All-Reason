@@ -7,6 +7,7 @@ local types = {
 	-- Table Validators:
 	Table = 'Table',
 	Position = 'Position',
+	Positions = 'Positions',
 	AllyTeamIDs = 'AllyTeamIDs',
 	Orders = 'Orders',
 	Area = 'Area',
@@ -16,7 +17,9 @@ local types = {
 	TriggerID = 'TriggerID',
 	UnitDefName = 'UnitDefName',
 	FeatureDefName = 'FeatureDefName',
+	WeaponDefName = 'WeaponDefName',
 	Facing = 'Facing',
+	SoundFile = 'SoundFile',
 
 	-- Number Validators:
 	Number = 'Number',

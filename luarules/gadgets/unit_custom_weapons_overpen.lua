@@ -83,14 +83,13 @@ local spGetUnitPosition        = Spring.GetUnitPosition
 local spGetUnitRadius          = Spring.GetUnitRadius
 local spGetWaterLevel          = Spring.GetWaterLevel
 
-local spSetFeatureHealth       = Spring.SetFeatureHealth
 local spSetProjectilePosition  = Spring.SetProjectilePosition
 local spSetProjectileVelocity  = Spring.SetProjectileVelocity
 local spSetProjectileMoveCtrl  = Spring.SetProjectileMoveControl
 
 local spAddUnitDamage          = Spring.AddUnitDamage
+local spAddFeatureDamage       = Spring.AddFeatureDamage
 local spDeleteProjectile       = Spring.DeleteProjectile
-local spDestroyFeature         = Spring.DestroyFeature
 local spValidFeatureID         = Spring.ValidFeatureID
 local spValidUnitID            = Spring.ValidUnitID
 
@@ -374,12 +373,8 @@ local function _GameFramePost(collisionList)
 					)
 					if setVelocityControl then setVelocityControl(targetID, true) end
 				else
-					local health = collision.health - damageDealt
-					if health > 1 then
-						spSetFeatureHealth(targetID, health)
-					else
-						spDestroyFeature(targetID)
-					end
+					-- Not applying any impulse. Features are not controlled by a velocity limiter.
+					spAddFeatureDamage(targetID, damageDealt, 0, penetrator.ownerID, weapon.weaponID)
 				end
 				damageLeft = damageLeft - penalty - (hasFalloff and collision.health / damageBase or 0)
 			end

@@ -242,6 +242,52 @@ local actions = {
 			featureName = 'unknownFeatureName',
 		},
 	},
+
+	actionWithJustOneInvalidPosition = {
+		type = actionTypes.DrawLines,
+		parameters = {
+			positions = {
+				{ x = 1800, invalidField = 2100 }
+			},
+		},
+	},
+
+	actionWithUnusedMarkerName = {
+		type = actionTypes.AddMarker,
+		parameters = {
+			position = { x = 1900, z = 2200 },
+			name = 'unusedMarkerName',
+		},
+	},
+
+	actionWithInvalidMarkerName = {
+		type = actionTypes.EraseMarker,
+		parameters = {
+			name = 'invalidMarkerName',
+		},
+	},
+
+	actionWithInvalidWeaponDefName = {
+		type = actionTypes.SpawnExplosion,
+		parameters = {
+			weaponDefName = 'invalidWeaponDefName',
+			position = { x = 1500, z = 2200 },
+		},
+	},
+
+	actionWithNonExistentSoundfile = {
+		type = actionTypes.PlaySound,
+		parameters = {
+			soundfile = 'nonExistentSoundfile',
+		},
+	},
+
+	actionWithNonWavSoundfile = {
+		type = actionTypes.PlaySound,
+		parameters = {
+			soundfile = 'README.md',
+		},
+	},
 }
 
 return {

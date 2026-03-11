@@ -1,3 +1,4 @@
+local sounds = VFS.Include('luarules/mission_api/sounds.lua')
 local tracking = VFS.Include('luarules/mission_api/tracking.lua')
 local initializeTracking     = tracking.InitializeTracking
 local trackUnit              = tracking.TrackUnit
@@ -54,13 +55,13 @@ local function issueOrders(unitName, orders)
 	Spring.GiveOrderArrayToUnitArray(table.keys(trackedUnitIDs[unitName]), orders)
 end
 
-local function spawnUnits(unitName, unitDefName, teamID, position, quantity, facing, construction)
+local function spawnUnits(unitName, unitDefName, teamID, position, quantity, facing, construction, spacing)
 
-	if not UnitDefNames[unitDefName] then return end
+	spacing = spacing or 0
 
 	local unitDef = UnitDefs[UnitDefNames[unitDefName].id]
-	local xsize = unitDef.xsize * Game.squareSize
-	local zsize = unitDef.zsize * Game.squareSize
+	local xsize = unitDef.xsize * Game.squareSize + spacing
+	local zsize = unitDef.zsize * Game.squareSize + spacing
 
 	-- adjust for facing of non-square units
 	if facing == 'e' or facing == 'w' then
@@ -96,6 +97,7 @@ local function transferUnits(unitName, newTeam, given)
 
 	-- Copying table as UnitExists trigger with TransferUnits with the same name could cause infinite loop.
 	for unitID in pairs(table.copy(trackedUnitIDs[unitName])) do
+		local given = Spring.GetUnitAllyTeam(unitID) == Spring.GetTeamAllyTeamID(newTeam)
 		Spring.TransferUnit(unitID, newTeam, given)
 	end
 end
@@ -149,8 +151,6 @@ local function unnameUnits(unitName)
 	untrackUnitName(unitName)
 end
 
-----------------------------------------------------------------
-
 local function createFeature(featureDefName, position, featureName, facing)
 	if not FeatureDefNames[featureDefName] then return end
 
@@ -177,14 +177,66 @@ local function destroyFeature(featureName)
 	end
 end
 
-----------------------------------------------------------------
+local function spawnExplosion(weaponDefName, position, direction)
+	direction = direction or { x = 0, y = 0, z = 0 }
+	local weaponDef = WeaponDefNames[weaponDefName]
+	local params = {
+		weaponDef = weaponDef.id,
+		owner = -1,
+		damages = weaponDef.damages,
+		hitUnit = 1,
+		hitFeature = 1,
+		craterAreaOfEffect = weaponDef.craterAreaOfEffect,
+		damageAreaOfEffect = weaponDef.damageAreaOfEffect,
+		edgeEffectiveness = weaponDef.edgeEffectiveness,
+		explosionSpeed = weaponDef.explosionSpeed,
+		impactOnly = weaponDef.impactOnly,
+		ignoreOwner = weaponDef.noSelfDamage,
+		damageGround = true,
+	}
+	Spring.SpawnExplosion(position.x, position.y, position.z, direction.x, direction.y, direction.z, params)
+end
 
-local function spawnExplosion(position, direction, params)
-	spawnExplosion(position[1], position[2], position[3], direction[1], direction[2], direction[3], params)
+local function playSound(soundfile, volume, position, enqueue)
+	if enqueue then
+		sounds.EnqueueSound(soundfile, volume, position)
+	else
+		sounds.PlaySound(soundfile, volume, position)
+	end
 end
 
 local function sendMessage(message)
 	Spring.Echo(message)
+end
+
+local markerNames = {}
+local function addMarker(position, label, name)
+	if name then
+		markerNames[name] = position
+	end
+	Spring.MarkerAddPoint(position.x, position.y, position.z, label, false)
+end
+
+local function eraseMarker(name)
+	local position = markerNames[name]
+
+	if not position then return end
+
+	markerNames[name] = nil
+	Spring.MarkerErasePosition(position.x, position.y, position.z, nil, false, nil, true)
+end
+
+local function drawLines(positions)
+	for i = 1, #positions - 1 do
+		local pos1 = positions[i]
+		local pos2 = positions[i + 1]
+		Spring.MarkerAddLine(pos1.x, pos1.y, pos1.z, pos2.x, pos2.y, pos2.z, nil, false)
+	end
+end
+
+local function clearAllMarkers()
+	markerNames = {}
+	Spring.SendCommands("clearmapmarks")
 end
 
 local function victory(winningAllyTeamIDs)
@@ -233,7 +285,12 @@ return {
 	-- Map
 
 	-- Media
+	PlaySound = playSound,
 	SendMessage = sendMessage,
+	AddMarker = addMarker,
+	DrawLines = drawLines,
+	EraseMarker = eraseMarker,
+	ClearAllMarkers = clearAllMarkers,
 
 	-- Win Condition
 	Victory = victory,
