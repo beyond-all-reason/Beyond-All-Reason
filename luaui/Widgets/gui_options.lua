@@ -154,6 +154,7 @@ local chobbyInterface, font, font2, font3, backgroundGuishader, currentGroupTab,
 local groupRect, titleRect, countDownOptionID, countDownOptionClock, sceduleOptionApply, checkedForWaterAfterGamestart, checkedWidgetDataChanges
 local savedConfig, forceUpdate, sliderValueChanged, selectOptionsList, showSelectOptions, prevSelectHover
 local fontOption, draggingSlider, lastSliderSound, selectClickAllowHide
+local guishaderWasActive = false
 
 local glColor = gl.Color
 local glTexRect = gl.TexRect
@@ -1059,6 +1060,15 @@ function widget:Update(dt)
 	if sec2 > 0.5 then
 		sec2 = 0
 		continuouslyClean = Spring.GetConfigInt("ContinuouslyClearMapmarks", 0) == 1
+
+		-- detect guishader toggle: force refresh when it comes back on
+		local guishaderActive = WG['guishader'] ~= nil
+		if guishaderActive and not guishaderWasActive then
+			if backgroundGuishader then
+				backgroundGuishader = glDeleteList(backgroundGuishader)
+			end
+		end
+		guishaderWasActive = guishaderActive
 
 		-- make sure widget is enabled
 		if apiUnitTrackerEnabledCount < 10 and widgetHandler.orderList["API Unit Tracker DEVMODE GL4"] and widgetHandler.orderList["API Unit Tracker DEVMODE GL4"] < 0.5 then
@@ -3556,6 +3566,9 @@ function init()
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("MinimapIconScale", value)
 			  Spring.SendCommands("minimap unitsize " .. value)        -- spring wont remember what you set with '/minimap iconssize #'
+			  if WG['minimap'] and WG['minimap'].setBaseIconScale then
+				  WG['minimap'].setBaseIconScale(value)
+			  end
 		  end,
 		},
 		{ id = "minimap_minimized", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimapminimized'), type = "bool", value = Spring.GetConfigInt("MinimapMinimize", 0) == 1, description = Spring.I18N('ui.settings.option.minimapminimized_descr'),
@@ -3591,6 +3604,18 @@ function init()
 			  end
 		  end,
 		},
+		-- { id = "minimap_engine_fallback", group = "ui", category = types.advanced, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.pip_minimap_engine_fallback'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.pip_minimap_engine_fallback_descr'),
+		--   onload = function(i)
+		-- 	  if WG['minimap'] and WG['minimap'].getEngineMinimapFallback then
+		-- 		  options[getOptionByID('minimap_engine_fallback')].value = WG['minimap'].getEngineMinimapFallback()
+		-- 	  end
+		--   end,
+		--   onchange = function(i, value)
+		-- 	  if WG['minimap'] and WG['minimap'].setEngineMinimapFallback then
+		-- 		  WG['minimap'].setEngineMinimapFallback(value)
+		-- 	  end
+		--   end,
+		-- },
 
 
 		{ id = "pip", group = "ui", category = types.advanced, widget = "Picture-in-Picture", name = Spring.I18N('ui.settings.option.pip'), type = "bool", value = GetWidgetToggleValue("Picture-in-Picture"), description = Spring.I18N('ui.settings.option.pip_descr') },
