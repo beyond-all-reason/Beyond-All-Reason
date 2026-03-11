@@ -189,8 +189,8 @@ local function checkUnitEnteredLocation(trigger, triggerID)
 	end)
 	previousUnitsInAreas[triggerID] = unitsInArea
 
-	if not table.isNilOrEmpty(unitsEnteredArea) then
-		local x, y, z = Spring.GetUnitBasePosition(unitsEnteredArea[1])
+	for _, unitID in ipairs(unitsEnteredArea) do
+		local x, y, z = Spring.GetUnitBasePosition(unitID)
 		activateTrigger(trigger, { position = { x = x, y = y, z = z }})
 	end
 end
@@ -209,7 +209,7 @@ local function checkUnitLeftLocation(trigger, triggerID)
 	end)
 	previousUnitsInAreas[triggerID] = unitsInArea
 
-	if not table.isNilOrEmpty(unitsLeftArea) then
+	for _, unitID in ipairs(unitsLeftArea) do
 		activateTrigger(trigger)
 	end
 end
