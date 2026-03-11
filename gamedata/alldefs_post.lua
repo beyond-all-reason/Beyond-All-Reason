@@ -962,14 +962,14 @@ function UnitDef_Post(name, uDef)
 			if uDef.featuredefs.dead then
 				uDef.featuredefs.dead.damage = uDef.health
 				if uDef.metalcost and uDef.energycost then
-					uDef.featuredefs.dead.metal = math.floor(uDef.metalcost * 0.6)
+					uDef.featuredefs.dead.metal = math.floor(uDef.metalcost * modOptions.wreck_metal_ratio)
 				end
 			end
 			-- heaps
 			if uDef.featuredefs.heap then
 				uDef.featuredefs.heap.damage = uDef.health
 				if uDef.metalcost and uDef.energycost then
-					uDef.featuredefs.heap.metal = math.floor(uDef.metalcost * 0.25)
+					uDef.featuredefs.heap.metal = math.floor(uDef.metalcost * modOptions.heap_metal_ratio)
 				end
 			end
 		end
