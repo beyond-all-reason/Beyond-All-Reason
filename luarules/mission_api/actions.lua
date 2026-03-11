@@ -52,7 +52,7 @@ end
 local function issueOrders(unitName, orders)
     if isUnitNameUntracked(unitName) then return end
 
-	Spring.GiveOrderArrayToUnitArray(table.keys(trackedUnitIDs[unitName]), orders)
+	Spring.GiveOrderArrayToUnitMap(trackedUnitIDs[unitName], orders)
 end
 
 local function spawnUnits(unitName, unitDefName, teamID, position, quantity, facing, construction, spacing)
