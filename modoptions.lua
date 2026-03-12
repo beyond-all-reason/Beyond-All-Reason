@@ -900,6 +900,18 @@ local options = {
         section	= "scav_defense_options",
     },
 
+    {
+        key		= "scav_graceperiodmult",
+        name	= "Grace Period Time Multiplier",
+        desc	= "(Range: 0.1 - 3). Time before Scavs become active. ",
+        type	= "number",
+        def		= 1,
+        min		= 0.1,
+        max		= 3,
+        step	= 0.1,
+        section	= "scav_defense_options",
+    },
+
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     -- Extra Options
@@ -1561,7 +1573,7 @@ local options = {
             unlock = {"community_balance_commando", "community_balance_cortermite", "community_balance_armwar", "community_balance_armfast", "community_balance_corjamt"} },
         }
     },
-    
+
     {
         key     = "community_balance_patch_changelog_link",
         name    = "Changelog",
@@ -1874,6 +1886,16 @@ local options = {
     },
 
     {
+        key     = "forge_volcano",
+        name    = "Forge Volcano Event",
+        desc    = "Enable the cinematic volcano eruption event on Forge v2.3.",
+        type    = "bool",
+        hidden 	= true,
+        section = "options_experimental",
+        def     = false,
+    },
+
+    {
         key 	= "factory_costs",
         name 	= "Factory Costs Test Patch",
         desc 	= "Cheaper and more efficient factories, more expensive nanos, and slower to build higher-tech units. Experimental, not expected to be balanced by itself - a test to try how the game plays if each player is more able to afford their own T2 factory, while making assisting them less efficient.",
@@ -2180,7 +2202,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
         max		= 10000,
         step	= 1,
     },
-    
+
     {
         key		= "startmetalstorage",
         name	= "Starting Metal Storage",

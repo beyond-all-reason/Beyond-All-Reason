@@ -168,6 +168,23 @@ local unloadParams = { 0, 0, 0, 0 }  -- x, y, z, unitID
 local viewSelectionCmd = { "viewselection" }
 
 local function refreshUnitInfo()
+	local builderTraits = {
+		canBuild   = function(def) return def.isFactory or next(def.buildOptions) ~= nil end,
+		canAssist  = function(def) return not def.isFactory and def.canAssist end,
+		canCapture = function(def) return not def.isFactory and def.canCapture and def.buildDistance > 0 end,
+		canReclaim = function(def) return not def.isFactory and def.canReclaim and def.buildDistance > 0 end,
+		canRepair  = function(def) return not def.isFactory and def.canRepair and def.buildDistance > 0 end,
+		canRestore = function(def) return not def.isFactory and def.canRestore and def.buildDistance > 0 end,
+	}
+	local function hasBuilderTrait(def)
+		for trait, check in pairs(builderTraits) do
+			if check(def) then
+				return true
+			end
+		end
+		return false
+	end
+
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		unitDefInfo[unitDefID] = {}
 
@@ -266,7 +283,7 @@ local function refreshUnitInfo()
 		if unitDef.canStockpile then
 			unitDefInfo[unitDefID].canStockpile = true
 		end
-		if unitDef.buildSpeed > 0 then
+		if unitDef.buildSpeed > 0 and hasBuilderTrait(unitDef) then
 			unitDefInfo[unitDefID].buildSpeed = unitDef.buildSpeed
 		end
 		if unitDef.buildOptions[1] then
@@ -357,8 +374,18 @@ local function refreshUnitInfo()
 			local weaponDef = WeaponDefs[weapons[i].weaponDef]
 			if weaponDef.interceptor ~= 0 and weaponDef.coverageRange then
 				unitDefInfo[unitDefID].maxCoverage = math.max(unitDefInfo[unitDefID].maxCoverage or 1, weaponDef.coverageRange)
-			end
-			if weaponDef.damages then
+
+			elseif weaponDef.shieldRadius and weaponDef.shieldRadius > 0 then
+				if #weapons <= 1 then
+					unitDefInfo[unitDefID].weapons = {}
+					unitDefInfo[unitDefID].shieldOnly = true
+				end
+				unitDefInfo[unitDefID].shieldRange = weaponDef.shieldRadius
+				unitDefInfo[unitDefID].shieldCapacity = weaponDef.shieldPower
+				unitDefInfo[unitDefID].shieldRechargeRate = weaponDef.shieldPowerRegen
+				unitDefInfo[unitDefID].shieldRechargeCost = weaponDef.shieldPowerRegenEnergy
+
+			else
 				if unitDef.name == 'armamb' or unitDef.name == 'cortoast' then -- weapons with low/high traj, this list is incomplete
 					unitExempt = true
 					if i==1 then                                --Calculating using first weapon only
@@ -505,23 +532,6 @@ local function refreshUnitInfo()
 			end
 			if weapons[i].onlyTargets['vtol'] ~= nil then
 				unitDefInfo[unitDefID].isAaUnit = true
-			end
-
-			--shield params
-			if weaponDef.shieldRadius and weaponDef.shieldRadius > 0 then
-				if #weapons <= 1 then
-					unitDefInfo[unitDefID].weapons = {}
-					unitDefInfo[unitDefID].mindps = 0
-					unitDefInfo[unitDefID].maxdps = 0
-					unitDefInfo[unitDefID].range = 0
-					unitDefInfo[unitDefID].reloadTime = 0
-					unitDefInfo[unitDefID].mainWeapon = 1
-					unitDefInfo[unitDefID].shieldOnly = true
-				end
-				unitDefInfo[unitDefID].shieldRange = weaponDef.shieldRadius
-				unitDefInfo[unitDefID].shieldCapacity = weaponDef.shieldPower
-				unitDefInfo[unitDefID].shieldRechargeRate = weaponDef.shieldPowerRegen
-				unitDefInfo[unitDefID].shieldRechargeCost = weaponDef.shieldPowerRegenEnergy
 			end
 		end
 

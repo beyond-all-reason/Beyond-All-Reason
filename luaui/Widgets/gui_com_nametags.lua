@@ -394,6 +394,15 @@ local function CheckAllComs()
 			end
 		end
 	end
+
+	-- Pre-create display lists for any new or refreshed commanders
+	if commsChanged or colorChanged then
+		for unitID, attributes in pairs(comms) do
+			if attributes[1] and not comnameList[attributes[1]] then
+				createComnameList(attributes)
+			end
+		end
+	end
 end
 
 local sec = 0
@@ -632,6 +641,64 @@ function widget:Initialize()
 	end
 
 	CheckAllComs()
+
+	-- Pre-create nametag display lists for all player teams before game start
+	-- so there's no lag spike when commanders spawn in
+	for _, teamID in ipairs(spGetTeamList()) do
+		if teamID ~= GaiaTeam then
+			local playerRank
+			local name = ''
+			local luaAI = spGetTeamLuaAI(teamID)
+			if luaAI and luaAI ~= "" and stringFind(luaAI, 'Scavengers') then
+				name = Spring.I18N('units.scavCommanderNameTag')
+			elseif spGetGameRulesParam('ainame_' .. teamID) then
+				name = Spring.I18N('ui.playersList.aiName', { name = spGetGameRulesParam('ainame_' .. teamID) })
+			else
+				local players = spGetPlayerList(teamID)
+				local playersLen = players and #players or 0
+				if playersLen > 0 then
+					for i = 1, playersLen do
+						local pID = players[i]
+						local pname, active, isspec = spGetPlayerInfo(pID, false)
+						if active and not isspec then
+							pname = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(pID)) or pname
+							playerRank = select(9, spGetPlayerInfo(pID, false))
+							name = pname
+							break
+						end
+					end
+					if name == '' then
+						name = spGetPlayerInfo(players[1], false) or '------'
+						name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(players[1])) or name
+						playerRank = select(9, spGetPlayerInfo(players[1], false))
+					end
+				else
+					name = '------'
+				end
+			end
+
+			if name ~= '' and not comnameList[name] then
+				local r, g, b, a = spGetTeamColor(teamID)
+				local skill
+				if showSkillValue then
+					local playerID = select(2, spGetTeamInfo(teamID, false))
+					if playerID then
+						local customtable = select(11, spGetPlayerInfo(playerID))
+						if customtable and customtable.skill then
+							skill = customtable.skill
+							skill = skill and tonumber(skill:match("-?%d+%.?%d*")) or 0
+							skill = round(skill, 0)
+							if customtable.skilluncertainty and tonumber(customtable.skilluncertainty) > 6.65 then
+								skill = "??"
+							end
+						end
+					end
+				end
+				local attrs = { name, { r, g, b, a }, 0, { 0, 0, 0, 1 }, nil, playerRank and playerRank + 1, 0, skill }
+				createComnameList(attrs)
+			end
+		end
+	end
 end
 
 function widget:Shutdown()
