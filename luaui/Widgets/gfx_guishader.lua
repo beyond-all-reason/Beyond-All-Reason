@@ -26,8 +26,6 @@ local spGetViewGeometry = Spring.GetViewGeometry
 
 local uiOpacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 
-local defaultBlurIntensity = 1
-
 -- hardware capability
 local canShader = gl.CreateShader ~= nil
 
@@ -45,7 +43,6 @@ local stenciltexScreen
 
 local screenBlur = false
 
-local blurIntensity = defaultBlurIntensity
 local guishaderRects = {}
 local guishaderDlists = {}
 local guishaderScreenRects = {}
@@ -55,6 +52,8 @@ local updateStencilTextureScreen = false
 
 local oldvs = 0
 local vsx, vsy, vpx, vpy = spGetViewGeometry()
+local blurScale = 1
+local extraBlurPasses = 0
 
 function widget:ViewResize(_, _)
 	vsx, vsy, vpx, vpy = spGetViewGeometry()
@@ -70,6 +69,11 @@ function widget:ViewResize(_, _)
 
 	updateStencilTexture = true
 	updateStencilTextureScreen = true
+
+	-- Scale blur for high-resolution displays: gentle sqrt-based sample spread
+	-- plus additional blur passes to compound the effect without quality loss
+	blurScale = math.max(1.0, math.sqrt(vsy / 1080))
+	extraBlurPasses = math.min(3, math.max(0, math.floor(vsy / 1080 + 0.5) - 1))
 end
 
 local function DrawStencilTexture(world, fullscreen)
@@ -177,6 +181,7 @@ local function CreateShaders()
 		uniform sampler2D tex0;
 		uniform float ivsx;
 		uniform float ivsy;
+		uniform float blurScale;
 
 		void main(void)
 		{
@@ -190,7 +195,7 @@ local function CreateShaders()
 
 			// 9-sample weighted blur for smooth, high-quality results
 			vec4 sum = vec4(0.0);
-			vec2 offset = vec2(ivsx, ivsy) * 6.0;
+			vec2 offset = vec2(ivsx, ivsy) * 6.0 * blurScale;
 
 			// Center sample gets highest weight
 			sum += texture2D(tex0, texCoord) * 4.0;
@@ -216,9 +221,9 @@ local function CreateShaders()
 		#version 150 compatibility
 		uniform sampler2D tex2;
 		uniform sampler2D tex0;
-		uniform int intensity;
 		uniform float ivsx;
 		uniform float ivsy;
+		uniform float blurScale;
 
 		vec2 quadGetQuadVector(vec2 screenCoords){
 			vec2 quadVector =  fract(floor(screenCoords) * 0.5) * 4.0 - 1.0;
@@ -243,7 +248,7 @@ local function CreateShaders()
 					//subpixel *= 0.0;
 					for (int i = -1; i <= 1; ++i) {
 						for (int j = -1; j <= 1; ++j) {
-							vec2 samplingCoords = texCoord + vec2(i, j) * 6.0 * subpixel + subpixel;
+							vec2 samplingCoords = texCoord + vec2(i, j) * 6.0 * blurScale * subpixel + subpixel;
 							sum += texture2D(tex0, samplingCoords);
 						}
 					}
@@ -256,7 +261,7 @@ local function CreateShaders()
 					//subpixel *= 0.0;
 					for (int i = 0; i <= 1; ++i) {
 						for (int j = 0; j <= 1; ++j) {
-							vec2 samplingCoords = texCoord + vec2(i, j) * 6.0 * subpixel + subpixel;
+							vec2 samplingCoords = texCoord + vec2(i, j) * 6.0 * blurScale * subpixel + subpixel;
 							sum += texture2D(tex0, samplingCoords);
 						}
 					}
@@ -282,10 +287,10 @@ local function CreateShaders()
 			tex2 = 2,
 		},
 		uniformFloat = {
-			intensity = blurIntensity,
 			offset = 0,
 			ivsx = 0,
 			ivsy = 0,
+			blurScale = 1,
 		}
 	}, "guishader blurShader")
 
@@ -368,12 +373,20 @@ function widget:DrawScreenEffects() -- This blurs the world underneath UI elemen
 		gl.Texture(screencopy)
 		gl.Texture(2, stenciltex)
 		blurShader:Activate()
-			--blurShader:SetUniform("intensity", mathMax(blurIntensity, 0.0015))
 			blurShader:SetUniform("ivsx", 0.5/vsx)
 			blurShader:SetUniform("ivsy", 0.5/vsy)
-
-			gl.TexRect(0, vsy, vsx, 0) -- draw the blurred version
+			blurShader:SetUniform("blurScale", blurScale)
+			gl.TexRect(0, vsy, vsx, 0)
 		blurShader:Deactivate()
+
+		for i = 1, extraBlurPasses do
+			gl.CopyToTexture(screencopyUI, 0, 0, vpx, vpy, vsx, vsy)
+			gl.Texture(screencopyUI)
+			gl.Texture(2, stenciltex)
+			blurShader:Activate()
+				gl.TexRect(0, vsy, vsx, 0)
+			blurShader:Deactivate()
+		end
 
 		gl.Texture(2, false)
 		gl.Texture(false)
@@ -408,14 +421,24 @@ local function DrawScreen() -- This blurs the UI elements obscured by other UI e
 		gl.Texture(2, stenciltexScreen)
 
 		blurShader:Activate()
-			--blurShader:SetUniform("intensity", mathMax(blurIntensity, 0.0015))
 			blurShader:SetUniform("ivsx", 0.5/vsx)
 			blurShader:SetUniform("ivsy", 0.5/vsy)
-
-			gl.TexRect(0, vsy, vsx, 0) -- draw the blurred version
+			blurShader:SetUniform("blurScale", blurScale)
+			gl.TexRect(0, vsy, vsx, 0)
 		blurShader:Deactivate()
 		gl.Texture(2, false)
 		gl.Texture(false)
+
+		for i = 1, extraBlurPasses do
+			gl.CopyToTexture(screencopyUI, 0, 0, vpx, vpy, vsx, vsy)
+			gl.Texture(screencopyUI)
+			gl.Texture(2, stenciltexScreen)
+			blurShader:Activate()
+				gl.TexRect(0, vsy, vsx, 0)
+			blurShader:Deactivate()
+			gl.Texture(2, false)
+			gl.Texture(false)
+		end
 	end
 
 	for k, v in pairs(renderDlists) do
@@ -510,23 +533,6 @@ function widget:Initialize()
 		end
 		return found
 	end
-	WG['guishader'].getBlurDefault = function()
-		return defaultBlurIntensity
-	end
-	WG['guishader'].getBlurIntensity = function()
-		return blurIntensity
-	end
-	WG['guishader'].setBlurIntensity = function(value)
-		if value == nil then
-			value = defaultBlurIntensity
-		end
-		if tonumber(value) == nil then
-			spEcho("Attempted to set blurIntensity to a non-number:",value," resetting to default")
-			blurIntensity = defaultBlurIntensity
-		else
-			blurIntensity = value
-		end
-	end
 
 	WG['guishader'].setScreenBlur = function(value)
 		updateStencilTextureScreen = true
@@ -550,21 +556,6 @@ function widget:Initialize()
 
 	widgetHandler:RegisterGlobal('GuishaderInsertRect', WG['guishader'].InsertRect)
 	widgetHandler:RegisterGlobal('GuishaderRemoveRect', WG['guishader'].RemoveRect)
-end
-
-function widget:GetConfigData(data)
-	return { blurIntensity = blurIntensity }
-end
-
-function widget:SetConfigData(data)
-	if data.blurIntensity ~= nil then
-		if tonumber(data.blurIntensity) == nil then
-			spEcho("Attempted to set blurIntensity to a non-number:",data.blurIntensity," resetting to default")
-			blurIntensity = defaultBlurIntensity
-		else
-			blurIntensity = data.blurIntensity
-		end
-	end
 end
 
 function widget:RecvLuaMsg(msg, playerID)

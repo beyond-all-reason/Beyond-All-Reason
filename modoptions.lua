@@ -35,3 +35,4 @@ if not jsonOptionsFile then
 else
 	return Json.decode(jsonOptionsFile)
 end
+

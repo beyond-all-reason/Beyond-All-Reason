@@ -219,7 +219,7 @@ config = {
 	smoothCameraMarginCheap = 0.15,  -- Oversized texture margin for cheap layers (ground, water, LOS) — larger since rendering is cheap
 	pipFloorUpdateRate = 10,	-- Minimum update rate for PIP content when performance is poor (will be smoothly applied based on measured frame times)
 	pipMinUpdateRate = 30,		-- Minimum update rate for PIP content when zoomed out
-	pipMaxUpdateRate = 120,		-- Maximum update rate for PIP content when zoomed in
+	pipMaxUpdateRate = 100,		-- Maximum update rate for PIP content when zoomed in
 	pipZoomThresholdMin = 0.15,
 	pipZoomThresholdMax = 0.4,
 	pipTargetDrawTime = 0.0025,
@@ -250,6 +250,8 @@ config = {
 	showSpectatorPings = true,  -- Show map pings from spectators on the PIP minimap
 	showViewRectangleOnMinimap = false,  -- Show the PIP view rectangle on the engine minimap
 	showViewRectangleInWorld = false,  -- Show the PIP view rectangle as an outline in the 3D world
+	engineMinimapFallback = true,  -- Use engine minimap when fully zoomed out (performance fallback)
+	engineMinimapFallbackThreshold = 4000,  -- Unit count threshold before engine minimap fallback activates
 }
 
 -- State variables
@@ -482,7 +484,10 @@ local miscState = {
 	mapMarkers = {},  -- Table to store active map markers
 	minimapWidgetDisabled = false,  -- Whether we've disabled the old minimap widget (for minimap mode)
 	minimapCameraRestored = false,  -- Whether minimap camera state was restored from config (for luaui reload)
+	minimapRestoreAtMinZoom = false,  -- Whether the restored minimap camera was at minimum zoom (snap to recalculated min)
 	minimapMinimized = false,  -- Whether the minimap is hidden via MinimapMinimize config (minimap mode only)
+	engineMinimapActive = false,  -- Whether engine minimap fallback is currently rendering (tracks transitions)
+	baseMinimapIconScale = nil,  -- Saved MinimapIconScale before engine fallback density scaling modifies it
 	crashingUnits = {},  -- Units that are crashing (no icon should be drawn)
 	gameOverZoomingOut = false,  -- True while GameOver zoom-out animation is in progress
 	isGameOver = false,  -- True after GameOver callin fires (disables takeable blink etc.)
@@ -6912,6 +6917,35 @@ local function RegisterMinimapWGAPI()
 	WG['minimap'].setShowSpectatorPings = function(value)
 		config.showSpectatorPings = value
 	end
+	WG['minimap'].getEngineMinimapFallback = function()
+		return config.engineMinimapFallback
+	end
+	WG['minimap'].setEngineMinimapFallback = function(value)
+		config.engineMinimapFallback = value
+		if not value and miscState.engineMinimapActive then
+			-- Turning off fallback while engine minimap is showing: restore icon scale and re-minimize
+			if miscState.baseMinimapIconScale then
+				Spring.SendCommands("minimap unitsize " .. miscState.baseMinimapIconScale)
+				Spring.SetConfigFloat("MinimapIconScale", miscState.baseMinimapIconScale)
+				miscState.baseMinimapIconScale = nil
+			end
+			Spring.SendCommands("minimap minimize 1")
+			miscState.engineMinimapActive = false
+			pipR2T.contentNeedsUpdate = true
+			pipR2T.unitsNeedsUpdate = true
+		end
+	end
+	WG['minimap'].getEngineMinimapFallbackThreshold = function()
+		return config.engineMinimapFallbackThreshold
+	end
+	WG['minimap'].setEngineMinimapFallbackThreshold = function(value)
+		config.engineMinimapFallbackThreshold = value
+	end
+	WG['minimap'].setBaseIconScale = function(value)
+		if miscState.engineMinimapActive then
+			miscState.baseMinimapIconScale = value
+		end
+	end
 end
 
 function widget:Initialize()
@@ -7335,9 +7369,12 @@ if isMinimapMode then
 	-- Store original minimap geometry and minimize state for restoration on shutdown
 	miscState.oldMinimapGeometry = Spring.GetMiniMapGeometry()
 	miscState.oldMinimapMinimized = Spring.GetConfigInt("MinimapMinimize", 0)
+	miscState.oldMinimapDrawPings = Spring.GetConfigInt("MiniMapDrawPings", 1)
 	-- Fully hide the engine minimap: slave it so it only renders when we call gl.DrawMiniMap() (which we don't)
 	Spring.SendCommands("minimap minimize 1")
 	gl.SlaveMiniMap(true)
+	-- Disable engine minimap pings (the PIP draws its own)
+	Spring.SetConfigInt("MiniMapDrawPings", 0)
 	-- Disable the gui_minimap widget if it's running (we're replacing it)
 	-- Use FindWidget which works reliably during luaui reload
 	if widgetHandler:FindWidget("Minimap") then
@@ -7570,17 +7607,24 @@ function widget:ViewResize()
 		
 		-- Only set camera defaults if not restored from config (i.e., not a luaui reload)
 		if miscState.minimapCameraRestored then
-			-- Restored from config — scale zoom proportionally to PIP size change
-			-- so the same world area stays visible after window resize
-			if oldMinimapWidth and oldMinimapWidth > 0 and usedWidth ~= oldMinimapWidth then
-				local zoomScale = usedWidth / oldMinimapWidth
-				cameraState.zoom = cameraState.zoom * zoomScale
-				cameraState.targetZoom = cameraState.targetZoom * zoomScale
-			end
-			-- Ensure zoom isn't below minimum
-			if cameraState.zoom < fitZoom then
+			if miscState.minimapRestoreAtMinZoom then
+				-- Was at minimum zoom when saved — snap to current fitZoom regardless
+				-- of layout changes (topbar position may differ on re-enable)
 				cameraState.zoom = fitZoom
 				cameraState.targetZoom = fitZoom
+			else
+				-- Restored from config — scale zoom proportionally to PIP size change
+				-- so the same world area stays visible after window resize
+				if oldMinimapWidth and oldMinimapWidth > 0 and usedWidth ~= oldMinimapWidth then
+					local zoomScale = usedWidth / oldMinimapWidth
+					cameraState.zoom = cameraState.zoom * zoomScale
+					cameraState.targetZoom = cameraState.targetZoom * zoomScale
+				end
+				-- Ensure zoom isn't below minimum
+				if cameraState.zoom < fitZoom then
+					cameraState.zoom = fitZoom
+					cameraState.targetZoom = fitZoom
+				end
 			end
 		else
 			-- Not restored - set to fit full map
@@ -7824,6 +7868,15 @@ function widget:ViewResize()
 	pipR2T.contentNeedsUpdate = true
 	pipR2T.unitsNeedsUpdate = true
 
+	-- Update engine minimap geometry if fallback is currently active
+	if miscState.engineMinimapActive then
+		local w = render.dim.r - render.dim.l
+		local h = render.dim.t - render.dim.b
+		Spring.SendCommands(string.format("minimap geometry %d %d %d %d",
+			math.floor(render.dim.l), math.floor(render.vsy - render.dim.t),
+			math.floor(w), math.floor(h)))
+	end
+
 	-- Force several frames of re-rendering so engine textures ($minimap, $shading)
 	-- have time to become valid again after graphics preset / shadow changes
 	pipR2T.forceRefreshFrames = 5
@@ -8010,12 +8063,22 @@ function widget:Shutdown()
 	if isMinimapMode then
 		-- Release the engine minimap from slave mode
 		gl.SlaveMiniMap(false)
+		-- Restore original icon scale if engine fallback was active
+		if miscState.baseMinimapIconScale then
+			Spring.SendCommands("minimap unitsize " .. miscState.baseMinimapIconScale)
+			Spring.SetConfigFloat("MinimapIconScale", miscState.baseMinimapIconScale)
+			miscState.baseMinimapIconScale = nil
+		end
 		-- Restore original minimize state
 		if miscState.oldMinimapMinimized == 0 then
 			Spring.SendCommands("minimap minimize 0")
 		end
 		if miscState.oldMinimapGeometry then
 			Spring.SendCommands("minimap geometry " .. miscState.oldMinimapGeometry)
+		end
+		-- Restore original MiniMapDrawPings
+		if miscState.oldMinimapDrawPings then
+			Spring.SetConfigInt("MiniMapDrawPings", miscState.oldMinimapDrawPings)
 		end
 		-- Re-enable the gui_minimap widget if it exists
 		if widgetHandler.knownWidgets and widgetHandler.knownWidgets["Minimap"] then
@@ -8105,6 +8168,9 @@ function widget:GetConfigData()
 		minimapModeWcx = isMinimapMode and cameraState.wcx or nil,
 		minimapModeWcz = isMinimapMode and cameraState.wcz or nil,
 		minimapModeZoom = isMinimapMode and cameraState.zoom or nil,
+		minimapModeAtMinZoom = isMinimapMode and IsAtMinimumZoom(cameraState.zoom) or nil,
+		engineMinimapFallback = config.engineMinimapFallback,
+		engineMinimapFallbackThreshold = config.engineMinimapFallbackThreshold,
 		-- Ghost building positions persist across luaui reload (same game only)
 		ghostBuildings = ghostBuildings,
 	}
@@ -8225,6 +8291,7 @@ function widget:SetConfigData(data)
 				cameraState.zoom = data.minimapModeZoom
 				cameraState.targetZoom = cameraState.zoom
 				miscState.minimapCameraRestored = true  -- Flag that we restored camera state
+				miscState.minimapRestoreAtMinZoom = data.minimapModeAtMinZoom or false
 			end
 		end
 		-- If not same game, leave camera at defaults (centered, min zoom) set in Initialize
@@ -8252,6 +8319,8 @@ function widget:SetConfigData(data)
 	if data.drawComHealthBars ~= nil then config.drawComHealthBars = data.drawComHealthBars end
 	if data.activityFocusEnabled ~= nil then miscState.activityFocusEnabled = data.activityFocusEnabled end
 	if data.activityFocusIgnoreSpectators ~= nil then config.activityFocusIgnoreSpectators = data.activityFocusIgnoreSpectators end
+	if data.engineMinimapFallback ~= nil then config.engineMinimapFallback = data.engineMinimapFallback end
+	--if data.engineMinimapFallbackThreshold ~= nil then config.engineMinimapFallbackThreshold = data.engineMinimapFallbackThreshold end
 	if data.tvEnabled ~= nil then
 		-- Only restore TV mode if we're a spectator (or tvModeSpectatorsOnly is off)
 		if data.tvEnabled and config.tvModeSpectatorsOnly and not Spring.GetSpectatingState() then
@@ -9448,9 +9517,11 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	-- If valid, we skip writing localCachePosX/Z for buildings (saves ~3600 table writes).
 	-- Prediction uses previous frame's bCount/hash — if buildings didn't change last frame,
 	-- they almost certainly won't this frame either. Worst case: one extra rebuild.
+	-- At low zoom, extend forced rebuild interval (LOS changes less visible at full-map view)
+	local bldgBlockGameFrameLimit = cameraState.zoom < 0.15 and 90 or 30
 	local bldgBlockWillRebuild = useUnitpics
 		or not gl4Icons._bldgBlock
-		or (Spring.GetGameFrame() - (gl4Icons._bldgBlockFrame or 0)) >= 30
+		or (Spring.GetGameFrame() - (gl4Icons._bldgBlockFrame or 0)) >= bldgBlockGameFrameLimit
 	for i = 1, unitCount do
 		local uID = pipUnits[i]
 		-- Skip crashing units early
@@ -9534,16 +9605,9 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		table.sort(mobileIDs, gl4IconSortCmp)
 	end
 
-	-- Buildings: sort only when the visible set changes (positions are immutable).
-	-- Detected via count + additive hash of unit IDs — virtually collision-free.
+	-- Building sort deferred to the processing slow path (only needed when block cache
+	-- is rebuilt). Avoids wasting ~1.9ms on sort during fast-path cache-hit frames.
 	local bldgSortedCache = gl4Icons._bldgSortedCache
-	if bCount ~= gl4Icons._lastBldgCount or bldgHash ~= gl4Icons._lastBldgHash then
-		table.sort(buildingIDs, gl4IconSortCmp)
-		for i = 1, bCount do bldgSortedCache[i] = buildingIDs[i] end
-		bldgSortedCache[bCount + 1] = nil
-		gl4Icons._lastBldgCount = bCount
-		gl4Icons._lastBldgHash = bldgHash
-	end
 
 	local icT3 = os.clock()
 
@@ -9559,9 +9623,22 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		and bCount == gl4Icons._bldgBlockBCount
 		and bldgHash == gl4Icons._bldgBlockHash
 		and checkAllyTeamID == gl4Icons._bldgBlockCheckAlly  -- LOS filtering context changed
-		and (currentGameFrame - (gl4Icons._bldgBlockFrame or 0)) < 30
+		and (currentGameFrame - (gl4Icons._bldgBlockFrame or 0)) < bldgBlockGameFrameLimit
 		and not useUnitpics  -- unitpic collection needs per-unit data
 		and not gl4Icons._bldgBlockBuiltDuringUnitpics  -- block built with 0 icons during unitpics is invalid
+
+	-- Building block stale-cache tolerance: at high building counts, accept stale cache
+	-- when only the building set changed (camera panning edges). This prevents constant
+	-- ~3ms rebuilds every frame. Rebuilds are throttled to 1 per 5 render frames.
+	gl4Icons._bldgRenderFrame = (gl4Icons._bldgRenderFrame or 0) + 1
+	if not bldgBlockValid and bldgBlock and bCount > 3000
+		and checkAllyTeamID == gl4Icons._bldgBlockCheckAlly
+		and (currentGameFrame - (gl4Icons._bldgBlockFrame or 0)) < bldgBlockGameFrameLimit
+		and not useUnitpics
+		and not gl4Icons._bldgBlockBuiltDuringUnitpics
+		and (gl4Icons._bldgRenderFrame - (gl4Icons._bldgBlockRebuildRenderFrame or 0)) < 5 then
+		bldgBlockValid = true  -- reuse stale cache despite count/hash mismatch
+	end
 
 	local preProcessEl = usedElements
 
@@ -9641,6 +9718,20 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		end
 	else
 		-- Slow path: process each building individually, build block cache
+
+		-- Deferred building sort: only sort when actually rebuilding the block.
+		-- Skip sort entirely at >3000 buildings — z-ordering is cosmetic at this density.
+		local bldgSetChanged = bCount ~= gl4Icons._lastBldgCount or bldgHash ~= gl4Icons._lastBldgHash
+		if bldgSetChanged then
+			if bCount <= 3000 then
+				table.sort(buildingIDs, gl4IconSortCmp)
+			end
+			for i = 1, bCount do bldgSortedCache[i] = buildingIDs[i] end
+			bldgSortedCache[bCount + 1] = nil
+			gl4Icons._lastBldgCount = bCount
+			gl4Icons._lastBldgHash = bldgHash
+		end
+
 		local bldgIdx = gl4Icons._bldgBlockIdx
 		if not bldgIdx then
 			bldgIdx = {}
@@ -9687,6 +9778,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		gl4Icons._bldgBlockHash = bldgHash
 		gl4Icons._bldgBlockCheckAlly = checkAllyTeamID
 		gl4Icons._bldgBlockFrame = currentGameFrame
+		gl4Icons._bldgBlockRebuildRenderFrame = gl4Icons._bldgRenderFrame
 		gl4Icons._bldgBlockBuiltDuringUnitpics = useUnitpics  -- block has 0 icons when unitpics active
 	end
 	local icT3b = os.clock()
@@ -11625,40 +11717,60 @@ local function DrawCameraViewBounds()
 	-- Get camera position for ray origin
 	local camX, camY, camZ = Spring.GetCameraPosition()
 	
-	-- Get camera look-at ground height for a flat reference plane
-	-- Use ground height at the camera's XZ position (clamped to map) for a reasonable estimate
-	local lookX = math.max(0, math.min(camX, Game.mapSizeX))
-	local lookZ = math.max(0, math.min(camZ, Game.mapSizeZ))
-	local groundY = spFunc.GetGroundHeight(lookX, lookZ) or 0
-	if groundY < 0 then groundY = 0 end
+	-- Trace screen center to find ground Y (matches engine's TraceRay::GuiTraceRay at screen center)
+	local groundY
+	local _, centerPos = Spring.TraceScreenRay(math.floor(vsx / 2), math.floor(vsy / 2), true)
+	if centerPos then
+		groundY = centerPos[2]
+	else
+		-- Fallback: average ground height (matches engine's readMap->GetCurrAvgHeight())
+		groundY = (mapInfo.minGroundHeight + mapInfo.maxGroundHeight) / 2
+	end
 	
-	-- Helper function to intersect a screen pixel ray with a flat plane at groundY
-	-- Gives correct scale without terrain-induced skewing, works off-map
+	-- Intersect screen corner rays with horizontal plane at groundY
+	-- Matches engine's MiniMap::DrawCameraFrustumAndMouseSelection() algorithm:
+	-- t = (groundY - camY) / dirY; if t < 0: t = 1 - t (behind-camera reflection)
+	local farDist = 50000  -- reference distance for behind-camera projection scaling
+	local negCount = 0
 	local function screenToGround(sx, sy)
 		local dirX, dirY, dirZ = Spring.GetPixelDir(sx, sy)
 		
-		if dirY >= 0 then
-			local farDist = 50000
+		-- Compute intersection parameter with groundY plane
+		-- Use farDist-scaled direction so t=1 means the far reference point (like engine's frustum vert)
+		local scaledDirY = dirY * farDist
+		local t
+		if math.abs(scaledDirY) < 0.001 then
+			-- Near-horizontal ray: project to far distance
+			negCount = negCount + 1
 			return camX + dirX * farDist, camZ + dirZ * farDist
 		end
 		
-		local t = -(camY - groundY) / dirY
+		t = (groundY - camY) / scaledDirY
 		if t < 0 then
-			local farDist = 50000
-			return camX + dirX * farDist, camZ + dirZ * farDist
+			negCount = negCount + 1
+			t = 1 - t  -- engine's behind-camera reflection: project past far reference point
 		end
 		
-		return camX + dirX * t, camZ + dirZ * t
+		return camX + dirX * farDist * t, camZ + dirZ * farDist * t
 	end
 	
 	-- Use inset from edges to avoid issues at exact corners
 	local inset = 1
 	
-	-- Get world coordinates for all 4 screen corners by tracing against terrain
+	-- Get world coordinates for all 4 screen corners
 	local bottomLeftX, bottomLeftZ = screenToGround(inset, inset)
 	local bottomRightX, bottomRightZ = screenToGround(vsx - inset, inset)
 	local topRightX, topRightZ = screenToGround(vsx - inset, vsy - inset)
 	local topLeftX, topLeftZ = screenToGround(inset, vsy - inset)
+	
+	-- All 4 corners behind camera: draw small box around camera XZ (matches engine fallback)
+	if negCount >= 4 then
+		local bias = 16  -- 16 elmos, matches engine's small box
+		bottomLeftX, bottomLeftZ = camX - bias, camZ - bias
+		bottomRightX, bottomRightZ = camX + bias, camZ - bias
+		topRightX, topRightZ = camX + bias, camZ + bias
+		topLeftX, topLeftZ = camX - bias, camZ + bias
+	end
 	
 	-- Don't clamp to map bounds - let the view representation extend off the map
 	-- This fixes the "sticking to edges" issue
@@ -14464,9 +14576,53 @@ function widget:DrawScreen()
 	UpdateR2TFrame(pipWidth, pipHeight)
 
 	----------------------------------------------------------------------------------------------------
+	-- Engine minimap fallback: when enabled and fully zoomed out with many units, draw engine minimap instead of PIP
+	----------------------------------------------------------------------------------------------------
+	local useEngineMinimapFallback = isMinimapMode and config.engineMinimapFallback
+		and #miscState.pipUnits > config.engineMinimapFallbackThreshold
+		and IsAtMinimumZoom(cameraState.zoom) and IsAtMinimumZoom(cameraState.targetZoom)
+		and not interactionState.trackingPlayerID and not miscState.tvEnabled
+
+	if useEngineMinimapFallback then
+		-- Transition: PIP → engine minimap
+		if not miscState.engineMinimapActive then
+			miscState.baseMinimapIconScale = Spring.GetConfigFloat("MinimapIconScale", 3.5)
+			Spring.SendCommands("minimap minimize 0")
+			gl.SlaveMiniMap(true)
+			Spring.SendCommands(string.format("minimap geometry %d %d %d %d",
+				math.floor(render.dim.l), math.floor(render.vsy - render.dim.t),
+				math.floor(pipWidth), math.floor(pipHeight)))
+			miscState.engineMinimapActive = true
+		end
+		-- Apply density-scaled icon size for engine minimap
+		if config.iconDensityScaling and miscState.baseMinimapIconScale then
+			local totalUnits = #miscState.pipUnits
+			local unitFraction = math.min(totalUnits / config.iconDensityMaxUnits, 1.0)
+			local densityScale = 1.0 - (1.0 - config.iconDensityMinScale) * unitFraction
+			Spring.SendCommands("minimap unitsize " .. (miscState.baseMinimapIconScale * densityScale))
+		end
+		-- Draw the engine minimap
+		gl.DrawMiniMap()
+	else
+		-- Transition: engine minimap → PIP
+		if miscState.engineMinimapActive then
+			-- Restore original icon scale
+			if miscState.baseMinimapIconScale then
+				Spring.SendCommands("minimap unitsize " .. miscState.baseMinimapIconScale)
+				Spring.SetConfigFloat("MinimapIconScale", miscState.baseMinimapIconScale)
+				miscState.baseMinimapIconScale = nil
+			end
+			Spring.SendCommands("minimap minimize 1")
+			miscState.engineMinimapActive = false
+			pipR2T.contentNeedsUpdate = true
+			pipR2T.unitsNeedsUpdate = true
+		end
+	end
+
+	----------------------------------------------------------------------------------------------------
 	-- Units, features, and queues (using render-to-texture for performance)
 	----------------------------------------------------------------------------------------------------
-	if gl.R2tHelper then
+	if gl.R2tHelper and not useEngineMinimapFallback then
 		local currentTime = os.clock()
 		local dynamicUpdateRate = CalculateDynamicUpdateRate()
 		local pipUpdateInterval = dynamicUpdateRate > 0 and (1 / dynamicUpdateRate) or 0
@@ -14793,7 +14949,10 @@ function widget:DrawScreen()
 		end
 
 		-- Draw camera view bounds OUTSIDE the rotation matrix so it can pixel-align after rotation
-		DrawCameraViewBounds()
+		-- Skip when engine minimap fallback is active (engine draws its own camera frustum)
+		if not miscState.engineMinimapActive then
+			DrawCameraViewBounds()
+		end
 
 		gl.Scissor(false)
 	end
@@ -15365,8 +15524,10 @@ function widget:Update(dt)
 		local wantMinimized = Spring.GetConfigInt("MinimapMinimize", 0) == 1
 		if wantMinimized ~= miscState.minimapMinimized then
 			miscState.minimapMinimized = wantMinimized
-			-- Always keep the engine minimap minimized (we replace it)
-			Spring.SendCommands("minimap minimize 1")
+			-- Keep engine minimap minimized unless fallback is active (we replace it)
+			if not miscState.engineMinimapActive then
+				Spring.SendCommands("minimap minimize 1")
+			end
 			-- Update guishader blur: remove when hidden, re-add when shown
 			if wantMinimized then
 				if WG['guishader'] then

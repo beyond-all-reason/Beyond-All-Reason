@@ -96,6 +96,7 @@ local uiElementRects = {}
 local tooltipAreas = {}
 local guishaderRects = {}
 local guishaderRectsDlists = {}
+local guishaderWasActive = false
 local lastTextListUpdate = os.clock() - 10
 local lastBarsUpdate = os.clock() - 10
 local gamestarted = false
@@ -1467,6 +1468,14 @@ function widget:Update(dt)
 		lastTextListUpdate = 0
 	end
 	prevTopbar = WG['topbar'] ~= nil and true or false
+
+	-- detect guishader widget being toggled back on
+	local guishaderNow = WG['guishader'] ~= nil
+	if guishaderNow and not guishaderWasActive then
+		guishaderRectsDlists = {}
+		refreshTeamCompositionList = true
+	end
+	guishaderWasActive = guishaderNow
 end
 
 function widget:DrawScreen()
