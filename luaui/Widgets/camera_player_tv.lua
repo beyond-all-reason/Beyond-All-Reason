@@ -85,6 +85,7 @@ end
 
 local font, font2, lockPlayerID, prevLockPlayerID, toggleButton, toggleButton2, toggleButton3, backgroundGuishader, showBackgroundGuishader, scheduledSpecFullView, desiredLosmode
 local RectRound, elementCorner, bgpadding
+local guishaderWasActive = false
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
@@ -480,6 +481,14 @@ function widget:Update(dt)
 		toggled2 = false
 		updateDrawing = true
 	end
+
+	-- detect guishader toggle: force refresh when it comes back on
+	local guishaderActive = WG['guishader'] ~= nil
+	if guishaderActive and not guishaderWasActive then
+		showBackgroundGuishader = nil
+		updateDrawing = true
+	end
+	guishaderWasActive = guishaderActive
 
 	updatePosition()
 

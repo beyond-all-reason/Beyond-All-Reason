@@ -26,8 +26,6 @@ local spGetViewGeometry = Spring.GetViewGeometry
 
 local uiOpacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 
-local defaultBlurIntensity = 1
-
 -- hardware capability
 local canShader = gl.CreateShader ~= nil
 
@@ -45,7 +43,6 @@ local stenciltexScreen
 
 local screenBlur = false
 
-local blurIntensity = defaultBlurIntensity
 local guishaderRects = {}
 local guishaderDlists = {}
 local guishaderScreenRects = {}
@@ -224,7 +221,6 @@ local function CreateShaders()
 		#version 150 compatibility
 		uniform sampler2D tex2;
 		uniform sampler2D tex0;
-		uniform int intensity;
 		uniform float ivsx;
 		uniform float ivsy;
 		uniform float blurScale;
@@ -291,7 +287,6 @@ local function CreateShaders()
 			tex2 = 2,
 		},
 		uniformFloat = {
-			intensity = blurIntensity,
 			offset = 0,
 			ivsx = 0,
 			ivsy = 0,
@@ -538,23 +533,6 @@ function widget:Initialize()
 		end
 		return found
 	end
-	WG['guishader'].getBlurDefault = function()
-		return defaultBlurIntensity
-	end
-	WG['guishader'].getBlurIntensity = function()
-		return blurIntensity
-	end
-	WG['guishader'].setBlurIntensity = function(value)
-		if value == nil then
-			value = defaultBlurIntensity
-		end
-		if tonumber(value) == nil then
-			spEcho("Attempted to set blurIntensity to a non-number:",value," resetting to default")
-			blurIntensity = defaultBlurIntensity
-		else
-			blurIntensity = value
-		end
-	end
 
 	WG['guishader'].setScreenBlur = function(value)
 		updateStencilTextureScreen = true
@@ -578,21 +556,6 @@ function widget:Initialize()
 
 	widgetHandler:RegisterGlobal('GuishaderInsertRect', WG['guishader'].InsertRect)
 	widgetHandler:RegisterGlobal('GuishaderRemoveRect', WG['guishader'].RemoveRect)
-end
-
-function widget:GetConfigData(data)
-	return { blurIntensity = blurIntensity }
-end
-
-function widget:SetConfigData(data)
-	if data.blurIntensity ~= nil then
-		if tonumber(data.blurIntensity) == nil then
-			spEcho("Attempted to set blurIntensity to a non-number:",data.blurIntensity," resetting to default")
-			blurIntensity = defaultBlurIntensity
-		else
-			blurIntensity = data.blurIntensity
-		end
-	end
 end
 
 function widget:RecvLuaMsg(msg, playerID)
