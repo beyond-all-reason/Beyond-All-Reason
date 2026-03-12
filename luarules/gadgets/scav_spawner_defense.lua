@@ -340,6 +340,7 @@ if gadgetHandler:IsSyncedCode() then
 	local minWaveSize = ((config.minScavs*(1-config.scavPerPlayerMultiplier))+(config.minScavs*config.scavPerPlayerMultiplier)*SetCount(humanTeams))*config.scavSpawnMultiplier
 	local currentMaxWaveSize = minWaveSize
 	local endlessLoopCounter = 1
+	local pastFirstBoss = false
 	function updateDifficultyForSurvival()
 		t = GetGameSeconds()
 		config.gracePeriod = t-1
@@ -2042,8 +2043,12 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				currentMaxWaveSize = math.ceil((minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))*(config.bossFightWaveSizeScale*0.01))
 			end
-
-			techAnger = (t - config.gracePeriodInitial) / ((bossTime/(Spring.GetModOptions().scav_bosstimemult)) - config.gracePeriodInitial) * 100
+			if pastFirstBoss or Spring.GetModOptions().scav_graceperiodmult <= 1 then
+				techAnger = (t - config.gracePeriodInitial) / ((bossTime/(Spring.GetModOptions().scav_bosstimemult)) - config.gracePeriodInitial) * 100
+			else
+				techAnger = (t - (config.gracePeriodInitial/Spring.GetModOptions().scav_graceperiodmult)) / ((bossTime/(Spring.GetModOptions().scav_bosstimemult)) - (config.gracePeriodInitial/Spring.GetModOptions().scav_graceperiodmult)) * 100
+			end
+			--techAnger = (t - config.gracePeriodInitial) / ((bossTime/(Spring.GetModOptions().scav_bosstimemult)) - config.gracePeriodInitial) * 100
 			techAnger = math.ceil(techAnger*((config.economyScale*0.5)+0.5))
 			techAnger = math.clamp(techAnger, 0, 999)
 
