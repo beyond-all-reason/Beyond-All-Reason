@@ -263,7 +263,7 @@
 			"manual_targeting": "Manual Targeting",
 			"auto_targeting": "Auto Targeting",
 			"bomber_targeting": "Targeting",
-			"bomber_targeting_tooltip": "Manual: bomber does not attack with an explicit order. Auto: bomber uses fire-at-will and keeps maneuvering to attack auto selected targets.",
+			"bomber_targeting_tooltip": "Manual: Only attack with an explicit order. Auto: Idle bombers will seek targets within range.",
 			"Repeat on": "Repeat On",
 			"Repeat off": "Repeat Off",
 			"repeat_tooltip": "Repeat unit command queue",
