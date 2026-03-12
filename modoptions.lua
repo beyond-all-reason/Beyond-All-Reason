@@ -74,6 +74,7 @@ local options = {
         desc   	= "Allow custom user widgets or disallow them",
         type   	= "bool",
         def    	= true,
+		hidden	= true,
         section	= "options_main",
     },
 
