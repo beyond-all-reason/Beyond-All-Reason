@@ -75,6 +75,7 @@ local doUpdate = true
 local groupButtons = {}
 
 local font, font2, buildmenuBottomPosition, dlist, dlistGuishader, backgroundRect, ordermenuPosY
+local guishaderWasActive = false
 local buildmenuAlwaysShow = false
 local buildmenuShowingPosY = 0
 
@@ -655,6 +656,13 @@ function widget:Update(dt)
 		end
 
 		doUpdate = true	-- TODO: find a way to detect group changes and only doUpdate then
+
+		-- detect guishader toggle: force refresh when it comes back on
+		local guishaderActive = WG['guishader'] ~= nil
+		if guishaderActive and not guishaderWasActive then
+			checkGuishader(true)
+		end
+		guishaderWasActive = guishaderActive
 	elseif hovered and sec2 > 0.05 then
 		sec2 = 0
 		doUpdate = true
