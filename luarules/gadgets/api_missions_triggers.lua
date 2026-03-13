@@ -73,11 +73,13 @@ local function getUnitsInArea(trigger)
 	local area = trigger.parameters.area
 	local teamID = trigger.parameters.teamID
 	local unitsInArea = {}
+
 	if area.x1 and area.z1 and area.x2 and area.z2 then
 		unitsInArea = Spring.GetUnitsInRectangle(area.x1, area.z1, area.x2, area.z2, teamID)
 	elseif area.x and area.z and area.radius then
 		unitsInArea = Spring.GetUnitsInCylinder(area.x, area.z, area.radius, teamID)
 	end
+
 	return unitsInArea
 end
 
@@ -99,6 +101,7 @@ local function checkUnitExists(trigger, unitDefID, teamID)
 	if trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
 		return
 	end
+
 	local requiredTeamID = trigger.parameters.teamID
 	local requiredQuantity = trigger.parameters.quantity
 	if requiredTeamID then
@@ -108,6 +111,7 @@ local function checkUnitExists(trigger, unitDefID, teamID)
 			return
 		end
 	end
+
 	if requiredQuantity then
 		local count = 0
 		for _, allyTeamID in pairs(Spring.GetAllyTeamList()) do
@@ -119,6 +123,7 @@ local function checkUnitExists(trigger, unitDefID, teamID)
 			return
 		end
 	end
+
 	activateTrigger(trigger)
 end
 
@@ -152,7 +157,6 @@ local function checkUnitCaptured(trigger, unitID, unitDefID, oldTeam, newTeam)
 end
 
 local function checkUnitResurrected(trigger, unitDefID, unitTeam, builderID)
-	-- same res check as in https://github.com/beyond-all-reason/Beyond-All-Reason/blob/ff188bda741e1320d4f52e89f1098f55bc1d56e2/luarules/gadgets/unit_resurrected.lua#L63
 	if not builderID then
 		return
 	end
@@ -176,10 +180,6 @@ end
 
 local previousUnitsInAreas = {}
 local function checkUnitEnteredLocation(trigger, triggerID)
-	if not isTriggerValid(trigger) then
-		return
-	end
-
 	local unitsInArea = getUnitsInArea(trigger)
 
 	local unitsEnteredArea = table.filterArray(unitsInArea, function(unitID)
@@ -195,10 +195,6 @@ local function checkUnitEnteredLocation(trigger, triggerID)
 end
 
 local function checkUnitLeftLocation(trigger, triggerID)
-	if not isTriggerValid(trigger) then
-		return
-	end
-
 	local unitsInArea = getUnitsInArea(trigger)
 
 	local unitsLeftArea = table.filterArray(previousUnitsInAreas[triggerID] or {}, function(unitID)
@@ -315,6 +311,7 @@ function gadget:GameFrame(frameNumber)
 	processTriggersOfType(types.TimeElapsed, function(trigger, _)
 		checkTimeElapsed(trigger, frameNumber)
 	end)
+
 	if frameNumber % unitLocationCheckInterval == 0 then
 		processTriggersOfType(types.UnitEnteredLocation, function(trigger, triggerID)
 			checkUnitEnteredLocation(trigger, triggerID)
@@ -345,6 +342,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	processTriggersOfType(types.UnitResurrected, function(trigger, _)
 		checkUnitResurrected(trigger, unitDefID, unitTeam, builderID)
 	end)
+
 	processTriggersOfType(types.ConstructionStarted, function(trigger, _)
 		checkConstructionStarted(trigger, unitID, unitDefID, unitTeam)
 	end)
@@ -354,6 +352,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, _, _, _)
 	processTriggersOfType(types.UnitKilled, function(trigger, _)
 		checkUnitRemoved(trigger, unitID, unitDefID, unitTeam)
 	end)
+
 	untrackUnitID(unitID)
 end
 

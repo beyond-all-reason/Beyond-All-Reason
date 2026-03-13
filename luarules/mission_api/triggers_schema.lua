@@ -103,6 +103,7 @@ local parameters = {
 			required = false,
 			type = Types.TeamID
 		},
+		requiresOneOf = { 'unitName', 'unitDefName' }
 	},
 	[triggerTypes.UnitKilled] = {
 		[1] = {
@@ -120,6 +121,7 @@ local parameters = {
 			required = false,
 			type = Types.TeamID
 		},
+		requiresOneOf = { 'unitName', 'unitDefName' }
 	},
 	[triggerTypes.UnitCaptured] = {
 		[1] = {
@@ -142,6 +144,7 @@ local parameters = {
 			required = false,
 			type = Types.TeamID
 		},
+		requiresOneOf = { 'unitName', 'unitDefName' }
 	},
 	[triggerTypes.UnitResurrected] = {
 		[1] = {
@@ -159,6 +162,7 @@ local parameters = {
 			required = false,
 			type = Types.TeamID
 		},
+		requiresOneOf = { 'featureName', 'unitDefName' }
 	},
 	[triggerTypes.UnitEnteredLocation] = {
 		[1] = {
@@ -184,6 +188,7 @@ local parameters = {
 			required = false,
 			type = Types.UnitDefName
 		},
+		requiresOneOf = { 'unitName', 'unitDefName' }
 	},
 	[triggerTypes.UnitLeftLocation] = {
 		[1] = {
@@ -209,6 +214,7 @@ local parameters = {
 			required = false,
 			type = Types.UnitDefName
 		},
+		requiresOneOf = { 'unitName', 'unitDefName' }
 	},
 	[triggerTypes.UnitDwellLocation] = {
 		[1] = {
@@ -240,6 +246,7 @@ local parameters = {
 			required = false,
 			type = Types.UnitDefName
 		},
+		requiresOneOf = { 'unitName', 'unitDefName' }
 	},
 	[triggerTypes.UnitSpotted] = {
 		[1] = {
@@ -264,6 +271,7 @@ local parameters = {
 			required = false,
 			type = Types.UnitDefName
 		},
+		requiresOneOf = { 'unitName', 'unitDefName' }
 	},
 	[triggerTypes.UnitUnspotted] = {
 		[1] = {
@@ -288,6 +296,7 @@ local parameters = {
 			required = false,
 			type = Types.UnitDefName
 		},
+		requiresOneOf = { 'unitName', 'unitDefName' }
 	},
 	[triggerTypes.ConstructionStarted] = {
 		[1] = {
@@ -297,7 +306,7 @@ local parameters = {
 		},
 		[2] = {
 			name = 'unitDefName',
-			required = false,
+			required = true,
 			type = Types.UnitDefName
 		},
 	 },
