@@ -346,7 +346,9 @@ function gadget:Update(dt)
 end
 
 function gadget:DrawWorld()
-	if #pings == 0 then return end
+	if #pings == 0 or Spring.IsGUIHidden() then
+		return
+	end
 
 	glDepthTest(false)
 

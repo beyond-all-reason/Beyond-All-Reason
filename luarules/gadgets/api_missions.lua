@@ -14,6 +14,9 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+local sounds = VFS.Include('luarules/mission_api/sounds.lua')
+
+local scriptPath
 local triggersController, actionsController
 local missionUnitLoadout, missionFeatureLoadout
 
@@ -25,27 +28,19 @@ local function loadMission(scriptPath)
 	GG['MissionAPI'].Triggers = triggersController.ProcessRawTriggers(rawTriggers, rawActions)
 	GG['MissionAPI'].Actions = actionsController.ProcessRawActions(rawActions)
 
-	local validation   = VFS.Include('luarules/mission_api/validation.lua')
-	local triggerTypes = GG['MissionAPI'].TriggerTypes
-	local actionTypes  = GG['MissionAPI'].ActionTypes
-	local triggers     = GG['MissionAPI'].Triggers
-	local actions      = GG['MissionAPI'].Actions
-
-	missionUnitLoadout    = mission.UnitLoadout
-	missionFeatureLoadout = mission.FeatureLoadout
-
-	validation.ValidateLoadouts(missionUnitLoadout, missionFeatureLoadout)
-	validation.ValidateUnitNameReferences(triggerTypes, actionTypes, triggers, actions, missionUnitLoadout)
-	validation.ValidateFeatureNameReferences(triggerTypes, actionTypes, triggers, actions, missionFeatureLoadout)
+	local validateReferences = VFS.Include('luarules/mission_api/validation.lua').ValidateReferences
+	validateReferences()
 end
 
 function gadget:Initialize()
 	-- TODO: Actually pass script path
-	local scriptPath = 'mission-api-tests/validation_test.lua'
+	--local scriptPath = 'mission-api-tests/validation_test.lua'
 	--local scriptPath = 'mission-api-tests/test_mission.lua'
 	--local scriptPath = 'mission-api-tests/unit_triggers_test.lua'
 	--local scriptPath = 'mission-api-tests/feature_triggers_test.lua'
-	--local scriptPath = 'mission-api-tests/loadout_test.lua'
+	--local scriptPath = 'mission-api-tests/markers_test.lua'
+	--local scriptPath = 'mission-api-tests/sound_test.lua'
+	local scriptPath = 'mission-api-tests/loadout_test.lua'
 
 	if not scriptPath then
 		gadgetHandler:RemoveGadget()
@@ -63,6 +58,8 @@ function gadget:Initialize()
 	GG['MissionAPI'].trackedUnitNames    = {}
 	GG['MissionAPI'].trackedFeatureIDs   = {}
 	GG['MissionAPI'].trackedFeatureNames = {}
+	GG['MissionAPI'].soundFiles          = {}
+	GG['MissionAPI'].soundQueue          = {}
 
 	triggersController = VFS.Include('luarules/mission_api/triggers_loader.lua')
 	actionsController = VFS.Include('luarules/mission_api/actions_loader.lua')
@@ -89,6 +86,10 @@ function gadget:GamePreload()
 	local loadoutModule = VFS.Include('luarules/mission_api/loadout.lua')
 	loadoutModule.SpawnUnitLoadout(missionUnitLoadout, tracking.TrackUnit)
 	loadoutModule.SpawnFeatureLoadout(missionFeatureLoadout, tracking.TrackFeature)
+end
+
+function gadget:GameFrame(frameNumber)
+	sounds.ProcessSoundQueue(frameNumber)
 end
 
 function gadget:Shutdown()
