@@ -16,9 +16,7 @@ end
 
 local sounds = VFS.Include('luarules/mission_api/sounds.lua')
 
-local scriptPath
 local triggersController, actionsController
-local missionUnitLoadout, missionFeatureLoadout
 
 local function loadMission(scriptPath)
 	local mission = VFS.Include("singleplayer/" .. scriptPath)
@@ -27,6 +25,8 @@ local function loadMission(scriptPath)
 
 	GG['MissionAPI'].Triggers = triggersController.ProcessRawTriggers(rawTriggers, rawActions)
 	GG['MissionAPI'].Actions = actionsController.ProcessRawActions(rawActions)
+	GG['MissionAPI'].UnitLoadout = mission.UnitLoadout
+	GG['MissionAPI'].FeatureLoadout = mission.FeatureLoadout
 
 	local validateReferences = VFS.Include('luarules/mission_api/validation.lua').ValidateReferences
 	validateReferences()
@@ -73,10 +73,10 @@ function gadget:GamePreload()
 		return
 	end
 
-	if missionUnitLoadout then
+	if GG['MissionAPI'].UnitLoadout then
 		Spring.Echo("Mission API: Creating unit loadout")
 	end
-	if missionFeatureLoadout then
+	if GG['MissionAPI'].FeatureLoadout then
 		Spring.Echo("Mission API: Creating feature loadout")
 	end
 
@@ -84,8 +84,8 @@ function gadget:GamePreload()
 	tracking.InitializeTracking()
 
 	local loadoutModule = VFS.Include('luarules/mission_api/loadout.lua')
-	loadoutModule.SpawnUnitLoadout(missionUnitLoadout, tracking.TrackUnit)
-	loadoutModule.SpawnFeatureLoadout(missionFeatureLoadout, tracking.TrackFeature)
+	loadoutModule.SpawnUnitLoadout(GG['MissionAPI'].UnitLoadout, tracking.TrackUnit)
+	loadoutModule.SpawnFeatureLoadout(GG['MissionAPI'].FeatureLoadout, tracking.TrackFeature)
 end
 
 function gadget:GameFrame(frameNumber)

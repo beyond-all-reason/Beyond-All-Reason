@@ -810,9 +810,12 @@ local function validateReferences()
 	local actionTypes = GG['MissionAPI'].ActionTypes
 	local triggers = GG['MissionAPI'].Triggers
 	local actions = GG['MissionAPI'].Actions
-	validateUnitNameReferences(triggerTypes, actionTypes, triggers, actions)
-	validateFeatureNameReferences(triggerTypes, actionTypes, triggers, actions)
+	local unitLoadout = GG['MissionAPI'].UnitLoadout
+	local featureLoadout = GG['MissionAPI'].FeatureLoadout
+	validateUnitNameReferences(triggerTypes, actionTypes, triggers, actions, unitLoadout)
+	validateFeatureNameReferences(triggerTypes, actionTypes, triggers, actions, featureLoadout)
 	validateMarkerNameReferences(actionTypes, actions)
+	validateLoadouts(unitLoadout, featureLoadout)
 end
 
 return {
