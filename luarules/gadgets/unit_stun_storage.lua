@@ -19,6 +19,9 @@ end
 local spGetTeamResources = Spring.GetTeamResources
 local spSetTeamResource = Spring.SetTeamResource
 
+local ResourceTypes = VFS.Include("gamedata/resource_types.lua")
+
+
 local paralyzedUnits = {}
 
 local storageDefs = {}

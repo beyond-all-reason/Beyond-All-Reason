@@ -421,18 +421,20 @@ function UnitDef_Post(name, uDef)
 		customparams.evolution_timer                  = tonumber(customparams.evolution_timer) or 20
 	end
 
-	-- Tech Blocking System -------------------------------------------------------------------------------------------------------------------------
-	if modOptions.tech_blocking then
-		local techLevel = customparams.techlevel or 1
-		if #buildoptions > 0 and (not uDef.speed or uDef.speed == 0) then
-			if techLevel == 1 then
-				customparams.tech_points_gain = customparams.tech_points_gain or 1
-			elseif techLevel == 2 then
-				customparams.tech_points_gain = customparams.tech_points_gain or 6
-				customparams.tech_build_blocked_until_level = customparams.tech_build_blocked_until_level or 2
-			elseif techLevel == 3 then
-				customparams.tech_points_gain = customparams.tech_points_gain or 9
-				customparams.tech_build_blocked_until_level = customparams.tech_build_blocked_until_level or 3
+	-- Tech Blocking: inject Catalyst into T1 mobile constructor build menus --------
+	if modOptions.tech_blocking and uDef.buildoptions and uDef.speed and uDef.speed > 0 then
+		local techLevel = tonumber(uDef.customparams and uDef.customparams.techlevel) or 1
+		if techLevel == 1 then
+			local catalyst
+			if name:sub(1,3) == "arm" then
+				catalyst = "armcatalyst"
+			elseif name:sub(1,3) == "cor" then
+				catalyst = "corcatalyst"
+			elseif name:sub(1,3) == "leg" then
+				catalyst = "legcatalyst"
+			end
+			if catalyst then
+				uDef.buildoptions[#uDef.buildoptions + 1] = catalyst
 			end
 		end
 	end

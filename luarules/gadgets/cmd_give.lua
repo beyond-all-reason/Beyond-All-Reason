@@ -54,7 +54,8 @@ if gadgetHandler:IsSyncedCode() then
 		-- give resources
 		if unitName == "metal" or unitName == "energy" then
 			-- Give resources instead of units
-			Spring.AddTeamResource(teamID, unitName, amount)
+			-- Give resources instead of units
+			GG.AddTeamResource(teamID, unitName, amount)
 			Spring.SendMessageToTeam(teamID, "You have been given: "..amount.." "..unitName)
 			Spring.SendMessageToPlayer(playerID, "You have given team "..teamID..": "..amount.." "..unitName)
 			return

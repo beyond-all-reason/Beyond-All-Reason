@@ -16,6 +16,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+local ResourceTypes = VFS.Include("gamedata/resource_types.lua")
+
 local nanoturretunitIDs = {}
 
 local loadoutcomplete = false
@@ -126,10 +128,10 @@ function gadget:GameFrame(n)
 		end
 		if next(additionalStorage) then
 			for teamID, additionalstorage in pairs(additionalStorage) do
-				local m, mstore = Spring.GetTeamResources(teamID, "metal")
-				local e, estore = Spring.GetTeamResources(teamID, "energy")
-				Spring.SetTeamResource(teamID, 'ms', mstore + additionalstorage.metal)
-				Spring.SetTeamResource(teamID, 'es', estore + additionalstorage.energy)
+				local m, mstore = GG.GetTeamResources(teamID, "metal")
+				local e, estore = GG.GetTeamResources(teamID, "energy")
+				GG.SetTeamResourceData(teamID, { resourceType = ResourceTypes.METAL, storage = mstore + additionalstorage.metal })
+				GG.SetTeamResourceData(teamID, { resourceType = ResourceTypes.ENERGY, storage = estore + additionalstorage.energy })
 			end
 			additionalStorage = nil
 		end
@@ -140,10 +142,18 @@ function gadget:GameFrame(n)
 		local teamList = Spring.GetTeamList()
 		for i = 1, #teamList do
 			local teamID = teamList[i]
-			local m, mstore = Spring.GetTeamResources(teamID, "metal")
-			local e, estore = Spring.GetTeamResources(teamID, "energy")
-			if mstore < 500 then Spring.SetTeamResource(teamID, 'ms', 500) end
-			if estore < 500 then Spring.SetTeamResource(teamID, 'es', 500) end
+			local m, mstore = GG.GetTeamResources(teamID, "metal")
+			local e, estore = GG.GetTeamResources(teamID, "energy")
+			if mstore < 500 then
+				GG.SetTeamResourceData(teamID, {
+					[ResourceTypes.METAL] = { resourceType = ResourceTypes.METAL, storage = 500 },
+				})
+			end
+			if estore < 500 then
+				GG.SetTeamResourceData(teamID, {
+					[ResourceTypes.ENERGY] = { resourceType = ResourceTypes.ENERGY, storage = 500 },
+				})
+			end
 		end
 	end
 	]]--

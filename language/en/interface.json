@@ -84,9 +84,55 @@
 			"requestSupport": "Double-click to ask for support",
 			"requestMetal": "Click-and-drag to ask for metal",
 			"requestEnergy": "Click-and-drag to ask for energy",
-			"shareUnits": "Double-click to share units",
-			"shareMetal": "Click-and-drag to share metal",
-			"shareEnergy": "Click-and-drag to share energy",
+			"shareUnits": {
+				"base": {
+					"default": "Double-click to share units",
+					"disabled": "Unit sharing not allowed (mode is %{unitSharingMode})",
+					"invalid": {
+						"all": "Sharing these units is not allowed (mode is %{unitSharingMode})",
+						"one": "Double-click to share units (mode is %{unitSharingMode} - %{firstInvalidUnitName} cannot be shared)",
+						"two": "Double-click to share units (mode is %{unitSharingMode} - %{firstInvalidUnitName} and %{secondInvalidUnitName} cannot be shared)",
+						"other": "Double-click to share units (mode is %{unitSharingMode} - %{firstInvalidUnitName}, %{secondInvalidUnitName} and %{count} others cannot be shared)"
+					}
+				},
+				"tech": {
+					"disabled": "Unit sharing unlocks at Tech %{nextTechLevel} (%{currentCatalysts}/%{requiredCatalysts} Catalysts)",
+					"invalid": {
+						"all": "These units cannot be shared — %{nextUnitSharingMode} unlocks at Tech %{nextTechLevel} (%{currentCatalysts}/%{requiredCatalysts} Catalysts)",
+						"one": "Double-click to share units (%{firstInvalidUnitName} blocked — %{nextUnitSharingMode} unlocks at Tech %{nextTechLevel}, %{currentCatalysts}/%{requiredCatalysts} Catalysts)",
+						"two": "Double-click to share units (%{firstInvalidUnitName} and %{secondInvalidUnitName} blocked — %{nextUnitSharingMode} unlocks at Tech %{nextTechLevel}, %{currentCatalysts}/%{requiredCatalysts} Catalysts)",
+						"other": "Double-click to share units (%{firstInvalidUnitName}, %{secondInvalidUnitName} and %{count} others blocked — %{nextUnitSharingMode} unlocks at Tech %{nextTechLevel}, %{currentCatalysts}/%{requiredCatalysts} Catalysts)"
+					}
+				}
+			},
+		"shareMetal": {
+				"base": {
+					"default": "Click-and-drag to share metal",
+					"disabled": "Metal sharing not allowed",
+					"taxed": "Click-and-drag to share metal, receivable: %{amountReceivable}m, sendable: %{amountSendable}m at %{taxRatePercentage}%%",
+					"taxedThreshold": "Click-and-drag to share metal, receivable: %{amountReceivable}m, sendable: %{amountSendable}m at %{taxRatePercentage}%% (free used %{sentAmountUntaxed}/%{resourceShareThreshold}m)"
+				},
+				"tech": {
+					"disabled": "%{resourceType} sharing unlocks at Tech %{nextTechLevel} (%{currentCatalysts}/%{requiredCatalysts} Catalysts)",
+					"default": "Click-and-drag to share metal (tax-free now, %{nextRate}%% tax at Tech %{nextTechLevel} — %{currentCatalysts}/%{requiredCatalysts} Catalysts)",
+					"taxed": "Click-and-drag to share metal, receivable: %{amountReceivable}m, sendable: %{amountSendable}m at %{taxRatePercentage}%% (reduces to %{nextRate}%% at Tech %{nextTechLevel} — %{currentCatalysts}/%{requiredCatalysts} Catalysts)",
+					"taxedThreshold": "Click-and-drag to share metal, receivable: %{amountReceivable}m, sendable: %{amountSendable}m at %{taxRatePercentage}%% (free used %{sentAmountUntaxed}/%{resourceShareThreshold}m, reduces to %{nextRate}%% at Tech %{nextTechLevel})"
+				}
+			},
+			"shareEnergy": {
+				"base": {
+					"default": "Click-and-drag to share energy",
+					"disabled": "Energy sharing not allowed",
+					"taxed": "Click-and-drag to share energy, receivable: %{amountReceivable}e, sendable: %{amountSendable}e at %{taxRatePercentage}%%",
+					"taxedThreshold": "Click-and-drag to share energy, receivable: %{amountReceivable}e, sendable: %{amountSendable}e at %{taxRatePercentage}%% (free used %{sentAmountUntaxed}/%{resourceShareThreshold}e)"
+				},
+				"tech": {
+					"disabled": "%{resourceType} sharing unlocks at Tech %{nextTechLevel} (%{currentCatalysts}/%{requiredCatalysts} Catalysts)",
+					"default": "Click-and-drag to share energy (tax-free now, %{nextRate}%% tax at Tech %{nextTechLevel} — %{currentCatalysts}/%{requiredCatalysts} Catalysts)",
+					"taxed": "Click-and-drag to share energy, receivable: %{amountReceivable}e, sendable: %{amountSendable}e at %{taxRatePercentage}%% (reduces to %{nextRate}%% at Tech %{nextTechLevel} — %{currentCatalysts}/%{requiredCatalysts} Catalysts)",
+					"taxedThreshold": "Click-and-drag to share energy, receivable: %{amountReceivable}e, sendable: %{amountSendable}e at %{taxRatePercentage}%% (free used %{sentAmountUntaxed}/%{resourceShareThreshold}e, reduces to %{nextRate}%% at Tech %{nextTechLevel})"
+				}
+			},
 			"becomeEnemy": "Click to become enemy",
 			"becomeAlly": "Click to become ally",
 			"thousands": "%{number}k",
@@ -110,8 +156,12 @@
 				"needEnergyAmount": "I need %{amount} energy!",
 				"giveMetal": "I sent %{amount} metal to %{name}",
 				"giveEnergy": "I sent %{amount} energy to %{name}",
-				"giveMetal_taxed": "I sent %{amount} metal to %{name} and they received %{amount2} metal",
-				"giveEnergy_taxed": "I sent %{amount} energy to %{name} and they received %{amount2} energy",
+				"sentMetal": "Sent %{receivedAmount}m",
+				"sentMetalTaxed": "Sent %{receivedAmount}m, spent %{sentAmount}m at %{taxRatePercentage}%% overhead",
+				"sentMetalTaxedThreshold": "Sent %{receivedAmount}m, spent %{sentAmount}m at %{taxRatePercentage}%% overhead (free used %{sentAmountUntaxed}/%{resourceShareThreshold}m)",
+				"sentEnergy": "Sent %{receivedAmount}e",
+				"sentEnergyTaxed": "Sent %{receivedAmount}e, spent %{sentAmount}e at %{taxRatePercentage}%% overhead",
+				"sentEnergyTaxedThreshold": "Sent %{receivedAmount}e, spent %{sentAmount}e at %{taxRatePercentage}%% overhead (free used %{sentAmountUntaxed}/%{resourceShareThreshold}e)",
 				"takeTeam": "I took %{name}.",
 				"takeTeamAmount": "I took %{name}: %{units} units, %{energy} energy and %{metal} metal."
 			}
@@ -1896,11 +1946,35 @@
 		},
 		"techBlocking": {
 			"techLevel": "TECH",
+			"gameStart": "Tech Core active: build Catalysts to unlock T2 (%{t2Threshold} needed) and T3 (%{t3Threshold} needed)",
+			"techUp": "Tech %{level} unlocked! %{unlockDescription}",
+			"milestone": {
+				"t2": "T2 units and %{unitSharingMode} unit sharing unlocked",
+				"t3": "T3 units and full sharing unlocked"
+			},
+			"tooltip": {
+				"currentLevel": "Tech %{level} — %{points}/%{threshold} Catalysts",
+				"nextUnlock": "Next: Tech %{nextLevel} unlocks %{unitSharingMode} sharing at %{threshold} Catalysts"
+			},
 			"techPopup": {
 				"level1": "Tech Level 1",
-				"level2": "Tech Level 2",
-				"level3": "Tech Level 3"
+				"level2": "Tech Level 2 Unlocked!",
+				"level3": "Tech Level 3 Unlocked!"
 			}
+		},
+		"unitSharingMode": {
+			"none": "Disabled",
+			"all": "All",
+			"t2_cons": "T2 Constructors",
+			"combat": "Combat Units",
+			"combat_t2_cons": "Combat + T2 Cons",
+			"production": "Production",
+			"production_resource": "Production + Resource",
+			"production_resource_utility": "Production + Resource + Utility",
+			"production_utility": "Production + Utility",
+			"resource": "Resource",
+			"transport": "Transport",
+			"utility": "Utility"
 		}
 	}
 }

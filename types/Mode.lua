@@ -1,0 +1,12 @@
+---@class ModOptionConfig
+---@field value any The default value for this option
+---@field locked boolean Whether this option can be changed by users
+---@field ui string|nil UI hints (e.g., "hidden")
+
+---@class ModeConfig
+---@field key string Unique identifier for this mode
+---@field category string Mode category (e.g., "sharing")
+---@field name string Display name for this mode
+---@field desc string Description of this mode
+---@field allowRanked boolean Whether this mode is allowed in ranked games
+---@field modOptions table<string, ModOptionConfig> Map of mod option keys to their configurations

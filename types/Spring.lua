@@ -30,7 +30,6 @@
 ---@field metal ResourceData
 ---@field energy ResourceData
 
--- TODO: delete when recoil-lua-library publishes TeamData types
 ---@class TeamData
 ---@field id number
 ---@field name string
@@ -57,4 +56,18 @@
 ---@field unitDefId string
 ---@field unitDef table?
 ---@field [string] any
+
+---@class GameEconomyController
+---@field ProcessEconomy fun(frame: number, teams: table<number, TeamResourceData>): EconomyTeamResult[]
+
+---@class GameUnitTransferController
+---@field AllowUnitTransfer fun(unitID: number, unitDefID: number, fromTeamID: number, toTeamID: number, capture: boolean): boolean
+---@field TeamShare fun(srcTeamID: number, dstTeamID: number)
+
+---@class EconomyTeamResult
+---@field teamId number
+---@field resourceType ResourceName
+---@field current number
+---@field sent number
+---@field received number
 

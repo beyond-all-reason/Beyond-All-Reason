@@ -65,7 +65,6 @@ local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
 local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
 local spEditUnitCmdDesc = Spring.EditUnitCmdDesc
-local spGetTeamResources = Spring.GetTeamResources
 local spGetTeamList = Spring.GetTeamList
 local spSetUnitRulesParam = Spring.SetUnitRulesParam
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
@@ -314,11 +313,13 @@ local function UpdatePassiveBuilders(teamID, interval, mCur, mStor, mInc, mShare
 	-- calculate how much expense passive cons will be allowed (using pre-fetched resource data)
 	local intervalOverSpeed = interval / simSpeed
 
-	local mStorEff = mStor * mShare
-	local teamStallingMetal = mCur - mathMax(mInc*stallMarginInc, mStorEff*stallMarginSto) - 1 + (interval)*(nonPassiveConsTotalExpenseMetal+mInc+mRec-mSent)/simSpeed
+	cur, stor, _, inc, _, share, sent, rec = GG.GetTeamResources(teamID, "metal")
+	stor = stor * share
+	local teamStallingMetal = cur - mathMax(inc*stallMarginInc, stor*stallMarginSto) - 1 + (interval)*(nonPassiveConsTotalExpenseMetal+inc+rec-sent)/simSpeed
 
-	local eStorEff = eStor * eShare
-	local teamStallingEnergy = eCur - mathMax(eInc*stallMarginInc, eStorEff*stallMarginSto) - 1 + (interval)*(nonPassiveConsTotalExpenseEnergy+eInc+eRec-eSent)/simSpeed
+	cur, stor, _, inc, _, share, sent, rec = GG.GetTeamResources(teamID, "energy")
+	stor = stor * share
+	local teamStallingEnergy = cur - mathMax(inc*stallMarginInc, stor*stallMarginSto) - 1 + (interval)*(nonPassiveConsTotalExpenseEnergy+inc+rec-sent)/simSpeed
 
 	-- work through passive cons allocating as much expense as we have left
 	for builderID in pairs(passiveTeamCons) do
