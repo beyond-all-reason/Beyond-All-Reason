@@ -184,6 +184,7 @@ config = {
 	
 	-- Feature and overlay settings
 	hideEnergyOnlyFeatures = false,
+	hideUnreclaimableFeatures = true,
 	showLosOverlay = true,
 	showLosRadar = true,
 	losOverlayOpacity = 0.6,
@@ -219,7 +220,7 @@ config = {
 	smoothCameraMarginCheap = 0.15,  -- Oversized texture margin for cheap layers (ground, water, LOS) — larger since rendering is cheap
 	pipFloorUpdateRate = 10,	-- Minimum update rate for PIP content when performance is poor (will be smoothly applied based on measured frame times)
 	pipMinUpdateRate = 30,		-- Minimum update rate for PIP content when zoomed out
-	pipMaxUpdateRate = 100,		-- Maximum update rate for PIP content when zoomed in
+	pipMaxUpdateRate = 60,		-- Maximum update rate for PIP content when zoomed in
 	pipZoomThresholdMin = 0.15,
 	pipZoomThresholdMax = 0.4,
 	pipTargetDrawTime = 0.0025,
@@ -251,8 +252,9 @@ config = {
 	showViewRectangleOnMinimap = false,  -- Show the PIP view rectangle on the engine minimap
 	showViewRectangleInWorld = false,  -- Show the PIP view rectangle as an outline in the 3D world
 	engineMinimapFallback = true,  -- Use engine minimap when fully zoomed out (performance fallback)
-	engineMinimapFallbackThreshold = 4000,  -- Unit count threshold before engine minimap fallback activates
+	engineMinimapFallbackThreshold = 4500,  -- Unit count threshold before engine minimap fallback activates
 	engineMinimapExplosionOverlay = true,  -- Draw explosion overlay on top of engine minimap
+	engineMinimapDecalStrength = 0.8,  -- Decal overlay strength on engine minimap (0-1, lower = subtler scorch marks)
 }
 
 -- State variables
@@ -1480,6 +1482,7 @@ local gl4Prim = {
 -- Consolidated cache tables
 local cache = {
 	noModelFeatures = {},
+	unreclaimableFeatures = {},
 	xsizes = {},
 	zsizes = {},
 	unitIcon = {},
@@ -2336,6 +2339,32 @@ local shaders = {
 		uniformInt = {
 			losTex = 0,
 			radarTex = 1,
+		},
+	},
+	-- Decal blit: mixes decal texture towards white (multiply identity) to reduce intensity
+	decalBlit = nil,
+	decalBlitCode = {
+		vertex = [[
+			varying vec2 texCoord;
+			void main() {
+				texCoord = gl_MultiTexCoord0.st;
+				gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+			}
+		]],
+		fragment = [[
+			uniform sampler2D decalTex;
+			uniform float strength;
+			varying vec2 texCoord;
+			void main() {
+				vec4 tex = texture2D(decalTex, texCoord);
+				gl_FragColor = vec4(mix(vec3(1.0), tex.rgb, strength), 1.0);
+			}
+		]],
+		uniformFloat = {
+			strength = 1.0,
+		},
+		uniformInt = {
+			decalTex = 0,
 		},
 	},
 	-- Minimap shading: composites minimap + shading in a single pass (matches engine MiniMapFragProg.glsl)
@@ -4439,6 +4468,9 @@ end
 local function DrawFeature(fID, noTextures)
 	local fDefID = spFunc.GetFeatureDefID(fID)
 	if not fDefID or cache.noModelFeatures[fDefID] then return end
+
+	-- Skip unreclaimable features (decorative objects with no resources)
+	if config.hideUnreclaimableFeatures and cache.unreclaimableFeatures[fDefID] then return end
 
 	-- Skip energy-only features if option is enabled
 	if hideEnergyOnlyFeatures then
@@ -7078,6 +7110,9 @@ function widget:Initialize()
 		if fDef.modelname == '' then
 			cache.noModelFeatures[fDefID] = true
 		end
+		if fDef.reclaimable ~= nil and not fDef.reclaimable then
+			cache.unreclaimableFeatures[fDefID] = true
+		end
 		local fx, fz = 8 * fDef.xsize, 8 * fDef.zsize
 		cache.featureRadiusSqs[fDefID] = fx*fx + fz*fz
 	end
@@ -7127,6 +7162,17 @@ function widget:Initialize()
 		Spring.Echo("PIP: Shader log: " .. (gl.GetShaderLog() or "no log"))
 	else
 		InitGL4Decals()
+	end
+
+	-- Initialize decal blit shader (for reduced-strength overlay on engine minimap)
+	shaders.decalBlit = gl.CreateShader(shaders.decalBlitCode)
+	if shaders.decalBlit then
+		shaders.decalBlitLocs = {
+			strength = gl.GetUniformLocation(shaders.decalBlit, 'strength'),
+		}
+	else
+		Spring.Echo("PIP: Failed to compile decal blit shader")
+		Spring.Echo("PIP: Shader log: " .. (gl.GetShaderLog() or "no log"))
 	end
 
 	-- Initialize minimap+shading compositing shader
@@ -7996,6 +8042,11 @@ function widget:Shutdown()
 			gl.DeleteShader(shaders.decal)
 			shaders.decal = nil
 		end
+
+		if shaders.decalBlit then
+			gl.DeleteShader(shaders.decalBlit)
+			shaders.decalBlit = nil
+		end
 	else
 		-- Another PIP is still active — only disable GL4 flag (don't delete GPU resources)
 		-- The orphaned resources will be freed when the last PIP shuts down or the game ends
@@ -8489,7 +8540,9 @@ end
 -- Draw ground decals (explosion scars) from the cached decal R2T texture.
 -- The decal texture covers the full map and is updated periodically by UpdateDecalTexture().
 -- Uses multiply blending to darken ground where decals exist; white = no change.
-local function DrawDecalsOverlay()
+-- Optional strength parameter (0-1): mixes decal texture towards white before multiply,
+-- reducing darkening intensity. Used for subtler decals on engine minimap.
+local function DrawDecalsOverlay(strength)
 	if not config.drawDecals then return end
 	if not pipR2T.decalTex then return end
 	if decalGL4.instanceCount == 0 then return end  -- no decals to draw
@@ -8502,8 +8555,20 @@ local function DrawDecalsOverlay()
 	glFunc.Color(1, 1, 1, 1)
 	glFunc.Texture(pipR2T.decalTex)
 
+	-- If strength < 1, use decalBlit shader to mix texture towards white (multiply identity)
+	-- This makes result = dst * mix(1, tex, strength), softening the darkening effect
+	local useShader = strength and strength < 1 and shaders.decalBlit
+	if useShader then
+		gl.UseShader(shaders.decalBlit)
+		gl.UniformFloat(shaders.decalBlitLocs.strength, strength)
+	end
+
 	-- Map visible world portion to screen using pre-created function (no closure allocation)
 	glFunc.BeginEnd(GL.QUADS, decalBlitQuad)
+
+	if useShader then
+		gl.UseShader(0)
+	end
 
 	glFunc.Texture(false)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
@@ -8907,7 +8972,6 @@ local function DrawBuildPreview(mx, my, iconRadiusZoomDistMult)
 			local iconSize = iconRadiusZoomDistMult * buildIcon.size
 			local cx, cy = WorldToPipCoords(wx, wz)
 			local buildFacing = Spring.GetBuildFacing()
-			local rotation = buildFacing * 90
 			local canBuild = Spring.TestBuildOrder(buildDefID, wx, wy, wz, buildFacing)
 
 				if canBuild == 2 then
@@ -8937,11 +9001,10 @@ local function DrawBuildPreview(mx, my, iconRadiusZoomDistMult)
 
 			-- Counter-rotate by minimap rotation to stay upright like GL4 icons
 			local mapRotDeg = render.minimapRotation ~= 0 and (-render.minimapRotation * 180 / math.pi) or 0
-			local totalRot = rotation + mapRotDeg
-			if totalRot ~= 0 then
+			if mapRotDeg ~= 0 then
 				glFunc.PushMatrix()
 				glFunc.Translate(cx, cy, 0)
-				glFunc.Rotate(totalRot, 0, 0, 1)
+				glFunc.Rotate(mapRotDeg, 0, 0, 1)
 				glFunc.TexRect(-iconSize, -iconSize, iconSize, iconSize)
 				glFunc.PopMatrix()
 			else
@@ -8975,7 +9038,6 @@ local function DrawBuildDragPreview(iconRadiusZoomDistMult)
 	local centerX, centerY = WorldToPipCoords(0, 0)
 	local edgeX, edgeY = WorldToPipCoords(buildWidth, 0)
 	local iconSize = math.abs(edgeX - centerX)
-	local rotation = buildFacing * 90
 
 	glFunc.Texture(buildIcon.bitmap)
 
@@ -9011,11 +9073,10 @@ local function DrawBuildDragPreview(iconRadiusZoomDistMult)
 
 		-- Counter-rotate by minimap rotation to stay upright like GL4 icons
 		local mapRotDeg = render.minimapRotation ~= 0 and (-render.minimapRotation * 180 / math.pi) or 0
-		local totalRot = rotation + mapRotDeg
-		if totalRot ~= 0 then
+		if mapRotDeg ~= 0 then
 			glFunc.PushMatrix()
 			glFunc.Translate(cx, cy, 0)
-			glFunc.Rotate(totalRot, 0, 0, 1)
+			glFunc.Rotate(mapRotDeg, 0, 0, 1)
 			glFunc.TexRect(-iconSize, -iconSize, iconSize, iconSize)
 			glFunc.PopMatrix()
 		else
@@ -9076,8 +9137,6 @@ local function DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
 							if bwx >= render.world.l and bwx <= render.world.r and bwz >= render.world.t and bwz <= render.world.b then
 								local cx, cy = WorldToPipCoords(bwx, bwz)
 								local iconSize = iconRadiusZoomDistMult * buildIcon.size
-								local buildFacing = paramCount >= 4 and cmd.params[4] or 0
-								local rotation = buildFacing * 90
 
 								local bitmap = buildIcon.bitmap
 								local texBuilds = pools.buildsByTexture[bitmap]
@@ -9092,7 +9151,6 @@ local function DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
 									cx = cx,
 									cy = cy,
 									iconSize = iconSize,
-									rotation = rotation
 								}
 							end
 						end
@@ -9112,13 +9170,12 @@ local function DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
 		local buildCount = pools.buildCountByTexture[bitmap]
 		for i = 1, buildCount do
 			local build = builds[i]
-			local cx, cy, iconSize, rotation = build.cx, build.cy, build.iconSize, build.rotation
-			local totalRot = rotation + mapRotDeg
+			local cx, cy, iconSize = build.cx, build.cy, build.iconSize
 
-			if totalRot ~= 0 then
+			if mapRotDeg ~= 0 then
 				glFunc.PushMatrix()
 				glFunc.Translate(cx, cy, 0)
-				glFunc.Rotate(totalRot, 0, 0, 1)
+				glFunc.Rotate(mapRotDeg, 0, 0, 1)
 				glFunc.TexRect(-iconSize, -iconSize, iconSize, iconSize)
 				glFunc.PopMatrix()
 			else
@@ -14666,10 +14723,9 @@ function widget:DrawScreen()
 		gl.DrawMiniMap()
 
 		-- Decal overlay on engine minimap (scorch marks, build plates)
-		-- Uses multiply blend so decals darken terrain; icons get very slightly
-		-- darkened where they overlap, but at full-map zoom it's negligible.
+		-- Uses multiply blend so decals darken terrain; reduced strength to match PIP appearance.
 		UpdateDecalTexture()
-		DrawDecalsOverlay()
+		DrawDecalsOverlay(config.engineMinimapDecalStrength)
 
 		-- Explosion overlay on engine minimap (stronger than normal PIP overlay)
 		if config.engineMinimapExplosionOverlay and config.drawExplosions and #cache.explosions > 0 and gl4Prim.enabled then
@@ -15048,10 +15104,7 @@ function widget:DrawScreen()
 		end
 
 		-- Draw camera view bounds OUTSIDE the rotation matrix so it can pixel-align after rotation
-		-- Skip when engine minimap fallback is active (engine draws its own camera frustum)
-		if not miscState.engineMinimapActive then
-			DrawCameraViewBounds()
-		end
+		DrawCameraViewBounds()
 
 		gl.Scissor(false)
 	end
