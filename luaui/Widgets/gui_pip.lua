@@ -15315,8 +15315,22 @@ end
 -- Timer for periodic ghost building cleanup (checks ghosts outside PIP viewport)
 -- ghostCleanupTimer stored in cache table to avoid a top-level local
 cache.ghostCleanupTimer = 0
+cache.guishaderWasActive = WG['guishader'] ~= nil
+cache.guishaderCheckTimer = 0
 
 function widget:Update(dt)
+	-- Detect guishader toggle: force refresh when it comes back on
+	-- (must run even when minimized so the minimize-button blur is restored)
+	cache.guishaderCheckTimer = cache.guishaderCheckTimer + dt
+	if cache.guishaderCheckTimer >= 0.5 then
+		cache.guishaderCheckTimer = 0
+		local guishaderActive = WG['guishader'] ~= nil
+		if guishaderActive and not cache.guishaderWasActive then
+			UpdateGuishaderBlur()
+		end
+		cache.guishaderWasActive = guishaderActive
+	end
+
 	-- Skip ALL heavy processing when minimized and not animating.
 	-- DrawScreen/DrawWorld already return early when minimized, so ghost cleanup,
 	-- TV camera, zoom interpolation, hover detection, etc. are pure waste.
@@ -15542,7 +15556,7 @@ function widget:Update(dt)
 			end
 		end
 	end
-	
+
 	-- Update spectating state and check if it changed
 	local oldSpecState = cameraState.mySpecState
 	local specState, fullviewState = Spring.GetSpectatingState()
