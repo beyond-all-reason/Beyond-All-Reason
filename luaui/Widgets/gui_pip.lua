@@ -252,6 +252,7 @@ config = {
 	showViewRectangleInWorld = false,  -- Show the PIP view rectangle as an outline in the 3D world
 	engineMinimapFallback = true,  -- Use engine minimap when fully zoomed out (performance fallback)
 	engineMinimapFallbackThreshold = 4000,  -- Unit count threshold before engine minimap fallback activates
+	engineMinimapExplosionOverlay = true,  -- Draw explosion overlay on top of engine minimap
 }
 
 -- State variables
@@ -1572,8 +1573,11 @@ local perfTimers = {
 	icProcMobile = 0, -- processUnit: mobile units sub-loop
 	icProcBldgN = 0,  -- count of buildings processed
 	icProcMobileN = 0,-- count of mobile units processed
-	icUploadDraw = 0, -- VBO upload + shader setup + draw calls
+	icUpload = 0,     -- VBO upload to GPU
+	icDraw = 0,       -- shader setup + draw calls
+	icUploadDraw = 0, -- VBO upload + shader setup + draw calls (combined)
 	icUnitpics = 0,   -- unitpic overlay rendering
+	icVboReuse = 0,   -- VBO reuse rate (0 = never, 1 = always)
 }
 local PERF_SMOOTH = 0.1  -- EMA smoothing factor
 
@@ -3290,6 +3294,8 @@ local function DestroyGL4Icons()
 		gl4Icons.atlas = nil
 	end
 	gl4Icons.enabled = false
+	gl4Icons._vboValid = false
+	gl4Icons._vboUsedElements = 0
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -6941,6 +6947,12 @@ local function RegisterMinimapWGAPI()
 	WG['minimap'].setEngineMinimapFallbackThreshold = function(value)
 		config.engineMinimapFallbackThreshold = value
 	end
+	WG['minimap'].getEngineMinimapExplosionOverlay = function()
+		return config.engineMinimapExplosionOverlay
+	end
+	WG['minimap'].setEngineMinimapExplosionOverlay = function(value)
+		config.engineMinimapExplosionOverlay = value
+	end
 	WG['minimap'].setBaseIconScale = function(value)
 		if miscState.engineMinimapActive then
 			miscState.baseMinimapIconScale = value
@@ -8171,6 +8183,7 @@ function widget:GetConfigData()
 		minimapModeAtMinZoom = isMinimapMode and IsAtMinimumZoom(cameraState.zoom) or nil,
 		engineMinimapFallback = config.engineMinimapFallback,
 		engineMinimapFallbackThreshold = config.engineMinimapFallbackThreshold,
+		engineMinimapExplosionOverlay = config.engineMinimapExplosionOverlay,
 		-- Ghost building positions persist across luaui reload (same game only)
 		ghostBuildings = ghostBuildings,
 	}
@@ -8320,6 +8333,7 @@ function widget:SetConfigData(data)
 	if data.activityFocusEnabled ~= nil then miscState.activityFocusEnabled = data.activityFocusEnabled end
 	if data.activityFocusIgnoreSpectators ~= nil then config.activityFocusIgnoreSpectators = data.activityFocusIgnoreSpectators end
 	if data.engineMinimapFallback ~= nil then config.engineMinimapFallback = data.engineMinimapFallback end
+	if data.engineMinimapExplosionOverlay ~= nil then config.engineMinimapExplosionOverlay = data.engineMinimapExplosionOverlay end
 	--if data.engineMinimapFallbackThreshold ~= nil then config.engineMinimapFallbackThreshold = data.engineMinimapFallbackThreshold end
 	if data.tvEnabled ~= nil then
 		-- Only restore TV mode if we're a spectator (or tvModeSpectatorsOnly is off)
@@ -9599,9 +9613,9 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 
 	local icT2 = os.clock()
 
-	-- Mobile units: sort every frame (positions change).
+	-- Mobile units: sort only when processing (skip on cache-hit frames where result isn't consumed).
 	-- Skip sort at high counts — z-ordering is cosmetic and invisible at this density.
-	if mCount <= 2000 then
+	if (not useMobileBlockCache or mobileBlockRebuild) and mCount <= 1000 then
 		table.sort(mobileIDs, gl4IconSortCmp)
 	end
 
@@ -9611,13 +9625,46 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 
 	local icT3 = os.clock()
 
+	-- VBO reuse: when both building and mobile block caches hit and ghosts are skipped,
+	-- the GPU already has valid icon data from the previous upload. Skip all block copies,
+	-- overlay application, and the VBO upload — just reissue draw calls.
+	-- Overlays (selection, damage flash) will be at most 1 frame stale, matching the
+	-- existing block cache staleness that's already accepted at these unit counts.
+	local vboReuse = false
+	if skipGhosts and useMobileBlockCache and not mobileBlockRebuild and gl4Icons._vboValid then
+		local expectedUsed = (gl4Icons._bldgBlockCount or 0) + (gl4Icons._mobileBlockCount or 0)
+		if expectedUsed > 0 and expectedUsed == gl4Icons._vboUsedElements then
+			-- Still need to check building cache validity (may have been invalidated this frame)
+			local currentGameFrame = Spring.GetGameFrame()
+			local bldgBlockGameFrameLimit2 = cameraState.zoom < 0.15 and 90 or 30
+			local bldgStillValid = gl4Icons._bldgBlock
+				and bCount == gl4Icons._bldgBlockBCount
+				and bldgHash == gl4Icons._bldgBlockHash
+				and checkAllyTeamID == gl4Icons._bldgBlockCheckAlly
+				and (currentGameFrame - (gl4Icons._bldgBlockFrame or 0)) < bldgBlockGameFrameLimit2
+				and not useUnitpics
+			if bldgStillValid then
+				vboReuse = true
+				usedElements = expectedUsed
+			end
+		end
+	end
+
+	-- Intermediate timer variables (set in both paths)
+	local icT3b = icT3  -- default: no building processing
+	local bldgProcessed = 0
+	local preMobileEl = usedElements
+	local mobileProcessed = 0
+	local currentGameFrame = Spring.GetGameFrame()
+
+	if not vboReuse then
+
 	-- Building block VBO cache: instead of processing each building individually,
 	-- cache the entire building VBO output as a contiguous flat array.
 	-- On subsequent frames (while building set unchanged), copy the block in one
 	-- tight numeric loop (~0.05ms vs ~1.3ms per-building processing).
 	-- Dynamic state (selection, damage flash, tracking) is applied as overlays.
 	-- Block is rebuilt every 30 game frames to catch LOS/stun changes.
-	local currentGameFrame = Spring.GetGameFrame()
 	local bldgBlock = gl4Icons._bldgBlock
 	local bldgBlockValid = bldgBlock
 		and bCount == gl4Icons._bldgBlockBCount
@@ -9781,9 +9828,9 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		gl4Icons._bldgBlockRebuildRenderFrame = gl4Icons._bldgRenderFrame
 		gl4Icons._bldgBlockBuiltDuringUnitpics = useUnitpics  -- block has 0 icons when unitpics active
 	end
-	local icT3b = os.clock()
-	local bldgProcessed = usedElements - preProcessEl
-	local preMobileEl = usedElements
+	icT3b = os.clock()
+	bldgProcessed = usedElements - preProcessEl
+	preMobileEl = usedElements
 
 	if useMobileBlockCache and not mobileBlockRebuild then
 		-- Fast path: copy entire cached mobile block (saves all processUnit calls)
@@ -9908,8 +9955,11 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		end
 	end
 
+	mobileProcessed = usedElements - preMobileEl
+
+	end -- if not vboReuse
+
 	local icT4 = os.clock()
-	local mobileProcessed = usedElements - preMobileEl
 
 	-- Skip draw if no icons and no unitpics
 	if usedElements == 0 and unitpicCount == 0 then
@@ -9926,8 +9976,13 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 
 	-- Draw GL4 icons (skip VBO upload/draw when all units are rendered as unitpics)
 	if usedElements > 0 then
-		-- Single bulk upload to GPU (only the used portion)
-		gl4Icons.vbo:Upload(data, nil, 0, 1, usedElements * gl4Icons.INSTANCE_STEP)
+		-- Upload to GPU (skip when VBO already has valid data from a previous frame)
+		if not vboReuse then
+			gl4Icons.vbo:Upload(data, nil, 0, 1, usedElements * gl4Icons.INSTANCE_STEP)
+			gl4Icons._vboValid = true
+			gl4Icons._vboUsedElements = usedElements
+		end
+		local icT4b = os.clock()
 
 		-- Set up GL state for icon drawing
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
@@ -9975,6 +10030,9 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		glFunc.Texture(0, false)
 
 		gl.UseShader(0)
+
+		perfTimers.icUpload = perfTimers.icUpload + PERF_SMOOTH * ((icT4b - icT4) - perfTimers.icUpload)
+		perfTimers.icDraw = perfTimers.icDraw + PERF_SMOOTH * ((os.clock() - icT4b) - perfTimers.icDraw)
 	end
 
 	local icT5 = os.clock()
@@ -10203,6 +10261,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	perfTimers.icProcMobileN = mobileProcessed
 	perfTimers.icUploadDraw = perfTimers.icUploadDraw + PERF_SMOOTH * ((icT5 - icT4) - perfTimers.icUploadDraw)
 	perfTimers.icUnitpics = perfTimers.icUnitpics + PERF_SMOOTH * ((icT6 - icT5) - perfTimers.icUnitpics)
+	perfTimers.icVboReuse = perfTimers.icVboReuse + PERF_SMOOTH * ((vboReuse and 1 or 0) - perfTimers.icVboReuse)
 
 	return iconRadiusZoomDistMult
 end
@@ -10974,13 +11033,15 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 			perfTimers.itemCount
 		))
 		Spring.Echo(string.format(
-			"  icons: ghost=%.2fms  keysort=%.2fms  sort=%.2fms  process=%.2fms  upload+draw=%.2fms  unitpics=%.2fms",
+			"  icons: ghost=%.2fms  keysort=%.2fms  sort=%.2fms  process=%.2fms  upload=%.2fms  draw=%.2fms  unitpics=%.2fms  vboReuse=%.0f%%",
 			perfTimers.icGhost * 1000,
 			perfTimers.icKeysort * 1000,
 			perfTimers.icSort * 1000,
 			perfTimers.icProcess * 1000,
-			perfTimers.icUploadDraw * 1000,
-			perfTimers.icUnitpics * 1000
+			perfTimers.icUpload * 1000,
+			perfTimers.icDraw * 1000,
+			perfTimers.icUnitpics * 1000,
+			perfTimers.icVboReuse * 100
 		))
 		Spring.Echo(string.format(
 			"    process: bldg=%.2fms(%d)  mobile=%.2fms(%d)",
@@ -14603,6 +14664,44 @@ function widget:DrawScreen()
 		end
 		-- Draw the engine minimap
 		gl.DrawMiniMap()
+
+		-- Decal overlay on engine minimap (scorch marks, build plates)
+		-- Uses multiply blend so decals darken terrain; icons get very slightly
+		-- darkened where they overlap, but at full-map zoom it's negligible.
+		UpdateDecalTexture()
+		DrawDecalsOverlay()
+
+		-- Explosion overlay on engine minimap (stronger than normal PIP overlay)
+		if config.engineMinimapExplosionOverlay and config.drawExplosions and #cache.explosions > 0 and gl4Prim.enabled then
+			GL4ResetPrimCounts()
+			local savedAlpha = config.explosionOverlayAlpha
+			config.explosionOverlayAlpha = 1.0
+			DrawExplosionOverlay()
+			config.explosionOverlayAlpha = savedAlpha
+			if gl4Prim.circles.count > 0 then
+				-- Set viewport to PIP rect so NDC [-1,1] maps to our area;
+				-- adjust wtp offsets to 0-based coords for the shader
+				gl.Viewport(render.dim.l, render.dim.b, pipWidth, pipHeight)
+				gl.Scissor(render.dim.l, render.dim.b, pipWidth, pipHeight)
+				local savedOffX, savedOffZ = wtp.offsetX, wtp.offsetZ
+				wtp.offsetX = wtp.offsetX - render.dim.l
+				wtp.offsetZ = wtp.offsetZ - render.dim.b
+				-- Pass 1: normal blend for solid colored base (visible against bright backgrounds)
+				gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+				gl.DepthTest(false)
+				GL4FlushCirclesOnly()
+				-- Pass 2: additive glow on top (re-upload same data)
+				local c = gl4Prim.circles
+				c.vbo:Upload(c.data, nil, 0, 1, c.count * gl4Prim.CIRCLE_STEP)
+				gl.Blending(GL.SRC_ALPHA, GL.ONE)
+				GL4FlushCirclesOnly()
+				gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+				-- Restore
+				wtp.offsetX, wtp.offsetZ = savedOffX, savedOffZ
+				gl.Viewport(0, 0, render.vsx, render.vsy)
+				gl.Scissor(false)
+			end
+		end
 	else
 		-- Transition: engine minimap → PIP
 		if miscState.engineMinimapActive then
