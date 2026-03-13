@@ -108,7 +108,7 @@ function gadget:RecvLuaMsg(msg, playerID)
         if unitID and Spring.ValidUnitID(unitID) then
             local unitTeam = Spring.GetUnitTeam(unitID)
             local unitDefID = Spring.GetUnitDefID(unitID)
-            if unitTeam == teamID and unitDefID and IsCommander(unitDefID) then
+            if (unitTeam == teamID or Spring.IsCheatingEnabled()) and unitDefID and IsCommander(unitDefID) then
                 local busy, reason = IsUnitBusy(unitID)
                 if busy then
                     busyReason = reason
