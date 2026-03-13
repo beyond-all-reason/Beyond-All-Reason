@@ -582,13 +582,6 @@ local function validateFeatureLoadoutEntry(entry, index, context)
 			logError(prefix .. ", field 'featureName': " .. (featureNameResult[1] and featureNameResult[1].message or "invalid"))
 		end
 	end
-
-	if entry.resurrectAs ~= nil then
-		local resurrectAsResult = validators[Types.UnitDefName](entry.resurrectAs)
-		if resurrectAsResult and not table.isEmpty(resurrectAsResult) then
-			logError(prefix .. ", field 'resurrectAs': " .. (resurrectAsResult[1] and resurrectAsResult[1].message or "invalid"))
-		end
-	end
 end
 
 --- Validator for a unitLoadout table (array of unit entries).

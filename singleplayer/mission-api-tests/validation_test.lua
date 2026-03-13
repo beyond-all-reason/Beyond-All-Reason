@@ -297,7 +297,7 @@ local actions = {
 				{ name = 'armcom', x = 2000, z = 2000, facing = 'n', team = 0, unitName = 'spawnedCom' },
 			},
 			featureLoadout = {
-				{ name = 'corak_dead', x = 2100, z = 2000, facing = 's', resurrectAs = 'corcom', featureName = 'spawnedWreck' },
+				{ name = 'corak_dead', x = 2100, z = 2000, facing = 's', featureName = 'spawnedWreck' },
 			},
 		},
 	},
@@ -328,7 +328,6 @@ local actions = {
 			},
 			featureLoadout = {
 				{ name = 'corcom_dead', x = 100, z = 100, facing = 'invalidFacing' },
-				{ name = 'corcom_dead', x = 100, z = 100, facing = 's', resurrectAs = 'invalidUnit' },
 			},
 		},
 	},
@@ -388,7 +387,7 @@ local unitLoadout = {
 
 local featureLoadout = {
 	-- #1: valid entry (featureName is referenced by 'actionReferencingLoadoutFeatureName')
-	{ name = 'corcom_dead', x = 2000, z = 1500, facing = 's', resurrectAs = 'corcom', featureName = 'loadoutWreck' },
+	{ name = 'corcom_dead', x = 2000, z = 1500, facing = 's', featureName = 'loadoutWreck' },
 
 	-- #2: invalid featureDefName
 	{ name = 'invalidFeature', x = 2000, z = 1500, facing = 's' },
@@ -399,13 +398,10 @@ local featureLoadout = {
 	-- #4: invalid facing value
 	{ name = 'corcom_dead', x = 2000, z = 1500, facing = 'invalidFacing' },
 
-	-- #5: invalid resurrectAs
-	{ name = 'corcom_dead', x = 2000, z = 1500, facing = 's', resurrectAs = 'invalidUnit' },
-
-	-- #6: invalid type for 'featureName'
+	-- #5: invalid type for 'featureName'
 	{ name = 'corcom_dead', x = 2000, z = 1500, facing = 's', featureName = 42 },
 
-	-- #7: featureName that is never referenced – should produce an "unreferenced" warning
+	-- #6: featureName that is never referenced – should produce an "unreferenced" warning
 	{ name = 'corcom_dead', x = 2200, z = 1500, facing = 's', featureName = 'unusedLoadoutFeatureName' },
 }
 

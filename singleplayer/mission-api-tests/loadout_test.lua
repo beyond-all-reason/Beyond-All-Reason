@@ -103,7 +103,7 @@ local actions = {
 				},
 			},
 			featureLoadout = {
-				{ name = 'corak_dead', x = 1800, z = 1750, facing = 's', resurrectAs = 'corak', featureName = 'reinforcement-wreck' },
+				{ name = 'corak_dead', x = 1800, z = 1750, facing = 's', featureName = 'reinforcement-wreck' },
 			},
 		},
 	},
@@ -169,7 +169,7 @@ local unitLoadout = {
 }
 
 local featureLoadout = {
-	{ name = 'corak_dead', x = 1900, z = 1800, facing = 's', resurrectAs = 'corcom', featureName = 'the-wreck' },
+	{ name = 'corak_dead', x = 1900, z = 1800, facing = 's', featureName = 'the-wreck' },
 	{ name = 'armfus_dead', x = 1900, z = 2000, facing = 'e' },
 }
 
