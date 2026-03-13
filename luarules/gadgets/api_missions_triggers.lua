@@ -159,14 +159,17 @@ local function checkUnitResurrected(trigger, unitDefID, unitTeam, builderID)
 		return
 	end
 
-	if Spring.GetUnitWorkerTask(builderID) ~= CMD.RESURRECT then
+	local cmdID, featureID = Spring.GetUnitWorkerTask(builderID)
+	if cmdID ~= CMD.RESURRECT then
 		return
 	end
+	if not Engine.FeatureSupport.noOffsetForFeatureID then
+		featureID = featureID - Game.maxUnits
+	end
 
-	-- TODO: feature tracking
-	--if trigger.parameters.featureName and not doesFeatureHaveName(featureID, trigger.parameters.featureName) then
-	--	return
-	--end
+	if trigger.parameters.featureName and not doesFeatureHaveName(featureID, trigger.parameters.featureName) then
+		return
+	end
 	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
 		return
 	end

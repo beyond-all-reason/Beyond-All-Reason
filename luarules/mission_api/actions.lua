@@ -152,15 +152,20 @@ local function unnameUnits(unitName)
 end
 
 local function createFeature(featureDefName, position, featureName, facing)
-	if not FeatureDefNames[featureDefName] then return end
-
-	-- Convert named facing to a heading integer (Spring uses 0-65535 headings)
+	-- Convert named facing to a heading integer (engine uses 0-65535 headings)
 	local facingToHeading = { s = 0, n = 32768, e = 16384, w = 49152,
 		south = 0, north = 32768, east = 16384, west = 49152,
 		[0] = 0, [1] = 32768, [2] = 16384, [3] = 49152 }
 	local heading = facing and (facingToHeading[facing] or 0) or 0
 
-	local featureID = Spring.CreateFeature(featureDefName, position.x, position.y, position.z, heading)
+	local gaiaTeamID = Spring.GetGaiaTeamID()
+	local featureID = Spring.CreateFeature(featureDefName, position.x, position.y, position.z, heading, gaiaTeamID)
+	if featureDefName:sub(-5) == '_dead' then
+		local unitDefName = featureDefName:sub(1, -6)
+		if UnitDefNames[unitDefName] then
+			Spring.SetFeatureResurrect(featureID, unitDefName, facing)
+		end
+	end
 	if featureID and featureName then
 		trackFeature(featureName, featureID)
 	end
