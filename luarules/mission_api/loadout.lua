@@ -13,9 +13,19 @@ local function spawnUnitLoadout(unitLoadout, trackUnit)
 		local y = Spring.GetGroundHeight(unit.x, unit.z)
 		local unitID = Spring.CreateUnit(unit.name, unit.x, y, unit.z, unit.facing or 's', unit.team)
 		if unitID then
-			Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
 			if unit.neutral == true or unit.neutral == 'true' then
 				Spring.SetUnitNeutral(unitID, true)
+			end
+			if not table.isNilOrEmpty(unit.orders) then
+				for _, order in ipairs(unit.orders) do
+					local cmdID  = order[1]
+					local params = order[2] or {}
+					local opts   = order[3] or {}
+					-- TODO: update when orders can be on named units
+					Spring.GiveOrderToUnit(unitID, cmdID, params, opts)
+				end
+			else
+				Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
 			end
 			if unit.unitName and trackUnit then
 				trackUnit(unit.unitName, unitID)

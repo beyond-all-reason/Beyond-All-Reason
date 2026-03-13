@@ -499,6 +499,15 @@ local function validateUnitLoadoutEntry(entry, index, context)
 			logError(prefix .. ", field 'neutral': " .. (neutralResult[1] and neutralResult[1].message or "invalid"))
 		end
 	end
+
+	if entry.orders ~= nil then
+		local ordersResult = validators[Types.Orders](entry.orders)
+		if ordersResult and not table.isEmpty(ordersResult) then
+			for _, err in ipairs(ordersResult) do
+				logError(prefix .. ", field 'orders'" .. (err.parameterNameSuffix or "") .. ": " .. (err.message or "invalid"))
+			end
+		end
+	end
 end
 
 local function validateFeatureLoadoutEntry(entry, index, context)

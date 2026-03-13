@@ -61,7 +61,9 @@ local actions = {
 	messageIntro = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'Loadout test: pre-spawned units and features are live. The con (unitName="player-con") will move shortly, then the wreck (featureName="the-wreck") will be destroyed.',
+			message = 'Loadout test: pre-spawned units and features are live. ' ..
+			          'Player con has an initial patrol order from loadout. ' ..
+			          'The wreck (featureName="the-wreck") will be destroyed.',
 		},
 	},
 
@@ -93,8 +95,12 @@ local actions = {
 		type = actionTypes.SpawnLoadout,
 		parameters = {
 			unitLoadout = {
-				{ name = 'armck', x = 1900, z = 1700, facing = 'e', team = 0, unitName = 'reinforcement-con' },
-				{ name = 'armflea', x = 1900, z = 1820, facing = 'e', team = 0 },
+				{ name = 'armck',   x = 1900, z = 1700, facing = 'e', team = 0, unitName = 'reinforcement-con' },
+				{ name = 'armflea', x = 1900, z = 1820, facing = 'e', team = 0,
+				  orders = {
+				    { CMD.MOVE, { 2100, 0, 2220 }, {} },
+				  },
+				},
 			},
 			featureLoadout = {
 				{ name = 'corak_dead', x = 1800, z = 1750, facing = 's', resurrectAs = 'corak', featureName = 'reinforcement-wreck' },
@@ -149,8 +155,13 @@ local actions = {
 }
 
 local unitLoadout = {
-	-- Player team (team 0)
+	-- Player team (team 0).
 	{ name = 'armck',  x = 1780, z = 1850, facing = 'e', team = 0, unitName = 'player-con' },
+	{ name = 'corck',  x = 1780, z = 1800, facing = 'e', team = 0,
+	  orders = {
+	    { CMD.PATROL, { 1780, 0, 1950 }, {} },
+	  },
+	},
 
 	-- Enemy team (team 1)
 	{ name = 'corsolar', x = 1700, z = 2150, facing = 'w', team = 1 },

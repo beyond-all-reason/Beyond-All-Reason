@@ -41,11 +41,11 @@ end
 
 function gadget:Initialize()
 	-- TODO: Actually pass script path
-	--local scriptPath = 'mission-api-tests/validation_test.lua'
+	local scriptPath = 'mission-api-tests/validation_test.lua'
 	--local scriptPath = 'mission-api-tests/test_mission.lua'
 	--local scriptPath = 'mission-api-tests/unit_triggers_test.lua'
 	--local scriptPath = 'mission-api-tests/feature_triggers_test.lua'
-	local scriptPath = 'mission-api-tests/loadout_test.lua'
+	--local scriptPath = 'mission-api-tests/loadout_test.lua'
 
 	if not scriptPath then
 		gadgetHandler:RemoveGadget()

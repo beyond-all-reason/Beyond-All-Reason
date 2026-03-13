@@ -276,6 +276,9 @@ local actions = {
 			unitLoadout = {
 				{ name = 'invalidUnit', x = 100, z = 100, facing = 'n', team = 0 },
 				{ name = 'armcom',      x = 100, z = 100, facing = 'n' }, -- missing 'team'
+				{ name = 'armcom', x = 100, z = 100, facing = 'n', team = 0,
+				  orders = {}, -- empty orders table
+				},
 			},
 			featureLoadout = {
 				{ name = 'corcom_dead', x = 100, z = 100, facing = 'invalidFacing' },
@@ -322,6 +325,19 @@ local unitLoadout = {
 
 	-- #7: unitName that is never referenced – should produce an "unreferenced" warning
 	{ name = 'armcom', x = 1300, z = 900, facing = 's', team = 0, unitName = 'unusedLoadoutUnitName' },
+
+	-- #8: valid entry with orders (move, then queued patrol)
+	{ name = 'armcom', x = 1400, z = 900, facing = 'n', team = 0,
+	  orders = {
+	    { CMD.MOVE,   { 1500, 0, 900 },  {}         },  -- valid move
+	    { CMD.PATROL, { 1400, 0, 900 },  { 'shift' } }, -- valid queued patrol
+	  },
+	},
+
+	-- #9: orders table is empty – should produce an "Orders table is empty" error
+	{ name = 'armcom', x = 1500, z = 900, facing = 'n', team = 0,
+	  orders = {},
+	},
 }
 
 local featureLoadout = {
