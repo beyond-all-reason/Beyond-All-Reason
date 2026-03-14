@@ -213,17 +213,19 @@ local function checkUnitDwellLocation(trigger, triggerID)
 
 	for _, unitID in pairs(unitsInArea) do
 		-- If unit already dwelling in area, increase dwelling time:
-		if dwellingUnitsInAreas[triggerID] and dwellingUnitsInAreas[triggerID][unitID] ~= nil then
-			dwellingUnitsInAreas[triggerID][unitID] = dwellingUnitsInAreas[triggerID][unitID] + unitLocationCheckInterval
+		if dwellingUnitsInAreas[triggerID] and dwellingUnitsInAreas[triggerID][unitID] ~= nil and dwellingUnitsInAreas[triggerID][unitID] >= 0 then
+			dwellingUnitsInAreas[triggerID][unitID] = dwellingUnitsInAreas[triggerID][unitID] + 1
 
 			-- Check duration, and if unit still has required name:
 			if dwellingUnitsInAreas[triggerID][unitID] >= trigger.parameters.duration and
 				(not trigger.parameters.unitName or doesUnitHaveName(unitID, trigger.parameters.unitName)) then
+				dwellingUnitsInAreas[triggerID][unitID] = -1 -- Prevent multiple activations for the same unit
 				activateTrigger(trigger)
 			end
 
-		-- If unit just entered area, start counting:
-		elseif (not trigger.parameters.unitName or doesUnitHaveName(unitID, trigger.parameters.unitName))
+		-- If unit just entered area (and hasn't already triggered), start counting:
+		elseif (dwellingUnitsInAreas[triggerID] == nil or dwellingUnitsInAreas[triggerID][unitID] == nil)
+			and (not trigger.parameters.unitName or doesUnitHaveName(unitID, trigger.parameters.unitName))
 			and (not trigger.parameters.unitDefName or UnitDefs[Spring.GetUnitDefID(unitID)].name == trigger.parameters.unitDefName) then
 			if not dwellingUnitsInAreas[triggerID] then
 				dwellingUnitsInAreas[triggerID] = {}
@@ -313,17 +315,18 @@ function gadget:GameFrame(frameNumber)
 		checkTimeElapsed(trigger, frameNumber)
 	end)
 
-	if frameNumber % unitLocationCheckInterval == 0 then
-		processTriggersOfType(types.UnitEnteredLocation, function(trigger, triggerID)
-			checkUnitEnteredLocation(trigger, triggerID)
-		end)
-		processTriggersOfType(types.UnitLeftLocation, function(trigger, triggerID)
-			checkUnitLeftLocation(trigger, triggerID)
-		end)
-		processTriggersOfType(types.UnitDwellLocation, function(trigger, triggerID)
-			checkUnitDwellLocation(trigger, triggerID)
-		end)
-	end
+	processTriggersOfType(types.UnitEnteredLocation, function(trigger, triggerID)
+		checkUnitEnteredLocation(trigger, triggerID)
+	end)
+
+	processTriggersOfType(types.UnitLeftLocation, function(trigger, triggerID)
+		checkUnitLeftLocation(trigger, triggerID)
+	end)
+
+	processTriggersOfType(types.UnitDwellLocation, function(trigger, triggerID)
+		checkUnitDwellLocation(trigger, triggerID)
+	end)
+
 end
 
 function gadget:MetaUnitAdded(_, unitDefID, unitTeam)
