@@ -253,7 +253,7 @@ config = {
 	engineMinimapFallback = true,  -- Use engine minimap when fully zoomed out (performance fallback)
 	engineMinimapFallbackThreshold = 4500,  -- Unit count threshold before engine minimap fallback activates
 	engineMinimapExplosionOverlay = true,  -- Draw explosion overlay on top of engine minimap
-	engineMinimapDecalStrength = 0.8,  -- Decal overlay strength on engine minimap (0-1, lower = subtler scorch marks)
+	engineMinimapDecalStrength = 0.8,  -- Decal overlay strength on engine minimap (0-1, lower = subtler scorch marks) decals do overlap with the engine minimap (unit icons), so this can be used to reduce their prominence if desired
 }
 
 -- State variables
@@ -1391,7 +1391,13 @@ local pools = {
 	trackingMerge = {}, -- Reused for tracking unit merge operations
 	trackingTempSet = {}, -- Reused for tracking unit deduplication
 	activeTrails = {}, -- Reused for tracking active missile trails
+	visibleButtons = {}, -- Reused for button visibility computation
 }
+
+-- Per-frame selected-units cache: avoids 5+ redundant Spring.GetSelectedUnits() calls per frame,
+-- each of which allocates a new Lua table with N entries (N = selected unit count).
+local frameSel = nil      -- Cached array from Spring.GetSelectedUnits() (lazy, set on first use)
+local frameSelCount = 0   -- Cached count from Spring.GetSelectedUnitsCount() (set at start of DrawScreen)
 
 -- Command queue waypoint cache: avoids calling GetUnitCommands every frame.
 -- GetUnitCommands allocates ~60 tables per unit per call (outer + cmd + params tables),
@@ -1775,6 +1781,7 @@ local spFunc = {
 	GetUnitIsStunned = Spring.GetUnitIsStunned,
 	GetTeamAllyTeamID = Spring.GetTeamAllyTeamID,
 	GetUnitSelfDTime = Spring.GetUnitSelfDTime,
+	GetSelectedUnitsCount = Spring.GetSelectedUnitsCount,
 }
 
 -- Map/game constants
@@ -8769,7 +8776,8 @@ local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 
 	if needRefresh then
 		local wpCache = cmdQueueCache.waypoints
-		for i = 1, unitCount do
+		local refreshLimit = math.min(unitCount, 300)  -- Cap GetUnitCommands calls to limit allocation spike
+		for i = 1, refreshLimit do
 			local uID = unitsToShow[i]
 			local unitTeam = spFunc.GetUnitTeam(uID)
 			-- Skip gaia units, and skip AI units (always for scav/raptor, optionally for other AI)
@@ -8939,7 +8947,8 @@ local function DrawBuildPreview(mx, my, iconRadiusZoomDistMult)
 			-- Draw preview icons for all spots in area
 			local mexBuildings = WG["resource_spot_builder"] and WG["resource_spot_builder"].GetMexBuildings()
 			if mexBuildings then
-				local selectedUnits = Spring.GetSelectedUnits()
+				if not frameSel then frameSel = Spring.GetSelectedUnits() end
+				local selectedUnits = frameSel
 				local mexConstructors = WG["resource_spot_builder"] and WG["resource_spot_builder"].GetMexConstructors()
 				local selectedMex = WG["resource_spot_builder"] and WG["resource_spot_builder"].GetBestExtractorFromBuilders(selectedUnits, mexConstructors, mexBuildings)
 
@@ -9150,6 +9159,11 @@ local function DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
 	end
 	if selectedCount == 0 then
 		return
+	end
+
+	-- Cap unit count to avoid mass GetUnitCommands calls with large selections
+	if selectedCount > 200 then
+		selectedCount = 200
 	end
 
 	-- Clear and reuse texture grouping tables
@@ -9818,10 +9832,11 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		local bldgIdx = gl4Icons._bldgBlockIdx
 
 		-- Selection overlay: selected buildings rendered white
+		-- Iterate bldgIdx (visible buildings) instead of selectedSet (all selected units)
+		-- since visible buildings << total selected units when selection is large
 		if selectedSet then
-			for uID, _ in pairs(selectedSet) do
-				local idx = bldgIdx[uID]
-				if idx then
+			for uID, idx in pairs(bldgIdx) do
+				if selectedSet[uID] then
 					local off = (preProcessEl + idx - 1) * instStep
 					data[off + 9] = 1; data[off + 10] = 1; data[off + 11] = 1
 					data[off + 12] = (uID * 0.37) % 6.2832  -- reset flash encoding
@@ -9919,6 +9934,21 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 			local f = bldgBlock[j]
 			bldgBlock[j] = f - f % 32 + f % 8  -- keep health*32 + bits 0-2, clear bits 3-4
 		end
+		-- Strip selection colors from cache: restore team colors for any selected buildings
+		-- so the cached block is selection-neutral (selection overlay is applied dynamically)
+		if selectedSet then
+			for uID, idx in pairs(bldgIdx) do
+				if selectedSet[uID] then
+					local j = (idx - 1) * instStep
+					local uTeam = spFunc.GetUnitTeam(uID)
+					if uTeam then
+						bldgBlock[j + 9] = teamColorR[uTeam] or 1
+						bldgBlock[j + 10] = teamColorG[uTeam] or 1
+						bldgBlock[j + 11] = teamColorB[uTeam] or 1
+					end
+				end
+			end
+		end
 		-- Clear stale entries beyond current block
 		local prevBlockN = gl4Icons._bldgBlockN or 0
 		for j = blockFloats + 1, prevBlockN do bldgBlock[j] = nil end
@@ -9961,11 +9991,11 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		-- Dynamic overlays on top of cached mobile data
 		local mobileIdx = gl4Icons._mobileBlockIdx
 		if mobileIdx then
-			-- Selection overlay: selected units rendered white
+			-- Selection overlay: selected mobile units rendered white
+			-- Iterate mobileIdx (visible units) instead of selectedSet (all selected units)
 			if selectedSet then
-				for uID, _ in pairs(selectedSet) do
-					local idx = mobileIdx[uID]
-					if idx then
+				for uID, idx in pairs(mobileIdx) do
+					if selectedSet[uID] then
 						local off = (preMobileEl + idx - 1) * instStep
 						data[off + 9] = 1; data[off + 10] = 1; data[off + 11] = 1
 						data[off + 12] = (uID * 0.37) % 6.2832
@@ -10049,6 +10079,20 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 				local j = i * instStep + 4
 				local f = mobileBlock[j]
 				mobileBlock[j] = f - f % 32 + f % 8
+			end
+			-- Strip selection colors from cache (same as building block)
+			if selectedSet then
+				for uID, idx in pairs(mobileIdx) do
+					if selectedSet[uID] then
+						local j = (idx - 1) * instStep
+						local uTeam = spFunc.GetUnitTeam(uID)
+						if uTeam then
+							mobileBlock[j + 9] = teamColorR[uTeam] or 1
+							mobileBlock[j + 10] = teamColorG[uTeam] or 1
+							mobileBlock[j + 11] = teamColorB[uTeam] or 1
+						end
+					end
+				end
 			end
 			-- Clear stale entries
 			local prevBlockN = gl4Icons._mobileBlockN or 0
@@ -10734,14 +10778,17 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 
 	-- Draw icons (GL4 instanced path)
 	local iconRadiusZoomDistMult
-	-- Build selection set for GL4 icon rendering
+	-- Build selection set for GL4 icon rendering (reuse pool table to avoid per-frame allocation)
 	local selectedSet
 	if interactionState.trackingPlayerID then
 		selectedSet = WG['allyselectedunits'] and WG['allyselectedunits'].getPlayerSelectedUnits(interactionState.trackingPlayerID)
 	else
 		local selUnits2 = cachedSelectedUnits or Spring.GetSelectedUnits()
-		selectedSet = {}
-		for si = 1, #selUnits2 do selectedSet[selUnits2[si]] = true end
+		local set = pools.selectedSet
+		if not set then set = {}; pools.selectedSet = set end
+		for k in pairs(set) do set[k] = nil end
+		for si = 1, #selUnits2 do set[selUnits2[si]] = true end
+		selectedSet = set
 	end
 	iconRadiusZoomDistMult = GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 
@@ -11273,15 +11320,15 @@ local function RenderFrameButtons()
 	end
 
 	-- Bottom-left buttons
-	local selectedUnits = Spring.GetSelectedUnits()
-	local hasSelection = #selectedUnits > 0
+	local hasSelection = frameSelCount > 0
 	local isTracking = interactionState.areTracking ~= nil
 	local isTrackingPlayer = interactionState.trackingPlayerID ~= nil
 	-- Show player tracking button when tracking, when spectating, or when having alive teammates
 	local spec = Spring.GetSpectatingState()
 	local aliveTeammates = GetAliveTeammates()
 	local showPlayerTrackButton = isTrackingPlayer or spec or (#aliveTeammates > 0)
-	local visibleButtons = {}
+	local visibleButtons = pools.visibleButtons
+	for k in pairs(visibleButtons) do visibleButtons[k] = nil end
 	for i = 1, #buttons do
 		local btn = buttons[i]
 		-- In minimap mode, hide move button if configured
@@ -12434,7 +12481,8 @@ end
 -- Render the expensive layers (units, features, projectiles, commands, markers, camera bounds)
 -- Called inside R2T context for the oversized unitsTex
 local function RenderExpensiveLayers()
-	local cachedSelectedUnits = Spring.GetSelectedUnits()
+	if not frameSel then frameSel = Spring.GetSelectedUnits() end
+	local cachedSelectedUnits = frameSel
 
 	-- Apply rotation to all content if minimap is rotated
 	if render.minimapRotation ~= 0 then
@@ -12462,8 +12510,9 @@ end
 
 -- Full render for fallback when unitsTex is not available
 local function RenderPipContents()
-	-- Cache selected units once per render cycle to avoid multiple API calls
-	local cachedSelectedUnits = Spring.GetSelectedUnits()
+	-- Use frame-cached selected units to avoid redundant API call
+	if not frameSel then frameSel = Spring.GetSelectedUnits() end
+	local cachedSelectedUnits = frameSel
 	
 	-- Apply rotation to all content if minimap is rotated
 	if render.minimapRotation ~= 0 then
@@ -14398,8 +14447,9 @@ local function HandleHoverAndCursor(mx, my)
 			local defaultCmd = Spring.GetDefaultCommand()
 
 			if not defaultCmd or defaultCmd == 0 then
-				local selectedUnits = Spring.GetSelectedUnits()
-				if selectedUnits and #selectedUnits > 0 then
+				if frameSelCount > 0 then
+					if not frameSel then frameSel = Spring.GetSelectedUnits() end
+					local selectedUnits = frameSel
 					-- Check if hovering over an enemy unit with units that can attack
 					-- But don't show attack cursor for neutral units
 					if lastHoveredUnitID and not Spring.IsUnitAllied(lastHoveredUnitID) then
@@ -14478,8 +14528,9 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 	end
 
 	-- Bottom-left buttons hover
-	local selectedUnits = Spring.GetSelectedUnits()
-	local visibleButtons = {}
+	local hasSelection = frameSelCount > 0
+	local visibleButtons = pools.visibleButtons
+	for k in pairs(visibleButtons) do visibleButtons[k] = nil end
 	for i = 1, #buttons do
 		local btn = buttons[i]
 		-- In minimap mode, hide move button if configured
@@ -14504,7 +14555,7 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 		
 		if not skipButton then
 			if btn.command == 'pip_track' then
-				if #selectedUnits > 0 or interactionState.areTracking then
+				if hasSelection or interactionState.areTracking then
 					visibleButtons[#visibleButtons + 1] = btn
 				end
 			elseif btn.command == 'pip_trackplayer' then
@@ -14719,6 +14770,10 @@ function widget:DrawScreen()
 		return
 	end
 
+	-- Cache selected units count once per frame (avoids 5+ redundant GetSelectedUnits calls)
+	frameSelCount = spFunc.GetSelectedUnitsCount()
+	frameSel = nil  -- Lazy: full array fetched only when needed
+
 	HandleHoverAndCursor(mx, my)
 
 	----------------------------------------------------------------------------------------------------
@@ -14743,8 +14798,12 @@ function widget:DrawScreen()
 	----------------------------------------------------------------------------------------------------
 	-- Engine minimap fallback: when enabled and fully zoomed out with many units, draw engine minimap instead of PIP
 	----------------------------------------------------------------------------------------------------
+	-- Hysteresis: activate at threshold, deactivate at 95% of threshold to avoid flickering
+	local fallbackUnitThreshold = miscState.engineMinimapActive
+		and (config.engineMinimapFallbackThreshold * 0.95)
+		or config.engineMinimapFallbackThreshold
 	local useEngineMinimapFallback = isMinimapMode and config.engineMinimapFallback
-		and #miscState.pipUnits > config.engineMinimapFallbackThreshold
+		and #miscState.pipUnits > fallbackUnitThreshold
 		and IsAtMinimumZoom(cameraState.zoom) and IsAtMinimumZoom(cameraState.targetZoom)
 		and not interactionState.trackingPlayerID and not miscState.tvEnabled
 
@@ -15906,7 +15965,8 @@ function widget:Update(dt)
 			end
 		-- No active command - check if we should highlight for transport loading or attack
 		elseif unitID then
-			local selectedUnits = Spring.GetSelectedUnits()
+			if not frameSel then frameSel = Spring.GetSelectedUnits() end
+			local selectedUnits = frameSel
 			local shouldHighlight = false
 			local isAlly = Spring.IsUnitAllied(unitID)
 
@@ -15963,8 +16023,7 @@ function widget:Update(dt)
 	end
 
 	-- Track selection and tracking state changes for frame updates
-	local selectedUnits = Spring.GetSelectedUnits()
-	local currentSelectionCount = #selectedUnits
+	local currentSelectionCount = frameSelCount
 	local currentTrackingState = interactionState.areTracking ~= nil
 	local currentPlayerTrackingState = interactionState.trackingPlayerID ~= nil
 	if not lastSelectionCount then lastSelectionCount = 0 end
