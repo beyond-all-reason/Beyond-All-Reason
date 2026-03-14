@@ -1569,7 +1569,7 @@ function SortAllyTeams(vOffset)
 
 	if numberOfEnemies > 0 then
 
-		-- "Enemies" label (skip when own ally team was hidden as spectator, since all teams are enemies)
+		-- "Enemies" label
 		if not WG.allyTeamRanking or not enemyListShow then
 			if ownAllyTeamDrawn then
 				vOffset = vOffset + 13
@@ -1582,7 +1582,7 @@ function SortAllyTeams(vOffset)
 		end
 
 		-- add the others
-		if enemyListShow then
+		if enemyListShow or not ownAllyTeamDrawn then
 			local firstenemy = true
 			for _, allyTeamID in ipairs(allyTeamList) do
 				if (WG.allyTeamRanking or allyTeamID ~= myAllyTeamID) and (not hideDeadAllyTeams or aliveAllyTeams[allyTeamID]) then
