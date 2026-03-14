@@ -125,6 +125,32 @@ local hotkeyCache = {}
 local stateCommandsTemp = {}
 local otherCommandsTemp = {}
 
+-- Persistent cache for command display text (survives across refreshCommands calls)
+local commandTextCache = {}
+
+-- Cached WAIT command state (computed once per refresh, not per drawCell call)
+local cachedWaitState = nil
+local hasWaitCommand = false
+local cachedFirstUnit = nil  -- first selected unit, avoids spGetSelectedUnits() table alloc
+
+-- Command fingerprint to skip redundant R2T redraws
+local prevCmdCount = 0
+local prevCmdIDs = {}
+local prevCmdStates = {}
+local prevActiveCmd = nil
+local commandsVisuallyChanged = true
+
+-- Font metrics cache (cleared on ViewResize when font changes)
+local fontWidthCache = {}   -- text -> GetTextWidth result (with padding)
+local fontHeightCache = {}  -- text -> GetTextHeight result
+
+-- Colorized text color cache (cleared when colorize changes)
+local colorStrCache = {}
+local lastColorize = -1
+
+-- Pre-built printable text cache: textColor .. text (cleared on redraw)
+local printTextCache = {}
+
 local hiddenCommands = {
 	[CMD.LOAD_ONTO] = true,
 	[CMD.SELFD] = true,
@@ -283,6 +309,30 @@ local function setupCellGrid(force)
 	end
 end
 
+local function computeWaitState()
+	if not hasWaitCommand then
+		cachedWaitState = nil
+		return
+	end
+	-- Use cached first unit instead of calling spGetSelectedUnits() which allocates a large table
+	local ref = cachedFirstUnit
+	if ref and Spring.ValidUnitID(ref) and Spring.FindUnitCmdDesc(ref, CMD.WAIT) then
+		local commandQueue
+		if isFactory[Spring.GetUnitDefID(ref)] then
+			commandQueue = Spring.GetFactoryCommands(ref, 1)
+		else
+			commandQueue = Spring.GetUnitCommands(ref, 1)
+		end
+		if commandQueue and commandQueue[1] and commandQueue[1].id == CMD.WAIT then
+			cachedWaitState = 2
+		else
+			cachedWaitState = 1
+		end
+	else
+		cachedWaitState = nil
+	end
+end
+
 local function refreshCommands()
 	local waitCommand
 	-- Clear and reuse temp tables instead of creating new ones
@@ -305,7 +355,7 @@ local function refreshCommands()
 				isStateCommand[command.id] = true
 			end
 			if not hiddenCommands[command.id] and not hiddenCommandTypes[command.type] and command.action ~= nil and not command.disabled then
-				if command.type == CMDTYPE_ICON_BUILDING or (string.sub(command.action, 1, 10) == 'buildunit_') then
+				if command.type == CMDTYPE_ICON_BUILDING or (string.find(command.action, 'buildunit_', 1, true) == 1) then
 					-- intentionally empty, no action to take
 				elseif isStateCommand[command.id] then
 					stateCommandsCount = stateCommandsCount + 1
@@ -338,39 +388,85 @@ local function refreshCommands()
 		commands[i + stateCommandsCount + waitCommandCount] = otherCommandsTemp[i]
 	end
 
-	-- OPTIMIZATION: Cache the display text for each command
+	-- OPTIMIZATION: Cache the display text using persistent commandTextCache
 	for _, cmd in ipairs(commands) do
-		-- Skip if already cached
-		if not cmd.cachedText then
-			local text
-			-- First element of params represents selected state index, but Spring engine implementation returns a value 2 less than the actual index
-			local stateOffset = 2
-
-			if isStateCommand[cmd.id] then
-				local currentStateIndex = cmd.params[1]
-				if currentStateIndex then
-					local commandState = cmd.params[currentStateIndex + stateOffset]
-					if commandState then
-						text = getCachedTranslation('ui.orderMenu.' .. commandState)
-					else
-						text = '?'
+		if isStateCommand[cmd.id] then
+			local currentStateIndex = cmd.params[1]
+			if currentStateIndex then
+				-- First element of params represents selected state index, but Spring engine implementation returns a value 2 less than the actual index
+				local commandState = cmd.params[currentStateIndex + 2]
+				if commandState then
+					if not commandTextCache[commandState] then
+						commandTextCache[commandState] = getCachedTranslation('ui.orderMenu.' .. commandState)
 					end
+					cmd.cachedText = commandTextCache[commandState]
 				else
-					text = '?'
+					cmd.cachedText = '?'
 				end
 			else
-				if cmd.action == 'stockpile' then
-					-- Stockpile command name gets mutated to reflect the current status, so can just pass it in
-					text = getCachedTranslation('ui.orderMenu.' .. cmd.action, { stockpileStatus = cmd.name })
-				else
-					text = getCachedTranslation('ui.orderMenu.' .. cmd.action)
+				cmd.cachedText = '?'
+			end
+		else
+			if cmd.action == 'stockpile' then
+				-- Stockpile command name gets mutated to reflect the current status, so can't cache persistently
+				cmd.cachedText = getCachedTranslation('ui.orderMenu.' .. cmd.action, { stockpileStatus = cmd.name })
+			else
+				local actionKey = cmd.action
+				if not commandTextCache[actionKey] then
+					commandTextCache[actionKey] = getCachedTranslation('ui.orderMenu.' .. actionKey)
+				end
+				cmd.cachedText = commandTextCache[actionKey]
+			end
+		end
+	end
+
+	hasWaitCommand = (waitCommand ~= nil)
+
+	-- Fingerprint: detect if commands visually changed to skip redundant R2T redraws
+	commandsVisuallyChanged = false
+	local cmdCount = #commands
+	if cmdCount ~= prevCmdCount or activeCommand ~= prevActiveCmd then
+		commandsVisuallyChanged = true
+	else
+		for i = 1, cmdCount do
+			local cmd = commands[i]
+			if cmd.id ~= prevCmdIDs[i] then
+				commandsVisuallyChanged = true
+				break
+			end
+			if isStateCommand[cmd.id] then
+				local s = cmd.params and cmd.params[1]
+				if s ~= prevCmdStates[i] then
+					commandsVisuallyChanged = true
+					break
 				end
 			end
-			cmd.cachedText = text -- Store the translated text
+		end
+	end
+	if commandsVisuallyChanged then
+		prevCmdCount = cmdCount
+		prevActiveCmd = activeCommand
+		for i = 1, cmdCount do
+			prevCmdIDs[i] = commands[i].id
+			if isStateCommand[commands[i].id] then
+				prevCmdStates[i] = commands[i].params and commands[i].params[1]
+			else
+				prevCmdStates[i] = nil
+			end
+		end
+		-- Clear excess fingerprint entries
+		for i = cmdCount + 1, #prevCmdIDs do
+			prevCmdIDs[i] = nil
+			prevCmdStates[i] = nil
+		end
+		-- Invalidate print text cache since display changed
+		for k in pairs(printTextCache) do
+			printTextCache[k] = nil
 		end
 	end
 
 	setupCellGrid(false)
+	computeWaitState()
 end
 
 function widget:ViewResize()
@@ -438,6 +534,11 @@ function widget:ViewResize()
 	checkGuiShader(true)
 	setupCellGrid(true)
 	doUpdate = true
+
+	-- Clear font metric caches since font changed
+	for k in pairs(fontWidthCache) do fontWidthCache[k] = nil end
+	for k in pairs(fontHeightCache) do fontHeightCache[k] = nil end
+	for k in pairs(printTextCache) do printTextCache[k] = nil end
 
 	if ordermenuTex then
 		gl.DeleteTexture(ordermenuBgTex)
@@ -668,26 +769,54 @@ local function drawCell(cell, zoom)
 			-- OPTIMIZATION: Use the cached text instead of recalculating it
 			local text = cmd.cachedText or '?'
 
-			local fontSize = cellInnerWidth / font:GetTextWidth('  ' .. text .. ' ') * math_min(1, (cellInnerHeight / (rows * 6)))
+			-- Cache font metrics per text string to avoid string concat + measurement each draw
+			local textWidth = fontWidthCache[text]
+			if not textWidth then
+				textWidth = font:GetTextWidth('  ' .. text .. ' ')
+				fontWidthCache[text] = textWidth
+			end
+			local textHeight = fontHeightCache[text]
+			if not textHeight then
+				textHeight = font:GetTextHeight(text)
+				fontHeightCache[text] = textHeight
+			end
+
+			local fontSize = cellInnerWidth / textWidth * math_min(1, (cellInnerHeight / (rows * 6)))
 			if fontSize > cellInnerWidth / 7 then
 				fontSize = cellInnerWidth / 7
 			end
 			fontSize = fontSize * zoom
-			local fontHeight = font:GetTextHeight(text) * fontSize
-			local fontHeightOffset = fontHeight * 0.34
-			if isStateCommand[cmd.id] then
-				fontHeightOffset = fontHeight * 0.22
-			end
-			local textColor = "\255\233\233\233"
-			if colorize > 0 and commandInfo[cmd.action] and commandInfo[cmd.action].red then
-				local part = (1 / colorize)
-				local grey = (0.93 * (part - 1))
-				textColor = convertColor((grey + commandInfo[cmd.action].red) / part, (grey + commandInfo[cmd.action].green) / part, (grey + commandInfo[cmd.action].blue) / part)
-			end
+			local fontHeightOffset = textHeight * fontSize * (isStateCommand[cmd.id] and 0.22 or 0.34)
+
+			-- Determine text color, using cache for colorized strings
+			local textColor
 			if isActiveCmd then
 				textColor = "\255\020\020\020"
+			elseif colorize > 0 and commandInfo[cmd.action] and commandInfo[cmd.action].red then
+				if lastColorize ~= colorize then
+					for k in pairs(colorStrCache) do colorStrCache[k] = nil end
+					for k in pairs(printTextCache) do printTextCache[k] = nil end
+					lastColorize = colorize
+				end
+				if not colorStrCache[cmd.action] then
+					local info = commandInfo[cmd.action]
+					local part = (1 / colorize)
+					local grey = (0.93 * (part - 1))
+					colorStrCache[cmd.action] = convertColor((grey + info.red) / part, (grey + info.green) / part, (grey + info.blue) / part)
+				end
+				textColor = colorStrCache[cmd.action]
+			else
+				textColor = "\255\233\233\233"
 			end
-			font:Print(textColor .. text, cellRects[cell][1] + ((cellRects[cell][3] - cellRects[cell][1]) / 2), (cellRects[cell][2] - ((cellRects[cell][2] - cellRects[cell][4]) / 2) - fontHeightOffset), fontSize, "con")
+
+			-- Cache the full printable string (textColor .. text) to avoid concat per draw
+			local printKey = isActiveCmd and ('A_' .. text) or (cmd.action .. '_' .. text)
+			local printStr = printTextCache[printKey]
+			if not printStr then
+				printStr = textColor .. text
+				printTextCache[printKey] = printStr
+			end
+			font:Print(printStr, cellRects[cell][1] + ((cellRects[cell][3] - cellRects[cell][1]) / 2), (cellRects[cell][2] - ((cellRects[cell][2] - cellRects[cell][4]) / 2) - fontHeightOffset), fontSize, "con")
 		end
 
 		-- state lights
@@ -698,27 +827,7 @@ local function drawCell(cell, zoom)
 				curstate = cmd.params[1] + 1
 			else
 				statecount = 2
-				local referenceUnit
-				for _, unitID in ipairs(spGetSelectedUnits()) do
-					local canWait = Spring.FindUnitCmdDesc(unitID, CMD.WAIT)
-					if canWait then
-						referenceUnit = unitID
-						break
-					end
-				end
-				if referenceUnit then
-					local commandQueue
-					if isFactory[Spring.GetUnitDefID(referenceUnit)] then
-						commandQueue = Spring.GetFactoryCommands(referenceUnit, 1)
-					else
-						commandQueue = Spring.GetUnitCommands(referenceUnit, 1)
-					end
-					if commandQueue and commandQueue[1] and commandQueue[1].id == CMD.WAIT then
-						curstate = 2
-					else
-						curstate = 1
-					end
-				end
+				curstate = cachedWaitState
 			end
 			local desiredState = nil
 			if clickedCellDesiredState and cell == clickedCell then
@@ -859,6 +968,10 @@ function widget:DrawScreen()
 			doUpdateClock = nil
 			lastCommandRefreshTime = now
 			refreshCommands()
+			-- Skip R2T rebuild if commands haven't visually changed
+			if not commandsVisuallyChanged then
+				doUpdate = nil
+			end
 		else
 			-- Defer the update slightly
 			if not doUpdateClock then
@@ -1089,20 +1202,30 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdOpts, cmdPara
 end
 
 function widget:CommandsChanged() -- required to read changes from EditUnitCmdDesc
-	doUpdateClock = os_clock() + 0.01
+	-- Respect selection-based throttle instead of always using 10ms
+	if not doUpdateClock then
+		doUpdateClock = os_clock() + commandRefreshDelay
+	end
 end
 
 function widget:SelectionChanged(sel)
 	clickCountDown = 2
 	clickedCellDesiredState = nil
 
+	-- Cache first selected unit to avoid spGetSelectedUnits() table allocation later
+	cachedFirstUnit = sel[1] or nil
+
 	-- Adaptive throttling: increase delay based on selection size
 	local selCount = #sel
 	local throttleDelay = 0.01
-	if selCount >= 300 then
-		throttleDelay = 0.03
+	if selCount >= 800 then
+		throttleDelay = 0.08
+	elseif selCount >= 500 then
+		throttleDelay = 0.05
+	elseif selCount >= 300 then
+		throttleDelay = 0.035
 	elseif selCount >= 160 then
-		throttleDelay = 0.02
+		throttleDelay = 0.025
 	elseif selCount >= 80 then
 		throttleDelay = 0.015
 	end
@@ -1115,6 +1238,8 @@ function widget:SelectionChanged(sel)
 end
 
 function widget:LanguageChanged()
+	commandTextCache = {}
+	translationCache = {}
 	widget:ViewResize()
 end
 
