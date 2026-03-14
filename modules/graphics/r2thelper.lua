@@ -21,6 +21,7 @@ local RenderToTextureBlend = function(tex, drawFn, customBlend, scissors)
 			end
 			gl.Scissor(false)
 		else
+			gl.Scissor(false)
 			gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 		end
 		gl.PushMatrix()

@@ -109,11 +109,15 @@ local function DrawStencilTexture(world, fullscreen)
 			end
 		end
 	else
-		gl.RenderToTexture(usedStencilTex, gl.Clear, GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+		gl.RenderToTexture(usedStencilTex, function()
+			gl.Scissor(false)
+			gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+		end)
 		return
 	end
 	--gl.Texture(false)
 	gl.RenderToTexture(usedStencilTex, function()
+		gl.Scissor(false)
 		gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 		gl.PushMatrix()
 		gl.Translate(-1, -1, 0)
