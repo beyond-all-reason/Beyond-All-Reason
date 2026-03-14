@@ -310,14 +310,6 @@ local function initUnitList()
 		['corint'] = { weapons = { 'lrpc' } },
 		['corbuzz'] = { weapons = { 'lrpc' } },
 
-		['armscab'] = { weapons = { 'nuke' } },
-		['armcarry'] = { weapons = { 'nuke' } },
-		['cormabm'] = { weapons = { 'nuke' } },
-		['legavantinuke'] = { weapons = { 'nuke' } },
-		['corcarry'] = { weapons = { 'nuke' } },
-		['armantiship'] = { weapons = { 'nuke' } },
-		['corantiship'] = { weapons = { 'nuke' } },
-
 		-- LEGION
 		['legabm'] = { weapons = { 'nuke' } }, --antinuke
 		['legrampart'] = { weapons = { 'nuke', 'ground' } }, --rampart
@@ -341,10 +333,19 @@ local function initUnitList()
 		['leglraa'] = { weapons = { 'air' } }, --T2 LR-AA
 		['legperdition'] = { weapons = { 'cannon' } }, --T2 LR-AA
 		['legapopupdef'] = { weapons = { 'ground' } }, --popup riot/minigun turret
-		['leganavyantinukecarrier'] = { weapons = { 'nuke' } },
 
 		['legstarfall'] = { weapons = { 'lrpc' } },
 		['leglrpc'] = { weapons = { 'lrpc' } },
+
+		-- MOBILE ANTINUKES
+		['armscab'] = { weapons = { 'nuke' } },
+		['armcarry'] = { weapons = { 'nuke' } },
+		['cormabm'] = { weapons = { 'nuke' } },
+		['corcarry'] = { weapons = { 'nuke' } },
+		['legavantinuke'] = { weapons = { 'nuke' } },
+		['armantiship'] = { weapons = { 'nuke' } },
+		['corantiship'] = { weapons = { 'nuke' } },
+		['leganavyantinukecarrier'] = { weapons = { 'nuke' } }, -- NOTE: drone weapon shown in attack ranges
 
 		-- SCAVENGERS
 		['scavbeacon_t1_scav'] = { weapons = { 'ground' } },
