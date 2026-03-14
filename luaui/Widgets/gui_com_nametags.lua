@@ -25,7 +25,6 @@ local spGetTeamInfo = Spring.GetTeamInfo
 local spGetPlayerList = Spring.GetPlayerList
 local spGetTeamColor = Spring.GetTeamColor
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGetAllUnits = Spring.GetAllUnits
 local spGetTeamUnitsByDefs = Spring.GetTeamUnitsByDefs
 local spIsUnitVisible = Spring.IsUnitVisible
 local spIsUnitIcon = Spring.IsUnitIcon
@@ -138,7 +137,6 @@ end
 teams = nil
 
 local drawScreenUnits = {}
-local drawScreenUnitsCache = {} -- Cache for icon display lists to avoid recreating every frame
 local CheckedForSpec = false
 
 local spec = spGetSpectatingState()
@@ -147,8 +145,8 @@ local GaiaTeam = spGetGaiaTeamID()
 
 -- Performance optimization caches
 local lastCameraPos = {0, 0, 0}
-local cameraMovedThisFrame = false
 local iconScaleCache = {} -- Cache icon scales to avoid recalculating
+local iconResScale = math.sqrt(vsy / 1080)  -- resolution compensation for icon nametags
 
 local comHeight = {}
 local comDefIDList = {}  -- array of commander DefIDs for GetTeamUnitsByDefs
@@ -483,6 +481,7 @@ end
 
 function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
+	iconResScale = math.sqrt(vsy / 1080)
 
 	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
 	if fontfileScale ~= newFontfileScale then
@@ -558,9 +557,10 @@ function widget:DrawScreenEffects()	-- using DrawScreenEffects so that guishader
 					iconScaleCache[camDist] = scale
 				end
 
+				local finalScale = scale * iconResScale
 				glPushMatrix()
 				glTranslate(x, z, 0)
-				glScale(scale, scale, scale)
+				glScale(finalScale, finalScale, finalScale)
 				glCallList(comnameIconList[attributes[1]])
 				glPopMatrix()
 			end
