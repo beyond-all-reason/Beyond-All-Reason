@@ -333,6 +333,7 @@ local function initUnitList()
 		['leglraa'] = { weapons = { 'air' } }, --T2 LR-AA
 		['legperdition'] = { weapons = { 'cannon' } }, --T2 LR-AA
 		['legapopupdef'] = { weapons = { 'ground' } }, --popup riot/minigun turret
+		['leganavaltorpturret'] = { weapons = { 'ground' } }, --torpedo launcher
 
 		['legstarfall'] = { weapons = { 'lrpc' } },
 		['leglrpc'] = { weapons = { 'lrpc' } },
