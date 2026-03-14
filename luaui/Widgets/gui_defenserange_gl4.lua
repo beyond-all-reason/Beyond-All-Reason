@@ -322,6 +322,7 @@ local function initUnitList()
 		['legabm'] = { weapons = { 'nuke' } }, --antinuke
 		['legrampart'] = { weapons = { 'nuke', 'ground' } }, --rampart
 		['leglht'] = { weapons = { 'ground' } }, --llt
+		['legtl'] = { weapons = { 'ground' } }, --torpedo launcher
 		['legcluster'] = { weapons = { 'cannon' } }, --short range arty T1
 		['legacluster'] = { weapons = { 'cannon' } }, --T2 arty
 		['legdtr'] = { weapons = { 'ground' } }, --dragons jaw
