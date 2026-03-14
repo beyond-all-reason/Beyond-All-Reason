@@ -1,14 +1,11 @@
 local sounds = VFS.Include('luarules/mission_api/sounds.lua')
 local tracking = VFS.Include('luarules/mission_api/tracking.lua')
-local initializeTracking = tracking.InitializeTracking
 local trackUnit = tracking.TrackUnit
 local isNameUntracked = tracking.IsNameUntracked
 local untrackUnitName = tracking.UntrackUnitName
 
 local trackedUnitIDs = GG['MissionAPI'].trackedUnitIDs
 local triggers = GG['MissionAPI'].Triggers
-
-initializeTracking()
 
 
 ----------------------------------------------------------------

@@ -1,9 +1,7 @@
 local gadget = gadget ---@type Gadget
 
-local tracking = VFS.Include('luarules/mission_api/tracking.lua')
-local initializeTracking = tracking.InitializeTracking
-local doesUnitHaveName = tracking.DoesUnitHaveName
-local untrackUnitID = tracking.UntrackUnitID
+local doesUnitHaveName
+local untrackUnitID
 
 function gadget:GetInfo()
 	return {
@@ -242,14 +240,14 @@ local function checkUnitDwellLocation(trigger, triggerID)
 	end
 end
 
-local function checkUnitEnteredOrLeftLos(trigger, unitID, unitTeam, allyTeamID, unitDefID)
+local function checkUnitEnteredOrLeftLos(trigger, unitID, unitTeam, losAllyTeamID, unitDefID)
 	if trigger.parameters.unitName and not doesUnitHaveName(unitID, trigger.parameters.unitName) then
 		return
 	end
-	if trigger.parameters.teamID and unitTeam ~= trigger.parameters.teamID then
+	if trigger.parameters.owningTeamID and unitTeam ~= trigger.parameters.owningTeamID then
 		return
 	end
-	if trigger.parameters.allyTeamID and allyTeamID ~= trigger.parameters.allyTeamID then
+	if trigger.parameters.spottingAllyTeamID and losAllyTeamID ~= trigger.parameters.spottingAllyTeamID then
 		return
 	end
 	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
@@ -301,10 +299,13 @@ function gadget:Initialize()
 		return
 	end
 
-	actionsDispatcher = VFS.Include('luarules/mission_api/actions_dispatcher.lua')
 	types = GG['MissionAPI'].TriggerTypes
 	triggers = GG['MissionAPI'].Triggers
-	initializeTracking()
+	actionsDispatcher = VFS.Include('luarules/mission_api/actions_dispatcher.lua')
+
+	local tracking = VFS.Include('luarules/mission_api/tracking.lua')
+	doesUnitHaveName = tracking.DoesUnitHaveName
+	untrackUnitID = tracking.UntrackUnitID
 end
 
 function gadget:GameFrame(frameNumber)
@@ -362,15 +363,15 @@ function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
 	end)
 end
 
-function gadget:UnitEnteredLos(unitID, unitTeam, allyTeamID, unitDefID)
+function gadget:UnitEnteredLos(unitID, unitTeam, losAllyTeamID, unitDefID)
 	processTriggersOfType(types.UnitSpotted, function(trigger, _)
-		checkUnitEnteredOrLeftLos(trigger, unitID, unitTeam, allyTeamID, unitDefID)
+		checkUnitEnteredOrLeftLos(trigger, unitID, unitTeam, losAllyTeamID, unitDefID)
 	end)
 end
 
-function gadget:UnitLeftLos(unitID, unitTeam, allyTeamID, unitDefID)
+function gadget:UnitLeftLos(unitID, unitTeam, losAllyTeamID, unitDefID)
 	processTriggersOfType(types.UnitUnspotted, function(trigger, _)
-		checkUnitEnteredOrLeftLos(trigger, unitID, unitTeam, allyTeamID, unitDefID)
+		checkUnitEnteredOrLeftLos(trigger, unitID, unitTeam, losAllyTeamID, unitDefID)
 	end)
 end
 

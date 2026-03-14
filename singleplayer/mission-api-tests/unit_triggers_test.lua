@@ -110,7 +110,7 @@ local triggers = {
 		parameters = {
 			unitName = 'engineers',
 			unitDefName = 'corfast',
-			teamID = 1,
+			owningTeamID = 1,
 		},
 		actions = { 'messageEngineerSpotted' },
 	},
@@ -120,7 +120,8 @@ local triggers = {
 		parameters = {
 			unitName = 'engineers',
 			unitDefName = 'corfast',
-			teamID = 1,
+			owningTeamID = 1,
+			spottingAllyTeamID = 0,
 		},
 		actions = { 'messageEngineerUnspotted' },
 	},
