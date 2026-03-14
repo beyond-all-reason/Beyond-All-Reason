@@ -485,6 +485,20 @@ local function validateUnitNameReferences(triggerTypes, actionTypes, triggers, a
 
 	local createdUnitNames = {}
 	local referencedUnitNames = {}
+
+	-- Orders on IssueOrders actions can also refer to unit names:
+	for actionID, action in pairs(actions) do
+		if action.type == actionTypes.IssueOrders then
+			for _, order in ipairs(action.parameters.orders) do
+				local params = order[2]
+				if type(params) == 'string' then
+					referencedUnitNames[params] = referencedUnitNames[params] or {}
+					referencedUnitNames[params][#referencedUnitNames[params] + 1] = "action " .. actionID .. " (orders)"
+				end
+			end
+		end
+	end
+
 	local function recordUnitNameCreationsAndReferences(typesNamingUnits, typesReferencingUnitNames, actionsOrTriggers, label)
 		for actionOrTriggerID, actionOrTrigger in pairs(actionsOrTriggers) do
 			local unitName = (actionOrTrigger.parameters or {}).unitName
