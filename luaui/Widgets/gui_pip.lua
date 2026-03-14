@@ -80,10 +80,9 @@ local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 -- GL4 instanced rendering support (for efficient icon drawing with many units)
 -- Uses raw VBO + direct array writes for zero per-frame allocations.
 ----------------------------------------------------------------------------------------------------
-local currentKeyboardLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
-
 -- Helper function to get a formatted hotkey string for an action
 local function getActionHotkey(action)
+	local currentKeyboardLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
 	local hotkeys = Spring.GetActionHotKeys(action)
 	if not hotkeys or #hotkeys == 0 then
 		return ""
@@ -1367,6 +1366,8 @@ local ownBuildingPosZ = {}  -- [unitID] = worldZ
 local drawData = {
 	hoveredUnitID = nil,
 	lastSelectionboxEnabled = nil,
+	unitOutlineList = nil,
+	radarDotList = nil,
 }
 
 -- Reusable table pools to reduce GC pressure
@@ -1581,6 +1582,8 @@ local perfTimers = {
 	icUploadDraw = 0, -- VBO upload + shader setup + draw calls (combined)
 	icUnitpics = 0,   -- unitpic overlay rendering
 	icVboReuse = 0,   -- VBO reuse rate (0 = never, 1 = always)
+	trailEmaUp = 0.35,   -- Fast rise: respond quickly when projectile count spikes
+	trailEmaDown = 0.12, -- Slow fall: don't flicker trails back on immediately
 }
 local PERF_SMOOTH = 0.1  -- EMA smoothing factor
 
@@ -1590,8 +1593,6 @@ local skipProjectileTrails = false
 -- EMA-smoothed count of visible projectiles (with trails) in the PIP viewport.
 -- Updated each frame after drawing; used NEXT frame to decide skipProjectileTrails.
 local visibleProjEMA = 0
-local TRAIL_EMA_UP = 0.35   -- Fast rise: respond quickly when projectile count spikes
-local TRAIL_EMA_DOWN = 0.12 -- Slow fall: don't flicker trails back on immediately
 
 -- Dynamic detail caps: reduce max explosions/projectiles when workload is high
 -- Returns adjusted cap based on last frame's item count
@@ -1624,8 +1625,6 @@ local commandFX = {
 	MAX = 300,       -- max simultaneous FX entries
 }
 
-local unitOutlineList = nil
-local radarDotList = nil
 local seismicPingDlists = {
 	outerArcs = {},
 	middleArcs = {},
@@ -1637,7 +1636,7 @@ local seismicPingDlists = {
 }
 local gameHasStarted
 local gaiaTeamID = Spring.GetGaiaTeamID()
-local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID))
+cache.gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID))
 
 -- Build AI team lookup tables at load time
 -- aiTeams: all AI-controlled teams (for optional hiding)
@@ -1778,26 +1777,29 @@ local spFunc = {
 	GetUnitSelfDTime = Spring.GetUnitSelfDTime,
 }
 
-local success, mapinfo = pcall(VFS.Include,"mapinfo.lua")
-local voidWater = false
-if success and mapinfo then
-	voidWater = mapinfo.voidwater
-end
 -- Map/game constants
-local mapInfo = {
-	rad2deg = 180 / math.pi,
-	atan2 = math.atan2,
-	mapSizeX = Game.mapSizeX,
-	mapSizeZ = Game.mapSizeZ,
-	minGroundHeight = nil,
-	maxGroundHeight = nil,
-	hasWater = false,
-	isLava = false,
-	voidWater = voidWater
-}
-mapInfo.minGroundHeight, mapInfo.maxGroundHeight = Spring.GetGroundExtremes()
-local waterIsLava = Spring.GetModOptions().map_waterislava
-mapInfo.isLava = Spring.Lava.isLavaMap or (waterIsLava and waterIsLava ~= 0 and waterIsLava ~= "0")
+local mapInfo
+do
+	local success, mapinfo = pcall(VFS.Include,"mapinfo.lua")
+	local voidWater = false
+	if success and mapinfo then
+		voidWater = mapinfo.voidwater
+	end
+	mapInfo = {
+		rad2deg = 180 / math.pi,
+		atan2 = math.atan2,
+		mapSizeX = Game.mapSizeX,
+		mapSizeZ = Game.mapSizeZ,
+		minGroundHeight = nil,
+		maxGroundHeight = nil,
+		hasWater = false,
+		isLava = false,
+		voidWater = voidWater
+	}
+	mapInfo.minGroundHeight, mapInfo.maxGroundHeight = Spring.GetGroundExtremes()
+	local waterIsLava = Spring.GetModOptions().map_waterislava
+	mapInfo.isLava = Spring.Lava.isLavaMap or (waterIsLava and waterIsLava ~= 0 and waterIsLava ~= "0")
+end
 mapInfo.hasWater = mapInfo.minGroundHeight < 0 or mapInfo.isLava
 mapInfo.dynamicWaterLevel = nil  -- current water/lava level (nil = static sea level = 0)
 mapInfo.lastCheckedWaterLevel = nil  -- for change detection
@@ -5785,6 +5787,46 @@ local function DrawSeismicPings()
 	glFunc.Color(1, 1, 1, 1)
 end
 
+-- Remove expired explosions from cache.explosions.
+-- Extracted from DrawExplosions so it can also run during engine minimap fallback
+-- (where DrawExplosions is never called, causing unbounded table growth).
+local function ExpireExplosions()
+	local n = #cache.explosions
+	if n == 0 then return end
+	local currentFrame = Spring.GetGameFrame()
+	local i = 1
+	while i <= n do
+		local explosion = cache.explosions[i]
+		if not explosion or not explosion.x then
+			cache.explosions[i] = cache.explosions[n]
+			cache.explosions[n] = nil
+			n = n - 1
+		else
+			local age = (currentFrame - explosion.startFrame) / 30
+			local lifetime = 0.4 + explosion.radius / 200
+			if explosion.isLightning then
+				lifetime = 0.25
+			elseif explosion.radius > 150 then
+				lifetime = math.min(1.5, lifetime * 2)
+			elseif explosion.radius > 80 then
+				lifetime = math.min(1.0, lifetime * 1.5)
+			else
+				lifetime = math.min(0.8, lifetime)
+			end
+			if explosion.isUnitExplosion then
+				lifetime = lifetime * 1.4
+			end
+			if age > lifetime then
+				cache.explosions[i] = cache.explosions[n]
+				cache.explosions[n] = nil
+				n = n - 1
+			else
+				i = i + 1
+			end
+		end
+	end
+end
+
 local function DrawExplosions()
 	if #cache.explosions == 0 then return end
 
@@ -6997,7 +7039,7 @@ function widget:Initialize()
 	-- Create seismic ping display lists
 	CreateSeismicPingDlists()
 
-	unitOutlineList = gl.CreateList(function()
+	drawData.unitOutlineList = gl.CreateList(function()
 		glFunc.BeginEnd(GL.LINE_LOOP, function()
 			glFunc.Vertex( 1, 0, 1)
 			glFunc.Vertex( 1, 0,-1)
@@ -7006,7 +7048,7 @@ function widget:Initialize()
 		end)
 	end)
 
-	radarDotList = gl.CreateList(function()
+	drawData.radarDotList = gl.CreateList(function()
 		glFunc.Texture('LuaUI/Images/pip/PipBlip.png')
 		glFunc.BeginEnd(glConst.QUADS, function()
 			glFunc.Vertex( config.iconRadius, config.iconRadius)
@@ -8019,8 +8061,8 @@ function widget:Shutdown()
 		DestroyGL4Primitives()
 		DestroyGL4Decals()
 
-		gl.DeleteList(unitOutlineList)
-		gl.DeleteList(radarDotList)
+		gl.DeleteList(drawData.unitOutlineList)
+		gl.DeleteList(drawData.radarDotList)
 		DeleteSeismicPingDlists()
 
 		if shaders.los then
@@ -10612,7 +10654,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 
 				-- Update EMA of visible trail-bearing projectiles for next frame's skip decision
 				-- Asymmetric smoothing: fast rise (quick to skip), slow fall (stable re-enable)
-				local emaFactor = visibleThisFrame > visibleProjEMA and TRAIL_EMA_UP or TRAIL_EMA_DOWN
+				local emaFactor = visibleThisFrame > visibleProjEMA and perfTimers.trailEmaUp or perfTimers.trailEmaDown
 				visibleProjEMA = visibleProjEMA + emaFactor * (visibleThisFrame - visibleProjEMA)
 			end
 			
@@ -14357,7 +14399,7 @@ local function HandleHoverAndCursor(mx, my)
 					-- But don't show attack cursor for neutral units
 					if lastHoveredUnitID and not Spring.IsUnitAllied(lastHoveredUnitID) then
 						local allyTeam = Spring.GetUnitAllyTeam(lastHoveredUnitID)
-						local isNeutral = (allyTeam == gaiaAllyTeamID)
+						local isNeutral = (allyTeam == cache.gaiaAllyTeamID)
 						
 						-- Check if unit is visible (LOS or radar)
 						local checkAllyTeamID = cameraState.myAllyTeamID
@@ -14728,6 +14770,7 @@ function widget:DrawScreen()
 		DrawDecalsOverlay(config.engineMinimapDecalStrength)
 
 		-- Explosion overlay on engine minimap (stronger than normal PIP overlay)
+		ExpireExplosions()  -- must run here: DrawExplosions (the normal cleanup path) is skipped
 		if config.engineMinimapExplosionOverlay and config.drawExplosions and #cache.explosions > 0 and gl4Prim.enabled then
 			GL4ResetPrimCounts()
 			local savedAlpha = config.explosionOverlayAlpha
@@ -15874,7 +15917,7 @@ function widget:Update(dt)
 				-- Enemy unit - check if any selected unit can attack
 				-- But don't highlight neutral units
 				local allyTeam = Spring.GetUnitAllyTeam(unitID)
-				local isNeutral = (allyTeam == gaiaAllyTeamID)
+				local isNeutral = (allyTeam == cache.gaiaAllyTeamID)
 				
 				-- Check if unit is visible (LOS or radar)
 				local checkAllyTeamID = cameraState.myAllyTeamID
@@ -16999,8 +17042,8 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 	if weaponID and cache.weaponExplosionRadius[weaponID] then
 		radius = cache.weaponExplosionRadius[weaponID]
 	end
-	-- Skip very small explosions
-	if radius < 8 then
+	-- Skip very small explosions (higher threshold during engine minimap: only overlay circles shown)
+	if radius < (miscState.engineMinimapActive and 25 or 8) then
 		return
 	end
 	
@@ -17057,8 +17100,8 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 		end
 	end
 
-	-- Add lightning sparks
-	if isLightning then
+	-- Add lightning sparks (skip during engine minimap: only circle overlay is drawn)
+	if isLightning and not miscState.engineMinimapActive then
 		local sparkCount = 6 + math.floor(math.random() * 4) -- 6-9 sparks
 		for i = 1, sparkCount do
 			local angle = (i / sparkCount) * 2 * math.pi + (math.random() - 0.5) * 0.8
@@ -17085,8 +17128,8 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 		pipTV.AddEvent(px, pz, weight, 'explosion')
 	end
 
-	-- Add particle debris for larger explosions
-	if radius > 30 then
+	-- Add particle debris for larger explosions (skip during engine minimap: only circle overlay is drawn)
+	if radius > 30 and not miscState.engineMinimapActive then
 		local explosion = cache.explosions[#cache.explosions]
 		local particleCount = math.min(12, math.floor(radius / 10))
 
