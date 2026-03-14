@@ -23,21 +23,13 @@ local triggers = {
 		parameters = {
 			gameFrame = 400,
 		},
-		actions = { 'spawnTargets2', 'areaAttack', 'messageAreaAttack' },
-	},
-
-	targets3 = {
-		type = triggerTypes.TimeElapsed,
-		parameters = {
-			gameFrame = 600,
-		},
-		actions = { 'spawnTargets3', 'fight', 'messageFight' },
+		actions = { 'spawnTargets2', 'fight', 'messageFight' },
 	},
 
 	spawnEnergyGrid1 = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 800,
+			gameFrame = 600,
 		},
 		actions = { 'spawnEnergyGrid1', 'guardEnergyGrid', 'messageGuardEnergyGrid' },
 	},
@@ -45,7 +37,7 @@ local triggers = {
 	reclaimEnergyGrid = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 1000,
+			gameFrame = 800,
 		},
 		actions = { 'reclaimEnergyGrid', 'messageReclaimEnergyGrid' },
 	},
@@ -53,9 +45,17 @@ local triggers = {
 	stop = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 1200,
+			gameFrame = 1100,
 		},
 		actions = { 'stop', 'messageStop' },
+	},
+
+	artilleryAreaAttack = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = 1200,
+		},
+		actions = { 'spawnArtilleryTargets', 'spawnArtillery', 'artilleryAreaAttack', 'messageArtilleryAreaAttack' },
 	},
 }
 
@@ -102,7 +102,7 @@ local actions = {
 		parameters = {
             unitDefName = 'armeyes',
 			teamID = 0,
-			position = { x = 2000, z = 2900 },
+			position = { x = 1700, z = 2900 },
 		},
 	},
 
@@ -141,6 +141,7 @@ local actions = {
 		parameters = {
 			unitName = 'attackers',
 			orders = {
+				{ CMD.MOVE_STATE, CMD.MOVESTATE_HOLDPOS },
 				{ CMD.ATTACK, 'targets' },
 			},
 		},
@@ -153,42 +154,23 @@ local actions = {
 		},
 	},
 
+	spawnArtilleryTargets = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			unitDefName = 'armwin',
+			teamID = 1,
+			position = { x = 1500, z = 2900 },
+			quantity = 9,
+			spacing = 16,
+		},
+	},
+
 	spawnTargets2 = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'targets',
 			unitDefName = 'armwin',
 			teamID = 1,
-			position = { x = 2000, z = 2600 },
-			quantity = 2,
-		},
-	},
-
-	areaAttack = {
-		type = actionTypes.IssueOrders,
-		parameters = {
-			unitName = 'attackers',
-			orders = {
-				{ CMD.MOVE_STATE, CMD.MOVESTATE_HOLDPOS },
-				{ CMD.AREA_ATTACK, { 2000, 0, 2600, 300 } }, -- not working??
-			},
-		},
-	},
-
-	messageAreaAttack  = {
-		type = actionTypes.SendMessage,
-		parameters = {
-			message = "Attacking area.",
-		},
-	},
-
-	spawnTargets3 = {
-		type = actionTypes.SpawnUnits,
-		parameters = {
-			unitName = 'targets',
-			unitDefName = 'armsolar',
-			teamID = 1,
-			position = { x = 2000, z = 2800 },
+			position = { x = 2000, z = 2500 },
 			quantity = 2,
 		},
 	},
@@ -207,6 +189,34 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = "Attacking using fight command.",
+		},
+	},
+
+	spawnArtillery = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			unitName = 'artillery',
+			unitDefName = 'armart',
+			teamID = 0,
+			position = { x = 1700, z = 2500 },
+			quantity = 2,
+		},
+	},
+
+	artilleryAreaAttack = {
+		type = actionTypes.IssueOrders,
+		parameters = {
+			unitName = 'artillery',
+			orders = {
+				{ GameCMD.AREA_ATTACK_GROUND, { 1500, 0, 2900, 200 } },
+			},
+		},
+	},
+
+	messageArtilleryAreaAttack  = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "Attacking area.",
 		},
 	},
 

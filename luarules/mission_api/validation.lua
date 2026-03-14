@@ -127,7 +127,7 @@ validators[Types.Orders] = function(orders)
 		local function validateOrderCommandAndParams(order, orderNumber)
 			local commandID = order[1]
 			local params = order[2]
-			local function validateLuaTypeCurried(type)
+			local function validateSimpleTypeCurried(type)
 				return function()
 					local luaTypeResult = validateLuaType(params, type)
 					if luaTypeResult then
@@ -158,8 +158,8 @@ validators[Types.Orders] = function(orders)
 					end
 				end
 			end
-			local validateNumber = validateLuaTypeCurried('number')
-			local validateString = validateLuaTypeCurried('string')
+			local validateNumber = validateSimpleTypeCurried('number')
+			local validateString = validateSimpleTypeCurried('string')
 			-- TODO: make y optional? as in: {123, nil, 123}
 			local validate3 = validateNumberArrayCurried({ 3 }, "3 numbers {x, y, z}")
 			local validate3orName = validateNumberArrayCurried({ 3 }, "3 numbers {x, y, z}, or a unit name", true)
@@ -182,7 +182,8 @@ validators[Types.Orders] = function(orders)
 				[CMD.UNLOAD_UNITS] = validate3or4,
 				-- 4 number parameters:
 				[CMD.RESURRECT] = validate4,
-				[CMD.AREA_ATTACK] = validate4,
+				[CMD.AREA_ATTACK] = false, -- currently broken in engine
+				[GameCMD.AREA_ATTACK_GROUND] = validate4, -- Only artillery units (customParams.canareaattack = 1) support this
 				[CMD.RESTORE] = validate4,
 				-- 3 number parameters, or unit name:
 				[CMD.ATTACK] = validate3orName,
