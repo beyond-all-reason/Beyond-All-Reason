@@ -194,7 +194,7 @@ config = {
 	showUnitpics = true,      -- Show unitpics instead of icons when zoomed in
 	unitpicZoomThreshold = 0.7, -- Zoom level at which to switch to unitpics (higher = more zoomed in)
 	drawComNametags = true,    -- Draw player names above commander icons
-	comNametagZoomThreshold = 0.12, -- Minimum zoom to show nametags (below this they'd overlap)
+	comNametagZoomThreshold = 0.18, -- Minimum zoom to show nametags (below this they'd overlap)
 	drawComHealthBars = true,  -- Draw health bars below commander icons when health < 99%
 	leftButtonPansCamera = isMinimapMode and (Spring.GetConfigInt("MinimapLeftClickMove", 1) == 1) or false,
 	maximizeSizemult = 1.25,
