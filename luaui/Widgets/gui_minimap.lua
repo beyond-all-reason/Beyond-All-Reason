@@ -232,7 +232,9 @@ function widget:Update(dt)
 	local totalUnits = allUnits and #allUnits or 0
 	local unitFraction = math.min(totalUnits / iconDensityMaxUnits, 1.0)
 	local densityScale = 1.0 - (1.0 - iconDensityMinScale) * unitFraction
-	local scaledIconSize = baseMinimapIconScale * densityScale
+	-- Resolution boost: icons look relatively small on high-res screens
+	local resBoost = 1.0 + 0.18 * math.min(math.max((vsy - 1080) / (2880 - 1080), 0), 1)
+	local scaledIconSize = baseMinimapIconScale * densityScale * resBoost
 	if scaledIconSize ~= lastAppliedIconScale then
 		Spring.SendCommands("minimap unitsize " .. scaledIconSize)
 		lastAppliedIconScale = scaledIconSize

@@ -153,7 +153,7 @@ config = {
 	activityFocusMuteDuration = 60,  -- Seconds to mute a heavily spamming player
 	-- TV mode settings (spectator auto-camera)
 	tvModeSpectatorsOnly = true,  -- Only allow TV mode for spectators
-	tvMaxZoom = 0.63,              -- Maximum zoom level for TV mode (never close enough for unitpics)
+	tvMaxZoom = 0.63,             -- Maximum zoom level for TV mode (never close enough for unitpics)
 	tvMinZoom = 0.08,             -- Minimum zoom level for TV overview shots
 	tvOverviewZoom = 0.07,        -- Zoom level for periodic overview shots (wider view of the map)
 	tvCloseupZoom = 0.45,         -- Zoom level for close-up action shots
@@ -192,7 +192,7 @@ config = {
 	-- Rendering settings
 	iconRadius = 40,
 	showUnitpics = true,      -- Show unitpics instead of icons when zoomed in
-	unitpicZoomThreshold = 0.7, -- Zoom level at which to switch to unitpics (higher = more zoomed in)
+	unitpicZoomThreshold = 0.75, -- Zoom level at which to switch to unitpics (higher = more zoomed in)
 	drawComNametags = true,    -- Draw player names above commander icons
 	comNametagZoomThreshold = 0.18, -- Minimum zoom to show nametags (below this they'd overlap)
 	drawComHealthBars = true,  -- Draw health bars below commander icons when health < 99%
@@ -9242,6 +9242,11 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	local resScale = render.contentScale or 1
 	local unitBaseSize = Spring.GetConfigFloat("MinimapIconScale", 3.5)
 	local iconRadiusZoomDistMult = unitBaseSize * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(cameraState.zoom) * resScale
+
+	-- Resolution boost: icons look relatively small on high-res screens, so scale them up
+	-- slightly. Linear from 1080p (1.0x) to 5K (1.18x), capped at 1.18x.
+	local resBoost = 1.0 + 0.18 * math.min(math.max((render.vsy - 1080) / (2880 - 1080), 0), 1)
+	iconRadiusZoomDistMult = iconRadiusZoomDistMult * resBoost
 
 	-- Unit-count density scaling: shrink icons when there are many units, fading out at higher zoom
 	if config.iconDensityScaling then
