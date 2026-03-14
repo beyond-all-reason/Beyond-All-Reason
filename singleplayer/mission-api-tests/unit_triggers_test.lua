@@ -13,6 +13,10 @@ local triggers = {
 
 	botDwells = {
 		type = triggerTypes.UnitDwellLocation,
+		settings = {
+			repeating = 1,
+			maxRepeats = 77,
+		},
 		parameters = {
 			nameRequired = 'bots',
 			teamID = 0,
