@@ -18,6 +18,9 @@ local mathMax = math.max
 local mathMin = math.min
 local mathSin = math.sin
 local mathCos = math.cos
+local mathRound = math.round
+local stringFormat = string.format
+local stringFind = string.find
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
@@ -74,11 +77,10 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGetMapDrawMode  = Spring.GetMapDrawMode
 local spIsUnitAllied  = Spring.IsUnitAllied
+local spIsGUIHidden = Spring.IsGUIHidden
 
 local mySpots = {} -- {spotKey  = {x = spot.x, y= spGetGroundHeight(spot.x, spot.z), z = spot.z, value = value, scale = scale, occupied = occupied, t = currentClock, ally = false, enemy = false, instanceID = "1024_1023"}}
 
-local valueList = {}
-local previousOsClock = os.clock()
 local checkspots = true
 local sceduledCheckedSpotsFrame = spGetGameFrame()
 
@@ -145,17 +147,12 @@ local function goodbye(reason)
 	widgetHandler:RemoveWidget()
 end
 
-local function arrayAppend(target, source)
-	for _,v in ipairs(source) do
-		table.insert(target,v)
-	end
-end
-
 local function makeSpotVBO()
 	spotVBO = gl.GetVBO(GL.ARRAY_BUFFER,false)
 	if spotVBO == nil then goodbye("Failed to create spotVBO") end
 	local VBOLayout = {	 {id = 0, name = "localpos_dir_angle", size = 4},}
 	local VBOData = {}
+	local n = 0
 
 	local detailPartWidth, a1,a2,a3,a4
 	local width = circleSpaceUsage
@@ -171,41 +168,69 @@ local function makeSpotVBO()
 				a3 = ((i+circleInnerOffset+detailPartWidth - (width / detail)) * radstep)
 				a4 = ((i+circleInnerOffset+detailPartWidth) * radstep)
 
-				arrayAppend(VBOData, {mathSin(a3)*innersize, mathCos(a3)*innersize, dir, 0})
+				n=n+1; VBOData[n] = mathSin(a3)*innersize
+				n=n+1; VBOData[n] = mathCos(a3)*innersize
+				n=n+1; VBOData[n] = dir
+				n=n+1; VBOData[n] = 0
 
 				if dir == -1 then
-					arrayAppend(VBOData, {mathSin(a4)*innersize, mathCos(a4)*innersize, dir, 0})
-					arrayAppend(VBOData, {mathSin(a1)*outersize, mathCos(a1)*outersize, dir, 0})
+					n=n+1; VBOData[n] = mathSin(a4)*innersize
+					n=n+1; VBOData[n] = mathCos(a4)*innersize
+					n=n+1; VBOData[n] = dir
+					n=n+1; VBOData[n] = 0
+					n=n+1; VBOData[n] = mathSin(a1)*outersize
+					n=n+1; VBOData[n] = mathCos(a1)*outersize
+					n=n+1; VBOData[n] = dir
+					n=n+1; VBOData[n] = 0
 				else
-					arrayAppend(VBOData, {mathSin(a1)*outersize, mathCos(a1)*outersize, dir, 0})
-					arrayAppend(VBOData, {mathSin(a4)*innersize, mathCos(a4)*innersize, dir, 0})
+					n=n+1; VBOData[n] = mathSin(a1)*outersize
+					n=n+1; VBOData[n] = mathCos(a1)*outersize
+					n=n+1; VBOData[n] = dir
+					n=n+1; VBOData[n] = 0
+					n=n+1; VBOData[n] = mathSin(a4)*innersize
+					n=n+1; VBOData[n] = mathCos(a4)*innersize
+					n=n+1; VBOData[n] = dir
+					n=n+1; VBOData[n] = 0
 				end
 
 				if dir == 1 then
-					arrayAppend(VBOData, {mathSin(a1)*outersize, mathCos(a1)*outersize, dir, 0})
-					arrayAppend(VBOData, {mathSin(a2)*outersize, mathCos(a2)*outersize, dir, 0})
+					n=n+1; VBOData[n] = mathSin(a1)*outersize
+					n=n+1; VBOData[n] = mathCos(a1)*outersize
+					n=n+1; VBOData[n] = dir
+					n=n+1; VBOData[n] = 0
+					n=n+1; VBOData[n] = mathSin(a2)*outersize
+					n=n+1; VBOData[n] = mathCos(a2)*outersize
+					n=n+1; VBOData[n] = dir
+					n=n+1; VBOData[n] = 0
 				else
-					arrayAppend(VBOData, {mathSin(a2)*outersize, mathCos(a2)*outersize, dir, 0})
-					arrayAppend(VBOData, {mathSin(a1)*outersize, mathCos(a1)*outersize, dir, 0})
+					n=n+1; VBOData[n] = mathSin(a2)*outersize
+					n=n+1; VBOData[n] = mathCos(a2)*outersize
+					n=n+1; VBOData[n] = dir
+					n=n+1; VBOData[n] = 0
+					n=n+1; VBOData[n] = mathSin(a1)*outersize
+					n=n+1; VBOData[n] = mathCos(a1)*outersize
+					n=n+1; VBOData[n] = dir
+					n=n+1; VBOData[n] = 0
 				end
-				arrayAppend(VBOData, {mathSin(a4)*innersize, mathCos(a4)*innersize, dir, 0})
+				n=n+1; VBOData[n] = mathSin(a4)*innersize
+				n=n+1; VBOData[n] = mathCos(a4)*innersize
+				n=n+1; VBOData[n] = dir
+				n=n+1; VBOData[n] = 0
 			end
 		end
 	end
 
 	-- Add the 2 tris for the billboard:
-	do
-		arrayAppend(VBOData, {billboardsize, 0, 1, 2})
-		arrayAppend(VBOData, {billboardsize, billboardsize, 1, 2})
-		arrayAppend(VBOData, {-billboardsize, 0, 1, 2})
-		arrayAppend(VBOData, {billboardsize, billboardsize, 1, 2})
-		arrayAppend(VBOData, {-billboardsize, billboardsize, 1, 2})
-		arrayAppend(VBOData, {-billboardsize, 0, 1, 2})
-	end
+	n=n+1; VBOData[n] = billboardsize;  n=n+1; VBOData[n] = 0;             n=n+1; VBOData[n] = 1; n=n+1; VBOData[n] = 2
+	n=n+1; VBOData[n] = billboardsize;  n=n+1; VBOData[n] = billboardsize;  n=n+1; VBOData[n] = 1; n=n+1; VBOData[n] = 2
+	n=n+1; VBOData[n] = -billboardsize; n=n+1; VBOData[n] = 0;             n=n+1; VBOData[n] = 1; n=n+1; VBOData[n] = 2
+	n=n+1; VBOData[n] = billboardsize;  n=n+1; VBOData[n] = billboardsize;  n=n+1; VBOData[n] = 1; n=n+1; VBOData[n] = 2
+	n=n+1; VBOData[n] = -billboardsize; n=n+1; VBOData[n] = billboardsize;  n=n+1; VBOData[n] = 1; n=n+1; VBOData[n] = 2
+	n=n+1; VBOData[n] = -billboardsize; n=n+1; VBOData[n] = 0;             n=n+1; VBOData[n] = 1; n=n+1; VBOData[n] = 2
 
-	spotVBO:Define(#VBOData/4, VBOLayout)
+	spotVBO:Define(n/4, VBOLayout)
 	spotVBO:Upload(VBOData)
-	return spotVBO, #VBOData/4
+	return spotVBO, n/4
 end
 
 local function initGL4()
@@ -226,7 +251,7 @@ local function initGL4()
 end
 
 local function spotKey(posx,posz)
-	return tostring(posx).."_"..tostring(posz)
+	return posx * 65536 + posz
 end
 
 -- Returns wether is occupied (Should also be allied, enemy , free), and wether that changed
@@ -252,13 +277,13 @@ local function IsSpotOccupied(spot)
 	local changed = (occupied ~= prevOccupied)
 
 	if occupied ~= prevOccupied then
-		spot.t = os.clock()
 		spot.occupied = occupied
 	end
 	return ally, enemy, changed
 end
 
 local function checkMetalspots()
+	local gf = spGetGameFrame()
 	for i=1, #mySpots do
 		local spot = mySpots[i]
 		local ally, enemy, changed = IsSpotOccupied(spot)
@@ -267,16 +292,16 @@ local function checkMetalspots()
 		if changed then
 			local oldinstance = getElementInstanceData(spotInstanceVBO, spot.instanceID)
 			oldinstance[5] = (occupied and 0) or 1
-			oldinstance[6] = spGetGameFrame()
+			oldinstance[6] = gf
 			pushElementInstance(spotInstanceVBO, oldinstance, spot.instanceID, true)
 		end
 	end
-	sceduledCheckedSpotsFrame = spGetGameFrame() + 151
+	sceduledCheckedSpotsFrame = gf + 151
 	checkspots = false
 end
 
 local function valueToText(value)
-	return string.format("%0.1f",math.round((value/1000),1))
+	return stringFormat("%0.1f", mathRound(value / 1000, 1))
 end
 
 local function CalcSpotScale(spot)
@@ -343,7 +368,7 @@ local function InitializeSpots(mSpots)
 				-- Create a New myspot!
 				local instanceID = spotKey(spot.x, spot.z)
 
-				local mySpot = {x = spot.x, y= spGetGroundHeight(spot.x, spot.z), z = spot.z, value = value, scale = scale, occupied = false, t = 0, ally = false, enemy = false, instanceID = instanceID, worth = spot.worth}
+				local mySpot = {x = spot.x, y= spGetGroundHeight(spot.x, spot.z), z = spot.z, value = value, scale = scale, occupied = false, ally = false, enemy = false, instanceID = instanceID, worth = spot.worth}
 
 				spotsCount = spotsCount + 1
 				mySpots[spotsCount] = mySpot
@@ -370,7 +395,8 @@ local function InitializeSpots(mSpots)
 end
 
 local function UpdateSpotValues() -- This will only get called on playerchanged
-	for k, spot in ipairs(mySpots) do
+	for i = 1, #mySpots do
+		local spot = mySpots[i]
 		--local spot = mSpots[i]
 		local valueNumber = spot.worth * incomeMultiplier / 1000
 		local value = valueToText(spot.worth * incomeMultiplier)
@@ -458,13 +484,12 @@ function widget:Shutdown()
 	if MetalSpotTextAtlas then MetalSpotTextAtlas:Delete() end
 	WG.metalspots = nil
 	mySpots = {}
-	valueList = {}
 	gl.DeleteFont(font)
 end
 
 function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	if stringFind(msg, 'LobbyOverlayActive', 1, true) == 1 then
+		chobbyInterface = (stringFind(msg, 'LobbyOverlayActive1', 1, true) == 1)
 	end
 end
 
@@ -505,9 +530,7 @@ function widget:DrawWorldPreUnit()
 	local mapDrawMode = spGetMapDrawMode()
 	if metalViewOnly and mapDrawMode ~= 'metal' then return end
 	if chobbyInterface then return end
-	if Spring.IsGUIHidden() then return end
-
-	previousOsClock = os.clock()
+	if spIsGUIHidden() then return end
 
 	gl.Culling(true)
 	gl.Texture(0, "$heightmap")
