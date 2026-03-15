@@ -249,6 +249,7 @@ local updateRateMult = 1	-- goes up when more players	auto adjusts in UpdatePlay
 local updateFastRateMult = 1	-- goes up when more players	auto adjusts in UpdatePlayerResources()
 
 local aliveAllyTeams = {}
+local populatedAllyTeams = {}
 local allyTeamMaxStorage = {}
 
 local tipTextTime = 0
@@ -1153,13 +1154,26 @@ end
 
 function GetAliveAllyTeams()
     aliveAllyTeams = {}
+    populatedAllyTeams = {}
     local allteams = sp.GetTeamList()
     teamN = table.maxn(allteams) - 1 --remove gaia
 	local gf = spGetGameFrame()
     for i = 0, teamN - 1 do
-        local _, _, isDead, _, _, allyTeam = sp.GetTeamInfo(i, false)
+        local _, _, isDead, isAI, _, allyTeam = sp.GetTeamInfo(i, false)
         if not isDead or gf == 0 then
             aliveAllyTeams[allyTeam] = true
+            if isAI then
+                populatedAllyTeams[allyTeam] = true
+            elseif not populatedAllyTeams[allyTeam] then
+                local teamPlayers = sp.GetPlayerList(i, true)
+                for _, pID in ipairs(teamPlayers) do
+                    local _, _, pSpec = sp.GetPlayerInfo(pID, false)
+                    if not pSpec then
+                        populatedAllyTeams[allyTeam] = true
+                        break
+                    end
+                end
+            end
         end
     end
 end
@@ -1533,7 +1547,11 @@ function SortAllyTeams(vOffset)
 
 	-- find own ally team
 	vOffset = 12 / 2.66
+	local ownAllyTeamDrawn = false
 	if not WG.allyTeamRanking or not enemyListShow then
+		local showOwnAlly = not mySpecStatus or (not hideDeadAllyTeams or (aliveAllyTeams[myAllyTeamID] and populatedAllyTeams[myAllyTeamID]))
+		if showOwnAlly then
+		ownAllyTeamDrawn = true
 		vOffset = vOffset + (labelOffset*playerScale) - 3
 		if teamRanking[myAllyTeamID] then
             drawListOffset[#drawListOffset + 1] = vOffset
@@ -1546,20 +1564,25 @@ function SortAllyTeams(vOffset)
 		else
 			vOffset = SortTeams(myAllyTeamID, vOffset - (labelOffset*playerScale))
 		end
+		end
 	end
 
 	if numberOfEnemies > 0 then
 
 		-- "Enemies" label
 		if not WG.allyTeamRanking or not enemyListShow then
-			vOffset = vOffset + 13
+			if ownAllyTeamDrawn then
+				vOffset = vOffset + 13
+			end
 		end
-		vOffset = vOffset + labelOffset - 3
-		drawListOffset[#drawListOffset + 1] = vOffset
-		drawList[#drawList + 1] = -3 -- "Enemies" label
+		if ownAllyTeamDrawn then
+			vOffset = vOffset + labelOffset - 3
+			drawListOffset[#drawListOffset + 1] = vOffset
+			drawList[#drawList + 1] = -3 -- "Enemies" label
+		end
 
 		-- add the others
-		if enemyListShow then
+		if enemyListShow or not ownAllyTeamDrawn then
 			local firstenemy = true
 			for _, allyTeamID in ipairs(allyTeamList) do
 				if (WG.allyTeamRanking or allyTeamID ~= myAllyTeamID) and (not hideDeadAllyTeams or aliveAllyTeams[allyTeamID]) then

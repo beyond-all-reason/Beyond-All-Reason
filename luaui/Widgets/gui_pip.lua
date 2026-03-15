@@ -153,7 +153,7 @@ config = {
 	activityFocusMuteDuration = 60,  -- Seconds to mute a heavily spamming player
 	-- TV mode settings (spectator auto-camera)
 	tvModeSpectatorsOnly = true,  -- Only allow TV mode for spectators
-	tvMaxZoom = 0.63,              -- Maximum zoom level for TV mode (never close enough for unitpics)
+	tvMaxZoom = 0.63,             -- Maximum zoom level for TV mode (never close enough for unitpics)
 	tvMinZoom = 0.08,             -- Minimum zoom level for TV overview shots
 	tvOverviewZoom = 0.07,        -- Zoom level for periodic overview shots (wider view of the map)
 	tvCloseupZoom = 0.45,         -- Zoom level for close-up action shots
@@ -192,9 +192,9 @@ config = {
 	-- Rendering settings
 	iconRadius = 40,
 	showUnitpics = true,      -- Show unitpics instead of icons when zoomed in
-	unitpicZoomThreshold = 0.7, -- Zoom level at which to switch to unitpics (higher = more zoomed in)
+	unitpicZoomThreshold = 0.75, -- Zoom level at which to switch to unitpics (higher = more zoomed in)
 	drawComNametags = true,    -- Draw player names above commander icons
-	comNametagZoomThreshold = 0.12, -- Minimum zoom to show nametags (below this they'd overlap)
+	comNametagZoomThreshold = 0.18, -- Minimum zoom to show nametags (below this they'd overlap)
 	drawComHealthBars = true,  -- Draw health bars below commander icons when health < 99%
 	leftButtonPansCamera = isMinimapMode and (Spring.GetConfigInt("MinimapLeftClickMove", 1) == 1) or false,
 	maximizeSizemult = 1.25,
@@ -253,7 +253,7 @@ config = {
 	engineMinimapFallback = true,  -- Use engine minimap when fully zoomed out (performance fallback)
 	engineMinimapFallbackThreshold = 4500,  -- Unit count threshold before engine minimap fallback activates
 	engineMinimapExplosionOverlay = true,  -- Draw explosion overlay on top of engine minimap
-	engineMinimapDecalStrength = 0.8,  -- Decal overlay strength on engine minimap (0-1, lower = subtler scorch marks)
+	engineMinimapDecalStrength = 0.8,  -- Decal overlay strength on engine minimap (0-1, lower = subtler scorch marks) decals do overlap with the engine minimap (unit icons), so this can be used to reduce their prominence if desired
 }
 
 -- State variables
@@ -507,6 +507,7 @@ local miscState = {
 	specGhostScanDone = false,  -- Whether we've done a full ghost scan while fullview is ON
 	specGhostScanTime = 0,  -- Last time we ran the ghost scan (to throttle periodic rescans)
 	tvEnabled = false,  -- TV mode toggle state
+	transportedUnits = {},  -- Units currently inside a transport (pseudo-buildings become mobile while transported)
 }
 
 ----------------------------------------------------------------------------------------------------
@@ -1391,7 +1392,13 @@ local pools = {
 	trackingMerge = {}, -- Reused for tracking unit merge operations
 	trackingTempSet = {}, -- Reused for tracking unit deduplication
 	activeTrails = {}, -- Reused for tracking active missile trails
+	visibleButtons = {}, -- Reused for button visibility computation
 }
+
+-- Per-frame selected-units cache: avoids 5+ redundant Spring.GetSelectedUnits() calls per frame,
+-- each of which allocates a new Lua table with N entries (N = selected unit count).
+local frameSel = nil      -- Cached array from Spring.GetSelectedUnits() (lazy, set on first use)
+local frameSelCount = 0   -- Cached count from Spring.GetSelectedUnitsCount() (set at start of DrawScreen)
 
 -- Command queue waypoint cache: avoids calling GetUnitCommands every frame.
 -- GetUnitCommands allocates ~60 tables per unit per call (outer + cmd + params tables),
@@ -1437,6 +1444,15 @@ local gl4Icons = {
 	_lastBldgCount = 0,       -- Count of buildings for change detection
 	_prevBuildingLen = 0,     -- Previous frame building buffer length (for stale-clear)
 	_prevMobileLen = 0,       -- Previous frame mobile buffer length (for stale-clear)
+	-- Dual VBO: separate building VBO for independent update frequency
+	bldgVbo = nil,            -- Building+ghost VBO (uploaded only when building state changes)
+	bldgVao = nil,            -- VAO for building VBO
+	bldgInstanceData = nil,   -- Pre-allocated flat array for building+ghost icon data
+	_bldgVboValid = false,    -- Building VBO has current data (skip upload)
+	_bldgVboUsedElements = 0, -- Elements in building VBO
+	_bldgVboHadOverlay = false, -- Previous upload had selection/flash/tracking/selfD overlays
+	_bldgVboGhostHash = 0,   -- Ghost ID hash for change detection
+	_bldgVboGhostCount = 0,  -- Ghost element count for change detection
 }
 
 -- Persistent sort comparator for icon draw order (avoids per-frame closure allocation)
@@ -1509,6 +1525,7 @@ local cache = {
 	canMove = {},
 	canFly = {},
 	isBuilding = {},
+	isPseudoBuilding = {},  -- speed==0 units that aren't isBuilding (nano turrets, transportable turrets)
 	isCommander = {},
 	isDecoyCommander = {},  -- Commanders with customParams.decoyfor (show 'Decoy' instead of player name)
 	isScavCommander = {},   -- Scavenger commanders (show scav-specific name for decoys)
@@ -1775,6 +1792,7 @@ local spFunc = {
 	GetUnitIsStunned = Spring.GetUnitIsStunned,
 	GetTeamAllyTeamID = Spring.GetTeamAllyTeamID,
 	GetUnitSelfDTime = Spring.GetUnitSelfDTime,
+	GetSelectedUnitsCount = Spring.GetSelectedUnitsCount,
 }
 
 -- Map/game constants
@@ -3276,6 +3294,41 @@ local function InitGL4Icons()
 	vao:AttachVertexBuffer(vbo)
 	gl4Icons.vao = vao
 
+	-- Building VBO/VAO: separate buffer for building+ghost icons.
+	-- Buildings rarely change, so this VBO is uploaded much less frequently than the mobile VBO.
+	local bldgVbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
+	if not bldgVbo then
+		Spring.Echo("[PIP] GL4 icons: Failed to create building VBO")
+		vao:Delete()
+		vbo:Delete()
+		gl4Icons.atlas = nil
+		gl4Icons.vbo = nil
+		gl4Icons.vao = nil
+		return
+	end
+	bldgVbo:Define(gl4Icons.MAX_INSTANCES, vboLayout)
+	local bldgVao = gl.GetVAO()
+	if not bldgVao then
+		Spring.Echo("[PIP] GL4 icons: Failed to create building VAO")
+		bldgVbo:Delete()
+		vao:Delete()
+		vbo:Delete()
+		gl4Icons.atlas = nil
+		gl4Icons.vbo = nil
+		gl4Icons.vao = nil
+		return
+	end
+	bldgVao:AttachVertexBuffer(bldgVbo)
+	gl4Icons.bldgVbo = bldgVbo
+	gl4Icons.bldgVao = bldgVao
+
+	-- Pre-allocate building instance data array
+	local bldgInstanceData = {}
+	for i = 1, gl4Icons.MAX_INSTANCES * gl4Icons.INSTANCE_STEP do
+		bldgInstanceData[i] = 0
+	end
+	gl4Icons.bldgInstanceData = bldgInstanceData
+
 	-- Compile shader
 	local shader = gl.CreateShader(gl4Icons.shaderCode)
 	if not shader then
@@ -3313,6 +3366,14 @@ local function DestroyGL4Icons()
 		gl.DeleteShader(gl4Icons.shader)
 		gl4Icons.shader = nil
 	end
+	if gl4Icons.bldgVao then
+		gl4Icons.bldgVao:Delete()
+		gl4Icons.bldgVao = nil
+	end
+	if gl4Icons.bldgVbo then
+		gl4Icons.bldgVbo:Delete()
+		gl4Icons.bldgVbo = nil
+	end
 	if gl4Icons.vao then
 		gl4Icons.vao:Delete()
 		gl4Icons.vao = nil
@@ -3327,6 +3388,8 @@ local function DestroyGL4Icons()
 	gl4Icons.enabled = false
 	gl4Icons._vboValid = false
 	gl4Icons._vboUsedElements = 0
+	gl4Icons._bldgVboValid = false
+	gl4Icons._bldgVboUsedElements = 0
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -7096,6 +7159,8 @@ function widget:Initialize()
 		end
 		if uDef.isBuilding then
 			cache.isBuilding[uDefID] = true
+		elseif uDef.speed == 0 and not uDef.canFly then
+			cache.isPseudoBuilding[uDefID] = true
 		end
 		if uDef.customParams and (uDef.customParams.iscommander or uDef.customParams.isdecoycommander or uDef.customParams.isscavcommander or uDef.customParams.isscavdecoycommander) then
 			cache.isCommander[uDefID] = true
@@ -7113,7 +7178,7 @@ function widget:Initialize()
 			gl4Icons.unitDefLayer[uDefID] = gl4Icons.LAYER_AIR
 		elseif uDef.customParams and (uDef.customParams.iscommander or uDef.customParams.isdecoycommander or uDef.customParams.isscavcommander or uDef.customParams.isscavdecoycommander) then
 			gl4Icons.unitDefLayer[uDefID] = gl4Icons.LAYER_COMMANDER
-		elseif uDef.isBuilding then
+		elseif uDef.isBuilding or (uDef.speed == 0 and not uDef.canFly) then
 			gl4Icons.unitDefLayer[uDefID] = gl4Icons.LAYER_STRUCTURE
 		else
 			gl4Icons.unitDefLayer[uDefID] = gl4Icons.LAYER_GROUND
@@ -8769,7 +8834,8 @@ local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 
 	if needRefresh then
 		local wpCache = cmdQueueCache.waypoints
-		for i = 1, unitCount do
+		local refreshLimit = math.min(unitCount, 300)  -- Cap GetUnitCommands calls to limit allocation spike
+		for i = 1, refreshLimit do
 			local uID = unitsToShow[i]
 			local unitTeam = spFunc.GetUnitTeam(uID)
 			-- Skip gaia units, and skip AI units (always for scav/raptor, optionally for other AI)
@@ -8939,7 +9005,8 @@ local function DrawBuildPreview(mx, my, iconRadiusZoomDistMult)
 			-- Draw preview icons for all spots in area
 			local mexBuildings = WG["resource_spot_builder"] and WG["resource_spot_builder"].GetMexBuildings()
 			if mexBuildings then
-				local selectedUnits = Spring.GetSelectedUnits()
+				if not frameSel then frameSel = Spring.GetSelectedUnits() end
+				local selectedUnits = frameSel
 				local mexConstructors = WG["resource_spot_builder"] and WG["resource_spot_builder"].GetMexConstructors()
 				local selectedMex = WG["resource_spot_builder"] and WG["resource_spot_builder"].GetBestExtractorFromBuilders(selectedUnits, mexConstructors, mexBuildings)
 
@@ -9152,6 +9219,11 @@ local function DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
 		return
 	end
 
+	-- Cap unit count to avoid mass GetUnitCommands calls with large selections
+	if selectedCount > 200 then
+		selectedCount = 200
+	end
+
 	-- Clear and reuse texture grouping tables
 	for k in pairs(pools.buildsByTexture) do
 		pools.buildsByTexture[k] = nil
@@ -9243,6 +9315,11 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	local unitBaseSize = Spring.GetConfigFloat("MinimapIconScale", 3.5)
 	local iconRadiusZoomDistMult = unitBaseSize * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(cameraState.zoom) * resScale
 
+	-- Resolution boost: icons look relatively small on high-res screens, so scale them up
+	-- slightly. Linear from 1080p (1.0x) to 5K (1.18x), capped at 1.18x.
+	local resBoost = 1.0 + 0.18 * math.min(math.max((render.vsy - 1080) / (2880 - 1080), 0), 1)
+	iconRadiusZoomDistMult = iconRadiusZoomDistMult * resBoost
+
 	-- Unit-count density scaling: shrink icons when there are many units, fading out at higher zoom
 	if config.iconDensityScaling then
 		local totalUnits = #miscState.pipUnits
@@ -9261,8 +9338,10 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	local unitpicEntries = {}
 	local unitpicCount = 0
 
-	-- Write directly into pre-allocated flat array (zero per-frame allocations)
-	local data = gl4Icons.instanceData
+	-- Write ghost+building data into building-specific array, mobile into main array.
+	-- Building VBO is uploaded independently (only when building state changes).
+	local bldgData = gl4Icons.bldgInstanceData
+	local data = bldgData  -- Start writing to building array (ghosts + buildings first)
 	local unitCount = #miscState.pipUnits
 	local unitDefCacheTbl = gl4Icons.unitDefCache
 	local unitTeamCacheTbl = gl4Icons.unitTeamCache
@@ -9417,7 +9496,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 					return usedEl
 				elseif losBits % (LOS_INLOS * 2) >= LOS_INLOS then
 					-- full LOS: draw normally, and record building ghost for when it leaves LOS
-					if cacheIsBuilding[uDefID] then
+					if cacheIsBuilding[uDefID] or cache.isPseudoBuilding[uDefID] then
 						local g = ghostBuildings[uID]
 						if g then
 							g.defID = uDefID; g.x = ux; g.z = uz; g.teamID = uTeam
@@ -9427,7 +9506,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 					end
 				elseif losBits % (LOS_INRADAR * 2) >= LOS_INRADAR then
 					-- Buildings in radar: don't wobble (they're stationary, position is known)
-					if not cacheIsBuilding[uDefID] then
+					if not cacheIsBuilding[uDefID] and not cache.isPseudoBuilding[uDefID] then
 						isRadar = true
 					end
 					local typed = (losBits % (LOS_PREVLOS * 2) >= LOS_PREVLOS) or (losBits % (LOS_CONTRADAR * 2) >= LOS_CONTRADAR)
@@ -9437,7 +9516,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 				else
 					-- Not in LOS or radar, but has some bits (e.g. PREVLOS).
 					-- Record ghost for previously-seen buildings so they appear as ghosts.
-					if cacheIsBuilding[uDefID] and losBits % (LOS_PREVLOS * 2) >= LOS_PREVLOS then
+					if (cacheIsBuilding[uDefID] or cache.isPseudoBuilding[uDefID]) and losBits % (LOS_PREVLOS * 2) >= LOS_PREVLOS then
 						local g = ghostBuildings[uID]
 						if g then
 							g.defID = uDefID; g.x = ux; g.z = uz; g.teamID = uTeam
@@ -9545,6 +9624,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	-- 2) Fullview OFF: use pipUnits membership (from GetUnitsInRectangle). Engine LOS APIs
 	--    are unreliable for spectators who toggled fullview OFF, but GetUnitsInRectangle
 	--    correctly filters to visible units only.
+	local ghostHash = 0  -- Track ghost changes for building VBO dirty detection
 	if checkAllyTeamID and not skipGhosts then
 		-- Determine which visibility check to use
 		local isLosViewMode = state.losViewEnabled and state.losViewAllyTeam
@@ -9598,6 +9678,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 					data[off+5] = uvs[1]; data[off+6] = uvs[2]; data[off+7] = uvs[3]; data[off+8] = uvs[4]
 					data[off+9] = r; data[off+10] = g; data[off+11] = b; data[off+12] = (gID * 0.37) % 6.2832
 					usedElements = usedElements + 1
+					ghostHash = ghostHash + gID
 				end
 			end
 			-- If liveSet[gID] is true, processUnit will draw the live icon (which overdraws
@@ -9607,6 +9688,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 			-- (dead units are absent from GetAllUnits, so stale ghosts are cleared on next rescan).
 		end
 	end
+	local ghostElementCount = usedElements  -- Ghost elements in building VBO
 
 	local icT1 = os.clock()
 
@@ -9685,7 +9767,9 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		local sortKey = layer * 100000 + mathFloor(zPos)
 		gl4Icons.sortKeys[uID] = sortKey
 		-- Separate immobile buildings from mobile units for split sorting
-		local isImmobile = cacheIsBuilding[uDefID] and localCantBeTransported[uDefID]
+		-- Pseudo-buildings (speed==0, like nano turrets) go to building VBO unless currently transported
+		local isImmobile = (cacheIsBuilding[uDefID] and localCantBeTransported[uDefID])
+			or (cache.isPseudoBuilding[uDefID] and not miscState.transportedUnits[uID])
 		if isImmobile then
 			-- Cache building positions (they never move)
 			localBuildPosX[uID] = xPos
@@ -9724,58 +9808,29 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 
 	local icT3 = os.clock()
 
-	-- VBO reuse: when both building and mobile block caches hit and ghosts are skipped,
-	-- the GPU already has valid icon data from the previous upload. Skip all block copies,
-	-- overlay application, and the VBO upload — just reissue draw calls.
-	-- Overlays (selection, damage flash) will be at most 1 frame stale, matching the
-	-- existing block cache staleness that's already accepted at these unit counts.
-	local vboReuse = false
-	if skipGhosts and useMobileBlockCache and not mobileBlockRebuild and gl4Icons._vboValid then
-		local expectedUsed = (gl4Icons._bldgBlockCount or 0) + (gl4Icons._mobileBlockCount or 0)
-		if expectedUsed > 0 and expectedUsed == gl4Icons._vboUsedElements then
-			-- Still need to check building cache validity (may have been invalidated this frame)
-			local currentGameFrame = Spring.GetGameFrame()
-			local bldgBlockGameFrameLimit2 = cameraState.zoom < 0.15 and 90 or 30
-			local bldgStillValid = gl4Icons._bldgBlock
-				and bCount == gl4Icons._bldgBlockBCount
-				and bldgHash == gl4Icons._bldgBlockHash
-				and checkAllyTeamID == gl4Icons._bldgBlockCheckAlly
-				and (currentGameFrame - (gl4Icons._bldgBlockFrame or 0)) < bldgBlockGameFrameLimit2
-				and not useUnitpics
-			if bldgStillValid then
-				vboReuse = true
-				usedElements = expectedUsed
-			end
-		end
-	end
-
 	-- Intermediate timer variables (set in both paths)
 	local icT3b = icT3  -- default: no building processing
 	local bldgProcessed = 0
-	local preMobileEl = usedElements
 	local mobileProcessed = 0
 	local currentGameFrame = Spring.GetGameFrame()
+	local bldgUsedElements = 0  -- Total building+ghost elements for building VBO
 
-	if not vboReuse then
+	-- ========================================================================
+	-- Building VBO processing (ghosts + buildings → bldgData)
+	-- Building VBO is separate from mobile VBO and uploaded independently.
+	-- On frames where building state hasn't changed, skip all building work.
+	-- ========================================================================
 
-	-- Building block VBO cache: instead of processing each building individually,
-	-- cache the entire building VBO output as a contiguous flat array.
-	-- On subsequent frames (while building set unchanged), copy the block in one
-	-- tight numeric loop (~0.05ms vs ~1.3ms per-building processing).
-	-- Dynamic state (selection, damage flash, tracking) is applied as overlays.
-	-- Block is rebuilt every 30 game frames to catch LOS/stun changes.
+	-- Building block validation (same logic as before)
 	local bldgBlock = gl4Icons._bldgBlock
 	local bldgBlockValid = bldgBlock
 		and bCount == gl4Icons._bldgBlockBCount
 		and bldgHash == gl4Icons._bldgBlockHash
-		and checkAllyTeamID == gl4Icons._bldgBlockCheckAlly  -- LOS filtering context changed
+		and checkAllyTeamID == gl4Icons._bldgBlockCheckAlly
 		and (currentGameFrame - (gl4Icons._bldgBlockFrame or 0)) < bldgBlockGameFrameLimit
-		and not useUnitpics  -- unitpic collection needs per-unit data
-		and not gl4Icons._bldgBlockBuiltDuringUnitpics  -- block built with 0 icons during unitpics is invalid
+		and not useUnitpics
+		and not gl4Icons._bldgBlockBuiltDuringUnitpics
 
-	-- Building block stale-cache tolerance: at high building counts, accept stale cache
-	-- when only the building set changed (camera panning edges). This prevents constant
-	-- ~3ms rebuilds every frame. Rebuilds are throttled to 1 per 5 render frames.
 	gl4Icons._bldgRenderFrame = (gl4Icons._bldgRenderFrame or 0) + 1
 	if not bldgBlockValid and bldgBlock and bCount > 3000
 		and checkAllyTeamID == gl4Icons._bldgBlockCheckAlly
@@ -9783,95 +9838,136 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		and not useUnitpics
 		and not gl4Icons._bldgBlockBuiltDuringUnitpics
 		and (gl4Icons._bldgRenderFrame - (gl4Icons._bldgBlockRebuildRenderFrame or 0)) < 5 then
-		bldgBlockValid = true  -- reuse stale cache despite count/hash mismatch
+		bldgBlockValid = true
 	end
 
-	local preProcessEl = usedElements
+	-- Check if building VBO can be reused from a previous frame.
+	-- Requires: ghost data unchanged + building block still valid + no active/recent overlays.
+	local ghostUnchanged = (ghostElementCount == gl4Icons._bldgVboGhostCount) and (ghostHash == gl4Icons._bldgVboGhostHash)
+	local bldgVboReuse = false
+	local bldgOverlayKnown = nil  -- overlay result from reuse check (avoids recomputing after processing)
+	if gl4Icons._bldgVboValid and bldgBlockValid and ghostUnchanged then
+		-- Quick check: any building has an active overlay? If so, VBO might be stale.
+		local bldgHasOverlay = false
+		local bldgIdx = gl4Icons._bldgBlockIdx
+		if bldgIdx then
+			if selectedSet and not bldgHasOverlay then
+				for uID in pairs(bldgIdx) do
+					if selectedSet[uID] then bldgHasOverlay = true; break end
+				end
+			end
+			if trackedSet and not bldgHasOverlay then
+				for uID in pairs(trackedSet) do
+					if bldgIdx[uID] then bldgHasOverlay = true; break end
+				end
+			end
+			if not bldgHasOverlay then
+				for uID in pairs(selfDUnits) do
+					if bldgIdx[uID] then bldgHasOverlay = true; break end
+				end
+			end
+			if not bldgHasOverlay then
+				for uID, flash in pairs(damageFlash) do
+					if bldgIdx[uID] and gameTime - flash.time < DAMAGE_FLASH_DURATION then
+						bldgHasOverlay = true; break
+					end
+				end
+			end
+		end
+		bldgOverlayKnown = bldgHasOverlay  -- save for reuse after processing
+		if not bldgHasOverlay and not gl4Icons._bldgVboHadOverlay then
+			bldgVboReuse = true
+			bldgUsedElements = gl4Icons._bldgVboUsedElements
+		end
+	end
+
+	local preProcessEl = usedElements  -- = ghostElementCount (building data starts after ghosts)
+
+	if not bldgVboReuse then
 
 	if bldgBlockValid then
-		-- Fast path: copy entire cached building block
 		local blockFloats = gl4Icons._bldgBlockN  -- total float count
-		local blockOffset = usedElements * instStep
-		-- Unrolled copy: 12 floats per building instance
-		local j = 1
-		while j + 11 <= blockFloats do
-			data[blockOffset+j]=bldgBlock[j]; data[blockOffset+j+1]=bldgBlock[j+1]
-			data[blockOffset+j+2]=bldgBlock[j+2]; data[blockOffset+j+3]=bldgBlock[j+3]
-			data[blockOffset+j+4]=bldgBlock[j+4]; data[blockOffset+j+5]=bldgBlock[j+5]
-			data[blockOffset+j+6]=bldgBlock[j+6]; data[blockOffset+j+7]=bldgBlock[j+7]
-			data[blockOffset+j+8]=bldgBlock[j+8]; data[blockOffset+j+9]=bldgBlock[j+9]
-			data[blockOffset+j+10]=bldgBlock[j+10]; data[blockOffset+j+11]=bldgBlock[j+11]
-			j = j + 12
-		end
-		while j <= blockFloats do
-			data[blockOffset + j] = bldgBlock[j]
-			j = j + 1
-		end
 		usedElements = usedElements + gl4Icons._bldgBlockCount
 
 		-- Dynamic overlays on top of cached data
 		local bldgIdx = gl4Icons._bldgBlockIdx
+		local needOverlay = bldgOverlayKnown  -- already computed during reuse check
 
-		-- Selection overlay: selected buildings rendered white
-		if selectedSet then
-			for uID, _ in pairs(selectedSet) do
+		if needOverlay then
+			-- Overlays active: copy block into bldgData so we can modify colors/flags in-place
+			local blockOffset = preProcessEl * instStep
+			local j = 1
+			while j + 11 <= blockFloats do
+				data[blockOffset+j]=bldgBlock[j]; data[blockOffset+j+1]=bldgBlock[j+1]
+				data[blockOffset+j+2]=bldgBlock[j+2]; data[blockOffset+j+3]=bldgBlock[j+3]
+				data[blockOffset+j+4]=bldgBlock[j+4]; data[blockOffset+j+5]=bldgBlock[j+5]
+				data[blockOffset+j+6]=bldgBlock[j+6]; data[blockOffset+j+7]=bldgBlock[j+7]
+				data[blockOffset+j+8]=bldgBlock[j+8]; data[blockOffset+j+9]=bldgBlock[j+9]
+				data[blockOffset+j+10]=bldgBlock[j+10]; data[blockOffset+j+11]=bldgBlock[j+11]
+				j = j + 12
+			end
+			while j <= blockFloats do
+				data[blockOffset + j] = bldgBlock[j]
+				j = j + 1
+			end
+
+			-- Selection overlay: selected buildings rendered white
+			if selectedSet then
+				for uID, idx in pairs(bldgIdx) do
+					if selectedSet[uID] then
+						local off = (preProcessEl + idx - 1) * instStep
+						data[off + 9] = 1; data[off + 10] = 1; data[off + 11] = 1
+						data[off + 12] = (uID * 0.37) % 6.2832
+					end
+				end
+			end
+
+			-- Damage flash overlay
+			for uID, flash in pairs(damageFlash) do
+				local idx = bldgIdx[uID]
+				if idx then
+					local elapsed = gameTime - flash.time
+					if elapsed < DAMAGE_FLASH_DURATION then
+						local f = flash.intensity * (1 - elapsed / DAMAGE_FLASH_DURATION)
+						local off = (preProcessEl + idx - 1) * instStep
+						data[off + 9] = data[off + 9] + (1 - data[off + 9]) * f
+						data[off + 10] = data[off + 10] + (1 - data[off + 10]) * f
+						data[off + 11] = data[off + 11] + (1 - data[off + 11]) * f
+						data[off + 12] = (uID * 0.37) % 6.2832 + mathFloor(f * 100) * 7.0
+					else
+						damageFlash[uID] = nil
+					end
+				end
+			end
+
+			-- Tracking overlay
+			if trackedSet then
+				for uID, _ in pairs(trackedSet) do
+					local idx = bldgIdx[uID]
+					if idx then
+						local off = (preProcessEl + idx - 1) * instStep
+						data[off + 4] = data[off + 4] + 8
+					end
+				end
+			end
+
+			-- SelfD overlay
+			for uID in pairs(selfDUnits) do
 				local idx = bldgIdx[uID]
 				if idx then
 					local off = (preProcessEl + idx - 1) * instStep
-					data[off + 9] = 1; data[off + 10] = 1; data[off + 11] = 1
-					data[off + 12] = (uID * 0.37) % 6.2832  -- reset flash encoding
+					data[off + 4] = data[off + 4] + 16
 				end
 			end
-		end
-
-		-- Damage flash overlay
-		for uID, flash in pairs(damageFlash) do
-			local idx = bldgIdx[uID]
-			if idx then
-				local elapsed = gameTime - flash.time
-				if elapsed < DAMAGE_FLASH_DURATION then
-					local f = flash.intensity * (1 - elapsed / DAMAGE_FLASH_DURATION)
-					local off = (preProcessEl + idx - 1) * instStep
-					data[off + 9] = data[off + 9] + (1 - data[off + 9]) * f
-					data[off + 10] = data[off + 10] + (1 - data[off + 10]) * f
-					data[off + 11] = data[off + 11] + (1 - data[off + 11]) * f
-					data[off + 12] = (uID * 0.37) % 6.2832 + mathFloor(f * 100) * 7.0
-				else
-					damageFlash[uID] = nil
-				end
-			end
-		end
-
-		-- Tracking overlay: re-apply tracking flag for tracked buildings
-		-- Block stores flags with bits 3-4 stripped; re-apply from current trackedSet
-		if trackedSet then
-			for uID, _ in pairs(trackedSet) do
-				local idx = bldgIdx[uID]
-				if idx then
-					local off = (preProcessEl + idx - 1) * instStep
-					data[off + 4] = data[off + 4] + 8  -- set tracking bit (bit 3)
-				end
-			end
-		end
-
-		-- SelfD overlay: re-apply selfD flag for self-destructing buildings
-		for uID in pairs(selfDUnits) do
-			local idx = bldgIdx[uID]
-			if idx then
-				local off = (preProcessEl + idx - 1) * instStep
-				data[off + 4] = data[off + 4] + 16 -- set selfD bit (bit 4)
-			end
-		end
+		end  -- needOverlay
 	else
 		-- Slow path: process each building individually, build block cache
 
 		-- Deferred building sort: only sort when actually rebuilding the block.
-		-- Skip sort entirely at >3000 buildings — z-ordering is cosmetic at this density.
+		-- Buildings rarely change so this sort runs infrequently.
 		local bldgSetChanged = bCount ~= gl4Icons._lastBldgCount or bldgHash ~= gl4Icons._lastBldgHash
 		if bldgSetChanged then
-			if bCount <= 3000 then
-				table.sort(buildingIDs, gl4IconSortCmp)
-			end
+			table.sort(buildingIDs, gl4IconSortCmp)
 			for i = 1, bCount do bldgSortedCache[i] = buildingIDs[i] end
 			bldgSortedCache[bCount + 1] = nil
 			gl4Icons._lastBldgCount = bCount
@@ -9914,6 +10010,21 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 			local f = bldgBlock[j]
 			bldgBlock[j] = f - f % 32 + f % 8  -- keep health*32 + bits 0-2, clear bits 3-4
 		end
+		-- Strip selection colors from cache: restore team colors for any selected buildings
+		-- so the cached block is selection-neutral (selection overlay is applied dynamically)
+		if selectedSet then
+			for uID, idx in pairs(bldgIdx) do
+				if selectedSet[uID] then
+					local j = (idx - 1) * instStep
+					local uTeam = spFunc.GetUnitTeam(uID)
+					if uTeam then
+						bldgBlock[j + 9] = teamColorR[uTeam] or 1
+						bldgBlock[j + 10] = teamColorG[uTeam] or 1
+						bldgBlock[j + 11] = teamColorB[uTeam] or 1
+					end
+				end
+			end
+		end
 		-- Clear stale entries beyond current block
 		local prevBlockN = gl4Icons._bldgBlockN or 0
 		for j = blockFloats + 1, prevBlockN do bldgBlock[j] = nil end
@@ -9926,10 +10037,86 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		gl4Icons._bldgBlockFrame = currentGameFrame
 		gl4Icons._bldgBlockRebuildRenderFrame = gl4Icons._bldgRenderFrame
 		gl4Icons._bldgBlockBuiltDuringUnitpics = useUnitpics  -- block has 0 icons when unitpics active
-	end
+	end  -- bldgBlockValid fast/slow path
 	icT3b = os.clock()
-	bldgProcessed = usedElements - preProcessEl
-	preMobileEl = usedElements
+		bldgProcessed = usedElements - preProcessEl
+		bldgUsedElements = usedElements
+
+		-- Track overlay state for next frame's reuse check
+		-- Reuse result from reuse-decision check when block wasn't rebuilt (same bldgIdx)
+		local bldgHasOverlay
+		if bldgOverlayKnown ~= nil then
+			bldgHasOverlay = bldgOverlayKnown
+		else
+			bldgHasOverlay = false
+			local bldgIdx = gl4Icons._bldgBlockIdx
+			if bldgIdx then
+				if selectedSet then
+					for uID in pairs(bldgIdx) do
+						if selectedSet[uID] then bldgHasOverlay = true; break end
+					end
+				end
+				if trackedSet and not bldgHasOverlay then
+					for uID in pairs(trackedSet) do
+						if bldgIdx[uID] then bldgHasOverlay = true; break end
+					end
+				end
+				if not bldgHasOverlay then
+					for uID in pairs(selfDUnits) do
+						if bldgIdx[uID] then bldgHasOverlay = true; break end
+					end
+				end
+				if not bldgHasOverlay then
+					for uID, flash in pairs(damageFlash) do
+						if bldgIdx[uID] and gameTime - flash.time < DAMAGE_FLASH_DURATION then
+							bldgHasOverlay = true; break
+						end
+					end
+				end
+			end
+		end
+		gl4Icons._bldgVboHadOverlay = bldgHasOverlay
+
+		-- Upload building VBO
+		-- When no overlays and block was valid, upload ghost+block segments directly
+		-- (skip the block→bldgData copy; bldgBlock goes straight to GPU)
+		if bldgUsedElements > 0 then
+			if bldgBlockValid and not bldgHasOverlay then
+				-- Two-segment upload: ghosts from bldgData, buildings from bldgBlock
+				if ghostElementCount > 0 then
+					gl4Icons.bldgVbo:Upload(bldgData, nil, 0, 1, ghostElementCount * instStep)
+				end
+				local blockFloats = gl4Icons._bldgBlockN or 0
+				if blockFloats > 0 then
+					gl4Icons.bldgVbo:Upload(bldgBlock, nil, ghostElementCount, 1, blockFloats)
+				end
+			else
+				gl4Icons.bldgVbo:Upload(bldgData, nil, 0, 1, bldgUsedElements * instStep)
+			end
+		end
+		gl4Icons._bldgVboValid = true
+		gl4Icons._bldgVboUsedElements = bldgUsedElements
+		gl4Icons._bldgVboGhostHash = ghostHash
+		gl4Icons._bldgVboGhostCount = ghostElementCount
+	end  -- if not bldgVboReuse
+
+	-- ========================================================================
+	-- Mobile VBO processing (ground/air/commander units → instanceData)
+	-- ========================================================================
+	-- Switch data target to mobile instance array (offset 0)
+	data = gl4Icons.instanceData
+	usedElements = 0
+	local preMobileEl = 0
+
+	-- Mobile VBO reuse: when mobile block cache hit and VBO still valid, skip processing
+	local mobileVboReuse = false
+	if useMobileBlockCache and not mobileBlockRebuild and gl4Icons._vboValid
+		and (gl4Icons._mobileBlockCount or 0) == gl4Icons._vboUsedElements then
+		mobileVboReuse = true
+		usedElements = gl4Icons._vboUsedElements
+	end
+
+	if not mobileVboReuse then
 
 	if useMobileBlockCache and not mobileBlockRebuild then
 		-- Fast path: copy entire cached mobile block (saves all processUnit calls)
@@ -9956,11 +10143,11 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		-- Dynamic overlays on top of cached mobile data
 		local mobileIdx = gl4Icons._mobileBlockIdx
 		if mobileIdx then
-			-- Selection overlay: selected units rendered white
+			-- Selection overlay: selected mobile units rendered white
+			-- Iterate mobileIdx (visible units) instead of selectedSet (all selected units)
 			if selectedSet then
-				for uID, _ in pairs(selectedSet) do
-					local idx = mobileIdx[uID]
-					if idx then
+				for uID, idx in pairs(mobileIdx) do
+					if selectedSet[uID] then
 						local off = (preMobileEl + idx - 1) * instStep
 						data[off + 9] = 1; data[off + 10] = 1; data[off + 11] = 1
 						data[off + 12] = (uID * 0.37) % 6.2832
@@ -10045,6 +10232,20 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 				local f = mobileBlock[j]
 				mobileBlock[j] = f - f % 32 + f % 8
 			end
+			-- Strip selection colors from cache (same as building block)
+			if selectedSet then
+				for uID, idx in pairs(mobileIdx) do
+					if selectedSet[uID] then
+						local j = (idx - 1) * instStep
+						local uTeam = spFunc.GetUnitTeam(uID)
+						if uTeam then
+							mobileBlock[j + 9] = teamColorR[uTeam] or 1
+							mobileBlock[j + 10] = teamColorG[uTeam] or 1
+							mobileBlock[j + 11] = teamColorB[uTeam] or 1
+						end
+					end
+				end
+			end
 			-- Clear stale entries
 			local prevBlockN = gl4Icons._mobileBlockN or 0
 			for j = blockFloats + 1, prevBlockN do mobileBlock[j] = nil end
@@ -10056,12 +10257,21 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 
 	mobileProcessed = usedElements - preMobileEl
 
-	end -- if not vboReuse
+	-- Upload mobile VBO
+	if not mobileVboReuse and usedElements > 0 then
+		gl4Icons.vbo:Upload(data, nil, 0, 1, usedElements * instStep)
+		gl4Icons._vboValid = true
+		gl4Icons._vboUsedElements = usedElements
+	end
+
+	end -- if not mobileVboReuse
+
+	local mobileUsedElements = usedElements
 
 	local icT4 = os.clock()
 
 	-- Skip draw if no icons and no unitpics
-	if usedElements == 0 and unitpicCount == 0 then
+	if bldgUsedElements == 0 and mobileUsedElements == 0 and unitpicCount == 0 then
 		perfTimers.icGhost = perfTimers.icGhost + PERF_SMOOTH * ((icT1 - icT0) - perfTimers.icGhost)
 		perfTimers.icKeysort = perfTimers.icKeysort + PERF_SMOOTH * ((icT2 - icT1) - perfTimers.icKeysort)
 		perfTimers.icSort = perfTimers.icSort + PERF_SMOOTH * ((icT3 - icT2) - perfTimers.icSort)
@@ -10073,14 +10283,8 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		return iconRadiusZoomDistMult
 	end
 
-	-- Draw GL4 icons (skip VBO upload/draw when all units are rendered as unitpics)
-	if usedElements > 0 then
-		-- Upload to GPU (skip when VBO already has valid data from a previous frame)
-		if not vboReuse then
-			gl4Icons.vbo:Upload(data, nil, 0, 1, usedElements * gl4Icons.INSTANCE_STEP)
-			gl4Icons._vboValid = true
-			gl4Icons._vboUsedElements = usedElements
-		end
+	-- Draw GL4 icons: building VBO first (layer 0), then mobile VBO (layers 1-3)
+	if bldgUsedElements > 0 or mobileUsedElements > 0 then
 		local icT4b = os.clock()
 
 		-- Set up GL state for icon drawing
@@ -10103,8 +10307,6 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		gl.UniformFloat(ul.rotCenter, fboW * 0.5, fboH * 0.5)
 
 		-- Icon size and time
-		-- Cap icon texture size at the 0.95-zoom equivalent so icons don't grow into
-		-- oversized blobs at extreme zoom levels (world keeps zooming, icons stay readable)
 		local iconSizeCap = unitBaseSize * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(0.95) * resScale
 		gl.UniformFloat(ul.iconBaseSize, math.min(iconRadiusZoomDistMult, iconSizeCap))
 		gl.UniformFloat(ul.gameTime, gameTime)
@@ -10114,17 +10316,30 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		-- Bind atlas texture
 		glFunc.Texture(0, gl4Icons.atlas)
 
-		-- Pass 1: Outlines for tracked units (white) and self-destructing units (red-orange pulse)
-		-- Only runs when there are tracked or selfD units; the shader culls others via alpha=0
+		-- Draw buildings first (outline + normal), then mobile on top (outline + normal).
+		-- Grouping per-VBO ensures mobile outlines are never hidden by building normals.
 		local hasSelfD = next(selfDUnits) ~= nil
-		if trackedSet or hasSelfD then
-			gl.UniformFloat(ul.outlinePass, 1.0)
-			gl4Icons.vao:DrawArrays(GL.POINTS, usedElements)
+		local hasOutlines = trackedSet or hasSelfD
+
+		-- Buildings (bottom layer)
+		if bldgUsedElements > 0 then
+			if hasOutlines then
+				gl.UniformFloat(ul.outlinePass, 1.0)
+				gl4Icons.bldgVao:DrawArrays(GL.POINTS, bldgUsedElements)
+			end
+			gl.UniformFloat(ul.outlinePass, 0.0)
+			gl4Icons.bldgVao:DrawArrays(GL.POINTS, bldgUsedElements)
 		end
 
-		-- Pass 2: Normal icon draw
-		gl.UniformFloat(ul.outlinePass, 0.0)
-		gl4Icons.vao:DrawArrays(GL.POINTS, usedElements)
+		-- Mobile (always on top of buildings)
+		if mobileUsedElements > 0 then
+			if hasOutlines then
+				gl.UniformFloat(ul.outlinePass, 1.0)
+				gl4Icons.vao:DrawArrays(GL.POINTS, mobileUsedElements)
+			end
+			gl.UniformFloat(ul.outlinePass, 0.0)
+			gl4Icons.vao:DrawArrays(GL.POINTS, mobileUsedElements)
+		end
 
 		glFunc.Texture(0, false)
 
@@ -10729,14 +10944,17 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 
 	-- Draw icons (GL4 instanced path)
 	local iconRadiusZoomDistMult
-	-- Build selection set for GL4 icon rendering
+	-- Build selection set for GL4 icon rendering (reuse pool table to avoid per-frame allocation)
 	local selectedSet
 	if interactionState.trackingPlayerID then
 		selectedSet = WG['allyselectedunits'] and WG['allyselectedunits'].getPlayerSelectedUnits(interactionState.trackingPlayerID)
 	else
 		local selUnits2 = cachedSelectedUnits or Spring.GetSelectedUnits()
-		selectedSet = {}
-		for si = 1, #selUnits2 do selectedSet[selUnits2[si]] = true end
+		local set = pools.selectedSet
+		if not set then set = {}; pools.selectedSet = set end
+		for k in pairs(set) do set[k] = nil end
+		for si = 1, #selUnits2 do set[selUnits2[si]] = true end
+		selectedSet = set
 	end
 	iconRadiusZoomDistMult = GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 
@@ -11268,15 +11486,15 @@ local function RenderFrameButtons()
 	end
 
 	-- Bottom-left buttons
-	local selectedUnits = Spring.GetSelectedUnits()
-	local hasSelection = #selectedUnits > 0
+	local hasSelection = frameSelCount > 0
 	local isTracking = interactionState.areTracking ~= nil
 	local isTrackingPlayer = interactionState.trackingPlayerID ~= nil
 	-- Show player tracking button when tracking, when spectating, or when having alive teammates
 	local spec = Spring.GetSpectatingState()
 	local aliveTeammates = GetAliveTeammates()
 	local showPlayerTrackButton = isTrackingPlayer or spec or (#aliveTeammates > 0)
-	local visibleButtons = {}
+	local visibleButtons = pools.visibleButtons
+	for k in pairs(visibleButtons) do visibleButtons[k] = nil end
 	for i = 1, #buttons do
 		local btn = buttons[i]
 		-- In minimap mode, hide move button if configured
@@ -12429,7 +12647,8 @@ end
 -- Render the expensive layers (units, features, projectiles, commands, markers, camera bounds)
 -- Called inside R2T context for the oversized unitsTex
 local function RenderExpensiveLayers()
-	local cachedSelectedUnits = Spring.GetSelectedUnits()
+	if not frameSel then frameSel = Spring.GetSelectedUnits() end
+	local cachedSelectedUnits = frameSel
 
 	-- Apply rotation to all content if minimap is rotated
 	if render.minimapRotation ~= 0 then
@@ -12457,8 +12676,9 @@ end
 
 -- Full render for fallback when unitsTex is not available
 local function RenderPipContents()
-	-- Cache selected units once per render cycle to avoid multiple API calls
-	local cachedSelectedUnits = Spring.GetSelectedUnits()
+	-- Use frame-cached selected units to avoid redundant API call
+	if not frameSel then frameSel = Spring.GetSelectedUnits() end
+	local cachedSelectedUnits = frameSel
 	
 	-- Apply rotation to all content if minimap is rotated
 	if render.minimapRotation ~= 0 then
@@ -14393,8 +14613,9 @@ local function HandleHoverAndCursor(mx, my)
 			local defaultCmd = Spring.GetDefaultCommand()
 
 			if not defaultCmd or defaultCmd == 0 then
-				local selectedUnits = Spring.GetSelectedUnits()
-				if selectedUnits and #selectedUnits > 0 then
+				if frameSelCount > 0 then
+					if not frameSel then frameSel = Spring.GetSelectedUnits() end
+					local selectedUnits = frameSel
 					-- Check if hovering over an enemy unit with units that can attack
 					-- But don't show attack cursor for neutral units
 					if lastHoveredUnitID and not Spring.IsUnitAllied(lastHoveredUnitID) then
@@ -14473,8 +14694,9 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 	end
 
 	-- Bottom-left buttons hover
-	local selectedUnits = Spring.GetSelectedUnits()
-	local visibleButtons = {}
+	local hasSelection = frameSelCount > 0
+	local visibleButtons = pools.visibleButtons
+	for k in pairs(visibleButtons) do visibleButtons[k] = nil end
 	for i = 1, #buttons do
 		local btn = buttons[i]
 		-- In minimap mode, hide move button if configured
@@ -14499,7 +14721,7 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 		
 		if not skipButton then
 			if btn.command == 'pip_track' then
-				if #selectedUnits > 0 or interactionState.areTracking then
+				if hasSelection or interactionState.areTracking then
 					visibleButtons[#visibleButtons + 1] = btn
 				end
 			elseif btn.command == 'pip_trackplayer' then
@@ -14714,6 +14936,10 @@ function widget:DrawScreen()
 		return
 	end
 
+	-- Cache selected units count once per frame (avoids 5+ redundant GetSelectedUnits calls)
+	frameSelCount = spFunc.GetSelectedUnitsCount()
+	frameSel = nil  -- Lazy: full array fetched only when needed
+
 	HandleHoverAndCursor(mx, my)
 
 	----------------------------------------------------------------------------------------------------
@@ -14738,8 +14964,12 @@ function widget:DrawScreen()
 	----------------------------------------------------------------------------------------------------
 	-- Engine minimap fallback: when enabled and fully zoomed out with many units, draw engine minimap instead of PIP
 	----------------------------------------------------------------------------------------------------
+	-- Hysteresis: activate at threshold, deactivate at 95% of threshold to avoid flickering
+	local fallbackUnitThreshold = miscState.engineMinimapActive
+		and (config.engineMinimapFallbackThreshold * 0.95)
+		or config.engineMinimapFallbackThreshold
 	local useEngineMinimapFallback = isMinimapMode and config.engineMinimapFallback
-		and #miscState.pipUnits > config.engineMinimapFallbackThreshold
+		and #miscState.pipUnits > fallbackUnitThreshold
 		and IsAtMinimumZoom(cameraState.zoom) and IsAtMinimumZoom(cameraState.targetZoom)
 		and not interactionState.trackingPlayerID and not miscState.tvEnabled
 
@@ -14759,7 +14989,8 @@ function widget:DrawScreen()
 			local totalUnits = #miscState.pipUnits
 			local unitFraction = math.min(totalUnits / config.iconDensityMaxUnits, 1.0)
 			local densityScale = 1.0 - (1.0 - config.iconDensityMinScale) * unitFraction
-			Spring.SendCommands("minimap unitsize " .. (miscState.baseMinimapIconScale * densityScale))
+			local resBoost = 1.0 + 0.18 * math.min(math.max((render.vsy - 1080) / (2880 - 1080), 0), 1)
+			Spring.SendCommands("minimap unitsize " .. (miscState.baseMinimapIconScale * densityScale * resBoost))
 		end
 		-- Draw the engine minimap
 		gl.DrawMiniMap()
@@ -15901,7 +16132,8 @@ function widget:Update(dt)
 			end
 		-- No active command - check if we should highlight for transport loading or attack
 		elseif unitID then
-			local selectedUnits = Spring.GetSelectedUnits()
+			if not frameSel then frameSel = Spring.GetSelectedUnits() end
+			local selectedUnits = frameSel
 			local shouldHighlight = false
 			local isAlly = Spring.IsUnitAllied(unitID)
 
@@ -15958,8 +16190,7 @@ function widget:Update(dt)
 	end
 
 	-- Track selection and tracking state changes for frame updates
-	local selectedUnits = Spring.GetSelectedUnits()
-	local currentSelectionCount = #selectedUnits
+	local currentSelectionCount = frameSelCount
 	local currentTrackingState = interactionState.areTracking ~= nil
 	local currentPlayerTrackingState = interactionState.trackingPlayerID ~= nil
 	if not lastSelectionCount then lastSelectionCount = 0 end
@@ -16772,9 +17003,8 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	end
 	ownBuildingPosX[unitID] = nil
 	ownBuildingPosZ[unitID] = nil
+	miscState.transportedUnits[unitID] = nil
 end
-
--- Handle unit team changes (give/take)
 function widget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
 	-- Clear GL4 cache so it picks up the new team color
 	gl4Icons.unitTeamCache[unitID] = nil
@@ -16787,12 +17017,20 @@ end
 function widget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	ownBuildingPosX[unitID] = nil
 	ownBuildingPosZ[unitID] = nil
+	-- Pseudo-buildings (nano turrets etc.) become mobile while transported
+	if cache.isPseudoBuilding[unitDefID] then
+		miscState.transportedUnits[unitID] = true
+	end
 end
 
 -- Handle buildings being dropped by transports — update cached position and ghost
 function widget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
+	-- Pseudo-buildings revert to building VBO when dropped
+	if cache.isPseudoBuilding[unitDefID] then
+		miscState.transportedUnits[unitID] = nil
+	end
 	local x, _, z = spFunc.GetUnitBasePosition(unitID)
-	if x and cache.isBuilding[unitDefID] then
+	if x and (cache.isBuilding[unitDefID] or cache.isPseudoBuilding[unitDefID]) then
 		if cache.cantBeTransported[unitDefID] then
 			ownBuildingPosX[unitID] = x
 			ownBuildingPosZ[unitID] = z
