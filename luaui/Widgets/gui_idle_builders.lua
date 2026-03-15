@@ -772,7 +772,7 @@ end
 
 function widget:SelectionChanged(sel)
 	selectedUnits = sel or {}
-	if justSelected then
+	if justSelected then -- ignore selections done by the widget itself 
 		justSelected = false
 		return
 	end
