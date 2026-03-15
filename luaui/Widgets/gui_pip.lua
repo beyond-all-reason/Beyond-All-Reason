@@ -507,6 +507,7 @@ local miscState = {
 	specGhostScanDone = false,  -- Whether we've done a full ghost scan while fullview is ON
 	specGhostScanTime = 0,  -- Last time we ran the ghost scan (to throttle periodic rescans)
 	tvEnabled = false,  -- TV mode toggle state
+	transportedUnits = {},  -- Units currently inside a transport (pseudo-buildings become mobile while transported)
 }
 
 ----------------------------------------------------------------------------------------------------
@@ -1524,6 +1525,7 @@ local cache = {
 	canMove = {},
 	canFly = {},
 	isBuilding = {},
+	isPseudoBuilding = {},  -- speed==0 units that aren't isBuilding (nano turrets, transportable turrets)
 	isCommander = {},
 	isDecoyCommander = {},  -- Commanders with customParams.decoyfor (show 'Decoy' instead of player name)
 	isScavCommander = {},   -- Scavenger commanders (show scav-specific name for decoys)
@@ -7157,6 +7159,8 @@ function widget:Initialize()
 		end
 		if uDef.isBuilding then
 			cache.isBuilding[uDefID] = true
+		elseif uDef.speed == 0 and not uDef.canFly then
+			cache.isPseudoBuilding[uDefID] = true
 		end
 		if uDef.customParams and (uDef.customParams.iscommander or uDef.customParams.isdecoycommander or uDef.customParams.isscavcommander or uDef.customParams.isscavdecoycommander) then
 			cache.isCommander[uDefID] = true
@@ -7174,7 +7178,7 @@ function widget:Initialize()
 			gl4Icons.unitDefLayer[uDefID] = gl4Icons.LAYER_AIR
 		elseif uDef.customParams and (uDef.customParams.iscommander or uDef.customParams.isdecoycommander or uDef.customParams.isscavcommander or uDef.customParams.isscavdecoycommander) then
 			gl4Icons.unitDefLayer[uDefID] = gl4Icons.LAYER_COMMANDER
-		elseif uDef.isBuilding then
+		elseif uDef.isBuilding or (uDef.speed == 0 and not uDef.canFly) then
 			gl4Icons.unitDefLayer[uDefID] = gl4Icons.LAYER_STRUCTURE
 		else
 			gl4Icons.unitDefLayer[uDefID] = gl4Icons.LAYER_GROUND
@@ -9492,7 +9496,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 					return usedEl
 				elseif losBits % (LOS_INLOS * 2) >= LOS_INLOS then
 					-- full LOS: draw normally, and record building ghost for when it leaves LOS
-					if cacheIsBuilding[uDefID] then
+					if cacheIsBuilding[uDefID] or cache.isPseudoBuilding[uDefID] then
 						local g = ghostBuildings[uID]
 						if g then
 							g.defID = uDefID; g.x = ux; g.z = uz; g.teamID = uTeam
@@ -9502,7 +9506,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 					end
 				elseif losBits % (LOS_INRADAR * 2) >= LOS_INRADAR then
 					-- Buildings in radar: don't wobble (they're stationary, position is known)
-					if not cacheIsBuilding[uDefID] then
+					if not cacheIsBuilding[uDefID] and not cache.isPseudoBuilding[uDefID] then
 						isRadar = true
 					end
 					local typed = (losBits % (LOS_PREVLOS * 2) >= LOS_PREVLOS) or (losBits % (LOS_CONTRADAR * 2) >= LOS_CONTRADAR)
@@ -9512,7 +9516,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 				else
 					-- Not in LOS or radar, but has some bits (e.g. PREVLOS).
 					-- Record ghost for previously-seen buildings so they appear as ghosts.
-					if cacheIsBuilding[uDefID] and losBits % (LOS_PREVLOS * 2) >= LOS_PREVLOS then
+					if (cacheIsBuilding[uDefID] or cache.isPseudoBuilding[uDefID]) and losBits % (LOS_PREVLOS * 2) >= LOS_PREVLOS then
 						local g = ghostBuildings[uID]
 						if g then
 							g.defID = uDefID; g.x = ux; g.z = uz; g.teamID = uTeam
@@ -9763,7 +9767,9 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		local sortKey = layer * 100000 + mathFloor(zPos)
 		gl4Icons.sortKeys[uID] = sortKey
 		-- Separate immobile buildings from mobile units for split sorting
-		local isImmobile = cacheIsBuilding[uDefID] and localCantBeTransported[uDefID]
+		-- Pseudo-buildings (speed==0, like nano turrets) go to building VBO unless currently transported
+		local isImmobile = (cacheIsBuilding[uDefID] and localCantBeTransported[uDefID])
+			or (cache.isPseudoBuilding[uDefID] and not miscState.transportedUnits[uID])
 		if isImmobile then
 			-- Cache building positions (they never move)
 			localBuildPosX[uID] = xPos
@@ -9839,6 +9845,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	-- Requires: ghost data unchanged + building block still valid + no active/recent overlays.
 	local ghostUnchanged = (ghostElementCount == gl4Icons._bldgVboGhostCount) and (ghostHash == gl4Icons._bldgVboGhostHash)
 	local bldgVboReuse = false
+	local bldgOverlayKnown = nil  -- overlay result from reuse check (avoids recomputing after processing)
 	if gl4Icons._bldgVboValid and bldgBlockValid and ghostUnchanged then
 		-- Quick check: any building has an active overlay? If so, VBO might be stale.
 		local bldgHasOverlay = false
@@ -9867,6 +9874,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 				end
 			end
 		end
+		bldgOverlayKnown = bldgHasOverlay  -- save for reuse after processing
 		if not bldgHasOverlay and not gl4Icons._bldgVboHadOverlay then
 			bldgVboReuse = true
 			bldgUsedElements = gl4Icons._bldgVboUsedElements
@@ -9878,90 +9886,88 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	if not bldgVboReuse then
 
 	if bldgBlockValid then
-		-- Fast path: copy entire cached building block
 		local blockFloats = gl4Icons._bldgBlockN  -- total float count
-		local blockOffset = usedElements * instStep
-		-- Unrolled copy: 12 floats per building instance
-		local j = 1
-		while j + 11 <= blockFloats do
-			data[blockOffset+j]=bldgBlock[j]; data[blockOffset+j+1]=bldgBlock[j+1]
-			data[blockOffset+j+2]=bldgBlock[j+2]; data[blockOffset+j+3]=bldgBlock[j+3]
-			data[blockOffset+j+4]=bldgBlock[j+4]; data[blockOffset+j+5]=bldgBlock[j+5]
-			data[blockOffset+j+6]=bldgBlock[j+6]; data[blockOffset+j+7]=bldgBlock[j+7]
-			data[blockOffset+j+8]=bldgBlock[j+8]; data[blockOffset+j+9]=bldgBlock[j+9]
-			data[blockOffset+j+10]=bldgBlock[j+10]; data[blockOffset+j+11]=bldgBlock[j+11]
-			j = j + 12
-		end
-		while j <= blockFloats do
-			data[blockOffset + j] = bldgBlock[j]
-			j = j + 1
-		end
 		usedElements = usedElements + gl4Icons._bldgBlockCount
 
 		-- Dynamic overlays on top of cached data
 		local bldgIdx = gl4Icons._bldgBlockIdx
+		local needOverlay = bldgOverlayKnown  -- already computed during reuse check
 
-		-- Selection overlay: selected buildings rendered white
-		-- Iterate bldgIdx (visible buildings) instead of selectedSet (all selected units)
-		-- since visible buildings << total selected units when selection is large
-		if selectedSet then
-			for uID, idx in pairs(bldgIdx) do
-				if selectedSet[uID] then
-					local off = (preProcessEl + idx - 1) * instStep
-					data[off + 9] = 1; data[off + 10] = 1; data[off + 11] = 1
-					data[off + 12] = (uID * 0.37) % 6.2832  -- reset flash encoding
+		if needOverlay then
+			-- Overlays active: copy block into bldgData so we can modify colors/flags in-place
+			local blockOffset = preProcessEl * instStep
+			local j = 1
+			while j + 11 <= blockFloats do
+				data[blockOffset+j]=bldgBlock[j]; data[blockOffset+j+1]=bldgBlock[j+1]
+				data[blockOffset+j+2]=bldgBlock[j+2]; data[blockOffset+j+3]=bldgBlock[j+3]
+				data[blockOffset+j+4]=bldgBlock[j+4]; data[blockOffset+j+5]=bldgBlock[j+5]
+				data[blockOffset+j+6]=bldgBlock[j+6]; data[blockOffset+j+7]=bldgBlock[j+7]
+				data[blockOffset+j+8]=bldgBlock[j+8]; data[blockOffset+j+9]=bldgBlock[j+9]
+				data[blockOffset+j+10]=bldgBlock[j+10]; data[blockOffset+j+11]=bldgBlock[j+11]
+				j = j + 12
+			end
+			while j <= blockFloats do
+				data[blockOffset + j] = bldgBlock[j]
+				j = j + 1
+			end
+
+			-- Selection overlay: selected buildings rendered white
+			if selectedSet then
+				for uID, idx in pairs(bldgIdx) do
+					if selectedSet[uID] then
+						local off = (preProcessEl + idx - 1) * instStep
+						data[off + 9] = 1; data[off + 10] = 1; data[off + 11] = 1
+						data[off + 12] = (uID * 0.37) % 6.2832
+					end
 				end
 			end
-		end
 
-		-- Damage flash overlay
-		for uID, flash in pairs(damageFlash) do
-			local idx = bldgIdx[uID]
-			if idx then
-				local elapsed = gameTime - flash.time
-				if elapsed < DAMAGE_FLASH_DURATION then
-					local f = flash.intensity * (1 - elapsed / DAMAGE_FLASH_DURATION)
-					local off = (preProcessEl + idx - 1) * instStep
-					data[off + 9] = data[off + 9] + (1 - data[off + 9]) * f
-					data[off + 10] = data[off + 10] + (1 - data[off + 10]) * f
-					data[off + 11] = data[off + 11] + (1 - data[off + 11]) * f
-					data[off + 12] = (uID * 0.37) % 6.2832 + mathFloor(f * 100) * 7.0
-				else
-					damageFlash[uID] = nil
+			-- Damage flash overlay
+			for uID, flash in pairs(damageFlash) do
+				local idx = bldgIdx[uID]
+				if idx then
+					local elapsed = gameTime - flash.time
+					if elapsed < DAMAGE_FLASH_DURATION then
+						local f = flash.intensity * (1 - elapsed / DAMAGE_FLASH_DURATION)
+						local off = (preProcessEl + idx - 1) * instStep
+						data[off + 9] = data[off + 9] + (1 - data[off + 9]) * f
+						data[off + 10] = data[off + 10] + (1 - data[off + 10]) * f
+						data[off + 11] = data[off + 11] + (1 - data[off + 11]) * f
+						data[off + 12] = (uID * 0.37) % 6.2832 + mathFloor(f * 100) * 7.0
+					else
+						damageFlash[uID] = nil
+					end
 				end
 			end
-		end
 
-		-- Tracking overlay: re-apply tracking flag for tracked buildings
-		-- Block stores flags with bits 3-4 stripped; re-apply from current trackedSet
-		if trackedSet then
-			for uID, _ in pairs(trackedSet) do
+			-- Tracking overlay
+			if trackedSet then
+				for uID, _ in pairs(trackedSet) do
+					local idx = bldgIdx[uID]
+					if idx then
+						local off = (preProcessEl + idx - 1) * instStep
+						data[off + 4] = data[off + 4] + 8
+					end
+				end
+			end
+
+			-- SelfD overlay
+			for uID in pairs(selfDUnits) do
 				local idx = bldgIdx[uID]
 				if idx then
 					local off = (preProcessEl + idx - 1) * instStep
-					data[off + 4] = data[off + 4] + 8  -- set tracking bit (bit 3)
+					data[off + 4] = data[off + 4] + 16
 				end
 			end
-		end
-
-		-- SelfD overlay: re-apply selfD flag for self-destructing buildings
-		for uID in pairs(selfDUnits) do
-			local idx = bldgIdx[uID]
-			if idx then
-				local off = (preProcessEl + idx - 1) * instStep
-				data[off + 4] = data[off + 4] + 16 -- set selfD bit (bit 4)
-			end
-		end
+		end  -- needOverlay
 	else
 		-- Slow path: process each building individually, build block cache
 
 		-- Deferred building sort: only sort when actually rebuilding the block.
-		-- Skip sort entirely at >3000 buildings — z-ordering is cosmetic at this density.
+		-- Buildings rarely change so this sort runs infrequently.
 		local bldgSetChanged = bCount ~= gl4Icons._lastBldgCount or bldgHash ~= gl4Icons._lastBldgHash
 		if bldgSetChanged then
-			if bCount <= 3000 then
-				table.sort(buildingIDs, gl4IconSortCmp)
-			end
+			table.sort(buildingIDs, gl4IconSortCmp)
 			for i = 1, bCount do bldgSortedCache[i] = buildingIDs[i] end
 			bldgSortedCache[bCount + 1] = nil
 			gl4Icons._lastBldgCount = bCount
@@ -10037,28 +10043,34 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		bldgUsedElements = usedElements
 
 		-- Track overlay state for next frame's reuse check
-		local bldgHasOverlay = false
-		local bldgIdx = gl4Icons._bldgBlockIdx
-		if bldgIdx then
-			if selectedSet then
-				for uID in pairs(bldgIdx) do
-					if selectedSet[uID] then bldgHasOverlay = true; break end
+		-- Reuse result from reuse-decision check when block wasn't rebuilt (same bldgIdx)
+		local bldgHasOverlay
+		if bldgOverlayKnown ~= nil then
+			bldgHasOverlay = bldgOverlayKnown
+		else
+			bldgHasOverlay = false
+			local bldgIdx = gl4Icons._bldgBlockIdx
+			if bldgIdx then
+				if selectedSet then
+					for uID in pairs(bldgIdx) do
+						if selectedSet[uID] then bldgHasOverlay = true; break end
+					end
 				end
-			end
-			if trackedSet and not bldgHasOverlay then
-				for uID in pairs(trackedSet) do
-					if bldgIdx[uID] then bldgHasOverlay = true; break end
+				if trackedSet and not bldgHasOverlay then
+					for uID in pairs(trackedSet) do
+						if bldgIdx[uID] then bldgHasOverlay = true; break end
+					end
 				end
-			end
-			if not bldgHasOverlay then
-				for uID in pairs(selfDUnits) do
-					if bldgIdx[uID] then bldgHasOverlay = true; break end
+				if not bldgHasOverlay then
+					for uID in pairs(selfDUnits) do
+						if bldgIdx[uID] then bldgHasOverlay = true; break end
+					end
 				end
-			end
-			if not bldgHasOverlay then
-				for uID, flash in pairs(damageFlash) do
-					if bldgIdx[uID] and gameTime - flash.time < DAMAGE_FLASH_DURATION then
-						bldgHasOverlay = true; break
+				if not bldgHasOverlay then
+					for uID, flash in pairs(damageFlash) do
+						if bldgIdx[uID] and gameTime - flash.time < DAMAGE_FLASH_DURATION then
+							bldgHasOverlay = true; break
+						end
 					end
 				end
 			end
@@ -10066,8 +10078,21 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		gl4Icons._bldgVboHadOverlay = bldgHasOverlay
 
 		-- Upload building VBO
+		-- When no overlays and block was valid, upload ghost+block segments directly
+		-- (skip the block→bldgData copy; bldgBlock goes straight to GPU)
 		if bldgUsedElements > 0 then
-			gl4Icons.bldgVbo:Upload(bldgData, nil, 0, 1, bldgUsedElements * instStep)
+			if bldgBlockValid and not bldgHasOverlay then
+				-- Two-segment upload: ghosts from bldgData, buildings from bldgBlock
+				if ghostElementCount > 0 then
+					gl4Icons.bldgVbo:Upload(bldgData, nil, 0, 1, ghostElementCount * instStep)
+				end
+				local blockFloats = gl4Icons._bldgBlockN or 0
+				if blockFloats > 0 then
+					gl4Icons.bldgVbo:Upload(bldgBlock, nil, ghostElementCount, 1, blockFloats)
+				end
+			else
+				gl4Icons.bldgVbo:Upload(bldgData, nil, 0, 1, bldgUsedElements * instStep)
+			end
 		end
 		gl4Icons._bldgVboValid = true
 		gl4Icons._bldgVboUsedElements = bldgUsedElements
@@ -10291,24 +10316,28 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		-- Bind atlas texture
 		glFunc.Texture(0, gl4Icons.atlas)
 
-		-- Pass 1: Outlines for tracked units (white) and self-destructing units (red-orange pulse)
+		-- Draw buildings first (outline + normal), then mobile on top (outline + normal).
+		-- Grouping per-VBO ensures mobile outlines are never hidden by building normals.
 		local hasSelfD = next(selfDUnits) ~= nil
-		if trackedSet or hasSelfD then
-			gl.UniformFloat(ul.outlinePass, 1.0)
-			if bldgUsedElements > 0 then
+		local hasOutlines = trackedSet or hasSelfD
+
+		-- Buildings (bottom layer)
+		if bldgUsedElements > 0 then
+			if hasOutlines then
+				gl.UniformFloat(ul.outlinePass, 1.0)
 				gl4Icons.bldgVao:DrawArrays(GL.POINTS, bldgUsedElements)
 			end
-			if mobileUsedElements > 0 then
-				gl4Icons.vao:DrawArrays(GL.POINTS, mobileUsedElements)
-			end
-		end
-
-		-- Pass 2: Normal icon draw (buildings first = bottom layer, mobile on top)
-		gl.UniformFloat(ul.outlinePass, 0.0)
-		if bldgUsedElements > 0 then
+			gl.UniformFloat(ul.outlinePass, 0.0)
 			gl4Icons.bldgVao:DrawArrays(GL.POINTS, bldgUsedElements)
 		end
+
+		-- Mobile (always on top of buildings)
 		if mobileUsedElements > 0 then
+			if hasOutlines then
+				gl.UniformFloat(ul.outlinePass, 1.0)
+				gl4Icons.vao:DrawArrays(GL.POINTS, mobileUsedElements)
+			end
+			gl.UniformFloat(ul.outlinePass, 0.0)
 			gl4Icons.vao:DrawArrays(GL.POINTS, mobileUsedElements)
 		end
 
@@ -14960,7 +14989,8 @@ function widget:DrawScreen()
 			local totalUnits = #miscState.pipUnits
 			local unitFraction = math.min(totalUnits / config.iconDensityMaxUnits, 1.0)
 			local densityScale = 1.0 - (1.0 - config.iconDensityMinScale) * unitFraction
-			Spring.SendCommands("minimap unitsize " .. (miscState.baseMinimapIconScale * densityScale))
+			local resBoost = 1.0 + 0.18 * math.min(math.max((render.vsy - 1080) / (2880 - 1080), 0), 1)
+			Spring.SendCommands("minimap unitsize " .. (miscState.baseMinimapIconScale * densityScale * resBoost))
 		end
 		-- Draw the engine minimap
 		gl.DrawMiniMap()
@@ -16973,9 +17003,8 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	end
 	ownBuildingPosX[unitID] = nil
 	ownBuildingPosZ[unitID] = nil
+	miscState.transportedUnits[unitID] = nil
 end
-
--- Handle unit team changes (give/take)
 function widget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
 	-- Clear GL4 cache so it picks up the new team color
 	gl4Icons.unitTeamCache[unitID] = nil
@@ -16988,12 +17017,20 @@ end
 function widget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	ownBuildingPosX[unitID] = nil
 	ownBuildingPosZ[unitID] = nil
+	-- Pseudo-buildings (nano turrets etc.) become mobile while transported
+	if cache.isPseudoBuilding[unitDefID] then
+		miscState.transportedUnits[unitID] = true
+	end
 end
 
 -- Handle buildings being dropped by transports — update cached position and ghost
 function widget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
+	-- Pseudo-buildings revert to building VBO when dropped
+	if cache.isPseudoBuilding[unitDefID] then
+		miscState.transportedUnits[unitID] = nil
+	end
 	local x, _, z = spFunc.GetUnitBasePosition(unitID)
-	if x and cache.isBuilding[unitDefID] then
+	if x and (cache.isBuilding[unitDefID] or cache.isPseudoBuilding[unitDefID]) then
 		if cache.cantBeTransported[unitDefID] then
 			ownBuildingPosX[unitID] = x
 			ownBuildingPosZ[unitID] = z
