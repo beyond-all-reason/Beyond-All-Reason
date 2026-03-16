@@ -15,23 +15,25 @@ maps of custom names to IDs of ally teams, teams, and AIs, needed for triggers a
 	ais = { someCustomTeamName = 0 }
 ]]
 
-local startScript = {
-
-	texts = { -- display in lobby, inspired by https://www.figma.com/design/XmKdpNvdclGEVwW6c2EaKH/BAR_new-client?node-id=228-2&p=f&t=m6SWIi6tC92CRpZi-0
-		title = "The Stars are Falling",
-		description = "Lorem Ipsum ...",
-		alliesPresent = { "Fortified Outpost", "Reinforcements en route" },
-		objectives = { "Build a base.", "Obliterate their nukes." },
-		knownHostiles = { "Raptors - extremely likely", "Unidentified raiders - inbound" },
-		newUnits = {
-			armflash = "Blitz - a fast assault tank.",
-			armcv = "Construction Vehicle - builds structures.",
-		},
+local lobbyData = { -- display in lobby, inspired by https://www.figma.com/design/XmKdpNvdclGEVwW6c2EaKH/BAR_new-client?node-id=228-2&p=f&t=m6SWIi6tC92CRpZi-0
+	title = "The Stars are Falling",
+	description = "Lorem Ipsum ...",
+	alliesPresent = { "Fortified Outpost", "Reinforcements en route" },
+	objectives = { "Build a base.", "Obliterate their nukes." },
+	knownHostiles = { "Raptors - extremely likely", "Unidentified raiders - inbound" },
+	newUnits = {
+		armflash = "Blitz - a fast assault tank.",
+		armcv = "Construction Vehicle - builds structures.",
 	},
+	startPos = { x = 40, y = 0 }, -- marker on map in lobby to indicate the player's starting position
+	imageFiles = { "startscript_example.jpg" }, -- placed next to lua file (or relative to VFS root?)
+}
+
+local startScript = {
 
 	mapName = "Fallendell V4", -- as displayed in the map selection screen, must be exact. Lobby to replace spaces with underscores
 	startPosType = 'chooseBeforeGame', -- lobby to map this: fixed = 0, random = 1, chooseInGame = 2, chooseBeforeGame = 3
-	imageFile = "startscript_example.jpg", -- placed next to lua file (or relative to VFS root?)
+	players = { min = 1, max = 4 },
 	unitLimits = {
 		armavp = 0, -- example of a unit limit, set to 0 to disable the unit
 		coravp = 5,
@@ -88,5 +90,6 @@ local startScript = {
 return {
 	Triggers = triggers,
 	Actions = actions,
+	LobbyData = lobbyData,
 	StartScript = startScript,
 }
