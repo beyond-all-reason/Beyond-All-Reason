@@ -1114,7 +1114,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		end
 
 		if not bypassThisMessage and line ~= '' then
-			if ignoredAccounts[name] then
+			if name ~= '' and ignoredAccounts[name] then
 				skipThisMessage = true
 			end
 			if not orgLineID then

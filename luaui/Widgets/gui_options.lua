@@ -47,17 +47,36 @@ end
 -- detect potatos
 local isPotatoCpu = false
 local isPotatoGpu = false
-local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 1000
-if not gpuMem then
-	gpuMem = 0
-end
-if gpuMem > 0 and gpuMem < 2500 then
-	isPotatoGpu = true
-elseif not Platform.glHaveGL4 then
-	isPotatoGpu = true
-end
+local gpuMem = (Platform.gpuMemorySize or 0) / 1000 -- gpuMemorySize is in KB (only Nvidia reports nonzero), /1000 ≈ MB
+local glRendererLower = Platform.glRenderer and string.lower(Platform.glRenderer) or ""
 
-local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
+if not Platform.glHaveGL4 then
+	-- No GL4 support means the engine can't use modern rendering paths
+	isPotatoGpu = true
+elseif Platform.glHaveNVidia then
+	-- Nvidia reliably reports gpuMemorySize; < ~2.5 GB VRAM = low-end
+	if gpuMem > 0 and gpuMem < 2500 then
+		isPotatoGpu = true
+	end
+elseif Platform.glHaveIntel then
+	-- All Intel GPUs are integrated except the Arc series (discrete)
+	-- Integrated: "Intel(R) HD Graphics ...", "Intel(R) UHD Graphics ...", "Intel(R) Iris ..."
+	-- Discrete:   "Intel(R) Arc(TM) A770", "Intel(R) Arc(TM) B580", etc.
+	if not string.find(glRendererLower, "arc") then
+		isPotatoGpu = true
+	end
+elseif Platform.glHaveAMD then
+	-- AMD discrete GPUs contain "RX" (modern, 2016+) or "R9" (older high-end) in their name
+	-- Integrated: "AMD Radeon(TM) Graphics", "AMD Radeon Vega 8", "AMD Radeon 780M", etc.
+	-- gpuMemorySize is 0 for AMD so we can't use VRAM size
+	if not (string.find(glRendererLower, "rx") or string.find(glRendererLower, "r9 ")) then
+		isPotatoGpu = true
+		gpuMem = 0	-- AMD integrated can report incorrect gpuMemorySize, so set to 0 to avoid false positives for low VRAM
+	end
+else
+	-- Unknown/Mesa vendor without specific detection — assume low-end
+	isPotatoGpu = true
+end
 
 local devMode = Spring.Utilities.IsDevMode()
 local devUI = Spring.Utilities.ShowDevUI()
@@ -135,6 +154,7 @@ local chobbyInterface, font, font2, font3, backgroundGuishader, currentGroupTab,
 local groupRect, titleRect, countDownOptionID, countDownOptionClock, sceduleOptionApply, checkedForWaterAfterGamestart, checkedWidgetDataChanges
 local savedConfig, forceUpdate, sliderValueChanged, selectOptionsList, showSelectOptions, prevSelectHover
 local fontOption, draggingSlider, lastSliderSound, selectClickAllowHide
+local guishaderWasActive = false
 
 local glColor = gl.Color
 local glTexRect = gl.TexRect
@@ -513,9 +533,25 @@ function updateInputDlist()
 end
 
 
+local optionIdIndex = {}
+local function rebuildOptionIdIndex()
+	optionIdIndex = {}
+	for i, option in pairs(options) do
+		if option.id then
+			optionIdIndex[option.id] = i
+		end
+	end
+end
+
 function getOptionByID(id)
+	local idx = optionIdIndex[id]
+	if idx and options[idx] and options[idx].id == id then
+		return idx
+	end
+	-- fallback: linear scan + update index
 	for i, option in pairs(options) do
 		if option.id == id then
+			optionIdIndex[id] = i
 			return i
 		end
 	end
@@ -552,6 +588,7 @@ function orderOptions()
 		end
 	end
 	options = table.copy(newOptions)
+	rebuildOptionIdIndex()
 end
 
 function mouseoverGroupTab(id)
@@ -928,6 +965,8 @@ local isOffscreen = false
 local isOffscreenTime
 local prevOffscreenVolume
 local apiUnitTrackerEnabledCount = 0
+local cachedMuteOffscreen = Spring.GetConfigInt("muteOffscreen", 0) == 1
+local offscreenCheckTimer = 0
 
 function resetUserVolume()
 	if prevOffscreenVolume then
@@ -937,41 +976,56 @@ function resetUserVolume()
 end
 
 function widget:Update(dt)
-	cursorBlinkTimer = cursorBlinkTimer + dt
-	if cursorBlinkTimer > cursorBlinkDuration then cursorBlinkTimer = 0 end
-
-	local prevIsOffscreen = isOffscreen
-	isOffscreen = select(6, Spring.GetMouseState())
-	if isOffscreen and enabledGrabinput then
-		enabledGrabinput = false
-	end
-	if Spring.GetConfigInt("muteOffscreen", 0) == 1 then
-		if isOffscreen ~= prevIsOffscreen then
-			local prevIsOffscreenTime = isOffscreenTime
-			isOffscreenTime = os.clock()
-			if isOffscreen and not prevIsOffscreenTime then
-				prevOffscreenVolume = tonumber(Spring.GetConfigInt("snd_volmaster", 40) or 40)
-			end
-		end
-		if isOffscreenTime then
-			if isOffscreenTime+muteFadeTime > os.clock() then
-				if isOffscreen then
-					Spring.SetConfigInt("snd_volmaster", prevOffscreenVolume*(1-((os.clock()-isOffscreenTime)/muteFadeTime)))
-				else
-					Spring.SetConfigInt("snd_volmaster", prevOffscreenVolume*((os.clock()-isOffscreenTime)/muteFadeTime))
-				end
-			else
-				isOffscreenTime = nil
-				if isOffscreen then
-					Spring.SetConfigInt("snd_volmaster", 0)
-				else
-					resetUserVolume()
-				end
-			end
-		end
+	if show then
+		cursorBlinkTimer = cursorBlinkTimer + dt
+		if cursorBlinkTimer > cursorBlinkDuration then cursorBlinkTimer = 0 end
 	end
 
-	if countDownOptionID and countDownOptionClock and countDownOptionClock < os_clock() then
+	local now = os_clock()
+
+	-- throttle offscreen detection to ~4x/sec (unless actively fading)
+	local checkOffscreen = isOffscreenTime ~= nil
+	if not checkOffscreen then
+		offscreenCheckTimer = offscreenCheckTimer + dt
+		if offscreenCheckTimer > 0.25 then
+			offscreenCheckTimer = 0
+			checkOffscreen = true
+		end
+	end
+	if checkOffscreen then
+		local prevIsOffscreen = isOffscreen
+		isOffscreen = select(6, Spring.GetMouseState())
+		if isOffscreen and enabledGrabinput then
+			enabledGrabinput = false
+		end
+		if cachedMuteOffscreen then
+			if isOffscreen ~= prevIsOffscreen then
+				local prevIsOffscreenTime = isOffscreenTime
+				isOffscreenTime = now
+				if isOffscreen and not prevIsOffscreenTime then
+					prevOffscreenVolume = tonumber(Spring.GetConfigInt("snd_volmaster", 40) or 40)
+				end
+			end
+			if isOffscreenTime then
+				if isOffscreenTime+muteFadeTime > now then
+					if isOffscreen then
+						Spring.SetConfigInt("snd_volmaster", prevOffscreenVolume*(1-((now-isOffscreenTime)/muteFadeTime)))
+					else
+						Spring.SetConfigInt("snd_volmaster", prevOffscreenVolume*((now-isOffscreenTime)/muteFadeTime))
+					end
+				else
+					isOffscreenTime = nil
+					if isOffscreen then
+						Spring.SetConfigInt("snd_volmaster", 0)
+					else
+						resetUserVolume()
+					end
+				end
+			end
+		end
+	end
+
+	if countDownOptionID and countDownOptionClock and countDownOptionClock < now then
 		applyOptionValue(countDownOptionID)
 		countDownOptionID = nil
 		countDownOptionClock = nil
@@ -990,7 +1044,7 @@ function widget:Update(dt)
 		end
 
 	if sceduleOptionApply then
-		if sceduleOptionApply[1] <= os.clock() then
+		if sceduleOptionApply[1] <= now then
 			applyOptionValue(sceduleOptionApply[2], nil, true, true)
 			sceduleOptionApply = nil
 		end
@@ -1011,7 +1065,7 @@ function widget:Update(dt)
 			detectWater()
 			checkedForWaterAfterGamestart = true
 		end
-		if heightmapChangeClock and heightmapChangeClock + 1 < os_clock() then
+		if heightmapChangeClock and heightmapChangeClock + 1 < now then
 			for k, coords in pairs(heightmapChangeBuffer) do
 				local x = coords[1]
 				local z = coords[2]
@@ -1040,6 +1094,16 @@ function widget:Update(dt)
 	if sec2 > 0.5 then
 		sec2 = 0
 		continuouslyClean = Spring.GetConfigInt("ContinuouslyClearMapmarks", 0) == 1
+		cachedMuteOffscreen = Spring.GetConfigInt("muteOffscreen", 0) == 1
+
+		-- detect guishader toggle: force refresh when it comes back on
+		local guishaderActive = WG['guishader'] ~= nil
+		if guishaderActive and not guishaderWasActive then
+			if backgroundGuishader then
+				backgroundGuishader = glDeleteList(backgroundGuishader)
+			end
+		end
+		guishaderWasActive = guishaderActive
 
 		-- make sure widget is enabled
 		if apiUnitTrackerEnabledCount < 10 and widgetHandler.orderList["API Unit Tracker DEVMODE GL4"] and widgetHandler.orderList["API Unit Tracker DEVMODE GL4"] < 0.5 then
@@ -1144,9 +1208,13 @@ end
 
 local quitscreen = false
 local prevQuitscreen = false
+local pauseCheckTimer = 0
+local lastPauseCheckClock = os_clock()
+local canPauseGame = (isSinglePlayer or isReplay) and pauseGameWhenSingleplayer
 local function checkQuitscreen()
+	if not canPauseGame then return end
 	quitscreen = (WG['topbar'] and WG['topbar'].showingQuit() or false)
-	if (isSinglePlayer or isReplay) and pauseGameWhenSingleplayer and prevQuitscreen ~= quitscreen then
+	if prevQuitscreen ~= quitscreen then
 		if quitscreen and isClientPaused and not showToggledOff then
 			skipUnpauseOnHide = true
 		end
@@ -1159,9 +1227,20 @@ local function checkQuitscreen()
 end
 
 function widget:DrawScreen()
-	-- doing in separate functions to prevent a > 60 upvalues error
-	checkPause()
-	checkQuitscreen()
+	-- pause/quit checks only needed for singleplayer/replay
+	if canPauseGame then
+		if prevShow ~= show then
+			checkPause()
+		end
+		-- throttle quitscreen polling to ~4x/sec
+		local clockNow = os_clock()
+		pauseCheckTimer = pauseCheckTimer + (clockNow - lastPauseCheckClock)
+		lastPauseCheckClock = clockNow
+		if pauseCheckTimer > 0.25 then
+			pauseCheckTimer = 0
+			checkQuitscreen()
+		end
+	end
 
 	-- doing it here so other widgets having higher layer number value are also loaded
 	if not initialized then
@@ -1784,10 +1863,13 @@ function mouseEvent(mx, my, button, release)
 		end
 
 
-		if windowList then
-			gl.DeleteList(windowList)
+		local needsRedraw = windowClick or titleClick or tabClick
+		if needsRedraw then
+			if windowList then
+				gl.DeleteList(windowList)
+			end
+			windowList = gl.CreateList(DrawWindow)
 		end
-		windowList = gl.CreateList(DrawWindow)
 
 		if windowClick or titleClick or chatinputClick or tabClick then
 			return true
@@ -1862,7 +1944,7 @@ function applyOptionValue(i, newValue, skipRedrawWindow, force)
 
 	if options[i].id ~= 'preset' and presets.lowest[options[i].id] ~= nil and manualChange then
 		if options[getOptionByID('preset')] then
-			options[getOptionByID('preset')].value = Spring.I18N('ui.settings.option.preset_custom')
+			options[getOptionByID('preset')].value = Spring.I18N('ui.settings.option.select_custom')
 			Spring.SetConfigString('graphicsPreset', 'custom')
 		end
 	end
@@ -1910,15 +1992,16 @@ end
 function applyFilter()
 	if inputText and inputText ~= '' and inputMode == '' then
 		local filteredOptions = {}
+		local lowerInput = string.lower(inputText)
 		for i, option in pairs(unfilteredOptions) do
 			if option.name and option.name ~= '' and option.type and option.type ~= 'label' then
 				local name = string.gsub(option.name, widgetOptionColor, "")
 				name = string.gsub(name, "  ", " ")
-				if string.find(string.lower(name), string.lower(inputText), nil, true) then
+				if string.find(string.lower(name), lowerInput, nil, true) then
 					filteredOptions[#filteredOptions+1] = option
-				elseif option.description and option.description ~= '' and string.find(string.lower(option.description), string.lower(inputText), nil, true) then
+				elseif option.description and option.description ~= '' and string.find(string.lower(option.description), lowerInput, nil, true) then
 					filteredOptions[#filteredOptions+1] = option
-				elseif string.find(string.lower(option.id), string.lower(inputText), nil, true) then
+				elseif string.find(string.lower(option.id), lowerInput, nil, true) then
 					filteredOptions[#filteredOptions+1] = option
 				end
 			end
@@ -1929,6 +2012,7 @@ function applyFilter()
 		-- No filter, use the cached unfiltered options
 		options = unfilteredOptions
 	end
+	rebuildOptionIdIndex()
 
 	-- Rebuild window display list
 	if windowList then
@@ -1956,9 +2040,11 @@ function init()
 			decals = 0,
 			shadowslider = 1,
 			grass = false,
-			cusgl4 = false,
 			losrange = false,
 			attackrange_numrangesmult = 0.3,
+			cusgl4 = false,
+			water = 1,
+			advmapshading = false,
 		},
 		low = {
 			bloomdeferred = true,
@@ -1977,9 +2063,11 @@ function init()
 			decals = 1,
 			shadowslider = 3,
 			grass = false,
-			cusgl4 = true,
 			losrange = false,
 			attackrange_numrangesmult = 0.5,
+			cusgl4 = true,
+			water = 2,
+			advmapshading = true,
 		},
 		medium = {
 		 	bloomdeferred = true,
@@ -1989,7 +2077,7 @@ function init()
 		 	mapedgeextension = true,
 		 	lighteffects = true,
 		 	lighteffects_additionalflashes = true,
-			 lighteffects_screenspaceshadows = 2,
+			lighteffects_screenspaceshadows = 2,
 			distortioneffects = true,
 		 	snow = true,
 		 	particles = 20000,
@@ -1997,9 +2085,11 @@ function init()
 		 	decals = 2,
 			shadowslider = 4,
 		 	grass = true,
-			cusgl4 = true,
 			losrange = true,
 			attackrange_numrangesmult = 0.7,
+			cusgl4 = true,
+			water = 2,
+			advmapshading = true,
 		},
 		high = {
 			bloomdeferred = true,
@@ -2017,9 +2107,11 @@ function init()
 			decals = 3,
 			shadowslider = 5,
 			grass = true,
-			cusgl4 = true,
 			losrange = true,
 			attackrange_numrangesmult = 0.9,
+			cusgl4 = true,
+			water = 2,
+			advmapshading = true,
 		},
 		ultra = {
 			bloomdeferred = true,
@@ -2037,9 +2129,11 @@ function init()
 			decals = 4,
 			shadowslider = 6,
 			grass = true,
-			cusgl4 = true,
 			losrange = true,
 			attackrange_numrangesmult = 1,
+			cusgl4 = true,
+			water = 2,
+			advmapshading = true,
 		},
 		custom = {},
 	}
@@ -2134,11 +2228,32 @@ function init()
 		if isPotatoGpu then
 			Spring.Echo('potato Graphics Card detected')
 		end
+	end
+	-- restric gfx preset options for potato gpu, lowest preset is added and high preset is removed
+	if devMode or devUI then
+		-- dev mode: show all presets so every quality level can be tested
 		presetNames = {
-			Spring.I18N('ui.settings.option.preset_lowest'),
-			Spring.I18N('ui.settings.option.preset_low'),
-			Spring.I18N('ui.settings.option.preset_medium'),
-			Spring.I18N('ui.settings.option.preset_custom')
+			Spring.I18N('ui.settings.option.select_lowest'),
+			Spring.I18N('ui.settings.option.select_low'),
+			Spring.I18N('ui.settings.option.select_medium'),
+			Spring.I18N('ui.settings.option.select_high'),
+			Spring.I18N('ui.settings.option.select_ultra'),
+			Spring.I18N('ui.settings.option.select_custom')
+		}
+	elseif isPotatoGpu then
+		presetNames = {
+			Spring.I18N('ui.settings.option.select_lowest'),
+			Spring.I18N('ui.settings.option.select_low'),
+			Spring.I18N('ui.settings.option.select_medium'),
+			Spring.I18N('ui.settings.option.select_custom')
+		}
+	else
+		presetNames = {
+			Spring.I18N('ui.settings.option.select_low'),
+			Spring.I18N('ui.settings.option.select_medium'),
+			Spring.I18N('ui.settings.option.select_high'),
+			Spring.I18N('ui.settings.option.select_ultra'),
+			Spring.I18N('ui.settings.option.select_custom')
 		}
 	end
 
@@ -2178,7 +2293,7 @@ function init()
 
 	options = {
 		--GFX
-		{ id = "preset", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.preset'), type = "select", options = { Spring.I18N('ui.settings.option.select_lowest'), Spring.I18N('ui.settings.option.select_low'), Spring.I18N('ui.settings.option.select_medium'), Spring.I18N('ui.settings.option.select_high'), Spring.I18N('ui.settings.option.select_ultra'), Spring.I18N('ui.settings.option.select_custom') },
+		{ id = "preset", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.preset'), type = "select", options = presetNames,
 			onload = function(i)
 				local preset = Spring.GetConfigString('graphicsPreset', 'custom')
 				local configSettingValues = { 'lowest', 'low', 'medium', 'high', 'ultra', 'custom' }
@@ -2403,24 +2518,14 @@ function init()
 		{ id = "label_gfx_lighting_spacer", group = "gfx", category = types.basic },
 
 
-		--{ id = "advmapshading", group = "gfx", category = types.dev, name = Spring.I18N('ui.settings.option.advmapshading'), type = "bool", value = (Spring.GetConfigInt("AdvMapShading", 1) == 1), description = Spring.I18N('ui.settings.option.advmapshading_descr'),
-		--  onchange = function(i, value)
-		--	  Spring.SetConfigInt("AdvMapShading", (value and 1 or 0))
-		--	  Spring.SendCommands("advmapshading "..(value and '1' or '0'))
-		--  end,
-		--},
+		{ id = "advmapshading", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.advmapshading'), type = "bool", value = (Spring.GetConfigInt("AdvMapShading", 1) == 1), description = Spring.I18N('ui.settings.option.advmapshading_descr'),
+		 onchange = function(i, value)
+			  Spring.SetConfigInt("AdvMapShading", (value and 1 or 0))
+			  Spring.SendCommands("advmapshading "..(value and '1' or '0'))
+		 end,
+		},
 
-		-- luaintro sets grounddetail to 200 every launch anyway
-		--{ id = "grounddetail", group = "gfx", category = types.dev, name = Spring.I18N('ui.settings.option.grounddetail'), type = "slider", min = 50, max = 200, step = 1, value = tonumber(Spring.GetConfigInt("GroundDetail", 150) or 150), description = Spring.I18N('ui.settings.option.grounddetail_descr'),
-		--  onload = function(i)
-		--  end,
-		--  onchange = function(i, value)
-		--	  Spring.SetConfigInt("GroundDetail", value)
-		--	  Spring.SendCommands("GroundDetail " .. value)
-		--  end,
-		--},
-
-		{ id = "cusgl4", group = "gfx", name = Spring.I18N('ui.settings.option.cus'), category = types.advanced, type = "bool", value = (Spring.GetConfigInt("cus2", 1) == 1), description = Spring.I18N('ui.settings.option.cus_descr'),
+		{ id = "cusgl4", group = "gfx", name = Spring.I18N('ui.settings.option.cus'), category = types.basic, type = "bool", value = (Spring.GetConfigInt("cus2", 1) == 1), description = Spring.I18N('ui.settings.option.cus_descr'),
 		  onchange = function(i, value)
 			  if value == 0.5 then
 				  Spring.SendCommands("luarules disablecusgl4")
@@ -2568,17 +2673,6 @@ function init()
 			  saveOptionValue('LOS colors', 'los', 'setOpacity', { 'opacity' }, value)
 		  end,
 		},
-
-		-- { id = "water", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.water'), type = "select", options = { 'basic', 'reflective', 'dynamic', 'reflective&refractive', 'bump-mapped' }, value = desiredWaterValue + 1,
-		--   onload = function(i)
-		--   end,
-		--   onchange = function(i, value)
-		-- 	  desiredWaterValue = value - 1
-		-- 	  if waterDetected then
-		-- 		  Spring.SendCommands("water " .. desiredWaterValue)
-		-- 	  end
-		--   end,
-		-- },
 
 		{ id = "water", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.water'), type = "select", options = { Spring.I18N('ui.settings.option.select_low'), Spring.I18N('ui.settings.option.select_high') }, value = desiredWaterValue == 4 and 2 or 1,
 		  onload = function(i)
@@ -3527,6 +3621,9 @@ function init()
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("MinimapIconScale", value)
 			  Spring.SendCommands("minimap unitsize " .. value)        -- spring wont remember what you set with '/minimap iconssize #'
+			  if WG['minimap'] and WG['minimap'].setBaseIconScale then
+				  WG['minimap'].setBaseIconScale(value)
+			  end
 		  end,
 		},
 		{ id = "minimap_minimized", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimapminimized'), type = "bool", value = Spring.GetConfigInt("MinimapMinimize", 0) == 1, description = Spring.I18N('ui.settings.option.minimapminimized_descr'),
@@ -3562,6 +3659,18 @@ function init()
 			  end
 		  end,
 		},
+		-- { id = "minimap_engine_fallback", group = "ui", category = types.advanced, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.pip_minimap_engine_fallback'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.pip_minimap_engine_fallback_descr'),
+		--   onload = function(i)
+		-- 	  if WG['minimap'] and WG['minimap'].getEngineMinimapFallback then
+		-- 		  options[getOptionByID('minimap_engine_fallback')].value = WG['minimap'].getEngineMinimapFallback()
+		-- 	  end
+		--   end,
+		--   onchange = function(i, value)
+		-- 	  if WG['minimap'] and WG['minimap'].setEngineMinimapFallback then
+		-- 		  WG['minimap'].setEngineMinimapFallback(value)
+		-- 	  end
+		--   end,
+		-- },
 
 
 		{ id = "pip", group = "ui", category = types.advanced, widget = "Picture-in-Picture", name = Spring.I18N('ui.settings.option.pip'), type = "bool", value = GetWidgetToggleValue("Picture-in-Picture"), description = Spring.I18N('ui.settings.option.pip_descr') },
@@ -6039,9 +6148,11 @@ function init()
 		--planeColor = {number r, number g, number b},
 	}
 
-	--if not isPotatoGpu and gpuMem <= 4500 then
-	--	options[getOptionByID('advmapshading')].category = types.basic
-	--end
+	if not isPotatoGpu and not devMode and not devUI then
+		options[getOptionByID('advmapshading')] = nil
+		Spring.SetConfigInt("AdvMapShading", 1)
+		Spring.SendCommands("advmapshading 1")
+	end
 
 	-- reset tonemap defaults (only once)
 	if not resettedTonemapDefault then
@@ -6197,8 +6308,8 @@ function init()
 		options[getOptionByID('dualmode_minimap_aspectratio')] = nil
 	end
 
-	-- reduce options for potatoes
-	if isPotatoGpu or isPotatoCpu then
+	-- reduce options for potatoes (skip in dev mode to keep all options available)
+	if (isPotatoGpu or isPotatoCpu) and not devMode and not devUI then
 		--local id = getOptionByID('shadowslider')
 		--options[id].options = { 1, 2, 3 }
 		--if options[id].value > 3 then
@@ -6214,8 +6325,6 @@ function init()
 		end
 
 		if isPotatoGpu then
-			Spring.SendCommands("luarules disablecusgl4")
-			options[getOptionByID('cusgl4')] = nil
 
 			-- limit available msaa levels to 'off' and 'x2'
 			if options[getOptionByID('msaa')] then
@@ -6242,32 +6351,25 @@ function init()
 			options[getOptionByID('bloom_brightness')] = nil
 			options[getOptionByID('bloom_quality')] = nil
 
-			id = getOptionByID('guishader')
-			if id and GetWidgetToggleValue(options[id].widget) then
-				widgetHandler:DisableWidget(options[id].widget)
-			end
-			options[id] = nil
-
-			id = getOptionByID('dof')
-			if id and GetWidgetToggleValue(options[id].widget) then
-				widgetHandler:DisableWidget(options[id].widget)
-			end
-			options[id] = nil
-			options[getOptionByID('dof_autofocus')] = nil
-			options[getOptionByID('dof_fstop')] = nil
+			-- id = getOptionByID('dof')
+			-- if id and GetWidgetToggleValue(options[id].widget) then
+			-- 	widgetHandler:DisableWidget(options[id].widget)
+			-- end
+			-- options[id] = nil
+			-- options[getOptionByID('dof_autofocus')] = nil
+			-- options[getOptionByID('dof_fstop')] = nil
 
 			id = getOptionByID('clouds')
 			if id and GetWidgetToggleValue(options[id].widget) then
 				widgetHandler:DisableWidget(options[id].widget)
 			end
 			options[id] = nil
-			options[getOptionByID('could_opacity')] = nil
+			options[getOptionByID('clouds_opacity')] = nil
 
 			-- set lowest quality shadows for Intel GPU (they eat fps but dont show)
 			--if Platform ~= nil and Platform.gpuVendor == 'Intel' and gpuMem < 2500 then
 			--	Spring.SendCommands("advmapshading 0")
 			--end
-
 		end
 
 	elseif gpuMem >= 3000 then
@@ -6275,7 +6377,6 @@ function init()
 			local id = getOptionByID('cusgl4')
 			options[id].onchange(id, 1)
 		end
-		options[getOptionByID('cusgl4')] = nil
 
 		--local id = getOptionByID('shadowslider')
 		--options[id].options[1] = nil
@@ -6288,7 +6389,15 @@ function init()
 			Spring.SendCommands("water 4")
 			Spring.SetConfigInt("Water", 4)
 		end
-		options[getOptionByID('water')] = nil
+
+		if not devMode and not devUI then
+			options[getOptionByID('cusgl4')] = nil
+			options[getOptionByID('water')] = nil
+		end
+	end
+
+	if not isPotatoGpu and not devMode and not devUI then
+		options[getOptionByID('cusgl4')] = nil
 	end
 
 	-- loads values via stored game config in luaui/configs
@@ -6869,7 +6978,9 @@ function widget:Initialize()
 
 		-- Set lower defaults for lower end/potato systems
 		if gpuMem < 3300 then
-			Spring.SetConfigInt("MSAALevel", 2)
+			if Spring.GetConfigInt("MSAALevel", 2) > 2 then
+				Spring.SetConfigInt("MSAALevel", 2)
+			end
 		end
 		if isPotatoGpu then
 			Spring.SendCommands("water 0")
@@ -6878,6 +6989,7 @@ function widget:Initialize()
 			--Spring.SetConfigInt("AdvMapShading", 0)
 			--Spring.SendCommands("advmapshading 0")
 			Spring.SendCommands("Shadows 0 1024")
+			Spring.SetConfigInt("Shadows", 0)
 			Spring.GetConfigInt("ShadowQuality", 0)
 			Spring.SetConfigInt("ShadowMapSize", 1024)
 			Spring.SetConfigInt("Shadows", 0)
@@ -6911,24 +7023,6 @@ function widget:Initialize()
 			Spring.SetConfigInt("MaxSounds", 128)
 		end
 
-		-- limit music volume -- why?
-		-- if Spring.GetConfigInt("snd_volmusic", 50) > 50 then
-		-- 	Spring.SetConfigInt("snd_volmusic", 50)
-		-- end
-
-		-- enable normal mapping
-		if Spring.GetConfigInt("NormalMapping", 0) ~= 1 then
-			Spring.SetConfigInt("NormalMapping", 1)
-			Spring.SendCommands("luarules normalmapping 1")
-		end
-		-- disable clouds
-		if Spring.GetConfigInt("AdvSky", 0) ~= 0 then
-			Spring.SetConfigInt("AdvSky", 0)
-		end
-		-- disable grass
-		if Spring.GetConfigInt("GrassDetail", 0) ~= 0 then
-			Spring.SetConfigInt("GrassDetail", 0)
-		end
 		-- limit MSAA
 		if Spring.GetConfigInt("MSAALevel", 0) > 8 then
 			Spring.SetConfigInt("MSAALevel", 8)

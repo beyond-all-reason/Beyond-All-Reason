@@ -39,6 +39,8 @@ local widgetHeight = 22
 local top, left, bottom, right = 0,0,0,0
 
 local passedTime = 0
+local positionCheckTime = 0
+local POSITION_CHECK_INTERVAL = 0.05
 local textWidthClock = 0
 local gameframe = spGetGameFrame()
 local gamespeed = 1.0
@@ -225,12 +227,19 @@ function widget:Shutdown()
 end
 
 function widget:Update(dt)
-	updatePosition()
-	
+	passedTime = passedTime + dt
+	positionCheckTime = positionCheckTime + dt
+
+	-- Throttle position checks to ~4x per second instead of every frame
+	if positionCheckTime >= POSITION_CHECK_INTERVAL then
+		positionCheckTime = 0
+		updatePosition()
+	end
+
 	-- Calculate actual gamespeed over a longer interval for stability
 	local currentGameframe = spGetGameFrame()
 	gamespeedUpdateTime = gamespeedUpdateTime + dt
-	
+
 	-- Update gamespeed calculation every 0.2 seconds for smoother results
 	if gamespeedUpdateTime >= 0.2 then
 		local frameDelta = currentGameframe - gamespeedFrameStart
@@ -240,11 +249,9 @@ function widget:Update(dt)
 		gamespeedFrameStart = currentGameframe
 		gamespeedUpdateTime = 0
 	end
-	
-	gameframe = currentGameframe
-	
-	passedTime = passedTime + dt
+
 	if passedTime > 1 then
+		gameframe = currentGameframe
 		updateDrawing = true
 		passedTime = passedTime - 1
 	end
@@ -279,22 +286,20 @@ function widget:DrawScreen()
 
 	if useRenderToTexture then
 		if uiBgTex then
-			-- background element
 			gl.R2tHelper.BlendTexRect(uiBgTex, left, bottom, right, top, useRenderToTexture)
 		end
-	end
-	if useRenderToTexture then
 		if uiTex then
-			-- content
 			gl.R2tHelper.BlendTexRect(uiTex, left, bottom, right, top, useRenderToTexture)
 		end
 	else
-		if drawlist[2] then
+		if drawlist[1] or drawlist[2] then
 			glPushMatrix()
-			if not useRenderToTexture  and drawlist[1] then
+			if drawlist[1] then
 				glCallList(drawlist[1])
 			end
-			glCallList(drawlist[2])
+			if drawlist[2] then
+				glCallList(drawlist[2])
+			end
 			glPopMatrix()
 		end
 	end

@@ -130,7 +130,7 @@ return {
 				impulsefactor = 0.123,
 				leadlimit = 0,
 				mygravity = 0.1,
-				name = "HeavyCannon",
+				name = "Napalm Launcher",
 				noselfdamage = true,
 				projectiles = 1,
 				range = 535,

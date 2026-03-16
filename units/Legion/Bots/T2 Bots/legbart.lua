@@ -115,7 +115,7 @@ return {
 				gravityaffected = "true",
 				impulsefactor = 0.123,
 				leadlimit = 0,
-				name = "HeavyCannon",
+				name = "Heavy Napalm Launcher",
 				noselfdamage = true,
 				projectiles = 2,
 				range = 625,
