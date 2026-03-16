@@ -14,7 +14,7 @@ end
 
 local empUnits = {}
 local unEmpableUnits = {}
-for udid = 1, #UnitDefs do
+for udid = 0, #UnitDefs do
 	local unitDef = UnitDefs[udid]
 	local weapons = unitDef.weapons
 	empUnits[udid] = false
