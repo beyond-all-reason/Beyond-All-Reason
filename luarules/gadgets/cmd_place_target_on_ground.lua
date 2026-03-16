@@ -100,9 +100,11 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 		-- no need to check cmdID due to RegisterAllowCommand above
 		if (#cmdParams == 1) then -- give an attack command at the ground, and deny the intial attack unit command
 			local basePointX, basePointY, basePointZ = spGetUnitPosition(cmdParams[1])
-			local yGround = spGetGroundHeight(basePointX, basePointZ)
-			spGiveOrderToUnit(unitID, cmdID, {basePointX, yGround, basePointZ}, cmdOptions)
-			return false
+			if basePointX and basePointZ then
+				local yGround = spGetGroundHeight(basePointX, basePointZ)
+				spGiveOrderToUnit(unitID, cmdID, {basePointX, yGround, basePointZ}, cmdOptions)
+				return false
+			end
 		end
 	end
 	return true
