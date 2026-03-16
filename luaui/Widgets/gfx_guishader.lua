@@ -19,18 +19,40 @@ end
 
 -- Localized functions for performance
 local mathMax = math.max
+local stringFind = string.find
 
 -- Localized Spring API for performance
 local spEcho = Spring.Echo
 local spGetViewGeometry = Spring.GetViewGeometry
+local spIsGUIHidden = Spring.IsGUIHidden
+local spGetConfigFloat = Spring.GetConfigFloat
 
 local uiOpacity = Spring.GetConfigFloat("ui_opacity", 0.7)
+local uiOpacityCheckFrame = 0
 
 -- hardware capability
 local canShader = gl.CreateShader ~= nil
 
 local LuaShader = gl.LuaShader
 local NON_POWER_OF_TWO = gl.HasExtension("GL_ARB_texture_non_power_of_two")
+
+-- Localized GL functions for hot paths
+local glTexture = gl.Texture
+local glBlending = gl.Blending
+local glColor = gl.Color
+local glTexRect = gl.TexRect
+local glCopyToTexture = gl.CopyToTexture
+local glRenderToTexture = gl.RenderToTexture
+local glRect = gl.Rect
+local glClear = gl.Clear
+local glScissor = gl.Scissor
+local glPushMatrix = gl.PushMatrix
+local glPopMatrix = gl.PopMatrix
+local glTranslate = gl.Translate
+local glScale = gl.Scale
+local glCallList = gl.CallList
+local glDeleteList = gl.DeleteList
+local glDeleteTexture = gl.DeleteTexture
 
 local renderDlists = {}
 local deleteDlistQueue = {}
@@ -55,10 +77,14 @@ local vsx, vsy, vpx, vpy = spGetViewGeometry()
 local blurScale = 1
 local extraBlurPasses = 0
 
+-- Cached uniform values
+local cachedIvsx = 0.5 / vsx
+local cachedIvsy = 0.5 / vsy
+
 function widget:ViewResize(_, _)
 	vsx, vsy, vpx, vpy = spGetViewGeometry()
 
-	if screencopyUI then gl.DeleteTexture(screencopyUI) end
+	if screencopyUI then glDeleteTexture(screencopyUI) end
 	screencopyUI = gl.CreateTexture(vsx, vsy, {
 		border = false,
 		min_filter = GL.LINEAR,
@@ -74,6 +100,10 @@ function widget:ViewResize(_, _)
 	-- plus additional blur passes to compound the effect without quality loss
 	blurScale = math.max(1.0, math.sqrt(vsy / 1080))
 	extraBlurPasses = math.min(3, math.max(0, math.floor(vsy / 1080 + 0.5) - 1))
+
+	-- Cache uniform values
+	cachedIvsx = 0.5 / vsx
+	cachedIvsy = 0.5 / vsy
 end
 
 local function DrawStencilTexture(world, fullscreen)
@@ -90,7 +120,7 @@ local function DrawStencilTexture(world, fullscreen)
 	if next(guishaderRects) or next(guishaderScreenRects) or next(guishaderDlists) then
 
 		if usedStencilTex == nil or vsx + vsy ~= oldvs then
-			gl.DeleteTexture(usedStencilTex)
+			glDeleteTexture(usedStencilTex)
 
 			oldvs = vsx + vsy
 			usedStencilTex = gl.CreateTexture(vsx, vsy, {
@@ -109,39 +139,39 @@ local function DrawStencilTexture(world, fullscreen)
 			end
 		end
 	else
-		gl.RenderToTexture(usedStencilTex, function()
-			gl.Scissor(false)
-			gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+		glRenderToTexture(usedStencilTex, function()
+			glScissor(false)
+			glClear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 		end)
 		return
 	end
 	--gl.Texture(false)
-	gl.RenderToTexture(usedStencilTex, function()
-		gl.Scissor(false)
-		gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-		gl.PushMatrix()
-		gl.Translate(-1, -1, 0)
-		gl.Scale(2 / vsx, 2 / vsy, 0)
+	glRenderToTexture(usedStencilTex, function()
+		glScissor(false)
+		glClear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+		glPushMatrix()
+		glTranslate(-1, -1, 0)
+		glScale(2 / vsx, 2 / vsy, 0)
 		if world then
 			for _, rect in pairs(guishaderRects) do
-				gl.Rect(rect[1], rect[2], rect[3], rect[4])
+				glRect(rect[1], rect[2], rect[3], rect[4])
 			end
 			for _, dlist in pairs(guishaderDlists) do
-				gl.Color(1,1,1,1)
-				gl.CallList(dlist)
+				glColor(1,1,1,1)
+				glCallList(dlist)
 			end
 		elseif fullscreen then
-			gl.Rect(0, 0, vsx, vsy)
+			glRect(0, 0, vsx, vsy)
 		else
 			for _, rect in pairs(guishaderScreenRects) do
-				gl.Rect(rect[1], rect[2], rect[3], rect[4])
+				glRect(rect[1], rect[2], rect[3], rect[4])
 			end
 			for _, dlist in pairs(guishaderScreenDlists) do
-				gl.Color(1,1,1,1)
-				gl.CallList(dlist)
+				glColor(1,1,1,1)
+				glCallList(dlist)
 			end
 		end
-		gl.PopMatrix()
+		glPopMatrix()
 	end)
 
 	if world then
@@ -323,10 +353,10 @@ local function CreateShaders()
 end
 
 local function DeleteShaders()
-	gl.DeleteTexture(stenciltex)
-	gl.DeleteTexture(stenciltexScreen)
-	gl.DeleteTexture(usedStencilTex)
-	gl.DeleteTexture(screencopyUI)
+	glDeleteTexture(stenciltex)
+	glDeleteTexture(stenciltexScreen)
+	glDeleteTexture(usedStencilTex)
+	glDeleteTexture(screencopyUI)
 	stenciltex, stenciltexScreen, screencopyUI, usedStencilTex = nil, nil, nil, nil
 	if blurShader then blurShader:Finalize() end
 	blurShader = nil
@@ -340,7 +370,7 @@ function widget:Shutdown()
 end
 
 function widget:DrawScreenEffects() -- This blurs the world underneath UI elements
-	if Spring.IsGUIHidden() or uiOpacity > 0.99 then
+	if spIsGUIHidden() or uiOpacity > 0.99 then
 		return
 	end
 
@@ -359,9 +389,9 @@ function widget:DrawScreenEffects() -- This blurs the world underneath UI elemen
 
 		if screencopy == nil then return end
 
-		gl.Texture(false)
-		gl.Color(1, 1, 1, 1) --needed? nope
-		gl.Blending(true)
+		glTexture(false)
+		glColor(1, 1, 1, 1)
+		glBlending(true)
 
 		if updateStencilTexture then
 			DrawStencilTexture(true)
@@ -373,86 +403,93 @@ function widget:DrawScreenEffects() -- This blurs the world underneath UI elemen
 			spEcho("DEBUG: stenciltex is nil!")
 		end
 
-		gl.Blending(true)
-		gl.Texture(screencopy)
-		gl.Texture(2, stenciltex)
+		glBlending(true)
+		glTexture(screencopy)
+		glTexture(2, stenciltex)
 		blurShader:Activate()
-			blurShader:SetUniform("ivsx", 0.5/vsx)
-			blurShader:SetUniform("ivsy", 0.5/vsy)
+			blurShader:SetUniform("ivsx", cachedIvsx)
+			blurShader:SetUniform("ivsy", cachedIvsy)
 			blurShader:SetUniform("blurScale", blurScale)
-			gl.TexRect(0, vsy, vsx, 0)
+			glTexRect(0, vsy, vsx, 0)
 		blurShader:Deactivate()
 
 		for i = 1, extraBlurPasses do
-			gl.CopyToTexture(screencopyUI, 0, 0, vpx, vpy, vsx, vsy)
-			gl.Texture(screencopyUI)
-			gl.Texture(2, stenciltex)
+			glCopyToTexture(screencopyUI, 0, 0, vpx, vpy, vsx, vsy)
+			glTexture(screencopyUI)
+			glTexture(2, stenciltex)
 			blurShader:Activate()
-				gl.TexRect(0, vsy, vsx, 0)
+				glTexRect(0, vsy, vsx, 0)
 			blurShader:Deactivate()
 		end
 
-		gl.Texture(2, false)
-		gl.Texture(false)
-		gl.Blending(false)
+		glTexture(2, false)
+		glTexture(false)
+		glBlending(false)
 	end
 end
 
 local function DrawScreen() -- This blurs the UI elements obscured by other UI elements (only unit stats so far!)
-	if Spring.IsGUIHidden() then
+	if spIsGUIHidden() then
 		return
 	end
 
-	for i, dlist in ipairs(deleteDlistQueue) do
-		gl.DeleteList(dlist)
+	local numDelete = #deleteDlistQueue
+	if numDelete > 0 then
+		for i = 1, numDelete do
+			glDeleteList(deleteDlistQueue[i])
+			deleteDlistQueue[i] = nil
+		end
 		updateStencilTexture = true
 	end
-	deleteDlistQueue = {}
 
 	if (screenBlur or next(guishaderScreenRects) or next(guishaderScreenDlists)) and blurShader then
-		gl.Texture(false)
-		gl.Color(1, 1, 1, 1)
-		gl.Blending(true)
+		glTexture(false)
+		glColor(1, 1, 1, 1)
+		glBlending(true)
 
 		if updateStencilTextureScreen then
 			DrawStencilTexture(false, screenBlur)
 			updateStencilTextureScreen = false
 		end
 
-		gl.CopyToTexture(screencopyUI, 0, 0, vpx, vpy, vsx, vsy)
-		gl.Texture(screencopyUI)
+		glCopyToTexture(screencopyUI, 0, 0, vpx, vpy, vsx, vsy)
+		glTexture(screencopyUI)
 
-		gl.Texture(2, stenciltexScreen)
+		glTexture(2, stenciltexScreen)
 
 		blurShader:Activate()
-			blurShader:SetUniform("ivsx", 0.5/vsx)
-			blurShader:SetUniform("ivsy", 0.5/vsy)
+			blurShader:SetUniform("ivsx", cachedIvsx)
+			blurShader:SetUniform("ivsy", cachedIvsy)
 			blurShader:SetUniform("blurScale", blurScale)
-			gl.TexRect(0, vsy, vsx, 0)
+			glTexRect(0, vsy, vsx, 0)
 		blurShader:Deactivate()
-		gl.Texture(2, false)
-		gl.Texture(false)
+		glTexture(2, false)
+		glTexture(false)
 
 		for i = 1, extraBlurPasses do
-			gl.CopyToTexture(screencopyUI, 0, 0, vpx, vpy, vsx, vsy)
-			gl.Texture(screencopyUI)
-			gl.Texture(2, stenciltexScreen)
+			glCopyToTexture(screencopyUI, 0, 0, vpx, vpy, vsx, vsy)
+			glTexture(screencopyUI)
+			glTexture(2, stenciltexScreen)
 			blurShader:Activate()
-				gl.TexRect(0, vsy, vsx, 0)
+				glTexRect(0, vsy, vsx, 0)
 			blurShader:Deactivate()
-			gl.Texture(2, false)
-			gl.Texture(false)
+			glTexture(2, false)
+			glTexture(false)
 		end
 	end
 
 	for k, v in pairs(renderDlists) do
-		gl.Color(1,1,1,1)
-		gl.CallList(k)
+		glColor(1,1,1,1)
+		glCallList(k)
 	end
 end
 
 function widget:DrawScreen()
-	uiOpacity = Spring.GetConfigFloat("ui_opacity", 0.7)
+	uiOpacityCheckFrame = uiOpacityCheckFrame + 1
+	if uiOpacityCheckFrame >= 30 then
+		uiOpacityCheckFrame = 0
+		uiOpacity = spGetConfigFloat("ui_opacity", 0.7)
+	end
 	DrawScreen()
 end
 
@@ -563,8 +600,8 @@ function widget:Initialize()
 end
 
 function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		screenBlur = (msg:sub(1, 19) == 'LobbyOverlayActive1')
+	if stringFind(msg, 'LobbyOverlayActive', 1, true) == 1 then
+		screenBlur = (stringFind(msg, 'LobbyOverlayActive1', 1, true) == 1)
 		updateStencilTextureScreen = true
 	end
 end
