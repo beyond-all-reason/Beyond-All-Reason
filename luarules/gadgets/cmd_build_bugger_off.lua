@@ -187,6 +187,12 @@ function gadget:GameFrame(frame)
 
 	local moveParams = insertMoveParams
 
+	-- Collect deferred actions to avoid modifying tables during pairs() iteration
+	local deferRemove = {}
+	local deferSlow = {}
+	local deferRemoveCount = 0
+	local deferSlowCount = 0
+
 	for builderID, _ in pairs(watchedBuilders) do
 		local cmdID, _, _, targetX, targetY, targetZ = spGetUnitCurrentCommand(builderID, 1)
 		local isBuilding  	 = spGetUnitIsBuilding(builderID) ~= nil
@@ -196,10 +202,12 @@ function gadget:GameFrame(frame)
 		local buildUnitDefData = cmdID and cachedUnitDefs[-cmdID]
 
 		if not x then
-			removeBuilder(builderID)
+			deferRemoveCount = deferRemoveCount + 1
+			deferRemove[deferRemoveCount] = builderID
 
 		elseif not buildUnitDefData or targetDistance > FAST_UPDATE_RADIUS then
-			slowWatchBuilder(builderID)
+			deferSlowCount = deferSlowCount + 1
+			deferSlow[deferSlowCount] = builderID
 
 		elseif not isBuilding and targetDistance < BUILDER_BUILD_RADIUS + buildUnitDefData.radius and spGetUnitIsBeingBuilt(builderID) == false then
 			local buildDefRadius    = buildUnitDefData.radius
@@ -260,7 +268,8 @@ function gadget:GameFrame(frame)
 			end
 
 			if buggerOffRadiusOffset > MAX_BUGGEROFF_RADIUS or (not buildUnitDefData.isImmobile and IsUnitRepeatOn(builderID)) then
-				removeBuilder(builderID)
+				deferRemoveCount = deferRemoveCount + 1
+				deferRemove[deferRemoveCount] = builderID
 			else
 				builderRadiusOffsets[builderID] = buggerOffRadiusOffset
 			end
@@ -271,11 +280,24 @@ function gadget:GameFrame(frame)
 		end
 	end
 
+	-- Apply deferred removals/transitions after iteration is complete
+	for i = 1, deferRemoveCount do
+		removeBuilder(deferRemove[i])
+	end
+	for i = 1, deferSlowCount do
+		slowWatchBuilder(deferSlow[i])
+	end
+
 	if frame % SLOW_UPDATE_FREQUENCY ~= 0 and not needsUpdate then
 		return
 	end
 
 	needsUpdate = false
+
+	local deferSlowRemove = {}
+	local deferWatch = {}
+	local deferSlowRemoveCount = 0
+	local deferWatchCount = 0
 
 	for builderID in pairs(slowUpdateBuilders) do
 		-- Use spGetUnitCurrentCommand per-index to avoid allocating command tables
@@ -296,10 +318,19 @@ function gadget:GameFrame(frame)
 		end
 
 		if not hasBuildCommand then
-			removeBuilder(builderID)
+			deferSlowRemoveCount = deferSlowRemoveCount + 1
+			deferSlowRemove[deferSlowRemoveCount] = builderID
 		elseif buildCommandFirst and not spGetUnitIsBuilding(builderID) and isInTargetArea(builderID, targetX, targetZ, FAST_UPDATE_RADIUS) then
-			watchBuilder(builderID)
+			deferWatchCount = deferWatchCount + 1
+			deferWatch[deferWatchCount] = builderID
 		end
+	end
+
+	for i = 1, deferSlowRemoveCount do
+		removeBuilder(deferSlowRemove[i])
+	end
+	for i = 1, deferWatchCount do
+		watchBuilder(deferWatch[i])
 	end
 end
 
