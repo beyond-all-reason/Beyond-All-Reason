@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "2015",
 		license = "PD",
 		layer = 0,
-		enabled = true,
+		enabled = false,
 	}
 end
 
@@ -53,7 +53,7 @@ local function updateAllowedSpeed(transportId)
 	local tunitdefcustom
 	local iscom = false
 	local transportspeedmult = 0.0
-	if 1 == 2 then --stops the gadget from doing anything. CHANGE TO GET ACTUAL SLOWDOWN
+	if 1 == 2 then --stops the gadget from doing anything. CHANGE TO GET ACTUAL SLOWDOWN -- This gadget has done nothing for one year
 		if units then
 			for _,tUnitId in pairs(units) do
 				tunitdefid = spGetUnitDefID(tUnitId)
