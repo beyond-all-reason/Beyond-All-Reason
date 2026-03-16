@@ -243,10 +243,9 @@ local function UpdatePassiveBuilders(teamID, interval)
 	local teamBuildTargetOwners = buildTargetOwnersByTeam[teamID]
 	local hasOwners = false
 
-	-- Clear previous team's build target owners
-	for k in pairs(teamBuildTargetOwners) do
-		teamBuildTargetOwners[k] = nil
-	end
+	-- Clear previous team's build target owners (replace table to avoid pairs() mutation)
+	buildTargetOwnersByTeam[teamID] = {}
+	teamBuildTargetOwners = buildTargetOwnersByTeam[teamID]
 
 	-- First pass: check passive builders that are building, track their expense inline
 	local anyPassiveBuilding = false
@@ -370,10 +369,8 @@ function gadget:GameFrame(n)
 	end
 	teamsWithOwners = {}
 
-	-- Clear build targets (shared across all teams)
-	for k in pairs(buildTargets) do
-		buildTargets[k] = nil
-	end
+	-- Clear build targets (shared across all teams, replace table to avoid pairs() mutation)
+	buildTargets = {}
 
 	-- Only process teams that have passive builders and are not dead
 	for i = 1, #teamList do

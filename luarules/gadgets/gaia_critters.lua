@@ -128,22 +128,34 @@ end
 local function processSceduledOrders()
 	processOrders = false
 	local orders = 0
+	local removeUnits
+	local removeUnitsCount = 0
 	for unitID, UnitOrders in pairs(sceduledOrders) do
 		if not ValidUnitID(unitID) then
-			sceduledOrders[unitID] = nil
+			if not removeUnits then removeUnits = {} end
+			removeUnitsCount = removeUnitsCount + 1
+			removeUnits[removeUnitsCount] = unitID
 		else
 			orders = 0
+			local removeOrder
 			for oid, order in pairs(UnitOrders) do
 				GiveOrderToUnit(unitID, order.type, order.location, order.modifiers)
-				sceduledOrders[unitID][oid] = nil
+				removeOrder = oid
 				orders = orders + 1
 				processOrders = true
 				break
 			end
-			if orders == 0 then
-				sceduledOrders[unitID] = nil
+			if removeOrder then
+				sceduledOrders[unitID][removeOrder] = nil
+			elseif orders == 0 then
+				if not removeUnits then removeUnits = {} end
+				removeUnitsCount = removeUnitsCount + 1
+				removeUnits[removeUnitsCount] = unitID
 			end
 		end
+	end
+	for i = 1, removeUnitsCount do
+		sceduledOrders[removeUnits[i]] = nil
 	end
 end
 
@@ -457,15 +469,23 @@ function gadget:GameFrame(gameFrame)
 	-- update companion critters
 	if totalCritters > 0 then
 		if gameFrame%77==1 then
+			local removeOwners
+			local removeOwnersCount = 0
 			for unitID, critters in pairs(companionCritters) do
 				local x,y,z = GetUnitPosition(unitID)
 				local radius = companionPatrolRadius
 				if not ValidUnitID(unitID) then
-					companionCritters[unitID] = nil
+					if not removeOwners then removeOwners = {} end
+					removeOwnersCount = removeOwnersCount + 1
+					removeOwners[removeOwnersCount] = unitID
 				else
+					local removeCritterIDs
+					local removeCritterCount = 0
 					for _, critterID in pairs(critters) do
 						if not ValidUnitID(critterID) then
-							companionCritters[unitID][critterID] = nil
+							if not removeCritterIDs then removeCritterIDs = {} end
+							removeCritterCount = removeCritterCount + 1
+							removeCritterIDs[removeCritterCount] = critterID
 						else
 							local cx,cy,cz = GetUnitPosition(critterID)
 							if abs(x-cx) > radius*1.1 or abs(z-cz) > radius*1.1 then
@@ -473,7 +493,13 @@ function gadget:GameFrame(gameFrame)
 							end
 						end
 					end
+					for i = 1, removeCritterCount do
+						companionCritters[unitID][removeCritterIDs[i]] = nil
+					end
 				end
+			end
+			for i = 1, removeOwnersCount do
+				companionCritters[removeOwners[i]] = nil
 			end
 			if companionRadius > 0 then
 				convertMapCrittersToCompanion()

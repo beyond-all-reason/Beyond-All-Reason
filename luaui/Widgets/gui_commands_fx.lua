@@ -155,6 +155,17 @@ local spLoadCmdColorsConfig = Spring.LoadCmdColorsConfig
 local spGetGameFrame = Spring.GetGameFrame
 local spGetUnitTeam = Spring.GetUnitTeam
 
+local glDepthTest = gl.DepthTest
+local glBlending = gl.Blending
+local glTexture = gl.Texture
+local glColor = gl.Color
+local glPushMatrix = gl.PushMatrix
+local glPopMatrix = gl.PopMatrix
+local glTranslate = gl.Translate
+local glRotate = gl.Rotate
+local glUnitShape = gl.UnitShape
+local glActiveShader = gl.ActiveShader
+
 local MAX_UNITS = Game.maxUnits
 
 --------------------------------------------------------------------------------
@@ -362,13 +373,10 @@ local unitPosCacheZ = {}
 local currentGameFrame = -1
 
 local function clearPositionCache()
-	local k = next(unitPosCacheX)
-	while k do
-		unitPosCacheX[k] = nil
-		unitPosCacheY[k] = nil
-		unitPosCacheZ[k] = nil
-		k = next(unitPosCacheX)
-	end
+	-- Swap to fresh tables: O(1) instead of O(n) iteration with next()
+	unitPosCacheX = {}
+	unitPosCacheY = {}
+	unitPosCacheZ = {}
 end
 
 local function getCachedUnitPosition(unitID)
@@ -539,7 +547,7 @@ end
 -- Queue entry target types for pre-extracted positions
 local QTARGET_COORD = 1    -- static coordinate (MOVE, BUILD, PATROL, etc.)
 local QTARGET_UNIT = 2     -- unit target (needs live position each frame)
-local QTARGET_FEATURE = 3  -- feature target (needs live position each frame)
+local QTARGET_FEATURE = 3  -- feature target (position pre-extracted; features are static)
 
 local function getCommandsQueue(unitID)
 	local q = spGetUnitCommands(unitID, 35) or {}
@@ -684,21 +692,15 @@ function widget:Update(dt)
 	end
 end
 
-local function IsPointInView(x, y, z)
-	if x and y and z then
-		return spIsSphereInView(x, y, z, 1) --better way of doing this?
-	end
-	return false
-end
-
 -- Hoisted closure for gl.ActiveShader to avoid per-frame allocation
 local gl4SegCount = 0
 local function gl4DrawFunc()
-	gl.UniformMatrix(gl4.locs.viewMat, "camera")
-	gl.UniformMatrix(gl4.locs.projMat, "projection")
-	gl.Uniform(gl4.locs.lineTexLen, lineTextureLength)
-	gl.Uniform(gl4.locs.lineWidth, lineWidth)
-	gl.UniformInt(gl4.locs.useTex, drawLineTexture and 1 or 0)
+	local locs = gl4.locs
+	gl.UniformMatrix(locs.viewMat, "camera")
+	gl.UniformMatrix(locs.projMat, "projection")
+	gl.Uniform(locs.lineTexLen, lineTextureLength)
+	gl.Uniform(locs.lineWidth, lineWidth)
+	gl.UniformInt(locs.useTex, drawLineTexture and 1 or 0)
 	gl4.vao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, gl4SegCount)
 end
 
@@ -712,7 +714,7 @@ function widget:DrawWorldPreUnit()
 		texOffset = texOffset - mathFloor(texOffset)
 		prevTexOffset = texOffset
 	end
-	prevOsClock = os_clock()
+	prevOsClock = osClock
 
 	-- Clear position cache once per game frame
 	local gf = spGetGameFrame()
@@ -721,13 +723,14 @@ function widget:DrawWorldPreUnit()
 		clearPositionCache()
 	end
 
-	gl.DepthTest(false)
-	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	glDepthTest(false)
+	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
 	-- Precompute values used in loop
 	local useTeamColorsForDraw = useTeamColors or (mySpec and useTeamColorsWhenSpec)
 	local lineWidthDelta = lineWidth - (lineWidth * lineWidthEnd)
 	local opacityMul = opacity * lineOpacity * 2
+	local invDuration = 1 / duration
 	local segCount = 0
 	local segData = gl4.segData
 	buildGhosts.count = 0
@@ -738,7 +741,7 @@ function widget:DrawWorldPreUnit()
 		local nextI = next(commands, i)  -- grab next key before we might nil commands[i]
 		local command = commands[i]
 		if command and command.time then
-			local progress = (osClock - command.time) / duration
+			local progress = (osClock - command.time) * invDuration
 			local unitID = command.unitID
 
 			if progress >= 1 then
@@ -752,7 +755,7 @@ function widget:DrawWorldPreUnit()
 				end
 
 			elseif command.draw and (spIsUnitInView(unitID) or
-				IsPointInView(command.x, command.y, command.z)) then
+				(command.x and spIsSphereInView(command.x, command.y, command.z, 1))) then
 
 				-- draw command queue
 				local prevX, prevY, prevZ = getCachedUnitPosition(unitID)
@@ -769,12 +772,12 @@ function widget:DrawWorldPreUnit()
 						-- Resolve position from pre-extracted data
 						local X, Y, Z
 						local ttype = qe.ttype
-						if ttype == QTARGET_COORD then
-							X, Y, Z = qe.tx, qe.ty, qe.tz
-						elseif ttype == QTARGET_UNIT then
+						if ttype == QTARGET_UNIT then
 							X, Y, Z = getCachedUnitPosition(qe.targetID)
-						elseif ttype == QTARGET_FEATURE then
-							X, Y, Z = spGetFeaturePosition(qe.targetID)
+						else
+							-- QTARGET_COORD and QTARGET_FEATURE: use pre-extracted position
+							-- (features are static, coords never change)
+							X, Y, Z = qe.tx, qe.ty, qe.tz
 						end
 						if X and Z and X >= 0 and X <= mapX and Z >= 0 and Z <= mapZ then
 							commandCount = commandCount + 1
@@ -824,30 +827,32 @@ function widget:DrawWorldPreUnit()
 	if segCount > 0 then
 		gl4.instVBO:Upload(segData, -1, 0, 1, segCount * GL4_FLOATS_PER_SEG)
 		if drawLineTexture then
-			gl.Texture(0, lineImg)
+			glTexture(0, lineImg)
 		end
 		gl4SegCount = segCount
-		gl.ActiveShader(gl4.shader, gl4DrawFunc)
+		glActiveShader(gl4.shader, gl4DrawFunc)
 		if drawLineTexture then
-			gl.Texture(0, false)
+			glTexture(0, false)
 		end
 	end
 
 	-- Build queue ghosts (legacy pass — requires gl.UnitShape)
-	if buildGhosts.count > 0 then
-		for k = 1, buildGhosts.count do
-			gl.Color(buildGhosts.r[k], buildGhosts.g[k], buildGhosts.b[k], buildGhosts.a[k])
-			gl.PushMatrix()
-			gl.Translate(buildGhosts.x[k], buildGhosts.y[k] + 1, buildGhosts.z[k])
-			gl.Rotate(90 * buildGhosts.facing[k], 0, 1, 0)
-			gl.UnitShape(buildGhosts.defID[k], myTeamID, true, false, false)
-			gl.Rotate(-90 * buildGhosts.facing[k], 0, 1, 0)
-			gl.Translate(-buildGhosts.x[k], -buildGhosts.y[k] - 1, -buildGhosts.z[k])
-			gl.PopMatrix()
+	local ghostCount = buildGhosts.count
+	if ghostCount > 0 then
+		local bgX, bgY, bgZ = buildGhosts.x, buildGhosts.y, buildGhosts.z
+		local bgDefID, bgFacing = buildGhosts.defID, buildGhosts.facing
+		local bgR, bgG, bgB, bgA = buildGhosts.r, buildGhosts.g, buildGhosts.b, buildGhosts.a
+		for k = 1, ghostCount do
+			glColor(bgR[k], bgG[k], bgB[k], bgA[k])
+			glPushMatrix()
+			glTranslate(bgX[k], bgY[k] + 1, bgZ[k])
+			glRotate(90 * bgFacing[k], 0, 1, 0)
+			glUnitShape(bgDefID[k], myTeamID, true, false, false)
+			glPopMatrix()
 		end
 	end
 
-	gl.Color(1, 1, 1, 1)
+	glColor(1, 1, 1, 1)
 end
 
 
