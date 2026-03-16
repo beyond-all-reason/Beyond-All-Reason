@@ -21,9 +21,8 @@ local math_max = math.max
 local math_diag = math.diag
 local math_pointOnCircle = math.closestPointOnCircle
 
-local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
-local spGetUnitCommands = Spring.GetUnitCommands
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
+local spGetUnitStates = Spring.GetUnitStates
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 local spGetUnitIsDead = Spring.GetUnitIsDead
@@ -92,13 +91,7 @@ local USER_COMMAND_TIMEOUT	= 2 * gameSpeed
 -- Cooldown for area commands to prevent mass slowWatchBuilder calls
 local AREA_COMMAND_COOLDOWN = 2 * gameSpeed
 
-local function willBeNearTarget(unitID, tx, tz, maxDistance)
-	local ux, uy, uz = spGetUnitPosition(unitID)
-	if not ux then return false end
-
-	local vx, vy, vz = spGetUnitVelocity(unitID)
-	if not vx then return false end
-
+local function willBeNearTarget(ux, uz, vx, vz, tx, tz, maxDistance)
 	local sx = ux - tx
 	local sz = uz - tz
 
@@ -134,14 +127,8 @@ local function isInTargetArea(unitID, x, z, radius)
 end
 
 local function IsUnitRepeatOn(unitID)
-	local cmdDescs = spGetUnitCmdDescs(unitID)
-	if not cmdDescs then return false end
-	for _, desc in ipairs(cmdDescs) do
-		if desc.id == CMD.REPEAT then
-			return desc.params and desc.params[1] == "1"
-		end
-	end
-	return false
+	local states = spGetUnitStates(unitID)
+	return states and states["repeat"] == true
 end
 
 local function watchBuilder(builderID)
@@ -250,19 +237,23 @@ function gadget:GameFrame(frame)
 				if not unitDefData or builderID == interferingID or visitedUnits[interferingID] then
 					-- continue
 				elseif shouldBuggeroff(interferingID, unitDefData, visitedUnits, builderTeam) then
-					-- todo: use blocking for "collision" detection, not unit radii, which are not the bounding radii (neither is bounding radius useful)
-					local unitRadius = unitDefData.radius
-					local areaRadius = math_max(buggerOffRadius, buildDefRadius + unitRadius)
-
-					if willBeNearTarget(interferingID, targetX, targetZ, areaRadius) then
-						local unitX, _, unitZ = spGetUnitPosition(interferingID)
+					local unitX, _, unitZ = spGetUnitPosition(interferingID)
+					if unitX then
 						local speedX, _, speedZ = spGetUnitVelocity(interferingID)
-						unitX, unitZ = unitX + speedX * BUGGEROFF_LOOKAHEAD, unitZ + speedZ * BUGGEROFF_LOOKAHEAD
-						local sendX, sendZ = math_pointOnCircle(targetX, targetZ, buggerOffRadius + unitRadius, unitX, unitZ)
+						if speedX then
+							local unitRadius = unitDefData.radius
+							local areaRadius = math_max(buggerOffRadius, buildDefRadius + unitRadius)
 
-						if spTestMoveOrder(unitDefID, sendX, targetY, sendZ) then
-							moveParams[4], moveParams[5], moveParams[6] = sendX, targetY, sendZ
-							spGiveOrderToUnit(interferingID, CMD_INSERT, moveParams, CMD_OPT_ALT)
+							if willBeNearTarget(unitX, unitZ, speedX, speedZ, targetX, targetZ, areaRadius) then
+								local predX = unitX + speedX * BUGGEROFF_LOOKAHEAD
+								local predZ = unitZ + speedZ * BUGGEROFF_LOOKAHEAD
+								local sendX, sendZ = math_pointOnCircle(targetX, targetZ, buggerOffRadius + unitRadius, predX, predZ)
+
+								if spTestMoveOrder(unitDefID, sendX, targetY, sendZ) then
+									moveParams[4], moveParams[5], moveParams[6] = sendX, targetY, sendZ
+									spGiveOrderToUnit(interferingID, CMD_INSERT, moveParams, CMD_OPT_ALT)
+								end
+							end
 						end
 					end
 				end
@@ -287,21 +278,20 @@ function gadget:GameFrame(frame)
 	needsUpdate = false
 
 	for builderID in pairs(slowUpdateBuilders) do
-		-- Only check first few commands instead of entire queue for performance
-		local builderCommands = spGetUnitCommands(builderID, 5)
+		-- Use spGetUnitCurrentCommand per-index to avoid allocating command tables
 		local hasBuildCommand, buildCommandFirst = false, false
 		local targetX, targetZ = 0, 0
 
-		if builderCommands then
-			for idx, command in ipairs(builderCommands) do
-				if command.id < 0 then
-					hasBuildCommand = true
-					if idx == 1 and command.params[1] and command.params[3] then
-						buildCommandFirst = true
-						targetX, targetZ  = command.params[1], command.params[3]
-					end
-					break  -- Early exit once we find a build command
+		for idx = 1, 5 do
+			local cmdID, _, _, px, _, pz = spGetUnitCurrentCommand(builderID, idx)
+			if not cmdID then break end
+			if cmdID < 0 then
+				hasBuildCommand = true
+				if idx == 1 and px and pz then
+					buildCommandFirst = true
+					targetX, targetZ = px, pz
 				end
+				break
 			end
 		end
 
