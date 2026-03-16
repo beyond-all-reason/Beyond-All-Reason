@@ -16,6 +16,26 @@ if not gadgetHandler:IsSyncedCode() then
     return
 end
 
+local strSub = string.sub
+local mathAbs = math.abs
+
+local spGetPlayerInfo = Spring.GetPlayerInfo
+local spGetGameFrame = Spring.GetGameFrame
+local spSendMessageToPlayer = Spring.SendMessageToPlayer
+local spValidUnitID = Spring.ValidUnitID
+local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitVelocity = Spring.GetUnitVelocity
+local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
+local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
+local spGetCOBScriptID = Spring.GetCOBScriptID
+local spCallCOBScript = Spring.CallCOBScript
+local spIsCheatingEnabled = Spring.IsCheatingEnabled
+
+local UnitScript = Spring.UnitScript
+local usGetScriptEnv = UnitScript.GetScriptEnv
+local usCallAsUnit = UnitScript.CallAsUnit
+
 local REQUEST_HEADER = "$dance$"
 local HEADER_LEN = #REQUEST_HEADER
 local COOLDOWN_FRAMES = 60 -- ~2 seconds at 30fps
@@ -37,18 +57,18 @@ end
 
 local function IsUnitBusy(unitID)
     -- Check movement
-    local vx, _, vz = Spring.GetUnitVelocity(unitID)
-    if vx and (math.abs(vx) > 0.1 or math.abs(vz) > 0.1) then
+    local vx, _, vz = spGetUnitVelocity(unitID)
+    if vx and (mathAbs(vx) > 0.1 or mathAbs(vz) > 0.1) then
         return true, "moving"
     end
 
     -- Check building
-    if Spring.GetUnitIsBuilding(unitID) then
+    if spGetUnitIsBuilding(unitID) then
         return true, "building"
     end
 
     -- Check current command for combat/assist
-    local cmdID = Spring.GetUnitCurrentCommand(unitID)
+    local cmdID = spGetUnitCurrentCommand(unitID)
     if cmdID then
         if cmdID == CMD_ATTACK or cmdID == CMD_FIGHT or cmdID == CMD_MANUALFIRE then
             return true, "attacking"
@@ -65,14 +85,14 @@ local function IsUnitBusy(unitID)
 end
 
 local function TriggerCommanderDance(unitID)
-    if Spring.GetCOBScriptID(unitID, "TriggerDance") then
-        Spring.CallCOBScript(unitID, "TriggerDance", 0)
+    if spGetCOBScriptID(unitID, "TriggerDance") then
+        spCallCOBScript(unitID, "TriggerDance", 0)
         return true
     end
 
-    local scriptEnv = Spring.UnitScript.GetScriptEnv(unitID)
+    local scriptEnv = usGetScriptEnv(unitID)
     if scriptEnv and scriptEnv.TriggerDance then
-        Spring.UnitScript.CallAsUnit(unitID, scriptEnv.TriggerDance)
+        usCallAsUnit(unitID, scriptEnv.TriggerDance)
         return true
     end
 
@@ -80,23 +100,23 @@ local function TriggerCommanderDance(unitID)
 end
 
 function gadget:RecvLuaMsg(msg, playerID)
-    if msg:sub(1, HEADER_LEN) ~= REQUEST_HEADER then
+    if strSub(msg, 1, HEADER_LEN) ~= REQUEST_HEADER then
         return
     end
 
-    local _, _, spec, teamID = Spring.GetPlayerInfo(playerID, false)
+    local _, _, spec, teamID = spGetPlayerInfo(playerID, false)
     if spec then
         return true
     end
 
     -- Cooldown check
-    local frame = Spring.GetGameFrame()
+    local frame = spGetGameFrame()
     if lastDanceFrame[playerID] and (frame - lastDanceFrame[playerID]) < COOLDOWN_FRAMES then
-        Spring.SendMessageToPlayer(playerID, "[Dance] Cooldown - wait a moment")
+        spSendMessageToPlayer(playerID, "[Dance] Cooldown - wait a moment")
         return true
     end
 
-    local idStr = msg:sub(HEADER_LEN + 1)
+    local idStr = strSub(msg, HEADER_LEN + 1)
     if idStr == "" then
         return true
     end
@@ -105,10 +125,10 @@ function gadget:RecvLuaMsg(msg, playerID)
     local busyReason = nil
     for token in idStr:gmatch("[^,]+") do
         local unitID = tonumber(token)
-        if unitID and Spring.ValidUnitID(unitID) then
-            local unitTeam = Spring.GetUnitTeam(unitID)
-            local unitDefID = Spring.GetUnitDefID(unitID)
-            if (unitTeam == teamID or Spring.IsCheatingEnabled()) and unitDefID and IsCommander(unitDefID) then
+        if unitID and spValidUnitID(unitID) then
+            local unitTeam = spGetUnitTeam(unitID)
+            local unitDefID = spGetUnitDefID(unitID)
+            if (unitTeam == teamID or spIsCheatingEnabled()) and unitDefID and IsCommander(unitDefID) then
                 local busy, reason = IsUnitBusy(unitID)
                 if busy then
                     busyReason = reason
@@ -124,8 +144,16 @@ function gadget:RecvLuaMsg(msg, playerID)
     if danced > 0 then
         lastDanceFrame[playerID] = frame
     elseif busyReason then
-        Spring.SendMessageToPlayer(playerID, "[Dance] Commander is " .. busyReason)
+        spSendMessageToPlayer(playerID, "[Dance] Commander is " .. busyReason)
     end
 
     return true
+end
+
+function gadget:Initialize()
+    gadgetHandler:RemoveCallIn("RecvLuaMsg")
+end
+
+function gadget:GameStart()
+    gadgetHandler:UpdateCallIn("RecvLuaMsg")
 end
