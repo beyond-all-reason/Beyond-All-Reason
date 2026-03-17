@@ -13,6 +13,10 @@ local triggers = {
 
 	botDwells = {
 		type = triggerTypes.UnitDwellLocation,
+		settings = {
+			repeating = true,
+			maxRepeats = 77,
+		},
 		parameters = {
 			nameRequired = 'bots',
 			teamID = 0,
@@ -21,6 +25,23 @@ local triggers = {
 			area = { x1 = 2000, z1 = 2300, x2 = 2200, z2 = 2500 },
 		},
 		actions = { 'messageBotDwells' },
+	},
+
+	botDwellsAfterRes = {
+		type = triggerTypes.UnitDwellLocation,
+		settings = {
+			repeating = true,
+			maxRepeats = 77,
+			prerequisites = { 'unitRessed' },
+		},
+		parameters = {
+			nameRequired = 'bots',
+			teamID = 0,
+			unitDefName = 'armpw',
+			duration = 60,
+			area = { x1 = 2000, z1 = 2300, x2 = 2200, z2 = 2500 },
+		},
+		actions = { 'messageBotDwellsAfterRes' },
 	},
 
 	botExists = {
@@ -110,7 +131,7 @@ local triggers = {
 		parameters = {
 			unitName = 'engineers',
 			unitDefName = 'corfast',
-			teamID = 1,
+			owningTeamID = 1,
 		},
 		actions = { 'messageEngineerSpotted' },
 	},
@@ -120,7 +141,8 @@ local triggers = {
 		parameters = {
 			unitName = 'engineers',
 			unitDefName = 'corfast',
-			teamID = 1,
+			owningTeamID = 1,
+			spottingAllyTeamID = 0,
 		},
 		actions = { 'messageEngineerUnspotted' },
 	},
@@ -164,6 +186,13 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = "Bot is dwelling!",
+		},
+	},
+
+	messageBotDwellsAfterRes = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "Bot is dwelling AFTER turret was res'd!",
 		},
 	},
 

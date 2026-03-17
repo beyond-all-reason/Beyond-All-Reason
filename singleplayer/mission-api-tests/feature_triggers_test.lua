@@ -12,7 +12,16 @@ local triggers = {
 		parameters = {
 			gameFrame = 30,
 		},
-		actions = { 'spawnReclaimer', 'spawnAttacker', 'createRock1', 'createRock2', 'createWreck', 'orderAttackerDestroyWreck' },
+		actions = { 'createRockToReclaim', 'createRockToDestroy', 'createWreckToResurrect', 'createWreckToAttack', 'spawnReclaimer', 'spawnAttacker', 'orderAttackerDestroyWreck' },
+	},
+
+	orderReclaimerReclaimAndRes = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = 60,
+		},
+		-- for some reason, CMD.RESURRECT doesn't work in the same frame as its target is spawned
+		actions = { 'orderReclaimerReclaimAndRes' },
 	},
 
 	destroyRocks = {
@@ -29,7 +38,7 @@ local triggers = {
 			featureDefName = 'rocks30_def_01',
 			area = { x1 = 1600, z1 = 1500, x2 = 2200, z2 = 2100 },
 		},
-		actions = { 'messageRocksCreated', 'orderReclaimerReclaimRock' },
+		actions = { 'messageRocksCreated' },
 	},
 
 	rockReclaimed = {
@@ -49,10 +58,19 @@ local triggers = {
 		actions = { 'messageRockDestroyed' },
 	},
 
+	unitRessed = {
+		type = triggerTypes.UnitResurrected,
+		parameters = {
+			featureName  = 'wreck-to-resurrect',
+			teamID = 0,
+		},
+		actions = { 'messageWreckResurrected' },
+	},
+
 	wreckDestroyed = {
 		type = triggerTypes.FeatureDestroyed,
 		parameters = {
-			featureName = 'theWreck',
+			featureName = 'wreck-to-destroy',
 		},
 		actions = { 'messageWreckDestroyed' },
 	},
@@ -69,7 +87,7 @@ local triggers = {
 
 local actions = {
 
-	createRock1 = {
+	createRockToReclaim = {
 		type = actionTypes.CreateFeature,
 		parameters = {
 			featureName  = 'theRocks',
@@ -79,7 +97,7 @@ local actions = {
 		},
 	},
 
-	createRock2 = {
+	createRockToDestroy = {
 		type = actionTypes.CreateFeature,
 		parameters = {
 			featureName  = 'theRocks',
@@ -89,12 +107,22 @@ local actions = {
 		},
 	},
 
-	createWreck = {
+	createWreckToAttack = {
 		type = actionTypes.CreateFeature,
 		parameters = {
-			featureName  = 'theWreck',
+			featureName  = 'wreck-to-destroy',
 			featureDefName = 'armllt_dead',
 			position = { x = 2000, z = 2100 },
+			facing   = 'w',
+		},
+	},
+
+	createWreckToResurrect = {
+		type = actionTypes.CreateFeature,
+		parameters = {
+			featureName  = 'wreck-to-resurrect',
+			featureDefName = 'armpw_dead',
+			position = { x = 1900, z = 2000 },
 			facing   = 'w',
 		},
 	},
@@ -119,12 +147,13 @@ local actions = {
 		},
 	},
 
-	orderReclaimerReclaimRock = {
+	orderReclaimerReclaimAndRes = {
 		type = actionTypes.IssueOrders,
 		parameters = {
 			unitName = 'reclaimer',
 			orders = {
 				{ CMD.RECLAIM, { 1800, 0, 1800, 80 } },
+				{ CMD.RESURRECT, { 1900, 0, 2000, 80 }, { 'shift' } },
 			},
 		},
 	},
@@ -164,6 +193,13 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = "[Feature Test] Named rock was destroyed.",
+		},
+	},
+
+	messageWreckResurrected = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "[Feature Test] Named wreck was resurrected.",
 		},
 	},
 
