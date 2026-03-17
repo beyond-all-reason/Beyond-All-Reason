@@ -36,6 +36,14 @@ local triggers = {
 		},
 		actions = { 'actionMissingType' },
 	},
+
+	triggerWithInvalidAllyTeamID = {
+		type = triggerTypes.UnitSpotted,
+		parameters = {
+			spottingAllyTeamID = 777,
+		},
+		actions = { 'actionMissingType' },
+	},
 }
 
 local actions = {
@@ -241,7 +249,7 @@ local actions = {
 			position = { x = 1500, z = 2200 },
 		},
 	},
-	
+
 	actionWithNonExistentSoundfile = {
 		type = actionTypes.PlaySound,
 		parameters = {

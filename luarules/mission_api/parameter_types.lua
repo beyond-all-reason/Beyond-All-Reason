@@ -23,6 +23,7 @@ local types = {
 	-- Number Validators:
 	Number = 'Number',
 	TeamID = 'TeamID',
+	AllyTeamID = 'AllyTeamID',
 
 	-- Boolean Validators:
 	Boolean = 'Boolean',
