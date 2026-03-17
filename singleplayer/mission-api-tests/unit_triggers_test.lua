@@ -14,7 +14,7 @@ local triggers = {
 	botDwells = {
 		type = triggerTypes.UnitDwellLocation,
 		settings = {
-			repeating = 1,
+			repeating = true,
 			maxRepeats = 77,
 		},
 		parameters = {
@@ -25,6 +25,23 @@ local triggers = {
 			area = { x1 = 2000, z1 = 2300, x2 = 2200, z2 = 2500 },
 		},
 		actions = { 'messageBotDwells' },
+	},
+
+	botDwellsAfterRes = {
+		type = triggerTypes.UnitDwellLocation,
+		settings = {
+			repeating = true,
+			maxRepeats = 77,
+			prerequisites = { 'unitRessed' },
+		},
+		parameters = {
+			nameRequired = 'bots',
+			teamID = 0,
+			unitDefName = 'armpw',
+			duration = 60,
+			area = { x1 = 2000, z1 = 2300, x2 = 2200, z2 = 2500 },
+		},
+		actions = { 'messageBotDwellsAfterRes' },
 	},
 
 	botExists = {
@@ -169,6 +186,13 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = "Bot is dwelling!",
+		},
+	},
+
+	messageBotDwellsAfterRes = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "Bot is dwelling AFTER turret was res'd!",
 		},
 	},
 

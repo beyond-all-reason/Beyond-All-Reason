@@ -38,8 +38,8 @@ end
 local function isTriggerValid(trigger)
 	if not trigger.settings.active then return false end
 
-	for _, prerequisiteTrigger in pairs(trigger.settings.prerequisites) do
-		if not prerequisiteTrigger.triggered then return false end
+	for _, prerequisiteTriggerID in pairs(trigger.settings.prerequisites) do
+		if not triggers[prerequisiteTriggerID].triggered then return false end
 	end
 
 	if trigger.triggered and not trigger.settings.repeating then return false end
@@ -56,7 +56,7 @@ end
 
 local function activateTrigger(trigger)
 	if not isTriggerValid(trigger) then
-		return
+		return false
 	end
 
 	trigger.triggered = true
@@ -65,6 +65,8 @@ local function activateTrigger(trigger)
 	for _, actionID in ipairs(trigger.actions) do
 		actionsDispatcher.Invoke(actionID)
 	end
+
+	return true
 end
 
 local function getUnitsInArea(trigger)
@@ -219,8 +221,10 @@ local function checkUnitDwellLocation(trigger, triggerID)
 			-- Check duration, and if unit still has required name:
 			if dwellingUnitsInAreas[triggerID][unitID] >= trigger.parameters.duration and
 				(not trigger.parameters.unitName or doesUnitHaveName(unitID, trigger.parameters.unitName)) then
-				dwellingUnitsInAreas[triggerID][unitID] = -1 -- Prevent multiple activations for the same unit
-				activateTrigger(trigger)
+				local wasInvoked = activateTrigger(trigger)
+				if wasInvoked then
+					dwellingUnitsInAreas[triggerID][unitID] = -1 -- Prevent multiple activations for the same unit
+				end
 			end
 
 		-- If unit just entered area (and hasn't already triggered), start counting:
