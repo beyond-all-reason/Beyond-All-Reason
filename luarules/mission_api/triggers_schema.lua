@@ -184,7 +184,7 @@ local parameters = {
 			required = false,
 			type = Types.UnitDefName
 		},
-		provides = { 'position' },
+		provides = { 'positionEntered' },
 	},
 	[triggerTypes.UnitLeftLocation] = {
 		[1] = {
@@ -210,6 +210,7 @@ local parameters = {
 			required = false,
 			type = Types.UnitDefName
 		},
+		provides = { 'positionLeft' },
 	},
 	[triggerTypes.UnitDwellLocation] = {
 		[1] = {

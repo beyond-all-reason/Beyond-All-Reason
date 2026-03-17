@@ -1,6 +1,8 @@
 local triggerTypes = GG['MissionAPI'].TriggerTypes
 local actionTypes = GG['MissionAPI'].ActionTypes
 
+local location = { x1 = 1700, z1 = 1900, x2 = 1900, z2 = 2200 }
+
 local triggers = {
 
 	spawnBots = {
@@ -20,9 +22,23 @@ local triggers = {
 			nameRequired = 'bots',
 			teamID = 0,
 			unitDefName = 'armpw',
-			area = { x1 = 1700, z1 = 1900, x2 = 1900, z2 = 2100 },
+			area = location,
 		},
 		actions = { 'messageBotEnteredLocation', 'spawnDecoy' },
+	},
+
+	botLeftLocation = {
+		type = triggerTypes.UnitLeftLocation,
+		settings = {
+			repeating = true,
+		},
+		parameters = {
+			nameRequired = 'bots',
+			teamID = 0,
+			unitDefName = 'armpw',
+			area = location,
+		},
+		actions = { 'messageBotLeftLocation', 'spawnDecoy' },
 	},
 }
 
@@ -36,6 +52,7 @@ local actions = {
 			teamID = 0,
 			quantity = 2,
 			position = { x = 1800, z = 1600 },
+			spacing = 48,
 		},
 	},
 
@@ -56,12 +73,23 @@ local actions = {
 		},
 	},
 
+	messageBotLeftLocation = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "A bot left location, let's spawn a decoy on top of it.",
+		},
+	},
+
 	spawnDecoy = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitDefName = 'armdecom',
 			teamID = 0,
-			--position = { x = 1900, z = 2600 },
+			-- position = { x = 1900, z = 2600 },
+		},
+		provided = {
+			positionEntered = 'position',
+			positionLeft = 'position',
 		},
 	},
 }

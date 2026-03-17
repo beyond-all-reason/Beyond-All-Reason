@@ -38,25 +38,32 @@ local typeMapping = {
 	[types.Defeat] = actionFunctions.Defeat,
 }
 
--- unpack() does not handle optional parameters, as it cannot pass a value as nil
-local function unpackActionParameters(actionId, provided, i)
-	local type = actions[actionId].type
-	local schema = parameterSchema[type]
+local function unpackActionParameters(action, mappedValues, i)
+	local schema = parameterSchema[action.type]
 
 	i = i or 1
 
 	if i <= #schema then
 		local parameterName = schema[i].name
-		local parameterValue = actions[actionId].parameters[parameterName] or (provided and provided[parameterName])
-		return parameterValue, unpackActionParameters(actionId, provided, i + 1)
+		local parameterValue = action.parameters[parameterName] or mappedValues[parameterName]
+		return parameterValue, unpackActionParameters(action, mappedValues, i + 1)
 	end
 end
 
-local function invoke(actionId, provided)
-	local type = actions[actionId].type
-	local actionFunction = typeMapping[type]
+local function invoke(actionId, providedValues)
+	local action = actions[actionId]
+	local actionFunction = typeMapping[action.type]
 
-	actionFunction(unpackActionParameters(actionId, provided))
+	local mappedValues = {}
+	if action.provided then
+		for k, value in pairs(providedValues or {}) do
+			if action.provided[k] then
+				mappedValues[action.provided[k]] = value
+			end
+		end
+	end
+
+	actionFunction(unpackActionParameters(action, mappedValues))
 end
 
 return {
