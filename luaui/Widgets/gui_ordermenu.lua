@@ -965,7 +965,6 @@ function widget:DrawScreen()
 				doUpdateClock = nil
 				doUpdate = true
 			end
-			doUpdateClock = nil
 			lastCommandRefreshTime = now
 			refreshCommands()
 			-- Skip R2T rebuild if commands haven't visually changed
@@ -984,6 +983,7 @@ function widget:DrawScreen()
 		if displayListGuiShader and WG['guishader'] then
 			WG['guishader'].RemoveDlist('ordermenu')
 		end
+		doUpdate = nil
 	else
 		if displayListGuiShader and WG['guishader'] then
 			WG['guishader'].InsertDlist(displayListGuiShader, 'ordermenu')
@@ -999,6 +999,7 @@ function widget:DrawScreen()
 					drawOrders()
 				end
 			end)
+			doUpdate = nil
 		end
 
 		if useRenderToTexture then
@@ -1040,6 +1041,7 @@ function widget:DrawScreen()
 				end,
 				useRenderToTexture
 			)
+			doUpdate = nil
 		end
 
 		if useRenderToTexture then
@@ -1139,7 +1141,6 @@ function widget:DrawScreen()
 			end
 		end
 	end
-	doUpdate = nil
 end
 
 function widget:MousePress(x, y, button)
