@@ -19,8 +19,6 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local unitLocationCheckInterval = 15
-
 local actionsDispatcher
 local types, triggers
 
@@ -82,23 +80,6 @@ local function getUnitsInArea(trigger)
 		unitsInArea = Spring.GetUnitsInCylinder(area.x, area.z, area.radius, teamID)
 	end
 
-	return unitsInArea
-end
-
-
-----------------------------------------------------------------
---- Trigger Checks:
-----------------------------------------------------------------
-
-local function getUnitsInArea(trigger)
-	local area = trigger.parameters.area
-	local teamID = trigger.parameters.teamID
-	local unitsInArea = {}
-	if area.x1 and area.z1 and area.x2 and area.z2 then
-		unitsInArea = Spring.GetUnitsInRectangle(area.x1, area.z1, area.x2, area.z2, teamID)
-	elseif area.x and area.z and area.radius then
-		unitsInArea = Spring.GetUnitsInCylinder(area.x, area.z, area.radius, teamID)
-	end
 	return unitsInArea
 end
 
@@ -180,14 +161,17 @@ local function checkUnitResurrected(trigger, unitDefID, unitTeam, builderID)
 		return
 	end
 
-	if Spring.GetUnitWorkerTask(builderID) ~= CMD.RESURRECT then
+	local cmdID, featureID = Spring.GetUnitWorkerTask(builderID)
+	if cmdID ~= CMD.RESURRECT then
 		return
 	end
+	if not Engine.FeatureSupport.noOffsetForFeatureID then
+		featureID = featureID - Game.maxUnits
+	end
 
-	-- TODO: feature tracking
-	--if trigger.parameters.featureName and not doesFeatureHaveName(featureID, trigger.parameters.featureName) then
-	--	return
-	--end
+	if trigger.parameters.featureName and not doesFeatureHaveName(featureID, trigger.parameters.featureName) then
+		return
+	end
 	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
 		return
 	end
@@ -421,28 +405,6 @@ function gadget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 		checkUnitRemoved(trigger, unitID, unitDefID, unitTeam)
 	end)
 	-- Don't untrack unit here, as other call-ins run after this one (UnitDestroyed, UnitTaken, ...)
-end
-
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	for triggerID, trigger in pairs(triggers) do
-		if trigger.type == types.UnitKilled then
-			checkUnitKilled(trigger, unitID, unitDefID)
-		end
-	end
-
-	-- Remove destroyed tracked units
-	if table.isNilOrEmpty(trackedUnitNames[unitID]) then
-		return
-	end
-
-	for _, name in pairs(trackedUnitNames[unitID]) do
-		table.removeAll(trackedUnitIDs[name], unitID)
-		if table.isEmpty(trackedUnitIDs[name]) then
-			trackedUnitIDs[name] = nil
-		end
-	end
-
-	trackedUnitNames[unitID] = nil
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
