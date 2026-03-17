@@ -47,8 +47,9 @@ function gadget:Initialize()
 	-- TODO: Actually pass script path
 	--scriptPath = 'mission-api-tests/validation_test.lua'
 	--scriptPath = 'mission-api-tests/test_mission.lua'
-	--scriptPath = 'mission-api-tests/sound_test.lua'
 	--scriptPath = 'mission-api-tests/markers_test.lua'
+	--scriptPath = 'mission-api-tests/unit_triggers_test.lua'
+	--scriptPath = 'mission-api-tests/sound_test.lua'
 	scriptPath = 'mission-api-tests/stages_and_objectives_test.lua'
 
 	if not scriptPath then

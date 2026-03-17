@@ -49,6 +49,14 @@ local triggers = {
 		},
 		actions = { 'actionMissingType' },
 	},
+
+	triggerWithInvalidAllyTeamID = {
+		type = triggerTypes.UnitSpotted,
+		parameters = {
+			spottingAllyTeamID = 777,
+		},
+		actions = { 'actionMissingType' },
+	},
 }
 
 local actions = {

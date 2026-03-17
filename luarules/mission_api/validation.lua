@@ -376,6 +376,18 @@ validators[Types.TeamID] = function(teamID)
 		end
 	end
 
+validators[Types.AllyTeamID] = function(allyTeamID)
+	local luaTypeResult = validators[Types.Number](allyTeamID)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	if not table.contains(Spring.GetAllyTeamList(), allyTeamID) then
+		return { { message = "Invalid allyTeamID: " .. allyTeamID } }
+	end
+end
+
+
 ----------------------------------------------------------------
 --- Trigger/Action Validation Functions:
 ----------------------------------------------------------------
@@ -545,7 +557,17 @@ local function validateObjectiveReferences(objectives)
 end
 
 local function validateUnitNameReferences(triggerTypes, actionTypes, triggers, actions)
-	local triggerTypesReferencingUnitNames = { }
+	local triggerTypesReferencingUnitNames = {
+		[triggerTypes.UnitNotExists] = true,
+		[triggerTypes.UnitKilled] = true,
+		[triggerTypes.UnitCaptured] = true,
+		[triggerTypes.UnitEnteredLocation] = true,
+		[triggerTypes.UnitLeftLocation] = true,
+		[triggerTypes.UnitDwellLocation] = true,
+		[triggerTypes.UnitSpotted] = true,
+		[triggerTypes.UnitUnspotted] = true,
+		[triggerTypes.ConstructionFinished] = true,
+	}
 	local actionTypesNamingUnits = {
 		[actionTypes.SpawnUnits] = true,
 		[actionTypes.NameUnits] = true,

@@ -2,24 +2,24 @@ local Types = VFS.Include('luarules/mission_api/parameter_types.lua').Types
 
 local triggerTypes = {
 	-- Time
-	TimeElapsed          = 100, --
+	TimeElapsed          = 100,
 
 	-- Units
-	UnitExists           = 200, --
-	UnitNotExists        = 201, --
-	UnitKilled           = 202, --
-	UnitCaptured         = 203, --
+	UnitExists           = 200,
+	UnitNotExists        = 201,
+	UnitKilled           = 202,
+	UnitCaptured         = 203,
 	UnitResurrected      = 204,
 	UnitEnteredLocation  = 205,
 	UnitLeftLocation     = 206,
 	UnitDwellLocation    = 207,
 	UnitSpotted          = 208,
 	UnitUnspotted        = 209,
-	ConstructionStarted  = 210, --
-	ConstructionFinished = 211, --
+	ConstructionStarted  = 210,
+	ConstructionFinished = 211,
 
 	-- Features
-	FeatureNotExists     = 300,
+	FeatureCreated       = 300,
 	FeatureReclaimed     = 301,
 	FeatureDestroyed     = 302,
 
@@ -34,7 +34,7 @@ local triggerTypes = {
 	TotalUnitsCaptured   = 503,
 
 	-- Team
-	TeamDestroyed        = 601, --
+	TeamDestroyed        = 601,
 
 	-- Mission Control
 	Victory              = 700,
@@ -73,14 +73,14 @@ local parameters = {
 	-- Units
 	[triggerTypes.UnitExists] = {
 		[1] = {
-			name = 'unitDefID',
+			name = 'unitDefName',
 			required = true,
-			type = Types.Number,
+			type = Types.UnitDefName,
 		},
 		[2] = {
 			name = 'teamID',
 			required = false,
-			type = Types.Number,
+			type = Types.TeamID,
 		},
 		[3] = {
 			name = 'quantity',
@@ -90,69 +90,243 @@ local parameters = {
 	},
 	[triggerTypes.UnitNotExists] = {
 		[1] = {
-			name = 'unit',
-			required = true,
+			name = 'unitName',
+			required = false,
 			type = Types.String,
 		},
+		[2] = {
+			name = 'unitDefName',
+			required = false,
+			type = Types.UnitDefName
+		},
+		[3] = {
+			name = 'teamID',
+			required = false,
+			type = Types.TeamID
+		},
+		requiresOneOf = { 'unitName', 'unitDefName' }
 	},
 	[triggerTypes.UnitKilled] = {
 		[1] = {
-			name = 'unit',
-			required = true,
-			type = Types.String
+			name = 'unitName',
+			required = false,
+			type = Types.String,
 		},
+		[2] = {
+			name = 'unitDefName',
+			required = false,
+			type = Types.UnitDefName
+		},
+		[3] = {
+			name = 'teamID',
+			required = false,
+			type = Types.TeamID
+		},
+		requiresOneOf = { 'unitName', 'unitDefName' }
 	},
 	[triggerTypes.UnitCaptured] = {
 		[1] = {
-			name = 'unit',
-			required = true,
-			type = Types.String
+			name = 'unitName',
+			required = false,
+			type = Types.String,
 		},
+		[2] = {
+			name = 'unitDefName',
+			required = false,
+			type = Types.UnitDefName
+		},
+		[3] = {
+			name = 'oldTeamID',
+			required = false,
+			type = Types.TeamID
+		},
+		[4] = {
+			name = 'newTeamID',
+			required = false,
+			type = Types.TeamID
+		},
+		requiresOneOf = { 'unitName', 'unitDefName' }
 	},
-	[triggerTypes.UnitResurrected] = {  },
+	[triggerTypes.UnitResurrected] = {
+		[1] = {
+			name = 'unitDefName',
+			required = false,
+			type = Types.UnitDefName
+		},
+		[2] = {
+			name = 'teamID',
+			required = false,
+			type = Types.TeamID
+		},
+		[3] = {
+			name = 'featureName',
+			required = false,
+			type = Types.String,
+		},
+		requiresOneOf = { 'featureName', 'unitDefName' }
+	},
 	[triggerTypes.UnitEnteredLocation] = {
 		[1] = {
-			name = 'unit',
+			-- Examples:
+			-- Rectangle: { x1 = 0, z1 = 0, x2 = 123, z2 = 123 } with x1 < x2 and z1 < z2
+			-- Circle: { x = 0, z = 0, radius = 123 }
+			name = 'area',
 			required = true,
+			type = Types.Area
+		},
+		[2] = {
+			name = 'unitName',
+			required = false,
+			type = Types.String
+		},
+		[3] = {
+			name = 'unitDefName',
+			required = false,
+			type = Types.UnitDefName
+		},
+		[4] = {
+			name = 'teamID',
+			required = false,
+			type = Types.TeamID
+		},
+		requiresOneOf = { 'unitName', 'unitDefName' }
+	},
+	[triggerTypes.UnitLeftLocation] = {
+		[1] = {
+			-- Examples:
+			-- Rectangle: { x1 = 0, z1 = 0, x2 = 123, z2 = 123 } with x1 < x2 and z1 < z2
+			-- Circle: { x = 0, z = 0, radius = 123 }
+			name = 'area',
+			required = true,
+			type = Types.Area
+		},
+		[2] = {
+			name = 'unitName',
+			required = false,
+			type = Types.String
+		},
+		[3] = {
+			name = 'unitDefName',
+			required = false,
+			type = Types.UnitDefName
+		},
+		[4] = {
+			name = 'teamID',
+			required = false,
+			type = Types.TeamID
+		},
+		requiresOneOf = { 'unitName', 'unitDefName' }
+	},
+	[triggerTypes.UnitDwellLocation] = {
+		[1] = {
+			-- Examples:
+			-- Rectangle: { x1 = 0, z1 = 0, x2 = 123, z2 = 123 } with x1 < x2 and z1 < z2
+			-- Circle: { x = 0, z = 0, radius = 123 }
+			name = 'area',
+			required = true,
+			type = Types.Area
+		},
+		[2] = {
+			-- Dwell time in game frames
+			name = 'duration',
+			required = true,
+			type = Types.Number
+		},
+		[3] = {
+			name = 'unitName',
+			required = false,
+			type = Types.String
+		},
+		[4] = {
+			name = 'unitDefName',
+			required = false,
+			type = Types.UnitDefName
+		},
+		[5] = {
+			name = 'teamID',
+			required = false,
+			type = Types.TeamID
+		},
+		requiresOneOf = { 'unitName', 'unitDefName' }
+	},
+	[triggerTypes.UnitSpotted] = {
+		[1] = {
+			name = 'unitName',
+			required = false,
 			type = Types.String
 		},
 		[2] = {
-			name = 'position',
-			required = true,
-			type = Types.Table,
+			name = 'unitDefName',
+			required = false,
+			type = Types.UnitDefName
 		},
 		[3] = {
-			name = 'width',
-			required = true,
-			type = Types.Number,
+			name = 'owningTeamID',
+			required = false,
+			type = Types.TeamID
 		},
 		[4] = {
-			name = 'height',
+			name = 'spottingAllyTeamID',
 			required = false,
-			type = Types.Number,
+			type = Types.AllyTeamID
 		},
+		requiresOneOf = { 'unitName', 'unitDefName' }
 	},
-	[triggerTypes.UnitLeftLocation] = {  },
-	[triggerTypes.UnitDwellLocation] = {  },
-	[triggerTypes.UnitSpotted] = {  },
-	[triggerTypes.UnitUnspotted] = {  },
+	[triggerTypes.UnitUnspotted] = {
+		[1] = {
+			name = 'unitName',
+			required = false,
+			type = Types.String
+		},
+		[2] = {
+			name = 'unitDefName',
+			required = false,
+			type = Types.UnitDefName
+		},
+		[3] = {
+			name = 'owningTeamID',
+			required = false,
+			type = Types.TeamID
+		},
+		[4] = {
+			name = 'spottingAllyTeamID',
+			required = false,
+			type = Types.AllyTeamID
+		},
+		requiresOneOf = { 'unitName', 'unitDefName' }
+	},
 	[triggerTypes.ConstructionStarted] = {
 		[1] = {
-			name = 'unit',
+			name = 'unitDefName',
 			required = true,
-			type = Types.String,
+			type = Types.UnitDefName
+		},
+		[2] = {
+			name = 'teamID',
+			required = false,
+			type = Types.TeamID
 		},
 	 },
 	[triggerTypes.ConstructionFinished] = {
 		[1] = {
-			name = 'unit',
-			required = true,
-			type = Types.String,
+			name = 'unitName',
+			required = false,
+			type = Types.String
+		},
+		[2] = {
+			name = 'unitDefName',
+			required = false,
+			type = Types.UnitDefName
+		},
+		[3] = {
+			name = 'teamID',
+			required = false,
+			type = Types.TeamID
 		},
 	 },
 
 	-- Features
-	[triggerTypes.FeatureNotExists] = {  },
+	[triggerTypes.FeatureCreated] = {  },
 	[triggerTypes.FeatureReclaimed] = {  },
 	[triggerTypes.FeatureDestroyed] = {  },
 

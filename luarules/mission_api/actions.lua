@@ -1,33 +1,17 @@
+local sounds = VFS.Include('luarules/mission_api/sounds.lua')
+local tracking = VFS.Include('luarules/mission_api/tracking.lua')
+local trackUnit = tracking.TrackUnit
+local isNameUntracked = tracking.IsNameUntracked
+local untrackUnitName = tracking.UntrackUnitName
+
 local trackedUnitIDs = GG['MissionAPI'].trackedUnitIDs
-local trackedUnitNames = GG['MissionAPI'].trackedUnitNames
 local triggers = GG['MissionAPI'].Triggers
 local broadcast = VFS.Include('luarules/mission_api/broadcast.lua')
 
-local sounds = VFS.Include('luarules/mission_api/sounds.lua')
 
 ----------------------------------------------------------------
 --- Utility Functions:
 ----------------------------------------------------------------
-
-local function isNameUntracked(name)
-	return table.isNilOrEmpty(trackedUnitIDs[name])
-end
-
-local function trackUnit(name, unitID)
-	if not name or not unitID then
-		return
-	end
-
-	if not trackedUnitIDs[name] then
-		trackedUnitIDs[name] = {}
-	end
-	if not trackedUnitNames[unitID] then
-		trackedUnitNames[unitID] = {}
-	end
-
-	trackedUnitIDs[name][#trackedUnitIDs[name] + 1] = unitID
-	trackedUnitNames[unitID][#trackedUnitNames[unitID] + 1] = name
-end
 
 local function generateGridPositions(center, quantity, xSpacing, zSpacing)
 	local positions = {}
@@ -191,15 +175,7 @@ local function nameUnits(unitName, teamID, unitDefName, area)
 end
 
 local function unnameUnits(unitName)
-	if isNameUntracked(unitName) then return end
-
-	for _, unitID in pairs(trackedUnitIDs[unitName]) do
-		table.removeAll(trackedUnitNames[unitID], unitName)
-		if table.isEmpty(trackedUnitNames[unitID]) then
-			trackedUnitNames[unitID] = nil
-		end
-	end
-	trackedUnitIDs[unitName] = nil
+	untrackUnitName(unitName)
 end
 
 local function spawnExplosion(weaponDefName, position, direction)
