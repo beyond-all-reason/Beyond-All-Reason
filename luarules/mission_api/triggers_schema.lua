@@ -361,19 +361,6 @@ local parameters = {
 	},
 	[triggerTypes.FeatureDestroyed] = {
 		[1] = {
-			name = 'unitName',
-			required = false,
-			type = Types.String
-		},
-		[2] = {
-			name = 'unitDefName',
-			required = false,
-			type = Types.UnitDefName
-		},
-		[3] = {
-			name = 'teamID',
-			required = false,
-			type = Types.TeamID
 			name = 'featureName',
 			required = false,
 			type = Types.String,
@@ -412,7 +399,7 @@ local parameters = {
 			required = true,
 			type = Types.Number,
 		},
-	 },
+	},
 
 	-- Win Condition
 	[triggerTypes.Victory] = {  },
