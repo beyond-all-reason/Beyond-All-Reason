@@ -40,7 +40,7 @@ local triggers = {
 	triggerWithInvalidAllyTeamID = {
 		type = triggerTypes.UnitSpotted,
 		parameters = {
-			allyTeamID = 777,
+			spottingAllyTeamID = 777,
 		},
 		actions = { 'actionMissingType' },
 	},

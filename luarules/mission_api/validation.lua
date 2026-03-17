@@ -702,6 +702,7 @@ end
 
 local function validateFeatureNameReferences(triggerTypes, actionTypes, triggers, actions, featureLoadout)
 	local triggerTypesReferencingFeatureNames = {
+		[triggerTypes.UnitResurrected]  = true,
 		[triggerTypes.FeatureCreated]   = true,
 		[triggerTypes.FeatureReclaimed] = true,
 		[triggerTypes.FeatureDestroyed] = true,

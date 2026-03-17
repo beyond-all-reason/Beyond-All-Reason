@@ -38,7 +38,7 @@ local triggers = {
 			featureDefName = 'rocks30_def_01',
 			area = { x1 = 1600, z1 = 1500, x2 = 2200, z2 = 2100 },
 		},
-		actions = { 'messageRocksCreated', 'orderReclaimerReclaimRock' },
+		actions = { 'messageRocksCreated' },
 	},
 
 	rockReclaimed = {
