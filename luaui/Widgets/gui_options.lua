@@ -6382,14 +6382,14 @@ function init()
 		--	options[id].onchange(id, options[id].value)
 		--end
 
-		if Spring.GetConfigInt("Water", 0) ~= 4 then
-			Spring.SendCommands("water 4")
-			Spring.SetConfigInt("Water", 4)
-		end
-
 		if not devMode and not devUI then
 			options[getOptionByID('cusgl4')] = nil
 			options[getOptionByID('water')] = nil
+		else
+			if Spring.GetConfigInt("Water", 0) ~= 4 then
+				Spring.SendCommands("water 4")
+				Spring.SetConfigInt("Water", 4)
+			end
 		end
 	end
 
