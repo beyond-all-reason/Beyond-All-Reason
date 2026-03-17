@@ -103,6 +103,7 @@ local parameters = {
 			required = false,
 			type = Types.TeamID
 		},
+		requiresOneOf = { 'unitName', 'unitDefName' }
 	},
 	[triggerTypes.UnitKilled] = {
 		[1] = {
@@ -120,6 +121,7 @@ local parameters = {
 			required = false,
 			type = Types.TeamID
 		},
+		requiresOneOf = { 'unitName', 'unitDefName' }
 	},
 	[triggerTypes.UnitCaptured] = {
 		[1] = {
@@ -142,23 +144,25 @@ local parameters = {
 			required = false,
 			type = Types.TeamID
 		},
+		requiresOneOf = { 'unitName', 'unitDefName' }
 	},
 	[triggerTypes.UnitResurrected] = {
 		[1] = {
-			name = 'featureName',
-			required = false,
-			type = Types.String,
-		},
-		[2] = {
 			name = 'unitDefName',
 			required = false,
 			type = Types.UnitDefName
 		},
-		[3] = {
+		[2] = {
 			name = 'teamID',
 			required = false,
 			type = Types.TeamID
 		},
+		[3] = {
+			name = 'featureName',
+			required = false,
+			type = Types.String,
+		},
+		requiresOneOf = { 'featureName', 'unitDefName' }
 	},
 	[triggerTypes.UnitEnteredLocation] = {
 		[1] = {
@@ -175,15 +179,16 @@ local parameters = {
 			type = Types.String
 		},
 		[3] = {
-			name = 'teamID',
-			required = false,
-			type = Types.TeamID
-		},
-		[4] = {
 			name = 'unitDefName',
 			required = false,
 			type = Types.UnitDefName
 		},
+		[4] = {
+			name = 'teamID',
+			required = false,
+			type = Types.TeamID
+		},
+		requiresOneOf = { 'unitName', 'unitDefName' },
 		provides = { 'positionEntered' },
 	},
 	[triggerTypes.UnitLeftLocation] = {
@@ -201,15 +206,16 @@ local parameters = {
 			type = Types.String
 		},
 		[3] = {
-			name = 'teamID',
-			required = false,
-			type = Types.TeamID
-		},
-		[4] = {
 			name = 'unitDefName',
 			required = false,
 			type = Types.UnitDefName
 		},
+		[4] = {
+			name = 'teamID',
+			required = false,
+			type = Types.TeamID
+		},
+		requiresOneOf = { 'unitName', 'unitDefName' },
 		provides = { 'positionLeft' },
 	},
 	[triggerTypes.UnitDwellLocation] = {
@@ -233,15 +239,16 @@ local parameters = {
 			type = Types.String
 		},
 		[4] = {
-			name = 'teamID',
-			required = false,
-			type = Types.TeamID
-		},
-		[5] = {
 			name = 'unitDefName',
 			required = false,
 			type = Types.UnitDefName
 		},
+		[5] = {
+			name = 'teamID',
+			required = false,
+			type = Types.TeamID
+		},
+		requiresOneOf = { 'unitName', 'unitDefName' }
 	},
 	[triggerTypes.UnitSpotted] = {
 		[1] = {
@@ -250,22 +257,21 @@ local parameters = {
 			type = Types.String
 		},
 		[2] = {
-			-- team owning the unit
-			name = 'teamID',
-			required = false,
-			type = Types.TeamID
-		},
-		[3] = {
-			-- ally team spotting the unit
-			name = 'allyTeamID',
-			required = false,
-			type = Types.AllyTeamID
-		},
-		[4] = {
 			name = 'unitDefName',
 			required = false,
 			type = Types.UnitDefName
 		},
+		[3] = {
+			name = 'owningTeamID',
+			required = false,
+			type = Types.TeamID
+		},
+		[4] = {
+			name = 'spottingAllyTeamID',
+			required = false,
+			type = Types.AllyTeamID
+		},
+		requiresOneOf = { 'unitName', 'unitDefName' }
 	},
 	[triggerTypes.UnitUnspotted] = {
 		[1] = {
@@ -274,33 +280,32 @@ local parameters = {
 			type = Types.String
 		},
 		[2] = {
-			-- team owning the unit
-			name = 'teamID',
+			name = 'unitDefName',
+			required = false,
+			type = Types.UnitDefName
+		},
+		[3] = {
+			name = 'owningTeamID',
 			required = false,
 			type = Types.TeamID
 		},
-		[3] = {
-			-- ally team un-spotting the unit
-			name = 'allyTeamID',
+		[4] = {
+			name = 'spottingAllyTeamID',
 			required = false,
 			type = Types.AllyTeamID
 		},
-		[4] = {
-			name = 'unitDefName',
-			required = false,
-			type = Types.UnitDefName
-		},
+		requiresOneOf = { 'unitName', 'unitDefName' }
 	},
 	[triggerTypes.ConstructionStarted] = {
 		[1] = {
+			name = 'unitDefName',
+			required = true,
+			type = Types.UnitDefName
+		},
+		[2] = {
 			name = 'teamID',
 			required = false,
 			type = Types.TeamID
-		},
-		[2] = {
-			name = 'unitDefName',
-			required = false,
-			type = Types.UnitDefName
 		},
 	 },
 	[triggerTypes.ConstructionFinished] = {
@@ -310,14 +315,14 @@ local parameters = {
 			type = Types.String
 		},
 		[2] = {
-			name = 'teamID',
-			required = false,
-			type = Types.TeamID
-		},
-		[3] = {
 			name = 'unitDefName',
 			required = false,
 			type = Types.UnitDefName
+		},
+		[3] = {
+			name = 'teamID',
+			required = false,
+			type = Types.TeamID
 		},
 	 },
 
