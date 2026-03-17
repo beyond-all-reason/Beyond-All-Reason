@@ -2,20 +2,10 @@
 --- Utility module for tracking unit/feature names and IDs.
 ---
 
-local trackedUnitIDs, trackedUnitNames
-local trackedFeatureIDs, trackedFeatureNames
-
-local function initializeTracking()
-	trackedUnitIDs      = GG['MissionAPI'].trackedUnitIDs
-	trackedUnitNames    = GG['MissionAPI'].trackedUnitNames
-	trackedFeatureIDs   = GG['MissionAPI'].trackedFeatureIDs
-	trackedFeatureNames = GG['MissionAPI'].trackedFeatureNames
-end
-
-
-----------------------------------------------------------------
---- Unit tracking:
-----------------------------------------------------------------
+local trackedUnitIDs = GG['MissionAPI'].trackedUnitIDs
+local trackedUnitNames = GG['MissionAPI'].trackedUnitNames
+local trackedFeatureIDs   = GG['MissionAPI'].trackedFeatureIDs
+local trackedFeatureNames = GG['MissionAPI'].trackedFeatureNames
 
 local function trackUnit(name, unitID)
 	if not name or not unitID then
