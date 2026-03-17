@@ -1,9 +1,5 @@
 local gadget = gadget ---@type Gadget
 
-local tracking = VFS.Include('luarules/mission_api/tracking.lua')
-local doesUnitHaveName = tracking.DoesUnitHaveName
-local untrackUnitID = tracking.UntrackUnitID
-
 function gadget:GetInfo()
 	return {
 		name = "Mission API triggers",
@@ -17,8 +13,6 @@ end
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
-
-local unitLocationCheckInterval = 15
 
 local actionsDispatcher
 local types, triggers
@@ -158,16 +152,6 @@ local function checkUnitCaptured(trigger, unitID, unitDefID, oldTeam, newTeam)
 end
 
 local function checkUnitResurrected(trigger, unitDefID, unitTeam, builderID)
-	-- same res check as in https://github.com/beyond-all-reason/Beyond-All-Reason/blob/ff188bda741e1320d4f52e89f1098f55bc1d56e2/luarules/gadgets/unit_resurrected.lua#L63
-	if not builderID then
-		return
-	end
-
-	if Spring.GetUnitWorkerTask(builderID) ~= CMD.RESURRECT then
-		return
-	end
-
-local function checkUnitResurrected(trigger, unitDefID, unitTeam, builderID)
 	if not builderID then
 		return
 	end
@@ -201,7 +185,8 @@ local function checkUnitEnteredLocation(trigger, triggerID)
 	previousUnitsInAreas[triggerID] = unitsInArea
 
 	for _, unitID in ipairs(unitsEnteredArea) do
-		activateTrigger(trigger)
+		local x, y, z = Spring.GetUnitBasePosition(unitID)
+		activateTrigger(trigger, { positionEntered = { x = x, y = y, z = z }})
 	end
 end
 
@@ -216,7 +201,8 @@ local function checkUnitLeftLocation(trigger, triggerID)
 	previousUnitsInAreas[triggerID] = unitsInArea
 
 	for _, unitID in ipairs(unitsLeftArea) do
-		activateTrigger(trigger)
+		local x, y, z = Spring.GetUnitBasePosition(unitID)
+		activateTrigger(trigger, { positionLeft = { x = x, y = y, z = z }})
 	end
 end
 
