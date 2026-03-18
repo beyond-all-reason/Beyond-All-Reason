@@ -1767,7 +1767,7 @@ function WeaponDef_Post(name, wDef)
 		isXmas = Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"]
 	end
 
-	wDef.customparams = wDef.customparams or {}
+	local customparams = table.subtable(uDef, "customparams")
 
 	if not SaveDefsToCustomParams then
 		-------------- EXPERIMENTAL MODOPTIONS
@@ -1878,8 +1878,7 @@ function WeaponDef_Post(name, wDef)
 
 		-- allows unblocked weapons' aoe to reach inside shields
 		if ((not wDef.interceptedbyshieldtype or wDef.interceptedbyshieldtype ~= 1) and wDef.weapontype ~= "Cannon") then
-			wDef.customparams = wDef.customparams or {}
-			wDef.customparams.shield_aoe_penetration = true
+			customparams.shield_aoe_penetration = true
 		end
 
 		-- Due to the engine not handling overkill damage, we have to store the original shield damage values as a customParam for unit_shield_behavior.lua to reference
@@ -1890,19 +1889,18 @@ function WeaponDef_Post(name, wDef)
 			local vtolShieldDamageMultiplier = 0
 
 			if not bounceShields then --this is for the block-style shields gadget to use.
-				wDef.customparams = wDef.customparams or {}
 				if wDef.damage.shields then
-					wDef.customparams.shield_damage = wDef.damage.shields
+					customparams.shield_damage = wDef.damage.shields
 				elseif wDef.damage.default then
-					wDef.customparams.shield_damage = wDef.damage.default
+					customparams.shield_damage = wDef.damage.default
 				elseif wDef.damage.vtol then
-					wDef.customparams.shield_damage = wDef.damage.vtol * vtolShieldDamageMultiplier
+					customparams.shield_damage = wDef.damage.vtol * vtolShieldDamageMultiplier
 				else
-					wDef.customparams.shield_damage = 0
+					customparams.shield_damage = 0
 				end
 
 				if wDef.paralyzer then
-					wDef.customparams.shield_damage = wDef.customparams.shield_damage * paralyzerShieldDamageMultiplier
+					customparams.shield_damage = customparams.shield_damage * paralyzerShieldDamageMultiplier
 				end
 
 				-- Set damage to 0 so projectiles always collide with shield. Without this, if damage > shield charge then it passes through.
@@ -1912,7 +1910,7 @@ function WeaponDef_Post(name, wDef)
 				if wDef.beamtime and wDef.beamtime > 1 / Game.gameSpeed then
 					-- This splits up the damage of hitscan weapons over the duration of beamtime, as each frame counts as a hit in ShieldPreDamaged() callin
 					-- Math.floor is used to sheer off the extra digits of the number of frames that the hits occur
-					wDef.customparams.beamtime_damage_reduction_multiplier = 1 / math.floor(wDef.beamtime * Game.gameSpeed)
+					customparams.beamtime_damage_reduction_multiplier = 1 / math.floor(wDef.beamtime * Game.gameSpeed)
 				end
 			end
 		end
@@ -1948,7 +1946,7 @@ function WeaponDef_Post(name, wDef)
 		-- Prevent weapons from aiming only at auto-generated targets beyond their own range.
 		if wDef.proximitypriority then
 			local range = math.max(wDef.range or 10, 1) -- prevent div0 -- todo: account for multiplier_weaponrange
-			local rangeBoost = math.max(range + ((wDef.customparams.exclude_preaim and 0) or (wDef.customparams.preaim_range or math.max(range * 0.1, 20))), range) -- see unit_preaim
+			local rangeBoost = math.max(range + ((customparams.exclude_preaim and 0) or (customparams.preaim_range or math.max(range * 0.1, 20))), range) -- see unit_preaim
 			local proximity = math.max(wDef.proximitypriority, (-0.4 * rangeBoost - 100) / range) -- see CGameHelper::GenerateWeaponTargets
 			wDef.proximitypriority = math.clamp(proximity, -1, 10) -- upper range allowed for targeting weapons for drone bombers which can overrange massively
 		end
@@ -1978,32 +1976,32 @@ function WeaponDef_Post(name, wDef)
 		end
 
 		-- prepared to strip these customparams for when we remove old deferred lighting widgets
-		--if wDef.customparams then
-		--	wDef.customparams.expl_light_opacity = nil
-		--	wDef.customparams.expl_light_heat_radius = nil
-		--	wDef.customparams.expl_light_radius = nil
-		--	wDef.customparams.expl_light_color = nil
-		--	wDef.customparams.expl_light_nuke = nil
-		--	wDef.customparams.expl_light_skip = nil
-		--	wDef.customparams.expl_light_heat_life_mult = nil
-		--	wDef.customparams.expl_light_heat_radius_mult = nil
-		--	wDef.customparams.expl_light_heat_strength_mult = nil
-		--	wDef.customparams.expl_light_life = nil
-		--	wDef.customparams.expl_light_life_mult = nil
-		--	wDef.customparams.expl_noheatdistortion = nil
-		--	wDef.customparams.light_skip = nil
-		--	wDef.customparams.light_fade_time = nil
-		--	wDef.customparams.light_fade_offset = nil
-		--	wDef.customparams.light_beam_mult = nil
-		--	wDef.customparams.light_beam_start = nil
-		--	wDef.customparams.light_beam_mult_frames = nil
-		--	wDef.customparams.light_camera_height = nil
-		--	wDef.customparams.light_ground_height = nil
-		--	wDef.customparams.light_color = nil
-		--	wDef.customparams.light_radius = nil
-		--	wDef.customparams.light_radius_mult = nil
-		--	wDef.customparams.light_mult = nil
-		--	wDef.customparams.fake_Weapon = nil
+		--if customparams then
+		--	customparams.expl_light_opacity = nil
+		--	customparams.expl_light_heat_radius = nil
+		--	customparams.expl_light_radius = nil
+		--	customparams.expl_light_color = nil
+		--	customparams.expl_light_nuke = nil
+		--	customparams.expl_light_skip = nil
+		--	customparams.expl_light_heat_life_mult = nil
+		--	customparams.expl_light_heat_radius_mult = nil
+		--	customparams.expl_light_heat_strength_mult = nil
+		--	customparams.expl_light_life = nil
+		--	customparams.expl_light_life_mult = nil
+		--	customparams.expl_noheatdistortion = nil
+		--	customparams.light_skip = nil
+		--	customparams.light_fade_time = nil
+		--	customparams.light_fade_offset = nil
+		--	customparams.light_beam_mult = nil
+		--	customparams.light_beam_start = nil
+		--	customparams.light_beam_mult_frames = nil
+		--	customparams.light_camera_height = nil
+		--	customparams.light_ground_height = nil
+		--	customparams.light_color = nil
+		--	customparams.light_radius = nil
+		--	customparams.light_radius_mult = nil
+		--	customparams.light_mult = nil
+		--	customparams.fake_Weapon = nil
 		--end
 
 		if wDef.damage ~= nil then
@@ -2055,11 +2053,11 @@ function WeaponDef_Post(name, wDef)
 		if wDef.weapontype == "StarburstLauncher" and wDef.weapontimer then
 			wDef.weapontimer = wDef.weapontimer + (wDef.weapontimer * ((rangeMult - 1) * 0.4))
 		end
-		if wDef.customparams.overrange_distance then
-			wDef.customparams.overrange_distance = wDef.customparams.overrange_distance * rangeMult
+		if customparams.overrange_distance then
+			customparams.overrange_distance = customparams.overrange_distance * rangeMult
 		end
-		if wDef.customparams.preaim_range then
-			wDef.customparams.preaim_range = wDef.customparams.preaim_range * rangeMult
+		if customparams.preaim_range then
+			customparams.preaim_range = customparams.preaim_range * rangeMult
 		end
 	end
 
