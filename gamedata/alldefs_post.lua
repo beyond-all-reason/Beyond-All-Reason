@@ -312,12 +312,10 @@ function UnitDef_Post(name, uDef)
 	end
 
 	if modOptions.unit_restrictions_nonukes then
-		if uDef.weapondefs then
-			for _, weapon in pairs(uDef.weapondefs) do
-				if (weapon.interceptor and weapon.interceptor == 1) or (weapon.targetable and weapon.targetable == 1) then
-					customparams.modoption_blocked = true
-					break
-				end
+		for _, weapon in pairs(weapondefs) do
+			if (weapon.interceptor and weapon.interceptor == 1) or (weapon.targetable and weapon.targetable == 1) then
+				customparams.modoption_blocked = true
+				break
 			end
 		end
 	end
@@ -350,13 +348,13 @@ function UnitDef_Post(name, uDef)
 	end
 
 	if modOptions.unit_restrictions_noantinuke then
-		if uDef.weapondefs then
+		if next(weapondefs) then
 			local numWeapons = 0
 			local newWdefs = {}
 			local hasAnti = false
-			for i, weapon in pairs(uDef.weapondefs) do
+			for i, weapon in pairs(weapondefs) do
 				if weapon.interceptor and weapon.interceptor == 1 then
-					uDef.weapondefs[i] = nil
+					weapondefs[i] = nil
 					hasAnti = true
 				else
 					numWeapons = numWeapons + 1
@@ -1032,8 +1030,8 @@ function UnitDef_Post(name, uDef)
 	categories["ALL"] = function() return true end
 	categories["MOBILE"] = function(uDef) return uDef.speed and uDef.speed > 0 end
 	categories["NOTMOBILE"] = function(uDef) return not categories.MOBILE(uDef) end
-	categories["WEAPON"] = function(uDef) return uDef.weapondefs end
-	categories["NOWEAPON"] = function(uDef) return not uDef.weapondefs end
+	categories["WEAPON"] = function(uDef) return next(uDef.weapondefs) ~= nil end
+	categories["NOWEAPON"] = function(uDef) return next(uDef.weapondefs) == nil end
 	categories["VTOL"] = function(uDef) return uDef.canfly == true end
 	categories["NOTAIR"] = function(uDef) return not categories.VTOL(uDef) end
 	categories["HOVER"] = function(uDef) return hoverList[uDef.movementclass] and (uDef.maxwaterdepth == nil or uDef.maxwaterdepth < 1) end -- convertible tank/boats have maxwaterdepth
@@ -1044,7 +1042,7 @@ function UnitDef_Post(name, uDef)
 	categories["CANBEUW"] = function(uDef) return amphibList[uDef.movementclass] or uDef.cansubmerge == true end
 	categories["UNDERWATER"] = function(uDef) return (uDef.minwaterdepth and uDef.waterline == nil) or (uDef.minwaterdepth and uDef.waterline > uDef.minwaterdepth and uDef.speed and uDef.speed > 0) end
 	categories["SURFACE"] = function(uDef) return not (categories.UNDERWATER(uDef) and categories.MOBILE(uDef)) and not categories.VTOL(uDef) end
-	categories["MINE"] = function(uDef) return uDef.weapondefs and uDef.weapondefs.minerange end
+	categories["MINE"] = function(uDef) return uDef.weapondefs.minerange end
 	categories["COMMANDER"] = function(uDef) return commanderList[uDef.movementclass] end
 	categories["EMPABLE"] = function(uDef) return categories.SURFACE(uDef) and uDef.customparams.paralyzemultiplier ~= 0 end
 
@@ -1094,15 +1092,15 @@ function UnitDef_Post(name, uDef)
 			uDef.metalcost = 500
 			uDef.energycost = 12000
 			uDef.buildtime = 15000
-			uDef.weapondefs.juno_pulse.energypershot = 7000
-			uDef.weapondefs.juno_pulse.metalpershot = 100
+			weapondefs.juno_pulse.energypershot = 7000
+			weapondefs.juno_pulse.metalpershot = 100
 		end
 		if name == "corjuno" then
 			uDef.metalcost = 500
 			uDef.energycost = 12000
 			uDef.buildtime = 15000
-			uDef.weapondefs.juno_pulse.energypershot = 7000
-			uDef.weapondefs.juno_pulse.metalpershot = 100
+			weapondefs.juno_pulse.energypershot = 7000
+			weapondefs.juno_pulse.metalpershot = 100
 		end
 	end
 
@@ -1110,85 +1108,85 @@ function UnitDef_Post(name, uDef)
 	--- EMP rework
 	if modOptions.emprework == true then
 		if name == "armstil" then
-			uDef.weapondefs.stiletto_bomb.areaofeffect = 250
-			uDef.weapondefs.stiletto_bomb.burst = 3
-			uDef.weapondefs.stiletto_bomb.burstrate = 0.3333
-			uDef.weapondefs.stiletto_bomb.edgeeffectiveness = 0.30
-			uDef.weapondefs.stiletto_bomb.damage.default = 3000
-			uDef.weapondefs.stiletto_bomb.paralyzetime = 1
+			weapondefs.stiletto_bomb.areaofeffect = 250
+			weapondefs.stiletto_bomb.burst = 3
+			weapondefs.stiletto_bomb.burstrate = 0.3333
+			weapondefs.stiletto_bomb.edgeeffectiveness = 0.30
+			weapondefs.stiletto_bomb.damage.default = 3000
+			weapondefs.stiletto_bomb.paralyzetime = 1
 		end
 
 		if name == "armspid" then
-			uDef.weapondefs.spider.paralyzetime = 2
-			uDef.weapondefs.spider.damage.vtol = 100
-			uDef.weapondefs.spider.damage.default = 600
-			uDef.weapondefs.spider.reloadtime = 1.495
+			weapondefs.spider.paralyzetime = 2
+			weapondefs.spider.damage.vtol = 100
+			weapondefs.spider.damage.default = 600
+			weapondefs.spider.reloadtime = 1.495
 		end
 
 		if name == "armdfly" then
-			uDef.weapondefs.armdfly_paralyzer.paralyzetime = 1
-			uDef.weapondefs.armdfly_paralyzer.beamdecay = 0.05--testing
-			uDef.weapondefs.armdfly_paralyzer.beamtime = 0.1--testing
-			uDef.weapondefs.armdfly_paralyzer.areaofeffect = 8--testing
-			uDef.weapondefs.armdfly_paralyzer.targetmoveerror = 0.05--testing
+			weapondefs.armdfly_paralyzer.paralyzetime = 1
+			weapondefs.armdfly_paralyzer.beamdecay = 0.05--testing
+			weapondefs.armdfly_paralyzer.beamtime = 0.1--testing
+			weapondefs.armdfly_paralyzer.areaofeffect = 8--testing
+			weapondefs.armdfly_paralyzer.targetmoveerror = 0.05--testing
 
 
 
 
 			--mono beam settings
-			--uDef.weapondefs.armdfly_paralyzer.reloadtime = 0.05--testing
-			--uDef.weapondefs.armdfly_paralyzer.damage.default = 150--testing (~2800/s for parity with live)
-			--uDef.weapondefs.armdfly_paralyzer.beamdecay = 0.95
-			--uDef.weapondefs.armdfly_paralyzer.duration = 200--should be unused?
-			--uDef.weapondefs.armdfly_paralyzer.beamttl = 2--frames visible.just leads to laggy ghosting if raised too high.
+			--weapondefs.armdfly_paralyzer.reloadtime = 0.05--testing
+			--weapondefs.armdfly_paralyzer.damage.default = 150--testing (~2800/s for parity with live)
+			--weapondefs.armdfly_paralyzer.beamdecay = 0.95
+			--weapondefs.armdfly_paralyzer.duration = 200--should be unused?
+			--weapondefs.armdfly_paralyzer.beamttl = 2--frames visible.just leads to laggy ghosting if raised too high.
 
 			--burst testing within monobeam
-			--uDef.weapondefs.armdfly_paralyzer.damage.default = 125
-			--uDef.weapondefs.armdfly_paralyzer.reloadtime = 1--testing
-			--uDef.weapondefs.armdfly_paralyzer.beamttl = 3--frames visible.just leads to laggy ghosting if raised too high.
-			--uDef.weapondefs.armdfly_paralyzer.beamBurst = true--testing
-			--uDef.weapondefs.armdfly_paralyzer.burst = 10--testing
-			--uDef.weapondefs.armdfly_paralyzer.burstRate = 0.1--testing
+			--weapondefs.armdfly_paralyzer.damage.default = 125
+			--weapondefs.armdfly_paralyzer.reloadtime = 1--testing
+			--weapondefs.armdfly_paralyzer.beamttl = 3--frames visible.just leads to laggy ghosting if raised too high.
+			--weapondefs.armdfly_paralyzer.beamBurst = true--testing
+			--weapondefs.armdfly_paralyzer.burst = 10--testing
+			--weapondefs.armdfly_paralyzer.burstRate = 0.1--testing
 
 		end
 
 		if name == "armemp" then
-			uDef.weapondefs.armemp_weapon.areaofeffect = 512
-			uDef.weapondefs.armemp_weapon.burstrate = 0.3333
-			uDef.weapondefs.armemp_weapon.edgeeffectiveness = -0.10
-			uDef.weapondefs.armemp_weapon.paralyzetime = 22
-			uDef.weapondefs.armemp_weapon.damage.default = 60000
+			weapondefs.armemp_weapon.areaofeffect = 512
+			weapondefs.armemp_weapon.burstrate = 0.3333
+			weapondefs.armemp_weapon.edgeeffectiveness = -0.10
+			weapondefs.armemp_weapon.paralyzetime = 22
+			weapondefs.armemp_weapon.damage.default = 60000
 
 		end
 		if name == "armshockwave" then
-			uDef.weapondefs.hllt_bottom.areaofeffect = 150
-			uDef.weapondefs.hllt_bottom.edgeeffectiveness = 0.15
-			uDef.weapondefs.hllt_bottom.reloadtime = 1.4
-			uDef.weapondefs.hllt_bottom.paralyzetime = 5
-			uDef.weapondefs.hllt_bottom.damage.default = 800
+			weapondefs.hllt_bottom.areaofeffect = 150
+			weapondefs.hllt_bottom.edgeeffectiveness = 0.15
+			weapondefs.hllt_bottom.reloadtime = 1.4
+			weapondefs.hllt_bottom.paralyzetime = 5
+			weapondefs.hllt_bottom.damage.default = 800
 		end
 
 		if name == "armthor" then
-			uDef.weapondefs.empmissile.areaofeffect = 250
-			uDef.weapondefs.empmissile.edgeeffectiveness = -0.50
-			uDef.weapondefs.empmissile.damage.default = 20000
-			uDef.weapondefs.empmissile.paralyzetime = 5
-			uDef.weapondefs.emp.damage.default = 200
-			uDef.weapondefs.emp.reloadtime = .5
-			uDef.weapondefs.emp.paralyzetime = 1
+			weapondefs.empmissile.areaofeffect = 250
+			weapondefs.empmissile.edgeeffectiveness = -0.50
+			weapondefs.empmissile.damage.default = 20000
+			weapondefs.empmissile.paralyzetime = 5
+			weapondefs.emp.damage.default = 200
+			weapondefs.emp.reloadtime = .5
+			weapondefs.emp.paralyzetime = 1
 		end
 
 		if name == "corbw" then
-			--uDef.weapondefs.bladewing_lyzer.burst = 4--shotgun mode, outdated but worth keeping
-			--uDef.weapondefs.bladewing_lyzer.reloadtime = 0.8
-			--uDef.weapondefs.bladewing_lyzer.beamburst = true
-			--uDef.weapondefs.bladewing_lyzer.sprayangle = 2100
-			--uDef.weapondefs.bladewing_lyzer.beamdecay = 0.5
-			--uDef.weapondefs.bladewing_lyzer.beamtime = 0.03
-			--uDef.weapondefs.bladewing_lyzer.beamttl = 0.4
+			--weapondefs.bladewing_lyzer.burst = 4--shotgun mode, outdated but worth keeping
+			--weapondefs.bladewing_lyzer.reloadtime = 0.8
+			--weapondefs.bladewing_lyzer.beamburst = true
+			--weapondefs.bladewing_lyzer.sprayangle = 2100
+			--weapondefs.bladewing_lyzer.beamdecay = 0.5
+			--weapondefs.bladewing_lyzer.beamtime = 0.03
+			--weapondefs.bladewing_lyzer.beamttl = 0.4
 
-			uDef.weapondefs.bladewing_lyzer.damage.default = 300
-			uDef.weapondefs.bladewing_lyzer.paralyzetime = 1
+			weapondefs.bladewing_lyzer.damage.default = 300
+			weapondefs.bladewing_lyzer.paralyzetime = 1
 		end
 
 
@@ -1332,20 +1330,20 @@ function UnitDef_Post(name, uDef)
 	--Lategame Rebalance
 	if modOptions.lategame_rebalance == true then
 		if name == "armamb" then
-			uDef.weapondefs.armamb_gun.reloadtime = 2
-			uDef.weapondefs.armamb_gun_high.reloadtime = 7.7
+			weapondefs.armamb_gun.reloadtime = 2
+			weapondefs.armamb_gun_high.reloadtime = 7.7
 		end
 		if name == "cortoast" then
-			uDef.weapondefs.cortoast_gun.reloadtime = 2.35
-			uDef.weapondefs.cortoast_gun_high.reloadtime = 8.8
+			weapondefs.cortoast_gun.reloadtime = 2.35
+			weapondefs.cortoast_gun_high.reloadtime = 8.8
 		end
 		if name == "armpb" then
-			uDef.weapondefs.armpb_weapon.reloadtime = 1.7
-			uDef.weapondefs.armpb_weapon.range = 700
+			weapondefs.armpb_weapon.reloadtime = 1.7
+			weapondefs.armpb_weapon.range = 700
 		end
 		if name == "corvipe" then
-			uDef.weapondefs.vipersabot.reloadtime = 2.1
-			uDef.weapondefs.vipersabot.range = 700
+			weapondefs.vipersabot.reloadtime = 2.1
+			weapondefs.vipersabot.range = 700
 		end
 		if name == "armanni" then
 			uDef.metalcost = 4000
@@ -1397,8 +1395,8 @@ function UnitDef_Post(name, uDef)
 			uDef.energycost = 26500
 			uDef.buildtime = 35000
 			uDef.speed = 50.8
-			uDef.weapondefs.shiva_rocket.tracks = true
-			uDef.weapondefs.shiva_rocket.turnrate = 7500
+			weapondefs.shiva_rocket.tracks = true
+			weapondefs.shiva_rocket.turnrate = 7500
 		end
 		if name == "corkarg" then
 			uDef.metalcost = 2625
@@ -1412,9 +1410,9 @@ function UnitDef_Post(name, uDef)
 		end
 		if name == "armstil" then
 			uDef.health = 1300
-			uDef.weapondefs.stiletto_bomb.burst = 3
-			uDef.weapondefs.stiletto_bomb.burstrate = 0.2333
-			uDef.weapondefs.stiletto_bomb.damage = {
+			weapondefs.stiletto_bomb.burst = 3
+			weapondefs.stiletto_bomb.burstrate = 0.2333
+			weapondefs.stiletto_bomb.damage = {
 				default = 3000
 			}
 		end
@@ -1425,30 +1423,30 @@ function UnitDef_Post(name, uDef)
 			uDef.health = 1800
 		end
 		if name == "armyork" then
-			uDef.weapondefs.mobileflak.reloadtime = 0.8333
+			weapondefs.mobileflak.reloadtime = 0.8333
 		end
 		if name == "corsent" then
-			uDef.weapondefs.mobileflak.reloadtime = 0.8333
+			weapondefs.mobileflak.reloadtime = 0.8333
 		end
 		if name == "armaas" then
-			uDef.weapondefs.mobileflak.reloadtime = 0.8333
+			weapondefs.mobileflak.reloadtime = 0.8333
 		end
 		if name == "corarch" then
-			uDef.weapondefs.mobileflak.reloadtime = 0.8333
+			weapondefs.mobileflak.reloadtime = 0.8333
 		end
 		if name == "armflak" then
-			uDef.weapondefs.armflak_gun.reloadtime = 0.6
+			weapondefs.armflak_gun.reloadtime = 0.6
 		end
 		if name == "corflak" then
-			uDef.weapondefs.armflak_gun.reloadtime = 0.6
+			weapondefs.armflak_gun.reloadtime = 0.6
 		end
 		if name == "armmercury" then
-			uDef.weapondefs.arm_advsam.reloadtime = 11
-			uDef.weapondefs.arm_advsam.stockpile = false
+			weapondefs.arm_advsam.reloadtime = 11
+			weapondefs.arm_advsam.stockpile = false
 		end
 		if name == "corscreamer" then
-			uDef.weapondefs.cor_advsam.reloadtime = 11
-			uDef.weapondefs.cor_advsam.stockpile = false
+			weapondefs.cor_advsam.reloadtime = 11
+			weapondefs.cor_advsam.stockpile = false
 		end
 		if name == "armfig" then
 			uDef.metalcost = 77
