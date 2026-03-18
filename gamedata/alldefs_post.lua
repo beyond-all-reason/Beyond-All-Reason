@@ -1805,18 +1805,18 @@ function WeaponDef_Post(name, wDef)
 				wDef.areaofeffect = 350
 				wDef.edgeeffectiveness = 0.6
 				wDef.paralyzetime = 12
-				wDef.damage.default = 50000
+				damage.default = 50000
 			end
 			if name == 'spybombx' then
 				wDef.areaofeffect = 350
 				wDef.edgeeffectiveness = 0.4
 				wDef.paralyzetime = 20
-				wDef.damage.default = 16000
+				damage.default = 16000
 			end
 			if name == 'spybombxscav' then
 				wDef.edgeeffectiveness = 0.50
 				wDef.paralyzetime = 12
-				wDef.damage.default = 35000
+				damage.default = 35000
 			end
 		end
 
@@ -1824,14 +1824,14 @@ function WeaponDef_Post(name, wDef)
 		--Air rework
 		if modOptions.air_rework == true then
 			if wDef.weapontype == "BeamLaser" then
-				wDef.damage.vtol = wDef.damage.default * 0.25
+				damage.vtol = damage.default * 0.25
 			end
 			if wDef.range == 300 and wDef.reloadtime == 0.4 then
 				--comm lasers
-				wDef.damage.vtol = wDef.damage.default
+				damage.vtol = damage.default
 			end
-			if wDef.weapontype == "Cannon" and wDef.damage.default ~= nil then
-				wDef.damage.vtol = wDef.damage.default * 0.35
+			if wDef.weapontype == "Cannon" and damage.default then
+				damage.vtol = damage.default * 0.35
 			end
 		end
 
@@ -1852,19 +1852,19 @@ function WeaponDef_Post(name, wDef)
 		local shieldModOption = modOptions.experimentalshields
 
 		if shieldModOption == "absorbplasma" then
-			if wDef.shield and wDef.shield.repulser and wDef.shield.repulser ~= false then
-				wDef.shield.repulser = false
+			if shield then
+				shield.repulser = false
 			end
 		elseif shieldModOption == "absorbeverything" then
-			if wDef.shield and wDef.shield.repulser and wDef.shield.repulser ~= false then
-				wDef.shield.repulser = false
+			if shield then
+				shield.repulser = false
 			end
 			if (not wDef.interceptedbyshieldtype) or wDef.interceptedbyshieldtype ~= 1 then
 				wDef.interceptedbyshieldtype = 1
 			end
 		elseif shieldModOption == "bounceeverything" then
-			if wDef.shield then
-				wDef.shield.repulser = true
+			if shield then
+				shield.repulser = true
 			end
 			if (not wDef.interceptedbyshieldtype) or wDef.interceptedbyshieldtype ~= 1 then
 				wDef.interceptedbyshieldtype = 1
@@ -1876,11 +1876,11 @@ function WeaponDef_Post(name, wDef)
 		if bounceShields then
 			local shieldPowerMultiplier = 0.529 --converts to pre-shield rework vanilla integration
 			local shieldRegenMultiplier = 0.4 --converts to pre-shield rework vanilla integration
-			if wDef.shield then
-				wDef.shield.power = wDef.shield.power * shieldPowerMultiplier
-				wDef.shield.powerregen = wDef.shield.powerregen * shieldRegenMultiplier
-				wDef.shield.startingpower = wDef.shield.startingpower * shieldPowerMultiplier
-				wDef.shield.repulser = true
+			if shield then
+				shield.power = shield.power * shieldPowerMultiplier
+				shield.powerregen = shield.powerregen * shieldRegenMultiplier
+				shield.startingpower = shield.startingpower * shieldPowerMultiplier
+				shield.repulser = true
 			end
 		end
 
@@ -1890,19 +1890,19 @@ function WeaponDef_Post(name, wDef)
 		end
 
 		-- Due to the engine not handling overkill damage, we have to store the original shield damage values as a customParam for unit_shield_behavior.lua to reference
-		if wDef.damage ~= nil then
+		if damage then
 			-- For balance, paralyzers need to do reduced damage to shields, as their raw raw damage is outsized
 			local paralyzerShieldDamageMultiplier = 0.25
 			-- VTOL's may or may not do full damage to shields if not defined in weapondefs
 			local vtolShieldDamageMultiplier = 0
 
 			if not bounceShields then --this is for the block-style shields gadget to use.
-				if wDef.damage.shields then
-					customparams.shield_damage = wDef.damage.shields
-				elseif wDef.damage.default then
-					customparams.shield_damage = wDef.damage.default
-				elseif wDef.damage.vtol then
-					customparams.shield_damage = wDef.damage.vtol * vtolShieldDamageMultiplier
+				if damage.shields then
+					customparams.shield_damage = damage.shields
+				elseif damage.default then
+					customparams.shield_damage = damage.default
+				elseif damage.vtol then
+					customparams.shield_damage = damage.vtol * vtolShieldDamageMultiplier
 				else
 					customparams.shield_damage = 0
 				end
@@ -1913,7 +1913,7 @@ function WeaponDef_Post(name, wDef)
 
 				-- Set damage to 0 so projectiles always collide with shield. Without this, if damage > shield charge then it passes through.
 				-- Applying damage is instead handled in unit_shield_behavior.lua
-				wDef.damage.shields = 0
+				damage.shields = 0
 
 				if wDef.beamtime and wDef.beamtime > 1 / Game.gameSpeed then
 					-- This splits up the damage of hitscan weapons over the duration of beamtime, as each frame counts as a hit in ShieldPreDamaged() callin
@@ -1924,19 +1924,19 @@ function WeaponDef_Post(name, wDef)
 		end
 
 		if modOptions.multiplier_shieldpower then
-			if wDef.shield then
+			if shield then
 				local multiplier = modOptions.multiplier_shieldpower
-				if wDef.shield.power then
-					wDef.shield.power = wDef.shield.power * multiplier
+				if shield.power then
+					shield.power = shield.power * multiplier
 				end
-				if wDef.shield.powerregen then
-					wDef.shield.powerregen = wDef.shield.powerregen * multiplier
+				if shield.powerregen then
+					shield.powerregen = shield.powerregen * multiplier
 				end
-				if wDef.shield.powerregenenergy then
-					wDef.shield.powerregenenergy = wDef.shield.powerregenenergy * multiplier
+				if shield.powerregenenergy then
+					shield.powerregenenergy = shield.powerregenenergy * multiplier
 				end
-				if wDef.shield.startingpower then
-					wDef.shield.startingpower = wDef.shield.startingpower * multiplier
+				if shield.startingpower then
+					shield.startingpower = shield.startingpower * multiplier
 				end
 			end
 		end
@@ -1971,8 +1971,8 @@ function WeaponDef_Post(name, wDef)
 
 			if wDef.stages == nil then
 				wDef.stages = 10
-				if wDef.damage ~= nil and wDef.damage.default ~= nil and wDef.areaofeffect ~= nil then
-					wDef.stages = math.floor(7.5 + math.min(wDef.damage.default * 0.0033, wDef.areaofeffect * 0.13))
+				if damage and damage.default and wDef.areaofeffect then
+					wDef.stages = math.floor(7.5 + math.min(damage.default * 0.0033, wDef.areaofeffect * 0.13))
 					wDef.alphadecay = 1 - ((1 / wDef.stages) / 1.5)
 					wDef.sizedecay = 0.4 / wDef.stages
 				end
@@ -2012,8 +2012,8 @@ function WeaponDef_Post(name, wDef)
 		--	customparams.fake_Weapon = nil
 		--end
 
-		if wDef.damage ~= nil then
-			wDef.damage.indestructable = 0
+		if damage then
+			damage.indestructable = 0
 		end
 
 		if wDef.weapontype == "BeamLaser" then
@@ -2072,20 +2072,20 @@ function WeaponDef_Post(name, wDef)
 	-- Weapon Damage
 	local damageMult = modOptions.multiplier_weapondamage
 	if damageMult ~= 1 then
-		if wDef.damage then
-			for damageClass, damageValue in pairs(wDef.damage) do
-				wDef.damage[damageClass] = wDef.damage[damageClass] * damageMult
+		if damage then
+			for damageClass, damageValue in pairs(damage) do
+				damage[damageClass] = damage[damageClass] * damageMult
 			end
 		end
 	end
 
 	-- ExplosionSpeed is calculated same way engine does it, and then doubled
 	-- Note that this modifier will only effect weapons fired from actual units, via super clever hax of using the weapon name as prefix
-	if wDef.damage and wDef.damage.default then
+	if damage and damage.default then
 		if string.find(name, '_', 1, true) then
 			local prefix = string.sub(name, 1, 3)
 			if prefix == 'arm' or prefix == 'cor' or prefix == 'leg' or prefix == 'rap' then
-				local globaldamage = math.max(30, wDef.damage.default / 20)
+				local globaldamage = math.max(30, damage.default / 20)
 				local defExpSpeed = (8 + (globaldamage * 2.5)) / (9 + (math.sqrt(globaldamage) * 0.70)) * 0.5
 				wDef.explosionSpeed = defExpSpeed * 2
 			end
