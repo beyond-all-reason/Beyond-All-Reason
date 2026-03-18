@@ -81,9 +81,6 @@ function UnitDef_Post(name, uDef)
 		modOptions = Spring.GetModOptions()
 	end
 
-	local isScav = string.sub(name, -5, -1) == "_scav"
-	local basename = isScav and string.sub(name, 1, -6) or name
-
 	-- Cache holiday checks for performance
 	if not holidays then
 		holidays = Spring.Utilities.Gametype.GetCurrentHolidays()
@@ -91,6 +88,14 @@ function UnitDef_Post(name, uDef)
 		isHalloween = holidays["halloween"]
 		isXmas = holidays["xmas"]
 	end
+
+	local customparams = table.subtable(uDef, "customparams")
+	local buildoptions = table.subtable(uDef, "buildoptions")
+	local weapondefs = table.subtable(uDef, "weapondefs")
+	local weapons = table.subtable(uDef, "weapons")
+
+	local isScav = string.sub(name, -5, -1) == "_scav"
+	local basename = isScav and string.sub(name, 1, -6) or name
 
 	if not uDef.icontype then
 		uDef.icontype = name
