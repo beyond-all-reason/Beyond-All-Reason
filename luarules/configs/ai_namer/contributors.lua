@@ -133,6 +133,7 @@ local ContributorAINames = {
     "Tharsy",
     "Tom Fyuri",
     "tovernaar123",
+    "uBdead",
     "Vache",
     "varunda",
     "verybadsoldier",

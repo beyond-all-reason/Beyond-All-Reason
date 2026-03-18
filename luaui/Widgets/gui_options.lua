@@ -3599,12 +3599,9 @@ function init()
 			end,
 		},
 
-		{ id = "minimap_maxheight", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.minimap') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.minimap_maxheight'), type = "slider", min = 0.2, max = 0.4, step = 0.01, value = 0.35, description = Spring.I18N('ui.settings.option.minimap_maxheight_descr'),
-		  onload = function(i)
-			  loadWidgetData("Minimap", "minimap_maxheight", { 'maxHeight' })
-		  end,
+		{ id = "minimap_maxheight", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.minimap') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.minimap_maxheight'), type = "slider", min = 0.2, max = 0.4, step = 0.01, value = Spring.GetConfigFloat("MinimapMaxHeight", 0.32), description = Spring.I18N('ui.settings.option.minimap_maxheight_descr'),
 		  onchange = function(i, value)
-			  saveOptionValue('Minimap', 'minimap', 'setMaxHeight', { 'maxHeight' }, value)
+			  Spring.SetConfigFloat("MinimapMaxHeight", value)
 		  end,
 		},
 		{ id = "minimapleftclick", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimapleftclick'), type = "bool", value = Spring.GetConfigInt("MinimapLeftClickMove", 1) == 1, description = Spring.I18N('ui.settings.option.minimapleftclick_descr'),
@@ -6385,14 +6382,14 @@ function init()
 		--	options[id].onchange(id, options[id].value)
 		--end
 
-		if Spring.GetConfigInt("Water", 0) ~= 4 then
-			Spring.SendCommands("water 4")
-			Spring.SetConfigInt("Water", 4)
-		end
-
 		if not devMode and not devUI then
 			options[getOptionByID('cusgl4')] = nil
 			options[getOptionByID('water')] = nil
+		else
+			if Spring.GetConfigInt("Water", 0) ~= 4 then
+				Spring.SendCommands("water 4")
+				Spring.SetConfigInt("Water", 4)
+			end
 		end
 	end
 

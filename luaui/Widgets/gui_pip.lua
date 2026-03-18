@@ -239,7 +239,7 @@ config = {
 	minimapMiddleClickZoomMax = 0.95,  -- auto zoom out to this zoom level
 	
 	-- Minimap mode settings (when pipNumber == 0)
-	minimapModeMaxHeight = 0.32,  -- Default max height (will be overridden by user's minimap config if available)
+	minimapModeMaxHeight = Spring.GetConfigFloat("MinimapMaxHeight", 0.32),  -- Shared with gui_minimap.lua via ConfigFloat
 	minimapModeMaxWidth = 0.26,   -- Max width as fraction of screen width
 	minimapModeScreenMargin = 0,  -- No margin in minimap mode (edge-to-edge)
 	minimapModeShowButtons = false,  -- Hide buttons in minimap mode
@@ -7021,6 +7021,7 @@ local function RegisterMinimapWGAPI()
 		return math.floor(config.minimapModeMaxHeight * render.vsy), config.minimapModeMaxHeight
 	end
 	WG['minimap'].setMaxHeight = function(value)
+		Spring.SetConfigFloat("MinimapMaxHeight", value)
 		config.minimapModeMaxHeight = value
 		widget:ViewResize()
 	end
@@ -8331,8 +8332,7 @@ function widget:GetConfigData()
 		tvEnabled=miscState.tvEnabled,
 		hideAICommands=config.hideAICommands,
 		gameID = Game.gameID or Spring.GetGameRulesParam("GameID"),
-		-- Minimap mode settings
-		minimapModeMaxHeight = config.minimapModeMaxHeight,
+		-- minimapModeMaxHeight now stored as ConfigFloat "MinimapMaxHeight"
 		-- leftButtonPansCamera now stored as Spring ConfigInt "MinimapLeftClickMove"
 		-- Minimap mode camera state (for luaui reload restoration)
 		minimapModeWcx = isMinimapMode and cameraState.wcx or nil,
@@ -8508,9 +8508,12 @@ function widget:SetConfigData(data)
 	end
 	--if data.unitpicZoomThreshold then config.unitpicZoomThreshold = data.unitpicZoomThreshold end
 	
-	-- Restore minimap mode settings
+	-- Migrate old minimapModeMaxHeight config data to ConfigFloat (one-time)
 	if data.minimapModeMaxHeight and type(data.minimapModeMaxHeight) == "number" and data.minimapModeMaxHeight > 0 and data.minimapModeMaxHeight <= 1 then
-		config.minimapModeMaxHeight = data.minimapModeMaxHeight
+		if Spring.GetConfigFloat("MinimapMaxHeight", -1) == -1 then
+			Spring.SetConfigFloat("MinimapMaxHeight", data.minimapModeMaxHeight)
+		end
+		config.minimapModeMaxHeight = Spring.GetConfigFloat("MinimapMaxHeight", 0.32)
 	end
 	-- leftButtonPansCamera now read from Spring ConfigInt "MinimapLeftClickMove"
 	if data.leftButtonPansCamera ~= nil and Spring.GetConfigInt("MinimapLeftClickMove", -1) == -1 then
@@ -15755,6 +15758,14 @@ function widget:Update(dt)
 			UpdateGuishaderBlur()
 		end
 		cache.guishaderWasActive = guishaderActive
+		-- Poll ConfigFloat for external changes (e.g. from gui_options)
+		if isMinimapMode then
+			local cfgMaxHeight = Spring.GetConfigFloat("MinimapMaxHeight", 0.32)
+			if cfgMaxHeight ~= config.minimapModeMaxHeight then
+				config.minimapModeMaxHeight = cfgMaxHeight
+				widget:ViewResize()
+			end
+		end
 	end
 
 	-- Skip ALL heavy processing when minimized and not animating.

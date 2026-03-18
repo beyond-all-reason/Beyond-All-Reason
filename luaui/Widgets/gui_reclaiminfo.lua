@@ -217,6 +217,8 @@ function widget:DrawScreen()
 		lastScanX, lastScanY = -1, -1
 		cachedMetal = -1
 		cachedEnergy = -1
+		metal = 0
+		energy = 0
 	end
 
 	-- Unit resource info when mouse on one
@@ -252,7 +254,5 @@ function widget:DrawScreen()
 			font:End()
 		end
 	end
-	metal = 0
-	energy = 0
 end
 

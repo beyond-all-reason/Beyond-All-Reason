@@ -28,7 +28,7 @@ local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
 
 
 local maxAllowedWidth = 0.26
-local maxAllowedHeight = 0.32
+local maxAllowedHeight = Spring.GetConfigFloat("MinimapMaxHeight", 0.32)
 local leftClickMove = Spring.GetConfigInt("MinimapLeftClickMove", 1) == 1
 
 local vsx, vsy, _, vpy = spGetViewGeometry()
@@ -161,6 +161,7 @@ function widget:Initialize()
 		return mathFloor(maxAllowedHeight * vsy), maxAllowedHeight
 	end
 	WG['minimap'].setMaxHeight = function(value)
+		Spring.SetConfigFloat("MinimapMaxHeight", value)
 		maxAllowedHeight = value
 		widget:ViewResize()
 	end
@@ -216,6 +217,13 @@ function widget:Update(dt)
 	sec2 = sec2 + dt
 	if sec2 <= 0.25 then return end
 	sec2 = 0
+
+	-- Poll ConfigFloat for external changes (e.g. from gui_options)
+	local cfgMaxHeight = Spring.GetConfigFloat("MinimapMaxHeight", 0.32)
+	if cfgMaxHeight ~= maxAllowedHeight then
+		maxAllowedHeight = cfgMaxHeight
+		widget:ViewResize()
+	end
 
 	if dualscreenMode then return end
 
@@ -325,14 +333,14 @@ function widget:DrawScreen()
 end
 
 function widget:GetConfigData()
-	return {
-		maxHeight = maxAllowedHeight,
-	}
+	return {}
 end
 
 function widget:SetConfigData(data)
-	if data.maxHeight ~= nil then
+	-- Migrate old maxHeight config data to ConfigFloat (one-time)
+	if data.maxHeight ~= nil and Spring.GetConfigFloat("MinimapMaxHeight", -1) == -1 then
 		maxAllowedHeight = data.maxHeight
+		Spring.SetConfigFloat("MinimapMaxHeight", data.maxHeight)
 	end
 	-- leftClickMove now stored as Spring ConfigInt "MinimapLeftClickMove"
 	if data.leftClickMove ~= nil and Spring.GetConfigInt("MinimapLeftClickMove", -1) == -1 then
