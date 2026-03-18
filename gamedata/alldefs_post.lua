@@ -59,16 +59,11 @@ local function round_to_frames(wd, key)
 end
 
 local function processWeapons(unitDefName, unitDef)
-	local weaponDefs = unitDef.weapondefs
-	if not weaponDefs then
-		return
-	end
-
-	for weaponDefName, weaponDef in pairs(weaponDefs) do
+	for weaponDefName, weaponDef in pairs(unitDef.weapondefs) do
 		weaponDef.reloadtime = round_to_frames(weaponDef, "reloadtime")
 		weaponDef.burstrate = round_to_frames(weaponDef, "burstrate")
 
-		if weaponDef.customparams and weaponDef.customparams.cluster_def then
+		if weaponDef.customparams.cluster_def then
 			weaponDef.customparams.cluster_def = unitDefName .. "_" .. weaponDef.customparams.cluster_def
 			weaponDef.customparams.cluster_number = weaponDef.customparams.cluster_number or 5
 		end
