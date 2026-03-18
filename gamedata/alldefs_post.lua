@@ -210,315 +210,312 @@ function UnitDef_Post(name, uDef)
 	end
 
 	-- Unit Restrictions
-	if uDef.customparams then
-		if not uDef.customparams.techlevel then
-			uDef.customparams.techlevel = 1
+	if not uDef.customparams.techlevel then
+		uDef.customparams.techlevel = 1
+	end
+	if not uDef.customparams.subfolder then
+		uDef.customparams.subfolder = "none"
+	end
+	if modOptions.unit_restrictions_notech2 then
+		if tonumber(uDef.customparams.techlevel) == 2 or tonumber(uDef.customparams.techlevel) == 3 then
+			uDef.customparams.modoption_blocked = true
 		end
-		if not uDef.customparams.subfolder then
-			uDef.customparams.subfolder = "none"
+	end
+
+	if modOptions.unit_restrictions_notech3 then
+		if tonumber(uDef.customparams.techlevel) == 3 then
+			uDef.customparams.modoption_blocked = true
 		end
-		if modOptions.unit_restrictions_notech2 then
-			if tonumber(uDef.customparams.techlevel) == 2 or tonumber(uDef.customparams.techlevel) == 3 then
-				uDef.customparams.modoption_blocked = true
-			end
+	end
+
+	if modOptions.unit_restrictions_notech15 then
+		-- Tech 1.5 is a semi offical thing, modoption ported from teiserver meme commands
+		local tech15 = {
+			corhp		= true,
+			corfhp		= true,
+			corplat		= true,
+			coramsub	= true,
+
+			armhp		= true,
+			armfhp		= true,
+			armplat		= true,
+			armamsub	= true,
+
+			leghp		= true,
+			legfhp		= true,
+			legplat		= true,
+			legamsub	= true,
+		}
+		if tech15[basename] then
+			uDef.customparams.modoption_blocked = true
 		end
+	end
 
-		if modOptions.unit_restrictions_notech3 then
-			if tonumber(uDef.customparams.techlevel) == 3 then
-				uDef.customparams.modoption_blocked = true
-			end
+	if modOptions.unit_restrictions_noair and not uDef.customparams.ignore_noair then
+		if string.find(uDef.customparams.subfolder, "Aircraft", 1, true) then
+			uDef.customparams.modoption_blocked = true
+		elseif uDef.customparams.unitgroup and uDef.customparams.unitgroup == "aa" then
+			uDef.customparams.modoption_blocked = true
+		elseif uDef.canfly then
+			uDef.customparams.modoption_blocked = true
+		elseif uDef.customparams.disable_when_no_air then --used to remove drone carriers with no other purpose (ex. leghive but not rampart)
+			uDef.customparams.modoption_blocked = true
 		end
+		local AircraftFactories = {
+			armap = true,
+			armaap = true,
+			armplat = true,
+			corap = true,
+			coraap = true,
+			corplat = true,
+			corapt3 = true,
+			legapt3 = true,
+			armapt3 = true,
+			legap = true,
+			legaap = true,
+			legsplab = true,
+			armap_scav = true,
+			armaap_scav = true,
+			armplat_scav = true,
+			corap_scav = true,
+			coraap_scav = true,
+			corplat_scav = true,
+			corapt3_scav = true,
+			legapt3_scav = true,
+			armapt3_scav = true,
+			legap_scav = true,
+			legaap_scav = true,
+			legsplab_scav = true,
 
-		if modOptions.unit_restrictions_notech15 then
-			-- Tech 1.5 is a semi offical thing, modoption ported from teiserver meme commands
-			local tech15 = {
-				corhp		= true,
-				corfhp		= true,
-				corplat		= true,
-				coramsub	= true,
-
-				armhp		= true,
-				armfhp		= true,
-				armplat		= true,
-				armamsub	= true,
-
-				leghp		= true,
-				legfhp		= true,
-				legplat		= true,
-				legamsub	= true,
-			}
-			if tech15[basename] then
-				uDef.customparams.modoption_blocked = true
-			end
+		}
+		if AircraftFactories[name] then
+			uDef.customparams.modoption_blocked = true
 		end
+	end
 
-		if modOptions.unit_restrictions_noair and not uDef.customparams.ignore_noair then
-			if string.find(uDef.customparams.subfolder, "Aircraft", 1, true) then
-				uDef.customparams.modoption_blocked = true
-			elseif uDef.customparams.unitgroup and uDef.customparams.unitgroup == "aa" then
-				uDef.customparams.modoption_blocked = true
-			elseif uDef.canfly then
-				uDef.customparams.modoption_blocked = true
-			elseif uDef.customparams.disable_when_no_air then --used to remove drone carriers with no other purpose (ex. leghive but not rampart)
-				uDef.customparams.modoption_blocked = true
-			end
-			local AircraftFactories = {
-				armap = true,
-				armaap = true,
-				armplat = true,
-				corap = true,
-				coraap = true,
-				corplat = true,
-				corapt3 = true,
-				legapt3 = true,
-				armapt3 = true,
-				legap = true,
-				legaap = true,
-				legsplab = true,
-				armap_scav = true,
-				armaap_scav = true,
-				armplat_scav = true,
-				corap_scav = true,
-				coraap_scav = true,
-				corplat_scav = true,
-				corapt3_scav = true,
-				legapt3_scav = true,
-				armapt3_scav = true,
-				legap_scav = true,
-				legaap_scav = true,
-				legsplab_scav = true,
-
-			}
-			if AircraftFactories[name] then
-				uDef.customparams.modoption_blocked = true
-			end
+	if modOptions.unit_restrictions_noextractors then
+		if (uDef.extractsmetal and uDef.extractsmetal > 0) and (uDef.customparams.metal_extractor and uDef.customparams.metal_extractor > 0) then
+			uDef.customparams.modoption_blocked = true
 		end
+	end
 
-		if modOptions.unit_restrictions_noextractors then
-			if (uDef.extractsmetal and uDef.extractsmetal > 0) and (uDef.customparams.metal_extractor and uDef.customparams.metal_extractor > 0) then
-				uDef.customparams.modoption_blocked = true
-			end
+	if modOptions.unit_restrictions_noconverters then
+		if uDef.customparams.energyconv_capacity and uDef.customparams.energyconv_efficiency then
+			uDef.customparams.modoption_blocked = true
 		end
+	end
 
-		if modOptions.unit_restrictions_noconverters then
-			if uDef.customparams.energyconv_capacity and uDef.customparams.energyconv_efficiency then
-				uDef.customparams.modoption_blocked = true
-			end
+	if modOptions.unit_restrictions_nofusion then
+		if basename == "armdf" or string.sub(basename, -3) == "fus" then
+			uDef.customparams.modoption_blocked = true
 		end
+	end
 
-		if modOptions.unit_restrictions_nofusion then
-			if basename == "armdf" or string.sub(basename, -3) == "fus" then
-				uDef.customparams.modoption_blocked = true
-			end
-		end
-
-		if modOptions.unit_restrictions_nonukes then
-			if uDef.weapondefs then
-				for _, weapon in pairs(uDef.weapondefs) do
-					if (weapon.interceptor and weapon.interceptor == 1) or (weapon.targetable and weapon.targetable == 1) then
-						uDef.customparams.modoption_blocked = true
-						break
-					end
-				end
-			end
-		end
-
-		if modOptions.unit_restrictions_nodefence then
-			local whitelist = {
-				armllt	= true,
-				armrl	= true,
-				armfrt	= true,
-				armtl	= true,
-
-				corllt	= true,
-				corrl	= true,
-				cortl	= true,
-				corfrt	= true,
-				legfrl	= true,
-
-				leglht	= true,
-				legrl	= true,
-				--sea tl= true,
-				--sea aa= true,
-			}
-			-- "defense" or "defence", as legion doesn't fully follow past conventions
-      
-			if not whitelist[name] then
-				local subfolder_lower = string.lower(uDef.customparams.subfolder)
-				if string.find(subfolder_lower, "defen", 1, true) then
+	if modOptions.unit_restrictions_nonukes then
+		if uDef.weapondefs then
+			for _, weapon in pairs(uDef.weapondefs) do
+				if (weapon.interceptor and weapon.interceptor == 1) or (weapon.targetable and weapon.targetable == 1) then
 					uDef.customparams.modoption_blocked = true
+					break
 				end
 			end
 		end
+	end
 
-		if modOptions.unit_restrictions_noantinuke then
-			if uDef.weapondefs then
-				local numWeapons = 0
-				local newWdefs = {}
-				local hasAnti = false
-				for i, weapon in pairs(uDef.weapondefs) do
-					if weapon.interceptor and weapon.interceptor == 1 then
-						uDef.weapondefs[i] = nil
-						hasAnti = true
-					else
-						numWeapons = numWeapons + 1
-						newWdefs[numWeapons] = weapon
-					end
-				end
-				if hasAnti then
-					uDef.weapondefs = newWdefs
-					if numWeapons == 0 and (not uDef.radardistance or uDef.radardistance < 1500) then
-						uDef.customparams.modoption_blocked = true
-					else
-						if uDef.metalcost then
-							uDef.metalcost = math.floor(uDef.metalcost * 0.6)	-- give a discount for removing anti-nuke
-							uDef.energycost = math.floor(uDef.energycost * 0.6)
-						end
-					end
-				end
+	if modOptions.unit_restrictions_nodefence then
+		local whitelist = {
+			armllt	= true,
+			armrl	= true,
+			armfrt	= true,
+			armtl	= true,
+
+			corllt	= true,
+			corrl	= true,
+			cortl	= true,
+			corfrt	= true,
+			legfrl	= true,
+
+			leglht	= true,
+			legrl	= true,
+			--sea tl= true,
+			--sea aa= true,
+		}
+		-- "defense" or "defence", as legion doesn't fully follow past conventions
+		if not whitelist[name] then
+			local subfolder_lower = string.lower(uDef.customparams.subfolder)
+			if string.find(subfolder_lower, "defen", 1, true) then
+				uDef.customparams.modoption_blocked = true
 			end
 		end
+	end
 
-		--normal commander respawning
-		if modOptions.comrespawn == "all" or (modOptions.comrespawn == "evocom" and modOptions.evocom)then
-			if name == "armcom" or name == "corcom" or name == "legcom" then
-				uDef.customparams.effigy = "comeffigylvl1"
-				uDef.customparams.effigy_offset = 1
-				uDef.customparams.respawn_condition = "health"
-				uDef.customparams.minimum_respawn_stun = 5
-				uDef.customparams.distance_stun_multiplier = 1
-				local numBuildoptions = #uDef.buildoptions
-				uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl1"
-			end
-		end
-
-
-		if modOptions.evocom then
-			if uDef.customparams.evocomlvl or name == "armcom" or name == "corcom" or name == "legcom" then
-				local comLevel = uDef.customparams.evocomlvl
-				if modOptions.comrespawn == "all" or modOptions.comrespawn == "evocom" then--add effigy respawning, if enabled
-					uDef.customparams.respawn_condition = "health"
-
-					local numBuildoptions = #uDef.buildoptions
-					if comLevel == 2 then
-						uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl1"
-					elseif comLevel == 3 or comLevel == 4 then
-						uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl2"
-					elseif comLevel == 5 or comLevel == 6 then
-						uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl3"
-					elseif comLevel == 7 or comLevel == 8 then
-						uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl4"
-					elseif comLevel == 9 or comLevel == 10 then
-						uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl5"
-					end
-				end
-				uDef.customparams.combatradius = 0
-				uDef.customparams.evolution_health_transfer = "percentage"
-
-				if uDef.power then
-					uDef.power = uDef.power/modOptions.evocomxpmultiplier
+	if modOptions.unit_restrictions_noantinuke then
+		if uDef.weapondefs then
+			local numWeapons = 0
+			local newWdefs = {}
+			local hasAnti = false
+			for i, weapon in pairs(uDef.weapondefs) do
+				if weapon.interceptor and weapon.interceptor == 1 then
+					uDef.weapondefs[i] = nil
+					hasAnti = true
 				else
-					uDef.power = ((uDef.metalcost+(uDef.energycost/60))/modOptions.evocomxpmultiplier)
+					numWeapons = numWeapons + 1
+					newWdefs[numWeapons] = weapon
 				end
-
-				if  name == "armcom" then
-					uDef.customparams.evolution_target = "armcomlvl2"
-					uDef.customparams.inheritxpratemultiplier = 0.5
-					uDef.customparams.childreninheritxp = "TURRET MOBILEBUILT"
-					uDef.customparams.parentsinheritxp = "TURRET MOBILEBUILT"
-					uDef.customparams.evocomlvl = 1
-					elseif name == "corcom" then
-					uDef.customparams.evolution_target = "corcomlvl2"
-					uDef.customparams.evocomlvl = 1
-					elseif name == "legcom" then
-					uDef.customparams.evolution_target = "legcomlvl2"
-					uDef.customparams.evocomlvl = 1
+			end
+			if hasAnti then
+				uDef.weapondefs = newWdefs
+				if numWeapons == 0 and (not uDef.radardistance or uDef.radardistance < 1500) then
+					uDef.customparams.modoption_blocked = true
+				else
+					if uDef.metalcost then
+						uDef.metalcost = math.floor(uDef.metalcost * 0.6)	-- give a discount for removing anti-nuke
+						uDef.energycost = math.floor(uDef.energycost * 0.6)
 					end
-
-				if modOptions.evocomlevelupmethod == "dynamic" then
-					uDef.customparams.evolution_condition = "power"
-					uDef.customparams.evolution_power_multiplier = 1			-- Scales the power calculated based on your own combined power.
-					local evolutionPowerThreshold = uDef.customparams.evolution_power_threshold or 10000 --sets threshold for level 1 commanders
-					uDef.customparams.evolution_power_threshold = evolutionPowerThreshold*modOptions.evocomlevelupmultiplier
-				elseif modOptions.evocomlevelupmethod == "timed" then
-					uDef.customparams.evolution_timer = modOptions.evocomleveluptime*60*uDef.customparams.evocomlvl
-					uDef.customparams.evolution_condition = "timer_global"
-				end
-
-				if comLevel and modOptions.evocomlevelcap <= comLevel then
-					uDef.customparams.evolution_health_transfer = nil
-					uDef.customparams.evolution_target = nil
-					uDef.customparams.evolution_condition = nil
-					uDef.customparams.evolution_timer = nil
-					uDef.customparams.evolution_power_threshold = nil
-					uDef.customparams.evolution_power_multiplier = nil
 				end
 			end
 		end
+	end
 
-		if uDef.customparams.evolution_target then
-			local udcp                            = uDef.customparams
-			udcp.combatradius                     = udcp.combatradius or 1000
-			udcp.evolution_announcement_size      = tonumber(udcp.evolution_announcement_size)
-			udcp.evolution_condition              = udcp.evolution_condition or "timer"
-			udcp.evolution_health_threshold       = tonumber(udcp.evolution_health_threshold) or 0
-			udcp.evolution_health_transfer        = udcp.evolution_health_transfer or "flat"
-			udcp.evolution_power_enemy_multiplier = tonumber(udcp.evolution_power_enemy_multiplier) or 1
-			udcp.evolution_power_multiplier       = tonumber(udcp.evolution_power_multiplier) or 1
-			udcp.evolution_power_threshold        = tonumber(udcp.evolution_power_threshold) or 600
-			udcp.evolution_timer                  = tonumber(udcp.evolution_timer) or 20
+	if modOptions.unit_restrictions_notacnukes then
+		local TacNukes = {
+			armemp = true,
+			cortron = true,
+			legperdition = true,
+			armemp_scav = true,
+			cortron_scav = true,
+		}
+		if TacNukes[name] then
+			uDef.customparams.modoption_blocked = true
 		end
+	end
 
-		if modOptions.unit_restrictions_notacnukes then
-			local TacNukes = {
-				armemp = true,
-				cortron = true,
-				legperdition = true,
-				armemp_scav = true,
-				cortron_scav = true,
-			}
-			if TacNukes[name] then
-				uDef.customparams.modoption_blocked = true
+	if modOptions.unit_restrictions_nolrpc then
+		local LRPCs = {
+			armbotrail = true,
+			armbrtha = true,
+			armvulc = true,
+			corint = true,
+			corbuzz = true,
+			leglrpc = true,
+			legelrpcmech = true,
+			legstarfall = true,
+			armbotrail_scav = true,
+			armbrtha_scav = true,
+			armvulc_scav = true,
+			corint_scav = true,
+			corbuzz_scav = true,
+			legstarfall_scav = true,
+			leglrpc_scav = true,
+			legelrpcmech_scav = true,
+		}
+		if LRPCs[name] then
+			uDef.customparams.modoption_blocked = true
+		end
+	end
+
+	if modOptions.unit_restrictions_noendgamelrpc then
+		local LRPCs = {
+			armvulc = true,
+			corbuzz = true,
+			legstarfall = true,
+			armvulc_scav = true,
+			corbuzz_scav = true,
+			legstarfall_scav = true,
+		}
+		if LRPCs[name] then
+			uDef.customparams.modoption_blocked = true
+		end
+	end
+
+	--normal commander respawning
+	if modOptions.comrespawn == "all" or (modOptions.comrespawn == "evocom" and modOptions.evocom)then
+		if name == "armcom" or name == "corcom" or name == "legcom" then
+			uDef.customparams.effigy = "comeffigylvl1"
+			uDef.customparams.effigy_offset = 1
+			uDef.customparams.respawn_condition = "health"
+			uDef.customparams.minimum_respawn_stun = 5
+			uDef.customparams.distance_stun_multiplier = 1
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl1"
+		end
+	end
+
+
+	if modOptions.evocom then
+		if uDef.customparams.evocomlvl or name == "armcom" or name == "corcom" or name == "legcom" then
+			local comLevel = uDef.customparams.evocomlvl
+			if modOptions.comrespawn == "all" or modOptions.comrespawn == "evocom" then--add effigy respawning, if enabled
+				uDef.customparams.respawn_condition = "health"
+
+				local numBuildoptions = #uDef.buildoptions
+				if comLevel == 2 then
+					uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl1"
+				elseif comLevel == 3 or comLevel == 4 then
+					uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl2"
+				elseif comLevel == 5 or comLevel == 6 then
+					uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl3"
+				elseif comLevel == 7 or comLevel == 8 then
+					uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl4"
+				elseif comLevel == 9 or comLevel == 10 then
+					uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl5"
+				end
+			end
+			uDef.customparams.combatradius = 0
+			uDef.customparams.evolution_health_transfer = "percentage"
+
+			if uDef.power then
+				uDef.power = uDef.power/modOptions.evocomxpmultiplier
+			else
+				uDef.power = ((uDef.metalcost+(uDef.energycost/60))/modOptions.evocomxpmultiplier)
+			end
+
+			if  name == "armcom" then
+				uDef.customparams.evolution_target = "armcomlvl2"
+				uDef.customparams.inheritxpratemultiplier = 0.5
+				uDef.customparams.childreninheritxp = "TURRET MOBILEBUILT"
+				uDef.customparams.parentsinheritxp = "TURRET MOBILEBUILT"
+				uDef.customparams.evocomlvl = 1
+				elseif name == "corcom" then
+				uDef.customparams.evolution_target = "corcomlvl2"
+				uDef.customparams.evocomlvl = 1
+				elseif name == "legcom" then
+				uDef.customparams.evolution_target = "legcomlvl2"
+				uDef.customparams.evocomlvl = 1
+				end
+
+			if modOptions.evocomlevelupmethod == "dynamic" then
+				uDef.customparams.evolution_condition = "power"
+				uDef.customparams.evolution_power_multiplier = 1			-- Scales the power calculated based on your own combined power.
+				local evolutionPowerThreshold = uDef.customparams.evolution_power_threshold or 10000 --sets threshold for level 1 commanders
+				uDef.customparams.evolution_power_threshold = evolutionPowerThreshold*modOptions.evocomlevelupmultiplier
+			elseif modOptions.evocomlevelupmethod == "timed" then
+				uDef.customparams.evolution_timer = modOptions.evocomleveluptime*60*uDef.customparams.evocomlvl
+				uDef.customparams.evolution_condition = "timer_global"
+			end
+
+			if comLevel and modOptions.evocomlevelcap <= comLevel then
+				uDef.customparams.evolution_health_transfer = nil
+				uDef.customparams.evolution_target = nil
+				uDef.customparams.evolution_condition = nil
+				uDef.customparams.evolution_timer = nil
+				uDef.customparams.evolution_power_threshold = nil
+				uDef.customparams.evolution_power_multiplier = nil
 			end
 		end
+	end
 
-		if modOptions.unit_restrictions_nolrpc then
-			local LRPCs = {
-				armbotrail = true,
-				armbrtha = true,
-				armvulc = true,
-				corint = true,
-				corbuzz = true,
-				leglrpc = true,
-				legelrpcmech = true,
-				legstarfall = true,
-				armbotrail_scav = true,
-				armbrtha_scav = true,
-				armvulc_scav = true,
-				corint_scav = true,
-				corbuzz_scav = true,
-				legstarfall_scav = true,
-				leglrpc_scav = true,
-				legelrpcmech_scav = true,
-			}
-			if LRPCs[name] then
-				uDef.customparams.modoption_blocked = true
-			end
-		end
-
-		if modOptions.unit_restrictions_noendgamelrpc then
-			local LRPCs = {
-				armvulc = true,
-				corbuzz = true,
-				legstarfall = true,
-				armvulc_scav = true,
-				corbuzz_scav = true,
-				legstarfall_scav = true,
-			}
-			if LRPCs[name] then
-				uDef.customparams.modoption_blocked = true
-			end
-		end
+	if uDef.customparams.evolution_target then
+		local udcp                            = uDef.customparams
+		udcp.combatradius                     = udcp.combatradius or 1000
+		udcp.evolution_announcement_size      = tonumber(udcp.evolution_announcement_size)
+		udcp.evolution_condition              = udcp.evolution_condition or "timer"
+		udcp.evolution_health_threshold       = tonumber(udcp.evolution_health_threshold) or 0
+		udcp.evolution_health_transfer        = udcp.evolution_health_transfer or "flat"
+		udcp.evolution_power_enemy_multiplier = tonumber(udcp.evolution_power_enemy_multiplier) or 1
+		udcp.evolution_power_multiplier       = tonumber(udcp.evolution_power_multiplier) or 1
+		udcp.evolution_power_threshold        = tonumber(udcp.evolution_power_threshold) or 600
+		udcp.evolution_timer                  = tonumber(udcp.evolution_timer) or 20
 	end
 
 	-- Tech Blocking System -------------------------------------------------------------------------------------------------------------------------
@@ -1688,7 +1685,7 @@ function UnitDef_Post(name, uDef)
 	-- bounce shields
 	if modOptions.experimentalshields == "bounceplasma" or modOptions.experimentalshields == "bounceeverything" then
 		local shieldPowerMultiplier = 0.529 --converts to pre-shield rework vanilla integration
-		if uDef.customparams and uDef.customparams.shield_power then
+		if uDef.customparams.shield_power then
 			uDef.customparams.shield_power = uDef.customparams.shield_power * shieldPowerMultiplier
 		end
 	end
