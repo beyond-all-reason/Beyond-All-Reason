@@ -84,10 +84,10 @@ function UnitDef_Post(name, uDef)
 		isXmas = holidays["xmas"]
 	end
 
-	local customparams = table.subtable(uDef, "customparams")
-	local buildoptions = table.subtable(uDef, "buildoptions")
-	local weapondefs = table.subtable(uDef, "weapondefs")
-	local weapons = table.subtable(uDef, "weapons")
+	local customparams = table.ensureTable(uDef, "customparams")
+	local buildoptions = table.ensureTable(uDef, "buildoptions")
+	local weapondefs = table.ensureTable(uDef, "weapondefs")
+	local weapons = table.ensureTable(uDef, "weapons")
 
 	local isScav = string.sub(name, -5, -1) == "_scav"
 	local basename = isScav and string.sub(name, 1, -6) or name
@@ -1767,13 +1767,13 @@ function WeaponDef_Post(name, wDef)
 		isXmas = Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"]
 	end
 
-	local customparams = table.subtable(uDef, "customparams")
+	local customparams = table.ensureTable(uDef, "customparams")
 	local damage, shield
 	if wDef.weapontype == "Shield" then
 		wDef.damage = nil
-		shield = table.subtable(wDef, "shield")
+		shield = table.ensureTable(wDef, "shield")
 	else
-		damage = table.subtable(wDef, "damage")
+		damage = table.ensureTable(wDef, "damage")
 		wDef.shield = nil
 	end
 

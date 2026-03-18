@@ -68,17 +68,18 @@ if not table.mergeInPlace then
 	end
 end
 
-if not table.subtable then
-	---Minor utility to guarantee the existence of a key with a table value in a table.
-	---Deletes(!) any non-tables values found and replaces them with a new table value.
+if not table.ensureTable then
+	---Ensures a table exists at the specified key, creating one if needed.
 	---@param tbl table
 	---@param key any
-	---@return table
-	function table.subtable(tbl, key)
+	---@return table.ensureTable nested in tbl at key
+	function table.ensureTable(tbl, key)
 		local sub = tbl[key]
-		if type(sub) ~= "table" then
+		if sub == nil then
 			sub = {}
 			tbl[key] = sub
+		elseif type(sub) ~= "table" then
+			error("existing entry is not a table")
 		end
 		return sub
 	end
