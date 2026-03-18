@@ -1768,6 +1768,14 @@ function WeaponDef_Post(name, wDef)
 	end
 
 	local customparams = table.subtable(uDef, "customparams")
+	local damage, shield
+	if wDef.weapontype == "Shield" then
+		wDef.damage = nil
+		shield = table.subtable(wDef, "shield")
+	else
+		damage = table.subtable(wDef, "damage")
+		wDef.shield = nil
+	end
 
 	if not SaveDefsToCustomParams then
 		-------------- EXPERIMENTAL MODOPTIONS
