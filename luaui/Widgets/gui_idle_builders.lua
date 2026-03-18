@@ -23,8 +23,6 @@ local spGetMyTeamID = Spring.GetMyTeamID
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
-
 local alwaysShow = true		-- always show AT LEAST the label
 local alwaysShowLabel = true	-- always show the label regardless
 local showWhenSpec = false
@@ -195,7 +193,7 @@ local function drawContent()
 		local offset = ((iconRect[3]-iconRect[1])/5)
 		local offsetY = -(fontSize*(posY > 0 and 0.22 or 0.31))
 		local style = 'co'
-		font2:Begin(useRenderToTexture)
+		font2:Begin(true)
 		font2:SetOutlineColor(0, 0, 0, 0.2)
 		font2:SetTextColor(0.45, 0.45, 0.45, 1)
 		offset = (fontSize*0.6)
@@ -292,7 +290,7 @@ local function drawContent()
 
 				if unitCount > 1 then
 					local fontSize = height*vsy*0.39
-					font:Begin(useRenderToTexture)
+					font:Begin(true)
 					font:Print('\255\240\240\240'..unitCount, iconRect[1]+iconMargin+(fontSize*0.18), iconRect[4]-iconMargin-(fontSize*0.92), fontSize, "o")
 					font:End()
 				end
@@ -418,45 +416,38 @@ local function updateList(force)
 			checkGuishader(true)
 		end
 
-		if useRenderToTexture then
-			if not uiBgTex then
-				uiBgTex = gl.CreateTexture(mathFloor(uiTexWidth), mathFloor(backgroundRect[4]-backgroundRect[2]), {
-					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
-					fbo = true,
-				})
-				gl.R2tHelper.RenderToTexture(uiBgTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / (backgroundRect[3]-backgroundRect[1]), 2 / (backgroundRect[4]-backgroundRect[2]),	0)
-						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-						drawBackground()
-					end,
-					useRenderToTexture
-				)
-			end
-			if not uiTex then
-				uiTex = gl.CreateTexture(mathFloor(uiTexWidth)*2, mathFloor(backgroundRect[4]-backgroundRect[2])*2, {
-					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
-					fbo = true,
-				})
-			end
-			gl.R2tHelper.RenderToTexture(uiTex,
+		if not uiBgTex then
+			uiBgTex = gl.CreateTexture(mathFloor(uiTexWidth), mathFloor(backgroundRect[4]-backgroundRect[2]), {
+				target = GL.TEXTURE_2D,
+				format = GL.RGBA,
+				fbo = true,
+			})
+			gl.R2tHelper.RenderToTexture(uiBgTex,
 				function()
 					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / uiTexWidth, 2 / (backgroundRect[4]-backgroundRect[2]),	0)
+					gl.Scale(2 / (backgroundRect[3]-backgroundRect[1]), 2 / (backgroundRect[4]-backgroundRect[2]),	0)
 					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-					drawContent()
+					drawBackground()
 				end,
-				useRenderToTexture
+				true
 			)
-		else
-			dlist = gl.CreateList(function()
-				drawBackground()
-				drawContent()
-			end)
 		end
+		if not uiTex then
+			uiTex = gl.CreateTexture(mathFloor(uiTexWidth)*2, mathFloor(backgroundRect[4]-backgroundRect[2])*2, {
+				target = GL.TEXTURE_2D,
+				format = GL.RGBA,
+				fbo = true,
+			})
+		end
+		gl.R2tHelper.RenderToTexture(uiTex,
+			function()
+				gl.Translate(-1, -1, 0)
+				gl.Scale(2 / uiTexWidth, 2 / (backgroundRect[4]-backgroundRect[2]),	0)
+				gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+				drawContent()
+			end,
+			true
+		)
 	end
 end
 
@@ -715,17 +706,13 @@ function widget:DrawScreen()
 			doUpdateForce = nil
 		end
 		if dlist or uiTex or uiBgTex then
-			if useRenderToTexture then
-				if uiBgTex then
-					-- background element
-					gl.R2tHelper.BlendTexRect(uiBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], useRenderToTexture)
-				end
-				if uiTex then
-					--content
-					gl.R2tHelper.BlendTexRect(uiTex, backgroundRect[1], backgroundRect[2], backgroundRect[1]+uiTexWidth, backgroundRect[4], useRenderToTexture)
-				end
-			else
-				gl.CallList(dlist)
+			if uiBgTex then
+				-- background element
+				gl.R2tHelper.BlendTexRect(uiBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], true)
+			end
+			if uiTex then
+				--content
+				gl.R2tHelper.BlendTexRect(uiTex, backgroundRect[1], backgroundRect[2], backgroundRect[1]+uiTexWidth, backgroundRect[4], true)
 			end
 		end
 	end

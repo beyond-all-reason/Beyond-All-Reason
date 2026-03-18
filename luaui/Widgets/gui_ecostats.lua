@@ -79,8 +79,6 @@ local glPolygonOffset = gl.PolygonOffset
 local glPushMatrix = gl.PushMatrix
 local glPopMatrix = gl.PopMatrix
 
-local useRenderToTexture = spGetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
-
 local cfgResText = true
 local cfgSticktotopbar = true
 local cfgRemoveDead = false
@@ -125,7 +123,7 @@ local math_isInRect = mathIsInRect
 
 local RectRound, UiElement
 
-local font, teamCompositionList
+local font
 
 local Button = {}
 
@@ -699,12 +697,6 @@ end
 
 function widget:Shutdown()
 	removeGuiShaderRects()
-	if teamCompositionList then
-		glDeleteList(teamCompositionList)
-	end
-	for k,v in pairs(textLists) do
-		glDeleteList(v)
-	end
 	if uiBgTex then
 		glDeleteTexture(uiBgTex)
 		uiBgTex = nil
@@ -722,73 +714,66 @@ local function makeTeamCompositionList()
 	if not inSpecMode then
 		return
 	end
-	if useRenderToTexture then
-		if #uiElementRects == 0 then
-			DrawTeamComposition()	-- need to run once so uiElementRects gets filled
-		end
-		areaRect = {}
-		for id, rect in pairs(uiElementRects) do
-			if not areaRect[1] then
-				areaRect = { rect[1], rect[2], rect[3], rect[4] }
-			else
-				if rect[1] < areaRect[1] then
-					areaRect[1] = rect[1]
-				end
-				if rect[2] < areaRect[2] then
-					areaRect[2] = rect[2]
-				end
-				if rect[3] > areaRect[3] then
-					areaRect[3] = rect[3]
-				end
-				if rect[4] > areaRect[4] then
-					areaRect[4] = rect[4]
-				end
+	if #uiElementRects == 0 then
+		DrawTeamComposition()	-- need to run once so uiElementRects gets filled
+	end
+	areaRect = {}
+	for id, rect in pairs(uiElementRects) do
+		if not areaRect[1] then
+			areaRect = { rect[1], rect[2], rect[3], rect[4] }
+		else
+			if rect[1] < areaRect[1] then
+				areaRect[1] = rect[1]
+			end
+			if rect[2] < areaRect[2] then
+				areaRect[2] = rect[2]
+			end
+			if rect[3] > areaRect[3] then
+				areaRect[3] = rect[3]
+			end
+			if rect[4] > areaRect[4] then
+				areaRect[4] = rect[4]
 			end
 		end
-		local rectAreaChange = false
-		if not prevAreaRect[1] or (areaRect[1] ~= prevAreaRect[1] or areaRect[2] ~= prevAreaRect[2] or areaRect[3] ~= prevAreaRect[3] or areaRect[4] ~= prevAreaRect[4]) then
-			rectAreaChange = true
-		end
-		prevAreaRect = areaRect
+	end
+	local rectAreaChange = false
+	if not prevAreaRect[1] or (areaRect[1] ~= prevAreaRect[1] or areaRect[2] ~= prevAreaRect[2] or areaRect[3] ~= prevAreaRect[3] or areaRect[4] ~= prevAreaRect[4]) then
+		rectAreaChange = true
+	end
+	prevAreaRect = areaRect
 
-		local texWidth = areaRect[1] and areaRect[3] and mathFloor(areaRect[3]-areaRect[1]) or 0
-		local texHeight = areaRect[2] and areaRect[4] and mathFloor(areaRect[4]-areaRect[2]) or 0
-		if (not uiBgTex or rectAreaChange) and texWidth > 0 and texHeight > 0 then
-			if uiBgTex then
-				gl.DeleteTexture(uiBgTex)
-			end
-			uiBgTex = gl.CreateTexture(texWidth, texHeight, {
-				target = GL.TEXTURE_2D,
-				format = GL.ALPHA,
-				fbo = true,
-			})
-			if uiTex then
-				gl.DeleteTexture(uiTex)
-			end
-			uiTex = gl.CreateTexture(texWidth, texHeight, {
-				target = GL.TEXTURE_2D,
-				format = GL.ALPHA,
-				fbo = true,
-			})
+	local texWidth = areaRect[1] and areaRect[3] and mathFloor(areaRect[3]-areaRect[1]) or 0
+	local texHeight = areaRect[2] and areaRect[4] and mathFloor(areaRect[4]-areaRect[2]) or 0
+	if (not uiBgTex or rectAreaChange) and texWidth > 0 and texHeight > 0 then
+		if uiBgTex then
+			gl.DeleteTexture(uiBgTex)
 		end
-		if uiBgTex and areaRect[4] then
-			gl.R2tHelper.RenderToTexture(uiBgTex,
-				function()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (areaRect[3]-areaRect[1]), 2 / (areaRect[4]-areaRect[2]),	0)
-					gl.Translate(-areaRect[1], -areaRect[2], 0)
-					for id, rect in pairs(uiElementRects) do
-						UiElement(rect[1], rect[2], rect[3], rect[4], (widgetPosY+widgetHeight > rect[4]+1 and 1 or 0), 0, 0, 1, 0, 1, 1, 1, nil, nil, nil, nil)
-					end
-				end,
-				useRenderToTexture
-			)
+		uiBgTex = gl.CreateTexture(texWidth, texHeight, {
+			target = GL.TEXTURE_2D,
+			format = GL.ALPHA,
+			fbo = true,
+		})
+		if uiTex then
+			gl.DeleteTexture(uiTex)
 		end
-	else
-		if teamCompositionList then
-			gl.DeleteList(teamCompositionList)
-		end
-		teamCompositionList = gl.CreateList(DrawTeamComposition)
+		uiTex = gl.CreateTexture(texWidth, texHeight, {
+			target = GL.TEXTURE_2D,
+			format = GL.ALPHA,
+			fbo = true,
+		})
+	end
+	if uiBgTex and areaRect[4] then
+		gl.R2tHelper.RenderToTexture(uiBgTex,
+			function()
+				gl.Translate(-1, -1, 0)
+				gl.Scale(2 / (areaRect[3]-areaRect[1]), 2 / (areaRect[4]-areaRect[2]),	0)
+				gl.Translate(-areaRect[1], -areaRect[2], 0)
+				for id, rect in pairs(uiElementRects) do
+					UiElement(rect[1], rect[2], rect[3], rect[4], (widgetPosY+widgetHeight > rect[4]+1 and 1 or 0), 0, 0, 1, 0, 1, 1, 1, nil, nil, nil, nil)
+				end
+			end,
+			true
+		)
 	end
 	if WG['guishader'] then
 		for id, rect in pairs(guishaderRects) do
@@ -893,7 +878,7 @@ end
 
 local function DrawEText(numberE, vOffset)
 	local label = stringFormatSI(numberE)
-	font:Begin(useRenderToTexture)
+	font:Begin(true)
 	font:SetTextColor(1, 1, 0, 1)
 	font:Print(label or "", widgetPosX + widgetWidth - (5 * sizeMultiplier), widgetPosY + widgetHeight - vOffset + (tH * 0.22), tH / 2.3, 'rs')
 	font:End()
@@ -901,7 +886,7 @@ end
 
 local function DrawMText(numberM, vOffset)
 	local label = stringFormatSI(numberM)
-	font:Begin(useRenderToTexture)
+	font:Begin(true)
 	font:SetTextColor(1, 1, 1, 1)
 	font:Print(label or "", widgetPosX + widgetWidth - (5 * sizeMultiplier), widgetPosY + widgetHeight - vOffset + (borderPadding * 0.5) + (tH * 0.58), tH / 2.3, 'rs')
 	font:End()
@@ -1001,36 +986,6 @@ local function DrawMBar(tM, tMp, vOffset)
 	glTexture(images.barbg)
 	glTexRect(baseX, baseY, barEndX, barBottomY)
 
-	-- glow
-	if not useRenderToTexture and tM * maxW > 0.9 then
-		local glowsize = 26 * sizeMultiplier
-		local glowTop = baseY + glowsize
-		local glowBottom = barBottomY - glowsize
-		local glowEdgeSize = glowsize * 1.8
-
-		-- metal total
-		local tMWidth = tM * maxW
-		local tMEndX = baseX + tMWidth
-		glColor(1, 1, 1, 0.032)
-		glTexture(images.barglowcenter)
-		glTexRect(baseX, glowTop, tMEndX, glowBottom)
-		glTexture(images.barglowedge)
-		glTexRect(baseX - glowEdgeSize, glowTop, baseX, glowBottom)
-		glTexture(images.barglowedge)
-		glTexRect(tMEndX + glowEdgeSize, glowTop, tMEndX, glowBottom)
-
-		-- metal production
-		local tMpWidth = tMp * maxW
-		local tMpEndX = baseX + tMpWidth
-		glColor(1, 1, 1, 0.032)
-		glTexture(images.barglowcenter)
-		glTexRect(baseX, glowTop, tMpEndX, glowBottom)
-		glTexture(images.barglowedge)
-		glTexRect(baseX - glowEdgeSize, glowTop, baseX, glowBottom)
-		glTexture(images.barglowedge)
-		glTexRect(tMpEndX + glowEdgeSize, glowTop, tMpEndX, glowBottom)
-	end
-
 	-- metal total
 	glColor(0.7, 0.7, 0.7, 1)
 	glTexture(images.bar)
@@ -1050,10 +1005,6 @@ local function DrawBackground(posY, allyID, teamWidth)
 	local y2 = mathCeil((widgetPosY - posY) + tH + widgetHeight)
 
 	uiElementRects[#uiElementRects+1] = { widgetPosX + teamWidth, y1, widgetPosX + widgetWidth, y2, allyID }
-
-	if not useRenderToTexture then
-		UiElement(widgetPosX + teamWidth, y1, widgetPosX + widgetWidth, y2, (posY > tH and 1 or 0), 0, 0, 1, 0, 1, 1, 1, nil, nil, nil, nil)
-	end
 
 	local key = eco.ecoKey[allyID]
 	guishaderRects[key] = { widgetPosX + teamWidth, y1, widgetPosX + widgetWidth, y2, 4 * widgetScale }
@@ -1277,22 +1228,10 @@ local function drawListStandard()
 					end
 				end
 				if updateTextLists then
-					if useRenderToTexture then
-						if cfgResText and data.isAlive and t > 0 and gamestarted and not gameover and avg then
-							DrawEText(avg.tE, posy)
-							DrawMText(avg.tM, posy)
-						end
-					else
-						textLists[aID] = glCreateList(function()
-							if cfgResText and data.isAlive and t > 0 and gamestarted and not gameover and avg then
-								DrawEText(avg.tE, posy)
-								DrawMText(avg.tM, posy)
-							end
-						end)
+					if cfgResText and data.isAlive and t > 0 and gamestarted and not gameover and avg then
+						DrawEText(avg.tE, posy)
+						DrawMText(avg.tM, posy)
 					end
-				end
-				if not useRenderToTexture then
-					glCallList(textLists[aID])
 				end
 			end
 		end
@@ -1598,25 +1537,17 @@ function widget:DrawScreen()
 			end
 			gl.R2tHelper.RenderToTexture(uiTex,
 				r2tDrawFunc,
-				useRenderToTexture,
+				true,
 				scissors
 			)
 		end
 	end
 
-	if useRenderToTexture then
-		if uiBgTex then
-			gl.R2tHelper.BlendTexRect(uiBgTex, areaRect[1], areaRect[2], areaRect[3], areaRect[4], useRenderToTexture)
-		end
-		if uiTex then
-			gl.R2tHelper.BlendTexRect(uiTex, areaRect[1], areaRect[2], areaRect[3], areaRect[4], useRenderToTexture)
-		end
-	else
-		glPolygonOffset(-7, -10)
-		glPushMatrix()
-		glCallList(teamCompositionList)
-		drawListStandard()
-		glPopMatrix()
+	if uiBgTex then
+		gl.R2tHelper.BlendTexRect(uiBgTex, areaRect[1], areaRect[2], areaRect[3], areaRect[4], true)
+	end
+	if uiTex then
+		gl.R2tHelper.BlendTexRect(uiTex, areaRect[1], areaRect[2], areaRect[3], areaRect[4], true)
 	end
 
 	local mx, my = spGetMouseState()

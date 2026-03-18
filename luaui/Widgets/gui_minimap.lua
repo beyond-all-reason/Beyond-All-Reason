@@ -20,8 +20,6 @@ local mathMin = math.min
 -- Localized Spring API for performance
 local spGetViewGeometry = Spring.GetViewGeometry
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
-
 local minimapToWorld = VFS.Include("luaui/Include/minimap_utils.lua").minimapToWorld
 local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
 local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
@@ -298,34 +296,25 @@ function widget:DrawScreen()
 		if dlistGuishader and WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistGuishader, 'minimap')
 		end
-		if useRenderToTexture then
-			if not uiBgTex and backgroundRect[3]-backgroundRect[1] >= 1 and backgroundRect[4]-backgroundRect[2] >= 1 then
-				uiBgTex = gl.CreateTexture(mathFloor(backgroundRect[3]-backgroundRect[1]), mathFloor(backgroundRect[4]-backgroundRect[2]), {
-					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
-					fbo = true,
-				})
-				gl.R2tHelper.RenderToTexture(uiBgTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / (backgroundRect[3]-backgroundRect[1]), 2 / (backgroundRect[4]-backgroundRect[2]),	0)
-						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-						drawBackground()
-					end,
-					useRenderToTexture
-				)
-			end
-			if uiBgTex then
-				-- background element
-				gl.R2tHelper.BlendTexRect(uiBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], useRenderToTexture)
-			end
-		else
-			if not dlistMinimap then
-				dlistMinimap = gl.CreateList(function()
+		if not uiBgTex and backgroundRect[3]-backgroundRect[1] >= 1 and backgroundRect[4]-backgroundRect[2] >= 1 then
+			uiBgTex = gl.CreateTexture(mathFloor(backgroundRect[3]-backgroundRect[1]), mathFloor(backgroundRect[4]-backgroundRect[2]), {
+				target = GL.TEXTURE_2D,
+				format = GL.RGBA,
+				fbo = true,
+			})
+			gl.R2tHelper.RenderToTexture(uiBgTex,
+				function()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / (backgroundRect[3]-backgroundRect[1]), 2 / (backgroundRect[4]-backgroundRect[2]),	0)
+					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
 					drawBackground()
-				end)
-			end
-			gl.CallList(dlistMinimap)
+				end,
+				true
+			)
+		end
+		if uiBgTex then
+			-- background element
+			gl.R2tHelper.BlendTexRect(uiBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], true)
 		end
 	end
 

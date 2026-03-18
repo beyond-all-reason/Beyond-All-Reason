@@ -24,8 +24,6 @@ local spGetMouseState = Spring.GetMouseState
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
-
 --[[ Commands
 	/playerview #playerID		(playerID is optional)
 	/playertv #playerID			(playerID is optional)
@@ -641,36 +639,30 @@ function widget:DrawScreen()
 	if updateDrawing then
 		updateDrawing = false
 		refreshUiDrawing()
-		if useRenderToTexture then
-			if right-left >= 1 and top-bottom >= 1 then
-				uiTexTopExtra = mathFloor(vsy*0.06)
-				uiTexLeftExtra = mathFloor(vsy*0.08)
-				if not uiTex then
-					uiTex = gl.CreateTexture((mathFloor(right-left)+uiTexLeftExtra), (mathFloor(top-bottom)+uiTexTopExtra), {
-						target = GL.TEXTURE_2D,
-						format = GL.RGBA,
-						fbo = true,
-					})
-				end
-				gl.R2tHelper.RenderToTexture(uiTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / ((right-left)+uiTexLeftExtra), 2 / ((top-bottom)+uiTexTopExtra), 0)
-						gl.Translate(-left+uiTexLeftExtra, -bottom, 0)
-						drawContent()
-					end,
-					useRenderToTexture
-				)
-			end
+	if right-left >= 1 and top-bottom >= 1 then
+		uiTexTopExtra = mathFloor(vsy*0.06)
+		uiTexLeftExtra = mathFloor(vsy*0.08)
+		if not uiTex then
+			uiTex = gl.CreateTexture((mathFloor(right-left)+uiTexLeftExtra), (mathFloor(top-bottom)+uiTexTopExtra), {
+				target = GL.TEXTURE_2D,
+				format = GL.RGBA,
+				fbo = true,
+			})
 		end
+		gl.R2tHelper.RenderToTexture(uiTex,
+			function()
+				gl.Translate(-1, -1, 0)
+				gl.Scale(2 / ((right-left)+uiTexLeftExtra), 2 / ((top-bottom)+uiTexTopExtra), 0)
+				gl.Translate(-left+uiTexLeftExtra, -bottom, 0)
+				drawContent()
+			end,
+			true
+		)
+	end
 	end
 
-	if useRenderToTexture then
-		if uiTex then
-			gl.R2tHelper.BlendTexRect(uiTex, left-uiTexLeftExtra, bottom, right, top+uiTexTopExtra, useRenderToTexture)
-		end
-	else
-		drawContent()
+	if uiTex then
+		gl.R2tHelper.BlendTexRect(uiTex, left-uiTexLeftExtra, bottom, right, top+uiTexTopExtra, true)
 	end
 end
 
