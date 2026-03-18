@@ -68,6 +68,22 @@ if not table.mergeInPlace then
 	end
 end
 
+if not table.subtable then
+	---Minor utility to guarantee the existence of a key with a table value in a table.
+	---Deletes(!) any non-tables values found and replaces them with a new table value.
+	---@param tbl table
+	---@param key any
+	---@return table
+	function table.subtable(tbl, key)
+		local sub = tbl[key]
+		if type(sub) ~= "table" then
+			sub = {}
+			tbl[key] = sub
+		end
+		return sub
+	end
+end
+
 if not table.toString then
 	local stringRep = string.rep
 	local tableSort = table.sort
