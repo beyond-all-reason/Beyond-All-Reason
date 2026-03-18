@@ -210,21 +210,21 @@ function UnitDef_Post(name, uDef)
 	end
 
 	-- Unit Restrictions
-	if not uDef.customparams.techlevel then
-		uDef.customparams.techlevel = 1
+	if not customparams.techlevel then
+		customparams.techlevel = 1
 	end
-	if not uDef.customparams.subfolder then
-		uDef.customparams.subfolder = "none"
+	if not customparams.subfolder then
+		customparams.subfolder = "none"
 	end
 	if modOptions.unit_restrictions_notech2 then
-		if tonumber(uDef.customparams.techlevel) == 2 or tonumber(uDef.customparams.techlevel) == 3 then
-			uDef.customparams.modoption_blocked = true
+		if tonumber(customparams.techlevel) == 2 or tonumber(customparams.techlevel) == 3 then
+			customparams.modoption_blocked = true
 		end
 	end
 
 	if modOptions.unit_restrictions_notech3 then
-		if tonumber(uDef.customparams.techlevel) == 3 then
-			uDef.customparams.modoption_blocked = true
+		if tonumber(customparams.techlevel) == 3 then
+			customparams.modoption_blocked = true
 		end
 	end
 
@@ -247,19 +247,19 @@ function UnitDef_Post(name, uDef)
 			legamsub	= true,
 		}
 		if tech15[basename] then
-			uDef.customparams.modoption_blocked = true
+			customparams.modoption_blocked = true
 		end
 	end
 
-	if modOptions.unit_restrictions_noair and not uDef.customparams.ignore_noair then
-		if string.find(uDef.customparams.subfolder, "Aircraft", 1, true) then
-			uDef.customparams.modoption_blocked = true
-		elseif uDef.customparams.unitgroup and uDef.customparams.unitgroup == "aa" then
-			uDef.customparams.modoption_blocked = true
+	if modOptions.unit_restrictions_noair and not customparams.ignore_noair then
+		if string.find(customparams.subfolder, "Aircraft", 1, true) then
+			customparams.modoption_blocked = true
+		elseif customparams.unitgroup and customparams.unitgroup == "aa" then
+			customparams.modoption_blocked = true
 		elseif uDef.canfly then
-			uDef.customparams.modoption_blocked = true
-		elseif uDef.customparams.disable_when_no_air then --used to remove drone carriers with no other purpose (ex. leghive but not rampart)
-			uDef.customparams.modoption_blocked = true
+			customparams.modoption_blocked = true
+		elseif customparams.disable_when_no_air then --used to remove drone carriers with no other purpose (ex. leghive but not rampart)
+			customparams.modoption_blocked = true
 		end
 		local AircraftFactories = {
 			armap = true,
@@ -289,25 +289,25 @@ function UnitDef_Post(name, uDef)
 
 		}
 		if AircraftFactories[name] then
-			uDef.customparams.modoption_blocked = true
+			customparams.modoption_blocked = true
 		end
 	end
 
 	if modOptions.unit_restrictions_noextractors then
-		if (uDef.extractsmetal and uDef.extractsmetal > 0) and (uDef.customparams.metal_extractor and uDef.customparams.metal_extractor > 0) then
-			uDef.customparams.modoption_blocked = true
+		if (uDef.extractsmetal and uDef.extractsmetal > 0) and (customparams.metal_extractor and customparams.metal_extractor > 0) then
+			customparams.modoption_blocked = true
 		end
 	end
 
 	if modOptions.unit_restrictions_noconverters then
-		if uDef.customparams.energyconv_capacity and uDef.customparams.energyconv_efficiency then
-			uDef.customparams.modoption_blocked = true
+		if customparams.energyconv_capacity and customparams.energyconv_efficiency then
+			customparams.modoption_blocked = true
 		end
 	end
 
 	if modOptions.unit_restrictions_nofusion then
 		if basename == "armdf" or string.sub(basename, -3) == "fus" then
-			uDef.customparams.modoption_blocked = true
+			customparams.modoption_blocked = true
 		end
 	end
 
@@ -315,7 +315,7 @@ function UnitDef_Post(name, uDef)
 		if uDef.weapondefs then
 			for _, weapon in pairs(uDef.weapondefs) do
 				if (weapon.interceptor and weapon.interceptor == 1) or (weapon.targetable and weapon.targetable == 1) then
-					uDef.customparams.modoption_blocked = true
+					customparams.modoption_blocked = true
 					break
 				end
 			end
@@ -342,9 +342,9 @@ function UnitDef_Post(name, uDef)
 		}
 		-- "defense" or "defence", as legion doesn't fully follow past conventions
 		if not whitelist[name] then
-			local subfolder_lower = string.lower(uDef.customparams.subfolder)
+			local subfolder_lower = string.lower(customparams.subfolder)
 			if string.find(subfolder_lower, "defen", 1, true) then
-				uDef.customparams.modoption_blocked = true
+				customparams.modoption_blocked = true
 			end
 		end
 	end
@@ -366,7 +366,7 @@ function UnitDef_Post(name, uDef)
 			if hasAnti then
 				uDef.weapondefs = newWdefs
 				if numWeapons == 0 and (not uDef.radardistance or uDef.radardistance < 1500) then
-					uDef.customparams.modoption_blocked = true
+					customparams.modoption_blocked = true
 				else
 					if uDef.metalcost then
 						uDef.metalcost = math.floor(uDef.metalcost * 0.6)	-- give a discount for removing anti-nuke
@@ -386,7 +386,7 @@ function UnitDef_Post(name, uDef)
 			cortron_scav = true,
 		}
 		if TacNukes[name] then
-			uDef.customparams.modoption_blocked = true
+			customparams.modoption_blocked = true
 		end
 	end
 
@@ -410,7 +410,7 @@ function UnitDef_Post(name, uDef)
 			legelrpcmech_scav = true,
 		}
 		if LRPCs[name] then
-			uDef.customparams.modoption_blocked = true
+			customparams.modoption_blocked = true
 		end
 	end
 
@@ -424,18 +424,18 @@ function UnitDef_Post(name, uDef)
 			legstarfall_scav = true,
 		}
 		if LRPCs[name] then
-			uDef.customparams.modoption_blocked = true
+			customparams.modoption_blocked = true
 		end
 	end
 
 	--normal commander respawning
 	if modOptions.comrespawn == "all" or (modOptions.comrespawn == "evocom" and modOptions.evocom)then
 		if name == "armcom" or name == "corcom" or name == "legcom" then
-			uDef.customparams.effigy = "comeffigylvl1"
-			uDef.customparams.effigy_offset = 1
-			uDef.customparams.respawn_condition = "health"
-			uDef.customparams.minimum_respawn_stun = 5
-			uDef.customparams.distance_stun_multiplier = 1
+			customparams.effigy = "comeffigylvl1"
+			customparams.effigy_offset = 1
+			customparams.respawn_condition = "health"
+			customparams.minimum_respawn_stun = 5
+			customparams.distance_stun_multiplier = 1
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl1"
 		end
@@ -443,10 +443,10 @@ function UnitDef_Post(name, uDef)
 
 
 	if modOptions.evocom then
-		if uDef.customparams.evocomlvl or name == "armcom" or name == "corcom" or name == "legcom" then
-			local comLevel = uDef.customparams.evocomlvl
+		if customparams.evocomlvl or name == "armcom" or name == "corcom" or name == "legcom" then
+			local comLevel = customparams.evocomlvl
 			if modOptions.comrespawn == "all" or modOptions.comrespawn == "evocom" then--add effigy respawning, if enabled
-				uDef.customparams.respawn_condition = "health"
+				customparams.respawn_condition = "health"
 
 				local numBuildoptions = #uDef.buildoptions
 				if comLevel == 2 then
@@ -461,8 +461,8 @@ function UnitDef_Post(name, uDef)
 					uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl5"
 				end
 			end
-			uDef.customparams.combatradius = 0
-			uDef.customparams.evolution_health_transfer = "percentage"
+			customparams.combatradius = 0
+			customparams.evolution_health_transfer = "percentage"
 
 			if uDef.power then
 				uDef.power = uDef.power/modOptions.evocomxpmultiplier
@@ -471,65 +471,64 @@ function UnitDef_Post(name, uDef)
 			end
 
 			if  name == "armcom" then
-				uDef.customparams.evolution_target = "armcomlvl2"
-				uDef.customparams.inheritxpratemultiplier = 0.5
-				uDef.customparams.childreninheritxp = "TURRET MOBILEBUILT"
-				uDef.customparams.parentsinheritxp = "TURRET MOBILEBUILT"
-				uDef.customparams.evocomlvl = 1
+				customparams.evolution_target = "armcomlvl2"
+				customparams.inheritxpratemultiplier = 0.5
+				customparams.childreninheritxp = "TURRET MOBILEBUILT"
+				customparams.parentsinheritxp = "TURRET MOBILEBUILT"
+				customparams.evocomlvl = 1
 				elseif name == "corcom" then
-				uDef.customparams.evolution_target = "corcomlvl2"
-				uDef.customparams.evocomlvl = 1
+				customparams.evolution_target = "corcomlvl2"
+				customparams.evocomlvl = 1
 				elseif name == "legcom" then
-				uDef.customparams.evolution_target = "legcomlvl2"
-				uDef.customparams.evocomlvl = 1
+				customparams.evolution_target = "legcomlvl2"
+				customparams.evocomlvl = 1
 				end
 
 			if modOptions.evocomlevelupmethod == "dynamic" then
-				uDef.customparams.evolution_condition = "power"
-				uDef.customparams.evolution_power_multiplier = 1			-- Scales the power calculated based on your own combined power.
-				local evolutionPowerThreshold = uDef.customparams.evolution_power_threshold or 10000 --sets threshold for level 1 commanders
-				uDef.customparams.evolution_power_threshold = evolutionPowerThreshold*modOptions.evocomlevelupmultiplier
+				customparams.evolution_condition = "power"
+				customparams.evolution_power_multiplier = 1			-- Scales the power calculated based on your own combined power.
+				local evolutionPowerThreshold = customparams.evolution_power_threshold or 10000 --sets threshold for level 1 commanders
+				customparams.evolution_power_threshold = evolutionPowerThreshold*modOptions.evocomlevelupmultiplier
 			elseif modOptions.evocomlevelupmethod == "timed" then
-				uDef.customparams.evolution_timer = modOptions.evocomleveluptime*60*uDef.customparams.evocomlvl
-				uDef.customparams.evolution_condition = "timer_global"
+				customparams.evolution_timer = modOptions.evocomleveluptime*60*customparams.evocomlvl
+				customparams.evolution_condition = "timer_global"
 			end
 
 			if comLevel and modOptions.evocomlevelcap <= comLevel then
-				uDef.customparams.evolution_health_transfer = nil
-				uDef.customparams.evolution_target = nil
-				uDef.customparams.evolution_condition = nil
-				uDef.customparams.evolution_timer = nil
-				uDef.customparams.evolution_power_threshold = nil
-				uDef.customparams.evolution_power_multiplier = nil
+				customparams.evolution_health_transfer = nil
+				customparams.evolution_target = nil
+				customparams.evolution_condition = nil
+				customparams.evolution_timer = nil
+				customparams.evolution_power_threshold = nil
+				customparams.evolution_power_multiplier = nil
 			end
 		end
 	end
 
-	if uDef.customparams.evolution_target then
-		local udcp                            = uDef.customparams
-		udcp.combatradius                     = udcp.combatradius or 1000
-		udcp.evolution_announcement_size      = tonumber(udcp.evolution_announcement_size)
-		udcp.evolution_condition              = udcp.evolution_condition or "timer"
-		udcp.evolution_health_threshold       = tonumber(udcp.evolution_health_threshold) or 0
-		udcp.evolution_health_transfer        = udcp.evolution_health_transfer or "flat"
-		udcp.evolution_power_enemy_multiplier = tonumber(udcp.evolution_power_enemy_multiplier) or 1
-		udcp.evolution_power_multiplier       = tonumber(udcp.evolution_power_multiplier) or 1
-		udcp.evolution_power_threshold        = tonumber(udcp.evolution_power_threshold) or 600
-		udcp.evolution_timer                  = tonumber(udcp.evolution_timer) or 20
+	if customparams.evolution_target then
+		customparams.combatradius                     = customparams.combatradius or 1000
+		customparams.evolution_announcement_size      = tonumber(customparams.evolution_announcement_size)
+		customparams.evolution_condition              = customparams.evolution_condition or "timer"
+		customparams.evolution_health_threshold       = tonumber(customparams.evolution_health_threshold) or 0
+		customparams.evolution_health_transfer        = customparams.evolution_health_transfer or "flat"
+		customparams.evolution_power_enemy_multiplier = tonumber(customparams.evolution_power_enemy_multiplier) or 1
+		customparams.evolution_power_multiplier       = tonumber(customparams.evolution_power_multiplier) or 1
+		customparams.evolution_power_threshold        = tonumber(customparams.evolution_power_threshold) or 600
+		customparams.evolution_timer                  = tonumber(customparams.evolution_timer) or 20
 	end
 
 	-- Tech Blocking System -------------------------------------------------------------------------------------------------------------------------
-	if modOptions.tech_blocking and uDef.customparams then
-		local techLevel = uDef.customparams.techlevel or 1
+	if modOptions.tech_blocking then
+		local techLevel = customparams.techlevel or 1
 		if uDef.buildoptions and #uDef.buildoptions > 0 and (not uDef.speed or uDef.speed == 0) then
 			if techLevel == 1 then
-				uDef.customparams.tech_points_gain = uDef.customparams.tech_points_gain or 1
+				customparams.tech_points_gain = customparams.tech_points_gain or 1
 			elseif techLevel == 2 then
-				uDef.customparams.tech_points_gain = uDef.customparams.tech_points_gain or 6
-				uDef.customparams.tech_build_blocked_until_level = uDef.customparams.tech_build_blocked_until_level or 2
+				customparams.tech_points_gain = customparams.tech_points_gain or 6
+				customparams.tech_build_blocked_until_level = customparams.tech_build_blocked_until_level or 2
 			elseif techLevel == 3 then
-				uDef.customparams.tech_points_gain = uDef.customparams.tech_points_gain or 9
-				uDef.customparams.tech_build_blocked_until_level = uDef.customparams.tech_build_blocked_until_level or 3
+				customparams.tech_points_gain = customparams.tech_points_gain or 9
+				customparams.tech_build_blocked_until_level = customparams.tech_build_blocked_until_level or 3
 			end
 		end
 	end
@@ -868,8 +867,8 @@ function UnitDef_Post(name, uDef)
 		uDef.mass = raptorHealth
 		uDef.canhover = true
 		uDef.autoheal = math.ceil(math.sqrt(raptorHealth * 0.8))
-		uDef.customparams.paralyzemultiplier = uDef.customparams.paralyzemultiplier or .2
-		uDef.customparams.areadamageresistance = "_RAPTORACID_"
+		customparams.paralyzemultiplier = customparams.paralyzemultiplier or .2
+		customparams.areadamageresistance = "_RAPTORACID_"
 		uDef.upright = false
 		uDef.floater = true
 		uDef.turninplace = true
@@ -958,7 +957,7 @@ function UnitDef_Post(name, uDef)
 	end
 
 	-- Wreck and heap standardization
-	if not uDef.customparams.iscommander and not uDef.customparams.iseffigy then
+	if not customparams.iscommander and not customparams.iseffigy then
 		if uDef.featuredefs and uDef.health then
 			local wreckRatio = modOptions.wreck_metal_ratio or 0.6
 			local heapRatio = modOptions.heap_metal_ratio or 0.25
@@ -1047,7 +1046,7 @@ function UnitDef_Post(name, uDef)
 	categories["SURFACE"] = function(uDef) return not (categories.UNDERWATER(uDef) and categories.MOBILE(uDef)) and not categories.VTOL(uDef) end
 	categories["MINE"] = function(uDef) return uDef.weapondefs and uDef.weapondefs.minerange end
 	categories["COMMANDER"] = function(uDef) return commanderList[uDef.movementclass] end
-	categories["EMPABLE"] = function(uDef) return categories.SURFACE(uDef) and uDef.customparams and uDef.customparams.paralyzemultiplier ~= 0 end
+	categories["EMPABLE"] = function(uDef) return categories.SURFACE(uDef) and uDef.customparams.paralyzemultiplier ~= 0 end
 
 	local category = uDef.category or ""
 	if not string.find(category, "OBJECT", 1, true) then -- objects should not be targetable and therefore are not assigned any other category
@@ -1194,52 +1193,52 @@ function UnitDef_Post(name, uDef)
 
 
 		if (name =="corfmd" or name =="armamd" or name =="cormabm" or name =="armscab") then
-			uDef.customparams.paralyzemultiplier = 1.5
+			customparams.paralyzemultiplier = 1.5
 		end
 
 		if (name == "armvulc" or name == "corbuzz" or name == "legstarfall" or name == "corsilo" or name == "armsilo") then
-			uDef.customparams.paralyzemultiplier = 2
+			customparams.paralyzemultiplier = 2
 		end
 
 		--if name == "corsumo" then
-			--uDef.customparams.paralyzemultiplier = 0.9
+			--customparams.paralyzemultiplier = 0.9
 		--end
 
 		if name == "armmar" then
-			uDef.customparams.paralyzemultiplier = 0.8
+			customparams.paralyzemultiplier = 0.8
 		end
 
 		if name == "armbanth" then
-			uDef.customparams.paralyzemultiplier = 1.6
+			customparams.paralyzemultiplier = 1.6
 		end
 
 		--if name == "armraz" then
-			--uDef.customparams.paralyzemultiplier = 1.2
+			--customparams.paralyzemultiplier = 1.2
 		--end
 		--if name == "armvang" then
-			--uDef.customparams.paralyzemultiplier = 1.1
+			--customparams.paralyzemultiplier = 1.1
 		--end
 
 		--if name == "armlun" then
-			--uDef.customparams.paralyzemultiplier = 1.05
+			--customparams.paralyzemultiplier = 1.05
 		--end
 
 		--if name == "corshiva" then
-			--uDef.customparams.paralyzemultiplier = 1.1
+			--customparams.paralyzemultiplier = 1.1
 		--end
 
 		--if name == "corcat" then
-			--uDef.customparams.paralyzemultiplier = 1.05
+			--customparams.paralyzemultiplier = 1.05
 		--end
 
 		--if name == "corkarg" then
-			--uDef.customparams.paralyzemultiplier = 1.2
+			--customparams.paralyzemultiplier = 1.2
 		--end
 		--if name == "corsok" then
-			--uDef.customparams.paralyzemultiplier = 1.1
+			--customparams.paralyzemultiplier = 1.1
 		--end
 		--if name == "cordemont4" then
-			--uDef.customparams.paralyzemultiplier = 1.2
+			--customparams.paralyzemultiplier = 1.2
 		--end
 
 	end
@@ -1515,10 +1514,10 @@ function UnitDef_Post(name, uDef)
 			uDef.buildtime = uDef.buildtime * 1.33
 		end
 
-		if tonumber(uDef.customparams.techlevel) == 2 and uDef.energycost and uDef.metalcost and uDef.buildtime and not (name == "armavp" or name == "coravp" or name == "armalab" or name == "coralab" or name == "armaap" or name == "coraap" or name == "armasy" or name == "corasy") then
+		if tonumber(customparams.techlevel) == 2 and uDef.energycost and uDef.metalcost and uDef.buildtime and not (name == "armavp" or name == "coravp" or name == "armalab" or name == "coralab" or name == "armaap" or name == "coraap" or name == "armasy" or name == "corasy") then
 			uDef.buildtime = math.ceil(uDef.buildtime * 0.015 / 5) * 500
 		end
-		if tonumber(uDef.customparams.techlevel) == 3 and uDef.energycost and uDef.metalcost and uDef.buildtime then
+		if tonumber(customparams.techlevel) == 3 and uDef.energycost and uDef.metalcost and uDef.buildtime then
 			uDef.buildtime = math.ceil(uDef.buildtime * 0.0015) * 1000
 		end
 
@@ -1595,10 +1594,10 @@ function UnitDef_Post(name, uDef)
 	--energystorage
 	--metalstorage
 	-- Metal Extraction Multiplier
-	if (uDef.extractsmetal and uDef.extractsmetal > 0) and (uDef.customparams.metal_extractor and uDef.customparams.metal_extractor > 0) then
+	if (uDef.extractsmetal and uDef.extractsmetal > 0) and (customparams.metal_extractor and customparams.metal_extractor > 0) then
 		local x = modOptions.multiplier_metalextraction * modOptions.multiplier_resourceincome
 		uDef.extractsmetal = uDef.extractsmetal * x
-		uDef.customparams.metal_extractor = uDef.customparams.metal_extractor * x
+		customparams.metal_extractor = customparams.metal_extractor * x
 		if uDef.metalstorage then
 			uDef.metalstorage = uDef.metalstorage * x
 		end
@@ -1615,10 +1614,10 @@ function UnitDef_Post(name, uDef)
 	if uDef.windgenerator and uDef.windgenerator > 0 then
 		local x = modOptions.multiplier_energyproduction * modOptions.multiplier_resourceincome
 		uDef.windgenerator = uDef.windgenerator * x
-		if uDef.customparams.energymultiplier then
-			uDef.customparams.energymultiplier = tonumber(uDef.customparams.energymultiplier) * x
+		if customparams.energymultiplier then
+			customparams.energymultiplier = tonumber(customparams.energymultiplier) * x
 		else
-			uDef.customparams.energymultiplier = x
+			customparams.energymultiplier = x
 		end
 		if uDef.energystorage then
 			uDef.energystorage = uDef.energystorage * x
@@ -1641,10 +1640,10 @@ function UnitDef_Post(name, uDef)
 	end
 
 	-- Energy Conversion Multiplier
-	if uDef.customparams.energyconv_capacity and uDef.customparams.energyconv_efficiency then
+	if customparams.energyconv_capacity and customparams.energyconv_efficiency then
 		local x = modOptions.multiplier_energyconversion * modOptions.multiplier_resourceincome
-		--uDef.customparams.energyconv_capacity = uDef.customparams.energyconv_capacity * x
-		uDef.customparams.energyconv_efficiency = uDef.customparams.energyconv_efficiency * x
+		--customparams.energyconv_capacity = customparams.energyconv_capacity * x
+		customparams.energyconv_efficiency = customparams.energyconv_efficiency * x
 		if uDef.metalstorage then
 			uDef.metalstorage = uDef.metalstorage * x
 		end
@@ -1685,8 +1684,8 @@ function UnitDef_Post(name, uDef)
 	-- bounce shields
 	if modOptions.experimentalshields == "bounceplasma" or modOptions.experimentalshields == "bounceeverything" then
 		local shieldPowerMultiplier = 0.529 --converts to pre-shield rework vanilla integration
-		if uDef.customparams.shield_power then
-			uDef.customparams.shield_power = uDef.customparams.shield_power * shieldPowerMultiplier
+		if customparams.shield_power then
+			customparams.shield_power = customparams.shield_power * shieldPowerMultiplier
 		end
 	end
 
@@ -1695,8 +1694,8 @@ function UnitDef_Post(name, uDef)
 	if vertexDisplacement > 10 then
 		vertexDisplacement = 10
 	end
-	uDef.customparams.vertdisp = 1.0 * vertexDisplacement
-	uDef.customparams.healthlookmod = 0
+	customparams.vertdisp = 1.0 * vertexDisplacement
+	customparams.healthlookmod = 0
 
 	-- Animation Cleanup
 	if modOptions.animationcleanup  then
