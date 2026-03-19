@@ -1,5 +1,5 @@
 local Builders = VFS.Include("spec/builders/index.lua")
-local ModeEnums = VFS.Include("modes/mode_enums.lua")
+local ModeEnums = VFS.Include("modes/sharing_mode_enums.lua")
 local ResourceTypes = VFS.Include("gamedata/resource_types.lua")
 local SharedConfig = VFS.Include("common/luaUtilities/economy/shared_config.lua")
 local WaterfillSolver = VFS.Include("common/luaUtilities/economy/economy_waterfill_solver.lua")
