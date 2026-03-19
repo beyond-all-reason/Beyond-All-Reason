@@ -68,7 +68,7 @@ function widget:CommandNotify(id, params, options)
 					spGiveOrderToUnit(units[k], CMD.STOP, {}, 0)
 				end
 				r = radius(k, #units, b)
-				theta = 2 * mathPi * k / phi * phi
+				theta = 2 * mathPi * k / (phi * phi)
 				x = params[1] + r * math.cos(theta) * ray
 				z = params[3] + r * math.sin(theta) * ray
 				y = Spring.GetGroundHeight(x, z)
