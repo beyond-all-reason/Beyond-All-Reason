@@ -23,8 +23,17 @@ end
 local regularUnitDefs = {}
 local scavengerUnitDefs = {}
 
+local function normalizeUnitDef(unitDef)
+	system.lowerkeys(unitDef)
+	table.ensureTable(unitDef, "customparams")
+	table.ensureTable(unitDef, "buildoptions")
+	table.ensureTable(unitDef, "weapondefs")
+	table.ensureTable(unitDef, "weapons")
+end
+
 for name, unitDef in pairs(UnitDefs) do
 	regularUnitDefs[name] = unitDef
+	normalizeUnitDef(unitDef)
 end
 
 local function getFilePath(filename, path)

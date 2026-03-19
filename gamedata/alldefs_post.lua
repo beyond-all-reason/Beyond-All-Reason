@@ -84,13 +84,12 @@ function UnitDef_Post(name, uDef)
 		isXmas = holidays["xmas"]
 	end
 
-	local customparams = table.ensureTable(uDef, "customparams")
-	local buildoptions = table.ensureTable(uDef, "buildoptions")
-	local weapondefs = table.ensureTable(uDef, "weapondefs")
-	local weapons = table.ensureTable(uDef, "weapons")
-
 	local isScav = string.sub(name, -5, -1) == "_scav"
 	local basename = isScav and string.sub(name, 1, -6) or name
+	local customparams = uDef.customparams
+	local buildoptions = uDef.buildoptions
+	local weapondefs = uDef.weapondefs
+	local weapons = uDef.weapons
 
 	if not uDef.icontype then
 		uDef.icontype = name
@@ -1767,15 +1766,9 @@ function WeaponDef_Post(name, wDef)
 		isXmas = Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"]
 	end
 
-	local customparams = table.ensureTable(uDef, "customparams")
-	local damage, shield
-	if wDef.weapontype == "Shield" then
-		wDef.damage = nil
-		shield = table.ensureTable(wDef, "shield")
-	else
-		damage = table.ensureTable(wDef, "damage")
-		wDef.shield = nil
-	end
+	local customparams = wDef.customparams
+	local damage = wDef.damage
+	local shield = wDef.shield
 
 	if not SaveDefsToCustomParams then
 		-------------- EXPERIMENTAL MODOPTIONS
@@ -1874,9 +1867,9 @@ function WeaponDef_Post(name, wDef)
 
 		local bounceShields = shieldModOption == "bounceeverything" or shieldModOption == "bounceplasma"
 		if bounceShields then
-			local shieldPowerMultiplier = 0.529 --converts to pre-shield rework vanilla integration
-			local shieldRegenMultiplier = 0.4 --converts to pre-shield rework vanilla integration
 			if shield then
+				local shieldPowerMultiplier = 0.529 --converts to pre-shield rework vanilla integration
+				local shieldRegenMultiplier = 0.4 --converts to pre-shield rework vanilla integration
 				shield.power = shield.power * shieldPowerMultiplier
 				shield.powerregen = shield.powerregen * shieldRegenMultiplier
 				shield.startingpower = shield.startingpower * shieldPowerMultiplier
