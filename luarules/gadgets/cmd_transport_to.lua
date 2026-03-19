@@ -2,7 +2,7 @@ function gadget:GetInfo()
     return {
         name = "Transport To Command",
         desc = "Adds ferry command",
-        author = "You",
+        author = "Isajoefeat",
         date = "2026",
         license = "GPL",
         layer = 0,
