@@ -2839,7 +2839,7 @@ function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desy
     local fontsize = (isAbsent and 9 or 14) * fontScaleMed
     fontsize = fontsize * (playerScale + ((1-playerScale)*0.25))
     if dark then
-        font2:SetOutlineColor(0.75, 0.75, 0.75, 1)
+        font2:SetOutlineColor(0.9, 0.9, 0.9, 1)
     else
         font2:SetOutlineColor(0, 0, 0, 1)
     end
@@ -4100,7 +4100,8 @@ function widget:ViewResize()
     updateWidgetScale()
 
 	font = WG['fonts'].getFont()
-    font2 = WG['fonts'].getFont(2, 1.5)
+    
+    font2 = WG['fonts'].getFont(2, 1.5, 0.25, 15.)
 	--local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
     --font2 = WG['fonts'].getFont(2, 1.1, 0.2 * outlineMult, 1.7+(outlineMult*0.2))
 
