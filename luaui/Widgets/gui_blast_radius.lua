@@ -61,7 +61,37 @@ local glBillboard           = gl.Billboard
 local sqrt					= math.sqrt
 local lower                 = string.lower
 
+local spIsSphereInView      = Spring.IsSphereInView
+local spGetGroundHeight     = Spring.GetGroundHeight
+
 local font, chobbyInterface
+
+-- Pre-cached blast data per unitDefID (computed once, static)
+local blastDataCache = {}
+for udid, udef in pairs(udefTab) do
+	local explodeName = udef[explodeTag] and lower(udef[explodeTag])
+	local selfdName = udef[selfdTag] and lower(udef[selfdTag])
+	local explodeWep = explodeName and weapNamTab[explodeName]
+	local selfdWep = selfdName and weapNamTab[selfdName]
+	if explodeWep and selfdWep then
+		local eRadius = weapTab[explodeWep.id][aoeTag]
+		local sRadius = weapTab[selfdWep.id][aoeTag]
+		local sameRadius = (eRadius == sRadius)
+		blastDataCache[udid] = {
+			explodeRadius = eRadius,
+			selfdRadius = sRadius,
+			selfdFontSize = sqrt(sRadius),
+			explodeFontSize = sqrt(eRadius),
+			sameRadius = sameRadius,
+			hasBoth = true,
+			label = sameRadius and (weapTab[selfdWep.id].damages[0] .. " / " .. weapTab[explodeWep.id].damages[0]) or "SELF-D",
+		}
+	elseif explodeWep then
+		blastDataCache[udid] = {
+			explodeRadius = weapTab[explodeWep.id][aoeTag],
+		}
+	end
+end
 
 -----------------------------------------------------------------------------------
 
@@ -88,12 +118,12 @@ function widget:DrawWorld()
 	if chobbyInterface then return end
 	DrawBuildMenuBlastRange()
 
-	--hardcoded: meta + X
-	local keyPressed = spGetKeyState( KEYSYMS.X )
-	local alt,ctrl,meta,shift = spGetModKeyState()
-
-	if (meta and keyPressed) then
-		DrawBlastRadiusSelectedUnits()
+	if #selectedUnits > 0 then
+		local keyPressed = spGetKeyState(KEYSYMS.X)
+		local _,_,meta = spGetModKeyState()
+		if meta and keyPressed then
+			DrawBlastRadiusSelectedUnits()
+		end
 	end
 
 	ResetGl()
@@ -140,115 +170,74 @@ function ChangeBlastColor()
 end
 
 function DrawBuildMenuBlastRange()
+	local _, cmd_id, cmd_type = spGetActiveCommand()
+	if not cmd_id or cmd_type ~= 20 then return end
 
-	--check if build command
-	local _, cmd_id, cmd_type, _ = spGetActiveCommand()
-	if not cmd_id or cmd_type ~= 20 then
-		return
-	end
-
-	--check if META is pressed
-	local _,_,meta,_ = spGetModKeyState()
-	if not meta then --and keyPressed) then
-		return
-	end
+	local _,_,meta = spGetModKeyState()
+	if not meta then return end
 
 	local unitDefID = -cmd_id
-	local udef = udefTab[unitDefID]
-	if weapNamTab[lower(udef[explodeTag])] == nil then
-		return
-	end
-
-	local deathBlasId = weapNamTab[lower(udef[explodeTag])].id
-	local blastRadius = weapTab[deathBlasId][aoeTag]
-	--local defaultDamage = weapTab[deathBlasId].damages[0]	--get default damage
+	local data = blastDataCache[unitDefID]
+	if not data or not data.explodeRadius then return end
 
 	local mx, my = spGetMouseState()
 	local _, coords = spTraceScreenRay(mx, my, true, true)
-
 	if not coords then return end
 
-	local centerX = coords[1]
-	local centerZ = coords[3]
+	local centerX, _, centerZ = Spring.Pos2BuildPos(unitDefID, coords[1], 0, coords[3])
 
-	centerX, _, centerZ = Spring.Pos2BuildPos( unitDefID, centerX, 0, centerZ )
-
-    glLineWidth(blastLineWidth)
-	glColor( expBlastColor[1], expBlastColor[2], expBlastColor[3], blastAlphaValue )
-
-	--draw static ground circle
-	glDrawGroundCircle(centerX, 0, centerZ, blastRadius, blastCircleDivs )
-
-	--tidy up
+	glLineWidth(blastLineWidth)
+	glColor(expBlastColor[1], expBlastColor[2], expBlastColor[3], blastAlphaValue)
+	glDrawGroundCircle(centerX, 0, centerZ, data.explodeRadius, blastCircleDivs)
 	glLineWidth(1)
 	glColor(1, 1, 1, 1)
 
-	--cycle colors for next frame
 	ChangeBlastColor()
 end
 
-function DrawUnitBlastRadius( unitID )
-	local unitDefID =  spGetUnitDefID(unitID)
-	local udef = udefTab[unitDefID]
-
+function DrawUnitBlastRadius(unitID, data)
 	local x, y, z = spGetUnitPosition(unitID)
+	if not x then return end
 
-	if weapNamTab[lower(udef[explodeTag])] ~= nil and weapNamTab[lower(udef[selfdTag])] ~= nil then
-		local deathBlasId = weapNamTab[lower(udef[explodeTag])].id
-		local blastId = weapNamTab[lower(udef[selfdTag])].id
+	local maxRadius = data.selfdRadius > data.explodeRadius and data.selfdRadius or data.explodeRadius
+	if not spIsSphereInView(x, y, z, maxRadius) then return end
 
-		local blastRadius = weapTab[blastId][aoeTag]
-		local deathblastRadius = weapTab[deathBlasId][aoeTag]
+	local height = spGetGroundHeight(x, z)
 
-		local blastDamage = weapTab[blastId].damages[0]
-		local deathblastDamage = weapTab[deathBlasId].damages[0]
+	glColor(blastColor[1], blastColor[2], blastColor[3], blastAlphaValue)
+	glDrawGroundCircle(x, y, z, data.selfdRadius, blastCircleDivs)
 
-		local height = Spring.GetGroundHeight(x,z)
+	glPushMatrix()
+	glTranslate(x - (data.selfdRadius / 1.5), height, z + (data.selfdRadius / 1.5))
+	glBillboard()
 
-		glLineWidth(blastLineWidth)
-		glColor( blastColor[1], blastColor[2], blastColor[3], blastAlphaValue)
-		glDrawGroundCircle( x,y,z, blastRadius, blastCircleDivs )
+	font:Begin()
+	font:Print(data.label, 0.0, 0.0, data.selfdFontSize, "")
+	glPopMatrix()
+
+	if not data.sameRadius then
+		glColor(expBlastColor[1], expBlastColor[2], expBlastColor[3], expBlastAlphaValue)
+		glDrawGroundCircle(x, y, z, data.explodeRadius, blastCircleDivs)
 
 		glPushMatrix()
-		glTranslate(x - ( blastRadius / 1.5 ), height , z  + ( blastRadius / 1.5 ) )
+		glTranslate(x - (data.explodeRadius / 1.6), height, z + (data.explodeRadius / 1.6))
 		glBillboard()
-		local text = "SELF-D"
-		if deathblastRadius == blastRadius then
-			text = blastDamage .. " / " .. deathblastDamage --text = "SELF-D / EXPLODE"
-		end
-
-		font:Begin()
-		font:Print( text, 0.0, 0.0, sqrt(blastRadius) , "")
+		font:Print("EXPLODE", 0.0, 0.0, data.explodeFontSize, "cn")
 		glPopMatrix()
-
-		if deathblastRadius ~= blastRadius then
-			glColor( expBlastColor[1], expBlastColor[2], expBlastColor[3], expBlastAlphaValue)
-			glDrawGroundCircle( x,y,z, deathblastRadius, blastCircleDivs )
-
-			glPushMatrix()
-			glTranslate(x - ( deathblastRadius / 1.6 ), height , z  + ( deathblastRadius / 1.6) )
-			glBillboard()
-			font:Print("EXPLODE" , 0.0, 0.0, sqrt(deathblastRadius), "cn")
-			glPopMatrix()
-		end
-		font:End()
 	end
+	font:End()
 end
 
 function DrawBlastRadiusSelectedUnits()
 	glLineWidth(blastLineWidth)
 
-	local deathBlasId
-	local blastId
-	local blastRadius
-	local blastDamage
-	local deathblastRadius
-	local deathblastDamage
-	local text
-
-	for i=1,#selectedUnits do
+	for i = 1, #selectedUnits do
 		local unitID = selectedUnits[i]
-		DrawUnitBlastRadius( unitID )
+		local unitDefID = spGetUnitDefID(unitID)
+		local data = unitDefID and blastDataCache[unitDefID]
+		if data and data.hasBoth then
+			DrawUnitBlastRadius(unitID, data)
+		end
 	end
 
 	ChangeBlastColor()
@@ -256,8 +245,8 @@ end
 
 --Commons
 function ResetGl()
-	glColor( { 1.0, 1.0, 1.0, 1.0 } )
-	glLineWidth( 1.0 )
+	glColor(1.0, 1.0, 1.0, 1.0)
+	glLineWidth(1.0)
 	glDepthTest(false)
 	glTexture(false)
 end

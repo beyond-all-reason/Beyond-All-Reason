@@ -921,7 +921,7 @@ else	-- UNSYNCED
 
 	function gadget:Initialize()
 		-- doing it via GotChatMsg ensures it will only listen to the caller
-		gadgetHandler:AddChatAction('givecat', GiveCat, "")   -- Give a category of units, options /luarules givecat [cor|arm|scav|raptor]
+		gadgetHandler:AddChatAction('givecat', GiveCat, "")   -- Give a category of units, options /luarules givecat [cor|arm|scav|raptor] or /luarules givecat unitname [teamid]
 		gadgetHandler:AddChatAction('destroyunits', destroyUnits, "")  -- self-destrucs the selected units /luarules destroyunits
 		gadgetHandler:AddChatAction('wreckunits', wreckUnits, "")  -- turns the selected units into wrecks /luarules wreckunits
 		gadgetHandler:AddChatAction('reclaimunits', reclaimUnits, "")  -- reclaims and refunds the selected units /luarules reclaimUnits
@@ -993,7 +993,10 @@ else	-- UNSYNCED
 	end
 
 	function removeUnitDef(_, line, words, playerID)
-		if not isAuthorized(Spring.GetMyPlayerID()) then
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID) then
 			return
 		end
 		-- Spring.Echo(line)
@@ -1006,21 +1009,30 @@ else	-- UNSYNCED
 	end
 
 	function clearWrecks(_, line, words, playerID)
-		if not isAuthorized(Spring.GetMyPlayerID()) then
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID) then
 			return
 		end
 		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':clearwrecks')
 	end
 
 	function reduceWrecks(_, line, words, playerID)
-		if not isAuthorized(Spring.GetMyPlayerID()) then
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID) then
 			return
 		end
 		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':reducewrecks')
 	end
 
 	function processUnits(_, line, words, playerID, action)
-		if not isAuthorized(Spring.GetMyPlayerID()) then
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID) then
 			return
 		end
 		local msg = ''
@@ -1052,8 +1064,11 @@ else	-- UNSYNCED
 		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':' .. action .. msg)
 	end
 
-	function dumpFeatures(_)
-		if not isAuthorized(Spring.GetMyPlayerID()) then
+	function dumpFeatures(_, line, words, playerID)
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID) then
 			return
 		end
 		local features=Spring.GetAllFeatures()
@@ -1068,8 +1083,11 @@ else	-- UNSYNCED
 		end
 	end
 
-	function dumpUnits(_)
-		if not isAuthorized(Spring.GetMyPlayerID()) then
+	function dumpUnits(_, line, words, playerID)
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID) then
 			return
 		end
 		Spring.Echo("Dumping all units")
@@ -1219,9 +1237,11 @@ else	-- UNSYNCED
 	end
 
 	function fightertest(_, line, words, playerID, action)
-
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
 		Spring.Echo("Fightertest",line, words, playerID, action)
-		if not isAuthorized(Spring.GetMyPlayerID()) then
+		if not isAuthorized(playerID) then
 			return
 		end
 		if fightertestactive then
@@ -1334,7 +1354,10 @@ else	-- UNSYNCED
 	end
 
 	function globallos(_, line, words, playerID, action)
-		if not isAuthorized(Spring.GetMyPlayerID()) then
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID) then
 			return
 		end
 		if words[2] then
@@ -1346,7 +1369,10 @@ else	-- UNSYNCED
 	end
 
 	function playertoteam(_, line, words, playerID, action)
-		if not isAuthorized(Spring.GetMyPlayerID()) then
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID) then
 			return
 		end
 		if not words[1] then
@@ -1371,7 +1397,10 @@ else	-- UNSYNCED
 	end
 
 	function killteam(_, line, words, playerID, action)
-		if not isAuthorized(Spring.GetMyPlayerID()) then
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID) then
 			return
 		end
 		if not words[1] then
@@ -1380,8 +1409,11 @@ else	-- UNSYNCED
 		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':killteam:' .. words[1])
 	end
 
-	function desync()
-		if not isAuthorized(Spring.GetMyPlayerID()) then
+	function desync(_, line, words, playerID)
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID) then
 			return
 		end
 		Spring.Echo("Unsynced: Attempting to trigger a /desync")
@@ -1392,7 +1424,10 @@ else	-- UNSYNCED
 		--spawnceg usage:
 		--/luarules spawnceg newnuke --spawns at cursor
 		--/luarules spawnceg newnuke [int] -- spawns at cursor at height
-		if not isAuthorized(Spring.GetMyPlayerID()) then
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID) then
 			return
 		end
 		local height = 32
@@ -1415,7 +1450,10 @@ else	-- UNSYNCED
 	function spawnunitexplosion(_, line, words, playerID)
 		--spawnunitexplosion usage:
 		--/luarules spawnunitexplosion armbull --spawns at cursor
-		if not isAuthorized(Spring.GetMyPlayerID()) then
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID) then
 			return
 		end
 		local mx, my = Spring.GetMouseState()
@@ -1429,7 +1467,50 @@ else	-- UNSYNCED
 	end
 
 	function GiveCat(_, line, words, playerID)
-		if not isAuthorized(Spring.GetMyPlayerID()) then
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID) then
+			return
+		end
+
+		-- "tree" mode: /luarules givecat unitname [teamid]
+		-- If first word is a known unitdef name, give it + all recursive buildoptions
+		if words[1] and UnitDefNames[words[1]] then
+			local unitName = words[1]
+			local rootDef = UnitDefNames[unitName]
+			local collected = {}
+			local result = {}
+			local function collectBuildOptions(uDefID, depth)
+				if depth > 15 or collected[uDefID] then
+					return
+				end
+				collected[uDefID] = true
+				result[#result + 1] = uDefID
+				local ud = UnitDefs[uDefID]
+				if ud and ud.buildOptions then
+					for _, boDefID in ipairs(ud.buildOptions) do
+						collectBuildOptions(boDefID, depth + 1)
+					end
+				end
+			end
+			collectBuildOptions(rootDef.id, 0)
+			Spring.Echo("givecat: giving " .. #result .. " unique units from '" .. unitName .. "'")
+			if #result == 0 then return end
+			local _, _, _, teamID = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+			if words[2] and tonumber(words[2]) then
+				teamID = tonumber(words[2])
+			end
+			local mx, my = Spring.GetMouseState()
+			local t, pos = Spring.TraceScreenRay(mx, my, true)
+			if type(pos) == 'table' then
+				local x, z = math.floor(pos[1]), math.floor(pos[3])
+				local msg = "givecat " .. x .. " " .. z .. " " .. teamID
+				for _, uDID in ipairs(result) do
+					msg = msg .. " " .. uDID
+				end
+				Spring.SendLuaRulesMsg(PACKET_HEADER .. ':' .. msg)
+			end
 			return
 		end
 

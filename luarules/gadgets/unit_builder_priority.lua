@@ -51,12 +51,6 @@ local currentBuildSpeed = {} --build speed of builderID for current interval, no
 local costID = {} -- costID[unitID] (contains all non-finished units)
 
 local ruleName = "builderPriority"
-
--- Translate between array-style and hash-style resource tables.
-local resources = { "metal", "energy" } -- ipairs-able
-resources["metal"] = 1 -- reverse-able
-resources["energy"] = 2
-
 local CMD_PRIORITY = GameCMD.PRIORITY
 local cmdPassiveDesc = {
       id      = CMD_PRIORITY,
@@ -95,6 +89,7 @@ local unitBuildSpeed = {}
 local canPassive = {} -- canPassive[unitDefID] = nil / true
 local cost = {} -- cost[unitDefID] = { metal, energy, buildTime }
 local suspendBuilderPriority
+local teamsWithOwners = {} -- teams that have active buildTargetOwners entries
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	-- All builders can have their build speeds changed via lua
@@ -111,8 +106,6 @@ end
 local function updateTeamList()
 	teamList = spGetTeamList()
 end
-
-local isTeamSavingMetal = function(_) return false end
 
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_PRIORITY)
@@ -247,38 +240,48 @@ local function UpdatePassiveBuilders(teamID, interval)
 	-- and how much total expense the non-passive cons require
 	local nonPassiveConsTotalExpenseEnergy = 0
 	local nonPassiveConsTotalExpenseMetal = 0
-	local passiveConsExpense = {}
 	local teamBuildTargetOwners = buildTargetOwnersByTeam[teamID]
+	local hasOwners = false
 
-	-- Clear previous team's build target owners
-	for k in pairs(teamBuildTargetOwners) do
-		teamBuildTargetOwners[k] = nil
-	end
+	-- Clear previous team's build target owners (replace table to avoid pairs() mutation)
+	buildTargetOwnersByTeam[teamID] = {}
+	teamBuildTargetOwners = buildTargetOwnersByTeam[teamID]
 
-	-- First pass: only check passive builders that are building
+	-- First pass: check passive builders that are building, track their expense inline
+	local anyPassiveBuilding = false
+	local passiveMetal = {} -- per-builder metal expense
+	local passiveEnergy = {} -- per-builder energy expense
+
 	for builderID in pairs(passiveTeamCons) do
 		local builtUnit = spGetUnitIsBuilding(builderID)
 		if builtUnit then
 			local targetCosts = costID[builtUnit]
 			local buildSpeed = realBuildSpeed[builderID]
 			if targetCosts and buildSpeed then
-				local mcost, ecost = targetCosts[1], targetCosts[2]
 				local rate = buildSpeed / targetCosts[3]
-				-- Add an exception for basic metal converters, which each cost 1 metal.
-				-- Don't stall over something so small and that may be needed to recover.
+				local mcost = targetCosts[1]
 				mcost = mcost <= 1 and 0 or mcost * rate
-				ecost = ecost * rate
-				passiveConsExpense[builderID] = { mcost, ecost }
+				local ecost = targetCosts[2] * rate
+				passiveMetal[builderID] = mcost
+				passiveEnergy[builderID] = ecost
+				anyPassiveBuilding = true
 				if not buildTargets[builtUnit] then
 					buildTargets[builtUnit] = true
 					teamBuildTargetOwners[builderID] = builtUnit
+					hasOwners = true
 				end
 			end
 		end
 	end
 
-	-- Second pass: check non-passive builders ONLY if we have passive builders
-	if next(passiveConsExpense) then
+	if hasOwners then
+		teamsWithOwners[teamID] = true
+	else
+		teamsWithOwners[teamID] = nil
+	end
+
+	-- Second pass: check non-passive builders ONLY if we have passive builders building
+	if anyPassiveBuilding then
 		local teamBuilders = canBuild[teamID]
 		for builderID in pairs(teamBuilders) do
 			if not passiveTeamCons[builderID] then
@@ -287,10 +290,10 @@ local function UpdatePassiveBuilders(teamID, interval)
 					local targetCosts = costID[builtUnit]
 					local buildSpeed = realBuildSpeed[builderID]
 					if targetCosts and buildSpeed then
-						local mcost, ecost = targetCosts[1], targetCosts[2]
 						local rate = buildSpeed / targetCosts[3]
+						local mcost = targetCosts[1]
 						mcost = mcost <= 1 and 0 or mcost * rate
-						ecost = ecost * rate
+						local ecost = targetCosts[2] * rate
 						nonPassiveConsTotalExpenseMetal = nonPassiveConsTotalExpenseMetal + mcost
 						nonPassiveConsTotalExpenseEnergy = nonPassiveConsTotalExpenseEnergy + ecost
 					end
@@ -313,14 +316,13 @@ local function UpdatePassiveBuilders(teamID, interval)
 
 	-- work through passive cons allocating as much expense as we have left
 	for builderID in pairs(passiveTeamCons) do
-		local conExpense = passiveConsExpense[builderID]
 		local wouldStall = false
 
-		if conExpense then
-			local passivePullMetal = conExpense[1] * intervalOverSpeed
-			local passivePullEnergy = conExpense[2] * intervalOverSpeed
+		local pMetal = passiveMetal[builderID]
+		if pMetal then
+			local passivePullMetal = pMetal * intervalOverSpeed
+			local passivePullEnergy = passiveEnergy[builderID] * intervalOverSpeed
 			if passivePullMetal > 0 or passivePullEnergy > 0 then
-				-- Stalling in one resource stalls in the other (if both resource types are used)
 				if (teamStallingMetal - passivePullMetal <= 0 and passivePullMetal > 0) or
 				   (teamStallingEnergy - passivePullEnergy <= 0 and passivePullEnergy > 0) then
 					wouldStall = true
@@ -348,36 +350,15 @@ local function UpdatePassiveBuilders(teamID, interval)
 end
 
 
-local function GetUpdateInterval(teamID)
-	local maxInterval = 1
-	for i = 1, #resources do
-		local resName = resources[i]
-		local _, stor, _, inc = spGetTeamResources(teamID, resName)
-		local resMaxInterval
-		if inc > 0 then
-			resMaxInterval = mathFloor(stor*simSpeed/inc)+1 -- how many frames would it take to fill our current storage based on current income?
-		else
-			resMaxInterval = 6
-		end
-		if resMaxInterval > maxInterval then
-			maxInterval = resMaxInterval
-			if maxInterval >= 6 then
-				return 6  -- Early exit when we hit the maximum
-			end
-		end
-	end
-	return maxInterval
-end
-
 function gadget:GameFrame(n)
-	-- Process buildTargetOwners - only for teams that were just updated
-	-- This is handled within UpdatePassiveBuilders now, but we need to restore speeds
-	-- for owners from the previous frame
-	for teamID, owners in pairs(buildTargetOwnersByTeam) do
+	-- Process buildTargetOwners — restore speeds from previous frame's 0.001 override
+	-- Only iterate teams that actually had owners set
+	for teamID in pairs(teamsWithOwners) do
+		local suspend = spGetTeamRulesParam(teamID, "suspendbuilderpriority")
+		local owners = buildTargetOwnersByTeam[teamID]
 		for builderID, builtUnit in pairs(owners) do
 			if spValidUnitID(builderID) and spGetUnitIsBuilding(builderID) == builtUnit then
-				local suspend = spGetTeamRulesParam(teamID, "suspendbuilderpriority")
-				if not isTeamSavingMetal(teamID) and suspend == 0 then
+				if suspend == 0 then
 					local buildSpeed = currentBuildSpeed[builderID] or realBuildSpeed[builderID]
 					if buildSpeed then
 						spSetUnitBuildSpeed(builderID, buildSpeed)
@@ -386,20 +367,33 @@ function gadget:GameFrame(n)
 			end
 		end
 	end
+	teamsWithOwners = {}
 
-	-- Clear build targets (shared across all teams)
-	for k in pairs(buildTargets) do
-		buildTargets[k] = nil
-	end
+	-- Clear build targets (shared across all teams, replace table to avoid pairs() mutation)
+	buildTargets = {}
 
 	-- Only process teams that have passive builders and are not dead
 	for i = 1, #teamList do
 		local teamID = teamList[i]
-		if not deadTeamList[teamID] and not isTeamSavingMetal(teamID) then
+		if not deadTeamList[teamID] then
 			-- Skip teams with no passive builders
 			if passiveConsCount[teamID] and passiveConsCount[teamID] > 0 then
 				if n >= updateFrame[teamID] then
-					local interval = GetUpdateInterval(teamID)
+					-- Inlined GetUpdateInterval: find max frames to fill storage for metal/energy (capped at 6)
+					local interval = 1
+					local _, stor, _, inc = spGetTeamResources(teamID, "metal")
+					if inc > 0 then
+						local mi = mathFloor(stor * simSpeed / inc) + 1
+						if mi > interval then interval = mi end
+					end
+					if interval < 6 then
+						_, stor, _, inc = spGetTeamResources(teamID, "energy")
+						if inc > 0 then
+							local ei = mathFloor(stor * simSpeed / inc) + 1
+							if ei > interval then interval = ei end
+						end
+					end
+					if interval > 6 then interval = 6 end
 					UpdatePassiveBuilders(teamID, interval)
 					updateFrame[teamID] = n + interval
 				end

@@ -19,42 +19,46 @@ local mathFloor = math.floor
 local mathMax = math.max
 local mathMin = math.min
 local mathIsInRect = math.isInRect
+local mathSin = math.sin
+local PI = math.pi
 
 -- Localized string functions
 local stringFormat = string.format
 
--- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spGetTeamRulesParam = Spring.GetTeamRulesParam
-local spGetTeamList = Spring.GetTeamList
-local spSetMouseCursor = Spring.SetMouseCursor
-local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
-local spGetTeamUnitDefCount = Spring.GetTeamUnitDefCount
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetTeamResources = Spring.GetTeamResources
-local spGetMyTeamID = Spring.GetMyTeamID
-local spGetMouseState = Spring.GetMouseState
-local spGetWind = Spring.GetWind
-local spGetGameSpeed = Spring.GetGameSpeed
+-- Localized Spring API as table (avoids global lookups, saves local slots)
+local sp = {
+	GetGameFrame = Spring.GetGameFrame,
+	GetTeamRulesParam = Spring.GetTeamRulesParam,
+	GetTeamList = Spring.GetTeamList,
+	SetMouseCursor = Spring.SetMouseCursor,
+	GetMyAllyTeamID = Spring.GetMyAllyTeamID,
+	GetTeamUnitDefCount = Spring.GetTeamUnitDefCount,
+	GetSpectatingState = Spring.GetSpectatingState,
+	GetTeamResources = Spring.GetTeamResources,
+	GetMyTeamID = Spring.GetMyTeamID,
+	GetMouseState = Spring.GetMouseState,
+	GetWind = Spring.GetWind,
+	GetGameSpeed = Spring.GetGameSpeed,
+}
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
-
--- Configuration
-local relXpos = 0.3
-local borderPadding = 5
-local bladeSpeedMultiplier = 0.2
-local escapeKeyPressesQuit = false
-local allowSavegame = true -- Spring.Utilities.ShowDevUI()
-local spawnWarpInFrame = Game.spawnWarpInFrame
+-- Configuration (consolidated into table to save local slots)
+local cfg = {
+	relXpos = 0.3,
+	borderPadding = 5,
+	bladeSpeedMultiplier = 0.2,
+	escapeKeyPressesQuit = false,
+	allowSavegame = true, -- Spring.Utilities.ShowDevUI()
+	spawnWarpInFrame = Game.spawnWarpInFrame,
+}
 
 -- System
 local guishaderEnabled = false
 local gaiaTeamID = Spring.GetGaiaTeamID()
-local spec = spGetSpectatingState()
-local myAllyTeamID = spGetMyAllyTeamID()
-local myTeamID = spGetMyTeamID()
-local mmLevel = spGetTeamRulesParam(myTeamID, 'mmLevel')
-local myAllyTeamList = spGetTeamList(myAllyTeamID)
+local spec = sp.GetSpectatingState()
+local myAllyTeamID = sp.GetMyAllyTeamID()
+local myTeamID = sp.GetMyTeamID()
+local mmLevel = sp.GetTeamRulesParam(myTeamID, 'mmLevel')
+local myAllyTeamList = sp.GetTeamList(myAllyTeamID)
 local numTeamsInAllyTeam = #myAllyTeamList
 
 -- Game mode / state
@@ -62,13 +66,13 @@ local numPlayers = Spring.Utilities.GetPlayerCount()
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 local chobbyLoaded = false
 local isSingle = false
-local gameStarted = (spGetGameFrame() > 0)
-local gameFrame = spGetGameFrame()
+local gameStarted = (sp.GetGameFrame() > 0)
+local gameFrame = sp.GetGameFrame()
 local gameIsOver = false
 local graphsWindowVisible = false
 
 -- Resources
-local r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
+local r = { metal = { sp.GetTeamResources(myTeamID, 'metal') }, energy = { sp.GetTeamResources(myTeamID, 'energy') } }
 local energyOverflowLevel, metalOverflowLevel
 local allyteamOverflowingMetal = false
 local allyteamOverflowingEnergy = false
@@ -105,6 +109,13 @@ local glCreateList = gl.CreateList
 local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
 local glBlending = gl.Blending
+local glColor = gl.Color
+local glPushMatrix = gl.PushMatrix
+local glPopMatrix = gl.PopMatrix
+local glRotate = gl.Rotate
+local glTranslate = gl.Translate
+local glScale = gl.Scale
+local r2tHelper = gl.R2tHelper
 
 -- Graphics
 local textures = {
@@ -137,30 +148,38 @@ local vsx, vsy = Spring.GetViewGeometry()
 local mx = -1
 local my = -1
 local widgetScale = (0.80 + (vsx * vsy / 6000000))
-local xPos = mathFloor(vsx * relXpos)
+local xPos = mathFloor(vsx * cfg.relXpos)
 local showButtons = true
 local autoHideButtons = false
 local showResourceBars = true
 local widgetSpaceMargin, bgpadding, RectRound, RectRoundOutline, TexturedRectRound, UiElement, UiButton, UiSliderKnob
 local updateRes = { metal = {false,false,false,false}, energy = {false,false,false,false} }
 
--- Display Lists
-local dlistWindText = {}
-local dlistResValuesBar = {}
-local dlistResValues = {}
-local dlistResbar = { metal = {}, energy = {} }
-local dlistEnergyGlow
-local dlistQuit
-local dlistButtons, dlistComs, dlistWind1, dlistWind2
+-- Display Lists (consolidated into table to save local slots)
+local dlist = {
+	windText = {},
+	resValuesBar = {},
+	resValues = {},
+	resbar = { metal = {}, energy = {} },
+	energyGlow = nil,
+	quit = nil,
+	buttons = nil,
+	coms = nil,
+	wind1 = nil,
+	wind2 = nil,
+	tidal2 = nil,
+}
 
--- Caching
-local lastPullIncomeText =  { metal = -1, energy = -1 }
-local lastStorageValue = { metal = -1, energy = -1 }
-local lastStorageText = { metal = '', energy = '' }
-local lastWarning = { metal = nil, energy = nil }
-local lastValueWidth = { metal = -1, energy = -1 }
-local lastResbarValueWidth = { metal = 1, energy = 1 }
-local prevShowButtons = showButtons
+-- Caching (consolidated into table to save local slots)
+local cache = {
+	lastPullIncomeText = { metal = -1, energy = -1 },
+	lastStorageValue = { metal = -1, energy = -1 },
+	lastStorageText = { metal = '', energy = '' },
+	lastWarning = { metal = nil, energy = nil },
+	lastValueWidth = { metal = -1, energy = -1 },
+	lastResbarValueWidth = { metal = 1, energy = 1 },
+	prevShowButtons = showButtons,
+}
 
 
 -- Smoothing
@@ -169,20 +188,16 @@ local smoothedResources = {
     energy = {0, 0, 0, 0, 0, 0}  -- Init
 }
 local smoothingFactor = 0.5
+local oneMinusSmoothingFactor = 1 - smoothingFactor
 local function smoothResources()
-    local currentResources = r
-    local resTypes = {'metal', 'energy'}
-    for resIdx = 1, 2 do
-        local resType = resTypes[resIdx]
-        for i = 1, 6 do
-            if smoothedResources[resType][i] == 0 then
-                smoothedResources[resType][i] = currentResources[resType][i]
-            else
-                smoothedResources[resType][i] = smoothingFactor * currentResources[resType][i] + (1 - smoothingFactor) * smoothedResources[resType][i]
-            end
-        end
+    local sm = smoothedResources.metal
+    local rm = r.metal
+    local se = smoothedResources.energy
+    local re = r.energy
+    for i = 1, 6 do
+        sm[i] = sm[i] == 0 and rm[i] or (smoothingFactor * rm[i] + oneMinusSmoothingFactor * sm[i])
+        se[i] = se[i] == 0 and re[i] or (smoothingFactor * re[i] + oneMinusSmoothingFactor * se[i])
     end
-    return
 end
 
 
@@ -197,20 +212,21 @@ local playSounds = true
 local leftclick = 'LuaUI/Sounds/tock.wav'
 local resourceclick = 'LuaUI/Sounds/buildbar_click.wav'
 
--- Timers + intervals
+-- Timers + intervals (consolidated into table to save local slots)
 local osClock = os.clock
 local now = osClock()
-local nextStateCheck = 0
-local nextGuishaderCheck = 0
-local nextResBarUpdate = 0
-local nextSlowUpdate = 0
-local nextBarsUpdate = 0
+local timers = {
+	nextStateCheck = 0,
+	nextGuishaderCheck = 0,
+	nextResBarUpdate = 0,
+	nextSlowUpdate = 0,
+	nextBarsUpdate = 0,
+	guishaderCheckUpdateRate = 0.5,
+	nextSmoothUpdate = 0,
+}
 
 local blinkDirection = true
 local blinkProgress = 0
-local guishaderCheckUpdateRate = 0.5
-
-local nextSmoothUpdate = 0
 --------------------------------------------------------------------------------
 
 local function getPlayerLiveAllyCount()
@@ -244,7 +260,7 @@ end
 function widget:ViewResize()
 	vsx, vsy = gl.GetViewSizes()
 	widgetScale = (vsy / height) * 0.0425 * ui_scale
-	xPos = mathFloor(vsx * relXpos)
+	xPos = mathFloor(vsx * cfg.relXpos)
 
 	widgetSpaceMargin = WG.FlowUI.elementMargin
 	bgpadding = WG.FlowUI.elementPadding
@@ -258,18 +274,18 @@ function widget:ViewResize()
 	font = WG['fonts'].getFont()
 	font2 = WG['fonts'].getFont(2)
 
-	for n, _ in pairs(dlistWindText) do
-		dlistWindText[n] = glDeleteList(dlistWindText[n])
+	for n, _ in pairs(dlist.windText) do
+		dlist.windText[n] = glDeleteList(dlist.windText[n])
 	end
-	for res, _ in pairs(dlistResValues) do
-		dlistResValues[res] = glDeleteList(dlistResValues[res])
+	for res, _ in pairs(dlist.resValues) do
+		dlist.resValues[res] = glDeleteList(dlist.resValues[res])
 	end
-	for res, _ in pairs(dlistResValuesBar) do
-		dlistResValuesBar[res] = glDeleteList(dlistResValuesBar[res])
+	for res, _ in pairs(dlist.resValuesBar) do
+		dlist.resValuesBar[res] = glDeleteList(dlist.resValuesBar[res])
 	end
 
-	-- Reset lastValueWidth so display lists are recreated with new dimensions
-	lastValueWidth = { metal = -1, energy = -1 }
+	-- Reset cache.lastValueWidth so display lists are recreated with new dimensions
+	cache.lastValueWidth = { metal = -1, energy = -1 }
 
 	init()
 end
@@ -340,7 +356,7 @@ local function updateButtons()
 	if WG['teamstats'] then addButton('stats', Spring.I18N('ui.topbar.button.stats')) end
 	if gameIsOver then addButton('graphs', Spring.I18N('ui.topbar.button.graphs')) end
 	if WG['scavengerinfo'] then addButton('scavengers', Spring.I18N('ui.topbar.button.scavengers')) end
-	if isSinglePlayer and allowSavegame and WG['savegame'] then addButton('save', Spring.I18N('ui.topbar.button.save')) end
+	if isSinglePlayer and cfg.allowSavegame and WG['savegame'] then addButton('save', Spring.I18N('ui.topbar.button.save')) end
 
 	buttonsArea['buttons'][lastbutton][1] = buttonsArea['buttons'][lastbutton][1] - sidePadding
 	offset = offset + sidePadding
@@ -352,9 +368,9 @@ local function updateButtons()
 	end
 	prevButtonsArea = buttonsArea
 
-	if dlistButtons then glDeleteList(dlistButtons) end
-	dlistButtons = glCreateList(function()
-		font2:Begin(useRenderToTexture)
+	if dlist.buttons then glDeleteList(dlist.buttons) end
+	dlist.buttons = glCreateList(function()
+		font2:Begin(true)
 		font2:SetTextColor(0.92, 0.92, 0.92, 1)
 		font2:SetOutlineColor(0, 0, 0, 1)
 		for name, params in pairs(buttonsArea['buttons']) do
@@ -379,9 +395,9 @@ local function updateComs(forceText)
 	end
 
 
-	if dlistComs then glDeleteList(dlistComs) end
+	if dlist.coms then glDeleteList(dlist.coms) end
 	comsDlistUpdate = true
-	dlistComs = glCreateList(function()
+	dlist.coms = glCreateList(function()
 		-- Commander icon
 		local sizeHalf = (height / 2.44) * widgetScale
 		local yOffset = ((area[3] - area[1]) * 0.025)
@@ -392,7 +408,7 @@ local function updateComs(forceText)
 		end
 		-- Text
 		if gameFrame > 0 or forceText then
-			font2:Begin(useRenderToTexture)
+			font2:Begin(true)
 			local fontsize = (height / 2.85) * widgetScale
 			font2:SetOutlineColor(0,0,0,1)
 			font2:Print('\255\255\000\000' .. enemyComCount, area[3] - (2.8 * widgetScale), area[2] + (4.5 * widgetScale), fontsize, 'or')
@@ -429,42 +445,21 @@ local function updateWind()
 
 	local bladesSize = height*0.53 * widgetScale
 
-	if dlistWind1 then glDeleteList(dlistWind1) end
-	dlistWind1 = glCreateList(function()
+	if dlist.wind1 then glDeleteList(dlist.wind1) end
+	dlist.wind1 = glCreateList(function()
 		-- blades icon
-		gl.PushMatrix()
-		gl.Translate(area[1] + ((area[3] - area[1]) / 2), area[2] + (bgpadding/2) + ((area[4] - area[2]) / 2), 0)
-		gl.Color(1, 1, 1, 0.2)
+		glPushMatrix()
+		glTranslate(area[1] + ((area[3] - area[1]) / 2), area[2] + (bgpadding/2) + ((area[4] - area[2]) / 2), 0)
+		glColor(1, 1, 1, 0.2)
 		glTexture(textures.blades)
 		-- gl.Rotate is done after displaying this dl, and before dl2
 	end)
 
-	if dlistWind2 then glDeleteList(dlistWind2) end
-	dlistWind2 = glCreateList(function()
+	if dlist.wind2 then glDeleteList(dlist.wind2) end
+	dlist.wind2 = glCreateList(function()
 		glTexRect(-bladesSize, -bladesSize, bladesSize, bladesSize)
 		glTexture(false)
-		gl.PopMatrix()
-
-		if not useRenderToTexture then
-			-- min and max wind
-			local fontsize = (height / 3.7) * widgetScale
-			if not windFunctions.isNoWind() then
-				font2:Begin(useRenderToTexture)
-				font2:SetOutlineColor(0,0,0,1)
-				font2:Print("\255\210\210\210" .. minWind, windArea[3] - (2.8 * widgetScale), windArea[4] - (4.5 * widgetScale) - (fontsize / 2), fontsize, 'or')
-				font2:Print("\255\210\210\210" .. maxWind, windArea[3] - (2.8 * widgetScale), windArea[2] + (4.5 * widgetScale), fontsize, 'or')
-				-- uncomment below to display average wind speed on UI
-				-- font2:Print("\255\210\210\210" .. avgWindValue, area[1] + (2.8 * widgetScale), area[2] + (4.5 * widgetScale), fontsize, '')
-				font2:End()
-			else
-				font2:Begin(useRenderToTexture)
-				font2:SetOutlineColor(0,0,0,1)
-				--font2:Print("\255\200\200\200no wind", windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontsize / 5), fontsize, 'oc') -- Wind speed text
-				font2:Print("\255\200\200\200" .. Spring.I18N('ui.topbar.wind.nowind1'), windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 1.5) - (fontsize / 5), fontsize*1.06, 'oc') -- Wind speed text
-				font2:Print("\255\200\200\200" .. Spring.I18N('ui.topbar.wind.nowind2'), windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.8) - (fontsize / 5), fontsize*1.06, 'oc') -- Wind speed text
-				font2:End()
-			end
-		end
+		glPopMatrix()
 	end)
 
 	if WG['tooltip'] and refreshUi then
@@ -496,23 +491,16 @@ end
 local function updateTidal()
 	local area = tidalarea
 
-	if tidaldlist2 then glDeleteList(tidaldlist2) end
+	if dlist.tidal2 then glDeleteList(dlist.tidal2) end
 	local wavesSize = height*0.53 * widgetScale
 	tidalWaveAnimationHeight = height*0.1 * widgetScale
 
-	tidaldlist2 = glCreateList(function()
-		gl.Color(1, 1, 1, 0.2)
+	dlist.tidal2 = glCreateList(function()
+		glColor(1, 1, 1, 0.2)
 		glTexture(textures.waves)
 		glTexRect(-wavesSize, -wavesSize, wavesSize, wavesSize)
 		glTexture(false)
-		gl.PopMatrix()
-		if not useRenderToTexture then
-			local fontSize = (height / 2.66) * widgetScale
-			font2:Begin(useRenderToTexture)
-			font2:SetOutlineColor(0,0,0,1)
-			font2:Print("\255\255\255\255" .. tidalSpeed, tidalarea[1] + ((tidalarea[3] - tidalarea[1]) / 2), tidalarea[2] + ((tidalarea[4] - tidalarea[2]) / 2.05) - (fontSize / 5), fontSize, 'oc') -- Tidal speed text
-			font2:End()
-		end
+		glPopMatrix()
 	end)
 
 	if WG['tooltip'] and refreshUi then
@@ -521,7 +509,7 @@ local function updateTidal()
 end
 
 local function drawResbarPullIncome(res)
-	font2:Begin(useRenderToTexture)
+	font2:Begin(true)
 	font2:SetOutlineColor(0,0,0,1)
 	-- Text: pull
 	font2:Print("\255\240\125\125" .. "-" .. short(r[res][3]), resbarDrawinfo[res].textPull[2], resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[4], resbarDrawinfo[res].textPull[5])
@@ -533,14 +521,14 @@ local function drawResbarPullIncome(res)
 end
 
 local function drawResbarStorage(res)
-	font2:Begin(useRenderToTexture)
+	font2:Begin(true)
 	font2:SetOutlineColor(0,0,0,1)
 	if res == 'metal' then
 		font2:SetTextColor(0.55, 0.55, 0.55, 1)
 	else
 		font2:SetTextColor(0.57, 0.57, 0.45, 1)
 	end
-	font2:Print(lastStorageText[res], resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[4], resbarDrawinfo[res].textStorage[5])
+	font2:Print(cache.lastStorageText[res], resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[4], resbarDrawinfo[res].textStorage[5])
 	font2:End()
 end
 
@@ -550,46 +538,34 @@ local function updateResbarText(res, force)
 	end
 
 	-- used to flashing resbar area (tinting)
-	if not dlistResbar[res][4] or force then
-		if dlistResbar[res][4] then
-			glDeleteList(dlistResbar[res][4])
+	if not dlist.resbar[res][4] or force then
+		if dlist.resbar[res][4] then
+			glDeleteList(dlist.resbar[res][4])
 		end
-		dlistResbar[res][4] = glCreateList(function()
+		dlist.resbar[res][4] = glCreateList(function()
 			RectRound(resbarArea[res][1] + bgpadding, resbarArea[res][2] + bgpadding, resbarArea[res][3] - bgpadding, resbarArea[res][4], bgpadding * 1.25, 0,0,1,1)
 			RectRound(resbarArea[res][1], resbarArea[res][2], resbarArea[res][3], resbarArea[res][4], 5.5 * widgetScale, 0,0,1,1)
 		end)
 	end
 
 	-- storage changed!
-	if lastStorageValue[res] ~= r[res][2] or force then
-		lastStorageValue[res] = r[res][2]
+	if cache.lastStorageValue[res] ~= r[res][2] or force then
+		cache.lastStorageValue[res] = r[res][2]
 
 		-- storage
 		local storageText = short(r[res][2])
-		if lastStorageText[res] ~= storageText or force then
-			lastStorageText[res] = storageText
+		if cache.lastStorageText[res] ~= storageText or force then
+			cache.lastStorageText[res] = storageText
 			updateRes[res][3] = true
-			if not useRenderToTexture then
-				if dlistResbar[res][6] then glDeleteList(dlistResbar[res][6]) end
-				dlistResbar[res][6] = glCreateList(function()
-					drawResbarStorage(res)
-				end)
-			end
 		end
 	end
 
-	if lastPullIncomeText[res] ~= short(r[res][3])..' '..short(r[res][4]) then
-		lastPullIncomeText[res] = short(r[res][3])..' '..short(r[res][4])
+	if cache.lastPullIncomeText[res] ~= short(r[res][3])..' '..short(r[res][4]) then
+		cache.lastPullIncomeText[res] = short(r[res][3])..' '..short(r[res][4])
 		updateRes[res][2] = true
-		if not useRenderToTexture then
-			if dlistResbar[res][3] then glDeleteList(dlistResbar[res][3]) end
-			dlistResbar[res][3] = glCreateList(function()
-				drawResbarPullIncome(res)
-			end)
-		end
 	end
 
-	if not spec and gameFrame > spawnWarpInFrame then
+	if not spec and gameFrame > cfg.spawnWarpInFrame then
 		-- display overflow notification
 		if (res == 'metal' and (allyteamOverflowingMetal or overflowingMetal)) or (res == 'energy' and (allyteamOverflowingEnergy or overflowingEnergy)) then
 			if not showOverflowTooltip[res] then showOverflowTooltip[res] = now + 1.1 end
@@ -625,12 +601,12 @@ local function updateResbarText(res, force)
 
 				end
 
-				if lastWarning[res] ~= text or force then
-					lastWarning[res] = text
+				if cache.lastWarning[res] ~= text or force then
+					cache.lastWarning[res] = text
 
-					if dlistResbar[res][7] then glDeleteList(dlistResbar[res][7]) end
+					if dlist.resbar[res][7] then glDeleteList(dlist.resbar[res][7]) end
 
-					dlistResbar[res][7] = glCreateList(function()
+					dlist.resbar[res][7] = glCreateList(function()
 						local fontSize = (orgHeight * (1 + (ui_scale - 1) / 1.33) / 4) * widgetScale
 						local textWidth = font2:GetTextWidth(text) * fontSize
 
@@ -666,7 +642,7 @@ local function updateResbarText(res, force)
 						RectRound(resbarArea[res][3] - textWidth + bgpadding2, resbarArea[res][4] - 15.5 * widgetScale + bgpadding2, resbarArea[res][3] - bgpadding2, resbarArea[res][4], 2.8 * widgetScale, 0, 0, 1, 1, color3, color4)
 						RectRoundOutline(resbarArea[res][3] - textWidth + bgpadding2, resbarArea[res][4] - 15.5 * widgetScale + bgpadding2, resbarArea[res][3] - bgpadding2, resbarArea[res][4]+10, 2.8 * widgetScale, bgpadding2*1.33, 0, 0, 1, 1, {1, 1, 1, 0.15}, {1, 1, 1, 0})
 
-						font2:Begin(useRenderToTexture)
+						font2:Begin(true)
 						font2:SetTextColor(1, 0.88, 0.88, 1)
 						font2:SetOutlineColor(0.2, 0, 0, 0.6)
 						font2:Print(text, resbarArea[res][3], resbarArea[res][4] - 9.3 * widgetScale, fontSize, 'or')
@@ -676,8 +652,8 @@ local function updateResbarText(res, force)
 			end
 		else
 			if force then
-				if dlistResbar[res][7] then glDeleteList(dlistResbar[res][7]) end
-				lastWarning[res] = nil
+				if dlist.resbar[res][7] then glDeleteList(dlist.resbar[res][7]) end
+				cache.lastWarning[res] = nil
 			end
 
 			showOverflowTooltip[res] = nil
@@ -687,8 +663,8 @@ end
 
 local function drawResbarValue(res)
 	local value = short(smoothedResources[res][1])
-	lastResbarValueWidth[res] = font2:GetTextWidth(value) * resbarDrawinfo[res].textCurrent[4]
-	font2:Begin(useRenderToTexture)
+	cache.lastResbarValueWidth[res] = font2:GetTextWidth(value) * resbarDrawinfo[res].textCurrent[4]
+	font2:Begin(true)
 	if res == 'metal' then
 		font2:SetTextColor(0.95, 0.95, 0.95, 1)
 	else
@@ -706,9 +682,9 @@ local function updateResbar(res)
 
 	local area = resbarArea[res]
 
-	if dlistResbar[res][1] then
-		glDeleteList(dlistResbar[res][1])
-		glDeleteList(dlistResbar[res][2])
+	if dlist.resbar[res][1] then
+		glDeleteList(dlist.resbar[res][1])
+		glDeleteList(dlist.resbar[res][2])
 	end
 
 	local barHeight = mathFloor((height * widgetScale / 7) + 0.5)
@@ -773,11 +749,11 @@ local function updateResbar(res)
 		resbarDrawinfo[res].textIncome[1] = "\255\100\210\100" .. short(r[res][4])
 	end
 
-	dlistResbar[res][1] = glCreateList(function()
+	dlist.resbar[res][1] = glCreateList(function()
 		glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
 		-- Icon
-		gl.Color(1, 1, 1, 1)
+		glColor(1, 1, 1, 1)
 		local iconPadding = mathFloor((area[4] - area[2]) / 7)
 		local iconSize = mathFloor(area[4] - area[2] - iconPadding - iconPadding)
 		local bgpaddingHalf = mathFloor((bgpadding * 0.5) + 0.5)
@@ -823,7 +799,7 @@ local function updateResbar(res)
 
 		glBlending(GL.SRC_ALPHA, GL.ONE)
 		glTexture(textures.noiseBackground)
-		gl.Color(1,1,1, 0.88)
+		glColor(1,1,1, 0.88)
 		TexturedRectRound(barArea[1] - edgeWidth, barArea[2] - edgeWidth, barArea[3] + edgeWidth, barArea[4] + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, barWidth*0.33, 0)
 		glTexture(false)
 		RectRound(barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, { 0, 0, 0, 0.1 }, { 0, 0, 0, 0.1 })
@@ -835,7 +811,7 @@ local function updateResbar(res)
 
 	end)
 
-	dlistResbar[res][2] = glCreateList(function()
+	dlist.resbar[res][2] = glCreateList(function()
 		-- Metalmaker Conversion slider
 		if res == 'energy' then
 			mmLevel = Spring.GetTeamRulesParam(myTeamID, 'mmLevel')
@@ -913,12 +889,12 @@ local function updateResbarValues(res, update)
 		local barSize = barHeight * 0.2
 		local valueWidth = mathFloor(((cappedCurRes /maxStorageRes) * barWidth))
 		if valueWidth < mathCeil(barSize) then valueWidth = mathCeil(barSize) end
-		if valueWidth ~= lastValueWidth[res] then  -- only recalc if the width changed
-			lastValueWidth[res] = valueWidth
+		if valueWidth ~= cache.lastValueWidth[res] then  -- only recalc if the width changed
+			cache.lastValueWidth[res] = valueWidth
 
 			-- resbar
-			if dlistResValuesBar[res] then  glDeleteList(dlistResValuesBar[res]) end
-			dlistResValuesBar[res] = glCreateList(function()
+			if dlist.resValuesBar[res] then  glDeleteList(dlist.resValuesBar[res]) end
+			dlist.resValuesBar[res] = glCreateList(function()
 				local glowSize = barHeight * 7
 				local color1, color2, glowAlpha
 
@@ -943,7 +919,7 @@ local function updateResbarValues(res, update)
 				local currentGlowRight = barLeft + valueWidth
 
 				glBlending(GL.SRC_ALPHA, GL.ONE)
-				gl.Color(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], glowAlpha)
+				glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], glowAlpha)
 				glTexture(textures.barGlowCenter)
 				-- Middle glow follows the filled portion
 				DrawRect(barLeft, barTop - glowSize, currentGlowRight, barBottom + glowSize, 0.008)
@@ -956,7 +932,7 @@ local function updateResbarValues(res, update)
 
 				if res == 'metal' then
 					glTexture(textures.noiseBackground)
-					gl.Color(1,1,1, 0.37)
+					glColor(1,1,1, 0.37)
 					TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barSize, 1, 1, 1, 1, barWidth*0.33, 0)
 					glTexture(false)
 				end
@@ -967,11 +943,11 @@ local function updateResbarValues(res, update)
 
 		-- energy glow effect
 		if res == 'energy' then
-			if dlistEnergyGlow then glDeleteList(dlistEnergyGlow) end
+			if dlist.energyGlow then glDeleteList(dlist.energyGlow) end
 
-			dlistEnergyGlow = glCreateList(function()
+			dlist.energyGlow = glCreateList(function()
 				-- energy glow effect
-				gl.Color(1,1,1, 0.33)
+				glColor(1,1,1, 0.33)
 				glBlending(GL.SRC_ALPHA, GL.ONE)
 				glTexture(textures.energyGlow)
 				TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barSize, 0, 0, 1, 1, barWidth/0.5, -now/80)
@@ -981,29 +957,21 @@ local function updateResbarValues(res, update)
 
 				-- colorize a bit more (with added size)
 				local addedSize = mathFloor((barHeight * 0.15) + 0.5)
-				gl.Color(1,1,0, 0.14)
+				glColor(1,1,0, 0.14)
 				RectRound(resbarDrawinfo[res].barTexRect[1]-addedSize, resbarDrawinfo[res].barTexRect[2]-addedSize, resbarDrawinfo[res].barTexRect[1] + valueWidth + addedSize, resbarDrawinfo[res].barTexRect[4] + addedSize, barHeight * 0.33)
 				glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 			end)
 		end
 
 		-- resbar text
-		if not useRenderToTexture then
-			if dlistResValues[res] then
-				glDeleteList(dlistResValues[res])
-			end
-			dlistResValues[res] = glCreateList(function()
-				drawResbarValue(res)
-			end)
-		end
    	end
 end
 
 function init()
 	refreshUi = true
 
-	r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
-	topbarArea = { mathFloor(xPos + (borderPadding * widgetScale)), mathFloor(vsy - (height * widgetScale)), vsx, vsy }
+	r = { metal = { sp.GetTeamResources(myTeamID, 'metal') }, energy = { sp.GetTeamResources(myTeamID, 'energy') } }
+	topbarArea = { mathFloor(xPos + (cfg.borderPadding * widgetScale)), mathFloor(vsy - (height * widgetScale)), vsx, vsy }
 
 	local filledWidth = 0
 	local totalWidth = topbarArea[3] - topbarArea[1]
@@ -1067,11 +1035,11 @@ function init()
 end
 
 local function checkSelfStatus()
-	myAllyTeamID = spGetMyAllyTeamID()
-	myAllyTeamList = spGetTeamList(myAllyTeamID)
-	myTeamID = spGetMyTeamID()
+	myAllyTeamID = sp.GetMyAllyTeamID()
+	myAllyTeamList = sp.GetTeamList(myAllyTeamID)
+	myTeamID = sp.GetMyTeamID()
 
-	local startUnit = spGetTeamRulesParam(myTeamID, 'startUnit')
+	local startUnit = sp.GetTeamRulesParam(myTeamID, 'startUnit')
 	if myTeamID ~= gaiaTeamID and UnitDefs[startUnit] then
 		textures.com = ':n:Icons/'..UnitDefs[startUnit].name..'.png'
 	end
@@ -1089,11 +1057,11 @@ local function countComs(forceUpdate)
 		local teamID = myAllyTeamList[i]
 		for j = 1, commanderUnitDefIDsLen do
 			local unitDefID = commanderUnitDefIDs[j]
-			allyComs = allyComs + spGetTeamUnitDefCount(teamID, unitDefID)
+			allyComs = allyComs + sp.GetTeamUnitDefCount(teamID, unitDefID)
 		end
 	end
 
-	local newEnemyComCount = spGetTeamRulesParam(myTeamID, "enemyComCount")
+	local newEnemyComCount = sp.GetTeamRulesParam(myTeamID, "enemyComCount")
 	if type(newEnemyComCount) == 'number' then
 		enemyComCount = newEnemyComCount
 		if enemyComCount ~= prevEnemyComCount then
@@ -1119,7 +1087,7 @@ function widget:GameStart()
 end
 
 function widget:GameFrame(n)
-	spec = spGetSpectatingState()
+	spec = sp.GetSpectatingState()
 	gameFrame = n
 	if n == 2 then
 		init()
@@ -1136,15 +1104,15 @@ local function updateAllyTeamOverflowing()
 	local totalMetal = 0
 	local totalMetalStorage = 0
 	local energyPercentile, metalPercentile
-	local teams = spGetTeamList(myAllyTeamID)
+	local teams = sp.GetTeamList(myAllyTeamID)
 	local teamsLen = #teams
 
 	for i = 1, teamsLen do
 		local teamID = teams[i]
-		local energy, energyStorage, _, _, _, energyShare, energySent = spGetTeamResources(teamID, "energy")
+		local energy, energyStorage, _, _, _, energyShare, energySent = sp.GetTeamResources(teamID, "energy")
 		totalEnergy = totalEnergy + energy
 		totalEnergyStorage = totalEnergyStorage + energyStorage
-		local metal, metalStorage, _, _, _, metalShare, metalSent = spGetTeamResources(teamID, "metal")
+		local metal, metalStorage, _, _, _, metalShare, metalSent = sp.GetTeamResources(teamID, "metal")
 		totalMetal = totalMetal + metal
 		totalMetalStorage = totalMetalStorage + metalStorage
 		if teamID == myTeamID then
@@ -1191,13 +1159,13 @@ end
 function widget:Update(dt)
 	now = osClock()
 
-	windRotation = windRotation + (currentWind * bladeSpeedMultiplier * dt * 30)
+	windRotation = windRotation + (currentWind * cfg.bladeSpeedMultiplier * dt * 30)
 
-	if now > nextStateCheck then
-		nextStateCheck = now + 0.0333
+	if now > timers.nextStateCheck then
+		timers.nextStateCheck = now + 0.0333
 
 		local prevMyTeamID = myTeamID
-		local newMyTeamID = spGetMyTeamID()
+		local newMyTeamID = sp.GetMyTeamID()
 		if spec and newMyTeamID ~= prevMyTeamID then
 			-- check if the team that we are spectating changed
 			myTeamID = newMyTeamID
@@ -1205,17 +1173,17 @@ function widget:Update(dt)
 			init()
 		end
 
-		mx, my = spGetMouseState()
+		mx, my = sp.GetMouseState()
 
 		hoveringTopbar = false
 		if mx > topbarArea[1] and my > topbarArea[2] then -- checking if the curser is high enough, too
 			hoveringTopbar = hoveringElement(mx, my)
 			if hoveringTopbar then
-				spSetMouseCursor('cursornormal')
+				sp.SetMouseCursor('cursornormal')
 			end
 		end
 
-		local _, _, isPaused = spGetGameSpeed()
+		local _, _, isPaused = sp.GetGameSpeed()
 
 		if not isPaused then
 			if blinkDirection then
@@ -1234,8 +1202,8 @@ function widget:Update(dt)
 		end
 	end
 
-	if now > nextGuishaderCheck and widgetHandler.orderList["GUI Shader"] then
-		nextGuishaderCheck = now + guishaderCheckUpdateRate
+	if now > timers.nextGuishaderCheck and widgetHandler.orderList["GUI Shader"] then
+		timers.nextGuishaderCheck = now + timers.guishaderCheckUpdateRate
 		if not guishaderEnabled and widgetHandler.orderList["GUI Shader"] ~= 0 then
 			guishaderEnabled = true
 			init()
@@ -1244,8 +1212,8 @@ function widget:Update(dt)
 		end
 	end
 
-	if now > nextResBarUpdate then
-		nextResBarUpdate = now + 0.05
+	if now > timers.nextResBarUpdate then
+		timers.nextResBarUpdate = now + 0.05
 		if not spec and not showQuitscreen then
 			if hoveringTopbar == 'energy' then
 				if not resbarHover then
@@ -1267,7 +1235,7 @@ function widget:Update(dt)
 			end
 		elseif spec then
 			local prevMyTeamID = myTeamID
-			local newMyTeamID = spGetMyTeamID()
+			local newMyTeamID = sp.GetMyTeamID()
 			if newMyTeamID ~= prevMyTeamID then
 				-- check if the team that we are spectating changed
 				myTeamID = newMyTeamID
@@ -1278,7 +1246,7 @@ function widget:Update(dt)
 			else
 				-- make sure conversion/overflow sliders are adjusted
 				if mmLevel then
-					local currentMmLevel = spGetTeamRulesParam(myTeamID, 'mmLevel')
+					local currentMmLevel = sp.GetTeamRulesParam(myTeamID, 'mmLevel')
 					if mmLevel ~= currentMmLevel or energyOverflowLevel ~= r['energy'][6] then
 						mmLevel = currentMmLevel
 						updateResbar('energy')
@@ -1291,7 +1259,7 @@ function widget:Update(dt)
 		else
 			-- make sure conversion/overflow sliders are adjusted
 			if mmLevel then
-				local currentMmLevel = spGetTeamRulesParam(myTeamID, 'mmLevel')
+				local currentMmLevel = sp.GetTeamRulesParam(myTeamID, 'mmLevel')
 				if mmLevel ~= currentMmLevel or energyOverflowLevel ~= r['energy'][6] then
 					mmLevel = currentMmLevel
 					updateResbar('energy')
@@ -1303,15 +1271,15 @@ function widget:Update(dt)
 		end
 	end
 
-	if now > nextSmoothUpdate then
-		nextSmoothUpdate = now + 0.07
+	if now > timers.nextSmoothUpdate then
+		timers.nextSmoothUpdate = now + 0.07
 		smoothResources()
 	end
 
-	if now > nextSlowUpdate then
-		nextSlowUpdate = now + 0.25
+	if now > timers.nextSlowUpdate then
+		timers.nextSlowUpdate = now + 0.25
 		local prevR = r
-		r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
+		r = { metal = { sp.GetTeamResources(myTeamID, 'metal') }, energy = { sp.GetTeamResources(myTeamID, 'energy') } }
 		-- check if we need to smooth the resources
 		local metalDiff7 = r['metal'][7] - prevR['metal'][7]
 		local metalDiff8 = r['metal'][8] - prevR['metal'][8]
@@ -1334,7 +1302,7 @@ function widget:Update(dt)
 		updateResbarText('energy')
 
 		-- wind
-		currentWind = stringFormat('%.1f', select(4, spGetWind()))
+		currentWind = stringFormat('%.1f', select(4, sp.GetWind()))
 
 		-- coms
 		if displayComCounter then
@@ -1345,9 +1313,9 @@ end
 
 -- --- OPTIMIZATION: Pre-defined function for RenderToTexture to avoid creating a closure.
 local function renderResbarText()
-	gl.Translate(-1, -1, 0)
-	gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
-	gl.Translate(-topbarArea[1], -topbarArea[2], 0)
+	glTranslate(-1, -1, 0)
+	glScale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
+	glTranslate(-topbarArea[1], -topbarArea[2], 0)
 
 	local res = 'metal'
 	drawResbarValue(res)
@@ -1377,168 +1345,137 @@ local function drawResBars()
 		return
 	end
 
-	gl.PushMatrix()
+	glPushMatrix()
 
 	local update = false
 
-	if now > nextBarsUpdate then
-		nextBarsUpdate = now + 0.05
+	if now > timers.nextBarsUpdate then
+		timers.nextBarsUpdate = now + 0.05
 		update = true
 	end
 
 	local res = 'metal'
-	if dlistResbar[res][1] and dlistResbar[res][2] then
-		if not useRenderToTexture then
-			glCallList(dlistResbar[res][1])
-		end
-		if not spec and gameFrame > spawnWarpInFrame and dlistResbar[res][4] then
+	if dlist.resbar[res][1] and dlist.resbar[res][2] then
+		if not spec and gameFrame > cfg.spawnWarpInFrame and dlist.resbar[res][4] then
 			glBlending(GL.SRC_ALPHA, GL.ONE)
 			if allyteamOverflowingMetal then
-				gl.Color(1, 0, 0, 0.1 * allyteamOverflowingMetal * blinkProgress)
-				glCallList(dlistResbar[res][4]) -- flash bar
+				glColor(1, 0, 0, 0.1 * allyteamOverflowingMetal * blinkProgress)
+				glCallList(dlist.resbar[res][4]) -- flash bar
 			elseif overflowingMetal then
-				gl.Color(1, 1, 1, 0.04 * overflowingMetal * (0.6 + (blinkProgress * 0.4)))
-				glCallList(dlistResbar[res][4]) -- flash bar
+				glColor(1, 1, 1, 0.04 * overflowingMetal * (0.6 + (blinkProgress * 0.4)))
+				glCallList(dlist.resbar[res][4]) -- flash bar
 			elseif r[res][1] < 1000 then
 				local process = (r[res][1] / r[res][2]) * 13
 				if process < 1 then
 					process = 1 - process
-					gl.Color(0.9, 0.4, 1, 0.045 * process)
-					glCallList(dlistResbar[res][4])  -- flash bar
+					glColor(0.9, 0.4, 1, 0.045 * process)
+					glCallList(dlist.resbar[res][4])  -- flash bar
 				end
 			end
 			glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		end
 
 		updateResbarValues(res, update)
-		if dlistResValuesBar[res] then
-			glCallList(dlistResValuesBar[res]) -- res bar
+		if dlist.resValuesBar[res] then
+			glCallList(dlist.resValuesBar[res]) -- res bar
 		end
-		if dlistResbar[res][2] then
-			glCallList(dlistResbar[res][2]) -- sliders
+		if dlist.resbar[res][2] then
+			glCallList(dlist.resbar[res][2]) -- sliders
 		end
 
-		if not useRenderToTexture then
-			if dlistResValues[res] then
-				glCallList(dlistResValues[res])	-- res bar value
-			end
-			if dlistResbar[res][6] then
-				glCallList(dlistResbar[res][6]) -- storage
-			end
-			if dlistResbar[res][3] then
-				glCallList(dlistResbar[res][3]) -- pull, expense, income
-			end
-		end
-		if showOverflowTooltip[res] and dlistResbar[res][7] then glCallList(dlistResbar[res][7]) end -- overflow warning
+		if showOverflowTooltip[res] and dlist.resbar[res][7] then glCallList(dlist.resbar[res][7]) end -- overflow warning
 	end
 
 	res = 'energy'
-	if dlistResbar[res][1] and dlistResbar[res][2]  then
-		if not useRenderToTexture then
-			glCallList(dlistResbar[res][1])
-		end
-
-		if not spec and gameFrame > spawnWarpInFrame and dlistResbar[res][4] then
+	if dlist.resbar[res][1] and dlist.resbar[res][2]  then
+		if not spec and gameFrame > cfg.spawnWarpInFrame and dlist.resbar[res][4] then
 			glBlending(GL.SRC_ALPHA, GL.ONE)
 			if allyteamOverflowingEnergy then
-				gl.Color(1, 0, 0, 0.1 * allyteamOverflowingEnergy * blinkProgress)
-				glCallList(dlistResbar[res][4]) -- flash bar
+				glColor(1, 0, 0, 0.1 * allyteamOverflowingEnergy * blinkProgress)
+				glCallList(dlist.resbar[res][4]) -- flash bar
 			elseif overflowingEnergy then
-				gl.Color(1, 1, 0, 0.04 * overflowingEnergy * (0.6 + (blinkProgress * 0.4)))
-				glCallList(dlistResbar[res][4]) -- flash bar
+				glColor(1, 1, 0, 0.04 * overflowingEnergy * (0.6 + (blinkProgress * 0.4)))
+				glCallList(dlist.resbar[res][4]) -- flash bar
 			elseif r[res][1] < 2000 then
 				local process = (r[res][1] / r[res][2]) * 13
 				if process < 1 then
 					process = 1 - process
-					gl.Color(0.9, 0.55, 1, 0.045 * process)
-					glCallList(dlistResbar[res][4]) -- flash bar
+					glColor(0.9, 0.55, 1, 0.045 * process)
+					glCallList(dlist.resbar[res][4]) -- flash bar
 				end
 			end
 			glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		end
 
 		updateResbarValues(res, update)
-		if dlistResValuesBar[res] then
-			glCallList(dlistResValuesBar[res]) -- res bar
+		if dlist.resValuesBar[res] then
+			glCallList(dlist.resValuesBar[res]) -- res bar
 		end
-		if dlistEnergyGlow then
-			glCallList(dlistEnergyGlow)
+		if dlist.energyGlow then
+			glCallList(dlist.energyGlow)
 		end
-		if dlistResbar[res][2] then
-			glCallList(dlistResbar[res][2]) -- sliders
+		if dlist.resbar[res][2] then
+			glCallList(dlist.resbar[res][2]) -- sliders
 		end
 
-		if not useRenderToTexture then
-			if dlistResValues[res] then
-				glCallList(dlistResValues[res])	-- res bar value
-			end
-			if dlistResbar[res][6] then
-				glCallList(dlistResbar[res][6]) -- storage
-			end
-			if dlistResbar[res][3] then
-				glCallList(dlistResbar[res][3]) -- pull, expense, income
-			end
-		end
-		if showOverflowTooltip[res] and dlistResbar[res][7] then glCallList(dlistResbar[res][7]) end -- overflow warning
+		if showOverflowTooltip[res] and dlist.resbar[res][7] then glCallList(dlist.resbar[res][7]) end -- overflow warning
 	end
-	gl.PopMatrix()
+	glPopMatrix()
 
-	if useRenderToTexture then
-		if update then
-			local scissors = {}
-			res = 'metal'
-			if updateRes[res][1] then
-				scissors[#scissors+1] = {
-					(resbarDrawinfo[res].textCurrent[2]-topbarArea[1])-(lastResbarValueWidth[res]*0.75),
-					(topbarArea[4]-topbarArea[2])*0.48,
-					resbarDrawinfo[res].textCurrent[4]+lastResbarValueWidth[res],
-					topbarArea[4]-topbarArea[2]
-				}
-			end
-			if updateRes[res][2] then
-				scissors[#scissors+1] = {
-					(resbarDrawinfo[res].textPull[2]-topbarArea[1])-(resbarDrawinfo[res].textPull[4]*3.4),
-					0,
-					resbarDrawinfo[res].textPull[4]*3.5,
-					topbarArea[4]-topbarArea[2]
-				}
-			end
-			if updateRes[res][3] then
-				scissors[#scissors+1] = {
-					(resbarDrawinfo[res].textStorage[2]-topbarArea[1])-(resbarDrawinfo[res].textStorage[4]*4),
-					(topbarArea[4]-topbarArea[2])*0.48,
-					resbarDrawinfo[res].textStorage[4]*4.1,
-					topbarArea[4]-topbarArea[2]
-				}
-			end
-			res = 'energy'
-			if updateRes[res][1] then
-				scissors[#scissors+1] = {
-					(resbarDrawinfo[res].textCurrent[2]-topbarArea[1])-(lastResbarValueWidth[res]*0.75),
-					(topbarArea[4]-topbarArea[2])*0.48,
-					resbarDrawinfo[res].textCurrent[4]+lastResbarValueWidth[res],
-					topbarArea[4]-topbarArea[2]
-				}
-			end
-			if updateRes[res][2] then
-				scissors[#scissors+1] = {
-					(resbarDrawinfo[res].textPull[2]-topbarArea[1])-(resbarDrawinfo[res].textPull[4]*3.4),
-					0,
-					resbarDrawinfo[res].textPull[4]*3.5,
-					topbarArea[4]-topbarArea[2]
-				}
-			end
-			if updateRes[res][3] then
-				scissors[#scissors+1] = {
-					(resbarDrawinfo[res].textStorage[2]-topbarArea[1])-(resbarDrawinfo[res].textStorage[4]*4),
-					(topbarArea[4]-topbarArea[2])*0.48,
-					resbarDrawinfo[res].textStorage[4]*4.1,
-					topbarArea[4]-topbarArea[2]
-				}
-			end
-
-			gl.R2tHelper.RenderToTexture(uiTex, renderResbarText, useRenderToTexture, scissors)
+	if update then
+		local scissors = {}
+		res = 'metal'
+		if updateRes[res][1] then
+			scissors[#scissors+1] = {
+				(resbarDrawinfo[res].textCurrent[2]-topbarArea[1])-(cache.lastResbarValueWidth[res]*0.75),
+				(topbarArea[4]-topbarArea[2])*0.48,
+				resbarDrawinfo[res].textCurrent[4]+cache.lastResbarValueWidth[res],
+				topbarArea[4]-topbarArea[2]
+			}
 		end
+		if updateRes[res][2] then
+			scissors[#scissors+1] = {
+				(resbarDrawinfo[res].textPull[2]-topbarArea[1])-(resbarDrawinfo[res].textPull[4]*3.4),
+				0,
+				resbarDrawinfo[res].textPull[4]*3.5,
+				topbarArea[4]-topbarArea[2]
+			}
+		end
+		if updateRes[res][3] then
+			scissors[#scissors+1] = {
+				(resbarDrawinfo[res].textStorage[2]-topbarArea[1])-(resbarDrawinfo[res].textStorage[4]*4),
+				(topbarArea[4]-topbarArea[2])*0.48,
+				resbarDrawinfo[res].textStorage[4]*4.1,
+				topbarArea[4]-topbarArea[2]
+			}
+		end
+		res = 'energy'
+		if updateRes[res][1] then
+			scissors[#scissors+1] = {
+				(resbarDrawinfo[res].textCurrent[2]-topbarArea[1])-(cache.lastResbarValueWidth[res]*0.75),
+				(topbarArea[4]-topbarArea[2])*0.48,
+				resbarDrawinfo[res].textCurrent[4]+cache.lastResbarValueWidth[res],
+				topbarArea[4]-topbarArea[2]
+			}
+		end
+		if updateRes[res][2] then
+			scissors[#scissors+1] = {
+				(resbarDrawinfo[res].textPull[2]-topbarArea[1])-(resbarDrawinfo[res].textPull[4]*3.4),
+				0,
+				resbarDrawinfo[res].textPull[4]*3.5,
+				topbarArea[4]-topbarArea[2]
+			}
+		end
+		if updateRes[res][3] then
+			scissors[#scissors+1] = {
+				(resbarDrawinfo[res].textStorage[2]-topbarArea[1])-(resbarDrawinfo[res].textStorage[4]*4),
+				(topbarArea[4]-topbarArea[2])*0.48,
+				resbarDrawinfo[res].textStorage[4]*4.1,
+				topbarArea[4]-topbarArea[2]
+			}
+		end
+
+		r2tHelper.RenderToTexture(uiTex, renderResbarText, true, scissors)
 	end
 end
 
@@ -1549,11 +1486,11 @@ local function drawQuitScreen()
 
 	Spring.SetMouseCursor('cursornormal')
 
-	dlistQuit = glCreateList(function()
+	dlist.quit = glCreateList(function()
 		if WG['guishader'] then
-			gl.Color(0, 0, 0, (0.18 * fadeProgress))
+			glColor(0, 0, 0, (0.18 * fadeProgress))
 		else
-			gl.Color(0, 0, 0, (0.35 * fadeProgress))
+			glColor(0, 0, 0, (0.35 * fadeProgress))
 		end
 
 		gl.Rect(0, 0, vsx, vsy)
@@ -1610,15 +1547,15 @@ local function drawQuitScreen()
 			quitscreenQuitArea   = { x + buttonMargin + nextButton * (buttonWidth + buttonMargin), y + buttonMargin, x + buttonMargin + nextButton * (buttonWidth + buttonMargin) + buttonWidth, y + buttonMargin + buttonHeight }
 
 			-- window
-			UiElement(quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4], 1,1,1,1, 1,1,1,1, nil, {1, 1, 1, 0.6 + (0.34 * fadeProgress)}, {0.45, 0.45, 0.4, 0.025 + (0.025 * fadeProgress)}, nil)--, useRenderToTexture)
+			UiElement(quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4], 1,1,1,1, 1,1,1,1, nil, {1, 1, 1, 0.6 + (0.34 * fadeProgress)}, {0.45, 0.45, 0.4, 0.025 + (0.025 * fadeProgress)}, nil)
 			local color1, color2
 
-			font:Begin(useRenderToTexture)
+			font:Begin(true)
 			font:SetTextColor(0, 0, 0, 1)
 			font:Print(text, quitscreenArea[1] + ((quitscreenArea[3] - quitscreenArea[1]) / 2), quitscreenArea[4]-textTopPadding, fontSize, "cn")
 			font:End()
 
-			font2:Begin(useRenderToTexture)
+			font2:Begin(true)
 			font2:SetTextColor(1, 1, 1, 1)
 			font2:SetOutlineColor(0, 0, 0, 0.23)
 
@@ -1688,9 +1625,9 @@ local function drawQuitScreen()
 	-- background
 	if WG['guishader'] then
 		WG['guishader'].setScreenBlur(true)
-		WG['guishader'].insertRenderDlist(dlistQuit)
+		WG['guishader'].insertRenderDlist(dlist.quit)
 	else
-		glCallList(dlistQuit)
+		glCallList(dlist.quit)
 	end
 end
 
@@ -1718,25 +1655,25 @@ local function drawUiBackground()
 end
 
 local function drawUi()
-	if showButtons and dlistButtons then
-		glCallList(dlistButtons)
+	if showButtons and dlist.buttons then
+		glCallList(dlist.buttons)
 	end
-	if showResourceBars and dlistResbar.energy and dlistResbar.energy[1] then
-		glCallList(dlistResbar.energy[1])
-		glCallList(dlistResbar.metal[1])
+	if showResourceBars and dlist.resbar.energy and dlist.resbar.energy[1] then
+		glCallList(dlist.resbar.energy[1])
+		glCallList(dlist.resbar.metal[1])
 	end
 
 	-- min and max wind
 	local fontsize = (height / 3.7) * widgetScale
 	if not windFunctions.isNoWind() then
-		font2:Begin(useRenderToTexture)
+		font2:Begin(true)
 		font2:Print("\255\210\210\210" .. minWind, windArea[3] - (2.8 * widgetScale), windArea[4] - (4.5 * widgetScale) - (fontsize / 2), fontsize, 'or')
 		font2:Print("\255\210\210\210" .. maxWind, windArea[3] - (2.8 * widgetScale), windArea[2] + (4.5 * widgetScale), fontsize, 'or')
 		-- uncomment below to display average wind speed on UI
 		-- font2:Print("\255\210\210\210" .. avgWindValue, area[1] + (2.8 * widgetScale), area[2] + (4.5 * widgetScale), fontsize, '')
 		font2:End()
 	else
-		font2:Begin(useRenderToTexture)
+		font2:Begin(true)
 		--font2:Print("\255\200\200\200no wind", windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontsize / 5), fontsize, 'oc') -- Wind speed text
 		font2:Print("\255\200\200\200" .. Spring.I18N('ui.topbar.wind.nowind1'), windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 1.5) - (fontsize / 5), fontsize*1.06, 'oc') -- Wind speed text
 		font2:Print("\255\200\200\200" .. Spring.I18N('ui.topbar.wind.nowind2'), windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.8) - (fontsize / 5), fontsize*1.06, 'oc') -- Wind speed text
@@ -1746,7 +1683,7 @@ local function drawUi()
 	-- tidal speed
 	if displayTidalSpeed then
 		local fontSize = (height / 2.66) * widgetScale
-		font2:Begin(useRenderToTexture)
+		font2:Begin(true)
 		font2:Print("\255\255\255\255" .. tidalSpeed, tidalarea[1] + ((tidalarea[3] - tidalarea[1]) / 2), tidalarea[2] + ((tidalarea[4] - tidalarea[2]) / 2.05) - (fontSize / 5), fontSize, 'oc') -- Tidal speed text
 		font2:End()
 	end
@@ -1754,187 +1691,140 @@ end
 
 -- --- OPTIMIZATION: Pre-defined functions for RenderToTexture to avoid creating closures.
 local function renderUiBackground()
-	gl.Translate(-1, -1, 0)
-	gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
-	gl.Translate(-topbarArea[1], -topbarArea[2], 0)
+	glTranslate(-1, -1, 0)
+	glScale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
+	glTranslate(-topbarArea[1], -topbarArea[2], 0)
 	drawUiBackground()
 end
 
 local function renderUi()
-	gl.Translate(-1, -1, 0)
-	gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
-	gl.Translate(-topbarArea[1], -topbarArea[2], 0)
+	glTranslate(-1, -1, 0)
+	glScale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
+	glTranslate(-topbarArea[1], -topbarArea[2], 0)
 	drawUi()
 end
 
 local function renderWindText()
-    gl.Translate(-1, -1, 0)
-    gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
-    gl.Translate(-topbarArea[1], -topbarArea[2], 0)
+    glTranslate(-1, -1, 0)
+    glScale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
+    glTranslate(-topbarArea[1], -topbarArea[2], 0)
 
     local fontSize = (height / 2.66) * widgetScale
-    font2:Begin(useRenderToTexture)
+    font2:Begin(true)
     font2:SetOutlineColor(0,0,0,1)
     font2:Print("\255\255\255\255" .. currentWind, windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontSize / 5), fontSize, 'oc') -- Wind speed text
     font2:End()
 end
 
 local function renderComCounter()
-    gl.Translate(-1, -1, 0)
-    gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
-    gl.Translate(-topbarArea[1], -topbarArea[2], 0)
+    glTranslate(-1, -1, 0)
+    glScale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
+    glTranslate(-topbarArea[1], -topbarArea[2], 0)
 
     if allyComs == 1 and (gameFrame % 12 < 6) then
-        gl.Color(1, 0.6, 0, 0.45)
+        glColor(1, 0.6, 0, 0.45)
     else
-        gl.Color(1, 1, 1, 0.22)
+        glColor(1, 1, 1, 0.22)
     end
-    glCallList(dlistComs)
+    glCallList(dlist.coms)
 end
 
 function widget:DrawScreen()
 	now = osClock()
 
-	if showButtons ~= prevShowButtons then
-		prevShowButtons = showButtons
+	if showButtons ~= cache.prevShowButtons then
+		cache.prevShowButtons = showButtons
 		refreshUi = true
 	end
 
-	if useRenderToTexture then
-		if refreshUi then
-			if uiBgTex then
-				gl.DeleteTexture(uiBgTex)
-			end
-			uiBgTex = gl.CreateTexture(mathFloor(topbarArea[3]-topbarArea[1]), mathFloor(topbarArea[4]-topbarArea[2]), {
-				target = GL.TEXTURE_2D,
-				format = GL.ALPHA,
-				fbo = true,
-			})
-			if uiTex then
-				gl.DeleteTexture(uiTex)
-			end
-			uiTex = gl.CreateTexture(mathFloor(topbarArea[3]-topbarArea[1]), mathFloor(topbarArea[4]-topbarArea[2]), {	--*(vsy<1400 and 2 or 1)
-				target = GL.TEXTURE_2D,
-				format = GL.ALPHA,
-				fbo = true,
-			})
-
-			if uiBgTex then
-				gl.R2tHelper.RenderToTexture(uiBgTex, renderUiBackground, useRenderToTexture)
-			end
-			if uiTex then
-				gl.R2tHelper.RenderToTexture(uiTex, renderUi, useRenderToTexture)
-			end
-
-			if WG['guishader'] then
-				if uiBgList then glDeleteList(uiBgList) end
-				uiBgList = glCreateList(function()
-					gl.Color(1,1,1,1)
-					gl.Texture(uiBgTex)
-					gl.TexRect(topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], false, true)
-					gl.Texture(false)
-				end)
-				WG['guishader'].InsertDlist(uiBgList, 'topbar_background')
-			end
-
+	if refreshUi then
+		if uiBgTex then
+			gl.DeleteTexture(uiBgTex)
 		end
+		uiBgTex = gl.CreateTexture(mathFloor(topbarArea[3]-topbarArea[1]), mathFloor(topbarArea[4]-topbarArea[2]), {
+			target = GL.TEXTURE_2D,
+			format = GL.ALPHA,
+			fbo = true,
+		})
+		if uiTex then
+			gl.DeleteTexture(uiTex)
+		end
+		uiTex = gl.CreateTexture(mathFloor(topbarArea[3]-topbarArea[1]), mathFloor(topbarArea[4]-topbarArea[2]), {	--*(vsy<1400 and 2 or 1)
+			target = GL.TEXTURE_2D,
+			format = GL.ALPHA,
+			fbo = true,
+		})
 
 		if uiBgTex then
-			gl.R2tHelper.BlendTexRect(uiBgTex, topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], useRenderToTexture)
-			-- gl.Color(1, 1, 1, ui_opacity * 1.1)
-			-- gl.Texture(uiBgTex)
-			-- gl.TexRect(topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], false, true)
+			r2tHelper.RenderToTexture(uiBgTex, renderUiBackground, true)
+		end
+		if uiTex then
+			r2tHelper.RenderToTexture(uiTex, renderUi, true)
 		end
 
-	else	-- not useRenderToTexture
-
-		if refreshUi then
+		if WG['guishader'] then
 			if uiBgList then glDeleteList(uiBgList) end
 			uiBgList = glCreateList(function()
-				drawUiBackground()
-				gl.Color(1, 1, 1, 1)	-- withouth this no guishader effects for other elements
+				glColor(1,1,1,1)
+				gl.Texture(uiBgTex)
+				gl.TexRect(topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], false, true)
+				gl.Texture(false)
 			end)
-			if WG['guishader'] then
-				WG['guishader'].InsertDlist(uiBgList, 'topbar_background')
-			end
+			WG['guishader'].InsertDlist(uiBgList, 'topbar_background')
 		end
 
-		glCallList(uiBgList)
 	end
 
-	if dlistWind1 then
-		gl.PushMatrix()
-		glCallList(dlistWind1)
-		gl.Rotate(windRotation, 0, 0, 1)
-		glCallList(dlistWind2)
-		gl.PopMatrix()
-
-		-- current wind
-		if not useRenderToTexture then
-			if gameFrame > 0 and not windFunctions.isNoWind() then
-				if not dlistWindText[currentWind] then
-					local fontSize = (height / 2.66) * widgetScale
-					dlistWindText[currentWind] = glCreateList(function()
-						font2:Begin(useRenderToTexture)
-						font2:SetOutlineColor(0,0,0,1)
-						font2:Print("\255\255\255\255" .. currentWind, windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontSize / 5), fontSize, 'oc') -- Wind speed text
-						font2:End()
-					end)
-				end
-				glCallList(dlistWindText[currentWind])
-			end
-		end
+	if uiBgTex then
+		r2tHelper.BlendTexRect(uiBgTex, topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], true)
 	end
 
-	if displayTidalSpeed and tidaldlist2 then
-		gl.PushMatrix()
-		gl.Translate(tidalarea[1] + ((tidalarea[3] - tidalarea[1]) / 2), math.sin(now/math.pi) * tidalWaveAnimationHeight + tidalarea[2] + (bgpadding/2) + ((tidalarea[4] - tidalarea[2]) / 2), 0)
-		glCallList(tidaldlist2)
+	if dlist.wind1 then
+		glPushMatrix()
+		glCallList(dlist.wind1)
+		glRotate(windRotation, 0, 0, 1)
+		glCallList(dlist.wind2)
+		glPopMatrix()
 	end
 
-	if useRenderToTexture and uiTex then
-		gl.R2tHelper.BlendTexRect(uiTex, topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], useRenderToTexture)
+	if displayTidalSpeed and dlist.tidal2 then
+		glPushMatrix()
+		glTranslate(tidalarea[1] + ((tidalarea[3] - tidalarea[1]) / 2), mathSin(now/PI) * tidalWaveAnimationHeight + tidalarea[2] + (bgpadding/2) + ((tidalarea[4] - tidalarea[2]) / 2), 0)
+		glCallList(dlist.tidal2)
+	end
+
+	if uiTex then
+		r2tHelper.BlendTexRect(uiTex, topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], true)
 	end
 
 	-- current wind
 	if gameFrame > 0 and not windFunctions.isNoWind() then
-		if useRenderToTexture then
-			if currentWind ~= prevWind or refreshUi then
-				prevWind = currentWind
+		if currentWind ~= prevWind or refreshUi then
+			prevWind = currentWind
 
-				gl.R2tHelper.RenderToTexture(uiTex,
-					renderWindText,
-					useRenderToTexture,
-					{windArea[1]-topbarArea[1], (topbarArea[4]-topbarArea[2])*0.33, windArea[3]-windArea[1], (topbarArea[4]-topbarArea[2])*0.4}
-				)
-			end
+			r2tHelper.RenderToTexture(uiTex,
+				renderWindText,
+				true,
+				{windArea[1]-topbarArea[1], (topbarArea[4]-topbarArea[2])*0.33, windArea[3]-windArea[1], (topbarArea[4]-topbarArea[2])*0.4}
+			)
 		end
 	end
 
 	drawResBars()
 
-	gl.PushMatrix()
-	if displayComCounter and dlistComs then
+	glPushMatrix()
+	if displayComCounter and dlist.coms then
 
 		-- commander counter
-		if useRenderToTexture then
-			if comsDlistUpdate or prevComAlert == nil or (prevComAlert ~= (allyComs == 1 and (gameFrame % 12 < 6))) then
-				prevComAlert = (allyComs == 1 and (gameFrame % 12 < 6))
-				comsDlistUpdate = nil
+		if comsDlistUpdate or prevComAlert == nil or (prevComAlert ~= (allyComs == 1 and (gameFrame % 12 < 6))) then
+			prevComAlert = (allyComs == 1 and (gameFrame % 12 < 6))
+			comsDlistUpdate = nil
 
-				gl.R2tHelper.RenderToTexture(uiTex,
-					renderComCounter,
-					useRenderToTexture,
-					{comsArea[1]-topbarArea[1], 0, comsArea[3]-comsArea[1], (topbarArea[4]-topbarArea[2])}
-				)
-			end
-		else
-			if allyComs == 1 and (gameFrame % 12 < 6) then
-				gl.Color(1, 0.6, 0, 0.45)
-			else
-				gl.Color(1, 1, 1, 0.22)
-			end
-			glCallList(dlistComs)
+			r2tHelper.RenderToTexture(uiTex,
+				renderComCounter,
+				true,
+				{comsArea[1]-topbarArea[1], 0, comsArea[3]-comsArea[1], (topbarArea[4]-topbarArea[2])}
+			)
 		end
 	end
 
@@ -1948,10 +1838,7 @@ function widget:DrawScreen()
 		end
 	end
 
-	if showButtons and dlistButtons and buttonsArea['buttons'] then
-		if not useRenderToTexture then
-			glCallList(dlistButtons)
-		end
+	if showButtons and dlist.buttons and buttonsArea['buttons'] then
 
 		-- changelog changes highlight
 		if WG['changelog'] and WG['changelog'].haschanges() then
@@ -1978,18 +1865,18 @@ function widget:DrawScreen()
 		end
 	end
 
-	if dlistQuit then
-		if WG['guishader'] then WG['guishader'].removeRenderDlist(dlistQuit) end
-		glDeleteList(dlistQuit)
-		dlistQuit = nil
+	if dlist.quit then
+		if WG['guishader'] then WG['guishader'].removeRenderDlist(dlist.quit) end
+		glDeleteList(dlist.quit)
+		dlist.quit = nil
 	end
 
 	if showQuitscreen then
 		drawQuitScreen()
 	end
 
-	gl.Color(1, 1, 1, 1)
-	gl.PopMatrix()
+	glColor(1, 1, 1, 1)
+	glPopMatrix()
 
 	refreshUi = false
 end
@@ -2090,7 +1977,7 @@ local function applyButtonAction(button)
 	elseif button == 'options' then
 		toggleWindow('options')
 	elseif button == 'save' then
-		if isSinglePlayer and allowSavegame and WG['savegame'] then
+		if isSinglePlayer and cfg.allowSavegame and WG['savegame'] then
 			local time = os.date("%Y%m%d_%H%M%S")
 			Spring.SendCommands("savegame "..time)
 		end
@@ -2126,7 +2013,7 @@ function widget:KeyPress(key)
 	if key == 27 then -- ESC
 		if not WG['options'] or (WG['options'].disallowEsc and not WG['options'].disallowEsc()) then
 			local escDidSomething = hideWindows()
-			if escapeKeyPressesQuit and not escDidSomething then
+			if cfg.escapeKeyPressesQuit and not escDidSomething then
 				applyButtonAction('quit')
 			end
 		end
@@ -2227,14 +2114,14 @@ end
 function widget:PlayerChanged()
 	local prevMyTeamID = myTeamID
 	local prevSpec = spec
-	spec = spGetSpectatingState()
+	spec = sp.GetSpectatingState()
 	checkSelfStatus()
 	numTeamsInAllyTeam = #Spring.GetTeamList(myAllyTeamID)
 	if displayComCounter then countComs(true) end
 	if spec then
 		resbarHover = nil
 		if prevMyTeamID ~= myTeamID then
-			r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
+			r = { metal = { sp.GetTeamResources(myTeamID, 'metal') }, energy = { sp.GetTeamResources(myTeamID, 'energy') } }
 			smoothedResources = r
 		end
 	end
@@ -2271,7 +2158,7 @@ function widget:LanguageChanged()
 end
 
 function widget:Initialize()
-	gameFrame = spGetGameFrame()
+	gameFrame = sp.GetGameFrame()
 	Spring.SendCommands("resbar 0")
 
 	-- determine if we want to show comcounter
@@ -2366,19 +2253,19 @@ end
 function widget:Shutdown()
 	--Spring.SendCommands("resbar 1")
 
-	if dlistButtons then
-		dlistWind1 = glDeleteList(dlistWind1)
-		dlistWind2 = glDeleteList(dlistWind2)
-		tidaldlist2 = glDeleteList(tidaldlist2)
-		dlistComs = glDeleteList(dlistComs)
-		dlistButtons = glDeleteList(dlistButtons)
-		dlistQuit = glDeleteList(dlistQuit)
+	if dlist.buttons then
+		dlist.wind1 = glDeleteList(dlist.wind1)
+		dlist.wind2 = glDeleteList(dlist.wind2)
+		dlist.tidal2 = glDeleteList(dlist.tidal2)
+		dlist.coms = glDeleteList(dlist.coms)
+		dlist.buttons = glDeleteList(dlist.buttons)
+		dlist.quit = glDeleteList(dlist.quit)
 
-		for n, _ in pairs(dlistWindText) do dlistWindText[n] = glDeleteList(dlistWindText[n]) end
-		for n, _ in pairs(dlistResbar['metal']) do dlistResbar['metal'][n] = glDeleteList(dlistResbar['metal'][n]) end
-		for n, _ in pairs(dlistResbar['energy']) do dlistResbar['energy'][n] = glDeleteList(dlistResbar['energy'][n]) end
-		for res, _ in pairs(dlistResValues) do dlistResValues[res] = glDeleteList(dlistResValues[res]) end
-		for res, _ in pairs(dlistResValuesBar) do dlistResValuesBar[res] = glDeleteList(dlistResValuesBar[res]) end
+		for n, _ in pairs(dlist.windText) do dlist.windText[n] = glDeleteList(dlist.windText[n]) end
+		for n, _ in pairs(dlist.resbar['metal']) do dlist.resbar['metal'][n] = glDeleteList(dlist.resbar['metal'][n]) end
+		for n, _ in pairs(dlist.resbar['energy']) do dlist.resbar['energy'][n] = glDeleteList(dlist.resbar['energy'][n]) end
+		for res, _ in pairs(dlist.resValues) do dlist.resValues[res] = glDeleteList(dlist.resValues[res]) end
+		for res, _ in pairs(dlist.resValuesBar) do dlist.resValuesBar[res] = glDeleteList(dlist.resValuesBar[res]) end
 	end
 
 	if uiBgTex then

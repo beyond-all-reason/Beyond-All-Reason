@@ -533,9 +533,25 @@ function updateInputDlist()
 end
 
 
+local optionIdIndex = {}
+local function rebuildOptionIdIndex()
+	optionIdIndex = {}
+	for i, option in pairs(options) do
+		if option.id then
+			optionIdIndex[option.id] = i
+		end
+	end
+end
+
 function getOptionByID(id)
+	local idx = optionIdIndex[id]
+	if idx and options[idx] and options[idx].id == id then
+		return idx
+	end
+	-- fallback: linear scan + update index
 	for i, option in pairs(options) do
 		if option.id == id then
+			optionIdIndex[id] = i
 			return i
 		end
 	end
@@ -572,6 +588,7 @@ function orderOptions()
 		end
 	end
 	options = table.copy(newOptions)
+	rebuildOptionIdIndex()
 end
 
 function mouseoverGroupTab(id)
@@ -948,6 +965,8 @@ local isOffscreen = false
 local isOffscreenTime
 local prevOffscreenVolume
 local apiUnitTrackerEnabledCount = 0
+local cachedMuteOffscreen = Spring.GetConfigInt("muteOffscreen", 0) == 1
+local offscreenCheckTimer = 0
 
 function resetUserVolume()
 	if prevOffscreenVolume then
@@ -957,41 +976,56 @@ function resetUserVolume()
 end
 
 function widget:Update(dt)
-	cursorBlinkTimer = cursorBlinkTimer + dt
-	if cursorBlinkTimer > cursorBlinkDuration then cursorBlinkTimer = 0 end
-
-	local prevIsOffscreen = isOffscreen
-	isOffscreen = select(6, Spring.GetMouseState())
-	if isOffscreen and enabledGrabinput then
-		enabledGrabinput = false
-	end
-	if Spring.GetConfigInt("muteOffscreen", 0) == 1 then
-		if isOffscreen ~= prevIsOffscreen then
-			local prevIsOffscreenTime = isOffscreenTime
-			isOffscreenTime = os.clock()
-			if isOffscreen and not prevIsOffscreenTime then
-				prevOffscreenVolume = tonumber(Spring.GetConfigInt("snd_volmaster", 40) or 40)
-			end
-		end
-		if isOffscreenTime then
-			if isOffscreenTime+muteFadeTime > os.clock() then
-				if isOffscreen then
-					Spring.SetConfigInt("snd_volmaster", prevOffscreenVolume*(1-((os.clock()-isOffscreenTime)/muteFadeTime)))
-				else
-					Spring.SetConfigInt("snd_volmaster", prevOffscreenVolume*((os.clock()-isOffscreenTime)/muteFadeTime))
-				end
-			else
-				isOffscreenTime = nil
-				if isOffscreen then
-					Spring.SetConfigInt("snd_volmaster", 0)
-				else
-					resetUserVolume()
-				end
-			end
-		end
+	if show then
+		cursorBlinkTimer = cursorBlinkTimer + dt
+		if cursorBlinkTimer > cursorBlinkDuration then cursorBlinkTimer = 0 end
 	end
 
-	if countDownOptionID and countDownOptionClock and countDownOptionClock < os_clock() then
+	local now = os_clock()
+
+	-- throttle offscreen detection to ~4x/sec (unless actively fading)
+	local checkOffscreen = isOffscreenTime ~= nil
+	if not checkOffscreen then
+		offscreenCheckTimer = offscreenCheckTimer + dt
+		if offscreenCheckTimer > 0.25 then
+			offscreenCheckTimer = 0
+			checkOffscreen = true
+		end
+	end
+	if checkOffscreen then
+		local prevIsOffscreen = isOffscreen
+		isOffscreen = select(6, Spring.GetMouseState())
+		if isOffscreen and enabledGrabinput then
+			enabledGrabinput = false
+		end
+		if cachedMuteOffscreen then
+			if isOffscreen ~= prevIsOffscreen then
+				local prevIsOffscreenTime = isOffscreenTime
+				isOffscreenTime = now
+				if isOffscreen and not prevIsOffscreenTime then
+					prevOffscreenVolume = tonumber(Spring.GetConfigInt("snd_volmaster", 40) or 40)
+				end
+			end
+			if isOffscreenTime then
+				if isOffscreenTime+muteFadeTime > now then
+					if isOffscreen then
+						Spring.SetConfigInt("snd_volmaster", prevOffscreenVolume*(1-((now-isOffscreenTime)/muteFadeTime)))
+					else
+						Spring.SetConfigInt("snd_volmaster", prevOffscreenVolume*((now-isOffscreenTime)/muteFadeTime))
+					end
+				else
+					isOffscreenTime = nil
+					if isOffscreen then
+						Spring.SetConfigInt("snd_volmaster", 0)
+					else
+						resetUserVolume()
+					end
+				end
+			end
+		end
+	end
+
+	if countDownOptionID and countDownOptionClock and countDownOptionClock < now then
 		applyOptionValue(countDownOptionID)
 		countDownOptionID = nil
 		countDownOptionClock = nil
@@ -1010,7 +1044,7 @@ function widget:Update(dt)
 		end
 
 	if sceduleOptionApply then
-		if sceduleOptionApply[1] <= os.clock() then
+		if sceduleOptionApply[1] <= now then
 			applyOptionValue(sceduleOptionApply[2], nil, true, true)
 			sceduleOptionApply = nil
 		end
@@ -1031,7 +1065,7 @@ function widget:Update(dt)
 			detectWater()
 			checkedForWaterAfterGamestart = true
 		end
-		if heightmapChangeClock and heightmapChangeClock + 1 < os_clock() then
+		if heightmapChangeClock and heightmapChangeClock + 1 < now then
 			for k, coords in pairs(heightmapChangeBuffer) do
 				local x = coords[1]
 				local z = coords[2]
@@ -1060,6 +1094,7 @@ function widget:Update(dt)
 	if sec2 > 0.5 then
 		sec2 = 0
 		continuouslyClean = Spring.GetConfigInt("ContinuouslyClearMapmarks", 0) == 1
+		cachedMuteOffscreen = Spring.GetConfigInt("muteOffscreen", 0) == 1
 
 		-- detect guishader toggle: force refresh when it comes back on
 		local guishaderActive = WG['guishader'] ~= nil
@@ -1173,9 +1208,13 @@ end
 
 local quitscreen = false
 local prevQuitscreen = false
+local pauseCheckTimer = 0
+local lastPauseCheckClock = os_clock()
+local canPauseGame = (isSinglePlayer or isReplay) and pauseGameWhenSingleplayer
 local function checkQuitscreen()
+	if not canPauseGame then return end
 	quitscreen = (WG['topbar'] and WG['topbar'].showingQuit() or false)
-	if (isSinglePlayer or isReplay) and pauseGameWhenSingleplayer and prevQuitscreen ~= quitscreen then
+	if prevQuitscreen ~= quitscreen then
 		if quitscreen and isClientPaused and not showToggledOff then
 			skipUnpauseOnHide = true
 		end
@@ -1188,9 +1227,20 @@ local function checkQuitscreen()
 end
 
 function widget:DrawScreen()
-	-- doing in separate functions to prevent a > 60 upvalues error
-	checkPause()
-	checkQuitscreen()
+	-- pause/quit checks only needed for singleplayer/replay
+	if canPauseGame then
+		if prevShow ~= show then
+			checkPause()
+		end
+		-- throttle quitscreen polling to ~4x/sec
+		local clockNow = os_clock()
+		pauseCheckTimer = pauseCheckTimer + (clockNow - lastPauseCheckClock)
+		lastPauseCheckClock = clockNow
+		if pauseCheckTimer > 0.25 then
+			pauseCheckTimer = 0
+			checkQuitscreen()
+		end
+	end
 
 	-- doing it here so other widgets having higher layer number value are also loaded
 	if not initialized then
@@ -1813,10 +1863,13 @@ function mouseEvent(mx, my, button, release)
 		end
 
 
-		if windowList then
-			gl.DeleteList(windowList)
+		local needsRedraw = windowClick or titleClick or tabClick
+		if needsRedraw then
+			if windowList then
+				gl.DeleteList(windowList)
+			end
+			windowList = gl.CreateList(DrawWindow)
 		end
-		windowList = gl.CreateList(DrawWindow)
 
 		if windowClick or titleClick or chatinputClick or tabClick then
 			return true
@@ -1939,15 +1992,16 @@ end
 function applyFilter()
 	if inputText and inputText ~= '' and inputMode == '' then
 		local filteredOptions = {}
+		local lowerInput = string.lower(inputText)
 		for i, option in pairs(unfilteredOptions) do
 			if option.name and option.name ~= '' and option.type and option.type ~= 'label' then
 				local name = string.gsub(option.name, widgetOptionColor, "")
 				name = string.gsub(name, "  ", " ")
-				if string.find(string.lower(name), string.lower(inputText), nil, true) then
+				if string.find(string.lower(name), lowerInput, nil, true) then
 					filteredOptions[#filteredOptions+1] = option
-				elseif option.description and option.description ~= '' and string.find(string.lower(option.description), string.lower(inputText), nil, true) then
+				elseif option.description and option.description ~= '' and string.find(string.lower(option.description), lowerInput, nil, true) then
 					filteredOptions[#filteredOptions+1] = option
-				elseif string.find(string.lower(option.id), string.lower(inputText), nil, true) then
+				elseif string.find(string.lower(option.id), lowerInput, nil, true) then
 					filteredOptions[#filteredOptions+1] = option
 				end
 			end
@@ -1958,6 +2012,7 @@ function applyFilter()
 		-- No filter, use the cached unfiltered options
 		options = unfilteredOptions
 	end
+	rebuildOptionIdIndex()
 
 	-- Rebuild window display list
 	if windowList then
@@ -3537,19 +3592,10 @@ function init()
 
 		{ id = "guishader", group = "ui", category = types.basic, widget = "GUI Shader", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.guishader'), type = "bool", value = GetWidgetToggleValue("GUI Shader") },
 
-		{ id = "rendertotexture", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.rendertotexture'), type = "bool", value = Spring.GetConfigInt("ui_rendertotexture", 1) == 1, description = Spring.I18N('ui.settings.option.rendertotexture_descr'),
-			onchange = function(i, value)
-				Spring.SetConfigInt("ui_rendertotexture", (value and '1' or '0'))
-				Spring.SendCommands("luaui reload")
-			end,
-		},
 
-		{ id = "minimap_maxheight", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.minimap') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.minimap_maxheight'), type = "slider", min = 0.2, max = 0.4, step = 0.01, value = 0.35, description = Spring.I18N('ui.settings.option.minimap_maxheight_descr'),
-		  onload = function(i)
-			  loadWidgetData("Minimap", "minimap_maxheight", { 'maxHeight' })
-		  end,
+		{ id = "minimap_maxheight", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.minimap') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.minimap_maxheight'), type = "slider", min = 0.2, max = 0.4, step = 0.01, value = Spring.GetConfigFloat("MinimapMaxHeight", 0.32), description = Spring.I18N('ui.settings.option.minimap_maxheight_descr'),
 		  onchange = function(i, value)
-			  saveOptionValue('Minimap', 'minimap', 'setMaxHeight', { 'maxHeight' }, value)
+			  Spring.SetConfigFloat("MinimapMaxHeight", value)
 		  end,
 		},
 		{ id = "minimapleftclick", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimapleftclick'), type = "bool", value = Spring.GetConfigInt("MinimapLeftClickMove", 1) == 1, description = Spring.I18N('ui.settings.option.minimapleftclick_descr'),
@@ -4878,7 +4924,6 @@ function init()
 
 		{ id = "label_teamcolors", group = "accessibility", name = Spring.I18N('ui.settings.option.label_teamcolors'), category = types.basic },
 		{ id = "label_teamcolors_spacer", group = "accessibility", category = types.basic },
-
 
 		{ id = "anonymous_r", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.anonymous_r'), type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("anonymousColorR", 255)), description = Spring.I18N('ui.settings.option.anonymous_descr'),
 		  onchange = function(i, value, force)
@@ -6330,14 +6375,14 @@ function init()
 		--	options[id].onchange(id, options[id].value)
 		--end
 
-		if Spring.GetConfigInt("Water", 0) ~= 4 then
-			Spring.SendCommands("water 4")
-			Spring.SetConfigInt("Water", 4)
-		end
-		
 		if not devMode and not devUI then
 			options[getOptionByID('cusgl4')] = nil
 			options[getOptionByID('water')] = nil
+		else
+			if Spring.GetConfigInt("Water", 0) ~= 4 then
+				Spring.SendCommands("water 4")
+				Spring.SetConfigInt("Water", 4)
+			end
 		end
 	end
 

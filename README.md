@@ -153,9 +153,3 @@ Then open **User Settings (JSON)** and add:
 ],
 ```
 
-=======
-You can also inspect objects for more verbose output inline:
-
-```lua
-print(inspect(someObject))
-```

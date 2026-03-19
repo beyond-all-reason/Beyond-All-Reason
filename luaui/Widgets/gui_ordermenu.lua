@@ -23,8 +23,6 @@ local spGetGameFrame = Spring.GetGameFrame
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
-
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local currentLayout
 
@@ -546,6 +544,8 @@ function widget:ViewResize()
 		gl.DeleteTexture(ordermenuTex)
 		ordermenuTex = nil
 	end
+	-- Reset fingerprint so the next refresh always re-renders into the new texture
+	prevCmdCount = -1
 end
 
 local function reloadBindings()
@@ -895,7 +895,7 @@ end
 local function drawOrders()
 	if #commands > 0 then
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-		font:Begin(useRenderToTexture)
+		font:Begin(true)
 		for cell = 1, #commands do
 			drawCell(cell, cellZoom)
 		end
@@ -965,7 +965,6 @@ function widget:DrawScreen()
 				doUpdateClock = nil
 				doUpdate = true
 			end
-			doUpdateClock = nil
 			lastCommandRefreshTime = now
 			refreshCommands()
 			-- Skip R2T rebuild if commands haven't visually changed
@@ -984,6 +983,7 @@ function widget:DrawScreen()
 		if displayListGuiShader and WG['guishader'] then
 			WG['guishader'].RemoveDlist('ordermenu')
 		end
+		doUpdate = nil
 	else
 		if displayListGuiShader and WG['guishader'] then
 			WG['guishader'].InsertDlist(displayListGuiShader, 'ordermenu')
@@ -992,43 +992,30 @@ function widget:DrawScreen()
 			displayListOrders = gl.DeleteList(displayListOrders)
 		end
 
-		if not displayListOrders and not useRenderToTexture then
-			displayListOrders = gl.CreateList(function()
-				if not useRenderToTexture then
-					drawOrdersBackground()
-					drawOrders()
-				end
-			end)
-		end
-
-		if useRenderToTexture then
-			if not ordermenuBgTex then
-				ordermenuBgTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
-					target = GL.TEXTURE_2D,
-					format = GL.ALPHA,
-					fbo = true,
-				})
-				if ordermenuBgTex then
-					gl.R2tHelper.RenderToTexture(ordermenuBgTex,
-						function()
-							gl.Translate(-1, -1, 0)
-							gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
-							gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-							drawOrdersBackground()
-						end,
-						useRenderToTexture
-					)
-				end
+		if not ordermenuBgTex then
+			ordermenuBgTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
+				target = GL.TEXTURE_2D,
+				format = GL.ALPHA,
+				fbo = true,
+			})
+			if ordermenuBgTex then
+				gl.R2tHelper.RenderToTexture(ordermenuBgTex,
+					function()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
+						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+						drawOrdersBackground()
+					end,
+					true
+				)
 			end
 		end
-		if useRenderToTexture then
-			if not ordermenuTex then
-				ordermenuTex = gl.CreateTexture(math_floor(width*vsx)*(vsy<1400 and 2 or 1), math_floor(height*vsy)*(vsy<1400 and 2 or 1), {	--*(vsy<1400 and 2 or 1)
-					target = GL.TEXTURE_2D,
-					format = GL.ALPHA,
-					fbo = true,
-				})
-			end
+		if not ordermenuTex then
+			ordermenuTex = gl.CreateTexture(math_floor(width*vsx)*(vsy<1400 and 2 or 1), math_floor(height*vsy)*(vsy<1400 and 2 or 1), {	--*(vsy<1400 and 2 or 1)
+				target = GL.TEXTURE_2D,
+				format = GL.ALPHA,
+				fbo = true,
+			})
 		end
 		if ordermenuTex and doUpdate then
 			gl.R2tHelper.RenderToTexture(ordermenuTex,
@@ -1038,21 +1025,18 @@ function widget:DrawScreen()
 					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
 					drawOrders()
 				end,
-				useRenderToTexture
+				true
 			)
+			doUpdate = nil
 		end
 
-		if useRenderToTexture then
-			if ordermenuBgTex then
-				-- background element
-				gl.R2tHelper.BlendTexRect(ordermenuBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], useRenderToTexture)
-			end
-			if ordermenuTex then
-				-- content
-				gl.R2tHelper.BlendTexRect(ordermenuTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], useRenderToTexture)
-			end
-		else
-			gl.CallList(displayListOrders)
+		if ordermenuBgTex then
+			-- background element
+			gl.R2tHelper.BlendTexRect(ordermenuBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], true)
+		end
+		if ordermenuTex then
+			-- content
+			gl.R2tHelper.BlendTexRect(ordermenuTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], true)
 		end
 
 		if #commands >0 then
@@ -1139,7 +1123,6 @@ function widget:DrawScreen()
 			end
 		end
 	end
-	doUpdate = nil
 end
 
 function widget:MousePress(x, y, button)
