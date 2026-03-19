@@ -23,11 +23,10 @@ local math_sqrt = math.sqrt
 local CMD_UNLOAD_UNITS = CMD.UNLOAD_UNITS
 
 local function CanUnitExecute(uID, cmdID)
-	if cmdID == CMD_UNLOAD_UNITS then
-		local transporting = Spring.GetUnitIsTransporting(uID)
-		return (transporting and #transporting > 0)
-	end
 	return (Spring.FindUnitCmdDesc(uID, cmdID) ~= nil)
+    if cmdID == CMD.UNLOAD_UNIT then -- should not happen since here we're working with area cmds but, better be safe then sorry i guess
+        cmdID = CMD_UNLOAD_UNITS
+    end
 end
 
 local function GetExecutingUnits(cmdID)
