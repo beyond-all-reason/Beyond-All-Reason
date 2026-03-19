@@ -2,7 +2,7 @@ function gadget:GetInfo()
     return {
         name = "Transport To Command",
         desc = "Adds ferry command",
-        author = "Isajoefeat",
+        author = "You",
         date = "2026",
         license = "GPL",
         layer = 0,
@@ -21,6 +21,12 @@ local CMD_STOP = CMD.STOP
 local CMD_LOAD_UNITS = CMD.LOAD_UNITS
 local CMD_UNLOAD_UNITS = CMD.UNLOAD_UNITS
 
+local CMD_OPT_SHIFT   = CMD.OPT_SHIFT   or 32
+local CMD_OPT_ALT     = CMD.OPT_ALT     or 128
+local CMD_OPT_CTRL    = CMD.OPT_CTRL    or 64
+local CMD_OPT_RIGHT   = CMD.OPT_RIGHT   or 16
+local CMD_OPT_INTERNAL= CMD.OPT_INTERNAL or 8
+
 local cmdDesc = {
     id = CMD_TRANSPORT_TO,
     type = CMDTYPE.ICON_MAP,
@@ -33,15 +39,39 @@ local cmdDesc = {
 
 local jobs = {}           -- [unitID] = {targets={}, state="", transportID=nil, originalPos=nil, postCommands={}}
 local transportState = {} -- [transportID] = {state="", unitID=nil, origin=nil}
-local internalOrders = {} -- guard so our own GiveOrderToUnit calls don't trigger our own interception
+local internalOrders = {}
 
 local RETURN_RADIUS_SQ = 100 * 100
 
 Spring.Echo("Transport gadget loaded")
 
+local function EncodeCmdOptions(cmdOptions)
+    if type(cmdOptions) == "number" then
+        return cmdOptions
+    end
+    if type(cmdOptions) ~= "table" then
+        return 0
+    end
+
+    local opt = 0
+    if cmdOptions.shift then opt = opt + CMD_OPT_SHIFT end
+    if cmdOptions.alt then opt = opt + CMD_OPT_ALT end
+    if cmdOptions.ctrl then opt = opt + CMD_OPT_CTRL end
+    if cmdOptions.right then opt = opt + CMD_OPT_RIGHT end
+    if cmdOptions.internal then opt = opt + CMD_OPT_INTERNAL end
+    return opt
+end
+
+local function HasShift(cmdOptions)
+    if type(cmdOptions) == "number" then
+        return (cmdOptions % (CMD_OPT_SHIFT * 2)) >= CMD_OPT_SHIFT
+    end
+    return type(cmdOptions) == "table" and cmdOptions.shift
+end
+
 local function IssueOrder(unitID, cmdID, params, opts)
     internalOrders[unitID] = (internalOrders[unitID] or 0) + 1
-    Spring.GiveOrderToUnit(unitID, cmdID, params, opts)
+    Spring.GiveOrderToUnit(unitID, cmdID, params or {}, EncodeCmdOptions(opts))
 end
 
 local function DistSq(x1, z1, x2, z2)
@@ -84,9 +114,12 @@ local function ReplayPostCommands(unitID, postCommands)
         return
     end
 
+    Spring.Echo("Replaying post-ferry commands for", unitID, "#", #postCommands)
+
     for i = 1, #postCommands do
         local c = postCommands[i]
-        IssueOrder(unitID, c.cmdID, c.params or {}, c.options or {})
+        Spring.Echo("Replay cmd", c.cmdID, "for unit", unitID)
+        IssueOrder(unitID, c.cmdID, c.params or {}, c.options or 0)
     end
 end
 
@@ -102,8 +135,8 @@ local function StartReturningTransport(transportID, origin)
         origin = origin,
     }
 
-    IssueOrder(transportID, CMD_STOP, {}, {})
-    IssueOrder(transportID, CMD_MOVE, origin, {})
+    IssueOrder(transportID, CMD_STOP, {}, 0)
+    IssueOrder(transportID, CMD_MOVE, origin, 0)
 end
 
 local function ClearJob(unitID)
@@ -129,7 +162,7 @@ local function CancelJob(unitID, fallbackWalk)
     if fallbackWalk and IsValidUnit(unitID) and not Spring.GetUnitTransporter(unitID) then
         local firstTarget = job.targets and job.targets[1]
         if firstTarget then
-            IssueOrder(unitID, CMD_MOVE, firstTarget, {})
+            IssueOrder(unitID, CMD_MOVE, firstTarget, 0)
         end
     end
 
@@ -180,9 +213,9 @@ local function AssignTransport(unitID, job, transportID)
 
     Spring.Echo("Assigning transport", transportID, "to unit", unitID)
 
-    IssueOrder(unitID, CMD_STOP, {}, {})
-    IssueOrder(transportID, CMD_STOP, {}, {})
-    IssueOrder(transportID, CMD_LOAD_UNITS, {unitID}, {})
+    IssueOrder(unitID, CMD_STOP, {}, 0)
+    IssueOrder(transportID, CMD_STOP, {}, 0)
+    IssueOrder(transportID, CMD_LOAD_UNITS, {unitID}, 0)
 end
 
 function gadget:UnitCreated(unitID, unitDefID, team)
@@ -207,7 +240,7 @@ function gadget:UnitDestroyed(unitID)
             if IsValidUnit(ts.unitID) and not Spring.GetUnitTransporter(ts.unitID) then
                 local firstTarget = job.targets and job.targets[1]
                 if firstTarget then
-                    IssueOrder(ts.unitID, CMD_MOVE, firstTarget, {})
+                    IssueOrder(ts.unitID, CMD_MOVE, firstTarget, 0)
                 end
             end
         end
@@ -215,19 +248,17 @@ function gadget:UnitDestroyed(unitID)
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
-    -- ignore our own orders
     if internalOrders[unitID] and internalOrders[unitID] > 0 then
         internalOrders[unitID] = internalOrders[unitID] - 1
         return true
     end
 
-    -- ferry command
     if cmdID == CMD_TRANSPORT_TO then
         Spring.Echo("Ferry command received", unitID)
 
         local target = {cmdParams[1], cmdParams[2], cmdParams[3]}
 
-        if jobs[unitID] and cmdOptions.shift then
+        if jobs[unitID] and HasShift(cmdOptions) then
             table.insert(jobs[unitID].targets, target)
         else
             if jobs[unitID] then
@@ -242,28 +273,34 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
                 postCommands = {},
             }
 
-            IssueOrder(unitID, CMD_MOVE, target, {})
+            IssueOrder(unitID, CMD_MOVE, target, 0)
         end
 
         return false
     end
 
-    -- unit has active ferry job:
-    -- store the player's command to replay after unload instead of cancelling
+    -- STOP is a clean cancel
+    if jobs[unitID] and cmdID == CMD_STOP then
+        Spring.Echo("STOP received, cancelling ferry job for", unitID)
+        CancelJob(unitID, false)
+        return true
+    end
+
+    -- Any other unit command gets stored for after unload
     if jobs[unitID] then
         local job = jobs[unitID]
 
         job.postCommands[#job.postCommands + 1] = {
             cmdID = cmdID,
             params = cmdParams,
-            options = cmdOptions,
+            options = EncodeCmdOptions(cmdOptions),
         }
 
         Spring.Echo("Stored post-ferry command for unit", unitID, cmdID)
         return false
     end
 
-    -- transport got a manual command: break managed transport state cleanly
+    -- Manual command to a managed transport breaks ferry management
     if transportState[unitID] then
         local ts = transportState[unitID]
         Spring.Echo("Managed transport got a new command, cancelling managed state", unitID)
@@ -282,7 +319,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 
                 local firstTarget = job.targets and job.targets[1]
                 if firstTarget then
-                    IssueOrder(ts.unitID, CMD_MOVE, firstTarget, {})
+                    IssueOrder(ts.unitID, CMD_MOVE, firstTarget, 0)
                 end
             end
         end
@@ -298,7 +335,6 @@ function gadget:GameFrame(frame)
         return
     end
 
-    -- finish returning transports
     for transportID, ts in pairs(transportState) do
         if ts.state == "returning" then
             if not IsTransport(transportID) then
@@ -315,7 +351,6 @@ function gadget:GameFrame(frame)
         end
     end
 
-    -- process jobs
     for unitID, job in pairs(jobs) do
         if not IsValidUnit(unitID) then
             CancelJob(unitID, false)
@@ -338,7 +373,7 @@ function gadget:GameFrame(frame)
 
                     local firstTarget = job.targets and job.targets[1]
                     if firstTarget then
-                        IssueOrder(unitID, CMD_MOVE, firstTarget, {})
+                        IssueOrder(unitID, CMD_MOVE, firstTarget, 0)
                     end
                 else
                     local transporter = Spring.GetUnitTransporter(unitID)
@@ -353,19 +388,19 @@ function gadget:GameFrame(frame)
                             origin = job.originalPos,
                         }
 
-                        IssueOrder(transportID, CMD_STOP, {}, {})
+                        IssueOrder(transportID, CMD_STOP, {}, 0)
 
                         for i = 1, #job.targets do
                             local pos = job.targets[i]
                             if i == 1 then
-                                IssueOrder(transportID, CMD_MOVE, pos, {})
+                                IssueOrder(transportID, CMD_MOVE, pos, 0)
                             else
-                                IssueOrder(transportID, CMD_MOVE, pos, {"shift"})
+                                IssueOrder(transportID, CMD_MOVE, pos, CMD_OPT_SHIFT)
                             end
                         end
 
                         local final = job.targets[#job.targets]
-                        IssueOrder(transportID, CMD_UNLOAD_UNITS, final, {"shift"})
+                        IssueOrder(transportID, CMD_UNLOAD_UNITS, final, CMD_OPT_SHIFT)
                     end
                 end
             end
