@@ -23,9 +23,31 @@ local tableInsert = table.insert
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetGameFrame = Spring.GetGameFrame
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetSelectedUnits = Spring.GetSelectedUnits
 local spEcho = Spring.Echo
 
 local math_sqrt = math.sqrt
+
+-- Pre-compute build options per unitDef.
+-- Prevents CMD.INSERT from sending build commands to units that can't build
+-- that unit type (e.g. nano turrets with no buildOptions getting permanently stuck).
+local canBuildDef = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.buildOptions then
+		for _, optDefID in ipairs(unitDef.buildOptions) do
+			if not canBuildDef[unitDefID] then
+				canBuildDef[unitDefID] = {}
+			end
+			canBuildDef[unitDefID][optDefID] = true
+		end
+	end
+end
+
+local function unitCanBuild(unitID, buildDefID)
+	local udid = spGetUnitDefID(unitID)
+	return canBuildDef[udid] and canBuildDef[udid][buildDefID]
+end
 
 local modifiers = {
 	prepend_between = false,
@@ -149,14 +171,30 @@ function widget:CommandNotify(id, params, options)
     opt = opt + CMD.OPT_SHIFT
 
 	if modifiers.prepend_queue then
-		Spring.GiveOrder(CMD.INSERT, { prependPos, id, opt, unpack(params) }, { "alt" })
+		if id < 0 then
+			for _, uid in ipairs(spGetSelectedUnits()) do
+				if unitCanBuild(uid, -id) then
+					spGiveOrderToUnit(uid, CMD.INSERT, { prependPos, id, opt, unpack(params) }, { "alt" })
+				end
+			end
+		else
+			Spring.GiveOrder(CMD.INSERT, { prependPos, id, opt, unpack(params) }, { "alt" })
+		end
 
 		prependPos = prependPos + 1
 
 		return true
 	end
   else
-    Spring.GiveOrder(CMD.INSERT,{0,id,opt,unpack(params)},{"alt"})
+    if id < 0 then
+      for _, uid in ipairs(spGetSelectedUnits()) do
+        if unitCanBuild(uid, -id) then
+          spGiveOrderToUnit(uid, CMD.INSERT, {0, id, opt, unpack(params)}, {"alt"})
+        end
+      end
+    else
+      Spring.GiveOrder(CMD.INSERT,{0,id,opt,unpack(params)},{"alt"})
+    end
 
     return true
   end
@@ -168,9 +206,10 @@ function widget:CommandNotify(id, params, options)
     return false
   end
 
-  local units = Spring.GetSelectedUnits()
+  local units = spGetSelectedUnits()
   for i=1,#units do
     local unit_id = units[i]
+    if id >= 0 or unitCanBuild(unit_id, -id) then
     local commands = Spring.GetUnitCommands(unit_id,100)
     local px,py,pz = spGetUnitPosition(unit_id)
     local min_dlen = 1000000
@@ -198,6 +237,7 @@ function widget:CommandNotify(id, params, options)
       spGiveOrderToUnit(unit_id, id, params, {"shift"})
     else
       spGiveOrderToUnit(unit_id, CMD.INSERT, {insert_pos-1, id, opt, unpack(params)}, {"alt"})
+    end
     end
   end
 
