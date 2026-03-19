@@ -79,7 +79,10 @@ function FindClosestTransport(unitID)
     for i = 1, #units do
         local u = units[i]
 
-        if Spring.GetUnitIsTransport(u) and not reserved[u] then
+        local uDefID = Spring.GetUnitDefID(u)
+	local ud = uDefID and UnitDefs[uDefID]
+
+	if ud and ud.transportCapacity and ud.transportCapacity > 0 and not reserved[u] then
             local tx, _, tz = Spring.GetUnitPosition(u)
             local dist = (ux - tx)^2 + (uz - tz)^2
 
