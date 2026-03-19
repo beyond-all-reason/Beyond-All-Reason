@@ -143,6 +143,7 @@ void main()
 
 	// scale the circle and move to world pos:
 	vertexWorldPos = vertexWorldPos * (12.0 + localpos_dir_angle.z) *2.0* worldpos_radius.w + worldpos_radius.xyz;
+	vertexWorldPos.y += 2.0;
 
 	//dump to FS:
 	gl_Position = cameraViewProj * vec4(vertexWorldPos,1.0);
@@ -434,17 +435,24 @@ function widget:GameFrame(gf)
 end
 
 
-function widget:DrawWorldPreUnit()
+function widget:DrawWorld()
+	-- Draw after water so underwater spots are not distorted by the water shader.
 	if numSpots == 0 then return end
 	if chobbyInterface then return end
 	if spIsGUIHidden() then return end
 	if metalViewOnly and spGetMapDrawMode() ~= 'metal' then return end
 
-	gl.DepthTest(false)
+	gl.DepthTest(GL.LEQUAL)
+	gl.DepthMask(false)
+	gl.PolygonOffset(-64, -64)
+
 	spotShader:Activate()
 	drawInstanceVBO(spotInstanceVBO)
 	spotShader:Deactivate()
-	gl.DepthTest(true)
+
+	gl.PolygonOffset(false)
+	gl.DepthTest(false)
+	gl.DepthMask(true)
 end
 
 function widget:GetConfigData(data)

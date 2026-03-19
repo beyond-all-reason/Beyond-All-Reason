@@ -65,7 +65,7 @@ local opacity			= 0.5
 
 local innersize			= 1.8		-- outersize-innersize = circle width
 local outersize			= 1.98		-- outersize-innersize = circle width
-local billboardsize 	= 0.5
+local billboardsize 	= 0.36		-- actual fontsize
 
 local maxValue			= 15		-- ignore spots above this metal value (probably metalmap)
 local maxScale			= 4			-- ignore spots above this scale (probably metalmap)
@@ -91,7 +91,7 @@ local incomeMultiplier = select(7, Spring.GetTeamInfo(spGetMyTeamID(), false))
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = mathMin(1.5, (0.5 + (vsx*vsy / 5700000)))
-local fontfileSize = 80
+local fontfileSize = 100
 local fontfileOutlineSize = 26
 local fontfileOutlineStrength = 1.6
 --spEcho("Loading Font",fontfile,fontfileSize*fontfileScale,fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
@@ -526,7 +526,10 @@ function widget:GameFrame(gf)
 	end
 end
 
-function widget:DrawWorldPreUnit()
+function widget:DrawWorld()
+	-- Draw after water so underwater metalspots are not distorted by the
+	-- water shader.  Depth test against the existing depth buffer means
+	-- units/features that were already drawn will still occlude the circles.
 	local mapDrawMode = spGetMapDrawMode()
 	if metalViewOnly and mapDrawMode ~= 'metal' then return end
 	if chobbyInterface then return end
@@ -535,7 +538,9 @@ function widget:DrawWorldPreUnit()
 	gl.Culling(true)
 	gl.Texture(0, "$heightmap")
 	gl.Texture(1, AtlasTextureID)
-	gl.DepthTest(false)
+	gl.DepthTest(GL.LEQUAL)
+	gl.DepthMask(false)
+	gl.PolygonOffset(-40, -40)
 
 	spotShader:Activate()
 	drawInstanceVBO(spotInstanceVBO)
@@ -546,6 +551,9 @@ function widget:DrawWorldPreUnit()
 		needsInit = false
 	end
 
+	gl.PolygonOffset(false)
+	gl.DepthTest(false)
+	gl.DepthMask(true)
 	gl.Culling(false)
 	gl.Texture(0, false)
 	gl.Texture(1, false)
