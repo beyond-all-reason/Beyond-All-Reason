@@ -63,7 +63,8 @@ local function processWeapons(unitDefName, unitDef)
 		weaponDef.reloadtime = round_to_frames(weaponDef, "reloadtime")
 		weaponDef.burstrate = round_to_frames(weaponDef, "burstrate")
 
-		if weaponDef.customparams.cluster_def then
+		-- weaponDef is not processed by weapondefs_post, may not have some subtables:
+		if weaponDef.customparams and weaponDef.customparams.cluster_def then
 			weaponDef.customparams.cluster_def = unitDefName .. "_" .. weaponDef.customparams.cluster_def
 			weaponDef.customparams.cluster_number = weaponDef.customparams.cluster_number or 5
 		end
