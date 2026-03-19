@@ -18,12 +18,7 @@ local sounds = VFS.Include('luarules/mission_api/sounds.lua')
 
 local scriptPath
 local stagesController, objectivesController, triggersController, actionsController
-local initialStateBroadcast = false
 local broadcast
-
-local function broadcastInitialState()
-	broadcast.StageChanged(GG['MissionAPI'].CurrentStage)
-end
 
 local function loadMission()
 	local mission = VFS.Include("singleplayer/" .. scriptPath)
@@ -33,7 +28,7 @@ local function loadMission()
 	local rawTriggers = mission.Triggers or {}
 	local rawActions = mission.Actions or {}
 
-	GG['MissionAPI'].CurrentStage = initialStage
+	GG['MissionAPI'].CurrentStageID = initialStage
 	GG['MissionAPI'].Objectives = objectivesController.ProcessRawObjectives(rawObjectives)
 	GG['MissionAPI'].Stages = stagesController.ProcessRawStages(rawStages, initialStage)
 	GG['MissionAPI'].Triggers = triggersController.ProcessRawTriggers(rawTriggers, rawActions)
@@ -49,8 +44,8 @@ function gadget:Initialize()
 	--scriptPath = 'mission-api-tests/test_mission.lua'
 	--scriptPath = 'mission-api-tests/markers_test.lua'
 	--scriptPath = 'mission-api-tests/unit_triggers_test.lua'
-	--scriptPath = 'mission-api-tests/sound_test.lua'
-	scriptPath = 'mission-api-tests/stages_and_objectives_test.lua'
+	scriptPath = 'mission-api-tests/sound_test.lua'
+	--scriptPath = 'mission-api-tests/stages_and_objectives_test.lua'
 
 	if not scriptPath then
 		gadgetHandler:RemoveGadget()
@@ -79,12 +74,13 @@ function gadget:Initialize()
 	loadMission()
 end
 
-function gadget:GameFrame(frameNumber)
-	if not initialStateBroadcast then
-		broadcastInitialState()
-		initialStateBroadcast = true
+function gadget:GamePreload()
+	if next(GG['MissionAPI'].Stages) then
+		broadcast.StageChanged(GG['MissionAPI'].CurrentStageID)
 	end
+end
 
+function gadget:GameFrame(frameNumber)
 	sounds.ProcessSoundQueue(frameNumber)
 end
 

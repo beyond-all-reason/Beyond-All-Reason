@@ -470,6 +470,10 @@ local function validateObjectives(objectives)
 end
 
 local function validateStages(stages, initialStage)
+	if next(stages) and not stages[initialStage] then
+		logError("Initial stage does not exist in stages: " .. initialStage)
+	end
+
 	for stageID, stage in pairs(stages) do
 		if not stage.title then
 			logError("Stage missing title: " .. stageID)
@@ -483,9 +487,6 @@ local function validateStages(stages, initialStage)
 				logError("Stage refers to non-existent objective. Stage: " .. stageID .. ", Objective: " .. objectiveID)
 			end
 		end
-	end
-	if not stages[initialStage] then
-		logError("Initial stage does not exist in stages: " .. initialStage)
 	end
 end
 

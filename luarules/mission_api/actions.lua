@@ -45,7 +45,7 @@ local function disableTrigger(triggerID)
 end
 
 local function changeStage(stage)
-	GG['MissionAPI'].CurrentStage = stage
+	GG['MissionAPI'].CurrentStageID = stage
 	broadcast.StageChanged(stage)
 end
 
