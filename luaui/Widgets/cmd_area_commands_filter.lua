@@ -40,6 +40,7 @@ local spGetUnitPosition = Spring.GetUnitPosition
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetUnitArrayCentroid = Spring.GetUnitArrayCentroid
 local spGetFeatureResurrect = Spring.GetFeatureResurrect
+local spGetMyTeamID = Spring.GetMyTeamID
 
 local ENEMY_UNITS = Spring.ENEMY_UNITS
 local ALLY_UNITS = Spring.ALLY_UNITS
@@ -542,23 +543,27 @@ function widget:CommandNotify(cmdId, params, options)
 	local targetType, targetId
 
 	if currentCommand.allowedTargetTypes[UNIT] then
-		local nearbyUnits = spGetUnitsInCylinder(cmdX, cmdZ, CLICK_SEARCH_RADIUS, currentCommand.targetAllegiance)
-		if nearbyUnits then
-			local bestDistSq = math.huge
-			for _, uid in ipairs(nearbyUnits) do
-				local ux, _, uz = spGetUnitPosition(uid)
-				if ux then
-					local dx, dz = ux - cmdX, uz - cmdZ
-					local distSq = dx * dx + dz * dz
-					if distSq < bestDistSq then
-						bestDistSq = distSq
-						targetId = uid
+		if currentCommand.targetAllegiance == ENEMY_UNITS and WG.FindNearestEnemyUnit then
+			targetId = WG.FindNearestEnemyUnit(cmdX, cmdY, cmdZ, CLICK_SEARCH_RADIUS, spGetMyTeamID())
+		else
+			local nearbyUnits = spGetUnitsInCylinder(cmdX, cmdZ, CLICK_SEARCH_RADIUS, currentCommand.targetAllegiance)
+			if nearbyUnits then
+				local bestDistSq = math.huge
+				for _, uid in ipairs(nearbyUnits) do
+					local ux, _, uz = spGetUnitPosition(uid)
+					if ux then
+						local dx, dz = ux - cmdX, uz - cmdZ
+						local distSq = dx * dx + dz * dz
+						if distSq < bestDistSq then
+							bestDistSq = distSq
+							targetId = uid
+						end
 					end
 				end
 			end
-			if targetId then
-				targetType = UNIT
-			end
+		end
+		if targetId then
+			targetType = UNIT
 		end
 	end
 
