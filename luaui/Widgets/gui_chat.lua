@@ -1500,7 +1500,7 @@ drawChatInput = function()
 			gl.Rect(inputButtonRect[3]-1, inputButtonRect[2], inputButtonRect[3], inputButtonRect[4])
 
 			-- button text
-			usedfont:Begin(true)
+			usedFont:Begin(true)
 			usedFont:SetOutlineColor(0.22, 0.22, 0.22, 1)
 			if isCmd then
 				r, g, b = 0.65, 0.65, 0.65
