@@ -16,11 +16,10 @@ end
 
 local sounds = VFS.Include('luarules/mission_api/sounds.lua')
 
-local scriptPath
 local triggersController, actionsController
 
-local function loadMission()
-	local mission = VFS.Include("singleplayer/" .. scriptPath)
+local function loadMission(scriptPath)
+	local mission = VFS.Include(scriptPath)
 	local rawTriggers = mission.Triggers
 	local rawActions = mission.Actions
 
@@ -31,21 +30,28 @@ local function loadMission()
 	validateReferences()
 end
 
-function gadget:Initialize()
-	-- TODO: Actually pass script path
-	--scriptPath = 'mission-api-tests/validation_test.lua'
-	--scriptPath = 'mission-api-tests/test_mission.lua'
-	--scriptPath = 'mission-api-tests/markers_test.lua'
-	scriptPath = 'mission-api-tests/unit_triggers_test.lua'
-	--scriptPath = 'mission-api-tests/sound_test.lua'
+local function setAiNames(ais)
+	for i, name in pairs(ais) do
+		Spring.SetGameRulesParam('ainame_' .. i, name)
+	end
+end
 
-	if not scriptPath then
+function gadget:Initialize()
+	local missionOptions = Spring.GetModOptions().missionoptions
+	if not missionOptions then
 		gadgetHandler:RemoveGadget()
 		return
 	end
+	missionOptions = Json.decode(string.base64Decode(missionOptions))
+
+	setAiNames(missionOptions.ais)
 
 	GG['MissionAPI'] = {}
-	GG['MissionAPI'].Difficulty = 0 --TODO: implement mission difficulties
+	GG['MissionAPI'].Difficulty = missionOptions.difficulty or 0
+	GG['MissionAPI'].AllyTeams  = missionOptions.allyTeams or {}
+	GG['MissionAPI'].Teams      = missionOptions.teams or {}
+	GG['MissionAPI'].AIs        = missionOptions.ais or {}
+	GG['MissionAPI'].Players    = missionOptions.players or {}
 
 	local triggersSchema = VFS.Include('luarules/mission_api/triggers_schema.lua')
 	local actionsSchema = VFS.Include('luarules/mission_api/actions_schema.lua')
@@ -59,7 +65,7 @@ function gadget:Initialize()
 	triggersController = VFS.Include('luarules/mission_api/triggers_loader.lua')
 	actionsController = VFS.Include('luarules/mission_api/actions_loader.lua')
 
-	loadMission();
+	loadMission(missionOptions.missionScriptPath);
 end
 
 function gadget:GameFrame(frameNumber)

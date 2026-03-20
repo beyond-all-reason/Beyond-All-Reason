@@ -1,4 +1,3 @@
-
 return {
 	campaignId = "armada-main",
 	title = "Test Campaign 1 - Armada",
@@ -14,11 +13,9 @@ return {
 	missions = {
 		"mission_01",
 		"mission_02",
-		"mission_03",
 	},
 
-	unlock = {
+	unlock = { -- could be prerequisites in missions instead
 		mission_02 = { requires = { "mission_01" } },
-		mission_03 = { requires = { "mission_02" } },
 	},
 }

@@ -1,4 +1,3 @@
-
 return {
 	campaignId = "cortex-main",
 	title = "Test Campaign 2 - Cortex",
