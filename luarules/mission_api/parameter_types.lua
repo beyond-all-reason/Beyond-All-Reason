@@ -17,6 +17,7 @@ local types = {
 	TriggerID = 'TriggerID',
 	UnitDefName = 'UnitDefName',
 	WeaponDefName = 'WeaponDefName',
+	TeamName = 'TeamName', -- TODO: replace TeamID with this, once test missions are updated, same for AllyTeamID(s)
 	Facing = 'Facing',
 	SoundFile = 'SoundFile',
 

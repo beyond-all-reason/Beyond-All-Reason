@@ -49,7 +49,7 @@ local function issueOrders(unitName, orders)
 	Spring.GiveOrderArrayToUnitArray(trackedUnitIDs[unitName], orders)
 end
 
-local function spawnUnits(unitName, unitDefName, teamID, position, quantity, facing, construction, spacing)
+local function spawnUnits(unitName, unitDefName, teamName, position, quantity, facing, construction, spacing)
 
 	spacing = spacing or 0
 
@@ -64,6 +64,7 @@ local function spawnUnits(unitName, unitDefName, teamID, position, quantity, fac
 
 	local positions = generateGridPositions(position, quantity or 1, xsize, zsize)
 
+	local teamID = GG['MissionAPI'].Teams[teamName]
 	for _, pos in pairs(positions) do
 		pos.y = Spring.GetGroundHeight(pos.x, pos.z)
 		local unitID = Spring.CreateUnit(unitDefName, pos.x, pos.y, pos.z, facing or 's', teamID, construction)

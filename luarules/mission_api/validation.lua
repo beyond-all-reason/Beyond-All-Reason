@@ -312,6 +312,17 @@ validators[Types.WeaponDefName] = function(weaponDefName)
 	end
 end
 
+validators[Types.TeamName] = function(teamName)
+	local luaTypeResult = validators[Types.String](teamName)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	if not GG['MissionAPI'].Teams[teamName] then
+		return { { message = "Invalid teamName: " .. teamName } }
+	end
+end
+
 validators[Types.Facing] = function(facing)
 		local expectedTypes = { string = true, number = true }
 		local actualType = type(facing)

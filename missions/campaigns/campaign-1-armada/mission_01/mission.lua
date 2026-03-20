@@ -21,12 +21,12 @@ local lobbyData = {
 }
 
 local startScript = {
-	mapName = "Fallendell V4", -- as displayed in the map selection screen, must be exact. Lobby to replace spaces with underscores
-	startPosType = 'chooseBeforeGame', -- lobby to map this: fixed = 0, random = 1, chooseInGame = 2, chooseBeforeGame = 3
+	mapName = "Fallendell V4", -- as displayed in the map selection screen. Lobby replaces spaces with underscores
+	startPosType = 'chooseBeforeGame', -- lobby maps this: fixed = 0, random = 1, chooseInGame = 2, chooseBeforeGame = 3
 	disableFactionPicker = true,
 	players = { min = 1, max = 4 },
 	unitLimits = {
-		armavp = 0, -- example of a unit limit, set to 0 to disable the unit
+		armavp = 0, -- set to 0 to disable the unit
 		coravp = 5,
 	},
 	difficulties = { -- should probably be part of the campaign or even global game data, not per mission
@@ -49,26 +49,26 @@ local startScript = {
 		waterdamage = 0,
 	},
 	allyTeams = {
-		someCustomAllyTeamName = {
+		thePlayerAllyTeam = {
 			teams = {
-				someCustomTeamName = {
+				thePlayerTeam = {
 					name = "PlayerPawns", -- in-game name, player name rules apply, so no spaces etc...
 					Side = 'Cortex',
-					StartPosX = 700, -- used when startPosType is 'fixed'
+					StartPosX = 700, -- used when startPosType is 'chooseBeforeGame'
 					StartPosZ = 700,
 					ai = nil, -- is a player
 				},
 			},
 		},
-		anotherCustomAllyTeamName = {
+		theEnemyAllyTeam = {
 			teams = {
-				anotherCustomTeamName = {
+				theEnemyTeam = {
 					name = "Mission Bots",
 					Side = 'Armada',
-					StartPosX = 3000, -- used when startPosType is 'fixed'
+					StartPosX = 3000,
 					StartPosZ = 2400,
 					IncomeMultiplier = 1.5,
-					ai = "SimpleAI", -- lobby to pass this as shortName
+					ai = "SimpleAI", -- lobby passes this as shortName
 				},
 			}
 		},
@@ -128,7 +128,7 @@ local actions = {
 		parameters = {
 			unitName = 'bots',
 			unitDefName = 'armpw',
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			quantity = 4,
 			position = { x = 100, z = 100 },
 		},

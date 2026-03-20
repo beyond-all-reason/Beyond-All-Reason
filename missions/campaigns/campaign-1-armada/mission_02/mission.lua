@@ -54,7 +54,7 @@ local startScript = {
 				someCustomTeamName = {
 					name = "PlayerPawns", -- in-game name, player name rules apply, so no spaces etc...
 					Side = 'Cortex',
-					StartPosX = 700, -- used when startPosType is 'fixed'
+					StartPosX = 700, -- used when startPosType is 'chooseBeforeGame'
 					StartPosZ = 700,
 					ai = nil, -- is a player
 				},
@@ -65,7 +65,7 @@ local startScript = {
 				anotherCustomTeamName = {
 					name = "Mission Bots",
 					Side = 'Armada',
-					StartPosX = 3000, -- used when startPosType is 'fixed'
+					StartPosX = 3000, -- used when startPosType is 'chooseBeforeGame'
 					StartPosZ = 2400,
 					IncomeMultiplier = 1.5,
 					ai = "SimpleAI", -- lobby to pass this as shortName
@@ -75,43 +75,9 @@ local startScript = {
 	},
 }
 
-local triggers = {
-	spawnBots = {
-		type = triggerTypes.TimeElapsed,
-		settings = {
-			repeating = true,
-		},
-		parameters = {
-			gameFrame = 30,
-			interval = 210,
-		},
-		actions = { 'spawnBots', 'moveBots' },
-	},
-}
+local triggers = {}
 
-local actions = {
-	spawnBots = {
-		type = actionTypes.SpawnUnits,
-		parameters = {
-			unitName = 'bots',
-			unitDefName = 'armpw',
-			teamID = 0,
-			quantity = 4,
-			position = { x = 100, z = 100 },
-		},
-	},
-
-	moveBots = {
-		type = actionTypes.IssueOrders,
-		parameters = {
-			unitName = 'bots',
-			orders = {
-				{ CMD.FIGHT, { 200, 0, 900 } },
-				{ CMD.PATROL, { 1400, 0, 200 }, { 'shift' } },
-			},
-		},
-	},
-}
+local actions = {}
 
 return {
 	LobbyData = lobbyData,

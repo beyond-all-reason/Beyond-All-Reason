@@ -105,9 +105,9 @@ local parameters = {
 			type = Types.UnitDefName
 		},
 		[3] = {
-			name = 'teamID',
+			name = 'teamName',
 			required = true,
-			type = Types.TeamID
+			type = Types.TeamName
 		},
 		[4] = {
 			name = 'position',
@@ -117,7 +117,8 @@ local parameters = {
 		[5] = {
 			name = 'quantity',
 			required = false,
-			type = Types.Number,		},
+			type = Types.Number,
+		},
 		[6] = {
 			name = 'facing',
 			required = false,
@@ -174,7 +175,7 @@ local parameters = {
 		[2] = {
 			name = 'teamID',
 			required = false,
-			type = Types.Number
+			type = Types.TeamID
 		},
 		[3] = {
 			name = 'unitDefName',
