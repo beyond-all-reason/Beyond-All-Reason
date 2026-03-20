@@ -15921,6 +15921,19 @@ function widget:Update(dt)
 				widget:ViewResize()
 			end
 		end
+		-- Detect team color changes (e.g. anonymous mode toggle, player swaps)
+		local colorsChanged = false
+		for tID, cached in pairs(teamColors) do
+			local r, g, b, a = Spring.GetTeamColor(tID)
+			if r ~= cached[1] or g ~= cached[2] or b ~= cached[3] then
+				cached[1], cached[2], cached[3], cached[4] = r, g, b, a
+				colorsChanged = true
+			end
+		end
+		if colorsChanged then
+			pipR2T.unitsNeedsUpdate = true
+			pipR2T.frameNeedsUpdate = true
+		end
 	end
 
 	-- Skip ALL heavy processing when minimized and not animating.
