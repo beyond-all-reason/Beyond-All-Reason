@@ -14,14 +14,9 @@ local CMD_TRANSPORT_TO = 19990
 local CMD_MOVE = CMD.MOVE
 local CMD_LOAD_UNITS = CMD.LOAD_UNITS
 local CMD_UNLOAD_UNITS = CMD.UNLOAD_UNITS
-local CMD_STOP = CMD.STOP
 
 local jobs = {}
 local transportState = {}
-
--- ========================
--- Utility
--- ========================
 
 local function IsValid(unitID)
     return unitID and Spring.ValidUnitID(unitID) and not Spring.GetUnitIsDead(unitID)
@@ -63,9 +58,7 @@ local function FindTransport(unitID)
     return best
 end
 
--- ========================
--- Command Handling
--- ========================
+-- ================= COMMAND =================
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
 
@@ -73,25 +66,23 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 
         local target = {cmdParams[1], cmdParams[2], cmdParams[3]}
 
-        jobs[unitID] = {
-            target = target,
-            state = "walking",
-            transportID = nil,
-            savedCmds = nil,
-        }
+        if jobs[unitID] and cmdOptions.shift then
+            table.insert(jobs[unitID].targets, target)
+        else
+            jobs[unitID] = {
+                targets = {target},
+                state = "walking",
+                transportID = nil,
+            }
 
-        -- fallback move
-        Spring.GiveOrderToUnit(unitID, CMD_MOVE, target, {})
+            Spring.GiveOrderToUnit(unitID, CMD_MOVE, target, {})
+        end
 
         return false
     end
 
     return true
 end
-
--- ========================
--- Lifecycle
--- ========================
 
 function gadget:UnitCreated(unitID)
     Spring.InsertUnitCmdDesc(unitID, 500, {
@@ -107,9 +98,7 @@ function gadget:UnitDestroyed(unitID)
     transportState[unitID] = nil
 end
 
--- ========================
--- Main Loop
--- ========================
+-- ================= MAIN =================
 
 function gadget:GameFrame(frame)
     if frame % 10 ~= 0 then return end
@@ -130,16 +119,9 @@ function gadget:GameFrame(frame)
                 transportState[t] = {
                     unit = unitID,
                     origin = {Spring.GetUnitPosition(t)},
-                    state = "pickup",
                 }
 
-                -- 🔥 SAVE COMMAND QUEUE
-                job.savedCmds = Spring.GetUnitCommands(unitID, -1)
-
-                -- 🔥 CLEAR QUEUE (prevents outrunning)
-                Spring.GiveOrderToUnit(unitID, CMD_STOP, {}, {})
-
-                -- pickup
+                Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, {})
                 Spring.GiveOrderToUnit(t, CMD_LOAD_UNITS, {unitID}, {})
             end
 
@@ -150,12 +132,19 @@ function gadget:GameFrame(frame)
                 job.state = "loaded"
 
                 local t = job.transportID
+                local targets = job.targets
 
-                -- move to destination
-                Spring.GiveOrderToUnit(t, CMD_MOVE, job.target, {})
+                -- FIRST MOVE
+                Spring.GiveOrderToUnit(t, CMD_MOVE, targets[1], {})
 
-                -- unload at destination
-                Spring.GiveOrderToUnit(t, CMD_UNLOAD_UNITS, job.target, {"shift"})
+                -- CHAIN MOVES
+                for i = 2, #targets do
+                    Spring.GiveOrderToUnit(t, CMD_MOVE, targets[i], {"shift"})
+                end
+
+                -- ONLY UNLOAD AT FINAL
+                local final = targets[#targets]
+                Spring.GiveOrderToUnit(t, CMD_UNLOAD_UNITS, final, {"shift"})
             end
 
         elseif job.state == "loaded" then
@@ -165,15 +154,6 @@ function gadget:GameFrame(frame)
                 local t = job.transportID
                 local ts = transportState[t]
 
-                -- 🔥 RESTORE COMMAND QUEUE
-                if job.savedCmds then
-                    for i = 1, #job.savedCmds do
-                        local cmd = job.savedCmds[i]
-                        Spring.GiveOrderToUnit(unitID, cmd.id, cmd.params, {"shift"})
-                    end
-                end
-
-                -- return transport
                 if ts and ts.origin then
                     Spring.GiveOrderToUnit(t, CMD_MOVE, ts.origin, {})
                 end
