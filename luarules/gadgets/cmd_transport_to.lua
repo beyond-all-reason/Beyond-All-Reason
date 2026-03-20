@@ -2,7 +2,7 @@ function gadget:GetInfo()
     return {
         name = "Transport To Command",
         desc = "Ferry system",
-        author = "You",
+        author = "Isajoefeat",
         layer = 0,
         enabled = true
     }
