@@ -21,6 +21,21 @@ end
 -- FFA start points config format is handled by `game_ffa_start_setup`.
 
 ----------------------------------------------------------------
+-- Shared (evaluated independently in both the synced and unsynced VMs)
+----------------------------------------------------------------
+
+local _missionOptions = (function()
+	local raw = Spring.GetModOptions()
+	raw = raw.scenariooptions or raw.missionoptions
+	if not raw then
+		return {}
+	end
+	return Json.decode(string.base64Decode(raw)) or {}
+end)()
+--- True when a mission/scenario handles its own unit spawning.
+local missionSpawnDisabled = _missionOptions.disableInitialCommanderSpawn == true or not table.isNilOrEmpty(_missionOptions.unitloadout)
+
+----------------------------------------------------------------
 -- Synced
 ----------------------------------------------------------------
 if gadgetHandler:IsSyncedCode() then
@@ -558,17 +573,9 @@ if gadgetHandler:IsSyncedCode() then
 
 		-- spawn starting unit
 		local y = spGetGroundHeight(x, z)
-		local scenarioSpawnsUnits = false
-
-		-- skip if scenario or mission options disable initial commander spawn
-		local modOptions = Spring.GetModOptions()
-		local options = modOptions.scenariooptions or modOptions.missionoptions
-		if options then
-			local optionsDecoded = Json.decode(string.base64Decode(options))
-			if optionsDecoded and (optionsDecoded.disableInitialCommanderSpawn or not table.isNilOrEmpty(optionsDecoded.unitloadout)) then
-				Spring.Echo("Scenario: Spawning loadout instead of regular commanders")
-				scenarioSpawnsUnits = true
-			end
+		local scenarioSpawnsUnits = missionSpawnDisabled
+		if missionSpawnDisabled then
+			Spring.Echo("Scenario: Spawning loadout instead of regular commanders")
 		end
 
 		if not scenarioSpawnsUnits then
@@ -741,7 +748,7 @@ else -- UNSYNCED
 	local spawnWarpInFrame = Game.spawnWarpInFrame
 
 	function gadget:GameFrame(n)
-		if n == spawnInitialFrame then
+		if n == spawnInitialFrame and not missionSpawnDisabled then
 			Spring.PlaySoundFile("commanderspawn", 0.6, 'ui')
 		end
 		if n > spawnWarpInFrame then
