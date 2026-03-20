@@ -62,12 +62,23 @@ local function IsTransport(unitID)
     return ud and ud.transportCapacity and ud.transportCapacity > 0
 end
 
+-- 🔥 IMPROVED IDLE CHECK
 local function IsIdleTransport(unitID)
     if not IsTransport(unitID) then return false end
     if transportState[unitID] then return false end
 
     local cmds = Spring.GetUnitCommands(unitID, 1)
-    return not (cmds and #cmds > 0)
+
+    if not cmds or #cmds == 0 then
+        return true
+    end
+
+    -- allow simple movement
+    if cmds[1].id == CMD_MOVE then
+        return true
+    end
+
+    return false
 end
 
 -- ========================
@@ -125,7 +136,7 @@ end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
 
-    -- Ignore our own commands
+    -- Ignore internal commands
     if internalOrders[unitID] and internalOrders[unitID] > 0 then
         internalOrders[unitID] = internalOrders[unitID] - 1
         return true
@@ -153,7 +164,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 
     -- STOP cancels ferry
     if jobs[unitID] and cmdID == CMD_STOP then
-        Spring.Echo("Ferry cancelled by STOP", unitID)
+        Spring.Echo("Ferry cancelled", unitID)
         jobs[unitID] = nil
         return true
     end
@@ -181,13 +192,16 @@ end
 function gadget:GameFrame(frame)
     if frame % 15 ~= 0 then return end
 
-    -- Return logic
+    -- 🔥 RETURN + FAILSAFE
     for transportID, ts in pairs(transportState) do
         if ts.state == "returning" then
             local tx, _, tz = Spring.GetUnitPosition(transportID)
             local ox, _, oz = ts.origin[1], ts.origin[2], ts.origin[3]
 
-            if tx and tz and DistSq(tx, tz, ox, oz) < 2000 then
+            local reached = tx and tz and DistSq(tx, tz, ox, oz) < 2000
+            local timedOut = ts.timeout and frame > ts.timeout
+
+            if reached or timedOut then
                 Spring.Echo("Transport released", transportID)
                 transportState[transportID] = nil
             end
@@ -195,6 +209,7 @@ function gadget:GameFrame(frame)
     end
 
     for unitID, job in pairs(jobs) do
+
         if not IsValidUnit(unitID) then
             jobs[unitID] = nil
 
@@ -235,9 +250,12 @@ function gadget:GameFrame(frame)
                 local origin = job.originalPos
 
                 if IsTransport(t) then
+                    Spring.Echo("Force reset transport", t)
+
                     transportState[t] = {
                         state = "returning",
                         origin = origin,
+                        timeout = frame + 300
                     }
 
                     IssueOrder(t, CMD_STOP, {}, 0)
