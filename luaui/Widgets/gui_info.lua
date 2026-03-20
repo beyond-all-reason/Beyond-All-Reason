@@ -1085,7 +1085,7 @@ local function drawSelection()
 			totalEnergyValue = totalEnergyValue + (unitDefData.energyCost * count)
 		end
 		-- build power
-		if unitDefInfo[unitDefID].buildSpeed then
+		if unitDefInfo[unitDefID].buildSpeed > 0 then
 			totalBuildPower = totalBuildPower + (unitDefInfo[unitDefID].buildSpeed * selUnitsCounts[unitDefID])
 		end
 	end
