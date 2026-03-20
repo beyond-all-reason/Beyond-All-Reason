@@ -69,6 +69,7 @@ local formationCmds = {
     [CMD.PATROL] = true,
     [CMD.UNLOAD_UNIT] = true,
     [CMD_SETTARGET] = true,
+    [19990] = true, -- Ferry Command
 	[CMD_MANUAL_LAUNCH] = true,
 }
 

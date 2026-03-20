@@ -62,26 +62,34 @@ end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
 
-    if cmdID == CMD_TRANSPORT_TO then
+if cmdID == CMD_TRANSPORT_TO then
 
-        local target = {cmdParams[1], cmdParams[2], cmdParams[3]}
+    local targets = {}
 
-        if jobs[unitID] and cmdOptions.shift then
-            table.insert(jobs[unitID].targets, target)
-        else
-            jobs[unitID] = {
-                targets = {target},
-                state = "walking",
-                transportID = nil,
-            }
-
-            Spring.GiveOrderToUnit(unitID, CMD_MOVE, target, {})
-        end
-
-        return false
+    for i = 1, #cmdParams, 3 do
+        targets[#targets + 1] = {
+            cmdParams[i],
+            cmdParams[i+1],
+            cmdParams[i+2]
+        }
     end
 
-    return true
+    if jobs[unitID] and cmdOptions.shift then
+        for i = 1, #targets do
+            table.insert(jobs[unitID].targets, targets[i])
+        end
+    else
+        jobs[unitID] = {
+            targets = targets,
+            state = "walking",
+            transportID = nil,
+        }
+
+        -- fallback = first point
+        Spring.GiveOrderToUnit(unitID, CMD_MOVE, targets[1], {})
+    end
+
+    return false
 end
 
 function gadget:UnitCreated(unitID)
