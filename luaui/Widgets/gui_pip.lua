@@ -7099,7 +7099,7 @@ local function RegisterMinimapWGAPI()
 end
 
 function widget:Initialize()
-
+	
 	-- Create seismic ping display lists
 	CreateSeismicPingDlists()
 
@@ -11326,8 +11326,11 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	end
 
 	-- Draw build previews
+	-- NOTE: DrawBuildPreview is NOT called here because render.dim is overridden
+	-- in the R2T context (0,0,uW,uH), causing the mouse bounds check and
+	-- PipToWorldCoords to produce wrong results. Build preview is drawn
+	-- at full frame rate in DrawScreen via DrawBuildCursorWithRotation instead.
 	local mx, my = spFunc.GetMouseState()
-	DrawBuildPreview(mx, my, iconRadiusZoomDistMult)
 	DrawBuildDragPreview(iconRadiusZoomDistMult)
 	DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
 
@@ -11938,19 +11941,124 @@ local function DrawMapMarkers()
 	glFunc.Color(1, 1, 1, 1)
 end
 
--- Draw build cursor inside rotation matrix
--- Draw build cursor with rotation applied as overlay
+-- Draw build cursor and preview as overlay (runs in DrawScreen with correct render.dim)
 local function DrawBuildCursorWithRotation()
 	local mx, my = spFunc.GetMouseState()
 
-	-- Check if mouse is over PIP (using actual screen coordinates)
-	if mx < render.dim.l or mx > render.dim.r or my < render.dim.b or my > render.dim.t then
+	-- Get active command
+	local _, cmdID = Spring.GetActiveCommand()
+	if not cmdID then
 		return
 	end
 
-	-- Get active command
-	local _, cmdID = Spring.GetActiveCommand()
-	if not cmdID or cmdID >= 0 then
+	-- Determine if mouse is over PIP or outside (cursor in world space)
+	local mouseOverPip = mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t
+	-- When cursor is outside PIP, trace into world view to find where the player is aiming,
+	-- then show the preview if that world position falls within the PIP's visible area
+	local worldTraceX, worldTraceZ
+	if not mouseOverPip then
+		local _, pos = Spring.TraceScreenRay(mx, my, true)
+		if pos then
+			worldTraceX, worldTraceZ = pos[1], pos[3]
+			-- Check if the traced world position is visible in the PIP
+			-- render.world: l=west, r=east, t=north (low Z), b=south (high Z)
+			if worldTraceX < render.world.l or worldTraceX > render.world.r
+				or worldTraceZ > render.world.b or worldTraceZ < render.world.t then
+				return  -- World position is outside PIP viewport
+			end
+		else
+			return  -- Trace didn't hit ground
+		end
+	end
+
+	-- Handle Area Mex command preview
+	if cmdID == CMD_AREA_MEX then
+		local wx, wz
+		if mouseOverPip then
+			wx, wz = PipToWorldCoords(mx, my)
+		else
+			wx, wz = worldTraceX, worldTraceZ
+		end
+		local metalSpots = WG["resource_spot_finder"] and WG["resource_spot_finder"].metalSpotsList
+		local metalMap = WG["resource_spot_finder"] and WG["resource_spot_finder"].isMetalMap
+
+		if metalSpots and not metalMap then
+			-- Apply rotation transform
+			if render.minimapRotation ~= 0 then
+				local centerX = render.dim.l + (render.dim.r - render.dim.l) / 2
+				local centerY = render.dim.b + (render.dim.t - render.dim.b) / 2
+				glFunc.PushMatrix()
+				glFunc.Translate(centerX, centerY, 0)
+				glFunc.Rotate(render.minimapRotation * 180 / math.pi, 0, 0, 1)
+				glFunc.Translate(-centerX, -centerY, 0)
+			end
+
+			-- Draw circle showing area
+			local radius = 200
+			local segments = 32
+			glFunc.Color(1, 1, 0, 0.3)
+			glFunc.LineWidth(2)
+			glFunc.BeginEnd(glConst.LINE_LOOP, function()
+				for i = 0, segments do
+					local angle = (i / segments) * 2 * math.pi
+					local x = wx + radius * math.cos(angle)
+					local z = wz + radius * math.sin(angle)
+					local cx, cy = WorldToPipCoords(x, z)
+					glFunc.Vertex(cx, cy)
+				end
+			end)
+			glFunc.LineWidth(1)
+			glFunc.Color(1, 1, 1, 1)
+
+			-- Draw preview icons for all spots in area
+			local mexBuildings = WG["resource_spot_builder"] and WG["resource_spot_builder"].GetMexBuildings()
+			if mexBuildings then
+				if not frameSel then frameSel = Spring.GetSelectedUnits() end
+				local selectedUnits = frameSel
+				local mexConstructors = WG["resource_spot_builder"] and WG["resource_spot_builder"].GetMexConstructors()
+				local selectedMex = WG["resource_spot_builder"] and WG["resource_spot_builder"].GetBestExtractorFromBuilders(selectedUnits, mexConstructors, mexBuildings)
+
+				if selectedMex then
+					local buildIcon = cache.unitIcon[selectedMex]
+					if buildIcon then
+						local resScale = render.contentScale or 1
+						local unitBaseSize = Spring.GetConfigFloat("MinimapIconScale", 3.5)
+						local iconRadiusZoomDistMult = unitBaseSize * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(cameraState.zoom) * resScale
+						local iconSize = iconRadiusZoomDistMult * buildIcon.size * 0.8
+						local mapRotDeg = render.minimapRotation ~= 0 and (-render.minimapRotation * 180 / math.pi) or 0
+
+						for i = 1, #metalSpots do
+							local spot = metalSpots[i]
+							local dist = math.sqrt((spot.x - wx)^2 + (spot.z - wz)^2)
+							if dist < radius then
+								local cx, cy = WorldToPipCoords(spot.x, spot.z)
+								glFunc.Color(1, 1, 1, 0.3)
+								glFunc.Texture(buildIcon.bitmap)
+								if mapRotDeg ~= 0 then
+									glFunc.PushMatrix()
+									glFunc.Translate(cx, cy, 0)
+									glFunc.Rotate(mapRotDeg, 0, 0, 1)
+									glFunc.TexRect(-iconSize, -iconSize, iconSize, iconSize)
+									glFunc.PopMatrix()
+								else
+									glFunc.TexRect(cx - iconSize, cy - iconSize, cx + iconSize, cy + iconSize)
+								end
+							end
+						end
+						glFunc.Texture(false)
+					end
+				end
+			end
+
+			if render.minimapRotation ~= 0 then
+				glFunc.PopMatrix()
+			end
+		end
+		return
+	end
+
+	-- Only handle build commands from here
+	if cmdID >= 0 then
 		return
 	end
 
@@ -11958,6 +12066,11 @@ local function DrawBuildCursorWithRotation()
 	local buildDefID = -cmdID
 	local uDef = UnitDefs[buildDefID]
 	if not uDef then
+		return
+	end
+
+	-- Skip during build dragging (DrawBuildDragPreview handles that)
+	if interactionState.areBuildDragging then
 		return
 	end
 
@@ -11972,19 +12085,47 @@ local function DrawBuildCursorWithRotation()
 	end
 
 	-- Get world position under cursor
-	local wx, wz = PipToWorldCoords(mx, my)
-
-	-- Snap to build grid
-	local gridSize = 16
-	wx = math.floor(wx / gridSize + 0.5) * gridSize
-	wz = math.floor(wz / gridSize + 0.5) * gridSize
-
+	local wx, wz
+	if mouseOverPip then
+		wx, wz = PipToWorldCoords(mx, my)
+	else
+		wx, wz = worldTraceX, worldTraceZ
+	end
 	local wy = spFunc.GetGroundHeight(wx, wz)
+
+	-- Snap mex/geo to nearest resource spot, otherwise snap to build grid
+	local mexBuildings = WG["resource_spot_builder"] and WG["resource_spot_builder"].GetMexBuildings()
+	local geoBuildings = WG["resource_spot_builder"] and WG["resource_spot_builder"].GetGeoBuildings()
+	local isMex = mexBuildings and mexBuildings[buildDefID]
+	local isGeo = geoBuildings and geoBuildings[buildDefID]
+	local metalMap = WG["resource_spot_finder"] and WG["resource_spot_finder"].isMetalMap
+
+	if isMex and not metalMap and WG["resource_spot_finder"] and WG["resource_spot_builder"] then
+		local metalSpots = WG["resource_spot_finder"].metalSpotsList
+		local nearestSpot = WG["resource_spot_builder"].FindNearestValidSpotForExtractor(wx, wz, metalSpots, buildDefID)
+		if nearestSpot then
+			wx, wz = nearestSpot.x, nearestSpot.z
+			wy = nearestSpot.y
+		end
+	elseif isGeo and WG["resource_spot_finder"] and WG["resource_spot_builder"] then
+		local geoSpots = WG["resource_spot_finder"].geoSpotsList
+		local nearestSpot = WG["resource_spot_builder"].FindNearestValidSpotForExtractor(wx, wz, geoSpots, buildDefID)
+		if nearestSpot then
+			wx, wz = nearestSpot.x, nearestSpot.z
+			wy = nearestSpot.y
+		end
+	else
+		-- Regular building - snap to build grid
+		local gridSize = 16
+		wx = math.floor(wx / gridSize + 0.5) * gridSize
+		wz = math.floor(wz / gridSize + 0.5) * gridSize
+		wy = spFunc.GetGroundHeight(wx, wz)
+	end
+
 	local buildFacing = Spring.GetBuildFacing()
 	local buildTest = Spring.TestBuildOrder(buildDefID, wx, wy, wz, buildFacing)
-	local canBuild = (buildTest and buildTest > 0)
 
-	-- Draw unit icon
+	-- Draw unit icon with buildability coloring
 	if cache.unitIcon[buildDefID] then
 		local iconData = cache.unitIcon[buildDefID]
 		local texture = iconData.bitmap
@@ -11994,6 +12135,30 @@ local function DrawBuildCursorWithRotation()
 		local iconSize = unitBaseSize * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(cameraState.zoom) * resScale * iconData.size
 		local sx, sy = WorldToPipCoords(wx, wz)
 
+		-- Color based on buildability
+		if buildTest == 2 then
+			glFunc.Color(1, 1, 1, 0.7)
+		elseif buildTest == 1 then
+			local blockedByMobile = false
+			local nearbyUnits = Spring.GetUnitsInCylinder(wx, wz, 64)
+			if nearbyUnits then
+				for _, unitID in ipairs(nearbyUnits) do
+					local unitDefID = spFunc.GetUnitDefID(unitID)
+					if unitDefID and cache.canMove[unitDefID] and not cache.isBuilding[unitDefID] then
+						blockedByMobile = true
+						break
+					end
+				end
+			end
+			if blockedByMobile then
+				glFunc.Color(1, 1, 1, 0.7)
+			else
+				glFunc.Color(1, 1, 0, 0.7)
+			end
+		else
+			glFunc.Color(1, 0, 0, 0.7)
+		end
+
 		-- Counter-rotate icon to keep it upright
 		glFunc.PushMatrix()
 		glFunc.Translate(sx, sy, 0)
@@ -12001,7 +12166,6 @@ local function DrawBuildCursorWithRotation()
 			glFunc.Rotate(-render.minimapRotation * 180 / math.pi, 0, 0, 1)
 		end
 		glFunc.Texture(texture)
-		glFunc.Color(1, 1, 1, 0.7)
 		glFunc.BeginEnd(glConst.QUADS, function()
 			glFunc.TexCoord(0, 0)
 			glFunc.Vertex(-iconSize, -iconSize)
@@ -12017,6 +12181,7 @@ local function DrawBuildCursorWithRotation()
 	end
 
 	-- Draw placement grid
+	local canBuild = (buildTest and buildTest > 0)
 	local xsize = uDef.xsize * 4
 	local zsize = uDef.zsize * 4
 	if buildFacing == 1 or buildFacing == 3 then
@@ -15615,6 +15780,7 @@ function widget:DrawWorld()
 end
 
 function widget:DrawInMiniMap(minimapWidth, minimapHeight)
+
 	-- In minimap mode, don't draw PIP viewport rectangle on the minimap (we ARE the minimap)
 	if isMinimapMode then return end
 	if uiState.inMinMode then return end
