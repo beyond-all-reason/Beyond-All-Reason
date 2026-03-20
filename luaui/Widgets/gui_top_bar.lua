@@ -962,8 +962,6 @@ local function updateResbarValues(res, update)
 				glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 			end)
 		end
-
-		-- resbar text
    	end
 end
 
