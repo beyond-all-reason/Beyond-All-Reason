@@ -1,10 +1,8 @@
 function gadget:GetInfo()
     return {
         name = "Transport To Command",
-        desc = "Adds ferry command",
+        desc = "Ferry system",
         author = "You",
-        date = "2026",
-        license = "GPL",
         layer = 0,
         enabled = true
     }
@@ -13,29 +11,14 @@ end
 if not gadgetHandler:IsSyncedCode() then return end
 
 local CMD_TRANSPORT_TO = 19990
-
 local CMD_MOVE = CMD.MOVE
 local CMD_LOAD_UNITS = CMD.LOAD_UNITS
-
-local cmdDesc = {
-    id = CMD_TRANSPORT_TO,
-    type = CMDTYPE.ICON_MAP,
-    name = "Ferry",
-    action = "ferry",
-    tooltip = "Transport this unit to a location",
-    cursor = "Attack",
-}
+local CMD_UNLOAD_UNITS = CMD.UNLOAD_UNITS
 
 local jobs = {}
 local transportState = {}
 
-Spring.Echo("Transport gadget loaded")
-
--- ========================
--- Utility
--- ========================
-
-local function IsValidUnit(unitID)
+local function IsValid(unitID)
     return unitID and Spring.ValidUnitID(unitID) and not Spring.GetUnitIsDead(unitID)
 end
 
@@ -50,11 +33,7 @@ local function DistSq(x1,z1,x2,z2)
     return dx*dx + dz*dz
 end
 
--- ========================
--- Transport Selection
--- ========================
-
-local function FindClosestTransport(unitID)
+local function FindTransport(unitID)
     local team = Spring.GetUnitTeam(unitID)
     local units = Spring.GetTeamUnits(team)
 
@@ -79,20 +58,22 @@ local function FindClosestTransport(unitID)
     return best
 end
 
--- ========================
--- Command Handling
--- ========================
+-- ================= COMMAND =================
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
 
     if cmdID == CMD_TRANSPORT_TO then
+
         local target = {cmdParams[1], cmdParams[2], cmdParams[3]}
 
         jobs[unitID] = {
             target = target,
-            state = "waiting",
+            state = "walking",
             transportID = nil,
         }
+
+        -- fallback move
+        Spring.GiveOrderToUnit(unitID, CMD_MOVE, target, {})
 
         return false
     end
@@ -100,12 +81,13 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
     return true
 end
 
--- ========================
--- Lifecycle
--- ========================
-
 function gadget:UnitCreated(unitID)
-    Spring.InsertUnitCmdDesc(unitID, 500, cmdDesc)
+    Spring.InsertUnitCmdDesc(unitID, 500, {
+        id = CMD_TRANSPORT_TO,
+        type = CMDTYPE.ICON_MAP,
+        name = "Ferry",
+        action = "ferry",
+    })
 end
 
 function gadget:UnitDestroyed(unitID)
@@ -113,49 +95,65 @@ function gadget:UnitDestroyed(unitID)
     transportState[unitID] = nil
 end
 
--- ========================
--- Main Loop
--- ========================
+-- ================= MAIN =================
 
 function gadget:GameFrame(frame)
     if frame % 10 ~= 0 then return end
 
     for unitID, job in pairs(jobs) do
 
-        if not IsValidUnit(unitID) then
+        if not IsValid(unitID) then
             jobs[unitID] = nil
 
-        elseif job.state == "waiting" then
-            local t = FindClosestTransport(unitID)
+        elseif job.state == "walking" then
+
+            local t = FindTransport(unitID)
 
             if t then
                 job.transportID = t
                 job.state = "pickup"
 
-                transportState[t] = true
+                transportState[t] = {
+                    unit = unitID,
+                    origin = {Spring.GetUnitPosition(t)},
+                    state = "pickup",
+                }
 
-                Spring.Echo("Assign", t, "->", unitID)
+                -- stop unit
+                Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, {})
 
+                -- pickup
                 Spring.GiveOrderToUnit(t, CMD_LOAD_UNITS, {unitID}, {})
             end
 
         elseif job.state == "pickup" then
-            if Spring.GetUnitTransporter(unitID) == job.transportID then
-                Spring.Echo("Picked up", unitID)
 
-                job.state = "moving"
+            if Spring.GetUnitTransporter(unitID) == job.transportID then
+
+                job.state = "loaded"
 
                 local t = job.transportID
 
-                -- 🔥 ONLY MOVE, NO UNLOAD
+                -- move to destination
                 Spring.GiveOrderToUnit(t, CMD_MOVE, job.target, {})
+
+                -- 🔥 UNLOAD ONCE (correct timing)
+                Spring.GiveOrderToUnit(t, CMD_UNLOAD_UNITS, job.target, {"shift"})
             end
 
-        elseif job.state == "moving" then
-            if not Spring.GetUnitTransporter(unitID) then
-                Spring.Echo("Dropped", unitID)
+        elseif job.state == "loaded" then
 
-                transportState[job.transportID] = nil
+            if not Spring.GetUnitTransporter(unitID) then
+
+                local t = job.transportID
+                local ts = transportState[t]
+
+                -- RETURN HOME
+                if ts and ts.origin then
+                    Spring.GiveOrderToUnit(t, CMD_MOVE, ts.origin, {})
+                end
+
+                transportState[t] = nil
                 jobs[unitID] = nil
             end
         end
