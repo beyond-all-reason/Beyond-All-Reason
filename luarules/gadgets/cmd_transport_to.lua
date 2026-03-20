@@ -135,6 +135,7 @@ function gadget:UnitCreated(unitID, unitDefID)
             type = CMDTYPE.ICON_MAP,
             name = "Ferry",
             action = "ferry",
+	    tooltip = "Request the closest eligible transport to transport this unit to the target location",
         })
     end
 end
@@ -146,6 +147,7 @@ function gadget:UnitGiven(unitID, unitDefID)
             type = CMDTYPE.ICON_MAP,
             name = "Ferry",
             action = "ferry",
+	    tooltip = "Request the closest eligible transport to transport this unit to the target location",
         })
     end
 end
