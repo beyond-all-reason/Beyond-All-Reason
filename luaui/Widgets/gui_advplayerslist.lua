@@ -4100,10 +4100,7 @@ function widget:ViewResize()
     updateWidgetScale()
 
 	font = WG['fonts'].getFont()
-    
-    font2 = WG['fonts'].getFont(2, 1.5, 0.25, 15.)
-	--local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
-    --font2 = WG['fonts'].getFont(2, 1.1, 0.2 * outlineMult, 1.7+(outlineMult*0.2))
+    font2 = WG['fonts'].getFont(2, 1.5, 0.13, 20)
 
 	local MakeAtlasOnDemand = VFS.Include("LuaUI/Include/AtlasOnDemand.lua")
 	if AdvPlayersListAtlas then

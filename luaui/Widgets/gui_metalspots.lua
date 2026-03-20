@@ -65,7 +65,7 @@ local opacity			= 0.5
 
 local innersize			= 1.8		-- outersize-innersize = circle width
 local outersize			= 1.98		-- outersize-innersize = circle width
-local billboardsize 	= 0.36		-- actual fontsize
+local billboardsize 	= 0.28		-- actual fontsize
 
 local maxValue			= 15		-- ignore spots above this metal value (probably metalmap)
 local maxScale			= 4			-- ignore spots above this scale (probably metalmap)
@@ -91,9 +91,9 @@ local incomeMultiplier = select(7, Spring.GetTeamInfo(spGetMyTeamID(), false))
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = mathMin(1.5, (0.5 + (vsx*vsy / 5700000)))
-local fontfileSize = 100
-local fontfileOutlineSize = 26
-local fontfileOutlineStrength = 1.6
+local fontfileSize = 110
+local fontfileOutlineSize = 12
+local fontfileOutlineStrength = 20
 --spEcho("Loading Font",fontfile,fontfileSize*fontfileScale,fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
