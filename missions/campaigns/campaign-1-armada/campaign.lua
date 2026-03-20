@@ -10,6 +10,13 @@ return {
 
 	players = { min = 1, max = 4 }, -- should this be a list of numbers? to support eg. 1, 2, and 4 players, but not 3?
 
+	difficulties = { -- can be overridden at the mission level
+		{ name = "Beginner", playerhandicap = 50, enemyhandicap = 0 }, -- handicap values range [-100 - +100], with 0 being regular resources
+		{ name = "Normal", playerhandicap = 0, enemyhandicap = 0 }, -- but do we want resource handicaps as part of difficulty??
+		{ name = "Hard", playerhandicap = 0, enemyhandicap = 25 },
+	},
+	defaultDifficulty = "Normal", -- an entry of the difficulty table
+
 	missions = {
 		"mission_01",
 		"mission_02",

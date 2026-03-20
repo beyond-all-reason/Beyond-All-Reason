@@ -29,12 +29,6 @@ local startScript = {
 		armavp = 0, -- set to 0 to disable the unit
 		coravp = 5,
 	},
-	difficulties = { -- should probably be part of the campaign or even global game data, not per mission
-		{ name = "Beginner", playerhandicap = 50, enemyhandicap = 0 }, -- handicap values range [-100 - +100], with 0 being regular resources
-		{ name = "Normal", playerhandicap = 0, enemyhandicap = 0 }, -- but do we want resource handicaps as part of difficulty??
-		{ name = "Hard", playerhandicap = 0, enemyhandicap = 25 },
-	},
-	defaultDifficulty = "Normal", -- an entry of the difficulty table
 	modOptions = {
 		deathMode = 'builders',
 		maxunits = 2000,
