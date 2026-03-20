@@ -133,14 +133,6 @@ local function round(value, numDecimalPlaces)
 	end
 end
 
-local function metricPrefix(n)
-    if n >= 1e5 then
-        return string.formatSI(n)
-    else
-        return tostring(n)
-    end
-end
-
 local function convertColor(r, g, b)
 	return string.char(255, (r * 255), (g * 255), (b * 255))
 end
@@ -1146,16 +1138,16 @@ local function drawSelection()
 
 	-- metal cost
 	heightVar = heightVar + heightStep
-	font:Print( tooltipLabelTextColor .. getCachedTranslation('ui.info.costm').."   " .. tooltipValueWhiteColor .. metricPrefix(totalMetalValue), backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - heightVar, fontSize, "o")
+	font:Print( tooltipLabelTextColor .. getCachedTranslation('ui.info.costm').."   " .. tooltipValueWhiteColor .. string.formatSI(totalMetalValue), backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - heightVar, fontSize, "o")
 
 	-- energy cost
 	heightVar = heightVar + heightStep
-	font:Print( tooltipLabelTextColor .. getCachedTranslation('ui.info.coste').."\255\255\255\128   " .. metricPrefix(totalEnergyValue), backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - heightVar, fontSize, "o")
+	font:Print( tooltipLabelTextColor .. getCachedTranslation('ui.info.coste').."\255\255\255\128   " .. string.formatSI(totalEnergyValue), backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - heightVar, fontSize, "o")
 
 	-- Buildpower
 	if totalBuildPower > 0 then
 		heightVar = heightVar + heightStep
-		font:Print( tooltipLabelTextColor .. getCachedTranslation('ui.info.buildpower') .. "   " .. tooltipValueYellowColor .. metricPrefix(totalBuildPower), backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - heightVar, fontSize, "o")
+		font:Print( tooltipLabelTextColor .. getCachedTranslation('ui.info.buildpower') .. "   " .. tooltipValueYellowColor .. totalBuildPower, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - heightVar, fontSize, "o")
 	end
 
 	-- kills
