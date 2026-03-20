@@ -68,6 +68,23 @@ if not table.mergeInPlace then
 	end
 end
 
+if not table.ensureTable then
+	---Ensures a table exists at the specified key, creating one if needed.
+	---@param tbl table
+	---@param key any
+	---@return table.ensureTable nested in tbl at key
+	function table.ensureTable(tbl, key)
+		local sub = tbl[key]
+		if sub == nil then
+			sub = {}
+			tbl[key] = sub
+		elseif type(sub) ~= "table" then
+			error("existing entry is not a table")
+		end
+		return sub
+	end
+end
+
 if not table.toString then
 	local stringRep = string.rep
 	local tableSort = table.sort
