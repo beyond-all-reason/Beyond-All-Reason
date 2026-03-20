@@ -859,6 +859,13 @@ GetLightClass("MuzzleFlash", nil, "Smaller", {posx = 0, posy = 0, posz = 0,
 											 color2r = 0.3, color2g = 0.12, color2b = 0.05, colortime = 4,
 											 modelfactor = 0.5, specular = 0.3, scattering = 0.8, lensflare = 14,
 											 lifetime = 13, sustain = 1.5})
+-- arm t1 naval def turret
+muzzleFlashLightsNames["armnavaldefturret_arm_medium_gauss_cannon"] =
+GetLightClass("MuzzleFlash", nil, "Smaller", {posx = 0, posy = 0, posz = 0,
+											 r = 1.2, g = 0.85, b = 0.6, a = 0.35,
+											 color2r = 0.3, color2g = 0.12, color2b = 0.05, colortime = 4,
+											 modelfactor = 0.5, specular = 0.3, scattering = 0.8, lensflare = 14,
+											 lifetime = 13, sustain = 1.5})
 
 muzzleFlashLightsNames["corlevlr_corlevlr_weapon"] =
 GetLightClass("MuzzleFlash", nil, "Smaller", {posx = 0, posy = 0, posz = 0,

@@ -25,6 +25,10 @@ function widget:GetInfo()
   }
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
@@ -47,8 +51,8 @@ local ymax = 0.310
 -- Make sure these are floored
 --
 
-xoff = math.floor(xoff)
-yoff = math.floor(yoff)
+xoff = mathFloor(xoff)
+yoff = mathFloor(yoff)
 
 
 --------------------------------------------------------------------------------
@@ -64,8 +68,8 @@ end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
   -- the extra 2 pixels are for the minimap border
-  local xp = math.floor(viewSizeX * xmax) - xoff - 2
-  local yp = math.floor(viewSizeY * ymax) - yoff - 2
+  local xp = mathFloor(viewSizeX * xmax) - xoff - 2
+  local yp = mathFloor(viewSizeY * ymax) - yoff - 2
   local limitAspect = (xp / yp)
   local currRot = getCurrentMiniMapRotationOption()
   local mapAspect
@@ -83,8 +87,8 @@ function widget:ViewResize(viewSizeX, viewSizeY)
     sx = yp * mapAspect
     sy = yp
   end
-  sx = math.floor(sx)
-  sy = math.floor(sy)
+  sx = mathFloor(sx)
+  sy = mathFloor(sy)
   gl.ConfigMiniMap(xoff, viewSizeY - sy - yoff, sx, sy)
 end
 

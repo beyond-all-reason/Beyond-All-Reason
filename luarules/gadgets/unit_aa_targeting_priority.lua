@@ -15,6 +15,7 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 	local spGetUnitDefID = Spring.GetUnitDefID
+	local stringFind = string.find
 	local targetPriority = {
 		Bombers = 1,
 		Vtols = 10,
@@ -35,7 +36,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			for i = 1, #weapons do
 				local weaponDef = WeaponDefs[weapons[i].weaponDef]
-				if weaponDef.type == 'AircraftBomb' or weaponDef.type == 'TorpedoLauncher' or string.find(weaponDef.name, 'arm_pidr') then
+				if weaponDef.type == 'AircraftBomb' or weaponDef.type == 'TorpedoLauncher' or stringFind(weaponDef.name, 'arm_pidr', 1, true) then
 					airCategories[unitDefID] = "Bombers"
 				elseif weapons[i].onlyTargets.vtol then
 					airCategories[unitDefID] = "Fighters"
@@ -65,9 +66,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	local targetCheckStats = {} -- unitDefID : count
 	function gadget:AllowWeaponTarget(unitID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
-		if targetID == -1 and attackerWeaponNum == -1 then
-			return true, defPriority
-		end
 		local unitDefID = spGetUnitDefID(targetID)
 		if unitDefID then
 			targetCheckStats[unitDefID] = (targetCheckStats[unitDefID] or 0) + 1

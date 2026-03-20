@@ -2,7 +2,7 @@ return {
 	corssub = {
 		activatewhenbuilt = true,
 		buildpic = "CORSSUB.DDS",
-		buildtime = 24750,
+		buildtime = 35000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "52 25 60",
@@ -13,8 +13,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 3900,
-		idleautoheal = 15,
-		idletime = 900,
 		maxacc = 0.018,
 		maxdec = 0.018,
 		metalcost = 1900,
@@ -74,6 +72,11 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[0] = "custom:subbubbles",
+				[1] = "custom:subwake",
+				[2] = "custom:subtorpfire-medium",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",

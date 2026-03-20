@@ -1,7 +1,6 @@
 return {
 	corsub = {
 		activatewhenbuilt = true,
-		autoheal = 2,
 		buildpic = "CORSUB.DDS",
 		buildtime = 7200,
 		canmove = true,
@@ -14,8 +13,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1060,
-		idleautoheal = 8,
-		idletime = 900,
 		maxacc = 0.0451,
 		maxdec = 0.0451,
 		metalcost = 580,
@@ -75,6 +72,7 @@ return {
 			explosiongenerators = {
 				[0] = "custom:subbubbles",
 				[1] = "custom:subwake",
+				[2] = "custom:subtorpfire",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",

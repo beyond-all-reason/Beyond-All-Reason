@@ -2,15 +2,15 @@
 -- Defines the canonical enum-like table for game factions/sides.
 
 ---@class SidesEnum
----@field ARM string
----@field CORE string
+---@field ARMADA string
+---@field CORTEX string
 ---@field LEGION string
 
 ---@type SidesEnum
 local SIDES = {
-    ARM = "arm",
-    CORE = "cor",
+    ARMADA = "arm",
+    CORTEX = "cor",
     LEGION = "leg",
 }
 
-return SIDES 
+return SIDES

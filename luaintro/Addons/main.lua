@@ -447,18 +447,41 @@ function addon.DrawLoadScreen()
 	end
 
 	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
+
+	-- Handle viewport resize: recalculate layout and recreate shader resources
+	if vsx ~= ivsx or vsy ~= ivsy then
+		height = math.floor(vsy * 0.038)
+		posYorg = math.floor((0.065 * vsy)+0.5) / vsy
+		posX = math.floor(((((posYorg*1.44)*vsy)/vsx) * vsx)+0.5) / vsx
+		borderSize = math.max(1, math.floor(vsy * 0.0027))
+		ivsx, ivsy = vsx, vsy
+
+		if guishader and blurShader then
+			gl.DeleteTexture(screencopy or 0)
+			gl.DeleteTextureFBO(blurtex or 0)
+			gl.DeleteTextureFBO(blurtex2 or 0)
+			if gl.DeleteShader then
+				gl.DeleteShader(blurShader or 0)
+			end
+			blurShader = nil
+			screencopy = nil
+			blurtex = nil
+			blurtex2 = nil
+		end
+	end
+
 	local screenAspectRatio = vsx / vsy
 
 	local xDiv = 0
 	local yDiv = 0
 	local ratioComp = screenAspectRatio / aspectRatio
 
-	if math.abs(ratioComp-1)>0.15 then
-		if (ratioComp > 1) then
-			yDiv = (1 - ratioComp) * 0.5;
-		else
-			xDiv = (1 - (1 / ratioComp)) * 0.5;
-		end
+	if ratioComp > 1 then
+		-- Screen wider than image: crop top/bottom
+		yDiv = (1 - ratioComp) * 0.5
+	elseif ratioComp < 1 then
+		-- Screen taller than image: crop left/right
+		xDiv = (1 - (1 / ratioComp)) * 0.5
 	end
 
 	-- background
@@ -667,18 +690,6 @@ function addon.DrawLoadScreen()
 		for i,line in pairs(tipLines) do
 			font2:Print(line, 0, -tipTextLineHeight*(i-1), tipTextSize, "oac")
 		end
-		gl.PopMatrix()
-	end
-
-	if usingIntelPotato then
-		gl.Color(0.15,0.15,0.15,(blurShader and 0.55 or 0.7))
-		gl.Rect(0,0.95,1,1)
-		gl.PushMatrix()
-		gl.Scale(1/vsx,1/vsy,1)
-		gl.Translate(vsx/2, 0.988*vsy, 0)
-		font2:SetTextColor(0.8,0.8,0.8,1)
-		font2:SetOutlineColor(0,0,0,0.8)
-		font2:Print(Spring.I18N('ui.loadScreen.intelGpuWarning', { textColor = '\255\200\200\200', warnColor = '\255\255\255\255' }), 0, 0, height*0.66, "oac")
 		gl.PopMatrix()
 	end
 

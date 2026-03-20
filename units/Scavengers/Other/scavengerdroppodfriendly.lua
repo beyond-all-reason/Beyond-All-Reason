@@ -17,8 +17,6 @@ return {
 		explodeas = "",
 		footprintx = 0,
 		footprintz = 0,
-		idleautoheal = 10,
-		idletime = 90,
 		levelground = false,
 		mass = 10,
 		health = 11,
@@ -73,7 +71,6 @@ return {
 				smoketrail = 1,
 				soundhit = "scavspawn",
 				startvelocity = 2000, -- === weaponvelocity to ensure consistent speed
-				targetborder = 0.75,
 				turret = 1,
 				weaponacceleration = 450,
 				weapontimer = 2,

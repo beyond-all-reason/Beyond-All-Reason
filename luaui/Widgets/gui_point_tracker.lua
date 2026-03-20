@@ -13,6 +13,11 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spEcho = Spring.Echo
+
 local timeToLive = 330
 local lineWidth = 1.0
 
@@ -88,6 +93,7 @@ layout (location = 2) in vec4 colorlife;
 
 uniform float isMiniMap;
 uniform float mapRotation;
+uniform vec4 pipVisibleArea; // left, right, bottom, top in normalized [0,1] world coords for PIP minimap
 
 out DataVS {
 	vec4 blendedcolor;
@@ -104,18 +110,52 @@ void main()
 
   float viewratio = 1.0;
   if (isMiniMap > 0.5) {
-    if (mapRotation == 0) {
-        worldPosInCamSpace  = mmDrawViewProj * vec4(worldposradius.xyz, 1.0);
+    // Check if PIP mode (visible area not default)
+    bool isPip = (pipVisibleArea.x != 0.0 || pipVisibleArea.y != 1.0 || pipVisibleArea.z != 0.0 || pipVisibleArea.w != 1.0);
+    
+    if (isPip) {
+      // For PIP: calculate screen position based on visible area
+      // Convert world position to normalized [0,1] map coords
+      vec2 normPos = worldposradius.xz / mapSize.xy;
+      
+      // Map from world [0,1] to screen position based on visible area
+      vec2 screenPos;
+      screenPos.x = (normPos.x - pipVisibleArea.x) / (pipVisibleArea.y - pipVisibleArea.x);
+      // Flip Y: world Z in [visB, visT] -> screen Y flipped
+      screenPos.y = 1.0 - (normPos.y - pipVisibleArea.z) / (pipVisibleArea.w - pipVisibleArea.z);
+      
+      // Apply rotation
+      if (mapRotation == 0) {
+        screenPos.y = 1.0 - screenPos.y;
         viewratio = mapSize.x / mapSize.y;
-    }else if (mapRotation == 1) {
-		worldPosInCamSpace  = mmDrawViewProj * vec4(worldposradius.z * (mapSize.x/mapSize.y), worldposradius.y, mapSize.y - worldposradius.x * (mapSize.y/mapSize.x), 1.0);
+      } else if (mapRotation == 1) {
+        screenPos.xy = screenPos.yx;
         viewratio = mapSize.y / mapSize.x;
-    }else if (mapRotation == 2) {
-        worldPosInCamSpace  = mmDrawViewProj * vec4(mapSize.x - worldposradius.x, worldposradius.y, mapSize.y - worldposradius.z, 1.0);
+      } else if (mapRotation == 2) {
+        screenPos.x = 1.0 - screenPos.x;
         viewratio = mapSize.x / mapSize.y;
-    }else if (mapRotation == 3) {
-		worldPosInCamSpace  = mmDrawViewProj * vec4(mapSize.x - worldposradius.z * (mapSize.x / mapSize.y), worldposradius.y, worldposradius.x * (mapSize.y / mapSize.x), 1.0);
+      } else if (mapRotation == 3) {
+        screenPos.xy = vec2(1.0) - screenPos.yx;
         viewratio = mapSize.y / mapSize.x;
+      }
+      
+      // Convert to NDC [-1,1]
+      worldPosInCamSpace = vec4(screenPos * 2.0 - 1.0, 0.0, 1.0);
+    } else {
+      // Normal minimap mode - use engine matrix
+      if (mapRotation == 0) {
+          worldPosInCamSpace  = mmDrawViewProj * vec4(worldposradius.xyz, 1.0);
+          viewratio = mapSize.x / mapSize.y;
+      }else if (mapRotation == 1) {
+  		worldPosInCamSpace  = mmDrawViewProj * vec4(worldposradius.z * (mapSize.x/mapSize.y), worldposradius.y, mapSize.y - worldposradius.x * (mapSize.y/mapSize.x), 1.0);
+          viewratio = mapSize.y / mapSize.x;
+      }else if (mapRotation == 2) {
+          worldPosInCamSpace  = mmDrawViewProj * vec4(mapSize.x - worldposradius.x, worldposradius.y, mapSize.y - worldposradius.z, 1.0);
+          viewratio = mapSize.x / mapSize.y;
+      }else if (mapRotation == 3) {
+  		worldPosInCamSpace  = mmDrawViewProj * vec4(mapSize.x - worldposradius.z * (mapSize.x / mapSize.y), worldposradius.y, worldposradius.x * (mapSize.y / mapSize.x), 1.0);
+          viewratio = mapSize.y / mapSize.x;
+      }
     }
   } else {
     worldPosInCamSpace  = cameraViewProj * vec4(worldposradius.xyz, 1.0);
@@ -165,7 +205,7 @@ void main(void) { fragColor = vec4(blendedcolor.rgba); }
 ]]
 
 local function goodbye(reason)
-  Spring.Echo("Point Tracker GL4 widget exiting with reason: "..reason)
+  spEcho("Point Tracker GL4 widget exiting with reason: "..reason)
   widgetHandler:RemoveWidget()
 end
 
@@ -207,6 +247,7 @@ local function initGL4()
 	uniformFloat = {
         isMiniMap = 0,
         mapRotation = 0,
+        pipVisibleArea = {0, 1, 0, 1}, -- left, right, bottom, top for PIP minimap
       },
     },
     "mapMarkShader GL4"
@@ -235,11 +276,19 @@ end
 --------------------------------------------------------------------------------
 function DrawMapMarksWorld(isMiniMap)
   if mapMarkInstanceVBO.usedElements > 0 then
-    --Spring.Echo("DrawMapMarksWorld",isMiniMap, Spring.GetGameFrame(), mapMarkInstanceVBO.usedElements)
+    --spEcho("DrawMapMarksWorld",isMiniMap, spGetGameFrame(), mapMarkInstanceVBO.usedElements)
 	  glLineWidth(lineWidth)
 		mapMarkShader:Activate()
 		mapMarkShader:SetUniform("isMiniMap",isMiniMap)
 		mapMarkShader:SetUniform("mapRotation", getCurrentMiniMapRotationOption() or 0)
+		
+		-- Pass PIP visible area if drawing in PIP minimap
+		if isMiniMap > 0 and WG['minimap'] and WG['minimap'].isDrawingInPip and WG['minimap'].getNormalizedVisibleArea then
+			local left, right, bottom, top = WG['minimap'].getNormalizedVisibleArea()
+			mapMarkShader:SetUniform("pipVisibleArea", left, right, bottom, top)
+		else
+			mapMarkShader:SetUniform("pipVisibleArea", 0, 1, 0, 1)
+		end
 
 		drawInstanceVBO(mapMarkInstanceVBO)
 
@@ -286,7 +335,7 @@ function widget:MapDrawCmd(playerID, cmdType, px, py, pz, label)
 	end
   instanceIDgen= instanceIDgen + 1
 	local r, g, b = GetPlayerColor(playerID)
-  local gf = Spring.GetGameFrame()
+  local gf = spGetGameFrame()
 
   pushElementInstance(
 			mapMarkInstanceVBO,
@@ -314,6 +363,8 @@ end
 
 function widget:DrawInMiniMap(sx, sy)
 	if not enabled then return	end
+	-- Don't draw map marks inside the PIP minimap
+	if WG['minimap'] and WG['minimap'].isDrawingInPip then return end
 	-- this fixes drawing on only 1 quadrant of minimap as pwe
   gl.ClipDistance ( 1, false)
   gl.ClipDistance ( 3, false)

@@ -21,6 +21,14 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathCeil = math.ceil
+local mathMax = math.max
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 local version = 1.1
 
 local dbgDraw = 0              -- draw only the bloom-mask? [0 | 1]
@@ -102,17 +110,17 @@ end
 SetIllumThreshold()
 
 local function RemoveMe(msg)
-	Spring.Echo(msg)
+	spEcho(msg)
 	widgetHandler:RemoveWidget()
 end
 
 local function MakeBloomShaders()
 	local viewSizeX, viewSizeY = Spring.GetViewGeometry()
 	local downscale = presets[preset].quality
-	--Spring.Echo("New bloom init preset:", preset)
-	vsx = math.max(4,viewSizeX)
-	vsy = math.max(4,viewSizeY)
-	qvsx,qvsy = math.ceil(vsx/downscale), math.ceil(vsy/downscale) -- we ceil to ensure perfect upscaling
+	--spEcho("New bloom init preset:", preset)
+	vsx = mathMax(4,viewSizeX)
+	vsy = mathMax(4,viewSizeY)
+	qvsx,qvsy = mathCeil(vsx/downscale), mathCeil(vsy/downscale) -- we ceil to ensure perfect upscaling
 	iqvsx, iqvsy = 1.0 / qvsx, 1.0 / qvsy
 
 	local padx, pady = downscale * qvsx - vsx, downscale * qvsy - vsy
@@ -132,25 +140,25 @@ local function MakeBloomShaders()
 
 	local definesString = LuaShader.CreateShaderDefinesString(shaderConfig)
 
-	--Spring.Echo(vsx, vsy, qvsx,qvsy)
+	--spEcho(vsx, vsy, qvsx,qvsy)
 
 	glDeleteTexture(brightTexture1)
-	brightTexture1 = glCreateTexture(math.max(1,qvsx), math.max(1,qvsy), {
+	brightTexture1 = glCreateTexture(mathMax(1,qvsx), mathMax(1,qvsy), {
 		fbo = true,
 		min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
 		wrap_s = GL.CLAMP, wrap_t = GL.CLAMP,
 	})
 
 	glDeleteTexture(brightTexture2)
-	brightTexture2 = glCreateTexture(math.max(1,qvsx), math.max(1,qvsy), {
+	brightTexture2 = glCreateTexture(mathMax(1,qvsx), mathMax(1,qvsy), {
 		fbo = true,
 		min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
 		wrap_s = GL.CLAMP, wrap_t = GL.CLAMP,
 	})
 
 	if (brightTexture1 == nil or brightTexture2 == nil) then
-		if (brightTexture1 == nil ) then Spring.Echo('brightTexture1 == nil ') end
-		if (brightTexture2 == nil ) then Spring.Echo('brightTexture2 == nil ') end
+		if (brightTexture1 == nil ) then spEcho('brightTexture1 == nil ') end
+		if (brightTexture2 == nil ) then spEcho('brightTexture2 == nil ') end
 		RemoveMe("[BloomShader::ViewResize] removing widget, bad texture target")
 		return
 	end
@@ -195,7 +203,7 @@ local function MakeBloomShaders()
 		"Bloom Combine Shader")
 
 	if not combineShader:Initialize() then
-		RemoveMe("[BloomShader::Initialize] combineShader compilation failed"); Spring.Echo(glGetShaderLog()); return
+		RemoveMe("[BloomShader::Initialize] combineShader compilation failed"); spEcho(glGetShaderLog()); return
 	end
 
 	-- How about we do linear sampling instead, using the GPU's built in texture fetching linear blur hardware :)
@@ -365,7 +373,7 @@ local function MakeBloomShaders()
 	}, "Bloom Blur Shader")
 
 	if not blurShader:Initialize() then
-		RemoveMe("[BloomShader::Initialize] blurShader compilation failed"); Spring.Echo(glGetShaderLog()); return
+		RemoveMe("[BloomShader::Initialize] blurShader compilation failed"); spEcho(glGetShaderLog()); return
 	end
 
 
@@ -481,7 +489,7 @@ local function MakeBloomShaders()
 	}, "Bloom Bright Shader")
 
 	if not brightShader:Initialize() then
-		Spring.Echo(glGetShaderLog());
+		spEcho(glGetShaderLog());
 		RemoveMe("[BloomShader::Initialize] brightShader compilation failed"); return
 	end
 

@@ -22,8 +22,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		hidedamage = 1,
-		idleautoheal = 20,
-		idletime = 300,
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 4000,
@@ -121,6 +119,7 @@ return {
 					area_onhit_damage = 200,
 					area_onhit_range = 150,
 					area_onhit_resistance = "_RAPTORACID_",
+					nofire = true,
 				},
 				damage = {
 					default = 1,

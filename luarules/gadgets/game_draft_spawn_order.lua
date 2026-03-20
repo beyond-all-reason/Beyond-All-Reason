@@ -93,7 +93,7 @@ end
 local function isAllyTeamSkillZero(allyTeamID)
 	local tteams = Spring.GetTeamList(allyTeamID)
 	for _, teamID in ipairs(tteams) do
-		local _, _, _, isAiTeam = spGetTeamInfo(teamID)
+		local _, _, _, isAiTeam = spGetTeamInfo(teamID, false)
 		if not isAiTeam and gaiaAllyTeamID ~= allyTeamID then
 			local skill = GetSkillByTeam(teamID)
 			if skill ~= 0 then

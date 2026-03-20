@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		desc      = "lava",
 		author    = "knorke, Beherith, The_Yak, Anarchid, Kloot, Gajop, ivand, Damgam, Chronographer",
 		date      = "Feb 2011, Nov 2013, 2022!",
-		license   = "Lua: GNU GPL, v2 or later, GLSL: (c) Beherith (mysterme@gmail.com)",
+		license   = "GNU GPL v2",
 		layer     = -3,
 		enabled   = true
 	}
@@ -14,6 +14,7 @@ end
 
 local lava = Spring.Lava
 local lavaMap = lava.isLavaMap
+local gameSpeed = Game.gameSpeed
 
 --_G.Game.mapSizeX = Game.mapSizeX
 --_G.Game.mapSizeY = Game.mapSizeY
@@ -29,18 +30,15 @@ if gadgetHandler:IsSyncedCode() then
 	local lavaLevel = lava.level
 	local lavaGrow = lava.grow
 
+	local minGroundHeight = 0
+	local GROUND_EXTREMES_UPDATE_RATE = 300 -- refresh cached min ground height every 10 seconds
+
 	local lavaSlow = 0.8 -- slow fraction (0-1) for units in lava, 0.8 = 20% max speed when fully sumberged
 
 	-- damage is specified in health lost per second, damage is applied every DAMAGE_RATE frames
 	local DAMAGE_RATE = 10 -- frames
-	local lavaDamage = lava.damage * (DAMAGE_RATE / Game.gameSpeed)
+	local lavaDamage = lava.damage * (DAMAGE_RATE / gameSpeed)
 	local lavaDamageFeatures = lava.damageFeatures
-	if lavaDamageFeatures then
-		if not tonumber(lavaDamageFeatures) then
-			lavaDamageFeatures = 0.1
-		end
-		lavaDamageFeatures = lavaDamageFeatures * (DAMAGE_RATE / Game.gameSpeed)
-	end
 
 	-- ceg effects
 	local lavaEffectBurst = lava.effectBurst
@@ -48,15 +46,14 @@ if gadgetHandler:IsSyncedCode() then
 
 	-- speedups
 	local spAddUnitDamage = Spring.AddUnitDamage
-	local spDestroyFeature = Spring.DestroyFeature
+	local spAddFeatureDamage = Spring.AddFeatureDamage
 	local spGetAllUnits = Spring.GetAllUnits
 	local spGetFeatureDefID = Spring.GetFeatureDefID
 	local spGetFeaturePosition = Spring.GetFeaturePosition
-	local spGetFeatureResources = Spring.GetFeatureResources
 	local spGetUnitBasePosition = Spring.GetUnitBasePosition
 	local spGetUnitDefID = Spring.GetUnitDefID
-	local spSetFeatureResources = Spring.SetFeatureResources
 	local spGetMoveData = Spring.GetUnitMoveTypeData
+	local spMoveCtrlEnabled = Spring.MoveCtrl.IsEnabled
 	local spSetMoveData = Spring.MoveCtrl.SetGroundMoveTypeData
 	local spGetGroundHeight = Spring.GetGroundHeight
 	local spSpawnCEG = Spring.SpawnCEG
@@ -73,7 +70,7 @@ if gadgetHandler:IsSyncedCode() then
 		unitMoveDef[unitDefID] = unitDef.moveDef -- Will remove this when decision on hovercraft is made
 		if unitDef.canFly then
 			canFly[unitDefID] = true
-		else 
+		else
 			speedDefs[unitDefID] = unitDef.speed
 			turnDefs[unitDefID] = unitDef.turnRate
 			accDefs[unitDefID] = unitDef.maxAcc
@@ -102,7 +99,7 @@ if gadgetHandler:IsSyncedCode() then
 	function updateLava()
 		if (lavaGrow < 0 and lavaLevel < tideRhythm[tideIndex].targetLevel)
 			or (lavaGrow > 0 and lavaLevel > tideRhythm[tideIndex].targetLevel) then
-			tideContinueFrame = gameframe + tideRhythm[tideIndex].remainTime*30
+			tideContinueFrame = gameframe + math.round(tideRhythm[tideIndex].remainTime*gameSpeed)
 			lavaGrow = 0
 			--Spring.Echo ("Next LAVA LEVEL change in " .. (tideContinueFrame-gameframe)/30 .. " seconds")
 		end
@@ -122,6 +119,30 @@ if gadgetHandler:IsSyncedCode() then
 		_G.lavaGrow = lavaGrow
 	end
 
+	function updateSlow(unitID, unitDefID, unitSlow)
+		if spMoveCtrlEnabled(unitID) then return false end
+		local slowedMaxSpeed = speedDefs[unitDefID] * unitSlow
+		local slowedTurnRate = turnDefs[unitDefID] * unitSlow
+		local slowedAccRate = accDefs[unitDefID] * unitSlow
+		local sucess = pcall(function()
+			spSetMoveData(unitID, {maxSpeed = slowedMaxSpeed, turnRate = slowedTurnRate, accRate = slowedAccRate})
+		end)
+		return sucess
+	end
+
+	-- Bulk-restore all slowed units when lava retreats below the map surface
+	local function restoreAllLavaUnits()
+		for unitID, data in pairs(lavaUnits) do
+			if data.slowed then
+				local unitDefID = spGetUnitDefID(unitID)
+				if unitDefID then
+					updateSlow(unitID, unitDefID, 1)
+				end
+			end
+		end
+		lavaUnits = {}
+	end
+
 	-- slow down and damage unit+features in lava
 	function lavaObjectsCheck()
 		local gaiaTeamID = Spring.GetGaiaTeamID()
@@ -138,25 +159,24 @@ if gadgetHandler:IsSyncedCode() then
 						local turnRate = turnDefs[unitDefID]
 						local accelRate = accDefs[unitDefID]
 						if (moveType == "ground") and (maxSpeed and maxSpeed ~= 0) and (turnRate and turnRate ~= 0) and (accelRate and accelRate ~= 0)then
-							lavaUnits[unitID] = {currentSlow = 1, slowed = true} 
+							lavaUnits[unitID] = {currentSlow = 1, slowed = true}
 						else
 							lavaUnits[unitID] = {slowed = false}
 						end
 					end
 					if lavaUnits[unitID].slowed and (unitSlow ~= lavaUnits[unitID].currentSlow) then
-						local slowedMaxSpeed = speedDefs[unitDefID] * unitSlow
-						local slowedTurnRate = turnDefs[unitDefID] * unitSlow
-						local slowedAccRate = accDefs[unitDefID] * unitSlow
-						spSetMoveData(unitID, {maxSpeed = slowedMaxSpeed, turnRate = slowedTurnRate, accRate = slowedAccRate})
-						lavaUnits[unitID].currentSlow = unitSlow
+						local sucess = updateSlow(unitID, unitDefID, unitSlow)
+						if sucess then
+							lavaUnits[unitID].currentSlow = unitSlow
+						end
 					end
 				spAddUnitDamage(unitID, lavaDamage, 0, gaiaTeamID, 1)
 				spSpawnCEG(lavaEffectDamage, x, y+5, z)
 				elseif lavaUnits[unitID] then -- unit exited lava
 					if lavaUnits[unitID].slowed then
-						spSetMoveData(unitID, {maxSpeed = speedDefs[unitDefID], turnRate = turnDefs[unitDefID], accRate = accDefs[unitDefID]})
+						updateSlow(unitID, unitDefID, 1)
 					end
-				lavaUnits[unitID] = nil
+					lavaUnits[unitID] = nil
 				end
 			end
 		end
@@ -167,13 +187,7 @@ if gadgetHandler:IsSyncedCode() then
 				if not geoThermal[FeatureDefID] then
 					x,y,z = spGetFeaturePosition(featureID)
 					if (y and y < lavaLevel) then
-						local _, maxMetal, _, maxEnergy, reclaimLeft = spGetFeatureResources (featureID)
-						reclaimLeft = reclaimLeft - lavaDamageFeatures
-						if reclaimLeft <= 0 then
-							spDestroyFeature(featureID)
-						else
-							spSetFeatureResources(featureID, maxMetal*reclaimLeft, maxEnergy*reclaimLeft, nil, reclaimLeft)
-						end
+						spAddFeatureDamage(featureID, lavaDamage, 0, gaiaTeamID)
 						spSpawnCEG(lavaEffectDamage, x, y+5, z)
 					end
 				end
@@ -186,6 +200,7 @@ if gadgetHandler:IsSyncedCode() then
 			gadgetHandler:RemoveGadget(self)
 			return
 		end
+		minGroundHeight = select(1, Spring.GetGroundExtremes())
 		_G.lavaLevel = lavaLevel
 		_G.lavaGrow = lavaGrow
 		Spring.SetGameRulesParam("lavaLevel", -99999)
@@ -193,19 +208,31 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:GameFrame(f)
 		gameframe = f
-		_G.lavaLevel = lavaLevel+math.sin(f/30)*0.5
+		_G.lavaLevel = lavaLevel+math.sin(f/gameSpeed)*0.5
 		--_G.lavaLevel = lavaLevel + clamp(math.sin(f / 30), -0.95, 0.95) * 0.5 -- clamp to avoid jittering when sin(x) is around +-1
 
+		-- Periodically refresh cached min ground height (handles terraforming)
+		if f % GROUND_EXTREMES_UPDATE_RATE == 0 then
+			minGroundHeight = select(1, Spring.GetGroundExtremes())
+		end
+
+		local lavaAboveGround = lavaLevel >= minGroundHeight
+
 		if f % DAMAGE_RATE == 0 then
-			lavaObjectsCheck()
+			if lavaAboveGround then
+				lavaObjectsCheck()
+			elseif next(lavaUnits) then
+				-- Lava retreated below map: bulk-restore any slowed units
+				restoreAllLavaUnits()
+			end
 		end
 
 		updateLava()
-		lavaLevel = lavaLevel+lavaGrow
+		lavaLevel = lavaLevel+(lavaGrow/gameSpeed)
 		Spring.SetGameRulesParam("lavaLevel", lavaLevel)
 
-		-- burst and sound effects
-		if f % 5 == 0 then
+		-- burst and sound effects (skip entirely when lava is below the map surface)
+		if lavaAboveGround and f % 5 == 0 then
 			local mapSizeX = Game.mapX * 512
 			local mapSizeY = Game.mapY * 512
 			-- bursts
@@ -467,6 +494,11 @@ else  -- UNSYCNED
 				heatdistortz = heatdistortz - camZ / (camvlength * smoothFPS)
 			end
 			--Spring.Echo(camX, camZ, heatdistortx, heatdistortz,gameSpeed, isPaused)
+
+			-- Expose lava render state to widgets (e.g., PIP minimap overlay)
+			if Script.LuaUI("LavaRenderState") then
+				Script.LuaUI.LavaRenderState(lavatidelevel, heatdistortx, heatdistortz)
+			end
 
 			if autoreload then
 				lavaShader = LuaShader.CheckShaderUpdates(lavaShaderSourceCache) or lavaShader

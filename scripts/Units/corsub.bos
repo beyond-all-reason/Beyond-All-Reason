@@ -80,6 +80,12 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
+	if (gun_1 == tube2){
+		emit-sfx 1024 + 2 from tube1;
+	}
+	else if (gun_1 == tube1){
+		emit-sfx 1024 + 2 from tube2;
+	}
 	gun_1 = !gun_1;
 }
 

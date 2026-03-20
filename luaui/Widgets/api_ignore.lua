@@ -12,6 +12,10 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 local playernames = {}		-- current game: playername to playerID
 local validAccounts = {}	-- current game: accountID to playername
 local ignoredAccounts = {}	-- globally ignored: accountID to playername
@@ -33,17 +37,21 @@ local function processPlayerlist()
 	local playerList = Spring.GetPlayerList()
 	for _, playerID in ipairs(playerList) do
 		local name, _, _, _, _, _, _, _, _, _, playerInfo = Spring.GetPlayerInfo(playerID)
-		playernames[name] = playerID
+		if name and name ~= '' then
+			playernames[name] = playerID
+		end
 		local accountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid) or nil
 		if accountID and validAccounts[accountID] then
 			-- when a playername was ignored by the old widget method or when their accountID wasnt known (being late rejoining spectator)
-			if ignoredPlayers[name] then
+			if name and name ~= '' and ignoredPlayers[name] then
 				ignoredPlayers[name] = nil
 				ignoredAccounts[accountID] = name
 			end
 			if ignoredAccounts[accountID] then
 				ignoredAccountsAndNames[accountID] = playerID
-				ignoredAccountsAndNames[name] = playerID
+				if name and name ~= '' then
+					ignoredAccountsAndNames[name] = playerID
+				end
 			end
 		end
 	end
@@ -54,21 +62,32 @@ local function ignoreAccount(accountID)
 		accountID = tonumber(accountID)
 		if not ignoredAccounts[accountID] and validAccounts[accountID] then
 			-- ignore accountID
-			ignoredAccounts[accountID] = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(_,accountID) or ''
-			ignoredAccountsAndNames[accountID] = ignoredAccounts[accountID]
+			local resolvedName = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(_,accountID) or ''
+			if resolvedName == '' then
+				resolvedName = validAccounts[accountID] or ''
+			end
+			ignoredAccounts[accountID] = resolvedName
+			if resolvedName ~= '' then
+				ignoredAccountsAndNames[accountID] = resolvedName
+			end
 			-- ignore playerinfo name
-			local playerID = playernames[validAccounts[accountID]]
-			ignoredAccountsAndNames[validAccounts[accountID]] = playerID or true
+			local validName = validAccounts[accountID]
+			local playerID = validName and playernames[validName]
+			if validName and validName ~= '' then
+				ignoredAccountsAndNames[validName] = playerID or true
+			end
 			-- ignore aliassed name
-			ignoredAccountsAndNames[ignoredAccounts[accountID]] = playerID or true
-			Spring.Echo(Spring.I18N('ui.ignore.ignored', { name = ignoredAccounts[accountID], accountID = accountID }))
+			if resolvedName ~= '' then
+				ignoredAccountsAndNames[resolvedName] = playerID or true
+			end
+			spEcho(Spring.I18N('ui.ignore.ignored', { name = resolvedName, accountID = accountID }))
 		end
 	elseif accountID ~= '' then -- if accountID wasnt known and player name was supplied instead
 		local name = accountID
 		if playernames[name] then
 			ignoredPlayers[name] = true
 			ignoredAccountsAndNames[name] = playernames[name]
-			Spring.Echo(Spring.I18N('ui.ignore.ignored', { name = name, accountID = Spring.I18N('ui.ignore.unknown') }))
+			spEcho(Spring.I18N('ui.ignore.ignored', { name = name, accountID = Spring.I18N('ui.ignore.unknown') }))
 		end
 	end
 end
@@ -77,7 +96,7 @@ local function unignoreAccount(accountID)
 	if type(tonumber(accountID)) == 'number' then
 		accountID = tonumber(accountID)
 		if ignoredAccounts[accountID] and validAccounts[accountID] then
-			Spring.Echo(Spring.I18N('ui.ignore.unignored', { name = ignoredAccounts[accountID], accountID = accountID }))
+			spEcho(Spring.I18N('ui.ignore.unignored', { name = ignoredAccounts[accountID], accountID = accountID }))
 			ignoredAccountsAndNames[accountID] = nil
 			ignoredAccountsAndNames[ignoredAccounts[accountID]] = nil
 			ignoredAccountsAndNames[validAccounts[accountID]] = nil
@@ -88,7 +107,7 @@ local function unignoreAccount(accountID)
 		if playernames[name] then
 			ignoredPlayers[name] = nil
 			ignoredAccountsAndNames[name] = nil
-			Spring.Echo(Spring.I18N('ui.ignore.unignored', { name = name, accountID = Spring.I18N('ui.ignore.unknown') }))
+			spEcho(Spring.I18N('ui.ignore.unignored', { name = name, accountID = Spring.I18N('ui.ignore.unknown') }))
 		end
 	end
 end
@@ -109,8 +128,9 @@ function widget:Initialize()
 	-- add all other ignored account names that arent in the current game but might be in the lobby
 	for accountID, name in pairs(ignoredAccounts) do
 		local pname = WG.playernames and WG.playernames.getPlayername(_, accountID, true)
-		if not ignoredAccountsAndNames[accountID] then	-- if not already added/in the game
-			ignoredAccountsAndNames[pname and pname or name] = true
+		local displayName = pname and pname or name
+		if displayName and displayName ~= '' and not ignoredAccountsAndNames[accountID] then	-- if not already added/in the game
+			ignoredAccountsAndNames[displayName] = true
 		end
 	end
 	processPlayerlist()
@@ -143,10 +163,13 @@ end
 
 function widget:SetConfigData(data)
 	ignoredAccounts = data[1] and data[1] or {}
+	-- clean out any empty string keys from persisted data
+	ignoredAccounts[''] = nil
 	data[1] = nil
 	ignoredPlayers = data
+	ignoredPlayers[''] = nil
 	for name, _ in pairs(ignoredPlayers) do
-		if not ignoredAccountsAndNames[name] then
+		if name ~= '' and not ignoredAccountsAndNames[name] then
 			ignoredAccountsAndNames[name] = true
 		end
 	end

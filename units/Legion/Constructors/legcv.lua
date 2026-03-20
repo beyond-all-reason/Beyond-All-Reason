@@ -18,8 +18,6 @@ return {
 		explodeas = "mediumexplosiongeneric-builder",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		health = 1330,
 		maxslope = 16,
@@ -71,7 +69,7 @@ return {
 			"legctl",
 			"legjam",
 			"legjuno",
-			"corsy",
+			"legsy",
 			"leghive",
 		},
 		customparams = {

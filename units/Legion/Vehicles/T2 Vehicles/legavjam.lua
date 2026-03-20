@@ -2,7 +2,7 @@ return {
 	legavjam = {
 		activatewhenbuilt = true,
 		buildpic = "LEGAVJAM.DDS",
-		buildtime = 5930,
+		buildtime = 6930,
 		canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
@@ -15,8 +15,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 510,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = false,
 		maxacc = 0.02416,
 		maxdec = 0.04831,

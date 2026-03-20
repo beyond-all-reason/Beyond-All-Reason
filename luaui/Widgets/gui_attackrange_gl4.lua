@@ -1,6 +1,6 @@
 include("keysym.h.lua")
 
-local versionNumber = "1.1"
+local versionNumber = "1.2"
 
 local widget = widget ---@type Widget
 
@@ -17,6 +17,17 @@ function widget:GetInfo()
 		depends = {'gl4'},
 	}
 end
+
+-- Localized functions for performance
+local mathAbs = math.abs
+local mathFloor = math.floor
+local mathMax = math.max
+local mathPi = math.pi
+
+-- Localized Spring API for performance
+local spGetMyTeamID = Spring.GetMyTeamID
+local spEcho = Spring.Echo
+
 ---------------------------
 
 --[[
@@ -51,7 +62,9 @@ InterceptorOff
 local autoReload = false
 
 ---------------------------------------------------------------------------------------------------------------------------
--- Bindable action:   cursor_range_toggle
+-- Bindable actions:	cursor_range_toggle - Toggles display of the attack range of the unit under the mouse cursor.
+-- 						attack_range_inc - Cycle to next attack range display config for current unit type.
+-- 						attack_range_dec - Cycle to previous attack range display config for current unit type.
 -- The widget's individual unit type's display setup is saved in LuaUI/config/AttackRangeConfig2.lua
 ---------------------------------------------------------------------------------------------------------------------------
 local shift_only = false -- only show ranges when shift is held down
@@ -61,6 +74,8 @@ local selectionDisableThresholdMult = 0.7
 
 ---------------------------------------------------------------------------------------------------------------------------
 ------------------ CONFIGURABLES --------------
+
+local DYNAMIC_RANGE_UPDATE_RATE = 3.0
 
 local buttonConfig = {
 	ally = { ground = true, AA = true, nano = true },
@@ -197,6 +212,7 @@ local unitBuildDistance = {}
 local unitBuilder = {}
 local unitOnOffable = {}
 local unitOnOffName = {}
+local unitDefRangeScale = {}
 for udid, ud in pairs(UnitDefs) do
 	unitBuilder[udid] = ud.isBuilder and (ud.canAssist or ud.canReclaim) and not (ud.isFactory and #ud.buildOptions > 0)
 	if unitBuilder[udid] then
@@ -208,6 +224,9 @@ for udid, ud in pairs(UnitDefs) do
 	unitOnOffable[udid] = ud.onOffable
 	if ud.customParams.onoffname then
 		unitOnOffName[udid] = ud.customParams.onoffname
+	end
+	if ud.customParams.rangexpscale then
+		unitDefRangeScale[udid] = ud.customParams.rangexpscale
 	end
 end
 
@@ -264,7 +283,7 @@ local function initializeUnitDefRing(unitDefID)
 		local weaponDef = WeaponDefs[weaponDefID]
 
 		-- ── your debug & color‐pick here ──
-    -- Spring.Echo(string.format(
+    -- spEcho(string.format(
     --   "[AttackRange] %s.waterweapon = %s",
     --   weaponDef.name, tostring(weaponDef.waterweapon)
     -- ))
@@ -291,17 +310,17 @@ local function initializeUnitDefRing(unitDefID)
 		-- 1) paralyzer/EMP weapons
 		if weaponDef.paralyzer then
 			cfgKey = baseKey .. "_emp"
-			Spring.Echo("[AttackRange] using EMP colour for:", weaponDef.name)
+			--spEcho("[AttackRange] using EMP colour for:", weaponDef.name)
   		-- 2) DGun override
 		elseif weaponDef.type == "DGun" then
 			cfgKey = baseKey .. "_dgun"
-			--Spring.Echo("[AttackRange] using DGun style for:", weaponDef.name)
+			--spEcho("[AttackRange] using DGun style for:", weaponDef.name)
 		-- 2) then water override
 		elseif weaponDef.waterWeapon
 			or (weaponDef.customParams and weaponDef.customParams.waterweapon == "true")
 		then
 			cfgKey = baseKey .. "_water"
-			--Spring.Echo("[AttackRange] using water style for:", weaponDef.name)
+			--spEcho("[AttackRange] using water style for:", weaponDef.name)
 		end
 
     -- safety fallback if you typo the key
@@ -322,7 +341,7 @@ local function initializeUnitDefRing(unitDefID)
 			if (weaponDef.type == "AircraftBomb") or (wName:find("bogus")) or weaponDef.customParams.bogus or weaponDef.customParams.norangering then
 				range = 0
 			end
-			--Spring.Echo("weaponNum: ".. weaponNum ..", name: " .. tableToString(weaponDef.name))
+			--spEcho("weaponNum: ".. weaponNum ..", name: " .. tableToString(weaponDef.name))
 			local groupselectionfadescale = colorConfig[weaponTypeMap[weaponType]].groupselectionfadescale
 
 			--local udwp = UnitDefs[unitDefID].weapons
@@ -345,7 +364,7 @@ local function initializeUnitDefRing(unitDefID)
 			-- customParams (note the case), is a table of strings always
 			if (weapons[weaponNum].maxAngleDif > -1) and
 				(not (weaponDef.customParams and weaponDef.customParams.noattackrangearc)) then
-				--Spring.Echo(weaponDef.customParams)--, weapons[weaponNum].customParams.noattackarc)
+				--spEcho(weaponDef.customParams)--, weapons[weaponNum].customParams.noattackarc)
 				local offsetdegrees = 0
 				local difffract = 0
 
@@ -353,7 +372,7 @@ local function initializeUnitDefRing(unitDefID)
 				local mdx = weaponParams.mainDirX
 				local mdy = weaponParams.mainDirY
 				local mdz = weaponParams.mainDirZ
-				local angledif = math.acos(weapons[weaponNum].maxAngleDif) / math.pi
+				local angledif = math.acos(weapons[weaponNum].maxAngleDif) / mathPi
 
 				-- Normalize maindir
 				local length = math.diag(mdx,mdy,mdz)
@@ -361,16 +380,16 @@ local function initializeUnitDefRing(unitDefID)
 				mdy = mdy/length
 				mdz = mdz/length
 
-				offsetdegrees = math.atan2(mdx,mdz) * 180 / math.pi
+				offsetdegrees = math.atan2(mdx,mdz) * 180 / mathPi
 				difffract = angledif --(1.0 - angledif ) * (0.5) -- So 0.001 is tiny aim angle, 0.9999 is full aim angle
 
-				maxangledif = math.floor(offsetdegrees)
+				maxangledif = mathFloor(offsetdegrees)
 
-				if math.abs(mdy) > 0.01 and math.abs(mdy) < 0.99 then -- its off the Y plane
+				if mathAbs(mdy) > 0.01 and mathAbs(mdy) < 0.99 then -- its off the Y plane
 					local modifier = math.sqrt ( 1.0 - mdy*mdy)
 					difffract  = difffract * modifier
 					maxangledif = maxangledif + difffract
-				elseif  math.abs(mdy) < 0.99 then
+				elseif  mathAbs(mdy) < 0.99 then
 					maxangledif = maxangledif  + difffract
 				else
 
@@ -378,14 +397,14 @@ local function initializeUnitDefRing(unitDefID)
 
 
 
-				--Spring.Echo(string.format("%s has params offsetdegrees = %.2f MAD = %.3f (%.1f deg), diffract = %.3f md(xyz) = (%.3f,%.3f,%.3f)", weaponDef.name, offsetdegrees, weapons[weaponNum].maxAngleDif, angledif*180,  difffract, mdx,mdy,mdz))
+				--spEcho(string.format("%s has params offsetdegrees = %.2f MAD = %.3f (%.1f deg), diffract = %.3f md(xyz) = (%.3f,%.3f,%.3f)", weaponDef.name, offsetdegrees, weapons[weaponNum].maxAngleDif, angledif*180,  difffract, mdx,mdy,mdz))
 
 
-				--Spring.Echo("weapons[weaponNum].maxAngleDif",weapons[weaponNum].maxAngleDif, maxangledif)
-				--for k,v in pairs(weapons[weaponNum]) do Spring.Echo(k,v)end
+				--spEcho("weapons[weaponNum].maxAngleDif",weapons[weaponNum].maxAngleDif, maxangledif)
+				--for k,v in pairs(weapons[weaponNum]) do spEcho(k,v)end
 			end
 
-			--if weapons[weaponNum].maxAngleDif then	Spring.Echo(weapons[weaponNum].maxAngleDif,'for',weaponDef.name, 'saved as',maxangledif ) end
+			--if weapons[weaponNum].maxAngleDif then	spEcho(weapons[weaponNum].maxAngleDif,'for',weaponDef.name, 'saved as',maxangledif ) end
 
 			local ringParams = { range, color[1], color[2], color[3], color[4], --5
 				fadeparams[1], fadeparams[2], fadeparams[3], fadeparams[4], --9
@@ -435,7 +454,7 @@ end
 --position only relevant if no saved config data found
 
 local myAllyTeam            = Spring.GetMyAllyTeamID()
-local myTeamID              = Spring.GetMyTeamID()
+local myTeamID              = spGetMyTeamID()
 
 --------------------------------------------------------------------------------
 
@@ -460,6 +479,7 @@ local GL_REPLACE            = GL.REPLACE --GL.KEEP
 local spGetUnitDefID        = Spring.GetUnitDefID
 local spGetUnitPosition     = Spring.GetUnitPosition
 local spGetUnitWeaponVectors=Spring.GetUnitWeaponVectors
+local spGetUnitWeaponState = Spring.GetUnitWeaponState
 local spGetUnitAllyTeam     = Spring.GetUnitAllyTeam
 local spGetMouseState       = Spring.GetMouseState
 local spTraceScreenRay      = Spring.TraceScreenRay
@@ -493,7 +513,7 @@ function widget:TextCommand(command)
 			enabled = true
 		end
 		buttonConfig[ally][rangetype] = enabled
-		Spring.Echo("Range visibility of " .. ally .. " " .. rangetype .. " attacks set to", enabled)
+		spEcho("Range visibility of " .. ally .. " " .. rangetype .. " attacks set to", enabled)
 		return true
 	end
 
@@ -554,11 +574,12 @@ local shaderSourceCache = {
 		selBuilderCount = 1.0,
 		selUnitCount = 1.0,
 		inMiniMap = 0.0,
+		pipVisibleArea = {0, 1, 0, 1}, -- left, right, bottom, top in normalized [0,1] coords for PIP minimap
 	},
 }
 
 local function goodbye(reason)
-	Spring.Echo("AttackRange GL4 widget exiting with reason: " .. reason)
+	spEcho("AttackRange GL4 widget exiting with reason: " .. reason)
 	widgetHandler:RemoveWidget()
 end
 
@@ -576,10 +597,12 @@ local mouseUnit
 local mouseovers = {} -- mirroring selections, but for mouseovers
 
 local unitsOnOff = {} -- unit weapon toggle states, tracked from CommandNotify (also building on off status)
-local myTeam = Spring.GetMyTeamID()
+local unitRangeScale = { selections = {}, mouseovers = {} } -- stores info for units with scaling ranges
+local numScalingUnits = 0
+local myTeam = spGetMyTeamID()
 
 -- mirrors functionality of UnitDetected
-local function AddSelectedUnit(unitID, mouseover)
+local function AddSelectedUnit(unitID, mouseover, newRange)
 	--if not show_selected_weapon_ranges then return end
 	local collections = selections
 	if mouseover then
@@ -641,6 +664,22 @@ local function AddSelectedUnit(unitID, mouseover)
 		initializeUnitDefRing(unitDefID)
 	end
 
+	local scalingUnitDefs = unitDefRangeScale
+	local scalingUnitParams = unitRangeScale.selections
+	if mouseover then scalingUnitParams = unitRangeScale.mouseovers end
+	local oldRange = {}
+	if scalingUnitDefs[unitDefID] and alliedUnit then	-- Can't read enemy unit ranges.
+		if not newRange then newRange = {} end
+		scalingUnitParams[unitID] = { oldRange = {} }
+		numScalingUnits = numScalingUnits + 1
+		oldRange[unitID] = {}
+		for weaponNum = 1, #weapons do
+			if not newRange[weaponNum] then	-- Prevent unnecessary duplicate engine calls.
+				newRange[weaponNum] = spGetUnitWeaponState(unitID, weaponNum, "range")
+			end
+			oldRange[unitID][weaponNum] = {weaponNum, newRange[weaponNum]}
+		end
+	end
 
 	local x, y, z, mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition(unitID, true, true)
 
@@ -676,7 +715,15 @@ local function AddSelectedUnit(unitID, mouseover)
 			end
 		end
 
-		local ringParams = unitDefRings[unitDefID]['rings'][j]
+		local ringParams = {}
+		if newRange then
+			for i = 2, 17 do	-- See line 405.
+				ringParams[i] = unitDefRings[unitDefID]['rings'][j][i]	-- Preserves default range from unitDefs for use with enemy units.
+			end
+			ringParams[1] = newRange[j]
+		else
+			ringParams = unitDefRings[unitDefID]['rings'][j]
+		end
 		if drawIt and ringParams[1] > 0 then
 
 			local weaponID = j
@@ -686,11 +733,11 @@ local function AddSelectedUnit(unitID, mouseover)
 			-- Need to cache weaponID of the respective weapon for this to work
 			-- also assumes that weapons are centered onto drawpos
 			local wpx, wpy, wpz, wdx, wdy, wdz = spGetUnitWeaponVectors(unitID, weaponID)
-			--Spring.Echo("unitID", unitID,"weaponID", weaponID, "y", y, "mpy",  mpy,"wpy", wpy)
+			--spEcho("unitID", unitID,"weaponID", weaponID, "y", y, "mpy",  mpy,"wpy", wpy)
 
 			-- Now this is a truly terrible hack, we cache each unitDefID's max weapon turret height at position 18 in the table
 			-- so it only goes up with popups
-			local turretHeight = math.max(ringParams[18] or 0, (wpy or mpy ) - y)
+			local turretHeight = mathMax(ringParams[18] or 0, (wpy or mpy ) - y)
 			ringParams[18] = turretHeight
 
 
@@ -709,8 +756,8 @@ local function AddSelectedUnit(unitID, mouseover)
 					s = s .. "; " .. tostring(cacheTable[i])
 				end
 				if true then
-					Spring.Echo("Adding rings for", unitID, x, z)
-					Spring.Echo("added", vaokey, s)
+					spEcho("Adding rings for", unitID, x, z)
+					spEcho("added", vaokey, s)
 				end
 			end
 			local instanceID = 10000000 * (mouseover and 1 or 0) + 1000000 * weaponType + unitID +
@@ -730,6 +777,9 @@ local function AddSelectedUnit(unitID, mouseover)
 				}
 			end
 			collections[unitID].vaokeys[instanceID] = vaokey
+			if newRange then
+				scalingUnitParams[unitID].oldRange[instanceID] = oldRange[unitID][j]
+			end
 		end
 	end
 	-- we cheat here and update builder count
@@ -742,13 +792,15 @@ local function RemoveSelectedUnit(unitID, mouseover)
 	--if not show_selected_weapon_ranges then return end
 	local collections = selections
 	if mouseover then collections = mouseovers end
+	local scalingUnitParams = unitRangeScale.selections
+	if mouseover then scalingUnitParams = unitRangeScale.mouseovers end
 
 	local removedRings = 0
 	if collections[unitID] then
 		local collection = collections[unitID]
 		if not collection then return end
 		for instanceKey, vaoKey in pairs(collection.vaokeys) do
-			--Spring.Echo(vaoKey,instanceKey)
+			--spEcho(vaoKey,instanceKey)
 			popElementInstance(attackRangeVAOs[vaoKey], instanceKey)
 			removedRings = removedRings + 1
 		end
@@ -757,6 +809,10 @@ local function RemoveSelectedUnit(unitID, mouseover)
 			selBuilderCount = selBuilderCount - 1
 		end
 		collections[unitID] = nil
+		if scalingUnitParams[unitID] then
+			scalingUnitParams[unitID] = nil
+			numScalingUnits = numScalingUnits - 1
+		end
 	end
 end
 
@@ -766,7 +822,7 @@ end
 
 local function InitializeBuilders()
 	builders = {}
-	for _, unitID in ipairs(Spring.GetTeamUnits(Spring.GetMyTeamID())) do
+	for _, unitID in ipairs(Spring.GetTeamUnits(spGetMyTeamID())) do
 		if unitBuilder[spGetUnitDefID(unitID)] then
 			builders[unitID] = true
 		end
@@ -774,7 +830,7 @@ local function InitializeBuilders()
 end
 
 local function makeShaders()
-	attackRangeShader = LuaShader.CheckShaderUpdates(shaderSourceCache, 0)
+	attackRangeShader = LuaShader.CheckShaderUpdates(shaderSourceCache, 0) or attackRangeShader
 	if not attackRangeShader then
 		goodbye("Failed to compile attackRangeShader GL4 ")
 		return false
@@ -808,6 +864,48 @@ local function initGL4()
 	return makeShaders()
 end
 
+local function DoRangeUpdate(unitID, scalingUnit, mouseover)
+	local newRange = {}
+	local update
+	for instanceID, oldRange in pairs(scalingUnit.oldRange) do
+		local weaponNum = oldRange[1]
+		newRange[weaponNum] = spGetUnitWeaponState(unitID, weaponNum, "range")
+		if oldRange[2] ~= newRange[weaponNum] then
+			update = true
+		end
+	end
+	if update then
+		RemoveSelectedUnit(unitID, mouseover)			-- need to refresh this unit's ring
+		AddSelectedUnit(unitID, mouseover, newRange)
+	end
+end
+
+local function UpdateScalingRange()			-- This function, and anything related to unitRangeScale, scalingUnitParams, and newRange are parts of a hook for Gunslingers or future/modded units that gain range with EXP.
+	local scalingUnitParams = unitRangeScale
+	for unitID, scalingUnit  in pairs(scalingUnitParams.selections) do
+		DoRangeUpdate(unitID, scalingUnit)
+	end
+	for unitID, scalingUnit  in pairs(scalingUnitParams.mouseovers) do
+		local mouseover = true
+		DoRangeUpdate(unitID, scalingUnit, mouseover)
+	end
+end
+
+-- refresh all display according to toggle status
+local function RefreshEverything()
+	-- what about just reinitialize?
+	attackRangeVAOs = {}
+	selections = {}
+	selUnitCount = 0
+	selectedUnits = {}
+	selUnits = {}
+	mouseovers = {}
+	unitRangeScale = { selections = {}, mouseovers = {} }
+	numScalingUnits = 0
+
+	widget:Initialize()
+end
+
 local function toggleShowSelectedRanges(on)
 	if show_selected_weapon_ranges == on then return end
 	show_selected_weapon_ranges = on
@@ -815,7 +913,70 @@ end
 
 local function toggleCursorRange(_, _, args)
 	cursor_unit_range = not cursor_unit_range
-	Spring.Echo("Cursor unit range set to: " .. (cursor_unit_range and "ON" or "OFF"))
+	spEcho("Cursor unit range set to: " .. (cursor_unit_range and "ON" or "OFF"))
+end
+
+-- direction should be 1 or -1 (next or previous bitmap value)
+local function cycleUnitDisplay(direction)
+	if (selUnitCount > 1) or (selUnitCount == 0) then
+		spEcho("Please select only one unit to change display setting!")
+		return
+	end
+	local unitID = selectedUnits[1]
+	if not unitID then return end
+
+	local alliedUnit = (spGetUnitAllyTeam(unitID) == myAllyTeam)
+	local allystring = alliedUnit and "ally" or "enemy"
+	local unitDefID = spGetUnitDefID(unitID)
+	if unitMaxWeaponRange[unitDefID] == 0 and not unitBuilder[unitDefID] then
+		spEcho("Unit has no weapon range!")
+		return
+	end
+	local name = unitName[unitDefID]
+	local wToggleStatuses = {}
+	local newToggleStatuses = {}
+	unitToggles[name] = unitToggles[name] or {}
+	if not unitToggles[name][allystring] then -- default toggle is on, we set it to off (0)
+		for i = 1, #unitDefRings[unitDefID].weapons do
+			wToggleStatuses[i] = true -- every ring defined weapon is on by default
+		end
+		newToggleStatuses = getNextWeaponCombination(wToggleStatuses, direction)
+		unitToggles[name][allystring] = newToggleStatuses
+	else -- there's already something stored here so we toggle this value
+		wToggleStatuses = unitToggles[name][allystring]
+		newToggleStatuses = getNextWeaponCombination(wToggleStatuses, direction)
+		unitToggles[name][allystring] = newToggleStatuses
+	end
+	local bitmap = convertToBitmap(newToggleStatuses)
+	local maxConfigBitmap = 2 ^ #newToggleStatuses - 1
+	-- some crude info display for now
+	spEcho("Changed range display of " .. name ..
+		" to config " .. tostring(bitmap) ..
+		": " .. table.toString(unitToggles[name][allystring]))
+
+	-- write toggle changes to file
+	table.save(unitToggles, "LuaUI/config/AttackRangeConfig2.lua", "--Attack Range Display Configuration (v2)")
+	-- play a sound cue based on status bitmap state: max means all on, 0 means all off
+	local soundEffect = 'Sounds/commands/cmd-defaultweapon.wav'
+	local soundEffectOn = 'Sounds/commands/cmd-on.wav'
+	local soundEffectOff = 'Sounds/commands/cmd-off.wav'
+	local volume = 0.3
+	if bitmap == maxConfigBitmap then
+		soundEffect = soundEffectOn
+		volume = 1.0
+	elseif bitmap == 0 then
+		soundEffect = soundEffectOff
+		volume = 0.6
+	end
+	Spring.PlaySoundFile(soundEffect, volume, 'ui')
+
+	RefreshEverything()
+end
+
+local function cycleUnitDisplayHandler(_, _, _, data)
+	local data = data or {}
+	local direction = data["direction"]
+	cycleUnitDisplay(direction)
 end
 
 function widget:PlayerChanged(playerID)
@@ -839,9 +1000,11 @@ function widget:Initialize()
 	end
 
 	widgetHandler:AddAction("cursor_range_toggle", toggleCursorRange, nil, "p")
+	widgetHandler:AddAction("attack_range_inc", cycleUnitDisplayHandler, {direction = 1}, "p")
+	widgetHandler:AddAction("attack_range_dec", cycleUnitDisplayHandler, {direction = -1}, "p")
 
 	myAllyTeam = Spring.GetMyAllyTeamID()
-	myTeamID = Spring.GetMyTeamID()
+	myTeamID = spGetMyTeamID()
 
 	updateSelection = true
 	local _, _, _, shift = GetModKeyState()
@@ -875,6 +1038,8 @@ end
 
 function widget:Shutdown()
 	widgetHandler:RemoveAction("cursor_range_toggle", "p")
+	widgetHandler:RemoveAction("attack_range_inc", "p")
+	widgetHandler:RemoveAction("attack_range_dec", "p")
 end
 
 local gameFrame = 0
@@ -887,7 +1052,7 @@ local function RefreshSelectedUnits()
 	local newSelUnits = {}
 	for i, unitID in ipairs(selectedUnits) do
 		newSelUnits[unitID] = true
-		if not selUnits[unitID] and selUnitCount < math.floor(selectionDisableThreshold * selectionDisableThresholdMult) then
+		if not selUnits[unitID] and selUnitCount < mathFloor(selectionDisableThreshold * selectionDisableThresholdMult) then
 			AddSelectedUnit(unitID)
 		end
 	end
@@ -924,85 +1089,9 @@ local function DrawBuilders()
 	end
 end
 
--- refresh all display according to toggle status
-local function RefreshEverything()
-	-- what about just reinitialize?
-	attackRangeVAOs = {}
-	selections = {}
-	selUnitCount = 0
-	selectedUnits = {}
-	selUnits = {}
-	mouseovers = {}
-
-	widget:Initialize()
-end
-
--- direction should be 1 or -1 (next or previous bitmap value)
-local function CycleUnitDisplay(direction)
-	if (selUnitCount > 1) or (selUnitCount == 0) then
-		Spring.Echo("Please select only one unit to change display setting!")
-		return
-	end
-	local unitID = selectedUnits[1]
-	if not unitID then return end
-
-	local alliedUnit = (spGetUnitAllyTeam(unitID) == myAllyTeam)
-	local allystring = alliedUnit and "ally" or "enemy"
-	local unitDefID = spGetUnitDefID(unitID)
-	if unitMaxWeaponRange[unitDefID] == 0 and not unitBuilder[unitDefID] then
-		Spring.Echo("Unit has no weapon range!")
-		return
-	end
-	local name = unitName[unitDefID]
-	local wToggleStatuses = {}
-	local newToggleStatuses = {}
-	unitToggles[name] = unitToggles[name] or {}
-	if not unitToggles[name][allystring] then -- default toggle is on, we set it to off (0)
-		for i = 1, #unitDefRings[unitDefID].weapons do
-			wToggleStatuses[i] = true -- every ring defined weapon is on by default
-		end
-		newToggleStatuses = getNextWeaponCombination(wToggleStatuses, direction)
-		unitToggles[name][allystring] = newToggleStatuses
-	else -- there's already something stored here so we toggle this value
-		wToggleStatuses = unitToggles[name][allystring]
-		newToggleStatuses = getNextWeaponCombination(wToggleStatuses, direction)
-		unitToggles[name][allystring] = newToggleStatuses
-	end
-	local bitmap = convertToBitmap(newToggleStatuses)
-	local maxConfigBitmap = 2 ^ #newToggleStatuses - 1
-	-- some crude info display for now
-	Spring.Echo("Changed range display of " .. name ..
-		" to config " .. tostring(bitmap) ..
-		": " .. table.toString(unitToggles[name][allystring]))
-
-	-- write toggle changes to file
-	table.save(unitToggles, "LuaUI/config/AttackRangeConfig2.lua", "--Attack Range Display Configuration (v2)")
-	-- play a sound cue based on status bitmap state: max means all on, 0 means all off
-	local soundEffect = 'Sounds/commands/cmd-defaultweapon.wav'
-	local soundEffectOn = 'Sounds/commands/cmd-on.wav'
-	local soundEffectOff = 'Sounds/commands/cmd-off.wav'
-	local volume = 0.3
-	if bitmap == maxConfigBitmap then
-		soundEffect = soundEffectOn
-		volume = 1.0
-	elseif bitmap == 0 then
-		soundEffect = soundEffectOff
-		volume = 0.6
-	end
-	Spring.PlaySoundFile(soundEffect, volume, 'ui')
-
-	RefreshEverything()
-end
-
 function widget:KeyPress(key, mods, isRepeat)
 	if key == 304 then
 		shifted = true
-	end
-	if key == 46 and mods.alt then
-		CycleUnitDisplay(1) -- cycle forward
-	end
-	if key == 44 and mods.alt then
-		CycleUnitDisplay(-1) -- cycle backward
 	end
 end
 
@@ -1012,9 +1101,21 @@ function widget:KeyRelease(key, mods, isRepeat)
 	end
 end
 
+local timeSinceLastRangeUpdate = 0
 function widget:Update(dt)
 	if updateSelection and gameFrame % 3 == 0 then
 		UpdateSelectedUnits()
+	end
+
+	if numScalingUnits > 0 then
+		timeSinceLastRangeUpdate = timeSinceLastRangeUpdate + dt
+	else
+		timeSinceLastRangeUpdate = 0
+	end
+
+	if timeSinceLastRangeUpdate > DYNAMIC_RANGE_UPDATE_RATE then
+		UpdateScalingRange()			-- This function is relatively expensive, so we only run it when we need to.
+		timeSinceLastRangeUpdate = 0
 	end
 
 	if show_selected_weapon_ranges and cursor_unit_range and gameFrame % 3 == 1 then
@@ -1133,7 +1234,13 @@ function widget:DrawWorld(inMiniMap)
 
 	if chobbyInterface or not (selUnitCount > 0 or mouseUnit) then return end
 	if not Spring.IsGUIHidden() and (not WG['topbar'] or not WG['topbar'].showingQuit()) then
-		cameraHeightFactor = GetCameraHeightFactor() * 0.5 + 0.5
+		-- For PIP minimap, use thicker lines since PIP is larger than engine minimap
+		local inPip = inMiniMap and WG['minimap'] and WG['minimap'].isDrawingInPip
+		if inPip then
+			cameraHeightFactor = 2.5  -- PIP is larger, needs thicker lines
+		else
+			cameraHeightFactor = GetCameraHeightFactor() * 0.5 + 0.5
+		end
 		glTexture(0, "$heightmap")
 		glTexture(1, "$info")
 		-- glTexture(2, '$normals')
@@ -1161,10 +1268,18 @@ function widget:DrawWorld(inMiniMap)
 			attackRangeShader:SetUniform("drawAlpha", colorConfig.fill_alpha)
 			attackRangeShader:SetUniform("fadeDistOffset", colorConfig.outer_fade_height_difference)
 
+			-- Pass PIP visible area if drawing in PIP minimap
+			if inMiniMap and WG['minimap'] and WG['minimap'].isDrawingInPip and WG['minimap'].getNormalizedVisibleArea then
+				local left, right, bottom, top = WG['minimap'].getNormalizedVisibleArea()
+				attackRangeShader:SetUniform("pipVisibleArea", left, right, bottom, top)
+			else
+				attackRangeShader:SetUniform("pipVisibleArea", 0, 1, 0, 1)
+			end
+
 			DRAWRINGS(GL_TRIANGLE_FAN) -- FILL THE CIRCLES
 
 			-- Draw the outside rings by testing the stencil buffer
-			glLineWidth(math.max(0.1, 4 + math.sin(gameFrame * 0.04) * 10))
+			glLineWidth(mathMax(0.1, 4 + math.sin(gameFrame * 0.04) * 10))
 			glColorMask(true, true, true, true) -- re-enable color drawing
 			glStencilMask(0)
 			glDepthTest(GL_LEQUAL) -- test for depth on these outside cases

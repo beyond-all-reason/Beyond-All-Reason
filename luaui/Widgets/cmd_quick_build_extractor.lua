@@ -13,11 +13,23 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spTraceScreenRay = Spring.TraceScreenRay
+local spGetMouseState = Spring.GetMouseState
+local spSetMouseCursor = Spring.SetMouseCursor
+local spGetModKeyState = Spring.GetModKeyState
+
 local CMD_RECLAIM = CMD.RECLAIM
 
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPosition = Spring.GetUnitPosition
+
+local mathAbs = math.abs
+local mathHuge = math.huge
+local mathDistance2dSquared = math.distance2dSquared
+local mathPiHalf = math.pi / 2
 
 -- These are arbitrary values that feel right - basing this on the ever-changing values of mex radius results in a really confusing experience
 local geoPlacementRadius = 5000
@@ -42,7 +54,14 @@ local selectedGeo
 local metalMap = false
 local buildCmd = {}
 
+-- Pre-allocated reusable tables to avoid per-update allocations
+local reusePos = { x = 0, y = 0, z = 0 }
+local reuseCmdPos = { 0, 0, 0 }
+local reuseUnitShape = { 0, 0, 0, 0, 0, 0 }
+
 local updateTime = 0
+local lastMx, lastMy = -1, -1
+local selectionDirty = true
 
 local isCloakableBuilder = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -50,25 +69,30 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		isCloakableBuilder[unitDefID] = true
 	end
 end
+local spGetUnitStates = Spring.GetUnitStates
 local function unitIsCloaked(uDefId)
-	return isCloakableBuilder[Spring.GetUnitDefID(uDefId)] and select(5,Spring.GetUnitStates(uDefId,false,true))
+	return isCloakableBuilder[spGetUnitDefID(uDefId)] and select(5, spGetUnitStates(uDefId, false, true))
 end
 
+
+local spotFinder
+local spotBuilder
 
 function widget:Initialize()
 	if not WG.DrawUnitShapeGL4 then
 		widgetHandler:RemoveWidget()
 	end
 
-	local builder = WG.resource_spot_builder
+	spotBuilder = WG.resource_spot_builder
+	spotFinder = WG.resource_spot_finder
 
-	mexConstructors = builder.GetMexConstructors()
-	geoConstructors = builder.GetGeoConstructors()
+	mexConstructors = spotBuilder.GetMexConstructors()
+	geoConstructors = spotBuilder.GetGeoConstructors()
 
-	mexBuildings = builder.GetMexBuildings()
-	geoBuildings = builder.GetGeoBuildings()
+	mexBuildings = spotBuilder.GetMexBuildings()
+	geoBuildings = spotBuilder.GetGeoBuildings()
 
-	local metalSpots = WG["resource_spot_finder"].metalSpotsList
+	local metalSpots = spotFinder.metalSpotsList
 	if not metalSpots or (#metalSpots > 0 and #metalSpots <= 2) then
 		metalMap = true
 	end
@@ -84,22 +108,24 @@ local function clearGhostBuild()
 	selectedGeo = nil
 	selectedSpot = nil
 	selectedPos = nil
-	buildCmd = {}
+	buildCmd[1] = nil
+	lastMx, lastMy = -1, -1
 end
 
 
 local selectedUnits = Spring.GetSelectedUnits()
 function widget:SelectionChanged(sel)
 	selectedUnits = sel
-	bestMex = WG['resource_spot_builder'].GetBestExtractorFromBuilders(selectedUnits, mexConstructors, mexBuildings)
-	bestGeo = WG['resource_spot_builder'].GetBestExtractorFromBuilders(selectedUnits, geoConstructors, geoBuildings)
+	bestMex = spotBuilder.GetBestExtractorFromBuilders(selectedUnits, mexConstructors, mexBuildings)
+	bestGeo = spotBuilder.GetBestExtractorFromBuilders(selectedUnits, geoConstructors, geoBuildings)
+	selectionDirty = true
 end
 
 
 function widget:Update(dt)
-	if(selectedSpot or selectedPos) then
+	if(selectedSpot or selectedPos) and (selectedMex or selectedGeo) then
 		-- we want to do this every frame to avoid cursor flicker. Rest of work can be on a timer
-		Spring.SetMouseCursor('upgmex')
+		spSetMouseCursor(selectedMex and 'upgmex' or 'upgmex')
 	end
 
 	updateTime = updateTime + dt
@@ -116,6 +142,7 @@ function widget:Update(dt)
 
 	-- Don't do anything with cloaked units
 	if #selectedUnits == 1 and unitIsCloaked(selectedUnits[1]) then
+		clearGhostBuild()
 		return
 	end
 
@@ -131,12 +158,20 @@ function widget:Update(dt)
 		return
 	end
 
+	local mx, my = spGetMouseState()
+
+	-- Skip all expensive work if mouse hasn't moved and selection hasn't changed
+	if mx == lastMx and my == lastMy and not selectionDirty then
+		return
+	end
+	lastMx, lastMy = mx, my
+	selectionDirty = false
+
 	local extractor
-	local mx, my = Spring.GetMouseState()
 
 	-- First check unit under cursor. If it's an extractor, see if there's valid upgrades
 	-- If it's not an extractor, simply exit
-	local type, rayParams = Spring.TraceScreenRay(mx, my)
+	local type, rayParams = spTraceScreenRay(mx, my)
 	local unitUuid = type == 'unit' and rayParams
 	local unitDefID = type == 'unit' and spGetUnitDefID(rayParams)
 
@@ -147,20 +182,20 @@ function widget:Update(dt)
 			local x, y, z = spGetUnitPosition(unitUuid)
 
 			extractor = unitIsMex and bestMex or bestGeo
-			local canUpgrade = WG['resource_spot_builder'].ExtractorCanBeUpgraded(unitUuid, extractor)
+			local canUpgrade = spotBuilder.ExtractorCanBeUpgraded(unitUuid, extractor)
 			if not canUpgrade then
 				clearGhostBuild()
 				return
 			end
 
+			reusePos.x = x; reusePos.y = y; reusePos.z = z
+			selectedPos = reusePos
 			if unitIsMex then
-				selectedPos = { x = x, y = y, z = z }
 				selectedMex = bestMex
-				selectedSpot = WG['resource_spot_finder'].GetClosestMexSpot(x, z)
+				selectedSpot = spotFinder.GetClosestMexSpot(x, z)
 			else
-				selectedPos = { x = x, y = y, z = z }
 				selectedGeo = bestGeo
-				selectedSpot = WG['resource_spot_finder'].GetClosestGeoSpot(x, z)
+				selectedSpot = spotFinder.GetClosestGeoSpot(x, z)
 			end
 		else
 			clearGhostBuild()
@@ -168,30 +203,30 @@ function widget:Update(dt)
 		end
 	elseif not metalMap then
 		-- If no valid units, check cursor position against extractor spots
-		local _, groundPos = Spring.TraceScreenRay(mx, my, true, false, false, true)
+		local _, groundPos = spTraceScreenRay(mx, my, true, false, false, true)
 		if not groundPos or not groundPos[1] then
 			clearGhostBuild()
 			return
 		end
-		local pos = { x = groundPos[1], y = groundPos[2], z = groundPos[3] }
-		local nearestMex = WG["resource_spot_finder"].GetClosestMexSpot(pos.x, pos.z)
-		local nearestGeo = WG["resource_spot_finder"].GetClosestGeoSpot(pos.x, pos.z)
+		local gpx, gpz = groundPos[1], groundPos[3]
+		local nearestMex = spotFinder.GetClosestMexSpot(gpx, gpz)
+		local nearestGeo = spotFinder.GetClosestGeoSpot(gpx, gpz)
 
-		local mexDist = math.huge
-		local geoDist = math.huge
-		if nearestMex then
-			mexDist = math.distance2dSquared(nearestMex.x, nearestMex.z, pos.x, pos.z)
+		local mexDist = mathHuge
+		local geoDist = mathHuge
+		if nearestMex and bestMex then
+			mexDist = mathDistance2dSquared(nearestMex.x, nearestMex.z, gpx, gpz)
 		end
-		if nearestGeo then
-			geoDist = math.distance2dSquared(nearestGeo.x, nearestGeo.z, pos.x, pos.z)
+		if nearestGeo and bestGeo then
+			geoDist = mathDistance2dSquared(nearestGeo.x, nearestGeo.z, gpx, gpz)
 		end
 
 		-- Figure out if mex or geo is in range
-		if mexDist < math.huge and mexDist < geoDist and mexDist < mexPlacementRadius then
+		if mexDist < mathHuge and mexDist < geoDist and mexDist < mexPlacementRadius then
 			selectedMex = bestMex
 			extractor = bestMex
 			selectedSpot = nearestMex
-		elseif geoDist < math.huge and geoDist < mexDist and geoDist < geoPlacementRadius then
+		elseif geoDist < mathHuge and geoDist < mexDist and geoDist < geoPlacementRadius then
 			selectedGeo = bestGeo
 			extractor = bestGeo
 			selectedSpot = nearestGeo
@@ -200,7 +235,7 @@ function widget:Update(dt)
 			return
 		end
 
-		local canBuild = WG['resource_spot_builder'].ExtractorCanBeBuiltOnSpot(selectedSpot, extractor)
+		local canBuild = spotBuilder.ExtractorCanBeBuiltOnSpot(selectedSpot, extractor)
 		if not canBuild then
 			clearGhostBuild()
 			return
@@ -211,19 +246,22 @@ function widget:Update(dt)
 	-- Set up ghost
 	if extractor and (selectedSpot or (selectedPos and metalMap)) then
 		-- we only want to build on the center, so we pass the spot in for the position, instead of the groundPos
-		local cmdPos = selectedPos and { selectedPos.x, selectedPos.y, selectedPos.z } or { selectedSpot.x, selectedSpot.y, selectedSpot.z }
-		local cmd = WG["resource_spot_builder"].PreviewExtractorCommand(cmdPos, extractor, selectedSpot, metalMap)
+		local src = selectedPos or selectedSpot
+		reuseCmdPos[1] = src.x; reuseCmdPos[2] = src.y; reuseCmdPos[3] = src.z
+		local cmd = spotBuilder.PreviewExtractorCommand(reuseCmdPos, extractor, selectedSpot, metalMap)
 		if not cmd then
 			clearGhostBuild()
 			return
 		end
 		buildCmd[1] = cmd
-		local newUnitShape = { math.abs(extractor), cmd[2], cmd[3], cmd[4], cmd[5], cmd[6] }
+		local newDef = mathAbs(extractor)
+		local newX, newY, newZ = cmd[2], cmd[3], cmd[4]
 		-- check equality by position
-		if unitShape and (unitShape[2] ~= newUnitShape[2] or unitShape[3] ~= newUnitShape[3] or unitShape[4] ~= newUnitShape[4]) then
+		if unitShape and (unitShape[2] ~= newX or unitShape[3] ~= newY or unitShape[4] ~= newZ) then
 			clearGhostBuild()
 		end
-		unitShape = newUnitShape
+		reuseUnitShape[1] = newDef; reuseUnitShape[2] = newX; reuseUnitShape[3] = newY; reuseUnitShape[4] = newZ; reuseUnitShape[5] = cmd[5]; reuseUnitShape[6] = cmd[6]
+		unitShape = reuseUnitShape
 	else
 		unitShape = false
 	end
@@ -232,7 +270,7 @@ function widget:Update(dt)
 	if WG.DrawUnitShapeGL4 then
 		if unitShape then
 			if not activeShape then
-				activeShape = WG.DrawUnitShapeGL4(unitShape[1], unitShape[2], unitShape[3], unitShape[4], unitShape[5] * (math.pi / 2), 0.66, unitShape[6], 0.15, 0.3)
+				activeShape = WG.DrawUnitShapeGL4(unitShape[1], unitShape[2], unitShape[3], unitShape[4], unitShape[5] * mathPiHalf, 0.66, unitShape[6], 0.15, 0.3)
 			end
 		elseif activeShape then
 			clearGhostBuild()
@@ -250,6 +288,7 @@ function widget:MousePress(x, y, button)
 	-- update runs on a timer for performance reasons, but this can result in edge-cases where if
 	-- the click happens at a certain time, the build commands won't be ready yet, and a guard
 	-- command will be issued. We force an update on click to make sure that all the data needed is here and ready
+	lastMx, lastMy = -1, -1 -- force fresh update
 	widget:Update(1)
 
 	if not buildCmd or not buildCmd[1] then
@@ -257,13 +296,13 @@ function widget:MousePress(x, y, button)
 	end
 
 	if (button == 3) then
-		local alt, ctrl, meta, shift = Spring.GetModKeyState()
+		local _, _, _, shift = spGetModKeyState()
 		if selectedMex then
-			WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, mexConstructors, shift)
+			spotBuilder.ApplyPreviewCmds(buildCmd, mexConstructors, shift)
 			return true
 		end
 		if selectedGeo then
-			WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, geoConstructors, shift)
+			spotBuilder.ApplyPreviewCmds(buildCmd, geoConstructors, shift)
 			return true
 		end
 	end

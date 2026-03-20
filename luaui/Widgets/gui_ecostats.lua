@@ -17,7 +17,67 @@ function widget:GetInfo()
 	}
 end
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
+-- Localized functions for performance
+local mathCeil = math.ceil
+local mathFloor = math.floor
+local mathMax = math.max
+local mathClamp = math.clamp
+local mathSin = math.sin
+local mathIsInRect = math.isInRect
+local stringSub = string.sub
+local stringFormatSI = string.formatSI
+local pairs = pairs
+local ipairs = ipairs
+local type = type
+local select = select
+local osClock = os.clock
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spGetMyTeamID = Spring.GetMyTeamID
+local spEcho = Spring.Echo
+local spGetSpectatingState = Spring.GetSpectatingState
+local spGetTeamUnitsByDefs = Spring.GetTeamUnitsByDefs
+local spGetGameSeconds = Spring.GetGameSeconds
+local spGetGameSpeed = Spring.GetGameSpeed
+local spGetTeamUnitCount = Spring.GetTeamUnitCount
+local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
+local spGetTeamList = Spring.GetTeamList
+local spGetTeamInfo = Spring.GetTeamInfo
+local spGetPlayerInfo = Spring.GetPlayerInfo
+local spGetTeamColor = Spring.GetTeamColor
+local spGetTeamResources = Spring.GetTeamResources
+local spGetUnitResources = Spring.GetUnitResources
+local spGetMyPlayerID = Spring.GetMyPlayerID
+local spGetGaiaTeamID = Spring.GetGaiaTeamID
+local spGetAllyTeamList = Spring.GetAllyTeamList
+local spIsReplay = Spring.IsReplay
+local spGetLocalAllyTeamID = Spring.GetLocalAllyTeamID
+local spGetViewGeometry = Spring.GetViewGeometry
+local spGetTeamStartPosition = Spring.GetTeamStartPosition
+local spGetTeamUnitDefCount = Spring.GetTeamUnitDefCount
+local spGetUnitIsDead = Spring.GetUnitIsDead
+local spGetAllUnits = Spring.GetAllUnits
+local spGetTeamUnitsByDefs = Spring.GetTeamUnitsByDefs
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitTeam = Spring.GetUnitTeam
+local spGetMouseState = Spring.GetMouseState
+local spSetMouseCursor = Spring.SetMouseCursor
+local spGetConfigFloat = Spring.GetConfigFloat
+
+-- Localized GL API
+local glColor = gl.Color
+local glTexRect = gl.TexRect
+local glTexture = gl.Texture
+local glCallList = gl.CallList
+local glCreateList = gl.CreateList
+local glDeleteList = gl.DeleteList
+local glDeleteTexture = gl.DeleteTexture
+local glCreateTexture = gl.CreateTexture
+local glGetViewSizes = gl.GetViewSizes
+local glPolygonOffset = gl.PolygonOffset
+local glPushMatrix = gl.PushMatrix
+local glPopMatrix = gl.PopMatrix
 
 local cfgResText = true
 local cfgSticktotopbar = true
@@ -34,38 +94,36 @@ local uiElementRects = {}
 local tooltipAreas = {}
 local guishaderRects = {}
 local guishaderRectsDlists = {}
+local guishaderWasActive = false
 local lastTextListUpdate = os.clock() - 10
 local lastBarsUpdate = os.clock() - 10
 local gamestarted = false
 local gameover = false
 local inSpecMode = false
-local isReplay = Spring.IsReplay()
-local myAllyID = Spring.GetLocalAllyTeamID()
-local vsx, vsy = Spring.GetViewGeometry()
+
+-- Consolidated scratch/cache table to stay under 200-local limit
+local eco = {
+	ecoKey = {},        -- ecoKey[allyID] = 'ecostats_' .. allyID
+	ecoTeamKey = {},    -- ecoTeamKey[tID] = 'ecostats_team_' .. tID
+	isTeamRealCache = {},
+	isTeamRealDirty = true,
+	gameSeconds = 0,
+	-- pre-computed geometry (refreshed on resize)
+	tctSpecDxOffset = 0,
+	tctBorderOffset = 0,
+}
+local isReplay = spIsReplay()
+local myAllyID = spGetLocalAllyTeamID()
+local vsx, vsy = spGetViewGeometry()
 local topbarShowButtons = true
 
-local sin = math.sin
-local floor = math.floor
-local math_isInRect = math.isInRect
-
-local GetGameSeconds = Spring.GetGameSeconds
-local GetGameFrame = Spring.GetGameFrame
-local glColor = gl.Color
-local glTexRect = gl.TexRect
-
-local GetGameSpeed = Spring.GetGameSpeed
-local GetTeamUnitCount = Spring.GetTeamUnitCount
-local GetMyAllyTeamID = Spring.GetMyAllyTeamID
-local GetTeamList = Spring.GetTeamList
-local GetTeamInfo = Spring.GetTeamInfo
-local GetPlayerInfo = Spring.GetPlayerInfo
-local GetTeamColor = Spring.GetTeamColor
-local GetTeamResources = Spring.GetTeamResources
-local GetUnitResources = Spring.GetUnitResources
+local sin = mathSin
+local floor = mathFloor
+local math_isInRect = mathIsInRect
 
 local RectRound, UiElement
 
-local font, teamCompositionList
+local font
 
 local Button = {}
 
@@ -84,15 +142,17 @@ local maxPlayers = 0
 local refreshCaptions = false
 local maxMetal, maxEnergy = 0, 0
 
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+local ui_scale = tonumber(spGetConfigFloat("ui_scale", 1) or 1)
 
 local maxTeamsize = 0
-for i=0, #Spring.GetAllyTeamList()-1 do
-	if #Spring.GetTeamList(i) > maxTeamsize then
-		maxTeamsize = #Spring.GetTeamList(i)
+local allyTeamListLen = #spGetAllyTeamList()
+for i = 0, allyTeamListLen - 1 do
+	local teamListLen = #spGetTeamList(i)
+	if teamListLen > maxTeamsize then
+		maxTeamsize = teamListLen
 	end
 end
-local playerScale = math.clamp(14 / maxTeamsize, 0.15, 1)
+local playerScale = mathClamp(14 / maxTeamsize, 0.15, 1)
 
 local widgetScale = 0.95 + (vsx * vsy / 7500000)        -- only used for rounded corners atm
 local sizeMultiplier = 1
@@ -100,13 +160,15 @@ local borderPadding = 4.5
 local avgFrames = 8
 local xRelPos, yRelPos = 1, 1
 local widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
-local singleTeams = (#Spring.GetTeamList() - 1 == #Spring.GetAllyTeamList() - 1)
+local teamListLen = #spGetTeamList()
+local allyTeamListLen2 = #spGetAllyTeamList()
+local singleTeams = (teamListLen - 1 == allyTeamListLen2 - 1)
 local enableStartposbuttons = not Spring.Utilities.Gametype.IsFFA()	-- spots wont match when ffa
-local myFullview = select(2, Spring.GetSpectatingState())
-local myTeamID = Spring.GetMyTeamID()
-local myPlayerID = Spring.GetMyPlayerID()
-local gaiaID = Spring.GetGaiaTeamID()
-local gaiaAllyID = select(6, GetTeamInfo(gaiaID, false))
+local myFullview = select(2, spGetSpectatingState())
+local myTeamID = spGetMyTeamID()
+local myPlayerID = spGetMyPlayerID()
+local gaiaID = spGetGaiaTeamID()
+local gaiaAllyID = select(6, spGetTeamInfo(gaiaID, false))
 
 local images = {
 	bar = "LuaUI/Images/ecostats/bar.png",
@@ -116,36 +178,50 @@ local images = {
 }
 
 local comDefs = {}
+local comDefList = {}
 local reclaimerUnitDefs = {}
+local reclaimerDefIDList = {}
 for udefID, def in ipairs(UnitDefs) do
 	if def.isBuilder and not def.isFactory then
 		reclaimerUnitDefs[udefID] = { def.metalMake, def.energyMake }
+		reclaimerDefIDList[#reclaimerDefIDList + 1] = udefID
 	end
 	if def.customParams.iscommander then
 		comDefs[udefID] = true
+		comDefList[#comDefList + 1] = udefID
 	end
 end
 
-local function getTeamSum(allyIndex, param)
-	local tValue = 0
+local function getTeamSums(allyIndex)
+	local tE, tEr, tM, tMr, sx, sy = 0, 0, 0, 0, 0, 0
 	local teamList = allyData[allyIndex].teams
-	for _, tID in pairs(teamList) do
+	local teamListLen = #teamList
+	for i = 1, teamListLen do
+		local tID = teamList[i]
 		if tID ~= gaiaID then
-			tValue = tValue + (teamData[tID][param] or 0)
+			local d = teamData[tID]
+			if d then
+				tE = tE + (d.einc or 0)
+				tEr = tEr + (d.erecl or 0)
+				tM = tM + (d.minc or 0)
+				tMr = tMr + (d.mrecl or 0)
+				sx = sx + (d.startx or 0)
+				sy = sy + (d.starty or 0)
+			end
 		end
 	end
-	return tValue
+	return tE, tEr, tM, tMr, sx, sy
 end
 
-local function isTeamReal(allyID)
+local function isTeamRealUncached(allyID)
 	if allyID == nil then
 		return false
 	end
 	local leaderID, isDead, unitCount, leaderName
-	for _, tID in ipairs(GetTeamList(allyID)) do
-		_, leaderID, isDead = GetTeamInfo(tID, false)
-		unitCount = GetTeamUnitCount(tID)
-		leaderName = GetPlayerInfo(leaderID, false)
+	for _, tID in ipairs(spGetTeamList(allyID)) do
+		_, leaderID, isDead = spGetTeamInfo(tID, false)
+		unitCount = spGetTeamUnitCount(tID)
+		leaderName = spGetPlayerInfo(leaderID, false)
 		leaderName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(leaderID)) or leaderName
 		if leaderName ~= nil or isDead or unitCount > 0 then
 			return true
@@ -154,8 +230,30 @@ local function isTeamReal(allyID)
 	return false
 end
 
+local function refreshIsTeamRealCache()
+	if not eco.isTeamRealDirty then return end
+	eco.isTeamRealDirty = false
+	for _, data in ipairs(allyData) do
+		local aID = data.aID
+		if aID then
+			eco.isTeamRealCache[aID] = isTeamRealUncached(aID)
+		end
+	end
+end
+
+local function isTeamReal(allyID)
+	local cached = eco.isTeamRealCache[allyID]
+	if cached ~= nil then return cached end
+	local result = isTeamRealUncached(allyID)
+	eco.isTeamRealCache[allyID] = result
+	return result
+end
+
 local function isTeamAlive(allyID)
-	for _, tID in pairs(allyData[allyID + 1].teams) do
+	local teams = allyData[allyID + 1].teams
+	local teamsLen = #teams
+	for i = 1, teamsLen do
+		local tID = teams[i]
 		if teamData[tID] and (not teamData[tID].isDead) then
 			return true
 		end
@@ -189,20 +287,20 @@ local function getNbPlacedPositions(teamID)
 	local nbPlayers = 0
 	local startx, starty, active, leaderID, leaderName, isDead
 
-	for _, pID in ipairs(GetTeamList(teamID)) do
+	for _, pID in ipairs(spGetTeamList(teamID)) do
 		if teamData[pID] == nil then
-			Spring.Echo("getNbPlacedPositions returned nil:", teamID)
+			spEcho("getNbPlacedPositions returned nil:", teamID)
 			return nil
 		end
 		leaderID = teamData[pID].leaderID
 		if leaderID == nil then
-			Spring.Echo("getNbPlacedPositions returned nil:", teamID)
+			spEcho("getNbPlacedPositions returned nil:", teamID)
 			return nil
 		end
 		startx = teamData[pID].startx or -1
 		starty = teamData[pID].starty or -1
 		active = teamData[pID].active
-		leaderName, active = GetPlayerInfo(leaderID, false)
+		leaderName, active = spGetPlayerInfo(leaderID, false)
 		leaderName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(leaderID)) or leaderName
 
 		isDead = teamData[pID].isDead
@@ -220,7 +318,7 @@ local function updateDrawPos()
 		for _, allyID in pairs(WG.allyTeamRanking) do
 			local dataID = allyIDdata[allyID]
 			if allyData[dataID] then
-				if isTeamReal(allyID) and (allyID == GetMyAllyTeamID() or inSpecMode) and allyData[dataID].isAlive then
+				if isTeamReal(allyID) and (allyID == spGetMyAllyTeamID() or inSpecMode) and allyData[dataID].isAlive then
 					aliveAllyTeams = aliveAllyTeams + 1
 					drawpos = drawpos + 1
 					allyData[dataID].drawpos = drawpos
@@ -230,7 +328,7 @@ local function updateDrawPos()
 	else
 		for _, data in ipairs(allyData) do
 			local allyID = data.aID
-			if isTeamReal(allyID) and (allyID == GetMyAllyTeamID() or inSpecMode) and data.isAlive then
+			if isTeamReal(allyID) and (allyID == spGetMyAllyTeamID() or inSpecMode) and data.isAlive then
 				aliveAllyTeams = aliveAllyTeams + 1
 				drawpos = drawpos + 1
 			end
@@ -277,15 +375,17 @@ local function setDefaults()
 	widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
 	borderPadding = 4.5
 	HBadge = tH * 0.5
-	WBadge = math.floor(HBadge * playerScale)
+	WBadge = mathFloor(HBadge * playerScale)
 	cW = 88
 	textsize = 14
 end
 
+local updateTctGeometry  -- forward declaration
+
 local function processScaling()
 	setDefaults()
 	sizeMultiplier = ((vsy / 700) * 0.55) * (1 + (ui_scale - 1) / 1.5)
-	local numAllyteams = #Spring.GetAllyTeamList()-1
+	local numAllyteams = #spGetAllyTeamList() - 1
 	if numAllyteams > 5 then
 		sizeMultiplier = sizeMultiplier * 0.96
 	elseif numAllyteams > 8 then
@@ -296,14 +396,15 @@ local function processScaling()
 		sizeMultiplier = sizeMultiplier * 0.77
 	end
 
-	tH = math.floor(tH * sizeMultiplier)
-	widgetWidth = math.floor(widgetWidth * sizeMultiplier)
-	HBadge = math.floor(HBadge * sizeMultiplier)
-	WBadge = math.floor(HBadge * playerScale)
-	cW = math.floor(cW * sizeMultiplier)
-	textsize = math.floor(textsize * sizeMultiplier)
-	borderPadding = math.floor(borderPadding * sizeMultiplier)
+	tH = mathFloor(tH * sizeMultiplier)
+	widgetWidth = mathFloor(widgetWidth * sizeMultiplier)
+	HBadge = mathFloor(HBadge * sizeMultiplier)
+	WBadge = mathFloor(HBadge * playerScale)
+	cW = mathFloor(cW * sizeMultiplier)
+	textsize = mathFloor(textsize * sizeMultiplier)
+	borderPadding = mathFloor(borderPadding * sizeMultiplier)
 	widgetHeight = getNbTeams() * tH + (2 * sizeMultiplier)
+	updateTctGeometry()
 end
 
 local function getTeamReclaim(teamID)
@@ -312,7 +413,7 @@ local function getTeamReclaim(teamID)
 		if inSpecMode and reclaimerUnits[teamID] ~= nil then
 			local teamUnits = reclaimerUnits[teamID]
 			for unitID, unitDefID in pairs(teamUnits) do
-				local metalMake, _, energyMake = GetUnitResources(unitID)
+				local metalMake, _, energyMake = spGetUnitResources(unitID)
 				if metalMake ~= nil then
 					if metalMake > 0 then
 						totalMetalReclaim = totalMetalReclaim + (metalMake - reclaimerUnitDefs[unitDefID][1])
@@ -328,30 +429,29 @@ local function getTeamReclaim(teamID)
 end
 
 local function checkCommanderAlive(teamID)
-	local hasCom = false
-	for commanderDefID, _ in pairs(comDefs) do
-		if Spring.GetTeamUnitDefCount(teamID, commanderDefID) > 0 then
-			local unitList = Spring.GetTeamUnitsByDefs(teamID, commanderDefID)
-			for i = 1, #unitList do
-				if not Spring.GetUnitIsDead(unitList[i]) then
-					hasCom = true
+	for i = 1, #comDefList do
+		if spGetTeamUnitDefCount(teamID, comDefList[i]) > 0 then
+			local unitList = spGetTeamUnitsByDefs(teamID, comDefList[i])
+			for j = 1, #unitList do
+				if unitList[j] and not spGetUnitIsDead(unitList[j]) then
+					return true
 				end
 			end
 		end
 	end
-	return hasCom
+	return false
 end
 
 local function setTeamTable(teamID)
 	local minc, mrecl, einc, erecl
-	local _, leaderID, isDead, isAI, aID = GetTeamInfo(teamID, false)
-	local leaderName, active, spectator = GetPlayerInfo(leaderID, false)
+	local _, leaderID, isDead, isAI, aID = spGetTeamInfo(teamID, false)
+	local leaderName, active, spectator = spGetPlayerInfo(leaderID, false)
 	leaderName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(leaderID)) or leaderName
 	if teamID == gaiaID then
 		leaderName = "(Gaia)"
 	end
 
-	local tred, tgreen, tblue = GetTeamColor(teamID)
+	local tred, tgreen, tblue = spGetTeamColor(teamID)
 	local luminance = (tred * 0.299) + (tgreen * 0.587) + (tblue * 0.114)
 	if luminance < 0.2 then
 		tred = tred + 0.25
@@ -359,35 +459,36 @@ local function setTeamTable(teamID)
 		tblue = tblue + 0.25
 	end
 
-	_, _, _, minc = GetTeamResources(teamID, "metal")
-	_, _, _, einc = GetTeamResources(teamID, "energy")
+	_, _, _, minc = spGetTeamResources(teamID, "metal")
+	_, _, _, einc = spGetTeamResources(teamID, "energy")
 	erecl, mrecl = getTeamReclaim(teamID)
 
 	if not teamData[teamID] then
 		teamData[teamID] = {}
 	end
 
-	teamData[teamID].teamID = teamID
-	teamData[teamID].allyID = aID
-	teamData[teamID].red = tred
-	teamData[teamID].green = tgreen
-	teamData[teamID].blue = tblue
-	if not teamData[teamID].startx then
-		local x, _, y = Spring.GetTeamStartPosition(teamID)
-		teamData[teamID].startx = x
-		teamData[teamID].starty = y
+	local tData = teamData[teamID]
+	tData.teamID = teamID
+	tData.allyID = aID
+	tData.red = tred
+	tData.green = tgreen
+	tData.blue = tblue
+	if not tData.startx then
+		local x, _, y = spGetTeamStartPosition(teamID)
+		tData.startx = x
+		tData.starty = y
 	end
-	teamData[teamID].isDead = teamData[teamID].isDead or isDead
-	teamData[teamID].hasCom = checkCommanderAlive(teamID)
-	teamData[teamID].minc = minc
-	teamData[teamID].mrecl = mrecl
-	teamData[teamID].einc = einc
-	teamData[teamID].erecl = erecl
-	teamData[teamID].leaderID = leaderID
-	teamData[teamID].leaderName = leaderName
-	teamData[teamID].active = active
-	teamData[teamID].spectator = spectator
-	teamData[teamID].isAI = isAI
+	tData.isDead = tData.isDead or isDead
+	tData.hasCom = checkCommanderAlive(teamID)
+	tData.minc = minc
+	tData.mrecl = mrecl
+	tData.einc = einc
+	tData.erecl = erecl
+	tData.leaderID = leaderID
+	tData.leaderName = leaderName
+	tData.active = active
+	tData.spectator = spectator
+	tData.isAI = isAI
 end
 
 local function setAllyData(allyID)
@@ -398,7 +499,7 @@ local function setAllyData(allyID)
 	local index = allyID + 1
 	if not allyData[index] then
 		allyData[index] = {}
-		local teamList = GetTeamList(allyID)
+		local teamList = spGetTeamList(allyID)
 		allyData[index].teams = teamList
 	end
 
@@ -417,24 +518,26 @@ local function setAllyData(allyID)
 	allyIDdata[allyID] = index
 
 	allyData[index].teams = teamList
-	allyData[index].tE = getTeamSum(index, "einc")
-	allyData[index].tEr = getTeamSum(index, "erecl")
-	allyData[index].tM = getTeamSum(index, "minc")
-	allyData[index].tMr = getTeamSum(index, "mrecl")
+	local tE, tEr, tM, tMr, sx, sy = getTeamSums(index)
+	allyData[index].tE = tE
+	allyData[index].tEr = tEr
+	allyData[index].tM = tM
+	allyData[index].tMr = tMr
 	allyData[index].isAlive = isTeamAlive(allyID)
 	allyData[index].validPlayers = getNbPlacedPositions(allyID)
-	allyData[index].x = getTeamSum(index, "startx")
-	allyData[index].y = getTeamSum(index, "starty")
+	allyData[index].x = sx
+	allyData[index].y = sy
 	allyData[index].leader = teamData[team1].leaderName or "N/A"
 	allyData[index].aID = allyID
 	allyData[index].exists = #teamList > 0
 
 	if not allyData[index].isAlive and cfgRemoveDead then
 		allyData[index] = nil
-		guishaderRects['ecostats_' .. allyID] = nil
-		if WG['guishader'] and guishaderRectsDlists['ecostats_' .. allyID] then
-			WG['guishader'].DeleteDlist('ecostats_' .. allyID)
-			guishaderRectsDlists['ecostats_' .. allyID] = nil
+		local key = eco.ecoKey[allyID] or ('ecostats_' .. allyID)
+		guishaderRects[key] = nil
+		if WG['guishader'] and guishaderRectsDlists[key] then
+			WG['guishader'].DeleteDlist(key)
+			guishaderRectsDlists[key] = nil
 		end
 	end
 end
@@ -459,14 +562,19 @@ local function Init()
 	right = widgetPosX / vsx > 0.5
 
 	allyData = {}
-	for _, allyID in ipairs(Spring.GetAllyTeamList()) do
+	local allyTeamList = spGetAllyTeamList()
+	local allyTeamListLen = #allyTeamList
+	for i = 1, allyTeamListLen do
+		local allyID = allyTeamList[i]
 		if allyID ~= gaiaAllyID then
-			local teamList = GetTeamList(allyID)
+			local teamList = spGetTeamList(allyID)
 			local allyDataIndex = allyID + 1
 			allyData[allyDataIndex] = {}
 			allyData[allyDataIndex].teams = teamList
 			allyData[allyDataIndex].exists = #teamList > 0
-			for _, teamID in pairs(teamList) do
+			local teamListLen = #teamList
+			for j = 1, teamListLen do
+				local teamID = teamList[j]
 				setTeamTable(teamID)
 				Button[teamID] = {}
 			end
@@ -484,44 +592,57 @@ local function Init()
 		HBadge = 14
 	end
 	HBadge = HBadge * sizeMultiplier
-	WBadge = math.floor(HBadge * playerScale)
+	WBadge = mathFloor(HBadge * playerScale)
 
 	if maxPlayers * WBadge + (20 * sizeMultiplier) > widgetWidth then
-		widgetWidth = math.ceil((20 * sizeMultiplier) + maxPlayers * WBadge)
+		widgetWidth = mathCeil((20 * sizeMultiplier) + maxPlayers * WBadge)
 	end
 
 	processScaling()
 	updateButtons()
 	UpdateAllies()
 
-	lastPlayerChange = GetGameFrame()
+	-- Build string key caches
+	for _, data in ipairs(allyData) do
+		local aID = data.aID
+		if aID then
+			eco.ecoKey[aID] = 'ecostats_' .. aID
+		end
+		for _, tID in pairs(data.teams) do
+			eco.ecoTeamKey[tID] = 'ecostats_team_' .. tID
+		end
+	end
+	eco.isTeamRealDirty = true
+	refreshIsTeamRealCache()
+
+	lastPlayerChange = spGetGameFrame()
 end
 
 local function setReclaimerUnits()
 	reclaimerUnits = {}
-	local teamList = GetTeamList()
-	for _, tID in pairs(teamList) do
+	local teamList = spGetTeamList()
+	local teamListLen = #teamList
+	for i = 1, teamListLen do
+		local tID = teamList[i]
 		reclaimerUnits[tID] = {}
-	end
-	local allUnits = Spring.GetAllUnits()
-	for i = 1, #allUnits do
-		local unitID = allUnits[i]
-		local uDefID = Spring.GetUnitDefID(unitID)
-		if reclaimerUnitDefs[uDefID] then
-			local unitTeam = Spring.GetUnitTeam(unitID)
-			reclaimerUnits[unitTeam][unitID] = uDefID
+		local teamUnits = spGetTeamUnitsByDefs(tID, reclaimerDefIDList)
+		if teamUnits then
+			for j = 1, #teamUnits do
+				local unitID = teamUnits[j]
+				reclaimerUnits[tID][unitID] = spGetUnitDefID(unitID)
+			end
 		end
 	end
 end
 
 function widget:Initialize()
-	if not (Spring.GetSpectatingState() or isReplay) then
+	if not (spGetSpectatingState() or isReplay) then
 		inSpecMode = false
 	else
 		inSpecMode = true
 		setReclaimerUnits()
 	end
-	if GetGameSeconds() > 0 then
+	if spGetGameSeconds() > 0 then
 		gamestarted = true
 	end
 
@@ -547,10 +668,11 @@ local function removeGuiShaderRects()
 	if WG['guishader'] then
 		for _, data in pairs(allyData) do
 			local aID = data.aID
-			if isTeamReal(aID) and (aID == GetMyAllyTeamID() or inSpecMode) and aID ~= gaiaAllyID then
-				WG['guishader'].DeleteDlist('ecostats_' .. aID)
-				guishaderRectsDlists['ecostats_' .. aID] = nil
-				guishaderRects['ecostats_' .. aID] = nil
+			if isTeamReal(aID) and (aID == spGetMyAllyTeamID() or inSpecMode) and aID ~= gaiaAllyID then
+				local key = eco.ecoKey[aID] or ('ecostats_' .. aID)
+				WG['guishader'].DeleteDlist(key)
+				guishaderRectsDlists[key] = nil
+				guishaderRects[key] = nil
 			end
 		end
 	end
@@ -558,13 +680,14 @@ local function removeGuiShaderRects()
 	if WG['tooltip'] ~= nil then
 		for _, data in pairs(allyData) do
 			local aID = data.aID
-			if isTeamReal(aID) and (aID == GetMyAllyTeamID() or inSpecMode) and (aID ~= gaiaAllyID) then
-				if tooltipAreas['ecostats_' .. aID] ~= nil then
-					WG['tooltip'].RemoveTooltip('ecostats_' .. aID)
-					tooltipAreas['ecostats_' .. aID] = nil
+			if isTeamReal(aID) and (aID == spGetMyAllyTeamID() or inSpecMode) and (aID ~= gaiaAllyID) then
+				local key = eco.ecoKey[aID] or ('ecostats_' .. aID)
+				if tooltipAreas[key] ~= nil then
+					WG['tooltip'].RemoveTooltip(key)
+					tooltipAreas[key] = nil
 					local teams = Spring.GetTeamList(aID)
 					for _, tID in ipairs(teams) do
-						WG['tooltip'].RemoveTooltip('ecostats_team_' .. tID)
+						WG['tooltip'].RemoveTooltip(eco.ecoTeamKey[tID] or ('ecostats_team_' .. tID))
 					end
 				end
 			end
@@ -574,18 +697,12 @@ end
 
 function widget:Shutdown()
 	removeGuiShaderRects()
-	if teamCompositionList then
-		gl.DeleteList(teamCompositionList)
-	end
-	for k,v in pairs(textLists) do
-		gl.DeleteList(v)
-	end
 	if uiBgTex then
-		gl.DeleteTexture(uiBgTex)
+		glDeleteTexture(uiBgTex)
 		uiBgTex = nil
 	end
 	if uiTex then
-		gl.DeleteTexture(uiTex)
+		glDeleteTexture(uiTex)
 		uiTex = nil
 	end
 	WG['ecostats'] = nil
@@ -597,79 +714,75 @@ local function makeTeamCompositionList()
 	if not inSpecMode then
 		return
 	end
-	if useRenderToTexture then
-		if #uiElementRects == 0 then
-			DrawTeamComposition()	-- need to run once so uiElementRects gets filled
-		end
-		areaRect = {}
-		for id, rect in pairs(uiElementRects) do
-			if not areaRect[1] then
-				areaRect = { rect[1], rect[2], rect[3], rect[4] }
-			else
-				if rect[1] < areaRect[1] then
-					areaRect[1] = rect[1]
-				end
-				if rect[2] < areaRect[2] then
-					areaRect[2] = rect[2]
-				end
-				if rect[3] > areaRect[3] then
-					areaRect[3] = rect[3]
-				end
-				if rect[4] > areaRect[4] then
-					areaRect[4] = rect[4]
-				end
+	if #uiElementRects == 0 then
+		DrawTeamComposition()	-- need to run once so uiElementRects gets filled
+	end
+	areaRect = {}
+	for id, rect in pairs(uiElementRects) do
+		if not areaRect[1] then
+			areaRect = { rect[1], rect[2], rect[3], rect[4] }
+		else
+			if rect[1] < areaRect[1] then
+				areaRect[1] = rect[1]
+			end
+			if rect[2] < areaRect[2] then
+				areaRect[2] = rect[2]
+			end
+			if rect[3] > areaRect[3] then
+				areaRect[3] = rect[3]
+			end
+			if rect[4] > areaRect[4] then
+				areaRect[4] = rect[4]
 			end
 		end
-		local rectAreaChange = false
-		if not prevAreaRect[1] or (areaRect[1] ~= prevAreaRect[1] or areaRect[2] ~= prevAreaRect[2] or areaRect[3] ~= prevAreaRect[3] or areaRect[4] ~= prevAreaRect[4]) then
-			rectAreaChange = true
-		end
-		prevAreaRect = areaRect
+	end
+	local rectAreaChange = false
+	if not prevAreaRect[1] or (areaRect[1] ~= prevAreaRect[1] or areaRect[2] ~= prevAreaRect[2] or areaRect[3] ~= prevAreaRect[3] or areaRect[4] ~= prevAreaRect[4]) then
+		rectAreaChange = true
+	end
+	prevAreaRect = areaRect
 
-		if (not uiBgTex or rectAreaChange) and areaRect[4] then
-			if uiBgTex then
-				gl.DeleteTexture(uiBgTex)
-			end
-			uiBgTex = gl.CreateTexture(math.floor(areaRect[3]-areaRect[1]), math.floor(areaRect[4]-areaRect[2]), {
-				target = GL.TEXTURE_2D,
-				format = GL.ALPHA,
-				fbo = true,
-			})
-			if uiTex then
-				gl.DeleteTexture(uiTex)
-			end
-			uiTex = gl.CreateTexture(math.floor(areaRect[3]-areaRect[1]), math.floor(areaRect[4]-areaRect[2]), {
-				target = GL.TEXTURE_2D,
-				format = GL.ALPHA,
-				fbo = true,
-			})
-		end
+	local texWidth = areaRect[1] and areaRect[3] and mathFloor(areaRect[3]-areaRect[1]) or 0
+	local texHeight = areaRect[2] and areaRect[4] and mathFloor(areaRect[4]-areaRect[2]) or 0
+	if (not uiBgTex or rectAreaChange) and texWidth > 0 and texHeight > 0 then
 		if uiBgTex then
-			gl.R2tHelper.RenderToTexture(uiBgTex,
-				function()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (areaRect[3]-areaRect[1]), 2 / (areaRect[4]-areaRect[2]),	0)
-					gl.Translate(-areaRect[1], -areaRect[2], 0)
-					for id, rect in pairs(uiElementRects) do
-						UiElement(rect[1], rect[2], rect[3], rect[4], (widgetPosY+widgetHeight > rect[4]+1 and 1 or 0), 0, 0, 1, 0, 1, 1, 1, nil, nil, nil, nil)
-					end
-				end,
-				useRenderToTexture
-			)
+			gl.DeleteTexture(uiBgTex)
 		end
-	else
-		if teamCompositionList then
-			gl.DeleteList(teamCompositionList)
+		uiBgTex = gl.CreateTexture(texWidth, texHeight, {
+			target = GL.TEXTURE_2D,
+			format = GL.ALPHA,
+			fbo = true,
+		})
+		if uiTex then
+			gl.DeleteTexture(uiTex)
 		end
-		teamCompositionList = gl.CreateList(DrawTeamComposition)
+		uiTex = gl.CreateTexture(texWidth, texHeight, {
+			target = GL.TEXTURE_2D,
+			format = GL.ALPHA,
+			fbo = true,
+		})
+	end
+	if uiBgTex and areaRect[4] then
+		gl.R2tHelper.RenderToTexture(uiBgTex,
+			function()
+				gl.Translate(-1, -1, 0)
+				gl.Scale(2 / (areaRect[3]-areaRect[1]), 2 / (areaRect[4]-areaRect[2]),	0)
+				gl.Translate(-areaRect[1], -areaRect[2], 0)
+				for id, rect in pairs(uiElementRects) do
+					UiElement(rect[1], rect[2], rect[3], rect[4], (widgetPosY+widgetHeight > rect[4]+1 and 1 or 0), 0, 0, 1, 0, 1, 1, 1, nil, nil, nil, nil)
+				end
+			end,
+			true
+		)
 	end
 	if WG['guishader'] then
 		for id, rect in pairs(guishaderRects) do
 			if guishaderRectsDlists[id] then
 				gl.DeleteList(guishaderRectsDlists[id])
 			end
+			local r1, r2, r3, r4, r5 = rect[1], rect[2], rect[3], rect[4], rect[5]
 			guishaderRectsDlists[id] = gl.CreateList(function()
-				RectRound(rect[1], rect[2], rect[3], rect[4], rect[5], 1, 0, 0, 1)
+				RectRound(r1, r2, r3, r4, r5, 1, 0, 0, 1)
 			end)
 			WG['guishader'].InsertDlist(guishaderRectsDlists[id], id)
 		end
@@ -696,7 +809,7 @@ local function Reinit()
 	else
 		HBadge = 14 * sizeMultiplier
 	end
-	WBadge = math.floor(HBadge * playerScale)
+	WBadge = mathFloor(HBadge * playerScale)
 
 	if maxPlayers * WBadge + (20 * sizeMultiplier) > widgetWidth then
 		widgetWidth = (20 * sizeMultiplier) + maxPlayers * WBadge
@@ -708,9 +821,12 @@ local function Reinit()
 		widgetPosX = 0
 	end
 
-	for _, allyID in ipairs(Spring.GetAllyTeamList()) do
+	local allyTeamList = spGetAllyTeamList()
+	local allyTeamListLen = #allyTeamList
+	for i = 1, allyTeamListLen do
+		local allyID = allyTeamList[i]
 		if allyID ~= gaiaAllyID then
-			local teamList = GetTeamList(allyID)
+			local teamList = spGetTeamList(allyID)
 			if not allyData[allyID + 1] then
 				allyData[allyID + 1] = {}
 			end
@@ -750,27 +866,27 @@ function widget:SetConfigData(data)
 end
 
 function widget:TextCommand(command)
-	if string.sub(command,1, 13) == "ecostatstext" then
+	if stringSub(command, 1, 13) == "ecostatstext" then
 		cfgResText = not cfgResText
-		Spring.Echo('ecostats: text: '..(cfgResText and 'enabled' or 'disabled'))
+		spEcho('ecostats: text: '..(cfgResText and 'enabled' or 'disabled'))
 	end
-	if string.sub(command,1, 16) == "ecostatsreclaim" then
+	if stringSub(command, 1, 16) == "ecostatsreclaim" then
 		cfgTrackReclaim = not cfgTrackReclaim
-		Spring.Echo('ecostats: reclaim: '..(cfgTrackReclaim and 'enabled' or 'disabled'))
+		spEcho('ecostats: reclaim: '..(cfgTrackReclaim and 'enabled' or 'disabled'))
 	end
 end
 
 local function DrawEText(numberE, vOffset)
-	local label = string.formatSI(numberE)
-	font:Begin(useRenderToTexture)
+	local label = stringFormatSI(numberE)
+	font:Begin(true)
 	font:SetTextColor(1, 1, 0, 1)
 	font:Print(label or "", widgetPosX + widgetWidth - (5 * sizeMultiplier), widgetPosY + widgetHeight - vOffset + (tH * 0.22), tH / 2.3, 'rs')
 	font:End()
 end
 
 local function DrawMText(numberM, vOffset)
-	local label = string.formatSI(numberM)
-	font:Begin(useRenderToTexture)
+	local label = stringFormatSI(numberM)
+	font:Begin(true)
 	font:SetTextColor(1, 1, 1, 1)
 	font:Print(label or "", widgetPosX + widgetWidth - (5 * sizeMultiplier), widgetPosY + widgetHeight - vOffset + (borderPadding * 0.5) + (tH * 0.58), tH / 2.3, 'rs')
 	font:End()
@@ -778,295 +894,228 @@ end
 
 local function DrawEBar(tE, tEp, vOffset)
 	-- where tE = team Energy = [0,1]
-	vOffset = math.floor(vOffset - (borderPadding * 0.5))
-	tE = math.max(tE, 0)
-	tEp = math.max(tEp, 0)
+	vOffset = mathFloor(vOffset - (borderPadding * 0.5))
+	tE = mathMax(tE, 0)
+	tEp = mathMax(tEp, 0)
 
-	local dx = math.floor(15 * sizeMultiplier)
-	local dy = math.floor(tH * 0.43)
+	local dx = mathFloor(15 * sizeMultiplier)
+	local dy = mathFloor(tH * 0.43)
 	local maxW = widgetWidth - (30 * sizeMultiplier)
-	local barheight = 1 + math.floor(tH * 0.08)
+	local barheight = 1 + mathFloor(tH * 0.08)
 	if cfgResText then
-		dx = math.floor(11 * sizeMultiplier)
+		dx = mathFloor(11 * sizeMultiplier)
 		maxW = (widgetWidth / 2.15)
 	end
 
+	-- Cache common calculations
+	local baseX = widgetPosX + dx
+	local baseY = widgetPosY + widgetHeight - vOffset + dy
+	local barEndX = baseX + maxW
+	local barBottomY = baseY - barheight
+
 	-- background
 	glColor(0.8, 0.8, 0, 0.13)
-	gl.Texture(images.barbg)
-	glTexRect(
-			widgetPosX + dx,
-			widgetPosY + widgetHeight - vOffset + dy,
-			widgetPosX + dx + maxW,
-			widgetPosY + widgetHeight - vOffset + dy - barheight
-	)
+	glTexture(images.barbg)
+	glTexRect(baseX, baseY, barEndX, barBottomY)
 
 	if tE * maxW > 0.9 then
 		local glowsize = 23 * sizeMultiplier
+		local glowTop = baseY + glowsize
+		local glowBottom = barBottomY - glowsize
+		local glowEdgeSize = glowsize * 1.8
+
 		-- energy total
+		local tEWidth = tE * maxW
+		local tEEndX = baseX + tEWidth
 		glColor(1, 1, 0, 0.032)
-		gl.Texture(images.barglowcenter)
-		glTexRect(
-				widgetPosX + dx,
-				widgetPosY + widgetHeight - vOffset + dy + glowsize,
-				widgetPosX + dx + tE * maxW,
-				widgetPosY + widgetHeight - vOffset + dy - barheight - glowsize
-		)
-		gl.Texture(images.barglowedge)
-		glTexRect(
-				widgetPosX + dx - (glowsize * 1.8),
-				widgetPosY + widgetHeight - vOffset + dy + glowsize,
-				widgetPosX + dx,
-				widgetPosY + widgetHeight - vOffset + dy - barheight - glowsize
-		)
-		gl.Texture(images.barglowedge)
-		glTexRect(
-				widgetPosX + dx + tE * maxW + (glowsize * 1.8),
-				widgetPosY + widgetHeight - vOffset + dy + glowsize,
-				widgetPosX + dx + tE * maxW,
-				widgetPosY + widgetHeight - vOffset + dy - barheight - glowsize
-		)
+		glTexture(images.barglowcenter)
+		glTexRect(baseX, glowTop, tEEndX, glowBottom)
+		glTexture(images.barglowedge)
+		glTexRect(baseX - glowEdgeSize, glowTop, baseX, glowBottom)
+		glTexture(images.barglowedge)
+		glTexRect(tEEndX + glowEdgeSize, glowTop, tEEndX, glowBottom)
+
 		-- energy production
+		local tEpWidth = tEp * maxW
+		local tEpEndX = baseX + tEpWidth
 		glColor(1, 1, 0, 0.032)
-		gl.Texture(images.barglowcenter)
-		glTexRect(
-				widgetPosX + dx,
-				widgetPosY + widgetHeight - vOffset + dy + glowsize,
-				widgetPosX + dx + tEp * maxW,
-				widgetPosY + widgetHeight - vOffset + dy - barheight - glowsize
-		)
-		gl.Texture(images.barglowedge)
-		glTexRect(
-				widgetPosX + dx - (glowsize * 1.8),
-				widgetPosY + widgetHeight - vOffset + dy + glowsize,
-				widgetPosX + dx,
-				widgetPosY + widgetHeight - vOffset + dy - barheight - glowsize
-		)
-		gl.Texture(images.barglowedge)
-		glTexRect(
-				widgetPosX + dx + tEp * maxW + (glowsize * 1.8),
-				widgetPosY + widgetHeight - vOffset + dy + glowsize,
-				widgetPosX + dx + tEp * maxW,
-				widgetPosY + widgetHeight - vOffset + dy - barheight - glowsize
-		)
+		glTexture(images.barglowcenter)
+		glTexRect(baseX, glowTop, tEpEndX, glowBottom)
+		glTexture(images.barglowedge)
+		glTexRect(baseX - glowEdgeSize, glowTop, baseX, glowBottom)
+		glTexture(images.barglowedge)
+		glTexRect(tEpEndX + glowEdgeSize, glowTop, tEpEndX, glowBottom)
 	end
 
 	-- energy total
 	glColor(0.7, 0.7, 0.7, 1)
-	gl.Texture(images.bar)
-	glTexRect(
-			widgetPosX + dx,
-			widgetPosY + widgetHeight - vOffset + dy,
-			widgetPosX + dx + tE * maxW,
-			widgetPosY + widgetHeight - vOffset + dy - barheight
-	)
+	glTexture(images.bar)
+	glTexRect(baseX, baseY, baseX + tE * maxW, barBottomY)
 	-- energy production
 	glColor(1, 1, 0, 1)
-	gl.Texture(images.bar)
-	glTexRect(
-			widgetPosX + dx,
-			widgetPosY + widgetHeight - vOffset + dy,
-			widgetPosX + dx + tEp * maxW,
-			widgetPosY + widgetHeight - vOffset + dy - barheight
-	)
-	gl.Texture(false)
+	glTexture(images.bar)
+	glTexRect(baseX, baseY, baseX + tEp * maxW, barBottomY)
+	glTexture(false)
 	glColor(1, 1, 1, 1)
 end
 
 local function DrawMBar(tM, tMp, vOffset)
 	-- where tM = team Metal = [0,1]
-	vOffset = math.floor(vOffset - (borderPadding * 0.5))
-	tM = math.max(tM, 0)
-	tMp = math.max(tMp, 0)
+	vOffset = mathFloor(vOffset - (borderPadding * 0.5))
+	tM = mathMax(tM, 0)
+	tMp = mathMax(tMp, 0)
 
-	local dx = math.floor(15 * sizeMultiplier)
-	local dy = math.floor(tH * 0.67)
+	local dx = mathFloor(15 * sizeMultiplier)
+	local dy = mathFloor(tH * 0.67)
 	local maxW = widgetWidth - (30 * sizeMultiplier)
-	local barheight = 1 + math.floor(tH * 0.08)
+	local barheight = 1 + mathFloor(tH * 0.08)
 
 	if cfgResText then
-		dx = math.floor(11 * sizeMultiplier)
+		dx = mathFloor(11 * sizeMultiplier)
 		maxW = (widgetWidth / 2.15)
 	end
+
+	-- Cache common calculations
+	local baseX = widgetPosX + dx
+	local baseY = widgetPosY + widgetHeight - vOffset + dy
+	local barEndX = baseX + maxW
+	local barBottomY = baseY - barheight
+
 	-- background
 	glColor(0.8, 0.8, 0.8, 0.13)
-	gl.Texture(images.barbg)
-	glTexRect(
-			widgetPosX + dx,
-			widgetPosY + widgetHeight - vOffset + dy,
-			widgetPosX + dx + maxW,
-			widgetPosY + widgetHeight - vOffset + dy - barheight
-	)
-	-- glow
-	if not useRenderToTexture and tM * maxW > 0.9 then
-		local glowsize = 26 * sizeMultiplier
-		-- metal total
-		glColor(1, 1, 1, 0.032)
-		gl.Texture(images.barglowcenter)
-		glTexRect(
-				widgetPosX + dx,
-				widgetPosY + widgetHeight - vOffset + dy + glowsize,
-				widgetPosX + dx + tM * maxW,
-				widgetPosY + widgetHeight - vOffset + dy - barheight - glowsize
-		)
-		gl.Texture(images.barglowedge)
-		glTexRect(
-				widgetPosX + dx - (glowsize * 1.8),
-				widgetPosY + widgetHeight - vOffset + dy + glowsize,
-				widgetPosX + dx,
-				widgetPosY + widgetHeight - vOffset + dy - barheight - glowsize
-		)
-		gl.Texture(images.barglowedge)
-		glTexRect(
-				widgetPosX + dx + tM * maxW + (glowsize * 1.8),
-				widgetPosY + widgetHeight - vOffset + dy + glowsize,
-				widgetPosX + dx + tM * maxW,
-				widgetPosY + widgetHeight - vOffset + dy - barheight - glowsize
-		)
-		-- metal production
-		glColor(1, 1, 1, 0.032)
-		gl.Texture(images.barglowcenter)
-		glTexRect(
-				widgetPosX + dx,
-				widgetPosY + widgetHeight - vOffset + dy + glowsize,
-				widgetPosX + dx + tMp * maxW,
-				widgetPosY + widgetHeight - vOffset + dy - barheight - glowsize
-		)
-		gl.Texture(images.barglowedge)
-		glTexRect(
-				widgetPosX + dx - (glowsize * 1.8),
-				widgetPosY + widgetHeight - vOffset + dy + glowsize,
-				widgetPosX + dx,
-				widgetPosY + widgetHeight - vOffset + dy - barheight - glowsize
-		)
-		gl.Texture(images.barglowedge)
-		glTexRect(
-				widgetPosX + dx + tMp * maxW + (glowsize * 1.8),
-				widgetPosY + widgetHeight - vOffset + dy + glowsize,
-				widgetPosX + dx + tMp * maxW,
-				widgetPosY + widgetHeight - vOffset + dy - barheight - glowsize
-		)
-	end
+	glTexture(images.barbg)
+	glTexRect(baseX, baseY, barEndX, barBottomY)
+
 	-- metal total
 	glColor(0.7, 0.7, 0.7, 1)
-	gl.Texture(images.bar)
-	glTexRect(
-			widgetPosX + dx,
-			widgetPosY + widgetHeight - vOffset + dy,
-			widgetPosX + dx + tM * maxW,
-			widgetPosY + widgetHeight - vOffset + dy - barheight
-	)
+	glTexture(images.bar)
+	glTexRect(baseX, baseY, baseX + tM * maxW, barBottomY)
 	-- metal production
 	glColor(1, 1, 1, 1)
-	gl.Texture(images.bar)
-	glTexRect(
-			widgetPosX + dx,
-			widgetPosY + widgetHeight - vOffset + dy,
-			widgetPosX + dx + tMp * maxW,
-			widgetPosY + widgetHeight - vOffset + dy - barheight
-	)
-	gl.Texture(false)
+	glTexture(images.bar)
+	glTexRect(baseX, baseY, baseX + tMp * maxW, barBottomY)
+	glTexture(false)
 	glColor(1, 1, 1)
 end
 
+local cachedTooltipText, cachedTooltipTitle
+local bgArea = {0, 0, 0, 0}
 local function DrawBackground(posY, allyID, teamWidth)
-	local y1 = math.ceil((widgetPosY - posY) + widgetHeight)
-	local y2 = math.ceil((widgetPosY - posY) + tH + widgetHeight)
-	local area = { widgetPosX, y1, widgetPosX + widgetWidth, y2 }
+	local y1 = mathCeil((widgetPosY - posY) + widgetHeight)
+	local y2 = mathCeil((widgetPosY - posY) + tH + widgetHeight)
 
 	uiElementRects[#uiElementRects+1] = { widgetPosX + teamWidth, y1, widgetPosX + widgetWidth, y2, allyID }
 
-	if not useRenderToTexture then
-		UiElement(widgetPosX + teamWidth, y1, widgetPosX + widgetWidth, y2, (posY > tH and 1 or 0), 0, 0, 1, 0, 1, 1, 1, nil, nil, nil, nil)
-	end
+	local key = eco.ecoKey[allyID]
+	guishaderRects[key] = { widgetPosX + teamWidth, y1, widgetPosX + widgetWidth, y2, 4 * widgetScale }
 
-	guishaderRects['ecostats_' .. allyID] = { widgetPosX + teamWidth, y1, widgetPosX + widgetWidth, y2, 4 * widgetScale }
-
-	area[1] = area[1] + (widgetWidth / 12)
-	if WG['tooltip'] ~= nil and (tooltipAreas['ecostats_' .. allyID] == nil or tooltipAreas['ecostats_' .. allyID] ~= area[1] .. '_' .. area[2] .. '_' .. area[3] .. '_' .. area[4] or refreshCaptions) then
+	local areaX1 = widgetPosX + (widgetWidth / 12)
+	local areaKey = areaX1 * 1000000000 + y1 * 1000000 + (widgetPosX + widgetWidth) * 1000 + y2
+	if WG['tooltip'] ~= nil and (tooltipAreas[key] == nil or tooltipAreas[key] ~= areaKey or refreshCaptions) then
 		refreshCaptions = false
-		WG['tooltip'].AddTooltip('ecostats_' .. allyID, area, Spring.I18N('ui.teamEconomy.tooltip'), nil, Spring.I18N('ui.teamEconomy.tooltipTitle'))
-		tooltipAreas['ecostats_' .. allyID] = area[1] .. '_' .. area[2] .. '_' .. area[3] .. '_' .. area[4]
+		if not cachedTooltipText then
+			cachedTooltipText = Spring.I18N('ui.teamEconomy.tooltip')
+			cachedTooltipTitle = Spring.I18N('ui.teamEconomy.tooltipTitle')
+		end
+		bgArea[1], bgArea[2], bgArea[3], bgArea[4] = areaX1, y1, widgetPosX + widgetWidth, y2
+		WG['tooltip'].AddTooltip(key, bgArea, cachedTooltipText, nil, cachedTooltipTitle)
+		tooltipAreas[key] = areaKey
 	end
 end
 
+local boxColorBot = {0, 0, 0, 1}
+local boxColorTop = {0, 0, 0, 1}
 local function DrawBox(hOffset, vOffset, r, g, b)
 	local w = tH * 0.36 * playerScale
 	local h = tH * 0.36
 	local dx = 0
 	local dy = tH - (tH * 0.5)
+	boxColorBot[1], boxColorBot[2], boxColorBot[3] = r * 0.75, g * 0.75, b * 0.75
+	boxColorTop[1], boxColorTop[2], boxColorTop[3] = r, g, b
 	RectRound(
 			widgetPosX + hOffset + dx - w,
 			widgetPosY + widgetHeight - vOffset + dy,
 			widgetPosX + hOffset + dx,
 			widgetPosY + widgetHeight - vOffset + dy + h,
 			h * 0.055,
-			1, 1, 1, 1, { r * 0.75, g * 0.75, b * 0.75, 1 }, { r, g, b, 1 }
+			1, 1, 1, 1, boxColorBot, boxColorTop
 	)
 	glColor(1, 1, 1, 1)
 end
 
+-- Pre-computed team composition geometry (refreshed on resize)
+local tctSmall = { w = 0, h = 0, dx = 0, dy = 0 }
+local tctBig = { w = 0, h = 0, dx = 0, dy = 0 }
+updateTctGeometry = function()
+	tctSmall.w = floor((tH * 0.36) + 0.5) * playerScale
+	tctSmall.h = floor((tH * 0.36) + 0.5)
+	tctSmall.dx = -floor((tH * 0.06) + 0.5)
+	tctSmall.dy = floor((tH - (tH * 0.43)) + 0.5)
+	tctBig.w = floor((tH * 0.46) + 0.5) * playerScale
+	tctBig.h = floor((tH * 0.46) + 0.5)
+	tctBig.dx = 0
+	tctBig.dy = floor((tH - tctBig.h) + 0.5)
+	eco.tctSpecDxOffset = floor(10 * sizeMultiplier)
+	eco.tctBorderOffset = floor(borderPadding * 0.5)
+end
+
+local tctArea = {0, 0, 0, 0}
+local tctColorBot = {0, 0, 0, 1}
+local tctColorTop = {0, 0, 0, 1}
 local function DrawTeamCompositionTeam(hOffset, vOffset, r, g, b, a, small, mouseOn, t, isDead, tID)
-	local w, h, dx, dy
-	if small then
-		w = floor((tH * 0.36) + 0.5) * playerScale
-		h = floor((tH * 0.36) + 0.5)
-		dx = -floor((tH * 0.06) + 0.5)
-		dy = floor((tH - (tH * 0.43)) + 0.5)
-	else
-		w = floor((tH * 0.46) + 0.5) * playerScale
-		h = floor((tH * 0.46) + 0.5)
-		dx = 0
-		dy = floor((tH - h) + 0.5)
-	end
+	local geom = small and tctSmall or tctBig
+	local w, h, dx, dy = geom.w, geom.h, geom.dx, geom.dy
 
 	if not inSpecMode then
-		dx = floor(dx - (10 * sizeMultiplier))
+		dx = dx - eco.tctSpecDxOffset
 	end
 
 	if mouseOn and not isDead then
 		if ctrlDown then
 			glColor(1, 1, 1, a)
 		else
-			local gs, _, _ = GetGameSpeed() or 1
-			glColor(r - 0.2 * sin(10 * t / gs), g - 0.2 * sin(10 * t / gs), b, a)
+			local gs = spGetGameSpeed() or 1
+			local pulse = 0.2 * sin(10 * t / gs)
+			glColor(r - pulse, g - pulse, b, a)
 		end
 	else
 		glColor(r, g, b, a)
 	end
 
-	local area = {
-		floor((widgetPosX + hOffset + dx - w) + 0.5),
-		floor((widgetPosY + widgetHeight - vOffset + dy) + 0.5),
-		floor((widgetPosX + hOffset + dx) + 0.5),
-		floor((widgetPosY + widgetHeight - vOffset + dy + h) + 0.5),
-	}
+	local x1 = floor((widgetPosX + hOffset + dx - w) + 0.5)
+	local y1 = floor((widgetPosY + widgetHeight - vOffset + dy) + 0.5)
+	local x2 = floor((widgetPosX + hOffset + dx) + 0.5)
+	local y2 = floor((widgetPosY + widgetHeight - vOffset + dy + h) + 0.5)
 	if enableStartposbuttons then
-		Button[tID].x1 = area[1]
-		Button[tID].y1 = area[2]
-		Button[tID].x2 = area[3]
-		Button[tID].y2 = area[4]
-		Button[tID].pID = tID
+		local btn = Button[tID]
+		btn.x1 = x1
+		btn.y1 = y1
+		btn.x2 = x2
+		btn.y2 = y2
+		btn.pID = tID
 	end
 	if WG['tooltip'] then
-		WG['tooltip'].AddTooltip('ecostats_team_' .. tID, area, teamData[tID].leaderName)
+		tctArea[1], tctArea[2], tctArea[3], tctArea[4] = x1, y1, x2, y2
+		WG['tooltip'].AddTooltip(eco.ecoTeamKey[tID], tctArea, teamData[tID].leaderName)
 	end
 
+	tctColorBot[1], tctColorBot[2], tctColorBot[3] = r * 0.75, g * 0.75, b * 0.75
+	tctColorTop[1], tctColorTop[2], tctColorTop[3] = r, g, b
 	RectRound(
-			area[1], area[2] + floor(borderPadding * 0.5), area[3], area[4] + floor(borderPadding * 0.5),
-			(area[3] - area[1]) * 0.055,
-			1, 1, 1, 1, { r * 0.75, g * 0.75, b * 0.75, 1 }, { r, g, b, 1 }
+			x1, y1 + eco.tctBorderOffset, x2, y2 + eco.tctBorderOffset,
+			(x2 - x1) * 0.055,
+			1, 1, 1, 1, tctColorBot, tctColorTop
 	)
 end
 
 function DrawTeamComposition()
 	-- do dynamic stuff without display list
-	local t = GetGameSeconds()
+	local t = spGetGameSeconds()
 	uiElementRects = {}
 	for _, data in pairs(allyData) do
 		local aID = data.aID
 		local drawpos = data.drawpos
-		if data.exists and drawpos and (aID == myAllyID or inSpecMode) and (aID ~= gaiaAllyID) and data.isAlive then
+		if data.exists and drawpos and (aID == myAllyID or inSpecMode) and (aID ~= gaiaAllyID) and data.isAlive and isTeamReal(aID) then
 
 			local posy = tH * (drawpos) + (4 * sizeMultiplier)
 			local hasCom
@@ -1080,7 +1129,7 @@ function DrawTeamComposition()
 			teamWidth = teamWidth + floor((playerScale-1)*14)
 
 			if type(data.tE) == "number" and drawpos and #(data.teams) > 0 then
-				DrawBackground(posy - (4 * sizeMultiplier), aID, math.floor(teamWidth))
+				DrawBackground(posy - (4 * sizeMultiplier), aID, mathFloor(teamWidth))
 			end
 
 			-- team rectangles
@@ -1093,7 +1142,7 @@ function DrawTeamComposition()
 					local alpha
 					local posx = floor(-(WBadge * (i - 1)) + (WBadge * 0.3))
 					hasCom = tData.hasCom
-					if GetGameSeconds() > 0 then
+					if t > 0 then
 						if not tData.isDead then
 							alpha = tData.active and 1 or 0.3
 							DrawTeamCompositionTeam(posx, posy + floor(tH * 0.125), r, g, b, alpha, not hasCom, Button[tID].mouse, t, false, tID)
@@ -1110,46 +1159,55 @@ function DrawTeamComposition()
 	end
 end
 
+local gameSeconds = 0
 local function drawListStandard()
 	if not gamestarted then
 		updateButtons()
 	end
 
+	gameSeconds = spGetGameSeconds()
 	local updateTextLists = false
-	if os.clock() > lastTextListUpdate + 0.5 then
+	local currentTime = osClock()
+	if currentTime > lastTextListUpdate + 0.5 then
 		updateTextLists = true
-		lastTextListUpdate = os.clock()
+		lastTextListUpdate = currentTime
 	end
 
-	if os.clock() > lastBarsUpdate + 0.15 then
-		lastBarsUpdate = os.clock()
+	if currentTime > lastBarsUpdate + 0.15 then
+		lastBarsUpdate = currentTime
 		maxMetal, maxEnergy = 0, 0
-		for _, data in ipairs(allyData) do
+		local allyDataLen = #allyData
+		for i = 1, allyDataLen do
+			local data = allyData[i]
 			local aID = data.aID
 			if data.exists and type(data.tE) == "number" and isTeamReal(aID) and (aID == myAllyID or inSpecMode) and (aID ~= gaiaAllyID) then
-				if avgData[aID] == nil then
-					avgData[aID] = {}
-					avgData[aID].tE = data.tE
-					avgData[aID].tEr = data.tEr
-					avgData[aID].tM = data.tM
-					avgData[aID].tMr = data.tMr
+				local avg = avgData[aID]
+				if avg == nil then
+					avg = {}
+					avgData[aID] = avg
+					avg.tE = data.tE
+					avg.tEr = data.tEr
+					avg.tM = data.tM
+					avg.tMr = data.tMr
 				else
-					avgData[aID].tE = avgData[aID].tE + ((data.tE - avgData[aID].tE) / avgFrames)
-					avgData[aID].tEr = avgData[aID].tEr + ((data.tEr - avgData[aID].tEr) / avgFrames)
-					avgData[aID].tM = avgData[aID].tM + ((data.tM - avgData[aID].tM) / avgFrames)
-					avgData[aID].tMr = avgData[aID].tMr + ((data.tMr - avgData[aID].tMr) / avgFrames)
+					avg.tE = avg.tE + ((data.tE - avg.tE) / avgFrames)
+					avg.tEr = avg.tEr + ((data.tEr - avg.tEr) / avgFrames)
+					avg.tM = avg.tM + ((data.tM - avg.tM) / avgFrames)
+					avg.tMr = avg.tMr + ((data.tMr - avg.tMr) / avgFrames)
 				end
-				if avgData[aID].tM and avgData[aID].tM > maxMetal then
-					maxMetal = avgData[aID].tM
+				if avg.tM and avg.tM > maxMetal then
+					maxMetal = avg.tM
 				end
-				if avgData[aID].tE and avgData[aID].tE > maxEnergy then
-					maxEnergy = avgData[aID].tE
+				if avg.tE and avg.tE > maxEnergy then
+					maxEnergy = avg.tE
 				end
 			end
 		end
 	end
 
-	for _, data in ipairs(allyData) do
+	local allyDataLen = #allyData
+	for i = 1, allyDataLen do
+		local data = allyData[i]
 		local aID = data.aID
 		if aID ~= nil then
 			local drawpos = data.drawpos
@@ -1159,32 +1217,21 @@ local function drawListStandard()
 					data.isAlive = isTeamAlive(aID)
 				end
 				local posy = tH * (drawpos)
-				local t = GetGameSeconds()
-				if data.isAlive and t > 0 and gamestarted and not gameover then
+				local t = gameSeconds
+				local avg = avgData[aID]
+				if data.isAlive and t > 0 and gamestarted and not gameover and avg then
 					if maxEnergy > 0 then
-						DrawEBar(avgData[aID].tE / maxEnergy, (avgData[aID].tE - avgData[aID].tEr) / maxEnergy, posy - 1)
+						DrawEBar(avg.tE / maxEnergy, (avg.tE - avg.tEr) / maxEnergy, posy - 1)
 					end
 					if maxMetal > 0 then
-						DrawMBar(avgData[aID].tM / maxMetal, (avgData[aID].tM - avgData[aID].tMr) / maxMetal, posy + 2)
+						DrawMBar(avg.tM / maxMetal, (avg.tM - avg.tMr) / maxMetal, posy + 2)
 					end
 				end
 				if updateTextLists then
-					if useRenderToTexture then
-						if cfgResText and data.isAlive and t > 0 and gamestarted and not gameover then
-							DrawEText(avgData[aID].tE, posy)
-							DrawMText(avgData[aID].tM, posy)
-						end
-					else
-						textLists[aID] = gl.CreateList(function()
-							if cfgResText and data.isAlive and t > 0 and gamestarted and not gameover then
-								DrawEText(avgData[aID].tE, posy)
-								DrawMText(avgData[aID].tM, posy)
-							end
-						end)
+					if cfgResText and data.isAlive and t > 0 and gamestarted and not gameover and avg then
+						DrawEText(avg.tE, posy)
+						DrawMText(avg.tM, posy)
 					end
-				end
-				if not useRenderToTexture then
-					gl.CallList(textLists[aID])
 				end
 			end
 		end
@@ -1219,8 +1266,9 @@ function widget:UnitGiven(uID, uDefID, uTeamNew, uTeam)
 end
 
 function widget:PlayerChanged(playerID)
+	eco.isTeamRealDirty = true
 	local doReinit = false
-	if myFullview ~= select(2, Spring.GetSpectatingState()) then
+	if myFullview ~= select(2, spGetSpectatingState()) then
 		if myFullview then
 			doReinit = true
 		else
@@ -1228,17 +1276,17 @@ function widget:PlayerChanged(playerID)
 		end
 	end
 	if myFullview and not singleTeams and WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
-		if myTeamID ~= Spring.GetMyTeamID() then
+		if myTeamID ~= spGetMyTeamID() then
 			UpdateAllTeams()
 			refreshTeamCompositionList = true
 		end
 	end
-	myFullview = select(2, Spring.GetSpectatingState())
-	myTeamID = Spring.GetMyTeamID()
+	myFullview = select(2, spGetSpectatingState())
+	myTeamID = spGetMyTeamID()
 
 	if myFullview then
-		lastPlayerChange = GetGameFrame()
-		if not (Spring.GetSpectatingState() or isReplay) then
+		lastPlayerChange = spGetGameFrame()
+		if not (spGetSpectatingState() or isReplay) then
 			inSpecMode = false
 			UpdateAllies()
 		else
@@ -1262,15 +1310,16 @@ function widget:GameOver()
 end
 
 function widget:TeamDied(teamID)
+	eco.isTeamRealDirty = true
 	if teamData[teamID] then
 		teamData[teamID].isDead = true
 	end
 
-	lastPlayerChange = GetGameFrame()
+	lastPlayerChange = spGetGameFrame()
 
 	removeGuiShaderRects()
 
-	if not (Spring.GetSpectatingState() or isReplay) then
+	if not (spGetSpectatingState() or isReplay) then
 		inSpecMode = false
 		UpdateAllies()
 		UpdateAllTeams()
@@ -1313,8 +1362,8 @@ function widget:MousePress(x, y, button)
 
 				if ctrlDown and teamData[teamID].hasCom then
 					local com
-					for commanderDefID, _ in ipairs(comDefs) do
-						com = Spring.GetTeamUnitsByDefs(teamID, commanderDefID)[1] or com
+					for i = 1, #comDefList do
+						com = spGetTeamUnitsByDefs(teamID, comDefList[i])[1] or com
 					end
 
 					if com then
@@ -1362,7 +1411,7 @@ function widget:MousePress(x, y, button)
 end
 
 function widget:ViewResize()
-	vsx, vsy = gl.GetViewSizes()
+	vsx, vsy = glGetViewSizes()
 	widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
 	widgetScale = (((vsy) / 2000) * 0.5) * (0.95 + (ui_scale - 1) / 1.5)        -- only used for rounded corners atm
 
@@ -1383,7 +1432,7 @@ function widget:Update(dt)
 		return
 	end
 
-	local gf = Spring.GetGameFrame()
+	local gf = spGetGameFrame()
 	if not gamestarted and gf > 0 then
 		gamestarted = true
 	end
@@ -1391,8 +1440,9 @@ function widget:Update(dt)
 		lastPlayerChange = lastPlayerChange - 1	-- prevent repeat execution cause this is in widget:Update
 		-- check for dead teams
 		for teamID in pairs(teamData) do
-			teamData[teamID].isDead = select(3, GetTeamInfo(teamID, false))
+			teamData[teamID].isDead = select(3, spGetTeamInfo(teamID, false))
 		end
+		eco.isTeamRealDirty = true
 		UpdateAllies()
 		refreshTeamCompositionList = true
 	end
@@ -1401,6 +1451,7 @@ function widget:Update(dt)
 	if sec1 > 0.5 then
 		sec1 = 0
 		UpdateAllTeams()
+		eco.isTeamRealDirty = true
 	end
 
 	sec2 = sec2 + dt
@@ -1408,8 +1459,8 @@ function widget:Update(dt)
 		sec2 = 0
 		-- set/update player resources
 		for teamID, data in pairs(teamData) do
-			data.minc = select(4, GetTeamResources(teamID, "metal")) or 0
-			data.einc = select(4, GetTeamResources(teamID, "energy")) or 0
+			data.minc = select(4, spGetTeamResources(teamID, "metal")) or 0
+			data.einc = select(4, spGetTeamResources(teamID, "energy")) or 0
 			data.erecl, data.mrecl = getTeamReclaim(teamID)
 		end
 		updateButtons()
@@ -1433,8 +1484,26 @@ function widget:Update(dt)
 		lastTextListUpdate = 0
 	end
 	prevTopbar = WG['topbar'] ~= nil and true or false
+
+	-- detect guishader widget being toggled back on
+	local guishaderNow = WG['guishader'] ~= nil
+	if guishaderNow and not guishaderWasActive then
+		guishaderRectsDlists = {}
+		refreshTeamCompositionList = true
+	end
+	guishaderWasActive = guishaderNow
 end
 
+local r2tDrawFunc = function()
+	gl.Translate(-1, -1, 0)
+	gl.Scale(2 / (areaRect[3]-areaRect[1]), 2 / (areaRect[4]-areaRect[2]), 0)
+	gl.Translate(-areaRect[1], -areaRect[2], 0)
+	DrawTeamComposition()
+	drawListStandard()
+end
+
+local r2tScissors = {0, 0, 0, 0}  -- reusable
+local emptyScissors = {}
 function widget:DrawScreen()
 	if not myFullview or not inSpecMode then
 		return
@@ -1443,6 +1512,8 @@ function widget:DrawScreen()
 	if aliveAllyTeams > 16 then
 		return
 	end
+
+	refreshIsTeamRealCache()
 
 	if refreshTeamCompositionList then
 		lastBarsUpdate = 0
@@ -1453,48 +1524,41 @@ function widget:DrawScreen()
 
 
 	if uiTex then
-		if os.clock() > lastBarsUpdate + 0.15 then
-			local scissors = {}
-			if cfgResText and os.clock() <= lastTextListUpdate + 0.5 then
+		local now = osClock()
+		if now > lastBarsUpdate + 0.15 then
+			local scissors
+			if cfgResText and now <= lastTextListUpdate + 0.5 then
 				-- only clean non text area
-				scissors = {0, 0, areaRect[3]-areaRect[1] - (48 * sizeMultiplier), widgetHeight}
+				r2tScissors[3] = areaRect[3]-areaRect[1] - (48 * sizeMultiplier)
+				r2tScissors[4] = widgetHeight
+				scissors = r2tScissors
+			else
+				scissors = emptyScissors
 			end
 			gl.R2tHelper.RenderToTexture(uiTex,
-				function()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (areaRect[3]-areaRect[1]), 2 / (areaRect[4]-areaRect[2]),	0)
-					gl.Translate(-areaRect[1], -areaRect[2], 0)
-					DrawTeamComposition()
-					drawListStandard()
-				end,
-				useRenderToTexture,
+				r2tDrawFunc,
+				true,
 				scissors
 			)
 		end
 	end
 
-	if useRenderToTexture then
-		if uiBgTex then
-			gl.R2tHelper.BlendTexRect(uiBgTex, areaRect[1], areaRect[2], areaRect[3], areaRect[4], useRenderToTexture)
-		end
-		if uiTex then
-			gl.R2tHelper.BlendTexRect(uiTex, areaRect[1], areaRect[2], areaRect[3], areaRect[4], useRenderToTexture)
-		end
-	else
-		gl.PolygonOffset(-7, -10)
-		gl.PushMatrix()
-		gl.CallList(teamCompositionList)
-		drawListStandard()
-		gl.PopMatrix()
+	if uiBgTex then
+		gl.R2tHelper.BlendTexRect(uiBgTex, areaRect[1], areaRect[2], areaRect[3], areaRect[4], true)
+	end
+	if uiTex then
+		gl.R2tHelper.BlendTexRect(uiTex, areaRect[1], areaRect[2], areaRect[3], areaRect[4], true)
 	end
 
-	local mx, my = Spring.GetMouseState()
+	local mx, my = spGetMouseState()
 	if math_isInRect(mx, my, widgetPosX, widgetPosY, widgetPosX + widgetWidth, widgetPosY + widgetHeight) then
-		Spring.SetMouseCursor('cursornormal')
+		spSetMouseCursor('cursornormal')
 	end
 end
 
 function widget:LanguageChanged()
 	refreshCaptions = true
+	cachedTooltipText = nil
+	cachedTooltipTitle = nil
 	Reinit()
 end

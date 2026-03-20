@@ -54,6 +54,10 @@ local spSetUnitCOBValue = Spring.SetUnitCOBValue
 local WACKY_CONVERSION_FACTOR_1 = 2184.53
 
 local HALF_FRAME = 1/60
+local mathMin = math.min
+local mathFloor = math.floor
+local mathCeil = math.ceil
+local mathMax = math.max
 
 local workingGroundMoveType = true -- not ((Spring.GetModOptions() and (Spring.GetModOptions().pathfinder == "classic") and true) or false)
 
@@ -218,19 +222,20 @@ end
 local function UpdateReloadSpeed(unitID, unitDefID, weaponMods, speedFactor, gameFrame)
 	if not origUnitReload[unitDefID] then
 		local ud = UnitDefs[unitDefID]
+		local weaponCount = #ud.weapons
 		origUnitReload[unitDefID] = {
 			weapon = {},
-			weaponCount = #ud.weapons,
+			weaponCount = weaponCount,
 		}
 		local state = origUnitReload[unitDefID]
 
-		for i = 1, state.weaponCount do
+		for i = 1, weaponCount do
 			local wd = WeaponDefs[ud.weapons[i].weaponDef]
 			local reload = wd.reload
 			state.weapon[i] = {
 				reload = reload,
 				burstRate = wd.salvoDelay,
-				oldReloadFrames = floor(reload*30),
+				oldReloadFrames = mathFloor(reload*30),
 			}
 			if wd.type == "BeamLaser" then
 				state.weapon[i].burstRate = false -- beamlasers go screwy if you mess with their burst length
@@ -240,8 +245,9 @@ local function UpdateReloadSpeed(unitID, unitDefID, weaponMods, speedFactor, gam
 	end
 
 	local state = origUnitReload[unitDefID]
+	local weaponCount = state.weaponCount
 
-	for i = 1, state.weaponCount do
+	for i = 1, weaponCount do
 		local w = state.weapon[i]
 		local reloadState = spGetUnitWeaponState(unitID, i , 'reloadState')
 		local reloadTime  = spGetUnitWeaponState(unitID, i , 'reloadTime')
@@ -508,7 +514,7 @@ function UpdateUnitAttributes(unitID, frame)
 		local moveMult   = (baseSpeedMult)*(selfMoveSpeedChange or 1)*(1 - completeDisable)*(upgradesSpeedMult or 1)
 		local turnMult   = (baseSpeedMult)*(selfMoveSpeedChange or 1)*(selfTurnSpeedChange or 1)*(1 - completeDisable)
 		--local reloadMult = (baseSpeedMult)*(selfReloadSpeedChange or 1)*(1 - disarmed)*(1 - completeDisable)
-		local reloadMult = math.min(1, (1 - (reloadslowState*2))) *(1 - disarmed)*(1 - completeDisable)
+		local reloadMult = mathMin(1, (1 - (reloadslowState*2))) *(1 - disarmed)*(1 - completeDisable)
 		local maxAccMult = (baseSpeedMult)*(selfMaxAccelerationChange or 1)*(upgradesSpeedMult or 1)
 
 

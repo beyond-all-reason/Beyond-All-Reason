@@ -26,7 +26,11 @@ function widget:GetInfo()
 	}
 end
 
-local vsx, vsy = Spring.GetViewGeometry()
+
+-- Localized Spring API for performance
+local spGetViewGeometry = Spring.GetViewGeometry
+
+local vsx, vsy = spGetViewGeometry()
 local widgetScale = 0.80 + (vsx * vsy / 6000000)
 
 local glPopMatrix = gl.PopMatrix
@@ -42,7 +46,7 @@ local font
 local draftMode = Spring.GetModOptions().draft_mode
 
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 	widgetScale = (0.80 + (vsx * vsy / 6000000))
 
 	font = WG['fonts'].getFont(1, 1.5)
@@ -88,7 +92,7 @@ function widget:LanguageChanged()
 		key = 'killAllUnits'
 	elseif deathmode == "builders" then
 		key = 'killAllBuilders'
-	elseif deathmode == "territorial_domination" or Spring.GetModOptions().temp_enable_territorial_domination then
+	elseif deathmode == "territorial_domination" and not Spring.Utilities.Gametype.IsRaptors() and not Spring.Utilities.Gametype.IsScavengers() then
 		key = 'territorialDomination'
 	else
 		key = 'killAllCommanders'

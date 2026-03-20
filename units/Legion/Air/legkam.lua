@@ -18,8 +18,6 @@ return {
 		firestate = 0,
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.6,
 		maxaileron = 0.028,
 		maxbank = 0.8,
@@ -28,7 +26,7 @@ return {
 		maxpitch = 0.625,
 		maxrudder = 0.015,
 		maxslope = 10,
-		speed = 230.0,
+		speed = 220.0,
 		maxwaterdepth = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/legkam.s3o",
@@ -36,10 +34,10 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "",
 		selfdestructcountdown = 0,
-		sightdistance = 250,
+		sightdistance = 430,
 		speedtofront = 0.06183,
 		turnradius = 48,
-		turnrate = 800,
+		turnrate = 750,
 		usesmoothmesh = true,
 		wingangle = 0.06296,
 		wingdrag = 0.06,
@@ -108,6 +106,7 @@ return {
 				reloadtime = 10,
 				weapontype = "AircraftBomb",
 				customparams = {
+					bogus = 1,
 				},
 				damage = {
 					default = 1,
@@ -132,6 +131,9 @@ return {
 				soundstart = "bombdropxx",
 				weapontype = "Cannon",
 				weaponvelocity = 1000,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					vtol = 1000,
 					default = 1,
@@ -163,7 +165,7 @@ return {
 					spawns_expire = 10,
 				},
 				damage = {
-					commanders = 330,
+					commanders = 220,
 					default = 440,
 				},
 			},

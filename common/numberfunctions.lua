@@ -15,18 +15,17 @@ if not math.triangulate then
 	function math.triangulate(polies)
 		local triangles = {}
 		local trianglesCount = 0
-		local poliesCount = #polies
 		for j = 1, #polies do
 			local polygon = polies[j]
 
 			-- find out clockwisdom
-			poliesCount = poliesCount + 1
-			polygon[poliesCount] = polygon[1]
+			local polygonVertexCount = #polygon
+			polygon[polygonVertexCount + 1] = polygon[1]
 			local clockwise = 0
 			for i = 2, #polygon do
 				clockwise = clockwise + (polygon[i - 1][1] * polygon[i][2]) - (polygon[i - 1][2] * polygon[i][1])
 			end
-			polygon[#polygon] = nil
+			polygon[polygonVertexCount + 1] = nil
 			clockwise = (clockwise < 0)
 
 			-- the van gogh concave polygon triangulation algorithm: cuts off ears
@@ -166,58 +165,72 @@ if not math.HSLtoRGB then
 
 		return cr, cg, cb
 	end
+end
 
-
-	if not math.distance2dSquared then
-		function math.distance2dSquared(x1, z1, x2, z2)
-			local x = x1 - x2
-			local z = z1 - z2
-			return x * x + z * z
-		end
+if not math.distance2dSquared then
+	function math.distance2dSquared(x1, z1, x2, z2)
+		local x = x1 - x2
+		local z = z1 - z2
+		return x * x + z * z
 	end
+end
 
-	if not math.distance2d then
-		function math.distance2d(x1, z1, x2, z2)
-			return math.diag(x1 - x2, z1 - z2)
-		end
+if not math.distance2d then
+	function math.distance2d(x1, z1, x2, z2)
+		return math.diag(x1 - x2, z1 - z2)
 	end
+end
 
-	if not math.distance3dSquared then
-		function math.distance3dSquared(x1, y1, z1, x2, y2, z2)
-			local x = x1 - x2
-			local y = y1 - y2
-			local z = z1 - z2
-			return x * x + y * y + z * z
-		end
+if not math.distance3dSquared then
+	function math.distance3dSquared(x1, y1, z1, x2, y2, z2)
+		local x = x1 - x2
+		local y = y1 - y2
+		local z = z1 - z2
+		return x * x + y * y + z * z
 	end
+end
 
-	if not math.distance3d then
-		function math.distance3d(x1, y1, z1, x2, y2, z2)
-			return math.diag(x1 - x2, y1 - y2, z1 - z2)
-		end
+if not math.distance3d then
+	function math.distance3d(x1, y1, z1, x2, y2, z2)
+		return math.diag(x1 - x2, y1 - y2, z1 - z2)
 	end
+end
 
-	if not math.getClosestPosition then
-		---Gets the closest position out of a list to given coordinates. 2d.
-		---@param x table
-		---@param z table
-		---@param positions table must have fields .x and .z
-		function math.getClosestPosition(x, z, positions)
-			if not positions or #positions <= 0 then
-				return
+if not math.getClosestPosition then
+	---Gets the closest position out of a list to given coordinates. 2d.
+	---@param x number
+	---@param z number
+	---@param positions {x:number, z:number}[] must have fields .x and .z
+	---@return {x:number, z:number}? position
+	function math.getClosestPosition(x, z, positions)
+		if not (x and z and positions and positions[1]) then
+			return
+		end
+		local bestPos
+		local bestDist = math.huge
+		for i = 1, #positions do
+			local pos = positions[i]
+			local dx, dz = x - pos.x, z - pos.z
+			local dist = dx * dx + dz * dz
+			if dist < bestDist then
+				bestPos = pos
+				bestDist = dist
 			end
-			local bestPos
-			local bestDist = math.huge
-			for i = 1, #positions do
-				local pos = positions[i]
-				local dx, dz = x - pos.x, z - pos.z
-				local dist = dx * dx + dz * dz
-				if dist < bestDist then
-					bestPos = pos
-					bestDist = dist
-				end
+		end
+		return bestPos
+	end
+
+	if not math.clampRadians then
+		--- Clamp a radian angle between -pi and pi
+		---@param r number radian value to clamp
+		---@return number clamped radian value
+		function math.clampRadians(r)
+			local ret = r
+			ret = ret - 2 * math.pi * math.floor(ret / math.pi / 2)
+			if ret > math.pi then
+				ret = ret - math.pi * 2
 			end
-			return bestPos
+			return ret
 		end
 	end
 end

@@ -107,26 +107,16 @@ IdleHover()
 {
 	while(TRUE){
 		if(bMoving == 1){
-			turn wing_bl to z-axis <-55> speed <350>;
-			turn wing_br to z-axis <28> speed <550>;
-			turn wing_fl to z-axis <28> speed <550>;
-			turn wing_fr to z-axis <-55> speed <350>;
+			turn wing_bl to z-axis <-30> speed <1350>;
+			turn wing_br to z-axis <30> speed <1350>;
+			turn wing_fl to z-axis <30> speed <1350>;
+			turn wing_fr to z-axis <-30> speed <1350>;
 			sleep 55;
-			turn wing_bl to z-axis <5> speed <550>;
-			turn wing_br to z-axis <-35> speed <350>;
-			turn wing_fl to z-axis <-35> speed <350>;
-			turn wing_fr to z-axis <15> speed <550>;
+			turn wing_bl to z-axis <60> speed <1350>;
+			turn wing_br to z-axis <-60> speed <1350>;
+			turn wing_fl to z-axis <-60> speed <1350>;
+			turn wing_fr to z-axis <60> speed <1350>;
 			sleep 60;
-			turn wing_bl to z-axis <-32> speed <350>;
-			turn wing_br to z-axis <28> speed <550>;
-			turn wing_fl to z-axis <28> speed <550>;
-			turn wing_fr to z-axis <-32> speed <350>;
-			sleep 57;
-			turn wing_bl to z-axis <15> speed <550>;
-			turn wing_br to z-axis <-42> speed <350>;
-			turn wing_fl to z-axis <-42> speed <350>;
-			turn wing_fr to z-axis <15> speed <550>;
-			sleep 62;
 		}
 		else sleep 200;
 	}

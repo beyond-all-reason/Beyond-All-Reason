@@ -1,0 +1,194 @@
+
+#include "../recoil_common_includes.h"
+
+piece 
+base,
+turret,
+nanoBarrel,
+nanoFlare,
+lightBase1,
+light1,
+conLight1a,
+conLight1b,
+lightBase2,
+light2,
+conLight2a,
+conLight2b,
+wake;
+
+#define SIGNAL_BUILD 2
+#define SIGNAL_MOVE 1
+
+static-var  nano, pump, readyToBuild, Stunned, restore_delay;
+
+#define RB_MASS 20
+#define RB_LENGTH 5
+#define RB_WIDTH 3
+#define RB_PITCH_SPEED 200
+#define RB_PITCH_ACCELERATION 20
+#define RB_ROLL_ACCELERATION 3
+#define RB_WAKE_PIECE wake
+#define RB_WAKE_PERIOD 6 
+#define RB_WAKE_CEG 1024 + 0
+#define RB_BOUNCE_HEIGHT [1.0]
+
+#include "../bar_ships_common.h"
+
+
+
+MovementControl()
+{
+	// while (pump)
+	// { 
+	// 		move lpump to y-axis [1] speed [1];
+	// 		move lpump to x-axis [1] speed [1];
+	// 		sleep 2000;
+	// 		move lpump to y-axis [0] speed [1];
+	// 		move lpump to x-axis [0] speed [1];
+	// 		sleep 2000;
+	// }
+
+}
+
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	turn turret to y-axis <0> speed <90>;
+
+}
+
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	set-signal-mask 0;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+
+Create()
+{
+    hide nanoFlare;
+    hide conLight1a;
+    hide conLight1b;
+    hide conLight2a;
+    hide conLight2b;
+    move nanoBarrel to z-axis [-6] now;
+    move light1 to y-axis [-0.6] now;
+    move light2 to y-axis [-0.6] now;
+
+    restore_delay = 2000;
+
+	readyToBuild = FALSE;
+	start-script InitRockBoat();
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script BoatPhysics();
+}
+
+
+StartBuilding(heading,pitch)
+{
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+
+	if (!readyToBuild){
+        move nanoBarrel to z-axis [0] speed [12];
+        turn turret to y-axis heading speed <90>;
+		wait-for-move nanoBarrel along z-axis;
+        wait-for-turn turret around y-axis;
+
+	}
+	start-script MovementControl();
+	
+    move nanoBarrel to z-axis [0] speed [12];
+	set INBUILDSTANCE to 1;
+    show nanoFlare;
+    move light1 to y-axis [0] speed [1.2];
+    move light2 to y-axis [0] speed [1.2];
+    wait-for-move light2 along y-axis;
+    spin light1 around y-axis speed <120> accelerate <3>;
+    spin light2 around y-axis speed <120> accelerate <3>;
+    show conLight1a;
+    show conLight1b;
+    show conLight2a;
+    show conLight2b;
+
+}
+
+StopBuilding()
+{
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+    hide nanoFlare;
+    hide conLight1a;
+    hide conLight1b;
+    hide conLight2a;
+    hide conLight2b;
+    stop-spin light1 around y-axis decelerate <1>;
+    stop-spin light2 around y-axis decelerate <1>;
+    
+	sleep 6000;
+	set INBUILDSTANCE to 0;
+	readyToBuild = FALSE;
+
+    move nanoBarrel to z-axis [-6] speed [6];
+    move light1 to y-axis [-0.6] speed [0.6];
+    move light2 to y-axis [-0.6] speed [0.6];
+    start-script RestoreAfterDelay();
+
+
+}
+
+QueryNanoPiece(pieceIndex)
+{
+	pieceIndex = nanoFlare;
+}
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		// explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode arm type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode beam type BITMAPONLY | NOHEATCLOUD;
+		// explode nano2 type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		// explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode arm type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode beam type FALL | NOHEATCLOUD;
+		// explode nano1 type FALL | NOHEATCLOUD;
+		// explode nano2 type FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		// explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode arm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode beam type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode nano1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode nano2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		// explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode arm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode beam type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode nano1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode nano2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

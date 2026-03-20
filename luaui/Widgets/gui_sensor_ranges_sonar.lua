@@ -12,6 +12,12 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spEcho = Spring.Echo
+local spGetViewGeometry = Spring.GetViewGeometry
+
 -------   Configurables: -------------------
 local debugmode = false
 ---
@@ -45,7 +51,7 @@ local circleInstanceVBO = nil
 
 local sonarStencilTexture 
 local resolution = 4
-local vsx, vsy  = Spring.GetViewGeometry()
+local vsx, vsy  = spGetViewGeometry()
 
 local circleShaderSourceCache = {
 	shaderName = 'Sonar Ranges Circles GL4',
@@ -76,13 +82,13 @@ stencilShaderSourceCache.shaderConfig.STENCILPASS = 1 -- this is a stencil pass
 stencilShaderSourceCache.shaderName = 'Sonar Ranges Stencil GL4'
 
 local function goodbye(reason)
-	Spring.Echo("Sensor Ranges LOS widget exiting with reason: " .. reason)
+	spEcho("Sensor Ranges LOS widget exiting with reason: " .. reason)
 	widgetHandler:RemoveWidget()
 	return false
 end
  
 local function CreateStencilShaderAndTexture()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 	circleShaderSourceCache.shaderConfig.VSX = vsx
 	circleShaderSourceCache.shaderConfig.VSY = vsy
 	circleShaderSourceCache.forceupdate = true
@@ -101,7 +107,7 @@ local function CreateStencilShaderAndTexture()
 	end
 
 	local GL_R8 = 0x8229
-    vsx, vsy = Spring.GetViewGeometry()
+    vsx, vsy = spGetViewGeometry()
 	lineScale = (vsy + 500)/ 1300
     if sonarStencilTexture then gl.DeleteTexture(sonarStencilTexture) end
     sonarStencilTexture = gl.CreateTexture(vsx/resolution, vsy/resolution, {
@@ -168,6 +174,7 @@ end
 
 -- Functions shortcuts
 local spGetSpectatingState = Spring.GetSpectatingState
+local spGetUnitDefID = Spring.GetUnitDefID
 local spIsUnitAllied = Spring.IsUnitAllied
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitIsActive 	= Spring.GetUnitIsActive
@@ -203,7 +210,7 @@ end
 local instanceCache = {0,0,0,0,0,0,0,0}
 
 local function InitializeUnits()
-	--Spring.Echo("Sensor Ranges LOS InitializeUnits")
+	--spEcho("Sensor Ranges LOS InitializeUnits")
 	InstanceVBOTable.clearInstanceTable(circleInstanceVBO)
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		local visibleUnits =  WG['unittrackerapi'].visibleUnits
@@ -250,7 +257,7 @@ function widget:Shutdown()
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason,  noupload)
-	--Spring.Echo("widget:VisibleUnitAdded",unitID, unitDefID, unitTeam, reason, noupload)
+	--spEcho("widget:VisibleUnitAdded",unitID, unitDefID, unitTeam, reason, noupload)
 	unitTeam = unitTeam or spGetUnitTeam(unitID)
 	noupload = noupload == true
 	if unitRange[unitDefID] == nil or unitTeam == gaiaTeamID then return end
@@ -263,12 +270,11 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason,  noupload)
 
 	instanceCache[1] =  unitRange[unitDefID]
 
-	
-	local active = true
-	local gameFrame = Spring.GetGameFrame()
+	local active = spGetUnitIsActive(unitID)
+	local gameFrame = spGetGameFrame()
 	if reason == "UnitFinished" then
 		if active then 
-			instanceCache[2] = Spring.GetGameFrame()
+			instanceCache[2] = spGetGameFrame()
 		else
 			instanceCache[2] = -2 -- start from full size
 		end
@@ -300,6 +306,18 @@ function widget:VisibleUnitRemoved(unitID)
 	unitList[unitID] = nil
 end
 
+function widget:GameFrame(n)
+	if spec and fullview then return end
+	if n % 15 == 2 then
+		for unitID, oldActive in pairs(unitList) do
+			local active = spGetUnitIsActive(unitID)
+			if active ~= oldActive then
+				unitList[unitID] = active
+				widget:VisibleUnitAdded(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID) )
+			end
+		end
+	end
+end
 
 function widget:DrawWorld()
 	--if spec and fullview then return end
@@ -319,7 +337,7 @@ function widget:DrawWorld()
 	gl.Texture(1, sonarStencilTexture) -- Bind the heightmap texture
 
 	sonarCircleShader:SetUniform("rangeColor", rangeColor[1], rangeColor[2], rangeColor[3], opacity )
-	--Spring.Echo("rangeColor", rangeColor[1], rangeColor[2], rangeColor[3], opacity * (useteamcolors and 2 or 1 ))
+	--spEcho("rangeColor", rangeColor[1], rangeColor[2], rangeColor[3], opacity * (useteamcolors and 2 or 1 ))
 	sonarCircleShader:SetUniform("teamColorMix", 0)
 
 	gl.LineWidth(rangeLineWidth * lineScale * 1.0)

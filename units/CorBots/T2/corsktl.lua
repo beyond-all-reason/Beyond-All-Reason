@@ -1,7 +1,7 @@
 return {
 	corsktl = {
 		buildpic = "CORSKTL.DDS",
-		buildtime = 17000,
+		buildtime = 23000,
 		canmove = true,
 		cloakcost = 15,
 		cloakcostmoving = 40,
@@ -14,8 +14,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 355,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.138,
 		maxdec = 0.6486,
 		maxslope = 255,

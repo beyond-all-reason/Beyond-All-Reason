@@ -6,12 +6,21 @@ function widget:GetInfo()
 		desc    = "Displays rotating circles around geothermal spots",
 		author  = "Floris, Beherith GL4",
 		date    = "August 2021",
-		license = "Lua GNU GPL, v2 or later,   GLSL: (c) Beherith (mysterme@gmail.com)",
+		license = "GNU GPL v2",
 		layer   = 2,
 		enabled = true,
 	}
 end
 
+
+
+-- Localized functions for performance
+local mathSin = math.sin
+local mathCos = math.cos
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spGetSpectatingState = Spring.GetSpectatingState
 
 local showValue			= false
 local metalViewOnly		= false
@@ -30,17 +39,18 @@ local spGetGroundHeight = Spring.GetGroundHeight
 local spGetMapDrawMode  = Spring.GetMapDrawMode
 
 local spots = {}
-local previousOsClock = os.clock()
+local numSpots = 0
 local checkspots = true
-local sceduledCheckedSpotsFrame = Spring.GetGameFrame()
+local sceduledCheckedSpotsFrame = spGetGameFrame()
 
-local isSpec, fullview = Spring.GetSpectatingState()
+local isSpec, fullview = spGetSpectatingState()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 
 local chobbyInterface
 
+-- Numeric key avoids tostring + concat per lookup
 local function spotKey(x, z)
-	return tostring(x).."_"..tostring(z)
+	return x * 65536 + z
 end
 
 local extractors = {}
@@ -50,26 +60,33 @@ for uDefID, uDef in pairs(UnitDefs) do
 	end
 end
 
+-- Precompute geothermal feature defs once (they never change)
+local geoFeatureDefs = {}
+for defID, def in pairs(FeatureDefs) do
+	if def.geoThermal then
+		geoFeatureDefs[defID] = true
+	end
+end
+
+local spGetAllFeatures = Spring.GetAllFeatures
+local spGetFeatureDefID = Spring.GetFeatureDefID
+local spGetFeaturePosition = Spring.GetFeaturePosition
+
 local showGeothermalUnits = false
 local function checkGeothermalFeatures()
 	showGeothermalUnits = false
-	local geoFeatureDefs = {}
-	for defID, def in pairs(FeatureDefs) do
-		if def.geoThermal then
-			geoFeatureDefs[defID] = true
-		end
-	end
 	spots = {}
-	local features = Spring.GetAllFeatures()
+	local features = spGetAllFeatures()
 	local spotCount = 0
 	for i = 1, #features do
-		if geoFeatureDefs[Spring.GetFeatureDefID(features[i])] then
+		if geoFeatureDefs[spGetFeatureDefID(features[i])] then
 			showGeothermalUnits = true
-			local x, y, z = Spring.GetFeaturePosition(features[i])
+			local x, y, z = spGetFeaturePosition(features[i])
 			spotCount = spotCount + 1
 			spots[spotCount] = {x, y, z}
 		end
 	end
+	numSpots = spotCount
 end
 
 -- GL4 stuff
@@ -126,6 +143,7 @@ void main()
 
 	// scale the circle and move to world pos:
 	vertexWorldPos = vertexWorldPos * (12.0 + localpos_dir_angle.z) *2.0* worldpos_radius.w + worldpos_radius.xyz;
+	vertexWorldPos.y += 2.0;
 
 	//dump to FS:
 	gl_Position = cameraViewProj * vec4(vertexWorldPos,1.0);
@@ -166,57 +184,85 @@ local function goodbye(reason)
 	widgetHandler:RemoveWidget()
 end
 
-local function arrayAppend(target, source)
-	for _,v in ipairs(source) do
-		table.insert(target,v)
-	end
-end
-
 local function makeSpotVBO()
 	spotVBO = gl.GetVBO(GL.ARRAY_BUFFER,false)
 	if spotVBO == nil then goodbye("Failed to create spotVBO") end
 	local VBOLayout = {	 {id = 0, name = "localpos_dir_angle", size = 4},}
 	local VBOData = {}
+	local n = 0  -- flat array write index
 
-	local detailPartWidth, a1,a2,a3,a4
 	local width = circleSpaceUsage
 	local pieces = 3
 	local detail = 13	-- per piece
 	local radstep = (2.0 * math.pi) / pieces
+	local widthPerDetail = width / detail
 	for _,dir in ipairs({-1,1}) do
+		local dirOffset = dir + 1
 		for i = 1, pieces do -- pieces
 			for d = 1, detail do -- detail
-				detailPartWidth = ((width / detail) * d) + (dir+1)
-				a1 = ((i+detailPartWidth - (width / detail)) * radstep)
-				a2 = ((i+detailPartWidth) * radstep) - ((width / detail)*1.2)
-				a3 = ((i+circleInnerOffset+detailPartWidth - (width / detail)) * radstep) - ((width / detail)*0.6)
-				a4 = ((i+circleInnerOffset+detailPartWidth) * radstep) - ((width / detail)*0.6)
+				local detailPartWidth = (widthPerDetail * d) + dirOffset
+				local a1 = ((i+detailPartWidth - widthPerDetail) * radstep)
+				local a2 = ((i+detailPartWidth) * radstep) - (widthPerDetail*1.2)
+				local a3 = ((i+circleInnerOffset+detailPartWidth - widthPerDetail) * radstep) - (widthPerDetail*0.6)
+				local a4 = ((i+circleInnerOffset+detailPartWidth) * radstep) - (widthPerDetail*0.6)
 
-
-				arrayAppend(VBOData, {math.sin(a3)*innersize, math.cos(a3)*innersize, dir, a3})
+				-- Tri 1 vertex 1
+				n=n+1; VBOData[n] = mathSin(a3)*innersize
+				n=n+1; VBOData[n] = mathCos(a3)*innersize
+				n=n+1; VBOData[n] = dir
+				n=n+1; VBOData[n] = a3
+				-- Tri 1 vertices 2,3 (winding order depends on dir)
 				if dir == 1 then
-					arrayAppend(VBOData, {math.sin(a4)*innersize, math.cos(a4)*innersize, dir, a4})
-					arrayAppend(VBOData, {math.sin(a1)*outersize, math.cos(a1)*outersize, dir, a1})
+					n=n+1; VBOData[n] = mathSin(a4)*innersize
+					n=n+1; VBOData[n] = mathCos(a4)*innersize
+					n=n+1; VBOData[n] = dir
+					n=n+1; VBOData[n] = a4
+					n=n+1; VBOData[n] = mathSin(a1)*outersize
+					n=n+1; VBOData[n] = mathCos(a1)*outersize
+					n=n+1; VBOData[n] = dir
+					n=n+1; VBOData[n] = a1
 				else
-					arrayAppend(VBOData, {math.sin(a1)*outersize, math.cos(a1)*outersize, dir, a1})
-					arrayAppend(VBOData, {math.sin(a4)*innersize, math.cos(a4)*innersize, dir, a4})
+					n=n+1; VBOData[n] = mathSin(a1)*outersize
+					n=n+1; VBOData[n] = mathCos(a1)*outersize
+					n=n+1; VBOData[n] = dir
+					n=n+1; VBOData[n] = a1
+					n=n+1; VBOData[n] = mathSin(a4)*innersize
+					n=n+1; VBOData[n] = mathCos(a4)*innersize
+					n=n+1; VBOData[n] = dir
+					n=n+1; VBOData[n] = a4
 				end
-
+				-- Tri 2 vertices 1,2 (winding order depends on dir)
 				if dir == -1 then
-					arrayAppend(VBOData, {math.sin(a1)*outersize, math.cos(a1)*outersize, dir, a1})
-					arrayAppend(VBOData, {math.sin(a2)*outersize, math.cos(a2)*outersize, dir, a2})
+					n=n+1; VBOData[n] = mathSin(a1)*outersize
+					n=n+1; VBOData[n] = mathCos(a1)*outersize
+					n=n+1; VBOData[n] = dir
+					n=n+1; VBOData[n] = a1
+					n=n+1; VBOData[n] = mathSin(a2)*outersize
+					n=n+1; VBOData[n] = mathCos(a2)*outersize
+					n=n+1; VBOData[n] = dir
+					n=n+1; VBOData[n] = a2
 				else
-					arrayAppend(VBOData, {math.sin(a2)*outersize, math.cos(a2)*outersize, dir, a2})
-					arrayAppend(VBOData, {math.sin(a1)*outersize, math.cos(a1)*outersize, dir, a1})
+					n=n+1; VBOData[n] = mathSin(a2)*outersize
+					n=n+1; VBOData[n] = mathCos(a2)*outersize
+					n=n+1; VBOData[n] = dir
+					n=n+1; VBOData[n] = a2
+					n=n+1; VBOData[n] = mathSin(a1)*outersize
+					n=n+1; VBOData[n] = mathCos(a1)*outersize
+					n=n+1; VBOData[n] = dir
+					n=n+1; VBOData[n] = a1
 				end
-				arrayAppend(VBOData, {math.sin(a4)*innersize, math.cos(a4)*innersize, dir, a4})
+				-- Tri 2 vertex 3
+				n=n+1; VBOData[n] = mathSin(a4)*innersize
+				n=n+1; VBOData[n] = mathCos(a4)*innersize
+				n=n+1; VBOData[n] = dir
+				n=n+1; VBOData[n] = a4
 			end
 		end
 	end
 
-	spotVBO:Define(#VBOData/4, VBOLayout)
+	spotVBO:Define(n/4, VBOLayout)
 	spotVBO:Upload(VBOData)
-	return spotVBO, #VBOData/4
+	return spotVBO, n/4
 end
 
 local function initGL4()
@@ -246,35 +292,40 @@ end
 
 
 local function checkGeothermalspots()
-	local now = os.clock()
 	local geoHeightChange = false
-	for i=1, #spots do
-		local prevHeight = spots[i][2]
-		spots[i][2] = spGetGroundHeight(spots[i][1],spots[i][3])
-		if prevHeight ~= spots[i][2] then
+	local now  -- lazily initialized only if occupation changes
+	local gf = spGetGameFrame()
+	for i=1, numSpots do
+		local spot = spots[i]
+		local sx, sy, sz = spot[1], spot[2], spot[3]
+		local newHeight = spGetGroundHeight(sx, sz)
+		if sy ~= newHeight then
+			spot[2] = newHeight
+			sy = newHeight
 			geoHeightChange = true
 		end
-		local spot = spots[i]
-		local units = spGetUnitsInSphere(spot[1], spot[2], spot[3], 110*(spot[5] or 1))
+		local scale = spot[5] or 1
+		local units = spGetUnitsInSphere(sx, sy, sz, 110 * scale)
 		local occupied = false
-		local prevOccupied = spots[i][6] or false
 		for j=1, #units do
 			if extractors[spGetUnitDefID(units[j])] then
 				occupied = true
 				break
 			end
 		end
+		local prevOccupied = spot[6] or false
 		if occupied ~= prevOccupied then
-			spots[i][7] = now
-			spots[i][6] = occupied
-			local curSpotkey = spotKey(spot[1], spot[3])
+			if not now then now = os.clock() end
+			spot[7] = now
+			spot[6] = occupied
+			local curSpotkey = spotKey(sx, sz)
 			local oldinstance = getElementInstanceData(spotInstanceVBO, curSpotkey)
-			oldinstance[5] = (occupied and 0) or 1
-			oldinstance[6] = Spring.GetGameFrame()
+			oldinstance[5] = occupied and 0 or 1
+			oldinstance[6] = gf
 			pushElementInstance(spotInstanceVBO, oldinstance, curSpotkey, true)
 		end
 	end
-	sceduledCheckedSpotsFrame = Spring.GetGameFrame() + 151
+	sceduledCheckedSpotsFrame = gf + 151
 	checkspots = false
 
 	if geoHeightChange then
@@ -295,8 +346,10 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	if checkGeothermalFeatures then
-		checkGeothermalFeatures()
+	checkGeothermalFeatures()
+	if not showGeothermalUnits then
+		widgetHandler:RemoveWidget()
+		return
 	end
 
 	initGL4()
@@ -323,10 +376,11 @@ function widget:Initialize()
 
 	local currentClock = os.clock()
 	local scale = 1
-	for i=1, #spots do
+	for i=1, numSpots do
 		local spot = spots[i]
+		local sx, sz = spot[1], spot[3]
 
-		local units = spGetUnitsInSphere(spot[1], spot[2], spot[3], 115*scale)
+		local units = spGetUnitsInSphere(sx, spot[2], sz, 115*scale)
 		local occupied = false
 		for j=1, #units do
 			if extractors[spGetUnitDefID(units[j])] then
@@ -334,9 +388,9 @@ function widget:Initialize()
 				break
 			end
 		end
-		local y = spGetGroundHeight(spot[1], spot[3])
-		spots[i] = {spot[1], y, spot[3], 1, scale, occupied, currentClock}
-		pushElementInstance(spotInstanceVBO, {spot[1], y, spot[3], scale, (occupied and 0) or 1, -1000,0,0}, spotKey(spot[1], spot[3]))
+		local y = spGetGroundHeight(sx, sz)
+		spots[i] = {sx, y, sz, 1, scale, occupied, currentClock}
+		pushElementInstance(spotInstanceVBO, {sx, y, sz, scale, occupied and 0 or 1, -1000,0,0}, spotKey(sx, sz))
 	end
 end
 
@@ -347,15 +401,15 @@ end
 
 
 function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	if string.find(msg, 'LobbyOverlayActive', 1, true) == 1 then
+		chobbyInterface = (string.byte(msg, 19) == 49)  -- '1'
 	end
 end
 
 function widget:PlayerChanged(playerID)
 	local prevFullview = fullview
 	local prevMyAllyTeamID = myAllyTeamID
-	isSpec, fullview = Spring.GetSpectatingState()
+	isSpec, fullview = spGetSpectatingState()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
 	if fullview ~= prevFullview or myAllyTeamID ~= prevMyAllyTeamID then
 		checkGeothermalspots()
@@ -370,41 +424,35 @@ end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if extractors[unitDefID] then
-		sceduledCheckedSpotsFrame = Spring.GetGameFrame() + 3	-- delay needed, i don't know why
+		sceduledCheckedSpotsFrame = spGetGameFrame() + 3	-- delay needed, i don't know why
 	end
 end
 
 function widget:GameFrame(gf)
-	if checkGeothermalFeatures then
-		checkGeothermalFeatures()
-		checkGeothermalFeatures = nil
-
-		if not showGeothermalUnits then
-			widgetHandler:RemoveWidget()
-		end
-	elseif checkspots or gf >= sceduledCheckedSpotsFrame then
+	if checkspots or gf >= sceduledCheckedSpotsFrame then
 		checkGeothermalspots()
 	end
 end
 
 
-function widget:DrawWorldPreUnit()
-	local mapDrawMode = spGetMapDrawMode()
-	if metalViewOnly and mapDrawMode ~= 'metal' then return end
+function widget:DrawWorld()
+	-- Draw after water so underwater spots are not distorted by the water shader.
+	if numSpots == 0 then return end
 	if chobbyInterface then return end
 	if spIsGUIHidden() then return end
+	if metalViewOnly and spGetMapDrawMode() ~= 'metal' then return end
 
-	local clockDifference = (os.clock() - previousOsClock)
-	previousOsClock = os.clock()
-
-	gl.DepthTest(false)
+	gl.DepthTest(GL.LEQUAL)
+	gl.DepthMask(false)
+	gl.PolygonOffset(-64, -64)
 
 	spotShader:Activate()
 	drawInstanceVBO(spotInstanceVBO)
 	spotShader:Deactivate()
 
-    gl.DepthTest(true)
-    gl.Color(1,1,1,1)
+	gl.PolygonOffset(false)
+	gl.DepthTest(false)
+	gl.DepthMask(true)
 end
 
 function widget:GetConfigData(data)

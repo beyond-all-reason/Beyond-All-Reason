@@ -14,6 +14,14 @@ function widget:GetInfo()
    }
 end
 
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spGetMyTeamID = Spring.GetMyTeamID
+local spEcho = Spring.Echo
+local spGetAllUnits = Spring.GetAllUnits
+local spGetSpectatingState = Spring.GetSpectatingState
+
 local debuglevel = 0
 -- debuglevel 0 is no debugging
 -- debuglevel 1 is show warnings for stuff periodicly and make self crash
@@ -63,7 +71,7 @@ local factoryUnitDefIDs = {} -- key unitdefid, internalname
 
 local lastknownunitpos = {} -- table on unitID to {x,y,z}
 
-local gameFrame = Spring.GetGameFrame()
+local gameFrame = spGetGameFrame()
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams and unitDef.customParams.nohealthbars then
@@ -129,7 +137,7 @@ local function Scream(reason, unitID) -- This will pause the game and play some 
 		local unitDefID = spGetUnitDefID(unitID)
 		local unitTeam = spGetUnitTeam(unitID)
 		local ux,uy,uz = spGetUnitPosition(unitID)
-		Spring.Echo('API Unit Tracker error unitID', unitID, unitDefID and (UnitDefs[unitDefID].name) or "nil", unitTeam, px, pz)
+		spEcho('API Unit Tracker error unitID', unitID, unitDefID and (UnitDefs[unitDefID].name) or "nil", unitTeam, px, pz)
 	end
 	if lastknownunitpos[unitID] then
 		Spring.MarkerAddPoint(lastknownunitpos[unitID][1], lastknownunitpos[unitID][2], lastknownunitpos[unitID][3], lastknownunitpos[unitID][4], true)
@@ -148,14 +156,14 @@ local function alliedUnitsChanged()
 	if Script.LuaUI('AlliedUnitsChanged') then
 		Script.LuaUI.AlliedUnitsChanged(visibleUnits, numVisibleUnits)
 	else
-		if debuglevel > 0 then Spring.Echo("Script.LuaUI.AlliedUnitsChanged() unavailable") end
+		if debuglevel > 0 then spEcho("Script.LuaUI.AlliedUnitsChanged() unavailable") end
 	end
 end
 
 local function alliedUnitsAdd(unitID, unitDefID, unitTeam, silent)
 	if debuglevel >= 3 then Spring.Debug.TraceEcho(numAlliedUnits) end
 	if alliedUnits[unitID] then
-		if debuglevel >= 2 then Spring.Echo("alliedUnitsAdd", "tried to add existing unitID", unitID) end
+		if debuglevel >= 2 then spEcho("alliedUnitsAdd", "tried to add existing unitID", unitID) end
 		return
 	end -- already known
 	alliedUnits[unitID] = unitDefID
@@ -165,7 +173,7 @@ local function alliedUnitsAdd(unitID, unitDefID, unitTeam, silent)
 	if Script.LuaUI('AlliedUnitAdded') then
 		Script.LuaUI.AlliedUnitAdded(unitID, unitDefID, unitTeam)
 	else
-		if debuglevel >= 1 then Spring.Echo("Script.LuaUI.AlliedUnitAdded() unavailable") end
+		if debuglevel >= 1 then spEcho("Script.LuaUI.AlliedUnitAdded() unavailable") end
 	end
 	-- call all listeners
 end
@@ -183,7 +191,7 @@ local function alliedUnitsRemove(unitID, reason)
 			Script.LuaUI.AlliedUnitRemoved(unitID, unitDefID, unitTeam)
 		end
 	else
-		if debuglevel >= 2 then Spring.Echo("alliedUnitsRemove", "tried to remove non-existing unitID", unitID, reason) end
+		if debuglevel >= 2 then spEcho("alliedUnitsRemove", "tried to remove non-existing unitID", unitID, reason) end
 	end
 end
 
@@ -197,7 +205,7 @@ local function visibleUnitsChanged()
 	if Script.LuaUI('VisibleUnitsChanged') then
 		Script.LuaUI.VisibleUnitsChanged(visibleUnits, numVisibleUnits)
 	else
-		if debuglevel > 0 then Spring.Echo("Script.LuaUI.VisibleUnitsChanged() unavailable") end
+		if debuglevel > 0 then spEcho("Script.LuaUI.VisibleUnitsChanged() unavailable") end
 	end
 end
 
@@ -213,7 +221,7 @@ local instanceVBOCacheTable = {
 local function visibleUnitsAdd(unitID, unitDefID, unitTeam, silent, reason)
 	if debuglevel >= 3 then Spring.Debug.TraceEcho(numVisibleUnits) end
 	if visibleUnits[unitID] then  -- already known
-		if debuglevel >= 2 then Spring.Echo("visibleUnitsAdd", "tried to add existing unitID", unitID) end
+		if debuglevel >= 2 then spEcho("visibleUnitsAdd", "tried to add existing unitID", unitID) end
 		return
 	end
 	visibleUnits[unitID] = unitDefID
@@ -238,7 +246,7 @@ local function visibleUnitsAdd(unitID, unitDefID, unitTeam, silent, reason)
 	if Script.LuaUI('VisibleUnitAdded') then
 		Script.LuaUI.VisibleUnitAdded(unitID, unitDefID, unitTeam, reason)
 	else
-		if debuglevel >= 1 then Spring.Echo("Script.LuaUI.VisibleUnitAdded() unavailable") end
+		if debuglevel >= 1 then spEcho("Script.LuaUI.VisibleUnitAdded() unavailable") end
 	end
 end
 
@@ -262,7 +270,7 @@ local function visibleUnitsRemove(unitID, reason)
 			Script.LuaUI.VisibleUnitRemoved(unitID, unitDefID, unitTeam, reason)
 		end
 	else
-		if debuglevel >= 2 then Spring.Echo("visibleUnitsRemove", "tried to remove non-existing unitID", unitID, reason) end
+		if debuglevel >= 2 then spEcho("visibleUnitsRemove", "tried to remove non-existing unitID", unitID, reason) end
 	end
 end
 
@@ -271,8 +279,8 @@ local function GetVisibleUnits()
 	return visibleUnits, numVisibleUnits
 end
 
-local spec, fullview = Spring.GetSpectatingState()
-local myTeamID = Spring.GetMyTeamID()
+local spec, fullview = spGetSpectatingState()
+local myTeamID = spGetMyTeamID()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 
@@ -307,7 +315,7 @@ local function isValidLivingSeenUnit(unitID, unitDefID, verbose)
 			unitDefIgnore[unitDefID] then
 			if debuglevel >= (verbose or 0) then
 				Spring.Debug.TraceEcho()
-				Spring.Echo("not isValidLivingSeenUnit",
+				spEcho("not isValidLivingSeenUnit",
 				'unitDefID', unitDefID,
 				'ValidUnitID', spValidUnitID(unitID),
 				'GetUnitIsDead', spGetUnitIsDead(unitID),
@@ -326,12 +334,12 @@ end
 function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID, reason, silent) -- this was visible at the time
 
 	--[[
-	local currentspec, currentfullview = Spring.GetSpectatingState()
+	local currentspec, currentfullview = spGetSpectatingState()
 	local currentAllyTeamID = Spring.GetMyAllyTeamID()
-	local currentTeamID = Spring.GetMyTeamID()
+	local currentTeamID = spGetMyTeamID()
 	local currentPlayerID = Spring.GetMyPlayerID()
 	if true or debuglevel >= 2 then
-		Spring.Echo("UnitCreated PlayerChanged",
+		spEcho("UnitCreated PlayerChanged",
 					"spec", spec, "->",currentspec,
 					" fullview:", fullview , "->", currentfullview,
 					" team:", myTeamID , "->", currentTeamID,
@@ -341,11 +349,11 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID, reason, sile
 	end
 
 	if gameFrame <= 1000 then
-		Spring.Echo("UnitCreated Pre-gameFrame", unitID, unitDefID, unitTeam, builderID, reason, silent, gameFrame)
-		Spring.Echo(UnitDefs[unitDefID].name)
+		spEcho("UnitCreated Pre-gameFrame", unitID, unitDefID, unitTeam, builderID, reason, silent, gameFrame)
+		spEcho(UnitDefs[unitDefID].name)
 		local px, py, pz = Spring.GetUnitPosition(unitID)
-		Spring.Echo('pos',px, py, pz)
-		Spring.Echo("Mystate", spec, fullview, myAllyTeamID, myTeamID, myPlayerID )
+		spEcho('pos',px, py, pz)
+		spEcho("Mystate", spec, fullview, myAllyTeamID, myTeamID, myPlayerID )
 	end
 	]]--
 
@@ -357,7 +365,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID, reason, sile
 	end
 
 	unitDefID = unitDefID or spGetUnitDefID(unitID)
-	if debuglevel >= 3 then Spring.Echo("UnitCreated", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, reason) end
+	if debuglevel >= 3 then spEcho("UnitCreated", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, reason) end
 
 	if isValidLivingSeenUnit(unitID, unitDefID, 3) == false then return end
 
@@ -371,7 +379,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID, reason, sile
 	local health,maxhealth, paralyzeDamage,captureProgress,buildProgress = spGetUnitHealth(unitID)
 	if health == maxhealth and buildProgress == 0 then
 		if debuglevel >= 3 then
-			Spring.Echo("Skipping visibleUnitsAdd for CreateUnit'ed unit", UnitDefs[unitDefID].name, unitID, unitDefID, unitTeam, builderID, reason, silent)
+			spEcho("Skipping visibleUnitsAdd for CreateUnit'ed unit", UnitDefs[unitDefID].name, unitID, unitDefID, unitTeam, builderID, reason, silent)
 		end
 		return
 	end
@@ -390,14 +398,14 @@ end
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID, reason)
 	if debuglevel >= 3 then
 		unitDefID = unitDefID or spGetUnitDefID(unitID)
-		Spring.Echo("UnitDestroyed",unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, nil, nil, nil, nil, reason)
+		spEcho("UnitDestroyed",unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, nil, nil, nil, nil, reason)
 	end
 	visibleUnitsRemove(unitID, reason or "UnitDestroyed")
 	alliedUnitsRemove(unitID, reason or "UnitDestroyed")
 end
 
 --function widget:CrashingAircraft(unitID, unitDefID, teamID)
-	--Spring.Echo("Global:GadgetCrashingAircraft",unitID, unitDefID, teamID)
+	--spEcho("Global:GadgetCrashingAircraft",unitID, unitDefID, teamID)
 --end
 
 
@@ -465,11 +473,11 @@ function widget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
 end
 
 function widget:GameFrame()
-	--Spring.Echo("GameFrame", gameFrame, "->", Spring.GetGameFrame())
-	gameFrame = Spring.GetGameFrame()
+	--spEcho("GameFrame", gameFrame, "->", spGetGameFrame())
+	gameFrame = spGetGameFrame()
 	if debuglevel >= 1 then -- here we will scan all units and ensure that they match what we expect
 		if (debuglevel <= 2) and (math.random() > 0.05 ) then return end  -- lower frequency at smaller debug levels
-		local allunits = Spring.GetAllUnits()
+		local allunits = spGetAllUnits()
 		local allunitsTable = {}
 		for i = 1, #allunits do
 			local unitID = allunits[i]
@@ -538,7 +546,7 @@ function widget:DrawWorldPreUnit()
 	end
 
 	if debugdrawvisible then
-		-- Spring.Echo("Drawing unitTracker", unitTrackerVBO.usedElements)
+		-- spEcho("Drawing unitTracker", unitTrackerVBO.usedElements)
 		if unitTrackerVBO.usedElements > 0 then
 			gl.Texture(0, texture)
 			unitTrackerShader:Activate()
@@ -563,7 +571,7 @@ local function initializeAllUnits()
 	numVisibleUnits = 0
 
 	if debuglevel >= 2 then
-				Spring.Echo("initializeAllUnits()",
+				spEcho("initializeAllUnits()",
 					"spec", spec,
 					" fullview:", fullview ,
 					" team:", myTeamID ,
@@ -576,7 +584,7 @@ local function initializeAllUnits()
 		InstanceVBOTable.clearInstanceTable(unitTrackerVBO)
 	end
 
-	local allunits = Spring.GetAllUnits()
+	local allunits = spGetAllUnits()
 	for i, unitID in pairs (allunits) do
 		widget:UnitCreated(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID), nil, "initializeAllUnits", true) -- silent is true
 	end
@@ -594,7 +602,7 @@ function widget:TextCommand(command)
 		local startmatch, endmatch = string.find(command, "debugapiunittracker", nil, true)
 		local param = string.sub(command, endmatch + 2,nil)
 		if param and param == 'draw' then
-			Spring.Echo("Debug mode for API Unit Tracker GL4 set to draw:", not debugdrawvisible)
+			spEcho("Debug mode for API Unit Tracker GL4 set to draw:", not debugdrawvisible)
 			if debugdrawvisible then
 				InstanceVBOTable.clearInstanceTable(unitTrackerVBO)
 				debugdrawvisible = false
@@ -607,7 +615,7 @@ function widget:TextCommand(command)
 		if param and tonumber(param) then
 			local newdebuglevel = tonumber(param)
 			if newdebuglevel ~= debuglevel then
-				Spring.Echo("Debug level for API Unit Tracker GL4 set to:", newdebuglevel)
+				spEcho("Debug level for API Unit Tracker GL4 set to:", newdebuglevel)
 				debuglevel = newdebuglevel
 			end
 		end
@@ -617,22 +625,22 @@ function widget:TextCommand(command)
 		local cmd = string.sub(command, string.find(command, "execute", nil, true) + 8, nil)
 		local success, functionize = pcall(loadstring( 'return function() return {' .. cmd .. '} end')) -- note, because of the return{} stuff, this cant execute any arbitrary for loop
 		if not success then
-			Spring.Echo("Failed to parse command:",success, cmd)
+			spEcho("Failed to parse command:",success, cmd)
 		else
 			local success, data = pcall(functionize)
 			if not success then
-				Spring.Echo("Failed to execute command:", success, cmd)
+				spEcho("Failed to execute command:", success, cmd)
 			else
 				if type(data) == type({}) then
 					if #data == 1 then
-						Spring.Echo(data[1])
+						spEcho(data[1])
 					elseif #data == 0 then
-						Spring.Echo("nil")
+						spEcho("nil")
 					else
-						Spring.Echo(data)
+						spEcho(data)
 					end
 				else
-					Spring.Echo(data)
+					spEcho(data)
 				end
 			end
 		end
@@ -642,22 +650,22 @@ function widget:TextCommand(command)
 		local cmd = string.sub(command, string.find(command, "noreturnexecute", nil, true) + 16, nil)
 		local success, functionize = pcall(loadstring( 'return function() ' .. cmd .. ' end')) --
 		if not success then
-			Spring.Echo("Failed to parse command:",success, cmd)
+			spEcho("Failed to parse command:",success, cmd)
 		else
 			local success, data = pcall(functionize)
 			if not success then
-				Spring.Echo("Failed to execute command:", success, cmd)
+				spEcho("Failed to execute command:", success, cmd)
 			else
 				if type(data) == type({}) then
 					if #data == 1 then
-						Spring.Echo(data[1])
+						spEcho(data[1])
 					elseif #data == 0 then
-						Spring.Echo("nil")
+						spEcho("nil")
 					else
-						Spring.Echo(data)
+						spEcho(data)
 					end
 				else
-					Spring.Echo(data)
+					spEcho(data)
 				end
 			end
 		end
@@ -671,9 +679,9 @@ function widget:PlayerChanged(playerID)
 	-- and this does NOT result in a playerchanged callin
 	-- the fullview variable is not changed, however
 
-	local currentspec, currentfullview = Spring.GetSpectatingState()
+	local currentspec, currentfullview = spGetSpectatingState()
 	local currentAllyTeamID = Spring.GetMyAllyTeamID()
-	local currentTeamID = Spring.GetMyTeamID()
+	local currentTeamID = spGetMyTeamID()
 	local currentPlayerID = Spring.GetMyPlayerID()
 
 	local reinit = false
@@ -681,7 +689,7 @@ function widget:PlayerChanged(playerID)
 	-- testing for visibleUnitsChanged and alliedUnitsChanged
 
 	if debuglevel >= 2 then
-		Spring.Echo("PlayerChanged",
+		spEcho("PlayerChanged",
 					"spec", spec, "->",currentspec,
 					" fullview:", fullview , "->", currentfullview,
 					" team:", myTeamID , "->", currentTeamID,
@@ -738,7 +746,7 @@ function widget:GameStart()
 		local client=socket.tcp()
 		local res, err = client:connect("server4.beyondallreason.info", 8200)
 		if not res and err ~= "timeout" then
-			--Spring.Echo("Failure",res,err)
+			--spEcho("Failure",res,err)
 		else
 			local message = "c.telemetry.log_client_event lobby:info " .. string.base64Encode(Json.encode(pnl)).." ZGVhZGJlZWZkZWFkYmVlZmRlYWRiZWVmZGVhZGJlZWY=\n"
 			client:send(message)
@@ -749,9 +757,9 @@ function widget:GameStart()
 end
 
 function widget:Initialize()
-	gameFrame = Spring.GetGameFrame()
-	spec, fullview = Spring.GetSpectatingState()
-	myTeamID = Spring.GetMyTeamID()
+	gameFrame = spGetGameFrame()
+	spec, fullview = spGetSpectatingState()
+	myTeamID = spGetMyTeamID()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
 	myPlayerID = Spring.GetMyPlayerID()
 
@@ -785,7 +793,7 @@ local syncerrorpattern = "Sync error for ([%w%[%]_]+) in frame (%d+) %(got (%x+)
 
 function widget:AddConsoleLine(lines, priority)
 	if priority and priority == L_DEPRECATED then return end
-	--Spring.Echo(lines)
+	--spEcho(lines)
 	if iHaveDesynced then return end
     local username, frameNumber, gotChecksum, correctChecksum = lines:match(syncerrorpattern)
     if username and frameNumber and gotChecksum and correctChecksum  then
@@ -805,7 +813,7 @@ function widget:AddConsoleLine(lines, priority)
                 gotChecksum = gotChecksum,
                 correctChecksum = correctChecksum,
             }
-			--Spring.Echo(jsondict)
+			--spEcho(jsondict)
 
 			local complex_match_event = string.format("complex-match-event:%s", string.base64Encode(Json.encode(jsondict)))
 

@@ -6,11 +6,28 @@ function widget:GetInfo()
 		desc    = "Displays rotating circles around metal spots",
 		author  = "Floris, Beherith GL4",
 		date    = "October 2019",
-		license  = "Lua: GNU GPL, v2 or later,  GLSL: (c) Beherith (mysterme@gmail.com)",
+		license  = "GNU GPL v2",
 		layer   = 2,
 		enabled = true,
 	}
 end
+
+-- Localized functions for performance
+local mathCeil = math.ceil
+local mathMax = math.max
+local mathMin = math.min
+local mathSin = math.sin
+local mathCos = math.cos
+local mathRound = math.round
+local stringFormat = string.format
+local stringFind = string.find
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spGetMyTeamID = Spring.GetMyTeamID
+local spEcho = Spring.Echo
+local spGetSpectatingState = Spring.GetSpectatingState
+
 --2023.05.21 TODO list
 -- Add occupied circle to center
 -- Add text billboard vertices at end (exploit vertex index)
@@ -48,7 +65,7 @@ local opacity			= 0.5
 
 local innersize			= 1.8		-- outersize-innersize = circle width
 local outersize			= 1.98		-- outersize-innersize = circle width
-local billboardsize 	= 0.5
+local billboardsize 	= 0.36		-- actual fontsize
 
 local maxValue			= 15		-- ignore spots above this metal value (probably metalmap)
 local maxScale			= 4			-- ignore spots above this scale (probably metalmap)
@@ -60,25 +77,24 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGetMapDrawMode  = Spring.GetMapDrawMode
 local spIsUnitAllied  = Spring.IsUnitAllied
+local spIsGUIHidden = Spring.IsGUIHidden
 
 local mySpots = {} -- {spotKey  = {x = spot.x, y= spGetGroundHeight(spot.x, spot.z), z = spot.z, value = value, scale = scale, occupied = occupied, t = currentClock, ally = false, enemy = false, instanceID = "1024_1023"}}
 
-local valueList = {}
-local previousOsClock = os.clock()
 local checkspots = true
-local sceduledCheckedSpotsFrame = Spring.GetGameFrame()
+local sceduledCheckedSpotsFrame = spGetGameFrame()
 
-local isSpec, fullview = Spring.GetSpectatingState()
+local isSpec, fullview = spGetSpectatingState()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
-local incomeMultiplier = select(7, Spring.GetTeamInfo(Spring.GetMyTeamID(), false))
+local incomeMultiplier = select(7, Spring.GetTeamInfo(spGetMyTeamID(), false))
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = math.min(1.5, (0.5 + (vsx*vsy / 5700000)))
-local fontfileSize = 80
+local fontfileScale = mathMin(1.5, (0.5 + (vsx*vsy / 5700000)))
+local fontfileSize = 100
 local fontfileOutlineSize = 26
 local fontfileOutlineStrength = 1.6
---Spring.Echo("Loading Font",fontfile,fontfileSize*fontfileScale,fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+--spEcho("Loading Font",fontfile,fontfileSize*fontfileScale,fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local chobbyInterface
@@ -127,14 +143,8 @@ local MakeAtlasOnDemand = VFS.Include("LuaUI/Include/AtlasOnDemand.lua")
 local valueToUVs = {} -- key value string to uvCoords object from atlas in xXyYwh array
 
 local function goodbye(reason)
-	Spring.Echo("Metalspots GL4 widget exiting with reason: "..reason)
+	spEcho("Metalspots GL4 widget exiting with reason: "..reason)
 	widgetHandler:RemoveWidget()
-end
-
-local function arrayAppend(target, source)
-	for _,v in ipairs(source) do
-		table.insert(target,v)
-	end
 end
 
 local function makeSpotVBO()
@@ -142,6 +152,7 @@ local function makeSpotVBO()
 	if spotVBO == nil then goodbye("Failed to create spotVBO") end
 	local VBOLayout = {	 {id = 0, name = "localpos_dir_angle", size = 4},}
 	local VBOData = {}
+	local n = 0
 
 	local detailPartWidth, a1,a2,a3,a4
 	local width = circleSpaceUsage
@@ -157,41 +168,69 @@ local function makeSpotVBO()
 				a3 = ((i+circleInnerOffset+detailPartWidth - (width / detail)) * radstep)
 				a4 = ((i+circleInnerOffset+detailPartWidth) * radstep)
 
-				arrayAppend(VBOData, {math.sin(a3)*innersize, math.cos(a3)*innersize, dir, 0})
+				n=n+1; VBOData[n] = mathSin(a3)*innersize
+				n=n+1; VBOData[n] = mathCos(a3)*innersize
+				n=n+1; VBOData[n] = dir
+				n=n+1; VBOData[n] = 0
 
 				if dir == -1 then
-					arrayAppend(VBOData, {math.sin(a4)*innersize, math.cos(a4)*innersize, dir, 0})
-					arrayAppend(VBOData, {math.sin(a1)*outersize, math.cos(a1)*outersize, dir, 0})
+					n=n+1; VBOData[n] = mathSin(a4)*innersize
+					n=n+1; VBOData[n] = mathCos(a4)*innersize
+					n=n+1; VBOData[n] = dir
+					n=n+1; VBOData[n] = 0
+					n=n+1; VBOData[n] = mathSin(a1)*outersize
+					n=n+1; VBOData[n] = mathCos(a1)*outersize
+					n=n+1; VBOData[n] = dir
+					n=n+1; VBOData[n] = 0
 				else
-					arrayAppend(VBOData, {math.sin(a1)*outersize, math.cos(a1)*outersize, dir, 0})
-					arrayAppend(VBOData, {math.sin(a4)*innersize, math.cos(a4)*innersize, dir, 0})
+					n=n+1; VBOData[n] = mathSin(a1)*outersize
+					n=n+1; VBOData[n] = mathCos(a1)*outersize
+					n=n+1; VBOData[n] = dir
+					n=n+1; VBOData[n] = 0
+					n=n+1; VBOData[n] = mathSin(a4)*innersize
+					n=n+1; VBOData[n] = mathCos(a4)*innersize
+					n=n+1; VBOData[n] = dir
+					n=n+1; VBOData[n] = 0
 				end
 
 				if dir == 1 then
-					arrayAppend(VBOData, {math.sin(a1)*outersize, math.cos(a1)*outersize, dir, 0})
-					arrayAppend(VBOData, {math.sin(a2)*outersize, math.cos(a2)*outersize, dir, 0})
+					n=n+1; VBOData[n] = mathSin(a1)*outersize
+					n=n+1; VBOData[n] = mathCos(a1)*outersize
+					n=n+1; VBOData[n] = dir
+					n=n+1; VBOData[n] = 0
+					n=n+1; VBOData[n] = mathSin(a2)*outersize
+					n=n+1; VBOData[n] = mathCos(a2)*outersize
+					n=n+1; VBOData[n] = dir
+					n=n+1; VBOData[n] = 0
 				else
-					arrayAppend(VBOData, {math.sin(a2)*outersize, math.cos(a2)*outersize, dir, 0})
-					arrayAppend(VBOData, {math.sin(a1)*outersize, math.cos(a1)*outersize, dir, 0})
+					n=n+1; VBOData[n] = mathSin(a2)*outersize
+					n=n+1; VBOData[n] = mathCos(a2)*outersize
+					n=n+1; VBOData[n] = dir
+					n=n+1; VBOData[n] = 0
+					n=n+1; VBOData[n] = mathSin(a1)*outersize
+					n=n+1; VBOData[n] = mathCos(a1)*outersize
+					n=n+1; VBOData[n] = dir
+					n=n+1; VBOData[n] = 0
 				end
-				arrayAppend(VBOData, {math.sin(a4)*innersize, math.cos(a4)*innersize, dir, 0})
+				n=n+1; VBOData[n] = mathSin(a4)*innersize
+				n=n+1; VBOData[n] = mathCos(a4)*innersize
+				n=n+1; VBOData[n] = dir
+				n=n+1; VBOData[n] = 0
 			end
 		end
 	end
 
 	-- Add the 2 tris for the billboard:
-	do
-		arrayAppend(VBOData, {billboardsize, 0, 1, 2})
-		arrayAppend(VBOData, {billboardsize, billboardsize, 1, 2})
-		arrayAppend(VBOData, {-billboardsize, 0, 1, 2})
-		arrayAppend(VBOData, {billboardsize, billboardsize, 1, 2})
-		arrayAppend(VBOData, {-billboardsize, billboardsize, 1, 2})
-		arrayAppend(VBOData, {-billboardsize, 0, 1, 2})
-	end
+	n=n+1; VBOData[n] = billboardsize;  n=n+1; VBOData[n] = 0;             n=n+1; VBOData[n] = 1; n=n+1; VBOData[n] = 2
+	n=n+1; VBOData[n] = billboardsize;  n=n+1; VBOData[n] = billboardsize;  n=n+1; VBOData[n] = 1; n=n+1; VBOData[n] = 2
+	n=n+1; VBOData[n] = -billboardsize; n=n+1; VBOData[n] = 0;             n=n+1; VBOData[n] = 1; n=n+1; VBOData[n] = 2
+	n=n+1; VBOData[n] = billboardsize;  n=n+1; VBOData[n] = billboardsize;  n=n+1; VBOData[n] = 1; n=n+1; VBOData[n] = 2
+	n=n+1; VBOData[n] = -billboardsize; n=n+1; VBOData[n] = billboardsize;  n=n+1; VBOData[n] = 1; n=n+1; VBOData[n] = 2
+	n=n+1; VBOData[n] = -billboardsize; n=n+1; VBOData[n] = 0;             n=n+1; VBOData[n] = 1; n=n+1; VBOData[n] = 2
 
-	spotVBO:Define(#VBOData/4, VBOLayout)
+	spotVBO:Define(n/4, VBOLayout)
 	spotVBO:Upload(VBOData)
-	return spotVBO, #VBOData/4
+	return spotVBO, n/4
 end
 
 local function initGL4()
@@ -212,7 +251,7 @@ local function initGL4()
 end
 
 local function spotKey(posx,posz)
-	return tostring(posx).."_"..tostring(posz)
+	return posx * 65536 + posz
 end
 
 -- Returns wether is occupied (Should also be allied, enemy , free), and wether that changed
@@ -238,13 +277,13 @@ local function IsSpotOccupied(spot)
 	local changed = (occupied ~= prevOccupied)
 
 	if occupied ~= prevOccupied then
-		spot.t = os.clock()
 		spot.occupied = occupied
 	end
 	return ally, enemy, changed
 end
 
 local function checkMetalspots()
+	local gf = spGetGameFrame()
 	for i=1, #mySpots do
 		local spot = mySpots[i]
 		local ally, enemy, changed = IsSpotOccupied(spot)
@@ -253,20 +292,20 @@ local function checkMetalspots()
 		if changed then
 			local oldinstance = getElementInstanceData(spotInstanceVBO, spot.instanceID)
 			oldinstance[5] = (occupied and 0) or 1
-			oldinstance[6] = Spring.GetGameFrame()
+			oldinstance[6] = gf
 			pushElementInstance(spotInstanceVBO, oldinstance, spot.instanceID, true)
 		end
 	end
-	sceduledCheckedSpotsFrame = Spring.GetGameFrame() + 151
+	sceduledCheckedSpotsFrame = gf + 151
 	checkspots = false
 end
 
 local function valueToText(value)
-	return string.format("%0.1f",math.round((value/1000),1))
+	return stringFormat("%0.1f", mathRound(value / 1000, 1))
 end
 
 local function CalcSpotScale(spot)
-	return 0.77 + ((math.max(spot.maxX,spot.minX)-(math.min(spot.maxX,spot.minX))) * (math.max(spot.maxZ,spot.minZ)-(math.min(spot.maxZ,spot.minZ)))) / 10000
+	return 0.77 + ((mathMax(spot.maxX,spot.minX)-(mathMin(spot.maxX,spot.minX))) * (mathMax(spot.maxZ,spot.minZ)-(mathMin(spot.maxZ,spot.minZ)))) / 10000
 end
 
 
@@ -277,7 +316,7 @@ local function InitializeAtlas(mSpots)
 		if multipliers[incomeMultiplier] == nil then
 			multipliers[incomeMultiplier] = teamID
 		end
-		--Spring.Echo("incomeMultiplier", teamID, incomeMultiplier)
+		--spEcho("incomeMultiplier", teamID, incomeMultiplier)
 		teamIncomeMultipliers[teamID] = incomeMultiplier
 	end
 	local uniquevalues = {}
@@ -302,11 +341,11 @@ local function InitializeAtlas(mSpots)
 
 	-- Whats the size of one of these? I would say width 128, height 64
 	local textheight = 96
-	textheight = math.ceil(fontfileSize*fontfileScale +  fontfileOutlineSize*fontfileScale * 0.5)
-	--Spring.Echo(textheight)
+	textheight = mathCeil(fontfileSize*fontfileScale +  fontfileOutlineSize*fontfileScale * 0.5)
+	--spEcho(textheight)
 	local textwidth  = 2 * textheight
 	-- attempt to make a square-ish, power of two-ish atlas:
-	local cellcount = math.max(1, math.ceil(math.sqrt(numvalues)))
+	local cellcount = mathMax(1, mathCeil(math.sqrt(numvalues)))
 	MetalSpotTextAtlas = MakeAtlasOnDemand({sizex = textwidth * cellcount, sizey =  textheight*cellcount, xresolution = textwidth, yresolution = textheight, name = "MetalSpotAtlas", defaultfont = {font = font, options = 'o'}})
 	AtlasTextureID = MetalSpotTextAtlas.textureID
 
@@ -329,7 +368,7 @@ local function InitializeSpots(mSpots)
 				-- Create a New myspot!
 				local instanceID = spotKey(spot.x, spot.z)
 
-				local mySpot = {x = spot.x, y= spGetGroundHeight(spot.x, spot.z), z = spot.z, value = value, scale = scale, occupied = false, t = 0, ally = false, enemy = false, instanceID = instanceID, worth = spot.worth}
+				local mySpot = {x = spot.x, y= spGetGroundHeight(spot.x, spot.z), z = spot.z, value = value, scale = scale, occupied = false, ally = false, enemy = false, instanceID = instanceID, worth = spot.worth}
 
 				spotsCount = spotsCount + 1
 				mySpots[spotsCount] = mySpot
@@ -356,7 +395,8 @@ local function InitializeSpots(mSpots)
 end
 
 local function UpdateSpotValues() -- This will only get called on playerchanged
-	for k, spot in ipairs(mySpots) do
+	for i = 1, #mySpots do
+		local spot = mySpots[i]
 		--local spot = mSpots[i]
 		local valueNumber = spot.worth * incomeMultiplier / 1000
 		local value = valueToText(spot.worth * incomeMultiplier)
@@ -388,7 +428,7 @@ function widget:Initialize()
 		return
 	end
 	if not WG['resource_spot_finder'].metalSpotsList then
-		Spring.Echo("<metalspots> This widget requires the 'Metalspot Finder' widget to run.")
+		spEcho("<metalspots> This widget requires the 'Metalspot Finder' widget to run.")
 		widgetHandler:RemoveWidget()
 	end
 	if WG['resource_spot_finder'].isMetalMap then
@@ -444,23 +484,22 @@ function widget:Shutdown()
 	if MetalSpotTextAtlas then MetalSpotTextAtlas:Delete() end
 	WG.metalspots = nil
 	mySpots = {}
-	valueList = {}
 	gl.DeleteFont(font)
 end
 
 function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	if stringFind(msg, 'LobbyOverlayActive', 1, true) == 1 then
+		chobbyInterface = (stringFind(msg, 'LobbyOverlayActive1', 1, true) == 1)
 	end
 end
 
 function widget:PlayerChanged(playerID)
 	local prevFullview = fullview
 	local prevMyAllyTeamID = myAllyTeamID
-	isSpec, fullview = Spring.GetSpectatingState()
+	isSpec, fullview = spGetSpectatingState()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
 	local oldIncomeMultiplier = incomeMultiplier
-	incomeMultiplier = select(7, Spring.GetTeamInfo(Spring.GetMyTeamID(), false))
+	incomeMultiplier = select(7, Spring.GetTeamInfo(spGetMyTeamID(), false))
 	if incomeMultiplier ~= oldIncomeMultiplier then
 		UpdateSpotValues()
 	end
@@ -477,7 +516,7 @@ end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID) -- THIS IS RETARDED TOO
 	if extractorDefs[unitDefID] then
-		sceduledCheckedSpotsFrame = Spring.GetGameFrame() + 3	-- delay needed, i don't know why
+		sceduledCheckedSpotsFrame = spGetGameFrame() + 3	-- delay needed, i don't know why
 	end
 end
 
@@ -487,28 +526,34 @@ function widget:GameFrame(gf)
 	end
 end
 
-function widget:DrawWorldPreUnit()
+function widget:DrawWorld()
+	-- Draw after water so underwater metalspots are not distorted by the
+	-- water shader.  Depth test against the existing depth buffer means
+	-- units/features that were already drawn will still occlude the circles.
 	local mapDrawMode = spGetMapDrawMode()
 	if metalViewOnly and mapDrawMode ~= 'metal' then return end
 	if chobbyInterface then return end
-	if Spring.IsGUIHidden() then return end
-
-	previousOsClock = os.clock()
+	if spIsGUIHidden() then return end
 
 	gl.Culling(true)
 	gl.Texture(0, "$heightmap")
 	gl.Texture(1, AtlasTextureID)
-	gl.DepthTest(false)
+	gl.DepthTest(GL.LEQUAL)
+	gl.DepthMask(false)
+	gl.PolygonOffset(-40, -40)
 
 	spotShader:Activate()
 	drawInstanceVBO(spotInstanceVBO)
 	spotShader:Deactivate()
 
-	if needsInit and Spring.GetGameFrame() == 0 then
+	if needsInit and spGetGameFrame() == 0 then
 		checkMetalspots()
 		needsInit = false
 	end
 
+	gl.PolygonOffset(false)
+	gl.DepthTest(false)
+	gl.DepthMask(true)
 	gl.Culling(false)
 	gl.Texture(0, false)
 	gl.Texture(1, false)

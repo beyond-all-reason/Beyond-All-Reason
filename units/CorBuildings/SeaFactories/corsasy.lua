@@ -2,7 +2,7 @@ return {
 	corsasy = {
 		builder = true,
 		buildpic = "CORASY.DDS",
-		buildtime = 35000,
+		buildtime = 51000,
 		canmove = true,
 		collisionvolumeoffsets = "0 10 -2",
 		collisionvolumescales = "186 78 183",
@@ -14,8 +14,6 @@ return {
 		footprintx = 12,
 		footprintz = 12,
 		health = 5900,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		metalcost = 3500,

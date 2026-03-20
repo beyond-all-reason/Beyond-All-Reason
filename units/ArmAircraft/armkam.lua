@@ -13,8 +13,6 @@ return {
 		footprintz = 2,
 		health = 560,
 		hoverattack = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.15,
 		maxdec = 0.375,
 		maxslope = 10,
@@ -76,7 +74,7 @@ return {
 		weapondefs = {
 			emg = {
 				accuracy = 13,
-				areaofeffect = 16,
+				areaofeffect = 40,
 				avoidfeature = false,
 				burst = 3,
 				burstrate = 0.1,
@@ -87,6 +85,7 @@ return {
 				edgeeffectiveness = 0.5,
 				explosiongenerator = "custom:plasmahit-small",
 				firestarter = 100,
+				gravityaffected = "true",
 				impulsefactor = 0.123,
 				intensity = 0.66,
 				name = "Rapid-fire close-quarters a2g plasma guns",
@@ -102,7 +101,7 @@ return {
 				tolerance = 5000,
 				weapontimer = 0.1,
 				weapontype = "Cannon",
-				weaponvelocity = 800,
+				weaponvelocity = 1000,
 				damage = {
 					default = 9,
 					vtol = 3,

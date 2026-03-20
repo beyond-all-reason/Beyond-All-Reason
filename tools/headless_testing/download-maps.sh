@@ -1,3 +1,3 @@
 #!/bin/bash
 
-engine/*/pr-downloader --filesystem-writepath "$BAR_ROOT" --download-map "Supreme Isthmus v1.6.4"
+engine/*/pr-downloader --filesystem-writepath "$BAR_ROOT" --download-map "Supreme Isthmus v2.1"

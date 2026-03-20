@@ -34,16 +34,14 @@ end
 Spring.SetConfigInt("CubeTexGenerateMipMaps", 1)
 Spring.SetConfigInt("CubeTexSizeReflection", 1024)
 
+
+Spring.SetConfigInt("AdvSky", 0)
+
 -- disable grass
 Spring.SetConfigInt("GrassDetail", 0)
 
--- adv unit shading
-if not tonumber(Spring.GetConfigInt("AdvUnitShading",0) or 0) then
-	Spring.SetConfigInt("AdvUnitShading", 1)
-end
-
 -- adv map shading
-Spring.SetConfigInt("AdvMapShading", 1)
+--Spring.SetConfigInt("AdvMapShading", 1)
 
 -- make sure default/minimum ui opacity is set
 if Spring.GetConfigFloat("ui_opacity", 0.6) < 0.3 then
@@ -115,10 +113,6 @@ Spring.SetConfigInt("BumpWaterTexSizeReflection", 1024)
 
 Spring.SetConfigFloat("CrossAlpha", 0)	-- will be in effect next launch
 
-if Spring.GetConfigInt("AdvModelShading", 0) ~= 1 then
-	Spring.SetConfigInt("AdvModelShading", 1)
-end
-
 if not Spring.GetConfigFloat("UnitIconFadeAmount") then
 	Spring.SetConfigFloat("UnitIconFadeAmount", 0.1)
 end
@@ -163,12 +157,16 @@ if Spring.GetConfigInt("version", 0) < version then
 	Spring.SetConfigInt("CamSpringMinZoomDistance", 300)
 	Spring.SetConfigInt("OverheadMinZoomDistance", 300)
 end
-version = 7
+version = 8
 if Spring.GetConfigInt("version", 0) < version then
 	Spring.SetConfigInt("version", version)
 
-	Spring.SetConfigInt("ui_rendertotexture", 1)
+	local voiceset = Spring.GetConfigString("voiceset", '')
+	if voiceset == 'en/allison' then
+		Spring.SetConfigString("voiceset", 'en/cephis')
+	end
 end
+
 
 -- apply the old pre-engine implementation stored camera minimum zoom level
 local oldMinCamHeight = Spring.GetConfigInt("MinimumCameraHeight", -1)
@@ -217,11 +215,6 @@ Spring.SetConfigInt("MouseDragSelectionThreshold", baseDragThreshold)
 Spring.SetConfigInt("MouseDragCircleCommandThreshold", baseDragThreshold + 16)
 Spring.SetConfigInt("MouseDragBoxCommandThreshold", baseDragThreshold + 16)
 Spring.SetConfigInt("MouseDragFrontCommandThreshold", baseDragThreshold + 16)
-
--- These config ints control some multithreading functionality, and are now set to their enabled state for performance
-Spring.SetConfigInt("AnimationMT", 1)
-Spring.SetConfigInt("UpdateBoundingVolumeMT", 1)
-Spring.SetConfigInt("UpdateWeaponVectorsMT", 1)
 
 Spring.SetConfigInt("MaxFontTries", 5)
 Spring.SetConfigInt("UseFontConfigLib", 1)

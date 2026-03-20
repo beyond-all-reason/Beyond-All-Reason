@@ -12,8 +12,6 @@ function widget:GetInfo()
 	}
 end
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
-
 local alwaysShow = false
 
 local width = 0
@@ -36,6 +34,7 @@ local iconTypes = VFS.Include("gamedata/icontypes.lua")
 local vsx, vsy = Spring.GetViewGeometry()
 
 local hoverType, hoverData = '', ''
+local customHoverType, customHoverData = nil, nil  -- For external widgets (like PIP) to supply hover info
 local sound_button = 'LuaUI/Sounds/buildbar_add.wav'
 local sound_button2 = 'LuaUI/Sounds/buildbar_rem.wav'
 
@@ -58,6 +57,12 @@ local tooltipEnergyColor = '\255\255\255\0'
 local tooltipValueYellowColor = '\255\253\192\76'
 local tooltipValueGreenColor = '\255\73\234\43'
 
+-- Cache frequently used color strings
+local cachedColorStrings = {
+	white = '\255\233\233\233',
+	grey = '\255\215\215\215',
+}
+
 local selectionHowto = tooltipTextColor .. "Left click" .. tooltipLabelTextColor .. ": Select\n " .. tooltipTextColor .. "   + CTRL" .. tooltipLabelTextColor .. ": Select units of this type on map\n " .. tooltipTextColor .. "   + ALT" .. tooltipLabelTextColor .. ": Select 1 single unit of this unit type\n " .. tooltipTextColor .. "Right click" .. tooltipLabelTextColor .. ": Remove\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Remove only 1 unit from that unit type\n " .. tooltipTextColor .. "Middle click" .. tooltipLabelTextColor .. ": Move to center location\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Move to center off whole selection"
 
 local anonymousName = '?????'
@@ -67,7 +72,7 @@ local loadedFontSize, font, font2, font2, cfgDisplayUnitID, cfgDisplayUnitDefID,
 local cellRect, cellPadding, cornerSize, cellsize, cellHovered
 local gridHeight, selUnitsSorted, selUnitsCounts, selectionCells, customInfoArea, contentPadding
 local displayUnitID, displayUnitDefID, doUpdateClock
-local contentWidth, dlistInfo, bfcolormap, selUnitTypes
+local contentWidth, bfcolormap, selUnitTypes
 
 local RectRound, UiElement, UiUnit, elementCorner
 
@@ -140,7 +145,48 @@ local unitRestricted = {}
 local isWaterUnit = {}
 local isGeothermalUnit = {}
 
+-- Cache frequently used translated strings
+local cachedTranslations = {}
+local function getCachedTranslation(key)
+	if not cachedTranslations[key] then
+		cachedTranslations[key] = Spring.I18N(key)
+	end
+	return cachedTranslations[key]
+end
+
+-- String buffer for concatenation to reduce allocations
+local stringBuffer = {}
+local function clearStringBuffer()
+	for i = #stringBuffer, 1, -1 do
+		stringBuffer[i] = nil
+	end
+end
+
+-- Reusable tables to reduce allocations in hot paths
+local rightMouseButtonMap = {}
+local emptyTable = {}
+local shiftTable = { "shift" }
+local unloadParams = { 0, 0, 0, 0 }  -- x, y, z, unitID
+local viewSelectionCmd = { "viewselection" }
+
 local function refreshUnitInfo()
+	local builderTraits = {
+		canBuild   = function(def) return def.isFactory or next(def.buildOptions) ~= nil end,
+		canAssist  = function(def) return not def.isFactory and def.canAssist end,
+		canCapture = function(def) return not def.isFactory and def.canCapture and def.buildDistance > 0 end,
+		canReclaim = function(def) return not def.isFactory and def.canReclaim and def.buildDistance > 0 end,
+		canRepair  = function(def) return not def.isFactory and def.canRepair and def.buildDistance > 0 end,
+		canRestore = function(def) return not def.isFactory and def.canRestore and def.buildDistance > 0 end,
+	}
+	local function hasBuilderTrait(def)
+		for trait, check in pairs(builderTraits) do
+			if check(def) then
+				return true
+			end
+		end
+		return false
+	end
+
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		unitDefInfo[unitDefID] = {}
 
@@ -172,7 +218,14 @@ local function refreshUnitInfo()
 			unitDefInfo[unitDefID].maxWeaponRange = unitDef.maxWeaponRange
 		end
 		if unitDef.speed > 0 then
-			unitDefInfo[unitDefID].speed = round(unitDef.speed, 0)
+			if (tonumber(unitDef.customParams.speedfactorinwater or 1) or 1) == 1 then
+				unitDefInfo[unitDefID].speed = round(unitDef.speed, 0)
+			else
+				local speed = unitDef.speed
+				local speedInWater = math.round(speed * math.clamp(tonumber(unitDef.customParams.speedfactorinwater), 0, 1e4))
+				unitDefInfo[unitDefID].speedMin = math.min(speed, speedInWater)
+				unitDefInfo[unitDefID].speedMax = math.max(speed, speedInWater)
+			end
 		end
 		if unitDef.rSpeed > 0 then
 			unitDefInfo[unitDefID].reverseSpeed = round(unitDef.rSpeed, 0)
@@ -232,7 +285,7 @@ local function refreshUnitInfo()
 		if unitDef.canStockpile then
 			unitDefInfo[unitDefID].canStockpile = true
 		end
-		if unitDef.buildSpeed > 0 then
+		if unitDef.buildSpeed > 0 and hasBuilderTrait(unitDef) then
 			unitDefInfo[unitDefID].buildSpeed = unitDef.buildSpeed
 		end
 		if unitDef.buildOptions[1] then
@@ -252,8 +305,8 @@ local function refreshUnitInfo()
 			minIntensity = math.max(def.minIntensity, 0.5)
 			local prevMinDps = unitDefInfo[unitDefID].mindps or 0
 			local prevMaxDps = unitDefInfo[unitDefID].maxdps or 0
-			local mindps = math_floor(minIntensity*(damage * def.salvoSize / def.reload))
-			local maxdps = math_floor(damage * def.salvoSize / def.reload)
+			local mindps = minIntensity*(damage * def.salvoSize / def.reload)
+			local maxdps = damage * def.salvoSize / def.reload
 
 			unitDefInfo[unitDefID].mindps = mindps + prevMinDps
 			unitDefInfo[unitDefID].maxdps = maxdps + prevMaxDps
@@ -264,8 +317,8 @@ local function refreshUnitInfo()
 		local function calculateWeaponDPS(def, damage)
 			local prevMinDps = unitDefInfo[unitDefID].mindps or 0
 			local prevMaxDps = unitDefInfo[unitDefID].maxdps or 0
-			local newDps = math_floor(damage * (def.salvoSize * def.projectiles) / def.reload)
-			local stockpileDps = math_floor(damage * (def.salvoSize * def.projectiles) / (def.stockpile and def.stockpileTime/30 or def.reload))
+			local newDps = damage * (def.salvoSize * def.projectiles) / def.reload
+			local stockpileDps = damage * (def.salvoSize * def.projectiles) / (def.stockpile and def.stockpileTime/30 or def.reload)
 			unitDefInfo[unitDefID].mindps = math_min(newDps, stockpileDps) + prevMinDps
 			unitDefInfo[unitDefID].maxdps = math_max(newDps, stockpileDps) + prevMaxDps
 		end
@@ -279,10 +332,20 @@ local function refreshUnitInfo()
 			local cmNumber = def.customParams.cluster_number
 			local cmDamage = WeaponDefNames[munition].damages[0]
 
-			local mainDps = math_floor((def.salvoSize * def.projectiles) / def.reload * (damage))
-			local cmunDps = math_floor((def.salvoSize * def.projectiles) / def.reload * (cmNumber * cmDamage))
+			local mainDps = (def.salvoSize * def.projectiles) / def.reload * (damage)
+			local cmunDps = (def.salvoSize * def.projectiles) / def.reload * (cmNumber * cmDamage)
 			unitDefInfo[unitDefID].mindps = prevMinDps + mainDps
 			unitDefInfo[unitDefID].maxdps = prevMaxDps + mainDps + cmunDps
+		end
+
+
+		local function calculateAreaDPS(def, damage)
+			local burst = def.salvoSize * def.projectiles
+			local impactDps = damage * burst / def.reload
+			local areaDps = def.customParams.area_onhit_damage -- by definition
+			local damageMax = math_max(impactDps + areaDps, areaDps * burst * def.customParams.area_onhit_time / def.reload)
+			unitDefInfo[unitDefID].mindps = (unitDefInfo[unitDefID].mindps or 0) + impactDps
+			unitDefInfo[unitDefID].maxdps = (unitDefInfo[unitDefID].maxdps or 0) + damageMax
 		end
 
 
@@ -313,16 +376,19 @@ local function refreshUnitInfo()
 			local weaponDef = WeaponDefs[weapons[i].weaponDef]
 			if weaponDef.interceptor ~= 0 and weaponDef.coverageRange then
 				unitDefInfo[unitDefID].maxCoverage = math.max(unitDefInfo[unitDefID].maxCoverage or 1, weaponDef.coverageRange)
-			end
-			if weaponDef.damages then
-				if unitDef.name == 'armfido' then
-					unitExempt = true
-					if i==2 then                                --Calculating using second weapon only
-						local defDmg = weaponDef.damages[0]      		--Damage to default armor category
-						calculateWeaponDPS(weaponDef, defDmg)
-					end
 
-				elseif unitDef.name == 'armamb' or unitDef.name == 'cortoast' then -- weapons with low/high traj, this list is incomplete
+			elseif weaponDef.shieldRadius and weaponDef.shieldRadius > 0 then
+				if #weapons <= 1 then
+					unitDefInfo[unitDefID].weapons = {}
+					unitDefInfo[unitDefID].shieldOnly = true
+				end
+				unitDefInfo[unitDefID].shieldRange = weaponDef.shieldRadius
+				unitDefInfo[unitDefID].shieldCapacity = weaponDef.shieldPower
+				unitDefInfo[unitDefID].shieldRechargeRate = weaponDef.shieldPowerRegen
+				unitDefInfo[unitDefID].shieldRechargeCost = weaponDef.shieldPowerRegenEnergy
+
+			else
+				if unitDef.name == 'armamb' or unitDef.name == 'cortoast' then -- weapons with low/high traj, this list is incomplete
 					unitExempt = true
 					if i==1 then                                --Calculating using first weapon only
 						calculateWeaponDPS(weaponDef, weaponDef.damages[0]) --Damage to default armor category
@@ -337,6 +403,8 @@ local function refreshUnitInfo()
 					unitDef.name == 'armguard'     or -- ignore high-trajectory modes
 					unitDef.name == 'corpun'       or
 					unitDef.name == 'legcluster'   or
+					unitDef.name == 'leglob'   or
+					unitDef.name == 'legnavyfrigate'   or
 					unitDef.name == 'armamb'       or
 					unitDef.name == 'cortoast'     or
 					unitDef.name == 'armvang'
@@ -373,32 +441,35 @@ local function refreshUnitInfo()
 						calculateWeaponDPS(weaponDef, weaponDef.damages[0]) --Damage to default armor category
 					end
 
-				elseif weaponDef.customParams then
-					if weaponDef.customParams.cluster then -- Bullets that explode into other, smaller bullets
-						unitExempt = true
-						calculateClusterDPS(weaponDef, weaponDef.damages[0])
-					elseif weaponDef.customParams.speceffect == "split" then -- Bullets that split into other, smaller bullets
-						unitExempt = true
-						local splitd = WeaponDefNames[weaponDef.customParams.speceffect_def].damages[0]
-						local splitn = weaponDef.customParams.number or 1
-						calculateWeaponDPS(weaponDef, splitd * splitn)
-					elseif weaponDef.customParams.spark_basedamage then -- Lightning
-						unitExempt = true
-						local forkd = weaponDef.customParams.spark_forkdamage
-						local forkn = weaponDef.customParams.spark_maxunits or 1
-						calculateWeaponDPS(weaponDef, weaponDef.damages[0] * (1 + forkd * forkn))
-						if unitExempt and weaponDef.paralyzer then -- DPS => EMP
-							unitDefInfo[unitDefID].minemp = unitDefInfo[unitDefID].mindps
-							unitDefInfo[unitDefID].maxemp = unitDefInfo[unitDefID].maxdps
-							unitDefInfo[unitDefID].mindps = nil
-							unitDefInfo[unitDefID].maxdps = nil
-						end
+				elseif weaponDef.customParams.area_onhit_damage and weaponDef.customParams.area_onhit_time then
+					unitExempt = true
+					calculateAreaDPS(weaponDef, weaponDef.damages[0])
+				elseif weaponDef.customParams.cluster then -- Bullets that explode into other, smaller bullets
+					unitExempt = true
+					calculateClusterDPS(weaponDef, weaponDef.damages[0])
+				elseif weaponDef.customParams.speceffect == "split" then -- Bullets that split into other, smaller bullets
+					unitExempt = true
+					local splitd = WeaponDefNames[weaponDef.customParams.speceffect_def].damages[0]
+					local splitn = weaponDef.customParams.number or 1
+					calculateWeaponDPS(weaponDef, splitd * splitn)
+				elseif weaponDef.customParams.spark_basedamage then -- Lightning
+					unitExempt = true
+					local forkd = weaponDef.customParams.spark_forkdamage
+					local forkn = weaponDef.customParams.spark_maxunits or 1
+					calculateWeaponDPS(weaponDef, weaponDef.damages[0] * (1 + forkd * forkn))
+					if unitExempt and weaponDef.paralyzer then -- DPS => EMP
+						unitDefInfo[unitDefID].minemp = unitDefInfo[unitDefID].mindps
+						unitDefInfo[unitDefID].maxemp = unitDefInfo[unitDefID].maxdps
+						unitDefInfo[unitDefID].mindps = nil
+						unitDefInfo[unitDefID].maxdps = nil
 					end
 				end
 
 				if unitDefInfo[unitDefID].mainWeapon == i then
 					unitDefInfo[unitDefID].range = weaponDef.range
-					unitDefInfo[unitDefID].reloadTime = weaponDef.reload
+					unitDefInfo[unitDefID].reloadTime = weaponDef.customParams.dronesuesestockpile
+						and weaponDef.stockpileTime
+						or  weaponDef.reload
 				end
 				if weaponDef.type == "BeamLaser" and not unitExempt then	-- BeamLaser dps calc
 
@@ -428,11 +499,11 @@ local function refreshUnitInfo()
 						end
 					else
 						-- calculate laser emp dmg
-						minIntensity = math.max(weaponDef.minIntensity, 0.5)
+						local minIntensity = math.max(weaponDef.minIntensity, 0.5)
 						local prevMinDps = unitDefInfo[unitDefID].minemp or 0
 						local prevMaxDps = unitDefInfo[unitDefID].maxemp or 0
-						local mindps = math_floor(minIntensity*(weaponDef.damages[0] * weaponDef.salvoSize / weaponDef.reload))
-						local maxdps = math_floor(weaponDef.damages[0] * weaponDef.salvoSize / weaponDef.reload)
+						local mindps = minIntensity*(weaponDef.damages[0] * weaponDef.salvoSize / weaponDef.reload)
+						local maxdps = weaponDef.damages[0] * weaponDef.salvoSize / weaponDef.reload
 
 						unitDefInfo[unitDefID].minemp = mindps + prevMinDps
 						unitDefInfo[unitDefID].maxemp = maxdps + prevMaxDps
@@ -464,23 +535,6 @@ local function refreshUnitInfo()
 			if weapons[i].onlyTargets['vtol'] ~= nil then
 				unitDefInfo[unitDefID].isAaUnit = true
 			end
-
-			--shield params
-			if weaponDef.shieldRadius and weaponDef.shieldRadius > 0 then
-				if #weapons <= 1 then
-					unitDefInfo[unitDefID].weapons = {}
-					unitDefInfo[unitDefID].mindps = 0
-					unitDefInfo[unitDefID].maxdps = 0
-					unitDefInfo[unitDefID].range = 0
-					unitDefInfo[unitDefID].reloadTime = 0
-					unitDefInfo[unitDefID].mainWeapon = 1
-					unitDefInfo[unitDefID].shieldOnly = true
-				end
-				unitDefInfo[unitDefID].shieldRange = weaponDef.shieldRadius
-				unitDefInfo[unitDefID].shieldCapacity = weaponDef.shieldPower
-				unitDefInfo[unitDefID].shieldRechargeRate = weaponDef.shieldPowerRegen
-				unitDefInfo[unitDefID].shieldRechargeCost = weaponDef.shieldPowerRegenEnergy
-			end
 		end
 
 		if unitDef.customParams.unitgroup and unitDef.customParams.unitgroup == 'explo' and unitDef.deathExplosion and WeaponDefNames[unitDef.deathExplosion] then
@@ -490,6 +544,43 @@ local function refreshUnitInfo()
 				unitDefInfo[unitDefID].mindps = dmg
 				unitDefInfo[unitDefID].maxdps = dmg
 				unitDefInfo[unitDefID].reloadTime = nil
+			end
+		end
+	end
+
+	-- Account for sub-unit damages, namely carriers and drones.
+	local mins = { "mindps", "minemp", }
+	local maxs = { "maxdps", "maxemp", }
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		local unitInfo = unitDefInfo[unitDefID]
+		for index, weapon in ipairs(unitDef.weapons) do
+			local weaponDef = WeaponDefs[weapon.weaponDef]
+			if weaponDef.customParams.carried_unit and UnitDefNames[weaponDef.customParams.carried_unit] then
+				local droneCount = weaponDef.customParams.maxunits or 1
+				local droneDef = UnitDefNames[weaponDef.customParams.carried_unit]
+				local droneInfo = unitDefInfo[droneDef.id]
+
+				for _, key in ipairs(mins) do
+					if droneInfo[key] then
+						unitInfo[key] = (unitInfo[key] or 0) -- times zero drones == zero
+					end
+				end
+
+				for _, key in ipairs(maxs) do
+					if droneInfo[key] then
+						unitInfo[key] = (unitInfo[key] or 0) + (droneInfo[key] * droneCount)
+					end
+				end
+			end
+		end
+	end
+
+	-- Convert aggregated values to display formats last to avoid rounding errors.
+	local summedKeys = { "mindps", "maxdps", "minemp", "maxemp", }
+	for unitDefID, unitInfo in pairs(unitDefInfo) do
+		for _, key in pairs(summedKeys) do
+			if type(unitInfo[key]) == "number" then
+				unitInfo[key] = math_floor(unitInfo[key])
 			end
 		end
 	end
@@ -584,9 +675,6 @@ function widget:ViewResize()
 	backgroundRect = { 0, 0, width * vsx, height * vsy }
 
 	doUpdate = true
-	if dlistInfo then
-		dlistInfo = gl.DeleteList(dlistInfo)
-	end
 	if infoBgTex then
 		gl.DeleteTexture(infoBgTex)
 		infoBgTex = nil
@@ -679,6 +767,15 @@ function widget:Initialize()
 	WG['info'].getIsShowing = function()
 		return infoShows
 	end
+	WG['info'].setCustomHover = function(hType, hData)
+		-- Allow external widgets to supply custom hover info (e.g., PIP window)
+		customHoverType = hType
+		customHoverData = hData
+	end
+	WG['info'].clearCustomHover = function()
+		customHoverType = nil
+		customHoverData = nil
+	end
 	if WG['buildmenu'] then
 		if WG['buildmenu'].getGroups then
 			groups, unitGroup = WG['buildmenu'].getGroups()
@@ -724,9 +821,6 @@ end
 function widget:Shutdown()
 	Spring.SetDrawSelectionInfo(true) --disables springs default display of selected units count
 	Spring.SendCommands("tooltip 1")
-	if dlistInfo then
-		dlistInfo = gl.DeleteList(dlistInfo)
-	end
 	if infoBgTex then
 		gl.DeleteTexture(infoBgTex)
 	end
@@ -742,14 +836,12 @@ end
 local sec2 = 0
 local sec = 0
 local lastCameraPanMode = false
+local lastMouseOffScreen = false
 function widget:Update(dt)
 	infoShows = false
 	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode = spGetMouseState()
-	if lastCameraPanMode ~= cameraPanMode then
-		lastCameraPanMode = cameraPanMode
-		checkChanges()
-		doUpdate = true
-	end
+
+	-- Early exit for common case
 	if not alwaysShow and ((cameraPanMode and not doUpdate) or mouseOffScreen) and not isPregame then
 		if SelectedUnitsCount == 0 then
 			if dlistGuishader then
@@ -758,6 +850,14 @@ function widget:Update(dt)
 			end
 		end
 		return
+	end
+
+	-- Only check changes when camera or mouse state changes
+	if lastCameraPanMode ~= cameraPanMode or lastMouseOffScreen ~= mouseOffScreen then
+		lastCameraPanMode = cameraPanMode
+		lastMouseOffScreen = mouseOffScreen
+		checkChanges()
+		doUpdate = true
 	end
 
 	sec2 = sec2 + dt
@@ -799,13 +899,7 @@ function widget:Update(dt)
 	if doUpdate or (doUpdateClock and os_clock() >= doUpdateClock) or (os_clock() >= doUpdateClock2) then
 		doUpdateClock = nil
 		doUpdateClock2 = os_clock() + 0.9
-		if useRenderToTexture then
-			updateTex = true
-		else
-			if dlistInfo then
-				dlistInfo = gl.DeleteList(dlistInfo)
-			end
-		end
+		updateTex = true
 		doUpdate = nil
 		lastUpdateClock = os_clock()
 	end
@@ -865,6 +959,10 @@ local function RectRoundCircle(x, y, z, radius, cs, centerOffset, color1, color2
 	gl.BeginEnd(GL_QUADS, DrawRectRoundCircle, x, y, z, radius, cs, centerOffset, color1, color2)
 end
 
+-- Cache for kill counts to avoid expensive spGetUnitRulesParam calls every frame
+local killCountCache = {}
+local killCountCacheTime = 0
+
 local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 	if not usedZoom then
 		usedZoom = defaultCellZoom
@@ -882,30 +980,51 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 		groups[unitGroup[uDefID]]
 	)
 
-	-- unit count
-	local fontSize = math_min(gridHeight * 0.17, cellsize * 0.6) * (1 - ((1 + string.len(selUnitsCounts[uDefID])) * 0.066))
-	if selUnitsCounts[uDefID] > 1 then
-		--font2:Begin(useRenderToTexture)
-		font2:Print('\255\233\233\233'..selUnitsCounts[uDefID], cellRect[cellID][3] - cellPadding - (fontSize * 0.09), cellRect[cellID][2] + (fontSize * 0.3), fontSize, "ro")
+	local selCount = selUnitsCounts[uDefID]
+	-- unit count - calculate fontSize once
+	local fontSize = math_min(gridHeight * 0.17, cellsize * 0.6) * (1 - ((1 + string.len(selCount)) * 0.066))
+	if selCount > 1 then
+		--font2:Begin(true)
+		font2:Print(cachedColorStrings.white..selCount, cellRect[cellID][3] - cellPadding - (fontSize * 0.09), cellRect[cellID][2] + (fontSize * 0.3), fontSize, "ro")
 		--font2:End()
 	end
 
-	-- kill count
+	-- kill count - cached to reduce expensive calls
+	local currentTime = os_clock()
 	local kills = 0
-	for i, unitID in ipairs(selUnitsSorted[uDefID]) do
-		local unitKills = spGetUnitRulesParam(unitID, "kills")
-		if unitKills then
-			kills = kills + unitKills
+
+	-- Only update kill cache every 0.5 seconds
+	if currentTime - killCountCacheTime > 0.5 then
+		killCountCacheTime = currentTime
+		-- Clear old cache
+		for k in pairs(killCountCache) do
+			killCountCache[k] = nil
 		end
 	end
+
+	-- Check if we have cached value for this unitdef
+	if killCountCache[uDefID] then
+		kills = killCountCache[uDefID]
+	else
+		-- Calculate kills (expensive)
+		local unitsSortedForDef = selUnitsSorted[uDefID]
+		for i = 1, #unitsSortedForDef do
+			local unitKills = spGetUnitRulesParam(unitsSortedForDef[i], "kills")
+			if unitKills then
+				kills = kills + unitKills
+			end
+		end
+		killCountCache[uDefID] = kills
+	end
+
 	if kills > 0 then
 		local size = math_floor((cellRect[cellID][3] - (cellRect[cellID][1] + (cellPadding*0.5)))*0.33)
 		glColor(0.88,0.88,0.88,0.66)
 		glTexture(":l:LuaUI/Images/skull.dds")
 		glTexRect(cellRect[cellID][3] - size+(cellPadding*0.5), cellRect[cellID][4]-size-(cellPadding*0.5), cellRect[cellID][3]+(cellPadding*0.5), cellRect[cellID][4]-(cellPadding*0.5))
 		glTexture(false)
-		--font2:Begin(useRenderToTexture)
-		font2:Print('\255\233\233\233'..kills, cellRect[cellID][3] - (size * 0.5)+(cellPadding*0.5), cellRect[cellID][4] -(cellPadding*0.5)- (size * 0.5) - (fontSize * 0.19), fontSize * 0.66, "oc")
+		--font2:Begin(true)
+		font2:Print(cachedColorStrings.white..kills, cellRect[cellID][3] - (size * 0.5)+(cellPadding*0.5), cellRect[cellID][4] -(cellPadding*0.5)- (size * 0.5) - (fontSize * 0.19), fontSize * 0.66, "oc")
 		--font2:End()
 	end
 end
@@ -914,7 +1033,16 @@ local function drawSelection()
 	selUnitsCounts = spGetSelectedUnitsCounts()
 	selUnitsSorted = spGetSelectedUnitsSorted()
 	selUnitTypes = 0
-	selectionCells = {}
+
+	-- Reuse existing table instead of creating new one
+	if not selectionCells then
+		selectionCells = {}
+	else
+		-- Clear existing entries
+		for i = #selectionCells, 1, -1 do
+			selectionCells[i] = nil
+		end
+	end
 
 	for k, uDefID in pairs(unitOrder) do
 		if selUnitsSorted[uDefID] then
@@ -929,28 +1057,32 @@ local function drawSelection()
 	local numLines
 	--local stats = getSelectionTotals(selectionCells)
 	local fontSize = (height * vsy * 0.115) * (0.95 - ((1 - ui_scale) * 0.5))
-	local height = 0
+	local heightVar = 0
 	local heightStep = (fontSize * 1.36)
-	font2:Begin(useRenderToTexture)
+	font2:Begin(true)
 	font2:SetOutlineColor(0,0,0,1)
-	font2:Print(tooltipTextColor .. #selectedUnits .. tooltipLabelTextColor .. "  "..Spring.I18N('ui.info.unitsselected'), backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 1.2) - height, (fontSize * 1.23), "o")
+	font2:Print(tooltipTextColor .. #selectedUnits .. tooltipLabelTextColor .. "  "..getCachedTranslation('ui.info.unitsselected'), backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 1.2) - heightVar, (fontSize * 1.23), "o")
 	font2:End()
-	font:Begin(useRenderToTexture)
+	font:Begin(true)
 	font:SetOutlineColor(0,0,0,1)
-	height = height + (fontSize * 0.85)
+	heightVar = heightVar + (fontSize * 0.85)
 
 	-- loop all unitdefs/cells (but not individual unitID's)
 	local totalMetalValue = 0
 	local totalEnergyValue = 0
 	local totalBuildPower = 0
-	for _, unitDefID in pairs(selectionCells) do
+
+	for i = 1, #selectionCells do
+		local unitDefID = selectionCells[i]
+		local unitDefData = unitDefInfo[unitDefID]
+		local count = selUnitsCounts[unitDefID]
 		-- metal cost
-		if unitDefInfo[unitDefID].metalCost then
-			totalMetalValue = totalMetalValue + (unitDefInfo[unitDefID].metalCost * selUnitsCounts[unitDefID])
+		if unitDefData.metalCost then
+			totalMetalValue = totalMetalValue + (unitDefData.metalCost * count)
 		end
 		-- energy cost
-		if unitDefInfo[unitDefID].energyCost then
-			totalEnergyValue = totalEnergyValue + (unitDefInfo[unitDefID].energyCost * selUnitsCounts[unitDefID])
+		if unitDefData.energyCost then
+			totalEnergyValue = totalEnergyValue + (unitDefData.energyCost * count)
 		end
 		-- build power
 		if unitDefInfo[unitDefID].buildSpeed then
@@ -958,13 +1090,23 @@ local function drawSelection()
 		end
 	end
 
-	-- loop all unitID's
-	local totalMaxHealthValue = 0
+	-- Only calculate resources for limited set of units (expensive operation)
+	-- Limit to first 50 units to avoid frame drops during large selections
 	local totalMetalMake, totalMetalUse, totalEnergyMake, totalEnergyUse = 0, 0, 0, 0
 	local totalKills = 0
-	for _, unitID in pairs(cellHovered and selUnitsSorted[selectionCells[cellHovered]] or selectedUnits) do
+	local unitsToCheck = cellHovered and selUnitsSorted[selectionCells[cellHovered]] or selectedUnits
+	local maxUnitsToCheck = math.min(50, #unitsToCheck)
+	for i = 1, maxUnitsToCheck do
+		local unitID = unitsToCheck[i]
 		local metalMake, metalUse, energyMake, energyUse = spGetUnitResources(unitID)
 		if metalMake then
+			local pairedID = spGetUnitRulesParam(unitID, "pairedUnitID")
+			if pairedID then
+				local mm, mu, em, eu = spGetUnitResources(pairedID)
+				if mm then
+					metalMake, metalUse, energyMake, energyUse = metalMake + mm, metalUse + mu, energyMake + em, energyUse + eu
+				end
+			end
 			totalMetalMake = totalMetalMake + metalMake
 			totalMetalUse = totalMetalUse + metalUse
 			totalEnergyMake = totalEnergyMake + energyMake
@@ -976,24 +1118,34 @@ local function drawSelection()
 		end
 	end
 
+	-- Scale up if we only checked a subset
+	if maxUnitsToCheck < #unitsToCheck then
+		local scale = #unitsToCheck / maxUnitsToCheck
+		totalMetalMake = totalMetalMake * scale
+		totalMetalUse = totalMetalUse * scale
+		totalEnergyMake = totalEnergyMake * scale
+		totalEnergyUse = totalEnergyUse * scale
+		totalKills = math.floor(totalKills * scale)
+	end
+
 	local valuePlusColor = '\255\180\255\180'
 	local valueMinColor = '\255\255\180\180'
 	if totalMetalUse > 0 or totalMetalMake > 0 then
-		height = height + heightStep
-		font:Print( tooltipLabelTextColor .. Spring.I18N('ui.info.m').."  " .. (totalMetalMake > 0 and valuePlusColor .. '+' .. (totalMetalMake < 10 and round(totalMetalMake, 1) or round(totalMetalMake, 0)) .. '  ' or '') .. (totalMetalUse > 0 and valueMinColor .. '-' .. (totalMetalUse < 10 and round(totalMetalUse, 1) or round(totalMetalUse, 0)) or ''), backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+		heightVar = heightVar + heightStep
+		font:Print( tooltipLabelTextColor .. getCachedTranslation('ui.info.m').."   " .. (totalMetalMake > 0 and valuePlusColor .. '+' .. (totalMetalMake < 10 and round(totalMetalMake, 1) or round(totalMetalMake, 0)) .. '  ' or '') .. (totalMetalUse > 0 and valueMinColor .. '-' .. (totalMetalUse < 10 and round(totalMetalUse, 1) or round(totalMetalUse, 0)) or ''), backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - heightVar, fontSize, "o")
 	end
 	if totalEnergyUse > 0 or totalEnergyMake > 0 then
-		height = height + heightStep
-		font:Print( tooltipLabelTextColor .. Spring.I18N('ui.info.e').."  " .. (totalEnergyMake > 0 and valuePlusColor .. '+' .. (totalEnergyMake < 10 and round(totalEnergyMake, 1) or round(totalEnergyMake, 0)) .. '  ' or '') .. (totalEnergyUse > 0 and valueMinColor .. '-' .. (totalEnergyUse < 10 and round(totalEnergyUse, 1) or round(totalEnergyUse, 0)) or ''), backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+		heightVar = heightVar + heightStep
+		font:Print( tooltipLabelTextColor .. getCachedTranslation('ui.info.e').."   " .. (totalEnergyMake > 0 and valuePlusColor .. '+' .. (totalEnergyMake < 10 and round(totalEnergyMake, 1) or round(totalEnergyMake, 0)) .. '  ' or '') .. (totalEnergyUse > 0 and valueMinColor .. '-' .. (totalEnergyUse < 10 and round(totalEnergyUse, 1) or round(totalEnergyUse, 0)) or ''), backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - heightVar, fontSize, "o")
 	end
 
 	-- metal cost
-	height = height + heightStep
-	font:Print( tooltipLabelTextColor .. Spring.I18N('ui.info.costm').."  " .. tooltipMetalColor .. totalMetalValue, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+	heightVar = heightVar + heightStep
+	font:Print( tooltipLabelTextColor .. getCachedTranslation('ui.info.costm').."   " .. tooltipValueWhiteColor .. totalMetalValue, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - heightVar, fontSize, "o")
 
 	-- energy cost
-	height = height + heightStep
-	font:Print( tooltipLabelTextColor .. Spring.I18N('ui.info.coste').."  " .. tooltipEnergyColor .. totalEnergyValue, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+	heightVar = heightVar + heightStep
+	font:Print( tooltipLabelTextColor .. getCachedTranslation('ui.info.coste').."\255\255\255\128   " .. totalEnergyValue, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - heightVar, fontSize, "o")
 
 	-- Buildpower
 	if totalBuildPower > 0 then
@@ -1004,15 +1156,23 @@ local function drawSelection()
 
 	-- kills
 	if totalKills > 0 then
-		height = height + heightStep
-		font:Print( tooltipLabelTextColor .. Spring.I18N('ui.info.kills').."   " .. tooltipValueColor .. totalKills, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+		heightVar = heightVar + heightStep
+		font:Print( tooltipLabelTextColor .. getCachedTranslation('ui.info.kills').."   " .. tooltipValueColor .. totalKills, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - heightVar, fontSize, "o")
 	end
 	font:End()
 
 	-- selected units grid area
 	local gridWidth = math_floor((backgroundRect[3] - backgroundRect[1] - bgpadding) * 0.6)  -- leaving some room for the totals
 	gridHeight = math_floor((backgroundRect[4] - backgroundRect[2]) - bgpadding)
-	customInfoArea = { backgroundRect[3] - gridWidth, backgroundRect[2], backgroundRect[3] - bgpadding, backgroundRect[2] + gridHeight }
+
+	-- Reuse customInfoArea table
+	if not customInfoArea then
+		customInfoArea = {}
+	end
+	customInfoArea[1] = backgroundRect[3] - gridWidth
+	customInfoArea[2] = backgroundRect[2]
+	customInfoArea[3] = backgroundRect[3] - bgpadding
+	customInfoArea[4] = backgroundRect[2] + gridHeight
 
 	-- draw selected unit icons
 	local rows = 2
@@ -1034,7 +1194,15 @@ local function drawSelection()
 	customInfoArea[3] = customInfoArea[3] - cellPadding -- leave space at the right side
 
 	-- draw grid (bottom right to top left)
-	cellRect = {}
+	-- Reuse cellRect table
+	if not cellRect then
+		cellRect = {}
+	else
+		-- Clear old entries
+		for i = #cellRect, 1, -1 do
+			cellRect[i] = nil
+		end
+	end
 	texOffset = (0.03 * rows) * zoomMult
 	cornerSize = math_max(1, cellPadding * 0.9)
 	if texOffset > 0.25 then
@@ -1045,7 +1213,15 @@ local function drawSelection()
 		for coll = 1, colls do
 			if selectionCells[cellID] then
 				--local uDefID = selectionCells[cellID]
-				cellRect[cellID] = { math_ceil(customInfoArea[3] - cellPadding - (coll * cellsize)), math_ceil(customInfoArea[2] + cellPadding + ((row - 1) * cellsize)), math_ceil(customInfoArea[3] - cellPadding - ((coll - 1) * cellsize)), math_ceil(customInfoArea[2] + cellPadding + ((row) * cellsize)) }
+				local cellRectEntry = cellRect[cellID]
+				if not cellRectEntry then
+					cellRectEntry = {}
+					cellRect[cellID] = cellRectEntry
+				end
+				cellRectEntry[1] = math_ceil(customInfoArea[3] - cellPadding - (coll * cellsize))
+				cellRectEntry[2] = math_ceil(customInfoArea[2] + cellPadding + ((row - 1) * cellsize))
+				cellRectEntry[3] = math_ceil(customInfoArea[3] - cellPadding - ((coll - 1) * cellsize))
+				cellRectEntry[4] = math_ceil(customInfoArea[2] + cellPadding + ((row) * cellsize))
 				drawSelectionCell(cellID, selectionCells[cellID], texOffset)
 			end
 			cellID = cellID - 1
@@ -1109,7 +1285,7 @@ local function drawUnitInfo()
 		local energyPriceText = "\n\255\255\255\000" .. AddSpaces(unitDefInfo[displayUnitDefID].energyCost)
 		local energyPriceTextHeight = font2:GetTextHeight(energyPriceText) * size
 
-		font2:Begin(useRenderToTexture)
+		font2:Begin(true)
 		font2:SetOutlineColor(0,0,0,1)
 		font2:Print(metalPriceText, iconX + iconSize - padding, iconY - halfSize - halfSize + padding + (size * 1.07) + energyPriceTextHeight, size, "ro")
 		font2:Print(energyPriceText, iconX + iconSize - padding, iconY - halfSize - halfSize + padding + (size * 1.07), size, "ro")
@@ -1146,7 +1322,7 @@ local function drawUnitInfo()
 			glTexture(":l:LuaUI/Images/skull.dds")
 			glTexRect(backgroundRect[3] - rankIconMarginX - rankIconSize, backgroundRect[4] - rankIconMarginY - rankIconSize, backgroundRect[3] - rankIconMarginX, backgroundRect[4] - rankIconMarginY)
 			glTexture(false)
-			font2:Begin(useRenderToTexture)
+			font2:Begin(true)
 			font2:SetOutlineColor(0,0,0,1)
 			font2:Print('\255\215\215\215'..kills, backgroundRect[3] - rankIconMarginX - (rankIconSize * 0.5), backgroundRect[4] - (rankIconMarginY * 2.05) - (fontSize * 0.31), fontSize * 0.87, "oc")
 			font2:End()
@@ -1174,7 +1350,7 @@ local function drawUnitInfo()
 	local height = (backgroundRect[4] - backgroundRect[2]) * (unitDescriptionLines > 1 and 0.495 or 0.6)
 
 	-- unit tooltip
-	font:Begin(useRenderToTexture)
+	font:Begin(true)
 	font:SetOutlineColor(0,0,0,1)
 	font:Print(descriptionColor .. text, backgroundRect[3] - width + bgpadding, backgroundRect[4] - contentPadding - (fontSize * 2.17), fontSize * 0.94, "o")
 	font:End()
@@ -1189,7 +1365,7 @@ local function drawUnitInfo()
 		end
 		humanName = humanName..'...'
 	end
-	font2:Begin(useRenderToTexture)
+	font2:Begin(true)
 	font2:SetOutlineColor(0,0,0,1)
 	font2:Print(unitNameColor .. humanName, backgroundRect[3] - width + bgpadding, backgroundRect[4] - contentPadding - (nameFontSize * 0.76), nameFontSize, "o")
 	--font2:End()
@@ -1214,6 +1390,13 @@ local function drawUnitInfo()
 	if displayUnitID then
 		local metalMake, metalUse, energyMake, energyUse = spGetUnitResources(displayUnitID)
 		if metalMake then
+			local pairedID = spGetUnitRulesParam(displayUnitID, "pairedUnitID")
+			if pairedID then
+				local mm, mu, em, eu = spGetUnitResources(pairedID)
+				if mm then
+					metalMake, metalUse, energyMake, energyUse = metalMake + mm, metalUse + mu, energyMake + em, energyUse + eu
+				end
+			end
 			valueY1 = (metalMake > 0 and valuePlusColor .. '+' .. (metalMake < 10 and round(metalMake, 1) or round(metalMake, 0)) .. ' ' or '') .. (metalUse > 0 and valueMinColor .. '-' .. (metalUse < 10 and round(metalUse, 1) or round(metalUse, 0)) or '')
 			valueY2 = (energyMake > 0 and valuePlusColor .. '+' .. (energyMake < 10 and round(energyMake, 1) or round(energyMake, 0)) .. ' ' or '') .. (energyUse > 0 and valueMinColor .. '-' .. (energyUse < 10 and round(energyUse, 1) or round(energyUse, 0)) or '')
 			valueY3 = ''
@@ -1297,7 +1480,14 @@ local function drawUnitInfo()
 		-- draw grid (bottom right to top left)
 		local cellID = #unitDefInfo[displayUnitDefID].buildOptions
 		cellPadding = math_floor((cellsize * 0.022) + 0.5)
-		cellRect = {}
+		-- Clear and reuse cellRect table
+		if not cellRect then
+			cellRect = {}
+		else
+			for i = #cellRect, 1, -1 do
+				cellRect[i] = nil
+			end
+		end
 		for row = 1, rows do
 			for coll = 1, colls do
 				if unitDefInfo[displayUnitDefID].buildOptions[cellID] then
@@ -1352,7 +1542,14 @@ local function drawUnitInfo()
 			local cellID = #units
 			cellPadding = math_floor((cellsize * 0.022) + 0.5)
 			cornerSize = math_max(1, cellPadding * 0.9)
-			cellRect = {}
+			-- Clear and reuse cellRect table
+			if not cellRect then
+				cellRect = {}
+			else
+				for i = #cellRect, 1, -1 do
+					cellRect[i] = nil
+				end
+			end
 			for row = 1, rows do
 				for coll = 1, colls do
 					if units[cellID] then
@@ -1389,15 +1586,31 @@ local function drawUnitInfo()
 		contentPadding = contentPadding * 0.95
 		local contentPaddingLeft = customInfoArea[1] + contentPadding
 
-		local text = ''
+		-- Use string buffer for concatenation to reduce allocations
+		clearStringBuffer()
+		local bufferIndex = 0
 		local separator = ''
 		local infoFontsize = fontSize * 0.89
 		-- to determine what to show in what order
 		local function addTextInfo(label, value)
-			text = text .. labelColor .. separator .. string.upper(label:sub(1, 1)) .. label:sub(2)  .. valueColor .. (value and (label ~= '' and ' ' or '')..value or '')
+			bufferIndex = bufferIndex + 1
+			stringBuffer[bufferIndex] = labelColor
+			bufferIndex = bufferIndex + 1
+			stringBuffer[bufferIndex] = separator
+			bufferIndex = bufferIndex + 1
+			stringBuffer[bufferIndex] = string.upper(label:sub(1, 1))
+			bufferIndex = bufferIndex + 1
+			stringBuffer[bufferIndex] = label:sub(2)
+			bufferIndex = bufferIndex + 1
+			stringBuffer[bufferIndex] = valueColor
+			if value and label ~= '' then
+				bufferIndex = bufferIndex + 1
+				stringBuffer[bufferIndex] = ' '
+				bufferIndex = bufferIndex + 1
+				stringBuffer[bufferIndex] = value
+			end
 			separator = ',   '
 		end
-
 
 		-- unit specific info
 		if unitDefInfo[displayUnitDefID].mindps then
@@ -1453,11 +1666,12 @@ local function drawUnitInfo()
 
 			-- basic dps display
 			if mindps and mindps > 0 and mindps == maxdps then
+
 				local dps = round(mindps/ reloadTimeSpeedup, 0)
 				addTextInfo(Spring.I18N('ui.info.dps'), dps)
 
 			-- dps range
-			elseif mindps and mindps > 0 and mindps ~= maxdps then
+			elseif mindps ~= maxdps then
 				local min = round(mindps/ reloadTimeSpeedup, 0)
 				local max = round(maxdps/ reloadTimeSpeedup, 0)
 				addTextInfo("DPS", min.."-"..max)
@@ -1470,7 +1684,7 @@ local function drawUnitInfo()
 				addTextInfo("DPS(EMP)", emp)
 
 			-- more emp dps
-			elseif minemp and minemp and minemp ~= maxemp then
+			elseif minemp ~= maxemp then
 				local min = round(minemp/ reloadTimeSpeedup, 0)
 				local max = round(maxemp/ reloadTimeSpeedup, 0)
 				addTextInfo("DPS(EMP)", min.."-"..max)
@@ -1514,6 +1728,10 @@ local function drawUnitInfo()
 
 		if unitDefInfo[displayUnitDefID].speed then
 			addTextInfo(Spring.I18N('ui.info.speed'), unitDefInfo[displayUnitDefID].speed)
+		elseif unitDefInfo[displayUnitDefID].speedMin then
+			local min = unitDefInfo[displayUnitDefID].speedMin
+			local max = unitDefInfo[displayUnitDefID].speedMax
+			addTextInfo(Spring.I18N('ui.info.speed'), min.."-"..max)
 		end
 		if unitDefInfo[displayUnitDefID].reverseSpeed then
 			addTextInfo(Spring.I18N('ui.info.reversespeed'), unitDefInfo[displayUnitDefID].reverseSpeed)
@@ -1575,23 +1793,31 @@ local function drawUnitInfo()
 			addTextInfo(Spring.I18N('ui.info.transportcapacity'), unitDefInfo[displayUnitDefID].transport[3])
 		end
 
-		local text, _ = font:WrapText(text, ((backgroundRect[3] - bgpadding - bgpadding - bgpadding) - (backgroundRect[1] + contentPaddingLeft)) * (loadedFontSize / infoFontsize))
+		-- Build final text from buffer
+		local text = table.concat(stringBuffer)
+		text, _ = font:WrapText(text, ((backgroundRect[3] - bgpadding - bgpadding - bgpadding) - (backgroundRect[1] + contentPaddingLeft)) * (loadedFontSize / infoFontsize))
 
 		-- prune number of lines
 		local lines = string_lines(text)
-		text = ''
+		clearStringBuffer()
+		bufferIndex = 0
 		for i, line in pairs(lines) do
-			text = text .. line
+			bufferIndex = bufferIndex + 1
+			stringBuffer[bufferIndex] = line
 			-- only 4 fully fit, but showing 5, so the top part of text shows and indicates there is more to see somehow
 			if i == 5 then
 				break
 			end
-			text = text .. '\n'
+			if i < 5 then
+				bufferIndex = bufferIndex + 1
+				stringBuffer[bufferIndex] = '\n'
+			end
 		end
+		text = table.concat(stringBuffer)
 		lines = nil
 
 		-- display unit(def) info text
-		font:Begin(useRenderToTexture)
+		font:Begin(true)
 		font:SetTextColor(1, 1, 1, 1)
 		font:SetOutlineColor(0.1, 0.1, 0.1, 1)
 		font:Print(text, customInfoArea[3] - width + (width*0.025), customInfoArea[4] - contentPadding - (infoFontsize * 0.55), infoFontsize, "o")
@@ -1607,20 +1833,23 @@ local function drawEngineTooltip()
 		if showEngineTooltip then
 			-- display default plaintext engine tooltip
 			local text, numLines = font:WrapText(currentTooltip, contentWidth * (loadedFontSize / fontSize))
-			font:Begin(useRenderToTexture)
+			font:Begin(true)
 			font:SetTextColor(1, 1, 1, 1)
 			font:SetOutlineColor(0.1, 0.1, 0.1, 1)
 			font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8), fontSize, "o")
 			font:End()
 		else
 			local heightStep = (fontSize * 1.4)
-			hoverType, hoverData = spTraceScreenRay(mouseX, mouseY)
+			-- Only trace screen ray if we don't have a custom hover (e.g., from PIP window)
+			if not customHoverType then
+				hoverType, hoverData = spTraceScreenRay(mouseX, mouseY)
+			end
 			if hoverType == 'ground' then
 				local desc, coords = spTraceScreenRay(mouseX, mouseY, true)
 				local groundType1, groundType2, metal, hardness, tankSpeed, botSpeed, hoverSpeed, shipSpeed, receiveTracks = Spring.GetGroundInfo(coords[1], coords[3])
 				local text = ''
 				local height = 0
-				font:Begin(useRenderToTexture)
+				font:Begin(true)
 				font:SetTextColor(1, 1, 1, 1)
 				font:SetOutlineColor(0.1, 0.1, 0.1, 1)
 				if displayMapPosition then
@@ -1644,7 +1873,7 @@ local function drawEngineTooltip()
 						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.ship')..' '..tooltipValueColor..math.floor(shipSpeed*100).."%"
 					end
 					if groundType2 and groundType2 ~= '' then
-						font2:Begin(useRenderToTexture)
+						font2:Begin(true)
 						font2:SetOutlineColor(0,0,0,1)
 						font2:Print(tooltipLabelTextColor..groundType2, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 1) - height, (fontSize * 1.2), "o")
 						font2:End()
@@ -1672,25 +1901,25 @@ local function drawEngineTooltip()
 					text = FeatureDefs[featureDefID].translatedDescription
 				end
 				if text and text ~= '' then
-					font2:Begin(useRenderToTexture)
+					font2:Begin(true)
 					font2:SetOutlineColor(0,0,0,1)
 					font2:Print(tooltipTitleColor..text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 1.2) - height, (fontSize * 1.4), "o")
 					font2:End()
 					height = height + (fontSize * 0.5)
 				end
-				font:Begin(useRenderToTexture)
+				font:Begin(true)
 				font:SetTextColor(1, 1, 1, 1)
 				font:SetOutlineColor(0.1, 0.1, 0.1, 1)
 				text = ''
 				local metal, _, energy, _ = Spring.GetFeatureResources(hoverData)
 				if energy > 0 then
 					height = height + heightStep
-					text = tooltipLabelTextColor..Spring.I18N('ui.info.energy').."  \255\255\255\000"..math.floor(energy)
+					text = tooltipLabelTextColor..Spring.I18N('ui.info.energy').."  \255\255\255\000"..string.formatSI(energy)
 					font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 				end
 				if metal > 0 then
 					height = height + heightStep
-					text = tooltipLabelTextColor..Spring.I18N('ui.info.metal').."  "..tooltipValueColor..math.floor(metal)
+					text = tooltipLabelTextColor..Spring.I18N('ui.info.metal').."  "..tooltipValueColor..string.formatSI(metal)
 					font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 				end
 				font:End()
@@ -1758,11 +1987,11 @@ local function MiddleMouseButton(unitDefID, unitTable)
 	local alt, ctrl, meta, shift = spGetModKeyState()
 	if ctrl then
 		-- center the view on the entire selection
-		Spring.SendCommands({ "viewselection" })
+		Spring.SendCommands(viewSelectionCmd)
 	else
 		-- center the view on this type on unit
 		spSelectUnitArray(unitTable)
-		Spring.SendCommands({ "viewselection" })
+		Spring.SendCommands(viewSelectionCmd)
 		spSelectUnitArray(selectedUnits)
 	end
 	selectedUnits = spGetSelectedUnits()
@@ -1774,17 +2003,20 @@ local function RightMouseButton(unitDefID, unitTable)
 	local alt, ctrl, meta, shift = spGetModKeyState()
 
 	-- remove selected units of icon type
-	local map = {}
+	-- Clear and reuse map table instead of creating new one
+	for k in pairs(rightMouseButtonMap) do
+		rightMouseButtonMap[k] = nil
+	end
 	for i = 1, #selectedUnits do
-		map[selectedUnits[i]] = true
+		rightMouseButtonMap[selectedUnits[i]] = true
 	end
 	for _, uid in ipairs(unitTable) do
-		map[uid] = nil
+		rightMouseButtonMap[uid] = nil
 		if ctrl then
 			break -- only remove 1 unit
 		end
 	end
-	spSelectUnitMap(map)
+	spSelectUnitMap(rightMouseButtonMap)
 	selectedUnits = spGetSelectedUnits()
 	SelectedUnitsCount = spGetSelectedUnitsCount()
 	Spring.PlaySoundFile(sound_button2, 0.5, 'ui')
@@ -1811,7 +2043,8 @@ local function unloadTransport(transportID, unitID, x, z, shift, depth)
 	local unitSphereRadius = 60	-- too low value will result in unload conflicts
 	local areaUnits = Spring.GetUnitsInSphere(x, y, z, unitSphereRadius)
 	if #areaUnits == 0 then	-- unblocked spot!
-		Spring.GiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, { x, y, z, unitID }, {shift and "shift"})
+		unloadParams[1], unloadParams[2], unloadParams[3], unloadParams[4] = x, y, z, unitID
+		Spring.GiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, unloadParams, shift and shiftTable or emptyTable)
 	else
 		-- unload is blocked by unit at ground just lets find free alternative spot in a radius around it
 		local samples = 8
@@ -1826,7 +2059,8 @@ local function unloadTransport(transportID, unitID, x, z, shift, depth)
 				if #areaUnits == 0 then	-- unblocked spot!
 					local areaFeatures = Spring.GetFeaturesInSphere(x, y, z, unitSphereRadius)
 					if #areaFeatures == 0 then
-						Spring.GiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, { x, y, z, unitID }, {shift and "shift"})
+						unloadParams[1], unloadParams[2], unloadParams[3], unloadParams[4] = x, y, z, unitID
+						Spring.GiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, unloadParams, shift and shiftTable or emptyTable)
 						foundUnloadSpot = true
 						break
 					end
@@ -1891,10 +2125,10 @@ function widget:MouseRelease(x, y, button)
 								if cmdQueue[#cmdQueue] and cmdQueue[#cmdQueue].id == CMD.MOVE and cmdQueue[#cmdQueue].params[3] then
 									x, z = cmdQueue[#cmdQueue].params[1], cmdQueue[#cmdQueue].params[3]
 									-- remove the last move command (to replace it with the unload cmd after)
-									Spring.GiveOrderToUnit(displayUnitID, CMD.STOP, {}, 0)
+									Spring.GiveOrderToUnit(displayUnitID, CMD.STOP, emptyTable, 0)
 									for c = 1, #cmdQueue do
 										if c < #cmdQueue then
-											Spring.GiveOrderToUnit(displayUnitID, cmdQueue[c].id, cmdQueue[c].params, { "shift" })
+											Spring.GiveOrderToUnit(displayUnitID, cmdQueue[c].id, cmdQueue[c].params, shiftTable)
 										end
 									end
 								end
@@ -1922,66 +2156,48 @@ function widget:DrawScreen()
 		return
 	end
 
-	if useRenderToTexture then
-		if not infoBgTex then
-			infoBgTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
-				target = GL.TEXTURE_2D,
-				format = GL.RGBA,
-				fbo = true,
-			})
-			gl.R2tHelper.RenderToTexture(infoBgTex,
-				function()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
-					drawInfoBackground()
-				end,
-				useRenderToTexture
-			)
-		end
-		if not infoTex then
-			infoTex = gl.CreateTexture(math_floor(width*vsx)*2, math_floor(height*vsy)*2, {
-				target = GL.TEXTURE_2D,
-				format = GL.RGBA,
-				fbo = true,
-			})
-		end
-		if infoTex and updateTex then
-			updateTex = nil
-			gl.R2tHelper.RenderToTexture(infoTex,
-				function()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
-					drawInfo()
-				end,
-				useRenderToTexture
-			)
-		end
-	else
-		if not dlistInfo then
-			dlistInfo = gl.CreateList(function()
-				if not useRenderToTexture then
-					if not useRenderToTextureBg then
-						drawInfoBackground()
-					end
-					drawInfo()
-				end
-			end)
-		end
+	if not infoBgTex then
+		infoBgTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
+			target = GL.TEXTURE_2D,
+			format = GL.RGBA,
+			fbo = true,
+		})
+		gl.R2tHelper.RenderToTexture(infoBgTex,
+			function()
+				gl.Translate(-1, -1, 0)
+				gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
+				drawInfoBackground()
+			end,
+			true
+		)
+	end
+	if not infoTex then
+		infoTex = gl.CreateTexture(math_floor(width*vsx)*2, math_floor(height*vsy)*2, {
+			target = GL.TEXTURE_2D,
+			format = GL.RGBA,
+			fbo = true,
+		})
+	end
+	if infoTex and updateTex then
+		updateTex = nil
+		gl.R2tHelper.RenderToTexture(infoTex,
+			function()
+				gl.Translate(-1, -1, 0)
+				gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
+				drawInfo()
+			end,
+			true
+		)
 	end
 
 	if alwaysShow or not emptyInfo or (isPregame and (not mySpec or displayMapPosition)) then
-		if useRenderToTexture and infoBgTex then
-			if infoBgTex then
-				-- background element
-				gl.R2tHelper.BlendTexRect(infoBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], useRenderToTexture)
-			end
-			if infoTex then
-				-- content
-				gl.R2tHelper.BlendTexRect(infoTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], useRenderToTexture)
-			end
+		if infoBgTex then
+			-- background element
+			gl.R2tHelper.BlendTexRect(infoBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], true)
 		end
-		if dlistInfo then
-			gl.CallList(dlistInfo)
+		if infoTex then
+			-- content
+			gl.R2tHelper.BlendTexRect(infoTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], true)
 		end
 	elseif dlistGuishader then
 		WG['guishader'].DeleteDlist('info')
@@ -2109,7 +2325,19 @@ end
 function checkChanges()
 	hideBuildlist = nil	-- only set for pregame startunit
 	local x, y, b, _, _, _, cameraPanMode = spGetMouseState()
-	hoverType, hoverData = spTraceScreenRay(x, y)
+
+	-- Use custom hover if provided by external widget (e.g., PIP window)
+	-- or skip hover detection if PIP window is above (to prevent showing units below PIP)
+	if customHoverType and customHoverData then
+		hoverType = customHoverType
+		hoverData = customHoverData
+	elseif WG['guiPip'] and WG['guiPip'].IsAbove and WG['guiPip'].IsAbove(x, y) then
+		-- PIP window is above the cursor, don't detect anything below it
+		hoverType = nil
+		hoverData = nil
+	else
+		hoverType, hoverData = spTraceScreenRay(x, y)
+	end
 
 	local prevDisplayMode = displayMode
 	local prevDisplayUnitDefID = displayUnitDefID
@@ -2147,7 +2375,7 @@ function checkChanges()
 		end
 
 		-- hovered unit
-	elseif not cameraPanMode and not b and not math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'unit' then
+	elseif not cameraPanMode and not b and (customHoverType or not math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4])) and hoverType and hoverType == 'unit' then
 		displayMode = 'unit'
 		displayUnitID = hoverData
 		displayUnitDefID = spGetUnitDefID(displayUnitID)
@@ -2165,18 +2393,19 @@ function checkChanges()
 		end
 
 		-- hovered feature
-	elseif not cameraPanMode and not math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'feature' then
+	elseif not cameraPanMode and (customHoverType or not math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4])) and hoverType and hoverType == 'feature' then
 		displayMode = 'feature'
 		local featureID = hoverData
 		local featureDefID = spGetFeatureDefID(featureID)
 		local featureDef = FeatureDefs[featureDefID]
+		if featureDef == nil then
+			return
+		end
 		local newTooltip = featureDef.translatedDescription or ''
 
 		if featureDef.reclaimable then
 			local metal, _, energy, _ = Spring.GetFeatureResources(featureID)
-			metal = math.floor(metal)
-			energy = math.floor(energy)
-			local reclaimText = Spring.I18N('ui.reclaimInfo.metal', { metal = metal }) .. "\255\255\255\128" .. " " .. Spring.I18N('ui.reclaimInfo.energy', { energy = energy })
+			local reclaimText = Spring.I18N('ui.reclaimInfo.metal', { metal = string.formatSI(metal) }) .. "\255\255\255\128" .. " " .. Spring.I18N('ui.reclaimInfo.energy', { energy = string.formatSI(energy) })
 			newTooltip = newTooltip .. "\n\n" .. reclaimText
 		end
 
@@ -2189,12 +2418,13 @@ function checkChanges()
 	elseif SelectedUnitsCount == 1 then
 		displayMode = 'unit'
 		displayUnitID = selectedUnits[1]
-		displayUnitDefID = spGetUnitDefID(selectedUnits[1])
-		if lastUpdateClock + 0.4 < os_clock() then
-			-- unit stats could have changed meanwhile
-			doUpdate = true
+		if displayUnitID then
+			displayUnitDefID = spGetUnitDefID(displayUnitID)
+			if lastUpdateClock + 0.4 < os_clock() then
+				-- unit stats could have changed meanwhile
+				doUpdate = true
+			end
 		end
-
 		-- selection
 	elseif SelectedUnitsCount > 1 then
 		displayMode = 'selection'
@@ -2229,13 +2459,27 @@ function widget:SelectionChanged(sel)
 	if SelectedUnitsCount ~= 0 and newSelectedUnitsCount == 0 then
 		doUpdate = true
 		SelectedUnitsCount = 0
-		selectedUnits = {}
+		-- Clear existing table instead of creating new one
+		for i = #selectedUnits, 1, -1 do
+			selectedUnits[i] = nil
+		end
 	end
 	if newSelectedUnitsCount > 0 then
 		SelectedUnitsCount = newSelectedUnitsCount
 		selectedUnits = sel
-		if not doUpdateClock then
-			doUpdateClock = os_clock() + 0.05  -- delay to save some performance
+		-- Adaptive throttling: increase delay based on selection size
+		local throttleDelay = 0.01
+		if newSelectedUnitsCount >= 300 then
+			throttleDelay = 0.03
+		elseif newSelectedUnitsCount >= 160 then
+			throttleDelay = 0.02
+		elseif newSelectedUnitsCount >= 80 then
+			throttleDelay = 0.015
+		end
+
+		local currentTime = os_clock()
+		if not doUpdateClock or (currentTime - lastUpdateClock) > throttleDelay then
+			doUpdateClock = currentTime + throttleDelay
 		end
 	end
 	if not alwaysShow and select(7, spGetMouseState()) then	-- cameraPanMode

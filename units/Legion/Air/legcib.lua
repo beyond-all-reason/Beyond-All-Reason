@@ -15,8 +15,6 @@ return {
 		firestate = 0,
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.1825,
 		maxaileron = 0.0144,
 		maxbank = 0.8,
@@ -118,6 +116,7 @@ return {
 				weaponvelocity = 300,
 				customparams = {
 					nofire = true,
+					junotype = "mini",
 				},
 				damage = {
 					default = 1,

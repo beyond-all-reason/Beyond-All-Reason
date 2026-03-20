@@ -2,7 +2,7 @@ return {
 	armsaber = {
 		blocking = false,
 		buildpic = "ARMSABER.DDS",
-		buildtime = 9000,
+		buildtime = 11000,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,
@@ -14,8 +14,6 @@ return {
 		footprintz = 3,
 		health = 1010,
 		hoverattack = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.24,
 		maxdec = 0.46,
 		maxslope = 10,

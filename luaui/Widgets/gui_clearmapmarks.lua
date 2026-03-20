@@ -12,6 +12,10 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 local iconTexture = ":n:LuaUI/Images/mapmarksfx/eraser.dds"
 local iconSize = 18
 
@@ -144,9 +148,9 @@ function widget:MouseRelease(mx, my, mb)
 			continuouslyClean = not continuouslyClean
 			WG.clearmapmarks.continuous = continuouslyClean
 			if continuouslyClean then
-				Spring.Echo("clearmapmarks: continously cleaning all mapmarks enabled (for current game)")
+				spEcho("clearmapmarks: continously cleaning all mapmarks enabled (for current game)")
 			else
-				Spring.Echo("clearmapmarks: continously cleaning all mapmarks disabled")
+				spEcho("clearmapmarks: continously cleaning all mapmarks disabled")
 			end
 		end
 	end

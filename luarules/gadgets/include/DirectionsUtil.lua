@@ -2,7 +2,6 @@
 -- This is a minor utility for distributing directions rotationally in 3D.
 
 local DirectionsUtil = {}
-local DIRECTION_SET_SIZE_MAX = 64
 
 DirectionsUtil.Directions = {}
 
@@ -44,22 +43,26 @@ local spherePackings = {
 ---@param n number count of vectors to produce
 ---@return table vector3s
 DirectionsUtil.GetRandomDirections = function(n)
-	n = n > 1 and n or 1
 	local vecs = {}
+	local math_random = math.random
 
 	for i = 1, 3 * (n - 1) + 1, 3 do
-		local m1, m2, m3, m4    -- Marsaglia procedure:
+		-- Marsaglia procedure:
+		-- The method begins by sampling & rejecting points.
+		-- The result can be transformed into radial coords.
+		local m1, m2, m3, m4
 
-		repeat                  -- The method begins by sampling & rejecting points.
-			m1 = 2 * math.random() - 1 -- The result can be transformed into radial coords.
-			m2 = 2 * math.random() - 1
+		repeat
+			m1 = 2 * math_random() - 1
+			m2 = 2 * math_random() - 1
 			m3 = m1 * m1 + m2 * m2
-		until (m3 < 1)
+		until m3 < 1
 
-		m4 = (1 - m3) ^ 0.5
+		m4 = math.sqrt(1 - m3)
+
 		vecs[i    ] = 2 * m1 * m4 -- x
 		vecs[i + 1] = 2 * m2 * m4 -- y
-		vecs[i + 2] = 1 -  2 * m3  -- z
+		vecs[i + 2] = 1 -  2 * m3 -- z
 	end
 
 	return vecs
@@ -70,21 +73,17 @@ end
 
 ---Fetches a premade direction set from DistributedDirections; otherwise, generates random directions.
 ---@param n number count of vectors to retrieve
----@return table vector3s
----@return boolean randomized
+---@return table? vector3s
+---@return boolean? randomized
 DirectionsUtil.GetDirections = function(n)
-	if not n or n < 1 then return end
-
 	local distributed = DirectionsUtil.Directions[n]
 
 	if distributed then
 		return distributed, false
 	end
 
-	if n <= DIRECTION_SET_SIZE_MAX then
-		for i = 1, 3 * (n - 1) + 1, 3 do
-			return DirectionsUtil.GetRandomDirections(n), true
-		end
+	for i = 1, 3 * (n - 1) + 1, 3 do
+		return DirectionsUtil.GetRandomDirections(i), true
 	end
 end
 
@@ -92,11 +91,11 @@ end
 ---@param n number max solution size to add to Directions
 ---@return boolean success
 DirectionsUtil.ProvisionDirections = function(n)
-	if n < 2 or n > DIRECTION_SET_SIZE_MAX then return false end
+	if n < 2 then
+		return false
+	end
 
-	local directions = DirectionsUtil.Directions
-
-	if not directions then return false end
+	local directions = DirectionsUtil.Directions or {}
 
 	for i = #directions + 1, n do
 		directions[i] = DirectionsUtil.GetRandomDirections(i)

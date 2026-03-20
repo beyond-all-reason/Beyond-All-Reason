@@ -23,8 +23,6 @@ return {
 		footprintx = 8,
 		footprintz = 8,
 		hightrajectory = 1,
-		idleautoheal = 15,
-		idletime = 300,
 		levelground = false,
 		mass = 1400,
 		health = 30000,
@@ -93,7 +91,6 @@ return {
 				soundhitwet = "nukewater",
 				soundstart = "bugarty",
 				targetable = 1,
-				targetborder = 0.75,
 				turret = 1,
 				weaponvelocity = 1500,
 				damage = {
@@ -101,7 +98,8 @@ return {
 				},
 				customparams = {
 					shield_aoe_penetration = true,
-				}
+					nuclear = 1,
+				},
 			},
 		},
 		weapons = {

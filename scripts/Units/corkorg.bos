@@ -657,7 +657,7 @@ QueryWeapon3(pieceIndex)
 #define CATT1_PRECISION <1.2>
 #define CATT1_RESTORE_SPEED <1.0>
 
-#include "../constant_acceleration_turret_turning_1.h"
+#include "../constant_acceleration_turret_turning.h"
 
 RestoreBody() // no need to signal, as threads inherit parents signal masks
 {

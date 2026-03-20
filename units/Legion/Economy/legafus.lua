@@ -16,8 +16,6 @@ return {
 		footprintx = 6,
 		footprintz = 6,
 		health = 9400,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 13,
@@ -28,6 +26,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "advancedFusionExplosionSelfd",
 		sightdistance = 273,
+		yardmap = "oooooooooooooooooooooooooooooooooooo",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
 			buildinggrounddecalsizex = 10,

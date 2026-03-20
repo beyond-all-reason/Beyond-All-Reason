@@ -34,7 +34,7 @@ end
 local difficultyParameters = {
 
 	[difficulties.veryeasy] = {
-		gracePeriod             = 180,
+		gracePeriod             = 360 * Spring.GetModOptions().scav_graceperiodmult,
 		bossTime                = 65 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
 		scavSpawnRate           = 240 / Spring.GetModOptions().scav_spawntimemult / economyScale,
 		burrowSpawnRate         = 240 / Spring.GetModOptions().scav_spawntimemult / economyScale,
@@ -54,7 +54,7 @@ local difficultyParameters = {
 	},
 
 	[difficulties.easy] = {
-		gracePeriod             = 120,
+		gracePeriod             = 240 * Spring.GetModOptions().scav_graceperiodmult,
 		bossTime                = 60 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
 		scavSpawnRate           = 200 / Spring.GetModOptions().scav_spawntimemult / economyScale,
 		burrowSpawnRate         = 210 / Spring.GetModOptions().scav_spawntimemult / economyScale,
@@ -73,7 +73,7 @@ local difficultyParameters = {
 		bossResistanceMult      = 1.5 * economyScale,
 	},
 	[difficulties.normal] = {
-		gracePeriod             = 90,
+		gracePeriod             = 180 * Spring.GetModOptions().scav_graceperiodmult,
 		bossTime                = 55 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
 		scavSpawnRate           = 180 / Spring.GetModOptions().scav_spawntimemult / economyScale,
 		burrowSpawnRate         = 180 / Spring.GetModOptions().scav_spawntimemult / economyScale,
@@ -92,7 +92,7 @@ local difficultyParameters = {
 		bossResistanceMult      = 2 * economyScale,
 	},
 	[difficulties.hard] = {
-		gracePeriod             = 80,
+		gracePeriod             = 160 * Spring.GetModOptions().scav_graceperiodmult,
 		bossTime                = 50 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
 		scavSpawnRate           = 160 / Spring.GetModOptions().scav_spawntimemult / economyScale,
 		burrowSpawnRate         = 150 / Spring.GetModOptions().scav_spawntimemult / economyScale,
@@ -111,7 +111,7 @@ local difficultyParameters = {
 		bossResistanceMult      = 2.5 * economyScale,
 	},
 	[difficulties.veryhard] = {
-		gracePeriod             = 70,
+		gracePeriod             = 140 * Spring.GetModOptions().scav_graceperiodmult,
 		bossTime                = 45 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
 		scavSpawnRate           = 140 / Spring.GetModOptions().scav_spawntimemult / economyScale,
 		burrowSpawnRate         = 120 / Spring.GetModOptions().scav_spawntimemult / economyScale,
@@ -130,7 +130,7 @@ local difficultyParameters = {
 		bossResistanceMult      = 3 * economyScale,
 	},
 	[difficulties.epic] = {
-		gracePeriod             = 60,
+		gracePeriod             = 120 * Spring.GetModOptions().scav_graceperiodmult,
 		bossTime                = 40 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
 		scavSpawnRate           = 120 / Spring.GetModOptions().scav_spawntimemult / economyScale,
 		burrowSpawnRate         = 90 / Spring.GetModOptions().scav_spawntimemult / economyScale,
@@ -178,12 +178,12 @@ local difficultyParameters = {
 
 local tierConfiguration = { -- Double maxSquadSize for special squads
 	[1] = {minAnger = 0,  maxAnger = 20, 	maxSquadSize = 1},
-	[2] = {minAnger = 10, maxAnger = 65, 	maxSquadSize = 10},
-	[3] = {minAnger = 20, maxAnger = 100, 	maxSquadSize = 10},
-	[4] = {minAnger = 35, maxAnger = 200, 	maxSquadSize = 10},
-	[5] = {minAnger = 45, maxAnger = 350, 	maxSquadSize = 8},
-	[6] = {minAnger = 60, maxAnger = 500, 	maxSquadSize = 5},
-	[7] = {minAnger = 70, maxAnger = 1000, 	maxSquadSize = 3},
+	[2] = {minAnger = 5,  maxAnger = 65, 	maxSquadSize = 10},
+	[3] = {minAnger = 15, maxAnger = 100, 	maxSquadSize = 10},
+	[4] = {minAnger = 30, maxAnger = 200, 	maxSquadSize = 10},
+	[5] = {minAnger = 40, maxAnger = 350, 	maxSquadSize = 8},
+	[6] = {minAnger = 55, maxAnger = 500, 	maxSquadSize = 5},
+	[7] = {minAnger = 65, maxAnger = 1000, 	maxSquadSize = 3},
 }
 
 --local teamAngerEasementFB = 16
@@ -651,6 +651,7 @@ local SeaUnitsList = {
 			["corsh_scav"] = 3,
 			--Legion
 			["legsh_scav"] = 3,
+			["legnavyscout_scav"] = 3,
 		},
 		[2] = {
 			--Armada
@@ -672,12 +673,16 @@ local SeaUnitsList = {
 			["armlship_scav"] = 3,
 			--Cortex
 			["corfship_scav"] = 3,
+			--Legion
+			["leganavyantiswarm_scav"] = 3,
 		},
 		[5] = {
 			--Armada
 			["armsubk_scav"] = 2,
 			--Cortex
 			["corshark_scav"] = 2,
+			--Legion
+			["leganavybattlesub_scav"] = 2,
 		},
 		[6] = {
 			--Armada
@@ -713,7 +718,9 @@ local SeaUnitsList = {
 			["corroy_scav"] = 2,
 			["corsnap_scav"] = 4,
 			--Legion
-			["legner_scav"] = 3,
+			["legnavyfrigate"] = 3,
+			["legner_scav"] = 4,
+			["legnavydestro_scav"] = 2,
 		},
 		[4] = {
 			--Armada
@@ -721,19 +728,25 @@ local SeaUnitsList = {
 			--Cortex
 			["corcrus_scav"] = 3,
 			["corhal_scav"] = 3,
+			--Legion
+			["leganavycruiser_scav"] = 3,
 		},
 		[5] = {
 			--Armada
 			["armbats_scav"] = 3,
 			--Cortex
 			["corbats_scav"] = 3,
+			--Legion
+			["leganavybattleship_scav"] = 3,
 		},
 		[6] = {
 			--Armada
 			["armpshipt3_scav"] = 2,
 			["armptt2_scav"] = 2,
 			--Cortex
-			["corblackhy_scav"] = 2,
+			["corprince_scav"] = 2,
+			--Legion
+			["leganavyartyship"] = 2,
 		},
 		[7] = {
 			--Armada
@@ -741,7 +754,9 @@ local SeaUnitsList = {
 			["armserpt3_scav"] = 2,
 			--Cortex
 			["coresuppt3_scav"] = 2,
-			["corprince_scav"] = 3,
+			["corblackhy_scav"] = 3,
+			--Legion
+			["leganavyflagship"] = 2,
 		},
 	},
 	Support = {
@@ -750,12 +765,16 @@ local SeaUnitsList = {
 			["armpt_scav"] = 2,
 			--Cortex
 			["corpt_scav"] = 2,
+			--Legion
+			["legnavyaaship_scav"] = 2,
 		},
 		[2] = {
 			--Armada
 			["armpt_scav"] = 2,
 			--Cortex
 			["corpt_scav"] = 2,
+			--Legion
+			["legnavyaaship_scav"] = 2,
 		},
 		[3] = {
 			--Armada
@@ -769,6 +788,7 @@ local SeaUnitsList = {
 			--Legion
 			["legah_scav"] = 2,
 			["legmh_scav"] = 2,
+			["leganavysub_scav"] = 2,
 		},
 		[4] = {
 			--Armada
@@ -779,6 +799,9 @@ local SeaUnitsList = {
 			["cordronecarry_scav"] = 2,
 			["corantiship_scav"] = 2,
 			["corarch_scav"] = 2,
+			--Legion
+			["leganavyantinukecarrier_scav"] = 4,
+			["leganavyaaship_scav"] = 2,
 		},
 		[5] = {
 			--Armada
@@ -792,7 +815,9 @@ local SeaUnitsList = {
 			["corsjam_scav"] = 2,
 			["corsentinel_scav"] = 2,
 			--Legion
-			["legvflak_scav"] = 2,
+			["leganavyheavysub_scav"] = 2,
+			["leganavymissileship_scav"] = 2,
+			["leganavyradjamship_scav"] = 2,
 		},
 		[6] = {
 			--Armada
@@ -821,7 +846,9 @@ local SeaUnitsList = {
 			["corcs_scav"] = 2,
 			["correcl_scav"] = 40,
 			["corch_scav"] = 2,
-			--Legion
+			--legion
+			["legnavyconship_scav"] = 2,
+			["legnavyrezsub_scav"] = 40,
 			["legch_scav"] = 2,
 		},
 		[2] = {
@@ -834,6 +861,8 @@ local SeaUnitsList = {
 			["correcl_scav"] = 40,
 			["corch_scav"] = 2,
 			--Legion
+			["legnavyconship_scav"] = 2,
+			["legnavyrezsub_scav"] = 40,
 			["legch_scav"] = 2,
 		},
 		[3] = {
@@ -846,6 +875,8 @@ local SeaUnitsList = {
 			["correcl_scav"] = 40,
 			["corch_scav"] = 2,
 			--Legion
+			["legnavyconship_scav"] = 2,
+			["legnavyrezsub_scav"] = 40,
 			["legch_scav"] = 2,
 		},
 		[4] = {
@@ -857,6 +888,10 @@ local SeaUnitsList = {
 			["coracsub_scav"] = 2,
 			["correcl_scav"] = 40,
 			["cormls_scav"] = 2,
+			--Legion
+			["leganavyconsub_scav"] = 2,
+			["legnavyrezsub_scav"] = 40,
+			["leganavyengineer_scav"] = 2,
 		},
 		[5] = {
 			--Armada
@@ -867,6 +902,10 @@ local SeaUnitsList = {
 			["coracsub_scav"] = 2,
 			["correcl_scav"] = 40,
 			["cormls_scav"] = 2,
+			--Legion
+			["leganavyconsub_scav"] = 2,
+			["legnavyrezsub_scav"] = 40,
+			["leganavyengineer_scav"] = 2,
 		},
 		[6] = {
 			--Armada
@@ -877,7 +916,10 @@ local SeaUnitsList = {
 			["coracsub_scav"] = 2,
 			["correcl_scav"] = 40,
 			["cormls_scav"] = 2,
-
+			--Legion
+			["leganavyconsub_scav"] = 2,
+			["legnavyrezsub_scav"] = 40,
+			["leganavyengineer_scav"] = 2,
 		},
 		[7] = {
 			--Armada
@@ -888,6 +930,10 @@ local SeaUnitsList = {
 			["coracsub_scav"] = 2,
 			["correcl_scav"] = 40,
 			["cormls_scav"] = 2,
+			--Legion
+			["leganavyconsub_scav"] = 2,
+			["legnavyrezsub_scav"] = 40,
+			["leganavyengineer_scav"] = 2,
 		},
 	},
 }
@@ -983,14 +1029,14 @@ local AirUnitsList = {
 			["armpnix_scav"] = 3,
 			["armstil_scav"] = 3,
 			["armblade_scav"] = 3,
-			["armliche_scav"] = 2,
+			["armliche_scav"] = 1,
 			["armdfly_scav"] = 2,
 			--Cortex
 			["corvamp_scav"] = 3,
 			["corape_scav"] = 3,
 			["corhurc_scav"] = 3,
-			["corcrw_scav"] = 2,
-			["corcrwh_scav"] = 2,
+			["corcrw_scav"] = 1,
+			["corcrwh_scav"] = 1,
 			--Legion
 			["legstronghold_scav"] = 2,
 			["legvenator_scav"] = 3,
@@ -999,7 +1045,7 @@ local AirUnitsList = {
 			["legnap_scav"] = 3,
 			["legmineb_scav"] = 3,
 			["legphoenix_scav"] = 3,
-			["legfort_scav"] = 2,
+			["legfort_scav"] = 1,
 			["legmost3_scav"] = 1,
 		},
 		[6] = {
@@ -1012,7 +1058,7 @@ local AirUnitsList = {
 		},
 		[7] = {
 			--Armada
-			["armliche_scav"] = 4,
+			["armliche_scav"] = 10,
 			["armthundt4_scav"] = 2,
 			["armfepocht4_scav"] = 1,
 			--Cortex
@@ -2687,6 +2733,9 @@ end
 -- Settings -- Adjust these
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 local airStartAnger = 0 -- needed for air waves to work correctly.
+if Spring.GetModOptions().unit_restrictions_noair then -- Disable air waves when No Air restriction is enabled
+	airStartAnger = 10000
+end
 local useScum = true -- Use scum as space where turrets can spawn (requires scum gadget from Beyond All Reason)
 local useWaveMsg = true -- Show dropdown message whenever new wave is spawning
 local spawnSquare = 90 -- size of the scav spawn square centered on the burrow

@@ -14,6 +14,10 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 -- Shameless port from https://gist.github.com/martymcmodding/30304c4bffa6e2bd2eb59ff8bb09d135
 
 -----------------------------------------------------------------
@@ -176,7 +180,7 @@ end
 function widget:Initialize()
 
 	if gl.CreateShader == nil then
-		Spring.Echo("CAS: createshader not supported, removing")
+		spEcho("CAS: createshader not supported, removing")
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -206,7 +210,7 @@ function widget:Initialize()
 
 	local shaderCompiled = casShader:Initialize()
 	if not shaderCompiled then
-			Spring.Echo("Failed to compile Contrast Adaptive Sharpen shader, removing widget")
+			spEcho("Failed to compile Contrast Adaptive Sharpen shader, removing widget")
 			widgetHandler:RemoveWidget()
 			return
 	end
@@ -251,7 +255,7 @@ function widget:DrawScreenEffects()
 		screenCopyTex = WG['screencopymanager'].GetScreenCopy()
 	else
 		--glCopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy)
-		Spring.Echo("Missing Screencopy Manager, exiting",  WG['screencopymanager'] )
+		spEcho("Missing Screencopy Manager, exiting",  WG['screencopymanager'] )
 		widgetHandler:RemoveWidget()
 		return false
 	end

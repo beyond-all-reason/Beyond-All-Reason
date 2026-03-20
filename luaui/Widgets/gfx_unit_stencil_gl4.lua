@@ -13,6 +13,10 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 -- Key Idea: make a 1/2 or 1/4 sized texture 'stencil buffer' that can be used for units and features.
 -- Draw features first at 0.5, then units at 1.0, clear if no draw happened
 -- Make this shared the same way screencopy texture is shared, via an api
@@ -190,7 +194,7 @@ void main(void)
 ]]
 
 local function goodbye(reason)
-	Spring.Echo("Unit Stencil GL4 widget exiting with reason: "..reason)
+	spEcho("Unit Stencil GL4 widget exiting with reason: "..reason)
 end
 local resolution = 4
 local vsx, vsy  
@@ -276,7 +280,7 @@ function widget:VisibleUnitAdded(unitID, unitDefID)
             unitDef.model.maxx,  unitDef.model.maxy, unitDef.model.maxz,
         }
         local dimsXYZ  = unitDimensionsXYZ[unitDefID]
-        --Spring.Echo(dimsXYZ[1], dimsXYZ[2], dimsXYZ[3], dimsXYZ[4], dimsXYZ[5], dimsXYZ[6])
+        --spEcho(dimsXYZ[1], dimsXYZ[2], dimsXYZ[3], dimsXYZ[4], dimsXYZ[5], dimsXYZ[6])
     end
     local dimsXYZ  = unitDimensionsXYZ[unitDefID]
 	
@@ -308,7 +312,7 @@ end
 
 function widget:FeatureCreated(featureID, allyTeam)
     local featureDefID = Spring.GetFeatureDefID(featureID)
-    --Spring.Echo(featureDefID, featureID)
+    --spEcho(featureDefID, featureID)
 
     if featureDimensionsXYZ[featureDefID] == nil then
         local featureDef = FeatureDefs[featureDefID]
@@ -319,7 +323,7 @@ function widget:FeatureCreated(featureID, allyTeam)
             }
             if (dimsXYZ[4] - dimsXYZ[1]) < 1 then return end -- goddamned geovents
             featureDimensionsXYZ[featureDefID] =dimsXYZ
-            --Spring.Echo(dimsXYZ[1], dimsXYZ[2], dimsXYZ[3], dimsXYZ[4], dimsXYZ[5], dimsXYZ[6])
+            --spEcho(dimsXYZ[1], dimsXYZ[2], dimsXYZ[3], dimsXYZ[4], dimsXYZ[5], dimsXYZ[6])
         else
             return
         end

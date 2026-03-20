@@ -1,7 +1,7 @@
 return {
 	corshiva = {
 		buildpic = "CORSHIVA.DDS",
-		buildtime = 30600,
+		buildtime = 40000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 -5 0",
@@ -13,8 +13,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 9400,
-		idleautoheal = 15,
-		idletime = 1800,
 		mass = 1550,
 		maxacc = 0.069,
 		maxdec = 0.8211,

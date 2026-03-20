@@ -12,6 +12,13 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local tableInsert = table.insert
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 local applyFirstEncounteredName = false
 local maxHistorySize = 3000	 -- max number of accounts in history
 local maxNamesSize = 4500	 -- max number of names in history
@@ -64,7 +71,7 @@ local function getPlayername(playerID, accountID, skipAlias)
 					history[accountID] = { i = 1, d = tonumber(os.date("%y%m%d")), [1] = name }
 				else
 					-- add new name to existing history
-					table.insert(history[accountID], name)
+					tableInsert(history[accountID], name)
 				end
 			end
 			-- pick name from history
@@ -121,10 +128,10 @@ local function actualizeHistory()
 		local accountsByDate = {}
 		for accountID, data in pairs(history) do
 			if data.d then
-				table.insert(accountsByDate, {accountID = accountID, date = data.d})
+				tableInsert(accountsByDate, {accountID = accountID, date = tonumber(data.d)})
 			else
 				-- if no date, treat as very old (assign a very old date)
-				table.insert(accountsByDate, {accountID = accountID, date = "000000"})
+				tableInsert(accountsByDate, {accountID = accountID, date = 1})
 			end
 		end
 
@@ -170,7 +177,7 @@ local function setaliasCmd(_, _, params)
 			if accountID then
 				local alias = params[2]
 				if alias then
-					Spring.Echo(Spring.I18N('ui.playernames.setalias', { name = name, accountID = accountID, alias = alias }))
+					spEcho(Spring.I18N('ui.playernames.setalias', { name = name, accountID = accountID, alias = alias }))
 					-- ensure history entry exists
 					if not history[accountID] then
 						history[accountID] = { i = 1, d = tonumber(os.date("%y%m%d")), [1] = name }
@@ -181,7 +188,7 @@ local function setaliasCmd(_, _, params)
 				else
 					-- ensure history entry exists before accessing alias
 					if history[accountID] and history[accountID].alias then
-						Spring.Echo(Spring.I18N('ui.playernames.removealias', { name = name, accountID = accountID, alias = history[accountID].alias }))
+						spEcho(Spring.I18N('ui.playernames.removealias', { name = name, accountID = accountID, alias = history[accountID].alias }))
 						currentNames[playerID] = name
 						currentAccounts[accountID] = name
 						history[accountID].alias = nil
@@ -193,7 +200,7 @@ local function setaliasCmd(_, _, params)
 			end
 		else
 
-			Spring.Echo(Spring.I18N('ui.playernames.notfound', { param = params[1] }))
+			spEcho(Spring.I18N('ui.playernames.notfound', { param = params[1] }))
 		end
 	end
 end

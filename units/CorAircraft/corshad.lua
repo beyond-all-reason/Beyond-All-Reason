@@ -12,8 +12,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 680,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.0575,
 		maxaileron = 0.01421,
 		maxbank = 0.8,
@@ -30,7 +28,7 @@ return {
 		script = "Units/CORSHAD.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 169,
+		sightdistance = 430,
 		speed = 234,
 		speedtofront = 0.06183,
 		turnradius = 64,
@@ -80,7 +78,6 @@ return {
 		},
 		weapondefs = {
 			corbomb = {
-				accuracy = 500,
 				areaofeffect = 168,
 				avoidfeature = false,
 				burst = 5,
@@ -102,7 +99,6 @@ return {
 				soundhit = "bombssml1",
 				soundhitwet = "splslrg",
 				soundstart = "bombrel",
-				sprayangle = 300,
 				weapontype = "AircraftBomb",
 				damage = {
 					default = 112,

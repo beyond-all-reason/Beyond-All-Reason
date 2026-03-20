@@ -12,6 +12,10 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spGetSpectatingState = Spring.GetSpectatingState
+
 -- Configurable Parts:
 local texture = "luaui/images/flank_icon.tga"
 local fadespeed = 0.005
@@ -33,7 +37,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	udefHasFlankingIcon[unitDefID] = (unitDef.speed and unitDef.speed > 0) or #unitDef.weapons > 0
 end
 
-local spec, fullview = Spring.GetSpectatingState()
+local spec, fullview = spGetSpectatingState()
 local allyTeamID = Spring.GetMyAllyTeamID()
 
 local spGetUnitTeam = Spring.GetUnitTeam
@@ -140,14 +144,14 @@ function widget:Initialize()
 		return
 	end
 
-	spec, fullview = Spring.GetSpectatingState()
+	spec, fullview = spGetSpectatingState()
 	init()
 end
 
 function widget:PlayerChanged()
 	local prevFullview = fullview
 	local myPrevAllyTeamID = allyTeamID
-	spec, fullview = Spring.GetSpectatingState()
+	spec, fullview = spGetSpectatingState()
 	allyTeamID = Spring.GetMyAllyTeamID()
 	if fullview ~= prevFullview or allyTeamID ~= myPrevAllyTeamID then
 		InstanceVBOTable.clearInstanceTable(flankingVBO)

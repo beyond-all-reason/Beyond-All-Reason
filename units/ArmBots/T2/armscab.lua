@@ -1,7 +1,7 @@
 return {
 	armscab = {
 		buildpic = "ARMSCAB.DDS",
-		buildtime = 40000,
+		buildtime = 49000,
 		canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 3 -1",
@@ -14,8 +14,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 870,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.03663,
 		maxdec = 0.07326,
 		maxslope = 10,

@@ -1,7 +1,7 @@
 return {
 	corkorg = {
 		buildpic = "corkorg.DDS",
-		buildtime = 555000,
+		buildtime = 730000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 -6 -5",
@@ -15,8 +15,6 @@ return {
 		footprintx = 6,
 		footprintz = 6,
 		health = 149000,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 29000,
 		maxacc = 0.1242,
 		maxdec = 0.8211,
@@ -114,6 +112,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.65,
 				explosiongenerator = "custom:genericshellexplosion-medium",
+				gravityaffected = "true",
 				impulsefactor = 0.8,
 				intensity = 5,
 				name = "GaussCannon",

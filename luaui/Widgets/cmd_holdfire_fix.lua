@@ -13,14 +13,27 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spGetMyTeamID = Spring.GetMyTeamID
+
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local CMD_INSERT = CMD.INSERT
 local CMD_STOP = CMD.STOP
-local spGiveOrder = Spring.GiveOrder
+local CMD_UNIT_CANCEL_TARGET = GameCMD.UNIT_CANCEL_TARGET
+local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local gameStarted
+local myTeam
+
+local function DropCurrentTarget(unitID)
+	-- STOP clears attack orders, UNIT_CANCEL_TARGET clears an active weapon lock
+	spGiveOrderToUnit(unitID, CMD_INSERT, {0, CMD_STOP, 0}, {"alt"})
+	spGiveOrderToUnit(unitID, CMD_INSERT, {0, CMD_UNIT_CANCEL_TARGET, 0}, {"alt"})
+end
 
 function maybeRemoveSelf()
-    if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
+    if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
         widgetHandler:RemoveWidget()
     end
 end
@@ -31,17 +44,19 @@ function widget:GameStart()
 end
 
 function widget:PlayerChanged(playerID)
+	myTeam = spGetMyTeamID()
     maybeRemoveSelf()
 end
 
 function widget:Initialize()
-    if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+	myTeam = spGetMyTeamID()
+    if Spring.IsReplay() or spGetGameFrame() > 0 then
         maybeRemoveSelf()
     end
 end
 
-function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
-	if cmdID == CMD_FIRE_STATE and cmdParams[1] == 0 then
-		spGiveOrder(CMD_INSERT, {0, CMD_STOP, 0}, {"alt"})
+function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
+	if teamID == myTeam and cmdID == CMD_FIRE_STATE and cmdParams and cmdParams[1] == 0 then
+		DropCurrentTarget(unitID)
 	end
 end

@@ -15,6 +15,10 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local tableInsert = table.insert
+
 local CONST_IGNORE_BUILDERS = false -- should automated factory transport ignore builders?
 local CONST_IGNORE_GROUNDSCOUTS = true -- should automated factory transport ignore scouts?
 local CONST_HEIGHT_MULTIPLIER = 3 -- how many times to multiply height difference when evaluating distance
@@ -448,7 +452,7 @@ function widget:UnitLoaded(unitID, unitDefID, teamID, transportID)
 						opts[#opts + 1] = "right"
 					end
 					storedQueue[unitID][#storedQueue[unitID] + 1] = { v.id, v.params, opts }
-					--table.insert(storedQueue[unitID], {v.id, v.params, opts})
+					--tableInsert(storedQueue[unitID], {v.id, v.params, opts})
 				end
 			end
 		end
@@ -641,7 +645,7 @@ function widget:KeyPress(key, modifier, isRepeat)
   if (key == KEYSYMS.Q and not modifier.ctrl) then
     if (not modifier.alt) then
       local opts = {"alt"}
-      if (modifier.shift) then table.insert(opts, "shift") end
+      if (modifier.shift) then tableInsert(opts, "shift") end
 
       for _, id in ipairs(GetSelectedUnits()) do -- embark
         local def = GetUnitDefID(id)
@@ -652,7 +656,7 @@ function widget:KeyPress(key, modifier, isRepeat)
       end
     else
       local opts = {"alt", "ctrl"}
-      if (modifier.shift) then table.insert(opts, "shift") end
+      if (modifier.shift) then tableInsert(opts, "shift") end
       for _, id in ipairs(GetSelectedUnits()) do --disembark
         local def = GetUnitDefID(id)
         if (isTransportable[def]  or isFactory[def]) then GiveOrderToUnit(id, CMD.WAIT, {}, opts) end

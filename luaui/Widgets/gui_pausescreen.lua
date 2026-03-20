@@ -15,6 +15,10 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spGetViewGeometry = Spring.GetViewGeometry
+
 local spGetGameSpeed = Spring.GetGameSpeed
 local spGetGameFrame = Spring.GetGameFrame
 
@@ -40,7 +44,7 @@ local osClock = os.clock
 -- CONFIGURATION
 
 local fontfile = "fonts/unlisted/MicrogrammaDBold.ttf"
-local vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
+local vsx, vsy, vpx, vpy = spGetViewGeometry()
 local fontfileScale = (0.5 + (vsx * vsy / 5700000))
 local fontfileSize = 35
 local fontfileOutlineSize = 6
@@ -68,16 +72,21 @@ local textX = nil
 local textY = nil
 local usedSizeMultiplier = 1
 local widgetInitTime = osClock()
-local previousDrawScreenClock = osClock()
 local paused = false
 local lastGameFrame = spGetGameFrame()
-local lastGameFrameTime = os.clock() + 10
+local lastGameFrameTime = osClock() + 10
 
 local shaderAlpha = 0
 local screencopy, shaderProgram
 local alphaLoc, showPauseScreen, nonShaderAlpha
 local gameover = false
 local noNewGameframes = false
+local cachedPauseText = nil
+local spIsGUIHidden = Spring.IsGUIHidden
+
+-- Pre-allocated color tables
+local textColor = { 1.0, 1.0, 1.0, 0 }
+local outlineColor = { 0.0, 0.0, 0.0, 0 }
 
 
 
@@ -124,10 +133,13 @@ end
 function widget:Update(dt)
 	local now = osClock()
 	local gameFrame = spGetGameFrame()
-	local _, gameSpeed, isPaused = spGetGameSpeed()
-	previousDrawScreenClock = now
 
 	local diffPauseTime = (now - pauseTimestamp)
+
+	-- Early exit: not paused, not sliding, no freeze detection needed
+	if not paused and not lastPause and diffPauseTime > slideTime and (gameFrame == 0 or gameover) then
+		return
+	end
 
 	if (not paused and lastPause) or (paused and not lastPause) then
 		--pause switch
@@ -147,6 +159,7 @@ function widget:Update(dt)
 
 	lastPause = paused
 
+	local _, gameSpeed, isPaused = spGetGameSpeed()
 	if (not gameover and gameSpeed == 0) or isPaused then
 		-- when host (admin) paused its just gamespeed 0
 		paused = true
@@ -175,12 +188,8 @@ function widget:Update(dt)
 	end
 end
 
-local function drawPause()
-	local now = osClock()
+local function drawPause(now)
 	local diffPauseTime = (now - pauseTimestamp)
-
-	local text = { 1.0, 1.0, 1.0, 0 * maxAlpha }
-	local outline = { 0.0, 0.0, 0.0, 0 * maxAlpha }
 
 	local progress
 	if paused then
@@ -194,8 +203,8 @@ local function drawPause()
 	if progress < 0 then
 		progress = 0
 	end
-	text[4] = (text[4] * (1 - progress)) + fadeToTextAlpha
-	outline[4] = (outline[4] * (1 - progress)) + (fadeToTextAlpha / 2.25)
+	textColor[4] = (0 * (1 - progress)) + fadeToTextAlpha
+	outlineColor[4] = (0 * (1 - progress)) + (fadeToTextAlpha / 2.25)
 
 	shaderAlpha = progress * maxShaderAlpha
 	nonShaderAlpha = progress * maxNonShaderAlpha
@@ -222,10 +231,13 @@ local function drawPause()
 
 	--draw text
 	if not gameover then
+		if not cachedPauseText then
+			cachedPauseText = Spring.I18N('ui.pauseScreen.paused')
+		end
 		font:Begin()
-		font:SetOutlineColor(outline)
-		font:SetTextColor(text)
-		font:Print(Spring.I18N('ui.pauseScreen.paused'), textX, textY, fontSizeHeadline, "O")
+		font:SetOutlineColor(outlineColor)
+		font:SetTextColor(textColor)
+		font:Print(cachedPauseText, textX, textY, fontSizeHeadline, "O")
 		font:End()
 	end
 
@@ -268,7 +280,7 @@ function widget:DrawScreen()
 
 	if paused or (now - pauseTimestamp) <= slideTime then
 		showPauseScreen = true
-		drawPause()
+		drawPause(now)
 	else
 		showPauseScreen = false
 	end
@@ -285,7 +297,7 @@ local function updateWindowCoords()
 end
 
 function widget:ViewResize()
-	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
+	vsx, vsy, vpx, vpy = spGetViewGeometry()
 	usedSizeMultiplier = (0.5 + ((vsx * vsy) / 5500000)) * sizeMultiplier
 
 	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
@@ -304,7 +316,7 @@ function widget:ViewResize()
 end
 
 function widget:DrawScreenEffects()
-	if Spring.IsGUIHidden() then
+	if spIsGUIHidden() then
 		return
 	end
 	if shaderProgram and showPauseScreen and WG['screencopymanager'] and WG['screencopymanager'].GetScreenCopy then

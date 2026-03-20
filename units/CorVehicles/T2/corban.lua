@@ -1,7 +1,7 @@
 return {
 	corban = {
 		buildpic = "CORBAN.DDS",
-		buildtime = 23100,
+		buildtime = 30000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -9 1",
 		collisionvolumescales = "42 42 42",
@@ -12,8 +12,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 2500,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.02,
 		maxdec = 0.04537,

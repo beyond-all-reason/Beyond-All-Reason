@@ -1,0 +1,131 @@
+-- The performance of travesabilty grids done in lua isn't great.
+-- Try to keep resolution as low as you can get away with and for small zones.
+-- Remember changes in terrain will invalidate the grid. Re-generations are expensive.
+
+local spGetGroundNormal = Spring.GetGroundNormal
+local floor = math.floor
+local distance2dSquared = math.distance2dSquared
+
+local DEFAULT_GRID_SPACING = 32 -- the interval at which terrain is tested using the unitDefID. A decent compromise between performance and accuracy. Emperically chosen.
+local GRID_RESOLUTION_MULTIPLIER_DEFAULT = 2 -- how many GRID_SPACINGs step to check in each direction to determine if a spot is reachable or not.
+local DEFAULT_MAX_SLOPE = 0.36 -- calibrated using quickstart on ascendency
+
+local unitIDTraversabilityGrids = {}
+local unitIDGridResolutions = {}
+
+local function snapToGrid(value, gridSpacing)
+	gridSpacing = gridSpacing or DEFAULT_GRID_SPACING
+	return floor(value / gridSpacing) * gridSpacing
+end
+
+local function isPositionTraversable(x, z, maxSlope)
+	local nx, ny, nz, slope = spGetGroundNormal(x, z)
+	return slope <= maxSlope
+end
+
+local function generateTraversableGrid(originX, originZ, range, gridResolution, gridKey, maxSlope)
+	if not originX or not originZ or not range then
+		return
+	end
+
+	gridResolution = gridResolution or DEFAULT_GRID_SPACING
+	gridKey = gridKey or "defaultKey"
+	maxSlope = maxSlope or DEFAULT_MAX_SLOPE
+
+	local grid = {}
+	local visited = {}
+	local queue = {}
+
+	local snappedOriginX = snapToGrid(originX, gridResolution)
+	local snappedOriginZ = snapToGrid(originZ, gridResolution)
+
+	local isTraversable = isPositionTraversable(snappedOriginX, snappedOriginZ, maxSlope)
+
+	if not isTraversable then
+		unitIDTraversabilityGrids[gridKey] = grid
+		return grid
+	end
+
+	grid[snappedOriginX] = grid[snappedOriginX] or {}
+	grid[snappedOriginX][snappedOriginZ] = true
+	visited[snappedOriginX] = visited[snappedOriginX] or {}
+	visited[snappedOriginX][snappedOriginZ] = true
+	queue[#queue + 1] = {x = snappedOriginX, z = snappedOriginZ}
+
+	local neighbors = {
+		{dx = gridResolution, dz = 0},
+		{dx = -gridResolution, dz = 0},
+		{dx = 0, dz = gridResolution},
+		{dx = 0, dz = -gridResolution}
+	}
+
+	local i = 1
+	while i <= #queue do
+		local current = queue[i]
+		i = i + 1
+
+		for j = 1, #neighbors do
+			local neighbor = neighbors[j]
+			local neighborX = current.x + neighbor.dx
+			local neighborZ = current.z + neighbor.dz
+
+			if distance2dSquared(neighborX, neighborZ, snappedOriginX, snappedOriginZ) <= (range * range) then
+				local visitedX = visited[neighborX]
+				if not visitedX or not visitedX[neighborZ] then
+					visited[neighborX] = visited[neighborX] or {}
+					visited[neighborX][neighborZ] = true
+
+					local isNeighborTraversable = isPositionTraversable(neighborX, neighborZ, maxSlope)
+
+					grid[neighborX] = grid[neighborX] or {}
+					if isNeighborTraversable then
+						grid[neighborX][neighborZ] = true
+						queue[#queue + 1] = {x = neighborX, z = neighborZ}
+					else
+						grid[neighborX][neighborZ] = false
+					end
+				end
+			end
+		end
+	end
+
+	unitIDTraversabilityGrids[gridKey] = grid
+	unitIDGridResolutions[gridKey] = gridResolution
+	return grid
+end
+
+local function canMoveToPosition(gridKey, x, z, gridResolutionMultiplier)
+	if not gridKey then
+		gridKey = "defaultKey"
+	end
+
+	if not unitIDTraversabilityGrids[gridKey] then
+		return false
+	end
+
+	gridResolutionMultiplier = gridResolutionMultiplier or GRID_RESOLUTION_MULTIPLIER_DEFAULT
+
+	local grid = unitIDTraversabilityGrids[gridKey]
+	local storedGridResolution = unitIDGridResolutions[gridKey] or DEFAULT_GRID_SPACING
+
+	-- we check in all directions because snapping to a single coordinate can give a false negative for reachability
+	local centerX = snapToGrid(x, storedGridResolution)
+	local centerZ = snapToGrid(z, storedGridResolution)
+	for dx = -gridResolutionMultiplier, gridResolutionMultiplier do
+		for dz = -gridResolutionMultiplier, gridResolutionMultiplier do
+			local testX = centerX + (dx * storedGridResolution)
+			local testZ = centerZ + (dz * storedGridResolution)
+			if grid[testX] and grid[testX][testZ] == true then
+				return true
+			end
+		end
+	end
+
+	return false
+end
+
+return {
+	generateTraversableGrid = generateTraversableGrid,
+	canMoveToPosition = canMoveToPosition,
+	unitIDTraversabilityGrids = unitIDTraversabilityGrids
+}

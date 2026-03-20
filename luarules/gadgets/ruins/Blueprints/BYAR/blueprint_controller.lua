@@ -63,21 +63,28 @@ local function populateBlueprints(blueprintType)
 	local blueprintTable = blueprintsConfig[1].table
 
 	for _, blueprintFile in ipairs(blueprintsDirectory) do
-		local fileContents = VFS.Include(blueprintFile)
+		local success, fileContents = pcall(VFS.Include, blueprintFile)
 
-		for _, blueprintFunction in ipairs(fileContents) do
-			local blueprint = blueprintFunction()
+		if not success then
+			Spring.Echo("[Ruins Blueprints] Failed to load blueprint file: " .. blueprintFile .. " - " .. fileContents)
+		else
+			for _, blueprintFunction in ipairs(fileContents) do
+				local blueprintSuccess, blueprint = pcall(blueprintFunction)
 
-			if blueprintsConfig[1].tiered then
-				for _, tier in ipairs(blueprint.tiers) do
-					table.insert(blueprintTable[blueprint.type][tier], blueprintFunction)
+				if not blueprintSuccess then
+					Spring.Echo("[Ruins Blueprints] Failed to execute blueprint function in file: " .. blueprintFile .. " - " .. blueprint)
+				else
+					if blueprintsConfig[1].tiered then
+						for _, tier in ipairs(blueprint.tiers) do
+							table.insert(blueprintTable[blueprint.type][tier], blueprintFunction)
+						end
+					else
+						table.insert(blueprintTable[blueprint.type], blueprintFunction)
+					end
 				end
-			else
-				table.insert(blueprintTable[blueprint.type], blueprintFunction)
 			end
-		end
 
-		--Spring.Echo("[Scavengers] Loading blueprint file: " .. blueprintFile)
+		end
 	end
 
 	insertDummyBlueprints(blueprintType)

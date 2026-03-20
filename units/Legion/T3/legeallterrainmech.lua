@@ -2,7 +2,7 @@ return {
 	legeallterrainmech = {
 		activatewhenbuilt = false,
 		buildpic = "legeallterrainmech.DDS",
-		buildtime = 95000,
+		buildtime = 120250,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 -20 0",
@@ -14,15 +14,13 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 9200,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 3300,
 		maxacc = 0.02645,
 		maxdec = 0.345,
 		maxslope = 17,
 		maxwaterdepth = 0,
 		metalcost = 3950,
-		movementclass = "HTBOT4",
+		movementclass = "HTBOT6",
 		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/legeallterrainmech.s3o",
@@ -42,6 +40,10 @@ return {
 			subfolder = "Legion/T3",
 			techlevel = 3,
 			unitgroup = "weapon",
+			inheritxpratemultiplier = 1,
+			childreninheritxp = "DRONE",
+			parentsinheritxp = "DRONE",
+			disable_when_no_air = true,
 		},
 		featuredefs = {
 			dead = {
@@ -124,7 +126,7 @@ return {
 				name = "Heavy Long-Range Cluster Plasma Cannon",
 				noselfdamage = true,
 				range = 1100,
-				reloadtime = 2.2,
+				reloadtime = 2.3,
 				rgbcolor = "0.7 0.7 1.0",
 				soundhit = "xplomed2",
 				soundhitwet = "splsmed",
@@ -134,7 +136,7 @@ return {
 				weaponvelocity = 450,
 				customparams = {
 					cluster_def = 'cluster_munition',
-					cluster_number = 10,
+					cluster_number = 7,
 					exclude_preaim = true,
 					smart_priority = true,
 				},
@@ -164,8 +166,8 @@ return {
 				soundstart = "cannhvy5",
 				weapontype = "Cannon",
 				damage = {
-					default = 65,
-					lboats = 65,
+					default = 105,
+					lboats = 105,
 					subs = 15,
 					vtol = 15,
 				},
@@ -188,7 +190,7 @@ return {
 				name = "Heavy Long-Range High-Trajectory Cluster Plasma Cannon",
 				noselfdamage = true,
 				range = 1100,
-				reloadtime = 2.2,
+				reloadtime = 2.3,
 				rgbcolor = "0.7 0.7 1.0",
 				soundhit = "xplomed2",
 				soundhitwet = "splsmed",
@@ -198,7 +200,7 @@ return {
 				weaponvelocity = 450,
 				customparams = {
 					cluster_def = 'cluster_munition',
-					cluster_number = 10,
+					cluster_number = 7,
 					exclude_preaim = true,
 					smart_backup = true,
 				},
@@ -274,12 +276,13 @@ return {
 					carried_unit = "legheavydronesmall",     --Name of the unit spawned by this carrier unit.
 					engagementrange = 1600,
 					spawns_surface = "LAND",    -- "LAND" or "SEA". The SEA option has not been tested currently.
-					spawnrate = 8, 				--Spawnrate roughly in seconds.
+					spawnrate = 12, 				--Spawnrate roughly in seconds.
 					maxunits = 2,				--Will spawn units until this amount has been reached.
+					startingdronecount = 0,
 					energycost = 1000,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					metalcost = 90,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					controlradius = 1800,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
-					decayrate = 4,
+					controlradius = 1500,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
+					deathdecayrate = 50,
 					carrierdeaththroe = "release",
 					dockingarmor = 0.2,
 					dockinghealrate = 256,
@@ -292,6 +295,8 @@ return {
 					stockpilemetal = 90,
 					stockpileenergy = 1000,
 					dronesusestockpile = true,
+					dronedocktime = 2,
+					droneairtime = 90,
 				}
 			},
 			light_antiair_missile = {

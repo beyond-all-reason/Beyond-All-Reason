@@ -6,6 +6,7 @@ local everything = {
 	playerdata = true,
 	waterlevel = true,
 	sysinfo = true,
+	volcano = true,
 }
 local moderator = {
 	give = false,
@@ -15,6 +16,7 @@ local moderator = {
 	playerdata = false,
 	waterlevel = false,
 	sysinfo = true,
+	volcano = true,
 }
 local singleplayer = {		-- note: these permissions override others when singleplayer
 	give = true,
@@ -22,8 +24,9 @@ local singleplayer = {		-- note: these permissions override others when singlepl
 	cmd = true,
 	devhelpers = true,
 	waterlevel = true,
-	playerdata = false,
+	playerdata = true,
 	sysinfo = false,
+	volcano = true,
 }
 
 return {
@@ -37,16 +40,24 @@ return {
 	[2260] = everything,	-- TarnishedKnight
 	[84658] = everything,	-- OPman
 	[51535] = everything,	-- Nightmare2512
+	[130329] = everything,	-- SethDGamre
+	[36669] = everything,	-- Steel 
+	[132545] = everything,	-- Praedyth (KOTH organizer)
+	[136110] = everything,	-- TANKTOM (KOTH organizer)
+	[78506] = everything,	-- Twig (KOTH organizer)
 
+	-- moderator level users
 	[3133] = moderator,		-- Lexon
 	[258984] = moderator,	-- ScavengersOffenseAI
 	[22297] = moderator,	-- Shadhunter
 	[125301] = moderator,	-- DeviousNull
-	[2401] = moderator,		-- Fire[Z]torm_
 	[128743] = moderator,	-- Pooman
-	[36669] = moderator,	-- Steel
 	[57869] = moderator,	-- [BAC]SnekVonPess
 	[21114] = moderator,	-- [FH]Amojini
 	[168817] = moderator,	-- SongbirdOfChirping
 	[57158] = moderator,	-- Endorphins
+	[88808] = moderator,	-- Shadowisperke
 }
+
+
+

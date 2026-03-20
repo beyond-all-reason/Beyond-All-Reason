@@ -45,7 +45,7 @@ end
 
 local teamIDs = {}
 for _, teamID in pairs(Spring.GetTeamList()) do
-	local _, _, _, _, _, allyTeam = Spring.GetTeamInfo(teamID)
+	local _, _, _, _, _, allyTeam = Spring.GetTeamInfo(teamID, false)
 	teamIDs[teamID] = allyTeam
 	revealedMines[teamID] = {}
 	minesweepers[teamID] = {}

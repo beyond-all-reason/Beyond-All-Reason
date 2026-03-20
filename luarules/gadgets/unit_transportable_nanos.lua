@@ -20,8 +20,9 @@ local GetUnitTeam = Spring.GetUnitTeam
 local GetUnitDefID = Spring.GetUnitDefID
 local GetGroundNormal = Spring.GetGroundNormal
 local GetUnitIsTransporting = Spring.GetUnitIsTransporting
-
 local ValidUnitID = Spring.ValidUnitID
+local stringFind = string.find
+
 local CMD_LOAD_UNITS = CMD.LOAD_UNITS
 local CMD_UNLOAD_UNITS = CMD.UNLOAD_UNITS
 
@@ -33,9 +34,10 @@ if Spring.GetModOptions().experimentallegionfaction then
 	Nanos[UnitDefNames.legnanotc.id] = true
 end
 for udid, ud in pairs(UnitDefs) do
-    for id, v in pairs(Nanos) do
-        if string.find(ud.name, UnitDefs[id].name) then
-            Nanos[udid] = v
+    for id in pairs(Nanos) do
+        if stringFind(ud.name, UnitDefs[id].name, 1, true) then
+            Nanos[udid] = true
+            break
         end
     end
 end
@@ -46,6 +48,9 @@ function gadget:Initialize()
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+	if not UnitDefs[unitDefID].isTransport then
+		return false
+	end
 	if cmdID == CMD_LOAD_UNITS then
 		if #cmdParams == 1 then -- if unit is target
 			if ValidUnitID(cmdParams[1]) and GetUnitTeam(cmdParams[1]) ~= teamID and Nanos[GetUnitDefID(cmdParams[1])] then

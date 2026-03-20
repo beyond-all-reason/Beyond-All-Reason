@@ -1,0 +1,248 @@
+
+#include "../recoil_common_includes.h"
+
+piece
+rightGaussBarrel1,
+rightGaussBarrel2,
+leftGaussBarrel1,
+leftGaussBarrel2,
+rightGaussTurret,
+leftGaussTurret,
+fins1,
+fins2,
+outerPlating,
+innerPlating,
+turretBase,
+rightBarrel,
+tachyonRails,
+tachyonBarrel,
+turretHeadingPivot,
+base,
+tachyonHeadingPivot,
+tachyonPitchPivot,
+rightGaussFlare1,
+rightGaussFlare2,
+leftGaussFlare1,
+leftGaussFlare2,
+tachyonFlare,
+tachyonAimHelper,
+mainTurretAimHelper;
+
+static-var restore_delay, wpn1_lasthead, whichBarrel, turretRotationVar, wpn2_lasthead;
+
+// Signal definitions
+#define SIG_AIM				2
+#define SIG_AIM_2			4
+
+#define WATER_ROCK_UNITSIZE 17
+#include "../floatmotion.h"
+
+
+#define BASEPIECE base
+#define HITSPEED <30.0>
+#define MAXTILT 200
+#define UNITSIZE 10
+#define RECOIL_POWER 10000
+
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+
+Create()
+{
+	whichBarrel = 0;
+    turretRotationVar = 0;
+	restore_delay = 4000;
+	start-script FloatMotion();
+}
+
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	turn turretHeadingPivot to y-axis <0> speed <60>;
+    turn tachyonHeadingPivot to y-axis <0> speed <60>;
+    turn tachyonPitchPivot to x-axis <0> speed <10>;
+    turretRotationVar = 0;
+	wpn1_lasthead = 1000000;
+    wpn2_lasthead = 1000000;
+	set-signal-mask 0;
+}
+
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+
+/// gauss cannon base
+AimSecondary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+    turretRotationVar = heading;
+	turn turretHeadingPivot to y-axis heading speed <150>;
+	//turn turretPitchPivot to x-axis <0.000000> - pitch speed <90>;
+
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+	{
+		wpn1_lasthead = 1000000;
+		wait-for-turn turretHeadingPivot around y-axis;
+		//wait-for-turn turretPitchPivot around x-axis;
+	}
+	wpn1_lasthead = heading;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireSecondary()
+{
+
+}
+
+Shot2(zero){
+    if(whichBarrel == 0){
+        emit-sfx 1024 + 0 from rightGaussFlare1;
+        move rightGaussBarrel1 to z-axis [-5] now;
+        sleep 10;
+        move rightGaussBarrel1 to z-axis [0] speed [10];
+        whichBarrel = 1;
+    }
+    else if(whichBarrel == 1){
+        emit-sfx 1024 + 0 from leftGaussFlare1;
+        move leftGaussBarrel1 to z-axis [-5] now;
+        sleep 10;
+        move leftGaussBarrel1 to z-axis [0] speed [10];
+        whichBarrel = 2;
+    }
+    else if(whichBarrel == 2){
+        emit-sfx 1024 + 0 from rightGaussFlare2;
+        move rightGaussBarrel2 to z-axis [-5] now;
+        sleep 10;
+        move rightGaussBarrel2 to z-axis [0] speed [10];
+        whichBarrel = 3;
+    }
+    else if(whichBarrel == 3){
+        emit-sfx 1024 + 0 from leftGaussFlare2;
+        move leftGaussBarrel2 to z-axis [-5] now;
+        sleep 10;
+        move leftGaussBarrel2 to z-axis [0] speed [10];
+        whichBarrel = 0;
+    }
+}
+
+AimFromSecondary(piecenum)
+{
+	piecenum = turretBase;
+}
+
+QuerySecondary(piecenum)
+{
+    if(whichBarrel == 0){
+        pieceNum = rightGaussFlare1;
+    }
+    else if(whichBarrel == 1){
+        pieceNum = leftGaussFlare1;
+    }
+    else if(whichBarrel == 2){
+        pieceNum = rightGaussFlare2;
+    }
+    else if(whichBarrel == 3){
+        pieceNum = leftGaussFlare2;
+    }
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+/// tachyon top
+AimPrimary(heading, pitch)
+{
+    signal SIG_AIM_2;
+    set-signal-mask SIG_AIM_2;
+	
+    turn tachyonHeadingPivot to y-axis heading - turretRotationVar speed <150.0>;
+    turn tachyonPitchPivot to x-axis <0.0> - pitch speed <30.0>;
+
+	if (((get ABS(wpn2_lasthead - (heading - turretRotationVar))) > 65536) OR(((get ABS(wpn2_lasthead - (heading - turretRotationVar))) > 6000) AND ((get ABS(wpn2_lasthead - (heading - turretRotationVar))) < 64236)))
+	{
+		wpn2_lasthead = 1000000;
+        wait-for-turn tachyonHeadingPivot around y-axis;
+        //wait-for-turn turretHeadingPivot around y-axis;
+        wait-for-turn tachyonPitchPivot around y-axis;
+	}
+	wpn2_lasthead = (heading - turretRotationVar);
+    start-script RestoreAfterDelay();
+    return (1);
+}
+
+FirePrimary()
+{
+    // emit-sfx 1024 + 1 from shotgunFlare;
+    // move shotGunBarrel to z-axis [-3] now;
+    // sleep 10;
+    // move shotGunBarrel to z-axis [3] speed [3];
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = rightBarrel;
+}
+
+QueryPrimary(piecenum)
+{
+    piecenum = tachyonFlare;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode turretHeadingPivot type BITMAPONLY | NOHEATCLOUD;
+		explode tachyonHeadingPivot type BITMAPONLY | NOHEATCLOUD;
+		explode tachyonBarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode leftGaussBarrel1 type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode turretHeadingPivot type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode tachyonHeadingPivot type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode tachyonBarrel type FALL | NOHEATCLOUD;
+		explode leftGaussBarrel1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode turretHeadingPivot type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode tachyonHeadingPivot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode tachyonBarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode leftGaussBarrel1 type SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode turretHeadingPivot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode tachyonHeadingPivot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode tachyonBarrel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode leftGaussBarrel1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}
