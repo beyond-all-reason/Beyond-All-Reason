@@ -1,18 +1,6 @@
 local devUI = Spring.Utilities.ShowDevUI()
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 local isSpectator = Spring.GetSpectatingState()
-local pipEnabled = Spring.GetModOptions().pip
-
--- When pipEnabled: always load
--- When not pipEnabled: only load if devUI AND (spectator OR singleplayer)
-if not pipEnabled then
-	if not devUI then
-		return
-	end
-	if not isSinglePlayer and not isSpectator then
-		return
-	end
-end
 
 pipNumber = pipNumber or 1
 
@@ -7503,7 +7491,6 @@ end -- do block for initScan locals
 
 -- For spectators, center on map and zoom out more (always on new game, even if has saved config)
 do
-	local isSpectator = Spring.GetSpectatingState()
 	local currentGameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID")
 	local isNewGame = not miscState.savedGameID or miscState.savedGameID ~= currentGameID
 	if isSpectator and isNewGame then
