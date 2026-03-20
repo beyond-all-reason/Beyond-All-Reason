@@ -41,10 +41,16 @@ local function isTriggerValid(trigger)
 	for _, prerequisiteTriggerID in pairs(trigger.settings.prerequisites) do
 		if not triggers[prerequisiteTriggerID].triggered then return false end
 	end
-
-	if trigger.triggered and not trigger.settings.repeating then return false end
-	if trigger.settings.repeating and trigger.settings.maxRepeats ~= nil and trigger.repeatCount > trigger.settings.maxRepeats then return false end
-	if trigger.settings.difficulties ~= nil and not trigger.settings.difficulties[GG['MissionAPI'].Difficulty] then return false end
+	if trigger.triggered and not trigger.settings.repeating then
+		return false
+	end
+	if trigger.settings.repeating and trigger.settings.maxRepeats ~= nil and trigger.repeatCount > trigger.settings.maxRepeats then
+		return false
+	end
+	-- TODO: validation of difficulties once loadouts are merged
+	if trigger.settings.difficulties ~= nil and not table.contains(trigger.settings.difficulties, GG['MissionAPI'].Difficulty) then
+		return false
+	end
 
 	--[[
 	--TODO: co-op check

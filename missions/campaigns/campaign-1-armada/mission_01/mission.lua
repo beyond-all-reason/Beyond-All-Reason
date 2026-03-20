@@ -23,6 +23,7 @@ local lobbyData = {
 local startScript = {
 	mapName = "Fallendell V4", -- as displayed in the map selection screen, must be exact. Lobby to replace spaces with underscores
 	startPosType = 'chooseBeforeGame', -- lobby to map this: fixed = 0, random = 1, chooseInGame = 2, chooseBeforeGame = 3
+	disableFactionPicker = true,
 	players = { min = 1, max = 4 },
 	unitLimits = {
 		armavp = 0, -- example of a unit limit, set to 0 to disable the unit
@@ -86,6 +87,39 @@ local triggers = {
 		},
 		actions = { 'spawnBots', 'moveBots' },
 	},
+
+	addMarkerBeginner = {
+		type = triggerTypes.TimeElapsed,
+		settings = {
+			difficulties = { "Beginner" },
+		},
+		parameters = {
+			gameFrame = 130,
+		},
+		actions = { 'addMarkerBeginner' },
+	},
+
+	addMarkerNormal = {
+		type = triggerTypes.TimeElapsed,
+		settings = {
+			difficulties = { "Normal" },
+		},
+		parameters = {
+			gameFrame = 130,
+		},
+		actions = { 'addMarkerNormal' },
+	},
+
+	addMarkerHard = {
+		type = triggerTypes.TimeElapsed,
+		settings = {
+			difficulties = { "Hard" },
+		},
+		parameters = {
+			gameFrame = 130,
+		},
+		actions = { 'addMarkerHard' },
+	},
 }
 
 local actions = {
@@ -108,6 +142,30 @@ local actions = {
 				{ CMD.FIGHT, { 200, 0, 900 } },
 				{ CMD.PATROL, { 1400, 0, 200 }, { 'shift' } },
 			},
+		},
+	},
+
+	addMarkerBeginner = {
+		type = actionTypes.AddMarker,
+		parameters = {
+			position = { x = 900, z = 900 },
+			label = 'Difficulty: Beginner',
+		},
+	},
+
+	addMarkerNormal = {
+		type = actionTypes.AddMarker,
+		parameters = {
+			position = { x = 900, z = 900 },
+			label = 'Difficulty: Normal',
+		},
+	},
+
+	addMarkerHard = {
+		type = actionTypes.AddMarker,
+		parameters = {
+			position = { x = 900, z = 900 },
+			label = 'Difficulty: Hard',
 		},
 	},
 }
