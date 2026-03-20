@@ -134,12 +134,8 @@ local function round(value, numDecimalPlaces)
 end
 
 local function metricPrefix(n)
-    if n >= 1e9 then
-        return string.format("%.1fG", n / 1e9)
-    elseif n >= 1e6 then
-        return string.format("%.1fM", n / 1e6)
-    elseif n >= 1e5 then
-        return string.format("%.1fk", n / 1e3)
+    if n >= 1e5 then
+        return string.formatSI(n)
     else
         return tostring(n)
     end
