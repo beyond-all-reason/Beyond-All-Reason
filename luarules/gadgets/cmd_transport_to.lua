@@ -38,15 +38,19 @@ local function ShouldHaveFerry(unitDefID)
         return false
     end
 
-    if ud.transportCapacity and ud.transportCapacity > 0 then
-        return false
-    end
-
-    if not ud.transportSize or ud.transportSize <= 0 then
+    if ud.isImmobile then
         return false
     end
 
     if ud.canFly then
+        return false
+    end
+
+    if ud.transportCapacity and ud.transportCapacity > 0 then
+        return false
+    end
+
+    if not ud.canMove then
         return false
     end
 
