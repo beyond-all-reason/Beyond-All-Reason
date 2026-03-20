@@ -12,6 +12,7 @@ if not gadgetHandler:IsSyncedCode() then return end
 
 local CMD_TRANSPORT_TO = 19990
 local CMD_MOVE = CMD.MOVE
+local CMD_STOP = CMD.STOP
 local CMD_LOAD_UNITS = CMD.LOAD_UNITS
 local CMD_UNLOAD_UNITS = CMD.UNLOAD_UNITS
 
@@ -27,26 +28,26 @@ local function IsTransport(unitID)
     return ud and ud.transportCapacity and ud.transportCapacity > 0
 end
 
-local function DistSq(x1,z1,x2,z2)
-    local dx = x1-x2
-    local dz = z1-z2
-    return dx*dx + dz*dz
+local function DistSq(x1, z1, x2, z2)
+    local dx = x1 - x2
+    local dz = z1 - z2
+    return dx * dx + dz * dz
 end
 
 local function FindTransport(unitID)
     local team = Spring.GetUnitTeam(unitID)
     local units = Spring.GetTeamUnits(team)
 
-    local ux,_,uz = Spring.GetUnitPosition(unitID)
+    local ux, _, uz = Spring.GetUnitPosition(unitID)
 
     local best, bestDist = nil, math.huge
 
-    for i=1,#units do
+    for i = 1, #units do
         local u = units[i]
 
         if IsTransport(u) and not transportState[u] then
-            local tx,_,tz = Spring.GetUnitPosition(u)
-            local d = DistSq(ux,uz,tx,tz)
+            local tx, _, tz = Spring.GetUnitPosition(u)
+            local d = DistSq(ux, uz, tx, tz)
 
             if d < bestDist then
                 bestDist = d
@@ -61,35 +62,42 @@ end
 -- ================= COMMAND =================
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+    if cmdID == CMD_TRANSPORT_TO then
+        local targets = {}
 
-if cmdID == CMD_TRANSPORT_TO then
-
-    local targets = {}
-
-    for i = 1, #cmdParams, 3 do
-        targets[#targets + 1] = {
-            cmdParams[i],
-            cmdParams[i+1],
-            cmdParams[i+2]
-        }
-    end
-
-    if jobs[unitID] and cmdOptions.shift then
-        for i = 1, #targets do
-            table.insert(jobs[unitID].targets, targets[i])
+        for i = 1, #cmdParams, 3 do
+            if cmdParams[i] and cmdParams[i + 1] and cmdParams[i + 2] then
+                targets[#targets + 1] = {
+                    cmdParams[i],
+                    cmdParams[i + 1],
+                    cmdParams[i + 2]
+                }
+            end
         end
-    else
-        jobs[unitID] = {
-            targets = targets,
-            state = "walking",
-            transportID = nil,
-        }
 
-        -- fallback = first point
-        Spring.GiveOrderToUnit(unitID, CMD_MOVE, targets[1], {})
+        if #targets == 0 then
+            return false
+        end
+
+        if jobs[unitID] and cmdOptions and cmdOptions.shift then
+            for i = 1, #targets do
+                table.insert(jobs[unitID].targets, targets[i])
+            end
+        else
+            jobs[unitID] = {
+                targets = targets,
+                state = "walking",
+                transportID = nil,
+            }
+
+            -- fallback = first point
+            Spring.GiveOrderToUnit(unitID, CMD_MOVE, targets[1], {})
+        end
+
+        return false
     end
 
-    return false
+    return true
 end
 
 function gadget:UnitCreated(unitID)
@@ -112,12 +120,10 @@ function gadget:GameFrame(frame)
     if frame % 10 ~= 0 then return end
 
     for unitID, job in pairs(jobs) do
-
         if not IsValid(unitID) then
             jobs[unitID] = nil
 
         elseif job.state == "walking" then
-
             local t = FindTransport(unitID)
 
             if t then
@@ -129,14 +135,12 @@ function gadget:GameFrame(frame)
                     origin = {Spring.GetUnitPosition(t)},
                 }
 
-                Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, {})
+                Spring.GiveOrderToUnit(unitID, CMD_STOP, {}, {})
                 Spring.GiveOrderToUnit(t, CMD_LOAD_UNITS, {unitID}, {})
             end
 
         elseif job.state == "pickup" then
-
             if Spring.GetUnitTransporter(unitID) == job.transportID then
-
                 job.state = "loaded"
 
                 local t = job.transportID
@@ -156,9 +160,7 @@ function gadget:GameFrame(frame)
             end
 
         elseif job.state == "loaded" then
-
             if not Spring.GetUnitTransporter(unitID) then
-
                 local t = job.transportID
                 local ts = transportState[t]
 
