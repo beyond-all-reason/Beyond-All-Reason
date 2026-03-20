@@ -53,6 +53,7 @@ local lastGuishaderMenu = -1  -- Track which menu guishader was created for
 
 -- render-to-texture state
 local factoryTex, buildOptionsTex
+local factoryTexW, factoryTexH = 0, 0  -- track texture dimensions for resize detection
 local updateFactoryTex = true
 local updateBuildOptionsTex = true
 local lastHoveredFac = -1
@@ -202,6 +203,7 @@ function widget:ViewResize()
 		gl.DeleteTexture(buildOptionsTex)
 		buildOptionsTex = nil
 	end
+	factoryTexW, factoryTexH = 0, 0
 	updateFactoryTex = true
 	updateBuildOptionsTex = true
 
@@ -412,6 +414,12 @@ function widget:Initialize()
 				unitBuildOptions[uDefID] = newBuildOptions
 			end
 		end
+	end
+
+	if not gl.R2tHelper then
+		Spring.Echo("BuildBar: gl.R2tHelper not available")
+		widgetHandler:RemoveWidget()
+		return
 	end
 
 	widget:ViewResize()
@@ -1266,27 +1274,41 @@ function widget:DrawScreen()
 		return
 	end
 
-	-- Use render-to-texture for better performance
+	-- Render factory icons via render-to-texture
 	if factoriesArea and #dlists > 0 then
 		-- Create/update factory texture if needed
 		if updateFactoryTex then
-			local width = mathAbs(factoriesArea[3] - factoriesArea[1])
-			local height = mathAbs(factoriesArea[4] - factoriesArea[2])
+			local width = math_floor(mathAbs(factoriesArea[3] - factoriesArea[1]))
+			local height = math_floor(mathAbs(factoriesArea[4] - factoriesArea[2]))
+
+			-- Recreate texture if dimensions changed
+			if factoryTex and (width ~= factoryTexW or height ~= factoryTexH) then
+				gl.DeleteTexture(factoryTex)
+				factoryTex = nil
+			end
 
 			if not factoryTex and width > 0 and height > 0 then
-				factoryTex = gl.CreateTexture(math_floor(width), math_floor(height), {
+				factoryTex = gl.CreateTexture(width, height, {
 					target = GL.TEXTURE_2D,
 					format = GL.RGBA,
 					fbo = true,
 				})
+				factoryTexW = width
+				factoryTexH = height
 			end
 
 			if factoryTex then
+				-- factoriesArea is {left, top, right, bottom} where [2] > [4]
+				-- NDC transform needs min Y as origin so bottom maps to -1 and top to +1
+				local areaX = factoriesArea[1]
+				local areaY = factoriesArea[4]  -- min Y (bottom)
+				local areaW = factoriesArea[3] - factoriesArea[1]
+				local areaH = factoriesArea[2] - factoriesArea[4]
 				gl.R2tHelper.RenderToTexture(factoryTex,
 					function()
 						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / mathAbs(factoriesArea[3] - factoriesArea[1]), 2 / mathAbs(factoriesArea[4] - factoriesArea[2]), 0)
-						gl.Translate(-factoriesArea[1], -factoriesArea[2], 0)
+						gl.Scale(2 / areaW, 2 / areaH, 0)
+						gl.Translate(-areaX, -areaY, 0)
 						renderFactoryList()
 					end,
 					true
@@ -1297,52 +1319,40 @@ function widget:DrawScreen()
 
 		-- Draw factory texture
 		if factoryTex then
-			gl.R2tHelper.BlendTexRect(factoryTex, factoriesArea[1], factoriesArea[2], factoriesArea[3], factoriesArea[4], true)
+			gl.R2tHelper.BlendTexRect(factoryTex, factoriesArea[1], factoriesArea[4], factoriesArea[3], factoriesArea[2], true)
 		end
 
-		-- Draw build options (not cached since it changes often with mouse hover)
-		if (isInRect(mx, my, { factoriesArea[1], factoriesArea[2], factoriesArea[3], factoriesArea[4] })) or
-			(buildoptionsArea ~= nil and isInRect(mx, my, { buildoptionsArea[1], buildoptionsArea[2], buildoptionsArea[3], buildoptionsArea[4] })) then
-			renderBuildOptions(mx, my, lb, mb, rb, moffscreen)
-		else
-			buildoptionsArea = nil
+		-- Progress overlays update every frame on top of the cached texture
+		renderFactoryProgressOverlays()
+	end
+
+	-- Build options menu (shared by both R2T and fallback paths)
+	if (factoriesArea ~= nil and isInRect(mx, my, { factoriesArea[1], factoriesArea[2], factoriesArea[3], factoriesArea[4] })) or
+		(buildoptionsArea ~= nil and isInRect(mx, my, { buildoptionsArea[1], buildoptionsArea[2], buildoptionsArea[3], buildoptionsArea[4] })) or
+		(openedMenu >= 0) then
+		renderBuildOptions(mx, my, lb, mb, rb, moffscreen)
+
+		-- Update guishader for build options background only when menu changes
+		if WG['guishader'] and backgroundOptionsRect and openedMenu >= 0 and lastGuishaderMenu ~= openedMenu then
+			if dlistGuishader2 then
+				dlistGuishader2 = gl.DeleteList(dlistGuishader2)
+			end
+			dlistGuishader2 = gl.CreateList( function()
+				RectRound(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], elementCorner * ui_scale)
+			end)
+			if dlistGuishader2 then
+				WG['guishader'].RemoveDlist('buildbar2')
+				WG['guishader'].InsertDlist(dlistGuishader2, 'buildbar2')
+			end
+			lastGuishaderMenu = openedMenu
 		end
 	else
-		-- Fallback to display lists (when R2T disabled or not ready yet)
-		-- Draw display lists (factory icons and background)
-		renderFactoryList()
-
-		-- Draw progress overlays on top (updates every frame)
-		renderFactoryProgressOverlays()
-
-		-- draw build options menu
-		if (factoriesArea ~= nil and isInRect(mx, my, { factoriesArea[1], factoriesArea[2], factoriesArea[3], factoriesArea[4] })) or
-			(buildoptionsArea ~= nil and isInRect(mx, my, { buildoptionsArea[1], buildoptionsArea[2], buildoptionsArea[3], buildoptionsArea[4] })) or
-			(openedMenu >= 0) then
-			renderBuildOptions(mx, my, lb, mb, rb, moffscreen)
-
-			-- Update guishader for build options background only when menu changes
-			if WG['guishader'] and backgroundOptionsRect and openedMenu >= 0 and lastGuishaderMenu ~= openedMenu then
-				if dlistGuishader2 then
-					dlistGuishader2 = gl.DeleteList(dlistGuishader2)
-				end
-				dlistGuishader2 = gl.CreateList( function()
-					RectRound(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], elementCorner * ui_scale)
-				end)
-				if dlistGuishader2 then
-					WG['guishader'].RemoveDlist('buildbar2')
-					WG['guishader'].InsertDlist(dlistGuishader2, 'buildbar2')
-				end
-				lastGuishaderMenu = openedMenu
-			end
-		else
-			buildoptionsArea = nil
-			backgroundOptionsRect = nil
-			if WG['guishader'] then
-				WG['guishader'].RemoveDlist('buildbar2')
-			end
-			lastGuishaderMenu = -1
+		buildoptionsArea = nil
+		backgroundOptionsRect = nil
+		if WG['guishader'] then
+			WG['guishader'].RemoveDlist('buildbar2')
 		end
+		lastGuishaderMenu = -1
 	end
 end
 
