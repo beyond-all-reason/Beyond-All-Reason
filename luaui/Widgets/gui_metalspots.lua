@@ -133,6 +133,8 @@ local shaderSourceCache = {
 			},
 		uniformFloat = {
 			visibilitycontrols = {0,0,0,0},
+			drawPass = 0,
+			waterLevel = 0,
 		  },
 		shaderConfig = shaderConfig,
 	}
@@ -526,10 +528,44 @@ function widget:GameFrame(gf)
 	end
 end
 
+local function getWaterLevel()
+	local lrs = WG.lavaRenderState
+	if lrs and lrs.level then
+		return lrs.level
+	end
+	local level = Spring.GetGameRulesParam("lavaLevel")
+	if level and level ~= -99999 then
+		return level
+	end
+	return 0
+end
+
+-- Draw above-water metalspots before units (old method, no ghost occlusion)
+function widget:DrawWorldPreUnit()
+	local mapDrawMode = spGetMapDrawMode()
+	if metalViewOnly and mapDrawMode ~= 'metal' then return end
+	if chobbyInterface then return end
+	if spIsGUIHidden() then return end
+
+	gl.Culling(true)
+	gl.Texture(0, "$heightmap")
+	gl.Texture(1, AtlasTextureID)
+	gl.DepthTest(false)
+
+	local wl = getWaterLevel()
+	spotShader:Activate()
+	spotShader:SetUniformFloat("drawPass", 0)
+	spotShader:SetUniformFloat("waterLevel", wl)
+	drawInstanceVBO(spotInstanceVBO)
+	spotShader:Deactivate()
+
+	gl.Culling(false)
+	gl.Texture(0, false)
+	gl.Texture(1, false)
+end
+
+-- Draw underwater metalspots after water (not distorted by water shader)
 function widget:DrawWorld()
-	-- Draw after water so underwater metalspots are not distorted by the
-	-- water shader.  Depth test against the existing depth buffer means
-	-- units/features that were already drawn will still occlude the circles.
 	local mapDrawMode = spGetMapDrawMode()
 	if metalViewOnly and mapDrawMode ~= 'metal' then return end
 	if chobbyInterface then return end
@@ -542,7 +578,10 @@ function widget:DrawWorld()
 	gl.DepthMask(false)
 	gl.PolygonOffset(-40, -40)
 
+	local wl = getWaterLevel()
 	spotShader:Activate()
+	spotShader:SetUniformFloat("drawPass", 1)
+	spotShader:SetUniformFloat("waterLevel", wl)
 	drawInstanceVBO(spotInstanceVBO)
 	spotShader:Deactivate()
 
