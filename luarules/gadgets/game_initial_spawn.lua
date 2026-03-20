@@ -560,6 +560,7 @@ if gadgetHandler:IsSyncedCode() then
 		local y = spGetGroundHeight(x, z)
 		local scenarioSpawnsUnits = false
 
+		-- skip if scenario or mission options disable initial commander spawn
 		local modOptions = Spring.GetModOptions()
 		local options = modOptions.scenariooptions or modOptions.missionoptions
 		if options then
@@ -569,7 +570,6 @@ if gadgetHandler:IsSyncedCode() then
 				scenarioSpawnsUnits = true
 			end
 		end
-
 
 		if not scenarioSpawnsUnits then
 			if not (luaAI and (string.find(luaAI, "Scavengers") or luaAI == "RaptorsAI")) then
