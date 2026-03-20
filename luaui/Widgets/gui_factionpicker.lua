@@ -230,10 +230,11 @@ function widget:Initialize()
 		return
 	end
 
-	if Spring.GetModOptions().scenariooptions then
-		local scenarioopts = string.base64Decode(Spring.GetModOptions().scenariooptions)
-		scenarioopts = Json.decode(scenarioopts)
-		if scenarioopts and scenarioopts.disablefactionpicker == true then
+	local modOptions = Spring.GetModOptions()
+	local options = modOptions.scenariooptions or modOptions.missionoptions
+	if options then
+		local optionsDecoded = Json.decode(string.base64Decode(options))
+		if optionsDecoded and optionsDecoded.disablefactionpicker == true then
 			widgetHandler:RemoveWidget()
 			return
 		end
@@ -414,4 +415,3 @@ function widget:MousePress(x, y, button)
 		return true
 	end
 end
-

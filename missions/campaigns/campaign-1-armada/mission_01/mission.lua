@@ -23,7 +23,8 @@ local lobbyData = {
 local startScript = {
 	mapName = "Fallendell V4", -- as displayed in the map selection screen. Lobby replaces spaces with underscores
 	startPosType = 'chooseBeforeGame', -- lobby maps this: fixed = 0, random = 1, chooseInGame = 2, chooseBeforeGame = 3
-	disableFactionPicker = true,
+	disableFactionPicker = true, -- should this always be true, so faction can only be chosen in the lobby? or only in game?
+	disableInitialCommanderSpawn = true,
 	players = { min = 1, max = 4 },
 	unitLimits = {
 		armavp = 0, -- set to 0 to disable the unit

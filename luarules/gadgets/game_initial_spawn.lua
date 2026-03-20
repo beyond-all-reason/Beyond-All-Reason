@@ -307,7 +307,7 @@ if gadgetHandler:IsSyncedCode() then
 	-- keep track of choosing faction ingame
 	function gadget:RecvLuaMsg(msg, playerID)
 		local _, _, playerIsSpec, playerTeam, allyTeamID = spGetPlayerInfo(playerID, false)
-		
+
 		local startUnit = false
 		if string.sub(msg, 1, string.len("changeStartUnit")) == "changeStartUnit" then
 			startUnit = tonumber(msg:match(changeStartUnitRegex))
@@ -358,7 +358,7 @@ if gadgetHandler:IsSyncedCode() then
 		if not playerIsSpec and (draftMode ~= nil and draftMode ~= "disabled") then
 			DraftRecvLuaMsg(msg, playerID, playerIsSpec, playerTeam, allyTeamID)
 		end
-		
+
 		if string.sub(msg, 1, 17) == "aiPlacedPosition:" then
 			local data = string.sub(msg, 18)
 			local teamID, x, z = string.match(data, "(%d+):([%d%.]+):([%d%.]+)")
@@ -560,9 +560,11 @@ if gadgetHandler:IsSyncedCode() then
 		local y = spGetGroundHeight(x, z)
 		local scenarioSpawnsUnits = false
 
-		if Spring.GetModOptions().scenariooptions then
-			local scenariooptions = Json.decode(string.base64Decode(Spring.GetModOptions().scenariooptions))
-			if scenariooptions and scenariooptions.unitloadout and next(scenariooptions.unitloadout) then
+		local modOptions = Spring.GetModOptions()
+		local options = modOptions.scenariooptions or modOptions.missionoptions
+		if options then
+			local optionsDecoded = Json.decode(string.base64Decode(options))
+			if optionsDecoded.disableInitialCommanderSpawn or not table.isNilOrEmpty(optionsDecoded.unitloadout) then
 				Spring.Echo("Scenario: Spawning loadout instead of regular commanders")
 				scenarioSpawnsUnits = true
 			end
@@ -622,7 +624,7 @@ if gadgetHandler:IsSyncedCode() then
 	local function spawnRegularly(teamID, allyTeamID)
 		local x, _, z = Spring.GetTeamStartPosition(teamID)
 		local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
-		
+
 		if Game.startPosType == SPAWN_CHOOSE_IN_GAME then
 			if not startPointTable[teamID] or startPointTable[teamID][1] < 0 then
 				-- guess points for the ones classified in startPointTable as not genuine
