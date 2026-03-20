@@ -55,7 +55,7 @@ function widget:GetInfo()
 		date      = "October 2025",
 		license   = "GNU GPL, v2 or later",
 		layer     = -(99020-pipNumber),
-		enabled   = true,
+		enabled   = false,
 		handler   = true,
 	}
 end
@@ -9344,6 +9344,8 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		InitGL4Icons()
 		defaultUV = gl4Icons.defaultUV
 		atlasUVs = gl4Icons.atlasUVs
+		bldgData = gl4Icons.bldgInstanceData
+		data = bldgData
 		if not defaultUV then return 1 end  -- Still not available, skip icon drawing
 	end
 	local cacheUnitIcon = cache.unitIcon
