@@ -28,6 +28,31 @@ local function IsTransport(unitID)
     return ud and ud.transportCapacity and ud.transportCapacity > 0
 end
 
+local function ShouldHaveFerry(unitDefID)
+    local ud = UnitDefs[unitDefID]
+    if not ud then
+        return false
+    end
+
+    if ud.isBuilding then
+        return false
+    end
+
+    if ud.transportCapacity and ud.transportCapacity > 0 then
+        return false
+    end
+
+    if not ud.transportSize or ud.transportSize <= 0 then
+        return false
+    end
+
+    if ud.canFly then
+        return false
+    end
+
+    return true
+end
+
 local function DistSq(x1, z1, x2, z2)
     local dx = x1 - x2
     local dz = z1 - z2
@@ -90,7 +115,6 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
                 transportID = nil,
             }
 
-            -- fallback = first point
             Spring.GiveOrderToUnit(unitID, CMD_MOVE, targets[1], {})
         end
 
@@ -100,13 +124,26 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
     return true
 end
 
-function gadget:UnitCreated(unitID)
-    Spring.InsertUnitCmdDesc(unitID, 500, {
-        id = CMD_TRANSPORT_TO,
-        type = CMDTYPE.ICON_MAP,
-        name = "Ferry",
-        action = "ferry",
-    })
+function gadget:UnitCreated(unitID, unitDefID)
+    if ShouldHaveFerry(unitDefID) then
+        Spring.InsertUnitCmdDesc(unitID, 500, {
+            id = CMD_TRANSPORT_TO,
+            type = CMDTYPE.ICON_MAP,
+            name = "Ferry",
+            action = "ferry",
+        })
+    end
+end
+
+function gadget:UnitGiven(unitID, unitDefID)
+    if ShouldHaveFerry(unitDefID) then
+        Spring.InsertUnitCmdDesc(unitID, 500, {
+            id = CMD_TRANSPORT_TO,
+            type = CMDTYPE.ICON_MAP,
+            name = "Ferry",
+            action = "ferry",
+        })
+    end
 end
 
 function gadget:UnitDestroyed(unitID)
@@ -146,15 +183,12 @@ function gadget:GameFrame(frame)
                 local t = job.transportID
                 local targets = job.targets
 
-                -- FIRST MOVE
                 Spring.GiveOrderToUnit(t, CMD_MOVE, targets[1], {})
 
-                -- CHAIN MOVES
                 for i = 2, #targets do
                     Spring.GiveOrderToUnit(t, CMD_MOVE, targets[i], {"shift"})
                 end
 
-                -- ONLY UNLOAD AT FINAL
                 local final = targets[#targets]
                 Spring.GiveOrderToUnit(t, CMD_UNLOAD_UNITS, final, {"shift"})
             end
