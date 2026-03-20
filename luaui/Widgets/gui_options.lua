@@ -3592,12 +3592,6 @@ function init()
 
 		{ id = "guishader", group = "ui", category = types.basic, widget = "GUI Shader", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.guishader'), type = "bool", value = GetWidgetToggleValue("GUI Shader") },
 
-		{ id = "rendertotexture", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.rendertotexture'), type = "bool", value = Spring.GetConfigInt("ui_rendertotexture", 1) == 1, description = Spring.I18N('ui.settings.option.rendertotexture_descr'),
-			onchange = function(i, value)
-				Spring.SetConfigInt("ui_rendertotexture", (value and '1' or '0'))
-				Spring.SendCommands("luaui reload")
-			end,
-		},
 
 		{ id = "minimap_maxheight", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.minimap') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.minimap_maxheight'), type = "slider", min = 0.2, max = 0.4, step = 0.01, value = Spring.GetConfigFloat("MinimapMaxHeight", 0.32), description = Spring.I18N('ui.settings.option.minimap_maxheight_descr'),
 		  onchange = function(i, value)
@@ -4884,7 +4878,27 @@ function init()
 		{ id = "factoryholdpos", group = "game", category = types.basic, widget = "Factory hold position", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.factoryholdpos'), type = "bool", value = GetWidgetToggleValue("Factory hold position"), description = Spring.I18N('ui.settings.option.factoryholdpos_descr') },
 		{ id = "factoryrepeat", group = "game", category = types.basic, widget = "Factory Auto-Repeat", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.factoryrepeat'), type = "bool", value = GetWidgetToggleValue("Factory Auto-Repeat"), description = Spring.I18N('ui.settings.option.factoryrepeat_descr') },
 
-		{ id = "transportai", group = "game", category = types.basic, widget = "Transport AI", name = Spring.I18N('ui.settings.option.transportai'), type = "bool", value = GetWidgetToggleValue("Transport AI"), description = Spring.I18N('ui.settings.option.transportai_descr') },
+		{ id = "transportOrderedUnits", 
+		group = "game",
+		category = types.basic,
+		name = "Ferry ignores units with manual orders",
+		type = "bool",
+		value = (WG['transportFactoryGuard'] ~= nil and WG['transportFactoryGuard'].getBlacklistOrderedUnits ~= nil and WG['transportFactoryGuard'].getBlacklistOrderedUnits()),
+		description = "If enabled, transports guarding factories will not transport units that were given explicit orders during construction to their move waypoint.",
+		  onload = function(i)
+			  loadWidgetData("Transport Factory Guard", "blacklistOrderedUnits", { 'blacklistOrderedUnits' })
+		  end,
+		onchange = function(_, value)
+				if widgetHandler.configData["transportFactoryGuard"] == nil then
+				  widgetHandler.configData["transportFactoryGuard"] = {}
+			  	end
+				widgetHandler.configData["Auto Group"].immediate = value
+			  	saveOptionValue('Transport Factory Guard', 'transportFactoryGuard', 'setBlacklistOrderedUnits', { 'blacklistOrderedUnits' }, value)
+				if WG['transportFactoryGuard'] and WG['transportFactoryGuard'].setBlacklistOrderedUnits then
+					WG['transportFactoryGuard'].setBlacklistOrderedUnits(value)
+				end
+			end,
+		},
 
 		{ id = "onlyfighterspatrol", group = "game", category = types.basic, widget = "OnlyFightersPatrol", name = Spring.I18N('ui.settings.option.onlyfighterspatrol'), type = "bool", value = GetWidgetToggleValue("Autoquit"), description = Spring.I18N('ui.settings.option.onlyfighterspatrol_descr') },
 		{ id = "fightersfly", group = "game", category = types.basic, widget = "Set fighters on Fly mode", name = Spring.I18N('ui.settings.option.fightersfly'), type = "bool", value = GetWidgetToggleValue("Set fighters on Fly mode"), description = Spring.I18N('ui.settings.option.fightersfly_descr') },
@@ -4930,7 +4944,6 @@ function init()
 
 		{ id = "label_teamcolors", group = "accessibility", name = Spring.I18N('ui.settings.option.label_teamcolors'), category = types.basic },
 		{ id = "label_teamcolors_spacer", group = "accessibility", category = types.basic },
-
 
 		{ id = "anonymous_r", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.anonymous_r'), type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("anonymousColorR", 255)), description = Spring.I18N('ui.settings.option.anonymous_descr'),
 		  onchange = function(i, value, force)
