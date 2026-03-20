@@ -252,9 +252,13 @@ function widget:Initialize()
 	local modOptions = Spring.GetModOptions()
 	local options = modOptions.scenariooptions or modOptions.missionoptions
 	if options then
+		-- NOTE: JSON keys are case-sensitive and preserve camelCase from the encoded payload.
+		-- Spring.GetModOptions() lowercases the outer modoption key ("missionoptions"),
+		-- but the decoded JSON retains original casing, so use "disableInitialCommanderSpawn" here.
 		local optionsDecoded = Json.decode(string.base64Decode(options))
-		if optionsDecoded.disableInitialCommanderSpawn or not table.isNilOrEmpty(optionsDecoded.unitloadout) then
+		if optionsDecoded and (optionsDecoded.disableInitialCommanderSpawn or not table.isNilOrEmpty(optionsDecoded.unitloadout)) then
 			widgetHandler:RemoveWidget()
+			return
 		end
 	end
 

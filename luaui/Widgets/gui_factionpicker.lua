@@ -234,7 +234,10 @@ function widget:Initialize()
 	local options = modOptions.scenariooptions or modOptions.missionoptions
 	if options then
 		local optionsDecoded = Json.decode(string.base64Decode(options))
-		if optionsDecoded and optionsDecoded.disablefactionpicker == true then
+		-- NOTE: JSON keys are case-sensitive and preserve camelCase from the encoded payload.
+		-- Spring.GetModOptions() lowercases the outer modoption key ("missionoptions"),
+		-- but the decoded JSON retains original casing, so use "disableFactionPicker" here.
+		if optionsDecoded and optionsDecoded.disableFactionPicker == true then
 			widgetHandler:RemoveWidget()
 			return
 		end
