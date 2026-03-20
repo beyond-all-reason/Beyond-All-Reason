@@ -52,10 +52,7 @@ local tooltipLabelTextColor = '\255\200\200\200'
 local tooltipDarkTextColor = '\255\133\133\133'
 local tooltipValueColor = '\255\255\255\255'
 local tooltipValueWhiteColor = '\255\255\255\255'
-local tooltipMetalColor = '\255\192\192\192'
-local tooltipEnergyColor = '\255\255\255\0'
 local tooltipValueYellowColor = '\255\253\192\76'
-local tooltipValueGreenColor = '\255\73\234\43'
 
 -- Cache frequently used color strings
 local cachedColorStrings = {
@@ -134,6 +131,18 @@ local function round(value, numDecimalPlaces)
 	else
 		return 0
 	end
+end
+
+local function metricPrefix(n)
+    if n >= 1e9 then
+        return string.format("%.1fG", n / 1e9)
+    elseif n >= 1e6 then
+        return string.format("%.1fM", n / 1e6)
+    elseif n >= 1e5 then
+        return string.format("%.1fk", n / 1e3)
+    else
+        return tostring(n)
+    end
 end
 
 local function convertColor(r, g, b)
@@ -1085,8 +1094,8 @@ local function drawSelection()
 			totalEnergyValue = totalEnergyValue + (unitDefData.energyCost * count)
 		end
 		-- build power
-		if unitDefInfo[unitDefID].buildSpeed > 0 then
-			totalBuildPower = totalBuildPower + (unitDefInfo[unitDefID].buildSpeed * selUnitsCounts[unitDefID])
+		if unitDefData.buildSpeed and unitDefData.buildSpeed > 0 then
+			totalBuildPower = totalBuildPower + (unitDefData.buildSpeed * count)
 		end
 	end
 
@@ -1141,17 +1150,16 @@ local function drawSelection()
 
 	-- metal cost
 	heightVar = heightVar + heightStep
-	font:Print( tooltipLabelTextColor .. getCachedTranslation('ui.info.costm').."   " .. tooltipValueWhiteColor .. totalMetalValue, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - heightVar, fontSize, "o")
+	font:Print( tooltipLabelTextColor .. getCachedTranslation('ui.info.costm').."   " .. tooltipValueWhiteColor .. metricPrefix(totalMetalValue), backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - heightVar, fontSize, "o")
 
 	-- energy cost
 	heightVar = heightVar + heightStep
-	font:Print( tooltipLabelTextColor .. getCachedTranslation('ui.info.coste').."\255\255\255\128   " .. totalEnergyValue, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - heightVar, fontSize, "o")
+	font:Print( tooltipLabelTextColor .. getCachedTranslation('ui.info.coste').."\255\255\255\128   " .. metricPrefix(totalEnergyValue), backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - heightVar, fontSize, "o")
 
 	-- Buildpower
 	if totalBuildPower > 0 then
-		height = height + heightStep
-		-- TODO No i18n yet, need the key, maybe name it 'ui.info.bp'
-		font:Print( tooltipLabelTextColor .. "Buildpow".."  " .. tooltipValueYellowColor .. totalBuildPower, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+		heightVar = heightVar + heightStep
+		font:Print( tooltipLabelTextColor .. getCachedTranslation('ui.info.buildpower') .. "   " .. tooltipValueYellowColor .. metricPrefix(totalBuildPower), backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - heightVar, fontSize, "o")
 	end
 
 	-- kills
