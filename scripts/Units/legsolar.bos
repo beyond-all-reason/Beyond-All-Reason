@@ -243,8 +243,8 @@ Deactivate()
 {
 	if (!Activating) {
 		wantOpen = 0;
+		start-script RequestState(1);
 	}
-	start-script RequestState(1);
 }
 
 HitByWeapon(anglex, anglez)
@@ -255,6 +255,7 @@ HitByWeapon(anglex, anglez)
 		statechg_DesiredState = TRUE;
 		statechg_StateChanging = FALSE;
 		start-script Stop();
+		set ACTIVATION to 0;
 	}
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
