@@ -14,9 +14,14 @@ local CMD_TRANSPORT_TO = 19990
 local CMD_MOVE = CMD.MOVE
 local CMD_LOAD_UNITS = CMD.LOAD_UNITS
 local CMD_UNLOAD_UNITS = CMD.UNLOAD_UNITS
+local CMD_STOP = CMD.STOP
 
 local jobs = {}
 local transportState = {}
+
+-- ========================
+-- Utility
+-- ========================
 
 local function IsValid(unitID)
     return unitID and Spring.ValidUnitID(unitID) and not Spring.GetUnitIsDead(unitID)
@@ -58,7 +63,9 @@ local function FindTransport(unitID)
     return best
 end
 
--- ================= COMMAND =================
+-- ========================
+-- Command Handling
+-- ========================
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
 
@@ -70,6 +77,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
             target = target,
             state = "walking",
             transportID = nil,
+            savedCmds = nil,
         }
 
         -- fallback move
@@ -80,6 +88,10 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 
     return true
 end
+
+-- ========================
+-- Lifecycle
+-- ========================
 
 function gadget:UnitCreated(unitID)
     Spring.InsertUnitCmdDesc(unitID, 500, {
@@ -95,7 +107,9 @@ function gadget:UnitDestroyed(unitID)
     transportState[unitID] = nil
 end
 
--- ================= MAIN =================
+-- ========================
+-- Main Loop
+-- ========================
 
 function gadget:GameFrame(frame)
     if frame % 10 ~= 0 then return end
@@ -119,8 +133,11 @@ function gadget:GameFrame(frame)
                     state = "pickup",
                 }
 
-                -- stop unit
-                Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, {})
+                -- 🔥 SAVE COMMAND QUEUE
+                job.savedCmds = Spring.GetUnitCommands(unitID, -1)
+
+                -- 🔥 CLEAR QUEUE (prevents outrunning)
+                Spring.GiveOrderToUnit(unitID, CMD_STOP, {}, {})
 
                 -- pickup
                 Spring.GiveOrderToUnit(t, CMD_LOAD_UNITS, {unitID}, {})
@@ -137,7 +154,7 @@ function gadget:GameFrame(frame)
                 -- move to destination
                 Spring.GiveOrderToUnit(t, CMD_MOVE, job.target, {})
 
-                -- 🔥 UNLOAD ONCE (correct timing)
+                -- unload at destination
                 Spring.GiveOrderToUnit(t, CMD_UNLOAD_UNITS, job.target, {"shift"})
             end
 
@@ -148,7 +165,15 @@ function gadget:GameFrame(frame)
                 local t = job.transportID
                 local ts = transportState[t]
 
-                -- RETURN HOME
+                -- 🔥 RESTORE COMMAND QUEUE
+                if job.savedCmds then
+                    for i = 1, #job.savedCmds do
+                        local cmd = job.savedCmds[i]
+                        Spring.GiveOrderToUnit(unitID, cmd.id, cmd.params, {"shift"})
+                    end
+                end
+
+                -- return transport
                 if ts and ts.origin then
                     Spring.GiveOrderToUnit(t, CMD_MOVE, ts.origin, {})
                 end
