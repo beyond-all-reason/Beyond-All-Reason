@@ -1,8 +1,5 @@
 local gadget = gadget ---@type Gadget
 
-local doesUnitHaveName
-local untrackUnitID
-
 function gadget:GetInfo()
 	return {
 		name = "Mission API triggers",
@@ -16,8 +13,6 @@ end
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
-
-local unitLocationCheckInterval = 15
 
 local actionsDispatcher
 local types, triggers
@@ -54,7 +49,7 @@ local function isTriggerValid(trigger)
 	return true
 end
 
-local function activateTrigger(trigger)
+local function activateTrigger(trigger, providedValues)
 	if not isTriggerValid(trigger) then
 		return false
 	end
@@ -63,7 +58,7 @@ local function activateTrigger(trigger)
 	trigger.repeatCount = trigger.repeatCount + 1
 
 	for _, actionID in ipairs(trigger.actions) do
-		actionsDispatcher.Invoke(actionID)
+		actionsDispatcher.Invoke(actionID, providedValues)
 	end
 
 	return true
@@ -190,7 +185,8 @@ local function checkUnitEnteredLocation(trigger, triggerID)
 	previousUnitsInAreas[triggerID] = unitsInArea
 
 	for _, unitID in ipairs(unitsEnteredArea) do
-		activateTrigger(trigger)
+		local x, y, z = Spring.GetUnitBasePosition(unitID)
+		activateTrigger(trigger, { positionEntered = { x = x, y = y, z = z }})
 	end
 end
 
@@ -205,7 +201,8 @@ local function checkUnitLeftLocation(trigger, triggerID)
 	previousUnitsInAreas[triggerID] = unitsInArea
 
 	for _, unitID in ipairs(unitsLeftArea) do
-		activateTrigger(trigger)
+		local x, y, z = Spring.GetUnitBasePosition(unitID)
+		activateTrigger(trigger, { positionLeft = { x = x, y = y, z = z }})
 	end
 end
 

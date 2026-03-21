@@ -61,6 +61,7 @@ local function untrackUnitName(name)
 end
 
 return {
+	InitializeTracking = initializeTracking,
 	TrackUnit = trackUnit,
 	IsUnitIDUntracked = isUnitIDUntracked,
 	IsNameUntracked = isNameUntracked,

@@ -188,7 +188,8 @@ local parameters = {
 			required = false,
 			type = Types.TeamID
 		},
-		requiresOneOf = { 'unitName', 'unitDefName' }
+		requiresOneOf = { 'unitName', 'unitDefName' },
+		provides = { 'positionEntered' },
 	},
 	[triggerTypes.UnitLeftLocation] = {
 		[1] = {
@@ -214,7 +215,8 @@ local parameters = {
 			required = false,
 			type = Types.TeamID
 		},
-		requiresOneOf = { 'unitName', 'unitDefName' }
+		requiresOneOf = { 'unitName', 'unitDefName' },
+		provides = { 'positionLeft' },
 	},
 	[triggerTypes.UnitDwellLocation] = {
 		[1] = {
