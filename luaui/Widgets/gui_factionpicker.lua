@@ -19,8 +19,6 @@ local mathFloor = math.floor
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
-
 local factions = {}
 
 
@@ -314,35 +312,31 @@ function widget:DrawScreen()
 		WG['guishader'].InsertDlist(dlistGuishader, 'factionpicker')
 	end
 
-	if useRenderToTexture then
-		if not factionpickerBgTex then
-			factionpickerBgTex = gl.CreateTexture(mathFloor(width*vsx), mathFloor(height*vsy), {
-				target = GL.TEXTURE_2D,
-				format = GL.ALPHA,
-				fbo = true,
-			})
-			if factionpickerBgTex then
-				gl.R2tHelper.RenderToTexture(factionpickerBgTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
-						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-						drawFactionpickerBackground()
-					end,
-					useRenderToTexture
-				)
-			end
+	if not factionpickerBgTex then
+		factionpickerBgTex = gl.CreateTexture(mathFloor(width*vsx), mathFloor(height*vsy), {
+			target = GL.TEXTURE_2D,
+			format = GL.ALPHA,
+			fbo = true,
+		})
+		if factionpickerBgTex then
+			gl.R2tHelper.RenderToTexture(factionpickerBgTex,
+				function()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
+					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+					drawFactionpickerBackground()
+				end,
+				true
+			)
 		end
 	end
 
-	if useRenderToTexture then
-		if not factionpickerTex then
-			factionpickerTex = gl.CreateTexture(mathFloor(width*vsx)*(vsy<1400 and 2 or 1), mathFloor(height*vsy)*(vsy<1400 and 2 or 1), {
-				target = GL.TEXTURE_2D,
-				format = GL.ALPHA,
-				fbo = true,
-			})
-		end
+	if not factionpickerTex then
+		factionpickerTex = gl.CreateTexture(mathFloor(width*vsx)*(vsy<1400 and 2 or 1), mathFloor(height*vsy)*(vsy<1400 and 2 or 1), {
+			target = GL.TEXTURE_2D,
+			format = GL.ALPHA,
+			fbo = true,
+		})
 	end
 
 	if factionpickerTex and doUpdate then
@@ -353,32 +347,18 @@ function widget:DrawScreen()
 				gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
 				drawFactionpicker()
 			end,
-			useRenderToTexture
+			true
 		)
 		doUpdate = nil
 	end
 
-	if useRenderToTexture then
-		if factionpickerBgTex then
-			-- background element
-			gl.R2tHelper.BlendTexRect(factionpickerBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], useRenderToTexture)
-		end
-		if factionpickerTex then
-			-- content
-			gl.R2tHelper.BlendTexRect(factionpickerTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], useRenderToTexture)
-		end
-	else
-		if doUpdate then
-			dlistFactionpicker = gl.DeleteList(dlistFactionpicker)
-			doUpdate = nil
-		end
-		if not dlistFactionpicker then
-			dlistFactionpicker = gl.CreateList(function()
-				drawFactionpickerBackground()
-				drawFactionpicker()
-			end)
-		end
-		gl.CallList(dlistFactionpicker)
+	if factionpickerBgTex then
+		-- background element
+		gl.R2tHelper.BlendTexRect(factionpickerBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], true)
+	end
+	if factionpickerTex then
+		-- content
+		gl.R2tHelper.BlendTexRect(factionpickerTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], true)
 	end
 
 	font2:Begin()

@@ -66,9 +66,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	local targetCheckStats = {} -- unitDefID : count
 	function gadget:AllowWeaponTarget(unitID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
-		if targetID == -1 and attackerWeaponNum == -1 then
-			return true, defPriority
-		end
 		local unitDefID = spGetUnitDefID(targetID)
 		if unitDefID then
 			targetCheckStats[unitDefID] = (targetCheckStats[unitDefID] or 0) + 1
