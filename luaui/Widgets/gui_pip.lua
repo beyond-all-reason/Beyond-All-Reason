@@ -239,7 +239,7 @@ config = {
 	showViewRectangleOnMinimap = false,  -- Show the PIP view rectangle on the engine minimap
 	showViewRectangleInWorld = false,  -- Show the PIP view rectangle as an outline in the 3D world
 	engineMinimapFallback = true,  -- Use engine minimap when fully zoomed out (performance fallback)
-	engineMinimapFallbackThreshold = 4500,  -- Unit count threshold before engine minimap fallback activates
+	engineMinimapFallbackThreshold = 45,  -- Unit count threshold before engine minimap fallback activates
 	engineMinimapExplosionOverlay = true,  -- Draw explosion overlay on top of engine minimap
 	engineMinimapDecalStrength = 0.8,  -- Decal overlay strength on engine minimap (0-1, lower = subtler scorch marks) decals do overlap with the engine minimap (unit icons), so this can be used to reduce their prominence if desired
 }
@@ -15053,7 +15053,7 @@ function widget:DrawScreen()
 		-- Hover highlight
 		if mx >= btnL and mx <= btnR and my >= btnB and my <= btnT then
 			if WG['tooltip'] then
-				WG['tooltip'].ShowTooltip('pip'..pipNumber, Spring.I18N('ui.pip.tooltip'), nil, nil, nil)
+				WG['tooltip'].ShowTooltip('pip'..pipNumber, Spring.I18N('ui.pip.minimap_maximize'), nil, nil, nil)
 			end
 			glFunc.Color(1,1,1,0.12)
 			glFunc.Texture(false)
@@ -15184,11 +15184,12 @@ function widget:DrawScreen()
 			miscState.baseMinimapIconScale = Spring.GetConfigFloat("MinimapIconScale", 3.5)
 			Spring.SendCommands("minimap minimize 0")
 			gl.SlaveMiniMap(true)
-			Spring.SendCommands(string.format("minimap geometry %d %d %d %d",
-				math.floor(render.dim.l), math.floor(render.vsy - render.dim.t),
-				math.floor(pipWidth), math.floor(pipHeight)))
 			miscState.engineMinimapActive = true
 		end
+		-- Always update geometry (handles animation, resize, position changes)
+		Spring.SendCommands(string.format("minimap geometry %d %d %d %d",
+			math.floor(render.dim.l), math.floor(render.vsy - render.dim.t),
+			math.floor(pipWidth), math.floor(pipHeight)))
 		-- Apply density-scaled icon size for engine minimap
 		if config.iconDensityScaling and miscState.baseMinimapIconScale then
 			local totalUnits = #miscState.pipUnits
@@ -15659,7 +15660,7 @@ function widget:DrawScreen()
 				my >= render.dim.t - render.usedButtonSize - render.elementPadding and my <= render.dim.t - render.elementPadding then
 				hover = true
 				if WG['tooltip'] then
-					WG['tooltip'].ShowTooltip('pip'..pipNumber, Spring.I18N('ui.pip.minimize'), nil, nil, nil)
+					WG['tooltip'].ShowTooltip('pip'..pipNumber, Spring.I18N(isMinimapMode and 'ui.pip.minimap_minimize' or 'ui.pip.minimize'), nil, nil, nil)
 				end
 				glFunc.Color(1,1,1,0.12)
 				glFunc.Texture(false)
@@ -16192,10 +16193,18 @@ function widget:Update(dt)
 		local wantMinimized = Spring.GetConfigInt("MinimapMinimize", 0) == 1
 		if wantMinimized ~= miscState.minimapMinimized then
 			miscState.minimapMinimized = wantMinimized
-			-- Keep engine minimap minimized unless fallback is active (we replace it)
-			if not miscState.engineMinimapActive then
-				Spring.SendCommands("minimap minimize 1")
+			-- Deactivate engine minimap fallback if active (transition code re-fires on next DrawScreen)
+			if miscState.engineMinimapActive then
+				if miscState.baseMinimapIconScale then
+					Spring.SendCommands("minimap unitsize " .. miscState.baseMinimapIconScale)
+					Spring.SetConfigFloat("MinimapIconScale", miscState.baseMinimapIconScale)
+					miscState.baseMinimapIconScale = nil
+				end
+				miscState.engineMinimapActive = false
 			end
+			-- Ensure engine minimap stays minimized and slaved (PIP controls rendering)
+			Spring.SendCommands("minimap minimize 1")
+			gl.SlaveMiniMap(true)
 			-- Update guishader blur: remove when hidden, re-add when shown
 			if wantMinimized then
 				if WG['guishader'] then
@@ -16206,6 +16215,27 @@ function widget:Update(dt)
 					end
 				end
 			else
+				-- Delete stale R2T textures and force full recreation
+				if pipR2T.contentTex then
+					gl.DeleteTexture(pipR2T.contentTex)
+					pipR2T.contentTex = nil
+				end
+				if pipR2T.unitsTex then
+					gl.DeleteTexture(pipR2T.unitsTex)
+					pipR2T.unitsTex = nil
+				end
+				if pipR2T.frameBackgroundTex then
+					gl.DeleteTexture(pipR2T.frameBackgroundTex)
+					pipR2T.frameBackgroundTex = nil
+				end
+				if pipR2T.frameButtonsTex then
+					gl.DeleteTexture(pipR2T.frameButtonsTex)
+					pipR2T.frameButtonsTex = nil
+				end
+				pipR2T.contentNeedsUpdate = true
+				pipR2T.unitsNeedsUpdate = true
+				pipR2T.frameNeedsUpdate = true
+				pipR2T.forceRefreshFrames = 5
 				UpdateGuishaderBlur()
 			end
 		end
@@ -16497,6 +16527,17 @@ function widget:Update(dt)
 				if miscState.minimapMinimizeAnimating then
 					miscState.minimapMinimizeAnimating = false
 					miscState.minimapMinimized = true
+					-- Deactivate engine minimap fallback if it was active
+					-- (so transition code re-fires correctly on next unminimize)
+					if miscState.engineMinimapActive then
+						if miscState.baseMinimapIconScale then
+							Spring.SendCommands("minimap unitsize " .. miscState.baseMinimapIconScale)
+							Spring.SetConfigFloat("MinimapIconScale", miscState.baseMinimapIconScale)
+							miscState.baseMinimapIconScale = nil
+						end
+						Spring.SendCommands("minimap minimize 1")
+						miscState.engineMinimapActive = false
+					end
 					-- Restore full dimensions so maximize animation can use them
 					if uiState.savedDimensions then
 						render.dim.l = uiState.savedDimensions.l
@@ -18047,10 +18088,36 @@ function widget:MousePress(mx, my, mButton)
 				-- Clear minimized state and start expand animation
 				Spring.SetConfigInt("MinimapMinimize", 0)
 				miscState.minimapMinimized = false
+				-- Re-establish engine minimap slave and reset fallback so transition code re-fires
+				gl.SlaveMiniMap(true)
+				Spring.SendCommands("minimap minimize 1")
+				miscState.engineMinimapActive = false
+				-- Delete stale R2T textures and force full recreation
+				if pipR2T.contentTex then
+					gl.DeleteTexture(pipR2T.contentTex)
+					pipR2T.contentTex = nil
+				end
+				if pipR2T.unitsTex then
+					gl.DeleteTexture(pipR2T.unitsTex)
+					pipR2T.unitsTex = nil
+				end
+				if pipR2T.frameBackgroundTex then
+					gl.DeleteTexture(pipR2T.frameBackgroundTex)
+					pipR2T.frameBackgroundTex = nil
+				end
+				if pipR2T.frameButtonsTex then
+					gl.DeleteTexture(pipR2T.frameButtonsTex)
+					pipR2T.frameButtonsTex = nil
+				end
+				pipR2T.contentNeedsUpdate = true
+				pipR2T.unitsNeedsUpdate = true
+				pipR2T.frameNeedsUpdate = true
+				pipR2T.forceRefreshFrames = 5
 				-- Set up animation from button to full size
 				uiState.minModeL = btnL
 				uiState.minModeB = btnB
 				StartMaximizeAnimation()
+				UpdateGuishaderBlur()
 				return true
 			end
 		end
@@ -18270,6 +18337,7 @@ function widget:MousePress(mx, my, mButton)
 			-- In minimap mode, clicking the minimize button triggers MinimapMinimize (with animation)
 			if isMinimapMode and mx >= render.dim.r - render.usedButtonSize and my >= render.dim.t - render.usedButtonSize then
 				Spring.SetConfigInt("MinimapMinimize", 1)
+				Spring.SendCommands("minimap minimize 1")
 				-- Animate shrink to the maximize button position (top-left corner)
 				local buttonSize = math.floor(render.usedButtonSize * config.maximizeSizemult)
 				uiState.savedDimensions = {
