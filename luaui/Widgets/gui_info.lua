@@ -1147,7 +1147,7 @@ local function drawSelection()
 	-- Buildpower
 	if totalBuildPower > 0 then
 		heightVar = heightVar + heightStep
-		font:Print( tooltipLabelTextColor .. getCachedTranslation('ui.info.buildpower') .. "   " .. tooltipValueYellowColor .. totalBuildPower, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - heightVar, fontSize, "o")
+		font:Print( tooltipLabelTextColor .. getCachedTranslation('ui.info.buildpower') .. "   " .. tooltipValueYellowColor .. string.formatSI(totalBuildPower), backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - heightVar, fontSize, "o")
 	end
 
 	-- kills
