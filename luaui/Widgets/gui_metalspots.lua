@@ -484,6 +484,19 @@ end
 
 function widget:Shutdown()
 	if MetalSpotTextAtlas then MetalSpotTextAtlas:Delete() end
+	if spotShader then
+		spotShader:Finalize()
+		spotShader = nil
+	end
+	if spotInstanceVBO then
+		if spotInstanceVBO.VAO then spotInstanceVBO.VAO:Delete() end
+		if spotInstanceVBO.instanceVBO then spotInstanceVBO.instanceVBO:Delete() end
+		spotInstanceVBO = nil
+	end
+	if spotVBO then
+		spotVBO:Delete()
+		spotVBO = nil
+	end
 	WG.metalspots = nil
 	mySpots = {}
 	gl.DeleteFont(font)
@@ -551,6 +564,7 @@ function widget:DrawWorldPreUnit()
 	gl.Texture(0, "$heightmap")
 	gl.Texture(1, AtlasTextureID)
 	gl.DepthTest(false)
+	gl.DepthMask(false)
 
 	local wl = getWaterLevel()
 	spotShader:Activate()
@@ -559,6 +573,7 @@ function widget:DrawWorldPreUnit()
 	drawInstanceVBO(spotInstanceVBO)
 	spotShader:Deactivate()
 
+	gl.DepthMask(true)
 	gl.Culling(false)
 	gl.Texture(0, false)
 	gl.Texture(1, false)
