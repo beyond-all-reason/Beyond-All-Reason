@@ -138,6 +138,7 @@ local shieldUnitDefs                = {}
 local shieldUnitsData               = {}
 local forceDeleteWeapons            = {}
 local unitDefIDCache                = {}
+local unitDefWeaponDefs             = {}
 local shieldedUnits                 = {}
 local shieldCoverage                = {} -- reverse mapping: [shieldUnitID] = {[unitID] = true, ...}
 local AOEWeaponDefIDs               = {}
@@ -231,6 +232,20 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.armoredMultiple and unitDef.armoredMultiple < 1 and unitDef.armoredMultiple > 0 then
 		armoredUnitDefs[unitDefID] = unitDef.armoredMultiple
 	end
+
+	-- Pre-cache weapon slot -> weaponDefID for beam weapon lookups in ShieldPreDamaged
+	local weapons = unitDef.weapons
+	if weapons then
+		local wCache = {}
+		local hasWeapons = false
+		for i, weaponsData in pairs(weapons) do
+			wCache[i] = weaponsData.weaponDef
+			hasWeapons = true
+		end
+		if hasWeapons then
+			unitDefWeaponDefs[unitDefID] = wCache
+		end
+	end
 end
 
 ----local functions----
@@ -260,12 +275,14 @@ local function removeCoveredUnits(shieldUnitID)
 					shieldedUnits[unitID] = nil
 				end
 			end
+			covered[unitID] = nil -- clear for table reuse
 		end
 		shieldCoverage[shieldUnitID] = nil
 	end
 end
 
 local function setCoveredUnits(shieldUnitID)
+	local oldCovered = shieldCoverage[shieldUnitID]
 	removeCoveredUnits(shieldUnitID)
 
 	local shieldData = shieldUnitsData[shieldUnitID]
@@ -279,7 +296,7 @@ local function setCoveredUnits(shieldUnitID)
 	end
 
 	local unitsTable = spGetUnitsInSphere(x, y, z, radius)
-	local covered = {}
+	local covered = oldCovered or {} -- reuse cleared table to reduce GC
 	for i = 1, #unitsTable do
 		local unitID = unitsTable[i]
 		local shieldList = shieldedUnits[unitID]
@@ -386,13 +403,10 @@ local function shieldNegatesDamageCheck(unitID, unitTeam, attackerID, attackerTe
 			return true
 		end
 
-		for shieldUnitID in pairs(unitShields) do
-			if attackerShields[shieldUnitID] then
-				break
-			else
-				--The units have to share all of the same shield spaces. As soon as a mismatch is found, that means they don't occupy the same shield space and the shot should be blocked.
-				return true
-			end
+		-- The loop only ever checked one entry (break on match, return on mismatch), so use next() directly
+		local shieldUnitID = next(unitShields)
+		if shieldUnitID and not attackerShields[shieldUnitID] then
+			return true
 		end
 	end
 
@@ -604,7 +618,10 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
 			return false
 		end
 
-		weaponDefID = UnitDefs[beamEmitterUnitDefID].weapons[beamEmitterWeaponNum].weaponDef
+		local weapons = unitDefWeaponDefs[beamEmitterUnitDefID]
+		if not weapons then return false end
+		weaponDefID = weapons[beamEmitterWeaponNum]
+		if not weaponDefID then return false end
 		shieldData.shieldDamage = (shieldData.shieldDamage + originalShieldDamages[weaponDefID])
 	end
 
