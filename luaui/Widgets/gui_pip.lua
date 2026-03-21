@@ -312,7 +312,7 @@ local uiState = {
 	savedDimensions = {},
 	isAnimating = false,
 	animationProgress = 0,
-	animationDuration = 0.22,
+	animationDuration = 0.18,
 	animStartDim = {},
 	animEndDim = {},
 	drawingGround = true,
@@ -476,6 +476,7 @@ local miscState = {
 	minimapCameraRestored = false,  -- Whether minimap camera state was restored from config (for luaui reload)
 	minimapRestoreAtMinZoom = false,  -- Whether the restored minimap camera was at minimum zoom (snap to recalculated min)
 	minimapMinimized = false,  -- Whether the minimap is hidden via MinimapMinimize config (minimap mode only)
+	minimapMinimizeAnimating = false,  -- Whether a minimap minimize animation is in progress
 	engineMinimapActive = false,  -- Whether engine minimap fallback is currently rendering (tracks transitions)
 	baseMinimapIconScale = nil,  -- Saved MinimapIconScale before engine fallback density scaling modifies it
 	crashingUnits = {},  -- Units that are crashing (no icon should be drawn)
@@ -15011,7 +15012,54 @@ function widget:DrawScreen()
 	end
 
 	-- In minimap mode, honour MinimapMinimize to hide the PIP minimap
+	-- Draw a small maximize button so the user can unfold it again
 	if isMinimapMode and miscState.minimapMinimized then
+		local buttonSize = math.floor(render.usedButtonSize * config.maximizeSizemult)
+		local btnL = render.dim.l
+		local btnB = render.dim.t - buttonSize
+		local btnR = btnL + buttonSize
+		local btnT = render.dim.t
+
+		-- Background
+		local tl, tr, br, bl = GetChamferedCorners(btnL - render.elementPadding, btnB - render.elementPadding, btnR + render.elementPadding, btnT + render.elementPadding)
+		render.UiElement(btnL - render.elementPadding, btnB - render.elementPadding, btnR + render.elementPadding, btnT + render.elementPadding, tl, tr, br, bl, nil, nil, nil, nil, nil, nil, nil, nil)
+
+		-- Icon with rotation based on expansion direction
+		local sw, sh = Spring.GetWindowGeometry()
+		local onLeftSide = (btnL < sw * 0.5)
+		local onBottomSide = (btnB < sh * 0.25)
+		local rotation
+		if onLeftSide and onBottomSide then
+			rotation = 180
+		elseif not onLeftSide and onBottomSide then
+			rotation = 270
+		elseif not onLeftSide and not onBottomSide then
+			rotation = 0
+		else
+			rotation = 90
+		end
+		local centerX = (btnL + btnR) * 0.5
+		local centerY = (btnB + btnT) * 0.5
+		glFunc.Color(config.panelBorderColorLight)
+		glFunc.Texture('LuaUI/Images/pip/PipExpand.png')
+		glFunc.PushMatrix()
+		glFunc.Translate(centerX, centerY, 0)
+		glFunc.Rotate(rotation, 0, 0, 1)
+		glFunc.Translate(-centerX, -centerY, 0)
+		glFunc.TexRect(btnL, btnB, btnR, btnT)
+		glFunc.PopMatrix()
+		glFunc.Texture(false)
+
+		-- Hover highlight
+		if mx >= btnL and mx <= btnR and my >= btnB and my <= btnT then
+			if WG['tooltip'] then
+				WG['tooltip'].ShowTooltip('pip'..pipNumber, Spring.I18N('ui.pip.tooltip'), nil, nil, nil)
+			end
+			glFunc.Color(1,1,1,0.12)
+			glFunc.Texture(false)
+			render.RectRound(btnL, btnB, btnR, btnT, render.elementCorner*0.4, 1, 1, 1, 1)
+		end
+
 		return
 	end
 
@@ -15583,9 +15631,9 @@ function widget:DrawScreen()
 			end
 		end
 
-		-- Minimize button hover (skip in minimap mode)
+		-- Minimize button hover (show in minimap mode on hover for MinimapMinimize)
 		hover = false
-		if not isMinimapMode or config.minimapModeShowButtons then
+		if true then  -- Always allow minimize button (minimap mode uses MinimapMinimize, PIP mode uses inMinMode)
 			if config.showButtonsOnHoverOnly and interactionState.isMouseOverPip then
 				-- Draw minimize button base when showing on hover
 				glFunc.Color(config.panelBorderColorDark)
@@ -16139,7 +16187,8 @@ function widget:Update(dt)
 	end
 
 	-- In minimap mode, poll MinimapMinimize to honour the user's minimize setting
-	if isMinimapMode then
+	-- Skip while animation is in progress (animation completion handles the state change)
+	if isMinimapMode and not miscState.minimapMinimizeAnimating and not uiState.isAnimating then
 		local wantMinimized = Spring.GetConfigInt("MinimapMinimize", 0) == 1
 		if wantMinimized ~= miscState.minimapMinimized then
 			miscState.minimapMinimized = wantMinimized
@@ -16444,29 +16493,45 @@ function widget:Update(dt)
 				-- Animation complete
 				uiState.animationProgress = 1
 				uiState.isAnimating = false
-				render.dim.l = uiState.animEndDim.l
-				render.dim.r = uiState.animEndDim.r
-				render.dim.b = uiState.animEndDim.b
-				render.dim.t = uiState.animEndDim.t
-				-- Recalculate min zoom from final dimensions (fixes zoom limit after expanding from minimized)
-				if not isMinimapMode then
-					local rawW = render.dim.r - render.dim.l
-					local rawH = render.dim.t - render.dim.b
-					pipModeMinZoom = math.min(rawW, rawH) / math.max(mapInfo.mapSizeX, mapInfo.mapSizeZ)
-					if cameraState.zoom < pipModeMinZoom then
-						cameraState.zoom = pipModeMinZoom
-						cameraState.targetZoom = pipModeMinZoom
+				-- If this was a minimap minimize animation, finalize the minimized state
+				if miscState.minimapMinimizeAnimating then
+					miscState.minimapMinimizeAnimating = false
+					miscState.minimapMinimized = true
+					-- Restore full dimensions so maximize animation can use them
+					if uiState.savedDimensions then
+						render.dim.l = uiState.savedDimensions.l
+						render.dim.r = uiState.savedDimensions.r
+						render.dim.b = uiState.savedDimensions.b
+						render.dim.t = uiState.savedDimensions.t
 					end
-					if cameraState.targetZoom < pipModeMinZoom then
-						cameraState.targetZoom = pipModeMinZoom
+					RecalculateWorldCoordinates()
+					RecalculateGroundTextureCoordinates()
+					UpdateGuishaderBlur()
+				else
+					render.dim.l = uiState.animEndDim.l
+					render.dim.r = uiState.animEndDim.r
+					render.dim.b = uiState.animEndDim.b
+					render.dim.t = uiState.animEndDim.t
+					-- Recalculate min zoom from final dimensions (fixes zoom limit after expanding from minimized)
+					if not isMinimapMode then
+						local rawW = render.dim.r - render.dim.l
+						local rawH = render.dim.t - render.dim.b
+						pipModeMinZoom = math.min(rawW, rawH) / math.max(mapInfo.mapSizeX, mapInfo.mapSizeZ)
+						if cameraState.zoom < pipModeMinZoom then
+							cameraState.zoom = pipModeMinZoom
+							cameraState.targetZoom = pipModeMinZoom
+						end
+						if cameraState.targetZoom < pipModeMinZoom then
+							cameraState.targetZoom = pipModeMinZoom
+						end
 					end
+					-- Recalculate world coordinates for final dimensions
+					RecalculateWorldCoordinates()
+					RecalculateGroundTextureCoordinates()
+					pipR2T.frameNeedsUpdate = true  -- Final update after animation
+					-- Update guishader blur after animation completes
+					UpdateGuishaderBlur()
 				end
-				-- Recalculate world coordinates for final dimensions
-				RecalculateWorldCoordinates()
-				RecalculateGroundTextureCoordinates()
-				pipR2T.frameNeedsUpdate = true  -- Final update after animation
-				-- Update guishader blur after animation completes
-				UpdateGuishaderBlur()
 			else
 				-- Interpolate dimensions with easing (ease-in-out)
 				local t = uiState.animationProgress
@@ -17840,8 +17905,15 @@ function widget:IsAbove(mx, my)
 	-- Guard against uninitialized render dimensions
 	if not render.dim.l or not render.dim.r or not render.dim.b or not render.dim.t then return false end
 
-	-- When minimap is hidden via MinimapMinimize, don't capture mouse
-	if isMinimapMode and miscState.minimapMinimized then return false end
+	-- When minimap is hidden via MinimapMinimize, only capture mouse over the maximize button
+	if isMinimapMode and miscState.minimapMinimized then
+		local buttonSize = math.floor(render.usedButtonSize * config.maximizeSizemult)
+		local btnL = render.dim.l
+		local btnB = render.dim.t - buttonSize
+		local btnR = btnL + buttonSize
+		local btnT = render.dim.t
+		return mx >= btnL and mx <= btnR and my >= btnB and my <= btnT
+	end
 	
 	-- Claim mouse interaction when cursor is over the PIP window
 	if uiState.isAnimating then
@@ -17869,6 +17941,7 @@ function widget:IsAbove(mx, my)
 end
 
 function widget:MouseWheel(up, value)
+	if isMinimapMode and miscState.minimapMinimized then return end
 	if not uiState.inMinMode then
 		local mx, my = spFunc.GetMouseState()
 		if mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t then
@@ -17961,6 +18034,28 @@ end
 function widget:MousePress(mx, my, mButton)
 	-- Guard against uninitialized render dimensions
 	if not render.dim.l or not render.dim.r or not render.dim.b or not render.dim.t then return end
+
+	-- When minimap is hidden via MinimapMinimize, only handle click on maximize button
+	if isMinimapMode and miscState.minimapMinimized then
+		if mButton == 1 then
+			local buttonSize = math.floor(render.usedButtonSize * config.maximizeSizemult)
+			local btnL = render.dim.l
+			local btnB = render.dim.t - buttonSize
+			local btnR = btnL + buttonSize
+			local btnT = render.dim.t
+			if mx >= btnL and mx <= btnR and my >= btnB and my <= btnT then
+				-- Clear minimized state and start expand animation
+				Spring.SetConfigInt("MinimapMinimize", 0)
+				miscState.minimapMinimized = false
+				-- Set up animation from button to full size
+				uiState.minModeL = btnL
+				uiState.minModeB = btnB
+				StartMaximizeAnimation()
+				return true
+			end
+		end
+		return
+	end
 
 	-- Block all mouse interaction during minimize/maximize animation to prevent
 	-- double-click from triggering an accidental minimize (which corrupts savedDimensions)
@@ -18171,7 +18266,35 @@ function widget:MousePress(mx, my, mButton)
 				end
 			end
 
-			-- Minimizing? (or ALT+drag/middle drag to move window) - disabled in minimap mode
+			-- Minimizing? (or ALT+drag/middle drag to move window)
+			-- In minimap mode, clicking the minimize button triggers MinimapMinimize (with animation)
+			if isMinimapMode and mx >= render.dim.r - render.usedButtonSize and my >= render.dim.t - render.usedButtonSize then
+				Spring.SetConfigInt("MinimapMinimize", 1)
+				-- Animate shrink to the maximize button position (top-left corner)
+				local buttonSize = math.floor(render.usedButtonSize * config.maximizeSizemult)
+				uiState.savedDimensions = {
+					l = render.dim.l,
+					r = render.dim.r,
+					b = render.dim.b,
+					t = render.dim.t
+				}
+				uiState.animStartDim = {
+					l = render.dim.l,
+					r = render.dim.r,
+					b = render.dim.b,
+					t = render.dim.t
+				}
+				uiState.animEndDim = {
+					l = render.dim.l,
+					r = render.dim.l + buttonSize,
+					b = render.dim.t - buttonSize,
+					t = render.dim.t
+				}
+				uiState.animationProgress = 0
+				uiState.isAnimating = true
+				miscState.minimapMinimizeAnimating = true
+				return true
+			end
 			if not isMinimapMode and mx >= render.dim.r - render.usedButtonSize and my >= render.dim.t - render.usedButtonSize then
 				local altKey = Spring.GetModKeyState()
 				
@@ -18956,6 +19079,8 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 			local centerX = math.floor((render.dim.l + render.dim.r) / 2)
 			local centerY = math.floor((render.dim.b + render.dim.t) / 2)
 			Spring.WarpMouse(centerX, centerY)
+			-- Reapply the current cursor to prevent it from disappearing after warp
+			Spring.SetMouseCursor(Spring.GetMouseCursor())
 		end
 
 	elseif interactionState.areBoxSelecting then
