@@ -3639,6 +3639,16 @@ function init()
 		  end,
 		},
 		{ id = "minimappip", group = "ui", category = types.advanced, widget = "Picture-in-Picture Minimap", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimappip'), type = "bool", value = GetWidgetToggleValue("Picture-in-Picture Minimap"), description = Spring.I18N('ui.settings.option.minimappip_descr') },
+		{ id = "pip_altkeyzoom", group = "ui", category = types.advanced, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.pip_altkeyzoom'), type = "bool", value = Spring.GetConfigInt("PipAltKeyRequiredForZoom", 1) == 1, description = Spring.I18N('ui.settings.option.pip_altkeyzoom_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("PipAltKeyRequiredForZoom", value and 1 or 0)
+			  for _, n in ipairs({0, 1, 2, 3, 4}) do
+				  if WG['pip' .. n] and WG['pip' .. n].setAltKeyRequiredForZoom then
+					  WG['pip' .. n].setAltKeyRequiredForZoom(value)
+				  end
+			  end
+		  end,
+		},
 
 		{ id = "pip_commandfx", group = "ui", category = types.advanced, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.pip_commandfx'), type = "bool", value = Spring.GetConfigInt("PipDrawCommandFX", 1) == 1, description = Spring.I18N('ui.settings.option.pip_commandfx_descr'),
 		  onchange = function(i, value)
