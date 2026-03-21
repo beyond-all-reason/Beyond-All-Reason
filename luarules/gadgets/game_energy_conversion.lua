@@ -189,11 +189,18 @@ function EmpedVector:push(uID, frameID)
 end
 
 function EmpedVector:process(currentFrame)
+	local toRemove
+	local removeCount = 0
 	for uID, frameID in pairs(self.unitBuffer) do
 		if currentFrame >= frameID then
 			UnitParalysisOver(uID, spGetUnitDefID(uID), spGetUnitTeam(uID))
-			self.unitBuffer[uID] = nil
+			if not toRemove then toRemove = {} end
+			removeCount = removeCount + 1
+			toRemove[removeCount] = uID
 		end
+	end
+	for i = 1, removeCount do
+		self.unitBuffer[toRemove[i]] = nil
 	end
 end
 

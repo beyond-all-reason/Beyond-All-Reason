@@ -456,9 +456,10 @@ function UpdateList(force)
 	--maxWidth = 0
 	widgetsList = {}
 	fullWidgetsList = {}
+	local lowerInput = inputText and inputText ~= '' and string.lower(inputText) or nil
 	for name, data in pairs(widgetHandler.knownWidgets) do
 		if name ~= myName and name ~= 'Write customparam.__def to files' then
-			if (not inputText or inputText == '') or (string.find(string.lower(name), string.lower(inputText), nil, true) or (data.desc and string.find(string.lower(data.desc), string.lower(inputText), nil, true)) or (data.basename and string.find(string.lower(data.basename), string.lower(inputText), nil, true)) or (data.author and string.find(string.lower(data.author), string.lower(inputText), nil, true))) then
+			if not lowerInput or (string.find(string.lower(name), lowerInput, nil, true) or (data.desc and string.find(string.lower(data.desc), lowerInput, nil, true)) or (data.basename and string.find(string.lower(data.basename), lowerInput, nil, true)) or (data.author and string.find(string.lower(data.author), lowerInput, nil, true))) then
 				fullWidgetsList[#fullWidgetsList+1] = { name, data }
 				-- look for the maxWidth
 				local width = fontSize * font:GetTextWidth(name)
@@ -614,6 +615,7 @@ function widget:KeyPress(key, mods, isRepeat)
 end
 
 function widget:Update(dt)
+	if not show then return end
 	cursorBlinkTimer = cursorBlinkTimer + dt
 	if cursorBlinkTimer > cursorBlinkDuration then cursorBlinkTimer = 0 end
 end
@@ -640,19 +642,23 @@ function widget:DrawScreen()
 
 	UpdateList()
 
-	local prevBackgroundRect = backgroundRect or {0,0,1,1}
-	backgroundRect = { floor(minx - (bgPadding * sizeMultiplier)), floor(miny - (bgPadding * sizeMultiplier)), floor(maxx + (bgPadding * sizeMultiplier)), floor(maxy + (bgPadding * sizeMultiplier)) }
-	if backgroundRect[1] ~= prevBackgroundRect[1] or backgroundRect[2] ~= prevBackgroundRect[2] or backgroundRect[3] ~= prevBackgroundRect[3] or backgroundRect[4] ~= prevBackgroundRect[4] then
+	local bg1 = floor(minx - (bgPadding * sizeMultiplier))
+	local bg2 = floor(miny - (bgPadding * sizeMultiplier))
+	local bg3 = floor(maxx + (bgPadding * sizeMultiplier))
+	local bg4 = floor(maxy + (bgPadding * sizeMultiplier))
+	if not backgroundRect or bg1 ~= backgroundRect[1] or bg2 ~= backgroundRect[2] or bg3 ~= backgroundRect[3] or bg4 ~= backgroundRect[4] then
+		backgroundRect = { bg1, bg2, bg3, bg4 }
 		updateUi = true
 	end
 
-	local title = Spring.I18N('ui.widgetselector.title')
-	local titleFontSize = 18 * widgetScale
-	titleRect = { backgroundRect[1], backgroundRect[4], mathFloor(backgroundRect[1] + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), mathFloor(backgroundRect[4] + (titleFontSize*1.7)) }
 	borderx = (yStep * sizeMultiplier) * 0.75
 	bordery = (yStep * sizeMultiplier) * 0.75
 
 	if updateUi then
+		updateTextInputDlist = true
+		local title = Spring.I18N('ui.widgetselector.title')
+		local titleFontSize = 18 * widgetScale
+		titleRect = { backgroundRect[1], backgroundRect[4], mathFloor(backgroundRect[1] + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), mathFloor(backgroundRect[4] + (titleFontSize*1.7)) }
 		dlistGuishader = gl.DeleteList(dlistGuishader)
 		dlistGuishader = gl.CreateList(function()
 			RectRound(floor(minx - (bgPadding * sizeMultiplier)), floor(miny - (bgPadding * sizeMultiplier)), floor(maxx + (bgPadding * sizeMultiplier)), floor(maxy + (bgPadding * sizeMultiplier)), 6 * sizeMultiplier)
@@ -874,7 +880,7 @@ function widget:DrawScreen()
 		end
 	end
 
-	if showTextInput then --and updateTextInputDlist then
+	if showTextInput and (updateTextInputDlist or not textInputDlist) then
 		drawChatInput()
 	end
 	if showTextInput and textInputDlist then

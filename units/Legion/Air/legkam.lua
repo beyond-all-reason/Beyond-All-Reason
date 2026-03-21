@@ -106,6 +106,7 @@ return {
 				reloadtime = 10,
 				weapontype = "AircraftBomb",
 				customparams = {
+					bogus = 1,
 				},
 				damage = {
 					default = 1,
@@ -130,6 +131,9 @@ return {
 				soundstart = "bombdropxx",
 				weapontype = "Cannon",
 				weaponvelocity = 1000,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					vtol = 1000,
 					default = 1,

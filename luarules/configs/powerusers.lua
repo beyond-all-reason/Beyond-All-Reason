@@ -6,6 +6,7 @@ local everything = {
 	playerdata = true,
 	waterlevel = true,
 	sysinfo = true,
+	volcano = true,
 }
 local moderator = {
 	give = false,
@@ -15,6 +16,7 @@ local moderator = {
 	playerdata = false,
 	waterlevel = false,
 	sysinfo = true,
+	volcano = true,
 }
 local singleplayer = {		-- note: these permissions override others when singleplayer
 	give = true,
@@ -24,6 +26,7 @@ local singleplayer = {		-- note: these permissions override others when singlepl
 	waterlevel = true,
 	playerdata = true,
 	sysinfo = false,
+	volcano = true,
 }
 
 return {
@@ -38,30 +41,21 @@ return {
 	[84658] = everything,	-- OPman
 	[51535] = everything,	-- Nightmare2512
 	[130329] = everything,	-- SethDGamre
-	[36669] = everything,	-- Steel
-
-	-- temporary event admins for planetary campaign (remove when event is over)
-	[16285] = everything,	-- [BAB]Zer0_Cool
-	[42214] = everything,	-- [BAB]Tenebos 
-	[21783] = everything,	-- [BAB]Darknight_2277 
-	[64509] = everything,	-- Xix2g
-	[111659] = everything,	-- Snipebusher
-	[18436] = everything,	-- [BAB]Kuroi_Kitsune 
-	[303060] = everything,	-- [Mado]Tripl3 
-	[204872] = everything,	-- RAM_10rotator01 
+	[36669] = everything,	-- Steel 
+	[132545] = everything,	-- Praedyth (KOTH organizer)
+	[136110] = everything,	-- TANKTOM (KOTH organizer)
+	[78506] = everything,	-- Twig (KOTH organizer)
 
 	-- moderator level users
 	[3133] = moderator,		-- Lexon
 	[258984] = moderator,	-- ScavengersOffenseAI
 	[22297] = moderator,	-- Shadhunter
 	[125301] = moderator,	-- DeviousNull
-	[2401] = moderator,		-- Fire[Z]torm_
 	[128743] = moderator,	-- Pooman
 	[57869] = moderator,	-- [BAC]SnekVonPess
 	[21114] = moderator,	-- [FH]Amojini
 	[168817] = moderator,	-- SongbirdOfChirping
 	[57158] = moderator,	-- Endorphins
-	[132545] = moderator,	-- Praedyth
 	[88808] = moderator,	-- Shadowisperke
 }
 
