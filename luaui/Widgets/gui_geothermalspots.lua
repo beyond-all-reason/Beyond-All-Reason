@@ -470,7 +470,6 @@ function widget:DrawWorld()
 
 	gl.PolygonOffset(false)
 	gl.DepthTest(false)
-	gl.DepthMask(true)
 end
 
 function widget:GetConfigData(data)
