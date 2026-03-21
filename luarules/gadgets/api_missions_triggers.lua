@@ -354,11 +354,6 @@ end
 --- Call-ins:
 ----------------------------------------------------------------
 
-
-----------------------------------------------------------------
---- Call-ins:
-----------------------------------------------------------------
-
 function gadget:Initialize()
 	if not GG['MissionAPI'] then
 		gadgetHandler:RemoveGadget()
@@ -473,9 +468,10 @@ end
 
 function gadget:FeatureDestroyed(featureID, attackerAllyTeamID)
 	local featureDefID = Spring.GetFeatureDefID(featureID)
+	local metal, _, energy = Spring.GetFeatureResources(featureID)
 	local reclaimerTeamID = reclaimedFeatures[featureID]
 
-	if reclaimerTeamID then
+	if reclaimerTeamID and metal <= 0 and energy <= 0 then
 		-- Feature was fully reclaimed
 		reclaimedFeatures[featureID] = nil
 		processTriggersOfType(types.FeatureReclaimed, function(trigger, _)

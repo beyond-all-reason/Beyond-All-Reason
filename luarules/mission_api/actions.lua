@@ -89,7 +89,7 @@ end
 
 ----------------------------------------------------------------
 
-local function transferUnits(unitName, newTeam, given)
+local function transferUnits(unitName, newTeam)
 	if isUnitNameUntracked(unitName) then return end
 
 	-- Copying table as UnitExists trigger with TransferUnits with the same name could cause infinite loop.
@@ -171,7 +171,7 @@ end
 local function destroyFeature(featureName)
 	if isFeatureNameUntracked(featureName) then return end
 
-	-- Copy table to avoid mutation while iterating
+	-- Copying table as FeatureDestroyed trigger with CreateFeature with the same name could cause infinite loop.
 	for featureID in pairs(table.copy(trackedFeatureIDs[featureName])) do
 		if Spring.ValidFeatureID(featureID) then
 			Spring.DestroyFeature(featureID)
