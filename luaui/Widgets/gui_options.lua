@@ -1988,25 +1988,170 @@ function loadAllWidgetData()
 	end
 end
 
--- Efficiently filters options without rebuilding the entire options table
+-- Fuzzy subsequence match: characters of query appear in order within target.
+-- Returns a score > 0 on match, or 0 on no match.
+-- Bonuses: consecutive chars, word boundary matches, start-of-string match.
+-- Penalties: large gaps between matched characters.
+local function fuzzyScore(query, target)
+	local qi = 1
+	local qlen = #query
+	local tlen = #target
+	if qlen == 0 then return 0 end
+	if qlen > tlen then return 0 end
+
+	local score = 0
+	local consecutive = 0
+	local prevMatched = false
+	local firstMatchPos = nil
+	local lastMatchPos = 0
+
+	for ti = 1, tlen do
+		if qi > qlen then break end
+		local tc = string.byte(target, ti)
+		local qc = string.byte(query, qi)
+		if tc == qc then
+			if not firstMatchPos then firstMatchPos = ti end
+			qi = qi + 1
+			-- Gap penalty: penalize distance from previous match
+			if lastMatchPos > 0 then
+				local gap = ti - lastMatchPos - 1
+				if gap > 0 then
+					score = score - gap * 0.5
+				end
+			end
+			lastMatchPos = ti
+			-- Consecutive character bonus
+			if prevMatched then
+				consecutive = consecutive + 1
+				score = score + 3 + consecutive
+			else
+				consecutive = 0
+				score = score + 1
+			end
+			-- Word boundary bonus: char after space, underscore, or start of string
+			if ti == 1 then
+				score = score + 5
+			else
+				local prev = string.byte(target, ti - 1)
+				if prev == 32 or prev == 95 or prev == 45 then -- space, underscore, dash
+					score = score + 4
+				end
+			end
+			prevMatched = true
+		else
+			prevMatched = false
+			consecutive = 0
+		end
+	end
+
+	if qi <= qlen then
+		return 0 -- not all query chars matched
+	end
+
+	-- Bonus for matching near the start
+	if firstMatchPos then
+		score = score + math.max(0, 6 - firstMatchPos)
+	end
+
+	-- Normalize: prefer shorter targets (tighter matches)
+	score = score + math.max(0, 3 - (tlen - qlen) * 0.1)
+
+	return score
+end
+
+-- Efficiently filters options without rebuilding the entire options table.
+-- Priority: exact substring > multi-word AND > fuzzy subsequence.
+-- Within each tier, results are further ranked by match quality.
 function applyFilter()
 	if inputText and inputText ~= '' and inputMode == '' then
 		local filteredOptions = {}
 		local lowerInput = string.lower(inputText)
+		local matchedSet = {} -- track options already matched by higher-priority methods
+
+		-- Split input into words
+		local queryWords = {}
+		for word in lowerInput:gmatch("%S+") do
+			queryWords[#queryWords + 1] = word
+		end
+		if #queryWords == 0 then
+			options = unfilteredOptions
+			rebuildOptionIdIndex()
+			if windowList then
+				gl.DeleteList(windowList)
+			end
+			windowList = gl.CreateList(DrawWindow)
+			return
+		end
+
+		-- Strip spaces for fuzzy matching (single continuous query)
+		local queryNoSpaces = lowerInput:gsub("%s+", "")
+
 		for i, option in pairs(unfilteredOptions) do
 			if option.name and option.name ~= '' and option.type and option.type ~= 'label' then
 				local name = string.gsub(option.name, widgetOptionColor, "")
 				name = string.gsub(name, "  ", " ")
-				if string.find(string.lower(name), lowerInput, nil, true) then
-					filteredOptions[#filteredOptions+1] = option
-				elseif option.description and option.description ~= '' and string.find(string.lower(option.description), lowerInput, nil, true) then
-					filteredOptions[#filteredOptions+1] = option
-				elseif string.find(string.lower(option.id), lowerInput, nil, true) then
-					filteredOptions[#filteredOptions+1] = option
+				local lowerName = string.lower(name)
+				local lowerId = string.lower(option.id)
+				local lowerDesc = option.description and option.description ~= '' and string.lower(option.description) or ''
+
+				local score = 0
+
+				-- Tier 1: Exact substring match in name (score 300+)
+				local exactPos = string.find(lowerName, lowerInput, nil, true)
+				if exactPos then
+					score = 300 + math.max(0, 50 - exactPos) + math.max(0, 20 - #lowerName)
+				end
+
+				-- Tier 2: Multi-word AND matching (score 100-299)
+				if score == 0 and #queryWords > 1 then
+					local allWordsMatch = true
+					local nameMatches = 0
+					local posSum = 0
+					for _, word in ipairs(queryWords) do
+						local inName = string.find(lowerName, word, nil, true)
+						local inDesc = string.find(lowerDesc, word, nil, true)
+						local inId = string.find(lowerId, word, nil, true)
+						if not inName and not inDesc and not inId then
+							allWordsMatch = false
+							break
+						end
+						if inName then
+							nameMatches = nameMatches + 1
+							posSum = posSum + inName
+						end
+					end
+					if allWordsMatch then
+						local base = (nameMatches == #queryWords) and 200 or 100
+						score = base + math.max(0, 50 - posSum / #queryWords)
+					end
+				end
+
+				-- Tier 3: Fuzzy subsequence matching on name only (score 1-99)
+				-- Requires at least 3 characters to avoid too many false positives
+				if score == 0 and #queryNoSpaces >= 3 then
+					local nameScore = fuzzyScore(queryNoSpaces, lowerName)
+					-- Require a minimum quality: score must be at least 2 per query char
+					local minThreshold = #queryNoSpaces * 2
+					if nameScore >= minThreshold then
+						score = math.min(99, nameScore)
+					end
+				end
+
+				if score > 0 then
+					filteredOptions[#filteredOptions + 1] = { option = option, score = score }
 				end
 			end
 		end
-		options = filteredOptions
+
+		-- Sort by score descending (best matches first)
+		table.sort(filteredOptions, function(a, b) return a.score > b.score end)
+
+		-- Unwrap scored entries
+		local result = {}
+		for j = 1, #filteredOptions do
+			result[j] = filteredOptions[j].option
+		end
+		options = result
 		startColumn = 1
 	else
 		-- No filter, use the cached unfiltered options
@@ -4888,7 +5033,7 @@ function init()
 		{ id = "factoryholdpos", group = "game", category = types.basic, widget = "Factory hold position", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.factoryholdpos'), type = "bool", value = GetWidgetToggleValue("Factory hold position"), description = Spring.I18N('ui.settings.option.factoryholdpos_descr') },
 		{ id = "factoryrepeat", group = "game", category = types.basic, widget = "Factory Auto-Repeat", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.factoryrepeat'), type = "bool", value = GetWidgetToggleValue("Factory Auto-Repeat"), description = Spring.I18N('ui.settings.option.factoryrepeat_descr') },
 
-		{ id = "transportOrderedUnits", 
+		{ id = "transportOrderedUnits",
 		group = "game",
 		category = types.basic,
 		name = "Ferry ignores units with manual orders",
