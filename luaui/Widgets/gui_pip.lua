@@ -239,7 +239,7 @@ config = {
 	showViewRectangleOnMinimap = false,  -- Show the PIP view rectangle on the engine minimap
 	showViewRectangleInWorld = false,  -- Show the PIP view rectangle as an outline in the 3D world
 	engineMinimapFallback = true,  -- Use engine minimap when fully zoomed out (performance fallback)
-	engineMinimapFallbackThreshold = 45,  -- Unit count threshold before engine minimap fallback activates
+	engineMinimapFallbackThreshold = 4500,  -- Unit count threshold before engine minimap fallback activates
 	engineMinimapExplosionOverlay = true,  -- Draw explosion overlay on top of engine minimap
 	engineMinimapDecalStrength = 0.8,  -- Decal overlay strength on engine minimap (0-1, lower = subtler scorch marks) decals do overlap with the engine minimap (unit icons), so this can be used to reduce their prominence if desired
 }
