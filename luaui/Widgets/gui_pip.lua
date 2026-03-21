@@ -21,7 +21,9 @@ end
 -- Forward-declare config so zoom helpers can reference it (config table defined below)
 local config
 
--- Helper function to get effective zoom minimum (accounts for minimap mode)
+-- Helper function to get effective zoom minimum (accounts for minimap mode)]]]]]]]]]]]]
+
+
 local function GetEffectiveZoomMin()
 	if isMinimapMode and minimapModeMinZoom then
 		return minimapModeMinZoom
@@ -189,6 +191,7 @@ config = {
 	screenMargin = 0.045,
 	drawProjectiles = true,
 	zoomToCursor = true,
+	altKeyRequiredForZoom = Spring.GetConfigInt("PipAltKeyRequiredForZoom", 1) == 1,  -- When true, scrolling over the PIP only zooms if ALT is held (otherwise passes through to the game)
 	mapEdgeMargin = 0,
 	showButtonsOnHoverOnly = true,
 	switchInheritsTracking = false,
@@ -7647,6 +7650,12 @@ end
 	WG['pip'..pipNumber].setDrawCommandFX = function(value)
 		config.drawCommandFX = value
 		pipR2T.unitsNeedsUpdate = true
+	end
+	WG['pip'..pipNumber].getAltKeyRequiredForZoom = function()
+		return config.altKeyRequiredForZoom
+	end
+	WG['pip'..pipNumber].setAltKeyRequiredForZoom = function(value)
+		config.altKeyRequiredForZoom = value
 	end
 
 	-- In minimap mode, also register as WG.pip_minimap for compatibility
@@ -17986,6 +17995,14 @@ function widget:MouseWheel(up, value)
 	if not uiState.inMinMode then
 		local mx, my = spFunc.GetMouseState()
 		if mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t then
+			-- When altKeyRequiredForZoom is enabled, pass scroll through unless ALT or middle mouse is held
+			if config.altKeyRequiredForZoom then
+				local alt = Spring.GetModKeyState()
+				local _, _, _, middleButton = spFunc.GetMouseState()
+				if not alt and not middleButton then return end
+			end
+			-- During activity focus, pass scroll through so the game camera zooms instead
+			if miscState.activityFocusActive then return end
 			-- Don't allow zooming when tracking a player's camera
 			if interactionState.trackingPlayerID then
 				return true
