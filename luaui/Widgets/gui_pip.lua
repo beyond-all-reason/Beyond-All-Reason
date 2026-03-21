@@ -4059,22 +4059,16 @@ end
 
 local function UpdateGuishaderBlur()
 	if WG['guishader'] then
-		-- When minimap is hidden via MinimapMinimize, remove blur entirely
-		if isMinimapMode and miscState.minimapMinimized then
-			if render.guishaderDlist then
-				gl.DeleteList(render.guishaderDlist)
-				render.guishaderDlist = nil
-			end
-			if WG['guishader'].RemoveDlist then
-				WG['guishader'].RemoveDlist('pip'..pipNumber)
-			elseif WG['guishader'].RemoveRect then
-				WG['guishader'].RemoveRect('pip'..pipNumber)
-			end
-			return
-		end
 		-- Determine the correct bounds based on mode
 		local blurL, blurB, blurR, blurT
-		if uiState.inMinMode and not uiState.isAnimating then
+		if isMinimapMode and miscState.minimapMinimized then
+			-- Minimap minimized: blur behind the maximize button
+			local buttonSize = math.floor(render.usedButtonSize * config.maximizeSizemult)
+			blurL = render.dim.l - render.elementPadding
+			blurB = render.dim.t - buttonSize - render.elementPadding
+			blurR = render.dim.l + buttonSize + render.elementPadding
+			blurT = render.dim.t + render.elementPadding
+		elseif uiState.inMinMode and not uiState.isAnimating then
 			-- Use minimized button position
 			local buttonSize = math.floor(render.usedButtonSize * config.maximizeSizemult)
 			blurL = uiState.minModeL - render.elementPadding
@@ -7746,6 +7740,15 @@ function widget:ViewResize()
 		render.dim.r = usedWidth
 		render.dim.b = render.vsy - usedHeight
 		render.dim.t = render.vsy
+
+		-- Keep savedDimensions in sync so maximize always expands to the correct
+		-- aspect ratio for the current map (not stale dims from a previous game).
+		uiState.savedDimensions = {
+			l = render.dim.l,
+			r = render.dim.r,
+			b = render.dim.b,
+			t = render.dim.t,
+		}
 		
 		-- Calculate zoom so the map texture fully fits the PIP
 		-- Use full dimensions since we're edge-to-edge
