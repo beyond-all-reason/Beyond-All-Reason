@@ -409,10 +409,14 @@ if gadgetHandler:IsSyncedCode() then
 			checkLavaTreesFire(gf)
 		end
 
+		local removeFeatures
+		local removeCount = 0
 		for featureID, featureinfo in pairs(treesdying) do
 			local fx, fy, fz = GetFeaturePosition(featureID)
 			if not fx then
-				treesdying[featureID] = nil
+				if not removeFeatures then removeFeatures = {} end
+				removeCount = removeCount + 1
+				removeFeatures[removeCount] = featureID
 				DestroyFeature(featureID)
 			else
 				spSetFeatureResources(0,0,0,0)
@@ -482,7 +486,9 @@ if gadgetHandler:IsSyncedCode() then
 
 						local gh = spGetGroundHeight(fx, fz)
 						if featureinfo.destroyFrame <= gf or (gh > fy + 48) then
-							treesdying[featureID] = nil
+						if not removeFeatures then removeFeatures = {} end
+						removeCount = removeCount + 1
+						removeFeatures[removeCount] = featureID
 							DestroyFeature(featureID)
 						elseif featureinfo.frame + thisfeaturefalltime + 250 <= gf and featureinfo.fire then
 							featureinfo.fire = false
@@ -502,6 +508,9 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 			end
+		end
+		for i = 1, removeCount do
+			treesdying[removeFeatures[i]] = nil
 		end
 	end
 end

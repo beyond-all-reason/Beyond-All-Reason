@@ -12,8 +12,6 @@ function widget:GetInfo()
 	}
 end
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
-
 local alwaysShow = false
 
 local width = 0
@@ -70,7 +68,7 @@ local loadedFontSize, font, font2, font2, cfgDisplayUnitID, cfgDisplayUnitDefID,
 local cellRect, cellPadding, cornerSize, cellsize, cellHovered
 local gridHeight, selUnitsSorted, selUnitsCounts, selectionCells, customInfoArea, contentPadding
 local displayUnitID, displayUnitDefID, doUpdateClock
-local contentWidth, dlistInfo, bfcolormap, selUnitTypes
+local contentWidth, bfcolormap, selUnitTypes
 
 local RectRound, UiElement, UiUnit, elementCorner
 
@@ -168,6 +166,23 @@ local unloadParams = { 0, 0, 0, 0 }  -- x, y, z, unitID
 local viewSelectionCmd = { "viewselection" }
 
 local function refreshUnitInfo()
+	local builderTraits = {
+		canBuild   = function(def) return def.isFactory or next(def.buildOptions) ~= nil end,
+		canAssist  = function(def) return not def.isFactory and def.canAssist end,
+		canCapture = function(def) return not def.isFactory and def.canCapture and def.buildDistance > 0 end,
+		canReclaim = function(def) return not def.isFactory and def.canReclaim and def.buildDistance > 0 end,
+		canRepair  = function(def) return not def.isFactory and def.canRepair and def.buildDistance > 0 end,
+		canRestore = function(def) return not def.isFactory and def.canRestore and def.buildDistance > 0 end,
+	}
+	local function hasBuilderTrait(def)
+		for trait, check in pairs(builderTraits) do
+			if check(def) then
+				return true
+			end
+		end
+		return false
+	end
+
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		unitDefInfo[unitDefID] = {}
 
@@ -266,7 +281,7 @@ local function refreshUnitInfo()
 		if unitDef.canStockpile then
 			unitDefInfo[unitDefID].canStockpile = true
 		end
-		if unitDef.buildSpeed > 0 then
+		if unitDef.buildSpeed > 0 and hasBuilderTrait(unitDef) then
 			unitDefInfo[unitDefID].buildSpeed = unitDef.buildSpeed
 		end
 		if unitDef.buildOptions[1] then
@@ -286,8 +301,8 @@ local function refreshUnitInfo()
 			minIntensity = math.max(def.minIntensity, 0.5)
 			local prevMinDps = unitDefInfo[unitDefID].mindps or 0
 			local prevMaxDps = unitDefInfo[unitDefID].maxdps or 0
-			local mindps = math_floor(minIntensity*(damage * def.salvoSize / def.reload))
-			local maxdps = math_floor(damage * def.salvoSize / def.reload)
+			local mindps = minIntensity*(damage * def.salvoSize / def.reload)
+			local maxdps = damage * def.salvoSize / def.reload
 
 			unitDefInfo[unitDefID].mindps = mindps + prevMinDps
 			unitDefInfo[unitDefID].maxdps = maxdps + prevMaxDps
@@ -298,8 +313,8 @@ local function refreshUnitInfo()
 		local function calculateWeaponDPS(def, damage)
 			local prevMinDps = unitDefInfo[unitDefID].mindps or 0
 			local prevMaxDps = unitDefInfo[unitDefID].maxdps or 0
-			local newDps = math_floor(damage * (def.salvoSize * def.projectiles) / def.reload)
-			local stockpileDps = math_floor(damage * (def.salvoSize * def.projectiles) / (def.stockpile and def.stockpileTime/30 or def.reload))
+			local newDps = damage * (def.salvoSize * def.projectiles) / def.reload
+			local stockpileDps = damage * (def.salvoSize * def.projectiles) / (def.stockpile and def.stockpileTime/30 or def.reload)
 			unitDefInfo[unitDefID].mindps = math_min(newDps, stockpileDps) + prevMinDps
 			unitDefInfo[unitDefID].maxdps = math_max(newDps, stockpileDps) + prevMaxDps
 		end
@@ -313,10 +328,20 @@ local function refreshUnitInfo()
 			local cmNumber = def.customParams.cluster_number
 			local cmDamage = WeaponDefNames[munition].damages[0]
 
-			local mainDps = math_floor((def.salvoSize * def.projectiles) / def.reload * (damage))
-			local cmunDps = math_floor((def.salvoSize * def.projectiles) / def.reload * (cmNumber * cmDamage))
+			local mainDps = (def.salvoSize * def.projectiles) / def.reload * (damage)
+			local cmunDps = (def.salvoSize * def.projectiles) / def.reload * (cmNumber * cmDamage)
 			unitDefInfo[unitDefID].mindps = prevMinDps + mainDps
 			unitDefInfo[unitDefID].maxdps = prevMaxDps + mainDps + cmunDps
+		end
+
+
+		local function calculateAreaDPS(def, damage)
+			local burst = def.salvoSize * def.projectiles
+			local impactDps = damage * burst / def.reload
+			local areaDps = def.customParams.area_onhit_damage -- by definition
+			local damageMax = math_max(impactDps + areaDps, areaDps * burst * def.customParams.area_onhit_time / def.reload)
+			unitDefInfo[unitDefID].mindps = (unitDefInfo[unitDefID].mindps or 0) + impactDps
+			unitDefInfo[unitDefID].maxdps = (unitDefInfo[unitDefID].maxdps or 0) + damageMax
 		end
 
 
@@ -347,8 +372,18 @@ local function refreshUnitInfo()
 			local weaponDef = WeaponDefs[weapons[i].weaponDef]
 			if weaponDef.interceptor ~= 0 and weaponDef.coverageRange then
 				unitDefInfo[unitDefID].maxCoverage = math.max(unitDefInfo[unitDefID].maxCoverage or 1, weaponDef.coverageRange)
-			end
-			if weaponDef.damages then
+
+			elseif weaponDef.shieldRadius and weaponDef.shieldRadius > 0 then
+				if #weapons <= 1 then
+					unitDefInfo[unitDefID].weapons = {}
+					unitDefInfo[unitDefID].shieldOnly = true
+				end
+				unitDefInfo[unitDefID].shieldRange = weaponDef.shieldRadius
+				unitDefInfo[unitDefID].shieldCapacity = weaponDef.shieldPower
+				unitDefInfo[unitDefID].shieldRechargeRate = weaponDef.shieldPowerRegen
+				unitDefInfo[unitDefID].shieldRechargeCost = weaponDef.shieldPowerRegenEnergy
+
+			else
 				if unitDef.name == 'armamb' or unitDef.name == 'cortoast' then -- weapons with low/high traj, this list is incomplete
 					unitExempt = true
 					if i==1 then                                --Calculating using first weapon only
@@ -402,32 +437,35 @@ local function refreshUnitInfo()
 						calculateWeaponDPS(weaponDef, weaponDef.damages[0]) --Damage to default armor category
 					end
 
-				elseif weaponDef.customParams then
-					if weaponDef.customParams.cluster then -- Bullets that explode into other, smaller bullets
-						unitExempt = true
-						calculateClusterDPS(weaponDef, weaponDef.damages[0])
-					elseif weaponDef.customParams.speceffect == "split" then -- Bullets that split into other, smaller bullets
-						unitExempt = true
-						local splitd = WeaponDefNames[weaponDef.customParams.speceffect_def].damages[0]
-						local splitn = weaponDef.customParams.number or 1
-						calculateWeaponDPS(weaponDef, splitd * splitn)
-					elseif weaponDef.customParams.spark_basedamage then -- Lightning
-						unitExempt = true
-						local forkd = weaponDef.customParams.spark_forkdamage
-						local forkn = weaponDef.customParams.spark_maxunits or 1
-						calculateWeaponDPS(weaponDef, weaponDef.damages[0] * (1 + forkd * forkn))
-						if unitExempt and weaponDef.paralyzer then -- DPS => EMP
-							unitDefInfo[unitDefID].minemp = unitDefInfo[unitDefID].mindps
-							unitDefInfo[unitDefID].maxemp = unitDefInfo[unitDefID].maxdps
-							unitDefInfo[unitDefID].mindps = nil
-							unitDefInfo[unitDefID].maxdps = nil
-						end
+				elseif weaponDef.customParams.area_onhit_damage and weaponDef.customParams.area_onhit_time then
+					unitExempt = true
+					calculateAreaDPS(weaponDef, weaponDef.damages[0])
+				elseif weaponDef.customParams.cluster then -- Bullets that explode into other, smaller bullets
+					unitExempt = true
+					calculateClusterDPS(weaponDef, weaponDef.damages[0])
+				elseif weaponDef.customParams.speceffect == "split" then -- Bullets that split into other, smaller bullets
+					unitExempt = true
+					local splitd = WeaponDefNames[weaponDef.customParams.speceffect_def].damages[0]
+					local splitn = weaponDef.customParams.number or 1
+					calculateWeaponDPS(weaponDef, splitd * splitn)
+				elseif weaponDef.customParams.spark_basedamage then -- Lightning
+					unitExempt = true
+					local forkd = weaponDef.customParams.spark_forkdamage
+					local forkn = weaponDef.customParams.spark_maxunits or 1
+					calculateWeaponDPS(weaponDef, weaponDef.damages[0] * (1 + forkd * forkn))
+					if unitExempt and weaponDef.paralyzer then -- DPS => EMP
+						unitDefInfo[unitDefID].minemp = unitDefInfo[unitDefID].mindps
+						unitDefInfo[unitDefID].maxemp = unitDefInfo[unitDefID].maxdps
+						unitDefInfo[unitDefID].mindps = nil
+						unitDefInfo[unitDefID].maxdps = nil
 					end
 				end
 
 				if unitDefInfo[unitDefID].mainWeapon == i then
 					unitDefInfo[unitDefID].range = weaponDef.range
-					unitDefInfo[unitDefID].reloadTime = weaponDef.reload
+					unitDefInfo[unitDefID].reloadTime = weaponDef.customParams.dronesuesestockpile
+						and weaponDef.stockpileTime
+						or  weaponDef.reload
 				end
 				if weaponDef.type == "BeamLaser" and not unitExempt then	-- BeamLaser dps calc
 
@@ -457,11 +495,11 @@ local function refreshUnitInfo()
 						end
 					else
 						-- calculate laser emp dmg
-						minIntensity = math.max(weaponDef.minIntensity, 0.5)
+						local minIntensity = math.max(weaponDef.minIntensity, 0.5)
 						local prevMinDps = unitDefInfo[unitDefID].minemp or 0
 						local prevMaxDps = unitDefInfo[unitDefID].maxemp or 0
-						local mindps = math_floor(minIntensity*(weaponDef.damages[0] * weaponDef.salvoSize / weaponDef.reload))
-						local maxdps = math_floor(weaponDef.damages[0] * weaponDef.salvoSize / weaponDef.reload)
+						local mindps = minIntensity*(weaponDef.damages[0] * weaponDef.salvoSize / weaponDef.reload)
+						local maxdps = weaponDef.damages[0] * weaponDef.salvoSize / weaponDef.reload
 
 						unitDefInfo[unitDefID].minemp = mindps + prevMinDps
 						unitDefInfo[unitDefID].maxemp = maxdps + prevMaxDps
@@ -493,23 +531,6 @@ local function refreshUnitInfo()
 			if weapons[i].onlyTargets['vtol'] ~= nil then
 				unitDefInfo[unitDefID].isAaUnit = true
 			end
-
-			--shield params
-			if weaponDef.shieldRadius and weaponDef.shieldRadius > 0 then
-				if #weapons <= 1 then
-					unitDefInfo[unitDefID].weapons = {}
-					unitDefInfo[unitDefID].mindps = 0
-					unitDefInfo[unitDefID].maxdps = 0
-					unitDefInfo[unitDefID].range = 0
-					unitDefInfo[unitDefID].reloadTime = 0
-					unitDefInfo[unitDefID].mainWeapon = 1
-					unitDefInfo[unitDefID].shieldOnly = true
-				end
-				unitDefInfo[unitDefID].shieldRange = weaponDef.shieldRadius
-				unitDefInfo[unitDefID].shieldCapacity = weaponDef.shieldPower
-				unitDefInfo[unitDefID].shieldRechargeRate = weaponDef.shieldPowerRegen
-				unitDefInfo[unitDefID].shieldRechargeCost = weaponDef.shieldPowerRegenEnergy
-			end
 		end
 
 		if unitDef.customParams.unitgroup and unitDef.customParams.unitgroup == 'explo' and unitDef.deathExplosion and WeaponDefNames[unitDef.deathExplosion] then
@@ -519,6 +540,43 @@ local function refreshUnitInfo()
 				unitDefInfo[unitDefID].mindps = dmg
 				unitDefInfo[unitDefID].maxdps = dmg
 				unitDefInfo[unitDefID].reloadTime = nil
+			end
+		end
+	end
+
+	-- Account for sub-unit damages, namely carriers and drones.
+	local mins = { "mindps", "minemp", }
+	local maxs = { "maxdps", "maxemp", }
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		local unitInfo = unitDefInfo[unitDefID]
+		for index, weapon in ipairs(unitDef.weapons) do
+			local weaponDef = WeaponDefs[weapon.weaponDef]
+			if weaponDef.customParams.carried_unit and UnitDefNames[weaponDef.customParams.carried_unit] then
+				local droneCount = weaponDef.customParams.maxunits or 1
+				local droneDef = UnitDefNames[weaponDef.customParams.carried_unit]
+				local droneInfo = unitDefInfo[droneDef.id]
+
+				for _, key in ipairs(mins) do
+					if droneInfo[key] then
+						unitInfo[key] = (unitInfo[key] or 0) -- times zero drones == zero
+					end
+				end
+
+				for _, key in ipairs(maxs) do
+					if droneInfo[key] then
+						unitInfo[key] = (unitInfo[key] or 0) + (droneInfo[key] * droneCount)
+					end
+				end
+			end
+		end
+	end
+
+	-- Convert aggregated values to display formats last to avoid rounding errors.
+	local summedKeys = { "mindps", "maxdps", "minemp", "maxemp", }
+	for unitDefID, unitInfo in pairs(unitDefInfo) do
+		for _, key in pairs(summedKeys) do
+			if type(unitInfo[key]) == "number" then
+				unitInfo[key] = math_floor(unitInfo[key])
 			end
 		end
 	end
@@ -613,9 +671,6 @@ function widget:ViewResize()
 	backgroundRect = { 0, 0, width * vsx, height * vsy }
 
 	doUpdate = true
-	if dlistInfo then
-		dlistInfo = gl.DeleteList(dlistInfo)
-	end
 	if infoBgTex then
 		gl.DeleteTexture(infoBgTex)
 		infoBgTex = nil
@@ -762,9 +817,6 @@ end
 function widget:Shutdown()
 	Spring.SetDrawSelectionInfo(true) --disables springs default display of selected units count
 	Spring.SendCommands("tooltip 1")
-	if dlistInfo then
-		dlistInfo = gl.DeleteList(dlistInfo)
-	end
 	if infoBgTex then
 		gl.DeleteTexture(infoBgTex)
 	end
@@ -843,13 +895,7 @@ function widget:Update(dt)
 	if doUpdate or (doUpdateClock and os_clock() >= doUpdateClock) or (os_clock() >= doUpdateClock2) then
 		doUpdateClock = nil
 		doUpdateClock2 = os_clock() + 0.9
-		if useRenderToTexture then
-			updateTex = true
-		else
-			if dlistInfo then
-				dlistInfo = gl.DeleteList(dlistInfo)
-			end
-		end
+		updateTex = true
 		doUpdate = nil
 		lastUpdateClock = os_clock()
 	end
@@ -934,7 +980,7 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 	-- unit count - calculate fontSize once
 	local fontSize = math_min(gridHeight * 0.17, cellsize * 0.6) * (1 - ((1 + string.len(selCount)) * 0.066))
 	if selCount > 1 then
-		--font2:Begin(useRenderToTexture)
+		--font2:Begin(true)
 		font2:Print(cachedColorStrings.white..selCount, cellRect[cellID][3] - cellPadding - (fontSize * 0.09), cellRect[cellID][2] + (fontSize * 0.3), fontSize, "ro")
 		--font2:End()
 	end
@@ -973,7 +1019,7 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 		glTexture(":l:LuaUI/Images/skull.dds")
 		glTexRect(cellRect[cellID][3] - size+(cellPadding*0.5), cellRect[cellID][4]-size-(cellPadding*0.5), cellRect[cellID][3]+(cellPadding*0.5), cellRect[cellID][4]-(cellPadding*0.5))
 		glTexture(false)
-		--font2:Begin(useRenderToTexture)
+		--font2:Begin(true)
 		font2:Print(cachedColorStrings.white..kills, cellRect[cellID][3] - (size * 0.5)+(cellPadding*0.5), cellRect[cellID][4] -(cellPadding*0.5)- (size * 0.5) - (fontSize * 0.19), fontSize * 0.66, "oc")
 		--font2:End()
 	end
@@ -1009,11 +1055,11 @@ local function drawSelection()
 	local fontSize = (height * vsy * 0.115) * (0.95 - ((1 - ui_scale) * 0.5))
 	local heightVar = 0
 	local heightStep = (fontSize * 1.36)
-	font2:Begin(useRenderToTexture)
+	font2:Begin(true)
 	font2:SetOutlineColor(0,0,0,1)
 	font2:Print(tooltipTextColor .. #selectedUnits .. tooltipLabelTextColor .. "  "..getCachedTranslation('ui.info.unitsselected'), backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 1.2) - heightVar, (fontSize * 1.23), "o")
 	font2:End()
-	font:Begin(useRenderToTexture)
+	font:Begin(true)
 	font:SetOutlineColor(0,0,0,1)
 	heightVar = heightVar + (fontSize * 0.85)
 
@@ -1222,7 +1268,7 @@ local function drawUnitInfo()
 		local energyPriceText = "\n\255\255\255\000" .. AddSpaces(unitDefInfo[displayUnitDefID].energyCost)
 		local energyPriceTextHeight = font2:GetTextHeight(energyPriceText) * size
 
-		font2:Begin(useRenderToTexture)
+		font2:Begin(true)
 		font2:SetOutlineColor(0,0,0,1)
 		font2:Print(metalPriceText, iconX + iconSize - padding, iconY - halfSize - halfSize + padding + (size * 1.07) + energyPriceTextHeight, size, "ro")
 		font2:Print(energyPriceText, iconX + iconSize - padding, iconY - halfSize - halfSize + padding + (size * 1.07), size, "ro")
@@ -1259,7 +1305,7 @@ local function drawUnitInfo()
 			glTexture(":l:LuaUI/Images/skull.dds")
 			glTexRect(backgroundRect[3] - rankIconMarginX - rankIconSize, backgroundRect[4] - rankIconMarginY - rankIconSize, backgroundRect[3] - rankIconMarginX, backgroundRect[4] - rankIconMarginY)
 			glTexture(false)
-			font2:Begin(useRenderToTexture)
+			font2:Begin(true)
 			font2:SetOutlineColor(0,0,0,1)
 			font2:Print('\255\215\215\215'..kills, backgroundRect[3] - rankIconMarginX - (rankIconSize * 0.5), backgroundRect[4] - (rankIconMarginY * 2.05) - (fontSize * 0.31), fontSize * 0.87, "oc")
 			font2:End()
@@ -1287,7 +1333,7 @@ local function drawUnitInfo()
 	local height = (backgroundRect[4] - backgroundRect[2]) * (unitDescriptionLines > 1 and 0.495 or 0.6)
 
 	-- unit tooltip
-	font:Begin(useRenderToTexture)
+	font:Begin(true)
 	font:SetOutlineColor(0,0,0,1)
 	font:Print(descriptionColor .. text, backgroundRect[3] - width + bgpadding, backgroundRect[4] - contentPadding - (fontSize * 2.17), fontSize * 0.94, "o")
 	font:End()
@@ -1302,7 +1348,7 @@ local function drawUnitInfo()
 		end
 		humanName = humanName..'...'
 	end
-	font2:Begin(useRenderToTexture)
+	font2:Begin(true)
 	font2:SetOutlineColor(0,0,0,1)
 	font2:Print(unitNameColor .. humanName, backgroundRect[3] - width + bgpadding, backgroundRect[4] - contentPadding - (nameFontSize * 0.76), nameFontSize, "o")
 	--font2:End()
@@ -1549,7 +1595,6 @@ local function drawUnitInfo()
 			separator = ',   '
 		end
 
-
 		-- unit specific info
 		if unitDefInfo[displayUnitDefID].mindps then
 			mindps = unitDefInfo[displayUnitDefID].mindps
@@ -1604,11 +1649,12 @@ local function drawUnitInfo()
 
 			-- basic dps display
 			if mindps and mindps > 0 and mindps == maxdps then
+
 				local dps = round(mindps/ reloadTimeSpeedup, 0)
 				addTextInfo(Spring.I18N('ui.info.dps'), dps)
 
 			-- dps range
-			elseif mindps and mindps > 0 and mindps ~= maxdps then
+			elseif mindps ~= maxdps then
 				local min = round(mindps/ reloadTimeSpeedup, 0)
 				local max = round(maxdps/ reloadTimeSpeedup, 0)
 				addTextInfo("DPS", min.."-"..max)
@@ -1621,7 +1667,7 @@ local function drawUnitInfo()
 				addTextInfo("DPS(EMP)", emp)
 
 			-- more emp dps
-			elseif minemp and minemp and minemp ~= maxemp then
+			elseif minemp ~= maxemp then
 				local min = round(minemp/ reloadTimeSpeedup, 0)
 				local max = round(maxemp/ reloadTimeSpeedup, 0)
 				addTextInfo("DPS(EMP)", min.."-"..max)
@@ -1754,7 +1800,7 @@ local function drawUnitInfo()
 		lines = nil
 
 		-- display unit(def) info text
-		font:Begin(useRenderToTexture)
+		font:Begin(true)
 		font:SetTextColor(1, 1, 1, 1)
 		font:SetOutlineColor(0.1, 0.1, 0.1, 1)
 		font:Print(text, customInfoArea[3] - width + (width*0.025), customInfoArea[4] - contentPadding - (infoFontsize * 0.55), infoFontsize, "o")
@@ -1770,7 +1816,7 @@ local function drawEngineTooltip()
 		if showEngineTooltip then
 			-- display default plaintext engine tooltip
 			local text, numLines = font:WrapText(currentTooltip, contentWidth * (loadedFontSize / fontSize))
-			font:Begin(useRenderToTexture)
+			font:Begin(true)
 			font:SetTextColor(1, 1, 1, 1)
 			font:SetOutlineColor(0.1, 0.1, 0.1, 1)
 			font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8), fontSize, "o")
@@ -1786,7 +1832,7 @@ local function drawEngineTooltip()
 				local groundType1, groundType2, metal, hardness, tankSpeed, botSpeed, hoverSpeed, shipSpeed, receiveTracks = Spring.GetGroundInfo(coords[1], coords[3])
 				local text = ''
 				local height = 0
-				font:Begin(useRenderToTexture)
+				font:Begin(true)
 				font:SetTextColor(1, 1, 1, 1)
 				font:SetOutlineColor(0.1, 0.1, 0.1, 1)
 				if displayMapPosition then
@@ -1810,7 +1856,7 @@ local function drawEngineTooltip()
 						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.ship')..' '..tooltipValueColor..math.floor(shipSpeed*100).."%"
 					end
 					if groundType2 and groundType2 ~= '' then
-						font2:Begin(useRenderToTexture)
+						font2:Begin(true)
 						font2:SetOutlineColor(0,0,0,1)
 						font2:Print(tooltipLabelTextColor..groundType2, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 1) - height, (fontSize * 1.2), "o")
 						font2:End()
@@ -1838,13 +1884,13 @@ local function drawEngineTooltip()
 					text = FeatureDefs[featureDefID].translatedDescription
 				end
 				if text and text ~= '' then
-					font2:Begin(useRenderToTexture)
+					font2:Begin(true)
 					font2:SetOutlineColor(0,0,0,1)
 					font2:Print(tooltipTitleColor..text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 1.2) - height, (fontSize * 1.4), "o")
 					font2:End()
 					height = height + (fontSize * 0.5)
 				end
-				font:Begin(useRenderToTexture)
+				font:Begin(true)
 				font:SetTextColor(1, 1, 1, 1)
 				font:SetOutlineColor(0.1, 0.1, 0.1, 1)
 				text = ''
@@ -2093,66 +2139,48 @@ function widget:DrawScreen()
 		return
 	end
 
-	if useRenderToTexture then
-		if not infoBgTex then
-			infoBgTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
-				target = GL.TEXTURE_2D,
-				format = GL.RGBA,
-				fbo = true,
-			})
-			gl.R2tHelper.RenderToTexture(infoBgTex,
-				function()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
-					drawInfoBackground()
-				end,
-				useRenderToTexture
-			)
-		end
-		if not infoTex then
-			infoTex = gl.CreateTexture(math_floor(width*vsx)*2, math_floor(height*vsy)*2, {
-				target = GL.TEXTURE_2D,
-				format = GL.RGBA,
-				fbo = true,
-			})
-		end
-		if infoTex and updateTex then
-			updateTex = nil
-			gl.R2tHelper.RenderToTexture(infoTex,
-				function()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
-					drawInfo()
-				end,
-				useRenderToTexture
-			)
-		end
-	else
-		if not dlistInfo then
-			dlistInfo = gl.CreateList(function()
-				if not useRenderToTexture then
-					if not useRenderToTextureBg then
-						drawInfoBackground()
-					end
-					drawInfo()
-				end
-			end)
-		end
+	if not infoBgTex then
+		infoBgTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
+			target = GL.TEXTURE_2D,
+			format = GL.RGBA,
+			fbo = true,
+		})
+		gl.R2tHelper.RenderToTexture(infoBgTex,
+			function()
+				gl.Translate(-1, -1, 0)
+				gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
+				drawInfoBackground()
+			end,
+			true
+		)
+	end
+	if not infoTex then
+		infoTex = gl.CreateTexture(math_floor(width*vsx)*2, math_floor(height*vsy)*2, {
+			target = GL.TEXTURE_2D,
+			format = GL.RGBA,
+			fbo = true,
+		})
+	end
+	if infoTex and updateTex then
+		updateTex = nil
+		gl.R2tHelper.RenderToTexture(infoTex,
+			function()
+				gl.Translate(-1, -1, 0)
+				gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
+				drawInfo()
+			end,
+			true
+		)
 	end
 
 	if alwaysShow or not emptyInfo or (isPregame and (not mySpec or displayMapPosition)) then
-		if useRenderToTexture and infoBgTex then
-			if infoBgTex then
-				-- background element
-				gl.R2tHelper.BlendTexRect(infoBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], useRenderToTexture)
-			end
-			if infoTex then
-				-- content
-				gl.R2tHelper.BlendTexRect(infoTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], useRenderToTexture)
-			end
+		if infoBgTex then
+			-- background element
+			gl.R2tHelper.BlendTexRect(infoBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], true)
 		end
-		if dlistInfo then
-			gl.CallList(dlistInfo)
+		if infoTex then
+			-- content
+			gl.R2tHelper.BlendTexRect(infoTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], true)
 		end
 	elseif dlistGuishader then
 		WG['guishader'].DeleteDlist('info')

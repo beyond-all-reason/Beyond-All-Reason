@@ -16,7 +16,7 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hoverattack = true,
-		health = 2250,
+		health = 1650,
 		maxslope = 10,
 		speed = 180.5,
 		maxwaterdepth = 0,
