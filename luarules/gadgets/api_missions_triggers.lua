@@ -234,9 +234,7 @@ local function checkUnitDwellLocation(trigger, triggerID)
 		elseif (dwellingUnitsInAreas[triggerID] == nil or dwellingUnitsInAreas[triggerID][unitID] == nil)
 			and (not trigger.parameters.unitName or doesUnitHaveName(unitID, trigger.parameters.unitName))
 			and (not trigger.parameters.unitDefName or UnitDefs[Spring.GetUnitDefID(unitID)].name == trigger.parameters.unitDefName) then
-			if not dwellingUnitsInAreas[triggerID] then
-				dwellingUnitsInAreas[triggerID] = {}
-			end
+			table.ensureTable(dwellingUnitsInAreas, triggerID)
 			dwellingUnitsInAreas[triggerID][unitID] = 0
 		end
 	end
