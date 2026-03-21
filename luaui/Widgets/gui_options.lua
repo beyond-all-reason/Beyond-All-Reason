@@ -2062,11 +2062,11 @@ end
 -- Efficiently filters options without rebuilding the entire options table.
 -- Priority: exact substring > multi-word AND > fuzzy subsequence.
 -- Within each tier, results are further ranked by match quality.
+-- When a sub-option (name starts with widgetOptionColor) is matched, its parent option
+-- and the group label above it are also included for context.
 function applyFilter()
 	if inputText and inputText ~= '' and inputMode == '' then
-		local filteredOptions = {}
 		local lowerInput = string.lower(inputText)
-		local matchedSet = {} -- track options already matched by higher-priority methods
 
 		-- Split input into words
 		local queryWords = {}
@@ -2086,10 +2086,53 @@ function applyFilter()
 		-- Strip spaces for fuzzy matching (single continuous query)
 		local queryNoSpaces = lowerInput:gsub("%s+", "")
 
-		for i, option in pairs(unfilteredOptions) do
+		-- Sub-option prefixes after processing: basic uses widgetOptionColor,
+		-- dev uses devMainOptionColor..devOptionColor, advanced uses advMainOptionColor..advOptionColor
+		local subPrefixes = {
+			widgetOptionColor,
+			devMainOptionColor .. devOptionColor,
+			advMainOptionColor .. advOptionColor,
+		}
+		-- All color codes used (for stripping from names during search)
+		local colorCodes = { widgetOptionColor, devOptionColor, advOptionColor, devMainOptionColor, advMainOptionColor }
+
+		local function isSubOption(name)
+			if not name then return false end
+			for _, prefix in ipairs(subPrefixes) do
+				if string.sub(name, 1, #prefix) == prefix then
+					return true
+				end
+			end
+			return false
+		end
+
+		-- Pre-scan unfilteredOptions to build parent/label context for each option.
+		-- Walking the ordered list: labels and non-sub options are "context".
+		local lastLabel = nil      -- most recent label option (type == 'label')
+		local lastParent = nil     -- most recent non-sub option
+		local optionLabel = {}     -- optionLabel[i] = label option for unfilteredOptions[i]
+		local optionParent = {}    -- optionParent[i] = parent option for unfilteredOptions[i]
+		for i, option in ipairs(unfilteredOptions) do
+			if option.type == 'label' then
+				lastLabel = option
+				lastParent = nil
+			elseif not isSubOption(option.name) then
+				lastParent = option
+			end
+			optionLabel[i] = lastLabel
+			optionParent[i] = lastParent
+		end
+
+		local matched = {}
+
+		for i, option in ipairs(unfilteredOptions) do
 			if option.name and option.name ~= '' and option.type and option.type ~= 'label' then
-				local name = string.gsub(option.name, widgetOptionColor, "")
+				local name = option.name
+				for _, code in ipairs(colorCodes) do
+					name = string.gsub(name, code, "")
+				end
 				name = string.gsub(name, "  ", " ")
+				name = name:match("^%s*(.-)%s*$") or name
 				local lowerName = string.lower(name)
 				local lowerId = string.lower(option.id)
 				local lowerDesc = option.description and option.description ~= '' and string.lower(option.description) or ''
@@ -2138,19 +2181,38 @@ function applyFilter()
 				end
 
 				if score > 0 then
-					filteredOptions[#filteredOptions + 1] = { option = option, score = score }
+					matched[#matched + 1] = { option = option, score = score, index = i }
 				end
 			end
 		end
 
-		-- Sort by score descending (best matches first)
-		table.sort(filteredOptions, function(a, b) return a.score > b.score end)
+		-- Sort matched entries by score descending
+		table.sort(matched, function(a, b) return a.score > b.score end)
 
-		-- Unwrap scored entries
+		-- Rebuild with context: for each matched sub-option, prepend its label+parent if not yet shown
+		local shown = {}
 		local result = {}
-		for j = 1, #filteredOptions do
-			result[j] = filteredOptions[j].option
+		for _, entry in ipairs(matched) do
+			local option = entry.option
+
+			if isSubOption(option.name) then
+				local label = optionLabel[entry.index]
+				if label and not shown[label] then
+					shown[label] = true
+					result[#result + 1] = label
+				end
+				local parent = optionParent[entry.index]
+				if parent and parent ~= option and not shown[parent] then
+					shown[parent] = true
+					result[#result + 1] = parent
+				end
+			end
+
+			if not shown[option] then
+				result[#result + 1] = option
+			end
 		end
+
 		options = result
 		startColumn = 1
 	else
