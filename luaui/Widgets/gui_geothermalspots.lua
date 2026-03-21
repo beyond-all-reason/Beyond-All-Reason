@@ -265,7 +265,24 @@ local function makeSpotVBO()
 	return spotVBO, n/4
 end
 
+local function cleanupGL4()
+	if spotShader then
+		spotShader:Finalize()
+		spotShader = nil
+	end
+	if spotInstanceVBO then
+		if spotInstanceVBO.VAO then spotInstanceVBO.VAO:Delete() end
+		if spotInstanceVBO.instanceVBO then spotInstanceVBO.instanceVBO:Delete() end
+		spotInstanceVBO = nil
+	end
+	if spotVBO then
+		spotVBO:Delete()
+		spotVBO = nil
+	end
+end
+
 local function initGL4()
+	cleanupGL4()
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
@@ -396,6 +413,7 @@ end
 
 
 function widget:Shutdown()
+	cleanupGL4()
 	WG.geothermalspots = nil
 end
 
