@@ -116,8 +116,6 @@ local actions = {
 }
 
 return {
-	LobbyData = lobbyData,
-	StartScript = startScript,
 	Triggers = triggers,
 	Actions = actions,
 }

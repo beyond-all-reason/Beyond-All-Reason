@@ -1,48 +1,6 @@
 local triggerTypes = GG['MissionAPI'].TriggerTypes
 local actionTypes = GG['MissionAPI'].ActionTypes
 
-local lobbyData = {
-	missionId = "markers_test",
-	title = "Markers Test",
-	description = "Lorem Ipsum ...",
-	unlocked = true,
-}
-
-local startScript = {
-	mapName = "Quicksilver Remake 1.24",
-	startPosType = 'chooseBeforeGame', -- lobby maps this: fixed = 0, random = 1, chooseInGame = 2, chooseBeforeGame = 3
-	disableFactionPicker = true, -- should this always be true, so faction can only be chosen in the lobby? or only in game?
-	disableInitialCommanderSpawn = true,
-	modOptions = {
-		deathMode = 'builders',
-	},
-	allyTeams = {
-		thePlayerAllyTeam = {
-			teams = {
-				thePlayerTeam = { -- teamName must be unique across all ally teams
-					name = "PlayerPawns", -- in-game name, player name rules apply, so no spaces etc...
-					Side = 'Cortex',
-					StartPosX = 700, -- used when startPosType is 'chooseBeforeGame'
-					StartPosZ = 700,
-					ai = nil, -- is a player
-				},
-			},
-		},
-		theEnemyAllyTeam = {
-			teams = {
-				theEnemyTeam = {
-					name = "Mission Bots",
-					Side = 'Armada',
-					StartPosX = 3000,
-					StartPosZ = 2400,
-					IncomeMultiplier = 1.5,
-					ai = "SimpleAI", -- lobby passes this as shortName
-				},
-			}
-		},
-	},
-}
-
 local triggers = {
 	addMarkers = {
 		type = triggerTypes.TimeElapsed,
@@ -141,8 +99,6 @@ local actions = {
 }
 
 return {
-	LobbyData = lobbyData,
-	StartScript = startScript,
 	Triggers = triggers,
 	Actions = actions,
 }
