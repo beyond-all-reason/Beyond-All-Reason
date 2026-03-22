@@ -109,7 +109,7 @@ local actions = {
 	addMarkerBeginner = {
 		type = actionTypes.AddMarker,
 		parameters = {
-			position = { x = 900, z = 900 },
+			position = { x = 700, z = 900 },
 			label = 'Difficulty: Beginner',
 		},
 	},
@@ -117,7 +117,7 @@ local actions = {
 	addMarkerNormal = {
 		type = actionTypes.AddMarker,
 		parameters = {
-			position = { x = 900, z = 900 },
+			position = { x = 800, z = 900 },
 			label = 'Difficulty: Normal',
 		},
 	},

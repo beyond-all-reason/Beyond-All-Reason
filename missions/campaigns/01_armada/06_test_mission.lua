@@ -138,7 +138,7 @@ local actions = {
 		parameters = {
 			unitName = 'con-bots',
             unitDefName = 'corck',
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			position = { x = 1800, z = 1600 },
 			quantity = 9,
 			facing = 'n',
@@ -150,7 +150,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
             unitDefName = 'armfus',
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			position = { x = 1900, z = 2200 },
 			quantity = 18,
 			facing = 'e',
@@ -161,7 +161,7 @@ local actions = {
 		type = actionTypes.NameUnits,
 		parameters = {
 			unitName = 'fusions',
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			unitDefName = 'armfus',
 			area = { x1 = 0, z1 = 0, x2 = 999999, z2 = 2200 },
 		},
@@ -235,7 +235,7 @@ local actions = {
 		type = actionTypes.TransferUnits,
 		parameters = {
 			unitName = 'con-bots',
-			newTeam = 1,
+			newTeamName = 'theEnemyTeam',
 		},
 	},
 
@@ -250,7 +250,7 @@ local actions = {
 		type = actionTypes.TransferUnits,
 		parameters = {
 			unitName = 'con-bots',
-			newTeam = 0,
+			newTeamName = 'thePlayerTeam',
 		},
 	},
 
@@ -286,7 +286,7 @@ local actions = {
 	gameEnd = {
 		type = actionTypes.Defeat,
 		parameters = {
-			allyTeamIDs = { 0 },
+			allyTeamNames = { 'thePlayerAllyTeam' },
 		},
 	},
 }

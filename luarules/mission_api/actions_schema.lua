@@ -161,9 +161,9 @@ local parameters = {
 			type = Types.String
 		},
 		[2] = {
-			name = 'newTeam',
+			name = 'newTeamName',
 			required = true,
-			type = Types.TeamID
+			type = Types.TeamName
 		},
 	},
 	[actionTypes.NameUnits] = {
@@ -173,9 +173,9 @@ local parameters = {
 			type = Types.String
 		},
 		[2] = {
-			name = 'teamID',
+			name = 'teamName',
 			required = false,
-			type = Types.TeamID
+			type = Types.TeamName
 		},
 		[3] = {
 			name = 'unitDefName',
@@ -190,7 +190,7 @@ local parameters = {
 			required = false,
 			type = Types.Area
 		},
-		requiresOneOf = { 'teamID', 'unitDefName', 'area' }
+		requiresOneOf = { 'teamName', 'unitDefName', 'area' }
 	},
 	[actionTypes.UnnameUnits] = {
 		[1] = {
@@ -299,16 +299,16 @@ local parameters = {
 	-- Win Condition
 	[actionTypes.Victory] = {
 		[1] = {
-			name = 'allyTeamIDs',
+			name = 'allyTeamNames',
 			required = true,
-			type = Types.AllyTeamIDs
+			type = Types.AllyTeamNames
 		}
 	},
 	[actionTypes.Defeat] = {
 		[1] = {
-			name = 'allyTeamIDs',
+			name = 'allyTeamNames',
 			required = true,
-			type = Types.AllyTeamIDs
+			type = Types.AllyTeamNames
 		}
 	},
 

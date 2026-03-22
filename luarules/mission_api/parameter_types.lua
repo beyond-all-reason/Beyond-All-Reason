@@ -8,7 +8,7 @@ local types = {
 	Table = 'Table',
 	Position = 'Position',
 	Positions = 'Positions',
-	AllyTeamIDs = 'AllyTeamIDs',
+	AllyTeamNames = 'AllyTeamNames',
 	Orders = 'Orders',
 	Area = 'Area',
 
@@ -17,14 +17,13 @@ local types = {
 	TriggerID = 'TriggerID',
 	UnitDefName = 'UnitDefName',
 	WeaponDefName = 'WeaponDefName',
-	TeamName = 'TeamName', -- TODO: replace TeamID with this, once test missions are updated, same for AllyTeamID(s)
+	TeamName = 'TeamName',
+	AllyTeamName = 'AllyTeamName',
 	Facing = 'Facing',
 	SoundFile = 'SoundFile',
 
 	-- Number Validators:
 	Number = 'Number',
-	TeamID = 'TeamID',
-	AllyTeamID = 'AllyTeamID',
 
 	-- Boolean Validators:
 	Boolean = 'Boolean',

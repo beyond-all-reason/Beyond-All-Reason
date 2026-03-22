@@ -17,8 +17,8 @@ local startScript = {
 				thePlayerTeam = {
 					name = "TestPlayer",
 					Side = 'Cortex',
-					StartPosX = 2200,
-					StartPosZ = 1500,
+					StartPosX = 1800,
+					StartPosZ = 2000,
 				},
 			},
 		},

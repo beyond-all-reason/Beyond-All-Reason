@@ -111,17 +111,22 @@ end
 
 ----------------------------------------------------------------
 
-local function transferUnits(unitName, newTeam)
+local function transferUnits(unitName, newTeamName)
 	if isNameUntracked(unitName) then return end
+
+	Spring.Echo("Transferring units with name " .. unitName .. " to team " .. newTeamName)
+	Spring.Echo("And Teams are: " .. table.toString(GG['MissionAPI'].Teams))
+	local newTeamID = GG['MissionAPI'].Teams[newTeamName]
 
 	-- Copying table as UnitExists trigger with TransferUnits with the same name could cause infinite loop.
 	for _, unitID in pairs(table.copy(trackedUnitIDs[unitName])) do
-		local given = Spring.GetUnitAllyTeam(unitID) == Spring.GetTeamAllyTeamID(newTeam)
-		Spring.TransferUnit(unitID, newTeam, given)
+		local given = Spring.GetUnitAllyTeam(unitID) == Spring.GetTeamAllyTeamID(newTeamID)
+		Spring.TransferUnit(unitID, newTeamID, given)
 	end
 end
 
-local function nameUnits(unitName, teamID, unitDefName, area)
+local function nameUnits(unitName, teamName, unitDefName, area)
+	local teamID = GG['MissionAPI'].Teams[teamName]
 	local hasFilterOtherThanTeamID = unitDefName or area
 
 	local allUnitsOfTeam = {}
@@ -232,19 +237,21 @@ local function clearAllMarkers()
 	Spring.SendCommands("clearmapmarks")
 end
 
-local function victory(winningAllyTeamIDs)
+local function victory(winningAllyTeamNames)
+	local winningAllyTeamIDs = table.map(winningAllyTeamNames, function(allyTeamName)
+		return GG['MissionAPI'].AllyTeams[allyTeamName]
+	end)
 	Spring.GameOver({ unpack(winningAllyTeamIDs) })
 end
 
-local function defeat(losingAllyTeamIDs)
-	local allAllyTeamIDs = Spring.GetAllyTeamList()
-	local winningAllyTeamIDs = { }
-	for _, allyTeamID in pairs(allAllyTeamIDs) do
-		if not table.contains(losingAllyTeamIDs, allyTeamID) then
-			table.insert(winningAllyTeamIDs, allyTeamID)
-		end
-	end
-	Spring.GameOver({ unpack(winningAllyTeamIDs) })
+local function defeat(losingAllyTeamNames)
+	local allyTeamIDs = Spring.GetAllyTeamList()
+
+	table.map(losingAllyTeamNames, function(allyTeamName)
+		table.removeFirst(allyTeamIDs, GG['MissionAPI'].AllyTeams[allyTeamName])
+	end)
+
+	Spring.GameOver({ unpack(allyTeamIDs) })
 end
 
 local function custom(func)

@@ -47,7 +47,7 @@ local function isTriggerValid(trigger)
 	if trigger.settings.repeating and trigger.settings.maxRepeats ~= nil and trigger.repeatCount > trigger.settings.maxRepeats then
 		return false
 	end
-	-- TODO: validation of difficulties once loadouts are merged
+	-- TODO: validation of difficulties once loadouts are merged and have difficulty parameters
 	if trigger.settings.difficulties ~= nil and not table.contains(trigger.settings.difficulties, GG['MissionAPI'].Difficulty) then
 		return false
 	end
@@ -108,7 +108,7 @@ local function checkUnitExists(trigger, unitDefID, teamID)
 		return
 	end
 
-	local requiredTeamID = trigger.parameters.teamID
+	local requiredTeamID = GG['MissionAPI'].Teams[trigger.parameters.teamName]
 	local requiredQuantity = trigger.parameters.quantity
 	if requiredTeamID then
 		if requiredTeamID ~= teamID then
@@ -140,23 +140,25 @@ local function checkUnitRemoved(trigger, unitID, unitDefID, unitTeam)
 	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
 		return
 	end
-	if trigger.parameters.teamID and unitTeam ~= trigger.parameters.teamID then
+	if trigger.parameters.teamName and GG['MissionAPI'].Teams[trigger.parameters.teamName] ~= unitTeam then
 		return
 	end
 	activateTrigger(trigger)
 end
 
-local function checkUnitCaptured(trigger, unitID, unitDefID, oldTeam, newTeam)
+local function checkUnitCaptured(trigger, unitID, unitDefID, oldTeamName, newTeamName)
+	local oldTeamID = GG['MissionAPI'].Teams[oldTeamName]
+	local newTeamID = GG['MissionAPI'].Teams[newTeamName]
 	if trigger.parameters.unitName and not doesUnitHaveName(unitID, trigger.parameters.unitName) then
 		return
 	end
 	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
 		return
 	end
-	if trigger.parameters.oldTeamID and oldTeam ~= trigger.parameters.oldTeamID then
+	if trigger.parameters.oldTeamID and oldTeamID ~= trigger.parameters.oldTeamID then
 		return
 	end
-	if trigger.parameters.newTeamID and newTeam ~= trigger.parameters.newTeamID then
+	if trigger.parameters.newTeamID and newTeamID ~= trigger.parameters.newTeamID then
 		return
 	end
 	activateTrigger(trigger)
@@ -178,7 +180,7 @@ local function checkUnitResurrected(trigger, unitDefID, unitTeam, builderID)
 	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
 		return
 	end
-	if trigger.parameters.teamID and unitTeam ~= trigger.parameters.teamID then
+	if trigger.parameters.teamName and GG['MissionAPI'].Teams[trigger.parameters.teamName] ~= unitTeam then
 		return
 	end
 	activateTrigger(trigger)
@@ -191,7 +193,8 @@ local function checkUnitEnteredLocation(trigger, triggerID)
 	local unitsEnteredArea = table.filterArray(unitsInArea, function(unitID)
 		return not table.contains(previousUnitsInAreas[triggerID] or {}, unitID)
 			and (not trigger.parameters.unitName or doesUnitHaveName(unitID, trigger.parameters.unitName))
-			and (not trigger.parameters.unitDefName or UnitDefs[Spring.GetUnitDefID(unitID)].name == trigger.parameters.unitDefName)
+			and (not trigger.parameters.unitDefName or trigger.parameters.unitDefName == UnitDefs[Spring.GetUnitDefID(unitID)].name)
+			and (not trigger.parameters.teamName or GG['MissionAPI'].Teams[trigger.parameters.teamName] == Spring.GetUnitTeam(unitID))
 	end)
 	previousUnitsInAreas[triggerID] = unitsInArea
 
@@ -206,7 +209,8 @@ local function checkUnitLeftLocation(trigger, triggerID)
 	local unitsLeftArea = table.filterArray(previousUnitsInAreas[triggerID] or {}, function(unitID)
 		return not table.contains(unitsInArea, unitID)
 			and (not trigger.parameters.unitName or doesUnitHaveName(unitID, trigger.parameters.unitName))
-			and (not trigger.parameters.unitDefName or UnitDefs[Spring.GetUnitDefID(unitID)].name == trigger.parameters.unitDefName)
+			and (not trigger.parameters.unitDefName or trigger.parameters.unitDefName == UnitDefs[Spring.GetUnitDefID(unitID)].name)
+			and (not trigger.parameters.teamName or GG['MissionAPI'].Teams[trigger.parameters.teamName] == Spring.GetUnitTeam(unitID))
 	end)
 	previousUnitsInAreas[triggerID] = unitsInArea
 
@@ -236,7 +240,8 @@ local function checkUnitDwellLocation(trigger, triggerID)
 		-- If unit just entered area (and hasn't already triggered), start counting:
 		elseif (dwellingUnitsInAreas[triggerID] == nil or dwellingUnitsInAreas[triggerID][unitID] == nil)
 			and (not trigger.parameters.unitName or doesUnitHaveName(unitID, trigger.parameters.unitName))
-			and (not trigger.parameters.unitDefName or UnitDefs[Spring.GetUnitDefID(unitID)].name == trigger.parameters.unitDefName) then
+			and (not trigger.parameters.unitDefName or trigger.parameters.unitDefName == UnitDefs[Spring.GetUnitDefID(unitID)].name)
+			and (not trigger.parameters.teamName or GG['MissionAPI'].Teams[trigger.parameters.teamName] == Spring.GetUnitTeam(unitID)) then
 			if not dwellingUnitsInAreas[triggerID] then
 				dwellingUnitsInAreas[triggerID] = {}
 			end
@@ -259,7 +264,8 @@ local function checkUnitEnteredOrLeftLos(trigger, unitID, unitTeam, losAllyTeamI
 	if trigger.parameters.owningTeamID and unitTeam ~= trigger.parameters.owningTeamID then
 		return
 	end
-	if trigger.parameters.spottingAllyTeamID and losAllyTeamID ~= trigger.parameters.spottingAllyTeamID then
+	if trigger.parameters.spottingAllyTeamName
+		and losAllyTeamID ~= GG['MissionAPI'].AllyTeams[trigger.parameters.spottingAllyTeamName] then
 		return
 	end
 	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
@@ -272,10 +278,10 @@ local function checkConstructionStarted(trigger, unitID, unitDefID, unitTeam)
 	if not Spring.GetUnitIsBeingBuilt(unitID) then
 		return
 	end
-	if trigger.parameters.teamID and unitTeam ~= trigger.parameters.teamID then
+	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
 		return
 	end
-	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
+	if trigger.parameters.teamID and GG['MissionAPI'].Teams[trigger.parameters.teamName] ~= unitTeam then
 		return
 	end
 	activateTrigger(trigger)
@@ -285,10 +291,10 @@ local function checkConstructionFinished(trigger, unitID, unitDefID, unitTeam)
 	if trigger.parameters.unitName and not doesUnitHaveName(unitID, trigger.parameters.unitName) then
 		return
 	end
-	if trigger.parameters.teamID and unitTeam ~= trigger.parameters.teamID then
+	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
 		return
 	end
-	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
+	if trigger.parameters.teamID and GG['MissionAPI'].Teams[trigger.parameters.teamName] ~= unitTeam then
 		return
 	end
 	activateTrigger(trigger)
