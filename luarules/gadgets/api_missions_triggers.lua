@@ -466,10 +466,10 @@ end
 
 function gadget:FeatureDestroyed(featureID, attackerAllyTeamID)
 	local featureDefID = Spring.GetFeatureDefID(featureID)
-	local metal, _, energy = Spring.GetFeatureResources(featureID)
+	local _, _, _, _, reclaimLeft = Spring.GetFeatureResources(featureID)
 	local reclaimerTeamID = reclaimedFeatures[featureID]
 
-	if reclaimerTeamID and metal <= 0 and energy <= 0 then
+	if reclaimerTeamID and reclaimLeft <= 0 then
 		-- Feature was fully reclaimed
 		reclaimedFeatures[featureID] = nil
 		processTriggersOfType(types.FeatureReclaimed, function(trigger, _)
