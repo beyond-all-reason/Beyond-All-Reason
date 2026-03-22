@@ -41,7 +41,7 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, captu
 		return false -- Sharing partly built nanoframes is not allowed because letting it decay bypasses taxation. Also you can't assist ally build so unit could get stuck in factory.
 	end
 	if commanders[unitDefID] then
-		if next(Spring.GetPlayerList(fromTeamID)) == nil then -- There are no players in the fromTeam, therefore this is /take.
+		if next(Spring.GetPlayerList(fromTeamID, true)) == nil then -- There are no active players in the fromTeam, therefore this is /take.
 			return true
 		end
 		return false
