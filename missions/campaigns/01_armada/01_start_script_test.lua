@@ -3,9 +3,9 @@ local actionTypes = GG['MissionAPI'].ActionTypes
 
 -- display in lobby, inspired by https://www.figma.com/design/XmKdpNvdclGEVwW6c2EaKH/BAR_new-client?node-id=228-2&p=f&t=m6SWIi6tC92CRpZi-0
 local lobbyData = {
-	missionId = "1",
-	title = "Mission 1: The Stars are Falling",
-	description = "Lorem Ipsum ...",
+	missionId = "start_script_test",
+	title = "Start Script Test",
+	description = "Tests start script options like difficulty and disabling comm. And also: Lorem Ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 	startPos = { x = 0.25, y = 0.25 }, -- marker on map in lobby to indicate the player's starting position
 	image = "scenario002.jpg",
 	unlocked = true, -- dynamic data, should not be here, but in lobby state - this is just for testing purposes
@@ -71,25 +71,13 @@ local startScript = {
 }
 
 local triggers = {
-	spawnBots = {
-		type = triggerTypes.TimeElapsed,
-		settings = {
-			repeating = true,
-		},
-		parameters = {
-			gameFrame = 30,
-			interval = 210,
-		},
-		actions = { 'spawnBots', 'moveBots' },
-	},
-
 	addMarkerBeginner = {
 		type = triggerTypes.TimeElapsed,
 		settings = {
 			difficulties = { "Beginner" },
 		},
 		parameters = {
-			gameFrame = 130,
+			gameFrame = 60,
 		},
 		actions = { 'addMarkerBeginner' },
 	},
@@ -100,7 +88,7 @@ local triggers = {
 			difficulties = { "Normal" },
 		},
 		parameters = {
-			gameFrame = 130,
+			gameFrame = 60,
 		},
 		actions = { 'addMarkerNormal' },
 	},
@@ -111,35 +99,13 @@ local triggers = {
 			difficulties = { "Hard" },
 		},
 		parameters = {
-			gameFrame = 130,
+			gameFrame = 60,
 		},
 		actions = { 'addMarkerHard' },
 	},
 }
 
 local actions = {
-	spawnBots = {
-		type = actionTypes.SpawnUnits,
-		parameters = {
-			unitName = 'bots',
-			unitDefName = 'armpw',
-			teamName = 'thePlayerTeam',
-			quantity = 4,
-			position = { x = 100, z = 100 },
-		},
-	},
-
-	moveBots = {
-		type = actionTypes.IssueOrders,
-		parameters = {
-			unitName = 'bots',
-			orders = {
-				{ CMD.FIGHT, { 200, 0, 900 } },
-				{ CMD.PATROL, { 1400, 0, 200 }, { 'shift' } },
-			},
-		},
-	},
-
 	addMarkerBeginner = {
 		type = actionTypes.AddMarker,
 		parameters = {

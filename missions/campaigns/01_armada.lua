@@ -1,7 +1,7 @@
 return {
 	campaignId = "armada-main",
 	title = "Test Campaign 1 - Armada",
-	description = "This is a description field meant to hold longer string content.",
+	description = "This campaign has Mission API test missions, for now.",
 	backgroundImage = "BAR3-5K_Loadingscreen_1.jpg",
 	logo = "armada_logo.png",
 	faction = "armada",
