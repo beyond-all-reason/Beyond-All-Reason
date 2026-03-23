@@ -58,15 +58,15 @@ local function processParameters(actionsOrTriggers, schemaParameters)
 	end
 end
 
-local function processActionsParameters(actions)
+local function processActionParameters(actions)
 	processParameters(actions, actionsSchemaParameters)
 end
 
-local function processTriggersParameters(triggers)
+local function processTriggerParameters(triggers)
 	processParameters(triggers, triggersSchemaParameters)
 end
 
 return {
-	ProcessActionsParameters  = processActionsParameters,
-	ProcessTriggersParameters = processTriggersParameters,
+	ProcessActionParameters  = processActionParameters,
+	ProcessTriggerParameters = processTriggerParameters,
 }
