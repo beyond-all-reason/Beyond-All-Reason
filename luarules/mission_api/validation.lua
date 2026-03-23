@@ -127,8 +127,19 @@ validators[Types.Orders] = function(orders)
 		local function validateOrderCommandAndParams(order, orderNumber)
 			local commandID = order[1]
 			local params = order[2]
-			local function validateNumberArrayCurried(sizes, message)
+			local function validateSimpleTypeCurried(type)
 				return function()
+					local luaTypeResult = validateLuaType(params, type)
+					if luaTypeResult then
+						result[#result + 1] = { message = luaTypeResult, parameterNameSuffix = '[' .. orderNumber .. '][2]' }
+					end
+				end
+			end
+			local function validateNumberArrayCurried(sizes, message, acceptString)
+				return function()
+					if acceptString and type(params) == 'string' then
+						return
+					end
 					local luaTypeResult = validateLuaType(params, 'table')
 					if luaTypeResult then
 						result[#result + 1] = { message = luaTypeResult, parameterNameSuffix = '[' .. orderNumber .. '][2]' }
@@ -147,36 +158,40 @@ validators[Types.Orders] = function(orders)
 					end
 				end
 			end
+			local validateNumber = validateSimpleTypeCurried('number')
+			local validateString = validateSimpleTypeCurried('string')
+			-- TODO: make y optional? as in: {123, nil, 123}
 			local validate3 = validateNumberArrayCurried({ 3 }, "3 numbers {x, y, z}")
-			local validate4 = validateNumberArrayCurried({ 4 }, "4 numbers {x, y, z, radius}")
+			local validate3orName = validateNumberArrayCurried({ 3 }, "3 numbers {x, y, z}, or a unit name", true)
 			local validate3or4 = validateNumberArrayCurried({ 3, 4 }, "3 or 4 numbers {x, y, z, optional radius}")
-			local function validateNumber()
-				local luaTypeResult = validateLuaType(params, 'number')
-				if luaTypeResult then
-					result[#result + 1] = { message = luaTypeResult, parameterNameSuffix = '[' .. orderNumber .. '][2]' }
-				end
-			end
+			local validate4 = validateNumberArrayCurried({ 4 }, "4 numbers {x, y, z, radius}")
+			local validate4orName = validateNumberArrayCurried({ 4 }, "4 numbers {x, y, z, radius}, or a unit name", true)
+
 			local commandValidators = {
-				-- No parameters:SpawnUnits:
+				-- No parameters:
 				[CMD.STOP] = false,
 				[CMD.SELFD] = false,
-				[CMD.GUARD] = false,
+				-- Name parameter:
+				[CMD.GUARD] = validateString,
 				-- 3 number parameters:
 				[CMD.DGUN] = validate3,
 				[CMD.MOVE] = validate3,
 				[CMD.FIGHT] = validate3,
 				[CMD.PATROL] = validate3,
-				-- 4 number parameters:
-				[CMD.RECLAIM] = validate4,
-				[CMD.RESURRECT] = validate4,
-				[CMD.CAPTURE] = validate4,
-				[CMD.AREA_ATTACK] = validate4,
-				[CMD.RESTORE] = validate4,
 				-- 3 or 4 number parameters:
-				[CMD.ATTACK] = validate3or4,
-				[CMD.REPAIR] = validate3or4,
 				[CMD.UNLOAD_UNITS] = validate3or4,
-				[CMD.LOAD_UNITS] = validate3or4,
+				-- 4 number parameters:
+				[CMD.RESURRECT] = validate4,
+				[CMD.AREA_ATTACK] = false, -- currently broken in engine
+				[GameCMD.AREA_ATTACK_GROUND] = validate4, -- Only artillery units (customParams.canareaattack = 1) support this
+				[CMD.RESTORE] = validate4,
+				-- 3 number parameters, or unit name:
+				[CMD.ATTACK] = validate3orName,
+				-- 4 number parameters, or unit name:
+				[CMD.RECLAIM] = validate4orName,
+				[CMD.CAPTURE] = validate4orName,
+				[CMD.REPAIR] = validate4orName,
+				[CMD.LOAD_UNITS] = validate4orName,
 				-- Single number parameter:
 				[CMD.CLOAK] = validateNumber,
 				[CMD.ONOFF] = validateNumber,
@@ -584,6 +599,20 @@ local function validateUnitNameReferences(triggerTypes, actionTypes, triggers, a
 
 	local createdUnitNames = {}
 	local referencedUnitNames = {}
+
+	-- Orders on IssueOrders actions can also refer to unit names:
+	for actionID, action in pairs(actions) do
+		if action.type == actionTypes.IssueOrders then
+			for _, order in ipairs(action.parameters.orders) do
+				local params = order[2]
+				if type(params) == 'string' then
+					referencedUnitNames[params] = referencedUnitNames[params] or {}
+					referencedUnitNames[params][#referencedUnitNames[params] + 1] = "action " .. actionID .. " (orders)"
+				end
+			end
+		end
+	end
+
 	local function recordUnitNameCreationsAndReferences(typesNamingUnits, typesReferencingUnitNames, actionsOrTriggers, label)
 		for actionOrTriggerID, actionOrTrigger in pairs(actionsOrTriggers) do
 			local unitName = (actionOrTrigger.parameters or {}).unitName

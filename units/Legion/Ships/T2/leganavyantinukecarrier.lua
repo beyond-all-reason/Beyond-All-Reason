@@ -10,6 +10,7 @@ return {
 		canmove = true,
 		canreclaim = false,
 		canrepair = false,
+		canrestore = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "59 52 154",
 		collisionvolumetype = "CylZ",
@@ -48,6 +49,7 @@ return {
 		waterline = 0,
 		workertime = 1000,
 		customparams = {
+			maxrange = 1300,
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Ships/T2",

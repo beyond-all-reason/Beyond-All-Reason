@@ -79,7 +79,31 @@ end
 local function issueOrders(unitName, orders)
     if isNameUntracked(unitName) then return end
 
-	Spring.GiveOrderArrayToUnitArray(trackedUnitIDs[unitName], orders)
+	local commandsAcceptingName = { [CMD.GUARD] = true, [CMD.REPAIR] = true, [CMD.CAPTURE] = true,
+									[CMD.ATTACK] = true, [CMD.LOAD_UNITS] = true, [CMD.RECLAIM] = true }
+
+	-- Replace name param with unitIDs, duplicating order for each unitID
+	local newOrders = {}
+	for _, order in pairs(orders) do
+		local commandID = order[1]
+		local params = order[2] or {}
+		local options = order[3] or {}
+		if commandsAcceptingName[commandID] and type(params) == 'string' then
+			local unitIDs = trackedUnitIDs[params] or {}
+			local isFirstUnitID = true
+			for _, unitID in ipairs(unitIDs) do
+				newOrders[#newOrders + 1] = { commandID, unitID, table.copy(options) }
+				if isFirstUnitID then
+					table.insert(options, 'shift')
+					isFirstUnitID = false
+				end
+			end
+		else
+			newOrders[#newOrders + 1] = order
+		end
+	end
+
+	Spring.GiveOrderArrayToUnitArray(trackedUnitIDs[unitName], newOrders)
 end
 
 local function spawnUnits(unitName, unitDefName, teamID, position, quantity, facing, construction, spacing)
