@@ -127,17 +127,24 @@ validators[Types.Orders] = function(orders)
 		local function validateOrderCommandAndParams(order, orderNumber)
 			local commandID = order[1]
 			local params = order[2]
-			local function validateNumberArrayCurried(sizes, message)
+			local function validateNumberArrayCurried(sizes, message, nameKeys)
 				return function()
 					local luaTypeResult = validateLuaType(params, 'table')
 					if luaTypeResult then
 						result[#result + 1] = { message = luaTypeResult, parameterNameSuffix = '[' .. orderNumber .. '][2]' }
 						return
 					end
+
+					if nameKeys and table.any(nameKeys, function(nameKey) return params[nameKey] ~= nil end) then
+						-- params has a nameKey field, so it's a unit or feature name parameter
+						return
+					end
+
 					if not table.contains(sizes, #(params or {})) then
 						result[#result + 1] = { message = "Parameter must be an array of " .. message, parameterNameSuffix = '[' .. orderNumber .. '][2]' }
 						return
 					end
+
 					for i, param in ipairs(params or {}) do
 						local luaTypeRes = validateLuaType(param, 'number')
 						if luaTypeRes then
@@ -147,36 +154,50 @@ validators[Types.Orders] = function(orders)
 					end
 				end
 			end
-			local validate3 = validateNumberArrayCurried({ 3 }, "3 numbers {x, y, z}")
-			local validate4 = validateNumberArrayCurried({ 4 }, "4 numbers {x, y, z, radius}")
-			local validate3or4 = validateNumberArrayCurried({ 3, 4 }, "3 or 4 numbers {x, y, z, optional radius}")
+
 			local function validateNumber()
 				local luaTypeResult = validateLuaType(params, 'number')
 				if luaTypeResult then
 					result[#result + 1] = { message = luaTypeResult, parameterNameSuffix = '[' .. orderNumber .. '][2]' }
 				end
 			end
+
+			local validateUnitName = validateNumberArrayCurried({ -1 }, "{ unitName = 'aUnitName' }", { 'unitName' })
+			local validate3 = validateNumberArrayCurried({ 3 }, "3 numbers {x, y, z}")
+			local validate3orUnitName = validateNumberArrayCurried({ 3 }, "3 numbers {x, y, z}, or a unit name", { 'unitName' })
+			local validate3or4 = validateNumberArrayCurried({ 3, 4 }, "3 or 4 numbers {x, y, z, optional radius}")
+			local validate4 = validateNumberArrayCurried({ 4 }, "4 numbers {x, y, z, radius}")
+			local validate4orUnitName = validateNumberArrayCurried({ 4 }, "4 numbers {x, y, z, radius}, or a unit name", { 'unitName' })
+			local validate4orFeatureName = validateNumberArrayCurried({ 4 }, "4 numbers {x, y, z, radius}, or a feature name", { 'featureName' })
+			local validate4orEitherName = validateNumberArrayCurried({ 4 }, "4 numbers {x, y, z, radius}, or a feature name", { 'unitName', 'featureName' })
+
 			local commandValidators = {
-				-- No parameters:SpawnUnits:
+				-- No parameters:
 				[CMD.STOP] = false,
 				[CMD.SELFD] = false,
-				[CMD.GUARD] = false,
+				-- Unit name parameter:
+				[CMD.GUARD] = validateUnitName,
 				-- 3 number parameters:
 				[CMD.DGUN] = validate3,
 				[CMD.MOVE] = validate3,
 				[CMD.FIGHT] = validate3,
 				[CMD.PATROL] = validate3,
-				-- 4 number parameters:
-				[CMD.RECLAIM] = validate4,
-				[CMD.RESURRECT] = validate4,
-				[CMD.CAPTURE] = validate4,
-				[CMD.AREA_ATTACK] = validate4,
-				[CMD.RESTORE] = validate4,
 				-- 3 or 4 number parameters:
-				[CMD.ATTACK] = validate3or4,
-				[CMD.REPAIR] = validate3or4,
 				[CMD.UNLOAD_UNITS] = validate3or4,
-				[CMD.LOAD_UNITS] = validate3or4,
+				-- 4 number parameters:
+				[CMD.AREA_ATTACK] = false, -- currently broken in engine
+				[GameCMD.AREA_ATTACK_GROUND] = validate4, -- Only artillery units (customParams.canareaattack = 1) support this
+				[CMD.RESTORE] = validate4,
+				-- 3 number parameters, or unit name:
+				[CMD.ATTACK] = validate3orUnitName,
+				-- 4 number parameters, or unit name:
+				[CMD.CAPTURE] = validate4orUnitName,
+				[CMD.REPAIR] = validate4orUnitName,
+				[CMD.LOAD_UNITS] = validate4orUnitName,
+				-- 4 number parameters, or feature name:
+				[CMD.RESURRECT] = validate4orFeatureName,
+				-- 4 number parameters, or either unit or feature name:
+				[CMD.RECLAIM] = validate4orEitherName,
 				-- Single number parameter:
 				[CMD.CLOAK] = validateNumber,
 				[CMD.ONOFF] = validateNumber,
@@ -503,13 +524,27 @@ local function validateUnitNameReferences(triggerTypes, actionTypes, triggers, a
 
 	local createdUnitNames = {}
 	local referencedUnitNames = {}
+
+	-- Orders on IssueOrders actions can also refer to unit names:
+	for actionID, action in pairs(actions) do
+		if action.type == actionTypes.IssueOrders then
+			for _, order in ipairs(action.parameters.orders) do
+				local params = order[2]
+				if type(params) == 'table' and params.unitName then
+					local refsToUnitName = table.ensureTable(referencedUnitNames, params.unitName)
+					refsToUnitName[#refsToUnitName + 1] = "action " .. actionID .. " (orders)"
+				end
+			end
+		end
+	end
+
 	local function recordUnitNameCreationsAndReferences(typesNamingUnits, typesReferencingUnitNames, actionsOrTriggers, label)
 		for actionOrTriggerID, actionOrTrigger in pairs(actionsOrTriggers) do
 			local unitName = (actionOrTrigger.parameters or {}).unitName
 			if unitName then
 				if typesNamingUnits[actionOrTrigger.type] then
-					createdUnitNames[unitName] = createdUnitNames[unitName] or {}
-					createdUnitNames[unitName][#createdUnitNames[unitName] + 1] = label .. actionOrTriggerID
+					local creatorsOfUnitName = table.ensureTable(createdUnitNames, unitName)
+					creatorsOfUnitName[#creatorsOfUnitName + 1] = label .. actionOrTriggerID
 				elseif typesReferencingUnitNames[actionOrTrigger.type] then
 					referencedUnitNames[unitName] = referencedUnitNames[unitName] or {}
 					referencedUnitNames[unitName][#referencedUnitNames[unitName] + 1] = label .. actionOrTriggerID
@@ -549,16 +584,30 @@ local function validateFeatureNameReferences(triggerTypes, actionTypes, triggers
 
 	local createdFeatureNames = {}
 	local referencedFeatureNames = {}
+
+	-- Orders on IssueOrders actions can also refer to feature names:
+	for actionID, action in pairs(actions) do
+		if action.type == actionTypes.IssueOrders then
+			for _, order in ipairs(action.parameters.orders) do
+				local params = order[2]
+				if type(params) == 'table' and params.featureName then
+					local refsToFeatureName = table.ensureTable(referencedFeatureNames, params.featureName)
+					refsToFeatureName[#refsToFeatureName + 1] = "action " .. actionID .. " (orders)"
+				end
+			end
+		end
+	end
+
 	local function recordFeatureNameCreationsAndReferences(typesNamingFeatures, typesReferencingFeatureNames, actionsOrTriggers, label)
 		for actionOrTriggerID, actionOrTrigger in pairs(actionsOrTriggers) do
 			local featureName = (actionOrTrigger.parameters or {}).featureName
 			if featureName then
 				if typesNamingFeatures[actionOrTrigger.type] then
-					createdFeatureNames[featureName] = createdFeatureNames[featureName] or {}
-					createdFeatureNames[featureName][#createdFeatureNames[featureName] + 1] = label .. actionOrTriggerID
+					local creatorsOfFeatureName = table.ensureTable(createdFeatureNames, featureName)
+					creatorsOfFeatureName[#creatorsOfFeatureName + 1] = label .. actionOrTriggerID
 				elseif typesReferencingFeatureNames[actionOrTrigger.type] then
-					referencedFeatureNames[featureName] = referencedFeatureNames[featureName] or {}
-					referencedFeatureNames[featureName][#referencedFeatureNames[featureName] + 1] = label .. actionOrTriggerID
+					local refsToFeatureName = table.ensureTable(referencedFeatureNames, featureName)
+					refsToFeatureName[#refsToFeatureName + 1] = label .. actionOrTriggerID
 				end
 			end
 		end

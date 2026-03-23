@@ -144,7 +144,7 @@ return {
 					spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently.
 					spawnrate = 8, 				--Spawnrate roughly in seconds.
 					maxunits = 6,				--Will spawn units until this amount has been reached.
-					startingdronecount = 0,
+					startingdronecount = 3,
 					energycost = 500,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					metalcost = 15,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					controlradius = 1000,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.

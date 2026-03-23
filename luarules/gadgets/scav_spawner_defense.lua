@@ -340,6 +340,7 @@ if gadgetHandler:IsSyncedCode() then
 	local minWaveSize = ((config.minScavs*(1-config.scavPerPlayerMultiplier))+(config.minScavs*config.scavPerPlayerMultiplier)*SetCount(humanTeams))*config.scavSpawnMultiplier
 	local currentMaxWaveSize = minWaveSize
 	local endlessLoopCounter = 1
+	local pastFirstBoss = false
 	function updateDifficultyForSurvival()
 		t = GetGameSeconds()
 		config.gracePeriod = t-1
@@ -1056,11 +1057,16 @@ if gadgetHandler:IsSyncedCode() then
 				totalMaxHealth = totalMaxHealth + status.maxHealth
 			else
 				local health, maxHealth = GetUnitHealth(bossID)
-				table.mergeInPlace(status, {health = health, maxHealth = maxHealth})
+				if not health then
+					status.isDead = true
+					totalMaxHealth = totalMaxHealth + status.maxHealth
+				else
+					table.mergeInPlace(status, {health = health, maxHealth = maxHealth})
 
-				totalHealth = totalHealth + health
-				aliveBossesMaxHealth = aliveBossesMaxHealth + maxHealth
-				totalMaxHealth = totalMaxHealth + maxHealth
+					totalHealth = totalHealth + health
+					aliveBossesMaxHealth = aliveBossesMaxHealth + maxHealth
+					totalMaxHealth = totalMaxHealth + maxHealth
+				end
 			end
 		end
 
@@ -2037,8 +2043,12 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				currentMaxWaveSize = math.ceil((minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))*(config.bossFightWaveSizeScale*0.01))
 			end
-
-			techAnger = (t - config.gracePeriodInitial) / ((bossTime/(Spring.GetModOptions().scav_bosstimemult)) - config.gracePeriodInitial) * 100
+			if pastFirstBoss or Spring.GetModOptions().scav_graceperiodmult <= 1 then
+				techAnger = (t - config.gracePeriodInitial) / ((bossTime/(Spring.GetModOptions().scav_bosstimemult)) - config.gracePeriodInitial) * 100
+			else
+				techAnger = (t - (config.gracePeriodInitial/Spring.GetModOptions().scav_graceperiodmult)) / ((bossTime/(Spring.GetModOptions().scav_bosstimemult)) - (config.gracePeriodInitial/Spring.GetModOptions().scav_graceperiodmult)) * 100
+			end
+			--techAnger = (t - config.gracePeriodInitial) / ((bossTime/(Spring.GetModOptions().scav_bosstimemult)) - config.gracePeriodInitial) * 100
 			techAnger = math.ceil(techAnger*((config.economyScale*0.5)+0.5))
 			techAnger = math.clamp(techAnger, 0, 999)
 
@@ -2184,16 +2194,18 @@ if gadgetHandler:IsSyncedCode() then
 						captureProgress = math.min(0.05, captureProgress)
 						if Spring.GetUnitTeam(unitID) ~= scavTeamID and GG.IsPosInRaptorScum(ux, uy, uz) then
 							if captureLevel+captureProgress >= 0.99 then
-								TransferUnit(unitID, scavTeamID, false)
-								SetUnitHealth(unitID, {capture = 0.95})
-								SetUnitHealth(unitID, {health = maxHealth})
-								SendToUnsynced("unitCaptureFrame", unitID, 0.95)
-								GG.ScavengersSpawnEffectUnitID(unitID)
 								SpawnCEG("scavmist", ux, uy+100, uz, 0,0,0)
 								SpawnCEG("scavradiation", ux, uy+100, uz, 0,0,0)
 								SpawnCEG("scavradiation-lightning", ux, uy+100, uz, 0,0,0)
-
-								GG.addUnitToCaptureDecay(unitID)
+								-- UnitGiven may destroy and replace this unit with a _scav variant
+								TransferUnit(unitID, scavTeamID, false)
+								if ValidUnitID(unitID) then
+									SetUnitHealth(unitID, {capture = 0.95})
+									SetUnitHealth(unitID, {health = maxHealth})
+									SendToUnsynced("unitCaptureFrame", unitID, 0.95)
+									GG.ScavengersSpawnEffectUnitID(unitID)
+									GG.addUnitToCaptureDecay(unitID)
+								end
 							else
 								SetUnitHealth(unitID, {capture = math.min(captureLevel+captureProgress, 1)})
 								SendToUnsynced("unitCaptureFrame", unitID, math.min(captureLevel+captureProgress, 1))
@@ -2259,12 +2271,12 @@ if gadgetHandler:IsSyncedCode() then
 						createUnitQueue[#createUnitQueue+1] = {UnitDefs[unitDefID].name .. "_scav", x, y, z, GetUnitBuildFacing(unitID) or 0, scavTeamID}
 						DestroyUnit(unitID, true, true)
 					end
+				elseif UnitDefs[unitDefID].customParams.scav_swap_override_captured == "delete" then
+					DestroyUnit(unitID, true, true)
 				elseif UnitDefs[unitDefID].customParams.scav_swap_override_captured ~= "null" then
 					if UnitDefNames[UnitDefs[unitDefID].customParams.scav_swap_override_captured] then
 						createUnitQueue[#createUnitQueue+1] = {UnitDefs[unitDefID].customParams.scav_swap_override_captured, x, y, z, GetUnitBuildFacing(unitID) or 0, scavTeamID}
 					end
-					DestroyUnit(unitID, true, true)
-				elseif UnitDefs[unitDefID].customParams.scav_swap_override_captured == "delete" then
 					DestroyUnit(unitID, true, true)
 				end
 				return

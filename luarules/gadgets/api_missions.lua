@@ -29,6 +29,11 @@ local function loadMission()
 
 	local validateReferences = VFS.Include('luarules/mission_api/validation.lua').ValidateReferences
 	validateReferences()
+
+	-- TODO: refactor loaders after merging loadouts
+	local parameterProcessing = VFS.Include('luarules/mission_api/parameter_processing.lua')
+	parameterProcessing.ProcessActionParameters(GG['MissionAPI'].Actions)
+	parameterProcessing.ProcessTriggerParameters(GG['MissionAPI'].Triggers)
 end
 
 function gadget:Initialize()
@@ -37,6 +42,7 @@ function gadget:Initialize()
 	--scriptPath = 'mission-api-tests/test_mission.lua'
 	--scriptPath = 'mission-api-tests/markers_test.lua'
 	--scriptPath = 'mission-api-tests/sound_test.lua'
+	--scriptPath = 'mission-api-tests/issue_orders_test.lua'
 	--scriptPath = 'mission-api-tests/unit_triggers_test.lua'
 	--scriptPath = 'mission-api-tests/feature_triggers_test.lua'
 	scriptPath = 'mission-api-tests/resource_test.lua'
