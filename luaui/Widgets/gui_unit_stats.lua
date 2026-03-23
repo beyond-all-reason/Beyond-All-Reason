@@ -136,6 +136,7 @@ local armorTypes = Game.armorTypes
 local max = mathMax
 local floor = mathFloor
 local ceil = math.ceil
+local bit_and = math.bit_and
 local format = string.format
 local char = string.char
 
@@ -176,6 +177,12 @@ local showStats = false
 
 -- TODO: Shield damages are overridden in the shields rework (now in main game)
 local shieldsRework = not Spring.GetModOptions().experimentalshields:find("bounce")
+
+-- TODO: Localize, same as armorTypes
+-- TODO: Compose this list somewhere and reinclude it here
+local targetableTypes = {
+	[1] = "nuclear missiles",
+}
 
 ------------------------------------------------------------------------------------
 -- Functions
@@ -608,21 +615,23 @@ local function drawStats(uDefID, uID)
 		local baseArmorIndex = defaultArmorDamage >= damages[armorTypes.vtol] and defaultArmorIndex or armorTypes.vtol
 		local baseArmorDamage = damages[baseArmorIndex]
 
-		if uWep.customParams then
-			if uWep.customParams.spark_basedamage then
-				local spDamage = uWep.customParams.spark_basedamage * uWep.customParams.spark_forkdamage
-				local spCount = uWep.customParams.spark_maxunits
-				baseArmorDamage = baseArmorDamage + spDamage * spCount
-			elseif uWep.customParams.speceffect == "split" then
-				burst = burst * (uWep.customParams.number or 1)
-				uWep = WeaponDefNames[uWep.customParams.speceffect_def] or uWep
-				baseArmorDamage = damages[defaultArmorIndex]
-			elseif uWep.customParams.cluster then
-				local munition = uDef.name .. '_' .. uWep.customParams.cluster_def
-				local cmNumber = uWep.customParams.cluster_number
-				local cmDamage = WeaponDefNames[munition].damages[defaultArmorIndex]
-				baseArmorDamage = baseArmorDamage + cmDamage * cmNumber
-			end
+		local custom = uWep.customParams
+
+		if custom.spark_basedamage then
+			local spDamage = custom.spark_basedamage * custom.spark_forkdamage
+			local spCount = custom.spark_maxunits
+			baseArmorDamage = baseArmorDamage + spDamage * spCount
+
+		elseif custom.speceffect == "split" then
+			burst = burst * (custom.number or 1)
+			uWep = WeaponDefNames[custom.speceffect_def] or uWep
+			baseArmorDamage = damages[defaultArmorIndex]
+
+		elseif custom.cluster then
+			local munition = uDef.name .. '_' .. custom.cluster_def
+			local cmNumber = custom.cluster_number
+			local cmDamage = WeaponDefNames[munition].damages[defaultArmorIndex]
+			baseArmorDamage = baseArmorDamage + cmDamage * cmNumber
 		end
 
 		if range > 0 then
@@ -656,28 +665,42 @@ local function drawStats(uDefID, uID)
 			end
 
 			local infoText = ""
-			if wpnName == texts.deathexplosion or wpnName == texts.selfdestruct then
-				infoText = format("%d "..texts.aoe..", %d%% "..texts.edge, uWep.damageAreaOfEffect, 100 * uWep.edgeEffectiveness)
-			else
-				infoText = format("%.2f", (useExp and reload or uWep.reload))..texts.s.." "..texts.reload..", "..format("%d "..texts.range..", %d "..texts.aoe..", %d%% "..texts.edge, useExp and range or uWep.range, uWep.damageAreaOfEffect, 100 * uWep.edgeEffectiveness)
-			end
-			if damages.paralyzeDamageTime > 0 then
-				infoText = format("%s, %ds "..texts.paralyze, infoText, damages.paralyzeDamageTime)
-			end
-			if damages.impulseFactor > 0.123 then
-				infoText = format("%s, %d "..texts.impulse, infoText, damages.impulseFactor*100)
-			end
-			if damages.craterBoost > 0 then
-				infoText = format("%s, %d "..texts.crater, infoText, damages.craterBoost*100)
-			end
 			if string.find(uWep.name, "disintegrator") then
 				infoText = format("%.2f", (useExp and reload or uWep.reload)).."s "..texts.reload..", "..format("%d "..texts.range, useExp and range or uWep.range)
+			elseif uWep.interceptor ~= 0 and uWep.coverageRange > 0 then
+				local stockpile, coverage = uWep.stockpileTime / simSpeed, uWep.coverageRange
+				infoText = format("%.2f%s %s (%d%s %s), %d %s", useExp and reload or uWep.reload, texts.s, texts.reload, stockpile, texts.s, texts.stockpile:lower(), coverage, texts.coverage)
+			else
+				if wpnName == texts.deathexplosion or wpnName == texts.selfdestruct then
+					infoText = format("%d "..texts.aoe..", %d%% "..texts.edge, uWep.damageAreaOfEffect, 100 * uWep.edgeEffectiveness)
+				else
+					infoText = format("%.2f", (useExp and reload or uWep.reload))..texts.s.." "..texts.reload..", "..format("%d "..texts.range..", %d "..texts.aoe..", %d%% "..texts.edge, useExp and range or uWep.range, uWep.damageAreaOfEffect, 100 * uWep.edgeEffectiveness)
+				end
+				if damages.paralyzeDamageTime > 0 then
+					infoText = format("%s, %ds "..texts.paralyze, infoText, damages.paralyzeDamageTime)
+				end
+				if damages.impulseFactor > 0.123 then
+					infoText = format("%s, %d "..texts.impulse, infoText, damages.impulseFactor*100)
+				end
+				if damages.craterBoost > 0 then
+					infoText = format("%s, %d "..texts.crater, infoText, damages.craterBoost*100)
+				end
 			end
 			DrawText(texts.info..":", infoText)
 
 			-- Draw the damage and damage modifiers strings.
 			if string.find(uWep.name, "disintegrator") then
 				DrawText(texts.dmg..": ", texts.infinite)
+			elseif uWep.interceptor ~= 0 then
+				DrawText(texts.dmg..": ", texts.burst.." = "..yellow..format("%d", defaultArmorDamage * burst))
+				local interceptor = uWep.interceptor
+				local intercepts = {}
+				for mask, targetType in pairs(targetableTypes) do
+					if bit_and(interceptor, mask) ~= 0 then
+						intercepts[#intercepts+1] = targetType
+					end
+				end
+				DrawText(texts.intercepts..":", table.concat(intercepts, "; ")..white..".")
 			elseif baseArmorDamage > 0 and not uWep.customParams.bogus then
 				local damageString = ""
 				local burstDamage = baseArmorDamage * burst
@@ -685,6 +708,11 @@ local function drawStats(uDefID, uID)
 					damageString = texts.burst.." = "..(format(yellow .. "%d", burstDamage))..white.."."
 				else
 					local dps = burstDamage / (useExp and reload or uWep.reload)
+					if custom.area_onhit_damage and custom.area_onhit_time then
+						local areaDps = custom.area_onhit_damage * burst
+						local duration = custom.area_onhit_time
+						dps = max(dps + areaDps, areaDps * duration / (useExp and reload or uWep.reload))
+					end
 					totaldps = totaldps + wepCount*dps
 					totalbDamages = totalbDamages + wepCount* burstDamage
 					damageString = texts.dps.." = "..(format(yellow .. "%d", dps))..white.."; "..texts.burst.." = "..(format(yellow .. "%d", burstDamage)) .. white .. (wepCount > 1 and (" ("..texts.each..").") or ("."))
@@ -724,21 +752,14 @@ local function drawStats(uDefID, uID)
 			end
 
 			if uWep.metalCost > 0 or uWep.energyCost > 0 then
-
-				-- Stockpiling weapons are weird
-				-- They take the correct amount of resources overall
-				-- They take the correct amount of time
-				-- They drain ((simSpeed+2)/simSpeed) times more resources than they should (And the listed drain is real, having lower income than listed drain WILL stall you)
-				local drainAdjust = uWep.stockpile and (simSpeed+2)/simSpeed or 1
-
 				DrawText(texts.cost..':', format(metalColor .. '%d' .. white .. ', ' ..
 					energyColor .. '%d' .. white .. ' = ' ..
 					metalColor .. '-%d' .. white .. ', ' ..
 					energyColor .. '-%d' .. white .. ' '..texts.persecond,
 					uWep.metalCost,
 					uWep.energyCost,
-					drainAdjust * uWep.metalCost / oRld,
-					drainAdjust * uWep.energyCost / oRld))
+					uWep.metalCost / oRld,
+					uWep.energyCost / oRld))
 			end
 
 

@@ -79,7 +79,7 @@ return {
 				footprintx = 2,
 				footprintz = 2,
 				height = 55,
-				metal = "2500",
+				metal = 2500,
 				object = "Units/scavboss/armcomboss_dead.s3o",
 				reclaimable = true,
 			},

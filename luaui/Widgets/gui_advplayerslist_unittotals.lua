@@ -21,8 +21,6 @@ local mathFloor = math.floor
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGetViewGeometry = Spring.GetViewGeometry
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
-
 local displayFeatureCount = false
 
 local vsx, vsy = spGetViewGeometry()
@@ -47,11 +45,21 @@ local top, left, bottom, right = 0,0,0,0
 local myTeamID = spGetMyTeamID()
 local totalUnits = 0
 local passedTime = 0
+local positionCheckTime = 0
+local POSITION_CHECK_INTERVAL = 0.05
 
-local allyTeamList = Spring.GetAllyTeamList()
-local allyTeamTeamList = {}
-for i = 1, #allyTeamList do
-	allyTeamTeamList[allyTeamList[i]] = Spring.GetTeamList(allyTeamList[i])
+-- Pre-flatten all team IDs into a single array for fast iteration
+local allTeamIDs = {}
+local allTeamCount = 0
+do
+	local allyTeamList = Spring.GetAllyTeamList()
+	for i = 1, #allyTeamList do
+		local teams = Spring.GetTeamList(allyTeamList[i])
+		for j = 1, #teams do
+			allTeamCount = allTeamCount + 1
+			allTeamIDs[allTeamCount] = teams[j]
+		end
+	end
 end
 
 
@@ -71,7 +79,7 @@ local function drawContent()
 		local features = Spring.GetAllFeatures()
 		text = text..'    \255\170\170\170'..#features
 	end
-	font:Begin(useRenderToTexture)
+	font:Begin(true)
 	font:SetOutlineColor(0.15,0.15,0.15,0.8)
 	font:Print(text, left+textXPadding, bottom+(0.48*widgetHeight*widgetScale)-(textsize*0.35), textsize, 'no')
 	font:End()
@@ -89,56 +97,38 @@ local function refreshUiDrawing()
 	end
 
 	if right-left >= 1 and top-bottom >= 1 then
-		if useRenderToTexture then
-			if not uiBgTex then
-				uiBgTex = gl.CreateTexture(mathFloor(right-left), mathFloor(top-bottom), {
-					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
-					fbo = true,
-				})
-				gl.R2tHelper.RenderToTexture(uiBgTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / (right-left), 2 / (top-bottom), 0)
-						gl.Translate(-left, -bottom, 0)
-						drawBackground()
-					end,
-					useRenderToTexture
-				)
-			end
-		else
-			if drawlist[1] ~= nil then
-				glDeleteList(drawlist[1])
-			end
-			drawlist[1] = glCreateList( function()
-				drawBackground()
-			end)
-		end
-		if useRenderToTexture then
-			if not uiTex then
-				uiTex = gl.CreateTexture(mathFloor(right-left), mathFloor(top-bottom), {		--*(vsy<1400 and 2 or 1)
-					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
-					fbo = true,
-				})
-			end
-			gl.R2tHelper.RenderToTexture(uiTex,
+		if not uiBgTex then
+			uiBgTex = gl.CreateTexture(mathFloor(right-left), mathFloor(top-bottom), {
+				target = GL.TEXTURE_2D,
+				format = GL.RGBA,
+				fbo = true,
+			})
+			gl.R2tHelper.RenderToTexture(uiBgTex,
 				function()
 					gl.Translate(-1, -1, 0)
 					gl.Scale(2 / (right-left), 2 / (top-bottom), 0)
 					gl.Translate(-left, -bottom, 0)
-					drawContent()
+					drawBackground()
 				end,
-				useRenderToTexture
+				true
 			)
-		else
-			if drawlist[2] ~= nil then
-				glDeleteList(drawlist[2])
-			end
-			drawlist[2] = glCreateList( function()
-				drawContent()
-			end)
 		end
+		if not uiTex then
+			uiTex = gl.CreateTexture(mathFloor(right-left), mathFloor(top-bottom), {		--*(vsy<1400 and 2 or 1)
+				target = GL.TEXTURE_2D,
+				format = GL.RGBA,
+				fbo = true,
+			})
+		end
+		gl.R2tHelper.RenderToTexture(uiTex,
+			function()
+				gl.Translate(-1, -1, 0)
+				gl.Scale(2 / (right-left), 2 / (top-bottom), 0)
+				gl.Translate(-left, -bottom, 0)
+				drawContent()
+			end,
+			true
+		)
 	end
 end
 
@@ -193,17 +183,21 @@ function widget:Shutdown()
 end
 
 function widget:Update(dt)
-	updatePosition()
 	passedTime = passedTime + dt
+	positionCheckTime = positionCheckTime + dt
+
+	-- Throttle position checks to ~4x per second instead of every frame
+	if positionCheckTime >= POSITION_CHECK_INTERVAL then
+		positionCheckTime = 0
+		updatePosition()
+	end
+
 	if passedTime > 1 and Spring.GetGameFrame() > 0 then
-		totalUnits = 0
-		local numberOfAllyTeams = #allyTeamList
-		for allyTeamListIndex = 1, numberOfAllyTeams do
-			local allyID = allyTeamList[allyTeamListIndex]
-			for _,teamID in pairs(allyTeamTeamList[allyID]) do
-				totalUnits = totalUnits + spGetTeamUnitCount(teamID)
-			end
+		local count = 0
+		for i = 1, allTeamCount do
+			count = count + spGetTeamUnitCount(allTeamIDs[i])
 		end
+		totalUnits = count
 		updateDrawing = true
 		passedTime = passedTime - 1
 	end
@@ -233,25 +227,10 @@ function widget:DrawScreen()
 		refreshUiDrawing()
 	end
 
-	if useRenderToTexture then
-		if uiBgTex then
-			-- background element
-			gl.R2tHelper.BlendTexRect(uiBgTex, left, bottom, right, top, useRenderToTexture)
-		end
+	if uiBgTex then
+		gl.R2tHelper.BlendTexRect(uiBgTex, left, bottom, right, top, true)
 	end
-	if useRenderToTexture then
-		if uiTex then
-			-- content
-			gl.R2tHelper.BlendTexRect(uiTex, left, bottom, right, top, useRenderToTexture)
-		end
-	else
-		if drawlist[2] then
-			glPushMatrix()
-			if not useRenderToTexture and drawlist[1] then
-				glCallList(drawlist[1])
-			end
-			glCallList(drawlist[2])
-			glPopMatrix()
-		end
+	if uiTex then
+		gl.R2tHelper.BlendTexRect(uiTex, left, bottom, right, top, true)
 	end
 end

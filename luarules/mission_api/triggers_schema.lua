@@ -313,14 +313,14 @@ local parameters = {
 			type = Types.String
 		},
 		[2] = {
-			name = 'teamID',
-			required = false,
-			type = Types.TeamID
-		},
-		[3] = {
 			name = 'unitDefName',
 			required = false,
 			type = Types.UnitDefName
+		},
+		[3] = {
+			name = 'teamID',
+			required = false,
+			type = Types.TeamID
 		},
 	 },
 
