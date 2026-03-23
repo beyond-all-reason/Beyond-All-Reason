@@ -388,8 +388,9 @@ end
 
 local function executeCollisions(projectileID, penetrator)
 	local collisions = penetrator.collisions
+	local n = #collisions
 
-	if collisions[2] then
+	if n > 1 then
 		sortPenetratorCollisions(collisions, projectileID, penetrator)
 	end
 
@@ -397,7 +398,7 @@ local function executeCollisions(projectileID, penetrator)
 	local damageLeft = damageLeftBefore
 	local collide, lastHit
 
-	for index = 1, #collisions do
+	for index = 1, n do
 		local collision = collisions[index]
 		local targetID = collision.targetID
 
@@ -436,7 +437,7 @@ local function executeCollisions(projectileID, penetrator)
 		loseMomentum(projectileID, damageLeftBefore, damageLeft)
 	end
 
-	for i = 1, #collisions do
+	for i = 1, n do
 		collisions[i] = nil
 	end
 end
