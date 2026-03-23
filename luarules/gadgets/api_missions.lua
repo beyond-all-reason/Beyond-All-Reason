@@ -30,16 +30,22 @@ local function loadMission(scriptPath)
 
 	local validateReferences = VFS.Include('luarules/mission_api/validation.lua').ValidateReferences
 	validateReferences()
+
+	-- TODO: refactor loaders after merging loadouts
+	local parameterProcessing = VFS.Include('luarules/mission_api/parameter_processing.lua')
+	parameterProcessing.ProcessActionParameters(GG['MissionAPI'].Actions)
+	parameterProcessing.ProcessTriggerParameters(GG['MissionAPI'].Triggers)
 end
 
 function gadget:Initialize()
 	-- TODO: Actually pass script path
 	--local scriptPath = 'mission-api-tests/validation_test.lua'
 	--local scriptPath = 'mission-api-tests/test_mission.lua'
-	--local scriptPath = 'mission-api-tests/unit_triggers_test.lua'
-	--local scriptPath = 'mission-api-tests/feature_triggers_test.lua'
 	--local scriptPath = 'mission-api-tests/markers_test.lua'
 	--local scriptPath = 'mission-api-tests/sound_test.lua'
+	--local scriptPath = 'mission-api-tests/issue_orders_test.lua'
+	--local scriptPath = 'mission-api-tests/unit_triggers_test.lua'
+	--local scriptPath = 'mission-api-tests/feature_triggers_test.lua'
 	local scriptPath = 'mission-api-tests/loadout_test.lua'
 
 	if not scriptPath then

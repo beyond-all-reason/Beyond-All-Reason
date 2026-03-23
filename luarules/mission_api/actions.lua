@@ -50,7 +50,42 @@ end
 local function issueOrders(unitName, orders)
     if isUnitNameUntracked(unitName) then return end
 
-	Spring.GiveOrderArrayToUnitMap(trackedUnitIDs[unitName], orders)
+	local commandsAcceptingName = { [CMD.GUARD] = true, [CMD.REPAIR] = true, [CMD.CAPTURE] = true, [CMD.ATTACK] = true,
+									[CMD.LOAD_UNITS] = true, [CMD.RECLAIM] = true, [CMD.RESURRECT] = true }
+
+	-- Replace name param with unitIDs, duplicating order for each unitID
+	local newOrders = {}
+	for _, order in pairs(orders) do
+		local commandID = order[1]
+		local params = order[2] or {}
+		local options = order[3] or {}
+
+		Spring.Echo("Issuing order: " .. commandID .. " with params: " .. table.toString(params))
+		if commandsAcceptingName[commandID] and type(params) == 'table' and (params.unitName or params.featureName) then
+			local thingIDs = {}
+			local add = 0
+			if params.featureName then
+				thingIDs = trackedFeatureIDs[params.featureName]
+				add = Game.maxUnits
+			elseif params.unitName then
+				thingIDs = trackedUnitIDs[params.unitName]
+			end
+			Spring.Echo("Issuing order with name param to things: " .. table.toString(thingIDs))
+
+			local isFirstUnitID = true
+			for thingID in pairs(thingIDs) do
+				newOrders[#newOrders + 1] = { commandID, thingID + add, table.copy(options) }
+				if isFirstUnitID then
+					table.insert(options, 'shift')
+					isFirstUnitID = false
+				end
+			end
+		else
+			newOrders[#newOrders + 1] = order
+		end
+	end
+
+	Spring.GiveOrderArrayToUnitMap(trackedUnitIDs[unitName], newOrders)
 end
 
 local function spawnUnits(unitName, unitDefName, teamID, position, quantity, facing, construction, spacing)
@@ -160,7 +195,7 @@ end
 local function destroyFeature(featureName)
 	if isFeatureNameUntracked(featureName) then return end
 
-	-- Copy table to avoid mutation while iterating
+	-- Copying table as FeatureDestroyed trigger with CreateFeature with the same name could cause infinite loop.
 	for featureID in pairs(table.copy(trackedFeatureIDs[featureName])) do
 		if Spring.ValidFeatureID(featureID) then
 			Spring.DestroyFeature(featureID)

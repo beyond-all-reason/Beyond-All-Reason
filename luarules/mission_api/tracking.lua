@@ -12,12 +12,8 @@ local function trackUnit(name, unitID)
 		return
 	end
 
-	if not trackedUnitIDs[name] then
-		trackedUnitIDs[name] = {}
-	end
-	if not trackedUnitNames[unitID] then
-		trackedUnitNames[unitID] = {}
-	end
+	table.ensureTable(trackedUnitIDs, name)
+	table.ensureTable(trackedUnitNames, unitID)
 
 	trackedUnitIDs[name][unitID] = true
 	trackedUnitNames[unitID][name] = true

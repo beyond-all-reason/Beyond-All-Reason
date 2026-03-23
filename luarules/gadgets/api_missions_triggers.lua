@@ -234,9 +234,7 @@ local function checkUnitDwellLocation(trigger, triggerID)
 		elseif (dwellingUnitsInAreas[triggerID] == nil or dwellingUnitsInAreas[triggerID][unitID] == nil)
 			and (not trigger.parameters.unitName or doesUnitHaveName(unitID, trigger.parameters.unitName))
 			and (not trigger.parameters.unitDefName or UnitDefs[Spring.GetUnitDefID(unitID)].name == trigger.parameters.unitDefName) then
-			if not dwellingUnitsInAreas[triggerID] then
-				dwellingUnitsInAreas[triggerID] = {}
-			end
+			table.ensureTable(dwellingUnitsInAreas, triggerID)
 			dwellingUnitsInAreas[triggerID][unitID] = 0
 		end
 	end
@@ -348,11 +346,6 @@ local function checkFeatureDestroyed(trigger, featureID, featureDefID, attackerA
 	end
 	activateTrigger(trigger)
 end
-
-
-----------------------------------------------------------------
---- Call-ins:
-----------------------------------------------------------------
 
 
 ----------------------------------------------------------------
@@ -473,9 +466,10 @@ end
 
 function gadget:FeatureDestroyed(featureID, attackerAllyTeamID)
 	local featureDefID = Spring.GetFeatureDefID(featureID)
+	local _, _, _, _, reclaimLeft = Spring.GetFeatureResources(featureID)
 	local reclaimerTeamID = reclaimedFeatures[featureID]
 
-	if reclaimerTeamID then
+	if reclaimerTeamID and reclaimLeft <= 0 then
 		-- Feature was fully reclaimed
 		reclaimedFeatures[featureID] = nil
 		processTriggersOfType(types.FeatureReclaimed, function(trigger, _)
