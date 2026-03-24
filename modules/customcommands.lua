@@ -41,7 +41,7 @@ local gameCommands = {
 	SMART_TOGGLE = 37384,
 	AREA_ATTACK_GROUND = 39954,
 	BOMBER_TARGETING = 37385,
-	
+
 	-- terraform
 	RAW_MOVE = 39812,
 }
