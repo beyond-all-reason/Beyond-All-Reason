@@ -1,8 +1,8 @@
+function gadget:GetInfo()
     return {
         name = "Transport To Command",
         desc = "Ferry system",
         author = "You",
-        author = "Isajoefeat",
         layer = 0,
         enabled = true
     }
@@ -30,30 +30,12 @@ end
 
 local function ShouldHaveFerry(unitDefID)
     local ud = UnitDefs[unitDefID]
-    if not ud then
-        return false
-    end
-
-    if ud.isBuilding then
-        return false
-    end
-
-    if ud.isImmobile then
-        return false
-    end
-
-    if ud.canFly then
-        return false
-    end
-
-    if ud.transportCapacity and ud.transportCapacity > 0 then
-        return false
-    end
-
-    if not ud.canMove then
-        return false
-    end
-
+    if not ud then return false end
+    if ud.isBuilding then return false end
+    if ud.isImmobile then return false end
+    if ud.canFly then return false end
+    if ud.transportCapacity and ud.transportCapacity > 0 then return false end
+    if not ud.canMove then return false end
     return true
 end
 
@@ -91,22 +73,31 @@ end
 -- ================= COMMAND =================
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+
+    -- FIX 1: cancel ferry if ANY other command is issued to the unit
+    if jobs[unitID] and cmdID ~= CMD_TRANSPORT_TO then
+        jobs[unitID] = nil
+    end
+
+    -- FIX 3: if transport is manually controlled, release it
+    if transportState[unitID] and cmdID ~= CMD_LOAD_UNITS and cmdID ~= CMD_UNLOAD_UNITS then
+        transportState[unitID] = nil
+    end
+
     if cmdID == CMD_TRANSPORT_TO then
         local targets = {}
 
         for i = 1, #cmdParams, 3 do
-            if cmdParams[i] and cmdParams[i + 1] and cmdParams[i + 2] then
-                targets[#targets + 1] = {
+            if cmdParams[i] and cmdParams[i+1] and cmdParams[i+2] then
+                targets[#targets+1] = {
                     cmdParams[i],
-                    cmdParams[i + 1],
-                    cmdParams[i + 2]
+                    cmdParams[i+1],
+                    cmdParams[i+2]
                 }
             end
         end
 
-        if #targets == 0 then
-            return false
-        end
+        if #targets == 0 then return false end
 
         if jobs[unitID] and cmdOptions and cmdOptions.shift then
             for i = 1, #targets do
@@ -115,11 +106,9 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
         else
             jobs[unitID] = {
                 targets = targets,
-                state = "walking",
+                state = "queued", -- NEW STATE
                 transportID = nil,
             }
-
-            Spring.GiveOrderToUnit(unitID, CMD_MOVE, targets[1], {})
         end
 
         return false
@@ -135,7 +124,7 @@ function gadget:UnitCreated(unitID, unitDefID)
             type = CMDTYPE.ICON_MAP,
             name = "Ferry",
             action = "ferry",
-	    tooltip = "Request the closest eligible transport to transport this unit to the target location",
+            tooltip = "Request the closest eligible transport to transport this unit to the target location",
         })
     end
 end
@@ -147,7 +136,7 @@ function gadget:UnitGiven(unitID, unitDefID)
             type = CMDTYPE.ICON_MAP,
             name = "Ferry",
             action = "ferry",
-	    tooltip = "Request the closest eligible transport to transport this unit to the target location",
+            tooltip = "Request the closest eligible transport to transport this unit to the target location",
         })
     end
 end
@@ -165,6 +154,16 @@ function gadget:GameFrame(frame)
     for unitID, job in pairs(jobs) do
         if not IsValid(unitID) then
             jobs[unitID] = nil
+
+        elseif job.state == "queued" then
+            local cmds = Spring.GetUnitCommands(unitID, 1)
+
+            if cmds and #cmds > 0 then
+                -- still executing previous commands
+            else
+                job.state = "walking"
+                Spring.GiveOrderToUnit(unitID, CMD_MOVE, job.targets[1], {})
+            end
 
         elseif job.state == "walking" then
             local t = FindTransport(unitID)
