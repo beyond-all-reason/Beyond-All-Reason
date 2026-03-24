@@ -143,7 +143,6 @@ function gadget:CommandFallback(unitID, unitDefID, teamID, cmdID, params, opts, 
 
     if job.state == "walking" then
 
-        -- continuously try to get a transport
         local t = FindTransport(unitID)
         if t then
             job.transportID = t
@@ -210,14 +209,21 @@ function gadget:GameFrame(frame)
 
         elseif ts.state == "post_unload" then
 
-    if frame > ts.unloadFrame + 1 then
-        ts.state = "return"
+            if frame > ts.unloadFrame + 1 then
+                ts.state = "return"
 
-        if ts.origin then
-            GiveInternalOrder(t, CMD_STOP, {}, {})
-            GiveInternalOrder(t, CMD_MOVE, ts.origin, {})
-        end
-    end
+                if ts.origin then
+                    -- 🔥 FORCE RETURN USING INSERT (fix)
+                    Spring.GiveOrderToUnit(t, CMD.INSERT, {
+                        0,
+                        CMD_MOVE,
+                        0,
+                        ts.origin[1],
+                        ts.origin[2],
+                        ts.origin[3]
+                    }, {})
+                end
+            end
 
         elseif ts.state == "return" then
 
