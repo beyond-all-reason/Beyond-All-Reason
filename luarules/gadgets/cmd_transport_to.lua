@@ -184,21 +184,19 @@ function gadget:GameFrame(frame)
         if not IsValid(t) then
             transportState[t] = nil
 
-        elseif ts.state == "pickup" then
+       elseif ts.state == "loaded" then
 
-            local unitID = ts.unitID
+    local unitID = ts.unitID
 
-            if Spring.GetUnitTransporter(unitID) == t then
-                ts.state = "loaded"
+    if not Spring.GetUnitTransporter(unitID) then
+        ts.state = "return"
 
-                local job = jobs[unitID]
-                if job then
-                    local target = job.targets[#job.targets]
+        GiveInternalOrder(t, CMD_STOP, {}, {})
 
-                    GiveInternalOrder(t, CMD_MOVE, target, {})
-                    GiveInternalOrder(t, CMD_UNLOAD_UNITS, target, {"shift"})
-                end
-            end
+        if ts.origin then
+            GiveInternalOrder(t, CMD_MOVE, ts.origin, {})
+        end
+    end
 
         elseif ts.state == "loaded" then
 
