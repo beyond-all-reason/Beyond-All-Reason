@@ -2,7 +2,7 @@ function gadget:GetInfo()
     return {
         name    = "Transport To Command",
         desc    = "Slim synced ferry registry for widget-driven ferry flow",
-        author  = "Isajoefeat",
+        author  = "Isajoefeat + ChatGPT",
         layer   = 0,
         enabled = true,
     }
@@ -202,22 +202,15 @@ local function ReserveTransport(passengerID, transportID, targetPos)
     return true
 end
 
--- ================= COMMAND GATE =================
-
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID)
     if internalOrders[unitID] and internalOrders[unitID] > 0 then
         internalOrders[unitID] = internalOrders[unitID] - 1
         return true
     end
 
-    -- Passenger gets any non-ferry external order: cancel its ferry job.
     if jobs[unitID] and cmdID ~= CMD_TRANSPORT_TO then
         CancelJob(unitID)
     end
-
-    -- Deliberately do NOT auto-cancel on transport commands.
-    -- The widget now drives transport-side order flow, so clearing here
-    -- would destroy the widget/gadget split.
 
     return true
 end
@@ -281,18 +274,14 @@ function gadget:CommandFallback(unitID, unitDefID, teamID, cmdID, params, opts, 
     return true, false
 end
 
--- ================= POLLING / CLEANUP =================
-
 function gadget:GameFrame(frame)
     if frame % POLL_RATE ~= 0 then
         return
     end
 
-    -- Passenger-side job updates
     for passengerID, job in pairs(jobs) do
         if not IsValid(passengerID) then
             CancelJob(passengerID)
-
         else
             local target = job.targets[job.index]
 
@@ -335,18 +324,14 @@ function gadget:GameFrame(frame)
         end
     end
 
-    -- Transport-side cleanup / return completion
     for transportID, ts in pairs(transportState) do
         if not IsValid(transportID) then
             ClearTransportState(transportID)
-
         else
             local passengerID = ts.passengerID
 
-            -- If passenger died before ever loading, free the transport.
             if (not IsValid(passengerID)) and (not TransportHasPassengers(transportID)) then
                 ClearTransportState(transportID)
-
             else
                 local tx, _, tz = Spring.GetUnitPosition(transportID)
                 local rx, _, rz = ts.returnPos[1], ts.returnPos[2], ts.returnPos[3]
@@ -360,8 +345,6 @@ function gadget:GameFrame(frame)
         end
     end
 end
-
--- ================= UI =================
 
 function gadget:UnitCreated(unitID, unitDefID)
     if ShouldHaveFerry(unitDefID) then
@@ -384,12 +367,10 @@ function gadget:UnitGiven(unitID, unitDefID)
 end
 
 function gadget:UnitDestroyed(unitID)
-    -- If a passenger dies, cancel its job.
     if jobs[unitID] then
         CancelJob(unitID)
     end
 
-    -- If a transport dies, free the passenger job.
     if transportState[unitID] then
         local ts = transportState[unitID]
         local passengerID = ts and ts.passengerID
