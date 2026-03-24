@@ -18,6 +18,7 @@ local CMD_UNLOAD_UNITS = CMD.UNLOAD_UNITS
 
 local POLL_RATE = 10
 local ARRIVAL_DIST_SQ = 64 * 64
+local POST_UNLOAD_RETURN_DELAY = 15
 
 local jobs = {}
 local transportState = {}
@@ -52,17 +53,17 @@ local function ShouldHaveFerry(unitDefID)
     return true
 end
 
-local function DistSq(x1,z1,x2,z2)
-    local dx = x1-x2
-    local dz = z1-z2
-    return dx*dx + dz*dz
+local function DistSq(x1, z1, x2, z2)
+    local dx = x1 - x2
+    local dz = z1 - z2
+    return dx * dx + dz * dz
 end
 
 local function ParseTargets(params)
     local t = {}
-    for i=1,#params,3 do
-        if params[i+2] then
-            t[#t+1] = {params[i], params[i+1], params[i+2]}
+    for i = 1, #params, 3 do
+        if params[i + 2] then
+            t[#t + 1] = { params[i], params[i + 1], params[i + 2] }
         end
     end
     return t
@@ -72,14 +73,14 @@ local function FindTransport(unitID)
     local team = Spring.GetUnitTeam(unitID)
     local units = Spring.GetTeamUnits(team)
 
-    local ux,_,uz = Spring.GetUnitPosition(unitID)
+    local ux, _, uz = Spring.GetUnitPosition(unitID)
     local best, bestDist = nil, math.huge
 
-    for i=1,#units do
+    for i = 1, #units do
         local u = units[i]
         if IsTransport(u) and not transportState[u] then
-            local tx,_,tz = Spring.GetUnitPosition(u)
-            local d = DistSq(ux,uz,tx,tz)
+            local tx, _, tz = Spring.GetUnitPosition(u)
+            local d = DistSq(ux, uz, tx, tz)
             if d < bestDist then
                 bestDist = d
                 best = u
@@ -127,7 +128,9 @@ function gadget:CommandFallback(unitID, unitDefID, teamID, cmdID, params, opts, 
 
     if not jobs[unitID] then
         local targets = ParseTargets(params)
-        if #targets == 0 then return true, true end
+        if #targets == 0 then
+            return true, true
+        end
 
         jobs[unitID] = {
             targets = targets,
@@ -142,7 +145,6 @@ function gadget:CommandFallback(unitID, unitDefID, teamID, cmdID, params, opts, 
     local target = job.targets[job.index]
 
     if job.state == "walking" then
-
         local t = FindTransport(unitID)
         if t then
             job.transportID = t
@@ -150,13 +152,13 @@ function gadget:CommandFallback(unitID, unitDefID, teamID, cmdID, params, opts, 
 
             transportState[t] = {
                 unitID = unitID,
-                origin = {Spring.GetUnitPosition(t)},
+                origin = { Spring.GetUnitPosition(t) },
                 state = "pickup",
                 ordersIssued = false,
             }
 
             GiveInternalOrder(unitID, CMD_STOP, {}, {})
-            GiveInternalOrder(t, CMD_LOAD_UNITS, {unitID}, {})
+            GiveInternalOrder(t, CMD_LOAD_UNITS, { unitID }, {})
 
             return true, false
         end
@@ -175,62 +177,61 @@ end
 -- ================= STATE MACHINE =================
 
 function gadget:GameFrame(frame)
-    if frame % POLL_RATE ~= 0 then return end
+    if frame % POLL_RATE ~= 0 then
+        return
+    end
 
     for t, ts in pairs(transportState) do
-
         if not IsValid(t) then
             transportState[t] = nil
 
         elseif ts.state == "pickup" then
-
             local unitID = ts.unitID
 
-            if Spring.GetUnitTransporter(unitID) == t then
+            if not IsValid(unitID) then
+                transportState[t] = nil
+
+            elseif Spring.GetUnitTransporter(unitID) == t then
                 ts.state = "loaded"
 
                 local job = jobs[unitID]
                 if job then
                     local target = job.targets[#job.targets]
-
                     GiveInternalOrder(t, CMD_MOVE, target, {})
-                    GiveInternalOrder(t, CMD_UNLOAD_UNITS, target, {"shift"})
+                    GiveInternalOrder(t, CMD_UNLOAD_UNITS, target, { "shift" })
                 end
             end
 
         elseif ts.state == "loaded" then
-
             local unitID = ts.unitID
 
-            if not Spring.GetUnitTransporter(unitID) then
+            if not IsValid(unitID) then
                 ts.state = "post_unload"
                 ts.unloadFrame = frame
+
+            elseif not Spring.GetUnitTransporter(unitID) then
+                ts.state = "post_unload"
+                ts.unloadFrame = frame
+
+                -- Delivery succeeded, clear the unit job now so stale job state
+                -- does not hang around after the ferry run is complete.
+                jobs[unitID] = nil
             end
 
         elseif ts.state == "post_unload" then
-
-            if frame > ts.unloadFrame + 1 then
+            if frame >= ts.unloadFrame + POST_UNLOAD_RETURN_DELAY then
                 ts.state = "return"
 
-                if ts.origin then
-                    -- 🔥 FORCE RETURN USING INSERT (fix)
-                    Spring.GiveOrderToUnit(t, CMD.INSERT, {
-                        0,
-                        CMD_MOVE,
-                        0,
-                        ts.origin[1],
-                        ts.origin[2],
-                        ts.origin[3]
-                    }, {})
+                if ts.origin and IsValid(t) then
+                    GiveInternalOrder(t, CMD_MOVE, ts.origin, {})
                 end
             end
 
         elseif ts.state == "return" then
+            local x, _, z = Spring.GetUnitPosition(t)
+            local ox, _, oz = unpack(ts.origin)
 
-            local x,_,z = Spring.GetUnitPosition(t)
-            local ox,_,oz = unpack(ts.origin)
-
-            if DistSq(x,z,ox,oz) < ARRIVAL_DIST_SQ then
+            if DistSq(x, z, ox, oz) < ARRIVAL_DIST_SQ then
                 transportState[t] = nil
             end
         end
