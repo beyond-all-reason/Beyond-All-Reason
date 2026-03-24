@@ -18,7 +18,7 @@ local CMD_UNLOAD_UNITS = CMD.UNLOAD_UNITS
 
 local POLL_RATE = 10
 local ARRIVAL_DIST_SQ = 64 * 64
-local POST_UNLOAD_RETURN_DELAY = 15
+local POST_UNLOAD_RETURN_DELAY = 20
 
 local jobs = {}
 local transportState = {}
@@ -102,6 +102,11 @@ local function CancelJob(unitID)
     jobs[unitID] = nil
 end
 
+local function TransportHasPassengers(unitID)
+    local carried = Spring.GetUnitIsTransporting(unitID)
+    return carried and #carried > 0
+end
+
 -- ================= COMMAND =================
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID)
@@ -154,7 +159,6 @@ function gadget:CommandFallback(unitID, unitDefID, teamID, cmdID, params, opts, 
                 unitID = unitID,
                 origin = { Spring.GetUnitPosition(t) },
                 state = "pickup",
-                ordersIssued = false,
             }
 
             GiveInternalOrder(unitID, CMD_STOP, {}, {})
@@ -204,17 +208,18 @@ function gadget:GameFrame(frame)
 
         elseif ts.state == "loaded" then
             local unitID = ts.unitID
+            local passengerDetached = (not IsValid(unitID)) or (Spring.GetUnitTransporter(unitID) ~= t)
 
-            if not IsValid(unitID) then
+            if passengerDetached and not TransportHasPassengers(t) then
                 ts.state = "post_unload"
                 ts.unloadFrame = frame
 
-            elseif not Spring.GetUnitTransporter(unitID) then
-                ts.state = "post_unload"
-                ts.unloadFrame = frame
+                -- Critical fix:
+                -- clear the unload/landing behavior first so the later MOVE return
+                -- is not ignored by Spring's post-unload state.
+                GiveInternalOrder(t, CMD_STOP, {}, {})
 
-                -- Delivery succeeded, clear the unit job now so stale job state
-                -- does not hang around after the ferry run is complete.
+                -- Delivery is complete, so clear the unit job now.
                 jobs[unitID] = nil
             end
 
