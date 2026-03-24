@@ -18,6 +18,16 @@ local CMD_UNLOAD_UNITS = CMD.UNLOAD_UNITS
 
 local jobs = {}
 local transportState = {}
+local internalOrders = {}
+
+local function MarkInternal(unitID)
+    internalOrders[unitID] = (internalOrders[unitID] or 0) + 1
+end
+
+local function GiveInternalOrder(unitID, cmdID, params, opts)
+    MarkInternal(unitID)
+    Spring.GiveOrderToUnit(unitID, cmdID, params or {}, opts or {})
+end
 
 local function IsValid(unitID)
     return unitID and Spring.ValidUnitID(unitID) and not Spring.GetUnitIsDead(unitID)
@@ -50,14 +60,12 @@ end
 local function FindTransport(unitID)
     local team = Spring.GetUnitTeam(unitID)
     local units = Spring.GetTeamUnits(team)
-
     local ux, _, uz = Spring.GetUnitPosition(unitID)
 
     local best, bestDist = nil, math.huge
 
     for i = 1, #units do
         local u = units[i]
-
         if IsTransport(u) and not transportState[u] then
             local tx, _, tz = Spring.GetUnitPosition(u)
             if tx and tz then
@@ -73,24 +81,21 @@ local function FindTransport(unitID)
     return best
 end
 
--- ================= COMMAND =================
-
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+    if internalOrders[unitID] and internalOrders[unitID] > 0 then
+        internalOrders[unitID] = internalOrders[unitID] - 1
+        return true
+    end
 
-    -- Cancel ferry ONLY for real player commands
     if jobs[unitID] and cmdID ~= CMD_TRANSPORT_TO then
         if cmdID ~= CMD_LOAD_UNITS and cmdID ~= CMD_UNLOAD_UNITS then
             jobs[unitID] = nil
         end
     end
 
-    -- Transport override protection
     if transportState[unitID] then
-        local ts = transportState[unitID]
         if cmdID ~= CMD_LOAD_UNITS and cmdID ~= CMD_UNLOAD_UNITS then
-            if not ts.unit or not IsValid(ts.unit) then
-                transportState[unitID] = nil
-            end
+            transportState[unitID] = nil
         end
     end
 
@@ -156,25 +161,22 @@ end
 function gadget:UnitDestroyed(unitID)
     jobs[unitID] = nil
     transportState[unitID] = nil
+    internalOrders[unitID] = nil
 end
-
--- ================= MAIN =================
 
 function gadget:GameFrame(frame)
     if frame % 10 ~= 0 then return end
 
     for unitID, job in pairs(jobs) do
-
         if not IsValid(unitID) then
             jobs[unitID] = nil
 
         elseif job.state == "queued" then
             local cmds = Spring.GetUnitCommands(unitID, 1)
 
-            -- Only start when unit is truly idle
             if not cmds or #cmds == 0 or cmds[1].id == CMD_STOP then
                 job.state = "walking"
-                Spring.GiveOrderToUnit(unitID, CMD_MOVE, job.targets[1], {})
+                GiveInternalOrder(unitID, CMD_MOVE, job.targets[1], {})
             end
 
         elseif job.state == "walking" then
@@ -189,36 +191,34 @@ function gadget:GameFrame(frame)
                     origin = {Spring.GetUnitPosition(t)},
                 }
 
-                Spring.GiveOrderToUnit(unitID, CMD_STOP, {}, {})
-                Spring.GiveOrderToUnit(t, CMD_LOAD_UNITS, {unitID}, {})
+                GiveInternalOrder(unitID, CMD_STOP, {}, {})
+                GiveInternalOrder(t, CMD_LOAD_UNITS, {unitID}, {})
             end
 
         elseif job.state == "pickup" then
-
             if Spring.GetUnitTransporter(unitID) == job.transportID then
                 job.state = "loaded"
 
                 local t = job.transportID
                 local targets = job.targets
 
-                Spring.GiveOrderToUnit(t, CMD_MOVE, targets[1], {})
+                GiveInternalOrder(t, CMD_MOVE, targets[1], {})
 
                 for i = 2, #targets do
-                    Spring.GiveOrderToUnit(t, CMD_MOVE, targets[i], {"shift"})
+                    GiveInternalOrder(t, CMD_MOVE, targets[i], {"shift"})
                 end
 
                 local final = targets[#targets]
-                Spring.GiveOrderToUnit(t, CMD_UNLOAD_UNITS, final, {"shift"})
+                GiveInternalOrder(t, CMD_UNLOAD_UNITS, final, {"shift"})
             end
 
         elseif job.state == "loaded" then
-
             if not Spring.GetUnitTransporter(unitID) then
                 local t = job.transportID
                 local ts = transportState[t]
 
                 if ts and ts.origin then
-                    Spring.GiveOrderToUnit(t, CMD_MOVE, ts.origin, {})
+                    GiveInternalOrder(t, CMD_MOVE, ts.origin, {})
                 end
 
                 transportState[t] = nil
