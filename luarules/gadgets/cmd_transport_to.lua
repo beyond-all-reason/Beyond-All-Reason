@@ -1,267 +1,40 @@
+-- luarules/gadgets/cmd_transport_to.lua
 function gadget:GetInfo()
     return {
         name = "Transport To Command",
-        desc = "Ferry system",
+        desc = "Registers ferry command",
         author = "Isajoefeat",
+        date = "2026",
+        license = "GPL",
         layer = 0,
         enabled = true
     }
 end
 
-if not gadgetHandler:IsSyncedCode() then return end
+if not gadgetHandler:IsSyncedCode() then
+    return
+end
 
 local CMD_TRANSPORT_TO = 19990
-local CMD_MOVE = CMD.MOVE
-local CMD_STOP = CMD.STOP
-local CMD_LOAD_UNITS = CMD.LOAD_UNITS
-local CMD_UNLOAD_UNITS = CMD.UNLOAD_UNITS
 
-local POLL_RATE = 10
-local ARRIVAL_DIST_SQ = 64 * 64
-local POST_UNLOAD_RETURN_DELAY = 20
+local cmdDesc = {
+    id = CMD_TRANSPORT_TO,
+    type = CMDTYPE.ICON_MAP,
+    name = "Ferry",
+    cursor = "Attack",
+    action = "ferry",
+}
 
-local jobs = {}
-local transportState = {}
-local internalOrders = {}
-
-local function MarkInternal(unitID)
-    internalOrders[unitID] = (internalOrders[unitID] or 0) + 1
-end
-
-local function GiveInternalOrder(unitID, cmdID, params, opts)
-    MarkInternal(unitID)
-    Spring.GiveOrderToUnit(unitID, cmdID, params or {}, opts or {})
-end
-
-local function IsValid(unitID)
-    return unitID and Spring.ValidUnitID(unitID) and not Spring.GetUnitIsDead(unitID)
-end
-
-local function IsTransport(unitID)
-    local ud = UnitDefs[Spring.GetUnitDefID(unitID)]
-    return ud and ud.transportCapacity and ud.transportCapacity > 0
-end
-
-local function ShouldHaveFerry(unitDefID)
-    local ud = UnitDefs[unitDefID]
-    if not ud then return false end
-    if ud.isBuilding then return false end
-    if ud.isImmobile then return false end
-    if ud.canFly then return false end
-    if ud.transportCapacity and ud.transportCapacity > 0 then return false end
-    if not ud.canMove then return false end
-    return true
-end
-
-local function DistSq(x1, z1, x2, z2)
-    local dx = x1 - x2
-    local dz = z1 - z2
-    return dx * dx + dz * dz
-end
-
-local function ParseTargets(params)
-    local t = {}
-    for i = 1, #params, 3 do
-        if params[i + 2] then
-            t[#t + 1] = { params[i], params[i + 1], params[i + 2] }
-        end
+function gadget:UnitCreated(unitID, unitDefID, team)
+    if Spring.GetUnitIsTransportable(unitID) then
+        Spring.InsertUnitCmdDesc(unitID, cmdDesc)
     end
-    return t
 end
 
-local function FindTransport(unitID)
-    local team = Spring.GetUnitTeam(unitID)
-    local units = Spring.GetTeamUnits(team)
-
-    local ux, _, uz = Spring.GetUnitPosition(unitID)
-    local best, bestDist = nil, math.huge
-
-    for i = 1, #units do
-        local u = units[i]
-        if IsTransport(u) and not transportState[u] then
-            local tx, _, tz = Spring.GetUnitPosition(u)
-            local d = DistSq(ux, uz, tx, tz)
-            if d < bestDist then
-                bestDist = d
-                best = u
-            end
-        end
-    end
-
-    return best
-end
-
-local function CancelJob(unitID)
-    local job = jobs[unitID]
-    if not job then return end
-
-    if job.transportID then
-        transportState[job.transportID] = nil
-    end
-
-    jobs[unitID] = nil
-end
-
-local function TransportHasPassengers(unitID)
-    local carried = Spring.GetUnitIsTransporting(unitID)
-    return carried and #carried > 0
-end
-
--- ================= COMMAND =================
-
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID)
-    if internalOrders[unitID] and internalOrders[unitID] > 0 then
-        internalOrders[unitID] = internalOrders[unitID] - 1
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+    if cmdID == CMD_TRANSPORT_TO then
+        -- Let it pass; widget will handle it
         return true
     end
-
-    if jobs[unitID] and cmdID ~= CMD_TRANSPORT_TO then
-        CancelJob(unitID)
-    end
-
-    if transportState[unitID] then
-        transportState[unitID] = nil
-    end
-
     return true
-end
-
-function gadget:CommandFallback(unitID, unitDefID, teamID, cmdID, params, opts, tag)
-    if cmdID ~= CMD_TRANSPORT_TO then
-        return false, false
-    end
-
-    if not jobs[unitID] then
-        local targets = ParseTargets(params)
-        if #targets == 0 then
-            return true, true
-        end
-
-        jobs[unitID] = {
-            targets = targets,
-            index = 1,
-            state = "walking",
-            transportID = nil,
-            walkIssued = false,
-        }
-    end
-
-    local job = jobs[unitID]
-    local target = job.targets[job.index]
-
-    if job.state == "walking" then
-        local t = FindTransport(unitID)
-        if t then
-            job.transportID = t
-            job.state = "pickup"
-
-            transportState[t] = {
-                unitID = unitID,
-                origin = { Spring.GetUnitPosition(t) },
-                state = "pickup",
-            }
-
-            GiveInternalOrder(unitID, CMD_STOP, {}, {})
-            GiveInternalOrder(t, CMD_LOAD_UNITS, { unitID }, {})
-
-            return true, false
-        end
-
-        if not job.walkIssued then
-            GiveInternalOrder(unitID, CMD_MOVE, target, {})
-            job.walkIssued = true
-        end
-
-        return true, false
-    end
-
-    return true, false
-end
-
--- ================= STATE MACHINE =================
-
-function gadget:GameFrame(frame)
-    if frame % POLL_RATE ~= 0 then
-        return
-    end
-
-    for t, ts in pairs(transportState) do
-        if not IsValid(t) then
-            transportState[t] = nil
-
-        elseif ts.state == "pickup" then
-            local unitID = ts.unitID
-
-            if not IsValid(unitID) then
-                transportState[t] = nil
-
-            elseif Spring.GetUnitTransporter(unitID) == t then
-                ts.state = "loaded"
-
-                local job = jobs[unitID]
-                if job then
-                    local target = job.targets[#job.targets]
-                    GiveInternalOrder(t, CMD_MOVE, target, {})
-                    GiveInternalOrder(t, CMD_UNLOAD_UNITS, target, { "shift" })
-                end
-            end
-
-        elseif ts.state == "loaded" then
-            local unitID = ts.unitID
-            local passengerDetached = (not IsValid(unitID)) or (Spring.GetUnitTransporter(unitID) ~= t)
-
-            if passengerDetached and not TransportHasPassengers(t) then
-                ts.state = "post_unload"
-                ts.unloadFrame = frame
-
-                -- Critical fix:
-                -- clear the unload/landing behavior first so the later MOVE return
-                -- is not ignored by Spring's post-unload state.
-                GiveInternalOrder(t, CMD_STOP, {}, {})
-
-                -- Delivery is complete, so clear the unit job now.
-                jobs[unitID] = nil
-            end
-
-        elseif ts.state == "post_unload" then
-            if frame >= ts.unloadFrame + POST_UNLOAD_RETURN_DELAY then
-                ts.state = "return"
-
-                if ts.origin and IsValid(t) then
-                    GiveInternalOrder(t, CMD_MOVE, ts.origin, {})
-                end
-            end
-
-        elseif ts.state == "return" then
-            local x, _, z = Spring.GetUnitPosition(t)
-            local ox, _, oz = unpack(ts.origin)
-
-            if DistSq(x, z, ox, oz) < ARRIVAL_DIST_SQ then
-                transportState[t] = nil
-            end
-        end
-    end
-end
-
--- ================= UI =================
-
-function gadget:UnitCreated(unitID, unitDefID)
-    if ShouldHaveFerry(unitDefID) then
-        Spring.InsertUnitCmdDesc(unitID, 500, {
-            id = CMD_TRANSPORT_TO,
-            type = CMDTYPE.ICON_MAP,
-            name = "Ferry",
-            action = "ferry",
-            tooltip = "Request a transport",
-        })
-    end
-end
-
-function gadget:UnitGiven(unitID, unitDefID)
-    gadget:UnitCreated(unitID, unitDefID)
-end
-
-function gadget:UnitDestroyed(unitID)
-    CancelJob(unitID)
-    transportState[unitID] = nil
 end
