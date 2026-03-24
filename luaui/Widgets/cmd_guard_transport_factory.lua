@@ -36,9 +36,6 @@ end
 -- If you don't wait until that command is done and pick up right away, then the unit will run back to the factory after getting dropped off
 -- and then run to its second waypoint.
 
--- Toggle this for debug printing
-local debugLog = false
-
 -- Polls every 10 frames. Set to a different number to poll more/less often.
 local POLLING_RATE = 10
 local TRIVIAL_WALK_TIME = 10    -- If the unit is going somewhere close, don't bother. This also covers the case of builders assisting the factory that built them.
@@ -59,6 +56,11 @@ local activeTransportToUnit = {}
 local transportState = {}
 local unitToDestination = {}
 local cachedUnitDefs = {}
+
+local pendingGuardTransports = {}  -- transportID -> factoryID (queued but not yet active)
+
+local orderedUnitsBlacklist = {}
+local blacklistOrderedUnits = false
 
 for id, def in pairs(UnitDefs) do
 	cachedUnitDefs[id] = {
@@ -140,13 +142,35 @@ local function registerTransport(transportID, factoryID)
     transportToFactory[transportID] = factoryID
 end
 
+local function activateTransportGuard(transportID, factoryID)
+    registerTransport(transportID, factoryID)
+
+    -- If carrying a unit, unload it at current position before guarding
+    local carriedUnits = Spring.GetUnitIsTransporting(transportID)
+    if carriedUnits and #carriedUnits > 0 then
+        local x, _, z = Spring.GetUnitPosition(transportID)
+        transportState[transportID]        = transport_states.picking_up
+        activeTransportToUnit[transportID] = carriedUnits[1]
+        unitToDestination[carriedUnits[1]] = {x, Spring.GetGroundHeight(x, z), z}
+    else
+        transportState[transportID] = transport_states.idle
+    end
+end
+
 function widget:Initialize()
 	if Spring.GetSpectatingState() or Spring.IsReplay() then
 		widgetHandler:RemoveWidget()
 		return
 	end
+    WG['transportFactoryGuard'] = {}
+	WG['transportFactoryGuard'].getBlacklistOrderedUnits = function()
+		return blacklistOrderedUnits
+	end
+	WG['transportFactoryGuard'].setBlacklistOrderedUnits = function(value)
+		blacklistOrderedUnits = value
+	end
 
-	for _, unitID in ipairs(Spring.GetTeamUnits(Spring.GetLocalTeamID())) do
+    for _, unitID in ipairs(Spring.GetTeamUnits(Spring.GetLocalTeamID())) do
 		local cmdID, _, _, targetUnitID = Spring.GetUnitCurrentCommand(unitID, 1)
 		local isGuarding = cmdID == CMD.GUARD
 
@@ -241,6 +265,23 @@ function widget:GameFrame(frame)
 
     for transportID, target in pairs(activeTransportToUnit) do
         handleTransport(transportID, target)
+    end
+
+    -- Check if any pending (shift-queued) factory guards have reached the front of the queue
+    for transportID, factoryID in pairs(pendingGuardTransports) do
+        if not IsUnitAlive(transportID) or not IsUnitAlive(factoryID) then
+            pendingGuardTransports[transportID] = nil
+        else
+            local cmdID, _, _, cmdTarget = spGetUnitCurrentCommand(transportID, 1)
+            if cmdID == CMD.GUARD and isFactory(cmdTarget) then
+                -- Guard reached front of queue - activate
+                pendingGuardTransports[transportID] = nil
+                activateTransportGuard(transportID, cmdTarget)
+            elseif cmdID == nil then
+                -- Queue is empty, guard was cancelled
+                pendingGuardTransports[transportID] = nil
+            end
+        end
     end
 end
 
@@ -344,6 +385,10 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
                 return
             end
 
+            if blacklistOrderedUnits and orderedUnitsBlacklist[createdUnitID] then
+                return
+            end
+
             local bestTransportID   = -1
             local bestTransportTime = math.huge
             local unitDefID_created = Spring.GetUnitDefID(createdUnitID)
@@ -392,8 +437,9 @@ end
 
 function widget:UnitCommandNotify(unitID, cmdID, cmdParams, cmdOpts)
     -- Callin from formations widget. If we're ordering in formation, it's definitely not a guard order.
-    if isTransport(unitID) then
+    if isTransport(unitID) and not cmdOpts.shift then
         inactivateTransport(unitID)
+        pendingGuardTransports[unitID] = nil
     end
 end
 
@@ -402,26 +448,22 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 
     for _, orderedUnit in ipairs(selectedUnits) do
         if isTransport(orderedUnit) then
-            inactivateTransport(orderedUnit)
             if cmdID == CMD.GUARD and isFactory(cmdParams[1]) then
-                local targetUnitID = cmdParams[1]
-                registerTransport(orderedUnit, targetUnitID)
-
-                -- Unload anything you have when you go guard
-                -- We board the state machine as a trans picking up a passenger bound for current location
-                -- This is because of timing issues with CommandNotify/UnitCommand
-                local carriedUnits = Spring.GetUnitIsTransporting(orderedUnit)
-                if carriedUnits and #carriedUnits > 0 then
-                    local x, _, z = Spring.GetUnitPosition(orderedUnit)
-
-                    transportState[orderedUnit]        = transport_states.picking_up
-                    activeTransportToUnit[orderedUnit] = carriedUnits[1]
-                    unitToDestination[carriedUnits[1]] = {x, Spring.GetGroundHeight(x, z), z}
+                if cmdOpts.shift then
+                    pendingGuardTransports[orderedUnit] = cmdParams[1]
                 else
-                    transportState[orderedUnit] = transport_states.idle
+                    inactivateTransport(orderedUnit)
+                    pendingGuardTransports[orderedUnit] = nil
+                    activateTransportGuard(orderedUnit, cmdParams[1])
+                end
+            else
+                if not cmdOpts.shift then
+                    inactivateTransport(orderedUnit)
+                    pendingGuardTransports[orderedUnit] = nil
                 end
             end
         end
+        orderedUnitsBlacklist[orderedUnit] = true
     end
 end
 
@@ -438,7 +480,15 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
         inactivateTransport(unitID)
     end
 
+    pendingGuardTransports[unitID] = nil
+
     if factoryToGuardingTransports[unitID] then
+        for transportID, factoryID in pairs(pendingGuardTransports) do
+            if factoryID == unitID then
+                pendingGuardTransports[transportID] = nil
+            end
+        end
         inactivateFactory(unitID)
     end
+    orderedUnitsBlacklist[unitID] = nil
 end
