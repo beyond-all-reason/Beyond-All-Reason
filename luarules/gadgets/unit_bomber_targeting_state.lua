@@ -76,7 +76,7 @@ end
 local function applyTargetingState(unitID, state)
 	local targetingState = state == STATE_MANUAL and STATE_MANUAL or STATE_AUTO
 
-	spSetUnitRulesParam(unitID, RULESPARAM_NAME, targetingState, { allied = true, public = true, inlos = true })
+	spSetUnitRulesParam(unitID, RULESPARAM_NAME, targetingState, { allied = true })
 
 	if targetingState == STATE_MANUAL then
 		spGiveOrderToUnit(unitID, CMD_FIRE_STATE, { 0 }, 0)

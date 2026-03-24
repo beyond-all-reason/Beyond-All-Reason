@@ -256,6 +256,7 @@
 			"trajectory_auto": "Autotrayectoria",
 			"hound_weapon_plasma": "Plasma pesado",
 			"hound_weapon_gauss": "Cañón Gauss",
+			"hound_weapon_toggle_tooltip": "Cambia entre un proyectil de plasma lento con una gran área de efecto, o un proyectil Gauss de alta velocidad.",
 			"blueprint_place": "Colocar plano",
 			"blueprint_place_tooltip": "Coloca un plano guardado",
 			"blueprint_create": "Guardar plano",

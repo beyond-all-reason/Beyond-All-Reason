@@ -216,7 +216,8 @@
 			"trajectory_tooltip": "Setzt den Feuermodus im Artilleriezustand (Flache/Steile Flugbahn)",
 			"hound_weapon_plasma": "Schwere Plasmakanonea",
 			"hound_weapon_gauss": "Gauß-Kanone",
-
+			"hound_weapon_toggle_tooltip": "Wechselt zwischen Gauss-Kanone und schwerer Plasmakanone",
+			
 			"customOnOff": {
 				"lowTrajectory": "Direktes Feuer",
 				"highTrajectory": "Indirektes Feuer",

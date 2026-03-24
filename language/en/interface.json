@@ -1716,7 +1716,7 @@
 				"smartselect_includejammer_descr": "When rectangle-drag-selecting an area, exclude jammer units (hold Shift to override)",
 				"onlyfighterspatrol": "Only fighters patrol",
 				"onlyfighterspatrol_descr": "Only fighters obey a factory's patrol route after leaving airlab.",
-				"bombers_default_manualtargeting": "Set bombers manual targeting as default",
+				"bombers_default_manualtargeting": "Set bombers on manual targeting",
 				"bombers_default_manualtargeting_descr": "Sets produced bombers to targeting mode to Manual after leaving airlab.",
 				"fightersfly": "Set fighters on Fly mode",
 				"fightersfly_descr": "Setting fighters on Fly mode when created",

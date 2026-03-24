@@ -255,6 +255,7 @@
 			"trajectory_auto": "自动调整弹道",
 			"hound_weapon_plasma": "重型等离子火炮",
 			"hound_weapon_gauss": "电磁炮弹",
+			"hound_weapon_toggle_tooltip": "把武器设置为 慢弹速但爆炸范围大的等离子炮 或 弹道快的电磁炮。",
 			"blueprint_place": "放置蓝图",
 			"blueprint_place_tooltip": "放置已保存的蓝图",
 			"blueprint_create": "保存蓝图",
