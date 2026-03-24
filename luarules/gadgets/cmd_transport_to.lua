@@ -1,4 +1,3 @@
--- luarules/gadgets/cmd_transport_to.lua
 function gadget:GetInfo()
     return {
         name = "Transport To Command",
@@ -26,7 +25,9 @@ local cmdDesc = {
 }
 
 function gadget:UnitCreated(unitID, unitDefID, team)
-    if Spring.GetUnitIsTransportable(unitID) then
+    local unitDef = UnitDefs[unitDefID]
+    -- Add command to units that can be transported
+    if unitDef and not unitDef.cantBeTransported then
         Spring.InsertUnitCmdDesc(unitID, cmdDesc)
     end
 end
