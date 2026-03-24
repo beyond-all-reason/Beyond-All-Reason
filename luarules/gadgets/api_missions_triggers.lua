@@ -47,7 +47,6 @@ local function isTriggerValid(trigger)
 	if trigger.settings.repeating and trigger.settings.maxRepeats ~= nil and trigger.repeatCount > trigger.settings.maxRepeats then
 		return false
 	end
-	-- TODO: validation of difficulties once loadouts are merged and have difficulty parameters
 	if trigger.settings.difficulties ~= nil and not table.contains(trigger.settings.difficulties, GG['MissionAPI'].Difficulty) then
 		return false
 	end

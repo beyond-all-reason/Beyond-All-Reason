@@ -5,6 +5,7 @@ local lobbyData = {
 	missionId = "markers_test",
 	title = "Markers Test",
 	description = "Tests adding and removing markers, and drawing lines.",
+	image = "scenario011.jpg",
 	unlocked = true,
 }
 

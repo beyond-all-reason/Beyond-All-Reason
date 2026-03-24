@@ -590,6 +590,7 @@ local function validateReferences()
 	validateMarkerNameReferences(actionTypes, actions)
 end
 
+-- TODO: validation of difficulties once loadouts are merged and have difficulty parameters
 return {
 	ValidateTriggers = validateTriggers,
 	ValidateActions = validateActions,
