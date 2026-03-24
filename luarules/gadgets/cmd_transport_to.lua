@@ -15,7 +15,6 @@ local CMD_MOVE = CMD.MOVE
 local CMD_STOP = CMD.STOP
 local CMD_LOAD_UNITS = CMD.LOAD_UNITS
 local CMD_UNLOAD_UNITS = CMD.UNLOAD_UNITS
-local CMD_REMOVE = CMD.REMOVE
 
 local POLL_RATE = 10
 local ARRIVAL_DIST_SQ = 64 * 64
@@ -144,7 +143,7 @@ function gadget:CommandFallback(unitID, unitDefID, teamID, cmdID, params, opts, 
 
     if job.state == "walking" then
 
-        -- ALWAYS try to find transport (fix #3)
+        -- continuously try to get a transport
         local t = FindTransport(unitID)
         if t then
             job.transportID = t
@@ -184,25 +183,34 @@ function gadget:GameFrame(frame)
         if not IsValid(t) then
             transportState[t] = nil
 
-       elseif ts.state == "loaded" then
+        elseif ts.state == "pickup" then
 
-    local unitID = ts.unitID
+            local unitID = ts.unitID
 
-    if not Spring.GetUnitTransporter(unitID) then
-        ts.state = "return"
+            if Spring.GetUnitTransporter(unitID) == t then
+                ts.state = "loaded"
 
-        GiveInternalOrder(t, CMD_STOP, {}, {})
+                local job = jobs[unitID]
+                if job then
+                    local target = job.targets[#job.targets]
 
-        if ts.origin then
-            GiveInternalOrder(t, CMD_MOVE, ts.origin, {})
-        end
-    end
+                    GiveInternalOrder(t, CMD_MOVE, target, {})
+                    GiveInternalOrder(t, CMD_UNLOAD_UNITS, target, {"shift"})
+                end
+            end
 
         elseif ts.state == "loaded" then
 
             local unitID = ts.unitID
 
             if not Spring.GetUnitTransporter(unitID) then
+                ts.state = "post_unload"
+                ts.unloadFrame = frame
+            end
+
+        elseif ts.state == "post_unload" then
+
+            if frame > ts.unloadFrame + 1 then
                 ts.state = "return"
 
                 if ts.origin then
