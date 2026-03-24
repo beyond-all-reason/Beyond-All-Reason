@@ -210,13 +210,14 @@ function gadget:GameFrame(frame)
 
         elseif ts.state == "post_unload" then
 
-            if frame > ts.unloadFrame + 1 then
-                ts.state = "return"
+    if frame > ts.unloadFrame + 1 then
+        ts.state = "return"
 
-                if ts.origin then
-                    GiveInternalOrder(t, CMD_MOVE, ts.origin, {})
-                end
-            end
+        if ts.origin then
+            GiveInternalOrder(t, CMD_STOP, {}, {})
+            GiveInternalOrder(t, CMD_MOVE, ts.origin, {})
+        end
+    end
 
         elseif ts.state == "return" then
 
