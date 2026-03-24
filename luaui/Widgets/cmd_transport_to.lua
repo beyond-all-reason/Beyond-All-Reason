@@ -88,56 +88,53 @@ function widget:GameFrame(frame)
         if not IsUnitAlive(transportID) then
             activeTransports[transportID] = nil
             transportState[transportID] = nil
-            goto continue
-        end
+        else
+            local state = data.state
+            local currentPos = { spGetUnitPosition(transportID) }
 
-        local state = data.state
-        local currentPos = { spGetUnitPosition(transportID) }
-
-        -- State: idle - wait for new orders
-        if state == transport_states.idle then
-            -- Do nothing, waiting for next command
-        end
-
-        -- State: returning home after dropoff
-        if state == transport_states.returning_home then
-            local distToHome = distance(currentPos, data.homeLocation)
-            if distToHome < 100 then  -- Close enough to home
-                data.state = transport_states.idle
-                transportState[transportID] = transport_states.idle
+            -- State: idle - wait for new orders
+            if state == transport_states.idle then
+                -- Do nothing, waiting for next command
             end
-        end
 
-        -- State: moving to destination (after pickup)
-        if state == transport_states.moving_to_destination then
-            local carried = spGetUnitIsTransporting(transportID) or {}
-            if #carried == 0 then
-                -- Unit dropped off, return home
-                data.state = transport_states.returning_home
-                transportState[transportID] = transport_states.returning_home
-                spGiveOrderToUnit(transportID, CMD.MOVE, data.homeLocation, CMD.OPT_RIGHT)
-            else
-                -- Still have unit, continue to destination
-                local distToDest = distance(currentPos, data.destination)
-                if distToDest < 50 then
-                    -- Close to destination, unload
-                    spGiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, {}, CMD.OPT_RIGHT)
+            -- State: returning home after dropoff
+            if state == transport_states.returning_home then
+                local distToHome = distance(currentPos, data.homeLocation)
+                if distToHome < 100 then  -- Close enough to home
+                    data.state = transport_states.idle
+                    transportState[transportID] = transport_states.idle
+                end
+            end
+
+            -- State: moving to destination (after pickup)
+            if state == transport_states.moving_to_destination then
+                local carried = spGetUnitIsTransporting(transportID) or {}
+                if #carried == 0 then
+                    -- Unit dropped off, return home
+                    data.state = transport_states.returning_home
+                    transportState[transportID] = transport_states.returning_home
+                    spGiveOrderToUnit(transportID, CMD.MOVE, data.homeLocation, CMD.OPT_RIGHT)
+                else
+                    -- Still have unit, continue to destination
+                    local distToDest = distance(currentPos, data.destination)
+                    if distToDest < 50 then
+                        -- Close to destination, unload
+                        spGiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, {}, CMD.OPT_RIGHT)
+                    end
+                end
+            end
+
+            -- State: picking up unit
+            if state == transport_states.picking_up then
+                local carried = spGetUnitIsTransporting(transportID) or {}
+                if #carried > 0 then
+                    -- Successfully picked up unit, move to destination
+                    data.state = transport_states.moving_to_destination
+                    transportState[transportID] = transport_states.moving_to_destination
+                    spGiveOrderToUnit(transportID, CMD.MOVE, data.destination, CMD.OPT_RIGHT)
                 end
             end
         end
-
-        -- State: picking up unit
-        if state == transport_states.picking_up then
-            local carried = spGetUnitIsTransporting(transportID) or {}
-            if #carried > 0 then
-                -- Successfully picked up unit, move to destination
-                data.state = transport_states.moving_to_destination
-                transportState[transportID] = transport_states.moving_to_destination
-                spGiveOrderToUnit(transportID, CMD.MOVE, data.destination, CMD.OPT_RIGHT)
-            end
-        end
-
-        ::continue::
     end
 end
 
