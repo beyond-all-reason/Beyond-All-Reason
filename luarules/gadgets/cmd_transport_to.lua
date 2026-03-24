@@ -2,7 +2,7 @@ function gadget:GetInfo()
     return {
         name = "Transport To Command",
         desc = "Ferry system",
-        author = "You",
+        author = "Isajoefeat",
         layer = 0,
         enabled = true
     }
@@ -24,7 +24,9 @@ local function IsValid(unitID)
 end
 
 local function IsTransport(unitID)
-    local ud = UnitDefs[Spring.GetUnitDefID(unitID)]
+    local unitDefID = Spring.GetUnitDefID(unitID)
+    if not unitDefID then return false end
+    local ud = UnitDefs[unitDefID]
     return ud and ud.transportCapacity and ud.transportCapacity > 0
 end
 
@@ -48,21 +50,20 @@ end
 local function FindTransport(unitID)
     local team = Spring.GetUnitTeam(unitID)
     local units = Spring.GetTeamUnits(team)
-
     local ux, _, uz = Spring.GetUnitPosition(unitID)
 
     local best, bestDist = nil, math.huge
 
     for i = 1, #units do
         local u = units[i]
-
         if IsTransport(u) and not transportState[u] then
             local tx, _, tz = Spring.GetUnitPosition(u)
-            local d = DistSq(ux, uz, tx, tz)
-
-            if d < bestDist then
-                bestDist = d
-                best = u
+            if tx and tz then
+                local d = DistSq(ux, uz, tx, tz)
+                if d < bestDist then
+                    bestDist = d
+                    best = u
+                end
             end
         end
     end
@@ -70,45 +71,52 @@ local function FindTransport(unitID)
     return best
 end
 
--- ================= COMMAND =================
+function gadget:Initialize()
+    Spring.Echo("[Ferry] gadget loaded")
+end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
-
-    -- FIX 1: cancel ferry if ANY other command is issued to the unit
     if jobs[unitID] and cmdID ~= CMD_TRANSPORT_TO then
+        Spring.Echo("[Ferry] cancelled by new unit command", unitID, cmdID)
         jobs[unitID] = nil
     end
 
-    -- FIX 3: if transport is manually controlled, release it
     if transportState[unitID] and cmdID ~= CMD_LOAD_UNITS and cmdID ~= CMD_UNLOAD_UNITS then
+        Spring.Echo("[Ferry] transport manually overridden", unitID, cmdID)
         transportState[unitID] = nil
     end
 
     if cmdID == CMD_TRANSPORT_TO then
-        local targets = {}
+        Spring.Echo("[Ferry] command received", unitID)
 
+        local targets = {}
         for i = 1, #cmdParams, 3 do
-            if cmdParams[i] and cmdParams[i+1] and cmdParams[i+2] then
-                targets[#targets+1] = {
+            if cmdParams[i] and cmdParams[i + 1] and cmdParams[i + 2] then
+                targets[#targets + 1] = {
                     cmdParams[i],
-                    cmdParams[i+1],
-                    cmdParams[i+2]
+                    cmdParams[i + 1],
+                    cmdParams[i + 2]
                 }
             end
         end
 
-        if #targets == 0 then return false end
+        if #targets == 0 then
+            Spring.Echo("[Ferry] no valid targets parsed")
+            return false
+        end
 
         if jobs[unitID] and cmdOptions and cmdOptions.shift then
             for i = 1, #targets do
                 table.insert(jobs[unitID].targets, targets[i])
             end
+            Spring.Echo("[Ferry] appended targets", unitID, #targets)
         else
             jobs[unitID] = {
                 targets = targets,
-                state = "queued", -- NEW STATE
+                state = "queued",
                 transportID = nil,
             }
+            Spring.Echo("[Ferry] queued new job", unitID, #targets)
         end
 
         return false
@@ -146,8 +154,6 @@ function gadget:UnitDestroyed(unitID)
     transportState[unitID] = nil
 end
 
--- ================= MAIN =================
-
 function gadget:GameFrame(frame)
     if frame % 10 ~= 0 then return end
 
@@ -157,17 +163,14 @@ function gadget:GameFrame(frame)
 
         elseif job.state == "queued" then
             local cmds = Spring.GetUnitCommands(unitID, 1)
-
-            if cmds and #cmds > 0 then
-                -- still executing previous commands
-            else
+            if not cmds or #cmds == 0 then
                 job.state = "walking"
+                Spring.Echo("[Ferry] starting walk phase", unitID)
                 Spring.GiveOrderToUnit(unitID, CMD_MOVE, job.targets[1], {})
             end
 
         elseif job.state == "walking" then
             local t = FindTransport(unitID)
-
             if t then
                 job.transportID = t
                 job.state = "pickup"
@@ -177,6 +180,7 @@ function gadget:GameFrame(frame)
                     origin = {Spring.GetUnitPosition(t)},
                 }
 
+                Spring.Echo("[Ferry] assigned transport", t, "to", unitID)
                 Spring.GiveOrderToUnit(unitID, CMD_STOP, {}, {})
                 Spring.GiveOrderToUnit(t, CMD_LOAD_UNITS, {unitID}, {})
             end
@@ -188,6 +192,7 @@ function gadget:GameFrame(frame)
                 local t = job.transportID
                 local targets = job.targets
 
+                Spring.Echo("[Ferry] unit picked up", unitID, "by", t)
                 Spring.GiveOrderToUnit(t, CMD_MOVE, targets[1], {})
 
                 for i = 2, #targets do
@@ -204,6 +209,7 @@ function gadget:GameFrame(frame)
                 local ts = transportState[t]
 
                 if ts and ts.origin then
+                    Spring.Echo("[Ferry] returning transport", t)
                     Spring.GiveOrderToUnit(t, CMD_MOVE, ts.origin, {})
                 end
 
