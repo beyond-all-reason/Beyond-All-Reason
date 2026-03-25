@@ -437,6 +437,8 @@ local function clearChatInput()
 	inputText = ''
 	inputTextPosition = 0
 	inputTextInsertActive = false
+	-- Invalidate guishader so it rebuilds with tab blur regions included
+	backgroundGuishader = glDeleteList(backgroundGuishader)
 	applyFilter()
 end
 
@@ -559,6 +561,13 @@ function getOptionByID(id)
 end
 
 function orderOptions()
+	-- When a filter is active, options are already ordered by relevance with
+	-- context labels inserted by applyFilter(). Skip regrouping to preserve
+	-- that ordering and avoid severing shared references.
+	if inputText and inputText ~= '' and inputMode == '' then
+		return
+	end
+
 	local groupOptions = {}
 	for id, group in pairs(optionGroups) do
 		groupOptions[group.id] = {}
@@ -587,7 +596,9 @@ function orderOptions()
 			end
 		end
 	end
-	options = table.copy(newOptions)
+	-- Use direct assignment instead of table.copy (deep copy) to preserve
+	-- shared references between options and unfilteredOptions.
+	options = newOptions
 	rebuildOptionIdIndex()
 end
 
@@ -1121,17 +1132,16 @@ function widget:Update(dt)
 		lastUpdate = sec
 
 		local changes = false
-		for i, option in ipairs(options) do
-			if options[i].widget ~= nil and options[i].type == 'bool' and options[i].value ~= GetWidgetToggleValue(options[i].widget) then
-				options[i].value = GetWidgetToggleValue(options[i].widget)
+		-- Sync widget toggle values in unfilteredOptions (the authoritative list)
+		-- so changes persist across filter apply/clear cycles.
+		for i, option in ipairs(unfilteredOptions) do
+			if option.widget ~= nil and option.type == 'bool' and option.value ~= GetWidgetToggleValue(option.widget) then
+				option.value = GetWidgetToggleValue(option.widget)
 				changes = true
 			end
 		end
 		if changes then
-			if windowList then
-				gl.DeleteList(windowList)
-			end
-			windowList = gl.CreateList(DrawWindow)
+			applyFilter()
 		end
 		if getOptionByID('sndvolmaster') then
 			options[getOptionByID('sndvolmaster')].value = tonumber(Spring.GetConfigInt("snd_volmaster", 40) or 40)    -- update value because other widgets can adjust this too
@@ -1811,22 +1821,23 @@ function mouseEvent(mx, my, button, release)
 					if showSelectOptions == nil then
 						if optionButtons then
 							for i, o in pairs(optionButtons) do
-
-								if options[i].type == 'bool' and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
-									applyOptionValue(i, not options[i].value)
-									if playSounds then
-										if options[i].value then
-											Spring.PlaySoundFile(sounds.toggleOnClick, 0.75, 'ui')
-										else
-											Spring.PlaySoundFile(sounds.toggleOffClick, 0.75, 'ui')
+								if options[i] then
+									if options[i].type == 'bool' and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
+										applyOptionValue(i, not options[i].value)
+										if playSounds then
+											if options[i] and options[i].value then
+												Spring.PlaySoundFile(sounds.toggleOnClick, 0.75, 'ui')
+											else
+												Spring.PlaySoundFile(sounds.toggleOffClick, 0.75, 'ui')
+											end
 										end
+									elseif options[i].type == 'slider' and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
+
+									elseif options[i].type == 'select' and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
+
+									elseif optionHover[i] and options[i].onclick ~= nil and math_isInRect(mx, my, optionHover[i][1], optionHover[i][2], optionHover[i][3], optionHover[i][4]) then
+										options[i].onclick(i)
 									end
-								elseif options[i].type == 'slider' and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
-
-								elseif options[i].type == 'select' and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
-
-								elseif optionHover[i] and options[i].onclick ~= nil and math_isInRect(mx, my, optionHover[i][1], optionHover[i][2], optionHover[i][3], optionHover[i][4]) then
-									options[i].onclick(i)
 								end
 							end
 						end
@@ -1835,7 +1846,9 @@ function mouseEvent(mx, my, button, release)
 				else	-- press
 					if not showSelectOptions then
 						for i, o in pairs(optionButtons) do
-							if options[i].type == 'slider' and (math_isInRect(mx, my, o.sliderXpos[1], o[2], o.sliderXpos[2], o[4]) or math_isInRect(mx, my, o[1], o[2], o[3], o[4])) then
+							if not options[i] then
+								-- skip: options table was rebuilt and this index is stale
+							elseif options[i].type == 'slider' and (math_isInRect(mx, my, o.sliderXpos[1], o[2], o.sliderXpos[2], o[4]) or math_isInRect(mx, my, o[1], o[2], o[3], o[4])) then
 								draggingSlider = i
 								draggingSliderPreDragValue = options[draggingSlider].value
 								local newValue = getSliderValue(draggingSlider, mx)
@@ -1967,15 +1980,16 @@ function applyOptionValue(i, newValue, skipRedrawWindow, force)
 		end
 	end
 
-	if options[i].onchange then
+	if options[i] and options[i].onchange then
 		options[i].onchange(i, options[i].value, force)
 	end
 
 	if skipRedrawWindow == nil then
-		if windowList then
-			gl.DeleteList(windowList)
-		end
-		windowList = gl.CreateList(DrawWindow)
+		-- Use applyFilter() to rebuild the window — this preserves the filter
+		-- state and keeps options/unfilteredOptions references in sync.
+		-- Direct DrawWindow calls would run orderOptions() which deep-copies
+		-- the options table, severing links to unfilteredOptions.
+		applyFilter()
 	end
 end
 
@@ -7012,12 +7026,13 @@ function init()
 		applyFilter()
 	end
 
-	-- count num options in each group
+	-- count num options in each group (always use unfilteredOptions so counts
+	-- are correct even when a search filter is active)
 	local groups = {}
 	for id, group in pairs(optionGroups) do
 		groups[group.id] = id
 	end
-	for i, option in pairs(options) do
+	for i, option in pairs(unfilteredOptions) do
 		if groups[option.group] then
 			optionGroups[groups[option.group]].numOptions = optionGroups[groups[option.group]].numOptions + 1
 		end
