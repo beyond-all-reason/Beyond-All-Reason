@@ -41,6 +41,7 @@ return {
 			model_author = "Protar, ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Labs",
+			techlevel = 1.5,
 		},
 		featuredefs = {
 			dead = {

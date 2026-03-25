@@ -307,7 +307,7 @@ local options = {
 		type	= "bool",
 		section	= "options_main",
 		def		=  false,
-		column	= 1.76,
+		column	= 1.66,
 	},
     {
         key     = "sub_header",
@@ -365,9 +365,9 @@ local options = {
     },
 
 	{
-		key		= "unit_restrictions_nodefence",
-		name	= "Disable Defences",
-		desc	= "Disables Defensive Structures, apart from basic LLTs and basic AA",
+		key		= "unit_restrictions_nosea",
+		name	= "Disable Sea Units",
+		desc	= "Disable Sea Units",
 		type	= "bool",
 		section	= "options_main",
 		def		= false,

@@ -54,6 +54,7 @@ return {
 			subfolder = "ArmBuildings/LandFactories",
 			techlevel = 2,
 			unitgroup = "buildert2",
+			restrictions_inclusion = "_noair_",
 			usebuildinggrounddecal = true,
 		},
 		featuredefs = {
