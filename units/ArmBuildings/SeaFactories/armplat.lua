@@ -43,6 +43,8 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmBuildings/SeaFactories",
 			unitgroup = "builder",
+			restrictions_inclusion = "_noair",
+			techlevel = 1.5,
 		},
 		featuredefs = {
 			dead = {
