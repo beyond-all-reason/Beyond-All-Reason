@@ -45,6 +45,7 @@ return {
 			subfolder = "ArmBuildings/SeaFactories",
 			unitgroup = "builder",
 			usebuildinggrounddecal = true,
+			techlevel = 1.5,
 		},
 		featuredefs = {
 			dead = {

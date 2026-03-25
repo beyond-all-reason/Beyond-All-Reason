@@ -40,6 +40,7 @@ return {
 			subfolder = "Legion/Economy",
 			techlevel = 2,
 			unitgroup = "energy",
+			restrictions_inclusion = "_nofusion_",
 			usebuildinggrounddecal = true,
 		},
 		featuredefs = {

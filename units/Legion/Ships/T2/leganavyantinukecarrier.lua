@@ -57,7 +57,8 @@ return {
 			childreninheritxp = "DRONE",
 			parentsinheritxp = "DRONE",
 			techlevel = 2,
-			--unitgroup = "antinuke",
+			unitgroup = "antinuke",
+			restrictions_exclusion = "_noantinuke_",
 		},
 		featuredefs = {
 			dead = {
