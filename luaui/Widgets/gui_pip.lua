@@ -56,7 +56,7 @@ function widget:GetInfo()
 		version   = "2.0",
 		date      = "October 2025",
 		license   = "GNU GPL, v2 or later",
-		layer     = -(99020-pipNumber),
+		layer     = -(1099020-pipNumber),
 		enabled   = false,
 		handler   = true,
 	}
@@ -188,7 +188,7 @@ config = {
 	drawComHealthBars = true,  -- Draw health bars below commander icons when health < 99%
 	leftButtonPansCamera = isMinimapMode and (Spring.GetConfigInt("MinimapLeftClickMove", 1) == 1) or false,
 	maximizeSizemult = 1.25,
-	screenMargin = 0.045,
+	screenMargin = 0.00,
 	drawProjectiles = true,
 	zoomToCursor = true,
 	altKeyRequiredForZoom = Spring.GetConfigInt("PipAltKeyRequiredForZoom", 1) == 1,  -- When true, scrolling over the PIP only zooms if ALT is held (otherwise passes through to the game)
@@ -242,7 +242,7 @@ config = {
 	showViewRectangleOnMinimap = false,  -- Show the PIP view rectangle on the engine minimap
 	showViewRectangleInWorld = false,  -- Show the PIP view rectangle as an outline in the 3D world
 	engineMinimapFallback = true,  -- Use engine minimap when fully zoomed out (performance fallback)
-	engineMinimapFallbackThreshold = 4500,  -- Unit count threshold before engine minimap fallback activates
+	engineMinimapFallbackThreshold = 4000,  -- Unit count threshold before engine minimap fallback activates
 	engineMinimapExplosionOverlay = true,  -- Draw explosion overlay on top of engine minimap
 	engineMinimapDecalStrength = 0.8,  -- Decal overlay strength on engine minimap (0-1, lower = subtler scorch marks) decals do overlap with the engine minimap (unit icons), so this can be used to reduce their prominence if desired
 }
@@ -1430,12 +1430,15 @@ local gl4Icons = {
 	cachedPosX = {},          -- [unitID] = worldX (cached from sort pass, reused in processUnit)
 	cachedPosZ = {},          -- [unitID] = worldZ (cached from sort pass, reused in processUnit)
 	_buildingBuf = {},        -- Reused buffer: immobile building IDs for current frame
-	_mobileBuf = {},          -- Reused buffer: mobile unit IDs for current frame
+	_mobileBuf = {},          -- Reused buffer: fast mobile unit IDs (aircraft, commanders)
+	_slowMobileBuf = {},      -- Reused buffer: slow mobile unit IDs (ground units)
+	isFastMobile = {},        -- [unitID] = true (fast) / false (slow) — cached speed tier for mobile units
 	_bldgSortedCache = {},    -- Cached sorted building IDs (re-sorted only when set changes)
 	_lastBldgHash = 0,        -- Additive hash of building ID set for change detection
 	_lastBldgCount = 0,       -- Count of buildings for change detection
 	_prevBuildingLen = 0,     -- Previous frame building buffer length (for stale-clear)
-	_prevMobileLen = 0,       -- Previous frame mobile buffer length (for stale-clear)
+	_prevMobileLen = 0,       -- Previous frame fast mobile buffer length (for stale-clear)
+	_prevSlowMobileLen = 0,   -- Previous frame slow mobile buffer length (for stale-clear)
 	-- Dual VBO: separate building VBO for independent update frequency
 	bldgVbo = nil,            -- Building+ghost VBO (uploaded only when building state changes)
 	bldgVao = nil,            -- VAO for building VBO
@@ -1445,6 +1448,13 @@ local gl4Icons = {
 	_bldgVboHadOverlay = false, -- Previous upload had selection/flash/tracking/selfD overlays
 	_bldgVboGhostHash = 0,   -- Ghost ID hash for change detection
 	_bldgVboGhostCount = 0,  -- Ghost element count for change detection
+	-- Slow mobile VBO: separate buffer for ground mobile icons (uploaded less frequently)
+	slowVbo = nil,            -- Slow mobile VBO (ground units; rebuilt less often than fast mobile)
+	slowVao = nil,            -- VAO for slow mobile VBO
+	slowInstanceData = nil,   -- Pre-allocated flat array for slow mobile icon data
+	_slowVboValid = false,    -- Slow mobile VBO has current data (skip upload)
+	_slowVboUsedElements = 0, -- Elements in slow mobile VBO
+	_slowVboHadOverlay = false, -- Previous upload had overlays
 }
 
 -- Persistent sort comparator for icon draw order (avoids per-frame closure allocation)
@@ -1583,9 +1593,11 @@ local perfTimers = {
 	icSort = 0,       -- table.sort calls
 	icProcess = 0,    -- processUnit loop
 	icProcBldg = 0,   -- processUnit: buildings sub-loop
-	icProcMobile = 0, -- processUnit: mobile units sub-loop
+	icProcMobile = 0, -- processUnit: fast mobile units sub-loop
+	icProcSlowMobile = 0, -- processUnit: slow mobile units sub-loop
 	icProcBldgN = 0,  -- count of buildings processed
-	icProcMobileN = 0,-- count of mobile units processed
+	icProcMobileN = 0,-- count of fast mobile units processed
+	icProcSlowMobileN = 0, -- count of slow mobile units processed
 	icUpload = 0,     -- VBO upload to GPU
 	icDraw = 0,       -- shader setup + draw calls
 	icUploadDraw = 0, -- VBO upload + shader setup + draw calls (combined)
@@ -3321,6 +3333,49 @@ local function InitGL4Icons()
 	end
 	gl4Icons.bldgInstanceData = bldgInstanceData
 
+	-- Slow mobile VBO/VAO: separate buffer for ground mobile icons.
+	-- Ground units move slowly, so this VBO is updated less frequently than the fast mobile VBO.
+	local slowVbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
+	if not slowVbo then
+		Spring.Echo("[PIP] GL4 icons: Failed to create slow mobile VBO")
+		bldgVao:Delete()
+		bldgVbo:Delete()
+		vao:Delete()
+		vbo:Delete()
+		gl4Icons.atlas = nil
+		gl4Icons.vbo = nil
+		gl4Icons.vao = nil
+		gl4Icons.bldgVbo = nil
+		gl4Icons.bldgVao = nil
+		return
+	end
+	slowVbo:Define(gl4Icons.MAX_INSTANCES, vboLayout)
+	local slowVao = gl.GetVAO()
+	if not slowVao then
+		Spring.Echo("[PIP] GL4 icons: Failed to create slow mobile VAO")
+		slowVbo:Delete()
+		bldgVao:Delete()
+		bldgVbo:Delete()
+		vao:Delete()
+		vbo:Delete()
+		gl4Icons.atlas = nil
+		gl4Icons.vbo = nil
+		gl4Icons.vao = nil
+		gl4Icons.bldgVbo = nil
+		gl4Icons.bldgVao = nil
+		return
+	end
+	slowVao:AttachVertexBuffer(slowVbo)
+	gl4Icons.slowVbo = slowVbo
+	gl4Icons.slowVao = slowVao
+
+	-- Pre-allocate slow mobile instance data array
+	local slowInstanceData = {}
+	for i = 1, gl4Icons.MAX_INSTANCES * gl4Icons.INSTANCE_STEP do
+		slowInstanceData[i] = 0
+	end
+	gl4Icons.slowInstanceData = slowInstanceData
+
 	-- Compile shader
 	local shader = gl.CreateShader(gl4Icons.shaderCode)
 	if not shader then
@@ -3366,6 +3421,14 @@ local function DestroyGL4Icons()
 		gl4Icons.bldgVbo:Delete()
 		gl4Icons.bldgVbo = nil
 	end
+	if gl4Icons.slowVao then
+		gl4Icons.slowVao:Delete()
+		gl4Icons.slowVao = nil
+	end
+	if gl4Icons.slowVbo then
+		gl4Icons.slowVbo:Delete()
+		gl4Icons.slowVbo = nil
+	end
 	if gl4Icons.vao then
 		gl4Icons.vao:Delete()
 		gl4Icons.vao = nil
@@ -3382,6 +3445,8 @@ local function DestroyGL4Icons()
 	gl4Icons._vboUsedElements = 0
 	gl4Icons._bldgVboValid = false
 	gl4Icons._bldgVboUsedElements = 0
+	gl4Icons._slowVboValid = false
+	gl4Icons._slowVboUsedElements = 0
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -9415,21 +9480,27 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	local skipCosmetics = unitCount > 2000
 
 	-- At very high unit counts, skip position refresh for most mobile units to reduce
-	-- GetUnitBasePosition() API calls. Each unit refreshes every 3rd frame (round-robin).
+	-- GetUnitBasePosition() API calls. Fast mobile refreshes every 3rd frame (round-robin).
+	-- Slow mobile refreshes every 6th frame (they barely move between frames).
 	local skipMobilePosRefresh = unitCount > config.iconPosRefreshThreshold
 	local posRefreshSlot
+	local slowPosRefreshSlot
 	if skipMobilePosRefresh then
 		gl4Icons._posRefreshCounter = ((gl4Icons._posRefreshCounter or 0) + 1) % 3
 		posRefreshSlot = gl4Icons._posRefreshCounter
+		gl4Icons._slowPosRefreshCounter = ((gl4Icons._slowPosRefreshCounter or 0) + 1) % 6
+		slowPosRefreshSlot = gl4Icons._slowPosRefreshCounter
 	end
 
 	-- At extreme unit counts, ghost buildings add little visual value but cost ~1ms+.
 	local skipGhosts = unitCount > config.iconGhostSkipThreshold
 
-	-- Mobile VBO block cache: like buildings, cache the VBO output for mobile units
-	-- and rebuild every 2nd frame. Saves ~2-3ms of processUnit calls on skip frames.
+	-- Mobile VBO block cache: like buildings, cache the VBO output for mobile units.
+	-- Fast mobile (aircraft, commanders): rebuild every 2nd frame.
+	-- Slow mobile (ground units): rebuild every 4th frame — they move slowly.
 	local useMobileBlockCache = unitCount > config.iconMobileBlockThreshold and not useUnitpics
 	local mobileBlockRebuild = true
+	local slowMobileBlockRebuild = true
 	if useMobileBlockCache then
 		gl4Icons._mobileBlockAge = (gl4Icons._mobileBlockAge or 0) + 1
 		if gl4Icons._mobileBlock
@@ -9438,6 +9509,14 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 			mobileBlockRebuild = false
 		else
 			gl4Icons._mobileBlockAge = 0
+		end
+		gl4Icons._slowMobileBlockAge = (gl4Icons._slowMobileBlockAge or 0) + 1
+		if gl4Icons._slowMobileBlock
+			and gl4Icons._slowMobileBlockAge < 4
+			and checkAllyTeamID == gl4Icons._slowMobileBlockCheckAlly then
+			slowMobileBlockRebuild = false
+		else
+			gl4Icons._slowMobileBlockAge = 0
 		end
 	end
 	local mathFloor = math.floor
@@ -9706,10 +9785,13 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	-- Buildings are separated from mobile units so we can cache their sort order.
 	-- Immobile buildings never change position, so their relative sort order is stable.
 	-- We only re-sort buildings when the visible set changes (detected via count + hash).
-	-- Mobile units are sorted every frame since their positions change.
+	-- Mobile units are split into fast (aircraft, commanders) and slow (ground) for
+	-- independent block caching: slow ground units update less frequently.
 	local buildingIDs = gl4Icons._buildingBuf
 	local mobileIDs = gl4Icons._mobileBuf
-	local bCount, mCount = 0, 0
+	local slowMobileIDs = gl4Icons._slowMobileBuf
+	local isFastMobileTbl = gl4Icons.isFastMobile
+	local bCount, mCount, smCount = 0, 0, 0
 	local bldgHash = 0
 	local defaultLayer = gl4Icons.LAYER_GROUND
 	local localGaiaTeamID = gaiaTeamID
@@ -9744,13 +9826,24 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 			bldgHash = bldgHash + uID
 		else
 		-- At high counts, known mobile units reuse cached position on non-refresh frames.
-		-- Each unit refreshes 1 out of every 3 frames (round-robin by unitID).
+		-- Fast mobile (aircraft, commanders) refreshes every 3rd frame (round-robin by unitID).
+		-- Slow mobile (ground units) refreshes every 6th frame (they barely move).
 		-- New units (no cached position) always get a fresh position.
 		-- defID/team are already persistent in cache from the unit's first full pass.
-		if skipMobilePosRefresh and localCachePosX[uID] and uID % 3 ~= posRefreshSlot then
-			mCount = mCount + 1
-			mobileIDs[mCount] = uID
-		else
+		local fastPathHandled = false
+		if skipMobilePosRefresh and localCachePosX[uID] then
+			local isFast = isFastMobileTbl[uID]
+			if isFast == true and uID % 3 ~= posRefreshSlot then
+				mCount = mCount + 1
+				mobileIDs[mCount] = uID
+				fastPathHandled = true
+			elseif isFast == false and uID % 6 ~= slowPosRefreshSlot then
+				smCount = smCount + 1
+				slowMobileIDs[smCount] = uID
+				fastPathHandled = true
+			end
+		end
+		if not fastPathHandled then
 		local uDefID = unitDefCacheTbl[uID]
 		if not uDefID then
 			uDefID = spFunc.GetUnitDefID(uID)
@@ -9783,11 +9876,19 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 			buildingIDs[bCount] = uID
 			bldgHash = bldgHash + uID  -- order-independent hash for set change detection
 		else
-			mCount = mCount + 1
-			mobileIDs[mCount] = uID
+			-- Classify mobile speed tier: aircraft and commanders are fast, ground is slow
+			local isFast = cache.canFly[uDefID] or cache.isCommander[uDefID] or false
+			isFastMobileTbl[uID] = isFast
+			if isFast then
+				mCount = mCount + 1
+				mobileIDs[mCount] = uID
+			else
+				smCount = smCount + 1
+				slowMobileIDs[smCount] = uID
+			end
 		end -- isImmobile
 		end -- uTeam ~= gaia
-		end -- skipMobilePosRefresh
+		end -- not fastPathHandled
 		end -- not cachedBldgX
 		end -- not crashing
 	end
@@ -9798,6 +9899,9 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	local prevMLen = gl4Icons._prevMobileLen
 	for i = mCount + 1, prevMLen do mobileIDs[i] = nil end
 	gl4Icons._prevMobileLen = mCount
+	local prevSMLen = gl4Icons._prevSlowMobileLen
+	for i = smCount + 1, prevSMLen do slowMobileIDs[i] = nil end
+	gl4Icons._prevSlowMobileLen = smCount
 
 	local icT2 = os.clock()
 
@@ -9805,6 +9909,9 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	-- Skip sort at high counts — z-ordering is cosmetic and invisible at this density.
 	if (not useMobileBlockCache or mobileBlockRebuild) and mCount <= 1000 then
 		table.sort(mobileIDs, gl4IconSortCmp)
+	end
+	if (not useMobileBlockCache or slowMobileBlockRebuild) and smCount <= 1000 then
+		table.sort(slowMobileIDs, gl4IconSortCmp)
 	end
 
 	-- Building sort deferred to the processing slow path (only needed when block cache
@@ -9815,8 +9922,10 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 
 	-- Intermediate timer variables (set in both paths)
 	local icT3b = icT3  -- default: no building processing
+	local icT3c = icT3  -- default: no slow mobile processing
 	local bldgProcessed = 0
 	local mobileProcessed = 0
+	local slowMobileProcessed = 0
 	local currentGameFrame = Spring.GetGameFrame()
 	local bldgUsedElements = 0  -- Total building+ghost elements for building VBO
 
@@ -10106,7 +10215,168 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	end  -- if not bldgVboReuse
 
 	-- ========================================================================
-	-- Mobile VBO processing (ground/air/commander units → instanceData)
+	-- Slow mobile VBO processing (ground units → slowInstanceData)
+	-- Ground units move slowly, so this VBO is uploaded less frequently.
+	-- Block cache rebuilds every 4th frame vs every 2nd for fast mobile.
+	-- ========================================================================
+	data = gl4Icons.slowInstanceData
+	usedElements = 0
+	local preSlowMobileEl = 0
+
+	-- Slow mobile VBO reuse: when block cache hit and VBO still valid, skip processing
+	local slowMobileVboReuse = false
+	if useMobileBlockCache and not slowMobileBlockRebuild and gl4Icons._slowVboValid
+		and (gl4Icons._slowMobileBlockCount or 0) == gl4Icons._slowVboUsedElements then
+		slowMobileVboReuse = true
+		usedElements = gl4Icons._slowVboUsedElements
+	end
+
+	if not slowMobileVboReuse then
+
+	if useMobileBlockCache and not slowMobileBlockRebuild then
+		-- Fast path: copy entire cached slow mobile block
+		local slowBlock = gl4Icons._slowMobileBlock
+		local blockFloats = gl4Icons._slowMobileBlockN or 0
+		local blockOffset = usedElements * instStep
+		local j = 1
+		while j + 11 <= blockFloats do
+			data[blockOffset+j]=slowBlock[j]; data[blockOffset+j+1]=slowBlock[j+1]
+			data[blockOffset+j+2]=slowBlock[j+2]; data[blockOffset+j+3]=slowBlock[j+3]
+			data[blockOffset+j+4]=slowBlock[j+4]; data[blockOffset+j+5]=slowBlock[j+5]
+			data[blockOffset+j+6]=slowBlock[j+6]; data[blockOffset+j+7]=slowBlock[j+7]
+			data[blockOffset+j+8]=slowBlock[j+8]; data[blockOffset+j+9]=slowBlock[j+9]
+			data[blockOffset+j+10]=slowBlock[j+10]; data[blockOffset+j+11]=slowBlock[j+11]
+			j = j + 12
+		end
+		while j <= blockFloats do
+			data[blockOffset + j] = slowBlock[j]
+			j = j + 1
+		end
+		usedElements = usedElements + (gl4Icons._slowMobileBlockCount or 0)
+
+		-- Dynamic overlays on top of cached slow mobile data
+		local slowIdx = gl4Icons._slowMobileBlockIdx
+		if slowIdx then
+			if selectedSet then
+				for uID, idx in pairs(slowIdx) do
+					if selectedSet[uID] then
+						local off = (preSlowMobileEl + idx - 1) * instStep
+						data[off + 9] = 1; data[off + 10] = 1; data[off + 11] = 1
+						data[off + 12] = (uID * 0.37) % 6.2832
+					end
+				end
+			end
+			for uID, flash in pairs(damageFlash) do
+				local idx = slowIdx[uID]
+				if idx then
+					local elapsed = gameTime - flash.time
+					if elapsed < DAMAGE_FLASH_DURATION then
+						local f = flash.intensity * (1 - elapsed / DAMAGE_FLASH_DURATION)
+						local off = (preSlowMobileEl + idx - 1) * instStep
+						data[off + 9] = data[off + 9] + (1 - data[off + 9]) * f
+						data[off + 10] = data[off + 10] + (1 - data[off + 10]) * f
+						data[off + 11] = data[off + 11] + (1 - data[off + 11]) * f
+						data[off + 12] = (uID * 0.37) % 6.2832 + mathFloor(f * 100) * 7.0
+					else
+						damageFlash[uID] = nil
+					end
+				end
+			end
+			if trackedSet then
+				for uID, _ in pairs(trackedSet) do
+					local idx = slowIdx[uID]
+					if idx then
+						local off = (preSlowMobileEl + idx - 1) * instStep
+						data[off + 4] = data[off + 4] + 8
+					end
+				end
+			end
+			for uID in pairs(selfDUnits) do
+				local idx = slowIdx[uID]
+				if idx then
+					local off = (preSlowMobileEl + idx - 1) * instStep
+					data[off + 4] = data[off + 4] + 16
+				end
+			end
+		end
+	else
+		-- Full path: process each slow mobile unit individually
+		local slowIdx
+		if useMobileBlockCache then
+			slowIdx = gl4Icons._slowMobileBlockIdx
+			if not slowIdx then
+				slowIdx = {}
+				gl4Icons._slowMobileBlockIdx = slowIdx
+			end
+			for k in pairs(slowIdx) do slowIdx[k] = nil end
+		end
+
+		local writeCount = 0
+		for i = 1, smCount do
+			local uID = slowMobileIDs[i]
+			if usedElements >= maxInst then break end
+			local prevEl = usedElements
+			usedElements = processUnit(uID, usedElements)
+			if useMobileBlockCache and usedElements > prevEl then
+				writeCount = writeCount + 1
+				slowIdx[uID] = writeCount
+			end
+		end
+
+		-- Cache the slow mobile block for future frames
+		if useMobileBlockCache then
+			local slowBlock = gl4Icons._slowMobileBlock
+			if not slowBlock then
+				slowBlock = {}
+				gl4Icons._slowMobileBlock = slowBlock
+			end
+			local blockStart = preSlowMobileEl * instStep
+			local blockFloats = (usedElements - preSlowMobileEl) * instStep
+			for j = 1, blockFloats do
+				slowBlock[j] = data[blockStart + j]
+			end
+			for i = 0, writeCount - 1 do
+				local j = i * instStep + 4
+				local f = slowBlock[j]
+				slowBlock[j] = f - f % 32 + f % 8
+			end
+			if selectedSet then
+				for uID, idx in pairs(slowIdx) do
+					if selectedSet[uID] then
+						local j = (idx - 1) * instStep
+						local uTeam = spFunc.GetUnitTeam(uID)
+						if uTeam then
+							slowBlock[j + 9] = teamColorR[uTeam] or 1
+							slowBlock[j + 10] = teamColorG[uTeam] or 1
+							slowBlock[j + 11] = teamColorB[uTeam] or 1
+						end
+					end
+				end
+			end
+			local prevBlockN = gl4Icons._slowMobileBlockN or 0
+			for j = blockFloats + 1, prevBlockN do slowBlock[j] = nil end
+			gl4Icons._slowMobileBlockN = blockFloats
+			gl4Icons._slowMobileBlockCount = usedElements - preSlowMobileEl
+			gl4Icons._slowMobileBlockCheckAlly = checkAllyTeamID
+		end
+	end
+
+	slowMobileProcessed = usedElements - preSlowMobileEl
+
+	-- Upload slow mobile VBO
+	if not slowMobileVboReuse and usedElements > 0 then
+		gl4Icons.slowVbo:Upload(data, nil, 0, 1, usedElements * instStep)
+		gl4Icons._slowVboValid = true
+		gl4Icons._slowVboUsedElements = usedElements
+	end
+
+	end -- if not slowMobileVboReuse
+
+	local slowMobileUsedElements = usedElements
+	icT3c = os.clock()
+
+	-- ========================================================================
+	-- Fast mobile VBO processing (aircraft/commander units → instanceData)
 	-- ========================================================================
 	-- Switch data target to mobile instance array (offset 0)
 	data = gl4Icons.instanceData
@@ -10276,20 +10546,22 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	local icT4 = os.clock()
 
 	-- Skip draw if no icons and no unitpics
-	if bldgUsedElements == 0 and mobileUsedElements == 0 and unitpicCount == 0 then
+	if bldgUsedElements == 0 and mobileUsedElements == 0 and slowMobileUsedElements == 0 and unitpicCount == 0 then
 		perfTimers.icGhost = perfTimers.icGhost + PERF_SMOOTH * ((icT1 - icT0) - perfTimers.icGhost)
 		perfTimers.icKeysort = perfTimers.icKeysort + PERF_SMOOTH * ((icT2 - icT1) - perfTimers.icKeysort)
 		perfTimers.icSort = perfTimers.icSort + PERF_SMOOTH * ((icT3 - icT2) - perfTimers.icSort)
 		perfTimers.icProcess = perfTimers.icProcess + PERF_SMOOTH * ((icT4 - icT3) - perfTimers.icProcess)
 		perfTimers.icProcBldg = perfTimers.icProcBldg + PERF_SMOOTH * ((icT3b - icT3) - perfTimers.icProcBldg)
-		perfTimers.icProcMobile = perfTimers.icProcMobile + PERF_SMOOTH * ((icT4 - icT3b) - perfTimers.icProcMobile)
+		perfTimers.icProcSlowMobile = perfTimers.icProcSlowMobile + PERF_SMOOTH * ((icT3c - icT3b) - perfTimers.icProcSlowMobile)
+		perfTimers.icProcMobile = perfTimers.icProcMobile + PERF_SMOOTH * ((icT4 - icT3c) - perfTimers.icProcMobile)
 		perfTimers.icProcBldgN = bldgProcessed
 		perfTimers.icProcMobileN = mobileProcessed
+		perfTimers.icProcSlowMobileN = slowMobileProcessed
 		return iconRadiusZoomDistMult
 	end
 
-	-- Draw GL4 icons: building VBO first (layer 0), then mobile VBO (layers 1-3)
-	if bldgUsedElements > 0 or mobileUsedElements > 0 then
+	-- Draw GL4 icons: buildings → slow mobile → fast mobile (layers bottom to top)
+	if bldgUsedElements > 0 or slowMobileUsedElements > 0 or mobileUsedElements > 0 then
 		local icT4b = os.clock()
 
 		-- Set up GL state for icon drawing
@@ -10321,7 +10593,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		-- Bind atlas texture
 		glFunc.Texture(0, gl4Icons.atlas)
 
-		-- Draw buildings first (outline + normal), then mobile on top (outline + normal).
+		-- Draw buildings first (outline + normal), then slow mobile, then fast mobile on top.
 		-- Grouping per-VBO ensures mobile outlines are never hidden by building normals.
 		local hasSelfD = next(selfDUnits) ~= nil
 		local hasOutlines = trackedSet or hasSelfD
@@ -10336,7 +10608,17 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 			gl4Icons.bldgVao:DrawArrays(GL.POINTS, bldgUsedElements)
 		end
 
-		-- Mobile (always on top of buildings)
+		-- Slow mobile (ground units, above buildings)
+		if slowMobileUsedElements > 0 then
+			if hasOutlines then
+				gl.UniformFloat(ul.outlinePass, 1.0)
+				gl4Icons.slowVao:DrawArrays(GL.POINTS, slowMobileUsedElements)
+			end
+			gl.UniformFloat(ul.outlinePass, 0.0)
+			gl4Icons.slowVao:DrawArrays(GL.POINTS, slowMobileUsedElements)
+		end
+
+		-- Fast mobile (aircraft, commanders — always on top)
 		if mobileUsedElements > 0 then
 			if hasOutlines then
 				gl.UniformFloat(ul.outlinePass, 1.0)
@@ -10575,12 +10857,14 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	perfTimers.icSort = perfTimers.icSort + PERF_SMOOTH * ((icT3 - icT2) - perfTimers.icSort)
 	perfTimers.icProcess = perfTimers.icProcess + PERF_SMOOTH * ((icT4 - icT3) - perfTimers.icProcess)
 	perfTimers.icProcBldg = perfTimers.icProcBldg + PERF_SMOOTH * ((icT3b - icT3) - perfTimers.icProcBldg)
-	perfTimers.icProcMobile = perfTimers.icProcMobile + PERF_SMOOTH * ((icT4 - icT3b) - perfTimers.icProcMobile)
+	perfTimers.icProcSlowMobile = perfTimers.icProcSlowMobile + PERF_SMOOTH * ((icT3c - icT3b) - perfTimers.icProcSlowMobile)
+	perfTimers.icProcMobile = perfTimers.icProcMobile + PERF_SMOOTH * ((icT4 - icT3c) - perfTimers.icProcMobile)
 	perfTimers.icProcBldgN = bldgProcessed
 	perfTimers.icProcMobileN = mobileProcessed
+	perfTimers.icProcSlowMobileN = slowMobileProcessed
 	perfTimers.icUploadDraw = perfTimers.icUploadDraw + PERF_SMOOTH * ((icT5 - icT4) - perfTimers.icUploadDraw)
 	perfTimers.icUnitpics = perfTimers.icUnitpics + PERF_SMOOTH * ((icT6 - icT5) - perfTimers.icUnitpics)
-	perfTimers.icVboReuse = perfTimers.icVboReuse + PERF_SMOOTH * ((vboReuse and 1 or 0) - perfTimers.icVboReuse)
+	perfTimers.icVboReuse = perfTimers.icVboReuse + PERF_SMOOTH * ((mobileVboReuse and slowMobileVboReuse and 1 or 0) - perfTimers.icVboReuse)
 
 	return iconRadiusZoomDistMult
 end
@@ -11369,9 +11653,11 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 			perfTimers.icVboReuse * 100
 		))
 		Spring.Echo(string.format(
-			"    process: bldg=%.2fms(%d)  mobile=%.2fms(%d)",
+			"    process: bldg=%.2fms(%d)  slowMob=%.2fms(%d)  fastMob=%.2fms(%d)",
 			perfTimers.icProcBldg * 1000,
 			perfTimers.icProcBldgN,
+			perfTimers.icProcSlowMobile * 1000,
+			perfTimers.icProcSlowMobileN,
 			perfTimers.icProcMobile * 1000,
 			perfTimers.icProcMobileN
 		))
@@ -15023,6 +15309,13 @@ function widget:DrawScreen()
 		return
 	end
 
+	-- Safety: re-assert engine minimap is hidden at the start of every frame.
+	-- Guards against other widgets (e.g. Minimap widget briefly enabled during reload)
+	-- or engine commands resetting the minimize/slave state between frames.
+	if isMinimapMode and not miscState.engineMinimapActive then
+		Spring.SendCommands("minimap minimize 1")
+	end
+
 	-- In minimap mode, honour MinimapMinimize to hide the PIP minimap
 	-- Draw a small maximize button so the user can unfold it again
 	if isMinimapMode and miscState.minimapMinimized then
@@ -15194,8 +15487,6 @@ function widget:DrawScreen()
 		-- Transition: PIP → engine minimap
 		if not miscState.engineMinimapActive then
 			miscState.baseMinimapIconScale = Spring.GetConfigFloat("MinimapIconScale", 3.5)
-			Spring.SendCommands("minimap minimize 0")
-			gl.SlaveMiniMap(true)
 			miscState.engineMinimapActive = true
 		end
 		-- Always update geometry (handles animation, resize, position changes)
@@ -15210,8 +15501,12 @@ function widget:DrawScreen()
 			local resBoost = 1.0 + 0.18 * math.min(math.max((render.vsy - 1080) / (2880 - 1080), 0), 1)
 			Spring.SendCommands("minimap unitsize " .. (miscState.baseMinimapIconScale * densityScale * resBoost))
 		end
-		-- Draw the engine minimap
+		-- Briefly unminimize just for the DrawMiniMap call, then immediately re-minimize.
+		-- This prevents the engine from drawing the minimap in its own render pass between frames.
+		Spring.SendCommands("minimap minimize 0")
+		gl.SlaveMiniMap(true)
 		gl.DrawMiniMap()
+		Spring.SendCommands("minimap minimize 1")
 
 		-- Decal overlay on engine minimap (scorch marks, build plates)
 		-- Uses multiply blend so decals darken terrain; reduced strength to match PIP appearance.
@@ -15268,6 +15563,9 @@ function widget:DrawScreen()
 			gl4Icons._vboValid = false
 			gl4Icons._mobileBlock = nil
 			gl4Icons._mobileBlockAge = nil
+			gl4Icons._slowVboValid = false
+			gl4Icons._slowMobileBlock = nil
+			gl4Icons._slowMobileBlockAge = nil
 			gl4Icons.cachedPosX = {}
 			gl4Icons.cachedPosZ = {}
 		end
@@ -17285,6 +17583,7 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	-- Clear GL4 caches for this unit
 	gl4Icons.unitDefCache[unitID] = nil
 	gl4Icons.unitTeamCache[unitID] = nil
+	gl4Icons.isFastMobile[unitID] = nil
 
 	-- Clear damage flash and self-destruct tracking
 	damageFlash[unitID] = nil
