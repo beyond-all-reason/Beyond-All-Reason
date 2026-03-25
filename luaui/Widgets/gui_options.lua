@@ -3879,6 +3879,18 @@ function init()
 		-- 	  end
 		--   end,
 		-- },
+		{ id = "pip_engine_fallback_threshold", group = "ui", category = types.advanced, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.pip_engine_fallback_threshold'), type = "slider", min = 1500, max = 5000, step = 100, value = 4000, description = Spring.I18N('ui.settings.option.pip_engine_fallback_threshold_descr'),
+		  onload = function(i)
+			  if WG['minimap'] and WG['minimap'].getEngineMinimapFallbackThreshold then
+				  options[getOptionByID('pip_engine_fallback_threshold')].value = WG['minimap'].getEngineMinimapFallbackThreshold()
+			  end
+		  end,
+		  onchange = function(i, value)
+			  if WG['minimap'] and WG['minimap'].setEngineMinimapFallbackThreshold then
+				  WG['minimap'].setEngineMinimapFallbackThreshold(value)
+			  end
+		  end,
+		},
 
 
 		{ id = "pip", group = "ui", category = types.advanced, widget = "Picture-in-Picture", name = Spring.I18N('ui.settings.option.pip'), type = "bool", value = GetWidgetToggleValue("Picture-in-Picture"), description = Spring.I18N('ui.settings.option.pip_descr') },

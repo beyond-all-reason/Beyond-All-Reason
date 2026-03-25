@@ -14,7 +14,7 @@ widget.GetInfo = function()
 		version   = "1.0",
 		date      = "November 2025",
 		license   = "GNU GPL, v2 or later",
-		layer     = -(99020-pipNumber),
+		layer     = (1099020-pipNumber),
 		enabled   = false,
 		handler   = true,
 	}
