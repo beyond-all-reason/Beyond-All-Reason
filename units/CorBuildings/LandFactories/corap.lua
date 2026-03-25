@@ -51,7 +51,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorBuildings/LandFactories",
 			unitgroup = "builder",
-			restrictions_inclusion = "_noair",
+			restrictions_inclusion = "_noair_",
 			usebuildinggrounddecal = true,
 		},
 		featuredefs = {

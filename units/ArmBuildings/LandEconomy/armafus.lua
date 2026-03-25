@@ -39,7 +39,7 @@ return {
 			subfolder = "ArmBuildings/LandEconomy",
 			techlevel = 2,
 			unitgroup = "energy",
-			restrictions_inclusion = "_nofusion",
+			restrictions_inclusion = "_nofusion_",
 			usebuildinggrounddecal = true,
 		},
 		featuredefs = {

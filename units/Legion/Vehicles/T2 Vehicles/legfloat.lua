@@ -44,7 +44,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "legvehicles/T2",
 			techlevel = 2,
-			enabled_on_no_sea_maps = true,
+			restrictions_exclusion = "_nosea_",
 			speedfactorinwater = 1.3,
 		},
 		featuredefs = {

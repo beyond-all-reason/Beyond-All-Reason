@@ -42,7 +42,7 @@ return {
             buildinggrounddecalsizex = 10,
             buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'energy',
-			restrictions_exclusion = "_noantinuke",
+			restrictions_exclusion = "_noantinuke_",
             cvbuildable = true,
             geothermal = 1,
             model_author = "Tharsis",

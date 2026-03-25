@@ -45,7 +45,7 @@ return {
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",
 			parentsinheritxp = "DRONE",
-			restrictions_inclusion = "_noair",
+			restrictions_inclusion = "_noair_",
 		},
 		featuredefs = {
 			dead = {

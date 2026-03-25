@@ -48,7 +48,7 @@ return {
 			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'builder',
-			restrictions_inclusion = "_noair",
+			restrictions_inclusion = "_noair_",
 			airfactory = true,
 			model_author = "Protar/Ghoulish",
 			normaltex = "unittextures/leg_normal.dds",

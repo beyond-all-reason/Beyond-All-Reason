@@ -54,7 +54,7 @@ return {
 			subfolder = "CorShips/T2",
 			techlevel = 2,
 			unitgroup = "antinuke",
-			restrictions_exclusion = "_noantinuke",
+			restrictions_exclusion = "_noantinuke_",
 		},
 		featuredefs = {
 			dead = {

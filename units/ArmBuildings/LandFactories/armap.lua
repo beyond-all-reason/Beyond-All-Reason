@@ -50,7 +50,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmBuildings/LandFactories",
 			unitgroup = "builder",
-			restrictions_inclusion = "_noair",
+			restrictions_inclusion = "_noair_",
 			usebuildinggrounddecal = true,
 		},
 		featuredefs = {
