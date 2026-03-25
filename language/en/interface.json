@@ -1427,6 +1427,8 @@
 				"pip_commandfx_descr": "Show brief fading lines when orders are given in the PIP minimap",
 				"pip_minimap_engine_fallback": "engine fallback",
 				"pip_minimap_engine_fallback_descr": "Use the engine minimap when fully zoomed out for better performance. The PIP takes over when you zoom in.",
+				"pip_engine_fallback_threshold": "engine fallback unit threshold",
+				"pip_engine_fallback_threshold_descr": "Unit count threshold before the engine minimap fallback activates. Lower values switch to the engine minimap sooner for better performance.",
 				"pip": "picture-in-picture",
 				"pip_descr": "Displays a floating camera minimap style window",
 				"pip2": "picture-in-picture 2",
