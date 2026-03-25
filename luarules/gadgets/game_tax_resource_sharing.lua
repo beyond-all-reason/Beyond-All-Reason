@@ -32,6 +32,10 @@ local spUseTeamResource = Spring.UseTeamResource
 local spShareTeamResource = Spring.ShareTeamResource
 local spAddTeamResource = Spring.AddTeamResource
 local spSetTeamResource = Spring.SetTeamResource
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+local spGetFeatureResources = Spring.GetFeatureResources
+local spGetFeatureResurrect = Spring.GetFeatureResurrect
+local spGetUnitTeam = Spring.GetUnitTeam
 local math_max = math.max
 local math_min = math.min
 
@@ -198,13 +202,13 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, feature
 		return true
 	end
 
-	local resurrectUnitName = Spring.GetFeatureResurrect(featureID)
+	local resurrectUnitName = spGetFeatureResurrect(featureID)
 	if not resurrectUnitName or resurrectUnitName == "" then
 		return true -- not a resurrectable wreck
 	end
 
 	-- Only tax during phase 1 (metal insertion). Phase 2 is the actual resurrection which costs no metal.
-	local featureMetal, featureMaxMetal = Spring.GetFeatureResources(featureID)
+	local featureMetal, featureMaxMetal = spGetFeatureResources(featureID)
 	if not featureMetal or featureMaxMetal <= 0 or featureMetal >= featureMaxMetal then
 		return true
 	end
@@ -221,7 +225,7 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, feature
 
 	local teamMetal = spGetTeamResources(builderTeam, "metal")
 	if teamMetal < (metalTax + unitDef.metalCost * part) then
-		return false
+		return false -- can't afford tax
 	end
 
 	spUseTeamResource(builderTeam, "metal", metalTax)
@@ -231,13 +235,18 @@ end
 
 -- Tax assisting ally buildprogress
 function gadget:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part)
-	-- Only tax when assisting an ally's unit construction
-	local unitTeam = Spring.GetUnitTeam(unitID)
-	if not unitTeam or builderTeam == unitTeam or not spAreTeamsAllied(builderTeam, unitTeam) then
+	if part < 0 then -- reclaiming
 		return true
 	end
 
-	if part < 0 then
+	local beingBuilt = spGetUnitIsBeingBuilt(unitID)
+	if not beingBuilt then -- repair, not construction
+		return true
+	end
+
+	-- Only tax when assisting other player's unit construction, not when building your own units
+	local unitTeam = spGetUnitTeam(unitID)
+	if not unitTeam or builderTeam == unitTeam then
 		return true
 	end
 
@@ -246,13 +255,13 @@ function gadget:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, pa
 		return true
 	end
 
-	-- Tax the builder team for resources consumed while being assisted by an ally
+	-- Tax the builder team for resources consumed while assisting ally
 	local metalTax = unitDef.metalCost * part * sharingTax
 	local energyTax = unitDef.energyCost * part * sharingTax
 	local currentMetal = spGetTeamResources(builderTeam, "metal")
 	local currentEnergy = spGetTeamResources(builderTeam, "energy")
 	if currentMetal < (metalTax + unitDef.metalCost * part) or currentEnergy < (energyTax + unitDef.energyCost * part) then
-		return false
+		return false -- can't afford tax
 	end
 
 	spUseTeamResource(builderTeam, "metal", metalTax)
