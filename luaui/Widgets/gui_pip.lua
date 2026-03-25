@@ -15501,12 +15501,13 @@ function widget:DrawScreen()
 			local resBoost = 1.0 + 0.18 * math.min(math.max((render.vsy - 1080) / (2880 - 1080), 0), 1)
 			Spring.SendCommands("minimap unitsize " .. (miscState.baseMinimapIconScale * densityScale * resBoost))
 		end
-		-- Briefly unminimize just for the DrawMiniMap call, then immediately re-minimize.
-		-- This prevents the engine from drawing the minimap in its own render pass between frames.
+		-- Keep minimap unminimized so the engine updates its internal FBO each frame.
+		-- SlaveMiniMap(true) prevents the engine from drawing it visually — we control
+		-- when it appears via gl.DrawMiniMap(). Without this, the minimap FBO is stale
+		-- because the engine skips updating minimized minimaps.
 		Spring.SendCommands("minimap minimize 0")
 		gl.SlaveMiniMap(true)
 		gl.DrawMiniMap()
-		Spring.SendCommands("minimap minimize 1")
 
 		-- Decal overlay on engine minimap (scorch marks, build plates)
 		-- Uses multiply blend so decals darken terrain; reduced strength to match PIP appearance.
