@@ -475,6 +475,21 @@ local function attachEventListeners()
 		end, false)
 	end
 
+	local gridBtn = doc:GetElementById("btn-grid-overlay")
+	if gridBtn then
+		gridBtn:AddEventListener("click", function(event)
+			if WG.TerraformBrush then
+				local state = WG.TerraformBrush.getState()
+				local newVal = not (state and state.gridOverlay)
+				WG.TerraformBrush.setGridOverlay(newVal)
+				gridBtn:SetAttribute("src", newVal
+					and "/luaui/images/terraform_brush/check_on.png"
+					or "/luaui/images/terraform_brush/check_off.png")
+			end
+			event:StopPropagation()
+		end, false)
+	end
+
 	local exportBtn = doc:GetElementById("btn-export")
 	if exportBtn then
 		exportBtn:AddEventListener("click", function(event)
@@ -520,6 +535,7 @@ local function attachEventListeners()
 				WG.TerraformBrush.setHeightCapMax(nil)
 				WG.TerraformBrush.setHeightCapAbsolute(false)
 				WG.TerraformBrush.setClayMode(false)
+				WG.TerraformBrush.setGridOverlay(false)
 			end
 			capMinValue = 0
 			capMaxValue = 0
@@ -531,6 +547,10 @@ local function attachEventListeners()
 			local clayImg = doc:GetElementById("btn-clay-mode")
 			if clayImg then
 				clayImg:SetAttribute("src", "/luaui/images/terraform_brush/check_off.png")
+			end
+			local gridImg = doc:GetElementById("btn-grid-overlay")
+			if gridImg then
+				gridImg:SetAttribute("src", "/luaui/images/terraform_brush/check_off.png")
 			end
 			event:StopPropagation()
 		end, false)
@@ -663,6 +683,13 @@ function widget:Update()
 		local clayImg = doc:GetElementById("btn-clay-mode")
 		if clayImg then
 			clayImg:SetAttribute("src", state.clayMode
+				and "/luaui/images/terraform_brush/check_on.png"
+				or "/luaui/images/terraform_brush/check_off.png")
+		end
+
+		local gridImg = doc:GetElementById("btn-grid-overlay")
+		if gridImg then
+			gridImg:SetAttribute("src", state.gridOverlay
 				and "/luaui/images/terraform_brush/check_on.png"
 				or "/luaui/images/terraform_brush/check_off.png")
 		end

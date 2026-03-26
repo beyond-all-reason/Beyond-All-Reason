@@ -104,6 +104,7 @@ local shiftOriginX = nil
 local shiftOriginZ = nil
 local wasShiftHeld = false
 local gridShowing = false
+local gridOverlayOn = false
 local rightMouseHeld = false
 local savedModeBeforeRMB = nil
 local savedDirectionBeforeRMB = nil
@@ -351,6 +352,15 @@ local function setClayMode(value)
 	clayMode = value and true or false
 end
 
+local function setGridOverlay(value)
+	gridOverlayOn = value and true or false
+	if gridOverlayOn then
+		showBuildGrid()
+	else
+		hideBuildGrid()
+	end
+end
+
 local function getState()
 	return {
 		active = activeMode ~= nil,
@@ -366,6 +376,7 @@ local function getState()
 		heightCapMax = heightCapMax,
 		heightCapAbsolute = heightCapAbsolute,
 		clayMode = clayMode,
+		gridOverlay = gridOverlayOn,
 		undoCount = historyUndoCount,
 		redoCount = historyRedoCount,
 	}
@@ -701,6 +712,7 @@ function widget:Initialize()
 		setHeightCapMax = setHeightCapMax,
 		setHeightCapAbsolute = setHeightCapAbsolute,
 		setClayMode = setClayMode,
+		setGridOverlay = setGridOverlay,
 		getState = getState,
 		deactivate = deactivateTerraform,
 		undo = function()
@@ -1361,7 +1373,9 @@ function widget:DrawWorld()
 
 	if not activeMode then
 		invalidateDrawCache()
-		hideBuildGrid()
+		if not gridOverlayOn then
+			hideBuildGrid()
+		end
 		return
 	end
 
@@ -1387,9 +1401,11 @@ function widget:DrawWorld()
 		worldX, worldZ = constrainToAxis(shiftOriginX, shiftOriginZ, worldX, worldZ)
 	end
 
-	-- Grid snap + visual when shift is held
+	-- Grid snap + visual when shift is held or overlay is toggled on
 	if shiftHeld then
 		worldX, worldZ = snapToGrid(worldX, worldZ)
+		showBuildGrid()
+	elseif gridOverlayOn then
 		showBuildGrid()
 	else
 		hideBuildGrid()
