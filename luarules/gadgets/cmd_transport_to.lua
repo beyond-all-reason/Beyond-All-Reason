@@ -70,21 +70,6 @@ local function ParseTargets(params)
     return t
 end
 
-local function TransportHasPassengers(unitID)
-    local carried = Spring.GetUnitIsTransporting(unitID)
-    return carried and #carried > 0
-end
-
-local function ClearTransportAssignment(transportID, stopTransport)
-    if not transportID then return end
-
-    if stopTransport and IsValid(transportID) and not TransportHasPassengers(transportID) then
-        GiveInternalOrder(transportID, CMD_STOP, {}, {})
-    end
-
-    transportState[transportID] = nil
-end
-
 local function FindTransport(unitID)
     local team = Spring.GetUnitTeam(unitID)
     local units = Spring.GetTeamUnits(team)
@@ -96,12 +81,7 @@ local function FindTransport(unitID)
 
     for i = 1, #units do
         local u = units[i]
-        local ts = transportState[u]
-
-        -- Returning ferries are empty and reusable.
-        local available = (not ts) or ts.state == "return"
-
-        if IsTransport(u) and available then
+        if IsTransport(u) and not transportState[u] then
             local tx, _, tz = Spring.GetUnitPosition(u)
             if tx then
                 local d = DistSq(ux, uz, tx, tz)
@@ -116,17 +96,25 @@ local function FindTransport(unitID)
     return best
 end
 
+local function TransportHasPassengers(unitID)
+    local carried = Spring.GetUnitIsTransporting(unitID)
+    return carried and #carried > 0
+end
+
 local function CancelJob(unitID)
     local job = jobs[unitID]
     if not job then return end
 
+    -- Passenger cancel fix only:
+    -- if this passenger had an assigned ferry that is still empty and still
+    -- linked to them, stop that ferry too so it does not keep coming.
     if job.transportID then
         local ts = transportState[job.transportID]
-
         if ts and ts.unitID == unitID then
-            -- If the passenger cancels, stop the assigned ferry too
-            -- so it does not keep flying in for pickup.
-            ClearTransportAssignment(job.transportID, true)
+            if IsValid(job.transportID) and not TransportHasPassengers(job.transportID) then
+                GiveInternalOrder(job.transportID, CMD_STOP, {}, {})
+            end
+            transportState[job.transportID] = nil
         end
     end
 
@@ -194,10 +182,6 @@ function gadget:CommandFallback(unitID, unitDefID, teamID, cmdID, params, opts, 
             }
 
             GiveInternalOrder(unitID, CMD_STOP, {}, {})
-
-            -- If this ferry was returning, break that return immediately
-            -- so it can respond to the new ferry request right away.
-            GiveInternalOrder(t, CMD_STOP, {}, {})
             GiveInternalOrder(t, CMD_LOAD_UNITS, { unitID }, {})
 
             return true, false
@@ -238,8 +222,8 @@ function gadget:GameFrame(frame)
                 if job then
                     local target = job.targets[#job.targets]
 
-                    -- Queue the full trip at load time:
-                    -- go there, unload, go home.
+                    -- Stable working return fix:
+                    -- queue the whole trip at load time.
                     GiveInternalOrder(t, CMD_MOVE, target, {})
                     GiveInternalOrder(t, CMD_UNLOAD_UNITS, target, { "shift" })
 
