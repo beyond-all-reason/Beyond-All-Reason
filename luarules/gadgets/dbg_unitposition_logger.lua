@@ -249,23 +249,13 @@ if not gadgetHandler:IsSyncedCode() then
 else	-- SYNCED
 
 
-	local charset = {}  do -- [0-9a-zA-Z]
-		for c = 48, 57  do table.insert(charset, string.char(c)) end
-		for c = 65, 90  do table.insert(charset, string.char(c)) end
-		for c = 97, 122 do table.insert(charset, string.char(c)) end
-	end
-	local function randomString(length)
-		if not length or length <= 0 then return '' end
-		return randomString(length - 1) .. charset[math.random(1, #charset)]
-	end
-
-	local validation = randomString(2)
+local validation = string.randomString(4)
 	_G.validationLogger = validation
 
 	-- Synced code here only listens to what has been received and thus logged in the demo, notifies unsynced so that can handle re-sending if necessary
 	function gadget:RecvLuaMsg(msg, playerID)
-		if msg:sub(1,3)=="log" and msg:sub(4,5)==validation then
-			local params = string.split(msg:sub(6, 40), ';')	-- 1=frame, 2=part, 3=numParts, 4=attempts, 5=gzipped-json
+		if msg:sub(1,3)=="log" and msg:sub(4,7)==validation then
+			local params = string.split(msg:sub(8, 42), ';')
 			SendToUnsynced("receivedPart", params[1], params[2], params[3], params[4])
 			return true
 		end
