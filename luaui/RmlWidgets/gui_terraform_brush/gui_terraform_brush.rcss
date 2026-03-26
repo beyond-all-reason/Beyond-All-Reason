@@ -355,9 +355,54 @@ body {
 	border-color: #64aae6b3;
 }
 
-.tf-preset-list {
-	max-height: 160dp;
+.tf-preset-toggle {
+	padding: 0 6dp;
+	background-color: #3a3a3a;
+	border-color: #5a5a5a80;
+}
+
+.tf-preset-toggle:hover {
+	background-color: #4a4a4a;
+	border-color: #7a7a7acc;
+}
+
+.tf-preset-toggle.open {
+	background-color: #4a4a4a;
+	border-color: #8a8a8acc;
+}
+
+.tf-dropdown-arrow {
+	font-size: 0.8rem;
+	color: #9ca3af;
+}
+
+.tf-preset-dropdown {
+	max-height: 168dp;
 	overflow-y: auto;
+	background-color: #1a1a22ee;
+	border: 2dp #4a4a4a80;
+	border-radius: 5dp;
+	margin-top: 2dp;
+	margin-bottom: 4dp;
+}
+
+.tf-preset-dropdown scrollbarvertical {
+	width: 8dp;
+	margin-left: 2dp;
+}
+
+.tf-preset-dropdown scrollbarvertical sliderbar {
+	background-color: #6a6a6a;
+	border-radius: 4dp;
+}
+
+.tf-preset-dropdown scrollbarvertical sliderbar:hover {
+	background-color: #8a8a8a;
+}
+
+.tf-preset-dropdown scrollbarvertical slidertrack {
+	background-color: #2a2a2a;
+	border-radius: 4dp;
 }
 
 .tf-preset-row {
@@ -366,14 +411,19 @@ body {
 	align-items: center;
 	gap: 4dp;
 	height: 26dp;
-	padding: 2dp 4dp;
+	padding: 2dp 6dp;
 	border-radius: 4dp;
 	cursor: pointer;
 	transition: background-color 0.15s;
 }
 
 .tf-preset-row:hover {
-	background-color: #3a3a3a;
+	background-color: #3a3a4a;
+}
+
+.tf-preset-row.selected {
+	background-color: #2a3a4a;
+	border: 1dp #508cc860;
 }
 
 .tf-preset-name {
