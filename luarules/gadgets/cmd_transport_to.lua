@@ -4,12 +4,9 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name = "Transport To (Gadget)",
-		desc = [[This gadget adds the CMD_AUTO_TRANSPORT, which determines if a transport can be used in the widget, 
-                    it also allows the existance of CMD_TRANSPORT_TO in the queue in CommandFallback()
-                    it also removes it once a unit has been loaded (not always the case, i think a weird race condition, but does´nt seem to change anything)]],
+		desc = "Ferry transport system",
 		author = "Silla Noble and Isajoefeat",
-		date = "uhhhhh.....",
-		license = "A what now?",
+		license = "GNU GPL V2 or later",
 		layer = 1,
 		enabled = true,
 	}
