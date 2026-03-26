@@ -898,26 +898,6 @@ function widget:Update()
 end
 
 function widget:DrawWorld()
-	gl.Texture(0, "anims/cursortransport_0.png")
-
-	for unitID in pairs(unitsWaitingForTransport) do
-		if unitsWaitingForTransport[unitID] then
-			local x, y, z = GetUnitPosition(unitID)
-			if x and y and z then
-				gl.PushMatrix()
-				gl.Translate(x, y + 30, z)
-				gl.Billboard()
-
-				local size = 16
-				gl.TexRect(-size, -size, size, size)
-
-				gl.PopMatrix()
-			end
-		end
-	end
-
-	gl.Texture(0, false)
-	gl.Color(1, 1, 1, 1)
 end
 
 function widget:CommandsChanged()
