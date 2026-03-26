@@ -16,7 +16,7 @@ local gameCommands = {
 	FACTORY_GUARD = 13921,
 	AREA_GUARD = 13922, -- unused
 	STOP_PRODUCTION = 13923,
-	TRANSPORT_TO = 32277
+	TRANSPORT_TO = 32277, -- ferry
 
 	-- blueprint
 	BLUEPRINT_PLACE = 18200,
