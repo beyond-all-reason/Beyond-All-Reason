@@ -56,7 +56,7 @@ function widget:GetInfo()
 		version   = "2.0",
 		date      = "October 2025",
 		license   = "GNU GPL, v2 or later",
-		layer     = -(1099020-pipNumber),
+		layer     = -(99020-pipNumber),
 		enabled   = false,
 		handler   = true,
 	}
