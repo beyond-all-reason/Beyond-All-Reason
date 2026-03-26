@@ -264,10 +264,10 @@ local function preProcessTweakOptions()
 					Spring.Echo(postsFuncStr)
 					if postfunc then
 						local success, result = pcall(postfunc)
-						if not success then
-							Spring.Echo("Error executing tweakdef", name, postsFuncStr, "Error :" .. result)
-						else
+						if success then
 							shouldNormalizeUnitDefs = true -- tweakdefs can add or denormalize units
+						else
+							Spring.Echo("Error executing tweakdef", name, postsFuncStr, "Error :" .. result)
 						end
 					end
 				end
