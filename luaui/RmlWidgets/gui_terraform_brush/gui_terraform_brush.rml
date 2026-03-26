@@ -1,0 +1,206 @@
+<rml>
+<head>
+	<link type="text/rcss" href="../styles.rcss" />
+	<link type="text/rcss" href="../rml-utility-classes.rcss" />
+	<link type="text/rcss" href="../palette-standard-global.rcss" />
+	<link type="text/rcss" href="../themes/theme-base.rcss" />
+	<link type="text/rcss" href="../themes/theme-armada.rcss" />
+	<link type="text/rcss" href="../themes/theme-cortex.rcss" />
+	<link type="text/rcss" href="../themes/theme-legion.rcss" />
+	<link type="text/rcss" href="gui_terraform_brush.rcss" />
+</head>
+<body data-model="terraform_brush_model">
+	<div id="tf-root" class="tf-root hidden widget-shadow rounded-md bg-darkest p-2">
+		<div class="flex flex-row justify-between items-center mb-2">
+			<handle id="tf-handle" class="tf-drag-handle text-2xl font-bold text-light text-outline-darker" style="flex: 1;" move_target="tf-root">Terraform Brush</handle>
+			<div id="btn-quit" class="tf-quit-btn"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
+		</div>
+
+		<div class="text-lg text-light mt-1-5 mb-1">MODE</div>
+		<div class="flex flex-row gap-1 mb-1">
+			<div id="btn-raise" class="tf-mode-btn tf-btn-raise">
+				<div class="tf-keybind-badge">LMB</div>
+				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_raise.png" />
+				<div class="tf-btn-text">Raise</div>
+			</div>
+			<div id="btn-lower" class="tf-mode-btn tf-btn-lower">
+				<div class="tf-keybind-badge">RMB</div>
+				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_lower.png" />
+				<div class="tf-btn-text">Lower</div>
+			</div>
+			<div id="btn-level" class="tf-mode-btn tf-btn-level">
+				<div class="tf-keybind-badge">L</div>
+				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_level.png" />
+				<div class="tf-btn-text">Level</div>
+			</div>
+			<div id="btn-ramp" class="tf-mode-btn tf-btn-ramp">
+				<div class="tf-keybind-badge">R</div>
+				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_ramp.png" />
+				<div class="tf-btn-text">Ramp</div>
+			</div>
+			<div id="btn-restore" class="tf-mode-btn tf-btn-restore">
+				<div class="tf-keybind-badge">E</div>
+				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_restore.png" />
+				<div class="tf-btn-text">Restore</div>
+			</div>
+		</div>
+
+		<div class="divider-horizontal-dark"></div>
+
+		<div class="text-lg text-light mb-1">SHAPE</div>
+		<div class="flex flex-row gap-1 mb-1">
+			<div id="btn-circle" class="tf-shape-btn active">
+				<div class="tf-keybind-badge">C</div>
+				<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_circle.png" />
+			</div>
+			<div id="btn-square" class="tf-shape-btn">
+				<div class="tf-keybind-badge">S</div>
+				<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_square.png" />
+			</div>
+			<div id="btn-hexagon" class="tf-shape-btn">
+				<div class="tf-keybind-badge">H</div>
+				<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_hexagon.png" />
+			</div>
+			<div id="btn-octagon" class="tf-shape-btn">
+				<div class="tf-keybind-badge">O</div>
+				<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_octagon.png" />
+			</div>
+			<div id="btn-ring" class="tf-shape-btn">
+				<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_ring.png" />
+			</div>
+		</div>
+
+		<div class="divider-horizontal-dark"></div>
+
+		<div class="flex flex-row justify-between items-center mb-1">
+			<div class="text-lg text-light">UNDO &amp; REDO</div>
+			<div class="text-sm text-keybind">Ctrl+Z / Ctrl+Shift+Z</div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div id="btn-undo" class="tf-history-btn">
+				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/undo.png" />
+			</div>
+			<input type="range" id="slider-history" class="tf-slider tf-slider-history" min="0" max="100" step="1" value="100" />
+			<div id="btn-redo" class="tf-history-btn">
+				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/redo.png" />
+			</div>
+		</div>
+
+		<div class="divider-horizontal-dark"></div>
+
+		<div class="flex flex-row justify-between items-center mb-1">
+			<div class="text-lg text-light">ROTATION: <span class="text-xl font-bold">{{rotationDeg}}&#176;</span></div>
+			<div class="text-sm text-keybind">Alt+Scroll</div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div id="btn-rot-ccw" class="tf-sm-btn">
+				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/rot_ccw.png" />
+			</div>
+			<input type="range" id="slider-rotation" class="tf-slider" min="0" max="359" step="1" value="0" />
+			<div id="btn-rot-cw" class="tf-sm-btn">
+				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/rot_cw.png" />
+			</div>
+		</div>
+
+		<div class="divider-horizontal-dark"></div>
+
+		<div class="flex flex-row justify-between items-center mb-1">
+			<div class="text-lg text-light">INTENSITY: <span class="text-xl font-bold">{{intensity}}</span></div>
+			<div class="text-sm text-keybind">Space+Scroll</div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div id="btn-intensity-down" class="tf-sm-btn">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+			</div>
+			<input type="range" id="slider-intensity" class="tf-slider" min="0" max="1000" step="1" value="333" />
+			<div id="btn-intensity-up" class="tf-sm-btn">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+			</div>
+		</div>
+
+		<div class="divider-horizontal-dark"></div>
+
+		<div class="flex flex-row justify-between items-center mb-1">
+			<div class="text-lg text-light">SIZE: <span class="text-xl font-bold">{{radius}}</span></div>
+			<div class="text-sm text-keybind">Ctrl+Scroll</div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div id="btn-size-down" class="tf-sm-btn">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+			</div>
+			<input type="range" id="slider-size" class="tf-slider" min="8" max="2000" step="1" value="100" />
+			<div id="btn-size-up" class="tf-sm-btn">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+			</div>
+		</div>
+
+		<div class="divider-horizontal-dark"></div>
+
+		<div class="flex flex-row justify-between items-center mb-1">
+			<div class="text-lg text-light">LENGTH: <span class="text-xl font-bold">{{lengthScale}}</span></div>
+			<div class="text-sm text-keybind">Ctrl+Alt+Scroll</div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div id="btn-length-down" class="tf-sm-btn">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+			</div>
+			<input type="range" id="slider-length" class="tf-slider" min="2" max="50" step="1" value="10" />
+			<div id="btn-length-up" class="tf-sm-btn">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+			</div>
+		</div>
+
+		<div class="divider-horizontal-dark"></div>
+
+		<div class="flex flex-row justify-between items-center mb-1">
+			<div class="text-lg text-light">CURVE: <span class="text-xl font-bold">{{curve}}</span></div>
+			<div class="text-sm text-keybind">Shift+Scroll</div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div id="btn-curve-down" class="tf-sm-btn">
+				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/curve_flat.png" />
+			</div>
+			<input type="range" id="slider-curve" class="tf-slider" min="1" max="50" step="1" value="10" />
+			<div id="btn-curve-up" class="tf-sm-btn">
+				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/curve_sharp.png" />
+			</div>
+		</div>
+
+		<div class="divider-horizontal-dark"></div>
+
+		<div class="text-lg text-light mb-0-5">HEIGHT CAP</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<img id="btn-cap-absolute" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" style="cursor: pointer;" />
+			<div class="text-sm text-keybind">Absolute</div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-0-5">
+			<div class="text-lg" style="color: #f0a030;">Max: <span class="font-bold">{{heightCapMaxStr}}</span></div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<input type="range" id="slider-cap-max" class="tf-slider tf-slider-cap-max" min="-500" max="500" step="1" value="0" />
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-0-5">
+			<div class="text-lg" style="color: #30a0f0;">Min: <span class="font-bold">{{heightCapMinStr}}</span></div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<input type="range" id="slider-cap-min" class="tf-slider tf-slider-cap-min" min="-500" max="500" step="1" value="0" />
+		</div>
+
+		<div class="divider-horizontal-dark"></div>
+
+		<div class="flex flex-row gap-1 mb-1">
+			<div id="btn-defaults" class="tf-action-btn tf-defaults-btn"><div class="text-lg text-medium">Restore Defaults</div></div>
+		</div>
+
+		<div class="divider-horizontal-dark"></div>
+
+		<div class="flex flex-row gap-1 mt-1-5 mb-1">
+			<div id="btn-export" class="tf-action-btn tf-save-btn"><div class="text-lg text-medium">Save</div></div>
+			<div id="btn-import" class="tf-action-btn tf-load-btn-disabled"><div class="text-lg text-dark-alpha">Load</div></div>
+		</div>
+		<div id="tooltip-load" class="tf-tooltip hidden">Coming soon...</div>
+
+		<div class="divider-horizontal-dark"></div>
+	</div>
+</body>
+</rml>
