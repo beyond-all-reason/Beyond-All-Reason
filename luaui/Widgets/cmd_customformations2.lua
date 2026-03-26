@@ -256,8 +256,7 @@ end
 
 local function CanUnitExecute(uID, cmdID)
     if cmdID == CMD_UNLOADUNIT then
-        local transporting = spGetUnitIsTransporting(uID)
-        return (transporting and #transporting > 0)
+        cmdID = CMD_UNLOADUNITS
     end
 
     local defID = spGetUnitDefID(uID)

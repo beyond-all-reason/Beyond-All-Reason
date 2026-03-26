@@ -91,6 +91,16 @@ local cost = {} -- cost[unitDefID] = { metal, energy, buildTime }
 local suspendBuilderPriority
 local teamsWithOwners = {} -- teams that have active buildTargetOwners entries
 
+-- Reusable scratch tables to reduce GC pressure (cleared before each use)
+local _passiveMetal = {}
+local _passiveEnergy = {}
+
+local function clearTable(t)
+	for k in pairs(t) do
+		t[k] = nil
+	end
+end
+
 for unitDefID, unitDef in pairs(UnitDefs) do
 	-- All builders can have their build speeds changed via lua
     if unitDef.buildSpeed > 0 then
@@ -223,7 +233,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
     return true
 end
 
-local function UpdatePassiveBuilders(teamID, interval)
+local function UpdatePassiveBuilders(teamID, interval, mCur, mStor, mInc, mShare, mSent, mRec, eCur, eStor, eInc, eShare, eSent, eRec)
 	-- Early exit if no passive builders for this team
 	if not passiveConsCount[teamID] or passiveConsCount[teamID] == 0 then
 		return
@@ -243,14 +253,13 @@ local function UpdatePassiveBuilders(teamID, interval)
 	local teamBuildTargetOwners = buildTargetOwnersByTeam[teamID]
 	local hasOwners = false
 
-	-- Clear previous team's build target owners (replace table to avoid pairs() mutation)
-	buildTargetOwnersByTeam[teamID] = {}
-	teamBuildTargetOwners = buildTargetOwnersByTeam[teamID]
+	-- Clear previous team's build target owners (reuse table to avoid GC)
+	clearTable(teamBuildTargetOwners)
 
 	-- First pass: check passive builders that are building, track their expense inline
 	local anyPassiveBuilding = false
-	local passiveMetal = {} -- per-builder metal expense
-	local passiveEnergy = {} -- per-builder energy expense
+	clearTable(_passiveMetal)
+	clearTable(_passiveEnergy)
 
 	for builderID in pairs(passiveTeamCons) do
 		local builtUnit = spGetUnitIsBuilding(builderID)
@@ -262,8 +271,8 @@ local function UpdatePassiveBuilders(teamID, interval)
 				local mcost = targetCosts[1]
 				mcost = mcost <= 1 and 0 or mcost * rate
 				local ecost = targetCosts[2] * rate
-				passiveMetal[builderID] = mcost
-				passiveEnergy[builderID] = ecost
+				_passiveMetal[builderID] = mcost
+				_passiveEnergy[builderID] = ecost
 				anyPassiveBuilding = true
 				if not buildTargets[builtUnit] then
 					buildTargets[builtUnit] = true
@@ -302,26 +311,23 @@ local function UpdatePassiveBuilders(teamID, interval)
 		end
 	end
 
-	-- calculate how much expense passive cons will be allowed
-	local cur, stor, inc, share, sent, rec
+	-- calculate how much expense passive cons will be allowed (using pre-fetched resource data)
 	local intervalOverSpeed = interval / simSpeed
 
-	cur, stor, _, inc, _, share, sent, rec = spGetTeamResources(teamID, "metal")
-	stor = stor * share
-	local teamStallingMetal = cur - mathMax(inc*stallMarginInc, stor*stallMarginSto) - 1 + (interval)*(nonPassiveConsTotalExpenseMetal+inc+rec-sent)/simSpeed
+	local mStorEff = mStor * mShare
+	local teamStallingMetal = mCur - mathMax(mInc*stallMarginInc, mStorEff*stallMarginSto) - 1 + (interval)*(nonPassiveConsTotalExpenseMetal+mInc+mRec-mSent)/simSpeed
 
-	cur, stor, _, inc, _, share, sent, rec = spGetTeamResources(teamID, "energy")
-	stor = stor * share
-	local teamStallingEnergy = cur - mathMax(inc*stallMarginInc, stor*stallMarginSto) - 1 + (interval)*(nonPassiveConsTotalExpenseEnergy+inc+rec-sent)/simSpeed
+	local eStorEff = eStor * eShare
+	local teamStallingEnergy = eCur - mathMax(eInc*stallMarginInc, eStorEff*stallMarginSto) - 1 + (interval)*(nonPassiveConsTotalExpenseEnergy+eInc+eRec-eSent)/simSpeed
 
 	-- work through passive cons allocating as much expense as we have left
 	for builderID in pairs(passiveTeamCons) do
 		local wouldStall = false
 
-		local pMetal = passiveMetal[builderID]
+		local pMetal = _passiveMetal[builderID]
 		if pMetal then
 			local passivePullMetal = pMetal * intervalOverSpeed
-			local passivePullEnergy = passiveEnergy[builderID] * intervalOverSpeed
+			local passivePullEnergy = _passiveEnergy[builderID] * intervalOverSpeed
 			if passivePullMetal > 0 or passivePullEnergy > 0 then
 				if (teamStallingMetal - passivePullMetal <= 0 and passivePullMetal > 0) or
 				   (teamStallingEnergy - passivePullEnergy <= 0 and passivePullEnergy > 0) then
@@ -367,10 +373,10 @@ function gadget:GameFrame(n)
 			end
 		end
 	end
-	teamsWithOwners = {}
+	clearTable(teamsWithOwners)
 
-	-- Clear build targets (shared across all teams, replace table to avoid pairs() mutation)
-	buildTargets = {}
+	-- Clear build targets (shared across all teams)
+	clearTable(buildTargets)
 
 	-- Only process teams that have passive builders and are not dead
 	for i = 1, #teamList do
@@ -379,22 +385,21 @@ function gadget:GameFrame(n)
 			-- Skip teams with no passive builders
 			if passiveConsCount[teamID] and passiveConsCount[teamID] > 0 then
 				if n >= updateFrame[teamID] then
+					-- Read resource data once for both interval calc and UpdatePassiveBuilders
+					local mCur, mStor, _, mInc, _, mShare, mSent, mRec = spGetTeamResources(teamID, "metal")
+					local eCur, eStor, _, eInc, _, eShare, eSent, eRec = spGetTeamResources(teamID, "energy")
 					-- Inlined GetUpdateInterval: find max frames to fill storage for metal/energy (capped at 6)
 					local interval = 1
-					local _, stor, _, inc = spGetTeamResources(teamID, "metal")
-					if inc > 0 then
-						local mi = mathFloor(stor * simSpeed / inc) + 1
+					if mInc > 0 then
+						local mi = mathFloor(mStor * simSpeed / mInc) + 1
 						if mi > interval then interval = mi end
 					end
-					if interval < 6 then
-						_, stor, _, inc = spGetTeamResources(teamID, "energy")
-						if inc > 0 then
-							local ei = mathFloor(stor * simSpeed / inc) + 1
-							if ei > interval then interval = ei end
-						end
+					if interval < 6 and eInc > 0 then
+						local ei = mathFloor(eStor * simSpeed / eInc) + 1
+						if ei > interval then interval = ei end
 					end
 					if interval > 6 then interval = 6 end
-					UpdatePassiveBuilders(teamID, interval)
+					UpdatePassiveBuilders(teamID, interval, mCur, mStor, mInc, mShare, mSent, mRec, eCur, eStor, eInc, eShare, eSent, eRec)
 					updateFrame[teamID] = n + interval
 				end
 			end

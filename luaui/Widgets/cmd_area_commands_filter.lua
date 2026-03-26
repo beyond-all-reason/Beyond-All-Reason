@@ -28,8 +28,6 @@ local mathMax = math.max
 local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
-local spWorldToScreenCoords = Spring.WorldToScreenCoords
-local spTraceScreenRay = Spring.TraceScreenRay
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetUnitTeam = Spring.GetUnitTeam
@@ -42,6 +40,7 @@ local spGetUnitPosition = Spring.GetUnitPosition
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetUnitArrayCentroid = Spring.GetUnitArrayCentroid
 local spGetFeatureResurrect = Spring.GetFeatureResurrect
+local spGetMyTeamID = Spring.GetMyTeamID
 
 local ENEMY_UNITS = Spring.ENEMY_UNITS
 local ALLY_UNITS = Spring.ALLY_UNITS
@@ -52,6 +51,12 @@ local UNIT = "unit"
 local commandLimit = 2000
 
 local myAllyTeamID
+
+-- Radius in elmos to search for the unit/feature the user clicked on at the
+-- command center.  This replaces the old spWorldToScreenCoords → spTraceScreenRay
+-- pipeline which was unreliable at oblique camera angles and under multiplayer
+-- frame-interpolation conditions.
+local CLICK_SEARCH_RADIUS = 60
 
 ---------------------------------------------------------------------------------------
 --- Target sorting logic (pick the closest first)
@@ -528,8 +533,60 @@ function widget:CommandNotify(cmdId, params, options)
 	end
 
 	local cmdX, cmdY, cmdZ, radius = params[1], params[2], params[3], params[4]
-	local mouseX, mouseY = spWorldToScreenCoords(cmdX, cmdY, cmdZ)
-	local targetType, targetId = spTraceScreenRay(mouseX, mouseY)
+
+	-- Find the unit or feature the user clicked on by searching the world near the
+	-- command center instead of round-tripping through screen-space.  The old
+	-- spWorldToScreenCoords → spTraceScreenRay approach projected the *ground*
+	-- position (cmdY = ground height) to screen, which at non-overhead camera
+	-- angles gives a shifted screen position that can hit the wrong unit—especially
+	-- in dense fights or under multiplayer frame interpolation.
+	local targetType, targetId
+
+	if currentCommand.allowedTargetTypes[UNIT] then
+		if currentCommand.targetAllegiance == ENEMY_UNITS and WG.FindNearestEnemyUnit then
+			targetId = WG.FindNearestEnemyUnit(cmdX, cmdY, cmdZ, CLICK_SEARCH_RADIUS, spGetMyTeamID())
+		else
+			local nearbyUnits = spGetUnitsInCylinder(cmdX, cmdZ, CLICK_SEARCH_RADIUS, currentCommand.targetAllegiance)
+			if nearbyUnits then
+				local bestDistSq = math.huge
+				for _, uid in ipairs(nearbyUnits) do
+					local ux, _, uz = spGetUnitPosition(uid)
+					if ux then
+						local dx, dz = ux - cmdX, uz - cmdZ
+						local distSq = dx * dx + dz * dz
+						if distSq < bestDistSq then
+							bestDistSq = distSq
+							targetId = uid
+						end
+					end
+				end
+			end
+		end
+		if targetId then
+			targetType = UNIT
+		end
+	end
+
+	if not targetId and currentCommand.allowedTargetTypes[FEATURE] then
+		local nearbyFeatures = spGetFeaturesInCylinder(cmdX, cmdZ, CLICK_SEARCH_RADIUS)
+		if nearbyFeatures then
+			local bestDistSq = math.huge
+			for _, fid in ipairs(nearbyFeatures) do
+				local fx, _, fz = spGetFeaturePosition(fid)
+				if fx then
+					local dx, dz = fx - cmdX, fz - cmdZ
+					local distSq = dx * dx + dz * dz
+					if distSq < bestDistSq then
+						bestDistSq = distSq
+						targetId = fid
+					end
+				end
+			end
+			if targetId then
+				targetType = FEATURE
+			end
+		end
+	end
 
 	if not currentCommand.allowedTargetTypes[targetType] then
 		return false

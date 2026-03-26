@@ -236,6 +236,7 @@ local function drawContent()
 		local offsetY = -(fontSize*(posY > 0 and 0.31 or 0.44))
 		local style = 'co'
 		font2:Begin(true)
+		font2:SetOutlineColor(0, 0, 0, 0.2)
 		font2:SetTextColor(0.45, 0.45, 0.45, 1)
 		font2:Print(1, groupRect[1]+((groupRect[3]-groupRect[1])/2)-offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)+offset+offsetY, fontSize, style)
 		font2:Print(2, groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2]+((groupRect[4]-groupRect[2])/2)+offset+offsetY, fontSize, style)
@@ -396,12 +397,14 @@ local function drawContent()
 				)
 
 				local fontSize = height*vsy*0.4
-				font2:Begin(true), groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2]+iconMargin + (fontSize*0.28), fontSize, "co")
+				font2:Begin(true)
+				font2:Print('\255\200\255\200'..group, groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2]+iconMargin + (fontSize*0.28), fontSize, "co")
 				font2:End()
 				local amount = (showStack and largestCount_1 or spGetGroupUnitsCount(group))
 				if amount > 1 then
 					fontSize = height*vsy*0.3
-					font:Begin(true), groupRect[1]+iconMargin+(fontSize*0.18), groupRect[4]-iconMargin-(fontSize*0.92), fontSize, "o")
+					font:Begin(true)
+					font:Print('\255\240\240\240'..amount, groupRect[1]+iconMargin+(fontSize*0.18), groupRect[4]-iconMargin-(fontSize*0.92), fontSize, "o")
 					font:End()
 				end
 

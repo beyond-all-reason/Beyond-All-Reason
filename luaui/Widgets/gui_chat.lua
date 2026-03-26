@@ -2548,12 +2548,8 @@ function widget:ViewResize()
 	usedConsoleFontSize = usedFontSize*consoleFontSizeMult
 
 	font = WG['fonts'].getFont()
-    font2 = WG['fonts'].getFont(2)
+	font2 = WG['fonts'].getFont(2, 1.2, 0.13, 20)
 	font3 = WG['fonts'].getFont(3)
-
-	--local outlineMult = math.clamp(1+((1-(vsy/1400))*0.9), 1, 1.5)
-	--font = WG['fonts'].getFont(1, 1, 0.22 * outlineMult, 2+(outlineMult*0.25))
-    --font2 = WG['fonts'].getFont(2, 1, 0.22 * outlineMult, 2+(outlineMult*0.25))
 
 	-- get longest player name and calc its width
 	if not font or not longestPlayername then

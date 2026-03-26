@@ -44,7 +44,6 @@ return {
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",
 			parentsinheritxp = "DRONE",
-			techlevel = 2,
 			flyingcarrier = true,
 		},
 		sfxtypes = {

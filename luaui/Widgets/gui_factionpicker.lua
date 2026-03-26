@@ -47,6 +47,15 @@ do
 			factions[i].faction = "random"
 		end
 	end
+	-- Remove random option when only 1 real faction is available (factionlimiter)
+	if #factions == 2 then
+		for i = #factions, 1, -1 do
+			if factions[i].faction == "random" then
+				table.remove(factions, i)
+				break
+			end
+		end
+	end
 end
 if #factions == 0 then
 	Spring.Log(gadget:GetInfo().name, LOG.ERROR, "No Start Options Recived")

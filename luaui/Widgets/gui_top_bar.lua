@@ -7,7 +7,7 @@ function widget:GetInfo()
 		author = "Floris",
 		date = "Feb, 2017",
 		license = "GNU GPL, v2 or later",
-		layer = -999999,
+		layer = -95000,
 		enabled = true,
 		handler = true, --can use widgetHandler:x()
 	}
@@ -962,8 +962,6 @@ local function updateResbarValues(res, update)
 				glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 			end)
 		end
-
-		-- resbar text
    	end
 end
 
