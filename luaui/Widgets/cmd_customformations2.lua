@@ -157,6 +157,7 @@ local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetCameraPosition = Spring.GetCameraPosition
 local spGetViewGeometry = Spring.GetViewGeometry
 local spTraceScreenRay = Spring.TraceScreenRay
+local spGetUnitDefID = Spring.GetUnitDefID
 
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local maxUnits = Game.maxUnits
