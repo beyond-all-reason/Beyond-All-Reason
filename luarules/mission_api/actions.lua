@@ -64,7 +64,9 @@ local function issueOrders(unitName, orders)
 			local offset = 0
 			if params.featureName then
 				thingIDs = trackedFeatureIDs[params.featureName]
-				offset = Game.maxUnits
+				if not Engine.FeatureSupport.noOffsetForFeatureID then
+					offset = Game.maxUnits
+				end
 			elseif params.unitName then
 				thingIDs = trackedUnitIDs[params.unitName]
 			end
