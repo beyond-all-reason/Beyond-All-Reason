@@ -1,8 +1,8 @@
 function gadget:GetInfo()
     return {
         name = "Transport To Command",
-        desc = "Ferry system",
-        author = "Isajoefeat",
+        desc = "Transport To / Ferry command",
+        author = "IsaJoeFeat",
         layer = 0,
         enabled = true
     }
@@ -17,6 +17,7 @@ local CMD_MOVE = CMD.MOVE
 local CMD_STOP = CMD.STOP
 local CMD_LOAD_UNITS = CMD.LOAD_UNITS
 local CMD_UNLOAD_UNITS = CMD.UNLOAD_UNITS
+local CMD_INSERT = CMD.INSERT
 
 local POLL_RATE = 10
 local ARRIVAL_DIST_SQ = 64 * 64
@@ -24,15 +25,21 @@ local ARRIVAL_DIST_SQ = 64 * 64
 local jobs = {}            -- passengerID -> job
 local transportState = {}  -- transportID -> state
 local internalOrders = {}
-local loadedUnits = {}     -- passengerID -> true while ferry commands are being popped after load
+local loadedUnits = {}
 
-local function MarkInternal(unitID)
-    internalOrders[unitID] = (internalOrders[unitID] or 0) + 1
+local function MarkInternal(unitID, count)
+    count = count or 1
+    internalOrders[unitID] = (internalOrders[unitID] or 0) + count
 end
 
 local function GiveInternalOrder(unitID, cmdID, params, opts)
-    MarkInternal(unitID)
+    MarkInternal(unitID, 1)
     Spring.GiveOrderToUnit(unitID, cmdID, params or {}, opts or {})
+end
+
+local function GiveInternalOrderArray(unitID, orders)
+    MarkInternal(unitID, #orders)
+    Spring.GiveOrderArrayToUnit(unitID, orders)
 end
 
 local function IsValid(unitID)
@@ -135,21 +142,29 @@ local function CollectConsecutiveFerryTargets(unitID, fallbackTarget)
     return chain
 end
 
-local function QueueTransportTrip(transportID, targets, origin)
+local function BuildTransportTripOrders(targets, origin)
+    local orders = {}
     if not targets or #targets == 0 then
-        return
+        return orders
     end
 
-    for i = 1, #targets do
-        local opts = (i == 1) and {} or { "shift" }
-        GiveInternalOrder(transportID, CMD_MOVE, targets[i], opts)
+    -- First target replaces the load command.
+    orders[#orders + 1] = { CMD_MOVE, targets[1], {} }
+
+    -- Additional ferry waypoints are queued behind it.
+    for i = 2, #targets do
+        orders[#orders + 1] = { CMD_MOVE, targets[i], { "shift" } }
     end
 
-    GiveInternalOrder(transportID, CMD_UNLOAD_UNITS, targets[#targets], { "shift" })
+    -- Only unload at the final ferry point.
+    orders[#orders + 1] = { CMD_UNLOAD_UNITS, targets[#targets], { "shift" } }
 
+    -- Then return home.
     if origin then
-        GiveInternalOrder(transportID, CMD_MOVE, origin, { "shift" })
+        orders[#orders + 1] = { CMD_MOVE, origin, { "shift" } }
     end
+
+    return orders
 end
 
 local function CancelJob(unitID)
@@ -191,15 +206,14 @@ local function ReserveTransport(unitID, transportID)
         unitID = unitID,
         origin = { ox, oy, oz },
         state = "reserved",
-        tripQueued = false,
+        isLoaded = false,
     }
 
     GiveInternalOrder(unitID, CMD_STOP, {}, {})
     GiveInternalOrder(transportID, CMD_LOAD_UNITS, { unitID }, {})
+
     return true
 end
-
--- ================= COMMAND =================
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID)
     if internalOrders[unitID] and internalOrders[unitID] > 0 then
@@ -207,33 +221,37 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID)
         return true
     end
 
+    -- Passenger got a real player order: cancel its transport request.
     if jobs[unitID] and cmdID ~= CMD_TRANSPORT_TO then
         CancelJob(unitID)
     end
 
+    -- Transport got manually overridden by player.
     if transportState[unitID] then
         local ts = transportState[unitID]
-        if ts and ts.unitID and jobs[ts.unitID] then
-            jobs[ts.unitID].transportID = nil
-            jobs[ts.unitID].state = "walking"
-            jobs[ts.unitID].walkIssued = false
+        local passengerID = ts and ts.unitID
+
+        if passengerID and jobs[passengerID] then
+            jobs[passengerID].transportID = nil
+            jobs[passengerID].state = "walking"
+            jobs[passengerID].walkIssued = false
         end
+
         transportState[unitID] = nil
     end
 
     return true
 end
 
-function gadget:CommandFallback(unitID, unitDefID, teamID, cmdID, params, opts, tag)
+function gadget:CommandFallback(unitID, unitDefID, teamID, cmdID, params)
     if cmdID ~= CMD_TRANSPORT_TO then
         return false, false
     end
 
     local target = { params[1], params[2], params[3] }
 
-    -- PR-style behavior:
-    -- once the unit is loaded, ferry commands are considered complete and get popped
-    -- from the passenger queue while the transport carries the whole chain.
+    -- PR-style: once loaded, the passenger's consecutive Transport To commands
+    -- are considered consumed while the transport carries the chain.
     if loadedUnits[unitID] then
         return true, true
     end
@@ -256,7 +274,6 @@ function gadget:CommandFallback(unitID, unitDefID, teamID, cmdID, params, opts, 
     local job = jobs[unitID]
     local currentTarget = GetJobTarget(job) or target
 
-    -- If the unit reached the target on foot, complete this ferry command like a move fallback.
     local ux, _, uz = Spring.GetUnitPosition(unitID)
     if ux and DistSq(ux, uz, currentTarget[1], currentTarget[3]) < ARRIVAL_DIST_SQ then
         jobs[unitID] = nil
@@ -285,8 +302,6 @@ function gadget:CommandFallback(unitID, unitDefID, teamID, cmdID, params, opts, 
 
     return true, false
 end
-
--- ================= STATE MACHINE =================
 
 function gadget:GameFrame(frame)
     if frame % POLL_RATE ~= 0 then
@@ -328,43 +343,28 @@ function gadget:GameFrame(frame)
 
     for transportID, ts in pairs(transportState) do
         if not IsValid(transportID) then
-            local unitID = ts.unitID
+            local passengerID = ts.unitID
             transportState[transportID] = nil
 
-            if unitID and jobs[unitID] then
-                jobs[unitID].transportID = nil
-                jobs[unitID].state = "walking"
-                jobs[unitID].walkIssued = false
+            if passengerID and jobs[passengerID] then
+                jobs[passengerID].transportID = nil
+                jobs[passengerID].state = "walking"
+                jobs[passengerID].walkIssued = false
             end
 
         elseif ts.state == "reserved" then
-            local unitID = ts.unitID
-
-            if not IsValid(unitID) then
+            local passengerID = ts.unitID
+            if not IsValid(passengerID) then
                 transportState[transportID] = nil
-
-            elseif Spring.GetUnitTransporter(unitID) == transportID then
-                ts.state = "loaded"
-
-                local job = jobs[unitID]
-                local fallbackTarget = job and GetJobTarget(job) or nil
-                local chainTargets = CollectConsecutiveFerryTargets(unitID, fallbackTarget)
-
-                QueueTransportTrip(transportID, chainTargets, ts.origin)
-
-                loadedUnits[unitID] = true
-                if job then
-                    job.state = "loaded"
-                end
             end
 
         elseif ts.state == "loaded" then
-            local unitID = ts.unitID
-
-            if not IsValid(unitID) or Spring.GetUnitTransporter(unitID) ~= transportID then
+            local passengerID = ts.unitID
+            if not IsValid(passengerID) or Spring.GetUnitTransporter(passengerID) ~= transportID then
                 ts.state = "returning"
-                jobs[unitID] = nil
-                loadedUnits[unitID] = nil
+                ts.isLoaded = false
+                jobs[passengerID] = nil
+                loadedUnits[passengerID] = nil
             end
 
         elseif ts.state == "returning" then
@@ -378,29 +378,50 @@ function gadget:GameFrame(frame)
     end
 end
 
--- ================= LOAD / UNLOAD =================
-
 function gadget:UnitLoaded(unitID, unitDefID, teamID, transportID)
     local ts = transportState[transportID]
-    if ts and ts.unitID == unitID then
-        loadedUnits[unitID] = true
+    if not ts or ts.unitID ~= unitID or ts.state ~= "reserved" then
+        return
+    end
+
+    local job = jobs[unitID]
+    local fallbackTarget = job and GetJobTarget(job) or nil
+    local chainTargets = CollectConsecutiveFerryTargets(unitID, fallbackTarget)
+    local orders = BuildTransportTripOrders(chainTargets, ts.origin)
+
+    if #orders > 0 then
+        GiveInternalOrderArray(transportID, orders)
+    end
+
+    ts.state = "loaded"
+    ts.isLoaded = true
+    loadedUnits[unitID] = true
+
+    if job then
+        job.state = "loaded"
     end
 end
 
 function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
     loadedUnits[unitID] = nil
-end
 
--- ================= UI =================
+    local ts = transportState[transportID]
+    if ts and ts.unitID == unitID and ts.state == "loaded" then
+        ts.state = "returning"
+        ts.isLoaded = false
+    end
+
+    jobs[unitID] = nil
+end
 
 function gadget:UnitCreated(unitID, unitDefID)
     if ShouldHaveFerry(unitDefID) then
         Spring.InsertUnitCmdDesc(unitID, 500, {
             id = CMD_TRANSPORT_TO,
             type = CMDTYPE.ICON_MAP,
-            name = "Ferry",
+            name = "Transport To",
             action = "transport_to",
-            tooltip = "Request a transport",
+            tooltip = "Request the closest eligible transport to move this unit to the target location",
         })
     end
 end
