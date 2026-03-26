@@ -457,7 +457,7 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeamID, featureID, featu
 	return true
 end
 
-function gadget:FeatureCreated(featureID, allyTeamID, userID)
+function gadget:FeatureCreated(featureID, allyTeamID)
 	local featureDefID = Spring.GetFeatureDefID(featureID)
 	processTriggersOfType(types.FeatureCreated, function(trigger, _)
 		checkFeatureCreated(trigger, featureID, featureDefID)
@@ -471,7 +471,6 @@ function gadget:FeatureDestroyed(featureID, attackerAllyTeamID)
 
 	if reclaimerTeamID and reclaimLeft <= 0 then
 		-- Feature was fully reclaimed
-		reclaimedFeatures[featureID] = nil
 		processTriggersOfType(types.FeatureReclaimed, function(trigger, _)
 			checkFeatureReclaimed(trigger, featureID, featureDefID, reclaimerTeamID)
 		end)
@@ -482,5 +481,6 @@ function gadget:FeatureDestroyed(featureID, attackerAllyTeamID)
 		end)
 	end
 
+	reclaimedFeatures[featureID] = nil
 	untrackFeatureID(featureID)
 end

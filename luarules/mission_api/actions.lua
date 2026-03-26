@@ -59,21 +59,19 @@ local function issueOrders(unitName, orders)
 		local params = order[2] or {}
 		local options = order[3] or {}
 
-		Spring.Echo("Issuing order: " .. commandID .. " with params: " .. table.toString(params))
 		if commandsAcceptingName[commandID] and type(params) == 'table' and (params.unitName or params.featureName) then
 			local thingIDs = {}
-			local add = 0
+			local offset = 0
 			if params.featureName then
 				thingIDs = trackedFeatureIDs[params.featureName]
-				add = Game.maxUnits
+				offset = Game.maxUnits
 			elseif params.unitName then
 				thingIDs = trackedUnitIDs[params.unitName]
 			end
-			Spring.Echo("Issuing order with name param to things: " .. table.toString(thingIDs))
 
 			local isFirstUnitID = true
 			for thingID in pairs(thingIDs) do
-				newOrders[#newOrders + 1] = { commandID, thingID + add, table.copy(options) }
+				newOrders[#newOrders + 1] = { commandID, thingID + offset, table.copy(options) }
 				if isFirstUnitID then
 					table.insert(options, 'shift')
 					isFirstUnitID = false
@@ -183,6 +181,13 @@ local function unnameUnits(unitName)
 	untrackUnitName(unitName)
 end
 
+local corpseToUnitDefName = {}
+for _, unitDef in pairs(UnitDefs) do
+	if unitDef.corpse and FeatureDefNames[unitDef.corpse] then
+		corpseToUnitDefName[unitDef.corpse] = unitDef.name
+	end
+end
+
 local function createFeature(featureDefName, position, featureName, facing)
 	-- Convert named facing to a heading integer (engine uses 0-65535 headings)
 	local facingToHeading = { s = 0, n = 32768, e = 16384, w = 49152,
@@ -192,11 +197,9 @@ local function createFeature(featureDefName, position, featureName, facing)
 
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	local featureID = Spring.CreateFeature(featureDefName, position.x, position.y, position.z, heading, gaiaTeamID)
-	if featureDefName:sub(-5) == '_dead' then
-		local unitDefName = featureDefName:sub(1, -6)
-		if UnitDefNames[unitDefName] then
-			Spring.SetFeatureResurrect(featureID, unitDefName, facing)
-		end
+	local unitDefName = corpseToUnitDefName[featureDefName]
+	if unitDefName then
+		Spring.SetFeatureResurrect(featureID, unitDefName, facing)
 	end
 	if featureID and featureName then
 		trackFeature(featureName, featureID)
