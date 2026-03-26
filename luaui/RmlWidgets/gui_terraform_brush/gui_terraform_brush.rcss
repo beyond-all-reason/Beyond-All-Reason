@@ -317,6 +317,90 @@ body {
 	color: #e5e7eb;
 }
 
+/* === Preset System === */
+.tf-preset-input {
+	flex: 1;
+	height: 26dp;
+	padding: 2dp 6dp;
+	font-size: 1.1rem;
+	color: #d1d5db;
+	background-color: #1a1a22;
+	border: 2dp #4a4a4a80;
+	border-radius: 5dp;
+}
+
+.tf-preset-input:focus {
+	border-color: #6a6a6acc;
+}
+
+.tf-preset-btn {
+	height: 26dp;
+	padding: 0 10dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 5dp;
+	border: 2dp;
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+
+.tf-preset-save {
+	background-color: #324a5a;
+	border-color: #508cc880;
+}
+
+.tf-preset-save:hover {
+	background-color: #3c5a78;
+	border-color: #64aae6b3;
+}
+
+.tf-preset-list {
+	max-height: 160dp;
+	overflow-y: auto;
+}
+
+.tf-preset-row {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 4dp;
+	height: 26dp;
+	padding: 2dp 4dp;
+	border-radius: 4dp;
+	cursor: pointer;
+	transition: background-color 0.15s;
+}
+
+.tf-preset-row:hover {
+	background-color: #3a3a3a;
+}
+
+.tf-preset-name {
+	flex: 1;
+	font-size: 1.1rem;
+	color: #d1d5db;
+	overflow: hidden;
+}
+
+.tf-preset-delete {
+	width: 18dp;
+	height: 18dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 3dp;
+	cursor: pointer;
+	font-size: 1.2rem;
+	color: #ef4444aa;
+	font-weight: bold;
+}
+
+.tf-preset-delete:hover {
+	background-color: #3a1a1a;
+	color: #ef4444;
+}
+
 /* === Absolute Height Cap Toggle === */
 .tf-abs-toggle {
 	width: 20dp;

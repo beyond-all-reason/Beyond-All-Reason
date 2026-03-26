@@ -212,6 +212,17 @@
 
 		<div class="divider-horizontal-dark"></div>
 
+		<div class="text-lg text-light mt-1-5 mb-1">PRESETS</div>
+		<div class="flex flex-row gap-1 mb-1">
+			<input type="text" id="preset-name-input" class="tf-preset-input" maxlength="24" value="" />
+			<div id="btn-preset-save" class="tf-preset-btn tf-preset-save">
+				<div class="text-lg text-medium">Save</div>
+			</div>
+		</div>
+		<div id="preset-list" class="tf-preset-list"></div>
+
+		<div class="divider-horizontal-dark"></div>
+
 		<div class="flex flex-row gap-1 mt-1-5 mb-1">
 			<div id="btn-export" class="tf-action-btn tf-save-btn"><div class="text-lg text-medium">Save</div></div>
 			<div id="btn-import" class="tf-action-btn tf-load-btn-disabled"><div class="text-lg text-dark-alpha">Load</div></div>

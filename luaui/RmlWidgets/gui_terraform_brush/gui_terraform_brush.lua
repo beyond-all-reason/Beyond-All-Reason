@@ -575,6 +575,71 @@ local function attachEventListeners()
 			event:StopPropagation()
 		end, false)
 	end
+
+	-- Preset system
+	local presetNameInput = doc:GetElementById("preset-name-input")
+	local presetList = doc:GetElementById("preset-list")
+	local presetSaveBtn = doc:GetElementById("btn-preset-save")
+
+	local function rebuildPresetList()
+		if not presetList or not WG.TerraformBrush then return end
+		-- Clear existing children
+		while presetList.firstChild do
+			presetList:RemoveChild(presetList.firstChild)
+		end
+		local names = WG.TerraformBrush.getPresetNames()
+		for _, name in ipairs(names) do
+			local row = doc:CreateElement("div")
+			row:SetClass("tf-preset-row", true)
+
+			local nameEl = doc:CreateElement("div")
+			nameEl:SetClass("tf-preset-name", true)
+			nameEl.inner_rml = name
+			row:AppendChild(nameEl)
+
+			local delEl = doc:CreateElement("div")
+			delEl:SetClass("tf-preset-delete", true)
+			delEl.inner_rml = "X"
+			row:AppendChild(delEl)
+
+			-- Click row to load preset
+			nameEl:AddEventListener("click", function(event)
+				if WG.TerraformBrush then
+					WG.TerraformBrush.loadPreset(name)
+				end
+				event:StopPropagation()
+			end, false)
+
+			-- Click X to delete preset
+			delEl:AddEventListener("click", function(event)
+				if WG.TerraformBrush then
+					WG.TerraformBrush.deletePreset(name)
+					rebuildPresetList()
+				end
+				event:StopPropagation()
+			end, false)
+
+			presetList:AppendChild(row)
+		end
+	end
+
+	if presetSaveBtn then
+		presetSaveBtn:AddEventListener("click", function(event)
+			if WG.TerraformBrush and presetNameInput then
+				local name = presetNameInput:GetAttribute("value") or ""
+				name = name:match("^%s*(.-)%s*$")  -- trim
+				if name ~= "" then
+					WG.TerraformBrush.savePreset(name)
+					presetNameInput:SetAttribute("value", "")
+					rebuildPresetList()
+				end
+			end
+			event:StopPropagation()
+		end, false)
+	end
+
+	-- Build initial preset list
+	rebuildPresetList()
 end
 
 function widget:Initialize()
