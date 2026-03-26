@@ -241,21 +241,34 @@ end
 
 
 local function SetColor(cmdID, alpha)
-    if     cmdID == CMD_MOVE       		then glColor(0.5, 1.0, 0.5, alpha) -- Green
+    if     cmdID == CMD_MOVE              then glColor(0.5, 1.0, 0.5, alpha) -- Green
     elseif cmdID == CMD_ATTACK
-		or cmdID == CMD_MANUAL_LAUNCH 	then glColor(1.0, 0.2, 0.2, alpha) -- Red
-    elseif cmdID == CMD_UNLOADUNIT 		then glColor(1.0, 1.0, 0.0, alpha) -- Yellow
-    elseif cmdID == CMD_SETTARGET 		then glColor(1.0, 0.7, 0.0, alpha) -- Orange
-    else                                glColor(0.5, 0.5, 1.0, alpha) -- Blue
+        or cmdID == CMD_MANUAL_LAUNCH     then glColor(1.0, 0.2, 0.2, alpha) -- Red
+    elseif cmdID == CMD_UNLOADUNIT
+        or cmdID == CMD_TRANSPORT_TO      then glColor(1.0, 0.8, 0.0, alpha) -- Orange
+    elseif cmdID == CMD_SETTARGET         then glColor(1.0, 0.7, 0.0, alpha) -- Orange
+    else                                       glColor(0.5, 0.5, 1.0, alpha) -- Blue
     end
 end
 
 
 local function CanUnitExecute(uID, cmdID)
     if cmdID == CMD_UNLOADUNIT then
-        cmdID = CMD_UNLOADUNITS
-	
+        local transporting = spGetUnitIsTransporting(uID)
+        return (transporting and #transporting > 0)
     end
+
+    local defID = spGetUnitDefID(uID)
+    local ud = defID and UnitDefs[defID]
+
+    if cmdID == CMD_TRANSPORT_TO and ud then
+        local grounded = not ud.canFly
+        local notCantBeTransported = (ud.cantBeTransported == nil) or (ud.cantBeTransported == false)
+        if grounded and notCantBeTransported then
+            return true
+        end
+    end
+
     return (spFindUnitCmdDesc(uID, cmdID) ~= nil)
 end
 
