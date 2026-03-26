@@ -75,14 +75,7 @@ local function TransportHasPassengers(unitID)
     return carried and #carried > 0
 end
 
--- ================= CLEANUP HELPERS =================
-
-local function ClearPassengerJob(unitID)
-    if not unitID then return end
-    jobs[unitID] = nil
-end
-
-local function ClearTransportState(transportID, stopTransport)
+local function ClearTransportAssignment(transportID, stopTransport)
     if not transportID then return end
 
     if stopTransport and IsValid(transportID) and not TransportHasPassengers(transportID) then
@@ -91,31 +84,6 @@ local function ClearTransportState(transportID, stopTransport)
 
     transportState[transportID] = nil
 end
-
-local function ReleaseLink(unitID, transportID, stopTransport)
-    if transportID then
-        local ts = transportState[transportID]
-        if ts and (not unitID or ts.unitID == unitID) then
-            ClearTransportState(transportID, stopTransport)
-        end
-    end
-
-    if unitID then
-        local job = jobs[unitID]
-        if not transportID or (job and job.transportID == transportID) then
-            ClearPassengerJob(unitID)
-        end
-    end
-end
-
-local function CancelJob(unitID)
-    local job = jobs[unitID]
-    if not job then return end
-
-    ReleaseLink(unitID, job.transportID, true)
-end
-
--- ================= SELECTION =================
 
 local function FindTransport(unitID)
     local team = Spring.GetUnitTeam(unitID)
@@ -130,7 +98,8 @@ local function FindTransport(unitID)
         local u = units[i]
         local ts = transportState[u]
 
-        -- Returning ferries are empty and reusable.
+        -- Key fix:
+        -- ferries that are merely returning home are empty and reusable.
         local available = (not ts) or ts.state == "return"
 
         if IsTransport(u) and available then
@@ -148,6 +117,24 @@ local function FindTransport(unitID)
     return best
 end
 
+local function CancelJob(unitID)
+    local job = jobs[unitID]
+    if not job then return end
+
+    if job.transportID then
+        local ts = transportState[job.transportID]
+
+        if ts and ts.unitID == unitID then
+            -- Key fix:
+            -- canceling the passenger job must also cancel the assigned ferry's
+            -- pending pickup/return behavior, otherwise it keeps coming anyway.
+            ClearTransportAssignment(job.transportID, true)
+        end
+    end
+
+    jobs[unitID] = nil
+end
+
 -- ================= COMMAND =================
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID)
@@ -156,15 +143,12 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID)
         return true
     end
 
-    -- Passenger got a non-ferry command: cancel its ferry job.
     if jobs[unitID] and cmdID ~= CMD_TRANSPORT_TO then
         CancelJob(unitID)
     end
 
-    -- Transport got an external command: release its current ferry link.
     if transportState[unitID] then
-        local ts = transportState[unitID]
-        ReleaseLink(ts and ts.unitID, unitID, false)
+        transportState[unitID] = nil
     end
 
     return true
@@ -213,7 +197,8 @@ function gadget:CommandFallback(unitID, unitDefID, teamID, cmdID, params, opts, 
 
             GiveInternalOrder(unitID, CMD_STOP, {}, {})
 
-            -- If this ferry was returning, clear that return behavior immediately
+            -- Key fix:
+            -- if this ferry was returning, clear that return behavior immediately
             -- so it can respond to the new ferry request right away.
             GiveInternalOrder(t, CMD_STOP, {}, {})
             GiveInternalOrder(t, CMD_LOAD_UNITS, { unitID }, {})
@@ -241,13 +226,13 @@ function gadget:GameFrame(frame)
 
     for t, ts in pairs(transportState) do
         if not IsValid(t) then
-            ReleaseLink(ts and ts.unitID, t, false)
+            transportState[t] = nil
 
         elseif ts.state == "pickup" then
             local unitID = ts.unitID
 
             if not IsValid(unitID) then
-                ReleaseLink(unitID, t, false)
+                transportState[t] = nil
 
             elseif Spring.GetUnitTransporter(unitID) == t then
                 ts.state = "loaded"
@@ -275,7 +260,7 @@ function gadget:GameFrame(frame)
                 ts.state = "return"
 
                 -- Delivery is complete once the passenger detaches.
-                ClearPassengerJob(unitID)
+                jobs[unitID] = nil
             end
 
         elseif ts.state == "return" then
@@ -283,7 +268,7 @@ function gadget:GameFrame(frame)
             local ox, _, oz = unpack(ts.origin)
 
             if x and DistSq(x, z, ox, oz) < ARRIVAL_DIST_SQ and not TransportHasPassengers(t) then
-                ClearTransportState(t, false)
+                transportState[t] = nil
             end
         end
     end
@@ -308,12 +293,6 @@ function gadget:UnitGiven(unitID, unitDefID)
 end
 
 function gadget:UnitDestroyed(unitID)
-    if jobs[unitID] then
-        CancelJob(unitID)
-    end
-
-    if transportState[unitID] then
-        local ts = transportState[unitID]
-        ReleaseLink(ts and ts.unitID, unitID, false)
-    end
+    CancelJob(unitID)
+    transportState[unitID] = nil
 end
