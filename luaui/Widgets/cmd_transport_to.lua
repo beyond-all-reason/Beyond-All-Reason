@@ -419,7 +419,6 @@ function widget:Initialize()
 	buildDefCaches()
 	refreshKnownTransports()
 
-	Spring.AssignMouseCursor("transto", "cursortransport")
 	Spring.SetCustomCommandDrawData(CMD_TRANSPORT_TO, "transto", { 1, 1, 1, 1 })
 end
 
