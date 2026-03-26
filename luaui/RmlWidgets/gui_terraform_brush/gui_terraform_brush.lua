@@ -71,6 +71,7 @@ local initialModel = {
 	rotationDeg = 0,
 	curve = "1.0",
 	intensity = "1.0",
+	opacity = "0.30",
 	lengthScale = "1.0",
 	heightCapMinStr = "--",
 	heightCapMaxStr = "--",
@@ -505,6 +506,70 @@ local function attachEventListeners()
 		end, false)
 	end
 
+	local colormapBtn = doc:GetElementById("btn-height-colormap")
+	if colormapBtn then
+		colormapBtn:AddEventListener("click", function(event)
+			if WG.TerraformBrush then
+				local state = WG.TerraformBrush.getState()
+				local newVal = not (state and state.heightColormap)
+				WG.TerraformBrush.setHeightColormap(newVal)
+				colormapBtn:SetAttribute("src", newVal
+					and "/luaui/images/terraform_brush/check_on.png"
+					or "/luaui/images/terraform_brush/check_off.png")
+			end
+			event:StopPropagation()
+		end, false)
+	end
+
+	local flattenBtn = doc:GetElementById("btn-flatten-cursor")
+	if flattenBtn then
+		flattenBtn:AddEventListener("click", function(event)
+			if WG.TerraformBrush then
+				local state = WG.TerraformBrush.getState()
+				local newVal = not (state and state.flattenToCursor)
+				WG.TerraformBrush.setFlattenToCursor(newVal)
+				flattenBtn:SetAttribute("src", newVal
+					and "/luaui/images/terraform_brush/check_on.png"
+					or "/luaui/images/terraform_brush/check_off.png")
+			end
+			event:StopPropagation()
+		end, false)
+	end
+
+	-- Opacity slider and buttons
+	local sliderOpacity = doc:GetElementById("slider-opacity")
+	if sliderOpacity then
+		sliderOpacity:AddEventListener("change", function(event)
+			if updatingFromCode then return end
+			if WG.TerraformBrush then
+				local rawVal = tonumber(sliderOpacity:GetAttribute("value")) or 30
+				WG.TerraformBrush.setBrushOpacity(rawVal / 100)
+			end
+		end, false)
+	end
+
+	local btnOpacityDown = doc:GetElementById("btn-opacity-down")
+	if btnOpacityDown then
+		btnOpacityDown:AddEventListener("click", function(event)
+			if WG.TerraformBrush then
+				local state = WG.TerraformBrush.getState()
+				WG.TerraformBrush.setBrushOpacity((state and state.brushOpacity or 0.3) - 0.05)
+			end
+			event:StopPropagation()
+		end, false)
+	end
+
+	local btnOpacityUp = doc:GetElementById("btn-opacity-up")
+	if btnOpacityUp then
+		btnOpacityUp:AddEventListener("click", function(event)
+			if WG.TerraformBrush then
+				local state = WG.TerraformBrush.getState()
+				WG.TerraformBrush.setBrushOpacity((state and state.brushOpacity or 0.3) + 0.05)
+			end
+			event:StopPropagation()
+		end, false)
+	end
+
 	local exportBtn = doc:GetElementById("btn-export")
 	if exportBtn then
 		exportBtn:AddEventListener("click", function(event)
@@ -552,6 +617,9 @@ local function attachEventListeners()
 				WG.TerraformBrush.setClayMode(false)
 				WG.TerraformBrush.setGridOverlay(false)
 				WG.TerraformBrush.setDustEffects(false)
+				WG.TerraformBrush.setHeightColormap(false)
+				WG.TerraformBrush.setFlattenToCursor(false)
+				WG.TerraformBrush.setBrushOpacity(0.3)
 			end
 			capMinValue = 0
 			capMaxValue = 0
@@ -571,6 +639,14 @@ local function attachEventListeners()
 			local dustImg = doc:GetElementById("btn-dust-effects")
 			if dustImg then
 				dustImg:SetAttribute("src", "/luaui/images/terraform_brush/check_off.png")
+			end
+			local cmapImg = doc:GetElementById("btn-height-colormap")
+			if cmapImg then
+				cmapImg:SetAttribute("src", "/luaui/images/terraform_brush/check_off.png")
+			end
+			local flatImg = doc:GetElementById("btn-flatten-cursor")
+			if flatImg then
+				flatImg:SetAttribute("src", "/luaui/images/terraform_brush/check_off.png")
 			end
 			event:StopPropagation()
 		end, false)
@@ -769,6 +845,7 @@ function widget:Update()
 		widgetState.dmHandle.rotationDeg = state.rotationDeg
 		widgetState.dmHandle.curve = string.format("%.1f", state.curve)
 		widgetState.dmHandle.intensity = string.format("%.1f", state.intensity)
+		widgetState.dmHandle.opacity = string.format("%.2f", state.brushOpacity)
 		widgetState.dmHandle.lengthScale = string.format("%.1f", state.lengthScale)
 		widgetState.dmHandle.heightCapMaxStr = capMaxValue ~= 0 and tostring(capMaxValue) or "--"
 		widgetState.dmHandle.heightCapMinStr = capMinValue ~= 0 and tostring(capMinValue) or "--"
@@ -842,6 +919,25 @@ function widget:Update()
 			dustImg:SetAttribute("src", state.dustEffects
 				and "/luaui/images/terraform_brush/check_on.png"
 				or "/luaui/images/terraform_brush/check_off.png")
+		end
+
+		local cmapImg = doc:GetElementById("btn-height-colormap")
+		if cmapImg then
+			cmapImg:SetAttribute("src", state.heightColormap
+				and "/luaui/images/terraform_brush/check_on.png"
+				or "/luaui/images/terraform_brush/check_off.png")
+		end
+
+		local flatImg = doc:GetElementById("btn-flatten-cursor")
+		if flatImg then
+			flatImg:SetAttribute("src", state.flattenToCursor
+				and "/luaui/images/terraform_brush/check_on.png"
+				or "/luaui/images/terraform_brush/check_off.png")
+		end
+
+		local sliderOpacity = doc:GetElementById("slider-opacity")
+		if sliderOpacity then
+			sliderOpacity:SetAttribute("value", tostring(math.floor(state.brushOpacity * 100 + 0.5)))
 		end
 
 		updatingFromCode = false

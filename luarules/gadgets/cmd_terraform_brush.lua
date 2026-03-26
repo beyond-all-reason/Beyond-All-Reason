@@ -239,7 +239,7 @@ local function computeFalloff(dx, dz, radius, shape, angleDeg, curve, lengthScal
 	return rawFalloff ^ curve
 end
 
-local function applyTerraform(centerX, centerZ, radius, direction, shape, angleDeg, curve, heightMin, heightMax, intensity, lengthScale, clayMode)
+local function applyTerraform(centerX, centerZ, radius, direction, shape, angleDeg, curve, heightMin, heightMax, intensity, lengthScale, clayMode, opacity, flattenHeight)
 	local squareSize = Game.squareSize
 	local mapSizeX = Game.mapSizeX
 	local mapSizeZ = Game.mapSizeZ
@@ -259,6 +259,8 @@ local function applyTerraform(centerX, centerZ, radius, direction, shape, angleD
 		clayPlane = centerHeight + direction * HEIGHT_STEP * intensity
 	end
 
+	opacity = opacity or 0.3
+
 	local snapshot = {}
 	Spring.SetHeightMapFunc(function()
 		for z = minZ, maxZ, squareSize do
@@ -273,25 +275,25 @@ local function applyTerraform(centerX, centerZ, radius, direction, shape, angleD
 					local newHeight
 
 					if direction == 0 then
-						local targetHeight = Spring.GetGroundHeight(centerX, centerZ)
+						local targetHeight = flattenHeight or Spring.GetGroundHeight(centerX, centerZ)
 						local diff = targetHeight - current
-						newHeight = current + diff * falloff * 0.3 * intensity
+						newHeight = current + diff * falloff * opacity * intensity
 					else
 						if clayMode then
 							-- Clay: blend toward the plane, only if vertex hasn't passed it
 							if direction > 0 and current < clayPlane then
 								local gap = clayPlane - current
-								newHeight = current + gap * falloff * 0.3 * intensity
+								newHeight = current + gap * falloff * opacity * intensity
 								newHeight = min(newHeight, clayPlane)
 							elseif direction < 0 and current > clayPlane then
 								local gap = current - clayPlane
-								newHeight = current - gap * falloff * 0.3 * intensity
+								newHeight = current - gap * falloff * opacity * intensity
 								newHeight = max(newHeight, clayPlane)
 							else
 								newHeight = current
 							end
 						else
-							local delta = direction * HEIGHT_STEP * falloff * intensity
+							local delta = direction * HEIGHT_STEP * falloff * intensity * opacity
 							newHeight = current + delta
 						end
 					end
@@ -782,6 +784,8 @@ function gadget:RecvLuaMsg(msg, playerID)
 	local lengthScale = tonumber(parts[11]) or 2.0
 	local clayMode = parts[12] == "1"
 	local dustMode = parts[13] == "1"
+	local opacity = tonumber(parts[14]) or 0.3
+	local flattenHeight = tonumber(parts[15])
 
 	if not direction or not centerX or not centerZ or not radius then
 		return true
@@ -791,8 +795,9 @@ function gadget:RecvLuaMsg(msg, playerID)
 	curve = max(0.1, min(5.0, curve))
 	intensity = max(0.1, min(100.0, intensity))
 	lengthScale = max(0.2, min(5.0, lengthScale))
+	opacity = max(0.01, min(1.0, opacity))
 
-	applyTerraform(centerX, centerZ, radius, direction, shape, angleDeg, curve, heightMin, heightMax, intensity, lengthScale, clayMode)
+	applyTerraform(centerX, centerZ, radius, direction, shape, angleDeg, curve, heightMin, heightMax, intensity, lengthScale, clayMode, opacity, flattenHeight)
 	if dustMode then
 		spawnDust(centerX, centerZ, radius)
 	end
