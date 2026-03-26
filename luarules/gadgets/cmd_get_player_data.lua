@@ -75,8 +75,8 @@ else
 	local fontfileOutlineStrength = 1.7
 
 	local myPlayerID = Spring.GetMyPlayerID()
-	local myPlayerName,_,_,_,_,_,_,_,_,_,accountInfo = Spring.GetPlayerInfo(myPlayerID)
-	local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
+	local myPlayerName = Spring.GetPlayerInfo(myPlayerID)
+	local accountID = Spring.Utilities.GetAccountID(myPlayerID)
 	local authorized = SYNCED.permissions.playerdata[accountID]
 
 	function gadget:Initialize()
