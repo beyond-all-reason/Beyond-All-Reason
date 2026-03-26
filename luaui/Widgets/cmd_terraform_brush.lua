@@ -1400,11 +1400,9 @@ function widget:DrawWorld()
 	-- Reuse cached display list when nothing changed
 	if isDrawCacheValid(worldX, worldZ, groundY) then
 		glCallList(drawCacheList)
-		return
-	end
-
-	invalidateDrawCache()
-	drawCacheList = glCreateList(function()
+	else
+		invalidateDrawCache()
+		drawCacheList = glCreateList(function()
 		if activeMode == "ramp" then
 			glColor(0.9, 0.7, 0.2, 0.7)
 			glLineWidth(2)
@@ -1510,9 +1508,10 @@ function widget:DrawWorld()
 
 		glColor(1, 1, 1, 1)
 		glLineWidth(1)
-	end)
-	updateDrawCacheParams(worldX, worldZ, groundY)
-	glCallList(drawCacheList)
+		end)
+		updateDrawCacheParams(worldX, worldZ, groundY)
+		glCallList(drawCacheList)
+	end
 
 	-- Draw axis-lock indicator line following terrain
 	if shiftAxis and shiftHeld then
@@ -1526,22 +1525,12 @@ function widget:DrawWorld()
 		gl.DepthMask(false)
 		glBeginEnd(GL_LINE_STRIP, function()
 			if shiftAxis == "x" then
-				local startX = max(0, worldX - 2000)
-				local endX = min(mapX, worldX + 2000)
-				for x = startX, endX, AXIS_STEP do
+				for x = 0, mapX, AXIS_STEP do
 					glVertex(x, GetGroundHeight(x, worldZ) + AXIS_OFFSET, worldZ)
 				end
-				if endX % AXIS_STEP ~= 0 then
-					glVertex(endX, GetGroundHeight(endX, worldZ) + AXIS_OFFSET, worldZ)
-				end
 			else
-				local startZ = max(0, worldZ - 2000)
-				local endZ = min(mapZ, worldZ + 2000)
-				for z = startZ, endZ, AXIS_STEP do
+				for z = 0, mapZ, AXIS_STEP do
 					glVertex(worldX, GetGroundHeight(worldX, z) + AXIS_OFFSET, z)
-				end
-				if endZ % AXIS_STEP ~= 0 then
-					glVertex(worldX, GetGroundHeight(worldX, endZ) + AXIS_OFFSET, endZ)
 				end
 			end
 		end)
