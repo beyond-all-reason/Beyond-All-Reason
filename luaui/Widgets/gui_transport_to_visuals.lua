@@ -1,7 +1,7 @@
 function widget:GetInfo()
     return {
-        name = "Transport To Visuals",
-        desc = "Registers Transport To cursor and command draw data",
+        name = "Transport To",
+        desc = "Adds a map-click Transport To command and visuals",
         author = "IsaJoeFeat",
         layer = 1,
         enabled = true,
@@ -19,22 +19,42 @@ local CMD_TRANSPORT_TO_DESC = {
     name = "Transport To",
     cursor = nil,
     action = "transport_to",
+    tooltip = "Request the closest eligible transport to move this unit to the target location",
 }
 
-local function IsTransportableSelection()
+local function IsTransportableDef(defID)
+    if not defID then
+        return false
+    end
+    local ud = UnitDefs[defID]
+    if not ud then
+        return false
+    end
+    if ud.canFly then
+        return false
+    end
+    if ud.isTransport and (ud.transportCapacity or 0) > 0 then
+        return false
+    end
+    if ud.isBuilding and not ud.isFactory then
+        return false
+    end
+    if ud.cantBeTransported == true then
+        return false
+    end
+    return true
+end
+
+local function HasTransportableSelection()
     local selected = Spring.GetSelectedUnits()
     if #selected == 0 then
         return false
     end
 
     for i = 1, #selected do
-        local unitID = selected[i]
-        local defID = Spring.GetUnitDefID(unitID)
-        if defID then
-            local ud = UnitDefs[defID]
-            if ud and (not ud.canFly) and ((ud.cantBeTransported == nil) or (ud.cantBeTransported == false)) then
-                return true
-            end
+        local defID = Spring.GetUnitDefID(selected[i])
+        if IsTransportableDef(defID) then
+            return true
         end
     end
 
@@ -53,7 +73,7 @@ end
 function widget:CommandsChanged()
     RegisterVisuals()
 
-    if not IsTransportableSelection() then
+    if not HasTransportableSelection() then
         return
     end
 
