@@ -105,6 +105,7 @@ local shiftOriginZ = nil
 local wasShiftHeld = false
 local gridShowing = false
 local gridOverlayOn = false
+local dustEffects = true
 local rightMouseHeld = false
 local savedModeBeforeRMB = nil
 local savedDirectionBeforeRMB = nil
@@ -211,7 +212,8 @@ local function sendTerraformMessage(direction, worldX, worldZ, radius, shape, ro
 		.. absCapMax .. " "
 		.. string.format("%.1f", activeIntensity) .. " "
 		.. string.format("%.1f", activeLengthScale) .. " "
-		.. (clayMode and "1" or "0")
+		.. (clayMode and "1" or "0") .. " "
+		.. (dustEffects and "1" or "0")
 	SendLuaRulesMsg(msg)
 	markTessellationDirty()
 end
@@ -361,6 +363,10 @@ local function setGridOverlay(value)
 	end
 end
 
+local function setDustEffects(value)
+	dustEffects = value and true or false
+end
+
 local function getState()
 	return {
 		active = activeMode ~= nil,
@@ -377,6 +383,7 @@ local function getState()
 		heightCapAbsolute = heightCapAbsolute,
 		clayMode = clayMode,
 		gridOverlay = gridOverlayOn,
+		dustEffects = dustEffects,
 		undoCount = historyUndoCount,
 		redoCount = historyRedoCount,
 	}
@@ -713,6 +720,7 @@ function widget:Initialize()
 		setHeightCapAbsolute = setHeightCapAbsolute,
 		setClayMode = setClayMode,
 		setGridOverlay = setGridOverlay,
+		setDustEffects = setDustEffects,
 		getState = getState,
 		deactivate = deactivateTerraform,
 		undo = function()
@@ -861,6 +869,8 @@ function widget:Update(dt)
 				end
 				parts[#parts + 1] = " "
 				parts[#parts + 1] = clayMode and "1" or "0"
+				parts[#parts + 1] = " "
+				parts[#parts + 1] = dustEffects and "1" or "0"
 				SendLuaRulesMsg(table.concat(parts))
 				markTessellationDirty()
 			end
@@ -894,7 +904,8 @@ function widget:Update(dt)
 					.. floor(rampEndZ) .. " "
 					.. string.format("%.0f", endY) .. " "
 					.. activeRadius .. " "
-					.. (clayMode and "1" or "0")
+					.. (clayMode and "1" or "0") .. " "
+					.. (dustEffects and "1" or "0")
 				SendLuaRulesMsg(msg)
 				markTessellationDirty()
 			end
