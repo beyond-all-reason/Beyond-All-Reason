@@ -35,11 +35,20 @@ local IMPORT_HEADER = "$terraform_import$"
 local IMPORT_HEADER_LENGTH = #IMPORT_HEADER
 local UNDO_HEADER = "$terraform_undo$"
 local REDO_HEADER = "$terraform_redo$"
+local MERGE_END_HEADER = "$terraform_merge_end$"
 local HEIGHT_STEP = 8
 local MAX_UNDO = 100
+local MAX_SNAPSHOT_VERTICES = 500000  -- total vertex budget across all undo+redo entries
 
 local undoStack = {}
 local redoStack = {}
+local totalVertexCount = 0  -- track approximate memory usage
+
+-- Merge window: consecutive brush strokes within MERGE_FRAMES get combined into one undo entry
+local MERGE_FRAMES = 8  -- ~0.27s at 30fps
+local lastSnapshotFrame = -999
+local mergeSnapshot = nil      -- the active snapshot being merged into
+local mergeVertexSet = nil     -- set of "x:z" keys already in mergeSnapshot
 local MAX_RADIUS = 2000
 local MIN_RADIUS = 8
 local RING_INNER_RATIO = 0.6
@@ -55,6 +64,65 @@ local atan2 = math.atan2
 local random = math.random
 
 local SpawnCEG = Spring.SpawnCEG
+
+local function evictOldSnapshots()
+	while totalVertexCount > MAX_SNAPSHOT_VERTICES and #undoStack > 0 do
+		local old = undoStack[1]
+		totalVertexCount = totalVertexCount - #old
+		table.remove(undoStack, 1)
+	end
+	-- If still over budget, trim redo stack too
+	while totalVertexCount > MAX_SNAPSHOT_VERTICES and #redoStack > 0 do
+		local old = redoStack[1]
+		totalVertexCount = totalVertexCount - #old
+		table.remove(redoStack, 1)
+	end
+end
+
+local function pushSnapshot(snapshot)
+	if #snapshot == 0 then return end
+	local currentFrame = Spring.GetGameFrame()
+
+	if mergeSnapshot and (currentFrame - lastSnapshotFrame) <= MERGE_FRAMES then
+		-- Merge: only add vertices not already tracked
+		for i = 1, #snapshot do
+			local key = snapshot[i][1] .. ":" .. snapshot[i][2]
+			if not mergeVertexSet[key] then
+				mergeVertexSet[key] = true
+				mergeSnapshot[#mergeSnapshot + 1] = snapshot[i]
+				totalVertexCount = totalVertexCount + 1
+			end
+		end
+	else
+		-- New undo entry: clear redo stack first
+		for i = 1, #redoStack do
+			totalVertexCount = totalVertexCount - #redoStack[i]
+		end
+		redoStack = {}
+
+		mergeSnapshot = snapshot
+		mergeVertexSet = {}
+		for i = 1, #snapshot do
+			mergeVertexSet[snapshot[i][1] .. ":" .. snapshot[i][2]] = true
+		end
+		undoStack[#undoStack + 1] = snapshot
+		totalVertexCount = totalVertexCount + #snapshot
+		if #undoStack > MAX_UNDO then
+			local old = undoStack[1]
+			totalVertexCount = totalVertexCount - #old
+			table.remove(undoStack, 1)
+		end
+	end
+
+	lastSnapshotFrame = currentFrame
+	evictOldSnapshots()
+	SendToUnsynced("TerraformBrushStacks", #undoStack, #redoStack)
+end
+
+local function finalizeMerge()
+	mergeSnapshot = nil
+	mergeVertexSet = nil
+end
 
 local DUST_CEGS = { "dust_cloud", "dust_cloud_dirt_light", "dust_cloud_fast", "dust_cloud_dirt", "dirtpoof" }
 local DUST_COUNT_PER_100 = 12  -- puffs per 100 radius
@@ -241,14 +309,7 @@ local function applyTerraform(centerX, centerZ, radius, direction, shape, angleD
 			end
 		end
 	end)
-	if #snapshot > 0 then
-		undoStack[#undoStack + 1] = snapshot
-		if #undoStack > MAX_UNDO then
-			table.remove(undoStack, 1)
-		end
-		redoStack = {}
-		SendToUnsynced("TerraformBrushStacks", #undoStack, #redoStack)
-	end
+	pushSnapshot(snapshot)
 end
 
 local function applyRamp(startX, startZ, startY, endX, endZ, endY, width, clayMode)
@@ -315,12 +376,7 @@ local function applyRamp(startX, startZ, startY, endX, endZ, endY, width, clayMo
 				Spring.SetHeightMap(heightData[i][1], heightData[i][2], heightData[i][3])
 			end
 		end)
-		undoStack[#undoStack + 1] = snapshot
-		if #undoStack > MAX_UNDO then
-			table.remove(undoStack, 1)
-		end
-		redoStack = {}
-		SendToUnsynced("TerraformBrushStacks", #undoStack, #redoStack)
+		pushSnapshot(snapshot)
 	end
 end
 
@@ -419,12 +475,7 @@ local function applySplineRamp(waypoints, width, clayMode)
 				Spring.SetHeightMap(heightData[i][1], heightData[i][2], heightData[i][3])
 			end
 		end)
-		undoStack[#undoStack + 1] = snapshot
-		if #undoStack > MAX_UNDO then
-			table.remove(undoStack, 1)
-		end
-		redoStack = {}
-		SendToUnsynced("TerraformBrushStacks", #undoStack, #redoStack)
+		pushSnapshot(snapshot)
 	end
 end
 
@@ -465,12 +516,7 @@ local function applyRestore(centerX, centerZ, radius, shape, angleDeg, curve, in
 				Spring.SetHeightMap(heightData[i][1], heightData[i][2], heightData[i][3])
 			end
 		end)
-		undoStack[#undoStack + 1] = snapshot
-		if #undoStack > MAX_UNDO then
-			table.remove(undoStack, 1)
-		end
-		redoStack = {}
-		SendToUnsynced("TerraformBrushStacks", #undoStack, #redoStack)
+		pushSnapshot(snapshot)
 	end
 end
 
@@ -488,6 +534,8 @@ function gadget:RecvLuaMsg(msg, playerID)
 
 		local snapshot = undoStack[#undoStack]
 		undoStack[#undoStack] = nil
+		totalVertexCount = totalVertexCount - #snapshot
+		finalizeMerge()
 
        -- Capture current state for redo before restoring
        local redoSnapshot = {}
@@ -499,10 +547,14 @@ function gadget:RecvLuaMsg(msg, playerID)
        end)
        if #redoSnapshot > 0 then
           redoStack[#redoStack + 1] = redoSnapshot
+          totalVertexCount = totalVertexCount + #redoSnapshot
           if #redoStack > MAX_UNDO then
+             local old = redoStack[1]
+             totalVertexCount = totalVertexCount - #old
              table.remove(redoStack, 1)
           end
        end
+       evictOldSnapshots()
        SendToUnsynced("TerraformBrushStacks", #undoStack, #redoStack)
        return true
     end
@@ -520,6 +572,8 @@ function gadget:RecvLuaMsg(msg, playerID)
 
        local snapshot = redoStack[#redoStack]
        redoStack[#redoStack] = nil
+       totalVertexCount = totalVertexCount - #snapshot
+       finalizeMerge()
 
        -- Capture current state for undo before restoring
        local undoSnapshot = {}
@@ -531,10 +585,22 @@ function gadget:RecvLuaMsg(msg, playerID)
        end)
        if #undoSnapshot > 0 then
           undoStack[#undoStack + 1] = undoSnapshot
+          totalVertexCount = totalVertexCount + #undoSnapshot
+          if #undoStack > MAX_UNDO then
+             local old = undoStack[1]
+             totalVertexCount = totalVertexCount - #old
+             table.remove(undoStack, 1)
+          end
        end
+       evictOldSnapshots()
        SendToUnsynced("TerraformBrushStacks", #undoStack, #redoStack)
        return true
     end
+
+	if msg == MERGE_END_HEADER then
+		finalizeMerge()
+		return true
+	end
 
 	if msg:sub(1, IMPORT_HEADER_LENGTH) == IMPORT_HEADER then
 		if not Spring.IsCheatingEnabled() then
