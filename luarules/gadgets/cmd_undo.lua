@@ -175,8 +175,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:RecvLuaMsg(msg, playerID)
 		if msg:sub(1,2)=="un" and msg:sub(3,6)==validation then
 
-			local accountInfo = select(11, Spring.GetPlayerInfo(playerID))
-			local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
+			local accountID = Spring.Utilities.GetAccountID(playerID)
 			local authorized = false
 			if _G.permissions.undo[accountID] then
 				authorized = true
@@ -191,8 +190,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function notify(message)
 		for _,playerID in pairs(Spring.GetPlayerList()) do
-			local accountInfo = select(11, Spring.GetPlayerInfo(playerID))
-			local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
+			local accountID = Spring.Utilities.GetAccountID(playerID)
 			if _G.permissions.undo[accountID] then
 				Spring.SendMessageToPlayer(playerID, message)
 			end
