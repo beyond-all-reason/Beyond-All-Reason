@@ -551,7 +551,7 @@ local function attachEventListeners()
 				WG.TerraformBrush.setHeightCapAbsolute(false)
 				WG.TerraformBrush.setClayMode(false)
 				WG.TerraformBrush.setGridOverlay(false)
-				WG.TerraformBrush.setDustEffects(true)
+				WG.TerraformBrush.setDustEffects(false)
 			end
 			capMinValue = 0
 			capMaxValue = 0
@@ -570,16 +570,19 @@ local function attachEventListeners()
 			end
 			local dustImg = doc:GetElementById("btn-dust-effects")
 			if dustImg then
-				dustImg:SetAttribute("src", "/luaui/images/terraform_brush/check_on.png")
+				dustImg:SetAttribute("src", "/luaui/images/terraform_brush/check_off.png")
 			end
 			event:StopPropagation()
 		end, false)
 	end
 
-	-- Preset system
+	-- Preset combobox system
 	local presetNameInput = doc:GetElementById("preset-name-input")
-	local presetList = doc:GetElementById("preset-list")
+	local presetDropdown = doc:GetElementById("preset-dropdown")
 	local presetSaveBtn = doc:GetElementById("btn-preset-save")
+	local presetToggleBtn = doc:GetElementById("btn-preset-toggle")
+	local dropdownOpen = false
+	local lastFilter = ""
 
 	if presetNameInput then
 		presetNameInput:AddEventListener("focus", function(event)
@@ -592,65 +595,109 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local function rebuildPresetList()
-		if not presetList or not WG.TerraformBrush then return end
-		-- Clear existing children
-		while presetList.firstChild do
-			presetList:RemoveChild(presetList.firstChild)
+	local function setDropdownOpen(open)
+		dropdownOpen = open
+		if presetDropdown then
+			presetDropdown:SetClass("hidden", not open)
 		end
+		if presetToggleBtn then
+			presetToggleBtn:SetClass("open", open)
+		end
+	end
+
+	local function rebuildPresetList(filter)
+		if not presetDropdown or not WG.TerraformBrush then return end
+		presetDropdown.inner_rml = ""
 		local names = WG.TerraformBrush.getPresetNames()
+		local filterLower = filter and filter:lower() or ""
+		local count = 0
 		for _, name in ipairs(names) do
-			local row = doc:CreateElement("div")
-			row:SetClass("tf-preset-row", true)
+			if filterLower == "" or name:lower():find(filterLower, 1, true) then
+				local row = doc:CreateElement("div")
+				row:SetClass("tf-preset-row", true)
 
-			local nameEl = doc:CreateElement("div")
-			nameEl:SetClass("tf-preset-name", true)
-			nameEl.inner_rml = name
-			row:AppendChild(nameEl)
+				local nameEl = doc:CreateElement("div")
+				nameEl:SetClass("tf-preset-name", true)
+				nameEl.inner_rml = name
+				row:AppendChild(nameEl)
 
-			local delEl = doc:CreateElement("div")
-			delEl:SetClass("tf-preset-delete", true)
-			delEl.inner_rml = "X"
-			row:AppendChild(delEl)
+				local delEl = doc:CreateElement("div")
+				delEl:SetClass("tf-preset-delete", true)
+				delEl.inner_rml = "X"
+				row:AppendChild(delEl)
 
-			-- Click row to load preset
-			nameEl:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					WG.TerraformBrush.loadPreset(name)
-				end
-				event:StopPropagation()
-			end, false)
+				nameEl:AddEventListener("click", function(event)
+					if WG.TerraformBrush then
+						WG.TerraformBrush.loadPreset(name)
+						if presetNameInput then
+							presetNameInput:SetAttribute("value", name)
+						end
+						setDropdownOpen(false)
+					end
+					event:StopPropagation()
+				end, false)
 
-			-- Click X to delete preset
-			delEl:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					WG.TerraformBrush.deletePreset(name)
-					rebuildPresetList()
-				end
-				event:StopPropagation()
-			end, false)
+				delEl:AddEventListener("click", function(event)
+					if WG.TerraformBrush then
+						WG.TerraformBrush.deletePreset(name)
+						rebuildPresetList(filter)
+					end
+					event:StopPropagation()
+				end, false)
 
-			presetList:AppendChild(row)
+				presetDropdown:AppendChild(row)
+				count = count + 1
+			end
 		end
+		if count == 0 and dropdownOpen then
+			setDropdownOpen(false)
+		end
+	end
+
+	-- Toggle dropdown on arrow click
+	if presetToggleBtn then
+		presetToggleBtn:AddEventListener("click", function(event)
+			if dropdownOpen then
+				setDropdownOpen(false)
+			else
+				rebuildPresetList(nil)
+				setDropdownOpen(true)
+			end
+			event:StopPropagation()
+		end, false)
+	end
+
+	-- Filter dropdown as user types
+	if presetNameInput then
+		presetNameInput:AddEventListener("change", function(event)
+			local val = presetNameInput:GetAttribute("value") or ""
+			if val ~= lastFilter then
+				lastFilter = val
+				rebuildPresetList(val)
+				if val ~= "" and not dropdownOpen then
+					setDropdownOpen(true)
+				end
+			end
+		end, false)
 	end
 
 	if presetSaveBtn then
 		presetSaveBtn:AddEventListener("click", function(event)
 			if WG.TerraformBrush and presetNameInput then
 				local name = presetNameInput:GetAttribute("value") or ""
-				name = name:match("^%s*(.-)%s*$")  -- trim
+				name = name:match("^%s*(.-)%s*$")
 				if name ~= "" then
 					WG.TerraformBrush.savePreset(name)
 					presetNameInput:SetAttribute("value", "")
-					rebuildPresetList()
+					lastFilter = ""
+					if dropdownOpen then
+						rebuildPresetList(nil)
+					end
 				end
 			end
 			event:StopPropagation()
 		end, false)
 	end
-
-	-- Build initial preset list
-	rebuildPresetList()
 end
 
 function widget:Initialize()

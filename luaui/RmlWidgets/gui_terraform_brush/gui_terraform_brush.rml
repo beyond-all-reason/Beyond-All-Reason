@@ -83,7 +83,7 @@
 		</div>
 
 		<div class="flex flex-row gap-1 items-center mb-1">
-			<img id="btn-dust-effects" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_on.png" style="cursor: pointer;" />
+			<img id="btn-dust-effects" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" style="cursor: pointer;" />
 			<div class="text-lg text-light">Dust Effects</div>
 			<div class="text-sm text-keybind" style="margin-left: auto;">particles</div>
 		</div>
@@ -218,8 +218,11 @@
 			<div id="btn-preset-save" class="tf-preset-btn tf-preset-save">
 				<div class="text-lg text-medium">Save</div>
 			</div>
+			<div id="btn-preset-toggle" class="tf-preset-btn tf-preset-toggle">
+				<div class="tf-dropdown-arrow">▼</div>
+			</div>
 		</div>
-		<div id="preset-list" class="tf-preset-list"></div>
+		<div id="preset-dropdown" class="tf-preset-dropdown hidden"></div>
 
 		<div class="divider-horizontal-dark"></div>
 
