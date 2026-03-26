@@ -664,7 +664,7 @@ function widget:MouseRelease(mx, my, mButton)
             if targetID then
                 -- Give order (i.e. pass the command to the engine to use as normal)
                 GiveNotifyingOrder(usingCmd, {targetID}, cmdOpts)
-            elseif usingCmd == CMD_MOVE then
+            elseif usingCmd == CMD_MOVE or usingCmd == CMD_TRANSPORT_TO then
                 GiveNotifyingOrder(usingCmd, {fNodes[1][1],fNodes[1][2],fNodes[1][3]}, cmdOpts)
             else
                 -- Deselect command, select default command instead
@@ -1514,7 +1514,7 @@ function widget:Initialize()
 
 			if fDists[#fNodes] < adjustedMinFormationLength or (usingCmd == CMD.UNLOAD_UNIT and fDists[#fNodes] < 64*(selectedUnitsCount - 1)) then
 				-- Single-click style order
-				if usingCmd == CMD_MOVE and #fNodes > 0 then
+				if usingCmd == CMD_MOVE or usingCmd == CMD_TRANSPORT_TO) and #fNodes > 0 then
 					GiveNotifyingOrder(usingCmd, {fNodes[1][1], fNodes[1][2], fNodes[1][3]}, cmdOpts)
 					result = true
 				end
