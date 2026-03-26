@@ -147,7 +147,7 @@ local function computeFalloff(dx, dz, radius, shape, angleDeg, curve, lengthScal
 	return rawFalloff ^ curve
 end
 
-local function applyTerraform(centerX, centerZ, radius, direction, shape, angleDeg, curve, heightMin, heightMax, intensity, lengthScale)
+local function applyTerraform(centerX, centerZ, radius, direction, shape, angleDeg, curve, heightMin, heightMax, intensity, lengthScale, clayMode)
 	local squareSize = Game.squareSize
 	local mapSizeX = Game.mapSizeX
 	local mapSizeZ = Game.mapSizeZ
@@ -159,6 +159,13 @@ local function applyTerraform(centerX, centerZ, radius, direction, shape, angleD
 	local maxX = min(mapSizeX, floor((centerX + extent) / squareSize) * squareSize)
 	local minZ = max(0, floor((centerZ - extent) / squareSize) * squareSize)
 	local maxZ = min(mapSizeZ, floor((centerZ + extent) / squareSize) * squareSize)
+
+	-- Clay mode: compute a target plane at center height + full brush displacement
+	local clayPlane
+	if clayMode and direction ~= 0 then
+		local centerHeight = Spring.GetGroundHeight(centerX, centerZ)
+		clayPlane = centerHeight + direction * HEIGHT_STEP * intensity
+	end
 
 	local snapshot = {}
 	Spring.SetHeightMapFunc(function()
@@ -178,8 +185,23 @@ local function applyTerraform(centerX, centerZ, radius, direction, shape, angleD
 						local diff = targetHeight - current
 						newHeight = current + diff * falloff * 0.3 * intensity
 					else
-						local delta = direction * HEIGHT_STEP * falloff * intensity
-						newHeight = current + delta
+						if clayMode then
+							-- Clay: blend toward the plane, only if vertex hasn't passed it
+							if direction > 0 and current < clayPlane then
+								local gap = clayPlane - current
+								newHeight = current + gap * falloff * 0.3 * intensity
+								newHeight = min(newHeight, clayPlane)
+							elseif direction < 0 and current > clayPlane then
+								local gap = current - clayPlane
+								newHeight = current - gap * falloff * 0.3 * intensity
+								newHeight = max(newHeight, clayPlane)
+							else
+								newHeight = current
+							end
+						else
+							local delta = direction * HEIGHT_STEP * falloff * intensity
+							newHeight = current + delta
+						end
 					end
 
 					if heightMin then
@@ -205,7 +227,7 @@ local function applyTerraform(centerX, centerZ, radius, direction, shape, angleD
 	end
 end
 
-local function applyRamp(startX, startZ, startY, endX, endZ, endY, width)
+local function applyRamp(startX, startZ, startY, endX, endZ, endY, width, clayMode)
 	local squareSize = Game.squareSize
 	local mapSizeX = Game.mapSizeX
 	local mapSizeZ = Game.mapSizeZ
@@ -238,11 +260,24 @@ local function applyRamp(startX, startZ, startY, endX, endZ, endY, width)
 				local perpDist = (perpX * perpX + perpZ * perpZ) ^ 0.5
 
 				if perpDist <= width then
+					local ratio = perpDist / width
+					local falloff = 1 - ratio * ratio
 					local t = along / length
 					local targetHeight = startY + (endY - startY) * t
 					local current = Spring.GetGroundHeight(x, z)
-					local blend = current + (targetHeight - current) * 0.3
-					heightData[#heightData + 1] = { x, z, blend }
+					if clayMode then
+						-- Clay: only move toward target, never past it
+						if targetHeight > current then
+							local blend = current + (targetHeight - current) * 0.3 * falloff
+							heightData[#heightData + 1] = { x, z, min(blend, targetHeight) }
+						elseif targetHeight < current then
+							local blend = current + (targetHeight - current) * 0.3 * falloff
+							heightData[#heightData + 1] = { x, z, max(blend, targetHeight) }
+						end
+					else
+						local blend = current + (targetHeight - current) * 0.3 * falloff
+						heightData[#heightData + 1] = { x, z, blend }
+					end
 				end
 			end
 		end
@@ -265,7 +300,7 @@ local function applyRamp(startX, startZ, startY, endX, endZ, endY, width)
 	end
 end
 
-local function applySplineRamp(waypoints, width)
+local function applySplineRamp(waypoints, width, clayMode)
 	local squareSize = Game.squareSize
 	local mapSizeX = Game.mapSizeX
 	local mapSizeZ = Game.mapSizeZ
@@ -331,11 +366,23 @@ local function applySplineRamp(waypoints, width)
 			end
 
 			if bestDist <= width then
+				local ratio = bestDist / width
+				local falloff = 1 - ratio * ratio
 				local t = bestArc / totalLength
 				local targetHeight = startY + (endY - startY) * t
 				local current = Spring.GetGroundHeight(x, z)
-				local blend = current + (targetHeight - current) * 0.3
-				heightData[#heightData + 1] = { x, z, blend }
+				if clayMode then
+					if targetHeight > current then
+						local blend = current + (targetHeight - current) * 0.3 * falloff
+						heightData[#heightData + 1] = { x, z, min(blend, targetHeight) }
+					elseif targetHeight < current then
+						local blend = current + (targetHeight - current) * 0.3 * falloff
+						heightData[#heightData + 1] = { x, z, max(blend, targetHeight) }
+					end
+				else
+					local blend = current + (targetHeight - current) * 0.3 * falloff
+					heightData[#heightData + 1] = { x, z, blend }
+				end
 			end
 		end
 	end
@@ -569,7 +616,9 @@ function gadget:RecvLuaMsg(msg, playerID)
 			waypoints[i] = { px, pz }
 		end
 
-		applySplineRamp(waypoints, width)
+		local clayFlag = parts[2 + numPts * 2 + 1]
+		local splineClayMode = (clayFlag == "1")
+		applySplineRamp(waypoints, width, splineClayMode)
 		return true
 	end
 
@@ -597,8 +646,10 @@ function gadget:RecvLuaMsg(msg, playerID)
 			return true
 		end
 
+		local rampClayFlag = parts[8]
+		local rampClayMode = (rampClayFlag == "1")
 		width = max(MIN_RADIUS, min(MAX_RADIUS, width))
-		applyRamp(sX, sZ, sY, eX, eZ, eY, width)
+		applyRamp(sX, sZ, sY, eX, eZ, eY, width, rampClayMode)
 		return true
 	end
 
@@ -628,6 +679,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 	local heightMax = tonumber(parts[9])
 	local intensity = tonumber(parts[10]) or 1.0
 	local lengthScale = tonumber(parts[11]) or 2.0
+	local clayMode = parts[12] == "1"
 
 	if not direction or not centerX or not centerZ or not radius then
 		return true
@@ -638,6 +690,6 @@ function gadget:RecvLuaMsg(msg, playerID)
 	intensity = max(0.1, min(100.0, intensity))
 	lengthScale = max(0.2, min(5.0, lengthScale))
 
-	applyTerraform(centerX, centerZ, radius, direction, shape, angleDeg, curve, heightMin, heightMax, intensity, lengthScale)
+	applyTerraform(centerX, centerZ, radius, direction, shape, angleDeg, curve, heightMin, heightMax, intensity, lengthScale, clayMode)
 	return true
 end
