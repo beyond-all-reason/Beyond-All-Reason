@@ -69,7 +69,7 @@ local formationCmds = {
     [CMD.PATROL] = true,
     [CMD.UNLOAD_UNIT] = true,
     [CMD_SETTARGET] = true,
-    [19990] = true, -- Ferry Command
+    [CMD_TRANSPORT_TO] = true, -- ferry
 	[CMD_MANUAL_LAUNCH] = true,
 }
 
@@ -87,7 +87,7 @@ local positionCmds = {
     [CMD.MOVE]=true,		[CMD.ATTACK]=true,		 [CMD.RECLAIM]=true,		[CMD.RESTORE]=true,		[CMD.RESURRECT]=true,
     [CMD.PATROL]=true,		[CMD.CAPTURE]=true,		 [CMD.FIGHT]=true, 		    [CMD.MANUALFIRE]=true,
     [CMD.UNLOAD_UNIT]=true,	[CMD.UNLOAD_UNITS]=true, [CMD.LOAD_UNITS]=true,	    [CMD.GUARD]=true,		[CMD.AREA_ATTACK] = true,
-    [CMD_SETTARGET]=true,   [CMD_MANUAL_LAUNCH]=true,
+    [CMD_SETTARGET]=true,   [CMD_MANUAL_LAUNCH]=true, [CMD_TRANSPORT_TO]=true,
 }
 
 -- What commands need more than one unit selected to be issued as a formation command
