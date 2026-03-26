@@ -61,6 +61,7 @@ local lineFadeRate = 2.0
 -- What commands are eligible for custom formations
 local CMD_SETTARGET = GameCMD.UNIT_SET_TARGET
 local CMD_MANUAL_LAUNCH = GameCMD.MANUAL_LAUNCH
+local CMD_TRANSPORT_TO = GameCMD.TRANSPORT_TO
 
 local formationCmds = {
     [CMD.MOVE] = true,
@@ -69,8 +70,8 @@ local formationCmds = {
     [CMD.PATROL] = true,
     [CMD.UNLOAD_UNIT] = true,
     [CMD_SETTARGET] = true,
-    [CMD_TRANSPORT_TO] = true, -- ferry
 	[CMD_MANUAL_LAUNCH] = true,
+    [CMD_TRANSPORT_TO] = true,
 }
 
 -- Context-based default commands that can be overridden (meaning that cf2 doesn't touch the command i.e. guard/attack when mouseover unit)
@@ -92,7 +93,7 @@ local positionCmds = {
 
 -- What commands need more than one unit selected to be issued as a formation command
 local multiUnitOnlyCmds = {
-	[CMD_MANUAL_LAUNCH]=true
+	[CMD_MANUAL_LAUNCH]=true,
 }
 
 local chobbyInterface
@@ -174,7 +175,6 @@ local CMD_MOVE = CMD.MOVE
 local CMD_ATTACK = CMD.ATTACK
 local CMD_UNLOADUNIT = CMD.UNLOAD_UNIT
 local CMD_UNLOADUNITS = CMD.UNLOAD_UNITS
-local CMD_TRANSPORT_TO = GameCMD.TRANSPORT_TO
 local CMD_OPT_ALT = CMD.OPT_ALT
 local CMD_OPT_CTRL = CMD.OPT_CTRL
 local CMD_OPT_META = CMD.OPT_META
@@ -258,12 +258,12 @@ local function CanUnitExecute(uID, cmdID)
         local transporting = spGetUnitIsTransporting(uID)
         return (transporting and #transporting > 0)
     end
-	local ud = UnitDefs[spGetUnitDefID(uID)]
-	local grounded = ud and not ud.canFly
-	local notCantBeTransported = ud and ((ud.cantBeTransported == nil) or (ud.cantBeTransported == false))
-	if cmdID == CMD_TRANSPORT_TO and grounded and notCantBeTransported then
-		return true
-	end
+    local ud = UnitDefs[spGetUnitDefID(uID)]
+	local grounded = not ud.canFly
+	local notCantBeTransported = (ud.cantBeTransported == nil) or (ud.cantBeTransported == false)
+    if cmdID == CMD_TRANSPORT_TO and grounded and notCantBeTransported then
+        return true
+    end
     return (spFindUnitCmdDesc(uID, cmdID) ~= nil)
 end
 
@@ -381,7 +381,6 @@ local function GiveNotifyingOrder(cmdID, cmdParams, cmdOpts)
     if widgetHandler:CommandNotify(cmdID, cmdParams, cmdOpts) then
         return
     end
-
     spGiveOrder(cmdID, cmdParams, cmdOpts.coded)
 end
 
@@ -399,12 +398,12 @@ local function GiveNotifyingOrderToUnit(uArr, oArr, uID, cmdID, cmdParams, cmdOp
 end
 
 local function NotifyOrderGivenToUnits(uArr, oArr)
-	for _, w in ipairs(widgetHandler.widgets) do
-		if w.OrderGivenToUnitsArr then
-			w:OrderGivenToUnitsArr(uArr, oArr)
-		end
-	end
-end	
+    for _, w in ipairs(widgetHandler.widgets) do
+        if w.OrderGivenToUnitsArr then
+            w:OrderGivenToUnitsArr(uArr, oArr)
+        end
+    end
+end
 
 function widget:SelectionChanged(sel)
     selectedUnits = sel
@@ -525,12 +524,8 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
         -- If the line is a path, start the units moving to this node
         if pathCandidate then
 
-            -- For the first path command, use raw shift state to decide whether to clear queue
-            -- This ensures queue is cleared unless user explicitly holds shift
-            local alt, ctrl, meta, _ = GetModKeys()
-            local _, _, _, rawShift = spGetModKeyState()
-            if spGetInvertQueueKey() then rawShift = not rawShift end
-            local cmdOpts = GetCmdOpts(false, ctrl, meta, rawShift, usingRMB) -- using alt uses springs box formation, so we set it off always
+            local alt, ctrl, meta, shift = GetModKeys()
+            local cmdOpts = GetCmdOpts(false, ctrl, meta, shift, usingRMB) -- using alt uses springs box formation, so we set it off always
 
             GiveNotifyingOrder(usingCmd, pos, cmdOpts)
             lastPathPos = pos
@@ -700,7 +695,7 @@ function widget:MouseRelease(mx, my, mButton)
                         local orderPos = orderPair[2]
                         GiveNotifyingOrderToUnit(unitArr, orderArr, orderPair[1], CMD_INSERT, {0, usingCmd, cmdOpts.coded, orderPos[1], orderPos[2], orderPos[3]}, altOpts)
                         if (i == #orders and #unitArr > 0) or #unitArr >= 100 then
-							NotifyOrderGivenToUnits(unitArr, orderArr)
+                            NotifyOrderGivenToUnits(unitArr, orderArr)
                             Spring.GiveOrderArrayToUnitArray(unitArr, orderArr, true)
                             unitArr = {}
                             orderArr = {}
@@ -711,16 +706,14 @@ function widget:MouseRelease(mx, my, mButton)
                         local orderPair = orders[i]
                         GiveNotifyingOrderToUnit(unitArr, orderArr, orderPair[1], usingCmd, orderPair[2], cmdOpts)
                         if (i == #orders and #unitArr > 0) or #unitArr >= 100 then
-							NotifyOrderGivenToUnits(unitArr, orderArr)
+                            NotifyOrderGivenToUnits(unitArr, orderArr)
                             Spring.GiveOrderArrayToUnitArray(unitArr, orderArr, true)
                             unitArr = {}
                             orderArr = {}
                         end
                     end
                 end
-				if usingCmd == CMD_SETTARGET then
-					Spring.SendLuaRulesMsg("settarget_line")
-				end
+
                 spSetActiveCommand(0) -- Deselect command
             end
         end
@@ -1422,8 +1415,6 @@ function widget:Initialize()
 	end
 
 	-- External formation dragging API (for PIP window, etc.)
-	local isFirstPathCommand = true -- Track whether next path command should clear queue
-
 	WG.customformations.StartFormation = function(worldPos, cmdID, fromMinimap)
 		-- Reset state
 		fNodes = {}
@@ -1436,7 +1427,6 @@ function widget:Initialize()
 		pathPositions = {}
 		overriddenCmd = nil
 		overriddenTarget = nil
-		isFirstPathCommand = true -- Reset for new formation
 
 		-- Set command
 		usingCmd = cmdID or CMD_MOVE
@@ -1484,14 +1474,7 @@ function widget:Initialize()
 					-- Only add command if it's not too close to any previous position
 					if not tooClose then
 						draggingPath = true
-						-- Use raw shift for first path command, GetModKeys for subsequent
 						local alt, ctrl, meta, shift = GetModKeys()
-						if isFirstPathCommand then
-							-- First command: use raw shift to decide queue clearing
-							_, _, _, shift = spGetModKeyState()
-							if spGetInvertQueueKey() then shift = not shift end
-							isFirstPathCommand = false
-						end
 						local cmdOpts = GetCmdOpts(alt, ctrl, meta, shift, usingRMB)
 						GiveNotifyingOrder(usingCmd, worldPos, cmdOpts)
 						lastPathPos = worldPos
@@ -1520,13 +1503,7 @@ function widget:Initialize()
 		local result = false
 
 		if usingFormation then
-			-- Use raw shift for single-click orders (first command should clear queue unless user holds shift)
 			local alt, ctrl, meta, shift = GetModKeys()
-			if isFirstPathCommand then
-				-- This is effectively a single click or very short drag - use raw shift
-				_, _, _, shift = spGetModKeyState()
-				if spGetInvertQueueKey() then shift = not shift end
-			end
 			local cmdOpts = GetCmdOpts(alt, ctrl, meta, shift, usingRMB)
 
 			-- Get drag threshold
@@ -1622,13 +1599,3 @@ function widget:Initialize()
 	WG.customformations.GetFormationLineLength = function()
 		return lineLength
 	end
-
-	WG.customformations.GetSelectedUnitsCount = function()
-		return selectedUnitsCount
-	end
-end
-
-
-function widget:Shutdown()
-	WG.customformations = nil
-end
