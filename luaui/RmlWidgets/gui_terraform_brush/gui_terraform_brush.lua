@@ -581,6 +581,17 @@ local function attachEventListeners()
 	local presetList = doc:GetElementById("preset-list")
 	local presetSaveBtn = doc:GetElementById("btn-preset-save")
 
+	if presetNameInput then
+		presetNameInput:AddEventListener("focus", function(event)
+			WG.TerraformBrushInputFocused = true
+			Spring.SDLStartTextInput()
+		end, false)
+		presetNameInput:AddEventListener("blur", function(event)
+			WG.TerraformBrushInputFocused = false
+			Spring.SDLStopTextInput()
+		end, false)
+	end
+
 	local function rebuildPresetList()
 		if not presetList or not WG.TerraformBrush then return end
 		-- Clear existing children
