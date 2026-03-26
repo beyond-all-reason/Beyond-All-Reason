@@ -52,6 +52,30 @@ local sin = math.sin
 local abs = math.abs
 local pi = math.pi
 local atan2 = math.atan2
+local random = math.random
+
+local SpawnCEG = Spring.SpawnCEG
+
+local DUST_CEGS = { "dust_cloud", "dust_cloud_dirt_light", "dust_cloud_fast", "dust_cloud_dirt", "dirtpoof" }
+local DUST_COUNT_PER_100 = 12  -- puffs per 100 radius
+local RUMBLE_SOUNDS = { "sounds/atmos/lavarumbleshort1.wav", "sounds/atmos/lavarumbleshort2.wav", "sounds/atmos/lavarumbleshort3.wav" }
+
+local function spawnDust(centerX, centerZ, radius)
+	local count = max(6, floor(radius / 100 * DUST_COUNT_PER_100))
+	for _ = 1, count do
+		local angle = random() * 2 * pi
+		local dist = random() * radius * 0.9
+		local x = centerX + cos(angle) * dist
+		local z = centerZ + sin(angle) * dist
+		local y = Spring.GetGroundHeight(x, z)
+		local ceg = DUST_CEGS[random(1, #DUST_CEGS)]
+		local scale = radius * (0.0125 + random() * 0.05)
+		SpawnCEG(ceg, x, y, z, 0, 0.5 + random() * 1.5, 0, scale, 0)
+	end
+	local vol = math.min(4.0, radius / 100)
+	local y = Spring.GetGroundHeight(centerX, centerZ)
+	Spring.PlaySoundFile(RUMBLE_SOUNDS[random(1, #RUMBLE_SOUNDS)], vol, centerX, y, centerZ, 'sfx')
+end
 
 local function rotatePoint(px, pz, angleDeg)
 	local rad = angleDeg * pi / 180
@@ -618,7 +642,12 @@ function gadget:RecvLuaMsg(msg, playerID)
 
 		local clayFlag = parts[2 + numPts * 2 + 1]
 		local splineClayMode = (clayFlag == "1")
+		local splineDustMode = (parts[2 + numPts * 2 + 2] == "1")
 		applySplineRamp(waypoints, width, splineClayMode)
+		if splineDustMode and numPts >= 2 then
+			local midIdx = floor(numPts / 2)
+			spawnDust(waypoints[midIdx][1], waypoints[midIdx][2], width)
+		end
 		return true
 	end
 
@@ -648,8 +677,14 @@ function gadget:RecvLuaMsg(msg, playerID)
 
 		local rampClayFlag = parts[8]
 		local rampClayMode = (rampClayFlag == "1")
+		local rampDustMode = (parts[9] == "1")
 		width = max(MIN_RADIUS, min(MAX_RADIUS, width))
 		applyRamp(sX, sZ, sY, eX, eZ, eY, width, rampClayMode)
+		if rampDustMode then
+			local midX = (sX + eX) * 0.5
+			local midZ = (sZ + eZ) * 0.5
+			spawnDust(midX, midZ, width)
+		end
 		return true
 	end
 
@@ -680,6 +715,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 	local intensity = tonumber(parts[10]) or 1.0
 	local lengthScale = tonumber(parts[11]) or 2.0
 	local clayMode = parts[12] == "1"
+	local dustMode = parts[13] == "1"
 
 	if not direction or not centerX or not centerZ or not radius then
 		return true
@@ -691,5 +727,8 @@ function gadget:RecvLuaMsg(msg, playerID)
 	lengthScale = max(0.2, min(5.0, lengthScale))
 
 	applyTerraform(centerX, centerZ, radius, direction, shape, angleDeg, curve, heightMin, heightMax, intensity, lengthScale, clayMode)
+	if dustMode then
+		spawnDust(centerX, centerZ, radius)
+	end
 	return true
 end
