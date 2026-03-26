@@ -164,6 +164,7 @@ local function PickBestTransport(unitID, ux, uz, unitDefID)
 		if transportDefID then
 			local transportState = Get_transport_state(transportID)
 			local ok = CanTransport(transportID, transportDefID, unitID, unitDefID)
+				and transportState
 				and (transportState.state == "idle" or transportState.state == "available")
 
 			if ok then
@@ -399,7 +400,7 @@ local function refreshKnownTransports()
 			knownTransports[unitID] = true
 
 			local transportState = Get_transport_state(unitID)
-			if not transportState.homePosition then
+			if transportState and not transportState.homePosition then
 				local x, y, z = GetUnitPosition(unitID)
 				transportState.homePosition = { x = x, y = y, z = z }
 			end
@@ -441,11 +442,15 @@ function widget:UnitGiven(unitID, unitDefID, unitTeam, newTeam)
 	if isTransportableDef[unitDefID] then
 		if newTeam == myTeamID then
 			local unitState = Get_unit_state(unitID)
-			unitState.inshared = true
+			if unitState then
+				unitState.inshared = true
+			end
 		elseif unitTeam == myTeamID then
 			local unitState = Get_unit_state(unitID)
-			unitState.outshared = true
-			outSharedUnits[unitID] = true
+			if unitState then
+				unitState.outshared = true
+				outSharedUnits[unitID] = true
+			end
 		end
 	end
 end
@@ -463,16 +468,20 @@ function widget:MetaUnitAdded(unitID, unitDefID, teamID)
 		knownTransports[unitID] = true
 
 		local transportState = Get_transport_state(unitID)
-		transportState.state = "idle"
+		if transportState then
+			transportState.state = "idle"
 
-		local x, y, z = Spring.GetUnitPosition(unitID)
-		transportState.homePosition = { x = x, y = y, z = z }
+			local x, y, z = Spring.GetUnitPosition(unitID)
+			transportState.homePosition = { x = x, y = y, z = z }
+		end
 	end
 
 	if isTransportableDef[unitDefID] then
 		local unitState = Get_unit_state(unitID)
-		unitState.outshared = false
-		outSharedUnits[unitID] = nil
+		if unitState then
+			unitState.outshared = false
+			outSharedUnits[unitID] = nil
+		end
 	end
 end
 
@@ -483,7 +492,9 @@ function widget:UnitFromFactory(unitID, unitDefID)
 end
 
 function On_tstate_becameAvalible(transportState)
-	Check_try_to_transport_waiting(transportState.transportID, GetUnitDefID(transportState.transportID))
+	if transportState and transportState.transportID then
+		Check_try_to_transport_waiting(transportState.transportID, GetUnitDefID(transportState.transportID))
+	end
 end
 
 function Check_try_to_pick_transport(unitID, unitDefID)
@@ -599,8 +610,11 @@ end
 
 function Check_transport_out_off_commision(transportID)
 	local transportState = Get_transport_state(transportID)
-	local unitState
+	if not transportState then
+		return
+	end
 
+	local unitState
 	if transportState.transporteeID then
 		unitState = Get_unit_state(transportState.transporteeID)
 	end
@@ -629,7 +643,7 @@ end
 function widget:UnitIdle(unitID, unitDefID, unitTeam)
 	if isTransportDef[unitDefID] and unitTeam == myTeamID then
 		local transportState = Get_transport_state(unitID)
-		if transportState.state == "used" then
+		if transportState and transportState.state == "used" then
 			transportState.state = "idle"
 			transportState.transporteeID = nil
 			Check_try_to_transport_waiting(unitID, unitDefID)
@@ -643,6 +657,10 @@ function widget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTe
 	end
 
 	local transportState = Get_transport_state(transportID)
+	if not transportState then
+		return
+	end
+
 	if transportState.state == "coupled" then
 		local orders = Transform_transportTo_commands(transportID, unitID)
 		Spring.GiveOrderArrayToUnit(transportID, orders)
@@ -650,13 +668,28 @@ function widget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTe
 
 	transportState.isLoaded = true
 	transportState.transporteeID = unitID
+
+	local unitState = Get_unit_state(unitID)
+	if unitState then
+		unitState.transport_state = transportState
+		unitState.isWaitingForTransport = false
+	end
+	unitsWaitingForTransport[unitID] = false
+
+	ReleaseCompetingTransports(unitID, transportID)
 end
 
 function widget:UnitUnloaded(unitID, _, _, transportID)
 	local transportState = Get_transport_state(transportID)
+	if not transportState then
+		return
+	end
+
 	if transportState.state == "coupled" then
 		local unitState = Get_unit_state(unitID)
-		unitState.transport_state = nil
+		if unitState then
+			unitState.transport_state = nil
+		end
 		transportState.state = "decoupled"
 	end
 
@@ -671,6 +704,9 @@ function widget:UnitDestroyed(unitID, unitDefID)
 
 	Remove_transport_state(unitID)
 	Remove_unit_state(unitID)
+	unitsWaitingForTransport[unitID] = nil
+	pendingClearMoveGoal[unitID] = nil
+	outSharedUnits[unitID] = nil
 end
 
 function Check_setMoveGoal(unitID, x, y, z, unitTeam)
@@ -678,8 +714,9 @@ function Check_setMoveGoal(unitID, x, y, z, unitTeam)
 	local nextCommand = commandQueue[1]
 	local actualUnitTeam = unitTeam or GetUnitTeam(unitID)
 	local isOwnTeam = actualUnitTeam == myTeamID
+	local unitDefID = GetUnitDefID(unitID)
 
-	if isTransportableDef[unitID] then
+	if unitDefID and isTransportableDef[unitDefID] then
 		local unitState = Get_unit_state(unitID)
 		if unitState and unitState.isWaitingForTransport and isOwnTeam then
 			if nextCommand and nextCommand.id ~= CMD_TRANSPORT_TO then
@@ -690,9 +727,11 @@ function Check_setMoveGoal(unitID, x, y, z, unitTeam)
 				if transportState and transportState.state == "coupled" then
 					transportState.state = "available"
 					On_tstate_becameAvalible(transportState)
-					SetUnitMoveGoal(unitID, transportState.homePosition.x, transportState.homePosition.y, transportState.homePosition.z)
+					if transportState.homePosition then
+						SetUnitMoveGoal(unitID, transportState.homePosition.x, transportState.homePosition.y, transportState.homePosition.z)
+					end
 					transportState.transporteeID = nil
-					Check_try_to_pick_transport(unitID, GetUnitDefID(unitID))
+					Check_try_to_pick_transport(unitID, unitDefID)
 				end
 			else
 				SetUnitMoveGoal(unitID, x, y, z)
@@ -713,14 +752,16 @@ function widget:UnitCmdDone(unitID, unitDefID, unitTeam, _, cmdParams, cmdOpts)
 	local isOwnTeam = unitTeam == myTeamID
 
 	-- Detect engine-generated completion from CMD.INSERT expansion.
-	local comesFromEngine = cmdOpts.coded == 16
+	local comesFromEngine = cmdOpts and cmdOpts.coded == 16
 
 	if isTransportDef[unitDefID] then
 		local transportState = Get_transport_state(unitID)
-		if transportState.state == "decoupled" and isOwnTeam and isLastInQueue then
+		if transportState and transportState.state == "decoupled" and isOwnTeam and isLastInQueue then
 			transportState.state = "available"
 			On_tstate_becameAvalible(transportState)
-			SetUnitMoveGoal(unitID, transportState.homePosition.x, transportState.homePosition.y, transportState.homePosition.z)
+			if transportState.homePosition then
+				SetUnitMoveGoal(unitID, transportState.homePosition.x, transportState.homePosition.y, transportState.homePosition.z)
+			end
 			transportState.transporteeID = nil
 		end
 	end
@@ -728,19 +769,23 @@ function widget:UnitCmdDone(unitID, unitDefID, unitTeam, _, cmdParams, cmdOpts)
 	if nextCommand and nextCommand.id == CMD_TRANSPORT_TO and isTransportableDef[unitDefID] then
 		local nextParams = nextCommand.params
 		local unitState = Get_unit_state(unitID)
-		local transportState = unitState.transport_state
+		local transportState = unitState and unitState.transport_state or nil
 
-		if not transportState then
+		if unitState and not transportState then
 			local foundTransport = PickBestTransport(unitID, cmdParams[1], cmdParams[3], unitDefID)
 			if foundTransport then
 				local pickedState = Get_transport_state(foundTransport)
-				GiveOrderToUnit(foundTransport, CMD_LOAD_UNITS, { unitID }, {})
-				pickedState.state = "coupled"
-				pickedState.transportID = foundTransport
-				pickedState.transporteeID = unitID
-				unitState.transport_state = pickedState
-				unitState.isWaitingForTransport = false
-				unitsWaitingForTransport[unitID] = false
+				if pickedState then
+					GiveOrderToUnit(foundTransport, CMD_LOAD_UNITS, { unitID }, {})
+					pickedState.state = "coupled"
+					pickedState.transportID = foundTransport
+					pickedState.transporteeID = unitID
+					unitState.transport_state = pickedState
+					unitState.isWaitingForTransport = false
+					unitsWaitingForTransport[unitID] = false
+
+					ReleaseCompetingTransports(unitID, foundTransport)
+				end
 			else
 				unitState.isWaitingForTransport = true
 				unitsWaitingForTransport[unitID] = true
@@ -749,18 +794,27 @@ function widget:UnitCmdDone(unitID, unitDefID, unitTeam, _, cmdParams, cmdOpts)
 		end
 	elseif isTransportableDef[unitDefID] and not comesFromEngine then
 		local unitState = Get_unit_state(unitID)
-		local transportState = unitState.transport_state
+		local transportState = unitState and unitState.transport_state or nil
 
 		if transportState and transportState.state == "coupled" then
 			transportState.state = "available"
 			On_tstate_becameAvalible(transportState)
 			transportState.transporteeID = nil
 			GiveOrderToUnit(transportState.transportID, CMD_STOP, {}, {})
-			SetUnitMoveGoal(transportState.transportID, transportState.homePosition.x, transportState.homePosition.y, transportState.homePosition.z)
+			if transportState.homePosition then
+				SetUnitMoveGoal(
+					transportState.transportID,
+					transportState.homePosition.x,
+					transportState.homePosition.y,
+					transportState.homePosition.z
+				)
+			end
 		end
 
-		unitState.isWaitingForTransport = false
-		unitsWaitingForTransport[unitID] = false
+		if unitState then
+			unitState.isWaitingForTransport = false
+			unitsWaitingForTransport[unitID] = false
+		end
 	end
 end
 
@@ -771,6 +825,10 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 
 	if isTransportableDef[unitDefID] then
 		local unitState = Get_unit_state(unitID)
+		if not unitState then
+			return
+		end
+
 		local commandQueue = GetUnitCommands(unitID, -1) or {}
 		local isFirstInQueue = cmdOpts.shift == false or (#commandQueue == 0)
 
@@ -800,6 +858,10 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 
 			if foundTransport then
 				local transportState = Get_transport_state(foundTransport)
+				if not transportState then
+					return
+				end
+
 				GiveOrderToUnit(foundTransport, CMD_LOAD_UNITS, { unitID }, {})
 				transportState.state = "coupled"
 				transportState.transportID = foundTransport
@@ -807,6 +869,8 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 				unitState.transport_state = transportState
 				unitState.isWaitingForTransport = false
 				unitsWaitingForTransport[unitID] = false
+
+				ReleaseCompetingTransports(unitID, foundTransport)
 			else
 				unitState.isWaitingForTransport = true
 				unitsWaitingForTransport[unitID] = true
@@ -874,23 +938,36 @@ end
 --------------------------------------------------------------------------------
 
 local function cmd_notify(unitID, cmdID, cmdParams, cmdOpts)
-	if isFactoryDef[spGetUnitDefID(unitID)] then
+	local unitDefID = spGetUnitDefID(unitID)
+	if not unitDefID then
 		return
 	end
 
-	if isTransportDef[spGetUnitDefID(unitID)] then
-		local transportState = Get_transport_state(unitID)
-		Check_transport_out_off_commision(unitID)
-		transportState.state = "used"
+	if isFactoryDef[unitDefID] then
+		return
+	end
 
-		if cmdID == CMD_MOVE then
-			transportState = Get_transport_state(unitID)
-			transportState.homePosition = { x = cmdParams[1], y = cmdParams[2], z = cmdParams[3] }
+	if isTransportDef[unitDefID] then
+		local transportState = Get_transport_state(unitID)
+		if transportState then
+			Check_transport_out_off_commision(unitID)
+			transportState.state = "used"
+
+			if cmdID == CMD_MOVE then
+				transportState = Get_transport_state(unitID)
+				if transportState then
+					transportState.homePosition = { x = cmdParams[1], y = cmdParams[2], z = cmdParams[3] }
+				end
+			end
 		end
 	end
 
-	if isTransportableDef[spGetUnitDefID(unitID)] and cmdID ~= CMD_TRANSPORT_TO and cmdOpts.shift == false then
+	if isTransportableDef[unitDefID] and cmdID ~= CMD_TRANSPORT_TO and cmdOpts.shift == false then
 		local unitState = Get_unit_state(unitID)
+		if not unitState then
+			return
+		end
+
 		unitState.isWaitingForTransport = false
 		unitsWaitingForTransport[unitID] = false
 
@@ -899,7 +976,9 @@ local function cmd_notify(unitID, cmdID, cmdParams, cmdOpts)
 			transportState.state = "available"
 			On_tstate_becameAvalible(transportState)
 			GiveOrderToUnit(transportState.transportID, CMD_STOP, {}, {})
-			SetUnitMoveGoal(transportState.transportID, transportState.homePosition.x, transportState.homePosition.y, transportState.homePosition.z)
+			if transportState.homePosition then
+				SetUnitMoveGoal(transportState.transportID, transportState.homePosition.x, transportState.homePosition.y, transportState.homePosition.z)
+			end
 			transportState.transporteeID = nil
 		end
 
@@ -913,7 +992,7 @@ function widget:CommandNotify(cmdID, params, opts)
 	for _, unitID in ipairs(selectedUnits) do
 		if not opts.shift then
 			local unitState = Get_unit_state(unitID)
-			if unitState.inshared then
+			if unitState and unitState.inshared then
 				unitState.inshared = false
 			end
 		end
@@ -925,9 +1004,17 @@ end
 function widget:UnitCommandNotify(unitID, cmdID, cmdParams, cmdOpts)
 	if not cmdOpts.shift then
 		local unitState = Get_unit_state(unitID)
-		if unitState.inshared then
+		if unitState and unitState.inshared then
 			unitState.inshared = false
 		end
+	end
+
+	-- Custom formations routes through UnitCommandNotify.
+	-- Run the same assignment logic as a normal unit command first.
+	local unitDefID = spGetUnitDefID(unitID)
+	local unitTeam = GetUnitTeam(unitID)
+	if unitDefID and unitTeam then
+		widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts)
 	end
 
 	cmd_notify(unitID, cmdID, cmdParams, cmdOpts)
