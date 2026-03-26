@@ -157,6 +157,7 @@ local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetCameraPosition = Spring.GetCameraPosition
 local spGetViewGeometry = Spring.GetViewGeometry
 local spTraceScreenRay = Spring.TraceScreenRay
+local spGetUnitDefID = Spring.GetUnitDefID
 
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local maxUnits = Game.maxUnits
@@ -257,7 +258,12 @@ local function CanUnitExecute(uID, cmdID)
         local transporting = spGetUnitIsTransporting(uID)
         return (transporting and #transporting > 0)
     end
-
+	local ud = UnitDefs[spGetUnitDefID(uID)]
+	local grounded = ud and not ud.canFly
+	local notCantBeTransported = ud and ((ud.cantBeTransported == nil) or (ud.cantBeTransported == false))
+	if cmdID == CMD_TRANSPORT_TO and grounded and notCantBeTransported then
+		return true
+	end
     return (spFindUnitCmdDesc(uID, cmdID) ~= nil)
 end
 
@@ -392,6 +398,13 @@ local function GiveNotifyingOrderToUnit(uArr, oArr, uID, cmdID, cmdParams, cmdOp
     return
 end
 
+local function NotifyOrderGivenToUnits(uArr, oArr)
+	for _, w in ipairs(widgetHandler.widgets) do
+		if w.OrderGivenToUnitsArr then
+			w:OrderGivenToUnitsArr(uArr, oArr)
+		end
+	end
+end	
 
 function widget:SelectionChanged(sel)
     selectedUnits = sel
