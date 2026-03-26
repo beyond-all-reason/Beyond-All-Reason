@@ -1636,6 +1636,7 @@ end
 
 function widget:KeyPress(key, mods, isRepeat)
 	if not activeMode then return false end
+	if WG.TerraformBrushInputFocused then return false end
 	if mods.ctrl and key == 122 then -- Ctrl+Z
 		if mods.shift then
 			SendLuaRulesMsg(REDO_HEADER)
