@@ -60,6 +60,7 @@ local lineFadeRate = 2.0
 -- What commands are eligible for custom formations
 local CMD_SETTARGET = GameCMD.UNIT_SET_TARGET
 local CMD_MANUAL_LAUNCH = GameCMD.MANUAL_LAUNCH
+local CMD_TRANSPORT_TO = GameCMD.TRANSPORT_TO
 
 local formationCmds = {
     [CMD.MOVE] = true,
