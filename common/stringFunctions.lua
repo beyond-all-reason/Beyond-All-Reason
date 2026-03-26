@@ -97,6 +97,22 @@ end
 -- print(string.partition("blaksjdfsaldkj","ldkj"))
 -- print(string.partition("blaksjdfsaldkj","aks"))
 
+if not string.randomString then
+	local mathRandom = math.random
+	local randomCharset = {}
+	for c = 48, 57 do randomCharset[#randomCharset + 1] = string.char(c) end
+	for c = 65, 90 do randomCharset[#randomCharset + 1] = string.char(c) end
+	for c = 97, 122 do randomCharset[#randomCharset + 1] = string.char(c) end
+	function string.randomString(length)
+		length = length or 4
+		local result = {}
+		for i = 1, length do
+			result[i] = randomCharset[mathRandom(1, #randomCharset)]
+		end
+		return table.concat(result)
+	end
+end
+
 if not string.formatSI then
 	local mathFloor = math.floor
 	local mathLog10 = math.log10
