@@ -47,11 +47,21 @@ local top, left, bottom, right = 0,0,0,0
 local myTeamID = spGetMyTeamID()
 local totalUnits = 0
 local passedTime = 0
+local positionCheckTime = 0
+local POSITION_CHECK_INTERVAL = 0.05
 
-local allyTeamList = Spring.GetAllyTeamList()
-local allyTeamTeamList = {}
-for i = 1, #allyTeamList do
-	allyTeamTeamList[allyTeamList[i]] = Spring.GetTeamList(allyTeamList[i])
+-- Pre-flatten all team IDs into a single array for fast iteration
+local allTeamIDs = {}
+local allTeamCount = 0
+do
+	local allyTeamList = Spring.GetAllyTeamList()
+	for i = 1, #allyTeamList do
+		local teams = Spring.GetTeamList(allyTeamList[i])
+		for j = 1, #teams do
+			allTeamCount = allTeamCount + 1
+			allTeamIDs[allTeamCount] = teams[j]
+		end
+	end
 end
 
 
@@ -193,17 +203,21 @@ function widget:Shutdown()
 end
 
 function widget:Update(dt)
-	updatePosition()
 	passedTime = passedTime + dt
+	positionCheckTime = positionCheckTime + dt
+
+	-- Throttle position checks to ~4x per second instead of every frame
+	if positionCheckTime >= POSITION_CHECK_INTERVAL then
+		positionCheckTime = 0
+		updatePosition()
+	end
+
 	if passedTime > 1 and Spring.GetGameFrame() > 0 then
-		totalUnits = 0
-		local numberOfAllyTeams = #allyTeamList
-		for allyTeamListIndex = 1, numberOfAllyTeams do
-			local allyID = allyTeamList[allyTeamListIndex]
-			for _,teamID in pairs(allyTeamTeamList[allyID]) do
-				totalUnits = totalUnits + spGetTeamUnitCount(teamID)
-			end
+		local count = 0
+		for i = 1, allTeamCount do
+			count = count + spGetTeamUnitCount(allTeamIDs[i])
 		end
+		totalUnits = count
 		updateDrawing = true
 		passedTime = passedTime - 1
 	end
@@ -235,22 +249,20 @@ function widget:DrawScreen()
 
 	if useRenderToTexture then
 		if uiBgTex then
-			-- background element
 			gl.R2tHelper.BlendTexRect(uiBgTex, left, bottom, right, top, useRenderToTexture)
 		end
-	end
-	if useRenderToTexture then
 		if uiTex then
-			-- content
 			gl.R2tHelper.BlendTexRect(uiTex, left, bottom, right, top, useRenderToTexture)
 		end
 	else
-		if drawlist[2] then
+		if drawlist[1] or drawlist[2] then
 			glPushMatrix()
-			if not useRenderToTexture and drawlist[1] then
+			if drawlist[1] then
 				glCallList(drawlist[1])
 			end
-			glCallList(drawlist[2])
+			if drawlist[2] then
+				glCallList(drawlist[2])
+			end
 			glPopMatrix()
 		end
 	end

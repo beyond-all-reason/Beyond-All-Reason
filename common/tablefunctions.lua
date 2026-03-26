@@ -296,6 +296,22 @@ if not table.contains then
 	end
 end
 
+if not table.keys then
+	---Returns all keys of a table as an array, and the count of keys.
+	---@generic K
+	---@param tbl table<K, any>
+	---@return K[] keys
+	---@return number count
+	function table.keys(tbl)
+		local keys, count = {}, 0
+		for key in pairs(tbl) do
+			count = count + 1
+			keys[count] = key
+		end
+		return keys, count
+	end
+end
+
 if not table.removeIf then
 	---Remove values in table if they match the given predicate.
 	---@generic V

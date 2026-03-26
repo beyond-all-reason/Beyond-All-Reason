@@ -85,6 +85,7 @@ end
 
 local font, font2, lockPlayerID, prevLockPlayerID, toggleButton, toggleButton2, toggleButton3, backgroundGuishader, showBackgroundGuishader, scheduledSpecFullView, desiredLosmode
 local RectRound, elementCorner, bgpadding
+local guishaderWasActive = false
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
@@ -420,10 +421,12 @@ local function switchPlayerCam()
 end
 
 local sec = 0.5
+local posCheckTimer = 0
 function widget:Update(dt)
 
 	sec = sec + dt
 	if sec > 1 then
+		sec = 0
 
 		-- check if team colors have changed
 		local detectedChanges = false
@@ -437,6 +440,26 @@ function widget:Update(dt)
 		if detectedChanges then
 			widget:ViewResize()
 		end
+	end
+
+	-- throttle position updates and guishader check
+	posCheckTimer = posCheckTimer + dt
+	if posCheckTimer > 0.05 then
+		posCheckTimer = 0
+		updatePosition()
+
+		-- detect guishader toggle: force refresh when it comes back on
+		local guishaderActive = WG['guishader'] ~= nil
+		if guishaderActive and not guishaderWasActive then
+			showBackgroundGuishader = nil
+			updateDrawing = true
+		end
+		guishaderWasActive = guishaderActive
+	end
+
+	-- non-spectator early exit: no buttons or tracking logic needed
+	if not isSpec and not lockPlayerID then
+		return
 	end
 
 	if scheduledSpecFullView ~= nil then
@@ -480,8 +503,6 @@ function widget:Update(dt)
 		toggled2 = false
 		updateDrawing = true
 	end
-
-	updatePosition()
 
 	local mx, my = spGetMouseState()
 	local prevButtonHovered = buttonHovered

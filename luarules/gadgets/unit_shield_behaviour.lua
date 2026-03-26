@@ -17,6 +17,10 @@ end
 ---@alias ShieldPreDamagedCallback fun(projectileID:integer, attackerID:integer, shieldWeaponIndex:integer, shieldUnitID:integer, bounceProjectile:boolean, beamWeaponIndex:integer?, beamUnitID:integer?, startX:number?, startY:number?, startZ:number?, hitX:number, hitY:number, hitZ:number): boolean? (default := `false`)
 
 local mathMax = math.max
+local mathMin = math.min
+local pairs = pairs
+local next = next
+local ipairs = ipairs
 
 local spGetUnitShieldState = Spring.GetUnitShieldState
 local spSetUnitShieldState = Spring.SetUnitShieldState
@@ -134,13 +138,15 @@ local shieldUnitDefs                = {}
 local shieldUnitsData               = {}
 local forceDeleteWeapons            = {}
 local unitDefIDCache                = {}
-local projectileDefIDCache          = {}
 local shieldedUnits                 = {}
+local shieldCoverage                = {} -- reverse mapping: [shieldUnitID] = {[unitID] = true, ...}
 local AOEWeaponDefIDs               = {}
 local projectileShieldHitCache      = {}
 local highestWeapDefDamages         = {}
 local armoredUnitDefs               = {}
 local destroyedUnitData             = {}
+local hasDestroyedData              = false
+local shieldsNeedingUpdate          = {} -- shields that are disabled or recovering from overkill
 
 local gameFrame 					= 0
 
@@ -244,10 +250,18 @@ local function getUnitShieldWeaponPosition(shieldUnitID, unitData)
 end
 
 local function removeCoveredUnits(shieldUnitID)
-	for unitID, shieldList in pairs(shieldedUnits) do
-		if shieldList[shieldUnitID] then
-			shieldList[shieldUnitID] = nil
+	local covered = shieldCoverage[shieldUnitID]
+	if covered then
+		for unitID in pairs(covered) do
+			local shieldList = shieldedUnits[unitID]
+			if shieldList then
+				shieldList[shieldUnitID] = nil
+				if not next(shieldList) then
+					shieldedUnits[unitID] = nil
+				end
+			end
 		end
+		shieldCoverage[shieldUnitID] = nil
 	end
 end
 
@@ -265,10 +279,18 @@ local function setCoveredUnits(shieldUnitID)
 	end
 
 	local unitsTable = spGetUnitsInSphere(x, y, z, radius)
-	for _, unitID in ipairs(unitsTable) do
-		shieldedUnits[unitID] = shieldedUnits[unitID] or {}
-		shieldedUnits[unitID][shieldUnitID] = true
+	local covered = {}
+	for i = 1, #unitsTable do
+		local unitID = unitsTable[i]
+		local shieldList = shieldedUnits[unitID]
+		if not shieldList then
+			shieldList = {}
+			shieldedUnits[unitID] = shieldList
+		end
+		shieldList[shieldUnitID] = true
+		covered[unitID] = true
 	end
+	shieldCoverage[shieldUnitID] = covered
 
 	shieldData.shieldCoverageChecked = true
 end
@@ -297,6 +319,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			maxDownTime = 0
 		}
 		destroyedUnitData[unitID] = nil -- Handle (maybe) units being recreated and reusing their original ID
+		shieldsNeedingUpdate[unitID] = true -- starts disabled, needs activation on next 30-frame tick
 		setCoveredUnits(unitID)
 	end
 
@@ -308,25 +331,24 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	local unitData = shieldUnitsData[unitID]
 	if unitData then
 		shieldUnitsData[unitID] = nil
+		shieldsNeedingUpdate[unitID] = nil
+		removeCoveredUnits(unitID)
 		-- Keep shield data for one frame, since the shieldsrework delays updates until then.
 		destroyedUnitData[unitID] = unitData
+		hasDestroyedData = true
 		unitData.x, unitData.y, unitData.z = getUnitShieldWeaponPosition(unitID, unitData)
 		-- ! Prevent a possible error here, it seems shields are cleaned up faster than unit weapons:
 		local success, state, power = pcall(spGetUnitShieldState, unitID, unitData.shieldWeaponNumber)
 		unitData.power = (success and state == 1 and power) or unitData.power or 0
 	end
+	-- Clean up coverage tracking for any destroyed unit (shield or not)
+	shieldedUnits[unitID] = nil
 	unitDefIDCache[unitID] = nil
 end
 
-function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
-	-- Increases performance by reducing global projectileDefID lookups
-	projectileDefIDCache[proID] = weaponDefID
-end
-
-function gadget:ProjectileDestroyed(proID)
-	projectileDefIDCache[proID] = nil
-	projectileShieldHitCache[proID] = nil
-end
+-- ProjectileCreated/ProjectileDestroyed intentionally not used.
+-- Maintaining a cache for every projectile in the game is more expensive
+-- than calling spGetProjectileDefID only when a projectile actually hits a shield.
 
 local function suspendShield(unitID, unitData)
 	-- Dummy shield disable via recharge delay. The engine does not support our "downtime" approach.
@@ -337,10 +359,12 @@ local function suspendShield(unitID, unitData)
 	unitData.shieldDownTime = gameFrame + minDownTime
 	unitData.maxDownTime = gameFrame + maxDownTime
 	spSetUnitRulesParam(unitID, shieldOnUnitRulesParamIndex, 0, INLOS)
+	shieldsNeedingUpdate[unitID] = true
 end
 
 local function activateShield(unitID, unitData)
 	unitData.shieldEnabled = true
+	shieldsNeedingUpdate[unitID] = nil
 	spSetUnitRulesParam(unitID, shieldOnUnitRulesParamIndex, 1, INLOS)
 	spSetUnitShieldRechargeDelay(unitID, unitData.shieldWeaponNumber, 0)
 
@@ -355,13 +379,14 @@ end
 local function shieldNegatesDamageCheck(unitID, unitTeam, attackerID, attackerTeam)
 	-- It is possible for attackerID to be nil, e.g. damage from death explosion
 	local unitShields = shieldedUnits[unitID]
-	if unitShields and next(unitShields) and attackerID and not spAreTeamsAllied(unitTeam, attackerTeam) then
+	-- Empty shield lists are nil'd out, so existence implies non-empty
+	if unitShields and attackerID and not spAreTeamsAllied(unitTeam, attackerTeam) then
 		local attackerShields = shieldedUnits[attackerID]
-		if not attackerShields or not next(attackerShields) then
+		if not attackerShields then
 			return true
 		end
 
-		for shieldUnitID, _ in pairs(unitShields) do
+		for shieldUnitID in pairs(unitShields) do
 			if attackerShields[shieldUnitID] then
 				break
 			else
@@ -412,46 +437,72 @@ function gadget:GameFrame(frame)
 		end
 	end
 
-	if frame % 30 == 0 then
-		for shieldUnitID, shieldData in pairs(shieldUnitsData) do
-			local shieldActive = spGetUnitIsActive(shieldUnitID)
+	-- Process only shields needing attention (disabled / recovering) every 30 frames
+	if frame % 30 == 0 and next(shieldsNeedingUpdate) then
+		for shieldUnitID in pairs(shieldsNeedingUpdate) do
+			local shieldData = shieldUnitsData[shieldUnitID]
+			if shieldData then
+				local shieldActive = spGetUnitIsActive(shieldUnitID)
 
-			if shieldActive then
-				if shieldData.overKillDamage ~= 0 then
-					local usedEnergy = spUseUnitResource(shieldUnitID, "e", shieldData.shieldPowerRegenEnergy)
-					if usedEnergy then
-						shieldData.overKillDamage = shieldData.overKillDamage + shieldData.shieldPowerRegen
+				if shieldActive then
+					if shieldData.overKillDamage ~= 0 then
+						local usedEnergy = spUseUnitResource(shieldUnitID, "e", shieldData.shieldPowerRegenEnergy)
+						if usedEnergy then
+							shieldData.overKillDamage = shieldData.overKillDamage + shieldData.shieldPowerRegen
+						end
 					end
+				else
+					--if shield is manually turned off, set shield charge to 0
+					spSetUnitShieldState(shieldUnitID, shieldData.shieldWeaponNumber, 0)
 				end
-			else
-				--if shield is manually turned off, set shield charge to 0
-				spSetUnitShieldState(shieldUnitID, shieldData.shieldWeaponNumber, 0)
-			end
 
-			if not shieldData.shieldEnabled and shieldData.shieldDownTime < frame and shieldData.overKillDamage >= 0 then
-				if shieldData.overKillDamage > 0 then
-					spSetUnitShieldState(shieldUnitID, shieldData.shieldWeaponNumber, shieldData.overKillDamage)
+				if not shieldData.shieldEnabled and shieldData.shieldDownTime < frame and shieldData.overKillDamage >= 0 then
+					if shieldData.overKillDamage > 0 then
+						spSetUnitShieldState(shieldUnitID, shieldData.shieldWeaponNumber, shieldData.overKillDamage)
+						shieldData.overKillDamage = 0
+					end
+					activateShield(shieldUnitID, shieldData)
+
+				elseif shieldData.maxDownTime < frame then
+					activateShield(shieldUnitID, shieldData)
 					shieldData.overKillDamage = 0
 				end
-				activateShield(shieldUnitID, shieldData)
+			else
+				shieldsNeedingUpdate[shieldUnitID] = nil
+			end
+		end
+	end
 
-			elseif shieldData.maxDownTime < frame then
-				activateShield(shieldUnitID, shieldData)
-				shieldData.overKillDamage = 0
+	-- Infrequent full scan: catch manually-toggled shields
+	if frame % 90 == 15 then
+		for shieldUnitID, shieldData in pairs(shieldUnitsData) do
+			if not spGetUnitIsActive(shieldUnitID) then
+				spSetUnitShieldState(shieldUnitID, shieldData.shieldWeaponNumber, 0)
+				if shieldData.shieldEnabled then
+					shieldsNeedingUpdate[shieldUnitID] = true
+				end
 			end
 		end
 	end
 
 	if frame % 90 == 0 then
-		shieldUnitsTotalCount = 0
-		shieldUnitIndex = {}
-
-		for shieldUnitID, shieldData in pairs(shieldUnitsData) do
-			shieldUnitsTotalCount = shieldUnitsTotalCount + 1
-			shieldUnitIndex[shieldUnitsTotalCount] = shieldUnitID
+		local count = 0
+		for shieldUnitID in pairs(shieldUnitsData) do
+			count = count + 1
+			shieldUnitIndex[count] = shieldUnitID
 		end
+		-- Clear stale entries from previous rebuild if the list shrank
+		for i = count + 1, shieldUnitsTotalCount do
+			shieldUnitIndex[i] = nil
+		end
+		shieldUnitsTotalCount = count
 
-		shieldCheckChunkSize = mathMax(mathCeil(shieldUnitsTotalCount / 4), 1)
+		shieldCheckChunkSize = mathMax(mathCeil(count / 4), 1)
+
+		-- Periodic cleanup of projectileShieldHitCache (projectiles are short-lived)
+		for proID in pairs(projectileShieldHitCache) do
+			projectileShieldHitCache[proID] = nil
+		end
 	end
 
 	if frame % 11 == 7 then
@@ -474,15 +525,18 @@ function gadget:GameFrame(frame)
 
 		lastShieldCheckedIndex = shieldCheckEndIndex + 1
 
-		if lastShieldCheckedIndex > #shieldUnitIndex then
+		if lastShieldCheckedIndex > shieldUnitsTotalCount then
 			lastShieldCheckedIndex = 1
 		end
-		shieldCheckEndIndex = math.min(lastShieldCheckedIndex + shieldCheckChunkSize - 1, #shieldUnitIndex)
+		shieldCheckEndIndex = mathMin(lastShieldCheckedIndex + shieldCheckChunkSize - 1, shieldUnitsTotalCount)
 	end
 
-	local dud = destroyedUnitData
-	for unitID in pairs(dud) do
-		dud[unitID] = nil
+	if hasDestroyedData then
+		local dud = destroyedUnitData
+		for unitID in pairs(dud) do
+			dud[unitID] = nil
+		end
+		hasDestroyedData = false
 	end
 end
 
@@ -536,7 +590,7 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
 
 	-- proID isn't nil if hitscan weapons are used, it's actually -1.
 	if proID > -1 then
-		weaponDefID = projectileDefIDCache[proID] or spGetProjectileDefID(proID)
+		weaponDefID = spGetProjectileDefID(proID)
 		local newShieldDamage = originalShieldDamages[weaponDefID] or 0
 		shieldData.shieldDamage = shieldData.shieldDamage + newShieldDamage
 		if forceDeleteWeapons[weaponDefID] then

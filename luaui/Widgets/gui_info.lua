@@ -168,6 +168,23 @@ local unloadParams = { 0, 0, 0, 0 }  -- x, y, z, unitID
 local viewSelectionCmd = { "viewselection" }
 
 local function refreshUnitInfo()
+	local builderTraits = {
+		canBuild   = function(def) return def.isFactory or next(def.buildOptions) ~= nil end,
+		canAssist  = function(def) return not def.isFactory and def.canAssist end,
+		canCapture = function(def) return not def.isFactory and def.canCapture and def.buildDistance > 0 end,
+		canReclaim = function(def) return not def.isFactory and def.canReclaim and def.buildDistance > 0 end,
+		canRepair  = function(def) return not def.isFactory and def.canRepair and def.buildDistance > 0 end,
+		canRestore = function(def) return not def.isFactory and def.canRestore and def.buildDistance > 0 end,
+	}
+	local function hasBuilderTrait(def)
+		for trait, check in pairs(builderTraits) do
+			if check(def) then
+				return true
+			end
+		end
+		return false
+	end
+
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		unitDefInfo[unitDefID] = {}
 
@@ -266,7 +283,7 @@ local function refreshUnitInfo()
 		if unitDef.canStockpile then
 			unitDefInfo[unitDefID].canStockpile = true
 		end
-		if unitDef.buildSpeed > 0 then
+		if unitDef.buildSpeed > 0 and hasBuilderTrait(unitDef) then
 			unitDefInfo[unitDefID].buildSpeed = unitDef.buildSpeed
 		end
 		if unitDef.buildOptions[1] then
@@ -286,8 +303,8 @@ local function refreshUnitInfo()
 			minIntensity = math.max(def.minIntensity, 0.5)
 			local prevMinDps = unitDefInfo[unitDefID].mindps or 0
 			local prevMaxDps = unitDefInfo[unitDefID].maxdps or 0
-			local mindps = math_floor(minIntensity*(damage * def.salvoSize / def.reload))
-			local maxdps = math_floor(damage * def.salvoSize / def.reload)
+			local mindps = minIntensity*(damage * def.salvoSize / def.reload)
+			local maxdps = damage * def.salvoSize / def.reload
 
 			unitDefInfo[unitDefID].mindps = mindps + prevMinDps
 			unitDefInfo[unitDefID].maxdps = maxdps + prevMaxDps
@@ -298,8 +315,8 @@ local function refreshUnitInfo()
 		local function calculateWeaponDPS(def, damage)
 			local prevMinDps = unitDefInfo[unitDefID].mindps or 0
 			local prevMaxDps = unitDefInfo[unitDefID].maxdps or 0
-			local newDps = math_floor(damage * (def.salvoSize * def.projectiles) / def.reload)
-			local stockpileDps = math_floor(damage * (def.salvoSize * def.projectiles) / (def.stockpile and def.stockpileTime/30 or def.reload))
+			local newDps = damage * (def.salvoSize * def.projectiles) / def.reload
+			local stockpileDps = damage * (def.salvoSize * def.projectiles) / (def.stockpile and def.stockpileTime/30 or def.reload)
 			unitDefInfo[unitDefID].mindps = math_min(newDps, stockpileDps) + prevMinDps
 			unitDefInfo[unitDefID].maxdps = math_max(newDps, stockpileDps) + prevMaxDps
 		end
@@ -313,10 +330,20 @@ local function refreshUnitInfo()
 			local cmNumber = def.customParams.cluster_number
 			local cmDamage = WeaponDefNames[munition].damages[0]
 
-			local mainDps = math_floor((def.salvoSize * def.projectiles) / def.reload * (damage))
-			local cmunDps = math_floor((def.salvoSize * def.projectiles) / def.reload * (cmNumber * cmDamage))
+			local mainDps = (def.salvoSize * def.projectiles) / def.reload * (damage)
+			local cmunDps = (def.salvoSize * def.projectiles) / def.reload * (cmNumber * cmDamage)
 			unitDefInfo[unitDefID].mindps = prevMinDps + mainDps
 			unitDefInfo[unitDefID].maxdps = prevMaxDps + mainDps + cmunDps
+		end
+
+
+		local function calculateAreaDPS(def, damage)
+			local burst = def.salvoSize * def.projectiles
+			local impactDps = damage * burst / def.reload
+			local areaDps = def.customParams.area_onhit_damage -- by definition
+			local damageMax = math_max(impactDps + areaDps, areaDps * burst * def.customParams.area_onhit_time / def.reload)
+			unitDefInfo[unitDefID].mindps = (unitDefInfo[unitDefID].mindps or 0) + impactDps
+			unitDefInfo[unitDefID].maxdps = (unitDefInfo[unitDefID].maxdps or 0) + damageMax
 		end
 
 
@@ -347,8 +374,18 @@ local function refreshUnitInfo()
 			local weaponDef = WeaponDefs[weapons[i].weaponDef]
 			if weaponDef.interceptor ~= 0 and weaponDef.coverageRange then
 				unitDefInfo[unitDefID].maxCoverage = math.max(unitDefInfo[unitDefID].maxCoverage or 1, weaponDef.coverageRange)
-			end
-			if weaponDef.damages then
+
+			elseif weaponDef.shieldRadius and weaponDef.shieldRadius > 0 then
+				if #weapons <= 1 then
+					unitDefInfo[unitDefID].weapons = {}
+					unitDefInfo[unitDefID].shieldOnly = true
+				end
+				unitDefInfo[unitDefID].shieldRange = weaponDef.shieldRadius
+				unitDefInfo[unitDefID].shieldCapacity = weaponDef.shieldPower
+				unitDefInfo[unitDefID].shieldRechargeRate = weaponDef.shieldPowerRegen
+				unitDefInfo[unitDefID].shieldRechargeCost = weaponDef.shieldPowerRegenEnergy
+
+			else
 				if unitDef.name == 'armamb' or unitDef.name == 'cortoast' then -- weapons with low/high traj, this list is incomplete
 					unitExempt = true
 					if i==1 then                                --Calculating using first weapon only
@@ -402,32 +439,35 @@ local function refreshUnitInfo()
 						calculateWeaponDPS(weaponDef, weaponDef.damages[0]) --Damage to default armor category
 					end
 
-				elseif weaponDef.customParams then
-					if weaponDef.customParams.cluster then -- Bullets that explode into other, smaller bullets
-						unitExempt = true
-						calculateClusterDPS(weaponDef, weaponDef.damages[0])
-					elseif weaponDef.customParams.speceffect == "split" then -- Bullets that split into other, smaller bullets
-						unitExempt = true
-						local splitd = WeaponDefNames[weaponDef.customParams.speceffect_def].damages[0]
-						local splitn = weaponDef.customParams.number or 1
-						calculateWeaponDPS(weaponDef, splitd * splitn)
-					elseif weaponDef.customParams.spark_basedamage then -- Lightning
-						unitExempt = true
-						local forkd = weaponDef.customParams.spark_forkdamage
-						local forkn = weaponDef.customParams.spark_maxunits or 1
-						calculateWeaponDPS(weaponDef, weaponDef.damages[0] * (1 + forkd * forkn))
-						if unitExempt and weaponDef.paralyzer then -- DPS => EMP
-							unitDefInfo[unitDefID].minemp = unitDefInfo[unitDefID].mindps
-							unitDefInfo[unitDefID].maxemp = unitDefInfo[unitDefID].maxdps
-							unitDefInfo[unitDefID].mindps = nil
-							unitDefInfo[unitDefID].maxdps = nil
-						end
+				elseif weaponDef.customParams.area_onhit_damage and weaponDef.customParams.area_onhit_time then
+					unitExempt = true
+					calculateAreaDPS(weaponDef, weaponDef.damages[0])
+				elseif weaponDef.customParams.cluster then -- Bullets that explode into other, smaller bullets
+					unitExempt = true
+					calculateClusterDPS(weaponDef, weaponDef.damages[0])
+				elseif weaponDef.customParams.speceffect == "split" then -- Bullets that split into other, smaller bullets
+					unitExempt = true
+					local splitd = WeaponDefNames[weaponDef.customParams.speceffect_def].damages[0]
+					local splitn = weaponDef.customParams.number or 1
+					calculateWeaponDPS(weaponDef, splitd * splitn)
+				elseif weaponDef.customParams.spark_basedamage then -- Lightning
+					unitExempt = true
+					local forkd = weaponDef.customParams.spark_forkdamage
+					local forkn = weaponDef.customParams.spark_maxunits or 1
+					calculateWeaponDPS(weaponDef, weaponDef.damages[0] * (1 + forkd * forkn))
+					if unitExempt and weaponDef.paralyzer then -- DPS => EMP
+						unitDefInfo[unitDefID].minemp = unitDefInfo[unitDefID].mindps
+						unitDefInfo[unitDefID].maxemp = unitDefInfo[unitDefID].maxdps
+						unitDefInfo[unitDefID].mindps = nil
+						unitDefInfo[unitDefID].maxdps = nil
 					end
 				end
 
 				if unitDefInfo[unitDefID].mainWeapon == i then
 					unitDefInfo[unitDefID].range = weaponDef.range
-					unitDefInfo[unitDefID].reloadTime = weaponDef.reload
+					unitDefInfo[unitDefID].reloadTime = weaponDef.customParams.dronesuesestockpile
+						and weaponDef.stockpileTime
+						or  weaponDef.reload
 				end
 				if weaponDef.type == "BeamLaser" and not unitExempt then	-- BeamLaser dps calc
 
@@ -457,11 +497,11 @@ local function refreshUnitInfo()
 						end
 					else
 						-- calculate laser emp dmg
-						minIntensity = math.max(weaponDef.minIntensity, 0.5)
+						local minIntensity = math.max(weaponDef.minIntensity, 0.5)
 						local prevMinDps = unitDefInfo[unitDefID].minemp or 0
 						local prevMaxDps = unitDefInfo[unitDefID].maxemp or 0
-						local mindps = math_floor(minIntensity*(weaponDef.damages[0] * weaponDef.salvoSize / weaponDef.reload))
-						local maxdps = math_floor(weaponDef.damages[0] * weaponDef.salvoSize / weaponDef.reload)
+						local mindps = minIntensity*(weaponDef.damages[0] * weaponDef.salvoSize / weaponDef.reload)
+						local maxdps = weaponDef.damages[0] * weaponDef.salvoSize / weaponDef.reload
 
 						unitDefInfo[unitDefID].minemp = mindps + prevMinDps
 						unitDefInfo[unitDefID].maxemp = maxdps + prevMaxDps
@@ -493,23 +533,6 @@ local function refreshUnitInfo()
 			if weapons[i].onlyTargets['vtol'] ~= nil then
 				unitDefInfo[unitDefID].isAaUnit = true
 			end
-
-			--shield params
-			if weaponDef.shieldRadius and weaponDef.shieldRadius > 0 then
-				if #weapons <= 1 then
-					unitDefInfo[unitDefID].weapons = {}
-					unitDefInfo[unitDefID].mindps = 0
-					unitDefInfo[unitDefID].maxdps = 0
-					unitDefInfo[unitDefID].range = 0
-					unitDefInfo[unitDefID].reloadTime = 0
-					unitDefInfo[unitDefID].mainWeapon = 1
-					unitDefInfo[unitDefID].shieldOnly = true
-				end
-				unitDefInfo[unitDefID].shieldRange = weaponDef.shieldRadius
-				unitDefInfo[unitDefID].shieldCapacity = weaponDef.shieldPower
-				unitDefInfo[unitDefID].shieldRechargeRate = weaponDef.shieldPowerRegen
-				unitDefInfo[unitDefID].shieldRechargeCost = weaponDef.shieldPowerRegenEnergy
-			end
 		end
 
 		if unitDef.customParams.unitgroup and unitDef.customParams.unitgroup == 'explo' and unitDef.deathExplosion and WeaponDefNames[unitDef.deathExplosion] then
@@ -519,6 +542,43 @@ local function refreshUnitInfo()
 				unitDefInfo[unitDefID].mindps = dmg
 				unitDefInfo[unitDefID].maxdps = dmg
 				unitDefInfo[unitDefID].reloadTime = nil
+			end
+		end
+	end
+
+	-- Account for sub-unit damages, namely carriers and drones.
+	local mins = { "mindps", "minemp", }
+	local maxs = { "maxdps", "maxemp", }
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		local unitInfo = unitDefInfo[unitDefID]
+		for index, weapon in ipairs(unitDef.weapons) do
+			local weaponDef = WeaponDefs[weapon.weaponDef]
+			if weaponDef.customParams.carried_unit and UnitDefNames[weaponDef.customParams.carried_unit] then
+				local droneCount = weaponDef.customParams.maxunits or 1
+				local droneDef = UnitDefNames[weaponDef.customParams.carried_unit]
+				local droneInfo = unitDefInfo[droneDef.id]
+
+				for _, key in ipairs(mins) do
+					if droneInfo[key] then
+						unitInfo[key] = (unitInfo[key] or 0) -- times zero drones == zero
+					end
+				end
+
+				for _, key in ipairs(maxs) do
+					if droneInfo[key] then
+						unitInfo[key] = (unitInfo[key] or 0) + (droneInfo[key] * droneCount)
+					end
+				end
+			end
+		end
+	end
+
+	-- Convert aggregated values to display formats last to avoid rounding errors.
+	local summedKeys = { "mindps", "maxdps", "minemp", "maxemp", }
+	for unitDefID, unitInfo in pairs(unitDefInfo) do
+		for _, key in pairs(summedKeys) do
+			if type(unitInfo[key]) == "number" then
+				unitInfo[key] = math_floor(unitInfo[key])
 			end
 		end
 	end
@@ -1549,7 +1609,6 @@ local function drawUnitInfo()
 			separator = ',   '
 		end
 
-
 		-- unit specific info
 		if unitDefInfo[displayUnitDefID].mindps then
 			mindps = unitDefInfo[displayUnitDefID].mindps
@@ -1604,11 +1663,12 @@ local function drawUnitInfo()
 
 			-- basic dps display
 			if mindps and mindps > 0 and mindps == maxdps then
+
 				local dps = round(mindps/ reloadTimeSpeedup, 0)
 				addTextInfo(Spring.I18N('ui.info.dps'), dps)
 
 			-- dps range
-			elseif mindps and mindps > 0 and mindps ~= maxdps then
+			elseif mindps ~= maxdps then
 				local min = round(mindps/ reloadTimeSpeedup, 0)
 				local max = round(maxdps/ reloadTimeSpeedup, 0)
 				addTextInfo("DPS", min.."-"..max)
@@ -1621,7 +1681,7 @@ local function drawUnitInfo()
 				addTextInfo("DPS(EMP)", emp)
 
 			-- more emp dps
-			elseif minemp and minemp and minemp ~= maxemp then
+			elseif minemp ~= maxemp then
 				local min = round(minemp/ reloadTimeSpeedup, 0)
 				local max = round(maxemp/ reloadTimeSpeedup, 0)
 				addTextInfo("DPS(EMP)", min.."-"..max)

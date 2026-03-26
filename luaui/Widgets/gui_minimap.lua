@@ -60,6 +60,12 @@ local dlistGuishader, dlistMinimap, oldMinimapGeometry
 
 local dualscreenMode = ((Spring.GetConfigInt("DualScreenMode", 0) or 0) == 1)
 
+-- Icon density scaling: reduce icon size when many units are on the map
+local iconDensityMaxUnits = 18000
+local iconDensityMinScale = 0.5
+local baseMinimapIconScale = Spring.GetConfigFloat("MinimapIconScale", 3.5)
+local lastAppliedIconScale = nil
+
 local function checkGuishader(force)
 	if WG['guishader'] then
 		if force and dlistGuishader then
@@ -165,6 +171,9 @@ function widget:Initialize()
 		leftClickMove = value
 		Spring.SetConfigInt("MinimapLeftClickMove", value and 1 or 0)
 	end
+	WG['minimap'].setBaseIconScale = function(value)
+		baseMinimapIconScale = value
+	end
 end
 
 function widget:GameStart()
@@ -174,6 +183,10 @@ end
 function widget:Shutdown()
 	clear()
 	gl.SlaveMiniMap(false)
+
+	-- Restore original icon scale
+	Spring.SendCommands("minimap unitsize " .. baseMinimapIconScale)
+	Spring.SetConfigFloat("MinimapIconScale", baseMinimapIconScale)
 
 	if not dualscreenMode then
 		Spring.SendCommands("minimap geometry " .. oldMinimapGeometry)
@@ -213,6 +226,19 @@ function widget:Update(dt)
 
 	Spring.SendCommands(string.format("minimap geometry %i %i %i %i", 0, 0, usedWidth, usedHeight))
 	checkGuishader()
+
+	-- Icon density scaling: reduce icon size when many units are on the map
+	local allUnits = Spring.GetAllUnits()
+	local totalUnits = allUnits and #allUnits or 0
+	local unitFraction = math.min(totalUnits / iconDensityMaxUnits, 1.0)
+	local densityScale = 1.0 - (1.0 - iconDensityMinScale) * unitFraction
+	-- Resolution boost: icons look relatively small on high-res screens
+	local resBoost = 1.0 + 0.18 * math.min(math.max((vsy - 1080) / (2880 - 1080), 0), 1)
+	local scaledIconSize = baseMinimapIconScale * densityScale * resBoost
+	if scaledIconSize ~= lastAppliedIconScale then
+		Spring.SendCommands("minimap unitsize " .. scaledIconSize)
+		lastAppliedIconScale = scaledIconSize
+	end
 end
 
 
