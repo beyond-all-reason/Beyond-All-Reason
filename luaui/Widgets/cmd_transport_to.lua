@@ -206,6 +206,40 @@ local function dictLength(t)
 	return count
 end
 
+local function SetTransportAvailable(transportState)
+	if not transportState then
+		return
+	end
+
+	transportState.state = "available"
+	transportState.isLoaded = false
+	transportState.transporteeID = nil
+end
+
+local function ReleaseCompetingTransports(unitID, winningTransportID)
+	for transportID in pairs(knownTransports) do
+		if transportID ~= winningTransportID then
+			local transportState = Get_transport_state(transportID)
+			if transportState
+				and transportState.transporteeID == unitID
+				and transportState.state == "coupled"
+				and not transportState.isLoaded
+			then
+				GiveOrderToUnit(transportID, CMD_STOP, {}, {})
+				if transportState.homePosition then
+					SetUnitMoveGoal(
+						transportID,
+						transportState.homePosition.x,
+						transportState.homePosition.y,
+						transportState.homePosition.z
+					)
+				end
+				SetTransportAvailable(transportState)
+			end
+		end
+	end
+end
+
 --------------------------------------------------------------------------------
 -- State
 --------------------------------------------------------------------------------
@@ -454,25 +488,38 @@ end
 
 function Check_try_to_pick_transport(unitID, unitDefID)
 	local unitState = Get_unit_state(unitID)
-	if unitState.isWaitingForTransport then
-		local foundTransport = PickBestTransport(unitID, GetUnitPosition(unitID), unitDefID)
-		if foundTransport then
-			GiveOrderToUnit(foundTransport, CMD_LOAD_UNITS, { unitID }, {})
+	if not unitState or not unitState.isWaitingForTransport then
+		return
+	end
 
-			local transportState = Get_transport_state(foundTransport)
-			transportState.state = "coupled"
-			transportState.transportID = foundTransport
-			transportState.transporteeID = unitID
+	-- Already linked to a transport; do not assign another.
+	if unitState.transport_state ~= nil then
+		return
+	end
 
-			unitState.transport_state = transportState
-			unitState.isWaitingForTransport = false
-			unitsWaitingForTransport[unitID] = false
+	local foundTransport = PickBestTransport(unitID, GetUnitPosition(unitID), unitDefID)
+	if foundTransport then
+		GiveOrderToUnit(foundTransport, CMD_LOAD_UNITS, { unitID }, {})
 
-			ClearUnitMoveGoal(unitID)
-			pendingClearMoveGoal[unitID] = true
-
-			return foundTransport
+		local transportState = Get_transport_state(foundTransport)
+		if not transportState then
+			return
 		end
+
+		transportState.state = "coupled"
+		transportState.transportID = foundTransport
+		transportState.transporteeID = unitID
+
+		unitState.transport_state = transportState
+		unitState.isWaitingForTransport = false
+		unitsWaitingForTransport[unitID] = false
+
+		ClearUnitMoveGoal(unitID)
+		pendingClearMoveGoal[unitID] = true
+
+		ReleaseCompetingTransports(unitID, foundTransport)
+
+		return foundTransport
 	end
 end
 
@@ -490,48 +537,60 @@ function Check_try_to_transport_waiting(transportID, unitDefID)
 	for unitID, active in pairs(table.merge(unitsWaitingForTransport, outSharedUnits)) do
 		if active then
 			local unitState = Get_unit_state(unitID)
-			local canTransport = CanTransport(transportID, GetUnitDefID(transportID), unitID, unitDefID)
-			local transporteeType = unitRequestedType(unitDefID)
-			local transportType = transportClass[GetUnitDefID(transportID)]
 
-			if canTransport then
-				local score = 0
-				local ownDistance = distance_between_units(unitID, transportID)
-				local ownIsMatch = (transportType == transporteeType)
-				local availableCount = 0
+			-- Skip units that are already linked to another transport.
+			if unitState and unitState.transport_state == nil then
+				local canTransport = CanTransport(transportID, GetUnitDefID(transportID), unitID, unitDefID)
+				local transporteeType = unitRequestedType(unitDefID)
+				local transportType = transportClass[GetUnitDefID(transportID)]
 
-				for otherTransportID, present in pairs(knownTransports) do
-					local transportState = Get_transport_state(otherTransportID)
-					if present and otherTransportID ~= transportID and (transportState.state == "available" or transportState.state == "idle") then
-						availableCount = availableCount + 1
+				if canTransport then
+					local score = 0
+					local ownDistance = distance_between_units(unitID, transportID)
+					local ownIsMatch = (transportType == transporteeType)
+					local availableCount = 0
 
-						local otherDistance = distance_between_units(unitID, otherTransportID)
-						local isMatch = (transportClass[GetUnitDefID(otherTransportID)] == transporteeType)
+					for otherTransportID, present in pairs(knownTransports) do
+						local otherState = Get_transport_state(otherTransportID)
+						if present and otherTransportID ~= transportID and otherState
+							and (otherState.state == "available" or otherState.state == "idle")
+						then
+							availableCount = availableCount + 1
 
-						if ownDistance < otherDistance then
+							local otherDistance = distance_between_units(unitID, otherTransportID)
+							local isMatch = (transportClass[GetUnitDefID(otherTransportID)] == transporteeType)
+
+							if ownDistance < otherDistance then
+								score = score + 1
+							end
+							if ownIsMatch and not isMatch then
+								score = score + 0.5
+							end
+						elseif availableCount == 0 or not (otherState and (otherState.state == "available" or otherState.state == "idle")) then
 							score = score + 1
 						end
-						if ownIsMatch and not isMatch then
-							score = score + 0.5
-						end
-					elseif availableCount == 0 or not (transportState.state == "available" or transportState.state == "idle") then
-						score = score + 1
 					end
-				end
 
-				if dictLength(knownTransports) == 1 or (score > dictLength(knownTransports) / 2) then
-					GiveOrderToUnit(transportID, CMD_LOAD_UNITS, { unitID }, {})
+					if dictLength(knownTransports) == 1 or (score > dictLength(knownTransports) / 2) then
+						GiveOrderToUnit(transportID, CMD_LOAD_UNITS, { unitID }, {})
 
-					local transportState = Get_transport_state(transportID)
-					transportState.state = "coupled"
-					transportState.transportID = transportID
-					transportState.transporteeID = unitID
+						local transportState = Get_transport_state(transportID)
+						if not transportState then
+							return
+						end
 
-					unitState.transport_state = transportState
-					unitState.isWaitingForTransport = false
-					unitsWaitingForTransport[unitID] = false
-					pendingClearMoveGoal[unitID] = true
-					break
+						transportState.state = "coupled"
+						transportState.transportID = transportID
+						transportState.transporteeID = unitID
+
+						unitState.transport_state = transportState
+						unitState.isWaitingForTransport = false
+						unitsWaitingForTransport[unitID] = false
+						pendingClearMoveGoal[unitID] = true
+
+						ReleaseCompetingTransports(unitID, transportID)
+						break
+					end
 				end
 			end
 		end
