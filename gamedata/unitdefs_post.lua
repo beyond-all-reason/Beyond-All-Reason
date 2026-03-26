@@ -248,6 +248,8 @@ local function preProcessTweakOptions()
 		return a.index < b.index
 	end)
 
+	local shouldNormalizeUnitDefs = false
+
 	for i = 1, #tweaks do
 		local tweak = tweaks[i]
 		local name = tweak.name
@@ -264,6 +266,8 @@ local function preProcessTweakOptions()
 						local success, result = pcall(postfunc)
 						if not success then
 							Spring.Echo("Error executing tweakdef", name, postsFuncStr, "Error :" .. result)
+						else
+							shouldNormalizeUnitDefs = true -- tweakdefs can add or denormalize units
 						end
 					end
 				end
@@ -279,12 +283,19 @@ local function preProcessTweakOptions()
 						if tweakunits[unitName] then
 							Spring.Echo("Loading tweakunits for " .. unitName)
 							table.mergeInPlace(ud, system.lowerkeys(tweakunits[unitName]), true)
+							normalizeUnitDef(ud) -- tweakunits can set required tables to nil
 						end
 					end
 				end
 			else
 				Spring.Echo("Failed to parse modoption", name, "with value", modOptions[name])
 			end
+		end
+	end
+
+	if shouldNormalizeUnitDefs then
+		for _, unitDef in pairs(UnitDefs) do
+			normalizeUnitDef(unitDef)
 		end
 	end
 end
