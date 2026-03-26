@@ -414,22 +414,6 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
     jobs[unitID] = nil
 end
 
-function gadget:UnitCreated(unitID, unitDefID)
-    if ShouldHaveFerry(unitDefID) then
-        Spring.InsertUnitCmdDesc(unitID, 500, {
-            id = CMD_TRANSPORT_TO,
-            type = CMDTYPE.ICON_MAP,
-            name = "Transport To",
-            action = "transport_to",
-            tooltip = "Request the closest eligible transport to move this unit to the target location",
-        })
-    end
-end
-
-function gadget:UnitGiven(unitID, unitDefID)
-    gadget:UnitCreated(unitID, unitDefID)
-end
-
 function gadget:UnitDestroyed(unitID)
     CancelJob(unitID)
 
