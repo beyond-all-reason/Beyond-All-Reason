@@ -9,6 +9,11 @@ function widget:GetInfo()
     }
 end
 
+local GetSelectedUnits = Spring.GetSelectedUnits
+local GetUnitDefID = Spring.GetUnitDefID
+local AssignMouseCursor = Spring.AssignMouseCursor
+local SetCustomCommandDrawData = Spring.SetCustomCommandDrawData
+
 local customCommands = VFS.Include("modules/customcommands.lua")
 local GameCMD = customCommands.GameCMD
 local CMD_TRANSPORT_TO = GameCMD.TRANSPORT_TO
@@ -26,33 +31,35 @@ local function IsTransportableDef(defID)
     if not defID then
         return false
     end
+
     local ud = UnitDefs[defID]
     if not ud then
         return false
     end
+
     if ud.canFly then
         return false
     end
-    if ud.isTransport and (ud.transportCapacity or 0) > 0 then
-        return false
-    end
-    if ud.isBuilding and not ud.isFactory then
-        return false
-    end
+
     if ud.cantBeTransported == true then
         return false
     end
+
+    if ud.isTransport and (ud.transportCapacity or 0) > 0 then
+        return false
+    end
+
     return true
 end
 
 local function HasTransportableSelection()
-    local selected = Spring.GetSelectedUnits()
+    local selected = GetSelectedUnits()
     if #selected == 0 then
         return false
     end
 
     for i = 1, #selected do
-        local defID = Spring.GetUnitDefID(selected[i])
+        local defID = GetUnitDefID(selected[i])
         if IsTransportableDef(defID) then
             return true
         end
@@ -62,8 +69,8 @@ local function HasTransportableSelection()
 end
 
 local function RegisterVisuals()
-    Spring.AssignMouseCursor("transto", "cursortransport")
-    Spring.SetCustomCommandDrawData(CMD_TRANSPORT_TO, "transto", { 1, 1, 1, 1 })
+    AssignMouseCursor("transto", "cursortransport")
+    SetCustomCommandDrawData(CMD_TRANSPORT_TO, "transto", { 1, 1, 1, 1 })
 end
 
 function widget:Initialize()
