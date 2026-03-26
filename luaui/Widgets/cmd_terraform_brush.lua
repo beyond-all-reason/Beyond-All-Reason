@@ -27,6 +27,7 @@ local GetMouseState = Spring.GetMouseState
 local TraceScreenRay = Spring.TraceScreenRay
 local GetGroundHeight = Spring.GetGroundHeight
 local Echo = Spring.Echo
+local ForceTesselationUpdate = Spring.ForceTesselationUpdate
 
 local glColor = gl.Color
 local glLineWidth = gl.LineWidth
@@ -72,6 +73,7 @@ local DEFAULT_LENGTH_SCALE = 1.0
 local MIN_LENGTH_SCALE = 0.2
 local MAX_LENGTH_SCALE = 5.0
 local LENGTH_SCALE_STEP = 0.1
+local GRID_SNAP_SIZE = 48  -- matches build grid widget spacing (3 * 16 elmos)
 
 local activeDirection = nil
 local activeRadius = DEFAULT_RADIUS
@@ -101,13 +103,23 @@ local shiftAxis = nil -- "x" or "z" once determined
 local shiftOriginX = nil
 local shiftOriginZ = nil
 local wasShiftHeld = false
+local gridShowing = false
 local rightMouseHeld = false
 local savedModeBeforeRMB = nil
 local savedDirectionBeforeRMB = nil
+local clayMode = false
 
 -- History slider state
 local historyUndoCount = 0
 local historyRedoCount = 0
+
+-- Tessellation refresh: force mesh re-tessellation for N frames after heightmap edits
+local TESS_DIRTY_FRAMES = 10
+local tessellationDirtyFrames = 0
+
+local function markTessellationDirty()
+	tessellationDirtyFrames = TESS_DIRTY_FRAMES
+end
 
 local function getWorldMousePosition()
 	local mx, my = GetMouseState()
@@ -121,6 +133,38 @@ local function getWorldMousePosition()
 end
 
 local AXIS_LOCK_THRESHOLD = 16
+
+-- Find any land unit def for force-showing the build grid
+local gridForceShowDefID
+for id, def in pairs(UnitDefs) do
+	if not def.modCategories or not def.modCategories.underwater then
+		gridForceShowDefID = id
+		break
+	end
+end
+
+local function showBuildGrid()
+	if gridShowing then return end
+	local bg = WG['buildinggrid']
+	if bg and bg.setForceShow and gridForceShowDefID then
+		bg.setForceShow("terraform", true, gridForceShowDefID)
+		gridShowing = true
+	end
+end
+
+local function hideBuildGrid()
+	if not gridShowing then return end
+	local bg = WG['buildinggrid']
+	if bg and bg.setForceShow then
+		bg.setForceShow("terraform", false)
+		gridShowing = false
+	end
+end
+
+local function snapToGrid(x, z)
+	return floor(x / GRID_SNAP_SIZE + 0.5) * GRID_SNAP_SIZE,
+	       floor(z / GRID_SNAP_SIZE + 0.5) * GRID_SNAP_SIZE
+end
 
 local function constrainToAxis(originX, originZ, rawX, rawZ)
 	local dx = rawX - originX
@@ -165,8 +209,10 @@ local function sendTerraformMessage(direction, worldX, worldZ, radius, shape, ro
 		.. absCapMin .. " "
 		.. absCapMax .. " "
 		.. string.format("%.1f", activeIntensity) .. " "
-		.. string.format("%.1f", activeLengthScale)
+		.. string.format("%.1f", activeLengthScale) .. " "
+		.. (clayMode and "1" or "0")
 	SendLuaRulesMsg(msg)
+	markTessellationDirty()
 end
 
 local function parseRadius(args)
@@ -301,6 +347,10 @@ local function setHeightCapAbsolute(value)
 	heightCapAbsolute = value
 end
 
+local function setClayMode(value)
+	clayMode = value and true or false
+end
+
 local function getState()
 	return {
 		active = activeMode ~= nil,
@@ -315,6 +365,7 @@ local function getState()
 		heightCapMin = heightCapMin,
 		heightCapMax = heightCapMax,
 		heightCapAbsolute = heightCapAbsolute,
+		clayMode = clayMode,
 		undoCount = historyUndoCount,
 		redoCount = historyRedoCount,
 	}
@@ -611,6 +662,8 @@ local function doImportHeightmapSend()
 		SendLuaRulesMsg(msg)
 	end
 
+	markTessellationDirty()
+
 	if importRowIndex >= totalCols then
 		Echo("[Terraform Brush] Heightmap import complete!")
 		importHeightRows = nil
@@ -647,6 +700,7 @@ function widget:Initialize()
 		setHeightCapMin = setHeightCapMin,
 		setHeightCapMax = setHeightCapMax,
 		setHeightCapAbsolute = setHeightCapAbsolute,
+		setClayMode = setClayMode,
 		getState = getState,
 		deactivate = deactivateTerraform,
 		undo = function()
@@ -664,6 +718,7 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal("TerraformBrushStackUpdate", function(undoCount, redoCount)
 		historyUndoCount = undoCount or 0
 		historyRedoCount = redoCount or 0
+		markTessellationDirty()
 	end)
 end
 
@@ -679,6 +734,7 @@ function widget:Shutdown()
 	widgetHandler:RemoveAction("terraformexport")
 	widgetHandler:RemoveAction("terraformimport")
 	widgetHandler:DeregisterGlobal("TerraformBrushStackUpdate")
+	hideBuildGrid()
 	WG.TerraformBrush = nil
 end
 
@@ -791,7 +847,10 @@ function widget:Update(dt)
 					parts[#parts + 1] = " "
 					parts[#parts + 1] = tostring(floor(smoothed[i][2]))
 				end
+				parts[#parts + 1] = " "
+				parts[#parts + 1] = clayMode and "1" or "0"
 				SendLuaRulesMsg(table.concat(parts))
+				markTessellationDirty()
 			end
 		else
 			-- Square ramp: straight line from A to B
@@ -805,9 +864,12 @@ function widget:Update(dt)
 						local oz = shiftOriginZ or dragOriginZ
 						worldX, worldZ = constrainToAxis(ox, oz, worldX, worldZ)
 					end
+					if shift then
+						worldX, worldZ = snapToGrid(worldX, worldZ)
+					end
 					rampEndX = worldX
 					rampEndZ = worldZ
-				end
+				 end
 			end
 
 			if rampEndX then
@@ -819,8 +881,10 @@ function widget:Update(dt)
 					.. floor(rampEndX) .. " "
 					.. floor(rampEndZ) .. " "
 					.. string.format("%.0f", endY) .. " "
-					.. activeRadius
+					.. activeRadius .. " "
+					.. (clayMode and "1" or "0")
 				SendLuaRulesMsg(msg)
+				markTessellationDirty()
 			end
 		end
 	elseif activeMode == "restore" then
@@ -833,6 +897,9 @@ function widget:Update(dt)
 					local ox = shiftOriginX or dragOriginX
 					local oz = shiftOriginZ or dragOriginZ
 					worldX, worldZ = constrainToAxis(ox, oz, worldX, worldZ)
+				end
+				if shift then
+					worldX, worldZ = snapToGrid(worldX, worldZ)
 				end
 				lockedWorldX = worldX
 				lockedWorldZ = worldZ
@@ -849,6 +916,7 @@ function widget:Update(dt)
 			.. string.format("%.1f", activeIntensity) .. " "
 			.. string.format("%.1f", activeLengthScale)
 		SendLuaRulesMsg(msg)
+		markTessellationDirty()
 	else
 		if mx ~= lastScreenX or my ~= lastScreenY then
 			lastScreenX = mx
@@ -859,6 +927,9 @@ function widget:Update(dt)
 					local ox = shiftOriginX or dragOriginX
 					local oz = shiftOriginZ or dragOriginZ
 					worldX, worldZ = constrainToAxis(ox, oz, worldX, worldZ)
+				end
+				if shift then
+					worldX, worldZ = snapToGrid(worldX, worldZ)
 				end
 				lockedWorldX = worldX
 				lockedWorldZ = worldZ
@@ -1283,8 +1354,14 @@ function widget:DrawScreen()
 end
 
 function widget:DrawWorld()
+	if tessellationDirtyFrames > 0 then
+		ForceTesselationUpdate(true)
+		tessellationDirtyFrames = tessellationDirtyFrames - 1
+	end
+
 	if not activeMode then
 		invalidateDrawCache()
+		hideBuildGrid()
 		return
 	end
 
@@ -1308,6 +1385,14 @@ function widget:DrawWorld()
 
 	if shiftOriginX and shiftHeld then
 		worldX, worldZ = constrainToAxis(shiftOriginX, shiftOriginZ, worldX, worldZ)
+	end
+
+	-- Grid snap + visual when shift is held
+	if shiftHeld then
+		worldX, worldZ = snapToGrid(worldX, worldZ)
+		showBuildGrid()
+	else
+		hideBuildGrid()
 	end
 
 	local groundY = GetGroundHeight(worldX, worldZ)
@@ -1428,6 +1513,43 @@ function widget:DrawWorld()
 	end)
 	updateDrawCacheParams(worldX, worldZ, groundY)
 	glCallList(drawCacheList)
+
+	-- Draw axis-lock indicator line following terrain
+	if shiftAxis and shiftHeld then
+		local AXIS_STEP = 16
+		local AXIS_OFFSET = 4
+		local mapX = Game.mapSizeX
+		local mapZ = Game.mapSizeZ
+		glColor(1.0, 1.0, 0.4, 0.85)
+		glLineWidth(3)
+		gl.DepthTest(GL.ALWAYS)
+		gl.DepthMask(false)
+		glBeginEnd(GL_LINE_STRIP, function()
+			if shiftAxis == "x" then
+				local startX = max(0, worldX - 2000)
+				local endX = min(mapX, worldX + 2000)
+				for x = startX, endX, AXIS_STEP do
+					glVertex(x, GetGroundHeight(x, worldZ) + AXIS_OFFSET, worldZ)
+				end
+				if endX % AXIS_STEP ~= 0 then
+					glVertex(endX, GetGroundHeight(endX, worldZ) + AXIS_OFFSET, worldZ)
+				end
+			else
+				local startZ = max(0, worldZ - 2000)
+				local endZ = min(mapZ, worldZ + 2000)
+				for z = startZ, endZ, AXIS_STEP do
+					glVertex(worldX, GetGroundHeight(worldX, z) + AXIS_OFFSET, z)
+				end
+				if endZ % AXIS_STEP ~= 0 then
+					glVertex(worldX, GetGroundHeight(worldX, endZ) + AXIS_OFFSET, endZ)
+				end
+			end
+		end)
+		gl.DepthTest(false)
+		gl.DepthMask(true)
+		glColor(1, 1, 1, 1)
+		glLineWidth(1)
+	end
 end
 
 function widget:KeyPress(key, mods, isRepeat)

@@ -70,6 +70,12 @@
 			</div>
 		</div>
 
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<img id="btn-clay-mode" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" style="cursor: pointer;" />
+			<div class="text-lg text-light">Clay Brush</div>
+			<div class="text-sm text-keybind" style="margin-left: auto;">flat buildup</div>
+		</div>
+
 		<div class="divider-horizontal-dark"></div>
 
 		<div class="flex flex-row justify-between items-center mb-1">

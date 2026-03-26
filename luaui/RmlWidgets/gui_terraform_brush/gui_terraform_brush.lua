@@ -460,6 +460,21 @@ local function attachEventListeners()
 		end, false)
 	end
 
+	local clayBtn = doc:GetElementById("btn-clay-mode")
+	if clayBtn then
+		clayBtn:AddEventListener("click", function(event)
+			if WG.TerraformBrush then
+				local state = WG.TerraformBrush.getState()
+				local newVal = not (state and state.clayMode)
+				WG.TerraformBrush.setClayMode(newVal)
+				clayBtn:SetAttribute("src", newVal
+					and "/luaui/images/terraform_brush/check_on.png"
+					or "/luaui/images/terraform_brush/check_off.png")
+			end
+			event:StopPropagation()
+		end, false)
+	end
+
 	local exportBtn = doc:GetElementById("btn-export")
 	if exportBtn then
 		exportBtn:AddEventListener("click", function(event)
@@ -504,6 +519,7 @@ local function attachEventListeners()
 				WG.TerraformBrush.setHeightCapMin(nil)
 				WG.TerraformBrush.setHeightCapMax(nil)
 				WG.TerraformBrush.setHeightCapAbsolute(false)
+				WG.TerraformBrush.setClayMode(false)
 			end
 			capMinValue = 0
 			capMaxValue = 0
@@ -511,6 +527,10 @@ local function attachEventListeners()
 			local absImg = doc:GetElementById("btn-cap-absolute")
 			if absImg then
 				absImg:SetAttribute("src", "/luaui/images/terraform_brush/check_off.png")
+			end
+			local clayImg = doc:GetElementById("btn-clay-mode")
+			if clayImg then
+				clayImg:SetAttribute("src", "/luaui/images/terraform_brush/check_off.png")
 			end
 			event:StopPropagation()
 		end, false)
@@ -638,6 +658,13 @@ function widget:Update()
 			if maxVal < 1 then maxVal = 1 end
 			sliderHistory:SetAttribute("max", tostring(maxVal))
 			sliderHistory:SetAttribute("value", tostring(state.undoCount or 0))
+		end
+
+		local clayImg = doc:GetElementById("btn-clay-mode")
+		if clayImg then
+			clayImg:SetAttribute("src", state.clayMode
+				and "/luaui/images/terraform_brush/check_on.png"
+				or "/luaui/images/terraform_brush/check_off.png")
 		end
 
 		updatingFromCode = false
