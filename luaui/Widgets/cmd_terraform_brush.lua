@@ -38,9 +38,6 @@ local glDrawGroundCircle = gl.DrawGroundCircle
 local glCreateList = gl.CreateList
 local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
-local GL_LINE_LOOP = GL.LINE_LOOP
-local GL_LINE_STRIP = GL.LINE_STRIP
-local GL_LINES = GL.LINES
 
 local floor = math.floor
 local max = math.max
@@ -53,7 +50,6 @@ local ceil = math.ceil
 local atan2 = math.atan2
 local GetModKeyState = Spring.GetModKeyState
 local GetKeyState = Spring.GetKeyState
-local KEYSYMS_SPACE = 0x20
 
 local RADIUS_STEP = 8
 local ROTATION_STEP = 3
@@ -96,8 +92,6 @@ local lastScreenY = nil
 local rampEndX = nil
 local rampEndZ = nil
 local rampSplinePoints = {}
-local SPLINE_SAMPLE_DIST = 24
-local SPLINE_MAX_POINTS = 40
 local dragOriginX = nil
 local dragOriginZ = nil
 local shiftAxis = nil -- "x" or "z" once determined
@@ -107,6 +101,14 @@ local wasShiftHeld = false
 local gridShowing = false
 local gridOverlayOn = false
 local dustEffects = false
+local heightColormap = false
+local flattenToCursor = false
+local brushOpacity = 0.3
+local flattenHeight = nil  -- sampled on click when flattenToCursor is on
+local DEFAULT_OPACITY = 0.3
+local MIN_OPACITY = 0.01
+local MAX_OPACITY = 1.0
+local OPACITY_STEP = 0.05
 local rightMouseHeld = false
 local savedModeBeforeRMB = nil
 local savedDirectionBeforeRMB = nil
@@ -135,7 +137,6 @@ local function getWorldMousePosition()
 	return nil, nil
 end
 
-local AXIS_LOCK_THRESHOLD = 16
 
 -- Find any land unit def for force-showing the build grid
 local gridForceShowDefID
@@ -174,7 +175,7 @@ local function constrainToAxis(originX, originZ, rawX, rawZ)
 	local dz = rawZ - originZ
 
 	if not shiftAxis then
-		if abs(dx) > AXIS_LOCK_THRESHOLD or abs(dz) > AXIS_LOCK_THRESHOLD then
+		if abs(dx) > 16 or abs(dz) > 16 then -- axis lock threshold
 			if abs(dx) >= abs(dz) then
 				shiftAxis = "x"
 			else
@@ -214,7 +215,9 @@ local function sendTerraformMessage(direction, worldX, worldZ, radius, shape, ro
 		.. string.format("%.1f", activeIntensity) .. " "
 		.. string.format("%.1f", activeLengthScale) .. " "
 		.. (clayMode and "1" or "0") .. " "
-		.. (dustEffects and "1" or "0")
+		.. (dustEffects and "1" or "0") .. " "
+		.. string.format("%.3f", brushOpacity) .. " "
+		.. (flattenHeight and string.format("%.1f", flattenHeight) or "nil")
 	SendLuaRulesMsg(msg)
 	markTessellationDirty()
 end
@@ -241,26 +244,6 @@ local function activate(direction, mode, args)
 	local modeLabel = modeLabels[mode] or mode
 	Echo("[Terraform Brush] Mode: " .. modeLabel .. " | Radius: " .. activeRadius .. " | Hold left-click to terraform, /terraformoff to stop")
 	return true
-end
-
-local function activateTerraformUp(_, _, args)
-	return activate(1, "raise", args)
-end
-
-local function activateTerraformDown(_, _, args)
-	return activate(-1, "lower", args)
-end
-
-local function activateTerraformLevel(_, _, args)
-	return activate(0, "level", args)
-end
-
-local function activateTerraformRamp(_, _, args)
-	return activate(0, "ramp", args)
-end
-
-local function activateTerraformRestore(_, _, args)
-	return activate(0, "restore", args)
 end
 
 -- Forward declaration
@@ -368,6 +351,24 @@ local function setDustEffects(value)
 	dustEffects = value and true or false
 end
 
+local function setHeightColormap(value)
+	heightColormap = value and true or false
+	if not heightColormap then
+		destroyColormapResources()
+	end
+end
+
+local function setFlattenToCursor(value)
+	flattenToCursor = value and true or false
+	if not flattenToCursor then
+		flattenHeight = nil
+	end
+end
+
+local function setBrushOpacity(value)
+	brushOpacity = max(MIN_OPACITY, min(MAX_OPACITY, value))
+end
+
 local function getState()
 	return {
 		active = activeMode ~= nil,
@@ -385,6 +386,9 @@ local function getState()
 		clayMode = clayMode,
 		gridOverlay = gridOverlayOn,
 		dustEffects = dustEffects,
+		heightColormap = heightColormap,
+		flattenToCursor = flattenToCursor,
+		brushOpacity = brushOpacity,
 		undoCount = historyUndoCount,
 		redoCount = historyRedoCount,
 	}
@@ -406,6 +410,8 @@ local function savePreset(name)
 		heightCapMax = heightCapMax,
 		heightCapAbsolute = heightCapAbsolute,
 		clayMode = clayMode,
+		brushOpacity = brushOpacity,
+		flattenToCursor = flattenToCursor,
 	}
 end
 
@@ -422,6 +428,9 @@ local function loadPreset(name)
 	heightCapMax = p.heightCapMax
 	heightCapAbsolute = p.heightCapAbsolute or false
 	clayMode = p.clayMode or false
+	brushOpacity = p.brushOpacity or DEFAULT_OPACITY
+	flattenToCursor = p.flattenToCursor or false
+	flattenHeight = nil
 	invalidateDrawCache()
 end
 
@@ -440,7 +449,6 @@ end
 
 local importHeightRows = nil
 local importRowIndex = 0
-local IMPORT_ROWS_PER_FRAME = 32
 local pendingExport = false
 
 -- Display list cache to avoid rebuilding geometry every frame
@@ -701,7 +709,7 @@ local function doImportHeightmapRead()
 
 	importHeightRows = columns
 	importRowIndex = 0
-	Echo("[Terraform Brush] Loaded " .. filename .. " (" .. #res .. "x" .. #res[1] .. "), applying " .. IMPORT_ROWS_PER_FRAME .. " cols/frame...")
+	Echo("[Terraform Brush] Loaded " .. filename .. " (" .. #res .. "x" .. #res[1] .. "), applying 32 cols/frame...")
 end
 
 local function doImportHeightmapSend()
@@ -713,7 +721,7 @@ local function doImportHeightmapSend()
 	local totalCols = #importHeightRows
 	local rowsThisFrame = 0
 
-	while importRowIndex < totalCols and rowsThisFrame < IMPORT_ROWS_PER_FRAME do
+	while importRowIndex < totalCols and rowsThisFrame < 32 do -- import rows per frame
 		importRowIndex = importRowIndex + 1
 		rowsThisFrame = rowsThisFrame + 1
 
@@ -746,11 +754,11 @@ function widget:Initialize()
 			return activate(1, "raise", args)
 		end
 	end, nil, "t")
-	widgetHandler:AddAction("terraformup", activateTerraformUp, nil, "t")
-	widgetHandler:AddAction("terraformdown", activateTerraformDown, nil, "t")
-	widgetHandler:AddAction("terraformlevel", activateTerraformLevel, nil, "t")
-	widgetHandler:AddAction("terraformramp", activateTerraformRamp, nil, "t")
-	widgetHandler:AddAction("terraformrestore", activateTerraformRestore, nil, "t")
+	widgetHandler:AddAction("terraformup", function(_, _, args) return activate(1, "raise", args) end, nil, "t")
+	widgetHandler:AddAction("terraformdown", function(_, _, args) return activate(-1, "lower", args) end, nil, "t")
+	widgetHandler:AddAction("terraformlevel", function(_, _, args) return activate(0, "level", args) end, nil, "t")
+	widgetHandler:AddAction("terraformramp", function(_, _, args) return activate(0, "ramp", args) end, nil, "t")
+	widgetHandler:AddAction("terraformrestore", function(_, _, args) return activate(0, "restore", args) end, nil, "t")
 	widgetHandler:AddAction("terraformoff", deactivateTerraform, nil, "t")
 	widgetHandler:AddAction("terraformexport", exportHeightmap, nil, "t")
 	widgetHandler:AddAction("terraformimport", importHeightmap, nil, "t")
@@ -770,6 +778,9 @@ function widget:Initialize()
 		setClayMode = setClayMode,
 		setGridOverlay = setGridOverlay,
 		setDustEffects = setDustEffects,
+		setHeightColormap = setHeightColormap,
+		setFlattenToCursor = setFlattenToCursor,
+		setBrushOpacity = setBrushOpacity,
 		getState = getState,
 		savePreset = savePreset,
 		loadPreset = loadPreset,
@@ -797,6 +808,7 @@ end
 
 function widget:Shutdown()
 	invalidateDrawCache()
+	destroyColormapResources()
 	widgetHandler:RemoveAction("terraformbrush")
 	widgetHandler:RemoveAction("terraformup")
 	widgetHandler:RemoveAction("terraformdown")
@@ -853,7 +865,7 @@ end
 local function getSmoothedSpline()
 	local pts = rampSplinePoints
 	if #pts < 2 then return pts end
-	pts = downsamplePoints(pts, SPLINE_MAX_POINTS)
+	pts = downsamplePoints(pts, 40) -- max spline points
 	return smoothSplinePoints(pts, 2)
 end
 
@@ -877,6 +889,7 @@ function widget:Update(dt)
 		lockedWorldX = nil
 		lockedWorldZ = nil
 		lockedGroundY = nil
+		flattenHeight = nil
 		lastScreenX = nil
 		lastScreenY = nil
 		rampEndX = nil
@@ -912,7 +925,7 @@ function widget:Update(dt)
 						local last = rampSplinePoints[#rampSplinePoints]
 						local dx = worldX - last[1]
 						local dz = worldZ - last[2]
-						if (dx * dx + dz * dz) < SPLINE_SAMPLE_DIST * SPLINE_SAMPLE_DIST then
+						if (dx * dx + dz * dz) < 576 then -- 24^2 spline sample dist
 							addPoint = false
 						end
 					end
@@ -1045,7 +1058,7 @@ local function drawRotatedSquare(cx, cz, radius, angleDeg, lengthScale)
 		{ -radius,  radius * lengthScale },
 	}
 
-	glBeginEnd(GL_LINE_LOOP, function()
+	glBeginEnd(GL.LINE_LOOP, function()
 		for i = 1, 4 do
 			local rx, rz = rotatePoint(corners[i][1], corners[i][2], angleDeg)
 			local wx, wz = cx + rx, cz + rz
@@ -1059,7 +1072,7 @@ local function drawRegularPolygon(cx, cz, radius, angleDeg, numSides, lengthScal
 	lengthScale = lengthScale or 1.0
 	local angleStep = 2 * pi / numSides
 	local offsetRad = angleDeg * pi / 180
-	glBeginEnd(GL_LINE_LOOP, function()
+	glBeginEnd(GL.LINE_LOOP, function()
 		for i = 0, numSides - 1 do
 			local a = i * angleStep
 			local lx = cos(a) * radius
@@ -1083,7 +1096,7 @@ local function drawRing(cx, cz, radius, angleDeg, lengthScale)
 		angleDeg = angleDeg or 0
 		local innerR = radius * RING_INNER_RATIO
 		for _, r in ipairs({radius, innerR}) do
-			glBeginEnd(GL_LINE_LOOP, function()
+			glBeginEnd(GL.LINE_LOOP, function()
 				for i = 0, CIRCLE_SEGMENTS - 1 do
 					local a = (i / CIRCLE_SEGMENTS) * 2 * pi
 					local lx = cos(a) * r
@@ -1145,7 +1158,7 @@ local function getShapeCorners(shape, radius, angleDeg, lengthScale)
 end
 
 local function drawShapeAtHeight(cx, cz, corners, height)
-	glBeginEnd(GL_LINE_LOOP, function()
+	glBeginEnd(GL.LINE_LOOP, function()
 		for i = 1, #corners do
 			glVertex(cx + corners[i][1], height, cz + corners[i][2])
 		end
@@ -1154,7 +1167,7 @@ end
 
 local function drawVerticalEdges(cx, cz, corners, bottomY, topY, stride)
 	stride = stride or 1
-	glBeginEnd(GL_LINES, function()
+	glBeginEnd(GL.LINES, function()
 		for i = 1, #corners, stride do
 			local wx = cx + corners[i][1]
 			local wz = cz + corners[i][2]
@@ -1228,7 +1241,7 @@ local function drawFalloffCurveCircle(cx, cz, radius, curvePower, baseY, effectH
 	lengthScale = lengthScale or 1.0
 	angleDeg = angleDeg or 0
 	local segments = 64
-	glBeginEnd(GL_LINE_LOOP, function()
+	glBeginEnd(GL.LINE_LOOP, function()
 		for i = 0, segments - 1 do
 			local theta = (i / segments) * 2 * pi
 			local nd = cos(theta)
@@ -1248,7 +1261,7 @@ local function drawFalloffCurveRing(cx, cz, radius, curvePower, baseY, effectHei
 	angleDeg = angleDeg or 0
 	local midR = radius * (1 + RING_INNER_RATIO) * 0.5
 	local segments = 64
-	glBeginEnd(GL_LINE_LOOP, function()
+	glBeginEnd(GL.LINE_LOOP, function()
 		for i = 0, segments - 1 do
 			local theta = (i / segments) * 2 * pi
 			local nd = cos(theta)
@@ -1267,7 +1280,7 @@ local function drawFalloffCurveRegularPoly(cx, cz, radius, angleDeg, numSides, c
 	lengthScale = lengthScale or 1.0
 	local segmentsPerFace = 8
 	local angleStep = 2 * pi / numSides
-	glBeginEnd(GL_LINE_LOOP, function()
+	glBeginEnd(GL.LINE_LOOP, function()
 		for side = 0, numSides - 1 do
 			local a0 = side * angleStep
 			local a1 = (side + 1) * angleStep
@@ -1304,7 +1317,7 @@ local squareFaces = {
 
 local function drawFalloffCurvePoly(cx, cz, faces, radiusX, radiusZ, angleDeg, curvePower, baseY, effectHeight)
 	local segmentsPerFace = 12
-	glBeginEnd(GL_LINE_LOOP, function()
+	glBeginEnd(GL.LINE_LOOP, function()
 		for _, face in ipairs(faces) do
 			for i = 0, segmentsPerFace - 1 do
 				local t = i / segmentsPerFace
@@ -1339,7 +1352,7 @@ local function drawRampPreview(startX, startZ, startY, endX, endZ, endY, width)
 
 	glColor(0.9, 0.7, 0.2, 0.7)
 	glLineWidth(2)
-	glBeginEnd(GL_LINE_LOOP, function()
+	glBeginEnd(GL.LINE_LOOP, function()
 		glVertex(c1x, startY + 4, c1z)
 		glVertex(c4x, endY + 4, c4z)
 		glVertex(c3x, endY + 4, c3z)
@@ -1347,7 +1360,7 @@ local function drawRampPreview(startX, startZ, startY, endX, endZ, endY, width)
 	end)
 
 	glColor(0.9, 0.7, 0.2, 0.4)
-	glBeginEnd(GL_LINES, function()
+	glBeginEnd(GL.LINES, function()
 		glVertex(startX, startY + 4, startZ)
 		glVertex(endX, endY + 4, endZ)
 	end)
@@ -1359,7 +1372,7 @@ local function drawSplineRampPreview(points, width)
 	-- Center line
 	glColor(0.9, 0.7, 0.2, 0.7)
 	glLineWidth(2)
-	glBeginEnd(GL_LINE_STRIP, function()
+	glBeginEnd(GL.LINE_STRIP, function()
 		for i = 1, #points do
 			local y = GetGroundHeight(points[i][1], points[i][2])
 			glVertex(points[i][1], y + 4, points[i][2])
@@ -1398,7 +1411,7 @@ local function drawSplineRampPreview(points, width)
 	-- Left edge
 	glColor(0.9, 0.7, 0.2, 0.4)
 	glLineWidth(1.5)
-	glBeginEnd(GL_LINE_STRIP, function()
+	glBeginEnd(GL.LINE_STRIP, function()
 		for i = 1, #points do
 			local lx = points[i][1] + normals[i][1]
 			local lz = points[i][2] + normals[i][2]
@@ -1408,7 +1421,7 @@ local function drawSplineRampPreview(points, width)
 	end)
 
 	-- Right edge
-	glBeginEnd(GL_LINE_STRIP, function()
+	glBeginEnd(GL.LINE_STRIP, function()
 		for i = 1, #points do
 			local rx = points[i][1] - normals[i][1]
 			local rz = points[i][2] - normals[i][2]
@@ -1420,13 +1433,209 @@ local function drawSplineRampPreview(points, width)
 	-- End caps
 	local startY = GetGroundHeight(points[1][1], points[1][2])
 	local endY = GetGroundHeight(points[#points][1], points[#points][2])
-	glBeginEnd(GL_LINES, function()
+	glBeginEnd(GL.LINES, function()
 		glVertex(points[1][1] + normals[1][1], startY + 4, points[1][2] + normals[1][2])
 		glVertex(points[1][1] - normals[1][1], startY + 4, points[1][2] - normals[1][2])
 		local n = #points
 		glVertex(points[n][1] + normals[n][1], endY + 4, points[n][2] + normals[n][2])
 		glVertex(points[n][1] - normals[n][1], endY + 4, points[n][2] - normals[n][2])
 	end)
+end
+
+-- Height colormap overlay (render-to-texture approach)
+local cmap = {
+	HALF_SIZE = 1000,
+	STEP = 64,
+	ALPHA = 0.35,
+	OFFSET = 2,
+	TEX_RES = 64,
+	REBUILD_DIST_SQ = 96 * 96,
+	R = {0.0, 0.0, 0.0, 0.8, 0.8},
+	G = {0.0, 0.5, 0.7, 0.8, 0.2},
+	B = {0.6, 0.8, 0.2, 0.0, 0.0},
+	tex = nil,
+	list = nil,
+	cachedCX = -99999,
+	cachedCZ = -99999,
+}
+
+local function destroyColormapResources()
+	if cmap.tex then
+		gl.DeleteTexture(cmap.tex)
+		cmap.tex = nil
+	end
+	if cmap.list then
+		glDeleteList(cmap.list)
+		cmap.list = nil
+	end
+	cmap.cachedCX, cmap.cachedCZ = -99999, -99999
+end
+
+local function ensureColormapTexture()
+	if not cmap.tex then
+		cmap.tex = gl.CreateTexture(cmap.TEX_RES, cmap.TEX_RES, {
+			border = false,
+			min_filter = GL.LINEAR,
+			mag_filter = GL.LINEAR,
+			wrap_s = GL.CLAMP_TO_EDGE,
+			wrap_t = GL.CLAMP_TO_EDGE,
+			fbo = true,
+		})
+	end
+end
+
+local function rebuildColormapTexture(centerX, centerZ)
+	local half = cmap.HALF_SIZE
+	local res = cmap.TEX_RES
+	local step = cmap.STEP
+	local mapSizeX = Game.mapSizeX
+	local mapSizeZ = Game.mapSizeZ
+
+	local bMinX = max(0, floor((centerX - half) / step) * step)
+	local bMaxX = min(mapSizeX, floor((centerX + half) / step + 1) * step)
+	local bMinZ = max(0, floor((centerZ - half) / step) * step)
+	local bMaxZ = min(mapSizeZ, floor((centerZ + half) / step + 1) * step)
+
+	-- Two-pass: find height range, then render to texture
+	local hMin, hMax = math.huge, -math.huge
+	local xRange = bMaxX - bMinX
+	local zRange = bMaxZ - bMinZ
+	if xRange < 1 or zRange < 1 then return end
+
+	local xStep = xRange / res
+	local zStep = zRange / res
+
+	for r = 0, res - 1 do
+		local z = bMinZ + (r + 0.5) * zStep
+		for c = 0, res - 1 do
+			local x = bMinX + (c + 0.5) * xStep
+			local h = GetGroundHeight(x, z)
+			if h < hMin then hMin = h end
+			if h > hMax then hMax = h end
+		end
+	end
+
+	local hRange = hMax - hMin
+	if hRange < 1 then hRange = 1 end
+	local invRange = 1.0 / hRange
+	local CR, CG, CB = cmap.R, cmap.G, cmap.B
+
+	gl.RenderToTexture(cmap.tex, function()
+		gl.Blending(false)
+		gl.DepthTest(false)
+
+		gl.MatrixMode(GL.PROJECTION)
+		gl.PushMatrix()
+		gl.LoadIdentity()
+		gl.MatrixMode(GL.MODELVIEW)
+		gl.PushMatrix()
+		gl.LoadIdentity()
+
+		local invRes = 1.0 / res
+		glBeginEnd(GL.QUADS, function()
+			for r = 0, res - 1 do
+				local z = bMinZ + (r + 0.5) * zStep
+				local y0 = r * invRes * 2 - 1
+				local y1 = (r + 1) * invRes * 2 - 1
+				for c = 0, res - 1 do
+					local x = bMinX + (c + 0.5) * xStep
+					local h = GetGroundHeight(x, z)
+					local t = (h - hMin) * invRange
+					if t < 0 then t = 0 elseif t > 1 then t = 1 end
+
+					local idx = t * 4
+					local seg = floor(idx)
+					local f = idx - seg
+					if seg >= 4 then seg = 3; f = 1 end
+					local s1 = seg + 1
+					local s2 = seg + 2
+					glColor4f(
+						CR[s1] + (CR[s2] - CR[s1]) * f,
+						CG[s1] + (CG[s2] - CG[s1]) * f,
+						CB[s1] + (CB[s2] - CB[s1]) * f,
+						1
+					)
+					local x0 = c * invRes * 2 - 1
+					local x1 = (c + 1) * invRes * 2 - 1
+					glVertex(x0, y0, 0)
+					glVertex(x1, y0, 0)
+					glVertex(x1, y1, 0)
+					glVertex(x0, y1, 0)
+				end
+			end
+		end)
+
+		gl.MatrixMode(GL.PROJECTION)
+		gl.PopMatrix()
+		gl.MatrixMode(GL.MODELVIEW)
+		gl.PopMatrix()
+		gl.Blending(true)
+	end)
+
+	-- Rebuild the terrain-conforming display list
+	if cmap.list then
+		glDeleteList(cmap.list)
+	end
+
+	local cmapOffset = cmap.OFFSET
+	local cmapAlpha = cmap.ALPHA
+	local cmapTex = cmap.tex
+	cmap.list = glCreateList(function()
+		gl.DepthTest(GL.LEQUAL)
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		glColor4f(1, 1, 1, cmapAlpha)
+		gl.Texture(cmapTex)
+
+		local invXRange = 1.0 / xRange
+		local invZRange = 1.0 / zRange
+
+		glBeginEnd(GL.QUADS, function()
+			for z = bMinZ, bMaxZ - step, step do
+				local t0 = (z - bMinZ) * invZRange
+				local t1 = (z + step - bMinZ) * invZRange
+				for x = bMinX, bMaxX - step, step do
+					local s0 = (x - bMinX) * invXRange
+					local s1 = (x + step - bMinX) * invXRange
+
+					local h00 = GetGroundHeight(x, z)
+					local h10 = GetGroundHeight(x + step, z)
+					local h01 = GetGroundHeight(x, z + step)
+					local h11 = GetGroundHeight(x + step, z + step)
+
+					gl.TexCoord(s0, t0)
+					glVertex(x, h00 + cmapOffset, z)
+					gl.TexCoord(s1, t0)
+					glVertex(x + step, h10 + cmapOffset, z)
+					gl.TexCoord(s1, t1)
+					glVertex(x + step, h11 + cmapOffset, z + step)
+					gl.TexCoord(s0, t1)
+					glVertex(x, h01 + cmapOffset, z + step)
+				end
+			end
+		end)
+
+		gl.Texture(false)
+		gl.DepthTest(false)
+		glColor4f(1, 1, 1, 1)
+	end)
+
+	cmap.cachedCX = centerX
+	cmap.cachedCZ = centerZ
+end
+
+local function drawHeightColormap(centerX, centerZ)
+	ensureColormapTexture()
+	if not cmap.tex then return end
+
+	local dx = centerX - cmap.cachedCX
+	local dz = centerZ - cmap.cachedCZ
+	if dx * dx + dz * dz > cmap.REBUILD_DIST_SQ or tessellationDirtyFrames > 0 then
+		rebuildColormapTexture(centerX, centerZ)
+	end
+
+	if cmap.list then
+		glCallList(cmap.list)
+	end
 end
 
 function widget:DrawScreen()
@@ -1459,6 +1668,11 @@ function widget:DrawWorld()
 	local worldX, worldZ = getWorldMousePosition()
 	if not worldX then
 		return
+	end
+
+	-- Height colormap overlay
+	if heightColormap then
+		drawHeightColormap(worldX, worldZ)
 	end
 
 	-- Track shift key state for axis-lock origin capture
@@ -1616,7 +1830,7 @@ function widget:DrawWorld()
 		glLineWidth(3)
 		gl.DepthTest(GL.ALWAYS)
 		gl.DepthMask(false)
-		glBeginEnd(GL_LINE_STRIP, function()
+		glBeginEnd(GL.LINE_STRIP, function()
 			if shiftAxis == "x" then
 				for x = 0, mapX, AXIS_STEP do
 					glVertex(x, GetGroundHeight(x, worldZ) + AXIS_OFFSET, worldZ)
@@ -1700,6 +1914,10 @@ function widget:MousePress(mx, my, button)
 			if activeMode == "ramp" and activeShape == "circle" then
 				rampSplinePoints = { { worldX, worldZ } }
 			end
+			-- Capture flatten height for flatten-to-cursor level mode
+			if flattenToCursor and activeMode == "level" then
+				flattenHeight = lockedGroundY
+			end
 		end
 
 		return true
@@ -1771,7 +1989,7 @@ function widget:MouseWheel(up, value)
 			activeRotation = (activeRotation - ROTATION_STEP) % 360
 		end
 
-		Echo("[Terraform Brush] Rotation: " .. activeRotation .. "°")
+		Echo("[Terraform Brush] Rotation: " .. activeRotation .. "Ă‚Â°")
 		return true
 	end
 
@@ -1783,11 +2001,11 @@ function widget:MouseWheel(up, value)
 		end
 
 		activeCurve = floor(activeCurve * 10 + 0.5) / 10
-		Echo("[Terraform Brush] Curve: " .. string.format("%.1f", activeCurve) .. " (flat ← 1.0 → sharp)")
+		Echo("[Terraform Brush] Curve: " .. string.format("%.1f", activeCurve) .. " (flat Ă˘â€ Â 1.0 Ă˘â€ â€™ sharp)")
 		return true
 	end
 
-	local spaceHeld = GetKeyState(KEYSYMS_SPACE)
+	local spaceHeld = GetKeyState(0x20) -- spacebar
 	if spaceHeld then
 		if up then
 			local newI = activeIntensity * 1.15
