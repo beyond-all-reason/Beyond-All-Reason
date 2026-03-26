@@ -8,6 +8,8 @@ function widget:GetInfo()
     }
 end
 
+local customCommands = VFS.Include("modules/customcommands.lua")
+local GameCMD = customCommands.GameCMD
 local CMD_TRANSPORT_TO = GameCMD.TRANSPORT_TO
 
 function widget:Initialize()
