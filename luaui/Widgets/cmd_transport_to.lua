@@ -614,25 +614,34 @@ function Check_transport_out_off_commision(transportID)
 		return
 	end
 
-	local unitState
-	if transportState.transporteeID then
-		unitState = Get_unit_state(transportState.transporteeID)
-	end
+	local passengerID = transportState.transporteeID
+	local unitState = passengerID and Get_unit_state(passengerID) or nil
 
 	if transportState.isLoaded and unitState then
 		unitState.transport_state = nil
 		unitState.isWaitingForTransport = false
-		unitsWaitingForTransport[transportState.transporteeID] = false
+		unitsWaitingForTransport[passengerID] = false
+
+		transportState.transporteeID = nil
+		transportState.isLoaded = false
+
 	elseif unitState then
-		local commandQueue = GetUnitCommands(transportState.transporteeID, -1) or {}
+		local commandQueue = GetUnitCommands(passengerID, -1) or {}
 		local nextCommand = commandQueue[1]
 		local cmdParams = nextCommand and nextCommand.params or {}
 
-		unitState.isWaitingForTransport = true
-		unitsWaitingForTransport[transportState.transporteeID] = true
+		unitState.transport_state = nil
+		transportState.transporteeID = nil
+		transportState.isLoaded = false
 
-		SetUnitMoveGoal(transportState.transporteeID, cmdParams[1], cmdParams[2], cmdParams[3])
-		Check_try_to_pick_transport(transportState.transporteeID, GetUnitDefID(transportState.transporteeID))
+		unitState.isWaitingForTransport = true
+		unitsWaitingForTransport[passengerID] = true
+
+		if cmdParams[1] and cmdParams[2] and cmdParams[3] then
+			SetUnitMoveGoal(passengerID, cmdParams[1], cmdParams[2], cmdParams[3])
+		end
+
+		Check_try_to_pick_transport(passengerID, GetUnitDefID(passengerID))
 	end
 end
 
