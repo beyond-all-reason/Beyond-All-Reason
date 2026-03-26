@@ -624,7 +624,6 @@ end
 if lavaWater then
 	local positionError = 24
 
-	local clamp	= math.clamp
 	local spGetProjectilePosition = Spring.GetProjectilePosition
 	local spSetProjectileCollision = Spring.SetProjectileCollision
 
@@ -636,7 +635,7 @@ if lavaWater then
 
 		local dx, dy, dz
         if elevation > lavaLevel then
-            dx, dy, dz = spGetGroundNormal(px, pz, true)
+            dx, dy, dz = spGetGroundNormal(area.x, area.z, true)
 		else
             dx, dy, dz = 0, 1, 0
         end
