@@ -12,7 +12,7 @@ if not gadgetHandler:IsSyncedCode() then
     return
 end
 
-local CMD_TRANSPORT_TO = 19990
+local CMD_TRANSPORT_TO = GameCMD.TRANSPORT_TO
 local CMD_MOVE = CMD.MOVE
 local CMD_STOP = CMD.STOP
 local CMD_LOAD_UNITS = CMD.LOAD_UNITS
