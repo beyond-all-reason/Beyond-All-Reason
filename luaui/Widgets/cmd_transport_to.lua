@@ -4,7 +4,7 @@ function widget:GetInfo()
 		name = "Transport To",
 		desc = "Adds a map-click Transport To command and auto-assigns transports",
 		author = "Silla Noble and Isajoefeat",
-		license = "A what now?",
+		license = "GNU GPL V2 or later",
 		layer = 1,
 		enabled = true,
 		handler = true,
