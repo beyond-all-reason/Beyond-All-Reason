@@ -19,6 +19,7 @@ local RESTORE_HEADER = "$terraform_restore$"
 local IMPORT_HEADER = "$terraform_import$"
 local UNDO_HEADER = "$terraform_undo$"
 local REDO_HEADER = "$terraform_redo$"
+local MERGE_END_HEADER = "$terraform_merge_end$"
 local DEFAULT_RADIUS = 100
 local UPDATE_INTERVAL = 0.016
 
@@ -389,6 +390,54 @@ local function getState()
 	}
 end
 
+-- Brush presets
+local brushPresets = {}   -- { [name] = { shape, radius, rotationDeg, curve, intensity, lengthScale, heightCapMin, heightCapMax, heightCapAbsolute, clayMode } }
+
+local function savePreset(name)
+	if not name or name == "" then return end
+	brushPresets[name] = {
+		shape = activeShape,
+		radius = activeRadius,
+		rotationDeg = activeRotation,
+		curve = activeCurve,
+		intensity = activeIntensity,
+		lengthScale = activeLengthScale,
+		heightCapMin = heightCapMin,
+		heightCapMax = heightCapMax,
+		heightCapAbsolute = heightCapAbsolute,
+		clayMode = clayMode,
+	}
+end
+
+local function loadPreset(name)
+	local p = brushPresets[name]
+	if not p then return end
+	activeShape = p.shape or "circle"
+	activeRadius = p.radius or DEFAULT_RADIUS
+	activeRotation = p.rotationDeg or 0
+	activeCurve = p.curve or DEFAULT_CURVE
+	activeIntensity = p.intensity or DEFAULT_INTENSITY
+	activeLengthScale = p.lengthScale or DEFAULT_LENGTH_SCALE
+	heightCapMin = p.heightCapMin
+	heightCapMax = p.heightCapMax
+	heightCapAbsolute = p.heightCapAbsolute or false
+	clayMode = p.clayMode or false
+	invalidateDrawCache()
+end
+
+local function deletePreset(name)
+	brushPresets[name] = nil
+end
+
+local function getPresetNames()
+	local names = {}
+	for name, _ in pairs(brushPresets) do
+		names[#names + 1] = name
+	end
+	table.sort(names)
+	return names
+end
+
 local importHeightRows = nil
 local importRowIndex = 0
 local IMPORT_ROWS_PER_FRAME = 32
@@ -722,6 +771,10 @@ function widget:Initialize()
 		setGridOverlay = setGridOverlay,
 		setDustEffects = setDustEffects,
 		getState = getState,
+		savePreset = savePreset,
+		loadPreset = loadPreset,
+		deletePreset = deletePreset,
+		getPresetNames = getPresetNames,
 		deactivate = deactivateTerraform,
 		undo = function()
 			if historyUndoCount > 0 then
@@ -756,6 +809,16 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal("TerraformBrushStackUpdate")
 	hideBuildGrid()
 	WG.TerraformBrush = nil
+end
+
+function widget:GetConfigData()
+	return { brushPresets = brushPresets }
+end
+
+function widget:SetConfigData(data)
+	if data and data.brushPresets then
+		brushPresets = data.brushPresets
+	end
 end
 
 local function smoothSplinePoints(points, passes)
@@ -808,6 +871,9 @@ function widget:Update(dt)
 	local mx, my, leftPressed, _, rightPressed = GetMouseState()
 	local anyPressed = leftPressed or (rightPressed and rightMouseHeld)
 	if not anyPressed then
+		if lockedWorldX then
+			SendLuaRulesMsg(MERGE_END_HEADER)
+		end
 		lockedWorldX = nil
 		lockedWorldZ = nil
 		lockedGroundY = nil
