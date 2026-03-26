@@ -399,7 +399,7 @@ function gadget:UnitCreated(unitID, unitDefID)
             id = CMD_TRANSPORT_TO,
             type = CMDTYPE.ICON_MAP,
             name = "Ferry",
-            action = "ferry",
+            action = "transport_to",
             tooltip = "Request a transport",
         })
     end
