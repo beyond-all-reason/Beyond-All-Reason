@@ -126,19 +126,10 @@ function widget:VisibleUnitRemoved(unitID)
 end
 
 local function checkGuishader(force)
-	if WG['guishader'] then
-		if force and dlistGuishader then
-			WG['guishader'].RemoveDlist('idlebuilders')
-			dlistGuishader = gl.DeleteList(dlistGuishader)
-		end
-		if not dlistGuishader and backgroundRect then
-			dlistGuishader = gl.CreateList(function()
-				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner, ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0))
-			end)
-			WG['guishader'].InsertDlist(dlistGuishader, 'idlebuilders')
-		end
-	elseif dlistGuishader then
-		dlistGuishader = gl.DeleteList(dlistGuishader)
+	if backgroundRect then
+		dlistGuishader = WG.FlowUI.guishaderCheckDlist(dlistGuishader, 'idlebuilders', function()
+			RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner, ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0))
+		end, force)
 	end
 end
 
@@ -422,15 +413,7 @@ local function updateList(force)
 				format = GL.RGBA,
 				fbo = true,
 			})
-			gl.R2tHelper.RenderToTexture(uiBgTex,
-				function()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (backgroundRect[3]-backgroundRect[1]), 2 / (backgroundRect[4]-backgroundRect[2]),	0)
-					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-					drawBackground()
-				end,
-				true
-			)
+			gl.R2tHelper.RenderInRect(uiBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], drawBackground, true)
 		end
 		if not uiTex then
 			uiTex = gl.CreateTexture(mathFloor(uiTexWidth)*2, mathFloor(backgroundRect[4]-backgroundRect[2])*2, {
@@ -439,15 +422,7 @@ local function updateList(force)
 				fbo = true,
 			})
 		end
-		gl.R2tHelper.RenderToTexture(uiTex,
-			function()
-				gl.Translate(-1, -1, 0)
-				gl.Scale(2 / uiTexWidth, 2 / (backgroundRect[4]-backgroundRect[2]),	0)
-				gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-				drawContent()
-			end,
-			true
-		)
+		gl.R2tHelper.RenderInRect(uiTex, backgroundRect[1], backgroundRect[2], backgroundRect[1]+uiTexWidth, backgroundRect[4], drawContent, true)
 	end
 end
 
@@ -597,7 +572,7 @@ function widget:Shutdown()
 		uiTex = nil
 	end
 	if WG['guishader'] then
-		WG['guishader'].DeleteDlist('idlebuilders')
+		WG.FlowUI.guishaderDeleteDlist('idlebuilders')
 		dlistGuishader = nil
 	end
 	WG['idlebuilders'] = nil

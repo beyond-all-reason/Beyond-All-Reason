@@ -133,10 +133,6 @@ local function round(value, numDecimalPlaces)
 	end
 end
 
-local function convertColor(r, g, b)
-	return string.char(255, (r * 255), (g * 255), (b * 255))
-end
-
 local unitDefInfo = {}
 local unitRestricted = {}
 local isWaterUnit = {}
@@ -629,19 +625,9 @@ local function checkGeothermalFeatures()
 end
 
 local function checkGuishader(force)
-	if WG['guishader'] then
-		if force and dlistGuishader then
-			dlistGuishader = gl.DeleteList(dlistGuishader)
-		end
-		if not dlistGuishader then
-			dlistGuishader = gl.CreateList(function()
-				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner, 0, 1, 0, 0)
-			end)
-			WG['guishader'].InsertDlist(dlistGuishader, 'info')
-		end
-	elseif dlistGuishader then
-		dlistGuishader = gl.DeleteList(dlistGuishader)
-	end
+	dlistGuishader = WG.FlowUI.guishaderCheckDlist(dlistGuishader, 'info', function()
+		RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner, 0, 1, 0, 0)
+	end, force)
 end
 
 function widget:PlayerChanged(playerID)
@@ -825,7 +811,7 @@ function widget:Shutdown()
 		gl.DeleteTexture(infoTex)
 	end
 	if WG['guishader'] and dlistGuishader then
-		WG['guishader'].DeleteDlist('info')
+		WG.FlowUI.guishaderDeleteDlist('info')
 		dlistGuishader = nil
 	end
 end
@@ -1402,7 +1388,7 @@ local function drawUnitInfo()
 		health, maxHealth = spGetUnitHealth(displayUnitID)
 		if health then
 			local color = bfcolormap[math.clamp(math_floor((health / maxHealth) * 100), 0, 100)]
-			valueY3 = convertColor(color[1], color[2], color[3]) .. math_floor(health)
+			valueY3 = Spring.Utilities.ConvertColor(color[1], color[2], color[3]) .. math_floor(health)
 		end
 
 		-- display unit owner name

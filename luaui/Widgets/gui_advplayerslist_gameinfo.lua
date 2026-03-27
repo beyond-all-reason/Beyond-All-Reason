@@ -117,15 +117,7 @@ local function refreshUiDrawing()
 				format = GL.RGBA,
 				fbo = true,
 			})
-			gl.R2tHelper.RenderToTexture(uiBgTex,
-				function()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (right-left), 2 / (top-bottom), 0)
-					gl.Translate(-left, -bottom, 0)
-					drawBackground()
-				end,
-				true
-			)
+			gl.R2tHelper.RenderInRect(uiBgTex, left, bottom, right, top, drawBackground, true)
 		end
 		if not uiTex then
 			uiTex = gl.CreateTexture(mathFloor(right-left), mathFloor(top-bottom), {	--*(vsy<1400 and 2 or 1)
@@ -134,15 +126,7 @@ local function refreshUiDrawing()
 				fbo = true,
 			})
 		end
-		gl.R2tHelper.RenderToTexture(uiTex,
-			function()
-				gl.Translate(-1, -1, 0)
-				gl.Scale(2 / (right-left), 2 / (top-bottom), 0)
-				gl.Translate(-left, -bottom, 0)
-				drawContent()
-			end,
-			true
-		)
+		gl.R2tHelper.RenderInRect(uiTex, left, bottom, right, top, drawContent, true)
 	end
 end
 

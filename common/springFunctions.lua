@@ -53,6 +53,7 @@ local utilities = {
 	SafeLuaTableParser = safeLuaTableParser.SafeLuaTableParser,
 
 	Color = colorFunctions,
+	ConvertColor = colorFunctions.ConvertColor,
 
 	GetAccountID = function(playerID)
 		local cached = accountIDCache[playerID]

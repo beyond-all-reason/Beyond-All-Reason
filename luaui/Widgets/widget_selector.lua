@@ -239,7 +239,7 @@ function drawChatInput()
 			-- background
 			local x2 = mathMax(textPosX+lineHeight+floor(usedFont:GetTextWidth(inputText) * inputFontSize), floor(activationArea[1]+((activationArea[3]-activationArea[1])/2)))
 			chatInputArea = { activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance }
-			UiElement(chatInputArea[1], chatInputArea[2], chatInputArea[3], chatInputArea[4], 0,0,nil,nil, 0,nil,nil,nil, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+			UiElement(chatInputArea[1], chatInputArea[2], chatInputArea[3], chatInputArea[4], 0,0,nil,nil, 0,nil,nil,nil, WG.FlowUI.clampedOpacity)
 
 			if WG['guishader'] and activeGuishader then
 				WG['guishader'].InsertRect(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, 'selectorinput')
@@ -815,10 +815,10 @@ function widget:DrawScreen()
 
 		uiList = gl.DeleteList(uiList)
 		uiList = gl.CreateList(function()
-			UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 0, 1, 1, 0, 1,1,1,1, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+			UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 0, 1, 1, 0, 1,1,1,1, WG.FlowUI.clampedOpacity)
 
 			-- title background
-			gl.Color(0, 0, 0, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+			gl.Color(0, 0, 0, WG.FlowUI.clampedOpacity)
 			RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 
 			-- title
