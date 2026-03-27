@@ -17,13 +17,20 @@ end
 local sounds = VFS.Include('luarules/mission_api/sounds.lua')
 
 local scriptPath
-local triggersController, actionsController
+local stagesController, objectivesController, triggersController, actionsController
+local broadcast
 
 local function loadMission()
 	local mission = VFS.Include("singleplayer/" .. scriptPath)
-	local rawTriggers = mission.Triggers
-	local rawActions = mission.Actions
+	local initialStage = mission.InitialStage or "initialStage"
+	local rawObjectives = mission.Objectives or {}
+	local rawStages = mission.Stages or {}
+	local rawTriggers = mission.Triggers or {}
+	local rawActions = mission.Actions or {}
 
+	GG['MissionAPI'].CurrentStageID = initialStage
+	GG['MissionAPI'].Objectives = objectivesController.ProcessRawObjectives(rawObjectives)
+	GG['MissionAPI'].Stages = stagesController.ProcessRawStages(rawStages, initialStage)
 	GG['MissionAPI'].Triggers = triggersController.ProcessRawTriggers(rawTriggers, rawActions)
 	GG['MissionAPI'].Actions = actionsController.ProcessRawActions(rawActions)
 
@@ -35,10 +42,11 @@ function gadget:Initialize()
 	-- TODO: Actually pass script path
 	--scriptPath = 'mission-api-tests/validation_test.lua'
 	--scriptPath = 'mission-api-tests/test_mission.lua'
-	--scriptPath = 'mission-api-tests/sound_test.lua'
 	--scriptPath = 'mission-api-tests/markers_test.lua'
 	--scriptPath = 'mission-api-tests/unit_triggers_test.lua'
-	scriptPath = 'mission-api-tests/issue_orders_test.lua'
+	--scriptPath = 'mission-api-tests/sound_test.lua'
+	--scriptPath = 'mission-api-tests/issue_orders_test.lua'
+	scriptPath = 'mission-api-tests/stages_and_objectives_test.lua'
 
 	if not scriptPath then
 		gadgetHandler:RemoveGadget()
@@ -57,10 +65,20 @@ function gadget:Initialize()
 	GG['MissionAPI'].soundFiles = {}
 	GG['MissionAPI'].soundQueue = {}
 
+	broadcast = VFS.Include('luarules/mission_api/broadcast.lua')
+
+	objectivesController = VFS.Include('luarules/mission_api/objectives_loader.lua')
+	stagesController = VFS.Include('luarules/mission_api/stages_loader.lua')
 	triggersController = VFS.Include('luarules/mission_api/triggers_loader.lua')
 	actionsController = VFS.Include('luarules/mission_api/actions_loader.lua')
 
-	loadMission();
+	loadMission()
+end
+
+function gadget:GamePreload()
+	if next(GG['MissionAPI'].Stages) then
+		broadcast.StageChanged(GG['MissionAPI'].CurrentStageID)
+	end
 end
 
 function gadget:GameFrame(frameNumber)

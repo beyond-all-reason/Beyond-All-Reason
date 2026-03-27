@@ -50,6 +50,7 @@ local settings = {
 	difficulties = Types.Table,
 	coop = Types.Boolean,
 	active = Types.Boolean,
+	stages = Types.Table,
 }
 
 --============================================================--

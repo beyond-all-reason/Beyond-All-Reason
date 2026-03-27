@@ -1,5 +1,5 @@
 ---
---- Validators for Mission API actions and triggers loaded from missions.
+--- Validators for Mission API stages, objectives, actions, and triggers loaded from missions.
 ---
 
 VFS.Include('common/wav.lua')
@@ -294,6 +294,28 @@ validators[Types.Area] = function(area)
 
 --- String Validators:
 
+validators[Types.StageID] = function(stageID)
+	local luaTypeResult = validators[Types.String](stageID)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	if not GG['MissionAPI'].Stages[stageID] then
+		return { { message = "Invalid stageID: " .. stageID } }
+	end
+end
+
+validators[Types.ObjectiveID] = function(objectiveID)
+	local luaTypeResult = validators[Types.String](objectiveID)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	if not GG['MissionAPI'].Objectives[objectiveID] then
+		return { { message = "Invalid objectiveID: " .. objectiveID } }
+	end
+end
+
 validators[Types.TriggerID] = function(triggerID)
 		local luaTypeResult = validators[Types.String](triggerID)
 		if luaTypeResult then
@@ -420,7 +442,7 @@ local function validate(schemaParameters, actionOrTriggerType, actionOrTriggerPa
 end
 
 local function validateTriggerSettings(trigger, triggerID, triggers)
-	-- Validate types of settings:
+	-- Validate Lua types of settings:
 	for schemaSetting, schemaType in pairs(triggersSchemaSettings) do
 		local luaTypeResult = validateLuaType(trigger.settings[schemaSetting], string.lower(schemaType))
 		if luaTypeResult then
@@ -428,10 +450,57 @@ local function validateTriggerSettings(trigger, triggerID, triggers)
 		end
 	end
 
+	-- Validate maxRepeats is only set if repeating is true:
+	if trigger.settings.maxRepeats and not trigger.settings.repeating then
+		logError("Trigger has maxRepeats setting but is not set to repeating. Trigger: " .. triggerID)
+	end
+
 	-- Validate prerequisites triggerIDs exist:
 	for _, prerequisiteTriggerID in pairs(trigger.settings.prerequisites) do
 		if not triggers[prerequisiteTriggerID] then
 			logError("Trigger prerequisite does not exist. Trigger: " .. triggerID .. ", Prerequisite triggerID: " .. prerequisiteTriggerID)
+		end
+	end
+
+	-- Validate stages exist:
+	if trigger.settings.stages then
+		for _, stage in pairs(trigger.settings.stages) do
+			if not GG['MissionAPI'].Stages[stage] then
+				logError("Trigger refers to non-existent stage. Trigger: " .. triggerID .. ", Stage: " .. stage)
+			end
+		end
+	end
+end
+
+local function validateObjectives(objectives)
+	for objectiveID, objective in pairs(objectives) do
+		if not objective.text then
+			logError("Objective missing text: " .. objectiveID)
+		elseif objective.text == '' then
+			logError("Objective has empty text: " .. objectiveID)
+		elseif string.find(objective.text, '|') then
+			logError("Objective text cannot contain the | character: " .. objectiveID)
+		end
+	end
+end
+
+local function validateStages(stages, initialStage)
+	if next(stages) and not stages[initialStage] then
+		logError("Initial stage does not exist in stages: " .. initialStage)
+	end
+
+	for stageID, stage in pairs(stages) do
+		if not stage.title then
+			logError("Stage missing title: " .. stageID)
+		elseif stage.title == '' then
+			logError("Stage has empty title: " .. stageID)
+		elseif string.find(stage.title, '|') then
+			logError("Stage title cannot contain the | character: " .. stageID)
+		end
+		for _, objectiveID in pairs(stage.objectives or {}) do
+			if not GG['MissionAPI'].Objectives[objectiveID] then
+				logError("Stage refers to non-existent objective. Stage: " .. stageID .. ", Objective: " .. objectiveID)
+			end
 		end
 	end
 end
@@ -457,10 +526,8 @@ end
 local function getAllActionIDsReferencedByTriggers()
 	local allActionIDsReferencedByTriggers = {}
 	for _, trigger in pairs(GG['MissionAPI'].Triggers) do
-		if not table.isNilOrEmpty(trigger.actions) then
-			for _, actionID in pairs(trigger.actions) do
-				allActionIDsReferencedByTriggers[actionID] = true
-			end
+		for _, actionID in pairs(trigger.actions or {}) do
+			allActionIDsReferencedByTriggers[actionID] = true
 		end
 	end
 	return allActionIDsReferencedByTriggers
@@ -478,6 +545,30 @@ local function validateActions(actions)
 	end
 	if not table.isEmpty(unreferencedActionIDs) then
 		logError("Actions not referenced by any trigger: " .. table.concat(unreferencedActionIDs, ", "))
+	end
+end
+
+local function getAllObjectiveIDsReferencedByStages()
+	local allObjectiveIDsReferencedByStages = {}
+	for _, stage in pairs(GG['MissionAPI'].Stages) do
+		for _, objectiveID in pairs(stage.objectives or {}) do
+			allObjectiveIDsReferencedByStages[objectiveID] = true
+		end
+	end
+	return allObjectiveIDsReferencedByStages
+end
+
+local function validateObjectiveReferences(objectives)
+	local allObjectiveIDsReferencedByStages = getAllObjectiveIDsReferencedByStages()
+
+	local unreferencedObjectiveIDs = {}
+	for objectiveID, _ in pairs(objectives) do
+		if not allObjectiveIDsReferencedByStages[objectiveID] then
+			unreferencedObjectiveIDs[#unreferencedObjectiveIDs + 1] = objectiveID
+		end
+	end
+	if not table.isEmpty(unreferencedObjectiveIDs) then
+		logError("Objectives not referenced by any stage: " .. table.concat(unreferencedObjectiveIDs, ", "))
 	end
 end
 
@@ -503,6 +594,7 @@ local function validateUnitNameReferences(triggerTypes, actionTypes, triggers, a
 		[actionTypes.TransferUnits] = true,
 		[actionTypes.DespawnUnits] = true,
 		[actionTypes.TransferUnits] = true,
+		[actionTypes.UpdateObjective] = true,
 	}
 
 	local createdUnitNames = {}
@@ -586,13 +678,17 @@ local function validateReferences()
 	-- Types need to be fetched here to avoid circular dependency
 	local triggerTypes = GG['MissionAPI'].TriggerTypes
 	local actionTypes = GG['MissionAPI'].ActionTypes
+	local objectives = GG['MissionAPI'].Objectives
 	local triggers = GG['MissionAPI'].Triggers
 	local actions = GG['MissionAPI'].Actions
+	validateObjectiveReferences(objectives)
 	validateUnitNameReferences(triggerTypes, actionTypes, triggers, actions)
 	validateMarkerNameReferences(actionTypes, actions)
 end
 
 return {
+	ValidateObjectives = validateObjectives,
+	ValidateStages = validateStages,
 	ValidateTriggers = validateTriggers,
 	ValidateActions = validateActions,
 	ValidateReferences = validateReferences,

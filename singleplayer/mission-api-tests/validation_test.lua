@@ -5,6 +5,19 @@
 local triggerTypes = GG['MissionAPI'].TriggerTypes
 local actionTypes = GG['MissionAPI'].ActionTypes
 
+local objectives = {
+	objectiveWithEmptyText = {
+		text = "",
+	},
+}
+
+local initialStage = 'invalidStage'
+local stages = {
+	stageWithNoTitleAndInvalidObjectiveID = {
+		objectives = { 'invalidObjectiveID' },
+	},
+}
+
 local triggers = {
 
 	triggerMissingTypeAndActions = {},
@@ -263,9 +276,27 @@ local actions = {
 			soundfile = 'README.md',
 		},
 	},
+
+	actionWithInvalidStageID = {
+		type = actionTypes.ChangeStage,
+		parameters = {
+			stageID = 'invalidStageID',
+		},
+	},
+
+	actionWithInvalidObjectiveID = {
+		type = actionTypes.UpdateObjective,
+		parameters = {
+			objectiveID = 'invalidObjectiveID',
+			completed = true,
+		},
+	}
 }
 
 return {
+	Objectives = objectives,
+	InitialStage = initialStage,
+	Stages = stages,
 	Triggers = triggers,
 	Actions = actions,
 }

@@ -6,6 +6,7 @@ local untrackUnitName = tracking.UntrackUnitName
 
 local trackedUnitIDs = GG['MissionAPI'].trackedUnitIDs
 local triggers = GG['MissionAPI'].Triggers
+local broadcast = VFS.Include('luarules/mission_api/broadcast.lua')
 
 
 ----------------------------------------------------------------
@@ -41,6 +42,38 @@ end
 
 local function disableTrigger(triggerID)
 	triggers[triggerID].settings.active = false
+end
+
+local function changeStage(stage)
+	GG['MissionAPI'].CurrentStageID = stage
+	broadcast.StageChanged(stage)
+end
+
+local function updateObjective(objectiveID, completed, text, unitName, featureName)
+	local objective = GG['MissionAPI'].Objectives[objectiveID]
+
+	if objective.completed then return end
+
+	if text then
+		objective.text = text
+	end
+	if unitName then
+		objective.progress = #(trackedUnitIDs[unitName] or {})
+	elseif featureName then
+		-- TODO
+	end
+
+	if completed ~= nil then
+		objective.completed = completed
+	elseif objective.amount ~= nil then
+		if objective.amount == 0 then
+			objective.completed = objective.progress == 0
+		else
+			objective.completed = objective.progress >= objective.amount
+		end
+	end
+
+	broadcast.ObjectiveUpdated(objectiveID, objective.text, objective.progress, objective.amount, objective.completed)
 end
 
 local function issueOrders(unitName, orders)
@@ -254,6 +287,10 @@ return {
 	-- Triggers
 	EnableTrigger = enableTrigger,
 	DisableTrigger = disableTrigger,
+
+	-- Stages & Objectives
+	ChangeStage = changeStage,
+	UpdateObjective = updateObjective,
 
 	-- Orders
 	IssueOrders = issueOrders,
