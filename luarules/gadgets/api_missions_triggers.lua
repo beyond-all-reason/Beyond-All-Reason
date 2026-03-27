@@ -297,12 +297,7 @@ end
 
 local function isFeatureInArea(featureID, area)
 	local featureX, _, featureZ = Spring.GetFeaturePosition(featureID)
-	if area.x1 then
-		return featureX >= area.x1 and featureX <= area.x2 and featureZ >= area.z1 and featureZ <= area.z2
-	else
-		local dx, dz = featureX - area.x, featureZ - area.z
-		return dx * dx + dz * dz <= area.radius * area.radius
-	end
+	return math.isPointInArea(featureX, featureZ, area)
 end
 
 local function checkFeatureCreated(trigger, featureID, featureDefID)

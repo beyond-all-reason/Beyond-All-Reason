@@ -7,7 +7,7 @@ local trackedUnitNames = GG['MissionAPI'].trackedUnitNames
 local trackedFeatureIDs   = GG['MissionAPI'].trackedFeatureIDs
 local trackedFeatureNames = GG['MissionAPI'].trackedFeatureNames
 
-local function trackIt(name, ID, trackedIDs, trackedNames)
+local function trackEntity(name, ID, trackedIDs, trackedNames)
 	if not name or not ID then
 		return
 	end
@@ -27,7 +27,7 @@ local function isNameUntracked(name, trackedIDs)
 	return table.isNilOrEmpty(trackedIDs[name])
 end
 
-local function doesItHaveName(ID, name, trackedIDs)
+local function doesEntityHaveName(ID, name, trackedIDs)
 	return (trackedIDs[name] or {})[ID] == true
 end
 
@@ -61,7 +61,7 @@ end
 ----------------------------------------------------------------
 
 local function trackUnit(name, unitID)
-	trackIt(name, unitID, trackedUnitIDs, trackedUnitNames)
+	trackEntity(name, unitID, trackedUnitIDs, trackedUnitNames)
 end
 
 local function isUnitIDUntracked(unitID)
@@ -73,7 +73,7 @@ local function isUnitNameUntracked(name)
 end
 
 local function doesUnitHaveName(unitID, name)
-	return doesItHaveName(unitID, name, trackedUnitIDs)
+	return doesEntityHaveName(unitID, name, trackedUnitIDs)
 end
 
 local function untrackUnitID(unitID)
@@ -89,7 +89,7 @@ end
 ----------------------------------------------------------------
 
 local function trackFeature(name, featureID)
-	trackIt(name, featureID, trackedFeatureIDs, trackedFeatureNames)
+	trackEntity(name, featureID, trackedFeatureIDs, trackedFeatureNames)
 end
 
 local function isFeatureIDUntracked(featureID)
@@ -101,7 +101,7 @@ local function isFeatureNameUntracked(name)
 end
 
 local function doesFeatureHaveName(featureID, name)
-	return doesItHaveName(featureID, name, trackedFeatureIDs)
+	return doesEntityHaveName(featureID, name, trackedFeatureIDs)
 end
 
 local function untrackFeatureID(featureID)
