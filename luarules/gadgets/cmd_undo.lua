@@ -26,21 +26,9 @@ local cmdname = 'undo'
 
 local rememberGameframes = 9000 -- 9000 -> 5 minutes
 local mathFloor = math.floor
-local mathRandom = math.random
-local tableInsert = table.insert
-local stringChar = string.char
 
 if gadgetHandler:IsSyncedCode() then
-	local charset = {}  do -- [0-9a-zA-Z]
-		for c = 48, 57  do tableInsert(charset, stringChar(c)) end
-		for c = 65, 90  do tableInsert(charset, stringChar(c)) end
-		for c = 97, 122 do tableInsert(charset, stringChar(c)) end
-	end
-	local function randomString(length)
-		if not length or length <= 0 then return '' end
-		return randomString(length - 1) .. charset[mathRandom(1, #charset)]
-	end
-	local validation = randomString(2)
+	local validation = string.randomString(2)
 	_G.validationUndo = validation
 
 	local teamSelfdUnits = {}
@@ -187,8 +175,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:RecvLuaMsg(msg, playerID)
 		if msg:sub(1,2)=="un" and msg:sub(3,4)==validation then
 
-			local accountInfo = select(11, Spring.GetPlayerInfo(playerID))
-			local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
+			local accountID = Spring.Utilities.GetAccountID(playerID)
 			local authorized = false
 			if _G.permissions.undo[accountID] then
 				authorized = true
@@ -203,8 +190,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function notify(message)
 		for _,playerID in pairs(Spring.GetPlayerList()) do
-			local accountInfo = select(11, Spring.GetPlayerInfo(playerID))
-			local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
+			local accountID = Spring.Utilities.GetAccountID(playerID)
 			if _G.permissions.undo[accountID] then
 				Spring.SendMessageToPlayer(playerID, message)
 			end

@@ -27,10 +27,44 @@ WG.FlowUI.version = 1
 WG.FlowUI.initialized = false
 
 WG.FlowUI.opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
+WG.FlowUI.clampedOpacity = mathMax(0.75, WG.FlowUI.opacity)
 WG.FlowUI.scale = Spring.GetConfigFloat("ui_scale", 1)
 WG.FlowUI.tileOpacity = Spring.GetConfigFloat("ui_tileopacity", 0.014)
 WG.FlowUI.tileScale = Spring.GetConfigFloat("ui_tilescale", 7)
 WG.FlowUI.tileSize = WG.FlowUI.tileScale
+
+-- Guishader display list lifecycle helpers
+WG.FlowUI.guishaderCheckDlist = function(currentDlist, name, drawFn, force)
+	if WG['guishader'] then
+		if force and currentDlist then
+			currentDlist = gl.DeleteList(currentDlist)
+		end
+		if not currentDlist then
+			currentDlist = gl.CreateList(drawFn)
+			WG['guishader'].InsertDlist(currentDlist, name)
+		end
+		return currentDlist
+	elseif currentDlist then
+		return gl.DeleteList(currentDlist)
+	end
+	return nil
+end
+
+WG.FlowUI.guishaderRemoveDlist = function(currentDlist, name)
+	if WG['guishader'] then
+		WG['guishader'].RemoveDlist(name)
+	end
+	if currentDlist then
+		gl.DeleteList(currentDlist)
+	end
+	return nil
+end
+
+WG.FlowUI.guishaderDeleteDlist = function(name)
+	if WG['guishader'] then
+		WG['guishader'].DeleteDlist(name)
+	end
+end
 
 local function ViewResize(vsx, vsy)
 	if not vsy then

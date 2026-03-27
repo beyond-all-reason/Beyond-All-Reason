@@ -16,7 +16,7 @@ return {						--costs should be same as legmohocon and legmohoconin
 		canreclaim = true,
 		canrepeat = false,
 		canstop = true,
-		cantbetransported = false,
+		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "31 32 31",
 		collisionvolumetype = "CylY",

@@ -26,16 +26,27 @@ if gadgetHandler:IsSyncedCode() then
 	startPlayers = {}
 end
 
-function isAuthorized(playerID)
+function isAuthorized(playerID, subPermission)
 	if Spring.IsCheatingEnabled() then
 		return true
-	else
-		local playername,_,_,_,_,_,_,_,_,_,accountInfo = Spring.GetPlayerInfo(playerID)
-		local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
-		if (_G and _G.permissions.devhelpers[accountID]) or (SYNCED and SYNCED.permissions.devhelpers[accountID]) then
-			if startPlayers == nil or startPlayers[playername] == nil then
-				return true
-			end
+	end
+	local playername = Spring.GetPlayerInfo(playerID)
+	local accountID = Spring.Utilities.GetAccountID(playerID)
+	local hasPermission = false
+	-- check catch-all devhelpers permission
+	if (_G and _G.permissions.devhelpers and _G.permissions.devhelpers[accountID]) or (SYNCED and SYNCED.permissions.devhelpers and SYNCED.permissions.devhelpers[accountID]) then
+		hasPermission = true
+	end
+	-- check specific sub-permission
+	if not hasPermission and subPermission then
+		local permKey = "devhelpers_" .. subPermission
+		if (_G and _G.permissions[permKey] and _G.permissions[permKey][accountID]) or (SYNCED and SYNCED.permissions[permKey] and SYNCED.permissions[permKey][accountID]) then
+			hasPermission = true
+		end
+	end
+	if hasPermission then
+		if startPlayers == nil or startPlayers[playername] == nil then
+			return true
 		end
 	end
 	return false
@@ -532,18 +543,33 @@ if gadgetHandler:IsSyncedCode() then
 			table.insert(words, word)
 		end
 
-		if not isAuthorized(playerID) then
+		-- determine required sub-permission for the command
+		local cmd = words[1]
+		local subPermission
+		if cmd == "desync" then
+			subPermission = "test"
+		elseif cmd == "givecat" or cmd == "xpunits" or cmd == "destroyunits" or cmd == "removeunits" or
+			cmd == "removenearbyunits" or cmd == "reclaimunits" or cmd == "transferunits" or
+			cmd == "wreckunits" or cmd == "spawnceg" or cmd == "spawnunitexplosion" or cmd == "removeunitdef" then
+			subPermission = "units"
+		elseif cmd == "playertoteam" or cmd == "killteam" then
+			subPermission = "teams"
+		elseif cmd == "fightertest" or cmd == "globallos" or cmd == "clearwrecks" or cmd == "reducewrecks" then
+			subPermission = "terrain"
+		end
+
+		if not isAuthorized(playerID, subPermission) then
 			return
 		end
 
-		if words[1] == 'desync' then
+		if cmd == 'desync' then
 			Spring.Echo("Synced: Attempting to trigger a /desync")
 			Spring.SendCommands("desync")
 		end
 
-		if words[1] == "givecat" then
+		if cmd == "givecat" then
 			GiveCat(words)
-		elseif words[1] == "xpunits" then
+		elseif cmd == "xpunits" then
 			local parts = string.split(msg, ':')
 			local words = {}
 			msg = parts[1]..':'..parts[2]
@@ -551,15 +577,15 @@ if gadgetHandler:IsSyncedCode() then
 				table.insert(words, word)
 			end
 			ExecuteSelUnits(words, playerID, 'xp', parts[3])
-		elseif words[1] == "destroyunits" then
+		elseif cmd == "destroyunits" then
 			ExecuteSelUnits(words, playerID)
-		elseif words[1] == "removeunits" then
+		elseif cmd == "removeunits" then
 			ExecuteSelUnits(words, playerID, 'remove')
-		elseif words[1] == "removenearbyunits" then
+		elseif cmd == "removenearbyunits" then
 			ExecuteSelUnits(words, playerID, 'removenearbyunits')
-		elseif words[1] == "reclaimunits" then
+		elseif cmd == "reclaimunits" then
 			ExecuteSelUnits(words, playerID)
-		elseif words[1] == "transferunits" then
+		elseif cmd == "transferunits" then
 			local parts = string.split(msg, ':')
 			local words = {}
 			msg = parts[1]..':'..parts[2]
@@ -567,25 +593,25 @@ if gadgetHandler:IsSyncedCode() then
 				table.insert(words, word)
 			end
 			ExecuteSelUnits(words, playerID, 'transfer', parts[3])
-		elseif words[1] == "wreckunits" then
+		elseif cmd == "wreckunits" then
 			ExecuteSelUnits(words, playerID, 'wreck')
-		elseif words[1] == "spawnceg" then
+		elseif cmd == "spawnceg" then
 			spawnceg(words)
-		elseif words[1] == "spawnunitexplosion" then
+		elseif cmd == "spawnunitexplosion" then
 			spawnunitexplosion(words, playerID)
-		elseif words[1] == "removeunitdef" then
+		elseif cmd == "removeunitdef" then
 			ExecuteRemoveUnitDefName(words[2])
-		elseif words[1] == "clearwrecks" then
+		elseif cmd == "clearwrecks" then
 			ClearWrecks()
-		elseif words[1] == "reducewrecks" then
+		elseif cmd == "reducewrecks" then
 			ReduceWrecksAndHeaps()
-		elseif words[1] == "fightertest" then
+		elseif cmd == "fightertest" then
 			fightertest(words)
-		elseif words[1] == "globallos" then
+		elseif cmd == "globallos" then
 			globallos(words)
-		elseif words[1] == "playertoteam" then
+		elseif cmd == "playertoteam" then
 			playertoteam(words)
-		elseif words[1] == "killteam" then
+		elseif cmd == "killteam" then
 			killteam(words)
 		end
 	end

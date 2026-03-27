@@ -46,6 +46,7 @@ return {
 			subfolder = "CorBuildings/SeaFactories",
 			unitgroup = "builder",
 			usebuildinggrounddecal = true,
+			techlevel = 1.5,
 		},
 		featuredefs = {
 			dead = {
