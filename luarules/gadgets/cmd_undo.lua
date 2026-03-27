@@ -28,7 +28,7 @@ local rememberGameframes = 9000 -- 9000 -> 5 minutes
 local mathFloor = math.floor
 
 if gadgetHandler:IsSyncedCode() then
-	local validation = string.randomString(4)
+	local validation = string.randomString(2)
 	_G.validationUndo = validation
 
 	local teamSelfdUnits = {}
@@ -173,7 +173,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if msg:sub(1,2)=="un" and msg:sub(3,6)==validation then
+		if msg:sub(1,2)=="un" and msg:sub(3,4)==validation then
 
 			local accountID = Spring.Utilities.GetAccountID(playerID)
 			local authorized = false
