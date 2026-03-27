@@ -237,7 +237,7 @@ end
 local function renderPanelToTexture(uDefID, uID)
 	local refX, refY = PANEL_REF_X, PANEL_REF_Y
 	local titleFontSize = cachedTitleFontSize
-	local uiOpacity = mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7))
+	local uiOpacity = WG.FlowUI.clampedOpacity
 
 	-- Title rect at reference coords
 	local tLeft = floor(refX - bgpadding)
@@ -289,11 +289,7 @@ local function renderPanelToTexture(uDefID, uID)
 	WG.FlowUI.vsx = panelRight + 9999
 	WG.FlowUI.vsy = panelTop + 9999
 
-	gl.R2tHelper.RenderToTexture(panelTex, function()
-		gl.Translate(-1, -1, 0)
-		gl.Scale(2 / w, 2 / h, 0)
-		gl.Translate(-panelLeft, -panelBottom, 0)
-
+	gl.R2tHelper.RenderInRect(panelTex, panelLeft, panelBottom, panelRight, panelTop, function()
 		-- Title background
 		UiElement(tLeft, tBottom, tRight, tTop, 1,1,1,0, 1,1,0,1, uiOpacity)
 
@@ -337,20 +333,9 @@ end
 
 local function GetTeamColorCode(teamID)
 	if not teamID then return "\255\255\255\255" end
-
 	local R, G, B = spGetTeamColor(teamID)
-
 	if not R then return "\255\255\255\255" end
-
-	R = floor(R * 255)
-	G = floor(G * 255)
-	B = floor(B * 255)
-
-	if (R < 11) then R = 11	end -- Note: char(10) terminates string
-	if (G < 11) then G = 11	end
-	if (B < 11) then B = 11	end
-
-	return "\255" .. char(R) .. char(G) .. char(B)
+	return Spring.Utilities.ConvertColor(R, G, B)
 end
 
 local function GetTeamName(teamID)
@@ -449,18 +434,6 @@ function init()
 
 	xOffset = (32 + bgpadding)*widgetScale
 	yOffset = -((32 + bgpadding)*widgetScale)
-end
-
-local uiSec = 0
-function widget:Update(dt)
-	uiSec = uiSec + dt
-	if uiSec > 0.5 then
-		uiSec = 0
-		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
-			ui_scale = Spring.GetConfigFloat("ui_scale",1)
-			widget:ViewResize(vsx,vsy)
-		end
-	end
 end
 
 function widget:ViewResize(n_vsx,n_vsy)
