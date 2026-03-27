@@ -107,7 +107,7 @@ local useSelection = true
 local customFontSize = 14
 local fontSize = customFontSize
 
-local cX, cY, cYstart
+local cY
 
 local vsx, vsy = gl.GetViewSizes()
 local widgetScale = 1
@@ -168,6 +168,29 @@ local maxWidth = 0
 local textBuffer = {}
 local textBufferCount = 0
 
+-- Content caching state
+local textDlist = nil
+local dlistGuishaderTitle = nil
+local dlistGuishaderStats = nil
+local cachedDefID, cachedUnitID
+local cachedShift = false
+local cachedContentBottom = 0
+local cachedMaxWidth = 0
+local cachedTitleText = ""
+local cachedTitleTextWidth = 0
+local cachedTitleFontSize = 0
+local cachedBuildProg = nil
+local cachedExp = nil
+local lastComputeFrame = -999
+local COMPUTE_INTERVAL = 6
+
+-- Render-to-texture caching
+local panelTex = nil
+local panelTexW, panelTexH = 0, 0
+local panelOffsets = {0, 0, 0, 0} -- left, bottom, right, top offsets from screenX/screenY
+local PANEL_REF_X, PANEL_REF_Y = 1000, 2000
+local cachedGuishaderX, cachedGuishaderY = nil, nil
+
 local spec = spGetSpectatingState()
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
@@ -192,21 +215,124 @@ local function descending(a, b) return a > b end -- table.sort function
 
 local function DrawText(t1, t2)
 	textBufferCount = textBufferCount + 1
-	textBuffer[textBufferCount] = {t1,t2,cX+(bgpadding*8),cY}
+	textBuffer[textBufferCount] = {t1, t2, bgpadding * 8, cY}
 	cY = cY - fontSize
 	maxWidth = max(maxWidth, (font:GetTextWidth(t1)*fontSize) + (bgpadding*10), (font:GetTextWidth(t2)*fontSize)+(fontSize*6.5) + (bgpadding*10))
 end
 
-local function DrawTextBuffer()
-	local num = #textBuffer
-	font:Begin()
-	font:SetTextColor(1, 1, 1, 1)
-	font:SetOutlineColor(0, 0, 0, 1)
-	for i=1, num do
-		font:Print(textBuffer[i][1], textBuffer[i][3], textBuffer[i][4], fontSize, "o")
-		font:Print(textBuffer[i][2], textBuffer[i][3] + (fontSize*6.5), textBuffer[i][4], fontSize, "o")
+local function buildTextDlist()
+	if textDlist then gl.DeleteList(textDlist) end
+	textDlist = gl.CreateList(function()
+		font:Begin()
+		font:SetTextColor(1, 1, 1, 1)
+		font:SetOutlineColor(0, 0, 0, 1)
+		for i = 1, textBufferCount do
+			font:Print(textBuffer[i][1], textBuffer[i][3], textBuffer[i][4], fontSize, "o")
+			font:Print(textBuffer[i][2], textBuffer[i][3] + (fontSize*6.5), textBuffer[i][4], fontSize, "o")
+		end
+		font:End()
+	end)
+end
+
+local function renderPanelToTexture(uDefID, uID)
+	local refX, refY = PANEL_REF_X, PANEL_REF_Y
+	local titleFontSize = cachedTitleFontSize
+	local uiOpacity = mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7))
+
+	-- Title rect at reference coords
+	local tLeft = floor(refX - bgpadding)
+	local tBottom = ceil(refY - bgpadding)
+	local tRight = floor(refX + cachedTitleTextWidth + (titleFontSize * 3.5))
+	local tTop = floor(refY + (titleFontSize * 1.8) + bgpadding)
+
+	-- Stats rect at reference coords
+	local sLeft = floor(refX - bgpadding)
+	local sBottom = ceil(refY + cachedContentBottom + (fontSize / 3) + (bgpadding * 0.3))
+	local sRight = ceil(refX + cachedMaxWidth + bgpadding)
+	local sTop = ceil(refY - bgpadding)
+
+	-- Panel bounding box
+	local panelLeft = math.min(tLeft, sLeft)
+	local panelBottom = sBottom
+	local panelRight = math.max(tRight, sRight)
+	local panelTop = tTop
+
+	local w = panelRight - panelLeft
+	local h = panelTop - panelBottom
+	if w < 1 or h < 1 then return end
+
+	-- Store offsets from screenX/screenY to panel edges
+	panelOffsets[1] = panelLeft - refX
+	panelOffsets[2] = panelBottom - refY
+	panelOffsets[3] = panelRight - refX
+	panelOffsets[4] = panelTop - refY
+
+	-- Create/resize texture
+	if panelTex and (w ~= panelTexW or h ~= panelTexH) then
+		gl.DeleteTexture(panelTex)
+		panelTex = nil
 	end
-	font:End()
+	if not panelTex then
+		panelTex = gl.CreateTexture(w, h, {
+			target = GL.TEXTURE_2D,
+			format = GL.RGBA,
+			fbo = true,
+		})
+		panelTexW = w
+		panelTexH = h
+	end
+	if not panelTex then return end
+
+	-- Override FlowUI screen size so UiElement edge detection treats all edges as interior
+	local savedFlowVsx = WG.FlowUI.vsx
+	local savedFlowVsy = WG.FlowUI.vsy
+	WG.FlowUI.vsx = panelRight + 9999
+	WG.FlowUI.vsy = panelTop + 9999
+
+	gl.R2tHelper.RenderToTexture(panelTex, function()
+		gl.Translate(-1, -1, 0)
+		gl.Scale(2 / w, 2 / h, 0)
+		gl.Translate(-panelLeft, -panelBottom, 0)
+
+		-- Title background
+		UiElement(tLeft, tBottom, tRight, tTop, 1,1,1,0, 1,1,0,1, uiOpacity)
+
+		-- Stats background
+		UiElement(sLeft, sBottom, sRight, sTop, 0,1,1,1, 1,1,1,1, uiOpacity)
+
+		-- Icon
+		if uID then
+			local iconPadding = mathMax(1, mathFloor(bgpadding * 0.8))
+			glColor(1,1,1,1)
+			UiUnit(
+				tLeft + bgpadding + iconPadding, tBottom + iconPadding, tLeft + (tTop - tBottom) - iconPadding, tTop - bgpadding - iconPadding,
+				nil,
+				1,1,1,1,
+				0.13,
+				nil, nil,
+				'#' .. uDefID
+			)
+		end
+
+		-- Title text
+		glColor(1,1,1,1)
+		font:Begin()
+		font:Print(cachedTitleText, tLeft + ((tTop - tBottom) * 1.3), tBottom + titleFontSize * 0.7, titleFontSize, "o")
+		font:End()
+
+		-- Stats text
+		gl.PushMatrix()
+		gl.Translate(refX, refY, 0)
+		gl.CallList(textDlist)
+		gl.PopMatrix()
+	end, true)
+
+	WG.FlowUI.vsx = savedFlowVsx
+	WG.FlowUI.vsy = savedFlowVsy
+
+	-- Reset guishader position so it gets updated
+	cachedGuishaderX = nil
+	cachedGuishaderY = nil
 end
 
 local function GetTeamColorCode(teamID)
@@ -253,6 +379,29 @@ function RemoveGuishader()
 		WG['guishader'].DeleteScreenDlist('unit_stats_data')
 		guishaderEnabled = false
 	end
+	if dlistGuishaderTitle then
+		gl.DeleteList(dlistGuishaderTitle)
+		dlistGuishaderTitle = nil
+	end
+	if dlistGuishaderStats then
+		gl.DeleteList(dlistGuishaderStats)
+		dlistGuishaderStats = nil
+	end
+end
+
+local function invalidateContent()
+	cachedDefID = nil
+	cachedUnitID = nil
+	cachedGuishaderX = nil
+	cachedGuishaderY = nil
+	if textDlist then
+		gl.DeleteList(textDlist)
+		textDlist = nil
+	end
+	if panelTex then
+		gl.DeleteTexture(panelTex)
+		panelTex = nil
+	end
 end
 
 ------------------------------------------------------------------------------------
@@ -286,6 +435,7 @@ end
 function widget:Shutdown()
 	WG['unitstats'] = nil
 	RemoveGuishader()
+	invalidateContent()
 end
 
 function widget:PlayerChanged()
@@ -327,6 +477,7 @@ function widget:ViewResize(n_vsx,n_vsy)
 	font = WG['fonts'].getFont()
 
 	init()
+	invalidateContent()
 end
 
 local selectedUnits = spGetSelectedUnits()
@@ -339,14 +490,8 @@ if useSelection then
 end
 
 
-local function drawStats(uDefID, uID)
-	local mx, my = spGetMouseState()
-	local alt, ctrl, meta, shift = spGetModKeyState()
-	if WG['chat'] and WG['chat'].isInputActive then
-		if WG['chat'].isInputActive() then
-			showStats = false
-		end
-	end
+local function computeContent(uDefID, uID, shiftBool)
+	local shift = shiftBool
 
 	local uDef = uDefs[uDefID]
 	local maxHP = uDef.health
@@ -385,9 +530,7 @@ local function drawStats(uDefID, uID)
 
 	maxWidth = 0
 
-	cX = mx + xOffset
-	cY = my + yOffset
-	cYstart = cY
+	cY = 0
 
 	cY = cY - (bgpadding/2)
 
@@ -422,13 +565,13 @@ local function drawStats(uDefID, uID)
 		else
 			DrawText(texts.metal..":", format("%d / %d (" .. yellow .. "%d" .. white .. ")", mTotal * buildProg, mTotal, mRem))
 		end
-		
+
 		if eEta >= 0 then
 			DrawText(texts.energy..":", format("%d / %d (" .. yellow .. "%d" .. white .. ", %ds)", eTotal * buildProg, eTotal, eRem, eEta))
 		else
 			DrawText(texts.energy..":", format("%d / %d (" .. yellow .. "%d" .. white .. ")", eTotal * buildProg, eTotal, eRem))
 		end
-		
+
 			--DrawText("MaxBP:", format(white .. '%d', buildRem * uDef.buildTime / mathMax(mEta, eEta)))
 		cY = cY - fontSize
 	end
@@ -772,83 +915,124 @@ local function drawStats(uDefID, uID)
 		cY = cY - fontSize
 	end
 
-	-- background
-	if WG['buildmenu'] and WG['buildmenu'].hoverID ~= nil then
-		glColor(0.11,0.11,0.11,0.9)
-	else
-		glColor(0,0,0,0.66)
-	end
+	-- Cache computation results
+	cachedContentBottom = cY
+	cachedMaxWidth = maxWidth
+	cachedTitleFontSize = fontSize * 1.07
 
-	-- correct position when it goes below screen
-	if cY < 0 then
-		cYstart = cYstart - cY
-		local num = #textBuffer
-		for i=1, num do
-			textBuffer[i][4] = textBuffer[i][4] - (cY/2)
-			textBuffer[i][4] = textBuffer[i][4] - (cY/2)
-		end
-		cY = 0
-	end
-	-- correct position when it goes off screen
-	if cX + maxWidth+bgpadding+bgpadding > vsx then
-		local cXnew = vsx-maxWidth-bgpadding-bgpadding
-		local num = #textBuffer
-		for i=1, num do
-			textBuffer[i][3] = textBuffer[i][3] - ((cX-cXnew)/2)
-			textBuffer[i][3] = textBuffer[i][3] - ((cX-cXnew)/2)
-		end
-		cX = cXnew
-	end
-
+	-- Compute title text
 	local effectivenessRate = ''
 	if damageStats and damageStats[gameName] and damageStats[gameName]["team"] and damageStats[gameName]["team"][uDef.name] and damageStats[gameName]["team"][uDef.name].cost and damageStats[gameName]["team"][uDef.name].killed_cost then
 		effectivenessRate = "   "..damageStats[gameName]["team"][uDef.name].killed_cost / damageStats[gameName]["team"][uDef.name].cost
 	end
-
-	-- title
-	local text = "\255\190\255\190" .. UnitDefs[uDefID].translatedHumanName
+	cachedTitleText = "\255\190\255\190" .. UnitDefs[uDefID].translatedHumanName
 	if uID then
-		text = text .. "   " ..  grey ..  uDef.name .. "   #" .. uID .. "   ".. GetTeamColorCode(uTeam) .. GetTeamName(uTeam) .. grey .. effectivenessRate
+		cachedTitleText = cachedTitleText .. "   " ..  grey ..  uDef.name .. "   #" .. uID .. "   ".. GetTeamColorCode(uTeam) .. GetTeamName(uTeam) .. grey .. effectivenessRate
 	end
-	local backgroundRect = {floor(cX-bgpadding), ceil(cYstart-bgpadding), floor(cX+(font:GetTextWidth(text)*titleFontSize)+(titleFontSize*3.5)), floor(cYstart+(titleFontSize*1.8)+bgpadding)}
-	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 1,1,1,0, 1,1,0,1, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
-	if WG['guishader'] then
-		guishaderEnabled = true
-		WG['guishader'].InsertScreenDlist( gl.CreateList( function()
-			RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner, 1,1,1,0)
-		end), 'unit_stats_title')
-	end
+	cachedTitleTextWidth = font:GetTextWidth(cachedTitleText) * cachedTitleFontSize
 
-	-- icon
+	-- Cache dynamic data for future dirty checks
 	if uID then
-		local iconPadding = mathMax(1, mathFloor(bgpadding*0.8))
-		glColor(1,1,1,1)
-		UiUnit(
-			backgroundRect[1]+bgpadding+iconPadding, backgroundRect[2]+iconPadding, backgroundRect[1]+(backgroundRect[4]-backgroundRect[2])-iconPadding, backgroundRect[4]-bgpadding-iconPadding,
-			nil,
-			1,1,1,1,
-			0.13,
-			nil, nil,
-			'#'..uDefID
-		)
+		cachedBuildProg = select(2, Spring.GetUnitIsBeingBuilt(uID))
+		cachedExp = spGetUnitExperience(uID)
+	else
+		cachedBuildProg = nil
+		cachedExp = nil
 	end
 
-	-- title text
-	glColor(1,1,1,1)
-	font:Begin()
-	font:Print(text, backgroundRect[1]+((backgroundRect[4]-backgroundRect[2])*1.3), backgroundRect[2]+titleFontSize*0.7, titleFontSize, "o")
-	font:End()
+	-- Build text display list at local coordinates
+	buildTextDlist()
 
-	-- stats
-	UiElement(floor(cX-bgpadding), ceil(cY+(fontSize/3)+(bgpadding*0.3)), ceil(cX+maxWidth+bgpadding), ceil(cYstart-bgpadding), 0,1,1,1, 1,1,1,1, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+	-- Render entire panel to texture for cheap per-frame blitting
+	renderPanelToTexture(uDefID, uID)
+end
 
+local function drawStats(uDefID, uID)
+	local mx, my = spGetMouseState()
+	local alt, ctrl, meta, shift = spGetModKeyState()
+	if WG['chat'] and WG['chat'].isInputActive then
+		if WG['chat'].isInputActive() then
+			showStats = false
+		end
+	end
+
+	-- Dirty check for content caching
+	local gameFrame = Spring.GetGameFrame()
+	local shiftBool = (shift ~= false)
+	local contentDirty = (uDefID ~= cachedDefID) or (uID ~= cachedUnitID) or (shiftBool ~= cachedShift)
+
+	if not contentDirty and uID and (gameFrame - lastComputeFrame >= COMPUTE_INTERVAL) then
+		local _, bp = Spring.GetUnitIsBeingBuilt(uID)
+		if bp ~= cachedBuildProg then
+			contentDirty = true
+		elseif spGetUnitExperience(uID) ~= cachedExp then
+			contentDirty = true
+		end
+	end
+
+	if contentDirty then
+		cachedDefID = uDefID
+		cachedUnitID = uID
+		cachedShift = shiftBool
+		lastComputeFrame = gameFrame
+		computeContent(uDefID, uID, shiftBool)
+	end
+
+	if not panelTex then return end
+
+	-- === Rendering (every frame) ===
+
+	-- Screen position
+	local screenX = mx + xOffset
+	local screenY = my + yOffset
+
+	-- Screen-bound correction (bottom)
+	local bottomEdge = screenY + panelOffsets[2]
+	if bottomEdge < 0 then
+		screenY = screenY - bottomEdge
+	end
+	-- Screen-bound correction (right)
+	if screenX + panelOffsets[3] > vsx then
+		screenX = vsx - panelOffsets[3]
+	end
+
+	-- Blit cached panel texture
+	gl.R2tHelper.BlendTexRect(panelTex,
+		screenX + panelOffsets[1], screenY + panelOffsets[2],
+		screenX + panelOffsets[3], screenY + panelOffsets[4],
+		true)
+
+	-- Update guishader only when position changed
 	if WG['guishader'] then
-		guishaderEnabled = true
-		WG['guishader'].InsertScreenDlist( gl.CreateList( function()
-			RectRound(floor(cX-bgpadding), ceil(cY+(fontSize/3)+(bgpadding*0.3)), ceil(cX+maxWidth+bgpadding), floor(cYstart-bgpadding), elementCorner, 0,1,1,1)
-		end), 'unit_stats_data')
+		if cachedGuishaderX ~= screenX or cachedGuishaderY ~= screenY then
+			guishaderEnabled = true
+			cachedGuishaderX = screenX
+			cachedGuishaderY = screenY
+
+			local titleFontSize = cachedTitleFontSize
+			local tLeft = floor(screenX - bgpadding)
+			local tBottom = ceil(screenY - bgpadding)
+			local tRight = floor(screenX + cachedTitleTextWidth + (titleFontSize * 3.5))
+			local tTop = floor(screenY + (titleFontSize * 1.8) + bgpadding)
+
+			if dlistGuishaderTitle then gl.DeleteList(dlistGuishaderTitle) end
+			dlistGuishaderTitle = gl.CreateList(function()
+				RectRound(tLeft, tBottom, tRight, tTop, elementCorner, 1,1,1,0)
+			end)
+			WG['guishader'].InsertScreenDlist(dlistGuishaderTitle, 'unit_stats_title')
+
+			local sLeft = floor(screenX - bgpadding)
+			local sBottom = ceil(screenY + cachedContentBottom + (fontSize / 3) + (bgpadding * 0.3))
+			local sRight = ceil(screenX + cachedMaxWidth + bgpadding)
+			local sTop = ceil(screenY - bgpadding)
+
+			if dlistGuishaderStats then gl.DeleteList(dlistGuishaderStats) end
+			dlistGuishaderStats = gl.CreateList(function()
+				RectRound(sLeft, sBottom, sRight, sTop, elementCorner, 0,1,1,1)
+			end)
+			WG['guishader'].InsertScreenDlist(dlistGuishaderStats, 'unit_stats_data')
+		end
 	end
-	DrawTextBuffer()
 end
 
 function widget:DrawScreen()
