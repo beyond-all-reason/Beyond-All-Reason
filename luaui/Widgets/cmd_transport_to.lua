@@ -241,6 +241,59 @@ local function ReleaseCompetingTransports(unitID, winningTransportID)
 	end
 end
 
+local TRANSPORT_COMMAND_COMPLETE_RADIUS = 20
+local TRANSPORT_COMMAND_COMPLETE_RADIUS_SQ = TRANSPORT_COMMAND_COMPLETE_RADIUS * TRANSPORT_COMMAND_COMPLETE_RADIUS
+
+local function IsUnitStillRequestingTransport(unitID)
+	local commandQueue = GetUnitCommands(unitID, 1) or {}
+	local nextCommand = commandQueue[1]
+
+	if not nextCommand or nextCommand.id ~= CMD_TRANSPORT_TO then
+		return false
+	end
+
+	local params = nextCommand.params
+	if params and params[1] and params[3] then
+		local ux, _, uz = GetUnitPosition(unitID)
+		if ux and uz and distanceSq(ux, uz, params[1], params[3]) <= TRANSPORT_COMMAND_COMPLETE_RADIUS_SQ then
+			return false
+		end
+	end
+
+	return true
+end
+
+local function CancelPassengerTransportRequest(unitID)
+	local unitState = Get_unit_state(unitID)
+	if not unitState then
+		return
+	end
+
+	local transportState = unitState.transport_state
+
+	unitState.isWaitingForTransport = false
+	unitState.transport_state = nil
+	unitsWaitingForTransport[unitID] = false
+	pendingClearMoveGoal[unitID] = nil
+
+	if transportState and transportState.state == "coupled" and not transportState.isLoaded then
+		transportState.transporteeID = nil
+		transportState.state = "available"
+
+		GiveOrderToUnit(transportState.transportID, CMD_STOP, {}, {})
+		if transportState.homePosition then
+			SetUnitMoveGoal(
+				transportState.transportID,
+				transportState.homePosition.x,
+				transportState.homePosition.y,
+				transportState.homePosition.z
+			)
+		end
+
+		On_tstate_becameAvalible(transportState)
+	end
+end
+
 --------------------------------------------------------------------------------
 -- State
 --------------------------------------------------------------------------------
@@ -546,60 +599,64 @@ function Check_try_to_transport_waiting(transportID, unitDefID)
 
 	for unitID, active in pairs(table.merge(unitsWaitingForTransport, outSharedUnits)) do
 		if active then
-			local unitState = Get_unit_state(unitID)
+			if not IsUnitStillRequestingTransport(unitID) then
+				CancelPassengerTransportRequest(unitID)
+			else
+				local unitState = Get_unit_state(unitID)
 
-			-- Skip units that are already linked to another transport.
-			if unitState and unitState.transport_state == nil then
-				local canTransport = CanTransport(transportID, GetUnitDefID(transportID), unitID, unitDefID)
-				local transporteeType = unitRequestedType(unitDefID)
-				local transportType = transportClass[GetUnitDefID(transportID)]
+				-- Skip units that are already linked to another transport.
+				if unitState and unitState.transport_state == nil then
+					local canTransport = CanTransport(transportID, GetUnitDefID(transportID), unitID, unitDefID)
+					local transporteeType = unitRequestedType(unitDefID)
+					local transportType = transportClass[GetUnitDefID(transportID)]
 
-				if canTransport then
-					local score = 0
-					local ownDistance = distance_between_units(unitID, transportID)
-					local ownIsMatch = (transportType == transporteeType)
-					local availableCount = 0
+					if canTransport then
+						local score = 0
+						local ownDistance = distance_between_units(unitID, transportID)
+						local ownIsMatch = (transportType == transporteeType)
+						local availableCount = 0
 
-					for otherTransportID, present in pairs(knownTransports) do
-						local otherState = Get_transport_state(otherTransportID)
-						if present and otherTransportID ~= transportID and otherState
-							and (otherState.state == "available" or otherState.state == "idle")
-						then
-							availableCount = availableCount + 1
+						for otherTransportID, present in pairs(knownTransports) do
+							local otherState = Get_transport_state(otherTransportID)
+							if present and otherTransportID ~= transportID and otherState
+								and (otherState.state == "available" or otherState.state == "idle")
+							then
+								availableCount = availableCount + 1
 
-							local otherDistance = distance_between_units(unitID, otherTransportID)
-							local isMatch = (transportClass[GetUnitDefID(otherTransportID)] == transporteeType)
+								local otherDistance = distance_between_units(unitID, otherTransportID)
+								local isMatch = (transportClass[GetUnitDefID(otherTransportID)] == transporteeType)
 
-							if ownDistance < otherDistance then
+								if ownDistance < otherDistance then
+									score = score + 1
+								end
+								if ownIsMatch and not isMatch then
+									score = score + 0.5
+								end
+							elseif availableCount == 0 or not (otherState and (otherState.state == "available" or otherState.state == "idle")) then
 								score = score + 1
 							end
-							if ownIsMatch and not isMatch then
-								score = score + 0.5
+						end
+
+						if dictLength(knownTransports) == 1 or (score > dictLength(knownTransports) / 2) then
+							GiveOrderToUnit(transportID, CMD_LOAD_UNITS, { unitID }, {})
+
+							local transportState = Get_transport_state(transportID)
+							if not transportState then
+								return
 							end
-						elseif availableCount == 0 or not (otherState and (otherState.state == "available" or otherState.state == "idle")) then
-							score = score + 1
+
+							transportState.state = "coupled"
+							transportState.transportID = transportID
+							transportState.transporteeID = unitID
+
+							unitState.transport_state = transportState
+							unitState.isWaitingForTransport = false
+							unitsWaitingForTransport[unitID] = false
+							pendingClearMoveGoal[unitID] = true
+
+							ReleaseCompetingTransports(unitID, transportID)
+							break
 						end
-					end
-
-					if dictLength(knownTransports) == 1 or (score > dictLength(knownTransports) / 2) then
-						GiveOrderToUnit(transportID, CMD_LOAD_UNITS, { unitID }, {})
-
-						local transportState = Get_transport_state(transportID)
-						if not transportState then
-							return
-						end
-
-						transportState.state = "coupled"
-						transportState.transportID = transportID
-						transportState.transporteeID = unitID
-
-						unitState.transport_state = transportState
-						unitState.isWaitingForTransport = false
-						unitsWaitingForTransport[unitID] = false
-						pendingClearMoveGoal[unitID] = true
-
-						ReleaseCompetingTransports(unitID, transportID)
-						break
 					end
 				end
 			end
@@ -893,6 +950,12 @@ function widget:Update()
 		if active then
 			ClearUnitMoveGoal(unitID)
 			pendingClearMoveGoal[unitID] = false
+		end
+	end
+
+	for unitID, active in pairs(unitsWaitingForTransport) do
+		if active and not IsUnitStillRequestingTransport(unitID) then
+			CancelPassengerTransportRequest(unitID)
 		end
 	end
 end
