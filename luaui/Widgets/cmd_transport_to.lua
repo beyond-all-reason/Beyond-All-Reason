@@ -241,6 +241,51 @@ local function ReleaseCompetingTransports(unitID, winningTransportID)
 	end
 end
 
+--------------------------------------------------------------------------------
+-- State
+--------------------------------------------------------------------------------
+
+--[[
+Transport states:
+  idle       = transport is not currently used by the widget
+  available  = transport can be reused by the widget and is returning home
+  used       = transport is under explicit player control
+  coupled    = widget has assigned the transport to a passenger
+  decoupled  = transport has unloaded and is retracing / returning
+]]
+---@class TransportState
+---@field state '"idle"' | '"available"' | '"used"' | '"coupled"' | '"decoupled"'
+---@field transportID integer|nil
+---@field transporteeID integer|nil
+---@field homePosition {x:number, y:number, z:number}|nil
+---@field isLoaded boolean
+---@type table<integer, TransportState>
+local transport_states = {}
+
+--[[
+Per-unit state used by the widget:
+  outshared             = unit was shared out from our team
+  inshared              = unit was shared into our team
+  transport_state       = currently linked widget-owned transport state
+  isWaitingForTransport = unit is walking toward its destination while waiting
+]]
+---@class T_UnitState
+---@field outshared boolean
+---@field inshared boolean
+---@field transport_state TransportState|nil
+---@field isWaitingForTransport boolean
+---@type table<integer, T_UnitState>
+local unit_states = {}
+
+---@type table<integer, boolean>
+local unitsWaitingForTransport = {}
+
+---@type table<integer, boolean>
+local pendingClearMoveGoal = {}
+
+---@type table<integer, boolean>
+local outSharedUnits = {}
+
 local TRANSPORT_COMMAND_COMPLETE_RADIUS = 20
 local TRANSPORT_COMMAND_COMPLETE_RADIUS_SQ = TRANSPORT_COMMAND_COMPLETE_RADIUS * TRANSPORT_COMMAND_COMPLETE_RADIUS
 
@@ -293,51 +338,6 @@ local function CancelPassengerTransportRequest(unitID)
 		On_tstate_becameAvalible(transportState)
 	end
 end
-
---------------------------------------------------------------------------------
--- State
---------------------------------------------------------------------------------
-
---[[
-Transport states:
-  idle       = transport is not currently used by the widget
-  available  = transport can be reused by the widget and is returning home
-  used       = transport is under explicit player control
-  coupled    = widget has assigned the transport to a passenger
-  decoupled  = transport has unloaded and is retracing / returning
-]]
----@class TransportState
----@field state '"idle"' | '"available"' | '"used"' | '"coupled"' | '"decoupled"'
----@field transportID integer|nil
----@field transporteeID integer|nil
----@field homePosition {x:number, y:number, z:number}|nil
----@field isLoaded boolean
----@type table<integer, TransportState>
-local transport_states = {}
-
---[[
-Per-unit state used by the widget:
-  outshared             = unit was shared out from our team
-  inshared              = unit was shared into our team
-  transport_state       = currently linked widget-owned transport state
-  isWaitingForTransport = unit is walking toward its destination while waiting
-]]
----@class T_UnitState
----@field outshared boolean
----@field inshared boolean
----@field transport_state TransportState|nil
----@field isWaitingForTransport boolean
----@type table<integer, T_UnitState>
-local unit_states = {}
-
----@type table<integer, boolean>
-local unitsWaitingForTransport = {}
-
----@type table<integer, boolean>
-local pendingClearMoveGoal = {}
-
----@type table<integer, boolean>
-local outSharedUnits = {}
 
 function Get_transport_state(transportID)
 	if not ValidUnitID(transportID) then
