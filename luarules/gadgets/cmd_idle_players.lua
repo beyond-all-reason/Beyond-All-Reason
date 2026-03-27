@@ -60,7 +60,7 @@ if gadgetHandler:IsSyncedCode() then
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	local gameSpeed = Game.gameSpeed
 
-	local validation = string.randomString(4)
+	local validation = string.randomString(2)
 	_G.validationIdle = validation
 
 	local function CheckPlayerState(playerID)
@@ -201,10 +201,10 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if msg:sub(1,4)~=validation and msg:sub(5,4+AFKMessageSize) ~= AFKMessage then --invalid message
+		if msg:sub(1,2)~=validation and msg:sub(3,2+AFKMessageSize) ~= AFKMessage then --invalid message
 			return
 		end
-		local afk = tonumber(msg:sub(4+AFKMessageSize+1))
+		local afk = tonumber(msg:sub(2+AFKMessageSize+1))
 		local playerInfoTableEntry = playerInfoTable[playerID] or {}
 		local previousPresent = playerInfoTableEntry.present
 		playerInfoTableEntry.present = afk == 0

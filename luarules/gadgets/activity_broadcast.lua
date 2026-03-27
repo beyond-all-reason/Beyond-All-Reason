@@ -23,11 +23,11 @@ local sendPacketEvery	= 2
 -- synced
 --------------------------------------------------------------------------------
 if gadgetHandler:IsSyncedCode() then
-	local validation = string.randomString(4)
+	local validation = string.randomString(2)
 	_G.validationActivity = validation
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if msg:sub(1,1)=="^" and msg:sub(2,5)==validation then
+		if msg:sub(1,1)=="^" and msg:sub(2,3)==validation then
 			SendToUnsynced("activityBroadcast",playerID)
 			return true
 		end

@@ -21,7 +21,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local strSub = string.sub
 
-	local validation = string.randomString(4)
+	local validation = string.randomString(2)
 	_G.validationCam = validation
 
 	local SendToUnsynced = SendToUnsynced

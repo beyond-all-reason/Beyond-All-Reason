@@ -27,16 +27,16 @@ local isSingleplayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
 if gadgetHandler:IsSyncedCode() then
 
-	local validation = string.randomString(4)
+	local validation = string.randomString(2)
 	_G.validationPlayerData = validation
 
 	function gadget:RecvLuaMsg(msg, player)
-		if msg:sub(3, 6) == validation then
+		if msg:sub(3, 4) == validation then
 			if msg:sub(1, 2) == "sd" then
 				local name = Spring.GetPlayerInfo(player, false)
-				-- Extract requestingPlayerID from position 7 onwards until first semicolon
-				local semicolonPos = string.find(msg, ";", 7)
-				local requestingPlayerID = string.sub(msg, 7, semicolonPos - 1)
+				-- Extract requestingPlayerID from position 5 onwards until first semicolon
+				local semicolonPos = string.find(msg, ";", 5)
+				local requestingPlayerID = string.sub(msg, 5, semicolonPos - 1)
 				-- Everything after first semicolon (includes "screenshot;" + compressed data)
 				local data = string.sub(msg, semicolonPos + 1)
 				SendToUnsynced("ReceiveScreenshot", requestingPlayerID .. ";" .. name .. ";" .. data)
@@ -44,7 +44,7 @@ if gadgetHandler:IsSyncedCode() then
 			elseif msg:sub(1, 2) == "ss" then
 				-- Screenshot request from synced
 				-- Format: "ss" + width + ";" + targetPlayerID, then append requestingPlayerID
-				local screenshotData = string.sub(msg, 7) .. ";" .. player
+				local screenshotData = string.sub(msg, 5) .. ";" .. player
 				SendToUnsynced("StartScreenshot", screenshotData)
 				return true
 			end
