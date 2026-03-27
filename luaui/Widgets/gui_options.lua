@@ -2153,10 +2153,15 @@ function applyFilter()
 
 				local score = 0
 
-				-- Tier 1: Exact substring match in name (score 300+)
+				-- Tier 1: Exact substring match in name or id (score 300+)
 				local exactPos = string.find(lowerName, lowerInput, nil, true)
 				if exactPos then
 					score = 300 + math.max(0, 50 - exactPos) + math.max(0, 20 - #lowerName)
+				else
+					local idPos = string.find(lowerId, lowerInput, nil, true)
+					if idPos then
+						score = 300 + math.max(0, 50 - idPos) + math.max(0, 20 - #lowerId)
+					end
 				end
 
 				-- Tier 2: Multi-word AND matching (score 100-299)
@@ -2183,14 +2188,16 @@ function applyFilter()
 					end
 				end
 
-				-- Tier 3: Fuzzy subsequence matching on name only (score 1-99)
+				-- Tier 3: Fuzzy subsequence matching on name or id (score 1-99)
 				-- Requires at least 3 characters to avoid too many false positives
 				if score == 0 and #queryNoSpaces >= 3 then
 					local nameScore = fuzzyScore(queryNoSpaces, lowerName)
+					local idScore = fuzzyScore(queryNoSpaces, lowerId)
+					local bestScore = math.max(nameScore, idScore)
 					-- Require a minimum quality: score must be at least 2 per query char
 					local minThreshold = #queryNoSpaces * 2
-					if nameScore >= minThreshold then
-						score = math.min(99, nameScore)
+					if bestScore >= minThreshold then
+						score = math.min(99, bestScore)
 					end
 				end
 

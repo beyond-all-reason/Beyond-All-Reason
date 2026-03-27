@@ -52,6 +52,7 @@ local tooltipLabelTextColor = '\255\200\200\200'
 local tooltipDarkTextColor = '\255\133\133\133'
 local tooltipValueColor = '\255\255\255\255'
 local tooltipValueWhiteColor = '\255\255\255\255'
+local tooltipValueYellowColor = '\255\253\192\76'
 
 -- Cache frequently used color strings
 local cachedColorStrings = {
@@ -1066,6 +1067,8 @@ local function drawSelection()
 	-- loop all unitdefs/cells (but not individual unitID's)
 	local totalMetalValue = 0
 	local totalEnergyValue = 0
+	local totalBuildPower = 0
+
 	for i = 1, #selectionCells do
 		local unitDefID = selectionCells[i]
 		local unitDefData = unitDefInfo[unitDefID]
@@ -1077,6 +1080,10 @@ local function drawSelection()
 		-- energy cost
 		if unitDefData.energyCost then
 			totalEnergyValue = totalEnergyValue + (unitDefData.energyCost * count)
+		end
+		-- build power
+		if unitDefData.buildSpeed and unitDefData.buildSpeed > 0 then
+			totalBuildPower = totalBuildPower + (unitDefData.buildSpeed * count)
 		end
 	end
 
@@ -1131,11 +1138,17 @@ local function drawSelection()
 
 	-- metal cost
 	heightVar = heightVar + heightStep
-	font:Print( tooltipLabelTextColor .. getCachedTranslation('ui.info.costm').."   " .. tooltipValueWhiteColor .. totalMetalValue, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - heightVar, fontSize, "o")
+	font:Print( tooltipLabelTextColor .. getCachedTranslation('ui.info.costm').."   " .. tooltipValueWhiteColor .. string.formatSI(totalMetalValue), backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - heightVar, fontSize, "o")
 
 	-- energy cost
 	heightVar = heightVar + heightStep
-	font:Print( tooltipLabelTextColor .. getCachedTranslation('ui.info.coste').."\255\255\255\128   " .. totalEnergyValue, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - heightVar, fontSize, "o")
+	font:Print( tooltipLabelTextColor .. getCachedTranslation('ui.info.coste').."\255\255\255\128   " .. string.formatSI(totalEnergyValue), backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - heightVar, fontSize, "o")
+
+	-- Buildpower
+	if totalBuildPower > 0 then
+		heightVar = heightVar + heightStep
+		font:Print( tooltipLabelTextColor .. getCachedTranslation('ui.info.buildpower') .. "   " .. tooltipValueYellowColor .. string.formatSI(totalBuildPower), backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - heightVar, fontSize, "o")
+	end
 
 	-- kills
 	if totalKills > 0 then

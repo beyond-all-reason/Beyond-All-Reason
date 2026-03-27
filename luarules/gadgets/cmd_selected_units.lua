@@ -24,22 +24,12 @@ local HEADER_LENGTH = string.len(HEADER_SEL_UNCOMPRESSED)
 
 
 if gadgetHandler:IsSyncedCode() then
-	local charset = {}  do -- [0-9a-zA-Z]
-		for c = 48, 57  do table.insert(charset, string.char(c)) end
-		for c = 65, 90  do table.insert(charset, string.char(c)) end
-		for c = 97, 122 do table.insert(charset, string.char(c)) end
-	end
-	local function randomString(length)
-		if not length or length <= 0 then return '' end
-		return randomString(length - 1) .. charset[math.random(1, #charset)]
-	end
-
-	local validation = randomString(2)
+	local validation = string.randomString(4)
 	_G.validationSelunits = validation
 
 	function gadget:RecvLuaMsg(inMsg, playerID)
-		if inMsg:sub(1,2)==validation and (inMsg:sub(3,HEADER_LENGTH+2)==HEADER_SEL_UNCOMPRESSED or inMsg:sub(3,HEADER_LENGTH+2)==HEADER_SEL_COMPRESSED) then
-			SendToUnsynced("selectionUpdate",playerID,inMsg:sub(7),inMsg:sub(6,6) == "c")
+		if inMsg:sub(1,4)==validation and (inMsg:sub(5,HEADER_LENGTH+4)==HEADER_SEL_UNCOMPRESSED or inMsg:sub(5,HEADER_LENGTH+4)==HEADER_SEL_COMPRESSED) then
+			SendToUnsynced("selectionUpdate",playerID,inMsg:sub(9),inMsg:sub(8,8) == "c")
 			return true
 		end
 	end
