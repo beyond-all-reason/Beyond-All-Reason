@@ -65,19 +65,9 @@ local baseMinimapIconScale = Spring.GetConfigFloat("MinimapIconScale", 3.5)
 local lastAppliedIconScale = nil
 
 local function checkGuishader(force)
-	if WG['guishader'] then
-		if force and dlistGuishader then
-			dlistGuishader = gl.DeleteList(dlistGuishader)
-		end
-		if not dlistGuishader then
-			dlistGuishader = gl.CreateList(function()
-				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner)
-			end)
-			WG['guishader'].InsertDlist(dlistGuishader, 'minimap')
-		end
-	elseif dlistGuishader then
-		dlistGuishader = gl.DeleteList(dlistGuishader)
-	end
+	dlistGuishader = WG.FlowUI.guishaderCheckDlist(dlistGuishader, 'minimap', function()
+		RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner)
+	end, force)
 end
 
 local function clear()
@@ -86,10 +76,8 @@ local function clear()
 		gl.DeleteTexture(uiBgTex)
 		uiBgTex = nil
 	end
-	if WG['guishader'] and dlistGuishader then
-		WG['guishader'].DeleteDlist('minimap')
-		dlistGuishader = nil
-	end
+	WG.FlowUI.guishaderDeleteDlist('minimap')
+	dlistGuishader = nil
 end
 
 function widget:ViewResize()
@@ -302,15 +290,7 @@ function widget:DrawScreen()
 				format = GL.RGBA,
 				fbo = true,
 			})
-			gl.R2tHelper.RenderToTexture(uiBgTex,
-				function()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (backgroundRect[3]-backgroundRect[1]), 2 / (backgroundRect[4]-backgroundRect[2]),	0)
-					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-					drawBackground()
-				end,
-				true
-			)
+			gl.R2tHelper.RenderInRect(uiBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], drawBackground, true)
 		end
 		if uiBgTex then
 			-- background element

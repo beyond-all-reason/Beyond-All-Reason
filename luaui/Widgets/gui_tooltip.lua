@@ -63,7 +63,6 @@ local tooltips = {}
 local cleanupGuishaderAreas = {}
 local font, font2
 local RectRound, UiElement, bgpadding
-local uiSec = 0
 
 -- Texture pool for reusing textures instead of recreating them
 local texturePool = {}
@@ -227,17 +226,6 @@ function widget:Shutdown()
 	texturePool = {}
 
 	WG['tooltip'] = nil
-end
-
-function widget:Update(dt)
-	uiSec = uiSec + dt
-	if uiSec > 0.5 then
-		uiSec = 0
-		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
-			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
-			widget:ViewResize(vsx, vsy)
-		end
-	end
 end
 
 function widget:ViewResize(x, y)
