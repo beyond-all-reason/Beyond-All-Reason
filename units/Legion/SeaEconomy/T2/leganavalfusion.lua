@@ -37,6 +37,7 @@ return {
 			subfolder = "Legion/SeaEconomy/T2",
 			techlevel = 2,
 			unitgroup = "energy",
+			restrictions_inclusion = "_nofusion_",
 			usebuildinggrounddecal = true,
 		},
 		featuredefs = {

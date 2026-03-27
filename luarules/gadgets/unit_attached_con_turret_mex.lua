@@ -18,8 +18,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local spGetUnitHealth = Spring.GetUnitHealth
-
-local reissueOrder = Game.Commands.ReissueOrder
+local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
 -- TODO: do not use hardcoded unit names
 local unitDefData = {
@@ -215,7 +214,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 	if mexTurretDefID[unitDefID] then
 		local mexID = pairedUnits[unitID]
 		if mexID then
-			reissueOrder(mexID, cmdID, cmdParams, cmdOptions, cmdTag, fromInsert)
+			spGiveOrderToUnit(mexID, cmdID, cmdParams, cmdOptions)
 			setMexSpeed[unitID] = mexID
 		end
 	end

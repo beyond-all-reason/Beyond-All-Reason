@@ -94,17 +94,16 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	local data = unit[unitID]
 	if data then
 		local unitIndex = data.id
-		local lastUnitID = unitsData[unitsCount]
-		if lastUnitID then
-			-- move last entry to position of current unit destroyed
-			unitsData[unitIndex] = lastUnitID
-			unit[lastUnitID].id = unitIndex
-		else
-			unitsData[unitIndex] = nil
+		if unitIndex ~= unitsCount then
+			local lastUnitID = unitsData[unitsCount]
+			if lastUnitID and unit[lastUnitID] then
+				-- move last entry to position of current unit destroyed
+				unitsData[unitIndex] = lastUnitID
+				unit[lastUnitID].id = unitIndex
+			end
 		end
 		-- remove destroyed unit from data
 		unit[unitID] = nil
-		-- remove last entry
 		unitsData[unitsCount] = nil
 		unitsCount = unitsCount - 1
 	end

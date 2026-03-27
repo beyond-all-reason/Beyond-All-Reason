@@ -1304,15 +1304,7 @@ function widget:DrawScreen()
 				local areaY = factoriesArea[4]  -- min Y (bottom)
 				local areaW = factoriesArea[3] - factoriesArea[1]
 				local areaH = factoriesArea[2] - factoriesArea[4]
-				gl.R2tHelper.RenderToTexture(factoryTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / areaW, 2 / areaH, 0)
-						gl.Translate(-areaX, -areaY, 0)
-						renderFactoryList()
-					end,
-					true
-				)
+				gl.R2tHelper.RenderInRect(factoryTex, areaX, areaY, areaX+areaW, areaY+areaH, renderFactoryList, true)
 				updateFactoryTex = false
 			end
 		end

@@ -200,7 +200,7 @@ if gadgetHandler:IsSyncedCode() then
 			gadgetHandler:RemoveGadget(self)
 			return
 		end
-		minGroundHeight = select(1, Spring.GetGroundExtremes())
+		minGroundHeight = select(3, Spring.GetGroundExtremes())
 		_G.lavaLevel = lavaLevel
 		_G.lavaGrow = lavaGrow
 		Spring.SetGameRulesParam("lavaLevel", -99999)
@@ -213,7 +213,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		-- Periodically refresh cached min ground height (handles terraforming)
 		if f % GROUND_EXTREMES_UPDATE_RATE == 0 then
-			minGroundHeight = select(1, Spring.GetGroundExtremes())
+			minGroundHeight = select(3, Spring.GetGroundExtremes())
 		end
 
 		local lavaAboveGround = lavaLevel >= minGroundHeight
