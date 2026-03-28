@@ -22,7 +22,7 @@ local tableInsert = table.insert
 ---------------------------------------------------------------------------------------------------
 
 local imageDirectory			= ":l:"..LUAUI_DIRNAME.."Images/advplayerslist_mascot/"
-local soundDirectory			= LUAUI_DIRNAME.."Sounds/"   -- no :l: prefix, used for VFS check and PlaySoundFile
+local soundDirectory			= LUAUI_DIRNAME.."Sounds/advplayerslist_mascot/"   -- no :l: prefix, used for VFS check and PlaySoundFile
 
 local OPTIONS = {}
 OPTIONS.defaults = {	-- these will be loaded when switching style, but the style will overwrite those values
