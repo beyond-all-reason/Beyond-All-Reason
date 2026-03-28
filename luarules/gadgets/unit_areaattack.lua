@@ -71,6 +71,9 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:CommandFallback(u,ud,team,cmd,param,opt)
 		if cmd == CMD_AREA_ATTACK_GROUND then
 			local x,_,z = Spring.GetUnitPosition(u)
+			if not x then
+				return true, true
+			end
 			local dist = math_sqrt((x-param[1])*(x-param[1]) + (z-param[3])*(z-param[3]))
 			if dist <= range[ud] - param[4] then
 				attackList[#attackList+1] = {unit = u, x=param[1], y=param[2], z=param[3], radius=param[4]}

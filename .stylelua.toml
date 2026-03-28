@@ -1,10 +1,11 @@
 syntax = "All"
-column_width = 120
+column_width = 2000
 line_endings = "Unix"
-indent_type = "Spaces"
-indent_width = 2
+indent_type = "Tabs"
+indent_width = 4
 quote_style = "AutoPreferDouble"
 call_parentheses = "Always"
+block_newline_gaps = "Preserve"
 collapse_simple_statement = "Never"
 space_after_function_names = "Never"
 

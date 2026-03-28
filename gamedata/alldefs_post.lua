@@ -211,8 +211,15 @@ function UnitDef_Post(name, uDef)
 	if not customparams.subfolder then
 		customparams.subfolder = "none"
 	end
+
+	if modOptions.unit_restrictions_notech15 then
+		if tonumber(customparams.techlevel) == 1.5 then
+			customparams.modoption_blocked = true
+		end
+	end
+
 	if modOptions.unit_restrictions_notech2 then
-		if tonumber(customparams.techlevel) == 2 or tonumber(customparams.techlevel) == 3 then
+		if tonumber(customparams.techlevel) == 2 then
 			customparams.modoption_blocked = true
 		end
 	end
@@ -223,67 +230,20 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	if modOptions.unit_restrictions_notech15 then
-		-- Tech 1.5 is a semi offical thing, modoption ported from teiserver meme commands
-		local tech15 = {
-			corhp		= true,
-			corfhp		= true,
-			corplat		= true,
-			coramsub	= true,
-
-			armhp		= true,
-			armfhp		= true,
-			armplat		= true,
-			armamsub	= true,
-
-			leghp		= true,
-			legfhp		= true,
-			legplat		= true,
-			legamsub	= true,
-		}
-		if tech15[basename] then
-			customparams.modoption_blocked = true
-		end
-	end
-
-	if modOptions.unit_restrictions_noair and not customparams.ignore_noair then
+	if modOptions.unit_restrictions_noair and (not (customparams.restrictions_exclusion and string.find(customparams.restrictions_exclusion, "_noair_"))) then
 		if string.find(customparams.subfolder, "Aircraft", 1, true) then
 			customparams.modoption_blocked = true
 		elseif customparams.unitgroup and customparams.unitgroup == "aa" then
 			customparams.modoption_blocked = true
 		elseif uDef.canfly then
 			customparams.modoption_blocked = true
-		elseif customparams.disable_when_no_air then --used to remove drone carriers with no other purpose (ex. leghive but not rampart)
+		elseif (customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_noair_")) then --used to remove factories and drone carriers with no other purpose (ex. leghive but not rampart)
 			customparams.modoption_blocked = true
 		end
-		local AircraftFactories = {
-			armap = true,
-			armaap = true,
-			armplat = true,
-			corap = true,
-			coraap = true,
-			corplat = true,
-			corapt3 = true,
-			legapt3 = true,
-			armapt3 = true,
-			legap = true,
-			legaap = true,
-			legsplab = true,
-			armap_scav = true,
-			armaap_scav = true,
-			armplat_scav = true,
-			corap_scav = true,
-			coraap_scav = true,
-			corplat_scav = true,
-			corapt3_scav = true,
-			legapt3_scav = true,
-			armapt3_scav = true,
-			legap_scav = true,
-			legaap_scav = true,
-			legsplab_scav = true,
+	end
 
-		}
-		if AircraftFactories[name] then
+	if modOptions.unit_restrictions_nosea and (not (customparams.restrictions_exclusion and string.find(customparams.restrictions_exclusion, "_nosea_"))) then
+		if (uDef.minwaterdepth and uDef.minwaterdepth > 0) or (uDef.category and string.find(uDef.category, "SHIP")) or (customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_nosea_")) then
 			customparams.modoption_blocked = true
 		end
 	end
@@ -300,49 +260,16 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	if modOptions.unit_restrictions_nofusion then
-		if basename == "armdf" or string.sub(basename, -3) == "fus" then
-			customparams.modoption_blocked = true
-		end
-	end
-
 	if modOptions.unit_restrictions_nonukes then
 		for _, weapon in pairs(weapondefs) do
-			if (weapon.interceptor and weapon.interceptor == 1) or (weapon.targetable and weapon.targetable == 1) then
+			if (weapon.targetable and weapon.targetable == 1) then
 				customparams.modoption_blocked = true
 				break
 			end
 		end
 	end
 
-	if modOptions.unit_restrictions_nodefence then
-		local whitelist = {
-			armllt	= true,
-			armrl	= true,
-			armfrt	= true,
-			armtl	= true,
-
-			corllt	= true,
-			corrl	= true,
-			cortl	= true,
-			corfrt	= true,
-			legfrl	= true,
-
-			leglht	= true,
-			legrl	= true,
-			--sea tl= true,
-			--sea aa= true,
-		}
-		-- "defense" or "defence", as legion doesn't fully follow past conventions
-		if not whitelist[name] then
-			local subfolder_lower = string.lower(customparams.subfolder)
-			if string.find(subfolder_lower, "defen", 1, true) then
-				customparams.modoption_blocked = true
-			end
-		end
-	end
-
-	if modOptions.unit_restrictions_noantinuke then
+	if modOptions.unit_restrictions_nonukes or modOptions.unit_restrictions_noantinuke then
 		if next(weapondefs) then
 			local numWeapons = 0
 			local newWdefs = {}
@@ -358,7 +285,7 @@ function UnitDef_Post(name, uDef)
 			end
 			if hasAnti then
 				uDef.weapondefs = newWdefs
-				if numWeapons == 0 and (not uDef.radardistance or uDef.radardistance < 1500) then
+				if numWeapons == 0 and (not (customparams.restrictions_exclusion and string.find(customparams.restrictions_exclusion, "_noantinuke_"))) then
 					customparams.modoption_blocked = true
 				else
 					if uDef.metalcost then
@@ -370,53 +297,26 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
+	if modOptions.unit_restrictions_nofusion then
+		if (customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_nofusion_")) then
+			customparams.modoption_blocked = true
+		end
+	end
+
 	if modOptions.unit_restrictions_notacnukes then
-		local TacNukes = {
-			armemp = true,
-			cortron = true,
-			legperdition = true,
-			armemp_scav = true,
-			cortron_scav = true,
-		}
-		if TacNukes[name] then
+		if (customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_notacnukes_")) then
 			customparams.modoption_blocked = true
 		end
 	end
 
 	if modOptions.unit_restrictions_nolrpc then
-		local LRPCs = {
-			armbotrail = true,
-			armbrtha = true,
-			armvulc = true,
-			corint = true,
-			corbuzz = true,
-			leglrpc = true,
-			legelrpcmech = true,
-			legstarfall = true,
-			armbotrail_scav = true,
-			armbrtha_scav = true,
-			armvulc_scav = true,
-			corint_scav = true,
-			corbuzz_scav = true,
-			legstarfall_scav = true,
-			leglrpc_scav = true,
-			legelrpcmech_scav = true,
-		}
-		if LRPCs[name] then
+		if (customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_nolrpc_")) then
 			customparams.modoption_blocked = true
 		end
 	end
 
 	if modOptions.unit_restrictions_noendgamelrpc then
-		local LRPCs = {
-			armvulc = true,
-			corbuzz = true,
-			legstarfall = true,
-			armvulc_scav = true,
-			corbuzz_scav = true,
-			legstarfall_scav = true,
-		}
-		if LRPCs[name] then
+		if (customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_noendgamelrpc_")) then
 			customparams.modoption_blocked = true
 		end
 	end

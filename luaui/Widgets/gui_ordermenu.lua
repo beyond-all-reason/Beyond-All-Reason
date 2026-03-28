@@ -203,10 +203,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
-local function convertColor(r, g, b)
-	return string.char(255, (r * 255), (g * 255), (b * 255))
-end
-
 local function checkGuiShader(force)
 	if WG['guishader'] then
 		if force and displayListGuiShader then
@@ -802,7 +798,7 @@ local function drawCell(cell, zoom)
 					local info = commandInfo[cmd.action]
 					local part = (1 / colorize)
 					local grey = (0.93 * (part - 1))
-					colorStrCache[cmd.action] = convertColor((grey + info.red) / part, (grey + info.green) / part, (grey + info.blue) / part)
+					colorStrCache[cmd.action] = Spring.Utilities.ConvertColor((grey + info.red) / part, (grey + info.green) / part, (grey + info.blue) / part)
 				end
 				textColor = colorStrCache[cmd.action]
 			else
@@ -999,15 +995,7 @@ function widget:DrawScreen()
 				fbo = true,
 			})
 			if ordermenuBgTex then
-				gl.R2tHelper.RenderToTexture(ordermenuBgTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
-						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-						drawOrdersBackground()
-					end,
-					true
-				)
+				gl.R2tHelper.RenderInRect(ordermenuBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], drawOrdersBackground, true)
 			end
 		end
 		if not ordermenuTex then
@@ -1018,15 +1006,7 @@ function widget:DrawScreen()
 			})
 		end
 		if ordermenuTex and doUpdate then
-			gl.R2tHelper.RenderToTexture(ordermenuTex,
-				function()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
-					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-					drawOrders()
-				end,
-				true
-			)
+			gl.R2tHelper.RenderInRect(ordermenuTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], drawOrders, true)
 			doUpdate = nil
 		end
 

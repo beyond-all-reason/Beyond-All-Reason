@@ -35,6 +35,7 @@ return {
 			subfolder = "CorBuildings/LandDefenceOffence",
 			techlevel = 2,
 			unitgroup = 'weapon',
+			restrictions_inclusion = "_notacnukes_",
 			usebuildinggrounddecal = true,
 		},
 		featuredefs = {
