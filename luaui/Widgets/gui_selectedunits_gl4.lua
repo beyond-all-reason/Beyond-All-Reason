@@ -86,6 +86,10 @@ local unitBufferUniformCache = {0}
 local function AddPrimitiveAtUnit(unitID)
 	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true or Spring.IsGUIHidden() then return end
 	local gf = Spring.GetGameFrame()
+	local _, _, isPaused = Spring.GetGameSpeed()
+	if isPaused then
+		gf = gf - 10
+	end
 
 	if not unitUnitDefID[unitID] then
 		unitUnitDefID[unitID] = Spring.GetUnitDefID(unitID)

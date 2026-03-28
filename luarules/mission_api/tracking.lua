@@ -7,53 +7,81 @@ local trackedUnitNames = GG['MissionAPI'].trackedUnitNames
 local trackedFeatureIDs   = GG['MissionAPI'].trackedFeatureIDs
 local trackedFeatureNames = GG['MissionAPI'].trackedFeatureNames
 
-local function trackUnit(name, unitID)
-	if not name or not unitID then
+local function trackEntity(name, ID, trackedIDs, trackedNames)
+	if not name or not ID then
 		return
 	end
 
-	table.ensureTable(trackedUnitIDs, name)
-	table.ensureTable(trackedUnitNames, unitID)
+	table.ensureTable(trackedIDs, name)
+	table.ensureTable(trackedNames, ID)
 
-	trackedUnitIDs[name][unitID] = true
-	trackedUnitNames[unitID][name] = true
+	trackedIDs[name][ID] = true
+	trackedNames[ID][name] = true
+end
+
+local function isIDUntracked(ID, trackedNames)
+	return table.isNilOrEmpty(trackedNames[ID])
+end
+
+local function isNameUntracked(name, trackedIDs)
+	return table.isNilOrEmpty(trackedIDs[name])
+end
+
+local function doesEntityHaveName(ID, name, trackedIDs)
+	return (trackedIDs[name] or {})[ID] == true
+end
+
+local function untrackID(ID, trackedIDs, trackedNames)
+	if isIDUntracked(ID, trackedNames) then return end
+
+	for name in pairs(trackedNames[ID]) do
+		trackedIDs[name][ID] = nil
+		if next(trackedIDs[name]) == nil then
+			trackedIDs[name] = nil
+		end
+	end
+
+	trackedNames[ID] = nil
+end
+
+local function untrackName(name, trackedIDs, trackedNames)
+	if isNameUntracked(name, trackedIDs) then return end
+
+	for ID in pairs(trackedIDs[name]) do
+		trackedNames[ID][name] = nil
+		if next(trackedNames[ID]) == nil then
+			trackedNames[ID] = nil
+		end
+	end
+	trackedIDs[name] = nil
+end
+
+----------------------------------------------------------------
+--- Unit tracking:
+----------------------------------------------------------------
+
+local function trackUnit(name, unitID)
+	trackEntity(name, unitID, trackedUnitIDs, trackedUnitNames)
 end
 
 local function isUnitIDUntracked(unitID)
-	return table.isNilOrEmpty(trackedUnitNames[unitID])
+	return isIDUntracked(unitID, trackedUnitNames)
 end
 
 local function isUnitNameUntracked(name)
-	return table.isNilOrEmpty(trackedUnitIDs[name])
+	return isNameUntracked(name, trackedUnitIDs)
 end
 
 local function doesUnitHaveName(unitID, name)
-	return (trackedUnitIDs[name] or {})[unitID] == true
+	return doesEntityHaveName(unitID, name, trackedUnitIDs)
 end
 
 local function untrackUnitID(unitID)
-	if isUnitIDUntracked(unitID) then return end
-
-	for name in pairs(trackedUnitNames[unitID]) do
-		trackedUnitIDs[name][unitID] = nil
-		if next(trackedUnitIDs[name]) == nil then
-			trackedUnitIDs[name] = nil
-		end
-	end
-
-	trackedUnitNames[unitID] = nil
+	untrackID(unitID, trackedUnitIDs, trackedUnitNames)
 end
 
 local function untrackUnitName(name)
-	if isUnitNameUntracked(name) then return end
-
-	for unitID in pairs(trackedUnitIDs[name]) do
-		trackedUnitNames[unitID][name] = nil
-		if next(trackedUnitNames[unitID]) == nil then
-			trackedUnitNames[unitID] = nil
-		end
-	end
-	trackedUnitIDs[name] = nil
+	untrackName(name, trackedUnitIDs, trackedUnitNames)
 end
 
 ----------------------------------------------------------------
@@ -61,68 +89,38 @@ end
 ----------------------------------------------------------------
 
 local function trackFeature(name, featureID)
-	if not name or not featureID then
-		return
-	end
-
-	if not trackedFeatureIDs[name] then
-		trackedFeatureIDs[name] = {}
-	end
-	if not trackedFeatureNames[featureID] then
-		trackedFeatureNames[featureID] = {}
-	end
-
-	trackedFeatureIDs[name][featureID] = true
-	trackedFeatureNames[featureID][name] = true
+	trackEntity(name, featureID, trackedFeatureIDs, trackedFeatureNames)
 end
 
 local function isFeatureIDUntracked(featureID)
-	return table.isNilOrEmpty(trackedFeatureNames[featureID])
+	return isIDUntracked(featureID, trackedFeatureNames)
 end
 
 local function isFeatureNameUntracked(name)
-	return table.isNilOrEmpty(trackedFeatureIDs[name])
+	return isNameUntracked(name, trackedFeatureIDs)
 end
 
 local function doesFeatureHaveName(featureID, name)
-	return (trackedFeatureIDs[name] or {})[featureID] == true
+	return doesEntityHaveName(featureID, name, trackedFeatureIDs)
 end
 
 local function untrackFeatureID(featureID)
-	if isFeatureIDUntracked(featureID) then return end
-
-	for name in pairs(trackedFeatureNames[featureID]) do
-		trackedFeatureIDs[name][featureID] = nil
-		if next(trackedFeatureIDs[name]) == nil then
-			trackedFeatureIDs[name] = nil
-		end
-	end
-
-	trackedFeatureNames[featureID] = nil
+	untrackID(featureID, trackedFeatureIDs, trackedFeatureNames)
 end
 
 local function untrackFeatureName(name)
-	if isFeatureNameUntracked(name) then return end
-
-	for featureID in pairs(trackedFeatureIDs[name]) do
-		trackedFeatureNames[featureID][name] = nil
-		if next(trackedFeatureNames[featureID]) == nil then
-			trackedFeatureNames[featureID] = nil
-		end
-	end
-	trackedFeatureIDs[name] = nil
+	untrackName(name, trackedFeatureIDs, trackedFeatureNames)
 end
 
 return {
-	InitializeTracking     = initializeTracking,
-	-- Units
+	-- Unit tracking
 	TrackUnit              = trackUnit,
 	IsUnitIDUntracked      = isUnitIDUntracked,
 	IsUnitNameUntracked    = isUnitNameUntracked,
 	DoesUnitHaveName       = doesUnitHaveName,
 	UntrackUnitID          = untrackUnitID,
 	UntrackUnitName        = untrackUnitName,
-	-- Features
+	-- Feature tracking
 	TrackFeature           = trackFeature,
 	IsFeatureIDUntracked   = isFeatureIDUntracked,
 	IsFeatureNameUntracked = isFeatureNameUntracked,

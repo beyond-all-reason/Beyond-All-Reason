@@ -39,6 +39,7 @@ return {
 			subfolder = "ArmBuildings/LandUtil",
 			techlevel = 2,
 			unitgroup = "util",
+			restrictions_inclusion = "_nofusion_",
 			usebuildinggrounddecal = true,
 		},
 		featuredefs = {

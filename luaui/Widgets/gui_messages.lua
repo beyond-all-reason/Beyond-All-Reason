@@ -168,16 +168,12 @@ function widget:Initialize()
 	end
 end
 
-local uiSec = 0
 local buildmenuBottomPos = false
+local uiSec = 0
 function widget:Update(dt)
 	uiSec = uiSec + dt
 	if uiSec > 0.5 then
 		uiSec = 0
-		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
-			ui_scale = Spring.GetConfigFloat("ui_scale",1)
-			widget:ViewResize()
-		end
 		if hideSpecChat ~= tonumber(Spring.GetConfigInt("HideSpecChat", 0) or 0) == 1 then
 			hideSpecChat = tonumber(Spring.GetConfigInt("HideSpecChat", 0) or 0) == 1
 		end

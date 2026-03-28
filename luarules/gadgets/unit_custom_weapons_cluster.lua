@@ -339,6 +339,12 @@ local function getSurfaceDeflection(x, y, z)
 	return dx, dy, dz
 end
 
+-- Average of the distance from the (nearest) surface of a sphere to an external point.
+-- With credit to steveOw, coffeemath: https://math.stackexchange.com/questions/1340438
+local function meanSphereDistance(radius, distance)
+	return (radius * radius) / (3 * distance) + distance
+end
+
 ---Shields can overlap with units, terrain, and other shields, so we should avoid both:
 -- (1) exaggerating other responses by adding new responses in the same direction, and
 -- (2) destructively negating other strong responses (> 1) when opposite in direction.
@@ -351,8 +357,12 @@ local function getShieldDeflection(x, y, z, dx, dy, dz, shieldUnits)
 		local sx, sy, sz, radius = getShieldPosition(shieldUnitID)
 
 		if sx then
-			-- Rescale to shield radius. This is incorrect for indirect hits/non-impacts only.
-			sx, sy, sz = dx + (x - sx) / radius, dy + (y - sy) / radius, dz + (z - sz) / radius
+			-- Get a response based on the distance to the sphere.
+			sx, sy, sz = x - sx, y - sy, z - sz
+			local distance = max(diag(sx, sy, sz), radius)
+			local scale = 1 / sqrt(meanSphereDistance(radius, distance))
+
+			sx, sy, sz = dx + sx * scale, dy + sy * scale, dz + sz * scale
 			local response = diag(sx, sy, sz)
 			local limitMin, limitMax = 1, responseMax
 
