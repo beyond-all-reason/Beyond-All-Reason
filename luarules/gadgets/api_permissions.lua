@@ -65,3 +65,18 @@ end
 _G.powerusers = powerusers
 _G.permissions = permissions
 _G.isSinglePlayer = isSinglePlayer
+
+function gadget:PlayerChanged(playerID)
+	if not trustedNames then return end
+	local name = Spring.GetPlayerInfo(playerID)
+	if not name or not trustedNames[name] then return end
+	local accountID = Spring.Utilities.GetAccountID(playerID)
+	if powerusers[accountID] then return end
+	powerusers[accountID] = trustedNames[name]
+	for permission, value in pairs(trustedNames[name]) do
+		if not permissions[permission] then
+			permissions[permission] = {}
+		end
+		permissions[permission][accountID] = value
+	end
+end

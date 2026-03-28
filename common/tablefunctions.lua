@@ -72,7 +72,7 @@ if not table.ensureTable then
 	---Ensures a table exists at the specified key, creating one if needed.
 	---@param tbl table
 	---@param key any
-	---@return table.ensureTable nested in tbl at key
+	---@return table nested in tbl at key
 	function table.ensureTable(tbl, key)
 		local sub = tbl[key]
 		if sub == nil then
