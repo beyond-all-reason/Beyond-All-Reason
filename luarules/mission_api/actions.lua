@@ -1,10 +1,13 @@
 local sounds = VFS.Include('luarules/mission_api/sounds.lua')
 local tracking = VFS.Include('luarules/mission_api/tracking.lua')
 local trackUnit = tracking.TrackUnit
-local isNameUntracked = tracking.IsNameUntracked
+local isUnitNameUntracked = tracking.IsUnitNameUntracked
 local untrackUnitName = tracking.UntrackUnitName
+local trackFeature = tracking.TrackFeature
+local isFeatureNameUntracked = tracking.IsFeatureNameUntracked
 
 local trackedUnitIDs = GG['MissionAPI'].trackedUnitIDs
+local trackedFeatureIDs = GG['MissionAPI'].trackedFeatureIDs
 local triggers = GG['MissionAPI'].Triggers
 
 
@@ -44,10 +47,10 @@ local function disableTrigger(triggerID)
 end
 
 local function issueOrders(unitName, orders)
-    if isNameUntracked(unitName) then return end
+    if isUnitNameUntracked(unitName) then return end
 
-	local commandsAcceptingName = { [CMD.GUARD] = true, [CMD.REPAIR] = true, [CMD.CAPTURE] = true,
-									[CMD.ATTACK] = true, [CMD.LOAD_UNITS] = true, [CMD.RECLAIM] = true }
+	local commandsAcceptingName = { [CMD.GUARD] = true, [CMD.REPAIR] = true, [CMD.CAPTURE] = true, [CMD.ATTACK] = true,
+									[CMD.LOAD_UNITS] = true, [CMD.RECLAIM] = true, [CMD.RESURRECT] = true }
 
 	-- Replace name param with unitIDs, duplicating order for each unitID
 	local newOrders = {}
@@ -55,11 +58,22 @@ local function issueOrders(unitName, orders)
 		local commandID = order[1]
 		local params = order[2] or {}
 		local options = order[3] or {}
-		if commandsAcceptingName[commandID] and type(params) == 'string' then
-			local unitIDs = trackedUnitIDs[params] or {}
+
+		if commandsAcceptingName[commandID] and type(params) == 'table' and (params.unitName or params.featureName) then
+			local thingIDs = {}
+			local offset = 0
+			if params.featureName then
+				thingIDs = trackedFeatureIDs[params.featureName]
+				if not Engine.FeatureSupport.noOffsetForFeatureID then
+					offset = Game.maxUnits
+				end
+			elseif params.unitName then
+				thingIDs = trackedUnitIDs[params.unitName]
+			end
+
 			local isFirstUnitID = true
-			for _, unitID in ipairs(unitIDs) do
-				newOrders[#newOrders + 1] = { commandID, unitID, table.copy(options) }
+			for thingID in pairs(thingIDs) do
+				newOrders[#newOrders + 1] = { commandID, thingID + offset, table.copy(options) }
 				if isFirstUnitID then
 					table.insert(options, 'shift')
 					isFirstUnitID = false
@@ -70,7 +84,7 @@ local function issueOrders(unitName, orders)
 		end
 	end
 
-	Spring.GiveOrderArrayToUnitArray(trackedUnitIDs[unitName], newOrders)
+	Spring.GiveOrderArrayToUnitMap(trackedUnitIDs[unitName], newOrders)
 end
 
 local function spawnUnits(unitName, unitDefName, teamID, position, quantity, facing, construction, spacing)
@@ -98,10 +112,10 @@ end
 ----------------------------------------------------------------
 
 local function despawnUnits(unitName, selfDestruct, reclaimed)
-	if isNameUntracked(unitName) then return end
+	if isUnitNameUntracked(unitName) then return end
 
 	-- Copying table as UnitKilled trigger with SpawnUnits with the same name could cause infinite loop.
-	for _, unitID in pairs(table.copy(trackedUnitIDs[unitName])) do
+	for unitID in pairs(table.copy(trackedUnitIDs[unitName])) do
 		if Spring.GetUnitIsDead(unitID) == false then
 			Spring.DestroyUnit(unitID, selfDestruct, reclaimed)
 		end
@@ -111,10 +125,10 @@ end
 ----------------------------------------------------------------
 
 local function transferUnits(unitName, newTeam)
-	if isNameUntracked(unitName) then return end
+	if isUnitNameUntracked(unitName) then return end
 
 	-- Copying table as UnitExists trigger with TransferUnits with the same name could cause infinite loop.
-	for _, unitID in pairs(table.copy(trackedUnitIDs[unitName])) do
+	for unitID in pairs(table.copy(trackedUnitIDs[unitName])) do
 		local given = Spring.GetUnitAllyTeam(unitID) == Spring.GetTeamAllyTeamID(newTeam)
 		Spring.TransferUnit(unitID, newTeam, given)
 	end
@@ -167,6 +181,42 @@ end
 
 local function unnameUnits(unitName)
 	untrackUnitName(unitName)
+end
+
+local corpseToUnitDefName = {}
+for _, unitDef in pairs(UnitDefs) do
+	if unitDef.corpse and FeatureDefNames[unitDef.corpse] then
+		corpseToUnitDefName[unitDef.corpse] = unitDef.name
+	end
+end
+
+local function createFeature(featureDefName, position, featureName, facing)
+	-- Convert named facing to a heading integer (engine uses 0-65535 headings)
+	local facingToHeading = { s = 0, n = 32768, e = 16384, w = 49152,
+		south = 0, north = 32768, east = 16384, west = 49152,
+		[0] = 0, [1] = 32768, [2] = 16384, [3] = 49152 }
+	local heading = facing and (facingToHeading[facing] or 0) or 0
+
+	local gaiaTeamID = Spring.GetGaiaTeamID()
+	local featureID = Spring.CreateFeature(featureDefName, position.x, position.y, position.z, heading, gaiaTeamID)
+	local unitDefName = corpseToUnitDefName[featureDefName]
+	if unitDefName then
+		Spring.SetFeatureResurrect(featureID, unitDefName, facing)
+	end
+	if featureID and featureName then
+		trackFeature(featureName, featureID)
+	end
+end
+
+local function destroyFeature(featureName)
+	if isFeatureNameUntracked(featureName) then return end
+
+	-- Copying table as FeatureDestroyed trigger with CreateFeature with the same name could cause infinite loop.
+	for featureID in pairs(table.copy(trackedFeatureIDs[featureName])) do
+		if Spring.ValidFeatureID(featureID) then
+			Spring.DestroyFeature(featureID)
+		end
+	end
 end
 
 local function spawnExplosion(weaponDefName, position, direction)
@@ -266,6 +316,10 @@ return {
 	TransferUnits = transferUnits,
 	NameUnits = nameUnits,
 	UnnameUnits = unnameUnits,
+
+	-- Features
+	CreateFeature = createFeature,
+	DestroyFeature = destroyFeature,
 
 	-- SFX
 	SpawnExplosion = spawnExplosion,

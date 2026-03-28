@@ -2,6 +2,8 @@ local gadget = gadget ---@type Gadget
 
 local doesUnitHaveName
 local untrackUnitID
+local doesFeatureHaveName
+local untrackFeatureID
 
 function gadget:GetInfo()
 	return {
@@ -16,8 +18,6 @@ end
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
-
-local unitLocationCheckInterval = 15
 
 local actionsDispatcher
 local types, triggers
@@ -161,14 +161,17 @@ local function checkUnitResurrected(trigger, unitDefID, unitTeam, builderID)
 		return
 	end
 
-	if Spring.GetUnitWorkerTask(builderID) ~= CMD.RESURRECT then
+	local cmdID, featureID = Spring.GetUnitWorkerTask(builderID)
+	if cmdID ~= CMD.RESURRECT then
 		return
 	end
+	if not Engine.FeatureSupport.noOffsetForFeatureID then
+		featureID = featureID - Game.maxUnits
+	end
 
-	-- TODO: feature tracking
-	--if trigger.parameters.featureName and not doesFeatureHaveName(featureID, trigger.parameters.featureName) then
-	--	return
-	--end
+	if trigger.parameters.featureName and not doesFeatureHaveName(featureID, trigger.parameters.featureName) then
+		return
+	end
 	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
 		return
 	end
@@ -231,9 +234,7 @@ local function checkUnitDwellLocation(trigger, triggerID)
 		elseif (dwellingUnitsInAreas[triggerID] == nil or dwellingUnitsInAreas[triggerID][unitID] == nil)
 			and (not trigger.parameters.unitName or doesUnitHaveName(unitID, trigger.parameters.unitName))
 			and (not trigger.parameters.unitDefName or UnitDefs[Spring.GetUnitDefID(unitID)].name == trigger.parameters.unitDefName) then
-			if not dwellingUnitsInAreas[triggerID] then
-				dwellingUnitsInAreas[triggerID] = {}
-			end
+			table.ensureTable(dwellingUnitsInAreas, triggerID)
 			dwellingUnitsInAreas[triggerID][unitID] = 0
 		end
 	end
@@ -294,6 +295,53 @@ local function checkTeamDestroyed(trigger, teamID)
 	end
 end
 
+local function isFeatureInArea(featureID, area)
+	local featureX, _, featureZ = Spring.GetFeaturePosition(featureID)
+	return math.isPointInArea(featureX, featureZ, area)
+end
+
+local function checkFeatureCreated(trigger, featureID, featureDefID)
+	if trigger.parameters.featureDefName and trigger.parameters.featureDefName ~= FeatureDefs[featureDefID].name then
+		return
+	end
+	if trigger.parameters.area and not isFeatureInArea(featureID, trigger.parameters.area) then
+		return
+	end
+	activateTrigger(trigger)
+end
+
+local function checkFeatureReclaimed(trigger, featureID, featureDefID, teamID)
+	if trigger.parameters.featureName and not doesFeatureHaveName(featureID, trigger.parameters.featureName) then
+		return
+	end
+	if trigger.parameters.featureDefName and trigger.parameters.featureDefName ~= FeatureDefs[featureDefID].name then
+		return
+	end
+	if trigger.parameters.teamID and teamID ~= trigger.parameters.teamID then
+		return
+	end
+	if trigger.parameters.area and not isFeatureInArea(featureID, trigger.parameters.area) then
+		return
+	end
+	activateTrigger(trigger)
+end
+
+local function checkFeatureDestroyed(trigger, featureID, featureDefID, attackerAllyTeamID)
+	if trigger.parameters.featureName and not doesFeatureHaveName(featureID, trigger.parameters.featureName) then
+		return
+	end
+	if trigger.parameters.featureDefName and trigger.parameters.featureDefName ~= FeatureDefs[featureDefID].name then
+		return
+	end
+	if trigger.parameters.allyTeamID and attackerAllyTeamID ~= trigger.parameters.allyTeamID then
+		return
+	end
+	if trigger.parameters.area and not isFeatureInArea(featureID, trigger.parameters.area) then
+		return
+	end
+	activateTrigger(trigger)
+end
+
 
 ----------------------------------------------------------------
 --- Call-ins:
@@ -312,6 +360,8 @@ function gadget:Initialize()
 	local tracking = VFS.Include('luarules/mission_api/tracking.lua')
 	doesUnitHaveName = tracking.DoesUnitHaveName
 	untrackUnitID = tracking.UntrackUnitID
+	doesFeatureHaveName = tracking.DoesFeatureHaveName
+	untrackFeatureID    = tracking.UntrackFeatureID
 end
 
 function gadget:GameFrame(frameNumber)
@@ -330,7 +380,6 @@ function gadget:GameFrame(frameNumber)
 	processTriggersOfType(types.UnitDwellLocation, function(trigger, triggerID)
 		checkUnitDwellLocation(trigger, triggerID)
 	end)
-
 end
 
 function gadget:MetaUnitAdded(_, unitDefID, unitTeam)
@@ -392,4 +441,41 @@ function gadget:TeamDied(teamID)
 	processTriggersOfType(types.TeamDestroyed, function(trigger, _)
 		checkTeamDestroyed(trigger, teamID)
 	end)
+end
+
+local reclaimedFeatures = {}
+function gadget:AllowFeatureBuildStep(builderID, builderTeamID, featureID, featureDefID, buildStep)
+	if buildStep < 0 then
+		-- Negative buildStep means reclaim
+		reclaimedFeatures[featureID] = builderTeamID
+	end
+	return true
+end
+
+function gadget:FeatureCreated(featureID, allyTeamID)
+	local featureDefID = Spring.GetFeatureDefID(featureID)
+	processTriggersOfType(types.FeatureCreated, function(trigger, _)
+		checkFeatureCreated(trigger, featureID, featureDefID)
+	end)
+end
+
+function gadget:FeatureDestroyed(featureID, attackerAllyTeamID)
+	local featureDefID = Spring.GetFeatureDefID(featureID)
+	local _, _, _, _, reclaimLeft = Spring.GetFeatureResources(featureID)
+	local reclaimerTeamID = reclaimedFeatures[featureID]
+
+	if reclaimerTeamID and reclaimLeft <= 0 then
+		-- Feature was fully reclaimed
+		processTriggersOfType(types.FeatureReclaimed, function(trigger, _)
+			checkFeatureReclaimed(trigger, featureID, featureDefID, reclaimerTeamID)
+		end)
+	else
+		-- Feature was destroyed, allyTeamID is the attacker's ally team.
+		processTriggersOfType(types.FeatureDestroyed, function(trigger, _)
+			checkFeatureDestroyed(trigger, featureID, featureDefID, attackerAllyTeamID)
+		end)
+	end
+
+	reclaimedFeatures[featureID] = nil
+	untrackFeatureID(featureID)
 end
