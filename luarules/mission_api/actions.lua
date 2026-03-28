@@ -193,9 +193,6 @@ end
 
 local function createFeature(featureDefName, position, featureName, facing)
 	local featureID = loadout.CreateFeature(featureDefName, position, facing)
-
-	local gaiaTeamID = Spring.GetGaiaTeamID()
-	local featureID = Spring.CreateFeature(featureDefName, position.x, position.y, position.z, heading, gaiaTeamID)
 	local unitDefName = corpseToUnitDefName[featureDefName]
 	if unitDefName then
 		Spring.SetFeatureResurrect(featureID, unitDefName, facing)

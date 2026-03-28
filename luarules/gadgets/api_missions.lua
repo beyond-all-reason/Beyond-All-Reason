@@ -87,8 +87,6 @@ function gadget:GamePreload()
 	end
 
 	local tracking = VFS.Include('luarules/mission_api/tracking.lua')
-	tracking.InitializeTracking()
-
 	local loadoutModule = VFS.Include('luarules/mission_api/loadout.lua')
 	loadoutModule.SpawnUnitLoadout(GG['MissionAPI'].UnitLoadout, tracking.TrackUnit)
 	loadoutModule.SpawnFeatureLoadout(GG['MissionAPI'].FeatureLoadout, tracking.TrackFeature)
