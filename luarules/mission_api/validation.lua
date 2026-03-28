@@ -169,7 +169,7 @@ validators[Types.Orders] = function(orders)
 			local validate4 = validateNumberArrayCurried({ 4 }, "4 numbers {x, y, z, radius}")
 			local validate4orUnitName = validateNumberArrayCurried({ 4 }, "4 numbers {x, y, z, radius}, or a unit name", { 'unitName' })
 			local validate4orFeatureName = validateNumberArrayCurried({ 4 }, "4 numbers {x, y, z, radius}, or a feature name", { 'featureName' })
-			local validate4orEitherName = validateNumberArrayCurried({ 4 }, "4 numbers {x, y, z, radius}, or a feature name", { 'unitName', 'featureName' })
+			local validate4orEitherName = validateNumberArrayCurried({ 4 }, "4 numbers {x, y, z, radius}, or a unit/feature name", { 'unitName', 'featureName' })
 
 			local commandValidators = {
 				-- No parameters:

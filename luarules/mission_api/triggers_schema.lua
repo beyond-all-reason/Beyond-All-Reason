@@ -336,6 +336,7 @@ local parameters = {
 			required = false,
 			type = Types.Area,
 		},
+		requiresOneOf = { 'featureDefName', 'area' }
 	},
 	[triggerTypes.FeatureReclaimed] = {
 		[1] = {
@@ -358,6 +359,7 @@ local parameters = {
 			required = false,
 			type = Types.Area,
 		},
+		requiresOneOf = { 'featureName', 'featureDefName', 'teamID', 'area' }
 	},
 	[triggerTypes.FeatureDestroyed] = {
 		[1] = {
@@ -380,6 +382,7 @@ local parameters = {
 			required = false,
 			type = Types.Area,
 		},
+		requiresOneOf = { 'featureName', 'featureDefName', 'allyTeamID', 'area' }
 	},
 
 	-- Resources

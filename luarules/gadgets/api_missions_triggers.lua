@@ -297,12 +297,7 @@ end
 
 local function isFeatureInArea(featureID, area)
 	local featureX, _, featureZ = Spring.GetFeaturePosition(featureID)
-	if area.x1 then
-		return featureX >= area.x1 and featureX <= area.x2 and featureZ >= area.z1 and featureZ <= area.z2
-	else
-		local dx, dz = featureX - area.x, featureZ - area.z
-		return dx * dx + dz * dz <= area.radius * area.radius
-	end
+	return math.isPointInArea(featureX, featureZ, area)
 end
 
 local function checkFeatureCreated(trigger, featureID, featureDefID)
@@ -496,7 +491,7 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeamID, featureID, featu
 	return true
 end
 
-function gadget:FeatureCreated(featureID, allyTeamID, userID)
+function gadget:FeatureCreated(featureID, allyTeamID)
 	local featureDefID = Spring.GetFeatureDefID(featureID)
 	processTriggersOfType(types.FeatureCreated, function(trigger, _)
 		checkFeatureCreated(trigger, featureID, featureDefID)
@@ -510,7 +505,6 @@ function gadget:FeatureDestroyed(featureID, attackerAllyTeamID)
 
 	if reclaimerTeamID and reclaimLeft <= 0 then
 		-- Feature was fully reclaimed
-		reclaimedFeatures[featureID] = nil
 		processTriggersOfType(types.FeatureReclaimed, function(trigger, _)
 			checkFeatureReclaimed(trigger, featureID, featureDefID, reclaimerTeamID)
 		end)
@@ -521,5 +515,6 @@ function gadget:FeatureDestroyed(featureID, attackerAllyTeamID)
 		end)
 	end
 
+	reclaimedFeatures[featureID] = nil
 	untrackFeatureID(featureID)
 end

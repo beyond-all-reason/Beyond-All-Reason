@@ -66,9 +66,25 @@ local function ColorIsDark(red, green, blue)
 	return RgbToY(red, green, blue) < threshold
 end
 
+local function ConvertColor(r, g, b)
+	-- Converts 0-1 float RGB to a color escape string safe for font rendering.
+	-- Guards against char(0) (null), char(10) (newline), char(37) (% used by i18n).
+	r = floor(r * 255)
+	g = floor(g * 255)
+	b = floor(b * 255)
+	if r < 11 then r = 11 end
+	if g < 11 then g = 11 end
+	if b < 11 then b = 11 end
+	if r == 37 then r = 38 end
+	if g == 37 then g = 38 end
+	if b == 37 then b = 38 end
+	return colorIndicator .. schar(r) .. schar(g) .. schar(b)
+end
+
 return {
 	ToString = ColorString,
 	ToStringEx = ColorStringEx,
 	ToIntArray = ColorArray,
 	ColorIsDark = ColorIsDark,
+	ConvertColor = ConvertColor,
 }
