@@ -66,17 +66,43 @@ _G.powerusers = powerusers
 _G.permissions = permissions
 _G.isSinglePlayer = isSinglePlayer
 
-function gadget:PlayerChanged(playerID)
-	if not trustedNames then return end
+-- Pending trusted name resolutions: playerIDs whose accountID was -1 when they joined
+local pendingTrustedNames = {}
+
+local function ResolveTrustedName(playerID)
 	local name = Spring.GetPlayerInfo(playerID)
-	if not name or not trustedNames[name] then return end
+	if not name or not trustedNames[name] then return false end
 	local accountID = Spring.Utilities.GetAccountID(playerID)
-	if powerusers[accountID] then return end
+	if accountID == -1 then return false end -- still unavailable
+	if powerusers[accountID] then return true end -- already has permissions
 	powerusers[accountID] = trustedNames[name]
 	for permission, value in pairs(trustedNames[name]) do
 		if not permissions[permission] then
 			permissions[permission] = {}
 		end
 		permissions[permission][accountID] = value
+	end
+	Spring.Log("Permissions", LOG.INFO, "Granted trusted-name permissions to " .. name .. " (accountID: " .. accountID .. ")")
+	return true
+end
+
+function gadget:PlayerChanged(playerID)
+	if not trustedNames then return end
+	local name = Spring.GetPlayerInfo(playerID)
+	if not name or not trustedNames[name] then return end
+	if not ResolveTrustedName(playerID) then
+		-- accountID not yet available, schedule retry
+		pendingTrustedNames[playerID] = true
+	end
+end
+
+function gadget:GameFrame(frame)
+	if not next(pendingTrustedNames) then return end
+	-- Retry every 30 frames (~1 second)
+	if frame % 30 ~= 0 then return end
+	for playerID in pairs(pendingTrustedNames) do
+		if ResolveTrustedName(playerID) then
+			pendingTrustedNames[playerID] = nil
+		end
 	end
 end
