@@ -1,0 +1,21 @@
+{
+	"$schema": "../schemata/campaign.schema.json",
+	"campaignId": "armada-main",
+	"title": "Test Campaign 1 - Armada",
+	"description": "This campaign has Mission API test missions, for now.",
+	"backgroundImage": "BAR3-5K_Loadingscreen_1.jpg",
+	"logo": "armada_logo.png",
+
+	"players": [1, 2, 4],
+
+	"difficulties": {
+		"Beginner": {"playerHandicap": 50},
+		"Normal": {},
+		"Hard": {"playerHandicap": -25, "enemyHandicap": 25}
+	},
+	"defaultDifficulty": "Normal",
+
+	"unlocks": {
+		"markers_test": ["start_script_test"]
+	}
+}
