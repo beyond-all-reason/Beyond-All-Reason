@@ -82,13 +82,21 @@ local triggers = {
 		parameters = {
 			gameFrame = 1100,
 		},
-		actions = { 'stop', 'messageStop' },
+		actions = { 'stop', 'messageStop', 'spawnWreck1', 'spawnWreck2', 'spawnWreck3' },
+	},
+
+	reclaimWrecks = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = 1200,
+		},
+		actions = { 'reclaimWrecks', 'messageReclaimWrecks' },
 	},
 
 	artilleryAreaAttack = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 1200,
+			gameFrame = 1400,
 		},
 		actions = { 'spawnArtilleryTargets', 'spawnArtillery', 'artilleryAreaAttack', 'messageArtilleryAreaAttack' },
 	},
@@ -180,7 +188,7 @@ local actions = {
 			unitName = 'attackers',
 			orders = {
 				{ CMD.MOVE_STATE, CMD.MOVESTATE_HOLDPOS },
-				{ CMD.ATTACK, 'targets' },
+				{ CMD.ATTACK, { unitName = 'targets' } },
 			},
 		},
 	},
@@ -189,6 +197,50 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = "Attacking targets by name, one by one.",
+		},
+	},
+
+	spawnWreck1 = {
+		type = actionTypes.CreateFeature,
+		parameters = {
+			featureName = 'wrecks',
+			featureDefName = 'armadvsol_dead',
+			position = { x = 2200, z = 2300 },
+		},
+	},
+
+	spawnWreck2 = {
+		type = actionTypes.CreateFeature,
+		parameters = {
+			featureName = 'wrecks',
+			featureDefName = 'armadvsol_dead',
+			position = { x = 2300, z = 2300 },
+		},
+	},
+
+	spawnWreck3 = {
+		type = actionTypes.CreateFeature,
+		parameters = {
+			featureName = 'wrecks',
+			featureDefName = 'armadvsol_dead',
+			position = { x = 2300, z = 2300 },
+		},
+	},
+
+	reclaimWrecks = {
+		type = actionTypes.IssueOrders,
+		parameters = {
+			unitName = 'attackers',
+			orders = {
+				{ CMD.RECLAIM, { featureName = 'wrecks' } },
+			},
+		},
+	},
+
+	messageReclaimWrecks  = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "Reclaiming the wrecks by name, one by one.",
 		},
 	},
 
@@ -277,7 +329,7 @@ local actions = {
 		parameters = {
 			unitName = 'attackers',
 			orders = {
-				{ CMD.GUARD, 'fusions' },
+				{ CMD.GUARD, { unitName = 'fusions' } },
 			},
 		},
 	},
@@ -295,7 +347,7 @@ local actions = {
 			unitName = 'attackers',
 			orders = {
 				{ CMD.MOVE, { 2100, 0, 2100 }},
-				{ CMD.RECLAIM, 'fusions', { 'shift' }  },
+				{ CMD.RECLAIM, { unitName = 'fusions' }, { 'shift' }  },
 				{ CMD.MOVE, { 2300, 0, 2900 }, { 'shift' } },
 			},
 		},

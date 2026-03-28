@@ -16,6 +16,7 @@ local types = {
 	String = 'String',
 	TriggerID = 'TriggerID',
 	UnitDefName = 'UnitDefName',
+	FeatureDefName = 'FeatureDefName',
 	WeaponDefName = 'WeaponDefName',
 	TeamName = 'TeamName',
 	AllyTeamName = 'AllyTeamName',

@@ -241,10 +241,6 @@ end
 
 local RectRound, RectRoundProgress, UiUnit, UiElement, UiButton, elementCorner
 
-local function convertColor(r, g, b)
-	return string.char(255, (r * 255), (g * 255), (b * 255))
-end
-
 local folder = 'LuaUI/Images/groupicons/'
 local groups = {
 	energy = folder..'energy.png',
@@ -987,26 +983,10 @@ function widget:DrawScreen()
 				format = GL.RGBA,
 				fbo = true,
 			})
-			gl.R2tHelper.RenderToTexture(buildmenuBgTex,
-				function()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
-					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-					drawBuildmenuBg()
-				end,
-				true
-			)
+			gl.R2tHelper.RenderInRect(buildmenuBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], drawBuildmenuBg, true)
 		end
 		if buildmenuTex then
-			gl.R2tHelper.RenderToTexture(buildmenuTex,
-				function()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
-					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-					drawBuildmenu()
-				end,
-				true
-			)
+			gl.R2tHelper.RenderInRect(buildmenuTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], drawBuildmenu, true)
 		end
 	end
 

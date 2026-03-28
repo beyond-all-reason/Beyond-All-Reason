@@ -34,6 +34,7 @@ return {
 			subfolder = "ArmBuildings/LandDefenceOffence",
 			techlevel = 2,
 			unitgroup = "emp",
+			restrictions_inclusion = "_notacnukes_",
 			usebuildinggrounddecal = true,
 			yardmap = "ooooooo ooooooo ooooooo ooooooo ooooooo ooooooo",
 		},

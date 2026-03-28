@@ -42,6 +42,7 @@ return {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Air/T2 Air",
+			techlevel = 2,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

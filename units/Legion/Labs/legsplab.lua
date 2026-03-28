@@ -42,6 +42,8 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Labs",
 			unitgroup = "builder",
+			restrictions_inclusion = "_noair_",
+			techlevel = 1.5,
 		},
 		featuredefs = {
 			dead = {

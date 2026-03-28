@@ -439,7 +439,7 @@ local function updateOrders(unitID, unitDefID, closestKnownEnemy, currentCommand
 	GetUnitNearestReachableAlly(unitID, unitDefID, ZOMBIE_GUARD_RADIUS) or nil
 	local weaponRange = unitDefWithWeaponRanges[unitDefID]
 	local data = zombieWatch[unitID]
-	
+
 	if repairingUnits[unitDefID] and closestKnownEnemy and not data.isStuck then
 		local enemyDefID = spGetUnitDefID(closestKnownEnemy)
 		if enemyDefID and unitDefs[enemyDefID].reclaimable then
@@ -750,7 +750,7 @@ function gadget:GameFrame(frame)
 				local currentCommand = spGetUnitCurrentCommand(unitID)
 				local refreshOrders = currentCommand ~= CMD_FIGHT and random() <= REFRESH_ORDERS_CHANCE
 
-				if ordersEnabled and (refreshOrders or 
+				if ordersEnabled and (refreshOrders or
 				(currentCommand ~= CMD_FIGHT and currentCommand ~= CMD_GUARD and
 				(closestKnownEnemy or not (queueSize) or (queueSize < ZOMBIE_MAX_ORDERS_ISSUED)))) then
 					clearUnitOrders(unitID)
@@ -759,7 +759,7 @@ function gadget:GameFrame(frame)
 			end
 		end
 	end
-	
+
 
 	if frame % STUCK_CHECK_INTERVAL == 0 then
 		for unitID, data in pairs(zombieWatch) do
@@ -1006,12 +1006,10 @@ end
 local function isAuthorized(playerID)
 	if Spring.IsCheatingEnabled() then
 		return true
-	else
-		local playername, _, _, _, _, _, _, _, _, _, accountInfo = Spring.GetPlayerInfo(playerID)
-		local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
-		if (_G and _G.permissions.devhelpers[accountID]) or (SYNCED and SYNCED.permissions.devhelpers[accountID]) then
-			return true
-		end
+	end
+	local accountID = Spring.Utilities.GetAccountID(playerID)
+	if (_G and _G.permissions.devhelpers[accountID]) or (SYNCED and SYNCED.permissions.devhelpers[accountID]) then
+		return true
 	end
 	return false
 end
