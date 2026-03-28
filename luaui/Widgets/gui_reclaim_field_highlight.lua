@@ -1476,6 +1476,11 @@ local function AddFeature(featureID)
 		radius = radius,
 	}
 
+	-- Reset drained flag when adding a feature with energy
+	if energy and energy > 0 and allEnergyFieldsDrained then
+		allEnergyFieldsDrained = false
+	end
+
 	-- To deal with e.g. raptor eggs spawning at altitude ~20:
 	if y > 0 then
 		local elevation = spGetGroundHeight(x, z)
@@ -1920,7 +1925,7 @@ local function ClusterizeFeatures()
 	alwaysShowFieldsThreshold = CalculateAlwaysShowThreshold()
 
 	-- Check if all energy has been drained after clustering
-	if showEnergyFields and not allEnergyFieldsDrained then
+	if showEnergyFields then
 		CheckAllEnergyDrained()
 	end
 
@@ -2032,6 +2037,7 @@ do
 		end
 		-- If visibility changed from false to true, force a full display list recreation
 		if not previousDrawEnabled and drawEnabled then
+			dirty.needCluster = true
 			dirty.needRedraw = true
 			dirty.forceFullRedraw = true
 		end
@@ -2084,6 +2090,7 @@ do
 		drawEnergyEnabled = showEnergyOptionFunctions[showEnergyOption]()
 		-- If visibility changed from false to true, force a full display list recreation
 		if not previousDrawEnergyEnabled and drawEnergyEnabled then
+			dirty.needCluster = true
 			dirty.needRedraw = true
 			dirty.forceFullRedraw = true
 		end
@@ -2645,11 +2652,15 @@ local function UpdateReclaimFields()
 		ProcessPendingFeatureChanges()
 	end
 
-	if drawEnabled == false then
+	-- Refresh draw state before checking early return (avoid stale cached values)
+	UpdateDrawEnabled()
+	UpdateDrawEnergyEnabled()
+
+	if drawEnabled == false and (not showEnergyFields or not drawEnergyEnabled or allEnergyFieldsDrained) then
 		return
 	end
 	
-	if frame - lastCheckFrame < checkFrequency and os.clock() - lastCheckFrameClock < (checkFrequency/30) then
+	if not dirty.needCluster and not dirty.forceFullRedraw and frame - lastCheckFrame < checkFrequency and os.clock() - lastCheckFrameClock < (checkFrequency/30) then
 		return
 	end
 	lastCheckFrame = spGetGameFrame()
