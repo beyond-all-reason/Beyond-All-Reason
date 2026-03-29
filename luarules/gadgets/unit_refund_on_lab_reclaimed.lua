@@ -41,8 +41,8 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
   end
 end
 
-function gadget:UnitFromFactory(unitID, unitDefID, unitTeam, factID)
-  factoryQueue[factID] = nil
+function gadget:UnitFromFactory(unitID, unitDefID, unitTeam, factoryID)
+  factoryQueue[factoryID] = nil
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
