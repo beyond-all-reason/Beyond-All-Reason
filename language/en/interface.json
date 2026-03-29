@@ -166,8 +166,8 @@
 			"maximize": "Maximize\nALT+CLICK-DRAG to Move",
 			"worldminimize": "ALT+CLICK to Minimize PiP\nALT+CLICK-DRAG to Move PiP\nALT+SCROLL to zoom",
 			"worldmaximize": "ALT+CLICK Maximize PiP\nALT+CLICK-DRAG to Move PiP\nALT+SCROLL to zoom",
-			"help": "Scroll to zoom in/out\nMiddle-click to move the game camera\nMiddle-click (or ALT+leftmouse) drag to pan the camera",
-			"help_leftclick": "\nLeft-click moves the game camera when fully zoomed out\nZoom with ALT+scroll (configurable in Settings)\nZoom in to select units and give commands (or disable 'left click moves camera' in Settings)",
+			"help": "Zoom with ALT+scroll (configurable in Settings)\nMiddle-click to move the game camera\nMiddle-click (or ALT+leftmouse) drag to pan the camera",
+			"help_leftclick": "\nLeft-click moves the game camera when fully zoomed out\nZoom in to select units and give commands (or disable 'left click moves camera' in Settings)",
 			"minimap_minimize": "Minimize minimap",
 			"minimap_maximize": "Maximize minimap"
 		},
