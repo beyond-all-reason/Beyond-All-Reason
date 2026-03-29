@@ -150,6 +150,7 @@ local function ParseBoxes ()
 				local point = boxRow[j]
 				if point[2] > maxZ then
 					point[2] = maxZ
+				end
 			end
 		end
 	end
