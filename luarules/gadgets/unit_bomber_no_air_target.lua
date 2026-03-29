@@ -154,7 +154,7 @@ end
 
 function gadget:GameFrame(frame)
 	if frame % gameSpeed == 0 then
-		removeBadTargets(frame)
+		removeBadTargets()
 	end
 end
 
