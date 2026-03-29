@@ -36,7 +36,9 @@ end
 
 
 function gadget:UnitCreated(unitID, unitDefID, _, factID)
-  factoryQueue[factID] = { unitID = unitID, defID = unitDefID }
+  if factID then
+    factoryQueue[factID] = { unitID = unitID, defID = unitDefID }
+  end
 end
 
 function gadget:UnitFromFactory(unitID, unitDefID, unitTeam, factID)
