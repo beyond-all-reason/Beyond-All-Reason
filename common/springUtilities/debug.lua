@@ -8,15 +8,18 @@ end
 
 local function traceEcho(...)
 	local myargs = {...}
-	local infostr = ""
-	for i,v in ipairs(myargs) do
-		infostr = infostr .. tostring(v) .. "\t"
+	local parts = {}
+	local n = 0
+	for i = 1, #myargs do
+		n = n + 1; parts[n] = tostring(myargs[i])
+		n = n + 1; parts[n] = "\t"
 	end
-	if infostr ~= "" then infostr = infostr .. " " end 
+	local infostr = n > 0 and (table.concat(parts) .. " ") or ""
 	local functionstr = "Trace:["
 	for i = 2, 10 do
-		if debug.getinfo(i) then
-			local funcName = (debug and debug.getinfo(i) and debug.getinfo(i).name)
+		local info = debug.getinfo(i)
+		if info then
+			local funcName = info.name
 			if funcName then
 				functionstr = functionstr .. tostring(funcName) .. " <- "
 			else break end
@@ -24,7 +27,8 @@ local function traceEcho(...)
 	end
 	functionstr = functionstr .. "]"
 	local arguments = ""
-	local funcName1 = (debug and debug.getinfo(2) and debug.getinfo(2).name) or "??"
+	local info2 = debug and debug.getinfo(2)
+	local funcName1 = (info2 and info2.name) or "??"
 	if funcName1 ~= "??" then 
 		for i = 1, 10 do
 			local name, value = debug.getlocal(2, i)
@@ -61,8 +65,9 @@ local function traceFullEcho(maxdepth, maxwidth, maxtableelements, ...)
             if count < maxtableelements then
 				if tracedebug then Spring.Echo(count, k) end 
 				if type(k) == "number" and type(v) == "function" then -- try to get function lists?
-					if tracedebug then Spring.Echo(k,v, debug.getinfo(v), debug.getinfo(v).name) end  --debug.getinfo(v).short_src)?
-                	res = res .. tostring(k) .. ':' .. ((debug.getinfo(v) and debug.getinfo(v).name) or "<function>") ..', '
+					local vinfo = debug.getinfo(v)
+					if tracedebug then Spring.Echo(k,v, vinfo, vinfo.name) end  --debug.getinfo(v).short_src)?
+                	res = res .. tostring(k) .. ':' .. ((vinfo and vinfo.name) or "<function>") ..', '
 				else
                 	res = res .. tostring(k) .. ':' .. tostring(v) ..', '
 				end
@@ -80,20 +85,20 @@ local function traceFullEcho(maxdepth, maxwidth, maxtableelements, ...)
 	infostr = infostr .. "]\n"
 	local functionstr = "" -- "Trace:["
 	for i = 2, maxdepth do
-		if debug.getinfo(i) then
-			local funcName = (debug and debug.getinfo(i) and debug.getinfo(i).name)
+		local info = debug.getinfo(i)
+		if info then
+			local funcName = info.name
 			if funcName then
 				functionstr = functionstr .. tostring(i-1) .. ": " .. tostring(funcName) .. " "
 				local arguments = ""
-				local funcName = (debug and debug.getinfo(i) and debug.getinfo(i).name) or "??"
 				if funcName ~= "??" then
-					if functionsource and debug.getinfo(i).source then 
-						local source = debug.getinfo(i).source 
+					if functionsource and info.source then 
+						local source = info.source 
 						if string.len(source) > 128 then source = "sourcetoolong" end
 						functionstr = functionstr .. " @" .. source
 					end 
-					if functionsource and debug.getinfo(i).linedefined then 
-						functionstr = functionstr .. ":" .. tostring(debug.getinfo(i).linedefined) 
+					if functionsource and info.linedefined then 
+						functionstr = functionstr .. ":" .. tostring(info.linedefined) 
 					end 
 					for j = 1, maxwidth do
 						local name, value = debug.getlocal(i, j)
