@@ -35,7 +35,7 @@ for udid = 1, #UnitDefs do
 end
 
 
-function gadget:UnitCreated(unitID, unitDefID, _, builderID)
+function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
   if builderID and isFactory[spGetUnitDefID(builderID)] then
     factoryQueue[builderID] = { unitID = unitID, defID = unitDefID }
   end
