@@ -80,29 +80,31 @@ local function ParseBoxes ()
 		end
 
 		if not startboxStringLoadedBoxes then
-			if Game.mapSizeZ > Game.mapSizeX then
+			local mapSizeX = Game.mapSizeX
+			local mapSizeZ = Game.mapSizeZ
+			if mapSizeZ > mapSizeX then
 				startBoxConfig[0] = {
 					boxes = {{
 						{0, 0},
-						{0, Game.mapSizeZ * 0.2},
-						{Game.mapSizeX, Game.mapSizeZ * 0.2},
-						{Game.mapSizeX, 0}
+						{0, mapSizeZ * 0.2},
+						{mapSizeX, mapSizeZ * 0.2},
+						{mapSizeX, 0}
 					}},
 					startpoints = {
-						{Game.mapSizeX * 0.5, Game.mapSizeZ * 0.1}
+						{mapSizeX * 0.5, mapSizeZ * 0.1}
 					},
 					nameLong = "North",
 					nameShort = "N"
 				}
 				startBoxConfig[1] = {
 					boxes = {{
-						{0, Game.mapSizeZ * 0.8},
-						{0, Game.mapSizeZ},
-						{Game.mapSizeX, Game.mapSizeZ},
-						{Game.mapSizeX, Game.mapSizeZ * 0.8}
+						{0, mapSizeZ * 0.8},
+						{0, mapSizeZ},
+						{mapSizeX, mapSizeZ},
+						{mapSizeX, mapSizeZ * 0.8}
 					}},
 					startpoints = {
-						{Game.mapSizeX * 0.5, Game.mapSizeZ * 0.9}
+						{mapSizeX * 0.5, mapSizeZ * 0.9}
 					},
 					nameLong = "South",
 					nameShort = "S"
@@ -111,25 +113,25 @@ local function ParseBoxes ()
 				startBoxConfig[0] = {
 					boxes = {{
 						{0, 0},
-						{0, Game.mapSizeZ},
-						{Game.mapSizeX * 0.2, Game.mapSizeZ},
-						{Game.mapSizeX * 0.2, 0},
+						{0, mapSizeZ},
+						{mapSizeX * 0.2, mapSizeZ},
+						{mapSizeX * 0.2, 0},
 					}},
 					startpoints = {
-						{Game.mapSizeX * 0.1, Game.mapSizeZ * 0.5}
+						{mapSizeX * 0.1, mapSizeZ * 0.5}
 					},
 					nameLong = "West",
 					nameShort = "W"
 				}
 				startBoxConfig[1] = {
 					boxes = {{
-						{Game.mapSizeX * 0.8, 0},
-						{Game.mapSizeX * 0.8, Game.mapSizeZ - 1},
-						{Game.mapSizeX, Game.mapSizeZ - 1},
-						{Game.mapSizeX, 0},
+						{mapSizeX * 0.8, 0},
+						{mapSizeX * 0.8, mapSizeZ - 1},
+						{mapSizeX, mapSizeZ - 1},
+						{mapSizeX, 0},
 					}},
 					startpoints = {
-						{Game.mapSizeX * 0.9, Game.mapSizeZ * 0.5}
+						{mapSizeX * 0.9, mapSizeZ * 0.5}
 					},
 					nameLong = "East",
 					nameShort = "E"
@@ -139,12 +141,15 @@ local function ParseBoxes ()
 	end
 
 	-- fix rendering z-fighting
+	local maxZ = Game.mapSizeZ - 1
 	for boxid, box in pairs(startBoxConfig) do
-		for i = 1, #box.boxes do
-			for j = 1, #box.boxes[i] do
-				if box.boxes[i][j][2] > Game.mapSizeZ - 1 then
-					box.boxes[i][j][2] = Game.mapSizeZ - 1
-				end
+		local boxes = box.boxes
+		for i = 1, #boxes do
+			local boxRow = boxes[i]
+			for j = 1, #boxRow do
+				local point = boxRow[j]
+				if point[2] > maxZ then
+					point[2] = maxZ
 			end
 		end
 	end

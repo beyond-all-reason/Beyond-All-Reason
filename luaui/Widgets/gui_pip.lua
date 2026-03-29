@@ -8767,6 +8767,17 @@ local function DrawCommandFXOverlay()
 	-- Compact: remove expired entries and draw active ones
 	local writeIdx = 0
 
+	-- Use command-type colors when tracking a player camera or viewing own
+	-- commands as a player; otherwise use team colors so you can tell whose
+	-- orders are whose.
+	local useCommandColors = false
+	if interactionState.trackingPlayerID then
+		useCommandColors = true
+	elseif not cameraState.mySpecState then
+		useCommandColors = true  -- player viewing own ally commands
+	end
+	local myTeamID = not useCommandColors and Spring.GetMyTeamID() or nil
+
 	if useGL4 then
 		gl4Prim.normLines.count = 0
 
@@ -8780,8 +8791,18 @@ local function DrawCommandFXOverlay()
 				end
 				local progress = age / fxDuration
 				local alpha = fxAlpha * (1 - progress)
-				local color = fx.color
-				local r, g, b = color[1], color[2], color[3]
+				local r, g, b
+				if useCommandColors then
+					local color = fx.color
+					r, g, b = color[1], color[2], color[3]
+				else
+					local tc = teamColors[fx.unitTeam]
+					if tc then
+						r, g, b = tc[1], tc[2], tc[3]
+					else
+						r, g, b = 1, 1, 1
+					end
+				end
 
 				GL4AddNormLine(fx.unitX, fx.unitZ, fx.targetX, fx.targetZ,
 					r, g, b, alpha, r, g, b, alpha)
@@ -17612,6 +17633,12 @@ end
 function widget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
 	-- Clear GL4 cache so it picks up the new team color
 	gl4Icons.unitTeamCache[unitID] = nil
+	-- Invalidate VBO block caches — they bake team color into instance data,
+	-- so a team transfer requires a full rebuild to show the correct color.
+	gl4Icons._bldgBlockFrame = 0
+	gl4Icons._bldgVboValid = false
+	gl4Icons._slowVboValid = false
+	gl4Icons._mobileBlock = nil
 	-- Force re-classification in keysort (new team may change colors/LOS)
 	ownBuildingPosX[unitID] = nil
 	ownBuildingPosZ[unitID] = nil
@@ -17764,6 +17791,7 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 			cmdID = cmdID,
 			time = wallClockTime,
 			color = color,
+			unitTeam = unitTeam,
 		}
 	end
 end
