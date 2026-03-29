@@ -14,13 +14,24 @@ function gadget:GetInfo()
 end
 
 local spGetPlayerInfo = Spring.GetPlayerInfo
+local spGetTeamInfo = Spring.GetTeamInfo
+local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitRulesParam = Spring.GetUnitRulesParam
+local spGetPlayerList = Spring.GetPlayerList
+local spGetProjectileDefID = Spring.GetProjectileDefID
+local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+local spGetTeamUnitDefCount = Spring.GetTeamUnitDefCount
+local spGetGameFrame = Spring.GetGameFrame
+local spGetUnitHealth = Spring.GetUnitHealth
+
+local spAreTeamsAllied = Spring.AreTeamsAllied
 
 local function GetAllyTeamID(teamID)
-	return select(6,Spring.GetTeamInfo(teamID,false))
+	return select(6,spGetTeamInfo(teamID,false))
 end
 
 local function PlayersInAllyTeamID(allyTeamID)
-	local players = Spring.GetPlayerList()
+	local players = spGetPlayerList()
 	local _,_,spec,_,allyTeam
 	for ct, id in pairs(players) do
 		_,_,spec,_,allyTeam = spGetPlayerInfo(id,false)
@@ -32,7 +43,7 @@ local function PlayersInAllyTeamID(allyTeamID)
 end
 
 local function AllButAllyTeamID(allyTeamID)
-	local players = Spring.GetPlayerList()
+	local players = spGetPlayerList()
 	local _,_,spec,_,allyTeam
 	for ct, id in pairs(players) do
 		_,_,spec,_,allyTeam = spGetPlayerInfo(id,false)
@@ -54,6 +65,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
+
 	local nukeWeapons = {}
 	for id, def in pairs(WeaponDefs) do
 		if def.targetable and def.targetable == 1 then
@@ -70,8 +82,8 @@ if gadgetHandler:IsSyncedCode() then
 	-- UNITS RECEIVED send to all in team
 	function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 		if not _G.transferredUnits or not _G.transferredUnits[unitID] then	-- exclude upgraded units (t2 mex/geo) because allied players could have done this
-			local players = Spring.GetPlayerList(newTeam)
-			for ct, player in pairs (players) do
+			local players = spGetPlayerList(newTeam)
+			for ct, player in pairs(players) do
 				if tostring(player) then
 					if GetAllyTeamID(newTeam) == GetAllyTeamID(oldTeam) then -- We got it from a teammate
 						GG["notifications"].queueNotification("UnitsReceived", "playerID", tostring(player))
@@ -85,16 +97,16 @@ if gadgetHandler:IsSyncedCode() then
 
 	-- NUKE LAUNCH
 	function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
-		if nukeWeapons[Spring.GetProjectileDefID(proID)] then
-			local players = AllButAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(proOwnerID)))
-			for ct, player in pairs (players) do
+		if nukeWeapons[spGetProjectileDefID(proID)] then
+			local players = AllButAllyTeamID(GetAllyTeamID(spGetUnitTeam(proOwnerID)))
+			for ct, player in pairs(players) do
 				if tostring(player) then
 					GG["notifications"].queueNotification("NukeLaunched", "playerID", tostring(player))
 				end
 			end
 
-			local players = PlayersInAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(proOwnerID)))
-			for ct, player in pairs (players) do
+			local players = PlayersInAllyTeamID(GetAllyTeamID(spGetUnitTeam(proOwnerID)))
+			for ct, player in pairs(players) do
 				if tostring(player) then
 					GG["notifications"].queueNotification("AlliedNukeLaunched", "playerID", tostring(player))
 				end
@@ -102,13 +114,12 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-
 	function gadget:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
 		local event = "UnitDetected/StealthyUnitsDetected"
-		local players = Spring.GetPlayerList()
-		local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
+		local players = spGetPlayerList()
+		local unitAllyTeam = spGetUnitAllyTeam(unitID)
 		local _, _, spec, _, playerAllyTeam
-		for ct, playerID in pairs (players) do
+		for ct, playerID in pairs(players) do
 			if tostring(playerID) then
 				_, _, spec, _, playerAllyTeam = spGetPlayerInfo(playerID, false)
 				if not spec and playerAllyTeam == allyTeam and unitAllyTeam ~= playerAllyTeam then
@@ -116,6 +127,30 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
+	end
+
+	-- Alert on unit being reclaimed by enemy
+	function gadget:AllowUnitBuildStep(builderID, builderTeamID, unitID, unitDefID, part)
+		if not part or part >= 0 then
+			-- not reclaim
+			return true
+		end
+
+		local unitTeamID = spGetUnitTeam(unitID)
+		if not unitTeamID then
+			return true
+		end
+
+		if spAreTeamsAllied(builderTeamID, unitTeamID) then
+			-- allied reclaim, ignore
+			return true
+		end
+
+		if GG.notifications and GG.notifications.queueNotification then
+			GG["notifications"].queueNotification("UnitsUnderAttack", "teamID", tostring(unitTeamID))
+		end
+
+		return true
 	end
 
 else
@@ -184,7 +219,7 @@ else
 	local myAllyTeamList = Spring.GetTeamList(myAllyTeamID)
 	for _, teamID in ipairs(myAllyTeamList) do
 		numTeams = numTeams + 1
-		if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
+		if select(4,spGetTeamInfo(teamID,false)) then	-- is AI?
 			local luaAI = Spring.GetTeamLuaAI(teamID)
 			if luaAI and luaAI ~= "" then
 				if string.find(luaAI, 'Scavengers') or string.find(luaAI, 'Raptors') then
@@ -201,11 +236,11 @@ else
 			GG["notifications"].queueNotification('LrpcTargetUnits', "playerID", tostring(myPlayerID))
 		end
 		if isCommander[unitDefID] then
-			commanderLastDamaged[unitID] = Spring.GetGameFrame()
+			commanderLastDamaged[unitID] = spGetGameFrame()
 		end
 		if unitTeam == myTeamID and attackerTeam and GetAllyTeamID(attackerTeam) ~= myAllyTeamID and (not isObjectified[unitDefID]) then
 			if isCommander[unitDefID] then
-				local health, maxhealth = Spring.GetUnitHealth(unitID)
+				local health, maxhealth = spGetUnitHealth(unitID)
 				local healthPercent = health/maxhealth
 				if healthPercent < 0.2 then
 					GG["notifications"].queueNotification('ComHeavyDamage', "playerID", tostring(myPlayerID))
@@ -229,8 +264,6 @@ else
 	end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-		--local unitInView = Spring.IsUnitInView(unitID)
-
 		-- if own and not killed by yourself
 		if not isSpec and unitTeam == myTeamID and attackerTeam and attackerTeam ~= unitTeam and (not isObjectified[unitDefID]) then -- and not unitInView
 			if isRadar[unitDefID] then
@@ -248,10 +281,10 @@ else
 			end
 		end
 
-		if isCommander[unitDefID] and not select(3, Spring.GetTeamInfo(unitTeam)) and not Spring.GetUnitRulesParam(unitID, "muteDestructionNotification") then
+		if isCommander[unitDefID] and not select(3, spGetTeamInfo(unitTeam)) and not spGetUnitRulesParam(unitID, "muteDestructionNotification") then
 			local myComCount = 0
 			local allyComCount = 0
-			local myAllyTeamList = Spring.GetTeamList(myAllyTeamID)
+			local myAllyTeamList = spGetTeamList(myAllyTeamID)
 			for _, teamID in ipairs(myAllyTeamList) do
 				if unitTeam == teamID then
 					allyComCount = allyComCount - 1	-- current com death has not been subtracted from GetTeamUnitDefCount yet, so we do this manually
@@ -260,7 +293,7 @@ else
 					end
 				end
 				for unitDefID,_ in pairs(isCommander) do
-					local comCount = Spring.GetTeamUnitDefCount(teamID, unitDefID)
+					local comCount = spGetTeamUnitDefCount(teamID, unitDefID)
 					allyComCount = allyComCount + comCount
 					if teamID == myTeamID and comCount > 0 then
 						myComCount = myComCount + comCount
@@ -269,18 +302,16 @@ else
 			end
 			if (not isSpec) and (unitTeam ~= myTeamID) then
 				if numTeams > 1 and not playingAsHorde then
-					local players =  PlayersInAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
+					local players =  PlayersInAllyTeamID(GetAllyTeamID(spGetUnitTeam(unitID)))
 					for ct, player in pairs (players) do
 						if tostring(player) then
-							--if not unitInView then
-								if Spring.GetUnitRulesParam(unitID, "unit_evolved") then
+							if spGetUnitRulesParam(unitID, "unit_evolved") then
 
-								elseif not attackerTeam and select(6, Spring.GetTeamInfo(unitTeam, false)) == myAllyTeamID and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID]+150 < Spring.GetGameFrame()) then
-									GG["notifications"].queueNotification("FriendlyCommanderSelfD", "playerID", tostring(player))
-								else
-									GG["notifications"].queueNotification("FriendlyCommanderDied", "playerID", tostring(player))
-								end
-							--end
+							elseif not attackerTeam and select(6, spGetTeamInfo(unitTeam, false)) == myAllyTeamID and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID]+150 < spGetGameFrame()) then
+								GG["notifications"].queueNotification("FriendlyCommanderSelfD", "playerID", tostring(player))
+							else
+								GG["notifications"].queueNotification("FriendlyCommanderDied", "playerID", tostring(player))
+							end
 							if enableLastcomNotif and allyComCount == 1 then
 								if myComCount == 1 then
 									GG["notifications"].queueNotification("YouHaveLastCommander", "playerID", tostring(player))
@@ -291,31 +322,29 @@ else
 						end
 					end
 				end
-				--if not unitInView then
-					local players =  AllButAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
-					for ct, player in pairs (players) do
-						if tostring(player) and not Spring.GetUnitRulesParam(unitID, "unit_evolved") then
-							GG["notifications"].queueNotification("EnemyCommanderDied", "playerID", tostring(player))
-						end
+				local players =  AllButAllyTeamID(GetAllyTeamID(spGetUnitTeam(unitID)))
+				for ct, player in pairs (players) do
+					if tostring(player) and not spGetUnitRulesParam(unitID, "unit_evolved") then
+						GG["notifications"].queueNotification("EnemyCommanderDied", "playerID", tostring(player))
 					end
-				--end
+				end
 			else
-				local players = PlayersInAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
+				local players = PlayersInAllyTeamID(GetAllyTeamID(spGetUnitTeam(unitID)))
 				for ct, player in pairs (players) do
 					if tostring(player) then
-						if Spring.GetUnitRulesParam(unitID, "unit_evolved") then
-						elseif not attackerTeam and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID]+150 < Spring.GetGameFrame()) then
+						if spGetUnitRulesParam(unitID, "unit_evolved") then
+						elseif not attackerTeam and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID]+150 < spGetGameFrame()) then
 							GG["notifications"].queueNotification("NeutralCommanderSelfD", "playerID", tostring(player), true)
 						else
 							GG["notifications"].queueNotification("NeutralCommanderDied", "playerID", tostring(player), true)
 						end
 					end
 				end
-				local players = AllButAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
+				local players = AllButAllyTeamID(GetAllyTeamID(spGetUnitTeam(unitID)))
 				for ct, player in pairs (players) do
 					if tostring(player) then
-						if Spring.GetUnitRulesParam(unitID, "unit_evolved") then
-						elseif not attackerTeam and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID]+150 < Spring.GetGameFrame()) then
+						if spGetUnitRulesParam(unitID, "unit_evolved") then
+						elseif not attackerTeam and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID]+150 < spGetGameFrame()) then
 							GG["notifications"].queueNotification("NeutralCommanderSelfD", "playerID", tostring(player), true)
 						else
 							GG["notifications"].queueNotification("NeutralCommanderDied", "playerID", tostring(player), true)
