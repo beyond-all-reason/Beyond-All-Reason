@@ -136,7 +136,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 		local targetID = cmdParams[1]
 		local targetDefID = spGetUnitDefID(targetID)
 		if targetDefID and isAir[targetDefID] then
-			if isLanded(targetID) then
+			if spGetUnitIsDead(targetID) == false and isLanded(targetID) then
 				-- Move the target onto the ground, whenever possible.
 				local x, y, z = getPositionOnGround(targetID, unitTeam)
 				if x then
