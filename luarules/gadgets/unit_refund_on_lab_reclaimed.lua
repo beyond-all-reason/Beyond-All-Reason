@@ -34,7 +34,6 @@ for udid = 1, #UnitDefs do
   end
 end
 
-
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
   if builderID and isFactory[spGetUnitDefID(builderID)] then
     factoryQueue[builderID] = { unitID = unitID, defID = unitDefID }
@@ -46,22 +45,16 @@ function gadget:UnitFromFactory(unitID, unitDefID, unitTeam, factoryID)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-  if not isFactory[spGetUnitDefID(unitID)] then
+  local unitBeingBuilt = factoryQueue[unitID]
+  if not unitBeingBuilt then
     return
   end
-
-  local unitBeingBuilt = factoryQueue[unitID]
-  factoryQueue[unitID] = nil -- Clear the queue for this factory now as it's destroyed, no matter how
   
   if weaponDefID ~= reclaimedWeaponDefID then
     return
   end
-  
+
   if not attackerTeam or not spAreTeamsAllied(unitTeam, attackerTeam) then
-    return
-  end
-  
-  if not unitBeingBuilt then
     return
   end
   
@@ -70,4 +63,5 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
   local refund = math.floor(metalCost * buildProgress)
   
   spAddTeamResource(unitTeam, 'metal', refund)
+  factoryQueue[unitID] = nil
 end
