@@ -35,16 +35,12 @@ for udid = 1, #UnitDefs do
 end
 
 
-function gadget:UnitFromFactory(unitID, unitDefID, _, factID)
-  if factoryQueue[factID] and factoryQueue[factID].unitID == unitID then
-    factoryQueue[factID] = nil
-  end
+function gadget:UnitCreated(unitID, unitDefID, _, factID)
+  factoryQueue[factID] = { unitID = unitID, defID = unitDefID }
 end
 
-function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-  if isFactory[spGetUnitDefID(builderID)] then
-    factoryQueue[builderID] = { unitID = unitID, defID = unitDefID }
-  end
+function gadget:UnitFromFactory(unitID, unitDefID, unitTeam, factID)
+  factoryQueue[factID] = nil
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
@@ -53,8 +49,8 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
   end
 
   local unitBeingBuilt = factoryQueue[unitID]
+  factoryQueue[unitID] = nil -- Clear the queue for this factory now as it's destroyed, no matter how
   
-  factoryQueue[unitID] = nil
   if weaponDefID ~= reclaimedWeaponDefID then
     return
   end
