@@ -52,6 +52,9 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
     return
   end
 
+  local unitBeingBuilt = factoryQueue[unitID]
+  
+  factoryQueue[unitID] = nil
   if weaponDefID ~= reclaimedWeaponDefID then
     return
   end
@@ -60,7 +63,6 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
     return
   end
   
-  local unitBeingBuilt = factoryQueue[unitID]
   if not unitBeingBuilt then
     return
   end
@@ -70,5 +72,4 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
   local refund = math.floor(metalCost * buildProgress)
   
   spAddTeamResource(unitTeam, 'metal', refund)
-  factoryQueue[unitID] = nil
 end
