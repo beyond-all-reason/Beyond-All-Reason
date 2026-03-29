@@ -36,7 +36,7 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
   if builderID and isFactory[spGetUnitDefID(builderID)] then
-    factoryQueue[builderID] = { unitID = unitID, defID = unitDefID }
+    factoryQueue[builderID] = unitID
   end
 end
 
@@ -45,8 +45,8 @@ function gadget:UnitFromFactory(unitID, unitDefID, unitTeam, factoryID)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-  local unitBeingBuilt = factoryQueue[unitID]
-  if not unitBeingBuilt then
+  local unitBeingBuiltId = factoryQueue[unitID]
+  if not unitBeingBuiltId then
     return
   end
 
@@ -59,8 +59,8 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
     return
   end
   
-  local _, buildProgress = spGetUnitIsBeingBuilt(unitBeingBuilt.unitID)
-  local _, metalCost, _ = spGetUnitCosts(unitBeingBuilt.unitID)
+  local _, buildProgress = spGetUnitIsBeingBuilt(unitBeingBuiltId)
+  local _, metalCost, _ = spGetUnitCosts(unitBeingBuiltId)
   local refund = math.floor(metalCost * buildProgress)
   
   spAddTeamResource(unitTeam, 'metal', refund)
