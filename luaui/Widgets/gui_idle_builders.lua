@@ -27,6 +27,7 @@ local showRez = true
 local doUpdateForce = true
 local justSelected = false
 local listSorted = {} -- listSorted[unitDefID]: set to nil when idle list is updated, set to true when idleList[unitDefID] is sorted
+local prevCameraPosition -- {posX, posY, posZ}: camera position for sorting idle units, used to have consistent point of reference when right clicking
 
 local leftclick = 'LuaUI/Sounds/buildbar_add.wav'
 local rightclick = 'LuaUI/Sounds/buildbar_click.wav'
@@ -743,7 +744,8 @@ function widget:MousePress(x, y, button)
 							end
 							if not listSorted[unitDefID] then
 								-- FIXME: should use center of screen rather than camera
-								local camX, _, camZ = Spring.GetCameraPosition()
+								local camX, camY, camZ = unpack(prevCameraPosition or {Spring.GetCameraPosition()})
+								prevCameraPosition = {camX, camY, camZ}
 								table.sort(idleList[unitDefID], function (a, b)
 									local unitAX, _, unitAZ = spGetUnitPosition(a)
 									local unitBX, _, unitBZ = spGetUnitPosition(b)
@@ -776,6 +778,7 @@ function widget:SelectionChanged(sel)
 		justSelected = false
 		return
 	end
+	prevCameraPosition = nil
 	listSorted = {}
 	clicks = {}
 end
