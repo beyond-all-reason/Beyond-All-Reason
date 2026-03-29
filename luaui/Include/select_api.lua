@@ -409,7 +409,8 @@ end
 
 local countUnitsIndex = 1
 local function getCountUnits(uids, countUntil, appendSelected)
-	if #uids == 0 then
+	local numUids = #uids
+	if numUids == 0 then
 		return {}
 	end
 
@@ -423,7 +424,7 @@ local function getCountUnits(uids, countUntil, appendSelected)
 	local selectedCount = 0
 	local units = {}
 
-	if countUnitsIndex > #uids then
+	if countUnitsIndex > numUids then
 		countUnitsIndex = 1
 	end
 
@@ -433,13 +434,13 @@ local function getCountUnits(uids, countUntil, appendSelected)
 
 		if not alreadySelectedSet[uid] then
 			selectedCount = selectedCount + 1
-			table.insert(units, uid)
+			units[selectedCount] = uid
 		end
 
 		-- circular array index
 		countUnitsIndex = countUnitsIndex + 1
 
-		if countUnitsIndex > #uids then
+		if countUnitsIndex > numUids then
 			countUnitsIndex = 1
 		end
 
