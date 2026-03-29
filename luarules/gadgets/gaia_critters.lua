@@ -38,7 +38,7 @@ local addCrittersAgain		= true		-- re-add the removed critters again
 local minTotalUnits			= 3000					-- starting removing critters at this total unit count
 local maxTotalunits			= 6000				-- finished removing critters at this total unit count
 local minimumCritters		= 0.2					-- dont remove further than (0.1 == 10%) of critters
-local minCritters				= math.ceil((Game.mapSizeX*Game.mapSizeZ)/6000000)				-- dont remove below this amount
+local minCritters				-- dont remove below this amount
 local companionRadiusStart		= 140					-- if mapcritter is spawned this close it will be converted to companion critter
 local companionRadiusAfterStart = 13
 local companionPatrolRadius = 200
@@ -65,8 +65,15 @@ local GetUnitTeam = Spring.GetUnitTeam
 local ValidUnitID = Spring.ValidUnitID
 
 local random = math.random
+local floor = math.floor
+local ceil = math.ceil
 local sin, cos, abs, rad = math.sin, math.cos, math.abs, math.rad
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
+local CMD_PATROL = CMD.PATROL
+local CMD_FIRE_STATE = CMD.FIRE_STATE
+local CMD_ATTACK = CMD.ATTACK
+
+minCritters = ceil((Game.mapSizeX*Game.mapSizeZ)/6000000)
 
 local totalCritters = 0
 local aliveCritters = 0
@@ -108,10 +115,9 @@ local function randomPatrolInBox(unitID, box, minWaterDepth)	-- only define minW
 					sceduledOrders[unitID] = {}
 				end
 				processOrders = true
-				sceduledOrders[unitID][#sceduledOrders[unitID]+1] = {unitID=unitID, type=CMD.PATROL, location={x, y, z}, modifiers=modifiers}
-				--table.insert(sceduledOrders[unitID], {unitID=unitID, type=CMD.PATROL, location={x, y, z}, modifiers=modifiers})
+				sceduledOrders[unitID][#sceduledOrders[unitID]+1] = {unitID=unitID, type=CMD_PATROL, location={x, y, z}, modifiers=modifiers}
+				--table.insert(sceduledOrders[unitID], {unitID=unitID, type=CMD_PATROL, location={x, y, z}, modifiers=modifiers})
 				modifiers = {"shift"}
-				--Spring.GiveOrderToUnit(unitID, CMD.PATROL , {x, y, z}, {"shift"})
 				ordersGiven = ordersGiven + 1
 			end
 		end
@@ -177,17 +183,15 @@ local function randomPatrolInCircle(unitID, ux, uz, ur, minWaterDepth)	-- only d
 		local r = random(0, ur)
 		local x = ux + r*sin(a)
 		local z = uz + r*cos(a)
-		if x > 0 and z > 0 and x < mapSizeX and z < mapSizeZ and in_circle(ux, uz, ur, x, z) then
+		if x > 0 and z > 0 and x < mapSizeX and z < mapSizeZ then
 			local y = GetGroundHeight(x, z)
 			if minWaterDepth == nil or y < minWaterDepth then
 				if sceduledOrders[unitID] == nil then
 					sceduledOrders[unitID] = {}
 				end
-				sceduledOrders[unitID][#sceduledOrders[unitID]+1] = {unitID=unitID, type=CMD.PATROL, location={x, y, z}, modifiers=modifiers}
-				--table.insert(sceduledOrders[unitID], {unitID=unitID, type=CMD.PATROL, location={x, y, z}, modifiers=modifiers})
+				sceduledOrders[unitID][#sceduledOrders[unitID]+1] = {unitID=unitID, type=CMD_PATROL, location={x, y, z}, modifiers=modifiers}
 				modifiers = {"shift"}
 				processOrders = true
-				--Spring.GiveOrderToUnit(unitID, CMD.PATROL , {x, y, z}, {"shift"})	-- this sometimes gives resursion errors, but am to lazy to spread spammign this command over multiple gameframes
 				ordersGiven = ordersGiven + 1
 			end
 		end
@@ -207,7 +211,7 @@ local function setGaiaUnitSpecifics(unitID)
 	Spring.SetUnitSensorRadius(unitID, 'radar', 0)
 	Spring.SetUnitSensorRadius(unitID, 'sonar', 0)
 	for weaponID, _ in pairs(UnitDefs[GetUnitDefID(unitID)].weapons) do
-		Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, {0}, 0)
+		GiveOrderToUnit(unitID, CMD_FIRE_STATE, {0}, 0)
 		--Spring.UnitWeaponHoldFire(unitID, weaponID)		-- doesnt seem to work :S (maybe because they still patrol)
 	end
 end
@@ -223,7 +227,7 @@ end
 local mapConfig
 
 function gadget:Initialize()
-	gadgetHandler:RegisterAllowCommand(CMD.ATTACK)
+	gadgetHandler:RegisterAllowCommand(CMD_ATTACK)
 	local allUnits = Spring.GetAllUnits()
 	for _, unitID in pairs(allUnits) do
 		local unitDefID = GetUnitDefID(unitID)
@@ -256,23 +260,23 @@ function gadget:Initialize()
 	if amountMultiplier > maxMulti then amountMultiplier = maxMulti end
 end
 
+local unitDefNameToID = {}
+for udid, unitDef in pairs(UnitDefs) do
+	unitDefNameToID[unitDef.name] = udid
+end
+
 local function getUnitDefIdbyName(unitName)
-	for udid, unitDef in pairs(UnitDefs) do
-		if unitDef.name == unitName then return udid end
-	end
+	return unitDefNameToID[unitName]
 end
 
 -- excluding gaia units
 local function getTotalUnits()
 	local totalUnits = 0
-	local allyTeamList = Spring.GetAllyTeamList()
-	for allyTeamListIndex = 1, #allyTeamList do
-		local allyID = allyTeamList[allyTeamListIndex]
-		local teamList = Spring.GetTeamList(allyID)
-		for _,teamID in pairs(teamList) do
-			if teamID ~= GaiaTeamID then
-				totalUnits = totalUnits + Spring.GetTeamUnitCount(teamID)
-			end
+	local teamList = Spring.GetTeamList()
+	for i = 1, #teamList do
+		local teamID = teamList[i]
+		if teamID ~= GaiaTeamID then
+			totalUnits = totalUnits + Spring.GetTeamUnitCount(teamID)
 		end
 	end
 	return totalUnits
@@ -383,6 +387,9 @@ local function addMapCritters()
 		if cC.spawnBox then
 			for unitName, unitAmount in pairs(cC.unitNames) do
 				local unitDefID = getUnitDefIdbyName(unitName)
+				if not UnitDefs[unitDefID] then
+					break
+				end
 				local minWaterDepth = 0 - UnitDefs[unitDefID].minWaterDepth
 				local waterunit = false
 				if minWaterDepth < 0 then waterunit = true end
@@ -517,7 +524,7 @@ function gadget:GameFrame(gameFrame)
 			local multiplier = 1 - ((totalUnits-minTotalUnits) / (maxTotalunits-minTotalUnits))
 			if multiplier < minimumCritters then multiplier = minimumCritters end
 			if multiplier > 1 then multiplier = 1 end
-			local newAliveCritters = math.ceil(totalCritters * multiplier)
+			local newAliveCritters = ceil(totalCritters * multiplier)
 			if newAliveCritters < minCritters then
 				local mc = minCritters
 				if totalCritters < minCritters then
@@ -532,7 +539,7 @@ end
 
 function round(num, idp)
   local mult = 10^(idp or 0)
-  return math.floor(num * mult + 0.5) / mult
+  return floor(num * mult + 0.5) / mult
 end
 
 function gadget:UnitIdle(unitID, unitDefID, unitTeam)
@@ -547,10 +554,10 @@ function gadget:UnitIdle(unitID, unitDefID, unitTeam)
 end
 
 local function getTeamCommanderUnitID(teamID)
-	local allUnits = Spring.GetAllUnits()
-	for i=1, #allUnits do
-		local unitID = allUnits[i]
-		if GetUnitTeam(unitID) == teamID then
+	local teamUnits = Spring.GetTeamUnits(teamID)
+	if teamUnits then
+		for i = 1, #teamUnits do
+			local unitID = teamUnits[i]
 			local unitDefID = GetUnitDefID(unitID)
 			if unitDefID and isCommander[unitDefID] then
 				return unitID
@@ -579,10 +586,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 				makeUnitCritter(unitID)
 				critterUnits[unitID].unitName = UnitDefs[unitDefID].name
 		--end
-			for _, comUnitID in pairs(commanders) do
-				--pairCompanionToUnit(unitID,comUnitID)
-				critterToCompanion(unitID)
-			end
+			critterToCompanion(unitID)
 		else
 			local commanderID = getTeamCommanderUnitID(unitTeam)
 			if commanderID then
