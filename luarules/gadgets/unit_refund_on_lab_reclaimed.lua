@@ -22,8 +22,6 @@ local spAddTeamResource = Spring.AddTeamResource
 local spAreTeamsAllied = Spring.AreTeamsAllied
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 
-local reclaimedWeaponDefID = -12
-
 local factoryQueue = {}
 
 local isFactory = {}
@@ -55,7 +53,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
   local unitBeingBuilt = factoryQueue[unitID]
   
   factoryQueue[unitID] = nil
-  if weaponDefID ~= reclaimedWeaponDefID then
+  if weaponDefID ~= Game.envDamageTypes.Reclaimed then
     return
   end
   
