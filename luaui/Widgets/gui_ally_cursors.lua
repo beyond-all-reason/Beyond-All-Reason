@@ -66,17 +66,38 @@ local spAreTeamsAllied = Spring.AreTeamsAllied
 local glCreateList = gl.CreateList
 local glDeleteList = gl.DeleteList
 local glCallList = gl.CallList
+local glPushMatrix = gl.PushMatrix
+local glPopMatrix = gl.PopMatrix
+local glTranslate = gl.Translate
+local glRotate = gl.Rotate
+local glScale = gl.Scale
+local glColor = gl.Color
+local glTexture = gl.Texture
+local glBeginEnd = gl.BeginEnd
+local glTexCoord = gl.TexCoord
+local glVertex = gl.Vertex
+local glDepthTest = gl.DepthTest
+local glBlending = gl.Blending
+local glPolygonOffset = gl.PolygonOffset
+
+local spGetCameraDirection = Spring.GetCameraDirection
+local math_deg = math.deg
 
 local abs = math.abs
 local floor = math.floor
 local min = math.min
 local diag = math.diag
 local clock = os.clock
+local TIMESTAMP_IDX = (numMousePos + 1) * 2 + 1
+local CLICK_IDX = (numMousePos + 1) * 2 + 2
+local TEAMID_IDX = (numMousePos + 1) * 2 + 3
+
 local alliedCursorsPos = {}
 local prevCursorPos = {}
 local alliedCursorsTime = {}        -- for API purpose
 local usedCursorSize = cursorSize
 local allycursorDrawList = {}
+local playerTeamIDs = {}
 local myPlayerID = Spring.GetMyPlayerID()
 local _, fullview = spGetSpectatingState()
 local myTeamID = spGetMyTeamID()
@@ -87,7 +108,6 @@ local cursors = {}
 local teamColors = {}
 local specList = {}
 local notIdle = {}
-local playerPos = {}
 
 local teamColorKeys = {}
 local teams = Spring.GetTeamList()
@@ -113,9 +133,12 @@ end
 
 local function updateSpecList(init)
 	specList = {}
+	playerTeamIDs = {}
 	local t = Spring.GetPlayerList()
 	for _, playerID in ipairs(t) do
-		specList[playerID] = select(3, spGetPlayerInfo(playerID, false))
+		local _, _, isSpec, teamID = spGetPlayerInfo(playerID, false)
+		specList[playerID] = isSpec
+		playerTeamIDs[playerID] = teamID
 	end
 end
 
@@ -125,74 +148,56 @@ local function CubicInterpolate2(x0, x1, mix)
 	return x0 * (2 * mix3 - 3 * mix2 + 1) + x1 * (3 * mix2 - 2 * mix3)
 end
 
-local function MouseCursorEvent(playerID, x, z, click)	-- dont local it
+local function MouseCursorEvent(playerID, x1, z1, x2, z2, click)
 	if not isReplay and myPlayerID == playerID then
 		return true
 	end
-	local playerPosList = playerPos[playerID] or {}
-	playerPosList[#playerPosList + 1] = { x = x, z = z, click = click }
-	playerPos[playerID] = playerPosList
-	if #playerPosList < numMousePos then
-		return
-	end
-	playerPos[playerID] = {}
 
-	if alliedCursorsPos[playerID] then
-		local acp = alliedCursorsPos[playerID]
-
-		acp[(numMousePos) * 2 + 1] = acp[1]
-		acp[(numMousePos) * 2 + 2] = acp[2]
-
-		for i = 0, numMousePos - 1 do
-			acp[i * 2 + 1] = playerPosList[i + 1].x
-			acp[i * 2 + 2] = playerPosList[i + 1].z
-		end
-
-		acp[(numMousePos + 1) * 2 + 1] = clock()
-		acp[(numMousePos + 1) * 2 + 2] = playerPosList[#playerPosList].click
+	local acp = alliedCursorsPos[playerID]
+	if acp then
+		acp[5] = acp[1]
+		acp[6] = acp[2]
+		acp[1] = x1
+		acp[2] = z1
+		acp[3] = x2
+		acp[4] = z2
+		acp[TIMESTAMP_IDX] = clock()
+		acp[CLICK_IDX] = click
 	else
-		local acp = {}
+		acp = { x1, z1, x2, z2, x1, z1 }
+		acp[TIMESTAMP_IDX] = clock()
+		acp[CLICK_IDX] = click
+		acp[TEAMID_IDX] = playerTeamIDs[playerID] or select(4, spGetPlayerInfo(playerID, false))
 		alliedCursorsPos[playerID] = acp
-
-		for i = 0, numMousePos - 1 do
-			acp[i * 2 + 1] = playerPosList[i + 1].x
-			acp[i * 2 + 2] = playerPosList[i + 1].z
-		end
-
-		acp[(numMousePos) * 2 + 1] = playerPosList[(numMousePos - 2) * 2 + 1].x
-		acp[(numMousePos) * 2 + 2] = playerPosList[(numMousePos - 2) * 2 + 1].z
-
-		acp[(numMousePos + 1) * 2 + 1] = clock()
-		acp[(numMousePos + 1) * 2 + 2] = playerPosList[#playerPosList].click
-		acp[(numMousePos + 1) * 2 + 3] = select(4, spGetPlayerInfo(playerID, false))
 	end
 
-	-- check if there has been changes
-	if prevCursorPos[playerID] == nil or alliedCursorsPos[playerID][1] ~= prevCursorPos[playerID][1] or alliedCursorsPos[playerID][2] ~= prevCursorPos[playerID][2] then
+	local prev = prevCursorPos[playerID]
+	if not prev or acp[1] ~= prev[1] or acp[2] ~= prev[2] then
 		alliedCursorsTime[playerID] = clock()
-		if prevCursorPos[playerID] == nil then
-			prevCursorPos[playerID] = {}
+		if not prev then
+			prev = {}
+			prevCursorPos[playerID] = prev
 		end
-		prevCursorPos[playerID][1] = alliedCursorsPos[playerID][1]
-		prevCursorPos[playerID][2] = alliedCursorsPos[playerID][2]
+		prev[1] = acp[1]
+		prev[2] = acp[2]
 	end
 end
 
 local function DrawGroundquad(wx, wy, wz, size)
-	gl.TexCoord(0, 0)
-	gl.Vertex(wx - size, wy + size, wz - size)
-	gl.TexCoord(0, 1)
-	gl.Vertex(wx - size, wy + size, wz + size)
-	gl.TexCoord(1, 1)
-	gl.Vertex(wx + size, wy + size, wz + size)
-	gl.TexCoord(1, 0)
-	gl.Vertex(wx + size, wy + size, wz - size)
+	glTexCoord(0, 0)
+	glVertex(wx - size, wy + size, wz - size)
+	glTexCoord(0, 1)
+	glVertex(wx - size, wy + size, wz + size)
+	glTexCoord(1, 1)
+	glVertex(wx + size, wy + size, wz + size)
+	glTexCoord(1, 0)
+	glVertex(wx + size, wy + size, wz - size)
 end
 
 local function SetTeamColor(teamID, playerID, a)
 	local color = teamColors[playerID]
 	if color then
-		gl.Color(color[1], color[2], color[3], color[4] * a)
+		glColor(color[1], color[2], color[3], color[4] * a)
 		return
 	end
 
@@ -204,7 +209,7 @@ local function SetTeamColor(teamID, playerID, a)
 		color = { r, g, b, 0.75 }
 	end
 	teamColors[playerID] = color
-	gl.Color(color)
+	glColor(color)
 end
 
 
@@ -298,6 +303,7 @@ function widget:PlayerChanged(playerID)
 	fullview = select(2, spGetSpectatingState())
 	local _, _, isSpec, teamID = spGetPlayerInfo(playerID, false)
 	specList[playerID] = isSpec
+	playerTeamIDs[playerID] = teamID
 	local r, g, b = spGetTeamColor(teamID)
 	if isSpec then
 		teamColors[playerID] = { 1, 1, 1, 0.6 }
@@ -312,7 +318,7 @@ function widget:PlayerChanged(playerID)
 	end
 	if allycursorDrawList[playerID] ~= nil then
 		for _, dlist in pairs(allycursorDrawList[playerID]) do
-			gl.DeleteList(dlist)
+			glDeleteList(dlist)
 		end
 		allycursorDrawList[playerID] = nil
 	end
@@ -328,13 +334,14 @@ end
 
 function widget:PlayerRemoved(playerID)
 	specList[playerID] = nil
+	playerTeamIDs[playerID] = nil
 	notIdle[playerID] = nil
 	cursors[playerID] = nil
 	prevCursorPos[playerID] = nil
 	alliedCursorsPos[playerID] = nil
 	if allycursorDrawList[playerID] then
 		for _, dlist in pairs(allycursorDrawList[playerID]) do
-			gl.DeleteList(dlist)
+			glDeleteList(dlist)
 		end
 		allycursorDrawList[playerID] = nil
 	end
@@ -355,18 +362,18 @@ local function createCursorDrawList(playerID, opacityMultiplier)
 
 	-- draw player cursor
 	if not spec and showCursorDot and (not addLights or not WG['lightsgl4']) then
-		gl.Texture(allyCursor)
-		gl.BeginEnd(GL.QUADS, DrawGroundquad, wx, wy, wz, quadSize)
-		gl.Texture(false)
+		glTexture(allyCursor)
+		glBeginEnd(GL.QUADS, DrawGroundquad, wx, wy, wz, quadSize)
+		glTexture(false)
 	end
 
 	if spec or showPlayerName then
 
 		-- draw nickname
 		if not spec or showSpectatorName then
-			gl.PushMatrix()
-			gl.Translate(wx, wy, wz)
-			gl.Rotate(-90, 1, 0, 0)
+			glPushMatrix()
+			glTranslate(wx, wy, wz)
+			glRotate(-90, 1, 0, 0)
 
 			font:Begin()
 			if spec then
@@ -384,29 +391,14 @@ local function createCursorDrawList(playerID, opacityMultiplier)
 				font:Print(name, horizontalOffset, verticalOffset, fontSizePlayer, "n")
 			end
 			font:End()
-			gl.PopMatrix()
+			glPopMatrix()
 		end
 	end
 end
 
 local function getCameraRotationY()
-	local x, y, z = Spring.GetCameraDirection()
-
-	local length = math.sqrt(x*x + y*y + z*z)
-
-	-- We are only concerned with rotY
-	x = x/length;
-	z = z/length;
-
-	return math.deg(mathAtan2(x, -z))
-
-	-- General implementation
-	--
-	-- x = x/length;
-	-- y = y/length;
-	-- z = z/length;
-
-	-- return math.acos(y), mathAtan2(x, -z), 0;
+	local x, _, z = spGetCameraDirection()
+	return math_deg(mathAtan2(x, -z))
 end
 
 local function DrawCursor(playerID, wx, wy, wz, camX, camY, camZ, opacity)
@@ -416,7 +408,7 @@ local function DrawCursor(playerID, wx, wy, wz, camX, camY, camZ, opacity)
 
 	--calc scale
 	local camDistance = diag(camX - wx, camY - wy, camZ - wz)
-	local glScale = 0.83 + camDistance / 5000
+	local drawScale = 0.83 + camDistance / 5000
 
 	-- calc opacity
 	local opacityMultiplier = 1
@@ -442,17 +434,17 @@ local function DrawCursor(playerID, wx, wy, wz, camX, camY, camZ, opacity)
 			allycursorDrawList[playerID][opacityMultiplier] = glCreateList(createCursorDrawList, playerID, opacityMultiplier)
 		end
 
-		gl.PushMatrix()
-		gl.Translate(wx, wy, wz)
-		gl.Rotate(-rotY, 0, 1, 0)
+		glPushMatrix()
+		glTranslate(wx, wy, wz)
+		glRotate(-rotY, 0, 1, 0)
 		if drawNamesScaling then
-			gl.Scale(glScale, 0, glScale)
+			glScale(drawScale, 0, drawScale)
 		end
 		glCallList(allycursorDrawList[playerID][opacityMultiplier])
 		if drawNamesScaling then
-			gl.Scale(-glScale, 0, -glScale)
+			glScale(-drawScale, 0, -drawScale)
 		end
-		gl.PopMatrix()
+		glPopMatrix()
 	end
 end
 
@@ -484,7 +476,7 @@ function widget:Update(dt)
 	rotY = getCameraRotationY()
 	for playerID, data in pairs(alliedCursorsPos) do
 		local wx, wz = data[1], data[2]
-		local lastUpdatedDiff = now - data[#data - 2] + 0.025
+		local lastUpdatedDiff = now - data[TIMESTAMP_IDX] + 0.025
 		if lastUpdatedDiff < packetInterval then
 			local scale = (1 - (lastUpdatedDiff / packetInterval)) * numMousePos
 			local iscale = min(floor(scale), numMousePos - 1)
@@ -544,20 +536,20 @@ function widget:DrawWorldPreUnit()
 		return
 	end
 
-	gl.DepthTest(GL.ALWAYS)
-	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-	gl.PolygonOffset(-7, -10)
+	glDepthTest(GL.ALWAYS)
+	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	glPolygonOffset(-7, -10)
 
 	for playerID, cursor in pairs(cursors) do
 		if notIdle[playerID] then
-			if fullview or spAreTeamsAllied(myTeamID, spGetPlayerInfo(playerID) and select(4, spGetPlayerInfo(playerID))) then
+			if fullview or spAreTeamsAllied(myTeamID, playerTeamIDs[playerID]) then
 				DrawCursor(playerID, cursor[1], cursor[2], cursor[3], cursor[4], cursor[5], cursor[6], cursor[7])
 			end
 		end
 	end
 
-	gl.PolygonOffset(false)
-	gl.DepthTest(false)
+	glPolygonOffset(false)
+	glDepthTest(false)
 end
 
 function widget:GetConfigData()

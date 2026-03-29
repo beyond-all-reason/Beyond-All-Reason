@@ -167,6 +167,45 @@ if not math.HSLtoRGB then
 	end
 end
 
+if not math.isPointInRectangle then
+	---Check if a point is inside a rectangle.
+	---@param x number
+	---@param z number
+	---@param rectangle {x1: number, z1: number, x2: number, z2: number}
+	---@return boolean
+	function math.isPointInRectangle(x, z, rectangle)
+		return x >= rectangle.x1 and x <= rectangle.x2 and z >= rectangle.z1 and z <= rectangle.z2
+	end
+end
+
+if not math.isPointInCircle then
+	---Check if a point is inside a circle.
+	---@param x number
+	---@param z number
+	---@param circle {x: number, z: number, radius: number}
+	---@return boolean
+	function math.isPointInCircle(x, z, circle)
+		local dx, dz = x - circle.x, z - circle.z
+		return dx * dx + dz * dz <= circle.radius * circle.radius
+	end
+end
+
+if not math.isPointInArea then
+	---Check if a point is inside an area. Dispatches to `math.isPointInRectangle`
+	---or `math.isPointInCircle` based on the shape of the area.
+	---@param x number
+	---@param z number
+	---@param area {x1: number, z1: number, x2: number, z2: number}|{x: number, z: number, radius: number}
+	---@return boolean
+	function math.isPointInArea(x, z, area)
+		if area.x1 then
+			return math.isPointInRectangle(x, z, area)
+		else
+			return math.isPointInCircle(x, z, area)
+		end
+	end
+end
+
 if not math.distance2dSquared then
 	function math.distance2dSquared(x1, z1, x2, z2)
 		local x = x1 - x2
@@ -218,5 +257,19 @@ if not math.getClosestPosition then
 			end
 		end
 		return bestPos
+	end
+
+	if not math.clampRadians then
+		--- Clamp a radian angle between -pi and pi
+		---@param r number radian value to clamp
+		---@return number clamped radian value
+		function math.clampRadians(r)
+			local ret = r
+			ret = ret - 2 * math.pi * math.floor(ret / math.pi / 2)
+			if ret > math.pi then
+				ret = ret - math.pi * 2
+			end
+			return ret
+		end
 	end
 end

@@ -23,8 +23,6 @@ local spGetMyTeamID = Spring.GetMyTeamID
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
-
 local alwaysShow = true		-- always show AT LEAST the label
 local alwaysShowLabel = true	-- always show the label regardless
 local showWhenSpec = false
@@ -92,6 +90,7 @@ local unitList = {}
 local idleList = {}
 
 local font, font2, buildmenuBottomPosition, dlist, dlistGuishader, backgroundRect, ordermenuPosY
+local guishaderWasActive = false
 
 local unitHumanName = {}
 local unitConf = {}
@@ -127,19 +126,10 @@ function widget:VisibleUnitRemoved(unitID)
 end
 
 local function checkGuishader(force)
-	if WG['guishader'] then
-		if force and dlistGuishader then
-			WG['guishader'].RemoveDlist('idlebuilders')
-			dlistGuishader = gl.DeleteList(dlistGuishader)
-		end
-		if not dlistGuishader and backgroundRect then
-			dlistGuishader = gl.CreateList(function()
-				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner, ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0))
-			end)
-			WG['guishader'].InsertDlist(dlistGuishader, 'idlebuilders')
-		end
-	elseif dlistGuishader then
-		dlistGuishader = gl.DeleteList(dlistGuishader)
+	if backgroundRect then
+		dlistGuishader = WG.FlowUI.guishaderCheckDlist(dlistGuishader, 'idlebuilders', function()
+			RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner, ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0))
+		end, force)
 	end
 end
 
@@ -194,7 +184,7 @@ local function drawContent()
 		local offset = ((iconRect[3]-iconRect[1])/5)
 		local offsetY = -(fontSize*(posY > 0 and 0.22 or 0.31))
 		local style = 'co'
-		font2:Begin(useRenderToTexture)
+		font2:Begin(true)
 		font2:SetOutlineColor(0, 0, 0, 0.2)
 		font2:SetTextColor(0.45, 0.45, 0.45, 1)
 		offset = (fontSize*0.6)
@@ -291,7 +281,7 @@ local function drawContent()
 
 				if unitCount > 1 then
 					local fontSize = height*vsy*0.39
-					font:Begin(useRenderToTexture)
+					font:Begin(true)
 					font:Print('\255\240\240\240'..unitCount, iconRect[1]+iconMargin+(fontSize*0.18), iconRect[4]-iconMargin-(fontSize*0.92), fontSize, "o")
 					font:End()
 				end
@@ -417,45 +407,22 @@ local function updateList(force)
 			checkGuishader(true)
 		end
 
-		if useRenderToTexture then
-			if not uiBgTex then
-				uiBgTex = gl.CreateTexture(mathFloor(uiTexWidth), mathFloor(backgroundRect[4]-backgroundRect[2]), {
-					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
-					fbo = true,
-				})
-				gl.R2tHelper.RenderToTexture(uiBgTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / (backgroundRect[3]-backgroundRect[1]), 2 / (backgroundRect[4]-backgroundRect[2]),	0)
-						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-						drawBackground()
-					end,
-					useRenderToTexture
-				)
-			end
-			if not uiTex then
-				uiTex = gl.CreateTexture(mathFloor(uiTexWidth)*2, mathFloor(backgroundRect[4]-backgroundRect[2])*2, {
-					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
-					fbo = true,
-				})
-			end
-			gl.R2tHelper.RenderToTexture(uiTex,
-				function()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / uiTexWidth, 2 / (backgroundRect[4]-backgroundRect[2]),	0)
-					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-					drawContent()
-				end,
-				useRenderToTexture
-			)
-		else
-			dlist = gl.CreateList(function()
-				drawBackground()
-				drawContent()
-			end)
+		if not uiBgTex then
+			uiBgTex = gl.CreateTexture(mathFloor(uiTexWidth), mathFloor(backgroundRect[4]-backgroundRect[2]), {
+				target = GL.TEXTURE_2D,
+				format = GL.RGBA,
+				fbo = true,
+			})
+			gl.R2tHelper.RenderInRect(uiBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], drawBackground, true)
 		end
+		if not uiTex then
+			uiTex = gl.CreateTexture(mathFloor(uiTexWidth)*2, mathFloor(backgroundRect[4]-backgroundRect[2])*2, {
+				target = GL.TEXTURE_2D,
+				format = GL.RGBA,
+				fbo = true,
+			})
+		end
+		gl.R2tHelper.RenderInRect(uiTex, backgroundRect[1], backgroundRect[2], backgroundRect[1]+uiTexWidth, backgroundRect[4], drawContent, true)
 	end
 end
 
@@ -605,7 +572,7 @@ function widget:Shutdown()
 		uiTex = nil
 	end
 	if WG['guishader'] then
-		WG['guishader'].DeleteDlist('idlebuilders')
+		WG.FlowUI.guishaderDeleteDlist('idlebuilders')
 		dlistGuishader = nil
 	end
 	WG['idlebuilders'] = nil
@@ -692,6 +659,13 @@ local function Update()
 		end
 
 		doUpdate = true	-- TODO: find a way to detect changes and only doUpdate then
+
+		-- detect guishader toggle: force refresh when it comes back on
+		local guishaderActive = WG['guishader'] ~= nil
+		if guishaderActive and not guishaderWasActive then
+			checkGuishader(true)
+		end
+		guishaderWasActive = guishaderActive
 	elseif hovered and sec2 > 0.05 then
 		sec2 = 0
 		doUpdate = true
@@ -707,17 +681,13 @@ function widget:DrawScreen()
 			doUpdateForce = nil
 		end
 		if dlist or uiTex or uiBgTex then
-			if useRenderToTexture then
-				if uiBgTex then
-					-- background element
-					gl.R2tHelper.BlendTexRect(uiBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], useRenderToTexture)
-				end
-				if uiTex then
-					--content
-					gl.R2tHelper.BlendTexRect(uiTex, backgroundRect[1], backgroundRect[2], backgroundRect[1]+uiTexWidth, backgroundRect[4], useRenderToTexture)
-				end
-			else
-				gl.CallList(dlist)
+			if uiBgTex then
+				-- background element
+				gl.R2tHelper.BlendTexRect(uiBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], true)
+			end
+			if uiTex then
+				--content
+				gl.R2tHelper.BlendTexRect(uiTex, backgroundRect[1], backgroundRect[2], backgroundRect[1]+uiTexWidth, backgroundRect[4], true)
 			end
 		end
 	end

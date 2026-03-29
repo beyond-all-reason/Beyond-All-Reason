@@ -47,8 +47,6 @@ SYMKEYS = table_invert(KEYSYMS)
 
 local CMD_STOP_PRODUCTION = GameCMD.STOP_PRODUCTION
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
-
 local comBuildOptions
 local boundUnits = {}
 local stickToBottom = false
@@ -242,10 +240,6 @@ local function getCachedActiveCmdDescs()
 end
 
 local RectRound, RectRoundProgress, UiUnit, UiElement, UiButton, elementCorner
-
-local function convertColor(r, g, b)
-	return string.char(255, (r * 255), (g * 255), (b * 255))
-end
 
 local folder = 'LuaUI/Images/groupicons/'
 local groups = {
@@ -876,7 +870,7 @@ function drawBuildmenu()
 	if maxCellRectID > cmdsCount then
 		maxCellRectID = cmdsCount
 	end
-	font2:Begin(useRenderToTexture)
+	font2:Begin(true)
 	local iconCount = 0
 	for row = 1, rows do
 		if cellRectID >= maxCellRectID then
@@ -970,9 +964,6 @@ function widget:DrawScreen()
 
 	-- The main refresh condition check
 	if doUpdate or refreshBuildmenu then
-		if not useRenderToTexture then
-			dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
-		end
 		RefreshCommands()
 		doUpdate = nil
 		refreshBuildmenu = true
@@ -981,56 +972,27 @@ function widget:DrawScreen()
 	-- create buildmenu
 	if refreshBuildmenu then
 		refreshBuildmenu = false
-		if useRenderToTexture then
-			if not buildmenuTex and width > 0.05 and height > 0.05 then
-				buildmenuTex = gl.CreateTexture(math_floor(width*vsx)*2, math_floor(height*vsy)*2, { --*(vsy<1400 and 2 or 1)
-					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
-					fbo = true,
-				})
-				buildmenuBgTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
-					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
-					fbo = true,
-				})
-				gl.R2tHelper.RenderToTexture(buildmenuBgTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
-						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-						drawBuildmenuBg()
-					end,
-					useRenderToTexture
-				)
-			end
-			if buildmenuTex then
-				gl.R2tHelper.RenderToTexture(buildmenuTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
-						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-						drawBuildmenu()
-					end,
-					useRenderToTexture
-				)
-			end
-		else
-			if not dlistBuildmenuBg then
-				dlistBuildmenuBg = gl.CreateList(function() drawBuildmenuBg() end)
-			end
-			if not dlistBuildmenu then
-				dlistBuildmenu = gl.CreateList(function() drawBuildmenu() end)
-			end
+		if not buildmenuTex and width > 0.05 and height > 0.05 then
+			buildmenuTex = gl.CreateTexture(math_floor(width*vsx)*2, math_floor(height*vsy)*2, { --*(vsy<1400 and 2 or 1)
+				target = GL.TEXTURE_2D,
+				format = GL.RGBA,
+				fbo = true,
+			})
+			buildmenuBgTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
+				target = GL.TEXTURE_2D,
+				format = GL.RGBA,
+				fbo = true,
+			})
+			gl.R2tHelper.RenderInRect(buildmenuBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], drawBuildmenuBg, true)
+		end
+		if buildmenuTex then
+			gl.R2tHelper.RenderInRect(buildmenuTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], drawBuildmenu, true)
 		end
 	end
 
 	-- draw buildmenu background
-	if useRenderToTexture then
-		if buildmenuBgTex and backgroundRect then
-			gl.R2tHelper.BlendTexRect(buildmenuBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], useRenderToTexture)
-		end
-	else
-		gl.CallList(dlistBuildmenuBg)
+	if buildmenuBgTex and backgroundRect then
+		gl.R2tHelper.BlendTexRect(buildmenuBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], true)
 	end
 
 	local hovering = false
@@ -1168,7 +1130,7 @@ function widget:DrawScreen()
 								end
 
 								-- re-draw cell with hover zoom (and price shown)
-								font2:Begin(useRenderToTexture)
+								font2:Begin(true)
 								drawCell(hoveredCellID, usedZoom, cellColor, units.unitRestricted[uDefID])
 								font2:End()
 

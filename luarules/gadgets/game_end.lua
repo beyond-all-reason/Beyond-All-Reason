@@ -109,8 +109,8 @@ if gadgetHandler:IsSyncedCode() then
 	}
 	]]--
 
-	local function UpdateAllyTeamIsDead(allyTeamID)
-		if GetGameFrame() == 0 then return end
+	local function UpdateAllyTeamIsDead(allyTeamID, gf)
+		if gf == 0 then return end
 
 		local wipeout = true
 		local allyTeamInfo = allyTeamInfos[allyTeamID]
@@ -118,7 +118,7 @@ if gadgetHandler:IsSyncedCode() then
 			wipeout = wipeout and (team.dead or (playerQuitIsDead and not team.isControlled or not team.hasLeader))
 		end
 		if wipeout and not allyTeamInfos[allyTeamID].dead then
-			if isFFA and Spring.GetGameFrame() < earlyDropGrace then
+			if isFFA and gf < earlyDropGrace then
 				for teamID, team in pairs(allyTeamInfos[allyTeamID].teams) do
 					local teamUnits = Spring.GetTeamUnits(teamID)
 					for i=1, #teamUnits do
@@ -132,11 +132,10 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local function CheckPlayer(playerID)
+	local function CheckPlayer(playerID, gf)
 		local _, active, spectator, teamID, allyTeamID = GetPlayerInfo(playerID, false)
 		local team = allyTeamInfos[allyTeamID].teams[teamID]
 
-		local gf = GetGameFrame()
 		if not spectator and active then
 			team.players[playerID] = gf
 		end
@@ -181,21 +180,19 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		allyTeamInfos[allyTeamID].teams[teamID] = team
-
 		-- if player is an AI controller, then mark all hosted AIs as uncontrolled
 		local AIHostList = playerIDtoAIs[playerID] or {}
 		for AITeam, AIAllyTeam in pairs(AIHostList) do
 			allyTeamInfos[AIAllyTeam].teams[AITeam].isControlled = active
 		end
 
-		UpdateAllyTeamIsDead(allyTeamID)
+		UpdateAllyTeamIsDead(allyTeamID, gf)
 	end
 
-	local function CheckAllPlayers()
+	local function CheckAllPlayers(gf)
 		playerList = GetPlayerList()
 		for i = 1, #playerList do
-			CheckPlayer(playerList[i])
+			CheckPlayer(playerList[i], gf)
 		end
 	end
 
@@ -267,7 +264,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		CheckAllPlayers()
+		CheckAllPlayers(GetGameFrame())
 	end
 
 	local function AreAllyTeamsDoubleAllied(firstAllyTeamID, secondAllyTeamID)
@@ -363,11 +360,13 @@ if gadgetHandler:IsSyncedCode() then
 			local winners
 			if fixedallies then
 				if gf < 30 or gf % 30 == 1 then
-					CheckAllPlayers()
+					CheckAllPlayers(gf)
 				end
 				winners = CheckSingleAllyVictoryEnd()
 			else
-				CheckAllPlayers()
+				if gf < 30 or gf % 15 == 1 then
+					CheckAllPlayers(gf)
+				end
 				winners = sharedDynamicAllianceVictory and CheckSharedAllyVictoryEnd() or CheckSingleAllyVictoryEnd()
 			end
 
@@ -386,15 +385,16 @@ if gadgetHandler:IsSyncedCode() then
 				gameoverAnimFrame = gf + 55		-- delay a bit because walking commanders need to stop walking + a delay look nice
 				gameoverAnimUnits = {}
 				if type(winners) == 'table' then
+					local winnerSet = {}
+					for u = 1, #winners do
+						winnerSet[winners[u]] = true
+					end
 					local units = Spring.GetAllUnits()
-					for i, unitID in ipairs(units) do
-						if isCommander[Spring.GetUnitDefID(unitID)] then
-							for u, allyTeamID in pairs(winners) do
-								if Spring.GetUnitAllyTeam(unitID) == allyTeamID then
-									Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)	-- give stop cmd so commanders can animate in place
-									gameoverAnimUnits[unitID] = true
-								end
-							end
+					for i = 1, #units do
+						local unitID = units[i]
+						if isCommander[Spring.GetUnitDefID(unitID)] and winnerSet[Spring.GetUnitAllyTeam(unitID)] then
+							Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)	-- give stop cmd so commanders can animate in place
+							gameoverAnimUnits[unitID] = true
 						end
 					end
 				end
@@ -403,14 +403,15 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:TeamChanged(teamID)
-		CheckAllPlayers()
+		CheckAllPlayers(GetGameFrame())
 	end
 
 	function gadget:TeamDied(teamID)
+		local gf = GetGameFrame()
 		local allyTeamID = teamToAllyTeam[teamID]
 		allyTeamInfos[allyTeamID].teams[teamID].dead = true
-		UpdateAllyTeamIsDead(allyTeamID)
-		CheckAllPlayers()
+		UpdateAllyTeamIsDead(allyTeamID, gf)
+		CheckAllPlayers(gf)
 	end
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeamID, builderID)
@@ -422,7 +423,6 @@ if gadgetHandler:IsSyncedCode() then
 			if unitDecoration[unitDefID] then
 				allyTeamInfo.unitDecorationCount = allyTeamInfo.unitDecorationCount + 1
 			end
-			allyTeamInfos[allyTeamID] = allyTeamInfo
 		end
 	end
 	gadget.UnitGiven = gadget.UnitCreated
@@ -438,7 +438,6 @@ if gadgetHandler:IsSyncedCode() then
 			if unitDecoration[unitDefID] then
 				allyTeamInfo.unitDecorationCount = allyTeamInfo.unitDecorationCount - 1
 			end
-			allyTeamInfos[allyTeamID] = allyTeamInfo
 			if allyTeamUnitCount <= allyTeamInfo.unitDecorationCount then
 				for teamID in pairs(allyTeamInfo.teams) do
 					KillTeam(teamID)
@@ -452,7 +451,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:RecvLuaMsg(msg, playerID)
 
 		-- detect when no players are ingame (thus only specs remain) and shutdown the game
-		if Spring.GetGameFrame() == 0 and string.sub(msg, 1, 2) == 'pc' then
+		if GetGameFrame() == 0 and string.sub(msg, 1, 2) == 'pc' then
 			local activeTeams = 0
 			local leaderPlayerID, isDead, isAiTeam, active, spec
 			for _, teamID in ipairs(teamList) do
@@ -492,7 +491,7 @@ else	-- Unsynced
 	end
 
 	function gadget:GameFrame(gf)
-		if not cheated then
+		if not cheated and gf % 30 == 0 then
 			cheated = IsCheatingEnabled()
 		end
 	end

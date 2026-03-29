@@ -39,6 +39,7 @@ return {
 			subfolder = "Legion/T3",
 			techlevel = 3,
 			unitgroup = "weapon",
+			restrictions_inclusion = "_nolrpc_",
 		},
 		featuredefs = {
 			dead = {

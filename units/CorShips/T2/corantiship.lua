@@ -10,6 +10,7 @@ return {
 		canmove = true,
 		canreclaim = false,
 		canrepair = false,
+		canrestore = false,
 		collisionvolumeoffsets = "0 0 2",
 		collisionvolumescales = "48 48 140",
 		collisionvolumetype = "CylZ",
@@ -53,6 +54,7 @@ return {
 			subfolder = "CorShips/T2",
 			techlevel = 2,
 			unitgroup = "antinuke",
+			restrictions_exclusion = "_noantinuke_",
 		},
 		featuredefs = {
 			dead = {

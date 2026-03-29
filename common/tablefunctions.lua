@@ -68,6 +68,23 @@ if not table.mergeInPlace then
 	end
 end
 
+if not table.ensureTable then
+	---Ensures a table exists at the specified key, creating one if needed.
+	---@param tbl table
+	---@param key any
+	---@return table nested in tbl at key
+	function table.ensureTable(tbl, key)
+		local sub = tbl[key]
+		if sub == nil then
+			sub = {}
+			tbl[key] = sub
+		elseif type(sub) ~= "table" then
+			error("existing entry is not a table")
+		end
+		return sub
+	end
+end
+
 if not table.toString then
 	local stringRep = string.rep
 	local tableSort = table.sort
@@ -293,6 +310,22 @@ if not table.contains then
 	---@return boolean
 	function table.contains(tbl, value)
 		return table.getKeyOf(tbl, value) ~= nil
+	end
+end
+
+if not table.keys then
+	---Returns all keys of a table as an array, and the count of keys.
+	---@generic K
+	---@param tbl table<K, any>
+	---@return K[] keys
+	---@return number count
+	function table.keys(tbl)
+		local keys, count = {}, 0
+		for key in pairs(tbl) do
+			count = count + 1
+			keys[count] = key
+		end
+		return keys, count
 	end
 end
 

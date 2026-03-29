@@ -1,5 +1,6 @@
 return {						--costs should be same as legmohocon and legmohoconin
 	legmohoconct = {
+		activatewhenbuilt = true,
 		maxacc = 0,
 		maxdec = 4.5,
 		energycost = 14500,
@@ -15,12 +16,11 @@ return {						--costs should be same as legmohocon and legmohoconin
 		canreclaim = true,
 		canrepeat = false,
 		canstop = true,
-		cantbetransported = false,
+		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "31 32 31",
 		collisionvolumetype = "CylY",
 		usePieceCollisionVolumes = true,
-		energyupkeep = 30,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
@@ -30,6 +30,7 @@ return {						--costs should be same as legmohocon and legmohoconin
 		maxwaterdepth = 0,
 		movementclass = "NANO",
 		objectname = "Units/LEGMOHOCON.s3o",
+		onoffable = true,
 		script = "Units/legmohoconct.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
