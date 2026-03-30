@@ -18,7 +18,7 @@ return {
 		maxslope = 17,
 		maxacc = 0.253,
 		maxdec = 0.8211,
-		metalcost = 1850,
+		metalcost = 2850,
 		maxwaterdepth = 22,
 		movementclass = "HBOT4",
 		nochasecategory = "VTOL",
