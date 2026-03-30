@@ -1,8 +1,8 @@
 return {
 	legrwall = {
 		maxacc = 0,
-		energycost = 6000,
-		metalcost = 1250,
+		energycost = 8000,
+		metalcost = 1500,
 		buildpic = "legrwall.DDS",
 		buildtime = 12000,
 		canrepeat = false,
@@ -18,7 +18,7 @@ return {
 		hidedamage = true,
 		levelground = false,
 		mass = 10000000000,
-		health = 9600,
+		health = 7600,
 		maxslope = 24,
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",
@@ -139,7 +139,7 @@ return {
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 1,
 				range = 950,
-				reloadtime = 4,
+				reloadtime = 7,
 				rgbcolor = "0.34 0.64 0.94",
 				soundhit = "mavgun3",
 				soundhitwet = "splshbig",
@@ -155,7 +155,7 @@ return {
 				},
 				damage = {
 					commanders = 250,
-					default = 1000,
+					default = 2000,
 				},
 			},
 		},
