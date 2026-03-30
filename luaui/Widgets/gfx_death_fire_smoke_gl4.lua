@@ -26,6 +26,7 @@ local spGetProjectilePosition = Spring.GetProjectilePosition
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spIsSphereInView        = Spring.IsSphereInView
 local spGetCameraPosition     = Spring.GetCameraPosition
+local spGetProjectileOwnerID  = Spring.GetProjectileOwnerID
 
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
@@ -58,8 +59,8 @@ local popElementInstance   = gl.InstanceVBOTable.popElementInstance
 -- General
 local MAX_PARTICLES          = 8000
 local PARTICLE_SHADER_NAME   = "DeathFireSmokeGL4"
-local PARTICLE_SIZE_MIN      = 12
-local PARTICLE_SIZE_MAX      = 24
+local PARTICLE_SIZE_MIN      = 13
+local PARTICLE_SIZE_MAX      = 26
 
 -- Piece projectile trails (fire on flying debris)
 local PIECE_SPAWN_INTERVAL     = 1    -- frames between piece spawns
@@ -241,42 +242,42 @@ void main()
 	// Variant 2: smoke only -> charcoal grey
 	// Variant 3: warm amber fire -> brown-grey smoke
 	const vec4 cmaps[32] = vec4[32](
-		// Variant 0: standard orange -> dark grey smoke
+		// Variant 0: standard orange -> neutral grey smoke
 		vec4(1.0, 0.55, 0.2, 1.0),
-		vec4(0.7, 0.35, 0.25, 0.85),
-		vec4(0.22, 0.18, 0.15, 0.75),
-		vec4(0.18, 0.16, 0.14, 0.62),
-		vec4(0.16, 0.14, 0.12, 0.7),
-		vec4(0.12, 0.11, 0.1, 0.55),
-		vec4(0.08, 0.07, 0.06, 0.35),
-		vec4(0.04, 0.04, 0.03, 0.01),
-		// Variant 1: hot yellow (longer burn) -> medium grey smoke
+		vec4(0.7, 0.33, 0.25, 0.85),
+		vec4(0.18, 0.18, 0.18, 0.75),
+		vec4(0.16, 0.16, 0.16, 0.62),
+		vec4(0.14, 0.14, 0.14, 0.7),
+		vec4(0.11, 0.11, 0.11, 0.55),
+		vec4(0.07, 0.07, 0.07, 0.35),
+		vec4(0.04, 0.04, 0.04, 0.01),
+		// Variant 1: hot yellow (longer burn) -> neutral grey smoke
 		vec4(1.0, 0.7, 0.25, 1.0),
-		vec4(0.8, 0.55, 0.22, 0.95),
-		vec4(0.6, 0.45, 0.18, 0.88),
-		vec4(0.4, 0.35, 0.15, 0.75),
-		vec4(0.2, 0.18, 0.18, 0.65),
-		vec4(0.14, 0.13, 0.12, 0.5),
-		vec4(0.1, 0.09, 0.08, 0.3),
-		vec4(0.06, 0.05, 0.05, 0.01),
-		// Variant 2: smoke only -> charcoal grey
-		vec4(0.25, 0.22, 0.18, 0.8),
-		vec4(0.22, 0.19, 0.16, 0.75),
-		vec4(0.2, 0.17, 0.14, 0.72),
-		vec4(0.17, 0.15, 0.12, 0.65),
-		vec4(0.14, 0.12, 0.1, 0.6),
-		vec4(0.1, 0.09, 0.07, 0.48),
-		vec4(0.06, 0.05, 0.04, 0.3),
-		vec4(0.03, 0.03, 0.02, 0.01),
-		// Variant 3: warm amber fire -> brown-grey smoke
+		vec4(0.75, 0.5, 0.22, 0.95),
+		vec4(0.55, 0.4, 0.2, 0.88),
+		vec4(0.24, 0.24, 0.24, 0.75),
+		vec4(0.17, 0.17, 0.17, 0.65),
+		vec4(0.12, 0.12, 0.12, 0.5),
+		vec4(0.09, 0.09, 0.09, 0.3),
+		vec4(0.05, 0.05, 0.05, 0.01),
+		// Variant 2: smoke only -> neutral charcoal grey
+		vec4(0.22, 0.22, 0.22, 0.8),
+		vec4(0.19, 0.19, 0.19, 0.75),
+		vec4(0.17, 0.17, 0.17, 0.72),
+		vec4(0.15, 0.15, 0.15, 0.65),
+		vec4(0.12, 0.12, 0.12, 0.6),
+		vec4(0.09, 0.09, 0.09, 0.48),
+		vec4(0.05, 0.05, 0.05, 0.3),
+		vec4(0.03, 0.03, 0.03, 0.01),
+		// Variant 3: warm amber fire -> neutral grey smoke
 		vec4(1.0, 0.62, 0.13, 1.0),
 		vec4(0.8, 0.52, 0.19, 0.88),
-		vec4(0.25, 0.2, 0.14, 0.72),
-		vec4(0.2, 0.17, 0.13, 0.6),
-		vec4(0.18, 0.15, 0.12, 0.68),
-		vec4(0.13, 0.11, 0.09, 0.5),
-		vec4(0.08, 0.07, 0.05, 0.33),
-		vec4(0.04, 0.03, 0.02, 0.01)
+		vec4(0.18, 0.18, 0.18, 0.72),
+		vec4(0.17, 0.17, 0.17, 0.6),
+		vec4(0.15, 0.15, 0.15, 0.68),
+		vec4(0.11, 0.11, 0.11, 0.5),
+		vec4(0.07, 0.07, 0.07, 0.33),
+		vec4(0.03, 0.03, 0.03, 0.01)
 	);
 	int cmapVariant = int(clamp(sizeAndType.y, 0.0, 3.0));
 	int cmapBase = cmapVariant * 8;
@@ -337,8 +338,12 @@ void main(void)
 
 	vec4 texSample = texture(fireTex, atlasUV);
 
+	// Desaturate texture in smoke phase so fire atlas doesn't yellow-tint grey smoke
+	float texLum = dot(texSample.rgb, vec3(0.299, 0.587, 0.114));
+	vec3 texRGB = mix(vec3(texLum), texSample.rgb, fireFrac);
+
 	// Fire glow controlled by vertex-computed fireFrac (per-variant)
-	vec3 color = particleColor.rgb * texSample.rgb;
+	vec3 color = particleColor.rgb * texRGB;
 	float coreBright3 = texSample.r * texSample.r * texSample.r;  // r^3 without pow
 	// Add glow in fire phase
 	float glowScale = coreBright3 * fireFrac;
@@ -437,13 +442,17 @@ local function updateQualityPreset(gameFrame)
 end
 
 -- Pre-cache unit death sizes from UnitDefs (only radius needed for piece sizing)
+-- Excludes critters (category OBJECT) and raptors (category RAPTOR)
 local function buildUnitDeathSizeCache()
 	for udid, ud in pairs(UnitDefs) do
-		local radius = ud.radius or 10
-		local xsize = ud.xsize or 2
-		local zsize = ud.zsize or 2
-		local footprint = mathMax(xsize, zsize) * 4  -- footprint in elmos (each square = 8 elmos)
-		unitDeathSizeCache[udid] = mathMax(radius, footprint * 0.5)
+		local cats = ud.modCategories
+		if not cats or (not cats.object and not cats.raptor) then
+			local radius = ud.radius or 10
+			local xsize = ud.xsize or 2
+			local zsize = ud.zsize or 2
+			local footprint = mathMax(xsize, zsize) * 4  -- footprint in elmos (each square = 8 elmos)
+			unitDeathSizeCache[udid] = mathMax(radius, footprint * 0.5)
+		end
 	end
 end
 
@@ -614,10 +623,89 @@ end
 --------------------------------------------------------------------------------
 -- Piece projectile tracking (for debris fire trails)
 --------------------------------------------------------------------------------
-local trackedPieceProjectiles = {}  -- [proID] = { lastX, lastY, lastZ, spawnTimer, radius }
+local trackedPieceProjectiles = {}  -- [proID] = { spawnTimer, sizeScale, ... }
 local pendingDeathUnitRadii = {}    -- [unitID] = radius, set in UnitDestroyed so piece tracker can use it
+local excludedDeathUnits = {}       -- [unitID] = true, for raptors/critters whose pieces should be skipped
 local pieceGeneration = 0  -- incremented each update; used to detect stale tracked pieces without allocating a set
 local hasGetProjectileVelocity = (spGetProjectileVelocity ~= nil)  -- check once at load
+
+-- Spawns trail particles for a single tracked piece projectile
+-- Extracted to keep updatePieceProjectiles under the 60 upvalue limit
+local function spawnPieceTrailParticles(tracked, proID, gameFrame, cx, cy, cz)
+	local pieceAge = gameFrame - tracked.birthFrame
+
+	-- Stop emitting after piece lifetime expires
+	if pieceAge > tracked.lifeFrames then return end
+
+	tracked.spawnTimer = tracked.spawnTimer + 1
+	if tracked.spawnTimer < PIECE_SPAWN_INTERVAL then return end
+	tracked.spawnTimer = 0
+
+	local px, py, pz = spGetProjectilePosition(proID)
+	if not px then return end
+
+	-- Skip ground check for pieces clearly airborne
+	local aboveGround = py > PIECE_GROUND_SKIP_HEIGHT
+	if not aboveGround then
+		local groundY = spGetGroundHeight(px, pz) or 0
+		aboveGround = py > groundY + 1
+	end
+	if not (aboveGround and spIsSphereInView(px, py, pz, PIECE_CULLING_RADIUS)) then return end
+
+	-- Distance LOD: reduce spawns for distant pieces
+	local dx, dy, dz = px - cx, py - cy, pz - cz
+	local distSq = dx*dx + dy*dy + dz*dz
+	local lodMult = 1.0
+	if distSq > LOD_DIST_NEAR_SQ then
+		local dist = distSq ^ 0.5
+		local t = (dist - LOD_DIST_NEAR) * LOD_DIST_RANGE_INV
+		if t >= 1.0 then
+			lodMult = LOD_MIN_MULT
+		else
+			lodMult = 1.0 - t * LOD_MULT_RANGE
+		end
+	end
+
+	local vx, vy, vz = 0, 0, 0
+	if hasGetProjectileVelocity then
+		local pvx, pvy, pvz = spGetProjectileVelocity(proID)
+		if pvx then
+			vx, vy, vz = pvx * 0.05, pvy * 0.05, pvz * 0.05
+		end
+	end
+
+	local ageFrac = pieceAge / tracked.lifeFrames
+	local sc = tracked.sizeScale
+	local cmapV = tracked.cmapVariant
+	local lifeMul = tracked.lifeMult
+
+	-- Spawn multiple particles early, tapering to 1 late in life
+	local preset = QUALITY_PRESETS[currentPreset]
+	local presetLifeMult = preset.lifetimeMult * lodMult  -- shorter particles when distant
+	local spawnCount = mathMax(1, mathFloor((PIECE_SPAWN_COUNT_MAX - ageFrac * PIECE_SPAWN_TAPER + 0.5) * preset.spawnMult * preset.pieceCountMult * lodMult))
+	local alphaFade = 1.0 - ageFrac * PIECE_ALPHA_FADE
+	local skipChance = PIECE_SKIP_CHANCE + (1.0 - lodMult) * 0.3  -- skip more when distant
+	local vxs = vx * PIECE_VEL_SCALE
+	local vys = vy * PIECE_VEL_SCALE
+	local vzs = vz * PIECE_VEL_SCALE
+	for p = 1, spawnCount do
+		if mathRandom() > skipChance then
+			local sizeRand = mathRandom() * PARTICLE_SIZE_RANGE
+			local particleSize = (PARTICLE_SIZE_MIN + sizeRand) * sc
+			local sizeFrac = sizeRand * PARTICLE_SIZE_INV_RANGE  -- 0..1
+			local sizeLifeMult = 1.0 + sizeFrac * PIECE_SIZE_LIFE_SCALE
+			spawnParticle(
+				px + mathRandom() - 0.5, py + mathRandom(), pz + mathRandom() - 0.5,
+				vxs + (mathRandom() * PIECE_VEL_RANDOM_2 - PIECE_VEL_RANDOM),
+				vys + mathRandom() * PIECE_VEL_UP_RANGE + PIECE_VEL_UP_MIN,
+				vzs + (mathRandom() * PIECE_VEL_RANDOM_2 - PIECE_VEL_RANDOM),
+				particleSize, cmapV,
+				(PIECE_LIFETIME_MIN + mathRandom() * PIECE_LIFETIME_RANGE) * lifeMul * presetLifeMult * sizeLifeMult,
+				(PIECE_ALPHA_MIN + mathRandom() * PIECE_ALPHA_RANGE) * alphaFade
+			)
+		end
+	end
+end
 
 local function updatePieceProjectiles(gameFrame)
 	if not spGetProjectilesInRectangle then return end
@@ -639,97 +727,32 @@ local function updatePieceProjectiles(gameFrame)
 		local proID = projectiles[i]
 		local tracked = trackedPieceProjectiles[proID]
 		if not tracked then
-			-- New piece projectile - start tracking
-			local px, py, pz = spGetProjectilePosition(proID)
-			if px then
-				local pieceRadius = ownerRadius or 10
-				local sizeScale = mathMax(PIECE_SIZE_SCALE_MIN, mathMin(PIECE_SIZE_SCALE_MAX, pieceRadius / PIECE_SIZE_SCALE_REF))
-				trackedPieceProjectiles[proID] = {
-					spawnTimer = 0,
-					sizeScale = sizeScale,
-					birthFrame = gameFrame,
-					lifeFrames = mathFloor(PIECE_LIFE_BASE + pieceRadius * PIECE_LIFE_PER_RADIUS),
-					gen = gen,
-					cmapVariant = randomCmapVariant(),
-					lifeMult = PIECE_LIFETIME_MULT_MIN + mathRandom() * PIECE_LIFE_MULT_RANGE,
-				}
+			-- New piece projectile - check if it belongs to an excluded unit (raptor/critter)
+			local ownerID = spGetProjectileOwnerID(proID)
+			if ownerID and excludedDeathUnits[ownerID] then
+				-- Mark as excluded so we don't check again
+				trackedPieceProjectiles[proID] = { gen = gen, excluded = true }
+			else
+				-- New piece projectile - start tracking
+				local px, py, pz = spGetProjectilePosition(proID)
+				if px then
+					local pieceRadius = ownerRadius or 10
+					local sizeScale = mathMax(PIECE_SIZE_SCALE_MIN, mathMin(PIECE_SIZE_SCALE_MAX, pieceRadius / PIECE_SIZE_SCALE_REF))
+					trackedPieceProjectiles[proID] = {
+						spawnTimer = 0,
+						sizeScale = sizeScale,
+						birthFrame = gameFrame,
+						lifeFrames = mathFloor(PIECE_LIFE_BASE + pieceRadius * PIECE_LIFE_PER_RADIUS),
+						gen = gen,
+						cmapVariant = randomCmapVariant(),
+						lifeMult = PIECE_LIFETIME_MULT_MIN + mathRandom() * PIECE_LIFE_MULT_RANGE,
+					}
+				end
 			end
 		else
 			tracked.gen = gen
-			local pieceAge = gameFrame - tracked.birthFrame
-
-			-- Stop emitting after piece lifetime expires
-			if pieceAge > tracked.lifeFrames then
-				-- still keep tracking for cleanup, just don't spawn
-			else
-				tracked.spawnTimer = tracked.spawnTimer + 1
-				if tracked.spawnTimer >= PIECE_SPAWN_INTERVAL then
-					tracked.spawnTimer = 0
-					local px, py, pz = spGetProjectilePosition(proID)
-					if px then
-						-- Skip ground check for pieces clearly airborne
-						local aboveGround = py > PIECE_GROUND_SKIP_HEIGHT
-						if not aboveGround then
-							local groundY = spGetGroundHeight(px, pz) or 0
-							aboveGround = py > groundY + 1
-						end
-						if aboveGround and spIsSphereInView(px, py, pz, PIECE_CULLING_RADIUS) then
-							-- Distance LOD: reduce spawns for distant pieces
-							local dx, dy, dz = px - cx, py - cy, pz - cz
-							local distSq = dx*dx + dy*dy + dz*dz
-							local lodMult = 1.0
-							if distSq > LOD_DIST_NEAR_SQ then
-								local dist = distSq ^ 0.5
-								local t = (dist - LOD_DIST_NEAR) * LOD_DIST_RANGE_INV
-								if t >= 1.0 then
-									lodMult = LOD_MIN_MULT
-								else
-									lodMult = 1.0 - t * LOD_MULT_RANGE
-								end
-							end
-
-							local vx, vy, vz = 0, 0, 0
-							if hasGetProjectileVelocity then
-								local pvx, pvy, pvz = spGetProjectileVelocity(proID)
-								if pvx then
-									vx, vy, vz = pvx * 0.05, pvy * 0.05, pvz * 0.05
-								end
-							end
-
-							local ageFrac = pieceAge / tracked.lifeFrames
-							local sc = tracked.sizeScale
-							local cmapV = tracked.cmapVariant
-							local lifeMul = tracked.lifeMult
-
-							-- Spawn multiple particles early, tapering to 1 late in life
-							local preset = QUALITY_PRESETS[currentPreset]
-							local presetLifeMult = preset.lifetimeMult * lodMult  -- shorter particles when distant
-							local spawnCount = mathMax(1, mathFloor((PIECE_SPAWN_COUNT_MAX - ageFrac * PIECE_SPAWN_TAPER + 0.5) * preset.spawnMult * preset.pieceCountMult * lodMult))
-							local alphaFade = 1.0 - ageFrac * PIECE_ALPHA_FADE
-							local skipChance = PIECE_SKIP_CHANCE + (1.0 - lodMult) * 0.3  -- skip more when distant
-							local vxs = vx * PIECE_VEL_SCALE
-							local vys = vy * PIECE_VEL_SCALE
-							local vzs = vz * PIECE_VEL_SCALE
-							for p = 1, spawnCount do
-								if mathRandom() > skipChance then
-									local sizeRand = mathRandom() * PARTICLE_SIZE_RANGE
-									local particleSize = (PARTICLE_SIZE_MIN + sizeRand) * sc
-									local sizeFrac = sizeRand * PARTICLE_SIZE_INV_RANGE  -- 0..1
-									local sizeLifeMult = 1.0 + sizeFrac * PIECE_SIZE_LIFE_SCALE
-									spawnParticle(
-										px + mathRandom() - 0.5, py + mathRandom(), pz + mathRandom() - 0.5,
-										vxs + (mathRandom() * PIECE_VEL_RANDOM_2 - PIECE_VEL_RANDOM),
-										vys + mathRandom() * PIECE_VEL_UP_RANGE + PIECE_VEL_UP_MIN,
-										vzs + (mathRandom() * PIECE_VEL_RANDOM_2 - PIECE_VEL_RANDOM),
-										particleSize, cmapV,
-										(PIECE_LIFETIME_MIN + mathRandom() * PIECE_LIFETIME_RANGE) * lifeMul * presetLifeMult * sizeLifeMult,
-										(PIECE_ALPHA_MIN + mathRandom() * PIECE_ALPHA_RANGE) * alphaFade
-									)
-								end
-							end
-						end
-					end
-				end
+			if not tracked.excluded then
+				spawnPieceTrailParticles(tracked, proID, gameFrame, cx, cy, cz)
 			end
 		end
 	end
@@ -766,10 +789,13 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	if not particleVBO then return end
 
 	local radius = unitDeathSizeCache[unitDefID]
-	if not radius then return end
-
-	-- Store radius so the piece projectile tracker can size effects appropriately
-	pendingDeathUnitRadii[unitID] = radius
+	if radius then
+		-- Store radius so the piece projectile tracker can size effects appropriately
+		pendingDeathUnitRadii[unitID] = radius
+	else
+		-- Mark as excluded so its piece projectiles won't emit particles
+		excludedDeathUnits[unitID] = true
+	end
 end
 
 function widget:GameFrame(n)
@@ -789,17 +815,22 @@ function widget:GameFrame(n)
 	removeExpiredParticles(n)
 
 	-- Track piece projectiles every 2 frames (expensive map-wide scan)
-	if n % 2 == 0 then
+	if n % PIECE_SPAWN_INTERVAL == 0 then
 		updatePieceProjectiles(n)
 	end
 
-	-- Clean up pending death unit radii after a short delay
+	-- Clean up pending death unit radii and exclusion set after a short delay
 	if n % 30 == 0 then
-		-- wipe is faster than pairs+nil for clearing a table
 		local k = next(pendingDeathUnitRadii)
 		if k then
 			for uid in pairs(pendingDeathUnitRadii) do
 				pendingDeathUnitRadii[uid] = nil
+			end
+		end
+		k = next(excludedDeathUnits)
+		if k then
+			for uid in pairs(excludedDeathUnits) do
+				excludedDeathUnits[uid] = nil
 			end
 		end
 	end
