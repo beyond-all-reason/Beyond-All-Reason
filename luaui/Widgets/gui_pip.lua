@@ -17633,6 +17633,12 @@ end
 function widget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
 	-- Clear GL4 cache so it picks up the new team color
 	gl4Icons.unitTeamCache[unitID] = nil
+	-- Invalidate VBO block caches — they bake team color into instance data,
+	-- so a team transfer requires a full rebuild to show the correct color.
+	gl4Icons._bldgBlockFrame = 0
+	gl4Icons._bldgVboValid = false
+	gl4Icons._slowVboValid = false
+	gl4Icons._mobileBlock = nil
 	-- Force re-classification in keysort (new team may change colors/LOS)
 	ownBuildingPosX[unitID] = nil
 	ownBuildingPosZ[unitID] = nil

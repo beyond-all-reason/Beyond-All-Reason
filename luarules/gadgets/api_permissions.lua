@@ -66,14 +66,29 @@ _G.powerusers = powerusers
 _G.permissions = permissions
 _G.isSinglePlayer = isSinglePlayer
 
--- Pending trusted name resolutions: playerIDs whose accountID was -1 when they joined
-local pendingTrustedNames = {}
+-- When a late joiner has no accountID in customKeys, assign a synthetic one
+-- and patch GetAccountID so other gadgets also see it.
+local trustedNameAccountIDs = {}
+local nextSyntheticAccountID = -1000
+local originalGetAccountID = Spring.Utilities.GetAccountID
+Spring.Utilities.GetAccountID = function(playerID)
+	local syntheticID = trustedNameAccountIDs[playerID]
+	if syntheticID then
+		return syntheticID
+	end
+	return originalGetAccountID(playerID)
+end
 
 local function ResolveTrustedName(playerID)
 	local name = Spring.GetPlayerInfo(playerID)
 	if not name or not trustedNames[name] then return false end
-	local accountID = Spring.Utilities.GetAccountID(playerID)
-	if accountID == -1 then return false end -- still unavailable
+	local accountID = originalGetAccountID(playerID)
+	if accountID == -1 then
+		-- Late joiner without accountID in customKeys: assign synthetic ID
+		nextSyntheticAccountID = nextSyntheticAccountID - 1
+		accountID = nextSyntheticAccountID
+		trustedNameAccountIDs[playerID] = accountID
+	end
 	if powerusers[accountID] then return true end -- already has permissions
 	powerusers[accountID] = trustedNames[name]
 	for permission, value in pairs(trustedNames[name]) do
@@ -86,23 +101,29 @@ local function ResolveTrustedName(playerID)
 	return true
 end
 
+-- Track which playerIDs have been resolved so we don't re-scan them
+local resolvedPlayerIDs = {}
+
 function gadget:PlayerChanged(playerID)
 	if not trustedNames then return end
-	local name = Spring.GetPlayerInfo(playerID)
-	if not name or not trustedNames[name] then return end
-	if not ResolveTrustedName(playerID) then
-		-- accountID not yet available, schedule retry
-		pendingTrustedNames[playerID] = true
+	if resolvedPlayerIDs[playerID] then return end
+	if ResolveTrustedName(playerID) then
+		resolvedPlayerIDs[playerID] = true
 	end
 end
 
 function gadget:GameFrame(frame)
-	if not next(pendingTrustedNames) then return end
-	-- Retry every 30 frames (~1 second)
-	if frame % 30 ~= 0 then return end
-	for playerID in pairs(pendingTrustedNames) do
-		if ResolveTrustedName(playerID) then
-			pendingTrustedNames[playerID] = nil
+	-- PlayerChanged/PlayerAdded don't fire in synced code, so we must poll.
+	if not trustedNames then return end
+	if frame % 200 ~= 0 then return end
+	for _, playerID in ipairs(Spring.GetPlayerList()) do
+		if not resolvedPlayerIDs[playerID] then
+			local name = Spring.GetPlayerInfo(playerID)
+			if name and trustedNames[name] then
+				if ResolveTrustedName(playerID) then
+					resolvedPlayerIDs[playerID] = true
+				end
+			end
 		end
 	end
 end
