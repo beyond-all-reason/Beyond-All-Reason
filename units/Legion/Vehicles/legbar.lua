@@ -115,7 +115,7 @@ return {
 		},
 		weapondefs = {
 			clusternapalm = {
-				areaofeffect = 150,
+				areaofeffect = 120,
 				avoidfeature = false,
 				cegtag = "burnflame",
 				--collidefriendly = false,
@@ -145,11 +145,11 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 250,
 				customparams = {
-					area_onhit_ceg = "fire-area-75-repeat",
-					area_onhit_damageCeg = "burnflamexl-gen",
+					area_onhit_ceg = "fire-area-60-repeat",
+					area_onhit_damageCeg = "burnflamel-gen",
 					area_onhit_resistance = "fire",
 					area_onhit_damage = 60,--30,
-					area_onhit_range = 75,
+					area_onhit_range = 60,
 					area_onhit_time = 7,
 				},
 				damage = {

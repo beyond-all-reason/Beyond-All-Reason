@@ -2,10 +2,10 @@ return {
 	legsrail = {
 		maxacc = 0.08,
 		maxdec = 0.345,
-		energycost = 16000,
-		metalcost = 800,
+		energycost = 15000,
+		metalcost = 750,
 		buildpic = "LEGSRAIL.DDS",
-		buildtime = 20800,
+		buildtime = 19500,
 		canmove = true,
 		collisionvolumeoffsets = "0 10 0",
 		collisionvolumescales = "45 40 45",

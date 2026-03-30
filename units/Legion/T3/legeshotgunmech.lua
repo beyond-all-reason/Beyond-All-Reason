@@ -1,8 +1,8 @@
 return {
 	legeshotgunmech = {
-		maxacc = 0.11845,
+		maxacc = 0.18,
 		airsightdistance = 1100,
-		maxdec = 0.7521,
+		maxdec = 0.9,
 		energycost = 120000,
 		metalcost = 7000,
 		buildpic = "legeshotgunmech.DDS",
@@ -18,7 +18,7 @@ return {
 		mass = 200000,
 		health = 25000,
 		maxslope = 17,
-		speed = 60,
+		speed = 63,
 		maxwaterdepth = 12,
 		movementclass = "HBOT4",
 		nochasecategory = "VTOL",
@@ -30,7 +30,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.089,
-		turnrate = 450,
+		turnrate = 600,
 		upright = true,
 		customparams = {
 			unitgroup = 'weapon',

@@ -2,7 +2,7 @@ return {
 	leggat	= {
 		maxacc = 0.02,
 		maxdec = 0.04,
-		energycost = 3000,
+		energycost = 3600,
 		metalcost = 300,
 		buildpic = "LEGGAT.DDS",
 		buildtime = 4800,

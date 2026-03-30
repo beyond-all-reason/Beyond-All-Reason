@@ -1,3 +1,19 @@
+# April
+• [Legion changes]
+	- New modoption added (legionsimplifiedmexes) which rebalances T1 legion to use the same T1 mexes as arm/cor.  Light T1 units are given a higher m cost and lower E cost and heavy T1 units are given a lower m cost and higher E cost
+	- Impulse removed from Goblin, Wheelie, and Hippocampus
+	- Wheelie cost reduced 25m370E->23m350E, range increased 160->168, bullet velocity increased to improve accuracy
+	- Phobos health increased 750->800
+	- Barrage's napalm aoe reduced 75->60
+	- Cacophony cost reduced 420m5500E->380m5500E, health reduced 2350->2200, dps reduced 270->255
+	- Adv solar health increased 800->1100
+	- Octeres (T1 Artillery ship) reloadtime reduced 11->10s, range increased 930->960
+	- Decurion energycost increased 3000->3600
+	- Lance reloadtime reduced 8->7.5s
+	- Arquebus cost reduced 800m16000E->750m15000E
+	- Javelin speed increased 65->68
+	- Praetorian speed increased 60->63, acceleration and turnrate improved
+
 # March
 • [Legion changes]
 	- Telchine (T2 amphib bot) script and targeting improvements, range increased 400->450
