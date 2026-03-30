@@ -66,11 +66,29 @@ _G.powerusers = powerusers
 _G.permissions = permissions
 _G.isSinglePlayer = isSinglePlayer
 
+-- When a late joiner has no accountID in customKeys, assign a synthetic one
+-- and patch GetAccountID so other gadgets also see it.
+local trustedNameAccountIDs = {}
+local nextSyntheticAccountID = -1000
+local originalGetAccountID = Spring.Utilities.GetAccountID
+Spring.Utilities.GetAccountID = function(playerID)
+	local syntheticID = trustedNameAccountIDs[playerID]
+	if syntheticID then
+		return syntheticID
+	end
+	return originalGetAccountID(playerID)
+end
+
 local function ResolveTrustedName(playerID)
 	local name = Spring.GetPlayerInfo(playerID)
 	if not name or not trustedNames[name] then return false end
-	local accountID = Spring.Utilities.GetAccountID(playerID)
-	if accountID == -1 then return false end -- still unavailable
+	local accountID = originalGetAccountID(playerID)
+	if accountID == -1 then
+		-- Late joiner without accountID in customKeys: assign synthetic ID
+		nextSyntheticAccountID = nextSyntheticAccountID - 1
+		accountID = nextSyntheticAccountID
+		trustedNameAccountIDs[playerID] = accountID
+	end
 	if powerusers[accountID] then return true end -- already has permissions
 	powerusers[accountID] = trustedNames[name]
 	for permission, value in pairs(trustedNames[name]) do
