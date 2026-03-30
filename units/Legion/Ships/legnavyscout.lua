@@ -115,7 +115,7 @@ return {
 				explosiongenerator = "custom:plasmahit-sparkonly",
 				fallOffRate = 0.2,
 				firestarter = 0,
-				impulsefactor = 1.5,
+				impulsefactor = 0,
 				intensity = 0.8,
 				name = "Twin Rapid-fire Machine Guns",
 				noselfdamage = true,

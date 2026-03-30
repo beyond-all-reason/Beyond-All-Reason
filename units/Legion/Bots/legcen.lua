@@ -15,7 +15,7 @@ return {
 		explodeas = "mediumExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
-		health = 750,
+		health = 800,
 		maxslope = 14,
 		speed = 90.0,
 		maxwaterdepth = 12,

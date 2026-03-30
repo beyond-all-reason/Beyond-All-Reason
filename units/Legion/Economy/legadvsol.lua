@@ -18,7 +18,7 @@ return {
 		explodeas = "mediumBuildingexplosiongeneric",
 		footprintx = 5,
 		footprintz = 5,
-		health = 800,
+		health = 1100,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/LEGADVSOL.s3o",
