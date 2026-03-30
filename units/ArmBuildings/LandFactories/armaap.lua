@@ -91,10 +91,6 @@ return {
 				[1] = "custom:YellowLight",
 				[2] = "custom:radarpulse_t1_slow",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

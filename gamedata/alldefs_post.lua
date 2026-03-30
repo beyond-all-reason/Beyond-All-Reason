@@ -1719,6 +1719,14 @@ function UnitDef_Post(name, uDef)
 		-- Multiple unit defs can share the same table reference, so we create a new table for each
 		uDef.buildoptions = table.getUniqueArray(buildoptions)
 	end
+
+	-- Suppress engine default piece explosion effects (handled by gfx_death_fire_smoke_gl4 widget)
+	if not uDef.sfxtypes then
+		uDef.sfxtypes = {}
+	end
+	if not uDef.sfxtypes.pieceexplosiongenerators then
+		uDef.sfxtypes.pieceexplosiongenerators = { "blank" }
+	end
 end
 
 local function ProcessSoundDefaults(wd)
