@@ -302,7 +302,7 @@ else
 			if (not isSpec) and (unitTeam ~= myTeamID) then
 				if numTeams > 1 and not playingAsHorde then
 					local players =  PlayersInAllyTeamID(GetAllyTeamID(spGetUnitTeam(unitID)))
-					for ct, player in pairs (players) do
+					for ct, player in pairs(players) do
 						if tostring(player) then
 							if spGetUnitRulesParam(unitID, "unit_evolved") then
 
@@ -322,14 +322,14 @@ else
 					end
 				end
 				local players =  AllButAllyTeamID(GetAllyTeamID(spGetUnitTeam(unitID)))
-				for ct, player in pairs (players) do
+				for ct, player in pairs(players) do
 					if tostring(player) and not spGetUnitRulesParam(unitID, "unit_evolved") then
 						GG["notifications"].queueNotification("EnemyCommanderDied", "playerID", tostring(player))
 					end
 				end
 			else
 				local players = PlayersInAllyTeamID(GetAllyTeamID(spGetUnitTeam(unitID)))
-				for ct, player in pairs (players) do
+				for ct, player in pairs(players) do
 					if tostring(player) then
 						if spGetUnitRulesParam(unitID, "unit_evolved") then
 						elseif not attackerTeam and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID]+150 < spGetGameFrame()) then
@@ -340,7 +340,7 @@ else
 					end
 				end
 				local players = AllButAllyTeamID(GetAllyTeamID(spGetUnitTeam(unitID)))
-				for ct, player in pairs (players) do
+				for ct, player in pairs(players) do
 					if tostring(player) then
 						if spGetUnitRulesParam(unitID, "unit_evolved") then
 						elseif not attackerTeam and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID]+150 < spGetGameFrame()) then
