@@ -13,18 +13,17 @@ function gadget:GetInfo()
     }
 end
 
-local spGetPlayerInfo = Spring.GetPlayerInfo
-local spGetTeamInfo = Spring.GetTeamInfo
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitRulesParam = Spring.GetUnitRulesParam
-local spGetPlayerList = Spring.GetPlayerList
-local spGetProjectileDefID = Spring.GetProjectileDefID
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+local spGetTeamInfo 		= Spring.GetTeamInfo
+local spGetUnitTeam 		= Spring.GetUnitTeam
+local spGetGameFrame 		= Spring.GetGameFrame
+local spGetUnitHealth 		= Spring.GetUnitHealth
+local spGetPlayerList 		= Spring.GetPlayerList
+local spGetPlayerInfo 		= Spring.GetPlayerInfo
+local spAreTeamsAllied 		= Spring.AreTeamsAllied
+local spGetUnitAllyTeam 	= Spring.GetUnitAllyTeam
+local spGetUnitRulesParam 	= Spring.GetUnitRulesParam
+local spGetProjectileDefID 	= Spring.GetProjectileDefID
 local spGetTeamUnitDefCount = Spring.GetTeamUnitDefCount
-local spGetGameFrame = Spring.GetGameFrame
-local spGetUnitHealth = Spring.GetUnitHealth
-
-local spAreTeamsAllied = Spring.AreTeamsAllied
 
 local function GetAllyTeamID(teamID)
 	return select(6,spGetTeamInfo(teamID,false))
