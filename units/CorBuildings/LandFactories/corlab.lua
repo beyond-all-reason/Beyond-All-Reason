@@ -81,10 +81,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:WhiteLight",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
