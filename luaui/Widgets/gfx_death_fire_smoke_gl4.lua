@@ -25,6 +25,7 @@ local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
 local spGetProjectilePosition = Spring.GetProjectilePosition
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spIsSphereInView        = Spring.IsSphereInView
+local spGetCameraPosition     = Spring.GetCameraPosition
 
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
@@ -55,10 +56,10 @@ local popElementInstance   = gl.InstanceVBOTable.popElementInstance
 --------------------------------------------------------------------------------
 
 -- General
-local MAX_PARTICLES          = 12000
+local MAX_PARTICLES          = 8000
 local PARTICLE_SHADER_NAME   = "DeathFireSmokeGL4"
-local PARTICLE_SIZE_MIN      = 8
-local PARTICLE_SIZE_MAX      = 18
+local PARTICLE_SIZE_MIN      = 12
+local PARTICLE_SIZE_MAX      = 24
 
 -- Piece projectile trails (fire on flying debris)
 local PIECE_SPAWN_INTERVAL     = 1    -- frames between piece spawns
@@ -76,7 +77,7 @@ local PIECE_LIFETIME_MULT_MAX  = 1.8  -- max per-piece lifetime multiplier
 local PIECE_SIZE_SCALE_MIN     = 0.3  -- min size multiplier for piece particles
 local PIECE_SIZE_SCALE_MAX     = 1.5  -- max size multiplier
 local PIECE_SIZE_SCALE_REF     = 25.0 -- reference radius for piece size scaling
-local PIECE_LIFE_BASE          = 60   -- base piece emitter lifetime in frames
+local PIECE_LIFE_BASE          = 200   -- base piece emitter lifetime in frames
 local PIECE_LIFE_PER_RADIUS    = 1.5  -- extra frames per unit radius
 local PIECE_ALPHA_FADE         = 0.6  -- alpha reduction over piece age
 local PIECE_ALPHA_MIN          = 0.6  -- min random alpha
@@ -92,7 +93,15 @@ local PARTICLE_SIZE_RANGE      = PARTICLE_SIZE_MAX - PARTICLE_SIZE_MIN
 local PIECE_ALPHA_RANGE        = 1.0 - PIECE_ALPHA_MIN
 local PIECE_LIFE_MULT_RANGE    = PIECE_LIFETIME_MULT_MAX - PIECE_LIFETIME_MULT_MIN
 local PARTICLE_SIZE_INV_RANGE  = 1.0 / PARTICLE_SIZE_RANGE  -- for normalizing size to 0..1
-local PIECE_SIZE_LIFE_SCALE    = 0.4  -- bigger particles live up to 40% longer
+local PIECE_SIZE_LIFE_SCALE    = 1  -- bigger particles live up to 100% longer
+
+-- Distance LOD: reduce spawn count when camera is far away
+local LOD_DIST_NEAR            = 800   -- full detail within this range
+local LOD_DIST_FAR             = 4000  -- minimum detail beyond this range
+local LOD_MIN_MULT             = 0.25  -- spawn multiplier at max distance
+local LOD_DIST_RANGE_INV       = 1.0 / (LOD_DIST_FAR - LOD_DIST_NEAR)
+local LOD_MULT_RANGE           = 1.0 - LOD_MIN_MULT
+local LOD_DIST_NEAR_SQ         = LOD_DIST_NEAR * LOD_DIST_NEAR
 
 -- Quality presets: auto-switch based on average particle count over 0.5 seconds
 -- Each preset is active while avg particles < maxPct * MAX_PARTICLES.
@@ -102,21 +111,21 @@ local QUALITY_PRESETS = {
 		name            = "Low",
 		spawnMult       = 0.35,
 		pieceCountMult  = 0.5,
-		lifetimeMult    = 0.7,
+		lifetimeMult    = 0.3,
 		maxPct          = 1.0,   -- percentage of MAX_PARTICLES when to switch to lower preset
 	},
 	[2] = {
 		name            = "Medium",
 		spawnMult       = 0.65,
 		pieceCountMult  = 0.75,
-		lifetimeMult    = 1,
+		lifetimeMult    = 0.45,
 		maxPct          = 0.66,   -- percentage of MAX_PARTICLES when to switch to lower preset
 	},
 	[3] = {
 		name            = "High",
 		spawnMult       = 1.0,
 		pieceCountMult  = 1.0,
-		lifetimeMult    = 1.3,
+		lifetimeMult    = 0.6,
 		maxPct          = 0.33,   -- percentage of MAX_PARTICLES when to switch to lower preset
 	},
 }
@@ -234,7 +243,7 @@ void main()
 	const vec4 cmaps[32] = vec4[32](
 		// Variant 0: standard orange -> dark grey smoke
 		vec4(1.0, 0.55, 0.2, 1.0),
-		vec4(0.75, 0.5, 0.25, 0.85),
+		vec4(0.7, 0.35, 0.25, 0.85),
 		vec4(0.22, 0.18, 0.15, 0.75),
 		vec4(0.18, 0.16, 0.14, 0.62),
 		vec4(0.16, 0.14, 0.12, 0.7),
@@ -243,10 +252,10 @@ void main()
 		vec4(0.04, 0.04, 0.03, 0.01),
 		// Variant 1: hot yellow (longer burn) -> medium grey smoke
 		vec4(1.0, 0.7, 0.25, 1.0),
-		vec4(0.95, 0.6, 0.22, 0.95),
-		vec4(0.85, 0.5, 0.18, 0.88),
-		vec4(0.5, 0.35, 0.15, 0.75),
-		vec4(0.22, 0.2, 0.18, 0.65),
+		vec4(0.8, 0.55, 0.22, 0.95),
+		vec4(0.6, 0.45, 0.18, 0.88),
+		vec4(0.4, 0.35, 0.15, 0.75),
+		vec4(0.2, 0.18, 0.18, 0.65),
 		vec4(0.14, 0.13, 0.12, 0.5),
 		vec4(0.1, 0.09, 0.08, 0.3),
 		vec4(0.06, 0.05, 0.05, 0.01),
@@ -613,6 +622,9 @@ local hasGetProjectileVelocity = (spGetProjectileVelocity ~= nil)  -- check once
 local function updatePieceProjectiles(gameFrame)
 	if not spGetProjectilesInRectangle then return end
 
+	-- Get camera position for distance-based LOD
+	local cx, cy, cz = spGetCameraPosition()
+
 	-- Get all piece projectiles in the map
 	local projectiles = spGetProjectilesInRectangle(0, 0, mapSizeX, mapSizeZ, true, false)
 	if not projectiles then return end
@@ -662,6 +674,20 @@ local function updatePieceProjectiles(gameFrame)
 							aboveGround = py > groundY + 1
 						end
 						if aboveGround and spIsSphereInView(px, py, pz, PIECE_CULLING_RADIUS) then
+							-- Distance LOD: reduce spawns for distant pieces
+							local dx, dy, dz = px - cx, py - cy, pz - cz
+							local distSq = dx*dx + dy*dy + dz*dz
+							local lodMult = 1.0
+							if distSq > LOD_DIST_NEAR_SQ then
+								local dist = distSq ^ 0.5
+								local t = (dist - LOD_DIST_NEAR) * LOD_DIST_RANGE_INV
+								if t >= 1.0 then
+									lodMult = LOD_MIN_MULT
+								else
+									lodMult = 1.0 - t * LOD_MULT_RANGE
+								end
+							end
+
 							local vx, vy, vz = 0, 0, 0
 							if hasGetProjectileVelocity then
 								local pvx, pvy, pvz = spGetProjectileVelocity(proID)
@@ -677,14 +703,15 @@ local function updatePieceProjectiles(gameFrame)
 
 							-- Spawn multiple particles early, tapering to 1 late in life
 							local preset = QUALITY_PRESETS[currentPreset]
-							local presetLifeMult = preset.lifetimeMult
-							local spawnCount = mathMax(1, mathFloor((PIECE_SPAWN_COUNT_MAX - ageFrac * PIECE_SPAWN_TAPER + 0.5) * preset.spawnMult * preset.pieceCountMult))
+							local presetLifeMult = preset.lifetimeMult * lodMult  -- shorter particles when distant
+							local spawnCount = mathMax(1, mathFloor((PIECE_SPAWN_COUNT_MAX - ageFrac * PIECE_SPAWN_TAPER + 0.5) * preset.spawnMult * preset.pieceCountMult * lodMult))
 							local alphaFade = 1.0 - ageFrac * PIECE_ALPHA_FADE
+							local skipChance = PIECE_SKIP_CHANCE + (1.0 - lodMult) * 0.3  -- skip more when distant
 							local vxs = vx * PIECE_VEL_SCALE
 							local vys = vy * PIECE_VEL_SCALE
 							local vzs = vz * PIECE_VEL_SCALE
 							for p = 1, spawnCount do
-								if mathRandom() > PIECE_SKIP_CHANCE then
+								if mathRandom() > skipChance then
 									local sizeRand = mathRandom() * PARTICLE_SIZE_RANGE
 									local particleSize = (PARTICLE_SIZE_MIN + sizeRand) * sc
 									local sizeFrac = sizeRand * PARTICLE_SIZE_INV_RANGE  -- 0..1
