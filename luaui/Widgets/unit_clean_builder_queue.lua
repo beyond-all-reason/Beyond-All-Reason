@@ -108,7 +108,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		trackedBuilders[unitID] = true
 		repeatStatus[unitID] = nil
 	end
-	local builderDefID = Spring.GetUnitDefID(builderID)
+	local builderDefID = GetUnitDefID(builderID)
 	if UnitDefs[builderDefID].canAssist == false then
 		soloBuilder[unitID] = builderID
 	end
@@ -158,25 +158,24 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 
 		-- Skip if repeat is enabled (cached check)
 		if soloBuilder[unitID] ~= builderID then -- do not issue a cmd.Remove on solo builders (even with an invalid tag) otherwise they will fail to resume their tasks
-		if not IsUnitRepeatOn(builderID) then
-			local commands = GetUnitCommands(builderID, 32)
-			if commands then
-				-- Scan backwards to find matching build commands
-				for j = #commands, 1, -1 do
-					local cmd = commands[j]
-					-- Only check build commands for this specific unitDefID
-					if cmd.id == targetCmdID then
-						local params = cmd.params
-						if params and params[1] and params[3] then
-							if coordsMatch(x, z, params[1], params[3], REMOVE_TOLERANCE) then
-								GiveOrderToUnit(builderID, CMD_REMOVE, { cmd.tag }, {})
-								break -- Only remove first matching command per builder
+			if not IsUnitRepeatOn(builderID) then
+				local commands = GetUnitCommands(builderID, 32)
+				if commands then
+					-- Scan backwards to find matching build commands
+					for j = #commands, 1, -1 do
+						local cmd = commands[j]
+						if cmd.id == targetCmdID then
+							local params = cmd.params
+							if params and params[1] and params[3] then
+								if coordsMatch(x, z, params[1], params[3], REMOVE_TOLERANCE) then
+									GiveOrderToUnit(builderID, CMD_REMOVE, { cmd.tag }, {})
+									break -- Only remove first matching command per builder
+								end
 							end
 						end
 					end
 				end
 			end
-		end
 		end
 	end
 
