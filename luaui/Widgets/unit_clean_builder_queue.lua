@@ -157,6 +157,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 		local builderID = nearbyBuilders[i]
 
 		-- Skip if repeat is enabled (cached check)
+		if soloBuilder[unitID] ~= builderID then -- do not issue a cmd.Remove on solo builders (even with an invalid tag) otherwise they will fail to resume their tasks
 		if not IsUnitRepeatOn(builderID) then
 			local commands = GetUnitCommands(builderID, 32)
 			if commands then
@@ -175,6 +176,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 					end
 				end
 			end
+		end
 		end
 	end
 
