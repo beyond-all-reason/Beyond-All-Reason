@@ -46,6 +46,7 @@ local mathMin    = math.min
 local mathMax    = math.max
 local mathFloor  = math.floor
 local mathCeil   = math.ceil
+local mathSqrt   = math.sqrt
 local mathPi     = math.pi
 
 local LuaShader = gl.LuaShader
@@ -57,10 +58,12 @@ local popElementInstance   = gl.InstanceVBOTable.popElementInstance
 --------------------------------------------------------------------------------
 
 -- General
-local MAX_PARTICLES          = 8000
+local MAX_PARTICLES          = 10000
 local PARTICLE_SHADER_NAME   = "DeathFireSmokeGL4"
 local PARTICLE_SIZE_MIN      = 13
 local PARTICLE_SIZE_MAX      = 26
+
+local SMOKE_LIFETIME_MULT      = 0.9  -- lifetime multiplier for smoke particles
 
 -- Piece projectile trails (fire on flying debris)
 local PIECE_SPAWN_INTERVAL     = 1    -- frames between piece spawns
@@ -81,13 +84,21 @@ local PIECE_SIZE_SCALE_REF     = 25.0 -- reference radius for piece size scaling
 local PIECE_LIFE_BASE          = 200   -- base piece emitter lifetime in frames
 local PIECE_LIFE_PER_RADIUS    = 1.5  -- extra frames per unit radius
 local PIECE_ALPHA_FADE         = 0.6  -- alpha reduction over piece age
-local PIECE_ALPHA_MIN          = 0.6  -- min random alpha
+local PIECE_ALPHA_MIN          = 0.3  -- min random alpha
 local PIECE_GROUND_SKIP_HEIGHT = 5    -- skip ground check above this height
+
+-- Fire particle settings (short-lived fire on top of smoke)
+local FIRE_CHANCE              = 0.25  -- chance per spawn interval to also emit fire
+local FIRE_LIFETIME_MIN        = 33   -- min fire particle lifetime in frames
+local FIRE_LIFETIME_RANGE      = 33   -- fire lifetime variation
+local FIRE_SIZE_MULT           = 0.85  -- fire particles are smaller than smoke
+local FIRE_ALPHA_MIN           = 0.8  -- fire particles are brighter
 
 -- Frustum culling margin (elmos beyond visible sphere to still spawn)
 local CULLING_MARGIN           = 300  -- extra radius for view check
 
 -- Pre-computed constants (avoid repeated arithmetic in hot loops)
+local PIECE_VEL_COMBINED       = PIECE_VEL_SCALE * 0.05  -- velocity inheritance * engine pre-scale combined
 local PIECE_VEL_RANDOM_2       = PIECE_VEL_RANDOM * 2
 local PIECE_VEL_UP_RANGE       = PIECE_VEL_UP_MAX - PIECE_VEL_UP_MIN
 local PARTICLE_SIZE_RANGE      = PARTICLE_SIZE_MAX - PARTICLE_SIZE_MIN
@@ -97,9 +108,9 @@ local PARTICLE_SIZE_INV_RANGE  = 1.0 / PARTICLE_SIZE_RANGE  -- for normalizing s
 local PIECE_SIZE_LIFE_SCALE    = 1  -- bigger particles live up to 100% longer
 
 -- Distance LOD: reduce spawn count when camera is far away
-local LOD_DIST_NEAR            = 800   -- full detail within this range
-local LOD_DIST_FAR             = 4000  -- minimum detail beyond this range
-local LOD_MIN_MULT             = 0.25  -- spawn multiplier at max distance
+local LOD_DIST_NEAR            = 1500   -- full detail within this range
+local LOD_DIST_FAR             = 5500  -- minimum detail beyond this range
+local LOD_MIN_MULT             = 0.33  -- spawn multiplier at max distance
 local LOD_DIST_RANGE_INV       = 1.0 / (LOD_DIST_FAR - LOD_DIST_NEAR)
 local LOD_MULT_RANGE           = 1.0 - LOD_MIN_MULT
 local LOD_DIST_NEAR_SQ         = LOD_DIST_NEAR * LOD_DIST_NEAR
@@ -112,21 +123,21 @@ local QUALITY_PRESETS = {
 		name            = "Low",
 		spawnMult       = 0.35,
 		pieceCountMult  = 0.5,
-		lifetimeMult    = 0.3,
+		lifetimeMult    = 0.2,
 		maxPct          = 1.0,   -- percentage of MAX_PARTICLES when to switch to lower preset
 	},
 	[2] = {
 		name            = "Medium",
 		spawnMult       = 0.65,
 		pieceCountMult  = 0.75,
-		lifetimeMult    = 0.45,
+		lifetimeMult    = 0.3,
 		maxPct          = 0.66,   -- percentage of MAX_PARTICLES when to switch to lower preset
 	},
 	[3] = {
 		name            = "High",
 		spawnMult       = 1.0,
 		pieceCountMult  = 1.0,
-		lifetimeMult    = 0.6,
+		lifetimeMult    = 0.4,
 		maxPct          = 0.33,   -- percentage of MAX_PARTICLES when to switch to lower preset
 	},
 }
@@ -135,6 +146,7 @@ local AVG_SAMPLE_INTERVAL      = 3    -- sample every N frames
 
 -- Textures
 local fireTexture  = "bitmaps/projectiletextures/BARFlame02.tga"
+local smokeTexture = "bitmaps/projectiletextures/smoke-ice-anim.tga"
 
 --------------------------------------------------------------------------------
 -- Shader sources
@@ -165,7 +177,7 @@ out DataVS {
 	vec4 particleColor;
 	float animFrame;
 	float rowVariant;
-	float fireFrac;      // fire glow intensity (0 = smoke only)
+	flat float isFireParticle; // 0.0 = smoke, 1.0 = fire
 };
 
 void main()
@@ -182,7 +194,7 @@ void main()
 		texCoords = vec2(0.0);
 		animFrame = 0.0;
 		rowVariant = 0.0;
-		fireFrac = 0.0;
+		isFireParticle = 0.0;
 		return;
 	}
 
@@ -199,11 +211,12 @@ void main()
 	// Gentle buoyancy
 	pos.y += 0.008 * ageFrames * ageFrames * 0.5;
 
-	// Mild turbulence
+	// Turbulence: grows with age so particles wobble more over time
 	float seedPhase = seed * 6.283;
-	pos.x += sin(ageFrames * 0.07 + seedPhase * 2.7) * 0.8;
-	pos.z += cos(ageFrames * 0.09 + seedPhase * 3.8) * 0.8;
-	pos.y += sin(ageFrames * 0.05 + seedPhase * 1.8) * 0.2;
+	float wobble = 0.8 + normalizedAge * 2.4;  // ramps from 0.8 to 3.2
+	pos.x += sin(ageFrames * 0.07 + seedPhase * 2.7) * wobble;
+	pos.z += cos(ageFrames * 0.09 + seedPhase * 3.8) * wobble;
+	pos.y += sin(ageFrames * 0.05 + seedPhase * 1.8) * wobble * 0.25;
 
 	// Size: starts at base, grows with sizegrowth + sizemod (matching deathceg behavior)
 	// sizegrowth ~2, sizemod ~0.85 per frame
@@ -212,9 +225,6 @@ void main()
 	float growRate = 0.15 + normalizedAge * normalizedAge * 0.26;  // gentle ramp at end
 	float sizeGrowth = baseSize + ageFrames * growRate;
 	sizeGrowth *= exp(ageFrames * -0.008032);  // ln(0.992) = -0.008032, cheaper than pow
-	// Fire phase (early life) is 40% smaller, scales up to full size during smoke transition
-	float fireScale = mix(0.6, 1.0, smoothstep(0.0, 0.25, normalizedAge));
-	sizeGrowth *= fireScale;
 
 	// Billboard: camera right/up from inverse view matrix (already orthonormal)
 	vec3 camRight = cameraViewInv[0].xyz;
@@ -236,50 +246,32 @@ void main()
 	// Texture coordinates
 	texCoords = position_xy_uv.zw;
 
-	// 4 colormap variants for visual variety (8 stops each, 32 total)
-	// Variant 0: standard orange fire -> dark grey smoke
-	// Variant 1: hot yellow fire (longer burn) -> medium grey smoke
-	// Variant 2: smoke only -> charcoal grey
-	// Variant 3: warm amber fire -> brown-grey smoke
-	const vec4 cmaps[32] = vec4[32](
-		// Variant 0: standard orange -> neutral grey smoke
-		vec4(1.0, 0.55, 0.2, 1.0),
-		vec4(0.7, 0.33, 0.25, 0.85),
-		vec4(0.18, 0.18, 0.18, 0.75),
-		vec4(0.16, 0.16, 0.16, 0.62),
-		vec4(0.14, 0.14, 0.14, 0.7),
-		vec4(0.11, 0.11, 0.11, 0.55),
-		vec4(0.07, 0.07, 0.07, 0.35),
-		vec4(0.04, 0.04, 0.04, 0.01),
-		// Variant 1: hot yellow (longer burn) -> neutral grey smoke
-		vec4(1.0, 0.7, 0.25, 1.0),
-		vec4(0.75, 0.5, 0.22, 0.95),
-		vec4(0.55, 0.4, 0.2, 0.88),
-		vec4(0.24, 0.24, 0.24, 0.75),
-		vec4(0.17, 0.17, 0.17, 0.65),
-		vec4(0.12, 0.12, 0.12, 0.5),
-		vec4(0.09, 0.09, 0.09, 0.3),
-		vec4(0.05, 0.05, 0.05, 0.01),
-		// Variant 2: smoke only -> neutral charcoal grey
-		vec4(0.22, 0.22, 0.22, 0.8),
-		vec4(0.19, 0.19, 0.19, 0.75),
-		vec4(0.17, 0.17, 0.17, 0.72),
-		vec4(0.15, 0.15, 0.15, 0.65),
-		vec4(0.12, 0.12, 0.12, 0.6),
-		vec4(0.09, 0.09, 0.09, 0.48),
-		vec4(0.05, 0.05, 0.05, 0.3),
-		vec4(0.03, 0.03, 0.03, 0.01),
-		// Variant 3: warm amber fire -> neutral grey smoke
-		vec4(1.0, 0.62, 0.13, 1.0),
-		vec4(0.8, 0.52, 0.19, 0.88),
-		vec4(0.18, 0.18, 0.18, 0.72),
-		vec4(0.17, 0.17, 0.17, 0.6),
-		vec4(0.15, 0.15, 0.15, 0.68),
-		vec4(0.11, 0.11, 0.11, 0.5),
-		vec4(0.07, 0.07, 0.07, 0.33),
-		vec4(0.03, 0.03, 0.03, 0.01)
+	// sizeAndType.y encodes particle type: 0 = smoke, 1 = fire
+	float particleType = sizeAndType.y;
+	isFireParticle = step(0.5, particleType);
+	int cmapVariant = int(clamp(particleType, 0.0, 1.0));
+
+	// 2 colormaps: 0 = smoke (dark -> lighter -> transparent), 1 = fire (orange -> black -> transparent)
+	const vec4 cmaps[16] = vec4[16](
+		// Variant 0: smoke
+		vec4(0.08, 0.08, 0.08, 0.75),
+		vec4(0.10, 0.10, 0.10, 0.7),
+		vec4(0.13, 0.13, 0.13, 0.65),
+		vec4(0.16, 0.16, 0.16, 0.55),
+		vec4(0.18, 0.18, 0.18, 0.45),
+		vec4(0.15, 0.15, 0.15, 0.32),
+		vec4(0.10, 0.10, 0.10, 0.18),
+		vec4(0.06, 0.06, 0.06, 0.01),
+		// Variant 1: fire (orange -> black)
+		vec4(1.0, 0.6, 0.15, 1.0),
+		vec4(0.9, 0.45, 0.1, 0.9),
+		vec4(0.65, 0.28, 0.07, 0.75),
+		vec4(0.4, 0.15, 0.04, 0.55),
+		vec4(0.2, 0.08, 0.02, 0.35),
+		vec4(0.08, 0.03, 0.01, 0.18),
+		vec4(0.03, 0.01, 0.005, 0.06),
+		vec4(0.0, 0.0, 0.0, 0.01)
 	);
-	int cmapVariant = int(clamp(sizeAndType.y, 0.0, 3.0));
 	int cmapBase = cmapVariant * 8;
 	float t = normalizedAge * 7.0;
 	int idx = int(clamp(t, 0.0, 6.0));
@@ -290,15 +282,16 @@ void main()
 
 	particleColor = cmapColor;
 
-	// Animation frame: cycle through 16 frames over lifetime
-	animFrame = floor(normalizedAge * 15.0 + 0.5);
-	rowVariant = floor(seed * 6.0);  // random row variant 0..5
-
-	// Fire fraction per variant: controls glow in fragment shader
-	// Variant 2 = smoke only (no fire glow)
-	// Variant 1 = longer fire (fades at age 0.65 instead of 0.5)
-	const float fireRates[4] = float[4](2.6, 1.9, 0.0, 2.6);
-	fireFrac = clamp(1.0 - normalizedAge * fireRates[cmapVariant], 0.0, 1.0);
+	// Animation frame and row based on texture type
+	if (isFireParticle > 0.5) {
+		// Fire: 16x6 atlas
+		animFrame = floor(normalizedAge * 15.0 + 0.5);
+		rowVariant = floor(seed * 6.0);
+	} else {
+		// Smoke: 8x8 atlas
+		animFrame = floor(normalizedAge * 7.0 + 0.5);
+		rowVariant = floor(seed * 8.0);
+	}
 }
 ]]
 
@@ -312,13 +305,14 @@ local fsSrc = [[
 //__ENGINEUNIFORMBUFFERDEFS__
 
 uniform sampler2D fireTex;
+uniform sampler2D smokeTex;
 
 in DataVS {
 	vec2 texCoords;
 	vec4 particleColor;
 	float animFrame;
 	float rowVariant;
-	float fireFrac;
+	flat float isFireParticle;
 };
 
 out vec4 fragColor;
@@ -327,32 +321,35 @@ void main(void)
 {
 	if (particleColor.a <= 0.001) discard;
 
-	// Sample from BARFlame02 atlas: 16 columns x 6 rows (use reciprocals)
-	const float invCols = 1.0 / 16.0;  // 0.0625
-	const float invRows = 1.0 / 6.0;   // 0.16667
-	float row = clamp(rowVariant, 0.0, 5.0);
-	vec2 atlasUV = vec2(
-		(animFrame + texCoords.x) * invCols,
-		(row + texCoords.y) * invRows
-	);
+	vec4 texSample;
+	if (isFireParticle > 0.5) {
+		// Fire atlas: 16x6 grid (BARFlame02)
+		vec2 atlasUV = vec2(
+			(animFrame + texCoords.x) * 0.0625,
+			(clamp(rowVariant, 0.0, 5.0) + texCoords.y) * 0.16667
+		);
+		texSample = texture(fireTex, atlasUV);
 
-	vec4 texSample = texture(fireTex, atlasUV);
+		vec3 color = particleColor.rgb * texSample.rgb;
+		float coreBright3 = texSample.r * texSample.r * texSample.r;
+		float glowScale = coreBright3;
+		color += glowScale * vec3(0.4, 0.32, 0.16);
 
-	// Desaturate texture in smoke phase so fire atlas doesn't yellow-tint grey smoke
-	float texLum = dot(texSample.rgb, vec3(0.299, 0.587, 0.114));
-	vec3 texRGB = mix(vec3(texLum), texSample.rgb, fireFrac);
+		float a = texSample.a * particleColor.a;
+		vec3 premul = color * (a + glowScale * 0.2);
+		fragColor = vec4(premul, a);
+	} else {
+		// Smoke atlas: 8x8 grid (smoke-ice-anim)
+		vec2 atlasUV = vec2(
+			(animFrame + texCoords.x) * 0.125,
+			(clamp(rowVariant, 0.0, 7.0) + texCoords.y) * 0.125
+		);
+		texSample = texture(smokeTex, atlasUV);
 
-	// Fire glow controlled by vertex-computed fireFrac (per-variant)
-	vec3 color = particleColor.rgb * texRGB;
-	float coreBright3 = texSample.r * texSample.r * texSample.r;  // r^3 without pow
-	// Add glow in fire phase
-	float glowScale = coreBright3 * fireFrac;
-	color += glowScale * vec3(0.4, 0.32, 0.16);
-
-	float a = texSample.a * particleColor.a;
-	// Premultiplied: blend between additive-ish fire and standard smoke
-	vec3 premul = color * (a + glowScale * 0.2);
-	fragColor = vec4(premul, a);
+		vec3 color = particleColor.rgb * texSample.rgb;
+		float a = texSample.a * particleColor.a;
+		fragColor = vec4(color * a, a);
+	}
 
 	if (fragColor.a < 0.005) discard;
 }
@@ -384,16 +381,6 @@ local PRESET_SWITCH_COOLDOWN = 15  -- 0.5 seconds at 30fps
 --------------------------------------------------------------------------------
 -- Helper functions
 --------------------------------------------------------------------------------
-
--- Weighted colormap variant picker
--- Weights: 0=1, 1=1, 2=22, 3=1  total=25
-local function randomCmapVariant()
-	local r = mathRandom(1, 25)
-	if r <= 1 then return 0
-	elseif r <= 2 then return 1
-	elseif r <= 24 then return 2
-	else return 3 end
-end
 
 -- Pre-computed culling radius for piece projectiles (50 elmo piece radius + margin)
 local PIECE_CULLING_RADIUS = 50 + CULLING_MARGIN
@@ -515,6 +502,7 @@ local shaderSourceCache = {
 	shaderName = PARTICLE_SHADER_NAME,
 	uniformInt = {
 		fireTex  = 0,
+		smokeTex = 1,
 	},
 	uniformFloat = {},
 	shaderConfig = {},
@@ -586,6 +574,7 @@ local function DrawParticles()
 	glBlending(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)  -- premultiplied alpha (fire outputs premultiplied, smoke divides out)
 
 	glTexture(0, fireTexture)
+	glTexture(1, smokeTexture)
 
 	particleShader:Activate()
 
@@ -594,6 +583,7 @@ local function DrawParticles()
 	particleShader:Deactivate()
 
 	glTexture(0, false)
+	glTexture(1, false)
 
 	-- Reset to default blending
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -631,7 +621,7 @@ local hasGetProjectileVelocity = (spGetProjectileVelocity ~= nil)  -- check once
 
 -- Spawns trail particles for a single tracked piece projectile
 -- Extracted to keep updatePieceProjectiles under the 60 upvalue limit
-local function spawnPieceTrailParticles(tracked, proID, gameFrame, cx, cy, cz)
+local function spawnPieceTrailParticles(tracked, proID, gameFrame, cx, cy, cz, preset)
 	local pieceAge = gameFrame - tracked.birthFrame
 
 	-- Stop emitting after piece lifetime expires
@@ -657,53 +647,62 @@ local function spawnPieceTrailParticles(tracked, proID, gameFrame, cx, cy, cz)
 	local distSq = dx*dx + dy*dy + dz*dz
 	local lodMult = 1.0
 	if distSq > LOD_DIST_NEAR_SQ then
-		local dist = distSq ^ 0.5
-		local t = (dist - LOD_DIST_NEAR) * LOD_DIST_RANGE_INV
-		if t >= 1.0 then
-			lodMult = LOD_MIN_MULT
-		else
-			lodMult = 1.0 - t * LOD_MULT_RANGE
-		end
+		local t = (mathSqrt(distSq) - LOD_DIST_NEAR) * LOD_DIST_RANGE_INV
+		lodMult = t >= 1.0 and LOD_MIN_MULT or (1.0 - t * LOD_MULT_RANGE)
 	end
 
-	local vx, vy, vz = 0, 0, 0
+	local vxs, vys, vzs = 0, 0, 0
 	if hasGetProjectileVelocity then
 		local pvx, pvy, pvz = spGetProjectileVelocity(proID)
 		if pvx then
-			vx, vy, vz = pvx * 0.05, pvy * 0.05, pvz * 0.05
+			vxs, vys, vzs = pvx * PIECE_VEL_COMBINED, pvy * PIECE_VEL_COMBINED, pvz * PIECE_VEL_COMBINED
 		end
 	end
 
 	local ageFrac = pieceAge / tracked.lifeFrames
 	local sc = tracked.sizeScale
-	local cmapV = tracked.cmapVariant
-	local lifeMul = tracked.lifeMult
+	local fi = tracked.fireIntensity
 
-	-- Spawn multiple particles early, tapering to 1 late in life
-	local preset = QUALITY_PRESETS[currentPreset]
-	local presetLifeMult = preset.lifetimeMult * lodMult  -- shorter particles when distant
+	-- Spawn multiple smoke particles early, tapering to 1 late in life
+	local presetLifeMult = preset.lifetimeMult * lodMult
 	local spawnCount = mathMax(1, mathFloor((PIECE_SPAWN_COUNT_MAX - ageFrac * PIECE_SPAWN_TAPER + 0.5) * preset.spawnMult * preset.pieceCountMult * lodMult))
-	local alphaFade = 1.0 - ageFrac * PIECE_ALPHA_FADE
-	local skipChance = PIECE_SKIP_CHANCE + (1.0 - lodMult) * 0.3  -- skip more when distant
-	local vxs = vx * PIECE_VEL_SCALE
-	local vys = vy * PIECE_VEL_SCALE
-	local vzs = vz * PIECE_VEL_SCALE
+	local skipChance = PIECE_SKIP_CHANCE + (1.0 - lodMult) * 0.3
+
+	-- Pre-compute combined multipliers for the inner loops
+	local smokeLifeBase = tracked.lifeMult * presetLifeMult * SMOKE_LIFETIME_MULT
+	local smokeAlphaBase = (1.0 - ageFrac * PIECE_ALPHA_FADE) * (fi > 0 and 1.0 or 0.6)
+	local smokeSizeSc = sc * (fi > 0 and 1.0 or 0.75)
+
+	-- Always emit smoke particles (cmapVariant = 0)
 	for p = 1, spawnCount do
 		if mathRandom() > skipChance then
 			local sizeRand = mathRandom() * PARTICLE_SIZE_RANGE
-			local particleSize = (PARTICLE_SIZE_MIN + sizeRand) * sc
-			local sizeFrac = sizeRand * PARTICLE_SIZE_INV_RANGE  -- 0..1
-			local sizeLifeMult = 1.0 + sizeFrac * PIECE_SIZE_LIFE_SCALE
+			local particleSize = (PARTICLE_SIZE_MIN + sizeRand) * smokeSizeSc
 			spawnParticle(
 				px + mathRandom() - 0.5, py + mathRandom(), pz + mathRandom() - 0.5,
 				vxs + (mathRandom() * PIECE_VEL_RANDOM_2 - PIECE_VEL_RANDOM),
 				vys + mathRandom() * PIECE_VEL_UP_RANGE + PIECE_VEL_UP_MIN,
 				vzs + (mathRandom() * PIECE_VEL_RANDOM_2 - PIECE_VEL_RANDOM),
-				particleSize, cmapV,
-				(PIECE_LIFETIME_MIN + mathRandom() * PIECE_LIFETIME_RANGE) * lifeMul * presetLifeMult * sizeLifeMult,
-				(PIECE_ALPHA_MIN + mathRandom() * PIECE_ALPHA_RANGE) * alphaFade
+				particleSize, 0,  -- 0 = smoke
+				(PIECE_LIFETIME_MIN + mathRandom() * PIECE_LIFETIME_RANGE) * (1.0 + sizeRand * PARTICLE_SIZE_INV_RANGE * PIECE_SIZE_LIFE_SCALE) * smokeLifeBase,
+				(PIECE_ALPHA_MIN + mathRandom() * PIECE_ALPHA_RANGE) * smokeAlphaBase
 			)
 		end
+	end
+
+	-- Emit a short-lived fire particle on top (if this emitter has fire)
+	if fi > 0 then
+		local sizeRand = mathRandom() * PARTICLE_SIZE_RANGE
+		local particleSize = (PARTICLE_SIZE_MIN + sizeRand) * sc * FIRE_SIZE_MULT * fi
+		spawnParticle(
+			px + mathRandom() * 0.6 - 0.3, py + mathRandom() * 0.5, pz + mathRandom() * 0.6 - 0.3,
+			vxs + (mathRandom() * PIECE_VEL_RANDOM_2 - PIECE_VEL_RANDOM),
+			vys + mathRandom() * PIECE_VEL_UP_RANGE + PIECE_VEL_UP_MIN,
+			vzs + (mathRandom() * PIECE_VEL_RANDOM_2 - PIECE_VEL_RANDOM),
+			particleSize, 1,  -- 1 = fire
+			(FIRE_LIFETIME_MIN + mathRandom() * FIRE_LIFETIME_RANGE) * presetLifeMult * fi,
+			(FIRE_ALPHA_MIN + mathRandom() * 0.2) * (0.5 + 0.5 * fi)
+		)
 	end
 end
 
@@ -716,6 +715,9 @@ local function updatePieceProjectiles(gameFrame)
 	-- Get all piece projectiles in the map
 	local projectiles = spGetProjectilesInRectangle(0, 0, mapSizeX, mapSizeZ, true, false)
 	if not projectiles then return end
+
+	-- Cache preset once for all pieces this frame
+	local preset = QUALITY_PRESETS[currentPreset]
 
 	-- Try to associate new pieces with a recently-dead unit radius
 	local _, ownerRadius = next(pendingDeathUnitRadii)
@@ -738,13 +740,15 @@ local function updatePieceProjectiles(gameFrame)
 				if px then
 					local pieceRadius = ownerRadius or 10
 					local sizeScale = mathMax(PIECE_SIZE_SCALE_MIN, mathMin(PIECE_SIZE_SCALE_MAX, pieceRadius / PIECE_SIZE_SCALE_REF))
+					local fi = mathRandom() < FIRE_CHANCE and (0.3 + mathRandom() * 0.7) or 0
+					local lifeScale = fi > 0 and (1.0 + 0.3 * fi) or 0.7
 					trackedPieceProjectiles[proID] = {
 						spawnTimer = 0,
 						sizeScale = sizeScale,
 						birthFrame = gameFrame,
-						lifeFrames = mathFloor(PIECE_LIFE_BASE + pieceRadius * PIECE_LIFE_PER_RADIUS),
+						lifeFrames = mathFloor((PIECE_LIFE_BASE + pieceRadius * PIECE_LIFE_PER_RADIUS) * lifeScale),
 						gen = gen,
-						cmapVariant = randomCmapVariant(),
+						fireIntensity = fi,
 						lifeMult = PIECE_LIFETIME_MULT_MIN + mathRandom() * PIECE_LIFE_MULT_RANGE,
 					}
 				end
@@ -752,7 +756,7 @@ local function updatePieceProjectiles(gameFrame)
 		else
 			tracked.gen = gen
 			if not tracked.excluded then
-				spawnPieceTrailParticles(tracked, proID, gameFrame, cx, cy, cz)
+				spawnPieceTrailParticles(tracked, proID, gameFrame, cx, cy, cz, preset)
 			end
 		end
 	end
@@ -814,8 +818,14 @@ function widget:GameFrame(n)
 	-- Remove expired particles
 	removeExpiredParticles(n)
 
-	-- Track piece projectiles every 2 frames (expensive map-wide scan)
-	if n % PIECE_SPAWN_INTERVAL == 0 then
+	-- Track piece projectiles — reduce update rate when particle count is high
+	local updateInterval = PIECE_SPAWN_INTERVAL
+	if avgParticleCount > MAX_PARTICLES * 0.8 then
+		updateInterval = 3
+	elseif avgParticleCount > MAX_PARTICLES * 0.4 then
+		updateInterval = 2
+	end
+	if n % updateInterval == 0 then
 		updatePieceProjectiles(n)
 	end
 
