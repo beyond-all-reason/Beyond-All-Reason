@@ -251,14 +251,15 @@ function UnitDef_Post(name, uDef)
 	if modOptions.unit_restrictions_noextractors then
 		if (uDef.extractsmetal and uDef.extractsmetal > 0) and (customparams.metal_extractor and customparams.metal_extractor > 0) then
 			customparams.modoption_blocked = true
-		if modOptions.legionsimplifiedmexes then
-			local legiont15mex = {
-				legmext15	= true, 
-			}
-			if legiont15mex[basename] then
-				uDef.customparams.modoption_blocked = true
-			end
 		end
+	end
+
+	if modOptions.legionsimplifiedmexes then
+		local legiont15mex = {
+			legmext15	= true, 
+		}
+		if legiont15mex[basename] then
+			uDef.customparams.modoption_blocked = true
 		end
 	end
 
