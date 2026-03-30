@@ -97,15 +97,9 @@ local function removeBomberOrder(bomberID, targetID)
 
 		for index = 1, Spring.GetUnitCommandCount(bomberID) do
 			local command, options, tag, c1, c2, c3 = Spring.GetUnitCurrentCommand(bomberID, index)
-			if cmdID == command then
-				-- Commands with a death dependence set the params to all-nil.
-				-- The target may not be dead -- in which case check position.
-				if not c1 then
-					Spring.GiveOrderToUnit(bomberID, CMD_REMOVE, tag)
-				elseif p1 == c1 and p2 == c2 and p3 == c3 then
-					Spring.GiveOrderToUnit(bomberID, CMD_REMOVE, tag)
-					return -- canceled the exact command
-				end
+			if cmdID == command and p1 == c1 and p2 == c2 and p3 == c3 then
+				Spring.GiveOrderToUnit(bomberID, CMD_REMOVE, tag)
+				return -- canceled the exact command
 			end
 		end
 	end
