@@ -78,6 +78,28 @@ local function getPositionOnGround(targetID, teamID)
 	end
 end
 
+---Block bombers from attacking air units unless the target is landed (it becomes a ground attack).
+local function allowBomberAttackCommand(unitID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, fromInsert)
+	local targetID = cmdParams[1]
+	local targetDefID = spGetUnitDefID(targetID)
+
+	if targetDefID and isAir[targetDefID] then
+		if spGetUnitIsDead(targetID) == false and isLanded(targetID) then
+			-- Move the target onto the ground, whenever possible.
+			local x, y, z = getPositionOnGround(targetID, unitTeam)
+			if x then
+				cmdParams[1], cmdParams[2], cmdParams[3] = x, y, z
+				reissueOrder(unitID, cmdID, cmdParams, cmdOptions, cmdTag, fromInsert)
+				ensureTable(bomberAirTargets, unitID)[targetID] = { x, y, z, cmdID }
+				ensureTable(landedAirTargets, targetID)[unitID] = true
+			end
+		end
+		return false
+	else
+		return true
+	end
+end
+
 local function removeBomberOrder(bomberID, targetID)
 	local orders = bomberAirTargets[bomberID]
 
@@ -125,25 +147,12 @@ function gadget:Initialize()
 end
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua, fromInsert)
-	-- Block bombers from attacking air units (single-target only, not ground attack)
+	-- accepts: CMD.ATTACK, CMD.UNIT_SET_TARGET, CMD.UNIT_SET_TARGET_NO_GROUND
 	if isBomber[unitDefID] and cmdParams[1] and not cmdParams[2] then
-		local targetID = cmdParams[1]
-		local targetDefID = spGetUnitDefID(targetID)
-		if targetDefID and isAir[targetDefID] then
-			if spGetUnitIsDead(targetID) == false and isLanded(targetID) then
-				-- Move the target onto the ground, whenever possible.
-				local x, y, z = getPositionOnGround(targetID, unitTeam)
-				if x then
-					cmdParams[1], cmdParams[2], cmdParams[3] = x, y, z
-					reissueOrder(unitID, cmdID, cmdParams, cmdOptions, cmdTag, fromInsert);
-					ensureTable(bomberAirTargets, unitID)[targetID] = { x, y, z, cmdID }
-					ensureTable(landedAirTargets, targetID)[unitID] = true
-				end
-			end
-			return false
-		end
+		return allowBomberAttackCommand(unitID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, fromInsert)
+	else
+		return true
 	end
-	return true
 end
 
 function gadget:GameFrame(frame)
