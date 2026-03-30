@@ -27,6 +27,7 @@ local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spIsSphereInView        = Spring.IsSphereInView
 local spGetCameraPosition     = Spring.GetCameraPosition
 local spGetProjectileOwnerID  = Spring.GetProjectileOwnerID
+local spGetFPS                = Spring.GetFPS
 
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
@@ -818,12 +819,20 @@ function widget:GameFrame(n)
 	-- Remove expired particles
 	removeExpiredParticles(n)
 
-	-- Track piece projectiles — reduce update rate when particle count is high
+	-- Track piece projectiles — reduce update rate when particle count is high or FPS is low
 	local updateInterval = PIECE_SPAWN_INTERVAL
 	if avgParticleCount > MAX_PARTICLES * 0.8 then
 		updateInterval = 3
 	elseif avgParticleCount > MAX_PARTICLES * 0.4 then
 		updateInterval = 2
+	end
+	-- Don't update faster than the render FPS can display
+	local fps = spGetFPS()
+	if fps > 0 then
+		local minInterval = mathCeil(30 / fps)
+		if minInterval > updateInterval then
+			updateInterval = minInterval
+		end
 	end
 	if n % updateInterval == 0 then
 		updatePieceProjectiles(n)
