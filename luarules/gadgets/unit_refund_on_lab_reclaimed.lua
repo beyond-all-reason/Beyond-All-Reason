@@ -18,7 +18,7 @@ end
 
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitCosts = Spring.GetUnitCosts
-local spAddTeamResource = Spring.AddTeamResource
+local spAddUnitResource = Spring.AddUnitResource
 local spAreTeamsAllied = Spring.AreTeamsAllied
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 
@@ -58,10 +58,9 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
   if not attackerTeam or not spAreTeamsAllied(unitTeam, attackerTeam) then
     return
   end
-  
+
   local _, buildProgress = spGetUnitIsBeingBuilt(unitBeingBuiltId)
   local _, metalCost, _ = spGetUnitCosts(unitBeingBuiltId)
-  local refund = math.floor(metalCost * buildProgress)
-  
-  spAddTeamResource(unitTeam, 'metal', refund)
+  local refund = metalCost * buildProgress
+  spAddUnitResource(unitBeingBuiltId, "m", refund)
 end
