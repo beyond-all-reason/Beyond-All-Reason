@@ -43,6 +43,7 @@ local SEARCH_RADIUS      = maxBuildDistance + 200  -- Max build distance + safet
 local repeatStatus       = {}
 -- Reusable table for nearby builders to reduce allocations
 local nearbyBuilders     = {}
+local soloBuilder = {}
 
 local function IsUnitRepeatOn(unitID)
 	if repeatStatus[unitID] ~= nil then
@@ -102,10 +103,14 @@ function widget:PlayerChanged(playerID)
 	end
 end
 
-function widget:UnitCreated(unitID, unitDefID, unitTeam)
+function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if unitTeam == myTeamID and builderDefs[unitDefID] then
 		trackedBuilders[unitID] = true
 		repeatStatus[unitID] = nil
+	end
+	local builderDefID = Spring.GetUnitDefID(builderID)
+	if UnitDefs[builderDefID].canAssist == false then
+		soloBuilder[unitID] = builderID
 	end
 end
 
