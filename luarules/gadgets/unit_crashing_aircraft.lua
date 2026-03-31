@@ -28,6 +28,14 @@ if gadgetHandler:IsSyncedCode() then
 	local SendToUnsynced = SendToUnsynced
 	local GetUnitRulesParam = Spring.GetUnitRulesParam
 	local SetUnitRulesParam = Spring.SetUnitRulesParam
+	local SetUnitNoSelect = Spring.SetUnitNoSelect
+	local SetUnitNoMinimap = Spring.SetUnitNoMinimap
+	local SetUnitIconDraw = Spring.SetUnitIconDraw
+	local SetUnitStealth = Spring.SetUnitStealth
+	local SetUnitAlwaysVisible = Spring.SetUnitAlwaysVisible
+	local SetUnitNeutral = Spring.SetUnitNeutral
+	local SetUnitBlocking = Spring.SetUnitBlocking
+	local SetUnitCrashing = Spring.SetUnitCrashing
 
 	local COB_CRASHING = COB.CRASHING
 	local COM_BLAST = WeaponDefNames['commanderexplosion'].id	-- used to prevent them being boosted and flying far away
@@ -38,7 +46,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local isAircon = {}
 	local crashable  = {}
-	local unitWeapons = {}
+	local unitWeaponCount = {}
 	for udid,UnitDef in pairs(UnitDefs) do
 		if UnitDef.canFly == true and (not UnitDef.customParams.crashable or UnitDef.customParams.crashable ~= '0') then
 			crashable[UnitDef.id] = true
@@ -46,8 +54,9 @@ if gadgetHandler:IsSyncedCode() then
 				isAircon[udid] = true
 			end
 		end
-		if #UnitDef.weapons > 0 then
-			unitWeapons[udid] = UnitDef.weapons
+		local weaponCount = #UnitDef.weapons
+		if weaponCount > 0 then
+			unitWeaponCount[udid] = weaponCount
 		end
 	end
 
@@ -67,17 +76,17 @@ if gadgetHandler:IsSyncedCode() then
 			crashingCount = crashingCount + 1
 			crashing[unitID] = GetGameFrame() + 450
 			SetUnitCOBValue(unitID, COB_CRASHING, 1)
-			Spring.SetUnitNoSelect(unitID,true)
-			Spring.SetUnitNoMinimap(unitID,true)
-			Spring.SetUnitIconDraw(unitID, false)
-			Spring.SetUnitStealth(unitID, true)
-			Spring.SetUnitAlwaysVisible(unitID, false)
-			Spring.SetUnitNeutral(unitID, true)
-			Spring.SetUnitBlocking(unitID, false)
-			Spring.SetUnitCrashing(unitID, true)
-			if unitWeapons[unitDefID] then
-				local weapons = unitWeapons[unitDefID]
-				for i = 1, #weapons do
+			SetUnitNoSelect(unitID, true)
+			SetUnitNoMinimap(unitID, true)
+			SetUnitIconDraw(unitID, false)
+			SetUnitStealth(unitID, true)
+			SetUnitAlwaysVisible(unitID, false)
+			SetUnitNeutral(unitID, true)
+			SetUnitBlocking(unitID, false)
+			SetUnitCrashing(unitID, true)
+			local wCount = unitWeaponCount[unitDefID]
+			if wCount then
+				for i = 1, wCount do
 					SetUnitWeaponState(unitID, i, "reloadState", 0)
 					SetUnitWeaponState(unitID, i, "reloadTime", 9999)
 					SetUnitWeaponState(unitID, i, "range", 0)
@@ -129,20 +138,22 @@ if gadgetHandler:IsSyncedCode() then
 else	-- UNSYNCED
 
 
+	local GetSpectatingState = Spring.GetSpectatingState
 	local GetUnitLosState = Spring.GetUnitLosState
 	local GetMyAllyTeamID = Spring.GetMyAllyTeamID
 
 	local function crashingAircraft(_, unitID, unitDefID, unitTeam)
-		if select(2, Spring.GetSpectatingState()) then
+		local _, fullView = GetSpectatingState()
+		if fullView then
 			if Script.LuaUI("CrashingAircraft") then
 				Script.LuaUI.CrashingAircraft(unitID, unitDefID, unitTeam)
 			end
 			return
 		end
-		-- Use LOS check instead of IsUnitVisible, since crashing aircraft have icon draw disabled
-		-- which causes IsUnitVisible to return false at icon distances
-		local losState = GetUnitLosState(unitID, GetMyAllyTeamID())
-		if losState and (losState.los or losState.radar) then
+		-- Bitmask LOS check: bit 0 = inLos, bit 2 = inRadar
+		-- Crashing aircraft have icon draw disabled, so IsUnitVisible returns false at icon distances
+		local losBits = GetUnitLosState(unitID, GetMyAllyTeamID(), true)
+		if losBits and (losBits % 2 >= 1 or losBits % 8 >= 4) then
 			if Script.LuaUI("CrashingAircraft") then
 				Script.LuaUI.CrashingAircraft(unitID, unitDefID, unitTeam)
 			end
