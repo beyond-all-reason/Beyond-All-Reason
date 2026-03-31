@@ -6,7 +6,7 @@
       "definition": [
         ".lux/",
         "types/",
-        "recoil-lua-library/library/"
+        "recoil-lua-library/src/"
       ]
     }
   },

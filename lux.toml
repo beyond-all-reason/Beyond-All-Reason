@@ -2,6 +2,10 @@ package = "beyond-all-reason"
 version = "0.1.0"
 lua = "=5.1"
 
+[dependencies.recoil-lua-library]
+version = "0.1.0"
+git = "https://github.com/beyond-all-reason/recoil-lua-library"
+
 [description]
 summary = "Beyond All Reason Game Code."
 maintainer = "BAR Team"
