@@ -1,10 +1,10 @@
 return {
 	legrwall = {
 		maxacc = 0,
-		energycost = 8000,
-		metalcost = 1500,
+		energycost = 7000,
+		metalcost = 1300,
 		buildpic = "legrwall.DDS",
-		buildtime = 12000,
+		buildtime = 18000,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 -8 0",
 		collisionvolumescales = "32 42 32",

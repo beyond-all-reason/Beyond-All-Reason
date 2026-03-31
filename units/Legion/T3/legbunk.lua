@@ -1,7 +1,7 @@
 return {
 	legbunk = {
 		buildpic = "legbunk.dds",
-		buildtime = 46430,
+		buildtime = 66430,
 		canmove = true,
 		cantbetransported = true, --Need to true!!!!!!!!!!
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -9,7 +9,7 @@ return {
 		collisionvolumescales = "55 80 55",
 		collisionvolumetype = "CYLY",
 		corpse = "DEAD",
-		energycost = 42000,
+		energycost = 62000,
 		explodeas = "explosiont3",
 		footprintx = 4,
 		footprintz = 4,
@@ -18,7 +18,7 @@ return {
 		maxslope = 17,
 		maxacc = 0.253,
 		maxdec = 0.8211,
-		metalcost = 2850,
+		metalcost = 1850,
 		maxwaterdepth = 22,
 		movementclass = "HBOT4",
 		nochasecategory = "VTOL",
@@ -194,7 +194,7 @@ return {
 				explosiongenerator = "custom:plasmahit-sparkonly",
 				firestarter = 0,
 				hardstop = true,
-				impactonly = false,
+				impactonly = true,
 				impulsefactor = 1,
 				intensity = 0.8,
 				name = "Snub-Nose Railgun",
