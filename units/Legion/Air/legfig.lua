@@ -46,12 +46,6 @@ return {
 			attacksafetydistance = 300,
 			fighter = 1,
 		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-tiny",
-				[2] = "crashing-tiny2",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

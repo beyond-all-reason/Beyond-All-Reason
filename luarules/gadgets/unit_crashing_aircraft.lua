@@ -129,10 +129,20 @@ if gadgetHandler:IsSyncedCode() then
 else	-- UNSYNCED
 
 
-	local IsUnitVisible= Spring.IsUnitVisible
+	local GetUnitLosState = Spring.GetUnitLosState
+	local GetMyAllyTeamID = Spring.GetMyAllyTeamID
 
 	local function crashingAircraft(_, unitID, unitDefID, unitTeam)
-		if select(2, Spring.GetSpectatingState()) or CallAsTeam(Spring.GetMyTeamID(), IsUnitVisible, unitID, 99999999, true) then
+		if select(2, Spring.GetSpectatingState()) then
+			if Script.LuaUI("CrashingAircraft") then
+				Script.LuaUI.CrashingAircraft(unitID, unitDefID, unitTeam)
+			end
+			return
+		end
+		-- Use LOS check instead of IsUnitVisible, since crashing aircraft have icon draw disabled
+		-- which causes IsUnitVisible to return false at icon distances
+		local losState = GetUnitLosState(unitID, GetMyAllyTeamID())
+		if losState and (losState.los or losState.radar) then
 			if Script.LuaUI("CrashingAircraft") then
 				Script.LuaUI.CrashingAircraft(unitID, unitDefID, unitTeam)
 			end

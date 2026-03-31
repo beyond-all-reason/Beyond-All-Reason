@@ -50,12 +50,7 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium-aa",
-			},
-			crashexplosiongenerators = {
-				[1] = "crashing-tiny",
-				[2] = "crashing-tiny2",
-			},
-		},
+			},		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
