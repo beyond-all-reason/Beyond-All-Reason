@@ -43,12 +43,6 @@ return {
 			subfolder = "CorAircraft",
 			unitgroup = "aa",
 		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-tiny",
-				[2] = "crashing-tiny2",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

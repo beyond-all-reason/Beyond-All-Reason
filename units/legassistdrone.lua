@@ -70,15 +70,6 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorAircraft",
 		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-		},
 		sounds = {
 			build = "nanlath2",
 			canceldestruct = "cancel2",

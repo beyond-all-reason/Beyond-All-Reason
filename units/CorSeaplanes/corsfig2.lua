@@ -44,12 +44,6 @@ return {
 			subfolder = "CorSeaplanes",
 			unitgroup = "aa",
 		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small2",
-			},
-		},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",
