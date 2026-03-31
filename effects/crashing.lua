@@ -123,16 +123,6 @@ local definitions = {
     },
 }
 
--- temporary semi disable crashing cegs, to be replaced by widget GL4 particles
-definitions["crashing-small"].smoke.properties.particlelife = 1
-definitions["crashing-small"].smoke.properties.particlelifespread = 0
-definitions["crashing-small"].smoke2.properties.particlelife = 1
-definitions["crashing-small"].smoke2.properties.particlelifespread = 0
-definitions["crashing-small"].dustparticles.properties.particlelife = 1
-definitions["crashing-small"].dustparticles.properties.particlelifespread = 0
-definitions["crashing-small"].flame.properties.particlelife = 1
-definitions["crashing-small"].flame.properties.particlelifespread = 0
-
 local sizeMult = 0.8
 definitions['crashing-tiny'] = table.copy(definitions["crashing-small"])
 definitions['crashing-tiny'].smoke2.properties.particlelife = definitions['crashing-tiny'].smoke2.properties.particlelife * sizeMult
