@@ -78,10 +78,6 @@ return {
 				[1] = "custom:waterwake-tiny",
 				[2] = "custom:radarpulse_t1",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

@@ -58,10 +58,6 @@ return {
 				--[1] = "custom:barrelshot-greenblaster",
 				[1] = "custom:barrelshot-medium-impulse",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

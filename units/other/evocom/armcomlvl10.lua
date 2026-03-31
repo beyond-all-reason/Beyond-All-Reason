@@ -177,10 +177,6 @@ return {
 				[3] = "custom:footstep-medium",
 				[4] = "custom:genericshellexplosion-huge-lightning",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
-			},
 		},
 		sounds = {
 			build = "nanlath1",

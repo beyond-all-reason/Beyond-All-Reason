@@ -71,10 +71,9 @@ local function cacheUnitIcons()
 
 	end
 	gl.Color(1, 1, 1, 1)
+	gl.Texture(false)
 	gl.Translate(vsx, 0, 0)
 end
-
-function widget:Initialize()
 	-- Only run this widget at game start (frame 0), disable on reconnect/late join
 	if spGetGameFrame() > 0 then
 		widgetHandler:RemoveWidget()
@@ -119,6 +118,7 @@ function widget:DrawScreen()
 			end
 		end
 		gl.Color(1, 1, 1, 1)
+		gl.Texture(false)
 		gl.Translate(vsx, 0, 0)
 	end
 end

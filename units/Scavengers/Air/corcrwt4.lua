@@ -50,11 +50,6 @@ return {
 				[4] = "crashing-large3",
 				[5] = "crashing-large3",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
-				[3] = "deathceg2",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
