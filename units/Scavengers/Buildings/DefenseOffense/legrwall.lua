@@ -1,8 +1,8 @@
 return {
 	legrwall = {
 		maxacc = 0,
-		energycost = 7000,
-		metalcost = 1300,
+		energycost = 6000,
+		metalcost = 1200,
 		buildpic = "legrwall.DDS",
 		buildtime = 18000,
 		canrepeat = false,
@@ -18,7 +18,7 @@ return {
 		hidedamage = true,
 		levelground = false,
 		mass = 10000000000,
-		health = 7600,
+		health = 4000,
 		maxslope = 24,
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",
