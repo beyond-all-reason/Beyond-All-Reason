@@ -38,7 +38,7 @@ local function spawnUnitLoadout(unitLoadout, trackUnit)
 end
 
 local function createFeature(featureDefName, position, facing)
-	local heading = facingToHeading[facing or 0]
+	local heading = string.facingToHeading(facing or 0)
 	local featureID = Spring.CreateFeature(featureDefName, position.x, position.y, position.z, heading, gaiaTeamID)
 
 	if featureDefName:sub(-5) == '_dead' then
