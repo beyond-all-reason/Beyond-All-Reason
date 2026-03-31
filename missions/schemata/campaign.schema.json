@@ -4,22 +4,13 @@
 	"title": "Campaign Definition",
 	"description": "Schema for a BAR campaign definition file.",
 	"type": "object",
-	"required": [
-		"campaignId",
-		"title",
-		"description",
-		"backgroundImage",
-		"logo",
-		"players",
-		"difficulties",
-		"defaultDifficulty"
-	],
+	"required": ["campaignId", "title", "description", "players", "difficulties", "defaultDifficulty"],
 	"additionalProperties": false,
-	"$defs": {
+	"definitions": {
 		"identifier": {
 			"type": "string",
-			"pattern": "^[A-Za-z0-9_-]*$",
-			"description": "An identifier that starts with a letter and contains only letters, digits, underscores, and hyphens."
+			"pattern": "^[A-Za-z0-9_-]+$",
+			"description": "A non-empty string containing only letters, digits, underscores, and hyphens."
 		}
 	},
 	"properties": {
@@ -28,8 +19,7 @@
 			"description": "Path or URL to the JSON Schema for this file."
 		},
 		"campaignId": {
-			"$ref": "#/$defs/identifier",
-			"description": "Unique identifier for this campaign."
+			"$ref": "#/definitions/identifier"
 		},
 		"title": {
 			"type": "string",
@@ -53,12 +43,13 @@
 			"type": "array",
 			"description": "List of campaign IDs that must be completed before this one is unlocked.",
 			"items": {
-				"$ref": "#/$defs/identifier"
+				"$ref": "#/definitions/identifier"
 			}
 		},
 		"players": {
 			"type": "array",
 			"description": "Supported player counts.",
+			"minItems": 1,
 			"items": {
 				"type": "integer",
 				"minimum": 1
@@ -93,13 +84,13 @@
 			"type": "object",
 			"description": "Map of mission IDs to their unlock requirements.",
 			"propertyNames": {
-				"$ref": "#/$defs/identifier"
+				"$ref": "#/definitions/identifier"
 			},
 			"additionalProperties": {
 				"type": "array",
 				"description": "List of mission IDs that must be completed to unlock this mission.",
 				"items": {
-					"$ref": "#/$defs/identifier"
+					"$ref": "#/definitions/identifier"
 				}
 			}
 		}
