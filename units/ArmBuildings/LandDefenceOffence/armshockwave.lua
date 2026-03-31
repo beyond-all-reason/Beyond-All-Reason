@@ -87,11 +87,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:gausscannonprojectile",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			activate = "mexrun2",

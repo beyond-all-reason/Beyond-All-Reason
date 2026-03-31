@@ -256,7 +256,7 @@ function UnitDef_Post(name, uDef)
 
 	if modOptions.legionsimplifiedmexes then
 		local legiont15mex = {
-			legmext15	= true, 
+			legmext15	= true,
 		}
 		if legiont15mex[basename] then
 			uDef.customparams.modoption_blocked = true
@@ -982,7 +982,7 @@ function UnitDef_Post(name, uDef)
 		--end
 	end
 
-	-- Sets idleautoheal to 5hp/s after 1800 frames aka 1 minute. 
+	-- Sets idleautoheal to 5hp/s after 1800 frames aka 1 minute.
 	if uDef.idleautoheal == nil then
 		uDef.idleautoheal = 5
 	end
@@ -1168,7 +1168,7 @@ function UnitDef_Post(name, uDef)
 		local community_balance_patch = VFS.Include("unitbasedefs/community_balance_patch_defs.lua")
 		uDef = community_balance_patch.communityBalanceTweaks(name, uDef, modOptions)
 	end
-	
+
 	-- Legion Simplified Mex Rebalance
 	if modOptions.legionsimplifiedmexes == true then
 		if name == "legmex" then
@@ -1718,6 +1718,18 @@ function UnitDef_Post(name, uDef)
 		-- Deduplicate buildoptions (various modoptions or later mods can add the same units)
 		-- Multiple unit defs can share the same table reference, so we create a new table for each
 		uDef.buildoptions = table.getUniqueArray(buildoptions)
+	end
+
+	-- Suppress engine default piece explosion effects (handled by gfx_death_fire_smoke_gl4 widget)
+	if not uDef.sfxtypes then
+		uDef.sfxtypes = {}
+	end
+	if not uDef.sfxtypes.pieceexplosiongenerators then
+		uDef.sfxtypes.pieceexplosiongenerators = { "blank" }
+	end
+	-- Suppress engine default crash explosion effects (handled by gfx_death_fire_smoke_gl4 widget)
+	if not uDef.sfxtypes.crashexplosiongenerators then
+		uDef.sfxtypes.crashexplosiongenerators = { "blank" }
 	end
 end
 
