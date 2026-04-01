@@ -16,8 +16,13 @@ CallInsList = {
 	"LayoutButtons",
 	"ConfigureLayout",
 	"ActiveCommandChanged",
+
 	"CameraRotationChanged",
 	"CameraPositionChanged",
+  "MiniMapRotationChanged",
+	"MiniMapStateChanged",
+	"MiniMapGeometryChanged",
+
 	"CommandNotify",
 
 	"KeyPress",
