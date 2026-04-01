@@ -73,11 +73,6 @@ return {
 				[1] = "custom:barrelshot-small-aa",
 				[2] = "custom:barrelshot-flak",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

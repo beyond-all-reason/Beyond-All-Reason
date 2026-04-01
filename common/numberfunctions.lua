@@ -258,18 +258,18 @@ if not math.getClosestPosition then
 		end
 		return bestPos
 	end
+end
 
-	if not math.clampRadians then
-		--- Clamp a radian angle between -pi and pi
-		---@param r number radian value to clamp
-		---@return number clamped radian value
-		function math.clampRadians(r)
-			local ret = r
-			ret = ret - 2 * math.pi * math.floor(ret / math.pi / 2)
-			if ret > math.pi then
-				ret = ret - math.pi * 2
-			end
-			return ret
+if not math.clampRadians then
+	local twoPi = 2 * math.pi
+	--- Clamp a radian angle between -pi and pi
+	---@param r number radian value to clamp
+	---@return number clamped radian value
+	function math.clampRadians(r)
+		local ret = r % twoPi
+		if ret > math.pi then
+			ret = ret - twoPi
 		end
+		return ret
 	end
 end

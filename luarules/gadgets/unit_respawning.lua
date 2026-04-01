@@ -80,10 +80,10 @@ if gadgetHandler:IsSyncedCode() then
     function ReturnToBase(unitID, friendlyFire)
 		local x,y,z = spGetUnitPosition(unitID) -- usefull if you want to spawn explosions or other effects where you were.
 
-
-		if respawnMetaList[unitID].effigyID then
+		local meta = respawnMetaList[unitID]
+		if meta.effigyID then
 			local health, maxHealth = spGetUnitHealth(unitID)
-			local effigyID = respawnMetaList[unitID].effigyID
+			local effigyID = meta.effigyID
 			local ex,ey,ez = spGetUnitPosition(effigyID)
 			Spring.SetUnitPosition(unitID, ex, ez, true)
 			Spring.SpawnCEG("commander-spawn", ex, ey, ez, 0, 0, 0)
@@ -91,16 +91,20 @@ if gadgetHandler:IsSyncedCode() then
 			GG.ComSpawnDefoliate(ex, ey, ez)
 
 			-- Mark effigy as used for respawning to prevent "lost" notifications
-			respawnMetaList[unitID].effigyID = nil
+			meta.effigyID = nil
 
-			if respawnMetaList[unitID].respawn_pad == "false" then
+			if meta.respawn_pad == "false" then
 				Spring.SetUnitPosition(effigyID, x, z, true)
 				Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
 				Spring.PlaySoundFile("commanderspawn-mono", 1.0, x, y, z, 0, 0, 0, "sfx")
 				GG.ComSpawnDefoliate(x, y, z)
 			end
 
-			if respawnMetaList[unitID].destructive_respawn then
+			-- Cache stun parameters before destroying effigy, since the explosion
+			-- could kill the commander and nil out respawnMetaList[unitID]
+			local stunDuration = maxHealth + ((maxHealth/30)*meta.minimum_respawn_stun) + (((maxHealth/30)*diag((x-ex), (z-ez))*meta.distance_stun_multiplier)/250)--250 is an arbitrary number that seems to produce desired results.
+
+			if meta.destructive_respawn then
 			    if friendlyFire then
 			        destroyEffigy(effigyID, false, true)
 			    else
@@ -108,14 +112,17 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				spSetUnitRulesParam(unitID, "unit_effigy", nil, PRIVATE)
 			end
-			local stunDuration = maxHealth + ((maxHealth/30)*respawnMetaList[unitID].minimum_respawn_stun) + (((maxHealth/30)*diag((x-ex), (z-ez))*respawnMetaList[unitID].distance_stun_multiplier)/250)--250 is an arbitrary number that seems to produce desired results.
-			spSetUnitHealth(unitID, {health = 1, capture = 0, paralyze = stunDuration,})
-			spGiveOrderToUnit(unitID, CMD.STOP, {}, 0)
+
+			-- Only apply stun if the unit survived the effigy destruction
+			if respawnMetaList[unitID] then
+				spSetUnitHealth(unitID, {health = 1, capture = 0, paralyze = stunDuration,})
+				spGiveOrderToUnit(unitID, CMD.STOP, {}, 0)
+			end
 		end
 
 		local unitDefID = spGetUnitDefID(unitID)
 		local udcp = defCustomParams[unitDefID]
-		if udcp and udcp.iscommander then
+		if udcp and udcp.iscommander and respawnMetaList[unitID] then
 			local unitTeam = respawnMetaList[unitID].unitTeam
 			local allPlayers = Spring.GetPlayerList()
 			local notificationEvent
