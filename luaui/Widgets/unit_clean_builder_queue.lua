@@ -43,6 +43,7 @@ local SEARCH_RADIUS      = maxBuildDistance + 200  -- Max build distance + safet
 local repeatStatus       = {}
 -- Reusable table for nearby builders to reduce allocations
 local nearbyBuilders     = {}
+local soloBuilder = {}
 
 local function IsUnitRepeatOn(unitID)
 	if repeatStatus[unitID] ~= nil then
@@ -102,10 +103,15 @@ function widget:PlayerChanged(playerID)
 	end
 end
 
-function widget:UnitCreated(unitID, unitDefID, unitTeam)
+function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if unitTeam == myTeamID and builderDefs[unitDefID] then
 		trackedBuilders[unitID] = true
 		repeatStatus[unitID] = nil
+	end
+	if not builderID then return end
+	local builderDefID = GetUnitDefID(builderID)
+	if UnitDefs[builderDefID].canAssist == false then
+		soloBuilder[unitID] = builderID
 	end
 end
 
@@ -152,13 +158,15 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 		local builderID = nearbyBuilders[i]
 
 		-- Skip if repeat is enabled (cached check)
-		if not IsUnitRepeatOn(builderID) then
+		if soloBuilder[unitID] ~= builderID and not IsUnitRepeatOn(builderID) then
 			local commands = GetUnitCommands(builderID, 32)
 			if commands then
+				local curCommand = commands[1]
+				local isCurrentlyBuildingMines =  (curCommand.id < 0 and UnitDefs[curCommand.id].blocking == false) or false
+				if isCurrentlyBuildingMines then break end -- we avoid CMD.REMOVE while building non blocking units otherwise unit will be unable to resume it
 				-- Scan backwards to find matching build commands
 				for j = #commands, 1, -1 do
 					local cmd = commands[j]
-					-- Only check build commands for this specific unitDefID
 					if cmd.id == targetCmdID then
 						local params = cmd.params
 						if params and params[1] and params[3] then
