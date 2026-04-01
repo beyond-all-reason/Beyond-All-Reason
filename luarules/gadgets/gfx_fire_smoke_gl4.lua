@@ -113,10 +113,10 @@ local SMOKE_HIGHLIGHT_LIFE     = 0.7   -- lifetime relative to base smoke partic
 local CULLING_MARGIN           = 350
 
 -- Fire particle settings (shared base, each trail type can scale)
-local FIRE_LIFETIME_MIN        = 33    -- min fire particle lifetime in frames
-local FIRE_LIFETIME_RANGE      = 33    -- fire lifetime variation
-local FIRE_SIZE_MULT           = 2     -- fire particles relative to smoke
-local FIRE_ALPHA_MIN           = 0.8   -- fire particles base alpha
+local FIRE_LIFETIME_MIN        = 20    -- min fire particle lifetime in frames
+local FIRE_LIFETIME_RANGE      = 100    -- fire lifetime variation
+local FIRE_SIZE_MULT           = 7     -- fire particles relative to smoke
+local FIRE_ALPHA_MIN           = 0.55   -- fire particles base alpha
 
 -- Piece projectile trails (smoke and fire on flying debris)
 local PIECE_SPAWN_COUNT_MAX    = 3
@@ -133,7 +133,7 @@ local PIECE_LIFE_PER_RADIUS    = 1.5
 local PIECE_ALPHA_FADE         = 0.66
 local PIECE_ALPHA_MIN          = 0.25
 local PIECE_GROUND_SKIP_HEIGHT = 5
-local PIECE_FIRE_CHANCE        = 0.25
+local PIECE_FIRE_CHANCE        = 0.3
 
 -- Distance LOD: reduce spawn count when camera is far away (piece trails)
 local LOD_DIST_NEAR            = 4000
@@ -144,13 +144,13 @@ local LOD_MULT_RANGE           = 1.0 - LOD_MIN_MULT
 local LOD_DIST_NEAR_SQ         = LOD_DIST_NEAR * LOD_DIST_NEAR
 
 -- Crashing aircraft trails
-local CRASH_SPAWN_COUNT        = 3
+local CRASH_SPAWN_COUNT        = 2
 local CRASH_VEL_INHERIT        = 0.6
 local CRASH_ALPHA_FADE         = 0.66
 local CRASH_ALPHA_MIN          = 0.25
 local CRASH_SKIP_CHANCE        = 0.05
-local CRASH_FIRE_LIFETIME_MULT = 1.4
-local CRASH_FIRE_SIZE_MULT     = 1.25
+local CRASH_FIRE_LIFETIME_MULT = 1.6
+local CRASH_FIRE_SIZE_MULT     = 1
 local CRASH_CULLING_RADIUS     = 200
 local CRASH_ALWAYS_EMIT        = true
 local CRASH_MAX_DURATION       = 450
@@ -168,7 +168,7 @@ local crashScale = {
 	SIZE_EXP        = 0.8,
 	LIFE_EXP        = 0.5,
 	SPAWN_EXP       = 0.6,
-	FIRE_CHANCE     = 0.6,
+	FIRE_CHANCE     = 0.66,
 	FIRE_INT_MIN    = 0.66,
 }
 
@@ -325,11 +325,13 @@ void main()
 	pos.z += cos(ageFrames * 0.09 + seedPhase * 3.8) * wobble;
 	pos.y += sin(ageFrames * 0.05 + seedPhase * 1.8) * wobble * 0.25;
 
-	// Growth: lifetime-based curve + time-based linear rate
+	// Growth: lifetime-based curve + time-based linear rate (smoke only)
+	float isFire = step(0.5, sizeAndType.y);
 	float growCurve = normalizedAge * (1.0 + normalizedAge);
 	float lifetimeGrowth = baseSize * (1.0 + growCurve * SMOKE_GROWTH_MULT);
 	float timeGrowth = ageFrames * SMOKE_GROWTH_RATE;
-	float sizeGrowth = lifetimeGrowth + timeGrowth;
+	float smokeGrowth = lifetimeGrowth + timeGrowth;
+	float sizeGrowth = mix(smokeGrowth, baseSize, isFire);
 
 	// Highlight pass: smaller size, Y offset
 	if (highlightPass.x > 0.5) {
@@ -354,27 +356,29 @@ void main()
 	gl_Position = cameraViewProj * worldPosition;
 	texCoords = position_xy_uv.zw;
 
-	// Particle type
-	isFireParticle = step(0.5, sizeAndType.y);
+	// Particle type (reuse isFire from growth section)
+	isFireParticle = isFire;
 	int cmapVariant = int(isFireParticle);
 
 	// Colormaps: 0 = smoke (dark grey), 1 = fire (orange→black)
 	const vec4 cmaps[16] = vec4[16](
-		vec4(0.10, 0.10, 0.10, 0.75),
-		vec4(0.16, 0.16, 0.16, 0.7),
-		vec4(0.22, 0.22, 0.22, 0.65),
+		// smoke
+		vec4(0.20, 0.15, 0.10, 0.75),
+		vec4(0.22, 0.18, 0.16, 0.7),
+		vec4(0.22, 0.19, 0.18, 0.65),
 		vec4(0.28, 0.27, 0.26, 0.55),
 		vec4(0.30, 0.29, 0.28, 0.42),
-		vec4(0.25, 0.24, 0.23, 0.28),
-		vec4(0.18, 0.17, 0.17, 0.14),
-		vec4(0.10, 0.10, 0.10, 0.01),
+		vec4(0.27, 0.26, 0.25, 0.28),
+		vec4(0.2, 0.2, 0.2, 0.14),
+		vec4(0.12, 0.12, 0.12, 0.01),
+		// fire
 		vec4(1.0, 0.7, 0.15, 1.0),
-		vec4(0.9, 0.55, 0.1, 0.9),
-		vec4(0.65, 0.33, 0.07, 0.75),
-		vec4(0.4, 0.17, 0.04, 0.55),
-		vec4(0.2, 0.09, 0.02, 0.35),
-		vec4(0.08, 0.03, 0.01, 0.18),
-		vec4(0.03, 0.01, 0.005, 0.06),
+		vec4(0.88, 0.4, 0.1, 0.9),
+		vec4(0.5, 0.15, 0.07, 0.75),
+		vec4(0.3, 0.1, 0.04, 0.55),
+		vec4(0.1, 0.06, 0.02, 0.35),
+		vec4(0.07, 0.02, 0.01, 0.18),
+		vec4(0.02, 0.012, 0.005, 0.06),
 		vec4(0.0, 0.0, 0.0, 0.01)
 	);
 	int cmapBase = cmapVariant * 8;
