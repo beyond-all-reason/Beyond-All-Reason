@@ -108,6 +108,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		trackedBuilders[unitID] = true
 		repeatStatus[unitID] = nil
 	end
+	if not builderID then return end
 	local builderDefID = GetUnitDefID(builderID)
 	if UnitDefs[builderDefID].canAssist == false then
 		soloBuilder[unitID] = builderID
