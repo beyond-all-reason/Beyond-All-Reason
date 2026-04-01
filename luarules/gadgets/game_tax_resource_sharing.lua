@@ -218,13 +218,13 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, feature
 		return true
 	end
 
-	local metalTax = unitDef.metalCost * part * sharingTax
+	local metalTax = featureMaxMetal * part * sharingTax
 	if metalTax <= 0 then
 		return true
 	end
 
 	local teamMetal = spGetTeamResources(builderTeam, "metal")
-	if teamMetal < (metalTax + unitDef.metalCost * part) then
+	if teamMetal < (metalTax + featureMaxMetal * part) then
 		return false -- can't afford tax
 	end
 
