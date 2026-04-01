@@ -34,6 +34,24 @@ local function CacheGadgets()
 	end
 end
 
+local pendingReHook = {}
+
+local function ReHookProfiler(gadgetName)
+	local g = gadgetHandler:FindGadget(gadgetName)
+	if not g then return end
+	for key, value in pairs(gadgetHandler) do
+		if type(value) == "table" then
+			local i = string.find(key, "List", 1, true)
+			if i then
+				local callinName = string.sub(key, 1, i - 1)
+				if type(g[callinName]) == "function" then
+					gadgetHandler:UpdateGadgetCallIn(callinName, g)
+				end
+			end
+		end
+	end
+end
+
 local function CheckForChanges(gadgetName, fileName, label)
 	if gadgetName == SELF_NAME then
 		return
@@ -49,6 +67,7 @@ local function CheckForChanges(gadgetName, fileName, label)
 		spEcho("Reloading gadget (" .. label .. "): " .. gadgetName)
 		gadgetHandler:DisableGadget(gadgetName)
 		gadgetHandler:EnableGadget(gadgetName)
+		pendingReHook[gadgetName] = true
 	end
 end
 
@@ -60,6 +79,12 @@ if gadgetHandler:IsSyncedCode() then
 
 	local lastCheckFrame = 0
 	function gadget:GameFrame(frame)
+		if next(pendingReHook) then
+			for name in pairs(pendingReHook) do
+				ReHookProfiler(name)
+			end
+			pendingReHook = {}
+		end
 		if frame - lastCheckFrame < 30 then
 			return
 		end
@@ -81,6 +106,12 @@ else
 
 	local lastCheckFrame = 0
 	function gadget:GameFrame(frame)
+		if next(pendingReHook) then
+			for name in pairs(pendingReHook) do
+				ReHookProfiler(name)
+			end
+			pendingReHook = {}
+		end
 		if frame - lastCheckFrame < 30 then
 			return
 		end
