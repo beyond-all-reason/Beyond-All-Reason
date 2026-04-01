@@ -3,7 +3,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name    = 'Restrict Unit Sharing',
-		desc    = 'Stun economy and builder units when transferred to ally when modoption enabled.',
+		desc    = 'Stun/debuff economy and builder units when transferred to ally when modoption enabled.',
 		author  = 'RebelNode',
 		date    = 'January 2026',
 		license = 'GNU GPL, v2 or later',

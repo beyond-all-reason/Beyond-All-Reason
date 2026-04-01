@@ -3,7 +3,7 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
 	return {
 		name      = "Buildspeed Debuff Bar",
-		desc      = "Shows a pulsating icon above builder units debuffed after being transferred to an ally (easytax).",
+		desc      = "Shows a pulsating icon above builder units debuffed after being transferred to an ally  in easytax modoption.",
 		author    = "RebelNode",
 		date      = "2026",
 		license   = "GNU GPL v2",
