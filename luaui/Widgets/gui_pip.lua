@@ -9825,11 +9825,22 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	local bldgBlockWillRebuild = useUnitpics
 		or not gl4Icons._bldgBlock
 		or (Spring.GetGameFrame() - (gl4Icons._bldgBlockFrame or 0)) >= bldgBlockGameFrameLimit
+	local currentGameFrameKeysort = Spring.GetGameFrame()
 	for i = 1, unitCount do
 		local uID = pipUnits[i]
-		-- Skip crashing units early
-		if crashingUnits[uID] then
-			-- skip
+		-- Skip crashing/recently-died units.
+		-- crashingUnits values: true = actively crashing, number = death frame stamp.
+		-- Clear stale death stamps (older than 1 frame) so recycled IDs aren't blocked.
+		local crashVal = crashingUnits[uID]
+		if crashVal == true then
+			-- skip: actively crashing
+		elseif crashVal then
+			if currentGameFrameKeysort <= crashVal then
+				-- skip: died this frame, may still be in pipUnits
+			else
+				-- Stale death stamp from a previous frame — this is a new unit with a recycled ID.
+				crashingUnits[uID] = nil
+			end
 		else
 		-- Fast path for known immobile buildings: skip all classification lookups
 		local cachedBldgX = localBuildPosX[uID]
@@ -17597,10 +17608,12 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		-- Get unit velocity so shatter fragments carry the unit's momentum
 		local vx, vy, vz = Spring.GetUnitVelocity(unitID)
 		CreateIconShatter(unitID, unitDefID, unitTeam, vx, vz)
-		-- Suppress icon immediately so it doesn't linger during death animation
-		miscState.crashingUnits[unitID] = true
 	end
-	-- Don't clear crashingUnits[unitID] here - let it persist to prevent icon flash
+	-- Stamp with the death frame instead of clearing immediately.
+	-- The unit may still appear in GetUnitsInRectangle during the same frame's DrawScreen,
+	-- so we keep it suppressed. The keysort will clear entries older than 1 frame,
+	-- freeing the ID for reuse by newly created units.
+	miscState.crashingUnits[unitID] = Spring.GetGameFrame()
 
 	-- Clear GL4 caches for this unit
 	gl4Icons.unitDefCache[unitID] = nil
