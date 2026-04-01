@@ -31,7 +31,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	local group = unitDef.customParams.unitgroup
 	if group then
 		if group == "builder" or group == "buildert2" or group == "buildert3" then
-			builderUnits[unitDefID] = true
+			if unitDef.speed > 0 then -- not factory or conturret
+				builderUnits[unitDefID] = true
+			end
 			ecoUnits[unitDefID] = true
 		elseif group == "energy" or group == "metal" then
 			ecoUnits[unitDefID] = true

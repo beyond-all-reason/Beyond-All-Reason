@@ -31,7 +31,7 @@ local mathCeil         = math.ceil
 local mathMax          = math.max
 local mathMin          = math.min
 
-local ICON_SIZE = 10  -- world units half-width
+local ICON_SIZE = 16  -- world units half-width
 local ICON_TEX  = 'luaui/images/easytax/share.dds'
 local font
 
@@ -55,7 +55,7 @@ local function drawIcon(yoffset, secsLeft)
 	if font then
 		glColor(1, 1, 1, 1)
 		font:Begin()
-		font:Print(tostring(secsLeft) .. " s", 0, -3, 6, "co")
+		font:Print(tostring(secsLeft) .. " s", 0, -3, 10, "co")
 		font:End()
 	end
 end
