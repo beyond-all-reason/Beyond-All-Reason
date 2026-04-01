@@ -1675,7 +1675,7 @@ local options = {
 
     {
         key 	= "easytax",
-        name 	= "Easy Tax 2.0",
+        name 	= "Easy Sharing Tax",
         desc 	= "Anti co-op sharing tax mod. Overwrites other tax settings. Don't combine with other sharing restriction mods, everything you need is included with easy tax.",
         type 	= "bool",
         section = "options_experimental",
@@ -1685,7 +1685,7 @@ local options = {
     {
         key     = "easytax_link",
         name    = "Changelog",
-        desc    = "Easy Tax 2.0 description.",
+        desc    = "Easy Sharing Tax description.",
         section = "options_experimental",
         type    = "link",
         link    = "https://gist.github.com/RebelNode/43b986f29b9cfacbe95cf634cac25c49",
