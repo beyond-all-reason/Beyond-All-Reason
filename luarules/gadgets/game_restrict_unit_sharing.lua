@@ -26,7 +26,7 @@ local debuffedUnits = {} -- unitID -> { expireFrame, buildSpeed }
 -- gather all economy/builder units
 local ecoUnits = {}
 local builderUnits = {}
-local commanders = {}
+-- local commanders = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	local group = unitDef.customParams.unitgroup
 	if group then
@@ -37,9 +37,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			ecoUnits[unitDefID] = true
 		end
 	end
-	if unitDef.customParams.iscommander then
-		commanders[unitDefID] = true
-	end
+	-- if unitDef.customParams.iscommander then
+	-- 	commanders[unitDefID] = true
+	-- end
 end
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
