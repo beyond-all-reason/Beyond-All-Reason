@@ -161,6 +161,9 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 		if soloBuilder[unitID] ~= builderID and not IsUnitRepeatOn(builderID) then
 			local commands = GetUnitCommands(builderID, 32)
 			if commands then
+				local curCommand = commands[1]
+				local isCurrentlyBuildingMines =  (curCommand.id < 0 and UnitDefs[curCommand.id].blocking == false) or false
+				if isCurrentlyBuildingMines then break end -- we avoid CMD.REMOVE while building non blocking units otherwise unit will be unable to resume it
 				-- Scan backwards to find matching build commands
 				for j = #commands, 1, -1 do
 					local cmd = commands[j]
