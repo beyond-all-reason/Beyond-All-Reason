@@ -30,6 +30,8 @@ local debugEcho = false
 --------------------------------------------------------------------------------
 local spGetGroundHeight       = Spring.GetGroundHeight
 local spEcho                  = Spring.Echo
+local spGetTimer              = Spring.GetTimer
+local spDiffTimers            = Spring.DiffTimers
 local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
 local spGetProjectilePosition = Spring.GetProjectilePosition
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
@@ -100,11 +102,9 @@ local SMOKE_VEL_UP_MAX         = 0.20  -- maximum upward velocity
 local SMOKE_VEL_RANDOM         = 0.1   -- random velocity offset per axis
 
 -- Smoke highlight: lighter particle layered above each smoke particle (simulates sunlit top)
-local SMOKE_HIGHLIGHT_ENABLED  = true
 local SMOKE_HIGHLIGHT_OFFSET_Y = 2.2   -- vertical offset above base smoke (elmos)
 local SMOKE_HIGHLIGHT_BRIGHT   = 2.8   -- brightness multiplier for highlight (via colorTint.rgb)
 local SMOKE_HIGHLIGHT_SIZE     = 0.85  -- size relative to base smoke particle
-local SMOKE_HIGHLIGHT_ALPHA    = 1     -- alpha relative to base smoke particle
 local SMOKE_HIGHLIGHT_LIFE     = 0.7   -- lifetime relative to base smoke particle
 
 -- Wind influence (WIND_SMOKE_MULT=0.0012, WIND_FIRE_MULT=0.2 defined in shaderConfig)
@@ -118,15 +118,15 @@ local FIRE_LIFETIME_RANGE      = 33    -- fire lifetime variation
 local FIRE_SIZE_MULT           = 2     -- fire particles relative to smoke
 local FIRE_ALPHA_MIN           = 0.8   -- fire particles base alpha
 
--- Piece projectile trails (fire on flying debris)
+-- Piece projectile trails (smoke and fire on flying debris)
 local PIECE_SPAWN_COUNT_MAX    = 3
 local PIECE_SPAWN_TAPER        = 2
 local PIECE_SKIP_CHANCE        = 0.33
 local PIECE_VEL_SCALE          = 6.0
 local PIECE_LIFETIME_MIN       = 45
 local PIECE_LIFETIME_MAX       = 95
-local PIECE_SIZE_SCALE_MIN     = 0.25
-local PIECE_SIZE_SCALE_MAX     = 0.7
+local PIECE_SIZE_SCALE_MIN     = 0.18
+local PIECE_SIZE_SCALE_MAX     = 0.5
 local PIECE_SIZE_SCALE_REF     = 25.0
 local PIECE_LIFE_BASE          = 200
 local PIECE_LIFE_PER_RADIUS    = 1.5
@@ -150,7 +150,7 @@ local CRASH_ALPHA_FADE         = 0.66
 local CRASH_ALPHA_MIN          = 0.25
 local CRASH_SKIP_CHANCE        = 0.05
 local CRASH_FIRE_LIFETIME_MULT = 1.4
-local CRASH_FIRE_SIZE_MULT     = 1.3
+local CRASH_FIRE_SIZE_MULT     = 1.25
 local CRASH_CULLING_RADIUS     = 200
 local CRASH_ALWAYS_EMIT        = true
 local CRASH_MAX_DURATION       = 450
@@ -163,8 +163,8 @@ local crashScale = {
 	COST_REF        = 250,
 	RADIUS_WEIGHT   = 0.4,
 	COST_WEIGHT     = 0.7,
-	MIN             = 0.75,
-	MAX             = 1.25,
+	MIN             = 0.66,
+	MAX             = 1.15,
 	SIZE_EXP        = 0.8,
 	LIFE_EXP        = 0.5,
 	SPAWN_EXP       = 0.6,
@@ -246,6 +246,7 @@ local vsSrc = [[
 //__ENGINEUNIFORMBUFFERDEFS__
 
 uniform vec3 windVelocity;
+uniform vec4 highlightPass;  // x=enabled, y=sizeMult, z=yOffset, w=1/lifetimeMult
 
 layout (location = 0) in vec4 position_xy_uv;
 
@@ -268,6 +269,20 @@ void main()
 	float ageFrames = currentFrame - worldPos.w;
 	float lifetime = velocity.w;
 	float normalizedAge = clamp(ageFrames / lifetime, 0.0, 1.0);
+
+	// Highlight pass: skip fire particles, shorten effective lifetime
+	if (highlightPass.x > 0.5) {
+		if (sizeAndType.y > 0.5) {
+			gl_Position = vec4(-9999.0, -9999.0, -9999.0, 1.0);
+			particleColor = vec4(0.0);
+			texCoords = vec2(0.0);
+			animFrame = 0.0;
+			rowVariant = 0.0;
+			isFireParticle = 0.0;
+			return;
+		}
+		normalizedAge = clamp(normalizedAge * highlightPass.w, 0.0, 1.0);
+	}
 
 	// Kill expired particles
 	if (normalizedAge >= 1.0 || ageFrames < 0.0) {
@@ -292,6 +307,9 @@ void main()
 	// Buoyancy
 	pos.y += 0.004 * ageFrames * ageFrames;
 
+	// Highlight pass: Y offset (applied before wind/wobble)
+	pos.y += highlightPass.z;
+
 	// Wind drift: accumulates over particle age, smoke drifts more than fire
 	float windMult = mix(WIND_SMOKE_MULT, WIND_SMOKE_MULT * WIND_FIRE_MULT, step(0.5, sizeAndType.y));
 	pos.x += windVelocity.x * ageFrames * windMult;
@@ -312,6 +330,11 @@ void main()
 	float lifetimeGrowth = baseSize * (1.0 + growCurve * SMOKE_GROWTH_MULT);
 	float timeGrowth = ageFrames * SMOKE_GROWTH_RATE;
 	float sizeGrowth = lifetimeGrowth + timeGrowth;
+
+	// Highlight pass: smaller size, Y offset
+	if (highlightPass.x > 0.5) {
+		sizeGrowth *= highlightPass.y;
+	}
 
 	// Billboard
 	vec3 camRight = cameraViewInv[0].xyz;
@@ -362,7 +385,8 @@ void main()
 	// Per-particle brightness variation for smoke
 	if (isFireParticle < 0.5) {
 		float brightnessVar = 0.5 + seed * 0.5;
-		cmapColor.rgb *= brightnessVar * colorTint.rgb;
+		float hBright = (highlightPass.x > 0.5) ? HIGHLIGHT_BRIGHT : 1.0;
+		cmapColor.rgb *= brightnessVar * colorTint.rgb * hBright;
 	}
 
 	cmapColor.a *= colorTint.a;
@@ -472,6 +496,19 @@ local windStrength = 0
 -- Cached FPS-based update interval floor (refreshed every 15 frames)
 local cachedFpsInterval = 1
 
+-- Debug timing accumulators (only used when debugEcho = true)
+local debugTimingSamples = 0
+local debugTimings = {
+	housekeeping = 0,
+	qualityPreset = 0,
+	removeExpired = 0,
+	pieceProjectiles = 0,
+	crashingAircraft = 0,
+	pointEmitters = 0,
+	cleanup = 0,
+	totalFrame = 0,
+}
+
 -- Cached per-frame state
 local cachedGameFrame = 0
 local cachedCamX, cachedCamY, cachedCamZ = 0, 0, 0
@@ -571,14 +608,12 @@ local particleData = {0,0,0,0, 0,0,0,0, 0,0,0,0, 1,1,1,0}
 local function spawnParticle(px, py, pz, vx, vy, vz, size, cmapVariant, lifetime, alphaMult, tintBrightness)
 	if particleVBO.usedElements >= currentBudgetLimit then return end
 
-	local currentFrame = cachedGameFrame
 	local seed = mathRandom()
-	local rotation = (mathRandom() * 2 - 1) * mathPi
 
 	particleData[1] = px
 	particleData[2] = py
 	particleData[3] = pz
-	particleData[4] = currentFrame
+	particleData[4] = cachedGameFrame
 	particleData[5] = vx
 	particleData[6] = vy
 	particleData[7] = vz
@@ -586,7 +621,7 @@ local function spawnParticle(px, py, pz, vx, vy, vz, size, cmapVariant, lifetime
 	particleData[9] = size
 	particleData[10] = cmapVariant
 	particleData[11] = seed
-	particleData[12] = rotation
+	particleData[12] = (mathRandom() * 2 - 1) * mathPi
 	local tb = tintBrightness or 1.0
 	particleData[13] = tb
 	particleData[14] = tb
@@ -597,7 +632,7 @@ local function spawnParticle(px, py, pz, vx, vy, vz, size, cmapVariant, lifetime
 	local particleID = nextParticleID
 	pushElementInstance(particleVBO, particleData, particleID, true, false)
 
-	local deathFrame = currentFrame + mathCeil(lifetime) + 5
+	local deathFrame = cachedGameFrame + mathCeil(lifetime) + 2
 	local queue = particleRemoveQueue[deathFrame]
 	if not queue then
 		queue = {}
@@ -626,11 +661,12 @@ local shaderSourceCache = {
 	shaderConfig = {
 		SMOKE_GROWTH_MULT  = 1.05,   -- growth over lifetime
 		SMOKE_GROWTH_RATE  = 0.11,   -- time-based growth per frame (elmos)
-		SMOKE_WOBBLE_START = 1,      -- initial turbulence amplitude (elmos)
-		SMOKE_WOBBLE_RAMP  = 0.5,    -- wobble ramp over lifetime, scaled by particle size
-		SMOKE_WOBBLE_RATE  = 0.11,   -- time-based wobble growth per frame (elmos)
+		SMOKE_WOBBLE_START = 0.6,      -- initial turbulence amplitude (elmos)
+		SMOKE_WOBBLE_RAMP  = 0.4,    -- wobble ramp over lifetime, scaled by particle size
+		SMOKE_WOBBLE_RATE  = 0.1,   -- time-based wobble growth per frame (elmos)
 		WIND_SMOKE_MULT    = 0.0012, -- wind push on smoke (per frame * wind speed)
 		WIND_FIRE_MULT     = 0.2,    -- fire wind resistance (fraction of smoke)
+		HIGHLIGHT_BRIGHT   = SMOKE_HIGHLIGHT_BRIGHT, -- highlight brightness multiplier
 	},
 	forceupdate = true,
 }
@@ -685,6 +721,9 @@ end
 --------------------------------------------------------------------------------
 -- Drawing
 --------------------------------------------------------------------------------
+-- Pre-computed highlight pass uniform values
+local HIGHLIGHT_LIFE_INV = 1.0 / SMOKE_HIGHLIGHT_LIFE  -- = 1/0.7 ≈ 1.4286
+
 local function DrawParticles()
 	if not particleVBO or particleVBO.usedElements == 0 then return end
 	if not particleShader then return end
@@ -700,9 +739,15 @@ local function DrawParticles()
 
 	particleShader:Activate()
 
-	-- Upload wind uniform each draw call
+	-- Upload wind uniform
 	particleShader:SetUniformFloat("windVelocity", windX, 0, windZ)
 
+	-- Pass 1: Normal rendering (all particles)
+	particleShader:SetUniformFloat("highlightPass", 0, 1, 0, 1)
+	particleVBO:Draw()
+
+	-- Pass 2: Smoke highlight (fire particles killed in VS, smoke gets offset/brighter/smaller/shorter)
+	particleShader:SetUniformFloat("highlightPass", 1, SMOKE_HIGHLIGHT_SIZE, SMOKE_HIGHLIGHT_OFFSET_Y, HIGHLIGHT_LIFE_INV)
 	particleVBO:Draw()
 
 	particleShader:Deactivate()
@@ -715,22 +760,14 @@ local function DrawParticles()
 	glDepthTest(false)
 end
 
--- Remove expired particles from VBO
+-- Remove expired particles from VBO (runs every frame, pops exact deathFrame queue)
 local function removeExpiredParticles(gameFrame)
-	if gameFrame % 4 ~= 0 then return end
-	local idToIdx = particleVBO.instanceIDtoIndex
-	for frame = gameFrame - 5, gameFrame do
-		local queue = particleRemoveQueue[frame]
-		if queue then
-			for i = 1, #queue do
-				local pid = queue[i]
-				if idToIdx[pid] then
-					popElementInstance(particleVBO, pid)
-				end
-			end
-			particleRemoveQueue[frame] = nil
-		end
+	local queue = particleRemoveQueue[gameFrame]
+	if not queue then return end
+	for i = 1, #queue do
+		popElementInstance(particleVBO, queue[i])
 	end
+	particleRemoveQueue[gameFrame] = nil
 end
 
 --------------------------------------------------------------------------------
@@ -797,17 +834,6 @@ local function spawnPointEmitterParticles(emitter, gameFrame, preset)
 		local smokeLife = (POINT_SMOKE_LIFE_MIN + mathRandom() * POINT_SMOKE_LIFE_RANGE) * (1.0 + sizeRand * PARTICLE_SIZE_INV_RANGE) * smokeLifeBase
 		local smokeAlpha = (PIECE_ALPHA_MIN + mathRandom() * PIECE_ALPHA_RANGE) * smokeAlphaBase
 		spawnParticle(spx, spy, spz, svx, svy, svz, particleSize, 0, smokeLife, smokeAlpha)
-
-		if SMOKE_HIGHLIGHT_ENABLED then
-			spawnParticle(
-				spx, spy + SMOKE_HIGHLIGHT_OFFSET_Y, spz,
-				svx, svy, svz,
-				particleSize * SMOKE_HIGHLIGHT_SIZE, 0,
-				smokeLife * SMOKE_HIGHLIGHT_LIFE,
-				smokeAlpha * SMOKE_HIGHLIGHT_ALPHA,
-				SMOKE_HIGHLIGHT_BRIGHT
-			)
-		end
 	end
 
 	-- Fire particle
@@ -906,17 +932,6 @@ local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 			local smokeLife = (PIECE_LIFETIME_MIN + (tracked.lifeBias + mathRandom() * 0.3) * PIECE_LIFETIME_RANGE) * (1.0 + sizeRand * PARTICLE_SIZE_INV_RANGE) * smokeLifeBase
 			local smokeAlpha = (PIECE_ALPHA_MIN + mathRandom() * PIECE_ALPHA_RANGE) * smokeAlphaBase
 			spawnParticle(spx, spy, spz, svx, svy, svz, particleSize, 0, smokeLife, smokeAlpha)
-
-			if SMOKE_HIGHLIGHT_ENABLED then
-				spawnParticle(
-					spx, spy + SMOKE_HIGHLIGHT_OFFSET_Y, spz,
-					svx, svy, svz,
-					particleSize * SMOKE_HIGHLIGHT_SIZE, 0,
-					smokeLife * SMOKE_HIGHLIGHT_LIFE,
-					smokeAlpha * SMOKE_HIGHLIGHT_ALPHA,
-					SMOKE_HIGHLIGHT_BRIGHT
-				)
-			end
 		end
 	end
 
@@ -1066,17 +1081,6 @@ local function spawnCrashTrailParticles(tracked, unitID, gameFrame)
 			local smokeLife = (CRASH_LIFETIME_MIN + mathRandom() * CRASH_LIFETIME_RANGE) * (1.0 + sizeRand * PARTICLE_SIZE_INV_RANGE) * smokeLifeBase
 			local smokeAlpha = (CRASH_ALPHA_MIN + mathRandom() * CRASH_ALPHA_RANGE) * smokeAlphaBase
 			spawnParticle(spx, spy, spz, svx, svy, svz, particleSize, 0, smokeLife, smokeAlpha)
-
-			if SMOKE_HIGHLIGHT_ENABLED then
-				spawnParticle(
-					spx, spy + SMOKE_HIGHLIGHT_OFFSET_Y, spz,
-					svx, svy, svz,
-					particleSize * SMOKE_HIGHLIGHT_SIZE, 0,
-					smokeLife * SMOKE_HIGHLIGHT_LIFE,
-					smokeAlpha * SMOKE_HIGHLIGHT_ALPHA,
-					SMOKE_HIGHLIGHT_BRIGHT
-				)
-			end
 		end
 	end
 
@@ -1297,9 +1301,10 @@ end
 function gadget:GameFrame(n)
 	if not particleVBO then return end
 
-	if debugEcho and n % 30 == 0 then
-		spEcho("Fire Smoke GL4: quality -> " .. cachedPreset.name .. " (avg: " .. mathFloor(avgParticleCount) .. ")")
-
+	local t0, t1, tStart  -- debug timer locals (only used when debugEcho is true)
+	if debugEcho then
+		tStart = spGetTimer()
+		t0 = tStart
 	end
 
 	cachedGameFrame = n
@@ -1310,11 +1315,29 @@ function gadget:GameFrame(n)
 	if nMod == 0 then updateMaxParticles(n) end
 	if n % 10 == 0 then updateWind(n) end
 
+	if debugEcho then
+		t1 = spGetTimer()
+		debugTimings.housekeeping = debugTimings.housekeeping + spDiffTimers(t1, t0, true)
+		t0 = t1
+	end
+
 	-- Quality auto-scaling
 	updateQualityPreset(n)
 
+	if debugEcho then
+		t1 = spGetTimer()
+		debugTimings.qualityPreset = debugTimings.qualityPreset + spDiffTimers(t1, t0, true)
+		t0 = t1
+	end
+
 	-- Remove expired particles
 	removeExpiredParticles(n)
+
+	if debugEcho then
+		t1 = spGetTimer()
+		debugTimings.removeExpired = debugTimings.removeExpired + spDiffTimers(t1, t0, true)
+		t0 = t1
+	end
 
 	-- Determine update interval based on load
 	local updateInterval = 1
@@ -1336,8 +1359,28 @@ function gadget:GameFrame(n)
 
 	if n % updateInterval == 0 then
 		updatePieceProjectiles(n)
+
+		if debugEcho then
+			t1 = spGetTimer()
+			debugTimings.pieceProjectiles = debugTimings.pieceProjectiles + spDiffTimers(t1, t0, true)
+			t0 = t1
+		end
+
 		updateCrashingAircraft(n)
+
+		if debugEcho then
+			t1 = spGetTimer()
+			debugTimings.crashingAircraft = debugTimings.crashingAircraft + spDiffTimers(t1, t0, true)
+			t0 = t1
+		end
+
 		updatePointEmitters(n)
+
+		if debugEcho then
+			t1 = spGetTimer()
+			debugTimings.pointEmitters = debugTimings.pointEmitters + spDiffTimers(t1, t0, true)
+			t0 = t1
+		end
 	end
 
 	-- Clean up pending death data periodically
@@ -1356,9 +1399,38 @@ function gadget:GameFrame(n)
 		end
 	end
 
-	if debugEcho and n % 30 == 0 then
-		spEcho("Fire Smoke GL4: particles=" .. mathFloor(avgParticleCount) .. " quality=" .. QUALITY_PRESETS[currentPreset].name
-			.. " emitters=" .. pointEmitterCount .. " wind=" .. mathFloor(windStrength))
+	if debugEcho then
+		t1 = spGetTimer()
+		debugTimings.cleanup = debugTimings.cleanup + spDiffTimers(t1, t0, true)
+		debugTimings.totalFrame = debugTimings.totalFrame + spDiffTimers(t1, tStart, true)
+		debugTimingSamples = debugTimingSamples + 1
+
+		if n % 30 == 0 and debugTimingSamples > 0 then
+			local inv = 1000 / debugTimingSamples  -- convert to microseconds per frame
+			local trackedPieceCount = 0
+			for _ in pairs(trackedPieceProjectiles) do trackedPieceCount = trackedPieceCount + 1 end
+			spEcho(string.format(
+				"Fire Smoke GL4 timing (us/frame avg over %d frames): TOTAL=%.1f  housekeep=%.1f  quality=%.1f  removeExp=%.1f  pieces=%.1f  crash=%.1f  pointEm=%.1f  cleanup=%.1f  | particles=%d  pieces=%d  crashes=%d  emitters=%d  preset=%s  wind=%d",
+				debugTimingSamples,
+				debugTimings.totalFrame * inv,
+				debugTimings.housekeeping * inv,
+				debugTimings.qualityPreset * inv,
+				debugTimings.removeExpired * inv,
+				debugTimings.pieceProjectiles * inv,
+				debugTimings.crashingAircraft * inv,
+				debugTimings.pointEmitters * inv,
+				debugTimings.cleanup * inv,
+				mathFloor(avgParticleCount),
+				trackedPieceCount,
+				crashingAircraftCount,
+				pointEmitterCount,
+				cachedPreset.name,
+				mathFloor(windStrength)
+			))
+			-- Reset accumulators
+			for k in pairs(debugTimings) do debugTimings[k] = 0 end
+			debugTimingSamples = 0
+		end
 	end
 end
 
