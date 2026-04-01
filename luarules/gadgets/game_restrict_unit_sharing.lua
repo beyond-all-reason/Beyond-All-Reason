@@ -7,7 +7,7 @@ function gadget:GetInfo()
 		author  = 'RebelNode',
 		date    = 'January 2026',
 		license = 'GNU GPL, v2 or later',
-		layer   = 0,
+		layer   = -2, -- before unit_healthbars_widget_forwarding so that AllowFeatureBuildStep will prevent reclaim bar from showing
 		enabled = true
 	}
 end
@@ -70,6 +70,14 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, captu
 	elseif ecoUnits[unitDefID] then
 		local _, maxHealth = Spring.GetUnitHealth(unitID)
 		Spring.AddUnitDamage(unitID, maxHealth * 5, 30) -- Stun for 30 seconds.
+	end
+	return true
+end
+
+-- Spring.SetUnitBuildSpeed does not affect features so also prevent feature reclaim/resurrect on debuffed builders using AllowFeatureBuildStep.
+function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
+	if debuffedUnits[builderID] then
+		return false
 	end
 	return true
 end
