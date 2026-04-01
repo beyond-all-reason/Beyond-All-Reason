@@ -421,6 +421,15 @@ if not gadgetHandler:IsSyncedCode() then
 		lastSunChanged = df
 	end
 
+	local function isAuthorizedWrapper(func)
+		return function(cmd, line, words, playerID)
+			-- TODO: add some way for non admin users to authorize themselves in multiplier?
+			if GG.isAuthorized(playerID) then
+				func(cmd, line, words, playerID)
+			end
+		end
+	end
+
 	function gadget:Initialize()
 		initial_atmosphere_lighting = GetLightingAndAtmosphere()
 		for i, nightConf in ipairs(nightModeConfig) do 
@@ -430,9 +439,9 @@ if not gadgetHandler:IsSyncedCode() then
 		gadgetHandler:AddSyncAction("GetLightingAndAtmosphere", GetLightingAndAtmosphere)
 		gadgetHandler:AddSyncAction("SetLightingAndAtmosphere", SetLightingAndAtmosphere)
 		gadgetHandler:AddSyncAction("MixLightingAndAtmosphere", MixLightingAndAtmosphere)
-		gadgetHandler:AddChatAction("NightMode", SetNightMode)
-		gadgetHandler:AddChatAction("NightModeToggle", NightModeToggle)
-		gadgetHandler:AddChatAction("PrintSun", PrintSun)
+		gadgetHandler:AddChatAction("NightMode", isAuthorizedWrapper(SetNightMode))
+		gadgetHandler:AddChatAction("NightModeToggle", isAuthorizedWrapper(NightModeToggle))
+		gadgetHandler:AddChatAction("PrintSun", isAuthorizedWrapper(PrintSun))
 		gadgetHandler:RegisterGlobal("NightModeParams", {r=1, g=1, b=1, s=1, a= 1})
 	end
 
