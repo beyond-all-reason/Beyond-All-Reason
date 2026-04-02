@@ -68,6 +68,23 @@ if not table.mergeInPlace then
 	end
 end
 
+if not table.ensureTable then
+	---Ensures a table exists at the specified key, creating one if needed.
+	---@param tbl table
+	---@param key any
+	---@return table nested in tbl at key
+	function table.ensureTable(tbl, key)
+		local sub = tbl[key]
+		if sub == nil then
+			sub = {}
+			tbl[key] = sub
+		elseif type(sub) ~= "table" then
+			error("existing entry is not a table")
+		end
+		return sub
+	end
+end
+
 if not table.toString then
 	local stringRep = string.rep
 	local tableSort = table.sort
@@ -94,6 +111,8 @@ if not table.toString then
 		end
 	end
 
+	local tableConcat = table.concat
+
 	tableToString = function(tbl, options, _seen, _depth)
 		_seen = _seen or {}
 		_depth = _depth or 0
@@ -115,47 +134,57 @@ if not table.toString then
 		_seen[tbl] = true
 
 		local keys = {}
+		local keyCount = 0
 		for key in pairs(tbl) do
-			keys[#keys + 1] = key
+			keyCount = keyCount + 1
+			keys[keyCount] = key
 		end
 		tableSort(keys, (options and options.keyCmp) or keyCmp)
 
 		local indent = (options and options.indent) or DEFAULT_INDENT_STEP
+		local pretty = options and options.pretty
 
-		local str = "{"
-		if #keys > 0 and options and options.pretty then
-			str = str .. "\n"
+		local parts = {}
+		local n = 0
+
+		n = n + 1; parts[n] = "{"
+		if keyCount > 0 and pretty then
+			n = n + 1; parts[n] = "\n"
 		end
-		for i, key in ipairs(keys) do
-			if options and options.pretty then
-				str = str .. stringRep(" ", (_depth + 1) * indent)
+		for i = 1, keyCount do
+			local key = keys[i]
+			if pretty then
+				n = n + 1; parts[n] = stringRep(" ", (_depth + 1) * indent)
 			end
 			if key ~= i then
 				local keyType = type(key)
 				if keyType == "string" then
-					str = str .. key .. "="
+					n = n + 1; parts[n] = key
+					n = n + 1; parts[n] = "="
 				elseif keyType == "number" then
-					str = str .. "[" .. key .. "]="
+					n = n + 1; parts[n] = "["
+					n = n + 1; parts[n] = tostring(key)
+					n = n + 1; parts[n] = "]="
 				else
-					str = str .. "[" .. tableToString(key, options, _seen) .. "]="
+					n = n + 1; parts[n] = "["
+					n = n + 1; parts[n] = tableToString(key, options, _seen)
+					n = n + 1; parts[n] = "]="
 				end
 			end
-			str = str .. tableToString(tbl[key], options, _seen, _depth + 1) .. ","
-			if options and options.pretty then
-				str = str .. "\n"
+			n = n + 1; parts[n] = tableToString(tbl[key], options, _seen, _depth + 1)
+			if i < keyCount or pretty then
+				n = n + 1; parts[n] = ","
+			end
+			if pretty then
+				n = n + 1; parts[n] = "\n"
 			end
 		end
-		if #keys > 0 then
-			-- remove the last comma (normal) or newline (pretty)
-			str = str:sub(1, #str - 1)
-
-			if options and options.pretty then
-				str = str .. "\n" .. stringRep(" ", _depth * indent)
-			end
+		if keyCount > 0 and pretty then
+			n = n + 1; parts[n] = stringRep(" ", _depth * indent)
 		end
-		str = str .. "}"
+		n = n + 1; parts[n] = "}"
 
-		return str
+		return tableConcat(parts)
 	end
 
 	---Recursively turns a table into a string, suitable for printing.
@@ -227,8 +256,10 @@ end
 
 if not table.append then
 	function table.append(appendTarget, appendData)
-		for _, value in pairs(appendData) do
-			appendTarget[#appendTarget + 1] = value
+		local n = #appendTarget
+		for i = 1, #appendData do
+			n = n + 1
+			appendTarget[n] = appendData[i]
 		end
 	end
 end
@@ -293,6 +324,22 @@ if not table.contains then
 	---@return boolean
 	function table.contains(tbl, value)
 		return table.getKeyOf(tbl, value) ~= nil
+	end
+end
+
+if not table.keys then
+	---Returns all keys of a table as an array, and the count of keys.
+	---@generic K
+	---@param tbl table<K, any>
+	---@return K[] keys
+	---@return number count
+	function table.keys(tbl)
+		local keys, count = {}, 0
+		for key in pairs(tbl) do
+			count = count + 1
+			keys[count] = key
+		end
+		return keys, count
 	end
 end
 

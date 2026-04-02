@@ -44,6 +44,7 @@ return {
 			buildinggrounddecalsizex = 21,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'buildert3',
+			restrictions_inclusion = "_noair_",
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmBuildings/LandFactories",
@@ -81,10 +82,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:YellowLight",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

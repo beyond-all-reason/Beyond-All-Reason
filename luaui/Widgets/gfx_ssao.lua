@@ -34,6 +34,7 @@ local mathPi = math.pi
 -- Localized Spring API for performance
 local spEcho = Spring.Echo
 local spGetViewGeometry = Spring.GetViewGeometry
+local spGetDrawFrame = Spring.GetDrawFrame
 
 -- pre unitStencilTexture it takes 800 ms per frame
 -- todo: fake more ground ao in blur pass?
@@ -46,7 +47,20 @@ local GL_COLOR_ATTACHMENT0_EXT = 0x8CE0
 local GL_RGB16F = 0x881B
 local GL_RGBA8 = 0x8058
 
+local GL_TRIANGLES = GL.TRIANGLES
+local GL_COLOR_BUFFER_BIT = GL.COLOR_BUFFER_BIT
+local GL_ZERO = GL.ZERO
+local GL_ONE = GL.ONE
+local GL_SRC_ALPHA = GL.SRC_ALPHA
+local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
+local GL_DST_COLOR = GL.DST_COLOR
+
 local glTexture = gl.Texture
+local glDepthTest = gl.DepthTest
+local glDepthMask = gl.DepthMask
+local glBlending = gl.Blending
+local glClear = gl.Clear
+local glRawBindFBO = gl.RawBindFBO
 
 -----------------------------------------------------------------
 -- Configuration Constants
@@ -128,6 +142,7 @@ local shaderDefinedSlidersLayer, shaderDefinedSlidersWindow
 
 local cusMult = 1.4
 local strengthMult = 1
+local strengthMultCached = 0 -- pre-computed shaderConfig.SSAO_ALPHA_POW / 7.0, updated in InitGL
 
 local initialTonemapA = Spring.GetConfigFloat("tonemapA", 4.75)
 local initialTonemapD = Spring.GetConfigFloat("tonemapD", 0.85)
@@ -231,6 +246,7 @@ local texrectFullVAO = nil
 local texrectPaddedVAO = nil
 
 local unitStencilTexture
+local getStencilTexture
 
 local unitStencil = nil
 -----------------------------------------------------------------
@@ -442,7 +458,11 @@ local function InitGL()
 
 	-- ensure stencil is available
 	if shaderConfig.USE_STENCIL == 1 then
-		unitStencilTexture = WG['unitstencilapi'].GetUnitStencilTexture()
+		local stencilApi = WG['unitstencilapi']
+		if stencilApi then
+			getStencilTexture = stencilApi.GetUnitStencilTexture
+			unitStencilTexture = getStencilTexture()
+		end
 		shaderConfig.USE_STENCIL = unitStencilTexture and 1 or 0
 	end
 
@@ -518,9 +538,12 @@ local function InitGL()
 
 	local gaussWeights, gaussOffsets = GetGaussLinearWeightsOffsets(shaderConfig.BLUR_SIGMA, shaderConfig.BLUR_HALF_KERNEL_SIZE, 1.0)
 
+	strengthMultCached = shaderConfig.SSAO_ALPHA_POW / 7.0
+
 	gaussianBlurShader:ActivateWith( function()
 		gaussianBlurShader:SetUniformFloatArrayAlways("weights", gaussWeights)
 		gaussianBlurShader:SetUniformFloatArrayAlways("offsets", gaussOffsets)
+		gaussianBlurShader:SetUniformFloatAlways("strengthMult", strengthMultCached)
 	end)
 
 	texrectShader = LuaShader.CheckShaderUpdates({
@@ -541,7 +564,6 @@ local function InitGL()
 
 	-- These are now offset by the half pixel that is needed here due to ceil(vsx/rez)
 	texrectPaddedVAO = InstanceVBOTable.MakeTexRectVAO(-1, -1, 1, 1, 0.0, 0.0, 1.0 - shaderConfig.TEXPADDINGX/shaderConfig.VSX, 1.0 - shaderConfig.TEXPADDINGY/shaderConfig.VSY)
-
 
 end
 
@@ -643,107 +665,102 @@ function widget:Shutdown()
 end
 
 local function DoDrawSSAO()
-	gl.DepthTest(false)
-	gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
-	gl.Blending(false)
+	glDepthTest(false)
+	glBlending(false)
 
-	if shaderConfig.USE_STENCIL == 1 and unitStencilTexture then
-		unitStencilTexture = WG['unitstencilapi'].GetUnitStencilTexture() -- needs this to notify that we want it next frame too
+	local useStencil = shaderConfig.USE_STENCIL == 1 and unitStencilTexture
+	if useStencil then
+		unitStencilTexture = getStencilTexture()
 		glTexture(7, unitStencilTexture)
 	end
 
-
+	local noFuse = shaderConfig.NOFUSE
 	local prevFBO
 
-	if ((shaderConfig.SLOWFUSE == 0) or Spring.GetDrawFrame()%30==0) and (shaderConfig.NOFUSE ~= 1) then
-	prevFBO = gl.RawBindFBO(gbuffFuseFBO)
-		gbuffFuseShader:Activate() -- ~0.25ms
-
-			gbuffFuseShader:SetUniformMatrix("invProjMatrix", "projectioninverse")
-			glTexture(1, "$model_gbuffer_zvaltex")
-			glTexture(4, "$map_gbuffer_zvaltex")
-
-			texrectFullVAO:DrawArrays(GL.TRIANGLES)
-
-			glTexture(1, false)
-			glTexture(4, false)
-
-		gbuffFuseShader:Deactivate()
-	--end)
-	gl.RawBindFBO(nil, nil, prevFBO)
-	end
-
-	prevFBO = gl.RawBindFBO(ssaoFBO)
-		gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-		ssaoShader:Activate()
-			if shaderConfig.NOFUSE > 0 then
+	-- Gbuffer fuse pass: combine model + map depths
+	if ((shaderConfig.SLOWFUSE == 0) or spGetDrawFrame() % 30 == 0) and (noFuse ~= 1) then
+		prevFBO = glRawBindFBO(gbuffFuseFBO)
+			gbuffFuseShader:Activate()
+				gbuffFuseShader:SetUniformMatrix("invProjMatrix", "projectioninverse")
 				glTexture(1, "$model_gbuffer_zvaltex")
 				glTexture(4, "$map_gbuffer_zvaltex")
-			else
-				glTexture(5, gbuffFuseViewPosTex)
-			end
-			glTexture(0, "$model_gbuffer_normtex")
+				texrectFullVAO:DrawArrays(GL_TRIANGLES)
+				glTexture(1, false)
+				glTexture(4, false)
+			gbuffFuseShader:Deactivate()
+		glRawBindFBO(ssaoFBO) -- chain directly to SSAO FBO (avoids restore+rebind)
+	else
+		prevFBO = glRawBindFBO(ssaoFBO)
+	end
 
-			texrectFullVAO:DrawArrays(GL.TRIANGLES)
+	-- SSAO sampling pass (now in ssaoFBO)
+	glClear(GL_COLOR_BUFFER_BIT, 0, 0, 0, 0)
+	ssaoShader:Activate()
+		if noFuse > 0 then
+			glTexture(1, "$model_gbuffer_zvaltex")
+			glTexture(4, "$map_gbuffer_zvaltex")
+		else
+			glTexture(5, gbuffFuseViewPosTex)
+		end
+		glTexture(0, "$model_gbuffer_normtex")
+		texrectFullVAO:DrawArrays(GL_TRIANGLES)
+	ssaoShader:Deactivate()
 
-			for i = 0, 6 do glTexture(i,false) end
-		ssaoShader:Deactivate()
-	gl.RawBindFBO(nil, nil, prevFBO)
+	-- Only unbind texture slots that were actually bound
+	if noFuse > 0 then
+		glTexture(1, false)
+		glTexture(4, false)
+	else
+		glTexture(5, false)
+	end
 
-	glTexture(0, ssaoTex)
+	if shaderConfig.DEBUG_SSAO == 0 then
+		-- Blur passes: chain FBOs (ssaoFBO -> ssaoBlurFBO -> ssaoFBO -> screen)
+		glTexture(0, ssaoTex) -- swap slot 0 from normtex to SSAO result
+		gaussianBlurShader:Activate()
+			gaussianBlurShader:SetUniform("dir", 1.0, 0.0) --horizontal blur
+			glRawBindFBO(ssaoBlurFBO) -- chain from ssaoFBO (reads ssaoTex, safe: ssaoFBO not bound)
+			texrectFullVAO:DrawArrays(GL_TRIANGLES)
 
-	if shaderConfig.DEBUG_SSAO == 0 then -- dont debug ssao
-			gaussianBlurShader:Activate()
+			glTexture(0, ssaoBlurTex)
+			gaussianBlurShader:SetUniform("dir", 0.0, 1.0) --vertical blur
+			glRawBindFBO(ssaoFBO) -- chain from ssaoBlurFBO (reads ssaoBlurTex, safe: ssaoBlurFBO not bound)
+			texrectFullVAO:DrawArrays(GL_TRIANGLES)
 
-				gaussianBlurShader:SetUniform("dir", 1.0, 0.0) --horizontal blur
-				prevFBO = gl.RawBindFBO(ssaoBlurFBO)
-				texrectFullVAO:DrawArrays(GL.TRIANGLES)
-				gl.RawBindFBO(nil, nil, prevFBO)
-				glTexture(0, ssaoBlurTex)
+			glTexture(0, ssaoTex)
+		gaussianBlurShader:Deactivate()
 
-				gaussianBlurShader:SetUniform("strengthMult", shaderConfig.SSAO_ALPHA_POW/ 7.0) --vertical blur
-				gaussianBlurShader:SetUniform("dir", 0.0, 1.0) --vertical blur
-				prevFBO = gl.RawBindFBO(ssaoFBO)
-				texrectFullVAO:DrawArrays(GL.TRIANGLES)
-				gl.RawBindFBO(nil, nil, prevFBO)
-				glTexture(0, ssaoTex)
-
-			gaussianBlurShader:Deactivate()
 		if shaderConfig.DEBUG_BLUR == 1 then
-			gl.Blending(false) -- now blurred tex contains normals
+			glBlending(false)
 		else
 			if shaderConfig.BRIGHTEN == 0 then
-				gl.Blending(GL.ZERO, GL.SRC_ALPHA) -- now blurred tex contains normals
+				glBlending(GL_ZERO, GL_SRC_ALPHA)
 			else
-			-- at this point, Alpha contains occlusoin, and rgb contains brighten factor
-				gl.Blending(GL.DST_COLOR, GL.SRC_ALPHA) -- now blurred tex contains normals
+				glBlending(GL_DST_COLOR, GL_SRC_ALPHA)
 			end
 		end
 	else
+		glTexture(0, ssaoTex)
 		if shaderConfig.DEBUG_BLUR == 1 then
-			gl.Blending(false) -- now blurred tex contains normals
-		else
+			glBlending(false)
 		end
 	end
-	-- Already bound
+
+	-- Restore screen FBO once (single restore for entire chain)
+	glRawBindFBO(nil, nil, prevFBO)
+
 	texrectShader:Activate()
-	texrectPaddedVAO:DrawArrays(GL.TRIANGLES)
+	texrectPaddedVAO:DrawArrays(GL_TRIANGLES)
 	texrectShader:Deactivate()
 
-
 	glTexture(0, false)
-	glTexture(1, false)
-	glTexture(2, false)
-	glTexture(3, false)
-	glTexture(4, false)
-	glTexture(5, false)
-	glTexture(6, false)
-	glTexture(7, false)
+	if useStencil then
+		glTexture(7, false)
+	end
 
-	-- Extremely important, this is the state that we have to leave when exiting DrawWorldPreParticles!
-	gl.Blending(GL.ONE, GL.ONE_MINUS_SRC_ALPHA)
-	gl.DepthMask(false) --"BK OpenGL state resets", already commented out
-	gl.DepthTest(true) --"BK OpenGL state resets", already commented out
+	-- Required exit state for DrawWorldPreParticles
+	glBlending(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
+	glDepthTest(true)
 end
 
 function widget:DrawWorldPreParticles(drawAboveWater, drawBelowWater, drawReflection, drawRefraction)

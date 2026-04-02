@@ -49,6 +49,7 @@ return {
 			buildinggrounddecalsizex = 12,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'buildert2',
+			restrictions_inclusion = "_noair_",
 			airfactory = true,
 			model_author = "Protar/Ghoulish",
 			normaltex = "unittextures/leg_normal.dds",
@@ -88,10 +89,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:WhiteLight",
 				[2] = "custom:radarpulse_t1_slow",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

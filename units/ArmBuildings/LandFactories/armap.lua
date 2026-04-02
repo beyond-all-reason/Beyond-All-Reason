@@ -50,6 +50,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmBuildings/LandFactories",
 			unitgroup = "builder",
+			restrictions_inclusion = "_noair_",
 			usebuildinggrounddecal = true,
 		},
 		featuredefs = {
@@ -85,10 +86,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:YellowLight",
 				[2] = "custom:radarpulse_t1_slow",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

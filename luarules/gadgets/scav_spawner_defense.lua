@@ -2194,16 +2194,18 @@ if gadgetHandler:IsSyncedCode() then
 						captureProgress = math.min(0.05, captureProgress)
 						if Spring.GetUnitTeam(unitID) ~= scavTeamID and GG.IsPosInRaptorScum(ux, uy, uz) then
 							if captureLevel+captureProgress >= 0.99 then
-								TransferUnit(unitID, scavTeamID, false)
-								SetUnitHealth(unitID, {capture = 0.95})
-								SetUnitHealth(unitID, {health = maxHealth})
-								SendToUnsynced("unitCaptureFrame", unitID, 0.95)
-								GG.ScavengersSpawnEffectUnitID(unitID)
 								SpawnCEG("scavmist", ux, uy+100, uz, 0,0,0)
 								SpawnCEG("scavradiation", ux, uy+100, uz, 0,0,0)
 								SpawnCEG("scavradiation-lightning", ux, uy+100, uz, 0,0,0)
-
-								GG.addUnitToCaptureDecay(unitID)
+								-- UnitGiven may destroy and replace this unit with a _scav variant
+								TransferUnit(unitID, scavTeamID, false)
+								if ValidUnitID(unitID) then
+									SetUnitHealth(unitID, {capture = 0.95})
+									SetUnitHealth(unitID, {health = maxHealth})
+									SendToUnsynced("unitCaptureFrame", unitID, 0.95)
+									GG.ScavengersSpawnEffectUnitID(unitID)
+									GG.addUnitToCaptureDecay(unitID)
+								end
 							else
 								SetUnitHealth(unitID, {capture = math.min(captureLevel+captureProgress, 1)})
 								SendToUnsynced("unitCaptureFrame", unitID, math.min(captureLevel+captureProgress, 1))
@@ -2269,12 +2271,12 @@ if gadgetHandler:IsSyncedCode() then
 						createUnitQueue[#createUnitQueue+1] = {UnitDefs[unitDefID].name .. "_scav", x, y, z, GetUnitBuildFacing(unitID) or 0, scavTeamID}
 						DestroyUnit(unitID, true, true)
 					end
+				elseif UnitDefs[unitDefID].customParams.scav_swap_override_captured == "delete" then
+					DestroyUnit(unitID, true, true)
 				elseif UnitDefs[unitDefID].customParams.scav_swap_override_captured ~= "null" then
 					if UnitDefNames[UnitDefs[unitDefID].customParams.scav_swap_override_captured] then
 						createUnitQueue[#createUnitQueue+1] = {UnitDefs[unitDefID].customParams.scav_swap_override_captured, x, y, z, GetUnitBuildFacing(unitID) or 0, scavTeamID}
 					end
-					DestroyUnit(unitID, true, true)
-				elseif UnitDefs[unitDefID].customParams.scav_swap_override_captured == "delete" then
 					DestroyUnit(unitID, true, true)
 				end
 				return

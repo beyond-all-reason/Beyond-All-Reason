@@ -76,12 +76,6 @@ return {
 				resurrectable = 0,
 			},
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-			},
-		},
 		sounds = {
 			activate = "mexon",
 			canceldestruct = "cancel2",

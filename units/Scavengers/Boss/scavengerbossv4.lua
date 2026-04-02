@@ -154,10 +154,6 @@ for difficulty, stats in pairs(difficultyParams) do
 				[3] = "custom:footstep-medium",
 				[4] = "custom:barrelshot-tiny",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
-			},
 		},
 		sounds = {
 			build = "nanlath1",

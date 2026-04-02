@@ -37,6 +37,7 @@ return {
 			subfolder = "ArmBuildings/LandDefenceOffence",
 			techlevel = 2,
 			unitgroup = "weapon",
+			restrictions_inclusion = "_nolrpc_noendgamelrpc_",
 			usebuildinggrounddecal = true,
 		},
 		featuredefs = {
@@ -71,10 +72,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-huge",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

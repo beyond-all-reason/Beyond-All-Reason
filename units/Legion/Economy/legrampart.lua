@@ -42,6 +42,7 @@ return {
             buildinggrounddecalsizex = 10,
             buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'energy',
+			restrictions_exclusion = "_noantinuke_",
             cvbuildable = true,
             geothermal = 1,
             model_author = "Tharsis",
@@ -52,13 +53,6 @@ return {
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",
 			parentsinheritxp = "DRONE",
-        },
-        sfxtypes = {
-            pieceexplosiongenerators = {
-                [1] = "deathceg2",
-                [2] = "deathceg3",
-                [3] = "deathceg4"
-            }
         },
         sounds = {
             canceldestruct = "cancel2",

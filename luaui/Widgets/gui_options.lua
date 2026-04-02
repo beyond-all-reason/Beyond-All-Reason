@@ -154,6 +154,7 @@ local chobbyInterface, font, font2, font3, backgroundGuishader, currentGroupTab,
 local groupRect, titleRect, countDownOptionID, countDownOptionClock, sceduleOptionApply, checkedForWaterAfterGamestart, checkedWidgetDataChanges
 local savedConfig, forceUpdate, sliderValueChanged, selectOptionsList, showSelectOptions, prevSelectHover
 local fontOption, draggingSlider, lastSliderSound, selectClickAllowHide
+local guishaderWasActive = false
 
 local glColor = gl.Color
 local glTexRect = gl.TexRect
@@ -436,6 +437,8 @@ local function clearChatInput()
 	inputText = ''
 	inputTextPosition = 0
 	inputTextInsertActive = false
+	-- Invalidate guishader so it rebuilds with tab blur regions included
+	backgroundGuishader = glDeleteList(backgroundGuishader)
 	applyFilter()
 end
 
@@ -500,7 +503,7 @@ function updateInputDlist()
 		-- background
 		local x2 = math.max(textPosX+lineHeight+floor(usedFont:GetTextWidth(inputText) * inputFontSize), floor(activationArea[1]+((activationArea[3]-activationArea[1])/5)))
 		chatInputArea = { activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance }
-		UiElement(chatInputArea[1], chatInputArea[2], chatInputArea[3], chatInputArea[4], 0,0,nil,nil, 0,nil,nil,nil, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+		UiElement(chatInputArea[1], chatInputArea[2], chatInputArea[3], chatInputArea[4], 0,0,nil,nil, 0,nil,nil,nil, WG.FlowUI.clampedOpacity)
 		if WG['guishader'] then
 			WG['guishader'].InsertRect(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, 'optionsinput')
 		end
@@ -532,9 +535,25 @@ function updateInputDlist()
 end
 
 
+local optionIdIndex = {}
+local function rebuildOptionIdIndex()
+	optionIdIndex = {}
+	for i, option in pairs(options) do
+		if option.id then
+			optionIdIndex[option.id] = i
+		end
+	end
+end
+
 function getOptionByID(id)
+	local idx = optionIdIndex[id]
+	if idx and options[idx] and options[idx].id == id then
+		return idx
+	end
+	-- fallback: linear scan + update index
 	for i, option in pairs(options) do
 		if option.id == id then
+			optionIdIndex[id] = i
 			return i
 		end
 	end
@@ -542,6 +561,13 @@ function getOptionByID(id)
 end
 
 function orderOptions()
+	-- When a filter is active, options are already ordered by relevance with
+	-- context labels inserted by applyFilter(). Skip regrouping to preserve
+	-- that ordering and avoid severing shared references.
+	if inputText and inputText ~= '' and inputMode == '' then
+		return
+	end
+
 	local groupOptions = {}
 	for id, group in pairs(optionGroups) do
 		groupOptions[group.id] = {}
@@ -570,7 +596,10 @@ function orderOptions()
 			end
 		end
 	end
-	options = table.copy(newOptions)
+	-- Use direct assignment instead of table.copy (deep copy) to preserve
+	-- shared references between options and unfilteredOptions.
+	options = newOptions
+	rebuildOptionIdIndex()
 end
 
 function mouseoverGroupTab(id)
@@ -608,7 +637,7 @@ function DrawWindow()
 	windowRect = { screenX, screenY - screenHeight, screenX + screenWidth, screenY }
 
 	-- background
-	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, (showTextInput and inputText ~= '' and inputMode == '') and 1 or 0, 0, 1, (showTextInput and 0 or 1), 1, 1, 1, 1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, (showTextInput and inputText ~= '' and inputMode == '') and 1 or 0, 0, 1, (showTextInput and 0 or 1), 1, 1, 1, 1, WG.FlowUI.clampedOpacity)
 
 	-- title
 	local groupMargin = math.floor(bgpadding * 0.8)
@@ -947,6 +976,8 @@ local isOffscreen = false
 local isOffscreenTime
 local prevOffscreenVolume
 local apiUnitTrackerEnabledCount = 0
+local cachedMuteOffscreen = Spring.GetConfigInt("muteOffscreen", 0) == 1
+local offscreenCheckTimer = 0
 
 function resetUserVolume()
 	if prevOffscreenVolume then
@@ -956,41 +987,56 @@ function resetUserVolume()
 end
 
 function widget:Update(dt)
-	cursorBlinkTimer = cursorBlinkTimer + dt
-	if cursorBlinkTimer > cursorBlinkDuration then cursorBlinkTimer = 0 end
-
-	local prevIsOffscreen = isOffscreen
-	isOffscreen = select(6, Spring.GetMouseState())
-	if isOffscreen and enabledGrabinput then
-		enabledGrabinput = false
-	end
-	if Spring.GetConfigInt("muteOffscreen", 0) == 1 then
-		if isOffscreen ~= prevIsOffscreen then
-			local prevIsOffscreenTime = isOffscreenTime
-			isOffscreenTime = os.clock()
-			if isOffscreen and not prevIsOffscreenTime then
-				prevOffscreenVolume = tonumber(Spring.GetConfigInt("snd_volmaster", 40) or 40)
-			end
-		end
-		if isOffscreenTime then
-			if isOffscreenTime+muteFadeTime > os.clock() then
-				if isOffscreen then
-					Spring.SetConfigInt("snd_volmaster", prevOffscreenVolume*(1-((os.clock()-isOffscreenTime)/muteFadeTime)))
-				else
-					Spring.SetConfigInt("snd_volmaster", prevOffscreenVolume*((os.clock()-isOffscreenTime)/muteFadeTime))
-				end
-			else
-				isOffscreenTime = nil
-				if isOffscreen then
-					Spring.SetConfigInt("snd_volmaster", 0)
-				else
-					resetUserVolume()
-				end
-			end
-		end
+	if show then
+		cursorBlinkTimer = cursorBlinkTimer + dt
+		if cursorBlinkTimer > cursorBlinkDuration then cursorBlinkTimer = 0 end
 	end
 
-	if countDownOptionID and countDownOptionClock and countDownOptionClock < os_clock() then
+	local now = os_clock()
+
+	-- throttle offscreen detection to ~4x/sec (unless actively fading)
+	local checkOffscreen = isOffscreenTime ~= nil
+	if not checkOffscreen then
+		offscreenCheckTimer = offscreenCheckTimer + dt
+		if offscreenCheckTimer > 0.25 then
+			offscreenCheckTimer = 0
+			checkOffscreen = true
+		end
+	end
+	if checkOffscreen then
+		local prevIsOffscreen = isOffscreen
+		isOffscreen = select(6, Spring.GetMouseState())
+		if isOffscreen and enabledGrabinput then
+			enabledGrabinput = false
+		end
+		if cachedMuteOffscreen then
+			if isOffscreen ~= prevIsOffscreen then
+				local prevIsOffscreenTime = isOffscreenTime
+				isOffscreenTime = now
+				if isOffscreen and not prevIsOffscreenTime then
+					prevOffscreenVolume = tonumber(Spring.GetConfigInt("snd_volmaster", 40) or 40)
+				end
+			end
+			if isOffscreenTime then
+				if isOffscreenTime+muteFadeTime > now then
+					if isOffscreen then
+						Spring.SetConfigInt("snd_volmaster", prevOffscreenVolume*(1-((now-isOffscreenTime)/muteFadeTime)))
+					else
+						Spring.SetConfigInt("snd_volmaster", prevOffscreenVolume*((now-isOffscreenTime)/muteFadeTime))
+					end
+				else
+					isOffscreenTime = nil
+					if isOffscreen then
+						Spring.SetConfigInt("snd_volmaster", 0)
+					else
+						resetUserVolume()
+					end
+				end
+			end
+		end
+	end
+
+	if countDownOptionID and countDownOptionClock and countDownOptionClock < now then
 		applyOptionValue(countDownOptionID)
 		countDownOptionID = nil
 		countDownOptionClock = nil
@@ -1009,7 +1055,7 @@ function widget:Update(dt)
 		end
 
 	if sceduleOptionApply then
-		if sceduleOptionApply[1] <= os.clock() then
+		if sceduleOptionApply[1] <= now then
 			applyOptionValue(sceduleOptionApply[2], nil, true, true)
 			sceduleOptionApply = nil
 		end
@@ -1030,7 +1076,7 @@ function widget:Update(dt)
 			detectWater()
 			checkedForWaterAfterGamestart = true
 		end
-		if heightmapChangeClock and heightmapChangeClock + 1 < os_clock() then
+		if heightmapChangeClock and heightmapChangeClock + 1 < now then
 			for k, coords in pairs(heightmapChangeBuffer) do
 				local x = coords[1]
 				local z = coords[2]
@@ -1059,6 +1105,16 @@ function widget:Update(dt)
 	if sec2 > 0.5 then
 		sec2 = 0
 		continuouslyClean = Spring.GetConfigInt("ContinuouslyClearMapmarks", 0) == 1
+		cachedMuteOffscreen = Spring.GetConfigInt("muteOffscreen", 0) == 1
+
+		-- detect guishader toggle: force refresh when it comes back on
+		local guishaderActive = WG['guishader'] ~= nil
+		if guishaderActive and not guishaderWasActive then
+			if backgroundGuishader then
+				backgroundGuishader = glDeleteList(backgroundGuishader)
+			end
+		end
+		guishaderWasActive = guishaderActive
 
 		-- make sure widget is enabled
 		if apiUnitTrackerEnabledCount < 10 and widgetHandler.orderList["API Unit Tracker DEVMODE GL4"] and widgetHandler.orderList["API Unit Tracker DEVMODE GL4"] < 0.5 then
@@ -1076,17 +1132,16 @@ function widget:Update(dt)
 		lastUpdate = sec
 
 		local changes = false
-		for i, option in ipairs(options) do
-			if options[i].widget ~= nil and options[i].type == 'bool' and options[i].value ~= GetWidgetToggleValue(options[i].widget) then
-				options[i].value = GetWidgetToggleValue(options[i].widget)
+		-- Sync widget toggle values in unfilteredOptions (the authoritative list)
+		-- so changes persist across filter apply/clear cycles.
+		for i, option in ipairs(unfilteredOptions) do
+			if option.widget ~= nil and option.type == 'bool' and option.value ~= GetWidgetToggleValue(option.widget) then
+				option.value = GetWidgetToggleValue(option.widget)
 				changes = true
 			end
 		end
 		if changes then
-			if windowList then
-				gl.DeleteList(windowList)
-			end
-			windowList = gl.CreateList(DrawWindow)
+			applyFilter()
 		end
 		if getOptionByID('sndvolmaster') then
 			options[getOptionByID('sndvolmaster')].value = tonumber(Spring.GetConfigInt("snd_volmaster", 40) or 40)    -- update value because other widgets can adjust this too
@@ -1163,9 +1218,13 @@ end
 
 local quitscreen = false
 local prevQuitscreen = false
+local pauseCheckTimer = 0
+local lastPauseCheckClock = os_clock()
+local canPauseGame = (isSinglePlayer or isReplay) and pauseGameWhenSingleplayer
 local function checkQuitscreen()
+	if not canPauseGame then return end
 	quitscreen = (WG['topbar'] and WG['topbar'].showingQuit() or false)
-	if (isSinglePlayer or isReplay) and pauseGameWhenSingleplayer and prevQuitscreen ~= quitscreen then
+	if prevQuitscreen ~= quitscreen then
 		if quitscreen and isClientPaused and not showToggledOff then
 			skipUnpauseOnHide = true
 		end
@@ -1178,9 +1237,20 @@ local function checkQuitscreen()
 end
 
 function widget:DrawScreen()
-	-- doing in separate functions to prevent a > 60 upvalues error
-	checkPause()
-	checkQuitscreen()
+	-- pause/quit checks only needed for singleplayer/replay
+	if canPauseGame then
+		if prevShow ~= show then
+			checkPause()
+		end
+		-- throttle quitscreen polling to ~4x/sec
+		local clockNow = os_clock()
+		pauseCheckTimer = pauseCheckTimer + (clockNow - lastPauseCheckClock)
+		lastPauseCheckClock = clockNow
+		if pauseCheckTimer > 0.25 then
+			pauseCheckTimer = 0
+			checkQuitscreen()
+		end
+	end
 
 	-- doing it here so other widgets having higher layer number value are also loaded
 	if not initialized then
@@ -1751,22 +1821,23 @@ function mouseEvent(mx, my, button, release)
 					if showSelectOptions == nil then
 						if optionButtons then
 							for i, o in pairs(optionButtons) do
-
-								if options[i].type == 'bool' and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
-									applyOptionValue(i, not options[i].value)
-									if playSounds then
-										if options[i].value then
-											Spring.PlaySoundFile(sounds.toggleOnClick, 0.75, 'ui')
-										else
-											Spring.PlaySoundFile(sounds.toggleOffClick, 0.75, 'ui')
+								if options[i] then
+									if options[i].type == 'bool' and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
+										applyOptionValue(i, not options[i].value)
+										if playSounds then
+											if options[i] and options[i].value then
+												Spring.PlaySoundFile(sounds.toggleOnClick, 0.75, 'ui')
+											else
+												Spring.PlaySoundFile(sounds.toggleOffClick, 0.75, 'ui')
+											end
 										end
+									elseif options[i].type == 'slider' and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
+
+									elseif options[i].type == 'select' and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
+
+									elseif optionHover[i] and options[i].onclick ~= nil and math_isInRect(mx, my, optionHover[i][1], optionHover[i][2], optionHover[i][3], optionHover[i][4]) then
+										options[i].onclick(i)
 									end
-								elseif options[i].type == 'slider' and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
-
-								elseif options[i].type == 'select' and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
-
-								elseif optionHover[i] and options[i].onclick ~= nil and math_isInRect(mx, my, optionHover[i][1], optionHover[i][2], optionHover[i][3], optionHover[i][4]) then
-									options[i].onclick(i)
 								end
 							end
 						end
@@ -1775,7 +1846,9 @@ function mouseEvent(mx, my, button, release)
 				else	-- press
 					if not showSelectOptions then
 						for i, o in pairs(optionButtons) do
-							if options[i].type == 'slider' and (math_isInRect(mx, my, o.sliderXpos[1], o[2], o.sliderXpos[2], o[4]) or math_isInRect(mx, my, o[1], o[2], o[3], o[4])) then
+							if not options[i] then
+								-- skip: options table was rebuilt and this index is stale
+							elseif options[i].type == 'slider' and (math_isInRect(mx, my, o.sliderXpos[1], o[2], o.sliderXpos[2], o[4]) or math_isInRect(mx, my, o[1], o[2], o[3], o[4])) then
 								draggingSlider = i
 								draggingSliderPreDragValue = options[draggingSlider].value
 								local newValue = getSliderValue(draggingSlider, mx)
@@ -1803,10 +1876,13 @@ function mouseEvent(mx, my, button, release)
 		end
 
 
-		if windowList then
-			gl.DeleteList(windowList)
+		local needsRedraw = windowClick or titleClick or tabClick
+		if needsRedraw then
+			if windowList then
+				gl.DeleteList(windowList)
+			end
+			windowList = gl.CreateList(DrawWindow)
 		end
-		windowList = gl.CreateList(DrawWindow)
 
 		if windowClick or titleClick or chatinputClick or tabClick then
 			return true
@@ -1904,15 +1980,16 @@ function applyOptionValue(i, newValue, skipRedrawWindow, force)
 		end
 	end
 
-	if options[i].onchange then
+	if options[i] and options[i].onchange then
 		options[i].onchange(i, options[i].value, force)
 	end
 
 	if skipRedrawWindow == nil then
-		if windowList then
-			gl.DeleteList(windowList)
-		end
-		windowList = gl.CreateList(DrawWindow)
+		-- Use applyFilter() to rebuild the window — this preserves the filter
+		-- state and keeps options/unfilteredOptions references in sync.
+		-- Direct DrawWindow calls would run orderOptions() which deep-copies
+		-- the options table, severing links to unfilteredOptions.
+		applyFilter()
 	end
 end
 
@@ -1925,29 +2002,245 @@ function loadAllWidgetData()
 	end
 end
 
--- Efficiently filters options without rebuilding the entire options table
+-- Fuzzy subsequence match: characters of query appear in order within target.
+-- Returns a score > 0 on match, or 0 on no match.
+-- Bonuses: consecutive chars, word boundary matches, start-of-string match.
+-- Penalties: large gaps between matched characters.
+local function fuzzyScore(query, target)
+	local qi = 1
+	local qlen = #query
+	local tlen = #target
+	if qlen == 0 then return 0 end
+	if qlen > tlen then return 0 end
+
+	local score = 0
+	local consecutive = 0
+	local prevMatched = false
+	local firstMatchPos = nil
+	local lastMatchPos = 0
+
+	for ti = 1, tlen do
+		if qi > qlen then break end
+		local tc = string.byte(target, ti)
+		local qc = string.byte(query, qi)
+		if tc == qc then
+			if not firstMatchPos then firstMatchPos = ti end
+			qi = qi + 1
+			-- Gap penalty: penalize distance from previous match
+			if lastMatchPos > 0 then
+				local gap = ti - lastMatchPos - 1
+				if gap > 0 then
+					score = score - gap * 0.5
+				end
+			end
+			lastMatchPos = ti
+			-- Consecutive character bonus
+			if prevMatched then
+				consecutive = consecutive + 1
+				score = score + 3 + consecutive
+			else
+				consecutive = 0
+				score = score + 1
+			end
+			-- Word boundary bonus: char after space, underscore, or start of string
+			if ti == 1 then
+				score = score + 5
+			else
+				local prev = string.byte(target, ti - 1)
+				if prev == 32 or prev == 95 or prev == 45 then -- space, underscore, dash
+					score = score + 4
+				end
+			end
+			prevMatched = true
+		else
+			prevMatched = false
+			consecutive = 0
+		end
+	end
+
+	if qi <= qlen then
+		return 0 -- not all query chars matched
+	end
+
+	-- Bonus for matching near the start
+	if firstMatchPos then
+		score = score + math.max(0, 6 - firstMatchPos)
+	end
+
+	-- Normalize: prefer shorter targets (tighter matches)
+	score = score + math.max(0, 3 - (tlen - qlen) * 0.1)
+
+	return score
+end
+
+-- Efficiently filters options without rebuilding the entire options table.
+-- Priority: exact substring > multi-word AND > fuzzy subsequence.
+-- Within each tier, results are further ranked by match quality.
+-- When a sub-option (name starts with widgetOptionColor) is matched, its parent option
+-- and the group label above it are also included for context.
 function applyFilter()
 	if inputText and inputText ~= '' and inputMode == '' then
-		local filteredOptions = {}
-		for i, option in pairs(unfilteredOptions) do
+		local lowerInput = string.lower(inputText)
+
+		-- Split input into words
+		local queryWords = {}
+		for word in lowerInput:gmatch("%S+") do
+			queryWords[#queryWords + 1] = word
+		end
+		if #queryWords == 0 then
+			options = unfilteredOptions
+			rebuildOptionIdIndex()
+			if windowList then
+				gl.DeleteList(windowList)
+			end
+			windowList = gl.CreateList(DrawWindow)
+			return
+		end
+
+		-- Strip spaces for fuzzy matching (single continuous query)
+		local queryNoSpaces = lowerInput:gsub("%s+", "")
+
+		-- Sub-option prefixes after processing: basic uses widgetOptionColor,
+		-- dev uses devMainOptionColor..devOptionColor, advanced uses advMainOptionColor..advOptionColor
+		local subPrefixes = {
+			widgetOptionColor,
+			devMainOptionColor .. devOptionColor,
+			advMainOptionColor .. advOptionColor,
+		}
+		-- All color codes used (for stripping from names during search)
+		local colorCodes = { widgetOptionColor, devOptionColor, advOptionColor, devMainOptionColor, advMainOptionColor }
+
+		local function isSubOption(name)
+			if not name then return false end
+			for _, prefix in ipairs(subPrefixes) do
+				if string.sub(name, 1, #prefix) == prefix then
+					return true
+				end
+			end
+			return false
+		end
+
+		-- Pre-scan unfilteredOptions to build parent/label context for each option.
+		-- Walking the ordered list: labels and non-sub options are "context".
+		local lastLabel = nil      -- most recent label option (type == 'label')
+		local lastParent = nil     -- most recent non-sub option
+		local optionLabel = {}     -- optionLabel[i] = label option for unfilteredOptions[i]
+		local optionParent = {}    -- optionParent[i] = parent option for unfilteredOptions[i]
+		for i, option in ipairs(unfilteredOptions) do
+			if option.type == 'label' then
+				lastLabel = option
+				lastParent = nil
+			elseif not isSubOption(option.name) then
+				lastParent = option
+			end
+			optionLabel[i] = lastLabel
+			optionParent[i] = lastParent
+		end
+
+		local matched = {}
+
+		for i, option in ipairs(unfilteredOptions) do
 			if option.name and option.name ~= '' and option.type and option.type ~= 'label' then
-				local name = string.gsub(option.name, widgetOptionColor, "")
+				local name = option.name
+				for _, code in ipairs(colorCodes) do
+					name = string.gsub(name, code, "")
+				end
 				name = string.gsub(name, "  ", " ")
-				if string.find(string.lower(name), string.lower(inputText), nil, true) then
-					filteredOptions[#filteredOptions+1] = option
-				elseif option.description and option.description ~= '' and string.find(string.lower(option.description), string.lower(inputText), nil, true) then
-					filteredOptions[#filteredOptions+1] = option
-				elseif string.find(string.lower(option.id), string.lower(inputText), nil, true) then
-					filteredOptions[#filteredOptions+1] = option
+				name = name:match("^%s*(.-)%s*$") or name
+				local lowerName = string.lower(name)
+				local lowerId = string.lower(option.id)
+				local lowerDesc = option.description and option.description ~= '' and string.lower(option.description) or ''
+
+				local score = 0
+
+				-- Tier 1: Exact substring match in name or id (score 300+)
+				local exactPos = string.find(lowerName, lowerInput, nil, true)
+				if exactPos then
+					score = 300 + math.max(0, 50 - exactPos) + math.max(0, 20 - #lowerName)
+				else
+					local idPos = string.find(lowerId, lowerInput, nil, true)
+					if idPos then
+						score = 300 + math.max(0, 50 - idPos) + math.max(0, 20 - #lowerId)
+					end
+				end
+
+				-- Tier 2: Multi-word AND matching (score 100-299)
+				if score == 0 and #queryWords > 1 then
+					local allWordsMatch = true
+					local nameMatches = 0
+					local posSum = 0
+					for _, word in ipairs(queryWords) do
+						local inName = string.find(lowerName, word, nil, true)
+						local inDesc = string.find(lowerDesc, word, nil, true)
+						local inId = string.find(lowerId, word, nil, true)
+						if not inName and not inDesc and not inId then
+							allWordsMatch = false
+							break
+						end
+						if inName then
+							nameMatches = nameMatches + 1
+							posSum = posSum + inName
+						end
+					end
+					if allWordsMatch then
+						local base = (nameMatches == #queryWords) and 200 or 100
+						score = base + math.max(0, 50 - posSum / #queryWords)
+					end
+				end
+
+				-- Tier 3: Fuzzy subsequence matching on name or id (score 1-99)
+				-- Requires at least 3 characters to avoid too many false positives
+				if score == 0 and #queryNoSpaces >= 3 then
+					local nameScore = fuzzyScore(queryNoSpaces, lowerName)
+					local idScore = fuzzyScore(queryNoSpaces, lowerId)
+					local bestScore = math.max(nameScore, idScore)
+					-- Require a minimum quality: score must be at least 2 per query char
+					local minThreshold = #queryNoSpaces * 2
+					if bestScore >= minThreshold then
+						score = math.min(99, bestScore)
+					end
+				end
+
+				if score > 0 then
+					matched[#matched + 1] = { option = option, score = score, index = i }
 				end
 			end
 		end
-		options = filteredOptions
+
+		-- Sort matched entries by score descending
+		table.sort(matched, function(a, b) return a.score > b.score end)
+
+		-- Rebuild with context: for each matched sub-option, prepend its label+parent if not yet shown
+		local shown = {}
+		local result = {}
+		for _, entry in ipairs(matched) do
+			local option = entry.option
+
+			if isSubOption(option.name) then
+				local label = optionLabel[entry.index]
+				if label and not shown[label] then
+					shown[label] = true
+					result[#result + 1] = label
+				end
+				local parent = optionParent[entry.index]
+				if parent and parent ~= option and not shown[parent] then
+					shown[parent] = true
+					result[#result + 1] = parent
+				end
+			end
+
+			if not shown[option] then
+				result[#result + 1] = option
+			end
+		end
+
+		options = result
 		startColumn = 1
 	else
 		-- No filter, use the cached unfiltered options
 		options = unfilteredOptions
 	end
+	rebuildOptionIdIndex()
 
 	-- Rebuild window display list
 	if windowList then
@@ -3527,19 +3820,10 @@ function init()
 
 		{ id = "guishader", group = "ui", category = types.basic, widget = "GUI Shader", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.guishader'), type = "bool", value = GetWidgetToggleValue("GUI Shader") },
 
-		{ id = "rendertotexture", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.rendertotexture'), type = "bool", value = Spring.GetConfigInt("ui_rendertotexture", 1) == 1, description = Spring.I18N('ui.settings.option.rendertotexture_descr'),
-			onchange = function(i, value)
-				Spring.SetConfigInt("ui_rendertotexture", (value and '1' or '0'))
-				Spring.SendCommands("luaui reload")
-			end,
-		},
 
-		{ id = "minimap_maxheight", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.minimap') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.minimap_maxheight'), type = "slider", min = 0.2, max = 0.4, step = 0.01, value = 0.35, description = Spring.I18N('ui.settings.option.minimap_maxheight_descr'),
-		  onload = function(i)
-			  loadWidgetData("Minimap", "minimap_maxheight", { 'maxHeight' })
-		  end,
+		{ id = "minimap_maxheight", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.minimap') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.minimap_maxheight'), type = "slider", min = 0.2, max = 0.4, step = 0.01, value = Spring.GetConfigFloat("MinimapMaxHeight", 0.32), description = Spring.I18N('ui.settings.option.minimap_maxheight_descr'),
 		  onchange = function(i, value)
-			  saveOptionValue('Minimap', 'minimap', 'setMaxHeight', { 'maxHeight' }, value)
+			  Spring.SetConfigFloat("MinimapMaxHeight", value)
 		  end,
 		},
 		{ id = "minimapleftclick", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimapleftclick'), type = "bool", value = Spring.GetConfigInt("MinimapLeftClickMove", 1) == 1, description = Spring.I18N('ui.settings.option.minimapleftclick_descr'),
@@ -3556,6 +3840,9 @@ function init()
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("MinimapIconScale", value)
 			  Spring.SendCommands("minimap unitsize " .. value)        -- spring wont remember what you set with '/minimap iconssize #'
+			  if WG['minimap'] and WG['minimap'].setBaseIconScale then
+				  WG['minimap'].setBaseIconScale(value)
+			  end
 		  end,
 		},
 		{ id = "minimap_minimized", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimapminimized'), type = "bool", value = Spring.GetConfigInt("MinimapMinimize", 0) == 1, description = Spring.I18N('ui.settings.option.minimapminimized_descr'),
@@ -3580,6 +3867,16 @@ function init()
 		  end,
 		},
 		{ id = "minimappip", group = "ui", category = types.advanced, widget = "Picture-in-Picture Minimap", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimappip'), type = "bool", value = GetWidgetToggleValue("Picture-in-Picture Minimap"), description = Spring.I18N('ui.settings.option.minimappip_descr') },
+		{ id = "pip_altkeyzoom", group = "ui", category = types.advanced, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.pip_altkeyzoom'), type = "bool", value = Spring.GetConfigInt("PipAltKeyRequiredForZoom", 1) == 1, description = Spring.I18N('ui.settings.option.pip_altkeyzoom_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("PipAltKeyRequiredForZoom", value and 1 or 0)
+			  for _, n in ipairs({0, 1, 2, 3, 4}) do
+				  if WG['pip' .. n] and WG['pip' .. n].setAltKeyRequiredForZoom then
+					  WG['pip' .. n].setAltKeyRequiredForZoom(value)
+				  end
+			  end
+		  end,
+		},
 
 		{ id = "pip_commandfx", group = "ui", category = types.advanced, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.pip_commandfx'), type = "bool", value = Spring.GetConfigInt("PipDrawCommandFX", 1) == 1, description = Spring.I18N('ui.settings.option.pip_commandfx_descr'),
 		  onchange = function(i, value)
@@ -3588,6 +3885,30 @@ function init()
 				  if WG['pip' .. n] and WG['pip' .. n].setDrawCommandFX then
 					  WG['pip' .. n].setDrawCommandFX(value)
 				  end
+			  end
+		  end,
+		},
+		-- { id = "minimap_engine_fallback", group = "ui", category = types.advanced, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.pip_minimap_engine_fallback'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.pip_minimap_engine_fallback_descr'),
+		--   onload = function(i)
+		-- 	  if WG['minimap'] and WG['minimap'].getEngineMinimapFallback then
+		-- 		  options[getOptionByID('minimap_engine_fallback')].value = WG['minimap'].getEngineMinimapFallback()
+		-- 	  end
+		--   end,
+		--   onchange = function(i, value)
+		-- 	  if WG['minimap'] and WG['minimap'].setEngineMinimapFallback then
+		-- 		  WG['minimap'].setEngineMinimapFallback(value)
+		-- 	  end
+		--   end,
+		-- },
+		{ id = "pip_engine_fallback_threshold", group = "ui", category = types.advanced, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.pip_engine_fallback_threshold'), type = "slider", min = 1500, max = 5000, step = 100, value = 4000, description = Spring.I18N('ui.settings.option.pip_engine_fallback_threshold_descr'),
+		  onload = function(i)
+			  if WG['minimap'] and WG['minimap'].getEngineMinimapFallbackThreshold then
+				  options[getOptionByID('pip_engine_fallback_threshold')].value = WG['minimap'].getEngineMinimapFallbackThreshold()
+			  end
+		  end,
+		  onchange = function(i, value)
+			  if WG['minimap'] and WG['minimap'].setEngineMinimapFallbackThreshold then
+				  WG['minimap'].setEngineMinimapFallbackThreshold(value)
 			  end
 		  end,
 		},
@@ -4807,7 +5128,27 @@ function init()
 		{ id = "factoryholdpos", group = "game", category = types.basic, widget = "Factory hold position", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.factoryholdpos'), type = "bool", value = GetWidgetToggleValue("Factory hold position"), description = Spring.I18N('ui.settings.option.factoryholdpos_descr') },
 		{ id = "factoryrepeat", group = "game", category = types.basic, widget = "Factory Auto-Repeat", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.factoryrepeat'), type = "bool", value = GetWidgetToggleValue("Factory Auto-Repeat"), description = Spring.I18N('ui.settings.option.factoryrepeat_descr') },
 
-		{ id = "transportai", group = "game", category = types.basic, widget = "Transport AI", name = Spring.I18N('ui.settings.option.transportai'), type = "bool", value = GetWidgetToggleValue("Transport AI"), description = Spring.I18N('ui.settings.option.transportai_descr') },
+		{ id = "transportOrderedUnits",
+		group = "game",
+		category = types.basic,
+		name = "Ferry ignores units with manual orders",
+		type = "bool",
+		value = (WG['transportFactoryGuard'] ~= nil and WG['transportFactoryGuard'].getBlacklistOrderedUnits ~= nil and WG['transportFactoryGuard'].getBlacklistOrderedUnits()),
+		description = "If enabled, transports guarding factories will not transport units that were given explicit orders during construction to their move waypoint.",
+		  onload = function(i)
+			  loadWidgetData("Transport Factory Guard", "blacklistOrderedUnits", { 'blacklistOrderedUnits' })
+		  end,
+		onchange = function(_, value)
+				if widgetHandler.configData["transportFactoryGuard"] == nil then
+				  widgetHandler.configData["transportFactoryGuard"] = {}
+			  	end
+				widgetHandler.configData["Auto Group"].immediate = value
+			  	saveOptionValue('Transport Factory Guard', 'transportFactoryGuard', 'setBlacklistOrderedUnits', { 'blacklistOrderedUnits' }, value)
+				if WG['transportFactoryGuard'] and WG['transportFactoryGuard'].setBlacklistOrderedUnits then
+					WG['transportFactoryGuard'].setBlacklistOrderedUnits(value)
+				end
+			end,
+		},
 
 		{ id = "onlyfighterspatrol", group = "game", category = types.basic, widget = "OnlyFightersPatrol", name = Spring.I18N('ui.settings.option.onlyfighterspatrol'), type = "bool", value = GetWidgetToggleValue("Autoquit"), description = Spring.I18N('ui.settings.option.onlyfighterspatrol_descr') },
 		{ id = "fightersfly", group = "game", category = types.basic, widget = "Set fighters on Fly mode", name = Spring.I18N('ui.settings.option.fightersfly'), type = "bool", value = GetWidgetToggleValue("Set fighters on Fly mode"), description = Spring.I18N('ui.settings.option.fightersfly_descr') },
@@ -4853,7 +5194,6 @@ function init()
 
 		{ id = "label_teamcolors", group = "accessibility", name = Spring.I18N('ui.settings.option.label_teamcolors'), category = types.basic },
 		{ id = "label_teamcolors_spacer", group = "accessibility", category = types.basic },
-
 
 		{ id = "anonymous_r", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.anonymous_r'), type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("anonymousColorR", 255)), description = Spring.I18N('ui.settings.option.anonymous_descr'),
 		  onchange = function(i, value, force)
@@ -6305,14 +6645,14 @@ function init()
 		--	options[id].onchange(id, options[id].value)
 		--end
 
-		if Spring.GetConfigInt("Water", 0) ~= 4 then
-			Spring.SendCommands("water 4")
-			Spring.SetConfigInt("Water", 4)
-		end
-		
 		if not devMode and not devUI then
 			options[getOptionByID('cusgl4')] = nil
 			options[getOptionByID('water')] = nil
+		else
+			if Spring.GetConfigInt("Water", 0) ~= 4 then
+				Spring.SendCommands("water 4")
+				Spring.SetConfigInt("Water", 4)
+			end
 		end
 	end
 
@@ -6693,12 +7033,13 @@ function init()
 		applyFilter()
 	end
 
-	-- count num options in each group
+	-- count num options in each group (always use unfilteredOptions so counts
+	-- are correct even when a search filter is active)
 	local groups = {}
 	for id, group in pairs(optionGroups) do
 		groups[group.id] = id
 	end
-	for i, option in pairs(options) do
+	for i, option in pairs(unfilteredOptions) do
 		if groups[option.group] then
 			optionGroups[groups[option.group]].numOptions = optionGroups[groups[option.group]].numOptions + 1
 		end

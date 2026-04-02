@@ -34,6 +34,7 @@ return {
 			subfolder = "ArmBuildings/LandDefenceOffence",
 			techlevel = 2,
 			unitgroup = "emp",
+			restrictions_inclusion = "_notacnukes_",
 			usebuildinggrounddecal = true,
 			yardmap = "ooooooo ooooooo ooooooo ooooooo ooooooo ooooooo",
 		},
@@ -66,13 +67,6 @@ return {
 				object = "Units/arm3X3A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
