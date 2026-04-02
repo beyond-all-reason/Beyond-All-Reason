@@ -38,12 +38,17 @@ local ipairs = ipairs
 -- Constants
 --------------------------------------------------------------------------------
 
-local MAX_QUEUE_DEPTH = 2000
-local MAX_UNITS_PROCESSED_PER_UPDATE = 50
+local MAX_QUEUE_DEPTH = 800
+local MAX_UNITS_PROCESSED_PER_UPDATE = 20
 local PERIODIC_CHECK_DIVISOR = 30 -- every n ticks of UPDATE_INTERVAL
 local DEEP_CHECK_DIVISOR = 150 -- every n ticks of UPDATE_INTERVAL
 local PERIODIC_UPDATE_INTERVAL = 0.12 -- in seconds
 local COMMAND_PROCESSING_DELAY = 0.13
+local MIN_CHECK_INTERVAL = 0.25 -- minimum seconds between full GetUnitCommands for same builder
+
+-- Numeric key shifts for commandId: unitDefId(16b) | positionX(16b) | positionZ(16b) = 48 bits (safe in 53-bit double)
+local POS_SHIFT = 65536         -- 2^16
+local UDEF_SHIFT = 4294967296   -- 2^32
 
 --------------------------------------------------------------------------------
 -- State Management
@@ -57,7 +62,42 @@ local createdUnitIdToCommandIdMap = {}
 local unitsAwaitingCommandProcessing = {}
 local buildersList = {}
 local lastQueueDepth = {}
-local commandLookup = {}
+local lastCheckTime = {}
+
+-- Queue sharing: cache newCommands sets by content hash within a batch
+-- so builders with identical queues share one GetUnitCommands call
+local sharedQueueCache = {}  -- queueDepth -> {hash=..., newCommands=..., queue=...}
+local sharedQueueGeneration = 0
+local tableRefCount = {}  -- table -> number of builders referencing it
+
+local tablePool = {}
+local tablePoolSize = 0
+local function releaseTable(t)
+	for k in pairs(t) do
+		t[k] = nil
+	end
+	tablePoolSize = tablePoolSize + 1
+	tablePool[tablePoolSize] = t
+end
+local function acquireTable(t)
+	tableRefCount[t] = (tableRefCount[t] or 0) + 1
+end
+
+local function releaseRef(t)
+	local count = tableRefCount[t]
+	if not count then
+		-- Not ref-counted, safe to release to pool
+		releaseTable(t)
+		return
+	end
+	count = count - 1
+	if count <= 0 then
+		tableRefCount[t] = nil
+		releaseTable(t)
+	else
+		tableRefCount[t] = count
+	end
+end
 
 -- Event system for notifying consumers
 local Event = {
@@ -80,9 +120,6 @@ local elapsedSeconds = 0
 local nextUpdateTime = PERIODIC_UPDATE_INTERVAL
 local periodicCheckCounter = 1
 
-local tablePool = {}
-local tablePoolSize = 0
-
 local function getTable()
 	if tablePoolSize > 0 then
 		local t = tablePool[tablePoolSize]
@@ -91,14 +128,6 @@ local function getTable()
 		return t
 	end
 	return {}
-end
-
-local function releaseTable(t)
-	for k in pairs(t) do
-		t[k] = nil
-	end
-	tablePoolSize = tablePoolSize + 1
-	tablePool[tablePoolSize] = t
 end
 
 -- Pool for buildCommand objects to reduce allocations
@@ -198,10 +227,6 @@ end
 -- Core Functions
 --------------------------------------------------------------------------------
 
-local function generateId(unitDefId, positionX, positionZ)
-	return unitDefId .. '_' .. positionX .. '_' .. positionZ
-end
-
 local function removeBuilderFromCommand(commandId, unitId)
 	local command = buildCommands[commandId]
 	if command and command.builderIds[unitId] then
@@ -209,12 +234,6 @@ local function removeBuilderFromCommand(commandId, unitId)
 		command.builderCount = command.builderCount - 1
 
 		if command.builderCount == 0 then
-			local uDef = command.unitDefId
-			local pX = command.positionX
-			local pZ = command.positionZ
-			if commandLookup[uDef] and commandLookup[uDef][pX] then
-				commandLookup[uDef][pX][pZ] = nil
-			end
 
 			local createdUnitId = commandIdToCreatedUnitIdMap[commandId]
 			if createdUnitId then
@@ -240,7 +259,7 @@ local function clearBuilderCommands(unitId)
 	for commandId, _ in pairs(oldCommands) do
 		removeBuilderFromCommand(commandId, unitId)
 	end
-	releaseTable(oldCommands)
+	releaseRef(oldCommands)
 	unitBuildCommands[unitId] = nil
 end
 
@@ -251,12 +270,70 @@ local function checkBuilder(unitId, forceUpdate)
 		return
 	end
 
-	if not forceUpdate and lastQueueDepth[unitId] == queueDepth then
+	if not forceUpdate then
+		if lastQueueDepth[unitId] == queueDepth then
+			return
+		end
+		-- Per-builder cooldown to prevent rapid re-fetching
+		local lastTime = lastCheckTime[unitId]
+		if lastTime and (elapsedSeconds - lastTime) < MIN_CHECK_INTERVAL then
+			return
+		end
+	end
+
+	-- Check shared queue cache: if another builder with this depth was already
+	-- processed in the current batch, try to share its result
+	local cached = sharedQueueCache[queueDepth]
+	local queue, queueLen
+	local sharedNewCommands
+
+	if cached and cached.generation == sharedQueueGeneration then
+		-- Validate by comparing first build command position
+		local probeQueue = spGetUnitCommands(unitId, 1)
+		if probeQueue and probeQueue[1] then
+			local probeCmd = probeQueue[1]
+			if probeCmd.id == cached.firstCmdId then
+				local pp = probeCmd.params
+				if pp and cached.firstParamX == mathFloor(pp[1] or 0)
+					and cached.firstParamZ == mathFloor(pp[3] or 0) then
+					-- Same first command, likely identical queue — share result
+					sharedNewCommands = cached.newCommands
+				end
+			end
+		end
+	end
+
+	lastQueueDepth[unitId] = queueDepth
+	lastCheckTime[unitId] = elapsedSeconds
+
+	if sharedNewCommands then
+		-- Reuse shared newCommands: just register this builder on each command
+		for commandId in pairs(sharedNewCommands) do
+			local buildCommand = buildCommands[commandId]
+			if buildCommand and not buildCommand.builderIds[unitId] then
+				buildCommand.builderIds[unitId] = true
+				buildCommand.builderCount = buildCommand.builderCount + 1
+			end
+		end
+
+		-- Remove old commands not in shared set
+		local oldCommands = unitBuildCommands[unitId]
+		if oldCommands then
+			for oldCommandId in pairs(oldCommands) do
+				if not sharedNewCommands[oldCommandId] then
+					removeBuilderFromCommand(oldCommandId, unitId)
+				end
+			end
+			releaseRef(oldCommands)
+		end
+		acquireTable(sharedNewCommands)
+		unitBuildCommands[unitId] = sharedNewCommands
 		return
 	end
-	lastQueueDepth[unitId] = queueDepth
 
-	local queue = spGetUnitCommands(unitId, mathMin(queueDepth, MAX_QUEUE_DEPTH))
+	-- Full fetch path
+	local fetchCount = mathMin(queueDepth, MAX_QUEUE_DEPTH)
+	queue = spGetUnitCommands(unitId, fetchCount)
 	if not queue then return end
 
 	local newCommands = getTable()
@@ -273,22 +350,7 @@ local function checkBuilder(unitId, forceUpdate)
 			local positionX = mathFloor(params[1])
 			local positionZ = mathFloor(params[3])
 
-			local lookupX = commandLookup[unitDefId]
-			if not lookupX then
-				lookupX = {}
-				commandLookup[unitDefId] = lookupX
-			end
-			local lookupZ = lookupX[positionX]
-			if not lookupZ then
-				lookupZ = {}
-				lookupX[positionX] = lookupZ
-			end
-
-			local commandId = lookupZ[positionZ]
-			if not commandId then
-				commandId = generateId(unitDefId, positionX, positionZ)
-				lookupZ[positionZ] = commandId
-			end
+			local commandId = unitDefId * UDEF_SHIFT + positionX * POS_SHIFT + positionZ
 
 			local buildCommand = buildCommands[commandId]
 			if not buildCommand then
@@ -326,10 +388,32 @@ local function checkBuilder(unitId, forceUpdate)
 				removeBuilderFromCommand(oldCommandId, unitId)
 			end
 		end
-		releaseTable(oldCommands)
+		releaseRef(oldCommands)
 	end
 
 	unitBuildCommands[unitId] = newCommands
+
+	-- Cache for queue sharing: store this result for other builders with same depth
+	-- Mark as ref-counted since this table is now shared (original builder + cache)
+	acquireTable(newCommands)
+	local firstCmd = queue[1]
+	local cacheEntry = sharedQueueCache[queueDepth]
+	if not cacheEntry then
+		cacheEntry = {}
+		sharedQueueCache[queueDepth] = cacheEntry
+	end
+	cacheEntry.generation = sharedQueueGeneration
+	cacheEntry.newCommands = newCommands
+	if firstCmd then
+		cacheEntry.firstCmdId = firstCmd.id
+		local fp = firstCmd.params
+		cacheEntry.firstParamX = fp and mathFloor(fp[1] or 0) or 0
+		cacheEntry.firstParamZ = fp and mathFloor(fp[3] or 0) or 0
+	else
+		cacheEntry.firstCmdId = nil
+		cacheEntry.firstParamX = 0
+		cacheEntry.firstParamZ = 0
+	end
 end
 
 local function clearUnit(unitId)
@@ -375,7 +459,9 @@ local function resetStateAndReinitialize()
 	createdUnitIdToCommandIdMap = {}
 	unitsAwaitingCommandProcessing = {}
 	lastQueueDepth = {}
-	commandLookup = {}
+	lastCheckTime = {}
+	tableRefCount = {}
+	sharedQueueCache = {}
 	tablePool = {}
 	tablePoolSize = 0
 
@@ -426,10 +512,11 @@ end
 function widget:Update(dt)
 	elapsedSeconds = elapsedSeconds + dt
 
-	processNewBuildCommands()
-
 	if elapsedSeconds > nextUpdateTime then
 		nextUpdateTime = elapsedSeconds + PERIODIC_UPDATE_INTERVAL
+		-- Advance shared queue generation so cache entries from previous tick expire
+		sharedQueueGeneration = sharedQueueGeneration + 1
+		processNewBuildCommands()
 		periodicBuilderCheck()
 	end
 end
@@ -454,14 +541,7 @@ function widget:UnitCreated(unitId, unitDefId)
 		local positionX = mathFloor(x)
 		local positionZ = mathFloor(z)
 
-		local commandId
-		if commandLookup[unitDefId] and commandLookup[unitDefId][positionX] then
-			commandId = commandLookup[unitDefId][positionX][positionZ]
-		end
-
-		if not commandId then
-			commandId = generateId(unitDefId, positionX, positionZ)
-		end
+		local commandId = unitDefId * UDEF_SHIFT + positionX * POS_SHIFT + positionZ
 
 		local commandData = buildCommands[commandId]
 		if commandData then
