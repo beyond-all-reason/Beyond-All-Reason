@@ -122,9 +122,9 @@ else
 
 		if not mouseOffscreen and prevMouseOffscreen then
 			CacheGadgets()
-			for gadgetName, fileName in pairs(gadgetFileNames) do
-				CheckForChanges(gadgetName, fileName, "unsynced")
-			end
+		end
+		for gadgetName, fileName in pairs(gadgetFileNames) do
+			CheckForChanges(gadgetName, fileName, "unsynced")
 		end
 	end
 
