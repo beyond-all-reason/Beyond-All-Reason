@@ -32,8 +32,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		if group == "builder" or group == "buildert2" or group == "buildert3" then
 			if not unitDef.isImmobile then -- not factory or conturret
 				builderUnits[unitDefID] = true
+			else
+				ecoUnits[unitDefID] = true
 			end
-			ecoUnits[unitDefID] = true
 		elseif group == "energy" or group == "metal" then
 			ecoUnits[unitDefID] = true
 		end
