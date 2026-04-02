@@ -37,6 +37,7 @@ return {
 			subfolder = "Legion/SeaEconomy/T2",
 			techlevel = 2,
 			unitgroup = "energy",
+			restrictions_inclusion = "_nofusion_",
 			usebuildinggrounddecal = true,
 		},
 		featuredefs = {
@@ -71,11 +72,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[0] = "custom:subbubbles",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

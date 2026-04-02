@@ -21,8 +21,6 @@ local mathFloor = math.floor
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGetViewGeometry = Spring.GetViewGeometry
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
-
 local displayFeatureCount = false
 
 local vsx, vsy = spGetViewGeometry()
@@ -81,7 +79,7 @@ local function drawContent()
 		local features = Spring.GetAllFeatures()
 		text = text..'    \255\170\170\170'..#features
 	end
-	font:Begin(useRenderToTexture)
+	font:Begin(true)
 	font:SetOutlineColor(0.15,0.15,0.15,0.8)
 	font:Print(text, left+textXPadding, bottom+(0.48*widgetHeight*widgetScale)-(textsize*0.35), textsize, 'no')
 	font:End()
@@ -99,56 +97,22 @@ local function refreshUiDrawing()
 	end
 
 	if right-left >= 1 and top-bottom >= 1 then
-		if useRenderToTexture then
-			if not uiBgTex then
-				uiBgTex = gl.CreateTexture(mathFloor(right-left), mathFloor(top-bottom), {
-					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
-					fbo = true,
-				})
-				gl.R2tHelper.RenderToTexture(uiBgTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / (right-left), 2 / (top-bottom), 0)
-						gl.Translate(-left, -bottom, 0)
-						drawBackground()
-					end,
-					useRenderToTexture
-				)
-			end
-		else
-			if drawlist[1] ~= nil then
-				glDeleteList(drawlist[1])
-			end
-			drawlist[1] = glCreateList( function()
-				drawBackground()
-			end)
+		if not uiBgTex then
+			uiBgTex = gl.CreateTexture(mathFloor(right-left), mathFloor(top-bottom), {
+				target = GL.TEXTURE_2D,
+				format = GL.RGBA,
+				fbo = true,
+			})
+			gl.R2tHelper.RenderInRect(uiBgTex, left, bottom, right, top, drawBackground, true)
 		end
-		if useRenderToTexture then
-			if not uiTex then
-				uiTex = gl.CreateTexture(mathFloor(right-left), mathFloor(top-bottom), {		--*(vsy<1400 and 2 or 1)
-					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
-					fbo = true,
-				})
-			end
-			gl.R2tHelper.RenderToTexture(uiTex,
-				function()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (right-left), 2 / (top-bottom), 0)
-					gl.Translate(-left, -bottom, 0)
-					drawContent()
-				end,
-				useRenderToTexture
-			)
-		else
-			if drawlist[2] ~= nil then
-				glDeleteList(drawlist[2])
-			end
-			drawlist[2] = glCreateList( function()
-				drawContent()
-			end)
+		if not uiTex then
+			uiTex = gl.CreateTexture(mathFloor(right-left), mathFloor(top-bottom), {		--*(vsy<1400 and 2 or 1)
+				target = GL.TEXTURE_2D,
+				format = GL.RGBA,
+				fbo = true,
+			})
 		end
+		gl.R2tHelper.RenderInRect(uiTex, left, bottom, right, top, drawContent, true)
 	end
 end
 
@@ -247,23 +211,10 @@ function widget:DrawScreen()
 		refreshUiDrawing()
 	end
 
-	if useRenderToTexture then
-		if uiBgTex then
-			gl.R2tHelper.BlendTexRect(uiBgTex, left, bottom, right, top, useRenderToTexture)
-		end
-		if uiTex then
-			gl.R2tHelper.BlendTexRect(uiTex, left, bottom, right, top, useRenderToTexture)
-		end
-	else
-		if drawlist[1] or drawlist[2] then
-			glPushMatrix()
-			if drawlist[1] then
-				glCallList(drawlist[1])
-			end
-			if drawlist[2] then
-				glCallList(drawlist[2])
-			end
-			glPopMatrix()
-		end
+	if uiBgTex then
+		gl.R2tHelper.BlendTexRect(uiBgTex, left, bottom, right, top, true)
+	end
+	if uiTex then
+		gl.R2tHelper.BlendTexRect(uiTex, left, bottom, right, top, true)
 	end
 end

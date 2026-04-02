@@ -231,21 +231,32 @@ end
 function gadget:GameFrame(gf)
 	gameFrame = gf
 	if mapHasWater then 
+		local removeDepth
+		local removeDepthCount = 0
 		for proID, CEG in pairs(depthCharges) do
 			local x,y,z = GetProjectilePosition(proID)
 			if y then
 				if y < 0 then
 					SpawnCEG(CEG,x,0,z)
-					depthCharges[proID] = nil
-					allWatchedProjectileIDs[proID] = nil
+					if not removeDepth then removeDepth = {} end
+					removeDepthCount = removeDepthCount + 1
+					removeDepth[removeDepthCount] = proID
 				end
 			else
-				depthCharges[proID] = nil
-				allWatchedProjectileIDs[proID] = nil
+				if not removeDepth then removeDepth = {} end
+				removeDepthCount = removeDepthCount + 1
+				removeDepth[removeDepthCount] = proID
 			end
+		end
+		for i = 1, removeDepthCount do
+			local proID = removeDepth[i]
+			depthCharges[proID] = nil
+			allWatchedProjectileIDs[proID] = nil
 		end
 	end
 	
+	local removeMissile
+	local removeMissileCount = 0
 	for proID, missile in pairs(missileIDtoProjType) do
         if gf > missileIDtoLifeEnd[proID] then
             local x,y,z = GetProjectilePosition(proID)
@@ -253,13 +264,21 @@ function gadget:GameFrame(gf)
                 local dirX,dirY,dirZ = GetProjectileDirection(proID)
                 SpawnCEG(missile,x,y,z,dirX,dirY,dirZ)
             else
-				missileIDtoProjType[proID] = nil
-				missileIDtoLifeEnd[proID] = nil
-				allWatchedProjectileIDs[proID] = nil
+				if not removeMissile then removeMissile = {} end
+				removeMissileCount = removeMissileCount + 1
+				removeMissile[removeMissileCount] = proID
             end
         end
-    end	
+    end
+	for i = 1, removeMissileCount do
+		local proID = removeMissile[i]
+		missileIDtoProjType[proID] = nil
+		missileIDtoLifeEnd[proID] = nil
+		allWatchedProjectileIDs[proID] = nil
+	end
 	
+	local removeStarburst
+	local removeStarburstCount = 0
 	for proID, missile in pairs(starbursts) do
 		if gf <= missile[4] then
 			local x, y, z = GetProjectilePosition(proID)
@@ -278,13 +297,20 @@ function gadget:GameFrame(gf)
 					end
 				end
 			else
-				starbursts[proID] = nil
-				allWatchedProjectileIDs[proID] = nil
+				if not removeStarburst then removeStarburst = {} end
+				removeStarburstCount = removeStarburstCount + 1
+				removeStarburst[removeStarburstCount] = proID
 			end
 		else
-			starbursts[proID] = nil
-			allWatchedProjectileIDs[proID] = nil
+			if not removeStarburst then removeStarburst = {} end
+			removeStarburstCount = removeStarburstCount + 1
+			removeStarburst[removeStarburstCount] = proID
 		end
+	end
+	for i = 1, removeStarburstCount do
+		local proID = removeStarburst[i]
+		starbursts[proID] = nil
+		allWatchedProjectileIDs[proID] = nil
 	end
 end
 

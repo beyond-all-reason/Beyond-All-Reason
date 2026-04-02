@@ -7,6 +7,8 @@ local tableFunctions = VFS.Include(utilitiesDirectory .. 'tableFunctions.lua')
 local colorFunctions = VFS.Include(utilitiesDirectory .. 'color.lua')
 local safeLuaTableParser = VFS.Include(utilitiesDirectory .. 'safeluaparser.lua')
 
+local accountIDCache = {}
+
 local utilities = {
 	LoadTGA = tga.LoadTGA,
 	SaveTGA = tga.SaveTGA,
@@ -51,6 +53,20 @@ local utilities = {
 	SafeLuaTableParser = safeLuaTableParser.SafeLuaTableParser,
 
 	Color = colorFunctions,
+	ConvertColor = colorFunctions and colorFunctions.ConvertColor,
+
+	GetAccountID = function(playerID)
+		local cached = accountIDCache[playerID]
+		if cached then
+			return cached
+		end
+		local accountInfo = select(11, Spring.GetPlayerInfo(playerID))
+		local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
+		if accountID ~= -1 then
+			accountIDCache[playerID] = accountID
+		end
+		return accountID
+	end,
 }
 
 local debugUtilities = VFS.Include(utilitiesDirectory .. 'debug.lua')

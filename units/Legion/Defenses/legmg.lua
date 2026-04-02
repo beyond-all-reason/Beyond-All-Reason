@@ -5,7 +5,7 @@ return {
 		maxdec = 0,
 		buildangle = 32768,
 		energycost = 5500,
-		metalcost = 420,
+		metalcost = 380,
 		buildpic = "legmg.DDS",
 		buildtime = 7600,
 		canrepeat = false,
@@ -18,7 +18,7 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		mass = 7500,
-		health = 2350,
+		health = 2200,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/LEGMG.s3o",
@@ -73,10 +73,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-tiny",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {
@@ -141,8 +137,8 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 958,
 				damage = {
-					default = 18,
-					vtol = 18,
+					default = 17,
+					vtol = 17,
 				},
 			},
 		},

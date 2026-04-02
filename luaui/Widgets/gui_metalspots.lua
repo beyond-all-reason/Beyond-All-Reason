@@ -65,7 +65,7 @@ local opacity			= 0.5
 
 local innersize			= 1.8		-- outersize-innersize = circle width
 local outersize			= 1.98		-- outersize-innersize = circle width
-local billboardsize 	= 0.5
+local billboardsize 	= 0.38		-- actual fontsize
 
 local maxValue			= 15		-- ignore spots above this metal value (probably metalmap)
 local maxScale			= 4			-- ignore spots above this scale (probably metalmap)
@@ -90,10 +90,10 @@ local incomeMultiplier = select(7, Spring.GetTeamInfo(spGetMyTeamID(), false))
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = mathMin(1.5, (0.5 + (vsx*vsy / 5700000)))
-local fontfileSize = 80
-local fontfileOutlineSize = 26
-local fontfileOutlineStrength = 1.6
+local fontfileScale = 1  -- fixed scale: billboard size is resolution-independent (world-space)
+local fontfileSize = 110
+local fontfileOutlineSize = 12
+local fontfileOutlineStrength = 20
 --spEcho("Loading Font",fontfile,fontfileSize*fontfileScale,fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
@@ -133,6 +133,8 @@ local shaderSourceCache = {
 			},
 		uniformFloat = {
 			visibilitycontrols = {0,0,0,0},
+			drawPass = 0,
+			waterLevel = 0,
 		  },
 		shaderConfig = shaderConfig,
 	}
@@ -482,6 +484,19 @@ end
 
 function widget:Shutdown()
 	if MetalSpotTextAtlas then MetalSpotTextAtlas:Delete() end
+	if spotShader then
+		spotShader:Finalize()
+		spotShader = nil
+	end
+	if spotInstanceVBO then
+		if spotInstanceVBO.VAO then spotInstanceVBO.VAO:Delete() end
+		if spotInstanceVBO.instanceVBO then spotInstanceVBO.instanceVBO:Delete() end
+		spotInstanceVBO = nil
+	end
+	if spotVBO then
+		spotVBO:Delete()
+		spotVBO = nil
+	end
 	WG.metalspots = nil
 	mySpots = {}
 	gl.DeleteFont(font)
@@ -526,6 +541,19 @@ function widget:GameFrame(gf)
 	end
 end
 
+local function getWaterLevel()
+	local lrs = WG.lavaRenderState
+	if lrs and lrs.level then
+		return lrs.level
+	end
+	local level = Spring.GetGameRulesParam("lavaLevel")
+	if level and level ~= -99999 then
+		return level
+	end
+	return 0
+end
+
+-- Draw above-water metalspots before units (old method, no ghost occlusion)
 function widget:DrawWorldPreUnit()
 	local mapDrawMode = spGetMapDrawMode()
 	if metalViewOnly and mapDrawMode ~= 'metal' then return end
@@ -535,9 +563,39 @@ function widget:DrawWorldPreUnit()
 	gl.Culling(true)
 	gl.Texture(0, "$heightmap")
 	gl.Texture(1, AtlasTextureID)
-	gl.DepthTest(false)
+	gl.DepthTest(GL.LEQUAL)
+	gl.DepthMask(false)
 
+	local wl = getWaterLevel()
 	spotShader:Activate()
+	spotShader:SetUniformFloat("drawPass", 0)
+	spotShader:SetUniformFloat("waterLevel", wl)
+	drawInstanceVBO(spotInstanceVBO)
+	spotShader:Deactivate()
+
+	gl.Culling(false)
+	gl.Texture(0, false)
+	gl.Texture(1, false)
+end
+
+-- Draw underwater metalspots after water (not distorted by water shader)
+function widget:DrawWorld()
+	local mapDrawMode = spGetMapDrawMode()
+	if metalViewOnly and mapDrawMode ~= 'metal' then return end
+	if chobbyInterface then return end
+	if spIsGUIHidden() then return end
+
+	gl.Culling(true)
+	gl.Texture(0, "$heightmap")
+	gl.Texture(1, AtlasTextureID)
+	gl.DepthTest(GL.LEQUAL)
+	gl.DepthMask(false)
+	gl.PolygonOffset(-40, -40)
+
+	local wl = getWaterLevel()
+	spotShader:Activate()
+	spotShader:SetUniformFloat("drawPass", 1)
+	spotShader:SetUniformFloat("waterLevel", wl)
 	drawInstanceVBO(spotInstanceVBO)
 	spotShader:Deactivate()
 
@@ -546,6 +604,8 @@ function widget:DrawWorldPreUnit()
 		needsInit = false
 	end
 
+	gl.PolygonOffset(false)
+	gl.DepthTest(false)
 	gl.Culling(false)
 	gl.Texture(0, false)
 	gl.Texture(1, false)

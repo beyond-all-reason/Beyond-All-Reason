@@ -76,10 +76,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small-impulse",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

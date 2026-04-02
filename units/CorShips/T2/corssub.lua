@@ -77,11 +77,6 @@ return {
 				[1] = "custom:subwake",
 				[2] = "custom:subtorpfire-medium",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

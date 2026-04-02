@@ -15,27 +15,21 @@ end
 local broadcastPeriod = 0.12	-- will send packet in this interval (s)
 
 local PACKET_HEADER = "="
-local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
+local PACKET_HEADER_LENGTH = #PACKET_HEADER
 
 if gadgetHandler:IsSyncedCode() then
 
 	local strSub = string.sub
 
-	local charset = {}  do -- [0-9a-zA-Z]
-		for c = 48, 57  do table.insert(charset, string.char(c)) end
-		for c = 65, 90  do table.insert(charset, string.char(c)) end
-		for c = 97, 122 do table.insert(charset, string.char(c)) end
-	end
-	local function randomString(length)
-		if not length or length <= 0 then return '' end
-		return randomString(length - 1) .. charset[math.random(1, #charset)]
-	end
-
-	local validation = randomString(2)
+	local validation = string.randomString(2)
 	_G.validationCam = validation
 
+	local SendToUnsynced = SendToUnsynced
+	local expectedPrefix = PACKET_HEADER .. validation
+	local expectedPrefixLen = #expectedPrefix
+
 	function gadget:RecvLuaMsg(msg, playerID)
-		if strSub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER or strSub(msg, 1+PACKET_HEADER_LENGTH, 1+PACKET_HEADER_LENGTH+1) ~= validation then
+		if strSub(msg, 1, expectedPrefixLen) ~= expectedPrefix then
 			return
 		end
 		SendToUnsynced("cameraBroadcast",playerID,msg)
@@ -59,10 +53,9 @@ else	-- UNSYNCED
 	local strChar = string.char
 
 	local floor = math.floor
+	local math_frexp = math.frexp
+	local math_ldexp = math.ldexp
 
-	local vfsPackF32 = VFS.PackF32
-
-	local totalTime = 0
 	local timeSinceBroadcast = 0
 
 	local lastPacketSent
@@ -72,6 +65,8 @@ else	-- UNSYNCED
 	local CAMERA_STATE_FORMATS = {}
 
 	local validation = SYNCED.validationCam
+	local msgPrefix = PACKET_HEADER .. validation
+	local msgPrefixLen = #msgPrefix
 
 	------------------------------------------------
 	-- H4X
@@ -84,64 +79,43 @@ else	-- UNSYNCED
 	local function CustomUnpackU8(s, offset)
 		local byte = strByte(s, offset)
 		if byte then
-			return strByte(s, offset) - 1
-		else
-			return nil
+			return byte - 1
 		end
 	end
 
 	-- 1 sign bit, 7 exponent bits, 8 mantissa bits, -64 bias, denorm, no infinities or NaNs, avoid zero bytes, big-Endian
 	local function CustomPackF16(num)
-		-- vfsPack is little-Endian
-		local floatChars = vfsPackF32(num)
-		if not floatChars then return nil end
+		if num == 0 then
+			return strChar(1, 1)
+		end
 
+		local m, e = math_frexp(num)
 		local sign = 0
-		local exponent = strByte(floatChars, 4) * 2
-		local mantissa = strByte(floatChars, 3) * 2
-
-		local negative = exponent >= 256
-		local exponentLSB = mantissa >= 256
-		local mantissaLSB = strByte(floatChars, 2) >= 128
-
-		if negative then
+		if m < 0 then
 			sign = 128
-			exponent = exponent - 256
+			m = -m
 		end
 
-		if exponentLSB then
-			exponent = exponent - 126
-			mantissa = mantissa - 256
-		else
-			exponent = exponent - 127
-		end
+		local exp = e - 1
+		local mantissa = floor((2 * m - 1) * 256)
 
-		if mantissaLSB then
-			mantissa = mantissa + 1
-		end
-
-		if exponent > 63 then
-			exponent = 63
-			--largest representable number
+		if exp > 63 then
+			exp = 63
 			mantissa = 255
-		elseif exponent < -62 then
+		elseif exp < -62 then
 			--denorm
-			mantissa = floor((256 + mantissa) * 2^(exponent + 62))
-			--preserve zero-ness
-			if mantissa == 0 and num ~= 0 then
+			mantissa = floor(math_ldexp(m, e + 70))
+			if mantissa == 0 then
 				mantissa = 1
 			end
-			exponent = -63
+			exp = -63
 		end
 
 		if mantissa ~= 255 then
 			mantissa = mantissa + 1
 		end
 
-		local byte1 = sign + exponent + 64
-		local byte2 = mantissa
-
-		return strChar(byte1, byte2)
+		return strChar(sign + exp + 64, mantissa)
 	end
 
 	local function CustomUnpackF16(s, offset)
@@ -155,9 +129,7 @@ else	-- UNSYNCED
 		local mantissa = byte2 - 1
 		local norm = 1
 
-		local negative = (byte1 >= 128)
-
-		if negative then
+		if byte1 >= 128 then
 			exponent = exponent - 128
 			sign = -1
 		end
@@ -167,14 +139,14 @@ else	-- UNSYNCED
 			norm = 0
 		end
 
-		local order = 2^(exponent - 64)
-
-		return sign * order * (norm + mantissa / 256)
+		return sign * math_ldexp(norm + mantissa / 256, exponent - 64)
 	end
 
 	------------------------------------------------
 	-- packets
 	------------------------------------------------
+
+	local tableConcat = table.concat
 
 	-- does not allow spaces in keys; values are numbers
 	local function CameraStateToPacket(s)
@@ -183,19 +155,22 @@ else	-- UNSYNCED
 		local cameraID = CAMERA_IDS[name]
 
 		if not stateFormat or not cameraID then return nil end
-		local result = PACKET_HEADER .. validation .. CustomPackU8(cameraID) .. CustomPackU8(s.mode)
+
+		local parts = { msgPrefix, CustomPackU8(cameraID), CustomPackU8(s.mode) }
+		local n = 3
 
 		for i=1, #stateFormat do
 			local num = s[stateFormat[i]]
 			if not num then return end
-			result = result .. CustomPackF16(num)
+			n = n + 1
+			parts[n] = CustomPackF16(num)
 		end
 
-		return result
+		return tableConcat(parts)
 	end
 
 	local function PacketToCameraState(p)
-		local offset = PACKET_HEADER_LENGTH + 1 + 2
+		local offset = msgPrefixLen + 1
 		local cameraID = CustomUnpackU8(p, offset)
 		local mode = CustomUnpackU8(p, offset + 1)
 		local name = CAMERA_NAMES[cameraID]
@@ -236,6 +211,7 @@ else	-- UNSYNCED
 				packetFormatIndex = packetFormatIndex +1
 			end
 		end
+		table.sort(packetFormat)
 		CAMERA_STATE_FORMATS[name] = packetFormat
 	end
 	SetCameraState(prevCameraState,0)
@@ -246,14 +222,22 @@ else	-- UNSYNCED
 		gadgetHandler:AddSyncAction("cameraBroadcast", handleCameraBroadcastEvent)
 	end
 
+	local spec, fullView = GetSpectatingState()
+	local myAllyTeamID = GetMyAllyTeamID()
+
 	function gadget:Shutdown()
 		SendLuaRulesMsg(PACKET_HEADER)
 		gadgetHandler:RemoveSyncAction("cameraBroadcast")
 	end
 
+	function gadget:PlayerChanged(playerID)
+		spec, fullView = GetSpectatingState()
+		myAllyTeamID = GetMyAllyTeamID()
+	end
+
 	function handleCameraBroadcastEvent(_,playerID,msg)
 		local cameraState
-		-- a packet consisting only of the header indicated that transmission has stopped
+		-- a packet consisting only of the header indicates that transmission has stopped
 		if msg ~= PACKET_HEADER then
 			cameraState = PacketToCameraState(msg)
 			if not cameraState then
@@ -261,21 +245,19 @@ else	-- UNSYNCED
 				return
 			end
 		end
-		local spec, fullView = GetSpectatingState()
 		if not spec or not fullView then
 			local _,_,targetSpec,_,allyTeamID = GetPlayerInfo(playerID,false)
-			if targetSpec or allyTeamID ~= GetMyAllyTeamID() then
+			if targetSpec or allyTeamID ~= myAllyTeamID then
 				return
 			end
 		end
-        if Script.LuaUI("CameraBroadcastEvent") then
-            Script.LuaUI.CameraBroadcastEvent(playerID,cameraState)
-        end
-    end
+		if Script.LuaUI("CameraBroadcastEvent") then
+			Script.LuaUI.CameraBroadcastEvent(playerID,cameraState)
+		end
+	end
 
 	function gadget:Update()
 		local dt = GetLastUpdateSeconds()
-		totalTime = totalTime + dt
 		timeSinceBroadcast = timeSinceBroadcast + dt
 		if timeSinceBroadcast < broadcastPeriod then
 			return

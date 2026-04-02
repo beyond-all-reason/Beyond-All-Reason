@@ -307,7 +307,7 @@ local options = {
 		type	= "bool",
 		section	= "options_main",
 		def		=  false,
-		column	= 1.76,
+		column	= 1.66,
 	},
     {
         key     = "sub_header",
@@ -365,9 +365,9 @@ local options = {
     },
 
 	{
-		key		= "unit_restrictions_nodefence",
-		name	= "Disable Defences",
-		desc	= "Disables Defensive Structures, apart from basic LLTs and basic AA",
+		key		= "unit_restrictions_nosea",
+		name	= "Disable Sea Units",
+		desc	= "Disable Sea Units",
 		type	= "bool",
 		section	= "options_main",
 		def		= false,
@@ -1651,6 +1651,15 @@ local options = {
         def  	= false,
     },
 
+	{
+        key    	= "legionsimplifiedmexes",
+        name   	= "Legion Simplified Mexes",
+        desc   	= "Changes the legion T1 mex to act the same as the other T1 mexes.  Legion light T1 units are given a higher metal cost but lower E cost, and heavy T1 units are given a higher E cost and slightly lower metal cost.",
+        type   	= "bool",
+        section = "options_experimental",
+        def  	= false,
+    },
+
     {
         key     = "experimentallegionfaction_link",
         name    = "Development Discussion",
@@ -1902,34 +1911,11 @@ local options = {
         def 	= false,
     },
 
-    {
-        key 	= "pip",
-        name 	= "Picture-in-picture window",
-        desc 	= "Enables the picture-in-picture window showing a minimap-sized view of a chosen location.",
-        type 	= "bool",
-        section = "options_experimental",
-        def 	= false,
-    },
-
-    {
-        key     = "pip_link",
-        name    = "Report Bugs",
-        desc    = "Thread to report bugs and suggest improvements.",
-        section = "options_experimental",
-        type    = "link",
-        link    = "https://discordapp.com/channels/549281623154229250/1453758532460478484",
-        width   = 200,
-        column  = 1.65,
-        linkheight = 325,
-        linkwidth = 350,
-    },
-
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     -- Unused Options
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 
     {
         key		= "modes",
@@ -1938,7 +1924,6 @@ local options = {
         hidden 	= true,
         type	= "section",
     },
-
 
     {
         key    	= "shareddynamicalliancevictory",
@@ -1962,7 +1947,6 @@ local options = {
         max    	= 10,
         step   	= 0.1,
     },
-
 
     {
         key     = "defaultdecals",

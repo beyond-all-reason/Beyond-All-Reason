@@ -157,12 +157,6 @@ if Spring.GetConfigInt("version", 0) < version then
 	Spring.SetConfigInt("CamSpringMinZoomDistance", 300)
 	Spring.SetConfigInt("OverheadMinZoomDistance", 300)
 end
-version = 7
-if Spring.GetConfigInt("version", 0) < version then
-	Spring.SetConfigInt("version", version)
-
-	Spring.SetConfigInt("ui_rendertotexture", 1)
-end
 version = 8
 if Spring.GetConfigInt("version", 0) < version then
 	Spring.SetConfigInt("version", version)

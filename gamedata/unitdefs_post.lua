@@ -23,8 +23,17 @@ end
 local regularUnitDefs = {}
 local scavengerUnitDefs = {}
 
+local function normalizeUnitDef(unitDef)
+	system.lowerkeys(unitDef)
+	table.ensureTable(unitDef, "customparams")
+	table.ensureTable(unitDef, "buildoptions")
+	table.ensureTable(unitDef, "weapondefs")
+	table.ensureTable(unitDef, "weapons")
+end
+
 for name, unitDef in pairs(UnitDefs) do
 	regularUnitDefs[name] = unitDef
+	normalizeUnitDef(unitDef)
 end
 
 local function getFilePath(filename, path)
@@ -239,6 +248,8 @@ local function preProcessTweakOptions()
 		return a.index < b.index
 	end)
 
+	local shouldNormalizeUnitDefs = false
+
 	for i = 1, #tweaks do
 		local tweak = tweaks[i]
 		local name = tweak.name
@@ -253,7 +264,9 @@ local function preProcessTweakOptions()
 					Spring.Echo(postsFuncStr)
 					if postfunc then
 						local success, result = pcall(postfunc)
-						if not success then
+						if success then
+							shouldNormalizeUnitDefs = true -- tweakdefs can add or denormalize units
+						else
 							Spring.Echo("Error executing tweakdef", name, postsFuncStr, "Error :" .. result)
 						end
 					end
@@ -270,12 +283,19 @@ local function preProcessTweakOptions()
 						if tweakunits[unitName] then
 							Spring.Echo("Loading tweakunits for " .. unitName)
 							table.mergeInPlace(ud, system.lowerkeys(tweakunits[unitName]), true)
+							normalizeUnitDef(ud) -- tweakunits can set required tables to nil
 						end
 					end
 				end
 			else
 				Spring.Echo("Failed to parse modoption", name, "with value", modOptions[name])
 			end
+		end
+	end
+
+	if shouldNormalizeUnitDefs then
+		for _, unitDef in pairs(UnitDefs) do
+			normalizeUnitDef(unitDef)
 		end
 	end
 end

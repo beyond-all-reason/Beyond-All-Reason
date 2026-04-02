@@ -389,7 +389,7 @@ end
 local function factoryPresetRender(_, _, _, data)
 	data = data or {}
 	renderPresets = data[1]
-	return false 	
+	return false
 end
 
 function CalcDrawCoords(unitId, heightAll)
@@ -421,7 +421,7 @@ function CalcDrawCoords(unitId, heightAll)
 end
 
 function DrawBoxTitle(x, y, alpha, unitDef, selUnit)
-	UiElement(x, y - boxHeightTitle, x + boxWidth, y, 1,1,1,0, 1,1,0,1, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+	UiElement(x, y - boxHeightTitle, x + boxWidth, y, 1,1,1,0, 1,1,0,1, WG.FlowUI.clampedOpacity)
 	gl.Color(1, 1, 1, 1)
 
 	UiUnit(
@@ -476,7 +476,7 @@ function DrawBoxGroup(x, y, yOffset, unitDef, selUnit, alpha, groupNo, queue)
 	end
 
 	--Draw Background Box
-	UiElement(x, y - boxHeight, x + boxWidth, y, 0,1,1,1, 1,1,1,1, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+	UiElement(x, y - boxHeight, x + boxWidth, y, 0,1,1,1, 1,1,1,1, WG.FlowUI.clampedOpacity)
 	--UiElement(x + boxIconBorder, y - boxHeight + 3, x + groupLabelMargin, y - 3, 1, 1, 1, 1)
 	--gl.Color(0, 0, 0, mathMin(alpha, 0.6))
 	--gl.Rect(x, y, x + boxWidth, y - boxHeight)
@@ -494,7 +494,7 @@ function DrawBoxGroup(x, y, yOffset, unitDef, selUnit, alpha, groupNo, queue)
 	else
 		font:SetTextColor(1, 1, 1, alpha or 1)
 	end
-	
+
 	font:Print(groupNo, x + groupLabelXOff, y - boxHeight / 2.0 - groupLabelYOff, fontSizeGroup, "cdn")
 	xOff = xOff + groupLabelMargin
 
@@ -519,7 +519,7 @@ function DrawBoxGroup(x, y, yOffset, unitDef, selUnit, alpha, groupNo, queue)
 		xOff = xOff + boxHeight - boxIconBorder - boxIconBorder + unitIconSpacing
 	end
 
-	if queue[facRepeatIdx] == nil or queue[facRepeatIdx] == true then 
+	if queue[facRepeatIdx] == nil or queue[facRepeatIdx] == true then
 		if x + boxHeight + boxIconBorder + xOff + boxHeight + unitIconSpacing > x + boxWidth then
 			font:SetTextColor(1, 1, 1, alpha)
 			font:Print("...", x + xOff + unitCountXOff, y - boxHeight + unitCountYOff, fontSizeUnitCount, "nd")
