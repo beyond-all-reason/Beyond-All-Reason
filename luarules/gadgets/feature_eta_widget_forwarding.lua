@@ -52,7 +52,7 @@ if gadgetHandler:IsSyncedCode() then
 	local updateInterval = 6
 	local updateCounter = updateInterval
 	function gadget:GameFrame(frame)
-		if updateCounter > 0 then
+		if updateCounter > 1 then
 			updateCounter = updateCounter - 1
 			return
 		end
