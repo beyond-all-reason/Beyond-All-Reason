@@ -965,17 +965,24 @@ function widget:DrawWorldPreUnit()
 	-- Build queue ghosts (legacy pass — requires gl.UnitShape)
 	local ghostCount = buildGhosts.count
 	if ghostCount > 0 then
+		-- UnitShape renders 3D models — needs proper depth/culling state
+		glDepthTest(GL.LEQUAL)
+		gl.DepthMask(true)
+		gl.Culling(GL.BACK)
 		local bgX, bgY, bgZ = buildGhosts.x, buildGhosts.y, buildGhosts.z
 		local bgDefID, bgFacing = buildGhosts.defID, buildGhosts.facing
 		local bgR, bgG, bgB, bgA = buildGhosts.r, buildGhosts.g, buildGhosts.b, buildGhosts.a
 		for k = 1, ghostCount do
 			glColor(bgR[k], bgG[k], bgB[k], bgA[k])
 			glPushMatrix()
-			glTranslate(bgX[k], bgY[k] + 1, bgZ[k])
+			glTranslate(bgX[k], bgY[k], bgZ[k])
 			glRotate(90 * bgFacing[k], 0, 1, 0)
 			glUnitShape(bgDefID[k], myTeamID, true, false, false)
 			glPopMatrix()
 		end
+		gl.Culling(false)
+		gl.DepthMask(false)
+		glDepthTest(false)
 	end
 
 	glColor(1, 1, 1, 1)
