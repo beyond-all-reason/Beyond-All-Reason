@@ -2,6 +2,13 @@
   "$schema": "https://raw.githubusercontent.com/sumneko/vscode-lua/master/setting/schema.json",
   "completion.requireSeparator": "/",
   "diagnostics": {
+    "globals": [
+      "Utilities",
+      "Debug",
+      "Lava",
+      "GetModOptionsCopy",
+      "I18N"
+    ],
     "type": {
       "definition": [
         ".lux/",
