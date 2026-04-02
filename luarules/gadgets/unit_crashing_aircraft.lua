@@ -142,21 +142,26 @@ else	-- UNSYNCED
 	local GetUnitLosState = Spring.GetUnitLosState
 	local GetMyAllyTeamID = Spring.GetMyAllyTeamID
 
+	local function notifyCrashingAircraft(unitID, unitDefID, unitTeam)
+		if GG.FireSmoke and GG.FireSmoke.CrashingAircraft then
+			GG.FireSmoke.CrashingAircraft(unitID, unitDefID, unitTeam)
+		end
+		if Script.LuaUI("CrashingAircraft") then
+			Script.LuaUI.CrashingAircraft(unitID, unitDefID, unitTeam)
+		end
+	end
+
 	local function crashingAircraft(_, unitID, unitDefID, unitTeam)
 		local _, fullView = GetSpectatingState()
 		if fullView then
-			if Script.LuaUI("CrashingAircraft") then
-				Script.LuaUI.CrashingAircraft(unitID, unitDefID, unitTeam)
-			end
+			notifyCrashingAircraft(unitID, unitDefID, unitTeam)
 			return
 		end
 		-- Bitmask LOS check: bit 0 = inLos, bit 2 = inRadar
 		-- Crashing aircraft have icon draw disabled, so IsUnitVisible returns false at icon distances
 		local losBits = GetUnitLosState(unitID, GetMyAllyTeamID(), true)
 		if losBits and (losBits % 2 >= 1 or losBits % 8 >= 4) then
-			if Script.LuaUI("CrashingAircraft") then
-				Script.LuaUI.CrashingAircraft(unitID, unitDefID, unitTeam)
-			end
+			notifyCrashingAircraft(unitID, unitDefID, unitTeam)
 		end
 	end
 
