@@ -29,6 +29,7 @@ local spGetTeamResources = Spring.GetTeamResources
 local spGetTeamInfo = Spring.GetTeamInfo
 local spAreTeamsAllied = Spring.AreTeamsAllied
 local spUseTeamResource = Spring.UseTeamResource
+local spUseUnitResource = Spring.UseUnitResource
 local spShareTeamResource = Spring.ShareTeamResource
 local spAddTeamResource = Spring.AddTeamResource
 local spSetTeamResource = Spring.SetTeamResource
@@ -220,7 +221,7 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, feature
 		return false -- can't afford tax
 	end
 
-	spUseTeamResource(builderTeam, "metal", metalTax)
+	spUseUnitResource(builderID, "metal", metalTax)
 
 	return true
 end
@@ -259,8 +260,8 @@ function gadget:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, pa
 		return false -- can't afford tax
 	end
 
-	spUseTeamResource(builderTeam, "metal", metalTax)
-	spUseTeamResource(builderTeam, "energy", energyTax)
+	spUseUnitResource(builderID, "metal", metalTax)
+	spUseUnitResource(builderID, "energy", energyTax)
 
 	return true
 end

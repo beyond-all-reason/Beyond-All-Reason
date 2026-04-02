@@ -53,11 +53,8 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, captu
 		local unitDef = UnitDefs[unitDefID]
 		local startFrame = Spring.GetGameFrame()
 		local expireFrame = startFrame + DEBUFF_FRAMES
-		Spring.SetUnitBuildSpeed(unitID, 0.01, nil, 0.01)
 		debuffedUnits[unitID] = {
 			expireFrame  = expireFrame,
-			buildSpeed   = unitDef.buildSpeed or 0,
-			reclaimSpeed = unitDef.reclaimSpeed or unitDef.buildSpeed or 0,
 		}
 		SendToUnsynced("unitBuildspeedDebuff", unitID, startFrame, expireFrame)
 	elseif ecoUnits[unitDefID] then
@@ -67,8 +64,14 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, captu
 	return true
 end
 
--- Spring.SetUnitBuildSpeed does not affect features so also prevent feature reclaim/resurrect on debuffed builders using AllowFeatureBuildStep.
 function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
+	if debuffedUnits[builderID] then
+		return false
+	end
+	return true
+end
+
+function gadget:AllowUnitBuildStep(builderID, builderTeam, featureID, featureDefID, part)
 	if debuffedUnits[builderID] then
 		return false
 	end
@@ -78,7 +81,6 @@ end
 function gadget:GameFrame(n)
 	for unitID, data in pairs(debuffedUnits) do
 		if n >= data.expireFrame then
-			Spring.SetUnitBuildSpeed(unitID, data.buildSpeed, nil, data.reclaimSpeed)
 			debuffedUnits[unitID] = nil
 			SendToUnsynced("unitBuildspeedDebuffEnd", unitID)
 		end
