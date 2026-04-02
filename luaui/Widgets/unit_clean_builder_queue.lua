@@ -12,6 +12,7 @@ end
 
 local GetUnitCmdDescs    = Spring.GetUnitCmdDescs
 local GetUnitCommands    = Spring.GetUnitCommands
+local GetUnitCommandCount = Spring.GetUnitCommandCount
 local GiveOrderToUnit    = Spring.GiveOrderToUnit
 local GetUnitPosition    = Spring.GetUnitPosition
 local GetUnitDefID       = Spring.GetUnitDefID
@@ -41,8 +42,13 @@ local SEARCH_RADIUS      = maxBuildDistance + 200  -- Max build distance + safet
 
 -- Cache repeat status to avoid repeated cmdDescs lookups
 local repeatStatus       = {}
--- Reusable table for nearby builders to reduce allocations
-local nearbyBuilders     = {}
+
+-- Batching state: defer UnitFinished processing to GameFrame
+-- so multiple buildings finishing in the same frame share one GetUnitCommands call per builder
+local pendingFinished    = {}  -- reusable array of {unitDefID, x, z}
+local pendingCount       = 0
+local builderSet         = {}  -- dedup set for nearby builder collection
+local builderList        = {}  -- array of unique nearby builderIDs
 
 local function IsUnitRepeatOn(unitID)
 	if repeatStatus[unitID] ~= nil then
@@ -125,46 +131,68 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	if unitTeam ~= myTeamID or not isBuilding[unitDefID] then
 		return
 	end
-
 	local x, _, z = GetUnitPosition(unitID)
 	if not x then return end
 
-	-- Use spatial query to only check nearby units instead of all builders
-	local nearbyUnits = GetUnitsInCylinder(x, z, SEARCH_RADIUS)
-	if not nearbyUnits or #nearbyUnits == 0 then return end
+	pendingCount = pendingCount + 1
+	local entry = pendingFinished[pendingCount]
+	if not entry then
+		entry = {}
+		pendingFinished[pendingCount] = entry
+	end
+	entry[1] = unitDefID
+	entry[2] = x
+	entry[3] = z
+end
 
-	-- Clear and reuse nearbyBuilders table to reduce allocations
-	local builderCount = 0
-	for i = 1, #nearbyUnits do
-		local nearbyID = nearbyUnits[i]
-		if trackedBuilders[nearbyID] then
-			builderCount = builderCount + 1
-			nearbyBuilders[builderCount] = nearbyID
+function widget:GameFrame(n)
+	if pendingCount == 0 then return end
+
+	-- Collect unique nearby builders across all pending buildings
+	local builderListN = 0
+	for i = 1, pendingCount do
+		local entry = pendingFinished[i]
+		local nearbyUnits = GetUnitsInCylinder(entry[2], entry[3], SEARCH_RADIUS, myTeamID)
+		if nearbyUnits then
+			for j = 1, #nearbyUnits do
+				local uid = nearbyUnits[j]
+				if trackedBuilders[uid] and not builderSet[uid] then
+					builderSet[uid] = true
+					builderListN = builderListN + 1
+					builderList[builderListN] = uid
+				end
+			end
 		end
 	end
 
-	if builderCount == 0 then return end
+	-- Process each unique builder once (single GetUnitCommands call per builder)
+	for b = 1, builderListN do
+		local builderID = builderList[b]
+		builderSet[builderID] = nil
+		builderList[b] = nil
 
-	local targetCmdID = -unitDefID
-
-	-- Process only nearby builders
-	for i = 1, builderCount do
-		local builderID = nearbyBuilders[i]
-
-		-- Skip if repeat is enabled (cached check)
 		if not IsUnitRepeatOn(builderID) then
-			local commands = GetUnitCommands(builderID, 32)
-			if commands then
-				-- Scan backwards to find matching build commands
-				for j = #commands, 1, -1 do
-					local cmd = commands[j]
-					-- Only check build commands for this specific unitDefID
-					if cmd.id == targetCmdID then
-						local params = cmd.params
-						if params and params[1] and params[3] then
-							if coordsMatch(x, z, params[1], params[3], REMOVE_TOLERANCE) then
-								GiveOrderToUnit(builderID, CMD_REMOVE, { cmd.tag }, {})
-								break -- Only remove first matching command per builder
+			local cmdCount = GetUnitCommandCount(builderID)
+			if cmdCount and cmdCount > 0 then
+				local limit = cmdCount < 32 and cmdCount or 32
+				local commands = GetUnitCommands(builderID, limit)
+				if commands then
+					-- Check all pending buildings against this builder's queue
+					for i = 1, pendingCount do
+						local entry = pendingFinished[i]
+						local targetCmdID = -entry[1]
+						local x, z = entry[2], entry[3]
+						for j = #commands, 1, -1 do
+							local cmd = commands[j]
+							if cmd and cmd.id == targetCmdID then
+								local params = cmd.params
+								if params and params[1] and params[3] then
+									if coordsMatch(x, z, params[1], params[3], REMOVE_TOLERANCE) then
+										GiveOrderToUnit(builderID, CMD_REMOVE, { cmd.tag }, {})
+										table.remove(commands, j)
+										break
+									end
+								end
 							end
 						end
 					end
@@ -173,8 +201,5 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 		end
 	end
 
-	-- Clear table for next use
-	for i = 1, builderCount do
-		nearbyBuilders[i] = nil
-	end
+	pendingCount = 0
 end
