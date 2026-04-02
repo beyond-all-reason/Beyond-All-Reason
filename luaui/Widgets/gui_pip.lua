@@ -9358,13 +9358,18 @@ local function DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
 	local selChanged = (selHash ~= qbc.lastHash)
 	qbc.lastHash = selHash
 
+	-- Force a full rebuild every ~20 frames even without selection change,
+	-- so completed/cancelled buildings get cleared from the cache promptly.
+	local periodicRebuild = (not selChanged) and (qbc.refreshCounter % 20 == 0)
+	local fullRebuild = selChanged or periodicRebuild
+
 	-- Determine refresh batch
-	local batchSize = selChanged and selectedCount or math.min(3, selectedCount)
-	local bStart = selChanged and 1 or ((qbc.refreshCounter * batchSize) % selectedCount) + 1
+	local batchSize = fullRebuild and selectedCount or math.min(3, selectedCount)
+	local bStart = fullRebuild and 1 or ((qbc.refreshCounter * batchSize) % selectedCount) + 1
 	local bEnd = math.min(bStart + batchSize - 1, selectedCount)
 
-	-- On selection change, full rebuild with fresh dedup generation
-	if selChanged then
+	-- On full rebuild, reset with fresh dedup generation
+	if fullRebuild then
 		qbc.generation = qbc.generation + 1
 		qbc.buildCount = 0
 		qbc.bitmapCount = 0
