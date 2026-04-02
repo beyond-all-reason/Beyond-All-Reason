@@ -20,7 +20,7 @@ if not Spring.GetModOptions().easytax then
 	return false
 end
 
-local DEBUFF_FRAMES = 30 * 30 -- 30 seconds at 30 game frames per second
+local DEBUFF_FRAMES = Game.gameSpeed * 30
 local debuffedUnits = {} -- unitID -> { expireFrame, buildSpeed }
 
 -- gather all economy/builder units
