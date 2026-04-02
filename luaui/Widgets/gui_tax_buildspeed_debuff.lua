@@ -7,7 +7,7 @@ function widget:GetInfo()
 		author    = "RebelNode",
 		date      = "2026",
 		license   = "GNU GPL v2",
-		layer     = -9,
+		layer     = -1,
 		enabled   = true
 	}
 end

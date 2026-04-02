@@ -213,15 +213,7 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, feature
 		return true
 	end
 
-	local unitDef = UnitDefNames[resurrectUnitName]
-	if not unitDef then
-		return true
-	end
-
 	local metalTax = featureMaxMetal * part * sharingTax
-	if metalTax <= 0 then
-		return true
-	end
 
 	local teamMetal = spGetTeamResources(builderTeam, "metal")
 	if teamMetal < (metalTax + featureMaxMetal * part) then
@@ -256,11 +248,14 @@ function gadget:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, pa
 	end
 
 	-- Tax the builder team for resources consumed while assisting ally
-	local metalTax = unitDef.metalCost * part * sharingTax
-	local energyTax = unitDef.energyCost * part * sharingTax
+	local metalCost = unitDef.metalCost
+	local energyCost = unitDef.energyCost
+
+	local metalTax = metalCost * part * sharingTax
+	local energyTax = energyCost * part * sharingTax
 	local currentMetal = spGetTeamResources(builderTeam, "metal")
 	local currentEnergy = spGetTeamResources(builderTeam, "energy")
-	if currentMetal < (metalTax + unitDef.metalCost * part) or currentEnergy < (energyTax + unitDef.energyCost * part) then
+	if currentMetal < (metalTax + metalCost * part) or currentEnergy < (energyTax + energyCost * part) then
 		return false -- can't afford tax
 	end
 

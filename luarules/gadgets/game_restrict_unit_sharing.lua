@@ -41,7 +41,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
-	if (capture) and (not Spring.AreTeamsAllied(fromTeamID, toTeamID)) then
+	if (capture) and (not Spring.AreTeamsAllied(fromTeamID, toTeamID)) or fromTeamID == Spring.GetGaiaTeamID() or toTeamID == Spring.GetGaiaTeamID() then
 		return true
 	end
 	beingBuilt, buildProgress = Spring.GetUnitIsBeingBuilt(unitID)
