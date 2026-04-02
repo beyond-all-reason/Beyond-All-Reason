@@ -12,13 +12,12 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "20 24 20",
 		collisionvolumetype = "CylY",
-		cloakcost = 10,
+		cloakcost = 0.001,
+		cloakcostmoving = 0,
 		corpse = "CDRAGONSEYES_DEAD",
 		energyupkeep = 0,
 		footprintx = 1,
 		footprintz = 1,
-		idleautoheal = 5,
-		idletime = 300,
 		initcloaked = true,
 		levelground = false,
 		health = 1,
@@ -55,11 +54,6 @@ return {
 				object = "Units/cor1X1A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
 			},
 		},
 		sounds = {

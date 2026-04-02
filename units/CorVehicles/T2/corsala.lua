@@ -2,7 +2,7 @@ return {
 	corsala = {
 		activatewhenbuilt = true,
 		buildpic = "CORSALA.DDS",
-		buildtime = 7900,
+		buildtime = 10500,
 		canmove = true,
 		collisionvolumeoffsets = "0 -5.5 0",
 		collisionvolumescales = "31 34 31",
@@ -13,8 +13,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 2100,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.05125,
 		maxdec = 0.1025,
@@ -88,11 +86,6 @@ return {
 				[1] = "custom:barrelshot-medium",
 				[2] = "custom:DUST_CLOUD",
 				[3] = "custom:pilotlight",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

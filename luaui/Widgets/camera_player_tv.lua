@@ -24,8 +24,6 @@ local spGetMouseState = Spring.GetMouseState
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
-
 --[[ Commands
 	/playerview #playerID		(playerID is optional)
 	/playertv #playerID			(playerID is optional)
@@ -85,6 +83,7 @@ end
 
 local font, font2, lockPlayerID, prevLockPlayerID, toggleButton, toggleButton2, toggleButton3, backgroundGuishader, showBackgroundGuishader, scheduledSpecFullView, desiredLosmode
 local RectRound, elementCorner, bgpadding
+local guishaderWasActive = false
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
@@ -420,10 +419,12 @@ local function switchPlayerCam()
 end
 
 local sec = 0.5
+local posCheckTimer = 0
 function widget:Update(dt)
 
 	sec = sec + dt
 	if sec > 1 then
+		sec = 0
 
 		-- check if team colors have changed
 		local detectedChanges = false
@@ -437,6 +438,26 @@ function widget:Update(dt)
 		if detectedChanges then
 			widget:ViewResize()
 		end
+	end
+
+	-- throttle position updates and guishader check
+	posCheckTimer = posCheckTimer + dt
+	if posCheckTimer > 0.05 then
+		posCheckTimer = 0
+		updatePosition()
+
+		-- detect guishader toggle: force refresh when it comes back on
+		local guishaderActive = WG['guishader'] ~= nil
+		if guishaderActive and not guishaderWasActive then
+			showBackgroundGuishader = nil
+			updateDrawing = true
+		end
+		guishaderWasActive = guishaderActive
+	end
+
+	-- non-spectator early exit: no buttons or tracking logic needed
+	if not isSpec and not lockPlayerID then
+		return
 	end
 
 	if scheduledSpecFullView ~= nil then
@@ -480,8 +501,6 @@ function widget:Update(dt)
 		toggled2 = false
 		updateDrawing = true
 	end
-
-	updatePosition()
 
 	local mx, my = spGetMouseState()
 	local prevButtonHovered = buttonHovered
@@ -620,36 +639,30 @@ function widget:DrawScreen()
 	if updateDrawing then
 		updateDrawing = false
 		refreshUiDrawing()
-		if useRenderToTexture then
-			if right-left >= 1 and top-bottom >= 1 then
-				uiTexTopExtra = mathFloor(vsy*0.06)
-				uiTexLeftExtra = mathFloor(vsy*0.08)
-				if not uiTex then
-					uiTex = gl.CreateTexture((mathFloor(right-left)+uiTexLeftExtra), (mathFloor(top-bottom)+uiTexTopExtra), {
-						target = GL.TEXTURE_2D,
-						format = GL.RGBA,
-						fbo = true,
-					})
-				end
-				gl.R2tHelper.RenderToTexture(uiTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / ((right-left)+uiTexLeftExtra), 2 / ((top-bottom)+uiTexTopExtra), 0)
-						gl.Translate(-left+uiTexLeftExtra, -bottom, 0)
-						drawContent()
-					end,
-					useRenderToTexture
-				)
-			end
+	if right-left >= 1 and top-bottom >= 1 then
+		uiTexTopExtra = mathFloor(vsy*0.06)
+		uiTexLeftExtra = mathFloor(vsy*0.08)
+		if not uiTex then
+			uiTex = gl.CreateTexture((mathFloor(right-left)+uiTexLeftExtra), (mathFloor(top-bottom)+uiTexTopExtra), {
+				target = GL.TEXTURE_2D,
+				format = GL.RGBA,
+				fbo = true,
+			})
 		end
+		gl.R2tHelper.RenderToTexture(uiTex,
+			function()
+				gl.Translate(-1, -1, 0)
+				gl.Scale(2 / ((right-left)+uiTexLeftExtra), 2 / ((top-bottom)+uiTexTopExtra), 0)
+				gl.Translate(-left+uiTexLeftExtra, -bottom, 0)
+				drawContent()
+			end,
+			true
+		)
+	end
 	end
 
-	if useRenderToTexture then
-		if uiTex then
-			gl.R2tHelper.BlendTexRect(uiTex, left-uiTexLeftExtra, bottom, right, top+uiTexTopExtra, useRenderToTexture)
-		end
-	else
-		drawContent()
+	if uiTex then
+		gl.R2tHelper.BlendTexRect(uiTex, left-uiTexLeftExtra, bottom, right, top+uiTexTopExtra, true)
 	end
 end
 
@@ -838,7 +851,7 @@ function widget:ViewResize()
 	RectRound = WG.FlowUI.Draw.RectRound
 
 	font = WG['fonts'].getFont()
-	font2 = WG['fonts'].getFont(2, 2)
+	font2 = WG['fonts'].getFont(2, 2, 0.2, 3)
 
 	for i = 1, #drawlistsCountdown do
 		gl.DeleteList(drawlistsCountdown[i])

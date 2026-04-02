@@ -3,7 +3,7 @@ return {
 		builddistance = 250,
 		builder = true,
 		buildpic = "ARMMLS.DDS",
-		buildtime = 49440,
+		buildtime = 60000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -7 2",
 		collisionvolumescales = "25 25 70",
@@ -15,8 +15,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 2460,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 2700,
 		maxacc = 0.04059,
 		maxdec = 0.04059,
@@ -109,11 +107,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:waterwake-small",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

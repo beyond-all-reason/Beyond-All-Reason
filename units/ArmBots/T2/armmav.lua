@@ -13,8 +13,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1560,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.138,
 		maxdec = 0.43125,
 		maxslope = 14,
@@ -75,11 +73,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small-impulse",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

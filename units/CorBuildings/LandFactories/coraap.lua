@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		builder = true,
 		buildpic = "CORAAP.DDS",
-		buildtime = 20700,
+		buildtime = 32000,
 		canmove = true,
 		collisionvolumeoffsets = "0 4 0",
 		collisionvolumescales = "142 64 142",
@@ -15,13 +15,11 @@ return {
 		footprintx = 9,
 		footprintz = 9,
 		health = 3900,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 15,
 		maxwaterdepth = 0,
-		metalcost = 3200,
+		metalcost = 2900,
 		metalstorage = 200,
 		objectname = "Units/CORAAP.s3o",
 		radardistance = 1000,
@@ -31,7 +29,7 @@ return {
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 305.5,
 		terraformspeed = 1000,
-		workertime = 200,
+		workertime = 600,
 		yardmap = "ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo",
 		buildoptions = {
 			[1] = "coraca",
@@ -54,6 +52,7 @@ return {
 			subfolder = "CorBuildings/LandFactories",
 			techlevel = 2,
 			unitgroup = "buildert2",
+			restrictions_inclusion = "_noair_",
 			usebuildinggrounddecal = true,
 		},
 		featuredefs = {
@@ -89,10 +88,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:WhiteLight",
 				[2] = "custom:radarpulse_t1_slow",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

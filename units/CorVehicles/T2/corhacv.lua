@@ -4,7 +4,7 @@ return {
 		builddistance = 200,
 		builder = true,
 		buildpic = "CORPRINTER.DDS",
-		buildtime = 40400,
+		buildtime = 50000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "36 36 54",
@@ -17,8 +17,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 3125,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		mass = 2700,
 		maxacc = 0.02547,
@@ -75,7 +73,7 @@ return {
 			[29] = "corap",
 			[30] = "corsy",
 			[31] = "corvp",
-			[32] = "corgant"
+			[32] = "corgant",
 		},
 		customparams = {
 			model_author = "MASHUP, Itanthias, name inspired by Themitri",
@@ -114,13 +112,6 @@ return {
 				object = "Units/cor3X3B.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

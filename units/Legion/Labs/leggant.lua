@@ -16,8 +16,6 @@ return {
 		explodeas = "hugeBuildingexplosiongeneric",
 		footprintx = 12,
 		footprintz = 12,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 17800,
 		maxslope = 10,
 		maxwaterdepth = 0,
@@ -29,7 +27,7 @@ return {
 		selfdestructas = "hugeBuildingExplosionGenericSelfd",
 		sightdistance = 273,
 		terraformspeed = 3000,
-		workertime = 600,
+		workertime = 1800,
 		yardmap = "oooooooooooo oooooooooooo oooooooooooo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo yoeeeeeeeeoy",
 		buildoptions = {
 			"legeheatraymech",
@@ -87,10 +85,6 @@ return {
 				[1] = "custom:GantWhiteLight",
 				[2] = "custom:YellowLight",
 				[3] = "custom:WhiteLight",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

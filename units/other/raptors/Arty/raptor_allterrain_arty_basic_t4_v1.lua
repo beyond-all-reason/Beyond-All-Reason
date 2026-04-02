@@ -23,8 +23,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		hidedamage = 1,
-		idleautoheal = 20,
-		idletime = 300,
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 40000,

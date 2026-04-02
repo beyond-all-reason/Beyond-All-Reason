@@ -1,7 +1,7 @@
 return {
 	armgremlin = {
 		buildpic = "ARMGREMLIN.DDS",
-		buildtime = 6700,
+		buildtime = 8500,
 		canmove = true,
 		cloakcost = 5,
 		cloakcostmoving = 20,
@@ -15,8 +15,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 1060,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = false,
 		maxacc = 0.0697,
 		maxdec = 0.13939,
@@ -88,11 +86,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

@@ -14,8 +14,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1120,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.06316,
 		maxdec = 0.06316,
 		maxslope = 16,
@@ -78,10 +76,6 @@ return {
 				[1] = "custom:waterwake-small-hover",
 				[2] = "custom:bowsplash-small-hover",
 				[3] = "custom:hover-wake-small",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {

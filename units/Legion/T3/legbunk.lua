@@ -1,7 +1,7 @@
 return {
 	legbunk = {
 		buildpic = "legbunk.dds",
-		buildtime = 35260,
+		buildtime = 46430,
 		canmove = true,
 		cantbetransported = true, --Need to true!!!!!!!!!!
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -13,8 +13,6 @@ return {
 		explodeas = "explosiont3",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 32,
-		idletime = 1800,
 		health = 9400,
 		speed = 82.0,
 		maxslope = 17,
@@ -81,11 +79,6 @@ return {
 				[1] = "custom:barrelshot-medium",
 				[2] = "custom:barrelshot-lightning",
 				[3] = "custom:footstep-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

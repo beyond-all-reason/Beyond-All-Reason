@@ -1,7 +1,7 @@
 return {
 	armthor = {
 		buildpic = "ARMTHOR.DDS",
-		buildtime = 250000,
+		buildtime = 320000,
 		canmanualfire = true,
 		canmove = true,
 		cantbetransported = true,
@@ -14,8 +14,6 @@ return {
 		footprintx = 5,
 		footprintz = 5,
 		health = 56000,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		mass = 9000,
 		maxacc = 0.015,
@@ -84,11 +82,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-lightning",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg3-lightning",
 			},
 		},
 		sounds = {
@@ -172,6 +165,7 @@ return {
 				fixedlauncher = true,
 				flighttime = 12,
 				impulsefactor = 0,
+				interceptedbyshieldtype = 0,
 				metalpershot = 100,
 				model = "corshiprocket.s3o",
 				name = "Heavy long-range g2g EMP starburst rocket",
@@ -197,6 +191,7 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 500,
 				customparams = {
+					shield_aoe_penetration = true,
 					stockpilelimit = 2,
 				},
 				damage = {

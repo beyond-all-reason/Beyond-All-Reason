@@ -7,7 +7,7 @@ return {
 		buildcostenergy = 27000,
 		buildcostmetal = 1600,
 		buildpic = "ARMUWAGEO.DDS",
-		buildtime = 33300,
+		buildtime = 50000,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "107 77 107",
@@ -17,8 +17,6 @@ return {
 		explodeas = "customfusionexplo",
 		footprintx = 5,
 		footprintz = 5,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxdamage = 3600,
 		maxslope = 15,
 		maxwaterdepth = 99999,
@@ -48,11 +46,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:geobubbles",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

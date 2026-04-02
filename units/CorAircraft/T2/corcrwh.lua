@@ -5,7 +5,7 @@ return {
 		bankingallowed = false,
 		blocking = true,
 		buildpic = "CORCRWH.DDS",
-		buildtime = 84200,
+		buildtime = 120000,
 		canfly = true,
 		canmove = true,
 		collide = true,
@@ -19,8 +19,6 @@ return {
 		footprintz = 3,
 		health = 16700,
 		hoverattack = true,
-		idleautoheal = 15,
-		idletime = 1200,
 		maxacc = 0.15,
 		maxdec = 0.15,
 		maxslope = 10,
@@ -45,20 +43,8 @@ return {
 			unitgroup = "weapon",
 		},
 		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-large",
-				[2] = "crashing-large",
-				[3] = "crashing-large2",
-				[4] = "crashing-large3",
-				[5] = "crashing-large3",
-			},
 			explosiongenerators = {
 				[1] = "custom:flamestreamxxl",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
 			},
 		},
 		sounds = {

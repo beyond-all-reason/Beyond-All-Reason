@@ -20,12 +20,13 @@ local mathMax = math.max
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
+local spGetGameSeconds = Spring.GetGameSeconds
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
 include("keysym.h.lua")
-local windFunctions = VFS.Include('common/wind_functions.lua')
+local unitBlocking = VFS.Include('luaui/Include/unitBlocking.lua')
 
 local pairs = pairs
 local ipairs = ipairs
@@ -45,8 +46,6 @@ end
 SYMKEYS = table_invert(KEYSYMS)
 
 local CMD_STOP_PRODUCTION = GameCMD.STOP_PRODUCTION
-
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 
 local comBuildOptions
 local boundUnits = {}
@@ -76,6 +75,8 @@ local showPrice = false		-- false will still show hover
 local showRadarIcon = true		-- false will still show hover
 local showGroupIcon = true		-- false will still show hover
 local showBuildProgress = true
+local progressColor = { 0.08, 0.08, 0.08, 0.6 }
+local drawnBuildTargets = {}
 
 local zoomMult = 1.5
 local defaultCellZoom = 0.025 * zoomMult
@@ -96,12 +97,14 @@ local math_isInRect = math.isInRect
 
 local buildmenuShows = false
 local refreshBuildmenu = true
+local delayRefresh
 
 local costOverrides = {}
 --[[ MODIFICATION START ]]
 -- New state variables for the robust update system
 local selectionUpdateTime = 0  -- Time-based debouncer for selection changes
 local raceConditionUpdateCountdown = 0 -- Timer for race conditions
+local blockedUnitsUpdateCounter = 0 -- Counter for periodic blocked units update
 local forceRefreshNextFrame = false   -- The failsafe retry flag
 local refreshRetryCounter = 0       -- Failsafe counter to prevent infinite retries
 --[[ MODIFICATION END ]]
@@ -240,10 +243,6 @@ end
 
 local RectRound, RectRoundProgress, UiUnit, UiElement, UiButton, elementCorner
 
-local function convertColor(r, g, b)
-	return string.char(255, (r * 255), (g * 255), (b * 255))
-end
-
 local folder = 'LuaUI/Images/groupicons/'
 local groups = {
 	energy = folder..'energy.png',
@@ -269,20 +268,6 @@ local modKeyMultiplier = {
 	shift = 5,
 	right = -1
 }
-
-local disableWind = windFunctions.isWindDisabled()
-local voidWater = false
-local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
-if success and mapinfo then
-	voidWater = mapinfo.voidwater
-end
-
-local showWaterUnits = false
--- make them a disabled unit (instead of removing it entirely)
-if not showWaterUnits then
-	units.restrictWaterUnits(true)
-end
-
 
 local function checkGuishader(force)
 	if WG['guishader'] then
@@ -396,11 +381,11 @@ local function RefreshCommands()
 				cmdUnitdefsTemp[udefid] = i
 			end
 			for k, uDefID in ipairs(units.unitOrder) do
-				if cmdUnitdefsTemp[uDefID] then
+				if cmdUnitdefsTemp[uDefID] and not units.unitHidden[uDefID] then
 					cmdsCount = cmdsCount + 1
 					-- mimmick output of spGetActiveCmdDescs
 					cmds[cmdsCount] = {
-						id = uDefID * -1,
+						id = -uDefID,
 						name = unitName[uDefID],
 						params = emptyParams
 					}
@@ -416,12 +401,12 @@ local function RefreshCommands()
 			for index, cmd in ipairs(activeCmdDescs) do
 				if type(cmd) == "table" then
 					if not cmd.disabled and string_sub(cmd.action, 1, 10) == 'buildunit_' then
-						cmdUnitdefsTemp[cmd.id * -1] = index
+						cmdUnitdefsTemp[-cmd.id] = index
 					end
 				end
 			end
 			for k, uDefID in ipairs(units.unitOrder) do
-				if cmdUnitdefsTemp[uDefID] then
+				if cmdUnitdefsTemp[uDefID] and not units.unitHidden[uDefID] then
 					cmdsCount = cmdsCount + 1
 					cmds[cmdsCount] = activeCmdDescs[cmdUnitdefsTemp[uDefID]]
 				end
@@ -429,7 +414,8 @@ local function RefreshCommands()
 		else
 			for index, cmd in ipairs(activeCmdDescs) do
 				if type(cmd) == "table" then
-					if not cmd.disabled and string_sub(cmd.action, 1, 10) == 'buildunit_' then
+					local uDefID = -cmd.id
+					if not cmd.disabled and string_sub(cmd.action, 1, 10) == 'buildunit_' and not units.unitHidden[uDefID] then
 						cmdsCount = cmdsCount + 1
 						cmds[cmdsCount] = cmd
 					end
@@ -462,7 +448,7 @@ local function RefreshCommands()
 	for i = 1, numCellsPerPage do
 		local cellRectID = startCellID + i
 		if cmds[cellRectID] then
-			local uDefID = cmds[cellRectID].id * -1
+			local uDefID = -cmds[cellRectID].id
 			unitDefToCellMap[uDefID] = cellRectID
 		end
 	end
@@ -591,6 +577,11 @@ end
 local sec = 0
 local prevSelBuilderDefs = {}
 function widget:Update(dt)
+	if delayRefresh and spGetGameSeconds() >= delayRefresh then
+		clear()
+		doUpdate = true
+		delayRefresh = nil
+	end
 	--[[ MODIFICATION START ]]
 	-- Check failsafe retry flag
 	if forceRefreshNextFrame and refreshRetryCounter > 0 then
@@ -687,11 +678,6 @@ function widget:Update(dt)
 			widget:ViewResize()
 		end
 
-		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
-		if not voidWater and mapMinWater <= units.minWaterUnitDepth and not showWaterUnits then
-			showWaterUnits = true
-			units.restrictWaterUnits(false)
-		end
 
 		if stickToBottom then
 			if WG['advplayerlist_api'] ~= nil then
@@ -720,7 +706,7 @@ function drawBuildmenuBg()
 end
 
 local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
-	local uDefID = cmds[cellRectID].id * -1
+	local uDefID = -cmds[cellRectID].id
 
 	-- unit icon
 	if disabled then
@@ -886,7 +872,7 @@ function drawBuildmenu()
 	if maxCellRectID > cmdsCount then
 		maxCellRectID = cmdsCount
 	end
-	font2:Begin(useRenderToTexture)
+	font2:Begin(true)
 	local iconCount = 0
 	for row = 1, rows do
 		if cellRectID >= maxCellRectID then
@@ -918,7 +904,7 @@ function drawBuildmenu()
 			local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
 			local usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
 
-			drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, units.unitRestricted[cmds[cellRectID].id * -1])
+			drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, units.unitRestricted[-cmds[cellRectID].id])
 		end
 	end
 
@@ -980,9 +966,6 @@ function widget:DrawScreen()
 
 	-- The main refresh condition check
 	if doUpdate or refreshBuildmenu then
-		if not useRenderToTexture then
-			dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
-		end
 		RefreshCommands()
 		doUpdate = nil
 		refreshBuildmenu = true
@@ -991,56 +974,27 @@ function widget:DrawScreen()
 	-- create buildmenu
 	if refreshBuildmenu then
 		refreshBuildmenu = false
-		if useRenderToTexture then
-			if not buildmenuTex and width > 0.05 and height > 0.05 then
-				buildmenuTex = gl.CreateTexture(math_floor(width*vsx)*2, math_floor(height*vsy)*2, { --*(vsy<1400 and 2 or 1)
-					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
-					fbo = true,
-				})
-				buildmenuBgTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
-					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
-					fbo = true,
-				})
-				gl.R2tHelper.RenderToTexture(buildmenuBgTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
-						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-						drawBuildmenuBg()
-					end,
-					useRenderToTexture
-				)
-			end
-			if buildmenuTex then
-				gl.R2tHelper.RenderToTexture(buildmenuTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
-						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-						drawBuildmenu()
-					end,
-					useRenderToTexture
-				)
-			end
-		else
-			if not dlistBuildmenuBg then
-				dlistBuildmenuBg = gl.CreateList(function() drawBuildmenuBg() end)
-			end
-			if not dlistBuildmenu then
-				dlistBuildmenu = gl.CreateList(function() drawBuildmenu() end)
-			end
+		if not buildmenuTex and width > 0.05 and height > 0.05 then
+			buildmenuTex = gl.CreateTexture(math_floor(width*vsx)*2, math_floor(height*vsy)*2, { --*(vsy<1400 and 2 or 1)
+				target = GL.TEXTURE_2D,
+				format = GL.RGBA,
+				fbo = true,
+			})
+			buildmenuBgTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
+				target = GL.TEXTURE_2D,
+				format = GL.RGBA,
+				fbo = true,
+			})
+			gl.R2tHelper.RenderInRect(buildmenuBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], drawBuildmenuBg, true)
+		end
+		if buildmenuTex then
+			gl.R2tHelper.RenderInRect(buildmenuTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], drawBuildmenu, true)
 		end
 	end
 
 	-- draw buildmenu background
-	if useRenderToTexture then
-		if buildmenuBgTex and backgroundRect then
-			gl.R2tHelper.BlendTexRect(buildmenuBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], useRenderToTexture)
-		end
-	else
-		gl.CallList(dlistBuildmenuBg)
+	if buildmenuBgTex and backgroundRect then
+		gl.R2tHelper.BlendTexRect(buildmenuBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], true)
 	end
 
 	local hovering = false
@@ -1057,7 +1011,7 @@ function widget:DrawScreen()
 				for cellRectID, cellRect in pairs(cellRects) do
 					if math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) then
 						hoveredCellID = cellRectID
-						local uDefID = cmds[cellRectID].id * -1
+						local uDefID = -cmds[cellRectID].id
 						WG['buildmenu'].hoverID = uDefID
 						gl.Color(1, 1, 1, 1)
 						local alt, ctrl, meta, shift = Spring.GetModKeyState()
@@ -1125,7 +1079,7 @@ function widget:DrawScreen()
 
 				-- draw cell hover
 				if hoveredCellID then
-					local uDefID = cmds[hoveredCellID].id * -1
+					local uDefID = -cmds[hoveredCellID].id
 					local cellIsSelected = (activeCmd and cmds[hoveredCellID] and activeCmd == cmds[hoveredCellID].name)
 					if not prevHoveredCellID or hoveredCellID ~= prevHoveredCellID or uDefID ~= hoverUdefID or cellIsSelected ~= hoverCellSelected or b ~= prevB or b3 ~= prevB3 or cmds[hoveredCellID].params[1] ~= prevQueueNr then
 						prevQueueNr = cmds[hoveredCellID].params[1]
@@ -1178,7 +1132,7 @@ function widget:DrawScreen()
 								end
 
 								-- re-draw cell with hover zoom (and price shown)
-								font2:Begin(useRenderToTexture)
+								font2:Begin(true)
 								drawCell(hoveredCellID, usedZoom, cellColor, units.unitRestricted[uDefID])
 								font2:End()
 
@@ -1200,17 +1154,21 @@ function widget:DrawScreen()
 		if showBuildProgress then
 			for builderUnitID, _ in pairs(selectedBuilders) do
 				local unitBuildID = spGetUnitIsBuilding(builderUnitID)
-				if unitBuildID then
+				if unitBuildID and not drawnBuildTargets[unitBuildID] then
+					drawnBuildTargets[unitBuildID] = true
 					local unitBuildDefID = spGetUnitDefID(unitBuildID)
 					if unitBuildDefID then
 						local cellRectID = unitDefToCellMap[unitBuildDefID]
 						if cellRectID and cellRects[cellRectID] then
 							local _, progress = spGetUnitIsBeingBuilt(unitBuildID)
 							progress = 1 - progress -- make the effect wind counter-clockwise
-							RectRoundProgress(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cellSize * 0.03, progress, { 0.08, 0.08, 0.08, 0.6 })
+							RectRoundProgress(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cellSize * 0.03, progress, progressColor)
 						end
 					end
 				end
+			end
+			for k in pairs(drawnBuildTargets) do
+				drawnBuildTargets[k] = nil
 			end
 		end
 	end
@@ -1275,8 +1233,6 @@ end
 
 function widget:GameStart()
 	preGamestartPlayer = false
-
-	units.checkGeothermalFeatures()
 
 	unbindBuildUnits()
 end
@@ -1390,7 +1346,7 @@ function widget:MousePress(x, y, button)
 									Spring.PlaySoundFile(sound_queue_rem, 0.75, 'ui')
 								end
 								if preGamestartPlayer then
-									setPreGamestartDefID(cmds[cellRectID].id * -1)
+									setPreGamestartDefID(-cmds[cellRectID].id)
 								elseif spGetCmdDescIndex(cmds[cellRectID].id) then
 									Spring.SetActiveCommand(spGetCmdDescIndex(cmds[cellRectID].id), 3, false, true, Spring.GetModKeyState())
 								end
@@ -1529,16 +1485,18 @@ end
 function widget:Initialize()
 	refreshUnitDefs()
 
+	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
+	for unitDefID, reasons in pairs(blockedUnitsData) do
+		units.unitRestricted[unitDefID] = next(reasons) ~= nil
+		units.unitHidden[unitDefID] = reasons["hidden"] ~= nil
+	end
+
 	if widgetHandler:IsWidgetKnown("Grid menu") then
 		-- Grid menu needs to be disabled right now and before we recreate
 		-- WG['buildmenu'] since its Shutdown will destroy it.
 		widgetHandler:DisableWidgetRaw("Grid menu")
 	end
 
-	units.checkGeothermalFeatures()
-	if disableWind then
-		units.restrictWindUnits(true)
-	end
 
 	-- Get our starting unit
 	if preGamestartPlayer then
@@ -1673,32 +1631,15 @@ function widget:Initialize()
 		end
 		clear()
 	end
+end
 
-	local blockedUnits = {}
 
-	WG['buildmenu'].addBlockReason = function(uDefID, reason)
-		blockedUnits[uDefID] = blockedUnits[uDefID] or {}
-		blockedUnits[uDefID][reason] = true
-		units.unitRestricted[uDefID] = true
-		clear()
-	end
 
-	WG['buildmenu'].removeBlockReason = function(uDefID, reason)
-		if blockedUnits[uDefID] then
-			blockedUnits[uDefID][reason] = nil
-			if not next(blockedUnits[uDefID]) then
-				blockedUnits[uDefID] = nil
-				
-				if UnitDefs[uDefID].maxThisUnit ~= 0 then
-					units.unitRestricted[uDefID] = false
-				end
-				
-				units.restrictWaterUnits(not showWaterUnits)
-				units.restrictWindUnits(disableWind)
-				units.checkGeothermalFeatures()
-			end
-			clear()
-		end
+function widget:UnitBlocked(unitDefID, reasons)
+	units.unitRestricted[unitDefID] = next(reasons) ~= nil
+	units.unitHidden[unitDefID] = reasons["hidden"] ~= nil
+	if not delayRefresh or delayRefresh < spGetGameSeconds() then
+		delayRefresh = spGetGameSeconds() + 0.5 -- delay so multiple sequential UnitBlocked calls are batched in a single update.
 	end
 end
 

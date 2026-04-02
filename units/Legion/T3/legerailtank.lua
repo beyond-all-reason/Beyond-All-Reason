@@ -16,8 +16,6 @@ return {
 		explodeas = "explosiont3",
 		footprintx = 5,
 		footprintz = 5,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxdamage = 16500,
 		maxslope = 16,
@@ -82,11 +80,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
 				[2] = "custom:barrelshot-tiny",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

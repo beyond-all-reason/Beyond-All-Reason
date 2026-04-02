@@ -3,7 +3,7 @@ return {
 		buildangle = 1024,
 		builder = true,
 		buildpic = "LEGAVP.DDS",
-		buildtime = 35000,
+		buildtime = 51000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "130 86 140",
@@ -15,8 +15,6 @@ return {
 		footprintx = 9,
 		footprintz = 9,
 		health = 4750,
-		idleautoheal = 5,
-		idletime = 1800,
 		levelground = false,
 		maxacc = 0,
 		maxdec = 0,
@@ -79,13 +77,6 @@ return {
 				object = "Units/arm6X6D.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

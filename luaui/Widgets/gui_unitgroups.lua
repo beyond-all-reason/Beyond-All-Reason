@@ -21,8 +21,6 @@ local mathMax = math.max
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
-
 local alwaysShow = true		-- always show AT LEAST the label
 local alwaysShowLabel = true	-- always show the label regardless
 local showWhenSpec = false
@@ -75,6 +73,7 @@ local doUpdate = true
 local groupButtons = {}
 
 local font, font2, buildmenuBottomPosition, dlist, dlistGuishader, backgroundRect, ordermenuPosY
+local guishaderWasActive = false
 local buildmenuAlwaysShow = false
 local buildmenuShowingPosY = 0
 
@@ -167,26 +166,17 @@ function widget:Shutdown()
 		gl.DeleteTexture(uiTex)
 	end
 	if WG['guishader'] and dlistGuishader then
-		WG['guishader'].DeleteDlist('unitgroups')
+		WG.FlowUI.guishaderDeleteDlist('unitgroups')
 		dlistGuishader = nil
 	end
 	WG['unitgroups'] = nil
 end
 
 local function checkGuishader(force)
-	if WG['guishader'] then
-		if force and dlistGuishader then
-			WG['guishader'].RemoveDlist('unitgroups')
-			dlistGuishader = gl.DeleteList(dlistGuishader)
-		end
-		if not dlistGuishader and backgroundRect then
-			dlistGuishader = gl.CreateList(function()
-				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner, ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0))
-			end)
-			WG['guishader'].InsertDlist(dlistGuishader, 'unitgroups')
-		end
-	elseif dlistGuishader then
-		dlistGuishader = gl.DeleteList(dlistGuishader)
+	if backgroundRect then
+		dlistGuishader = WG.FlowUI.guishaderCheckDlist(dlistGuishader, 'unitgroups', function()
+			RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner, ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0))
+		end, force)
 	end
 end
 
@@ -236,7 +226,7 @@ local function drawContent()
 		local offset = ((groupRect[3]-groupRect[1])/4.2)
 		local offsetY = -(fontSize*(posY > 0 and 0.31 or 0.44))
 		local style = 'co'
-		font2:Begin(useRenderToTexture)
+		font2:Begin(true)
 		font2:SetOutlineColor(0, 0, 0, 0.2)
 		font2:SetTextColor(0.45, 0.45, 0.45, 1)
 		font2:Print(1, groupRect[1]+((groupRect[3]-groupRect[1])/2)-offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)+offset+offsetY, fontSize, style)
@@ -398,13 +388,13 @@ local function drawContent()
 				)
 
 				local fontSize = height*vsy*0.4
-				font2:Begin(useRenderToTexture)
+				font2:Begin(true)
 				font2:Print('\255\200\255\200'..group, groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2]+iconMargin + (fontSize*0.28), fontSize, "co")
 				font2:End()
 				local amount = (showStack and largestCount_1 or spGetGroupUnitsCount(group))
 				if amount > 1 then
 					fontSize = height*vsy*0.3
-					font:Begin(useRenderToTexture)
+					font:Begin(true)
 					font:Print('\255\240\240\240'..amount, groupRect[1]+iconMargin+(fontSize*0.18), groupRect[4]-iconMargin-(fontSize*0.92), fontSize, "o")
 					font:End()
 				end
@@ -452,13 +442,14 @@ local function updateList()
 		end
 
 		local prevBackgroundX2 = backgroundRect and backgroundRect[3] or 0
+		local prevBackgroundY1 = backgroundRect and backgroundRect[2] or 0
 		backgroundRect = {
 			floor(posX * vsx),
 			floor(posY * vsy),
 			floor(posX * vsx) + usedWidth,
 			floor(posY * vsy) + usedHeight
 		}
-		if backgroundRect and backgroundRect[3] ~= prevBackgroundX2 then
+		if backgroundRect and (backgroundRect[3] ~= prevBackgroundX2 or backgroundRect[2] ~= prevBackgroundY1) then
 			if uiBgTex then
 				gl.DeleteTexture(uiBgTex)
 				uiBgTex = nil
@@ -466,45 +457,22 @@ local function updateList()
 			checkGuishader(true)
 		end
 
-		if useRenderToTexture then
-			if not uiBgTex then
-				uiBgTex = gl.CreateTexture(mathFloor(uiTexWidth), mathFloor(backgroundRect[4]-backgroundRect[2]), {
-					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
-					fbo = true,
-				})
-				gl.R2tHelper.RenderToTexture(uiBgTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / (backgroundRect[3]-backgroundRect[1]), 2 / (backgroundRect[4]-backgroundRect[2]),	0)
-						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-						drawBackground()
-					end,
-					useRenderToTexture
-				)
-			end
-			if not uiTex then
-				uiTex = gl.CreateTexture(mathFloor(uiTexWidth)*2, mathFloor(backgroundRect[4]-backgroundRect[2])*2, {
-					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
-					fbo = true,
-				})
-			end
-			gl.R2tHelper.RenderToTexture(uiTex,
-				function()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / uiTexWidth, 2 / (backgroundRect[4]-backgroundRect[2]),	0)
-					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-					drawContent()
-				end,
-				useRenderToTexture
-			)
-		else
-			dlist = gl.CreateList(function()
-				drawBackground()
-				drawContent()
-			end)
+		if not uiBgTex then
+			uiBgTex = gl.CreateTexture(mathFloor(uiTexWidth), mathFloor(backgroundRect[4]-backgroundRect[2]), {
+				target = GL.TEXTURE_2D,
+				format = GL.RGBA,
+				fbo = true,
+			})
+			gl.R2tHelper.RenderInRect(uiBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], drawBackground, true)
 		end
+		if not uiTex then
+			uiTex = gl.CreateTexture(mathFloor(uiTexWidth)*2, mathFloor(backgroundRect[4]-backgroundRect[2])*2, {
+				target = GL.TEXTURE_2D,
+				format = GL.RGBA,
+				fbo = true,
+			})
+		end
+		gl.R2tHelper.RenderInRect(uiTex, backgroundRect[1], backgroundRect[2], backgroundRect[1]+uiTexWidth, backgroundRect[4], drawContent, true)
 	end
 end
 
@@ -514,18 +482,13 @@ function widget:DrawScreen()
 			doUpdate = false
 			updateList()
 		end
-		if dlist or uiBgTex then
-			if uiBgTex then
-				-- background element
-				gl.R2tHelper.BlendTexRect(uiBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], useRenderToTexture)
-			end
-			if not useRenderToTexture then
-				gl.CallList(dlist)
-			end
-			if uiTex then
-				-- content
-				gl.R2tHelper.BlendTexRect(uiTex, backgroundRect[1], backgroundRect[2], backgroundRect[1]+uiTexWidth, backgroundRect[4], useRenderToTexture)
-			end
+		if uiBgTex then
+			-- background element
+			gl.R2tHelper.BlendTexRect(uiBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], true)
+		end
+		if uiTex then
+			-- content
+			gl.R2tHelper.BlendTexRect(uiTex, backgroundRect[1], backgroundRect[2], backgroundRect[1]+uiTexWidth, backgroundRect[4], true)
 		end
 	end
 end
@@ -654,6 +617,13 @@ function widget:Update(dt)
 		end
 
 		doUpdate = true	-- TODO: find a way to detect group changes and only doUpdate then
+
+		-- detect guishader toggle: force refresh when it comes back on
+		local guishaderActive = WG['guishader'] ~= nil
+		if guishaderActive and not guishaderWasActive then
+			checkGuishader(true)
+		end
+		guishaderWasActive = guishaderActive
 	elseif hovered and sec2 > 0.05 then
 		sec2 = 0
 		doUpdate = true

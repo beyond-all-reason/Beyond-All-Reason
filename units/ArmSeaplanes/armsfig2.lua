@@ -3,7 +3,7 @@ return {
 		airsightdistance = 950,
 		blocking = false,
 		buildpic = "ARMSFIG2.DDS",
-		buildtime = 5500,
+		buildtime = 7000,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,
@@ -43,17 +43,6 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmSeaplanes",
 			unitgroup = "aa",
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-tiny",
-				[2] = "crashing-tiny2",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-				[2] = "airdeathceg3",
-				[3] = "airdeathceg4",
-			},
 		},
 		sounds = {
 			build = "nanlath1",

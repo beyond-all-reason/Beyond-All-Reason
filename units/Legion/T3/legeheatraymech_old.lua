@@ -1,7 +1,7 @@
 return {
 	legeheatraymech_old = {
 		buildpic = "legeheatraymech_old.DDS",
-		buildtime = 500000,
+		buildtime = 666250,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 -10 0",
@@ -15,8 +15,6 @@ return {
 		footprintx = 6,
 		footprintz = 6,
 		health = 110000,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 27000,
 		maxacc = 0.1750,
 		maxdec = 0.7500,
@@ -83,11 +81,6 @@ return {
 				[2] = "custom:subbubbles",
 				[3] = "custom:barrelshot-flak",
 				[4] = "custom:footstep-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

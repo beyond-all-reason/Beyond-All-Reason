@@ -163,14 +163,24 @@ local unitDefRings = {} --each entry should be  a unitdefIDkey to very specific 
 	}
 ]]--
 
-local mobileAntiUnitDefs = {
-	[UnitDefNames.armscab.id ] = true,
-	[UnitDefNames.armcarry.id] = true,
-	[UnitDefNames.cormabm.id ] = true,
-	[UnitDefNames.corcarry.id] = true,
-	[UnitDefNames.armantiship.id] = true,
-	[UnitDefNames.corantiship.id] = true,
+local mobileAntiUnitNames = {
+	'armscab',
+	'armcarry',
+	'cormabm',
+	'legavantinuke',
+	'corcarry',
+	'armantiship',
+	'corantiship',
+	'leganavyantinukecarrier'
 }
+
+local mobileAntiUnitDefs = {}
+
+for _, unit in ipairs(mobileAntiUnitNames) do
+    if UnitDefNames[unit] then
+        mobileAntiUnitDefs[UnitDefNames[unit].id] = true
+    end
+end
 
 local defensePosHash = {} -- key: {poshash=unitID}
 -- poshash is 4096 * posx/8 + posz/8
@@ -300,21 +310,16 @@ local function initUnitList()
 		['corint'] = { weapons = { 'lrpc' } },
 		['corbuzz'] = { weapons = { 'lrpc' } },
 
-		['armscab'] = { weapons = { 'nuke' } },
-		['armcarry'] = { weapons = { 'nuke' } },
-		['cormabm'] = { weapons = { 'nuke' } },
-		['corcarry'] = { weapons = { 'nuke' } },
-		['armantiship'] = { weapons = { 'nuke' } },
-		['corantiship'] = { weapons = { 'nuke' } },
-
 		-- LEGION
 		['legabm'] = { weapons = { 'nuke' } }, --antinuke
 		['legrampart'] = { weapons = { 'nuke', 'ground' } }, --rampart
 		['leglht'] = { weapons = { 'ground' } }, --llt
+		['legtl'] = { weapons = { 'ground' } }, --torpedo launcher
 		['legcluster'] = { weapons = { 'cannon' } }, --short range arty T1
 		['legacluster'] = { weapons = { 'cannon' } }, --T2 arty
 		['legdtr'] = { weapons = { 'ground' } }, --dragons jaw
 		['leghive'] = { weapons = { 'ground' } }, --Drone-defense
+		['legfhive'] = { weapons = { 'ground' } }, --Drone-defense
 		['legmg'] = { weapons = { 'ground' } }, --ground-AA MG defense
 		['legfmg'] = { weapons = { 'ground' } },  --cyclops
 		['legnavaldefturret'] = { weapons = { 'ground' } },  --cyclops
@@ -328,9 +333,20 @@ local function initUnitList()
 		['leglraa'] = { weapons = { 'air' } }, --T2 LR-AA
 		['legperdition'] = { weapons = { 'cannon' } }, --T2 LR-AA
 		['legapopupdef'] = { weapons = { 'ground' } }, --popup riot/minigun turret
+		['leganavaltorpturret'] = { weapons = { 'ground' } }, --torpedo launcher
 
 		['legstarfall'] = { weapons = { 'lrpc' } },
 		['leglrpc'] = { weapons = { 'lrpc' } },
+
+		-- MOBILE ANTINUKES
+		['armscab'] = { weapons = { 'nuke' } },
+		['armcarry'] = { weapons = { 'nuke' } },
+		['cormabm'] = { weapons = { 'nuke' } },
+		['corcarry'] = { weapons = { 'nuke' } },
+		['legavantinuke'] = { weapons = { 'nuke' } },
+		['armantiship'] = { weapons = { 'nuke' } },
+		['corantiship'] = { weapons = { 'nuke' } },
+		['leganavyantinukecarrier'] = { weapons = { 'nuke' } }, -- NOTE: drone weapon shown in attack ranges
 
 		-- SCAVENGERS
 		['scavbeacon_t1_scav'] = { weapons = { 'ground' } },

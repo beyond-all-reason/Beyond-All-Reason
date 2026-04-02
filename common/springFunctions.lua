@@ -7,6 +7,8 @@ local tableFunctions = VFS.Include(utilitiesDirectory .. 'tableFunctions.lua')
 local colorFunctions = VFS.Include(utilitiesDirectory .. 'color.lua')
 local safeLuaTableParser = VFS.Include(utilitiesDirectory .. 'safeluaparser.lua')
 
+local accountIDCache = {}
+
 local utilities = {
 	LoadTGA = tga.LoadTGA,
 	SaveTGA = tga.SaveTGA,
@@ -33,10 +35,38 @@ local utilities = {
 		return (devUI > 0) and true or false
 	end,
 
+	--- Cached variant of IsDevMode, refreshed per call but avoids repeated lookups
+	--- within the same frame when multiple widgets query it.
+	_devModeCache = nil,
+	_devModeCacheFrame = -1,
+	IsDevModeCached = function()
+		local frame = Spring.GetGameFrame()
+		if frame ~= utilities._devModeCacheFrame then
+			local devMode = Spring.GetGameRulesParam('isDevMode')
+			utilities._devModeCache = (devMode and devMode > 0) and true or false
+			utilities._devModeCacheFrame = frame
+		end
+		return utilities._devModeCache
+	end,
+
 	CustomKeyToUsefulTable = tableFunctions.CustomKeyToUsefulTable,
 	SafeLuaTableParser = safeLuaTableParser.SafeLuaTableParser,
 
 	Color = colorFunctions,
+	ConvertColor = colorFunctions and colorFunctions.ConvertColor,
+
+	GetAccountID = function(playerID)
+		local cached = accountIDCache[playerID]
+		if cached then
+			return cached
+		end
+		local accountInfo = select(11, Spring.GetPlayerInfo(playerID))
+		local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
+		if accountID ~= -1 then
+			accountIDCache[playerID] = accountID
+		end
+		return accountID
+	end,
 }
 
 local debugUtilities = VFS.Include(utilitiesDirectory .. 'debug.lua')

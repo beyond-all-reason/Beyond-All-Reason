@@ -16,8 +16,6 @@ return {
 		explodeas = "hugeBuildingexplosiongeneric",
 		footprintx = 12,
 		footprintz = 12,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 17800,
 		maxslope = 10,
 		maxwaterdepth = 0,
@@ -38,7 +36,7 @@ return {
 			[4] = "legavroc",
 			[5] = "leginf",
 			[6] = "legvflak",
-			[7] = "cormabm",
+			[7] = "legavantinuke",
 			[8] = "legavjam",
 			[9] = "legmrv",
 			[10] = "legehovertank",
@@ -82,13 +80,6 @@ return {
 				object = "Units/cor7X7B.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

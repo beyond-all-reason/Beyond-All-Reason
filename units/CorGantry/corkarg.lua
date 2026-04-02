@@ -1,7 +1,7 @@
 return {
 	corkarg = {
 		buildpic = "CORKARG.DDS",
-		buildtime = 76000,
+		buildtime = 94000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0.0 -2.0 1",
@@ -13,8 +13,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 12500,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 2500,
 		maxacc = 0.1104,
 		maxdec = 0.8211,
@@ -70,13 +68,6 @@ return {
 				object = "Units/cor4X4A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

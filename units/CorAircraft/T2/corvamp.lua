@@ -3,7 +3,7 @@ return {
 		airsightdistance = 1100,
 		blocking = false,
 		buildpic = "CORVAMP.DDS",
-		buildtime = 8400,
+		buildtime = 10000,
 		canfly = true,
 		canmove = true,
 		collide = false,
@@ -44,17 +44,6 @@ return {
 			subfolder = "CorAircraft/T2",
 			techlevel = 2,
 			unitgroup = "aa",
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-tiny",
-				[2] = "crashing-tiny2",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

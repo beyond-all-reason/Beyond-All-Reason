@@ -1,7 +1,7 @@
 return {
 	corsumo = {
 		buildpic = "CORSUMO.DDS",
-		buildtime = 51000,
+		buildtime = 65000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "38 34 36",
@@ -12,8 +12,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 15600,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.0552,
 		maxdec = 0.43125,
 		maxslope = 15,
@@ -74,11 +72,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:footstep-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

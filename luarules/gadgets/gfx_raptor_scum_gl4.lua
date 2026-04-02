@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		desc = "Draws scum with global overlap texturing",
 		author = "Beherith",
 		date = "2022.04.20",
-		license = "Lua code: GNU GPL, v2 or later, Shader GLSL code: (c) Beherith (mysterme@gmail.com)",
+		license = "GNU GPL v2",
 		layer = -1,
 		enabled = true,
 	}

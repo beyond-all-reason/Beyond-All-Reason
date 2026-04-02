@@ -15,9 +15,7 @@ return {
 		explodeas = "mediumExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
 		usepiececollisionvolumes = 1,
-		idletime = 1800,
 		leavetracks = true,
 		maxdamage = 3500,
 		maxslope = 10,
@@ -46,8 +44,8 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "legvehicles/T2",
 			techlevel = 2,
-			enabled_on_no_sea_maps = true,
-			speedfactorwater = "1.3",
+			restrictions_exclusion = "_nosea_",
+			speedfactorinwater = 1.3,
 		},
 		featuredefs = {
 			dead = {
@@ -89,11 +87,6 @@ return {
 				[3] = "custom:bowsplash-small",
 				[4] = "custom:bowsplash-medium",
 				[5] = "custom:barrelshot-tiny",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

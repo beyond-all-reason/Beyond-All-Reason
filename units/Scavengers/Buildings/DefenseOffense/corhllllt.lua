@@ -16,8 +16,6 @@ return {
 		explodeas = "mediumBuildingexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 10200,
 		health = 1670,
 		maxslope = 10,
@@ -70,12 +68,6 @@ return {
 				object = "Units/cor4X4D.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {

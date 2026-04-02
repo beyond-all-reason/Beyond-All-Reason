@@ -71,22 +71,39 @@ local function cacheUnitIcons()
 
 	end
 	gl.Color(1, 1, 1, 1)
+	gl.Texture(false)
 	gl.Translate(vsx, 0, 0)
 end
 
 function widget:Initialize()
-	if spGetGameFrame() > 200 then
+	-- Only run this widget at game start (frame 0), disable on reconnect/late join
+	if spGetGameFrame() > 0 then
 		widgetHandler:RemoveWidget()
 		return
 	end
 end
 
 function widget:DrawScreen()
-	if not delayedCacheUnitIcons and spGetGameFrame() > 0 then
+	-- Cache start units and setup delayed caching (only at game frame 0)
+	if not cachedUnitIcons then
+		if spGetGameFrame() == 0 then
+			cachedUnitIcons = true
+			cacheUnitIcons()
+		else
+			-- Safety: game started without caching, remove widget
+			widgetHandler:RemoveWidget()
+			return
+		end
+	end
+
+	-- Safety check: if no delayed cache was created, remove widget
+	if not delayedCacheUnitIcons or spGetGameFrame() > 2000 then
 		widgetHandler:RemoveWidget()
 		return
 	end
-	if delayedCacheUnitIcons and os.clock() > delayedCacheUnitIconsTimer then
+
+	-- Process delayed icon caching
+	if os.clock() > delayedCacheUnitIconsTimer then
 		gl.Translate(-vsx, 0, 0)
 		gl.Color(1, 1, 1, 0.001)
 		local id
@@ -94,6 +111,7 @@ function widget:DrawScreen()
 			delayedCachePos = delayedCachePos + 1
 			id = delayedCacheUnitIcons[delayedCachePos]
 			if not id then
+				-- All icons cached, remove widget
 				delayedCacheUnitIcons = nil
 				widgetHandler:RemoveWidget()
 				break
@@ -102,11 +120,7 @@ function widget:DrawScreen()
 			end
 		end
 		gl.Color(1, 1, 1, 1)
+		gl.Texture(false)
 		gl.Translate(vsx, 0, 0)
-	end
-
-	if not cachedUnitIcons and spGetGameFrame() == 0 then
-		cachedUnitIcons = true
-		cacheUnitIcons()
 	end
 end

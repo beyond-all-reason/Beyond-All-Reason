@@ -3,7 +3,7 @@ return {
 		airsightdistance = 950,
 		blocking = false,
 		buildpic = "CORSFIG2.DDS",
-		buildtime = 5200,
+		buildtime = 6500,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,
@@ -43,17 +43,6 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorSeaplanes",
 			unitgroup = "aa",
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small2",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-				[2] = "airdeathceg3",
-				[3] = "airdeathceg4",
-			},
 		},
 		sounds = {
 			build = "nanlath1",

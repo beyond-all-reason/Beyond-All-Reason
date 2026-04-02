@@ -19,8 +19,6 @@ return {
 		explodeas = "",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 5125,
 		maxwaterdepth = 0,
 		objectname = "Units/LEGMOHOBPCT.s3o",
@@ -39,13 +37,6 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.1,
 			subfolder = "CorBuildings/LandUtil",
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2-builder",
-				[2] = "deathceg3-builder",
-				[3] = "deathceg4-builder",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

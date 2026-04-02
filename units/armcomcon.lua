@@ -27,8 +27,6 @@ return {
 		health = 3350,
 		hidedamage = true,
 		holdsteady = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.18,
 		maxdec = 1.125,
 		maxslope = 20,
@@ -112,10 +110,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:com_sea_laser_bubbles",
 				[2] = "custom:barrelshot-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

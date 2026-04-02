@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		builder = true,
 		buildpic = "CORAP.DDS",
-		buildtime = 5680,
+		buildtime = 5380,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "128 33 96",
@@ -15,13 +15,11 @@ return {
 		footprintx = 9,
 		footprintz = 6,
 		health = 2150,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 15,
 		maxwaterdepth = 0,
-		metalcost = 690,
+		metalcost = 630,
 		metalstorage = 100,
 		objectname = "Units/CORAP.s3o",
 		radardistance = 510,
@@ -53,6 +51,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorBuildings/LandFactories",
 			unitgroup = "builder",
+			restrictions_inclusion = "_noair_",
 			usebuildinggrounddecal = true,
 		},
 		featuredefs = {
@@ -87,11 +86,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:radarpulse_t1_slow",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

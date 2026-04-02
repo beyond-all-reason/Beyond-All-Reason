@@ -2,7 +2,7 @@ return {
 	corparrow = {
 		activatewhenbuilt = true,
 		buildpic = "CORPARROW.DDS",
-		buildtime = 19000,
+		buildtime = 26000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -10 1",
 		collisionvolumescales = "44 35 53",
@@ -13,8 +13,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 6300,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.0266,
 		maxdec = 0.05321,
@@ -86,11 +84,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-large",
 				[2] = "custom:DUST_CLOUD",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

@@ -5,7 +5,7 @@ return {
 		energycost = 9000,
 		metalcost = 210,
 		buildpic = "legwhisper.DDS",
-		buildtime = 14000,
+		buildtime = 16480,
 		canfly = true,
 		canmove = true,
 		collide = false,
@@ -13,8 +13,6 @@ return {
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.1575,
 		maxaileron = 0.01366,
 		maxbank = 0.8,
@@ -49,20 +47,7 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:radarpulse_t2",
-			},
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
-			},
-		},
+			},		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

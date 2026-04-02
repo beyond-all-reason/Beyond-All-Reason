@@ -24,18 +24,10 @@ local tableInsert = table.insert
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 local spGetSpectatingState = Spring.GetSpectatingState
-local spEcho = Spring.Echo
 
 local texts = {}
 local damageStats = (VFS.FileExists("LuaUI/Config/BAR_damageStats.lua")) and VFS.Include("LuaUI/Config/BAR_damageStats.lua")
 local gameName = Game.gameName
-
-local isCommander = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams.iscommander then
-		isCommander[unitDefID] = true
-	end
-end
 
 if damageStats and damageStats[gameName] and damageStats[gameName].team then
 	local rate = 0
@@ -115,7 +107,7 @@ local useSelection = true
 local customFontSize = 14
 local fontSize = customFontSize
 
-local cX, cY, cYstart
+local cY
 
 local vsx, vsy = gl.GetViewSizes()
 local widgetScale = 1
@@ -139,10 +131,12 @@ local energyColor = '\255\255\255\128' -- Light yellow
 local buildColor = '\255\128\255\128' -- Light green
 
 local simSpeed = Game.gameSpeed
+local armorTypes = Game.armorTypes
 
 local max = mathMax
 local floor = mathFloor
 local ceil = math.ceil
+local bit_and = math.bit_and
 local format = string.format
 local char = string.char
 
@@ -174,66 +168,174 @@ local maxWidth = 0
 local textBuffer = {}
 local textBufferCount = 0
 
+-- Content caching state
+local textDlist = nil
+local dlistGuishaderTitle = nil
+local dlistGuishaderStats = nil
+local cachedDefID, cachedUnitID
+local cachedShift = false
+local cachedContentBottom = 0
+local cachedMaxWidth = 0
+local cachedTitleText = ""
+local cachedTitleTextWidth = 0
+local cachedTitleFontSize = 0
+local cachedBuildProg = nil
+local cachedExp = nil
+local lastComputeFrame = -999
+local COMPUTE_INTERVAL = 6
+
+-- Render-to-texture caching
+local panelTex = nil
+local panelTexW, panelTexH = 0, 0
+local panelOffsets = {0, 0, 0, 0} -- left, bottom, right, top offsets from screenX/screenY
+local PANEL_REF_X, PANEL_REF_Y = 1000, 2000
+local cachedGuishaderX, cachedGuishaderY = nil, nil
+
 local spec = spGetSpectatingState()
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousName = '?????'
-local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
 local showStats = false
 
-local isCommander = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams.iscommander then
-		isCommander[unitDefID] = true
-	end
-end
+-- TODO: Shield damages are overridden in the shields rework (now in main game)
+local shieldsRework = not Spring.GetModOptions().experimentalshields:find("bounce")
 
--- Reverse armor type table
-local armorTypes = {}
-for ii = 1, #Game.armorTypes do
-	armorTypes[Game.armorTypes[ii]] = ii
-end
+-- TODO: Localize, same as armorTypes
+-- TODO: Compose this list somewhere and reinclude it here
+local targetableTypes = {
+	[1] = "nuclear missiles",
+}
 
 ------------------------------------------------------------------------------------
 -- Functions
 ------------------------------------------------------------------------------------
 
+local function descending(a, b) return a > b end -- table.sort function
+
 local function DrawText(t1, t2)
 	textBufferCount = textBufferCount + 1
-	textBuffer[textBufferCount] = {t1,t2,cX+(bgpadding*8),cY}
+	textBuffer[textBufferCount] = {t1, t2, bgpadding * 8, cY}
 	cY = cY - fontSize
 	maxWidth = max(maxWidth, (font:GetTextWidth(t1)*fontSize) + (bgpadding*10), (font:GetTextWidth(t2)*fontSize)+(fontSize*6.5) + (bgpadding*10))
 end
 
-local function DrawTextBuffer()
-	local num = #textBuffer
-	font:Begin()
-	font:SetTextColor(1, 1, 1, 1)
-	font:SetOutlineColor(0, 0, 0, 1)
-	for i=1, num do
-		font:Print(textBuffer[i][1], textBuffer[i][3], textBuffer[i][4], fontSize, "o")
-		font:Print(textBuffer[i][2], textBuffer[i][3] + (fontSize*6.5), textBuffer[i][4], fontSize, "o")
+local function buildTextDlist()
+	if textDlist then gl.DeleteList(textDlist) end
+	textDlist = gl.CreateList(function()
+		font:Begin()
+		font:SetTextColor(1, 1, 1, 1)
+		font:SetOutlineColor(0, 0, 0, 1)
+		for i = 1, textBufferCount do
+			font:Print(textBuffer[i][1], textBuffer[i][3], textBuffer[i][4], fontSize, "o")
+			font:Print(textBuffer[i][2], textBuffer[i][3] + (fontSize*6.5), textBuffer[i][4], fontSize, "o")
+		end
+		font:End()
+	end)
+end
+
+local function renderPanelToTexture(uDefID, uID)
+	local refX, refY = PANEL_REF_X, PANEL_REF_Y
+	local titleFontSize = cachedTitleFontSize
+	local uiOpacity = WG.FlowUI.clampedOpacity
+
+	-- Title rect at reference coords
+	local tLeft = floor(refX - bgpadding)
+	local tBottom = ceil(refY - bgpadding)
+	local tRight = floor(refX + cachedTitleTextWidth + (titleFontSize * 3.5))
+	local tTop = floor(refY + (titleFontSize * 1.8) + bgpadding)
+
+	-- Stats rect at reference coords
+	local sLeft = floor(refX - bgpadding)
+	local sBottom = ceil(refY + cachedContentBottom + (fontSize / 3) + (bgpadding * 0.3))
+	local sRight = ceil(refX + cachedMaxWidth + bgpadding)
+	local sTop = ceil(refY - bgpadding)
+
+	-- Panel bounding box
+	local panelLeft = math.min(tLeft, sLeft)
+	local panelBottom = sBottom
+	local panelRight = math.max(tRight, sRight)
+	local panelTop = tTop
+
+	local w = panelRight - panelLeft
+	local h = panelTop - panelBottom
+	if w < 1 or h < 1 then return end
+
+	-- Store offsets from screenX/screenY to panel edges
+	panelOffsets[1] = panelLeft - refX
+	panelOffsets[2] = panelBottom - refY
+	panelOffsets[3] = panelRight - refX
+	panelOffsets[4] = panelTop - refY
+
+	-- Create/resize texture
+	if panelTex and (w ~= panelTexW or h ~= panelTexH) then
+		gl.DeleteTexture(panelTex)
+		panelTex = nil
 	end
-	font:End()
+	if not panelTex then
+		panelTex = gl.CreateTexture(w, h, {
+			target = GL.TEXTURE_2D,
+			format = GL.RGBA,
+			fbo = true,
+		})
+		panelTexW = w
+		panelTexH = h
+	end
+	if not panelTex then return end
+
+	-- Override FlowUI screen size so UiElement edge detection treats all edges as interior
+	local savedFlowVsx = WG.FlowUI.vsx
+	local savedFlowVsy = WG.FlowUI.vsy
+	WG.FlowUI.vsx = panelRight + 9999
+	WG.FlowUI.vsy = panelTop + 9999
+
+	gl.R2tHelper.RenderInRect(panelTex, panelLeft, panelBottom, panelRight, panelTop, function()
+		-- Title background
+		UiElement(tLeft, tBottom, tRight, tTop, 1,1,1,0, 1,1,0,1, uiOpacity)
+
+		-- Stats background
+		UiElement(sLeft, sBottom, sRight, sTop, 0,1,1,1, 1,1,1,1, uiOpacity)
+
+		-- Icon
+		if uID then
+			local iconPadding = mathMax(1, mathFloor(bgpadding * 0.8))
+			glColor(1,1,1,1)
+			UiUnit(
+				tLeft + bgpadding + iconPadding, tBottom + iconPadding, tLeft + (tTop - tBottom) - iconPadding, tTop - bgpadding - iconPadding,
+				nil,
+				1,1,1,1,
+				0.13,
+				nil, nil,
+				'#' .. uDefID
+			)
+		end
+
+		-- Title text
+		glColor(1,1,1,1)
+		font:Begin()
+		font:Print(cachedTitleText, tLeft + ((tTop - tBottom) * 1.3), tBottom + titleFontSize * 0.7, titleFontSize, "o")
+		font:End()
+
+		-- Stats text
+		gl.PushMatrix()
+		gl.Translate(refX, refY, 0)
+		gl.CallList(textDlist)
+		gl.PopMatrix()
+	end, true)
+
+	WG.FlowUI.vsx = savedFlowVsx
+	WG.FlowUI.vsy = savedFlowVsy
+
+	-- Reset guishader position so it gets updated
+	cachedGuishaderX = nil
+	cachedGuishaderY = nil
 end
 
 local function GetTeamColorCode(teamID)
 	if not teamID then return "\255\255\255\255" end
-
 	local R, G, B = spGetTeamColor(teamID)
-
 	if not R then return "\255\255\255\255" end
-
-	R = floor(R * 255)
-	G = floor(G * 255)
-	B = floor(B * 255)
-
-	if (R < 11) then R = 11	end -- Note: char(10) terminates string
-	if (G < 11) then G = 11	end
-	if (B < 11) then B = 11	end
-
-	return "\255" .. char(R) .. char(G) .. char(B)
+	return Spring.Utilities.ConvertColor(R, G, B)
 end
 
 local function GetTeamName(teamID)
@@ -262,6 +364,29 @@ function RemoveGuishader()
 		WG['guishader'].DeleteScreenDlist('unit_stats_data')
 		guishaderEnabled = false
 	end
+	if dlistGuishaderTitle then
+		gl.DeleteList(dlistGuishaderTitle)
+		dlistGuishaderTitle = nil
+	end
+	if dlistGuishaderStats then
+		gl.DeleteList(dlistGuishaderStats)
+		dlistGuishaderStats = nil
+	end
+end
+
+local function invalidateContent()
+	cachedDefID = nil
+	cachedUnitID = nil
+	cachedGuishaderX = nil
+	cachedGuishaderY = nil
+	if textDlist then
+		gl.DeleteList(textDlist)
+		textDlist = nil
+	end
+	if panelTex then
+		gl.DeleteTexture(panelTex)
+		panelTex = nil
+	end
 end
 
 ------------------------------------------------------------------------------------
@@ -288,11 +413,14 @@ function widget:Initialize()
 
 	widgetHandler:AddAction("unit_stats", enableStats, nil, "p")
 	widgetHandler:AddAction("unit_stats", disableStats, nil, "r")
+
+	spTraceScreenRay = Spring.TraceScreenRay -- fix for monkey-patching
 end
 
 function widget:Shutdown()
 	WG['unitstats'] = nil
 	RemoveGuishader()
+	invalidateContent()
 end
 
 function widget:PlayerChanged()
@@ -306,18 +434,6 @@ function init()
 
 	xOffset = (32 + bgpadding)*widgetScale
 	yOffset = -((32 + bgpadding)*widgetScale)
-end
-
-local uiSec = 0
-function widget:Update(dt)
-	uiSec = uiSec + dt
-	if uiSec > 0.5 then
-		uiSec = 0
-		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
-			ui_scale = Spring.GetConfigFloat("ui_scale",1)
-			widget:ViewResize(vsx,vsy)
-		end
-	end
 end
 
 function widget:ViewResize(n_vsx,n_vsy)
@@ -334,6 +450,7 @@ function widget:ViewResize(n_vsx,n_vsy)
 	font = WG['fonts'].getFont()
 
 	init()
+	invalidateContent()
 end
 
 local selectedUnits = spGetSelectedUnits()
@@ -346,14 +463,8 @@ if useSelection then
 end
 
 
-local function drawStats(uDefID, uID)
-	local mx, my = spGetMouseState()
-	local alt, ctrl, meta, shift = spGetModKeyState()
-	if WG['chat'] and WG['chat'].isInputActive then
-		if WG['chat'].isInputActive() then
-			showStats = false
-		end
-	end
+local function computeContent(uDefID, uID, shiftBool)
+	local shift = shiftBool
 
 	local uDef = uDefs[uDefID]
 	local maxHP = uDef.health
@@ -374,7 +485,7 @@ local function drawStats(uDefID, uID)
 	local mass = uDef.mass and uDef.mass or 0
 	local size = uDef.xsize and uDef.xsize / 2 or 0
 	local isBuilding, buildProg, uExp
-	local level = 1
+
 	if uID then
 		isBuilding, buildProg = Spring.GetUnitIsBeingBuilt(uID)
 		maxHP = select(2,Spring.GetUnitHealth(uID))
@@ -392,9 +503,7 @@ local function drawStats(uDefID, uID)
 
 	maxWidth = 0
 
-	cX = mx + xOffset
-	cY = my + yOffset
-	cYstart = cY
+	cY = 0
 
 	cY = cY - (bgpadding/2)
 
@@ -429,13 +538,13 @@ local function drawStats(uDefID, uID)
 		else
 			DrawText(texts.metal..":", format("%d / %d (" .. yellow .. "%d" .. white .. ")", mTotal * buildProg, mTotal, mRem))
 		end
-		
+
 		if eEta >= 0 then
 			DrawText(texts.energy..":", format("%d / %d (" .. yellow .. "%d" .. white .. ", %ds)", eTotal * buildProg, eTotal, eRem, eEta))
 		else
 			DrawText(texts.energy..":", format("%d / %d (" .. yellow .. "%d" .. white .. ")", eTotal * buildProg, eTotal, eRem))
 		end
-		
+
 			--DrawText("MaxBP:", format(white .. '%d', buildRem * uDef.buildTime / mathMax(mEta, eEta)))
 		cY = cY - fontSize
 	end
@@ -489,7 +598,7 @@ local function drawStats(uDefID, uID)
 	-- Armor
 	------------------------------------------------------------------------------------
 
-	DrawText(texts.armor..":", texts.class .. Game.armorTypes[uDef.armorType or 0] or '???')
+	DrawText(texts.armor..":", texts.class .. armorTypes[uDef.armorType or 0] or '???')
 
 	if uID and uExp ~= 0 then
 		if maxHP then
@@ -615,25 +724,30 @@ local function drawStats(uDefID, uID)
 		local reload = uWep.reload
 		local accuracy = uWep.accuracy
 		local moveError = uWep.targetMoveError
-		local defaultDamage = uWep.damages[0]
-		if defaultDamage < uWep.damages[armorTypes.vtol] then
-			defaultDamage = uWep.damages[armorTypes.vtol]
-		end
-		if uWep.customParams then
-			if uWep.customParams.spark_basedamage then
-				local spDamage = uWep.customParams.spark_basedamage * uWep.customParams.spark_forkdamage
-				local spCount = uWep.customParams.spark_maxunits
-				defaultDamage = defaultDamage + spDamage * spCount
-			elseif uWep.customParams.speceffect == "split" then
-				burst = burst * (uWep.customParams.number or 1)
-				uWep = WeaponDefNames[uWep.customParams.speceffect_def] or uWep
-				defaultDamage = uWep.damages[0]
-			elseif uWep.customParams.cluster then
-				local munition = uDef.name .. '_' .. uWep.customParams.cluster_def
-				local cmNumber = uWep.customParams.cluster_number
-				local cmDamage = WeaponDefNames[munition].damages[0]
-				defaultDamage = defaultDamage + cmDamage * cmNumber
-			end
+
+		local damages = uWep.damages
+		local defaultArmorIndex = armorTypes.default
+		local defaultArmorDamage = damages[defaultArmorIndex]
+		local baseArmorIndex = defaultArmorDamage >= damages[armorTypes.vtol] and defaultArmorIndex or armorTypes.vtol
+		local baseArmorDamage = damages[baseArmorIndex]
+
+		local custom = uWep.customParams
+
+		if custom.spark_basedamage then
+			local spDamage = custom.spark_basedamage * custom.spark_forkdamage
+			local spCount = custom.spark_maxunits
+			baseArmorDamage = baseArmorDamage + spDamage * spCount
+
+		elseif custom.speceffect == "split" then
+			burst = burst * (custom.number or 1)
+			uWep = WeaponDefNames[custom.speceffect_def] or uWep
+			baseArmorDamage = damages[defaultArmorIndex]
+
+		elseif custom.cluster then
+			local munition = uDef.name .. '_' .. custom.cluster_def
+			local cmNumber = custom.cluster_number
+			local cmDamage = WeaponDefNames[munition].damages[defaultArmorIndex]
+			baseArmorDamage = baseArmorDamage + cmDamage * cmNumber
 		end
 
 		if range > 0 then
@@ -667,112 +781,101 @@ local function drawStats(uDefID, uID)
 			end
 
 			local infoText = ""
-			if wpnName == texts.deathexplosion or wpnName == texts.selfdestruct then
-				infoText = format("%d "..texts.aoe..", %d%% "..texts.edge, uWep.damageAreaOfEffect, 100 * uWep.edgeEffectiveness)
-			else
-				infoText = format("%.2f", (useExp and reload or uWep.reload))..texts.s.." "..texts.reload..", "..format("%d "..texts.range..", %d "..texts.aoe..", %d%% "..texts.edge, useExp and range or uWep.range, uWep.damageAreaOfEffect, 100 * uWep.edgeEffectiveness)
-			end
-			if uWep.damages.paralyzeDamageTime > 0 then
-				infoText = format("%s, %ds "..texts.paralyze, infoText, uWep.damages.paralyzeDamageTime)
-			end
-			if uWep.damages.impulseFactor > 0.123 then
-				infoText = format("%s, %d "..texts.impulse, infoText, uWep.damages.impulseFactor*100)
-			end
-			if uWep.damages.craterBoost > 0 then
-				infoText = format("%s, %d "..texts.crater, infoText, uWep.damages.craterBoost*100)
-			end
 			if string.find(uWep.name, "disintegrator") then
 				infoText = format("%.2f", (useExp and reload or uWep.reload)).."s "..texts.reload..", "..format("%d "..texts.range, useExp and range or uWep.range)
+			elseif uWep.interceptor ~= 0 and uWep.coverageRange > 0 then
+				local stockpile, coverage = uWep.stockpileTime / simSpeed, uWep.coverageRange
+				infoText = format("%.2f%s %s (%d%s %s), %d %s", useExp and reload or uWep.reload, texts.s, texts.reload, stockpile, texts.s, texts.stockpile:lower(), coverage, texts.coverage)
+			else
+				if wpnName == texts.deathexplosion or wpnName == texts.selfdestruct then
+					infoText = format("%d "..texts.aoe..", %d%% "..texts.edge, uWep.damageAreaOfEffect, 100 * uWep.edgeEffectiveness)
+				else
+					infoText = format("%.2f", (useExp and reload or uWep.reload))..texts.s.." "..texts.reload..", "..format("%d "..texts.range..", %d "..texts.aoe..", %d%% "..texts.edge, useExp and range or uWep.range, uWep.damageAreaOfEffect, 100 * uWep.edgeEffectiveness)
+				end
+				if damages.paralyzeDamageTime > 0 then
+					infoText = format("%s, %ds "..texts.paralyze, infoText, damages.paralyzeDamageTime)
+				end
+				if damages.impulseFactor > 0.123 then
+					infoText = format("%s, %d "..texts.impulse, infoText, damages.impulseFactor*100)
+				end
+				if damages.craterBoost > 0 then
+					infoText = format("%s, %d "..texts.crater, infoText, damages.craterBoost*100)
+				end
 			end
 			DrawText(texts.info..":", infoText)
 
 			-- Draw the damage and damage modifiers strings.
-			local cat = 0
-			local oDmg = uWep.damages[cat]
-			local catName = Game.armorTypes[cat]
 			if string.find(uWep.name, "disintegrator") then
 				DrawText(texts.dmg..": ", texts.infinite)
-			else
-				local dmgString = ""
-				if wpnName == texts.deathexplosion or wpnName == texts.selfdestruct then
-					if catName and oDmg and (oDmg ~= defaultDamage or cat == 0) then
-						local dps = defaultDamage * burst / (useExp and reload or uWep.reload)
-						local bDamages = defaultDamage * burst
-						dmgString = texts.burst.." = "..(format(yellow .. "%d", bDamages))..white.."."
-					end
-				else
-					if catName and oDmg and (oDmg ~= defaultDamage or cat == 0) then
-						local dps = defaultDamage * burst / (useExp and reload or uWep.reload)
-						local bDamages = defaultDamage * burst
-						totaldps = totaldps + wepCount*dps
-						totalbDamages = totalbDamages + wepCount* bDamages
-						dmgString = texts.dps.." = "..(format(yellow .. "%d", dps))..white.."; "..texts.burst.." = "..(format(yellow .. "%d", bDamages))..white.."."
-						if wepCount > 1 then
-							dmgString = dmgString .. white .. " ("..texts.each..")"
-						end
+			elseif uWep.interceptor ~= 0 then
+				DrawText(texts.dmg..": ", texts.burst.." = "..yellow..format("%d", defaultArmorDamage * burst))
+				local interceptor = uWep.interceptor
+				local intercepts = {}
+				for mask, targetType in pairs(targetableTypes) do
+					if bit_and(interceptor, mask) ~= 0 then
+						intercepts[#intercepts+1] = targetType
 					end
 				end
-				DrawText(texts.dmg..":", dmgString)
+				DrawText(texts.intercepts..":", table.concat(intercepts, "; ")..white..".")
+			elseif baseArmorDamage > 0 and not uWep.customParams.bogus then
+				local damageString = ""
+				local burstDamage = baseArmorDamage * burst
+				if wpnName == texts.deathexplosion or wpnName == texts.selfdestruct then
+					damageString = texts.burst.." = "..(format(yellow .. "%d", burstDamage))..white.."."
+				else
+					local dps = burstDamage / (useExp and reload or uWep.reload)
+					if custom.area_onhit_damage and custom.area_onhit_time then
+						local areaDps = custom.area_onhit_damage * burst
+						local duration = custom.area_onhit_time
+						dps = max(dps + areaDps, areaDps * duration / (useExp and reload or uWep.reload))
+					end
+					totaldps = totaldps + wepCount*dps
+					totalbDamages = totalbDamages + wepCount* burstDamage
+					damageString = texts.dps.." = "..(format(yellow .. "%d", dps))..white.."; "..texts.burst.." = "..(format(yellow .. "%d", burstDamage)) .. white .. (wepCount > 1 and (" ("..texts.each..").") or ("."))
+				end
+				DrawText(texts.dmg..":", damageString)
 
-				-- Group armor types by the damage they take.
-				local modifiers = {}
-				local defaultRate = uWep.damages[0] or 0
-				local defaultName = Game.armorTypes[0] or 'default'
-				for cat = 0, #uWep.damages do
-					local catName = Game.armorTypes[cat]
-					local catDamage = uWep.damages[cat] or defaultRate
+				local modifiers = { [defaultArmorDamage] = { armorTypes[defaultArmorIndex] } } -- [damage] = { armorClass1, armorClass2, ... }
 
-					if catName and catDamage then
-						local rate = catDamage
-						if not modifiers[rate] then modifiers[rate] = {} end
-						if rate == defaultRate then
-							modifiers[rate] = { defaultName }
-							defaultRate = rate
-						else
-							tableInsert(modifiers[rate], catName)
+				local indestructibleArmorIndex = armorTypes.indestructable
+				local shieldsArmorIndex = shieldsRework and armorTypes.shields -- TODO: shield damage display is bugged since incorporating the shieldsrework
+
+				for index = 0, #armorTypes do
+					if index ~= indestructibleArmorIndex and index ~= shieldsArmorIndex then
+						local armorName = armorTypes[index]
+						local armorDamage = damages[index]
+						if not modifiers[armorDamage] then
+							modifiers[armorDamage] = { armorName }
+						elseif armorDamage ~= defaultArmorDamage then
+							tableInsert(modifiers[armorDamage], armorName)
 						end
 					end
 				end
 
 				local sorted = {}
-				for k ,_ in pairs(modifiers) do tableInsert(sorted, k) end
-				table.sort(sorted, function(a, b) return a > b end) -- descending sort
-
-				if defaultRate ~= 0 then --FIXME: This is a temporary fix, ideally bogus weapons should not be listed.
-					local modString = "default = "..yellow.."100%"
-					local count = 0
-					for _ in pairs(modifiers) do count = count + 1 end
-					if count > 1 then
-						for _, rate in pairs(sorted) do
-							if rate ~= defaultRate then
-								local armors = table.concat(modifiers[rate], ", ")
-								local percent = format("%d", floor(100 * rate / defaultRate))
-								if armors and percent then
-									modString = modString..white.."; "..armors.." = "..yellow..percent.."%"
-								end
-							end
-						end
+				for k in pairs(modifiers) do
+					if k ~= defaultArmorDamage then
+						tableInsert(sorted, k)
 					end
-					DrawText(texts.modifiers..":", modString..'.')
 				end
+				table.sort(sorted, descending)
+
+				local modifierText = { ("default = %s%d%%"):format(yellow, floor(100 * damages[defaultArmorIndex] / baseArmorDamage)) }
+				for _, armorDamage in ipairs(sorted) do
+					tableInsert(modifierText, ("%s = %s%d%%"):format(table.concat(modifiers[armorDamage], ", "), yellow, floor(100 * armorDamage / baseArmorDamage)))
+				end
+				DrawText(texts.modifiers..":", table.concat(modifierText, white.."; ") .. white .. ".")
 			end
 
 			if uWep.metalCost > 0 or uWep.energyCost > 0 then
-
-				-- Stockpiling weapons are weird
-				-- They take the correct amount of resources overall
-				-- They take the correct amount of time
-				-- They drain ((simSpeed+2)/simSpeed) times more resources than they should (And the listed drain is real, having lower income than listed drain WILL stall you)
-				local drainAdjust = uWep.stockpile and (simSpeed+2)/simSpeed or 1
-
 				DrawText(texts.cost..':', format(metalColor .. '%d' .. white .. ', ' ..
 					energyColor .. '%d' .. white .. ' = ' ..
 					metalColor .. '-%d' .. white .. ', ' ..
 					energyColor .. '-%d' .. white .. ' '..texts.persecond,
 					uWep.metalCost,
 					uWep.energyCost,
-					drainAdjust * uWep.metalCost / oRld,
-					drainAdjust * uWep.energyCost / oRld))
+					uWep.metalCost / oRld,
+					uWep.energyCost / oRld))
 			end
 
 
@@ -785,83 +888,124 @@ local function drawStats(uDefID, uID)
 		cY = cY - fontSize
 	end
 
-	-- background
-	if WG['buildmenu'] and WG['buildmenu'].hoverID ~= nil then
-		glColor(0.11,0.11,0.11,0.9)
-	else
-		glColor(0,0,0,0.66)
-	end
+	-- Cache computation results
+	cachedContentBottom = cY
+	cachedMaxWidth = maxWidth
+	cachedTitleFontSize = fontSize * 1.07
 
-	-- correct position when it goes below screen
-	if cY < 0 then
-		cYstart = cYstart - cY
-		local num = #textBuffer
-		for i=1, num do
-			textBuffer[i][4] = textBuffer[i][4] - (cY/2)
-			textBuffer[i][4] = textBuffer[i][4] - (cY/2)
-		end
-		cY = 0
-	end
-	-- correct position when it goes off screen
-	if cX + maxWidth+bgpadding+bgpadding > vsx then
-		local cXnew = vsx-maxWidth-bgpadding-bgpadding
-		local num = #textBuffer
-		for i=1, num do
-			textBuffer[i][3] = textBuffer[i][3] - ((cX-cXnew)/2)
-			textBuffer[i][3] = textBuffer[i][3] - ((cX-cXnew)/2)
-		end
-		cX = cXnew
-	end
-
+	-- Compute title text
 	local effectivenessRate = ''
 	if damageStats and damageStats[gameName] and damageStats[gameName]["team"] and damageStats[gameName]["team"][uDef.name] and damageStats[gameName]["team"][uDef.name].cost and damageStats[gameName]["team"][uDef.name].killed_cost then
 		effectivenessRate = "   "..damageStats[gameName]["team"][uDef.name].killed_cost / damageStats[gameName]["team"][uDef.name].cost
 	end
-
-	-- title
-	local text = "\255\190\255\190" .. UnitDefs[uDefID].translatedHumanName
+	cachedTitleText = "\255\190\255\190" .. UnitDefs[uDefID].translatedHumanName
 	if uID then
-		text = text .. "   " ..  grey ..  uDef.name .. "   #" .. uID .. "   ".. GetTeamColorCode(uTeam) .. GetTeamName(uTeam) .. grey .. effectivenessRate
+		cachedTitleText = cachedTitleText .. "   " ..  grey ..  uDef.name .. "   #" .. uID .. "   ".. GetTeamColorCode(uTeam) .. GetTeamName(uTeam) .. grey .. effectivenessRate
 	end
-	local backgroundRect = {floor(cX-bgpadding), ceil(cYstart-bgpadding), floor(cX+(font:GetTextWidth(text)*titleFontSize)+(titleFontSize*3.5)), floor(cYstart+(titleFontSize*1.8)+bgpadding)}
-	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 1,1,1,0, 1,1,0,1, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
-	if WG['guishader'] then
-		guishaderEnabled = true
-		WG['guishader'].InsertScreenDlist( gl.CreateList( function()
-			RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner, 1,1,1,0)
-		end), 'unit_stats_title')
-	end
+	cachedTitleTextWidth = font:GetTextWidth(cachedTitleText) * cachedTitleFontSize
 
-	-- icon
+	-- Cache dynamic data for future dirty checks
 	if uID then
-		local iconPadding = mathMax(1, mathFloor(bgpadding*0.8))
-		glColor(1,1,1,1)
-		UiUnit(
-			backgroundRect[1]+bgpadding+iconPadding, backgroundRect[2]+iconPadding, backgroundRect[1]+(backgroundRect[4]-backgroundRect[2])-iconPadding, backgroundRect[4]-bgpadding-iconPadding,
-			nil,
-			1,1,1,1,
-			0.13,
-			nil, nil,
-			'#'..uDefID
-		)
+		cachedBuildProg = select(2, Spring.GetUnitIsBeingBuilt(uID))
+		cachedExp = spGetUnitExperience(uID)
+	else
+		cachedBuildProg = nil
+		cachedExp = nil
 	end
 
-	-- title text
-	glColor(1,1,1,1)
-	font:Begin()
-	font:Print(text, backgroundRect[1]+((backgroundRect[4]-backgroundRect[2])*1.3), backgroundRect[2]+titleFontSize*0.7, titleFontSize, "o")
-	font:End()
+	-- Build text display list at local coordinates
+	buildTextDlist()
 
-	-- stats
-	UiElement(floor(cX-bgpadding), ceil(cY+(fontSize/3)+(bgpadding*0.3)), ceil(cX+maxWidth+bgpadding), ceil(cYstart-bgpadding), 0,1,1,1, 1,1,1,1, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+	-- Render entire panel to texture for cheap per-frame blitting
+	renderPanelToTexture(uDefID, uID)
+end
 
+local function drawStats(uDefID, uID)
+	local mx, my = spGetMouseState()
+	local alt, ctrl, meta, shift = spGetModKeyState()
+	if WG['chat'] and WG['chat'].isInputActive then
+		if WG['chat'].isInputActive() then
+			showStats = false
+		end
+	end
+
+	-- Dirty check for content caching
+	local gameFrame = Spring.GetGameFrame()
+	local shiftBool = (shift ~= false)
+	local contentDirty = (uDefID ~= cachedDefID) or (uID ~= cachedUnitID) or (shiftBool ~= cachedShift)
+
+	if not contentDirty and uID and (gameFrame - lastComputeFrame >= COMPUTE_INTERVAL) then
+		local _, bp = Spring.GetUnitIsBeingBuilt(uID)
+		if bp ~= cachedBuildProg then
+			contentDirty = true
+		elseif spGetUnitExperience(uID) ~= cachedExp then
+			contentDirty = true
+		end
+	end
+
+	if contentDirty then
+		cachedDefID = uDefID
+		cachedUnitID = uID
+		cachedShift = shiftBool
+		lastComputeFrame = gameFrame
+		computeContent(uDefID, uID, shiftBool)
+	end
+
+	if not panelTex then return end
+
+	-- === Rendering (every frame) ===
+
+	-- Screen position
+	local screenX = mx + xOffset
+	local screenY = my + yOffset
+
+	-- Screen-bound correction (bottom)
+	local bottomEdge = screenY + panelOffsets[2]
+	if bottomEdge < 0 then
+		screenY = screenY - bottomEdge
+	end
+	-- Screen-bound correction (right)
+	if screenX + panelOffsets[3] > vsx then
+		screenX = vsx - panelOffsets[3]
+	end
+
+	-- Blit cached panel texture
+	gl.R2tHelper.BlendTexRect(panelTex,
+		screenX + panelOffsets[1], screenY + panelOffsets[2],
+		screenX + panelOffsets[3], screenY + panelOffsets[4],
+		true)
+
+	-- Update guishader only when position changed
 	if WG['guishader'] then
-		guishaderEnabled = true
-		WG['guishader'].InsertScreenDlist( gl.CreateList( function()
-			RectRound(floor(cX-bgpadding), ceil(cY+(fontSize/3)+(bgpadding*0.3)), ceil(cX+maxWidth+bgpadding), floor(cYstart-bgpadding), elementCorner, 0,1,1,1)
-		end), 'unit_stats_data')
+		if cachedGuishaderX ~= screenX or cachedGuishaderY ~= screenY then
+			guishaderEnabled = true
+			cachedGuishaderX = screenX
+			cachedGuishaderY = screenY
+
+			local titleFontSize = cachedTitleFontSize
+			local tLeft = floor(screenX - bgpadding)
+			local tBottom = ceil(screenY - bgpadding)
+			local tRight = floor(screenX + cachedTitleTextWidth + (titleFontSize * 3.5))
+			local tTop = floor(screenY + (titleFontSize * 1.8) + bgpadding)
+
+			if dlistGuishaderTitle then gl.DeleteList(dlistGuishaderTitle) end
+			dlistGuishaderTitle = gl.CreateList(function()
+				RectRound(tLeft, tBottom, tRight, tTop, elementCorner, 1,1,1,0)
+			end)
+			WG['guishader'].InsertScreenDlist(dlistGuishaderTitle, 'unit_stats_title')
+
+			local sLeft = floor(screenX - bgpadding)
+			local sBottom = ceil(screenY + cachedContentBottom + (fontSize / 3) + (bgpadding * 0.3))
+			local sRight = ceil(screenX + cachedMaxWidth + bgpadding)
+			local sTop = ceil(screenY - bgpadding)
+
+			if dlistGuishaderStats then gl.DeleteList(dlistGuishaderStats) end
+			dlistGuishaderStats = gl.CreateList(function()
+				RectRound(sLeft, sBottom, sRight, sTop, elementCorner, 0,1,1,1)
+			end)
+			WG['guishader'].InsertScreenDlist(dlistGuishaderStats, 'unit_stats_data')
+		end
 	end
-	DrawTextBuffer()
 end
 
 function widget:DrawScreen()

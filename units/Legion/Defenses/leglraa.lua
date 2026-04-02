@@ -16,8 +16,6 @@ return {
 		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 1670,
 		maxslope = 20,
 		maxwaterdepth = 0,
@@ -73,11 +71,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:rocketflare",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		builder = true,
 		buildpic = "ARMPLAT.DDS",
-		buildtime = 31400,
+		buildtime = 42000,
 		canmove = true,
 		collisionvolumeoffsets = "0 4 0",
 		collisionvolumescales = "144 70 144",
@@ -15,14 +15,12 @@ return {
 		footprintx = 9,
 		footprintz = 9,
 		health = 3750,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 15,
-		minwaterdepth = 30,
 		metalcost = 1900,
 		metalstorage = 200,
+		minwaterdepth = 30,
 		objectname = "Units/ARMAAPLAT.s3o",
 		radardistance = 1000,
 		radaremitheight = 50,
@@ -35,12 +33,12 @@ return {
 		yardmap = "ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo",
 		buildoptions = {
 			[1] = "armaca",
-			[2] = "armseap",			
+			[2] = "armseap",
 			[3] = "armsb",
 			[4] = "armsfig",
 			[5] = "armsehak",
 			[6] = "armsaber",
-			[7] = "armhvytrans"
+			[7] = "armhvytrans",
 		},
 		customparams = {
 			airfactory = true,
@@ -87,11 +85,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:radarpulse_t1_slow",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

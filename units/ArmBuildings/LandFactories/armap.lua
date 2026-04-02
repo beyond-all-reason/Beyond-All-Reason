@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		builder = true,
 		buildpic = "ARMAP.DDS",
-		buildtime = 5750,
+		buildtime = 5450,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "134 49 82",
@@ -15,13 +15,11 @@ return {
 		footprintx = 9,
 		footprintz = 6,
 		health = 2050,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 15,
 		maxwaterdepth = 0,
-		metalcost = 710,
+		metalcost = 650,
 		metalstorage = 100,
 		objectname = "Units/ARMAP.s3o",
 		radardistance = 510,
@@ -52,6 +50,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmBuildings/LandFactories",
 			unitgroup = "builder",
+			restrictions_inclusion = "_noair_",
 			usebuildinggrounddecal = true,
 		},
 		featuredefs = {
@@ -87,10 +86,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:YellowLight",
 				[2] = "custom:radarpulse_t1_slow",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

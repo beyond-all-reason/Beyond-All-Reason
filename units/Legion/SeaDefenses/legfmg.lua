@@ -17,10 +17,9 @@ return {
 		explodeas = "mediumBuildingexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
-		mass = 7500,
 		health = 3900,
+		levelground = false,
+		mass = 7500,
 		minwaterdepth = 5,
 		objectname = "Units/legfmg.s3o",
 		script = "Units/legfmg.cob",
@@ -56,10 +55,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-tiny",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {

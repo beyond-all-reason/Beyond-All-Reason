@@ -15,8 +15,6 @@ return {
 		footprintx = 1,
 		footprintz = 1,
 		hoverattack = true,
-		idleautoheal = 0,
-		idletime = 1800,
 		maxdamage = 300,
 		maxslope = 10,
 		maxvelocity = 11,
@@ -37,20 +35,6 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmShips/T2",
 			unitgroup = "weapon",
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-				[2] = "airdeathceg3",
-				[3] = "airdeathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

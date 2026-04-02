@@ -13,7 +13,8 @@
 			"legafus": [50,100, 70, 4000, 6.44]
 		},
 		"water": {
-			"legtide": [140, 250]
+			"legtide": [140, 250],
+			"leganavalfusion": [1, 2]
 		}
 	},
 

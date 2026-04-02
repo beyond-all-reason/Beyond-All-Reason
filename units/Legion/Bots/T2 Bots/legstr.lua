@@ -2,10 +2,10 @@ return {
 	legstr = {
 		maxacc = 0.253,
 		maxdec = 0.8211,
-		energycost = 5400,
-		metalcost = 360,
+		energycost = 5250,
+		metalcost = 355,
 		buildpic = "LEGSTR.DDS",
-		buildtime = 7200,
+		buildtime = 9240,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "32 48 32",
@@ -14,8 +14,6 @@ return {
 		explodeas = "mediumExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 1780,
 		maxslope = 17,
 		speed = 84.0,
@@ -75,11 +73,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-tiny",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

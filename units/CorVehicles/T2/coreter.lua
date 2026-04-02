@@ -2,7 +2,7 @@ return {
 	coreter = {
 		activatewhenbuilt = true,
 		buildpic = "CORETER.DDS",
-		buildtime = 6400,
+		buildtime = 7500,
 		canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 -3 0",
@@ -15,8 +15,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 580,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.03583,
 		maxdec = 0.07166,
@@ -79,13 +77,6 @@ return {
 				object = "Units/cor3X3F.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

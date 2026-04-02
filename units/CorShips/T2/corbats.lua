@@ -2,7 +2,7 @@ return {
 	corbats = {
 		buildangle = 16000,
 		buildpic = "CORBATS.DDS",
-		buildtime = 36000,
+		buildtime = 51000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -15 2",
 		collisionvolumescales = "62 62 148",
@@ -13,9 +13,7 @@ return {
 		floater = true,
 		footprintx = 7,
 		footprintz = 7,
-		health = 11100,
-		idleautoheal = 5,
-		idletime = 1800,
+		health = 12000,
 		maxacc = 0.01427,
 		maxdec = 0.01427,
 		metalcost = 3400,
@@ -44,9 +42,9 @@ return {
 			dead = {
 				blocking = false,
 				category = "corpses",
-				collisionvolumeoffsets = "23.5594024658 -0.0818865356445 0.388328552246",
-				collisionvolumescales = "86.1555786133 65.6982269287 150.99382019",
-				collisionvolumetype = "Box",
+				collisionvolumeoffsets = "0 -15 2",
+				collisionvolumescales = "62 62 148",
+				collisionvolumetype = "CylZ",
 				damage = 13662,
 				featuredead = "HEAP",
 				footprintx = 6,
@@ -74,11 +72,6 @@ return {
 				[1] = "custom:barrelshot-large",
 				[2] = "custom:waterwake-large",
 				[3] = "custom:bowsplash-large",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -122,7 +115,7 @@ return {
 				soundstart = "cannhvy1",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 422.13742,
+				weaponvelocity = 422,
 				damage = {
 					default = 450,
 					vtol = 65,

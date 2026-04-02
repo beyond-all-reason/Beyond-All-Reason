@@ -1,7 +1,6 @@
 return {
 	armsub = {
 		activatewhenbuilt = true,
-		autoheal = 2,
 		buildpic = "ARMSUB.DDS",
 		buildtime = 5800,
 		canmove = true,
@@ -14,8 +13,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 840,
-		idleautoheal = 8,
-		idletime = 900,
 		maxacc = 0.04592,
 		maxdec = 0.04592,
 		metalcost = 440,
@@ -76,11 +73,6 @@ return {
 				[1] = "custom:subbubbles",
 				[2] = "custom:subwake",
 				[3] = "custom:subtorpfire",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

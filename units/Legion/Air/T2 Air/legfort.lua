@@ -8,7 +8,7 @@ return {
 		energycost = 79000,
 		metalcost = 5600,
 		buildpic = "LEGFORT.DDS",
-		buildtime = 90000,
+		buildtime = 119750,
 		canfly = true,
 		canmove = true,
 		collide = true,
@@ -20,8 +20,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		hoverattack = true,
-		idleautoheal = 15,
-		idletime = 1200,
 		health = 16700,
 		maxslope = 10,
 		speed = 93.0,
@@ -46,20 +44,7 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
-			},
-			crashexplosiongenerators = {
-				[1] = "crashing-large",
-				[2] = "crashing-large",
-				[3] = "crashing-large2",
-				[4] = "crashing-large3",
-				[5] = "crashing-large3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
-			},
-		},
+			},		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

@@ -2,7 +2,7 @@ return {
 	armdfly = {
 		blocking = false,
 		buildpic = "ARMDFLY.DDS",
-		buildtime = 16000,
+		buildtime = 19000,
 		canfly = true,
 		canmove = true,
 		collide = false,
@@ -16,8 +16,6 @@ return {
 		footprintz = 4,
 		health = 1170,
 		hoverattack = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.2,
 		maxdec = 0.625,
 		maxslope = 15,
@@ -29,7 +27,7 @@ return {
 		script = "Units/ARMDFLY.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd",
-		sightdistance = 430,
+		sightdistance = 520,
 		speed = 225,
 		stealth = true,
 		transportcapacity = 1,
@@ -48,19 +46,8 @@ return {
 			unitgroup = "emp",
 		},
 		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-large",
-				[2] = "crashing-large",
-				[3] = "crashing-large2",
-				[4] = "crashing-large3",
-				[5] = "crashing-large3",
-			},
 			explosiongenerators = {
 				[1] = "custom:blacksmoke",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
 			},
 		},
 		sounds = {

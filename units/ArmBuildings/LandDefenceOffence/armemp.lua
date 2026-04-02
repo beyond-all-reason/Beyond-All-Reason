@@ -12,8 +12,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 3350,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -36,6 +34,7 @@ return {
 			subfolder = "ArmBuildings/LandDefenceOffence",
 			techlevel = 2,
 			unitgroup = "emp",
+			restrictions_inclusion = "_notacnukes_",
 			usebuildinggrounddecal = true,
 			yardmap = "ooooooo ooooooo ooooooo ooooooo ooooooo ooooooo",
 		},
@@ -68,13 +67,6 @@ return {
 				object = "Units/arm3X3A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -116,6 +108,7 @@ return {
 				firestarter = 0,
 				flighttime = 400,
 				impulsefactor = 0,
+				interceptedbyshieldtype = 0,
 				metalpershot = 500,
 				model = "cortronmissile.s3o",
 				name = "Heavy long-range g2g EMP starburst rocket",
@@ -144,6 +137,7 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 1200,
 				customparams = {
+					shield_aoe_penetration = true,
 					stockpilelimit = 10,
 				},
 				damage = {

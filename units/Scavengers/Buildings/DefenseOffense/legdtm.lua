@@ -14,8 +14,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-		idleautoheal = 10,
-		idletime = 900,
 		levelground = false,
 		mass = 10000000000,
 		health = 1610,
@@ -76,12 +74,6 @@ return {
 				object = "Units/cor1X1A.s3o",
 				reclaimable = true,
 				shadtrans = 1,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4-fire",
 			},
 		},
 		sounds = {

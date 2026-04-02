@@ -2,7 +2,7 @@ return {
 	coramph = {
 		activatewhenbuilt = true,
 		buildpic = "CORAMPH.DDS",
-		buildtime = 9650,
+		buildtime = 12500,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "32 29 32",
@@ -13,8 +13,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 2350,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.1035,
 		maxdec = 0.6486,
 		maxslope = 14,
@@ -71,13 +69,6 @@ return {
 				object = "Units/cor2X2D.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

@@ -3,7 +3,7 @@ return {
 		builddistance = 136,
 		builder = true,
 		buildpic = "ARMCONSUL.DDS",
-		buildtime = 6800,
+		buildtime = 8500,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 -3",
 		collisionvolumescales = "32 30 30",
@@ -16,8 +16,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1080,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.07029,
 		maxdec = 0.14059,
@@ -102,13 +100,6 @@ return {
 				object = "Units/arm3X3A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2-builder",
-				[2] = "deathceg3-builder",
-				[3] = "deathceg4-builder",
 			},
 		},
 		sounds = {

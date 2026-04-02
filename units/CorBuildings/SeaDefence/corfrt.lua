@@ -14,8 +14,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 395,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		metalcost = 90,
@@ -49,13 +47,6 @@ return {
 				metal = 47,
 				object = "Units/corfrt_dead.s3o",
 				reclaimable = true,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

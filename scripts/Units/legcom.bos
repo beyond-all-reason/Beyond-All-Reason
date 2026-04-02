@@ -443,25 +443,11 @@ UnitSpeed(){
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed>8) animSpeed = 8;
 		sleep 131;
-		if ((isMoving == FALSE) && (isAiming == FALSE) && (isBuilding == FALSE))
+		if ((isMoving) OR (isAiming) OR (isBuilding))
 		{
-			idleTime = idleTime + 200;
-		}
-		else
-		{
-			idleTime = 0;
-			isDancing = FALSE;
-		}
-		//get PRINT (idleTime);
-		if (idleTime > 600000) 
-		{
-			if (isDancing == FALSE)
-			{
-				start-script Dance();
+			if (isDancing) {
+				call-script StopDance();
 			}
-			isDancing = TRUE;
-  	
-			idleTime = 0;
 		}
 	}
 }
@@ -849,6 +835,7 @@ StopBuilding()
 
 Dance() {
 	isDancing = TRUE;
+	set-signal-mask SIGNAL_MOVE | SIGNAL_AIM1 | SIGNAL_AIM2 | SIGNAL_BUILD;
 	while(isDancing)
 	{
 		if (isDancing) { //Frame:3
@@ -1234,6 +1221,18 @@ StopDance() {
 	turn torso to y-axis <0> speed <1042.595763> / animSpeed;
 	isDancing=FALSE;
 	sleep 33;
+}
+
+TriggerDance() {
+	if ((isDancing == FALSE) && (isMoving == FALSE) && (isAiming == FALSE) && (isBuilding == FALSE)) {
+		start-script Dance();
+	}
+}
+
+GameOverAnim() {
+	if (isDancing == FALSE) {
+		start-script Dance();
+	}
 }
 
 //-----------------------------------------------------------------------

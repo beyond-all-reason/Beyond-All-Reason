@@ -15,8 +15,6 @@ return {
 		explodeas = "smallExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		mass = 150,
 		health = 550,
@@ -75,10 +73,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg2",
 			},
 		},
 		sounds = {

@@ -14,8 +14,6 @@ return {
 		footprintx = 6,
 		footprintz = 6,
 		health = 2800,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -27,7 +25,7 @@ return {
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 240,
 		terraformspeed = 750,
-		workertime = 150,
+		workertime = 300,
 		yardmap = "oooooo oooooo oeeeeo oeeeeo oeeeeo oeeeeo",
 		buildoptions = {
 			[1] = "cormuskrat",
@@ -48,6 +46,7 @@ return {
 			subfolder = "CorBuildings/SeaFactories",
 			unitgroup = "builder",
 			usebuildinggrounddecal = true,
+			techlevel = 1.5,
 		},
 		featuredefs = {
 			dead = {
@@ -63,13 +62,6 @@ return {
 				metal = 800,
 				object = "Units/coramsub_dead.s3o",
 				reclaimable = true,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

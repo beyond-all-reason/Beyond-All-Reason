@@ -131,6 +131,16 @@ dynamicPieceCollisionVolume['cordoomt3'] = {
         ['0']={96,80,96,0,10,0,2,1,0},
     }
 }
+dynamicPieceCollisionVolume['leganavybattleship'] = {
+	on = {
+		['1'] = { 48, 48, 120, 0, 8, -58, 1, 2 },
+		offsets = { 0, 30, 0 },
+	},
+	off = {
+		['1'] = { 48, 48, 120, 0, 8, -58, 1, 2 },
+		offsets = { 0, 0, 0 },
+	},
+}
 
 unitCollisionVolume['armanni'] = {
 	on={54,81,54,0,-2,0,2,1,0},
