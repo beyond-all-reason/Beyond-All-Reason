@@ -45,7 +45,7 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, captu
 		return true
 	end
 	beingBuilt, buildProgress = Spring.GetUnitIsBeingBuilt(unitID)
-	if beingBuilt and buildProgress > 0 and next(Spring.GetPlayerList(fromTeamID)) ~= nil then
+	if beingBuilt and buildProgress > 0 and next(Spring.GetPlayerList(fromTeamID, true)) ~= nil then
 		return false -- Sharing partly built nanoframes is not allowed because letting it decay bypasses taxation and letting it build runs out the debuff early. Also if you can't assist ally build the unit could get stuck in factory.
 	end
 	if builderUnits[unitDefID] then
