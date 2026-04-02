@@ -2272,49 +2272,12 @@ local buttons = {
 	},
 }
 
--- Per-pip keyboard shortcuts: command → keybind string
--- pip1 has the original shortcuts; pip0 and pip2 have none by default.
--- Modify the table for other pips to assign shortcuts (e.g. pip_copy = 'alt+w').
-local pipShortcuts = {
-	[0] = {
-		-- pip_copy = nil,
-		-- pip_switch = nil,
-		-- pip_track = nil,
-	},
-	[1] = {
-		pip_copy = 'alt+q',
-		pip_switch = 'shift+q',
-		pip_track = 'alt+a',
-	},
-	[2] = {
-		-- pip_copy = nil,
-		-- pip_switch = nil,
-		-- pip_track = nil,
-	},
-}
-
--- Helper: convert a keybind string like 'alt+q' to display format 'Alt + Q'
-local function formatShortcutDisplay(keybind)
-	if not keybind then return nil end
-	local parts = {}
-	for part in keybind:gmatch('[^+]+') do
-		part = part:match('^%s*(.-)%s*$')  -- trim whitespace
-		parts[#parts + 1] = part:sub(1, 1):upper() .. part:sub(2)
-	end
-	return table.concat(parts, ' + ')
-end
-
--- Compute per-pip action names and shortcut display text for each button
-local myShortcuts = pipShortcuts[pipNumber] or {}
+-- Compute per-pip action names
 for i = 1, #buttons do
 	local btn = buttons[i]
 	if btn.command then
 		-- Unique action name per pip instance (e.g. pip_copy → pip1_copy)
 		btn.actionName = 'pip' .. pipNumber .. '_' .. btn.command:sub(5)
-		-- Set display shortcut from per-pip config
-		local keybind = myShortcuts[btn.command]
-		btn.shortcut = formatShortcutDisplay(keybind)
-		btn.keybind = keybind  -- raw keybind string for bind/unbind
 	end
 end
 
@@ -7736,12 +7699,6 @@ end
 		if button.command then
 			-- Register with pip-specific action name so each pip instance has unique commands
 			widgetHandler.actionHandler:AddAction(self, button.actionName, button.OnPress, nil, 'p')
-
-			-- Bind per-pip hotkey if configured
-			if button.keybind then
-				Spring.SendCommands("unbindkeyset " .. button.keybind)
-				Spring.SendCommands("bind " .. button.keybind .. " " .. button.actionName)
-			end
 		end
 	end
 
@@ -8346,10 +8303,6 @@ function widget:Shutdown()
 		if button.command then
 			widgetHandler.actionHandler:RemoveAction(self, button.actionName)
 
-			-- Unbind per-pip hotkey if configured
-			if button.keybind then
-				Spring.SendCommands("unbind " .. button.keybind .. " " .. button.actionName)
-			end
 		end
 	end
 end
@@ -15287,14 +15240,11 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 					if visibleButtons[i].command == 'pip_help' and config.leftButtonPansCamera then
 						tooltipText = tooltipText .. Spring.I18N('ui.pip.help_leftclick')
 					end
-					-- Use button's shortcut field first, fall back to getActionHotkey
+					-- Use button's shortcut from getActionHotkey
 					-- In minimap mode, don't show shorcut for track units button
-					local shortcut = visibleButtons[i].shortcut
+					local shortcut = nil
 					local suppressShortcut = isMinimapMode and visibleButtons[i].command == 'pip_track'
-					if suppressShortcut then
-						shortcut = nil
-					end
-					if not shortcut and not suppressShortcut and visibleButtons[i].actionName then
+					if not suppressShortcut and visibleButtons[i].actionName then
 						shortcut = getActionHotkey(visibleButtons[i].actionName)
 					end
 					if shortcut and shortcut ~= "" then
