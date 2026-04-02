@@ -26,7 +26,6 @@ local debuffedUnits = {} -- unitID -> { expireFrame, buildSpeed }
 -- gather all economy/builder units
 local ecoUnits = {}
 local builderUnits = {}
--- local commanders = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	local group = unitDef.customParams.unitgroup
 	if group then
@@ -39,9 +38,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			ecoUnits[unitDefID] = true
 		end
 	end
-	-- if unitDef.customParams.iscommander then
-	-- 	commanders[unitDefID] = true
-	-- end
 end
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
@@ -52,12 +48,6 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, captu
 	if beingBuilt and buildProgress > 0 and next(Spring.GetPlayerList(fromTeamID)) ~= nil then
 		return false -- Sharing partly built nanoframes is not allowed because letting it decay bypasses taxation and letting it build runs out the debuff early. Also if you can't assist ally build the unit could get stuck in factory.
 	end
-	-- if commanders[unitDefID] then
-	-- 	if next(Spring.GetPlayerList(fromTeamID)) == nil then -- There are no players in the fromTeam, therefore this is /take.
-	-- 		return true
-	-- 	end
-	-- 	return false
-	-- end
 	if builderUnits[unitDefID] then
 		local unitDef = UnitDefs[unitDefID]
 		local startFrame = Spring.GetGameFrame()
