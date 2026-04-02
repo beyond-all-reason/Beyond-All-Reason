@@ -157,10 +157,12 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 			local cmdCount = GetUnitCommandCount(builderID)
 			if cmdCount and cmdCount > 0 then
 				-- Try to reuse shared scan result
+				local didShare = false
 				if sharedCmdCount and cmdCount == sharedCmdCount then
 					-- Cheap probe: verify queue identity via first command
 					local probe = GetUnitCommands(builderID, 1)
 					if probe and probe[1] and probe[1].id == sharedFirstCmdId then
+						didShare = true
 						if sharedMatchIndex then
 							-- We know a match exists at this index — fetch just enough
 							local commands = GetUnitCommands(builderID, sharedMatchIndex)
@@ -172,38 +174,38 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 							end
 						end
 						-- else: no match in shared queue, skip this builder entirely
-						goto continueBuilder
 					end
 				end
 
-				-- Full fetch + scan path (first builder, or different queue)
-				local limit = cmdCount < 32 and cmdCount or 32
-				local commands = GetUnitCommands(builderID, limit)
-				if commands then
-					local matchIdx = nil
-					for j = #commands, 1, -1 do
-						local cmd = commands[j]
-						if cmd.id == targetCmdID then
-							local params = cmd.params
-							if params and params[1] and params[3] then
-								if coordsMatch(x, z, params[1], params[3], REMOVE_TOLERANCE) then
-									GiveOrderToUnit(builderID, CMD_REMOVE, { cmd.tag }, {})
-									matchIdx = j
-									break
+				if not didShare then
+					-- Full fetch + scan path (first builder, or different queue)
+					local limit = cmdCount < 32 and cmdCount or 32
+					local commands = GetUnitCommands(builderID, limit)
+					if commands then
+						local matchIdx = nil
+						for j = #commands, 1, -1 do
+							local cmd = commands[j]
+							if cmd.id == targetCmdID then
+								local params = cmd.params
+								if params and params[1] and params[3] then
+									if coordsMatch(x, z, params[1], params[3], REMOVE_TOLERANCE) then
+										GiveOrderToUnit(builderID, CMD_REMOVE, { cmd.tag }, {})
+										matchIdx = j
+										break
+									end
 								end
 							end
 						end
-					end
 
-					-- Cache scan result for subsequent builders
-					if not sharedCmdCount then
-						sharedCmdCount = cmdCount
-						sharedMatchIndex = matchIdx
-						sharedFirstCmdId = commands[1] and commands[1].id or nil
+						-- Cache scan result for subsequent builders
+						if not sharedCmdCount then
+							sharedCmdCount = cmdCount
+							sharedMatchIndex = matchIdx
+							sharedFirstCmdId = commands[1] and commands[1].id or nil
+						end
 					end
 				end
 			end
-			::continueBuilder::
 		end
 	end
 
