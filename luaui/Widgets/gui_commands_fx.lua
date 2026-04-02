@@ -190,7 +190,7 @@ local buildGhosts = {
 local segDedupTbl = {}        -- [key] = generation
 local ghostDedupTbl = {}      -- [key] = generation
 local dedupGeneration = 0
-local MAX_BUILD_GHOSTS = 250  -- cap glUnitShape calls (expensive)
+local MAX_BUILD_GHOSTS = 300  -- cap glUnitShape calls (expensive)
 
 local function InitGL4()
 	if not gl.GetVBO or not gl.GetVAO or not gl.CreateShader then
@@ -513,15 +513,11 @@ end
 local function RemovePreviousCommand(unitID)
 	if unitCommand[unitID] and commands[unitCommand[unitID]] then
 		local prev = commands[unitCommand[unitID]]
-		prev.draw = false
-		-- Release queue immediately to free memory (don't wait for expiry)
-		if prev.queue then
-			if not prev.sharedQueue then
-				releaseTable(prev.queue)
-			end
-			prev.queue = nil
-			prev.queueSize = 0
-		end
+		-- Don't clear draw/queue immediately — let it keep rendering until the
+		-- replacement command's queue is ready.  This prevents 1-frame ghost
+		-- flicker when builders advance to the next build in their queue.
+		-- The old command will expire naturally via its time-based progress.
+		prev.replaced = true
 	end
 end
 
@@ -567,7 +563,13 @@ local QTARGET_UNIT = 2     -- unit target (needs live position each frame)
 local QTARGET_FEATURE = 3  -- feature target (position pre-extracted; features are static)
 
 local function getCommandsQueue(unitID)
-	local q = spGetUnitCommands(unitID, 35) or {}
+	local cmdCount = Spring.GetUnitCommandCount(unitID)
+	if not cmdCount or cmdCount <= 0 then
+		local empty = getTable()
+		return empty, 0, 0
+	end
+	local fetchCount = cmdCount < 25 and cmdCount or 25
+	local q = spGetUnitCommands(unitID, fetchCount) or {}
 	local our_q = getTable()
 	local our_qCount = 0
 	-- Build a hash to detect identical queues (for sharing across units)
