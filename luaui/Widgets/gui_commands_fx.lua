@@ -514,7 +514,7 @@ local function RemovePreviousCommand(unitID)
 	if unitCommand[unitID] and commands[unitCommand[unitID]] then
 		local prev = commands[unitCommand[unitID]]
 		prev.draw = false
-		if prev.queue and not prev.sharedQueue then
+		if prev.queue then
 			releaseTable(prev.queue)
 		end
 		prev.queue = nil
@@ -567,14 +567,12 @@ local function getCommandsQueue(unitID)
 	local cmdCount = Spring.GetUnitCommandCount(unitID)
 	if not cmdCount or cmdCount <= 0 then
 		local empty = getTable()
-		return empty, 0, 0
+		return empty, 0
 	end
 	local fetchCount = cmdCount < 25 and cmdCount or 25
 	local q = spGetUnitCommands(unitID, fetchCount) or {}
 	local our_q = getTable()
 	local our_qCount = 0
-	-- Build a hash to detect identical queues (for sharing across units)
-	local queueHash = 0
 	for i = 1, #q do
 		local entry = q[i]
 		local id = entry.id
@@ -622,20 +620,10 @@ local function getCommandsQueue(unitID)
 
 			our_qCount = our_qCount + 1
 			our_q[our_qCount] = entry
-			-- Accumulate hash from command targets for queue sharing
-			if entry.tx then
-				queueHash = queueHash + mathFloor(entry.tx) * 31 + mathFloor(entry.tz) + our_qCount * 7919
-			end
 		end
 	end
-	return our_q, our_qCount, queueHash
+	return our_q, our_qCount
 end
-
--- Queue sharing: when multiple units have identical queues (same hash),
--- they share one queue table instead of each having a copy.
--- Key = queueHash, value = {queue, queueSize, time, refCount}
-local sharedQueues = {}
-local sharedQueueGeneration = 0  -- incremented each Update tick for cleanup
 
 local sec = 0
 local lastUpdate = 0
@@ -686,15 +674,6 @@ function widget:Update(dt)
 		local processLimit = math.min(unprocessedCommandsNum, 15)
 		local processedCount = 0
 
-		-- Increment shared queue generation for this batch
-		sharedQueueGeneration = sharedQueueGeneration + 1
-		-- Clear stale shared queue entries from previous ticks
-		for h, sq in pairs(sharedQueues) do
-			if sq.gen < sharedQueueGeneration - 1 then
-				sharedQueues[h] = nil
-			end
-		end
-
 		for k = 1, processLimit do
 			local cmd = unprocessedCommands[k]
 			if totalCommands <= maxTotalCommandCount then
@@ -706,45 +685,11 @@ function widget:Update(dt)
 				RemovePreviousCommand(cmd.unitID)
 				unitCommand[cmd.unitID] = i
 
-				-- Try to reuse a shared queue from a unit in the same batch.
-				-- When 50 constructors get the same build order, only the first
-				-- one actually calls GetUnitCommands — the rest share its result.
-				-- Use GetUnitCommandCount first (cheap, no alloc) to pre-screen.
-				local cmdCount = Spring.GetUnitCommandCount and Spring.GetUnitCommandCount(cmd.unitID)
-				local matchedShared = nil
-				if cmdCount then
-					for _, sq in pairs(sharedQueues) do
-						if sq.cmdCount == cmdCount and sq.gen == sharedQueueGeneration then
-							matchedShared = sq
-							break
-						end
-					end
-				end
-
-				local our_q, qsize
-				if matchedShared then
-					-- Shared queue found — skip GetUnitCommands entirely
-					our_q = matchedShared.queue
-					qsize = matchedShared.queueSize
-					commands[i].queue = our_q
-					commands[i].queueSize = qsize
-					commands[i].sharedQueue = true
-				else
-					-- get pruned command queue (calls GetUnitCommands)
-					local qHash
-					our_q, qsize, qHash = getCommandsQueue(cmd.unitID)
-					commands[i].queue = our_q
-					commands[i].queueSize = qsize
-					if qsize > 0 then
-						-- Register for sharing — mark owner as shared too so the
-						-- queue table is never cleared via releaseTable while other
-						-- commands still reference it.
-						sharedQueues[qHash] = { queue = our_q, queueSize = qsize, cmdCount = cmdCount or 0, gen = sharedQueueGeneration }
-						commands[i].sharedQueue = true
-					else
-						commands[i].sharedQueue = false
-					end
-				end
+				-- get pruned command queue
+				local our_q, qsize = getCommandsQueue(cmd.unitID)
+				commands[i].queue = our_q
+				commands[i].queueSize = qsize
+				commands[i].sharedQueue = false
 
 				if qsize > 0 then
 					commands[i].draw = true
@@ -856,7 +801,7 @@ function widget:DrawWorldPreUnit()
 			local unitID = command.unitID
 
 			if progress >= 1 then
-				if command.queue and not command.sharedQueue then
+				if command.queue then
 					releaseTable(command.queue)
 				end
 				command.queue = nil
@@ -895,32 +840,37 @@ function widget:DrawWorldPreUnit()
 							local lineColour = cmdTeamColour or qe.colour
 							local lineAlpha = lineColour[4] * lineAlphaMultiplier
 							if lineAlpha > 0 then
-								-- Segment dedup: quantize endpoints to 8-elmo grid.
-								-- When many units share the same queue, most segments are
-								-- identical target->target links; only unit->first differs.
-								local sx = mFloor(prevX * 0.125)
-								local sz = mFloor(prevZ * 0.125)
-								local ex = mFloor(X * 0.125)
-								local ez = mFloor(Z * 0.125)
-								local segKey = sx * 68719476736 + sz * 16777216 + ex * 4096 + ez
-								if segDD[segKey] ~= dGen then
-									segDD[segKey] = dGen
-									if segCount < GL4_MAX_SEGMENTS then
-										segCount = segCount + 1
-										local base = (segCount - 1) * GL4_FLOATS_PER_SEG
-										segData[base+1]  = prevX
-										segData[base+2]  = prevY
-										segData[base+3]  = prevZ
-										segData[base+4]  = X
-										segData[base+5]  = Y
-										segData[base+6]  = Z
-										segData[base+7]  = usedLineWidth
-										segData[base+8]  = lineAlpha
-										segData[base+9]  = lineColour[1]
-										segData[base+10] = lineColour[2]
-										segData[base+11] = lineColour[3]
-										segData[base+12] = texOffset
+								-- Segment dedup for queue-internal segments (target->target).
+								-- The first segment (unit->first target) is always unique per
+								-- unit so we skip dedup for j==1.
+								local drawSeg = true
+								if j > 1 then
+									local sx = mFloor(prevX * 0.125)
+									local sz = mFloor(prevZ * 0.125)
+									local ex = mFloor(X * 0.125)
+									local ez = mFloor(Z * 0.125)
+									local segKey = sx * 68719476736 + sz * 16777216 + ex * 4096 + ez
+									if segDD[segKey] == dGen then
+										drawSeg = false
+									else
+										segDD[segKey] = dGen
 									end
+								end
+								if drawSeg and segCount < GL4_MAX_SEGMENTS then
+									segCount = segCount + 1
+									local base = (segCount - 1) * GL4_FLOATS_PER_SEG
+									segData[base+1]  = prevX
+									segData[base+2]  = prevY
+									segData[base+3]  = prevZ
+									segData[base+4]  = X
+									segData[base+5]  = Y
+									segData[base+6]  = Z
+									segData[base+7]  = usedLineWidth
+									segData[base+8]  = lineAlpha
+									segData[base+9]  = lineColour[1]
+									segData[base+10] = lineColour[2]
+									segData[base+11] = lineColour[3]
+									segData[base+12] = texOffset
 								end
 								-- Ghost dedup: same position = same building = draw once
 								if drawBuildQueue and qe.buildingID then
