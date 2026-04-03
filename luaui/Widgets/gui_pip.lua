@@ -6538,8 +6538,9 @@ end
 
 local function CalculateBuildDragPositions(startWX, startWZ, endWX, endWZ, buildDefID, alt, ctrl, shift)
 	-- Clear and reuse positions table
-	for i = #pools.buildPositions, 1, -1 do
-		pools.buildPositions[i] = nil
+	local positions = pools.buildPositions
+	for i = #positions, 1, -1 do
+		positions[i] = nil
 	end
 	local buildFacing = Spring.GetBuildFacing()
 	local buildWidth, buildHeight = GetBuildingDimensions(buildDefID, buildFacing)
@@ -6557,8 +6558,8 @@ local function CalculateBuildDragPositions(startWX, startWZ, endWX, endWZ, build
 
 	if distance < 1 then
 		-- Too short, just return start position
-		pools.buildPositions[1] = {wx = sx, wz = sz}
-		return pools.buildPositions
+		positions[1] = {wx = sx, wz = sz}
+		return positions
 	end
 
 	-- Shift+Ctrl: Only horizontal or vertical line (lock to strongest axis)
@@ -6720,6 +6721,7 @@ local function CalculateBuildDragPositions(startWX, startWZ, endWX, endWZ, build
 
 	return positions
 end
+
 
 -- Helper function to check if a transport can load a target unit
 local function CanTransportLoadUnit(transportUnitID, targetUnitID)
