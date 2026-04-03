@@ -28,13 +28,13 @@ local spGetUnitIsDead        = Spring.GetUnitIsDead
 local spGetUnitsInCylinder   = Spring.GetUnitsInCylinder
 local spGiveOrderToUnit      = Spring.GiveOrderToUnit
 local spValidUnitID          = Spring.ValidUnitID
-local spGetGroundHeight      = Spring.GetGroundHeight
 local spGetGameFrame         = Spring.GetGameFrame
 local spGetSelectedUnits     = Spring.GetSelectedUnits
 
-local CMD_REPAIR  = CMD.REPAIR
-local CMD_MOVE    = CMD.MOVE
-local CMD_RECLAIM = CMD.RECLAIM
+local CMD_REPAIR  	 = CMD.REPAIR
+local CMD_MOVE    	 = CMD.MOVE
+local CMD_RECLAIM    = CMD.RECLAIM
+local CMD_MOVE_STATE = CMD.MOVE_STATE
 
 local ALLY_UNITS = Spring.ALLY_UNITS
 
@@ -42,21 +42,21 @@ local ALLY_UNITS = Spring.ALLY_UNITS
 -- Constants
 ----------------------------------------------------------------
 local LEASH_EXTRA = {
-	[0] = 0,     -- hold position: build radius only
-	[1] = 400,   -- maneuver: build radius + 400
-	[2] = 800,   -- roam: build radius + 800
+	[0] = 0,     -- hold position
+	[1] = 100,   -- maneuver
+	[2] = 200,   -- roam
 }
-local DEFAULT_LEASH_EXTRA = 400
+local DEFAULT_LEASH_EXTRA = 100
 local POLL_INTERVAL = 30                 -- every 1 second (30 fps)
 local RECLAIM_BLACKLIST_DURATION = 1800  -- 60 seconds * 30 fps
 
 ----------------------------------------------------------------
 -- Static lookup (built once from UnitDefs)
 ----------------------------------------------------------------
-local isMobileBuilder = {}   -- [unitDefID] = true
-local builderBuildDist = {}  -- [unitDefID] = buildDistance
+local isMobileBuilder = {}
+local builderBuildDist = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.isBuilder and unitDef.canAssist and unitDef.canMove and not unitDef.isFactory then
+	if unitDef.isBuilder and (unitDef.canAssist or unitDef.canResurrect) and unitDef.canMove and not unitDef.isFactory then
 		isMobileBuilder[unitDefID] = true
 		builderBuildDist[unitDefID] = unitDef.buildDistance
 	end
@@ -76,8 +76,6 @@ local activeRepairs = {}
 -- [unitID] = expiryFrame
 local reclaimBlacklist = {}
 
--- Flag to distinguish our auto-commands from player commands
-local isAutoCommand = false
 
 ----------------------------------------------------------------
 -- Helpers
@@ -98,9 +96,7 @@ local function getLeashRadius(unitID)
 end
 
 local function sendHome(builderID, info)
-	isAutoCommand = true
 	spGiveOrderToUnit(builderID, CMD_MOVE, { info.homeX, info.homeY, info.homeZ }, 0)
-	isAutoCommand = false
 	activeRepairs[builderID] = nil
 end
 
@@ -121,22 +117,6 @@ local function removeTarget(unitID)
 	end
 end
 
--- Check if any of our own builders are reclaiming the given unit
-local function isBeingReclaimedByUs(targetID)
-	for builderID in pairs(idleBuilders) do
-		local cmdID, _, _, param1 = spGetUnitCurrentCommand(builderID, 1)
-		if cmdID == CMD_RECLAIM and param1 == targetID then
-			return true
-		end
-	end
-	for builderID in pairs(activeRepairs) do
-		local cmdID, _, _, param1 = spGetUnitCurrentCommand(builderID, 1)
-		if cmdID == CMD_RECLAIM and param1 == targetID then
-			return true
-		end
-	end
-	return false
-end
 
 ----------------------------------------------------------------
 -- Setup / teardown
@@ -220,26 +200,9 @@ end
 ----------------------------------------------------------------
 -- Command interception
 ----------------------------------------------------------------
-function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts)
-	if isAutoCommand then return end
-	if unitTeam ~= myTeam then return end
-
-	-- If one of our managed builders receives a manual command, stop managing it
-	if idleBuilders[unitID] or activeRepairs[unitID] then
-		removeBuilder(unitID)
-	end
-
-	-- Detect reclaim commands targeting a specific unit
-	if cmdID == CMD_RECLAIM and cmdParams and cmdParams[1] then
-		local targetID = cmdParams[1]
-		if targetID > 0 and #cmdParams == 1 and spValidUnitID(targetID) then
-			reclaimBlacklist[targetID] = spGetGameFrame() + RECLAIM_BLACKLIST_DURATION
-		end
-	end
-end
-
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
-	if isAutoCommand then return end
+	-- State changes (e.g. movestate) should not disrupt tracking
+	if cmdID == CMD_MOVE_STATE then return end
 
 	-- Remove all selected builders from tracking on manual commands
 	local selectedUnits = spGetSelectedUnits()
@@ -275,7 +238,7 @@ function widget:GameFrame(frame)
 	for builderID, info in pairs(activeRepairs) do
 		if not isUnitAlive(builderID) then
 			activeRepairs[builderID] = nil
-		elseif not isUnitAlive(info.targetID) then
+		elseif not isUnitAlive(info.targetID) or reclaimBlacklist[unitID] then
 			sendHome(builderID, info)
 		else
 			local health, maxHealth = spGetUnitHealth(info.targetID)
@@ -324,23 +287,19 @@ function widget:GameFrame(frame)
 				then
 					local health, maxHealth = spGetUnitHealth(candidateID)
 					if health and maxHealth and health < maxHealth then
-						if not isBeingReclaimedByUs(candidateID) then
-							local tx, _, tz = spGetUnitPosition(candidateID)
-							local dx, dz = tx - homePos.homeX, tz - homePos.homeZ
-							local distSq = dx * dx + dz * dz
-							if distSq < bestDistSq then
-								bestDistSq = distSq
-								bestTarget = candidateID
-							end
+						local tx, _, tz = spGetUnitPosition(candidateID)
+						local dx, dz = tx - homePos.homeX, tz - homePos.homeZ
+						local distSq = dx * dx + dz * dz
+						if distSq < bestDistSq then
+							bestDistSq = distSq
+							bestTarget = candidateID
 						end
 					end
 				end
 			end
 
 			if bestTarget then
-				isAutoCommand = true
-				spGiveOrderToUnit(builderID, CMD_REPAIR, bestTarget, 0)
-				isAutoCommand = false
+					spGiveOrderToUnit(builderID, CMD_REPAIR, bestTarget, 0)
 
 				activeRepairs[builderID] = {
 					targetID = bestTarget,
