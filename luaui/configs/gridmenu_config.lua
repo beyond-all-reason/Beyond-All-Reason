@@ -3,11 +3,13 @@
 local configs = VFS.Include('luaui/configs/gridmenu_layouts.lua')
 local labGrids = configs.LabGrids
 local unitGrids = configs.UnitGrids
+local priorityUnits = configs.PriorityUnits
 
 local unitGridPos = { }
 local gridPosUnit = { }
 local hasUnitGrid = { }
 local homeGridPos = { }
+local homePriority = {}
 
 local unitCategories = {}
 
@@ -121,6 +123,16 @@ for uname, ugrid in pairs(labGrids) do
 	end
 end
 
+for _, unit in ipairs(priorityUnits) do
+	local prioritDef = UnitDefNames[unit]
+	if not prioritDef then
+		Spring.Echo('gridmenu config: no unitdefname found for: '..unit)
+	else
+		local priorityId = prioritDef.id
+    	homePriority[priorityId] = true
+	end
+end
+
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	unitCategories[unitDefID] = categoryGroupMapping[unitDef.customParams.unitgroup] or BUILDCAT_UTILITY
@@ -187,6 +199,20 @@ local function getGridForCategory(builderId, buildOptions, currentCategory)
 	end
 end
 
+local function filterByPriority(categoryOpts, homePriority)
+    local priorityOpts = {}
+	if not categoryOpts or next(homePriority) == nil then
+		return priorityOpts
+	end
+
+    for _, unitID in ipairs(categoryOpts) do
+		if homePriority[unitID] then
+			table.insert(priorityOpts, unitID)
+		end
+	end
+
+    return priorityOpts
+end
 
 -- grid indices are laid out like this
 -- 9  10 11 12
@@ -196,8 +222,9 @@ end
 function homeOptionsForBuilder(builderId, buildOptions)
 	local options = {}
 	local uncategorizedOpts = homeGridPos[builderId]
-
+	
 	if uncategorizedOpts then
+		local usedOptions = {}
 		local optionsInRow = 0
 		for cat = 1, #uncategorizedOpts do
 			for _, uDefID in pairs(uncategorizedOpts[cat]) do
@@ -207,10 +234,28 @@ function homeOptionsForBuilder(builderId, buildOptions)
 				optionsInRow = optionsInRow + 1
 				-- The grid is sorted by row, starting at the bottom. We want to order these items by column, so we switch their positions by changing the index
 				local index = (cat) + ((optionsInRow - 1) * columns)
-				options[index] = constructBuildOption(uDefID)
+                options[index] = constructBuildOption(uDefID)
+                usedOptions[uDefID] = true
 			end
+			-- Replace the top row with the first unused priority unit in each category
+			local priorityOpts = filterByPriority(uncategorizedOpts[cat], homePriority)
+			local row = 3 
+			if next(priorityOpts) ~= nil then
+				local index = cat + ((row - 1) * columns)
+				local currentOption = -1*options[index].id
+				if not homePriority[currentOption] then -- Don't replace an already prioritized unit with another one
+					for i = 1, #priorityOpts do
+						if not usedOptions[priorityOpts[i]] then
+							options[index] = constructBuildOption(priorityOpts[i])
+							break
+						end
+					end
+				end
+        	end
+
 			optionsInRow = 0
 		end
+
 	else
 		-- if the unit doesn't have a predefined grid we still want the "home" page to have units
 		-- So we build all the categories and grab the first 3 items from each one

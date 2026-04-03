@@ -513,11 +513,12 @@ end
 local function RemovePreviousCommand(unitID)
 	if unitCommand[unitID] and commands[unitCommand[unitID]] then
 		local prev = commands[unitCommand[unitID]]
-		-- Don't clear draw/queue immediately — let it keep rendering until the
-		-- replacement command's queue is ready.  This prevents 1-frame ghost
-		-- flicker when builders advance to the next build in their queue.
-		-- The old command will expire naturally via its time-based progress.
-		prev.replaced = true
+		prev.draw = false
+		if prev.queue and not prev.sharedQueue then
+			releaseTable(prev.queue)
+		end
+		prev.queue = nil
+		prev.queueSize = 0
 	end
 end
 
