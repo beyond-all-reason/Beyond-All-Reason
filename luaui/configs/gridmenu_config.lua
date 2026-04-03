@@ -3,7 +3,7 @@
 local configs = VFS.Include('luaui/configs/gridmenu_layouts.lua')
 local labGrids = configs.LabGrids
 local unitGrids = configs.UnitGrids
-local priorityUnits = configs.PriorityUnits
+local priorityUnits = configs.PriorityUnits or {}
 
 local unitGridPos = { }
 local gridPosUnit = { }
