@@ -38,6 +38,11 @@ local CMD_MOVE_STATE = CMD.MOVE_STATE
 
 local ALLY_UNITS = Spring.ALLY_UNITS
 
+-- Known issues
+-- This doesn't take into account the width of the unit being repaired, so the hold 
+-- position radius is too small. It's good to be conservative, but we should update
+-- this later to properly take the width into account.
+
 ----------------------------------------------------------------
 -- Constants
 ----------------------------------------------------------------
