@@ -106,18 +106,19 @@ else
 		CacheGadgets()
 	end
 
-	local lastCheckFrame = 0
-	function gadget:GameFrame(frame)
+	local timeSinceCheck = 0
+	function gadget:Update(dt)
 		if next(pendingReHook) then
 			for name in pairs(pendingReHook) do
 				ReHookProfiler(name)
 			end
 			pendingReHook = {}
 		end
-		if frame - lastCheckFrame < 30 then
+		timeSinceCheck = timeSinceCheck + dt
+		if timeSinceCheck < 1 then
 			return
 		end
-		lastCheckFrame = frame
+		timeSinceCheck = 0
 
 		local prevMouseOffscreen = mouseOffscreen
 		mouseOffscreen = select(6, spGetMouseState())
