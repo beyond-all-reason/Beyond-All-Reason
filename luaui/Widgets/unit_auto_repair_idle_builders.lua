@@ -76,6 +76,8 @@ local activeRepairs = {}
 -- [unitID] = expiryFrame
 local reclaimBlacklist = {}
 
+-- [reclaimerID] = targetID
+local activeReclaimers = {}
 
 ----------------------------------------------------------------
 -- Helpers
@@ -117,6 +119,22 @@ local function removeTarget(unitID)
 	end
 end
 
+local function hasActiveReclaimers(targetID)
+	for _, tid in pairs(activeReclaimers) do
+		if tid == targetID then return true end
+	end
+	return false
+end
+
+local function onReclaimerStopped(reclaimerID)
+	local targetID = activeReclaimers[reclaimerID]
+	if not targetID then return end
+	activeReclaimers[reclaimerID] = nil
+	if not hasActiveReclaimers(targetID) then
+		Spring.Echo("Wat1")
+		reclaimBlacklist[targetID] = spGetGameFrame() + RECLAIM_BLACKLIST_DURATION
+	end
+end
 
 ----------------------------------------------------------------
 -- Setup / teardown
@@ -146,6 +164,7 @@ function widget:Shutdown()
 	idleBuilders = {}
 	activeRepairs = {}
 	reclaimBlacklist = {}
+	activeReclaimers = {}
 end
 
 function widget:PlayerChanged()
@@ -155,6 +174,7 @@ function widget:PlayerChanged()
 	end
 	idleBuilders = {}
 	activeRepairs = {}
+	activeReclaimers = {}
 	for _, unitID in ipairs(spGetTeamUnits(myTeam)) do
 		local unitDefID = spGetUnitDefID(unitID)
 		if isMobileBuilder[unitDefID] and spGetUnitCommandCount(unitID) == 0 then
@@ -169,6 +189,7 @@ end
 ----------------------------------------------------------------
 function widget:UnitIdle(unitID, unitDefID, unitTeam)
 	if unitTeam ~= myTeam then return end
+	onReclaimerStopped(unitID)
 	if not isMobileBuilder[unitDefID] then return end
 	local x, y, z = spGetUnitPosition(unitID)
 	idleBuilders[unitID] = { homeX = x, homeY = y, homeZ = z }
@@ -188,12 +209,14 @@ end
 function widget:MetaUnitRemoved(unitID)
 	removeBuilder(unitID)
 	removeTarget(unitID)
+	onReclaimerStopped(unitID)
 	reclaimBlacklist[unitID] = nil
 end
 
 function widget:UnitDestroyed(unitID)
 	removeBuilder(unitID)
 	removeTarget(unitID)
+	onReclaimerStopped(unitID)
 	reclaimBlacklist[unitID] = nil
 end
 
@@ -203,9 +226,14 @@ end
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	-- State changes (e.g. movestate) should not disrupt tracking
 	if cmdID == CMD_MOVE_STATE then return end
+	local selectedUnits = spGetSelectedUnits()
+
+	-- Stop tracking reclaimers that received a new command
+	for _, unitID in ipairs(selectedUnits) do
+		onReclaimerStopped(unitID)
+	end
 
 	-- Remove all selected builders from tracking on manual commands
-	local selectedUnits = spGetSelectedUnits()
 	for _, unitID in ipairs(selectedUnits) do
 		if idleBuilders[unitID] or activeRepairs[unitID] then
 			removeBuilder(unitID)
@@ -216,7 +244,11 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if cmdID == CMD_RECLAIM and cmdParams and cmdParams[1] then
 		local targetID = cmdParams[1]
 		if targetID > 0 and #cmdParams == 1 and spValidUnitID(targetID) then
-			reclaimBlacklist[targetID] = spGetGameFrame() + RECLAIM_BLACKLIST_DURATION
+			for _, unitID in ipairs(selectedUnits) do
+				activeReclaimers[unitID] = targetID
+			end
+			reclaimBlacklist[targetID] = math.huge
+			Spring.Echo(reclaimBlacklist)
 		end
 	end
 end
@@ -238,7 +270,7 @@ function widget:GameFrame(frame)
 	for builderID, info in pairs(activeRepairs) do
 		if not isUnitAlive(builderID) then
 			activeRepairs[builderID] = nil
-		elseif not isUnitAlive(info.targetID) or reclaimBlacklist[unitID] then
+		elseif not isUnitAlive(info.targetID) or reclaimBlacklist[info.targetID] then
 			sendHome(builderID, info)
 		else
 			local health, maxHealth = spGetUnitHealth(info.targetID)
