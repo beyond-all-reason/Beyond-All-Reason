@@ -136,7 +136,6 @@ local function onReclaimerStopped(reclaimerID)
 	if not targetID then return end
 	activeReclaimers[reclaimerID] = nil
 	if not hasActiveReclaimers(targetID) then
-		Spring.Echo("Wat1")
 		reclaimBlacklist[targetID] = spGetGameFrame() + RECLAIM_BLACKLIST_DURATION
 	end
 end
@@ -253,7 +252,6 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 				activeReclaimers[unitID] = targetID
 			end
 			reclaimBlacklist[targetID] = math.huge
-			Spring.Echo(reclaimBlacklist)
 		end
 	end
 end
