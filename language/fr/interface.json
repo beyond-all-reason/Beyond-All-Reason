@@ -1075,6 +1075,8 @@
 				"mincamheight_descr": "Limite à quel point le caméra peut zoomer\n\nPlus la valeur est élevée, moins la caméra peut zoomer",
 				"scrollspeed": "Vitesse du zoom molette",
 				"invertmouse": "inverser la souris",
+				"zoomtocursor": "Zoom sur le curseur",
+				"zoomfromcursor": "Zoom à partir du curseur",
 				"scrollinverse": "scrolling inversé",
 				"scrolltoggleoverview": "molette vue stratégique",
 				"scrolltoggleoverview_descr": "Permet de basculer en vue stratégique avec la molette de la souris",

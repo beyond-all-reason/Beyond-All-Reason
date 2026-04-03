@@ -1009,6 +1009,8 @@
 				"mincamheight_descr": "Schränkt die Zoomstärke der Kamera ein\n\nHöher = Kamera kann weniger weit hineinzoomen",
 				"scrollspeed": "Zoom-Scrollgeschwindigkeit",
 				"invertmouse": "Linke Maustaste",
+				"zoomtocursor": "Zoomen Sie auf den Cursor",
+				"zoomfromcursor": "Zoom vom Cursor aus",
 				"scrollinverse": "Umgekehrtes Scrollen",
 				"scrolltoggleoverview": "Überblick umschalten, wenn man scrollt",
 				"scrolltoggleoverview_descr": "Überblickende Kamera umschalten, wenn man scrollt",
