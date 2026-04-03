@@ -1651,6 +1651,15 @@ local options = {
         def  	= false,
     },
 
+	{
+        key    	= "legionsimplifiedmexes",
+        name   	= "Legion Simplified Mexes",
+        desc   	= "Changes the legion T1 mex to act the same as the other T1 mexes.  Legion light T1 units are given a higher metal cost but lower E cost, and heavy T1 units are given a higher E cost and slightly lower metal cost.",
+        type   	= "bool",
+        section = "options_experimental",
+        def  	= false,
+    },
+
     {
         key     = "experimentallegionfaction_link",
         name    = "Development Discussion",

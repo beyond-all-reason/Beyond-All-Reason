@@ -19,7 +19,7 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
-	local validation = string.randomString(4)
+	local validation = string.randomString(2)
 	_G.validationLog = validation
 
 else

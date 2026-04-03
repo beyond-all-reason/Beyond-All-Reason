@@ -563,7 +563,7 @@ function widget:DrawWorldPreUnit()
 	gl.Culling(true)
 	gl.Texture(0, "$heightmap")
 	gl.Texture(1, AtlasTextureID)
-	gl.DepthTest(false)
+	gl.DepthTest(GL.LEQUAL)
 	gl.DepthMask(false)
 
 	local wl = getWaterLevel()

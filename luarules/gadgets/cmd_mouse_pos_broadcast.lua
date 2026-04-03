@@ -32,7 +32,7 @@ local UnpackU16			= VFS.UnpackU16
 
 
 if gadgetHandler:IsSyncedCode() then
-	local validation = string.randomString(4)
+	local validation = string.randomString(2)
 	_G.validationMouse = validation
 
 	local SendToUnsynced = SendToUnsynced

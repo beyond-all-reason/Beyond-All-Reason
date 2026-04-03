@@ -125,7 +125,7 @@ local function drawWindow(activetab)
 	if activetab == nil then activetab = 'Keybindings' end
 
 	-- background
-	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, WG.FlowUI.clampedOpacity)
 
 	local titleFontSize = 18 * widgetScale
 
@@ -140,7 +140,7 @@ local function drawWindow(activetab)
 			tabx
 		}
 		tabx = tabx + (tabwidth  * titleFontSize +  (titleFontSize*1.5))
-		gl.Color(0, 0, 0, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+		gl.Color(0, 0, 0, WG.FlowUI.clampedOpacity)
 		RectRound(tabrects[tab][1], tabrects[tab][2], tabrects[tab][3], tabrects[tab][4], elementCorner, 1, 1, 0, 0)
 	end
 

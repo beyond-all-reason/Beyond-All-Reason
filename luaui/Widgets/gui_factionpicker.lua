@@ -144,19 +144,9 @@ local function drawFactionpicker()
 end
 
 local function checkGuishader(force)
-	if WG['guishader'] then
-		if force and dlistGuishader then
-			dlistGuishader = gl.DeleteList(dlistGuishader)
-		end
-		if not dlistGuishader then
-			dlistGuishader = gl.CreateList(function()
-				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], (bgBorder * vsy) * 2)
-			end)
-			WG['guishader'].InsertDlist(dlistGuishader, 'factionpicker')
-		end
-	elseif dlistGuishader then
-		dlistGuishader = gl.DeleteList(dlistGuishader)
-	end
+	dlistGuishader = WG.FlowUI.guishaderCheckDlist(dlistGuishader, 'factionpicker', function()
+		RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], (bgBorder * vsy) * 2)
+	end, force)
 end
 
 function widget:PlayerChanged(playerID)
@@ -254,10 +244,8 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	if WG['guishader'] and dlistGuishader then
-		WG['guishader'].DeleteDlist('factionpicker')
-		dlistGuishader = nil
-	end
+	WG.FlowUI.guishaderDeleteDlist('factionpicker')
+	dlistGuishader = nil
 	dlistFactionpicker = gl.DeleteList(dlistFactionpicker)
 
 	if factionpickerBgTex then
@@ -324,15 +312,7 @@ function widget:DrawScreen()
 			fbo = true,
 		})
 		if factionpickerBgTex then
-			gl.R2tHelper.RenderToTexture(factionpickerBgTex,
-				function()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
-					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-					drawFactionpickerBackground()
-				end,
-				true
-			)
+			gl.R2tHelper.RenderInRect(factionpickerBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], drawFactionpickerBackground, true)
 		end
 	end
 
@@ -345,15 +325,7 @@ function widget:DrawScreen()
 	end
 
 	if factionpickerTex and doUpdate then
-		gl.R2tHelper.RenderToTexture(factionpickerTex,
-			function()
-				gl.Translate(-1, -1, 0)
-				gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
-				gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-				drawFactionpicker()
-			end,
-			true
-		)
+		gl.R2tHelper.RenderInRect(factionpickerTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], drawFactionpicker, true)
 		doUpdate = nil
 	end
 

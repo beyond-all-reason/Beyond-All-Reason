@@ -38,11 +38,6 @@ return {
 			subfolder = "CorShips/T2",
 			unitgroup = "emp",
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

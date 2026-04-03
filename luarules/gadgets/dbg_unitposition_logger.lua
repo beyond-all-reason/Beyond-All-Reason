@@ -249,13 +249,13 @@ if not gadgetHandler:IsSyncedCode() then
 else	-- SYNCED
 
 
-local validation = string.randomString(4)
+local validation = string.randomString(2)
 	_G.validationLogger = validation
 
 	-- Synced code here only listens to what has been received and thus logged in the demo, notifies unsynced so that can handle re-sending if necessary
 	function gadget:RecvLuaMsg(msg, playerID)
-		if msg:sub(1,3)=="log" and msg:sub(4,7)==validation then
-			local params = string.split(msg:sub(8, 42), ';')
+		if msg:sub(1,3)=="log" and msg:sub(4,5)==validation then
+			local params = string.split(msg:sub(6, 40), ';')
 			SendToUnsynced("receivedPart", params[1], params[2], params[3], params[4])
 			return true
 		end

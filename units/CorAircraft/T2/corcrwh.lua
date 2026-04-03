@@ -43,20 +43,8 @@ return {
 			unitgroup = "weapon",
 		},
 		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-large",
-				[2] = "crashing-large",
-				[3] = "crashing-large2",
-				[4] = "crashing-large3",
-				[5] = "crashing-large3",
-			},
 			explosiongenerators = {
 				[1] = "custom:flamestreamxxl",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
 			},
 		},
 		sounds = {

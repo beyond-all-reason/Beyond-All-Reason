@@ -763,17 +763,11 @@ local function makeTeamCompositionList()
 		})
 	end
 	if uiBgTex and areaRect[4] then
-		gl.R2tHelper.RenderToTexture(uiBgTex,
-			function()
-				gl.Translate(-1, -1, 0)
-				gl.Scale(2 / (areaRect[3]-areaRect[1]), 2 / (areaRect[4]-areaRect[2]),	0)
-				gl.Translate(-areaRect[1], -areaRect[2], 0)
-				for id, rect in pairs(uiElementRects) do
-					UiElement(rect[1], rect[2], rect[3], rect[4], (widgetPosY+widgetHeight > rect[4]+1 and 1 or 0), 0, 0, 1, 0, 1, 1, 1, nil, nil, nil, nil)
-				end
-			end,
-			true
-		)
+		gl.R2tHelper.RenderInRect(uiBgTex, areaRect[1], areaRect[2], areaRect[3], areaRect[4], function()
+			for id, rect in pairs(uiElementRects) do
+				UiElement(rect[1], rect[2], rect[3], rect[4], (widgetPosY+widgetHeight > rect[4]+1 and 1 or 0), 0, 0, 1, 0, 1, 1, 1, nil, nil, nil, nil)
+			end
+		end, true)
 	end
 	if WG['guishader'] then
 		for id, rect in pairs(guishaderRects) do

@@ -24,12 +24,12 @@ local sendPacketEvery	= 2
 --------------------------------------------------------------------------------
 if gadgetHandler:IsSyncedCode() then
 
-	local validation = string.randomString(4)
+	local validation = string.randomString(2)
 	_G.validationFps = validation
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if msg:sub(1,1)=="@" and msg:sub(2,5)==validation then
-			SendToUnsynced("fpsBroadcast",playerID,tonumber(msg:sub(6)))
+		if msg:sub(1,1)=="@" and msg:sub(2,3)==validation then
+			SendToUnsynced("fpsBroadcast",playerID,tonumber(msg:sub(4)))
 			return true
 		end
 	end

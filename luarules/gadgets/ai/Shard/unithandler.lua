@@ -176,8 +176,9 @@ function UnitHandler:Update()
 			v:Update()
 		end
 	end
-	for uID, frame in pairs(self.reallyActuallyDead) do
-		if self.game:Frame() > frame + 1800 then
+	local frame = self.game:Frame()
+	for uID, deadFrame in pairs(self.reallyActuallyDead) do
+		if frame > deadFrame + 1800 then
 			self.reallyActuallyDead[uID] = nil
 		end
 	end
