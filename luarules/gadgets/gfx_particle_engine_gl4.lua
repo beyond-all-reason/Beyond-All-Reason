@@ -32,7 +32,7 @@ function gadget:GetInfo()
 	}
 end
 
-local debugEcho = true
+local debugEcho = false
 
 --------------------------------------------------------------------------------
 -- Localized functions
