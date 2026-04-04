@@ -161,7 +161,7 @@ end
 
 function widget:ViewResize()
 	vsx,vsy = spGetViewGeometry()
-	font = WG['fonts'].getFont(1, 1.5)
+	font = WG.fonts.getFont(1, 1.5)
 end
 
 

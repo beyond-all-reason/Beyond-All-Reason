@@ -41,7 +41,7 @@ local unitDistortions = {
 	-- 	},
 	-- },
 
-	['armcom'] = {
+	armcom = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'biggun',
@@ -51,7 +51,7 @@ local unitDistortions = {
 							effectType = 0},
 		},
 	},
-	['corcom'] = {
+	corcom = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'biggun',
@@ -61,7 +61,7 @@ local unitDistortions = {
 							lifeTime = 0,  effectType = 0},
 		},
 	},
-	['armmakr'] = {
+	armmakr = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'light',
@@ -71,7 +71,7 @@ local unitDistortions = {
 							effectType = 0},
 		},
 	},
-	['cormakr'] = {
+	cormakr = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'light',
@@ -81,7 +81,7 @@ local unitDistortions = {
 							effectType = 0},
 		},
 	},
-	['armmmkr'] = {
+	armmmkr = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'light',
@@ -91,7 +91,7 @@ local unitDistortions = {
 							effectType = 0},
 		},
 	},
-	['cormmkr'] = {
+	cormmkr = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'light',
@@ -101,7 +101,7 @@ local unitDistortions = {
 							effectType = 0},
 		},
 	},
-	['armestor'] = {
+	armestor = {
 		distortion = {
 			distortionType = 'beam',
 			pieceName = 'base',
@@ -112,7 +112,7 @@ local unitDistortions = {
 								lifeTime = 0,  effectType = 0},
 		},
 	},
-	['armvang'] = {
+	armvang = {
 		distortion = {
 			distortionType = 'beam',
 			pieceName = 'base',
@@ -123,7 +123,7 @@ local unitDistortions = {
 								lifeTime = 0,  effectType = 0},
 		},
 	},
-	['corcat'] = {
+	corcat = {
 		distortionl = {
 			distortionType = 'point',
 			pieceName = 'lturret',
@@ -141,7 +141,7 @@ local unitDistortions = {
 								lifeTime = 0,  effectType = 0},
 		},
 	},
-	['armthor'] = {
+	armthor = {
 		distortionbackenergy = {
 			distortionType = 'beam',
 			pieceName = 'base',
@@ -170,7 +170,7 @@ local unitDistortions = {
 								lifeTime = 0,  effectType = 0},
 		},
 	},
-	['armlship'] = {
+	armlship = {
 		distortion1 = {
 			distortionType = 'beam',
 			pieceName = 'turret',
@@ -190,7 +190,7 @@ local unitDistortions = {
 								lifeTime = 0,  effectType = 0},
 		},
 	},
-	['corfship'] = {
+	corfship = {
 		distortionflame = {
 			distortionType = 'beam',
 			pieceName = 'sleeve',
@@ -201,7 +201,7 @@ local unitDistortions = {
 								lifeTime = 0,  effectType = 0},
 		},
 	},
-	['armantiship'] = {
+	armantiship = {
 		distortionback1 = {
 			distortionType = 'beam',
 			pieceName = 'base',
@@ -222,7 +222,7 @@ local unitDistortions = {
 		},
 	},
 
-	['armuwadves'] = {
+	armuwadves = {
 		distortion1 = {
 			distortionType = 'beam',
 			pieceName = 'emit1',
@@ -243,7 +243,7 @@ local unitDistortions = {
 		},
 	},
 
-	['corestor'] = {
+	corestor = {
 		distortion = {
 			distortionType = 'beam',
 			pieceName = 'base',
@@ -256,7 +256,7 @@ local unitDistortions = {
 		},
 	},
 
-	['coruwadves'] = {
+	coruwadves = {
 		distortion = {
 			distortionType = 'beam',
 			pieceName = 'base',
@@ -269,7 +269,7 @@ local unitDistortions = {
 		},
 	},
 
-	['armguard'] = {
+	armguard = {
 		sleeve1 = {
 			distortionType = 'beam',
 			pieceName = 'sleeves',
@@ -290,7 +290,7 @@ local unitDistortions = {
 		},
 	},
 
-	['armbull'] = {
+	armbull = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'base',
@@ -300,7 +300,7 @@ local unitDistortions = {
 		},
 	},
 
-	['armvp'] = {
+	armvp = {
 		heatvent1 = {
 			distortionType = 'beam',
 			pieceName = 'base',
@@ -339,7 +339,7 @@ local unitDistortions = {
 		},
 	},
 
-	['corhal'] = {
+	corhal = {
 		heatventfront1 = {
 			distortionType = 'beam',
 			pieceName = 'base',
@@ -360,7 +360,7 @@ local unitDistortions = {
 		},
 	},
 
-	['corvp'] = {
+	corvp = {
 		heatvent1 = {
 			distortionType = 'beam',
 			pieceName = 'base',
@@ -408,7 +408,7 @@ local unitDistortions = {
 		-- },
 	},
 
-	['armsd'] = {
+	armsd = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'base',
@@ -419,7 +419,7 @@ local unitDistortions = {
 		},
 	},
 
-	['armanac'] = {
+	armanac = {
 		fanheat1 = {
 			distortionType = 'point',
 			pieceName = 'base',
@@ -454,7 +454,7 @@ local unitDistortions = {
 		},
 	},
 
-	['armgeo'] = {
+	armgeo = {
 		fanheat = {
 			distortionType = 'point',
 			pieceName = 'base',
@@ -477,7 +477,7 @@ local unitDistortions = {
 							lifeTime = 0,  effectType = 'heatDistortion'},
 		},
 	},
-	['armgmm'] = {
+	armgmm = {
 		fanheat = {
 			distortionType = 'point',
 			pieceName = 'base',
@@ -486,7 +486,7 @@ local unitDistortions = {
 							lifeTime = 0,  effectType = 'heatDistortion'},
 		},
 	},
-	['armageo'] = {
+	armageo = {
 		storageheatcenter = {
 			distortionType = 'beam',
 			pieceName = 'base',
@@ -524,7 +524,7 @@ local unitDistortions = {
 								lifeTime = 0,  effectType = 0},
 		},
 	},
-	['corkarg'] = {
+	corkarg = {
 		engineheatr = {
 			distortionType = 'point',
 			pieceName = 'turret',
@@ -543,7 +543,7 @@ local unitDistortions = {
 		},
 	},
 
-	['corkorg'] = {
+	corkorg = {
 		engineheatr = {
 			distortionType = 'point',
 			pieceName = 'ruparm',
@@ -561,7 +561,7 @@ local unitDistortions = {
 							lifeTime = 0,  effectType = 'heatDistortion'},
 		},
 	},
-	['armadvsol'] = {
+	armadvsol = {
 		-- magnifier = {
 		-- 	distortionType = 'point',
 		-- 	pieceName = 'base',
@@ -571,7 +571,7 @@ local unitDistortions = {
 		-- },
 	},
 
-	['armhawk'] = {
+	armhawk = {
 		thrust = {
 			distortionType = 'cone',
 			pieceName = 'thrust',
@@ -583,7 +583,7 @@ local unitDistortions = {
 		},
 	},
 
-	['armblade'] = {
+	armblade = {
 		thrustdown = {
 			distortionType = 'cone',
 			pieceName = 'trust',
@@ -595,7 +595,7 @@ local unitDistortions = {
 		},
 	},
 
-	['armbrawl'] = {
+	armbrawl = {
 		thrustdown = {
 			distortionType = 'point',
 			pieceName = 'fan',
@@ -606,7 +606,7 @@ local unitDistortions = {
 		},
 	},
 
-	['armstil'] = {
+	armstil = {
 		thrusta = {
 			distortionType = 'cone',
 			pieceName = 'thrusta',
@@ -627,7 +627,7 @@ local unitDistortions = {
 		},
 	},
 
-	['armdfly'] = {
+	armdfly = {
 		thrust1 = {
 			distortionType = 'cone',
 			pieceName = 'thrustb',
@@ -666,7 +666,7 @@ local unitDistortions = {
 		},
 	},
 
-	['armawac'] = {
+	armawac = {
 		thrust = {
 			distortionType = 'cone',
 			pieceName = 'thrust',
@@ -678,7 +678,7 @@ local unitDistortions = {
 		},
 	},
 
-	['armpnix'] = {
+	armpnix = {
 		thrusta = {
 			distortionType = 'cone',
 			pieceName = 'thrusta',
@@ -699,7 +699,7 @@ local unitDistortions = {
 		},
 	},
 
-	['armliche'] = {
+	armliche = {
 		engineheata = {
 			distortionType = 'point',
 			pieceName = 'wing1',
@@ -753,7 +753,7 @@ local unitDistortions = {
 		},
 	},
 
-	['armtide'] = {
+	armtide = {
 		waterflow = {
 			distortionType = 'beam',
 			pieceName = 'wheel',
@@ -767,7 +767,7 @@ local unitDistortions = {
 		},
 	},
 
-	['cortide'] = {
+	cortide = {
 		waterflow = {
 			distortionType = 'beam',
 			pieceName = 'wheel',
@@ -781,7 +781,7 @@ local unitDistortions = {
 		},
 	},
 
-	['corvamp'] = {
+	corvamp = {
 		thrust = {
 			distortionType = 'cone',
 			pieceName = 'thrust',
@@ -792,7 +792,7 @@ local unitDistortions = {
 		},
 	},
 
-	['armpeep'] = {
+	armpeep = {
 		thrust1 = {
 			distortionType = 'cone',
 			pieceName = 'jet1',
@@ -845,7 +845,7 @@ local unitDistortions = {
 	-- 	},
 	-- },
 
-	['armsnipe'] = {
+	armsnipe = {
 		-- snipecloakbeam = {
 		-- 	distortionType = 'point',
 		-- 	pieceName = 'head',
@@ -857,7 +857,7 @@ local unitDistortions = {
 		-- },
 	},
 
-	['armamex'] = {
+	armamex = {
 		cloakbeam = {
 			distortionType = 'beam',
 			pieceName = 'base',
@@ -869,7 +869,7 @@ local unitDistortions = {
 		},
 	},
 
-	['corvroc'] = {
+	corvroc = {
 		cloakblobf = {
 			distortionType = 'point',
 			pieceName = 'base',
@@ -907,7 +907,7 @@ local unitDistortions = {
 		-- },
 	},
 
-	['armrectr'] = {
+	armrectr = {
 		cloakmodule = {
 			distortionType = 'point',
 			pieceName = 'base',
@@ -917,7 +917,7 @@ local unitDistortions = {
 		},
 	},
 
-	['cornecro'] = {
+	cornecro = {
 		cloakmodule = {
 			distortionType = 'point',
 			pieceName = 'base',
@@ -927,7 +927,7 @@ local unitDistortions = {
 		},
 	},
 
-	['armmerl'] = {
+	armmerl = {
 		cloakblobf = {
 			distortionType = 'point',
 			pieceName = 'base',
@@ -972,7 +972,7 @@ local unitDistortions = {
 		},
 	},
 
-	['armmlv'] = {
+	armmlv = {
 		cloakblob = {
 			distortionType = 'point',
 			pieceName = 'turret',
@@ -990,7 +990,7 @@ local unitDistortions = {
 
 	},
 
-	['armgremlin'] = {
+	armgremlin = {
 		cloakblobf = {
 			distortionType = 'point',
 			pieceName = 'base',
@@ -1067,7 +1067,7 @@ local unitDistortions = {
 		},
 	},
 
-	['armspy'] = {
+	armspy = {
 		-- fullstealth = {
 		-- 	distortionType = 'point',
 		-- 	pieceName = 'body',
@@ -1102,7 +1102,7 @@ local unitDistortions = {
 		},
 	},
 
-	['corspy'] = {
+	corspy = {
 		-- spycloakhead = {
 		-- 	distortionType = 'point',
 		-- 	pieceName = 'body',
@@ -1156,7 +1156,7 @@ local unitDistortions = {
 	-- 	},
 	-- },
 
-	['armveil'] = {
+	armveil = {
 		-- magnifier = {
 		-- 	distortionType = 'point',
 		-- 	pieceName = 'base',
@@ -1174,7 +1174,7 @@ local unitDistortions = {
 		},
 	}, 
 
-	['armjam'] = {
+	armjam = {
 		jamdistortion = {
 			distortionType = 'point',
 			pieceName = 'jam',
@@ -1185,7 +1185,7 @@ local unitDistortions = {
 		},
 	},
 
-	['coreter'] = {
+	coreter = {
 		jamdistortion = {
 			distortionType = 'point',
 			pieceName = 'jam',
@@ -1196,7 +1196,7 @@ local unitDistortions = {
 		},
 	},
 
-	['corshroud'] = {
+	corshroud = {
 		jamdistortion = {
 			distortionType = 'point',
 			pieceName = 'jam',
@@ -1207,7 +1207,7 @@ local unitDistortions = {
 		},
 	}, 
 
-	['corap'] = {
+	corap = {
 		heatvent1 = {
 			distortionType = 'beam',
 			pieceName = 'base',
@@ -1219,7 +1219,7 @@ local unitDistortions = {
 		},
 	},
 
-	['corpyro'] = {
+	corpyro = {
 		flameheat = {
 			distortionType = 'beam',
 			pieceName = 'lloarm',
@@ -1232,7 +1232,7 @@ local unitDistortions = {
 		},
 	},
 
-	['cordemon'] = {
+	cordemon = {
 		flameheatl = {
 			distortionType = 'beam',
 			pieceName = 'lfbarrel1',
@@ -1255,7 +1255,7 @@ local unitDistortions = {
 		},
 	},
 
-	['corint'] = {
+	corint = {
 		heatvent1 = {
 			distortionType = 'beam',
 			pieceName = 'gun',
@@ -1267,7 +1267,7 @@ local unitDistortions = {
 		},
 	},
 
-	['coravp'] = {
+	coravp = {
 		factoryheat = {
 			distortionType = 'point',
 			pieceName = 'base',
@@ -1299,7 +1299,7 @@ local unitDistortions = {
 		},
 	},
 
-	['corgant'] = {
+	corgant = {
 		factoryheat1 = {
 			distortionType = 'point',
 			pieceName = 'base',
@@ -1353,7 +1353,7 @@ local unitDistortions = {
 		},
 	},
 	
-	['corfus'] = {
+	corfus = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'emit',
@@ -1364,7 +1364,7 @@ local unitDistortions = {
 		},
 	},
 	
-	['corafus'] = {
+	corafus = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'emit',
@@ -1375,7 +1375,7 @@ local unitDistortions = {
 		},
 	},
 
-	['corafust3'] = {
+	corafust3 = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'emit',
@@ -1386,7 +1386,7 @@ local unitDistortions = {
 		},
 	},
 
-	['legfus'] = {
+	legfus = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'emit',
@@ -1397,7 +1397,7 @@ local unitDistortions = {
 		},
 	},
 
-	['legafus'] = {
+	legafus = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'emit',
@@ -1408,7 +1408,7 @@ local unitDistortions = {
 		},
 	},
 
-	['armfus'] = {
+	armfus = {
 		distortion1 = {
 			distortionType = 'point',
 			pieceName = 'emit1',
@@ -1427,7 +1427,7 @@ local unitDistortions = {
 		},
 	},
 	
-	['armafus'] = {
+	armafus = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'emit',
@@ -1454,7 +1454,7 @@ local unitDistortions = {
 		-- },
 	},
 
-	['armafust3'] = {
+	armafust3 = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'emit',
@@ -1466,7 +1466,7 @@ local unitDistortions = {
 		},
 	},
 
-	['legafust3'] = {
+	legafust3 = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'emit',
@@ -1478,7 +1478,7 @@ local unitDistortions = {
 		},
 	},
 
-	['armgate'] = {
+	armgate = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'none',
@@ -1509,7 +1509,7 @@ local unitDistortions = {
 		-- },
 	},
 
-	['armfgate'] = {
+	armfgate = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'none',
@@ -1520,7 +1520,7 @@ local unitDistortions = {
 		},
 	},
 
-	['corgate'] = {
+	corgate = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'none',
@@ -1539,7 +1539,7 @@ local unitDistortions = {
 		-- },
 	},
 
-	['corfgate'] = {
+	corfgate = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'none',
@@ -1550,7 +1550,7 @@ local unitDistortions = {
 		},
 	},
 
-	['corjamt'] = {
+	corjamt = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'jam',
@@ -1561,7 +1561,7 @@ local unitDistortions = {
 		},
 	},
 
-	['armjamt'] = {
+	armjamt = {
 		jamdistortion = {
 			distortionType = 'point',
 			pieceName = 'jam',
@@ -1572,7 +1572,7 @@ local unitDistortions = {
 		},
 	},
 
-	['corsjam'] = {
+	corsjam = {
 		distortionbeam = {
 			distortionType = 'beam',
 			pieceName = 'jam',
@@ -1584,7 +1584,7 @@ local unitDistortions = {
 		},
 	},
 
-	['cormando'] = {
+	cormando = {
 		distortionbeam = {
 			distortionType = 'beam',
 			pieceName = 'turret',
@@ -1610,7 +1610,7 @@ local unitDistortions = {
 		-- },
 	},
 
-	['scavengerbossv4_normal'] = {
+	scavengerbossv4_normal = {
 		distortionbeam = {
 			distortionType = 'point',
 			pieceName = 'head',
@@ -1636,7 +1636,7 @@ local unitDistortions = {
 		-- },
 	},
 
-	['armsjam'] = {
+	armsjam = {
 		distortionbeam1 = {
 			distortionType = 'beam',
 			pieceName = 'jam',
@@ -1657,7 +1657,7 @@ local unitDistortions = {
 		},
 	},
 
-	['armmark'] = {
+	armmark = {
 		-- radarring = {
 		-- 	distortionType = 'point',
 		-- 	pieceName = 'none',
@@ -1668,7 +1668,7 @@ local unitDistortions = {
 		-- },
 	},
 
-	['armaser'] = {
+	armaser = {
 		distortionbeam = {
 			distortionType = 'beam',
 			pieceName = 'jam',
@@ -1680,7 +1680,7 @@ local unitDistortions = {
 		},
 	},
 
-	['corspec'] = {
+	corspec = {
 		distortionbeam = {
 			distortionType = 'beam',
 			pieceName = 'jam',
@@ -1692,7 +1692,7 @@ local unitDistortions = {
 		},
 	},
 
-	['legajamk'] = {
+	legajamk = {
 		legdistortionbeam = {
 			distortionType = 'beam',
 			pieceName = 'blob',
@@ -1704,7 +1704,7 @@ local unitDistortions = {
 		},
 	},
 
-	['legavjam'] = {
+	legavjam = {
 		legdistortionbeam = {
 			distortionType = 'beam',
 			pieceName = 'cloaklight',
@@ -1716,7 +1716,7 @@ local unitDistortions = {
 		},
 	},
 
-	['corjuno'] = {
+	corjuno = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'none',
@@ -1727,7 +1727,7 @@ local unitDistortions = {
 		},
 	},
 
-	['corjugg'] = {
+	corjugg = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'mainbarrel',
@@ -1746,7 +1746,7 @@ local unitDistortions = {
 	},
 
 	
-	['armjuno'] = {
+	armjuno = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'none',
@@ -1757,7 +1757,7 @@ local unitDistortions = {
 		},
 	},
 	
-	['lootboxbronze'] = {
+	lootboxbronze = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'none',
@@ -1768,7 +1768,7 @@ local unitDistortions = {
 		},
 	},
 	
-	['lootboxsilver'] = {
+	lootboxsilver = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'none',
@@ -1779,7 +1779,7 @@ local unitDistortions = {
 		},
 	},
 	
-	['lootboxgold'] = {
+	lootboxgold = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'none',
@@ -1790,7 +1790,7 @@ local unitDistortions = {
 		},
 	},
 	
-	['lootboxplatinum'] = {
+	lootboxplatinum = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'none',
@@ -1801,7 +1801,7 @@ local unitDistortions = {
 		},
 	},
 
-	['armblade'] = {
+	armblade = {
 		thrust = {
 			distortionType = 'cone',
 			pieceName = 'thrust',
@@ -1812,7 +1812,7 @@ local unitDistortions = {
 		},
 	},
 
-	['corape'] = {
+	corape = {
 		rthrust = {
 			distortionType = 'cone',
 			pieceName = 'rthrust',
@@ -1832,7 +1832,7 @@ local unitDistortions = {
 		},
 	},
 
-	['armkam'] = {
+	armkam = {
 		thrusta = {
 			distortionType = 'cone',
 			pieceName = 'thrusta',
@@ -1852,7 +1852,7 @@ local unitDistortions = {
 		},
 	},
 
-	['legmos'] = {
+	legmos = {
 		-- motionl = { --motion blur only works when unit is moving
 		-- 	distortionType = 'point',
 		-- 	pieceName = 'blur',
@@ -1894,7 +1894,7 @@ local unitDistortions = {
 		},
 	},
 
-	['legmost3'] = {
+	legmost3 = {
 		blurl = {
 			distortionType = 'cone',
 			pieceName = 'blur',
@@ -1926,7 +1926,7 @@ local unitDistortions = {
 		},
 	},
 
-	['corcrwh'] = {
+	corcrwh = {
 		thrust1 = {
 			distortionType = 'cone',
 			pieceName = 'thrustrra',
@@ -1980,7 +1980,7 @@ local unitDistortions = {
 		},
 	},
 
-	['corcrwt4'] = {
+	corcrwt4 = {
 		thrust1 = {
 			distortionType = 'cone',
 			pieceName = 'thrustrra',
@@ -2034,7 +2034,7 @@ local unitDistortions = {
 		-- },
 	},
 
-	['armfepocht4'] = {
+	armfepocht4 = {
 		thrustl1 = {
 			distortionType = 'cone',
 			pieceName = 'thrustl1',
@@ -2070,7 +2070,7 @@ local unitDistortions = {
 		},
 	},
 
-	['corfblackhyt4'] = {
+	corfblackhyt4 = {
 		thrustl1 = {
 			distortionType = 'cone',
 			pieceName = 'thrustl1',
@@ -2158,8 +2158,8 @@ do
 end
 
 -- Effect duplications:
-unitDistortions['armdecom'] = unitDistortions['armcom']
-unitDistortions['corgantuw'] = unitDistortions['corgant']
+unitDistortions.armdecom = unitDistortions.armcom
+unitDistortions.corgantuw = unitDistortions.corgant
 
 local unitEventDistortionsNames = {
 	------------------------------------ Put distortions that are slaved to ProjectileCreated here! ---------------------------------
@@ -2196,7 +2196,7 @@ local unitEventDistortionsNames = {
 
 	UnitScriptDistortions = {
 		
-		['corkorg'] = {
+		corkorg = {
 			[1] = {
 				-- Footstep shockwave
 				alwaysVisible = false,
@@ -2212,7 +2212,7 @@ local unitEventDistortionsNames = {
 			},
 		},
 
-		['corsumo'] = {
+		corsumo = {
 			[1] = {
 				-- Footstep shockwave
 				alwaysVisible = false,
@@ -2267,7 +2267,7 @@ local unitEventDistortionsNames = {
 			},
 		},
 
-		['corjugg'] = {
+		corjugg = {
 			[1] = {
 				-- Footstep shockwave
 				alwaysVisible = false,
@@ -2338,7 +2338,7 @@ local unitEventDistortionsNames = {
 		-- 	},
 		-- },
 
-		['cordemon'] = {
+		cordemon = {
 			[1] = {
 				-- Barrel Heat
 				alwaysVisible = false,
@@ -2414,7 +2414,7 @@ local unitEventDistortionsNames = {
 			},
 		},
 
-		['armraz'] = {
+		armraz = {
 			[1] = {
 				-- Barrel Heat
 				alwaysVisible = false,
@@ -2446,7 +2446,7 @@ local unitEventDistortionsNames = {
 		},
 
 				
-		['armbrtha'] = {
+		armbrtha = {
 			[1] = {
 				-- Barrel Heat after shot
 				alwaysVisible = false,
@@ -2464,7 +2464,7 @@ local unitEventDistortionsNames = {
 			},
 		},
 
-		['corint'] = {
+		corint = {
 			[1] = {
 				-- Barrel Heat after shot
 				alwaysVisible = false,

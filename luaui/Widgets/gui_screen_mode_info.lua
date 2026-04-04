@@ -71,7 +71,7 @@ function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
 	widgetScale = (0.80 + (vsx * vsy / 6000000))
 
-	font = WG['fonts'].getFont(1, 1.5)
+	font = WG.fonts.getFont(1, 1.5)
 end
 
 function widget:Initialize()
@@ -79,7 +79,7 @@ function widget:Initialize()
 end
 
 function widget:DrawScreen()
-	if WG['topbar'] and WG['topbar'].showingQuit() then return end
+	if WG.topbar and WG.topbar.showingQuit() then return end
 
 	framecount = framecount + 1
 

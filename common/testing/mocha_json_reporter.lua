@@ -79,19 +79,19 @@ end
 
 function MochaJSONReporter:report(filePath)
 	local output = {
-		["stats"] = {
-			["suites"] = 1,
-			["tests"] = self.totalTests,
-			["passes"] = self.totalPasses,
-			["pending"] = 0,
-			["skipped"] = self.totalSkipped,
-			["failures"] = self.totalFailures,
-			["start"] = formatTimestamp(self.startTime),
+		stats = {
+			suites = 1,
+			tests = self.totalTests,
+			passes = self.totalPasses,
+			pending = 0,
+			skipped = self.totalSkipped,
+			failures = self.totalFailures,
+			start = formatTimestamp(self.startTime),
 			["end"] = formatTimestamp(self.endTime),
-			["duration"] = self.duration
+			duration = self.duration
 		},
-		["tests"] = self.tests,
-		["pending"] = self.skipped
+		tests = self.tests,
+		pending = self.skipped
 	}
 
 	local encoded = Json.encode(output)

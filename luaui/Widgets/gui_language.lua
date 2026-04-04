@@ -33,9 +33,9 @@ function widget:Initialize()
 
 	widgetHandler:RegisterGlobal('GadgetMessageProxy', getMessageProxy)
 
-	WG['language'] = {}
+	WG.language = {}
 
-	WG['language'].setLanguage = function(language)
+	WG.language.setLanguage = function(language)
 		Spring.SetConfigString('language', language)
 		Spring.I18N.setLanguage(language)
 
@@ -44,7 +44,7 @@ function widget:Initialize()
 		end
 	end
 
-	WG['language'].setEnglishUnitNames = function(value)
+	WG.language.setEnglishUnitNames = function(value)
 		Spring.SetConfigInt("language_english_unit_names", value and 1 or 0)
 
 		if Script.LuaUI('LanguageChanged') then
@@ -54,5 +54,5 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	WG['lang'] = nil
+	WG.lang = nil
 end

@@ -141,7 +141,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		skip = true
 	end
 	-- objects/walls
-	if unitDef.modCategories['object'] or unitDef.customParams.objectify then
+	if unitDef.modCategories.object or unitDef.customParams.objectify then
 		skip = true
 	end
 
@@ -202,7 +202,7 @@ local function SimpleGetClosestMexSpot(x, z)
 	--tracy.ZoneBeginN("SimpleAI:SimpleGetClosestMexSpot")
 	local bestSpot
 	local bestDist = math_huge
-	local metalSpots = GG["resource_spot_finder"] and GG["resource_spot_finder"].metalSpotsList or nil
+	local metalSpots = GG.resource_spot_finder and GG.resource_spot_finder.metalSpotsList or nil
 	if metalSpots then
 		for i = 1, #metalSpots do
 			local spot = metalSpots[i]

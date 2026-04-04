@@ -1167,7 +1167,7 @@ end
 
 function widget:Shutdown()
 	-- TODO: delete the VBOs and shaders like a good boy
-	WG['lightsgl4'] = nil
+	WG.lightsgl4 = nil
 	widgetHandler:DeregisterGlobal('AddPointLight')
 	widgetHandler:DeregisterGlobal('AddBeamLight')
 	widgetHandler:DeregisterGlobal('AddConeLight')
@@ -1237,7 +1237,7 @@ local function eventLightSpawner(eventName, unitID, unitDefID, teamID)
 	if spValidUnitID(unitID) and spGetUnitIsDead(unitID) == false and unitEventLights[eventName] then
 		if unitEventLights[eventName] then
 			-- get the default event if it is defined
-			local lightList =  unitEventLights[eventName][unitDefID] or unitEventLights[eventName]['default']
+			local lightList =  unitEventLights[eventName][unitDefID] or unitEventLights[eventName].default
 			if lightList then
 				for lightname, lightTable in pairs(lightList) do
 					local visible = lightTable.alwaysVisible
@@ -1509,8 +1509,8 @@ local function checkConfigUpdates()
 		local newconfb = VFS.LoadFile('luaui/configs/DeferredLightsGL4WeaponsConfig.lua')
 		if newconfa ~= configCache.confa or newconfb ~= configCache.confb then
 			LoadLightConfig()
-			if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
-				widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
+			if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+				widget:VisibleUnitsChanged(WG.unittrackerapi.visibleUnits, nil)
 			end
 			local allFeatures = spGetAllFeatures()
 			local allFeaturesLen = #allFeatures
@@ -1535,13 +1535,13 @@ function widget:Update(dt)
 	local tus = spGetTimerMicros()
 
 	-- update/handle Cursor Lights!
-	if WG['allycursors'] and WG['allycursors'].getLights() then
+	if WG.allycursors and WG.allycursors.getLights() then
 		sec = sec + dt
 		if sec >= 0.25 then
-			if cursorLightAlpha ~= WG['allycursors'].getLightStrength() or cursorLightRadius ~= WG['allycursors'].getLightRadius() or cursorLightSelfShadowing ~= WG['allycursors'].getLightSelfShadowing() then
-				cursorLightAlpha = WG['allycursors'].getLightStrength()
-				cursorLightRadius = WG['allycursors'].getLightRadius()
-				cursorLightSelfShadowing = WG['allycursors'].getLightSelfShadowing()
+			if cursorLightAlpha ~= WG.allycursors.getLightStrength() or cursorLightRadius ~= WG.allycursors.getLightRadius() or cursorLightSelfShadowing ~= WG.allycursors.getLightSelfShadowing() then
+				cursorLightAlpha = WG.allycursors.getLightStrength()
+				cursorLightRadius = WG.allycursors.getLightRadius()
+				cursorLightSelfShadowing = WG.allycursors.getLightSelfShadowing()
 				InstanceVBOTable.clearInstanceTable(cursorPointLightVBO)
 				cursorLights = nil
 			end
@@ -1549,7 +1549,7 @@ function widget:Update(dt)
 		if not cursorLights then
 			cursorLights = {}
 		end
-		local cursors, notIdle = WG['allycursors'].getCursors()
+		local cursors, notIdle = WG.allycursors.getCursors()
 		for playerID, cursor in pairs(cursors) do
 			local teamColor = teamColors[playerID]
 			if teamColor and not cursor[8] and notIdle[playerID] then
@@ -1590,7 +1590,7 @@ function widget:Update(dt)
 			params[12] = playerCursorLightBrightness * 0.1
 			AddLight("PLAYERCURSOR", nil, nil, cursorPointLightVBO, params)
 		else
-			if cursorPointLightVBO.instanceIDtoIndex["PLAYERCURSOR"] then
+			if cursorPointLightVBO.instanceIDtoIndex.PLAYERCURSOR then
 				popElementInstance(cursorPointLightVBO, "PLAYERCURSOR")
 			end
 		end
@@ -1787,8 +1787,8 @@ function widget:Initialize()
 		for i=1, 1 do AddRandomLight(	mathRandom()) end
 	end
 
-	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
-		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
+	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+		widget:VisibleUnitsChanged(WG.unittrackerapi.visibleUnits, nil)
 	end
 
 	local allFeatures = spGetAllFeatures()
@@ -1797,44 +1797,44 @@ function widget:Initialize()
 		widget:FeatureCreated(allFeatures[i])
 	end
 
-	WG['lightsgl4'] = {}
-	WG['lightsgl4'].AddPointLight = AddPointLight
-	WG['lightsgl4'].AddBeamLight  = AddBeamLight
-	WG['lightsgl4'].AddConeLight  = AddConeLight
-	WG['lightsgl4'].AddLight  = AddLight
-	WG['lightsgl4'].RemoveLight  = RemoveLight
-	WG['lightsgl4'].GetLightVBO  = GetLightVBO
+	WG.lightsgl4 = {}
+	WG.lightsgl4.AddPointLight = AddPointLight
+	WG.lightsgl4.AddBeamLight  = AddBeamLight
+	WG.lightsgl4.AddConeLight  = AddConeLight
+	WG.lightsgl4.AddLight  = AddLight
+	WG.lightsgl4.RemoveLight  = RemoveLight
+	WG.lightsgl4.GetLightVBO  = GetLightVBO
 
-	WG['lightsgl4'].IntensityMultiplier = function(value)
+	WG.lightsgl4.IntensityMultiplier = function(value)
 		intensityMultiplier = value
 	end
-	WG['lightsgl4'].RadiusMultiplier = function(value)
+	WG.lightsgl4.RadiusMultiplier = function(value)
 		radiusMultiplier = value
 	end
-	WG['lightsgl4'].ScreenSpaceShadows = function(value)
+	WG.lightsgl4.ScreenSpaceShadows = function(value)
 		screenSpaceShadows = value
 	end
 
-	WG['lightsgl4'].ShowPlayerCursorLight = function(value)
+	WG.lightsgl4.ShowPlayerCursorLight = function(value)
 		showPlayerCursorLight = value
 		-- Remove the player's cursor light on disabling this feature
-		if not showPlayerCursorLight and cursorPointLightVBO.instanceIDtoIndex["PLAYERCURSOR"] then
+		if not showPlayerCursorLight and cursorPointLightVBO.instanceIDtoIndex.PLAYERCURSOR then
 			popElementInstance(cursorPointLightVBO, "PLAYERCURSOR")
 		end
 	end
-	WG['lightsgl4'].PlayerCursorLightRadius = function(value)
+	WG.lightsgl4.PlayerCursorLightRadius = function(value)
 		playerCursorLightRadius = value
 	end
-	WG['lightsgl4'].PlayerCursorLightBrightness = function(value)
+	WG.lightsgl4.PlayerCursorLightBrightness = function(value)
 		playerCursorLightBrightness = value
 	end
 
-	widgetHandler:RegisterGlobal('AddPointLight', WG['lightsgl4'].AddPointLight)
-	widgetHandler:RegisterGlobal('AddBeamLight', WG['lightsgl4'].AddBeamLight)
-	widgetHandler:RegisterGlobal('AddConeLight', WG['lightsgl4'].AddConeLight)
-	widgetHandler:RegisterGlobal('AddLight', WG['lightsgl4'].AddLight)
-	widgetHandler:RegisterGlobal('RemoveLight', WG['lightsgl4'].RemoveLight)
-	widgetHandler:RegisterGlobal('GetLightVBO', WG['lightsgl4'].GetLightVBO)
+	widgetHandler:RegisterGlobal('AddPointLight', WG.lightsgl4.AddPointLight)
+	widgetHandler:RegisterGlobal('AddBeamLight', WG.lightsgl4.AddBeamLight)
+	widgetHandler:RegisterGlobal('AddConeLight', WG.lightsgl4.AddConeLight)
+	widgetHandler:RegisterGlobal('AddLight', WG.lightsgl4.AddLight)
+	widgetHandler:RegisterGlobal('RemoveLight', WG.lightsgl4.RemoveLight)
+	widgetHandler:RegisterGlobal('GetLightVBO', WG.lightsgl4.GetLightVBO)
 
 	widgetHandler:RegisterGlobal('UnitScriptLight', UnitScriptLight)
 end

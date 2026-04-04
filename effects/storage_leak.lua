@@ -1,5 +1,5 @@
 return {
-  ["energy_storage_leak"] = {
+  energy_storage_leak = {
      Spawner = {
       air                = true,
       class              = [[CExpGenSpawner]],
@@ -14,7 +14,7 @@ return {
       },
     }, 
   },
-    ["energy_leak"] = {
+    energy_leak = {
      unit_sparkles = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
@@ -44,7 +44,7 @@ return {
       },
     },
   },
-  ["metal_storage_leak"] = {
+  metal_storage_leak = {
     Spawner = {
       air                = true,
       class              = [[CExpGenSpawner]],
@@ -60,7 +60,7 @@ return {
       },
     }, 
   },
-    ["metal_storage"] = {
+    metal_storage = {
      smokecloud = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
@@ -132,7 +132,7 @@ return {
       },
     },
   },
-    ["metal_leak"] = {
+    metal_leak = {
     spark = {
       air                = true,
       class              = [[CSimpleParticleSystem]],

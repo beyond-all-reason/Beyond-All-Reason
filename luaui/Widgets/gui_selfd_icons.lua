@@ -117,7 +117,7 @@ local function init()
 		gl.DeleteList(drawLists[k])
 	end
 	drawLists = {}
-	font = WG['fonts'].getFont(2, 1.5)
+	font = WG.fonts.getFont(2, 1.5)
 
 	spec = spGetSpectatingState()
 

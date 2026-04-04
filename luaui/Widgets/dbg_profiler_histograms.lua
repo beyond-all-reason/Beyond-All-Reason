@@ -100,7 +100,7 @@ local binrez = 0.05 -- half MS resolutions
 local histograms = {} -- key name, value histogram object
 local actives = {Sim = true}
 --actives['Draw'] = true
-actives['Update'] = true
+actives.Update = true
 actives['Sim::Script'] = true
 
 

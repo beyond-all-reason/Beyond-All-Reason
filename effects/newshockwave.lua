@@ -1,5 +1,5 @@
 return {
-	 ["shockwaveceg"] = {
+	 shockwaveceg = {
 		  centerflare = {
             air                = true,
             class              = [[CHeatCloudProjectile]],
@@ -803,7 +803,7 @@ return {
 
 	},
 
-["newshockwaveblast"] = {
+newshockwaveblast = {
     groundflash_anim = {
             class              = [[CSimpleGroundFlash]],
             count              = 1,
@@ -827,7 +827,7 @@ return {
         },
     },
 
-["newshockwaveblast2"] = {
+newshockwaveblast2 = {
     muzzleparticle = {
         air                = true,
         class              = [[CBitmapMuzzleFlame]],
@@ -858,7 +858,7 @@ return {
     },
 },
 
-["newshockwavetest"] = {
+newshockwavetest = {
         shockwave = {
 	      air                = true,
 	      class              = [[CBitmapMuzzleFlame]],

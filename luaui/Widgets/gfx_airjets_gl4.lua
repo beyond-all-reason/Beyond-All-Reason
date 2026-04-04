@@ -507,7 +507,7 @@ end
 local function RemoveLights(unitID)
 	if lighteffectsEnabled and lights[unitID] then
 		for i,v in pairs(lights[unitID]) do
-			WG['lighteffects'].removeLight(lights[unitID][i], 3)
+			WG.lighteffects.removeLight(lights[unitID][i], 3)
 		end
 		lights[unitID] = nil
 	end
@@ -650,7 +650,7 @@ function widget:Update(dt)
 	end
 
 	local prevLighteffectsEnabled = lighteffectsEnabled
-	lighteffectsEnabled = (enableLights and WG['lighteffects'] ~= nil and WG['lighteffects'].enableThrusters)
+	lighteffectsEnabled = (enableLights and WG.lighteffects ~= nil and WG.lighteffects.enableThrusters)
 	if lighteffectsEnabled ~= prevLighteffectsEnabled then
 		for _, teamID in ipairs(spGetTeamList()) do
 			local teamUnits = spGetTeamUnitsByDefs(teamID, effectDefIDList)
@@ -773,9 +773,9 @@ function widget:Initialize()
 	initGL4()
 	reInitialize()
 
-	WG['airjets'] = {}
+	WG.airjets = {}
 
-	WG['airjets'].addAirJet = function (unitID, piecenum, width, length, color3, emitVector) -- for WG external calls
+	WG.airjets.addAirJet = function (unitID, piecenum, width, length, color3, emitVector) -- for WG external calls
 		local airjetkey = tostring(unitID).."_"..tostring(piecenum)
 		if emitVector == nil then emitVector = {0,0,-1} end
 		pushElementInstance(
@@ -795,7 +795,7 @@ function widget:Initialize()
 		return airjetkey
 	end
 
-	WG['airjets'].removeAirJet =  function (airjetkey) ---- for WG external calls
+	WG.airjets.removeAirJet =  function (airjetkey) ---- for WG external calls
 		return popElementInstance(jetInstanceVBO,airjetkey)
 	end
 end

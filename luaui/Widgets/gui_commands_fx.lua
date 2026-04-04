@@ -462,36 +462,36 @@ function widget:Initialize()
 
 	resetEnabledTeams()
 
-	WG['commandsfx'] = {}
-	WG['commandsfx'].getOpacity = function()
+	WG.commandsfx = {}
+	WG.commandsfx.getOpacity = function()
 		return opacity
 	end
-	WG['commandsfx'].setOpacity = function(value)
+	WG.commandsfx.setOpacity = function(value)
 		opacity = value
 	end
-	WG['commandsfx'].getDuration = function()
+	WG.commandsfx.getDuration = function()
 		return duration
 	end
-	WG['commandsfx'].setDuration = function(value)
+	WG.commandsfx.setDuration = function(value)
 		duration = value
 	end
-	WG['commandsfx'].getFilterAI = function()
+	WG.commandsfx.getFilterAI = function()
 		return filterAIteams
 	end
-	WG['commandsfx'].setFilterAI = function(value)
+	WG.commandsfx.setFilterAI = function(value)
 		filterAIteams = value
 		resetEnabledTeams()
 	end
-	WG['commandsfx'].getUseTeamColors = function()
+	WG.commandsfx.getUseTeamColors = function()
 		return useTeamColors
 	end
-	WG['commandsfx'].setUseTeamColors = function(value)
+	WG.commandsfx.setUseTeamColors = function(value)
 		useTeamColors = value
 	end
-	WG['commandsfx'].setUseTeamColorsWhenSpec = function()
+	WG.commandsfx.setUseTeamColorsWhenSpec = function()
 		return useTeamColorsWhenSpec
 	end
-	WG['commandsfx'].setUseTeamColorsWhenSpec = function(value)
+	WG.commandsfx.setUseTeamColorsWhenSpec = function(value)
 		useTeamColorsWhenSpec = value
 	end
 

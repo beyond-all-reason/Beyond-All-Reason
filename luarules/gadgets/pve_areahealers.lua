@@ -43,29 +43,29 @@ local pveTeamID = Spring.Utilities.GetRaptorTeamID() or Spring.Utilities.GetScav
 local aliveHealers = {}
 local healersTable = {}
 if Spring.Utilities.Gametype.IsRaptors() then
-    healersTable[UnitDefNames["raptor_land_swarmer_heal_t1_v1"].id] = {
-        healingpower = UnitDefNames["raptor_land_swarmer_heal_t1_v1"].repairSpeed,
-        healingrange = UnitDefNames["raptor_land_swarmer_heal_t1_v1"].buildDistance*2,
+    healersTable[UnitDefNames.raptor_land_swarmer_heal_t1_v1.id] = {
+        healingpower = UnitDefNames.raptor_land_swarmer_heal_t1_v1.repairSpeed,
+        healingrange = UnitDefNames.raptor_land_swarmer_heal_t1_v1.buildDistance*2,
         canbehealed = false,
     }
-    healersTable[UnitDefNames["raptor_land_swarmer_heal_t2_v1"].id] = {
-        healingpower = UnitDefNames["raptor_land_swarmer_heal_t2_v1"].repairSpeed,
-        healingrange = UnitDefNames["raptor_land_swarmer_heal_t2_v1"].buildDistance*2,
+    healersTable[UnitDefNames.raptor_land_swarmer_heal_t2_v1.id] = {
+        healingpower = UnitDefNames.raptor_land_swarmer_heal_t2_v1.repairSpeed,
+        healingrange = UnitDefNames.raptor_land_swarmer_heal_t2_v1.buildDistance*2,
         canbehealed = false,
     }
-    healersTable[UnitDefNames["raptor_land_swarmer_heal_t3_v1"].id] = {
-        healingpower = UnitDefNames["raptor_land_swarmer_heal_t3_v1"].repairSpeed,
-        healingrange = UnitDefNames["raptor_land_swarmer_heal_t3_v1"].buildDistance*2,
+    healersTable[UnitDefNames.raptor_land_swarmer_heal_t3_v1.id] = {
+        healingpower = UnitDefNames.raptor_land_swarmer_heal_t3_v1.repairSpeed,
+        healingrange = UnitDefNames.raptor_land_swarmer_heal_t3_v1.buildDistance*2,
         canbehealed = false,
     }
-    healersTable[UnitDefNames["raptor_land_swarmer_heal_t4_v1"].id] = {
-        healingpower = UnitDefNames["raptor_land_swarmer_heal_t4_v1"].repairSpeed,
-        healingrange = UnitDefNames["raptor_land_swarmer_heal_t4_v1"].buildDistance*2,
+    healersTable[UnitDefNames.raptor_land_swarmer_heal_t4_v1.id] = {
+        healingpower = UnitDefNames.raptor_land_swarmer_heal_t4_v1.repairSpeed,
+        healingrange = UnitDefNames.raptor_land_swarmer_heal_t4_v1.buildDistance*2,
         canbehealed = false,
     }
-    healersTable[UnitDefNames["raptor_matriarch_healer"].id] = {
-        healingpower = UnitDefNames["raptor_matriarch_healer"].repairSpeed,
-        healingrange = UnitDefNames["raptor_matriarch_healer"].buildDistance*2,
+    healersTable[UnitDefNames.raptor_matriarch_healer.id] = {
+        healingpower = UnitDefNames.raptor_matriarch_healer.repairSpeed,
+        healingrange = UnitDefNames.raptor_matriarch_healer.buildDistance*2,
         canbehealed = false,
     }
 end

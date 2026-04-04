@@ -102,12 +102,12 @@ function widget:Initialize()
 	if not shaderCompiled then widgetHandler:RemoveWidget() end
 
 	spEcho("Hello")
-	WG['api_unitbufferuniform_copy'] = {}
-	WG['api_unitbufferuniform_copy'].GetUnitUniformBufferCopy = function() 
+	WG.api_unitbufferuniform_copy = {}
+	WG.api_unitbufferuniform_copy.GetUnitUniformBufferCopy = function() 
 		copyRequested = true
 		return UniformsBufferCopy 	
 	end
-	widgetHandler:RegisterGlobal('GetUnitUniformBufferCopy', WG['api_unitbufferuniform_copy'].GetUnitUniformBufferCopy)
+	widgetHandler:RegisterGlobal('GetUnitUniformBufferCopy', WG.api_unitbufferuniform_copy.GetUnitUniformBufferCopy)
 end
 
 function widget:Shutdown()

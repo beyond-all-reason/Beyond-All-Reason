@@ -165,8 +165,8 @@ function widget:Initialize()
 	end
 	if not initGL4() then return end
 
-	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
-		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
+	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+		widget:VisibleUnitsChanged(WG.unittrackerapi.visibleUnits, nil)
 	end
 end
 

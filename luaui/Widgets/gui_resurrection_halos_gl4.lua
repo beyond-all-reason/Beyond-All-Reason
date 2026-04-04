@@ -131,8 +131,8 @@ function widget:Initialize()
 	end
 	if not initGL4() then return end
 
-	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
-		local visibleUnits =  WG['unittrackerapi'].visibleUnits
+	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+		local visibleUnits =  WG.unittrackerapi.visibleUnits
 		for unitID, unitDefID in pairs(visibleUnits) do
 			widget:VisibleUnitAdded(unitID, unitDefID)
 		end

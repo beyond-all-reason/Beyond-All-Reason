@@ -268,26 +268,26 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	WG['rankicons'] = {}
-	WG['rankicons'].getDrawDistance = function()
+	WG.rankicons = {}
+	WG.rankicons.getDrawDistance = function()
 		return distanceMult
 	end
-	WG['rankicons'].setDrawDistance = function(value)
+	WG.rankicons.setDrawDistance = function(value)
 		distanceMult = value
 		usedCutoffDistance = cutoffDistance * distanceMult
 	end
-	WG['rankicons'].getScale = function()
+	WG.rankicons.getScale = function()
 		return iconsizeMult
 	end
-	WG['rankicons'].setScale = function(value)
+	WG.rankicons.setScale = function(value)
 		iconsizeMult = value
 		usedIconsize = iconsize * iconsizeMult
 		doRefresh = true
 	end
-	WG['rankicons'].getRank = function(unitDefID, xp)
+	WG.rankicons.getRank = function(unitDefID, xp)
 		return getRank(unitDefID, xp)
 	end
-	WG['rankicons'].getRankTextures = function(unitDefID, xp)
+	WG.rankicons.getRankTextures = function(unitDefID, xp)
 		return rankTextures
 	end
 

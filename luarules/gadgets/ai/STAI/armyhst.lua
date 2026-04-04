@@ -899,12 +899,12 @@ local featureKeysToGet = { "metal" , "energy", "reclaimable", "blocking", }
 
 local function getDPS(unitDefID)
 	local unitDef = UnitDefs[unitDefID]
-	local weapons = unitDef["weapons"]
+	local weapons = unitDef.weapons
 	local dps = 0
 	for i=1, #weapons do
-		local weaponDefID = weapons[i]["weaponDef"]
+		local weaponDefID = weapons[i].weaponDef
 		local weaponDef = WeaponDefs[weaponDefID]
-		dps = dps + weaponDef['damages'][0] / weaponDef['reload']
+		dps = dps + weaponDef.damages[0] / weaponDef.reload
 	end
 	return dps
 end
@@ -913,13 +913,13 @@ end
 
 local function getInterceptor(unitDefID)
 	local unitDef = UnitDefs[unitDefID]
-	local weapons = unitDef["weapons"]
+	local weapons = unitDef.weapons
 	local interceptor = false
 	for i=1, #weapons do
-		local weaponDefID = weapons[i]["weaponDef"]
+		local weaponDefID = weapons[i].weaponDef
 		local weaponDef = WeaponDefs[weaponDefID]
-		if weaponDef['interceptor'] then
-			interceptor  =  weaponDef['interceptor'] == 1
+		if weaponDef.interceptor then
+			interceptor  =  weaponDef.interceptor == 1
 		end
 	end
 	return interceptor
@@ -927,13 +927,13 @@ end
 
 local function getTargetableWeapon(unitDefID)
 	local unitDef = UnitDefs[unitDefID]
-	local weapons = unitDef["weapons"]
+	local weapons = unitDef.weapons
 	local targetable = false
 	for i=1, #weapons do
-		local weaponDefID = weapons[i]["weaponDef"]
+		local weaponDefID = weapons[i].weaponDef
 		local weaponDef = WeaponDefs[weaponDefID]
-		if weaponDef['targetable'] then
-			targetable  =  weaponDef['targetable'] == 1
+		if weaponDef.targetable then
+			targetable  =  weaponDef.targetable == 1
 		end
 	end
 	--('targetable',targetable)
@@ -942,12 +942,12 @@ end
 
 local function getParalyzer(unitDefID)
 	local unitDef = UnitDefs[unitDefID]
-	local weapons = unitDef["weapons"]
+	local weapons = unitDef.weapons
 	local paralyzer = nil
 	for i=1, #weapons do
-		local weaponDefID = weapons[i]["weaponDef"]
+		local weaponDefID = weapons[i].weaponDef
 		local weaponDef = WeaponDefs[weaponDefID]
-		paralyzer  =  weaponDef['paralyzer']
+		paralyzer  =  weaponDef.paralyzer
 	end
 	return paralyzer
 end
@@ -957,7 +957,7 @@ local function getOnlyTargets(weapons)
 	for index,weapon in pairs (weapons) do
 		if weapon.onlyTargets then
 			for name,_ in pairs(weapon.onlyTargets) do
-				local  weaponDefID = weapon["weaponDef"]
+				local  weaponDefID = weapon.weaponDef
 				local weaponDef = WeaponDefs[weaponDefID]
 				targets[name] = weaponDef.range
 			end
@@ -971,7 +971,7 @@ local function getBadTargets(weapons)
 	for index,weapon in pairs (weapons) do
 		if weapon.badTargets then
 			for name,_ in pairs(weapon.badTargets) do
-				local  weaponDefID = weapon["weaponDef"]
+				local  weaponDefID = weapon.weaponDef
 				local weaponDef = WeaponDefs[weaponDefID]
 				targets[name] = weaponDef.range
 			end
@@ -982,10 +982,10 @@ end
 local function GetLongestWeaponRange(unitDefID, GroundAirSubmerged)
 	local weaponRange = 0
 	local unitDef = UnitDefs[unitDefID]
-	local weapons = unitDef["weapons"]
+	local weapons = unitDef.weapons
 	local dps = 0
 	for i=1, #weapons do
-		local weaponDefID = weapons[i]["weaponDef"]
+		local weaponDefID = weapons[i].weaponDef
 		local weaponDef = WeaponDefs[weaponDefID]
 		--print(weaponDefID)
 		--print(weaponDef["canAttackGround"])
@@ -993,17 +993,17 @@ local function GetLongestWeaponRange(unitDefID, GroundAirSubmerged)
 		--print(weaponDef["range"])
 		--print(weaponDef["type"])
 		local wType = 0
-		if weaponDef["canAttackGround"] == false then
+		if weaponDef.canAttackGround == false then
 			wType = 1
-		elseif weaponDef["waterWeapon"] then
+		elseif weaponDef.waterWeapon then
 			wType = 2
 		else
 			wType = 0
 		end
 		-- --print(wType)
 		if wType == GroundAirSubmerged then
-			if weaponDef["range"] > weaponRange then
-				weaponRange = weaponDef["range"]
+			if weaponDef.range > weaponRange then
+				weaponRange = weaponDef.range
 			end
 		end
 
@@ -1120,11 +1120,11 @@ function ArmyHST:GetUnitTable()
 		utable.humanName = unitDef.humanName
 		utable.side = side
 		utable.defId = unitDefID
-		utable.radarDistance = unitDef["radarDistance"]
-		utable.airSightDistance = unitDef["airSightDistance"]
-		utable.sightDistance = unitDef["losRadius"]
-		utable.sonarDistance = unitDef["sonarDistance"]
-		utable.radarDistanceJam = unitDef["radarDistanceJam"]
+		utable.radarDistance = unitDef.radarDistance
+		utable.airSightDistance = unitDef.airSightDistance
+		utable.sightDistance = unitDef.losRadius
+		utable.sonarDistance = unitDef.sonarDistance
+		utable.radarDistanceJam = unitDef.radarDistanceJam
 		utable.stealth = unitDef.stealth
 		utable.metalCost = unitDef.metalCost
 		utable.energyCost = unitDef.energyCost
@@ -1225,16 +1225,16 @@ function ArmyHST:GetUnitTable()
 		utable.antiNuke = getInterceptor(unitDefID)
 		utable.targetableWeapon = getTargetableWeapon(unitDefID)
 		utable.paralyzer = getParalyzer(unitDefID)
-		utable.techLevel = unitsLevels[unitDef["name"]] or 1
-		if unitDef["modCategories"]["weapon"] then
+		utable.techLevel = unitsLevels[unitDef.name] or 1
+		if unitDef.modCategories.weapon then
 			utable.isWeapon = true
 		end
-		if unitDef["weapons"][1] then
-			local defWepon1 = unitDef["weapons"][1]
-			utable.onlyTargets = getOnlyTargets(unitDef["weapons"])
-			utable.badTargets = getBadTargets(unitDef["weapons"])
-			utable.firstWeapon = WeaponDefs[unitDef["weapons"][1]["weaponDef"]]
-			utable.weaponType = utable.firstWeapon['type']
+		if unitDef.weapons[1] then
+			local defWepon1 = unitDef.weapons[1]
+			utable.onlyTargets = getOnlyTargets(unitDef.weapons)
+			utable.badTargets = getBadTargets(unitDef.weapons)
+			utable.firstWeapon = WeaponDefs[unitDef.weapons[1].weaponDef]
+			utable.weaponType = utable.firstWeapon.type
 			utable.badTg = ''
 			if defWepon1.badTargets then
 				for ii,vv in pairs(defWepon1.badTargets) do
@@ -1262,16 +1262,16 @@ function ArmyHST:GetUnitTable()
 			utable.isTurret = true
 			if unitDef.modCategories.mine then
 				utable.isMine = utable.techLevel
-			elseif utable.firstWeapon and utable.firstWeapon['type'] == ('StarburstLauncher' or 'MissileLauncher') then
+			elseif utable.firstWeapon and utable.firstWeapon.type == ('StarburstLauncher' or 'MissileLauncher') then
 				utable.isTacticalTurret =  utable.techLevel
-			elseif utable.firstWeapon and utable.firstWeapon['type'] == 'Cannon' then
+			elseif utable.firstWeapon and utable.firstWeapon.type == 'Cannon' then
 				utable.isCannonTurret = utable.techLevel
 				if not utable.firstWeapon.selfExplode then
 					utable.isPlasmaCannon = utable.techLevel
 				end
-			elseif utable.firstWeapon and utable.firstWeapon['type'] == 'BeamLaser' then
+			elseif utable.firstWeapon and utable.firstWeapon.type == 'BeamLaser' then
 				utable.isLaserTurret = utable.techLevel
-			elseif utable.firstWeapon and utable.firstWeapon['type'] == 'TorpedoLauncher' then
+			elseif utable.firstWeapon and utable.firstWeapon.type == 'TorpedoLauncher' then
 				utable.isTorpedoTurret = utable.techLevel
 			end
 			if utable.groundRange and utable.groundRange > 0 then
@@ -1288,7 +1288,7 @@ function ArmyHST:GetUnitTable()
 			utable.airRange = utable.groundRange
 		end
 		utable.needsWater = unitDef.minWaterDepth > 0
-		if unitDef["canFly"] then
+		if unitDef.canFly then
 			utable.mtype = "air"
 			utable.LAYER = 'A'
 		elseif	utable.isBuilding and utable.needsWater then
@@ -1325,18 +1325,18 @@ function ArmyHST:GetUnitTable()
 			end
 		end
 
-		if unitDef["isBuilder"] and #unitDef["buildOptions"] < 1 and not unitDef.moveDef.name then
+		if unitDef.isBuilder and #unitDef.buildOptions < 1 and not unitDef.moveDef.name then
 			utable.isNano = true
 		end
 
-		if unitDef["isBuilder"] and #unitDef["buildOptions"] > 0 then
+		if unitDef.isBuilder and #unitDef.buildOptions > 0 then
 			utable.buildOptions = true
-			if unitDef["isBuilding"] then
-				utable['isFactory'] = {}
+			if unitDef.isBuilding then
+				utable.isFactory = {}
 				utable.unitsCanBuild = {}
-				for i, oid in pairs (unitDef["buildOptions"]) do
+				for i, oid in pairs (unitDef.buildOptions) do
 					local buildDef = UnitDefs[oid]
-					table.insert(utable.unitsCanBuild, buildDef["name"])
+					table.insert(utable.unitsCanBuild, buildDef.name)
 					--and save all the mtype that can andle
 					--utable.isFactory[unitName[buildDef.name].mtype] = TODO
 				end
@@ -1344,13 +1344,13 @@ function ArmyHST:GetUnitTable()
 			else
 				utable.factoriesCanBuild = {}
 				utable.buildingsCanBuild = {}
-				for i, oid in pairs (unitDef["buildOptions"]) do
+				for i, oid in pairs (unitDef.buildOptions) do
 
 					local buildDef = UnitDefs[oid]
-					table.insert(utable.buildingsCanBuild, buildDef["name"])
-					if #buildDef["buildOptions"] > 0 and buildDef["isBuilding"] then
+					table.insert(utable.buildingsCanBuild, buildDef.name)
+					if #buildDef.buildOptions > 0 and buildDef.isBuilding then
 						-- build option is a factory, add it to factories this unit can build
-						table.insert(utable.factoriesCanBuild, buildDef["name"])
+						table.insert(utable.factoriesCanBuild, buildDef.name)
 
 					end
 				end
@@ -1367,11 +1367,11 @@ function ArmyHST:GetUnitTable()
 			utable.isAttacker = true
 			--Spring:Echo(utable.name, 'isAttacker')
 		end
-		utable.bigExplosion = unitDef["deathExplosion"] == "atomic_blast"
-		utable.xsize = unitDef["xsize"]
-		utable.zsize = unitDef["zsize"]
-		utable.corpse = unitDef["corpse"]
-		self.wrecks[unitDef["corpse"]] = unitDef["name"]
+		utable.bigExplosion = unitDef.deathExplosion == "atomic_blast"
+		utable.xsize = unitDef.xsize
+		utable.zsize = unitDef.zsize
+		utable.corpse = unitDef.corpse
+		self.wrecks[unitDef.corpse] = unitDef.name
 		--end
 	end
 end
@@ -1385,8 +1385,8 @@ function ArmyHST:GetFeatureTable()
 			local v = featureDef[k]
 			ftable[k] = v
 		end
-		if self.wrecks[featureDef["name"]] then
-			ftable.unitName = self.wrecks[featureDef["name"]]
+		if self.wrecks[featureDef.name] then
+			ftable.unitName = self.wrecks[featureDef.name]
 		end
 		self.featureTable[featureDef.name] = ftable
 	end

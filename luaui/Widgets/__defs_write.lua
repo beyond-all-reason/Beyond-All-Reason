@@ -82,16 +82,16 @@ local spEcho = Spring.Echo
 
 
 	local keyTypes = {
-		['string']  = true,
-		['number']  = true,
-		['boolean'] = true,
+		string  = true,
+		number  = true,
+		boolean = true,
 	}
 
 	local valueTypes = {
-		['string']  = true,
-		['number']  = true,
-		['boolean'] = true,
-		['table']   = true,
+		string  = true,
+		number  = true,
+		boolean = true,
+		table   = true,
 	}
 
 

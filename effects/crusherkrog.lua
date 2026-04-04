@@ -1,5 +1,5 @@
 return {
-    ["crusherkrog"] = {
+    crusherkrog = {
 	-- put this next to groundflash
     kickedupdirt = {
       air                = true,

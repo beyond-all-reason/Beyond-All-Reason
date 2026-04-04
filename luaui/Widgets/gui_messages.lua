@@ -58,17 +58,17 @@ function widget:ViewResize()
 	widgetScale = (((vsx+vsy) / 2000) * 0.55) * (0.95+(ui_scale-1)/1.5)
 	lineMaxWidth = lineMaxWidth * widgetScale
 
-	font = WG['fonts'].getFont()
+	font = WG.fonts.getFont()
 
-	if WG['buildmenu'] then
-		buildmenuBottomPosition = WG['buildmenu'].getBottomPosition()
+	if WG.buildmenu then
+		buildmenuBottomPosition = WG.buildmenu.getBottomPosition()
 	end
 
 	posY = 0.16
 	if buildmenuBottomPosition then
 		posY = 0.21
-		if WG['ordermenu'] then
-			local oposX, oposY, owidth, oheight = WG['ordermenu'].getPosition()
+		if WG.ordermenu then
+			local oposX, oposY, owidth, oheight = WG.ordermenu.getPosition()
 			if oposY > 0.5 then
 				posY = 0.16
 			end
@@ -162,8 +162,8 @@ end
 function widget:Initialize()
 	widget:ViewResize()
 	widgetHandler:RegisterGlobal('GadgetAddMessage', addMessage)
-	WG['messages'] = {}
-	WG['messages'].addMessage = function(text)
+	WG.messages = {}
+	WG.messages.addMessage = function(text)
 		addMessage(text)
 	end
 end
@@ -177,9 +177,9 @@ function widget:Update(dt)
 		if hideSpecChat ~= tonumber(Spring.GetConfigInt("HideSpecChat", 0) or 0) == 1 then
 			hideSpecChat = tonumber(Spring.GetConfigInt("HideSpecChat", 0) or 0) == 1
 		end
-		if WG['buildmenu'] and WG['buildmenu'].getBottomPosition then
+		if WG.buildmenu and WG.buildmenu.getBottomPosition then
 			local prevbuildmenuBottomPos = buildmenuBottomPos
-			buildmenuBottomPos = WG['buildmenu'].getBottomPosition()
+			buildmenuBottomPos = WG.buildmenu.getBottomPosition()
 			if buildmenuBottomPos ~= prevbuildmenuBottomPos then
 				widget:ViewResize()
 			end
@@ -247,7 +247,7 @@ function widget:DrawScreen()
 end
 
 function widget:Shutdown()
-	WG['messages'] = nil
+	WG.messages = nil
 	for i, _ in ipairs(messageLines) do
 		if messageLines[i].displaylist then
 			glDeleteList(messageLines[i].displaylist)

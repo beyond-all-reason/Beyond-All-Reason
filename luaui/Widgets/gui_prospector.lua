@@ -102,10 +102,10 @@ end
 local function SetupMexDefInfos()
 	local minExtractsMetal
 
-	local armMexDef = UnitDefNames["armmex"]
+	local armMexDef = UnitDefNames.armmex
 
 	if armMexDef and armMexDef.extractsMetal > 0 then
-		defaultDefID = UnitDefNames["armmex"].id
+		defaultDefID = UnitDefNames.armmex.id
 		minExtractsMetal = 0
 	end
 
@@ -189,7 +189,7 @@ end
 function widget:Initialize()
 	SetupMexDefInfos()
 	once = true
-	metalMap = WG["resource_spot_finder"].isMetalMap
+	metalMap = WG.resource_spot_finder.isMetalMap
 end
 
 
@@ -231,7 +231,7 @@ function widget:DrawScreen()
 		return
 	end
 	if not metalMap then
-		local pos = WG["resource_spot_finder"].GetClosestMexSpot(coords[1], coords[3])
+		local pos = WG.resource_spot_finder.GetClosestMexSpot(coords[1], coords[3])
 		if not pos then return end
 		coords[1] = pos.x
 		coords[3] = pos.z
@@ -242,5 +242,5 @@ function widget:DrawScreen()
 end
 
 function widget:ViewResize()
-	font = WG['fonts'].getFont(1, 1.5)
+	font = WG.fonts.getFont(1, 1.5)
 end

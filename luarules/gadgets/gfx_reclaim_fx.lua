@@ -38,7 +38,7 @@ if gadgetHandler:IsSyncedCode() then
 	local unitMaxY = {}
 	local ignoreUnits = {}
 	for unitDefID, unitDef in ipairs(UnitDefs) do
-		if unitDef.modCategories['object'] or unitDef.customParams.objectify then
+		if unitDef.modCategories.object or unitDef.customParams.objectify then
 			ignoreUnits[unitDefID] = true
 		else
 			unitNumFx[unitDefID] = math.min(1 + math.ceil(unitDef.metalCost/250), 30)

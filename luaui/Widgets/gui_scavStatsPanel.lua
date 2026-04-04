@@ -431,8 +431,8 @@ end
 function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
 
-	font = WG['fonts'].getFont()
-	font2 = WG['fonts'].getFont(2)
+	font = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2)
 
 	x1 = mathFloor(x1 - viewSizeX)
 	y1 = mathFloor(y1 - viewSizeY)

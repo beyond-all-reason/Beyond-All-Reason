@@ -1,7 +1,7 @@
 -- dirt
 
 return {
-  ["dirt"] = {
+  dirt = {
     dirtg = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
@@ -87,7 +87,7 @@ return {
     },
   },
 
-["dirtpopup"] = {
+dirtpopup = {
     dirtg = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
@@ -229,7 +229,7 @@ return {
     },
   },
 
-  ["dirtpoof"] = {
+  dirtpoof = {
     dirtg = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
@@ -491,7 +491,7 @@ return {
     },
   },
   
-  ["dirtsmall"] = {
+  dirtsmall = {
     dirtg = {
       air                = true,
       class              = [[CSimpleParticleSystem]],

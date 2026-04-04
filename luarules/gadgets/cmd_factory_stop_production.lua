@@ -87,7 +87,7 @@ if gadgetHandler:IsSyncedCode() then
 			local keepDefID
 			if total > 1 then
 				local firstCommand = Spring.GetFactoryCommands(unitID, 1)
-				local firstID = firstCommand[1]['id']
+				local firstID = firstCommand[1].id
 				if firstID < 0 then
 					keepDefID = -firstID
 				end

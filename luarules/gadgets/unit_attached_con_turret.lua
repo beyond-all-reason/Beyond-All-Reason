@@ -66,27 +66,27 @@ local function auto_repair_routine(nanoID, unitDefID, baseUnitID)
 	end
 	-- first, check command the body is performing
 	local commandQueue = SpGetUnitCommands(attached_builders[nanoID], 1)
-	if (commandQueue[1] ~= nil and commandQueue[1]["id"] < 0) then
+	if (commandQueue[1] ~= nil and commandQueue[1].id < 0) then
         -- build command
 		-- The attached turret must have the same buildlist as the body for this to work correctly
 		--for XX, YY, baseUnitID in pairs(commandQueue[1]["params"]) do
 		--	Spring.Echo(XX, YY)
 		--end
-        SpGiveOrderToUnit(nanoID, commandQueue[1]["id"], commandQueue[1]["params"])
+        SpGiveOrderToUnit(nanoID, commandQueue[1].id, commandQueue[1].params)
     end
-    if (commandQueue[1] ~= nil and commandQueue[1]["id"] == CMD_REPAIR) then
+    if (commandQueue[1] ~= nil and commandQueue[1].id == CMD_REPAIR) then
         -- repair command
 		--for XX, YY, baseUnitID in pairs(commandQueue[1]["params"]) do
 		--	Spring.Echo(XX, YY)
 		--end
-		if #commandQueue[1]["params"] ~= 4 then
-			SpGiveOrderToUnit(nanoID, CMD_REPAIR, commandQueue[1]["params"])
+		if #commandQueue[1].params ~= 4 then
+			SpGiveOrderToUnit(nanoID, CMD_REPAIR, commandQueue[1].params)
 		end
     end
-	if (commandQueue[1] ~= nil and commandQueue[1]["id"] == CMD_RECLAIM) then
+	if (commandQueue[1] ~= nil and commandQueue[1].id == CMD_RECLAIM) then
         -- reclaim command
-		if #commandQueue[1]["params"] ~= 4 then
-			SpGiveOrderToUnit(nanoID, CMD_RECLAIM, commandQueue[1]["params"])
+		if #commandQueue[1].params ~= 4 then
+			SpGiveOrderToUnit(nanoID, CMD_RECLAIM, commandQueue[1].params)
 		end
     end
 
@@ -97,32 +97,32 @@ local function auto_repair_routine(nanoID, unitDefID, baseUnitID)
 	local radius = UnitDefs[unitDefID].buildDistance
 	local distance = radius^2 + 1
 	local object_radius = 0
-	if (commandQueue[1] ~= nil and commandQueue[1]["id"] < 0) then
+	if (commandQueue[1] ~= nil and commandQueue[1].id < 0) then
         -- out of range build command
-		object_radius = SpGetUnitDefDimensions(-commandQueue[1]["id"]).radius
-		distance = math.sqrt((ux-commandQueue[1]["params"][1])^2 + (uz-commandQueue[1]["params"][3])^2) - object_radius
+		object_radius = SpGetUnitDefDimensions(-commandQueue[1].id).radius
+		distance = math.sqrt((ux-commandQueue[1].params[1])^2 + (uz-commandQueue[1].params[3])^2) - object_radius
     end
-    if (commandQueue[1] ~= nil and commandQueue[1]["id"] == CMD_REPAIR) then
+    if (commandQueue[1] ~= nil and commandQueue[1].id == CMD_REPAIR) then
         -- out of range repair command
-		if (commandQueue[1]["params"][1] >= Game.maxUnits) then
-			tx, ty, tz = SpGetFeaturePosition(commandQueue[1]["params"][1] - Game.maxUnits)
-			object_radius = SpGetFeatureRadius(commandQueue[1]["params"][1] - Game.maxUnits)
+		if (commandQueue[1].params[1] >= Game.maxUnits) then
+			tx, ty, tz = SpGetFeaturePosition(commandQueue[1].params[1] - Game.maxUnits)
+			object_radius = SpGetFeatureRadius(commandQueue[1].params[1] - Game.maxUnits)
 		else
-			tx, ty, tz = SpGetUnitPosition(commandQueue[1]["params"][1])
-			object_radius = SpGetUnitRadius(commandQueue[1]["params"][1])
+			tx, ty, tz = SpGetUnitPosition(commandQueue[1].params[1])
+			object_radius = SpGetUnitRadius(commandQueue[1].params[1])
 		end
 		if tx ~= nil then
 			distance = math.sqrt((ux-tx)^2 + (uz-tz)^2) - object_radius
 		end
     end
-	if (commandQueue[1] ~= nil and commandQueue[1]["id"] == CMD_RECLAIM) then
+	if (commandQueue[1] ~= nil and commandQueue[1].id == CMD_RECLAIM) then
 		-- out of range reclaim command
-		if (commandQueue[1]["params"][1] >= Game.maxUnits) then
-			tx, ty, tz = SpGetFeaturePosition(commandQueue[1]["params"][1] - Game.maxUnits)
-			object_radius = SpGetFeatureRadius(commandQueue[1]["params"][1] - Game.maxUnits)
+		if (commandQueue[1].params[1] >= Game.maxUnits) then
+			tx, ty, tz = SpGetFeaturePosition(commandQueue[1].params[1] - Game.maxUnits)
+			object_radius = SpGetFeatureRadius(commandQueue[1].params[1] - Game.maxUnits)
 		else
-			tx, ty, tz = SpGetUnitPosition(commandQueue[1]["params"][1])
-			object_radius = SpGetUnitRadius(commandQueue[1]["params"][1])
+			tx, ty, tz = SpGetUnitPosition(commandQueue[1].params[1])
+			object_radius = SpGetUnitRadius(commandQueue[1].params[1])
 		end
 		if tx ~= nil then
 			distance = math.sqrt((ux-tx)^2 + (uz-tz)^2) - object_radius

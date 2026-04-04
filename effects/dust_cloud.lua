@@ -1,5 +1,5 @@
  return {
- ["dust_cloud"] = {
+ dust_cloud = {
     poof01 = {
       air                = false,
       class              = [[CSimpleParticleSystem]],
@@ -61,7 +61,7 @@
             },
         },
   },
-  ["dust_cloud_dirt_light"] = {
+  dust_cloud_dirt_light = {
     poof01 = {
       air                = false,
       class              = [[CSimpleParticleSystem]],
@@ -126,7 +126,7 @@
             },
         },
    },
-   ["dust_cloud_dirt"] = {
+   dust_cloud_dirt = {
     poof01 = {
       air                = false,
       class              = [[CSimpleParticleSystem]],
@@ -190,7 +190,7 @@
             },
         },
   },
-  ["dust_cloud_fast"] = {
+  dust_cloud_fast = {
     poof01 = {
       air                = false,
       class              = [[CSimpleParticleSystem]],
@@ -221,7 +221,7 @@
       },
     },
   }, 
-  ["dust_cloud_huge"] = {
+  dust_cloud_huge = {
     poof01 = {
       air                = false,
       class              = [[CSimpleParticleSystem]],

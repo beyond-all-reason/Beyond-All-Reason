@@ -236,12 +236,12 @@ local function savegameCmd(_, _, params)
 end
 
 function widget:Initialize()
-	WG['savegame'] = {}
+	WG.savegame = {}
 	widgetHandler:AddAction("savegame", savegameCmd, nil, 't')
 end
 
 function widget:Shutdown()
-	WG['savegame'] = nil
+	WG.savegame = nil
 	widgetHandler:RemoveAction("savegame")
 end
 

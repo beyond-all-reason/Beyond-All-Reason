@@ -828,7 +828,7 @@ local function createBlueprintFromSerialized(serializedBlueprint)
 	for _, serializedUnit in ipairs(serializedBlueprint.units) do
 		local unitDefID = UnitDefNames[serializedUnit.unitName] and UnitDefNames[serializedUnit.unitName].id
 		tableInsert(result.units, {
-			blueprintUnitID = WG['cmd_blueprint'].nextBlueprintUnitID(),
+			blueprintUnitID = WG.cmd_blueprint.nextBlueprintUnitID(),
 			position = serializedUnit.position,
 			facing = serializedUnit.facing,
 			unitDefID = unitDefID,
@@ -872,7 +872,7 @@ function widget:Initialize()
 		Spring.Log("BlueprintAPI", LOG.INFO, "Reports are DISABLED.")
 	end
 
-	WG["api_blueprint"] = {
+	WG.api_blueprint = {
 		getActiveBlueprint = function() return activeBlueprint end,
 		setActiveBlueprint = setActiveBlueprint,
 		setActiveBuilders = setActiveBuilders,
@@ -899,7 +899,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	WG["api_blueprint"] = nil
+	WG.api_blueprint = nil
 	Spring.Log(widget:GetInfo().name, LOG.INFO, "Blueprint API shutdown.")
 
 	if isHeadless then return end

@@ -1,7 +1,7 @@
 -- watersplash_small
 
 return {
-  ["com_sea_laser_bubbles"] = {
+  com_sea_laser_bubbles = {
     waterball = {
       air                = false,
       class              = [[CSimpleParticleSystem]],

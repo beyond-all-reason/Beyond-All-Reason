@@ -68,7 +68,7 @@ local function triggerValid(trigger)
 
 	if trigger.triggered and not trigger.settings.repeating then return false end
 	if trigger.settings.repeating and trigger.settings.maxRepeats ~= nil and trigger.repeatCount > trigger.settings.maxRepeats then return false end
-	if trigger.settings.difficulties ~= nil and not trigger.settings.difficulties[GG['MissionAPI'].Difficulty] then return false end
+	if trigger.settings.difficulties ~= nil and not trigger.settings.difficulties[GG.MissionAPI.Difficulty] then return false end
 
 	--[[
 	--TODO: co-op check
@@ -92,15 +92,15 @@ local function activateTrigger(trigger)
 end
 
 function gadget:Initialize()
-	if not GG['MissionAPI'] then
+	if not GG.MissionAPI then
 		gadgetHandler:RemoveGadget()
 		return
 	end
 
 	actionsDispatcher = VFS.Include('luarules/mission_api/actions_dispatcher.lua')
-	types = GG['MissionAPI'].TriggerTypes
-	triggers = GG['MissionAPI'].Triggers
-	trackedUnits = GG['MissionAPI'].TrackedUnits
+	types = GG.MissionAPI.TriggerTypes
+	triggers = GG.MissionAPI.Triggers
+	trackedUnits = GG.MissionAPI.TrackedUnits
 end
 
 function gadget:GameFrame(n)

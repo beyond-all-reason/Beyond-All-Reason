@@ -1,7 +1,7 @@
 -- lightning_stormbolt
 
 return {
-  ["lightning_stormbolt"] = {
+  lightning_stormbolt = {
     groundflash = {
       circlealpha        = 1,
       circlegrowth       = 0,
@@ -43,7 +43,7 @@ return {
       },
     },
   },
-  ["lightning_stormbolt_small"] = {
+  lightning_stormbolt_small = {
     groundflash = {
       circlealpha        = 1,
       circlegrowth       = 0,
@@ -85,7 +85,7 @@ return {
       },
     },
   },
-  ["lightning_storm_emp"] = {
+  lightning_storm_emp = {
     -- groundflash = {
     --   circlealpha        = 1,
     --   circlegrowth       = 0,
@@ -127,7 +127,7 @@ return {
       },
     },
   },
-  ["lightning_storm_emp2"] = {
+  lightning_storm_emp2 = {
     lightningballs = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
@@ -157,7 +157,7 @@ return {
       },
     },
   },
-  ["lightning_stormbig"] = {
+  lightning_stormbig = {
     -- groundflash = {
     --   circlealpha        = 1,
     --   circlegrowth       = 0,
@@ -199,7 +199,7 @@ return {
       },
     },
   },
-    ["lightning_stormbigalt"] = {
+    lightning_stormbigalt = {
     -- groundflash = {
     --   circlealpha        = 1,
     --   circlegrowth       = 0,
@@ -241,7 +241,7 @@ return {
       },
     },
   },
-  ["lightning_storm_juno"] = {
+  lightning_storm_juno = {
     groundflash = {
       circlealpha        = 1,
       circlegrowth       = 0,
@@ -342,7 +342,7 @@ return {
       },
     },
   },
-  ["lightning_storm_juno_scav"] = {
+  lightning_storm_juno_scav = {
     groundflash = {
       circlealpha        = 1,
       circlegrowth       = 0,
@@ -440,7 +440,7 @@ return {
       },
     },
   },
-  ["lightning_stormflares"] = {
+  lightning_stormflares = {
     -- groundflash = {
     --   circlealpha        = 0.9,
     --   circlegrowth       = -0.05,

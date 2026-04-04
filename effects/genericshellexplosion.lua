@@ -4794,7 +4794,7 @@ definitions['genericshellexplosion-medium-aoe'].explosion2.properties.colormap =
 definitions['genericshellexplosion-small-t2'] = table.copy(definitions[root.."-small"])
 definitions['genericshellexplosion-small-t2'].explosion.properties.particlesize = 8
 
-definitions['antinukeexplosion'] = table.copy(definitions[root.."-large"])
+definitions.antinukeexplosion = table.copy(definitions[root.."-large"])
 
 definitions['genericshellexplosion-debris'] = table.copy(definitions[root.."-tiny"])
 definitions['genericshellexplosion-debris'].explosion.properties.colormap = [[0 0 0 0   1 0.77 0.44 0.06   0.75 0.38 0.14 0.045   0.55 0.22 0.04 0.02   0 0 0 0]]

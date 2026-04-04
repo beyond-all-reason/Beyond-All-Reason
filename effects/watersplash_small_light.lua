@@ -1,7 +1,7 @@
 -- watersplash_small
 
 return {
-  ["watersplash_small_light"] = {
+  watersplash_small_light = {
     waterball = {
       air                = false,
       class              = [[CSimpleParticleSystem]],

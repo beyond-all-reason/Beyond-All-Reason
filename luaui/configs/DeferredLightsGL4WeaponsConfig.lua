@@ -396,7 +396,7 @@ local gibLight = {
 local muzzleFlashLights = {}
 local explosionLights = {}
 local projectileDefLights  = {
-	['default'] = {
+	default = {
 		lightType = 'point',
 		lightConfig = { posx = 0, posy = 16, posz = 0, radius = 420,
 			color2r = 1, color2g = 1, color2b = 1, colortime = 15,
@@ -748,21 +748,21 @@ local muzzleFlashLightsNames = {}
 local projectileDefLightsNames = {}
 
 --cortrem
-explosionLightsNames["cortrem_tremor_focus_fire"] =
+explosionLightsNames.cortrem_tremor_focus_fire =
 GetLightClass("Explosion", nil, "Tiny", {
 	colortime = 3.5, sustain = 1, lifetime = 1, scattering = 0.7})
 
-explosionLightsNames["cortrem_tremor_spread_fire"] =
+explosionLightsNames.cortrem_tremor_spread_fire =
 GetLightClass("Explosion", nil, "Smallish", {
 	colortime = 2.5, sustain = 2, lifetime = 6, scattering = 0.7})
 
 --corforge
-projectileDefLightsNames["corforge_flamethrower_ce"] =
+projectileDefLightsNames.corforge_flamethrower_ce =
 GetLightClass("FlameProjectile", "Fire", "Micro", {
 	r = 1, a = 0.02791886, g = 0.94, b = 0.88})
 
 --armthor
-explosionLightsNames["armthor_thunder"] =
+explosionLightsNames.armthor_thunder =
 GetLightClass("Explosion", nil, "Smallish", {
 	r = 1.5, g = 1.5, b = 1.5, a = 0.08, radius = 120,
 	color2r = 0.3, color2g = 0.3, color2b = 0.4, colortime = 5,
@@ -770,16 +770,16 @@ GetLightClass("Explosion", nil, "Smallish", {
 	modelfactor = 0.1, specular = 0.4, scattering = 0.1, lensflare = 4})
 
 --corint
-muzzleFlashLightsNames["corint_lrpc"] =
+muzzleFlashLightsNames.corint_lrpc =
 GetLightClass("MuzzleFlash", nil, "Large", {
 	posx = 0, posy = 0, posz = 0, radius = 240,
 	color2r = 0.5, color2g = 0.1, color2b = 0, colortime = 50,
 	r = 1.2, g = 1.0, b = 0.9, a = 0.5,
 	modelfactor = 0.5, specular = 0.3, scattering = 0.3, lensflare = 0,
 	lifetime = 17, sustain = 2})
-muzzleFlashLightsNames["corint_lrpc"].yOffset = 16
+muzzleFlashLightsNames.corint_lrpc.yOffset = 16
 
-explosionLightsNames["corint_lrpc"] =
+explosionLightsNames.corint_lrpc =
 GetLightClass("ExplosionXL", nil, "Large", {colortime = 4, sustain = 12, lifetime = 26, scattering = 0.7})
 
 -- muzzleFlashLightsNames["corint_lrpc"] =
@@ -791,7 +791,7 @@ GetLightClass("ExplosionXL", nil, "Large", {colortime = 4, sustain = 12, lifetim
 -- muzzleFlashLightsNames["corint_lrpc"].yOffset = 16
 
 --armstil
-explosionLightsNames["armstil_stiletto_bomb"] =
+explosionLightsNames.armstil_stiletto_bomb =
 GetLightClass("ExplosionEMP", nil, "Medium", {
 })
 
@@ -803,7 +803,7 @@ GetLightClass("ExplosionEMP", nil, "Medium", {
 -- })
 
 --armbrtha
-muzzleFlashLightsNames["armbrtha_lrpc"] =
+muzzleFlashLightsNames.armbrtha_lrpc =
 GetLightClass("MuzzleFlash", nil, "Medium", {
 	posx = 0, posy = 0, posz = 0,
 	color2r = 0.3, color2g = 0.1, color2b = 0.05, colortime = 13,
@@ -811,70 +811,70 @@ GetLightClass("MuzzleFlash", nil, "Medium", {
 	modelfactor = 0.5, specular = 0.3, scattering = 0.3, lensflare = 0,
 	lifetime = 20, sustain = 2})
 
-muzzleFlashLightsNames["armbrtha_lrpc"].yOffset = 8
+muzzleFlashLightsNames.armbrtha_lrpc.yOffset = 8
 
-explosionLightsNames["armbrtha_lrpc"] =
+explosionLightsNames.armbrtha_lrpc =
 GetLightClass("ExplosionXL", nil, "Large", {
 	colortime = 4, sustain = 12, lifetime = 26, scattering = 0.7})
 
 --armvulc
-muzzleFlashLightsNames["armvulc_rflrpc"] =
+muzzleFlashLightsNames.armvulc_rflrpc =
 GetLightClass("MuzzleFlash", nil, "Medium", {posx = 0, posy = 0, posz = 0,
 											 r = 1.2, g = 1.1, b = 1.0, a = 0.5,
 											 color2r = 0.3, color2g = 0.12, color2b = 0.05, colortime = 4,
 											 modelfactor = 0.5, specular = 0.3, scattering = 0.8, lensflare = 14,
 											 lifetime = 17, sustain = 2})
-muzzleFlashLightsNames["armvulc_rflrpc"].yOffset = 4
-explosionLightsNames["armvulc_rflrpc"] =
+muzzleFlashLightsNames.armvulc_rflrpc.yOffset = 4
+explosionLightsNames.armvulc_rflrpc =
 GetLightClass("ExplosionXL", nil, "Large", {colortime = 3.5, sustain = 14, lifetime = 26, scattering = 0.7})
 
-projectileDefLightsNames["armvulc_rflrpc"] =
+projectileDefLightsNames.armvulc_rflrpc =
 GetLightClass("LRPCProjectile", nil, "Mediumer")
 
 
 --corbuzz
-muzzleFlashLightsNames["corbuzz_rflrpc"] =
+muzzleFlashLightsNames.corbuzz_rflrpc =
 GetLightClass("MuzzleFlash", nil, "Medium", {posx = 0, posy = 0, posz = 0,
 											 r = 1.2, g = 1.1, b = 1.0, a = 0.5,
 											 color2r = 0.3, color2g = 0.12, color2b = 0.05, colortime = 4,
 											 modelfactor = 0.5, specular = 0.3, scattering = 0.8, lensflare = 14,
 											 lifetime = 17, sustain = 2})
-muzzleFlashLightsNames["corbuzz_rflrpc"].yOffset = 4
-explosionLightsNames["corbuzz_rflrpc"] =
+muzzleFlashLightsNames.corbuzz_rflrpc.yOffset = 4
+explosionLightsNames.corbuzz_rflrpc =
 GetLightClass("ExplosionXL", nil, "Large", {colortime = 3.5, sustain = 14, lifetime = 26, scattering = 0.7})
 
-projectileDefLightsNames["corbuzz_rflrpc"] =
+projectileDefLightsNames.corbuzz_rflrpc =
 GetLightClass("LRPCProjectile", nil, "Mediumer")
 
-muzzleFlashLightsNames["armsnipe_old_armsnipe_weapon"] =
+muzzleFlashLightsNames.armsnipe_old_armsnipe_weapon =
 GetLightClass("MuzzleFlash", nil, "SmallMedium", {posx = 0, posy = 0, posz = 0,
 											 r = 1.2, g = 0.85, b = 0.6, a = 0.5,
 											 color2r = 0.3, color2g = 0.12, color2b = 0.05, colortime = 4,
 											 modelfactor = 0.5, specular = 0.3, scattering = 0.8, lensflare = 14,
 											 lifetime = 13, sustain = 1.5})
 
-muzzleFlashLightsNames["armpb_armpb_weapon"] =
+muzzleFlashLightsNames.armpb_armpb_weapon =
 GetLightClass("MuzzleFlash", nil, "Smaller", {posx = 0, posy = 0, posz = 0,
 											 r = 1.2, g = 0.85, b = 0.6, a = 0.5,
 											 color2r = 0.3, color2g = 0.12, color2b = 0.05, colortime = 4,
 											 modelfactor = 0.5, specular = 0.3, scattering = 0.8, lensflare = 14,
 											 lifetime = 13, sustain = 1.5})
 -- arm t1 naval def turret
-muzzleFlashLightsNames["armnavaldefturret_arm_medium_gauss_cannon"] =
+muzzleFlashLightsNames.armnavaldefturret_arm_medium_gauss_cannon =
 GetLightClass("MuzzleFlash", nil, "Smaller", {posx = 0, posy = 0, posz = 0,
 											 r = 1.2, g = 0.85, b = 0.6, a = 0.35,
 											 color2r = 0.3, color2g = 0.12, color2b = 0.05, colortime = 4,
 											 modelfactor = 0.5, specular = 0.3, scattering = 0.8, lensflare = 14,
 											 lifetime = 13, sustain = 1.5})
 
-muzzleFlashLightsNames["corlevlr_corlevlr_weapon"] =
+muzzleFlashLightsNames.corlevlr_corlevlr_weapon =
 GetLightClass("MuzzleFlash", nil, "Smaller", {posx = 0, posy = 0, posz = 0,
 											 r = 1.2, g = 0.85, b = 0.6, a = 0.5,
 											 color2r = 0.3, color2g = 0.12, color2b = 0.05, colortime = 4,
 											 modelfactor = 0.5, specular = 0.3, scattering = 0.8, lensflare = 14,
 											 lifetime = 13, sustain = 1.5})
 
-muzzleFlashLightsNames["cormort_cor_mort"] =
+muzzleFlashLightsNames.cormort_cor_mort =
 GetLightClass("MuzzleFlash", nil, "Tiniest", {posx = 0, posy = 0, posz = 0,
 											 r = 1.2, g = 1, b = 0.9, a = 0.5,
 											 color2r = 0.25, color2g = 0.14, color2b = 0.07, colortime = 4,
@@ -898,26 +898,26 @@ GetLightClass("MuzzleFlash", nil, "Tiniest", {posx = 0, posy = 0, posz = 0,
 
 
 --corsilo
-explosionLightsNames["corsilo_crblmssl"] =
+explosionLightsNames.corsilo_crblmssl =
 GetLightClass("Explosion", nil, "Tera", {r = 3, g = 3, b = 2.8, a = 0.2,
 										 color2r = 1.0, color2g = 0.6, color2b = 0.18, colortime = 120,
 										 sustain = 30, lifetime = 200,
 										 modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
 
 --corsilo engine
-projectileDefLightsNames["corsilo_crblmssl"] =
+projectileDefLightsNames.corsilo_crblmssl =
 GetLightClass("MissileProjectile", "Warm", "Large", {a = 0.6,
 										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
 
 --RAPTOR Nuclear Meteor
-explosionLightsNames["raptor_turret_meteor_t4_v1_weapon"] =
+explosionLightsNames.raptor_turret_meteor_t4_v1_weapon =
 GetLightClass("Explosion", nil, "Tera", {r = 3, g = 3, b = 2.8, a = 0.2,
 										 color2r = 1.0, color2g = 0.6, color2b = 0.18, colortime = 120,
 										 sustain = 30, lifetime = 200,
 										 modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
 
 --RAPTOR Nuclear Meteor engine
-projectileDefLightsNames["raptor_turret_meteor_t4_v1_weapon"] =
+projectileDefLightsNames.raptor_turret_meteor_t4_v1_weapon =
 GetLightClass("MissileProjectile", "Fire", "Large", {a = 0.8,
 										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
 
@@ -935,14 +935,14 @@ GetLightClass("MissileProjectile", "Fire", "Large", {a = 0.8,
 -- 										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
 
 --armsilo
-explosionLightsNames["armsilo_nuclear_missile"] =
+explosionLightsNames.armsilo_nuclear_missile =
 GetLightClass("Explosion", nil, "Giga", {r = 3, g = 3, b = 2.8, a = 0.18,
 										 color2r = 1.0, color2g = 0.6, color2b = 0.18, colortime = 110,
 										 sustain = 25, lifetime = 180, selfshadowing = 4,
 										 modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
 
 										 --armsilo
-explosionLightsNames["armguardnuke_plasma"] =
+explosionLightsNames.armguardnuke_plasma =
 GetLightClass("Explosion", nil, "Giga", {r = 3, g = 2.9, b = 2.8, a = 0.18,
 										 posx = 0, posy = 1, posz = 0,
 										 dirx = 0, diry = -0.12, dirz = 0,
@@ -950,30 +950,30 @@ GetLightClass("Explosion", nil, "Giga", {r = 3, g = 2.9, b = 2.8, a = 0.18,
 										 sustain = 25, lifetime = 155, selfshadowing = 3,
 										 modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
 
-projectileDefLightsNames["armguardnuke_plasma"] =
+projectileDefLightsNames.armguardnuke_plasma =
 GetLightClass("MissileProjectile", "Warm", "Medium", {a = 0.4,
 										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
 
-projectileDefLightsNames["armguardnuke_plasma_high"] =
+projectileDefLightsNames.armguardnuke_plasma_high =
 GetLightClass("MissileProjectile", "Warm", "Medium", {a = 0.4,
 										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
 																				
 
 
 --armsilo engine
-projectileDefLightsNames["armsilo_nuclear_missile"] =
+projectileDefLightsNames.armsilo_nuclear_missile =
 GetLightClass("MissileProjectile", "Warm", "Large", {a = 0.6,
 										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
 
 --legsilo
-explosionLightsNames["legsilo_legicbm"] =
+explosionLightsNames.legsilo_legicbm =
 GetLightClass("Explosion", nil, "Tera", {r = 3, g = 3, b = 2.8, a = 0.2,
 										 color2r = 1.0, color2g = 0.6, color2b = 0.18, colortime = 120,
 										 sustain = 30, lifetime = 200,
 										 modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
 
 --legsilo engine
-projectileDefLightsNames["legsilo_legicbm"] =
+projectileDefLightsNames.legsilo_legicbm =
 GetLightClass("MissileProjectile", "Warm", "Large", {a = 0.6,
 										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
 
@@ -992,48 +992,48 @@ GetLightClass("MissileProjectile", "Warm", "Large", {a = 0.6,
 -- 										modelfactor = 0.1, specular = 0.1, scattering = 0.4, lensflare = 0})
 
 --legbart
-explosionLightsNames["legbart_clusternapalm"] =
+explosionLightsNames.legbart_clusternapalm =
 GetLightClass("Explosion", "Fire", "SmallMedium", {r = 0.32, g = 0.24, b = 0.1, a = 0.1,
 										 color2r = 0.8, color2g = 0.4, color2b = 0.1, colortime = 44,
 										 sustain = 120, lifetime = 180,
 										 modelfactor = -0.3, specular = -0.3, scattering = 0.3, lensflare = 0})
 
 --legbar
-explosionLightsNames["legbar_clusternapalm"] =
+explosionLightsNames.legbar_clusternapalm =
 GetLightClass("Explosion", "Fire", "Small", {r = 0.32, g = 0.24, b = 0.1, a = 0.005,
 										 color2r = 0.8, color2g = 0.4, color2b = 0.1, colortime = 44,
 										 sustain = 120, lifetime = 180,
 										 modelfactor = -0.3, specular = -0.3, scattering = 0.3, lensflare = 0})
 
 --leginf
-explosionLightsNames["leginf_rapidnapalm"] =
+explosionLightsNames.leginf_rapidnapalm =
 GetLightClass("Explosion", "Fire", "Small", {r = 0.32, g = 0.24, b = 0.1, a = 0.001,
 										 color2r = 0.8, color2g = 0.4, color2b = 0.1, colortime = 180,
 										 sustain = 30, lifetime = 180,
 										 modelfactor = -0.3, specular = -0.3, scattering = 0.3, lensflare = 0})
 
 --legnap
-explosionLightsNames["legnap_napalmbombs"] =
+explosionLightsNames.legnap_napalmbombs =
 GetLightClass("Explosion", "Fire", "Small", {r = 0.32, g = 0.24, b = 0.1, a = 0.1,
 										 color2r = 0.8, color2g = 0.4, color2b = 0.1, colortime = 44,
 										 sustain = 120, lifetime = 180,
 										 modelfactor = -0.3, specular = -0.3, scattering = 0.3, lensflare = 0})
 
 --legperdition
-explosionLightsNames["legperdition_napalmmissile"] =
+explosionLightsNames.legperdition_napalmmissile =
 GetLightClass("Explosion", "Fire", "Large", {r = 0.32, g = 0.24, b = 0.1, a = 0.1,
 										 color2r = 0.8, color2g = 0.4, color2b = 0.1, colortime = 44,
 										 sustain = 120, lifetime = 180,
 										 modelfactor = -0.3, specular = -0.3, scattering = 0.3, lensflare = 0})
 
 --legphoenix
-explosionLightsNames["legphoenix_skybeam"] =
+explosionLightsNames.legphoenix_skybeam =
 GetLightClass("Explosion", "Fire", "Small", {r = 0.54, g = 0.45, b = 0.12, a = 0.35,
 										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.25,
 										 sustain = 2, lifetime = 3,
 										 modelfactor = -0.3, specular = -0.3, scattering = 0.45, lensflare = 0})
 
-projectileDefLightsNames["legphoenix_skybeam"] =
+projectileDefLightsNames.legphoenix_skybeam =
 GetLightClass("LaserProjectile", "Warm", "Tiny", {a = 0.25,
 											r = 1.0, g = 0.65, b = 0.1,
 											color2r = 0.3, color2g = 0.1, color2b = 0.03, colortime = 15,
@@ -1059,7 +1059,7 @@ GetLightClass("LaserProjectile", "Warm", "Tiny", {a = 0.25,
 
 --explosionLightsNames["legbastion_t2heatray"].yOffset = 28
 
-projectileDefLightsNames["legbastion_t2heatray"] =
+projectileDefLightsNames.legbastion_t2heatray =
 GetLightClass("LaserProjectile", nil, "Small", {r = 1.0, g = 0.65, b = 0.1, a = 0.18,
 											color2r = 0.15, color2g = 0.04, color2b = 0.015, colortime = 0.03,
 											--pos2x = 0, pos2y = 0, pos2z = 0,
@@ -1067,15 +1067,15 @@ GetLightClass("LaserProjectile", nil, "Small", {r = 1.0, g = 0.65, b = 0.1, a = 
 											lifetime = 3, sustain = 2})
 
 --leginc
-explosionLightsNames["leginc_heatraylarge"] =
+explosionLightsNames.leginc_heatraylarge =
 GetLightClass("Explosion", "Fire", "Smaller", {r = 0.54, g = 0.45, b = 0.12, a = 0.15,
 										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.3,
 										 sustain = 2, lifetime = 3,
 										 modelfactor = -0.3, specular = -0.1, scattering = 1.95, lensflare = 0})
 
-explosionLightsNames["leginc_heatraylarge"].yOffset = 32
+explosionLightsNames.leginc_heatraylarge.yOffset = 32
 
-projectileDefLightsNames["leginc_heatraylarge"] =
+projectileDefLightsNames.leginc_heatraylarge =
 GetLightClass("LaserProjectile", "Warm", "Smallest", {r = 1.0, g = 0.65, b = 0.1, a = 0.15,
 											color2r = 0.15, color2g = 0.05, color2b = 0.015, colortime = 0.03,
 											--pos2x = 0, pos2y = 0, pos2z = 0,
@@ -1083,15 +1083,15 @@ GetLightClass("LaserProjectile", "Warm", "Smallest", {r = 1.0, g = 0.65, b = 0.1
 											sustain = 2, lifetime = 3, })
 
 --legeheatraymech
-explosionLightsNames["legeheatraymech_heatray1"] =
+explosionLightsNames.legeheatraymech_heatray1 =
 GetLightClass("Explosion", "Fire", "SmallMedium", {r = 0.26, g = 0.26, b = 0.06, a = 0.09,
 										 color2r = 0.9, color2g = 0.5, color2b = 0.2, colortime = 0.5,
 										 sustain = 2, lifetime = 3,
 										 modelfactor = -0.3, specular = -0.2, scattering = 0.8, lensflare = 0})
 
-explosionLightsNames["legeheatraymech_heatray1"].yOffset = 32
+explosionLightsNames.legeheatraymech_heatray1.yOffset = 32
 
-projectileDefLightsNames["legeheatraymech_heatray1"] =
+projectileDefLightsNames.legeheatraymech_heatray1 =
 GetLightClass("LaserProjectile", "Warm", "Smallest", {r = 1.0, g = 0.65, b = 0.1, a = 0.25,
 											color2r = 0.15, color2g = 0.05, color2b = 0.015, colortime = 0.03,
 											--pos2x = 0, pos2y = 0, pos2z = 0,
@@ -1100,24 +1100,24 @@ GetLightClass("LaserProjectile", "Warm", "Smallest", {r = 1.0, g = 0.65, b = 0.1
 
 
 --armthundt4
-explosionLightsNames["armthundt4_armbomb"] =
+explosionLightsNames.armthundt4_armbomb =
 GetLightClass("Explosion", nil, "Large", {r = 2, g = 1.5, b = 1.0, a = 0.22,
 										  color2r = 0.9, color2g = 0.5, color2b = 0.15, colortime = 65,
 										  sustain = 4, lifetime = 55,
 										  modelfactor = 0.1, specular = 0.4, scattering = 0.4, lensflare = 6})
 
 --armmerl
-projectileDefLightsNames["armmerl_armtruck_rocket"] =
+projectileDefLightsNames.armmerl_armtruck_rocket =
 GetLightClass("MissileProjectile", "Warm", "Small", {a = 0.60,
 											modelfactor = 0.1, specular = 0.01, scattering = 0.5, lensflare = 8})
 
 --armmerl
-projectileDefLightsNames["corvroc_cortruck_rocket"] =
+projectileDefLightsNames.corvroc_cortruck_rocket =
 GetLightClass("MissileProjectile", "Warm", "Small", {a = 0.60,
 											modelfactor = 0.1, specular = 0.01, scattering = 0.5, lensflare = 8})
 
 -- armbeamer
-projectileDefLightsNames["armbeamer_armbeamer_weapon"] =
+projectileDefLightsNames.armbeamer_armbeamer_weapon =
 GetLightClass("LaserProjectile", nil, "Medium", {a = 0.20,
 											--r = 1.0, g = 0.65, b = 0.1, radius = 240,
 											r = 0.1, g = 0.1, b = 1, radius = 110,
@@ -1128,7 +1128,7 @@ GetLightClass("LaserProjectile", nil, "Medium", {a = 0.20,
 											lifetime = 6, sustain = 0})
 
 -- corcan
-projectileDefLightsNames["corcan_cor_canlaser"] =
+projectileDefLightsNames.corcan_cor_canlaser =
 GetLightClass("LaserProjectile", nil, "Medium", {a = 0.15,
 											--r = 1.0, g = 0.65, b = 0.1, radius = 240,
 											r = 0.3, g = 1, b = 0.3, radius = 110,
@@ -1138,7 +1138,7 @@ GetLightClass("LaserProjectile", nil, "Medium", {a = 0.15,
 											lifetime = 4, sustain = 0, selfshadowing = 5,})
 
 -- corsumo
-projectileDefLightsNames["corsumo_corsumo_weapon"] =
+projectileDefLightsNames.corsumo_corsumo_weapon =
 GetLightClass("LaserProjectile", nil, "Medium", {a = 0.15,
 											--r = 1.0, g = 0.65, b = 0.1, radius = 240,
 											r = 0.4, g = 1.0, b = 0.4, radius = 110,
@@ -1148,7 +1148,7 @@ GetLightClass("LaserProjectile", nil, "Medium", {a = 0.15,
 											lifetime = 2.8, sustain = 0, selfshadowing = 5,})
 
 --corsumo
-muzzleFlashLightsNames["corsumo_corsumo_weapon"] =
+muzzleFlashLightsNames.corsumo_corsumo_weapon =
 GetLightClass("MuzzleFlashCone", nil, "Large", {
 	posx = 0, posy = 0, posz = 0, radius = 240,
 	color2r = 0.5, color2g = 0.1, color2b = 0, colortime = 50,
@@ -1162,14 +1162,14 @@ GetLightClass("MuzzleFlashCone", nil, "Large", {
 
 
 --corkorg
-explosionLightsNames["corkorg_corkorg_laser"] =
+explosionLightsNames.corkorg_corkorg_laser =
 GetLightClass("Explosion", "Fire", "Smallish", {r = 0.54, g = 0.45, b = 0.12, a = 0.33, 
 										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.3,
 										 sustain = 2, lifetime = 3,
 										 modelfactor = -0.3, specular = -0.1, scattering = 1.95, lensflare = 0})
 
 -- org korglaser
-projectileDefLightsNames["corkorg_corkorg_laser"] =
+projectileDefLightsNames.corkorg_corkorg_laser =
 GetLightClass("LaserProjectile", nil, "Medium", {a = 0.09,
 											--r = 1.0, g = 0.65, b = 0.1, radius = 240,
 											r = 1.0, g = 0.75, b = 0.4, radius = 240,
@@ -1190,7 +1190,7 @@ GetLightClass("LaserProjectile", nil, "Medium", {a = 0.09,
 -- 											selfshadowing = 8,
 -- 											lifetime = 23, sustain = 2})
 
-muzzleFlashLightsNames["corkorg_corkorg_laser"] =
+muzzleFlashLightsNames.corkorg_corkorg_laser =
 GetLightClass("MuzzleFlash", "Fire", "Mega", {posx = 120, posy = 82, posz = 0,
 											 r = 1.2, g = 1.1, b = 0.5, a = 0.9,
 											 color2r = 0.3, color2g = 0.12, color2b = 0.05, colortime = 20,
@@ -1198,7 +1198,7 @@ GetLightClass("MuzzleFlash", "Fire", "Mega", {posx = 120, posy = 82, posz = 0,
 											 lifetime = 120, sustain = 4})
 
 --muzzleflashes for corkorg broken??
-muzzleFlashLightsNames["corkorg_corkorg_fire"] =
+muzzleFlashLightsNames.corkorg_corkorg_fire =
 GetLightClass("MuzzleFlash", "Plasma", "Tiny", {
 											 r = 1.1, g = 0.85, b = 0.3, a = 0.6,
 											 color2r = 0.3, color2g = 0.12, color2b = 0.04, colortime = 15,
@@ -1206,26 +1206,26 @@ GetLightClass("MuzzleFlash", "Plasma", "Tiny", {
 											 lifetime = 20, sustain = 2})
 
 --corkorg_shotgun
-projectileDefLightsNames["corkorg_corkorg_fire"] =
+projectileDefLightsNames.corkorg_corkorg_fire =
 GetLightClass("CannonProjectile", "Plasma", "Smaller", {a = 0.012, radius = 200,
 											selfshadowing = 4,
 											modelfactor = 0.2, specular = 0.2, scattering = 0.3, lensflare = 3})
 
-explosionLightsNames["corkorg_corkorg_fire"] =
+explosionLightsNames.corkorg_corkorg_fire =
 GetLightClass("Explosion", "Fire", "Tiny", {r = 0.5, g = 0.3, b = 0.08, a = 0.4,
 											color2r = 1.2, color2g = 0.6, color2b = 0.4, colortime = 0.6,
 											sustain = 2, lifetime = 6,
 											modelfactor = -0.3, specular = -0.1, scattering = 1.95, lensflare = 0
 										})
 
-projectileDefLightsNames["corpyro_flamethrower"] =
+projectileDefLightsNames.corpyro_flamethrower =
 GetLightClass("FlameProjectile", nil, "Tiny", {
 						r = 0.7, g = 0.7, b = 0.65, a = 0.14, 
 						color2r = 1.0, color2g = 0.70, color2b = 0.4, colortime = 12,
 						lifetime = 30, sustain = 15,
 												})
 
-explosionLightsNames["corpyro_flamethrower"] =
+explosionLightsNames.corpyro_flamethrower =
 GetLightClass("FlameProjectile", nil, "Smallest", {
 						r = 1.7, g = 0.7, b = 0.65, a = 0.03, 
 						color2r = 1.0, color2g = 0.70, color2b = 0.4, colortime = 12,
@@ -1234,14 +1234,14 @@ GetLightClass("FlameProjectile", nil, "Smallest", {
 
 --explosionLightsNames["corpyro_flamethrower"].fraction = 5
 
-projectileDefLightsNames["cormaw_dmaw"] =
+projectileDefLightsNames.cormaw_dmaw =
 GetLightClass("FlameProjectile", nil, "Smallish", {
 						r = 0.7, g = 0.7, b = 0.65, a = 0.03, 
 						color2r = 1.0, color2g = 0.70, color2b = 0.4, colortime = 12,
 						lifetime = 70, sustain = 30,
 												})
 
-projectileDefLightsNames["corfship_dmaw"] =
+projectileDefLightsNames.corfship_dmaw =
 GetLightClass("FlameProjectile", nil, "Smallish", {
 						r = 0.7, g = 0.7, b = 0.65, a = 0.05, 
 						color2r = 1.0, color2g = 0.70, color2b = 0.4, colortime = 12,
@@ -1249,26 +1249,26 @@ GetLightClass("FlameProjectile", nil, "Smallish", {
 												})
 											
 
-projectileDefLightsNames["corcrwh_dragonmawh"] =
+projectileDefLightsNames.corcrwh_dragonmawh =
 GetLightClass("FlameProjectileDragon", nil, "Smallest", {
 						r = 0.7, g = 0.7, b = 0.65, a = 0.19, 
 						color2r = 1.0, color2g = 0.70, color2b = 0.4, colortime = 12,
 						lifetime = 70, sustain = 30, selfshadowing = 0, 
 						})
 
-projectileDefLightsNames["corcrwh_dragonmawh"].yOffset = 32
+projectileDefLightsNames.corcrwh_dragonmawh.yOffset = 32
 
-explosionLightsNames["corcrwh_dragonmawh"] =
+explosionLightsNames.corcrwh_dragonmawh =
 GetLightClass("FlameProjectile", nil, "Smaller", {
 						r = 0.3, g = 0.2, b = 0.09, a = 0.020,
 						color2r = 1.0, color2g = 0.45, color2b = 0.22, colortime = 10,
 						lifetime = 20, sustain = 3, selfshadowing = 0,
 										})
 
-explosionLightsNames["corcrwh_dragonmawh"].yOffset = 32
+explosionLightsNames.corcrwh_dragonmawh.yOffset = 32
 --explosionLightsNames["corcrwh_dragonmawh"].fraction = 5
 
-explosionLightsNames["corcrwh_krowlaserh"] =
+explosionLightsNames.corcrwh_krowlaserh =
 GetLightClass("Explosion", "Red", "Micro", {
 						r = 1, g = 0.3, b = 0.08, a = 0.4,
 						color2r = 1.2, color2g = 0.6, color2b = 0.4, colortime = 0.6,
@@ -1278,14 +1278,14 @@ GetLightClass("Explosion", "Red", "Micro", {
 
 
 
-projectileDefLightsNames["corcrwt4_kmaw"] =
+projectileDefLightsNames.corcrwt4_kmaw =
 GetLightClass("FlameProjectileDragon", nil, "Medium", {
 						r = 0.7, g = 0.7, b = 0.65, a = 0.13, 
 						color2r = 1.0, color2g = 0.70, color2b = 0.4, colortime = 12,
 						lifetime = 70, sustain = 30,
 												})
 
-projectileDefLightsNames["cordemon_newdmaw"] =
+projectileDefLightsNames.cordemon_newdmaw =
 GetLightClass("FlameProjectileShadow", nil, "Medium", {
 						r = 0.7, g = 0.7, b = 0.65, a = 0.05, 
 						color2r = 1.0, color2g = 0.70, color2b = 0.4, colortime = 12,
@@ -1293,13 +1293,13 @@ GetLightClass("FlameProjectileShadow", nil, "Medium", {
 												})
 
 --corkorg_rocket
-projectileDefLightsNames["corkorg_corkorg_rocket"] =
+projectileDefLightsNames.corkorg_corkorg_rocket =
 GetLightClass("MissileProjectile", "Warm", "SmallMedium", {a = 0.40,
 											r = 1.2, g = 0.65, b = 0.1, radius = 80,
 											color2r = 1.2, color2g = 0.7, color2b = 0.4,
 											modelfactor = 0.5, specular = 0.05, scattering = 0.45, lensflare = 5})
 
-explosionLightsNames["corkorg_corkorg_rocket"] =
+explosionLightsNames.corkorg_corkorg_rocket =
 GetLightClass("Explosion", "Fire", "Medium", {r = 0.4, g = 0.2, b = 0.08, a = 0.5, radius = 240,
 											color2r = 1.2, color2g = 0.9, color2b = 0.4,
 											sustain = 4, lifetime = 10,
@@ -1314,20 +1314,20 @@ GetLightClass("Explosion", "Fire", "Medium", {r = 0.4, g = 0.2, b = 0.08, a = 0.
 -- 											lifetime = 4, sustain = 0})
 
 --cordoomt3
-projectileDefLightsNames["cordoomt3_armagmheat"] =
+projectileDefLightsNames.cordoomt3_armagmheat =
 GetLightClass("LaserProjectile", "HeatRay", "Mediumer", {a = 0.09,
 											color2r = 0.5, color2g = 0.3, color2b = 0.2, colortime = 10,
 											modelfactor = 0.5, specular = 0.1, scattering = 0.1, lensflare = 0,
 											lifetime = 4, sustain = 0})
 
 --cortron
-explosionLightsNames["cortron_cortron_weapon"] =
+explosionLightsNames.cortron_cortron_weapon =
 GetLightClass("Explosion", nil, "Large", {r = 3, g = 2.5, b = 2.0, a = 0.25,
 										  color2r = 0.5, color2g = 0.2, color2b = 0.09, colortime = 10,
 										  sustain = 4, lifetime = 120,
 										  modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
 
-projectileDefLightsNames["cortron_cortron_weapon"] =
+projectileDefLightsNames.cortron_cortron_weapon =
 GetLightClass("MissileProjectile", "Red", "SmallMedium", {
 											--lifetime = 200,
 											--color2r = 0.75, color2g = 0.9, color2b = 0.3, colortime = 25,
@@ -1335,13 +1335,13 @@ GetLightClass("MissileProjectile", "Red", "SmallMedium", {
 
 
 --armjuno
-projectileDefLightsNames["armjuno_juno_pulse"] =
+projectileDefLightsNames.armjuno_juno_pulse =
 GetLightClass("MissileProjectile", "Green", "SmallMedium", {r = 0.02, g = 0.05, b = 0.01, a = 0.25,
 											color2r = 0.88, color2g = 1.5, color2b = 0.6, colortime = 150,
 											--lifetime = 200,
 											--color2r = 0.75, color2g = 0.9, color2b = 0.3, colortime = 25,
 											modelfactor = 0.3, specular = 0.1, scattering = 0.4, lensflare = 7})
-explosionLightsNames["armjuno_juno_pulse"] =
+explosionLightsNames.armjuno_juno_pulse =
 GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
 											posx = 0, posy = 100, posz = 0,
 											r = 0.9, g = 1.1, b = 0.45,
@@ -1363,13 +1363,13 @@ GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
 --     										modelfactor = 0.1, specular = 0.2, scattering = 0.3, lensflare = 6})
 
 --corjuno
-projectileDefLightsNames["corjuno_juno_pulse"] =
+projectileDefLightsNames.corjuno_juno_pulse =
 GetLightClass("MissileProjectile", "Green", "SmallMedium", {r = 0.02, g = 0.05, b = 0.01, a = 0.25,
 											color2r = 0.88, color2g = 1.5, color2b = 0.6, colortime = 150,
 											--lifetime = 200,
 											--color2r = 0.75, color2g = 0.9, color2b = 0.3, colortime = 25,
 											modelfactor = 0.3, specular = 0.1, scattering = 0.4, lensflare = 7})
-explosionLightsNames["corjuno_juno_pulse"] =
+explosionLightsNames.corjuno_juno_pulse =
 GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
 											posx = 0, posy = 100, posz = 0,
 											r = 0.9, g = 1.1, b = 0.45,
@@ -1378,13 +1378,13 @@ GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
     										modelfactor = 0.1, specular = 0.2, scattering = 0.3, lensflare = 6})
 
 --legjuno
-projectileDefLightsNames["legjuno_juno_pulse"] =
+projectileDefLightsNames.legjuno_juno_pulse =
 GetLightClass("MissileProjectile", "Green", "SmallMedium", {r = 0.02, g = 0.05, b = 0.01, a = 0.25,
 											color2r = 0.88, color2g = 1.5, color2b = 0.6, colortime = 150,
 											--lifetime = 200,
 											--color2r = 0.75, color2g = 0.9, color2b = 0.3, colortime = 25,
 											modelfactor = 0.3, specular = 0.1, scattering = 0.4, lensflare = 7})
-explosionLightsNames["legjuno_juno_pulse"] =
+explosionLightsNames.legjuno_juno_pulse =
 GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
 											posx = 0, posy = 100, posz = 0,
 											r = 0.9, g = 1.1, b = 0.45,
@@ -1394,7 +1394,7 @@ GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
 
 
 --armpw machinegun
-muzzleFlashLightsNames["armpw_emg"] =
+muzzleFlashLightsNames.armpw_emg =
 GetLightClass("MuzzleFlash", "Warm", "Medium", {posx = 1, posy = 1, posz = 1, radius = 50,
 											r = 1.2, g = 1.1, b = 1.0, a = 0.5,
 											color2r = 0.3, color2g = 0.12, color2b = 0.05, colortime = 4,
@@ -1402,7 +1402,7 @@ GetLightClass("MuzzleFlash", "Warm", "Medium", {posx = 1, posy = 1, posz = 1, ra
 											lifetime = 17, sustain = 2})
 
 --armmanni
-projectileDefLightsNames["armmanni_atam"] =
+projectileDefLightsNames.armmanni_atam =
 GetLightClass("LaserProjectile", "Blue", "SmallMedium", {a = 0.09,
 					color2r = 0.6, color2g = 0.6, color2b = 0.6, colortime = 10,
 					modelfactor = 0.5, specular = 0.1, scattering = 0.7, lensflare = 0,
@@ -1410,26 +1410,26 @@ GetLightClass("LaserProjectile", "Blue", "SmallMedium", {a = 0.09,
 					lifetime = 0, sustain = 0})
 
 --corjugg
-explosionLightsNames["corjugg_juggernaut_fire"] =
+explosionLightsNames.corjugg_juggernaut_fire =
 GetLightClass("Explosion", nil, "Small", {r = 1.3, g = 1.1, b = 0.8, a = 0.4,
 										color2r = 0.35, color2g = 0.20, color2b = 0.05, colortime = 3,
 										sustain = 4, lifetime = 20, scattering = 0.2})
 
-projectileDefLightsNames["corjugg_juggernaut_fire"] =
+projectileDefLightsNames.corjugg_juggernaut_fire =
 GetLightClass("CannonProjectile", nil, "Large", {a = 0.5,
 					color2r = 0.5, color2g = 0.5, color2b = 0.6, colortime = 10,
 					modelfactor = 0.5, specular = 0.1, scattering = 0.1, lensflare = 0,
 					lifetime = 26, sustain = 20})
 
 -- --armanni
-projectileDefLightsNames["armanni_ata"] =
+projectileDefLightsNames.armanni_ata =
 GetLightClass("LaserProjectile", "Blue", "Medium", {a = 0.09,
 					color2r = 0.5, color2g = 0.5, color2b = 0.6, colortime = 10,
 					modelfactor = 0.5, specular = 0.1, scattering = 0.1, lensflare = 0,
 					lifetime = 0, sustain = 0})
 
 --corcat
-explosionLightsNames["corcat_exp_heavyrocket"] =
+explosionLightsNames.corcat_exp_heavyrocket =
 GetLightClass("Explosion", nil, "Mediumer", {r = 3, g = 2.5, b = 2.0, a = 0.25,
 										color2r = 0.75, color2g = 0.40, color2b = 0.09, colortime = 4,
 										sustain = 7, lifetime = 32,
@@ -1449,7 +1449,7 @@ GetLightClass("Explosion", nil, "Mediumer", {r = 3, g = 2.5, b = 2.0, a = 0.25,
 -- 											sustain = 10, lifetime = 400,
 --     										modelfactor = 0.1, specular = 0.2, scattering = 0.3, lensflare = 6})
 --scavengerbossv4
-explosionLightsNames['scavengerbossv4_normal_turbo_napalm'] =
+explosionLightsNames.scavengerbossv4_normal_turbo_napalm =
 GetLightClass("Explosion", "Fire", "SmallMedium", {r = 0.54, g = 0.45, b = 0.12, a = 0.29,
 										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.03,
 										 sustain = 40, lifetime = 150,
@@ -1461,7 +1461,7 @@ GetLightClass("Explosion", "Fire", "SmallMedium", {r = 0.54, g = 0.45, b = 0.12,
 local scavengerBossV4Table = {'scavengerbossv4_veryeasy_turbo_napalm', 'scavengerbossv4_easy_turbo_napalm', 'scavengerbossv4_hard_turbo_napalm', 'scavengerbossv4_veryhard_turbo_napalm', 'scavengerbossv4_epic_turbo_napalm',
  'scavengerbossv4_veryeasy_scav_turbo_napalm', 'scavengerbossv4_easy_scav_turbo_napalm', 'scavengerbossv4_normal_scav_turbo_napalm', 'scavengerbossv4_hard_scav_turbo_napalm', 'scavengerbossv4_veryhard_scav_turbo_napalm', 'scavengerbossv4_epic_scav_turbo_napalm'}
 for _, name in pairs(scavengerBossV4Table) do
-	explosionLightsNames[name] = table.copy(explosionLightsNames['scavengerbossv4_normal_turbo_napalm'])
+	explosionLightsNames[name] = table.copy(explosionLightsNames.scavengerbossv4_normal_turbo_napalm)
 end
 
 

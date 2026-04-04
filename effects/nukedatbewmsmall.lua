@@ -1,7 +1,7 @@
 -- nukedatbewmsmall
 
 return {
-  ["nukedatbewmsmall"] = {
+  nukedatbewmsmall = {
     centerflare = {
       air                = true,
       class              = [[CHeatCloudProjectile]],

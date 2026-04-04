@@ -21,7 +21,7 @@ local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 
 local isSilentUnitGift = {}
 for udefID,def in ipairs(UnitDefs) do
-	if def.modCategories['object'] or def.customParams.objectify then
+	if def.modCategories.object or def.customParams.objectify then
 		isSilentUnitGift[udefID] = true
 	end
 end

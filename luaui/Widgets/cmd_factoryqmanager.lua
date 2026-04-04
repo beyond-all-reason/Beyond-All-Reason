@@ -186,7 +186,7 @@ end
 function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
 
-	font = WG['fonts'].getFont(1, 1.5)
+	font = WG.fonts.getFont(1, 1.5)
 
 	UiUnit = WG.FlowUI.Draw.Unit
 	UiElement = WG.FlowUI.Draw.Element
@@ -231,7 +231,7 @@ function RemoveBuildOrders(unitID, buildDefID, count)
 end
 
 function getButtonUnderMouse(mx, my)
-	local x1 = boxCoords["x"]
+	local x1 = boxCoords.x
 	if x1 == nil then
 		return
 	end

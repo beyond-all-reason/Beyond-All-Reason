@@ -1,7 +1,7 @@
 return {
-	["MINESWEEP"] = {
+	MINESWEEP = {
 		usedefaultexplosions = false;
-		["GROUNDFLASH"] = {
+		GROUNDFLASH = {
 			flashsize = 50,
 			flashalpha = 0.4,
 			circlegrowth = 2,

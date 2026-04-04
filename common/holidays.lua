@@ -77,49 +77,49 @@ local EasterEventDates = GetEasterStartEnd()
 
 local holidaysList = {
 	-- Static -----------------------------
-	["aprilfools"] = {
+	aprilfools = {
 		firstDay = { day = 1, month = 4},
 		lastDay = { day = 7, month = 4}
 	},
-    ["aprilfools_specialDay"] = {
+    aprilfools_specialDay = {
 		firstDay = { day = 1, month = 4},
 		lastDay = { day = 1, month = 4}
 	},
 
-	["halloween"] = {
+	halloween = {
 		firstDay = { day = 17, month = 10},
 		lastDay = { day = 31, month = 10}
 	},
-    ["halloween_specialDay"] = {
+    halloween_specialDay = {
 		firstDay = { day = 31, month = 10},
 		lastDay = { day = 31, month = 10}
 	},
 
-	["xmas"] = {
+	xmas = {
 		firstDay = { day = 12, month = 12},
 		lastDay = { day = 31, month = 12}
 	},
-    ["xmas_specialDay"] = {
+    xmas_specialDay = {
 		firstDay = { day = 24, month = 12},
 		lastDay = { day = 26, month = 12}
 	},
 
     -- We split these into two events because yes
-    ["newyearbefore"] = {
+    newyearbefore = {
 		firstDay = { day = 31, month = 12},
 		lastDay = { day = 31, month = 12}
 	},
-    ["newyearafter"] = {
+    newyearafter = {
 		firstDay = { day = 1, month = 1},
 		lastDay = { day = 1, month = 1}
 	},
 
 	-- Dynamic -----------------------------
-    ["easter"] = {
+    easter = {
 		firstDay = { day = EasterEventDates.firstDay, month = EasterEventDates.firstMonth},
 		lastDay = { day = EasterEventDates.lastDay, month = EasterEventDates.lastMonth}
 	},
-    ["easter_specialDay"] = {
+    easter_specialDay = {
 		firstDay = { day = EasterEventDates.easterDay, month = EasterEventDates.easterMonth},
 		lastDay = { day = EasterEventDates.easterDay, month = EasterEventDates.easterMonth}
 	},

@@ -28,7 +28,7 @@ local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position
 
 local unitListNames = {
     -- Brood Raptors
-    ["raptor_land_swarmer_brood_t4_v1"] = {
+    raptor_land_swarmer_brood_t4_v1 = {
         [1] = {
             name = "raptor_land_swarmer_brood_t3_v1",
             type = "ground",
@@ -48,7 +48,7 @@ local unitListNames = {
             spawnTimer = 60,
         },
     },
-    ["raptor_land_swarmer_brood_t3_v1"] = {
+    raptor_land_swarmer_brood_t3_v1 = {
         [1] = {
             name = "raptor_land_swarmer_brood_t2_v1",
             type = "ground",
@@ -61,7 +61,7 @@ local unitListNames = {
     },
 
     -- Miniqueens
-    ["raptor_matriarch_basic"] = {
+    raptor_matriarch_basic = {
         [1] = {
             name = "raptor_land_swarmer_basic_t3_v1",
             type = "ground",
@@ -108,7 +108,7 @@ local unitListNames = {
             spawnTimer = 10,
         },
     },
-    ["raptor_matriarch_healer"] = {
+    raptor_matriarch_healer = {
         [1] = {
             name = "raptor_land_swarmer_heal_t1_v1",
             type = "ground",
@@ -146,7 +146,7 @@ local unitListNames = {
             spawnTimer = 10,
         },
     },
-    ["raptor_matriarch_acid"] = {
+    raptor_matriarch_acid = {
         [1] = {
             name = "raptor_land_swarmer_acids_t2_v1",
             type = "ground",
@@ -175,7 +175,7 @@ local unitListNames = {
             spawnTimer = 10,
         },
     },
-    ["raptor_matriarch_electric"] = {
+    raptor_matriarch_electric = {
         [1] = {
             name = "raptor_land_swarmer_emp_t2_v1",
             type = "ground",
@@ -204,7 +204,7 @@ local unitListNames = {
             spawnTimer = 10,
         },
     },
-    ["raptor_matriarch_fire"] = {
+    raptor_matriarch_fire = {
         [1] = {
             name = "raptor_land_swarmer_fire_t2_v1",
             type = "ground",
@@ -224,7 +224,7 @@ local unitListNames = {
             spawnTimer = 10,
         },
     },
-    ["raptor_matriarch_spectre"] = {
+    raptor_matriarch_spectre = {
         [1] = {
             name = "raptor_land_swarmer_spectre_t3_v1",
             type = "ground",
@@ -255,7 +255,7 @@ local unitListNames = {
     },
 
     -- Queens
-    ["raptor_queen_veryeasy"] = {
+    raptor_queen_veryeasy = {
         [1] = {
             name = "raptor_air_fighter_basic_t1_v1",
             type = "air",
@@ -293,7 +293,7 @@ local unitListNames = {
             spawnTimer = 10*raptorQueenCount,
         },
     },
-    ["raptor_queen_easy"] = {
+    raptor_queen_easy = {
         [1] = {
             name = "raptor_air_fighter_basic_t1_v1",
             type = "air",
@@ -331,7 +331,7 @@ local unitListNames = {
             spawnTimer = 10*raptorQueenCount,
         },
     },
-    ["raptor_queen_normal"] = {
+    raptor_queen_normal = {
         [1] = {
             name = "raptor_air_fighter_basic_t1_v1",
             type = "air",
@@ -369,7 +369,7 @@ local unitListNames = {
             spawnTimer = 10*raptorQueenCount,
         },
     },
-    ["raptor_queen_hard"] = {
+    raptor_queen_hard = {
         [1] = {
             name = "raptor_air_fighter_basic_t2_v1",
             type = "air",
@@ -416,7 +416,7 @@ local unitListNames = {
             spawnTimer = 10*raptorQueenCount,
         },
     },
-    ["raptor_queen_veryhard"] = {
+    raptor_queen_veryhard = {
         [1] = {
             name = "raptor_air_fighter_basic_t2_v1",
             type = "air",
@@ -463,7 +463,7 @@ local unitListNames = {
             spawnTimer = 10*raptorQueenCount,
         },
     },
-    ["raptor_queen_epic"] = {
+    raptor_queen_epic = {
         [1] = {
             name = "raptor_air_fighter_basic_t4_v1",
             type = "air",

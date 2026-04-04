@@ -45,11 +45,11 @@ local function IssueGroundCommand(cmdID, cmdOptions)
 end
 
 function widget:Initialize()
-	WG['attacknoally'] = true
+	WG.attacknoally = true
 end
 
 function widget:Shutdown()
-	WG['attacknoally'] = nil
+	WG.attacknoally = nil
 end
 	-- Right mouse button
 function widget:MousePress(x, y, button)
@@ -58,7 +58,7 @@ function widget:MousePress(x, y, button)
 		return false
 	end
 
-	if WG['attacknoally'] then
+	if WG.attacknoally then
 		local _, activeCmdID = Spring.GetActiveCommand()
 		if activeCmdID and hasRightClickAttack[activeCmdID] then
 			rmbCancelPending = true

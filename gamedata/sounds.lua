@@ -45,7 +45,7 @@ local Sounds = {
 ]]
 local soundData = {
 	-- UI SOUNDS
-	['ui'] = {
+	ui = {
 		gain = 0.8,
 		pitchmod = 0,
 		gainmod  = 0,
@@ -55,7 +55,7 @@ local soundData = {
 		rolloff = 0,
 	},
 
-	['uw'] = {
+	uw = {
 		gain = 1.2 * 0.3,
 		pitchmod = 0.17,
 		gainmod  = 0.2 * 0.3,
@@ -99,7 +99,7 @@ local soundData = {
 ]]
 
 	-- WEAPON SOUNDS
-	['weapons'] = {
+	weapons = {
 		gain = {
 			default = 1.2 * 0.3,
 			custom = {
@@ -163,7 +163,7 @@ local soundData = {
 	},
 
 	-- RAPTOR SOUNDS
-	['raptors'] = {
+	raptors = {
 		gain = 1.2 * 0.5,
 		pitchmod = {
 			default = 0.23,
@@ -188,7 +188,7 @@ local soundData = {
 	},
 
 	-- BOMB SOUNDS / More maxconcurrent
-	['bombs'] = {
+	bombs = {
 		gain = 1.2 * 0.3,
 		pitchmod = 0.27,
 		gainmod  = 0.2 * 0.3,
@@ -198,7 +198,7 @@ local soundData = {
 	},
 
 	-- REPLY SOUNDS
-	['replies'] = {
+	replies = {
 		gain = 1.2 * 0.3,
 		pitchmod = 0.02,
 		gainmod  = 0.2 * 0.3,
@@ -210,7 +210,7 @@ local soundData = {
 	},
 
 	-- LAND UNIT MOVEMENT SOUNDS
-	['movement'] = {
+	movement = {
 		gain = 1.2 * 0.3,
 		pitchmod = 0.062,
 		gainmod  = 0.2 * 0.3,
@@ -234,7 +234,7 @@ local soundData = {
 	},
 
 	-- UNIT FOOTSTEPS SOUNDS // high pitch-mod
-	['unit'] = {
+	unit = {
 		gain = 1.2 * 0.3,
 		pitchmod = 0.33,
 		gainmod  = 0.2 * 0.3,
@@ -270,7 +270,7 @@ local soundData = {
 	},
 
 	-- BUILDING FUNCTION/WEAPON SOUNDS
-	['buildings'] = {
+	buildings = {
 		gain = 1.2 * 0.3,
 		pitchmod = 0.03,
 		gainmod  = 0.2 * 0.3,
@@ -282,7 +282,7 @@ local soundData = {
 	},
 
 	-- UI COMMANDS SOUNDS
-	['commands'] = {
+	commands = {
 		gain = 1.2 * 0.3,
 		pitchmod = 0.02,
 		gainmod  = 0.2 * 0.3,
@@ -294,7 +294,7 @@ local soundData = {
 	},
 
 	-- CRITTER SOUNDS
-	['critters'] = {
+	critters = {
 		gain = 1.1 * 0.3,
 		pitchmod = 0.01,
 		gainmod  = 0.15 * 0.3,
@@ -316,7 +316,7 @@ local soundData = {
 ]]
 
 	-- AMBIENCE
-	['atmos'] = {
+	atmos = {
 		gain = 1.2 * 0.3,
 		priority = -10,
 		pitchmod = 0.22,

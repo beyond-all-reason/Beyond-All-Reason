@@ -38,8 +38,8 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
-		GG['apm'] = {}
-		GG['apm'].addSkipOrder = addSkipOrder
+		GG.apm = {}
+		GG.apm.addSkipOrder = addSkipOrder
 
 		gadgetHandler:RegisterAllowCommand(CMD.ANY)
 	end
