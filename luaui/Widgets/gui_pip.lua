@@ -5555,6 +5555,8 @@ end
 local function DrawIconShatters()
 	if #cache.iconShatters == 0 then return end
 
+	local _, _, isPaused = Spring.GetGameSpeed()
+
 	local wcx_cached = cameraState.wcx
 	local wcz_cached = cameraState.wcz
 
@@ -5638,11 +5640,14 @@ local function DrawIconShatters()
 			for j = 1, fragCount do
 				local frag = fragments[j]
 				-- Update fragment world position with deceleration that increases towards end
-				frag.wx = frag.wx + frag.vx * decel * 0.016
-				frag.wz = frag.wz + frag.vz * decel * 0.016
-				frag.vx = frag.vx * velocityDamping
-				frag.vz = frag.vz * velocityDamping
-				frag.rot = frag.rot + frag.rotSpeed * decel
+				-- Skip physics when paused so fragments freeze in place
+				if not isPaused then
+					frag.wx = frag.wx + frag.vx * decel * 0.016
+					frag.wz = frag.wz + frag.vz * decel * 0.016
+					frag.vx = frag.vx * velocityDamping
+					frag.vz = frag.vz * velocityDamping
+					frag.rot = frag.rot + frag.rotSpeed * decel
+				end
 
 				-- Convert world coordinates to PiP-local coordinates
 				local pipX = frag.wx - wcx_cached
