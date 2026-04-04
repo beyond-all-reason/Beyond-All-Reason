@@ -26,6 +26,9 @@ local spGetUnitPosition   = Spring.GetUnitPosition
 local spGetUnitVelocity   = Spring.GetUnitVelocity
 local spValidUnitID       = Spring.ValidUnitID
 local spIsSphereInView    = Spring.IsSphereInView
+local spIsPosInAirLos     = Spring.IsPosInAirLos
+local spGetMyAllyTeamID   = Spring.GetMyAllyTeamID
+local spGetSpectatingState = Spring.GetSpectatingState
 
 local mathRandom = math.random
 local mathMin    = math.min
@@ -205,6 +208,8 @@ end
 -- Passed via spawnCrashTrailParticles from the update callback
 local framePreset
 local frameCamX, frameCamY, frameCamZ = 0, 0, 0
+local frameAllyTeamID = -1
+local frameFullView = true
 
 local function spawnCrashTrailParticles(tracked, unitID, gameFrame)
 	local crashAge = gameFrame - tracked.birthFrame
@@ -212,6 +217,9 @@ local function spawnCrashTrailParticles(tracked, unitID, gameFrame)
 
 	local px, py, pz = spGetUnitPosition(unitID)
 	if not px then return end
+
+	-- LOS check: skip entirely if not visible to player (no buffering)
+	if not frameFullView and not spIsPosInAirLos(px, py, pz, frameAllyTeamID) then return end
 
 	local inView = spIsSphereInView(px, py, pz, CRASH_CULLING_TOTAL)
 	if not inView then
@@ -336,6 +344,9 @@ end
 local function onUpdate(gameFrame, preset, camX, camY, camZ, isFastForward)
 	framePreset = preset
 	frameCamX, frameCamY, frameCamZ = camX, camY, camZ
+	local _, specFullView = spGetSpectatingState()
+	frameFullView = specFullView
+	frameAllyTeamID = specFullView and -1 or spGetMyAllyTeamID()
 	updateCrashingAircraft(gameFrame)
 end
 
