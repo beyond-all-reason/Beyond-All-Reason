@@ -413,7 +413,7 @@ local function techsplitTweaks(name, uDef)
 		uDef.customparams.buildinggrounddecaltype = "decals/armamsub_aoplane.dds"
 		uDef.customparams.buildinggrounddecalsizex = 13
 		uDef.customparams.buildinggrounddecalsizey = 13
-		uDef.featuredefs.dead["object"] = "Units/armaaplat_dead.s3o"
+		uDef.featuredefs.dead.object = "Units/armaaplat_dead.s3o"
 		uDef.buildoptions = {
 			[1] = "armaca",
 			[2] = "armseap",
@@ -465,7 +465,7 @@ local function techsplitTweaks(name, uDef)
 			[6] = "corsfig",
 			[7] = "corhvytrans",
 		}
-		uDef.featuredefs.dead["object"] = "Units/coraaplat_dead.s3o"
+		uDef.featuredefs.dead.object = "Units/coraaplat_dead.s3o"
 		uDef.customparams.buildinggrounddecaltype = "decals/coraap_aoplane.dds"
 		uDef.customparams.buildinggrounddecalsizex = 6
 		uDef.customparams.buildinggrounddecalsizey = 6

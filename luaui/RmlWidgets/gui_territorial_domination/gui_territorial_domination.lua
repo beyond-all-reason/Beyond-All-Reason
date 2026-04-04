@@ -504,17 +504,17 @@ local function calculateUILayout()
 		return
 	end
 
-	local advPlayerListAPI = WG["advplayerlist_api"]
+	local advPlayerListAPI = WG.advplayerlist_api
 	local topElement = nil
 
-	if WG["playertv"] and WG["playertv"].GetPosition and (WG["playertv"].isActive == nil or WG["playertv"].isActive()) then
-		topElement = WG["playertv"]
-	elseif WG["displayinfo"] and WG["displayinfo"].GetPosition then
-		topElement = WG["displayinfo"]
-	elseif WG["unittotals"] and WG["unittotals"].GetPosition then
-		topElement = WG["unittotals"]
-	elseif WG["music"] and WG["music"].GetPosition then
-		topElement = WG["music"]
+	if WG.playertv and WG.playertv.GetPosition and (WG.playertv.isActive == nil or WG.playertv.isActive()) then
+		topElement = WG.playertv
+	elseif WG.displayinfo and WG.displayinfo.GetPosition then
+		topElement = WG.displayinfo
+	elseif WG.unittotals and WG.unittotals.GetPosition then
+		topElement = WG.unittotals
+	elseif WG.music and WG.music.GetPosition then
+		topElement = WG.music
 	elseif advPlayerListAPI and advPlayerListAPI.GetPosition then
 		topElement = advPlayerListAPI
 	end
@@ -1036,12 +1036,12 @@ local function updatePlayerDisplay()
 
 	if isNowInLead ~= widgetState.lastWasInLead then
 		if isNowInLead then
-			if WG["notifications"] and WG["notifications"].addEvent then
-				WG["notifications"].addEvent("TerritorialDomination/GainedLead", false)
+			if WG.notifications and WG.notifications.addEvent then
+				WG.notifications.addEvent("TerritorialDomination/GainedLead", false)
 			end
 		else
-			if WG["notifications"] and WG["notifications"].addEvent then
-				WG["notifications"].addEvent("TerritorialDomination/LostLead", false)
+			if WG.notifications and WG.notifications.addEvent then
+				WG.notifications.addEvent("TerritorialDomination/LostLead", false)
 			end
 		end
 		widgetState.lastWasInLead = isNowInLead

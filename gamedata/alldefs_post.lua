@@ -78,9 +78,9 @@ function UnitDef_Post(name, uDef)
 	-- Cache holiday checks for performance
 	if not holidays then
 		holidays = Spring.Utilities.Gametype.GetCurrentHolidays()
-		isAprilFools = holidays["aprilfools"]
-		isHalloween = holidays["halloween"]
-		isXmas = holidays["xmas"]
+		isAprilFools = holidays.aprilfools
+		isHalloween = holidays.halloween
+		isXmas = holidays.xmas
 	end
 
 	local isScav = string.sub(name, -5, -1) == "_scav"
@@ -924,58 +924,58 @@ function UnitDef_Post(name, uDef)
 	-- Manual categories: OBJECT T4AIR LIGHTAIRSCOUT GROUNDSCOUT RAPTOR
 	-- Deprecated caregories: BOT TANK PHIB NOTLAND SPACE
 
-	categories["ALL"] = function()
+	categories.ALL = function()
 		return true
 	end
-	categories["MOBILE"] = function(uDef)
+	categories.MOBILE = function(uDef)
 		return uDef.speed and uDef.speed > 0
 	end
-	categories["NOTMOBILE"] = function(uDef)
+	categories.NOTMOBILE = function(uDef)
 		return not categories.MOBILE(uDef)
 	end
-	categories["WEAPON"] = function(uDef)
+	categories.WEAPON = function(uDef)
 		return next(uDef.weapondefs) ~= nil
 	end
-	categories["NOWEAPON"] = function(uDef)
+	categories.NOWEAPON = function(uDef)
 		return next(uDef.weapondefs) == nil
 	end
-	categories["VTOL"] = function(uDef)
+	categories.VTOL = function(uDef)
 		return uDef.canfly == true
 	end
-	categories["NOTAIR"] = function(uDef)
+	categories.NOTAIR = function(uDef)
 		return not categories.VTOL(uDef)
 	end
-	categories["HOVER"] = function(uDef)
+	categories.HOVER = function(uDef)
 		return hoverList[uDef.movementclass] and (uDef.maxwaterdepth == nil or uDef.maxwaterdepth < 1)
 	end -- convertible tank/boats have maxwaterdepth
-	categories["NOTHOVER"] = function(uDef)
+	categories.NOTHOVER = function(uDef)
 		return not categories.HOVER(uDef)
 	end
-	categories["SHIP"] = function(uDef)
+	categories.SHIP = function(uDef)
 		return shipList[uDef.movementclass] or (hoverList[uDef.movementclass] and uDef.maxwaterdepth and uDef.maxwaterdepth >= 1)
 	end
-	categories["NOTSHIP"] = function(uDef)
+	categories.NOTSHIP = function(uDef)
 		return not categories.SHIP(uDef)
 	end
-	categories["NOTSUB"] = function(uDef)
+	categories.NOTSUB = function(uDef)
 		return not subList[uDef.movementclass]
 	end
-	categories["CANBEUW"] = function(uDef)
+	categories.CANBEUW = function(uDef)
 		return amphibList[uDef.movementclass] or uDef.cansubmerge == true
 	end
-	categories["UNDERWATER"] = function(uDef)
+	categories.UNDERWATER = function(uDef)
 		return (uDef.minwaterdepth and uDef.waterline == nil) or (uDef.minwaterdepth and uDef.waterline > uDef.minwaterdepth and uDef.speed and uDef.speed > 0)
 	end
-	categories["SURFACE"] = function(uDef)
+	categories.SURFACE = function(uDef)
 		return not (categories.UNDERWATER(uDef) and categories.MOBILE(uDef)) and not categories.VTOL(uDef)
 	end
-	categories["MINE"] = function(uDef)
+	categories.MINE = function(uDef)
 		return uDef.weapondefs.minerange
 	end
-	categories["COMMANDER"] = function(uDef)
+	categories.COMMANDER = function(uDef)
 		return commanderList[uDef.movementclass]
 	end
-	categories["EMPABLE"] = function(uDef)
+	categories.EMPABLE = function(uDef)
 		return categories.SURFACE(uDef) and uDef.customparams.paralyzemultiplier ~= 0
 	end
 
@@ -1286,40 +1286,40 @@ function UnitDef_Post(name, uDef)
 	if modOptions.naval_balance_tweaks == true then
 		local buildOptionReplacements = {
 			-- t1 arm cons
-			armcs = { ["armfhlt"] = "armnavaldefturret" },
-			armch = { ["armfhlt"] = "armnavaldefturret" },
-			armbeaver = { ["armfhlt"] = "armnavaldefturret" },
-			armcsa = { ["armfhlt"] = "armnavaldefturret" },
+			armcs = { armfhlt = "armnavaldefturret" },
+			armch = { armfhlt = "armnavaldefturret" },
+			armbeaver = { armfhlt = "armnavaldefturret" },
+			armcsa = { armfhlt = "armnavaldefturret" },
 
 			-- t1 cor cons
-			corcs = { ["corfhlt"] = "cornavaldefturret" },
-			corch = { ["corfhlt"] = "cornavaldefturret" },
-			cormuskrat = { ["corfhlt"] = "cornavaldefturret" },
-			corcsa = { ["corfhlt"] = "cornavaldefturret" },
+			corcs = { corfhlt = "cornavaldefturret" },
+			corch = { corfhlt = "cornavaldefturret" },
+			cormuskrat = { corfhlt = "cornavaldefturret" },
+			corcsa = { corfhlt = "cornavaldefturret" },
 
 			-- t1 leg cons
-			legnavyconship = { ["legfmg"] = "legnavaldefturret" },
-			legch = { ["legfmg"] = "legnavaldefturret" },
-			legotter = { ["legfmg"] = "legnavaldefturret" },
-			legspcon = { ["legfmg"] = "legnavaldefturret" },
+			legnavyconship = { legfmg = "legnavaldefturret" },
+			legch = { legfmg = "legnavaldefturret" },
+			legotter = { legfmg = "legnavaldefturret" },
+			legspcon = { legfmg = "legnavaldefturret" },
 
 			-- t2 arm cons
-			armacsub = { ["armkraken"] = "armanavaldefturret" },
+			armacsub = { armkraken = "armanavaldefturret" },
 			armmls = {
-				["armfhlt"] = "armnavaldefturret",
-				["armkraken"] = "armanavaldefturret",
+				armfhlt = "armnavaldefturret",
+				armkraken = "armanavaldefturret",
 			},
 
 			-- t2 cor cons
-			coracsub = { ["corfdoom"] = "coranavaldefturret" },
+			coracsub = { corfdoom = "coranavaldefturret" },
 			cormls = {
-				["corfhlt"] = "cornavaldefturret",
-				["corfdoom"] = "coranavaldefturret",
+				corfhlt = "cornavaldefturret",
+				corfdoom = "coranavaldefturret",
 			},
 
 			-- t2 leg cons
 			leganavyengineer = {
-				["legfmg"] = "legnavaldefturret",
+				legfmg = "legnavaldefturret",
 			},
 		}
 
@@ -1795,7 +1795,7 @@ function WeaponDef_Post(name, wDef)
 		modOptions = Spring.GetModOptions()
 	end
 	if isXmas == nil then
-		isXmas = Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"]
+		isXmas = Spring.Utilities.Gametype.GetCurrentHolidays().xmas
 	end
 
 	local customparams = wDef.customparams

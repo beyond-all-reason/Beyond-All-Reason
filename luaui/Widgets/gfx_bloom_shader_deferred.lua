@@ -523,18 +523,18 @@ function widget:Initialize()
 		RemoveMe("[BloomShader::Initialize] removing widget, AllowDeferredMapRendering is required")
 	end
 
-	WG["bloomdeferred"] = {}
-	WG["bloomdeferred"].getBrightness = function()
+	WG.bloomdeferred = {}
+	WG.bloomdeferred.getBrightness = function()
 		return glowAmplifier
 	end
-	WG["bloomdeferred"].setBrightness = function(value)
+	WG.bloomdeferred.setBrightness = function(value)
 		glowAmplifier = value
 		MakeBloomShaders()
 	end
-	WG["bloomdeferred"].getPreset = function()
+	WG.bloomdeferred.getPreset = function()
 		return preset
 	end
-	WG["bloomdeferred"].setPreset = function(value)
+	WG.bloomdeferred.setPreset = function(value)
 		preset = value
 		MakeBloomShaders()
 	end
@@ -558,7 +558,7 @@ function widget:Shutdown()
 			combineShader:Finalize()
 		end
 	end
-	WG["bloomdeferred"] = nil
+	WG.bloomdeferred = nil
 end
 
 local function FullScreenQuad()

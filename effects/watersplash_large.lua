@@ -1,7 +1,7 @@
 -- watersplash_large
 
 return {
-	["watersplash_large"] = {
+	watersplash_large = {
 		waterring = {
 			air = true,
 			class = [[CBitmapMuzzleFlame]],

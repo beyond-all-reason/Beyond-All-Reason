@@ -586,7 +586,7 @@ return {
 		},
 	},
 
-	["spawn_ring_1_alwaysvisible"] = {
+	spawn_ring_1_alwaysvisible = {
 		fireglowbright = {
 			air = true,
 			class = [[CSimpleParticleSystem]],

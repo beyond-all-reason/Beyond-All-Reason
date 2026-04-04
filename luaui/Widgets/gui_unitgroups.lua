@@ -80,8 +80,8 @@ function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
 	height = setHeight * uiScale
 
-	font2 = WG["fonts"].getFont()
-	font = WG["fonts"].getFont(2)
+	font2 = WG.fonts.getFont()
+	font = WG.fonts.getFont(2)
 
 	elementCorner = WG.FlowUI.elementCorner
 	backgroundPadding = WG.FlowUI.elementPadding
@@ -91,14 +91,14 @@ function widget:ViewResize()
 	UiElement = WG.FlowUI.Draw.Element
 	UiUnit = WG.FlowUI.Draw.Unit
 
-	if WG["buildmenu"] then
-		buildmenuBottomPosition = WG["buildmenu"].getBottomPosition()
-		buildmenuAlwaysShow = WG["buildmenu"].getAlwaysShow()
+	if WG.buildmenu then
+		buildmenuBottomPosition = WG.buildmenu.getBottomPosition()
+		buildmenuAlwaysShow = WG.buildmenu.getAlwaysShow()
 	end
 
 	local omPosX, omPosY, omWidth, omHeight = 0, 0, 0, 0
-	if WG["ordermenu"] then
-		omPosX, omPosY, omWidth, omHeight = WG["ordermenu"].getPosition()
+	if WG.ordermenu then
+		omPosX, omPosY, omWidth, omHeight = WG.ordermenu.getPosition()
 	end
 	ordermenuPosY = omPosY
 
@@ -116,7 +116,7 @@ function widget:ViewResize()
 
 	if buildmenuBottomPosition and not buildmenuAlwaysShow then
 		buildmenuShowingPosY = posY
-		if not selectedUnits[1] or not WG["buildmenu"].getIsShowing() then
+		if not selectedUnits[1] or not WG.buildmenu.getIsShowing() then
 			posY = 0
 		end
 	end
@@ -148,8 +148,8 @@ function widget:Initialize()
 	end
 	widget:ViewResize()
 	widget:PlayerChanged()
-	WG["unitgroups"] = {}
-	WG["unitgroups"].getPosition = function()
+	WG.unitgroups = {}
+	WG.unitgroups.getPosition = function()
 		return posX, backgroundRect and backgroundRect[2] or posY, backgroundRect and backgroundRect[3] or posX, backgroundRect and backgroundRect[4] or posY + usedHeight
 	end
 end
@@ -164,11 +164,11 @@ function widget:Shutdown()
 	if uiTex then
 		gl.DeleteTexture(uiTex)
 	end
-	if WG["guishader"] and dlistGuishader then
+	if WG.guishader and dlistGuishader then
 		WG.FlowUI.guishaderDeleteDlist("unitgroups")
 		dlistGuishader = nil
 	end
-	WG["unitgroups"] = nil
+	WG.unitgroups = nil
 end
 
 local function checkGuishader(force)
@@ -471,7 +471,7 @@ function widget:Update(dt)
 		return
 	end
 
-	if WG["topbar"] and WG["topbar"].showingQuit() then
+	if WG.topbar and WG.topbar.showingQuit() then
 		return
 	end
 
@@ -479,13 +479,13 @@ function widget:Update(dt)
 	sec = sec + dt
 	sec2 = sec2 + dt
 
-	if WG["buildmenu"] then
-		if buildmenuAlwaysShow ~= WG["buildmenu"].getAlwaysShow() then
+	if WG.buildmenu then
+		if buildmenuAlwaysShow ~= WG.buildmenu.getAlwaysShow() then
 			widget:ViewResize()
 			doUpdate = true
 		end
-		if buildmenuBottomPosition and not buildmenuAlwaysShow and WG["info"] then
-			if (not selectedUnits[1] or not WG["buildmenu"].getIsShowing()) and (posX > 0 or not WG["info"].getIsShowing()) then
+		if buildmenuBottomPosition and not buildmenuAlwaysShow and WG.info then
+			if (not selectedUnits[1] or not WG.buildmenu.getIsShowing()) and (posX > 0 or not WG.info.getIsShowing()) then
 				if posY ~= 0 then
 					posY = 0
 					doUpdate = true
@@ -507,11 +507,11 @@ function widget:Update(dt)
 			tooltipAddition = tooltipAddition .. Spring.I18N("ui.unitGroups.shiftclick") .. "\n" .. Spring.I18N("ui.unitGroups.ctrlclick") .. "\n" .. Spring.I18N("ui.unitGroups.rightclick")
 		end
 		tooltipAddition = tooltipAddition .. (tooltipAddition ~= "" and "\n" or "") .. Spring.I18N("ui.unitGroups.tooltip")
-		if WG["autogroup"] ~= nil then
+		if WG.autogroup ~= nil then
 			tooltipAddition = tooltipAddition .. (tooltipAddition ~= "" and "\n\n" or "") .. "\255\200\255\200" .. Spring.I18N("ui.unitGroups.autogroupTooltip")
 		end
-		if WG["tooltip"] then
-			WG["tooltip"].ShowTooltip("unitgroups", tooltipAddition, nil, nil, Spring.I18N("ui.unitGroups.name"))
+		if WG.tooltip then
+			WG.tooltip.ShowTooltip("unitgroups", tooltipAddition, nil, nil, Spring.I18N("ui.unitGroups.name"))
 		end
 		Spring.SetMouseCursor("cursornormal")
 		if b then
@@ -570,17 +570,17 @@ function widget:Update(dt)
 			end
 		end
 
-		if WG["buildmenu"] and WG["buildmenu"].getBottomPosition then
+		if WG.buildmenu and WG.buildmenu.getBottomPosition then
 			local prevbuildmenuBottomPos = buildmenuBottomPos
-			buildmenuBottomPos = WG["buildmenu"].getBottomPosition()
+			buildmenuBottomPos = WG.buildmenu.getBottomPosition()
 			if buildmenuBottomPos ~= prevbuildmenuBottomPos then
 				widget:ViewResize()
 				doUpdate = true
 			end
 		end
-		if WG["ordermenu"] then
+		if WG.ordermenu then
 			local prevOrdermenuPosY = ordermenuPosY
-			ordermenuPosY = select(2, WG["ordermenu"].getPosition())
+			ordermenuPosY = select(2, WG.ordermenu.getPosition())
 			if ordermenuPosY ~= prevOrdermenuPosY then
 				widget:ViewResize()
 				doUpdate = true
@@ -590,7 +590,7 @@ function widget:Update(dt)
 		doUpdate = true -- TODO: find a way to detect group changes and only doUpdate then
 
 		-- detect guishader toggle: force refresh when it comes back on
-		local guishaderActive = WG["guishader"] ~= nil
+		local guishaderActive = WG.guishader ~= nil
 		if guishaderActive and not guishaderWasActive then
 			checkGuishader(true)
 		end

@@ -62,9 +62,9 @@ local quickStartConfig = {
 		waterEnergyStorage = "other",
 	},
 	buildSequence = {
-		["metalMap"] = {
-			["land"] = {
-				["badWind"] = {
+		metalMap = {
+			land = {
+				badWind = {
 					"mex",
 					"solar",
 					"solar",
@@ -77,7 +77,7 @@ local quickStartConfig = {
 					"solar",
 					"landEnergyStorage",
 				},
-				["goodWind"] = {
+				goodWind = {
 					"mex",
 					"windmill",
 					"windmill",
@@ -95,8 +95,8 @@ local quickStartConfig = {
 					"solar",
 				},
 			},
-			["water"] = {
-				["badWind"] = {
+			water = {
+				badWind = {
 					"mex",
 					"mex",
 					"tidal",
@@ -110,7 +110,7 @@ local quickStartConfig = {
 					"tidal",
 					"waterEnergyStorage",
 				},
-				["goodWind"] = {
+				goodWind = {
 					"mex",
 					"mex",
 					"tidal",
@@ -126,9 +126,9 @@ local quickStartConfig = {
 				},
 			},
 		},
-		["nonMetalMap"] = {
-			["land"] = {
-				["badWind"] = {
+		nonMetalMap = {
+			land = {
+				badWind = {
 					"solar",
 					"solar",
 					"solar",
@@ -142,7 +142,7 @@ local quickStartConfig = {
 					"solar",
 					"solar",
 				},
-				["goodWind"] = {
+				goodWind = {
 					"mex",
 					"mex",
 					"windmill",
@@ -163,8 +163,8 @@ local quickStartConfig = {
 					"converter",
 				},
 			},
-			["water"] = {
-				["badWind"] = {
+			water = {
+				badWind = {
 					"mex",
 					"mex",
 					"mex",
@@ -179,7 +179,7 @@ local quickStartConfig = {
 					"tidal",
 					"tidal",
 				},
-				["goodWind"] = {
+				goodWind = {
 					"mex",
 					"mex",
 					"mex",

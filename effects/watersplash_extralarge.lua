@@ -1,7 +1,7 @@
 -- watersplash_extralarge
 
 return {
-	["watersplash_extralarge"] = {
+	watersplash_extralarge = {
 		waterball = {
 			air = false,
 			class = [[CSimpleParticleSystem]],

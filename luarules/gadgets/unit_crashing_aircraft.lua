@@ -37,7 +37,7 @@ if gadgetHandler:IsSyncedCode() then
 	local SetUnitCrashing = Spring.SetUnitCrashing
 
 	local COB_CRASHING = COB.CRASHING
-	local COM_BLAST = WeaponDefNames["commanderexplosion"].id -- used to prevent them being boosted and flying far away
+	local COM_BLAST = WeaponDefNames.commanderexplosion.id -- used to prevent them being boosted and flying far away
 	local CMD_STOP = CMD.STOP
 
 	local crashing = {}
@@ -70,8 +70,8 @@ if gadgetHandler:IsSyncedCode() then
 		if crashable[unitDefID] and (damage > GetUnitHealth(unitID)) and weaponDefID ~= COM_BLAST then
 			-- increase gravity so it crashes faster
 			local moveTypeData = GetUnitMoveTypeData(unitID)
-			if moveTypeData["myGravity"] then
-				SetAirMoveTypeData(unitID, "myGravity", moveTypeData["myGravity"] * gravityMult)
+			if moveTypeData.myGravity then
+				SetAirMoveTypeData(unitID, "myGravity", moveTypeData.myGravity * gravityMult)
 			end
 			-- make it crash
 			crashingCount = crashingCount + 1

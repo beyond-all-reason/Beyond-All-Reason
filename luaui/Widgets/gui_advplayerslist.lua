@@ -147,64 +147,64 @@ local specOffset = 256
 -- IMAGES
 --------------------------------------------------------------------------------
 local images = {}
-images["imgDir"] = LUAUI_DIRNAME .. "Images/advplayerslist/"
-images["imageDirectory"] = ":lc:" .. images["imgDir"]
-images["flagsExt"] = ".png"
-images["flagHeight"] = 10
+images.imgDir = LUAUI_DIRNAME .. "Images/advplayerslist/"
+images.imageDirectory = ":lc:" .. images.imgDir
+images.flagsExt = ".png"
+images.flagHeight = 10
 
 local pics = {
-	currentPic = images["imageDirectory"] .. "indicator.dds",
-	unitsPic = images["imageDirectory"] .. "units.dds",
-	energyPic = images["imageDirectory"] .. "energy.dds",
-	metalPic = images["imageDirectory"] .. "metal.dds",
-	notFirstPic = images["imageDirectory"] .. "notfirst.dds",
-	pingPic = images["imageDirectory"] .. "ping.dds",
-	cpuPic = images["imageDirectory"] .. "cpu.dds",
-	barPic = images["imageDirectory"] .. "bar.png",
-	pointPic = images["imageDirectory"] .. "point.dds",
-	pencilPic = images["imageDirectory"] .. "pencil.dds",
-	eraserPic = images["imageDirectory"] .. "eraser.dds",
-	lowPic = images["imageDirectory"] .. "low.dds",
-	arrowPic = images["imageDirectory"] .. "arrow.dds",
-	takePic = images["imageDirectory"] .. "take.dds",
-	indentPic = images["imageDirectory"] .. "indent.png",
-	cameraPic = images["imageDirectory"] .. "camera.dds",
-	countryPic = images["imageDirectory"] .. "country.dds",
-	readyTexture = images["imageDirectory"] .. "indicator.dds",
-	allyPic = images["imageDirectory"] .. "ally.dds",
-	unallyPic = images["imageDirectory"] .. "unally.dds",
-	resourcesPic = images["imageDirectory"] .. "res.png",
-	resbarPic = images["imageDirectory"] .. "resbar.png",
-	resbarBgPic = images["imageDirectory"] .. "resbarBg.png",
-	incomePic = images["imageDirectory"] .. "res.png",
-	barGlowCenterPic = images["imageDirectory"] .. "barglow-center.png",
-	barGlowEdgePic = images["imageDirectory"] .. "barglow-edge.png",
+	currentPic = images.imageDirectory .. "indicator.dds",
+	unitsPic = images.imageDirectory .. "units.dds",
+	energyPic = images.imageDirectory .. "energy.dds",
+	metalPic = images.imageDirectory .. "metal.dds",
+	notFirstPic = images.imageDirectory .. "notfirst.dds",
+	pingPic = images.imageDirectory .. "ping.dds",
+	cpuPic = images.imageDirectory .. "cpu.dds",
+	barPic = images.imageDirectory .. "bar.png",
+	pointPic = images.imageDirectory .. "point.dds",
+	pencilPic = images.imageDirectory .. "pencil.dds",
+	eraserPic = images.imageDirectory .. "eraser.dds",
+	lowPic = images.imageDirectory .. "low.dds",
+	arrowPic = images.imageDirectory .. "arrow.dds",
+	takePic = images.imageDirectory .. "take.dds",
+	indentPic = images.imageDirectory .. "indent.png",
+	cameraPic = images.imageDirectory .. "camera.dds",
+	countryPic = images.imageDirectory .. "country.dds",
+	readyTexture = images.imageDirectory .. "indicator.dds",
+	allyPic = images.imageDirectory .. "ally.dds",
+	unallyPic = images.imageDirectory .. "unally.dds",
+	resourcesPic = images.imageDirectory .. "res.png",
+	resbarPic = images.imageDirectory .. "resbar.png",
+	resbarBgPic = images.imageDirectory .. "resbarBg.png",
+	incomePic = images.imageDirectory .. "res.png",
+	barGlowCenterPic = images.imageDirectory .. "barglow-center.png",
+	barGlowEdgePic = images.imageDirectory .. "barglow-edge.png",
 
-	chatPic = images["imageDirectory"] .. "chat.dds",
-	sidePic = images["imageDirectory"] .. "side.dds",
-	sharePic = images["imageDirectory"] .. "share.dds",
-	idPic = images["imageDirectory"] .. "id.dds",
-	tsPic = images["imageDirectory"] .. "ts.dds",
+	chatPic = images.imageDirectory .. "chat.dds",
+	sidePic = images.imageDirectory .. "side.dds",
+	sharePic = images.imageDirectory .. "share.dds",
+	idPic = images.imageDirectory .. "id.dds",
+	tsPic = images.imageDirectory .. "ts.dds",
 
-	rank0 = images["imageDirectory"] .. "ranks/1.png",
-	rank1 = images["imageDirectory"] .. "ranks/2.png",
-	rank2 = images["imageDirectory"] .. "ranks/3.png",
-	rank3 = images["imageDirectory"] .. "ranks/4.png",
-	rank4 = images["imageDirectory"] .. "ranks/5.png",
-	rank5 = images["imageDirectory"] .. "ranks/6.png",
-	rank6 = images["imageDirectory"] .. "ranks/7.png",
-	rank7 = images["imageDirectory"] .. "ranks/8.png",
+	rank0 = images.imageDirectory .. "ranks/1.png",
+	rank1 = images.imageDirectory .. "ranks/2.png",
+	rank2 = images.imageDirectory .. "ranks/3.png",
+	rank3 = images.imageDirectory .. "ranks/4.png",
+	rank4 = images.imageDirectory .. "ranks/5.png",
+	rank5 = images.imageDirectory .. "ranks/6.png",
+	rank6 = images.imageDirectory .. "ranks/7.png",
+	rank7 = images.imageDirectory .. "ranks/8.png",
 }
 
 local rankPics = {
-	[0] = pics["rank0"],
-	[1] = pics["rank1"],
-	[2] = pics["rank2"],
-	[3] = pics["rank3"],
-	[4] = pics["rank4"],
-	[5] = pics["rank5"],
-	[6] = pics["rank6"],
-	[7] = pics["rank7"],
+	[0] = pics.rank0,
+	[1] = pics.rank1,
+	[2] = pics.rank2,
+	[3] = pics.rank3,
+	[4] = pics.rank4,
+	[5] = pics.rank5,
+	[6] = pics.rank6,
+	[7] = pics.rank7,
 }
 
 local countryFlagCache = {} -- country code -> texture path or false
@@ -400,7 +400,7 @@ m_indent = {
 	width = 9,
 	position = position,
 	posX = 0,
-	pic = pics["indentPic"],
+	pic = pics.indentPic,
 	noPic = true,
 }
 position = position + 1
@@ -413,7 +413,7 @@ m_allyID = {
 	width = 17,
 	position = position,
 	posX = 0,
-	pic = pics["idPic"],
+	pic = pics.idPic,
 }
 position = position + 1
 
@@ -425,7 +425,7 @@ m_ID = {
 	width = 17,
 	position = position,
 	posX = 0,
-	pic = pics["idPic"],
+	pic = pics.idPic,
 }
 position = position + 1
 
@@ -437,7 +437,7 @@ m_playerID = {
 	width = 17,
 	position = position,
 	posX = 0,
-	pic = pics["idPic"],
+	pic = pics.idPic,
 }
 position = position + 1
 
@@ -450,7 +450,7 @@ m_rank = {
 	width = 18,
 	position = position,
 	posX = 0,
-	pic = pics["rank6"],
+	pic = pics.rank6,
 }
 position = position + 1
 
@@ -463,7 +463,7 @@ m_country = {
 	width = 20,
 	position = position,
 	posX = 0,
-	pic = pics["countryPic"],
+	pic = pics.countryPic,
 }
 position = position + 1
 
@@ -475,7 +475,7 @@ m_side = {
 	width = 18,
 	position = position,
 	posX = 0,
-	pic = pics["sidePic"],
+	pic = pics.sidePic,
 }
 position = position + 1
 
@@ -487,7 +487,7 @@ m_skill = {
 	width = 18,
 	position = position,
 	posX = 0,
-	pic = pics["tsPic"],
+	pic = pics.tsPic,
 }
 position = position + 1
 
@@ -513,7 +513,7 @@ m_cpuping = {
 	width = 24,
 	position = position,
 	posX = 0,
-	pic = pics["cpuPic"],
+	pic = pics.cpuPic,
 }
 position = position + 1
 
@@ -525,7 +525,7 @@ m_resources = {
 	width = 28,
 	position = position,
 	posX = 0,
-	pic = pics["resourcesPic"],
+	pic = pics.resourcesPic,
 	picGap = 7,
 }
 position = position + 1
@@ -538,7 +538,7 @@ m_income = {
 	width = 28,
 	position = position,
 	posX = 0,
-	pic = pics["incomePic"],
+	pic = pics.incomePic,
 	picGap = 7,
 }
 position = position + 1
@@ -551,7 +551,7 @@ m_share = {
 	width = 50,
 	position = position,
 	posX = 0,
-	pic = pics["sharePic"],
+	pic = pics.sharePic,
 }
 position = position + 1
 
@@ -563,7 +563,7 @@ m_chat = {
 	width = 18,
 	position = position,
 	posX = 0,
-	pic = pics["chatPic"],
+	pic = pics.chatPic,
 }
 position = position + 1
 
@@ -577,7 +577,7 @@ m_alliance = {
 	width = 16,
 	position = position,
 	posX = 0,
-	pic = pics["allyPic"],
+	pic = pics.allyPic,
 	noPic = false,
 }
 
@@ -613,7 +613,7 @@ m_point = {
 m_take = {
 	active = true,
 	default = true,
-	pic = pics["takePic"],
+	pic = pics.takePic,
 }
 
 local specsLabelOffset = 0
@@ -971,11 +971,11 @@ function widget:Initialize()
 		rankTeamPlayers()
 	end
 
-	WG["advplayerlist_api"] = {}
-	WG["advplayerlist_api"].GetAlwaysHideSpecs = function()
+	WG.advplayerlist_api = {}
+	WG.advplayerlist_api.GetAlwaysHideSpecs = function()
 		return alwaysHideSpecs
 	end
-	WG["advplayerlist_api"].SetAlwaysHideSpecs = function(value)
+	WG.advplayerlist_api.SetAlwaysHideSpecs = function(value)
 		alwaysHideSpecs = value
 		if alwaysHideSpecs and specListShow then
 			specListShow = false
@@ -984,26 +984,26 @@ function widget:Initialize()
 			CreateLists()
 		end
 	end
-	WG["advplayerlist_api"].GetScale = function()
+	WG.advplayerlist_api.GetScale = function()
 		return customScale
 	end
-	WG["advplayerlist_api"].SetScale = function(value)
+	WG.advplayerlist_api.SetScale = function(value)
 		customScale = value
 		updateWidgetScale()
 	end
-	WG["advplayerlist_api"].GetPosition = function()
+	WG.advplayerlist_api.GetPosition = function()
 		return apiAbsPosition
 	end
-	WG["advplayerlist_api"].GetAbsoluteResbars = function()
+	WG.advplayerlist_api.GetAbsoluteResbars = function()
 		return absoluteResbarValues
 	end
-	WG["advplayerlist_api"].SetAbsoluteResbars = function(value)
+	WG.advplayerlist_api.SetAbsoluteResbars = function(value)
 		absoluteResbarValues = value
 	end
-	WG["advplayerlist_api"].GetModuleActive = function(module)
+	WG.advplayerlist_api.GetModuleActive = function(module)
 		return modules[module].active
 	end
-	WG["advplayerlist_api"].SetModuleActive = function(value)
+	WG.advplayerlist_api.SetModuleActive = function(value)
 		for n, module in pairs(modules) do
 			if module.name == value[1] then
 				modules[n].active = value[2]
@@ -1049,8 +1049,8 @@ function widget:GameFrame(n)
 end
 
 function widget:Shutdown()
-	if WG["guishader"] then
-		WG["guishader"].RemoveDlist("advplayerlist")
+	if WG.guishader then
+		WG.guishader.RemoveDlist("advplayerlist")
 	end
 	if mainListBgTex then
 		gl.DeleteTexture(mainListBgTex)
@@ -1062,7 +1062,7 @@ function widget:Shutdown()
 		mainListTex = nil
 		mainList2Tex = nil
 	end
-	WG["advplayerlist_api"] = nil
+	WG.advplayerlist_api = nil
 	widgetHandler:DeregisterGlobal("ActivityEvent")
 	widgetHandler:DeregisterGlobal("FpsEvent")
 	widgetHandler:DeregisterGlobal("ApmEvent")
@@ -1115,9 +1115,9 @@ function SetSidePics()
 		end
 
 		if teamSide then
-			sidePics[team] = images["imageDirectory"] .. teamSide .. "_default.png"
+			sidePics[team] = images.imageDirectory .. teamSide .. "_default.png"
 		else
-			sidePics[team] = images["imageDirectory"] .. "default.png"
+			sidePics[team] = images.imageDirectory .. "default.png"
 		end
 	end
 end
@@ -1931,13 +1931,13 @@ function CreateBackground()
 		paddingLeft = 0
 	end
 
-	if forceMainListRefresh or not mainListBgTex or (WG["guishader"] and not BackgroundGuishader) then
-		if WG["guishader"] then
+	if forceMainListRefresh or not mainListBgTex or (WG.guishader and not BackgroundGuishader) then
+		if WG.guishader then
 			BackgroundGuishader = gl_DeleteList(BackgroundGuishader)
 			BackgroundGuishader = gl_CreateList(function()
 				RectRound(absLeft, absBottom, absRight, absTop, elementCorner, mathMin(paddingLeft, paddingTop), mathMin(paddingTop, paddingRight), mathMin(paddingRight, paddingBottom), mathMin(paddingBottom, paddingLeft))
 			end)
-			WG["guishader"].InsertDlist(BackgroundGuishader, "advplayerlist", true)
+			WG.guishader.InsertDlist(BackgroundGuishader, "advplayerlist", true)
 		end
 		if mainListTex then
 			gl.DeleteTexture(mainListTex)
@@ -2470,23 +2470,23 @@ function DrawTakeSignal(posY)
 	if blink then
 		-- Draws a blinking rectangle if the player of the same team left (/take option)
 		gl_Color(0.7, 0.7, 0.7)
-		gl_Texture(pics["arrowPic"])
+		gl_Texture(pics.arrowPic)
 		DrawRect(widgetPosX - 14, posY, widgetPosX, posY + 16)
 		gl_Color(1, 1, 1)
-		gl_Texture(pics["takePic"])
+		gl_Texture(pics.takePic)
 		DrawRect(widgetPosX - 57, posY - 15, widgetPosX - 12, posY + 32)
 	end
 end
 
 function DrawShareButtons(posY, needm, neede)
 	gl_Color(1, 1, 1, 1)
-	gl_Texture(pics["unitsPic"])
+	gl_Texture(pics.unitsPic)
 	DrawRect(m_share.posX + widgetPosX + (1 * playerScale), posY, m_share.posX + widgetPosX + (17 * playerScale), posY + (16 * playerScale))
-	gl_Texture(pics["energyPic"])
+	gl_Texture(pics.energyPic)
 	DrawRect(m_share.posX + widgetPosX + (17 * playerScale), posY, m_share.posX + widgetPosX + (33 * playerScale), posY + (16 * playerScale))
-	gl_Texture(pics["metalPic"])
+	gl_Texture(pics.metalPic)
 	DrawRect(m_share.posX + widgetPosX + (33 * playerScale), posY, m_share.posX + widgetPosX + (49 * playerScale), posY + (16 * playerScale))
-	gl_Texture(pics["lowPic"])
+	gl_Texture(pics.lowPic)
 
 	if needm then
 		DrawRect(m_share.posX + widgetPosX + (33 * playerScale), posY, m_share.posX + widgetPosX + (49 * playerScale), posY + (16 * playerScale))
@@ -2500,7 +2500,7 @@ function DrawShareButtons(posY, needm, neede)
 end
 
 function DrawChatButton(posY)
-	gl_Texture(pics["chatPic"])
+	gl_Texture(pics.chatPic)
 	DrawRect(m_chat.posX + widgetPosX + (1 * playerScale), posY, m_chat.posX + widgetPosX + (17 * playerScale), posY + (16 * playerScale))
 end
 
@@ -2530,19 +2530,19 @@ function DrawResources(energy, energyStorage, energyShare, energyConversion, met
 	--gl_Texture(false)
 	--DrawRect(m_resources.posX + widgetPosX + paddingLeft-bordersize, posY + y1Offset+bordersize, m_resources.posX + widgetPosX + paddingLeft + (barWidth * (metalStorage/maxStorage))+bordersize, posY + y2Offset-bordersize)
 	gl_Color(1, 1, 1, 0.18)
-	gl_Texture(pics["resbarBgPic"])
+	gl_Texture(pics.resbarBgPic)
 	DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + (barWidth * (metalStorage / maxStorage)), posY + y2Offset)
 	gl_Color(1, 1, 1, 1)
-	gl_Texture(pics["resbarPic"])
+	gl_Texture(pics.resbarPic)
 	DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * metal), posY + y2Offset)
 
 	if playerScale >= 0.9 and (barWidth / maxStorage) * metal > 0.8 then
 		local glowsize = 10
 		gl_Color(1, 1, 1.2, 0.08)
-		gl_Texture(pics["barGlowCenterPic"])
+		gl_Texture(pics.barGlowCenterPic)
 		DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * metal), posY + y2Offset - glowsize)
 
-		gl_Texture(pics["barGlowEdgePic"])
+		gl_Texture(pics.barGlowEdgePic)
 		DrawRect(m_resources.posX + widgetPosX + paddingLeft - (glowsize * 1.8), posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft, posY + y2Offset - glowsize)
 		DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * metal) + (glowsize * 1.8), posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * metal), posY + y2Offset - glowsize)
 	end
@@ -2552,7 +2552,7 @@ function DrawResources(energy, energyStorage, energyShare, energyConversion, met
 		gl_Texture(false)
 		DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (metalStorage / maxStorage)) * metalShare) - 0.75 - bordersize, posY + y1Offset + 0.55 + bordersize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (metalStorage / maxStorage)) * metalShare) + 0.75 + bordersize, posY + y2Offset - 0.55 - bordersize)
 		gl_Color(1, 0.25, 0.25, 1)
-		gl_Texture(pics["resbarPic"])
+		gl_Texture(pics.resbarPic)
 		DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (metalStorage / maxStorage)) * metalShare) - 0.75, posY + y1Offset + 0.55, m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (metalStorage / maxStorage)) * metalShare) + 0.75, posY + y2Offset - 0.55)
 	end
 
@@ -2568,19 +2568,19 @@ function DrawResources(energy, energyStorage, energyShare, energyConversion, met
 	--gl_Texture(false)
 	--DrawRect(m_resources.posX + widgetPosX + paddingLeft -bordersize, posY + y1Offset+bordersize, m_resources.posX + widgetPosX + paddingLeft + (barWidth * (energyStorage/maxStorage))+bordersize, posY + y2Offset-bordersize)
 	gl_Color(1, 1, 0, 0.18)
-	gl_Texture(pics["resbarBgPic"])
+	gl_Texture(pics.resbarBgPic)
 	DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + (barWidth * (energyStorage / maxStorage)), posY + y2Offset)
 	gl_Color(1, 1, 0, 1)
-	gl_Texture(pics["resbarPic"])
+	gl_Texture(pics.resbarPic)
 	DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * energy), posY + y2Offset)
 
 	if playerScale >= 0.9 and (barWidth / maxStorage) * energy > 0.8 then
 		local glowsize = 10
 		gl_Color(1, 1, 0.2, 0.08)
-		gl_Texture(pics["barGlowCenterPic"])
+		gl_Texture(pics.barGlowCenterPic)
 		DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * energy), posY + y2Offset - glowsize)
 
-		gl_Texture(pics["barGlowEdgePic"])
+		gl_Texture(pics.barGlowEdgePic)
 		DrawRect(m_resources.posX + widgetPosX + paddingLeft - (glowsize * 1.8), posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft, posY + y2Offset - glowsize)
 		DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * energy) + (glowsize * 1.8), posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * energy), posY + y2Offset - glowsize)
 	end
@@ -2590,7 +2590,7 @@ function DrawResources(energy, energyStorage, energyShare, energyConversion, met
 		gl_Texture(false)
 		DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage / maxStorage)) * energyConversion) - 0.75 - bordersize, posY + y1Offset + 0.55 + bordersize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage / maxStorage)) * energyConversion) + 0.75 + bordersize, posY + y2Offset - 0.55 - bordersize)
 		gl_Color(0.9, 0.9, 0.73, 1)
-		gl_Texture(pics["resbarPic"])
+		gl_Texture(pics.resbarPic)
 		DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage / maxStorage)) * energyConversion) - 0.75, posY + y1Offset + 0.55, m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage / maxStorage)) * energyConversion) + 0.75, posY + y2Offset - 0.55)
 	end
 
@@ -2599,7 +2599,7 @@ function DrawResources(energy, energyStorage, energyShare, energyConversion, met
 		gl_Texture(false)
 		DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage / maxStorage)) * energyShare) - 0.75 - bordersize, posY + y1Offset + 1.1, m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage / maxStorage)) * energyShare) + 0.75 + bordersize, posY + y2Offset - 1.1)
 		gl_Color(1, 0.25, 0.25, 1)
-		gl_Texture(pics["resbarPic"])
+		gl_Texture(pics.resbarPic)
 		DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage / maxStorage)) * energyShare) - 0.75, posY + y1Offset + 0.55, m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage / maxStorage)) * energyShare) + 0.75, posY + y2Offset - 0.55)
 	end
 end
@@ -2625,7 +2625,7 @@ function DrawSidePic(team, playerID, posY, leader, dark, ai)
 		if leader then
 			gl_Texture(sidePics[team]) -- sets side image (for leaders)
 		else
-			gl_Texture(pics["notFirstPic"]) -- sets image for not leader of team players
+			gl_Texture(pics.notFirstPic) -- sets image for not leader of team players
 		end
 		DrawRect(m_side.posX + widgetPosX + (2 * playerScale), posY + (1 * playerScale), m_side.posX + widgetPosX + (16 * playerScale), posY + (15 * playerScale)) -- draws side image
 		gl_Texture(false)
@@ -2666,9 +2666,9 @@ end
 function DrawAlly(posY, team)
 	gl_Color(1, 1, 1, 0.66)
 	if sp.AreTeamsAllied(team, myTeamID) then
-		gl_Texture(pics["unallyPic"])
+		gl_Texture(pics.unallyPic)
 	else
-		gl_Texture(pics["allyPic"])
+		gl_Texture(pics.allyPic)
 	end
 	DrawRect(m_alliance.posX + widgetPosX + (3 * playerScale), posY + (1 * playerScale), m_alliance.posX + widgetPosX + (playerOffset * playerScale), posY + (15 * playerScale))
 end
@@ -2679,7 +2679,7 @@ function DrawCountry(country, posY)
 	end
 	local cached = countryFlagCache[country]
 	if cached == nil then
-		local path = images["imgDir"] .. "flags/" .. strUpper(country) .. images["flagsExt"]
+		local path = images.imgDir .. "flags/" .. strUpper(country) .. images.flagsExt
 		if VFS.FileExists(path) then
 			cached = path
 		else
@@ -2690,13 +2690,13 @@ function DrawCountry(country, posY)
 	if cached then
 		gl_Texture(cached)
 		gl_Color(1, 1, 1, 1)
-		DrawRect(m_country.posX + widgetPosX + (3 * playerScale), posY + (8 * playerScale) - ((images["flagHeight"] / 2) * playerScale), m_country.posX + widgetPosX + (17 * playerScale), posY + (8 * playerScale) + ((images["flagHeight"] / 2) * playerScale))
+		DrawRect(m_country.posX + widgetPosX + (3 * playerScale), posY + (8 * playerScale) - ((images.flagHeight / 2) * playerScale), m_country.posX + widgetPosX + (17 * playerScale), posY + (8 * playerScale) + ((images.flagHeight / 2) * playerScale))
 	end
 end
 
 function DrawDot(posY)
 	gl_Color(1, 1, 1, 0.70)
-	gl_Texture(pics["currentPic"])
+	gl_Texture(pics.currentPic)
 	DrawRect(m_indent.posX + widgetPosX - 1, posY + (3 * playerScale), m_indent.posX + widgetPosX + (7 * playerScale), posY + (11 * playerScale))
 end
 
@@ -2706,7 +2706,7 @@ function DrawCamera(posY, active)
 	else
 		gl_Color(1, 1, 1, 0.13)
 	end
-	gl_Texture(pics["cameraPic"])
+	gl_Texture(pics.cameraPic)
 	DrawRect(m_indent.posX + widgetPosX - (1.5 * playerScale), posY + (2 * playerScale), m_indent.posX + widgetPosX + (9 * playerScale), posY + (12.4 * playerScale))
 end
 
@@ -2739,7 +2739,7 @@ function DrawState(playerID, posX, posY)
 			end
 		end
 	end
-	gl_Texture(pics["readyTexture"])
+	gl_Texture(pics.readyTexture)
 	DrawRect(posX, posY - (1 * playerScale), posX + (16 * playerScale), posY + (16 * playerScale))
 	gl_Color(1, 1, 1, 1)
 end
@@ -2963,7 +2963,7 @@ end
 function DrawPingCpu(pingLvl, cpuLvl, posY, spec, cpu, fps)
 	local fontScale = fontScaleHigh
 
-	gl_Texture(pics["pingPic"])
+	gl_Texture(pics.pingPic)
 	local grayvalue
 	if spec then
 		grayvalue = 0.5 + (pingLvl / 20)
@@ -2995,7 +2995,7 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, cpu, fps)
 		end
 	else
 		grayvalue = 0.7 + (cpu / 135)
-		gl_Texture(pics["cpuPic"])
+		gl_Texture(pics.cpuPic)
 		if spec then
 			gl_Color(grayvalue, grayvalue, grayvalue, 0.1 + (0.14 * cpuLvl))
 			DrawRect(m_cpuping.posX + widgetPosX + (2 * specScale), posY + (1 * specScale), m_cpuping.posX + widgetPosX + (13 * specScale), posY + (14 * specScale * fontScale))
@@ -3010,10 +3010,10 @@ end
 
 function DrawPoint(posY, pointtime)
 	gl_Color(1, 0, 0, pointtime / pointDuration)
-	gl_Texture(pics["arrowPic"])
+	gl_Texture(pics.arrowPic)
 	DrawRect(widgetPosX - (18 * playerScale), posY, widgetPosX - (2 * playerScale), posY + (14 * playerScale))
 	gl_Color(1, 1, 1, pointtime / pointDuration)
-	gl_Texture(pics["pointPic"])
+	gl_Texture(pics.pointPic)
 	DrawRect(widgetPosX - (33 * playerScale), posY - (1 * playerScale), widgetPosX - (17 * playerScale), posY + (15 * playerScale))
 	gl_Color(1, 1, 1, 1)
 end
@@ -3021,7 +3021,7 @@ end
 function DrawPencil(posY, time)
 	leftPosX = widgetPosX + widgetWidth
 	gl_Color(1, 1, 1, (time / pencilDuration) * 0.12)
-	gl_Texture(pics["pencilPic"])
+	gl_Texture(pics.pencilPic)
 	DrawRect(m_indent.posX + widgetPosX - 3.5, posY + (3 * playerScale), m_indent.posX + widgetPosX - 1.5 + (8 * playerScale), posY + (14 * playerScale))
 	gl_Color(1, 1, 1, 1)
 end
@@ -3029,7 +3029,7 @@ end
 function DrawEraser(posY, time)
 	leftPosX = widgetPosX + widgetWidth
 	gl_Color(1, 1, 1, (time / pencilDuration) * 0.12)
-	gl_Texture(pics["eraserPic"])
+	gl_Texture(pics.eraserPic)
 	DrawRect(m_indent.posX + widgetPosX - 0.5, posY + (3 * playerScale), m_indent.posX + widgetPosX + 1.5 + (8 * playerScale), posY + (14 * playerScale))
 	gl_Color(1, 1, 1, 1)
 end
@@ -3238,9 +3238,9 @@ function CreateShareSlider()
 			local posY
 			if energyPlayer ~= nil then
 				posY = widgetPosY + widgetHeight - energyPlayer.posY
-				gl_Texture(pics["barPic"])
+				gl_Texture(pics.barPic)
 				DrawRect(m_share.posX + widgetPosX + (16 * playerScale), posY - (3 * playerScale), m_share.posX + widgetPosX + (34 * playerScale), posY + shareSliderHeight + (18 * playerScale))
-				gl_Texture(pics["energyPic"])
+				gl_Texture(pics.energyPic)
 				DrawRect(m_share.posX + widgetPosX + (17 * playerScale), posY + sliderPosition, m_share.posX + widgetPosX + (33 * playerScale), posY + (16 * playerScale) + sliderPosition)
 				gl_Texture(false)
 				gl_Color(0.45, 0.45, 0.45, 1)
@@ -3248,9 +3248,9 @@ function CreateShareSlider()
 				font:Print("\255\255\255\255" .. shareAmount, m_share.posX + widgetPosX - (5 * playerScale), posY + (3 * playerScale) + sliderPosition, 14, "ocn")
 			elseif metalPlayer ~= nil then
 				posY = widgetPosY + widgetHeight - metalPlayer.posY
-				gl_Texture(pics["barPic"])
+				gl_Texture(pics.barPic)
 				DrawRect(m_share.posX + widgetPosX + (32 * playerScale), posY - 3, m_share.posX + widgetPosX + (50 * playerScale), posY + shareSliderHeight + (18 * playerScale))
-				gl_Texture(pics["metalPic"])
+				gl_Texture(pics.metalPic)
 				DrawRect(m_share.posX + widgetPosX + (33 * playerScale), posY + sliderPosition, m_share.posX + widgetPosX + (49 * playerScale), posY + (16 * playerScale) + sliderPosition)
 				gl_Texture(false)
 				gl_Color(0.45, 0.45, 0.45, 1)
@@ -3940,8 +3940,8 @@ function widget:Update(delta)
 			end
 		end
 
-		if tipText and WG["tooltip"] then
-			WG["tooltip"].ShowTooltip("advplayerlist", tipText, nil, nil, tipTextTitle)
+		if tipText and WG.tooltip then
+			WG.tooltip.ShowTooltip("advplayerlist", tipText, nil, nil, tipTextTitle)
 		end
 		Spring.SetMouseCursor("cursornormal")
 	end
@@ -4019,7 +4019,7 @@ function widget:Update(delta)
 	end
 
 	-- detect guishader widget being toggled back on
-	local guishaderNow = WG["guishader"] ~= nil
+	local guishaderNow = WG.guishader ~= nil
 	if guishaderNow and not guishaderWasActive then
 		BackgroundGuishader = gl_DeleteList(BackgroundGuishader)
 		forceMainListRefresh = true
@@ -4079,8 +4079,8 @@ function widget:ViewResize()
 
 	updateWidgetScale()
 
-	font = WG["fonts"].getFont()
-	font2 = WG["fonts"].getFont(2, 1.5, 0.13, 20)
+	font = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2, 1.5, 0.13, 20)
 
 	local MakeAtlasOnDemand = VFS.Include("LuaUI/Include/AtlasOnDemand.lua")
 	if AdvPlayersListAtlas then

@@ -108,7 +108,7 @@ function widget:ViewResize()
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiButton = WG.FlowUI.Draw.Button
 
-	font = WG["fonts"].getFont(2, 1.6)
+	font = WG.fonts.getFont(2, 1.6)
 end
 
 function widget:Initialize()
@@ -128,16 +128,16 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	if WG["guishader"] then
-		WG["guishader"].DeleteDlist("replaybuttons")
+	if WG.guishader then
+		WG.guishader.DeleteDlist("replaybuttons")
 	end
 	gl.DeleteList(buttonsList)
 end
 
 function widget:DrawScreen()
 	if not isActive then
-		if WG["guishader"] and prevIsActive ~= isActive then
-			WG["guishader"].RemoveDlist("replaybuttons")
+		if WG.guishader and prevIsActive ~= isActive then
+			WG.guishader.RemoveDlist("replaybuttons")
 		end
 		return
 	end
@@ -158,8 +158,8 @@ function widget:DrawScreen()
 		end)
 	end
 
-	if WG["guishader"] and isActive and prevIsActive ~= isActive then
-		WG["guishader"].InsertDlist(backgroundGuishader, "replaybuttons")
+	if WG.guishader and isActive and prevIsActive ~= isActive then
+		WG.guishader.InsertDlist(backgroundGuishader, "replaybuttons")
 	end
 
 	if buttonsList then
