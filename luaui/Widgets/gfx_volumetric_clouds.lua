@@ -49,7 +49,7 @@ else
 	--error("<Volumetric Clouds>: no custom defined mapinfo.lua cloud settings found")
 end
 
-local gnd_min, gnd_max = Spring.GetGroundExtremes()
+local gnd_min, gnd_max = SpringShared.GetGroundExtremes()
 
 local function convertAltitude(input, default)
 	local result = input
@@ -107,9 +107,9 @@ local glCreateTexture        = gl.CreateTexture
 local glDeleteTexture        = gl.DeleteTexture
 local glTexture              = gl.Texture
 local LuaShader 			 = gl.LuaShader
-local spGetCameraPosition    = Spring.GetCameraPosition
-local spGetWind              = Spring.GetWind
-local spEcho				 = Spring.Echo
+local spGetCameraPosition    = SpringUnsynced.GetCameraPosition
+local spGetWind              = SpringShared.GetWind
+local spEcho				 = SpringShared.Echo
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -145,7 +145,7 @@ local offsetZ = 0
 --------------------------------------------------------------------------------
 
 function widget:ViewResize()
-	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
+	vsx, vsy, vpx, vpy = SpringUnsynced.GetViewGeometry()
 
 	if depthTexture then
 		glDeleteTexture(depthTexture)
@@ -635,7 +635,7 @@ local function DrawFogNew()
 		depthShader:SetUniform("sundir", sunDir[1], sunDir[2], sunDir[3])
 		depthShader:SetUniform("suncolor", sunCol[1], sunCol[2], sunCol[3])
 
-		depthShader:SetUniform("time", Spring.GetGameSeconds() * speed)
+		depthShader:SetUniform("time", SpringShared.GetGameSeconds() * speed)
 
 		depthShader:SetUniformMatrix("viewProjectionInv", "viewprojectioninverse")
 

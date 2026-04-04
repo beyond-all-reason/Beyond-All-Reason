@@ -17,7 +17,7 @@ end
 local tableInsert = table.insert
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 local applyFirstEncounteredName = false
 local maxHistorySize = 3000	 -- max number of accounts in history
@@ -31,7 +31,7 @@ local currentAccounts = {}	-- accountID to name
 
 local reconnected = false	-- flag to track if this is a reconnection/reload
 
-local spGetPlayerInfo = Spring.GetPlayerInfo
+local spGetPlayerInfo = SpringShared.GetPlayerInfo
 
 local function getPlayername(playerID, accountID, skipAlias)
 	if playerID then
@@ -196,7 +196,7 @@ local function setaliasCmd(_, _, params)
 				end
 				-- reload the whole UI
 				-- TODO: add a small delay to allow the echo to be readable
-				Spring.SendCommands("luaui reload")
+				SpringUnsynced.SendCommands("luaui reload")
 			end
 		else
 
@@ -206,7 +206,7 @@ local function setaliasCmd(_, _, params)
 end
 
 function widget:Initialize()
-	local playerList = Spring.GetPlayerList()
+	local playerList = SpringShared.GetPlayerList()
 	for _, playerID in ipairs(playerList) do
 		local _, _, _, _, _, _, _, _, _, _, playerInfo = spGetPlayerInfo(playerID)
 		local accountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid)
@@ -252,7 +252,7 @@ end
 
 function widget:GetConfigData()
 	return {
-		gameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"),
+		gameID = Game.gameID and Game.gameID or SpringShared.GetGameRulesParam("GameID"),
 		applyFirstEncounteredName = applyFirstEncounteredName,
 		history = history,
 		currentNames = currentNames,
@@ -262,7 +262,7 @@ end
 
 function widget:SetConfigData(data)
 	history = data.history or {}
-	if data.gameID and data.gameID == (Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID")) then
+	if data.gameID and data.gameID == (Game.gameID and Game.gameID or SpringShared.GetGameRulesParam("GameID")) then
 		currentNames = data.currentNames or {}
 		currentAccounts = data.currentAccounts or {}
 		reconnected = true

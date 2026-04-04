@@ -1,5 +1,5 @@
 function skip()
-	return Spring.GetGameFrame() <= 0
+	return SpringShared.GetGameFrame() <= 0
 end
 
 function setup()
@@ -49,12 +49,12 @@ function runWaitUntil(countOnly, reallyCountOnly, wait, expect, clear)
 
 	local unitID = SyncedRun(function(locals)
 		local x, z = Game.mapSizeX / 2, Game.mapSizeZ / 2
-		local y = Spring.GetGroundHeight(x, z)
-		return Spring.CreateUnit("armpw", x, y, z, 0, locals.myTeamID)
+		local y = SpringShared.GetGroundHeight(x, z)
+		return SpringSynced.CreateUnit("armpw", x, y, z, 0, locals.myTeamID)
 	end)
 
 	-- issue selfd
-	Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
+	SpringSynced.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
 
 	-- actual test
 	if wait > 0 then
@@ -65,7 +65,7 @@ function runWaitUntil(countOnly, reallyCountOnly, wait, expect, clear)
 	else
 		Test.waitUntilCallinArgs("UnitCommand", { nil, nil, nil, CMD.SELFD, nil, nil, nil })
 	end
-	assert(Spring.GetUnitSelfDTime(unitID) > 0)
+	assert(SpringShared.GetUnitSelfDTime(unitID) > 0)
 
 	if clear then
 		Test.clearCallins()

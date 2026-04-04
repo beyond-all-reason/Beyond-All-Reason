@@ -167,22 +167,22 @@ function widget:Initialize()
 	WG['NightFactor'] = {red = 1, green = 1, blue = 1, shadow = 1, altitude = 1}
 
 	if not mapSunLighting[currentMapname] and not mapSun[currentMapname] then return end
-	if Spring.GetGameFrame() < 1 then
+	if SpringShared.GetGameFrame() < 1 then
 		if mapSun[currentMapname] then
-			Spring.SetSunDirection(mapSun[currentMapname][1], mapSun[currentMapname][2], mapSun[currentMapname][3])
-			Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
+			SpringUnsynced.SetSunDirection(mapSun[currentMapname][1], mapSun[currentMapname][2], mapSun[currentMapname][3])
+			SpringUnsynced.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
 			--Spring.SendCommands("luarules updatesun")
 		end
 		if mapSunLighting[currentMapname] then
-			Spring.SetSunLighting(mapSunLighting[currentMapname])
-			Spring.SendCommands("luarules updatesun")
+			SpringUnsynced.SetSunLighting(mapSunLighting[currentMapname])
+			SpringUnsynced.SendCommands("luarules updatesun")
 		end
 	end
 end
 
 local lastSunChanged = -1
 function widget:SunChanged() -- Note that map_nightmode.lua gadget has to change sun twice in a single draw frame to update all
-	local df = Spring.GetDrawFrame()
+	local df = SpringUnsynced.GetDrawFrame()
 
 	if df == lastSunChanged then return end
 	lastSunChanged = df

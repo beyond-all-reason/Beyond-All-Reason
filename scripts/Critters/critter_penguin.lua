@@ -10,7 +10,7 @@ local SIG_WALK = 2
 
 local tspeed = math.rad (180)
 local ta = math.rad (30)
-local GetGameFrame = Spring.GetGameFrame
+local GetGameFrame = SpringShared.GetGameFrame
 function script.Create ()
 	--Spin (wing2,x_axis, 0.5)
 end
@@ -77,7 +77,7 @@ function jump()
 	Move (body, y_axis, 15,40)
 	WaitForMove (body,y_axis)
 	Move (body, y_axis, 0,40)
-	lastJump = Spring.GetGameFrame ()
+	lastJump = SpringShared.GetGameFrame ()
 end
 
 

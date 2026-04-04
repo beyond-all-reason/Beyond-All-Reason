@@ -10,13 +10,13 @@ local function disableTrigger(triggerId)
 end
 
 local function sendMessage(message)
-	Spring.Echo(message)
+	SpringShared.Echo(message)
 end
 
 local function spawnUnits(name, unitDefName, quantity, x, y, z)
-	y = y or Spring.GetGroundHeight(x, z)
+	y = y or SpringShared.GetGroundHeight(x, z)
 
-	local unitId = Spring.CreateUnit(unitDefName, x, y, z, "south", 0)
+	local unitId = SpringSynced.CreateUnit(unitDefName, x, y, z, "south", 0)
 
 	if unitId and name then
 		trackedUnits[name] = unitId
@@ -31,7 +31,7 @@ local function despawnUnits(name)
 		trackedUnits[name] = nil
 		trackedUnits[unitId] = nil
 
-		Spring.DestroyUnit(unitId, false, true)
+		SpringSynced.DestroyUnit(unitId, false, true)
 	end
 end
 

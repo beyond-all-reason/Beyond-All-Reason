@@ -16,7 +16,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local spCallCOBScript = Spring.CallCOBScript
+local spCallCOBScript = SpringSynced.CallCOBScript
 local mathAtan2 = math.atan2
 local mathDeg = math.deg
 local mathTau = math.tau

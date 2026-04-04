@@ -10,7 +10,7 @@ function ReadWAV(fname)
 		return wavCache[fname]
 	end
 	if not VFS.FileExists(fname) then
-		Spring.Echo("ReadWAV: File does not exist:", fname)
+		SpringShared.Echo("ReadWAV: File does not exist:", fname)
 		return nil
 	end
 	local data = VFS.LoadFile(fname)
@@ -33,7 +33,7 @@ function ReadWAV(fname)
 			}
 		return wavCache[fname]
 	else
-		Spring.Echo("ReadWAV: File is not a RIFF .wav file:", fname)
+		SpringShared.Echo("ReadWAV: File is not a RIFF .wav file:", fname)
 	end
 
 end

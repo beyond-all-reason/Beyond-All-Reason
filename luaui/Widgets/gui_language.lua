@@ -36,7 +36,7 @@ function widget:Initialize()
 	WG['language'] = {}
 
 	WG['language'].setLanguage = function(language)
-		Spring.SetConfigString('language', language)
+		SpringUnsynced.SetConfigString('language', language)
 		Spring.I18N.setLanguage(language)
 
 		if Script.LuaUI('LanguageChanged') then
@@ -45,7 +45,7 @@ function widget:Initialize()
 	end
 
 	WG['language'].setEnglishUnitNames = function(value)
-		Spring.SetConfigInt("language_english_unit_names", value and 1 or 0)
+		SpringUnsynced.SetConfigInt("language_english_unit_names", value and 1 or 0)
 
 		if Script.LuaUI('LanguageChanged') then
 			Script.LuaUI.LanguageChanged()

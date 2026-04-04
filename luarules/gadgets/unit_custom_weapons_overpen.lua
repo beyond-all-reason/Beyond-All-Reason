@@ -70,28 +70,28 @@ local max  = math.max
 local min  = math.min
 local sqrt = math.sqrt
 
-local spGetFeatureHealth       = Spring.GetFeatureHealth
-local spGetFeaturePosition     = Spring.GetFeaturePosition
-local spGetFeatureRadius       = Spring.GetFeatureRadius
-local spGetGroundHeight        = Spring.GetGroundHeight
-local spGetProjectileDirection = Spring.GetProjectileDirection
-local spGetProjectilePosition  = Spring.GetProjectilePosition
-local spGetProjectileVelocity  = Spring.GetProjectileVelocity
-local spGetUnitHealth          = Spring.GetUnitHealth
-local spGetUnitIsDead          = Spring.GetUnitIsDead
-local spGetUnitPosition        = Spring.GetUnitPosition
-local spGetUnitRadius          = Spring.GetUnitRadius
-local spGetWaterLevel          = Spring.GetWaterLevel
+local spGetFeatureHealth       = SpringShared.GetFeatureHealth
+local spGetFeaturePosition     = SpringShared.GetFeaturePosition
+local spGetFeatureRadius       = SpringShared.GetFeatureRadius
+local spGetGroundHeight        = SpringShared.GetGroundHeight
+local spGetProjectileDirection = SpringShared.GetProjectileDirection
+local spGetProjectilePosition  = SpringShared.GetProjectilePosition
+local spGetProjectileVelocity  = SpringShared.GetProjectileVelocity
+local spGetUnitHealth          = SpringShared.GetUnitHealth
+local spGetUnitIsDead          = SpringShared.GetUnitIsDead
+local spGetUnitPosition        = SpringShared.GetUnitPosition
+local spGetUnitRadius          = SpringShared.GetUnitRadius
+local spGetWaterLevel          = SpringShared.GetWaterLevel
 
-local spSetProjectilePosition  = Spring.SetProjectilePosition
-local spSetProjectileVelocity  = Spring.SetProjectileVelocity
-local spSetProjectileMoveCtrl  = Spring.SetProjectileMoveControl
+local spSetProjectilePosition  = SpringSynced.SetProjectilePosition
+local spSetProjectileVelocity  = SpringSynced.SetProjectileVelocity
+local spSetProjectileMoveCtrl  = SpringSynced.SetProjectileMoveControl
 
-local spAddUnitDamage          = Spring.AddUnitDamage
-local spAddFeatureDamage       = Spring.AddFeatureDamage
-local spDeleteProjectile       = Spring.DeleteProjectile
-local spValidFeatureID         = Spring.ValidFeatureID
-local spValidUnitID            = Spring.ValidUnitID
+local spAddUnitDamage          = SpringSynced.AddUnitDamage
+local spAddFeatureDamage       = SpringSynced.AddFeatureDamage
+local spDeleteProjectile       = SpringSynced.DeleteProjectile
+local spValidFeatureID         = SpringShared.ValidFeatureID
+local spValidUnitID            = SpringShared.ValidUnitID
 
 local armorDefault = Game.armorTypes.default
 local armorShields = Game.armorTypes.shields
@@ -534,7 +534,7 @@ end
 
 function gadget:Initialize()
 	if not loadPenetratorWeaponDefs() then
-		Spring.Log(gadget:GetInfo().name, LOG.INFO, "No weapons with over-penetration found. Removing.")
+		SpringShared.Log(gadget:GetInfo().name, LOG.INFO, "No weapons with over-penetration found. Removing.")
 		gadgetHandler:RemoveGadget(self)
 		return
 	end
@@ -550,7 +550,7 @@ function gadget:Initialize()
 	setVelocityControl = GG.SetVelocityControl
 
 	if not GG.Shields then
-		Spring.Log("ScriptedWeapons", LOG.ERROR, "Shields API unavailable (overpen)")
+		SpringShared.Log("ScriptedWeapons", LOG.ERROR, "Shields API unavailable (overpen)")
 		return
 	end
 

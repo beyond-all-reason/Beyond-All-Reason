@@ -17,22 +17,22 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 if Spring.Utilities.Gametype.IsRaptors() then
-	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Raptor Defense Spawner Activated!")
+	SpringShared.Log(gadget:GetInfo().name, LOG.INFO, "Raptor Defense Spawner Activated!")
 elseif Spring.Utilities.Gametype.IsScavengers() then
-    Spring.Log(gadget:GetInfo().name, LOG.INFO, "Scav Defense Spawner Activated!")
+    SpringShared.Log(gadget:GetInfo().name, LOG.INFO, "Scav Defense Spawner Activated!")
 else
-	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Defense Spawner Deactivated!")
+	SpringShared.Log(gadget:GetInfo().name, LOG.INFO, "Defense Spawner Deactivated!")
 	return false
 end
 
-local spGetUnitHealth = Spring.GetUnitHealth
-local spAreTeamsAllied = Spring.AreTeamsAllied
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitsInSphere = Spring.GetUnitsInSphere
-local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
-local spGetUnitDefID = Spring.GetUnitDefID
-local spSetUnitHealth = Spring.SetUnitHealth
-local spSpawnCEG = Spring.SpawnCEG
+local spGetUnitHealth = SpringShared.GetUnitHealth
+local spAreTeamsAllied = SpringShared.AreTeamsAllied
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetUnitsInSphere = SpringShared.GetUnitsInSphere
+local spGetUnitNearestEnemy = SpringShared.GetUnitNearestEnemy
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spSetUnitHealth = SpringSynced.SetUnitHealth
+local spSpawnCEG = SpringSynced.SpawnCEG
 local mathCeil = math.ceil
 
 

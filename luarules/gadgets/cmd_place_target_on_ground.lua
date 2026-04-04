@@ -29,12 +29,12 @@ for uDefID, uDef in pairs(UnitDefs) do
 	end
 end
 
-local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
-local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
-local spEditUnitCmdDesc = Spring.EditUnitCmdDesc
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spFindUnitCmdDesc = SpringShared.FindUnitCmdDesc
+local spGetUnitCmdDescs = SpringShared.GetUnitCmdDescs
+local spEditUnitCmdDesc = SpringSynced.EditUnitCmdDesc
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetGroundHeight = SpringShared.GetGroundHeight
+local spGiveOrderToUnit = SpringSynced.GiveOrderToUnit
 
 local CMD_ATTACK = CMD.ATTACK
 local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET

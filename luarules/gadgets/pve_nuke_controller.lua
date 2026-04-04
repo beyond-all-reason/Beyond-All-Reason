@@ -19,13 +19,13 @@ end
 local difficulty = "normal"
 
 if Spring.Utilities.Gametype.IsRaptors() then
-	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Raptor Defense Spawner Activated!")
-    difficulty = Spring.GetModOptions().raptor_difficulty
+	SpringShared.Log(gadget:GetInfo().name, LOG.INFO, "Raptor Defense Spawner Activated!")
+    difficulty = SpringShared.GetModOptions().raptor_difficulty
 elseif Spring.Utilities.Gametype.IsScavengers() then
-    Spring.Log(gadget:GetInfo().name, LOG.INFO, "Scav Defense Spawner Activated!")
-    difficulty = Spring.GetModOptions().scav_difficulty
+    SpringShared.Log(gadget:GetInfo().name, LOG.INFO, "Scav Defense Spawner Activated!")
+    difficulty = SpringShared.GetModOptions().scav_difficulty
 else
-	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Defense Spawner Deactivated!")
+	SpringShared.Log(gadget:GetInfo().name, LOG.INFO, "Defense Spawner Deactivated!")
 	return false
 end
 
@@ -48,7 +48,7 @@ local aliveNukeLaunchers = {}
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
     if nukeDefs[unitDefID] and (unitTeam == pveTeamID) then
-        aliveNukeLaunchers[unitID] = Spring.GetGameSeconds() + math.random(5,10)
+        aliveNukeLaunchers[unitID] = SpringShared.GetGameSeconds() + math.random(5,10)
     end
 end
 
@@ -73,7 +73,7 @@ local mapSizeZ = Game.mapSizeZ
 local targetGridCells = {}
 local numOfCellsX = math.ceil(mapSizeX/gridSize)
 local numOfCellsZ = math.ceil(mapSizeZ/gridSize)
-local GetGameSeconds = Spring.GetGameSeconds
+local GetGameSeconds = SpringShared.GetGameSeconds
 
 for cellX = 1, numOfCellsX do
     for cellZ = 1, numOfCellsZ do
@@ -101,17 +101,17 @@ end
 
 function gadget:GameFrame(frame)
     if frame%30 == 17 then
-        local allUnits = Spring.GetAllUnits()
+        local allUnits = SpringShared.GetAllUnits()
         for nukeID, cooldown in pairs(aliveNukeLaunchers) do
             if cooldown <= GetGameSeconds() then
                 local targetID = allUnits[math.random(1,#allUnits)]
-                if Spring.GetUnitTeam(targetID) ~= Spring.GetUnitTeam(nukeID) then
-                    local x,y,z = Spring.GetUnitPosition(targetID)
+                if SpringShared.GetUnitTeam(targetID) ~= SpringShared.GetUnitTeam(nukeID) then
+                    local x,y,z = SpringShared.GetUnitPosition(targetID)
                     x = x + math.random(-1024,1024)
                     z = z + math.random(-1024,1024)
-                    y = math.max(Spring.GetGroundHeight(x,z), 0)
+                    y = math.max(SpringShared.GetGroundHeight(x,z), 0)
                     if x and z and x > 0 and x < mapSizeX and z > 0 and z < mapSizeZ and checkTargetCell(x,z,nukeID) then
-                        Spring.GiveOrderToUnit(nukeID, CMD.ATTACK, {x, y, z}, 0)
+                        SpringSynced.GiveOrderToUnit(nukeID, CMD.ATTACK, {x, y, z}, 0)
                         aliveNukeLaunchers[nukeID] = GetGameSeconds() + math.random(10,90)
                     end
                 end

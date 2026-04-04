@@ -15,7 +15,7 @@ end
 --early exits
 if not gadgetHandler:IsSyncedCode() then return false end
 
-local modOptions = Spring.GetModOptions()
+local modOptions = SpringShared.GetModOptions()
 
 if modOptions.nowasting == "default" or modOptions.nowasting == "disabled" then return false end
 
@@ -47,8 +47,8 @@ local isAllyTeamWinning
 local averageAlliedTechGuesstimate
 
 --localized functions
-local spGetTeamResources = Spring.GetTeamResources
-local spSetUnitBuildSpeed = Spring.SetUnitBuildSpeed
+local spGetTeamResources = SpringShared.GetTeamResources
+local spSetUnitBuildSpeed = SpringSynced.SetUnitBuildSpeed
 
 for id, def in pairs(UnitDefs) do
 	if def.buildSpeed and def.buildSpeed > 0 and def.speed and def.speed == 0 then --we only want base factories and construction turrets to get boosted
@@ -132,11 +132,11 @@ function gadget:GameFrame(frame)
 			end
 			if newBuildPowerMultiplier == 1 then
 				for teamID, _ in pairs(boostableAllies[allyID]) do
-					Spring.SetTeamRulesParam(teamID, "suspendbuilderpriority", 0)
+					SpringSynced.SetTeamRulesParam(teamID, "suspendbuilderpriority", 0)
 				end
 			else
 				for teamID, _ in pairs(boostableAllies[allyID]) do
-					Spring.SetTeamRulesParam(teamID, "suspendbuilderpriority", 1)
+					SpringSynced.SetTeamRulesParam(teamID, "suspendbuilderpriority", 1)
 				end
 			end
 		end
@@ -156,7 +156,7 @@ function gadget:Initialize()
 	end
 
 	for teamID, _ in pairs(boostableTeams) do
-		local allyID = select(6, Spring.GetTeamInfo(teamID))
+		local allyID = select(6, SpringShared.GetTeamInfo(teamID))
 		boostableAllies[allyID] = boostableAllies[allyID] or {}
 		boostableAllies[allyID][teamID] = true
 		overflowingAllies[allyID] = 1

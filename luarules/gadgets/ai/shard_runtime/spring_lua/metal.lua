@@ -8,12 +8,12 @@ local sqRootThree = math.sqrt(3)
 local halfHexHeight = math.ceil( (sqRootThree * extractorRadiusMetal) / 2 )
 local halfExtractorRadiusMetal = math.ceil( extractorRadiusMetal / 2 )
 
-Spring.Echo('STAI metal map',metalmapSizeX, metalmapSizeZ, metalmapSizeX*metalmapSizeZ, extractorRadiusMetal, maxSpotArea, minSpotArea, halfHexHeight, halfExtractorRadiusMetal)
+SpringShared.Echo('STAI metal map',metalmapSizeX, metalmapSizeZ, metalmapSizeX*metalmapSizeZ, extractorRadiusMetal, maxSpotArea, minSpotArea, halfHexHeight, halfExtractorRadiusMetal)
 
 local mCeil = math.ceil
 
-local spGetMetalAmount = Spring.GetMetalAmount
-local spGetGroundHeight = Spring.GetGroundHeight
+local spGetMetalAmount = SpringShared.GetMetalAmount
+local spGetGroundHeight = SpringShared.GetGroundHeight
 
 local isInBlob = {}
 local blobs = {}
@@ -199,7 +199,7 @@ local function GetSpots()
 			if tharBeMetal then id = id + 1 end
 		end
 	end
-	Spring.Echo(#blobs, "blobs spots")
+	SpringShared.Echo(#blobs, "blobs spots")
 	-- isInBlob = {}
 	local spots = {}
 	local spotsCount = 0
@@ -226,7 +226,7 @@ local function GetSpots()
 			z = mCeil(z)
 			CirclePack(x, z, id)
 			local blobSpots = spotsInBlob[id]
-			Spring.Echo(#blobSpots, "spots in blob", id)
+			SpringShared.Echo(#blobSpots, "spots in blob", id)
 			for i = 1, #blobSpots do
 				local spot = blobSpots[i]
 				spotsCount = spotsCount + 1
@@ -238,7 +238,7 @@ local function GetSpots()
 	 for i = 1, #spots do
 	 	local spot = spots[i]
 	 	if not spot.y then
-	 		Spring.MarkerAddPoint(spot.x, spGetGroundHeight(spot.x, spot.z), spot.z, "bad spot")
+	 		SpringUnsynced.MarkerAddPoint(spot.x, spGetGroundHeight(spot.x, spot.z), spot.z, "bad spot")
 	 	end
 	 end
 	return spots

@@ -35,8 +35,8 @@ if gadgetHandler:IsSyncedCode() then
 	local max = math.max
 	local min = math.min
 	local clamp = math.clamp
-	local spGetGroundHeight = Spring.GetGroundHeight
-	local spGetGameFrame = Spring.GetGameFrame
+	local spGetGroundHeight = SpringShared.GetGroundHeight
+	local spGetGameFrame = SpringShared.GetGameFrame
 	local mapSizeX = Game.mapSizeX
 	local mapSizeZ = Game.mapSizeZ
 	local initialized = false
@@ -214,7 +214,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function AddOrUpdateScum(posx, posy, posz, radius, growthrate, scumID)
-		if debugmode then Spring.Echo("AddOrUpdateScum",posx, posy, posz, radius, growthrate, scumID) end
+		if debugmode then SpringShared.Echo("AddOrUpdateScum",posx, posy, posz, radius, growthrate, scumID) end
 		-- if scumID is supplied, we are updateing an existing scum instance!
 
 		local gf = spGetGameFrame()
@@ -222,7 +222,7 @@ if gadgetHandler:IsSyncedCode() then
 		local scum
 		-- thus we need to make a new scum, and register it in our scumBins
 		if scums[scumID] == nil then
-			posy = posy or Spring.GetGroundHeight(posx, posz)
+			posy = posy or SpringShared.GetGroundHeight(posx, posz)
 			scum = {posx = posx, posz = posz, radius = radius, spawnframe = gf, growthrate = growthrate, scumID = scumID}
 			scums[scumID] = scum
 			UpdateBins(scumID)
@@ -247,12 +247,12 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			scum.growthrate = growthrate
 
-			if debugmode then Spring.Echo("Updated scum", scumID, "it was", currentradius,"/", scum.radius, "sized, growing at", growthrate) end
+			if debugmode then SpringShared.Echo("Updated scum", scumID, "it was", currentradius,"/", scum.radius, "sized, growing at", growthrate) end
 		end
 		--Spring.Echo(scumID, growthrate, radius, gf)
 
 		if scum.growthrate < 0 then
-			if debugmode then Spring.Echo("Removal of scum ID", scumID,"Scheduled for ",  deathtime - gf , "from now" ) end
+			if debugmode then SpringShared.Echo("Removal of scum ID", scumID,"Scheduled for ",  deathtime - gf , "from now" ) end
 			if scumRemoveQueue[deathtime] == nil then
 				scumRemoveQueue[deathtime] = {}
 			end
@@ -264,8 +264,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if scumSpawnerIDs[unitDefID] and (debugmode or (unitTeam and unitTeam == pveTeamID)) then
-			local px, py, pz = Spring.GetUnitPosition(unitID)
-			local gf = Spring.GetGameFrame()
+			local px, py, pz = SpringShared.GetUnitPosition(unitID)
+			local gf = SpringShared.GetGameFrame()
 
 			local scumID = AddOrUpdateScum(px, py, pz, scumSpawnerIDs[unitDefID].radius, scumSpawnerIDs[unitDefID].growthrate, unitID)
 			local scum = scums[scumID]
@@ -284,8 +284,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:GameFrame(n)
 		if not initialized then
-			for i, unitID in ipairs(Spring.GetAllUnits()) do
-				gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
+			for i, unitID in ipairs(SpringShared.GetAllUnits()) do
+				gadget:UnitCreated(unitID, SpringShared.GetUnitDefID(unitID))
 			end
 			initialized = true
 		end
@@ -560,7 +560,7 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then	-- UNSYNCED
 	]]
 
 	local function goodbye(reason)
-	  Spring.Echo("Scum GL4 gadget exiting with reason: "..reason)
+	  SpringShared.Echo("Scum GL4 gadget exiting with reason: "..reason)
 	  gadgetHandler:RemoveGadget()
 	end
 
@@ -633,7 +633,7 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then	-- UNSYNCED
 	local sqrt = math.sqrt
 	local floor = math.floor
 	local clamp = math.clamp
-	local spGetGroundHeight = Spring.GetGroundHeight
+	local spGetGroundHeight = SpringShared.GetGroundHeight
 	local mapSizeX = Game.mapSizeX
 	local mapSizeZ = Game.mapSizeZ
 	local boundary = 32 -- how many elmos closer to the center of the scum than the actual edge of the scum the unit must be to be considered on the scum
@@ -718,15 +718,15 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then	-- UNSYNCED
 
 	-- growthrate is in elmos per frame, negative for shrinking scums
 	local function AddOrUpdateScum(posx, posy, posz, radius, growthrate, scumID)
-		if debugmode then Spring.Echo("AddOrUpdateScum",posx, posy, posz, radius, growthrate, scumID) end
+		if debugmode then SpringShared.Echo("AddOrUpdateScum",posx, posy, posz, radius, growthrate, scumID) end
 		-- if scumID is supplied, we are updateing an existing scum instance!
 
-		local gf = Spring.GetGameFrame()
+		local gf = SpringShared.GetGameFrame()
 		local deathtime
 		local scum
 		-- thus we need to make a new scum, and register it in our scumBins
 		if scumID == nil or scums[scumID] == nil then
-			posy = posy or Spring.GetGroundHeight(posx, posz)
+			posy = posy or SpringShared.GetGroundHeight(posx, posz)
 			scum = {posx = posx, posz = posz, radius = radius, spawnframe = gf, growthrate = growthrate, scumID = scumID, atmaxsize = false }
 			scums[scumID] = scum
 			UpdateBins(scumID)
@@ -751,7 +751,7 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then	-- UNSYNCED
 			end
 			scum.growthrate = growthrate
 
-			if debugmode then Spring.Echo("Updated scum", scumID, "it was", currentradius,"/", scum.radius, "sized, growing at", growthrate) end
+			if debugmode then SpringShared.Echo("Updated scum", scumID, "it was", currentradius,"/", scum.radius, "sized, growing at", growthrate) end
 		end
 
 		--Spring.Echo(scumID, growthrate, radius, gf)
@@ -766,7 +766,7 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then	-- UNSYNCED
 				false) -- noupload, dont use unless you know what you are doing and want to batch push/pop
 		end
 		if scum.growthrate < 0 then
-			if debugmode then Spring.Echo("Removal of scum ID", scumID,"Scheduled for ",  deathtime - gf , "from now" ) end
+			if debugmode then SpringShared.Echo("Removal of scum ID", scumID,"Scheduled for ",  deathtime - gf , "from now" ) end
 			if scumRemoveQueue[deathtime] == nil then
 				scumRemoveQueue[deathtime] = {}
 			end
@@ -810,7 +810,7 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then	-- UNSYNCED
 			if overlaps then overlapcount = overlapcount + 1 end
 		end
 		if debugmode then
-			Spring.Echo(string.format("Of %d scums, %d overlaps found in %d comparisons", numscums, overlapcount, comparisons))
+			SpringShared.Echo(string.format("Of %d scums, %d overlaps found in %d comparisons", numscums, overlapcount, comparisons))
 		end
 
 		-- update the VBO
@@ -829,10 +829,10 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then	-- UNSYNCED
 
 		if headless then return end
 		if debugmode then
-			local mx, my, mb = Spring.GetMouseState()
-			local _, coords = Spring.TraceScreenRay(mx, my, true)
+			local mx, my, mb = SpringUnsynced.GetMouseState()
+			local _, coords = SpringUnsynced.TraceScreenRay(mx, my, true)
 			if coords and (IsPosInScum(coords[1], coords[2],coords[3])) then
-				Spring.Echo("Inscum", numscums, IsPosInScum(coords[1], coords[2],coords[3]))
+				SpringShared.Echo("Inscum", numscums, IsPosInScum(coords[1], coords[2],coords[3]))
 			end
 		end
 
@@ -886,7 +886,7 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then	-- UNSYNCED
 
 	local lastSunChanged = -1
 	function gadget:SunChanged() -- Note that map_nightmode.lua gadget has to change sun twice in a single draw frame to update all
-		local df = Spring.GetDrawFrame()
+		local df = SpringUnsynced.GetDrawFrame()
 		if df == lastSunChanged then return end
 		lastSunChanged = df
 		if GG['NightFactor'] then
@@ -899,7 +899,7 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then	-- UNSYNCED
 	end
 
 	local function RemoveScum(instanceID)
-		if debugmode then Spring.Echo("Removing scum", instanceID) end
+		if debugmode then SpringShared.Echo("Removing scum", instanceID) end
 		if scums[instanceID] then
 			numscums = numscums - 1
 		end
@@ -912,7 +912,7 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then	-- UNSYNCED
 	local function AddRandomScum()
 		local posx  = Game.mapSizeX * math.random() * 0.8
 		local posz  = Game.mapSizeZ * math.random() * 0.8
-		local posy  = Spring.GetGroundHeight(posx, posz)
+		local posy  = SpringShared.GetGroundHeight(posx, posz)
 		local radius = math.random() * 256 + 128
 		local growthrate = math.random() * 0.5 -- in elmos per frame
 		local scumID = math.random()
@@ -937,7 +937,7 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then	-- UNSYNCED
 					if currentRadius < scum.radius then
 						Script.LuaUI.GadgetRemoveGrass(scum.posx, scum.posz, currentRadius * 0.87)
 					else
-						if debugmode then Spring.Echo("Scum ID", scumID, "reached max size", currentRadius, '>=', scum.radius) end
+						if debugmode then SpringShared.Echo("Scum ID", scumID, "reached max size", currentRadius, '>=', scum.radius) end
 						scum.atmaxsize = true
 					end
 
@@ -975,7 +975,7 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then	-- UNSYNCED
 
 	local function ScumTextures()
 		textureresolution = ((textureresolution == 'low') and 'high') or 'low'
-		Spring.Echo("Scum textureresolution set to ", textureresolution)
+		SpringShared.Echo("Scum textureresolution set to ", textureresolution)
 	end
 
 	local function ScumStats()
@@ -984,25 +984,25 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then	-- UNSYNCED
 				local scumBin = scumBins[GetMapSquareKey(x*1024, z * 1024)]
 				local scumCount = 0
 				for _ in pairs(scumBin) do scumCount = scumCount + 1 end
-				Spring.Echo(string.format("%d scums are in bin %d x %d", scumCount, x, z))
+				SpringShared.Echo(string.format("%d scums are in bin %d x %d", scumCount, x, z))
 			end
 		end
-		Spring.Echo(string.format("Total amount of scums on map is %d", numscums))
+		SpringShared.Echo(string.format("Total amount of scums on map is %d", numscums))
 		local overlapcount, comparisons = UpdateScumOverlaps()
-		Spring.Echo("overlapcount", overlapcount, "comparisons=", comparisons)
+		SpringShared.Echo("overlapcount", overlapcount, "comparisons=", comparisons)
 	end
 
 	local function ScumReloadShader()
-		Spring.Echo("ScumReloadShader not implemented")
+		SpringShared.Echo("ScumReloadShader not implemented")
 	end
 
 	local function ScumDrawToggle()
 		drawScum = not drawScum
-		Spring.Echo("Scum drawing toggled to", drawScum)
+		SpringShared.Echo("Scum drawing toggled to", drawScum)
 	end
 	local function ScumOptimizeOverlap()
 		optimizeoverlaps = not optimizeoverlaps
-		Spring.Echo("Scum optimizeoverlaps toggled to", optimizeoverlaps)
+		SpringShared.Echo("Scum optimizeoverlaps toggled to", optimizeoverlaps)
 		UpdateScumOverlaps()
 	end
 

@@ -22,7 +22,7 @@ local adjustStartBox = function(startBoxXMin, startBoxZMin, startBoxXMax, startB
 end
 
 EnemyLib.GetAdjustedStartBox = function(enemyAllyTeamID, spread)
-	local startBoxXMin, startBoxZMin, startBoxXMax, startBoxZMax = Spring.GetAllyTeamStartBox(enemyAllyTeamID)
+	local startBoxXMin, startBoxZMin, startBoxXMax, startBoxZMax = SpringShared.GetAllyTeamStartBox(enemyAllyTeamID)
 	if startBoxXMin and startBoxZMin and startBoxXMax and startBoxZMax then
 		startBoxXMin, startBoxZMin, startBoxXMax, startBoxZMax = adjustStartBox(startBoxXMin, startBoxZMin, startBoxXMax, startBoxZMax, spread)
 	end

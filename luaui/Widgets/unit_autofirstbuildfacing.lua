@@ -29,12 +29,12 @@ local n=0
 -- Count all units and calculate their barycenter
 function widget:GameFrame(f)
   if f==3 then
-    if Spring.GetTeamUnitCount(spGetMyTeamID()) and Spring.GetTeamUnitCount(spGetMyTeamID())>0 then
-      local units = Spring.GetTeamUnits(spGetMyTeamID())
+    if SpringShared.GetTeamUnitCount(spGetMyTeamID()) and SpringShared.GetTeamUnitCount(spGetMyTeamID())>0 then
+      local units = SpringShared.GetTeamUnits(spGetMyTeamID())
       for i=1,#units do
         local ux=0
         local uz=0
-        ux,_,uz=Spring.GetUnitPosition(units[i])
+        ux,_,uz=SpringShared.GetUnitPosition(units[i])
         if ux and uz then
           x=x+ux
           z=z+uz
@@ -50,7 +50,7 @@ end
 
 -- Set buildfacing the first time a building is about to be built
 function widget:Update()
-  local _,cmd=Spring.GetActiveCommand()
+  local _,cmd=SpringUnsynced.GetActiveCommand()
   if cmd and cmd<0 then
     if mathAbs(Game.mapSizeX - 2*x) > mathAbs(Game.mapSizeZ - 2*z) then
       if (2*x>Game.mapSizeX) then
@@ -65,7 +65,7 @@ function widget:Update()
         facing="south"
       end
     end
-    Spring.SendCommands({"buildfacing "..facing})
+    SpringUnsynced.SendCommands({"buildfacing "..facing})
     widget.widgetHandler.RemoveCallIn(widget.widget,"Update")
   end
 end

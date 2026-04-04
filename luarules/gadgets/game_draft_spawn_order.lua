@@ -5,10 +5,10 @@
 -- The reason it's not its own gadget is that its just a mod for game_initail_spawn.
 -- And its only meant to work if Game.startPosType is 2.
 
-local draftMode = Spring.GetModOptions().draft_mode
+local draftMode = SpringShared.GetModOptions().draft_mode
 
-local spGetPlayerInfo = Spring.GetPlayerInfo
-local spGetTeamInfo = Spring.GetTeamInfo
+local spGetPlayerInfo = SpringShared.GetPlayerInfo
+local spGetTeamInfo = SpringShared.GetTeamInfo
 
 local allyTeamSpawnOrder = {} -- [allyTeam] = [teamID,teamID,...] - used for random/skill draft - placement order
 local allyTeamSpawnOrderPlaced = {} -- [allyTeam] = 1,..,#TeamsinAllyTeam - whose order to place right now
@@ -19,7 +19,7 @@ local votedToForceStartDraft = {} -- [allyTeam][teamID] - if more than 50% vote 
 local VOTE_QUORUM = 2 -- if there is less than 2 players in the game - the votes don't count -- TODO consider making it 3, can't have proper quorum with just two nodes, but it might be ok for now.
 local VOTE_YES_PRCTN_REQ = 51 -- default: 51
 local announceVoteResults = false -- "secret" voting
-local gaiaAllyTeamID = select(6, spGetTeamInfo(Spring.GetGaiaTeamID(), false))
+local gaiaAllyTeamID = select(6, spGetTeamInfo(SpringShared.GetGaiaTeamID(), false))
 local waitIsMandatory = false -- if true - you will wait for late-joiners, and conneectionTimeOut timer won't be shown
 local canVoteSkipTurn = false
 local canVoteForceStartDraft = false
@@ -29,7 +29,7 @@ local function FindPlayerID(teamID)
 		return teamPlayerData[teamID].id
 	else
 		-- Fallback: Search for player ID using Spring functions (no skill data available)
-		local players = Spring.GetPlayerList()
+		local players = SpringShared.GetPlayerList()
 		for _, playerID in ipairs(players) do
 			local playerTeamID = select(4,spGetPlayerInfo(playerID, false))
 			if playerTeamID == teamID then
@@ -44,7 +44,7 @@ local function FindPlayerName(teamID)
 	if teamPlayerData and teamPlayerData[teamID] and teamPlayerData[teamID].name then
 		return teamPlayerData[teamID].name
 	else
-		local players = Spring.GetPlayerList()
+		local players = SpringShared.GetPlayerList()
 		for _, playerID in ipairs(players) do
 			local name,_,_,playerTeamID = spGetPlayerInfo(playerID, false)
 			if playerTeamID == teamID and name then
@@ -91,7 +91,7 @@ local function compareSkills(teamA, teamB)
 end
 
 local function isAllyTeamSkillZero(allyTeamID)
-	local tteams = Spring.GetTeamList(allyTeamID)
+	local tteams = SpringShared.GetTeamList(allyTeamID)
 	for _, teamID in ipairs(tteams) do
 		local _, _, _, isAiTeam = spGetTeamInfo(teamID, false)
 		if not isAiTeam and gaiaAllyTeamID ~= allyTeamID then
@@ -125,9 +125,9 @@ local function sendTeamOrder(teamOrder, allyTeamID_ready, log)
 		end
 	end
 	if log and not alone then
-		Spring.Log(gadget:GetInfo().name, LOG.INFO, "Order [id:"..allyTeamID_ready.."]: "..orderMsg)
+		SpringShared.Log(gadget:GetInfo().name, LOG.INFO, "Order [id:"..allyTeamID_ready.."]: "..orderMsg)
 	end
-	Spring.SendLuaUIMsg("DraftOrderPlayersOrder " .. allyTeamID_ready .. " " .. orderIds)
+	SpringUnsynced.SendLuaUIMsg("DraftOrderPlayersOrder " .. allyTeamID_ready .. " " .. orderIds)
 end
 
 local function calculateVotedPercentage(allyTeamID, votesArray)
@@ -147,7 +147,7 @@ end
 
 local function SendDraftMessageToPlayer(allyTeamID, target_num)
 	-- technically do not care if it overflows here, on the clientside there just won't be anyone in the queue left
-	Spring.SendLuaUIMsg("DraftOrderPlayerTurn " .. allyTeamID .. " " .. target_num) -- we send allyTeamID orderIndex
+	SpringUnsynced.SendLuaUIMsg("DraftOrderPlayerTurn " .. allyTeamID .. " " .. target_num) -- we send allyTeamID orderIndex
 end
 
 local function checkVotesAndAdvanceTurn(allyTeamID)
@@ -155,7 +155,7 @@ local function checkVotesAndAdvanceTurn(allyTeamID)
 	local votedPercentage = calculateVotedPercentage(allyTeamID, votedToForceSkipTurn)
 	if votedPercentage >= VOTE_YES_PRCTN_REQ then
 		if announceVoteResults then
-			Spring.Echo(""..votedPercentage.."% (req: "..VOTE_YES_PRCTN_REQ.."%) of players on ally team " .. allyTeamID .. " have voted to skip current player turn.")
+			SpringShared.Echo(""..votedPercentage.."% (req: "..VOTE_YES_PRCTN_REQ.."%) of players on ally team " .. allyTeamID .. " have voted to skip current player turn.")
 		end
 		for teamID, _ in pairs(votedToForceSkipTurn[allyTeamID]) do
 			votedToForceSkipTurn[allyTeamID][teamID] = false -- reset vote
@@ -199,7 +199,7 @@ end
 -- Tom: order is generated after the entire ally team is in game,
 -- now we can force it to generate before everyone connects too! (late-joiners get last spots)
 local function PreInitDraftOrderData()
-	local tteams = Spring.GetTeamList()
+	local tteams = SpringShared.GetTeamList()
 	for _, teamID in ipairs(tteams) do
 		local _, _, _, isAiTeam, _, allyTeamID = spGetTeamInfo(teamID, false)
 		if not isAiTeam and gaiaAllyTeamID ~= allyTeamID then
@@ -263,7 +263,7 @@ local function InitDraftOrderData(allyTeamID_ready)
 	if not allyTeamID_ready or allyTeamIsInGame[allyTeamID_ready] == true then return end -- already started
 	allyTeamIsInGame[allyTeamID_ready] = true
 	if draftMode == "random" or draftMode == "captain" then
-		local tteams = Spring.GetTeamList()
+		local tteams = SpringShared.GetTeamList()
 		for _, teamID in ipairs(tteams) do
 			local _, _, _, isAiTeam, _, allyTeamID = spGetTeamInfo(teamID, false)
 			if not isAiTeam and allyTeamID_ready == allyTeamID and gaiaAllyTeamID ~= allyTeamID then
@@ -287,7 +287,7 @@ local function InitDraftOrderData(allyTeamID_ready)
 		end
 		putLateJoinersLast(allyTeamSpawnOrder[allyTeamID_ready])
 	elseif draftMode == "skill" then
-		local tteams = Spring.GetTeamList()
+		local tteams = SpringShared.GetTeamList()
 		table.sort(tteams, compareSkills) -- Sort teams based on skill
 		-- Assign sorted teams to allyTeamSpawnOrder
 		for _, teamID in ipairs(tteams) do
@@ -314,7 +314,7 @@ local function InitDraftOrderData(allyTeamID_ready)
 		end
 		putLateJoinersLast(allyTeamSpawnOrder[allyTeamID_ready])
 	end
-	Spring.SendLuaUIMsg("DraftOrderAllyTeamJoined "..allyTeamID_ready)
+	SpringUnsynced.SendLuaUIMsg("DraftOrderAllyTeamJoined "..allyTeamID_ready)
 	if draftMode == "skill" or draftMode == "random" or draftMode == "captain" then
 		canVoteSkipTurn = true
 		allyTeamSpawnOrderPlaced[allyTeamID_ready] = 1 -- First team in the order queue must place now
@@ -327,7 +327,7 @@ local function checkVotesAndStartDraft(allyTeamID)
 	local votedPercentage = calculateVotedPercentage(allyTeamID, votedToForceStartDraft)
 	if votedPercentage >= VOTE_YES_PRCTN_REQ then
 		if announceVoteResults then
-			Spring.Echo(""..votedPercentage.."% (req: "..VOTE_YES_PRCTN_REQ.."%) of players on ally team " .. allyTeamID .. " have voted to skip wait for late-joiners.")
+			SpringShared.Echo(""..votedPercentage.."% (req: "..VOTE_YES_PRCTN_REQ.."%) of players on ally team " .. allyTeamID .. " have voted to skip wait for late-joiners.")
 		end
 		for teamID, _ in pairs(votedToForceStartDraft[allyTeamID]) do
 			votedToForceStartDraft[allyTeamID][teamID] = false -- reset vote
@@ -341,13 +341,13 @@ end
 function draftModeInitialize()
 	PreInitDraftOrderData()
 	if draftMode == "random" then -- Random draft
-		Spring.SendLuaUIMsg("DraftOrder_Random") -- Discord: https://discord.com/channels/549281623154229250/1163844303735500860
+		SpringUnsynced.SendLuaUIMsg("DraftOrder_Random") -- Discord: https://discord.com/channels/549281623154229250/1163844303735500860
 	elseif draftMode == "captain" then -- Fair mod
-		Spring.SendLuaUIMsg("DraftOrder_Captain") -- Discord: https://discord.com/channels/549281623154229250/1163844303735500860
+		SpringUnsynced.SendLuaUIMsg("DraftOrder_Captain") -- Discord: https://discord.com/channels/549281623154229250/1163844303735500860
 	elseif draftMode == "skill" then -- Skill-based placement order
-		Spring.SendLuaUIMsg("DraftOrder_Skill") -- Discord: https://discord.com/channels/549281623154229250/1134886429361713252
+		SpringUnsynced.SendLuaUIMsg("DraftOrder_Skill") -- Discord: https://discord.com/channels/549281623154229250/1134886429361713252
 	elseif draftMode == "fair" then -- Fair mod
-		Spring.SendLuaUIMsg("DraftOrder_Fair") -- Discord: https://discord.com/channels/549281623154229250/1123310748236529715
+		SpringUnsynced.SendLuaUIMsg("DraftOrder_Fair") -- Discord: https://discord.com/channels/549281623154229250/1123310748236529715
 	end
 end
 
@@ -406,7 +406,7 @@ function DraftRecvLuaMsg(msg, playerID, playerIsSpec, playerTeam, allyTeamID)
 		-- Check if all allies have joined and start the draft automatically
 		if allyTeamIsInGame[allyTeamID] ~= true then
 			local allAlliesJoined = true
-			local teamList = Spring.GetTeamList(allyTeamID)
+			local teamList = SpringShared.GetTeamList(allyTeamID)
 			local count = 0
 			local tcount = 0
 			for _, team in ipairs(teamList) do
@@ -424,12 +424,12 @@ function DraftRecvLuaMsg(msg, playerID, playerIsSpec, playerTeam, allyTeamID)
 				InitDraftOrderData(allyTeamID)
 			end
 			if not waitIsMandatory and tcount >= VOTE_QUORUM and count > 0 and tcount > 0 and (((count / tcount) * 100) >= VOTE_YES_PRCTN_REQ) then
-				Spring.SendLuaUIMsg("DraftOrderShowCountdown "..allyTeamID)
+				SpringUnsynced.SendLuaUIMsg("DraftOrderShowCountdown "..allyTeamID)
 			end
 		end
 	elseif msg == "send_me_the_info_again" then -- someone luaui /reload'ed, send them the queue and index again
 		if allyTeamIsInGame[allyTeamID] then
-			Spring.SendLuaUIMsg("DraftOrderAllyTeamJoined "..allyTeamID)
+			SpringUnsynced.SendLuaUIMsg("DraftOrderAllyTeamJoined "..allyTeamID)
 			if draftMode ~= "fair" and allyTeamSpawnOrderPlaced[allyTeamID] then
 				sendTeamOrder(allyTeamSpawnOrder[allyTeamID], allyTeamID, false) -- Send order FIRST
 				SendDraftMessageToPlayer(allyTeamID, allyTeamSpawnOrderPlaced[allyTeamID])

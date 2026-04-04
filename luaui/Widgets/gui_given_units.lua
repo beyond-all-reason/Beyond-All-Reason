@@ -14,7 +14,7 @@ end
 
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
+local spGetGameFrame = SpringShared.GetGameFrame
 
 -- config
 local selectedFadeTime = 0.75
@@ -27,10 +27,10 @@ local timeoutTime = 6.5
 
 
 local glDrawListAtUnit			= gl.DrawListAtUnit
-local spIsGUIHidden				= Spring.IsGUIHidden
-local spGetUnitDefID			= Spring.GetUnitDefID
-local spIsUnitInView 			= Spring.IsUnitInView
-local spGetCameraDirection		= Spring.GetCameraDirection
+local spIsGUIHidden				= SpringUnsynced.IsGUIHidden
+local spGetUnitDefID			= SpringShared.GetUnitDefID
+local spIsUnitInView 			= SpringUnsynced.IsUnitInView
+local spGetCameraDirection		= SpringUnsynced.GetCameraDirection
 
 local drawList
 local givenUnits = {}
@@ -38,7 +38,7 @@ local unitScale = {}
 local unitHeight = {}
 local sec = 0
 local prevCam = {spGetCameraDirection()}
-local myTeamID = Spring.GetLocalTeamID()
+local myTeamID = SpringUnsynced.GetLocalTeamID()
 
 local gameStarted, selectionChanged
 
@@ -73,7 +73,7 @@ end
 --------------------------------------------------------------------------------
 
 function maybeRemoveSelf()
-	if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
+	if SpringUnsynced.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
 		widgetHandler:RemoveWidget()
 	end
 end
@@ -88,7 +88,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-	if Spring.IsReplay() or spGetGameFrame() > 0 then
+	if SpringUnsynced.IsReplay() or spGetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
 	drawList = gl.CreateList(DrawIcon)
@@ -105,7 +105,7 @@ function widget:Update(dt)
 		sec = 0
 		if selectionChanged then
 			selectionChanged = nil
-			local selectedUnitsCount = Spring.GetSelectedUnitsSorted()
+			local selectedUnitsCount = SpringUnsynced.GetSelectedUnitsSorted()
 			for uDID,unit in pairs(selectedUnitsCount) do
 				for i=1,#unit do
 					local unitID = unit[i]
@@ -178,9 +178,9 @@ function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	if (newTeam == myTeamID) then
 		AddGivenUnit(unitID)
 		if lastreceiveframe < spGetGameFrame() then
-			local x, y, z = Spring.GetUnitPosition(unitID)
+			local x, y, z = SpringShared.GetUnitPosition(unitID)
 			if x and y and z then
-				Spring.SetLastMessagePosition(x, y, z)
+				SpringUnsynced.SetLastMessagePosition(x, y, z)
 			end
 			lastreceiveframe = spGetGameFrame()
 		end

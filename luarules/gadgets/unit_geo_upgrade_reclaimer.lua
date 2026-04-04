@@ -31,10 +31,10 @@ end
 
 
 local function hasGeoUnderneat(unitID)
-	local x, _, z = Spring.GetUnitPosition(unitID)
-	local units = Spring.GetUnitsInCylinder(x, z, 10)
+	local x, _, z = SpringShared.GetUnitPosition(unitID)
+	local units = SpringShared.GetUnitsInCylinder(x, z, 10)
 	for k, uID in ipairs(units) do
-		if isGeo[Spring.GetUnitDefID(uID)] and Spring.GetUnitIsDead(uID) == false then
+		if isGeo[SpringShared.GetUnitDefID(uID)] and SpringShared.GetUnitIsDead(uID) == false then
 			if unitID ~= uID then
 				return uID
 			end
@@ -48,12 +48,12 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	if isGeo[unitDefID] then
 		local geo = hasGeoUnderneat(unitID)
 		if geo then
-			Spring.SetUnitNoSelect(geo, true)
+			SpringUnsynced.SetUnitNoSelect(geo, true)
 			if transferInstantly then
-				local mexTeamID = Spring.GetUnitTeam(geo)
-				if mexTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(mexTeamID, false)) then
-					_G.transferredUnits[unitID] = Spring.GetGameFrame()
-					Spring.TransferUnit(unitID, mexTeamID)
+				local mexTeamID = SpringShared.GetUnitTeam(geo)
+				if mexTeamID ~= unitTeam and not select(3, SpringShared.GetTeamInfo(mexTeamID, false)) then
+					_G.transferredUnits[unitID] = SpringShared.GetGameFrame()
+					SpringSynced.TransferUnit(unitID, mexTeamID)
 				end
 			end
 		end
@@ -65,7 +65,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 	if isGeo[unitDefID] then
 		local geo = hasGeoUnderneat(unitID)
 		if geo then
-			Spring.SetUnitNoSelect(geo, false)
+			SpringUnsynced.SetUnitNoSelect(geo, false)
 		end
 	end
 end
@@ -75,12 +75,12 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		Spring.SetUnitCOBValue(unitID, COB.YARD_OPEN, 1)
 		local geo = hasGeoUnderneat(unitID)
 		if geo then
-			local geoTeamID = Spring.GetUnitTeam(geo)
-			Spring.DestroyUnit(geo, false, true)
-			Spring.AddTeamResource(unitTeam, "metal", isGeo[Spring.GetUnitDefID(geo)])
-			if not transferInstantly and geoTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(geoTeamID, false)) then
-				_G.transferredUnits[unitID] = Spring.GetGameFrame()
-				Spring.TransferUnit(unitID, geoTeamID)
+			local geoTeamID = SpringShared.GetUnitTeam(geo)
+			SpringSynced.DestroyUnit(geo, false, true)
+			SpringSynced.AddTeamResource(unitTeam, "metal", isGeo[SpringShared.GetUnitDefID(geo)])
+			if not transferInstantly and geoTeamID ~= unitTeam and not select(3, SpringShared.GetTeamInfo(geoTeamID, false)) then
+				_G.transferredUnits[unitID] = SpringShared.GetGameFrame()
+				SpringSynced.TransferUnit(unitID, geoTeamID)
 			end
 		end
 	end

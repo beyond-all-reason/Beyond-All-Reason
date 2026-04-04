@@ -15,8 +15,8 @@ end
 
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
-local spGetViewGeometry = Spring.GetViewGeometry
+local spEcho = SpringShared.Echo
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
 -- So in total about 168/162 fps delta just going from 1 to 2 screencopies!
 
@@ -80,7 +80,7 @@ function widget:ViewResize()
 end
 
 local function GetScreenCopy()
-	local df = Spring.GetDrawFrame()
+	local df = SpringUnsynced.GetDrawFrame()
 	--spEcho("GetScreenCopy", df)
 	if df ~= lastScreenCopyFrame then
 		gl.CopyToTexture(ScreenCopy, 0, 0, vpx, vpy, vsx, vsy)
@@ -95,7 +95,7 @@ end
 
 
 local function GetDepthCopy()
-	local df = Spring.GetDrawFrame()
+	local df = SpringUnsynced.GetDrawFrame()
 	--spEcho("GetScreenCopy", df)
 	if df ~= lastDepthCopyFrame then
 		gl.CopyToTexture(DepthCopy, 0, 0, vpx, vpy, vsx, vsy)

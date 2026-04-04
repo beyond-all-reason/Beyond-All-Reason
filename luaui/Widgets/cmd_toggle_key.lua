@@ -14,7 +14,7 @@ end
 
 -- cmd, optLine, optWords, data, isRepeat, release, actions
 function ToggleCMD(_ , optLine)
-    Spring.SetActiveCommand(optLine)
+    SpringUnsynced.SetActiveCommand(optLine)
 end
 
 function widget:Initialize()

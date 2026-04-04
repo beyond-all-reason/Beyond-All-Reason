@@ -13,7 +13,7 @@ end
 
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 local connectedController
 local reportState = false

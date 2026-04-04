@@ -27,11 +27,11 @@ end
 if (gadgetHandler:IsSyncedCode()) then
 
 	local mathSqrt = math.sqrt
-	local spGetUnitPosition = Spring.GetUnitPosition
-	local spAreTeamsAllied = Spring.AreTeamsAllied
-	local spGetUnitTeam = Spring.GetUnitTeam
-	local spGetUnitVelocity = Spring.GetUnitVelocity
-	local spSetUnitVelocity = Spring.SetUnitVelocity
+	local spGetUnitPosition = SpringShared.GetUnitPosition
+	local spAreTeamsAllied = SpringShared.AreTeamsAllied
+	local spGetUnitTeam = SpringShared.GetUnitTeam
+	local spGetUnitVelocity = SpringShared.GetUnitVelocity
+	local spSetUnitVelocity = SpringSynced.SetUnitVelocity
 
 	function gadget:Distance(pos1, pos2)
 		local difX = pos1[1] - pos2[1]

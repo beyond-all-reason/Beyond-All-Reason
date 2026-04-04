@@ -42,7 +42,7 @@ if LUA_NAME == "LuaUI" then
 	}
 
 	--// Create the "LuaUI/Config" directory
-	Spring.CreateDir(LUAUI_DIRNAME .. 'Config')
+	SpringUnsynced.CreateDir(LUAUI_DIRNAME .. 'Config')
 
 	handler:Load(LUAUI_DIRNAME .. "SystemWidgets/BlockUserWidgets.lua" --[[, VFS.ZIP]])
 else

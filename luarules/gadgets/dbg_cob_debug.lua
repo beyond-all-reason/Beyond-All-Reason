@@ -134,10 +134,10 @@ if gadgetHandler:IsSyncedCode() then
 		ResolveLine(unitDefID, line)
 		
 		
-		if lastgf == Spring.GetGameFrame() then
+		if lastgf == SpringShared.GetGameFrame() then
 			count = count + 1
 		else
-			lastgf = Spring.GetGameFrame()
+			lastgf = SpringShared.GetGameFrame()
 			count = 0
 		end
 		--  f:<01368.000> u:27656 armstump.FireWeapon1:97
@@ -160,7 +160,7 @@ if gadgetHandler:IsSyncedCode() then
 		if p7 then msg = msg .. " p7=" .. tostring(p7) end 
 		if p8 then msg = msg .. " p8=" .. tostring(p8) end 
 		
-		Spring.Echo(msg)
+		SpringShared.Echo(msg)
 	end
 
 	function gadget:Initialize()

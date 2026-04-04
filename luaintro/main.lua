@@ -28,15 +28,15 @@ VFS.DEF_MODE = VFS.RAW_FIRST
 -- Initialize the Lua LogSection (else messages with level "info" wouldn't been shown)
 --
 
-if Spring.SetLogSectionFilterLevel then
-	Spring.SetLogSectionFilterLevel(LUA_NAME, "info")
+if SpringUnsynced.SetLogSectionFilterLevel then
+	SpringUnsynced.SetLogSectionFilterLevel(LUA_NAME, "info")
 else
 	-- backward compability
-	local origSpringLog = Spring.Log
+	local origSpringLog = SpringShared.Log
 
-	Spring.Log = function(name, level, ...)
+	SpringShared.Log = function(name, level, ...)
 		if (type(level) == "string")and(level == "info") then
-			Spring.Echo(("[%s]"):format(name), ...)
+			SpringShared.Echo(("[%s]"):format(name), ...)
 		else
 			origSpringLog(name, level, ...)
 		end
@@ -56,7 +56,7 @@ VFS.Include("LuaHandler/Utilities/utils.lua", nil, VFS.DEF_MODE)
 include "LuaHandler/handler.lua"
 
 --// print Lua & LuaUI version
-Spring.Log(LUA_NAME, "info", LUA_VERSION .. " (" .. _VERSION .. ")")
+SpringShared.Log(LUA_NAME, "info", LUA_VERSION .. " (" .. _VERSION .. ")")
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------

@@ -31,23 +31,23 @@ function widget:ViewResize(vsx, vsy)
 end
 
 function widget:Initialize()
-	widget:ViewResize(Spring.GetViewGeometry())
+	widget:ViewResize(SpringUnsynced.GetViewGeometry())
 	-- Disable engine's selection box rendering completely by setting line width to 0
 	-- and making the color transparent
 
-	Spring.LoadCmdColorsConfig('mouseBoxLineWidth 0')
+	SpringUnsynced.LoadCmdColorsConfig('mouseBoxLineWidth 0')
 end
 
 function widget:Shutdown()
 	-- Restore engine's default selection box
-	Spring.LoadCmdColorsConfig('mouseBoxLineWidth 1.5')
+	SpringUnsynced.LoadCmdColorsConfig('mouseBoxLineWidth 1.5')
 end
 
 function widget:DrawScreen() -- This blurs the UI elements obscured by other UI elements (only unit stats so far!)
-	local x1, y1, x2, y2 = Spring.GetSelectionBox()
+	local x1, y1, x2, y2 = SpringUnsynced.GetSelectionBox()
 	if y2 then
 		-- Get modifier key states
-		local alt, ctrl, meta, shift = Spring.GetModKeyState()
+		local alt, ctrl, meta, shift = SpringUnsynced.GetModKeyState()
 
 		gl.PushMatrix()
 
@@ -110,7 +110,7 @@ function widget:MousePress(x, y, button)
 	end
 
 	-- Check if click is on minimap
-	local mmX, mmY, mmW, mmH, minimized, maximized = Spring.GetMiniMapGeometry()
+	local mmX, mmY, mmW, mmH, minimized, maximized = SpringUnsynced.GetMiniMapGeometry()
 	if not mmX or minimized or maximized then return false end
 
 	-- mmY is bottom edge, top edge is mmY + mmH
@@ -136,7 +136,7 @@ end
 
 function widget:Update()
 	-- Check if mouse is pressed and on minimap
-	local mx, my, leftPressed = Spring.GetMouseState()
+	local mx, my, leftPressed = SpringUnsynced.GetMouseState()
 
 	if leftPressed then
 		-- Don't track selection if minimap left-click-move is enabled
@@ -147,8 +147,8 @@ function widget:Update()
 			return
 		end
 
-		local mmX, mmY, mmW, mmH, minimized, maximized = Spring.GetMiniMapGeometry()
-		local vsx, vsy = Spring.GetViewGeometry()
+		local mmX, mmY, mmW, mmH, minimized, maximized = SpringUnsynced.GetMiniMapGeometry()
+		local vsx, vsy = SpringUnsynced.GetViewGeometry()
 		if mmX and not minimized and not maximized then
 			-- mmY is the bottom edge of the minimap (distance from screen bottom)
 			-- Top edge is at mmY + mmH
@@ -219,7 +219,7 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	end
 
 	-- Get modifier key states
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	local alt, ctrl, meta, shift = SpringUnsynced.GetModKeyState()
 
 	-- Validate that both start and end are within minimap bounds
 	local x1, y1 = minimapSelectionStart.x, minimapSelectionStart.y

@@ -16,17 +16,17 @@ end
 
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
+local spGetGameFrame = SpringShared.GetGameFrame
 
 local iconTypes = VFS.Include("gamedata/icontypes.lua")
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = SpringUnsynced.GetViewGeometry()
 local delayedCacheUnitIcons
 local delayedCacheUnitIconsTimer = 0
 local cachedUnitIcons = false
 
 
 local startUnits = { UnitDefNames.armcom.id, UnitDefNames.corcom.id }
-if Spring.GetModOptions().experimentallegionfaction then
+if SpringShared.GetModOptions().experimentallegionfaction then
 	startUnits[#startUnits + 1] = UnitDefNames.legcom.id
 end
 local startBuildOptions = {}

@@ -7,7 +7,7 @@ local math_sin = math.sin
 local math_random = math.random
 local math_sqrt = math.sqrt
 local math_pi = math.pi
-local Spring_GetGroundHeight = Spring.GetGroundHeight
+local Spring_GetGroundHeight = SpringShared.GetGroundHeight
 	-- function map:FindClosestBuildSite(unittype,builderpos, searchradius, minimumdistance)
 	-- function map:CanBuildHere(unittype,position)
 	-- function map:GetMapFeatures()
@@ -61,14 +61,14 @@ function map:FindClosestBuildSite(unittype, builderpos, searchradius, minimumdis
 end
 
 function map:CanBuildHere(unittype,position) -- returns boolean
-	local newX, newY, newZ = Spring.Pos2BuildPos(unittype:ID(), position.x, position.y, position.z)
-	local blocked = Spring.TestBuildOrder(unittype:ID(), newX, newY, newZ, 1) == 0
+	local newX, newY, newZ = SpringShared.Pos2BuildPos(unittype:ID(), position.x, position.y, position.z)
+	local blocked = SpringShared.TestBuildOrder(unittype:ID(), newX, newY, newZ, 1) == 0
 	-- Spring.Echo(unittype:Name(), newX, newY, newZ, blocked)
 	return ( not blocked ), {x=newX, y=newY, z=newZ}
 end
 
 function map:TestMoveOrder(UnitDefID, p) -- returns boolean
-	return Spring.TestMoveOrder(UnitDefID, p.x, p.z, p.y )
+	return SpringShared.TestMoveOrder(UnitDefID, p.x, p.z, p.y )
 end
 
 
@@ -83,7 +83,7 @@ function map:RequestPath(moveClass, POS1, POS2,radius) -- returns a path
 		--Spring.Echo('RequestPath receive a nil POS1',POS1,POS2)
 		return
 	end
-	local metapath = Spring.RequestPath(moveClass, POS1.x,POS1.y,POS1.z,POS2.x,POS2.y,POS2.z,radius)
+	local metapath = SpringShared.RequestPath(moveClass, POS1.x,POS1.y,POS1.z,POS2.x,POS2.y,POS2.z,radius)
 	if not metapath then
 		--Spring.Echo(unitName,'no path found',POS1.x,POS1.z,POS2.x,POS2.z)
 		return
@@ -106,7 +106,7 @@ function map:GetPathObject(moveID, start_x, start_y, start_z, end_x, end_y, end_
 		return
 	end
 	radius = radius or 8
-	return Spring.RequestPath(moveID, start_x, start_y, start_z, end_x, end_y, end_z,radius)
+	return SpringShared.RequestPath(moveID, start_x, start_y, start_z, end_x, end_y, end_z,radius)
 end
 
 
@@ -178,7 +178,7 @@ function map:TestPath(moveID, start_x, start_y, start_z, end_x, end_y, end_z,rad
 	end]]
 	local wp = self:GetPathWaypoints(pathObject)
 	wp = wp[#wp]
-	wp[2] = Spring.GetGroundHeight(wp[1],wp[3])
+	wp[2] = SpringShared.GetGroundHeight(wp[1],wp[3])
 	local x = end_x - wp[1]
 	local y = end_y - wp[2]
 	local z = end_z - wp[3]
@@ -202,7 +202,7 @@ function map:PathTest(moveID, start_x, start_y, start_z, end_x, end_y, end_z,rad
 		return
 	end
 	radius = radius or 8
-	if Spring.RequestPath(moveID, start_x, start_y, start_z, end_x, end_y, end_z,radius) then
+	if SpringShared.RequestPath(moveID, start_x, start_y, start_z, end_x, end_y, end_z,radius) then
 		return true
 	end
 end
@@ -212,7 +212,7 @@ function map:GetPathWaypoints(pathObject)
 	return pathObject:GetPathWayPoints()
 end
 function map:GetMapFeatures()
-	local fv = Spring.GetAllFeatures()
+	local fv = SpringShared.GetAllFeatures()
 	if not fv then return {} end
 	local f = {}
 	for i=1,#fv do
@@ -222,7 +222,7 @@ function map:GetMapFeatures()
 end
 
 function map:GetMapFeaturesAt(position,radius)
-	local fv = Spring.GetFeaturesInSphere(position.x, position.y, position.z, radius)
+	local fv = SpringShared.GetFeaturesInSphere(position.x, position.y, position.z, radius)
 	if not fv then return {} end
 	local f = {}
 	for i=1,#fv do
@@ -287,7 +287,7 @@ function map:MapName() -- returns the name of this map
 end
 
 function map:GetWind()
-	local _,_,_,strenght =Spring.GetWind()
+	local _,_,_,strenght =SpringShared.GetWind()
 	return strenght 
 
 end
@@ -306,17 +306,17 @@ function map:MaximumWindSpeed() -- returns maximum wind speed
 end
 
 function map:MaximumHeight() -- returns maximum map height
-	local minHeight, maxHeight = Spring.GetGroundExtremes()
+	local minHeight, maxHeight = SpringShared.GetGroundExtremes()
 	return maxHeight
 end
 
 function map:MinimumHeight() -- returns minimum map height
-	local minHeight, maxHeight = Spring.GetGroundExtremes()
+	local minHeight, maxHeight = SpringShared.GetGroundExtremes()
 	return minHeight
 end
 
 function map:GetGroundHeight(x,z)
-	return Spring.GetGroundHeight(x,z)
+	return SpringShared.GetGroundHeight(x,z)
 end
 
 function map:TidalStrength() -- returns tidal strength

@@ -14,7 +14,7 @@ timedMove = function(piece, axis, goal, amount, t)
 	Move(piece, axis, goal, speed)
 end
 	
-unitDefID = Spring.GetUnitDefID(unitID)
+unitDefID = SpringShared.GetUnitDefID(unitID)
 defs = UnitDefs[unitDefID]
 unitName = UnitDefs[unitDefID].name
 
@@ -88,7 +88,7 @@ end
 
 function ypos()
 	while true do
-		local _,y = Spring.GetUnitPosition(unitID)
+		local _,y = SpringShared.GetUnitPosition(unitID)
 		isUW = (y < -60)
 		Sleep(500)
 	end
@@ -186,7 +186,7 @@ function script.Create()
 end
 
 function LastCallCheck(weaponID)
-	local f = Spring.GetGameFrame()
+	local f = SpringShared.GetGameFrame()
 	if not weapons[weaponID].lastCall then
 		weapons[weaponID].lastCall = f
 	end

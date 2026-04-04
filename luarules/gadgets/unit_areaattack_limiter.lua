@@ -21,8 +21,8 @@ local CMD_AREA_ATTACK = CMD.AREA_ATTACK
 local CMD_FIGHT = CMD.FIGHT
 local CMD_STOP = CMD.STOP
 
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGiveOrderArrayToUnitArray = Spring.GiveOrderArrayToUnitArray
+local spGetSelectedUnits = SpringUnsynced.GetSelectedUnits
+local spGiveOrderArrayToUnitArray = SpringSynced.GiveOrderArrayToUnitArray
 
 -- Max units allowed to use the expensive engine-side area attack.
 -- Excess units receive a FIGHT command to the area center instead,

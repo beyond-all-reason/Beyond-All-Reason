@@ -32,10 +32,10 @@ local tableInsert = table.insert
 local tableRemove = table.remove
 
 -- Localized Spring API for performance
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetSelectedUnits = SpringUnsynced.GetSelectedUnits
 local spGetMyTeamID = Spring.GetMyTeamID
-local spGetTeamUnits = Spring.GetTeamUnits
+local spGetTeamUnits = SpringShared.GetTeamUnits
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -46,7 +46,7 @@ local startPointUnitName = "armcom"
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitPosition = SpringShared.GetUnitPosition
 
 ---Potential map start point, materialized by a unit.
 ---@class StartPoint
@@ -335,7 +335,7 @@ return {
     -- before we interact with byAllyTeamCount and layouts
     return coroutine.create(function()
       for _, startPoint in ipairs(self.startPoints) do
-        Spring.SendCommands(string.format("give %s @%s,%s,%s", startPointUnitName, startPoint.x, 0, startPoint.z))
+        SpringUnsynced.SendCommands(string.format("give %s @%s,%s,%s", startPointUnitName, startPoint.x, 0, startPoint.z))
         coroutine.yield()
       end
       for _, layouts in pairsByKeys(self.byAllyTeamCount) do
@@ -421,7 +421,7 @@ local function tryLoadWIPConfig(currentMapName)
   local availableWIPConfigs = VFS.DirList(WIPConfigsDir, string.format("%s%s*.lua", WIPConfigFilePrefix, currentMapName))
   if #availableWIPConfigs > 0 then
     local lastWIPConfig = availableWIPConfigs[#availableWIPConfigs]
-    Spring.Log(widget:GetInfo().name, LOG.INFO,
+    SpringShared.Log(widget:GetInfo().name, LOG.INFO,
       string.format("found WIP config file %s previously written by editor for current map %s", lastWIPConfig,
         currentMapName))
     return VFS.Include(lastWIPConfig)
@@ -437,7 +437,7 @@ local function tryLoadConfigFromBAR(currentMapName)
   for _, configFile in pairs(availableConfigFiles) do
     local basename = configFile:gsub(configsDirectory, ""):gsub(".lua", ""):gsub("_", " "):lower()
     if string.find(sanitizedCurrentMapName, basename) then
-      Spring.Log(widget:GetInfo().name, LOG.INFO,
+      SpringShared.Log(widget:GetInfo().name, LOG.INFO,
         string.format("found config %s provided by BAR for current map %s", configFile, currentMapName))
       return VFS.Include(configFile)
     end
@@ -457,8 +457,8 @@ local function doLoad(config)
   coroutine.resume(configLoadCoroutine)
 
   -- clean up whatever was on the map before loading
-  Spring.SelectUnitArray(existingUnits)
-  Spring.SendCommands("remove")
+  SpringUnsynced.SelectUnitArray(existingUnits)
+  SpringUnsynced.SendCommands("remove")
 end
 
 --------------------------------------------------------------------------------
@@ -473,11 +473,11 @@ local availableFilters = {
 local currentFilter = 1
 
 local function giveStartPoint()
-  Spring.SendCommands("give " .. startPointUnitName)
+  SpringUnsynced.SendCommands("give " .. startPointUnitName)
 end
 
 local function removeSelectedStartPoints()
-  Spring.SendCommands("remove")
+  SpringUnsynced.SendCommands("remove")
 end
 
 local function addLayout()
@@ -486,10 +486,10 @@ local function addLayout()
   if #selectedUnits >= 3 then
     local layout = Layout:new(selectedUnits)
     if not byAllyTeamCount:addLayout(layout) then
-      Spring.Log(widget:GetInfo().name, LOG.INFO, "layout was already registered")
+      SpringShared.Log(widget:GetInfo().name, LOG.INFO, "layout was already registered")
     end
   else
-    Spring.Log(widget:GetInfo().name, LOG.ERROR, "must select at least 3 start points to add a layout")
+    SpringShared.Log(widget:GetInfo().name, LOG.ERROR, "must select at least 3 start points to add a layout")
   end
 end
 
@@ -498,7 +498,7 @@ local function removeLayout()
   if #selectedUnits >= 3 then
     local layout = Layout:new(selectedUnits)
     if not byAllyTeamCount:removeLayout(layout) then
-      Spring.Log(widget:GetInfo().name, LOG.INFO, "this layout is not registered")
+      SpringShared.Log(widget:GetInfo().name, LOG.INFO, "this layout is not registered")
     end
   end
 end
@@ -524,15 +524,15 @@ local function copyToClipboard()
     byAllyTeamCount = configFile.byAllyTeamCount,
   }
   local output = configFile:serialize()
-  Spring.SetClipboard(output)
-  Spring.Log(widget:GetInfo().name, LOG.INFO, "copied to clipboard and stored ephemeral config")
+  SpringUnsynced.SetClipboard(output)
+  SpringShared.Log(widget:GetInfo().name, LOG.INFO, "copied to clipboard and stored ephemeral config")
 end
 
 local function resetLastCopy()
   if WG[ephemeralConfig] then
     doLoad(WG[ephemeralConfig])
   else
-    Spring.Log(widget:GetInfo().name, LOG.INFO, "no ephemeral config found to reset")
+    SpringShared.Log(widget:GetInfo().name, LOG.INFO, "no ephemeral config found to reset")
   end
 end
 
@@ -551,9 +551,9 @@ local function saveWIPConfig()
   if f then
     f:write(output)
     f:close()
-    Spring.Log(widget:GetInfo().name, LOG.INFO, string.format("saved to WIP config file %s", filepath))
+    SpringShared.Log(widget:GetInfo().name, LOG.INFO, string.format("saved to WIP config file %s", filepath))
   elseif err then
-    Spring.Log(widget:GetInfo().name, LOG.ERROR, err)
+    SpringShared.Log(widget:GetInfo().name, LOG.ERROR, err)
   end
 end
 
@@ -563,7 +563,7 @@ local function loadWIPOrBARConfig()
   if config then
     doLoad(config)
   else
-    Spring.Log(widget:GetInfo().name, LOG.INFO, "no config found in WIP configs nor BAR configs for this map")
+    SpringShared.Log(widget:GetInfo().name, LOG.INFO, "no config found in WIP configs nor BAR configs for this map")
   end
 end
 
@@ -584,8 +584,8 @@ local actions = {
 local function registerKeybinds(widget)
   for name, action in pairs(actions) do
     widgetHandler.actionHandler:AddAction(widget, name, action.handler, nil, 'p')
-    Spring.SendCommands(string.format("unbindkeyset %s", action.keybind))
-    Spring.SendCommands(string.format("bind %s %s", action.keybind, name))
+    SpringUnsynced.SendCommands(string.format("unbindkeyset %s", action.keybind))
+    SpringUnsynced.SendCommands(string.format("bind %s %s", action.keybind, name))
   end
 end
 
@@ -593,7 +593,7 @@ local function unregisterKeybinds(widget)
   for name, _ in pairs(actions) do
     widgetHandler.actionHandler:RemoveAction(widget, name)
   end
-  Spring.SendCommands("keyreload")
+  SpringUnsynced.SendCommands("keyreload")
 end
 
 --------------------------------------------------------------------------------
@@ -620,13 +620,13 @@ local outlineSizeDefault = 7
 local outlineSize
 local outlineColor = { 0, 0, 0, 1 }
 local outlineStrength = 10
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local fontfile = "fonts/" .. SpringUnsynced.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local font = nil
 
 local DrawElement
-local GetViewGeometry = Spring.GetViewGeometry
-local IsGUIHidden = Spring.IsGUIHidden
-local WorldToScreenCoords = Spring.WorldToScreenCoords
+local GetViewGeometry = SpringUnsynced.GetViewGeometry
+local IsGUIHidden = SpringUnsynced.IsGUIHidden
+local WorldToScreenCoords = SpringUnsynced.WorldToScreenCoords
 local glCreateList = gl.CreateList
 local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
@@ -803,20 +803,20 @@ end
 
 local function isSoloDevMode()
   -- compute if we are in a solo game (nothing but the player, not even AIs)
-  local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID(), false))
-  local allyTeamList = Spring.GetAllyTeamList()
+  local gaiaAllyTeamID = select(6, SpringShared.GetTeamInfo(SpringShared.GetGaiaTeamID(), false))
+  local allyTeamList = SpringShared.GetAllyTeamList()
   local allyTeamCount = 0
   for _, allyTeam in ipairs(allyTeamList) do
     if allyTeam ~= gaiaAllyTeamID then
       allyTeamCount = allyTeamCount + 1
     end
   end
-  local teamList = Spring.GetTeamList(Spring.GetMyAllyTeamID())
+  local teamList = SpringShared.GetTeamList(Spring.GetMyAllyTeamID())
   local teamCount = table.count(teamList)
   local isSolo = allyTeamCount == 1 and teamCount == 1
 
   -- we only run in solo games with dev mode enabled, and not in replays
-  if not isSolo or not Spring.Utilities.IsDevMode() or Spring.IsReplay() then
+  if not isSolo or not Spring.Utilities.IsDevMode() or SpringUnsynced.IsReplay() then
     return false
   end
   return true
@@ -840,11 +840,11 @@ function widget:Initialize()
     return
   end
 
-  Spring.SetLogSectionFilterLevel(widget:GetInfo().name, LOG.INFO)
+  SpringUnsynced.SetLogSectionFilterLevel(widget:GetInfo().name, LOG.INFO)
   -- we register the `GameFrame` callin to defer the rest of initialization at a
   -- later time. This is a kludge to make sure that we run very late, after the
   -- `autocheat` widget has had a chance to enable cheating
-  initialFrame = Spring.GetGameFrame()
+  initialFrame = SpringShared.GetGameFrame()
   widgetHandler:UpdateWidgetCallIn('GameFrame', self);
 end
 
@@ -852,8 +852,8 @@ function widget:GameFrame(f)
   if f > initialFrame + 10 then
     widgetHandler:RemoveWidgetCallIn('GameFrame', self);
 
-    if not Spring.IsCheatingEnabled() then
-      Spring.Log(widget:GetInfo().name, LOG.ERROR, "this widget needs cheating enabled")
+    if not SpringShared.IsCheatingEnabled() then
+      SpringShared.Log(widget:GetInfo().name, LOG.ERROR, "this widget needs cheating enabled")
       widgetHandler:RemoveWidget(self)
       return
     end

@@ -16,7 +16,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-if not Spring.GetModOptions().easytax then
+if not SpringShared.GetModOptions().easytax then
 	return false
 end
 
@@ -33,22 +33,22 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
-	if (capture) and (not Spring.AreTeamsAllied(fromTeamID, toTeamID)) then
+	if (capture) and (not SpringShared.AreTeamsAllied(fromTeamID, toTeamID)) then
 		return true
 	end
-	beingBuilt, buildProgress = Spring.GetUnitIsBeingBuilt(unitID)
-	if beingBuilt and buildProgress > 0 and next(Spring.GetPlayerList(fromTeamID)) ~= nil then
+	beingBuilt, buildProgress = SpringShared.GetUnitIsBeingBuilt(unitID)
+	if beingBuilt and buildProgress > 0 and next(SpringShared.GetPlayerList(fromTeamID)) ~= nil then
 		return false -- Sharing partly built nanoframes is not allowed because letting it decay bypasses taxation. Also you can't assist ally build so unit could get stuck in factory.
 	end
 	if commanders[unitDefID] then
-		if next(Spring.GetPlayerList(fromTeamID, true)) == nil then -- There are no active players in the fromTeam, therefore this is /take.
+		if next(SpringShared.GetPlayerList(fromTeamID, true)) == nil then -- There are no active players in the fromTeam, therefore this is /take.
 			return true
 		end
 		return false
 	end
     if ecoUnits[unitDefID] then
-        local _, maxHealth, _ = Spring.GetUnitHealth(unitID)
-        Spring.AddUnitDamage(unitID, maxHealth*5, 30) -- Stun for 30 seconds.
+        local _, maxHealth, _ = SpringShared.GetUnitHealth(unitID)
+        SpringSynced.AddUnitDamage(unitID, maxHealth*5, 30) -- Stun for 30 seconds.
     end
 	return true
 end

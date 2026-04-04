@@ -27,13 +27,13 @@ local luaShaderDir = "LuaUI/Include/"
 local glTexture             = gl.Texture
 
 local function AddPrimitiveAtUnit(unitID, unitDefID)
-	local gf = Spring.GetGameFrame()
-	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
+	local gf = SpringShared.GetGameFrame()
+	unitDefID = unitDefID or SpringShared.GetUnitDefID(unitID)
 	if unitDefID == nil then return end -- these cant be selected
 	local numVertices = 62 -- default to circle
 	local cornersize = 0
 	
-	local radius = Spring.GetUnitRadius(unitID) * 2.6 or 64
+	local radius = SpringShared.GetUnitRadius(unitID) * 2.6 or 64
 	local width = radius 
 	local length = radius
 	local additionalheight = 2*radius
@@ -41,7 +41,7 @@ local function AddPrimitiveAtUnit(unitID, unitDefID)
 	pushElementInstance(
 		selectionVBO, -- push into this Instance VBO Table
 			{length, width, cornersize, additionalheight,  -- lengthwidthcornerheight
-			Spring.GetUnitTeam(unitID), -- teamID
+			SpringShared.GetUnitTeam(unitID), -- teamID
 			numVertices, -- how many trianges should we make
 			gf, 0, 0, 0, -- the gameFrame (for animations), and any other parameters one might want to add
 			0, 1, 0, 1, -- These are our default UV atlas tranformations
@@ -54,7 +54,7 @@ end
 
 function widget:DrawWorldPreUnit()
 	if selectionVBO.usedElements > 0 then 
-		local disticon = 27 * Spring.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
+		local disticon = 27 * SpringUnsynced.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		glTexture(0, texture)
 		selectShader:Activate()
 		selectShader:SetUniform("iconDistance",disticon) 
@@ -66,7 +66,7 @@ function widget:DrawWorldPreUnit()
 end
 
 function widget:UnitCreated(unitID)
-	if not Spring.IsUnitAllied(unitID) then return end
+	if not SpringUnsynced.IsUnitAllied(unitID) then return end
 	AddPrimitiveAtUnit(unitID)
 end
 
@@ -82,7 +82,7 @@ function widget:Initialize()
 	shaderConfig.HEIGHTOFFSET = 1
 	selectionVBO, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "TESTDPAUMinimal")
 	if true then -- FOR TESTING
-		local units = Spring.GetAllUnits()
+		local units = SpringShared.GetAllUnits()
 		for _, unitID in ipairs(units) do
 			AddPrimitiveAtUnit(unitID)
 		end

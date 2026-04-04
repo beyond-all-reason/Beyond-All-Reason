@@ -14,14 +14,14 @@ end
 
 
 -- Localized Spring API for performance
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 local hideBelowGameframe = 100
 
-local GetGroupUnits = Spring.GetGroupUnits
-local spValidUnitID = Spring.ValidUnitID
-local spGetUnitIsDead = Spring.GetUnitIsDead
-local spIsGUIHidden = Spring.IsGUIHidden
+local GetGroupUnits = SpringUnsynced.GetGroupUnits
+local spValidUnitID = SpringShared.ValidUnitID
+local spGetUnitIsDead = SpringShared.GetUnitIsDead
+local spIsGUIHidden = SpringUnsynced.IsGUIHidden
 
 local gameFrame = 0
 local maxNumGroups = 9
@@ -128,7 +128,7 @@ end
 local function AddPrimitiveAtUnit(unitID, noUpload, groupNumber, gf)
 	if spValidUnitID(unitID) ~= true or spGetUnitIsDead(unitID) == true then
 		if debugmode then
-			Spring.Echo("Warning: Unit Groups GL4 attempted to add an invalid unitID:", unitID)
+			SpringShared.Echo("Warning: Unit Groups GL4 attempted to add an invalid unitID:", unitID)
 		end
 		return nil
 	end
@@ -205,7 +205,7 @@ function widget:Initialize()
 
 	initGL4()
 
-	gameFrame = Spring.GetGameFrame()
+	gameFrame = SpringShared.GetGameFrame()
 	unitIDtoGroup = {}
 
 	if gameFrame > 0 then

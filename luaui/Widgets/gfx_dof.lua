@@ -15,7 +15,7 @@ end
 
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 local highQuality = true		-- doesnt seem to do anything
 local autofocus = true
@@ -31,7 +31,7 @@ local autofocusFocalLength = 0.03		-- Autofocus Focal Length
 -- Engine Functions
 -----------------------------------------------------------------
 
-local spGetCameraPosition   = Spring.GetCameraPosition
+local spGetCameraPosition   = SpringUnsynced.GetCameraPosition
 
 local math_max = math.max
 local math_log = math.log
@@ -144,7 +144,7 @@ local shaderPasses =
 
 
 function InitTextures()
-	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
+	vsx, vsy, vpx, vpy = SpringUnsynced.GetViewGeometry()
 	local blurTexSizeX, blurTexSizeY = vsx/2, vsy/2;
 
 	CleanupTextures()
@@ -366,7 +366,7 @@ end
 
 local function FilterCalculation()
 	local cpx, cpy, cpz = spGetCameraPosition()
-	local gmin, gmax = Spring.GetGroundExtremes()
+	local gmin, gmax = SpringShared.GetGroundExtremes()
 	local effectiveHeight = cpy - math_max(0, gmin)
 	cpy = 3.5 * math_sqrt(effectiveHeight) * math_log(effectiveHeight)
 	glUniform(eyePosLoc, cpx, cpy, cpz)
@@ -458,7 +458,7 @@ function widget:DrawScreenEffects()
 	glCopyToTexture(screenTex, 0, 0, vpx, vpy, vsx, vsy) -- the original screen image
 	glCopyToTexture(depthTex, 0, 0, vpx, vpy, vsx, vsy) -- the original screen image
 
-	local mx, my = Spring.GetMouseState()
+	local mx, my = SpringUnsynced.GetMouseState()
 
 	glUseShader(dofShader)
 		glUniform(distanceLimitsLoc, gl.GetViewRange())

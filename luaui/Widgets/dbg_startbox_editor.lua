@@ -19,8 +19,8 @@ local mathAbs = math.abs
 local mathFloor = math.floor
 
 -- Localized Spring API for performance
-local spTraceScreenRay = Spring.TraceScreenRay
-local spGetGroundHeight = Spring.GetGroundHeight
+local spTraceScreenRay = SpringUnsynced.TraceScreenRay
+local spGetGroundHeight = SpringShared.GetGroundHeight
 
 -- this is not ZK copy, its is modified
 
@@ -114,7 +114,7 @@ function widget:KeyPress(key)
 		local file = assert(io.open(filename, 'w'), 'Unable to save '..filename)
 		file:write(exportPrefix..exported..exportSuffix)
 		file:close()
-		Spring.Echo((exportedTeam == 0 and 'saved' or 'added')..' team '..exportedTeam..' startboxes to '..filename)
+		SpringShared.Echo((exportedTeam == 0 and 'saved' or 'added')..' team '..exportedTeam..' startboxes to '..filename)
 
 		final_polygons = {}
 		exportedTeam = exportedTeam + 1
@@ -132,7 +132,7 @@ local function DrawLine()
 		gl.Vertex(x,y,z)
 	end
 
-	local mx,my = Spring.GetMouseState()
+	local mx,my = SpringUnsynced.GetMouseState()
 	local pos = select(2, spTraceScreenRay(mx, my, true))
 	if pos then
 		gl.Vertex(pos[1],pos[2],pos[3])

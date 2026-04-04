@@ -21,12 +21,12 @@ UtilsGuard = true
 --------------------------------------------------------------------------------
 
 function Say(msg)
-  Spring.SendCommands({'say ' .. msg})
+  SpringUnsynced.SendCommands({'say ' .. msg})
 end
 
 
 function SendCommand(msg)
-  Spring.SendCommands({msg})
+  SpringUnsynced.SendCommands({msg})
 end
 
 

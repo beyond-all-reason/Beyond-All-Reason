@@ -22,12 +22,12 @@ end
 local mathFloor = math.floor
 
 -- Localized Spring API for performance
-local spGetUnitDefID = Spring.GetUnitDefID
-local spEcho = Spring.Echo
-local spGetAllUnits = Spring.GetAllUnits
-local spGetTeamUnitsByDefs = Spring.GetTeamUnitsByDefs
-local spGetTeamList = Spring.GetTeamList
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spEcho = SpringShared.Echo
+local spGetAllUnits = SpringShared.GetAllUnits
+local spGetTeamUnitsByDefs = SpringShared.GetTeamUnitsByDefs
+local spGetTeamList = SpringShared.GetTeamList
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 -- TODO:
 -- reflections
@@ -45,12 +45,12 @@ local spGetSpectatingState = Spring.GetSpectatingState
 ---
 
 
-local spGetGameFrame = Spring.GetGameFrame
-local spGetUnitPieceMap = Spring.GetUnitPieceMap
-local spGetUnitIsActive = Spring.GetUnitIsActive
-local spGetUnitVelocity = Spring.GetUnitVelocity
-local spGetUnitTeam = Spring.GetUnitTeam
-local spIsUnitInLos = Spring.IsUnitInLos
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetUnitPieceMap = SpringShared.GetUnitPieceMap
+local spGetUnitIsActive = SpringShared.GetUnitIsActive
+local spGetUnitVelocity = SpringShared.GetUnitVelocity
+local spGetUnitTeam = SpringShared.GetUnitTeam
+local spIsUnitInLos = SpringShared.IsUnitInLos
 local glBlending = gl.Blending
 local glTexture = gl.Texture
 
@@ -62,7 +62,7 @@ local GL_ONE = GL.ONE
 local glAlphaTest = gl.AlphaTest
 local glDepthTest = gl.DepthTest
 
-local spValidUnitID = Spring.ValidUnitID
+local spValidUnitID = SpringShared.ValidUnitID
 
 --------------------------------------------------------------------------------
 -- Configuration
@@ -152,7 +152,7 @@ local inactivePlanes = {}
 local lights = {}
 
 local shaders
-local lastGameFrame = Spring.GetGameFrame()
+local lastGameFrame = SpringShared.GetGameFrame()
 local updateSec = 0
 
 local spec, fullview = spGetSpectatingState()
@@ -452,7 +452,7 @@ local function ValidateUnitIDs(unitIDkeys)
 	local invalidstr = ''
 	for indexpos, unitID in pairs(unitIDkeys) do
 		numunitids = numunitids + 1
-		if Spring.ValidUnitID(unitID) then
+		if SpringShared.ValidUnitID(unitID) then
 			validunitids = validunitids + 1
 		else
 			invalidunitids[#invalidunitids + 1] = unitID
@@ -542,7 +542,7 @@ local function Activate(unitID, unitDefID, who, when)
 
 	if when ==  nil then when = 0 end --
 
-	if Spring.GetUnitIsDead(unitID) == true then
+	if SpringShared.GetUnitIsDead(unitID) == true then
 		--Spring.SendCommands({"pause 1"})
 		return
 	end
@@ -603,7 +603,7 @@ end
 function widget:Update(dt)
 	if true then return end
 	updateSec = updateSec + dt
-	local gf = Spring.GetGameFrame()
+	local gf = SpringShared.GetGameFrame()
 	if gf ~= lastGameFrame and updateSec > 0.51 then		-- to limit the number of unit status checks
 		--[[
 		if Spring.GetGameFrame() > 0 then
@@ -620,7 +620,7 @@ function widget:Update(dt)
 		updateSec = 0
 		for unitID, unitDefID in pairs(inactivePlanes) do
 			-- always activate enemy planes
-			if spGetUnitIsActive(unitID) or not Spring.IsUnitAllied(unitID) then
+			if spGetUnitIsActive(unitID) or not SpringUnsynced.IsUnitAllied(unitID) then
 				if xzVelocityUnits[unitDefID] then
 					local uvx,_,uvz = spGetUnitVelocity(unitID)
 					if uvx * uvx + uvz * uvz > xzVelocityUnits[unitDefID] * xzVelocityUnits[unitDefID] then
@@ -632,7 +632,7 @@ function widget:Update(dt)
 			end
 		end
 		for unitID, unitDefID in pairs(activePlanes) do
-			if Spring.ValidUnitID(unitID) then
+			if SpringShared.ValidUnitID(unitID) then
 				if not spGetUnitIsActive(unitID) then
 					Deactivate(unitID, unitDefID,"updatewasinactive")
 				else

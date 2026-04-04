@@ -13,13 +13,13 @@
 
 
 function PrintInCommand()
-  local cmdIndex, cmdId, cmdType, name = Spring.GetActiveCommand()
+  local cmdIndex, cmdId, cmdType, name = SpringUnsynced.GetActiveCommand()
   print("InCommand: ", cmdIndex, cmdId, cmdType, name)
 end
 
 
 function PrintBuildQueue(unitID)
-  local queue, count = Spring.GetRealBuildQueue(unitID)
+  local queue, count = SpringShared.GetRealBuildQueue(unitID)
   print("BuildQueue(" .. unitID .."): " .. count)
   for i,v in pairs(queue) do
     for i2,v2 in pairs(v) do
@@ -30,14 +30,14 @@ end
 
 
 function PrintSelection()
-  local udTable, n       = Spring.GetSelectedUnitsSorted()
-  local selectedGroup = Spring.GetSelectedGroup()
+  local udTable, n       = SpringUnsynced.GetSelectedUnitsSorted()
+  local selectedGroup = SpringUnsynced.GetSelectedGroup()
   print("Selected Group = " .. selectedGroup)
   print("Selected: " .. n .. " types")
   for udid,uTable in pairs(udTable) do
      print('  ' .. udid .. '=' .. UnitDefs[udid].name .. ' count ' .. uTable.n)
     for _,uid in ipairs(uTable) do
-      local health, maxHealth, paralyze, capture, build = Spring.GetUnitHealth(uid)
+      local health, maxHealth, paralyze, capture, build = SpringShared.GetUnitHealth(uid)
       print('  ', uid, health, maxHealth, paralyze, capture, build)
       PrintCommandQueue(uid)
     end
@@ -51,7 +51,7 @@ end
 
 
 function PrintCommandQueue(uid)
-  local queue = Spring.GetUnitCommands(uid, -1)
+  local queue = SpringShared.GetUnitCommands(uid, -1)
   if (queue ~= nil) then
     local msg = ''
     local count = 0
@@ -71,7 +71,7 @@ end
 
 
 function PrintGroups()
-  local groupList, count = Spring.GetGroupList()
+  local groupList, count = SpringUnsynced.GetGroupList()
   print("GetGroupList: " .. tostring(count))
   for i, v in pairs(groupList) do
     local groupName = Spring.GetGroupAIName(i)
@@ -81,7 +81,7 @@ function PrintGroups()
 
   for g, c in pairs(groupList) do
     print("Units in Group " .. g)
-    local udTable = Spring.GetGroupUnitsSorted(g)
+    local udTable = SpringUnsynced.GetGroupUnitsSorted(g)
     print("  MyTeamUnits: " .. udTable.n .. " types")
     udTable.n = nil
     for udid,uTable in pairs(udTable) do
@@ -96,7 +96,7 @@ end
 
 
 function PrintTeamUnits(team)
-  udTable = Spring.GetTeamUnitsSorted(team)
+  udTable = SpringShared.GetTeamUnitsSorted(team)
 --  print("TeamUnits(" .. team .. "): " .. udTable.n .. " types")
 --  udTable.n = nil
   if (udTable == nil) then
@@ -115,7 +115,7 @@ end
 
 function PrintTeamUnitsCounts(team)
   print("Team Units Count:" .. team)
-  local countTable = Spring.GetTeamUnitsCounts(team)
+  local countTable = SpringShared.GetTeamUnitsCounts(team)
   if (countTable == nil) then
     return
   end
@@ -127,7 +127,7 @@ end
 
 
 function PrintAlliedUnits()
-  local teamTable = Spring.GetTeamList(Spring.GetMyAllyTeamID())
+  local teamTable = SpringShared.GetTeamList(Spring.GetMyAllyTeamID())
 --  print("AlliedUnits: " .. teamTable.n .. " teams")
   teamTable.n = nil
   for n,tid in pairs(teamTable) do
@@ -137,7 +137,7 @@ end
 
 
 function PrintAllyTeamList()
-  local allyTeamTable = Spring.GetAllyTeamList()
+  local allyTeamTable = SpringShared.GetAllyTeamList()
   local msg = "AllyTeams(" .. allyTeamTable.n .. ")"
   allyTeamTable.n = nil
   for n,atid in pairs(allyTeamTable) do
@@ -150,9 +150,9 @@ end
 function PrintTeamList(allyTeam)
   local teamTable
   if (allyTeam == nil) then
-    teamTable = Spring.GetTeamList()
+    teamTable = SpringShared.GetTeamList()
   else
-    teamTable = Spring.GetTeamList(allyTeam)
+    teamTable = SpringShared.GetTeamList(allyTeam)
   end
   if (teamTable == nil) then
     return
@@ -170,9 +170,9 @@ end
 function PrintPlayerList(team)
   local playerTable
   if (team == nil) then
-    playerTable = Spring.GetTeamList()
+    playerTable = SpringShared.GetTeamList()
   else
-    playerTable = Spring.GetTeamList(team)
+    playerTable = SpringShared.GetTeamList(team)
   end
   if (playerTable == nil) then
     return
@@ -188,15 +188,15 @@ end
 
 
 function PrintPlayerTree()
-  local atTable = Spring.GetAllyTeamList()
+  local atTable = SpringShared.GetAllyTeamList()
   for atn,atid in ipairs(atTable) do
     print('Ally team: ' .. atid)
-    local tTable = Spring.GetTeamList(atid)
+    local tTable = SpringShared.GetTeamList(atid)
     for tn,tid in ipairs(tTable) do
       print('  Team: ' .. tid)
-      local pTable = Spring.GetPlayerList(tid)
+      local pTable = SpringShared.GetPlayerList(tid)
       for pn,pid in ipairs(pTable) do
-        local pname, active = Spring.GetPlayerInfo(pid, false)
+        local pname, active = SpringShared.GetPlayerInfo(pid, false)
         if (active) then
           print('    Player: ' .. pid .. " " .. pname)
         end
@@ -207,7 +207,7 @@ end
 
 
 function PrintTeamInfo(teamID)
-  local num, leader, dead, isAI, side, allyTeam = Spring.GetTeamInfo(teamID, false)
+  local num, leader, dead, isAI, side, allyTeam = SpringShared.GetTeamInfo(teamID, false)
   print('Team number: ' .. num)
   print('     leader: ' .. leader)
   print('       dead: ' .. tostring(dead))
@@ -219,7 +219,7 @@ end
 
 function PrintTeamResources(teamID, type)
   local current, storage, pull, income, expense,
-    share, sent, received = Spring.GetTeamResources(teamID, type)
+    share, sent, received = SpringShared.GetTeamResources(teamID, type)
   if (current ~= nil) then
     print('Team number: ' .. teamID)
     print('  ' .. type .. ':           ' .. current)
@@ -235,7 +235,7 @@ end
 
 
 function PrintTeamUnitStats(teamID)
-  local kills, deaths, caps, losses, recv, sent = Spring.GetTeamUnitStats(teamID)
+  local kills, deaths, caps, losses, recv, sent = SpringShared.GetTeamUnitStats(teamID)
   if (kills ~= nil) then
     print('Team number: ' .. teamID)
     print('  kills:  ' .. kills)
@@ -250,7 +250,7 @@ end
 
 function PrintPlayerInfo(playerID)
   local name, active, spectator, team, allyteam, ping, cpuUsage =
-    Spring.GetPlayerInfo(playerID, false)
+    SpringShared.GetPlayerInfo(playerID, false)
   print('   name:     '..name)
   print('   id:       '..playerID)
   print('   active:   '..tostring(active))
@@ -324,9 +324,9 @@ function Debug()
   PrintSelection()
   PrintGroups()
   PrintInCommand()
-  print("UserName = "        .. Spring.GetConfigString("name", ""))
-  print("Shadows = "         .. Spring.GetConfigString("Shadows", 0))
-  print("ReflectiveWater = " .. Spring.GetConfigString("ReflectiveWater", 1))
+  print("UserName = "        .. SpringUnsynced.GetConfigString("name", ""))
+  print("Shadows = "         .. SpringUnsynced.GetConfigString("Shadows", 0))
+  print("ReflectiveWater = " .. SpringUnsynced.GetConfigString("ReflectiveWater", 1))
 
   PrintTeamUnits(Spring.GetMyTeamID())
 

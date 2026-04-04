@@ -18,7 +18,7 @@ local mathCeil = math.ceil
 local tableInsert = table.insert
 
 -- Localized Spring API for performance
-local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetSelectedUnits = SpringUnsynced.GetSelectedUnits
 
 local outputFile = "ruins_blueprints_temp.txt"
 local blueprintCounter = 0
@@ -40,14 +40,14 @@ local function getBlueprintCenter()
 
 	for i = 1, #selectedunits do
 		local unit = selectedunits[i]
-		centerposx[unit], centerposy[unit], centerposz[unit] = Spring.GetUnitPosition(unit)
+		centerposx[unit], centerposy[unit], centerposz[unit] = SpringShared.GetUnitPosition(unit)
 		blueprintposx = blueprintposx + centerposx[unit]
 		blueprintposz = blueprintposz + centerposz[unit]
 	end
 
 	blueprintCenterX = blueprintposx / #selectedunits
 	blueprintCenterZ = blueprintposz / #selectedunits
-	blueprintCenterY = Spring.GetGroundHeight(blueprintCenterX, blueprintCenterZ)
+	blueprintCenterY = SpringShared.GetGroundHeight(blueprintCenterX, blueprintCenterZ)
 end
 
 local function clearValues()
@@ -100,12 +100,12 @@ local function generateCode(type)
 	local buildings = {}
 
 	for _, unitID in ipairs(selectedUnits) do
-		local unitDirection = Spring.GetUnitBuildFacing(unitID)
+		local unitDirection = SpringShared.GetUnitBuildFacing(unitID)
 		local xOffset = mathCeil(centerposx[unitID]-blueprintCenterX)
 		local zOffset = mathCeil(centerposz[unitID]-blueprintCenterZ)
 		blueprintRadius = math.max(blueprintRadius, xOffset, zOffset)
 
-		local unitDefID = Spring.GetUnitDefID(unitID)
+		local unitDefID = SpringShared.GetUnitDefID(unitID)
 		local unitName = UnitDefs[unitDefID].name
 
 		local unitDef = UnitDefNames[unitName]
@@ -144,7 +144,7 @@ local function generateCode(type)
 
 	blueprintCounter = blueprintCounter + 1
 
-	Spring.Echo(blueprintName .. " written to " .. outputFile)
+	SpringShared.Echo(blueprintName .. " written to " .. outputFile)
 end
 
 function widget:TextCommand(command)

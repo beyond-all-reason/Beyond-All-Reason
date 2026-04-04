@@ -12,7 +12,7 @@
 --------------------------------------------------------------------------------
 if (System == nil) then
 	if tracy == nil then
-		Spring.Echo("Gadgetside tracy: No support detected, replacing tracy.* with function stubs.")
+		SpringShared.Echo("Gadgetside tracy: No support detected, replacing tracy.* with function stubs.")
 		tracy = {}
 		tracy.ZoneBeginN = function () return end 
 		tracy.ZoneBegin = function () return end 

@@ -50,7 +50,7 @@ local globalCmdDeprecatedShown = false
 local importCommandsToObject = function(object)
 	if not globalCmdDeprecatedShown and not object.gadgetHandler then
 		local msg = 'Should not use customcmds.h.lua or importCommandsToObject. Use the CMD table directly, or read modules/customcommands.lua for more information.'
-		Spring.Log('CMD', LOG.DEPRECATED, msg)
+		SpringShared.Log('CMD', LOG.DEPRECATED, msg)
 		globalCmdDeprecatedShown = true
 	end
 	for code, cmdID in pairs(gameCommands) do
@@ -63,10 +63,10 @@ end
 
 for code, cmdID in pairs(gameCommands) do
 	if CMD[cmdID] then
-		Spring.Log('CMD', LOG.ERROR, 'Duplicate command id: ' .. code .. ' ' .. tostring(cmdID) .. '!')
+		SpringShared.Log('CMD', LOG.ERROR, 'Duplicate command id: ' .. code .. ' ' .. tostring(cmdID) .. '!')
 	end
 	if CMD[code] then
-		Spring.Log('CMD', LOG.ERROR, 'Duplicate command code: ' .. code .. ' ' .. tostring(cmdID) .. '!')
+		SpringShared.Log('CMD', LOG.ERROR, 'Duplicate command code: ' .. code .. ' ' .. tostring(cmdID) .. '!')
 	end
 	gameCommands[cmdID] = code
 end

@@ -45,18 +45,18 @@ if gadgetHandler:IsSyncedCode() then
 	local lavaEffectDamage = lava.effectDamage
 
 	-- speedups
-	local spAddUnitDamage = Spring.AddUnitDamage
-	local spAddFeatureDamage = Spring.AddFeatureDamage
-	local spGetAllUnits = Spring.GetAllUnits
-	local spGetFeatureDefID = Spring.GetFeatureDefID
-	local spGetFeaturePosition = Spring.GetFeaturePosition
-	local spGetUnitBasePosition = Spring.GetUnitBasePosition
-	local spGetUnitDefID = Spring.GetUnitDefID
-	local spGetMoveData = Spring.GetUnitMoveTypeData
-	local spMoveCtrlEnabled = Spring.MoveCtrl.IsEnabled
-	local spSetMoveData = Spring.MoveCtrl.SetGroundMoveTypeData
-	local spGetGroundHeight = Spring.GetGroundHeight
-	local spSpawnCEG = Spring.SpawnCEG
+	local spAddUnitDamage = SpringSynced.AddUnitDamage
+	local spAddFeatureDamage = SpringSynced.AddFeatureDamage
+	local spGetAllUnits = SpringShared.GetAllUnits
+	local spGetFeatureDefID = SpringShared.GetFeatureDefID
+	local spGetFeaturePosition = SpringShared.GetFeaturePosition
+	local spGetUnitBasePosition = SpringShared.GetUnitBasePosition
+	local spGetUnitDefID = SpringShared.GetUnitDefID
+	local spGetMoveData = SpringShared.GetUnitMoveTypeData
+	local spMoveCtrlEnabled = SpringSynced.MoveCtrl.IsEnabled
+	local spSetMoveData = SpringSynced.MoveCtrl.SetGroundMoveTypeData
+	local spGetGroundHeight = SpringShared.GetGroundHeight
+	local spSpawnCEG = SpringSynced.SpawnCEG
 	local random = math.random
 	local clamp = math.clamp
 
@@ -75,7 +75,7 @@ if gadgetHandler:IsSyncedCode() then
 			turnDefs[unitDefID] = unitDef.turnRate
 			accDefs[unitDefID] = unitDef.maxAcc
 		end
-		unitHeight[unitDefID] = Spring.GetUnitDefDimensions(unitDefID).height
+		unitHeight[unitDefID] = SpringShared.GetUnitDefDimensions(unitDefID).height
 	end
 	local geoThermal = {}
 	for featureDefID, featureDef in pairs(FeatureDefs) do
@@ -145,7 +145,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	-- slow down and damage unit+features in lava
 	function lavaObjectsCheck()
-		local gaiaTeamID = Spring.GetGaiaTeamID()
+		local gaiaTeamID = SpringShared.GetGaiaTeamID()
 		local all_units = spGetAllUnits()
 		for _, unitID in ipairs(all_units) do
 			local unitDefID = spGetUnitDefID(unitID)
@@ -181,7 +181,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		if lavaDamageFeatures then
-			local all_features = Spring.GetAllFeatures()
+			local all_features = SpringShared.GetAllFeatures()
 			for _, featureID in ipairs(all_features) do
 				local FeatureDefID = spGetFeatureDefID(featureID)
 				if not geoThermal[FeatureDefID] then
@@ -200,10 +200,10 @@ if gadgetHandler:IsSyncedCode() then
 			gadgetHandler:RemoveGadget(self)
 			return
 		end
-		minGroundHeight = select(3, Spring.GetGroundExtremes())
+		minGroundHeight = select(3, SpringShared.GetGroundExtremes())
 		_G.lavaLevel = lavaLevel
 		_G.lavaGrow = lavaGrow
-		Spring.SetGameRulesParam("lavaLevel", -99999)
+		SpringSynced.SetGameRulesParam("lavaLevel", -99999)
 	end
 
 	function gadget:GameFrame(f)
@@ -213,7 +213,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		-- Periodically refresh cached min ground height (handles terraforming)
 		if f % GROUND_EXTREMES_UPDATE_RATE == 0 then
-			minGroundHeight = select(3, Spring.GetGroundExtremes())
+			minGroundHeight = select(3, SpringShared.GetGroundExtremes())
 		end
 
 		local lavaAboveGround = lavaLevel >= minGroundHeight
@@ -229,7 +229,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		updateLava()
 		lavaLevel = lavaLevel+(lavaGrow/gameSpeed)
-		Spring.SetGameRulesParam("lavaLevel", lavaLevel)
+		SpringSynced.SetGameRulesParam("lavaLevel", lavaLevel)
 
 		-- burst and sound effects (skip entirely when lava is below the map surface)
 		if lavaAboveGround and f % 5 == 0 then
@@ -248,7 +248,7 @@ if gadgetHandler:IsSyncedCode() then
 					if lavaEffectBurstSounds and #lavaEffectBurstSounds > 0 then
 						local soundIndex = random(1, #lavaEffectBurstSounds)
 						local sound = lavaEffectBurstSounds[soundIndex]
-						Spring.PlaySoundFile(sound[1], random(sound[2], sound[3])/100, x, y, z, 'sfx')
+						SpringUnsynced.PlaySoundFile(sound[1], random(sound[2], sound[3])/100, x, y, z, 'sfx')
 					end
 				end
 			end
@@ -263,7 +263,7 @@ if gadgetHandler:IsSyncedCode() then
 						if y < lavaLevel then
 							local soundIndex = random(1, #lavaAmbientSounds)
 							local sound = lavaAmbientSounds[soundIndex]
-							Spring.PlaySoundFile(sound[1], random(sound[2], sound[3])/100, x, y, z, 'sfx')
+							SpringUnsynced.PlaySoundFile(sound[1], random(sound[2], sound[3])/100, x, y, z, 'sfx')
 							break
 						end
 					end
@@ -325,7 +325,7 @@ else  -- UNSYCNED
 
 	local foglightenabled = lava.fogEnabled
 	local fogheightabovelava = lava.fogHeight
-	local allowDeferredMapRendering =  (Spring.GetConfigInt("AllowDeferredMapRendering") == 1) -- map depth buffer is required for the foglight shader pass
+	local allowDeferredMapRendering =  (SpringUnsynced.GetConfigInt("AllowDeferredMapRendering") == 1) -- map depth buffer is required for the foglight shader pass
 
 	local tideamplitude = lava.tideAmplitude
 	local tideperiod = lava.tidePeriod
@@ -419,7 +419,7 @@ else  -- UNSYCNED
 	local myPlayerID = tostring(Spring.GetMyPlayerID())
 	function gadget:GameFrame(f)
 		if SYNCED.lavaLevel then
-			lavatidelevel = math.sin(Spring.GetGameFrame() / tideperiod) * tideamplitude + SYNCED.lavaLevel
+			lavatidelevel = math.sin(SpringShared.GetGameFrame() / tideperiod) * tideamplitude + SYNCED.lavaLevel
 		end
 		if SYNCED.lavaGrow then
 			local lavaGrow = SYNCED.lavaGrow
@@ -452,7 +452,7 @@ else  -- UNSYCNED
 			return
 		end
 
-		Spring.SetDrawWater(false)
+		SpringUnsynced.SetDrawWater(false)
 
 		-- Now for all intents and purposes, we kinda need to make a lava plane that is 3x the rez of our map
 		-- If, e.g our map size is 16x16, we will have 1024 heightmap. If we make a 128 size vbo, then what?
@@ -469,7 +469,7 @@ else  -- UNSYCNED
 		lavaShader = LuaShader.CheckShaderUpdates(lavaShaderSourceCache)
 
 		if not lavaShader then
-			Spring.Echo("Failed to compile Lava Shader")
+			SpringShared.Echo("Failed to compile Lava Shader")
 			gadgetHandler:RemoveGadget()
 			return
 		end
@@ -477,7 +477,7 @@ else  -- UNSYCNED
 		foglightShader = LuaShader.CheckShaderUpdates(fogLightShaderSourceCache)
 
 		if not foglightShader then
-			Spring.Echo("Failed to compile foglightShader")
+			SpringShared.Echo("Failed to compile foglightShader")
 			gadgetHandler:RemoveGadget()
 			return
 		end
@@ -485,11 +485,11 @@ else  -- UNSYCNED
 
 	function gadget:DrawWorldPreUnit()
 		if lavatidelevel then
-			local _, gameSpeed, isPaused = Spring.GetGameSpeed()
+			local _, gameSpeed, isPaused = SpringUnsynced.GetGameSpeed()
 			if not isPaused then
-				local camX, camY, camZ = Spring.GetCameraDirection()
+				local camX, camY, camZ = SpringUnsynced.GetCameraDirection()
 				local camvlength = math.sqrt(camX*camX + camZ *camZ + 0.01)
-				smoothFPS = 0.9 * smoothFPS + 0.1 * math.max(Spring.GetFPS(), 15)
+				smoothFPS = 0.9 * smoothFPS + 0.1 * math.max(SpringUnsynced.GetFPS(), 15)
 				heatdistortx = heatdistortx - camX / (camvlength * smoothFPS)
 				heatdistortz = heatdistortz - camZ / (camvlength * smoothFPS)
 			end
@@ -566,7 +566,7 @@ else  -- UNSYCNED
 	end
 
 	function gadget:Shutdown()
-		Spring.SetDrawWater(true)
+		SpringUnsynced.SetDrawWater(true)
 	end
 
 end--ende unsync

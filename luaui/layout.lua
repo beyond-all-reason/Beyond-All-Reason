@@ -93,5 +93,5 @@ LayoutButtons = DummyLayoutHandler
 
 
 -- refresh, this prevents default engine buildmenu still showing up after a luaui reload
-Spring.ForceLayoutUpdate()
+SpringUnsynced.ForceLayoutUpdate()
 

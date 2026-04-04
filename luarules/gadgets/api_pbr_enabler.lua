@@ -17,16 +17,16 @@ if (not gadgetHandler:IsSyncedCode()) then --unsynced gadget
 	GG.GetEnvTexture = nil
 
 	if gl.CreateShader == nil then
-		Spring.Echo("ERROR: PBR enabler: gl.CreateShader is nil")
+		SpringShared.Echo("ERROR: PBR enabler: gl.CreateShader is nil")
 		return
 	end
 
 	if gl.CreateFBO == nil then
-		Spring.Echo("ERROR: PBR enabler: gl.CreateFBO is nil")
+		SpringShared.Echo("ERROR: PBR enabler: gl.CreateFBO is nil")
 		return
 	end
 
-	local headless = Spring.GetConfigInt("Headless", 0) > 0
+	local headless = SpringUnsynced.GetConfigInt("Headless", 0) > 0
 	if headless then
 		return
 	end
@@ -67,10 +67,10 @@ if (not gadgetHandler:IsSyncedCode()) then --unsynced gadget
 	end
 
 	function gadget:Initialize()
-		ENVLUT_SAMPLES = Spring.GetConfigInt("ENV_SMPL_NUM", 64)
+		ENVLUT_SAMPLES = SpringUnsynced.GetConfigInt("ENV_SMPL_NUM", 64)
 
-		Spring.SetConfigInt("CubeTexGenerateMipMaps", 1)
-		Spring.SetConfigInt("CubeTexSizeReflection", 1024)
+		SpringUnsynced.SetConfigInt("CubeTexGenerateMipMaps", 1)
+		SpringUnsynced.SetConfigInt("CubeTexSizeReflection", 1024)
 
 		local brdfLutClass = VFS.Include("LuaRules/Gadgets/Include/GenBrdfLut.lua")
 		if brdfLutClass then

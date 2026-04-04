@@ -44,9 +44,9 @@ in bos. noone uses that.
 
 if not gadgetHandler:IsSyncedCode() then return end
 
-local spGetAllUnits = Spring.GetAllUnits
-local spGetUnitDefID = Spring.GetUnitDefID
-local spCallCOBScript = Spring.CallCOBScript
+local spGetAllUnits = SpringShared.GetAllUnits
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spCallCOBScript = SpringSynced.CallCOBScript
 local stringFind = string.find
 local stringLower = string.lower
 

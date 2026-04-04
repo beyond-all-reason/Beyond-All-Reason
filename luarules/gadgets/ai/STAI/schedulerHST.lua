@@ -11,9 +11,9 @@ end
 function SchedulerHST:Init()
 	self.DebugEnabled = false
  	self.AIs={}
- 	local teams = Spring.GetTeamList()
+ 	local teams = SpringShared.GetTeamList()
  	for index,id in pairs(teams) do
-		local luaAI = Spring.GetTeamLuaAI(id)
+		local luaAI = SpringShared.GetTeamLuaAI(id)
 		if luaAI == 'STAI' then
 			table.insert(self.AIs,id)
 		end

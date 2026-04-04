@@ -29,9 +29,9 @@ local unitAttachedTo = {}
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID,
                                attackerDefID, attackerTeam)
     if unitAttachedTo[unitID] and (not paralyzer) then
-        local h, mh = Spring.GetUnitHealth(unitAttachedTo[unitID])
+        local h, mh = SpringShared.GetUnitHealth(unitAttachedTo[unitID])
         if h and mh then
-            Spring.SetUnitHealth(unitAttachedTo[unitID], h - damage)
+            SpringSynced.SetUnitHealth(unitAttachedTo[unitID], h - damage)
         end
         damage = 0
     end
@@ -48,7 +48,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
         for i = 1, #deleteAttachments do
             if deleteAttachments[i] then
                 unitAttachedTo[deleteAttachments[i]] = nil
-                Spring.DestroyUnit(deleteAttachments[i], false, true)
+                SpringSynced.DestroyUnit(deleteAttachments[i], false, true)
             end
         end
         deleteAttachments = {}
@@ -62,10 +62,10 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
             local posx = unitAttachments[unitDefID][i].posx
             local posz = unitAttachments[unitDefID][i].posz
             local dir = unitAttachments[unitDefID][i].dir or 0
-            local bx, by, bz = Spring.GetUnitPosition(unitID)
-            local attachmentID = Spring.CreateUnit(unitType, bx + posx, by, bz + posz, dir, unitTeam)
+            local bx, by, bz = SpringShared.GetUnitPosition(unitID)
+            local attachmentID = SpringSynced.CreateUnit(unitType, bx + posx, by, bz + posz, dir, unitTeam)
             if attachmentID then
-                Spring.SetUnitBlocking(attachmentID, false, false)
+                SpringSynced.SetUnitBlocking(attachmentID, false, false)
                 unitAttachedTo[attachmentID] = unitID
             end
         end
@@ -74,10 +74,10 @@ end
 
 function gadget:GameFrame(frame)
     for attachment, attachedTo in pairs(unitAttachedTo) do
-        local h, mh = Spring.GetUnitHealth(attachedTo)
+        local h, mh = SpringShared.GetUnitHealth(attachedTo)
         if h and mh then
-            Spring.SetUnitMaxHealth(attachment, mh)
-            Spring.SetUnitHealth(attachment, h)
+            SpringSynced.SetUnitMaxHealth(attachment, mh)
+            SpringSynced.SetUnitHealth(attachment, h)
         end
     end
 end

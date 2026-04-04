@@ -30,7 +30,7 @@ end
 function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
   if unitTeam == myTeamID then
     if landFactories[unitDefID] then
-      Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { 0 }, 0)
+      SpringSynced.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { 0 }, 0)
     end
   end
 end
@@ -40,7 +40,7 @@ end
 
 
 local function maybeRemoveSelf()
-	if Spring.IsReplay() or Spring.GetSpectatingState() then
+	if SpringUnsynced.IsReplay() or SpringUnsynced.GetSpectatingState() then
 		widgetHandler.RemoveWidget()
 	end
 end

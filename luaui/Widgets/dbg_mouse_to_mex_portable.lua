@@ -14,7 +14,7 @@ end
 
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 include("keysym.h.lua")
 
@@ -47,14 +47,14 @@ local function legalPos(pos)
 end
 
 function widget:MousePress(mx, my, button)
-	if enabled and (not Spring.IsAboveMiniMap(mx, my)) then
-		local _, pos = Spring.TraceScreenRay(mx, my, true)
+	if enabled and (not SpringUnsynced.IsAboveMiniMap(mx, my)) then
+		local _, pos = SpringUnsynced.TraceScreenRay(mx, my, true)
 		if legalPos(pos) then
 			--if true then
 				handle:write("[" .. mexIndex .. "] = {x = " .. floor(pos[1] + 0.5) .. ", z = " .. floor(pos[3] + 0.5) .. ", metal = " .. tostring(metal) .. "},\n")
 				handle:flush()
 				markers[#markers + 1] = { pos[1], 0, pos[3] }
-				Spring.MarkerAddPoint(pos[1], 0, pos[3], mexIndex)
+				SpringUnsynced.MarkerAddPoint(pos[1], 0, pos[3], mexIndex)
 				mexIndex = mexIndex + 1
 			--else
 				-- TODO: make right click remove markers
@@ -65,7 +65,7 @@ function widget:MousePress(mx, my, button)
 end
 
 function widget:Initialize()
-	if not Spring.IsCheatingEnabled() then
+	if not SpringShared.IsCheatingEnabled() then
 		spEcho("This widget requires cheats enabled")
 		widgetHandler:RemoveWidget()
 		return
@@ -79,7 +79,7 @@ end
 
 function widget:Shutdown()
 	for _, i in pairs(markers) do
-		Spring.MarkerErasePosition(i[1], i[2], i[3])
+		SpringUnsynced.MarkerErasePosition(i[1], i[2], i[3])
 	end
 	if handle ~= nil then
 		io.close(handle)

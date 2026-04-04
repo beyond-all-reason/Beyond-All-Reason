@@ -17,6 +17,6 @@ function gadget:GetInfo()
 end
 
 function gadget:GameID(msg)
-	Spring.SetGameRulesParam("GameID", msg)
+	SpringSynced.SetGameRulesParam("GameID", msg)
 	gadgetHandler:RemoveGadget()
 end

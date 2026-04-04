@@ -25,7 +25,7 @@ end
 function gadget:GameFrame(frame)
     for unitID, data in pairs(unitsWithCaptureProgress) do
         if unitID%30 == frame%30 then
-            local captureLevel = select(4, Spring.GetUnitHealth(unitID))
+            local captureLevel = select(4, SpringShared.GetUnitHealth(unitID))
             if captureLevel and captureLevel > 0 then
                 if captureLevel <= data.previousCaptureProgress then
                     unitsWithCaptureProgress[unitID].ticksFromLastCapture = unitsWithCaptureProgress[unitID].ticksFromLastCapture+1
@@ -35,7 +35,7 @@ function gadget:GameFrame(frame)
                 end
                 unitsWithCaptureProgress[unitID].previousCaptureProgress = captureLevel
                 if unitsWithCaptureProgress[unitID].ticksFromLastCapture >= 10 then -- with how things are set up, that will be about 10 seconds
-                    Spring.SetUnitHealth(unitID, {capture = math.max(captureLevel-((unitsWithCaptureProgress[unitID].ticksFromLastCapture-10)*0.001), 0)})
+                    SpringSynced.SetUnitHealth(unitID, {capture = math.max(captureLevel-((unitsWithCaptureProgress[unitID].ticksFromLastCapture-10)*0.001), 0)})
                 end
             else
                 unitsWithCaptureProgress[unitID] = nil

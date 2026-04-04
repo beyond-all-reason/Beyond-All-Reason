@@ -13,6 +13,6 @@ function gadget:GetInfo()
 end
 
 function gadget:Initialize()
-	Spring.AssignMouseCursor("upgmex", "cursorupgmex", false)
-	Spring.AssignMouseCursor("areamex", "cursorareamex", false)
+	SpringUnsynced.AssignMouseCursor("upgmex", "cursorupgmex", false)
+	SpringUnsynced.AssignMouseCursor("areamex", "cursorareamex", false)
 end

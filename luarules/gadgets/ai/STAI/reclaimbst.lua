@@ -11,7 +11,7 @@ end
 function ReclaimBST:Act()
 	local timearea = 10000
 	if self.unit:Internal():CurrentCommand() ~= CMD.RECLAIM then
-		if #Spring.GetFeaturesInCylinder(self.position.x,self.position.z,10000) > 0 then
+		if #SpringShared.GetFeaturesInCylinder(self.position.x,self.position.z,10000) > 0 then
 			self.ai.tool:GiveOrder(self.unit:Internal():ID(),CMD.RECLAIM,{self.position.x,self.position.y,self.position.z,timearea},0,'1-1')	
 		end
 		

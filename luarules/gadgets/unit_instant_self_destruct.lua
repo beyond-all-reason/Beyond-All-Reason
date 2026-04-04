@@ -29,8 +29,8 @@ for i=1,#UnitDefs do
 end
 
 local CMD_SELFD = CMD.SELFD
-local spGetUnitIsStunned = Spring.GetUnitIsStunned
-local spDestroyUnit = Spring.DestroyUnit
+local spGetUnitIsStunned = SpringShared.GetUnitIsStunned
+local spDestroyUnit = SpringSynced.DestroyUnit
 
 function gadget:AllowCommand_GetWantedCommand()
 	return {[CMD_SELFD] = true}

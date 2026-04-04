@@ -12,7 +12,7 @@ local reportFunctions = nil
 local activeBlueprint = nil
 
 -- makes the intent of our usage of Spring.Echo clear
-local FeedbackForUser = Spring.Echo
+local FeedbackForUser = SpringShared.Echo
 
 local activeBuildPositions = {}
 local activeBuilderBuildOptions = {}
@@ -62,12 +62,12 @@ local tableInsert = table.insert
 -- optimization
 -- ============
 
-local SpringGetUnitDefID = Spring.GetUnitDefID
-local SpringGetUnitBuildFacing = Spring.GetUnitBuildFacing
-local SpringGetUnitPosition = Spring.GetUnitPosition
-local SpringGetGroundHeight = Spring.GetGroundHeight
-local SpringPos2BuildPos = Spring.Pos2BuildPos
-local SpringTestBuildOrder = Spring.TestBuildOrder
+local SpringGetUnitDefID = SpringShared.GetUnitDefID
+local SpringGetUnitBuildFacing = SpringShared.GetUnitBuildFacing
+local SpringGetUnitPosition = SpringShared.GetUnitPosition
+local SpringGetGroundHeight = SpringShared.GetGroundHeight
+local SpringPos2BuildPos = SpringShared.Pos2BuildPos
+local SpringTestBuildOrder = SpringShared.TestBuildOrder
 local SpringGetMyTeamID = Spring.GetMyTeamID
 local isHeadless = not Platform.gl
 
@@ -749,9 +749,9 @@ local function setActiveBlueprint(bp)
 		local resultTable = SubLogic.processBlueprintSubstitution(blueprintToProcess, determinedTargetSide)
 
 		if resultTable.substitutionFailed then
-			Spring.Log("BlueprintAPI", LOG.WARNING, resultTable.summaryMessage)
+			SpringShared.Log("BlueprintAPI", LOG.WARNING, resultTable.summaryMessage)
 		else
-			Spring.Log("BlueprintAPI", LOG.INFO, resultTable.summaryMessage)
+			SpringShared.Log("BlueprintAPI", LOG.INFO, resultTable.summaryMessage)
 		end
 
 		-- This allows partial substitutions to work even when some units fail to map
@@ -805,9 +805,9 @@ local function setActiveBuilders(unitIDs)
 			if firstBuilderDef and firstBuilderDef.name then
 				if SubLogic and SubLogic.getSideFromUnitName then
 					currentAPITargetSide = SubLogic.getSideFromUnitName(firstBuilderDef.name)
-					Spring.Log("BlueprintAPI", LOG.DEBUG, string.format("setActiveBuilders determined currentAPITargetSide: %s from %s", tostring(currentAPITargetSide), firstBuilderDef.name))
+					SpringShared.Log("BlueprintAPI", LOG.DEBUG, string.format("setActiveBuilders determined currentAPITargetSide: %s from %s", tostring(currentAPITargetSide), firstBuilderDef.name))
 				else
-					Spring.Log("BlueprintAPI", LOG.WARNING, "setActiveBuilders: SubLogic or getSideFromUnitName not available for side detection.")
+					SpringShared.Log("BlueprintAPI", LOG.WARNING, "setActiveBuilders: SubLogic or getSideFromUnitName not available for side detection.")
 				end
 			end
 		end
@@ -844,7 +844,7 @@ local function createBlueprintFromSerialized(serializedBlueprint)
 end
 
 function widget:Initialize()
-	Spring.Log(widget:GetInfo().name, LOG.INFO, "Blueprint API Initializing. Local SubLogic is assumed loaded and valid.")
+	SpringShared.Log(widget:GetInfo().name, LOG.INFO, "Blueprint API Initializing. Local SubLogic is assumed loaded and valid.")
 
 	if not isHeadless then
 		if not initGL4() then
@@ -854,22 +854,22 @@ function widget:Initialize()
 	end
 
 	if ENABLE_REPORTS then
-		Spring.Log("BlueprintAPI", LOG.INFO, "Reports ARE enabled.")
+		SpringShared.Log("BlueprintAPI", LOG.INFO, "Reports ARE enabled.")
 		local reportPath = "luaui/Include/blueprint_substitution/reports.lua"
 		if VFS.FileExists(reportPath) then
 			local includedReports = VFS.Include(reportPath)
 			if includedReports and type(includedReports.SetDependencies) == 'function' then
 				includedReports.SetDependencies(SubLogic)
 				reportFunctions = includedReports
-				Spring.Log("BlueprintAPI", LOG.INFO, "Report functions loaded and dependencies set using local SubLogic.")
+				SpringShared.Log("BlueprintAPI", LOG.INFO, "Report functions loaded and dependencies set using local SubLogic.")
 			else
-				Spring.Log("BlueprintAPI", LOG.ERROR, "Failed to load reports or SetDependencies is missing: " .. reportPath)
+				SpringShared.Log("BlueprintAPI", LOG.ERROR, "Failed to load reports or SetDependencies is missing: " .. reportPath)
 			end
 		else
-			Spring.Log("BlueprintAPI", LOG.WARNING, "Report file not found: " .. reportPath)
+			SpringShared.Log("BlueprintAPI", LOG.WARNING, "Report file not found: " .. reportPath)
 		end
 	else
-		Spring.Log("BlueprintAPI", LOG.INFO, "Reports are DISABLED.")
+		SpringShared.Log("BlueprintAPI", LOG.INFO, "Reports are DISABLED.")
 	end
 
 	WG["api_blueprint"] = {
@@ -890,17 +890,17 @@ function widget:Initialize()
 	}
 
 	if reportFunctions then
-		Spring.Log("BlueprintAPI", LOG.INFO, "Adding report actions...")
+		SpringShared.Log("BlueprintAPI", LOG.INFO, "Adding report actions...")
 		widgetHandler:AddAction("blueprintmapreport", reportFunctions.generateMappingReport, nil, "t")
 		widgetHandler:AddAction("blueprintcategorylist", reportFunctions.generateCategoryListReport, nil, "t")
 	else
-		Spring.Log("BlueprintAPI", LOG.INFO, "Skipping report action registration (reportFunctions not loaded).")
+		SpringShared.Log("BlueprintAPI", LOG.INFO, "Skipping report action registration (reportFunctions not loaded).")
 	end
 end
 
 function widget:Shutdown()
 	WG["api_blueprint"] = nil
-	Spring.Log(widget:GetInfo().name, LOG.INFO, "Blueprint API shutdown.")
+	SpringShared.Log(widget:GetInfo().name, LOG.INFO, "Blueprint API shutdown.")
 
 	if isHeadless then return end
 

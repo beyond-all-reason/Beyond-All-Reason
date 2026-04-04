@@ -159,8 +159,8 @@ function DamageHST:VisualDBG()
 			local pos1, pos2 = api.Position(), api.Position()--z,api.Position(),api.Position(),api.Position()
 			pos1.x, pos1.z = p.x - cellElmosHalf, p.z - cellElmosHalf
 			pos2.x, pos2.z = p.x + cellElmosHalf, p.z + cellElmosHalf
-			pos1.y=Spring.GetGroundHeight(pos1.x,pos1.z)
-			pos2.y=Spring.GetGroundHeight(pos2.x,pos2.z)
+			pos1.y=SpringShared.GetGroundHeight(pos1.x,pos1.z)
+			pos2.y=SpringShared.GetGroundHeight(pos2.x,pos2.z)
 			map:DrawRectangle(p, pos2, colours.blue, cell.defenderThreat, false, ch)
 			map:DrawRectangle(pos1, p, colours.red, cell.attackerThreat, false, ch)
 			map:DrawPoint(p, colours.black, cell.X .. ':' ..cell.Z .. '=' .. cell.nodeCostIndex, ch)

@@ -17,7 +17,7 @@ end
 local mathFloor = math.floor
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 local MyAtlasOnDemand 
 local buildPicList = {}
@@ -101,7 +101,7 @@ end
 
 function widget:Initialize()
 	--font = WG['fonts'].getFont()
-	font = gl.LoadFont("fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf"), 64, 1, 1)
+	font = gl.LoadFont("fonts/" .. SpringUnsynced.GetConfigString("bar_font", "Poppins-Regular.otf"), 64, 1, 1)
 	
 	local MakeAtlasOnDemand = VFS.Include("LuaUI/Include/AtlasOnDemand.lua")
 	if not MakeAtlasOnDemand then

@@ -22,8 +22,8 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 
-local GetProjectilePosition = Spring.GetProjectilePosition
-local GetProjectileDirection = Spring.GetProjectileDirection
+local GetProjectilePosition = SpringShared.GetProjectilePosition
+local GetProjectileDirection = SpringShared.GetProjectileDirection
 
 local missiles = {} --subMissiles that are below the surface still
 local missileWeapons = {}
@@ -64,7 +64,7 @@ end
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
     if missileWeapons[weaponDefID] then
-        missiles[proID] = {Spring.GetGameFrame()-4 + Spring.GetProjectileTimeToLive(proID), missileWeapons[weaponDefID]}
+        missiles[proID] = {SpringShared.GetGameFrame()-4 + SpringShared.GetProjectileTimeToLive(proID), missileWeapons[weaponDefID]}
     end
 end
 
@@ -80,7 +80,7 @@ function gadget:GameFrame(gf)
             local x,y,z = GetProjectilePosition(proID)
             if y and y > 0 then
                 local dirX,dirY,dirZ = GetProjectileDirection(proID)
-                Spring.SpawnCEG(missile[2],x,y,z,dirX,dirY,dirZ)
+                SpringSynced.SpawnCEG(missile[2],x,y,z,dirX,dirY,dirZ)
             else
                 missiles[proID] = nil
             end

@@ -2,7 +2,7 @@
 -- Config
 
 
-if Spring.GetModOptions().emprework == true then
+if SpringShared.GetModOptions().emprework == true then
 
 	local MAX_SLOW_FACTOR = 0.9
 	-- Max slow damage on a unit = MAX_SLOW_FACTOR * current health

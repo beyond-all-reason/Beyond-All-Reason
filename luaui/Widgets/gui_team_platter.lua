@@ -43,10 +43,10 @@ local GL_POINTS				= GL.POINTS
 
 local hasBadCulling = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == true)
 
-local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitTeam = SpringShared.GetUnitTeam
 
 local myTeamID = Spring.GetMyTeamID()
-local gaiaTeamID = Spring.GetGaiaTeamID()
+local gaiaTeamID = SpringShared.GetGaiaTeamID()
 
 local unitScale = {}
 local unitCanFly = {}
@@ -70,7 +70,7 @@ end
 
 local function AddPrimitiveAtUnit(unitID, unitDefID, unitTeamID, noUpload)
 	if (not skipOwnTeam or unitTeamID ~= myTeamID) and unitTeamID ~= gaiaTeamID and not unitDecoration[unitDefID] then
-		local gf = Spring.GetGameFrame()
+		local gf = SpringShared.GetGameFrame()
 
 		local numVertices = 64 -- default to circle
 		local cornersize = 0
@@ -113,7 +113,7 @@ end
 
 local drawFrame = 0
 function widget:DrawWorldPreUnit()
-	if Spring.IsGUIHidden() then
+	if SpringUnsynced.IsGUIHidden() then
 		return
 	end
 	drawFrame = drawFrame + 1
