@@ -12,13 +12,12 @@ function gadget:GetInfo()
 	}
 end
 
-
 if gadgetHandler:IsSyncedCode() then
 	local SendToUnsynced = SendToUnsynced
 
-	local function UnitScriptDecal(unitID, unitDefID, _, lightIndex, posx,posz, heading)
+	local function UnitScriptDecal(unitID, unitDefID, _, lightIndex, posx, posz, heading)
 		--Spring.Echo("Synced Gadget UnitScriptDecal", unitID, unitDefID, lightIndex, posx,posz, heading)
-		SendToUnsynced("cob_UnitScriptDecal", unitID, unitDefID, lightIndex, posx,posz, heading)
+		SendToUnsynced("cob_UnitScriptDecal", unitID, unitDefID, lightIndex, posx, posz, heading)
 	end
 
 	function gadget:Initialize()
@@ -28,30 +27,28 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:Shutdown()
 		gadgetHandler:DeregisterGlobal("UnitScriptDecal")
 	end
-
-else	-- UNSYNCED
-
-	local myAllyTeamID = Spring.GetMyAllyTeamID()
-	local myPlayerID = Spring.GetMyPlayerID()
-	local mySpec, fullview = Spring.GetSpectatingState()
-	local spIsUnitInLos = Spring.IsUnitInLos
+else -- UNSYNCED
+	local myAllyTeamID = SpringUnsynced.GetLocalAllyTeamID()
+	local myPlayerID = SpringUnsynced.GetLocalPlayerID()
+	local mySpec, fullview = SpringUnsynced.GetSpectatingState()
+	local spIsUnitInLos = SpringShared.IsUnitInLos
 
 	function gadget:PlayerChanged(playerID)
 		if playerID == myPlayerID then
-			myAllyTeamID = Spring.GetMyAllyTeamID()
-			mySpec, fullview = Spring.GetSpectatingState()
+			myAllyTeamID = SpringUnsynced.GetLocalAllyTeamID()
+			mySpec, fullview = SpringUnsynced.GetSpectatingState()
 		end
 	end
-	
+
 	local scriptUnitScriptDecal = Script.LuaUI.UnitScriptDecal
-	
-	local function UnitScriptDecal(_, unitID, unitDefID, lightIndex, posx,posz, heading)
+
+	local function UnitScriptDecal(_, unitID, unitDefID, lightIndex, posx, posz, heading)
 		if not fullview and not spIsUnitInLos(unitID, myAllyTeamID) then
 			return
 		end
 		--Spring.Echo("Unsynced UnitScriptDecal", unitID, unitDefID, lightIndex, posx,posz, heading)
-		if Script.LuaUI('UnitScriptDecal') then 
-			Script.LuaUI.UnitScriptDecal(unitID, unitDefID, lightIndex, posx,posz, heading)
+		if Script.LuaUI("UnitScriptDecal") then
+			Script.LuaUI.UnitScriptDecal(unitID, unitDefID, lightIndex, posx, posz, heading)
 		end
 	end
 
@@ -62,5 +59,4 @@ else	-- UNSYNCED
 	function gadget:Shutdown()
 		gadgetHandler:RemoveSyncAction("cob_UnitScriptDecal")
 	end
-
 end

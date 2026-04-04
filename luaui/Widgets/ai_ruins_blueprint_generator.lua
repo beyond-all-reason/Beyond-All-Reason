@@ -2,23 +2,22 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-	name      = "Ruins Blueprint Generator",
-	desc      = "Generates Lua blueprint code from selected units",
-	author    = "Damgam",
-	date      = "2020",
-	license   = "GNU GPL, v2 or later",
-	layer     = 0,
-	enabled   = true,
+		name = "Ruins Blueprint Generator",
+		desc = "Generates Lua blueprint code from selected units",
+		author = "Damgam",
+		date = "2020",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
-
 
 -- Localized functions for performance
 local mathCeil = math.ceil
 local tableInsert = table.insert
 
 -- Localized Spring API for performance
-local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetSelectedUnits = SpringUnsynced.GetSelectedUnits
 
 local outputFile = "ruins_blueprints_temp.txt"
 local blueprintCounter = 0
@@ -40,14 +39,14 @@ local function getBlueprintCenter()
 
 	for i = 1, #selectedunits do
 		local unit = selectedunits[i]
-		centerposx[unit], centerposy[unit], centerposz[unit] = Spring.GetUnitPosition(unit)
+		centerposx[unit], centerposy[unit], centerposz[unit] = SpringShared.GetUnitPosition(unit)
 		blueprintposx = blueprintposx + centerposx[unit]
 		blueprintposz = blueprintposz + centerposz[unit]
 	end
 
 	blueprintCenterX = blueprintposx / #selectedunits
 	blueprintCenterZ = blueprintposz / #selectedunits
-	blueprintCenterY = Spring.GetGroundHeight(blueprintCenterX, blueprintCenterZ)
+	blueprintCenterY = SpringShared.GetGroundHeight(blueprintCenterX, blueprintCenterZ)
 end
 
 local function clearValues()
@@ -61,32 +60,32 @@ end
 
 local unitOverrides = {
 	-- Armada Walls
-	["armdrag"] = "BPWallOrPopup('arm', 1, 'land')",
-	["armclaw"] = "BPWallOrPopup('arm', 1, 'land')",
-	["armfdrag"] = "BPWallOrPopup('arm', 1, 'sea')",
-	["armfort"] = "BPWallOrPopup('arm', 2, 'land')",
-	["armlwall"] = "BPWallOrPopup('arm', 2, 'land')",
+	armdrag = "BPWallOrPopup('arm', 1, 'land')",
+	armclaw = "BPWallOrPopup('arm', 1, 'land')",
+	armfdrag = "BPWallOrPopup('arm', 1, 'sea')",
+	armfort = "BPWallOrPopup('arm', 2, 'land')",
+	armlwall = "BPWallOrPopup('arm', 2, 'land')",
 
 	-- Cortex Walls
-	["cordrag"] = "BPWallOrPopup('cor', 1, 'land')",
-	["cormaw"] = "BPWallOrPopup('cor', 1, 'land')",
-	["corfdrag"] = "BPWallOrPopup('cor', 1, 'sea')",
-	["corfort"] = "BPWallOrPopup('cor', 2, 'land')",
-	["cormwall"] = "BPWallOrPopup('cor', 2, 'land')",
+	cordrag = "BPWallOrPopup('cor', 1, 'land')",
+	cormaw = "BPWallOrPopup('cor', 1, 'land')",
+	corfdrag = "BPWallOrPopup('cor', 1, 'sea')",
+	corfort = "BPWallOrPopup('cor', 2, 'land')",
+	cormwall = "BPWallOrPopup('cor', 2, 'land')",
 
 	-- Legion Walls
-	["legdrag"] = "BPWallOrPopup('leg', 1, 'land')",
-	["legdtr"] = "BPWallOrPopup('leg', 1, 'land')",
-	["legfdrag"] = "BPWallOrPopup('leg', 1, 'sea')",
-	["legforti"] = "BPWallOrPopup('leg', 2, 'land')",
-	["legrwall"] = "BPWallOrPopup('leg', 2, 'land')",
+	legdrag = "BPWallOrPopup('leg', 1, 'land')",
+	legdtr = "BPWallOrPopup('leg', 1, 'land')",
+	legfdrag = "BPWallOrPopup('leg', 1, 'sea')",
+	legforti = "BPWallOrPopup('leg', 2, 'land')",
+	legrwall = "BPWallOrPopup('leg', 2, 'land')",
 
 	-- Scavenger Walls
-	["corscavdrag"] = "BPWallOrPopup('scav', 1, 'land')",
-	["corscavdtf"] = "BPWallOrPopup('scav', 1, 'land')",
-	["corscavdtl"] = "BPWallOrPopup('scav', 1, 'land')",
-	["corscavdtm"] = "BPWallOrPopup('scav', 1, 'land')",
-	["corscavfort"] = "BPWallOrPopup('scav', 1, 'land')",
+	corscavdrag = "BPWallOrPopup('scav', 1, 'land')",
+	corscavdtf = "BPWallOrPopup('scav', 1, 'land')",
+	corscavdtl = "BPWallOrPopup('scav', 1, 'land')",
+	corscavdtm = "BPWallOrPopup('scav', 1, 'land')",
+	corscavfort = "BPWallOrPopup('scav', 1, 'land')",
 }
 
 local function generateCode(type)
@@ -100,12 +99,12 @@ local function generateCode(type)
 	local buildings = {}
 
 	for _, unitID in ipairs(selectedUnits) do
-		local unitDirection = Spring.GetUnitBuildFacing(unitID)
-		local xOffset = mathCeil(centerposx[unitID]-blueprintCenterX)
-		local zOffset = mathCeil(centerposz[unitID]-blueprintCenterZ)
+		local unitDirection = SpringShared.GetUnitBuildFacing(unitID)
+		local xOffset = mathCeil(centerposx[unitID] - blueprintCenterX)
+		local zOffset = mathCeil(centerposz[unitID] - blueprintCenterZ)
 		blueprintRadius = math.max(blueprintRadius, xOffset, zOffset)
 
-		local unitDefID = Spring.GetUnitDefID(unitID)
+		local unitDefID = SpringShared.GetUnitDefID(unitID)
 		local unitName = UnitDefs[unitDefID].name
 
 		local unitDef = UnitDefNames[unitName]
@@ -117,9 +116,8 @@ local function generateCode(type)
 	end
 
 	table.sort(buildings, function(b1, b2)
-			return b1.buildTime < b2.buildTime
-		end
-	)
+		return b1.buildTime < b2.buildTime
+	end)
 
 	file:write("\n")
 	file:write("local function " .. blueprintName .. "()", "\n")
@@ -144,7 +142,7 @@ local function generateCode(type)
 
 	blueprintCounter = blueprintCounter + 1
 
-	Spring.Echo(blueprintName .. " written to " .. outputFile)
+	SpringShared.Echo(blueprintName .. " written to " .. outputFile)
 end
 
 function widget:TextCommand(command)

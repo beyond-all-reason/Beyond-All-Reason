@@ -35,7 +35,7 @@ return {
 		upright = true,
 		customparams = {
 			maxrange = "10",
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Johanthan Crimson, Tuerk",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "leggantry",
@@ -167,7 +167,8 @@ return {
 				weaponvelocity = 600,
 				damage = {
 					commanders = 500,
-					default = 1500,},
+					default = 1500,
+				},
 				customparams = {
 					overpenetrate = true,
 				},

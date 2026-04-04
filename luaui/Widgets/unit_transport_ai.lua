@@ -5,16 +5,14 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
 	return {
 		name = "Transport AI",
-		desc = "Automatically transports units going to factory waypoint.\n" ..
-			"Adds embark=call for transport and disembark=unload from transport command",
+		desc = "Automatically transports units going to factory waypoint.\n" .. "Adds embark=call for transport and disembark=unload from transport command",
 		author = "Licho",
 		date = "1.11.2007",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = false
+		enabled = false,
 	}
 end
-
 
 -- Localized functions for performance
 local tableInsert = table.insert
@@ -24,7 +22,7 @@ local CONST_IGNORE_GROUNDSCOUTS = true -- should automated factory transport ign
 local CONST_HEIGHT_MULTIPLIER = 3 -- how many times to multiply height difference when evaluating distance
 local CONST_TRANSPORT_PICKUPTIME = 9 -- how long (in seconds) does transport land and takeoff with unit
 local CONST_PRIORITY_BENEFIT = 10000 -- how much more important are priority transfers
-local CONST_BENEFIT_LIMIT = 5  -- what is the lowest benefit treshold to use transport (in sec difference with transport against without it)
+local CONST_BENEFIT_LIMIT = 5 -- what is the lowest benefit treshold to use transport (in sec difference with transport against without it)
 local CONST_TRANSPORT_STOPDISTANCE = 150 -- how close by has transport be to stop the unit
 local CONST_UNLOAD_RADIUS = 400 -- how big is the radious for unload command for factory transports
 
@@ -36,26 +34,24 @@ local toPickRev = {} -- list of units waiting to be picked - key = unitID, value
 local storedQueue = {} -- unit keyed stored queues
 local hackIdle = {} -- temp field to overcome unitIdle problem
 
-
 local ST_ROUTE = 1 -- unit is enroute from factory
 local ST_PRIORITY = 2 -- unit is in need of priority transport
 local ST_STOPPED = 3 -- unit is enroute from factory but stopped
 
-
 local timer = 0
 local myTeamID
 
-local GetUnitPosition = Spring.GetUnitPosition
-local GetUnitDefID = Spring.GetUnitDefID
-local GetPlayerInfo = Spring.GetPlayerInfo
-local GetUnitCommands = Spring.GetUnitCommands
-local GetUnitSeparation = Spring.GetUnitSeparation
-local GiveOrderToUnit = Spring.GiveOrderToUnit
-local GetUnitDefDimensions = Spring.GetUnitDefDimensions
-local GetTeamUnits = Spring.GetTeamUnits
-local GetSelectedUnits = Spring.GetSelectedUnits
-local GetUnitIsTransporting = Spring.GetUnitIsTransporting
-local GetGroundHeight = Spring.GetGroundHeight
+local GetUnitPosition = SpringShared.GetUnitPosition
+local GetUnitDefID = SpringShared.GetUnitDefID
+local GetPlayerInfo = SpringShared.GetPlayerInfo
+local GetUnitCommands = SpringShared.GetUnitCommands
+local GetUnitSeparation = SpringShared.GetUnitSeparation
+local GiveOrderToUnit = SpringSynced.GiveOrderToUnit
+local GetUnitDefDimensions = SpringShared.GetUnitDefDimensions
+local GetTeamUnits = SpringShared.GetTeamUnits
+local GetSelectedUnits = SpringUnsynced.GetSelectedUnits
+local GetUnitIsTransporting = SpringShared.GetUnitIsTransporting
+local GetGroundHeight = SpringShared.GetGroundHeight
 local math_sqrt = math.sqrt
 
 local isFactory = {}
@@ -94,7 +90,7 @@ for uDefID, uDef in pairs(UnitDefs) do
 end
 
 function IsEmbarkCommand(unitID)
-	local queue = GetUnitCommands(unitID, 20);
+	local queue = GetUnitCommands(unitID, 20)
 	if queue ~= nil and #queue >= 1 and IsEmbark(queue[1]) then
 		return true
 	end
@@ -116,7 +112,7 @@ function IsDisembark(cmd)
 end
 
 function IsWaitCommand(unitID)
-	local queue = GetUnitCommands(unitID, 20);
+	local queue = GetUnitCommands(unitID, 20)
 	if queue ~= nil and queue[1].id == CMD.WAIT and not queue[1].options.alt then
 		return true
 	end
@@ -178,19 +174,19 @@ function AddToPick(transportID, unitID, stopped, fact)
 end
 
 function widget:PlayerChanged(playerID)
-	if Spring.GetSpectatingState() then
+	if SpringUnsynced.GetSpectatingState() then
 		widgetHandler:RemoveWidget()
 	end
 end
 
 function widget:Initialize()
-	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+	if SpringUnsynced.IsReplay() or SpringShared.GetGameFrame() > 0 then
 		widget:PlayerChanged()
 	end
 
-	local _, _, _, teamID = GetPlayerInfo(Spring.GetMyPlayerID(), false)
+	local _, _, _, teamID = GetPlayerInfo(SpringUnsynced.GetLocalPlayerID(), false)
 	myTeamID = teamID
-	widgetHandler:RegisterGlobal('taiEmbark', taiEmbark)
+	widgetHandler:RegisterGlobal("taiEmbark", taiEmbark)
 
 	for _, unitID in ipairs(GetTeamUnits(teamID)) do
 		-- init existing transports
@@ -205,7 +201,7 @@ function widget:GameStart()
 end
 
 function widget:Shutdown()
-	widgetHandler:DeregisterGlobal('taiEmbark')
+	widgetHandler:DeregisterGlobal("taiEmbark")
 end
 
 function widget:UnitTaken(unitID, unitDefID, oldTeamID, teamID)
@@ -222,7 +218,8 @@ end
        AssignTransports(unitID, 0)
     end
   end
-end]]--
+end]]
+--
 
 function widget:UnitDestroyed(unitID, unitDefID, teamID)
 	if teamID == myTeamID then
@@ -249,7 +246,7 @@ function widget:UnitDestroyed(unitID, unitDefID, teamID)
 			if pom ~= 0 then
 				DeleteToPickUnit(unitID)
 				GiveOrderToUnit(pom, CMD.STOP, {}, 0)
-			end  -- delete form toPick list
+			end -- delete form toPick list
 		end
 	end
 end
@@ -292,7 +289,7 @@ function widget:UnitIdle(unitID, unitDefID, teamID)
 
 			if marked ~= 0 then
 				DeleteToPickTran(marked)
-				GiveOrderToUnit(marked, CMD.STOP, {}, 0)  -- and stop it (when it becomes idle it will be assigned)
+				GiveOrderToUnit(marked, CMD.STOP, {}, 0) -- and stop it (when it becomes idle it will be assigned)
 			end
 		end
 	end
@@ -333,7 +330,7 @@ function widget:CommandNotify(id, params, options)
 	end
 
 	if id == CMD.WAIT and options.alt then
-		if (sel == nil) then
+		if sel == nil then
 			sel = GetSelectedUnits()
 		end
 		for i = 1, #sel do
@@ -407,7 +404,7 @@ function widget:UnitLoaded(unitID, unitDefID, teamID, transportID)
 		return
 	end
 
-	local queue = GetUnitCommands(unitID, 20);
+	local queue = GetUnitCommands(unitID, 20)
 	if queue == nil then
 		return
 	end
@@ -472,7 +469,6 @@ function widget:UnitLoaded(unitID, unitDefID, teamID, transportID)
 		local x, y, z = GetUnitPosition(transportID)
 		GiveOrderToUnit(transportID, CMD.MOVE, { x, y, z }, { "shift" })
 	end
-
 end
 
 function widget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
@@ -484,9 +480,9 @@ function widget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 		GiveOrderToUnit(unitID, x[1], x[2], x[3])
 	end
 	storedQueue[unitID] = nil
-	local cmdID = Spring.GetUnitCurrentCommand(unitID, 1) --GetUnitCommands(unitID,2) -- not sure if bug or that this old code actually meant to get the 2nd cmd in queue
+	local cmdID = SpringShared.GetUnitCurrentCommand(unitID, 1) --GetUnitCommands(unitID,2) -- not sure if bug or that this old code actually meant to get the 2nd cmd in queue
 	if cmdID and cmdID == CMD.WAIT then
-		GiveOrderToUnit(unitID, CMD.WAIT, {}, 0)  -- workaround: clears wait order if STOP fails to do so
+		GiveOrderToUnit(unitID, CMD.WAIT, {}, 0) -- workaround: clears wait order if STOP fails to do so
 	end
 end
 
@@ -528,7 +524,7 @@ function AssignTransports(transportID, unitID)
 				local td = GetUnitSeparation(id, transportID, true)
 
 				local ttime = (td + ud) / transpeed + CONST_TRANSPORT_PICKUPTIME
-				local utime = (ud) / unitSpeed[val[2]]
+				local utime = ud / unitSpeed[val[2]]
 				local benefit = utime - ttime
 				if val[1] == ST_PRIORITY then
 					benefit = benefit + CONST_PRIORITY_BENEFIT
@@ -549,12 +545,11 @@ function AssignTransports(transportID, unitID)
 				local td = GetUnitSeparation(unitID, id, true)
 
 				local ttime = (td + ud) / unitSpeed[def] + CONST_TRANSPORT_PICKUPTIME
-				local utime = (ud) / uspeed
+				local utime = ud / uspeed
 				local benefit = utime - ttime
-				if (state == ST_PRIORITY) then
+				if state == ST_PRIORITY then
 					benefit = benefit + CONST_PRIORITY_BENEFIT
 				end
-
 
 				if benefit > CONST_BENEFIT_LIMIT then
 					bestCount = bestCount + 1
@@ -573,11 +568,11 @@ function AssignTransports(transportID, unitID)
 		local tid = best[i][2]
 		local uid = best[i][3]
 		i = i + 1
-		if (used[tid] == nil and used[uid] == nil) then
+		if used[tid] == nil and used[uid] == nil then
 			used[tid] = 1
 			used[uid] = 1
 
-			if (waitingUnits[uid][1] == ST_PRIORITY) then
+			if waitingUnits[uid][1] == ST_PRIORITY then
 				AddToPick(tid, uid, ST_PRIORITY)
 			else
 				AddToPick(tid, uid, ST_ROUTE, waitingUnits[uid][3])
@@ -610,7 +605,7 @@ function GetPathLength(unitID)
 	end
 
 	local d = 0
-	local queue = GetUnitCommands(unitID, 20);
+	local queue = GetUnitCommands(unitID, 20)
 	if queue == nil then
 		return 0
 	end
@@ -639,7 +634,6 @@ function GetPathLength(unitID)
 	return d
 end
 
-
 --[[
 function widget:KeyPress(key, modifier, isRepeat)
   if (key == KEYSYMS.Q and not modifier.ctrl) then
@@ -664,9 +658,8 @@ function widget:KeyPress(key, modifier, isRepeat)
 
     end
   end
-end ]]--
-
-
+end ]]
+--
 
 function taiEmbark(unitID, teamID, embark, shift)
 	-- called by gadget
@@ -685,4 +678,3 @@ function taiEmbark(unitID, teamID, embark, shift)
 		end
 	end
 end
-

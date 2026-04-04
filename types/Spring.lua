@@ -57,4 +57,3 @@
 ---@field unitDefId string
 ---@field unitDef table?
 ---@field [string] any
-

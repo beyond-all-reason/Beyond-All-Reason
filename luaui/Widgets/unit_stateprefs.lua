@@ -15,11 +15,10 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized Spring API for performance
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spEcho = Spring.Echo
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetSelectedUnits = SpringUnsynced.GetSelectedUnits
+local spEcho = SpringShared.Echo
 
 --[[------------------------------------------------------------------------------
 
@@ -34,7 +33,8 @@ bind alt 	stateprefs_clear
 bind ctrl 	stateprefs_record
 bind sc_\ 	stateprefs_clearunit
 
---]]------------------------------------------------------------------------------
+--]]
+------------------------------------------------------------------------------
 local unitArray = {}
 local unitName = {}
 for udid, ud in pairs(UnitDefs) do
@@ -49,7 +49,7 @@ if chunk then
 	unitArray = chunk()
 end
 
-local clearSound = 'LuaUI/Sounds/switchoff.wav'
+local clearSound = "LuaUI/Sounds/switchoff.wav"
 local CMDTYPE_ICON_MODE = CMDTYPE.ICON_MODE
 local isRecordPressed = false
 local isClearPressed = false
@@ -81,7 +81,7 @@ local function GetCmdOpts(alt, ctrl, meta, shift, right)
 end
 
 function widget:PlayerChanged(playerID)
-	if Spring.GetSpectatingState() then
+	if SpringUnsynced.GetSpectatingState() then
 		widget:GameOver()
 	end
 end
@@ -91,7 +91,7 @@ function widget:Initialize()
 	for i, v in pairs(unitArray) do
 		unitSet[i] = v
 	end
-	if Spring.IsReplay() then
+	if SpringUnsynced.IsReplay() then
 		widget:GameOver()
 	end
 
@@ -100,23 +100,22 @@ function widget:Initialize()
 	widgetHandler:AddAction("stateprefs_clear", onClearPress, nil, "p")
 	widgetHandler:AddAction("stateprefs_clear", onClearRelease, nil, "r")
 	widgetHandler:AddAction("stateprefs_clearunit", doClearUnit, nil, "p")
-	
 end
 
 function onRecordPress()
-  isRecordPressed = true
+	isRecordPressed = true
 end
 
 function onRecordRelease()
-  isRecordPressed = false
+	isRecordPressed = false
 end
 
 function onClearPress()
-  isClearPressed = true
+	isClearPressed = true
 end
 
 function onClearRelease()
-  isClearPressed = false
+	isClearPressed = false
 end
 
 function saveStatePrefs()
@@ -132,17 +131,17 @@ function doClearUnit()
 		unitSet[name] = {}
 		spEcho("All state prefs removed for unit: " .. name)
 	end
-	Spring.PlaySoundFile(clearSound , 0.6, 'ui')
+	SpringUnsynced.PlaySoundFile(clearSound, 0.6, "ui")
 	saveStatePrefs()
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
-	if not isRecordPressed and not isClearPressed then 
-		return false 
+	if not isRecordPressed and not isClearPressed then
+		return false
 	end
 
-	local index = Spring.GetCmdDescIndex(cmdID)
-	local command = Spring.GetActiveCmdDesc(index)
+	local index = SpringUnsynced.GetCmdDescIndex(cmdID)
+	local command = SpringUnsynced.GetActiveCmdDesc(index)
 	-- need to filter only state commands!
 	if type(command) ~= "table" or command.type ~= CMDTYPE_ICON_MODE then
 		return
@@ -154,7 +153,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		local unitDefID = spGetUnitDefID(unitID)
 		local name = unitName[unitDefID]
 		unitSet[name] = unitSet[name] or {}
-		
+
 		if #cmdParams == 1 and isClearPressed then
 			unitSet[name][cmdID] = nil
 			spEcho("State pref removed: " .. name .. ", " .. command.name)
@@ -173,12 +172,12 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	local name = unitName[unitDefID]
 
 	unitSet[name] = unitSet[unitName[unitDefID]] or {}
-	if unitTeam == Spring.GetMyTeamID() then
+	if unitTeam == SpringUnsynced.GetLocalTeamID() then
 		for cmdID, cmdParam in pairs(unitSet[name]) do
 			if cmdID == 115 then
 				return
 			end -- we're skipping "repeat" command here for now
-			local success = Spring.GiveOrderToUnit(unitID, cmdID, { cmdParam }, cmdOpts)
+			local success = SpringSynced.GiveOrderToUnit(unitID, cmdID, { cmdParam }, cmdOpts)
 			--spEcho("".. name .. ", " .. tostring(cmdID) .. ", " .. tostring(cmdParam) .. " success: ".. tostring(success))
 		end
 	end

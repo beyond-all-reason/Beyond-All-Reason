@@ -12,29 +12,35 @@ function widget:GetInfo()
 		date = "Jan 2, 2023",
 		license = "GPL2+",
 		layer = 999999 + 1, -- one layer above widget selector
-		enabled = false
+		enabled = false,
 	}
 end
 
 function widget:MouseWheel(up)
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	local alt, ctrl, meta, shift = SpringUnsynced.GetModKeyState()
 
-	if alt or ctrl or meta or shift then return end
+	if alt or ctrl or meta or shift then
+		return
+	end
 
-	local camState = Spring.GetCameraState()
+	local camState = SpringUnsynced.GetCameraState()
 	local isOverview = camState.name == "ov"
 
-	if Spring.GetConfigInt("ScrollWheelSpeed", 1) > 0 then
+	if SpringUnsynced.GetConfigInt("ScrollWheelSpeed", 1) > 0 then
 		up = not up
 	end
 
 	if up then
-		if isOverview then Spring.SendCommands({ "toggleoverview" }) end
+		if isOverview then
+			SpringUnsynced.SendCommands({ "toggleoverview" })
+		end
 
 		return true
 	end
 
-	if not isOverview then Spring.SendCommands({ "toggleoverview" }) end
+	if not isOverview then
+		SpringUnsynced.SendCommands({ "toggleoverview" })
+	end
 
 	return true
 end

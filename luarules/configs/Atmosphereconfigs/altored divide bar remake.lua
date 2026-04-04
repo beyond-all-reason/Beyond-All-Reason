@@ -2,24 +2,24 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GameFrame(n)
 	if n == 31 then
-		Spring.Echo("Loaded atmosphere CEGs config for map: " .. Game.mapName)
+		SpringShared.Echo("Loaded atmosphere CEGs config for map: " .. Game.mapName)
 	end
 
--- SND windy locations
-	if n%1050 == 0 then
+	-- SND windy locations
+	if n % 1050 == 0 then
 		SpawnCEGInPositionGround("noceg", 660, 500, 413, _, _, _, "windy", 0.3)
 	end
-	if n%1090 == 30 then
+	if n % 1090 == 30 then
 		SpawnCEGInPositionGround("noceg", 7400, 600, 350, _, _, _, "windy", 0.3)
 	end
-	if n%1170 == 60 then
+	if n % 1170 == 60 then
 		SpawnCEGInPositionGround("noceg", 470, 500, 7900, _, _, _, "windy", 0.3)
 	end
-	if n%980 == 90 then
+	if n % 980 == 90 then
 		SpawnCEGInPositionGround("noceg", 7400, 600, 7800, _, _, _, "windy", 0.3)
 	end
 
--- SND geos Replaced by SFX_geovent.lua
+	-- SND geos Replaced by SFX_geovent.lua
 	-- if n%120 == 0 then
 	-- 	SpawnCEGInPositionGround("noceg", 2525, 300, 5383, _, _, _, "geoventshort", 0.5)
 	-- end
@@ -33,9 +33,9 @@ function gadget:GameFrame(n)
 	-- 	SpawnCEGInPositionGround("noceg", 2513, 300, 3967, _, _, _, "geoventshort", 0.5)
 	-- end
 
--- ## Atmosphere Functions
--- SendToUnsynced("MapAtmosphereConfigSetSun", red&green, transitionspeed, blue)
--- SendToUnsynced("MapAtmosphereConfigSetFog", targetfogstart, targetfogend, transitionspeedfogstart, transitionspeedfogend)
+	-- ## Atmosphere Functions
+	-- SendToUnsynced("MapAtmosphereConfigSetSun", red&green, transitionspeed, blue)
+	-- SendToUnsynced("MapAtmosphereConfigSetFog", targetfogstart, targetfogend, transitionspeedfogstart, transitionspeedfogend)
 
 	-- DayNight Cycle
 	--[[
@@ -48,20 +48,20 @@ function gadget:GameFrame(n)
 	end
 	--]]
 
--- ## Atmosphere CEG Functions
+	-- ## Atmosphere CEG Functions
 
--- SpawnCEGInPosition (cegname, posx, posy, posz, damage, paralyzedamage, damageradius, sound, soundvolume)
--- SpawnCEGInPositionGround(cegname, posx, groundOffset, posz, damage, paralyzedamage, damageradius, sound, soundvolume)
--- SpawnCEGInArea(cegname, midposx, posy, midposz, radius, damage, paralyzedamage, damageradius, sound, soundvolume)
--- SpawnCEGInAreaGround(cegname, midposx, groundOffset, midposz, radius, damage, paralyzedamage, damageradius, sound, soundvolume)
--- SpawnCEGInRandomMapPos(cegname, groundOffset, damage, paralyzedamage, damageradius, sound, soundvolume)
--- SpawnCEGInRandomMapPosBelowY(cegname, groundOffset, spawnOnlyBelowY, damage, paralyzedamage, damageradius, sound, soundvolume)
--- SpawnCEGInRandomMapPosPresetY(cegname, posy, damage, paralyzedamage, damageradius, sound, soundvolume)
+	-- SpawnCEGInPosition (cegname, posx, posy, posz, damage, paralyzedamage, damageradius, sound, soundvolume)
+	-- SpawnCEGInPositionGround(cegname, posx, groundOffset, posz, damage, paralyzedamage, damageradius, sound, soundvolume)
+	-- SpawnCEGInArea(cegname, midposx, posy, midposz, radius, damage, paralyzedamage, damageradius, sound, soundvolume)
+	-- SpawnCEGInAreaGround(cegname, midposx, groundOffset, midposz, radius, damage, paralyzedamage, damageradius, sound, soundvolume)
+	-- SpawnCEGInRandomMapPos(cegname, groundOffset, damage, paralyzedamage, damageradius, sound, soundvolume)
+	-- SpawnCEGInRandomMapPosBelowY(cegname, groundOffset, spawnOnlyBelowY, damage, paralyzedamage, damageradius, sound, soundvolume)
+	-- SpawnCEGInRandomMapPosPresetY(cegname, posy, damage, paralyzedamage, damageradius, sound, soundvolume)
 
--- Use _ for damage, paralyzedamage, damageradius if you want to disable
+	-- Use _ for damage, paralyzedamage, damageradius if you want to disable
 
--- Lightningstorm clusters
---[[
+	-- Lightningstorm clusters
+	--[[
 local lightningsounds = {
 	"thunder1",
 	"thunder2",
@@ -138,59 +138,58 @@ if n%9000 > 4500  then
 end
 ]]
 
--- common foggy cliffs	
-	if n%360 == 0 then
+	-- common foggy cliffs
+	if n % 360 == 0 then
 		SpawnCEGInPositionGround("fogdirty-green", 1490, 32, 4271)
 		SpawnCEGInPositionGround("fogdirty-green", 5545, 32, 3359)
 		SpawnCEGInPositionGround("fogdirty-green", 3365, 32, 3438)
 		SpawnCEGInPositionGround("fogdirty-green", 5261, 32, 2582)
 	end
 
-	if n%360 == 180 then
-
+	if n % 360 == 180 then
 		SpawnCEGInPositionGround("fogdirty-green", 4039, 32, 4245)
 		SpawnCEGInPositionGround("fogdirty-green", 5626, 32, 4687)
 		SpawnCEGInPositionGround("fogdirty-green", 2913, 32, 5769)
 		SpawnCEGInPositionGround("fogdirty-green", 360, 32, 2558)
 	end
 
--- rare foggy cliffs	
-	if n%700 == 0 then
+	-- rare foggy cliffs
+	if n % 700 == 0 then
 		SpawnCEGInPositionGround("fogdirty-green", 624, 32, 565)
 		SpawnCEGInPositionGround("fogdirty-green", 7201, 32, 5743)
 	end
 
--- common fireflies
-	if n%1000 == 0 then
+	-- common fireflies
+	if n % 1000 == 0 then
 		SpawnCEGInPositionGround("fireflies", 774, 32, 4289)
 		SpawnCEGInPositionGround("fireflies", 7299, 32, 3964)
 		SpawnCEGInPositionGround("fireflies", 2933, 32, 4136)
 	end
 
--- rare fireflies
-	if n%2200 == 0 then
+	-- rare fireflies
+	if n % 2200 == 0 then
 		SpawnCEGInPositionGround("fireflies", 3362, 32, 3494)
 		SpawnCEGInPositionGround("fireflies", 943, 32, 3381)
 	end
 
--- -- random rain
--- 	if n%3200 == 1600 then
--- 		SpawnCEGInRandomMapPos("rain", 0, _, _, _, "rainlight", 1)
--- 	end
+	-- -- random rain
+	-- 	if n%3200 == 1600 then
+	-- 		SpawnCEGInRandomMapPos("rain", 0, _, _, _, "rainlight", 1)
+	-- 	end
 
--- -- random lightning
--- 	if n%7000 == 600 then
--- 		SpawnCEGInRandomMapPos("lightningstormgreen", 0, _, _, _, "distantthunder", 0.85)
--- 	end
-	
--- lightningstorms
+	-- -- random lightning
+	-- 	if n%7000 == 600 then
+	-- 		SpawnCEGInRandomMapPos("lightningstormgreen", 0, _, _, _, "distantthunder", 0.85)
+	-- 	end
+
+	-- lightningstorms
 
 	-- if n%60 == 0 then
- --       local r = math.random(0,2)
- --       if r == 0 then
+	--       local r = math.random(0,2)
+	--       if r == 0 then
 	--       SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 20, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
- --       end
- --    end 
+	--       end
+	--    end
 
 	-- if n%6400 == 4900 then
 	-- 	SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 20, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
@@ -207,5 +206,4 @@ end
 	-- if n%6400 == 5610 then
 	-- 	SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 20, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
 	-- end
-	
 end

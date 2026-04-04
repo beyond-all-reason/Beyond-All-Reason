@@ -2,19 +2,19 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name = 'AA Targeting Priority',
-		desc = '',
-		author = 'Doo', --additions wilkubyk
-		version = 'v1.0',
-		date = 'May 2018',
-		license = 'GNU GPL, v2 or later',
+		name = "AA Targeting Priority",
+		desc = "",
+		author = "Doo", --additions wilkubyk
+		version = "v1.0",
+		date = "May 2018",
+		license = "GNU GPL, v2 or later",
 		layer = -1, --must run before game_initial_spawn, because game_initial_spawn must control the return of GameSteup
-		enabled = true
+		enabled = true,
 	}
 end
 
 if gadgetHandler:IsSyncedCode() then
-	local spGetUnitDefID = Spring.GetUnitDefID
+	local spGetUnitDefID = SpringShared.GetUnitDefID
 	local stringFind = string.find
 
 	local PRIORITY_BOMBERS = 1
@@ -33,7 +33,7 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				for i = 1, #weapons do
 					local weaponDef = WeaponDefs[weapons[i].weaponDef]
-					if weaponDef.type == 'AircraftBomb' or weaponDef.type == 'TorpedoLauncher' or stringFind(weaponDef.name, 'arm_pidr', 1, true) then
+					if weaponDef.type == "AircraftBomb" or weaponDef.type == "TorpedoLauncher" or stringFind(weaponDef.name, "arm_pidr", 1, true) then
 						mult = PRIORITY_BOMBERS
 					elseif weapons[i].onlyTargets.vtol then
 						mult = PRIORITY_FIGHTERS

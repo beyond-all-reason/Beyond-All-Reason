@@ -14,29 +14,25 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-if not Spring.Utilities.IsDevMode() or not Spring.Utilities.Gametype.IsSinglePlayer() then
-	Spring.SetGameRulesParam('isSyncedProxyEnabled', false)
+if not Utilities.IsDevMode() or not Utilities.Gametype.IsSinglePlayer() then
+	SpringSynced.SetGameRulesParam("isSyncedProxyEnabled", false)
 	return
 end
 
-Spring.SetGameRulesParam('isSyncedProxyEnabled', true)
+SpringSynced.SetGameRulesParam("isSyncedProxyEnabled", true)
 
 local LOG_LEVEL = LOG.INFO
 
-local Proxy = VFS.Include('common/testing/synced_proxy.lua')
+local Proxy = VFS.Include("common/testing/synced_proxy.lua")
 
-local rpc = VFS.Include('common/testing/rpc.lua'):new()
+local rpc = VFS.Include("common/testing/rpc.lua"):new()
 
 local function log(level, str, ...)
 	if level < LOG_LEVEL then
 		return
 	end
 
-	Spring.Log(
-		gadget:GetInfo().name,
-		LOG.NOTICE,
-		str
-	)
+	SpringShared.Log(gadget:GetInfo().name, LOG.NOTICE, str)
 end
 
 local function processFunctionCall(fn, returnID)
@@ -50,7 +46,7 @@ local function processFunctionCall(fn, returnID)
 	local serializedReturn = rpc:serializeFunctionReturn(pcallOk, pcallResult, returnID)
 
 	log(LOG.DEBUG, "[processFunctionCall.SendLuaUIMsg] " .. Proxy.PREFIX.RETURN .. serializedReturn)
-	Spring.SendLuaUIMsg(Proxy.PREFIX.RETURN .. serializedReturn)
+	SpringUnsynced.SendLuaUIMsg(Proxy.PREFIX.RETURN .. serializedReturn)
 end
 
 local RECEIVE_MODES = {
@@ -68,7 +64,7 @@ local RECEIVE_MODES = {
 
 function gadget:RecvLuaMsg(msg, playerID)
 	-- check cheating here because cheats might not be enabled when the game starts
-	if not Spring.IsCheatingEnabled() then
+	if not SpringShared.IsCheatingEnabled() then
 		return
 	end
 	for prefix, fn in pairs(RECEIVE_MODES) do
@@ -80,5 +76,5 @@ function gadget:RecvLuaMsg(msg, playerID)
 end
 
 function gadget:Shutdown()
-	Spring.SetGameRulesParam('isSyncedProxyEnabled', false)
+	SpringSynced.SetGameRulesParam("isSyncedProxyEnabled", false)
 end

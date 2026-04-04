@@ -2,27 +2,26 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name      = "No Share Self-D",
-		desc      = "Prevents self-destruction when a unit changes hands or a player leaves",
-		author    = "quantum, Bluestone",
-		date      = "July 13, 2008",
-		license   = "GNU GPL, v2 or later",
-		layer     = -99999,
-		enabled   = true
+		name = "No Share Self-D",
+		desc = "Prevents self-destruction when a unit changes hands or a player leaves",
+		author = "quantum, Bluestone",
+		date = "July 13, 2008",
+		license = "GNU GPL, v2 or later",
+		layer = -99999,
+		enabled = true,
 	}
 end
-
 
 if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
 local monitorPlayers = {}
-local spGetPlayerInfo = Spring.GetPlayerInfo
+local spGetPlayerInfo = SpringShared.GetPlayerInfo
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
-	if Spring.GetUnitSelfDTime(unitID) > 0 then
-		Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
+	if SpringShared.GetUnitSelfDTime(unitID) > 0 then
+		SpringSynced.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
 	end
 	return true
 end
@@ -40,20 +39,20 @@ local function removeSelfdOrders(teamID)
 	--end
 
 	-- cancel any self d orders
-	local units = Spring.GetTeamUnits(teamID)
-	for i=1,#units do
+	local units = SpringShared.GetTeamUnits(teamID)
+	for i = 1, #units do
 		local unitID = units[i]
-		if Spring.GetUnitSelfDTime(unitID) > 0 then
-			Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
+		if SpringShared.GetUnitSelfDTime(unitID) > 0 then
+			SpringSynced.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
 		end
 	end
 end
 
 function gadget:Initialize()
-	local players = Spring.GetPlayerList()
+	local players = SpringShared.GetPlayerList()
 	for _, playerID in pairs(players) do
-		local _,active,spec,teamID = spGetPlayerInfo(playerID,false)
-		local leaderPlayerID, isDead, isAiTeam = Spring.GetTeamInfo(teamID, false)
+		local _, active, spec, teamID = spGetPlayerInfo(playerID, false)
+		local leaderPlayerID, isDead, isAiTeam = SpringShared.GetTeamInfo(teamID, false)
 		if isDead == 0 and not isAiTeam then
 			--_, active, spec = spGetPlayerInfo(leaderPlayerID, false)
 			if active and not spec then
@@ -64,9 +63,9 @@ function gadget:Initialize()
 end
 
 function gadget:GameFrame(gameFrame)
-	local active,spec,teamID
+	local active, spec, teamID
 	for playerID, prevActive in pairs(monitorPlayers) do
-		_,active,spec,teamID = spGetPlayerInfo(playerID,false)
+		_, active, spec, teamID = spGetPlayerInfo(playerID, false)
 		if spec then
 			removeSelfdOrders(teamID)
 			monitorPlayers[playerID] = nil
@@ -74,7 +73,7 @@ function gadget:GameFrame(gameFrame)
 			if not active then
 				removeSelfdOrders(teamID)
 			end
-			monitorPlayers[playerID] = active	-- dont nil cause player could reconnect
+			monitorPlayers[playerID] = active -- dont nil cause player could reconnect
 		end
 	end
 end

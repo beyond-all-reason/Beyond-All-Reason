@@ -138,7 +138,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 600,
 				customparams = {
-					cluster_def = 'cluster_munition_main',
+					cluster_def = "cluster_munition_main",
 					cluster_number = 5,
 				},
 				damage = {
@@ -178,9 +178,9 @@ return {
 				areaofeffect = 120,
 				avoidfeature = false,
 				avoidneutral = true,
-                avoidfriendly = false,
+				avoidfriendly = false,
 				cegtag = "starfire_tiny",
-                collidefriendly = false,
+				collidefriendly = false,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.4,
@@ -199,7 +199,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 500,
 				customparams = {
-					cluster_def = 'cluster_munition_secondary',
+					cluster_def = "cluster_munition_secondary",
 					cluster_number = 4,
 				},
 				damage = {
@@ -249,13 +249,13 @@ return {
 			},
 			[3] = {
 				def = "leg_mobile_cluster_plasma",
-				maindir = "0.259 0 0.966",  -- rightcannon, needs to calculate from 35 degrees to the right
+				maindir = "0.259 0 0.966", -- rightcannon, needs to calculate from 35 degrees to the right
 				maxangledif = 320,
 				onlytargetcategory = "SURFACE",
 			},
 			[4] = {
 				def = "leg_mobile_cluster_plasma",
-				maindir = "-0.174 0 0.985",  -- leftcannon2, needs to calculate from 15 degrees to the left
+				maindir = "-0.174 0 0.985", -- leftcannon2, needs to calculate from 15 degrees to the left
 				maxangledif = 330,
 				onlytargetcategory = "SURFACE",
 			},

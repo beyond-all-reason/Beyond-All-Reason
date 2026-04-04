@@ -11,7 +11,7 @@ function widget:GetInfo()
 	}
 end
 
-if not Spring.Utilities.IsDevMode() or not Spring.Utilities.Gametype.IsSinglePlayer() then
+if not Utilities.IsDevMode() or not Utilities.Gametype.IsSinglePlayer() then
 	return
 end
 
@@ -22,9 +22,9 @@ function widget:Update(dt)
 	if t > CHECK_PERIOD then
 		t = 0
 		if widgetHandler:FindWidget("Test Runner") == nil then
-			Spring.Log(widget:GetInfo().name, LOG.WARNING, "Test runner crashed, exiting game")
+			SpringShared.Log(widget:GetInfo().name, LOG.WARNING, "Test runner crashed, exiting game")
 			widgetHandler:DisableWidget(widget:GetInfo().name)
-			Spring.SendCommands("quitforce")
+			SpringUnsynced.SendCommands("quitforce")
 		end
 	end
 end

@@ -2,26 +2,26 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name    = "Analytics - Widgets",
-		desc    = "Report widget usage to Analytics API",
-		author  = "uBdead",
-		date    = "Oct 2025",
+		name = "Analytics - Widgets",
+		desc = "Report widget usage to Analytics API",
+		author = "uBdead",
+		date = "Oct 2025",
 		license = "GPL-v2",
-		layer   = 0,
+		layer = 0,
 		enabled = true,
 		handler = true,
 	}
 end
 
 function widget:Initialize()
-	local isReplay = Spring.IsReplay()
+	local isReplay = SpringUnsynced.IsReplay()
 	if not WG.Analytics or isReplay then
 		widgetHandler:RemoveWidget(self)
 		return
 	end
 end
 
--- Doing it a bit late also hopes to catch the state after people already toggled widgets on/off  
+-- Doing it a bit late also hopes to catch the state after people already toggled widgets on/off
 local REPORT_DELAY_FRAMES = 30
 local MAX_WIDGETS_PER_REPORT = 50
 local MAX_WIDGET_DESCRIPTION_LEN = 100
@@ -36,9 +36,7 @@ local currentWidgetIndex = 1
 local function GetWidgetToggleValue(widgetname)
 	if widgetHandler.orderList[widgetname] == nil or widgetHandler.orderList[widgetname] == 0 then
 		return false
-	elseif widgetHandler.orderList[widgetname] >= 1
-		and widgetHandler.knownWidgets ~= nil
-		and widgetHandler.knownWidgets[widgetname] ~= nil then
+	elseif widgetHandler.orderList[widgetname] >= 1 and widgetHandler.knownWidgets ~= nil and widgetHandler.knownWidgets[widgetname] ~= nil then
 		if widgetHandler.knownWidgets[widgetname].active then
 			return true
 		else
@@ -48,11 +46,11 @@ local function GetWidgetToggleValue(widgetname)
 end
 
 local function processWidget(widget)
-	-- I know this is redundant as we literally just defined these values ourselves, 
+	-- I know this is redundant as we literally just defined these values ourselves,
 	-- but i want to keep the GetWidgetToggleValue the same as the original
 	local state = GetWidgetToggleValue(widget.name)
-	if state == false then   
-		widget.state = 0 
+	if state == false then
+		widget.state = 0
 	elseif state == 0.5 then
 		widget.state = -1
 	else

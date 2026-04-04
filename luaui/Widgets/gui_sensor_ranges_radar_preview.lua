@@ -8,34 +8,32 @@ function widget:GetInfo()
 		date = "2021.07.12",
 		license = "GNU GPL v2",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
-
 
 -- Localized functions for performance
 local mathFloor = math.floor
 
 -- Localized Spring API for performance
-local spGetUnitDefID = Spring.GetUnitDefID
-local spEcho = Spring.Echo
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spEcho = SpringShared.Echo
 
 ------- GL4 NOTES -----
 -- There is regular radar and advanced radar, assumed to have identical ranges!
 
 local SHADERRESOLUTION = 16 -- THIS SHOULD MATCH RADARMIPLEVEL!
 
-local smallradarrange = 2100	-- updates to 'armrad' value
-local largeradarrange = 3500	-- updates to 'armarad' value
+local smallradarrange = 2100 -- updates to 'armrad' value
+local largeradarrange = 3500 -- updates to 'armarad' value
 
 local cmdidtoradarsize = {}
 local radaremitheight = {}
-local radarYOffset = 50			-- amount added to vertical height of overlay to more closely reflect engine radarLOS
+local radarYOffset = 50 -- amount added to vertical height of overlay to more closely reflect engine radarLOS
 
 -- Globals
 local mousepos = { 0, 0, 0 }
-local spGetActiveCommand = Spring.GetActiveCommand
-
+local spGetActiveCommand = SpringUnsynced.GetActiveCommand
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
@@ -47,10 +45,10 @@ local largeradVAO = nil
 local selectedRadarUnitID = false
 
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.name == 'armarad' then
+	if unitDef.name == "armarad" then
 		largeradarrange = unitDef.radarDistance
 	end
-	if unitDef.name == 'armrad' then
+	if unitDef.name == "armrad" then
 		smallradarrange = unitDef.radarDistance
 	end
 
@@ -71,18 +69,18 @@ local vsSrcPath = "LuaUI/Shaders/sensor_ranges_radar_preview.vert.glsl"
 local fsSrcPath = "LuaUI/Shaders/sensor_ranges_radar_preview.frag.glsl"
 
 local shaderSourceCache = {
-		vssrcpath = vsSrcPath,
-		fssrcpath = fsSrcPath,
-		shaderName = "radarTruthShader GL4",
-		uniformInt = {
-				heightmapTex = 0,
-			},
-		uniformFloat = {
-			radarcenter_range = { 2000, 100, 2000, 2000 },
-			resolution = { 128 },
-		  },
-		shaderConfig = shaderConfig,
-	}
+	vssrcpath = vsSrcPath,
+	fssrcpath = fsSrcPath,
+	shaderName = "radarTruthShader GL4",
+	uniformInt = {
+		heightmapTex = 0,
+	},
+	uniformFloat = {
+		radarcenter_range = { 2000, 100, 2000, 2000 },
+		resolution = { 128 },
+	},
+	shaderConfig = shaderConfig,
+}
 
 local function goodbye(reason)
 	spEcho("radarTruthShader GL4 widget exiting with reason: " .. reason)
@@ -109,14 +107,13 @@ local function initgl4()
 	largeradVAO:AttachIndexBuffer(largi)
 end
 
-
 function widget:Initialize()
 	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
 		widgetHandler:RemoveWidget()
 		return
 	end
 
-	if (smallradarrange > 2200) then
+	if smallradarrange > 2200 then
 		spEcho("Sensor Ranges Radar Preview does not support increased radar ranges modoptions, removing.")
 		widgetHandler:RemoveWidget()
 		return
@@ -149,7 +146,7 @@ function widget:DrawWorld()
 		end -- not build command
 	end
 
-	if Spring.IsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then
+	if SpringUnsynced.IsGUIHidden() or (WG.topbar and WG.topbar.showingQuit()) then
 		return
 	end
 
@@ -158,10 +155,10 @@ function widget:DrawWorld()
 		return
 	end
 	if selectedRadarUnitID then
-		mousepos = { Spring.GetUnitPosition(selectedRadarUnitID) }
+		mousepos = { SpringShared.GetUnitPosition(selectedRadarUnitID) }
 	else
-		local mx, my, lp, mp, rp, offscreen = Spring.GetMouseState()
-		local _, coords = Spring.TraceScreenRay(mx, my, true)
+		local mx, my, lp, mp, rp, offscreen = SpringUnsynced.GetMouseState()
+		local _, coords = SpringUnsynced.TraceScreenRay(mx, my, true)
 		if coords then
 			mousepos = { coords[1], coords[2], coords[3] }
 		end
@@ -171,12 +168,7 @@ function widget:DrawWorld()
 	gl.Culling(GL.BACK)
 	gl.Texture(0, "$heightmap")
 	radarTruthShader:Activate()
-	radarTruthShader:SetUniform("radarcenter_range",
-		mathFloor((mousepos[1] + 8) / (SHADERRESOLUTION * 2)) * (SHADERRESOLUTION * 2),
-		mousepos[2] + radaremitheight[cmdID],
-		mathFloor((mousepos[3] + 8) / (SHADERRESOLUTION * 2)) * (SHADERRESOLUTION * 2),
-		whichradarsize == "small" and smallradarrange or largeradarrange
-	)
+	radarTruthShader:SetUniform("radarcenter_range", mathFloor((mousepos[1] + 8) / (SHADERRESOLUTION * 2)) * (SHADERRESOLUTION * 2), mousepos[2] + radaremitheight[cmdID], mathFloor((mousepos[3] + 8) / (SHADERRESOLUTION * 2)) * (SHADERRESOLUTION * 2), whichradarsize == "small" and smallradarrange or largeradarrange)
 	if whichradarsize == "small" then
 		smallradVAO:DrawElements(GL.TRIANGLES)
 	elseif whichradarsize == "large" then

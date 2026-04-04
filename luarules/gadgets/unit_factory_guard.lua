@@ -1,32 +1,29 @@
-
 if not gadgetHandler:IsSyncedCode() then
 	return
 end
-
 
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name      = "Factory Guard",
-		desc      = "Adds a factory guard state command to factories",
-		author    = "Hobo Joe",
-		date      = "Feb 2024",
-		license   = "GNU GPL, v2 or later",
-		layer     = 0,
-		enabled   = true
+		name = "Factory Guard",
+		desc = "Adds a factory guard state command to factories",
+		author = "Hobo Joe",
+		date = "Feb 2024",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
 
-
-local spGetUnitBuildFacing = Spring.GetUnitBuildFacing
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitRadius = Spring.GetUnitRadius
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spInsertUnitCmdDesc  = Spring.InsertUnitCmdDesc
-local spEditUnitCmdDesc    = Spring.EditUnitCmdDesc
-local spFindUnitCmdDesc    = Spring.FindUnitCmdDesc
-local spTestMoveOrder = Spring.TestMoveOrder
+local spGetUnitBuildFacing = SpringShared.GetUnitBuildFacing
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetUnitRadius = SpringShared.GetUnitRadius
+local spGiveOrderToUnit = SpringSynced.GiveOrderToUnit
+local spInsertUnitCmdDesc = SpringSynced.InsertUnitCmdDesc
+local spEditUnitCmdDesc = SpringSynced.EditUnitCmdDesc
+local spFindUnitCmdDesc = SpringShared.FindUnitCmdDesc
+local spTestMoveOrder = SpringShared.TestMoveOrder
 
 local CMD_FACTORY_GUARD = GameCMD.FACTORY_GUARD
 local CMD_GUARD = CMD.GUARD
@@ -35,13 +32,12 @@ local CMD_MOVE = CMD.MOVE
 local factoryGuardCmdDesc = {
 	id = CMD_FACTORY_GUARD,
 	type = CMDTYPE.ICON_MODE,
-	tooltip = 'factoryguard_tooltip',
-	name = 'factoryguard',
-	cursor = 'cursornormal',
-	action = 'factoryguard',
+	tooltip = "factoryguard_tooltip",
+	name = "factoryguard",
+	cursor = "cursornormal",
+	action = "factoryguard",
 	params = { 0, "factoryguard", "factoryguard" }, -- named like this for translation - 0 is off, 1 is on
 }
-
 
 local isFactory = {}
 local isAssistBuilder = {}
@@ -53,8 +49,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			local buildOptDefID = buildOptions[i]
 			local buildOpt = UnitDefs[buildOptDefID]
 
-			if (buildOpt and buildOpt.isBuilder and buildOpt.canAssist) then
-				isFactory[unitDefID] = true  -- only factories that can build builders are included
+			if buildOpt and buildOpt.isBuilder and buildOpt.canAssist then
+				isFactory[unitDefID] = true -- only factories that can build builders are included
 				break
 			end
 		end
@@ -64,31 +60,27 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
-
 local function setFactoryGuardState(unitID, state)
 	local cmdDescID = spFindUnitCmdDesc(unitID, CMD_FACTORY_GUARD)
 	if cmdDescID then
 		factoryGuardCmdDesc.params[1] = state
-		spEditUnitCmdDesc(unitID, cmdDescID, {params = factoryGuardCmdDesc.params})
+		spEditUnitCmdDesc(unitID, cmdDescID, { params = factoryGuardCmdDesc.params })
 	end
 end
-
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
 	--accepts: CMD_FACTORY_GUARD
 	if isFactory[unitDefID] then
 		setFactoryGuardState(unitID, cmdParams[1])
-		return false  -- command was used
+		return false -- command was used
 	end
-	return true  -- command was not used
+	return true -- command was not used
 end
-
 
 --------------------------------------------------------------------------------
 -- Guard Command Handling
 
 local function GuardFactory(unitID, unitDefID, factID, factDefID)
-
 	if not isFactory[factDefID] then
 		-- is this a factory?
 		return
@@ -99,31 +91,31 @@ local function GuardFactory(unitID, unitDefID, factID, factDefID)
 	end
 
 	local x, y, z = spGetUnitPosition(factID)
-	if (not x) then
+	if not x then
 		return
 	end
 
 	local radius = spGetUnitRadius(factID)
-	if (not radius) then
+	if not radius then
 		return
 	end
 	local dist = radius * 2
 
 	local facing = spGetUnitBuildFacing(factID)
-	if (not facing) then
+	if not facing then
 		return
 	end
 
 	-- facing values { S = 0, E = 1, N = 2, W = 3 }
 	local dx, dz -- down vector
 	local rx, rz -- right vector
-	if (facing == 0) then
+	if facing == 0 then
 		dx, dz = 0, dist
 		rx, rz = dist, 0
-	elseif (facing == 1) then
+	elseif facing == 1 then
 		dx, dz = dist, 0
 		rx, rz = 0, -dist
-	elseif (facing == 2) then
+	elseif facing == 2 then
 		dx, dz = 0, -dist
 		rx, rz = -dist, 0
 	else
@@ -148,15 +140,13 @@ local function GuardFactory(unitID, unitDefID, factID, factDefID)
 	OrderUnit(unitID, CMD_GUARD, { factID }, { "shift" })
 end
 
-
-function gadget:UnitFromFactory(unitID, unitDefID, unitTeam,
-								factID, factDefID, userOrders)
-	if (userOrders) then
+function gadget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
+	if userOrders then
 		return -- already has user assigned orders
 	end
 
-	local factoryGuardCmdDescID = Spring.FindUnitCmdDesc(factID, CMD_FACTORY_GUARD) -- get CmdDescID
-	local cmdDesc = Spring.GetUnitCmdDescs(factID, factoryGuardCmdDescID)[1] -- use CmdDescID to get state of that cmd (comes back as a table, we get the first element)
+	local factoryGuardCmdDescID = SpringShared.FindUnitCmdDesc(factID, CMD_FACTORY_GUARD) -- get CmdDescID
+	local cmdDesc = SpringShared.GetUnitCmdDescs(factID, factoryGuardCmdDescID)[1] -- use CmdDescID to get state of that cmd (comes back as a table, we get the first element)
 	local factoryGuardEnabled = cmdDesc.params[1] == "1"
 	if not cmdDesc or not factoryGuardEnabled then -- if state is missing or false, do nothing
 		return
@@ -164,7 +154,6 @@ function gadget:UnitFromFactory(unitID, unitDefID, unitTeam,
 
 	GuardFactory(unitID, unitDefID, factID, factDefID)
 end
-
 
 --------------------------------------------------------------------------------
 -- Unit Handling
@@ -178,9 +167,9 @@ end
 
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_FACTORY_GUARD)
-	local allUnits = Spring.GetAllUnits()
+	local allUnits = SpringShared.GetAllUnits()
 	for i = 1, #allUnits do
-		gadget:UnitCreated(allUnits[i], Spring.GetUnitDefID(allUnits[i]))
+		gadget:UnitCreated(allUnits[i], SpringShared.GetUnitDefID(allUnits[i]))
 	end
 end
 --------------------------------------------------------------------------------

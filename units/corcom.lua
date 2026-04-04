@@ -233,7 +233,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
 				customparams = {
-					norangering= 1,
+					norangering = 1,
 				},
 				damage = {
 					default = 200,

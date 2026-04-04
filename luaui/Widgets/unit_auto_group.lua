@@ -1,28 +1,27 @@
-local versionNum = '5.00'
+local versionNum = "5.00"
 
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
 		name = "Auto Group",
-		desc = "v" .. (versionNum) .. " Alt+0-9 sets autogroup# for selected unit type(s). Newly built units get added to group# equal to their autogroup#. Alt BACKQUOTE (~) remove units. Type '/luaui autogroup help' for help or view settings at: Settings/Interface/AutoGroup'.",
+		desc = "v" .. versionNum .. " Alt+0-9 sets autogroup# for selected unit type(s). Newly built units get added to group# equal to their autogroup#. Alt BACKQUOTE (~) remove units. Type '/luaui autogroup help' for help or view settings at: Settings/Interface/AutoGroup'.",
 		author = "Licho",
 		date = "Mar 23, 2007",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
-
 
 -- Localized functions for performance
 local tableInsert = table.insert
 
 -- Localized Spring API for performance
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetGameFrame = Spring.GetGameFrame
-local spGetMyTeamID = Spring.GetMyTeamID
-local spGetTeamUnits = Spring.GetTeamUnits
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
+local spGetTeamUnits = SpringShared.GetTeamUnits
 
 include("keysym.h.lua")
 
@@ -66,7 +65,6 @@ for i = 0, 9 do
 end
 local unit2group = presets[currPreset] -- list of unit types to group
 
-
 local mobileBuilders = {}
 local builtInPlace = {}
 
@@ -86,20 +84,19 @@ local prevHealth = {}
 
 local gameStarted
 
-local GetUnitGroup = Spring.GetUnitGroup
-local SetUnitGroup = Spring.SetUnitGroup
-local GetSelectedUnits = Spring.GetSelectedUnits
+local GetUnitGroup = SpringUnsynced.GetUnitGroup
+local SetUnitGroup = SpringUnsynced.SetUnitGroup
+local GetSelectedUnits = SpringUnsynced.GetSelectedUnits
 local GetUnitDefID = spGetUnitDefID
-local GetUnitHealth = Spring.GetUnitHealth
-local GetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local GetMouseState = Spring.GetMouseState
-local SelectUnitArray = Spring.SelectUnitArray
-local TraceScreenRay = Spring.TraceScreenRay
-local GetUnitPosition = Spring.GetUnitPosition
+local GetUnitHealth = SpringShared.GetUnitHealth
+local GetUnitIsBeingBuilt = SpringShared.GetUnitIsBeingBuilt
+local GetMouseState = SpringUnsynced.GetMouseState
+local SelectUnitArray = SpringUnsynced.SelectUnitArray
+local TraceScreenRay = SpringUnsynced.TraceScreenRay
+local GetUnitPosition = SpringShared.GetUnitPosition
 local GetGameFrame = spGetGameFrame
-local Echo = Spring.Echo
-local GetUnitRulesParam = Spring.GetUnitRulesParam
-
+local Echo = SpringShared.Echo
+local GetUnitRulesParam = SpringShared.GetUnitRulesParam
 
 function widget:GameStart()
 	gameStarted = true
@@ -107,7 +104,7 @@ function widget:GameStart()
 end
 
 function widget:PlayerChanged(playerID)
-	if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
+	if SpringUnsynced.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -125,7 +122,9 @@ local function addAllUnits()
 end
 
 local function changeUnitTypeAutogroup(gr, removeAll)
-	if not removeAll and not gr then return end -- noop if add to autogroup and no argument
+	if not removeAll and not gr then
+		return
+	end -- noop if add to autogroup and no argument
 
 	if removeAll then
 		gr = nil
@@ -153,9 +152,9 @@ local function changeUnitTypeAutogroup(gr, removeAll)
 	for udid, _ in pairs(selUnitDefIDs) do
 		if verbose then
 			if gr then
-				Echo( Spring.I18N('ui.autogroups.unitAdded', { unit = UnitDefs[udid].translatedHumanName, groupNumber = gr }) )
+				Echo(I18N("ui.autogroups.unitAdded", { unit = UnitDefs[udid].translatedHumanName, groupNumber = gr }))
 			else
-				Echo( Spring.I18N('ui.autogroups.unitRemoved', { unit = UnitDefs[udid].translatedHumanName }) )
+				Echo(I18N("ui.autogroups.unitRemoved", { unit = UnitDefs[udid].translatedHumanName }))
 			end
 		end
 	end
@@ -182,7 +181,7 @@ end
 
 local function changeUnitTypeAutogroupHandler(_, _, args, data)
 	local gr = args and args[1]
-	local removeAll = data and data['removeAll']
+	local removeAll = data and data.removeAll
 
 	changeUnitTypeAutogroup(gr, removeAll)
 end
@@ -222,7 +221,7 @@ local function loadAutogroupPreset(newPreset)
 
 	currPreset = newPreset
 
-	Echo(Spring.I18N("ui.autogroups.presetSelected", {presetNum = currPreset}))
+	Echo(I18N("ui.autogroups.presetSelected", { presetNum = currPreset }))
 	unit2group = presets[currPreset]
 
 	if not unit2group then
@@ -246,9 +245,7 @@ local function loadAutogroupPresetHandler(cmd, optLine, optWords, data, isRepeat
 	loadAutogroupPreset(tonumber(optWords[1]))
 end
 
-
 function widget:Initialize()
-
 	widget:PlayerChanged()
 
 	widgetHandler:AddAction("add_to_autogroup", changeUnitTypeAutogroupHandler, nil, "p") -- With a parameter, adds all units of this type to a specific autogroup
@@ -256,33 +253,33 @@ function widget:Initialize()
 	widgetHandler:AddAction("remove_one_unit_from_group", removeOneUnitFromGroupHandler, nil, "p") -- Removes the closest of selected units from groups and selects only it
 	widgetHandler:AddAction("load_autogroup_preset", loadAutogroupPresetHandler, nil, "p") -- Changes the autogroup preset
 
-	WG['autogroup'] = {}
-	WG['autogroup'].getImmediate = function()
+	WG.autogroup = {}
+	WG.autogroup.getImmediate = function()
 		return immediate
 	end
-	WG['autogroup'].setImmediate = function(value)
+	WG.autogroup.setImmediate = function(value)
 		immediate = value
 	end
 
-	WG['autogroup'].getPersist = function()
+	WG.autogroup.getPersist = function()
 		return persist
 	end
-	WG['autogroup'].setPersist = function(value)
+	WG.autogroup.setPersist = function(value)
 		persist = value
 	end
-	WG['autogroup'].getGroups = function()
+	WG.autogroup.getGroups = function()
 		return unit2group
 	end
-	WG['autogroup'].addCurrentSelectionToAutogroup = function(groupNumber)
+	WG.autogroup.addCurrentSelectionToAutogroup = function(groupNumber)
 		changeUnitTypeAutogroup(groupNumber)
 	end
-	WG['autogroup'].removeCurrentSelectionFromAutogroup = function()
+	WG.autogroup.removeCurrentSelectionFromAutogroup = function()
 		changeUnitTypeAutogroup(nil, true)
 	end
-	WG['autogroup'].removeOneUnitFromGroup = function()
+	WG.autogroup.removeOneUnitFromGroup = function()
 		removeOneUnitFromGroupHandler()
 	end
-	WG['autogroup'].loadAutogroupPreset = function(newPreset)
+	WG.autogroup.loadAutogroupPreset = function(newPreset)
 		loadAutogroupPreset(newPreset)
 	end
 	if GetGameFrame() > 0 then
@@ -291,7 +288,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	WG['autogroup'] = nil
+	WG.autogroup = nil
 end
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
@@ -305,7 +302,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 		finiGroup[unitID] = 1
 	end
 
-	if not immediate and ((builtInPlace[unitID] and Spring.GetUnitCommandCount(unitID) == 0) or builtInFrame) then
+	if not immediate and ((builtInPlace[unitID] and SpringShared.GetUnitCommandCount(unitID) == 0) or builtInFrame) then
 		local gr = unit2group[unitDefID]
 		if gr ~= nil and GetUnitGroup(unitID) == nil then
 			SetUnitGroup(unitID, gr)
@@ -334,7 +331,9 @@ function widget:GameFrame(n)
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	if unitTeam ~= myTeam then return end
+	if unitTeam ~= myTeam then
+		return
+	end
 
 	createdFrame[unitID] = GetGameFrame()
 
@@ -427,7 +426,7 @@ function widget:GetConfigData()
 end
 
 function widget:SetConfigData(data)
-	if data and type(data) == 'table' and data.version and (data.version + 0) > 2.1 and (data.version + 0) < 5 then -- still use v4 saves
+	if data and type(data) == "table" and data.version and (data.version + 0) > 2.1 and (data.version + 0) < 5 then -- still use v4 saves
 		if data.immediate ~= nil then
 			immediate = data.immediate
 			verbose = data.verbose
@@ -437,9 +436,9 @@ function widget:SetConfigData(data)
 			persist = data.persist
 		end
 		local groupData = data.groups
-		if groupData and type(groupData) == 'table' then
+		if groupData and type(groupData) == "table" then
 			for _, nam in ipairs(groupData) do
-				if type(nam) == 'table' then
+				if type(nam) == "table" then
 					local gr = UnitDefNames[nam[1]]
 					if gr ~= nil then
 						unit2group[gr.id] = tonumber(nam[2])
@@ -449,7 +448,7 @@ function widget:SetConfigData(data)
 		end
 		presets[1] = unit2group
 	end
-	if data and type(data) == 'table' and data.version and (data.version + 0) >= 5 then
+	if data and type(data) == "table" and data.version and (data.version + 0) >= 5 then
 		if data.immediate ~= nil then
 			immediate = data.immediate
 			verbose = data.verbose
@@ -459,10 +458,10 @@ function widget:SetConfigData(data)
 			persist = data.persist
 		end
 		local groupData = data.presets
-		if groupData and type(groupData) == 'table' and groupData[1] and type(groupData[1]) == 'table' then
+		if groupData and type(groupData) == "table" and groupData[1] and type(groupData[1]) == "table" then
 			for p, preset in pairs(groupData) do
 				for _, group in ipairs(preset) do
-					if type(group) == 'table' then
+					if type(group) == "table" then
 						local gr = UnitDefNames[group[1]]
 						if gr then
 							presets[p][gr.id] = tonumber(group[2])

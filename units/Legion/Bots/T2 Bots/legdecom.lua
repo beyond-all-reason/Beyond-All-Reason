@@ -27,7 +27,7 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		hidedamage = true,
-   		holdsteady = true,
+		holdsteady = true,
 		mass = 4900,
 		health = 3700,
 		maxslope = 20,
@@ -40,7 +40,7 @@ return {
 		radardistance = 700,
 		radaremitheight = 40,
 		reclaimable = false,
-    	releaseheld  = true,
+		releaseheld = true,
 		script = "Units/legcom.cob",
 		seismicsignature = 0,
 		selfdestructas = "decoycommanderSelfd",
@@ -72,7 +72,7 @@ return {
 			[16] = "legfeconv",
 		},
 		customparams = {
-			unitgroup = 'buildert2',
+			unitgroup = "buildert2",
 			decoyfor = "legcom",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
@@ -281,7 +281,7 @@ return {
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "TORPEDO",
-				onlytargetcategory = "NOTAIR"
+				onlytargetcategory = "NOTAIR",
 			},
 			[3] = {
 				def = "disintegrator",

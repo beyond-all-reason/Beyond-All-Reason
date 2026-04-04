@@ -2,7 +2,7 @@ return {
 	legcomlvl5 = {
 		maxacc = 0.18,
 		activatewhenbuilt = true,
-		autoheal = 15,--10,
+		autoheal = 15, --10,
 		maxdec = 1.125,
 		energycost = 60000,
 		metalcost = 6000,
@@ -28,7 +28,7 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-    	holdsteady = true,
+		holdsteady = true,
 		icontype = "legcomlvl4",
 		sightemitheight = 40,
 		mass = 4900,
@@ -42,12 +42,12 @@ return {
 		movementclass = "COMMANDERBOT",
 		nochasecategory = "ALL",
 		objectname = "Units/legevocom2.s3o",
-		pushresistant = Spring.GetModOptions().pushresistant,
+		pushresistant = SpringShared.GetModOptions().pushresistant,
 		radardistance = 1000,
 		radaremitheight = 54,
 		reclaimable = false,
 		reclaimspeed = 1995,
-   		releaseheld  = true,
+		releaseheld = true,
 		script = "Units/legevocom2.cob",
 		seismicsignature = 0,
 		selfdestructas = "commanderexplosion",
@@ -74,7 +74,7 @@ return {
 			"legamstor",
 			"leganavaladvgeo",
 			"leganavalmex",
-        	"leganavaleconv",
+			"leganavaleconv",
 			"legaheattank",
 			"leginf",
 			"legshot",
@@ -84,7 +84,7 @@ return {
 			"legflak",
 			"leganavaltorpturret",
 			"legmed",
-        	"legdtr",
+			"legdtr",
 			"legvcarry",
 			"legmg",
 			"legjuno",
@@ -96,8 +96,8 @@ return {
 			"legdrag",
 			"legarad",
 			"legfrad",
-        	"legstronghold",
-        	"legforti",
+			"legstronghold",
+			"legforti",
 			"legfdrag",
 			"leglab",
 			"legvp",
@@ -110,7 +110,7 @@ return {
 			"legnanotcplat",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			area_mex_def = "legmex",
 			iscommander = true,
 			effigy_offset = 1,
@@ -136,7 +136,7 @@ return {
 			effigy = "comeffigylvl3",
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
-			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
+			fall_damage_multiplier = 5, --this ensures commander dies when it hits the ground so effigies can trigger respawn.
 		},
 		featuredefs = {
 			dead = {
@@ -154,7 +154,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 3500,
-				object = 'Units/legcom_dead.s3o',
+				object = "Units/legcom_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 			},
@@ -440,7 +440,7 @@ return {
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "TORPEDO",
-				onlytargetcategory = "NOTAIR"
+				onlytargetcategory = "NOTAIR",
 			},
 			[3] = {
 				def = "disintegrator",

@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "2008-02-04",
 		license = "Public domain",
 		layer = 1,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -16,18 +16,18 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local GetTeamList = Spring.GetTeamList
-local GetUnitAllyTeam = Spring.GetUnitAllyTeam
-local spGetTeamInfo = Spring.GetTeamInfo
-local spGetTeamList = Spring.GetTeamList
-local spKillTeam = Spring.KillTeam
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetTeamLuaAI = Spring.GetTeamLuaAI
-local spGetAllyTeamList = Spring.GetAllyTeamList
-local spGetAllUnits = Spring.GetAllUnits
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitTeam = Spring.GetUnitTeam
-local gaiaTeamID = Spring.GetGaiaTeamID()
+local GetTeamList = SpringShared.GetTeamList
+local GetUnitAllyTeam = SpringShared.GetUnitAllyTeam
+local spGetTeamInfo = SpringShared.GetTeamInfo
+local spGetTeamList = SpringShared.GetTeamList
+local spKillTeam = SpringSynced.KillTeam
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetTeamLuaAI = SpringShared.GetTeamLuaAI
+local spGetAllyTeamList = SpringShared.GetAllyTeamList
+local spGetAllUnits = SpringShared.GetAllUnits
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitTeam = SpringShared.GetUnitTeam
+local gaiaTeamID = SpringShared.GetGaiaTeamID()
 
 -- Exclude Gaia / Scavengers / Raptors
 local ignoredTeams = {
@@ -60,7 +60,7 @@ local commanderDeathQueue = {}
 
 local isCommander = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams.iscommander or unitDef.customParams.isscavcommander or (Spring.GetModOptions().deathmode == "builders" and ((unitDef.buildOptions and #unitDef.buildOptions > 0) or unitDef.canResurrect == true)) then
+	if unitDef.customParams.iscommander or unitDef.customParams.isscavcommander or (SpringShared.GetModOptions().deathmode == "builders" and ((unitDef.buildOptions and #unitDef.buildOptions > 0) or unitDef.canResurrect == true)) then
 		isCommander[unitDefID] = true
 	end
 end
@@ -79,7 +79,7 @@ local function commanderDeath(teamID, originX, originZ) -- optional: attackerUni
 		end
 	end
 
-	if Spring.GetModOptions().deathmode == "own_com" and aliveTeamComCount[teamID] <= 0 then
+	if SpringShared.GetModOptions().deathmode == "own_com" and aliveTeamComCount[teamID] <= 0 then
 		if not select(3, spGetTeamInfo(teamID, false)) then
 			spKillTeam(teamID)
 		end
@@ -105,8 +105,8 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if isCommander[unitDefID] and not ignoredTeams[unitTeam] then
-		local x,_,z = spGetUnitPosition(unitID)
-		commanderDeathQueue[unitID] = {unitTeam, x, z}
+		local x, _, z = spGetUnitPosition(unitID)
+		commanderDeathQueue[unitID] = { unitTeam, x, z }
 	end
 end
 
@@ -118,8 +118,8 @@ local function transferCommander(unitID, unitTeam, newTeam)
 		aliveComCount[newAllyTeamID] = aliveComCount[newAllyTeamID] + 1
 		aliveTeamComCount[newTeam] = aliveTeamComCount[newTeam] + 1
 		-- remove from unitTeam
-		local x,_,z = spGetUnitPosition(unitID)
-		commanderDeathQueue[unitID] = {unitTeam, x, z}
+		local x, _, z = spGetUnitPosition(unitID)
+		commanderDeathQueue[unitID] = { unitTeam, x, z }
 	end
 end
 
@@ -137,8 +137,8 @@ end
 
 function gadget:Initialize()
 	-- disable gadget when deathmode is "killall" or "none", or scoremode isnt regular
-	local deathmode = Spring.GetModOptions().deathmode
-	if deathmode ~= 'com' and deathmode ~= 'own_com' and deathmode ~= 'territorial_domination' and deathmode ~= 'builders' then
+	local deathmode = SpringShared.GetModOptions().deathmode
+	if deathmode ~= "com" and deathmode ~= "own_com" and deathmode ~= "territorial_domination" and deathmode ~= "builders" then
 		gadgetHandler:RemoveGadget(self)
 	end
 
@@ -159,7 +159,7 @@ function gadget:Initialize()
 	end
 
 	-- for debug purpose: destroy comless allyteams (usefull when team has no coms because of error and you do luarules reload)
-	if Spring.GetGameFrame() > 1 then
+	if SpringShared.GetGameFrame() > 1 then
 		for allyTeamID, count in ipairs(aliveComCount) do
 			if count <= 0 then
 				local allyTeams = GetTeamList(allyTeamID)

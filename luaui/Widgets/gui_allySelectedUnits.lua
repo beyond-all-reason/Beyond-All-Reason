@@ -4,24 +4,23 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "Ally Selected Units", -- GL4
-		desc      = "Shows units selected by teammates",
-		author    = "Beherith, Floris",
-		date      = "April 2022",
-		license   = "GNU GPL, v2 or later",
-		layer     = 0,
-		enabled   = true
+		name = "Ally Selected Units", -- GL4
+		desc = "Shows units selected by teammates",
+		author = "Beherith, Floris",
+		date = "April 2022",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
 
-
 -- Localized Spring API for performance
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetGameFrame = Spring.GetGameFrame
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
 
 local showAsSpectator = true
-local selectPlayerUnits = true	-- when lockcamera player
+local selectPlayerUnits = true -- when lockcamera player
 local hideBelowGameframe = 100
 
 -- unit platter
@@ -37,75 +36,89 @@ local useHexagons = true
 local InstanceVBOTable = gl.InstanceVBOTable
 
 local pushElementInstance = InstanceVBOTable.pushElementInstance
-local popElementInstance  = InstanceVBOTable.popElementInstance
+local popElementInstance = InstanceVBOTable.popElementInstance
 
 local selectionVBO = nil
 local selectShader = nil
 local luaShaderDir = "LuaUI/Include/"
 
-local glStencilFunc         = gl.StencilFunc
-local glStencilOp           = gl.StencilOp
-local glStencilTest         = gl.StencilTest
-local glStencilMask         = gl.StencilMask
-local glDepthTest           = gl.DepthTest
-local glClear               = gl.Clear
-local GL_ALWAYS             = GL.ALWAYS
-local GL_NOTEQUAL           = GL.NOTEQUAL
-local GL_KEEP               = 0x1E00 --GL.KEEP
+local glStencilFunc = gl.StencilFunc
+local glStencilOp = gl.StencilOp
+local glStencilTest = gl.StencilTest
+local glStencilMask = gl.StencilMask
+local glDepthTest = gl.DepthTest
+local glClear = gl.Clear
+local GL_ALWAYS = GL.ALWAYS
+local GL_NOTEQUAL = GL.NOTEQUAL
+local GL_KEEP = 0x1E00 --GL.KEEP
 local GL_STENCIL_BUFFER_BIT = GL.STENCIL_BUFFER_BIT
-local GL_REPLACE            = GL.REPLACE
-local GL_POINTS				= GL.POINTS
+local GL_REPLACE = GL.REPLACE
+local GL_POINTS = GL.POINTS
 
-local spGetUnitDefID        = spGetUnitDefID
-local spGetPlayerInfo       = Spring.GetPlayerInfo
-local spGetSpectatingState	= Spring.GetSpectatingState
+local spGetUnitDefID = spGetUnitDefID
+local spGetPlayerInfo = SpringShared.GetPlayerInfo
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 local playerIsSpec = {}
-for i,playerID in pairs(Spring.GetPlayerList()) do
+for i, playerID in pairs(SpringShared.GetPlayerList()) do
 	playerIsSpec[playerID] = select(3, spGetPlayerInfo(playerID, false))
 end
 
 local spec, fullview = spGetSpectatingState()
 local myTeamID = spGetMyTeamID()
-local myAllyTeam = Spring.GetMyAllyTeamID()
-local myPlayerID = Spring.GetMyPlayerID()
+local myAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
+local myPlayerID = SpringUnsynced.GetLocalPlayerID()
 local selectedUnits = {}
-local playerSelectedUnits = {}  -- [playerID][unitID] = true
+local playerSelectedUnits = {} -- [playerID][unitID] = true
 local lockPlayerID
 
 local unitAllyteam = {}
-local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitTeam = SpringShared.GetUnitTeam
 
 local unitScale = {}
 local unitCanFly = {}
 local unitBuilding = {}
-local sizeAdd = -(lineSize*1.5)
+local sizeAdd = -(lineSize * 1.5)
 for unitDefID, unitDef in pairs(UnitDefs) do
-	unitScale[unitDefID] = (7.5 * ( unitDef.xsize*unitDef.xsize + unitDef.zsize*unitDef.zsize ) ^ 0.5) + 8
+	unitScale[unitDefID] = (7.5 * (unitDef.xsize * unitDef.xsize + unitDef.zsize * unitDef.zsize) ^ 0.5) + 8
 	unitScale[unitDefID] = unitScale[unitDefID] + sizeAdd
 	if unitDef.canFly then
 		unitCanFly[unitDefID] = true
 		unitScale[unitDefID] = unitScale[unitDefID] * 0.7
-	elseif unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0 then
+	elseif unitDef.isBuilding or unitDef.isFactory or unitDef.speed == 0 then
 		unitBuilding[unitDefID] = {
 			(unitDef.xsize * 8.2 + 12) + sizeAdd,
-			(unitDef.zsize * 8.2 + 12) + sizeAdd
+			(unitDef.zsize * 8.2 + 12) + sizeAdd,
 		}
 	end
 end
 
 local instanceCache = {
-			0,0,0,0,  -- lengthwidthcornerheight
-			0, -- teamID
-			useHexagons and 6 or 64, -- how many trianges should we make
-			0, 0, 0, 0, -- the gameFrame (for animations), and any other parameters one might want to add
-			0, 1, 0, 1, -- These are our default UV atlas tranformations
-			0, 0, 0, 0 -- these are just padding zeros, that will get filled in
-	}
+	0,
+	0,
+	0,
+	0, -- lengthwidthcornerheight
+	0, -- teamID
+	useHexagons and 6 or 64, -- how many trianges should we make
+	0,
+	0,
+	0,
+	0, -- the gameFrame (for animations), and any other parameters one might want to add
+	0,
+	1,
+	0,
+	1, -- These are our default UV atlas tranformations
+	0,
+	0,
+	0,
+	0, -- these are just padding zeros, that will get filled in
+}
 
 local function AddPrimitiveAtUnit(unitID)
 	local unitDefID = spGetUnitDefID(unitID)
-	if unitDefID == nil then return end -- these cant be selected
+	if unitDefID == nil then
+		return
+	end -- these cant be selected
 
 	local numVertices = useHexagons and 6 or 64
 	local cornersize = 0
@@ -147,7 +160,7 @@ end
 
 local function addUnit(unitID)
 	if selectedUnits[unitID] ~= nil and selectedUnits[unitID] == false and (fullview or myAllyTeam == unitAllyteam[unitID]) then
-		if not Spring.ValidUnitID(unitID) or Spring.GetUnitIsDead(unitID) then
+		if not SpringShared.ValidUnitID(unitID) or SpringShared.GetUnitIsDead(unitID) then
 			return
 		end
 		if enablePlatter then
@@ -176,7 +189,7 @@ local function selectPlayerSelectedUnits(playerID)
 			units[count] = unitID
 		end
 	end
-	Spring.SelectUnitArray(units)
+	SpringUnsynced.SelectUnitArray(units)
 end
 
 -- called by gadget
@@ -202,7 +215,7 @@ local function selectedUnitsClear(playerID)
 end
 
 -- called by gadget
-local function selectedUnitsAdd(playerID,unitID)
+local function selectedUnitsAdd(playerID, unitID)
 	if not spec and playerID == myPlayerID then
 		return
 	end
@@ -215,7 +228,7 @@ local function selectedUnitsAdd(playerID,unitID)
 	if not playerIsSpec[playerID] or (lockPlayerID ~= nil and playerID == lockPlayerID) then
 		if spGetUnitDefID(unitID) then
 			selectedUnits[unitID] = false
-			unitAllyteam[unitID] = select(6, Spring.GetTeamInfo(spGetUnitTeam(unitID), false))
+			unitAllyteam[unitID] = select(6, SpringShared.GetTeamInfo(spGetUnitTeam(unitID), false))
 			addUnit(unitID)
 		end
 	end
@@ -225,7 +238,7 @@ local function selectedUnitsAdd(playerID,unitID)
 end
 
 -- called by gadget
-local function selectedUnitsRemove(playerID,unitID)
+local function selectedUnitsRemove(playerID, unitID)
 	if not spec and playerID == myPlayerID then
 		return
 	end
@@ -261,8 +274,8 @@ function widget:PlayerChanged(playerID)
 		return
 	end
 	myTeamID = spGetMyTeamID()
-	myAllyTeam = Spring.GetMyAllyTeamID()
-	myPlayerID = Spring.GetMyPlayerID()
+	myAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
+	myPlayerID = SpringUnsynced.GetLocalPlayerID()
 
 	-- when changing fullview mode
 	local prevFullview = fullview
@@ -279,7 +292,7 @@ function widget:PlayerChanged(playerID)
 		end
 	end
 
-	for i,playerID in pairs(Spring.GetPlayerList()) do
+	for i, playerID in pairs(SpringShared.GetPlayerList()) do
 		local spec = select(3, spGetPlayerInfo(playerID, false))
 		if spec and not playerIsSpec[playerID] then
 			selectedUnitsClear(playerID)
@@ -324,7 +337,7 @@ function widget:Update(dt)
 end
 
 local function init()
-	local DPatUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
+	local DPatUnit = VFS.Include(luaShaderDir .. "DrawPrimitiveAtUnit.lua")
 	local InitDrawPrimitiveAtUnit = DPatUnit.InitDrawPrimitiveAtUnit
 	local shaderConfig = DPatUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE!
 	shaderConfig.BILLBOARD = 0
@@ -349,32 +362,34 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	if not init() then return end
-	for _, playerID in pairs(Spring.GetPlayerList()) do
+	if not init() then
+		return
+	end
+	for _, playerID in pairs(SpringShared.GetPlayerList()) do
 		widget:PlayerAdded(playerID)
 	end
 	widget:PlayerChanged(myPlayerID)
 
-	widgetHandler:RegisterGlobal('selectedUnitsRemove', selectedUnitsRemove)
-	widgetHandler:RegisterGlobal('selectedUnitsClear', selectedUnitsClear)
-	widgetHandler:RegisterGlobal('selectedUnitsAdd', selectedUnitsAdd)
+	widgetHandler:RegisterGlobal("selectedUnitsRemove", selectedUnitsRemove)
+	widgetHandler:RegisterGlobal("selectedUnitsClear", selectedUnitsClear)
+	widgetHandler:RegisterGlobal("selectedUnitsAdd", selectedUnitsAdd)
 
-	WG['allyselectedunits'] = {}
-	WG['allyselectedunits'].getSelectPlayerUnits = function()
+	WG.allyselectedunits = {}
+	WG.allyselectedunits.getSelectPlayerUnits = function()
 		return selectPlayerUnits
 	end
-	WG['allyselectedunits'].setSelectPlayerUnits = function(value)
+	WG.allyselectedunits.setSelectPlayerUnits = function(value)
 		selectPlayerUnits = value
 	end
-	WG['allyselectedunits'].getPlayerSelectedUnits = function(playerID)
+	WG.allyselectedunits.getPlayerSelectedUnits = function(playerID)
 		return playerSelectedUnits[playerID]
 	end
 end
 
 function widget:Shutdown()
-	widgetHandler:DeregisterGlobal('selectedUnitsRemove')
-	widgetHandler:DeregisterGlobal('selectedUnitsClear')
-	widgetHandler:DeregisterGlobal('selectedUnitsAdd')
+	widgetHandler:DeregisterGlobal("selectedUnitsRemove")
+	widgetHandler:DeregisterGlobal("selectedUnitsClear")
+	widgetHandler:DeregisterGlobal("selectedUnitsAdd")
 	for unitID, drawn in pairs(selectedUnits) do
 		removeUnit(unitID)
 	end
@@ -382,9 +397,13 @@ end
 
 local drawFrame = 0
 function widget:DrawWorldPreUnit()
-	if spGetGameFrame() < hideBelowGameframe then return end
+	if spGetGameFrame() < hideBelowGameframe then
+		return
+	end
 
-	if Spring.IsGUIHidden() then return end
+	if SpringUnsynced.IsGUIHidden() then
+		return
+	end
 
 	if enablePlatter then
 		drawFrame = drawFrame + 1
@@ -394,7 +413,7 @@ function widget:DrawWorldPreUnit()
 			glStencilTest(true) --https://learnopengl.com/Advanced-OpenGL/Stencil-testing
 			glDepthTest(true)
 			glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon		this to the shader
-			glClear(GL_STENCIL_BUFFER_BIT ) -- set stencil buffer to 0
+			glClear(GL_STENCIL_BUFFER_BIT) -- set stencil buffer to 0
 
 			glStencilFunc(GL_NOTEQUAL, 1, 1) -- use NOTEQUAL instead of ALWAYS to ensure that overlapping transparent fragments dont get written multiple times
 			glStencilMask(1)
@@ -419,16 +438,16 @@ function widget:DrawWorldPreUnit()
 end
 
 function widget:GetConfigData()
-    return {
-        selectPlayerUnits = selectPlayerUnits,
-        version = 2.0
-    }
+	return {
+		selectPlayerUnits = selectPlayerUnits,
+		version = 2.0,
+	}
 end
 
 function widget:SetConfigData(data)
-    if data.version ~= nil and data.version == 2.0 then
+	if data.version ~= nil and data.version == 2.0 then
 		if data.selectPlayerUnits ~= nil then
 			selectPlayerUnits = data.selectPlayerUnits
 		end
-    end
+	end
 end

@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "June 15, 2014",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -16,16 +16,15 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local spGetTeamResources = Spring.GetTeamResources
-local spSetTeamResource = Spring.SetTeamResource
+local spGetTeamResources = SpringShared.GetTeamResources
+local spSetTeamResource = SpringSynced.SetTeamResource
 
 local paralyzedUnits = {}
 
 local storageDefs = {}
 local isCommander = {}
 for udid, ud in pairs(UnitDefs) do
-	if not ud.canMove then	-- this is to exclude transportable units since they get stunned while being transported
-
+	if not ud.canMove then -- this is to exclude transportable units since they get stunned while being transported
 		-- instead of checking every unit to see if it is a commander we add them in late, except we don't cause they move
 		-- i don't understand our decision making but i'm future proofing this
 		-- commanders were tested to be excluded for the first 150 game frames
@@ -33,7 +32,6 @@ for udid, ud in pairs(UnitDefs) do
 		if ud.customParams.iscommander then
 			isCommander[udid] = true
 		else
-
 			if ud.metalStorage >= 50 then
 				if not storageDefs[udid] then
 					storageDefs[udid] = {}
@@ -107,7 +105,7 @@ function gadget:UnitStunned(unitID, unitDefID, teamID, stunned)
 
 	if stunned then
 		if not paralyzedUnits[unitID] then
-			local beingBuilt, _ = Spring.GetUnitIsBeingBuilt(unitID)
+			local beingBuilt, _ = SpringShared.GetUnitIsBeingBuilt(unitID)
 			if not beingBuilt then
 				reduceStorage(unitID, unitDefID, teamID)
 			end
@@ -132,7 +130,7 @@ end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if storageDefs[unitDefID] then
-		local _, maxHealth, paralyzeDamage, _, _ = Spring.GetUnitHealth(unitID)
+		local _, maxHealth, paralyzeDamage, _, _ = SpringShared.GetUnitHealth(unitID)
 		if paralyzeDamage > maxHealth then
 			reduceStorage(unitID, unitDefID, unitTeam)
 		end
@@ -146,29 +144,29 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function gadget:Initialize()
-	local allUnits = Spring.GetAllUnits()
+	local allUnits = SpringShared.GetAllUnits()
 
 	if #allUnits == 0 then
 		return
 	end
 
-	local spGetUnitIsStunned = Spring.GetUnitIsStunned
+	local spGetUnitIsStunned = SpringShared.GetUnitIsStunned
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
-		if select(5, Spring.GetUnitHealth(unitID)) == 1 then
-			local unitDefID = Spring.GetUnitDefID(unitID)
+		if select(5, SpringShared.GetUnitHealth(unitID)) == 1 then
+			local unitDefID = SpringShared.GetUnitDefID(unitID)
 			if storageDefs[unitDefID] and spGetUnitIsStunned(unitID) then
-				reduceStorage(unitID, unitDefID, Spring.GetUnitTeam(unitID))
+				reduceStorage(unitID, unitDefID, SpringShared.GetUnitTeam(unitID))
 			end
 		end
 	end
 end
 
 function gadget:Shutdown()
-	local spGetUnitIsStunned = Spring.GetUnitIsStunned
+	local spGetUnitIsStunned = SpringShared.GetUnitIsStunned
 	for unitID, unitDefID in pairs(paralyzedUnits) do
 		if spGetUnitIsStunned(unitID) then
-			restoreStorage(unitID, unitDefID, Spring.GetUnitTeam(unitID))
+			restoreStorage(unitID, unitDefID, SpringShared.GetUnitTeam(unitID))
 		end
 	end
 end

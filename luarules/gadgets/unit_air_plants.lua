@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "15 Dec 2008",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -16,11 +16,11 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local EditUnitCmdDesc = Spring.EditUnitCmdDesc
-local FindUnitCmdDesc = Spring.FindUnitCmdDesc
-local InsertUnitCmdDesc = Spring.InsertUnitCmdDesc
-local GiveOrderToUnit = Spring.GiveOrderToUnit
-local SetUnitNeutral = Spring.SetUnitNeutral
+local EditUnitCmdDesc = SpringSynced.EditUnitCmdDesc
+local FindUnitCmdDesc = SpringShared.FindUnitCmdDesc
+local InsertUnitCmdDesc = SpringSynced.InsertUnitCmdDesc
+local GiveOrderToUnit = SpringSynced.GiveOrderToUnit
+local SetUnitNeutral = SpringSynced.SetUnitNeutral
 local CMD_IDLEMODE = CMD.IDLEMODE
 local CMD_LAND_AT = GameCMD.LAND_AT
 
@@ -41,8 +41,8 @@ local isAirplantNames = {
 	legsplab = true,
 }
 local isAirplantNamesCopy = table.copy(isAirplantNames)
-for name,v in pairs(isAirplantNamesCopy) do
-	isAirplantNames[name..'_scav'] = true
+for name, v in pairs(isAirplantNamesCopy) do
+	isAirplantNames[name .. "_scav"] = true
 end
 -- convert unitname -> unitDefID
 local isAirplant = {}
@@ -62,7 +62,7 @@ local landCmd = {
 	action = "apLandAt",
 	type = CMDTYPE.ICON_MODE,
 	tooltip = "setting for Aircraft leaving the plant",
-	params = { '1', ' Fly ', 'Land' }
+	params = { "1", " Fly ", "Land" },
 }
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)

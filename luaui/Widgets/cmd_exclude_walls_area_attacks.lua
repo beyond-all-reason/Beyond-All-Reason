@@ -2,13 +2,13 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name 		= "Exclude walls from area attacks",
-		desc 		= "Stops walls from being included in area attacks if units are present",
-		date		= "April 2025",
-		author		= "Slouse",
-		license 	= "GNU GPL, v2 or later",
-		layer 		= 1,
-		enabled 	= true
+		name = "Exclude walls from area attacks",
+		desc = "Stops walls from being included in area attacks if units are present",
+		date = "April 2025",
+		author = "Slouse",
+		license = "GNU GPL, v2 or later",
+		layer = 1,
+		enabled = true,
 	}
 end
 
@@ -19,8 +19,8 @@ local CMD_STOP = CMD.STOP
 
 local excludedUnitsDefID = {}
 
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitNeutral = Spring.GetUnitNeutral
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitNeutral = SpringShared.GetUnitNeutral
 
 for id, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.objectify then
@@ -33,9 +33,9 @@ local function addNewCommand(newCmds, unitID, cmdOpts, cmdID)
 		-- Need to clear orders if not in shift, since just sending the first one
 		-- as not-shift would sometimes fail if that unit is in the end not valid
 		local stopCmd = (cmdID == CMD_ATTACK) and CMD_STOP or CMD_UNIT_CANCEL_TARGET
-		newCmds[1] = {stopCmd, {}, {}}
+		newCmds[1] = { stopCmd, {}, {} }
 	end
-	newCmds[#newCmds + 1] = {cmdID, unitID, CMD.OPT_SHIFT}
+	newCmds[#newCmds + 1] = { cmdID, unitID, CMD.OPT_SHIFT }
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
@@ -44,7 +44,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	end
 
 	local cmdX, _, cmdZ, cmdRadius = unpack(cmdParams)
-	local areaUnits = Spring.GetUnitsInCylinder(cmdX, cmdZ, cmdRadius, Spring.ENEMY_UNITS)
+	local areaUnits = SpringShared.GetUnitsInCylinder(cmdX, cmdZ, cmdRadius, SpringShared.ENEMY_UNITS)
 
 	local newCmds = {}
 	local somethingWasExcluded = false
@@ -54,16 +54,14 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 
 		if not excludedUnitsDefID[unitDefID] then
 			addNewCommand(newCmds, unitID, cmdOpts, cmdID)
-		elseif not spGetUnitNeutral(unitID) then	
+		elseif not spGetUnitNeutral(unitID) then
 			addNewCommand(newCmds, unitID, cmdOpts, cmdID)
 		else
 			somethingWasExcluded = true
 		end
 	end
 	if #newCmds > 0 and somethingWasExcluded then
-		Spring.GiveOrderArrayToUnitArray(Spring.GetSelectedUnits(), newCmds)
+		SpringSynced.GiveOrderArrayToUnitArray(SpringUnsynced.GetSelectedUnits(), newCmds)
 		return true
 	end
 end
-
-

@@ -23,13 +23,13 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local function CopyTable(outtable,intable)
-	for i,v in pairs(intable) do
-		if (type(v)=='table') then
-			if (type(outtable[i])~='table') then
+local function CopyTable(outtable, intable)
+	for i, v in pairs(intable) do
+		if type(v) == "table" then
+			if type(outtable[i]) ~= "table" then
 				outtable[i] = {}
 			end
-			CopyTable(outtable[i],v)
+			CopyTable(outtable[i], v)
 		else
 			outtable[i] = v
 		end
@@ -40,7 +40,7 @@ end
 
 -- No longer used for UI, but necessary for custom commands to function properly
 local function DummyLayoutHandler(xIcons, yIcons, cmdCount, commands)
-	widgetHandler.commands	 = commands
+	widgetHandler.commands = commands
 	widgetHandler.commands.n = cmdCount
 	widgetHandler:CommandsChanged()
 	local reParamsCmds = {}
@@ -48,42 +48,41 @@ local function DummyLayoutHandler(xIcons, yIcons, cmdCount, commands)
 	local cnt = 0
 	local AddCommand = function(command)
 		local cc = {}
-		CopyTable(cc,command )
+		CopyTable(cc, command)
 		cnt = cnt + 1
-		cc.cmdDescID = cmdCount+cnt
-		if (cc.params) then
-			if (not cc.actions) then --// workaround for params
+		cc.cmdDescID = cmdCount + cnt
+		if cc.params then
+			if not cc.actions then --// workaround for params
 				local params = cc.params
-				for i=1,#params+1 do
-					params[i-1] = params[i]
+				for i = 1, #params + 1 do
+					params[i - 1] = params[i]
 				end
 				cc.actions = params
 			end
 			reParamsCmds[cc.cmdDescID] = cc.params
 		end
 		--// remove api keys (custom keys are prohibited in the engine handler)
-		cc.pos		 = nil
+		cc.pos = nil
 		cc.cmdDescID = nil
-		cc.params	 = nil
-		customCmds[#customCmds+1] = cc
+		cc.params = nil
+		customCmds[#customCmds + 1] = cc
 	end
 	--// preprocess the Custom Commands
-	for i=1,#widgetHandler.customCommands do
+	for i = 1, #widgetHandler.customCommands do
 		AddCommand(widgetHandler.customCommands[i])
 	end
 
-	if (cmdCount <= 0) then
+	if cmdCount <= 0 then
 		return "", xIcons, yIcons, {}, customCmds, {}, {}, {}, {}, reParamsCmds, {} --prevent CommandChanged() from being called twice when deselecting all units  (copied from ca_layout.lua)
 	end
 
-	return "", xIcons, yIcons, {}, customCmds, {}, {}, {}, {}, reParamsCmds, {[1337]=9001}
+	return "", xIcons, yIcons, {}, customCmds, {}, {}, {}, {}, reParamsCmds, { [1337] = 9001 }
 end
 
-
 function ConfigLayoutHandler(data)
-	if (type(data) == 'function') then
+	if type(data) == "function" then
 		LayoutButtons = data
-	elseif (data == nil) then
+	elseif data == nil then
 		LayoutButtons = nil
 	else
 		LayoutButtons = DummyLayoutHandler
@@ -91,7 +90,5 @@ function ConfigLayoutHandler(data)
 end
 LayoutButtons = DummyLayoutHandler
 
-
 -- refresh, this prevents default engine buildmenu still showing up after a luaui reload
-Spring.ForceLayoutUpdate()
-
+SpringUnsynced.ForceLayoutUpdate()

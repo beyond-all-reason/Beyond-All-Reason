@@ -1,6 +1,6 @@
 local isPotatoGpu = false
 local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 1000
-if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+if Platform ~= nil and Platform.gpuVendor == "Intel" then
 	isPotatoGpu = true
 end
 if gpuMem and gpuMem > 0 and gpuMem < 1800 then
@@ -11,31 +11,30 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "Bloom Shader Deferred", --(v0.5)
-		desc      = "Applies bloom to units only",
-		author    = "Kloot, Beherith",
-		date      = "2018-05-13",
-		license   = "GNU GPL, v2 or later",
-		layer     = 99999,
-		enabled   = not isPotatoGpu,
+		name = "Bloom Shader Deferred", --(v0.5)
+		desc = "Applies bloom to units only",
+		author = "Kloot, Beherith",
+		date = "2018-05-13",
+		license = "GNU GPL, v2 or later",
+		layer = 99999,
+		enabled = not isPotatoGpu,
 	}
 end
-
 
 -- Localized functions for performance
 local mathCeil = math.ceil
 local mathMax = math.max
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 local version = 1.1
 
-local dbgDraw = 0              -- draw only the bloom-mask? [0 | 1]
+local dbgDraw = 0 -- draw only the bloom-mask? [0 | 1]
 
-local glowAmplifier = 0.85            -- intensity multiplier when filtering a glow source fragment [1, n]
-local blurAmplifier = 1        -- intensity multiplier when applying a blur pass [1, n] (should be set close to 1)
-local illumThreshold = 0            -- how bright does a fragment need to be before being considered a glow source? [0, 1]
+local glowAmplifier = 0.85 -- intensity multiplier when filtering a glow source fragment [1, n]
+local blurAmplifier = 1 -- intensity multiplier when applying a blur pass [1, n] (should be set close to 1)
+local illumThreshold = 0 -- how bright does a fragment need to be before being considered a glow source? [0, 1]
 
 --quality =1 : 90 fps, 9% memctrler load, 99% shader load
 --quality =2 : 113 fps, 57% memctrler load, 99% shader load
@@ -60,9 +59,9 @@ local presets = {
 }
 
 -- non-editables
-local vsx = 1                        -- current viewport width
-local vsy = 1                        -- current viewport height
-local qvsx,qvsy
+local vsx = 1 -- current viewport width
+local vsy = 1 -- current viewport height
+local qvsx, qvsy
 local iqvsx, iqvsy
 
 local debugBrightShader = false
@@ -92,17 +91,16 @@ local glGetShaderLog = gl.GetShaderLog
 local glCreateShader = gl.CreateShader
 local glDeleteShader = gl.DeleteShader
 
-
 local function SetIllumThreshold()
 	local ra, ga, ba = glGetSun("ambient", "unit")
-	local rd, gd, bd = glGetSun("diffuse","unit")
+	local rd, gd, bd = glGetSun("diffuse", "unit")
 	local rs, gs, bs = glGetSun("specular")
 
-	local ambientIntensity  = ra * 0.299 + ga * 0.587 + ba * 0.114
-	local diffuseIntensity  = rd * 0.299 + gd * 0.587 + bd * 0.114
+	local ambientIntensity = ra * 0.299 + ga * 0.587 + ba * 0.114
+	local diffuseIntensity = rd * 0.299 + gd * 0.587 + bd * 0.114
 	local specularIntensity = rs * 0.299 + gs * 0.587 + bs * 0.114
 
-	illumThreshold = illumThreshold*(0.8 * ambientIntensity) + (0.5 * diffuseIntensity) + (0.1 * specularIntensity)
+	illumThreshold = illumThreshold * (0.8 * ambientIntensity) + (0.5 * diffuseIntensity) + (0.1 * specularIntensity)
 	illumThreshold = math.min(illumThreshold, 0.8)
 
 	illumThreshold = (0.4 + illumThreshold) / 2
@@ -115,18 +113,17 @@ local function RemoveMe(msg)
 end
 
 local function MakeBloomShaders()
-	local viewSizeX, viewSizeY = Spring.GetViewGeometry()
+	local viewSizeX, viewSizeY = SpringUnsynced.GetViewGeometry()
 	local downscale = presets[preset].quality
 	--spEcho("New bloom init preset:", preset)
-	vsx = mathMax(4,viewSizeX)
-	vsy = mathMax(4,viewSizeY)
-	qvsx,qvsy = mathCeil(vsx/downscale), mathCeil(vsy/downscale) -- we ceil to ensure perfect upscaling
+	vsx = mathMax(4, viewSizeX)
+	vsy = mathMax(4, viewSizeY)
+	qvsx, qvsy = mathCeil(vsx / downscale), mathCeil(vsy / downscale) -- we ceil to ensure perfect upscaling
 	iqvsx, iqvsy = 1.0 / qvsx, 1.0 / qvsy
 
 	local padx, pady = downscale * qvsx - vsx, downscale * qvsy - vsy
 
-
-	local shaderConfig  = {
+	local shaderConfig = {
 		VSX = vsx,
 		VSY = vsy,
 		HSX = qvsx,
@@ -143,36 +140,48 @@ local function MakeBloomShaders()
 	--spEcho(vsx, vsy, qvsx,qvsy)
 
 	glDeleteTexture(brightTexture1)
-	brightTexture1 = glCreateTexture(mathMax(1,qvsx), mathMax(1,qvsy), {
+	brightTexture1 = glCreateTexture(mathMax(1, qvsx), mathMax(1, qvsy), {
 		fbo = true,
-		min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
-		wrap_s = GL.CLAMP, wrap_t = GL.CLAMP,
+		min_filter = GL.LINEAR,
+		mag_filter = GL.LINEAR,
+		wrap_s = GL.CLAMP,
+		wrap_t = GL.CLAMP,
 	})
 
 	glDeleteTexture(brightTexture2)
-	brightTexture2 = glCreateTexture(mathMax(1,qvsx), mathMax(1,qvsy), {
+	brightTexture2 = glCreateTexture(mathMax(1, qvsx), mathMax(1, qvsy), {
 		fbo = true,
-		min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
-		wrap_s = GL.CLAMP, wrap_t = GL.CLAMP,
+		min_filter = GL.LINEAR,
+		mag_filter = GL.LINEAR,
+		wrap_s = GL.CLAMP,
+		wrap_t = GL.CLAMP,
 	})
 
-	if (brightTexture1 == nil or brightTexture2 == nil) then
-		if (brightTexture1 == nil ) then spEcho('brightTexture1 == nil ') end
-		if (brightTexture2 == nil ) then spEcho('brightTexture2 == nil ') end
+	if brightTexture1 == nil or brightTexture2 == nil then
+		if brightTexture1 == nil then
+			spEcho("brightTexture1 == nil ")
+		end
+		if brightTexture2 == nil then
+			spEcho("brightTexture2 == nil ")
+		end
 		RemoveMe("[BloomShader::ViewResize] removing widget, bad texture target")
 		return
 	end
 
-
 	if glDeleteShader then
-		if brightShader  then brightShader:Finalize() end
-		if blurShader  	then blurShader:Finalize() end
-		if combineShader  then combineShader:Finalize() end
+		if brightShader then
+			brightShader:Finalize()
+		end
+		if blurShader then
+			blurShader:Finalize()
+		end
+		if combineShader then
+			combineShader:Finalize()
+		end
 	end
 
-
 	combineShader = LuaShader({
-			fragment = "#version 150 compatibility\n" .. definesString  ..  [[
+		fragment = "#version 150 compatibility\n" .. definesString .. [[
 				uniform sampler2D texture0;
 				uniform int debugDraw;
 
@@ -186,8 +195,7 @@ local function MakeBloomShaders()
 					//gl_FragColor.rg = gl_TexCoord[0].st; // to debug texture coordinates
 				}
 			]],
-			vertex =
-				"#version 150 compatibility\n" .. definesString ..[[
+		vertex = "#version 150 compatibility\n" .. definesString .. [[
 				void main(void)	{
 					gl_TexCoord[0] = vec4(gl_Vertex.zwzw);
 					#if DOWNSCALE >= 2
@@ -195,21 +203,22 @@ local function MakeBloomShaders()
 					#endif
 					gl_Position    = vec4(gl_Vertex.xy, 0, 1);	}
 			]],
-			uniformInt = {
-				texture0 = 0,
-				debugDraw = 0,
-			},
+		uniformInt = {
+			texture0 = 0,
+			debugDraw = 0,
 		},
-		"Bloom Combine Shader")
+	}, "Bloom Combine Shader")
 
 	if not combineShader:Initialize() then
-		RemoveMe("[BloomShader::Initialize] combineShader compilation failed"); spEcho(glGetShaderLog()); return
+		RemoveMe("[BloomShader::Initialize] combineShader compilation failed")
+		spEcho(glGetShaderLog())
+		return
 	end
 
 	-- How about we do linear sampling instead, using the GPU's built in texture fetching linear blur hardware :)
 	-- http://rastergrid.com/blog/2010/09/efficient-gaussian-blur-with-linear-sampling/
 	-- this allows us to get away with 5 texture fetches instead of 9 for our 9 sized kernel!
-	 -- TODO:  all this simplification may result in the accumulation of quantizing errors due to the small numbers that get pushed into the BrightTexture
+	-- TODO:  all this simplification may result in the accumulation of quantizing errors due to the small numbers that get pushed into the BrightTexture
 
 	blurShader = LuaShader({
 		vertex = [[
@@ -218,7 +227,7 @@ local function MakeBloomShaders()
 				gl_TexCoord[0] = vec4(gl_Vertex.zwzw);
 				gl_Position    = vec4(gl_Vertex.xy, 0, 1);	}
 		]],
-		fragment = "#version 150 compatibility\n".. definesString .. [[
+		fragment = "#version 150 compatibility\n" .. definesString .. [[
 			uniform sampler2D texture0;
 			uniform float fragBlurAmplifier;
 			const float invKernelSum = 0.012;
@@ -369,13 +378,14 @@ local function MakeBloomShaders()
 		uniformFloat = {
 			horizontal = 0,
 			fragBlurAmplifier = 0,
-		}
+		},
 	}, "Bloom Blur Shader")
 
 	if not blurShader:Initialize() then
-		RemoveMe("[BloomShader::Initialize] blurShader compilation failed"); spEcho(glGetShaderLog()); return
+		RemoveMe("[BloomShader::Initialize] blurShader compilation failed")
+		spEcho(glGetShaderLog())
+		return
 	end
-
 
 	brightShader = LuaShader({
 		vertex = [[
@@ -384,8 +394,7 @@ local function MakeBloomShaders()
 				gl_TexCoord[0] = vec4(gl_Vertex.zwzw);
 				gl_Position    = vec4(gl_Vertex.xy, 0, 1);	}
 		]],
-		fragment =
-			"#version 150 compatibility \n" .. definesString  .. [[
+		fragment = "#version 150 compatibility \n" .. definesString .. [[
 
 			uniform sampler2D modelDiffuseTex;
 			uniform sampler2D modelEmitTex;
@@ -483,16 +492,16 @@ local function MakeBloomShaders()
 		},
 		uniformFloat = {
 			time = 0,
-			illuminationThreshold = 0, 
+			illuminationThreshold = 0,
 			fragGlowAmplifier = 0,
-		}
+		},
 	}, "Bloom Bright Shader")
 
 	if not brightShader:Initialize() then
-		spEcho(glGetShaderLog());
-		RemoveMe("[BloomShader::Initialize] brightShader compilation failed"); return
+		spEcho(glGetShaderLog())
+		RemoveMe("[BloomShader::Initialize] brightShader compilation failed")
+		return
 	end
-
 end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
@@ -500,39 +509,38 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 end
 
 function widget:Initialize()
-
 	if glCreateShader == nil then
 		RemoveMe("[BloomShader::Initialize] removing widget, no shader support")
 		return
 	end
 
-	local hasdeferredmodelrendering = (Spring.GetConfigString("AllowDeferredModelRendering")=='1')
+	local hasdeferredmodelrendering = (SpringUnsynced.GetConfigString("AllowDeferredModelRendering") == "1")
 	if hasdeferredmodelrendering == false then
 		RemoveMe("[BloomShader::Initialize] removing widget, AllowDeferredModelRendering is required")
 	end
-	local hasdeferredmaprendering = (Spring.GetConfigString("AllowDeferredMapRendering")=='1')
+	local hasdeferredmaprendering = (SpringUnsynced.GetConfigString("AllowDeferredMapRendering") == "1")
 	if hasdeferredmaprendering == false then
 		RemoveMe("[BloomShader::Initialize] removing widget, AllowDeferredMapRendering is required")
 	end
 
-	WG['bloomdeferred'] = {}
-	WG['bloomdeferred'].getBrightness = function()
+	WG.bloomdeferred = {}
+	WG.bloomdeferred.getBrightness = function()
 		return glowAmplifier
 	end
-	WG['bloomdeferred'].setBrightness = function(value)
+	WG.bloomdeferred.setBrightness = function(value)
 		glowAmplifier = value
 		MakeBloomShaders()
 	end
-	WG['bloomdeferred'].getPreset = function()
+	WG.bloomdeferred.getPreset = function()
 		return preset
 	end
-	WG['bloomdeferred'].setPreset = function(value)
+	WG.bloomdeferred.setPreset = function(value)
 		preset = value
 		MakeBloomShaders()
 	end
 
 	MakeBloomShaders()
-	rectVAO = InstanceVBOTable.MakeTexRectVAO()--  -1, -1, 1, 0,   0,0,1, 0.5)
+	rectVAO = InstanceVBOTable.MakeTexRectVAO() --  -1, -1, 1, 0,   0,0,1, 0.5)
 end
 
 function widget:Shutdown()
@@ -540,11 +548,17 @@ function widget:Shutdown()
 	glDeleteTexture(brightTexture2)
 	brightTexture1, brightTexture2 = nil, nil
 	if glDeleteShader then
-		if brightShader  then brightShader:Finalize() end
-		if blurShader ~= nil then blurShader:Finalize() end
-		if combineShader ~= nil then combineShader:Finalize() end
+		if brightShader then
+			brightShader:Finalize()
+		end
+		if blurShader ~= nil then
+			blurShader:Finalize()
+		end
+		if combineShader ~= nil then
+			combineShader:Finalize()
+		end
 	end
-	WG['bloomdeferred'] = nil
+	WG.bloomdeferred = nil
 end
 
 local function FullScreenQuad()
@@ -562,40 +576,40 @@ local function Bloom()
 	gl.Culling(true)
 
 	brightShader:Activate()
-		brightShader:SetUniform("illuminationThreshold", illumThreshold)
-		brightShader:SetUniform("fragGlowAmplifier", glowAmplifier)
-		--brightShader:SetUniform("time", df)
+	brightShader:SetUniform("illuminationThreshold", illumThreshold)
+	brightShader:SetUniform("fragGlowAmplifier", glowAmplifier)
+	--brightShader:SetUniform("time", df)
 
-		glTexture(0, "$model_gbuffer_difftex")
-		glTexture(1, "$model_gbuffer_emittex")
-		glTexture(2, "$model_gbuffer_zvaltex")
-		glTexture(3, "$map_gbuffer_zvaltex")
+	glTexture(0, "$model_gbuffer_difftex")
+	glTexture(1, "$model_gbuffer_emittex")
+	glTexture(2, "$model_gbuffer_zvaltex")
+	glTexture(3, "$map_gbuffer_zvaltex")
 
-		--glRenderToTexture(brightTexture1, gl.TexRect, -1, 1, 1, -1)
-		glRenderToTexture(brightTexture1, FullScreenQuad)
+	--glRenderToTexture(brightTexture1, gl.TexRect, -1, 1, 1, -1)
+	glRenderToTexture(brightTexture1, FullScreenQuad)
 
-		glTexture(0, false)
-		glTexture(1, false)
-		glTexture(2, false)
-		glTexture(3, false)
+	glTexture(0, false)
+	glTexture(1, false)
+	glTexture(2, false)
+	glTexture(3, false)
 	brightShader:Deactivate()
 
 	if not debugBrightShader then
 		if presets[preset].blurPasses > 0 then
 			blurShader:Activate()
 			for i = 1, presets[preset].blurPasses do
-					blurShader:SetUniform("fragBlurAmplifier", blurAmplifier)
-					blurShader:SetUniform("horizontal", 0)
-					glTexture(brightTexture1)
-					--glRenderToTexture(brightTexture2, gl.TexRect, -1, 1, 1, -1)
-					glRenderToTexture(brightTexture2, FullScreenQuad)
-					glTexture(false)
+				blurShader:SetUniform("fragBlurAmplifier", blurAmplifier)
+				blurShader:SetUniform("horizontal", 0)
+				glTexture(brightTexture1)
+				--glRenderToTexture(brightTexture2, gl.TexRect, -1, 1, 1, -1)
+				glRenderToTexture(brightTexture2, FullScreenQuad)
+				glTexture(false)
 
-					blurShader:SetUniform("horizontal", 1)
-					glTexture(brightTexture2)
-					--glRenderToTexture(brightTexture1, gl.TexRect, -1, 1, 1, -1)
-					glRenderToTexture(brightTexture1, FullScreenQuad)
-					glTexture(false)
+				blurShader:SetUniform("horizontal", 1)
+				glTexture(brightTexture2)
+				--glRenderToTexture(brightTexture1, gl.TexRect, -1, 1, 1, -1)
+				glRenderToTexture(brightTexture1, FullScreenQuad)
+				glTexture(false)
 			end
 			blurShader:Deactivate()
 		end
@@ -607,11 +621,11 @@ local function Bloom()
 		gl.Blending(GL.ONE, GL.ZERO)
 	end
 	combineShader:Activate()
-		combineShader:SetUniformInt("debugDraw",dbgDraw)
-		glTexture(0, brightTexture1)
-		--gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)
-		rectVAO:DrawArrays(GL.TRIANGLES)
-		glTexture(0, false)
+	combineShader:SetUniformInt("debugDraw", dbgDraw)
+	glTexture(0, brightTexture1)
+	--gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)
+	rectVAO:DrawArrays(GL.TRIANGLES)
+	glTexture(0, false)
 	combineShader:Deactivate()
 
 	gl.Blending("reset")

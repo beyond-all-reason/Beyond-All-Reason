@@ -8,7 +8,7 @@ function widget:GetInfo()
 		date = "May 2020",
 		license = "GNU GPL, v2 or later",
 		layer = -1,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -16,11 +16,10 @@ end
 local mathFloor = math.floor
 
 -- Localized Spring API for performance
-local spGetViewGeometry = Spring.GetViewGeometry
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 local factions = {}
-
 
 local doUpdate
 local playSounds = true
@@ -31,18 +30,19 @@ local height = 0
 local bgBorderOrg = 0.003
 local bgBorder = bgBorderOrg
 
-local myTeamID = Spring.GetMyTeamID()
+local myTeamID = SpringUnsynced.GetLocalTeamID()
 local stickToBottom = true
 
-local startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
+local startDefID = SpringShared.GetTeamRulesParam(myTeamID, "startUnit")
 do
-	local validStartUnits = string.split(Spring.GetTeamRulesParam(myTeamID, "validStartUnits") or Spring.GetGameRulesParam("validStartUnits"), "|")
+	local validStartUnits = string.split(SpringShared.GetTeamRulesParam(myTeamID, "validStartUnits") or SpringShared.GetGameRulesParam("validStartUnits"), "|")
 	for i, unitID_string in ipairs(validStartUnits) do
 		-- TODO: figure out a better approach to this as sidedata faction names and language file keys do not match
 		local unitID = tonumber(unitID_string)
 		factions[i] = {
 			startUnit = unitID,
-			faction = string.sub(UnitDefs[unitID].name, 1, 3) }
+			faction = string.sub(UnitDefs[unitID].name, 1, 3),
+		}
 		if factions[i].faction == "dum" then
 			factions[i].faction = "random"
 		end
@@ -58,7 +58,7 @@ do
 	end
 end
 if #factions == 0 then
-	Spring.Log(gadget:GetInfo().name, LOG.ERROR, "No Start Options Recived")
+	SpringShared.Log(gadget:GetInfo().name, LOG.ERROR, "No Start Options Recived")
 	return false
 end
 
@@ -69,9 +69,9 @@ end
 
 local vsx, vsy = spGetViewGeometry()
 
-local sound_button = 'LuaUI/Sounds/buildbar_waypoint.wav'
+local sound_button = "LuaUI/Sounds/buildbar_waypoint.wav"
 
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+local ui_scale = tonumber(SpringUnsynced.GetConfigFloat("ui_scale", 1) or 1)
 
 local isSpec = spGetSpectatingState()
 local backgroundRect = {}
@@ -99,7 +99,7 @@ local function drawFactionpicker()
 	font2:Begin()
 	font2:SetTextColor(1, 1, 1, 1)
 	font2:SetOutlineColor(0, 0, 0, 0.66)
-	font2:Print(Spring.I18N('ui.factionPicker.pick'), backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.7), fontSize, "o")
+	font2:Print(I18N("ui.factionPicker.pick"), backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.7), fontSize, "o")
 
 	local contentWidth = mathFloor(backgroundRect[3] - backgroundRect[1] - contentPadding)
 	local contentHeight = mathFloor(backgroundRect[4] - backgroundRect[2] - (contentPadding * 1.33))
@@ -113,38 +113,32 @@ local function drawFactionpicker()
 			mathFloor(backgroundRect[3] - padding - (cellSize * i)),
 			mathFloor(backgroundRect[2]),
 			mathFloor(backgroundRect[3] - padding - (cellSize * (i - 1))),
-			mathFloor(backgroundRect[2] + cellSize)
+			mathFloor(backgroundRect[2] + cellSize),
 		}
-		local disabled = Spring.GetTeamRulesParam(myTeamID, 'startUnit') ~= factions[i].startUnit
+		local disabled = SpringShared.GetTeamRulesParam(myTeamID, "startUnit") ~= factions[i].startUnit
 		if disabled then
 			glColor(0.55, 0.55, 0.55, 1)
 		else
 			glColor(1, 1, 1, 1)
 		end
-		UiUnit(factionRect[i][1] + bgpadding, factionRect[i][2] + bgpadding, factionRect[i][3], factionRect[i][4],
-			nil,
-			1, 1, 1, 1,
-			0,
-			nil, disabled and 0.033 or nil,
-			'#' .. factions[i].startUnit
-		)
+		UiUnit(factionRect[i][1] + bgpadding, factionRect[i][2] + bgpadding, factionRect[i][3], factionRect[i][4], nil, 1, 1, 1, 1, 0, nil, disabled and 0.033 or nil, "#" .. factions[i].startUnit)
 		-- faction name
-		font2:Print((disabled and "\255\170\170\170" or "\255\255\255\255") .. Spring.I18N('units.factions.' .. factions[i].faction), factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.96, "co")
+		font2:Print((disabled and "\255\170\170\170" or "\255\255\255\255") .. I18N("units.factions." .. factions[i].faction), factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.96, "co")
 
-		if WG['tooltip'] ~= nil then
-			local text = Spring.I18N('ui.factionPicker.factions.'..factions[i].faction)
-			local tooltip = ''
-			local maxWidth = WG['tooltip'].getFontsize() * 80
+		if WG.tooltip ~= nil then
+			local text = I18N("ui.factionPicker.factions." .. factions[i].faction)
+			local tooltip = ""
+			local maxWidth = WG.tooltip.getFontsize() * 80
 			local textLines, numLines = font2:WrapText(text, maxWidth)
-			tooltip = tooltip..string.gsub(textLines, '[\n]', '\n')..'\n'
-			WG['tooltip'].AddTooltip('factionpicker_'..i, { factionRect[i][1] + bgpadding, factionRect[i][2] + bgpadding, factionRect[i][3], factionRect[i][4] }, tooltip, nil, Spring.I18N('units.factions.' .. factions[i].faction))
+			tooltip = tooltip .. string.gsub(textLines, "[\n]", "\n") .. "\n"
+			WG.tooltip.AddTooltip("factionpicker_" .. i, { factionRect[i][1] + bgpadding, factionRect[i][2] + bgpadding, factionRect[i][3], factionRect[i][4] }, tooltip, nil, I18N("units.factions." .. factions[i].faction))
 		end
 	end
 	font2:End()
 end
 
 local function checkGuishader(force)
-	dlistGuishader = WG.FlowUI.guishaderCheckDlist(dlistGuishader, 'factionpicker', function()
+	dlistGuishader = WG.FlowUI.guishaderCheckDlist(dlistGuishader, "factionpicker", function()
 		RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], (bgBorder * vsy) * 2)
 	end, force)
 end
@@ -159,7 +153,7 @@ function widget:ViewResize()
 	width = 0.2125
 	height = 0.14 * ui_scale
 
-	width = width / (vsx / vsy) * 1.78        -- make smaller for ultrawide screens
+	width = width / (vsx / vsy) * 1.78 -- make smaller for ultrawide screens
 	width = width * ui_scale
 
 	-- make pixel aligned
@@ -167,12 +161,12 @@ function widget:ViewResize()
 	height = mathFloor(height * vsy) / vsy
 
 	local buildmenuBottomPos
-	if WG['buildmenu'] then
-		buildmenuBottomPos = WG['buildmenu'].getBottomPosition()
+	if WG.buildmenu then
+		buildmenuBottomPos = WG.buildmenu.getBottomPosition()
 	end
 
-	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
-	font2 = WG['fonts'].getFont(2)
+	local outlineMult = math.clamp(1 / (vsy / 1400), 1, 1.5)
+	font2 = WG.fonts.getFont(2)
 
 	local widgetSpaceMargin = WG.FlowUI.elementMargin
 	bgpadding = WG.FlowUI.elementPadding
@@ -181,8 +175,8 @@ function widget:ViewResize()
 	UiElement = WG.FlowUI.Draw.Element
 	UiUnit = WG.FlowUI.Draw.Unit
 
-	if WG['minimap'] then
-		minimapHeight = WG['minimap'].getHeight()
+	if WG.minimap then
+		minimapHeight = WG.minimap.getHeight()
 	end
 
 	if stickToBottom then
@@ -192,11 +186,11 @@ function widget:ViewResize()
 		if buildmenuBottomPos then
 			posX = 0
 			posY = height + height + (widgetSpaceMargin / vsy)
-		elseif WG['buildmenu'] then
-			local posY2, _ = WG['buildmenu'].getSize()
+		elseif WG.buildmenu then
+			local posY2, _ = WG.buildmenu.getSize()
 			posY2 = posY2 + (widgetSpaceMargin / vsy)
 			posY = posY2 + height
-			if WG['minimap'] then
+			if WG.minimap then
 				posY = 1 - (minimapHeight / vsy) - (widgetSpaceMargin / vsy)
 			end
 			posX = 0
@@ -222,13 +216,13 @@ function widget:ViewResize()
 end
 
 function widget:Initialize()
-	if isSpec or Spring.GetGameFrame() > 0 then
+	if isSpec or SpringShared.GetGameFrame() > 0 then
 		widgetHandler:RemoveWidget()
 		return
 	end
 
-	if Spring.GetModOptions().scenariooptions then
-		local scenarioopts = string.base64Decode(Spring.GetModOptions().scenariooptions)
+	if SpringShared.GetModOptions().scenariooptions then
+		local scenarioopts = string.base64Decode(SpringShared.GetModOptions().scenariooptions)
 		scenarioopts = Json.decode(scenarioopts)
 		if scenarioopts and scenarioopts.disablefactionpicker == true then
 			widgetHandler:RemoveWidget()
@@ -236,15 +230,15 @@ function widget:Initialize()
 		end
 	end
 
-	if WG['ordermenu'] then
-		stickToBottom = WG['ordermenu'].getBottomPosition()
+	if WG.ordermenu then
+		stickToBottom = WG.ordermenu.getBottomPosition()
 	end
 
 	widget:ViewResize()
 end
 
 function widget:Shutdown()
-	WG.FlowUI.guishaderDeleteDlist('factionpicker')
+	WG.FlowUI.guishaderDeleteDlist("factionpicker")
 	dlistGuishader = nil
 	dlistFactionpicker = gl.DeleteList(dlistFactionpicker)
 
@@ -257,9 +251,9 @@ function widget:Shutdown()
 		factionpickerTex = nil
 	end
 
-	if WG['tooltip'] ~= nil then
+	if WG.tooltip ~= nil then
 		for i, faction in pairs(factions) do
-			WG['tooltip'].RemoveTooltip('factionpicker_'..i)
+			WG.tooltip.RemoveTooltip("factionpicker_" .. i)
 		end
 	end
 end
@@ -275,13 +269,13 @@ function widget:Update(dt)
 		sec = 0
 		checkGuishader()
 
-		if WG['minimap'] and minimapHeight ~= WG['minimap'].getHeight() then
+		if WG.minimap and minimapHeight ~= WG.minimap.getHeight() then
 			widget:ViewResize()
 			doUpdate = true
 		end
 
-		if WG['ordermenu'] and stickToBottom ~= WG['ordermenu'].getBottomPosition() then
-			stickToBottom = WG['ordermenu'].getBottomPosition()
+		if WG.ordermenu and stickToBottom ~= WG.ordermenu.getBottomPosition() then
+			stickToBottom = WG.ordermenu.getBottomPosition()
 			widget:ViewResize()
 			doUpdate = true
 		end
@@ -289,24 +283,24 @@ function widget:Update(dt)
 end
 
 function widget:DrawScreen()
-	local x, y, b = Spring.GetMouseState()
-	if not WG['topbar'] or not WG['topbar'].showingQuit() then
+	local x, y, b = SpringUnsynced.GetMouseState()
+	if not WG.topbar or not WG.topbar.showingQuit() then
 		if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-			Spring.SetMouseCursor('cursornormal')
+			SpringUnsynced.SetMouseCursor("cursornormal")
 		end
 	end
 
-	if startDefID ~= Spring.GetTeamRulesParam(myTeamID, 'startUnit') then
-		startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
+	if startDefID ~= SpringShared.GetTeamRulesParam(myTeamID, "startUnit") then
+		startDefID = SpringShared.GetTeamRulesParam(myTeamID, "startUnit")
 		doUpdate = true
 	end
 
-	if dlistGuishader and WG['guishader'] then
-		WG['guishader'].InsertDlist(dlistGuishader, 'factionpicker')
+	if dlistGuishader and WG.guishader then
+		WG.guishader.InsertDlist(dlistGuishader, "factionpicker")
 	end
 
 	if not factionpickerBgTex then
-		factionpickerBgTex = gl.CreateTexture(mathFloor(width*vsx), mathFloor(height*vsy), {
+		factionpickerBgTex = gl.CreateTexture(mathFloor(width * vsx), mathFloor(height * vsy), {
 			target = GL.TEXTURE_2D,
 			format = GL.ALPHA,
 			fbo = true,
@@ -317,7 +311,7 @@ function widget:DrawScreen()
 	end
 
 	if not factionpickerTex then
-		factionpickerTex = gl.CreateTexture(mathFloor(width*vsx)*(vsy<1400 and 2 or 1), mathFloor(height*vsy)*(vsy<1400 and 2 or 1), {
+		factionpickerTex = gl.CreateTexture(mathFloor(width * vsx) * (vsy < 1400 and 2 or 1), mathFloor(height * vsy) * (vsy < 1400 and 2 or 1), {
 			target = GL.TEXTURE_2D,
 			format = GL.ALPHA,
 			fbo = true,
@@ -350,29 +344,26 @@ function widget:DrawScreen()
 				RectRound(factionRect[i][1] + bgpadding, factionRect[i][2] + bgpadding, factionRect[i][3], factionRect[i][4], bgpadding, 1, 1, 1, 1, { 0.3, 0.3, 0.3, (b and 0.5 or 0.25) }, { 1, 1, 1, (b and 0.3 or 0.15) })
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-				font2:Print(Spring.I18N('units.factions.' .. factions[i].faction), factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.96, "co")
+				font2:Print(I18N("units.factions." .. factions[i].faction), factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.96, "co")
 				break
 			end
 		end
 	end
 	font2:End()
-
 end
 
 function widget:MousePress(x, y, button)
 	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-
 		for i, faction in pairs(factions) do
 			if math_isInRect(x, y, factionRect[i][1], factionRect[i][2], factionRect[i][3], factionRect[i][4]) then
 				if playSounds then
-					Spring.PlaySoundFile(sound_button, 0.6, 'ui')
+					SpringUnsynced.PlaySoundFile(sound_button, 0.6, "ui")
 				end
 				-- tell initial spawn
-				Spring.SendLuaRulesMsg('changeStartUnit' .. tostring(factions[i].startUnit))
+				SpringUnsynced.SendLuaRulesMsg("changeStartUnit" .. tostring(factions[i].startUnit))
 				break
 			end
 		end
 		return true
 	end
 end
-

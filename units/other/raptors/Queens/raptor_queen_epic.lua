@@ -1,8 +1,7 @@
 local playerCountScale = 1
-if Spring.Utilities.Gametype.IsRaptors() then
-	playerCountScale = (#Spring.GetTeamList() - 2)/8 -- -2 because scavs and gaia shouldn't count, divided by 8 because we use 8 player games as a baseline
+if Utilities.Gametype.IsRaptors() then
+	playerCountScale = (#SpringShared.GetTeamList() - 2) / 8 -- -2 because scavs and gaia shouldn't count, divided by 8 because we use 8 player games as a baseline
 end
-
 
 return {
 	raptor_queen_epic = {
@@ -115,7 +114,7 @@ return {
 				weapontimer = 0.2,
 				weaponvelocity = 400,
 				damage = {
-					default = 2000*playerCountScale,
+					default = 2000 * playerCountScale,
 				},
 			},
 			melee = {
@@ -144,7 +143,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 2500,
 				damage = {
-					default = 10000*playerCountScale,
+					default = 10000 * playerCountScale,
 				},
 			},
 			yellow_missile = {
@@ -192,7 +191,7 @@ return {
 				wobble = 32000,
 				damage = {
 					default = 1,
-					vtol = 1000*playerCountScale,
+					vtol = 1000 * playerCountScale,
 				},
 			},
 		},

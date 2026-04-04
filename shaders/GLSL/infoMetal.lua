@@ -18,14 +18,15 @@ LoadFromLua(Shader::IProgramObject* program, const std::string& filename)
 for k,v in pairs(Spring) do 
 	Spring.Echo(k,v)
 end
-]]--
+]]
+--
 
 -- Author: Beherith (mysterme@gmail.com)
 
 return {
 	definitions = {
-		Spring.GetConfigInt("HighResInfoTexture") and "#define HIGH_QUALITY\n" or "",
-		"#define MetalViewBrightness " .. tostring(Spring.GetConfigFloat("MetalViewBrightness", 1.0) or 1.0),
+		SpringUnsynced.GetConfigInt("HighResInfoTexture") and "#define HIGH_QUALITY\n" or "",
+		"#define MetalViewBrightness " .. tostring(SpringUnsynced.GetConfigFloat("MetalViewBrightness", 1.0) or 1.0),
 	},
 	vertex = [[#version 130
 		varying vec2 texCoord;

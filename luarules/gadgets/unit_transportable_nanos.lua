@@ -1,26 +1,26 @@
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
-    return {
-        name      = "Unit transportable nanos",
-        desc      = "Prevent loading of ally and enemy nanos, prevent unloading onto cliffs and underwater",
-        author    = "Beherith",
-        date      = "Jul 2012",
-        license   = "GNU GPL, v2 or later",
-        layer     = 0,
-        enabled   = true
-    }
+	return {
+		name = "Unit transportable nanos",
+		desc = "Prevent loading of ally and enemy nanos, prevent unloading onto cliffs and underwater",
+		author = "Beherith",
+		date = "Jul 2012",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
+	}
 end
 
 if not gadgetHandler:IsSyncedCode() then
-    return false
+	return false
 end
 
-local GetUnitTeam = Spring.GetUnitTeam
-local GetUnitDefID = Spring.GetUnitDefID
-local GetGroundNormal = Spring.GetGroundNormal
-local GetUnitIsTransporting = Spring.GetUnitIsTransporting
-local ValidUnitID = Spring.ValidUnitID
+local GetUnitTeam = SpringShared.GetUnitTeam
+local GetUnitDefID = SpringShared.GetUnitDefID
+local GetGroundNormal = SpringShared.GetGroundNormal
+local GetUnitIsTransporting = SpringShared.GetUnitIsTransporting
+local ValidUnitID = SpringShared.ValidUnitID
 local stringFind = string.find
 
 local CMD_LOAD_UNITS = CMD.LOAD_UNITS
@@ -30,16 +30,16 @@ local Nanos = {
 	[UnitDefNames.cornanotc.id] = true,
 	[UnitDefNames.armnanotc.id] = true,
 }
-if Spring.GetModOptions().experimentallegionfaction then
+if SpringShared.GetModOptions().experimentallegionfaction then
 	Nanos[UnitDefNames.legnanotc.id] = true
 end
 for udid, ud in pairs(UnitDefs) do
-    for id in pairs(Nanos) do
-        if stringFind(ud.name, UnitDefs[id].name, 1, true) then
-            Nanos[udid] = true
-            break
-        end
-    end
+	for id in pairs(Nanos) do
+		if stringFind(ud.name, UnitDefs[id].name, 1, true) then
+			Nanos[udid] = true
+			break
+		end
+	end
 end
 
 function gadget:Initialize()
@@ -57,17 +57,17 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 				return false
 			end
 		end
-	else	 -- CMD_UNLOAD_UNITS
+	else -- CMD_UNLOAD_UNITS
 		if GetUnitIsTransporting(unitID) then
 			local intrans = GetUnitIsTransporting(unitID)
 			if #intrans >= 1 then
 				-- no unloading underwater
-				local _,y,_ = GetGroundNormal(cmdParams[1], cmdParams[3])
+				local _, y, _ = GetGroundNormal(cmdParams[1], cmdParams[3])
 				if Nanos[GetUnitDefID(intrans[1])] and (cmdParams[2] < 0 or y < 0.9) then
 					return false
 				end
 			end
 		end
 	end
-    return true
+	return true
 end

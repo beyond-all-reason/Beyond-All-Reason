@@ -12,79 +12,83 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 -- spEcho(Spring.GetTeamInfo(Spring.GetMyTeamID()))
 
-local pveAllyTeamID = Spring.Utilities.GetScavAllyTeamID() or Spring.Utilities.GetRaptorAllyTeamID()
+local pveAllyTeamID = Utilities.GetScavAllyTeamID() or Utilities.GetRaptorAllyTeamID()
 
 ---- Config stuff ------------------
 local autoReload = false -- refresh shader code every second (disable in production!)
 
-local StartBoxes = {} -- list of xXyY 
-local noRushTime = Spring.GetModOptions().norushtimer*60*30
-if noRushTime == 0 then return end
+local StartBoxes = {} -- list of xXyY
+local noRushTime = SpringShared.GetModOptions().norushtimer * 60 * 30
+if noRushTime == 0 then
+	return
+end
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
-local minY, maxY = Spring.GetGroundExtremes()
+local minY, maxY = SpringShared.GetGroundExtremes()
 
 local shaderSourceCache = {
-		vssrcpath = "LuaUI/Shaders/norush_timer.vert.glsl",
-		fssrcpath = "LuaUI/Shaders/norush_timer.frag.glsl",
-		uniformInt = {
-			mapDepths = 0,
-			noRushTimer = Spring.GetModOptions().norushtimer*60*30,
-		},
-		uniformFloat = {
-		},
-		shaderName = "Norush Timer GL4",
-		shaderConfig = {
-			ALPHA = 0.5,
-			NUM_BOXES = NUM_BOXES,
-			MINY = minY,
-			MAXY = maxY,
-		}
-	}
-	
+	vssrcpath = "LuaUI/Shaders/norush_timer.vert.glsl",
+	fssrcpath = "LuaUI/Shaders/norush_timer.frag.glsl",
+	uniformInt = {
+		mapDepths = 0,
+		noRushTimer = SpringShared.GetModOptions().norushtimer * 60 * 30,
+	},
+	uniformFloat = {},
+	shaderName = "Norush Timer GL4",
+	shaderConfig = {
+		ALPHA = 0.5,
+		NUM_BOXES = NUM_BOXES,
+		MINY = minY,
+		MAXY = maxY,
+	},
+}
+
 local fullScreenRectVAO
 local norushTimerShader
 -- Locals for speedups
 local glTexture = gl.Texture
 local glCulling = gl.Culling
 local glDepthTest = gl.DepthTest
-local spIsGUIHidden			= Spring.IsGUIHidden
+local spIsGUIHidden = SpringUnsynced.IsGUIHidden
 
 function widget:RecvLuaMsg(msg, playerID)
 	--spEcho("widget:RecvLuaMsg",msg)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	if msg:sub(1, 18) == "LobbyOverlayActive" then
+		chobbyInterface = (msg:sub(1, 19) == "LobbyOverlayActive1")
 	end
 end
 
 function widget:DrawWorldPreUnit()
-	if Spring.GetGameFrame() > noRushTime+150 then return end
+	if SpringShared.GetGameFrame() > noRushTime + 150 then
+		return
+	end
 	if autoReload then
 		norushTimerShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or norushTimerShader
 	end
 
-	if chobbyInterface or spIsGUIHidden() then return end
+	if chobbyInterface or spIsGUIHidden() then
+		return
+	end
 
-	local _, advMapShading = Spring.HaveAdvShading()
+	local _, advMapShading = SpringUnsynced.HaveAdvShading()
 
-	if advMapShading then 
+	if advMapShading then
 		gl.Texture(0, "$map_gbuffer_zvaltex")
 	else
-		if WG['screencopymanager'] and WG['screencopymanager'].GetDepthCopy() then
-			gl.Texture(0, WG['screencopymanager'].GetDepthCopy())
+		if WG.screencopymanager and WG.screencopymanager.GetDepthCopy() then
+			gl.Texture(0, WG.screencopymanager.GetDepthCopy())
 		else
 			return
 		end
 	end
-	
+
 	glCulling(true)
 	glDepthTest(false)
 	gl.DepthMask(false)
@@ -92,7 +96,7 @@ function widget:DrawWorldPreUnit()
 	norushTimerShader:Activate()
 	for i, startBox in ipairs(StartBoxes) do
 		--spEcho("startBoxes["..i.."]", startBox[1],startBox[2],startBox[3],startBox[4])
-		norushTimerShader:SetUniform("startBoxes["..( i-1) .."]", startBox[1],startBox[2],startBox[3],startBox[4])
+		norushTimerShader:SetUniform("startBoxes[" .. (i - 1) .. "]", startBox[1], startBox[2], startBox[3], startBox[4])
 	end
 	norushTimerShader:SetUniform("noRushTimer", noRushTime)
 	fullScreenRectVAO:DrawArrays(GL.TRIANGLES)
@@ -108,17 +112,17 @@ end
 
 function widget:Initialize()
 	local gaiaAllyTeamID
-	if Spring.GetGaiaTeamID() then 
-		gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID() , false))
+	if SpringShared.GetGaiaTeamID() then
+		gaiaAllyTeamID = select(6, SpringShared.GetTeamInfo(SpringShared.GetGaiaTeamID(), false))
 	end
-	for i, teamID in ipairs(Spring.GetAllyTeamList()) do
+	for i, teamID in ipairs(SpringShared.GetAllyTeamList()) do
 		if teamID ~= gaiaAllyTeamID and teamID ~= pveAllyTeamID then
-			local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
-			--spEcho("Allyteam",teamID,"startbox",xn, zn, xp, zp)	
-			StartBoxes[#StartBoxes+1] = {xn, zn, xp, zp}
+			local xn, zn, xp, zp = SpringShared.GetAllyTeamStartBox(teamID)
+			--spEcho("Allyteam",teamID,"startbox",xn, zn, xp, zp)
+			StartBoxes[#StartBoxes + 1] = { xn, zn, xp, zp }
 		end
 	end
-	
+
 	-- MANUAL OVERRIDE FOR DEBUGGING:
 	-- StartBoxes = { {100, 200, 2000, 3000} , {2200, 3300, 5000, 4000}}
 

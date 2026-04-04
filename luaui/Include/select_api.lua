@@ -4,20 +4,20 @@
 --- @field getCommand fun(cmd: string): any
 local SelectApi = {}
 
-local defaultdamagetag = Game.armorTypes['default']
-local vtoldamagetag = Game.armorTypes['vtol']
+local defaultdamagetag = Game.armorTypes.default
+local vtoldamagetag = Game.armorTypes.vtol
 
-local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
-local spGetUnitCommands = Spring.GetUnitCommands
-local spGetUnitCommandCount = Spring.GetUnitCommandCount
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitGroup = Spring.GetUnitGroup
-local spGetUnitHealth = Spring.GetUnitHealth
-local spGetMouseState = Spring.GetMouseState
-local spTraceScreenRay = Spring.TraceScreenRay
-local spIsUnitSelected = Spring.IsUnitSelected
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitIsCloaked = SpringShared.GetUnitIsCloaked
+local spGetUnitCommands = SpringShared.GetUnitCommands
+local spGetUnitCommandCount = SpringShared.GetUnitCommandCount
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitGroup = SpringUnsynced.GetUnitGroup
+local spGetUnitHealth = SpringShared.GetUnitHealth
+local spGetMouseState = SpringUnsynced.GetMouseState
+local spTraceScreenRay = SpringUnsynced.TraceScreenRay
+local spIsUnitSelected = SpringUnsynced.IsUnitSelected
+local spGetSelectedUnits = SpringUnsynced.GetSelectedUnits
+local spGetUnitPosition = SpringShared.GetUnitPosition
 
 local customFilterLookup = {}
 local customCommandLookup = {}
@@ -51,15 +51,11 @@ local function handleCaching(invert, tokenLower, filterFunction, optionalArg)
 end
 
 local function logError(message)
-	Spring.Log("Select API", LOG.ERROR, message)
+	SpringShared.Log("Select API", LOG.ERROR, message)
 end
 
 local function isBuilder(udef)
-	return (udef.canReclaim and udef.reclaimSpeed > 0) or
-		(udef.canResurrect and udef.resurrectSpeed > 0) or
-		(udef.canRepair and udef.repairSpeed > 0) or
-		(udef.buildOptions and udef.buildOptions[1]) or
-		(udef.canStockpile and udef.modCategories.ship and udef.modCategories.noweapon) -- carrier ships
+	return (udef.canReclaim and udef.reclaimSpeed > 0) or (udef.canResurrect and udef.resurrectSpeed > 0) or (udef.canRepair and udef.repairSpeed > 0) or (udef.buildOptions and udef.buildOptions[1]) or (udef.canStockpile and udef.modCategories.ship and udef.modCategories.noweapon) -- carrier ships
 end
 
 local function invertCurry(invert, filter, args)
@@ -89,7 +85,7 @@ end
 local function checkCmd(uid, cmdId, indexTemp)
 	local index = indexTemp or 1
 	local cmd = spGetUnitCommands(uid, index)
-	if cmd and cmd[index] and cmd[index]["id"] == cmdId then
+	if cmd and cmd[index] and cmd[index].id == cmdId then
 		return true
 	end
 	return false
@@ -131,7 +127,7 @@ local function parseFilter(filterDef)
 		local tokenLower = string.lower(token)
 
 		if tokenLower == "not" then
-			invert = true;
+			invert = true
 			token = getNextToken()
 			tokenLower = string.lower(token)
 		end
@@ -250,7 +246,7 @@ local function parseFilter(filterDef)
 				end
 
 				for _name, weapondef in pairs(udef.wDefs) do
-					if (weapondef.damages[vtoldamagetag] > weapondef.damages[defaultdamagetag]) then
+					if weapondef.damages[vtoldamagetag] > weapondef.damages[defaultdamagetag] then
 						return true
 					end
 				end
@@ -293,7 +289,7 @@ local function parseFilter(filterDef)
 				break
 			end
 
-			local udefid = UnitDefNames[name];
+			local udefid = UnitDefNames[name]
 
 			if udefid then
 				idMatchesSet[udefid] = true
@@ -397,8 +393,12 @@ local function getMouseWorldPos()
 	local mouseX, mouseY = spGetMouseState()
 	local desc, args = spTraceScreenRay(mouseX, mouseY, true)
 
-	if nil == desc then return end -- off map
-	if nil == args then return end
+	if nil == desc then
+		return
+	end -- off map
+	if nil == args then
+		return
+	end
 
 	local x = args[1]
 	local y = args[2]
@@ -446,7 +446,7 @@ local function getCountUnits(uids, countUntil, appendSelected)
 
 		-- break after full cycle or countUntil reached
 		if countUnitsIndex == countUnitsIndexStart or selectedCount >= countUntil then
-			break;
+			break
 		end
 	end
 
@@ -473,7 +473,6 @@ local function parseNumber(input, fn)
 	end
 end
 
-
 local function parseConclusion(conclusionDef)
 	local appendSelected = true
 	local prefix = conclusionDef:sub(1, 15)
@@ -488,12 +487,12 @@ local function parseConclusion(conclusionDef)
 
 	if conclusionDefLower == "selectall" then
 		return function(uids)
-			Spring.SelectUnitArray(uids, appendSelected)
+			SpringUnsynced.SelectUnitArray(uids, appendSelected)
 		end
 	elseif conclusionDefLower == "selectone" then
 		return function(uids)
 			if #uids == 0 then
-				Spring.SelectUnitArray({}, appendSelected)
+				SpringUnsynced.SelectUnitArray({}, appendSelected)
 				return
 			end
 
@@ -501,25 +500,25 @@ local function parseConclusion(conclusionDef)
 			local uid = uids[1]
 
 			if not uid then
-				Spring.SelectUnitArray({}, appendSelected)
+				SpringUnsynced.SelectUnitArray({}, appendSelected)
 				return
 			end
 
 			-- center on unit
 			local ux, uy, uz = spGetUnitPosition(uid)
-			Spring.SetCameraTarget(ux, uy, uz, 1)
-			Spring.SelectUnitArray(uids, appendSelected)
+			SpringUnsynced.SetCameraTarget(ux, uy, uz, 1)
+			SpringUnsynced.SelectUnitArray(uids, appendSelected)
 		end
 	elseif conclusionDefLower == "selectclosesttocursor" then
 		return function(uids)
 			if not uids or #uids == 0 then
-				Spring.SelectUnitArray({}, appendSelected)
+				SpringUnsynced.SelectUnitArray({}, appendSelected)
 				return
 			end
 
 			local x, y, z = getMouseWorldPos()
 			if x == nil or y == nil or z == nil then
-				Spring.SelectUnitArray({}, appendSelected)
+				SpringUnsynced.SelectUnitArray({}, appendSelected)
 				return
 			end
 
@@ -541,18 +540,18 @@ local function parseConclusion(conclusionDef)
 			end
 
 			local oneUid = { closest_uid }
-			Spring.SelectUnitArray(oneUid, appendSelected)
+			SpringUnsynced.SelectUnitArray(oneUid, appendSelected)
 		end
 	elseif startsWith(conclusionDefLower, "selectnum_") or startsWith(conclusionDefLower, "selectnumber_") then
 		return parseNumber(conclusionDef, function(countUntil, uids)
 			uids = getCountUnits(uids, countUntil, appendSelected)
-			Spring.SelectUnitArray(uids, appendSelected)
+			SpringUnsynced.SelectUnitArray(uids, appendSelected)
 		end)
 	elseif startsWith(conclusionDefLower, "selectpart_") then
 		return parseNumber(conclusionDef, function(percent, uids)
 			local countUntil = math.floor(#uids * percent / 100)
 			uids = getCountUnits(uids, countUntil, appendSelected)
-			Spring.SelectUnitArray(uids, appendSelected)
+			SpringUnsynced.SelectUnitArray(uids, appendSelected)
 		end)
 	else
 		logError(conclusionDef .. " is not a valid conclusion")
@@ -564,13 +563,13 @@ local function parseSource(sourceDef)
 
 	if sourceDefLower == "allmap" then
 		return function()
-			local myTeamId = Spring.GetMyTeamID()
-			return Spring.GetTeamUnits(myTeamId)
+			local myTeamId = SpringUnsynced.GetLocalTeamID()
+			return SpringShared.GetTeamUnits(myTeamId)
 		end
 	elseif sourceDefLower == "visible" then
 		return function()
-			local myTeamId = Spring.GetMyTeamID()
-			return Spring.GetVisibleUnits(myTeamId)
+			local myTeamId = SpringUnsynced.GetLocalTeamID()
+			return SpringUnsynced.GetVisibleUnits(myTeamId)
 		end
 	elseif sourceDefLower == "prevselection" or sourceDefLower == "previousselection" then
 		return function()
@@ -580,7 +579,7 @@ local function parseSource(sourceDef)
 		return parseNumber(sourceDef, function(distance)
 			local x, y, z = getMouseWorldPos()
 			if x and y and z then
-				return Spring.GetUnitsInSphere(x, y, z, distance)
+				return SpringShared.GetUnitsInSphere(x, y, z, distance)
 			else
 				return {}
 			end
@@ -589,7 +588,7 @@ local function parseSource(sourceDef)
 		return parseNumber(sourceDef, function(distance)
 			local x, y, z = getMouseWorldPos()
 			if x and z then
-				return Spring.GetUnitsInCylinder(x, z, distance)
+				return SpringShared.GetUnitsInCylinder(x, z, distance)
 			else
 				return {}
 			end

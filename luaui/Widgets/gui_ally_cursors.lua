@@ -12,13 +12,12 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized functions for performance
 local mathAtan2 = math.atan2
 
 -- Localized Spring API for performance
-local spGetMyTeamID = Spring.GetMyTeamID
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 -- TODO: hide (enemy) cursor light when not specfullview
 
@@ -27,7 +26,7 @@ local drawNamesCursorSize = 8.5
 
 local rotY = 0
 
-local dlistAmount = 5        -- number of dlists generated for each player (# available opacity levels)
+local dlistAmount = 5 -- number of dlists generated for each player (# available opacity levels)
 
 local packetInterval = 0.33
 local numMousePos = 2 --//num mouse pos in 1 packet
@@ -45,7 +44,7 @@ local fontOpacitySpec = 0.5
 
 local NameFadeStartDistance = 4000
 local NameFadeEndDistance = 6500
-local idleCursorTime = 25        -- fade time cursor (specs only)
+local idleCursorTime = 25 -- fade time cursor (specs only)
 
 local addLights = true
 local lightRadiusMult = 0.5
@@ -55,13 +54,13 @@ local lightSelfShadowing = false
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetPlayerInfo = Spring.GetPlayerInfo
-local spGetTeamColor = Spring.GetTeamColor
-local spIsSphereInView = Spring.IsSphereInView
-local spGetCameraPosition = Spring.GetCameraPosition
-local spIsGUIHidden = Spring.IsGUIHidden
-local spAreTeamsAllied = Spring.AreTeamsAllied
+local spGetGroundHeight = SpringShared.GetGroundHeight
+local spGetPlayerInfo = SpringShared.GetPlayerInfo
+local spGetTeamColor = SpringUnsynced.GetTeamColor
+local spIsSphereInView = SpringUnsynced.IsSphereInView
+local spGetCameraPosition = SpringUnsynced.GetCameraPosition
+local spIsGUIHidden = SpringUnsynced.IsGUIHidden
+local spAreTeamsAllied = SpringShared.AreTeamsAllied
 
 local glCreateList = gl.CreateList
 local glDeleteList = gl.DeleteList
@@ -80,7 +79,7 @@ local glDepthTest = gl.DepthTest
 local glBlending = gl.Blending
 local glPolygonOffset = gl.PolygonOffset
 
-local spGetCameraDirection = Spring.GetCameraDirection
+local spGetCameraDirection = SpringUnsynced.GetCameraDirection
 local math_deg = math.deg
 
 local abs = math.abs
@@ -94,14 +93,14 @@ local TEAMID_IDX = (numMousePos + 1) * 2 + 3
 
 local alliedCursorsPos = {}
 local prevCursorPos = {}
-local alliedCursorsTime = {}        -- for API purpose
+local alliedCursorsTime = {} -- for API purpose
 local usedCursorSize = cursorSize
 local allycursorDrawList = {}
 local playerTeamIDs = {}
-local myPlayerID = Spring.GetMyPlayerID()
+local myPlayerID = SpringUnsynced.GetLocalPlayerID()
 local _, fullview = spGetSpectatingState()
 local myTeamID = spGetMyTeamID()
-local isReplay = Spring.IsReplay()
+local isReplay = SpringUnsynced.IsReplay()
 
 local allyCursor = ":n:LuaUI/Images/allycursor.dds"
 local cursors = {}
@@ -110,10 +109,10 @@ local specList = {}
 local notIdle = {}
 
 local teamColorKeys = {}
-local teams = Spring.GetTeamList()
+local teams = SpringShared.GetTeamList()
 for i = 1, #teams do
 	local r, g, b = spGetTeamColor(teams[i])
-	teamColorKeys[teams[i]] = r..'_'..g..'_'..b
+	teamColorKeys[teams[i]] = r .. "_" .. g .. "_" .. b
 end
 teams = nil
 
@@ -134,7 +133,7 @@ end
 local function updateSpecList(init)
 	specList = {}
 	playerTeamIDs = {}
-	local t = Spring.GetPlayerList()
+	local t = SpringShared.GetPlayerList()
 	for _, playerID in ipairs(t) do
 		local _, _, isSpec, teamID = spGetPlayerInfo(playerID, false)
 		specList[playerID] = isSpec
@@ -212,73 +211,72 @@ local function SetTeamColor(teamID, playerID, a)
 	glColor(color)
 end
 
-
 function widget:ViewResize()
-	font = WG['fonts'].getFont(1, 1.5)
+	font = WG.fonts.getFont(1, 1.5)
 	deleteDlists()
 end
 
 function widget:Initialize()
 	widget:ViewResize()
-	widgetHandler:RegisterGlobal('MouseCursorEvent', MouseCursorEvent)
+	widgetHandler:RegisterGlobal("MouseCursorEvent", MouseCursorEvent)
 
 	if showPlayerName then
 		usedCursorSize = drawNamesCursorSize
 	end
 	updateSpecList(true)
 
-	WG['allycursors'] = {}
-	WG['allycursors'].setLights = function(value)
+	WG.allycursors = {}
+	WG.allycursors.setLights = function(value)
 		addLights = value
 		deleteDlists()
 	end
-	WG['allycursors'].getLights = function()
+	WG.allycursors.getLights = function()
 		return addLights
 	end
-	WG['allycursors'].setLightStrength = function(value)
+	WG.allycursors.setLightStrength = function(value)
 		lightStrengthMult = value
 	end
-	WG['allycursors'].getLightStrength = function()
+	WG.allycursors.getLightStrength = function()
 		return lightStrengthMult
 	end
-	WG['allycursors'].setLightRadius = function(value)
+	WG.allycursors.setLightRadius = function(value)
 		lightRadiusMult = value
 	end
-	WG['allycursors'].setLightSelfShadowing = function(value)
+	WG.allycursors.setLightSelfShadowing = function(value)
 		lightSelfShadowing = value
 	end
-	WG['allycursors'].getLightRadius = function()
+	WG.allycursors.getLightRadius = function()
 		return lightRadiusMult
 	end
 
-	WG['allycursors'].getLightSelfShadowing = function()
+	WG.allycursors.getLightSelfShadowing = function()
 		return lightSelfShadowing
 	end
-	WG['allycursors'].setCursorDot = function(value)
+	WG.allycursors.setCursorDot = function(value)
 		showCursorDot = value
 		deleteDlists()
 	end
-	WG['allycursors'].getCursorDot = function()
+	WG.allycursors.getCursorDot = function()
 		return showCursorDot
 	end
-	WG['allycursors'].setPlayerNames = function(value)
+	WG.allycursors.setPlayerNames = function(value)
 		showPlayerName = value
 		deleteDlists()
 	end
-	WG['allycursors'].getPlayerNames = function()
+	WG.allycursors.getPlayerNames = function()
 		return showPlayerName
 	end
-	WG['allycursors'].setSpectatorNames = function(value)
+	WG.allycursors.setSpectatorNames = function(value)
 		showSpectatorName = value
 		deleteDlists()
 	end
-	WG['allycursors'].getSpectatorNames = function()
+	WG.allycursors.getSpectatorNames = function()
 		return showSpectatorName
 	end
-	WG['allycursors'].getCursors = function()
+	WG.allycursors.getCursors = function()
 		return cursors, notIdle
 	end
-	WG['allycursors'].getCursor = function(playerID)
+	WG.allycursors.getCursor = function(playerID)
 		if not playerID then
 			return nil
 		end
@@ -286,16 +284,16 @@ function widget:Initialize()
 	end
 
 	local now = clock() - (idleCursorTime * 0.95)
-	local pList = Spring.GetPlayerList()
+	local pList = SpringShared.GetPlayerList()
 	for _, playerID in ipairs(pList) do
 		alliedCursorsTime[playerID] = now
 	end
 end
 
 function widget:Shutdown()
-	widgetHandler:DeregisterGlobal('MouseCursorEvent')
+	widgetHandler:DeregisterGlobal("MouseCursorEvent")
 	deleteDlists()
-	WG['allycursors'] = nil
+	WG.allycursors = nil
 end
 
 function widget:PlayerChanged(playerID)
@@ -324,7 +322,7 @@ function widget:PlayerChanged(playerID)
 	end
 	-- update speclist when player becomes spectator
 	--if isSpec and not specList[playerID] then
-		updateSpecList()
+	updateSpecList()
 	--end
 end
 
@@ -361,14 +359,13 @@ local function createCursorDrawList(playerID, opacityMultiplier)
 	SetTeamColor(teamID, playerID, 1)
 
 	-- draw player cursor
-	if not spec and showCursorDot and (not addLights or not WG['lightsgl4']) then
+	if not spec and showCursorDot and (not addLights or not WG.lightsgl4) then
 		glTexture(allyCursor)
 		glBeginEnd(GL.QUADS, DrawGroundquad, wx, wy, wz, quadSize)
 		glTexture(false)
 	end
 
 	if spec or showPlayerName then
-
 		-- draw nickname
 		if not spec or showSpectatorName then
 			glPushMatrix()
@@ -448,22 +445,23 @@ local function DrawCursor(playerID, wx, wy, wz, camX, camY, camZ, opacity)
 	end
 end
 
-
 local sec = 0
 function widget:Update(dt)
-	if spIsGUIHidden() then return end
+	if spIsGUIHidden() then
+		return
+	end
 
 	sec = sec + dt
 	if sec > 1.5 then
 		sec = 0
 
 		-- check if team colors have changed
-		local teams = Spring.GetTeamList()
+		local teams = SpringShared.GetTeamList()
 		for i = 1, #teams do
 			local r, g, b = spGetTeamColor(teams[i])
-			if teamColorKeys[teams[i]] ~= r..'_'..g..'_'..b then
-				teamColorKeys[teams[i]] = r..'_'..g..'_'..b
-				local players = Spring.GetPlayerList(teams[i])
+			if teamColorKeys[teams[i]] ~= r .. "_" .. g .. "_" .. b then
+				teamColorKeys[teams[i]] = r .. "_" .. g .. "_" .. b
+				local players = SpringShared.GetPlayerList(teams[i])
 				for _, playerID in ipairs(players) do
 					widget:PlayerChanged(playerID)
 				end
@@ -494,11 +492,11 @@ function widget:Update(dt)
 				end
 			end
 			if specList[playerID] and not showSpectatorName then
-				opacity = 0	-- doing this cause somehow setting cursors[playerID][8]=true doesnt remove the light but setting cursors[playerID]=nil does
+				opacity = 0 -- doing this cause somehow setting cursors[playerID][8]=true doesnt remove the light but setting cursors[playerID]=nil does
 			end
 			if opacity > 0.1 then
 				if not cursors[playerID] then
-					cursors[playerID] = { wx, spGetGroundHeight(wx, wz), wz, camX, camY, camZ, opacity, specList[playerID]}
+					cursors[playerID] = { wx, spGetGroundHeight(wx, wz), wz, camX, camY, camZ, opacity, specList[playerID] }
 				else
 					cursors[playerID][1] = wx
 					cursors[playerID][2] = spGetGroundHeight(wx, wz)
@@ -559,7 +557,7 @@ function widget:GetConfigData()
 		lightStrengthMult = lightStrengthMult,
 		showCursorDot = showCursorDot,
 		showSpectatorName = showSpectatorName,
-		showPlayerName = showPlayerName
+		showPlayerName = showPlayerName,
 	}
 end
 

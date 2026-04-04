@@ -6,18 +6,18 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name 	= "Remove Wait",
-		desc	= "Removes wait from structures which have no need for the command.",
-		author	= "GoogleFrog",
-		date	= "3 April 2015",
-		license	= "GNU GPL, v2 or later",
-		layer	= 0,
+		name = "Remove Wait",
+		desc = "Removes wait from structures which have no need for the command.",
+		author = "GoogleFrog",
+		date = "3 April 2015",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
 		enabled = true,
 	}
 end
 
-local spRemoveUnitCmdDesc = Spring.RemoveUnitCmdDesc
-local spFindUnitCmdDesc   = Spring.FindUnitCmdDesc
+local spRemoveUnitCmdDesc = SpringSynced.RemoveUnitCmdDesc
+local spFindUnitCmdDesc = SpringShared.FindUnitCmdDesc
 local CMD_WAIT = CMD.WAIT
 
 local removeCommands = {
@@ -36,7 +36,7 @@ for unitDefID = 1, #UnitDefs do
 end
 
 function gadget:AllowCommand_GetWantedCommand()
-	return {[CMD_WAIT] = true}
+	return { [CMD_WAIT] = true }
 end
 
 function gadget:AllowCommand_GetWantedUnitDefID()
@@ -65,8 +65,8 @@ end
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_WAIT)
 	-- load active units
-	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		local unitDefID = Spring.GetUnitDefID(unitID)
+	for _, unitID in ipairs(SpringShared.GetAllUnits()) do
+		local unitDefID = SpringShared.GetUnitDefID(unitID)
 		gadget:UnitCreated(unitID, unitDefID)
 	end
 end

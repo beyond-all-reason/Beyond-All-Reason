@@ -1,15 +1,14 @@
-
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name    = "Message",
-		desc	= 'allow sending messages using the i18n library so everyone can see them in their own language',
-		author	= 'Floris',
-		date	= 'May 2024',
-		license	= 'GNU GPL, v2 or later',
-		layer	= 1,
-		enabled	= true
+		name = "Message",
+		desc = "allow sending messages using the i18n library so everyone can see them in their own language",
+		author = "Floris",
+		date = "May 2024",
+		license = "GNU GPL, v2 or later",
+		layer = 1,
+		enabled = true,
 	}
 end
 
@@ -19,7 +18,6 @@ local PACKET_HEADER = "msg"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 
 if gadgetHandler:IsSyncedCode() then
-
 	function gadget:RecvLuaMsg(msg, playerID)
 		if string.sub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
 			return
@@ -27,14 +25,12 @@ if gadgetHandler:IsSyncedCode() then
 		SendToUnsynced("sendMsg", playerID, string.sub(msg, 4))
 		return true
 	end
-
-else	-- UNSYNCED
-
+else -- UNSYNCED
 	local function sendMsg(_, playerID, msg)
-		local name,_,spec,_,playerAllyTeamID = Spring.GetPlayerInfo(playerID, false)
-		local mySpec = Spring.GetSpectatingState()
-		if not spec and (playerAllyTeamID == Spring.GetMyAllyTeamID() or mySpec) then
-			Spring.SendMessageToPlayer(Spring.GetMyPlayerID(), '<'..name..'> Allies: > '..msg)
+		local name, _, spec, _, playerAllyTeamID = SpringShared.GetPlayerInfo(playerID, false)
+		local mySpec = SpringUnsynced.GetSpectatingState()
+		if not spec and (playerAllyTeamID == SpringUnsynced.GetLocalAllyTeamID() or mySpec) then
+			SpringUnsynced.SendMessageToPlayer(SpringUnsynced.GetLocalPlayerID(), "<" .. name .. "> Allies: > " .. msg)
 		end
 	end
 
@@ -45,4 +41,3 @@ else	-- UNSYNCED
 		gadgetHandler:AddSyncAction("sendMsg")
 	end
 end
-

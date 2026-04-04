@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "Jul 24, 2007",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -16,7 +16,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local spGetGroundHeight = Spring.GetGroundHeight
+local spGetGroundHeight = SpringShared.GetGroundHeight
 local reissueOrder = Game.Commands.ReissueOrder
 local CMD_ATTACK = CMD.ATTACK
 

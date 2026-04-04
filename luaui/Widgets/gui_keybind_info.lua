@@ -12,14 +12,13 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized functions for performance
 local mathCeil = math.ceil
 local mathFloor = math.floor
 local mathMax = math.max
 
 -- Localized Spring API for performance
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local currentLayout
@@ -31,15 +30,15 @@ local lineType = {
 	key = 3,
 }
 
-local tabs = {"Keybindings", "Grid Keys", "Grid CTRL Keys", "Grid ALT Keys", "Legacy Keys", "Legacy CTRL Keys", "Legacy ALT Keys",}
+local tabs = { "Keybindings", "Grid Keys", "Grid CTRL Keys", "Grid ALT Keys", "Legacy Keys", "Legacy CTRL Keys", "Legacy ALT Keys" }
 
 local keybindsimages = {
-	["Grid Keys"]        = "luaui/images/keybinds/grid_keys.png",
-	['Grid CTRL Keys']   = "luaui/images/keybinds/grid_keys_CTRL.png",
-	['Grid ALT Keys']    = "luaui/images/keybinds/grid_keys_ALT.png",
-	['Legacy Keys']      = "luaui/images/keybinds/legacy_keys.png",
-	['Legacy CTRL Keys'] = "luaui/images/keybinds/legacy_keys_CTRL.png",
-	['Legacy ALT Keys']  = "luaui/images/keybinds/legacy_keys_ALT.png",
+	["Grid Keys"] = "luaui/images/keybinds/grid_keys.png",
+	["Grid CTRL Keys"] = "luaui/images/keybinds/grid_keys_CTRL.png",
+	["Grid ALT Keys"] = "luaui/images/keybinds/grid_keys_ALT.png",
+	["Legacy Keys"] = "luaui/images/keybinds/legacy_keys.png",
+	["Legacy CTRL Keys"] = "luaui/images/keybinds/legacy_keys_CTRL.png",
+	["Legacy ALT Keys"] = "luaui/images/keybinds/legacy_keys_ALT.png",
 }
 
 local tabrects = {}
@@ -51,9 +50,11 @@ local actionHotkeys
 local function getActionHotkey(action)
 	local key = actionHotkeys[action]
 
-	if not key then return "(none)" end
+	if not key then
+		return "(none)"
+	end
 
-	return keyConfig.sanitizeKey(key, currentLayout):gsub("%+"," + ")
+	return keyConfig.sanitizeKey(key, currentLayout):gsub("%+", " + ")
 end
 
 local vsx, vsy = spGetViewGeometry()
@@ -122,24 +123,26 @@ end
 
 local function drawWindow(activetab)
 	local activetab = activetab or lasttab
-	if activetab == nil then activetab = 'Keybindings' end
+	if activetab == nil then
+		activetab = "Keybindings"
+	end
 
 	-- background
-	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, WG.FlowUI.clampedOpacity)
+	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1, 1, 1, 1, WG.FlowUI.clampedOpacity)
 
 	local titleFontSize = 18 * widgetScale
 
 	local tabx = 0
-	for i,tab in ipairs(tabs) do
+	for i, tab in ipairs(tabs) do
 		local tabwidth = font2:GetTextWidth(tab)
 		tabrects[tab] = {
 			mathFloor(screenX + tabx),
 			screenY,
-			mathFloor(screenX + tabx + tabwidth * titleFontSize + (titleFontSize*1.5)),
-			mathFloor(screenY + (titleFontSize*1.7)),
-			tabx
+			mathFloor(screenX + tabx + tabwidth * titleFontSize + (titleFontSize * 1.5)),
+			mathFloor(screenY + (titleFontSize * 1.7)),
+			tabx,
 		}
-		tabx = tabx + (tabwidth  * titleFontSize +  (titleFontSize*1.5))
+		tabx = tabx + (tabwidth * titleFontSize + (titleFontSize * 1.5))
 		gl.Color(0, 0, 0, WG.FlowUI.clampedOpacity)
 		RectRound(tabrects[tab][1], tabrects[tab][2], tabrects[tab][3], tabrects[tab][4], elementCorner, 1, 1, 0, 0)
 	end
@@ -148,24 +151,22 @@ local function drawWindow(activetab)
 	font2:Begin()
 	font2:SetTextColor(1, 1, 1, 1)
 	font2:SetOutlineColor(0, 0, 0, 0.4)
-	for i,tab in ipairs(tabs) do
+	for i, tab in ipairs(tabs) do
 		local tabcolor = keybindColor
 		if tab ~= activetab then
 			tabcolor = titleColor
 		end
-		font2:Print(tabcolor .. tab, screenX + (titleFontSize * 0.75) + tabrects[tab][5], screenY + (8*widgetScale), titleFontSize, "on")
+		font2:Print(tabcolor .. tab, screenX + (titleFontSize * 0.75) + tabrects[tab][5], screenY + (8 * widgetScale), titleFontSize, "on")
 	end
 	font2:End()
 
-
 	if activetab ~= "Keybindings" and keybindsimages[activetab] then
-		gl.Color(1,1,1,1)
-		gl.Texture(0, ":l:"..keybindsimages[activetab])
+		gl.Color(1, 1, 1, 1)
+		gl.Texture(0, ":l:" .. keybindsimages[activetab])
 		local zoom = 0.05
-		gl.TexRect(screenX,screenY - screenHeight, screenX + screenWidth, screenY, 0 + 0.02, 1 - zoom, 1 - 0.02 , 0 + zoom)
+		gl.TexRect(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0 + 0.02, 1 - zoom, 1 - 0.02, 0 + zoom)
 		gl.Texture(0, false)
 	else
-
 		local entriesPerColumn = mathCeil(#keybindsText / 3)
 		local entries1 = {}
 		local entries2 = {}
@@ -183,125 +184,125 @@ local function drawWindow(activetab)
 		local textTopPadding = 28 * widgetScale
 		local x = screenX + textPadding
 		drawTextTable(entries1, x, screenY - textTopPadding)
-		x = x + (350*widgetScale)
+		x = x + (350 * widgetScale)
 		drawTextTable(entries2, x, screenY - textTopPadding)
-		x = x + (350*widgetScale)
+		x = x + (350 * widgetScale)
 		drawTextTable(entries3, x, screenY - textTopPadding)
 
 		gl.Color(1, 1, 1, 1)
 		font:Begin()
-		font:Print(Spring.I18N('ui.keybinds.disclaimer'), screenX + (12*widgetScale), screenY - screenHeight + (34*widgetScale), 12.5*widgetScale)
-		font:Print(Spring.I18N('ui.keybinds.howtochangekeybinds'), screenX + (12*widgetScale), screenY - screenHeight + (20*widgetScale), 12.5*widgetScale)
+		font:Print(I18N("ui.keybinds.disclaimer"), screenX + (12 * widgetScale), screenY - screenHeight + (34 * widgetScale), 12.5 * widgetScale)
+		font:Print(I18N("ui.keybinds.howtochangekeybinds"), screenX + (12 * widgetScale), screenY - screenHeight + (20 * widgetScale), 12.5 * widgetScale)
 		font:End()
 	end
 end
 
 local function refreshText()
 	actionHotkeys = VFS.Include("luaui/Include/action_hotkeys.lua")
-	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
+	currentLayout = SpringUnsynced.GetConfigString("KeyboardLayout", "qwerty")
 
 	keybindsText = {
-		{ type = lineType.title, text = Spring.I18N('ui.keybinds.chat.title') },
-		{ type = lineType.key, key = getActionHotkey('chat'),		text = Spring.I18N('ui.keybinds.chat.send')			},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.chat.alliesKey'),		text = Spring.I18N('ui.keybinds.chat.allies')		},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.chat.spectatorsKey'),	text = Spring.I18N('ui.keybinds.chat.spectators')	},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.chat.ignoreKey'),		text = Spring.I18N('ui.keybinds.chat.ignore')		},
+		{ type = lineType.title, text = I18N("ui.keybinds.chat.title") },
+		{ type = lineType.key, key = getActionHotkey("chat"), text = I18N("ui.keybinds.chat.send") },
+		{ type = lineType.key, key = I18N("ui.keybinds.chat.alliesKey"), text = I18N("ui.keybinds.chat.allies") },
+		{ type = lineType.key, key = I18N("ui.keybinds.chat.spectatorsKey"), text = I18N("ui.keybinds.chat.spectators") },
+		{ type = lineType.key, key = I18N("ui.keybinds.chat.ignoreKey"), text = I18N("ui.keybinds.chat.ignore") },
 		{ type = lineType.blank },
-		{ type = lineType.title, text = Spring.I18N('ui.keybinds.menus.title') },
-		{ type = lineType.key, key = getActionHotkey('options'),		text = Spring.I18N('ui.keybinds.menus.settings')	},
-		{ type = lineType.key, key = getActionHotkey('sharedialog'),			text = Spring.I18N('ui.keybinds.menus.share')		},
+		{ type = lineType.title, text = I18N("ui.keybinds.menus.title") },
+		{ type = lineType.key, key = getActionHotkey("options"), text = I18N("ui.keybinds.menus.settings") },
+		{ type = lineType.key, key = getActionHotkey("sharedialog"), text = I18N("ui.keybinds.menus.share") },
 		{ type = lineType.blank },
-		{ type = lineType.title, text = Spring.I18N('ui.keybinds.camera.title') },
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.camera.zoomKey'),	text = Spring.I18N('ui.keybinds.camera.zoom')	},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.camera.panKey'),	text = Spring.I18N('ui.keybinds.camera.pan')	},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.camera.tiltKey'),	text = Spring.I18N('ui.keybinds.camera.tilt')	},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.camera.dragKey'),	text = Spring.I18N('ui.keybinds.camera.drag')	},
-		{ type = lineType.key, key = getActionHotkey('cameraflip'),	text = Spring.I18N('ui.keybinds.camera.flip')	},
+		{ type = lineType.title, text = I18N("ui.keybinds.camera.title") },
+		{ type = lineType.key, key = I18N("ui.keybinds.camera.zoomKey"), text = I18N("ui.keybinds.camera.zoom") },
+		{ type = lineType.key, key = I18N("ui.keybinds.camera.panKey"), text = I18N("ui.keybinds.camera.pan") },
+		{ type = lineType.key, key = I18N("ui.keybinds.camera.tiltKey"), text = I18N("ui.keybinds.camera.tilt") },
+		{ type = lineType.key, key = I18N("ui.keybinds.camera.dragKey"), text = I18N("ui.keybinds.camera.drag") },
+		{ type = lineType.key, key = getActionHotkey("cameraflip"), text = I18N("ui.keybinds.camera.flip") },
 		{ type = lineType.blank },
-		{ type = lineType.title, text = Spring.I18N('ui.keybinds.cameraModes.title') },
-		{ type = lineType.key, key = getActionHotkey('viewta') .. ', ' .. getActionHotkey('viewspring'),			text = Spring.I18N('ui.keybinds.cameraModes.change')		},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.cameraModes.fullscreenKey'),		text = Spring.I18N('ui.keybinds.cameraModes.fullscreen')	},
-		{ type = lineType.key, key = getActionHotkey('toggleoverview'),		text = Spring.I18N('ui.keybinds.cameraModes.overview')		},
-		{ type = lineType.key, key = getActionHotkey('togglelos'),				text = Spring.I18N('ui.keybinds.cameraModes.los')			},
-		{ type = lineType.key, key = getActionHotkey('showelevation'),		text = Spring.I18N('ui.keybinds.cameraModes.heightmap')		},
-		{ type = lineType.key, key = getActionHotkey('showpathtraversability'),	text = Spring.I18N('ui.keybinds.cameraModes.traversability')},
-		{ type = lineType.key, key = getActionHotkey('lastmsgpos'),		text = Spring.I18N('ui.keybinds.cameraModes.mapmarks')		},
-		{ type = lineType.key, key = getActionHotkey('showmetalmap'),	text = Spring.I18N('ui.keybinds.cameraModes.resourceSpots')	},
-		{ type = lineType.key, key = getActionHotkey('hideinterface'),		text = Spring.I18N('ui.keybinds.cameraModes.interface')		},
+		{ type = lineType.title, text = I18N("ui.keybinds.cameraModes.title") },
+		{ type = lineType.key, key = getActionHotkey("viewta") .. ", " .. getActionHotkey("viewspring"), text = I18N("ui.keybinds.cameraModes.change") },
+		{ type = lineType.key, key = I18N("ui.keybinds.cameraModes.fullscreenKey"), text = I18N("ui.keybinds.cameraModes.fullscreen") },
+		{ type = lineType.key, key = getActionHotkey("toggleoverview"), text = I18N("ui.keybinds.cameraModes.overview") },
+		{ type = lineType.key, key = getActionHotkey("togglelos"), text = I18N("ui.keybinds.cameraModes.los") },
+		{ type = lineType.key, key = getActionHotkey("showelevation"), text = I18N("ui.keybinds.cameraModes.heightmap") },
+		{ type = lineType.key, key = getActionHotkey("showpathtraversability"), text = I18N("ui.keybinds.cameraModes.traversability") },
+		{ type = lineType.key, key = getActionHotkey("lastmsgpos"), text = I18N("ui.keybinds.cameraModes.mapmarks") },
+		{ type = lineType.key, key = getActionHotkey("showmetalmap"), text = I18N("ui.keybinds.cameraModes.resourceSpots") },
+		{ type = lineType.key, key = getActionHotkey("hideinterface"), text = I18N("ui.keybinds.cameraModes.interface") },
 		{ type = lineType.blank },
-		{ type = lineType.title, text = Spring.I18N('ui.keybinds.sound.title') },
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.sound.volumeKey'),	text = Spring.I18N('ui.keybinds.sound.volume')	},
-		{ type = lineType.key, key = getActionHotkey('mutesound'),		text = Spring.I18N('ui.keybinds.sound.mute')	},
+		{ type = lineType.title, text = I18N("ui.keybinds.sound.title") },
+		{ type = lineType.key, key = I18N("ui.keybinds.sound.volumeKey"), text = I18N("ui.keybinds.sound.volume") },
+		{ type = lineType.key, key = getActionHotkey("mutesound"), text = I18N("ui.keybinds.sound.mute") },
 		{ type = lineType.blank },
-		{ type = lineType.title, text = Spring.I18N('ui.keybinds.selection.title') },
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.selection.unitsKey'), text = Spring.I18N('ui.keybinds.selection.units') },
+		{ type = lineType.title, text = I18N("ui.keybinds.selection.title") },
+		{ type = lineType.key, key = I18N("ui.keybinds.selection.unitsKey"), text = I18N("ui.keybinds.selection.units") },
 		{ type = lineType.blank },
-		{ type = lineType.title, text = Spring.I18N('ui.keybinds.issueContextOrders.title') },
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.issueContextOrders.orderKey'),			text = Spring.I18N('ui.keybinds.issueContextOrders.order')			},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.issueContextOrders.formationOrderKey'),	text = Spring.I18N('ui.keybinds.issueContextOrders.formationOrder')	},
+		{ type = lineType.title, text = I18N("ui.keybinds.issueContextOrders.title") },
+		{ type = lineType.key, key = I18N("ui.keybinds.issueContextOrders.orderKey"), text = I18N("ui.keybinds.issueContextOrders.order") },
+		{ type = lineType.key, key = I18N("ui.keybinds.issueContextOrders.formationOrderKey"), text = I18N("ui.keybinds.issueContextOrders.formationOrder") },
 		{ type = lineType.blank },
-		{ type = lineType.title, text = Spring.I18N('ui.keybinds.orders.title') },
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.orders.defaultKey'),		text = Spring.I18N('ui.keybinds.orders.default')		},
-		{ type = lineType.key, key = getActionHotkey('move'),			text = Spring.I18N('ui.keybinds.orders.move')			},
-		{ type = lineType.key, key = getActionHotkey('attack'),		text = Spring.I18N('ui.keybinds.orders.attack')			},
-		{ type = lineType.key, key = getActionHotkey('settarget'),	text = Spring.I18N('ui.keybinds.orders.setTarget')		},
-		{ type = lineType.key, key = getActionHotkey('repair'),		text = Spring.I18N('ui.keybinds.orders.repair')			},
-		{ type = lineType.key, key = getActionHotkey('reclaim'),		text = Spring.I18N('ui.keybinds.orders.reclaim')		},
-		{ type = lineType.key, key = getActionHotkey('resurrect'),	text = Spring.I18N('ui.keybinds.orders.resurrect')		},
-		{ type = lineType.key, key = getActionHotkey('fight'),		text = Spring.I18N('ui.keybinds.orders.fight')			},
-		{ type = lineType.key, key = getActionHotkey('patrol'),		text = Spring.I18N('ui.keybinds.orders.patrol')			},
-		{ type = lineType.key, key = getActionHotkey('wantcloak'),		text = Spring.I18N('ui.keybinds.orders.cloak')			},
+		{ type = lineType.title, text = I18N("ui.keybinds.orders.title") },
+		{ type = lineType.key, key = I18N("ui.keybinds.orders.defaultKey"), text = I18N("ui.keybinds.orders.default") },
+		{ type = lineType.key, key = getActionHotkey("move"), text = I18N("ui.keybinds.orders.move") },
+		{ type = lineType.key, key = getActionHotkey("attack"), text = I18N("ui.keybinds.orders.attack") },
+		{ type = lineType.key, key = getActionHotkey("settarget"), text = I18N("ui.keybinds.orders.setTarget") },
+		{ type = lineType.key, key = getActionHotkey("repair"), text = I18N("ui.keybinds.orders.repair") },
+		{ type = lineType.key, key = getActionHotkey("reclaim"), text = I18N("ui.keybinds.orders.reclaim") },
+		{ type = lineType.key, key = getActionHotkey("resurrect"), text = I18N("ui.keybinds.orders.resurrect") },
+		{ type = lineType.key, key = getActionHotkey("fight"), text = I18N("ui.keybinds.orders.fight") },
+		{ type = lineType.key, key = getActionHotkey("patrol"), text = I18N("ui.keybinds.orders.patrol") },
+		{ type = lineType.key, key = getActionHotkey("wantcloak"), text = I18N("ui.keybinds.orders.cloak") },
 		{ type = lineType.blank },
-		{ type = lineType.key, key = getActionHotkey('stop'),			text = Spring.I18N('ui.keybinds.orders.stop')			},
-		{ type = lineType.key, key = getActionHotkey('wait'),			text = Spring.I18N('ui.keybinds.orders.wait')			},
-		{ type = lineType.key, key = getActionHotkey('canceltarget'),	text = Spring.I18N('ui.keybinds.orders.cancelTarget')	},
+		{ type = lineType.key, key = getActionHotkey("stop"), text = I18N("ui.keybinds.orders.stop") },
+		{ type = lineType.key, key = getActionHotkey("wait"), text = I18N("ui.keybinds.orders.wait") },
+		{ type = lineType.key, key = getActionHotkey("canceltarget"), text = I18N("ui.keybinds.orders.cancelTarget") },
 		{ type = lineType.blank },
-		{ type = lineType.key, key = getActionHotkey('manualfire'),			text = Spring.I18N('ui.keybinds.orders.dGun')			},
-		{ type = lineType.key, key = getActionHotkey('selfd'),	text = Spring.I18N('ui.keybinds.orders.selfDestruct')	},
+		{ type = lineType.key, key = getActionHotkey("manualfire"), text = I18N("ui.keybinds.orders.dGun") },
+		{ type = lineType.key, key = getActionHotkey("selfd"), text = I18N("ui.keybinds.orders.selfDestruct") },
 		{ type = lineType.blank },
-		{ type = lineType.title, text = Spring.I18N('ui.keybinds.issueOrders.title') },
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.issueOrders.orderKey'),		text = Spring.I18N('ui.keybinds.issueOrders.order')		},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.issueOrders.revertKey'),		text = Spring.I18N('ui.keybinds.issueOrders.revert')	},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.issueOrders.formationKey'),	text = Spring.I18N('ui.keybinds.issueOrders.formation')	},
+		{ type = lineType.title, text = I18N("ui.keybinds.issueOrders.title") },
+		{ type = lineType.key, key = I18N("ui.keybinds.issueOrders.orderKey"), text = I18N("ui.keybinds.issueOrders.order") },
+		{ type = lineType.key, key = I18N("ui.keybinds.issueOrders.revertKey"), text = I18N("ui.keybinds.issueOrders.revert") },
+		{ type = lineType.key, key = I18N("ui.keybinds.issueOrders.formationKey"), text = I18N("ui.keybinds.issueOrders.formation") },
 		{ type = lineType.blank },
-		{ type = lineType.title, text = Spring.I18N('ui.keybinds.queues.title') },
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.queues.appendKey'),	text = Spring.I18N('ui.keybinds.queues.append')	},
-		{ type = lineType.key, key = getActionHotkey('commandinsert'),	text = Spring.I18N('ui.keybinds.queues.prepend')},
+		{ type = lineType.title, text = I18N("ui.keybinds.queues.title") },
+		{ type = lineType.key, key = I18N("ui.keybinds.queues.appendKey"), text = I18N("ui.keybinds.queues.append") },
+		{ type = lineType.key, key = getActionHotkey("commandinsert"), text = I18N("ui.keybinds.queues.prepend") },
 		{ type = lineType.blank },
-		{ type = lineType.title, text = Spring.I18N('ui.keybinds.buildOrders.title') },
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.buildOrders.selectTileKey'),	text = Spring.I18N('ui.keybinds.buildOrders.selectTile')},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.buildOrders.metalKey'),		text = Spring.I18N('ui.keybinds.buildOrders.metal')		},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.buildOrders.energyKey'),		text = Spring.I18N('ui.keybinds.buildOrders.energy')	},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.buildOrders.intelKey'),		text = Spring.I18N('ui.keybinds.buildOrders.intel')		},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.buildOrders.factoriesKey'),	text = Spring.I18N('ui.keybinds.buildOrders.factories')	},
-		{ type = lineType.key, key = getActionHotkey('buildfacing_inc') .." / ".. getActionHotkey('buildfacing_dec'),		text = Spring.I18N('ui.keybinds.buildOrders.rotate')	},
+		{ type = lineType.title, text = I18N("ui.keybinds.buildOrders.title") },
+		{ type = lineType.key, key = I18N("ui.keybinds.buildOrders.selectTileKey"), text = I18N("ui.keybinds.buildOrders.selectTile") },
+		{ type = lineType.key, key = I18N("ui.keybinds.buildOrders.metalKey"), text = I18N("ui.keybinds.buildOrders.metal") },
+		{ type = lineType.key, key = I18N("ui.keybinds.buildOrders.energyKey"), text = I18N("ui.keybinds.buildOrders.energy") },
+		{ type = lineType.key, key = I18N("ui.keybinds.buildOrders.intelKey"), text = I18N("ui.keybinds.buildOrders.intel") },
+		{ type = lineType.key, key = I18N("ui.keybinds.buildOrders.factoriesKey"), text = I18N("ui.keybinds.buildOrders.factories") },
+		{ type = lineType.key, key = getActionHotkey("buildfacing_inc") .. " / " .. getActionHotkey("buildfacing_dec"), text = I18N("ui.keybinds.buildOrders.rotate") },
 		{ type = lineType.blank },
-		{ type = lineType.title, text = Spring.I18N('ui.keybinds.issueBuildOrders.title') },
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.issueBuildOrders.orderKey'),			text = Spring.I18N('ui.keybinds.issueBuildOrders.order')			},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.issueBuildOrders.deselect'),			text = Spring.I18N('ui.keybinds.issueBuildOrders.deselect')			},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.issueBuildOrders.lineKey'),			text = Spring.I18N('ui.keybinds.issueBuildOrders.line')				},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.issueBuildOrders.gridKey'),			text = Spring.I18N('ui.keybinds.issueBuildOrders.grid')				},
-		{ type = lineType.key, key = getActionHotkey('buildspacing_inc'),		text = Spring.I18N('ui.keybinds.issueBuildOrders.spacingUp')		},
-		{ type = lineType.key, key = getActionHotkey('buildspacing_dec'),		text = Spring.I18N('ui.keybinds.issueBuildOrders.spacingDown')	},
+		{ type = lineType.title, text = I18N("ui.keybinds.issueBuildOrders.title") },
+		{ type = lineType.key, key = I18N("ui.keybinds.issueBuildOrders.orderKey"), text = I18N("ui.keybinds.issueBuildOrders.order") },
+		{ type = lineType.key, key = I18N("ui.keybinds.issueBuildOrders.deselect"), text = I18N("ui.keybinds.issueBuildOrders.deselect") },
+		{ type = lineType.key, key = I18N("ui.keybinds.issueBuildOrders.lineKey"), text = I18N("ui.keybinds.issueBuildOrders.line") },
+		{ type = lineType.key, key = I18N("ui.keybinds.issueBuildOrders.gridKey"), text = I18N("ui.keybinds.issueBuildOrders.grid") },
+		{ type = lineType.key, key = getActionHotkey("buildspacing_inc"), text = I18N("ui.keybinds.issueBuildOrders.spacingUp") },
+		{ type = lineType.key, key = getActionHotkey("buildspacing_dec"), text = I18N("ui.keybinds.issueBuildOrders.spacingDown") },
 		{ type = lineType.blank },
-		{ type = lineType.title, text = Spring.I18N('ui.keybinds.massSelect.title') },
-		{ type = lineType.key, key = getActionHotkey('select_AllMap++_ClearSelection_SelectAll+'),			text = Spring.I18N('ui.keybinds.massSelect.all')		},
-		{ type = lineType.key, key = getActionHotkey('select_AllMap+_Builder_Idle+_ClearSelection_SelectOne+'),		text = Spring.I18N('ui.keybinds.massSelect.builders')	},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.massSelect.createGroupKey'),	text = Spring.I18N('ui.keybinds.massSelect.createGroup')},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.massSelect.createAutoGroupKey'),	text = Spring.I18N('ui.keybinds.massSelect.createAutoGroup')},
-		{ type = lineType.key, key = getActionHotkey('remove_from_autogroup'),	text = Spring.I18N('ui.keybinds.massSelect.removeAutoGroup')},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.massSelect.groupKey'),		text = Spring.I18N('ui.keybinds.massSelect.group')		},
-		{ type = lineType.key, key = getActionHotkey('select_AllMap+_InPrevSel+_ClearSelection_SelectAll+'),		text = Spring.I18N('ui.keybinds.massSelect.sameType')	},
-		{ type = lineType.key, key = getActionHotkey('select_PrevSelection+_Not_Building_Not_RelativeHealth_60+_ClearSelection_SelectAll+'),		text = Spring.I18N('ui.keybinds.massSelect.damaged')	},
+		{ type = lineType.title, text = I18N("ui.keybinds.massSelect.title") },
+		{ type = lineType.key, key = getActionHotkey("select_AllMap++_ClearSelection_SelectAll+"), text = I18N("ui.keybinds.massSelect.all") },
+		{ type = lineType.key, key = getActionHotkey("select_AllMap+_Builder_Idle+_ClearSelection_SelectOne+"), text = I18N("ui.keybinds.massSelect.builders") },
+		{ type = lineType.key, key = I18N("ui.keybinds.massSelect.createGroupKey"), text = I18N("ui.keybinds.massSelect.createGroup") },
+		{ type = lineType.key, key = I18N("ui.keybinds.massSelect.createAutoGroupKey"), text = I18N("ui.keybinds.massSelect.createAutoGroup") },
+		{ type = lineType.key, key = getActionHotkey("remove_from_autogroup"), text = I18N("ui.keybinds.massSelect.removeAutoGroup") },
+		{ type = lineType.key, key = I18N("ui.keybinds.massSelect.groupKey"), text = I18N("ui.keybinds.massSelect.group") },
+		{ type = lineType.key, key = getActionHotkey("select_AllMap+_InPrevSel+_ClearSelection_SelectAll+"), text = I18N("ui.keybinds.massSelect.sameType") },
+		{ type = lineType.key, key = getActionHotkey("select_PrevSelection+_Not_Building_Not_RelativeHealth_60+_ClearSelection_SelectAll+"), text = I18N("ui.keybinds.massSelect.damaged") },
 		{ type = lineType.blank },
-		{ type = lineType.title, text = Spring.I18N('ui.keybinds.drawing.title') },
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.drawing.mapmarkKey'),	text = Spring.I18N('ui.keybinds.drawing.mapmark')	},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.drawing.drawKey'),		text = Spring.I18N('ui.keybinds.drawing.draw')		},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.drawing.eraseKey'),		text = Spring.I18N('ui.keybinds.drawing.erase')		},
+		{ type = lineType.title, text = I18N("ui.keybinds.drawing.title") },
+		{ type = lineType.key, key = I18N("ui.keybinds.drawing.mapmarkKey"), text = I18N("ui.keybinds.drawing.mapmark") },
+		{ type = lineType.key, key = I18N("ui.keybinds.drawing.drawKey"), text = I18N("ui.keybinds.drawing.draw") },
+		{ type = lineType.key, key = I18N("ui.keybinds.drawing.eraseKey"), text = I18N("ui.keybinds.drawing.erase") },
 		{ type = lineType.blank },
-		{ type = lineType.title, text = Spring.I18N('ui.keybinds.console.title') },
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.console.eraseKey'),	text = Spring.I18N('ui.keybinds.console.erase')	},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.console.pauseKey'),	text = Spring.I18N('ui.keybinds.console.pause')	},
+		{ type = lineType.title, text = I18N("ui.keybinds.console.title") },
+		{ type = lineType.key, key = I18N("ui.keybinds.console.eraseKey"), text = I18N("ui.keybinds.console.erase") },
+		{ type = lineType.key, key = I18N("ui.keybinds.console.pauseKey"), text = I18N("ui.keybinds.console.pause") },
 	}
 end
 
@@ -314,8 +315,8 @@ function widget:ViewResize()
 	screenX = mathFloor((vsx * centerPosX) - (screenWidth / 2))
 	screenY = mathFloor((vsy * centerPosY) + (screenHeight / 2))
 
-	font = WG['fonts'].getFont()
-	font2 = WG['fonts'].getFont(2)
+	font = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2)
 
 	elementCorner = WG.FlowUI.elementCorner
 
@@ -328,10 +329,7 @@ function widget:ViewResize()
 	keybinds = gl.CreateList(drawWindow)
 end
 
-
-
 function widget:DrawScreen()
-
 	-- draw the help
 	if doUpdate then
 		if keybinds then
@@ -349,9 +347,9 @@ function widget:DrawScreen()
 	doUpdate = false
 
 	if show or showOnceMore then
-		gl.Texture(false)	-- some other widget left it on
+		gl.Texture(false) -- some other widget left it on
 		glCallList(keybinds)
-		if WG['guishader'] then
+		if WG.guishader then
 			if backgroundGuishader ~= nil then
 				glDeleteList(backgroundGuishader)
 			end
@@ -363,17 +361,17 @@ function widget:DrawScreen()
 					RectRound(tabrect[1], tabrect[2], tabrect[3], tabrect[4], elementCorner, 1, 1, 0, 0)
 				end
 			end)
-			WG['guishader'].InsertDlist(backgroundGuishader, 'keybindinfo')
+			WG.guishader.InsertDlist(backgroundGuishader, "keybindinfo")
 		end
 		showOnceMore = false
 
-		local x, y, pressed = Spring.GetMouseState()
-		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY)  then
-			Spring.SetMouseCursor('cursornormal')
+		local x, y, pressed = SpringUnsynced.GetMouseState()
+		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
+			SpringUnsynced.SetMouseCursor("cursornormal")
 		end
 	else
-		if WG['guishader'] then
-			WG['guishader'].DeleteDlist('keybindinfo')
+		if WG.guishader then
+			WG.guishader.DeleteDlist("keybindinfo")
 		end
 	end
 end
@@ -386,7 +384,7 @@ function widget:KeyPress(key)
 end
 
 local function mouseEvent(x, y, button, release)
-	if Spring.IsGUIHidden() then
+	if SpringUnsynced.IsGUIHidden() then
 		return false
 	end
 
@@ -406,7 +404,7 @@ local function mouseEvent(x, y, button, release)
 				end
 			end
 			if release or not release then
-				showOnceMore = show        -- show once more because the guishader lags behind, though this will not fully fix it
+				showOnceMore = show -- show once more because the guishader lags behind, though this will not fully fix it
 				show = false
 			end
 		end
@@ -424,18 +422,18 @@ end
 function widget:Initialize()
 	refreshText()
 
-	WG['keybinds'] = {}
-	WG['keybinds'].toggle = function(state)
+	WG.keybinds = {}
+	WG.keybinds.toggle = function(state)
 		if state ~= nil then
 			show = state
 		else
 			show = not show
 		end
 	end
-	WG['keybinds'].isvisible = function()
+	WG.keybinds.isvisible = function()
 		return show
 	end
-	WG['keybinds'].reloadBindings = function()
+	WG.keybinds.reloadBindings = function()
 		refreshText()
 		doUpdate = true
 	end
@@ -447,8 +445,8 @@ function widget:Shutdown()
 		glDeleteList(keybinds)
 		keybinds = nil
 	end
-	if WG['guishader'] then
-		WG['guishader'].RemoveDlist('keybindinfo')
+	if WG.guishader then
+		WG.guishader.RemoveDlist("keybindinfo")
 	end
 	if backgroundGuishader ~= nil then
 		glDeleteList(backgroundGuishader)

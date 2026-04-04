@@ -2,22 +2,22 @@ local gadget = gadget ---@type Gadget
 
 local enabled = true
 do
-    local success, mapinfo = pcall(VFS.Include, "mapinfo.lua")
-    if success and mapinfo and mapinfo.voidwater then
-        enabled = false
-    end
+	local success, mapinfo = pcall(VFS.Include, "mapinfo.lua")
+	if success and mapinfo and mapinfo.voidwater then
+		enabled = false
+	end
 end
 
 function gadget:GetInfo()
-    return {
-        name      = "Water Speed Multiplier",
-        desc      = "Speeds up or slows down units on water compared to their default land speed.",
-        author    = "ZephyrSkies",
-        date      = "2025-09-14",
-        license   = "GNU GPL, v2 or later",
-        layer     = 0,
-        enabled   = enabled,
-    }
+	return {
+		name = "Water Speed Multiplier",
+		desc = "Speeds up or slows down units on water compared to their default land speed.",
+		author = "ZephyrSkies",
+		date = "2025-09-14",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = enabled,
+	}
 end
 
 if not gadgetHandler:IsSyncedCode() then
@@ -33,11 +33,11 @@ local watchUpdateRate = 0.5000 ---@type number in seconds | slow watch interval 
 
 local math_clamp = math.clamp
 
-local spGetUnitIsDead = Spring.GetUnitIsDead
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetMoveTypeData = Spring.GetUnitMoveTypeData
-local spSetGroundMoveTypeData = Spring.MoveCtrl.SetGroundMoveTypeData
+local spGetUnitIsDead = SpringShared.GetUnitIsDead
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetGroundHeight = SpringShared.GetGroundHeight
+local spGetMoveTypeData = SpringShared.GetUnitMoveTypeData
+local spSetGroundMoveTypeData = SpringSynced.MoveCtrl.SetGroundMoveTypeData
 
 -- Setup
 
@@ -50,7 +50,7 @@ local function canHaveGroundMoveType(unitDef)
 end
 
 for defID, ud in pairs(UnitDefs) do
-    local params = ud.customParams
+	local params = ud.customParams
 
 	local speedFactorInWater = tonumber(params.speedfactorinwater or 1) or 1
 	local speedFactorAtDepth = math.abs(params.speedfactoratdepth and tonumber(params.speedfactoratdepth) or 0) * -1
@@ -61,15 +61,15 @@ for defID, ud in pairs(UnitDefs) do
 		end
 
 		unitDefData[defID] = {
-            speedFactorInWater = speedFactorInWater,
+			speedFactorInWater = speedFactorInWater,
 			speedFactorAtDepth = speedFactorAtDepth,
 
-            speed  = ud.speed,
-            turn   = ud.turnRate,
-            acc    = ud.maxAcc,
-            dec    = ud.maxDec,
-        }
-    end
+			speed = ud.speed,
+			turn = ud.turnRate,
+			acc = ud.maxAcc,
+			dec = ud.maxDec,
+		}
+	end
 end
 
 local unitDepthSlowUpdate = {}
@@ -79,11 +79,11 @@ local fastUpdateFrames = math.round(depthUpdateRate * Game.gameSpeed)
 
 ---@type GroundMoveType
 local moveTypeData = {
-	maxSpeed       = 0,
+	maxSpeed = 0,
 	maxWantedSpeed = 0,
-	turnRate       = 0,
-	accRate        = 0,
-	decRate        = 0,
+	turnRate = 0,
+	accRate = 0,
+	decRate = 0,
 }
 
 -- Local functions
@@ -98,15 +98,15 @@ local moveTypeData = {
 local function setMoveTypeData(unitID, unitData, factor)
 	local data = moveTypeData
 
-	--these factor effectiveness values for the given unit stats were chosen arbitrarily for the best mechanical feel and balance, 
-    --as well as to avoid strange jerky visuals
+	--these factor effectiveness values for the given unit stats were chosen arbitrarily for the best mechanical feel and balance,
+	--as well as to avoid strange jerky visuals
 	local speed = unitData.speed * factor
 
-	data.maxSpeed       = speed
+	data.maxSpeed = speed
 	data.maxWantedSpeed = speed
-	data.turnRate       = unitData.turn * (factor * 0.50 + 0.50)
-	data.accRate        = unitData.acc  * (factor * 0.75 + 0.25)
-	data.decRate        = unitData.dec  * (factor * 0.75 + 0.25)
+	data.turnRate = unitData.turn * (factor * 0.50 + 0.50)
+	data.accRate = unitData.acc * (factor * 0.75 + 0.25)
+	data.decRate = unitData.dec * (factor * 0.75 + 0.25)
 
 	spSetGroundMoveTypeData(unitID, data)
 end
@@ -175,15 +175,15 @@ function gadget:GameFrame(frame)
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-    local unitData = unitDefData[unitDefID]
-    if unitData and getUnitDepth(unitID) <= 0 then
+	local unitData = unitDefData[unitDefID]
+	if unitData and getUnitDepth(unitID) <= 0 then
 		if canSetSpeed(unitID) then
 			applySpeed(unitID, unitData)
 		end
 		if unitData.speedFactorAtDepth ~= 0 then
 			unitDepthFastUpdate[unitID] = unitData
 		end
-    end
+	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
@@ -192,36 +192,36 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitEnteredWater(unitID, unitDefID, unitTeam)
-    local unitData = unitDefData[unitDefID]
-    if unitData then
+	local unitData = unitDefData[unitDefID]
+	if unitData then
 		if canSetSpeed(unitID) then
 			applySpeed(unitID, unitData)
 		end
 		if unitData.speedFactorAtDepth ~= 0 then
 			unitDepthFastUpdate[unitID] = unitData
 		end
-    end
+	end
 end
 
 function gadget:UnitLeftWater(unitID, unitDefID, unitTeam)
-    local unitData = unitDefData[unitDefID]
-    if unitData then
+	local unitData = unitDefData[unitDefID]
+	if unitData then
 		if canSetSpeed(unitID) then
 			applySpeed(unitID, unitData, 1)
 		end
 		unitDepthSlowUpdate[unitID] = nil
 		unitDepthFastUpdate[unitID] = nil
-    end
+	end
 end
 
 function gadget:Initialize()
-    if not next(unitDefData) then
-        gadgetHandler:RemoveGadget()
+	if not next(unitDefData) then
+		gadgetHandler:RemoveGadget()
 		return
-    end
+	end
 
 	local unitFinished = gadget.UnitFinished
-	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		unitFinished(gadget, unitID, Spring.GetUnitDefID(unitID), 0)
+	for _, unitID in ipairs(SpringShared.GetAllUnits()) do
+		unitFinished(gadget, unitID, SpringShared.GetUnitDefID(unitID), 0)
 	end
 end

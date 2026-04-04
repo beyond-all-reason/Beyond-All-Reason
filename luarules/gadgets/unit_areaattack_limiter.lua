@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "2026",
 		license = "GNU GPL, v2 or later",
 		layer = -999999,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -21,8 +21,8 @@ local CMD_AREA_ATTACK = CMD.AREA_ATTACK
 local CMD_FIGHT = CMD.FIGHT
 local CMD_STOP = CMD.STOP
 
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGiveOrderArrayToUnitArray = Spring.GiveOrderArrayToUnitArray
+local spGetSelectedUnits = SpringUnsynced.GetSelectedUnits
+local spGiveOrderArrayToUnitArray = SpringSynced.GiveOrderArrayToUnitArray
 
 -- Max units allowed to use the expensive engine-side area attack.
 -- Excess units receive a FIGHT command to the area center instead,
@@ -44,10 +44,18 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 
 	-- Preserve command options
 	local opts = 0
-	if cmdOpts.alt then opts = opts + CMD.OPT_ALT end
-	if cmdOpts.ctrl then opts = opts + CMD.OPT_CTRL end
-	if cmdOpts.meta then opts = opts + CMD.OPT_META end
-	if cmdOpts.right then opts = opts + CMD.OPT_RIGHT end
+	if cmdOpts.alt then
+		opts = opts + CMD.OPT_ALT
+	end
+	if cmdOpts.ctrl then
+		opts = opts + CMD.OPT_CTRL
+	end
+	if cmdOpts.meta then
+		opts = opts + CMD.OPT_META
+	end
+	if cmdOpts.right then
+		opts = opts + CMD.OPT_RIGHT
+	end
 
 	local x, y, z = cmdParams[1], cmdParams[2], cmdParams[3]
 
@@ -65,11 +73,11 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 
 	if cmdOpts.shift then
 		local shiftOpts = opts + CMD.OPT_SHIFT
-		spGiveOrderArrayToUnitArray(attackUnits, {{cmdID, cmdParams, shiftOpts}})
-		spGiveOrderArrayToUnitArray(fightUnits, {{CMD_FIGHT, {x, y, z}, shiftOpts}})
+		spGiveOrderArrayToUnitArray(attackUnits, { { cmdID, cmdParams, shiftOpts } })
+		spGiveOrderArrayToUnitArray(fightUnits, { { CMD_FIGHT, { x, y, z }, shiftOpts } })
 	else
-		spGiveOrderArrayToUnitArray(attackUnits, {{CMD_STOP, {}, 0}, {cmdID, cmdParams, CMD.OPT_SHIFT}})
-		spGiveOrderArrayToUnitArray(fightUnits, {{CMD_STOP, {}, 0}, {CMD_FIGHT, {x, y, z}, CMD.OPT_SHIFT}})
+		spGiveOrderArrayToUnitArray(attackUnits, { { CMD_STOP, {}, 0 }, { cmdID, cmdParams, CMD.OPT_SHIFT } })
+		spGiveOrderArrayToUnitArray(fightUnits, { { CMD_STOP, {}, 0 }, { CMD_FIGHT, { x, y, z }, CMD.OPT_SHIFT } })
 	end
 
 	return true

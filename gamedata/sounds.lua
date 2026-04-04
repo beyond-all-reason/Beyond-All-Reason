@@ -9,7 +9,7 @@ local Sounds = {
 			in3d = "false",
 		},
 		MapPoint = {
-			file = "sounds/ui/mappoint.wav",	-- file now equal as blank.wav, is being called by chat ui widget now (so users can adjust its volume)
+			file = "sounds/ui/mappoint.wav", -- file now equal as blank.wav, is being called by chat ui widget now (so users can adjust its volume)
 			--rolloff = 0.1,
 			--dopplerscale = 0,
 			in3d = "false",
@@ -45,20 +45,20 @@ local Sounds = {
 ]]
 local soundData = {
 	-- UI SOUNDS
-	['ui'] = {
+	ui = {
 		gain = 0.8,
 		pitchmod = 0,
-		gainmod  = 0,
+		gainmod = 0,
 		dopplerscale = 0,
 		maxconcurrent = 1,
 		--priority = 1,
 		rolloff = 0,
 	},
 
-	['uw'] = {
+	uw = {
 		gain = 1.2 * 0.3,
 		pitchmod = 0.17,
-		gainmod  = 0.2 * 0.3,
+		gainmod = 0.2 * 0.3,
 		dopplerscale = 0,
 		maxconcurrent = 8,
 		--priority = 1,
@@ -99,47 +99,47 @@ local soundData = {
 ]]
 
 	-- WEAPON SOUNDS
-	['weapons'] = {
+	weapons = {
 		gain = {
 			default = 1.2 * 0.3,
 			custom = {
-				['^beamershot2$'] = 0.5 * 0.3,
-				['^disigun1$'] = 0.075 * 0.3,
+				["^beamershot2$"] = 0.5 * 0.3,
+				["^disigun1$"] = 0.075 * 0.3,
 				-- ['^newboom$'] = 0.045 * 0.3,
-				['^xplomas2$'] = 0.225 * 0.3,
-				['^starfallchargup$'] = 4.0 * 0.3,
-				['^ministarfallchargup$'] = 4.0 * 0.3,
+				["^xplomas2$"] = 0.225 * 0.3,
+				["^starfallchargup$"] = 4.0 * 0.3,
+				["^ministarfallchargup$"] = 4.0 * 0.3,
 			},
 		},
 		pitchmod = {
 			default = 0.17,
 			custom = {
-				['^heliosfire$'] = 0.03,
-				['^beamershot2$'] = 0.04,
-				['^lasfirerc$'] = 0.06,
-				['^heatray'] = 0,
-				['^lasr'] = 0,
-				['^nanlath'] = 0.02,
-				['^mavgun'] = 0.06,
-				['^mgun'] = 0.08,
-				['^minigun'] = 0.09,
-				['^lrpcshot'] = 0.12,
-				['^raptorlaser$'] = 0.04,
-				['^heatray3'] = 0.04,
-				['^xplosml'] = 0.22,
-				['^xplomed'] = 0.25,
-				['^xplolrg'] = 0.3,
-				['^nukelaunch$'] = 0.08,
-				['^nukelaunchalarm$'] = 0,
-				['^starfallchargup$'] = 0,
-				['^ministarfallchargup$'] = 0,
+				["^heliosfire$"] = 0.03,
+				["^beamershot2$"] = 0.04,
+				["^lasfirerc$"] = 0.06,
+				["^heatray"] = 0,
+				["^lasr"] = 0,
+				["^nanlath"] = 0.02,
+				["^mavgun"] = 0.06,
+				["^mgun"] = 0.08,
+				["^minigun"] = 0.09,
+				["^lrpcshot"] = 0.12,
+				["^raptorlaser$"] = 0.04,
+				["^heatray3"] = 0.04,
+				["^xplosml"] = 0.22,
+				["^xplomed"] = 0.25,
+				["^xplolrg"] = 0.3,
+				["^nukelaunch$"] = 0.08,
+				["^nukelaunchalarm$"] = 0,
+				["^starfallchargup$"] = 0,
+				["^ministarfallchargup$"] = 0,
 			},
 		},
-		gainmod  = 0.2 * 0.3,
+		gainmod = 0.2 * 0.3,
 		maxconcurrent = {
 			default = 7,
 			custom = {
-				['^minigun'] = 12,
+				["^minigun"] = 12,
 			},
 		},
 		dopplerscale = 1.0,
@@ -147,61 +147,61 @@ local soundData = {
 	},
 
 	-- WEAPON SOUNDS MULTI (more concurrent)
-	['weapons-mult'] = {
+	["weapons-mult"] = {
 		gain = 1.2 * 0.3,
 		pitchmod = {
 			default = 0.17,
 			custom = {
-				['^lasr'] = 0.03,
-				['^mgun'] = 0.02,
+				["^lasr"] = 0.03,
+				["^mgun"] = 0.02,
 			},
 		},
-		gainmod  = 0.2 * 0.3,
+		gainmod = 0.2 * 0.3,
 		dopplerscale = 1.0,
 		maxconcurrent = 15,
 		rolloff = 1.5,
 	},
 
 	-- RAPTOR SOUNDS
-	['raptors'] = {
+	raptors = {
 		gain = 1.2 * 0.5,
 		pitchmod = {
 			default = 0.23,
 			custom = {
-				['^talonattack$'] = 0.07
+				["^talonattack$"] = 0.07,
 			},
 		},
-		gainmod  = 0.2 * 0.3,
+		gainmod = 0.2 * 0.3,
 		dopplerscale = 1.0,
 		maxconcurrent = 6,
 		rolloff = 1.1,
 	},
 
 	-- GLOBAL EVENTS not in use currently
-	['global-events'] = {
+	["global-events"] = {
 		gain = 1.0 * 0.3,
 		pitchmod = 0.33,
-		gainmod  = 0.1 * 0.3,
+		gainmod = 0.1 * 0.3,
 		dopplerscale = 1.0,
 		maxconcurrent = 8,
 		rolloff = 0.2,
 	},
 
 	-- BOMB SOUNDS / More maxconcurrent
-	['bombs'] = {
+	bombs = {
 		gain = 1.2 * 0.3,
 		pitchmod = 0.27,
-		gainmod  = 0.2 * 0.3,
+		gainmod = 0.2 * 0.3,
 		dopplerscale = 1.0,
 		maxconcurrent = 32,
 		rolloff = 1.1,
 	},
 
 	-- REPLY SOUNDS
-	['replies'] = {
+	replies = {
 		gain = 1.2 * 0.3,
 		pitchmod = 0.02,
-		gainmod  = 0.2 * 0.3,
+		gainmod = 0.2 * 0.3,
 		dopplerscale = 0,
 		maxconcurrent = 32,
 		rolloff = 0.05,
@@ -210,10 +210,10 @@ local soundData = {
 	},
 
 	-- LAND UNIT MOVEMENT SOUNDS
-	['movement'] = {
+	movement = {
 		gain = 1.2 * 0.3,
 		pitchmod = 0.062,
-		gainmod  = 0.2 * 0.3,
+		gainmod = 0.2 * 0.3,
 		dopplerscale = 0,
 		maxconcurrent = 2,
 		rolloff = 0.1,
@@ -222,10 +222,10 @@ local soundData = {
 	},
 
 	-- AIR UNIT MOVEMENT SOUNDS
-	['movement-air'] = {
+	["movement-air"] = {
 		gain = 1.2 * 0.3,
 		pitchmod = 0.02,
-		gainmod  = 0.2 * 0.3,
+		gainmod = 0.2 * 0.3,
 		dopplerscale = 0,
 		maxconcurrent = 2,
 		rolloff = 0.1,
@@ -234,10 +234,10 @@ local soundData = {
 	},
 
 	-- UNIT FOOTSTEPS SOUNDS // high pitch-mod
-	['unit'] = {
+	unit = {
 		gain = 1.2 * 0.3,
 		pitchmod = 0.33,
-		gainmod  = 0.2 * 0.3,
+		gainmod = 0.2 * 0.3,
 		dopplerscale = 0.5,
 		maxconcurrent = 6,
 		rolloff = 1.1,
@@ -246,10 +246,10 @@ local soundData = {
 	},
 
 	-- UNIT MOVEMENT SOUNDS // local low pitch-mod
-	['unit-local'] = {
+	["unit-local"] = {
 		gain = 1.2 * 0.5,
 		pitchmod = 0.03,
-		gainmod  = 0.2 * 0.3,
+		gainmod = 0.2 * 0.3,
 		dopplerscale = 0,
 		maxconcurrent = 2,
 		rolloff = 1.3,
@@ -258,10 +258,10 @@ local soundData = {
 	},
 
 	-- UNIT FUNCTION/WEAPON SOUNDS
-	['function'] = {
+	["function"] = {
 		gain = 1.2 * 0.3,
 		pitchmod = 0.02,
-		gainmod  = 0.2 * 0.3,
+		gainmod = 0.2 * 0.3,
 		dopplerscale = 0,
 		maxconcurrent = 7,
 		rolloff = 0.1,
@@ -270,10 +270,10 @@ local soundData = {
 	},
 
 	-- BUILDING FUNCTION/WEAPON SOUNDS
-	['buildings'] = {
+	buildings = {
 		gain = 1.2 * 0.3,
 		pitchmod = 0.03,
-		gainmod  = 0.2 * 0.3,
+		gainmod = 0.2 * 0.3,
 		dopplerscale = 0,
 		maxconcurrent = 2,
 		rolloff = 0.1,
@@ -282,10 +282,10 @@ local soundData = {
 	},
 
 	-- UI COMMANDS SOUNDS
-	['commands'] = {
+	commands = {
 		gain = 1.2 * 0.3,
 		pitchmod = 0.02,
-		gainmod  = 0.2 * 0.3,
+		gainmod = 0.2 * 0.3,
 		dopplerscale = 0,
 		maxconcurrent = 32,
 		rolloff = 0,
@@ -294,16 +294,16 @@ local soundData = {
 	},
 
 	-- CRITTER SOUNDS
-	['critters'] = {
+	critters = {
 		gain = 1.1 * 0.3,
 		pitchmod = 0.01,
-		gainmod  = 0.15 * 0.3,
+		gainmod = 0.15 * 0.3,
 		dopplerscale = 1.0,
 		maxconcurrent = 4,
 		rolloff = 0.7,
 	},
 
---[[
+	--[[
 	-- SCAVENGER SOUNDS not in use currently
 	['scavengers'] = {
 		gain = 1.0 * 0.3,
@@ -316,11 +316,11 @@ local soundData = {
 ]]
 
 	-- AMBIENCE
-	['atmos'] = {
+	atmos = {
 		gain = 1.2 * 0.3,
 		priority = -10,
 		pitchmod = 0.22,
-		gainmod  = 0,
+		gainmod = 0,
 		dopplerscale = 8.0,
 		maxconcurrent = 10,
 		rolloff = 0.7,
@@ -329,11 +329,11 @@ local soundData = {
 	},
 
 	-- AMBIENCE LOCAL
-	['atmos-local'] = {
+	["atmos-local"] = {
 		gain = 1.2 * 0.3,
 		priority = -5,
 		pitchmod = 0.22,
-		gainmod  = 0,
+		gainmod = 0,
 		dopplerscale = 4.0,
 		maxconcurrent = 10,
 		rolloff = 1.5,
@@ -342,11 +342,11 @@ local soundData = {
 	},
 
 	-- AMBIENCE GEOVENTS
-	['atmos-geovents'] = {
+	["atmos-geovents"] = {
 		gain = 0.8,
 		priority = -3,
 		pitchmod = 0.06,
-		gainmod  = 0,
+		gainmod = 0,
 		dopplerscale = 2.0,
 		maxconcurrent = 10,
 		rolloff = 3,
@@ -358,7 +358,7 @@ local function loadSoundFiles(directory, soundAttributes)
 	local soundFiles = VFS.DirList(directory)
 
 	for _, fileName in ipairs(soundFiles) do
-		local soundName = string.sub(fileName, string.len(directory) + 1, string.find(fileName, ".wav") -1)
+		local soundName = string.sub(fileName, string.len(directory) + 1, string.find(fileName, ".wav") - 1)
 		Sounds.SoundItems[soundName] = {}
 		Sounds.SoundItems[soundName].file = fileName
 
@@ -382,7 +382,7 @@ local function loadSoundFiles(directory, soundAttributes)
 end
 
 for directory, attributes in pairs(soundData) do
-	loadSoundFiles('sounds/' .. directory .. '/', attributes)
+	loadSoundFiles("sounds/" .. directory .. "/", attributes)
 end
 
 return Sounds

@@ -19,23 +19,27 @@ function Shard:shardify_resource(luaResource)
 	return Shard.shardResource
 end
 
-function Shard:shardify_unit( unitID )
-	if not unitID then return end
+function Shard:shardify_unit(unitID)
+	if not unitID then
+		return
+	end
 	if not self.unitsByID[unitID] then
-		local unit = ShardUnit( unitID )
+		local unit = ShardUnit(unitID)
 		self.unitsByID[unitID] = unit
 	end
 	return self.unitsByID[unitID]
 end
 
-function Shard:unshardify_unit( unitID )
-	if not unitID then return end
+function Shard:unshardify_unit(unitID)
+	if not unitID then
+		return
+	end
 	self.unitsByID[unitID] = nil
 end
 
-function Shard:shardify_unittype( unitDefID )
+function Shard:shardify_unittype(unitDefID)
 	if not unitDefID then
-		Spring.Echo( 'shard: error: shardify_unittype recieved "'..unitDefID..'" of type "'.. type(unitDefID).. '" ' )
+		SpringShared.Echo('shard: error: shardify_unittype recieved "' .. unitDefID .. '" of type "' .. type(unitDefID) .. '" ')
 		return nil
 	end
 	if not self.unittypesByID[unitDefID] then
@@ -45,14 +49,16 @@ function Shard:shardify_unittype( unitDefID )
 	return self.unittypesByID[unitDefID]
 end
 
-function Shard:shardify_damage( damage, weaponDefID, paralyzer, projectileID, engineAttacker )
- 	local sharddamage = ShardSpringDamage()
+function Shard:shardify_damage(damage, weaponDefID, paralyzer, projectileID, engineAttacker)
+	local sharddamage = ShardSpringDamage()
 	sharddamage:Init(damage, weaponDefID, paralyzer, projectileID, engineAttacker)
- 	return sharddamage
+	return sharddamage
 end
 
-function Shard:shardify_feature( featureID )
-	if not featureID then return end
+function Shard:shardify_feature(featureID)
+	if not featureID then
+		return
+	end
 	if not self.featuresByID[featureID] then
 		local shardfeature = ShardSpringFeature()
 		shardfeature:Init(featureID)
@@ -61,8 +67,10 @@ function Shard:shardify_feature( featureID )
 	return self.featuresByID[featureID]
 end
 
-function Shard:unshardify_feature( featureID )
-	if not featureID then return end
+function Shard:unshardify_feature(featureID)
+	if not featureID then
+		return
+	end
 	self.featuresByID[featureID] = nil
 end
 

@@ -8,16 +8,20 @@ function gadget:GetInfo()
 		date = "January 2025",
 		license = "GPLv2",
 		layer = 1,
-		enabled = true
+		enabled = true,
 	}
 end
 
 --early exits
-if not gadgetHandler:IsSyncedCode() then return false end
+if not gadgetHandler:IsSyncedCode() then
+	return false
+end
 
-local modOptions = Spring.GetModOptions()
+local modOptions = SpringShared.GetModOptions()
 
-if modOptions.nowasting == "default" or modOptions.nowasting == "disabled" then return false end
+if modOptions.nowasting == "default" or modOptions.nowasting == "disabled" then
+	return false
+end
 
 --static variables
 
@@ -47,8 +51,8 @@ local isAllyTeamWinning
 local averageAlliedTechGuesstimate
 
 --localized functions
-local spGetTeamResources = Spring.GetTeamResources
-local spSetUnitBuildSpeed = Spring.SetUnitBuildSpeed
+local spGetTeamResources = SpringShared.GetTeamResources
+local spSetUnitBuildSpeed = SpringSynced.SetUnitBuildSpeed
 
 for id, def in pairs(UnitDefs) do
 	if def.buildSpeed and def.buildSpeed > 0 and def.speed and def.speed == 0 then --we only want base factories and construction turrets to get boosted
@@ -63,14 +67,14 @@ local function updateTeamOverflowing(allyID, oldMultiplier)
 
 	--variables
 	local teamIDs = boostableAllies[allyID]
-    local totalMetal = 0
-    local totalMetalStorage = 0
+	local totalMetal = 0
+	local totalMetalStorage = 0
 	local totalMetalReceived = 0
-    local metalPercentile = 0
+	local metalPercentile = 0
 
 	local wastingMetal = true
 	for teamID, _ in pairs(teamIDs) do
-		local metal, metalStorage, pull, metalIncome, metalExpense,share, metalSent, metalReceived = spGetTeamResources(teamID, "metal")
+		local metal, metalStorage, pull, metalIncome, metalExpense, share, metalSent, metalReceived = spGetTeamResources(teamID, "metal")
 		totalMetal = totalMetal + metal
 		totalMetalStorage = totalMetalStorage + metalStorage
 		totalMetalReceived = totalMetalReceived + metalReceived
@@ -86,8 +90,7 @@ local function updateTeamOverflowing(allyID, oldMultiplier)
 	if totalMetalStorage * metalToStorageRatioMultiplier > totalMetal or (modOptions.dynamiccheats == true and alliesAreWinning == true) then
 		local newMultiplier = math.max(oldMultiplier / buildPowerCompounder, 1)
 		return newMultiplier
-	elseif wastingMetal == true and (modOptions.dynamiccheats == false or
-									(alliesAreWinning == false and averageAlliedTechGuesstimate(_, allyID) >= minimumTechLvlToCheat)) then
+	elseif wastingMetal == true and (modOptions.dynamiccheats == false or (alliesAreWinning == false and averageAlliedTechGuesstimate(_, allyID) >= minimumTechLvlToCheat)) then
 		local newMultiplier = math.min(oldMultiplier * buildPowerCompounder, maxBuildPowerMultiplier)
 		return newMultiplier
 	else
@@ -125,18 +128,18 @@ end
 function gadget:GameFrame(frame)
 	if frame % 600 == 0 then
 		for allyID, oldBuildPowerMultiplier in pairs(overflowingAllies) do
-		local newBuildPowerMultiplier = updateTeamOverflowing(allyID, oldBuildPowerMultiplier)
+			local newBuildPowerMultiplier = updateTeamOverflowing(allyID, oldBuildPowerMultiplier)
 			if newBuildPowerMultiplier ~= 1 then
 				updateAllyUnitsBuildPowers(allyID, newBuildPowerMultiplier)
 				overflowingAllies[allyID] = newBuildPowerMultiplier
 			end
 			if newBuildPowerMultiplier == 1 then
 				for teamID, _ in pairs(boostableAllies[allyID]) do
-					Spring.SetTeamRulesParam(teamID, "suspendbuilderpriority", 0)
+					SpringSynced.SetTeamRulesParam(teamID, "suspendbuilderpriority", 0)
 				end
 			else
 				for teamID, _ in pairs(boostableAllies[allyID]) do
-					Spring.SetTeamRulesParam(teamID, "suspendbuilderpriority", 1)
+					SpringSynced.SetTeamRulesParam(teamID, "suspendbuilderpriority", 1)
 				end
 			end
 		end
@@ -145,18 +148,18 @@ end
 
 function gadget:Initialize()
 	aiTeams = GG.PowerLib.AiTeams
-	for teamID, _ in pairs (aiTeams) do
+	for teamID, _ in pairs(aiTeams) do
 		boostableTeams[teamID] = true
 	end
 	humanTeams = GG.PowerLib.HumanTeams
 	if modOptions.nowasting == "all" then
-		for teamID, _ in pairs (humanTeams) do
+		for teamID, _ in pairs(humanTeams) do
 			boostableTeams[teamID] = true
 		end
 	end
 
 	for teamID, _ in pairs(boostableTeams) do
-		local allyID = select(6, Spring.GetTeamInfo(teamID))
+		local allyID = select(6, SpringShared.GetTeamInfo(teamID))
 		boostableAllies[allyID] = boostableAllies[allyID] or {}
 		boostableAllies[allyID][teamID] = true
 		overflowingAllies[allyID] = 1

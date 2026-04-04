@@ -12,12 +12,12 @@ function gadget:GetInfo()
 	}
 end
 
-local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
-local gaiaTeamID = Spring.GetGaiaTeamID()
-local teamList = Spring.GetTeamList()
-local allyTeamList = Spring.GetAllyTeamList()
+local anonymousMode = SpringShared.GetModOptions().teamcolors_anonymous_mode
+local gaiaTeamID = SpringShared.GetGaiaTeamID()
+local teamList = SpringShared.GetTeamList()
+local allyTeamList = SpringShared.GetAllyTeamList()
 local allyTeamCount = #allyTeamList - 1
-local isSurvival = Spring.Utilities.Gametype.IsPvE()
+local isSurvival = Utilities.Gametype.IsPvE()
 
 local survivalColorNum = 1 -- Starting from color #1
 local survivalColorVariation = 0 -- Current color variation
@@ -26,8 +26,8 @@ local teamSizes = {}
 
 local myAllyTeamID, myTeamID
 if not gadgetHandler:IsSyncedCode() then
-	myAllyTeamID = Spring.GetMyAllyTeamID()
-	myTeamID = Spring.GetMyTeamID()
+	myAllyTeamID = SpringUnsynced.GetLocalAllyTeamID()
+	myTeamID = SpringUnsynced.GetLocalTeamID()
 end
 
 -- Special colors
@@ -72,12 +72,11 @@ local ffaColors = {
 	"#7EB900", -- 30
 }
 -- delete excess so a table shuffe wont use the colors added on the bottom
-if #ffaColors > #teamList-1 then
+if #ffaColors > #teamList - 1 then
 	for i = #teamList, #ffaColors do
 		ffaColors[i] = nil
 	end
 end
-
 
 local survivalColors = {
 	"#0B3EF3", -- 1
@@ -387,14 +386,13 @@ local teamColors = {
 	},
 }
 
-local r = math.random(1,100000)
-math.randomseed(1)	-- make sure the next sequence of randoms can be reproduced
+local r = math.random(1, 100000)
+math.randomseed(1) -- make sure the next sequence of randoms can be reproduced
 local teamRandoms = {}
 for i = 1, #teamList do
 	teamRandoms[teamList[i]] = { math.random(), math.random(), math.random() }
 end
 math.randomseed(r)
-
 
 local iconDevModeColors = {
 	armblue = armBlueColor,
@@ -404,9 +402,8 @@ local iconDevModeColors = {
 	gaiagray = gaiaGrayColor,
 	leggren = legGreenColor,
 }
-local iconDevMode = Spring.GetModOptions().teamcolors_icon_dev_mode
+local iconDevMode = SpringShared.GetModOptions().teamcolors_icon_dev_mode
 local iconDevModeColor = iconDevModeColors[iconDevMode]
-
 
 local function shuffleTable(Table)
 	local originalTable = {}
@@ -440,7 +437,7 @@ local function hex2RGB(hex)
 end
 
 -- we don't want to use FFA colors for TeamFFA, because we want each team to have its own color theme
-local useFFAColors = Spring.Utilities.Gametype.IsFFA() and not Spring.Utilities.Gametype.IsTeams()
+local useFFAColors = Utilities.Gametype.IsFFA() and not Utilities.Gametype.IsTeams()
 if not useFFAColors and not teamColors[allyTeamCount] and not isSurvival then -- Edge case for TeamFFA with more than supported number of teams
 	useFFAColors = true
 end
@@ -459,32 +456,30 @@ local function setupTeamColor(teamID, allyTeamID, isAI, localRun)
 		}
 
 	-- Simple Team Colors
-	elseif localRun and
-		(Spring.GetConfigInt("SimpleTeamColors", 0) == 1 or (anonymousMode == "allred" and not mySpecState))
-	then
+	elseif localRun and (SpringUnsynced.GetConfigInt("SimpleTeamColors", 0) == 1 or (anonymousMode == "allred" and not mySpecState)) then
 		local brightnessVariation = 0
 		local maxColorVariation = 0
-		if Spring.GetConfigInt("SimpleTeamColorsUseGradient", 0) == 1 then
+		if SpringUnsynced.GetConfigInt("SimpleTeamColorsUseGradient", 0) == 1 then
 			local totalEnemyDimmingCount = 0
 			for allyTeamID, count in pairs(dimmingCount) do
 				if allyTeamID ~= myAllyTeamID then
 					totalEnemyDimmingCount = totalEnemyDimmingCount + count
 				end
 			end
-			brightnessVariation = (0.7 - ((1 / #Spring.GetTeamList(allyTeamID)) * dimmingCount[allyTeamID])) * 255
-			brightnessVariation = brightnessVariation * math.min((#Spring.GetTeamList(allyTeamID) * 0.8)-1, 1)	-- dont change brightness too much in tiny teams
+			brightnessVariation = (0.7 - ((1 / #SpringShared.GetTeamList(allyTeamID)) * dimmingCount[allyTeamID])) * 255
+			brightnessVariation = brightnessVariation * math.min((#SpringShared.GetTeamList(allyTeamID) * 0.8) - 1, 1) -- dont change brightness too much in tiny teams
 			maxColorVariation = 60
 		end
-		local color = hex2RGB(ffaColors[allyTeamID+1] or '#333333')
-		if Spring.GetConfigInt("SimpleTeamColorsFactionSpecific", 0) == 1 then
+		local color = hex2RGB(ffaColors[allyTeamID + 1] or "#333333")
+		if SpringUnsynced.GetConfigInt("SimpleTeamColorsFactionSpecific", 0) == 1 then
 			if isAI and string.find(isAI, "Scavenger") then
 				color = hex2RGB(scavPurpColor)
 			elseif isAI and string.find(isAI, "Raptor") then
 				color = hex2RGB(raptorOrangeColor)
 			elseif teamID == gaiaTeamID then
 				color = hex2RGB(gaiaGrayColor)
-			elseif Spring.GetTeamRulesParam(teamID, 'startUnit') and anonymousMode ~= "allred" then
-				local side = string.sub(UnitDefs[Spring.GetTeamRulesParam(teamID, 'startUnit')].name, 1, 3)
+			elseif SpringShared.GetTeamRulesParam(teamID, "startUnit") and anonymousMode ~= "allred" then
+				local side = string.sub(UnitDefs[SpringShared.GetTeamRulesParam(teamID, "startUnit")].name, 1, 3)
 				if side == "arm" then
 					color = hex2RGB(armBlueColor)
 				elseif side == "cor" then
@@ -500,11 +495,11 @@ local function setupTeamColor(teamID, allyTeamID, isAI, localRun)
 		elseif teamID == myTeamID then
 			brightnessVariation = 0
 			maxColorVariation = 0
-			color = {Spring.GetConfigInt("SimpleTeamColorsPlayerR", 0), Spring.GetConfigInt("SimpleTeamColorsPlayerG", 77), Spring.GetConfigInt("SimpleTeamColorsPlayerB", 255)}
+			color = { SpringUnsynced.GetConfigInt("SimpleTeamColorsPlayerR", 0), SpringUnsynced.GetConfigInt("SimpleTeamColorsPlayerG", 77), SpringUnsynced.GetConfigInt("SimpleTeamColorsPlayerB", 255) }
 		elseif allyTeamID == myAllyTeamID then
-			color = {Spring.GetConfigInt("SimpleTeamColorsAllyR", 0), Spring.GetConfigInt("SimpleTeamColorsAllyG", 255), Spring.GetConfigInt("SimpleTeamColorsAllyB", 0)}
+			color = { SpringUnsynced.GetConfigInt("SimpleTeamColorsAllyR", 0), SpringUnsynced.GetConfigInt("SimpleTeamColorsAllyG", 255), SpringUnsynced.GetConfigInt("SimpleTeamColorsAllyB", 0) }
 		elseif allyTeamID ~= myAllyTeamID then
-			color = {Spring.GetConfigInt("SimpleTeamColorsEnemyR", 255), Spring.GetConfigInt("SimpleTeamColorsEnemyG", 16), Spring.GetConfigInt("SimpleTeamColorsEnemyB", 5)}
+			color = { SpringUnsynced.GetConfigInt("SimpleTeamColorsEnemyR", 255), SpringUnsynced.GetConfigInt("SimpleTeamColorsEnemyG", 16), SpringUnsynced.GetConfigInt("SimpleTeamColorsEnemyB", 5) }
 		end
 		color[1] = math.min(color[1] + brightnessVariation, 255) + ((teamRandoms[teamID][1] * (maxColorVariation * 2)) - maxColorVariation)
 		color[2] = math.min(color[2] + brightnessVariation, 255) + ((teamRandoms[teamID][2] * (maxColorVariation * 2)) - maxColorVariation)
@@ -514,7 +509,6 @@ local function setupTeamColor(teamID, allyTeamID, isAI, localRun)
 			g = color[2],
 			b = color[3],
 		}
-
 	elseif isAI and string.find(isAI, "Scavenger") then
 		teamColorsTable[teamID] = {
 			r = hex2RGB(scavPurpColor)[1],
@@ -533,37 +527,29 @@ local function setupTeamColor(teamID, allyTeamID, isAI, localRun)
 			g = hex2RGB(gaiaGrayColor)[2],
 			b = hex2RGB(gaiaGrayColor)[3],
 		}
-
-	elseif isSurvival and survivalColors[(#Spring.GetTeamList())-2] then
+	elseif isSurvival and survivalColors[(#SpringShared.GetTeamList()) - 2] then
 		teamColorsTable[teamID] = {
-			r = hex2RGB(survivalColors[survivalColorNum])[1]
-				+ math.random(-survivalColorVariation, survivalColorVariation),
-			g = hex2RGB(survivalColors[survivalColorNum])[2]
-				+ math.random(-survivalColorVariation, survivalColorVariation),
-			b = hex2RGB(survivalColors[survivalColorNum])[3]
-				+ math.random(-survivalColorVariation, survivalColorVariation),
+			r = hex2RGB(survivalColors[survivalColorNum])[1] + math.random(-survivalColorVariation, survivalColorVariation),
+			g = hex2RGB(survivalColors[survivalColorNum])[2] + math.random(-survivalColorVariation, survivalColorVariation),
+			b = hex2RGB(survivalColors[survivalColorNum])[3] + math.random(-survivalColorVariation, survivalColorVariation),
 		}
 		survivalColorNum = survivalColorNum + 1 -- Will start from the next color next time
 
 	-- auto ffa gradient colored for huge player games
-	elseif useFFAColors or
-		(#Spring.GetTeamList(allyTeamCount-1) > 1 and (not teamColors[allyTeamCount] or not teamColors[allyTeamCount][1][#Spring.GetTeamList(allyTeamCount-1)]))
-		or #Spring.GetTeamList() > 30
-		or (#Spring.GetTeamList(allyTeamCount-1) == 1 and not ffaColors[allyTeamCount])
-	then
-		local color = hex2RGB(ffaColors[allyTeamID+1] or '#333333')
-		local maxIterations =  math.floor((#teamList-1) / #ffaColors)
-		local brightnessVariation = (0.6 - ((1 / #Spring.GetTeamList(allyTeamID)) * dimmingCount[allyTeamID])) * 255
-		brightnessVariation = brightnessVariation * math.min((#Spring.GetTeamList(allyTeamID) * 0.7)-1, 1)	-- dont change brightness too much in tiny teams
-		local maxColorVariation = (120 / math.max(1, allyTeamCount-1))
-		if #Spring.GetTeamList(allyTeamID) == 1 then
+	elseif useFFAColors or (#SpringShared.GetTeamList(allyTeamCount - 1) > 1 and (not teamColors[allyTeamCount] or not teamColors[allyTeamCount][1][#SpringShared.GetTeamList(allyTeamCount - 1)])) or #SpringShared.GetTeamList() > 30 or (#SpringShared.GetTeamList(allyTeamCount - 1) == 1 and not ffaColors[allyTeamCount]) then
+		local color = hex2RGB(ffaColors[allyTeamID + 1] or "#333333")
+		local maxIterations = math.floor((#teamList - 1) / #ffaColors)
+		local brightnessVariation = (0.6 - ((1 / #SpringShared.GetTeamList(allyTeamID)) * dimmingCount[allyTeamID])) * 255
+		brightnessVariation = brightnessVariation * math.min((#SpringShared.GetTeamList(allyTeamID) * 0.7) - 1, 1) -- dont change brightness too much in tiny teams
+		local maxColorVariation = (120 / math.max(1, allyTeamCount - 1))
+		if #SpringShared.GetTeamList(allyTeamID) == 1 then
 			brightnessVariation = 0
 			maxColorVariation = 0
 		end
 
 		if maxIterations > 1 then
-			local iteration = 1 + math.floor((allyTeamID+1)/(#ffaColors))
-			local ffaColor = (allyTeamID+1) - (#ffaColors*(iteration-1)) + 1
+			local iteration = 1 + math.floor((allyTeamID + 1) / #ffaColors)
+			local ffaColor = (allyTeamID + 1) - (#ffaColors * (iteration - 1)) + 1
 			if iteration ~= 1 then
 				color = hex2RGB(ffaColors[ffaColor])
 			end
@@ -600,7 +586,8 @@ local function setupTeamColor(teamID, allyTeamID, isAI, localRun)
 			teamSizes[allyTeamID] = { allyTeamNum, 1, 0 } -- Team number, Starting color number, Color variation
 		end
 
-		if teamColors[allyTeamCount] -- If we have the color set for this number of teams
+		if
+			teamColors[allyTeamCount] -- If we have the color set for this number of teams
 			and teamColors[allyTeamCount][teamSizes[allyTeamID][1]]
 		then -- And this team number exists in the color set
 			if not teamColors[allyTeamCount][teamSizes[allyTeamID][1]][teamSizes[allyTeamID][2]] then -- If we have no color for this player anymore
@@ -609,17 +596,13 @@ local function setupTeamColor(teamID, allyTeamID, isAI, localRun)
 
 			-- Assigning R,G,B values with specified color variations
 			teamColorsTable[teamID] = {
-				r = hex2RGB(teamColors[allyTeamCount][teamSizes[allyTeamID][1]][teamSizes[allyTeamID][2]])[1]
-					+ math.random(-teamSizes[allyTeamID][3], teamSizes[allyTeamID][3]),
-				g = hex2RGB(teamColors[allyTeamCount][teamSizes[allyTeamID][1]][teamSizes[allyTeamID][2]])[2]
-					+ math.random(-teamSizes[allyTeamID][3], teamSizes[allyTeamID][3]),
-				b = hex2RGB(teamColors[allyTeamCount][teamSizes[allyTeamID][1]][teamSizes[allyTeamID][2]])[3]
-					+ math.random(-teamSizes[allyTeamID][3], teamSizes[allyTeamID][3]),
+				r = hex2RGB(teamColors[allyTeamCount][teamSizes[allyTeamID][1]][teamSizes[allyTeamID][2]])[1] + math.random(-teamSizes[allyTeamID][3], teamSizes[allyTeamID][3]),
+				g = hex2RGB(teamColors[allyTeamCount][teamSizes[allyTeamID][1]][teamSizes[allyTeamID][2]])[2] + math.random(-teamSizes[allyTeamID][3], teamSizes[allyTeamID][3]),
+				b = hex2RGB(teamColors[allyTeamCount][teamSizes[allyTeamID][1]][teamSizes[allyTeamID][2]])[3] + math.random(-teamSizes[allyTeamID][3], teamSizes[allyTeamID][3]),
 			}
 			teamSizes[allyTeamID][2] = teamSizes[allyTeamID][2] + 1 -- Will start from the next color next time
-
 		else
-			Spring.Echo("[AUTOCOLORS] Error: Team Colors Table is broken or missing for this allyteam set")
+			SpringShared.Echo("[AUTOCOLORS] Error: Team Colors Table is broken or missing for this allyteam set")
 			teamColorsTable[teamID] = {
 				r = 255,
 				g = 255,
@@ -636,23 +619,21 @@ local function setupAllTeamColors(localRun)
 	teamSizes = {}
 
 	dimmingCount = {}
-	for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
+	for _, allyTeamID in ipairs(SpringShared.GetAllyTeamList()) do
 		dimmingCount[allyTeamID] = 0
 	end
 	for i = 1, #teamList do
 		local teamID = teamList[i]
-		local allyTeamID = select(6, Spring.GetTeamInfo(teamID))
+		local allyTeamID = select(6, SpringShared.GetTeamInfo(teamID))
 		dimmingCount[allyTeamID] = dimmingCount[allyTeamID] + 1
-		local isAI = Spring.GetTeamLuaAI(teamID)
+		local isAI = SpringShared.GetTeamLuaAI(teamID)
 		setupTeamColor(teamID, allyTeamID, isAI, localRun)
 	end
 end
 setupAllTeamColors(false)
 trueTeamColorsTable = table.copy(teamColorsTable) -- store the true team colors so we can restore them when we become a spec
 
-
-if gadgetHandler:IsSyncedCode() then	--- NOTE: STUFF DONE IN SYNCED IS FOR REPLAY WEBSITE
-
+if gadgetHandler:IsSyncedCode() then --- NOTE: STUFF DONE IN SYNCED IS FOR REPLAY WEBSITE
 	local AutoColors = {}
 	for i = 1, #teamList do
 		local teamID = teamList[i]
@@ -663,18 +644,15 @@ if gadgetHandler:IsSyncedCode() then	--- NOTE: STUFF DONE IN SYNCED IS FOR REPLA
 			b = trueTeamColorsTable[teamID].b,
 		}
 	end
-	Spring.SendLuaRulesMsg("AutoColors" .. Json.encode(AutoColors))
-
-
-else	-- UNSYNCED
-
-	local myPlayerID = Spring.GetLocalPlayerID()
-	local mySpecState = Spring.GetSpectatingState()
+	SpringUnsynced.SendLuaRulesMsg("AutoColors" .. Json.encode(AutoColors))
+else -- UNSYNCED
+	local myPlayerID = SpringUnsynced.GetLocalPlayerID()
+	local mySpecState = SpringUnsynced.GetSpectatingState()
 
 	if anonymousMode == "local" then
 		shuffleAllColors()
 	end
-	if anonymousMode == "local" or Spring.GetConfigInt("SimpleTeamColors", 0) == 1 then
+	if anonymousMode == "local" or SpringUnsynced.GetConfigInt("SimpleTeamColors", 0) == 1 then
 		setupAllTeamColors(true)
 	end
 
@@ -707,10 +685,10 @@ else	-- UNSYNCED
 
 	local function updateTeamColors()
 		if isDiscoEnabled() then
-			discoShuffle(Spring.GetMyTeamID())
+			discoShuffle(SpringUnsynced.GetLocalTeamID())
 		end
 		for teamID, color in pairs(teamColorsTable) do
-			Spring.SetTeamColor(teamID, color.r / 255, color.g / 255, color.b / 255)
+			SpringUnsynced.SetTeamColor(teamID, color.r / 255, color.g / 255, color.b / 255)
 		end
 	end
 	updateTeamColors()
@@ -719,18 +697,18 @@ else	-- UNSYNCED
 	local discoTimerThreshold = 2 * 60 -- shuffle every 2 minutes with disco mode enabled
 	function gadget:Update()
 		if isDiscoEnabled() then
-			discoTimer = discoTimer + Spring.GetLastUpdateSeconds()
+			discoTimer = discoTimer + SpringUnsynced.GetLastUpdateSeconds()
 			if discoTimer > discoTimerThreshold then
 				discoTimer = 0
 				updateTeamColors()
 			end
-		elseif Spring.GetConfigInt("UpdateTeamColors", 0) == 1 then
+		elseif SpringUnsynced.GetConfigInt("UpdateTeamColors", 0) == 1 then
 			setupAllTeamColors(true)
 			updateTeamColors()
-			Spring.SetConfigInt("UpdateTeamColors", 0)
-			Spring.SetConfigInt("SimpleTeamColors_Reset", 0)
-		elseif Spring.GetConfigInt("SimpleTeamColors", 0) == 1 and Spring.GetConfigInt("SimpleTeamColorsFactionSpecific", 0) == 1 and Spring.GetGameFrame() < 300 then
-			Spring.SetConfigInt("UpdateTeamColors", 1)
+			SpringUnsynced.SetConfigInt("UpdateTeamColors", 0)
+			SpringUnsynced.SetConfigInt("SimpleTeamColors_Reset", 0)
+		elseif SpringUnsynced.GetConfigInt("SimpleTeamColors", 0) == 1 and SpringUnsynced.GetConfigInt("SimpleTeamColorsFactionSpecific", 0) == 1 and SpringShared.GetGameFrame() < 300 then
+			SpringUnsynced.SetConfigInt("UpdateTeamColors", 1)
 		end
 	end
 
@@ -738,18 +716,18 @@ else	-- UNSYNCED
 		if playerID ~= myPlayerID then
 			return
 		end
-		myAllyTeamID = Spring.GetMyAllyTeamID()
+		myAllyTeamID = SpringUnsynced.GetLocalAllyTeamID()
 		local prevMyTeamID = myTeamID
-		myTeamID = Spring.GetMyTeamID()
-		if mySpecState and prevMyTeamID ~= myTeamID and Spring.GetConfigInt("SimpleTeamColors", 0) == 1 then
-			Spring.SetConfigInt("UpdateTeamColors", 1)
-  		end
-		if mySpecState ~= Spring.GetSpectatingState() then
-			mySpecState = Spring.GetSpectatingState()
+		myTeamID = SpringUnsynced.GetLocalTeamID()
+		if mySpecState and prevMyTeamID ~= myTeamID and SpringUnsynced.GetConfigInt("SimpleTeamColors", 0) == 1 then
+			SpringUnsynced.SetConfigInt("UpdateTeamColors", 1)
+		end
+		if mySpecState ~= SpringUnsynced.GetSpectatingState() then
+			mySpecState = SpringUnsynced.GetSpectatingState()
 			teamColorsTable = table.copy(trueTeamColorsTable)
 			ffaColors = table.copy(trueFfaColors)
 			survivalColors = table.copy(trueSurvivalColors)
-			Spring.SetConfigInt("UpdateTeamColors", 1)
+			SpringUnsynced.SetConfigInt("UpdateTeamColors", 1)
 		end
 	end
 end

@@ -16,11 +16,11 @@ function gadget:GetInfo()
 		date = "June 2014",
 		license = "GNU GPL, v2 or later",
 		layer = 2, --run after game initial spawn and coop (because we use readyStates)
-		enabled = false
+		enabled = false,
 	}
 end
 
-local numPlayers = Spring.Utilities.GetPlayerCount()
+local numPlayers = Utilities.GetPlayerCount()
 
 if numPlayers <= 4 then
 	-- not needed to show sub button for small games where restarting one the better option
@@ -28,7 +28,6 @@ if numPlayers <= 4 then
 end
 
 if gadgetHandler:IsSyncedCode() then
-
 	-- TS difference required for substitutions
 	-- idealDiff is used if possible, validDiff as fall-back, otherwise no
 	local validDiff = 6
@@ -42,25 +41,25 @@ if gadgetHandler:IsSyncedCode() then
 	local replaced = false
 	local gameStarted = false
 
-	local gaiaTeamID = Spring.GetGaiaTeamID()
-	local SpGetPlayerList = Spring.GetPlayerList
-	local SpIsCheatingEnabled = Spring.IsCheatingEnabled
+	local gaiaTeamID = SpringShared.GetGaiaTeamID()
+	local SpGetPlayerList = SpringShared.GetPlayerList
+	local SpIsCheatingEnabled = SpringShared.IsCheatingEnabled
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		local checkChange = (msg == '\144' or msg == '\145')
+		local checkChange = (msg == "\144" or msg == "\145")
 
-		if msg == '\145' then
+		if msg == "\145" then
 			substitutes[playerID] = nil
 		end
-		if msg == '\144' then
+		if msg == "\144" then
 			-- do the same eligibility check as in unsynced
-			local customtable = select(11, Spring.GetPlayerInfo(playerID))
-			if type(customtable) == 'table' then
+			local customtable = select(11, SpringShared.GetPlayerInfo(playerID))
+			if type(customtable) == "table" then
 				local tsMu = customtable.skill
 				local tsSigma = customtable.skilluncertainty
 				local ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
 				tsSigma = tonumber(tsSigma)
-				local eligible = tsMu and tsSigma and (tsSigma <= 2) and (not string.find(tsMu, ")", nil, true)) and (not players[playerID])
+				local eligible = tsMu and tsSigma and (tsSigma <= 2) and (not string.find(tsMu, ")", nil, true)) and not players[playerID]
 				if eligible then
 					substitutes[playerID] = ts
 				end
@@ -79,12 +78,12 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:Initialize()
 		-- record a list of which playersIDs are players on which teamID
-		local teamList = Spring.GetTeamList()
+		local teamList = SpringShared.GetTeamList()
 		for _, teamID in pairs(teamList) do
 			if teamID ~= gaiaTeamID then
-				local playerList = Spring.GetPlayerList(teamID)
+				local playerList = SpringShared.GetPlayerList(teamID)
 				for _, playerID in pairs(playerList) do
-					if not select(3, Spring.GetPlayerInfo(playerID, false)) then
+					if not select(3, SpringShared.GetPlayerInfo(playerID, false)) then
 						players[playerID] = teamID
 					end
 				end
@@ -104,12 +103,12 @@ if gadgetHandler:IsSyncedCode() then
 
 		-- make a list of absent players (only ones with valid ts)
 		for playerID, _ in pairs(players) do
-			local _, active, spec = Spring.GetPlayerInfo(playerID, false)
-			local readyState = Spring.GetGameRulesParam("player_" .. playerID .. "_readyState")
+			local _, active, spec = SpringShared.GetPlayerInfo(playerID, false)
+			local readyState = SpringShared.GetGameRulesParam("player_" .. playerID .. "_readyState")
 			local noStartPoint = (readyState == 3) or (readyState == 0)
-			local present = active and (not spec) and (not noStartPoint)
+			local present = active and not spec and not noStartPoint
 			if not present then
-				local customtable = select(11, Spring.GetPlayerInfo(playerID)) or {}
+				local customtable = select(11, SpringShared.GetPlayerInfo(playerID)) or {}
 				local tsMu = customtable.skill
 				local ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
 				if ts then
@@ -118,7 +117,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			-- if present, tell LuaUI that won't be substituted
 			if not absent[playerID] then
-				Spring.SetGameRulesParam("Player" .. playerID .. "willSub", 0)
+				SpringSynced.SetGameRulesParam("Player" .. playerID .. "willSub", 0)
 			end
 		end
 
@@ -128,7 +127,7 @@ if gadgetHandler:IsSyncedCode() then
 			local idealSubs = {}
 			local validSubs = {}
 			for subID, subts in pairs(substitutesLocal) do
-				local _, active, spec = Spring.GetPlayerInfo(subID, false)
+				local _, active, spec = SpringShared.GetPlayerInfo(subID, false)
 				if active and spec then
 					local tsDiff = mathAbs(ts - subts)
 					if tsDiff <= validDiff then
@@ -153,12 +152,12 @@ if gadgetHandler:IsSyncedCode() then
 				if real then
 					-- do the replacement
 					local teamID = players[playerID]
-					Spring.AssignPlayerToTeam(sID, teamID)
+					SpringSynced.AssignPlayerToTeam(sID, teamID)
 					players[sID] = teamID
 					replaced = true
 
-					local incoming, _ = Spring.GetPlayerInfo(sID, false)
-					local outgoing, _ = Spring.GetPlayerInfo(playerID, false)
+					local incoming, _ = SpringShared.GetPlayerInfo(sID, false)
+					local outgoing, _ = SpringShared.GetPlayerInfo(playerID, false)
 					SendToUnsynced("SubstitutionOccurred", incoming, outgoing)
 				end
 				substitutesLocal[sID] = nil
@@ -166,9 +165,8 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			-- tell luaui that if would substitute if the game started now
-			Spring.SetGameRulesParam("Player" .. playerID .. "willSub", wouldSub and 1 or 0)
+			SpringSynced.SetGameRulesParam("Player" .. playerID .. "willSub", wouldSub and 1 or 0)
 		end
-
 	end
 
 	function gadget:GameStart()
@@ -183,7 +181,7 @@ if gadgetHandler:IsSyncedCode() then
 			local revealed = {}
 			for pID, p in pairs(coopStartPoints) do
 				--first do the coop starts
-				local name, _, _, tID = Spring.GetPlayerInfo(pID, false)
+				local name, _, _, tID = SpringShared.GetPlayerInfo(pID, false)
 				SendToUnsynced("MarkStartPoint", p[1], p[2], p[3], name, tID)
 				revealed[pID] = true
 			end
@@ -191,12 +189,12 @@ if gadgetHandler:IsSyncedCode() then
 			local teamStartPoints = GG.teamStartPoints or {}
 			for tID, p in pairs(teamStartPoints) do
 				p = teamStartPoints[tID]
-				local playerList = Spring.GetPlayerList(tID)
+				local playerList = SpringShared.GetPlayerList(tID)
 				local name = ""
 				for _, pID in pairs(playerList) do
 					--now do all pIDs for this team which were not coop starts
 					if not revealed[pID] then
-						local pName, active, spec = Spring.GetPlayerInfo(pID, false)
+						local pName, active, spec = SpringShared.GetPlayerInfo(pID, false)
 						if pName and absent[pID] == nil and active and not spec then
 							--AIs might not have a name, don't write the name of the dropped player
 							name = name .. pName .. ", "
@@ -225,7 +223,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		for _, pID in ipairs(pList) do
 			if not players[pID] then
-				local _, active, spec, _, aID = Spring.GetPlayerInfo(pID, false)
+				local _, active, spec, _, aID = SpringShared.GetPlayerInfo(pID, false)
 				if active and not spec then
 					--Spring.Echo("handle join", pID, active, spec)
 					HandleJoinedPlayer(pID, aID)
@@ -238,40 +236,39 @@ if gadgetHandler:IsSyncedCode() then
 		-- ForceSpec(jID)
 		-- currently this is no use, because players who joinas see themselves as always having been present, so it doesn't get called...
 	end
-
 else
 	-----------------------------
 	-- UNSYNCED
 	-----------------------------
 
-	local myPlayerID = Spring.GetMyPlayerID()
-	local spec, _ = Spring.GetSpectatingState()
-	local isReplay = Spring.IsReplay()
-	local ColorString = Spring.Utilities.Color.ToString
+	local myPlayerID = SpringUnsynced.GetLocalPlayerID()
+	local spec, _ = SpringUnsynced.GetSpectatingState()
+	local isReplay = SpringUnsynced.IsReplay()
+	local ColorString = Utilities.Color.ToString
 
 	local revealed = false
 
 	local function colourNames(teamID)
-		local nameColourR, nameColourG, nameColourB, nameColourA = Spring.GetTeamColor(teamID)
+		local nameColourR, nameColourG, nameColourB, nameColourA = SpringUnsynced.GetTeamColor(teamID)
 		return ColorString(nameColourR, nameColourG, nameColourB)
 	end
 
 	local function MarkStartPoint(_, x, y, z, name, teamID)
-		local _, _, spec = Spring.GetPlayerInfo(myPlayerID, false)
+		local _, _, spec = SpringShared.GetPlayerInfo(myPlayerID, false)
 		if not spec then
-			Spring.MarkerAddPoint(x, y, z, colourNames(teamID) .. name, true)
+			SpringUnsynced.MarkerAddPoint(x, y, z, colourNames(teamID) .. name, true)
 			revealed = true
 		end
 	end
 
 	local function substitutionOccurred(_, incoming, outgoing)
-		if Script.LuaUI('GadgetMessageProxy') then
-			Spring.Echo( Script.LuaUI.GadgetMessageProxy('ui.substitutePlayers.substitutedPlayers', { incoming = incoming, outgoing = outgoing }) )
+		if Script.LuaUI("GadgetMessageProxy") then
+			SpringShared.Echo(Script.LuaUI.GadgetMessageProxy("ui.substitutePlayers.substitutedPlayers", { incoming = incoming, outgoing = outgoing }))
 		end
 	end
 
 	function gadget:Initialize()
-		if isReplay or Spring.Utilities.Gametype.IsFFA() or Spring.GetGameFrame() > 6 then
+		if isReplay or Utilities.Gametype.IsFFA() or SpringShared.GetGameFrame() > 6 then
 			gadgetHandler:RemoveGadget() -- don't run in FFA mode
 			return
 		end
@@ -285,8 +282,8 @@ else
 		if n < 5 then
 			return
 		end
-		if revealed and Script.LuaUI('GadgetMessageProxy') then
-			Spring.Echo( Script.LuaUI.GadgetMessageProxy('ui.substitutePlayers.substituted') )
+		if revealed and Script.LuaUI("GadgetMessageProxy") then
+			SpringShared.Echo(Script.LuaUI.GadgetMessageProxy("ui.substitutePlayers.substituted"))
 		end
 		gadgetHandler:RemoveGadget()
 	end
@@ -304,5 +301,4 @@ else
 		gadgetHandler:RemoveSyncAction("SubstitutionOccurred")
 		--gadgetHandler:RemoveSyncAction("ForceSpec")
 	end
-
 end

@@ -16,7 +16,8 @@
 example usage (need cheats):
 /luarules buildicons all
 /luarules buildicon armcom
-]]--
+]]
+--
 --TODO:
 --1. make blue water drop 256
 --2. fix the culling of floating structures
@@ -32,15 +33,13 @@ function gadget:GetInfo()
 		date = "Oct 01, 2008",
 		license = "GNU GPL, v2 or later",
 		layer = -10,
-		enabled = true
+		enabled = true,
 	}
 end
 
 --local renderOverlay = false
 
 if gadgetHandler:IsSyncedCode() then
-
-
 	local units = {}
 	local createunits = {}
 	local curTeam
@@ -50,7 +49,7 @@ if gadgetHandler:IsSyncedCode() then
 		local new = {}
 		for i = 1, #units do
 			if (units[i].frame + 5) == n then
-				Spring.DestroyUnit(units[i].id, false, true)
+				SpringSynced.DestroyUnit(units[i].id, false, true)
 			elseif units[i].frame == n then
 				SendToUnsynced("buildicon_unitcreated", units[i].id, units[i].defname)
 				new[#new + 1] = units[i]
@@ -75,57 +74,56 @@ if gadgetHandler:IsSyncedCode() then
 				local lus = false
 				local x, z = nextUnitX, nextUnitZ
 				nextUnitX = nextUnitX + 200
-				if (nextUnitX >= Game.mapSizeX) then
+				if nextUnitX >= Game.mapSizeX then
 					nextUnitX, nextUnitZ = 100, nextUnitZ + 200
 				end
-				local y = Spring.GetGroundHeight(0, 0)
-				Spring.LevelHeightMap(x - 50, z - 50, x + 50, z + 50, y)
+				local y = SpringShared.GetGroundHeight(0, 0)
+				SpringSynced.LevelHeightMap(x - 50, z - 50, x + 50, z + 50, y)
 
-				local uid = Spring.CreateUnit(cunit.defname, x, y, z, "south", 0)    -- FIXME needs to be a non-gaia team if gaia doesn't have its unitlimit assigned
+				local uid = SpringSynced.CreateUnit(cunit.defname, x, y, z, "south", 0) -- FIXME needs to be a non-gaia team if gaia doesn't have its unitlimit assigned
 
 				if uid then
 					units[#units + 1] = { id = uid, defname = cunit.defname, frame = n + cunit.time }
 					curTeam = cunit.team
 
-					Spring.SetUnitNeutral(uid, true)
-					Spring.GiveOrderToUnit(uid, CMD.FIRE_STATE, { 0 }, 0)
-					Spring.GiveOrderToUnit(uid, CMD.STOP, {}, 0)
+					SpringSynced.SetUnitNeutral(uid, true)
+					SpringSynced.GiveOrderToUnit(uid, CMD.FIRE_STATE, { 0 }, 0)
+					SpringSynced.GiveOrderToUnit(uid, CMD.STOP, {}, 0)
 
-					local env = Spring.UnitScript.GetScriptEnv(uid)
+					local env = SpringSynced.UnitScript.GetScriptEnv(uid)
 					if env then
 						lus = true
 					end
 
 					if lus then
 						if env.Activate then
-							Spring.UnitScript.CallAsUnit(uid, env.Activate)
+							SpringSynced.UnitScript.CallAsUnit(uid, env.Activate)
 						end
 					else
-						Spring.CallCOBScript(uid, "Activate", 0)
+						SpringSynced.CallCOBScript(uid, "Activate", 0)
 					end
 
 					if cunit.move then
 						if lus then
 							if env.StartMoving then
-								Spring.UnitScript.CallAsUnit(uid, env.StartMoving)
+								SpringSynced.UnitScript.CallAsUnit(uid, env.StartMoving)
 							end
 						else
-							Spring.CallCOBScript(uid, "StartMoving", 0)
+							SpringSynced.CallCOBScript(uid, "StartMoving", 0)
 						end
 					end
 
 					if cunit.attack and not lus then
 						local angle = (cunit.shotAngle / 180) * 32768
 
-						Spring.CallCOBScript(uid, "AimPrimary", 0, Spring.GetHeadingFromVector(0, 1), angle)
-						Spring.CallCOBScript(uid, "AimWeapon1", 0, Spring.GetHeadingFromVector(0, 1), angle)
+						SpringSynced.CallCOBScript(uid, "AimPrimary", 0, SpringShared.GetHeadingFromVector(0, 1), angle)
+						SpringSynced.CallCOBScript(uid, "AimWeapon1", 0, SpringShared.GetHeadingFromVector(0, 1), angle)
 
-						Spring.CallCOBScript(uid, "AimSecondary", 0, Spring.GetHeadingFromVector(0, 1), angle)
-						Spring.CallCOBScript(uid, "AimWeapon2", 0, Spring.GetHeadingFromVector(0, 1), angle)
+						SpringSynced.CallCOBScript(uid, "AimSecondary", 0, SpringShared.GetHeadingFromVector(0, 1), angle)
+						SpringSynced.CallCOBScript(uid, "AimWeapon2", 0, SpringShared.GetHeadingFromVector(0, 1), angle)
 
-						Spring.CallCOBScript(uid, "AimTertiary", 0, Spring.GetHeadingFromVector(0, 1), angle)
-						Spring.CallCOBScript(uid, "AimWeapon3", 0, Spring.GetHeadingFromVector(0, 1), angle)
-
+						SpringSynced.CallCOBScript(uid, "AimTertiary", 0, SpringShared.GetHeadingFromVector(0, 1), angle)
+						SpringSynced.CallCOBScript(uid, "AimWeapon3", 0, SpringShared.GetHeadingFromVector(0, 1), angle)
 					end
 				end
 			end
@@ -142,8 +140,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:RecvLuaMsg(msg, playerID)
 		if msg:sub(1, 9) == "buildicon" then
-			if not Spring.IsCheatingEnabled() then
-				Spring.SendMessageToPlayer(playerID, "Cheating must be enabled")
+			if not SpringShared.IsCheatingEnabled() then
+				SpringUnsynced.SendMessageToPlayer(playerID, "Cheating must be enabled")
 				return true
 			end
 
@@ -169,7 +167,6 @@ if gadgetHandler:IsSyncedCode() then
 			return true
 		end
 	end
-
 
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
@@ -227,11 +224,11 @@ else
 
 	local function LoadScheme()
 		local G = getfenv()
-		G["scheme"] = scheme
-		G["ratio"] = ratio
-		G["ratio_name"] = ratio_name
-		G["iconX"] = iconX
-		G["iconY"] = iconY
+		G.scheme = scheme
+		G.ratio = ratio
+		G.ratio_name = ratio_name
+		G.iconX = iconX
+		G.iconY = iconY
 
 		autoConfigs = {} --// reset
 
@@ -344,7 +341,7 @@ else
 		})
 
 		if not pre_shader then
-			Spring.Log(gadget:GetInfo().name, LOG.ERROR, gl.GetShaderLog())
+			SpringShared.Log(gadget:GetInfo().name, LOG.ERROR, gl.GetShaderLog())
 		end
 
 		post_shader = gl.CreateShader({
@@ -445,13 +442,13 @@ else
 
         gl_FragData[0] = color1;
 
-      ]] .. (((not textured) and '/*') or '') .. [[
-        vec3 lightPos     = vec3(]] .. (lightPos[1] .. ',' .. lightPos[2] .. ',' .. lightPos[3]) .. [[);
-        vec3 lightDiffuse = vec3(]] .. (lightDiffuse[1] .. ',' .. lightDiffuse[2] .. ',' .. lightDiffuse[3]) .. [[);
-        vec3 lightAmbient = vec3(]] .. (lightAmbient[1] .. ',' .. lightAmbient[2] .. ',' .. lightAmbient[3]) .. [[);
+      ]] .. (((not textured) and "/*") or "") .. [[
+        vec3 lightPos     = vec3(]] .. (lightPos[1] .. "," .. lightPos[2] .. "," .. lightPos[3]) .. [[);
+        vec3 lightDiffuse = vec3(]] .. (lightDiffuse[1] .. "," .. lightDiffuse[2] .. "," .. lightDiffuse[3]) .. [[);
+        vec3 lightAmbient = vec3(]] .. (lightAmbient[1] .. "," .. lightAmbient[2] .. "," .. lightAmbient[3]) .. [[);
         gl_FragData[0].rgb  = albedo.rgb * (max(dot(normal.xyz,lightPos),0.0) * lightDiffuse + lightAmbient);
         gl_FragData[0].rgb *= min(vec3(1.0),color1.rgb);
-      ]] .. (((not textured) and '*/') or '') .. [[
+      ]] .. (((not textured) and "*/") or "") .. [[
 
         gl_FragData[0] = mix(gl_FragData[0], vec4(0.0,0.0,0.0,1.0), ol);  // outline
       }
@@ -463,7 +460,7 @@ else
 		})
 
 		if not post_shader then
-			Spring.Log(gadget:GetInfo().name, LOG.ERROR, gl.GetShaderLog())
+			SpringShared.Log(gadget:GetInfo().name, LOG.ERROR, gl.GetShaderLog())
 		end
 
 		halo_shader = gl.CreateShader({
@@ -527,7 +524,7 @@ else
 		})
 
 		if not halo_shader then
-			Spring.Log(gadget:GetInfo().name, LOG.ERROR, gl.GetShaderLog())
+			SpringShared.Log(gadget:GetInfo().name, LOG.ERROR, gl.GetShaderLog())
 		end
 
 		clear_shader = gl.CreateShader({
@@ -537,11 +534,11 @@ else
         gl_FragData[0] = vec4(0.0);
         gl_FragData[1] = vec4(0.0);
       }
-    ]]
+    ]],
 		})
 
 		if not clear_shader then
-			Spring.Log(gadget:GetInfo().name, LOG.ERROR, gl.GetShaderLog())
+			SpringShared.Log(gadget:GetInfo().name, LOG.ERROR, gl.GetShaderLog())
 		end
 	end
 
@@ -636,12 +633,11 @@ else
 		return top, left, bottom, right
 	end
 
-
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
 
 	local function GetUnitDefDims(udid)
-		local dims = Spring.GetUnitDefDimensions(udid)
+		local dims = SpringShared.GetUnitDefDimensions(udid)
 		local midx, midy, midz = (dims.maxx + dims.minx) * 0.5, (math.max(0, dims.maxy) + math.max(0, dims.miny)) * 0.5, (dims.maxz + dims.minz) * 0.5
 		local ax = math.max(math.abs(dims.maxx - midx), math.abs(dims.minx - midx))
 		local ay = math.max(math.abs(dims.maxy - midy), math.abs(dims.miny - midy))
@@ -695,7 +691,7 @@ else
 		gl.PushMatrix()
 		gl.LoadIdentity()
 
-		if (uid) then
+		if uid then
 			gl.UnitTextures(uid, true)
 			gl.UnitRaw(uid, true, -1)
 			gl.UnitTextures(uid, false)
@@ -768,7 +764,7 @@ else
 			for i = 1, cnt - 1 do
 				for n = 1, 4 do
 					elements[#elements + 1] = {
-						v = {}
+						v = {},
 					}
 				end
 			end
@@ -813,12 +809,11 @@ else
 			if UnitDefs[unitdefid].levelGround == false then
 				amfibianunit = true
 			end
-
 		end
 		if (UnitDefs[unitdefid].maxWaterDepth ~= nil and UnitDefs[unitdefid].maxWaterDepth >= 255 and (UnitDefs[unitdefid].waterline == nil or UnitDefs[unitdefid].waterline <= 0)) and (UnitDefs[unitdefid].minWaterDepth == nil or UnitDefs[unitdefid].minWaterDepth <= 0) then
 			amfibianunit = true
 		end
-		if (UnitDefs[unitdefid].isBuilder == true and UnitDefs[unitdefid].canMove == true) or (UnitDefs[unitdefid].name == 'armnanotc' or UnitDefs[unitdefid].name == 'armnanotcplat' or UnitDefs[unitdefid].name == 'cornanotc' or UnitDefs[unitdefid].name == 'cornanotcplat') then
+		if (UnitDefs[unitdefid].isBuilder == true and UnitDefs[unitdefid].canMove == true) or (UnitDefs[unitdefid].name == "armnanotc" or UnitDefs[unitdefid].name == "armnanotcplat" or UnitDefs[unitdefid].name == "cornanotc" or UnitDefs[unitdefid].name == "cornanotcplat") then
 			builderunit = true
 		end
 
@@ -908,11 +903,11 @@ else
 		if bottom_ + height_ > renderY or left_ < 0 or bottom_ < 0 or left_ + width_ > renderX then
 			local offX, offY = CheckOutsideBoundings(left_, bottom_, width_, height_, wantedSpace)
 			if offX then
-				Spring.Echo(i, UnitDefs[udid].name .. ": Boundings outside of the texture", offX, offY)
+				SpringShared.Echo(i, UnitDefs[udid].name .. ": Boundings outside of the texture", offX, offY)
 				autoConfigs[udid].offset = { autoConfigs[udid].offset[1] + offX, autoConfigs[udid].offset[2] + offY, 0 }
 				return false, left_, bottom_, width_, height_
 			else
-				Spring.Echo(i, UnitDefs[udid].name .. ": Render Context too small (you have to increase renderX&renderY)")
+				SpringShared.Echo(i, UnitDefs[udid].name .. ": Render Context too small (you have to increase renderX&renderY)")
 			end
 		end
 
@@ -980,17 +975,17 @@ else
 	local function GetFaction(unitdef)
 		local name = unitdef.name
 		if string.find(name, "_scav") then
-			return 'scav'
+			return "scav"
 		elseif string.sub(name, 1, 3) == "arm" then
-			return 'arm'
+			return "arm"
 		elseif string.sub(name, 1, 3) == "cor" then
-			return 'cor'
+			return "cor"
 		elseif string.sub(name, 1, 3) == "leg" then
-			return 'legion'
-		elseif string.find(name, 'raptor') then
-			return 'raptor'
+			return "legion"
+		elseif string.find(name, "raptor") then
+			return "raptor"
 		end
-		return 'unknown'
+		return "unknown"
 	end
 
 	local function CreateIcon(udid, uid)
@@ -1003,7 +998,7 @@ else
 		local left, bottom = 0, 0
 		local width, height = 0, 0
 
-		if (not cfg.empty) then
+		if not cfg.empty then
 			repeat
 				myGLClear()
 
@@ -1021,29 +1016,26 @@ else
 				end)
 
 				attempts = attempts + 1
-			until (result or (attempts >= cfg.attempts))
+			until result or (attempts >= cfg.attempts)
 		else
 			myGLClear()
 		end
 
 		--// take screenshot
 		gl.ActiveFBO(final_fbo, true, function()
-
 			gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 			gl.Color(1, 1, 1, 1)
-			if (background) then
+			if background then
 				Background(udid)
 			end
 
-			if (halo) then
+			if halo then
 				gl.UseShader(halo_shader)
 				gl.Blending("add")
 				gl.BlendEquationSeparate(0x8006, 0x8008)
 				gl.BlendFuncSeparate(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA, GL.ONE, GL.ONE)
 				gl.Texture(2, depth_tex)
-				gl.TexRect(-1, -1, 1, 1,
-					left / (renderX), bottom / (renderY),
-					(left + width) / (renderX), (bottom + height) / (renderY))
+				gl.TexRect(-1, -1, 1, 1, left / renderX, bottom / renderY, (left + width) / renderX, (bottom + height) / renderY)
 				gl.Texture(2, false)
 				gl.BlendEquationSeparate(0x8006, 0x8006)
 				gl.BlendFuncSeparate(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA, GL.ONE, GL.ZERO)
@@ -1052,9 +1044,7 @@ else
 
 			gl.Blending("reset")
 			gl.Texture(post_tex)
-			gl.TexRect(-1, -1, 1, 1,
-				left / (renderX), bottom / (renderY),
-				(left + width) / (renderX), (bottom + height) / (renderY))
+			gl.TexRect(-1, -1, 1, 1, left / renderX, bottom / renderY, (left + width) / renderX, (bottom + height) / renderY)
 			--if renderOverlay then
 			--  Overlay(udid)	-- draw water drop if water unit
 			--end
@@ -1062,11 +1052,11 @@ else
 			gl.Blending(false)
 			gl.Texture(false)
 
-			local outfile = (outdir) .. "/" .. (UnitDefs[udid].name)
+			local outfile = outdir .. "/" .. UnitDefs[udid].name
 			if cfg.frame ~= nil then
-				outfile = outfile .. '_' .. cfg.frame
+				outfile = outfile .. "_" .. cfg.frame
 			end
-			outfile = outfile .. (imageExt)
+			outfile = outfile .. imageExt
 
 			--if (VFS.FileExists(outfile, VFS.RAW)) then
 			--  os.remove(outfile)
@@ -1075,13 +1065,12 @@ else
 			gl.SaveImage(0, 0, iconX, iconY, outfile, { alpha = true })
 		end)
 
-		if (not result and not cfg.empty) then
-			Spring.Log(gadget:GetInfo().name, LOG.ERROR, "icongen: " .. (UnitDefs[udid].name) .. ": give up :<")
+		if not result and not cfg.empty then
+			SpringShared.Log(gadget:GetInfo().name, LOG.ERROR, "icongen: " .. UnitDefs[udid].name .. ": give up :<")
 		end
 	end
 
 	local function AddUnitJob(udid, angle, frame)
-
 		--// generate unit icon settings (and merge defaults)
 		local cfg = unitConfigs[udid] or {}
 		autoConfigs[udid] = {}
@@ -1096,7 +1085,7 @@ else
 			unitConfigs[udid].frame = frame
 		end
 
-		if (cfg.unfold) then
+		if cfg.unfold then
 			--// unit does some unfolding/animation in cob,
 			--// so we need to create it first
 
@@ -1104,15 +1093,9 @@ else
 
 			local factionTeam = factionTeams[GetFaction(UnitDefs[udid] or {})]
 
-			local msg = "buildicon " ..
-				UnitDefs[udid].name .. ";" ..
-				((cfg.attack and "1") or "0") .. ";" ..
-				((cfg.move and "1") or "0") .. ";" ..
-				factionTeam .. ";" ..
-				(cfg.wait) .. ";" ..
-				(cfg.shotangle or "0") .. ";"
+			local msg = "buildicon " .. UnitDefs[udid].name .. ";" .. ((cfg.attack and "1") or "0") .. ";" .. ((cfg.move and "1") or "0") .. ";" .. factionTeam .. ";" .. cfg.wait .. ";" .. (cfg.shotangle or "0") .. ";"
 
-			Spring.SendLuaRulesMsg(msg)
+			SpringUnsynced.SendLuaRulesMsg(msg)
 			return
 		end
 
@@ -1133,21 +1116,21 @@ else
 	local schemes, resolutions, ratios = {}, {}, {}
 
 	local function BuildIcon(cmd, line, words, playerID)
-		if (not Spring.IsCheatingEnabled()) then
-			Spring.Echo("Cheating must be enabled")
+		if not SpringShared.IsCheatingEnabled() then
+			SpringShared.Echo("Cheating must be enabled")
 			return false
 		end
 		--if (not Spring.GetModUICtrl()) then
 		--  Spring.Echo("ModUICtrl is needed (type /luamoduictrl 1)")
 		--  return false
 		--end
-		if (final_tex or #jobs > 0) then
-			Spring.Echo("Wait until current process is finished")
+		if final_tex or #jobs > 0 then
+			SpringShared.Echo("Wait until current process is finished")
 			return false
 		end
 
-		if (words[1] and words[1] ~= "all" and not UnitDefNames[words[1]]) then
-			Spring.Echo("No such unit found")
+		if words[1] and words[1] ~= "all" and not UnitDefNames[words[1]] then
+			SpringShared.Echo("No such unit found")
 			return false
 		end
 
@@ -1155,8 +1138,6 @@ else
 		for _, res in pairs(resolutions) do
 			for _, _scheme in pairs(schemes) do
 				for _ratio_name, _ratio in pairs(ratios) do
-
-
 					AddJob(FreeResources)
 
 					AddJob(WaitForSyncedJobs)
@@ -1164,7 +1145,7 @@ else
 						AddJob(function()
 							AddUnitJob(UnitDefNames[words[1]].id, words[2], words[3])
 						end)
-						Spring.Echo('buildicon: ' .. words[1] .. '  ' .. (words[3] or ''))
+						SpringShared.Echo("buildicon: " .. words[1] .. "  " .. (words[3] or ""))
 					else
 						for udid = #UnitDefs, 1, -1 do
 							AddJob(function()
@@ -1180,13 +1161,13 @@ else
 						ratio, ratio_name = _ratio, _ratio_name
 						iconX, iconY = res[1], res[2]
 
-						outdir = "buildicons/" .. (scheme) .. "_" .. (ratio_name) .. "_" .. (iconX) .. "x" .. (iconY)
-						Spring.CreateDir(outdir)
+						outdir = "buildicons/" .. scheme .. "_" .. ratio_name .. "_" .. iconX .. "x" .. iconY
+						SpringUnsynced.CreateDir(outdir)
 
 						if words[3] then
 							-- if animation
-							outdir = "buildicons/" .. (scheme) .. "_" .. (ratio_name) .. "_" .. (iconX) .. "x" .. (iconY) .. '/' .. words[1]
-							Spring.CreateDir(outdir)
+							outdir = "buildicons/" .. scheme .. "_" .. ratio_name .. "_" .. iconX .. "x" .. iconY .. "/" .. words[1]
+							SpringUnsynced.CreateDir(outdir)
 						end
 
 						LoadScheme()

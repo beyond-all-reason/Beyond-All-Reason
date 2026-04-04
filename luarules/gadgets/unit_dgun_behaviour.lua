@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		desc = "D-Gun projectiles hug ground, volumetric damage, deterministic damage against Commanders, override interactions with shields",
 		author = "Anarchid, Sprung, SethDGamre",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -14,17 +14,17 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local spSetProjectilePosition = Spring.SetProjectilePosition
-local spSetProjectileVelocity = Spring.SetProjectileVelocity
-local spGetProjectilePosition = Spring.GetProjectilePosition
-local spGetProjectileDirection = Spring.GetProjectileDirection
-local spGetProjectileVelocity = Spring.GetProjectileVelocity
-local spGetGroundHeight = Spring.GetGroundHeight
-local spDeleteProjectile = Spring.DeleteProjectile
-local spSetProjectileCollision = Spring.SetProjectileCollision
-local spGetUnitPosition = Spring.GetUnitPosition
-local spSpawnCEG = Spring.SpawnCEG
-local spGetGameFrame = Spring.GetGameFrame
+local spSetProjectilePosition = SpringSynced.SetProjectilePosition
+local spSetProjectileVelocity = SpringSynced.SetProjectileVelocity
+local spGetProjectilePosition = SpringShared.GetProjectilePosition
+local spGetProjectileDirection = SpringShared.GetProjectileDirection
+local spGetProjectileVelocity = SpringShared.GetProjectileVelocity
+local spGetGroundHeight = SpringShared.GetGroundHeight
+local spDeleteProjectile = SpringSynced.DeleteProjectile
+local spSetProjectileCollision = SpringSynced.SetProjectileCollision
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spSpawnCEG = SpringSynced.SpawnCEG
+local spGetGameFrame = SpringShared.GetGameFrame
 
 local mathSqrt = math.sqrt
 local mathMax = math.max
@@ -63,7 +63,7 @@ end
 
 for weaponDefID = 0, #WeaponDefs do
 	local weaponDef = WeaponDefs[weaponDefID]
-	if weaponDef.type == 'DGun' then
+	if weaponDef.type == "DGun" then
 		Script.SetWatchProjectile(weaponDefID, true)
 		dgunDef[weaponDefID] = weaponDef
 		dgunDef[weaponDefID].ttl = generateWeaponTtlFunction(weaponDef)
@@ -160,8 +160,7 @@ function gadget:GameFramePost(frame)
 	end
 end
 
-function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID,
-							   attackerDefID, attackerTeam)
+function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	if dgunDef[weaponDefID] and isCommander[attackerDefID] and (isCommander[unitDefID] or isDecoyCommander[unitDefID]) then
 		if isDecoyCommander[unitDefID] then
 			return dgunDef[weaponDefID].damages[0]
@@ -205,7 +204,7 @@ end
 
 function gadget:Initialize()
 	if not GG.Shields then
-		Spring.Log("ScriptedWeapons", LOG.ERROR, "Shields API unavailable (dgun)")
+		SpringShared.Log("ScriptedWeapons", LOG.ERROR, "Shields API unavailable (dgun)")
 		return
 	end
 

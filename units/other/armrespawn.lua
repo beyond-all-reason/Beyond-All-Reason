@@ -1,4 +1,4 @@
-local range = Spring.GetModOptions().commanderbuildersrange
+local range = SpringShared.GetModOptions().commanderbuildersrange
 return {
 	armrespawn = {
 		maxacc = 0,
@@ -39,14 +39,14 @@ return {
 		turnrate = 1,
 		upright = true,
 		waterline = 0,
-		workertime = Spring.GetModOptions().commanderbuildersbuildpower,
+		workertime = SpringShared.GetModOptions().commanderbuildersbuildpower,
 		customparams = {
 			usebuildinggrounddecal = false,
 			buildinggrounddecaltype = "decals/armnanotc_aoplane.dds",
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmBuildings/SeaUtil",

@@ -1,22 +1,20 @@
-
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "Load Own Moving",
-		desc      = "Enables loading of your own units when they're moving",
-		author    = "Niobium",
-		version   = "1.0",
-		date      = "June 18, 2010",
-		license   = "GNU GPL, v2 or later",
-		layer     = 0,
-		enabled   = true
+		name = "Load Own Moving",
+		desc = "Enables loading of your own units when they're moving",
+		author = "Niobium",
+		version = "1.0",
+		date = "June 18, 2010",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
 
-
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
+local spGetGameFrame = SpringShared.GetGameFrame
 
 -------------------------------------------------------------------
 -- Globals
@@ -33,12 +31,12 @@ end
 -------------------------------------------------------------------
 -- Speedups
 -------------------------------------------------------------------
-local spGetMyTeamID = Spring.GetMyTeamID
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spGetUnitSeparation = Spring.GetUnitSeparation
-local spGetUnitVelocity = Spring.GetUnitVelocity
+local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
+local spGetUnitTeam = SpringShared.GetUnitTeam
+local spGetUnitCurrentCommand = SpringShared.GetUnitCurrentCommand
+local spGiveOrderToUnit = SpringSynced.GiveOrderToUnit
+local spGetUnitSeparation = SpringShared.GetUnitSeparation
+local spGetUnitVelocity = SpringShared.GetUnitVelocity
 
 local CMD_INSERT = CMD.INSERT
 local CMD_LOAD_UNITS = CMD.LOAD_UNITS
@@ -50,9 +48,10 @@ local gameStarted
 -- Local functions
 -------------------------------------------------------------------
 local function GetTransportTarget(uID)
-
 	local uCmd, _, _, cmdParam1, cmdParam2 = spGetUnitCurrentCommand(uID)
-	if not uCmd then return end
+	if not uCmd then
+		return
+	end
 	if uCmd == CMD_LOAD_UNITS and cmdParam2 == nil then
 		if spGetUnitTeam(cmdParam1) == spGetMyTeamID() then
 			return cmdParam1
@@ -68,7 +67,7 @@ function widget:UnitCommand(uID, uDefID, uTeam)
 		local wasEmpty = not next(watchList)
 		watchList[uID] = true
 		if wasEmpty then
-			widgetHandler:UpdateCallIn('GameFrame')
+			widgetHandler:UpdateCallIn("GameFrame")
 		end
 	end
 end
@@ -77,23 +76,21 @@ function widget:UnitCmdDone(uID, uDefID, uTeam)
 end
 
 function widget:GameFrame(n)
-
 	-- Limit command rate to 3/sec (Sufficient for coms)
-	if n % 10 > 0 then return end
+	if n % 10 > 0 then
+		return
+	end
 
 	for uID, _ in pairs(watchList) do
-
 		-- Re-get transports target
 		local tID = GetTransportTarget(uID)
 		if tID then
-
 			-- Only issue if transport is close
 			if spGetUnitSeparation(uID, tID, true) < 100 then
-
 				-- Only issue if target is moving
 				local vx, _, vz = spGetUnitVelocity(tID)
 				if vx ~= 0 or vz ~= 0 then
-					spGiveOrderToUnit(uID, CMD_INSERT, {0, CMD_LOAD_UNITS, 0, tID}, CMD_OPT_ALT)
+					spGiveOrderToUnit(uID, CMD_INSERT, { 0, CMD_LOAD_UNITS, 0, tID }, CMD_OPT_ALT)
 				end
 			end
 		else
@@ -102,7 +99,7 @@ function widget:GameFrame(n)
 		end
 	end
 	if not next(watchList) then
-		widgetHandler:RemoveCallIn('GameFrame')
+		widgetHandler:RemoveCallIn("GameFrame")
 	end
 end
 
@@ -111,22 +108,22 @@ function widget:UnitTaken(uID)
 end
 
 function maybeRemoveSelf()
-    if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
-        widgetHandler:RemoveWidget()
-    end
+	if SpringUnsynced.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
+		widgetHandler:RemoveWidget()
+	end
 end
 
 function widget:GameStart()
-    gameStarted = true
-    maybeRemoveSelf()
+	gameStarted = true
+	maybeRemoveSelf()
 end
 
 function widget:PlayerChanged(playerID)
-    maybeRemoveSelf()
+	maybeRemoveSelf()
 end
 
 function widget:Initialize()
-    if Spring.IsReplay() or spGetGameFrame() > 0 then
-        maybeRemoveSelf()
-    end
+	if SpringUnsynced.IsReplay() or spGetGameFrame() > 0 then
+		maybeRemoveSelf()
+	end
 end

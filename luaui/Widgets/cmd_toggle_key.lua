@@ -13,10 +13,10 @@ function widget:GetInfo()
 end
 
 -- cmd, optLine, optWords, data, isRepeat, release, actions
-function ToggleCMD(_ , optLine)
-    Spring.SetActiveCommand(optLine)
+function ToggleCMD(_, optLine)
+	SpringUnsynced.SetActiveCommand(optLine)
 end
 
 function widget:Initialize()
-    widgetHandler:AddAction("toggle", ToggleCMD, nil, "pr")
+	widgetHandler:AddAction("toggle", ToggleCMD, nil, "pr")
 end

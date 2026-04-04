@@ -2,23 +2,23 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-	name	= "Cloaked Buildpower Default Move",
-	desc	= "Prevents accidental reclaim, load, and attack commands on cloaked units\nMakes move the default command for commanders, decoys, and spies when cloaked",
-	author	= "Catcow, BrainDamage",
-	date	= "11/14/25",
-	license	= "GNU GPL, v2 or later",
-	layer	= 0,
-	enabled	= true,
+		name = "Cloaked Buildpower Default Move",
+		desc = "Prevents accidental reclaim, load, and attack commands on cloaked units\nMakes move the default command for commanders, decoys, and spies when cloaked",
+		author = "Catcow, BrainDamage",
+		date = "11/14/25",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
 
 -- Localized Spring API for performance
-local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
-local spGetGameFrame = Spring.GetGameFrame
+local spGetSelectedUnitsCount = SpringUnsynced.GetSelectedUnitsCount
+local spGetGameFrame = SpringShared.GetGameFrame
 
-local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
-local spGetMyTeamID = Spring.GetMyTeamID
-local spGetUnitStates = Spring.GetUnitStates
+local spGetSelectedUnitsSorted = SpringUnsynced.GetSelectedUnitsSorted
+local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
+local spGetUnitStates = SpringShared.GetUnitStates
 
 local idCanBuildCloakMove = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -33,7 +33,7 @@ local CMD_MOVE = CMD.MOVE
 local CMD_WANT_CLOAK = GameCMD.WANT_CLOAK
 
 local function maybeRemoveSelf()
-	if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
+	if SpringUnsynced.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
 		widgetHandler:RemoveWidget()
 	end
 end
@@ -48,7 +48,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-	if Spring.IsReplay() or spGetGameFrame() > 0 then
+	if SpringUnsynced.IsReplay() or spGetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
 end
@@ -60,7 +60,9 @@ local function update()
 
 	cloakedBuilderMovableSelected = false
 	-- above a little amount we likely aren't micro-ing cloaked things anymore...
-	if selectedUnitsCount == 0 or selectedUnitsCount > 20 then return end
+	if selectedUnitsCount == 0 or selectedUnitsCount > 20 then
+		return
+	end
 
 	local selectedUnitTypes = spGetSelectedUnitsSorted()
 	for unitDefID, units in pairs(selectedUnitTypes) do
@@ -81,7 +83,7 @@ function widget:SelectionChanged(sel)
 end
 
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
-	if (cmdID == CMD_WANT_CLOAK) and (idCanBuildCloakMove[unitDefID]) and (teamID == spGetMyTeamID()) then
+	if (cmdID == CMD_WANT_CLOAK) and idCanBuildCloakMove[unitDefID] and (teamID == spGetMyTeamID()) then
 		update()
 	end
 end

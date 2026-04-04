@@ -1,12 +1,11 @@
 -- run test using BAR command (in chat): `/runtests select_api`
-local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitDefID = SpringShared.GetUnitDefID
 local selectApi = VFS.Include("luaui/Include/select_api.lua")
 local nameLookup = {}
 local passed = true
 
-
 function skip()
-	return Spring.GetGameFrame() <= 0 or not Platform.gl
+	return SpringShared.GetGameFrame() <= 0 or not Platform.gl
 end
 
 function setup()
@@ -14,7 +13,7 @@ function setup()
 end
 
 function cleanup()
-	Spring.SendCommands("setspeed " .. 1)
+	SpringUnsynced.SendCommands("setspeed " .. 1)
 end
 
 local function printTable(tbl, indent)
@@ -69,13 +68,11 @@ local function compareUnitSets(springUnitSet, apiUnitSet, filter)
 
 			-- these have weird behaviour for the "Not_Builder" filter
 			-- they behave as expected for the "Builder" filter
-			local isWeirdOutlier = (filter == "Not_Builder" and (
-					name == "cormlv" or
-					name == "armmlv"
-				))
+			local isWeirdOutlier = (filter == "Not_Builder" and (name == "cormlv" or name == "armmlv"))
 				-- api command selects these, but spring select doesn't
 				-- I think they spawn? don't seem to exist during build script
-				or name == "armdrone" or name == "corvacct"
+				or name == "armdrone"
+				or name == "corvacct"
 				or name == "armtl"
 
 			if not isWeirdOutlier then
@@ -88,9 +85,7 @@ local function compareUnitSets(springUnitSet, apiUnitSet, filter)
 end
 
 local function createAndAddUnit(udefid, name, x, z, uids, group)
-	if name == 'dbg_sphere' or name == 'dbg_sphere_fullmetal' or name == 'pbr_cube'
-		or name == 'lootboxplatinum'
-	then -- weird buggy units
+	if name == "dbg_sphere" or name == "dbg_sphere_fullmetal" or name == "pbr_cube" or name == "lootboxplatinum" then -- weird buggy units
 		return
 	end
 
@@ -100,12 +95,11 @@ local function createAndAddUnit(udefid, name, x, z, uids, group)
 		local z = locals.z
 		local group = locals.group
 
-		local y = Spring.GetGroundHeight(x, z)
-		local unitID = Spring.CreateUnit(udefid, x, y, z, "east", 0)
-
+		local y = SpringShared.GetGroundHeight(x, z)
+		local unitID = SpringSynced.CreateUnit(udefid, x, y, z, "east", 0)
 
 		if group == 1 then
-			Spring.SetUnitGroup(unitID, 1)
+			SpringUnsynced.SetUnitGroup(unitID, 1)
 		end
 		return unitID
 	end)
@@ -169,7 +163,7 @@ local comparableConclusions = {
 	["ClearSelection_SelectAll+"] = true,
 	["SelectAll+"] = true,
 	["ClearSelection_SelectClosestToCursor+"] = true,
-	["SelectClosestToCursor+"] = true
+	["SelectClosestToCursor+"] = true,
 }
 
 local function test_command(preSelectedUnitIDs, filter, command, conclusion)
@@ -178,18 +172,18 @@ local function test_command(preSelectedUnitIDs, filter, command, conclusion)
 	-- api command
 	local apiCommand = selectApi.getCommand(command)
 	local apiCommandUnitSet = {}
-	Spring.SelectUnitArray(preSelectedUnitIDs)
+	SpringUnsynced.SelectUnitArray(preSelectedUnitIDs)
 	apiCommand()
-	local apiUnits = Spring.GetSelectedUnits()
+	local apiUnits = SpringUnsynced.GetSelectedUnits()
 	for _, uid in pairs(apiUnits) do
 		apiCommandUnitSet[uid] = true
 	end
 
 	-- spring
 	local springUnitSet = {}
-	Spring.SelectUnitArray(preSelectedUnitIDs)
-	Spring.SendCommands(springCommand)
-	local springUnits = Spring.GetSelectedUnits()
+	SpringUnsynced.SelectUnitArray(preSelectedUnitIDs)
+	SpringUnsynced.SendCommands(springCommand)
+	local springUnits = SpringUnsynced.GetSelectedUnits()
 	for _, uid in pairs(springUnits) do
 		springUnitSet[uid] = true
 	end
@@ -202,8 +196,7 @@ local function test_command(preSelectedUnitIDs, filter, command, conclusion)
 		local prefix = "\n" .. type .. " " .. command .. " failed: "
 
 		if hasMissingInApi and hasMissingInSpring then
-			local errorMessage = generateErrorMessage(missingInApi, "missingInApi") ..
-				" | " .. generateErrorMessage(missingInSpring, "missingInSpring")
+			local errorMessage = generateErrorMessage(missingInApi, "missingInApi") .. " | " .. generateErrorMessage(missingInSpring, "missingInSpring")
 			print(prefix .. errorMessage)
 			passed = false
 		elseif hasMissingInApi then
@@ -297,7 +290,7 @@ function test()
 	}
 
 	local notImplementedApi = {
-		"RulesParamEquals_<string>_<integer>"
+		"RulesParamEquals_<string>_<integer>",
 	}
 
 	local notImplementedSpring = {
@@ -319,7 +312,7 @@ function test()
 		"Visible",
 		"PrevSelection",
 		"FromMouse_500",
-		"FromMouseC_500"
+		"FromMouseC_500",
 	}
 
 	local conclusions = {

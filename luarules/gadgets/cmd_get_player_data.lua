@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "July 2018",
 		license = "GNU GPL, v2 or later",
 		layer = -999999,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -22,18 +22,16 @@ local screenshotWidthHq = 900
 
 --------------------------------------------------------------------------------
 
-local isSingleplayer = Spring.Utilities.Gametype.IsSinglePlayer()
-
+local isSingleplayer = Utilities.Gametype.IsSinglePlayer()
 
 if gadgetHandler:IsSyncedCode() then
-
 	local validation = string.randomString(2)
 	_G.validationPlayerData = validation
 
 	function gadget:RecvLuaMsg(msg, player)
 		if msg:sub(3, 4) == validation then
 			if msg:sub(1, 2) == "sd" then
-				local name = Spring.GetPlayerInfo(player, false)
+				local name = SpringShared.GetPlayerInfo(player, false)
 				-- Extract requestingPlayerID from position 5 onwards until first semicolon
 				local semicolonPos = string.find(msg, ";", 5)
 				local requestingPlayerID = string.sub(msg, 5, semicolonPos - 1)
@@ -50,9 +48,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
-
 else
-
 	local validation = SYNCED.validationPlayerData
 
 	-- Screenshot capture variables
@@ -67,24 +63,24 @@ else
 	local screenshotCompressedBytes = 0
 
 	-- Font
-	local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-	local vsx, vsy = Spring.GetViewGeometry()
+	local fontfile = "fonts/" .. SpringUnsynced.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+	local vsx, vsy = SpringUnsynced.GetViewGeometry()
 	local uiScale = math.max(vsy / 1080, 1)
 	local fontfileSize = 26
 	local fontfileOutlineSize = 9
 	local fontfileOutlineStrength = 1.7
 
-	local myPlayerID = Spring.GetMyPlayerID()
-	local myPlayerName = Spring.GetPlayerInfo(myPlayerID)
-	local accountID = Spring.Utilities.GetAccountID(myPlayerID)
+	local myPlayerID = SpringUnsynced.GetLocalPlayerID()
+	local myPlayerName = SpringShared.GetPlayerInfo(myPlayerID)
+	local accountID = Utilities.GetAccountID(myPlayerID)
 	local authorized = SYNCED.permissions.playerdata[accountID]
 
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("ReceiveScreenshot", ReceiveScreenshot)
 		gadgetHandler:AddSyncAction("StartScreenshot", StartScreenshot)
-		gadgetHandler:AddChatAction('getscreenshot', GetScreenshot, "")
-		gadgetHandler:AddChatAction('getscreenshotlq', GetScreenshotLq, "")
-		gadgetHandler:AddChatAction('getscreenshothq', GetScreenshotHq, "")
+		gadgetHandler:AddChatAction("getscreenshot", GetScreenshot, "")
+		gadgetHandler:AddChatAction("getscreenshotlq", GetScreenshotLq, "")
+		gadgetHandler:AddChatAction("getscreenshothq", GetScreenshotHq, "")
 		gadget:ViewResize()
 	end
 
@@ -95,13 +91,13 @@ else
 		if font then
 			gl.DeleteFont(font)
 		end
-		gadgetHandler:RemoveChatAction('getscreenshot')
-		gadgetHandler:RemoveChatAction('getscreenshotlq')
-		gadgetHandler:RemoveChatAction('getscreenshothq')
+		gadgetHandler:RemoveChatAction("getscreenshot")
+		gadgetHandler:RemoveChatAction("getscreenshotlq")
+		gadgetHandler:RemoveChatAction("getscreenshothq")
 	end
 
 	function gadget:ViewResize()
-		vsx, vsy = Spring.GetViewGeometry()
+		vsx, vsy = SpringUnsynced.GetViewGeometry()
 		uiScale = math.max(vsy / 1080, 1)
 
 		-- Reload font
@@ -116,8 +112,8 @@ else
 	end
 
 	local function getPlayerIdFromName(targetPlayerName)
-		for _, pID in ipairs(Spring.GetPlayerList()) do
-			local name = Spring.GetPlayerInfo(pID, false)
+		for _, pID in ipairs(SpringShared.GetPlayerList()) do
+			local name = SpringShared.GetPlayerInfo(pID, false)
 			if name == targetPlayerName then
 				return pID
 			end
@@ -134,12 +130,12 @@ else
 		end
 		local targetPlayerID = getPlayerIdFromName(targetPlayerName)
 		if not targetPlayerID then
-			Spring.Echo("Player not found: " .. targetPlayerName)
+			SpringShared.Echo("Player not found: " .. targetPlayerName)
 			return
 		end
 		-- Send message to synced code, which will forward to unsynced
 		-- Format: width;targetPlayerID (requestingPlayerID comes from RecvLuaMsg player param)
-		Spring.SendLuaRulesMsg("ss" .. validation .. width .. ";" .. targetPlayerID)
+		SpringUnsynced.SendLuaRulesMsg("ss" .. validation .. width .. ";" .. targetPlayerID)
 	end
 
 	function GetScreenshot(_, line, words, player)
@@ -160,8 +156,12 @@ else
 	function DEC_CHAR(IN)
 		-- Convert 0-63 range to single base64 character
 		local idx = math.floor(IN) + 1
-		if idx < 1 then idx = 1 end
-		if idx > 64 then idx = 64 end
+		if idx < 1 then
+			idx = 1
+		end
+		if idx > 64 then
+			idx = 64
+		end
 		return string.sub(ENCODE_CHARS, idx, idx)
 	end
 
@@ -192,21 +192,21 @@ else
 			return
 		end
 
-		local _, _, requestingSpec = Spring.GetPlayerInfo(requestingPlayerID, false)
-		local _, _, mySpec = Spring.GetPlayerInfo(myPlayerID, false)
+		local _, _, requestingSpec = SpringShared.GetPlayerInfo(requestingPlayerID, false)
+		local _, _, mySpec = SpringShared.GetPlayerInfo(myPlayerID, false)
 
 		-- Allow screenshot if: singleplayer OR (requesting player is a spec) OR (I'm a spec)
 		if not isSingleplayer and not requestingSpec and not mySpec then
-			return  -- Silently reject if conditions not met
+			return -- Silently reject if conditions not met
 		end
 
 		-- Clamp screenshot width to screen width
-		local vsx, vsy = Spring.GetViewGeometry()
+		local vsx, vsy = SpringUnsynced.GetViewGeometry()
 		queueScreenShotWidth = math.min(width, vsx)
 		queueScreenShotHeightBatch = math.max(1, math.floor(1500 / queueScreenShotWidth))
 
 		queueScreenshot = true
-		queueScreenshotGameframe = Spring.GetGameFrame()
+		queueScreenshotGameframe = SpringShared.GetGameFrame()
 		queueScreenShotHeight = math.min(math.floor(queueScreenShotWidth * (vsy / vsx)), vsy)
 		queueScreenShotH = 0
 		queueScreenShotHmax = queueScreenShotH + queueScreenShotHeightBatch
@@ -226,7 +226,6 @@ else
 		end
 		-- First frame: just prepare textures, don't capture yet
 		if not screenshotInitialized then
-
 			-- Create a downscaled texture with FBO support for later reading
 			queueScreenShotTexture = gl.CreateTexture(queueScreenShotWidth, queueScreenShotHeight, {
 				border = false,
@@ -249,7 +248,7 @@ else
 
 		-- Second frame: now capture the framebuffer (which includes widgets from previous frame)
 		if not screenshotCaptured then
-			local vsx, vsy = Spring.GetViewGeometry()
+			local vsx, vsy = SpringUnsynced.GetViewGeometry()
 
 			-- Create a full-size texture to capture the current framebuffer
 			local fullSizeTexture = gl.CreateTexture(vsx, vsy, {
@@ -273,7 +272,7 @@ else
 			while currentW / targetW > 2 or currentH / targetH > 2 do
 				currentW = math.max(targetW, math.floor(currentW / 2))
 				currentH = math.max(targetH, math.floor(currentH / 2))
-				table.insert(passes, {currentW, currentH})
+				table.insert(passes, { currentW, currentH })
 			end
 
 			-- Apply multi-pass downscaling
@@ -298,12 +297,12 @@ else
 						gl.TexRect(-1, -1, 1, 1)
 						gl.Texture(false)
 						gl.BlendFunc(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- Restore default blending
-					end)						-- Clean up previous intermediate texture (but not the original)
+					end) -- Clean up previous intermediate texture (but not the original)
 					if sourceTexture ~= fullSizeTexture then
 						gl.DeleteTexture(sourceTexture)
 					end
-				sourceTexture = intermediateTexture
-			end
+					sourceTexture = intermediateTexture
+				end
 
 				-- Final pass - flip only if even number of passes (odd already flipped, even needs flip)
 				local needsFlip = (#passes % 2 == 0)
@@ -341,7 +340,7 @@ else
 			return
 		end
 
-		sec = sec + Spring.GetLastUpdateSeconds()
+		sec = sec + SpringUnsynced.GetLastUpdateSeconds()
 		if sec > 0.03 then
 			sec = 0
 
@@ -406,17 +405,17 @@ else
 			end
 
 			if queueScreenShotBroadcastChars >= queueScreenShotCharsPerBroadcast or queueScreenShotH >= queueScreenShotHeight then
-				local finished = '0'
+				local finished = "0"
 				if queueScreenShotH >= queueScreenShotHeight then
-					finished = '1'
+					finished = "1"
 				end
-				local data = finished .. ';' .. queueScreenShotWidth .. ';' .. queueScreenShotHeight .. ';' .. queueScreenshotGameframe .. ';' .. table.concat(queueScreenShotPixels)
+				local data = finished .. ";" .. queueScreenShotWidth .. ";" .. queueScreenShotHeight .. ";" .. queueScreenshotGameframe .. ";" .. table.concat(queueScreenShotPixels)
 				local message = "sd" .. validation .. queueScreenShotRequestingPlayerID .. ";screenshot;" .. VFS.ZlibCompress(data)
-				Spring.SendLuaRulesMsg(message)
+				SpringUnsynced.SendLuaRulesMsg(message)
 				queueScreenShotBroadcastChars = 0
 				queueScreenShotPixels = {}
 				data = nil
-				if finished == '1' then
+				if finished == "1" then
 					if queueScreenShotTexture then
 						gl.DeleteTexture(queueScreenShotTexture)
 						queueScreenShotTexture = nil
@@ -451,7 +450,7 @@ else
 		local playerName = string.sub(remainingMsg, 1, secondSemicolonPos - 1)
 		local data = string.sub(remainingMsg, secondSemicolonPos + 1)
 
-		local _, _, mySpec = Spring.GetPlayerInfo(myPlayerID, false)
+		local _, _, mySpec = SpringShared.GetPlayerInfo(myPlayerID, false)
 		-- data format is "screenshot;compressed_data", and PlayerDataBroadcast expects "playerName;msgType;data"
 		-- So we need to prepend playerName to the data
 		local fullMsg = playerName .. ";" .. data
@@ -460,7 +459,7 @@ else
 		local thirdSemicolonPos = string.find(data, ";")
 		local screenshotTypeCheck = thirdSemicolonPos and string.sub(data, thirdSemicolonPos + 1, thirdSemicolonPos + 1) or ""
 
-		if authorized and (mySpec or isSingleplayer or screenshotTypeCheck == '1') then
+		if authorized and (mySpec or isSingleplayer or screenshotTypeCheck == "1") then
 			PlayerDataBroadcast(myPlayerName, fullMsg)
 		end
 	end
@@ -519,9 +518,9 @@ else
 					b2 = b2 < 0 and 0 or (b2 > 1 and 1 or b2)
 
 					pixelsCount = pixelsCount + 1
-					pixels[pixelsCount] = {r1, g1, b1}
+					pixels[pixelsCount] = { r1, g1, b1 }
 					pixelsCount = pixelsCount + 1
-					pixels[pixelsCount] = {r2, g2, b2}
+					pixels[pixelsCount] = { r2, g2, b2 }
 				end
 				i = i + 4
 			elseif i + 2 <= strLen then
@@ -545,7 +544,7 @@ else
 					b = b < 0 and 0 or (b > 1 and 1 or b)
 
 					pixelsCount = pixelsCount + 1
-					pixels[pixelsCount] = {r, g, b}
+					pixels[pixelsCount] = { r, g, b }
 				end
 				i = i + 3
 			else
@@ -556,13 +555,13 @@ else
 	end
 
 	function PlayerDataBroadcast(playerName, msg)
-		local data = ''
+		local data = ""
 		local count = 0
 		local startPos = 0
 		local msgType
 
 		for i = 1, string.len(msg) do
-			if string.sub(msg, i, i) == ';' then
+			if string.sub(msg, i, i) == ";" then
 				count = count + 1
 				if count == 1 then
 					startPos = i + 1
@@ -576,17 +575,17 @@ else
 		end
 
 		if data then
-			if msgType == 'screenshot' then
+			if msgType == "screenshot" then
 				local compressedSize = string.len(data)
 				screenshotCompressedBytes = screenshotCompressedBytes + compressedSize
 				data = VFS.ZlibDecompress(data)
 				count = 0
 				for i = 1, string.len(data) do
-					if string.sub(data, i, i) == ';' then
+					if string.sub(data, i, i) == ";" then
 						count = count + 1
 						if count == 1 then
 							local finished = string.sub(data, 1, i - 1)
-							screenshotVars.finished = (finished == '1')
+							screenshotVars.finished = (finished == "1")
 							startPos = i + 1
 						elseif count == 2 then
 							screenshotVars.width = tonumber(string.sub(data, startPos, i - 1))
@@ -611,41 +610,41 @@ else
 				if screenshotVars.finished or totalTime - 4000 > screenshotVars.dataLast then
 					screenshotVars.finished = true
 					local compressedKB = screenshotCompressedBytes / 1024
-					Spring.Echo(string.format("Received screenshot from %s (%.0f KB, increased replay size)", playerName, compressedKB))
+					SpringShared.Echo(string.format("Received screenshot from %s (%.0f KB, increased replay size)", playerName, compressedKB))
 					screenshotCompressedBytes = 0
 
 					local minutes = math.floor((screenshotVars.gameframe / 30 / 60))
 					local seconds = math.floor((screenshotVars.gameframe - ((minutes * 60) * 30)) / 30)
 					if seconds == 0 then
-						seconds = '00'
+						seconds = "00"
 					elseif seconds < 10 then
-						seconds = '0' .. seconds
+						seconds = "0" .. seconds
 					end
 
 					screenshotVars.pixels = toPixels(screenshotVars.data)
 					screenshotVars.player = playerName
-					screenshotVars.filename = playerName .. "_" .. minutes .. '.' .. seconds
-					if Spring.GetModOptions().date_year then
-						screenshotVars.filename = Spring.GetModOptions().date_year .. "-" .. Spring.GetModOptions().date_month .. "-" .. Spring.GetModOptions().date_day .. "_".. screenshotVars.filename
+					screenshotVars.filename = playerName .. "_" .. minutes .. "." .. seconds
+					if SpringShared.GetModOptions().date_year then
+						screenshotVars.filename = SpringShared.GetModOptions().date_year .. "-" .. SpringShared.GetModOptions().date_month .. "-" .. SpringShared.GetModOptions().date_day .. "_" .. screenshotVars.filename
 					else
 						screenshotVars.filename = "_" .. screenshotVars.filename
 					end
-					screenshotVars.filename = string.gsub(screenshotVars.filename, '[<>:"/\\|?*]', '_')
+					screenshotVars.filename = string.gsub(screenshotVars.filename, '[<>:"/\\|?*]', "_")
 
 					-- Get team color for player name
-					local playerList = Spring.GetPlayerList()
+					local playerList = SpringShared.GetPlayerList()
 					local teamID, r, g, b
 					for _, pID in ipairs(playerList) do
-						local name = Spring.GetPlayerInfo(pID, false)
+						local name = SpringShared.GetPlayerInfo(pID, false)
 						if name == playerName then
-							teamID = select(4, Spring.GetPlayerInfo(pID, false))
+							teamID = select(4, SpringShared.GetPlayerInfo(pID, false))
 							if teamID then
-								r, g, b = Spring.GetTeamColor(teamID)
+								r, g, b = SpringUnsynced.GetTeamColor(teamID)
 							end
 							break
 						end
 					end
-					screenshotVars.teamColor = (r and g and b) and {r, g, b} or {1, 1, 1}
+					screenshotVars.teamColor = (r and g and b) and { r, g, b } or { 1, 1, 1 }
 					screenshotVars.saveQueued = true
 					screenshotVars.posX = (vsx - screenshotVars.width * uiScale) / 2
 					screenshotVars.posY = (vsy - screenshotVars.height * uiScale) / 2
@@ -681,7 +680,7 @@ else
 				end
 
 				font:Begin()
-				font:Print("\255\160\160\160"..screenshotVars.filename .. '.png', screenshotVars.width - 4, screenshotVars.height + 6.5, 11, "orn")
+				font:Print("\255\160\160\160" .. screenshotVars.filename .. ".png", screenshotVars.width - 4, screenshotVars.height + 6.5, 11, "orn")
 				local tc = screenshotVars.teamColor
 				font:Print(string.char(255, math.floor(tc[1] * 255), math.floor(tc[2] * 255), math.floor(tc[3] * 255)) .. screenshotVars.player, 4, screenshotVars.height + 6.5, 11, "on")
 				font:End()
@@ -705,9 +704,9 @@ else
 				local bottom = 0 - margin
 				local width = screenshotVars.width + margin + margin
 				local height = screenshotVars.height + margin + margin + 17
-				local file = 'screenshots/' .. screenshotVars.filename .. '.png'
+				local file = "screenshots/" .. screenshotVars.filename .. ".png"
 				gl.SaveImage(left, bottom, width, height, file)
-				Spring.Echo('Screenshot saved to: ' .. file)
+				SpringShared.Echo("Screenshot saved to: " .. file)
 				screenshotVars.saveQueued = nil
 			else
 				-- Normal rendering with scaling
@@ -719,7 +718,7 @@ else
 			end
 
 			-- Handle mouse interaction (click anywhere to close)
-			local mouseX, mouseY, mouseButtonL = Spring.GetMouseState()
+			local mouseX, mouseY, mouseButtonL = SpringUnsynced.GetMouseState()
 			if screenshotVars.width and mouseButtonL then
 				gl.DeleteList(screenshotVars.dlist)
 				screenshotVars = {}

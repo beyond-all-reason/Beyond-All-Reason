@@ -17,23 +17,22 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized functions for performance
 local mathRandom = math.random
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spEcho = Spring.Echo
+local spGetGameFrame = SpringShared.GetGameFrame
+local spEcho = SpringShared.Echo
 
 ---------------------------Speedups-----------------------------
-local spGetProfilerTimeRecord = Spring.GetProfilerTimeRecord
+local spGetProfilerTimeRecord = SpringUnsynced.GetProfilerTimeRecord
 ---------------------------Internal vars---------------------------
 local timerstart = nil
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = SpringUnsynced.GetViewGeometry()
 ----------------------------GL4 vars----------------------------
 
-local boundingbox = {vsx/4, vsy/4, 3*vsx/4, 3*vsy/4}
+local boundingbox = { vsx / 4, vsy / 4, 3 * vsx / 4, 3 * vsy / 4 }
 
 local histShader = nil
 
@@ -91,18 +90,16 @@ void main() {
 }
 ]]
 
-
 ------------------------ HISTOGRAM STUFF -------------------------------
 local profilerecords = {}
 
 local bincount = 128
 local binrez = 0.05 -- half MS resolutions
 local histograms = {} -- key name, value histogram object
-local actives = {Sim = true}
+local actives = { Sim = true }
 --actives['Draw'] = true
-actives['Update'] = true
-actives['Sim::Script'] = true
-
+actives.Update = true
+actives["Sim::Script"] = true
 
 local function createhistogram(name)
 	local newhist = {
@@ -117,40 +114,39 @@ local function createhistogram(name)
 		numtoobig = 0,
 		mean = 0,
 		linewidth = 2,
-		color = {mathRandom(),mathRandom(),mathRandom(),1},
+		color = { mathRandom(), mathRandom(), mathRandom(), 1 },
 	}
-	for i=1,bincount do 
+	for i = 1, bincount do
 		newhist.data[i] = 0
 	end
-	
-	local histVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
+
+	local histVBO = gl.GetVBO(GL.ARRAY_BUFFER, true)
 	local VBOData = {}
 
-	for i = 1, bincount  do 
-		VBOData[#VBOData+1] = i/bincount-- X
-		VBOData[#VBOData+1] = i/bincount-- Y
-	end	
-	
-	histVBO:Define(
-		bincount, 
-		{{id = 0, name = "coords", size = 2}}
-	)
+	for i = 1, bincount do
+		VBOData[#VBOData + 1] = i / bincount -- X
+		VBOData[#VBOData + 1] = i / bincount -- Y
+	end
+
+	histVBO:Define(bincount, { { id = 0, name = "coords", size = 2 } })
 	histVBO:Upload(VBOData)
 	histVAO = gl.GetVAO()
 	histVAO:AttachVertexBuffer(histVBO)
-	
+
 	newhist.VBO = histVBO
 	newhist.VAO = histVAO
 	newhist.VBOData = VBOData
 	return newhist
 end
 
-local function updatehist(h,newvalue, counter)
+local function updatehist(h, newvalue, counter)
 	local total, current = spGetProfilerTimeRecord(h.name, false)
-	if not current then return end
+	if not current then
+		return
+	end
 	counter = current
-	if counter then 
-		if counter < h.last then 
+	if counter then
+		if counter < h.last then
 			newvalue = counter
 		else
 			newvalue = counter - h.last
@@ -159,24 +155,23 @@ local function updatehist(h,newvalue, counter)
 	else
 		h.last = newvalue
 	end
-	
-	if newvalue < h.binrez then 
+
+	if newvalue < h.binrez then
 		h.numzeros = h.numzeros + 1
-		return 0,0,0 
-	end 
-	
-	
-	local binid = math.floor(math.min((newvalue/h.binrez), h.bincount -1)) + 1
-	if binid == h.bincount then 
-		h.numtoobig = h.numtoobig + 1 
+		return 0, 0, 0
 	end
-	
+
+	local binid = math.floor(math.min((newvalue / h.binrez), h.bincount - 1)) + 1
+	if binid == h.bincount then
+		h.numtoobig = h.numtoobig + 1
+	end
+
 	local oldratio = h.mean * h.numsamples
 	h.numsamples = h.numsamples + 1
 	h.mean = (oldratio + newvalue) / h.numsamples
-	
+
 	local newcount = h.data[binid] + 1
-	if newcount > h.maxcount then 
+	if newcount > h.maxcount then
 		h.maxcount = newcount
 	end
 	h.data[binid] = newcount
@@ -184,11 +179,13 @@ local function updatehist(h,newvalue, counter)
 end
 
 local function updateVBO(h)
-	if h == nil then return end
+	if h == nil then
+		return
+	end
 	local vboData = h.VBOData
-	for i, count  in ipairs(h.data) do 
-		vboData[2*i - 1] =     i / bincount
-		vboData[2*i    ] = count / h.maxcount
+	for i, count in ipairs(h.data) do
+		vboData[2 * i - 1] = i / bincount
+		vboData[2 * i] = count / h.maxcount
 	end
 	h.VBO:Upload(vboData)
 end
@@ -196,45 +193,41 @@ end
 ------------------- WIDGET STUFF --------------------------------------
 
 function widget:Initialize()
-	lineVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
+	lineVBO = gl.GetVBO(GL.ARRAY_BUFFER, true)
 
 	local VBOData = {}
 
-	for i = 1, bincount  do 
-		VBOData[#VBOData+1] = i-- X
-		VBOData[#VBOData+1] = i-- Y
-	end	
+	for i = 1, bincount do
+		VBOData[#VBOData + 1] = i -- X
+		VBOData[#VBOData + 1] = i -- Y
+	end
 
-	lineVBO:Define(
-		bincount, 
-		{{id = 0, name = "coords", size = 2}}
-	)
+	lineVBO:Define(bincount, { { id = 0, name = "coords", size = 2 } })
 	lineVBO:Upload(VBOData)
-	--if true then return nil end 
+	--if true then return nil end
 	lineVAO = gl.GetVAO()
 	lineVAO:AttachVertexBuffer(lineVBO)
-	
+
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	histShader = LuaShader({
-		vertex = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs) ,
+		vertex = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs),
 		fragment = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs),
 		uniformInt = {}, --	usually textures go here
-		uniformFloat = {	
-			boundingbox = {0, 0, vsx, vsy},
-			color = {1, 1, 1, 1},
-			
-			} -- left, bottom,right,top
-		})
+		uniformFloat = {
+			boundingbox = { 0, 0, vsx, vsy },
+			color = { 1, 1, 1, 1 },
+		}, -- left, bottom,right,top
+	})
 
 	local shaderCompiled = histShader:Initialize()
 	if not shaderCompiled then
-	 spEcho("Failed to compile shaders for: frame grapher v2")
-	 widgetHandler:RemoveWidget(self)
+		spEcho("Failed to compile shaders for: frame grapher v2")
+		widgetHandler:RemoveWidget(self)
 	end
-	timerstart = Spring.GetTimer()
-	timerold = Spring.GetTimer()
-	
-	for k,v in pairs(Spring.GetProfilerRecordNames()) do 
+	timerstart = SpringUnsynced.GetTimer()
+	timerold = SpringUnsynced.GetTimer()
+
+	for k, v in pairs(SpringUnsynced.GetProfilerRecordNames()) do
 		--spEcho(k,v)
 		profilerecords[k] = v
 		histograms[v] = createhistogram(v)
@@ -242,48 +235,53 @@ function widget:Initialize()
 end
 
 local function PrintRecord(name)
-	local total, current, maxdt, time, peak = Spring.GetProfilerTimeRecord(name,false)
+	local total, current, maxdt, time, peak = SpringUnsynced.GetProfilerTimeRecord(name, false)
 	-- where total is in milliseconds
 	-- current gets reset ever 33 frames, and is a running tally
 	-- maxdt is the peak value
 	-- time is lag?
 	-- peak is unknown?
-	
-	-- so last frame dt === 
-	
+
+	-- so last frame dt ===
+
 	local gf = spGetGameFrame()
-	spEcho(gf, 'P:', name, total, current, maxdt, time, peak)
+	spEcho(gf, "P:", name, total, current, maxdt, time, peak)
 end
 
 local function GetRecordCurrent(name)
-	local total, current = Spring.GetProfilerTimeRecord(name,false)
+	local total, current = SpringUnsynced.GetProfilerTimeRecord(name, false)
 	return current
 end
 
 function widget:Shutdown()
-	if histShader then histShader:Finalize() end
-	for name,hist in pairs(histograms) do 
-		if hist.VBO then hist.VBO:Delete() end
-		if hist.VAO then hist.VAO:Delete() end
+	if histShader then
+		histShader:Finalize()
+	end
+	for name, hist in pairs(histograms) do
+		if hist.VBO then
+			hist.VBO:Delete()
+		end
+		if hist.VAO then
+			hist.VAO:Delete()
+		end
 	end
 end
 
 function widget:GameFrame(n)
 	for name, hist in pairs(actives) do
-		if histograms[name] then 
+		if histograms[name] then
 			updatehist(histograms[name])
 		end
 	end
 end
 
 function widget:DrawScreen()
-
 	histShader:Activate()
-	histShader:SetUniform("boundingbox", boundingbox[1],boundingbox[2],boundingbox[3],boundingbox[4])
-	for name, _ in pairs(actives) do 
+	histShader:SetUniform("boundingbox", boundingbox[1], boundingbox[2], boundingbox[3], boundingbox[4])
+	for name, _ in pairs(actives) do
 		local hist = histograms[name]
-		if hist then 
-			if spGetGameFrame()%30 == 0 then
+		if hist then
+			if spGetGameFrame() % 30 == 0 then
 				updateVBO(hist)
 			end
 			gl.LineWidth(hist.linewidth)
@@ -300,17 +298,17 @@ end
 
 function widget:TextCommand(command)
 	if string.find(command, "histogram", nil, true) then
-		local name = string.sub(command, string.len("histogram") +2)
-		if histograms[name] then 
-			if actives[name] then 
-				spEcho("Disabling histogram for",name)
-				actives[name] = nil 
+		local name = string.sub(command, string.len("histogram") + 2)
+		if histograms[name] then
+			if actives[name] then
+				spEcho("Disabling histogram for", name)
+				actives[name] = nil
 			else
-				spEcho("Enabling histogram for",name)
-				actives[name] = true 		
+				spEcho("Enabling histogram for", name)
+				actives[name] = true
 			end
 		else
-			spEcho("Unknown histogram name:",name)
+			spEcho("Unknown histogram name:", name)
 		end
 	end
 end
@@ -388,4 +386,5 @@ end
  68, Update::WorldDrawer
  69, Update::WorldDrawer::{Sky,Water}
  
- ]]--
+ ]]
+--

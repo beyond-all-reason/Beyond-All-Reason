@@ -4,26 +4,25 @@
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
-  return {
-    name = "CommandInsert",
-    desc = "When pressing spacebar and shift, you can insert commands to arbitrary places in queue. When pressing spacebar alone, commands are inserted on front of queue. Based on FrontInsert by jK",
-    author = "dizekat",
-    date = "Jan,2008",
-    license = "GNU GPL, v2 or later",
-    layer = 5,
-    enabled = true
-  }
+	return {
+		name = "CommandInsert",
+		desc = "When pressing spacebar and shift, you can insert commands to arbitrary places in queue. When pressing spacebar alone, commands are inserted on front of queue. Based on FrontInsert by jK",
+		author = "dizekat",
+		date = "Jan,2008",
+		license = "GNU GPL, v2 or later",
+		layer = 5,
+		enabled = true,
+	}
 end
-
 
 -- Localized functions for performance
 local tableInsert = table.insert
 
 -- Localized Spring API for performance
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetGameFrame = Spring.GetGameFrame
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spEcho = Spring.Echo
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGiveOrderToUnit = SpringSynced.GiveOrderToUnit
+local spEcho = SpringShared.Echo
 
 local math_sqrt = math.sqrt
 
@@ -36,39 +35,47 @@ local modifiers = {
 local prependPos = 0
 
 function widget:GameStart()
-  widget:PlayerChanged()
+	widget:PlayerChanged()
 end
 
 function widget:PlayerChanged()
-    if Spring.GetSpectatingState() and spGetGameFrame() > 0 then
-        widgetHandler:RemoveWidget()
-    end
+	if SpringUnsynced.GetSpectatingState() and spGetGameFrame() > 0 then
+		widgetHandler:RemoveWidget()
+	end
 end
 
 local function pressHandler(_, _, args)
-	if not args then return end
+	if not args then
+		return
+	end
 
-	if modifiers[args[1]] == nil then return end
+	if modifiers[args[1]] == nil then
+		return
+	end
 
 	modifiers[args[1]] = true
 
-	if args[1] == 'prepend_queue' then
+	if args[1] == "prepend_queue" then
 		prependPos = 0
 	end
 end
 
 local function releaseHandler(_, _, args)
-	if not args then return end
+	if not args then
+		return
+	end
 
-	if modifiers[args[1]] == nil then return end
+	if modifiers[args[1]] == nil then
+		return
+	end
 
 	modifiers[args[1]] = false
 end
 
 function widget:Initialize()
-    if Spring.IsReplay() or spGetGameFrame() > 0 then
-        widget:PlayerChanged()
-    end
+	if SpringUnsynced.IsReplay() or spGetGameFrame() > 0 then
+		widget:PlayerChanged()
+	end
 
 	widgetHandler:AddAction("commandinsert", pressHandler, nil, "p")
 	widgetHandler:AddAction("commandinsert", releaseHandler, nil, "r")
@@ -117,94 +124,98 @@ local function GetUnitOrFeaturePosition(id)
 	if id < Game.maxUnits then
 		return spGetUnitPosition(id)
 	else
-		return Spring.GetFeaturePosition(id - Game.maxUnits)
+		return SpringShared.GetFeaturePosition(id - Game.maxUnits)
 	end
 end
 
-local function GetCommandPos(command)	--- get the command position
-  if command.id < 0 or command.id == CMD.MOVE or command.id == CMD.REPAIR or command.id == CMD.RECLAIM or
-  command.id == CMD.RESURRECT or command.id == CMD.DGUN or command.id == CMD.GUARD or
-  command.id == CMD.FIGHT or command.id == CMD.ATTACK then
-    if table.getn(command.params) >= 3 then
-		  return command.params[1], command.params[2], command.params[3]
-	  elseif table.getn(command.params) >= 1 then
-		  return GetUnitOrFeaturePosition(command.params[1])
-	  end
+local function GetCommandPos(command) --- get the command position
+	if command.id < 0 or command.id == CMD.MOVE or command.id == CMD.REPAIR or command.id == CMD.RECLAIM or command.id == CMD.RESURRECT or command.id == CMD.DGUN or command.id == CMD.GUARD or command.id == CMD.FIGHT or command.id == CMD.ATTACK then
+		if table.getn(command.params) >= 3 then
+			return command.params[1], command.params[2], command.params[3]
+		elseif table.getn(command.params) >= 1 then
+			return GetUnitOrFeaturePosition(command.params[1])
+		end
 	end
-  return -10,-10,-10
+	return -10, -10, -10
 end
 
 function widget:CommandNotify(id, params, options)
-  if not (modifiers.prepend_between or modifiers.prepend_queue) then
-  	return false
-  end
+	if not (modifiers.prepend_between or modifiers.prepend_queue) then
+		return false
+	end
 
-  local opt = 0
-  if options.alt then opt = opt + CMD.OPT_ALT end
-  if options.ctrl then opt = opt + CMD.OPT_CTRL end
-  if options.right then opt = opt + CMD.OPT_RIGHT end
-  -- options.meta not forwarded since we're doing insert with it
-  -- and don't want to alias with engine at the same time.
-  if options.shift then
-    opt = opt + CMD.OPT_SHIFT
+	local opt = 0
+	if options.alt then
+		opt = opt + CMD.OPT_ALT
+	end
+	if options.ctrl then
+		opt = opt + CMD.OPT_CTRL
+	end
+	if options.right then
+		opt = opt + CMD.OPT_RIGHT
+	end
+	-- options.meta not forwarded since we're doing insert with it
+	-- and don't want to alias with engine at the same time.
+	if options.shift then
+		opt = opt + CMD.OPT_SHIFT
 
-	if modifiers.prepend_queue then
-		Spring.GiveOrder(CMD.INSERT, { prependPos, id, opt, unpack(params) }, { "alt" })
+		if modifiers.prepend_queue then
+			SpringUnsynced.GiveOrder(CMD.INSERT, { prependPos, id, opt, unpack(params) }, { "alt" })
 
-		prependPos = prependPos + 1
+			prependPos = prependPos + 1
+
+			return true
+		end
+	else
+		SpringUnsynced.GiveOrder(CMD.INSERT, { 0, id, opt, unpack(params) }, { "alt" })
 
 		return true
 	end
-  else
-    Spring.GiveOrder(CMD.INSERT,{0,id,opt,unpack(params)},{"alt"})
 
-    return true
-  end
+	-- Spring.GiveOrder(CMD.INSERT,{0,id,opt,unpack(params)},{"alt"})
+	local my_command = { id = id, params = params, options = options }
+	local cx, cy, cz = GetCommandPos(my_command)
+	if cx < -1 then
+		return false
+	end
 
-  -- Spring.GiveOrder(CMD.INSERT,{0,id,opt,unpack(params)},{"alt"})
-  local my_command = {["id"]=id, ["params"]=params, ["options"]=options}
-  local cx,cy,cz = GetCommandPos(my_command)
-  if cx < -1 then
-    return false
-  end
+	local units = SpringUnsynced.GetSelectedUnits()
+	for i = 1, #units do
+		local unit_id = units[i]
+		local commands = SpringShared.GetUnitCommands(unit_id, 100)
+		local px, py, pz = spGetUnitPosition(unit_id)
+		local min_dlen = 1000000
+		local insert_pos = 0
+		for j = 1, #commands do
+			local command = commands[j]
+			--spEcho("cmd:"..table.tostring(command))
+			local px2, py2, pz2 = GetCommandPos(command)
+			if px2 and px2 > -1 then
+				local dlen = math_sqrt(((px2 - cx) * (px2 - cx)) + ((py2 - cy) * (py2 - cy)) + ((pz2 - cz) * (pz2 - cz))) + math_sqrt(((px - cx) * (px - cx)) + ((py - cy) * (py - cy)) + ((pz - cz) * (pz - cz))) - math_sqrt((((px2 - px) * (px2 - px)) + ((py2 - py) * (py2 - py)) + ((pz2 - pz) * (pz2 - pz))))
+				--spEcho("dlen "..dlen)
+				if dlen < min_dlen then
+					min_dlen = dlen
+					insert_pos = j
+				end
+				px, py, pz = px2, py2, pz2
+			end
+		end
+		-- check for insert at end of queue if its shortest walk.
+		local dlen = math_sqrt(((px - cx) * (px - cx)) + ((py - cy) * (py - cy)) + ((pz - cz) * (py - cy)))
+		if dlen < min_dlen then
+			--options.meta=nil
+			--options.shift=true
+			--spGiveOrderToUnit(unit_id,id,params,options)
+			spGiveOrderToUnit(unit_id, id, params, { "shift" })
+		else
+			spGiveOrderToUnit(unit_id, CMD.INSERT, { insert_pos - 1, id, opt, unpack(params) }, { "alt" })
+		end
+	end
 
-  local units = Spring.GetSelectedUnits()
-  for i=1,#units do
-    local unit_id = units[i]
-    local commands = Spring.GetUnitCommands(unit_id,100)
-    local px,py,pz = spGetUnitPosition(unit_id)
-    local min_dlen = 1000000
-    local insert_pos = 0
-    for j=1,#commands do
-      local command = commands[j]
-      --spEcho("cmd:"..table.tostring(command))
-      local px2,py2,pz2 = GetCommandPos(command)
-      if px2 and px2>-1 then
-        local dlen = math_sqrt(((px2-cx)*(px2-cx)) + ((py2-cy)*(py2-cy)) + ((pz2-cz)*(pz2-cz))) + math_sqrt(((px-cx)*(px-cx)) + ((py-cy)*(py-cy)) + ((pz-cz)*(pz-cz))) - math_sqrt((((px2-px)*(px2-px)) + ((py2-py)*(py2-py)) + ((pz2-pz)*(pz2-pz))))
-        --spEcho("dlen "..dlen)
-        if dlen < min_dlen then
-          min_dlen = dlen
-          insert_pos = j
-        end
-        px,py,pz = px2,py2,pz2
-      end
-    end
-    -- check for insert at end of queue if its shortest walk.
-    local dlen = math_sqrt(((px-cx)*(px-cx)) + ((py-cy)*(py-cy)) + ((pz-cz)*(py-cy)))
-    if dlen < min_dlen then
-      --options.meta=nil
-      --options.shift=true
-      --spGiveOrderToUnit(unit_id,id,params,options)
-      spGiveOrderToUnit(unit_id, id, params, {"shift"})
-    else
-      spGiveOrderToUnit(unit_id, CMD.INSERT, {insert_pos-1, id, opt, unpack(params)}, {"alt"})
-    end
-  end
+	-- When we are editing the build order we want to keep same active command after unset by engine
+	if id < 0 then
+		SpringUnsynced.SetActiveCommand(SpringUnsynced.GetCmdDescIndex(id), 1, true, false, options.alt, options.ctrl, false, false)
+	end
 
-  -- When we are editing the build order we want to keep same active command after unset by engine
-  if id < 0 then
-    Spring.SetActiveCommand(Spring.GetCmdDescIndex(id), 1, true, false, options.alt, options.ctrl, false, false)
-  end
-
-  return true
+	return true
 end

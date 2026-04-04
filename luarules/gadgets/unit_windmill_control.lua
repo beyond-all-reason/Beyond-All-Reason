@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "June 29, 2007",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -16,9 +16,9 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
- -- Only apply these when resource multipliers are active, to save performance
+-- Only apply these when resource multipliers are active, to save performance
 local energyMultActive = false
-if Spring.GetModOptions().multiplier_energyproduction * Spring.GetModOptions().multiplier_resourceincome ~= 1 then
+if SpringShared.GetModOptions().multiplier_energyproduction * SpringShared.GetModOptions().multiplier_resourceincome ~= 1 then
 	energyMultActive = true
 end
 
@@ -38,15 +38,15 @@ end
 
 local windmills = {}
 
-local GetCOBScriptID = Spring.GetCOBScriptID
-local AddUnitResource = Spring.AddUnitResource
-local GetUnitIsStunned = Spring.GetUnitIsStunned
+local GetCOBScriptID = SpringSynced.GetCOBScriptID
+local AddUnitResource = SpringSynced.AddUnitResource
+local GetUnitIsStunned = SpringShared.GetUnitIsStunned
 --local CallCOBScript = Spring.CallCOBScript
 --local GetHeadingFromVector = Spring.GetHeadingFromVector
 
 function gadget:GameFrame(n)
 	if (n + 15) % 30 < 0.1 then
-		local _, _, _, strength, x, _, z = Spring.GetWind()
+		local _, _, _, strength, x, _, z = SpringShared.GetWind()
 		for unitID, scriptIDs in pairs(windmills) do
 			if not GetUnitIsStunned(unitID) then
 				AddUnitResource(unitID, "e", strength * (scriptIDs.mult - 1))
@@ -66,8 +66,8 @@ local function SetupUnit(unitID, unitDefID)
 end
 
 function gadget:Initialize()
-	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		local unitDefID = Spring.GetUnitDefID(unitID)
+	for _, unitID in ipairs(SpringShared.GetAllUnits()) do
+		local unitDefID = SpringShared.GetUnitDefID(unitID)
 		if windDefs[unitDefID] then
 			SetupUnit(unitID, unitDefID)
 		end

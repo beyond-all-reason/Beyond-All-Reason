@@ -1,5 +1,4 @@
-local lutVS =
-[[
+local lutVS = [[
 	#version 150 compatibility
 	#line 10004
 
@@ -8,8 +7,7 @@ local lutVS =
 	}
 ]]
 
-local lutFS =
-[[
+local lutFS = [[
 	#version 150 compatibility
 	#line 20014
 
@@ -143,26 +141,25 @@ local lutFS =
 	}
 ]]
 
-
 local GL_RGB16F = 0x881B
 local GL_RGB32F = 0x8815
 
 local GL_COLOR_ATTACHMENT0_EXT = 0x8CE0
 
 local function new(class, numSamples)
-	return setmetatable(
-	{
+	return setmetatable({
 		numSamples = numSamples or 64,
 
 		shader = nil,
 		tex = nil,
-
 	}, class)
 end
 
 local GenEnvLut = setmetatable({}, {
-	__call = function(self, ...) return new(self, ...) end,
-	})
+	__call = function(self, ...)
+		return new(self, ...)
+	end,
+})
 GenEnvLut.__index = GenEnvLut
 
 function GenEnvLut:Initialize()
@@ -180,7 +177,7 @@ function GenEnvLut:Initialize()
 	self.tex = gl.CreateTexture(3, 3, texParams)
 
 	if not self.tex then
-		Spring.Echo("GenEnvLut: tex creation error:\n")
+		SpringShared.Echo("GenEnvLut: tex creation error:\n")
 	end
 
 	lutFS = lutFS:gsub("###ENV_SMPL_NUM###", tostring(self.numSamples))
@@ -197,12 +194,11 @@ function GenEnvLut:Initialize()
 	local shLog = gl.GetShaderLog() or ""
 
 	if not self.shader then
-		Spring.Echo(string.format("GenEnvLut: [%s] shader errors:\n%s", "GenEnvLut", shLog))
+		SpringShared.Echo(string.format("GenEnvLut: [%s] shader errors:\n%s", "GenEnvLut", shLog))
 		return false
 	elseif shLog ~= "" then
-		Spring.Echo(string.format("GenEnvLut: [%s] shader warnings:\n%s", "GenEnvLut", shLog))
+		SpringShared.Echo(string.format("GenEnvLut: [%s] shader warnings:\n%s", "GenEnvLut", shLog))
 	end
-
 end
 
 function GenEnvLut:GetTexture()
@@ -214,20 +210,20 @@ function GenEnvLut:Execute(saveDebug)
 		gl.Texture(7, "$reflection") --reflectTex
 		gl.UseShader(self.shader)
 
-			gl.RenderToTexture(self.tex, function()
-				gl.DepthTest(false)
-				gl.Blending(false)
-				--gl.PushMatrix()
-					--gl.MatrixMode(GL.PROJECTION); gl.LoadIdentity();
-					--gl.MatrixMode(GL.MODELVIEW); gl.LoadIdentity();
-					gl.TexRect(-1, -1, 1, 1)
-				--gl.PopMatrix()
-				if saveDebug then
-					local gf = Spring.GetGameFrame()
-					gl.SaveImage(0, 0, 3, 3, string.format("envLut_%s.png", gf))
-				end
-				gl.Blending(true)
-			end)
+		gl.RenderToTexture(self.tex, function()
+			gl.DepthTest(false)
+			gl.Blending(false)
+			--gl.PushMatrix()
+			--gl.MatrixMode(GL.PROJECTION); gl.LoadIdentity();
+			--gl.MatrixMode(GL.MODELVIEW); gl.LoadIdentity();
+			gl.TexRect(-1, -1, 1, 1)
+			--gl.PopMatrix()
+			if saveDebug then
+				local gf = SpringShared.GetGameFrame()
+				gl.SaveImage(0, 0, 3, 3, string.format("envLut_%s.png", gf))
+			end
+			gl.Blending(true)
+		end)
 		gl.UseShader(0)
 		gl.Texture(7, false)
 	end

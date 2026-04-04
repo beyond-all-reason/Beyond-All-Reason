@@ -12,7 +12,6 @@ function gadget:GetInfo()
 	}
 end
 
-
 local CMD_UNIT_SET_TARGET_NO_GROUND = GameCMD.UNIT_SET_TARGET_NO_GROUND
 local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
 local CMD_UNIT_CANCEL_TARGET = GameCMD.UNIT_CANCEL_TARGET
@@ -20,7 +19,7 @@ local CMD_UNIT_SET_TARGET_RECTANGLE = GameCMD.UNIT_SET_TARGET_RECTANGLE
 
 local deleteMaxDistance = 30
 
-local spGetUnitRulesParam = Spring.GetUnitRulesParam
+local spGetUnitRulesParam = SpringShared.GetUnitRulesParam
 
 function GG.GetUnitTarget(unitID)
 	local targetID = spGetUnitRulesParam(unitID, "targetID")
@@ -36,34 +35,32 @@ function GG.GetUnitTarget(unitID)
 	return targetID
 end
 
-
 if gadgetHandler:IsSyncedCode() then
-
 	-- Unseen targets will be removed after max USEEN_UPDATE_FREQUENCY frames.
 	-- Should be small enough to not be evident, and big enough to save perf.
 	local USEEN_UPDATE_FREQUENCY = 15
 
-	local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
-	local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-	local spSetUnitTarget = Spring.SetUnitTarget
-	local spValidUnitID = Spring.ValidUnitID
-	local spGetUnitDefID = Spring.GetUnitDefID
-	local spGetUnitLosState = Spring.GetUnitLosState
-	local spGetUnitTeam = Spring.GetUnitTeam
-	local spAreTeamsAllied = Spring.AreTeamsAllied
-	local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
-	local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
-	local spSetUnitRulesParam = Spring.SetUnitRulesParam
-	local spGetUnitCommandCount = Spring.GetUnitCommandCount
-	local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-	local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
-	local spGetUnitWeaponTryTarget = Spring.GetUnitWeaponTryTarget
-	local spGetUnitWeaponTestTarget = Spring.GetUnitWeaponTestTarget
-	local spGetUnitWeaponTestRange = Spring.GetUnitWeaponTestRange
-	local spGetUnitWeaponHaveFreeLineOfFire = Spring.GetUnitWeaponHaveFreeLineOfFire
-	local spGetGroundHeight = Spring.GetGroundHeight
-	local spGetAllUnits = Spring.GetAllUnits
-	local spGetPlayerInfo = Spring.GetPlayerInfo
+	local spInsertUnitCmdDesc = SpringSynced.InsertUnitCmdDesc
+	local spGetUnitAllyTeam = SpringShared.GetUnitAllyTeam
+	local spSetUnitTarget = SpringSynced.SetUnitTarget
+	local spValidUnitID = SpringShared.ValidUnitID
+	local spGetUnitDefID = SpringShared.GetUnitDefID
+	local spGetUnitLosState = SpringShared.GetUnitLosState
+	local spGetUnitTeam = SpringShared.GetUnitTeam
+	local spAreTeamsAllied = SpringShared.AreTeamsAllied
+	local spGetUnitsInRectangle = SpringShared.GetUnitsInRectangle
+	local spGetUnitsInCylinder = SpringShared.GetUnitsInCylinder
+	local spSetUnitRulesParam = SpringSynced.SetUnitRulesParam
+	local spGetUnitCommandCount = SpringShared.GetUnitCommandCount
+	local spGetUnitCurrentCommand = SpringShared.GetUnitCurrentCommand
+	local spGiveOrderArrayToUnit = SpringSynced.GiveOrderArrayToUnit
+	local spGetUnitWeaponTryTarget = SpringShared.GetUnitWeaponTryTarget
+	local spGetUnitWeaponTestTarget = SpringShared.GetUnitWeaponTestTarget
+	local spGetUnitWeaponTestRange = SpringShared.GetUnitWeaponTestRange
+	local spGetUnitWeaponHaveFreeLineOfFire = SpringShared.GetUnitWeaponHaveFreeLineOfFire
+	local spGetGroundHeight = SpringShared.GetGroundHeight
+	local spGetAllUnits = SpringShared.GetAllUnits
+	local spGetPlayerInfo = SpringShared.GetPlayerInfo
 
 	local tremove = table.remove
 
@@ -79,7 +76,7 @@ if gadgetHandler:IsSyncedCode() then
 	local unitAlwaysSeen = {}
 	for unitDefID = 1, #UnitDefs do
 		local unitDef = UnitDefs[unitDefID]
-		if (unitDef.canAttack and unitDef.maxWeaponRange and unitDef.maxWeaponRange > 0) then
+		if unitDef.canAttack and unitDef.maxWeaponRange and unitDef.maxWeaponRange > 0 then
 			validUnits[unitDefID] = true
 		end
 		local weapons = unitDef.weapons
@@ -87,7 +84,7 @@ if gadgetHandler:IsSyncedCode() then
 		if #weapons > 0 then
 			-- filter this down to only the params that actually get used, weapons is an array full of stuff!
 			unitWeapons[unitDefID] = weapons
-			for i=1, #weapons do
+			for i = 1, #weapons do
 				unitWeapons[unitDefID][i] = true
 			end
 		end
@@ -105,14 +102,14 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------------------
 	-- Commands
 
-	local tooltipText = 'Set a priority attack target,\nto be used when within range\n(not removed by move commands)'
+	local tooltipText = "Set a priority attack target,\nto be used when within range\n(not removed by move commands)"
 
 	local unitSetTargetNoGroundCmdDesc = {
 		id = CMD_UNIT_SET_TARGET_NO_GROUND,
 		type = CMDTYPE.ICON_UNIT_OR_AREA,
-		name = 'Set Unit Target',
-		action = 'settargetnoground',
-		cursor = 'settarget',
+		name = "Set Unit Target",
+		action = "settargetnoground",
+		cursor = "settarget",
 		tooltip = tooltipText,
 		hidden = true,
 	}
@@ -120,9 +117,9 @@ if gadgetHandler:IsSyncedCode() then
 	local unitSetTargetCircleCmdDesc = {
 		id = CMD_UNIT_SET_TARGET,
 		type = CMDTYPE.ICON_UNIT_OR_AREA,
-		name = 'Set Target', --extra spaces center the 'Set' text
-		action = 'settarget',
-		cursor = 'settarget',
+		name = "Set Target", --extra spaces center the 'Set' text
+		action = "settarget",
+		cursor = "settarget",
 		tooltip = tooltipText,
 		hidden = false,
 	}
@@ -130,13 +127,11 @@ if gadgetHandler:IsSyncedCode() then
 	local unitCancelTargetCmdDesc = {
 		id = CMD_UNIT_CANCEL_TARGET,
 		type = CMDTYPE.ICON,
-		name = 'Cancel Target',
-		action = 'canceltarget',
-		tooltip = 'Removes top priority target, if set',
+		name = "Cancel Target",
+		action = "canceltarget",
+		tooltip = "Removes top priority target, if set",
 		hidden = false,
 	}
-
-
 
 	--------------------------------------------------------------------------------
 	-- Target Handling
@@ -179,14 +174,14 @@ if gadgetHandler:IsSyncedCode() then
 			if currentCmdID and currentCmdID == CMD.ATTACK then
 				return false
 			else
-				Spring.SetUnitTarget(unitID, nil)
+				SpringSynced.SetUnitTarget(unitID, nil)
 				return false
 			end
 		end
-		
+
 		local target = targetData.target
 		local isUnitTarget = type(target) == "number"
-		
+
 		if isUnitTarget then
 			if not spSetUnitTarget(unitID, target, false, targetData.userTarget) then
 				return false
@@ -196,7 +191,6 @@ if gadgetHandler:IsSyncedCode() then
 			spSetUnitRulesParam(unitID, "targetCoordX", -1)
 			spSetUnitRulesParam(unitID, "targetCoordY", -1)
 			spSetUnitRulesParam(unitID, "targetCoordZ", -1)
-
 		else
 			if not spSetUnitTarget(unitID, target[1], target[2], target[3], false, targetData.userTarget) then
 				return false
@@ -273,7 +267,9 @@ if gadgetHandler:IsSyncedCode() then
 					targetData.sent = true
 				end
 				count = count + stride
-				if count > 4000 then break end
+				if count > 4000 then
+					break
+				end
 			end
 			SendToUnsynced("targetListBatched", count, stride, data)
 		end
@@ -301,7 +297,7 @@ if gadgetHandler:IsSyncedCode() then
 				currentTargets[targetData.target] = true
 			end
 			for _, targetData in ipairs(targets) do
-				if not currentTargets[targetData.target] then	-- check if this target isnt already in targetData
+				if not currentTargets[targetData.target] then -- check if this target isnt already in targetData
 					if checkTarget(unitID, targetData.target) then
 						targetData.sent = nil
 						data.targets[#data.targets + 1] = targetData
@@ -386,7 +382,6 @@ if gadgetHandler:IsSyncedCode() then
 			local unitID = allUnits[i]
 			gadget:UnitCreated(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID))
 		end
-
 	end
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
@@ -411,7 +406,6 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 		removeUnit(unitID)
 	end
-
 
 	--------------------------------------------------------------------------------
 	-- Command Tracking
@@ -462,7 +456,7 @@ if gadgetHandler:IsSyncedCode() then
 						local optionKeysCount = 0
 						--re-insert back the command options
 						for optionName, optionValue in pairsNext, cmdOptions do
-							if optionName == 'shift' then
+							if optionName == "shift" then
 								-- Always add shift to enforce chained commands, but clear orders at
 								-- the beginning of our order chain when not an append (shift).
 								optionKeysCount = optionKeysCount + 1
@@ -472,20 +466,19 @@ if gadgetHandler:IsSyncedCode() then
 								optionKeys[optionKeysCount] = optionName
 							end
 						end
-						if not cmdOptions["shift"] and unitTargets[unitID] then
+						if not cmdOptions.shift and unitTargets[unitID] then
 							-- Need to clear orders if not in shift, since just sending the first one
 							-- as not-shift would sometimes fail if that unit is in the end not valid.
-							orders[1] = {CMD_UNIT_CANCEL_TARGET, {}, {}}
+							orders[1] = { CMD_UNIT_CANCEL_TARGET, {}, {} }
 						end
 						local base = #orders
 						for i = 1, #targets do
 							local target = targets[i]
-							orders[i+base] = {
+							orders[i + base] = {
 								CMD_UNIT_SET_TARGET,
 								target,
-								optionKeys
+								optionKeys,
 							}
-
 						end
 						--re-insert in the queue as list of individual orders instead of processing directly, so that allowcommand etc can work
 						-- This will re-call Gadget:AllowCommand for each order
@@ -532,7 +525,7 @@ if gadgetHandler:IsSyncedCode() then
 									ignoreStop = ignoreStop,
 									userTarget = userTarget,
 									target = target,
-								}
+								},
 							}, append, "cmdparams 3 or 4 and validTarget")
 						end
 					elseif #cmdParams == 1 then
@@ -557,7 +550,7 @@ if gadgetHandler:IsSyncedCode() then
 										ignoreStop = ignoreStop,
 										userTarget = userTarget,
 										target = target,
-									}
+									},
 								}, append, "cmdparams 1 and validTarget")
 							end
 						end
@@ -614,7 +607,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 	local function unpauseTargetting(unitID)
-		addUnitTargets(unitID, Spring.GetUnitDefID(unitID), pausedTargets[unitID].targets, true, "unpauseTargetting")
+		addUnitTargets(unitID, SpringShared.GetUnitDefID(unitID), pausedTargets[unitID].targets, true, "unpauseTargetting")
 		pausedTargets[unitID] = nil
 	end
 
@@ -687,7 +680,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		--tracy.ZoneEnd()
-		return true  -- command was not used OR was used but not fully processed, so don't block command
+		return true -- command was not used OR was used but not fully processed, so don't block command
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
@@ -725,14 +718,14 @@ if gadgetHandler:IsSyncedCode() then
 						break
 					end
 				end
-				
+
 				-- Remove invalid targets in reverse order
 				for index = #targets, 1, -1 do
 					if targets[index].invalid then
 						removeTarget(unitID, index)
 					end
 				end
-				
+
 				if unitData.currentIndex ~= targetIndex then
 					unitData.currentIndex = targetIndex
 					SendToUnsynced("targetIndex", unitID, targetIndex)
@@ -752,13 +745,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
-
-
-
-else	-- UNSYNCED
-
-
-
+else -- UNSYNCED
 	local glVertex = gl.Vertex
 	local glPushAttrib = gl.PushAttrib
 	local glLineStipple = gl.LineStipple
@@ -770,19 +757,19 @@ else	-- UNSYNCED
 	local GL_LINE_STRIP = GL.LINE_STRIP
 	local GL_LINES = GL.LINES
 
-	local spGetUnitPosition = Spring.GetUnitPosition
-	local spValidUnitID = Spring.ValidUnitID
-	local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
-	local spGetMyTeamID = Spring.GetMyTeamID
-	local spIsUnitSelected = Spring.IsUnitSelected
-	local spGetSpectatingState = Spring.GetSpectatingState
-	local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-	local spGetUnitTeam = Spring.GetUnitTeam
-	local spPlaySoundFile = Spring.PlaySoundFile
-	local spSetActiveCommand = Spring.SetActiveCommand
-	local spAssignMouseCursor = Spring.AssignMouseCursor
-	local spSetCustomCommandDrawData = Spring.SetCustomCommandDrawData
-	local spAddWorldIcon = Spring.AddWorldIcon
+	local spGetUnitPosition = SpringShared.GetUnitPosition
+	local spValidUnitID = SpringShared.ValidUnitID
+	local spGetMyAllyTeamID = SpringUnsynced.GetLocalAllyTeamID
+	local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
+	local spIsUnitSelected = SpringUnsynced.IsUnitSelected
+	local spGetSpectatingState = SpringUnsynced.GetSpectatingState
+	local spGetUnitAllyTeam = SpringShared.GetUnitAllyTeam
+	local spGetUnitTeam = SpringShared.GetUnitTeam
+	local spPlaySoundFile = SpringUnsynced.PlaySoundFile
+	local spSetActiveCommand = SpringUnsynced.SetActiveCommand
+	local spAssignMouseCursor = SpringUnsynced.AssignMouseCursor
+	local spSetCustomCommandDrawData = SpringUnsynced.SetCustomCommandDrawData
+	local spAddWorldIcon = SpringUnsynced.AddWorldIcon
 	local pairsNext = next
 
 	local myAllyTeam = spGetMyAllyTeamID()
@@ -811,7 +798,6 @@ else	-- UNSYNCED
 		spSetCustomCommandDrawData(CMD_UNIT_SET_TARGET, "settarget", queueColour, true)
 		spSetCustomCommandDrawData(CMD_UNIT_SET_TARGET_NO_GROUND, "settargetrectangle", queueColour, true)
 		spSetCustomCommandDrawData(CMD_UNIT_SET_TARGET_RECTANGLE, "settargetnoground", queueColour, true)
-
 	end
 
 	function gadget:PlayerChanged(playerID)
@@ -840,7 +826,7 @@ else	-- UNSYNCED
 	function handleFailCommand(_, teamID)
 		if teamID == myTeam and not mySpec then
 			spPlaySoundFile("FailedCommand", 0.75, "ui")
-			spSetActiveCommand('settargetnoground')
+			spSetActiveCommand("settargetnoground")
 		end
 	end
 
@@ -872,19 +858,18 @@ else	-- UNSYNCED
 	end
 
 	function handleTargetListBatchedEvent(_, count, stride, data)
-		for i =1, count, stride do
-			local targetB = data[i+6]
-			local targetC = data[i+7]
+		for i = 1, count, stride do
+			local targetB = data[i + 6]
+			local targetC = data[i + 7]
 			if targetB < 0 then
 				targetB = nil
 			end
 			if targetC < 0 then
 				targetC = nil
 			end
-			handleTargetListEvent(_, data[i], data[i+1], data[i+2], data[i+3], data[i+4], data[i+5], targetB, targetC)
+			handleTargetListEvent(_, data[i], data[i + 1], data[i + 2], data[i + 3], data[i + 4], data[i + 5], targetB, targetC)
 		end
 	end
-
 
 	function handleTargetIndexEvent(_, unitID, index)
 		if not targetList[unitID] then
@@ -926,7 +911,6 @@ else	-- UNSYNCED
 	end
 
 	local function drawTargetCommand(targetData, myTeam, myAllyTeam)
-
 		if targetData and targetData.userTarget then
 			local target = targetData.target
 			local isUnitTarget = type(target) == "number"
@@ -937,7 +921,7 @@ else	-- UNSYNCED
 			elseif not isUnitTarget and target then
 				-- 3d coordinate target
 				local x2, y2, z2 = target[1], target[2], target[3]
-				drawUnitTarget(x2+y2+z2, x2, y2, z2)
+				drawUnitTarget(x2 + y2 + z2, x2, y2, z2)
 			end
 		end
 	end
@@ -987,7 +971,7 @@ else	-- UNSYNCED
 	end
 
 	function gadget:DrawWorld()
-		if Spring.IsGUIHidden() then
+		if SpringUnsynced.IsGUIHidden() then
 			return
 		end
 
@@ -997,5 +981,4 @@ else	-- UNSYNCED
 			CallAsTeam(myTeam, drawDecorations)
 		end
 	end
-
 end

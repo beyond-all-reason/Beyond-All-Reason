@@ -2,13 +2,13 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name      = "Unit glass pieces",
-		desc      = "Draws semitransparent glass-like unit pieces",
-		author    = "ivand",
-		date      = "2019",
-		license   = "PD",
-		layer     = 0,
-		enabled   = false,
+		name = "Unit glass pieces",
+		desc = "Draws semitransparent glass-like unit pieces",
+		author = "ivand",
+		date = "2019",
+		license = "PD",
+		layer = 0,
+		enabled = false,
 	}
 end
 
@@ -16,109 +16,103 @@ end
 -- Global Acceleration
 -----------------------------------------------------------------
 
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPieceList = Spring.GetUnitPieceList
-local spGetUnitTeam = Spring.GetUnitTeam
-local spSetUnitPieceVisible = Spring.SetUnitPieceVisible
-local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitPieceList = SpringShared.GetUnitPieceList
+local spGetUnitTeam = SpringShared.GetUnitTeam
+local spSetUnitPieceVisible = SpringSynced.SetUnitPieceVisible
+local spGetUnitIsCloaked = SpringShared.GetUnitIsCloaked
 
 if gadgetHandler:IsSyncedCode() then -- Synced
+	local glassUnitDefs = {}
 
-local glassUnitDefs = {}
+	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+		SendToUnsynced("GlassUnitDestroyed", unitID) --TODO: figure out if it's worth performance toll
+	end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	SendToUnsynced("GlassUnitDestroyed", unitID) --TODO: figure out if it's worth performance toll
-end
+	local function ShowHideGlassPiece(unitID, pieceID, show)
+		spSetUnitPieceVisible(unitID, pieceID, show)
+	end
 
-local function ShowHideGlassPiece(unitID, pieceID, show)
-	spSetUnitPieceVisible(unitID, pieceID, show)
-end
-
-local pieceList
-local function FillGlassUnitDefs(unitID, unitDefID)
-	if not glassUnitDefs[unitDefID] then
-		pieceList = spGetUnitPieceList(unitID)
-		for pieceID, pieceName in ipairs(pieceList) do
-			if pieceName:find("_glass") then
-
-				if not glassUnitDefs[unitDefID] then
-					glassUnitDefs[unitDefID] = {}
+	local pieceList
+	local function FillGlassUnitDefs(unitID, unitDefID)
+		if not glassUnitDefs[unitDefID] then
+			pieceList = spGetUnitPieceList(unitID)
+			for pieceID, pieceName in ipairs(pieceList) do
+				if pieceName:find("_glass") then
+					if not glassUnitDefs[unitDefID] then
+						glassUnitDefs[unitDefID] = {}
+					end
+					--Spring.Echo(UnitDefs[unitDefID].name,unitID, unitDefID, pieceID, pieceName)
+					table.insert(glassUnitDefs[unitDefID], pieceID)
 				end
-				--Spring.Echo(UnitDefs[unitDefID].name,unitID, unitDefID, pieceID, pieceName)
-				table.insert(glassUnitDefs[unitDefID], pieceID)
 			end
 		end
 	end
-end
 
-function gadget:UnitFinished(unitID, unitDefID)
-	FillGlassUnitDefs(unitID, unitDefID)
-	if glassUnitDefs[unitDefID] then
-		for _, pieceID in ipairs(glassUnitDefs[unitDefID]) do
-			ShowHideGlassPiece(unitID, pieceID, false)
-		end
-	end
-end
-
-function gadget:Initialize()
-	local allUnits = Spring.GetAllUnits()
-	for _, unitID in ipairs(allUnits) do
-		local unitDefID = spGetUnitDefID(unitID)
-		local unitTeamID = spGetUnitTeam(unitID)
-		gadget:UnitFinished(unitID, unitDefID, unitTeamID)
-	end
-end
-
-function gadget:Shutdown()
-	local allUnits = Spring.GetAllUnits()
-	for _, unitID in ipairs(allUnits) do
-		local unitDefID = spGetUnitDefID(unitID)
+	function gadget:UnitFinished(unitID, unitDefID)
+		FillGlassUnitDefs(unitID, unitDefID)
 		if glassUnitDefs[unitDefID] then
 			for _, pieceID in ipairs(glassUnitDefs[unitDefID]) do
-				ShowHideGlassPiece(unitID, pieceID, true)
+				ShowHideGlassPiece(unitID, pieceID, false)
 			end
 		end
 	end
-end
 
+	function gadget:Initialize()
+		local allUnits = SpringShared.GetAllUnits()
+		for _, unitID in ipairs(allUnits) do
+			local unitDefID = spGetUnitDefID(unitID)
+			local unitTeamID = spGetUnitTeam(unitID)
+			gadget:UnitFinished(unitID, unitDefID, unitTeamID)
+		end
+	end
 
+	function gadget:Shutdown()
+		local allUnits = SpringShared.GetAllUnits()
+		for _, unitID in ipairs(allUnits) do
+			local unitDefID = spGetUnitDefID(unitID)
+			if glassUnitDefs[unitDefID] then
+				for _, pieceID in ipairs(glassUnitDefs[unitDefID]) do
+					ShowHideGlassPiece(unitID, pieceID, true)
+				end
+			end
+		end
+	end
 else -- Unsynced
+	-----------------------------------------------------------------
+	-- Includes
+	-----------------------------------------------------------------
 
------------------------------------------------------------------
--- Includes
------------------------------------------------------------------
+	local LuaShader = gl.LuaShader
 
-local LuaShader = gl.LuaShader
+	-----------------------------------------------------------------
+	-- Acceleration
+	-----------------------------------------------------------------
 
------------------------------------------------------------------
--- Acceleration
------------------------------------------------------------------
+	local spGetVisibleUnits = SpringUnsynced.GetVisibleUnits
+	local spGetTeamColor = SpringUnsynced.GetTeamColor
 
-local spGetVisibleUnits = Spring.GetVisibleUnits
-local spGetTeamColor = Spring.GetTeamColor
+	local glGetSun = gl.GetSun
 
-local glGetSun = gl.GetSun
+	local glDepthTest = gl.DepthTest
+	local glCulling = gl.Culling
 
-local glDepthTest = gl.DepthTest
-local glCulling = gl.Culling
+	local glPushMatrix = gl.PushMatrix
+	local glPopMatrix = gl.PopMatrix
+	local glUnitMultMatrix = gl.UnitMultMatrix
+	local glUnitPieceMultMatrix = gl.UnitPieceMultMatrix
+	local glUnitPiece = gl.UnitPiece
+	local glTexture = gl.Texture
+	local glUnitShapeTextures = gl.UnitShapeTextures
 
-local glPushMatrix = gl.PushMatrix
-local glPopMatrix = gl.PopMatrix
-local glUnitMultMatrix = gl.UnitMultMatrix
-local glUnitPieceMultMatrix = gl.UnitPieceMultMatrix
-local glUnitPiece = gl.UnitPiece
-local glTexture = gl.Texture
-local glUnitShapeTextures = gl.UnitShapeTextures
+	local GL_BACK = GL.BACK
+	local GL_FRONT = GL.FRONT
 
-local GL_BACK  = GL.BACK
-local GL_FRONT = GL.FRONT
+	-----------------------------------------------------------------
+	-- Shader sources
+	-----------------------------------------------------------------
 
------------------------------------------------------------------
--- Shader sources
------------------------------------------------------------------
-
-vertGlass =
-[[
+	vertGlass = [[
 #version 150 compatibility
 #line 100054
 
@@ -157,8 +151,7 @@ void main() {
 }
 ]]
 
-fragGlass =
-[[
+	fragGlass = [[
 #version 150 compatibility
 #line 200094
 
@@ -267,270 +260,263 @@ void main(void){
 
 ]]
 
------------------------------------------------------------------
--- Global variables
------------------------------------------------------------------
+	-----------------------------------------------------------------
+	-- Global variables
+	-----------------------------------------------------------------
 
-local udIDs = {}
+	local udIDs = {}
 
-local solidUnitDefs = {}
-local glassUnitDefs = {}
+	local solidUnitDefs = {}
+	local glassUnitDefs = {}
 
-local teamColors = {}
-local glassUnits = {}
+	local teamColors = {}
+	local glassUnits = {}
 
-local pieceList
+	local pieceList
 
-local sunChanged = true
-local glassShader
+	local sunChanged = true
+	local glassShader
 
-local isSpec, fullview = Spring.GetSpectatingState()
-local myAllyTeamID = Spring.GetMyAllyTeamID()
-local myTeamID = Spring.GetMyTeamID()
+	local isSpec, fullview = SpringUnsynced.GetSpectatingState()
+	local myAllyTeamID = SpringUnsynced.GetLocalAllyTeamID()
+	local myTeamID = SpringUnsynced.GetLocalTeamID()
 
-local unitTextureFilesArray = VFS.DirList("unittextures/")
-local unitTextureFiles = {}
-for _, path in pairs(unitTextureFilesArray) do
-	unitTextureFiles[path] = true
-end
-
-local normalMaps = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-	local unitNormalTexture = unitDef.customParams.normaltex
-	if unitNormalTexture and (
-			unitTextureFiles[string.lower(unitNormalTexture)] or
-			VFS.FileExists(unitNormalTexture)) then
-		normalMaps[unitDefID] = unitNormalTexture
-	else
-		normalMaps[unitDefID] = "unittextures/blank_normal.dds"
-	end
-end
-
-function gadget:PlayerChanged(playerID)
-	local prevFullview = fullview
-	local prevMyAllyTeamID = myAllyTeamID
-	isSpec, fullview = Spring.GetSpectatingState()
-	myAllyTeamID = Spring.GetMyAllyTeamID()
-	myTeamID = Spring.GetMyTeamID()
-	if fullview ~= prevFullview or myAllyTeamID ~= prevMyAllyTeamID then
-		UpdateAllGlassUnits()
-	end
-end
-
-
-
-local function RenderGlassUnits()
-	if #glassUnits == 0 then
-		return
+	local unitTextureFilesArray = VFS.DirList("unittextures/")
+	local unitTextureFiles = {}
+	for _, path in pairs(unitTextureFilesArray) do
+		unitTextureFiles[path] = true
 	end
 
-
-	glDepthTest(true)
-
-	glassShader:ActivateWith( function()
-		glTexture(3, "$reflection")
-
-		glassShader:SetUniformMatrix("viewInvMat", "viewinverse")
-
-		if sunChanged then
-			glassShader:SetUniformFloatAlways("sunSpecular", glGetSun("specular" ,"unit"))
-			glassShader:SetUniformFloatAlways("sunPos", glGetSun("pos"))
-
-			glassShader:SetUniformFloatArrayAlways("pbrParams", {
-				Spring.GetConfigFloat("tonemapA", 4.8),
-				Spring.GetConfigFloat("tonemapB", 0.8),
-				Spring.GetConfigFloat("tonemapC", 3.35),
-				Spring.GetConfigFloat("tonemapD", 1.0),
-				Spring.GetConfigFloat("tonemapE", 1.15),
-				Spring.GetConfigFloat("envAmbient", 0.3),
-				Spring.GetConfigFloat("unitSunMult", 1.35),
-				Spring.GetConfigFloat("unitExposureMult", 1.0),
-			})
-
-			sunChanged = false
+	local normalMaps = {}
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		local unitNormalTexture = unitDef.customParams.normaltex
+		if unitNormalTexture and (unitTextureFiles[string.lower(unitNormalTexture)] or VFS.FileExists(unitNormalTexture)) then
+			normalMaps[unitDefID] = unitNormalTexture
+		else
+			normalMaps[unitDefID] = "unittextures/blank_normal.dds"
 		end
-		for i = 1, #glassUnits do
-			local unitID = glassUnits[i]
-			local unitDefID = udIDs[unitID]
-			glUnitShapeTextures(unitDefID, true)
-			glTexture(2, normalMaps[unitDefID])
+	end
 
-			local glassUnitDef = glassUnitDefs[unitDefID]
+	function gadget:PlayerChanged(playerID)
+		local prevFullview = fullview
+		local prevMyAllyTeamID = myAllyTeamID
+		isSpec, fullview = SpringUnsynced.GetSpectatingState()
+		myAllyTeamID = SpringUnsynced.GetLocalAllyTeamID()
+		myTeamID = SpringUnsynced.GetLocalTeamID()
+		if fullview ~= prevFullview or myAllyTeamID ~= prevMyAllyTeamID then
+			UpdateAllGlassUnits()
+		end
+	end
 
-			glCulling(GL_FRONT)
-			for j = 1, #glassUnitDef do
-				local pieceID = glassUnitDef[j]
-				glPushMatrix()
+	local function RenderGlassUnits()
+		if #glassUnits == 0 then
+			return
+		end
+
+		glDepthTest(true)
+
+		glassShader:ActivateWith(function()
+			glTexture(3, "$reflection")
+
+			glassShader:SetUniformMatrix("viewInvMat", "viewinverse")
+
+			if sunChanged then
+				glassShader:SetUniformFloatAlways("sunSpecular", glGetSun("specular", "unit"))
+				glassShader:SetUniformFloatAlways("sunPos", glGetSun("pos"))
+
+				glassShader:SetUniformFloatArrayAlways("pbrParams", {
+					SpringUnsynced.GetConfigFloat("tonemapA", 4.8),
+					SpringUnsynced.GetConfigFloat("tonemapB", 0.8),
+					SpringUnsynced.GetConfigFloat("tonemapC", 3.35),
+					SpringUnsynced.GetConfigFloat("tonemapD", 1.0),
+					SpringUnsynced.GetConfigFloat("tonemapE", 1.15),
+					SpringUnsynced.GetConfigFloat("envAmbient", 0.3),
+					SpringUnsynced.GetConfigFloat("unitSunMult", 1.35),
+					SpringUnsynced.GetConfigFloat("unitExposureMult", 1.0),
+				})
+
+				sunChanged = false
+			end
+			for i = 1, #glassUnits do
+				local unitID = glassUnits[i]
+				local unitDefID = udIDs[unitID]
+				glUnitShapeTextures(unitDefID, true)
+				glTexture(2, normalMaps[unitDefID])
+
+				local glassUnitDef = glassUnitDefs[unitDefID]
+
+				glCulling(GL_FRONT)
+				for j = 1, #glassUnitDef do
+					local pieceID = glassUnitDef[j]
+					glPushMatrix()
 					glUnitMultMatrix(unitID)
 					glUnitPieceMultMatrix(unitID, pieceID)
 					glUnitPiece(unitID, pieceID)
-				glPopMatrix()
-			end
-
-			glCulling(GL_BACK)
-			for j = 1, #glassUnitDef do
-				local pieceID = glassUnitDef[j]
-				glPushMatrix()
-					glUnitMultMatrix(unitID)
-					glUnitPieceMultMatrix(unitID, pieceID)
-					glUnitPiece(unitID, pieceID)
-				glPopMatrix()
-			end
-			--glUnitShapeTextures(unitDefID, false)
-			--glTexture(2, false)
-		end
-
-		glTexture(0, false)
-		glTexture(1, false)
-		glTexture(2, false)
-		glTexture(3, false)
-
-	end)
-
-	glDepthTest(false)
-	glCulling(false)
-
-end
-
-
-local function UpdateGlassUnit(unitID)
-	if not udIDs[unitID] then
-		udIDs[unitID] = spGetUnitDefID(unitID)
-	end
-	local unitDefID = udIDs[unitID]
-
-	if not unitDefID then --unidentified object ?
-		return
-	end
-
-	if solidUnitDefs[unitDefID] then --a known solid unitDef
-		return
-	end
-
-	if spGetUnitIsCloaked(unitID) then --cloaked unit
-		return
-	end
-
-	if not glassUnitDefs[unitDefID] then -- unknown unitdef
-		pieceList = spGetUnitPieceList(unitID)
-		for pieceID, pieceName in ipairs(pieceList) do
-			if pieceName:find("_glass") then
-
-				if not glassUnitDefs[unitDefID] then
-					glassUnitDefs[unitDefID] = {}
+					glPopMatrix()
 				end
-				--Spring.Echo(unitID, unitDefID, pieceID, pieceName)
-				table.insert(glassUnitDefs[unitDefID], pieceID)
+
+				glCulling(GL_BACK)
+				for j = 1, #glassUnitDef do
+					local pieceID = glassUnitDef[j]
+					glPushMatrix()
+					glUnitMultMatrix(unitID)
+					glUnitPieceMultMatrix(unitID, pieceID)
+					glUnitPiece(unitID, pieceID)
+					glPopMatrix()
+				end
+				--glUnitShapeTextures(unitDefID, false)
+				--glTexture(2, false)
+			end
+
+			glTexture(0, false)
+			glTexture(1, false)
+			glTexture(2, false)
+			glTexture(3, false)
+		end)
+
+		glDepthTest(false)
+		glCulling(false)
+	end
+
+	local function UpdateGlassUnit(unitID)
+		if not udIDs[unitID] then
+			udIDs[unitID] = spGetUnitDefID(unitID)
+		end
+		local unitDefID = udIDs[unitID]
+
+		if not unitDefID then --unidentified object ?
+			return
+		end
+
+		if solidUnitDefs[unitDefID] then --a known solid unitDef
+			return
+		end
+
+		if spGetUnitIsCloaked(unitID) then --cloaked unit
+			return
+		end
+
+		if not glassUnitDefs[unitDefID] then -- unknown unitdef
+			pieceList = spGetUnitPieceList(unitID)
+			for pieceID, pieceName in ipairs(pieceList) do
+				if pieceName:find("_glass") then
+					if not glassUnitDefs[unitDefID] then
+						glassUnitDefs[unitDefID] = {}
+					end
+					--Spring.Echo(unitID, unitDefID, pieceID, pieceName)
+					table.insert(glassUnitDefs[unitDefID], pieceID)
+				end
+			end
+
+			if not glassUnitDefs[unitDefID] then --no glass pieces found
+				solidUnitDefs[unitDefID] = true
 			end
 		end
 
-		if not glassUnitDefs[unitDefID] then --no glass pieces found
-			solidUnitDefs[unitDefID] = true
+		if glassUnitDefs[unitDefID] then --unitdef with glass pieces
+			glassUnits[#glassUnits + 1] = unitID
+			teamColors[unitID] = { spGetTeamColor(spGetUnitTeam(unitID)) }
 		end
 	end
 
-	if glassUnitDefs[unitDefID] then --unitdef with glass pieces
-		glassUnits[#glassUnits + 1] = unitID
-		teamColors[unitID] = { spGetTeamColor(spGetUnitTeam(unitID)) }
+	function UpdateAllGlassUnits()
+		-- Wipe tables in-place to avoid per-call table allocation
+		for i = 1, #glassUnits do
+			glassUnits[i] = nil
+		end
+		for k in pairs(teamColors) do
+			teamColors[k] = nil
+		end
+		local units
+		if fullview then
+			units = SpringShared.GetAllUnits()
+		else
+			units = CallAsTeam(myTeamID, spGetVisibleUnits, -1, nil, false)
+		end
+		for i = 1, #units do
+			UpdateGlassUnit(units[i])
+		end
 	end
-end
 
-function UpdateAllGlassUnits()
-	-- Wipe tables in-place to avoid per-call table allocation
-	for i = 1, #glassUnits do glassUnits[i] = nil end
-	for k in pairs(teamColors) do teamColors[k] = nil end
-	local units
-	if fullview then
-		units = Spring.GetAllUnits()
-	else
-		units = CallAsTeam(myTeamID, spGetVisibleUnits, -1, nil, false)
+	----------------------------------------------------------------------
+
+	local function GlassUnitDestroyed(unitID)
+		udIDs[unitID] = nil
+		--glassUnits[unitID] = nil
+		teamColors[unitID] = nil
 	end
-	for i=1, #units do
-		UpdateGlassUnit(units[i])
+
+	function gadget:UnitTaken(unitID, unitDefID, newTeam, oldTeam)
+		teamColors[unitID] = { spGetTeamColor(newTeam) }
 	end
-end
 
-----------------------------------------------------------------------
-
-local function GlassUnitDestroyed(unitID)
-	udIDs[unitID] = nil
-	--glassUnits[unitID] = nil
-	teamColors[unitID] = nil
-end
-
-function gadget:UnitTaken(unitID, unitDefID, newTeam, oldTeam)
-	teamColors[unitID] = { spGetTeamColor(newTeam) }
-end
-
-function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
-	if (glassUnitDefs[unitDefID] or not solidUnitDefs[unitDefID]) and CallAsTeam(myTeamID, Spring.IsUnitVisible, unitID, nil, false) then
-		UpdateGlassUnit(unitID)
+	function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+		if (glassUnitDefs[unitDefID] or not solidUnitDefs[unitDefID]) and CallAsTeam(myTeamID, SpringUnsynced.IsUnitVisible, unitID, nil, false) then
+			UpdateGlassUnit(unitID)
+		end
 	end
-end
 
-function gadget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
-	if (glassUnitDefs[unitDefID] or not solidUnitDefs[unitDefID]) and not CallAsTeam(myTeamID, Spring.IsUnitVisible, unitID, nil, false) then
-		GlassUnitDestroyed(unitID)
+	function gadget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
+		if (glassUnitDefs[unitDefID] or not solidUnitDefs[unitDefID]) and not CallAsTeam(myTeamID, SpringUnsynced.IsUnitVisible, unitID, nil, false) then
+			GlassUnitDestroyed(unitID)
+		end
 	end
-end
 
-function gadget:UnitCloaked(unitID, unitDefID, unitTeam)
-	if (glassUnitDefs[unitDefID] or not solidUnitDefs[unitDefID]) then
-		GlassUnitDestroyed(unitID)
+	function gadget:UnitCloaked(unitID, unitDefID, unitTeam)
+		if glassUnitDefs[unitDefID] or not solidUnitDefs[unitDefID] then
+			GlassUnitDestroyed(unitID)
+		end
 	end
-end
 
-function gadget:UnitDecloaked(unitID, unitDefID, unitTeam)
-	if (glassUnitDefs[unitDefID] or not solidUnitDefs[unitDefID]) and CallAsTeam(myTeamID, Spring.IsUnitVisible, unitID, nil, false) then
-		UpdateGlassUnit(unitID)
+	function gadget:UnitDecloaked(unitID, unitDefID, unitTeam)
+		if (glassUnitDefs[unitDefID] or not solidUnitDefs[unitDefID]) and CallAsTeam(myTeamID, SpringUnsynced.IsUnitVisible, unitID, nil, false) then
+			UpdateGlassUnit(unitID)
+		end
 	end
-end
 
-----------------------------------------------------------------------
-function gadget:GameFrame(gf)
-	if gf % 7 == 1 then
+	----------------------------------------------------------------------
+	function gadget:GameFrame(gf)
+		if gf % 7 == 1 then
+			UpdateAllGlassUnits()
+		end
+	end
+
+	function gadget:DrawWorld()
+		RenderGlassUnits()
+	end
+
+	local function GlassUpdateSun()
+		sunChanged = true
+	end
+
+	function gadget:SunChanged()
+		GlassUpdateSun()
+	end
+
+	function gadget:Initialize()
+		glassShader = LuaShader({
+			vertex = vertGlass,
+			fragment = fragGlass,
+			uniformInt = {
+				tex1 = 0,
+				tex2 = 1,
+				normalTex = 2,
+				reflectTex = 3,
+			},
+			uniformFloat = {},
+		}, "Glass Shader")
+
+		glassShader:Initialize()
+
+		gadgetHandler:AddSyncAction("GlassUnitDestroyed", GlassUnitDestroyed)
+		gadgetHandler:AddChatAction("GlassUpdateSun", GlassUpdateSun)
 		UpdateAllGlassUnits()
 	end
-end
 
-function gadget:DrawWorld()
-	RenderGlassUnits()
-end
+	function gadget:Shutdown()
+		glassShader:Finalize()
 
-local function GlassUpdateSun()
-	sunChanged = true
-end
-
-function gadget:SunChanged()
-	GlassUpdateSun()
-end
-
-function gadget:Initialize()
-	glassShader = LuaShader({
-		vertex = vertGlass,
-		fragment = fragGlass,
-		uniformInt = {
-			tex1 = 0,
-			tex2 = 1,
-			normalTex = 2,
-			reflectTex = 3,
-		},
-		uniformFloat = {
-		},
-	}, "Glass Shader")
-
-	glassShader:Initialize()
-
-	gadgetHandler:AddSyncAction("GlassUnitDestroyed", GlassUnitDestroyed)
-	gadgetHandler:AddChatAction("GlassUpdateSun", GlassUpdateSun)
-	UpdateAllGlassUnits()
-end
-
-function gadget:Shutdown()
-	glassShader:Finalize()
-
-	gadgetHandler.RemoveSyncAction("GlassUnitDestroyed")
-	gadgetHandler:RemoveChatAction("GlassUpdateSun")
-end
-
+		gadgetHandler.RemoveSyncAction("GlassUnitDestroyed")
+		gadgetHandler:RemoveChatAction("GlassUpdateSun")
+	end
 end -- unsynced

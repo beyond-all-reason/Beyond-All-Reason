@@ -8,11 +8,11 @@ function gadget:GetInfo()
 		date = "",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
 function gadget:Initialize()
-	Spring.AssignMouseCursor("upgmex", "cursorupgmex", false)
-	Spring.AssignMouseCursor("areamex", "cursorareamex", false)
+	SpringUnsynced.AssignMouseCursor("upgmex", "cursorupgmex", false)
+	SpringUnsynced.AssignMouseCursor("areamex", "cursorareamex", false)
 end

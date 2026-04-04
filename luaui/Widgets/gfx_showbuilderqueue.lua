@@ -17,7 +17,7 @@ end
 local tableInsert = table.insert
 
 -- Localized Spring API for performance
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 local shapeOpacity = 0.26
 local maxUnitShapes = 4096
@@ -33,10 +33,10 @@ local maxUnitShapes = 4096
 -- v8 Floris - GL4 unit shape rendering
 -- v9 SuperKitowiec - Extract builder queue related code to api_builder_queue.lua.
 
-local myPlayerId = Spring.GetMyPlayerID()
+local myPlayerId = SpringUnsynced.GetLocalPlayerID()
 local _, fullView, _ = spGetSpectatingState()
 
-local spGetGroundHeight = Spring.GetGroundHeight
+local spGetGroundHeight = SpringShared.GetGroundHeight
 local halfPi = math.pi / 2
 
 local reInitialize
@@ -121,7 +121,7 @@ function widget:Initialize()
 	if not WG.DrawUnitShapeGL4 then
 		widgetHandler:RemoveWidget()
 	else
-		widget:Shutdown()    -- to clear first
+		widget:Shutdown() -- to clear first
 	end
 
 	if not WG.BuilderQueueApi then
@@ -170,7 +170,7 @@ function widget:PlayerChanged(playerId)
 	end
 end
 
-local prevGuiHidden = Spring.IsGUIHidden()
+local prevGuiHidden = SpringUnsynced.IsGUIHidden()
 
 function widget:Update()
 	if not WG.BuilderQueueApi then
@@ -179,7 +179,7 @@ function widget:Update()
 		return
 	end
 
-	local isGuiHidden = Spring.IsGUIHidden()
+	local isGuiHidden = SpringUnsynced.IsGUIHidden()
 
 	if not isGuiHidden then
 		if reInitialize then

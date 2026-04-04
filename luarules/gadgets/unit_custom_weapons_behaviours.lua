@@ -2,13 +2,13 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name    = "Custom weapon behaviours",
-		desc    = "Handler for special weapon behaviours",
-		author  = "Doo",
-		date    = "Sept 19th 2017",
+		name = "Custom weapon behaviours",
+		desc = "Handler for special weapon behaviours",
+		author = "Doo",
+		date = "Sept 19th 2017",
 		license = "GNU GPL, v2 or later",
-		layer   = 0,
-		enabled = true
+		layer = 0,
+		enabled = true,
 	}
 end
 
@@ -30,31 +30,31 @@ local distance3dSquared = math.distance3dSquared
 
 local CallAsTeam = CallAsTeam
 
-local spDeleteProjectile = Spring.DeleteProjectile
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetGroundNormal = Spring.GetGroundNormal
-local spGetProjectileDefID = Spring.GetProjectileDefID
-local spGetProjectileOwnerID = Spring.GetProjectileOwnerID
-local spGetProjectilePosition = Spring.GetProjectilePosition
-local spGetProjectileTarget = Spring.GetProjectileTarget
-local spGetProjectileTeamID = Spring.GetProjectileTeamID
-local spGetProjectileTimeToLive = Spring.GetProjectileTimeToLive
-local spGetProjectileVelocity = Spring.GetProjectileVelocity
-local spGetUnitIsDead = Spring.GetUnitIsDead
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitWeaponState = Spring.GetUnitWeaponState
-local spGetUnitWeaponTarget = Spring.GetUnitWeaponTarget
-local spSetProjectilePosition = Spring.SetProjectilePosition
-local spSetProjectileTarget = Spring.SetProjectileTarget
-local spSetProjectileVelocity = Spring.SetProjectileVelocity
-local spSpawnCEG = Spring.SpawnCEG
-local spSpawnProjectile = Spring.SpawnProjectile
+local spDeleteProjectile = SpringSynced.DeleteProjectile
+local spGetGroundHeight = SpringShared.GetGroundHeight
+local spGetGroundNormal = SpringShared.GetGroundNormal
+local spGetProjectileDefID = SpringShared.GetProjectileDefID
+local spGetProjectileOwnerID = SpringShared.GetProjectileOwnerID
+local spGetProjectilePosition = SpringShared.GetProjectilePosition
+local spGetProjectileTarget = SpringShared.GetProjectileTarget
+local spGetProjectileTeamID = SpringShared.GetProjectileTeamID
+local spGetProjectileTimeToLive = SpringShared.GetProjectileTimeToLive
+local spGetProjectileVelocity = SpringShared.GetProjectileVelocity
+local spGetUnitIsDead = SpringShared.GetUnitIsDead
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetUnitTeam = SpringShared.GetUnitTeam
+local spGetUnitWeaponState = SpringShared.GetUnitWeaponState
+local spGetUnitWeaponTarget = SpringShared.GetUnitWeaponTarget
+local spSetProjectilePosition = SpringSynced.SetProjectilePosition
+local spSetProjectileTarget = SpringSynced.SetProjectileTarget
+local spSetProjectileVelocity = SpringSynced.SetProjectileVelocity
+local spSpawnCEG = SpringSynced.SpawnCEG
+local spSpawnProjectile = SpringSynced.SpawnProjectile
 
 local gravityPerFrame = -Game.gravity / (Game.gameSpeed * Game.gameSpeed)
 
-local targetedGround = string.byte('g')
-local targetedUnit = string.byte('u')
+local targetedGround = string.byte("g")
+local targetedUnit = string.byte("u")
 
 --------------------------------------------------------------------------------
 -- Initialization --------------------------------------------------------------
@@ -79,7 +79,7 @@ local function parseCustomParams(weaponDef)
 
 	if not specialEffectFunction[effectName] then
 		local message = weaponDef.name .. " has bad speceffect: " .. tostring(effectName)
-		Spring.Log(gadget:GetInfo().name, LOG.ERROR, message)
+		SpringShared.Log(gadget:GetInfo().name, LOG.ERROR, message)
 
 		success = false
 	end
@@ -94,7 +94,7 @@ local function parseCustomParams(weaponDef)
 					effectParams[key] = value
 				else
 					local message = weaponDef.name .. " has bad customparam: " .. tostring(key)
-					Spring.Log(gadget:GetInfo().name, LOG.ERROR, message)
+					SpringShared.Log(gadget:GetInfo().name, LOG.ERROR, message)
 
 					success = false
 				end
@@ -105,7 +105,7 @@ local function parseCustomParams(weaponDef)
 	-- Modders/tweakdefs are likely to use these values for a while:
 	if weaponDef.customParams.def or weaponDef.customParams.when then
 		local message = weaponDef.name .. " uses old customparams (def/when)"
-		Spring.Log(gadget:GetInfo().name, LOG.DEPRECATED, message)
+		SpringShared.Log(gadget:GetInfo().name, LOG.DEPRECATED, message)
 	end
 
 	if success then
@@ -136,13 +136,7 @@ local function isProjectileInWater(projectileID)
 end
 
 local function equalTargets(target1, target2)
-	return target1 == target2 or (
-		type(target1) == "table" and
-		type(target2) == "table" and
-		target1[1] == target2[1] and
-		target1[2] == target2[2] and
-		target1[3] == target2[3]
-	)
+	return target1 == target2 or (type(target1) == "table" and type(target2) == "table" and target1[1] == target2[1] and target1[2] == target2[2] and target1[3] == target2[3])
 end
 
 local readAs = { read = -1 }
@@ -185,12 +179,12 @@ local getProjectileArgs
 do
 	---@class ProjectileParams
 	local projectileParams = {
-		pos     = { 0, 0, 0 },
-		speed   = { 0, 0, 0 },
+		pos = { 0, 0, 0 },
+		speed = { 0, 0, 0 },
 		gravity = gravityPerFrame,
-		ttl     = 3000,
-		owner   = -1,
-		team    = -1,
+		ttl = 3000,
+		owner = -1,
+		team = -1,
 	}
 
 	---@return integer weaponDefID
@@ -208,7 +202,7 @@ do
 		vel[1], vel[2], vel[3], parentSpeed = spGetProjectileVelocity(projectileID)
 
 		projectile.owner = spGetProjectileOwnerID(projectileID) or -1
-		projectile.team  = spGetProjectileTeamID(projectileID) or spGetUnitTeam(projectile.owner) or -1
+		projectile.team = spGetProjectileTeamID(projectileID) or spGetUnitTeam(projectile.owner) or -1
 		projectile.cegTag = params.cegtag
 		projectile.model = params.model
 
@@ -223,7 +217,7 @@ end
 weaponCustomParamKeys.cruise = {
 	cruise_min_height = toPositiveNumber, -- Minimum ground clearance. Checked each frame, but no lookahead.
 	cruise_max_height = toPositiveNumber, -- Maximum ground clearance. Checked each frame, but no lookahead.
-	lockon_dist       = toPositiveNumber, -- Within this radius, disables the auto ground clearance.
+	lockon_dist = toPositiveNumber, -- Within this radius, disables the auto ground clearance.
 }
 
 local useSmoothMeshHeight = 40 -- altitude used to switch between actual and smoothed terrain normals
@@ -488,11 +482,11 @@ end
 -- Use with a weapon with a high firing arc, or it can cause strange behaviors, e.g. when firing down.
 
 weaponCustomParamKeys.split = {
-	speceffect_def    = toWeaponDefID, -- name of spawned weapondef (weapon type must be non-hitscan)
-	number            = tonumber, -- count of projectiles to spawn
+	speceffect_def = toWeaponDefID, -- name of spawned weapondef (weapon type must be non-hitscan)
+	number = tonumber, -- count of projectiles to spawn
 	splitexplosionceg = tostring, -- name of spawned CEG (use a small puff, there is no damage)
-	cegtag            = tostring, -- as `projectileParams.cegTag`
-	model             = tostring, -- as `projectileParams.model`
+	cegtag = tostring, -- as `projectileParams.cegTag`
+	model = tostring, -- as `projectileParams.model`
 }
 
 local function split(params, projectileID)
@@ -531,9 +525,9 @@ end
 
 weaponCustomParamKeys.cannonwaterpen = {
 	speceffect_def = toWeaponDefID, -- name of spawned weapondef (weapon type must be non-hitscan)
-	waterpenceg    = tostring, -- name of spawned CEG (use a small splash, there is no damage)
-	cegtag         = tostring, -- as `projectileParams.cegTag`
-	model          = tostring, -- as `projectileParams.model`
+	waterpenceg = tostring, -- name of spawned CEG (use a small splash, there is no damage)
+	cegtag = tostring, -- as `projectileParams.cegTag`
+	model = tostring, -- as `projectileParams.model`
 }
 
 local function cannonWaterPen(params, projectileID)
@@ -657,9 +651,9 @@ function gadget:Initialize()
 		for weaponDefID in pairs(weaponDefEffect) do
 			Script.SetWatchProjectile(weaponDefID, true)
 		end
-		gameFrame = Spring.GetGameFrame()
+		gameFrame = SpringShared.GetGameFrame()
 	else
-		Spring.Log(gadget:GetInfo().name, LOG.INFO, "No custom weapons found.")
+		SpringShared.Log(gadget:GetInfo().name, LOG.INFO, "No custom weapons found.")
 		gadgetHandler:RemoveGadget(self)
 	end
 end

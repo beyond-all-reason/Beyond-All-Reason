@@ -38,7 +38,7 @@ return {
 		movementclass = "COMMANDERBOT",
 		movestate = 0,
 		nochasecategory = "ALL",
-		objectname = "Units/ARMCOM"..(Spring.GetModOptions().xmas and '-XMAS' or '')..".s3o",
+		objectname = "Units/ARMCOM" .. (SpringShared.GetModOptions().xmas and "-XMAS" or "") .. ".s3o",
 		radardistance = 700,
 		radaremitheight = 40,
 		reclaimable = false,
@@ -232,7 +232,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
 				customparams = {
-					norangering= 1,
+					norangering = 1,
 				},
 				damage = {
 					default = 200,

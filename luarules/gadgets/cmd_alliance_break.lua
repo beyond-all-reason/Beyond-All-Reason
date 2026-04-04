@@ -8,26 +8,25 @@ function gadget:GetInfo()
 		date = "-",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
-if Spring.GetModOptions().fixedallies then
+if SpringShared.GetModOptions().fixedallies then
 	return -- no use if alliances are disabled
 end
 
 if gadgetHandler:IsSyncedCode() then
-
-	local GetUnitDefID = Spring.GetUnitDefID
-	local AreTeamsAllied = Spring.AreTeamsAllied
-	local GetUnitsInSphere = Spring.GetUnitsInSphere
-	local GetUnitTeam = Spring.GetUnitTeam
-	local GetUnitAllyTeam = Spring.GetUnitAllyTeam
-	local GetTeamList = Spring.GetTeamList
-	local GetUnitHealth = Spring.GetUnitHealth
-	local GetUnitsInCylinder = Spring.GetUnitsInCylinder
-	local SetAlly = Spring.SetAlly
-	local ValidUnitID = Spring.ValidUnitID
+	local GetUnitDefID = SpringShared.GetUnitDefID
+	local AreTeamsAllied = SpringShared.AreTeamsAllied
+	local GetUnitsInSphere = SpringShared.GetUnitsInSphere
+	local GetUnitTeam = SpringShared.GetUnitTeam
+	local GetUnitAllyTeam = SpringShared.GetUnitAllyTeam
+	local GetTeamList = SpringShared.GetTeamList
+	local GetUnitHealth = SpringShared.GetUnitHealth
+	local GetUnitsInCylinder = SpringShared.GetUnitsInCylinder
+	local SetAlly = SpringSynced.SetAlly
+	local ValidUnitID = SpringShared.ValidUnitID
 	local min = math.min
 
 	local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
@@ -39,7 +38,7 @@ if gadgetHandler:IsSyncedCode() then
 	local UPDATE_RATE = 3 --in times per second ( max one time per sim frame )
 	local UPDATE_FRAMES = math.floor(Game.gameSpeed / UPDATE_RATE)
 
-	local allyTeamList = Spring.GetAllyTeamList()
+	local allyTeamList = SpringShared.GetAllyTeamList()
 
 	local attackAOEs = {}
 	local attackDamages = {}
@@ -141,15 +140,14 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
-
 else
 	----------------------------------------------------------------
 	-- Unsynced
 	----------------------------------------------------------------
 
-	local SendMessageToTeam = Spring.SendMessageToTeam
-	local GetTeamInfo = Spring.GetTeamInfo
-	local GetPlayerInfo = Spring.GetPlayerInfo
+	local SendMessageToTeam = SpringUnsynced.SendMessageToTeam
+	local GetTeamInfo = SpringShared.GetTeamInfo
+	local GetPlayerInfo = SpringShared.GetPlayerInfo
 
 	-- Dynamic alliances are not supported for AI teams
 	local function getTeamLeaderName(teamID)
@@ -158,22 +156,22 @@ else
 	end
 
 	local function allianceMade(_, teamA, teamB)
-		if Script.LuaUI('GadgetMessageProxy') then
-			local message = Script.LuaUI.GadgetMessageProxy('ui.dynamicAlly.create', { player = getTeamLeaderName(teamB) })
+		if Script.LuaUI("GadgetMessageProxy") then
+			local message = Script.LuaUI.GadgetMessageProxy("ui.dynamicAlly.create", { player = getTeamLeaderName(teamB) })
 			SendMessageToTeam(teamA, message)
 		end
 	end
 
 	local function allianceBroken(_, teamA, teamB)
-		if Script.LuaUI('GadgetMessageProxy') then
-			local message = Script.LuaUI.GadgetMessageProxy('ui.dynamicAlly.destroy', { player = getTeamLeaderName(teamB) })
+		if Script.LuaUI("GadgetMessageProxy") then
+			local message = Script.LuaUI.GadgetMessageProxy("ui.dynamicAlly.destroy", { player = getTeamLeaderName(teamB) })
 			SendMessageToTeam(teamA, message)
 		end
 	end
 
 	local function backstab(_, victimTeam, traitorTeam)
-		if Script.LuaUI('GadgetMessageProxy') then
-			local message = Script.LuaUI.GadgetMessageProxy('ui.dynamicAlly.backstab', { player = getTeamLeaderName(traitorTeam) })
+		if Script.LuaUI("GadgetMessageProxy") then
+			local message = Script.LuaUI.GadgetMessageProxy("ui.dynamicAlly.backstab", { player = getTeamLeaderName(traitorTeam) })
 			SendMessageToTeam(victimTeam, message)
 		end
 	end
@@ -183,5 +181,4 @@ else
 		gadgetHandler:AddSyncAction("AllianceBroken", allianceBroken)
 		gadgetHandler:AddSyncAction("Backstab", backstab)
 	end
-
 end

@@ -8,11 +8,13 @@ function gadget:GetInfo()
 		date = "2024.12.7",
 		license = "GNU GPL, v2 or later",
 		layer = 1, --must layer after cmd_area_commands_filter.lua (and unit_alt_set_target_type.lua I assume?)
-		enabled = true
+		enabled = true,
 	}
 end
 
-if not gadgetHandler:IsSyncedCode() then return end
+if not gadgetHandler:IsSyncedCode() then
+	return
+end
 
 --[[
 Integration Checklist:
@@ -30,7 +32,7 @@ This may be necessary if the turret's turn speed is so slow it triggers false mi
 --static
 local frameCheckModulo = Game.gameSpeed -- once per second is sufficient
 local aggroDecayRate = 0.7 --aggro is multiplied by this until it falls within priority aiming state range
-local aggroDecayCap = 10  -- this caps the aggro decay so that misfire state can last a significant amount of time
+local aggroDecayCap = 10 -- this caps the aggro decay so that misfire state can last a significant amount of time
 local aggroPriorityCap = 1 --The maximum aggro that can be accumulated. This prevents manual targetting from getting stuck in a fire mode for too long.
 local aggroBackupCap = -16 --Like above, but a negative value because backup is triggered with negative aggro.
 local gameSpeed = Game.gameSpeed
@@ -66,12 +68,12 @@ local GROUND_TARGET = 2
 local gameFrame = 0
 
 --functions
-local spCallCOBScript = Spring.CallCOBScript
-local spGetUnitWeaponHaveFreeLineOfFire = Spring.GetUnitWeaponHaveFreeLineOfFire
-local spGetUnitWeaponTarget = Spring.GetUnitWeaponTarget
-local spGetUnitWeaponState = Spring.GetUnitWeaponState
-local spGetUnitEstimatedPath = Spring.GetUnitEstimatedPath
-local spSetUnitTarget = Spring.SetUnitTarget
+local spCallCOBScript = SpringSynced.CallCOBScript
+local spGetUnitWeaponHaveFreeLineOfFire = SpringShared.GetUnitWeaponHaveFreeLineOfFire
+local spGetUnitWeaponTarget = SpringShared.GetUnitWeaponTarget
+local spGetUnitWeaponState = SpringShared.GetUnitWeaponState
+local spGetUnitEstimatedPath = SpringShared.GetUnitEstimatedPath
+local spSetUnitTarget = SpringSynced.SetUnitTarget
 local mathMin = math.min
 local mathMax = math.max
 
@@ -80,25 +82,25 @@ local smartUnitDefs = {}
 local modeSwitchFrames = {}
 
 -- Add with other local function declarations
-local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
-local spEditUnitCmdDesc = Spring.EditUnitCmdDesc
-local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
+local spInsertUnitCmdDesc = SpringSynced.InsertUnitCmdDesc
+local spEditUnitCmdDesc = SpringSynced.EditUnitCmdDesc
+local spFindUnitCmdDesc = SpringShared.FindUnitCmdDesc
 
 local trajectoryCmdDesc = {
-    id = CMD_SMART_TOGGLE,
-    type = CMDTYPE.ICON_MODE,
-    tooltip = 'trajectory_tooltip',
-    name = 'trajectory_toggle',
-    cursor = 'cursornormal',
-    action = 'trajectory_toggle',
-    params = { AUTO_TOGGLESTATE, "trajectory_low", "trajectory_high", "trajectory_auto" },
+	id = CMD_SMART_TOGGLE,
+	type = CMDTYPE.ICON_MODE,
+	tooltip = "trajectory_tooltip",
+	name = "trajectory_toggle",
+	cursor = "cursornormal",
+	action = "trajectory_toggle",
+	params = { AUTO_TOGGLESTATE, "trajectory_low", "trajectory_high", "trajectory_auto" },
 }
 local defaultCmdDesc = table.copy(trajectoryCmdDesc)
 
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_SMART_TOGGLE)
-	local units = Spring.GetAllUnits()
-	local spGetUnitDefID = Spring.GetUnitDefID
+	local units = SpringShared.GetAllUnits()
+	local spGetUnitDefID = SpringShared.GetUnitDefID
 	for i = 1, #units do
 		gadget:UnitCreated(units[i], spGetUnitDefID(units[i]))
 	end
@@ -120,10 +122,8 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 			else
 				unitDefData.smartCmdDesc = defaultCmdDesc
 			end
-
 		elseif weaponDef.customParams.smart_backup and not unitDefData.backupWeapon then
 			unitDefData.backupWeapon = weaponNumber
-
 		elseif weaponDef.customParams.smart_trajectory_checker and not unitDefData.trajectoryCheckWeapon then
 			unitDefData.trajectoryCheckWeapon = weaponNumber
 		end
@@ -137,20 +137,18 @@ end
 
 local function updatePredictedShotFrame(attackerID, unitData, defData)
 	if unitData.predictedShotFrame < gameFrame - defData.failedToFireFrameThreshold then
-		unitData.predictedShotFrame = mathMax(
-			spGetUnitWeaponState(attackerID, defData.priorityWeapon, 'reloadFrame'),
-			spGetUnitWeaponState(attackerID, defData.backupWeapon, 'reloadFrame')
-		)
+		unitData.predictedShotFrame = mathMax(spGetUnitWeaponState(attackerID, defData.priorityWeapon, "reloadFrame"), spGetUnitWeaponState(attackerID, defData.backupWeapon, "reloadFrame"))
 	end
 end
 
 local function failureToFireCheck(attackerID, data, defData)
-	if not data.suspendMisfireUntilFrame or data.aggroBias < prioritySwitchThreshold then return false end
+	if not data.suspendMisfireUntilFrame or data.aggroBias < prioritySwitchThreshold then
+		return false
+	end
 
 	updatePredictedShotFrame(attackerID, data, defData)
 
-	if data.predictedShotFrame < gameFrame - defData.failedToFireFrameThreshold and
-		gameFrame > data.suspendMisfireUntilFrame then
+	if data.predictedShotFrame < gameFrame - defData.failedToFireFrameThreshold and gameFrame > data.suspendMisfireUntilFrame then
 		return true
 	else
 		return false
@@ -194,7 +192,6 @@ local function queueSwitchFrame(attackerID, data, defData, setState)
 			else
 				spCallCOBScript(attackerID, data.setStateScriptID, 0, setState)
 			end
-
 		end
 
 		data.state = setState
@@ -293,23 +290,23 @@ local function updateAimingState(attackerID)
 end
 
 local function toggleTrajectory(unitID, state)
-    local cmdDescID = spFindUnitCmdDesc(unitID, CMD_SMART_TOGGLE)
-    if cmdDescID then
+	local cmdDescID = spFindUnitCmdDesc(unitID, CMD_SMART_TOGGLE)
+	if cmdDescID then
 		local unitData = smartUnits[unitID]
-        state = (state % 3)
-        trajectoryCmdDesc.params[1] = state
-        spEditUnitCmdDesc(unitID, cmdDescID, {params = trajectoryCmdDesc.params})
+		state = (state % 3)
+		trajectoryCmdDesc.params[1] = state
+		spEditUnitCmdDesc(unitID, cmdDescID, { params = trajectoryCmdDesc.params })
 		unitData.toggleState = state
 		unitData.state = state
 		if state ~= AUTO_TOGGLESTATE then
 			spCallCOBScript(unitID, smartUnits[unitID].setStateScriptID, 0, state)
 		end
-    end
+	end
 end
 
 function gadget:UnitCreated(unitID, unitDefID)
 	if smartUnitDefs[unitDefID] then
-		local scriptID = Spring.GetCOBScriptID(unitID, "SetAimingState")
+		local scriptID = SpringSynced.GetCOBScriptID(unitID, "SetAimingState")
 		if scriptID then
 			smartUnits[unitID] = {
 				unitDefID = unitDefID,
@@ -320,7 +317,7 @@ function gadget:UnitCreated(unitID, unitDefID)
 				lastTargetMatchNumber = 0, --this exists so that a player switching targets frequently doesn't trigger a faulty misfire.
 				switchCooldownFrame = 0,
 				state = PRIORITY_AIMINGSTATE,
-				toggleState = AUTO_TOGGLESTATE
+				toggleState = AUTO_TOGGLESTATE,
 			}
 			spCallCOBScript(unitID, smartUnits[unitID].setStateScriptID, 0, PRIORITY_AIMINGSTATE)
 
@@ -353,9 +350,9 @@ function gadget:GameFrame(frame)
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
-    if smartUnitDefs[unitDefID] then
-        toggleTrajectory(unitID, cmdParams[1])
-        return false  -- command was used
-    end
-    return true  -- command was not used
+	if smartUnitDefs[unitDefID] then
+		toggleTrajectory(unitID, cmdParams[1])
+		return false -- command was used
+	end
+	return true -- command was not used
 end

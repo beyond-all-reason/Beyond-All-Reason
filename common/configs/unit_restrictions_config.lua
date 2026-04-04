@@ -20,7 +20,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		end
 	end
 
-	if (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship']) and not (unitDef.customParams.restrictions_exclusion and string.find(unitDef.customParams.restrictions_exclusion, "_nosea_")) then
+	if (unitDef.minWaterDepth > 0 or unitDef.modCategories.ship) and not (unitDef.customParams.restrictions_exclusion and string.find(unitDef.customParams.restrictions_exclusion, "_nosea_")) then
 		isWaterUnit[unitDefID] = true
 	end
 end
@@ -31,7 +31,7 @@ end
 
 local function shouldShowWaterUnits()
 	local voidWater = false
-	local success, mapinfo = pcall(VFS.Include,"mapinfo.lua")
+	local success, mapinfo = pcall(VFS.Include, "mapinfo.lua")
 	if success and mapinfo then
 		voidWater = mapinfo.voidwater
 	end
@@ -40,23 +40,19 @@ local function shouldShowWaterUnits()
 		return false
 	end
 
-	local debugCommands = Spring.GetModOption("debugcommands")
+	local debugCommands = SpringShared.GetModOption("debugcommands")
 
 	-- terraform, done too late to read w/ get ground, and too hectic to even try and guess
 	if debugCommands and debugCommands:len() > 1 then
-		if	debugCommands:find("waterlevel")
-		or	debugCommands:find("height")
-		or	debugCommands:find("extreme")
-		or	debugCommands:find("invertmap")
-		then
+		if debugCommands:find("waterlevel") or debugCommands:find("height") or debugCommands:find("extreme") or debugCommands:find("invertmap") then
 			return true
 		end
 	end
 
-	local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
+	local _, _, mapMinWater, _ = SpringShared.GetGroundExtremes()
 
 	-- water level shifted, done too late by another gadget for this file to read w/ get ground
-	local moddedWaterLevel = Spring.GetModOption("map_waterlevel") or 0
+	local moddedWaterLevel = SpringShared.GetModOption("map_waterlevel") or 0
 	mapMinWater = mapMinWater - moddedWaterLevel
 
 	return mapMinWater <= -11 -- units.minWaterUnitDepth
@@ -71,11 +67,11 @@ local function hasGeothermalFeatures()
 			geoFeatureDefs[defID] = true
 		end
 	end
-	local features = Spring.GetAllFeatures()
+	local features = SpringShared.GetAllFeatures()
 	for i = 1, #features do
 		local featureID = features[i]
-		if geoFeatureDefs[Spring.GetFeatureDefID(featureID)] then
-			local _, y, _ = Spring.GetFeaturePosition(featureID)
+		if geoFeatureDefs[SpringShared.GetFeatureDefID(featureID)] then
+			local _, y, _ = SpringShared.GetFeaturePosition(featureID)
 			if y < 0 then
 				hasSeaGeo = true
 			else

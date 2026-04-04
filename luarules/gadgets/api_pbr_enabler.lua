@@ -2,31 +2,31 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name      = "PBR enabler",
-		desc      = "Generates BRDF Lookup table for PBR shaders and sets necessary spring configuration parameters",
-		author    = "ivand",
-		date      = "2019",
-		license   = "PD",
-		layer     = -1,
-		enabled   = true,
+		name = "PBR enabler",
+		desc = "Generates BRDF Lookup table for PBR shaders and sets necessary spring configuration parameters",
+		author = "ivand",
+		date = "2019",
+		license = "PD",
+		layer = -1,
+		enabled = true,
 	}
 end
 
-if (not gadgetHandler:IsSyncedCode()) then --unsynced gadget
+if not gadgetHandler:IsSyncedCode() then --unsynced gadget
 	GG.GetBrdfTexture = nil
 	GG.GetEnvTexture = nil
 
 	if gl.CreateShader == nil then
-		Spring.Echo("ERROR: PBR enabler: gl.CreateShader is nil")
+		SpringShared.Echo("ERROR: PBR enabler: gl.CreateShader is nil")
 		return
 	end
 
 	if gl.CreateFBO == nil then
-		Spring.Echo("ERROR: PBR enabler: gl.CreateFBO is nil")
+		SpringShared.Echo("ERROR: PBR enabler: gl.CreateFBO is nil")
 		return
 	end
 
-	local headless = Spring.GetConfigInt("Headless", 0) > 0
+	local headless = SpringUnsynced.GetConfigInt("Headless", 0) > 0
 	if headless then
 		return
 	end
@@ -55,7 +55,7 @@ if (not gadgetHandler:IsSyncedCode()) then --unsynced gadget
 	end
 
 	local envLutDebug = false
-	
+
 	function gadget:DrawWorldPreUnit() --after IBL textures are rendered into, but before units are drawn
 		if envLut then
 			envLut:Execute(envLutDebug)
@@ -67,10 +67,10 @@ if (not gadgetHandler:IsSyncedCode()) then --unsynced gadget
 	end
 
 	function gadget:Initialize()
-		ENVLUT_SAMPLES = Spring.GetConfigInt("ENV_SMPL_NUM", 64)
+		ENVLUT_SAMPLES = SpringUnsynced.GetConfigInt("ENV_SMPL_NUM", 64)
 
-		Spring.SetConfigInt("CubeTexGenerateMipMaps", 1)
-		Spring.SetConfigInt("CubeTexSizeReflection", 1024)
+		SpringUnsynced.SetConfigInt("CubeTexGenerateMipMaps", 1)
+		SpringUnsynced.SetConfigInt("CubeTexSizeReflection", 1024)
 
 		local brdfLutClass = VFS.Include("LuaRules/Gadgets/Include/GenBrdfLut.lua")
 		if brdfLutClass then
@@ -103,4 +103,3 @@ if (not gadgetHandler:IsSyncedCode()) then --unsynced gadget
 		end
 	end
 end
-

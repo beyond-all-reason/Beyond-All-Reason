@@ -18,21 +18,32 @@ end
 
 local damping = 0.1
 
-local spGetFeaturePosition = Spring.GetFeaturePosition
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetFeatureVelocity = Spring.GetFeatureVelocity
-local spGetFeatureRotation = Spring.GetFeatureRotation
-local spSetFeaturePhysics = Spring.SetFeaturePhysics
-local spGetGameFrame = Spring.GetGameFrame
+local spGetFeaturePosition = SpringShared.GetFeaturePosition
+local spGetGroundHeight = SpringShared.GetGroundHeight
+local spGetFeatureVelocity = SpringShared.GetFeatureVelocity
+local spGetFeatureRotation = SpringShared.GetFeatureRotation
+local spSetFeaturePhysics = SpringSynced.SetFeaturePhysics
+local spGetGameFrame = SpringShared.GetGameFrame
 
 function gadget:FeatureCreated(featureID)
-  if spGetGameFrame() < 1 then return end
+	if spGetGameFrame() < 1 then
+		return
+	end
 	local x, y, z = spGetFeaturePosition(featureID)
 	if spGetGroundHeight(x, z) < -25 then
 		local vx, vy, vz = spGetFeatureVelocity(featureID)
 		local rx, ry, rz = spGetFeatureRotation(featureID) --> nil | number pitch, number yaw, number roll
-		spSetFeaturePhysics(featureID, x, y, z, vx * damping, 0, vz * damping,	-- setting vanlue for Y doesnt have effect,
-			rx, ry, rz) --, 0, 0, 0 ) --number dragx, number dragy, number dragz,
+		spSetFeaturePhysics(
+			featureID,
+			x,
+			y,
+			z,
+			vx * damping,
+			0,
+			vz * damping, -- setting vanlue for Y doesnt have effect,
+			rx,
+			ry,
+			rz
+		) --, 0, 0, 0 ) --number dragx, number dragy, number dragz,
 	end
 end
-

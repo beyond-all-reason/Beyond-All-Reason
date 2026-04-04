@@ -1,4 +1,3 @@
-
 if not gadgetHandler:IsSyncedCode() then
 	return
 end
@@ -7,13 +6,13 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name      = "Wade Effects",
-		desc      = "Spawn wakes when non-ship ground units move while partially, but not completely submerged",
-		author    = "Anarchid",
-		date      = "March 2016",
-		license   = "GNU GPL, v2 or later",
-		layer     = 0,
-		enabled   = true
+		name = "Wade Effects",
+		desc = "Spawn wakes when non-ship ground units move while partially, but not completely submerged",
+		author = "Anarchid",
+		date = "March 2016",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
 
@@ -25,17 +24,17 @@ local fold_frames = 4 -- every X-th frame
 local n_folds = 3 -- check every X-th unit
 local current_fold = 1
 
-local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
-local spGetUnitPosition  = Spring.GetUnitPosition
-local spGetUnitVelocity  = Spring.GetUnitVelocity
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitDefDimensions = Spring.GetUnitDefDimensions
-local spSpawnCEG = Spring.SpawnCEG
+local spGetUnitIsCloaked = SpringShared.GetUnitIsCloaked
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetUnitVelocity = SpringShared.GetUnitVelocity
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitDefDimensions = SpringShared.GetUnitDefDimensions
+local spSpawnCEG = SpringSynced.SpawnCEG
 
 local wadeDepth = {}
 local wadeSfxID = {}
 
-local smc = Game.speedModClasses		-- Accepted values are 0 = Tank, 1 = KBot, 2 = Hover, 3 = Ship.
+local smc = Game.speedModClasses -- Accepted values are 0 = Tank, 1 = KBot, 2 = Hover, 3 = Ship.
 local wadingSMC = {
 	[smc.Tank] = true,
 	[smc.KBot] = true,
@@ -43,7 +42,7 @@ local wadingSMC = {
 local SFXTYPE_WAKE1 = 2
 local SFXTYPE_WAKE2 = 3
 
-local cegSizes = {"waterwake-tiny", "waterwake-small", "waterwake-medium", "waterwake-large", "waterwake-huge"}
+local cegSizes = { "waterwake-tiny", "waterwake-small", "waterwake-medium", "waterwake-large", "waterwake-huge" }
 
 local unitWadeCeg = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -86,7 +85,7 @@ function gadget:UnitCreated(unitID, unitDefID)
 	if maxDepth then
 		unitsCount = unitsCount + 1
 		unitsData[unitsCount] = unitID
-		unit[unitID] = {id = unitsCount, h = maxDepth, fx = wadeSfxID[unitDefID], defid = unitDefID}
+		unit[unitID] = { id = unitsCount, h = maxDepth, fx = wadeSfxID[unitDefID], defid = unitDefID }
 	end
 end
 
@@ -110,9 +109,9 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function gadget:GameFrame(n)
-	if n%fold_frames == 0 then
+	if n % fold_frames == 0 then
 		if n <= fold_frames then
-			local minheight = Spring.GetGroundExtremes()
+			local minheight = SpringShared.GetGroundExtremes()
 			if minheight > 20 then
 				gadgetHandler:RemoveGadget(self)
 				return
@@ -121,11 +120,11 @@ function gadget:GameFrame(n)
 
 		local listData = unitsData
 		if current_fold and unitsCount then
-			for i = current_fold, unitsCount, n_folds do	-- this line errors sometimes: "attempt to compare number with nil" therefore the nil check above
+			for i = current_fold, unitsCount, n_folds do -- this line errors sometimes: "attempt to compare number with nil" therefore the nil check above
 				local unitID = listData[i]
 				local data = unit[unitID]
 				if data and unitWadeCeg[data.defid] then
-					local x,y,z = spGetUnitPosition(unitID)
+					local x, y, z = spGetUnitPosition(unitID)
 					if y and y > data.h and y <= 0 then
 						local _, _, _, speed = spGetUnitVelocity(unitID)
 						if speed and speed > 0 and not spGetUnitIsCloaked(unitID) then
@@ -143,7 +142,7 @@ function gadget:GameFrame(n)
 end
 
 function gadget:Initialize()
-	local allUnits = Spring.GetAllUnits()
+	local allUnits = SpringShared.GetAllUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
 		gadget:UnitCreated(unitID, spGetUnitDefID(unitID))

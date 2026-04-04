@@ -5,7 +5,7 @@
 --  Copyright (C) 2024.
 --  Licensed under the terms of the GNU GPL, v2 or later.
 
-if (RmlGuard or not RmlUi) then
+if RmlGuard or not RmlUi then
 	return
 end
 -- don't allow this initialization code to be run multiple times
@@ -37,9 +37,9 @@ local function NewCreateContext(name)
 	local context = oldCreateContext(name)
 
 	-- set up dp_ratio considering the user's UI scale preference and the screen resolution
-	local viewSizeX, viewSizeY = Spring.GetViewGeometry()
+	local viewSizeX, viewSizeY = SpringUnsynced.GetViewGeometry()
 
-	local userScale = Spring.GetConfigFloat("ui_scale", 1)
+	local userScale = SpringUnsynced.GetConfigFloat("ui_scale", 1)
 
 	local baseWidth = 1920
 	local baseHeight = 1080
@@ -55,9 +55,9 @@ RmlUi.CreateContext = NewCreateContext
 
 -- Load fonts
 RmlUi.LoadFontFace("fonts/Poppins-Regular.otf", true)
-local font_files = VFS.DirList('fonts/exo2', '*.ttf')
+local font_files = VFS.DirList("fonts/exo2", "*.ttf")
 for _, file in ipairs(font_files) do
-	Spring.Echo("loading font", file)
+	SpringShared.Echo("loading font", file)
 	RmlUi.LoadFontFace(file, true)
 end
 
@@ -73,12 +73,12 @@ end
 ]]
 
 -- when "cursor: normal" is set via RCSS, "cursornormal" will be sent to the engine... and so on for the rest
-RmlUi.SetMouseCursorAlias("default", 'cursornormal')
-RmlUi.SetMouseCursorAlias("pointer", 'Move') -- command cursors use the command name. TODO: replace with actual pointer cursor?
-RmlUi.SetMouseCursorAlias("move", 'uimove')
-RmlUi.SetMouseCursorAlias("nesw-resize", 'uiresized2')
-RmlUi.SetMouseCursorAlias("nwse-resize", 'uiresized1')
-RmlUi.SetMouseCursorAlias("ns-resize", 'uiresizev')
-RmlUi.SetMouseCursorAlias("ew-resize", 'uiresizeh')
+RmlUi.SetMouseCursorAlias("default", "cursornormal")
+RmlUi.SetMouseCursorAlias("pointer", "Move") -- command cursors use the command name. TODO: replace with actual pointer cursor?
+RmlUi.SetMouseCursorAlias("move", "uimove")
+RmlUi.SetMouseCursorAlias("nesw-resize", "uiresized2")
+RmlUi.SetMouseCursorAlias("nwse-resize", "uiresized1")
+RmlUi.SetMouseCursorAlias("ns-resize", "uiresizev")
+RmlUi.SetMouseCursorAlias("ew-resize", "uiresizeh")
 
 RmlUi.CreateContext("shared")

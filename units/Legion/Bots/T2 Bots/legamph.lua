@@ -148,8 +148,8 @@ return {
 					vtol = 10,
 				},
 				customparams = {
-					sweepfire=4.5,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
-				}
+					sweepfire = 4.5, --multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
+				},
 			},
 			coax_depthcharge = {
 				areaofeffect = 32,
@@ -204,7 +204,7 @@ return {
 				fastautoretargeting = true,
 				burstControlWhenOutOfArc = 2,
 				maxangledif = 180,
-				maindir = "0 0 1"
+				maindir = "0 0 1",
 			},
 			[2] = {
 				def = "COAX_DEPTHCHARGE",

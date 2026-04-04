@@ -1,16 +1,16 @@
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
-    return {
-        name      = "Projectile Effects",
-        desc      = "Unifies projectile effect CEG spawning",
-        version   = "1",
-        author    = "Beherith, Floris, Bluestone",
-        date      = "2023.11.13",
-        license   = "GNU GPL, v2 or later",
-        layer     = 0,
-        enabled   = true,
-    }
+	return {
+		name = "Projectile Effects",
+		desc = "Unifies projectile effect CEG spawning",
+		version = "1",
+		author = "Beherith, Floris, Bluestone",
+		date = "2023.11.13",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
+	}
 end
 
 --- This gadget replaces: -----
@@ -21,20 +21,19 @@ end
 -- Also, it should check wether water is even possibly present on the map, and not even check for those
 
 if not gadgetHandler:IsSyncedCode() then
-    return false
+	return false
 end
 
-local GetProjectilePosition = Spring.GetProjectilePosition
-local GetProjectileDirection = Spring.GetProjectileDirection
-local GetProjectileTimeToLive = Spring.GetProjectileTimeToLive
-local GetGroundHeight = Spring.GetGroundHeight
-local GetGameFrame = Spring.GetGameFrame
-local SpawnCEG = Spring.SpawnCEG
+local GetProjectilePosition = SpringShared.GetProjectilePosition
+local GetProjectileDirection = SpringShared.GetProjectileDirection
+local GetProjectileTimeToLive = SpringShared.GetProjectileTimeToLive
+local GetGroundHeight = SpringShared.GetGroundHeight
+local GetGameFrame = SpringShared.GetGameFrame
+local SpawnCEG = SpringSynced.SpawnCEG
 local mathMax = math.max
 
 -- Helpful debug wrapper:
 -- SpawnCEG = function(ceg,x,y,z,dx,dy,dz) Spring.Echo(ceg,x,y,z); Spring.SpawnCEG(ceg,x,y,z,dx,dy,dz) end
-
 
 local gameFrame = 0
 local mapHasWater = true
@@ -50,85 +49,127 @@ local missileIDtoLifeEnd = {}
 
 local missileWeapons = {}
 for weaponID, weaponDef in pairs(WeaponDefs) do
-    if weaponDef.type == 'MissileLauncher' then
-        if weaponDef.cegTag == 'missiletrailsmall' then
-            missileWeapons[weaponDef.id] = 'missiletrailsmall-smoke'
-        elseif weaponDef.cegTag == 'missiletrailsmall-simple' then
-            missileWeapons[weaponDef.id] = 'missiletrailsmall-simple-smoke'
-        elseif weaponDef.cegTag == 'missiletrailsmall-red' then
-            missileWeapons[weaponDef.id] = 'missiletrailsmall-red-smoke'
-        elseif weaponDef.cegTag == 'missiletrailmedium' then
-            missileWeapons[weaponDef.id] = 'missiletrailmedium-smoke'
-        elseif weaponDef.cegTag == 'missiletrailmedium-red' then
-            missileWeapons[weaponDef.id] = 'missiletrailmedium-smoke'
-        elseif weaponDef.cegTag == 'missiletraillarge' then
-            missileWeapons[weaponDef.id] = 'missiletraillarge-smoke'
-        elseif weaponDef.cegTag == 'missiletraillarge-red' then
-            missileWeapons[weaponDef.id] = 'missiletraillarge-smoke'
-        elseif weaponDef.cegTag == 'missiletrailtiny' then
-            missileWeapons[weaponDef.id] = 'missiletrailtiny-smoke'
-        elseif weaponDef.cegTag == 'missiletrailaa' then
-            missileWeapons[weaponDef.id] = 'missiletrailaa-smoke'
-        --elseif weaponDef.cegTag == 'missiletrailfighter' then
-        --    missileWeapons[weaponDef.id] = 'missiletrailfighter-smoke'
-        end
-    end
+	if weaponDef.type == "MissileLauncher" then
+		if weaponDef.cegTag == "missiletrailsmall" then
+			missileWeapons[weaponDef.id] = "missiletrailsmall-smoke"
+		elseif weaponDef.cegTag == "missiletrailsmall-simple" then
+			missileWeapons[weaponDef.id] = "missiletrailsmall-simple-smoke"
+		elseif weaponDef.cegTag == "missiletrailsmall-red" then
+			missileWeapons[weaponDef.id] = "missiletrailsmall-red-smoke"
+		elseif weaponDef.cegTag == "missiletrailmedium" then
+			missileWeapons[weaponDef.id] = "missiletrailmedium-smoke"
+		elseif weaponDef.cegTag == "missiletrailmedium-red" then
+			missileWeapons[weaponDef.id] = "missiletrailmedium-smoke"
+		elseif weaponDef.cegTag == "missiletraillarge" then
+			missileWeapons[weaponDef.id] = "missiletraillarge-smoke"
+		elseif weaponDef.cegTag == "missiletraillarge-red" then
+			missileWeapons[weaponDef.id] = "missiletraillarge-smoke"
+		elseif weaponDef.cegTag == "missiletrailtiny" then
+			missileWeapons[weaponDef.id] = "missiletrailtiny-smoke"
+		elseif weaponDef.cegTag == "missiletrailaa" then
+			missileWeapons[weaponDef.id] = "missiletrailaa-smoke"
+			--elseif weaponDef.cegTag == 'missiletrailfighter' then
+			--    missileWeapons[weaponDef.id] = 'missiletrailfighter-smoke'
+		end
+	end
 end
 
 -----------------------------------------------------------------------------------------
-local starbursts = {} 
+local starbursts = {}
 local starburstWeapons = {} -- {wDID = {startHeight, cegName, nofueltime, maxtime,  }}
 
 for weaponID, weaponDef in pairs(WeaponDefs) do
-	if weaponDef.type == 'StarburstLauncher' then
-		if weaponDef.cegTag == 'missiletrailsmall-starburst' then
+	if weaponDef.type == "StarburstLauncher" then
+		if weaponDef.cegTag == "missiletrailsmall-starburst" then
 			starburstWeapons[weaponDef.id] = {
 				0,
-				'missiletrailsmall-starburst-vertical', ((weaponDef.uptime + 0.1) * 30), ((weaponDef.uptime + 0.6) * 30),
-				'missilegroundsmall-liftoff', 60, 90,
-				'missilegroundsmall-liftoff-fire', 25, 45
+				"missiletrailsmall-starburst-vertical",
+				((weaponDef.uptime + 0.1) * 30),
+				((weaponDef.uptime + 0.6) * 30),
+				"missilegroundsmall-liftoff",
+				60,
+				90,
+				"missilegroundsmall-liftoff-fire",
+				25,
+				45,
 			}
-		elseif weaponDef.cegTag == 'missiletrailmedium-starburst' then
+		elseif weaponDef.cegTag == "missiletrailmedium-starburst" then
 			starburstWeapons[weaponDef.id] = {
 				0,
-				'missiletrailmedium-starburst-vertical', ((weaponDef.uptime + 0.1) * 30), ((weaponDef.uptime + 0.6) * 30),
-				'missilegroundmedium-liftoff', 40, 60,
-				'missilegroundmedium-liftoff-fire', 30, 40
+				"missiletrailmedium-starburst-vertical",
+				((weaponDef.uptime + 0.1) * 30),
+				((weaponDef.uptime + 0.6) * 30),
+				"missilegroundmedium-liftoff",
+				40,
+				60,
+				"missilegroundmedium-liftoff-fire",
+				30,
+				40,
 			}
-		elseif weaponDef.cegTag == 'missiletrail-juno' then
+		elseif weaponDef.cegTag == "missiletrail-juno" then
 			starburstWeapons[weaponDef.id] = {
 				0,
-				'missiletrail-juno-starburst', ((weaponDef.uptime + 0.1) * 30), ((weaponDef.uptime + 0.6) * 30),
-				'missilegroundlarge-liftoff', 80, 120,
-				'missilegroundlarge-liftoff-fire', 40, 80
+				"missiletrail-juno-starburst",
+				((weaponDef.uptime + 0.1) * 30),
+				((weaponDef.uptime + 0.6) * 30),
+				"missilegroundlarge-liftoff",
+				80,
+				120,
+				"missilegroundlarge-liftoff-fire",
+				40,
+				80,
 			}
-		elseif weaponDef.cegTag == 'antimissiletrail' then
+		elseif weaponDef.cegTag == "antimissiletrail" then
 			starburstWeapons[weaponDef.id] = {
 				0,
-				'antimissiletrail-starburst', ((weaponDef.uptime + 0.1) * 30), ((weaponDef.uptime + 0.6) * 30),
-				'missilegroundlarge-liftoff', 80, 120,
-				'missilegroundlarge-liftoff-fire', 40, 80
+				"antimissiletrail-starburst",
+				((weaponDef.uptime + 0.1) * 30),
+				((weaponDef.uptime + 0.6) * 30),
+				"missilegroundlarge-liftoff",
+				80,
+				120,
+				"missilegroundlarge-liftoff-fire",
+				40,
+				80,
 			}
-		elseif weaponDef.cegTag == 'cruisemissiletrail-emp' then
+		elseif weaponDef.cegTag == "cruisemissiletrail-emp" then
 			starburstWeapons[weaponDef.id] = {
 				0,
-				'cruisemissiletrail-starburst', ((weaponDef.uptime + 0.1) * 30), ((weaponDef.uptime + 0.6) * 30),
-				'missilegroundlarge-liftoff', 90, 166,
-				'missilegroundlarge-liftoff-fire', 55, 120
+				"cruisemissiletrail-starburst",
+				((weaponDef.uptime + 0.1) * 30),
+				((weaponDef.uptime + 0.6) * 30),
+				"missilegroundlarge-liftoff",
+				90,
+				166,
+				"missilegroundlarge-liftoff-fire",
+				55,
+				120,
 			}
-		elseif weaponDef.cegTag == 'cruisemissiletrail-tacnuke' then
+		elseif weaponDef.cegTag == "cruisemissiletrail-tacnuke" then
 			starburstWeapons[weaponDef.id] = {
 				15,
-				'cruisemissiletrail-starburst', ((weaponDef.uptime + 0.1) * 30), ((weaponDef.uptime + 0.6) * 30),
-				'missilegroundlarge-liftoff', 90, 166,
-				'missilegroundlarge-liftoff-fire', 55, 120
+				"cruisemissiletrail-starburst",
+				((weaponDef.uptime + 0.1) * 30),
+				((weaponDef.uptime + 0.6) * 30),
+				"missilegroundlarge-liftoff",
+				90,
+				166,
+				"missilegroundlarge-liftoff-fire",
+				55,
+				120,
 			}
-		elseif weaponDef.cegTag == 'NUKETRAIL' then
+		elseif weaponDef.cegTag == "NUKETRAIL" then
 			starburstWeapons[weaponDef.id] = {
 				0,
-				'nuketrail-starburst', ((weaponDef.uptime + 0.1) * 30), ((weaponDef.uptime + 0.6) * 30),
-				'missilegroundhuge-liftoff', 120, 180,
-				'missilegroundhuge-liftoff-fire', 60, 150
+				"nuketrail-starburst",
+				((weaponDef.uptime + 0.1) * 30),
+				((weaponDef.uptime + 0.6) * 30),
+				"missilegroundhuge-liftoff",
+				120,
+				180,
+				"missilegroundhuge-liftoff-fire",
+				60,
+				150,
 			}
 		end
 	end
@@ -138,59 +179,57 @@ end
 local allWatchedWeaponDefIDs = {}
 local allWatchedProjectileIDs = {}
 
-
 function gadget:Initialize()
-	local minheight, maxheight = Spring.GetGroundExtremes()
-	if minheight > 100 then 
+	local minheight, maxheight = SpringShared.GetGroundExtremes()
+	if minheight > 100 then
 		mapHasWater = false
 	end
-	if mapHasWater then 
+	if mapHasWater then
 		for weaponID, weaponDef in pairs(WeaponDefs) do
-			if weaponDef.type == 'TorpedoLauncher' then
-				if weaponDef.visuals.modelName == 'objects3d/torpedo.s3o' or weaponDef.visuals.modelName == 'objects3d/cordepthcharge.s3o'
-				or weaponDef.visuals.modelName == 'objects3d/torpedo.3do' or weaponDef.visuals.modelName == 'objects3d/depthcharge.3do' then
-					depthChargeWeapons[weaponID] = 'splash-torpedo'
-				elseif weaponDef.visuals.modelName == 'objects3d/coradvtorpedo.s3o' or weaponDef.visuals.modelName == 'objects3d/Advtorpedo.3do' then
-					depthChargeWeapons[weaponID] = 'splash-tiny'
+			if weaponDef.type == "TorpedoLauncher" then
+				if weaponDef.visuals.modelName == "objects3d/torpedo.s3o" or weaponDef.visuals.modelName == "objects3d/cordepthcharge.s3o" or weaponDef.visuals.modelName == "objects3d/torpedo.3do" or weaponDef.visuals.modelName == "objects3d/depthcharge.3do" then
+					depthChargeWeapons[weaponID] = "splash-torpedo"
+				elseif weaponDef.visuals.modelName == "objects3d/coradvtorpedo.s3o" or weaponDef.visuals.modelName == "objects3d/Advtorpedo.3do" then
+					depthChargeWeapons[weaponID] = "splash-tiny"
 				else
-					depthChargeWeapons[weaponID] = 'splash-torpedo'
+					depthChargeWeapons[weaponID] = "splash-torpedo"
 				end
 			end
 		end
-		for wDID,_ in pairs(depthChargeWeapons) do
+		for wDID, _ in pairs(depthChargeWeapons) do
 			Script.SetWatchProjectile(wDID, true)
 			allWatchedWeaponDefIDs[wDID] = "depthCharge"
 		end
 	end
-	
-		
-	for wDID,_ in pairs(missileWeapons) do
-        Script.SetWatchProjectile(wDID, true)
+
+	for wDID, _ in pairs(missileWeapons) do
+		Script.SetWatchProjectile(wDID, true)
 		allWatchedWeaponDefIDs[wDID] = "missile"
 		--Spring.Echo("Watching for missile",WeaponDefs[wDID].name, wDID)
-    end
-	
+	end
+
 	for wDID, _ in pairs(starburstWeapons) do
 		Script.SetWatchProjectile(wDID, true)
 		allWatchedWeaponDefIDs[wDID] = "starburst"
-	end   
-	
+	end
 end
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID) --pre-opt mean 3.7 us
 	--Spring.Echo("gadget:ProjectileCreated",proID, proOwnerID, weaponDefID)
 	local watchedWeaponType = allWatchedWeaponDefIDs[weaponDefID]
-	if watchedWeaponType == nil then return end
+	if watchedWeaponType == nil then
+		return
+	end
 	allWatchedProjectileIDs[proID] = watchedWeaponType
-	if mapHasWater and watchedWeaponType == "depthCharge" then 
-        local _,y,_ = GetProjectilePosition(proID)
-        if y > 0 then
-            depthCharges[proID] = depthChargeWeapons[weaponDefID]
-        end
-	elseif watchedWeaponType == "missile" then 
-			missileIDtoProjType[proID] = missileWeapons[weaponDefID]
-			missileIDtoLifeEnd[proID] = gameFrame-4 + GetProjectileTimeToLive(proID)
-	elseif watchedWeaponType == "starburst" then 
+	if mapHasWater and watchedWeaponType == "depthCharge" then
+		local _, y, _ = GetProjectilePosition(proID)
+		if y > 0 then
+			depthCharges[proID] = depthChargeWeapons[weaponDefID]
+		end
+	elseif watchedWeaponType == "missile" then
+		missileIDtoProjType[proID] = missileWeapons[weaponDefID]
+		missileIDtoLifeEnd[proID] = gameFrame - 4 + GetProjectileTimeToLive(proID)
+	elseif watchedWeaponType == "starburst" then
 		local x, y, z = GetProjectilePosition(proID)
 		local groundHeight = mathMax(GetGroundHeight(x, z), 0)
 		local gf = GetGameFrame()
@@ -209,41 +248,44 @@ function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID) --pre-opt mean
 			groundHeight + wData[9],
 			groundHeight + wData[10],
 		}
-	end    
+	end
 end
 
 function gadget:ProjectileDestroyed(proID) --pre-opt mean 14 us
 	local watchedWeaponType = allWatchedProjectileIDs[proID]
-	if watchedWeaponType then 
+	if watchedWeaponType then
 		allWatchedProjectileIDs[proID] = nil
-		if mapHasWater and watchedWeaponType == "depthCharge" then 
+		if mapHasWater and watchedWeaponType == "depthCharge" then
 			depthCharges[proID] = nil
 		elseif watchedWeaponType == "missile" then
 			missileIDtoProjType[proID] = nil
 			missileIDtoLifeEnd[proID] = nil
-		elseif watchedWeaponType == "starburst" then 
+		elseif watchedWeaponType == "starburst" then
 			starbursts[proID] = nil
 		end
 	end
 end
 
-
 function gadget:GameFrame(gf)
 	gameFrame = gf
-	if mapHasWater then 
+	if mapHasWater then
 		local removeDepth
 		local removeDepthCount = 0
 		for proID, CEG in pairs(depthCharges) do
-			local x,y,z = GetProjectilePosition(proID)
+			local x, y, z = GetProjectilePosition(proID)
 			if y then
 				if y < 0 then
-					SpawnCEG(CEG,x,0,z)
-					if not removeDepth then removeDepth = {} end
+					SpawnCEG(CEG, x, 0, z)
+					if not removeDepth then
+						removeDepth = {}
+					end
 					removeDepthCount = removeDepthCount + 1
 					removeDepth[removeDepthCount] = proID
 				end
 			else
-				if not removeDepth then removeDepth = {} end
+				if not removeDepth then
+					removeDepth = {}
+				end
 				removeDepthCount = removeDepthCount + 1
 				removeDepth[removeDepthCount] = proID
 			end
@@ -254,29 +296,31 @@ function gadget:GameFrame(gf)
 			allWatchedProjectileIDs[proID] = nil
 		end
 	end
-	
+
 	local removeMissile
 	local removeMissileCount = 0
 	for proID, missile in pairs(missileIDtoProjType) do
-        if gf > missileIDtoLifeEnd[proID] then
-            local x,y,z = GetProjectilePosition(proID)
-            if y and y > 0 then
-                local dirX,dirY,dirZ = GetProjectileDirection(proID)
-                SpawnCEG(missile,x,y,z,dirX,dirY,dirZ)
-            else
-				if not removeMissile then removeMissile = {} end
+		if gf > missileIDtoLifeEnd[proID] then
+			local x, y, z = GetProjectilePosition(proID)
+			if y and y > 0 then
+				local dirX, dirY, dirZ = GetProjectileDirection(proID)
+				SpawnCEG(missile, x, y, z, dirX, dirY, dirZ)
+			else
+				if not removeMissile then
+					removeMissile = {}
+				end
 				removeMissileCount = removeMissileCount + 1
 				removeMissile[removeMissileCount] = proID
-            end
-        end
-    end
+			end
+		end
+	end
 	for i = 1, removeMissileCount do
 		local proID = removeMissile[i]
 		missileIDtoProjType[proID] = nil
 		missileIDtoLifeEnd[proID] = nil
 		allWatchedProjectileIDs[proID] = nil
 	end
-	
+
 	local removeStarburst
 	local removeStarburstCount = 0
 	for proID, missile in pairs(starbursts) do
@@ -297,12 +341,16 @@ function gadget:GameFrame(gf)
 					end
 				end
 			else
-				if not removeStarburst then removeStarburst = {} end
+				if not removeStarburst then
+					removeStarburst = {}
+				end
 				removeStarburstCount = removeStarburstCount + 1
 				removeStarburst[removeStarburstCount] = proID
 			end
 		else
-			if not removeStarburst then removeStarburst = {} end
+			if not removeStarburst then
+				removeStarburst = {}
+			end
 			removeStarburstCount = removeStarburstCount + 1
 			removeStarburst[removeStarburstCount] = proID
 		end
@@ -313,5 +361,3 @@ function gadget:GameFrame(gf)
 		allWatchedProjectileIDs[proID] = nil
 	end
 end
-
-

@@ -36,7 +36,7 @@ return {
 		turnrate = 450,
 		waterline = 0,
 		customparams = {
-			unitgroup = 'aa',
+			unitgroup = "aa",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Ships",

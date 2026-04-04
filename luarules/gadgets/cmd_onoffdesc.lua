@@ -5,19 +5,19 @@ end
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
-  return {
-	name 	= "On/Off descriptions",
-	desc	= "Replaces On/Off toggle with description",
-	author	= "Doo",
-	date	= "09 January 2018",
-	license	= "GNU GPL, v2 or later",
-	layer	= 0,
-	enabled = true,
-  }
+	return {
+		name = "On/Off descriptions",
+		desc = "Replaces On/Off toggle with description",
+		author = "Doo",
+		date = "09 January 2018",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
+	}
 end
 
-local spEditUnitCmdDesc = Spring.EditUnitCmdDesc
-local spFindUnitCmdDesc   = Spring.FindUnitCmdDesc
+local spEditUnitCmdDesc = SpringSynced.EditUnitCmdDesc
+local spFindUnitCmdDesc = SpringShared.FindUnitCmdDesc
 
 VFS.Include("luarules/configs/onoffdescs.lua")
 onoffNames = {}
@@ -31,16 +31,16 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID)
 	if onoffNames[unitDefID] then
-			local cmdDesc = spFindUnitCmdDesc(unitID, CMD.ONOFF)
-			if cmdDesc then
-				spEditUnitCmdDesc(unitID, cmdDesc, cmdArray[onoffNames[unitDefID]])
-			end
+		local cmdDesc = spFindUnitCmdDesc(unitID, CMD.ONOFF)
+		if cmdDesc then
+			spEditUnitCmdDesc(unitID, cmdDesc, cmdArray[onoffNames[unitDefID]])
 		end
+	end
 end
 
 function gadget:Initialize()
-	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		local unitDefID = Spring.GetUnitDefID(unitID)
+	for _, unitID in ipairs(SpringShared.GetAllUnits()) do
+		local unitDefID = SpringShared.GetUnitDefID(unitID)
 		gadget:UnitCreated(unitID, unitDefID)
 	end
 end

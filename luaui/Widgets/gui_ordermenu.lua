@@ -8,20 +8,19 @@ function widget:GetInfo()
 		date = "April 2020",
 		license = "GNU GPL, v2 or later",
 		layer = 1,
-		enabled = true
+		enabled = true,
 	}
 end
-
 
 -- Localized functions for performance
 local mathCeil = math.ceil
 local mathFloor = math.floor
 
 -- Localized Spring API for performance
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetGameFrame = Spring.GetGameFrame
-local spGetViewGeometry = Spring.GetViewGeometry
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetSelectedUnits = SpringUnsynced.GetSelectedUnits
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local currentLayout
@@ -43,29 +42,29 @@ local height = 0
 local cellMarginOriginal = 0.055
 local cellMargin = cellMarginOriginal
 local commandInfo = {
-	move			= { red = 0.64,	green = 1,		blue = 0.64 },
-	stop			= { red = 1,	green = 0.3,	blue = 0.3 },
-	attack			= { red = 1,	green = 0.5,	blue = 0.35 },
-	areaattack		= { red = 1,	green = 0.35,	blue = 0.15 },
-	manualfire		= { red = 1,	green = 0.7,	blue = 0.7 },
-	patrol			= { red = 0.73,	green = 0.73,	blue = 1 },
-	fight			= { red = 0.9,	green = 0.5,	blue = 1 },
-	resurrect		= { red = 1,	green = 0.75,	blue = 1, },
-	guard			= { red = 0.33,	green = 0.92,	blue = 1 },
-	wait			= { red = 0.7,	green = 0.66,	blue = 0.6 },
-	repair			= { red = 1,	green = 0.95,	blue = 0.7 },
-	reclaim			= { red = 0.86,	green = 1,		blue = 0.86 },
-	restore			= { red = 0.77,	green = 1,		blue = 0.77 },
-	capture			= { red = 1,	green = 0.85,	blue = 0.22 },
-	settarget		= { red = 1,	green = 0.66,	blue = 0.35 },
-	canceltarget	= { red = 0.8,	green = 0.55,	blue = 0.2 },
-	areamex			= { red = 0.93,	green = 0.93,	blue = 0.93 },
-	upgrademex		= { red = 0.93,	green = 0.93,	blue = 0.93 },
-	loadunits		= { red = 0.1,	green = 0.7,	blue = 1 },
-	unloadunits		= { red = 0,	green = 0.5,	blue = 1 },
-	wantcloak		= { red = nil,	green = nil,	blue = nil },
-	onoff			= { red = nil,	green = nil,	blue = nil },
-	sellunit		= { red = nil,	green = nil,	blue = nil },
+	move = { red = 0.64, green = 1, blue = 0.64 },
+	stop = { red = 1, green = 0.3, blue = 0.3 },
+	attack = { red = 1, green = 0.5, blue = 0.35 },
+	areaattack = { red = 1, green = 0.35, blue = 0.15 },
+	manualfire = { red = 1, green = 0.7, blue = 0.7 },
+	patrol = { red = 0.73, green = 0.73, blue = 1 },
+	fight = { red = 0.9, green = 0.5, blue = 1 },
+	resurrect = { red = 1, green = 0.75, blue = 1 },
+	guard = { red = 0.33, green = 0.92, blue = 1 },
+	wait = { red = 0.7, green = 0.66, blue = 0.6 },
+	repair = { red = 1, green = 0.95, blue = 0.7 },
+	reclaim = { red = 0.86, green = 1, blue = 0.86 },
+	restore = { red = 0.77, green = 1, blue = 0.77 },
+	capture = { red = 1, green = 0.85, blue = 0.22 },
+	settarget = { red = 1, green = 0.66, blue = 0.35 },
+	canceltarget = { red = 0.8, green = 0.55, blue = 0.2 },
+	areamex = { red = 0.93, green = 0.93, blue = 0.93 },
+	upgrademex = { red = 0.93, green = 0.93, blue = 0.93 },
+	loadunits = { red = 0.1, green = 0.7, blue = 1 },
+	unloadunits = { red = 0, green = 0.5, blue = 1 },
+	wantcloak = { red = nil, green = nil, blue = nil },
+	onoff = { red = nil, green = nil, blue = nil },
+	sellunit = { red = nil, green = nil, blue = nil },
 }
 local isStateCommand = {}
 
@@ -76,10 +75,10 @@ local vsx, vsy = spGetViewGeometry()
 local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
 
-local soundButton = 'LuaUI/Sounds/buildbar_waypoint.wav'
+local soundButton = "LuaUI/Sounds/buildbar_waypoint.wav"
 
-local uiOpacity = Spring.GetConfigFloat("ui_opacity", 0.7)
-local uiScale = Spring.GetConfigFloat("ui_scale", 1)
+local uiOpacity = SpringUnsynced.GetConfigFloat("ui_opacity", 0.7)
+local uiScale = SpringUnsynced.GetConfigFloat("ui_scale", 1)
 
 local backgroundRect = {}
 local activeRect = {}
@@ -104,17 +103,17 @@ local translationCache = {}
 local function getCachedTranslation(key, params)
 	if params then
 		-- Don't cache when params are provided since they can vary
-		return Spring.I18N(key, params)
+		return I18N(key, params)
 	end
 	if not translationCache[key] then
-		translationCache[key] = Spring.I18N(key)
+		translationCache[key] = I18N(key)
 	end
 	return translationCache[key]
 end
 
 -- Throttling for command refresh
 local lastCommandRefreshTime = 0
-local commandRefreshDelay = 0.05  -- 50ms delay
+local commandRefreshDelay = 0.05 -- 50ms delay
 
 -- Cache for hotkey strings
 local hotkeyCache = {}
@@ -129,7 +128,7 @@ local commandTextCache = {}
 -- Cached WAIT command state (computed once per refresh, not per drawCell call)
 local cachedWaitState = nil
 local hasWaitCommand = false
-local cachedFirstUnit = nil  -- first selected unit, avoids spGetSelectedUnits() table alloc
+local cachedFirstUnit = nil -- first selected unit, avoids spGetSelectedUnits() table alloc
 
 -- Command fingerprint to skip redundant R2T redraws
 local prevCmdCount = 0
@@ -139,8 +138,8 @@ local prevActiveCmd = nil
 local commandsVisuallyChanged = true
 
 -- Font metrics cache (cleared on ViewResize when font changes)
-local fontWidthCache = {}   -- text -> GetTextWidth result (with padding)
-local fontHeightCache = {}  -- text -> GetTextHeight result
+local fontWidthCache = {} -- text -> GetTextWidth result (with padding)
+local fontHeightCache = {} -- text -> GetTextHeight result
 
 -- Colorized text color cache (cleared when colorize changes)
 local colorStrCache = {}
@@ -170,8 +169,8 @@ local hiddenCommandTypes = {
 local CMDTYPE_ICON_BUILDING = CMDTYPE.ICON_BUILDING
 local CMDTYPE_ICON_MODE = CMDTYPE.ICON_MODE
 
-local spGetActiveCommand = Spring.GetActiveCommand
-local spGetActiveCmdDescs = Spring.GetActiveCmdDescs
+local spGetActiveCommand = SpringUnsynced.GetActiveCommand
+local spGetActiveCmdDescs = SpringUnsynced.GetActiveCmdDescs
 
 local os_clock = os.clock
 
@@ -204,13 +203,13 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 local function checkGuiShader(force)
-	if WG['guishader'] then
+	if WG.guishader then
 		if force and displayListGuiShader then
 			displayListGuiShader = gl.DeleteList(displayListGuiShader)
 		end
 		if not displayListGuiShader then
 			displayListGuiShader = gl.CreateList(function()
-				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner * uiScale, ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0))
+				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner * uiScale, ((posX <= 0) and 0 or 1), 1, ((posY - height > 0 or posX <= 0) and 1 or 0), ((posY - height > 0 and posX > 0) and 1 or 0))
 			end)
 		end
 	elseif displayListGuiShader then
@@ -263,8 +262,8 @@ local function setupCellGrid(force)
 		local i = 0
 		cellWidth = math_floor((activeRect[3] - activeRect[1]) / cols)
 		cellHeight = math_floor((activeRect[4] - activeRect[2]) / rows)
-		local leftOverWidth = ((activeRect[3] - activeRect[1]) - (cellWidth * cols))-1
-		local leftOverHeight = ((activeRect[4] - activeRect[2]) - (cellHeight * rows)) -(posY-height <= 0 and 1 or 0)
+		local leftOverWidth = ((activeRect[3] - activeRect[1]) - (cellWidth * cols)) - 1
+		local leftOverHeight = ((activeRect[4] - activeRect[2]) - (cellHeight * rows)) - (posY - height <= 0 and 1 or 0)
 		cellMarginPx = math_max(1, math_ceil(cellHeight * 0.5 * cellMargin))
 		cellMarginPx2 = math_max(0, math_ceil(cellHeight * 0.18 * cellMargin))
 
@@ -310,12 +309,12 @@ local function computeWaitState()
 	end
 	-- Use cached first unit instead of calling spGetSelectedUnits() which allocates a large table
 	local ref = cachedFirstUnit
-	if ref and Spring.ValidUnitID(ref) and Spring.FindUnitCmdDesc(ref, CMD.WAIT) then
+	if ref and SpringShared.ValidUnitID(ref) and SpringShared.FindUnitCmdDesc(ref, CMD.WAIT) then
 		local commandQueue
-		if isFactory[Spring.GetUnitDefID(ref)] then
-			commandQueue = Spring.GetFactoryCommands(ref, 1)
+		if isFactory[SpringShared.GetUnitDefID(ref)] then
+			commandQueue = SpringShared.GetFactoryCommands(ref, 1)
 		else
-			commandQueue = Spring.GetUnitCommands(ref, 1)
+			commandQueue = SpringShared.GetUnitCommands(ref, 1)
 		end
 		if commandQueue and commandQueue[1] and commandQueue[1].id == CMD.WAIT then
 			cachedWaitState = 2
@@ -349,7 +348,7 @@ local function refreshCommands()
 				isStateCommand[command.id] = true
 			end
 			if not hiddenCommands[command.id] and not hiddenCommandTypes[command.type] and command.action ~= nil and not command.disabled then
-				if command.type == CMDTYPE_ICON_BUILDING or (string.find(command.action, 'buildunit_', 1, true) == 1) then
+				if command.type == CMDTYPE_ICON_BUILDING or (string.find(command.action, "buildunit_", 1, true) == 1) then
 					-- intentionally empty, no action to take
 				elseif isStateCommand[command.id] then
 					stateCommandsCount = stateCommandsCount + 1
@@ -391,23 +390,23 @@ local function refreshCommands()
 				local commandState = cmd.params[currentStateIndex + 2]
 				if commandState then
 					if not commandTextCache[commandState] then
-						commandTextCache[commandState] = getCachedTranslation('ui.orderMenu.' .. commandState)
+						commandTextCache[commandState] = getCachedTranslation("ui.orderMenu." .. commandState)
 					end
 					cmd.cachedText = commandTextCache[commandState]
 				else
-					cmd.cachedText = '?'
+					cmd.cachedText = "?"
 				end
 			else
-				cmd.cachedText = '?'
+				cmd.cachedText = "?"
 			end
 		else
-			if cmd.action == 'stockpile' then
+			if cmd.action == "stockpile" then
 				-- Stockpile command name gets mutated to reflect the current status, so can't cache persistently
-				cmd.cachedText = getCachedTranslation('ui.orderMenu.' .. cmd.action, { stockpileStatus = cmd.name })
+				cmd.cachedText = getCachedTranslation("ui.orderMenu." .. cmd.action, { stockpileStatus = cmd.name })
 			else
 				local actionKey = cmd.action
 				if not commandTextCache[actionKey] then
-					commandTextCache[actionKey] = getCachedTranslation('ui.orderMenu.' .. actionKey)
+					commandTextCache[actionKey] = getCachedTranslation("ui.orderMenu." .. actionKey)
 				end
 				cmd.cachedText = commandTextCache[actionKey]
 			end
@@ -469,18 +468,18 @@ function widget:ViewResize()
 	width = 0.2125
 	height = 0.14 * uiScale
 
-	width = width / (vsx / vsy) * 1.78        -- make smaller for ultrawide screens
+	width = width / (vsx / vsy) * 1.78 -- make smaller for ultrawide screens
 	width = width * uiScale
 
 	-- make pixel aligned
 	width = mathFloor(width * vsx) / vsx
 	height = mathFloor(height * vsy) / vsy
 
-	if WG['buildmenu'] then
-		buildmenuBottomPosition = WG['buildmenu'].getBottomPosition()
+	if WG.buildmenu then
+		buildmenuBottomPosition = WG.buildmenu.getBottomPosition()
 	end
 
-	font = WG['fonts'].getFont(2)
+	font = WG.fonts.getFont(2)
 
 	elementCorner = WG.FlowUI.elementCorner
 	backgroundPadding = WG.FlowUI.elementPadding
@@ -492,22 +491,22 @@ function widget:ViewResize()
 
 	widgetSpaceMargin = WG.FlowUI.elementMargin
 
-	if WG['minimap'] then
-		minimapHeight = WG['minimap'].getHeight()
+	if WG.minimap then
+		minimapHeight = WG.minimap.getHeight()
 	end
 	if stickToBottom then
 		posY = height
-		posX = width + (widgetSpaceMargin/vsx)
+		posX = width + (widgetSpaceMargin / vsx)
 	else
 		if buildmenuBottomPosition then
 			posX = 0
-			posY = height + height + (widgetSpaceMargin/vsy)
-		elseif WG['buildmenu'] then
-			local posY2, _ = WG['buildmenu'].getSize()
-			posY2 = posY2 + (widgetSpaceMargin/vsy)
+			posY = height + height + (widgetSpaceMargin / vsy)
+		elseif WG.buildmenu then
+			local posY2, _ = WG.buildmenu.getSize()
+			posY2 = posY2 + (widgetSpaceMargin / vsy)
 			posY = posY2 + height
-			if WG['minimap'] then
-				posY = 1 - (minimapHeight / vsy) - (widgetSpaceMargin/vsy)
+			if WG.minimap then
+				posY = 1 - (minimapHeight / vsy) - (widgetSpaceMargin / vsy)
 			end
 			posX = 0
 		end
@@ -517,9 +516,9 @@ function widget:ViewResize()
 	local activeBgpadding = math_floor((backgroundPadding * 1.4) + 0.5)
 	activeRect = {
 		(posX * vsx) + (posX > 0 and activeBgpadding or mathCeil(backgroundPadding * 0.6)),
-		((posY - height) * vsy) + (posY-height > 0 and math_floor(activeBgpadding) or math_floor(activeBgpadding / 3)),
+		((posY - height) * vsy) + (posY - height > 0 and math_floor(activeBgpadding) or math_floor(activeBgpadding / 3)),
 		((posX + width) * vsx) - activeBgpadding,
-		(posY * vsy) - activeBgpadding
+		(posY * vsy) - activeBgpadding,
 	}
 	if displayListOrders then
 		displayListOrders = gl.DeleteList(displayListOrders)
@@ -530,9 +529,15 @@ function widget:ViewResize()
 	doUpdate = true
 
 	-- Clear font metric caches since font changed
-	for k in pairs(fontWidthCache) do fontWidthCache[k] = nil end
-	for k in pairs(fontHeightCache) do fontHeightCache[k] = nil end
-	for k in pairs(printTextCache) do printTextCache[k] = nil end
+	for k in pairs(fontWidthCache) do
+		fontWidthCache[k] = nil
+	end
+	for k in pairs(fontHeightCache) do
+		fontHeightCache[k] = nil
+	end
+	for k in pairs(printTextCache) do
+		printTextCache[k] = nil
+	end
 
 	if ordermenuTex then
 		gl.DeleteTexture(ordermenuBgTex)
@@ -545,7 +550,7 @@ function widget:ViewResize()
 end
 
 local function reloadBindings()
-	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
+	currentLayout = SpringUnsynced.GetConfigString("KeyboardLayout", "qwerty")
 	actionHotkeys = VFS.Include("luaui/Include/action_hotkeys.lua")
 end
 
@@ -554,30 +559,30 @@ function widget:Initialize()
 	widget:ViewResize()
 	widget:SelectionChanged(spGetSelectedUnits())
 
-	WG['ordermenu'] = {}
-	WG['ordermenu'].getPosition = function()
+	WG.ordermenu = {}
+	WG.ordermenu.getPosition = function()
 		return posX, posY, width, height
 	end
-	WG['ordermenu'].reloadBindings = reloadBindings
-	WG['ordermenu'].setBottomPosition = function(value)
+	WG.ordermenu.reloadBindings = reloadBindings
+	WG.ordermenu.setBottomPosition = function(value)
 		stickToBottom = value
 		doUpdate = true
 		widget:ViewResize()
 	end
-	WG['ordermenu'].getAlwaysShow = function()
+	WG.ordermenu.getAlwaysShow = function()
 		return alwaysShow
 	end
-	WG['ordermenu'].setAlwaysShow = function(value)
+	WG.ordermenu.setAlwaysShow = function(value)
 		alwaysShow = value
 		doUpdate = true
 	end
-	WG['ordermenu'].getBottomPosition = function()
+	WG.ordermenu.getBottomPosition = function()
 		return stickToBottom
 	end
-	WG['ordermenu'].getDisabledCmd = function(cmd)
+	WG.ordermenu.getDisabledCmd = function(cmd)
 		return disabledCommand[cmd]
 	end
-	WG['ordermenu'].setDisabledCmd = function(params)
+	WG.ordermenu.setDisabledCmd = function(params)
 		if params[2] then
 			disabledCommand[params[1]] = true
 		else
@@ -585,24 +590,24 @@ function widget:Initialize()
 		end
 		doUpdate = true
 	end
-	WG['ordermenu'].getColorize = function()
+	WG.ordermenu.getColorize = function()
 		return colorize
 	end
-	WG['ordermenu'].setColorize = function(value)
+	WG.ordermenu.setColorize = function(value)
 		doUpdate = true
 		colorize = value
 		if colorize > 1 then
 			colorize = 1
 		end
 	end
-	WG['ordermenu'].getIsShowing = function()
+	WG.ordermenu.getIsShowing = function()
 		return ordermenuShows
 	end
 end
 
 function widget:Shutdown()
-	if WG['guishader'] and displayListGuiShader then
-		WG['guishader'].DeleteDlist('ordermenu')
+	if WG.guishader and displayListGuiShader then
+		WG.guishader.DeleteDlist("ordermenu")
 		displayListGuiShader = nil
 	end
 	if displayListOrders then
@@ -616,7 +621,7 @@ function widget:Shutdown()
 		gl.DeleteTexture(ordermenuTex)
 		ordermenuTex = nil
 	end
-	WG['ordermenu'] = nil
+	WG.ordermenu = nil
 end
 
 local buildmenuBottomPos = false
@@ -629,22 +634,22 @@ function widget:Update(dt)
 		sec = 0
 		checkGuiShader()
 
-		if WG['buildmenu'] and WG['buildmenu'].getBottomPosition then
+		if WG.buildmenu and WG.buildmenu.getBottomPosition then
 			local prevbuildmenuBottomPos = buildmenuBottomPos
-			buildmenuBottomPos = WG['buildmenu'].getBottomPosition()
+			buildmenuBottomPos = WG.buildmenu.getBottomPosition()
 			if buildmenuBottomPos ~= prevbuildmenuBottomPos then
 				widget:ViewResize()
 			end
 		end
 
-		if WG['minimap'] and minimapHeight ~= WG['minimap'].getHeight() then
+		if WG.minimap and minimapHeight ~= WG.minimap.getHeight() then
 			widget:ViewResize()
 			setupCellGrid(true)
 			doUpdate = true
 		end
 
 		disableInput = isSpectating
-		if Spring.IsGodModeEnabled() then
+		if SpringShared.IsGodModeEnabled() then
 			disableInput = false
 		end
 	end
@@ -659,7 +664,7 @@ function widget:Update(dt)
 		doUpdate = true
 	end
 
-	if (WG['guishader'] and not displayListGuiShader) or (#commands == 0 and (not alwaysShow or spGetGameFrame() == 0)) then
+	if (WG.guishader and not displayListGuiShader) or (#commands == 0 and (not alwaysShow or spGetGameFrame() == 0)) then
 		ordermenuShows = false
 	else
 		ordermenuShows = true
@@ -680,7 +685,6 @@ local function DrawRect(px, py, sx, sy, zoom)
 	gl.BeginEnd(GL.QUADS, RectQuad, px, py, sx, sy, zoom)
 end
 
-
 local function drawCell(cell, zoom)
 	if not zoom then
 		zoom = 1
@@ -699,7 +703,7 @@ local function drawCell(cell, zoom)
 		if cell % cols == 0 then
 			rightMargin = cellMarginPx2
 		end
-		if cols/cell >= 1  then
+		if cols / cell >= 1 then
 			topMargin = math_floor(((cellMarginPx + cellMarginPx2) / 2) + 0.5)
 		end
 
@@ -713,47 +717,47 @@ local function drawCell(cell, zoom)
 		local color1, color2
 		if isActiveCmd then
 			zoom = cellClickedZoom
-			color1 = { 0.66, 0.66, 0.66, math_clamp(uiOpacity, 0.75, 0.95) }	-- bottom
-			color2 = { 1, 1, 1, math_clamp(uiOpacity, 0.75, 0.95) }			-- top
+			color1 = { 0.66, 0.66, 0.66, math_clamp(uiOpacity, 0.75, 0.95) } -- bottom
+			color2 = { 1, 1, 1, math_clamp(uiOpacity, 0.75, 0.95) } -- top
 		else
-			if WG['guishader'] then
-				color1 = (isStateCommand[cmd.id]) and { 0.5, 0.5, 0.5, math_clamp(uiOpacity/1.5, 0.35, 0.55) } or { 0.6, 0.6, 0.6, math_clamp(uiOpacity/1.5, 0.35, 0.55) }
-				color1[4] = math_clamp(uiOpacity-0.3, 0, 0.35)
-				color2 = { 1,1,1, math_clamp(uiOpacity-0.3, 0, 0.35) }
+			if WG.guishader then
+				color1 = isStateCommand[cmd.id] and { 0.5, 0.5, 0.5, math_clamp(uiOpacity / 1.5, 0.35, 0.55) } or { 0.6, 0.6, 0.6, math_clamp(uiOpacity / 1.5, 0.35, 0.55) }
+				color1[4] = math_clamp(uiOpacity - 0.3, 0, 0.35)
+				color2 = { 1, 1, 1, math_clamp(uiOpacity - 0.3, 0, 0.35) }
 			else
-				color1 = (isStateCommand[cmd.id]) and { 0.33, 0.33, 0.33, 1 } or { 0.33, 0.33, 0.33, 1 }
-				color1[4] = math_clamp(uiOpacity-0.4, 0, 0.35)
-				color2 = { 1,1,1, math_clamp(uiOpacity-0.4, 0, 0.35) }
+				color1 = isStateCommand[cmd.id] and { 0.33, 0.33, 0.33, 1 } or { 0.33, 0.33, 0.33, 1 }
+				color1[4] = math_clamp(uiOpacity - 0.4, 0, 0.35)
+				color2 = { 1, 1, 1, math_clamp(uiOpacity - 0.4, 0, 0.35) }
 			end
 			if color1[4] > 0.06 then
 				-- white bg (outline)
 				RectRound(cellRects[cell][1] + leftMargin, cellRects[cell][2] + bottomMargin, cellRects[cell][3] - rightMargin, cellRects[cell][4] - topMargin, cellWidth * 0.021, 2, 2, 2, 2, color1, color2)
 				-- darken inside
-				color1 = {0,0,0, color1[4]*2}
-				color2 = {0,0,0, color2[4]*2}
+				color1 = { 0, 0, 0, color1[4] * 2 }
+				color2 = { 0, 0, 0, color2[4] * 2 }
 				RectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, cellWidth * 0.019, 2, 2, 2, 2, color1, color2)
 			end
-			color1 = { 0, 0, 0, math_clamp(uiOpacity, 0.55, 0.95) }	-- bottom
-			color2 = { 0, 0, 0,  math_clamp(uiOpacity, 0.55, 0.95) }	-- top
+			color1 = { 0, 0, 0, math_clamp(uiOpacity, 0.55, 0.95) } -- bottom
+			color2 = { 0, 0, 0, math_clamp(uiOpacity, 0.55, 0.95) } -- top
 		end
 
-		UiButton(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, 1,1,1,1, 1,1,1,1, nil, color1, color2, padding, 1)
+		UiButton(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, 1, 1, 1, 1, 1, 1, 1, 1, nil, color1, color2, padding, 1)
 
 		-- icon
 		if showIcons then
 			if cursorTextures[cmd.cursor] == nil then
-				local cursorTexture = 'anims/icexuick_200/cursor' .. string.lower(cmd.cursor) .. '_0.png'
+				local cursorTexture = "anims/icexuick_200/cursor" .. string.lower(cmd.cursor) .. "_0.png"
 				cursorTextures[cmd.cursor] = VFS.FileExists(cursorTexture) and cursorTexture or false
 			end
 			if cursorTextures[cmd.cursor] then
-				local cursorTexture = 'anims/icexuick_200/cursor' .. string.lower(cmd.cursor) .. '_0.png'
+				local cursorTexture = "anims/icexuick_200/cursor" .. string.lower(cmd.cursor) .. "_0.png"
 				if VFS.FileExists(cursorTexture) then
 					local s = 0.45
 					local halfsize = s * ((cellRects[cell][4] - topMargin - padding) - (cellRects[cell][2] + bottomMargin + padding))
 					local midPosX = (cellRects[cell][3] - rightMargin - padding) - (((cellRects[cell][3] - rightMargin - padding) - (cellRects[cell][1] + leftMargin + padding)) / 2)
 					local midPosY = (cellRects[cell][4] - topMargin - padding) - (((cellRects[cell][4] - topMargin - padding) - (cellRects[cell][2] + bottomMargin + padding)) / 2)
 					glColor(1, 1, 1, 0.66)
-					glTexture('' .. cursorTexture)
+					glTexture("" .. cursorTexture)
 					glTexRect(midPosX - halfsize, midPosY - halfsize, midPosX + halfsize, midPosY + halfsize)
 					glTexture(false)
 				end
@@ -763,12 +767,12 @@ local function drawCell(cell, zoom)
 		-- text
 		if not showIcons or not cursorTextures[cmd.cursor] then
 			-- OPTIMIZATION: Use the cached text instead of recalculating it
-			local text = cmd.cachedText or '?'
+			local text = cmd.cachedText or "?"
 
 			-- Cache font metrics per text string to avoid string concat + measurement each draw
 			local textWidth = fontWidthCache[text]
 			if not textWidth then
-				textWidth = font:GetTextWidth('  ' .. text .. ' ')
+				textWidth = font:GetTextWidth("  " .. text .. " ")
 				fontWidthCache[text] = textWidth
 			end
 			local textHeight = fontHeightCache[text]
@@ -790,15 +794,19 @@ local function drawCell(cell, zoom)
 				textColor = "\255\020\020\020"
 			elseif colorize > 0 and commandInfo[cmd.action] and commandInfo[cmd.action].red then
 				if lastColorize ~= colorize then
-					for k in pairs(colorStrCache) do colorStrCache[k] = nil end
-					for k in pairs(printTextCache) do printTextCache[k] = nil end
+					for k in pairs(colorStrCache) do
+						colorStrCache[k] = nil
+					end
+					for k in pairs(printTextCache) do
+						printTextCache[k] = nil
+					end
 					lastColorize = colorize
 				end
 				if not colorStrCache[cmd.action] then
 					local info = commandInfo[cmd.action]
 					local part = (1 / colorize)
 					local grey = (0.93 * (part - 1))
-					colorStrCache[cmd.action] = Spring.Utilities.ConvertColor((grey + info.red) / part, (grey + info.green) / part, (grey + info.blue) / part)
+					colorStrCache[cmd.action] = Utilities.ConvertColor((grey + info.red) / part, (grey + info.green) / part, (grey + info.blue) / part)
 				end
 				textColor = colorStrCache[cmd.action]
 			else
@@ -806,7 +814,7 @@ local function drawCell(cell, zoom)
 			end
 
 			-- Cache the full printable string (textColor .. text) to avoid concat per draw
-			local printKey = isActiveCmd and ('A_' .. text) or (cmd.action .. '_' .. text)
+			local printKey = isActiveCmd and ("A_" .. text) or (cmd.action .. "_" .. text)
 			local printStr = printTextCache[printKey]
 			if not printStr then
 				printStr = textColor .. text
@@ -853,7 +861,7 @@ local function drawCell(cell, zoom)
 						r, g, b, a = 0.1, 1, 0.1, (i == desiredState and 0.26 or 0.8)
 					end
 				else
-					r, g, b, a = 0, 0, 0, 0.36  -- default off state
+					r, g, b, a = 0, 0, 0, 0.36 -- default off state
 				end
 				glColor(r, g, b, a)
 				local x1 = math_floor(cellRects[cell][1] + leftMargin + padding + padding2 + (stateWidth * (i - 1)) + (i == 1 and 0 or stateMargin))
@@ -862,8 +870,7 @@ local function drawCell(cell, zoom)
 				local y2 = math_ceil(cellRects[cell][2] + bottomMargin + stateHeight + padding2)
 				-- fancy fitting rectrounds
 				if rows < 6 then
-					RectRound(x1, y1, x2, y2, stateHeight * 0.33,
-						(i == 1 and 0 or 2), (i == statecount and 0 or 2), (i == statecount and 2 or 0), (i == 1 and 2 or 0))
+					RectRound(x1, y1, x2, y2, stateHeight * 0.33, (i == 1 and 0 or 2), (i == statecount and 0 or 2), (i == statecount and 2 or 0), (i == 1 and 2 or 0))
 				else
 					glRect(x1, y1, x2, y2)
 				end
@@ -885,7 +892,7 @@ local function drawCell(cell, zoom)
 end
 
 local function drawOrdersBackground()
-	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0), nil, nil, nil, nil, nil, nil, nil, nil)
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY - height > 0 or posX <= 0) and 1 or 0), ((posY - height > 0 and posX > 0) and 1 or 0), nil, nil, nil, nil, nil, nil, nil, nil)
 end
 
 local function drawOrders()
@@ -900,18 +907,18 @@ local function drawOrders()
 end
 
 function widget:DrawScreen()
-	local x, y = Spring.GetMouseState()
+	local x, y = SpringUnsynced.GetMouseState()
 	local cellHovered
-	if not WG['topbar'] or not WG['topbar'].showingQuit() then
+	if not WG.topbar or not WG.topbar.showingQuit() then
 		if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-			Spring.SetMouseCursor('cursornormal')
+			SpringUnsynced.SetMouseCursor("cursornormal")
 			for cell = 1, #cellRects do
 				if commands[cell] then
 					if math_isInRect(x, y, cellRects[cell][1], cellRects[cell][2], cellRects[cell][3], cellRects[cell][4]) then
 						local cmd = commands[cell]
-						if WG['tooltip'] then
-							local tooltipKey = cmd.action .. '_tooltip'
-							local tooltip = getCachedTranslation('ui.orderMenu.' .. tooltipKey)
+						if WG.tooltip then
+							local tooltipKey = cmd.action .. "_tooltip"
+							local tooltip = getCachedTranslation("ui.orderMenu." .. tooltipKey)
 
 							-- Cache hotkey lookup
 							if not hotkeyCache[cmd.action] then
@@ -919,10 +926,10 @@ function widget:DrawScreen()
 							end
 							local hotkey = hotkeyCache[cmd.action]
 
-							if tooltip ~= '' and hotkey ~= '' then
-								tooltip = getCachedTranslation('ui.orderMenu.hotkeyTooltip', { hotkey = hotkey:upper(), tooltip = tooltip, highlightColor = "\255\255\215\100", textColor = "\255\240\240\240" })
+							if tooltip ~= "" and hotkey ~= "" then
+								tooltip = getCachedTranslation("ui.orderMenu.hotkeyTooltip", { hotkey = hotkey:upper(), tooltip = tooltip, highlightColor = "\255\255\215\100", textColor = "\255\240\240\240" })
 							end
-							if tooltip ~= '' then
+							if tooltip ~= "" then
 								local title
 								if isStateCommand[cmd.id] then
 									local currentStateIndex = cmd.params[1]
@@ -930,12 +937,12 @@ function widget:DrawScreen()
 									local stateOffset = 2
 									local commandState = cmd.params[currentStateIndex + stateOffset]
 									if commandState then
-										title = getCachedTranslation('ui.orderMenu.' .. commandState)
+										title = getCachedTranslation("ui.orderMenu." .. commandState)
 									end
 								else
-									title = getCachedTranslation('ui.orderMenu.' .. cmd.action)
+									title = getCachedTranslation("ui.orderMenu." .. cmd.action)
 								end
-								WG['tooltip'].ShowTooltip('ordermenu', tooltip, nil, nil, title)
+								WG.tooltip.ShowTooltip("ordermenu", tooltip, nil, nil, title)
 							end
 						end
 						cellHovered = cell
@@ -949,7 +956,7 @@ function widget:DrawScreen()
 
 	-- make all cmd's fit in the grid
 	local now = os_clock()
-	if clickedCellDesiredState and not doUpdateClock then	-- make sure state changes get updated
+	if clickedCellDesiredState and not doUpdateClock then -- make sure state changes get updated
 		doUpdateClock = now + 0.1
 	end
 
@@ -975,21 +982,21 @@ function widget:DrawScreen()
 		end
 	end
 
-	if #commands == 0 and (not alwaysShow or spGetGameFrame() == 0) then	-- dont show pregame because factions interface is shown
-		if displayListGuiShader and WG['guishader'] then
-			WG['guishader'].RemoveDlist('ordermenu')
+	if #commands == 0 and (not alwaysShow or spGetGameFrame() == 0) then -- dont show pregame because factions interface is shown
+		if displayListGuiShader and WG.guishader then
+			WG.guishader.RemoveDlist("ordermenu")
 		end
 		doUpdate = nil
 	else
-		if displayListGuiShader and WG['guishader'] then
-			WG['guishader'].InsertDlist(displayListGuiShader, 'ordermenu')
+		if displayListGuiShader and WG.guishader then
+			WG.guishader.InsertDlist(displayListGuiShader, "ordermenu")
 		end
 		if doUpdate and displayListOrders then
 			displayListOrders = gl.DeleteList(displayListOrders)
 		end
 
 		if not ordermenuBgTex then
-			ordermenuBgTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
+			ordermenuBgTex = gl.CreateTexture(math_floor(width * vsx), math_floor(height * vsy), {
 				target = GL.TEXTURE_2D,
 				format = GL.ALPHA,
 				fbo = true,
@@ -999,7 +1006,7 @@ function widget:DrawScreen()
 			end
 		end
 		if not ordermenuTex then
-			ordermenuTex = gl.CreateTexture(math_floor(width*vsx)*(vsy<1400 and 2 or 1), math_floor(height*vsy)*(vsy<1400 and 2 or 1), {	--*(vsy<1400 and 2 or 1)
+			ordermenuTex = gl.CreateTexture(math_floor(width * vsx) * (vsy < 1400 and 2 or 1), math_floor(height * vsy) * (vsy < 1400 and 2 or 1), { --*(vsy<1400 and 2 or 1)
 				target = GL.TEXTURE_2D,
 				format = GL.ALPHA,
 				fbo = true,
@@ -1019,9 +1026,9 @@ function widget:DrawScreen()
 			gl.R2tHelper.BlendTexRect(ordermenuTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], true)
 		end
 
-		if #commands >0 then
+		if #commands > 0 then
 			-- draw highlight on top of button
-			if not WG['topbar'] or not WG['topbar'].showingQuit() then
+			if not WG.topbar or not WG.topbar.showingQuit() then
 				if commands and cellHovered then
 					local cell = cellHovered
 					if cellRects[cell] and cellRects[cell][4] then
@@ -1043,7 +1050,7 @@ function widget:DrawScreen()
 						if cell % cols == 0 then
 							rightMargin = cellMarginPx2
 						end
-						if cols/cell >= 1  then
+						if cols / cell >= 1 then
 							topMargin = math_floor(((cellMarginPx + cellMarginPx2) / 2) + 0.5)
 						end
 
@@ -1089,7 +1096,7 @@ function widget:DrawScreen()
 						if cell % cols == 0 then
 							rightMargin = cellMarginPx2
 						end
-						if cols/cell >= 1  then
+						if cols / cell >= 1 then
 							topMargin = math_floor(((cellMarginPx + cellMarginPx2) / 2) + 0.5)
 						end
 						-- gloss highlight
@@ -1106,7 +1113,7 @@ function widget:DrawScreen()
 end
 
 function widget:MousePress(x, y, button)
-	if Spring.IsGUIHidden() then
+	if SpringUnsynced.IsGUIHidden() then
 		return
 	end
 	if ordermenuShows and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
@@ -1137,10 +1144,10 @@ function widget:MousePress(x, y, button)
 							end
 
 							if playSounds then
-								Spring.PlaySoundFile(soundButton, 0.6, 'ui')
+								SpringUnsynced.PlaySoundFile(soundButton, 0.6, "ui")
 							end
-							if cmd.id and Spring.GetCmdDescIndex(cmd.id) then
-								Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id), button, true, false, Spring.GetModKeyState())
+							if cmd.id and SpringUnsynced.GetCmdDescIndex(cmd.id) then
+								SpringUnsynced.SetActiveCommand(SpringUnsynced.GetCmdDescIndex(cmd.id), button, true, false, SpringUnsynced.GetModKeyState())
 							end
 							break
 						end
@@ -1207,7 +1214,7 @@ function widget:LanguageChanged()
 end
 
 function widget:GetConfigData()
-	return { version = 1, colorize = colorize, stickToBottom = stickToBottom, alwaysShow = alwaysShow, disabledCmd = disabledCommand}
+	return { version = 1, colorize = colorize, stickToBottom = stickToBottom, alwaysShow = alwaysShow, disabledCmd = disabledCommand }
 end
 
 function widget:SetConfigData(data)

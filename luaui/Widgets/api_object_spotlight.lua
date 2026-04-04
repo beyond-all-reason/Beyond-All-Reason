@@ -25,22 +25,22 @@ local spotlightTypes = {
 			if not unitID then
 				return nil
 			end
-			local unitDefID = Spring.GetUnitDefID(unitID)
+			local unitDefID = SpringShared.GetUnitDefID(unitID)
 			if not unitDefID then
 				return nil
 			end
 			return UnitDefs[unitDefID].radius
 		end,
 		isValid = function(unitID)
-			return Spring.ValidUnitID(unitID)
+			return SpringShared.ValidUnitID(unitID)
 		end,
 	},
 	feature = {
 		getDefaultRadius = function(featureID)
-			return FeatureDefs[Spring.GetFeatureDefID(featureID)].radius
+			return FeatureDefs[SpringShared.GetFeatureDefID(featureID)].radius
 		end,
 		isValid = function(featureID)
-			return Spring.ValidFeatureID(featureID)
+			return SpringShared.ValidFeatureID(featureID)
 		end,
 		postProcessVBO = function(vbo)
 			vbo.featureIDs = true
@@ -53,8 +53,7 @@ local spotlightTypes = {
 		isValid = function(position)
 			return true
 		end,
-		postProcessVBO = function(vbo)
-		end,
+		postProcessVBO = function(vbo) end,
 	},
 }
 
@@ -251,22 +250,14 @@ local function makeCylinderVBO(sections)
 
 	local numVertices = #vboData / 3
 
-	vbo:Define(
-		numVertices,
-		spotlightVBOLayout
-	)
+	vbo:Define(numVertices, spotlightVBOLayout)
 	vbo:Upload(vboData)
 
 	return vbo, numVertices
 end
 
 local function makeInstanceVBO(layout, vertexVBO, numVertices, name)
-	local vbo = InstanceVBOTable.makeInstanceVBOTable(
-		layout,
-		nil,
-		name,
-		6
-	)
+	local vbo = InstanceVBOTable.makeInstanceVBOTable(layout, nil, name, 6)
 	vbo.vertexVBO = vertexVBO
 	vbo.numVertices = numVertices
 	vbo.VAO = InstanceVBOTable.makeVAOandAttach(vbo.vertexVBO, vbo.instanceVBO)
@@ -278,12 +269,7 @@ local function initGL4()
 
 	instanceVBOs = {}
 	for spotlightType, spec in pairs(spotlightTypes) do
-		local vbo = makeInstanceVBO(
-			instanceVBOLayout,
-			cylinderVBO,
-			cylinderVertices,
-			"api_object_spotlight_" .. spotlightType
-		)
+		local vbo = makeInstanceVBO(instanceVBOLayout, cylinderVBO, cylinderVertices, "api_object_spotlight_" .. spotlightType)
 
 		if spec.postProcessVBO then
 			spec.postProcessVBO(vbo)
@@ -293,13 +279,10 @@ local function initGL4()
 	end
 
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
-	shader = LuaShader(
-		{
-			vertex = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs),
-			fragment = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs),
-		},
-		"api_object_spotlight"
-	)
+	shader = LuaShader({
+		vertex = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs),
+		fragment = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs),
+	}, "api_object_spotlight")
 	local shaderCompiled = shader:Initialize()
 	return shaderCompiled
 end
@@ -333,15 +316,14 @@ local function addSpotlight(objectType, owner, objectID, color, options)
 	end
 
 	if not spotlightTypes[objectType].isValid(objectID) then
-		Spring.Echo("invalid spotlight object id: " .. (objectID or "<nil>"))
+		SpringShared.Echo("invalid spotlight object id: " .. (objectID or "<nil>"))
 		return
 	end
 
 	options = options or {}
 
 	-- radius
-	local radius = (options.radiusCoefficient or 1) *
-		(options.radius or spotlightTypes[objectType].getDefaultRadius(objectID) or DEFAULT_RADIUS)
+	local radius = (options.radiusCoefficient or 1) * (options.radius or spotlightTypes[objectType].getDefaultRadius(objectID) or DEFAULT_RADIUS)
 
 	-- height
 	local height = (options.heightCoefficient or 1) * (options.height or DEFAULT_CYLINDER_HEIGHT)
@@ -350,7 +332,7 @@ local function addSpotlight(objectType, owner, objectID, color, options)
 	local startTime
 	local expireTime
 	if options.duration ~= nil then
-		startTime = Spring.GetDrawSeconds()
+		startTime = SpringUnsynced.GetDrawSeconds()
 		expireTime = startTime + options.duration
 	end
 
@@ -380,22 +362,23 @@ local function addSpotlight(objectType, owner, objectID, color, options)
 	if not objectInstanceIDs[objectType][objectID] then
 		objectInstanceIDs[objectType][objectID] = {}
 	end
-	objectInstanceIDs[objectType][objectID][owner] = pushElementInstance(
-		instanceVBOs[objectType],
-		{
-			radius, -- { id = 1, name = "radius", size = 1 }
-			height, -- { id = 2, name = "height", size = 1 }
-			color[1], color[2], color[3], color[4], -- { id = 3, name = "color", size = 4 }
-			startTime or 0, -- { id = 4, name = "startTime", size = 1 },
-			expireTime or 0, -- { id = 5, name = "expireTime", size = 1 },
-			0, 0, 0, 0, -- { id = 6, name = "instData", size = 4, type = GL.UNSIGNED_INT }
-			instanceWorldPosOverride[1], instanceWorldPosOverride[2], instanceWorldPosOverride[3], -- { id = 7, name = "worldPosOverride", size = 3 },
-		},
-		objectInstanceIDs[objectType][objectID][owner],
-		true,
-		false,
-		instanceObjectID
-	)
+	objectInstanceIDs[objectType][objectID][owner] = pushElementInstance(instanceVBOs[objectType], {
+		radius, -- { id = 1, name = "radius", size = 1 }
+		height, -- { id = 2, name = "height", size = 1 }
+		color[1],
+		color[2],
+		color[3],
+		color[4], -- { id = 3, name = "color", size = 4 }
+		startTime or 0, -- { id = 4, name = "startTime", size = 1 },
+		expireTime or 0, -- { id = 5, name = "expireTime", size = 1 },
+		0,
+		0,
+		0,
+		0, -- { id = 6, name = "instData", size = 4, type = GL.UNSIGNED_INT }
+		instanceWorldPosOverride[1],
+		instanceWorldPosOverride[2],
+		instanceWorldPosOverride[3], -- { id = 7, name = "worldPosOverride", size = 3 },
+	}, objectInstanceIDs[objectType][objectID][owner], true, false, instanceObjectID)
 end
 
 local function removeSpotlight(objectType, owner, objectID)
@@ -432,41 +415,33 @@ local function removeSpotlight(objectType, owner, objectID)
 end
 
 local function getSpotlights(objectType, owner)
-	return table.reduce(
-		objectOwners[objectType],
-		function(acc, v, k)
-			if v[owner] then
-				acc[#acc + 1] = k
-			end
-			return acc
-		end,
-		{}
-	)
+	return table.reduce(objectOwners[objectType], function(acc, v, k)
+		if v[owner] then
+			acc[#acc + 1] = k
+		end
+		return acc
+	end, {})
 end
 
 local function removeAllSpotlights(owner)
 	for objectType in pairs(spotlightTypes) do
 		for _, id in ipairs(getSpotlights(objectType, owner)) do
-			removeSpotlight(
-				objectType,
-				owner,
-				id
-			)
+			removeSpotlight(objectType, owner, id)
 		end
 	end
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	if objectOwners["unit"][unitID] then
-		for owner in pairs(objectOwners["unit"][unitID]) do
+	if objectOwners.unit[unitID] then
+		for owner in pairs(objectOwners.unit[unitID]) do
 			removeSpotlight("unit", owner, unitID)
 		end
 	end
 end
 
 function widget:FeatureDestroyed(featureID, allyTeamID)
-	if objectOwners["feature"][featureID] then
-		for owner in pairs(objectOwners["feature"][featureID]) do
+	if objectOwners.feature[featureID] then
+		for owner in pairs(objectOwners.feature[featureID]) do
 			removeSpotlight("feature", owner, featureID)
 		end
 	end
@@ -482,7 +457,7 @@ function widget:Update(dt)
 
 	-- remove expired spotlights
 	local toRemove = {}
-	local gs = Spring.GetDrawSeconds()
+	local gs = SpringUnsynced.GetDrawSeconds()
 	for objectType, objectOwnerTimes in pairs(objectExpireTimes) do
 		for objectID, ownerTimes in pairs(objectOwnerTimes) do
 			for owner, expireTime in pairs(ownerTimes) do
@@ -499,7 +474,7 @@ function widget:Update(dt)
 end
 
 function widget:DrawWorld()
-	if Spring.IsGUIHidden() then
+	if SpringUnsynced.IsGUIHidden() then
 		return
 	end
 
@@ -511,13 +486,7 @@ function widget:DrawWorld()
 
 	for spotlightType, vbo in pairs(instanceVBOs) do
 		if vbo.usedElements > 0 then
-			vbo.VAO:DrawArrays(
-				GL.TRIANGLE_STRIP,
-				vbo.numVertices,
-				0,
-				vbo.usedElements,
-				0
-			)
+			vbo.VAO:DrawArrays(GL.TRIANGLE_STRIP, vbo.numVertices, 0, vbo.usedElements, 0)
 		end
 	end
 
@@ -530,7 +499,7 @@ function widget:Initialize()
 		return
 	end
 
-	WG["ObjectSpotlight"] = {
+	WG.ObjectSpotlight = {
 		---Adds a new spotlight for a given object. Only one call is needed to create the spotlight (the position is handled in
 		---the shader), but this can be called again to update extra options. Unless a duration is provided, calling
 		---removeSpotlight later is necessary to remove the spotlight.
@@ -578,5 +547,5 @@ function widget:Shutdown()
 		shader:Finalize()
 	end
 
-	WG["ObjectSpotlight"] = nil
+	WG.ObjectSpotlight = nil
 end

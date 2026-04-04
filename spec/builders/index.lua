@@ -6,9 +6,9 @@ local ResourceDataBuilder = VFS.Include("spec/builders/resource_data_builder.lua
 ---@field Team TeamBuilder
 ---@field Spring SpringBuilder
 local Builders = {
-    Team = TeamBuilder,
-    Spring = SpringSyncedBuilder,
-    ResourceData = ResourceDataBuilder,
+	Team = TeamBuilder,
+	Spring = SpringSyncedBuilder,
+	ResourceData = ResourceDataBuilder,
 }
 
 return Builders

@@ -10,7 +10,7 @@
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 
-if (SendToUnsynced) then
+if SendToUnsynced then
 	return ""
 end
 
@@ -18,16 +18,16 @@ local unitRendering = {
 	lods = {},
 	curHighestLOD = 0,
 	activeMats = {},
-	spSetLODCount = Spring.UnitRendering.SetLODCount,
-	spSetMaterialLastLOD = Spring.UnitRendering.SetMaterialLastLOD,
+	spSetLODCount = SpringUnsynced.UnitRendering.SetLODCount,
+	spSetMaterialLastLOD = SpringUnsynced.UnitRendering.SetMaterialLastLOD,
 }
 
 local featureRendering = {
 	lods = {},
 	curHighestLOD = 0,
 	activeMats = {},
-	spSetLODCount = Spring.FeatureRendering.SetLODCount,
-	spSetMaterialLastLOD = Spring.FeatureRendering.SetMaterialLastLOD,
+	spSetLODCount = SpringUnsynced.FeatureRendering.SetLODCount,
+	spSetMaterialLastLOD = SpringUnsynced.FeatureRendering.SetMaterialLastLOD,
 }
 
 local function SetLODCount(rendering, objectID, lod_count)
@@ -42,7 +42,7 @@ end
 local function ActivateMaterial(rendering, objectID, lod)
 	local activeMats = rendering.activeMats[objectID]
 	if not activeMats then
-		activeMats = {current = math.huge}
+		activeMats = { current = math.huge }
 
 		rendering.activeMats[objectID] = activeMats
 	end
@@ -65,9 +65,7 @@ local function ActivateMaterial(rendering, objectID, lod)
 	end
 end
 
-
 local function DeactivateMaterial(rendering, objectID, lod)
-
 	local activeMats = rendering.activeMats[objectID]
 	if not activeMats then
 		return
@@ -78,7 +76,6 @@ local function DeactivateMaterial(rendering, objectID, lod)
 	if activeMats.current == lod then
 		--// detect next available material
 		for i = 1, rendering.curHighestLOD do
-
 			if activeMats[i] then
 				activeMats.current = i
 
@@ -88,8 +85,6 @@ local function DeactivateMaterial(rendering, objectID, lod)
 		end
 
 		--// none material active
-
-
 
 		rendering.activeMats[objectID] = nil
 		rendering.spSetMaterialLastLOD(objectID, "opaque", 0)

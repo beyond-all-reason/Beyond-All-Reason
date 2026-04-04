@@ -3,7 +3,9 @@
 local fakeos = {}
 
 function fakeos.time()
-	if not Shard then return 1 end
+	if not Shard then
+		return 1
+	end
 	return Shard.randomseed or 1
 end
 

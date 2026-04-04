@@ -1,4 +1,3 @@
-
 if not gadgetHandler:IsSyncedCode() then
 	return
 end
@@ -6,15 +5,15 @@ end
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
-  return {
-    name      = "Factory Unblocking",
-    desc      = "This prevents exiting units get stuck on the newly initiated (big) unit",
-    author    = "Floris",
-    date      = "September 2020",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = true
-  }
+	return {
+		name = "Factory Unblocking",
+		desc = "This prevents exiting units get stuck on the newly initiated (big) unit",
+		author = "Floris",
+		date = "September 2020",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
+	}
 end
 
 local setBlockingOnFinished = {}
@@ -41,9 +40,9 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 
 			-- also the second false is to clear CSTATE_BIT_SOLIDOBJECTS, so landing aircraft do not claim dumb spots as blocking
 			-- TODO, engine fix to prevent this nonsense
-			Spring.SetUnitBlocking(unitID, false, false)
+			SpringSynced.SetUnitBlocking(unitID, false, false)
 		else
-			Spring.SetUnitBlocking(unitID, true)
+			SpringSynced.SetUnitBlocking(unitID, true)
 		end
 		setBlockingOnFinished[unitID] = nil
 	end
@@ -52,7 +51,7 @@ end
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if factoryUnits[builderID] then
 		-- first false is to set blocking on ground
-		Spring.SetUnitBlocking(unitID, false)
+		SpringSynced.SetUnitBlocking(unitID, false)
 		setBlockingOnFinished[unitID] = true
 	end
 end
@@ -63,10 +62,10 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function gadget:Initialize()
-	local allUnits = Spring.GetAllUnits()
+	local allUnits = SpringShared.GetAllUnits()
 	for _, unitID in ipairs(allUnits) do
-		local unitDefID = Spring.GetUnitDefID(unitID)
-		local unitTeamID = Spring.GetUnitTeam(unitID)
+		local unitDefID = SpringShared.GetUnitDefID(unitID)
+		local unitTeamID = SpringShared.GetUnitTeam(unitID)
 		gadget:UnitFinished(unitID, unitDefID, unitTeamID)
 	end
 end

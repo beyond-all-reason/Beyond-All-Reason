@@ -1,6 +1,6 @@
 return {
 	legvenator = {
-		maxacc= 0.6,
+		maxacc = 0.6,
 		airsightdistance = 1100,
 		blocking = false,
 		maxdec = 0.0675,
@@ -38,7 +38,7 @@ return {
 		wingangle = 0.06363,
 		wingdrag = 0.21,
 		customparams = {
-			unitgroup = 'aa',
+			unitgroup = "aa",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Air/T2 Air",
@@ -102,7 +102,7 @@ return {
 					vtol = 480,
 				},
 				customparams = {
-					noattackrangearc= 1,
+					noattackrangearc = 1,
 				},
 			},
 		},

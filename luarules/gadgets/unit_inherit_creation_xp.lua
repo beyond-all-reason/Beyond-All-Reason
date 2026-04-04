@@ -8,22 +8,24 @@ function gadget:GetInfo()
 		date = "May 2024",
 		license = "Public domain",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
 -- synced only
-if not gadgetHandler:IsSyncedCode() then return false end
+if not gadgetHandler:IsSyncedCode() then
+	return false
+end
 
 --**********unit customparams to add to unitdef***********
 -- inheritxpratemultiplier = 1, 	-- defined in unitdef customparams of the parent unit. It's a number by which XP gained by children is multiplied and passed to the parent after power difference calculations
 -- childreninheritxp = "TURRET MOBILEBUILT DRONE BOTCANNON", --  determines what kinds of units linked to parent inherit XP
 -- parentsinheritxp = "TURRET MOBILEBUILT DRONE BOTCANNON", -- determines what kinds of units linked to the parent will give the parent XP
 
-local spGetUnitExperience = Spring.GetUnitExperience
-local spSetUnitExperience = Spring.SetUnitExperience
-local spGetUnitRulesParam = Spring.GetUnitRulesParam
-local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitExperience = SpringShared.GetUnitExperience
+local spSetUnitExperience = SpringSynced.SetUnitExperience
+local spGetUnitRulesParam = SpringShared.GetUnitRulesParam
+local spGetUnitDefID = SpringShared.GetUnitDefID
 
 local inheritChildrenXP = {} -- stores the value of XP rate to be derived from unitdef
 local inheritCreationXP = {} -- multiplier of XP to inherit to newly created units, indexed by unitID
@@ -43,11 +45,13 @@ for id, def in pairs(UnitDefs) do
 	end
 	if def.customParams.parentsinheritxp then
 		parentsInheritXP[id] = def.customParams.parentsinheritxp or " "
-	else parentsInheritXP[id] = " "
+	else
+		parentsInheritXP[id] = " "
 	end
 	if def.customParams.childreninheritxp then
 		childrenInheritXP[id] = def.customParams.childreninheritxp or " "
-	else childrenInheritXP[id] = " "
+	else
+		childrenInheritXP[id] = " "
 	end
 	if def.speed and def.speed ~= 0 then
 		mobileUnits[id] = true
@@ -85,7 +89,7 @@ local initializeList = {}
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	local createdDefID = spGetUnitDefID(unitID)
 	local builderDefID = builderID and spGetUnitDefID(builderID)
-	if  builderID and mobileUnits[createdDefID] and string.find(parentsInheritXP[builderDefID], "MOBILEBUILT") then -- only mobile combat units will pass xp
+	if builderID and mobileUnits[createdDefID] and string.find(parentsInheritXP[builderDefID], "MOBILEBUILT") then -- only mobile combat units will pass xp
 		childrenWithParents[unitID] = {
 			unitid = unitID,
 			parentunitid = builderID,
@@ -94,7 +98,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 			childtype = "MOBILEBUILT",
 		}
 	end
-	if  builderID and turretUnits[createdDefID] and string.find(parentsInheritXP[builderDefID], "TURRET") then -- only immobile combat units will pass xp
+	if builderID and turretUnits[createdDefID] and string.find(parentsInheritXP[builderDefID], "TURRET") then -- only immobile combat units will pass xp
 		childrenWithParents[unitID] = {
 			unitid = unitID,
 			parentunitid = builderID,
@@ -102,7 +106,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 			childinheritsXP = childrenInheritXP[createdDefID],
 			childtype = "TURRET",
 		}
-end
+	end
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
@@ -111,7 +115,7 @@ end
 
 local oldChildXPValues = {}
 function gadget:GameFrame(frame)
-	if frame%30 == 0 then
+	if frame % 30 == 0 then
 		local parentID
 		for unitID, value in pairs(initializeList) do
 			local unitDefID = spGetUnitDefID(unitID)
@@ -155,13 +159,12 @@ function gadget:GameFrame(frame)
 					local initMult = inheritCreationXP[parentDefID] or 1
 					local childInitXP = parentXP * initMult
 					spSetUnitExperience(unitID, childInitXP)
-					oldChildXPValues[unitID] = childInitXP  --add parent xp to the oldxp value to exclude it from inheritance
+					oldChildXPValues[unitID] = childInitXP --add parent xp to the oldxp value to exclude it from inheritance
 				end
 			end
 
 			initializeList[unitID] = nil -- this concludes innitialization
 		end
-
 
 		for unitID, value in pairs(childrenWithParents) do
 			local oldXP = oldChildXPValues[unitID] or 0
@@ -170,7 +173,7 @@ function gadget:GameFrame(frame)
 				parentID = childrenWithParents[unitID].parentunitid
 				local parentXP = spGetUnitExperience(parentID) or 0
 				local multiplier = childrenWithParents[unitID].parentxpmultiplier
-				local gainedXP = parentXP+((newXP-oldXP)*multiplier)
+				local gainedXP = parentXP + ((newXP - oldXP) * multiplier)
 				oldChildXPValues[unitID] = newXP
 				spSetUnitExperience(parentID, gainedXP)
 			end
@@ -179,8 +182,7 @@ function gadget:GameFrame(frame)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-
-	local evoID = Spring.GetUnitRulesParam(unitID, "unit_evolved")
+	local evoID = SpringShared.GetUnitRulesParam(unitID, "unit_evolved")
 	if evoID then
 		for id, data in pairs(childrenWithParents) do
 			if data.parentunitid == unitID then

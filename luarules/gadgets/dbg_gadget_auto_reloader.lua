@@ -1,4 +1,4 @@
-if not Spring.Utilities.IsDevMode() then
+if not Utilities.IsDevMode() then
 	return
 end
 
@@ -19,12 +19,12 @@ end
 
 local SELF_NAME = "Gadget Auto Reloader"
 
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 local gadgetContents = {}
 local gadgetFileNames = {}
 local failedGadgets = {}
-local gadgetDependents = {}  -- gadgetName -> {dependentName1, dependentName2, ...}
+local gadgetDependents = {} -- gadgetName -> {dependentName1, dependentName2, ...}
 
 local function CacheGadgets()
 	for _, g in pairs(gadgetHandler.gadgets) do
@@ -49,7 +49,9 @@ local pendingReHook = {}
 
 local function ReHookProfiler(gadgetName)
 	local g = gadgetHandler:FindGadget(gadgetName)
-	if not g then return end
+	if not g then
+		return
+	end
 	for key, value in pairs(gadgetHandler) do
 		if type(value) == "table" then
 			local i = string.find(key, "List", 1, true)
@@ -76,7 +78,7 @@ local function CheckForChanges(gadgetName, fileName, label)
 		gadgetContents[gadgetName] = newContents
 		local chunk, err = loadstring(newContents, fileName)
 		if chunk == nil then
-			spEcho('Failed to load: ' .. fileName .. '  (' .. err .. ')')
+			spEcho("Failed to load: " .. fileName .. "  (" .. err .. ")")
 			failedGadgets[gadgetName] = fileName
 			return
 		end
@@ -96,7 +98,6 @@ local function CheckForChanges(gadgetName, fileName, label)
 end
 
 if gadgetHandler:IsSyncedCode() then
-
 	function gadget:Initialize()
 		CacheGadgets()
 	end
@@ -126,10 +127,8 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
-
 else
-
-	local spGetMouseState = Spring.GetMouseState
+	local spGetMouseState = SpringUnsynced.GetMouseState
 	local mouseOffscreen = select(6, spGetMouseState())
 
 	function gadget:Initialize()
@@ -164,5 +163,4 @@ else
 			end
 		end
 	end
-
 end

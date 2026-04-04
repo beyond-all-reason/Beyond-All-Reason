@@ -8,20 +8,20 @@ function widget:GetInfo()
 		date = "2007",
 		license = "GNU GPL, v2 or later",
 		layer = -9,
-		enabled = true
+		enabled = true,
 	}
 end
 
-local lastGameUpdate = Spring.GetGameSeconds()
+local lastGameUpdate = SpringShared.GetGameSeconds()
 
-local spGetUnitViewPosition = Spring.GetUnitViewPosition
-local spGetGameSeconds = Spring.GetGameSeconds
-local spGetGameFrame = Spring.GetGameFrame
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetUnitViewPosition = SpringUnsynced.GetUnitViewPosition
+local spGetGameSeconds = SpringShared.GetGameSeconds
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetUnitIsBeingBuilt = SpringShared.GetUnitIsBeingBuilt
+local spGetUnitAllyTeam = SpringShared.GetUnitAllyTeam
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 local spec, fullview = spGetSpectatingState()
-local myAllyTeam = Spring.GetMyAllyTeamID()
+local myAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
 
 local glColor = gl.Color
 local glDepthTest = gl.DepthTest
@@ -36,17 +36,16 @@ local etaMaxDist = 750000 -- max dist at which to draw ETA
 local blinkTime = 20
 
 -- Pre-cache I18N strings to avoid per-unit per-frame lookups
-local i18n_buildTime = "\255\255\255\1" .. Spring.I18N('ui.buildEstimate.time') .. "\255\255\255\255 "
-local i18n_cancelled = Spring.I18N('ui.buildEstimate.cancelled') .. " "
+local i18n_buildTime = "\255\255\255\1" .. I18N("ui.buildEstimate.time") .. "\255\255\255\255 "
+local i18n_cancelled = I18N("ui.buildEstimate.cancelled") .. " "
 
 local unitHeight = {}
 for udid, unitDef in pairs(UnitDefs) do
 	unitHeight[udid] = unitDef.height
 end
 
-
 function widget:ViewResize()
-	font = WG['fonts'].getFont(nil, 1.2, 0.2, 20)
+	font = WG.fonts.getFont(nil, 1.2, 0.2, 20)
 end
 
 local function makeETA(unitID, unitDefID)
@@ -54,7 +53,7 @@ local function makeETA(unitID, unitDefID)
 		return nil
 	end
 	local isBuilding, buildProgress = spGetUnitIsBeingBuilt(unitID)
-	if not isBuilding  then
+	if not isBuilding then
 		return nil
 	end
 
@@ -64,17 +63,17 @@ local function makeETA(unitID, unitDefID)
 		lastProg = buildProgress,
 		rate = nil,
 		timeLeft = nil,
-		yoffset = unitHeight[unitDefID] + 14
+		yoffset = unitHeight[unitDefID] + 14,
 	}
 end
 
 local function init()
 	etaTable = {}
-	local units = Spring.GetAllUnits()
-	for i=1, #units do
+	local units = SpringShared.GetAllUnits()
+	for i = 1, #units do
 		local unitID = units[i]
 		if fullview or spGetUnitAllyTeam(unitID) == myAllyTeam then
-			etaTable[unitID] = makeETA(unitID, Spring.GetUnitDefID(unitID))
+			etaTable[unitID] = makeETA(unitID, SpringShared.GetUnitDefID(unitID))
 		end
 	end
 end
@@ -85,12 +84,11 @@ function widget:Initialize()
 end
 
 function widget:LanguageChanged()
-	i18n_buildTime = "\255\255\255\1" .. Spring.I18N('ui.buildEstimate.time') .. "\255\255\255\255 "
-	i18n_cancelled = Spring.I18N('ui.buildEstimate.cancelled') .. " "
+	i18n_buildTime = "\255\255\255\1" .. I18N("ui.buildEstimate.time") .. "\255\255\255\255 "
+	i18n_cancelled = I18N("ui.buildEstimate.cancelled") .. " "
 end
 
 function widget:Update(dt)
-
 	local gs = spGetGameSeconds()
 	if gs == lastGameUpdate then
 		return
@@ -117,7 +115,7 @@ function widget:Update(dt)
 
 			if rate ~= 0 then
 				if bi.firstSet then
-					if (buildProgress > 0.001) then
+					if buildProgress > 0.001 then
 						bi.firstSet = false
 					end
 				else
@@ -157,8 +155,8 @@ function widget:Update(dt)
 end
 
 function widget:PlayerChanged()
-	if myAllyTeam ~= Spring.GetMyAllyTeamID() or fullview ~= select(2, spGetSpectatingState()) then
-		myAllyTeam = Spring.GetMyAllyTeamID()
+	if myAllyTeam ~= SpringUnsynced.GetLocalAllyTeamID() or fullview ~= select(2, spGetSpectatingState()) then
+		myAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
 		spec, fullview = spGetSpectatingState()
 		init()
 	end
@@ -188,8 +186,8 @@ local function drawEtaText(timeLeft, yoffset)
 	if timeLeft == nil then
 		etaText = etaPrefix .. "\255\1\1\255???"
 	else
-		local canceled = timeLeft<0
-		etaPrefix = (not canceled and etaPrefix) or (((spGetGameFrame()%blinkTime>=blinkTime/2) and "\255\255\255\255" or"\255\255\1\1")..i18n_cancelled)
+		local canceled = timeLeft < 0
+		etaPrefix = (not canceled and etaPrefix) or (((spGetGameFrame() % blinkTime >= blinkTime / 2) and "\255\255\255\255" or "\255\255\1\1") .. i18n_cancelled)
 		timeLeft = math.abs(timeLeft)
 		local minutes = timeLeft / 60
 		local seconds = timeLeft % 60
@@ -204,12 +202,10 @@ local function drawEtaText(timeLeft, yoffset)
 	font:End()
 end
 
-
-
 function widget:DrawWorld()
-	if Spring.IsGUIHidden() == false then
+	if SpringUnsynced.IsGUIHidden() == false then
 		local glStateReady = false
-		local cx, cy, cz = Spring.GetCameraPosition()
+		local cx, cy, cz = SpringUnsynced.GetCameraPosition()
 		for unitID, bi in pairs(etaTable) do
 			local ux, uy, uz = spGetUnitViewPosition(unitID)
 			if ux ~= nil then

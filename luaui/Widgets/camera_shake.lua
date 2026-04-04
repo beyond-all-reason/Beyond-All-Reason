@@ -21,16 +21,15 @@ function widget:GetInfo()
 		date = "Jun 15, 2007",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
-
 
 -- Localized functions for performance
 local mathFloor = math.floor
 
-local spSetCameraOffset = Spring.SetCameraOffset
-local spSetShockFrontFactors = Spring.SetShockFrontFactors
+local spSetCameraOffset = SpringUnsynced.SetCameraOffset
+local spSetShockFrontFactors = SpringShared.SetShockFrontFactors
 local math_random = math.random
 
 local exps = 0
@@ -40,7 +39,7 @@ local powerScale = 80
 
 local decayFactor = 5
 
-local minArea = 32  -- weapon's area of effect
+local minArea = 32 -- weapon's area of effect
 local minPower = 0.02 / powerScale
 local distAdj = 100
 
@@ -48,16 +47,15 @@ local distAdj = 100
 --------------------------------------------------------------------------------
 
 function widget:Initialize()
-
 	-- required for ShockFront() call-ins
 	-- (threshold uses the 1/d*d power)
 	spSetShockFrontFactors(minArea, minPower, distAdj)
 
-	WG['camerashake'] = {}
-	WG['camerashake'].getStrength = function()
+	WG.camerashake = {}
+	WG.camerashake.getStrength = function()
 		return powerScale
 	end
-	WG['camerashake'].setStrength = function(value)
+	WG.camerashake.setStrength = function(value)
 		powerScale = mathFloor(value)
 		if powerScale <= 0 then
 			minPower = 0
@@ -94,11 +92,7 @@ function widget:Update(dt)
 	local t = widgetHandler:GetHourTimer()
 	local pShake = shake * 0.1
 	local tShake = shake * 0.025
-	local px, py, pz, tx, ty, tz = birand(pShake),
-	birand(pShake),
-	birand(pShake),
-	birand(tShake),
-	birand(tShake)
+	local px, py, pz, tx, ty, tz = birand(pShake), birand(pShake), birand(pShake), birand(tShake), birand(tShake)
 	local maxOffsetPx = powerScale / 40000
 	if px > maxOffsetPx then
 		px = maxOffsetPx

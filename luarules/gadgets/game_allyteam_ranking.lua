@@ -2,12 +2,12 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name	= "AllyTeam ranking",
-		desc	= "broadcast the allyteam ranking order by total unit value, can be used to order playerlist",
-		author	= "Floris",
-		date	= "February 2025",
-		license   = "GNU GPL, v2 or later",
-		layer	= 0,
+		name = "AllyTeam ranking",
+		desc = "broadcast the allyteam ranking order by total unit value, can be used to order playerlist",
+		author = "Floris",
+		date = "February 2025",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
 		enabled = true,
 	}
 end
@@ -16,7 +16,7 @@ if gadgetHandler:IsSyncedCode() then
 	return
 end
 
-if not Spring.Utilities.Gametype.IsFFA() or Spring.Utilities.Gametype.IsSinglePlayer() then
+if not Utilities.Gametype.IsFFA() or Utilities.Gametype.IsSinglePlayer() then
 	return
 end
 
@@ -24,24 +24,26 @@ local prevRanking = {}
 local allyteamCost = {}
 local unfinishedUnits = {}
 local teamAllyteam = {}
-local teamList = Spring.GetTeamList()
-local GaiaTeamID = Spring.GetGaiaTeamID()
+local teamList = SpringShared.GetTeamList()
+local GaiaTeamID = SpringShared.GetGaiaTeamID()
 for i = 1, #teamList do
 	local teamID = teamList[i]
 	if teamID ~= GaiaTeamID then
-		local allyTeamID = select(6, Spring.GetTeamInfo(teamID))
+		local allyTeamID = select(6, SpringShared.GetTeamInfo(teamID))
 		teamAllyteam[teamID] = allyTeamID
 		allyteamCost[allyTeamID] = 0
 		unfinishedUnits[allyTeamID] = {}
 	end
 end
 
-local spGetTeamResources = Spring.GetTeamResources
-local spGetTeamList = Spring.GetTeamList
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+local spGetTeamResources = SpringShared.GetTeamResources
+local spGetTeamList = SpringShared.GetTeamList
+local spGetUnitIsBeingBuilt = SpringShared.GetUnitIsBeingBuilt
 local mathFloor = math.floor
 local tableSort = table.sort
-local rankSortFunc = function(m1, m2) return m1.totalCost > m2.totalCost end
+local rankSortFunc = function(m1, m2)
+	return m1.totalCost > m2.totalCost
+end
 
 local unitCost = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -50,7 +52,9 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	local allyTeamID = teamAllyteam[unitTeam]
-	if not allyTeamID then return end
+	if not allyTeamID then
+		return
+	end
 	if spGetUnitIsBeingBuilt(unitID) then
 		unfinishedUnits[allyTeamID][unitID] = unitDefID
 	else
@@ -60,7 +64,9 @@ end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	local allyTeamID = teamAllyteam[unitTeam]
-	if not allyTeamID then return end
+	if not allyTeamID then
+		return
+	end
 	if unfinishedUnits[allyTeamID][unitID] then
 		allyteamCost[allyTeamID] = allyteamCost[allyTeamID] + unitCost[unitDefID]
 		unfinishedUnits[allyTeamID][unitID] = nil
@@ -69,7 +75,9 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	local allyTeamID = teamAllyteam[unitTeam]
-	if not allyTeamID then return end
+	if not allyTeamID then
+		return
+	end
 	if unfinishedUnits[allyTeamID][unitID] then
 		unfinishedUnits[allyTeamID][unitID] = nil
 	else
@@ -80,7 +88,9 @@ end
 function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 	local allyTeamID = teamAllyteam[unitTeam]
 	local oldAllyTeamID = teamAllyteam[oldTeam]
-	if not allyTeamID or not oldAllyTeamID then return end
+	if not allyTeamID or not oldAllyTeamID then
+		return
+	end
 
 	if spGetUnitIsBeingBuilt(unitID) then
 		unfinishedUnits[oldAllyTeamID][unitID] = nil
@@ -94,7 +104,9 @@ end
 function gadget:UnitTaken(unitID, unitDefID, unitTeam, oldTeam)
 	local allyTeamID = teamAllyteam[unitTeam]
 	local oldAllyTeamID = teamAllyteam[oldTeam]
-	if not allyTeamID or not oldAllyTeamID then return end
+	if not allyTeamID or not oldAllyTeamID then
+		return
+	end
 
 	if spGetUnitIsBeingBuilt(unitID) then
 		unfinishedUnits[oldAllyTeamID][unitID] = nil
@@ -106,8 +118,8 @@ function gadget:UnitTaken(unitID, unitDefID, unitTeam, oldTeam)
 end
 
 function gadget:Initialize()
-	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+	for _, unitID in ipairs(SpringShared.GetAllUnits()) do
+		gadget:UnitCreated(unitID, SpringShared.GetUnitDefID(unitID), SpringShared.GetUnitTeam(unitID))
 	end
 end
 
@@ -128,13 +140,13 @@ function gadget:GameFrame(gf)
 				local totalConstructionCost = 0
 				for unitID, unitDefID in pairs(unfinishedUnits[allyTeamID]) do
 					local completeness = select(2, spGetUnitIsBeingBuilt(unitID))
-					if not completeness then	-- this shouldnt occur
+					if not completeness then -- this shouldnt occur
 						unfinishedUnits[allyTeamID][unitID] = nil
 					else
 						totalConstructionCost = totalConstructionCost + mathFloor(unitCost[unitDefID] * completeness)
 					end
 				end
-				temp[#temp+1] = { allyTeamID = allyTeamID, totalCost = totalCost + totalResCost + totalConstructionCost }
+				temp[#temp + 1] = { allyTeamID = allyTeamID, totalCost = totalCost + totalResCost + totalConstructionCost }
 			end
 			tableSort(temp, rankSortFunc)
 			local rankingChanged = false
@@ -152,4 +164,3 @@ function gadget:GameFrame(gf)
 		end
 	end
 end
-

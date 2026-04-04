@@ -35,7 +35,7 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.9834,
 		turnrate = 1000,
-		workertime = 100*Spring.GetModOptions().assistdronesbuildpowermultiplier,
+		workertime = 100 * SpringShared.GetModOptions().assistdronesbuildpowermultiplier,
 		buildoptions = {
 			[1] = "armsolar",
 			[2] = "armwin",
@@ -66,7 +66,7 @@ return {
 			[27] = "armfhp",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmVehicles",

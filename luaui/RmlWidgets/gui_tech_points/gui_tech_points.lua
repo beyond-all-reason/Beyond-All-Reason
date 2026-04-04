@@ -16,15 +16,15 @@ function widget:GetInfo()
 	}
 end
 
-local modOptions = Spring.GetModOptions()
+local modOptions = SpringShared.GetModOptions()
 
 if not modOptions.tech_blocking then
 	return false
 end
 
-local spGetTeamRulesParam = Spring.GetTeamRulesParam
-local spGetMyTeamID = Spring.GetMyTeamID
-local spI18N = Spring.I18N
+local spGetTeamRulesParam = SpringShared.GetTeamRulesParam
+local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
+local spI18N = I18N
 
 local POPUP_DELAY_FRAMES = Game.gameSpeed * 10
 local UPDATE_INTERVAL = 1.0
@@ -94,7 +94,9 @@ local function getTechData()
 
 	if not myTeamID then
 		myTeamID = spGetMyTeamID()
-		if not myTeamID then return 1, 0, 100, 1000 end
+		if not myTeamID then
+			return 1, 0, 100, 1000
+		end
 		widgetState.cachedMyTeamID = myTeamID
 	end
 
@@ -118,8 +120,8 @@ local function getTechData()
 
 	if techBlockingPerTeam then
 		if currentTime - widgetState.lastTeamCountUpdate > CACHE_INTERVAL then
-			local myAllyTeamID = Spring.GetMyAllyTeamID()
-			local teamList = Spring.GetTeamList(myAllyTeamID)
+			local myAllyTeamID = SpringUnsynced.GetLocalAllyTeamID()
+			local teamList = SpringShared.GetTeamList(myAllyTeamID)
 			local newTeamCount = #teamList
 
 			if newTeamCount ~= widgetState.cachedTeamCount then
@@ -155,7 +157,7 @@ local function calculateProgressPercent(currentPoints, nextThreshold, currentTec
 		end
 		if currentPoints < t2Threshold then
 			local deficit = t2Threshold - currentPoints
-			local maxDeficit = t2Threshold 
+			local maxDeficit = t2Threshold
 			local deficitPercent = math.min(100, (deficit / maxDeficit) * 100)
 			return deficitPercent, true
 		end
@@ -212,7 +214,7 @@ local function createTechPointsElements()
 end
 
 local function updatePopups(techLevel)
-	if not widgetState.initialPopupShown and widgetState.gameStartTime and (popupsEnabled or Spring.GetGameFrame() > POPUP_DELAY_FRAMES) then
+	if not widgetState.initialPopupShown and widgetState.gameStartTime and (popupsEnabled or SpringShared.GetGameFrame() > POPUP_DELAY_FRAMES) then
 		popupsEnabled = true
 		if widgetState.document then
 			updateUIElementText(widgetState.document, "tech-level-popup", spI18N("ui.techBlocking.techPopup.level1"))
@@ -249,10 +251,7 @@ local function updateUI()
 
 	local data = updateTechPointsData()
 
-	local uiChanged = data.techLevel ~= widgetState.lastDisplayedTechLevel or
-		data.currentTechPoints ~= widgetState.lastDisplayedTechPoints or
-		data.progressPercent ~= widgetState.lastDisplayedProgressPercent or
-		data.isNegative ~= widgetState.lastDisplayedIsNegative
+	local uiChanged = data.techLevel ~= widgetState.lastDisplayedTechLevel or data.currentTechPoints ~= widgetState.lastDisplayedTechPoints or data.progressPercent ~= widgetState.lastDisplayedProgressPercent or data.isNegative ~= widgetState.lastDisplayedIsNegative
 
 	updatePopups(data.techLevel)
 
@@ -308,8 +307,8 @@ function widget:Initialize()
 	local baseT3 = modOptions.t3_tech_threshold or 1000
 
 	if modOptions.tech_blocking_per_team then
-		local myAllyTeamID = Spring.GetMyAllyTeamID()
-		local teamList = Spring.GetTeamList(myAllyTeamID)
+		local myAllyTeamID = SpringUnsynced.GetLocalAllyTeamID()
+		local teamList = SpringShared.GetTeamList(myAllyTeamID)
 		widgetState.cachedTeamCount = #teamList
 		widgetState.lastTeamCountUpdate = os.clock()
 		widgetState.cachedT2Threshold = baseT2 * widgetState.cachedTeamCount
@@ -340,13 +339,12 @@ function widget:Initialize()
 
 	document:Show()
 
-	updateUIElementText(document, "tech-level-header", spI18N('ui.techBlocking.techLevel'))
-	updateUIElementText(document, "tech-level-popup", spI18N('ui.techBlocking.techPopup.level1'))
+	updateUIElementText(document, "tech-level-header", spI18N("ui.techBlocking.techLevel"))
+	updateUIElementText(document, "tech-level-popup", spI18N("ui.techBlocking.techPopup.level1"))
 
 	createTechPointsElements()
 
 	updateUI()
-
 end
 
 function widget:Shutdown()
@@ -361,7 +359,6 @@ function widget:Shutdown()
 	end
 
 	widgetState.rmlContext = nil
-
 end
 
 function widget:Update(dt)
@@ -375,11 +372,13 @@ end
 
 function widget:RecvLuaMsg(message, playerID)
 	local document = widgetState.document
-	if not document then return end
+	if not document then
+		return
+	end
 
-	if message:sub(1, 19) == 'LobbyOverlayActive0' then
+	if message:sub(1, 19) == "LobbyOverlayActive0" then
 		document:Show()
-	elseif message:sub(1, 19) == 'LobbyOverlayActive1' then
+	elseif message:sub(1, 19) == "LobbyOverlayActive1" then
 		document:Hide()
 	end
 end

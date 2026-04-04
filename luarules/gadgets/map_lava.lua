@@ -2,17 +2,17 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name      = "Map Lava Gadget 2.5",
-		desc      = "lava",
-		author    = "knorke, Beherith, The_Yak, Anarchid, Kloot, Gajop, ivand, Damgam, Chronographer",
-		date      = "Feb 2011, Nov 2013, 2022!",
-		license   = "GNU GPL v2",
-		layer     = -3,
-		enabled   = true
+		name = "Map Lava Gadget 2.5",
+		desc = "lava",
+		author = "knorke, Beherith, The_Yak, Anarchid, Kloot, Gajop, ivand, Damgam, Chronographer",
+		date = "Feb 2011, Nov 2013, 2022!",
+		license = "GNU GPL v2",
+		layer = -3,
+		enabled = true,
 	}
 end
 
-local lava = Spring.Lava
+local lava = Lava
 local lavaMap = lava.isLavaMap
 local gameSpeed = Game.gameSpeed
 
@@ -20,7 +20,6 @@ local gameSpeed = Game.gameSpeed
 --_G.Game.mapSizeY = Game.mapSizeY
 
 if gadgetHandler:IsSyncedCode() then
-
 	local tideIndex = 1
 	local tideContinueFrame = 0
 	local gameframe = 0
@@ -45,18 +44,18 @@ if gadgetHandler:IsSyncedCode() then
 	local lavaEffectDamage = lava.effectDamage
 
 	-- speedups
-	local spAddUnitDamage = Spring.AddUnitDamage
-	local spAddFeatureDamage = Spring.AddFeatureDamage
-	local spGetAllUnits = Spring.GetAllUnits
-	local spGetFeatureDefID = Spring.GetFeatureDefID
-	local spGetFeaturePosition = Spring.GetFeaturePosition
-	local spGetUnitBasePosition = Spring.GetUnitBasePosition
-	local spGetUnitDefID = Spring.GetUnitDefID
-	local spGetMoveData = Spring.GetUnitMoveTypeData
-	local spMoveCtrlEnabled = Spring.MoveCtrl.IsEnabled
-	local spSetMoveData = Spring.MoveCtrl.SetGroundMoveTypeData
-	local spGetGroundHeight = Spring.GetGroundHeight
-	local spSpawnCEG = Spring.SpawnCEG
+	local spAddUnitDamage = SpringSynced.AddUnitDamage
+	local spAddFeatureDamage = SpringSynced.AddFeatureDamage
+	local spGetAllUnits = SpringShared.GetAllUnits
+	local spGetFeatureDefID = SpringShared.GetFeatureDefID
+	local spGetFeaturePosition = SpringShared.GetFeaturePosition
+	local spGetUnitBasePosition = SpringShared.GetUnitBasePosition
+	local spGetUnitDefID = SpringShared.GetUnitDefID
+	local spGetMoveData = SpringShared.GetUnitMoveTypeData
+	local spMoveCtrlEnabled = SpringSynced.MoveCtrl.IsEnabled
+	local spSetMoveData = SpringSynced.MoveCtrl.SetGroundMoveTypeData
+	local spGetGroundHeight = SpringShared.GetGroundHeight
+	local spSpawnCEG = SpringSynced.SpawnCEG
 	local random = math.random
 	local clamp = math.clamp
 
@@ -75,7 +74,7 @@ if gadgetHandler:IsSyncedCode() then
 			turnDefs[unitDefID] = unitDef.turnRate
 			accDefs[unitDefID] = unitDef.maxAcc
 		end
-		unitHeight[unitDefID] = Spring.GetUnitDefDimensions(unitDefID).height
+		unitHeight[unitDefID] = SpringShared.GetUnitDefDimensions(unitDefID).height
 	end
 	local geoThermal = {}
 	for featureDefID, featureDef in pairs(FeatureDefs) do
@@ -84,12 +83,12 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local function addTideRhythm (targetLevel, speed, remainTime)
+	local function addTideRhythm(targetLevel, speed, remainTime)
 		local newTide = {}
 		newTide.targetLevel = targetLevel
 		newTide.speed = speed
 		newTide.remainTime = remainTime
-		table.insert (tideRhythm, newTide)
+		table.insert(tideRhythm, newTide)
 	end
 
 	for _, rhythm in ipairs(lava.tideRhythm) do
@@ -97,9 +96,8 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function updateLava()
-		if (lavaGrow < 0 and lavaLevel < tideRhythm[tideIndex].targetLevel)
-			or (lavaGrow > 0 and lavaLevel > tideRhythm[tideIndex].targetLevel) then
-			tideContinueFrame = gameframe + math.round(tideRhythm[tideIndex].remainTime*gameSpeed)
+		if (lavaGrow < 0 and lavaLevel < tideRhythm[tideIndex].targetLevel) or (lavaGrow > 0 and lavaLevel > tideRhythm[tideIndex].targetLevel) then
+			tideContinueFrame = gameframe + math.round(tideRhythm[tideIndex].remainTime * gameSpeed)
 			lavaGrow = 0
 			--Spring.Echo ("Next LAVA LEVEL change in " .. (tideContinueFrame-gameframe)/30 .. " seconds")
 		end
@@ -120,12 +118,14 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function updateSlow(unitID, unitDefID, unitSlow)
-		if spMoveCtrlEnabled(unitID) then return false end
+		if spMoveCtrlEnabled(unitID) then
+			return false
+		end
 		local slowedMaxSpeed = speedDefs[unitDefID] * unitSlow
 		local slowedTurnRate = turnDefs[unitDefID] * unitSlow
 		local slowedAccRate = accDefs[unitDefID] * unitSlow
 		local sucess = pcall(function()
-			spSetMoveData(unitID, {maxSpeed = slowedMaxSpeed, turnRate = slowedTurnRate, accRate = slowedAccRate})
+			spSetMoveData(unitID, { maxSpeed = slowedMaxSpeed, turnRate = slowedTurnRate, accRate = slowedAccRate })
 		end)
 		return sucess
 	end
@@ -145,23 +145,23 @@ if gadgetHandler:IsSyncedCode() then
 
 	-- slow down and damage unit+features in lava
 	function lavaObjectsCheck()
-		local gaiaTeamID = Spring.GetGaiaTeamID()
+		local gaiaTeamID = SpringShared.GetGaiaTeamID()
 		local all_units = spGetAllUnits()
 		for _, unitID in ipairs(all_units) do
 			local unitDefID = spGetUnitDefID(unitID)
 			if not canFly[unitDefID] then
-				local x,y,z = spGetUnitBasePosition(unitID)
+				local x, y, z = spGetUnitBasePosition(unitID)
 				if y and y < lavaLevel then
-					local unitSlow = clamp(1-(((lavaLevel-y) / unitHeight[unitDefID])*lavaSlow) , 1-lavaSlow , .9)
+					local unitSlow = clamp(1 - (((lavaLevel - y) / unitHeight[unitDefID]) * lavaSlow), 1 - lavaSlow, 0.9)
 					if not lavaUnits[unitID] then -- first entry into lava
 						local moveType = spGetMoveData(unitID).name
 						local maxSpeed = speedDefs[unitDefID]
 						local turnRate = turnDefs[unitDefID]
 						local accelRate = accDefs[unitDefID]
-						if (moveType == "ground") and (maxSpeed and maxSpeed ~= 0) and (turnRate and turnRate ~= 0) and (accelRate and accelRate ~= 0)then
-							lavaUnits[unitID] = {currentSlow = 1, slowed = true}
+						if (moveType == "ground") and (maxSpeed and maxSpeed ~= 0) and (turnRate and turnRate ~= 0) and (accelRate and accelRate ~= 0) then
+							lavaUnits[unitID] = { currentSlow = 1, slowed = true }
 						else
-							lavaUnits[unitID] = {slowed = false}
+							lavaUnits[unitID] = { slowed = false }
 						end
 					end
 					if lavaUnits[unitID].slowed and (unitSlow ~= lavaUnits[unitID].currentSlow) then
@@ -170,8 +170,8 @@ if gadgetHandler:IsSyncedCode() then
 							lavaUnits[unitID].currentSlow = unitSlow
 						end
 					end
-				spAddUnitDamage(unitID, lavaDamage, 0, gaiaTeamID, 1)
-				spSpawnCEG(lavaEffectDamage, x, y+5, z)
+					spAddUnitDamage(unitID, lavaDamage, 0, gaiaTeamID, 1)
+					spSpawnCEG(lavaEffectDamage, x, y + 5, z)
 				elseif lavaUnits[unitID] then -- unit exited lava
 					if lavaUnits[unitID].slowed then
 						updateSlow(unitID, unitDefID, 1)
@@ -181,14 +181,14 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		if lavaDamageFeatures then
-			local all_features = Spring.GetAllFeatures()
+			local all_features = SpringShared.GetAllFeatures()
 			for _, featureID in ipairs(all_features) do
 				local FeatureDefID = spGetFeatureDefID(featureID)
 				if not geoThermal[FeatureDefID] then
-					x,y,z = spGetFeaturePosition(featureID)
-					if (y and y < lavaLevel) then
+					x, y, z = spGetFeaturePosition(featureID)
+					if y and y < lavaLevel then
 						spAddFeatureDamage(featureID, lavaDamage, 0, gaiaTeamID)
-						spSpawnCEG(lavaEffectDamage, x, y+5, z)
+						spSpawnCEG(lavaEffectDamage, x, y + 5, z)
 					end
 				end
 			end
@@ -200,20 +200,20 @@ if gadgetHandler:IsSyncedCode() then
 			gadgetHandler:RemoveGadget(self)
 			return
 		end
-		minGroundHeight = select(3, Spring.GetGroundExtremes())
+		minGroundHeight = select(3, SpringShared.GetGroundExtremes())
 		_G.lavaLevel = lavaLevel
 		_G.lavaGrow = lavaGrow
-		Spring.SetGameRulesParam("lavaLevel", -99999)
+		SpringSynced.SetGameRulesParam("lavaLevel", -99999)
 	end
 
 	function gadget:GameFrame(f)
 		gameframe = f
-		_G.lavaLevel = lavaLevel+math.sin(f/gameSpeed)*0.5
+		_G.lavaLevel = lavaLevel + math.sin(f / gameSpeed) * 0.5
 		--_G.lavaLevel = lavaLevel + clamp(math.sin(f / 30), -0.95, 0.95) * 0.5 -- clamp to avoid jittering when sin(x) is around +-1
 
 		-- Periodically refresh cached min ground height (handles terraforming)
 		if f % GROUND_EXTREMES_UPDATE_RATE == 0 then
-			minGroundHeight = select(3, Spring.GetGroundExtremes())
+			minGroundHeight = select(3, SpringShared.GetGroundExtremes())
 		end
 
 		local lavaAboveGround = lavaLevel >= minGroundHeight
@@ -228,8 +228,8 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		updateLava()
-		lavaLevel = lavaLevel+(lavaGrow/gameSpeed)
-		Spring.SetGameRulesParam("lavaLevel", lavaLevel)
+		lavaLevel = lavaLevel + (lavaGrow / gameSpeed)
+		SpringSynced.SetGameRulesParam("lavaLevel", lavaLevel)
 
 		-- burst and sound effects (skip entirely when lava is below the map surface)
 		if lavaAboveGround and f % 5 == 0 then
@@ -242,28 +242,28 @@ if gadgetHandler:IsSyncedCode() then
 				local y = spGetGroundHeight(x, z)
 
 				if y < lavaLevel then
-					spSpawnCEG(lavaEffectBurst, x, lavaLevel+5, z)
+					spSpawnCEG(lavaEffectBurst, x, lavaLevel + 5, z)
 
 					local lavaEffectBurstSounds = lava.effectBurstSounds
 					if lavaEffectBurstSounds and #lavaEffectBurstSounds > 0 then
 						local soundIndex = random(1, #lavaEffectBurstSounds)
 						local sound = lavaEffectBurstSounds[soundIndex]
-						Spring.PlaySoundFile(sound[1], random(sound[2], sound[3])/100, x, y, z, 'sfx')
+						SpringUnsynced.PlaySoundFile(sound[1], random(sound[2], sound[3]) / 100, x, y, z, "sfx")
 					end
 				end
 			end
 			-- ambient sounds
 			local lavaAmbientSounds = lava.ambientSounds
 			if lavaAmbientSounds and #lavaAmbientSounds > 0 then
-				for i = 1,10 do
+				for i = 1, 10 do
 					if random(1, 3) == 1 then
 						local x = random(1, mapSizeX)
 						local z = random(1, mapSizeY)
-						local y = spGetGroundHeight(x,z)
+						local y = spGetGroundHeight(x, z)
 						if y < lavaLevel then
 							local soundIndex = random(1, #lavaAmbientSounds)
 							local sound = lavaAmbientSounds[soundIndex]
-							Spring.PlaySoundFile(sound[1], random(sound[2], sound[3])/100, x, y, z, 'sfx')
+							SpringUnsynced.PlaySoundFile(sound[1], random(sound[2], sound[3]) / 100, x, y, z, "sfx")
 							break
 						end
 					end
@@ -271,18 +271,18 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-	-- new to use notif system
-	-- if lavaGrow then
-	--   if lavaGrow > 0 and not lavaNotificationPlayed then
-	--     lavaNotificationPlayed = true
-	--     LavaGrowsNotificationHere
-	--   elseif lavaGrow < 0 and not lavaNotificationPlayed then
-	--     lavaNotificationPlayed = true
-	--     LavaFallsNotificationHere
-	--   elseif lavaGrow == 0 and lavaNotificationPlayed then
-	--     lavaNotificationPlayed = false
-	--   end
-	-- end
+		-- new to use notif system
+		-- if lavaGrow then
+		--   if lavaGrow > 0 and not lavaNotificationPlayed then
+		--     lavaNotificationPlayed = true
+		--     LavaGrowsNotificationHere
+		--   elseif lavaGrow < 0 and not lavaNotificationPlayed then
+		--     lavaNotificationPlayed = true
+		--     LavaFallsNotificationHere
+		--   elseif lavaGrow == 0 and lavaNotificationPlayed then
+		--     lavaNotificationPlayed = false
+		--   end
+		-- end
 
 		-- old lava rise/drop echos
 		-- if lavaGrow and lavaGrow > 0 then
@@ -296,8 +296,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID)
 		if weaponDefID ~= DAMAGE_EXTSOURCE_WATER then
-			   -- not water damage, do not modify
-			   return damage, 1.0
+			-- not water damage, do not modify
+			return damage, 1.0
 		end
 		local moveDef = unitMoveDef[unitDefID]
 		if moveDef == nil or moveDef.family ~= "hover" then -- Out of date use of family to be removed post GDT discussion
@@ -310,10 +310,8 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
 		lavaUnits[unitID] = nil
 	end
-
-else  -- UNSYCNED
-
-	local texturesamplingmode = '' -- ':l:' causes MASSIVE load on zoom out and downsampling textures!
+else -- UNSYCNED
+	local texturesamplingmode = "" -- ':l:' causes MASSIVE load on zoom out and downsampling textures!
 	local lavaDiffuseEmit = texturesamplingmode .. lava.diffuseEmitTex -- pack emissiveness into alpha channel (this is also used as heat for distortion)
 	local lavaNormalHeight = texturesamplingmode .. lava.normalHeightTex -- pack height into normals alpha
 	local lavaDistortion = texturesamplingmode .. "LuaUI/images/lavadistortion.png"
@@ -325,7 +323,7 @@ else  -- UNSYCNED
 
 	local foglightenabled = lava.fogEnabled
 	local fogheightabovelava = lava.fogHeight
-	local allowDeferredMapRendering =  (Spring.GetConfigInt("AllowDeferredMapRendering") == 1) -- map depth buffer is required for the foglight shader pass
+	local allowDeferredMapRendering = (SpringUnsynced.GetConfigInt("AllowDeferredMapRendering") == 1) -- map depth buffer is required for the foglight shader pass
 
 	local tideamplitude = lava.tideAmplitude
 	local tideperiod = lava.tidePeriod
@@ -337,7 +335,6 @@ else  -- UNSYCNED
 
 	local elmosPerSquare = 256 -- The resolution of the lava
 
-
 	local autoreload = false -- set to true to reload the shader every time it is edited
 
 	local LuaShader = gl.LuaShader
@@ -345,11 +342,11 @@ else  -- UNSYCNED
 
 	local unifiedShaderConfig = {
 		-- for lavaplane
-		HEIGHTOFFSET = 2.0,  -- how many elmos above the 'actual' lava height we should render, to avoid ROAM clipping artifacts
+		HEIGHTOFFSET = 2.0, -- how many elmos above the 'actual' lava height we should render, to avoid ROAM clipping artifacts
 		COASTWIDTH = lava.coastWidth, -- how wide the coast of the lava should be
 		WORLDUVSCALE = lava.uvScale, -- How many times to tile the lava texture across the entire map
 		COASTCOLOR = lava.coastColor, -- the color of the lava coast
-		SPECULAREXPONENT = lava.specularExp,  -- the specular exponent of the lava plane
+		SPECULAREXPONENT = lava.specularExp, -- the specular exponent of the lava plane
 		SPECULARSTRENGTH = 1.0, -- The peak brightness of specular highlights
 		LOSDARKNESS = lava.losDarkness, -- how much to darken the out-of-los areas of the lava plane
 		SHADOWSTRENGTH = lava.shadowStrength, -- how much light a shadowed fragment can recieve
@@ -370,9 +367,8 @@ else  -- UNSYCNED
 		FOGABOVELAVA = lava.fogAbove, -- the multiplier for how much fog should be above lava fragments, ~0.2 means the lava itself gets hardly any fog, while 2.0 would mean the lava gets a lot of extra fog
 
 		-- for both:
-		SWIZZLECOLORS = 'fragColor.rgb = (fragColor.rgb * '..lava.colorCorrection..').rgb;', -- yes you can swap around and weight color channels, right after final color, default is 'rgb'
+		SWIZZLECOLORS = "fragColor.rgb = (fragColor.rgb * " .. lava.colorCorrection .. ").rgb;", -- yes you can swap around and weight color channels, right after final color, default is 'rgb'
 	}
-
 
 	local lavaVSSrcPath = "shaders/GLSL/lava/lava.vert.glsl"
 	local lavaFSSrcPath = "shaders/GLSL/lava/lava.frag.glsl"
@@ -395,7 +391,7 @@ else  -- UNSYCNED
 			lavaHeight = 1,
 			heatdistortx = 1,
 			heatdistortz = 1,
-		  },
+		},
 		shaderConfig = unifiedShaderConfig,
 	}
 
@@ -412,14 +408,14 @@ else  -- UNSYCNED
 			lavaHeight = 1,
 			heatdistortx = 1,
 			heatdistortz = 1,
-		  },
+		},
 		shaderConfig = unifiedShaderConfig,
 	}
 
-	local myPlayerID = tostring(Spring.GetMyPlayerID())
+	local myPlayerID = tostring(SpringUnsynced.GetLocalPlayerID())
 	function gadget:GameFrame(f)
 		if SYNCED.lavaLevel then
-			lavatidelevel = math.sin(Spring.GetGameFrame() / tideperiod) * tideamplitude + SYNCED.lavaLevel
+			lavatidelevel = math.sin(SpringShared.GetGameFrame() / tideperiod) * tideamplitude + SYNCED.lavaLevel
 		end
 		if SYNCED.lavaGrow then
 			local lavaGrow = SYNCED.lavaGrow
@@ -427,12 +423,12 @@ else  -- UNSYCNED
 				if lavaGrow > 0 and not lavaRisingNotificationPlayed then
 					lavaRisingNotificationPlayed = true
 					if Script.LuaUI("NotificationEvent") then
-						Script.LuaUI.NotificationEvent("LavaRising "..myPlayerID)
+						Script.LuaUI.NotificationEvent("LavaRising " .. myPlayerID)
 					end
 				elseif lavaGrow < 0 and not lavaDroppingNotificationPlayed then
 					lavaDroppingNotificationPlayed = true
 					if Script.LuaUI("NotificationEvent") then
-						Script.LuaUI.NotificationEvent("LavaDropping "..myPlayerID)
+						Script.LuaUI.NotificationEvent("LavaDropping " .. myPlayerID)
 					end
 				elseif lavaGrow == 0 and (lavaRisingNotificationPlayed or lavaDroppingNotificationPlayed) then
 					lavaRisingNotificationPlayed = false
@@ -452,24 +448,23 @@ else  -- UNSYCNED
 			return
 		end
 
-		Spring.SetDrawWater(false)
+		SpringUnsynced.SetDrawWater(false)
 
 		-- Now for all intents and purposes, we kinda need to make a lava plane that is 3x the rez of our map
 		-- If, e.g our map size is 16x16, we will have 1024 heightmap. If we make a 128 size vbo, then what?
 		-- numverts = 128 * 384 * 384 *2 tris then we will get 280k tris ....
 		local xsquares = 3 * Game.mapSizeX / elmosPerSquare
 		local zsquares = 3 * Game.mapSizeZ / elmosPerSquare
-		local vertexBuffer, vertexBufferSize = InstanceVBOTable.makePlaneVBO(1, 1,  xsquares, zsquares)
+		local vertexBuffer, vertexBufferSize = InstanceVBOTable.makePlaneVBO(1, 1, xsquares, zsquares)
 		local indexBuffer, indexBufferSize = InstanceVBOTable.makePlaneIndexVBO(xsquares, zsquares)
 		lavaPlaneVAO = gl.GetVAO()
 		lavaPlaneVAO:AttachVertexBuffer(vertexBuffer)
 		lavaPlaneVAO:AttachIndexBuffer(indexBuffer)
 
-
 		lavaShader = LuaShader.CheckShaderUpdates(lavaShaderSourceCache)
 
 		if not lavaShader then
-			Spring.Echo("Failed to compile Lava Shader")
+			SpringShared.Echo("Failed to compile Lava Shader")
 			gadgetHandler:RemoveGadget()
 			return
 		end
@@ -477,7 +472,7 @@ else  -- UNSYCNED
 		foglightShader = LuaShader.CheckShaderUpdates(fogLightShaderSourceCache)
 
 		if not foglightShader then
-			Spring.Echo("Failed to compile foglightShader")
+			SpringShared.Echo("Failed to compile foglightShader")
 			gadgetHandler:RemoveGadget()
 			return
 		end
@@ -485,11 +480,11 @@ else  -- UNSYCNED
 
 	function gadget:DrawWorldPreUnit()
 		if lavatidelevel then
-			local _, gameSpeed, isPaused = Spring.GetGameSpeed()
+			local _, gameSpeed, isPaused = SpringUnsynced.GetGameSpeed()
 			if not isPaused then
-				local camX, camY, camZ = Spring.GetCameraDirection()
-				local camvlength = math.sqrt(camX*camX + camZ *camZ + 0.01)
-				smoothFPS = 0.9 * smoothFPS + 0.1 * math.max(Spring.GetFPS(), 15)
+				local camX, camY, camZ = SpringUnsynced.GetCameraDirection()
+				local camvlength = math.sqrt(camX * camX + camZ * camZ + 0.01)
+				smoothFPS = 0.9 * smoothFPS + 0.1 * math.max(SpringUnsynced.GetFPS(), 15)
 				heatdistortx = heatdistortx - camX / (camvlength * smoothFPS)
 				heatdistortz = heatdistortz - camZ / (camvlength * smoothFPS)
 			end
@@ -506,16 +501,16 @@ else  -- UNSYCNED
 			end
 
 			lavaShader:Activate()
-			lavaShader:SetUniform("lavaHeight",lavatidelevel)
-			lavaShader:SetUniform("heatdistortx",heatdistortx)
-			lavaShader:SetUniform("heatdistortz",heatdistortz)
+			lavaShader:SetUniform("lavaHeight", lavatidelevel)
+			lavaShader:SetUniform("heatdistortx", heatdistortx)
+			lavaShader:SetUniform("heatdistortz", heatdistortz)
 
-			gl.Texture(0, "$heightmap")-- Texture file
-			gl.Texture(1, lavaDiffuseEmit)-- Texture file
-			gl.Texture(2, lavaNormalHeight)-- Texture file
-			gl.Texture(3, lavaDistortion)-- Texture file
-			gl.Texture(4, "$shadow")-- Texture file
-			gl.Texture(5, "$info")-- Texture file
+			gl.Texture(0, "$heightmap") -- Texture file
+			gl.Texture(1, lavaDiffuseEmit) -- Texture file
+			gl.Texture(2, lavaNormalHeight) -- Texture file
+			gl.Texture(3, lavaDistortion) -- Texture file
+			gl.Texture(4, "$shadow") -- Texture file
+			gl.Texture(5, "$info") -- Texture file
 
 			gl.DepthTest(GL.LEQUAL) -- dont draw fragments below terrain
 			gl.DepthMask(true) -- actually write to the depth buffer, because otherwise units below lava will fully render over this
@@ -526,26 +521,26 @@ else  -- UNSYCNED
 			gl.DepthTest(false)
 			gl.DepthMask(false)
 
-			gl.Texture(0, false)-- Texture file
-			gl.Texture(1, false)-- Texture file
-			gl.Texture(2, false)-- Texture file
-			gl.Texture(3, false)-- Texture file
-			gl.Texture(4, false)-- Texture file
-			gl.Texture(5, false)-- Texture file
+			gl.Texture(0, false) -- Texture file
+			gl.Texture(1, false) -- Texture file
+			gl.Texture(2, false) -- Texture file
+			gl.Texture(3, false) -- Texture file
+			gl.Texture(4, false) -- Texture file
+			gl.Texture(5, false) -- Texture file
 		end
 	end
 
 	function gadget:DrawWorld()
 		if lavatidelevel and foglightenabled and allowDeferredMapRendering then
-				--Now to draw the fog light a good 32 elmos above it :)
+			--Now to draw the fog light a good 32 elmos above it :)
 			foglightShader:Activate()
-			foglightShader:SetUniform("lavaHeight",lavatidelevel + fogheightabovelava)
-			foglightShader:SetUniform("heatdistortx",heatdistortx)
-			foglightShader:SetUniform("heatdistortz",heatdistortz)
+			foglightShader:SetUniform("lavaHeight", lavatidelevel + fogheightabovelava)
+			foglightShader:SetUniform("heatdistortx", heatdistortx)
+			foglightShader:SetUniform("heatdistortz", heatdistortz)
 
-			gl.Texture(0, "$map_gbuffer_zvaltex")-- Texture file
-			gl.Texture(1, "$model_gbuffer_zvaltex")-- Texture file
-			gl.Texture(2, lavaDistortion)-- Texture file
+			gl.Texture(0, "$map_gbuffer_zvaltex") -- Texture file
+			gl.Texture(1, "$model_gbuffer_zvaltex") -- Texture file
+			gl.Texture(2, lavaDistortion) -- Texture file
 
 			gl.Blending(GL.SRC_ALPHA, GL.ONE) -- this will additively blend the foglight above everything
 			gl.DepthTest(GL.LEQUAL) -- dont draw fragments below the foglightlevel
@@ -557,16 +552,15 @@ else  -- UNSYCNED
 			gl.DepthTest(false)
 			gl.DepthMask(false)
 
-			gl.Texture(0, false)-- Texture file
-			gl.Texture(1, false)-- Texture file
-			gl.Texture(2, false)-- Texture file
+			gl.Texture(0, false) -- Texture file
+			gl.Texture(1, false) -- Texture file
+			gl.Texture(2, false) -- Texture file
 
 			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		end
 	end
 
 	function gadget:Shutdown()
-		Spring.SetDrawWater(true)
+		SpringUnsynced.SetDrawWater(true)
 	end
-
-end--ende unsync
+end --ende unsync

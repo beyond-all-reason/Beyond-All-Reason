@@ -1,4 +1,3 @@
-
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
@@ -9,14 +8,13 @@ function widget:GetInfo()
 		date = "20211020",
 		license = "GNU GPL, v2 or later",
 		layer = 20, -- below most GUI elements, which generally go up to 10
-		enabled = true
+		enabled = true,
 	}
 end
 
-
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spEcho = Spring.Echo
+local spGetGameFrame = SpringShared.GetGameFrame
+local spEcho = SpringShared.Echo
 
 local timeToLive = 330
 local lineWidth = 1.0
@@ -27,10 +25,10 @@ local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils
 --speedups
 ----------------------------------------------------------------
 
-local ArePlayersAllied = Spring.ArePlayersAllied
-local GetPlayerInfo = Spring.GetPlayerInfo
-local GetTeamColor = Spring.GetTeamColor
-local GetSpectatingState = Spring.GetSpectatingState
+local ArePlayersAllied = SpringShared.ArePlayersAllied
+local GetPlayerInfo = SpringShared.GetPlayerInfo
+local GetTeamColor = SpringUnsynced.GetTeamColor
+local GetSpectatingState = SpringUnsynced.GetSpectatingState
 
 local glLineWidth = gl.LineWidth
 
@@ -49,7 +47,7 @@ local instanceIDgen = 1
 local function GetPlayerColor(playerID)
 	local _, _, isSpec, teamID = GetPlayerInfo(playerID, false)
 	if isSpec then
-		return GetTeamColor(Spring.GetGaiaTeamID())
+		return GetTeamColor(SpringShared.GetGaiaTeamID())
 	end
 	if not teamID then
 		return nil
@@ -64,15 +62,14 @@ end
 -- GL4 Stuff --
 
 local mapMarkInstanceVBO = nil
-local mapMarkShader= nil
+local mapMarkShader = nil
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
-local popElementInstance  = InstanceVBOTable.popElementInstance
+local popElementInstance = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
-local drawInstanceVBO     = InstanceVBOTable.drawInstanceVBO
-
+local drawInstanceVBO = InstanceVBOTable.drawInstanceVBO
 
 local function ClearPoints()
 	mapPoints = {}
@@ -80,11 +77,10 @@ local function ClearPoints()
 end
 
 local shaderParams = {
-    MAPMARKERSIZE = 0.035,
-    LIFEFRAMES = timeToLive,
-  }
-local vsSrc =
-[[
+	MAPMARKERSIZE = 0.035,
+	LIFEFRAMES = timeToLive,
+}
+local vsSrc = [[
 #version 420
 
 layout (location = 0) in vec2 position;
@@ -187,8 +183,7 @@ void main()
 }
 ]]
 
-local fsSrc =
-[[
+local fsSrc = [[
 #version 420
 #line 20000
 
@@ -205,86 +200,115 @@ void main(void) { fragColor = vec4(blendedcolor.rgba); }
 ]]
 
 local function goodbye(reason)
-  spEcho("Point Tracker GL4 widget exiting with reason: "..reason)
-  widgetHandler:RemoveWidget()
+	spEcho("Point Tracker GL4 widget exiting with reason: " .. reason)
+	widgetHandler:RemoveWidget()
 end
 
 function makeMarkerVBO()
 	-- makes points with xyzw GL.LINES
-	local markerVBO = gl.GetVBO(GL.ARRAY_BUFFER,false)
-	if markerVBO == nil then return nil end
+	local markerVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+	if markerVBO == nil then
+		return nil
+	end
 
-	local VBOLayout = {	 {id = 0, name = "position_xy", size = 2}, 	}
+	local VBOLayout = { { id = 0, name = "position_xy", size = 2 } }
 
 	local VBOData = { -- A CROSSHAIR, each set of 4 points in a line in XY space
-    -1, -1,    -1, 1,
-    -1,  1,     1, 1,
-    1, 1,     1, -1,
-    1, -1 , -1, -1 ,
-    0, -0.75,    0, -1.25,
-    0.75, 0,   1.25, 0,
-    0, 0.75, 0, 1.25,
-    -0.75, 0,   -1.25, 0,
-    0, 0.01,  0, -0.01,
-    0.01,0,  -0.01,0,
+		-1,
+		-1,
+		-1,
+		1,
+		-1,
+		1,
+		1,
+		1,
+		1,
+		1,
+		1,
+		-1,
+		1,
+		-1,
+		-1,
+		-1,
+		0,
+		-0.75,
+		0,
+		-1.25,
+		0.75,
+		0,
+		1.25,
+		0,
+		0,
+		0.75,
+		0,
+		1.25,
+		-0.75,
+		0,
+		-1.25,
+		0,
+		0,
+		0.01,
+		0,
+		-0.01,
+		0.01,
+		0,
+		-0.01,
+		0,
 	}
-	markerVBO:Define(	#VBOData/2,	VBOLayout)
+	markerVBO:Define(#VBOData / 2, VBOLayout)
 	markerVBO:Upload(VBOData)
-	return markerVBO, #VBOData/2
+	return markerVBO, #VBOData / 2
 end
 
 local function initGL4()
-
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	mapMarkShader =  LuaShader(
-    {
-      vertex = vsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderParams)),
-      fragment = fsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderParams)),
-      uniformInt = {
-        },
-	uniformFloat = {
-        isMiniMap = 0,
-        mapRotation = 0,
-        pipVisibleArea = {0, 1, 0, 1}, -- left, right, bottom, top for PIP minimap
-      },
-    },
-    "mapMarkShader GL4"
-  )
-  shaderCompiled = mapMarkShader
-  mapMarkShader:Initialize()
-  if not shaderCompiled then goodbye("Failed to compile mapMarkShader GL4 ") end
-  local markerVBO,numVertices = makeMarkerVBO() --xyzw
-  local mapMarkInstanceVBOLayout = {
-		  {id = 1, name = 'posradius', size = 4}, -- posradius
-		  {id = 2, name = 'colorlife', size = 4}, --  color + startgameframe
-		}
-  mapMarkInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(mapMarkInstanceVBOLayout, 32, "mapMarkInstanceVBO")
-  mapMarkInstanceVBO.numVertices = numVertices
-  mapMarkInstanceVBO.vertexVBO = markerVBO
-  mapMarkInstanceVBO.VAO = InstanceVBOTable.makeVAOandAttach(mapMarkInstanceVBO.vertexVBO, mapMarkInstanceVBO.instanceVBO)
-  mapMarkInstanceVBO.primitiveType = GL.LINES
+	mapMarkShader = LuaShader({
+		vertex = vsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderParams)),
+		fragment = fsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderParams)),
+		uniformInt = {},
+		uniformFloat = {
+			isMiniMap = 0,
+			mapRotation = 0,
+			pipVisibleArea = { 0, 1, 0, 1 }, -- left, right, bottom, top for PIP minimap
+		},
+	}, "mapMarkShader GL4")
+	shaderCompiled = mapMarkShader
+	mapMarkShader:Initialize()
+	if not shaderCompiled then
+		goodbye("Failed to compile mapMarkShader GL4 ")
+	end
+	local markerVBO, numVertices = makeMarkerVBO() --xyzw
+	local mapMarkInstanceVBOLayout = {
+		{ id = 1, name = "posradius", size = 4 }, -- posradius
+		{ id = 2, name = "colorlife", size = 4 }, --  color + startgameframe
+	}
+	mapMarkInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(mapMarkInstanceVBOLayout, 32, "mapMarkInstanceVBO")
+	mapMarkInstanceVBO.numVertices = numVertices
+	mapMarkInstanceVBO.vertexVBO = markerVBO
+	mapMarkInstanceVBO.VAO = InstanceVBOTable.makeVAOandAttach(mapMarkInstanceVBO.vertexVBO, mapMarkInstanceVBO.instanceVBO)
+	mapMarkInstanceVBO.primitiveType = GL.LINES
 
-  if false then -- testing
-    pushElementInstance(mapMarkInstanceVBO,	{	200, 400, 200, 2000, 1, 0, 1, 1000000 },	nil, true)
-  end
+	if false then -- testing
+		pushElementInstance(mapMarkInstanceVBO, { 200, 400, 200, 2000, 1, 0, 1, 1000000 }, nil, true)
+	end
 end
 
 --------------------------------------------------------------------------------
 -- Draw Iteration
 --------------------------------------------------------------------------------
 function DrawMapMarksWorld(isMiniMap)
-  if mapMarkInstanceVBO.usedElements > 0 then
-    --spEcho("DrawMapMarksWorld",isMiniMap, spGetGameFrame(), mapMarkInstanceVBO.usedElements)
-	  glLineWidth(lineWidth)
+	if mapMarkInstanceVBO.usedElements > 0 then
+		--spEcho("DrawMapMarksWorld",isMiniMap, spGetGameFrame(), mapMarkInstanceVBO.usedElements)
+		glLineWidth(lineWidth)
 		mapMarkShader:Activate()
-		mapMarkShader:SetUniform("isMiniMap",isMiniMap)
+		mapMarkShader:SetUniform("isMiniMap", isMiniMap)
 		mapMarkShader:SetUniform("mapRotation", getCurrentMiniMapRotationOption() or 0)
-		
+
 		-- Pass PIP visible area if drawing in PIP minimap
-		if isMiniMap > 0 and WG['minimap'] and WG['minimap'].isDrawingInPip and WG['minimap'].getNormalizedVisibleArea then
-			local left, right, bottom, top = WG['minimap'].getNormalizedVisibleArea()
+		if isMiniMap > 0 and WG.minimap and WG.minimap.isDrawingInPip and WG.minimap.getNormalizedVisibleArea then
+			local left, right, bottom, top = WG.minimap.getNormalizedVisibleArea()
 			mapMarkShader:SetUniform("pipVisibleArea", left, right, bottom, top)
 		else
 			mapMarkShader:SetUniform("pipVisibleArea", 0, 1, 0, 1)
@@ -304,8 +328,8 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-  initGL4()
-	myPlayerID = Spring.GetMyPlayerID()
+	initGL4()
+	myPlayerID = SpringUnsynced.GetLocalPlayerID()
 	WG.PointTracker = {
 		ClearPoints = ClearPoints,
 	}
@@ -315,60 +339,65 @@ function widget:Shutdown()
 	WG.PointTracker = nil
 end
 
-
-
 function widget:DrawScreen()
 	if not enabled then
 		return
 	end
-  DrawMapMarksWorld(0)
+	DrawMapMarksWorld(0)
 end
 
 function widget:MapDrawCmd(playerID, cmdType, px, py, pz, label)
-
 	local spectator, fullView = GetSpectatingState()
 	local _, _, _, playerTeam = GetPlayerInfo(playerID, false)
-	if label == "Start " .. playerTeam
-		or cmdType ~= "point"
-		or not (ArePlayersAllied(myPlayerID, playerID) or (spectator and fullView)) then
+	if label == "Start " .. playerTeam or cmdType ~= "point" or not (ArePlayersAllied(myPlayerID, playerID) or (spectator and fullView)) then
 		return
 	end
-  instanceIDgen= instanceIDgen + 1
+	instanceIDgen = instanceIDgen + 1
 	local r, g, b = GetPlayerColor(playerID)
-  local gf = spGetGameFrame()
+	local gf = spGetGameFrame()
 
-  pushElementInstance(
-			mapMarkInstanceVBO,
-			{
-        px, py, pz, 1.0,
-				r, g, b, gf
-			},
-      instanceIDgen, -- key, generate me one if nil
-      true -- update exisiting
-		)
-  if mapPoints[gf] then
-    mapPoints[gf][#mapPoints[gf] + 1]= instanceIDgen
-  else
-    mapPoints[gf] = {instanceIDgen}
-  end
+	pushElementInstance(
+		mapMarkInstanceVBO,
+		{
+			px,
+			py,
+			pz,
+			1.0,
+			r,
+			g,
+			b,
+			gf,
+		},
+		instanceIDgen, -- key, generate me one if nil
+		true -- update exisiting
+	)
+	if mapPoints[gf] then
+		mapPoints[gf][#mapPoints[gf] + 1] = instanceIDgen
+	else
+		mapPoints[gf] = { instanceIDgen }
+	end
 end
 
 function widget:GameFrame(n)
-  if mapPoints[n-timeToLive] then
-    for i, instanceID in ipairs(mapPoints[n-timeToLive]) do
-      popElementInstance(mapMarkInstanceVBO,instanceID)
-    end
-  end
+	if mapPoints[n - timeToLive] then
+		for i, instanceID in ipairs(mapPoints[n - timeToLive]) do
+			popElementInstance(mapMarkInstanceVBO, instanceID)
+		end
+	end
 end
 
 function widget:DrawInMiniMap(sx, sy)
-	if not enabled then return	end
+	if not enabled then
+		return
+	end
 	-- Don't draw map marks inside the PIP minimap
-	if WG['minimap'] and WG['minimap'].isDrawingInPip then return end
+	if WG.minimap and WG.minimap.isDrawingInPip then
+		return
+	end
 	-- this fixes drawing on only 1 quadrant of minimap as pwe
-  gl.ClipDistance ( 1, false)
-  gl.ClipDistance ( 3, false)
-  DrawMapMarksWorld(1)
+	gl.ClipDistance(1, false)
+	gl.ClipDistance(3, false)
+	DrawMapMarksWorld(1)
 end
 
 function widget:ClearMapMarks()

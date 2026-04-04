@@ -1,7 +1,7 @@
 STAI = class(ShardAI)
 
 function STAI:Name()
-	return 'STAI'
+	return "STAI"
 end
 
 function STAI:internalName()
@@ -9,7 +9,7 @@ function STAI:internalName()
 end
 
 function STAI:test()
-	for i,v in pairs(STAI) do
-		Spring.Echo('H.I.V.E. ST AI module:',i,v)
+	for i, v in pairs(STAI) do
+		SpringShared.Echo("H.I.V.E. ST AI module:", i, v)
 	end
 end

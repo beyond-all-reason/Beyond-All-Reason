@@ -8,15 +8,14 @@ function widget:GetInfo()
 		date = "2021.06.18",
 		license = "GPLv2, (c) Beherith (mysterme@gmail.com)",
 		layer = 19,
-		enabled = true
+		enabled = true,
 	}
 end
 
-
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spEcho = Spring.Echo
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetGameFrame = SpringShared.GetGameFrame
+local spEcho = SpringShared.Echo
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
 -------   Configurables: -------------------
 local debugmode = false
@@ -31,30 +30,27 @@ local rangecorrectionelmos = debugmode and -16 or 16 -- how much smaller they ar
 --------- End configurables ------
 
 local minRadarDistance = 500
-local gaiaTeamID = Spring.GetGaiaTeamID()
+local gaiaTeamID = SpringShared.GetGaiaTeamID()
 
 ------- GL4 NOTES -----
 -- TODO: 2025.07.02:
 
-
-
-
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
-local popElementInstance  = InstanceVBOTable.popElementInstance
+local popElementInstance = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 
 local radarStencilShader = nil
 local radarCircleShader = nil
 local circleInstanceVBO = nil
 
-local radarStencilTexture 
+local radarStencilTexture
 local resolution = 4
-local vsx, vsy  = spGetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 
 local circleShaderSourceCache = {
-	shaderName = 'Radar Ranges Circles GL4',
+	shaderName = "Radar Ranges Circles GL4",
 	vssrcpath = "LuaUI/Shaders/sensor_ranges_los.vert.glsl",
 	fssrcpath = "LuaUI/Shaders/sensor_ranges_los.frag.glsl",
 	shaderConfig = {
@@ -74,18 +70,18 @@ local circleShaderSourceCache = {
 		rangeColor = rangeColor,
 	},
 	silent = not debugmode, -- do not print shader compile timing
-} 
- 
+}
+
 local stencilShaderSourceCache = table.copy(circleShaderSourceCache) -- copy the circle shader source cache, and modify it for stencil pass
 stencilShaderSourceCache.shaderConfig.STENCILPASS = 1 -- this is a stencil pass
-stencilShaderSourceCache.shaderName = 'Radar Ranges Stencil GL4'
+stencilShaderSourceCache.shaderName = "Radar Ranges Stencil GL4"
 
 local function goodbye(reason)
 	spEcho("Sensor Ranges LOS widget exiting with reason: " .. reason)
 	widgetHandler:RemoveWidget()
 	return false
 end
- 
+
 local function CreateStencilShaderAndTexture()
 	vsx, vsy = spGetViewGeometry()
 	circleShaderSourceCache.shaderConfig.VSX = vsx
@@ -95,23 +91,25 @@ local function CreateStencilShaderAndTexture()
 	stencilShaderSourceCache.shaderConfig.VSY = vsy
 	stencilShaderSourceCache.forceupdate = true
 
-	radarStencilShader = LuaShader.CheckShaderUpdates(stencilShaderSourceCache,0)	
+	radarStencilShader = LuaShader.CheckShaderUpdates(stencilShaderSourceCache, 0)
 
 	if not radarStencilShader then
-  		return goodbye("Failed to compile radarrange stencil shader GL4 ")
- 	end
-	radarCircleShader = LuaShader.CheckShaderUpdates(circleShaderSourceCache,0)
+		return goodbye("Failed to compile radarrange stencil shader GL4 ")
+	end
+	radarCircleShader = LuaShader.CheckShaderUpdates(circleShaderSourceCache, 0)
 	if not radarCircleShader then
 		return goodbye("Failed to compile radarrange shader GL4 ")
 	end
 
 	local GL_R8 = 0x8229
-    vsx, vsy = spGetViewGeometry()
-	lineScale = (vsy + 500)/ 1300
-    if radarStencilTexture then gl.DeleteTexture(radarStencilTexture) end
-    radarStencilTexture = gl.CreateTexture(vsx/resolution, vsy/resolution, {
+	vsx, vsy = spGetViewGeometry()
+	lineScale = (vsy + 500) / 1300
+	if radarStencilTexture then
+		gl.DeleteTexture(radarStencilTexture)
+	end
+	radarStencilTexture = gl.CreateTexture(vsx / resolution, vsy / resolution, {
 		--format = GL.RGBA8,
-        format = GL_R8,
+		format = GL_R8,
 		fbo = true,
 		min_filter = GL.NEAREST,
 		mag_filter = GL.LINEAR,
@@ -125,8 +123,8 @@ local function initgl4()
 	-- Note that we are createing a special Circle VBO, that starts at the center vertex! This is needed for triangle fans
 	local circleVBO, numVertices = InstanceVBOTable.makeCircleVBO(circleSegments, nil, true, "radarrangeCircles")
 	local circleInstanceVBOLayout = {
-		{ id = 1, name = 'radius_params', size = 4 }, -- radius, gameframe, 2 unused floats
-		{ id = 2, name = 'instData', size = 4, type = GL.UNSIGNED_INT}, -- instData
+		{ id = 1, name = "radius_params", size = 4 }, -- radius, gameframe, 2 unused floats
+		{ id = 2, name = "instData", size = 4, type = GL.UNSIGNED_INT }, -- instData
 	}
 
 	circleInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(circleInstanceVBOLayout, 128, "radarrangeVBO", 2)
@@ -136,15 +134,14 @@ local function initgl4()
 
 	CreateStencilShaderAndTexture()
 end
- 
- 
+
 local function DrawLOSStencil() -- about 0.025 ms
 	if circleInstanceVBO.usedElements > 0 then
-        gl.Clear(GL.COLOR_BUFFER_BIT,0,0,0,0)
+		gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 		gl.BlendEquation(GL.MAX)
 		gl.Blending(GL.ONE, GL.ONE)
-        gl.Culling(false)
-		
+		gl.Culling(false)
+
 		gl.Texture(0, "$heightmap") -- Bind the heightmap texture
 		radarStencilShader:Activate()
 		circleInstanceVBO.VAO:DrawArrays(GL.TRIANGLE_FAN, circleInstanceVBO.numVertices, 0, circleInstanceVBO.usedElements, 0)
@@ -155,27 +152,27 @@ local function DrawLOSStencil() -- about 0.025 ms
 end
 
 function widget:DrawGenesis()
-    gl.RenderToTexture(radarStencilTexture, DrawLOSStencil)
+	gl.RenderToTexture(radarStencilTexture, DrawLOSStencil)
 end
 
 -- This shows the debug stencil texture in the bottom left corner of the screen
-if debugmode then 
-	function widget:DrawScreen()	
-		radarCircleShader = LuaShader.CheckShaderUpdates(circleShaderSourceCache,0) or radarCircleShader
-		radarStencilShader = LuaShader.CheckShaderUpdates(stencilShaderSourceCache,0) or radarStencilShader
-		gl.Color(1,1,1,1)
+if debugmode then
+	function widget:DrawScreen()
+		radarCircleShader = LuaShader.CheckShaderUpdates(circleShaderSourceCache, 0) or radarCircleShader
+		radarStencilShader = LuaShader.CheckShaderUpdates(stencilShaderSourceCache, 0) or radarStencilShader
+		gl.Color(1, 1, 1, 1)
 		gl.Blending(GL.ONE, GL.ZERO)
 		gl.Texture(radarStencilTexture)
-		gl.TexRect(0, 0, vsx/resolution, vsy/resolution, 0, 0, 1, 1)
+		gl.TexRect(0, 0, vsx / resolution, vsy / resolution, 0, 0, 1, 1)
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	end
-end  
+end
 
 -- Functions shortcuts
-local spGetSpectatingState = Spring.GetSpectatingState
-local spIsUnitAllied = Spring.IsUnitAllied
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitIsActive 	= Spring.GetUnitIsActive
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
+local spIsUnitAllied = SpringUnsynced.IsUnitAllied
+local spGetUnitTeam = SpringShared.GetUnitTeam
+local spGetUnitIsActive = SpringShared.GetUnitIsActive
 local GL_NOTEQUAL = GL.NOTEQUAL
 local GL_LINE_LOOP = GL.LINE_LOOP
 local GL_KEEP = 0x1E00 --GL.KEEP
@@ -183,7 +180,7 @@ local GL_REPLACE = GL.REPLACE
 
 -- Globals
 local spec, fullview = spGetSpectatingState()
-local allyTeamID = Spring.GetMyAllyTeamID()
+local allyTeamID = SpringUnsynced.GetLocalAllyTeamID()
 
 -- find all unit types with radar in the game and place ranges into unitRange table
 local unitRange = {} -- table of unit types with their radar ranges
@@ -191,23 +188,23 @@ local unitRange = {} -- table of unit types with their radar ranges
 local unitList = {} -- all ally units and their coordinates and radar ranges
 
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.radarDistance and unitDef.radarDistance > minRadarDistance then	-- save perf by excluding low radar range units
+	if unitDef.radarDistance and unitDef.radarDistance > minRadarDistance then -- save perf by excluding low radar range units
 		unitRange[unitDefID] = unitDef.radarDistance
 	end
 end
 
 function widget:ViewResize(newX, newY)
 	CreateStencilShaderAndTexture()
-end 
+end
 
 -- a reusable table, since we will literally only modify its first element.
-local instanceCache = {0,0,0,0,0,0,0,0}
+local instanceCache = { 0, 0, 0, 0, 0, 0, 0, 0 }
 
 local function InitializeUnits()
 	--spEcho("Sensor Ranges LOS InitializeUnits")
 	InstanceVBOTable.clearInstanceTable(circleInstanceVBO)
-	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
-		local visibleUnits =  WG['unittrackerapi'].visibleUnits
+	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+		local visibleUnits = WG.unittrackerapi.visibleUnits
 		for unitID, unitDefID in pairs(visibleUnits) do
 			widget:VisibleUnitAdded(unitID, unitDefID, spGetUnitTeam(unitID), nil, true)
 		end
@@ -219,65 +216,75 @@ function widget:PlayerChanged()
 	local prevFullview = fullview
 	local myPrevAllyTeamID = allyTeamID
 	spec, fullview = spGetSpectatingState()
-	allyTeamID = Spring.GetMyAllyTeamID()
+	allyTeamID = SpringUnsynced.GetLocalAllyTeamID()
 	if fullview ~= prevFullview or allyTeamID ~= myPrevAllyTeamID then
 		InitializeUnits()
 	end
 end
 
 function widget:Initialize()
-	if not gl.CreateShader or Spring.GetModOptions().disable_fogofwar then -- no shader support, so just remove the widget itself, especially for headless
+	if not gl.CreateShader or SpringShared.GetModOptions().disable_fogofwar then -- no shader support, so just remove the widget itself, especially for headless
 		widgetHandler:RemoveWidget()
 		return
 	end
 
 	WG.radarrange = {
-		getOpacity = function() return opacity end,
-		setOpacity = function(value) opacity = value end,
+		getOpacity = function()
+			return opacity
+		end,
+		setOpacity = function(value)
+			opacity = value
+		end,
 	}
 
-	initgl4()	
+	initgl4()
 
 	InitializeUnits()
 end
 
 function widget:Shutdown()
-	if radarStencilTexture then gl.DeleteTexture(radarStencilTexture) end
+	if radarStencilTexture then
+		gl.DeleteTexture(radarStencilTexture)
+	end
 	WG.radarrange = nil
 end
 
-function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason,  noupload)
+function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason, noupload)
 	--spEcho("widget:VisibleUnitAdded",unitID, unitDefID, unitTeam, reason, noupload)
 	unitTeam = unitTeam or spGetUnitTeam(unitID)
 	noupload = noupload == true
-	if unitRange[unitDefID] == nil or unitTeam == gaiaTeamID then return end
+	if unitRange[unitDefID] == nil or unitTeam == gaiaTeamID then
+		return
+	end
 
 	if (not (spec and fullview)) and (not spIsUnitAllied(unitID)) then -- given units are still considered allies :/
 		return
 	end -- display mode for specs
 
-	if Spring.GetUnitIsBeingBuilt(unitID) then return end
+	if SpringShared.GetUnitIsBeingBuilt(unitID) then
+		return
+	end
 
-	instanceCache[1] =  unitRange[unitDefID]
+	instanceCache[1] = unitRange[unitDefID]
 
-	
 	local active = spGetUnitIsActive(unitID)
 	local gameFrame = spGetGameFrame()
 	if reason == "UnitFinished" then
-		if active then 
+		if active then
 			instanceCache[2] = spGetGameFrame()
 		else
 			instanceCache[2] = -2 -- start from full size
 		end
 	else
-		if active then 
+		if active then
 			instanceCache[2] = gameFrame
 		else
-			instanceCache[2] = -1 * gameFrame 
+			instanceCache[2] = -1 * gameFrame
 		end
 	end
 	unitList[unitID] = active
-	pushElementInstance(circleInstanceVBO,
+	pushElementInstance(
+		circleInstanceVBO,
 		instanceCache,
 		unitID, --key
 		true, -- updateExisting
@@ -298,13 +305,15 @@ function widget:VisibleUnitRemoved(unitID)
 end
 
 function widget:GameFrame(n)
-	if spec and fullview then return end
-	if n % 15 == 2 then 
+	if spec and fullview then
+		return
+	end
+	if n % 15 == 2 then
 		for unitID, oldActive in pairs(unitList) do
 			local active = spGetUnitIsActive(unitID)
 			if active ~= oldActive then
 				unitList[unitID] = active
-				widget:VisibleUnitAdded(unitID, Spring.GetUnitDefID(unitID), spGetUnitTeam(unitID) )
+				widget:VisibleUnitAdded(unitID, SpringShared.GetUnitDefID(unitID), spGetUnitTeam(unitID))
 			end
 		end
 	end
@@ -312,43 +321,41 @@ end
 
 function widget:DrawWorld()
 	--if spec and fullview then return end
-	if Spring.IsGUIHidden() or 
-		(circleInstanceVBO.usedElements == 0) or
-		(opacity <= 0.01)
-	then return end
-    
+	if SpringUnsynced.IsGUIHidden() or (circleInstanceVBO.usedElements == 0) or (opacity <= 0.01) then
+		return
+	end
+
 	--gl.Clear(GL.STENCIL_BUFFER_BIT) -- Preemtively clear the stencil buffer
 	gl.StencilTest(true) -- Enable stencil testing
 	gl.StencilFunc(GL_NOTEQUAL, 4, 4) -- Always Passes, 0 Bit Plane, 0 As Mask
 	gl.StencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon
 	gl.StencilMask(15) -- Only check the first bit of the stencil buffer
-  
+
 	radarCircleShader:Activate()
 	gl.Texture(0, "$heightmap") -- Bind the heightmap texture
 	gl.Texture(1, radarStencilTexture) -- Bind the heightmap texture
 
-	radarCircleShader:SetUniform("rangeColor", rangeColor[1], rangeColor[2], rangeColor[3], opacity )
+	radarCircleShader:SetUniform("rangeColor", rangeColor[1], rangeColor[2], rangeColor[3], opacity)
 	--spEcho("rangeColor", rangeColor[1], rangeColor[2], rangeColor[3], opacity * (useteamcolors and 2 or 1 ))
 	radarCircleShader:SetUniform("teamColorMix", 0)
 
 	gl.LineWidth(rangeLineWidth * lineScale * 1.0)
 
 	gl.DepthTest(true)
-	-- Note that we are skipping the first and last vertex, as those are the center of the circle : 
-	circleInstanceVBO.VAO:DrawArrays(GL_LINE_LOOP, circleInstanceVBO.numVertices -0, 0, circleInstanceVBO.usedElements) 
+	-- Note that we are skipping the first and last vertex, as those are the center of the circle :
+	circleInstanceVBO.VAO:DrawArrays(GL_LINE_LOOP, circleInstanceVBO.numVertices - 0, 0, circleInstanceVBO.usedElements)
 	-- TODO: In the future, when BASE VERTEX works, use the following line instead:
-	--circleInstanceVBO.VAO:DrawArrays(GL_LINE_LOOP, circleInstanceVBO.numVertices -2, 1, circleInstanceVBO.usedElements) 
-	
+	--circleInstanceVBO.VAO:DrawArrays(GL_LINE_LOOP, circleInstanceVBO.numVertices -2, 1, circleInstanceVBO.usedElements)
+
 	radarCircleShader:Deactivate()
 	gl.Texture(0, false)
 	gl.Texture(1, false)
 	gl.DepthTest(true)
 	gl.StencilTest(false) -- Disable stencil testing
 
-	gl.LineWidth(1.0) 
+	gl.LineWidth(1.0)
 	--gl.Clear(GL.STENCIL_BUFFER_BIT)
 end
-
 
 function widget:GetConfigData(data)
 	return {

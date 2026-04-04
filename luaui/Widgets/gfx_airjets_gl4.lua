@@ -17,17 +17,16 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized functions for performance
 local mathFloor = math.floor
 
 -- Localized Spring API for performance
-local spGetUnitDefID = Spring.GetUnitDefID
-local spEcho = Spring.Echo
-local spGetAllUnits = Spring.GetAllUnits
-local spGetTeamUnitsByDefs = Spring.GetTeamUnitsByDefs
-local spGetTeamList = Spring.GetTeamList
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spEcho = SpringShared.Echo
+local spGetAllUnits = SpringShared.GetAllUnits
+local spGetTeamUnitsByDefs = SpringShared.GetTeamUnitsByDefs
+local spGetTeamList = SpringShared.GetTeamList
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 -- TODO:
 -- reflections
@@ -44,13 +43,12 @@ local spGetSpectatingState = Spring.GetSpectatingState
 --------------------------------------------------------------------------------
 ---
 
-
-local spGetGameFrame = Spring.GetGameFrame
-local spGetUnitPieceMap = Spring.GetUnitPieceMap
-local spGetUnitIsActive = Spring.GetUnitIsActive
-local spGetUnitVelocity = Spring.GetUnitVelocity
-local spGetUnitTeam = Spring.GetUnitTeam
-local spIsUnitInLos = Spring.IsUnitInLos
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetUnitPieceMap = SpringShared.GetUnitPieceMap
+local spGetUnitIsActive = SpringShared.GetUnitIsActive
+local spGetUnitVelocity = SpringShared.GetUnitVelocity
+local spGetUnitTeam = SpringShared.GetUnitTeam
+local spIsUnitInLos = SpringShared.IsUnitInLos
 local glBlending = gl.Blending
 local glTexture = gl.Texture
 
@@ -62,7 +60,7 @@ local GL_ONE = GL.ONE
 local glAlphaTest = gl.AlphaTest
 local glDepthTest = gl.DepthTest
 
-local spValidUnitID = Spring.ValidUnitID
+local spValidUnitID = SpringShared.ValidUnitID
 
 --------------------------------------------------------------------------------
 -- Configuration
@@ -73,15 +71,15 @@ local autoUpdate = false
 local enableLights = true
 local lightMult = 1.4
 
-local texture1 = "bitmaps/GPL/perlin_noise.jpg"    -- noise texture
-local texture2 = ":c:bitmaps/gpl/jet2.bmp"        -- shape
+local texture1 = "bitmaps/GPL/perlin_noise.jpg" -- noise texture
+local texture2 = ":c:bitmaps/gpl/jet2.bmp" -- shape
 
 local effectDefs = VFS.Include("luaui/configs/airjet_effects.lua")
 
 local function deepcopy(orig)
 	local orig_type = type(orig)
 	local copy
-	if orig_type == 'table' then
+	if orig_type == "table" then
 		copy = {}
 		for orig_key, orig_value in next, orig, nil do
 			copy[deepcopy(orig_key)] = deepcopy(orig_value)
@@ -102,10 +100,10 @@ for name, effects in pairs(effectDefs) do
 		end
 
 		-- create scavenger variant
-		if UnitDefNames[name..'_scav'] then
-			effectDefs[name..'_scav'] = deepcopy(effects)
+		if UnitDefNames[name .. "_scav"] then
+			effectDefs[name .. "_scav"] = deepcopy(effects)
 			for i, effect in pairs(effects) do
-				effectDefs[name..'_scav'][i].color = {0.6, 0.12, 0.7}
+				effectDefs[name .. "_scav"][i].color = { 0.6, 0.12, 0.7 }
 			end
 		end
 	end
@@ -152,11 +150,11 @@ local inactivePlanes = {}
 local lights = {}
 
 local shaders
-local lastGameFrame = Spring.GetGameFrame()
+local lastGameFrame = SpringShared.GetGameFrame()
 local updateSec = 0
 
 local spec, fullview = spGetSpectatingState()
-local myAllyTeamID = Spring.GetMyAllyTeamID()
+local myAllyTeamID = SpringUnsynced.GetLocalAllyTeamID()
 
 local enabled = true
 local lighteffectsEnabled = false -- TODO (enableLights and WG['lighteffects'] ~= nil and WG['lighteffects'].enableThrusters)
@@ -171,13 +169,11 @@ local jetShader = nil
 
 local LuaShader = gl.LuaShader
 
-local drawInstanceVBO     = gl.InstanceVBOTable.drawInstanceVBO
-local popElementInstance  = gl.InstanceVBOTable.popElementInstance
+local drawInstanceVBO = gl.InstanceVBOTable.drawInstanceVBO
+local popElementInstance = gl.InstanceVBOTable.popElementInstance
 local pushElementInstance = gl.InstanceVBOTable.pushElementInstance
 
-
-local vsSrc =
-[[#version 420
+local vsSrc = [[#version 420
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shader_storage_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
@@ -345,8 +341,7 @@ void main()
 }
 ]]
 
-local fsSrc =
-[[
+local fsSrc = [[
 #version 420
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
@@ -396,23 +391,22 @@ void main(void)
 ]]
 
 local function goodbye(reason)
-  spEcho("Airjet GL4 widget exiting with reason: "..reason)
-  widgetHandler:RemoveWidget()
+	spEcho("Airjet GL4 widget exiting with reason: " .. reason)
+	widgetHandler:RemoveWidget()
 end
-
 
 local jetShaderSourceCache = {
 	vsSrc = vsSrc,
 	fsSrc = fsSrc,
 	shaderName = "JetShader GL4",
 	uniformInt = {
-        noiseMap = 0,
-        mask = 1,
-        },
+		noiseMap = 0,
+		mask = 1,
+	},
 	uniformFloat = {
-        --jetuniforms = {1,1,1,1}, --unused
+		--jetuniforms = {1,1,1,1}, --unused
 		--iconDistance = 1,
-      },
+	},
 	shaderConfig = {
 		USEQUATERNIONS = Engine.FeatureSupport.transformsInGL4 and "1" or "0",
 		DEBUG = autoUpdate and "1" or "0",
@@ -423,16 +417,18 @@ local jetShaderSourceCache = {
 local function initGL4()
 	jetShader = LuaShader.CheckShaderUpdates(jetShaderSourceCache)
 	--spEcho(jetShader.shaderParams.vertex)
-	if not jetShader then goodbye("Failed to compile jetShader GL4 ") end
-	local quadVBO,numVertices = gl.InstanceVBOTable.makeRectVBO(-1,0,1,-1,0,1,1,0) --(minX,minY, maxX, maxY, minU, minV, maxU, maxV)
+	if not jetShader then
+		goodbye("Failed to compile jetShader GL4 ")
+	end
+	local quadVBO, numVertices = gl.InstanceVBOTable.makeRectVBO(-1, 0, 1, -1, 0, 1, 1, 0) --(minX,minY, maxX, maxY, minU, minV, maxU, maxV)
 	local jetInstanceVBOLayout = {
-			{id = 1, name = 'widthlengthtime', size = 3}, -- widthlength
-			{id = 2, name = 'emitdir', size = 3}, --  emit dir
-			{id = 3, name = 'color', size = 3}, --- color
-			{id = 4, name = 'pieceIndex', type = GL.UNSIGNED_INT, size= 1},
-			{id = 5, name = 'instData', type = GL.UNSIGNED_INT, size= 4},
-			}
-	jetInstanceVBO = gl.InstanceVBOTable.makeInstanceVBOTable(jetInstanceVBOLayout,256, "jetInstanceVBO", 5)
+		{ id = 1, name = "widthlengthtime", size = 3 }, -- widthlength
+		{ id = 2, name = "emitdir", size = 3 }, --  emit dir
+		{ id = 3, name = "color", size = 3 }, --- color
+		{ id = 4, name = "pieceIndex", type = GL.UNSIGNED_INT, size = 1 },
+		{ id = 5, name = "instData", type = GL.UNSIGNED_INT, size = 4 },
+	}
+	jetInstanceVBO = gl.InstanceVBOTable.makeInstanceVBOTable(jetInstanceVBOLayout, 256, "jetInstanceVBO", 5)
 	jetInstanceVBO.numVertices = numVertices
 	jetInstanceVBO.vertexVBO = quadVBO
 	jetInstanceVBO.VAO = gl.InstanceVBOTable.makeVAOandAttach(jetInstanceVBO.vertexVBO, jetInstanceVBO.instanceVBO)
@@ -449,28 +445,30 @@ local function ValidateUnitIDs(unitIDkeys)
 	local numunitids = 0
 	local validunitids = 0
 	local invalidunitids = {}
-	local invalidstr = ''
+	local invalidstr = ""
 	for indexpos, unitID in pairs(unitIDkeys) do
 		numunitids = numunitids + 1
-		if Spring.ValidUnitID(unitID) then
+		if SpringShared.ValidUnitID(unitID) then
 			validunitids = validunitids + 1
 		else
 			invalidunitids[#invalidunitids + 1] = unitID
 			invalidstr = tostring(unitID) .. " " .. invalidstr
 		end
 	end
-	if numunitids- validunitids > 0 then
-		spEcho("Airjets GL4", numunitids, "Valid", numunitids- validunitids, "invalid", invalidstr)
+	if numunitids - validunitids > 0 then
+		spEcho("Airjets GL4", numunitids, "Valid", numunitids - validunitids, "invalid", invalidstr)
 	end
 end
 
 local drawframe = 0
 local function DrawParticles(isReflection)
-	if not enabled then return false end
+	if not enabled then
+		return false
+	end
 	-- validate unitID buffer
 	drawframe = drawframe + 1
 	--if drawframe %99 == 1 then
-		--spEcho("Numairjets", jetInstanceVBO.usedElements)
+	--spEcho("Numairjets", jetInstanceVBO.usedElements)
 	--end
 
 	if jetInstanceVBO.usedElements > 0 then
@@ -506,8 +504,8 @@ end
 
 local function RemoveLights(unitID)
 	if lighteffectsEnabled and lights[unitID] then
-		for i,v in pairs(lights[unitID]) do
-			WG['lighteffects'].removeLight(lights[unitID][i], 3)
+		for i, v in pairs(lights[unitID]) do
+			WG.lighteffects.removeLight(lights[unitID][i], 3)
 		end
 		lights[unitID] = nil
 	end
@@ -521,8 +519,8 @@ local function FinishInitialization(unitID, effectDef)
 			--spEcho("FinishInitialization", fx.piece, pieceMap[fx.piece])
 			fx.piecenum = pieceMap[fx.piece]
 		end
-		fx.width = fx.width*1.2
-		fx.length = fx.length*1.4
+		fx.width = fx.width * 1.2
+		fx.length = fx.length * 1.4
 	end
 	effectDef.finishedInit = true
 end
@@ -540,9 +538,11 @@ local function Activate(unitID, unitDefID, who, when)
 
 	activePlanes[unitID] = unitDefID
 
-	if when ==  nil then when = 0 end --
+	if when == nil then
+		when = 0
+	end --
 
-	if Spring.GetUnitIsDead(unitID) == true then
+	if SpringShared.GetUnitIsDead(unitID) == true then
 		--Spring.SendCommands({"pause 1"})
 		return
 	end
@@ -552,14 +552,22 @@ local function Activate(unitID, unitDefID, who, when)
 		local color = effectDef.color
 		local emitVector = effectDef.emitVector
 		local effectdata = {
-			effectDef.width*0.4,effectDef.length, when,
-			emitVector[1],emitVector[2],emitVector[3],
-			color[1],color[2],color[3],
+			effectDef.width * 0.4,
+			effectDef.length,
+			when,
+			emitVector[1],
+			emitVector[2],
+			emitVector[3],
+			color[1],
+			color[2],
+			color[3],
 			effectDef.piecenum - 1,
-			0,0,0,0, -- this is needed to keep the lua copy of the vbo the correct size
-
+			0,
+			0,
+			0,
+			0, -- this is needed to keep the lua copy of the vbo the correct size
 		}
-		pushElementInstance(jetInstanceVBO,effectdata,tostring(unitID).."_"..tostring(effectDef.piecenum), true, nil, unitID)
+		pushElementInstance(jetInstanceVBO, effectdata, tostring(unitID) .. "_" .. tostring(effectDef.piecenum), true, nil, unitID)
 	end
 end
 
@@ -572,7 +580,7 @@ local function Deactivate(unitID, unitDefID, who)
 	local unitEffects = effectDefs[unitDefID]
 	for i = 1, #unitEffects do
 		local effectDef = unitEffects[i]
-		local airjetkey = tostring(unitID).."_"..tostring(effectDef.piecenum)
+		local airjetkey = tostring(unitID) .. "_" .. tostring(effectDef.piecenum)
 		if jetInstanceVBO.instanceIDtoIndex[airjetkey] then
 			popElementInstance(jetInstanceVBO, airjetkey)
 		end
@@ -581,7 +589,7 @@ end
 
 local function RemoveUnit(unitID, unitDefID, unitTeamID)
 	--spEcho("RemoveUnit(unitID, unitDefID, unitTeamID)",unitID, unitDefID, unitTeamID)
-	if effectDefs[unitDefID] and type(unitID) == 'number' then	-- checking for type(unitID) because we got: Error in RenderUnitDestroyed(): [string "LuaUI/Widgets/gfx_airjets_gl4.lua"]:812: attempt to concatenate local 'unitID' (a table value)
+	if effectDefs[unitDefID] and type(unitID) == "number" then -- checking for type(unitID) because we got: Error in RenderUnitDestroyed(): [string "LuaUI/Widgets/gfx_airjets_gl4.lua"]:812: attempt to concatenate local 'unitID' (a table value)
 		Deactivate(unitID, unitDefID, "died")
 		inactivePlanes[unitID] = nil
 		activePlanes[unitID] = nil
@@ -601,10 +609,12 @@ end
 --------------------------------------------------------------------------------
 
 function widget:Update(dt)
-	if true then return end
+	if true then
+		return
+	end
 	updateSec = updateSec + dt
-	local gf = Spring.GetGameFrame()
-	if gf ~= lastGameFrame and updateSec > 0.51 then		-- to limit the number of unit status checks
+	local gf = SpringShared.GetGameFrame()
+	if gf ~= lastGameFrame and updateSec > 0.51 then -- to limit the number of unit status checks
 		--[[
 		if Spring.GetGameFrame() > 0 then
 			ValidateUnitIDs(jetInstanceVBO.indextoUnitID)
@@ -614,32 +624,33 @@ function widget:Update(dt)
 			for i, v in pairs(activePlanes) do activecnt = activecnt + 1 end
 			spEcho( Spring.GetGameFrame (), "airjetcount", jetInstanceVBO.usedElements, "active:", activecnt, "inactive", inactivecnt)
 		end
-		]]--
+		]]
+		--
 		ValidateUnitIDs(jetInstanceVBO.indextoUnitID)
 		lastGameFrame = gf
 		updateSec = 0
 		for unitID, unitDefID in pairs(inactivePlanes) do
 			-- always activate enemy planes
-			if spGetUnitIsActive(unitID) or not Spring.IsUnitAllied(unitID) then
+			if spGetUnitIsActive(unitID) or not SpringUnsynced.IsUnitAllied(unitID) then
 				if xzVelocityUnits[unitDefID] then
-					local uvx,_,uvz = spGetUnitVelocity(unitID)
+					local uvx, _, uvz = spGetUnitVelocity(unitID)
 					if uvx * uvx + uvz * uvz > xzVelocityUnits[unitDefID] * xzVelocityUnits[unitDefID] then
-						Activate(unitID, unitDefID,"updatewasinactive", gf)
+						Activate(unitID, unitDefID, "updatewasinactive", gf)
 					end
 				else
-					Activate(unitID, unitDefID,"updatewasinactive", gf)
+					Activate(unitID, unitDefID, "updatewasinactive", gf)
 				end
 			end
 		end
 		for unitID, unitDefID in pairs(activePlanes) do
-			if Spring.ValidUnitID(unitID) then
+			if SpringShared.ValidUnitID(unitID) then
 				if not spGetUnitIsActive(unitID) then
-					Deactivate(unitID, unitDefID,"updatewasinactive")
+					Deactivate(unitID, unitDefID, "updatewasinactive")
 				else
 					if xzVelocityUnits[unitDefID] then
-						local uvx,_,uvz = spGetUnitVelocity(unitID)
+						local uvx, _, uvz = spGetUnitVelocity(unitID)
 						if uvx * uvx + uvz * uvz <= xzVelocityUnits[unitDefID] * xzVelocityUnits[unitDefID] then
-							Deactivate(unitID, unitDefID,"tooslow")
+							Deactivate(unitID, unitDefID, "tooslow")
 						end
 					end
 				end
@@ -650,7 +661,7 @@ function widget:Update(dt)
 	end
 
 	local prevLighteffectsEnabled = lighteffectsEnabled
-	lighteffectsEnabled = (enableLights and WG['lighteffects'] ~= nil and WG['lighteffects'].enableThrusters)
+	lighteffectsEnabled = (enableLights and WG.lighteffects ~= nil and WG.lighteffects.enableThrusters)
 	if lighteffectsEnabled ~= prevLighteffectsEnabled then
 		for _, teamID in ipairs(spGetTeamList()) do
 			local teamUnits = spGetTeamUnitsByDefs(teamID, effectDefIDList)
@@ -667,7 +678,9 @@ function widget:Update(dt)
 end
 
 function widget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
-	if fullview then return end
+	if fullview then
+		return
+	end
 	if spValidUnitID(unitID) then
 		unitDefID = unitDefID or spGetUnitDefID(unitID)
 		--spEcho("UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)",unitID, unitTeam, allyTeam, unitDefID)
@@ -723,7 +736,6 @@ function widget:DrawWorld()
 	DrawParticles(false)
 end
 
-
 function widget:DrawWorldReflection()
 	DrawParticles(true)
 end
@@ -748,12 +760,13 @@ end
 
 function widget:PlayerChanged(playerID)
 	local currentspec, currentfullview = spGetSpectatingState()
-	local currentAllyTeamID = Spring.GetMyAllyTeamID()
+	local currentAllyTeamID = SpringUnsynced.GetLocalAllyTeamID()
 	local reinit = false
-	if (currentspec ~= spec) or
-		(currentfullview ~= fullview) or
-		((currentAllyTeamID ~= myAllyTeamID) and not currentfullview)  -- our ALLYteam changes, and we are not in fullview
-		then
+	if
+		(currentspec ~= spec)
+		or (currentfullview ~= fullview)
+		or ((currentAllyTeamID ~= myAllyTeamID) and not currentfullview) -- our ALLYteam changes, and we are not in fullview
+	then
 		-- do the actual reinit stuff:
 		--spEcho("Airjets reinit")
 		reinit = true
@@ -762,7 +775,9 @@ function widget:PlayerChanged(playerID)
 	spec = currentspec
 	fullview = currentfullview
 	myAllyTeamID = currentAllyTeamID
-	if reinit then reInitialize() end
+	if reinit then
+		reInitialize()
+	end
 end
 
 function widget:Initialize()
@@ -773,37 +788,50 @@ function widget:Initialize()
 	initGL4()
 	reInitialize()
 
-	WG['airjets'] = {}
+	WG.airjets = {}
 
-	WG['airjets'].addAirJet = function (unitID, piecenum, width, length, color3, emitVector) -- for WG external calls
-		local airjetkey = tostring(unitID).."_"..tostring(piecenum)
-		if emitVector == nil then emitVector = {0,0,-1} end
+	WG.airjets.addAirJet = function(unitID, piecenum, width, length, color3, emitVector) -- for WG external calls
+		local airjetkey = tostring(unitID) .. "_" .. tostring(piecenum)
+		if emitVector == nil then
+			emitVector = { 0, 0, -1 }
+		end
 		pushElementInstance(
 			jetInstanceVBO,
 			{
-				width*5, length*5, spGetGameFrame(),
-				emitVector[1], emitVector[2], emitVector[3],
-				color[1], color[2], color[3],
+				width * 5,
+				length * 5,
+				spGetGameFrame(),
+				emitVector[1],
+				emitVector[2],
+				emitVector[3],
+				color[1],
+				color[2],
+				color[3],
 				piecenum,
-				0,0,0,0 -- this is needed to keep the lua copy of the vbo the correct size
+				0,
+				0,
+				0,
+				0, -- this is needed to keep the lua copy of the vbo the correct size
 			},
 			airjetkey,
 			true, -- update exisiting
-			nil,  -- noupload
+			nil, -- noupload
 			unitID -- unitID
-			)
+		)
 		return airjetkey
 	end
 
-	WG['airjets'].removeAirJet =  function (airjetkey) ---- for WG external calls
-		return popElementInstance(jetInstanceVBO,airjetkey)
+	WG.airjets.removeAirJet = function(airjetkey) ---- for WG external calls
+		return popElementInstance(jetInstanceVBO, airjetkey)
 	end
 end
 
 if autoUpdate then
 	function widget:DrawScreen()
 		--spEcho("drawprintf", jetShader.DrawPrintf, jetShader.printf)
-		if jetShader.DrawPrintf then jetShader.DrawPrintf() end
+		if jetShader.DrawPrintf then
+			jetShader.DrawPrintf()
+		end
 	end
 end
 

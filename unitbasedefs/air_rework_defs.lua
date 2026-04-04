@@ -309,7 +309,7 @@ local function airReworkTweaks(name, uDef)
 	end
 	if name == "armbrawl" then
 		uDef.weapondefs.vtol_emg.damage = {
-		default = 20,
+			default = 20,
 		}
 	end
 	if name == "corcrwh" then
@@ -409,7 +409,7 @@ local function airReworkTweaks(name, uDef)
 		uDef.cruisealtitude = 240
 		uDef.weapondefs.coradvbomb.burstrate = 0.26
 		uDef.weapondefs.coradvbomb.damage = {
-			default = 500
+			default = 500,
 		}
 	end
 	if name == "armpnix" then

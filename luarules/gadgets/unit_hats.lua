@@ -1,5 +1,4 @@
-
-if Spring.GetModOptions().teamcolors_anonymous_mode ~= "disabled" then
+if SpringShared.GetModOptions().teamcolors_anonymous_mode ~= "disabled" then
 	return
 end
 
@@ -11,7 +10,7 @@ function gadget:GetInfo()
 		desc = "Handles cosmetic-only hat behaviour",
 		author = "Beherith",
 		date = "2020",
-		license   = "GNU GPL, v2 or later",
+		license = "GNU GPL, v2 or later",
 		layer = 1000,
 		enabled = true,
 	}
@@ -47,7 +46,7 @@ local DEBUG = false
 
 local unitsWearingHats = {} -- key unitID of wearer, value unitID of hat
 
-local Hats = {}  -- key of unitID of hat, value of wearer unitID
+local Hats = {} -- key of unitID of hat, value of wearer unitID
 
 local unitDefHat = {}
 for udid, ud in pairs(UnitDefs) do
@@ -64,17 +63,16 @@ local unitDefCanWearHats = {
 	[UnitDefNames.armdecom.id] = true,
 }
 
- if Spring.GetModOptions().experimentallegionfaction then
+if SpringShared.GetModOptions().experimentallegionfaction then
 	unitDefCanWearHats[UnitDefNames.legcom.id] = true
 	unitDefCanWearHats[UnitDefNames.legcomlvl2.id] = true
 	unitDefCanWearHats[UnitDefNames.legcomlvl3.id] = true
 	unitDefCanWearHats[UnitDefNames.legcomlvl4.id] = true
- end
- local halloween = {
- }
- local legchamps = { -- Legion Fight Night winner(s)
+end
+local halloween = {}
+local legchamps = { -- Legion Fight Night winner(s)
 	[144092] = true, -- [DmE]Wraxell
-	[42178] = true,  -- [pretor]
+	[42178] = true, -- [pretor]
 	[119539] = true, -- [Stud]Lovish
 	[641] = true, -- ZLO
 }
@@ -86,56 +84,55 @@ local champion = { --   Fight Night 1v1 and Master's League winners
 	[439] = true, -- Goopy
 	[70311] = true, -- PRO_BTCV
 }
- local vikings = { -- Omega Series 4: Winners
-	[59916] = true,	 -- Kuchy
-	[151863] = true,  -- Blodir
-	[3913] = true,	 -- [teh]Teddy
-	[1172] = true,	 -- PtaQ
-	[694] = true,	 -- Raghna
-	[5467] = true,  -- HelsHound
-	[50820] = true,   -- Emre
+local vikings = { -- Omega Series 4: Winners
+	[59916] = true, -- Kuchy
+	[151863] = true, -- Blodir
+	[3913] = true, -- [teh]Teddy
+	[1172] = true, -- PtaQ
+	[694] = true, -- Raghna
+	[5467] = true, -- HelsHound
+	[50820] = true, -- Emre
 }
 local kings = {
-	[82263] = true,  -- TM_autopilot
+	[82263] = true, -- TM_autopilot
 }
 
 local goldMedals = { -- Nation Wars 1st place, last season top1 finishers
-	[64215] = true,  -- Darth_Revan
+	[64215] = true, -- Darth_Revan
 	[116414] = true, -- [SG]random_variable
-	[3778] = true,   -- PRO_che
-	[9361] = true,   -- [DmE]ChickenDinner
-	[1422] = true,   -- ZaRxT4
-	[50820] = true,  -- Emre
+	[3778] = true, -- PRO_che
+	[9361] = true, -- [DmE]ChickenDinner
+	[1422] = true, -- ZaRxT4
+	[50820] = true, -- Emre
 
 	-- BAR Pro League
-	[151863] = true,  -- Blodir
+	[151863] = true, -- Blodir
 }
 local silverMedals = { -- Nation Wars 2nd place, last season top2 finishers
-	[63960] = true,  -- Delfea
-	[59916] = true,  -- Kuchy
+	[63960] = true, -- Delfea
+	[59916] = true, -- Kuchy
 	[137454] = true, -- Chronopolize
-	[44807] = true,  -- Ezreal
-	[97867] = true,  -- [KILL]SirIcecream55
+	[44807] = true, -- Ezreal
+	[97867] = true, -- [KILL]SirIcecream55
 	[119832] = true, -- Darkclone
-	[151863] = true,  -- Blodir
-	[1332] = true,  -- Flash
-	[915] = true,  -- PRO_rANDY
+	[151863] = true, -- Blodir
+	[1332] = true, -- Flash
+	[915] = true, -- PRO_rANDY
 
 	-- BAR Pro League
-	[915] = true,  -- PRO_rANDY
+	[915] = true, -- PRO_rANDY
 }
 local bronzeMedals = { -- Nation Wars 3rd place, last season top3 finishers
-	[82811] = true,   -- [DmE]SlickLikeVik
-	[134499] = true,  -- Archangels
-	[60841] = true,   -- Alhazred
-	[8069] = true,    -- Grumpy
+	[82811] = true, -- [DmE]SlickLikeVik
+	[134499] = true, -- Archangels
+	[60841] = true, -- Alhazred
+	[8069] = true, -- Grumpy
 	[82263] = true, -- TM_autopilot
 	[70311] = true, -- PRO_BTCV
 	[142011] = true, -- [BAC]OutlawElite
 	[53682] = true, -- PROt_Fiddler112
-
 }
-local uniques = {--playername, hat ident, CaSe MaTtErS
+local uniques = { --playername, hat ident, CaSe MaTtErS
 }
 
 local function MatchPlayer(awardees, name, accountID)
@@ -149,81 +146,79 @@ local spawnWarpInFrame = Game.spawnWarpInFrame
 
 function gadget:GameFrame(gf)
 	if gf == spawnWarpInFrame then
-		for _, playerID in ipairs(Spring.GetPlayerList()) do
-
+		for _, playerID in ipairs(SpringShared.GetPlayerList()) do
 			local accountID = false
-			local playerName, _, spec, teamID, _, _, _, _, _, _, accountInfo = Spring.GetPlayerInfo(playerID)
+			local playerName, _, spec, teamID, _, _, _, _, _, _, accountInfo = SpringShared.GetPlayerInfo(playerID)
 			if accountInfo and accountInfo.accountid then
 				accountID = tonumber(accountInfo.accountid)
 			end
 
 			if not spec then
-				local units = Spring.GetTeamUnits(teamID)
+				local units = SpringShared.GetTeamUnits(teamID)
 				for k = 1, #units do
 					local unitID = units[k]
-					local unitDefID = Spring.GetUnitDefID(unitID)
-					local unitPosX, unitPosY, unitPosZ = Spring.GetUnitPosition(unitID)
+					local unitDefID = SpringShared.GetUnitDefID(unitID)
+					local unitPosX, unitPosY, unitPosZ = SpringShared.GetUnitPosition(unitID)
 
 					if unitDefCanWearHats[unitDefID] then
-
-						if MatchPlayer(halloween, playerName, accountID) and UnitDefNames['cor_hat_hw'] then
-							local hatDefID = UnitDefNames['cor_hat_hw'].id
-							local unitID = Spring.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
+						if MatchPlayer(halloween, playerName, accountID) and UnitDefNames.cor_hat_hw then
+							local hatDefID = UnitDefNames.cor_hat_hw.id
+							local unitID = SpringSynced.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
 							gadget:UnitGiven(unitID, hatDefID, teamID)
 						end
 
-						if MatchPlayer(legchamps, playerName, accountID) and UnitDefNames['cor_hat_legfn'] then
-							local hatDefID = UnitDefNames['cor_hat_legfn'].id
-							local unitID = Spring.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
+						if MatchPlayer(legchamps, playerName, accountID) and UnitDefNames.cor_hat_legfn then
+							local hatDefID = UnitDefNames.cor_hat_legfn.id
+							local unitID = SpringSynced.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
 							gadget:UnitGiven(unitID, hatDefID, teamID)
 						end
 
-						if MatchPlayer(champion, playerName, accountID) and UnitDefNames['cor_hat_fightnight'] then
-							local hatDefID = UnitDefNames['cor_hat_fightnight'].id
-							local unitID = Spring.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
+						if MatchPlayer(champion, playerName, accountID) and UnitDefNames.cor_hat_fightnight then
+							local hatDefID = UnitDefNames.cor_hat_fightnight.id
+							local unitID = SpringSynced.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
 							gadget:UnitGiven(unitID, hatDefID, teamID)
 						end
 
-						if MatchPlayer(vikings, playerName, accountID) and UnitDefNames['cor_hat_viking'] then
-							local hatDefID = UnitDefNames['cor_hat_viking'].id
-							local unitID = Spring.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
+						if MatchPlayer(vikings, playerName, accountID) and UnitDefNames.cor_hat_viking then
+							local hatDefID = UnitDefNames.cor_hat_viking.id
+							local unitID = SpringSynced.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
 							gadget:UnitGiven(unitID, hatDefID, teamID)
 						end
 
-						if (uniques[playerName]~=nil) and (UnitDefNames['cor_hat_' .. uniques[playerName]] ~= nil) then
-							local hatDefID = UnitDefNames['cor_hat_' .. uniques[playerName]].id
-							local unitID = Spring.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
+						if (uniques[playerName] ~= nil) and (UnitDefNames["cor_hat_" .. uniques[playerName]] ~= nil) then
+							local hatDefID = UnitDefNames["cor_hat_" .. uniques[playerName]].id
+							local unitID = SpringSynced.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
 							gadget:UnitGiven(unitID, hatDefID, teamID)
 						end
 
-						if string.sub(UnitDefs[unitDefID].name, 1, 3) == 'arm' then
-							local scriptEnv = Spring.UnitScript.GetScriptEnv(unitID)
+						if string.sub(UnitDefs[unitDefID].name, 1, 3) == "arm" then
+							local scriptEnv = SpringSynced.UnitScript.GetScriptEnv(unitID)
 							if scriptEnv then
-								if MatchPlayer(kings, playerName, accountID) and scriptEnv['ShowCrown'] then
-									Spring.UnitScript.CallAsUnit(unitID, scriptEnv['ShowCrown'], true)
+								if MatchPlayer(kings, playerName, accountID) and scriptEnv.ShowCrown then
+									SpringSynced.UnitScript.CallAsUnit(unitID, scriptEnv.ShowCrown, true)
 								end
-								if MatchPlayer(goldMedals, playerName, accountID) and scriptEnv['ShowMedalGold'] then
-									Spring.UnitScript.CallAsUnit(unitID, scriptEnv['ShowMedalGold'], true)
+								if MatchPlayer(goldMedals, playerName, accountID) and scriptEnv.ShowMedalGold then
+									SpringSynced.UnitScript.CallAsUnit(unitID, scriptEnv.ShowMedalGold, true)
 								end
-								if MatchPlayer(silverMedals, playerName, accountID) and scriptEnv['ShowMedalSilver'] then
-									Spring.UnitScript.CallAsUnit(unitID, scriptEnv['ShowMedalSilver'], true)
+								if MatchPlayer(silverMedals, playerName, accountID) and scriptEnv.ShowMedalSilver then
+									SpringSynced.UnitScript.CallAsUnit(unitID, scriptEnv.ShowMedalSilver, true)
 								end
-								if MatchPlayer(bronzeMedals, playerName, accountID) and scriptEnv['ShowMedalBronze'] then
-									Spring.UnitScript.CallAsUnit(unitID, scriptEnv['ShowMedalBronze'], true)
+								if MatchPlayer(bronzeMedals, playerName, accountID) and scriptEnv.ShowMedalBronze then
+									SpringSynced.UnitScript.CallAsUnit(unitID, scriptEnv.ShowMedalBronze, true)
 								end
 							end
 						else
-							if MatchPlayer(kings, playerName, accountID) and Spring.GetCOBScriptID(unitID, 'ShowCrown') then
-								Spring.CallCOBScript(unitID, "ShowCrown", 0)
+							if MatchPlayer(kings, playerName, accountID) and SpringSynced.GetCOBScriptID(unitID, "ShowCrown") then
+								SpringSynced.CallCOBScript(unitID, "ShowCrown", 0)
 							end
-							if MatchPlayer(goldMedals, playerName, accountID) and Spring.GetCOBScriptID(unitID, 'ShowMedalGold') then
-								Spring.CallCOBScript(unitID, "ShowMedalGold", 0)
+							if MatchPlayer(goldMedals, playerName, accountID) and SpringSynced.GetCOBScriptID(unitID, "ShowMedalGold") then
+								SpringSynced.CallCOBScript(unitID, "ShowMedalGold", 0)
 							end
-							if MatchPlayer(silverMedals, playerName, accountID) and Spring.GetCOBScriptID(unitID, 'ShowMedalSilver') then
-								Spring.CallCOBScript(unitID, "ShowMedalSilver", 0)
+							if MatchPlayer(silverMedals, playerName, accountID) and SpringSynced.GetCOBScriptID(unitID, "ShowMedalSilver") then
+								SpringSynced.CallCOBScript(unitID, "ShowMedalSilver", 0)
 							end
-							if MatchPlayer(bronzeMedals, playerName, accountID) and Spring.GetCOBScriptID(unitID, 'ShowMedalBronze') then
-								Spring.CallCOBScript(unitID, "ShowMedalBronze", 0)
+							if MatchPlayer(bronzeMedals, playerName, accountID) and SpringSynced.GetCOBScriptID(unitID, "ShowMedalBronze") then
+								SpringSynced.CallCOBScript(unitID, "ShowMedalBronze", 0)
 							end
 						end
 					end
@@ -235,10 +230,10 @@ function gadget:GameFrame(gf)
 	-- periodically update hat health	(damage gets applied instantly at gadget:UnitDamaged anyway)
 	if gf % 61 == 1 then
 		for unitID, hatUnitID in pairs(unitsWearingHats) do
-			local health, maxHealth = Spring.GetUnitHealth(unitID)
-			local hatHealth, hatMaxHealth = Spring.GetUnitHealth(hatUnitID)
+			local health, maxHealth = SpringShared.GetUnitHealth(unitID)
+			local hatHealth, hatMaxHealth = SpringShared.GetUnitHealth(hatUnitID)
 			if hatMaxHealth then
-				Spring.SetUnitHealth(hatUnitID, (health / maxHealth) * hatMaxHealth)
+				SpringSynced.SetUnitHealth(hatUnitID, (health / maxHealth) * hatMaxHealth)
 			else
 				unitsWearingHats[hatUnitID] = nil
 			end
@@ -253,77 +248,73 @@ end
 
 --Returns piece position and direction in world space. The direction (dirX, dirY, dirZ) is not necessarily normalized. The position is defined as the position of the first vertex of the piece and it defines direction as the direction in which the line --from the first vertex to the second vertex points. -> e.g. hats need two null vertices
 
-
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	-- for unitID reuse, just in case
 	if unitDefHat[unitDefID] then
-
 		if DEBUG then
-			Spring.Echo("hat created", unitID, unitDefID, unitTeam, builderID)
+			SpringShared.Echo("hat created", unitID, unitDefID, unitTeam, builderID)
 		end
 		Hats[unitID] = -1
-		Spring.SetUnitNeutral(unitID, true)
-		Spring.SetUnitBlocking(unitID, false, false, false, false) -- non blocking while dying
-		Spring.SetUnitNoMinimap(unitID, true)
+		SpringSynced.SetUnitNeutral(unitID, true)
+		SpringSynced.SetUnitBlocking(unitID, false, false, false, false) -- non blocking while dying
+		SpringUnsynced.SetUnitNoMinimap(unitID, true)
 	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 	if Hats[unitID] ~= nil then
 		if DEBUG then
-			Spring.Echo("A hat was destroyed", unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
+			SpringShared.Echo("A hat was destroyed", unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 		end
 		Hats[unitID] = nil
 	end
 	if unitsWearingHats[unitID] ~= nil then
 		local hatID = unitsWearingHats[unitID]
 		if DEBUG then
-			Spring.Echo("A hat wearing unit was destroyed, freeing hat", unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
+			SpringShared.Echo("A hat wearing unit was destroyed, freeing hat", unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 		end
-		Spring.UnitDetachFromAir(hatID)
-		Spring.UnitDetach(hatID)
+		SpringSynced.UnitDetachFromAir(hatID)
+		SpringSynced.UnitDetach(hatID)
 		unitsWearingHats[unitID] = nil
 		Hats[hatID] = -1
-		Spring.SetUnitNoSelect(hatID, false)
-		Spring.TransferUnit(hatID, Spring.GetGaiaTeamID()) -- ( number unitID,  numer newTeamID [, boolean given = true ] ) -> nil if given=false, the unit is captured
-		local px, py, pz = Spring.GetUnitPosition(unitID)
-		Spring.SetUnitPosition(hatID, px + 32, pz + 32)
+		SpringUnsynced.SetUnitNoSelect(hatID, false)
+		SpringSynced.TransferUnit(hatID, SpringShared.GetGaiaTeamID()) -- ( number unitID,  numer newTeamID [, boolean given = true ] ) -> nil if given=false, the unit is captured
+		local px, py, pz = SpringShared.GetUnitPosition(unitID)
+		SpringSynced.SetUnitPosition(hatID, px + 32, pz + 32)
 	end
 end
 
 function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 	if unitsWearingHats[unitID] then
 		if DEBUG then
-			Spring.Echo("A hat wearing unit was given, destroying hat", unitID, unitDefID, unitTeam, unitsWearingHats[unitID])
+			SpringShared.Echo("A hat wearing unit was given, destroying hat", unitID, unitDefID, unitTeam, unitsWearingHats[unitID])
 		end
-		Spring.DestroyUnit(unitsWearingHats[unitID])
+		SpringSynced.DestroyUnit(unitsWearingHats[unitID])
 		unitsWearingHats[unitID] = nil
 	end
 	if Hats[unitID] then
-
 		local hatID = unitID
-		if unitTeam == Spring.GetGaiaTeamID() then
+		if unitTeam == SpringShared.GetGaiaTeamID() then
 			if DEBUG then
-				Spring.Echo("A hat was given back to gaia", hatID, unitDefID, unitTeam, Spring.GetGaiaTeamID())
+				SpringShared.Echo("A hat was given back to gaia", hatID, unitDefID, unitTeam, SpringShared.GetGaiaTeamID())
 			end
 			return
 		end
 
 		if DEBUG then
-			Spring.Echo("A hat was given, finding a wearer", hatID, unitDefID, unitTeam)
+			SpringShared.Echo("A hat was given, finding a wearer", hatID, unitDefID, unitTeam)
 		end
 		-- find nearest commander and attach hat onto him?
-		local hx, hy, hz = Spring.GetUnitPosition(hatID)
+		local hx, hy, hz = SpringShared.GetUnitPosition(hatID)
 		if hx then
-			for ct, nearunitID in pairs(Spring.GetUnitsInCylinder(hx, hz, 200, unitTeam)) do
-				local neardefID = Spring.GetUnitDefID(nearunitID)
+			for ct, nearunitID in pairs(SpringShared.GetUnitsInCylinder(hx, hz, 200, unitTeam)) do
+				local neardefID = SpringShared.GetUnitDefID(nearunitID)
 				if unitDefCanWearHats[neardefID] then
-
 					if DEBUG then
-						Spring.Echo("Found a wearer", nearunitID, hatID, unitDefID, unitTeam)
+						SpringShared.Echo("Found a wearer", nearunitID, hatID, unitDefID, unitTeam)
 					end
 
-					local pieceMap = Spring.GetUnitPieceMap(nearunitID)
+					local pieceMap = SpringShared.GetUnitPieceMap(nearunitID)
 					local hatPoint = nil
 					for pieceName, pieceNum in pairs(pieceMap) do
 						if pieceName:find("hatpoint", nil, true) then
@@ -333,13 +324,13 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 					end
 
 					if DEBUG then
-						Spring.Echo("Found a point", nearunitID, hatPoint)
+						SpringShared.Echo("Found a point", nearunitID, hatPoint)
 					end
 
 					--Spring.MoveCtrl.Enable(unitID)
-					Spring.UnitAttach(nearunitID, hatID, hatPoint)
-					Spring.SetUnitNoDraw(hatID, false)
-					Spring.SetUnitNoSelect(hatID, true)
+					SpringSynced.UnitAttach(nearunitID, hatID, hatPoint)
+					SpringUnsynced.SetUnitNoDraw(hatID, false)
+					SpringUnsynced.SetUnitNoSelect(hatID, true)
 					--Spring.MoveCtrl.Disable(unitID)
 					--Spring.SetUnitLoadingTransport(unitID, nearunitID)
 					unitsWearingHats[nearunitID] = hatID
@@ -349,9 +340,9 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 			end
 		end
 		if DEBUG then
-			Spring.Echo("Hat was given, but found noone to put it onto, destroying", hatID)
+			SpringShared.Echo("Hat was given, but found noone to put it onto, destroying", hatID)
 		end
-		Spring.DestroyUnit(hatID)
+		SpringSynced.DestroyUnit(hatID)
 	end
 end
 
@@ -359,17 +350,17 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 	if Hats[unitID] then
 		return 0, 0
 	else
-		return damage,1
+		return damage, 1
 	end
 end
 
 -- also damage the hat
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	if unitsWearingHats[unitID] then
-		local health, maxHealth = Spring.GetUnitHealth(unitID)
-		local hatHealth, hatMaxHealth = Spring.GetUnitHealth(unitsWearingHats[unitID])
+		local health, maxHealth = SpringShared.GetUnitHealth(unitID)
+		local hatHealth, hatMaxHealth = SpringShared.GetUnitHealth(unitsWearingHats[unitID])
 		if hatHealth then
-			Spring.SetUnitHealth(unitsWearingHats[unitID], (health / maxHealth) * hatMaxHealth)
+			SpringSynced.SetUnitHealth(unitsWearingHats[unitID], (health / maxHealth) * hatMaxHealth)
 		end
 	end
 end
@@ -377,12 +368,12 @@ end
 -- also cloak hat
 function gadget:UnitCloaked(unitID, unitDefID, unitTeam)
 	if unitsWearingHats[unitID] then
-		Spring.SetUnitCloak(unitsWearingHats[unitID], 1)
+		SpringSynced.SetUnitCloak(unitsWearingHats[unitID], 1)
 	end
 end
 
 function gadget:UnitDecloaked(unitID, unitDefID, unitTeam)
 	if unitsWearingHats[unitID] then
-		Spring.SetUnitCloak(unitsWearingHats[unitID], 0)
+		SpringSynced.SetUnitCloak(unitsWearingHats[unitID], 0)
 	end
 end

@@ -32,7 +32,7 @@ return {
 		turninplacespeedlimit = 1.750,
 		turnrate = 1650,
 		customparams = {
-			unitgroup = 'explo',
+			unitgroup = "explo",
 			model_author = "Hornet",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/bots/t2 bots",
@@ -83,8 +83,8 @@ return {
 					default = 0,
 				},
 				customparams = {
-					bogus = 1
-				}
+					bogus = 1,
+				},
 			},
 			crawl_dummy = {
 				areaofeffect = 0,
@@ -110,8 +110,8 @@ return {
 					default = 0,
 				},
 				customparams = {
-					bogus = 1
-				}
+					bogus = 1,
+				},
 			},
 		},
 		weapons = {

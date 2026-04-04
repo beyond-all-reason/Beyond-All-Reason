@@ -2,12 +2,12 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name    = "Shield Effects",
-		desc    = "Draws variable shields for shielded units",
-		author  = "ivand, GoogleFrog",
-		date    = "2019",
+		name = "Shield Effects",
+		desc = "Draws variable shields for shielded units",
+		author = "ivand, GoogleFrog",
+		date = "2019",
 		license = "GNU GPL, v2 or later",
-		layer   = 1500, -- Call ShieldPreDamaged after gadgets which change whether interception occurs
+		layer = 1500, -- Call ShieldPreDamaged after gadgets which change whether interception occurs
 		enabled = true,
 	}
 end
@@ -27,11 +27,11 @@ local SHIELDONRULESPARAMINDEX = 531313 -- not a string due to perfmaxxing
 
 local sqrt = math.sqrt
 local function Norm(x, y, z)
-	return sqrt(x*x + y*y + z*z)
+	return sqrt(x * x + y * y + z * z)
 end
 
 local function DotProduct(x1, y1, z1, x2, y2, z2)
-	return x1*x2 + y1*y2 + z1*z2
+	return x1 * x2 + y1 * y2 + z1 * z2
 end
 
 -- Spherical linear interpolation for impact points
@@ -65,9 +65,9 @@ end
 -----------------------------------------------------------------
 
 if gadgetHandler:IsSyncedCode() then
-	local spSetUnitRulesParam = Spring.SetUnitRulesParam
+	local spSetUnitRulesParam = SpringSynced.SetUnitRulesParam
 	local SendToUnsynced = SendToUnsynced
-	local INLOS_ACCESS = {inlos = true}
+	local INLOS_ACCESS = { inlos = true }
 	local gameFrame = 0
 
 	function gadget:GameFrame(n)
@@ -78,16 +78,15 @@ if gadgetHandler:IsSyncedCode() then
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		local weapons = unitDef.weapons
 		local hasbeamweapon = false
-		for i=1,#weapons do
+		for i = 1, #weapons do
 			local weaponDefID = weapons[i].weaponDef
-			if WeaponDefs[weaponDefID].type == "LightningCannon" or
-				WeaponDefs[weaponDefID].type == "BeamLaser" then
+			if WeaponDefs[weaponDefID].type == "LightningCannon" or WeaponDefs[weaponDefID].type == "BeamLaser" then
 				hasbeamweapon = true
 			end
 		end
 		if hasbeamweapon then
 			unitBeamWeapons[unitDefID] = {}
-			for i=1,#weapons do
+			for i = 1, #weapons do
 				unitBeamWeapons[unitDefID][i] = weapons[i].weaponDef
 			end
 		end
@@ -97,7 +96,7 @@ if gadgetHandler:IsSyncedCode() then
 	local weaponBeamtime = {}
 	for weaponDefID, weaponDef in pairs(WeaponDefs) do
 		weaponType[weaponDefID] = weaponDef.type
-		weaponDamages[weaponDefID] = {[SHIELDARMORIDALT] = weaponDef.damages[SHIELDARMORIDALT], [SHIELDARMORID] = weaponDef.damages[SHIELDARMORID]}
+		weaponDamages[weaponDefID] = { [SHIELDARMORIDALT] = weaponDef.damages[SHIELDARMORIDALT], [SHIELDARMORID] = weaponDef.damages[SHIELDARMORID] }
 		weaponBeamtime[weaponDefID] = weaponDef.beamtime
 	end
 
@@ -105,11 +104,11 @@ if gadgetHandler:IsSyncedCode() then
 		local dmgMod = 1
 		local weaponDefID
 		if proID and proID ~= -1 then
-			weaponDefID = Spring.GetProjectileDefID(proID)
+			weaponDefID = SpringShared.GetProjectileDefID(proID)
 		elseif beamEmitterUnitID then -- hitscan weapons
-			local uDefID = Spring.GetUnitDefID(beamEmitterUnitID)
-			if unitBeamWeapons[ uDefID ] and unitBeamWeapons[ uDefID ][beamEmitterWeaponNum] then
-				weaponDefID = unitBeamWeapons[ uDefID ][beamEmitterWeaponNum]
+			local uDefID = SpringShared.GetUnitDefID(beamEmitterUnitID)
+			if unitBeamWeapons[uDefID] and unitBeamWeapons[uDefID][beamEmitterWeaponNum] then
+				weaponDefID = unitBeamWeapons[uDefID][beamEmitterWeaponNum]
 				if weaponType[weaponDefID] ~= "LightningCannon" then
 					dmgMod = 1 / (weaponBeamtime[weaponDefID] * GAMESPEED)
 				end
@@ -122,7 +121,7 @@ if gadgetHandler:IsSyncedCode() then
 				dmg = weaponDamages[weaponDefID][SHIELDARMORIDALT]
 			end
 
-			local x, y, z = Spring.GetUnitPosition(shieldCarrierUnitID)
+			local x, y, z = SpringShared.GetUnitPosition(shieldCarrierUnitID)
 			local dx, dy, dz
 			local onlyMove = false
 			if bounceProjectile then
@@ -145,15 +144,15 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local spGetMyAllyTeamID     = Spring.GetMyAllyTeamID
-local spGetSpectatingState  = Spring.GetSpectatingState
-local spGetUnitPosition     = Spring.GetUnitPosition
-local spIsSphereInView      = Spring.IsSphereInView
-local spGetUnitRotation     = Spring.GetUnitRotation
-local spGetUnitShieldState  = Spring.GetUnitShieldState
-local spGetUnitIsStunned    = Spring.GetUnitIsStunned
-local spGetGameFrame        = Spring.GetGameFrame
-local spGetFrameTimeOffset  = Spring.GetFrameTimeOffset
+local spGetMyAllyTeamID = SpringUnsynced.GetLocalAllyTeamID
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spIsSphereInView = SpringUnsynced.IsSphereInView
+local spGetUnitRotation = SpringShared.GetUnitRotation
+local spGetUnitShieldState = SpringShared.GetUnitShieldState
+local spGetUnitIsStunned = SpringShared.GetUnitIsStunned
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetFrameTimeOffset = SpringUnsynced.GetFrameTimeOffset
 
 local IterableMap = VFS.Include("LuaRules/Gadgets/Include/IterableMap.lua")
 
@@ -189,7 +188,7 @@ local checkStunnedTime = 0
 local impactInfoStringTable = {}
 local impactInfoUniformCache = {}
 for i = 1, MAX_POINTS + 1 do
-	impactInfoStringTable[i-1] = string.format("impactInfo.impactInfoArray[%d]", i - 1)
+	impactInfoStringTable[i - 1] = string.format("impactInfo.impactInfoArray[%d]", i - 1)
 end
 
 -- Cached uniform locations (set after shader initialization)
@@ -200,7 +199,7 @@ local function GetVisibleSearch(x, z, search)
 		return false
 	end
 	for i = 1, #search do
-		if Spring.IsPosInAirLos(x + search[i][1], 0, z + search[i][2], myAllyTeamID) then
+		if SpringShared.IsPosInAirLos(x + search[i][1], 0, z + search[i][2], myAllyTeamID) then
 			return true
 		end
 	end
@@ -210,17 +209,17 @@ end
 local function UpdateVisibility(unitID, unitData, unitVisible, forceUpdate)
 	unitVisible = unitVisible or (myAllyTeamID == unitData.allyTeamID)
 	if not unitVisible then
-		local ux,_,uz = Spring.GetUnitPosition(unitID)
+		local ux, _, uz = SpringShared.GetUnitPosition(unitID)
 		unitVisible = GetVisibleSearch(ux, uz, unitData.search)
 	end
 
-	local unitIsActive = Spring.GetUnitIsActive(unitID)
+	local unitIsActive = SpringShared.GetUnitIsActive(unitID)
 	if unitIsActive ~= unitData.isActive then
 		forceUpdate = true
 		unitData.isActive = unitIsActive
 	end
 
-	local shieldEnabled = Spring.GetUnitRulesParam(unitID, SHIELDONRULESPARAMINDEX)
+	local shieldEnabled = SpringShared.GetUnitRulesParam(unitID, SHIELDONRULESPARAMINDEX)
 	if shieldEnabled == 1 then
 		unitVisible = true
 	elseif shieldEnabled == 0 then
@@ -245,7 +244,7 @@ local function AddUnit(unitID, unitDefID)
 
 	-- Validate shield capacity
 	if not def.shieldCapacity or def.shieldCapacity <= 0 then
-		Spring.Echo("Warning: Shield unit " .. unitDefID .. " has invalid capacity: " .. tostring(def.shieldCapacity))
+		SpringShared.Echo("Warning: Shield unit " .. unitDefID .. " has invalid capacity: " .. tostring(def.shieldCapacity))
 		return
 	end
 
@@ -256,16 +255,16 @@ local function AddUnit(unitID, unitDefID)
 	shieldInfo.stunned = false
 
 	local unitData = {
-		unitDefID  = unitDefID,
-		search     = def.search,
-		capacity   = def.shieldCapacity,
-		radius     = def.shieldRadius,
+		unitDefID = unitDefID,
+		search = def.search,
+		capacity = def.shieldCapacity,
+		radius = def.shieldRadius,
 		shieldInfo = shieldInfo,
-		allyTeamID = Spring.GetUnitAllyTeam(unitID)
+		allyTeamID = SpringShared.GetUnitAllyTeam(unitID),
 	}
 
 	if highEnoughQuality then
-		unitData.shieldPos  = def.shieldPos
+		unitData.shieldPos = def.shieldPos
 		unitData.hitData = {}
 		unitData.needsUpdate = false
 	end
@@ -300,7 +299,7 @@ local function CalcAoE(dmg, capacity)
 		return 0
 	end
 
-	local aoe = (BIASLOG + math.log(ratio)/LOG10) * LOGMUL
+	local aoe = (BIASLOG + math.log(ratio) / LOG10) * LOGMUL
 	return (aoe > 0 and aoe or 0)
 end
 
@@ -308,7 +307,9 @@ local AOE_SAME_SPOT = AOE_MAX / 3 -- ~0.13, angle threshold in radians.
 local AOE_SAME_SPOT_COS = math.cos(AOE_SAME_SPOT) -- about 0.99
 
 -- Pre-hoisted sort comparator to avoid closure allocation every 2 frames
-local hitDataSortFunc = function(a, b) return (((a and b) and a.dmg > b.dmg) or false) end
+local hitDataSortFunc = function(a, b)
+	return (((a and b) and a.dmg > b.dmg) or false)
+end
 
 --x, y, z here are normalized vectors
 local function DoAddShieldHitData(unitData, hitFrame, dmg, x, y, z, onlyMove)
@@ -318,8 +319,7 @@ local function DoAddShieldHitData(unitData, hitFrame, dmg, x, y, z, onlyMove)
 
 	for _, hitInfo in ipairs(hitData) do
 		if hitInfo then
-
-			local dist = hitInfo.x * x +  hitInfo.y * y + hitInfo.z *  z -- take dot product of normed vectors to get the cosine of their angle
+			local dist = hitInfo.x * x + hitInfo.y * y + hitInfo.z * z -- take dot product of normed vectors to get the cosine of their angle
 			-- AoE radius in radians
 
 			if dist >= AOE_SAME_SPOT_COS then
@@ -370,7 +370,7 @@ local function ProcessHitTable(unitData, gameFrame)
 	for i = #hitData, 1, -1 do
 		local hitInfo = hitData[i]
 		if hitInfo then
-			local mult = math.exp(-DECAY_FACTOR*(gameFrame - hitInfo.hitFrame))
+			local mult = math.exp(-DECAY_FACTOR * (gameFrame - hitInfo.hitFrame))
 			hitInfo.dmg = hitInfo.dmg * mult
 			hitInfo.hitFrame = gameFrame
 
@@ -415,13 +415,13 @@ local function DrawIcosahedron(subd, cw)
 	local acos = math.acos
 
 	local function normalize(vertex)
-		local r = sqrt(vertex[1]*vertex[1] + vertex[2]*vertex[2] + vertex[3]*vertex[3])
+		local r = sqrt(vertex[1] * vertex[1] + vertex[2] * vertex[2] + vertex[3] * vertex[3])
 		vertex[1], vertex[2], vertex[3] = vertex[1] / r, vertex[2] / r, vertex[3] / r
 		return vertex
 	end
 
 	local function midpoint(pt1, pt2)
-		return { (pt1[1] + pt2[1]) / 2, (pt1[2] + pt2[2]) / 2, (pt1[3] + pt2[3]) / 2}
+		return { (pt1[1] + pt2[1]) / 2, (pt1[2] + pt2[2]) / 2, (pt1[3] + pt2[3]) / 2 }
 	end
 
 	local function subdivide(pt1, pt2, pt3)
@@ -431,10 +431,10 @@ local function DrawIcosahedron(subd, cw)
 
 		-- CCW order, starting from leftmost
 		return {
-			{pt12, pt13, pt1},
-			{pt2, pt23, pt12},
-			{pt12, pt23, pt13},
-			{pt23, pt3, pt13},
+			{ pt12, pt13, pt1 },
+			{ pt2, pt23, pt12 },
+			{ pt12, pt23, pt13 },
+			{ pt23, pt3, pt13 },
 		}
 	end
 
@@ -450,9 +450,18 @@ local function DrawIcosahedron(subd, cw)
 	local Z = (1 + sqrt(5)) / 2
 
 	local vertexes0 = {
-		{-X, 0.0, Z}, {X, 0.0, Z}, {-X, 0.0, -Z}, {X, 0.0, -Z},
-		{0.0, Z, X}, {0.0, Z, -X}, {0.0, -Z, X}, {0.0, -Z, -X},
-		{Z, X, 0.0}, {-Z, X, 0.0}, {Z, -X, 0.0}, {-Z, -X, 0.0},
+		{ -X, 0.0, Z },
+		{ X, 0.0, Z },
+		{ -X, 0.0, -Z },
+		{ X, 0.0, -Z },
+		{ 0.0, Z, X },
+		{ 0.0, Z, -X },
+		{ 0.0, -Z, X },
+		{ 0.0, -Z, -X },
+		{ Z, X, 0.0 },
+		{ -Z, X, 0.0 },
+		{ Z, -X, 0.0 },
+		{ -Z, -X, 0.0 },
 	}
 
 	for _, vert in ipairs(vertexes0) do
@@ -460,10 +469,26 @@ local function DrawIcosahedron(subd, cw)
 	end
 
 	local fi0 = {
-		{1,5,2}, {1,10,5}, {10,6,5}, {5,6,9}, {5,9,2},
-		{9,11,2}, {9,4,11}, {6,4,9}, {6,3,4}, {3,8,4},
-		{8,11,4}, {8,7,11}, {8,12,7}, {12,1,7}, {1,2,7},
-		{7,2,11}, {10,1,12}, {10,12,3}, {10,3,6}, {8,3,12},
+		{ 1, 5, 2 },
+		{ 1, 10, 5 },
+		{ 10, 6, 5 },
+		{ 5, 6, 9 },
+		{ 5, 9, 2 },
+		{ 9, 11, 2 },
+		{ 9, 4, 11 },
+		{ 6, 4, 9 },
+		{ 6, 3, 4 },
+		{ 3, 8, 4 },
+		{ 8, 11, 4 },
+		{ 8, 7, 11 },
+		{ 8, 12, 7 },
+		{ 12, 1, 7 },
+		{ 1, 2, 7 },
+		{ 7, 2, 11 },
+		{ 10, 1, 12 },
+		{ 10, 12, 3 },
+		{ 10, 3, 6 },
+		{ 8, 3, 12 },
 	}
 
 	if cw then -- re-wind to clockwise order
@@ -474,7 +499,7 @@ local function DrawIcosahedron(subd, cw)
 
 	local faces0 = {}
 	for i = 1, #fi0 do
-		faces0[i] = {vertexes0[fi0[i][1]], vertexes0[fi0[i][2]], vertexes0[fi0[i][3]]}
+		faces0[i] = { vertexes0[fi0[i][1]], vertexes0[fi0[i][2]], vertexes0[fi0[i][3]] }
 	end
 
 	local faces = faces0
@@ -515,8 +540,8 @@ end
 
 local function LoadShieldConfig()
 	local ShieldSphereBase = {
-		colormap1 = {{0.99, 0.99, 0.90, 0.002}, {0.6, 0.30, 0.09, 0.0}},
-		colormap2 = {{0.7, 0.7, 0.7, 0.001}, {0.05, 0.03, 0.0, 0.0}},
+		colormap1 = { { 0.99, 0.99, 0.90, 0.002 }, { 0.6, 0.30, 0.09, 0.0 } },
+		colormap2 = { { 0.7, 0.7, 0.7, 0.001 }, { 0.05, 0.03, 0.0, 0.0 } },
 		terrainOutline = true,
 		unitsOutline = true,
 		impactAnimation = true,
@@ -529,27 +554,27 @@ local function LoadShieldConfig()
 	}
 
 	local SEARCH_SMALL = {
-		{0, 0},
-		{1, 0},
-		{-1, 0},
-		{0, 1},
-		{0, -1},
+		{ 0, 0 },
+		{ 1, 0 },
+		{ -1, 0 },
+		{ 0, 1 },
+		{ 0, -1 },
 	}
 
 	local SEARCH_MULT = 1
 	local SEARCH_BASE = 16
-	local DIAG = 1/math.sqrt(2)
+	local DIAG = 1 / math.sqrt(2)
 
 	local SEARCH_LARGE = {
-		{0, 0},
-		{1, 0},
-		{-1, 0},
-		{0, 1},
-		{0, -1},
-		{DIAG, DIAG},
-		{-DIAG, DIAG},
-		{DIAG, -DIAG},
-		{-DIAG, -DIAG},
+		{ 0, 0 },
+		{ 1, 0 },
+		{ -1, 0 },
+		{ 0, 1 },
+		{ 0, -1 },
+		{ DIAG, DIAG },
+		{ -DIAG, DIAG },
+		{ DIAG, -DIAG },
+		{ -DIAG, -DIAG },
 	}
 	local searchSizes = {}
 
@@ -563,7 +588,7 @@ local function LoadShieldConfig()
 				local searchType = (radius > 250 and SEARCH_LARGE) or SEARCH_SMALL
 				local search = {}
 				for i = 1, #searchType do
-					search[i] = {SEARCH_MULT*(radius + SEARCH_BASE)*searchType[i][1], SEARCH_MULT*(radius + SEARCH_BASE)*searchType[i][2]}
+					search[i] = { SEARCH_MULT * (radius + SEARCH_BASE) * searchType[i][1], SEARCH_MULT * (radius + SEARCH_BASE) * searchType[i][2] }
 				end
 				searchSizes[radius] = search
 			end
@@ -577,7 +602,7 @@ local function LoadShieldConfig()
 				myShield.margin = 0.2
 			end
 			myShield.radius = radius
-			myShield.pos = {0, tonumber(ud.customParams.shield_emit_height) or 0, tonumber(ud.customParams.shield_emit_offset) or 0}
+			myShield.pos = { 0, tonumber(ud.customParams.shield_emit_height) or 0, tonumber(ud.customParams.shield_emit_offset) or 0 }
 
 			local strengthMult = tonumber(ud.customParams.shield_color_mult)
 			if strengthMult then
@@ -587,7 +612,7 @@ local function LoadShieldConfig()
 
 			-- Special handling for raptors
 			if string.find(ud.name, "raptor_", nil, true) then
-				myShield.colormap1 = {{0.3, 0.9, 0.2, 1.2}, {0.6, 0.4, 0.1, 1.2}}
+				myShield.colormap1 = { { 0.3, 0.9, 0.2, 1.2 }, { 0.6, 0.4, 0.1, 1.2 } }
 			end
 
 			configTable[unitDefID] = {
@@ -615,11 +640,11 @@ local function InitializeShader()
 
 	-- Check if shader files exist
 	if not VFS.FileExists("shaders/ShieldSphereColor.vert") then
-		Spring.Echo("Shield shader error: shaders/ShieldSphereColor.vert not found!")
+		SpringShared.Echo("Shield shader error: shaders/ShieldSphereColor.vert not found!")
 		return false
 	end
 	if not VFS.FileExists("shaders/ShieldSphereColor.frag") then
-		Spring.Echo("Shield shader error: shaders/ShieldSphereColor.frag not found!")
+		SpringShared.Echo("Shield shader error: shaders/ShieldSphereColor.frag not found!")
 		return false
 	end
 
@@ -627,7 +652,7 @@ local function InitializeShader()
 	local shieldShaderFrag = VFS.LoadFile("shaders/ShieldSphereColor.frag")
 
 	if not shieldShaderVert or not shieldShaderFrag then
-		Spring.Echo("Shield shader error: Failed to load shader files!")
+		SpringShared.Echo("Shield shader error: Failed to load shader files!")
 		return false
 	end
 
@@ -635,14 +660,14 @@ local function InitializeShader()
 	shieldShaderFrag = shieldShaderFrag:gsub("###MAX_POINTS###", MAX_POINTS)
 
 	local uniformFloats = {
-		color1 = {1,1,1,1},
-		color2 = {1,1,1,1},
-		translationScale = {1,1,1,1},
-		rotMargin = {1,1,1,1},
+		color1 = { 1, 1, 1, 1 },
+		color2 = { 1, 1, 1, 1 },
+		translationScale = { 1, 1, 1, 1 },
+		rotMargin = { 1, 1, 1, 1 },
 		["impactInfo.count"] = 1,
 	}
 	for i = 1, MAX_POINTS + 1 do
-		uniformFloats[impactInfoStringTable[i-1]] = {0,0,0,0}
+		uniformFloats[impactInfoStringTable[i - 1]] = { 0, 0, 0, 0 }
 	end
 
 	shieldShader = LuaShader({
@@ -658,30 +683,30 @@ local function InitializeShader()
 
 	local shaderCompiled = shieldShader:Initialize()
 	if not shaderCompiled then
-		Spring.Echo("Shield shader failed to compile!")
+		SpringShared.Echo("Shield shader failed to compile!")
 		shieldShader = nil
 		return false
 	end
 
 	-- Verify shader object is valid
 	if not shieldShader or not shieldShader.uniformLocations then
-		Spring.Echo("Shield shader object is invalid after initialization!")
+		SpringShared.Echo("Shield shader object is invalid after initialization!")
 		shieldShader = nil
 		return false
 	end
 
 	-- Cache uniform locations for performance
 	local uniformLocations = shieldShader.uniformLocations
-	uTranslationScale = uniformLocations["translationScale"]
-	uRotMargin = uniformLocations["rotMargin"]
-	uEffects = uniformLocations['effects']
-	uColor1 = uniformLocations['color1']
-	uColor2 = uniformLocations['color2']
+	uTranslationScale = uniformLocations.translationScale
+	uRotMargin = uniformLocations.rotMargin
+	uEffects = uniformLocations.effects
+	uColor1 = uniformLocations.color1
+	uColor2 = uniformLocations.color2
 	uImpactCount = uniformLocations["impactInfo.count"]
 
 	-- Cache impact info uniform locations
 	for i = 1, MAX_POINTS do
-		impactInfoUniformCache[i] = uniformLocations[impactInfoStringTable[i-1]]
+		impactInfoUniformCache[i] = uniformLocations[impactInfoStringTable[i - 1]]
 	end
 
 	geometryLists = {
@@ -720,7 +745,9 @@ function gadget:DrawWorld()
 
 	-- Clear renderBuckets in-place to avoid per-frame table allocation
 	for k, bucket in pairs(renderBuckets) do
-		for i = 1, #bucket do bucket[i] = nil end
+		for i = 1, #bucket do
+			bucket[i] = nil
+		end
 		renderBuckets[k] = nil
 	end
 	haveTerrainOutline = false
@@ -776,7 +803,9 @@ function gadget:DrawWorld()
 		return
 	end
 
-	if tracy then tracy.ZoneBeginN("Shield:EndDraw") end
+	if tracy then
+		tracy.ZoneBeginN("Shield:EndDraw")
+	end
 
 	gl.Blending("alpha")
 	gl.DepthTest(GL.LEQUAL)
@@ -837,10 +866,16 @@ function gadget:DrawWorld()
 				if charge and info.shieldCapacity and info.shieldCapacity > 0 then
 					local frac = charge / info.shieldCapacity
 
-					if frac > 1 then frac = 1 elseif frac < 0 then frac = 0 end
+					if frac > 1 then
+						frac = 1
+					elseif frac < 0 then
+						frac = 0
+					end
 
 					-- Additional NaN safety check
-					if frac ~= frac then frac = 0 end -- NaN check (NaN != NaN)
+					if frac ~= frac then
+						frac = 0
+					end -- NaN check (NaN != NaN)
 
 					local fracinv = 1.0 - frac
 
@@ -907,7 +942,9 @@ function gadget:DrawWorld()
 	gl.DepthTest(false)
 	gl.DepthMask(false)
 
-	if tracy then tracy.ZoneEnd() end
+	if tracy then
+		tracy.ZoneEnd()
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -926,7 +963,7 @@ end
 function gadget:UnitTaken(unitID, unitDefID, newTeam, oldTeam)
 	local unitData = IterableMap.Get(shieldUnits, unitID)
 	if unitData then
-		unitData.allyTeamID = Spring.GetUnitAllyTeam(unitID)
+		unitData.allyTeamID = SpringShared.GetUnitAllyTeam(unitID)
 	end
 end
 
@@ -960,7 +997,7 @@ function gadget:Initialize(n)
 	-- Initialize shader and geometry
 	local shaderSuccess = InitializeShader()
 	if not shaderSuccess then
-		Spring.Echo("Shield gadget: Failed to initialize shader, disabling")
+		SpringShared.Echo("Shield gadget: Failed to initialize shader, disabling")
 		gadgetHandler:RemoveGadget(self)
 		return
 	end
@@ -971,11 +1008,11 @@ function gadget:Initialize(n)
 	end
 
 	-- Add existing units
-	local allUnits = Spring.GetAllUnits()
+	local allUnits = SpringShared.GetAllUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
-		local unitDefID = Spring.GetUnitDefID(unitID)
-		local unitTeam = Spring.GetUnitTeam(unitID)
+		local unitDefID = SpringShared.GetUnitDefID(unitID)
+		local unitTeam = SpringShared.GetUnitTeam(unitID)
 		if unitDefID and unitTeam then
 			gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		end
@@ -992,7 +1029,7 @@ function gadget:Shutdown()
 	FinalizeShader()
 
 	-- Remove all units
-	local allUnits = Spring.GetAllUnits()
+	local allUnits = SpringShared.GetAllUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
 		RemoveUnit(unitID)

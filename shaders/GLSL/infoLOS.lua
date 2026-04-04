@@ -1,9 +1,9 @@
 local Spring = Spring
-local alwaysColor, losColor, radarColor, jamColor, radarColor2 = Spring.GetLosViewColors()
+local alwaysColor, losColor, radarColor, jamColor, radarColor2 = SpringUnsynced.GetLosViewColors()
 
 return {
 	definitions = {
-		Spring.GetConfigInt("HighResInfoTexture") and "#define HIGH_QUALITY" or "",
+		SpringUnsynced.GetConfigInt("HighResInfoTexture") and "#define HIGH_QUALITY" or "",
 	},
 	vertex = [[#version 130
 		varying vec2 texCoord;
@@ -133,9 +133,9 @@ return {
 	]],
 	uniformFloat = {
 		alwaysColor = alwaysColor,
-		losColor    = losColor,
+		losColor = losColor,
 		radarColor1 = radarColor,
-		jamColor    = jamColor,
+		jamColor = jamColor,
 		radarColor2 = radarColor2,
 	},
 	uniformInt = {

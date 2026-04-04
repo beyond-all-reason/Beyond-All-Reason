@@ -1,104 +1,108 @@
 local UDN = UnitDefNames
-local gaiaTeamID = Spring.Utilities.GetScavTeamID() or Spring.GetGaiaTeamID()
+local gaiaTeamID = Utilities.GetScavTeamID() or SpringShared.GetGaiaTeamID()
 
 local wallUnitDefs = {
-	["arm"] = {
+	arm = {
 		[1] = {
-			["land"] = {
-				unarmed = {"armdrag"},
-				armed = {"armclaw"},
+			land = {
+				unarmed = { "armdrag" },
+				armed = { "armclaw" },
 			},
-			["sea"] = {
-				unarmed = {"armfdrag"},
-				armed = {"armfdrag"}, -- placeholder,
+			sea = {
+				unarmed = { "armfdrag" },
+				armed = { "armfdrag" }, -- placeholder,
 			},
 		},
 		[2] = {
-			["land"] = {
-				unarmed = {"armfort"},
-				armed = {"armlwall"},
+			land = {
+				unarmed = { "armfort" },
+				armed = { "armlwall" },
 			},
-			["sea"] = {
-				unarmed = {"armfdrag"}, -- placeholder,
-				armed = {"armfdrag"}, -- placeholder,
+			sea = {
+				unarmed = { "armfdrag" }, -- placeholder,
+				armed = { "armfdrag" }, -- placeholder,
 			},
 		},
 	},
-	["cor"] = {
+	cor = {
 		[1] = {
-			["land"] = {
-				unarmed = {"cordrag"},
-				armed = {"cormaw"},
+			land = {
+				unarmed = { "cordrag" },
+				armed = { "cormaw" },
 			},
-			["sea"] = {
-				unarmed = {"corfdrag"},
-				armed = {"corfdrag"}, -- placeholder,
+			sea = {
+				unarmed = { "corfdrag" },
+				armed = { "corfdrag" }, -- placeholder,
 			},
 		},
 		[2] = {
-			["land"] = {
-				unarmed = {"corfort"},
-				armed = {"cormwall"},
+			land = {
+				unarmed = { "corfort" },
+				armed = { "cormwall" },
 			},
-			["sea"] = {
-				unarmed = {"corfdrag"}, -- placeholder,
-				armed = {"corfdrag"}, -- placeholder,
+			sea = {
+				unarmed = { "corfdrag" }, -- placeholder,
+				armed = { "corfdrag" }, -- placeholder,
 			},
 		},
 	},
-	["leg"] = {
+	leg = {
 		[1] = {
-			["land"] = {
-				unarmed = {"legdrag"},
-				armed = {"legdtr"},
+			land = {
+				unarmed = { "legdrag" },
+				armed = { "legdtr" },
 			},
-			["sea"] = {
-				unarmed = {"legfdrag"},
-				armed = {"legfdrag"}, -- placeholder,
+			sea = {
+				unarmed = { "legfdrag" },
+				armed = { "legfdrag" }, -- placeholder,
 			},
 		},
 		[2] = {
-			["land"] = {
-				unarmed = {"legforti"},
-				armed = {"legrwall"},
+			land = {
+				unarmed = { "legforti" },
+				armed = { "legrwall" },
 			},
-			["sea"] = {
-				unarmed = {"legfdrag"}, -- placeholder,
-				armed = {"legfdrag"}, -- placeholder,
+			sea = {
+				unarmed = { "legfdrag" }, -- placeholder,
+				armed = { "legfdrag" }, -- placeholder,
 			},
 		},
 	},
-	["scav"] = {
+	scav = {
 		[1] = {
-			["land"] = {
-				unarmed = {"corscavdrag"},
-				armed = {"corscavdtf", "corscavdtl", "corscavdtm"},
+			land = {
+				unarmed = { "corscavdrag" },
+				armed = { "corscavdtf", "corscavdtl", "corscavdtm" },
 			},
-			["sea"] = {
-				unarmed = {"corfdrag"}, -- placeholder,
-				armed = {"corfdrag"}, -- placeholder,
+			sea = {
+				unarmed = { "corfdrag" }, -- placeholder,
+				armed = { "corfdrag" }, -- placeholder,
 			},
 		},
 		[2] = {
-			["land"] = {
-				unarmed = {"corscavfort"},
-				armed = {"corscavfort"}, -- placeholder,
+			land = {
+				unarmed = { "corscavfort" },
+				armed = { "corscavfort" }, -- placeholder,
 			},
-			["sea"] = {
-				unarmed = {"corfdrag"}, -- placeholder,
-				armed = {"corfdrag"}, -- placeholder,
+			sea = {
+				unarmed = { "corfdrag" }, -- placeholder,
+				armed = { "corfdrag" }, -- placeholder,
 			},
 		},
 	},
 }
 
-
 function BPWallOrPopup(faction, tier, surface)
 	local wallRandom = math.random()
-	if not faction then faction = "scav" end
-	if not tier then tier = 1 end
-	if not surface then surface = "land" end
-
+	if not faction then
+		faction = "scav"
+	end
+	if not tier then
+		tier = 1
+	end
+	if not surface then
+		surface = "land"
+	end
 
 	if wallRandom <= 0.1 and wallUnitDefs[faction][tier][surface].armed[1] then -- armed
 		return UDN[wallUnitDefs[faction][tier][surface].armed[math.random(1, #wallUnitDefs[faction][tier][surface].armed)]].id

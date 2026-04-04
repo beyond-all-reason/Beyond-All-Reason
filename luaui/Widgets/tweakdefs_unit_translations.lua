@@ -8,12 +8,12 @@ function widget:GetInfo()
 		date = "Dec 20, 2024",
 		license = "GNU GPL, v2 or later",
 		layer = -1000000, -- must run before gui_language
-		enabled = true
+		enabled = true,
 	}
 end
 
 local function updateTranslations()
-	local currentLanguage = Spring.GetConfigString("language", "en")
+	local currentLanguage = SpringUnsynced.GetConfigString("language", "en")
 
 	for unitDefName, unitDef in pairs(UnitDefNames) do
 		--Naming convention for language overrides
@@ -24,11 +24,11 @@ local function updateTranslations()
 		local customTooltip = unitDef.customParams[tooltipKey]
 
 		if customHumanName then
-			Spring.I18N.set(currentLanguage .. '.units.names.' .. unitDefName, customHumanName)
+			I18N.set(currentLanguage .. ".units.names." .. unitDefName, customHumanName)
 		end
 
 		if customTooltip then
-			Spring.I18N.set(currentLanguage .. '.units.descriptions.' .. unitDefName, customTooltip)
+			I18N.set(currentLanguage .. ".units.descriptions." .. unitDefName, customTooltip)
 		end
 	end
 end

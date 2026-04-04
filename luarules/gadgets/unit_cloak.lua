@@ -1,15 +1,14 @@
-
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name      = "Cloak",	-- gadget copy from: Decloak when damaged
-		desc      = "optionally: decloaks units when they are damged",
-		author    = "Google Frog",
-		date      = "Nov 25, 2009", -- Major rework 12 Feb 2014
-		license   = "GNU GPL, v2 or later",
-		layer     = 0,
-		enabled   = true
+		name = "Cloak", -- gadget copy from: Decloak when damaged
+		desc = "optionally: decloaks units when they are damged",
+		author = "Google Frog",
+		date = "Nov 25, 2009", -- Major rework 12 Feb 2014
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
 
@@ -22,30 +21,30 @@ local decloakWhenDamaged = false
 include("LuaRules/Configs/customcmds.h.lua")
 
 local unitWantCloakCommandDesc = {
-	id      = CMD_WANT_CLOAK,
-	type    = CMDTYPE.ICON_MODE,
-	name    = 'Cloak State',
-	action  = 'wantcloak',
+	id = CMD_WANT_CLOAK,
+	type = CMDTYPE.ICON_MODE,
+	name = "Cloak State",
+	action = "wantcloak",
 	queueing = false,
-	tooltip	= 'invisiblility state',
-	params 	= {0, 'Decloaked', 'Cloaked'}
+	tooltip = "invisiblility state",
+	params = { 0, "Decloaked", "Cloaked" },
 }
 
-local alliedTrueTable = {allied = true}
+local alliedTrueTable = { allied = true }
 
-local spGetUnitIsStunned = Spring.GetUnitIsStunned
-local spAreTeamsAllied = Spring.AreTeamsAllied
-local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
-local spRemoveUnitCmdDesc = Spring.RemoveUnitCmdDesc
-local spSetUnitCloak = Spring.SetUnitCloak
-local spSetUnitRulesParam = Spring.SetUnitRulesParam
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitIsDead = Spring.GetUnitIsDead
-local spGetUnitRulesParam = Spring.GetUnitRulesParam
-local spGetUnitVelocity = Spring.GetUnitVelocity
-local spUseUnitResource = Spring.UseUnitResource
-local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
-local spEditUnitCmdDesc = Spring.EditUnitCmdDesc
+local spGetUnitIsStunned = SpringShared.GetUnitIsStunned
+local spAreTeamsAllied = SpringShared.AreTeamsAllied
+local spInsertUnitCmdDesc = SpringSynced.InsertUnitCmdDesc
+local spRemoveUnitCmdDesc = SpringSynced.RemoveUnitCmdDesc
+local spSetUnitCloak = SpringSynced.SetUnitCloak
+local spSetUnitRulesParam = SpringSynced.SetUnitRulesParam
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitIsDead = SpringShared.GetUnitIsDead
+local spGetUnitRulesParam = SpringShared.GetUnitRulesParam
+local spGetUnitVelocity = SpringShared.GetUnitVelocity
+local spUseUnitResource = SpringSynced.UseUnitResource
+local spFindUnitCmdDesc = SpringShared.FindUnitCmdDesc
+local spEditUnitCmdDesc = SpringSynced.EditUnitCmdDesc
 
 local CMD_CLOAK = CMD.CLOAK
 local DEFAULT_DECLOAK_TIME = 128
@@ -70,11 +69,10 @@ function PokeDecloakUnit(unitID, duration)
 	if recloakUnit[unitID] then
 		recloakUnit[unitID] = duration or DEFAULT_DECLOAK_TIME
 	else
-		spSetUnitRulesParam(unitID, 'cannotcloak', 1, alliedTrueTable)
+		spSetUnitRulesParam(unitID, "cannotcloak", 1, alliedTrueTable)
 		spSetUnitCloak(unitID, 0)
 		recloakUnit[unitID] = duration or DEFAULT_DECLOAK_TIME
 	end
-
 end
 
 GG.PokeDecloakUnit = PokeDecloakUnit
@@ -87,13 +85,8 @@ if decloakWhenDamaged then
 			noFFWeaponDefs[i] = true
 		end
 	end
-	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer,  weaponID, attackerID, attackerDefID, attackerTeam)
-		if damage > 0 and
-			not (attackerTeam and
-				weaponID and
-				noFFWeaponDefs[weaponID] and
-				attackerID ~= unitID and
-				spAreTeamsAllied(unitTeam, attackerTeam)) then
+	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, attackerID, attackerDefID, attackerTeam)
+		if damage > 0 and not (attackerTeam and weaponID and noFFWeaponDefs[weaponID] and attackerID ~= unitID and spAreTeamsAllied(unitTeam, attackerTeam)) then
 			PokeDecloakUnit(unitID)
 		end
 	end
@@ -101,15 +94,15 @@ end
 
 function gadget:GameFrame(n)
 	currentFrame = n
-	if n%UPDATE_FREQUENCY == 2 then
+	if n % UPDATE_FREQUENCY == 2 then
 		for unitID, frames in pairs(recloakUnit) do
 			if frames <= UPDATE_FREQUENCY then
-				local onFire = spGetUnitRulesParam(unitID,'on_fire')
-				local disarmed = spGetUnitRulesParam(unitID,'disarmed')
+				local onFire = spGetUnitRulesParam(unitID, "on_fire")
+				local disarmed = spGetUnitRulesParam(unitID, "disarmed")
 				if not (onFire == 1 or disarmed == 1) then
-					local wantCloakState = spGetUnitRulesParam(unitID, 'wantcloak')
-					local areaCloaked = spGetUnitRulesParam(unitID, 'areacloaked')
-					spSetUnitRulesParam(unitID, 'cannotcloak', 0, alliedTrueTable)
+					local wantCloakState = spGetUnitRulesParam(unitID, "wantcloak")
+					local areaCloaked = spGetUnitRulesParam(unitID, "areacloaked")
+					spSetUnitRulesParam(unitID, "cannotcloak", 0, alliedTrueTable)
 					if wantCloakState == 1 or areaCloaked == 1 then
 						spSetUnitCloak(unitID, 1)
 					end
@@ -119,7 +112,6 @@ function gadget:GameFrame(n)
 				recloakUnit[unitID] = frames - UPDATE_FREQUENCY
 			end
 		end
-
 	end
 end
 
@@ -146,13 +138,13 @@ function gadget:AllowUnitCloak(unitID, enemyID)
 		return false
 	end
 
-	local areaCloaked = (spGetUnitRulesParam(unitID, 'areacloaked') == 1) and ((spGetUnitRulesParam(unitID, 'cloak_shield') or 0) == 0)
+	local areaCloaked = (spGetUnitRulesParam(unitID, "areacloaked") == 1) and ((spGetUnitRulesParam(unitID, "cloak_shield") or 0) == 0)
 	if not areaCloaked then
 		local speed = select(4, spGetUnitVelocity(unitID))
 		local moving = speed and speed > CLOAK_MOVE_THRESHOLD
 		local cost = moving and canCloak[unitDefID][2] or canCloak[unitDefID][3]
 
-		if not spUseUnitResource(unitID, "e", cost/2) then -- SlowUpdate happens twice a second.
+		if not spUseUnitResource(unitID, "e", cost / 2) then -- SlowUpdate happens twice a second.
 			return false
 		end
 	end
@@ -169,32 +161,32 @@ local function SetWantedCloaked(unitID, state)
 		return
 	end
 
-	local wantCloakState = spGetUnitRulesParam(unitID, 'wantcloak')
+	local wantCloakState = spGetUnitRulesParam(unitID, "wantcloak")
 	local cmdDescID = spFindUnitCmdDesc(unitID, CMD_WANT_CLOAK)
 	if cmdDescID then
-		spEditUnitCmdDesc(unitID, cmdDescID, { params = {state, 'Decloaked', 'Cloaked'}})
+		spEditUnitCmdDesc(unitID, cmdDescID, { params = { state, "Decloaked", "Cloaked" } })
 	end
 
 	if state == 1 and wantCloakState ~= 1 then
-		local cannotCloak = spGetUnitRulesParam(unitID, 'cannotcloak')
-		local areaCloaked = spGetUnitRulesParam(unitID, 'areacloaked')
+		local cannotCloak = spGetUnitRulesParam(unitID, "cannotcloak")
+		local areaCloaked = spGetUnitRulesParam(unitID, "areacloaked")
 		if cannotCloak ~= 1 and areaCloaked ~= 1 then
 			spSetUnitCloak(unitID, 1)
 		end
-		spSetUnitRulesParam(unitID, 'wantcloak', 1, alliedTrueTable)
+		spSetUnitRulesParam(unitID, "wantcloak", 1, alliedTrueTable)
 	elseif state == 0 and wantCloakState == 1 then
-		local areaCloaked = spGetUnitRulesParam(unitID, 'areacloaked')
+		local areaCloaked = spGetUnitRulesParam(unitID, "areacloaked")
 		if areaCloaked ~= 1 then
 			spSetUnitCloak(unitID, 0)
 		end
-		spSetUnitRulesParam(unitID, 'wantcloak', 0, alliedTrueTable)
+		spSetUnitRulesParam(unitID, "wantcloak", 0, alliedTrueTable)
 	end
 end
 
 GG.SetWantedCloaked = SetWantedCloaked
 
 function gadget:AllowCommand_GetWantedCommand()
-	return {[CMD_CLOAK] = true, [CMD_WANT_CLOAK] = true}
+	return { [CMD_CLOAK] = true, [CMD_WANT_CLOAK] = true }
 end
 
 function gadget:AllowCommand_GetWantedUnitDefID()
@@ -218,7 +210,7 @@ function gadget:UnitCreated(unitID, unitDefID)
 		if cloakDescID then
 			spInsertUnitCmdDesc(unitID, unitWantCloakCommandDesc)
 			spRemoveUnitCmdDesc(unitID, cloakDescID)
-			spSetUnitRulesParam(unitID, 'wantcloak', 0, alliedTrueTable)
+			spSetUnitRulesParam(unitID, "wantcloak", 0, alliedTrueTable)
 			if canCloak[unitDefID][1] then
 				SetWantedCloaked(unitID, 1)
 			end
@@ -230,7 +222,7 @@ end
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_CLOAK)
 	gadgetHandler:RegisterAllowCommand(CMD_WANT_CLOAK)
-	for _, unitID in ipairs(Spring.GetAllUnits()) do
+	for _, unitID in ipairs(SpringShared.GetAllUnits()) do
 		gadget:UnitCreated(unitID, spGetUnitDefID(unitID))
 	end
 end

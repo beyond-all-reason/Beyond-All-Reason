@@ -2,13 +2,13 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name      = "Air AttackSafetyDistance",
-		desc      = "Allows the setting of attackSafetyDistance for strafe runninng aircraft, so fighters and bombers",
-		author    = "Doo, Floris",
-		date      = "Sept 19th 2017",
-		license   = "GNU GPL, v2 or later",
-		layer     = 0,
-		enabled   = true
+		name = "Air AttackSafetyDistance",
+		desc = "Allows the setting of attackSafetyDistance for strafe runninng aircraft, so fighters and bombers",
+		author = "Doo, Floris",
+		date = "Sept 19th 2017",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
 
@@ -17,7 +17,8 @@ end
 	try to climb back to normal altitude while still moving toward target.	It's disabled by default. Set to half of
 	the minimum weapon range to avoid collisions, enemy fire, AOE damage. If set to greater than the weapon range,
 	the unit will fly over the target like a bomber.
-]]--
+]]
+--
 
 if not gadgetHandler:IsSyncedCode() then
 	return false
@@ -31,20 +32,20 @@ for udid, ud in pairs(UnitDefs) do
 end
 
 function gadget:Initialize()
-	for ct, unitID in pairs(Spring.GetAllUnits()) do
-		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
+	for ct, unitID in pairs(SpringShared.GetAllUnits()) do
+		gadget:UnitCreated(unitID, SpringShared.GetUnitDefID(unitID))
 	end
 end
 
 function gadget:UnitCreated(unitID, unitDefID)
 	if attackSafetyDistance[unitDefID] then
-		local curMoveCtrl = Spring.MoveCtrl.IsEnabled(unitID)
+		local curMoveCtrl = SpringSynced.MoveCtrl.IsEnabled(unitID)
 		if curMoveCtrl then
-			Spring.MoveCtrl.Disable(unitID)
+			SpringSynced.MoveCtrl.Disable(unitID)
 		end
-		Spring.MoveCtrl.SetAirMoveTypeData(unitID, "attackSafetyDistance", attackSafetyDistance[unitDefID])
+		SpringSynced.MoveCtrl.SetAirMoveTypeData(unitID, "attackSafetyDistance", attackSafetyDistance[unitDefID])
 		if curMoveCtrl then
-			Spring.MoveCtrl.Enable(unitID)
+			SpringSynced.MoveCtrl.Enable(unitID)
 		end
 	end
 end

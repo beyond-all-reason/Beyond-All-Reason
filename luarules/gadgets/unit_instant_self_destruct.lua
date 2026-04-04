@@ -4,36 +4,36 @@
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
-  return {
-    name      = "Instant Self Destruct",
-    desc      = "Replaces engine self-d behaviour for a set of units such that they self-destruct instantly.",
-    author    = "Google Frog",
-    date      = "21 September, 2013",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = true
-  }
+	return {
+		name = "Instant Self Destruct",
+		desc = "Replaces engine self-d behaviour for a set of units such that they self-destruct instantly.",
+		author = "Google Frog",
+		date = "21 September, 2013",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
+	}
 end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-if (not gadgetHandler:IsSyncedCode()) then
-  return false  --  no unsynced code
+if not gadgetHandler:IsSyncedCode() then
+	return false --  no unsynced code
 end
 
 local selfddefs = {}
-for i=1,#UnitDefs do
+for i = 1, #UnitDefs do
 	if UnitDefs[i].customParams and UnitDefs[i].customParams.instantselfd then
 		selfddefs[i] = true
 	end
 end
 
 local CMD_SELFD = CMD.SELFD
-local spGetUnitIsStunned = Spring.GetUnitIsStunned
-local spDestroyUnit = Spring.DestroyUnit
+local spGetUnitIsStunned = SpringShared.GetUnitIsStunned
+local spDestroyUnit = SpringSynced.DestroyUnit
 
 function gadget:AllowCommand_GetWantedCommand()
-	return {[CMD_SELFD] = true}
+	return { [CMD_SELFD] = true }
 end
 
 function gadget:AllowCommand_GetWantedUnitDefID()

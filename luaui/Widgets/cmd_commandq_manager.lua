@@ -19,12 +19,12 @@ function widget:Initialize()
 end
 
 -- Locals
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local spGetUnitCommandCount = Spring.GetUnitCommandCount
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spGetUnitCommands = Spring.GetUnitCommands
-local spGetGameFrame = Spring.GetGameFrame
+local spGetSelectedUnits = SpringUnsynced.GetSelectedUnits
+local spGetUnitCurrentCommand = SpringShared.GetUnitCurrentCommand
+local spGetUnitCommandCount = SpringShared.GetUnitCommandCount
+local spGiveOrderToUnit = SpringSynced.GiveOrderToUnit
+local spGetUnitCommands = SpringShared.GetUnitCommands
+local spGetGameFrame = SpringShared.GetGameFrame
 
 local CMDREPAIR = CMD.REPAIR
 local CMDRECLAIM = CMD.RECLAIM
@@ -79,7 +79,7 @@ function RemoveCommand(unitID, cmdIndex, commandQueueSize)
 				spGiveOrderToUnit(unitID, CMD.REMOVE, { cmdTag, cmdTag2 }, 0)
 				commandDeleted = true
 			end
-		elseif cmdID == CMD.FIGHT and cmdIndex == 1 then  --removes patrol commands too
+		elseif cmdID == CMD.FIGHT and cmdIndex == 1 then --removes patrol commands too
 			local commands = spGetUnitCommands(unitID, -1)
 			if commands and commands[2] and commands[2].id == CMDPATROL then
 				commandQueueSize = commandQueueSize - 2
@@ -90,7 +90,7 @@ function RemoveCommand(unitID, cmdIndex, commandQueueSize)
 						spGiveOrderToUnit(unitID, CMD.MOVE, commands[i].params, {})
 					end
 					if i ~= cmdIndex then
-						spGiveOrderToUnit(unitID, commands[i].id, commands[i].params, {"shift"})
+						spGiveOrderToUnit(unitID, commands[i].id, commands[i].params, { "shift" })
 					end
 				end
 				commandDeleted = true

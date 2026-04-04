@@ -10,7 +10,7 @@ function widget:GetInfo()
 	}
 end
 
-if not Spring.Utilities.IsDevMode() or not Spring.Utilities.Gametype.IsSinglePlayer() or Platform.gl then
+if not Utilities.IsDevMode() or not Utilities.Gametype.IsSinglePlayer() or Platform.gl then
 	return
 end
 
@@ -19,4 +19,3 @@ end
 -- is placed inside a display list, this can cause problems.
 gl.PushMatrix = function() end
 gl.PopMatrix = function() end
-

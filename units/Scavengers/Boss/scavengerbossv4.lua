@@ -1,6 +1,6 @@
 local playerCountScale = 1
-if Spring.Utilities.Gametype.IsScavengers() then
-	playerCountScale = math.min(1, (#Spring.GetTeamList() - 2) / 8) -- -2 because scavs and gaia shouldn't count, divided by 8 because we use 8 player games as a baseline
+if Utilities.Gametype.IsScavengers() then
+	playerCountScale = math.min(1, (#SpringShared.GetTeamList() - 2) / 8) -- -2 because scavs and gaia shouldn't count, divided by 8 because we use 8 player games as a baseline
 end
 
 local baseValues = { --format: {value, multiplier}
@@ -22,8 +22,8 @@ local baseValues = { --format: {value, multiplier}
 	shotgunSprayAnglePercentageMultiplier = { 100, 1.15 },
 
 	--AI Behaviors
-	turboWeaponOffTime = {100, 1.4}, --{percentage, multiplier} Don't change the percentage. Changing multiplier will influence the difference in turbo weapon activation delay.
-	turboWeaponOnTime = {100, 1.4}, --{percentage, multiplier} Don't change the percentage. Changing multiplier will influence the difference in turbo weapon activation duration.
+	turboWeaponOffTime = { 100, 1.4 }, --{percentage, multiplier} Don't change the percentage. Changing multiplier will influence the difference in turbo weapon activation delay.
+	turboWeaponOnTime = { 100, 1.4 }, --{percentage, multiplier} Don't change the percentage. Changing multiplier will influence the difference in turbo weapon activation duration.
 
 	--non-damage weapon behavior
 	turboShotgunArmBurst = { 2, 1.15 },
@@ -53,7 +53,7 @@ for difficulty, stats in pairs(difficultyParams) do
 	unitsTable["scavengerbossv4_" .. difficulty] = {
 		maxacc = 0.01,
 		activatewhenbuilt = true,
-		autoheal = stats.autoHeal,--10,
+		autoheal = stats.autoHeal, --10,
 		maxdec = 0.01,
 		energycost = 5000000,
 		metalcost = 500000,
@@ -94,7 +94,7 @@ for difficulty, stats in pairs(difficultyParams) do
 		radardistance = 2000,
 		radaremitheight = 54,
 		reclaimable = false,
-		releaseheld  = true,
+		releaseheld = true,
 		script = "Units/scavboss/scavengerbossv4.cob",
 		seismicsignature = 0,
 		selfdestructas = "commanderexplosion",
@@ -107,14 +107,14 @@ for difficulty, stats in pairs(difficultyParams) do
 		turninplacespeedlimit = 0.825,
 		turnrate = 300,
 		upright = true,
-		workertime = 1500,--400,
+		workertime = 1500, --400,
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
-			i18nfromunit = 'scavengerbossv4',
+			i18nfromunit = "scavengerbossv4",
 		},
 		featuredefs = {
 			dead = {
@@ -209,7 +209,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				laserflaresize = 30,
 				name = "Rapid-fire close quarters g2g armor-piercing laser",
 				noselfdamage = true,
-				pulsespeed =  q8,
+				pulsespeed = q8,
 				range = 800,
 				reloadtime = 0.40,
 				rgbcolor = "0.7 0.3 1.0",
@@ -229,7 +229,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				weaponvelocity = 920,
 				damage = {
 					default = stats.minigunDamage,
-					vtol = stats.minigunDamage/2,
+					vtol = stats.minigunDamage / 2,
 				},
 			},
 			torpedo = {
@@ -299,7 +299,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				soundhit = "xplomed2xs",
 				soundhitwet = "splsmed",
 				soundstart = "kroggie2xs",
-				sprayangle = (6000*stats.shotgunSprayAnglePercentageMultiplier/100),
+				sprayangle = (6000 * stats.shotgunSprayAnglePercentageMultiplier / 100),
 				tolerance = 6000,
 				turret = true,
 				waterweapon = true,
@@ -308,7 +308,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				weaponvelocity = 900,
 				damage = {
 					default = stats.shotgunDamage,
-					subs = stats.shotgunDamage/4,
+					subs = stats.shotgunDamage / 4,
 				},
 			},
 			shoulderturrets = {
@@ -344,11 +344,11 @@ for difficulty, stats in pairs(difficultyParams) do
 				weaponvelocity = 800,
 				damage = {
 					default = stats.topTurretsDamage,
-					shields = stats.topTurretsDamage/2,
-					subs = stats.topTurretsDamage/4,
+					shields = stats.topTurretsDamage / 2,
+					subs = stats.topTurretsDamage / 4,
 				},
 			},
-            missilelauncher = {
+			missilelauncher = {
 				areaofeffect = 250,
 				avoidfeature = false,
 				burnblow = true,
@@ -395,9 +395,9 @@ for difficulty, stats in pairs(difficultyParams) do
 				weaponvelocity = 1200,
 				wobble = 5000,
 				damage = {
-					default = stats.missileDamage/6,
+					default = stats.missileDamage / 6,
 					vtol = stats.missileDamage,
-					subs = stats.missileDamage/4,
+					subs = stats.missileDamage / 4,
 				},
 			},
 			eaterbeam = {
@@ -539,8 +539,8 @@ for difficulty, stats in pairs(difficultyParams) do
 				weaponvelocity = 1200,
 				wobble = 5000,
 				damage = {
-					default = stats.missileDamage/6,
-					vtol = stats.missileDamage*2,
+					default = stats.missileDamage / 6,
+					vtol = stats.missileDamage * 2,
 				},
 			},
 			turbo_napalm = {
@@ -575,7 +575,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				soundhit = "flamhit1",
 				soundhitwet = "sizzle",
 				soundstart = "cannhvy2",
-				sprayangle = (5000*stats.shotgunSprayAnglePercentageMultiplier/100),
+				sprayangle = (5000 * stats.shotgunSprayAnglePercentageMultiplier / 100),
 				tolerance = 6000,
 				turret = true,
 				weapontype = "Cannon",
@@ -589,8 +589,8 @@ for difficulty, stats in pairs(difficultyParams) do
 					area_onhit_time = 12,
 				},
 				damage = {
-					default = stats.shotgunDamage/3,
-					subs = stats.shotgunDamage/4,
+					default = stats.shotgunDamage / 3,
+					subs = stats.shotgunDamage / 4,
 				},
 			},
 			turbo_machinegun = {
@@ -617,7 +617,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				name = "TURBO Rapid-fire close quarters g2g armor-piercing laser",
 				noselfdamage = true,
 				projectiles = 4,
-				pulsespeed =  q8,
+				pulsespeed = q8,
 				range = 800,
 				reloadtime = 0.40,
 				rgbcolor = "0.7 0.3 1.0",
@@ -636,8 +636,8 @@ for difficulty, stats in pairs(difficultyParams) do
 				weapontype = "BeamLaser",
 				weaponvelocity = 920,
 				damage = {
-					default = stats.minigunDamage*4,
-					vtol = (stats.minigunDamage*4)/2,
+					default = stats.minigunDamage * 4,
+					vtol = (stats.minigunDamage * 4) / 2,
 					subs = stats.minigunDamage,
 				},
 			},
@@ -674,8 +674,8 @@ for difficulty, stats in pairs(difficultyParams) do
 				weaponvelocity = 800,
 				damage = {
 					default = stats.topTurretsDamage,
-					shields = stats.topTurretsDamage/2,
-					subs = stats.topTurretsDamage/4,
+					shields = stats.topTurretsDamage / 2,
+					subs = stats.topTurretsDamage / 4,
 				},
 			},
 			special_botcannon = {
@@ -778,7 +778,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				reloadtime = 1, --increasing firerate increases the weight by which this sensor affects TURBO and SPECIAL weapon selection
 				rgbcolor = "0.7 0.3 1.0",
 				rgbcolor2 = "0.8 0.6 1.0",
-				size = 0,		--when this is aiming, sensor_ground_near cannot aim.
+				size = 0, --when this is aiming, sensor_ground_near cannot aim.
 				soundhit = "",
 				soundhitwet = "",
 				soundstart = "",
@@ -848,7 +848,7 @@ for difficulty, stats in pairs(difficultyParams) do
 					default = 0,
 				},
 			},
-				setting_turbo_delay = { --
+			setting_turbo_delay = { --
 				avoidfeature = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -860,9 +860,9 @@ for difficulty, stats in pairs(difficultyParams) do
 				impulsefactor = 0.123,
 				name = "TurboWeaponGapDelay",
 				noselfdamage = true,
-				projectiles = math.floor((10/stats.turboWeaponOnTime*100) + 0.5), -- after delay, when 200-300 additional projectiles are fired, the turbo weapon is disabled.
+				projectiles = math.floor((10 / stats.turboWeaponOnTime * 100) + 0.5), -- after delay, when 200-300 additional projectiles are fired, the turbo weapon is disabled.
 				range = 99999,
-				reloadtime = 1/stats.turboWeaponOffTime*100, --when 10+(health%/4) shots are fired, select a turbo weapon and enable it.
+				reloadtime = 1 / stats.turboWeaponOffTime * 100, --when 10+(health%/4) shots are fired, select a turbo weapon and enable it.
 				rgbcolor = "0.7 0.3 1.0",
 				rgbcolor2 = "0.8 0.6 1.0",
 				size = 0,
@@ -900,7 +900,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				def = "shoulderturrets",
 				onlytargetcategory = "NOTSUB",
 			},
-            [5] = {
+			[5] = {
 				badtargetcategory = "SURFACE",
 				def = "missilelauncher",
 				onlytargetcategory = "NOTSUB",

@@ -11,16 +11,15 @@ function widget:GetInfo()
 		date = "sept 2016",
 		license = "GNU GPL, v2 or later",
 		layer = 999999,
-		enabled = true
+		enabled = true,
 	}
 end
 
-
 -- Localized Spring API for performance
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
-local spGetGameSpeed = Spring.GetGameSpeed
-local spGetGameFrame = Spring.GetGameFrame
+local spGetGameSpeed = SpringUnsynced.GetGameSpeed
+local spGetGameFrame = SpringShared.GetGameFrame
 
 local glColor = gl.Color
 local glTexture = gl.Texture
@@ -38,7 +37,6 @@ local glGetUniformLocation = gl.GetUniformLocation
 
 local osClock = os.clock
 
-
 ----------------------------------------------------------------------------------
 
 -- CONFIGURATION
@@ -54,7 +52,7 @@ local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutline
 local sizeMultiplier = 1
 local maxAlpha = 0.65
 local maxShaderAlpha = 0.25
-local maxNonShaderAlpha = 0.12            --background alpha when shaders arent availible
+local maxNonShaderAlpha = 0.12 --background alpha when shaders arent availible
 local boxWidth = 200
 local boxHeight = 35
 local slideTime = 0.12
@@ -82,13 +80,11 @@ local alphaLoc, showPauseScreen, nonShaderAlpha
 local gameover = false
 local noNewGameframes = false
 local cachedPauseText = nil
-local spIsGUIHidden = Spring.IsGUIHidden
+local spIsGUIHidden = SpringUnsynced.IsGUIHidden
 
 -- Pre-allocated color tables
 local textColor = { 1.0, 1.0, 1.0, 0 }
 local outlineColor = { 0.0, 0.0, 0.0, 0 }
-
-
 
 --intensity formula based on http://alienryderflex.com/hsp.html
 local fragmentShaderSource = [[
@@ -225,14 +221,14 @@ local function drawPause(now)
 			glTranslate(((vsx - wndX1) / usedSizeMultiplier) * (1.0 - (diffPauseTime / slideTime)), 0, 0)
 		else
 			--sliding out
-			glTranslate(((vsx - wndX1) / usedSizeMultiplier) * ((diffPauseTime / slideTime)), 0, 0)
+			glTranslate(((vsx - wndX1) / usedSizeMultiplier) * (diffPauseTime / slideTime), 0, 0)
 		end
 	end
 
 	--draw text
 	if not gameover then
 		if not cachedPauseText then
-			cachedPauseText = Spring.I18N('ui.pauseScreen.paused')
+			cachedPauseText = I18N("ui.pauseScreen.paused")
 		end
 		font:Begin()
 		font:SetOutlineColor(outlineColor)
@@ -255,19 +251,17 @@ function widget:Initialize()
 	end
 
 	if gl.CreateShader then
-		shaderProgram = gl.CreateShader(
-			{
-				fragment = fragmentShaderSource,
-				uniformInt = {
-					screencopy = 0,
-				},
-			}
-		)
+		shaderProgram = gl.CreateShader({
+			fragment = fragmentShaderSource,
+			uniformInt = {
+				screencopy = 0,
+			},
+		})
 		if shaderProgram then
 			alphaLoc = glGetUniformLocation(shaderProgram, "alpha")
 		end
 	else
-		Spring.Echo("<Screen Shader>: GLSL not supported.")
+		SpringShared.Echo("<Screen Shader>: GLSL not supported.")
 	end
 end
 
@@ -319,7 +313,7 @@ function widget:DrawScreenEffects()
 	if spIsGUIHidden() then
 		return
 	end
-	if shaderProgram and showPauseScreen and WG['screencopymanager'] and WG['screencopymanager'].GetScreenCopy then
+	if shaderProgram and showPauseScreen and WG.screencopymanager and WG.screencopymanager.GetScreenCopy then
 		glCopyToTexture(screencopy, 0, 0, vpx, vpy, vsx, vsy)
 		--screencopy = WG['screencopymanager'].GetScreenCopy()	-- cant get this method to work
 		glTexture(0, screencopy)

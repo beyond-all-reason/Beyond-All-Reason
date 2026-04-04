@@ -1,26 +1,25 @@
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
-    return {
-        name      = "Unit kill count",
-        desc      = "",
-        author    = "Floris",
-        date      = "February 2022",
-        license   = "GNU GPL, v2 or later",
-        layer     = 5,
-        enabled   = true
-    }
+	return {
+		name = "Unit kill count",
+		desc = "",
+		author = "Floris",
+		date = "February 2022",
+		license = "GNU GPL, v2 or later",
+		layer = 5,
+		enabled = true,
+	}
 end
 
 if gadgetHandler:IsSyncedCode() then
+	local GetUnitRulesParam = SpringShared.GetUnitRulesParam
+	local SetUnitRulesParam = SpringSynced.SetUnitRulesParam
 
-	local GetUnitRulesParam = Spring.GetUnitRulesParam
-	local SetUnitRulesParam = Spring.SetUnitRulesParam
-	
 	local teamAllyteam = {}
-	local teamList = Spring.GetTeamList()
+	local teamList = SpringShared.GetTeamList()
 	for i = 1, #teamList do
-		teamAllyteam[teamList[i]] = select(6, Spring.GetTeamInfo(teamList[i]))
+		teamAllyteam[teamList[i]] = select(6, SpringShared.GetTeamInfo(teamList[i]))
 	end
 
 	-- crashing planes are handled in crashing_aircraft gadget
@@ -30,5 +29,4 @@ if gadgetHandler:IsSyncedCode() then
 			SetUnitRulesParam(attackerID, "kills", kills + 1)
 		end
 	end
-
 end

@@ -2,29 +2,28 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "Ghost Site GL4",
-		desc      = "Displays ghosted buildings for buildings in progress",	-- engine nowadays already draws it, but we can add a highlight effect to distinct it!
-		author    = "very_bad_soldier, Bluestone, Floris (GL4)",
-		date      = "April 7, 2009",
-		license   = "GNU GPL, v2 or later",
-		layer     = 0,
-		enabled   = true
+		name = "Ghost Site GL4",
+		desc = "Displays ghosted buildings for buildings in progress", -- engine nowadays already draws it, but we can add a highlight effect to distinct it!
+		author = "very_bad_soldier, Bluestone, Floris (GL4)",
+		date = "April 7, 2009",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
 
-
 -- Localized Spring API for performance
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 local shapeOpacity = 0.15
 local highlightAmount = 0.11
 local updateRate = 1
 
-local spGetUnitDefID = Spring.GetUnitDefID
-local spIsUnitAllied = Spring.IsUnitAllied
-local spGetUnitDirection = Spring.GetUnitDirection
-local spGetUnitBasePosition = Spring.GetUnitBasePosition
-local spGetPositionLosState = Spring.GetPositionLosState
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spIsUnitAllied = SpringUnsynced.IsUnitAllied
+local spGetUnitDirection = SpringShared.GetUnitDirection
+local spGetUnitBasePosition = SpringShared.GetUnitBasePosition
+local spGetPositionLosState = SpringShared.GetPositionLosState
 local math_deg = math.deg
 local math_atan2 = math.atan2
 local math_rad = math.rad
@@ -32,7 +31,7 @@ local math_rad = math.rad
 local sec = 0
 local ghostSites = {}
 local unitshapes = {}
-local _,fullview = spGetSpectatingState()
+local _, fullview = spGetSpectatingState()
 
 local includedUnitDefIDs = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -56,7 +55,7 @@ local function addUnitShape(unitID, unitDefID, px, py, pz, rotationY, teamID)
 	if unitshapes[unitID] then
 		removeUnitShape(unitID)
 	end
-	unitshapes[unitID] = WG.DrawUnitShapeGL4(unitDefID, px, py+0.1, pz, math_rad(rotationY), shapeOpacity, teamID, nil, highlightAmount)
+	unitshapes[unitID] = WG.DrawUnitShapeGL4(unitDefID, px, py + 0.1, pz, math_rad(rotationY), shapeOpacity, teamID, nil, highlightAmount)
 	return unitshapes[unitID]
 end
 
@@ -67,12 +66,12 @@ function widget:UnitEnteredLos(unitID, teamID)
 	if fullview or spIsUnitAllied(unitID) then
 		return
 	end
-    local unitDefID = spGetUnitDefID(unitID)
-	if includedUnitDefIDs[unitDefID] and Spring.GetUnitIsBeingBuilt(unitID) then
+	local unitDefID = spGetUnitDefID(unitID)
+	if includedUnitDefIDs[unitDefID] and SpringShared.GetUnitIsBeingBuilt(unitID) then
 		local x, y, z = spGetUnitBasePosition(unitID)
-		local dx,_,dz = spGetUnitDirection(unitID)
-		local angle = math_deg(math_atan2(dx,dz))
-		ghostSites[unitID] = { unitDefID=unitDefID, x=x, y=y, z=z, teamID=teamID, angle=angle }
+		local dx, _, dz = spGetUnitDirection(unitID)
+		local angle = math_deg(math_atan2(dx, dz))
+		ghostSites[unitID] = { unitDefID = unitDefID, x = x, y = y, z = z, teamID = teamID, angle = angle }
 	end
 end
 
@@ -87,8 +86,8 @@ end
 local function updateGhostSites()
 	for unitID, site in pairs(ghostSites) do
 		if not unitshapes[unitID] then
-			local _,inLos,_ = spGetPositionLosState(site.x, site.y, site.z)
-			if inLos and not Spring.GetUnitIsBeingBuilt(unitID) then
+			local _, inLos, _ = spGetPositionLosState(site.x, site.y, site.z)
+			if inLos and not SpringShared.GetUnitIsBeingBuilt(unitID) then
 				removeUnitShape(unitID)
 				ghostSites[unitID] = nil
 			end
@@ -97,7 +96,9 @@ local function updateGhostSites()
 end
 
 function widget:Update(dt)
-	if fullview then return end
+	if fullview then
+		return
+	end
 	if not WG.DrawUnitShapeGL4 then
 		widgetHandler:RemoveWidget()
 	end
@@ -109,7 +110,7 @@ function widget:Update(dt)
 end
 
 function widget:PlayerChanged()
-	_,fullview = spGetSpectatingState()
+	_, fullview = spGetSpectatingState()
 	if fullview then
 		for unitID, _ in pairs(unitshapes) do
 			removeUnitShape(unitID)
@@ -120,8 +121,8 @@ end
 -- remove ghostsites for dead allyteams
 function widget:TeamDied(teamID)
 	-- Check if the entire allyteam is dead before removing ghost sites
-	local allyTeamID = select(6, Spring.GetTeamInfo(teamID))
-	local allyTeamList = Spring.GetTeamList(allyTeamID)
+	local allyTeamID = select(6, SpringShared.GetTeamInfo(teamID))
+	local allyTeamList = SpringShared.GetTeamList(allyTeamID)
 	if not allyTeamList then
 		return
 	end
@@ -130,7 +131,7 @@ function widget:TeamDied(teamID)
 	local allyTeamDead = true
 	for _, checkTeamID in ipairs(allyTeamList) do
 		-- Check if team is still alive (not dead)
-		if checkTeamID ~= teamID and not select(3, Spring.GetTeamInfo(checkTeamID)) then
+		if checkTeamID ~= teamID and not select(3, SpringShared.GetTeamInfo(checkTeamID)) then
 			allyTeamDead = false
 			break
 		end
@@ -139,7 +140,7 @@ function widget:TeamDied(teamID)
 	-- Only remove ghost sites if the entire allyteam is dead
 	if allyTeamDead then
 		for unitID, site in pairs(ghostSites) do
-			if select(6, Spring.GetTeamInfo(site.teamID)) == allyTeamID then
+			if select(6, SpringShared.GetTeamInfo(site.teamID)) == allyTeamID then
 				removeUnitShape(unitID)
 				ghostSites[unitID] = nil
 			end
@@ -152,7 +153,7 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 	end
 	for unitID, site in pairs(ghostSites) do
-		local _,inLos,_ = spGetPositionLosState(site.x, site.y, site.z)
+		local _, inLos, _ = spGetPositionLosState(site.x, site.y, site.z)
 		if not inLos then
 			addUnitShape(unitID, site.unitDefID, site.x, site.y, site.z, site.angle, site.teamID)
 		end
@@ -174,7 +175,7 @@ function widget:GetConfigData()
 end
 
 function widget:SetConfigData(data)
-	if Spring.GetGameFrame() > 0 and data.ghostSites ~= nil then
+	if SpringShared.GetGameFrame() > 0 and data.ghostSites ~= nil then
 		ghostSites = data.ghostSites
 	end
 end

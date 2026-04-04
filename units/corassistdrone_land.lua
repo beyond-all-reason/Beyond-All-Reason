@@ -36,7 +36,7 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.9504,
 		turnrate = 1000,
-		workertime = 100*Spring.GetModOptions().assistdronesbuildpowermultiplier,
+		workertime = 100 * SpringShared.GetModOptions().assistdronesbuildpowermultiplier,
 		buildoptions = {
 			[1] = "corsolar",
 			[2] = "corwin",
@@ -67,7 +67,7 @@ return {
 			[27] = "corfhp",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorVehicles",

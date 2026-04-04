@@ -2,13 +2,13 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name	= "Builder buggeroff",
-		desc	= "Enables busy builders and moving units to buggeroff",
-		author  = "Flameink",
-		date	= "March 14, 2025",
+		name = "Builder buggeroff",
+		desc = "Enables busy builders and moving units to buggeroff",
+		author = "Flameink",
+		date = "March 14, 2025",
 		version = "1.0",
 		license = "GNU GPL, v2 or later",
-		layer   = 0,
+		layer = 0,
 		enabled = true,
 	}
 end
@@ -21,21 +21,21 @@ local math_max = math.max
 local math_diag = math.diag
 local math_pointOnCircle = math.closestPointOnCircle
 
-local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local spGetUnitStates = Spring.GetUnitStates
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
-local spGetUnitIsDead = Spring.GetUnitIsDead
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitVelocity = Spring.GetUnitVelocity
-local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitCurrentCommand = SpringShared.GetUnitCurrentCommand
+local spGetUnitStates = SpringShared.GetUnitStates
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitsInCylinder = SpringShared.GetUnitsInCylinder
+local spGetUnitIsDead = SpringShared.GetUnitIsDead
+local spGetUnitIsBeingBuilt = SpringShared.GetUnitIsBeingBuilt
+local spGetUnitIsBuilding = SpringShared.GetUnitIsBuilding
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetUnitVelocity = SpringShared.GetUnitVelocity
+local spGetUnitTeam = SpringShared.GetUnitTeam
 
-local spAreTeamsAllied = Spring.AreTeamsAllied
-local spDestroyUnit = Spring.DestroyUnit
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spTestMoveOrder = Spring.TestMoveOrder
+local spAreTeamsAllied = SpringShared.AreTeamsAllied
+local spDestroyUnit = SpringSynced.DestroyUnit
+local spGiveOrderToUnit = SpringSynced.GiveOrderToUnit
+local spTestMoveOrder = SpringShared.TestMoveOrder
 
 local gameSpeed = Game.gameSpeed
 local footprint = Game.squareSize * Game.footprintScale
@@ -55,39 +55,39 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	cachedUnitDefs[unitDefID] = {
 		isImmobile = unitDef.isImmobile,
 		isBlocking = not unitDef.reclaimable and unitDef.customParams.decoration and unitDef.customParams.subfolder ~= "other/hats",
-		isBuilder  = unitDef.isBuilder,
-		radius     = unitDef.radius,
-		semiAxisX  = unitDef.xsize * footprint * 0.5,
-		semiAxisZ  = unitDef.zsize * footprint * 0.5,
+		isBuilder = unitDef.isBuilder,
+		radius = unitDef.radius,
+		semiAxisX = unitDef.xsize * footprint * 0.5,
+		semiAxisZ = unitDef.zsize * footprint * 0.5,
 	}
 end
 
 local gameFrame = 0
 local mostRecentCommandFrame = {}
 
-local slowUpdateBuilders 	= {}
-local watchedBuilders 		= {}
-local builderRadiusOffsets 	= {}
-local needsUpdate 			= false
-local areaCommandCooldown	= {}
+local slowUpdateBuilders = {}
+local watchedBuilders = {}
+local builderRadiusOffsets = {}
+local needsUpdate = false
+local areaCommandCooldown = {}
 
-local FAST_UPDATE_RADIUS	= 400
+local FAST_UPDATE_RADIUS = 400
 -- builders take about this much to enter build stance; determined empirically
 local BUILDER_DELAY_SECONDS = 3.3
-local BUILDER_BUILD_RADIUS  = 200 * Spring.GetModOptions().multiplier_builddistance -- ! varies per-unit
+local BUILDER_BUILD_RADIUS = 200 * SpringShared.GetModOptions().multiplier_builddistance -- ! varies per-unit
 -- Assume the units are super-fast and medium-sized.
-local SEARCH_RADIUS_OFFSET  = unitSpeedMax + 2 * footprint
+local SEARCH_RADIUS_OFFSET = unitSpeedMax + 2 * footprint
 local FAST_UPDATE_FREQUENCY = gameSpeed * 0.5
 local SLOW_UPDATE_FREQUENCY = FAST_UPDATE_FREQUENCY * 3 -- NB: must be a multiple
 local BUGGEROFF_RADIUS_INCREMENT = footprint
 -- Move away based on predicted position with lookahead:
-local BUGGEROFF_LOOKAHEAD   = (1/6) * gameSpeed
+local BUGGEROFF_LOOKAHEAD = (1 / 6) * gameSpeed
 -- The max buggeroff radius = increment * (time * update rate - 1), so we set a max time here also, implicitly.
 -- Prevent units from roaming by maintaining a max radius <= 400, the engine's max leash radius (see e.g. CMobileCAI::ExecuteFight).
-local MAX_BUGGEROFF_TIME    = 13
-local MAX_BUGGEROFF_RADIUS  = BUGGEROFF_RADIUS_INCREMENT * (MAX_BUGGEROFF_TIME * gameSpeed / FAST_UPDATE_FREQUENCY - 1) -- => 400 elmos
+local MAX_BUGGEROFF_TIME = 13
+local MAX_BUGGEROFF_RADIUS = BUGGEROFF_RADIUS_INCREMENT * (MAX_BUGGEROFF_TIME * gameSpeed / FAST_UPDATE_FREQUENCY - 1) -- => 400 elmos
 -- Don't buggeroff units that were ordered to do something recently
-local USER_COMMAND_TIMEOUT	= 2 * gameSpeed
+local USER_COMMAND_TIMEOUT = 2 * gameSpeed
 -- Cooldown for area commands to prevent mass slowWatchBuilder calls
 local AREA_COMMAND_COOLDOWN = 2 * gameSpeed
 
@@ -108,7 +108,7 @@ local function willBeNearTarget(ux, uz, vx, vz, tx, tz, maxDistance)
 	local ix = tx - ux
 	local iz = tz - uz
 
-	if math_diag(ix , iz) > maxDistance then
+	if math_diag(ix, iz) > maxDistance then
 		-- The unit starts within the area but does not end in it.
 		return false
 	else
@@ -122,7 +122,9 @@ end
 
 local function isInTargetArea(unitID, x, z, radius)
 	local ux, uy, uz = spGetUnitPosition(unitID)
-	if not ux then return false end
+	if not ux then
+		return false
+	end
 	return math_diag(ux - x, uz - z) <= radius
 end
 
@@ -132,30 +134,27 @@ local function IsUnitRepeatOn(unitID)
 end
 
 local function watchBuilder(builderID)
-	slowUpdateBuilders[builderID]   = nil
-	watchedBuilders[builderID]		= true
+	slowUpdateBuilders[builderID] = nil
+	watchedBuilders[builderID] = true
 	builderRadiusOffsets[builderID] = 0
 end
 
 local function removeBuilder(builderID)
-	slowUpdateBuilders[builderID]   = nil
-	watchedBuilders[builderID]	  	= nil
+	slowUpdateBuilders[builderID] = nil
+	watchedBuilders[builderID] = nil
 	builderRadiusOffsets[builderID] = nil
 end
 
 local function slowWatchBuilder(builderID)
-	watchedBuilders[builderID]	  	= nil
-	slowUpdateBuilders[builderID]   = true
+	watchedBuilders[builderID] = nil
+	slowUpdateBuilders[builderID] = true
 	builderRadiusOffsets[builderID] = nil
 	-- Give builder initial slow update right away in case the builder is already close
 	needsUpdate = true
 end
 
 local function ignoreBuggeroff(unitID, unitDefData)
-	return unitDefData.isImmobile
-		or spGetUnitIsDead(unitID) ~= false
-		or spGetUnitIsBeingBuilt(unitID) ~= false
-		or gameFrame - (mostRecentCommandFrame[unitID] or -USER_COMMAND_TIMEOUT) < USER_COMMAND_TIMEOUT
+	return unitDefData.isImmobile or spGetUnitIsDead(unitID) ~= false or spGetUnitIsBeingBuilt(unitID) ~= false or gameFrame - (mostRecentCommandFrame[unitID] or -USER_COMMAND_TIMEOUT) < USER_COMMAND_TIMEOUT
 end
 
 local function shouldBuggeroff(unitID, unitDefData, visitedUnits, builderTeam)
@@ -168,7 +167,6 @@ local function shouldBuggeroff(unitID, unitDefData, visitedUnits, builderTeam)
 	if ignoreBuggeroff(unitID, unitDefData) then
 		visitedUnits[unitID] = true
 		return false
-
 	elseif spAreTeamsAllied(spGetUnitTeam(unitID), builderTeam) then
 		visitedUnits[unitID] = true
 		return true
@@ -183,7 +181,7 @@ function gadget:GameFrame(frame)
 
 	local visitedTeams = {}
 	local visitedUnits = {}
-	local cylinderCache = {}  -- Cache GetUnitsInCylinder results per location
+	local cylinderCache = {} -- Cache GetUnitsInCylinder results per location
 
 	local moveParams = insertMoveParams
 
@@ -195,23 +193,21 @@ function gadget:GameFrame(frame)
 
 	for builderID, _ in pairs(watchedBuilders) do
 		local cmdID, _, _, targetX, targetY, targetZ = spGetUnitCurrentCommand(builderID, 1)
-		local isBuilding  	 = spGetUnitIsBuilding(builderID) ~= nil
-		local x, y, z		 = spGetUnitPosition(builderID)
-		local builderTeam    = spGetUnitTeam(builderID);
+		local isBuilding = spGetUnitIsBuilding(builderID) ~= nil
+		local x, y, z = spGetUnitPosition(builderID)
+		local builderTeam = spGetUnitTeam(builderID)
 		local targetDistance = targetZ and x and math_diag(targetX - x, targetZ - z)
 		local buildUnitDefData = cmdID and cachedUnitDefs[-cmdID]
 
 		if not x then
 			deferRemoveCount = deferRemoveCount + 1
 			deferRemove[deferRemoveCount] = builderID
-
 		elseif not buildUnitDefData or targetDistance > FAST_UPDATE_RADIUS then
 			deferSlowCount = deferSlowCount + 1
 			deferSlow[deferSlowCount] = builderID
-
 		elseif not isBuilding and targetDistance < BUILDER_BUILD_RADIUS + buildUnitDefData.radius and spGetUnitIsBeingBuilt(builderID) == false then
-			local buildDefRadius    = buildUnitDefData.radius
-			local searchRadius		= SEARCH_RADIUS_OFFSET + buildDefRadius
+			local buildDefRadius = buildUnitDefData.radius
+			local searchRadius = SEARCH_RADIUS_OFFSET + buildDefRadius
 
 			-- Use cached cylinder lookup to reduce redundant API calls
 			-- Nested numeric tables avoid string format allocation/GC overhead
@@ -233,7 +229,7 @@ function gadget:GameFrame(frame)
 			local buggerOffRadiusOffset = builderRadiusOffsets[builderID] + BUGGEROFF_RADIUS_INCREMENT
 
 			-- Make sure at least one builder per player is never told to move
-			if (visitedTeams[builderTeam] == nil) then
+			if visitedTeams[builderTeam] == nil then
 				visitedTeams[builderTeam] = true
 				visitedUnits[builderID] = true
 			end
@@ -273,7 +269,6 @@ function gadget:GameFrame(frame)
 			else
 				builderRadiusOffsets[builderID] = buggerOffRadiusOffset
 			end
-
 		elseif isBuilding then
 			-- We want to keep updating in case the builder has got another job nearby
 			builderRadiusOffsets[builderID] = 0
@@ -306,7 +301,9 @@ function gadget:GameFrame(frame)
 
 		for idx = 1, 5 do
 			local cmdID, _, _, px, _, pz = spGetUnitCurrentCommand(builderID, idx)
-			if not cmdID then break end
+			if not cmdID then
+				break
+			end
 			if cmdID < 0 then
 				hasBuildCommand = true
 				if idx == 1 and px and pz then
@@ -347,7 +344,7 @@ end
 function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	if cachedUnitDefs[unitDefID].isBuilder then
 		-- Throttle area command processing to avoid performance spikes with many builders
-		if cmdID < 0 then  -- Build command
+		if cmdID < 0 then -- Build command
 			local lastAreaCommand = areaCommandCooldown[unitID]
 			if not lastAreaCommand or gameFrame - lastAreaCommand >= AREA_COMMAND_COOLDOWN then
 				slowWatchBuilder(unitID)

@@ -2,13 +2,13 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name    = "UnitDamagedReplay",
-		desc	= 'Expose full UnitDamaged to widgets only during replays',
-		author	= 'Itanthias',
-		date	= 'Sept 2022',
-		license	= 'GNU GPL, v2 or later',
-		layer	= 1,
-		enabled	= true
+		name = "UnitDamagedReplay",
+		desc = "Expose full UnitDamaged to widgets only during replays",
+		author = "Itanthias",
+		date = "Sept 2022",
+		license = "GNU GPL, v2 or later",
+		layer = 1,
+		enabled = true,
 	}
 end
 
@@ -19,7 +19,7 @@ if not gadgetHandler:IsSyncedCode() then
 
 	local function hookCallIn()
 		-- check if game is a replay or spectating
-		allowForwarding = Spring.IsReplay() or Spring.GetSpectatingState()
+		allowForwarding = SpringUnsynced.IsReplay() or SpringUnsynced.GetSpectatingState()
 		if hooked and not allowForwarding then
 			gadgetHandler:RemoveCallIn("UnitDamaged")
 			hooked = false
@@ -88,4 +88,5 @@ function widget:Shutdown()
 
 end
 
-]]--
+]]
+--

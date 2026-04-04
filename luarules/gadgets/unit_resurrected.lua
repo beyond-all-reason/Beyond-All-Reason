@@ -1,15 +1,15 @@
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
-    return {
-        name      = "Resurrection Behavior",
-        desc      = "Handles starting health, wait until repair, and transferring oldUnit > corpse > newUnit data.",
-        author    = "Floris, Chronographer, SethDGamre",
-        date      = "4 November 2025",
-        license   = "GNU GPL, v2 or later",
-        layer     = 5, -- FIXME why?
-        enabled   = true
-    }
+	return {
+		name = "Resurrection Behavior",
+		desc = "Handles starting health, wait until repair, and transferring oldUnit > corpse > newUnit data.",
+		author = "Floris, Chronographer, SethDGamre",
+		date = "4 November 2025",
+		license = "GNU GPL, v2 or later",
+		layer = 5, -- FIXME why?
+		enabled = true,
+	}
 end
 
 if not gadgetHandler:IsSyncedCode() then
@@ -20,15 +20,15 @@ local CMD_RESURRECT = CMD.RESURRECT
 local CMD_WAIT = CMD.WAIT
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local CMD_MOVE_STATE = CMD.MOVE_STATE
-local VISIBILITY_INLOS = {inlos = true}
+local VISIBILITY_INLOS = { inlos = true }
 local UPDATE_INTERVAL = Game.gameSpeed
 local TIMEOUT_FRAMES = Game.gameSpeed * 3 -- long enough to get grabbed by FeatureCreated callback
 
-local spGetUnitHealth = Spring.GetUnitHealth
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local spGetFeatureRulesParam = Spring.GetFeatureRulesParam
-local spSetFeatureRulesParam = Spring.SetFeatureRulesParam
+local spGetUnitHealth = SpringShared.GetUnitHealth
+local spGiveOrderToUnit = SpringSynced.GiveOrderToUnit
+local spGetUnitCurrentCommand = SpringShared.GetUnitCurrentCommand
+local spGetFeatureRulesParam = SpringShared.GetFeatureRulesParam
+local spSetFeatureRulesParam = SpringSynced.SetFeatureRulesParam
 
 local shouldWaitForHealing = {}
 local toBeUnWaited = {}
@@ -36,11 +36,11 @@ local prevHealth = {}
 local priorStates = {} -- unitID = { timeout, firestate, movestate, xp }
 
 for unitDefID, unitDef in pairs(UnitDefs) do
-	shouldWaitForHealing[unitDefID] = (not unitDef.isBuilding) and (not unitDef.isBuilder)
+	shouldWaitForHealing[unitDefID] = (not unitDef.isBuilding) and not unitDef.isBuilder
 end
 
 local function RestoreStateMechanics(unitID, featureID)
-	Spring.SetUnitExperience(unitID, spGetFeatureRulesParam(featureID, "previous_xp") or 0)
+	SpringSynced.SetUnitExperience(unitID, spGetFeatureRulesParam(featureID, "previous_xp") or 0)
 end
 
 local function RestoreStateGUI(unitID, featureID)
@@ -60,7 +60,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		return
 	end
 
-	local cmdID, featureID = Spring.GetUnitWorkerTask(builderID)
+	local cmdID, featureID = SpringShared.GetUnitWorkerTask(builderID)
 	if cmdID ~= CMD_RESURRECT then
 		return
 	end
@@ -76,25 +76,25 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	end
 
 	-- FIXME: 1 -> true (0 is truthy in lua too), but would need to be fixed elsewhere as well
-	Spring.SetUnitRulesParam(unitID, "resurrected", 1, VISIBILITY_INLOS)
+	SpringSynced.SetUnitRulesParam(unitID, "resurrected", 1, VISIBILITY_INLOS)
 
-	Spring.SetUnitHealth(unitID, spGetUnitHealth(unitID) * 0.05)
+	SpringSynced.SetUnitHealth(unitID, spGetUnitHealth(unitID) * 0.05)
 
 	RestoreStateMechanics(unitID, featureID)
 
 	-- Don't retain GUI settings (movestate etc) from other players
-	if Spring.GetFeatureTeam(featureID) == Spring.GetUnitTeam(unitID) then
+	if SpringShared.GetFeatureTeam(featureID) == SpringShared.GetUnitTeam(unitID) then
 		RestoreStateGUI(unitID, featureID)
 	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	local states = Spring.GetUnitStates(unitID)
+	local states = SpringShared.GetUnitStates(unitID)
 	priorStates[unitID] = {
-		timeout = Spring.GetGameFrame() + TIMEOUT_FRAMES,
+		timeout = SpringShared.GetGameFrame() + TIMEOUT_FRAMES,
 		firestate = states.firestate,
 		movestate = states.movestate,
-		xp = Spring.GetUnitExperience(unitID)
+		xp = SpringShared.GetUnitExperience(unitID),
 	}
 end
 

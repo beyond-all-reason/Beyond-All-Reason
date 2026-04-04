@@ -2,24 +2,22 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name		= "Unit Range XP Update",
-		desc		= "Applies weapon range bonus when unit earns XP",
-		author		= "BrainDamage, lonewolfdesign",
-		date		= "",
-		license		= "WTFPL",
-		layer		= 0,
-		enabled		= true
+		name = "Unit Range XP Update",
+		desc = "Applies weapon range bonus when unit earns XP",
+		author = "BrainDamage, lonewolfdesign",
+		date = "",
+		license = "WTFPL",
+		layer = 0,
+		enabled = true,
 	}
 end
-
 
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-
-local spSetUnitWeaponState = Spring.SetUnitWeaponState
-local spSetUnitMaxRange = Spring.SetUnitMaxRange
+local spSetUnitWeaponState = SpringSynced.SetUnitWeaponState
+local spSetUnitMaxRange = SpringSynced.SetUnitMaxRange
 local unpack = unpack
 local gainsRangeFromXp = {}
 
@@ -30,7 +28,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 function gadget:Initialize()
-	Spring.SetExperienceGrade(0.01) --without this, gadget:UnitExperience doesn't work at all.
+	SpringSynced.SetExperienceGrade(0.01) --without this, gadget:UnitExperience doesn't work at all.
 end
 
 function gadget:UnitExperience(unitID, unitDefID, unitTeam, xp, oldxp)

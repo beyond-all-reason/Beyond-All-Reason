@@ -14,20 +14,19 @@
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
-  return {
-    name      = "Factory Auto-Repeat",
-    desc      = "Sets new factories to Repeat on automatically",
-    author    = "TheFatController",
-    date      = "Mar 20, 2007",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = false
-  }
+	return {
+		name = "Factory Auto-Repeat",
+		desc = "Sets new factories to Repeat on automatically",
+		author = "TheFatController",
+		date = "Mar 20, 2007",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = false,
+	}
 end
 
-
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
+local spGetGameFrame = SpringShared.GetGameFrame
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -36,36 +35,36 @@ local gameStarted
 
 local isFactory = {}
 for udid, ud in pairs(UnitDefs) do
-    if ud.isFactory then
-        isFactory[udid] = true
-    end
+	if ud.isFactory then
+		isFactory[udid] = true
+	end
 end
 
 function maybeRemoveSelf()
-    if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
-        widgetHandler:RemoveWidget()
-    end
+	if SpringUnsynced.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
+		widgetHandler:RemoveWidget()
+	end
 end
 
 function widget:GameStart()
-    gameStarted = true
-    maybeRemoveSelf()
+	gameStarted = true
+	maybeRemoveSelf()
 end
 
 function widget:PlayerChanged(playerID)
-    maybeRemoveSelf()
+	maybeRemoveSelf()
 end
 
 function widget:Initialize()
-    if Spring.IsReplay() or spGetGameFrame() > 0 then
-        maybeRemoveSelf()
-    end
+	if SpringUnsynced.IsReplay() or spGetGameFrame() > 0 then
+		maybeRemoveSelf()
+	end
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
-    if isFactory[unitDefID] then
-        Spring.GiveOrderToUnit(unitID, CMD.REPEAT, { 1 }, 0)
-    end
+	if isFactory[unitDefID] then
+		SpringSynced.GiveOrderToUnit(unitID, CMD.REPEAT, { 1 }, 0)
+	end
 end
 
 --------------------------------------------------------------------------------

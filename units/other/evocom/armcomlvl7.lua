@@ -1,5 +1,5 @@
 return {
-	armcomlvl7	= {
+	armcomlvl7 = {
 		maxacc = 0.18,
 		activatewhenbuilt = true,
 		autoheal = 5,
@@ -30,7 +30,7 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-    	holdsteady = true,
+		holdsteady = true,
 		icontype = "armcom",
 		sightemitheight = 40,
 		mass = 4900,
@@ -47,7 +47,7 @@ return {
 		radardistance = 1200,
 		radaremitheight = 40,
 		reclaimable = false,
-   		releaseheld  = true,
+		releaseheld = true,
 		script = "Units/ARMCOMHILVL.lua",
 		seismicsignature = 0,
 		selfdestructas = "commanderexplosion",
@@ -109,7 +109,7 @@ return {
 			"armlwall",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			area_mex_def = "armmex",
 			iscommander = true,
 			effigy_offset = 1,
@@ -135,7 +135,7 @@ return {
 			effigy = "comeffigylvl4",
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
-			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
+			fall_damage_multiplier = 5, --this ensures commander dies when it hits the ground so effigies can trigger respawn.
 		},
 		featuredefs = {
 			dead = {
@@ -455,15 +455,15 @@ return {
 					spark_forkdamage = "0.33",
 					spark_maxunits = "8",
 					spark_range = "75",
-					},
-					damage = {
-						default = 57,
-					},
+				},
+				damage = {
+					default = 57,
+				},
 			},
 			empflashbang = {
 				areaofeffect = 50,
 				avoidfeature = false,
-				beamdecay = .8,
+				beamdecay = 0.8,
 				beamttl = 0.8,
 				burnblow = true,
 				collideenemy = false,
@@ -510,13 +510,13 @@ return {
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "ARMCOMSEALASER",
-				onlytargetcategory = "NOTAIR"
+				onlytargetcategory = "NOTAIR",
 			},
 			[3] = {
 				def = "DISINTEGRATOR",
 				onlytargetcategory = "NOTSUB",
 			},
-            [4] = {
+			[4] = {
 				badtargetcategory = "GROUNDSCOUT",
 				def = "LONGGUN",
 				onlytargetcategory = "EMPABLE",
@@ -524,7 +524,7 @@ return {
 			[5] = {
 				def = "SHORTGUN",
 				onlytargetcategory = "NOTSUB",
-                fastautoretargeting = true,
+				fastautoretargeting = true,
 			},
 			[6] = {
 				def = "EMPFLASHBANG",

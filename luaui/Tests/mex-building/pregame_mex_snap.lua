@@ -1,5 +1,5 @@
 function skip()
-	return Spring.GetGameFrame() > 0
+	return SpringShared.GetGameFrame() > 0
 end
 
 function setup()
@@ -11,12 +11,12 @@ function setup()
 	widget_gui_pregame_build = widgetHandler:FindWidget("Pregame Queue")
 	assert(widget_gui_pregame_build)
 
-	WG['pregame-build'].setBuildQueue({})
+	WG["pregame-build"].setBuildQueue({})
 	WG["pregame-build"].setPreGamestartDefID(nil)
 
-	initialCameraState = Spring.GetCameraState()
+	initialCameraState = SpringUnsynced.GetCameraState()
 
-	Spring.SetCameraState({
+	SpringUnsynced.SetCameraState({
 		mode = 5,
 	})
 
@@ -27,15 +27,15 @@ end
 function cleanup()
 	Test.clearMap()
 
-	WG['pregame-build'].setBuildQueue({})
+	WG["pregame-build"].setBuildQueue({})
 	WG["pregame-build"].setPreGamestartDefID(nil)
 
-	Spring.SetCameraState(initialCameraState)
+	SpringUnsynced.SetCameraState(initialCameraState)
 end
 
 function test()
-	mexUnitDefId = UnitDefNames["armmex"].id
-	metalSpots = WG['resource_spot_finder'].metalSpotsList
+	mexUnitDefId = UnitDefNames.armmex.id
+	metalSpots = WG.resource_spot_finder.metalSpotsList
 
 	midX, midZ = Game.mapSizeX / 2, Game.mapSizeZ / 2
 	targetMex = nil
@@ -50,8 +50,8 @@ function test()
 
 	-- Place a mex off of a mex spot - expect mex snap to position it on the spot, as close as possible to cursor position
 	WG["pregame-build"].setPreGamestartDefID(mexUnitDefId)
-	sx, sy, sz = Spring.WorldToScreenCoords(targetMex.x - 200, targetMex.y, targetMex.z - 200)
-	Spring.WarpMouse(sx, sy)
+	sx, sy, sz = SpringUnsynced.WorldToScreenCoords(targetMex.x - 200, targetMex.y, targetMex.z - 200)
+	SpringUnsynced.WarpMouse(sx, sy)
 
 	-- wait for widgets to respond
 	Test.waitTime(10)
@@ -60,12 +60,7 @@ function test()
 	assert(WG.ExtractorSnap.position ~= nil)
 
 	-- did it snap to the closest mex?
-	assert(math.distance2d(
-		WG.ExtractorSnap.position.x,
-		WG.ExtractorSnap.position.z,
-		targetMex.x,
-		targetMex.z
-	) < 100)
+	assert(math.distance2d(WG.ExtractorSnap.position.x, WG.ExtractorSnap.position.z, targetMex.x, targetMex.z) < 100)
 
 	snappedPosition = table.copy(WG.ExtractorSnap.position)
 
@@ -76,13 +71,13 @@ function test()
 	Test.waitTime(10)
 
 	-- did the mex get placed in the right spot?
-	buildQueue = WG['pregame-build'].getBuildQueue()
+	buildQueue = WG["pregame-build"].getBuildQueue()
 	assert(#buildQueue == 1)
 	assertTablesEqual(buildQueue[1], {
 		mexUnitDefId,
 		snappedPosition.x,
 		snappedPosition.y,
 		snappedPosition.z,
-		0
+		0,
 	}, 0.1)
 end

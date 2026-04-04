@@ -5,36 +5,36 @@ end
 ang = math.rad
 
 timedTurn = function(piece, axis, goal, amount, t)
-	local speed = amount/(t/1000)
+	local speed = amount / (t / 1000)
 	Turn(piece, axis, goal, speed)
 end
 
 timedMove = function(piece, axis, goal, amount, t)
-	local speed = amount/(t/1000)
+	local speed = amount / (t / 1000)
 	Move(piece, axis, goal, speed)
 end
-	
-unitDefID = Spring.GetUnitDefID(unitID)
+
+unitDefID = SpringShared.GetUnitDefID(unitID)
 defs = UnitDefs[unitDefID]
 unitName = UnitDefs[unitDefID].name
 
 -- rename scavenger unit
-unitName = string.gsub(unitName, '_scav', '')
+unitName = string.gsub(unitName, "_scav", "")
 
 pi = math.pi
 abs = math.abs
-pi2 = pi*2
+pi2 = pi * 2
 hasWpn = false
 currentSpeed = 200
 weapons = {}
 
-include(unitName.."_lus/setup.lua")
-include(unitName.."_lus/move.lua")
-include(unitName.."_lus/weaponsdata.lua")
-	
+include(unitName .. "_lus/setup.lua")
+include(unitName .. "_lus/move.lua")
+include(unitName .. "_lus/weaponsdata.lua")
+
 isMoving, isAiming, isBuilding, counter, canAim, isInLoop = false, false, false, 0, false, false
 step = 1
-	
+
 function MotionControl()
 	local justmoved = true
 	while true do
@@ -58,7 +58,7 @@ function MotionControl()
 			justmoved = true
 		else
 			canAim = true
-			if justmoved then	
+			if justmoved then
 				StartThread(RestoreLegs)
 				if not aim then
 					StartThread(RestoreArms)
@@ -73,7 +73,7 @@ end
 function WeaponControl()
 	while true do
 		for weaponID, data in pairs(weapons) do
-		local data = weapons[weaponID]
+			local data = weapons[weaponID]
 			local curHead, wtdHead, curPitch, wtdPitch = data.curHead, data.wtdHead, data.curPitch, data.wtdPitch
 			local wpnReady = data.wpnReady
 			local headSpeed = data.headSpeed
@@ -84,12 +84,12 @@ function WeaponControl()
 			if curHead < 0 then
 				curHead = pi2 + curHead
 			elseif curHead >= pi2 then
-				curHead = curHead -(pi2)
+				curHead = curHead - pi2
 			end
 			if curPitch < 0 then
 				curPitch = pi2 + curPitch
 			elseif curPitch >= pi2 then
-				curPitch = curPitch -pi2
+				curPitch = curPitch - pi2
 			end
 			if canAim then
 				local diffHead = wtdHead - curHead
@@ -116,7 +116,7 @@ function WeaponControl()
 					curHead = wtdHead
 					headReady = true
 				end
-				if absdiffPitch > pitchSpeed  then
+				if absdiffPitch > pitchSpeed then
 					if diffPitch < 0 then
 						curPitch = curPitch - pitchSpeed
 					else
@@ -139,14 +139,14 @@ function WeaponControl()
 		Sleep(1)
 	end
 end
-	
+
 function script.StartMoving()
 	isMoving = true
 end
 
 function script.StopMoving()
 	isMoving = false
-end	
+end
 
 function script.Create()
 	InitialPiecesSetup()
@@ -157,11 +157,11 @@ function script.Create()
 end
 
 function LastCallCheck(weaponID)
-	local f = Spring.GetGameFrame()
+	local f = SpringShared.GetGameFrame()
 	if not weapons[weaponID].lastCall then
 		weapons[weaponID].lastCall = f
 	end
-	if  weapons[weaponID].lastCall ~= f-1 then
+	if weapons[weaponID].lastCall ~= f - 1 then
 		weapons[weaponID].canFire = false
 	end
 	weapons[weaponID].lastCall = f

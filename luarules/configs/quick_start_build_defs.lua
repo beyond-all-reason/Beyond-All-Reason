@@ -1,8 +1,23 @@
 local quickStartConfig = {
 	discountableFactories = {
-		armap = true, armfhp = true, armhp = true, armlab = true, armsy = true, armvp = true,
-		corap = true, corfhp = true, corhp = true, corlab = true, corsy = true, corvp = true,
-		legap = true, legfhp = true, leghp = true, leglab = true, legsy = true, legvp = true,
+		armap = true,
+		armfhp = true,
+		armhp = true,
+		armlab = true,
+		armsy = true,
+		armvp = true,
+		corap = true,
+		corfhp = true,
+		corhp = true,
+		corlab = true,
+		corsy = true,
+		corvp = true,
+		legap = true,
+		legfhp = true,
+		leghp = true,
+		leglab = true,
+		legsy = true,
+		legvp = true,
 	},
 	commanderNonLabOptions = {
 		armcom = {
@@ -34,7 +49,7 @@ local quickStartConfig = {
 			floatingConverter = "legfeconv",
 			landEnergyStorage = "legestor",
 			waterEnergyStorage = "leguwestore",
-		}
+		},
 	},
 	optionsToNodeType = {
 		windmill = "other",
@@ -47,9 +62,9 @@ local quickStartConfig = {
 		waterEnergyStorage = "other",
 	},
 	buildSequence = {
-		["metalMap"] = {
-			["land"] = {
-				["badWind"] = {
+		metalMap = {
+			land = {
+				badWind = {
 					"mex",
 					"solar",
 					"solar",
@@ -62,7 +77,7 @@ local quickStartConfig = {
 					"solar",
 					"landEnergyStorage",
 				},
-				["goodWind"] = {
+				goodWind = {
 					"mex",
 					"windmill",
 					"windmill",
@@ -78,10 +93,10 @@ local quickStartConfig = {
 					"mex",
 					"mex",
 					"solar",
-				}
+				},
 			},
-			["water"] = {
-				["badWind"] = {
+			water = {
+				badWind = {
 					"mex",
 					"mex",
 					"tidal",
@@ -95,7 +110,7 @@ local quickStartConfig = {
 					"tidal",
 					"waterEnergyStorage",
 				},
-				["goodWind"] = {
+				goodWind = {
 					"mex",
 					"mex",
 					"tidal",
@@ -108,12 +123,12 @@ local quickStartConfig = {
 					"mex",
 					"tidal",
 					"waterEnergyStorage",
-				}
-			}
+				},
+			},
 		},
-		["nonMetalMap"] = {
-			["land"] = {
-				["badWind"] = {
+		nonMetalMap = {
+			land = {
+				badWind = {
 					"solar",
 					"solar",
 					"solar",
@@ -127,7 +142,7 @@ local quickStartConfig = {
 					"solar",
 					"solar",
 				},
-				["goodWind"] = {
+				goodWind = {
 					"mex",
 					"mex",
 					"windmill",
@@ -146,10 +161,10 @@ local quickStartConfig = {
 					"windmill",
 					"windmill",
 					"converter",
-				}
+				},
 			},
-			["water"] = {
-				["badWind"] = {
+			water = {
+				badWind = {
 					"mex",
 					"mex",
 					"mex",
@@ -164,7 +179,7 @@ local quickStartConfig = {
 					"tidal",
 					"tidal",
 				},
-				["goodWind"] = {
+				goodWind = {
 					"mex",
 					"mex",
 					"mex",
@@ -178,11 +193,10 @@ local quickStartConfig = {
 					"tidal",
 					"tidal",
 					"tidal",
-				}
-			}
-		}
-	}
+				},
+			},
+		},
+	},
 }
 
 return quickStartConfig
-

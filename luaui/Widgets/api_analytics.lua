@@ -2,21 +2,21 @@ local widget = widget --- @type Widget
 
 function widget:GetInfo()
 	return {
-		name    = "Analytics API",
-		desc    = "Provides an API for sending analytics events using SendLuaUIMsg ",
-		author  = "uBdead",
-		date    = "Oct 2025",
+		name = "Analytics API",
+		desc = "Provides an API for sending analytics events using SendLuaUIMsg ",
+		author = "uBdead",
+		date = "Oct 2025",
 		license = "GPL-v2",
-		layer   = -1, -- expose API at init arbitrarily early, hopefully before want to use the API
+		layer = -1, -- expose API at init arbitrarily early, hopefully before want to use the API
 		enabled = true,
 	}
 end
 
-local spGetPlayerInfo = Spring.GetPlayerInfo
-local spGetMyPlayerID = Spring.GetMyPlayerID
-local spGetGameFrame = Spring.GetGameFrame
-local spLog = Spring.Log
-local spSendLuaUIMsg = Spring.SendLuaUIMsg
+local spGetPlayerInfo = SpringShared.GetPlayerInfo
+local spGetMyPlayerID = SpringUnsynced.GetLocalPlayerID
+local spGetGameFrame = SpringShared.GetGameFrame
+local spLog = SpringShared.Log
+local spSendLuaUIMsg = SpringUnsynced.SendLuaUIMsg
 
 local pendingAnalytics = {}
 
@@ -32,7 +32,9 @@ local function analyticsCoroutine(eventType, eventData)
 	-- Add eventData incrementally
 	if type(eventData) == "table" then
 		local keys = {}
-		for k in pairs(eventData) do keys[#keys+1] = k end
+		for k in pairs(eventData) do
+			keys[#keys + 1] = k
+		end
 		local i = 1
 		while i <= #keys do
 			local k = keys[i]
@@ -47,7 +49,7 @@ local function analyticsCoroutine(eventType, eventData)
 
 	local jsonstr = Json.encode(jsondict)
 	coroutine.yield()
-	
+
 	local b64str = string.base64Encode(jsonstr)
 	coroutine.yield()
 
@@ -58,7 +60,9 @@ local function analyticsCoroutine(eventType, eventData)
 end
 
 local function sendAnalyticsEvent(eventType, eventData)
-	local co = coroutine.create(function() analyticsCoroutine(eventType, eventData) end)
+	local co = coroutine.create(function()
+		analyticsCoroutine(eventType, eventData)
+	end)
 	table.insert(pendingAnalytics, co)
 end
 
@@ -68,7 +72,7 @@ function widget:Update()
 	for i, co in ipairs(pendingAnalytics) do
 		local status, res = coroutine.resume(co)
 		if coroutine.status(co) == "dead" then
-			finished[#finished+1] = i
+			finished[#finished + 1] = i
 		end
 	end
 	-- Remove finished coroutines

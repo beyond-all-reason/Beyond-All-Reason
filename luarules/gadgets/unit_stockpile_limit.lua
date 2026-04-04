@@ -1,21 +1,19 @@
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
-    return {
-        name      = 'Stockpile control',
-        desc      = 'Limits Stockpile to set amount',
-        author    = 'Bluestone, Damgam',
-        version   = 'v1.0',
-        date      = '23/04/2013',
-		license   = "GNU GPL, v2 or later",
-        layer     = 0,
-        enabled   = true
-    }
+	return {
+		name = "Stockpile control",
+		desc = "Limits Stockpile to set amount",
+		author = "Bluestone, Damgam",
+		version = "v1.0",
+		date = "23/04/2013",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
+	}
 end
 
-
 if gadgetHandler:IsSyncedCode() then
-
 	local defaultStockpileLimit = 99
 
 	local CMD_STOCKPILE = CMD.STOCKPILE
@@ -23,8 +21,8 @@ if gadgetHandler:IsSyncedCode() then
 	local StockpileDesiredTarget = {}
 	local unitStockpileLimit = {}
 
-	local GetUnitStockpile	= Spring.GetUnitStockpile
-	local GiveOrderToUnit	= Spring.GiveOrderToUnit
+	local GetUnitStockpile = SpringShared.GetUnitStockpile
+	local GiveOrderToUnit = SpringSynced.GiveOrderToUnit
 	local mathClamp = math.clamp
 
 	for udid, ud in pairs(UnitDefs) do
@@ -47,7 +45,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		local MaxStockpile = mathClamp(unitStockpileLimit[unitDefID], 0, StockpileDesiredTarget[unitID])
 
-		local stock,queued = GetUnitStockpile(unitID)
+		local stock, queued = GetUnitStockpile(unitID)
 		if queued and stock then
 			local count = stock + queued - MaxStockpile
 			while count < 0 do
@@ -103,7 +101,7 @@ if gadgetHandler:IsSyncedCode() then
 			if cmdOptions.right then
 				addQ = -addQ
 			end
-			if fromLua == true and fromSynced == true then 	-- fromLua is *true* if command is sent from a gadget and *false* if it's sent by a player.
+			if fromLua == true and fromSynced == true then -- fromLua is *true* if command is sent from a gadget and *false* if it's sent by a player.
 				return true
 			else
 				if StockpileDesiredTarget[unitID] and unitStockpileLimit[unitDefID] then
@@ -134,11 +132,10 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:Initialize()
 		gadgetHandler:RegisterAllowCommand(CMD_STOCKPILE)
-		local units = Spring.GetAllUnits()
+		local units = SpringShared.GetAllUnits()
 		for i = 1, #units do
-			local unitDefID = Spring.GetUnitDefID(units[i])
+			local unitDefID = SpringShared.GetUnitDefID(units[i])
 			gadget:UnitCreated(units[i], unitDefID)
 		end
 	end
 end
-

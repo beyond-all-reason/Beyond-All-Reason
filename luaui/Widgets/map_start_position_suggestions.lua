@@ -6,10 +6,9 @@ function widget:GetInfo()
 		desc = "Show expert recommended starting locations on the map",
 		license = "GNU GPL, v2 or later",
 		layer = 10000,
-		enabled = true
+		enabled = true,
 	}
 end
-
 
 -- Localized functions for performance
 local mathCeil = math.ceil
@@ -24,10 +23,10 @@ local tableInsert = table.insert
 local tableConcat = table.concat
 
 -- Localized Spring API for performance
-local spGetMouseState = Spring.GetMouseState
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetViewGeometry = Spring.GetViewGeometry
-local spGetTeamColor = Spring.GetTeamColor
+local spGetMouseState = SpringUnsynced.GetMouseState
+local spGetGroundHeight = SpringShared.GetGroundHeight
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
+local spGetTeamColor = SpringUnsynced.GetTeamColor
 
 --todo: gl4 (also make circles more transparent as you zoom in)
 
@@ -68,15 +67,15 @@ local config = {
 local CIRCLE_RADIUS_SQUARED = config.circleRadius * config.circleRadius
 
 local vsx, vsy = spGetViewGeometry()
-local resMult = vsy/1440
+local resMult = vsy / 1440
 
 -- engine call optimizations
 -- =========================
 
-local SpringGetCameraState = Spring.GetCameraState
-local SpringIsGUIHidden = Spring.IsGUIHidden
-local SpringGetCameraRotation = Spring.GetCameraRotation
-local SpringGetGameFrame = Spring.GetGameFrame
+local SpringGetCameraState = SpringUnsynced.GetCameraState
+local SpringIsGUIHidden = SpringUnsynced.IsGUIHidden
+local SpringGetCameraRotation = SpringUnsynced.GetCameraRotation
+local SpringGetGameFrame = SpringShared.GetGameFrame
 
 local glColor = gl.Color
 local glDepthTest = gl.DepthTest
@@ -128,7 +127,6 @@ local glPopMatrix = gl.PopMatrix
 
 ---@alias WidgetStartPositions table<AllyTeamID, WidgetTeamStartPositionEntry[]>
 
-
 -- loading and processing code
 -- ===========================
 
@@ -139,17 +137,17 @@ local function convertXYToXZ(p)
 	}
 end
 
-local gaiaTeamID = Spring.GetGaiaTeamID()
-local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID, false))
+local gaiaTeamID = SpringShared.GetGaiaTeamID()
+local gaiaAllyTeamID = select(6, SpringShared.GetTeamInfo(gaiaTeamID, false))
 
 local function getTeamSizes()
-	local allyTeams = Spring.GetAllyTeamList()
+	local allyTeams = SpringShared.GetAllyTeamList()
 	local allyTeamCount = 0
 	local playersPerTeam = 0
 	for _, allyTeamID in ipairs(allyTeams) do
 		if allyTeamID ~= gaiaAllyTeamID then
 			allyTeamCount = allyTeamCount + 1
-			local teamList = Spring.GetTeamList(allyTeamID) or {}
+			local teamList = SpringShared.GetTeamList(allyTeamID) or {}
 			playersPerTeam = mathMax(playersPerTeam, #teamList)
 		end
 	end
@@ -173,18 +171,14 @@ local function processModoptionTeamConfig(positions, teamPositions)
 end
 
 local function selectModoptionConfigForPlayers(modoptionData, allyTeamCount, playersPerTeam)
-	Spring.Log(
-		widget:GetInfo().name,
-		LOG.INFO,
-		"Searching for start positions for " .. table.toString({
-			allyTeamCount = allyTeamCount,
-			playersPerTeam = playersPerTeam,
-		})
-	)
+	SpringShared.Log(widget:GetInfo().name, LOG.INFO, "Searching for start positions for " .. table.toString({
+		allyTeamCount = allyTeamCount,
+		playersPerTeam = playersPerTeam,
+	}))
 
 	for _, teamConfig in ipairs(modoptionData.team) do
 		if teamConfig.playersPerTeam == playersPerTeam and teamConfig.teamCount == allyTeamCount then
-			Spring.Log(widget:GetInfo().name, LOG.INFO, "Found start positions")
+			SpringShared.Log(widget:GetInfo().name, LOG.INFO, "Found start positions")
 			return teamConfig.sides
 		end
 	end
@@ -193,10 +187,10 @@ local function selectModoptionConfigForPlayers(modoptionData, allyTeamCount, pla
 end
 
 local function loadStartPositions()
-	local modoptionDataRaw = Spring.GetModOptions().mapmetadata_startpos
+	local modoptionDataRaw = SpringShared.GetModOptions().mapmetadata_startpos
 
 	if modoptionDataRaw == nil or string.len(modoptionDataRaw) == 0 then
-		Spring.Log(widget:GetInfo().name, LOG.WARNING, "No modoption start position data found")
+		SpringShared.Log(widget:GetInfo().name, LOG.WARNING, "No modoption start position data found")
 		return
 	end
 
@@ -208,14 +202,11 @@ local function loadStartPositions()
 	local selectedConfig = selectModoptionConfigForPlayers(parsed, allyTeamCount, playersPerTeam)
 
 	if selectedConfig == nil then
-		Spring.Log(widget:GetInfo().name, LOG.WARNING, "Could not find matching start positions")
+		SpringShared.Log(widget:GetInfo().name, LOG.WARNING, "Could not find matching start positions")
 		return
 	end
 
-	local positions = processModoptionTeamConfig(
-		parsed.positions,
-		selectedConfig
-	)
+	local positions = processModoptionTeamConfig(parsed.positions, selectedConfig)
 
 	return positions
 end
@@ -498,16 +489,16 @@ local function getCaptions(role)
 	local roles = role:split("/")
 
 	if #roles == 1 then
-		title = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".title")
-		description = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".description")
+		title = I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".title")
+		description = I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".description")
 	elseif #roles > 1 then
-		local title1 = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".title")
-		local title2 = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[2] .. ".title")
-		title = Spring.I18N("ui.startPositionSuggestions.multiRole.title", { role1 = title1, role2 = title2})
+		local title1 = I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".title")
+		local title2 = I18N("ui.startPositionSuggestions.roles." .. roles[2] .. ".title")
+		title = I18N("ui.startPositionSuggestions.multiRole.title", { role1 = title1, role2 = title2 })
 
-		local description1 = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".description")
-		local description2 = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[2] .. ".description")
-		description = Spring.I18N("ui.startPositionSuggestions.multiRole.description", { role1 = description1, role2 = description2})
+		local description1 = I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".description")
+		local description2 = I18N("ui.startPositionSuggestions.roles." .. roles[2] .. ".description")
+		description = I18N("ui.startPositionSuggestions.multiRole.description", { role1 = description1, role2 = description2 })
 	end
 
 	captionsCache[role] = { title = title, description = description }
@@ -561,10 +552,7 @@ local function drawAllStartLocationsText()
 	local cameraMode = cameraState.mode
 	local roundedRy = mathCeil(ry * 100) / 100
 
-	local needsRebuild = not textDisplayListID
-		or textDisplayListCameraFlipped ~= cameraFlipped
-		or textDisplayListCameraMode ~= cameraMode
-		or (cameraMode == 2 and textDisplayListCameraRy ~= roundedRy)
+	local needsRebuild = not textDisplayListID or textDisplayListCameraFlipped ~= cameraFlipped or textDisplayListCameraMode ~= cameraMode or (cameraMode == 2 and textDisplayListCameraRy ~= roundedRy)
 
 	if needsRebuild then
 		invalidateTextDisplayList()
@@ -607,17 +595,14 @@ local function wrapLine(str, maxLength)
 end
 
 local function wrapText(str, maxLength)
-	local result = string.gsub(str,
-		"[^\n]*",
-		function(s)
-			return wrapLine(s, maxLength)
-		end
-	)
+	local result = string.gsub(str, "[^\n]*", function(s)
+		return wrapLine(s, maxLength)
+	end)
 	return result
 end
 
 local function drawTooltip()
-	if not tooltipKey or Spring.DiffTimers(Spring.GetTimer(), tooltipStartTime) < config.tooltipDelay then
+	if not tooltipKey or SpringUnsynced.DiffTimers(SpringUnsynced.GetTimer(), tooltipStartTime) < config.tooltipDelay then
 		return
 	end
 
@@ -633,66 +618,38 @@ local function drawTooltip()
 	end
 
 	if not wrappedDescriptionCache[tooltipKey] then
-		wrappedDescriptionCache[tooltipKey] = wrapText(
-			getCaptions(tooltipKey).description,
-			config.tooltipMaxWidthChars
-		)
+		wrappedDescriptionCache[tooltipKey] = wrapText(getCaptions(tooltipKey).description, config.tooltipMaxWidthChars)
 	end
 
 	local xOffset, yOffset = 20, -12
-	WG["tooltip"].ShowTooltip(
-		"startPositionTooltip",
-		wrappedDescriptionCache[tooltipKey],
-		x + xOffset,
-		y + yOffset,
-		getCaptions(tooltipKey).title
-	)
+	WG.tooltip.ShowTooltip("startPositionTooltip", wrappedDescriptionCache[tooltipKey], x + xOffset, y + yOffset, getCaptions(tooltipKey).title)
 end
 
 local function drawTutorial()
-	if config.hasRunBefore and (not WG["notifications"] or not WG["notifications"].getTutorial()) then
+	if config.hasRunBefore and (not WG.notifications or not WG.notifications.getTutorial()) then
 		return
 	end
 
 	if not cachedTutorialText then
-		cachedTutorialText = wrapText(
-			Spring.I18N("ui.startPositionSuggestions.tutorial"),
-			config.tutorialMaxWidthChars
-		)
+		cachedTutorialText = wrapText(I18N("ui.startPositionSuggestions.tutorial"), config.tutorialMaxWidthChars)
 	end
 
-	fontTutorial:SetOutlineColor(0,0,0,1)
+	fontTutorial:SetOutlineColor(0, 0, 0, 1)
 	fontTutorial:SetTextColor(0.9, 0.9, 0.9, 1)
-	fontTutorial:Print(
-		cachedTutorialText,
-		vsx * 0.5,
-		vsy * 0.75,
-		config.tutorialTextSize*resMult,
-		"cao"
-	)
+	fontTutorial:Print(cachedTutorialText, vsx * 0.5, vsy * 0.75, config.tutorialTextSize * resMult, "cao")
 end
 
 function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
-	resMult = vsy/1440
+	resMult = vsy / 1440
 	local baseFontSize = mathMax(config.playerTextSize, config.roleTextSize) * 0.6
-	font = gl.LoadFont(
-		"fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf"),
-		baseFontSize*resMult,
-		(baseFontSize*resMult) / 14,
-		1
-	)
-	fontTutorial = gl.LoadFont(
-		"fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf"),
-		config.tutorialTextSize*resMult,
-		(config.tutorialTextSize*resMult) / 14,
-		1
-	)
+	font = gl.LoadFont("fonts/" .. SpringUnsynced.GetConfigString("bar_font2", "Exo2-SemiBold.otf"), baseFontSize * resMult, (baseFontSize * resMult) / 14, 1)
+	fontTutorial = gl.LoadFont("fonts/" .. SpringUnsynced.GetConfigString("bar_font2", "Exo2-SemiBold.otf"), config.tutorialTextSize * resMult, (config.tutorialTextSize * resMult) / 14, 1)
 end
 
 function widget:GetConfigData()
 	return {
-		hasRunBefore = true
+		hasRunBefore = true,
 	}
 end
 
@@ -703,7 +660,7 @@ function widget:SetConfigData(data)
 end
 
 function widget:Initialize()
-	Spring.SetLogSectionFilterLevel(widget:GetInfo().name, LOG.INFO)
+	SpringUnsynced.SetLogSectionFilterLevel(widget:GetInfo().name, LOG.INFO)
 	widget:ViewResize()
 	startPositions = loadStartPositions()
 	if not startPositions then
@@ -721,7 +678,7 @@ end
 
 local function checkTooltips()
 	local mx, my = spGetMouseState()
-	local _, mw = Spring.TraceScreenRay(mx, my, true, true)
+	local _, mw = SpringUnsynced.TraceScreenRay(mx, my, true, true)
 	local mwx, mwy, mwz
 	if mw ~= nil then
 		mwx, mwy, mwz = unpack(mw)
@@ -745,7 +702,7 @@ local function checkTooltips()
 
 			if newKey then
 				if newKey ~= prevTooltipKey then
-					tooltipStartTime = Spring.GetTimer()
+					tooltipStartTime = SpringUnsynced.GetTimer()
 				end
 				tooltipKey = newKey
 			end
@@ -755,11 +712,11 @@ end
 
 local function getPlacedCommanders()
 	local newPlacedCommanders = {}
-	for _, teamID in ipairs(Spring.GetTeamList()) do
-		local playerID = select(2, Spring.GetTeamInfo(teamID, false))
-		local name, _, spec = Spring.GetPlayerInfo(playerID, false)
+	for _, teamID in ipairs(SpringShared.GetTeamList()) do
+		local playerID = select(2, SpringShared.GetTeamInfo(teamID, false))
+		local name, _, spec = SpringShared.GetPlayerInfo(playerID, false)
 		if name ~= nil and not spec and teamID ~= gaiaTeamID then
-			local x, y, z = Spring.GetTeamStartPosition(teamID)
+			local x, y, z = SpringShared.GetTeamStartPosition(teamID)
 			if x and y and z then
 				tableInsert(newPlacedCommanders, {
 					position = { x, y, z },
@@ -778,10 +735,7 @@ local function getPlacedCommanders()
 		for i = 1, #newPlacedCommanders do
 			local old = placedCommanders[i]
 			local new = newPlacedCommanders[i]
-			if old.teamID ~= new.teamID or
-			   old.position[1] ~= new.position[1] or
-			   old.position[2] ~= new.position[2] or
-			   old.position[3] ~= new.position[3] then
+			if old.teamID ~= new.teamID or old.position[1] ~= new.position[1] or old.position[2] ~= new.position[2] or old.position[3] ~= new.position[3] then
 				modified = true
 				break
 			end

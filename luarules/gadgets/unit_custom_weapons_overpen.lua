@@ -2,19 +2,20 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name    = 'Penetrator Weapons',
-		desc    = 'Customizes weapons to overpenetrate targets that they destroy.',
-		author  = 'efrec',
-		version = '1.0',
-		date    = '2024-10',
-		license = 'GNU GPL, v2 or later',
-		layer   = 0,
+		name = "Penetrator Weapons",
+		desc = "Customizes weapons to overpenetrate targets that they destroy.",
+		author = "efrec",
+		version = "1.0",
+		date = "2024-10",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
 		enabled = true,
 	}
 end
 
-if not gadgetHandler:IsSyncedCode() then return false end
-
+if not gadgetHandler:IsSyncedCode() then
+	return false
+end
 
 --------------------------------------------------------------------------------
 -- Configuration ---------------------------------------------------------------
@@ -25,30 +26,30 @@ local damageThreshold = 0.1 -- Minimum damage% vs. max health that will penetrat
 
 local penaltyDefault = 0.01 -- Additional damage% loss per hit.
 
-local falloffPerType  = { -- Whether the projectile loses damage per hit.
-	DGun              = false ,
-	Cannon            = true  ,
-	LaserCannon       = true  ,
-	BeamLaser         = true  ,
-	LightningCannon   = false , -- Use customparams.spark_forkdamage instead.
-	Flame             = false ,
-	MissileLauncher   = true  ,
-	StarburstLauncher = true  ,
-	TorpedoLauncher   = true  ,
-	AircraftBomb      = true  ,
+local falloffPerType = { -- Whether the projectile loses damage per hit.
+	DGun = false,
+	Cannon = true,
+	LaserCannon = true,
+	BeamLaser = true,
+	LightningCannon = false, -- Use customparams.spark_forkdamage instead.
+	Flame = false,
+	MissileLauncher = true,
+	StarburstLauncher = true,
+	TorpedoLauncher = true,
+	AircraftBomb = true,
 }
 
 local slowingPerType = { -- Whether the projectile loses velocity, as well.
-	DGun              = false ,
-	Cannon            = true  ,
-	LaserCannon       = false ,
-	BeamLaser         = false ,
-	LightningCannon   = false , -- Use customparams.spark_forkdamage instead.
-	Flame             = false ,
-	MissileLauncher   = true  ,
-	StarburstLauncher = true  ,
-	TorpedoLauncher   = true  ,
-	AircraftBomb      = true  ,
+	DGun = false,
+	Cannon = true,
+	LaserCannon = false,
+	BeamLaser = false,
+	LightningCannon = false, -- Use customparams.spark_forkdamage instead.
+	Flame = false,
+	MissileLauncher = true,
+	StarburstLauncher = true,
+	TorpedoLauncher = true,
+	AircraftBomb = true,
 }
 
 --------------------------------------------------------------------------------
@@ -65,33 +66,33 @@ local slowingPerType = { -- Whether the projectile loses velocity, as well.
 --------------------------------------------------------------------------------
 -- Locals ----------------------------------------------------------------------
 
-local abs  = math.abs
-local max  = math.max
-local min  = math.min
+local abs = math.abs
+local max = math.max
+local min = math.min
 local sqrt = math.sqrt
 
-local spGetFeatureHealth       = Spring.GetFeatureHealth
-local spGetFeaturePosition     = Spring.GetFeaturePosition
-local spGetFeatureRadius       = Spring.GetFeatureRadius
-local spGetGroundHeight        = Spring.GetGroundHeight
-local spGetProjectileDirection = Spring.GetProjectileDirection
-local spGetProjectilePosition  = Spring.GetProjectilePosition
-local spGetProjectileVelocity  = Spring.GetProjectileVelocity
-local spGetUnitHealth          = Spring.GetUnitHealth
-local spGetUnitIsDead          = Spring.GetUnitIsDead
-local spGetUnitPosition        = Spring.GetUnitPosition
-local spGetUnitRadius          = Spring.GetUnitRadius
-local spGetWaterLevel          = Spring.GetWaterLevel
+local spGetFeatureHealth = SpringShared.GetFeatureHealth
+local spGetFeaturePosition = SpringShared.GetFeaturePosition
+local spGetFeatureRadius = SpringShared.GetFeatureRadius
+local spGetGroundHeight = SpringShared.GetGroundHeight
+local spGetProjectileDirection = SpringShared.GetProjectileDirection
+local spGetProjectilePosition = SpringShared.GetProjectilePosition
+local spGetProjectileVelocity = SpringShared.GetProjectileVelocity
+local spGetUnitHealth = SpringShared.GetUnitHealth
+local spGetUnitIsDead = SpringShared.GetUnitIsDead
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetUnitRadius = SpringShared.GetUnitRadius
+local spGetWaterLevel = SpringShared.GetWaterLevel
 
-local spSetProjectilePosition  = Spring.SetProjectilePosition
-local spSetProjectileVelocity  = Spring.SetProjectileVelocity
-local spSetProjectileMoveCtrl  = Spring.SetProjectileMoveControl
+local spSetProjectilePosition = SpringSynced.SetProjectilePosition
+local spSetProjectileVelocity = SpringSynced.SetProjectileVelocity
+local spSetProjectileMoveCtrl = SpringSynced.SetProjectileMoveControl
 
-local spAddUnitDamage          = Spring.AddUnitDamage
-local spAddFeatureDamage       = Spring.AddFeatureDamage
-local spDeleteProjectile       = Spring.DeleteProjectile
-local spValidFeatureID         = Spring.ValidFeatureID
-local spValidUnitID            = Spring.ValidUnitID
+local spAddUnitDamage = SpringSynced.AddUnitDamage
+local spAddFeatureDamage = SpringSynced.AddFeatureDamage
+local spDeleteProjectile = SpringSynced.DeleteProjectile
+local spValidFeatureID = SpringShared.ValidFeatureID
+local spValidUnitID = SpringShared.ValidUnitID
 
 local armorDefault = Game.armorTypes.default
 local armorShields = Game.armorTypes.shields
@@ -140,11 +141,11 @@ local function loadPenetratorWeaponDefs()
 				params[i] = damages[i]
 			end
 
-			params.falloff  = tobool(custom.overpenetrate_falloff == nil and falloffPerType[weaponDef.type] or custom.overpenetrate_falloff)
-			params.slowing  = tobool(custom.overpenetrate_slowing == nil and slowingPerType[weaponDef.type] or custom.overpenetrate_slowing)
-			params.penalty  = max(0, tonumber(custom.overpenetrate_penalty or penaltyDefault))
+			params.falloff = tobool(custom.overpenetrate_falloff == nil and falloffPerType[weaponDef.type] or custom.overpenetrate_falloff)
+			params.slowing = tobool(custom.overpenetrate_slowing == nil and slowingPerType[weaponDef.type] or custom.overpenetrate_slowing)
+			params.penalty = max(0, tonumber(custom.overpenetrate_penalty or penaltyDefault))
 			params.weaponID = weaponDefID
-			params.impulse  = weaponDef.damages.impulseFactor
+			params.impulse = weaponDef.damages.impulseFactor
 
 			if params.slowing and not params.falloff then
 				params.slowing = false
@@ -221,8 +222,7 @@ local function getCollisionPosition(projectileID, targetID, isUnit)
 		return mx + ax, my + ay, mz + az -- ray-sphere approach
 	else
 		local separation = sqrt(radiusSq - a)
-		return
-			mx - ax - dx * separation, -- ray-sphere intersection
+		return mx - ax - dx * separation, -- ray-sphere intersection
 			my - ay - dy * separation,
 			mz - az - dz * separation
 	end
@@ -234,14 +234,14 @@ local function addPenetratorProjectile(projectileID, ownerID, params)
 	projectiles[projectileID] = {
 		collisions = {},
 		damageLeft = 1,
-		ownerID    = ownerID,
-		params     = params,
-		posX       = px,
-		posY       = py,
-		posZ       = pz,
-		dirX       = dx,
-		dirY       = dy,
-		dirZ       = dz,
+		ownerID = ownerID,
+		params = params,
+		posX = px,
+		posY = py,
+		posZ = pz,
+		dirX = dx,
+		dirY = dy,
+		dirZ = dz,
 	}
 end
 
@@ -254,13 +254,13 @@ local function addPenetratorCollision(targetID, isUnit, armorType, damage, proje
 	end
 	projectileHits[projectileID] = penetrator
 	local collisions = penetrator.collisions
-	collisions[#collisions+1] = {
-		targetID  = targetID,
-		isUnit    = isUnit,
-		health    = max(health, 1),
+	collisions[#collisions + 1] = {
+		targetID = targetID,
+		isUnit = isUnit,
+		health = max(health, 1),
 		healthMax = healthMax,
 		armorType = armorType,
-		damage    = damage,
+		damage = damage,
 	}
 end
 
@@ -308,16 +308,7 @@ local function hitUnit(weapon, penetrator, damageLeft, collision, targetID)
 	local damageDealt, damageBase = damageEngine * damageLeft, min(damageEngine, damageArmor) * damageLeft
 	local impulse = damageBase * weapon.impulse * falloffRatio(damageLeft, 1) -- inverse ratio
 
-	spAddUnitDamage(
-		targetID,
-		damageDealt,
-		0,
-		penetrator.ownerID,
-		weapon.weaponID,
-		penetrator.dirX * impulse,
-		penetrator.dirY * impulse,
-		penetrator.dirZ * impulse
-	)
+	spAddUnitDamage(targetID, damageDealt, 0, penetrator.ownerID, weapon.weaponID, penetrator.dirX * impulse, penetrator.dirY * impulse, penetrator.dirZ * impulse)
 	if setVelocityControl then
 		setVelocityControl(targetID, true)
 	end
@@ -411,7 +402,8 @@ local function executeCollisions(projectileID, penetrator)
 			collide = spGetUnitIsDead(targetID) == false and hitUnit
 		elseif collision.shieldID then
 			-- A dead shield unit's shield lasts until the end of the frame.
-			collide = --[[spGetUnitIsDead(targetID) == false and]] hitShield
+			collide = --[[spGetUnitIsDead(targetID) == false and]]
+				hitShield
 		else
 			collide = spValidFeatureID(targetID) and hitFeature
 		end
@@ -474,7 +466,7 @@ function gadget:Explosion(weaponDefID, px, py, pz, attackerID, projectileID)
 			local penetrator = projectiles[projectileID]
 			projectileHits[projectileID] = penetrator
 			local collisions = penetrator.collisions
-			collisions[#collisions+1] = {
+			collisions[#collisions + 1] = {
 				hitX = px,
 				hitY = py,
 				hitZ = pz,
@@ -516,15 +508,15 @@ local function shieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, shi
 
 	local _, power = getUnitShieldState(shieldUnitID, shieldWeaponIndex)
 	local collisions = penetrator.collisions
-	collisions[#collisions+1] = {
-		targetID  = shieldUnitID,
-		shieldID  = shieldWeaponIndex,
+	collisions[#collisions + 1] = {
+		targetID = shieldUnitID,
+		shieldID = shieldWeaponIndex,
 		armorType = armorShields,
 		healthMax = power,
-		damage    = damageToShields[penetrator.params.weaponID],
-		hitX      = hitX,
-		hitY      = hitY,
-		hitZ      = hitZ,
+		damage = damageToShields[penetrator.params.weaponID],
+		hitX = hitX,
+		hitY = hitY,
+		hitZ = hitZ,
 	}
 
 	projectileHits[projectileID] = penetrator
@@ -534,7 +526,7 @@ end
 
 function gadget:Initialize()
 	if not loadPenetratorWeaponDefs() then
-		Spring.Log(gadget:GetInfo().name, LOG.INFO, "No weapons with over-penetration found. Removing.")
+		SpringShared.Log(gadget:GetInfo().name, LOG.INFO, "No weapons with over-penetration found. Removing.")
 		gadgetHandler:RemoveGadget(self)
 		return
 	end
@@ -550,7 +542,7 @@ function gadget:Initialize()
 	setVelocityControl = GG.SetVelocityControl
 
 	if not GG.Shields then
-		Spring.Log("ScriptedWeapons", LOG.ERROR, "Shields API unavailable (overpen)")
+		SpringShared.Log("ScriptedWeapons", LOG.ERROR, "Shields API unavailable (overpen)")
 		return
 	end
 

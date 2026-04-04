@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "March 18, 2024",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -16,7 +16,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local spCallCOBScript = Spring.CallCOBScript
+local spCallCOBScript = SpringSynced.CallCOBScript
 local mathAtan2 = math.atan2
 local mathDeg = math.deg
 local mathTau = math.tau
@@ -38,7 +38,7 @@ end
 function gadget:Initialize()
 	gadgetHandler:RegisterGlobal("solarpoint", solarpoint)
 
-	success, mapinfo = pcall(VFS.Include,"mapinfo.lua")
+	success, mapinfo = pcall(VFS.Include, "mapinfo.lua")
 	if success and mapinfo then
 		sundir = mapinfo.lighting.sundir
 	end

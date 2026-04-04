@@ -1,29 +1,27 @@
 function gadget:GetInfo()
-    return {
-        name      = "Seismic Ping",
-        desc      = "Draw seismic pings effect",
-        author    = "Floris",
-        date      = "2026",
-        license   = "GNU GPL, v2 or later",
-        version   = 1,
-        layer     = 5,
-        enabled   = true
-    }
+	return {
+		name = "Seismic Ping",
+		desc = "Draw seismic pings effect",
+		author = "Floris",
+		date = "2026",
+		license = "GNU GPL, v2 or later",
+		version = 1,
+		layer = 5,
+		enabled = true,
+	}
 end
-
 
 if gadgetHandler:IsSyncedCode() then
 	return
 end
 
-
 --------------------------------------------------------------------------------
 -- Speedups
 --------------------------------------------------------------------------------
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
+local spGetMyAllyTeamID = SpringUnsynced.GetLocalAllyTeamID
+local spGetGroundHeight = SpringShared.GetGroundHeight
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
 local glColor = gl.Color
 local glPushMatrix = gl.PushMatrix
@@ -70,10 +68,10 @@ local thicknessScale = 1.2
 -- Display lists for arc geometry (pre-generated at unit radius with proportional thickness)
 --------------------------------------------------------------------------------
 local displayLists = {
-	outerArcs = {},      -- 4 arcs at 60 degrees each
-	middleArcs = {},     -- 3 arcs at 80 degrees each
-	innerArcs = {},      -- 2 arcs at 120 degrees each
-	centerCircle = nil,  -- Full circle
+	outerArcs = {}, -- 4 arcs at 60 degrees each
+	middleArcs = {}, -- 3 arcs at 80 degrees each
+	innerArcs = {}, -- 2 arcs at 120 degrees each
+	centerCircle = nil, -- Full circle
 	-- Outlines (slightly larger versions for dark border)
 	outerOutlines = {},
 	middleOutlines = {},
@@ -85,7 +83,7 @@ local outerThicknessRatio = baseThickness * 1.05 / baseRadius
 local middleThicknessRatio = baseThickness * 0.8 / baseRadius
 local innerThicknessRatio = baseThickness * 1 / baseRadius
 local centerThicknessRatio = baseThickness * 1.8 / baseRadius
-local outlineExtra = 0.02  -- How much larger the outline is on each side
+local outlineExtra = 0.02 -- How much larger the outline is on each side
 
 --------------------------------------------------------------------------------
 -- Helper: Draw a thick arc as geometry (for display list creation)
@@ -171,18 +169,32 @@ end
 --------------------------------------------------------------------------------
 local function DeleteDisplayLists()
 	for i = 0, 3 do
-		if displayLists.outerArcs[i] then glDeleteList(displayLists.outerArcs[i]) end
-		if displayLists.outerOutlines[i] then glDeleteList(displayLists.outerOutlines[i]) end
+		if displayLists.outerArcs[i] then
+			glDeleteList(displayLists.outerArcs[i])
+		end
+		if displayLists.outerOutlines[i] then
+			glDeleteList(displayLists.outerOutlines[i])
+		end
 	end
 	for i = 0, 2 do
-		if displayLists.middleArcs[i] then glDeleteList(displayLists.middleArcs[i]) end
-		if displayLists.middleOutlines[i] then glDeleteList(displayLists.middleOutlines[i]) end
+		if displayLists.middleArcs[i] then
+			glDeleteList(displayLists.middleArcs[i])
+		end
+		if displayLists.middleOutlines[i] then
+			glDeleteList(displayLists.middleOutlines[i])
+		end
 	end
 	for i = 0, 1 do
-		if displayLists.innerArcs[i] then glDeleteList(displayLists.innerArcs[i]) end
-		if displayLists.innerOutlines[i] then glDeleteList(displayLists.innerOutlines[i]) end
+		if displayLists.innerArcs[i] then
+			glDeleteList(displayLists.innerArcs[i])
+		end
+		if displayLists.innerOutlines[i] then
+			glDeleteList(displayLists.innerOutlines[i])
+		end
 	end
-	if displayLists.centerCircle then glDeleteList(displayLists.centerCircle) end
+	if displayLists.centerCircle then
+		glDeleteList(displayLists.centerCircle)
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -206,17 +218,17 @@ local function DrawPing(ping, currentTime, cameraDistance)
 	local rotation1 = currentTime * 70
 	local outerProgress = min(1, progress * 1.3)
 	local outerAlpha = max(0, (1 - outerProgress) * 0.7)
-	local outerRadius = radius*1.15-(radius*progress*0.25)
+	local outerRadius = radius * 1.15 - (radius * progress * 0.25)
 
 	local rotation2 = -currentTime * 150
 	local middleProgress = max(0, min(1, (progress - 0.1) / 0.9))
 	local middleAlpha = max(0, (1 - middleProgress) * 0.85)
-	local middleRadius = radius+(radius*progress*0.4)
+	local middleRadius = radius + (radius * progress * 0.4)
 
 	local rotation3 = currentTime * 90
 	local innerProgress = max(0, min(1, (progress - 0.15) / 0.85))
 	local innerAlpha = max(0, (1 - innerProgress))
-	local innerRadius = radius-(radius*progress*0.45)
+	local innerRadius = radius - (radius * progress * 0.45)
 
 	-- PASS 1: Draw all dark outlines with normal blending (skip when camera is far away for performance)
 	if cameraDistance < 3000 then
@@ -324,11 +336,13 @@ end
 function gadget:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
 	local spec, fullview = spGetSpectatingState()
 	local myAllyTeam = spGetMyAllyTeamID()
-	local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
+	local unitAllyTeam = SpringShared.GetUnitAllyTeam(unitID)
 
 	if (spec or allyTeam == myAllyTeam) and unitAllyTeam ~= allyTeam then
 		if spec and not fullview then
-			if allyTeam ~= myAllyTeam then return end
+			if allyTeam ~= myAllyTeam then
+				return
+			end
 		end
 
 		table.insert(pings, {
@@ -346,21 +360,21 @@ function gadget:Update(dt)
 end
 
 function gadget:DrawWorld()
-	if #pings == 0 or Spring.IsGUIHidden() then
+	if #pings == 0 or SpringUnsynced.IsGUIHidden() then
 		return
 	end
 
 	glDepthTest(false)
 
 	-- Get visible world bounds for culling
-	local cx, cy, cz = Spring.GetCameraPosition()
-	local cs = Spring.GetCameraState()
+	local cx, cy, cz = SpringUnsynced.GetCameraPosition()
+	local cs = SpringUnsynced.GetCameraState()
 	local vsx, vsy = spGetViewGeometry()
 
 	-- Calculate visible world area based on camera state
 	local viewDistance = cy / math.tan(math.rad(cs.fov or 45))
 	local viewWidth = viewDistance * (vsx / vsy)
-	local margin = maxRadius * thicknessScale * 3  -- Add margin for ping radius
+	local margin = maxRadius * thicknessScale * 3 -- Add margin for ping radius
 
 	local minX = cx - viewWidth - margin
 	local maxX = cx + viewWidth + margin

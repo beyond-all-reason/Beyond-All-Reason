@@ -1,5 +1,5 @@
 return {
-	legvcarry	= {
+	legvcarry = {
 		maxacc = 0.02,
 		maxdec = 0.04,
 		energycost = 9000,
@@ -36,7 +36,7 @@ return {
 		turninplacespeedlimit = 1.952,
 		turnrate = 360,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "base",
 			firingceg = "barrelshot-small",
 			kickback = "-2.4",
@@ -139,24 +139,24 @@ return {
 					default = 0,
 				},
 				customparams = {
-					carried_unit = "legdrone",     --Name of the unit spawned by this carrier unit.
+					carried_unit = "legdrone", --Name of the unit spawned by this carrier unit.
 					engagementrange = 1050,
-					spawns_surface = "LAND",    -- "LAND" or "SEA". The SEA option has not been tested currently.
-					spawnrate = 10, 				--Spawnrate roughly in seconds.
-					maxunits = 6,				--Will spawn units until this amount has been reached.
+					spawns_surface = "LAND", -- "LAND" or "SEA". The SEA option has not been tested currently.
+					spawnrate = 10, --Spawnrate roughly in seconds.
+					maxunits = 6, --Will spawn units until this amount has been reached.
 					startingdronecount = 3,
-					energycost = 500,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					metalcost = 15,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					controlradius = 900,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
+					energycost = 500, --Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					metalcost = 15, --Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					controlradius = 900, --The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
 					deathdecayrate = 20,
 					carrierdeaththroe = "release",
 					dockingarmor = 0.2,
 					dockinghealrate = 20,
 					docktohealthreshold = 75,
-					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
+					enabledocking = true, --If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
 					dockingpieces = "8 10 12 14 16 18",
-					dockingradius = 80,			--The range at which the units snap to the carrier unit when docking.
+					dockingradius = 80, --The range at which the units snap to the carrier unit when docking.
 					stockpilelimit = 6,
 					stockpilemetal = 15,
 					stockpileenergy = 500,
@@ -166,7 +166,7 @@ return {
 					droneairtime = 60,
 					dronedocktime = 3,
 					droneammo = 12,
-				}
+				},
 			},
 		},
 		weapons = {

@@ -1,7 +1,6 @@
 -- disabled it... cause not all missile weapons have flighttime defined,
 -- but can run out of fuel when they dont traight fly to maxrange
 
-
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
@@ -21,63 +20,105 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local GetProjectilePosition = Spring.GetProjectilePosition
-local GetProjectileDirection = Spring.GetProjectileDirection
-local GetGroundHeight = Spring.GetGroundHeight
+local GetProjectilePosition = SpringShared.GetProjectilePosition
+local GetProjectileDirection = SpringShared.GetProjectileDirection
+local GetGroundHeight = SpringShared.GetGroundHeight
 
 local missiles = {} --subMissiles that are below the surface still
 local missileWeapons = {}
 
 for weaponID, weaponDef in pairs(WeaponDefs) do
-	if weaponDef.type == 'StarburstLauncher' then
-		if weaponDef.cegTag == 'missiletrailsmall-starburst' then
+	if weaponDef.type == "StarburstLauncher" then
+		if weaponDef.cegTag == "missiletrailsmall-starburst" then
 			missileWeapons[weaponDef.id] = {
 				0,
-				'missiletrailsmall-starburst-vertical', ((weaponDef.uptime + 0.1) * 30), ((weaponDef.uptime + 0.6) * 30),
-				'missilegroundsmall-liftoff', 60, 90,
-				'missilegroundsmall-liftoff-fire', 25, 45
+				"missiletrailsmall-starburst-vertical",
+				((weaponDef.uptime + 0.1) * 30),
+				((weaponDef.uptime + 0.6) * 30),
+				"missilegroundsmall-liftoff",
+				60,
+				90,
+				"missilegroundsmall-liftoff-fire",
+				25,
+				45,
 			}
-		elseif weaponDef.cegTag == 'missiletrailmedium-starburst' then
+		elseif weaponDef.cegTag == "missiletrailmedium-starburst" then
 			missileWeapons[weaponDef.id] = {
 				0,
-				'missiletrailmedium-starburst-vertical', ((weaponDef.uptime + 0.1) * 30), ((weaponDef.uptime + 0.6) * 30),
-				'missilegroundmedium-liftoff', 40, 60,
-				'missilegroundmedium-liftoff-fire', 30, 40
+				"missiletrailmedium-starburst-vertical",
+				((weaponDef.uptime + 0.1) * 30),
+				((weaponDef.uptime + 0.6) * 30),
+				"missilegroundmedium-liftoff",
+				40,
+				60,
+				"missilegroundmedium-liftoff-fire",
+				30,
+				40,
 			}
-		elseif weaponDef.cegTag == 'missiletrail-juno' then
+		elseif weaponDef.cegTag == "missiletrail-juno" then
 			missileWeapons[weaponDef.id] = {
 				0,
-				'missiletrail-juno-starburst', ((weaponDef.uptime + 0.1) * 30), ((weaponDef.uptime + 0.6) * 30),
-				'missilegroundlarge-liftoff', 80, 120,
-				'missilegroundlarge-liftoff-fire', 40, 80
+				"missiletrail-juno-starburst",
+				((weaponDef.uptime + 0.1) * 30),
+				((weaponDef.uptime + 0.6) * 30),
+				"missilegroundlarge-liftoff",
+				80,
+				120,
+				"missilegroundlarge-liftoff-fire",
+				40,
+				80,
 			}
-		elseif weaponDef.cegTag == 'antimissiletrail' then
+		elseif weaponDef.cegTag == "antimissiletrail" then
 			missileWeapons[weaponDef.id] = {
 				0,
-				'antimissiletrail-starburst', ((weaponDef.uptime + 0.1) * 30), ((weaponDef.uptime + 0.6) * 30),
-				'missilegroundlarge-liftoff', 80, 120,
-				'missilegroundlarge-liftoff-fire', 40, 80
+				"antimissiletrail-starburst",
+				((weaponDef.uptime + 0.1) * 30),
+				((weaponDef.uptime + 0.6) * 30),
+				"missilegroundlarge-liftoff",
+				80,
+				120,
+				"missilegroundlarge-liftoff-fire",
+				40,
+				80,
 			}
-		elseif weaponDef.cegTag == 'cruisemissiletrail-emp' then
+		elseif weaponDef.cegTag == "cruisemissiletrail-emp" then
 			missileWeapons[weaponDef.id] = {
 				0,
-				'cruisemissiletrail-starburst', ((weaponDef.uptime + 0.1) * 30), ((weaponDef.uptime + 0.6) * 30),
-				'missilegroundlarge-liftoff', 90, 166,
-				'missilegroundlarge-liftoff-fire', 55, 120
+				"cruisemissiletrail-starburst",
+				((weaponDef.uptime + 0.1) * 30),
+				((weaponDef.uptime + 0.6) * 30),
+				"missilegroundlarge-liftoff",
+				90,
+				166,
+				"missilegroundlarge-liftoff-fire",
+				55,
+				120,
 			}
-		elseif weaponDef.cegTag == 'cruisemissiletrail-tacnuke' then
+		elseif weaponDef.cegTag == "cruisemissiletrail-tacnuke" then
 			missileWeapons[weaponDef.id] = {
 				15,
-				'cruisemissiletrail-starburst', ((weaponDef.uptime + 0.1) * 30), ((weaponDef.uptime + 0.6) * 30),
-				'missilegroundlarge-liftoff', 90, 166,
-				'missilegroundlarge-liftoff-fire', 55, 120
+				"cruisemissiletrail-starburst",
+				((weaponDef.uptime + 0.1) * 30),
+				((weaponDef.uptime + 0.6) * 30),
+				"missilegroundlarge-liftoff",
+				90,
+				166,
+				"missilegroundlarge-liftoff-fire",
+				55,
+				120,
 			}
-		elseif weaponDef.cegTag == 'NUKETRAIL' then
+		elseif weaponDef.cegTag == "NUKETRAIL" then
 			missileWeapons[weaponDef.id] = {
 				0,
-				'nuketrail-starburst', ((weaponDef.uptime + 0.1) * 30), ((weaponDef.uptime + 0.6) * 30),
-				'missilegroundhuge-liftoff', 120, 180,
-				'missilegroundhuge-liftoff-fire', 60, 150
+				"nuketrail-starburst",
+				((weaponDef.uptime + 0.1) * 30),
+				((weaponDef.uptime + 0.6) * 30),
+				"missilegroundhuge-liftoff",
+				120,
+				180,
+				"missilegroundhuge-liftoff-fire",
+				60,
+				150,
 			}
 		end
 	end
@@ -96,7 +137,7 @@ function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 		if groundHeight < 0 then
 			groundHeight = 0
 		end
-		local gf = Spring.GetGameFrame()
+		local gf = SpringShared.GetGameFrame()
 		missiles[proID] = {
 			weaponDefID,
 			groundHeight + missileWeapons[weaponDefID][1],
@@ -128,14 +169,14 @@ function gadget:GameFrame(gf)
 				local dirX, dirY, dirZ = GetProjectileDirection(proID)
 				if gf <= missile[5] or gf % 2 == 1 then
 					-- add extra missiletrail
-					Spring.SpawnCEG(missile[4], x, y, z, dirX, dirY, dirZ)
+					SpringSynced.SpawnCEG(missile[4], x, y, z, dirX, dirY, dirZ)
 					if y <= missile[8] or (y <= missile[9] and gf % 2 == 1) then
 						-- add ground dust
-						Spring.SpawnCEG(missile[7], x, missile[2], z, dirX, dirY, dirZ)
+						SpringSynced.SpawnCEG(missile[7], x, missile[2], z, dirX, dirY, dirZ)
 					end
 					if y <= missile[11] or (y <= missile[12] and gf % 2 == 1) then
 						--add ground fire
-						Spring.SpawnCEG(missile[10], x, missile[2], z, dirX, dirY, dirZ)
+						SpringSynced.SpawnCEG(missile[10], x, missile[2], z, dirX, dirY, dirZ)
 					end
 				end
 			else
@@ -146,5 +187,3 @@ function gadget:GameFrame(gf)
 		end
 	end
 end
-
-

@@ -8,30 +8,29 @@ function widget:GetInfo()
 		date = "April 2018",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
-
 
 -- Localized functions for performance
 local mathPi = math.pi
 
 -- Localized Spring API for performance
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spGiveOrderToUnit = SpringSynced.GiveOrderToUnit
 
 local math_sqrt = math.sqrt
 local CMD_UNLOAD_UNITS = CMD.UNLOAD_UNITS
 
 local function CanUnitExecute(uID, cmdID)
-    if cmdID == CMD.UNLOAD_UNIT then -- should not happen since here we're working with area cmds but, better be safe then sorry i guess
-        cmdID = CMD_UNLOAD_UNITS
-    end
-	return (Spring.FindUnitCmdDesc(uID, cmdID) ~= nil)
+	if cmdID == CMD.UNLOAD_UNIT then -- should not happen since here we're working with area cmds but, better be safe then sorry i guess
+		cmdID = CMD_UNLOAD_UNITS
+	end
+	return (SpringShared.FindUnitCmdDesc(uID, cmdID) ~= nil)
 end
 
 local function GetExecutingUnits(cmdID)
 	local units = {}
-	local selUnits = Spring.GetSelectedUnits()
+	local selUnits = SpringUnsynced.GetSelectedUnits()
 	for i = 1, #selUnits do
 		local uID = selUnits[i]
 		if CanUnitExecute(uID, cmdID) then
@@ -54,7 +53,7 @@ end
 function widget:CommandNotify(id, params, options)
 	if id == CMD.UNLOAD_UNITS then
 		if params[4] and params[4] >= 64 then
-			local alt, ctrl, meta, shift = Spring.GetModKeyState()
+			local alt, ctrl, meta, shift = SpringUnsynced.GetModKeyState()
 			local ray = params[4]
 			local units = GetExecutingUnits(id)
 			--if (2 * mathPi * ray*ray)/(#units) >= 128*128 then -- Surface check to prevent clumping (needs GUI before enabling check)
@@ -70,7 +69,7 @@ function widget:CommandNotify(id, params, options)
 				theta = 2 * mathPi * k / (phi * phi)
 				x = params[1] + r * math.cos(theta) * ray
 				z = params[3] + r * math.sin(theta) * ray
-				y = Spring.GetGroundHeight(x, z)
+				y = SpringShared.GetGroundHeight(x, z)
 				spGiveOrderToUnit(units[k], CMD.UNLOAD_UNIT, { x, y, z }, { "shift" })
 			end
 			--end
