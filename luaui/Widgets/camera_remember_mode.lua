@@ -65,7 +65,7 @@ end
 
 function widget:GetConfigData()
 	local camState = table.copy(spGetCameraState())
-	if camState.ry and Spring.GetConfigInt("CamSpringLockCardinalDirections") == 1 then
+	if camState.ry and Spring.GetConfigInt("CamSpringLockCardinalDirections") == 1 and camState.mode == 2 then
 		camState.ry = GetCardinalLockSafeYaw(camState.ry)
 	elseif camState.ry then
 		camState.ry = math.clampRadians(camState.ry)
