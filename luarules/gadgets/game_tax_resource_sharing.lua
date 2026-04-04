@@ -18,33 +18,33 @@ end
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
-if Spring.GetModOptions().tax_resource_sharing_amount == 0 and not Spring.GetModOptions().easytax then
+if SpringShared.GetModOptions().tax_resource_sharing_amount == 0 and not SpringShared.GetModOptions().easytax then
 	return false
 end
 
-local spIsCheatingEnabled = Spring.IsCheatingEnabled
-local spGetTeamUnitCount = Spring.GetTeamUnitCount
-local spGetTeamList = Spring.GetTeamList
-local spGetTeamResources = Spring.GetTeamResources
-local spGetTeamInfo = Spring.GetTeamInfo
-local spAreTeamsAllied = Spring.AreTeamsAllied
-local spUseTeamResource = Spring.UseTeamResource
-local spShareTeamResource = Spring.ShareTeamResource
-local spAddTeamResource = Spring.AddTeamResource
-local spSetTeamResource = Spring.SetTeamResource
+local spIsCheatingEnabled = SpringShared.IsCheatingEnabled
+local spGetTeamUnitCount = SpringShared.GetTeamUnitCount
+local spGetTeamList = SpringShared.GetTeamList
+local spGetTeamResources = SpringShared.GetTeamResources
+local spGetTeamInfo = SpringShared.GetTeamInfo
+local spAreTeamsAllied = SpringShared.AreTeamsAllied
+local spUseTeamResource = SpringSynced.UseTeamResource
+local spShareTeamResource = SpringSynced.ShareTeamResource
+local spAddTeamResource = SpringSynced.AddTeamResource
+local spSetTeamResource = SpringSynced.SetTeamResource
 local math_max = math.max
 local math_min = math.min
 
-local gameMaxUnits = math.min(Spring.GetModOptions().maxunits, math.floor(32000 / #Spring.GetTeamList()))
+local gameMaxUnits = math.min(SpringShared.GetModOptions().maxunits, math.floor(32000 / #SpringShared.GetTeamList()))
 
-local sharingTax = Spring.GetModOptions().tax_resource_sharing_amount
-if Spring.GetModOptions().easytax then
+local sharingTax = SpringShared.GetModOptions().tax_resource_sharing_amount
+if SpringShared.GetModOptions().easytax then
 	sharingTax = 0.3 -- 30% tax for easytax modoption
 end
 
 local function isAlliedUnit(teamID, unitID)
-	local unitTeam = Spring.GetUnitTeam(unitID)
-	return teamID and unitTeam and teamID ~= unitTeam and Spring.AreTeamsAllied(teamID, unitTeam)
+	local unitTeam = SpringShared.GetUnitTeam(unitID)
+	return teamID and unitTeam and teamID ~= unitTeam and SpringShared.AreTeamsAllied(teamID, unitTeam)
 end
 
 ----------------------------------------------------------------

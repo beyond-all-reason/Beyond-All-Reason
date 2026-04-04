@@ -16,7 +16,7 @@ end
 local mathFloor = math.floor
 
 -- Localized Spring API for performance
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
 local scale = 1
 local offset = 5
@@ -28,9 +28,9 @@ local dlistAmount = 20 -- amount of dlists created, one for each opacity value
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local spGetCameraPosition = Spring.GetCameraPosition
-local spGetGroundHeight = Spring.GetGroundHeight
-local spIsAABBInView = Spring.IsAABBInView
+local spGetCameraPosition = SpringUnsynced.GetCameraPosition
+local spGetGroundHeight = SpringShared.GetGroundHeight
+local spIsAABBInView = SpringUnsynced.IsAABBInView
 
 local glColor = gl.Color
 local glScale = gl.Scale
@@ -205,7 +205,7 @@ function widget:Shutdown()
 end
 
 function widget:DrawWorld()
-	if Spring.IsGUIHidden() then
+	if SpringUnsynced.IsGUIHidden() then
 		return
 	end
 

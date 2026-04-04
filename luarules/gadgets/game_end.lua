@@ -20,11 +20,11 @@ end
 	- has no alive teams
 ]]
 if gadgetHandler:IsSyncedCode() then
-	local sharedDynamicAllianceVictory = Spring.GetModOptions().shareddynamicalliancevictory
-	local fixedallies = Spring.GetModOptions().fixedallies
+	local sharedDynamicAllianceVictory = SpringShared.GetModOptions().shareddynamicalliancevictory
+	local fixedallies = SpringShared.GetModOptions().fixedallies
 
-	local gaiaTeamID = Spring.GetGaiaTeamID()
-	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID, false))
+	local gaiaTeamID = SpringShared.GetGaiaTeamID()
+	local gaiaAllyTeamID = select(6, SpringShared.GetTeamInfo(gaiaTeamID, false))
 
 	local earlyDropGrace = Game.gameSpeed * 60 * 1 -- in frames
 
@@ -32,16 +32,16 @@ if gadgetHandler:IsSyncedCode() then
 	local ignoredTeams = {
 		[gaiaTeamID] = true,
 	}
-	local allyteamList = Spring.GetAllyTeamList()
-	local teamList = Spring.GetTeamList()
+	local allyteamList = SpringShared.GetAllyTeamList()
+	local teamList = SpringShared.GetTeamList()
 	for i = 1, #teamList do
-		local luaAI = Spring.GetTeamLuaAI(teamList[i])
+		local luaAI = SpringShared.GetTeamLuaAI(teamList[i])
 		if luaAI and (luaAI:find("Raptors") or luaAI:find("Scavengers")) then
 			ignoredTeams[teamList[i]] = true
 
 			-- ignore all other teams in this allyteam as well
-			local allyTeamID = select(6, Spring.GetTeamInfo(teamList[i], false))
-			local teammates = Spring.GetTeamList(allyTeamID)
+			local allyTeamID = select(6, SpringShared.GetTeamInfo(teamList[i], false))
+			local teammates = SpringShared.GetTeamList(allyTeamID)
 			for j = 1, #teammates do
 				ignoredTeams[teammates[j]] = true
 			end
@@ -59,16 +59,16 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local KillTeam = Spring.KillTeam
-	local GetPlayerInfo = Spring.GetPlayerInfo
-	local GetPlayerList = Spring.GetPlayerList
-	local GetTeamInfo = Spring.GetTeamInfo
-	local GetTeamUnitCount = Spring.GetTeamUnitCount
-	local GetAIInfo = Spring.GetAIInfo
-	local GetTeamLuaAI = Spring.GetTeamLuaAI
-	local GameOver = Spring.GameOver
-	local AreTeamsAllied = Spring.AreTeamsAllied
-	local GetGameFrame = Spring.GetGameFrame
+	local KillTeam = SpringSynced.KillTeam
+	local GetPlayerInfo = SpringShared.GetPlayerInfo
+	local GetPlayerList = SpringShared.GetPlayerList
+	local GetTeamInfo = SpringShared.GetTeamInfo
+	local GetTeamUnitCount = SpringShared.GetTeamUnitCount
+	local GetAIInfo = SpringShared.GetAIInfo
+	local GetTeamLuaAI = SpringShared.GetTeamLuaAI
+	local GameOver = SpringSynced.GameOver
+	local AreTeamsAllied = SpringShared.AreTeamsAllied
+	local GetGameFrame = SpringShared.GetGameFrame
 
 	local playerQuitIsDead = true -- gets turned off for 1v1's
 	local oneTeamWasActive = false
@@ -122,9 +122,9 @@ if gadgetHandler:IsSyncedCode() then
 		if wipeout and not allyTeamInfos[allyTeamID].dead then
 			if isFFA and gf < earlyDropGrace then
 				for teamID, team in pairs(allyTeamInfos[allyTeamID].teams) do
-					local teamUnits = Spring.GetTeamUnits(teamID)
+					local teamUnits = SpringShared.GetTeamUnits(teamID)
 					for i = 1, #teamUnits do
-						Spring.DestroyUnit(teamUnits[i], false, true) -- reclaim, dont want to leave FFA comwreck for idling starts
+						SpringSynced.DestroyUnit(teamUnits[i], false, true) -- reclaim, dont want to leave FFA comwreck for idling starts
 					end
 				end
 			else
@@ -203,7 +203,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
-		if Spring.GetModOptions().deathmode == "neverend" then
+		if SpringShared.GetModOptions().deathmode == "neverend" then
 			gadgetHandler:RemoveGadget(self)
 			return
 		end
@@ -224,7 +224,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- at start, fill in the table of all alive allyteams
 		for _, allyTeamID in ipairs(allyteamList) do
 			if allyTeamID ~= gaiaAllyTeamID then
-				local allyteamTeams = Spring.GetTeamList(allyTeamID)
+				local allyteamTeams = SpringShared.GetTeamList(allyTeamID)
 				local allyTeamInfo = {
 					unitCount = 0,
 					unitDecorationCount = 0,
@@ -254,9 +254,9 @@ if gadgetHandler:IsSyncedCode() then
 
 					teamInfo.unitCount = GetTeamUnitCount(teamID)
 					allyTeamInfo.unitCount = allyTeamInfo.unitCount + teamInfo.unitCount
-					local units = Spring.GetTeamUnits(teamID)
+					local units = SpringShared.GetTeamUnits(teamID)
 					for u = 1, #units do
-						if unitDecoration[Spring.GetUnitDefID(units[u])] then
+						if unitDecoration[SpringShared.GetUnitDefID(units[u])] then
 							allyTeamInfo.unitDecorationCount = allyTeamInfo.unitDecorationCount + 1
 						end
 					end
@@ -334,7 +334,7 @@ if gadgetHandler:IsSyncedCode() then
 		if gameoverFrame then
 			if not globalLosGranted then
 				for _, allyTeamId in ipairs(gameoverWinners) do
-					Spring.SetGlobalLos(allyTeamId, true)
+					SpringSynced.SetGlobalLos(allyTeamId, true)
 				end
 
 				globalLosGranted = true
@@ -346,13 +346,13 @@ if gadgetHandler:IsSyncedCode() then
 
 			if gf == gameoverAnimFrame then
 				for unitID, _ in pairs(gameoverAnimUnits) do
-					if Spring.ValidUnitID(unitID) then
-						if Spring.GetCOBScriptID(unitID, "GameOverAnim") then
-							Spring.CallCOBScript(unitID, "GameOverAnim", 0, true)
+					if SpringShared.ValidUnitID(unitID) then
+						if SpringSynced.GetCOBScriptID(unitID, "GameOverAnim") then
+							SpringSynced.CallCOBScript(unitID, "GameOverAnim", 0, true)
 						else
-							local scriptEnv = Spring.UnitScript.GetScriptEnv(unitID)
+							local scriptEnv = SpringSynced.UnitScript.GetScriptEnv(unitID)
 							if scriptEnv and scriptEnv.GameOverAnim then
-								Spring.UnitScript.CallAsUnit(unitID, scriptEnv.GameOverAnim, true)
+								SpringSynced.UnitScript.CallAsUnit(unitID, scriptEnv.GameOverAnim, true)
 							end
 						end
 					end
@@ -373,8 +373,8 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			if winners then
-				if Spring.GetModOptions().scenariooptions then
-					Spring.Echo("winners", winners[1])
+				if SpringShared.GetModOptions().scenariooptions then
+					SpringShared.Echo("winners", winners[1])
 					SendToUnsynced("scenariogameend", winners[1])
 				end
 
@@ -391,11 +391,11 @@ if gadgetHandler:IsSyncedCode() then
 					for u = 1, #winners do
 						winnerSet[winners[u]] = true
 					end
-					local units = Spring.GetAllUnits()
+					local units = SpringShared.GetAllUnits()
 					for i = 1, #units do
 						local unitID = units[i]
-						if isCommander[Spring.GetUnitDefID(unitID)] and winnerSet[Spring.GetUnitAllyTeam(unitID)] then
-							Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0) -- give stop cmd so commanders can animate in place
+						if isCommander[SpringShared.GetUnitDefID(unitID)] and winnerSet[SpringShared.GetUnitAllyTeam(unitID)] then
+							SpringSynced.GiveOrderToUnit(unitID, CMD.STOP, 0, 0) -- give stop cmd so commanders can animate in place
 							gameoverAnimUnits[unitID] = true
 						end
 					end
@@ -477,14 +477,14 @@ if gadgetHandler:IsSyncedCode() then
 else -- Unsynced
 	local sec = 0
 	local cheated = false
-	local IsCheatingEnabled = Spring.IsCheatingEnabled
+	local IsCheatingEnabled = SpringShared.IsCheatingEnabled
 
 	function gadget:Update(dt)
-		if Spring.GetGameFrame() == 0 then
-			sec = sec + Spring.GetLastUpdateSeconds()
+		if SpringShared.GetGameFrame() == 0 then
+			sec = sec + SpringUnsynced.GetLastUpdateSeconds()
 			if sec > 3 then
 				sec = 0
-				Spring.SendLuaRulesMsg("pc")
+				SpringUnsynced.SendLuaRulesMsg("pc")
 			end
 		end
 	end
@@ -496,33 +496,33 @@ else -- Unsynced
 	end
 
 	local function ScenarioGameEnd(_, winners)
-		if Spring.IsReplay() then
+		if SpringUnsynced.IsReplay() then
 			return
 		end
-		local myTeamID = Spring.GetLocalAllyTeamID()
-		local cur_max = Spring.GetTeamStatsHistory(myTeamID)
-		local stats = Spring.GetTeamStatsHistory(myTeamID, cur_max, cur_max)
+		local myTeamID = SpringUnsynced.GetLocalAllyTeamID()
+		local cur_max = SpringShared.GetTeamStatsHistory(myTeamID)
+		local stats = SpringShared.GetTeamStatsHistory(myTeamID, cur_max, cur_max)
 		stats = stats[1]
 		stats.cheated = cheated
 		stats.winners = winners
 		stats.won = (myTeamID == winners)
-		stats.endtime = Spring.GetGameFrame() / 30
-		stats.scenariooptions = Spring.GetModOptions().scenariooptions -- pass it back so we know difficulty
+		stats.endtime = SpringShared.GetGameFrame() / 30
+		stats.scenariooptions = SpringShared.GetModOptions().scenariooptions -- pass it back so we know difficulty
 
-		if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), "chobby") ~= nil then
+		if SpringUnsynced.GetMenuName and string.find(string.lower(SpringUnsynced.GetMenuName()), "chobby") ~= nil then
 			local message = Json.encode(stats)
-			Spring.SendLuaMenuMsg("ScenarioGameEnd " .. message)
+			SpringUnsynced.SendLuaMenuMsg("ScenarioGameEnd " .. message)
 		end
 	end
 
 	function gadget:Initialize()
-		if Spring.GetModOptions().scenariooptions then
+		if SpringShared.GetModOptions().scenariooptions then
 			gadgetHandler:AddSyncAction("scenariogameend", ScenarioGameEnd)
 		end
 	end
 
 	function gadget:Shutdown()
-		if Spring.GetModOptions().scenariooptions then
+		if SpringShared.GetModOptions().scenariooptions then
 			gadgetHandler:RemoveSyncAction("scenariogameend")
 		end
 	end

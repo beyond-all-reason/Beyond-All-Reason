@@ -14,7 +14,7 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 local savedCamState
 local defaultCamState = { mode = 2, rx = 2.677, ry = 0.0, rz = 0.0 } --spring
@@ -29,22 +29,22 @@ function widget:Initialize()
 
 	--spEcho("wanted", camName)
 	if savedCamState then
-		Spring.SetCameraState(savedCamState, 0)
+		SpringUnsynced.SetCameraState(savedCamState, 0)
 	end
 
 	avoidOverviewCam() -- and we don't want to switch to overview at game start anyway
 end
 
 function avoidOverviewCam()
-	local camState = Spring.GetCameraState()
+	local camState = SpringUnsynced.GetCameraState()
 	if camState.mode == 5 then -- dirty workaround for https://springrts.com/mantis/view.php?id=5028
 		spEcho("Warning: you have Overview camera as default. This camera is not intended to start game with. Switching to Spring camera.")
-		Spring.SetCameraState(defaultCamState, 0)
+		SpringUnsynced.SetCameraState(defaultCamState, 0)
 	end
 end
 
 function widget:GetConfigData()
-	local camState = Spring.GetCameraState()
+	local camState = SpringUnsynced.GetCameraState()
 	local data = {}
 	data = table.copy(camState)
 	if data.ry then

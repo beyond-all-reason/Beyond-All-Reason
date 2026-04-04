@@ -25,7 +25,7 @@ if not gadgetHandler:IsSyncedCode() then
 			collectgarbage("collect")
 			local notgarbagemem = gcinfo()
 			local newgarbagelimit = math.min(1200000, basememlimit + notgarbagemem) -- peak 1 GB
-			Spring.Echo(string.format("BAR using %d MB RAM > %d MB limit, performing garbage collection down to %d MB and adjusting limit to %d MB", math.floor(ramuse / 1000), math.floor(garbagelimit / 1000), math.floor(notgarbagemem / 1000), math.floor(newgarbagelimit / 1000)))
+			SpringShared.Echo(string.format("BAR using %d MB RAM > %d MB limit, performing garbage collection down to %d MB and adjusting limit to %d MB", math.floor(ramuse / 1000), math.floor(garbagelimit / 1000), math.floor(notgarbagemem / 1000), math.floor(newgarbagelimit / 1000)))
 			garbagelimit = newgarbagelimit
 		end
 	end

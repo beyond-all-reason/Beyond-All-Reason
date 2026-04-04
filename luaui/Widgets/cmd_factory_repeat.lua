@@ -26,7 +26,7 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
+local spGetGameFrame = SpringShared.GetGameFrame
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -41,7 +41,7 @@ for udid, ud in pairs(UnitDefs) do
 end
 
 function maybeRemoveSelf()
-	if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
+	if SpringUnsynced.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
 		widgetHandler:RemoveWidget()
 	end
 end
@@ -56,14 +56,14 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-	if Spring.IsReplay() or spGetGameFrame() > 0 then
+	if SpringUnsynced.IsReplay() or spGetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	if isFactory[unitDefID] then
-		Spring.GiveOrderToUnit(unitID, CMD.REPEAT, { 1 }, 0)
+		SpringSynced.GiveOrderToUnit(unitID, CMD.REPEAT, { 1 }, 0)
 	end
 end
 

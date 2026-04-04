@@ -43,8 +43,8 @@ function i18n.loadFile(path)
 		return assert(loadstring(chunk))()
 	end)
 	if not success then
-		Spring.Log("i18n", LOG.ERROR, "Failed to parse file " .. path)
-		Spring.Log("i18n", LOG.ERROR, data)
+		SpringShared.Log("i18n", LOG.ERROR, "Failed to parse file " .. path)
+		SpringShared.Log("i18n", LOG.ERROR, data)
 		return nil
 	end
 	i18n.load(data)
@@ -59,14 +59,14 @@ function i18n.translate(key, data)
 	end
 	if not missingTranslations[key] then
 		missingTranslations[key] = true
-		Spring.Log("i18n", "notice", 'No translation found for "' .. key .. '"')
+		SpringShared.Log("i18n", "notice", 'No translation found for "' .. key .. '"')
 	end
 	return (data and data.default) or key
 end
 
 function i18n.unitName(unitDefName, data)
 	data = data or {}
-	if Spring.GetConfigInt("language_english_unit_names", 1) == 1 then
+	if SpringUnsynced.GetConfigInt("language_english_unit_names", 1) == 1 then
 		data.locale = "en"
 	end
 	return i18n.translate("units.names." .. unitDefName, data)
@@ -164,16 +164,16 @@ function i18n.setLanguage(language)
 	-- Manually switching fonts is requred until Spring handles font substitution at the engine level
 	-- LuaUI reload must be invoked for widgets to refresh all their font objects
 	local asianLanguage = language == "zh"
-	local currentFont = Spring.GetConfigString("bar_font")
+	local currentFont = SpringUnsynced.GetConfigString("bar_font")
 
 	if asianLanguage and currentFont ~= asianFont then
-		Spring.SetConfigString("bar_font", asianFont)
-		Spring.SetConfigString("bar_font2", asianFont)
-		Spring.SendCommands("luarules reloadluaui")
+		SpringUnsynced.SetConfigString("bar_font", asianFont)
+		SpringUnsynced.SetConfigString("bar_font2", asianFont)
+		SpringUnsynced.SendCommands("luarules reloadluaui")
 	elseif not asianLanguage and currentFont == asianFont then
-		Spring.SetConfigString("bar_font", "Poppins-Regular.otf")
-		Spring.SetConfigString("bar_font2", "Exo2-SemiBold.otf")
-		Spring.SendCommands("luarules reloadluaui")
+		SpringUnsynced.SetConfigString("bar_font", "Poppins-Regular.otf")
+		SpringUnsynced.SetConfigString("bar_font2", "Exo2-SemiBold.otf")
+		SpringUnsynced.SendCommands("luarules reloadluaui")
 	end
 end
 

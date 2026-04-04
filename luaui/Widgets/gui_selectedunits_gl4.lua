@@ -13,9 +13,9 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spEcho = Spring.Echo
-local spGetUnitTeam = Spring.GetUnitTeam
+local spGetSelectedUnits = SpringUnsynced.GetSelectedUnits
+local spEcho = SpringShared.Echo
+local spGetUnitTeam = SpringShared.GetUnitTeam
 
 -- Configurable Parts:
 local texture = "luaui/images/solid.png"
@@ -30,7 +30,7 @@ local mouseoverHighlight = true
 local selectionVBOGround = nil
 local selectionVBOAir = nil
 
-local mapHasWater = (Spring.GetGroundExtremes() < 0)
+local mapHasWater = (SpringShared.GetGroundExtremes() < 0)
 
 local selectShader = nil
 local luaShaderDir = "LuaUI/Include/"
@@ -81,17 +81,17 @@ end
 local unitBufferUniformCache = { 0 }
 
 local function AddPrimitiveAtUnit(unitID)
-	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true or Spring.IsGUIHidden() then
+	if SpringShared.ValidUnitID(unitID) ~= true or SpringShared.GetUnitIsDead(unitID) == true or SpringUnsynced.IsGUIHidden() then
 		return
 	end
-	local gf = Spring.GetGameFrame()
-	local _, _, isPaused = Spring.GetGameSpeed()
+	local gf = SpringShared.GetGameFrame()
+	local _, _, isPaused = SpringUnsynced.GetGameSpeed()
 	if isPaused then
 		gf = gf - 10
 	end
 
 	if not unitUnitDefID[unitID] then
-		unitUnitDefID[unitID] = Spring.GetUnitDefID(unitID)
+		unitUnitDefID[unitID] = SpringShared.GetUnitDefID(unitID)
 	end
 	local unitDefID = unitUnitDefID[unitID]
 	if unitDefID == nil then
@@ -221,7 +221,7 @@ local function RemovePrimitive(unitID)
 	if selectionVBO and selectionVBO.instanceIDtoIndex[unitID] then
 		if selectionHighlight then
 			unitBufferUniformCache[1] = 0
-			if Spring.ValidUnitID(unitID) then
+			if SpringShared.ValidUnitID(unitID) then
 				gl.SetUnitBufferUniforms(unitID, unitBufferUniformCache, 6)
 			end
 		end
@@ -239,13 +239,13 @@ local cleanedForHiddenUI = false
 
 local function ClearLastMouseOver()
 	if lastMouseOverUnitID then
-		if Spring.ValidUnitID(lastMouseOverUnitID) then
+		if SpringShared.ValidUnitID(lastMouseOverUnitID) then
 			gl.SetUnitBufferUniforms(lastMouseOverUnitID, { selUnits[lastMouseOverUnitID] and 1 or 0 }, 6)
 		end
 		lastMouseOverUnitID = nil
 	end
 	if lastMouseOverFeatureID then
-		if Spring.ValidFeatureID(lastMouseOverFeatureID) then
+		if SpringShared.ValidFeatureID(lastMouseOverFeatureID) then
 			gl.SetFeatureBufferUniforms(lastMouseOverFeatureID, { 0 }, 6)
 		end
 		lastMouseOverFeatureID = nil
@@ -254,7 +254,7 @@ end
 
 function widget:Update(dt)
 	-- Handle UI visibility: clear selections when hidden, resync on show
-	if Spring.IsGUIHidden() then
+	if SpringUnsynced.IsGUIHidden() then
 		if not cleanedForHiddenUI then
 			ClearLastMouseOver()
 			for unitID, _ in pairs(selUnits) do
@@ -302,13 +302,13 @@ function widget:Update(dt)
 	-- +0.5 means ally also selected unit
 	-- +2 means its mouseovered
 	if mouseoverHighlight then
-		local mx, my, p1, mmb, _, mouseOffScreen, cameraPanMode = Spring.GetMouseState()
+		local mx, my, p1, mmb, _, mouseOffScreen, cameraPanMode = SpringUnsynced.GetMouseState()
 		if mouseOffScreen or cameraPanMode or mmb or p1 then
 			ClearLastMouseOver()
 		else
-			local result, data = Spring.TraceScreenRay(mx, my)
+			local result, data = SpringUnsynced.TraceScreenRay(mx, my)
 			--spEcho(result, (type(data) == 'table') or data, lastMouseOverUnitID, lastMouseOverFeatureID)
-			if result == "unit" and not Spring.IsGUIHidden() then
+			if result == "unit" and not SpringUnsynced.IsGUIHidden() then
 				local unitID = data
 				if lastMouseOverUnitID ~= unitID then
 					ClearLastMouseOver()
@@ -316,7 +316,7 @@ function widget:Update(dt)
 					gl.SetUnitBufferUniforms(unitID, { newUniform }, 6)
 					lastMouseOverUnitID = unitID
 				end
-			elseif result == "feature" and not Spring.IsGUIHidden() then
+			elseif result == "feature" and not SpringUnsynced.IsGUIHidden() then
 				local featureID = data
 				if lastMouseOverFeatureID ~= featureID then
 					ClearLastMouseOver()
@@ -416,12 +416,12 @@ function widget:Initialize()
 		return selectimouseoverHighlightonHighlight
 	end
 
-	Spring.LoadCmdColorsConfig("unitBox  0 1 0 0")
+	SpringUnsynced.LoadCmdColorsConfig("unitBox  0 1 0 0")
 end
 
 function widget:Shutdown()
 	if not (WG.teamplatter or WG.highlightselunits) then
-		Spring.LoadCmdColorsConfig("unitBox  0 1 0 1")
+		SpringUnsynced.LoadCmdColorsConfig("unitBox  0 1 0 1")
 	end
 	WG.selectedunits = nil
 end

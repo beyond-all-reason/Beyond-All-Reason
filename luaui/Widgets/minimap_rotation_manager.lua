@@ -14,7 +14,7 @@ end
 local mathFloor = math.floor
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 --[[
 	Minimap Rotation Manager
@@ -68,8 +68,8 @@ local lastGameID = nil
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local spSetMiniRot = Spring.SetMiniMapRotation
-local spGetMiniRot = Spring.GetMiniMapRotation
+local spSetMiniRot = SpringUnsynced.SetMiniMapRotation
+local spGetMiniRot = SpringUnsynced.GetMiniMapRotation
 local PI = math.pi
 local HALFPI = PI / 2
 local TWOPI = PI * 2
@@ -160,7 +160,7 @@ local function applyAutoFitRotation()
 	if mapSizeZ > mapSizeX then
 		-- Map is portrait-oriented: rotate 90 degrees so it fills the wider minimap GUI area
 		if not autoFitTargetRot then
-			local camState = Spring.GetCameraState()
+			local camState = SpringUnsynced.GetCameraState()
 			local ry = (camState and camState.ry) or 0
 			local sunX, _, sunZ = gl.GetSun("pos")
 			-- Compute forward dot sun for both candidate rotations
@@ -179,13 +179,13 @@ local function applyAutoFitRotation()
 		if currentRot and math.abs(currentRot - autoFitTargetRot) < 0.01 then
 			-- Minimap confirmed, now rotate the camera (only after minimap is verified)
 			if not autoFitCameraApplied then
-				local camState = Spring.GetCameraState()
+				local camState = SpringUnsynced.GetCameraState()
 				if camState then
 					local targetRy = (camState.ry or 0) - autoFitTargetRot
 					camState.ry = targetRy
-					Spring.SetCameraState(camState, 0)
+					SpringUnsynced.SetCameraState(camState, 0)
 					-- Verify camera rotation took effect
-					local verifyCam = Spring.GetCameraState()
+					local verifyCam = SpringUnsynced.GetCameraState()
 					if verifyCam and math.abs((verifyCam.ry or 0) - targetRy) < 0.1 then
 						autoFitCameraApplied = true
 						spEcho("[MinimapManager] AutoFit: camera rotated to ry=" .. targetRy)
@@ -225,7 +225,7 @@ function widget:Initialize()
 				autoFitCameraApplied = false
 				applyAutoFitRotation()
 			else
-				widget:CameraRotationChanged(Spring.GetCameraRotation()) -- Force update on mode change
+				widget:CameraRotationChanged(SpringUnsynced.GetCameraRotation()) -- Force update on mode change
 			end
 		end
 	end
@@ -239,7 +239,7 @@ function widget:Initialize()
 		mode = temp
 	end
 
-	Spring.SetConfigInt("MiniMapCanFlip", 0)
+	SpringUnsynced.SetConfigInt("MiniMapCanFlip", 0)
 
 	widgetHandler:AddAction("minimap_rotate", minimapRotateHandler, nil, "p")
 
@@ -255,7 +255,7 @@ function widget:Update()
 		return
 	end
 
-	local currentGameID = Game.gameID or Spring.GetGameRulesParam("GameID")
+	local currentGameID = Game.gameID or SpringShared.GetGameRulesParam("GameID")
 	if not currentGameID then
 		return
 	end -- game not loaded yet

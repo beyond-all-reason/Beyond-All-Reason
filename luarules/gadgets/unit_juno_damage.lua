@@ -9,7 +9,7 @@ function gadget:GetInfo()
 		date = "05/2013",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = not Spring.GetModOptions().junorework,
+		enabled = not SpringShared.GetModOptions().junorework,
 	}
 end
 
@@ -137,13 +137,13 @@ if gadgetHandler:IsSyncedCode() then
 	local fadetime = 2 --how long fade in/out effect lasts, in seconds
 
 	--locals
-	local SpGetGameSeconds = Spring.GetGameSeconds
-	local SpGetUnitsInCylinder = Spring.GetUnitsInCylinder
-	local SpDestroyUnit = Spring.DestroyUnit
-	local SpGetUnitDefID = Spring.GetUnitDefID
-	local SpValidUnitID = Spring.ValidUnitID
-	local SpGetUnitPosition = Spring.GetUnitPosition
-	local SpSpawnCEG = Spring.SpawnCEG
+	local SpGetGameSeconds = SpringShared.GetGameSeconds
+	local SpGetUnitsInCylinder = SpringShared.GetUnitsInCylinder
+	local SpDestroyUnit = SpringSynced.DestroyUnit
+	local SpGetUnitDefID = SpringShared.GetUnitDefID
+	local SpValidUnitID = SpringShared.ValidUnitID
+	local SpGetUnitPosition = SpringShared.GetUnitPosition
+	local SpSpawnCEG = SpringSynced.SpawnCEG
 	local Mmin = math.min
 
 	-- kill appropriate things from initial juno blast --

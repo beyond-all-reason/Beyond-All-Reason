@@ -13,7 +13,7 @@ local pathGraphs = {}
 local mCeil = math.ceil
 
 function MapHST:Init()
-	local rules_param_mex_count = Spring.GetGameRulesParam("mex_count")
+	local rules_param_mex_count = SpringShared.GetGameRulesParam("mex_count")
 	self:EchoDebug("games rules param mex_count:", rules_param_mex_count)
 
 	self.DebugEnabled = false
@@ -124,7 +124,7 @@ function MapHST:InitPathCost()
 	self.heightMapZ = (self.elmoMapSizeZ / 512)
 	-- 	self:EchoDebug('self.heightMapX',self.heightMapX,'self.heightMapZ',self.heightMapZ)
 	-- 	self:EchoDebug(Spring.GetPathNodeCosts(id))
-	self:EchoDebug("INIT new array node cost", Spring.InitPathNodeCostsArray(game:GetTeamID(), self.heightMapX, self.heightMapZ))
+	self:EchoDebug("INIT new array node cost", SpringShared.InitPathNodeCostsArray(game:GetTeamID(), self.heightMapX, self.heightMapZ))
 	local cost = 0
 	local index = 1
 	local heightpow = self.heightMapX * self.heightMapZ
@@ -133,13 +133,13 @@ function MapHST:InitPathCost()
 	for i = 1, self.heightMapX do
 		for j = 1, self.heightMapZ do
 			cost = (cost + math.abs(index + (heightpow / 2) - heightpow) * -1) + heightpow / 2
-			Spring.SetPathNodeCost(game:GetTeamID(), index, cost)
+			SpringShared.SetPathNodeCost(game:GetTeamID(), index, cost)
 			--self:EchoDebug('init path node cost',i,j,Spring.GetPathNodeCost(id,i,j))
 			cost = 0
 			index = index + 1
 		end
 	end
-	self:EchoDebug("SET new array node layer non sync", Spring.SetPathNodeCosts(game:GetTeamID()))
+	self:EchoDebug("SET new array node layer non sync", SpringShared.SetPathNodeCosts(game:GetTeamID()))
 	-- 	self:EchoDebug(#Spring.GetPathNodeCosts(game:GetTeamID()))
 	-- 	self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),0,123))
 	-- 	self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),1,111))
@@ -264,7 +264,7 @@ function MapHST:NewCell(gx, gz)
 	local z = (gz * self.gridSize) - self.gridSizeHalf
 	local cellPos = {}
 	cellPos.x, cellPos.z = x, z
-	cellPos.y = Spring.GetGroundHeight(x, z)
+	cellPos.y = SpringShared.GetGroundHeight(x, z)
 	self:isInMap(cellPos) --move here ,is in map!!
 	local cell = {}
 	cell.POS = cellPos --the cell position
@@ -338,7 +338,7 @@ function MapHST:moveLayerTest(pos) --check where units can stay or not
 		if not self.topology[layer] then
 			self.topology[layer] = {}
 		end
-		if Spring.TestMoveOrder(self.ai.armyhst.unitTable[unitName].defId, pos.x, pos.y, pos.z, nil, nil, nil, true, false, true) then
+		if SpringShared.TestMoveOrder(self.ai.armyhst.unitTable[unitName].defId, pos.x, pos.y, pos.z, nil, nil, nil, true, false, true) then
 			layers[layer] = 0
 		else
 			layers[layer] = false
@@ -490,7 +490,7 @@ function MapHST:hotSpotter()
 		end
 		x = x / items
 		z = z / items
-		y = Spring.GetGroundHeight(x, z)
+		y = SpringShared.GetGroundHeight(x, z)
 		table.insert(self.hotSpots, { x = x, y = y, z = z, weight = items })
 		--Spring.MarkerAddPoint(x,y,z,'hot ' ..items	)
 	end
@@ -1049,7 +1049,7 @@ function MapHST:GetPathGraph(mtype, targetNodeSize)
 					position.x = bestX
 					position.z = bestZ
 				end
-				position.y = Spring.GetGroundHeight(x, z)
+				position.y = SpringShared.GetGroundHeight(x, z)
 				local nodeX = mCeil(cx / cellsPerNodeSide)
 				local nodeY = mCeil(cz / cellsPerNodeSide)
 				local node = { x = nodeX, y = nodeY, id = id, position = position }

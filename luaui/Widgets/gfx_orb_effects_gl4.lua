@@ -14,10 +14,10 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spEcho = Spring.Echo
+local spGetGameFrame = SpringShared.GetGameFrame
+local spEcho = SpringShared.Echo
 
-local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitTeam = SpringShared.GetUnitTeam
 
 --------------------------------------------------------------------------------
 -- Beherith's notes
@@ -868,7 +868,7 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, noupload)
 	if unitDefID and orbUnitDefs[unitDefID] then
 		unitTeam = unitTeam or spGetUnitTeam(unitID)
 
-		local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
+		local _, _, _, _, buildProgress = SpringShared.GetUnitHealth(unitID)
 		if buildProgress < 1 then
 			return
 		end

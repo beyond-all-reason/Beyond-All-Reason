@@ -65,13 +65,13 @@ local function populateBlueprints(blueprintType)
 		local success, fileContents = pcall(VFS.Include, blueprintFile)
 
 		if not success then
-			Spring.Echo("[Ruins Blueprints] Failed to load blueprint file: " .. blueprintFile .. " - " .. fileContents)
+			SpringShared.Echo("[Ruins Blueprints] Failed to load blueprint file: " .. blueprintFile .. " - " .. fileContents)
 		else
 			for _, blueprintFunction in ipairs(fileContents) do
 				local blueprintSuccess, blueprint = pcall(blueprintFunction)
 
 				if not blueprintSuccess then
-					Spring.Echo("[Ruins Blueprints] Failed to execute blueprint function in file: " .. blueprintFile .. " - " .. blueprint)
+					SpringShared.Echo("[Ruins Blueprints] Failed to execute blueprint function in file: " .. blueprintFile .. " - " .. blueprint)
 				else
 					if blueprintsConfig[1].tiered then
 						for _, tier in ipairs(blueprint.tiers) do

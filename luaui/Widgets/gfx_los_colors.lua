@@ -46,7 +46,7 @@ local losColorsWithoutRadars = {
 }
 
 local always, LOS, radar, jam, radar2
-local spSetLosViewColors = Spring.SetLosViewColors
+local spSetLosViewColors = SpringUnsynced.SetLosViewColors
 
 local function applyOpacity(colors)
 	local newColors = table.copy(colors)
@@ -121,8 +121,8 @@ local function toggleLOSColors()
 end
 
 function widget:PlayerChanged(playerID)
-	if playerID == Spring.GetLocalPlayerID() then
-		if Spring.GetSpectatingState() then
+	if playerID == SpringUnsynced.GetLocalPlayerID() then
+		if SpringUnsynced.GetSpectatingState() then
 			specDetected = true
 			if losWithRadarEnabled then
 				withRadars()
@@ -157,7 +157,7 @@ function widget:Initialize()
 		end
 	end
 
-	always, LOS, radar, jam, radar2 = Spring.GetLosViewColors()
+	always, LOS, radar, jam, radar2 = SpringUnsynced.GetLosViewColors()
 
 	if losWithRadarEnabled == true then
 		setLosWithRadars()

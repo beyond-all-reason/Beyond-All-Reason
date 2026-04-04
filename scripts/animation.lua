@@ -7,7 +7,7 @@ function animSpin(getid, getpiece, getaxis, getspeed)
 	local last_inbuilt = true
 
 	while true do
-		local inProgress = Spring.GetUnitIsBeingBuilt(id)
+		local inProgress = SpringShared.GetUnitIsBeingBuilt(id)
 		if inProgress ~= last_inbuilt then
 			last_inbuilt = inProgress
 			if inProgress then
@@ -28,7 +28,7 @@ function animSmoke(getid, getpiece)
 	local last_inbt = true
 
 	while true do
-		local inProgress = Spring.GetUnitIsBeingBuilt(id)
+		local inProgress = SpringShared.GetUnitIsBeingBuilt(id)
 		if inProgress ~= last_inbt then
 			last_inbt = inProgress
 			if inProgress then
@@ -51,7 +51,7 @@ function animBurn(getid, getpiece)
 	local last_inb = true
 
 	while true do
-		local inProgress = Spring.GetUnitIsBeingBuilt(id)
+		local inProgress = SpringShared.GetUnitIsBeingBuilt(id)
 		if inProgress ~= last_inb then
 			last_inb = inProgress
 			if inProgress then

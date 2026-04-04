@@ -16,8 +16,8 @@ function gadget:GetInfo()
 	}
 end
 
-local spRemoveUnitCmdDesc = Spring.RemoveUnitCmdDesc
-local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
+local spRemoveUnitCmdDesc = SpringSynced.RemoveUnitCmdDesc
+local spFindUnitCmdDesc = SpringShared.FindUnitCmdDesc
 local CMD_WAIT = CMD.WAIT
 
 local removeCommands = {
@@ -65,8 +65,8 @@ end
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_WAIT)
 	-- load active units
-	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		local unitDefID = Spring.GetUnitDefID(unitID)
+	for _, unitID in ipairs(SpringShared.GetAllUnits()) do
+		local unitDefID = SpringShared.GetUnitDefID(unitID)
 		gadget:UnitCreated(unitID, unitDefID)
 	end
 end

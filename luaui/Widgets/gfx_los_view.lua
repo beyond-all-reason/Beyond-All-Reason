@@ -13,21 +13,21 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
-local myPlayerID = Spring.GetLocalPlayerID()
-local lastMapDrawMode = Spring.GetMapDrawMode()
+local myPlayerID = SpringUnsynced.GetLocalPlayerID()
+local lastMapDrawMode = SpringUnsynced.GetMapDrawMode()
 
 local function TurnOnLOS()
-	if Spring.GetMapDrawMode() ~= "los" then
-		Spring.SendCommands("togglelos")
+	if SpringUnsynced.GetMapDrawMode() ~= "los" then
+		SpringUnsynced.SendCommands("togglelos")
 	end
 end
 
 local function TurnOffLOS()
-	if Spring.GetMapDrawMode() == "los" then
-		Spring.SendCommands("togglelos")
+	if SpringUnsynced.GetMapDrawMode() == "los" then
+		SpringUnsynced.SendCommands("togglelos")
 	end
 end
 
@@ -43,7 +43,7 @@ local gamestarted = false
 function widget:GameFrame(frame) -- somehow widget:GameStart() didnt work
 	if frame == 1 and not gamestarted then
 		gamestarted = true
-		myPlayerID = Spring.GetLocalPlayerID()
+		myPlayerID = SpringUnsynced.GetLocalPlayerID()
 		if spGetSpectatingState() then
 			TurnOffLOS()
 		else
@@ -69,7 +69,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:GetConfigData() --save config
-	return { lastMapDrawMode = Spring.GetMapDrawMode() }
+	return { lastMapDrawMode = SpringUnsynced.GetMapDrawMode() }
 end
 
 function widget:SetConfigData(data) --load config

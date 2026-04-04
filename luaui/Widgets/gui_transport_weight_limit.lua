@@ -17,9 +17,9 @@ local mathSin = math.sin
 local mathCos = math.cos
 
 -- Localized Spring API for performance
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetSelectedUnits = SpringUnsynced.GetSelectedUnits
+local spGetSelectedUnitsCount = SpringUnsynced.GetSelectedUnitsCount
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -123,7 +123,7 @@ function widget:GameFrame(n)
 		return
 	end
 
-	if select(2, Spring.GetActiveCommand()) ~= CMD_LOAD_UNITS then
+	if select(2, SpringUnsynced.GetActiveCommand()) ~= CMD_LOAD_UNITS then
 		if next(unitsToDraw) then
 			unitsToDraw = {}
 		end
@@ -136,7 +136,7 @@ function widget:GameFrame(n)
 		local transDefID = spGetUnitDefID(transID)
 
 		if validTrans[transDefID] then
-			local transportedUnits = Spring.GetUnitIsTransporting(transID)
+			local transportedUnits = SpringShared.GetUnitIsTransporting(transID)
 			local transCapacity = transDefs[transDefID][2]
 			if not transportedUnits or #transportedUnits < transCapacity then
 				activeTransportDefs[transDefID] = true
@@ -153,14 +153,14 @@ function widget:GameFrame(n)
 
 	unitsToDraw = {}
 
-	local visibleUnits = Spring.GetVisibleUnits()
+	local visibleUnits = SpringUnsynced.GetVisibleUnits()
 	if not visibleUnits or not next(visibleUnits) then
 		return
 	end
 
 	for _, unitID in ipairs(visibleUnits) do
 		local passengerDefID = spGetUnitDefID(unitID)
-		if not cantBeTransported[passengerDefID] and not Spring.IsUnitIcon(unitID) then
+		if not cantBeTransported[passengerDefID] and not SpringUnsynced.IsUnitIcon(unitID) then
 			local passengerFootprintX = unitXSize[passengerDefID] / springFootprintScale
 			local canBePickedUp = false
 			for transDefID, _ in pairs(activeTransportDefs) do
@@ -175,7 +175,7 @@ function widget:GameFrame(n)
 			end
 
 			if canBePickedUp then
-				local x, y, z = Spring.GetUnitBasePosition(unitID)
+				local x, y, z = SpringShared.GetUnitBasePosition(unitID)
 				if x then
 					-- we have to scale up passengerFootprintX otherwise indicator would be under the unit instead of around it
 					unitsToDraw[unitID] = { pos = { x, y, z }, size = (passengerFootprintX * indicatorSizeMultiplier) }
@@ -192,8 +192,8 @@ function widget:Update()
 		return
 	end
 
-	local mx, my = Spring.GetMouseState()
-	local _, coords = Spring.TraceScreenRay(mx, my, true)
+	local mx, my = SpringUnsynced.GetMouseState()
+	local _, coords = SpringUnsynced.TraceScreenRay(mx, my, true)
 
 	if type(coords) == "table" then
 		cursorGround = coords

@@ -1,6 +1,6 @@
 local actionHotkeys = {}
 
-for _, keybinding in pairs(Spring.GetKeyBindings()) do
+for _, keybinding in pairs(SpringUnsynced.GetKeyBindings()) do
 	local cmd = keybinding.command
 	local boundWith = keybinding.boundWith
 	if (not actionHotkeys[cmd]) or #boundWith < #actionHotkeys[cmd] then

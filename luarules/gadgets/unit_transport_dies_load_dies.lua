@@ -53,10 +53,10 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 
 	if not isParatrooper[unitDefID] then
 		--don't destroy units with effigies. Spring.SetUnitPosition cannot move a unit mid-fall.
-		if Spring.GetUnitRulesParam(unitID, "unit_effigy") then
+		if SpringShared.GetUnitRulesParam(unitID, "unit_effigy") then
 			return
 		end
-		currentFrame = Spring.GetGameFrame()
+		currentFrame = SpringShared.GetGameFrame()
 		if not toKill[currentFrame + 1] then
 			toKill[currentFrame + 1] = {}
 		end
@@ -68,7 +68,7 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 		--Spring.Echo("added killing request for " .. unitID .. " on frame " .. currentFrame+1 .. " from transport " .. transportID )
 	else
 		--commandos are given a move order to the location of the ground below where the transport died; remove it
-		Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
+		SpringSynced.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
 	end
 end
 
@@ -78,16 +78,16 @@ function gadget:GameFrame(currentFrame)
 			local tID = fromtrans[currentFrame][uID]
 			--Spring.Echo ("delayed killing check called for unit " .. uID .. " and trans " .. tID .. ". ")
 			--check that trans is dead/crashing and unit is still alive
-			if not Spring.GetUnitIsDead(uID) and (Spring.GetUnitIsDead(tID) or (Spring.GetUnitMoveTypeData(tID).aircraftState == "crashing")) then
+			if not SpringShared.GetUnitIsDead(uID) and (SpringShared.GetUnitIsDead(tID) or (SpringShared.GetUnitMoveTypeData(tID).aircraftState == "crashing")) then
 				--Spring.Echo("killing unit " .. uID)=
-				local deathExplosion = UnitDefs[Spring.GetUnitDefID(uID)].deathExplosion
+				local deathExplosion = UnitDefs[SpringShared.GetUnitDefID(uID)].deathExplosion
 				if deathExplosion and WeaponDefNames[deathExplosion].id and WeaponDefs[WeaponDefNames[deathExplosion].id] then
 					local tabledamages = WeaponDefs[WeaponDefNames[deathExplosion].id]
-					Spring.SetUnitWeaponDamages(uID, "selfDestruct", tabledamages)
+					SpringSynced.SetUnitWeaponDamages(uID, "selfDestruct", tabledamages)
 					tabledamages = WeaponDefs[WeaponDefNames[deathExplosion].id].damages
-					Spring.SetUnitWeaponDamages(uID, "selfDestruct", tabledamages)
+					SpringSynced.SetUnitWeaponDamages(uID, "selfDestruct", tabledamages)
 				end
-				Spring.DestroyUnit(uID, true, false)
+				SpringSynced.DestroyUnit(uID, true, false)
 			end
 		end
 		toKill[currentFrame] = nil

@@ -36,21 +36,21 @@ local fallDamageCompoundingFactor = 1.05
 
 local gameFrame = 0
 local gameFrameExpirationThreshold = 3
-local gaiaTeamID = Spring.GetGaiaTeamID()
+local gaiaTeamID = SpringShared.GetGaiaTeamID()
 local waterDamageDefID = Game.envDamageTypes.Water
 local gameSpeed = Game.gameSpeed
 
-local spGetUnitIsDead = Spring.GetUnitIsDead
-local spValidUnitID = Spring.ValidUnitID
-local spAddUnitDamage = Spring.AddUnitDamage
-local spGetUnitVelocity = Spring.GetUnitVelocity
-local spGetUnitBasePosition = Spring.GetUnitBasePosition
-local spGetUnitPosition = Spring.GetUnitPosition
-local spSpawnCEG = Spring.SpawnCEG
-local spPlaySoundFile = Spring.PlaySoundFile
-local spTestMoveOrder = Spring.TestMoveOrder
-local spGetUnitHealth = Spring.GetUnitHealth
-local spDestroyUnit = Spring.DestroyUnit
+local spGetUnitIsDead = SpringShared.GetUnitIsDead
+local spValidUnitID = SpringShared.ValidUnitID
+local spAddUnitDamage = SpringSynced.AddUnitDamage
+local spGetUnitVelocity = SpringShared.GetUnitVelocity
+local spGetUnitBasePosition = SpringShared.GetUnitBasePosition
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spSpawnCEG = SpringSynced.SpawnCEG
+local spPlaySoundFile = SpringUnsynced.PlaySoundFile
+local spTestMoveOrder = SpringShared.TestMoveOrder
+local spGetUnitHealth = SpringShared.GetUnitHealth
+local spDestroyUnit = SpringSynced.DestroyUnit
 
 local unitDefData = {}
 local transportDrops = {}

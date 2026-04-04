@@ -27,27 +27,27 @@ local pcall = pcall
 local select = select
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spEcho = Spring.Echo
-local spGetViewGeometry = Spring.GetViewGeometry
-local spGetWind = Spring.GetWind
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spIsUnitAllied = Spring.IsUnitAllied
-local spGetUnitPieceMap = Spring.GetUnitPieceMap
-local spGetUnitHeight = Spring.GetUnitHeight
-local spGetUnitLosState = Spring.GetUnitLosState
-local spGetFeatureDefID = Spring.GetFeatureDefID
-local spGetFeaturePosition = Spring.GetFeaturePosition
+local spGetGameFrame = SpringShared.GetGameFrame
+local spEcho = SpringShared.Echo
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
+local spGetWind = SpringShared.GetWind
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitIsBeingBuilt = SpringShared.GetUnitIsBeingBuilt
+local spIsUnitAllied = SpringUnsynced.IsUnitAllied
+local spGetUnitPieceMap = SpringShared.GetUnitPieceMap
+local spGetUnitHeight = SpringShared.GetUnitHeight
+local spGetUnitLosState = SpringShared.GetUnitLosState
+local spGetFeatureDefID = SpringShared.GetFeatureDefID
+local spGetFeaturePosition = SpringShared.GetFeaturePosition
 local spGetProjectileName = Spring.GetProjectileName
-local spGetModKeyState = Spring.GetModKeyState
-local spGetTimer = Spring.GetTimer
-local spDiffTimers = Spring.DiffTimers
-local spGetTimerMicros = Spring.GetTimerMicros
-local spGetConfigString = Spring.GetConfigString
-local spGetAllFeatures = Spring.GetAllFeatures
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetVisibleProjectiles = Spring.GetVisibleProjectiles
+local spGetModKeyState = SpringUnsynced.GetModKeyState
+local spGetTimer = SpringUnsynced.GetTimer
+local spDiffTimers = SpringUnsynced.DiffTimers
+local spGetTimerMicros = SpringUnsynced.GetTimerMicros
+local spGetConfigString = SpringUnsynced.GetConfigString
+local spGetAllFeatures = SpringShared.GetAllFeatures
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
+local spGetVisibleProjectiles = SpringUnsynced.GetVisibleProjectiles
 
 -- Localized GL functions
 local glClear = gl.Clear
@@ -78,19 +78,19 @@ local glBlending = gl.Blending
 local glTexture = gl.Texture
 
 -- Strong:
-local spGetProjectilePosition = Spring.GetProjectilePosition
-local spGetProjectileVelocity = Spring.GetProjectileVelocity
-local spGetProjectileType = Spring.GetProjectileType
-local spGetPieceProjectileParams = Spring.GetPieceProjectileParams
-local spGetProjectileDefID = Spring.GetProjectileDefID
-local spGetGroundHeight = Spring.GetGroundHeight
-local spIsSphereInView = Spring.IsSphereInView
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitIsDead = Spring.GetUnitIsDead
-local spValidUnitID = Spring.ValidUnitID
+local spGetProjectilePosition = SpringShared.GetProjectilePosition
+local spGetProjectileVelocity = SpringShared.GetProjectileVelocity
+local spGetProjectileType = SpringShared.GetProjectileType
+local spGetPieceProjectileParams = SpringShared.GetPieceProjectileParams
+local spGetProjectileDefID = SpringShared.GetProjectileDefID
+local spGetGroundHeight = SpringShared.GetGroundHeight
+local spIsSphereInView = SpringUnsynced.IsSphereInView
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetUnitIsDead = SpringShared.GetUnitIsDead
+local spValidUnitID = SpringShared.ValidUnitID
 
 -- Weak:
-local spIsGUIHidden = Spring.IsGUIHidden
+local spIsGUIHidden = SpringUnsynced.IsGUIHidden
 
 local math_max = mathMax
 local math_ceil = mathCeil
@@ -765,7 +765,7 @@ for wdid, wd in pairs(WeaponDefs) do
 end
 
 function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
-	if targetable[weaponID] and py - 7300 > Spring.GetGroundHeight(px, pz) then -- dont add distortion to (likely) intercepted explosions (mainly to curb nuke flashes)
+	if targetable[weaponID] and py - 7300 > SpringShared.GetGroundHeight(px, pz) then -- dont add distortion to (likely) intercepted explosions (mainly to curb nuke flashes)
 		return
 	end
 	if explosionDistortions[weaponID] then
@@ -1064,8 +1064,8 @@ end
 
 local function PrintProjectileInfo(projectileID)
 	local px, py, pz = spGetProjectilePosition(projectileID)
-	local weapon, piece = Spring.GetProjectileType(projectileID)
-	local weaponDefID = weapon and Spring.GetProjectileDefID(projectileID)
+	local weapon, piece = SpringShared.GetProjectileType(projectileID)
+	local weaponDefID = weapon and SpringShared.GetProjectileDefID(projectileID)
 	Debug.TraceFullEcho()
 end
 

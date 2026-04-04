@@ -24,17 +24,17 @@ local needsCheckDefID = {} -- unitID → defID
 local needsCheckTeam = {} -- unitID → team
 local checkDelay = 5
 local unitsPerFrame = 300
-local gf = Spring.GetGameFrame()
+local gf = SpringShared.GetGameFrame()
 
-local spGetUnitCommands = Spring.GetUnitCommands
-local spGetUnitCommandCount = Spring.GetUnitCommandCount
-local spGetFactoryCommands = Spring.GetFactoryCommands
-local spec = Spring.GetSpectatingState()
-local myTeamID = Spring.GetLocalTeamID()
-local spValidUnitID = Spring.ValidUnitID
+local spGetUnitCommands = SpringShared.GetUnitCommands
+local spGetUnitCommandCount = SpringShared.GetUnitCommandCount
+local spGetFactoryCommands = SpringShared.GetFactoryCommands
+local spec = SpringUnsynced.GetSpectatingState()
+local myTeamID = SpringUnsynced.GetLocalTeamID()
+local spValidUnitID = SpringShared.ValidUnitID
 
-local spIsGUIHidden = Spring.IsGUIHidden
-local spGetConfigInt = Spring.GetConfigInt
+local spIsGUIHidden = SpringUnsynced.IsGUIHidden
+local spGetConfigInt = SpringUnsynced.GetConfigInt
 
 local unitConf = {}
 for udid, unitDef in pairs(UnitDefs) do
@@ -191,8 +191,8 @@ end
 function initUnits()
 	waitingUnits = {} -- forget any previous “waiting” flags
 	local unitDefID
-	for _, unitID in pairs(Spring.GetTeamUnits(myTeamID)) do
-		unitDefID = Spring.GetUnitDefID(unitID)
+	for _, unitID in pairs(SpringShared.GetTeamUnits(myTeamID)) do
+		unitDefID = SpringShared.GetUnitDefID(unitID)
 		needsCheckFrame[unitID] = gf + checkDelay
 		needsCheckDefID[unitID] = unitDefID
 		needsCheckTeam[unitID] = myTeamID

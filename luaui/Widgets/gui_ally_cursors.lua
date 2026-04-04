@@ -16,8 +16,8 @@ end
 local mathAtan2 = math.atan2
 
 -- Localized Spring API for performance
-local spGetMyTeamID = Spring.GetLocalTeamID
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 -- TODO: hide (enemy) cursor light when not specfullview
 
@@ -54,13 +54,13 @@ local lightSelfShadowing = false
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetPlayerInfo = Spring.GetPlayerInfo
-local spGetTeamColor = Spring.GetTeamColor
-local spIsSphereInView = Spring.IsSphereInView
-local spGetCameraPosition = Spring.GetCameraPosition
-local spIsGUIHidden = Spring.IsGUIHidden
-local spAreTeamsAllied = Spring.AreTeamsAllied
+local spGetGroundHeight = SpringShared.GetGroundHeight
+local spGetPlayerInfo = SpringShared.GetPlayerInfo
+local spGetTeamColor = SpringUnsynced.GetTeamColor
+local spIsSphereInView = SpringUnsynced.IsSphereInView
+local spGetCameraPosition = SpringUnsynced.GetCameraPosition
+local spIsGUIHidden = SpringUnsynced.IsGUIHidden
+local spAreTeamsAllied = SpringShared.AreTeamsAllied
 
 local glCreateList = gl.CreateList
 local glDeleteList = gl.DeleteList
@@ -79,7 +79,7 @@ local glDepthTest = gl.DepthTest
 local glBlending = gl.Blending
 local glPolygonOffset = gl.PolygonOffset
 
-local spGetCameraDirection = Spring.GetCameraDirection
+local spGetCameraDirection = SpringUnsynced.GetCameraDirection
 local math_deg = math.deg
 
 local abs = math.abs
@@ -97,10 +97,10 @@ local alliedCursorsTime = {} -- for API purpose
 local usedCursorSize = cursorSize
 local allycursorDrawList = {}
 local playerTeamIDs = {}
-local myPlayerID = Spring.GetLocalPlayerID()
+local myPlayerID = SpringUnsynced.GetLocalPlayerID()
 local _, fullview = spGetSpectatingState()
 local myTeamID = spGetMyTeamID()
-local isReplay = Spring.IsReplay()
+local isReplay = SpringUnsynced.IsReplay()
 
 local allyCursor = ":n:LuaUI/Images/allycursor.dds"
 local cursors = {}
@@ -109,7 +109,7 @@ local specList = {}
 local notIdle = {}
 
 local teamColorKeys = {}
-local teams = Spring.GetTeamList()
+local teams = SpringShared.GetTeamList()
 for i = 1, #teams do
 	local r, g, b = spGetTeamColor(teams[i])
 	teamColorKeys[teams[i]] = r .. "_" .. g .. "_" .. b
@@ -133,7 +133,7 @@ end
 local function updateSpecList(init)
 	specList = {}
 	playerTeamIDs = {}
-	local t = Spring.GetPlayerList()
+	local t = SpringShared.GetPlayerList()
 	for _, playerID in ipairs(t) do
 		local _, _, isSpec, teamID = spGetPlayerInfo(playerID, false)
 		specList[playerID] = isSpec
@@ -284,7 +284,7 @@ function widget:Initialize()
 	end
 
 	local now = clock() - (idleCursorTime * 0.95)
-	local pList = Spring.GetPlayerList()
+	local pList = SpringShared.GetPlayerList()
 	for _, playerID in ipairs(pList) do
 		alliedCursorsTime[playerID] = now
 	end
@@ -456,12 +456,12 @@ function widget:Update(dt)
 		sec = 0
 
 		-- check if team colors have changed
-		local teams = Spring.GetTeamList()
+		local teams = SpringShared.GetTeamList()
 		for i = 1, #teams do
 			local r, g, b = spGetTeamColor(teams[i])
 			if teamColorKeys[teams[i]] ~= r .. "_" .. g .. "_" .. b then
 				teamColorKeys[teams[i]] = r .. "_" .. g .. "_" .. b
-				local players = Spring.GetPlayerList(teams[i])
+				local players = SpringShared.GetPlayerList(teams[i])
 				for _, playerID in ipairs(players) do
 					widget:PlayerChanged(playerID)
 				end

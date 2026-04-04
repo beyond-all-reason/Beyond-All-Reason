@@ -16,8 +16,8 @@ end
 local mathMax = math.max
 
 -- Localized Spring API for performance
-local spGetMyTeamID = Spring.GetLocalTeamID
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 -- future:          hotkey to show all current cmds? (like current shift+space)
 --                  handle set target
@@ -49,7 +49,7 @@ local CMDS = {
 local os_clock = os.clock
 local mathFloor = math.floor
 
-local GaiaTeamID = Spring.GetGaiaTeamID()
+local GaiaTeamID = SpringShared.GetGaiaTeamID()
 local myTeamID = spGetMyTeamID()
 local mySpec = spGetSpectatingState()
 local hidden
@@ -142,17 +142,17 @@ local totalCommands = 0
 local unitCommand = {} -- most recent key in command table of order for unitID
 local osClock
 
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitCommands = Spring.GetUnitCommands
-local spIsUnitInView = Spring.IsUnitInView
-local spIsSphereInView = Spring.IsSphereInView
-local spValidUnitID = Spring.ValidUnitID
-local spValidFeatureID = Spring.ValidFeatureID
-local spGetFeaturePosition = Spring.GetFeaturePosition
-local spIsGUIHidden = Spring.IsGUIHidden
-local spLoadCmdColorsConfig = Spring.LoadCmdColorsConfig
-local spGetGameFrame = Spring.GetGameFrame
-local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetUnitCommands = SpringShared.GetUnitCommands
+local spIsUnitInView = SpringUnsynced.IsUnitInView
+local spIsSphereInView = SpringUnsynced.IsSphereInView
+local spValidUnitID = SpringShared.ValidUnitID
+local spValidFeatureID = SpringShared.ValidFeatureID
+local spGetFeaturePosition = SpringShared.GetFeaturePosition
+local spIsGUIHidden = SpringUnsynced.IsGUIHidden
+local spLoadCmdColorsConfig = SpringUnsynced.LoadCmdColorsConfig
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetUnitTeam = SpringShared.GetUnitTeam
 
 local glDepthTest = gl.DepthTest
 local glBlending = gl.Blending
@@ -277,7 +277,7 @@ local function InitGL4()
 		uniformFloat = { u_lineTexLen = lineTextureLength },
 	})
 	if not shader then
-		Spring.Echo("[CommandsFX2] GL4 shader failed: " .. tostring(gl.GetShaderLog()))
+		SpringShared.Echo("[CommandsFX2] GL4 shader failed: " .. tostring(gl.GetShaderLog()))
 		return false
 	end
 
@@ -414,9 +414,9 @@ end
 
 local teamColor = {}
 local function loadTeamColors()
-	local teams = Spring.GetTeamList()
+	local teams = SpringShared.GetTeamList()
 	for i = 1, #teams do
-		local r, g, b = Spring.GetTeamColor(teams[i])
+		local r, g, b = SpringUnsynced.GetTeamColor(teams[i])
 		local min = 0.12
 		teamColor[teams[i]] = { mathMax(r, min), mathMax(g, min), mathMax(b, min), 0.33 }
 	end
@@ -454,9 +454,9 @@ end
 
 local function resetEnabledTeams()
 	enabledTeams = {}
-	local t = Spring.GetTeamList()
+	local t = SpringShared.GetTeamList()
 	for _, teamID in ipairs(t) do
-		if not filterAIteams or not select(4, Spring.GetTeamInfo(teamID, false)) then
+		if not filterAIteams or not select(4, SpringShared.GetTeamInfo(teamID, false)) then
 			enabledTeams[teamID] = true
 		end
 	end
@@ -503,7 +503,7 @@ function widget:Initialize()
 	end
 
 	if not InitGL4() then
-		Spring.Echo("[CommandsFX2] GL4 initialization failed, disabling widget")
+		SpringShared.Echo("[CommandsFX2] GL4 initialization failed, disabling widget")
 		widgetHandler:RemoveWidget(self)
 		return
 	end
@@ -571,7 +571,7 @@ local QTARGET_UNIT = 2 -- unit target (needs live position each frame)
 local QTARGET_FEATURE = 3 -- feature target (position pre-extracted; features are static)
 
 local function getCommandsQueue(unitID)
-	local cmdCount = Spring.GetUnitCommandCount(unitID)
+	local cmdCount = SpringShared.GetUnitCommandCount(unitID)
 	if not cmdCount or cmdCount <= 0 then
 		local empty = getTable()
 		return empty, 0

@@ -16,7 +16,7 @@ end
 local tableInsert = table.insert
 
 -- Localized Spring API for performance
-local spGetMyTeamID = Spring.GetLocalTeamID
+local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
 
 local myTeamID
 
@@ -54,7 +54,7 @@ local function handleSelectComm(_, _, args)
 	if not includeSelected then
 		-- Fetch the current selected units that are commanders, we dont want to
 		-- select an already selected unit if includeSelected is not passed
-		for unitDefID, selUnits in pairs(Spring.GetSelectedUnitsSorted()) do
+		for unitDefID, selUnits in pairs(SpringUnsynced.GetSelectedUnitsSorted()) do
 			if commanderDefIDs[unitDefID] then
 				for _, unitID in ipairs(selUnits) do
 					selectedUnits[unitID] = true
@@ -65,7 +65,7 @@ local function handleSelectComm(_, _, args)
 
 	-- Fetch all current commander units
 	local units = {}
-	local teamUnits = Spring.GetTeamUnitsByDefs(myTeamID, commanderDefIDsList)
+	local teamUnits = SpringShared.GetTeamUnitsByDefs(myTeamID, commanderDefIDsList)
 	for _, unitID in ipairs(teamUnits) do
 		if not selectedUnits[unitID] then
 			tableInsert(units, unitID)
@@ -95,11 +95,11 @@ local function handleSelectComm(_, _, args)
 
 	local unitID = units[unitIndex]
 
-	Spring.SelectUnit(unitID, appendSelection)
+	SpringUnsynced.SelectUnit(unitID, appendSelection)
 
 	if focusCamera then
-		local x, y, z = Spring.GetUnitPosition(unitID)
-		Spring.SetCameraTarget(x, y, z)
+		local x, y, z = SpringShared.GetUnitPosition(unitID)
+		SpringUnsynced.SetCameraTarget(x, y, z)
 	end
 
 	-- Halt the action chain, subsequent actions are not triggered

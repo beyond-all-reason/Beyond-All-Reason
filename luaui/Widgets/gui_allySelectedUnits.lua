@@ -15,9 +15,9 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetGameFrame = Spring.GetGameFrame
-local spGetMyTeamID = Spring.GetLocalTeamID
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
 
 local showAsSpectator = true
 local selectPlayerUnits = true -- when lockcamera player
@@ -56,24 +56,24 @@ local GL_REPLACE = GL.REPLACE
 local GL_POINTS = GL.POINTS
 
 local spGetUnitDefID = spGetUnitDefID
-local spGetPlayerInfo = Spring.GetPlayerInfo
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetPlayerInfo = SpringShared.GetPlayerInfo
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 local playerIsSpec = {}
-for i, playerID in pairs(Spring.GetPlayerList()) do
+for i, playerID in pairs(SpringShared.GetPlayerList()) do
 	playerIsSpec[playerID] = select(3, spGetPlayerInfo(playerID, false))
 end
 
 local spec, fullview = spGetSpectatingState()
 local myTeamID = spGetMyTeamID()
-local myAllyTeam = Spring.GetLocalAllyTeamID()
-local myPlayerID = Spring.GetLocalPlayerID()
+local myAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
+local myPlayerID = SpringUnsynced.GetLocalPlayerID()
 local selectedUnits = {}
 local playerSelectedUnits = {} -- [playerID][unitID] = true
 local lockPlayerID
 
 local unitAllyteam = {}
-local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitTeam = SpringShared.GetUnitTeam
 
 local unitScale = {}
 local unitCanFly = {}
@@ -160,7 +160,7 @@ end
 
 local function addUnit(unitID)
 	if selectedUnits[unitID] ~= nil and selectedUnits[unitID] == false and (fullview or myAllyTeam == unitAllyteam[unitID]) then
-		if not Spring.ValidUnitID(unitID) or Spring.GetUnitIsDead(unitID) then
+		if not SpringShared.ValidUnitID(unitID) or SpringShared.GetUnitIsDead(unitID) then
 			return
 		end
 		if enablePlatter then
@@ -189,7 +189,7 @@ local function selectPlayerSelectedUnits(playerID)
 			units[count] = unitID
 		end
 	end
-	Spring.SelectUnitArray(units)
+	SpringUnsynced.SelectUnitArray(units)
 end
 
 -- called by gadget
@@ -228,7 +228,7 @@ local function selectedUnitsAdd(playerID, unitID)
 	if not playerIsSpec[playerID] or (lockPlayerID ~= nil and playerID == lockPlayerID) then
 		if spGetUnitDefID(unitID) then
 			selectedUnits[unitID] = false
-			unitAllyteam[unitID] = select(6, Spring.GetTeamInfo(spGetUnitTeam(unitID), false))
+			unitAllyteam[unitID] = select(6, SpringShared.GetTeamInfo(spGetUnitTeam(unitID), false))
 			addUnit(unitID)
 		end
 	end
@@ -274,8 +274,8 @@ function widget:PlayerChanged(playerID)
 		return
 	end
 	myTeamID = spGetMyTeamID()
-	myAllyTeam = Spring.GetLocalAllyTeamID()
-	myPlayerID = Spring.GetLocalPlayerID()
+	myAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
+	myPlayerID = SpringUnsynced.GetLocalPlayerID()
 
 	-- when changing fullview mode
 	local prevFullview = fullview
@@ -292,7 +292,7 @@ function widget:PlayerChanged(playerID)
 		end
 	end
 
-	for i, playerID in pairs(Spring.GetPlayerList()) do
+	for i, playerID in pairs(SpringShared.GetPlayerList()) do
 		local spec = select(3, spGetPlayerInfo(playerID, false))
 		if spec and not playerIsSpec[playerID] then
 			selectedUnitsClear(playerID)
@@ -365,7 +365,7 @@ function widget:Initialize()
 	if not init() then
 		return
 	end
-	for _, playerID in pairs(Spring.GetPlayerList()) do
+	for _, playerID in pairs(SpringShared.GetPlayerList()) do
 		widget:PlayerAdded(playerID)
 	end
 	widget:PlayerChanged(myPlayerID)
@@ -401,7 +401,7 @@ function widget:DrawWorldPreUnit()
 		return
 	end
 
-	if Spring.IsGUIHidden() then
+	if SpringUnsynced.IsGUIHidden() then
 		return
 	end
 

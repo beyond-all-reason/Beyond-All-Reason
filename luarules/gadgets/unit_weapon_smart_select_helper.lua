@@ -68,12 +68,12 @@ local GROUND_TARGET = 2
 local gameFrame = 0
 
 --functions
-local spCallCOBScript = Spring.CallCOBScript
-local spGetUnitWeaponHaveFreeLineOfFire = Spring.GetUnitWeaponHaveFreeLineOfFire
-local spGetUnitWeaponTarget = Spring.GetUnitWeaponTarget
-local spGetUnitWeaponState = Spring.GetUnitWeaponState
-local spGetUnitEstimatedPath = Spring.GetUnitEstimatedPath
-local spSetUnitTarget = Spring.SetUnitTarget
+local spCallCOBScript = SpringSynced.CallCOBScript
+local spGetUnitWeaponHaveFreeLineOfFire = SpringShared.GetUnitWeaponHaveFreeLineOfFire
+local spGetUnitWeaponTarget = SpringShared.GetUnitWeaponTarget
+local spGetUnitWeaponState = SpringShared.GetUnitWeaponState
+local spGetUnitEstimatedPath = SpringShared.GetUnitEstimatedPath
+local spSetUnitTarget = SpringSynced.SetUnitTarget
 local mathMin = math.min
 local mathMax = math.max
 
@@ -82,9 +82,9 @@ local smartUnitDefs = {}
 local modeSwitchFrames = {}
 
 -- Add with other local function declarations
-local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
-local spEditUnitCmdDesc = Spring.EditUnitCmdDesc
-local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
+local spInsertUnitCmdDesc = SpringSynced.InsertUnitCmdDesc
+local spEditUnitCmdDesc = SpringSynced.EditUnitCmdDesc
+local spFindUnitCmdDesc = SpringShared.FindUnitCmdDesc
 
 local trajectoryCmdDesc = {
 	id = CMD_SMART_TOGGLE,
@@ -99,8 +99,8 @@ local defaultCmdDesc = table.copy(trajectoryCmdDesc)
 
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_SMART_TOGGLE)
-	local units = Spring.GetAllUnits()
-	local spGetUnitDefID = Spring.GetUnitDefID
+	local units = SpringShared.GetAllUnits()
+	local spGetUnitDefID = SpringShared.GetUnitDefID
 	for i = 1, #units do
 		gadget:UnitCreated(units[i], spGetUnitDefID(units[i]))
 	end
@@ -306,7 +306,7 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID)
 	if smartUnitDefs[unitDefID] then
-		local scriptID = Spring.GetCOBScriptID(unitID, "SetAimingState")
+		local scriptID = SpringSynced.GetCOBScriptID(unitID, "SetAimingState")
 		if scriptID then
 			smartUnits[unitID] = {
 				unitDefID = unitDefID,

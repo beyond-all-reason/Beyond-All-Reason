@@ -31,18 +31,18 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 	if #cmdParams ~= 1 then
 		return false
 	end -- dgun is already aimed at ground
-	if cmdParams[1] > 0 and not Spring.IsUnitAllied(cmdParams[1]) then
+	if cmdParams[1] > 0 and not SpringUnsynced.IsUnitAllied(cmdParams[1]) then
 		return false
 	end -- still snap aim at enemy units
 
 	-- get map position behind cursor
-	local mouseX, mouseY = Spring.GetMouseState()
-	local desc, cmdParams = Spring.TraceScreenRay(mouseX, mouseY, true)
+	local mouseX, mouseY = SpringUnsynced.GetMouseState()
+	local desc, cmdParams = SpringUnsynced.TraceScreenRay(mouseX, mouseY, true)
 	if nil == desc then
 		return false
 	end -- off map, can not handle this properly here
 
 	-- replace dgun order
-	Spring.GiveOrder(cmdID, cmdParams, cmdOptions)
+	SpringUnsynced.GiveOrder(cmdID, cmdParams, cmdOptions)
 	return true
 end

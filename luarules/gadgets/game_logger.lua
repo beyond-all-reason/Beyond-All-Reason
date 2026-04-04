@@ -20,8 +20,8 @@ if gadgetHandler:IsSyncedCode() then
 	local validation = string.randomString(2)
 	_G.validationLog = validation
 else
-	local spSendLuaRulesMsg = Spring.SendLuaRulesMsg
-	local spAreTeamsAllied = Spring.AreTeamsAllied
+	local spSendLuaRulesMsg = SpringUnsynced.SendLuaRulesMsg
+	local spAreTeamsAllied = SpringShared.AreTeamsAllied
 	local validation = SYNCED.validationLog
 
 	local isCommander = {}
@@ -48,14 +48,14 @@ else
 		end
 	end
 
-	local myTeamID = Spring.GetLocalTeamID()
-	local myPlayerID = Spring.GetLocalPlayerID()
-	local mySpec, fullview = Spring.GetSpectatingState()
+	local myTeamID = SpringUnsynced.GetLocalTeamID()
+	local myPlayerID = SpringUnsynced.GetLocalPlayerID()
+	local mySpec, fullview = SpringUnsynced.GetSpectatingState()
 
 	function gadget:PlayerChanged(playerID)
 		if playerID == myPlayerID then
-			myTeamID = Spring.GetLocalTeamID()
-			mySpec, fullview = Spring.GetSpectatingState()
+			myTeamID = SpringUnsynced.GetLocalTeamID()
+			mySpec, fullview = SpringUnsynced.GetSpectatingState()
 		end
 	end
 
@@ -66,7 +66,7 @@ else
 			-- Check if its a commander doing shenanigan to others eco units
 			if (isEcoUnit[unitDefID] or isCommander[unitDefID]) and spAreTeamsAllied(unitTeam, attackerTeam) and isCommander[attackerDefID] then
 				-- This is an 'only attack friendlies with commander' type thing
-				local msg = string.format("l0g%s:friendlyfire:%d:%s:%d:%d:%d", validation, Spring.GetGameFrame(), "ud", unitTeam, attackerTeam, unitDefID)
+				local msg = string.format("l0g%s:friendlyfire:%d:%s:%d:%d:%d", validation, SpringShared.GetGameFrame(), "ud", unitTeam, attackerTeam, unitDefID)
 				--Spring.Echo(msg)
 				spSendLuaRulesMsg(msg)
 			end
@@ -75,11 +75,11 @@ else
 
 	function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 		if not mySpec and transportTeam == myTeamID and unitTeam ~= transportTeam and isCommander[unitDefID] then
-			local _, _, _, isAiTeam = Spring.GetTeamInfo(unitTeam, false)
+			local _, _, _, isAiTeam = SpringShared.GetTeamInfo(unitTeam, false)
 			if isAiTeam then
 				return
 			end
-			local msg = string.format("l0g%s:allycommloaded:%d:%s:%d:%d:%d", validation, Spring.GetGameFrame(), "ud", unitTeam, transportTeam, unitDefID)
+			local msg = string.format("l0g%s:allycommloaded:%d:%s:%d:%d:%d", validation, SpringShared.GetGameFrame(), "ud", unitTeam, transportTeam, unitDefID)
 			spSendLuaRulesMsg(msg)
 		end
 	end

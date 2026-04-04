@@ -15,14 +15,14 @@ end
 if not gadgetHandler:IsSyncedCode() then
 	function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 		-- give all shared units a stop command
-		Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
+		SpringSynced.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
 
 		-- remove their build queue
-		local buildQ = Spring.GetFullBuildQueue(unitID) or {}
+		local buildQ = SpringShared.GetFullBuildQueue(unitID) or {}
 		for _, buildOrder in pairs(buildQ) do
 			for uDID, count in pairs(buildOrder) do
 				for i = 1, count do
-					Spring.GiveOrderToUnit(unitID, -uDID, {}, { "right" })
+					SpringSynced.GiveOrderToUnit(unitID, -uDID, {}, { "right" })
 				end
 			end
 		end
@@ -40,8 +40,8 @@ else -- SYNCED
 	function gadget:GameFrame(n)
 		if n % 37 == 0 and #recievedMexes > 0 then
 			for i, unitID in ipairs(recievedMexes) do
-				if Spring.ValidUnitID(unitID) then
-					Spring.GiveOrderToUnit(unitID, CMD.ONOFF, { 1 }, 0)
+				if SpringShared.ValidUnitID(unitID) then
+					SpringSynced.GiveOrderToUnit(unitID, CMD.ONOFF, { 1 }, 0)
 				end
 			end
 			recievedMexes = {}

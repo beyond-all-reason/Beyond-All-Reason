@@ -13,38 +13,38 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spGetMyTeamID = Spring.GetLocalTeamID
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 local processTeamDiedFrame, processTeamDiedTeamID
 
 local function switchToTeam(teamID)
-	local oldMapDrawMode = Spring.GetMapDrawMode()
-	Spring.SelectUnitArray({})
-	Spring.SendCommands("specteam " .. teamID)
-	local newMapDrawMode = Spring.GetMapDrawMode()
+	local oldMapDrawMode = SpringUnsynced.GetMapDrawMode()
+	SpringUnsynced.SelectUnitArray({})
+	SpringUnsynced.SendCommands("specteam " .. teamID)
+	local newMapDrawMode = SpringUnsynced.GetMapDrawMode()
 	if oldMapDrawMode == "los" and oldMapDrawMode ~= newMapDrawMode then
-		Spring.SendCommands("togglelos")
+		SpringUnsynced.SendCommands("togglelos")
 	end
 end
 
 local function processTeamDied(teamID)
-	local _, _, isDead = Spring.GetTeamInfo(teamID, false)
+	local _, _, isDead = SpringShared.GetTeamInfo(teamID, false)
 	if isDead and spGetMyTeamID() == teamID then
-		local myAllyTeamID = Spring.GetLocalAllyTeamID()
+		local myAllyTeamID = SpringUnsynced.GetLocalAllyTeamID()
 		-- first try alive team mates
-		local teamList = Spring.GetTeamList(myAllyTeamID)
+		local teamList = SpringShared.GetTeamList(myAllyTeamID)
 		for _, teamListID in ipairs(teamList) do
-			local _, _, isDead = Spring.GetTeamInfo(teamListID, false)
+			local _, _, isDead = SpringShared.GetTeamInfo(teamListID, false)
 			if not isDead then
 				switchToTeam(teamListID)
 				return
 			end
 		end
-		teamList = Spring.GetTeamList()
+		teamList = SpringShared.GetTeamList()
 		for _, teamListID in ipairs(teamList) do
-			local _, _, isDead, _, _, allyTeamID = Spring.GetTeamInfo(teamListID, false)
+			local _, _, isDead, _, _, allyTeamID = SpringShared.GetTeamInfo(teamListID, false)
 			if not isDead and allyTeamID ~= myAllyTeamID then
 				switchToTeam(teamListID)
 				return
@@ -64,7 +64,7 @@ end
 
 function widget:PlayerChanged(playerID)
 	local spec = spGetSpectatingState()
-	local _, _, _, teamID = Spring.GetPlayerInfo(playerID, false) -- player can be spec here and team not be dead still
+	local _, _, _, teamID = SpringShared.GetPlayerInfo(playerID, false) -- player can be spec here and team not be dead still
 	if spec and teamID and spGetMyTeamID() == teamID then
 		processTeamDiedFrame = spGetGameFrame() + 1
 		processTeamDiedTeamID = teamID

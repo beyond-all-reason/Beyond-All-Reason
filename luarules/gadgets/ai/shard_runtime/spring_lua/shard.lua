@@ -39,7 +39,7 @@ end
 
 function Shard:shardify_unittype(unitDefID)
 	if not unitDefID then
-		Spring.Echo('shard: error: shardify_unittype recieved "' .. unitDefID .. '" of type "' .. type(unitDefID) .. '" ')
+		SpringShared.Echo('shard: error: shardify_unittype recieved "' .. unitDefID .. '" of type "' .. type(unitDefID) .. '" ')
 		return nil
 	end
 	if not self.unittypesByID[unitDefID] then

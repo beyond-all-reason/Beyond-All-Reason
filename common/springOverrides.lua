@@ -1,5 +1,5 @@
-if Spring.GetModOptions then
-	local modOptions = Spring.GetModOptions()
+if SpringShared.GetModOptions then
+	local modOptions = SpringShared.GetModOptions()
 	local modOptionsFile = VFS.Include("modoptions.lua")
 
 	for _, modOption in ipairs(modOptionsFile) do
@@ -31,7 +31,7 @@ if Spring.GetModOptions then
 		end,
 	})
 
-	Spring.GetModOptions = function()
+	SpringShared.GetModOptions = function()
 		return readOnlyModOptions
 	end
 
@@ -42,8 +42,8 @@ if Spring.GetModOptions then
 	end
 end
 
-if Spring.Echo then
-	local echo = Spring.Echo
+if SpringShared.Echo then
+	local echo = SpringShared.Echo
 	local printOptions = { pretty = true }
 
 	local function multiEcho(...)
@@ -81,5 +81,5 @@ if Spring.Echo then
 		end
 	end
 
-	Spring.Echo = multiEcho
+	SpringShared.Echo = multiEcho
 end

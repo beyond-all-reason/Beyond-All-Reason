@@ -16,8 +16,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local GetFeaturePosition = Spring.GetFeaturePosition
-local SpawnCEG = Spring.SpawnCEG
+local GetFeaturePosition = SpringShared.GetFeaturePosition
+local SpawnCEG = SpringSynced.SpawnCEG
 local random = math.random
 
 local cegs = { "reclaimshards1", "reclaimshards2", "reclaimshards3" }

@@ -18,18 +18,18 @@ local mathRandom = math.random
 local tableSort = table.sort
 
 -- Localized Spring API for performance
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetMyTeamID = Spring.GetLocalTeamID
-local spGetMouseState = Spring.GetMouseState
-local spEcho = Spring.Echo
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
+local spGetMouseState = SpringUnsynced.GetMouseState
+local spEcho = SpringShared.Echo
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 local defaultVoiceSet = "en/cephis"
 
 local windFunctions = VFS.Include("common/wind_functions.lua")
 
-local useDefaultVoiceFallback = Spring.GetConfigInt("NotificationsSubstitute", 0) == 1 --false    -- when a voiceset has missing file, try to load the default voiceset file instead
-local playWelcome = Spring.GetConfigInt("WelcomeMessagePlayed", 0) == 0
+local useDefaultVoiceFallback = SpringUnsynced.GetConfigInt("NotificationsSubstitute", 0) == 1 --false    -- when a voiceset has missing file, try to load the default voiceset file instead
+local playWelcome = SpringUnsynced.GetConfigInt("WelcomeMessagePlayed", 0) == 0
 local playedWelcome = false
 
 local silentTime = 0.7 -- silent time between queued notifications
@@ -43,8 +43,8 @@ local tutorialPlayLimit = 2 -- display the same tutorial message only this many 
 local updateCommandersFrames = Game.gameSpeed * 5
 
 local victoryConditionAllyID = 999
-if not (spGetSpectatingState() or Spring.IsReplay()) then
-	victoryConditionAllyID = Spring.GetLocalAllyTeamID()
+if not (spGetSpectatingState() or SpringUnsynced.IsReplay()) then
+	victoryConditionAllyID = SpringUnsynced.GetLocalAllyTeamID()
 end
 
 --------------------------------------------------------------------------------
@@ -52,7 +52,7 @@ end
 local wavFileLengths = VFS.Include("sounds/sound_file_lengths.lua")
 VFS.Include("common/wav.lua")
 
-local voiceSet = Spring.GetConfigString("voiceset", defaultVoiceSet)
+local voiceSet = SpringUnsynced.GetConfigString("voiceset", defaultVoiceSet)
 if #VFS.DirList("sounds/voice/" .. voiceSet, "*.wav") == 0 then
 	voiceSet = defaultVoiceSet
 end
@@ -61,12 +61,12 @@ local LastPlay = {}
 local notification = {}
 local notificationList = {}
 local notificationOrder = {}
-local spGetGameFrame = Spring.GetGameFrame
+local spGetGameFrame = SpringShared.GetGameFrame
 local gameframe = spGetGameFrame()
 local gameover = false
 
 local lockPlayerID
-local gaiaTeamID = Spring.GetGaiaTeamID()
+local gaiaTeamID = SpringShared.GetGaiaTeamID()
 
 local soundFolder = string.gsub("sounds/voice/" .. voiceSet .. "/", "\\", "/")
 local soundEffectsFolder = string.gsub("sounds/voice-soundeffects/", "\\", "/")
@@ -260,22 +260,22 @@ local suspendUntilSec = 0
 
 local windNotGood = windFunctions.isWindBad()
 
-local spIsUnitAllied = Spring.IsUnitAllied
-local spGetUnitDefID = Spring.GetUnitDefID
-local spIsUnitInView = Spring.IsUnitInView
-local spGetUnitHealth = Spring.GetUnitHealth
+local spIsUnitAllied = SpringUnsynced.IsUnitAllied
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spIsUnitInView = SpringUnsynced.IsUnitInView
+local spGetUnitHealth = SpringShared.GetUnitHealth
 
 local isIdle = false
 local lastMouseX, lastMouseY = spGetMouseState()
 
 local isSpec = spGetSpectatingState()
-local isReplay = Spring.IsReplay()
+local isReplay = SpringUnsynced.IsReplay()
 local myTeamID = spGetMyTeamID()
-local myPlayerID = Spring.GetLocalPlayerID()
-local myAllyTeamID = Spring.GetLocalAllyTeamID()
-local myRank = select(9, Spring.GetPlayerInfo(myPlayerID))
+local myPlayerID = SpringUnsynced.GetLocalPlayerID()
+local myAllyTeamID = SpringUnsynced.GetLocalAllyTeamID()
+local myRank = select(9, SpringShared.GetPlayerInfo(myPlayerID))
 
-local spGetTeamResources = Spring.GetTeamResources
+local spGetTeamResources = SpringShared.GetTeamResources
 local e_currentLevel, e_storage, e_pull, e_income, e_expense, e_share, e_sent, e_received = spGetTeamResources(myTeamID, "energy")
 local m_currentLevel, m_storage, m_pull, m_income, m_expense, m_share, m_sent, m_received = spGetTeamResources(myTeamID, "metal")
 
@@ -381,7 +381,7 @@ for udefID, def in ipairs(UnitDefs) do
 end
 
 local function updateCommanders()
-	local units = Spring.GetTeamUnits(myTeamID)
+	local units = SpringShared.GetTeamUnits(myTeamID)
 	for i = 1, #units do
 		local unitID = units[i]
 		local unitDefID = spGetUnitDefID(unitID)
@@ -440,7 +440,7 @@ local function applyNotificationRules(notifDef)
 end
 
 local function queueNotification(event, forceplay)
-	if Spring.GetGameFrame() > 20 or forceplay then
+	if SpringShared.GetGameFrame() > 20 or forceplay then
 		if not isSpec or (isSpec and lockPlayerID ~= nil) or forceplay then
 			if notificationList[event] and notification[event] then
 				if not LastPlay[event] or (spGetGameFrame() >= LastPlay[event] + (notification[event].delay * 30)) then
@@ -474,8 +474,8 @@ end
 function widget:PlayerChanged(playerID)
 	isSpec = spGetSpectatingState()
 	myTeamID = spGetMyTeamID()
-	myPlayerID = Spring.GetLocalPlayerID()
-	myAllyTeamID = Spring.GetLocalAllyTeamID()
+	myPlayerID = SpringUnsynced.GetLocalPlayerID()
+	myAllyTeamID = SpringUnsynced.GetLocalAllyTeamID()
 	doTutorialMode = (not isReplay and not isSpec and tutorialMode)
 	updateCommanders()
 end
@@ -490,7 +490,7 @@ local function gadgetNotificationEvent(msg)
 	if not isSpec or (isSpec and lockPlayerID ~= nil) or forceplay then
 		local event = string.sub(msg, 1, string.find(msg, " ", nil, true) - 1)
 		local player = string.sub(msg, string.find(msg, " ", nil, true) + 1, string.len(msg))
-		if forceplay or (tonumber(player) and (tonumber(player) == Spring.GetLocalPlayerID())) or (isSpec and tonumber(player) == lockPlayerID) then
+		if forceplay or (tonumber(player) and (tonumber(player) == SpringUnsynced.GetLocalPlayerID())) or (isSpec and tonumber(player) == lockPlayerID) then
 			queueNotification(event, forceplay)
 		end
 	end
@@ -567,15 +567,15 @@ function widget:Initialize()
 				local m = #notification[event].voiceFiles > 1 and mathRandom(1, #notification[event].voiceFiles) or 1
 				local mRare = #notification[event].voiceFilesRare > 1 and mathRandom(1, #notification[event].voiceFilesRare) or 1
 				if math.random() < 0.05 and notification[event].voiceFilesRare[mRare] then
-					Spring.PlaySoundFile(notification[event].voiceFilesRare[mRare], globalVolume, "ui")
+					SpringUnsynced.PlaySoundFile(notification[event].voiceFilesRare[mRare], globalVolume, "ui")
 				elseif notification[event].voiceFiles[m] then
-					Spring.PlaySoundFile(notification[event].voiceFiles[m], globalVolume, "ui")
+					SpringUnsynced.PlaySoundFile(notification[event].voiceFiles[m], globalVolume, "ui")
 				else
 					spEcho('notification "' .. event .. '" missing sound file: #' .. m)
 				end
 			end
 			if notification[event].soundEffect then
-				Spring.PlaySoundFile(soundEffectsFolder .. notification[event].soundEffect .. ".wav", globalVolume, "ui")
+				SpringUnsynced.PlaySoundFile(soundEffectsFolder .. notification[event].soundEffect .. ".wav", globalVolume, "ui")
 			end
 			if displayMessages and WG.messages and notification[event].textID and not notification[event].notext then
 				if not notification[event].customText then
@@ -617,9 +617,9 @@ function widget:Initialize()
 	end
 
 	if not WG.NotificationSoundDefsLoaded then -- To prevent reloads and warning spam when changing/refreshing announcers
-		Spring.LoadSoundDef("gamedata/soundsVoice.lua")
+		SpringUnsynced.LoadSoundDef("gamedata/soundsVoice.lua")
 		WG.NotificationSoundDefsLoaded = true
-		Spring.Echo("Notification Sound Items Loaded")
+		SpringShared.Echo("Notification Sound Items Loaded")
 	end
 
 	if Utilities.Gametype.IsRaptors() and Utilities.Gametype.IsScavengers() then
@@ -658,7 +658,7 @@ function widget:GameFrame(gf)
 
 		-- idle builder check
 		for unitID, frame in pairs(idleBuilder) do
-			if Spring.GetUnitTeam(unitID) == myTeamID then
+			if SpringShared.GetUnitTeam(unitID) == myTeamID then
 				if frame < gf and m_currentLevel > m_storage * 0.5 and e_currentLevel > e_storage * 0.5 then
 					queueNotification("IdleConstructors")
 					idleBuilder[unitID] = nil -- do not repeat
@@ -669,7 +669,7 @@ function widget:GameFrame(gf)
 		end
 
 		-- max units check
-		local maxUnits, currentUnits = Spring.GetTeamMaxUnits(myTeamID)
+		local maxUnits, currentUnits = SpringShared.GetTeamMaxUnits(myTeamID)
 		if currentUnits >= maxUnits then
 			queueNotification("MaxUnitsReached")
 		end
@@ -725,7 +725,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 		end
 	end
 
-	if #Spring.GetTeamList(myAllyTeamID) > 1 then
+	if #SpringShared.GetTeamList(myAllyTeamID) > 1 then
 		if isT2mobile[unitDefID] then
 			queueNotification("Tech2TeamReached")
 		elseif isT3mobile[unitDefID] then
@@ -766,7 +766,7 @@ function widget:UnitEnteredLos(unitID, unitTeam)
 	if isMine[udefID] then
 		-- ignore when far away
 		local x, _, z = spGetUnitPosition(unitID)
-		if #Spring.GetUnitsInCylinder(x, z, 1700, myTeamID) > 0 then
+		if #SpringShared.GetUnitsInCylinder(x, z, 1700, myTeamID) > 0 then
 			queueNotification("UnitDetected/MinesDetected")
 		end
 	end
@@ -783,7 +783,7 @@ function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 		if isCommander[unitDefID] then
 			commanders[unitID] = select(2, spGetUnitHealth(unitID))
 		end
-		local maxUnits, currentUnits = Spring.GetTeamMaxUnits(myTeamID)
+		local maxUnits, currentUnits = SpringShared.GetTeamMaxUnits(myTeamID)
 		if currentUnits >= maxUnits then
 			queueNotification("MaxUnitsReached")
 		end
@@ -795,7 +795,7 @@ function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 		if isCommander[unitDefID] then
 			commanders[unitID] = select(2, spGetUnitHealth(unitID))
 		end
-		local maxUnits, currentUnits = Spring.GetTeamMaxUnits(myTeamID)
+		local maxUnits, currentUnits = SpringShared.GetTeamMaxUnits(myTeamID)
 		if currentUnits >= maxUnits then
 			queueNotification("MaxUnitsReached")
 		end
@@ -807,7 +807,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 		return
 	end
 	if unitTeam == myTeamID then
-		local maxUnits, currentUnits = Spring.GetTeamMaxUnits(myTeamID)
+		local maxUnits, currentUnits = SpringShared.GetTeamMaxUnits(myTeamID)
 		if currentUnits >= maxUnits then
 			queueNotification("MaxUnitsReached")
 		end
@@ -833,7 +833,7 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 		-- notify when commander gets damaged
 		if commanders[unitID] then
 			local x, y, z = spGetUnitPosition(unitID)
-			local camX, camY, camZ = Spring.GetCameraPosition()
+			local camX, camY, camZ = SpringUnsynced.GetCameraPosition()
 			if not spIsUnitInView(unitID) or math.diag(camX - x, camY - y, camZ - z) > 3000 then
 				if not commandersDamages[unitID] then
 					commandersDamages[unitID] = {}
@@ -869,13 +869,13 @@ local function playNextSound()
 		local event = soundQueue[1]
 		if not muteWhenIdle or not isIdle or notification[event].tutorial then
 			if spoken and #notification[event].voiceFiles > 0 then
-				if Spring.GetGameFrame() < 30 then
+				if SpringShared.GetGameFrame() < 30 then
 					math.randomseed(tonumber(math.ceil(os.clock() * 10))) -- brute force this because early game random seems not very random.
 				end
 				local m = #notification[event].voiceFiles > 1 and mathRandom(1, #notification[event].voiceFiles) or 1
 				local mRare = #notification[event].voiceFilesRare > 1 and mathRandom(1, #notification[event].voiceFilesRare) or 1
 				if math.random() < 0.05 and notification[event].voiceFilesRare[mRare] then
-					Spring.PlaySoundFile(notification[event].voiceFilesRare[mRare], globalVolume, "ui")
+					SpringUnsynced.PlaySoundFile(notification[event].voiceFilesRare[mRare], globalVolume, "ui")
 					local duration = wavFileLengths[string.sub(notification[event].voiceFilesRare[mRare], 8)]
 					if not duration then
 						duration = ReadWAV(notification[event].voiceFilesRare[mRare])
@@ -883,7 +883,7 @@ local function playNextSound()
 					end
 					nextSoundQueued = sec + (duration or 3) + silentTime
 				elseif notification[event].voiceFiles[m] then
-					Spring.PlaySoundFile(notification[event].voiceFiles[m], globalVolume, "ui")
+					SpringUnsynced.PlaySoundFile(notification[event].voiceFiles[m], globalVolume, "ui")
 					local duration = wavFileLengths[string.sub(notification[event].voiceFiles[m], 8)]
 					if not duration then
 						duration = ReadWAV(notification[event].voiceFiles[m])
@@ -895,7 +895,7 @@ local function playNextSound()
 				end
 			end
 			if notification[event].soundEffect then
-				Spring.PlaySoundFile(soundEffectsFolder .. notification[event].soundEffect .. ".wav", globalVolume, "ui")
+				SpringUnsynced.PlaySoundFile(soundEffectsFolder .. notification[event].soundEffect .. ".wav", globalVolume, "ui")
 			end
 			if displayMessages and WG.messages and notification[event].textID and not notification[event].notext then
 				WG.messages.addMessage(I18N(notification[event].textID))
@@ -963,7 +963,7 @@ function widget:Update(dt)
 		end
 
 		if playWelcome then
-			Spring.SetConfigInt("WelcomeMessagePlayed", 1)
+			SpringUnsynced.SetConfigInt("WelcomeMessagePlayed", 1)
 			queueNotification("Welcome", true)
 			playWelcome = false
 			playedWelcome = true

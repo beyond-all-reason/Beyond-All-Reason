@@ -28,15 +28,15 @@ if gadgetHandler:IsSyncedCode() then
 		gadgetHandler:DeregisterGlobal("UnitScriptDecal")
 	end
 else -- UNSYNCED
-	local myAllyTeamID = Spring.GetLocalAllyTeamID()
-	local myPlayerID = Spring.GetLocalPlayerID()
-	local mySpec, fullview = Spring.GetSpectatingState()
-	local spIsUnitInLos = Spring.IsUnitInLos
+	local myAllyTeamID = SpringUnsynced.GetLocalAllyTeamID()
+	local myPlayerID = SpringUnsynced.GetLocalPlayerID()
+	local mySpec, fullview = SpringUnsynced.GetSpectatingState()
+	local spIsUnitInLos = SpringShared.IsUnitInLos
 
 	function gadget:PlayerChanged(playerID)
 		if playerID == myPlayerID then
-			myAllyTeamID = Spring.GetLocalAllyTeamID()
-			mySpec, fullview = Spring.GetSpectatingState()
+			myAllyTeamID = SpringUnsynced.GetLocalAllyTeamID()
+			mySpec, fullview = SpringUnsynced.GetSpectatingState()
 		end
 	end
 

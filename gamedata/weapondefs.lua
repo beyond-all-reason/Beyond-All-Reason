@@ -53,9 +53,9 @@ for _, filename in ipairs(luaFiles) do
 	setmetatable(weaponDefsEnv, { __index = system })
 	local success, defs = pcall(VFS.Include, filename, weaponDefsEnv, VFS_MODES)
 	if not success then
-		Spring.Log(section, LOG.ERROR, "Error parsing " .. filename .. ": " .. tostring(defs))
+		SpringShared.Log(section, LOG.ERROR, "Error parsing " .. filename .. ": " .. tostring(defs))
 	elseif defs == nil then
-		Spring.Log(section, LOG.ERROR, "Missing return table from: " .. filename)
+		SpringShared.Log(section, LOG.ERROR, "Missing return table from: " .. filename)
 	else
 		for weaponDefName, weaponDef in pairs(defs) do
 			if (type(weaponDefName) == "string") and (type(weaponDef) == "table") then
@@ -91,7 +91,7 @@ for name, def in pairs(weaponDefs) do
 		local modelFile = "objects3d/" .. model
 		if (not VFS.FileExists(modelFile)) and (not VFS.FileExists(modelFile .. ".s3o")) then
 			weaponDefs[name] = nil
-			Spring.Log(section, LOG.ERROR, "removed " .. name .. " weaponDef, missing model")
+			SpringShared.Log(section, LOG.ERROR, "removed " .. name .. " weaponDef, missing model")
 		end
 	end
 end

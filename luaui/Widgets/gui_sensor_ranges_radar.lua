@@ -13,9 +13,9 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spEcho = Spring.Echo
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetGameFrame = SpringShared.GetGameFrame
+local spEcho = SpringShared.Echo
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
 -------   Configurables: -------------------
 local debugmode = false
@@ -30,7 +30,7 @@ local rangecorrectionelmos = debugmode and -16 or 16 -- how much smaller they ar
 --------- End configurables ------
 
 local minRadarDistance = 500
-local gaiaTeamID = Spring.GetGaiaTeamID()
+local gaiaTeamID = SpringShared.GetGaiaTeamID()
 
 ------- GL4 NOTES -----
 -- TODO: 2025.07.02:
@@ -169,10 +169,10 @@ if debugmode then
 end
 
 -- Functions shortcuts
-local spGetSpectatingState = Spring.GetSpectatingState
-local spIsUnitAllied = Spring.IsUnitAllied
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitIsActive = Spring.GetUnitIsActive
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
+local spIsUnitAllied = SpringUnsynced.IsUnitAllied
+local spGetUnitTeam = SpringShared.GetUnitTeam
+local spGetUnitIsActive = SpringShared.GetUnitIsActive
 local GL_NOTEQUAL = GL.NOTEQUAL
 local GL_LINE_LOOP = GL.LINE_LOOP
 local GL_KEEP = 0x1E00 --GL.KEEP
@@ -180,7 +180,7 @@ local GL_REPLACE = GL.REPLACE
 
 -- Globals
 local spec, fullview = spGetSpectatingState()
-local allyTeamID = Spring.GetLocalAllyTeamID()
+local allyTeamID = SpringUnsynced.GetLocalAllyTeamID()
 
 -- find all unit types with radar in the game and place ranges into unitRange table
 local unitRange = {} -- table of unit types with their radar ranges
@@ -216,14 +216,14 @@ function widget:PlayerChanged()
 	local prevFullview = fullview
 	local myPrevAllyTeamID = allyTeamID
 	spec, fullview = spGetSpectatingState()
-	allyTeamID = Spring.GetLocalAllyTeamID()
+	allyTeamID = SpringUnsynced.GetLocalAllyTeamID()
 	if fullview ~= prevFullview or allyTeamID ~= myPrevAllyTeamID then
 		InitializeUnits()
 	end
 end
 
 function widget:Initialize()
-	if not gl.CreateShader or Spring.GetModOptions().disable_fogofwar then -- no shader support, so just remove the widget itself, especially for headless
+	if not gl.CreateShader or SpringShared.GetModOptions().disable_fogofwar then -- no shader support, so just remove the widget itself, especially for headless
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -261,7 +261,7 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason, noupload)
 		return
 	end -- display mode for specs
 
-	if Spring.GetUnitIsBeingBuilt(unitID) then
+	if SpringShared.GetUnitIsBeingBuilt(unitID) then
 		return
 	end
 
@@ -313,7 +313,7 @@ function widget:GameFrame(n)
 			local active = spGetUnitIsActive(unitID)
 			if active ~= oldActive then
 				unitList[unitID] = active
-				widget:VisibleUnitAdded(unitID, Spring.GetUnitDefID(unitID), spGetUnitTeam(unitID))
+				widget:VisibleUnitAdded(unitID, SpringShared.GetUnitDefID(unitID), spGetUnitTeam(unitID))
 			end
 		end
 	end
@@ -321,7 +321,7 @@ end
 
 function widget:DrawWorld()
 	--if spec and fullview then return end
-	if Spring.IsGUIHidden() or (circleInstanceVBO.usedElements == 0) or (opacity <= 0.01) then
+	if SpringUnsynced.IsGUIHidden() or (circleInstanceVBO.usedElements == 0) or (opacity <= 0.01) then
 		return
 	end
 

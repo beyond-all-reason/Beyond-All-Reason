@@ -19,10 +19,10 @@ end
 local tableInsert = table.insert
 
 -- Localized Spring API for performance
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetGameFrame = Spring.GetGameFrame
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spEcho = Spring.Echo
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGiveOrderToUnit = SpringSynced.GiveOrderToUnit
+local spEcho = SpringShared.Echo
 
 local math_sqrt = math.sqrt
 
@@ -39,7 +39,7 @@ function widget:GameStart()
 end
 
 function widget:PlayerChanged()
-	if Spring.GetSpectatingState() and spGetGameFrame() > 0 then
+	if SpringUnsynced.GetSpectatingState() and spGetGameFrame() > 0 then
 		widgetHandler:RemoveWidget()
 	end
 end
@@ -73,7 +73,7 @@ local function releaseHandler(_, _, args)
 end
 
 function widget:Initialize()
-	if Spring.IsReplay() or spGetGameFrame() > 0 then
+	if SpringUnsynced.IsReplay() or spGetGameFrame() > 0 then
 		widget:PlayerChanged()
 	end
 
@@ -124,7 +124,7 @@ local function GetUnitOrFeaturePosition(id)
 	if id < Game.maxUnits then
 		return spGetUnitPosition(id)
 	else
-		return Spring.GetFeaturePosition(id - Game.maxUnits)
+		return SpringShared.GetFeaturePosition(id - Game.maxUnits)
 	end
 end
 
@@ -160,14 +160,14 @@ function widget:CommandNotify(id, params, options)
 		opt = opt + CMD.OPT_SHIFT
 
 		if modifiers.prepend_queue then
-			Spring.GiveOrder(CMD.INSERT, { prependPos, id, opt, unpack(params) }, { "alt" })
+			SpringUnsynced.GiveOrder(CMD.INSERT, { prependPos, id, opt, unpack(params) }, { "alt" })
 
 			prependPos = prependPos + 1
 
 			return true
 		end
 	else
-		Spring.GiveOrder(CMD.INSERT, { 0, id, opt, unpack(params) }, { "alt" })
+		SpringUnsynced.GiveOrder(CMD.INSERT, { 0, id, opt, unpack(params) }, { "alt" })
 
 		return true
 	end
@@ -179,10 +179,10 @@ function widget:CommandNotify(id, params, options)
 		return false
 	end
 
-	local units = Spring.GetSelectedUnits()
+	local units = SpringUnsynced.GetSelectedUnits()
 	for i = 1, #units do
 		local unit_id = units[i]
-		local commands = Spring.GetUnitCommands(unit_id, 100)
+		local commands = SpringShared.GetUnitCommands(unit_id, 100)
 		local px, py, pz = spGetUnitPosition(unit_id)
 		local min_dlen = 1000000
 		local insert_pos = 0
@@ -214,7 +214,7 @@ function widget:CommandNotify(id, params, options)
 
 	-- When we are editing the build order we want to keep same active command after unset by engine
 	if id < 0 then
-		Spring.SetActiveCommand(Spring.GetCmdDescIndex(id), 1, true, false, options.alt, options.ctrl, false, false)
+		SpringUnsynced.SetActiveCommand(SpringUnsynced.GetCmdDescIndex(id), 1, true, false, options.alt, options.ctrl, false, false)
 	end
 
 	return true

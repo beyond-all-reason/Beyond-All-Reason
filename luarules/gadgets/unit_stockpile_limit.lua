@@ -21,8 +21,8 @@ if gadgetHandler:IsSyncedCode() then
 	local StockpileDesiredTarget = {}
 	local unitStockpileLimit = {}
 
-	local GetUnitStockpile = Spring.GetUnitStockpile
-	local GiveOrderToUnit = Spring.GiveOrderToUnit
+	local GetUnitStockpile = SpringShared.GetUnitStockpile
+	local GiveOrderToUnit = SpringSynced.GiveOrderToUnit
 	local mathClamp = math.clamp
 
 	for udid, ud in pairs(UnitDefs) do
@@ -132,9 +132,9 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:Initialize()
 		gadgetHandler:RegisterAllowCommand(CMD_STOCKPILE)
-		local units = Spring.GetAllUnits()
+		local units = SpringShared.GetAllUnits()
 		for i = 1, #units do
-			local unitDefID = Spring.GetUnitDefID(units[i])
+			local unitDefID = SpringShared.GetUnitDefID(units[i])
 			gadget:UnitCreated(units[i], unitDefID)
 		end
 	end

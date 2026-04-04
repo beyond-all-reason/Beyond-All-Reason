@@ -22,7 +22,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitCreated(uid, udid)
 		if isNano[udid] then
-			Spring.SetUnitPosErrorParams(udid, 0, 0, 0, 0, 0, 0, math.huge)
+			SpringSynced.SetUnitPosErrorParams(udid, 0, 0, 0, 0, 0, 0, math.huge)
 		end
 	end
 end

@@ -21,11 +21,11 @@ local mathMax = math.max
 local mathMin = math.min
 
 -- Localized Spring API for performance
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetGameFrame = Spring.GetGameFrame
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spGetViewGeometry = Spring.GetViewGeometry
-local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
+local spGetSelectedUnits = SpringUnsynced.GetSelectedUnits
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGiveOrderToUnit = SpringSynced.GiveOrderToUnit
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
+local spGetSelectedUnitsSorted = SpringUnsynced.GetSelectedUnitsSorted
 
 --Changelog
 --1.5: added repeat icon and bindable keybind actions to activate
@@ -129,9 +129,9 @@ local SortQueueToUnits
 local CalcDrawCoords
 local UiUnit, UiElement
 
-local spEcho = Spring.Echo
-local spGetModKeyState = Spring.GetModKeyState
-local lastGameSeconds = Spring.GetGameSeconds()
+local spEcho = SpringShared.Echo
+local spGetModKeyState = SpringUnsynced.GetModKeyState
+local lastGameSeconds = SpringShared.GetGameSeconds()
 
 local font, gameStarted, selUnits
 
@@ -193,7 +193,7 @@ function widget:ViewResize()
 end
 
 function maybeRemoveSelf()
-	if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
+	if SpringUnsynced.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
 		widgetHandler:RemoveWidget()
 	end
 end
@@ -279,7 +279,7 @@ function ClearFactoryQueues()
 	for udidFac, uTable in pairs(udTable) do
 		if isFactory[udidFac] then
 			for _, uid in ipairs(uTable) do
-				local queue = Spring.GetRealBuildQueue(uid)
+				local queue = SpringShared.GetRealBuildQueue(uid)
 				if queue ~= nil then
 					for udid, buildPair in ipairs(queue) do
 						local udid, count = next(buildPair, nil)
@@ -300,7 +300,7 @@ function getSingleFactory()
 		return nil, nil
 	end
 
-	local unitDefID = Spring.GetUnitDefID(selUnits[1])
+	local unitDefID = SpringShared.GetUnitDefID(selUnits[1])
 	if not isFactory[unitDefID] then
 		return nil, nil
 	else
@@ -310,7 +310,7 @@ function getSingleFactory()
 end
 
 function saveQueue(unitId, unitDef, groupNo)
-	local unitQ = Spring.GetFactoryCommands(unitId, -1)
+	local unitQ = SpringShared.GetFactoryCommands(unitId, -1)
 	if #unitQ <= 0 then
 		--queue is empty -> signal to delete preset
 		savedQueues[curModId][unitDef.id][groupNo] = nil
@@ -325,10 +325,10 @@ function saveQueue(unitId, unitDef, groupNo)
 	end
 
 	savedQueues[curModId][unitDef.id][groupNo] = unitQ
-	savedQueues[curModId][unitDef.id][groupNo][facRepeatIdx] = select(4, Spring.GetUnitStates(unitId, false, true)) -- 4=repeat
+	savedQueues[curModId][unitDef.id][groupNo][facRepeatIdx] = select(4, SpringShared.GetUnitStates(unitId, false, true)) -- 4=repeat
 
 	modifiedGroup = groupNo
-	modifiedGroupTime = Spring.GetGameSeconds()
+	modifiedGroupTime = SpringShared.GetGameSeconds()
 	modifiedSaved = true
 
 	--force box coords table refresh
@@ -346,7 +346,7 @@ function loadQueue(unitId, unitDef, groupNo)
 	if queue ~= nil and #queue > 0 then
 		ClearFactoryQueues()
 		modifiedGroup = groupNo
-		modifiedGroupTime = Spring.GetGameSeconds()
+		modifiedGroupTime = SpringShared.GetGameSeconds()
 		modifiedSaved = false
 
 		--set factory to repeat on/off
@@ -392,8 +392,8 @@ local function factoryPresetRender(_, _, _, data)
 end
 
 function CalcDrawCoords(unitId, heightAll)
-	local xw, yw, zw = Spring.GetUnitViewPosition(unitId)
-	local x, y, _ = Spring.WorldToScreenCoords(xw, yw, zw)
+	local xw, yw, zw = SpringUnsynced.GetUnitViewPosition(unitId)
+	local x, y, _ = SpringUnsynced.WorldToScreenCoords(xw, yw, zw)
 
 	if x + boxWidth - 1 > vsx then
 		x = x - boxWidth
@@ -458,7 +458,7 @@ function DrawBoxGroup(x, y, yOffset, unitDef, selUnit, alpha, groupNo, queue)
 	local units = SortQueueToUnits(queue)
 	--end
 	--Draw "loaded" border
-	if modifiedGroup == groupNo and modifiedGroupTime > Spring.GetGameSeconds() - loadedBorderDisplayTime then
+	if modifiedGroup == groupNo and modifiedGroupTime > SpringShared.GetGameSeconds() - loadedBorderDisplayTime then
 		if modifiedSaved == true then
 			gl.Color(1, 0, 0, mathMin(alpha, 1.0))
 		else
@@ -515,7 +515,7 @@ function DrawBoxGroup(x, y, yOffset, unitDef, selUnit, alpha, groupNo, queue)
 	end
 
 	--draw "loaded" text
-	if modifiedGroup == groupNo and modifiedGroupTime > Spring.GetGameSeconds() - loadedBorderDisplayTime then
+	if modifiedGroup == groupNo and modifiedGroupTime > SpringShared.GetGameSeconds() - loadedBorderDisplayTime then
 		local lText = "Loaded"
 		if modifiedSaved == true then
 			lText = "Saved"
@@ -592,7 +592,7 @@ function DrawBoxes()
 end
 
 function widget:Initialize()
-	if Spring.IsReplay() or spGetGameFrame() > 0 then
+	if SpringUnsynced.IsReplay() or spGetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
 	widget:ViewResize()
@@ -605,7 +605,7 @@ function widget:Initialize()
 end
 
 function widget:Update()
-	local now = Spring.GetGameSeconds()
+	local now = SpringShared.GetGameSeconds()
 	local timediff = now - lastGameSeconds
 
 	if renderPresets then

@@ -68,7 +68,7 @@ local function InitDrawPrimitiveAtUnit(shaderConfig, DPATname)
 	DrawPrimitiveAtUnitShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or DrawPrimitiveAtUnitShader
 
 	if not DrawPrimitiveAtUnitShader then
-		Spring.Echo("Failed to compile shader for ", DPATname)
+		SpringShared.Echo("Failed to compile shader for ", DPATname)
 		return nil
 	end
 
@@ -86,7 +86,7 @@ local function InitDrawPrimitiveAtUnit(shaderConfig, DPATname)
 		5 -- unitIDattribID (instData)
 	)
 	if DrawPrimitiveAtUnitVBO == nil then
-		Spring.Echo("Failed to create DrawPrimitiveAtUnitVBO for ", DPATname)
+		SpringShared.Echo("Failed to create DrawPrimitiveAtUnitVBO for ", DPATname)
 		return nil
 	end
 

@@ -48,7 +48,7 @@ local categoryGroupMapping = {
 for uname, ugrid in pairs(unitGrids) do
 	local builder = UnitDefNames[uname]
 	if not builder then
-		Spring.Echo("gridmenu config: no unitdefname found for: " .. uname)
+		SpringShared.Echo("gridmenu config: no unitdefname found for: " .. uname)
 	else
 		local builderId = builder.id
 
@@ -90,7 +90,7 @@ end
 for uname, ugrid in pairs(labGrids) do
 	local udef = UnitDefNames[uname]
 	if not udef then
-		Spring.Echo("gridmenu config: no unitdefname found for: " .. uname)
+		SpringShared.Echo("gridmenu config: no unitdefname found for: " .. uname)
 	else
 		local uid = udef.id
 
@@ -124,7 +124,7 @@ end
 for _, unit in ipairs(priorityUnits) do
 	local prioritDef = UnitDefNames[unit]
 	if not prioritDef then
-		Spring.Echo("gridmenu config: no unitdefname found for: " .. unit)
+		SpringShared.Echo("gridmenu config: no unitdefname found for: " .. unit)
 	else
 		local priorityId = prioritDef.id
 		homePriority[priorityId] = true

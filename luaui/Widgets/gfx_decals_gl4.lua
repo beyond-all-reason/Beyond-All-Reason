@@ -20,8 +20,8 @@ local mathRandom = math.random
 local round = math.round
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spEcho = Spring.Echo
+local spGetGameFrame = SpringShared.GetGameFrame
+local spEcho = SpringShared.Echo
 
 -- Notes and TODO
 -- yes these are geometry shader decals
@@ -135,7 +135,7 @@ local hasBadCulling = false -- AMD+Linux combo
 
 --------------------------- Localization for faster access -------------------
 
-local spGetGroundHeight = Spring.GetGroundHeight
+local spGetGroundHeight = SpringShared.GetGroundHeight
 local abs = math.abs
 
 local glTexture = gl.Texture
@@ -427,7 +427,7 @@ local function DrawSmoothness()
 	gl.Color(1, 1, 1, 1)
 	for areaHash, areaInfo in pairs(areaDecals) do
 		--spEcho(areaHash, areaInfo.x, areaInfo.y, areaInfo.z)
-		if Spring.IsSphereInView(areaInfo.x, areaInfo.y, areaInfo.z, 128) then
+		if SpringUnsynced.IsSphereInView(areaInfo.x, areaInfo.y, areaInfo.z, 128) then
 			gl.PushMatrix()
 			local text = string.format("Smoothness = %d", areaInfo.smoothness)
 			local w = gl.GetTextWidth(text) * 16.0
@@ -488,7 +488,7 @@ local function AddDecal(decaltexturename, posx, posz, rotation, width, length, h
 		p, q, s, t = uvs[1], uvs[2], uvs[3], uvs[4]
 	end
 
-	local posy = Spring.GetGroundHeight(posx, posz)
+	local posy = SpringShared.GetGroundHeight(posx, posz)
 	--spEcho (unitDefID,decalInfo.texfile, width, length, alpha)
 	-- match the vertex shader on lifetime:
 	-- 	float currentAlpha = min(1.0, (lifetonow / FADEINTIME))  * alphastart - lifetonow* alphadecay;
@@ -545,7 +545,7 @@ local function DrawDecals()
 	--local alt, ctrl = Spring.GetModKeyState()
 	if decalVBO.usedElements > 0 or decalLargeVBO.usedElements > 0 or decalExtraLargeVBO.usedElements > 0 then
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- the default mode
-		local disticon = 27 * Spring.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
+		local disticon = 27 * SpringUnsynced.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		--spEcho(decalVBO.usedElements,decalLargeVBO.usedElements)
 		if hasBadCulling then
 			glCulling(false)
@@ -718,7 +718,7 @@ do
 	end
 end
 
-local globalDamageMult = Spring.GetModOptions().multiplier_weapondamage or 1
+local globalDamageMult = SpringShared.GetModOptions().multiplier_weapondamage or 1
 local damageCoefficient = (1 / globalDamageMult + 0.25 * globalDamageMult - 0.25) -- for sane values with high modifiers
 
 local weaponConfig = {}
@@ -1805,7 +1805,7 @@ call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x000100
 --
 local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, heading)
 	--spEcho("Widgetside UnitScriptDecal", unitID, unitDefID, whichDecal, posx,posz, heading)
-	if Spring.ValidUnitID(unitID) and Spring.GetUnitIsDead(unitID) == false and UnitScriptDecals[unitDefID] and UnitScriptDecals[unitDefID][whichDecal] then
+	if SpringShared.ValidUnitID(unitID) and SpringShared.GetUnitIsDead(unitID) == false and UnitScriptDecals[unitDefID] and UnitScriptDecals[unitDefID][whichDecal] then
 		local decalTable = UnitScriptDecals[unitDefID][whichDecal]
 
 		-- So order of transformations is, get heading, rotate that into world space , heading 0 is +Z direction
@@ -1845,7 +1845,7 @@ local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, headin
 
 			decalCache[3] = decalTable.offsetrot + rotationradians
 			decalCache[13] = worldposx
-			decalCache[14] = Spring.GetGroundHeight(posx, posz)
+			decalCache[14] = SpringShared.GetGroundHeight(posx, posz)
 			decalCache[15] = worldposz
 
 			decalCache[10] = decalTable.alphadecay / (lifeTimeMult * lifeTimeMultMult)
@@ -1950,7 +1950,7 @@ function widget:Initialize()
 				if step == 13 then
 					-- Compact: reconstruct full 20-float VBO entry
 					local posx, posz = entry[11], entry[12]
-					local posy = Spring.GetGroundHeight(posx, posz) or 0
+					local posy = SpringShared.GetGroundHeight(posx, posz) or 0
 					vboEntry = {
 						entry[1],
 						entry[2],

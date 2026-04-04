@@ -33,6 +33,6 @@ end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if isFactory[unitDefID] then
-		Spring.GiveOrderToUnit(unitID, CMD_FACTORY_GUARD, { 1 }, 0)
+		SpringSynced.GiveOrderToUnit(unitID, CMD_FACTORY_GUARD, { 1 }, 0)
 	end
 end

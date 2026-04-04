@@ -18,10 +18,10 @@ local mathAbs = math.abs
 
 include("keysym.h.lua")
 
-local spGetActiveCommand = Spring.GetActiveCommand
-local spGetMouseState = Spring.GetMouseState
-local spTraceScreenRay = Spring.TraceScreenRay
-local spPos2BuildPos = Spring.Pos2BuildPos
+local spGetActiveCommand = SpringUnsynced.GetActiveCommand
+local spGetMouseState = SpringUnsynced.GetMouseState
+local spTraceScreenRay = SpringUnsynced.TraceScreenRay
+local spPos2BuildPos = SpringShared.Pos2BuildPos
 
 local mexConstructors
 local geoConstructors
@@ -39,7 +39,7 @@ local metalMap = false
 local metalSpots = {}
 local geoSpots = {}
 
-local isPregame = Spring.GetGameFrame() == 0 and not Spring.GetSpectatingState()
+local isPregame = SpringShared.GetGameFrame() == 0 and not SpringUnsynced.GetSpectatingState()
 
 local function MakeLine(x1, y1, z1, x2, y2, z2)
 	gl.Vertex(x1, y1, z1)
@@ -89,7 +89,7 @@ end
 ---@param uid table unitDefID
 ---@param pos table position in format { x, y, z }
 local function clashesWithBuildQueue(uid, pos)
-	local units = Spring.GetSelectedUnits()
+	local units = SpringUnsynced.GetSelectedUnits()
 
 	-- local building test functions taken from pregame_build
 	local function GetBuildingDimensions(uDefID, facing)
@@ -111,7 +111,7 @@ local function clashesWithBuildQueue(uid, pos)
 		return mathAbs(buildData1[2] - buildData2[2]) < w1 + w2 and mathAbs(buildData1[4] - buildData2[4]) < h1 + h2
 	end
 
-	local buildFacing = Spring.GetBuildFacing()
+	local buildFacing = SpringUnsynced.GetBuildFacing()
 	local newBuildData = { uid, pos.x, pos.y, pos.z, buildFacing }
 	if isPregame then
 		local queue = WG["pregame-build"].getBuildQueue()
@@ -122,7 +122,7 @@ local function clashesWithBuildQueue(uid, pos)
 		end
 	else
 		for i = 1, #units do
-			local queue = Spring.GetUnitCommands(units[i], 100)
+			local queue = SpringShared.GetUnitCommands(units[i], 100)
 			if queue then
 				for j = 1, #queue do
 					local command = queue[j]
@@ -183,7 +183,7 @@ function widget:Update()
 	-- Attempt to get position of command
 	local buildingId = -activeCmdID
 	local mx, my, mb, mmb, mrb = spGetMouseState()
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	local alt, ctrl, meta, shift = SpringUnsynced.GetModKeyState()
 	local _, pos = spTraceScreenRay(mx, my, true)
 	if not pos or not pos[1] then
 		clear()
@@ -262,7 +262,7 @@ local endShift = false
 local function handleBuildMenu(shift)
 	endShift = shift
 	if not shift then
-		Spring.SetActiveCommand(0)
+		SpringUnsynced.SetActiveCommand(0)
 	end
 	local grid = WG.gridmenu
 	if not grid or not grid.clearCategory or not grid.getAlwaysReturn or not grid.setCurrentCategory then
@@ -282,8 +282,8 @@ function widget:MousePress(x, y, button)
 	end
 
 	if button == 1 and buildCmd and buildCmd[1] then
-		local alt, ctrl, meta, shift = Spring.GetModKeyState()
-		shift = Spring.GetInvertQueueKey() and not shift or shift
+		local alt, ctrl, meta, shift = SpringUnsynced.GetModKeyState()
+		shift = SpringUnsynced.GetInvertQueueKey() and not shift or shift
 		if selectedMex then
 			WG.resource_spot_builder.ApplyPreviewCmds(buildCmd, mexConstructors, shift)
 			handleBuildMenu(shift)
@@ -300,7 +300,7 @@ end
 -- I really hate that I have to do this, but something is hardcoding shift behavior with mouse clicks, and I need to override it
 function widget:KeyRelease(code)
 	if endShift and (code == KEYSYMS.LSHIFT or code == KEYSYMS.RSHIFT) then
-		Spring.SetActiveCommand(0)
+		SpringUnsynced.SetActiveCommand(0)
 		endShift = false
 	end
 end

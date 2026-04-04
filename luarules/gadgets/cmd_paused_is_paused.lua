@@ -1,4 +1,4 @@
-if Spring.GetModOptions().allowpausegameplay or Utilities.Gametype.IsSinglePlayer() then
+if SpringShared.GetModOptions().allowpausegameplay or Utilities.Gametype.IsSinglePlayer() then
 	return
 end
 
@@ -27,7 +27,7 @@ function gadget:GamePaused(playerID, isPaused)
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-	if paused and not Spring.IsCheatingEnabled() then
+	if paused and not SpringShared.IsCheatingEnabled() then
 		return false
 	else
 		return true
