@@ -17,7 +17,7 @@ if modOptions.deathmode ~= "territorial_domination" or isSynced then
 	return false
 end
 
-if Spring.Utilities.Gametype.IsRaptors() or Spring.Utilities.Gametype.IsScavengers() then
+if Utilities.Gametype.IsRaptors() or Utilities.Gametype.IsScavengers() then
 	return false
 end
 

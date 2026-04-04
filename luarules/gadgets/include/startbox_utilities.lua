@@ -1,7 +1,7 @@
 local function WrappedInclude(x)
 	local env = getfenv()
 	local prevGTC = env.GetTeamCount -- typically nil but also works otherwise
-	env.GetTeamCount = Spring.Utilities.GetAllyTeamCount -- for legacy mapside boxes
+	env.GetTeamCount = Utilities.GetAllyTeamCount -- for legacy mapside boxes
 	local ret = VFS.Include(x, env)
 	env.GetTeamCount = prevGTC
 	return ret

@@ -693,9 +693,9 @@ local function buildMetricsEnabled()
 			metricEnabled.id = index
 			metricsEnabled[index] = metricEnabled
 			local i18nTitleKey = "ui.spectator_hud." .. metricEnabled.key .. "_title"
-			metricEnabled.title = Spring.I18N(i18nTitleKey)
+			metricEnabled.title = I18N(i18nTitleKey)
 			local i18nTooltipKey = "ui.spectator_hud." .. metricEnabled.key .. "_tooltip"
-			metricEnabled.tooltip = Spring.I18N(i18nTooltipKey)
+			metricEnabled.tooltip = I18N(i18nTooltipKey)
 			index = index + 1
 		end
 	end

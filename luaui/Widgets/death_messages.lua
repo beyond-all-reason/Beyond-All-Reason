@@ -65,7 +65,7 @@ local function notifyTeamDeath(teamID)
 	else
 		local playerNames = table.concat(playerNameList, ", ")
 		local n = math.random(#deathMessageKeys)
-		local message = Spring.I18N("tips.deathMessages.team." .. deathMessageKeys[n], { playerList = playerNames })
+		local message = I18N("tips.deathMessages.team." .. deathMessageKeys[n], { playerList = playerNames })
 
 		Spring.SendMessage(message)
 	end

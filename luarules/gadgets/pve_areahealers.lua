@@ -16,9 +16,9 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-if Spring.Utilities.Gametype.IsRaptors() then
+if Utilities.Gametype.IsRaptors() then
 	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Raptor Defense Spawner Activated!")
-elseif Spring.Utilities.Gametype.IsScavengers() then
+elseif Utilities.Gametype.IsScavengers() then
 	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Scav Defense Spawner Activated!")
 else
 	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Defense Spawner Deactivated!")
@@ -37,11 +37,11 @@ local mathCeil = math.ceil
 
 local unitTeams = {}
 
-local pveTeamID = Spring.Utilities.GetRaptorTeamID() or Spring.Utilities.GetScavTeamID()
+local pveTeamID = Utilities.GetRaptorTeamID() or Utilities.GetScavTeamID()
 
 local aliveHealers = {}
 local healersTable = {}
-if Spring.Utilities.Gametype.IsRaptors() then
+if Utilities.Gametype.IsRaptors() then
 	healersTable[UnitDefNames.raptor_land_swarmer_heal_t1_v1.id] = {
 		healingpower = UnitDefNames.raptor_land_swarmer_heal_t1_v1.repairSpeed,
 		healingrange = UnitDefNames.raptor_land_swarmer_heal_t1_v1.buildDistance * 2,

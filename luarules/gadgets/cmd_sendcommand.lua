@@ -40,7 +40,7 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 		local playername, _, spec = Spring.GetPlayerInfo(playerID)
-		local accountID = Spring.Utilities.GetAccountID(playerID)
+		local accountID = Utilities.GetAccountID(playerID)
 		local authorized = false
 		if _G.permissions.cmd[accountID] then
 			authorized = true
@@ -61,7 +61,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 else -- UNSYNCED
 	local myPlayerID = Spring.GetLocalPlayerID()
-	local accountID = Spring.Utilities.GetAccountID(myPlayerID)
+	local accountID = Utilities.GetAccountID(myPlayerID)
 	local authorized = SYNCED.permissions.cmd[accountID]
 
 	local function execCmd(_, playername, cmd)

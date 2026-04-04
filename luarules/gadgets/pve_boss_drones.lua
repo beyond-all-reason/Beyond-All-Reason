@@ -1,4 +1,4 @@
-if not (Spring.Utilities.Gametype.IsRaptors() or Spring.Utilities.Gametype.IsScavengers()) then
+if not (Utilities.Gametype.IsRaptors() or Utilities.Gametype.IsScavengers()) then
 	Spring.Echo("REMOVED PVE BOSS DRONES")
 	return false
 end
@@ -21,7 +21,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local pveTeamID = Spring.Utilities.GetScavTeamID() or Spring.Utilities.GetRaptorTeamID()
+local pveTeamID = Utilities.GetScavTeamID() or Utilities.GetRaptorTeamID()
 local raptorQueenCount = Spring.GetModOptions().raptor_queen_count
 
 local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
