@@ -32,7 +32,7 @@ function gadget:GetInfo()
 	}
 end
 
-local debugEcho = false
+local debugEcho = true
 
 --------------------------------------------------------------------------------
 -- Localized functions
@@ -69,6 +69,7 @@ local mathPi     = math.pi
 local LuaShader = gl.LuaShader
 local pushElementInstance  = gl.InstanceVBOTable.pushElementInstance
 local popElementInstance   = gl.InstanceVBOTable.popElementInstance
+local uploadAllElements    = gl.InstanceVBOTable.uploadAllElements
 
 --------------------------------------------------------------------------------
 -- Priority levels for particle budgeting
@@ -497,6 +498,10 @@ local cachedCamX, cachedCamY, cachedCamZ = 0, 0, 0
 local cachedPreset = QUALITY_PRESETS[currentPreset]
 local fastForward = false
 
+-- Adaptive batch upload: defer individual GPU uploads when ops/draw ratio is high
+local batchUploadMode = false  -- current mode: true = defer uploads, false = immediate
+local pendingOps = 0           -- ops since last DrawWorld
+
 -- Pre-draw callbacks (called before DrawParticles, for consumer buffer flushing)
 local preDrawCallbacks = {}
 
@@ -609,7 +614,8 @@ local function spawnParticle(px, py, pz, vx, vy, vz, size, particleType, lifetim
 
 	nextParticleID = nextParticleID + 1
 	local particleID = nextParticleID
-	pushElementInstance(particleVBO, particleData, particleID, true, false)
+	pushElementInstance(particleVBO, particleData, particleID, true, batchUploadMode)
+	pendingOps = pendingOps + 1
 
 	local queue = particleRemoveQueue[deathFrame]
 	if not queue then
@@ -739,8 +745,10 @@ end
 local function removeExpiredParticles(gameFrame)
 	local queue = particleRemoveQueue[gameFrame]
 	if not queue then return end
+	local noUpload = batchUploadMode
 	for i = 1, #queue do
-		popElementInstance(particleVBO, queue[i])
+		popElementInstance(particleVBO, queue[i], noUpload)
+		pendingOps = pendingOps + 1
 	end
 	particleRemoveQueue[gameFrame] = nil
 end
@@ -1196,6 +1204,11 @@ function gadget:GameFrame(n)
 	if cachedFpsInterval > interval then
 		interval = cachedFpsInterval
 	end
+	-- Scale update interval with game speed during fast-forward
+	if fastForward then
+		local ffInterval = mathCeil((internalSpeed or userSpeed) * 0.5)
+		if ffInterval > interval then interval = ffInterval end
+	end
 	cachedUpdateInterval = interval
 
 	-- Call per-frame callbacks (lightweight periodic work)
@@ -1259,6 +1272,20 @@ function gadget:DrawWorld()
 				end
 			end
 		end
+	end
+
+	-- Flush deferred GPU uploads and decide batch mode for next interval
+	if particleVBO then
+		if particleVBO.dirty then
+			uploadAllElements(particleVBO)
+		end
+		-- Adaptive: batch if ops since last draw > 3% of used elements (min 40)
+		-- At 1x ~60fps: ~20 ops/draw vs 5000 elements → individual (20 < 150)
+		-- At 5x ~60fps: ~150 ops/draw → borderline, switches to batch
+		-- At 10x ~60fps: ~500 ops/draw → batch (500 > 150)
+		local threshold = mathMax(40, (particleVBO.usedElements or 0) * 0.03)
+		batchUploadMode = pendingOps > threshold
+		pendingOps = 0
 	end
 
 	DrawParticles()
