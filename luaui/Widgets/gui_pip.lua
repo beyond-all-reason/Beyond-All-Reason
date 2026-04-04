@@ -131,8 +131,10 @@ config = {
 	healthDarkenMax = 0.2,  -- Maximum darkening for damaged units on GL4 icons (0-1, 0.18 = 18%)
 	activityFocusIgnoreSpectators = true,  -- Don't trigger camera focus for spectator map markers
 	activityFocusHideForSpectators = true,  -- Hide the activity focus button when spectating (default: disabled for spectators)
-	activityFocusDuration = 1.8,  -- Seconds to hold focus on a marker before restoring camera
-	activityFocusZoom = 0.25,  -- Zoom level when focusing on a marker (higher = more zoomed in)
+	activityFocusDuration = 0.25,  -- Seconds to hold focus on a marker before restoring camera
+	activityFocusZoomInTime = 1.75,  -- Seconds for the zoom-in transition (smoothstep ease-in-out)
+	activityFocusZoomOutTime = 1.3,  -- Seconds for the zoom-out transition (smoothstep ease-in-out)
+	activityFocusZoom = 0.15,  -- Zoom level when focusing on a marker (higher = more zoomed in)
 	activityFocusShowMinimap = true,  -- Temporarily show pip-minimap overlay while focused on a map marker
 	activityFocusBlockIgnoredPlayers = true,  -- Completely block activity focus for players on your ignore list (WG.ignoredAccounts)
 	activityFocusCooldown = 3,  -- Minimum seconds between focus triggers from the same player
@@ -11525,17 +11527,17 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 						iconHalf = cappedIconRadius * (iconInfo and iconInfo.size or 0.5)
 					end
 					-- Rotate the icon center to match where the shader placed it
+					-- Radar wobble must be applied BEFORE rotation to match shader order
+					if inRadar then
+						local phase = (uID * 0.37) % 6.2832
+						local wobbleAmp = cappedIconRadius * 0.3
+						cx = cx + math.sin(gameTime * 3.0 + phase) * wobbleAmp
+						cy = cy + math.cos(gameTime * 2.7 + phase * 1.3) * wobbleAmp
+					end
 					if isRotated then
 						local dx, dy = cx - rotCX, cy - rotCY
 						cx = rotCX + dx * rotCos - dy * rotSin
 						cy = rotCY + dx * rotSin + dy * rotCos
-					end
-					-- Apply radar wobble to match the icon's shader wobble
-					if inRadar then
-						local phase = (uID * 0.37) % 6.2832
-						local wobbleAmp = iconHalf * 0.3
-						cx = cx + math.sin(gameTime * 3.0 + phase) * wobbleAmp
-						cy = cy + math.cos(gameTime * 2.7 + phase * 1.3) * wobbleAmp
 					end
 					-- Draw nametag above icon (always, including radar blips)
 					local entry = tID and comNametagCache[tID]
@@ -17037,19 +17039,8 @@ function widget:Update(dt)
 		end
 	end
 
-	-- Activity focus: restore camera after hold duration expires
-	if miscState.activityFocusActive and miscState.activityFocusEnabled then
-		local elapsed = os.clock() - miscState.activityFocusTime
-		if elapsed >= config.activityFocusDuration then
-			-- Restore saved camera position
-			if miscState.activityFocusSavedWcx then
-				cameraState.targetWcx = miscState.activityFocusSavedWcx
-				cameraState.targetWcz = miscState.activityFocusSavedWcz
-				cameraState.targetZoom = miscState.activityFocusSavedZoom
-			end
-			miscState.activityFocusActive = false
-		end
-	end
+	-- Activity focus: duration check moved to the re-assertion block below
+	-- (unified 3-phase bell curve: zoom-in, hold, zoom-out)
 
 	-- TV mode: detect effective game-over (only one allyteam alive) and trigger zoom-out
 	if miscState.tvEnabled and pipTV.director.effectiveGameOver and not miscState.isGameOver then
@@ -17333,18 +17324,97 @@ function widget:Update(dt)
 		miscState.isSwitchingViews = false
 	end
 
-	-- Activity focus: re-assert target position each frame while active
-	-- Edge/center clamping at low zoom levels overwrites targetWcx/targetWcz;
-	-- re-applying from stored marker coords ensures the camera reaches the marker
-	-- Cancel if the user is actively panning or zooming the PIP
+	-- Activity focus: bell-curve zoom animation (smoothstep ease-in-out)
+	-- 3 phases: zoom-in → hold → zoom-out, driven by elapsed time
+	-- Directly drives wcx/wcz/zoom (actual camera values) instead of just targets,
+	-- bypassing normal camera smoothing and edge clamping which would double-smooth
+	-- or cause axes to desync when one hits a map edge before the other.
 	if miscState.activityFocusActive and miscState.activityFocusTargetX then
 		if interactionState.arePanning or interactionState.areIncreasingZoom or interactionState.areDecreasingZoom then
 			-- User is interacting — cancel focus and don't restore saved camera
 			miscState.activityFocusActive = false
 		else
-			cameraState.targetWcx = miscState.activityFocusTargetX
-			cameraState.targetWcz = miscState.activityFocusTargetZ
-			cameraState.targetZoom = math.max(config.activityFocusZoom, GetEffectiveZoomMin())
+			local elapsed = os.clock() - miscState.activityFocusTime
+			local zoomInTime = config.activityFocusZoomInTime
+			local zoomOutTime = config.activityFocusZoomOutTime
+			local holdTime = config.activityFocusDuration
+			local totalTime = zoomInTime + holdTime + zoomOutTime
+			local focusZoom = math.max(config.activityFocusZoom, GetEffectiveZoomMin())
+			local savedZoom = miscState.activityFocusSavedZoom or cameraState.zoom
+			local savedWcx = miscState.activityFocusSavedWcx or cameraState.wcx
+			local savedWcz = miscState.activityFocusSavedWcz or cameraState.wcz
+
+			local newWcx, newWcz, newZoom
+			if elapsed >= totalTime then
+				-- Animation complete — restore saved camera and deactivate
+				newWcx = savedWcx
+				newWcz = savedWcz
+				newZoom = savedZoom
+				miscState.activityFocusActive = false
+			elseif elapsed < zoomInTime then
+				-- Phase 1: Zoom in (double smootherstep: very pronounced ease-in-out)
+				local t = elapsed / zoomInTime
+				local s = t * t * t * (t * (t * 6 - 15) + 10)
+				local ease = s * s * s * (s * (s * 6 - 15) + 10)
+				newWcx = savedWcx + (miscState.activityFocusTargetX - savedWcx) * ease
+				newWcz = savedWcz + (miscState.activityFocusTargetZ - savedWcz) * ease
+				newZoom = savedZoom + (focusZoom - savedZoom) * ease
+			elseif elapsed < zoomInTime + holdTime then
+				-- Phase 2: Hold at focus position and zoom
+				newWcx = miscState.activityFocusTargetX
+				newWcz = miscState.activityFocusTargetZ
+				newZoom = focusZoom
+			else
+				-- Phase 3: Zoom out (double smootherstep: very pronounced ease-in-out)
+				local t = (elapsed - zoomInTime - holdTime) / zoomOutTime
+				local s = t * t * t * (t * (t * 6 - 15) + 10)
+				local ease = s * s * s * (s * (s * 6 - 15) + 10)
+				newWcx = miscState.activityFocusTargetX + (savedWcx - miscState.activityFocusTargetX) * ease
+				newWcz = miscState.activityFocusTargetZ + (savedWcz - miscState.activityFocusTargetZ) * ease
+				newZoom = focusZoom + (savedZoom - focusZoom) * ease
+			end
+
+			if newZoom then
+				-- Enforce zoom floor
+				local zoomMin = GetEffectiveZoomMin()
+				if newZoom < zoomMin then newZoom = zoomMin end
+
+				-- Gentle position clamp at the interpolated zoom level to prevent showing void.
+				-- Use the interpolated zoom (not current) so both axes hit bounds simultaneously.
+				local pipW, pipH = GetEffectivePipDimensions()
+				local visW = pipW / newZoom
+				local visH = pipH / newZoom
+				local halfW = visW / 2
+				local halfH = visH / 2
+				local minX = halfW
+				local maxX = mapInfo.mapSizeX - halfW
+				local minZ = halfH
+				local maxZ = mapInfo.mapSizeZ - halfH
+				if minX >= maxX then
+					newWcx = mapInfo.mapSizeX / 2
+				else
+					if newWcx < minX then newWcx = minX end
+					if newWcx > maxX then newWcx = maxX end
+				end
+				if minZ >= maxZ then
+					newWcz = mapInfo.mapSizeZ / 2
+				else
+					if newWcz < minZ then newWcz = minZ end
+					if newWcz > maxZ then newWcz = maxZ end
+				end
+
+				-- Directly drive actual camera values (bypass normal smoothing)
+				cameraState.wcx = newWcx
+				cameraState.wcz = newWcz
+				cameraState.zoom = newZoom
+				-- Sync targets to prevent the normal camera update from fighting next frame
+				cameraState.targetWcx = newWcx
+				cameraState.targetWcz = newWcz
+				cameraState.targetZoom = newZoom
+
+				RecalculateWorldCoordinates()
+				RecalculateGroundTextureCoordinates()
+			end
 		end
 	end
 
@@ -18289,25 +18359,24 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 				end
 			end
 			if triggerFocus and not miscState.activityFocusActive then
-				-- Save current camera position before focusing
-				miscState.activityFocusSavedWcx = cameraState.targetWcx
-				miscState.activityFocusSavedWcz = cameraState.targetWcz
-				miscState.activityFocusSavedZoom = cameraState.targetZoom
-				-- Store marker position (re-asserted each frame to survive edge clamping)
+				-- Save current camera state (actual values, not targets, since targets may be mid-transition)
+				miscState.activityFocusSavedWcx = cameraState.wcx
+				miscState.activityFocusSavedWcz = cameraState.wcz
+				miscState.activityFocusSavedZoom = cameraState.zoom
+				-- Store marker position
 				miscState.activityFocusTargetX = mx
 				miscState.activityFocusTargetZ = mz
-				-- Move camera to marker
-				cameraState.targetWcx = mx
-				cameraState.targetWcz = mz
-				cameraState.targetZoom = math.max(config.activityFocusZoom, cameraState.targetZoom)
+				-- Don't immediately set camera targets — the bell curve in Update
+				-- drives wcx/wcz/zoom directly for smooth, jerk-free motion.
 				miscState.activityFocusTime = os.clock()
 				miscState.activityFocusActive = true
 			elseif triggerFocus and miscState.activityFocusActive then
-				-- Already focusing: update target to new marker, reset timer
+				-- Already focusing: redirect to new marker, restart bell curve from current position
+				miscState.activityFocusSavedWcx = cameraState.wcx
+				miscState.activityFocusSavedWcz = cameraState.wcz
+				miscState.activityFocusSavedZoom = cameraState.zoom
 				miscState.activityFocusTargetX = mx
 				miscState.activityFocusTargetZ = mz
-				cameraState.targetWcx = mx
-				cameraState.targetWcz = mz
 				miscState.activityFocusTime = os.clock()
 			end
 		end

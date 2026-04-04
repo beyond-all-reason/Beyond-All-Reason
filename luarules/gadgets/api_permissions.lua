@@ -84,10 +84,14 @@ local function ResolveTrustedName(playerID)
 	if not name or not trustedNames[name] then return false end
 	local accountID = originalGetAccountID(playerID)
 	if accountID == -1 then
-		-- Late joiner without accountID in customKeys: assign synthetic ID
-		nextSyntheticAccountID = nextSyntheticAccountID - 1
-		accountID = nextSyntheticAccountID
-		trustedNameAccountIDs[playerID] = accountID
+		-- Late joiner or reconnected player without accountID in customKeys
+		if trustedNameAccountIDs[playerID] then
+			accountID = trustedNameAccountIDs[playerID]
+		else
+			nextSyntheticAccountID = nextSyntheticAccountID - 1
+			accountID = nextSyntheticAccountID
+			trustedNameAccountIDs[playerID] = accountID
+		end
 	end
 	if powerusers[accountID] then return true end -- already has permissions
 	powerusers[accountID] = trustedNames[name]
@@ -101,14 +105,17 @@ local function ResolveTrustedName(playerID)
 	return true
 end
 
--- Track which playerIDs have been resolved so we don't re-scan them
-local resolvedPlayerIDs = {}
+-- Track which playerIDs have been resolved and what accountID they had
+local resolvedAccountIDs = {}
 
 function gadget:PlayerChanged(playerID)
 	if not trustedNames then return end
-	if resolvedPlayerIDs[playerID] then return end
+	local currentAccountID = originalGetAccountID(playerID)
+	local prevAccountID = resolvedAccountIDs[playerID]
+	-- Skip if already resolved with this accountID, unless reconnected (accountID went to -1)
+	if prevAccountID and not (prevAccountID ~= -1 and currentAccountID == -1) then return end
 	if ResolveTrustedName(playerID) then
-		resolvedPlayerIDs[playerID] = true
+		resolvedAccountIDs[playerID] = currentAccountID
 	end
 end
 
@@ -117,12 +124,20 @@ function gadget:GameFrame(frame)
 	if not trustedNames then return end
 	if frame % 200 ~= 0 then return end
 	for _, playerID in ipairs(Spring.GetPlayerList()) do
-		if not resolvedPlayerIDs[playerID] then
+		local currentAccountID = originalGetAccountID(playerID)
+		local prevAccountID = resolvedAccountIDs[playerID]
+		-- Re-resolve if: never seen, or accountID changed to -1 (player reconnected)
+		if not prevAccountID or (prevAccountID ~= -1 and currentAccountID == -1) then
 			local name = Spring.GetPlayerInfo(playerID)
-			if name and trustedNames[name] then
+			if not name then
+				Spring.Log("Permissions", LOG.WARNING, "GetPlayerInfo returned nil for playerID " .. playerID)
+			elseif trustedNames[name] then
+				Spring.Log("Permissions", LOG.INFO, "Attempting to resolve trusted name: " .. name .. " (playerID: " .. playerID .. ", accountID: " .. currentAccountID .. ")")
 				if ResolveTrustedName(playerID) then
-					resolvedPlayerIDs[playerID] = true
+					resolvedAccountIDs[playerID] = currentAccountID
 				end
+			else
+				resolvedAccountIDs[playerID] = currentAccountID
 			end
 		end
 	end
