@@ -18,7 +18,7 @@ end
 -- Localized Spring API for performance
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGameFrame = Spring.GetGameFrame
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 
 local showAsSpectator = true
 local selectPlayerUnits = true	-- when lockcamera player
@@ -67,8 +67,8 @@ end
 
 local spec, fullview = spGetSpectatingState()
 local myTeamID = spGetMyTeamID()
-local myAllyTeam = Spring.GetMyAllyTeamID()
-local myPlayerID = Spring.GetMyPlayerID()
+local myAllyTeam = Spring.GetLocalAllyTeamID()
+local myPlayerID = Spring.GetLocalPlayerID()
 local selectedUnits = {}
 local playerSelectedUnits = {}  -- [playerID][unitID] = true
 local lockPlayerID
@@ -261,8 +261,8 @@ function widget:PlayerChanged(playerID)
 		return
 	end
 	myTeamID = spGetMyTeamID()
-	myAllyTeam = Spring.GetMyAllyTeamID()
-	myPlayerID = Spring.GetMyPlayerID()
+	myAllyTeam = Spring.GetLocalAllyTeamID()
+	myPlayerID = Spring.GetLocalPlayerID()
 
 	-- when changing fullview mode
 	local prevFullview = fullview

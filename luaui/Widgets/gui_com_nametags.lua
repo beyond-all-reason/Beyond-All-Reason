@@ -15,7 +15,7 @@ end
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetViewGeometry = Spring.GetViewGeometry
 local spWorldToScreenCoords = Spring.WorldToScreenCoords
 local spGetSpectatingState = Spring.GetSpectatingState

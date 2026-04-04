@@ -24,7 +24,7 @@ local stringFind = string.find
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spEcho = Spring.Echo
 local spGetSpectatingState = Spring.GetSpectatingState
 
@@ -85,7 +85,7 @@ local checkspots = true
 local sceduledCheckedSpotsFrame = spGetGameFrame()
 
 local isSpec, fullview = spGetSpectatingState()
-local myAllyTeamID = Spring.GetMyAllyTeamID()
+local myAllyTeamID = Spring.GetLocalAllyTeamID()
 local incomeMultiplier = select(7, Spring.GetTeamInfo(spGetMyTeamID(), false))
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
@@ -512,7 +512,7 @@ function widget:PlayerChanged(playerID)
 	local prevFullview = fullview
 	local prevMyAllyTeamID = myAllyTeamID
 	isSpec, fullview = spGetSpectatingState()
-	myAllyTeamID = Spring.GetMyAllyTeamID()
+	myAllyTeamID = Spring.GetLocalAllyTeamID()
 	local oldIncomeMultiplier = incomeMultiplier
 	incomeMultiplier = select(7, Spring.GetTeamInfo(spGetMyTeamID(), false))
 	if incomeMultiplier ~= oldIncomeMultiplier then

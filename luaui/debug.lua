@@ -127,7 +127,7 @@ end
 
 
 function PrintAlliedUnits()
-  local teamTable = Spring.GetTeamList(Spring.GetMyAllyTeamID())
+  local teamTable = Spring.GetTeamList(Spring.GetLocalAllyTeamID())
 --  print("AlliedUnits: " .. teamTable.n .. " teams")
   teamTable.n = nil
   for n,tid in pairs(teamTable) do
@@ -328,13 +328,13 @@ function Debug()
   print("Shadows = "         .. Spring.GetConfigString("Shadows", 0))
   print("ReflectiveWater = " .. Spring.GetConfigString("ReflectiveWater", 1))
 
-  PrintTeamUnits(Spring.GetMyTeamID())
+  PrintTeamUnits(Spring.GetLocalTeamID())
 
   print("My Player Info:")
-  local myPlayerID = Spring.GetMyPlayerID()
+  local myPlayerID = Spring.GetLocalPlayerID()
   PrintPlayerInfo(myPlayerID)
 
-  PrintTeamUnitsCounts(Spring.GetMyTeamID())
+  PrintTeamUnitsCounts(Spring.GetLocalTeamID())
 end
 
 

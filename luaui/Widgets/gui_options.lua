@@ -286,10 +286,10 @@ if not startScript then
 		[player0]
 		{
 			team=0;
-			name=]] .. select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID())) .. [[;
+			name=]] .. select(1, Spring.GetPlayerInfo(Spring.GetLocalPlayerID())) .. [[;
 		}
 		mapname=]] .. Game.mapName .. [[;
-		myplayername=]] .. select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID())) .. [[;
+		myplayername=]] .. select(1, Spring.GetPlayerInfo(Spring.GetLocalPlayerID())) .. [[;
 		ishost=1;
 		gametype=]] .. Game.gameName .. ' ' .. Game.gameVersion .. [[;
 		nohelperais=0;

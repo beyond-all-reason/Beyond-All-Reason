@@ -110,16 +110,16 @@ else
 	local rezreclaim = {0.0, 1.0} -- this is just a small table cache, so we dont allocate a new table for every update
 	local forwardedFeatureIDsResurrect = {} -- so we only forward the start event once
 	local forwardedFeatureIDsReclaim = {} -- so we only forward the start event once
-	local myTeamID = Spring.GetMyTeamID()
-	local myAllyTeamID = Spring.GetMyAllyTeamID()
+	local myTeamID = Spring.GetLocalTeamID()
+	local myAllyTeamID = Spring.GetLocalAllyTeamID()
 	local _, fullview = Spring.GetSpectatingState()
 	local IsUnitInLos = Spring.IsUnitInLos
 	local GetFeatureHealth = Spring.GetFeatureHealth
 	local headless = false
 
 	function gadget:PlayerChanged(playerID)
-		myTeamID = Spring.GetMyTeamID()
-		myAllyTeamID = Spring.GetMyAllyTeamID()
+		myTeamID = Spring.GetLocalTeamID()
+		myAllyTeamID = Spring.GetLocalAllyTeamID()
 		_, fullview = Spring.GetSpectatingState()
 	end
 

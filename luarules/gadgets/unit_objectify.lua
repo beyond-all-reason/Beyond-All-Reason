@@ -187,10 +187,10 @@ if gadgetHandler:IsSyncedCode() then
 else -- UNSYNCED
 
 
-	local myAllyTeam = Spring.GetMyAllyTeamID()
+	local myAllyTeam = Spring.GetLocalAllyTeamID()
 	local spectating = Spring.GetSpectatingState()
 	function gadget:PlayerChanged(playerID)
-		myAllyTeam = Spring.GetMyAllyTeamID()
+		myAllyTeam = Spring.GetLocalAllyTeamID()
 		spectating = Spring.GetSpectatingState()
 	end
 

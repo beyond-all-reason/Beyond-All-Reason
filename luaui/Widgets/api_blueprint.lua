@@ -68,7 +68,7 @@ local SpringGetUnitPosition = Spring.GetUnitPosition
 local SpringGetGroundHeight = Spring.GetGroundHeight
 local SpringPos2BuildPos = Spring.Pos2BuildPos
 local SpringTestBuildOrder = Spring.TestBuildOrder
-local SpringGetMyTeamID = Spring.GetMyTeamID
+local SpringGetMyTeamID = Spring.GetLocalTeamID
 local isHeadless = not Platform.gl
 
 -- util

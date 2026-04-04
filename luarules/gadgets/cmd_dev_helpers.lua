@@ -1019,7 +1019,7 @@ else	-- UNSYNCED
 	end
 
 	function removeUnitDef(_, line, words, playerID)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "units") then
@@ -1035,7 +1035,7 @@ else	-- UNSYNCED
 	end
 
 	function clearWrecks(_, line, words, playerID)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "terrain") then
@@ -1045,7 +1045,7 @@ else	-- UNSYNCED
 	end
 
 	function reduceWrecks(_, line, words, playerID)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "terrain") then
@@ -1055,7 +1055,7 @@ else	-- UNSYNCED
 	end
 
 	function processUnits(_, line, words, playerID, action)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "units") then
@@ -1091,7 +1091,7 @@ else	-- UNSYNCED
 	end
 
 	function dumpFeatures(_, line, words, playerID)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "units") then
@@ -1110,7 +1110,7 @@ else	-- UNSYNCED
 	end
 
 	function dumpUnits(_, line, words, playerID)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "units") then
@@ -1263,7 +1263,7 @@ else	-- UNSYNCED
 	end
 
 	function fightertest(_, line, words, playerID, action)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		Spring.Echo("Fightertest",line, words, playerID, action)
@@ -1380,7 +1380,7 @@ else	-- UNSYNCED
 	end
 
 	function globallos(_, line, words, playerID, action)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "terrain") then
@@ -1395,7 +1395,7 @@ else	-- UNSYNCED
 	end
 
 	function playertoteam(_, line, words, playerID, action)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "teams") then
@@ -1415,7 +1415,7 @@ else	-- UNSYNCED
 		end
 		if not words[2] then
 			words[2] = words[1]
-			words[1] = Spring.GetMyPlayerID()
+			words[1] = Spring.GetLocalPlayerID()
 		end
 		if tonumber(words[2]) < (#Spring.GetTeamList())-1 then
 			Spring.SendLuaRulesMsg(PACKET_HEADER .. ':playertoteam:' .. words[1] .. ':' .. words[2])
@@ -1423,7 +1423,7 @@ else	-- UNSYNCED
 	end
 
 	function killteam(_, line, words, playerID, action)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "teams") then
@@ -1436,7 +1436,7 @@ else	-- UNSYNCED
 	end
 
 	function desync(_, line, words, playerID)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "test") then
@@ -1450,7 +1450,7 @@ else	-- UNSYNCED
 		--spawnceg usage:
 		--/luarules spawnceg newnuke --spawns at cursor
 		--/luarules spawnceg newnuke [int] -- spawns at cursor at height
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "units") then
@@ -1476,7 +1476,7 @@ else	-- UNSYNCED
 	function spawnunitexplosion(_, line, words, playerID)
 		--spawnunitexplosion usage:
 		--/luarules spawnunitexplosion armbull --spawns at cursor
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "units") then
@@ -1493,7 +1493,7 @@ else	-- UNSYNCED
 	end
 
 	function GiveCat(_, line, words, playerID)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "units") then
@@ -1523,7 +1523,7 @@ else	-- UNSYNCED
 			collectBuildOptions(rootDef.id, 0)
 			Spring.Echo("givecat: giving " .. #result .. " unique units from '" .. unitName .. "'")
 			if #result == 0 then return end
-			local _, _, _, teamID = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+			local _, _, _, teamID = Spring.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
 			if words[2] and tonumber(words[2]) then
 				teamID = tonumber(words[2])
 			end
@@ -1697,7 +1697,7 @@ else	-- UNSYNCED
 		end
 
 		-- team
-		local _, _, _, teamID = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+		local _, _, _, teamID = Spring.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
 		if string.match(line, ' ([0-9].*)') then
 			teamID = string.match(line, ' ([0-9].*)')
 		end

@@ -21,7 +21,7 @@ local mathFloor = math.floor
 local mathMin = math.min
 
 -- Localized Spring API for performance
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetMouseState = Spring.GetMouseState
 local spEcho = Spring.Echo
 local spGetSpectatingState = Spring.GetSpectatingState
@@ -143,10 +143,10 @@ local state = {
 	lastUnitShare = nil,
 	lastLineUnitShare = nil,
 	lastDrawUiUpdate = os.clock(),
-	myName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false),
+	myName = Spring.GetPlayerInfo(Spring.GetLocalPlayerID(), false),
 	mySpec = spGetSpectatingState(),
 	myTeamID = spGetMyTeamID(),
-	myAllyTeamID = Spring.GetMyAllyTeamID(),
+	myAllyTeamID = Spring.GetLocalAllyTeamID(),
 	font = nil,
 	font2 = nil,
 	font3 = nil,
@@ -2600,7 +2600,7 @@ end
 function widget:PlayerChanged(playerID)
 	mySpec = spGetSpectatingState()
 	myTeamID = spGetMyTeamID()
-	myAllyTeamID = Spring.GetMyAllyTeamID()
+	myAllyTeamID = Spring.GetLocalAllyTeamID()
 	if mySpec and inputMode == 'a:' then
 		inputMode = 's:'
 	end
@@ -2720,7 +2720,7 @@ function widget:Initialize()
 	end
 
 	widget:ViewResize()
-	widget:PlayerChanged(Spring.GetMyPlayerID())
+	widget:PlayerChanged(Spring.GetLocalPlayerID())
 
 	Spring.SendCommands("console 0")
 

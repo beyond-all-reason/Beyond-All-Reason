@@ -305,7 +305,7 @@ function widget:Initialize()
 		return
 	end
   initGL4()
-	myPlayerID = Spring.GetMyPlayerID()
+	myPlayerID = Spring.GetLocalPlayerID()
 	WG.PointTracker = {
 		ClearPoints = ClearPoints,
 	}

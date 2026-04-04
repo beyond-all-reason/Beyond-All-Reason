@@ -81,7 +81,7 @@ else
 	local validation = SYNCED.validationMouse
 	local msgPrefix = "£" .. validation
 
-	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerID = Spring.GetLocalPlayerID()
 	local spec, _ = GetSpectatingState()
 	local myAllyTeamID = select(5, GetPlayerInfo(myPlayerID, false))
 

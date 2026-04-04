@@ -76,16 +76,16 @@ if gadgetHandler:IsSyncedCode() then
 else	-- Unsynced
 
 
-    local myPlayerID = Spring.GetMyPlayerID()
-    local myAllyID = Spring.GetMyAllyTeamID()
+    local myPlayerID = Spring.GetLocalPlayerID()
+    local myAllyID = Spring.GetLocalAllyTeamID()
     local fullView = select(2, Spring.GetSpectatingState())
     local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 	local spIsPosInLos = Spring.IsPosInLos
 
     function gadget:PlayerChanged(playerID)
         if playerID == myPlayerID then
-            myPlayerID = Spring.GetMyPlayerID()
-            myAllyID = Spring.GetMyAllyTeamID()
+            myPlayerID = Spring.GetLocalPlayerID()
+            myAllyID = Spring.GetLocalAllyTeamID()
             fullView = select(2, Spring.GetSpectatingState())
         end
     end

@@ -19,7 +19,7 @@ end
 local mathAbs = math.abs
 
 -- Localized Spring API for performance
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 
 local facing=0
 local x=0

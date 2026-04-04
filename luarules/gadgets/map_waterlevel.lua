@@ -92,7 +92,7 @@ if gadgetHandler:IsSyncedCode() then
 
 else  -- UNSYNCED
 
-	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerID = Spring.GetLocalPlayerID()
 	local accountID = Spring.Utilities.GetAccountID(myPlayerID)
 	local authorized = SYNCED.permissions.waterlevel[accountID]
 

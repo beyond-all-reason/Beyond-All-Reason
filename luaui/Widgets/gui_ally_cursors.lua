@@ -17,7 +17,7 @@ end
 local mathAtan2 = math.atan2
 
 -- Localized Spring API for performance
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetSpectatingState = Spring.GetSpectatingState
 
 -- TODO: hide (enemy) cursor light when not specfullview
@@ -98,7 +98,7 @@ local alliedCursorsTime = {}        -- for API purpose
 local usedCursorSize = cursorSize
 local allycursorDrawList = {}
 local playerTeamIDs = {}
-local myPlayerID = Spring.GetMyPlayerID()
+local myPlayerID = Spring.GetLocalPlayerID()
 local _, fullview = spGetSpectatingState()
 local myTeamID = spGetMyTeamID()
 local isReplay = Spring.IsReplay()

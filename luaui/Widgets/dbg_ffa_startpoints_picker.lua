@@ -34,7 +34,7 @@ local tableRemove = table.remove
 -- Localized Spring API for performance
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetTeamUnits = Spring.GetTeamUnits
 
 --------------------------------------------------------------------------------
@@ -811,7 +811,7 @@ local function isSoloDevMode()
       allyTeamCount = allyTeamCount + 1
     end
   end
-  local teamList = Spring.GetTeamList(Spring.GetMyAllyTeamID())
+  local teamList = Spring.GetTeamList(Spring.GetLocalAllyTeamID())
   local teamCount = table.count(teamList)
   local isSolo = allyTeamCount == 1 and teamCount == 1
 

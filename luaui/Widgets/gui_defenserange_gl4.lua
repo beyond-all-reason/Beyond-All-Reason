@@ -415,7 +415,7 @@ end
 
 local spGetSpectatingState = Spring.GetSpectatingState
 local spec, fullview = spGetSpectatingState()
-local myAllyTeam = Spring.GetMyAllyTeamID()
+local myAllyTeam = Spring.GetLocalAllyTeamID()
 local numallyteams = 2
 
 local defenses = {} -- table of unitID keys to info tables:
@@ -606,7 +606,7 @@ function widget:Initialize()
 			end
 		end
 	end
-	myAllyTeam = Spring.GetMyAllyTeamID()
+	myAllyTeam = Spring.GetLocalAllyTeamID()
 	local allyteamlist = Spring.GetAllyTeamList( )
 	--spEcho("# of allyteams = ", #allyteamlist)
 	numallyteams = #allyteamlist
@@ -797,7 +797,7 @@ function widget:PlayerChanged(playerID)
 	--spEcho("GetMyTeamID", GetMyTeamID)
 	]]--
 	local nowspec, nowfullview = spGetSpectatingState()
-	local nowmyAllyTeam = Spring.GetMyAllyTeamID()
+	local nowmyAllyTeam = Spring.GetLocalAllyTeamID()
 	-- When we start, check if there are >2 allyteams
 	local reinit = false
 	-- check spec transition
@@ -848,7 +848,7 @@ function widget:Update(dt)
 	--end
 
 -- detect if our “myAllyTeam” has changed (e.g. a spec following a different player)
-   local currentAllyTeam = Spring.GetMyAllyTeamID()
+   local currentAllyTeam = Spring.GetLocalAllyTeamID()
    if currentAllyTeam ~= myAllyTeam then
      myAllyTeam = currentAllyTeam
      -- clear out all the old rings

@@ -169,14 +169,14 @@ else
 	end
 
 	local isSpec = Spring.GetSpectatingState()
-	local myTeamID = Spring.GetMyTeamID()
-	local myPlayerID = Spring.GetMyPlayerID()
-	local myAllyTeamID = Spring.GetMyAllyTeamID()
+	local myTeamID = Spring.GetLocalTeamID()
+	local myPlayerID = Spring.GetLocalPlayerID()
+	local myAllyTeamID = Spring.GetLocalAllyTeamID()
 	function gadget:PlayerChanged(playerID)
 		isSpec = Spring.GetSpectatingState()
-		myTeamID = Spring.GetMyTeamID()
-		myPlayerID = Spring.GetMyPlayerID()
-		myAllyTeamID = Spring.GetMyAllyTeamID()
+		myTeamID = Spring.GetLocalTeamID()
+		myPlayerID = Spring.GetLocalPlayerID()
+		myAllyTeamID = Spring.GetLocalAllyTeamID()
 	end
 
 	local numTeams = 0
