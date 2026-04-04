@@ -1,5 +1,30 @@
 {
   "version": "1.0.0",
+  "dependencies": {
+    "rocks": {
+      "bc9d25ebdcc8e85d77e17e27b8d98785b6a08aa20e71c7b98d7438ec7f0a3175": {
+        "name": "i18n",
+        "version": "0.9.2-1",
+        "pinned": false,
+        "opt": false,
+        "dependencies": [],
+        "constraint": ">=0.9.2",
+        "binaries": [],
+        "source": "luarocks_rockspec+https://luarocks.org/",
+        "source_url": {
+          "type": "url",
+          "url": "https://github.com/kikito/i18n.lua/archive/v0.9.2.tar.gz"
+        },
+        "hashes": {
+          "rockspec": "sha256-rCc26QezHIXazcT7A+GAkoNVJ92D1xErnlirgmbHHMs=",
+          "source": "sha256-hdysQmehRpLlKdhIYLgwB0/GzyEBYbQTAFLzhtk/HQc="
+        }
+      }
+    },
+    "entrypoints": [
+      "bc9d25ebdcc8e85d77e17e27b8d98785b6a08aa20e71c7b98d7438ec7f0a3175"
+    ]
+  },
   "test_dependencies": {
     "rocks": {
       "01a3c364614bddff7370223a5a9c4580f8e62d144384148444c518ec5367a59b": {
