@@ -28,6 +28,9 @@ local spGetProjectileVelocity     = Spring.GetProjectileVelocity
 local spGetProjectileOwnerID      = Spring.GetProjectileOwnerID
 local spIsSphereInView            = Spring.IsSphereInView
 local spGetGroundHeight           = Spring.GetGroundHeight
+local spIsPosInAirLos             = Spring.IsPosInAirLos
+local spGetMyAllyTeamID           = Spring.GetMyAllyTeamID
+local spGetSpectatingState        = Spring.GetSpectatingState
 
 local mathRandom = math.random
 local mathMin    = math.min
@@ -204,6 +207,8 @@ end
 -- Per-frame cached state from update callback
 local framePreset
 local frameCamX, frameCamY, frameCamZ = 0, 0, 0
+local frameAllyTeamID = -1
+local frameFullView = true
 
 -- Debug counters
 local debugPieceSpawnCount = 0
@@ -226,6 +231,9 @@ local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 		aboveGround = py > groundY + 1
 	end
 	if not aboveGround then debugPieceSkipAboveGround = debugPieceSkipAboveGround + 1 return end
+
+	-- LOS check: skip entirely if not visible to player (no buffering)
+	if not frameFullView and not spIsPosInAirLos(px, py, pz, frameAllyTeamID) then return end
 
 	local inView = spIsSphereInView(px, py, pz, PIECE_CULLING_RADIUS)
 	if not inView then
@@ -357,6 +365,9 @@ end
 local function onUpdate(gameFrame, preset, camX, camY, camZ, isFastForward)
 	framePreset = preset
 	frameCamX, frameCamY, frameCamZ = camX, camY, camZ
+	local _, specFullView = spGetSpectatingState()
+	frameFullView = specFullView
+	frameAllyTeamID = specFullView and -1 or spGetMyAllyTeamID()
 	updatePieceProjectiles(gameFrame)
 
 	-- Debug output every 30 frames
