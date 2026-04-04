@@ -1,7 +1,7 @@
 -- Gauss Cannon Effects
 
 return {
- ["gausscannonprojectile"] = {
+ gausscannonprojectile = {
         groundflash_small = {
       class              = [[CSimpleGroundFlash]],
       count              = 1,
@@ -479,7 +479,7 @@ return {
     },
   },
     
-    ["gausscannonprojectilexl"] = {
+    gausscannonprojectilexl = {
         groundflash_small = {
       class              = [[CSimpleGroundFlash]],
       count              = 1,

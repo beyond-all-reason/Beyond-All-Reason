@@ -37,12 +37,12 @@ local metalSpotsList
 
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD.BUILD)
-	local isMetalMap = GG["resource_spot_finder"].isMetalMap
+	local isMetalMap = GG.resource_spot_finder.isMetalMap
 	if isMetalMap then
 		Spring.Log(gadget:GetInfo().name, LOG.INFO, "Metal map detected, removing self")
 		gadgetHandler:RemoveGadget(self)
 	end
-	metalSpotsList = GG["resource_spot_finder"].metalSpotsList
+	metalSpotsList = GG.resource_spot_finder.metalSpotsList
 end
 
 local function mexExists(spot, allyTeamID, cmdX, cmdZ)
@@ -69,7 +69,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 	local closestSpot = math.getClosestPosition(bx, bz, metalSpotsList)
 
 	-- We check if current order is to build mex in closest spot
-	if not (closestSpot and GG["resource_spot_finder"].IsMexPositionValid(closestSpot, bx, bz)) then
+	if not (closestSpot and GG.resource_spot_finder.IsMexPositionValid(closestSpot, bx, bz)) then
 		return false
 	end
 

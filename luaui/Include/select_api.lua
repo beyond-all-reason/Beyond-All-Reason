@@ -4,8 +4,8 @@
 --- @field getCommand fun(cmd: string): any
 local SelectApi = {}
 
-local defaultdamagetag = Game.armorTypes['default']
-local vtoldamagetag = Game.armorTypes['vtol']
+local defaultdamagetag = Game.armorTypes.default
+local vtoldamagetag = Game.armorTypes.vtol
 
 local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
 local spGetUnitCommands = Spring.GetUnitCommands
@@ -89,7 +89,7 @@ end
 local function checkCmd(uid, cmdId, indexTemp)
 	local index = indexTemp or 1
 	local cmd = spGetUnitCommands(uid, index)
-	if cmd and cmd[index] and cmd[index]["id"] == cmdId then
+	if cmd and cmd[index] and cmd[index].id == cmdId then
 		return true
 	end
 	return false

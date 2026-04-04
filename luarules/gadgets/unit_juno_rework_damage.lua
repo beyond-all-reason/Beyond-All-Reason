@@ -32,57 +32,57 @@ if gadgetHandler:IsSyncedCode() then
 
 
 local tokillUnitsNames = {
-		['corfav'] = true,
-		['armfav'] = true,
-		['armflea'] = true,
-		['legscout'] = true,
-		['raptor_land_swarmer_brood_t2_v1'] = true,
-		['raptor_land_kamikaze_basic_t2_v1'] = true,
-		['raptor_land_kamikaze_emp_t2_v1'] = true,
-		['raptor_land_kamikaze_basic_t4_v1'] = true,
-		['raptor_land_kamikaze_emp_t4_v1'] = true,
+		corfav = true,
+		armfav = true,
+		armflea = true,
+		legscout = true,
+		raptor_land_swarmer_brood_t2_v1 = true,
+		raptor_land_kamikaze_basic_t2_v1 = true,
+		raptor_land_kamikaze_emp_t2_v1 = true,
+		raptor_land_kamikaze_basic_t4_v1 = true,
+		raptor_land_kamikaze_emp_t4_v1 = true,
 }
 
 --emp these
 local toStunUnitsNames = {--this could maybe use customparams later, at least in part to detect mines
-		['armarad'] = true,
-		['armaser'] = true,
-		['armason'] = true,
-		['armfrad'] = true,
-		['armjam'] = true,
-		['armjamt'] = true,
-		['armmark'] = true,
-		['armrad'] = true,
-		['armseer'] = true,
-		['armsjam'] = true,
-		['armsonar'] = true,
-		['armveil'] = true,
-		['corarad'] = true,
-		['corason'] = true,
-		['coreter'] = true,
-		['corfrad'] = true,
-		['corjamt'] = true,
-		['corrad'] = true,
-		['corshroud'] = true,
-		['corsjam'] = true,
-		['corsonar'] = true,
-		['corspec'] = true,
-		['corvoyr'] = true,
-		['corvrad'] = true,
+		armarad = true,
+		armaser = true,
+		armason = true,
+		armfrad = true,
+		armjam = true,
+		armjamt = true,
+		armmark = true,
+		armrad = true,
+		armseer = true,
+		armsjam = true,
+		armsonar = true,
+		armveil = true,
+		corarad = true,
+		corason = true,
+		coreter = true,
+		corfrad = true,
+		corjamt = true,
+		corrad = true,
+		corshroud = true,
+		corsjam = true,
+		corsonar = true,
+		corspec = true,
+		corvoyr = true,
+		corvrad = true,
 
-		['coreyes'] = true,
-		['armeyes'] = true,
-		['armmine1'] = true,
-		['armmine2'] = true,
-		['armmine3'] = true,
-		['cormine1'] = true,
-		['cormine2'] = true,
-		['cormine3'] = true,
-		['armfmine3'] = true,		
-		['corfmine3'] = true,
-		['legmine1'] = true,
-		['legmine2'] = true,
-		['legmine3'] = true,
+		coreyes = true,
+		armeyes = true,
+		armmine1 = true,
+		armmine2 = true,
+		armmine3 = true,
+		cormine1 = true,
+		cormine2 = true,
+		cormine3 = true,
+		armfmine3 = true,		
+		corfmine3 = true,
+		legmine1 = true,
+		legmine2 = true,
+		legmine3 = true,
 
 }
 
@@ -92,20 +92,20 @@ local stunDuration = Spring.GetModOptions().emprework and 32 or 30
 
 
 local toTarpitUnitsNames = {
-	['corak'] = true,
-	['armpw'] = true,
-	['leggob'] = true,
+	corak = true,
+	armpw = true,
+	leggob = true,
 }
 
 local todenyUnitsNames = {
-	['corfav'] = true,
-	['armfav'] = true,
-	['armflea'] = true,
-	['raptor_land_swarmer_brood_t2_v1'] = true,
-	['raptor_land_kamikaze_basic_t2_v1'] = true,
-	['raptor_land_kamikaze_emp_t2_v1'] = true,
-	['raptor_land_kamikaze_basic_t4_v1'] = true,
-	['raptor_land_kamikaze_emp_t4_v1'] = true,
+	corfav = true,
+	armfav = true,
+	armflea = true,
+	raptor_land_swarmer_brood_t2_v1 = true,
+	raptor_land_kamikaze_basic_t2_v1 = true,
+	raptor_land_kamikaze_emp_t2_v1 = true,
+	raptor_land_kamikaze_basic_t4_v1 = true,
+	raptor_land_kamikaze_emp_t4_v1 = true,
 }
 
 
@@ -188,12 +188,12 @@ local todenyUnitsNames = {
 	-- kill appropriate things from initial juno blast --
 
 	local junoWeaponsNames = {
-		["armjuno_juno_pulse"] = true,
-		["corjuno_juno_pulse"] = true,
-		["legjuno_juno_pulse"] = true,
-		["armjuno_scav_juno_pulse"] = true,
-		["corjuno_scav_juno_pulse"] = true,
-		["legjuno_scav_juno_pulse"] = true,
+		armjuno_juno_pulse = true,
+		corjuno_juno_pulse = true,
+		legjuno_juno_pulse = true,
+		armjuno_scav_juno_pulse = true,
+		corjuno_scav_juno_pulse = true,
+		legjuno_scav_juno_pulse = true,
 	}
 	-- convert unitname -> unitDefID
 	local junoWeapons = {}
@@ -326,7 +326,7 @@ local todenyUnitsNames = {
 								local health, maxHealth, paralyzeDamage, capture, build = Spring.GetUnitHealth(unitID)
 								--Spring.Echo(paralyzeDamage, maxHealth*1.2)
 								if (paralyzeDamage < maxHealth*1.2) then--try to prevent excessive stun times, also needless restuns 
-									Spring.AddUnitDamage (unitID, maxHealth*2, 5, 99, WeaponDefNames["corjuno_juno_pulse_ghost"].id)---...close enough?
+									Spring.AddUnitDamage (unitID, maxHealth*2, 5, 99, WeaponDefNames.corjuno_juno_pulse_ghost.id)---...close enough?
 									Spring.SpawnCEG("juno-damage", px, py + 8, pz, 0, 1, 0)
 								end
 	

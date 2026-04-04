@@ -1,7 +1,7 @@
 -- sparklegreen
 
 return {
-  ["sparklegreen"] = {
+  sparklegreen = {
     explosionspikes = {
       air                = true,
       class              = [[CExploSpikeProjectile]],

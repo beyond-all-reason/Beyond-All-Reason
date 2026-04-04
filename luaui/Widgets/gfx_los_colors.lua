@@ -139,20 +139,20 @@ function widget:Initialize()
 	widgetHandler:AddAction("losradar", toggleLOSRadars, nil, 'p')
 	widgetHandler:AddAction("loscolor", toggleLOSColors, nil, 'p')
 
-	WG['los'] = {}
-	WG['los'].getColorize = function()
+	WG.los = {}
+	WG.los.getColorize = function()
 		return colorize
 	end
-	WG['los'].setColorize = function(value)
+	WG.los.setColorize = function(value)
 		colorize = value
 		if not losWithRadarEnabled or not specDetected then
 			refreshLOS()
 		end
 	end
-	WG['los'].getOpacity = function()
+	WG.los.getOpacity = function()
 		return opacity
 	end
-	WG['los'].setOpacity = function(value)
+	WG.los.setOpacity = function(value)
 		opacity = value
 		if not losWithRadarEnabled or not specDetected then
 			refreshLOS()

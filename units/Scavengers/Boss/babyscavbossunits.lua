@@ -1,14 +1,14 @@
 --special unit variations used for scavengerbossv4.lua
 local unitsTable = {}
 --Epic Pawn Squad
-unitsTable['squadarmpwt4'] = VFS.Include('units/Scavengers/Bots/armpwt4.lua').armpwt4 --if this filepath is changed, the unit will no longer work!
-unitsTable['squadarmpwt4'].selfdestructas = ""
-unitsTable['squadarmpwt4'].movestate = 2
-unitsTable['squadarmpwt4'].customparams.i18nfromunit = 'armpwt4'
-unitsTable['squadarmpwt4'].customparams.inheritxpratemultiplier = 1
-unitsTable['squadarmpwt4'].customparams.childreninheritxp = "DRONE"
-unitsTable['squadarmpwt4'].customparams.parentsinheritxp = "DRONE"
-unitsTable['squadarmpwt4'].weapondefs.dronespawner = {
+unitsTable.squadarmpwt4 = VFS.Include('units/Scavengers/Bots/armpwt4.lua').armpwt4 --if this filepath is changed, the unit will no longer work!
+unitsTable.squadarmpwt4.selfdestructas = ""
+unitsTable.squadarmpwt4.movestate = 2
+unitsTable.squadarmpwt4.customparams.i18nfromunit = 'armpwt4'
+unitsTable.squadarmpwt4.customparams.inheritxpratemultiplier = 1
+unitsTable.squadarmpwt4.customparams.childreninheritxp = "DRONE"
+unitsTable.squadarmpwt4.customparams.parentsinheritxp = "DRONE"
+unitsTable.squadarmpwt4.weapondefs.dronespawner = {
     areaofeffect = 4,
     avoidfeature = false,
     craterareaofeffect = 0,
@@ -50,32 +50,32 @@ unitsTable['squadarmpwt4'].weapondefs.dronespawner = {
         holdfireradius = 300
     }
 }
-unitsTable['squadarmpwt4'].weapons[2] = {
+unitsTable.squadarmpwt4.weapons[2] = {
     badtargetcategory = "VTOL",
     def = "dronespawner",
     onlytargetcategory = "NOTSUB",
 }
 
 --Epic Pawn's Babies
-unitsTable['squadarmpw'] = VFS.Include('units/ArmBots/armpw.lua').armpw --if this filepath is changed, the unit will no longer work!
-unitsTable['squadarmpw'].corpse = ""
-unitsTable['squadarmpw'].energycost = 1
-unitsTable['squadarmpw'].metalcost = 1
-unitsTable['squadarmpw'].movestate = 2
-unitsTable['squadarmpw'].power = 50
-unitsTable['squadarmpw'].mass = 50
-unitsTable['squadarmpw'].speed = unitsTable['squadarmpw'].speed*1.5
-unitsTable['squadarmpw'].customparams.i18nfromunit = 'armpw'
+unitsTable.squadarmpw = VFS.Include('units/ArmBots/armpw.lua').armpw --if this filepath is changed, the unit will no longer work!
+unitsTable.squadarmpw.corpse = ""
+unitsTable.squadarmpw.energycost = 1
+unitsTable.squadarmpw.metalcost = 1
+unitsTable.squadarmpw.movestate = 2
+unitsTable.squadarmpw.power = 50
+unitsTable.squadarmpw.mass = 50
+unitsTable.squadarmpw.speed = unitsTable.squadarmpw.speed*1.5
+unitsTable.squadarmpw.customparams.i18nfromunit = 'armpw'
 
 --Epic Recluse Squad
-unitsTable['squadarmsptkt4'] = VFS.Include('units/Scavengers/Bots/armsptkt4.lua').armsptkt4 --if this filepath is changed, the unit will no longer work!
-unitsTable['squadarmsptkt4'].selfdestructas = ""
-unitsTable['squadarmsptkt4'].movestate = 2
-unitsTable['squadarmsptkt4'].customparams.i18nfromunit = 'armsptkt4'
-unitsTable['squadarmsptkt4'].customparams.inheritxpratemultiplier = 1
-unitsTable['squadarmsptkt4'].customparams.childreninheritxp = "DRONE"
-unitsTable['squadarmsptkt4'].customparams.parentsinheritxp = "DRONE"
-unitsTable['squadarmsptkt4'].weapondefs.dronespawner = {
+unitsTable.squadarmsptkt4 = VFS.Include('units/Scavengers/Bots/armsptkt4.lua').armsptkt4 --if this filepath is changed, the unit will no longer work!
+unitsTable.squadarmsptkt4.selfdestructas = ""
+unitsTable.squadarmsptkt4.movestate = 2
+unitsTable.squadarmsptkt4.customparams.i18nfromunit = 'armsptkt4'
+unitsTable.squadarmsptkt4.customparams.inheritxpratemultiplier = 1
+unitsTable.squadarmsptkt4.customparams.childreninheritxp = "DRONE"
+unitsTable.squadarmsptkt4.customparams.parentsinheritxp = "DRONE"
+unitsTable.squadarmsptkt4.weapondefs.dronespawner = {
     areaofeffect = 4,
     avoidfeature = false,
     craterareaofeffect = 0,
@@ -118,33 +118,33 @@ unitsTable['squadarmsptkt4'].weapondefs.dronespawner = {
         holdfireradius = 300
     }
 }
-unitsTable['squadarmsptkt4'].weapons[2] = {
+unitsTable.squadarmsptkt4.weapons[2] = {
     badtargetcategory = "VTOL",
     def = "dronespawner",
     onlytargetcategory = "NOTSUB",
 }
 
 --Epic Recluse's Babies
-unitsTable['squadarmsptk'] = VFS.Include('units/ArmBots/T2/armsptk.lua').armsptk --if this filepath is changed, the unit will no longer work!
-unitsTable['squadarmsptk'].corpse = ""
-unitsTable['squadarmsptk'].energycost = 1
-unitsTable['squadarmsptk'].metalcost = 1
-unitsTable['squadarmsptk'].movestate = 2
-unitsTable['squadarmsptk'].power = 500
-unitsTable['squadarmsptk'].mass = 500
-unitsTable['squadarmsptk'].speed = unitsTable['squadarmsptk'].speed*1.5
-unitsTable['squadarmsptk'].customparams.i18nfromunit = 'armsptk'
+unitsTable.squadarmsptk = VFS.Include('units/ArmBots/T2/armsptk.lua').armsptk --if this filepath is changed, the unit will no longer work!
+unitsTable.squadarmsptk.corpse = ""
+unitsTable.squadarmsptk.energycost = 1
+unitsTable.squadarmsptk.metalcost = 1
+unitsTable.squadarmsptk.movestate = 2
+unitsTable.squadarmsptk.power = 500
+unitsTable.squadarmsptk.mass = 500
+unitsTable.squadarmsptk.speed = unitsTable.squadarmsptk.speed*1.5
+unitsTable.squadarmsptk.customparams.i18nfromunit = 'armsptk'
 
 --Epic Grunt Squad
-unitsTable['squadcorakt4'] = VFS.Include('units/Scavengers/Bots/corakt4.lua').corakt4 --if this filepath is changed, the unit will no longer work!
-unitsTable['squadcorakt4'].corpse = ""
-unitsTable['squadcorakt4'].selfdestructas = ""
-unitsTable['squadcorakt4'].movestate = 2
-unitsTable['squadcorakt4'].customparams.i18nfromunit = 'corakt4'
-unitsTable['squadcorakt4'].customparams.inheritxpratemultiplier = 1
-unitsTable['squadcorakt4'].customparams.childreninheritxp = "DRONE"
-unitsTable['squadcorakt4'].customparams.parentsinheritxp = "DRONE"
-unitsTable['squadcorakt4'].weapondefs.dronespawner = {
+unitsTable.squadcorakt4 = VFS.Include('units/Scavengers/Bots/corakt4.lua').corakt4 --if this filepath is changed, the unit will no longer work!
+unitsTable.squadcorakt4.corpse = ""
+unitsTable.squadcorakt4.selfdestructas = ""
+unitsTable.squadcorakt4.movestate = 2
+unitsTable.squadcorakt4.customparams.i18nfromunit = 'corakt4'
+unitsTable.squadcorakt4.customparams.inheritxpratemultiplier = 1
+unitsTable.squadcorakt4.customparams.childreninheritxp = "DRONE"
+unitsTable.squadcorakt4.customparams.parentsinheritxp = "DRONE"
+unitsTable.squadcorakt4.weapondefs.dronespawner = {
     areaofeffect = 4,
     avoidfeature = false,
     craterareaofeffect = 0,
@@ -186,32 +186,32 @@ unitsTable['squadcorakt4'].weapondefs.dronespawner = {
         holdfireradius = 300
     }
 }
-unitsTable['squadcorakt4'].weapons[2] = {
+unitsTable.squadcorakt4.weapons[2] = {
     badtargetcategory = "VTOL",
     def = "dronespawner",
     onlytargetcategory = "NOTSUB",
 }
 
 --Epic Grunt's Babies
-unitsTable['squadcorak'] = VFS.Include('units/CorBots/corak.lua').corak --if this filepath is changed, the unit will no longer work!
-unitsTable['squadcorak'].corpse = ""
-unitsTable['squadcorak'].energycost = 1
-unitsTable['squadcorak'].metalcost = 1
-unitsTable['squadcorak'].movestate = 2
-unitsTable['squadcorak'].power = 50
-unitsTable['squadcorak'].mass = 50
-unitsTable['squadcorak'].speed = unitsTable['squadcorak'].speed*1.5
-unitsTable['squadcorak'].customparams.i18nfromunit = 'corak'
+unitsTable.squadcorak = VFS.Include('units/CorBots/corak.lua').corak --if this filepath is changed, the unit will no longer work!
+unitsTable.squadcorak.corpse = ""
+unitsTable.squadcorak.energycost = 1
+unitsTable.squadcorak.metalcost = 1
+unitsTable.squadcorak.movestate = 2
+unitsTable.squadcorak.power = 50
+unitsTable.squadcorak.mass = 50
+unitsTable.squadcorak.speed = unitsTable.squadcorak.speed*1.5
+unitsTable.squadcorak.customparams.i18nfromunit = 'corak'
 
 --Epic Karganeth Squad
-unitsTable['squadcorkarganetht4'] = VFS.Include('units/Scavengers/Bots/corkarganetht4.lua').corkarganetht4 --if this filepath is changed, the unit will no longer work!
-unitsTable['squadcorkarganetht4'].selfdestructas = ""
-unitsTable['squadcorkarganetht4'].movestate = 2
-unitsTable['squadcorkarganetht4'].customparams.i18nfromunit = 'corkarganetht4'
-unitsTable['squadcorkarganetht4'].customparams.inheritxpratemultiplier = 1
-unitsTable['squadcorkarganetht4'].customparams.childreninheritxp = "DRONE"
-unitsTable['squadcorkarganetht4'].customparams.parentsinheritxp = "DRONE"
-unitsTable['squadcorkarganetht4'].weapondefs.dronespawner = {
+unitsTable.squadcorkarganetht4 = VFS.Include('units/Scavengers/Bots/corkarganetht4.lua').corkarganetht4 --if this filepath is changed, the unit will no longer work!
+unitsTable.squadcorkarganetht4.selfdestructas = ""
+unitsTable.squadcorkarganetht4.movestate = 2
+unitsTable.squadcorkarganetht4.customparams.i18nfromunit = 'corkarganetht4'
+unitsTable.squadcorkarganetht4.customparams.inheritxpratemultiplier = 1
+unitsTable.squadcorkarganetht4.customparams.childreninheritxp = "DRONE"
+unitsTable.squadcorkarganetht4.customparams.parentsinheritxp = "DRONE"
+unitsTable.squadcorkarganetht4.weapondefs.dronespawner = {
     areaofeffect = 4,
     avoidfeature = false,
     craterareaofeffect = 0,
@@ -254,22 +254,22 @@ unitsTable['squadcorkarganetht4'].weapondefs.dronespawner = {
         holdfireradius = 300
     }
 }
-unitsTable['squadcorkarganetht4'].weapons[4] = {
+unitsTable.squadcorkarganetht4.weapons[4] = {
     badtargetcategory = "VTOL",
     def = "dronespawner",
     onlytargetcategory = "NOTSUB",
 }
 
 --Epic Tzar's Babies
-unitsTable['squadcorkarg'] = VFS.Include('units/CorGantry/corkarg.lua').corkarg --if this filepath is changed, the unit will no longer work!
-unitsTable['squadcorkarg'].corpse = ""
-unitsTable['squadcorkarg'].energycost = 1
-unitsTable['squadcorkarg'].metalcost = 1
-unitsTable['squadcorkarg'].movestate = 2
-unitsTable['squadcorkarg'].power = 1800
-unitsTable['squadcorkarg'].mass = 500
-unitsTable['squadcorkarg'].speed = unitsTable['squadcorkarg'].speed*1.5
-unitsTable['squadcorkarg'].customparams.i18nfromunit = 'corkarg'
+unitsTable.squadcorkarg = VFS.Include('units/CorGantry/corkarg.lua').corkarg --if this filepath is changed, the unit will no longer work!
+unitsTable.squadcorkarg.corpse = ""
+unitsTable.squadcorkarg.energycost = 1
+unitsTable.squadcorkarg.metalcost = 1
+unitsTable.squadcorkarg.movestate = 2
+unitsTable.squadcorkarg.power = 1800
+unitsTable.squadcorkarg.mass = 500
+unitsTable.squadcorkarg.speed = unitsTable.squadcorkarg.speed*1.5
+unitsTable.squadcorkarg.customparams.i18nfromunit = 'corkarg'
 
 
 return unitsTable

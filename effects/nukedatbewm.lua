@@ -1,7 +1,7 @@
 -- nukedatbewm
 
 return {
-  ["nukedatbewm"] = {
+  nukedatbewm = {
     groundflash = {
       air                = true,
       ground             = true,

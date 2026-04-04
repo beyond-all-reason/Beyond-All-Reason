@@ -615,7 +615,7 @@ local StartThread = Spring.UnitScript.StartThread
 
 
 local function Wrap_AimWeapon(unitID, callins)
-	local AimWeapon = callins["AimWeapon"]
+	local AimWeapon = callins.AimWeapon
 	if (not AimWeapon) then return end
 
 	-- SetUnitShieldState wants true or false, while
@@ -635,14 +635,14 @@ local function Wrap_AimWeapon(unitID, callins)
 		return sp_SetUnitWeaponState(unitID, weaponNum, "aimReady", fAimReady)
 	end
 
-	callins["AimWeapon"] = function(weaponNum, heading, pitch)
+	callins.AimWeapon = function(weaponNum, heading, pitch)
 		return StartThread(AimWeaponThread, weaponNum, heading, pitch)
 	end
 end
 
 
 local function Wrap_AimShield(unitID, callins)
-	local AimShield = callins["AimShield"]
+	local AimShield = callins.AimShield
 	if (not AimShield) then return end
 
 	-- SetUnitShieldState wants true or false, while
@@ -653,14 +653,14 @@ local function Wrap_AimShield(unitID, callins)
 		return sp_SetUnitShieldState(unitID, weaponNum, enabled)
 	end
 
-	callins["AimShield"] = function(weaponNum)
+	callins.AimShield = function(weaponNum)
 		return StartThread(AimShieldThread, weaponNum)
 	end
 end
 
 
 local function Wrap_Killed(unitID, callins)
-	local Killed = callins["Killed"]
+	local Killed = callins.Killed
 	if (not Killed) then return end
 
 	local function KilledThread(recentDamage, maxHealth)
@@ -670,7 +670,7 @@ local function Wrap_Killed(unitID, callins)
 		sp_SetDeathScriptFinished(wreckLevel)
 	end
 
-	callins["Killed"] = function(recentDamage, maxHealth)
+	callins.Killed = function(recentDamage, maxHealth)
 		StartThread(KilledThread, recentDamage, maxHealth)
 		return -- no return value signals Spring to wait for SetDeathScriptFinished call.
 	end

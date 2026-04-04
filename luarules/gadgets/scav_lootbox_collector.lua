@@ -45,11 +45,11 @@ for unitDefName, tier in pairs({lootboxbronze_scav = 1, lootboxsilver_scav  = 1,
 end
 
 local spawnerList = {}
-if UnitDefNames["scavbeacon_t1_scav"] then 
-	spawnerList[UnitDefNames["scavbeacon_t1_scav"].id] = true
-    spawnerList[UnitDefNames["scavbeacon_t2_scav"].id] = true
-    spawnerList[UnitDefNames["scavbeacon_t3_scav"].id] = true
-    spawnerList[UnitDefNames["scavbeacon_t4_scav"].id] = true
+if UnitDefNames.scavbeacon_t1_scav then 
+	spawnerList[UnitDefNames.scavbeacon_t1_scav.id] = true
+    spawnerList[UnitDefNames.scavbeacon_t2_scav.id] = true
+    spawnerList[UnitDefNames.scavbeacon_t3_scav.id] = true
+    spawnerList[UnitDefNames.scavbeacon_t4_scav.id] = true
 end
 
 local scavTeamID = Spring.Utilities.GetScavTeamID()

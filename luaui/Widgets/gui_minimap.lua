@@ -100,8 +100,8 @@ function widget:ViewResize()
 	UiElement = WG.FlowUI.Draw.Element
 	elementMargin = WG.FlowUI.elementMargin
 
-	if WG['topbar'] ~= nil then
-		local topbarArea = WG['topbar'].GetPosition()
+	if WG.topbar ~= nil then
+		local topbarArea = WG.topbar.GetPosition()
 		maxAllowedWidth = (topbarArea[1] - elementMargin - elementPadding) / vsx
 	end
 
@@ -139,26 +139,26 @@ function widget:Initialize()
 	end
 	_, _, _, _, minimized, maximized = Spring.GetMiniMapGeometry()
 
-	WG['minimap'] = {}
-	WG['minimap'].getHeight = function()
+	WG.minimap = {}
+	WG.minimap.getHeight = function()
 		return usedHeight + elementPadding
 	end
-	WG['minimap'].getMaxHeight = function()
+	WG.minimap.getMaxHeight = function()
 		return mathFloor(maxAllowedHeight * vsy), maxAllowedHeight
 	end
-	WG['minimap'].setMaxHeight = function(value)
+	WG.minimap.setMaxHeight = function(value)
 		Spring.SetConfigFloat("MinimapMaxHeight", value)
 		maxAllowedHeight = value
 		widget:ViewResize()
 	end
-	WG['minimap'].getLeftClickMove = function()
+	WG.minimap.getLeftClickMove = function()
 		return leftClickMove
 	end
-	WG['minimap'].setLeftClickMove = function(value)
+	WG.minimap.setLeftClickMove = function(value)
 		leftClickMove = value
 		Spring.SetConfigInt("MinimapLeftClickMove", value and 1 or 0)
 	end
-	WG['minimap'].setBaseIconScale = function(value)
+	WG.minimap.setBaseIconScale = function(value)
 		baseMinimapIconScale = value
 	end
 end
@@ -267,8 +267,8 @@ function widget:DrawScreen()
 	end
 	if st.name == "ov" then
 		-- overview camera
-		if dlistGuishader and WG['guishader'] then
-			WG['guishader'].RemoveDlist('minimap')
+		if dlistGuishader and WG.guishader then
+			WG.guishader.RemoveDlist('minimap')
 			dlistGuishader = gl.DeleteList(dlistGuishader)
 		end
 		wasOverview = true
@@ -281,8 +281,8 @@ function widget:DrawScreen()
 		end
 
 
-		if dlistGuishader and WG['guishader'] then
-			WG['guishader'].InsertDlist(dlistGuishader, 'minimap')
+		if dlistGuishader and WG.guishader then
+			WG.guishader.InsertDlist(dlistGuishader, 'minimap')
 		end
 		if not uiBgTex and backgroundRect[3]-backgroundRect[1] >= 1 and backgroundRect[4]-backgroundRect[2] >= 1 then
 			uiBgTex = gl.CreateTexture(mathFloor(backgroundRect[3]-backgroundRect[1]), mathFloor(backgroundRect[4]-backgroundRect[2]), {

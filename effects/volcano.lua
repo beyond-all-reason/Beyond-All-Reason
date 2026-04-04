@@ -15,7 +15,7 @@ local function SmokeCount(base)
 end
 
 return {
-	["volcano_smoke_turbulence"] = {
+	volcano_smoke_turbulence = {
 		turbulence = {
 			air        = true,
 			ground     = true,
@@ -59,7 +59,7 @@ return {
 			},
 		},
 	},
-	["volcano_ash_build"] = {
+	volcano_ash_build = {
 		-- main wide low ash
 		ash = {
 			air        = true,
@@ -146,7 +146,7 @@ return {
 			},
 		},
 	},
-	["volcano_ash_big"] = {
+	volcano_ash_big = {
 		column_core = {
 			air        = true,
 			ground     = true,
@@ -314,7 +314,7 @@ return {
 			},
 		},
 	},
-	["volcano_ash_small"] = {
+	volcano_ash_small = {
 		puff = {
 			air        = true,
 			ground     = true,
@@ -399,7 +399,7 @@ return {
 			},
 		},
 	},
-	["volcano_eject"] = {
+	volcano_eject = {
 		flame_core = {
 			air        = true,
 			ground     = true,
@@ -477,7 +477,7 @@ return {
 			},
 		},
 	},
-	["volcano_rock_impact"] = {
+	volcano_rock_impact = {
 		smoke = {
 			air        = true,
 			ground     = true,
@@ -585,7 +585,7 @@ return {
 			},
 		},
 	},
-	["volcano_lava_splash_nukexl"] = {
+	volcano_lava_splash_nukexl = {
 		waterring = {
 			air        = true,
 			class      = [[CBitmapMuzzleFlame]],
@@ -925,7 +925,7 @@ return {
 			},
 		},
 	},
-	["volcano1_flames"] = {
+	volcano1_flames = {
 		rocks = {
 			air        = true,
 			class      = [[CSimpleParticleSystem]],
@@ -968,7 +968,7 @@ return {
 			},
 		},
 	},
-	["volcano_rising_fireball_spawner"] = {
+	volcano_rising_fireball_spawner = {
 		nw = {
 			air        = true,
 			class      = [[CExpGenSpawner]],
@@ -984,7 +984,7 @@ return {
 			},
 		},
 	},
-	["volcano_rising_fireball_sub"] = {
+	volcano_rising_fireball_sub = {
 		rocks = {
 			air        = true,
 			class      = [[CSimpleParticleSystem]],
@@ -1027,7 +1027,7 @@ return {
 	----------------------------------------------------------------------
 	-- LAVA ROCK TRAIL – EXTREME STREAKING FIREBALL
 	----------------------------------------------------------------------
-	["volcano_rock_trail"] = {
+	volcano_rock_trail = {
 		trail_flame = {
 			air        = true,
 			ground     = true,
@@ -1139,7 +1139,7 @@ return {
 	----------------------------------------------------------------------
 	-- FIREBALL IMPACT EFFECT (EXTREME COMET IMPACT)
 	----------------------------------------------------------------------
-	["volcano_fireball_impact"] = {
+	volcano_fireball_impact = {
 		impact_smoke = {
 			class      = [[CSimpleParticleSystem]],
 			count      = 1,

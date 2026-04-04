@@ -472,7 +472,7 @@ if gadgetHandler:IsSyncedCode() then
 								optionKeys[optionKeysCount] = optionName
 							end
 						end
-						if not cmdOptions["shift"] and unitTargets[unitID] then
+						if not cmdOptions.shift and unitTargets[unitID] then
 							-- Need to clear orders if not in shift, since just sending the first one
 							-- as not-shift would sometimes fail if that unit is in the end not valid.
 							orders[1] = {CMD_UNIT_CANCEL_TARGET, {}, {}}

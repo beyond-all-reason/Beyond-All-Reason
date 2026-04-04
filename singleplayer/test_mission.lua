@@ -1,5 +1,5 @@
-local triggerTypes = GG['MissionAPI'].TriggerTypes
-local actionTypes = GG['MissionAPI'].ActionTypes
+local triggerTypes = GG.MissionAPI.TriggerTypes
+local actionTypes = GG.MissionAPI.ActionTypes
 
 local triggers = {
 	testTime = {

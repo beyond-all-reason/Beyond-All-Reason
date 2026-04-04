@@ -2,4 +2,4 @@ snowKeywords = {'argent strata','boreal falls','snow','frozen','cold','winter','
 snowMaps = {}
 
 -- disable for maps that have a keyword but are not snowmaps
-snowMaps['sacrifice_v1'] = false
+snowMaps.sacrifice_v1 = false

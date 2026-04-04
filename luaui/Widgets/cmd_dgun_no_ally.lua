@@ -14,11 +14,11 @@ end
 
 
 function widget:Initialize()
-	WG['dgunnoally'] = true
+	WG.dgunnoally = true
 end
 
 function widget:Shutdown()
-	WG['dgunnoally'] = nil
+	WG.dgunnoally = nil
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOptions)

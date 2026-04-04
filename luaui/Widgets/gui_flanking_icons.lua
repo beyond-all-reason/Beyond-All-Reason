@@ -116,8 +116,8 @@ end
 
 local function init()
 	InstanceVBOTable.clearInstanceTable(flankingVBO)
-	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
-		local visibleUnits =  WG['unittrackerapi'].visibleUnits
+	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+		local visibleUnits =  WG.unittrackerapi.visibleUnits
 		for unitID, unitDefID in pairs(visibleUnits) do
 			widget:VisibleUnitAdded(unitID, unitDefID, spGetUnitTeam(unitID), true)
 		end

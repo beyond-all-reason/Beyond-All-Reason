@@ -1,7 +1,7 @@
 -- UI Effects
 
 return {
- ["radarpulse_t1_slow"] = {
+ radarpulse_t1_slow = {
 
     radarpulse = {
       class              = [[CBitmapMuzzleFlame]],
@@ -28,7 +28,7 @@ return {
     },
   },
 
-  ["radarpulse_t1"] = {
+  radarpulse_t1 = {
 
     radarpulse = {
       class              = [[CBitmapMuzzleFlame]],
@@ -55,7 +55,7 @@ return {
     },
   },
 
-  ["radarpulse_t1_short"] = {
+  radarpulse_t1_short = {
 
     radarpulse = {
       class              = [[CBitmapMuzzleFlame]],
@@ -125,7 +125,7 @@ return {
     -- },
   -- },
 
-  ["radarpulse_t2"] = {
+  radarpulse_t2 = {
 
     radarpulse = {
       class              = [[CBitmapMuzzleFlame]],
@@ -152,7 +152,7 @@ return {
     },
   },
 
-  ["radarpulse_t2_slow"] = {
+  radarpulse_t2_slow = {
 
     radarpulse = {
       class              = [[CBitmapMuzzleFlame]],

@@ -1,4 +1,4 @@
-if not Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"] then
+if not Spring.Utilities.Gametype.GetCurrentHolidays().xmas then
 	return
 end
 
@@ -90,7 +90,7 @@ local costSettings = {
 }
 local hasDecoration = {}
 for udefID,def in ipairs(UnitDefs) do
-	if not def.isAirUnit and not def.modCategories["ship"] and not def.modCategories["hover"] and not def.modCategories["underwater"] and not def.modCategories["object"] then
+	if not def.isAirUnit and not def.modCategories.ship and not def.modCategories.hover and not def.modCategories.underwater and not def.modCategories.object then
 		if def.mass >= 35 then
 			local balls = math.floor(((def.radius-13) / 7.5))
 			local cost = def.metalCost + (def.energyCost/100)

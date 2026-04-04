@@ -60,18 +60,18 @@ local function createList(size)
 		DrawRect(-usedImgSize, 0, 0, usedImgSize)
 		gl.Texture(false)
 	end)
-	if WG['tooltip'] ~= nil then
-		WG['tooltip'].AddTooltip('clearmapmarks', {xPos-usedImgSize, yPos, xPos, yPos+usedImgSize}, Spring.I18N('ui.clearMapmarks.tooltipctrl'), nil, Spring.I18N('ui.clearMapmarks.tooltip'))
+	if WG.tooltip ~= nil then
+		WG.tooltip.AddTooltip('clearmapmarks', {xPos-usedImgSize, yPos, xPos, yPos+usedImgSize}, Spring.I18N('ui.clearMapmarks.tooltipctrl'), nil, Spring.I18N('ui.clearMapmarks.tooltip'))
 	end
 end
 
 local function updatePosition(force)
-	if WG['advplayerlist_api'] ~= nil then
+	if WG.advplayerlist_api ~= nil then
 		local vsx, vsy = Spring.GetViewGeometry()
 		local margin = WG.FlowUI.elementPadding
 		xPos = vsx - margin
 		local prevPos = advplayerlistPos
-		advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
+		advplayerlistPos = WG.advplayerlist_api.GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 		usedImgSize = math.floor(iconSize * advplayerlistPos[5])
 		--xPos = advplayerlistPos[2] + margin + usedImgSize
 		yPos = advplayerlistPos[3]

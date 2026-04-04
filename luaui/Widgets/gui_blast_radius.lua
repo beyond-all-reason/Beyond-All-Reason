@@ -100,7 +100,7 @@ function widget:Initialize()
 end
 
 function widget:ViewResize()
-	font = WG['fonts'].getFont(1, 1.5)
+	font = WG.fonts.getFont(1, 1.5)
 end
 
 local selectedUnits = Spring.GetSelectedUnits()

@@ -75,14 +75,14 @@ function runDistanceTest(flightTime, shouldAlive)
 
 	Test.waitFrames(1)
 
-	Spring.GiveOrderToUnit(unitNames["corbuzz"], CMD.ATTACK, {unitNames["armsolar"]}, 0)
-	Spring.GiveOrderToUnit(unitNames["corstorm"], CMD.ATTACK, {unitNames["armpw"]}, 0)
-	Spring.GiveOrderToUnit(unitNames["armrock"], CMD.ATTACK, {unitNames["armpw"]}, 0)
+	Spring.GiveOrderToUnit(unitNames.corbuzz, CMD.ATTACK, {unitNames.armsolar}, 0)
+	Spring.GiveOrderToUnit(unitNames.corstorm, CMD.ATTACK, {unitNames.armpw}, 0)
+	Spring.GiveOrderToUnit(unitNames.armrock, CMD.ATTACK, {unitNames.armpw}, 0)
 
 	Test.waitFrames(300)
 
-	local isAlive = Spring.ValidUnitID(unitNames["armsolar"])
-	local isAlive2 = Spring.ValidUnitID(unitNames["armpw"])
+	local isAlive = Spring.ValidUnitID(unitNames.armsolar)
+	local isAlive2 = Spring.ValidUnitID(unitNames.armpw)
 
 	assert(isAlive == shouldAlive)
 	assert(isAlive2 == shouldAlive)

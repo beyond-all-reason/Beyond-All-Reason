@@ -1,6 +1,6 @@
 
 return {
-    ["dgunprojectile"] = {
+    dgunprojectile = {
         groundflash_large = {
             class              = [[CSimpleGroundFlash]],
             count              = 1,
@@ -99,7 +99,7 @@ return {
           },
       },
     },
-    ["expldgun"] = {
+    expldgun = {
     groundflash_small = {
       class              = [[CSimpleGroundFlash]],
       count              = 0,
@@ -1240,7 +1240,7 @@ brightflare = {
     --     },
     -- },    
   },
-  ["deflectshield"] = {
+  deflectshield = {
   shockwaveslow2= {
           air                = true,
           class              = [[CBitmapMuzzleFlame]],

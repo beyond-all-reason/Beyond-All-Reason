@@ -1,7 +1,7 @@
 -- lootbox beacons
 
 return {
-    ["LootboxBeaconBronze"] = {
+    LootboxBeaconBronze = {
     groundflash_large = {
             class              = [[CSimpleGroundFlash]],
             count              = 1,
@@ -19,7 +19,7 @@ return {
             },
         },
     },
-    ["LootboxBeaconSilver"] = {
+    LootboxBeaconSilver = {
     groundflash_large = {
             class              = [[CSimpleGroundFlash]],
             count              = 1,
@@ -37,7 +37,7 @@ return {
             },
         },
     },
-    ["LootboxBeaconGold"] = {
+    LootboxBeaconGold = {
     groundflash_large = {
             class              = [[CSimpleGroundFlash]],
             count              = 1,
@@ -55,7 +55,7 @@ return {
             },
         },
     },
-    ["LootboxBeaconPlatinum"] = {
+    LootboxBeaconPlatinum = {
     groundflash_large = {
             class              = [[CSimpleGroundFlash]],
             count              = 1,

@@ -123,7 +123,7 @@ if not gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-		Spring.Echo('sunDir = '..quicktablestring(l['sunDir']))
+		Spring.Echo('sunDir = '..quicktablestring(l.sunDir))
 	end
 
 	local function GetLightingAndAtmosphere()  -- returns a table of the common parameters
@@ -162,12 +162,12 @@ if not gadgetHandler:IsSyncedCode() then
 	end	
 	
 	local currentNightFactor = {red = 1, green = 1, blue = 1, shadow = 1, altitude = 1}
-	GG['NightFactor'] = currentNightFactor
+	GG.NightFactor = currentNightFactor
 	
 	
 	local function SetLightingAndAtmosphere(lightandatmos)
 		for k,_ in pairs(currentNightFactor) do 
-			GG['NightFactor'][k] = lightandatmos.nightFactor[k]
+			GG.NightFactor[k] = lightandatmos.nightFactor[k]
 		end
 		
 		if Script.LuaUI("NightFactorChanged") then 
@@ -243,12 +243,12 @@ if not gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-		if a['sunDir'] and b['sunDir'] then 
-			local asun = a['sunDir'] 
-			local bsun = b['sunDir'] 
+		if a.sunDir and b.sunDir then 
+			local asun = a.sunDir 
+			local bsun = b.sunDir 
 			
-			local aworldrot, aheight  = SunDirToAzimuthHeight(a['sunDir'] )
-			local bworldrot, bheight  = SunDirToAzimuthHeight(b['sunDir'] )			
+			local aworldrot, aheight  = SunDirToAzimuthHeight(a.sunDir )
+			local bworldrot, bheight  = SunDirToAzimuthHeight(b.sunDir )			
 			--Spring.Echo(("Arot = %.2f, Brot = %.2f"):format(aworldrot, bworldrot))
 
 			-- if close to 180 degrees, then rotate clockwise
@@ -263,7 +263,7 @@ if not gadgetHandler:IsSyncedCode() then
 			local targetrot = mix(aworldrot, bworldrot, mixfactor)
 			local targetheight = mix(aheight, bheight, mixfactor)
 			
-			SunAzimuthHeightToDir(targetrot, targetheight, target['sunDir'])
+			SunAzimuthHeightToDir(targetrot, targetheight, target.sunDir)
 			--Spring.Echo("sunDir", mixfactor, "targetrot",targetrot, "targetheight", targetheight, aworldrot ,  bworldrot)
 		end
 		if a.nightFactor and b.nightFactor then 

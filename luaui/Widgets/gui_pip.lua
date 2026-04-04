@@ -4099,7 +4099,7 @@ local function RecoverInvalidAnimationState()
 end
 
 local function UpdateGuishaderBlur()
-	if WG['guishader'] then
+	if WG.guishader then
 		-- Determine the correct bounds based on mode
 		local blurL, blurB, blurR, blurT
 		if isMinimapMode and miscState.minimapMinimized then
@@ -4125,7 +4125,7 @@ local function UpdateGuishaderBlur()
 		end
 		
 		-- Use InsertDlist for rounded corner blur support
-		if WG['guishader'].InsertDlist then
+		if WG.guishader.InsertDlist then
 			-- Clean up old dlist ourselves before creating new one
 			if render.guishaderDlist then
 				gl.DeleteList(render.guishaderDlist)
@@ -4136,10 +4136,10 @@ local function UpdateGuishaderBlur()
 				render.RectRound(blurL, blurB, blurR, blurT, render.elementCorner)
 			end)
 			-- Use force=true to ensure immediate stencil texture update
-			WG['guishader'].InsertDlist(render.guishaderDlist, 'pip'..pipNumber, true)
-		elseif WG['guishader'].InsertRect then
+			WG.guishader.InsertDlist(render.guishaderDlist, 'pip'..pipNumber, true)
+		elseif WG.guishader.InsertRect then
 			-- Fallback to InsertRect if InsertDlist not available
-			WG['guishader'].InsertRect(blurL, blurB, blurR, blurT, 'pip'..pipNumber)
+			WG.guishader.InsertRect(blurL, blurB, blurR, blurT, 'pip'..pipNumber)
 		end
 	end
 end
@@ -6883,8 +6883,8 @@ local function IssueCommandAtPoint(cmdID, wx, wz, usingRMB, forceQueue, radius)
 		else
 			-- Build command - check if it's an extractor/geo that needs spot snapping
 			local buildDefID = -cmdID
-			local resourceSpotFinder = WG["resource_spot_finder"]
-			local resourceSpotBuilder = WG["resource_spot_builder"]
+			local resourceSpotFinder = WG.resource_spot_finder
+			local resourceSpotBuilder = WG.resource_spot_builder
 
 			if resourceSpotFinder and resourceSpotBuilder then
 				local mexBuildings = resourceSpotBuilder.GetMexBuildings()
@@ -7045,60 +7045,60 @@ end
 -- may have overwritten our WG['minimap'] registration due to widget layer ordering).
 local function RegisterMinimapWGAPI()
 	if not isMinimapMode then return end
-	WG['minimap'] = {}
-	WG['minimap'].getHeight = function()
+	WG.minimap = {}
+	WG.minimap.getHeight = function()
 		if miscState.minimapMinimized then return 0 end
 		local padding = WG.FlowUI and WG.FlowUI.elementPadding or 5
 		return (render.dim.t - render.dim.b) + padding
 	end
-	WG['minimap'].getMaxHeight = function()
+	WG.minimap.getMaxHeight = function()
 		return math.floor(config.minimapModeMaxHeight * render.vsy), config.minimapModeMaxHeight
 	end
-	WG['minimap'].setMaxHeight = function(value)
+	WG.minimap.setMaxHeight = function(value)
 		Spring.SetConfigFloat("MinimapMaxHeight", value)
 		config.minimapModeMaxHeight = value
 		widget:ViewResize()
 	end
-	WG['minimap'].getLeftClickMove = function()
+	WG.minimap.getLeftClickMove = function()
 		return config.leftButtonPansCamera
 	end
-	WG['minimap'].setLeftClickMove = function(value)
+	WG.minimap.setLeftClickMove = function(value)
 		config.leftButtonPansCamera = value
 		Spring.SetConfigInt("MinimapLeftClickMove", value and 1 or 0)
 	end
-	WG['minimap'].isPipMinimapActive = function()
+	WG.minimap.isPipMinimapActive = function()
 		return true
 	end
-	WG['minimap'].isDrawingInPip = false
-	WG['minimap'].getScreenBounds = function()
+	WG.minimap.isDrawingInPip = false
+	WG.minimap.getScreenBounds = function()
 		return render.dim.l, render.dim.b, render.dim.r, render.dim.t
 	end
-	WG['minimap'].getVisibleWorldArea = function()
+	WG.minimap.getVisibleWorldArea = function()
 		return render.world.l, render.world.r, render.world.b, render.world.t
 	end
-	WG['minimap'].getRotation = function()
+	WG.minimap.getRotation = function()
 		return render.minimapRotation or 0
 	end
-	WG['minimap'].getNormalizedVisibleArea = function()
+	WG.minimap.getNormalizedVisibleArea = function()
 		local normVisLeft = render.world.l / mapInfo.mapSizeX
 		local normVisRight = render.world.r / mapInfo.mapSizeX
 		local normVisBottom = render.world.b / mapInfo.mapSizeZ
 		local normVisTop = render.world.t / mapInfo.mapSizeZ
 		return normVisLeft, normVisRight, normVisBottom, normVisTop
 	end
-	WG['minimap'].getZoomLevel = function()
+	WG.minimap.getZoomLevel = function()
 		return mapInfo.mapSizeX / (render.world.r - render.world.l)
 	end
-	WG['minimap'].getShowSpectatorPings = function()
+	WG.minimap.getShowSpectatorPings = function()
 		return config.showSpectatorPings
 	end
-	WG['minimap'].setShowSpectatorPings = function(value)
+	WG.minimap.setShowSpectatorPings = function(value)
 		config.showSpectatorPings = value
 	end
-	WG['minimap'].getEngineMinimapFallback = function()
+	WG.minimap.getEngineMinimapFallback = function()
 		return config.engineMinimapFallback
 	end
-	WG['minimap'].setEngineMinimapFallback = function(value)
+	WG.minimap.setEngineMinimapFallback = function(value)
 		config.engineMinimapFallback = value
 		if not value and miscState.engineMinimapActive then
 			-- Turning off fallback while engine minimap is showing: restore icon scale and re-minimize
@@ -7113,19 +7113,19 @@ local function RegisterMinimapWGAPI()
 			pipR2T.unitsNeedsUpdate = true
 		end
 	end
-	WG['minimap'].getEngineMinimapFallbackThreshold = function()
+	WG.minimap.getEngineMinimapFallbackThreshold = function()
 		return config.engineMinimapFallbackThreshold
 	end
-	WG['minimap'].setEngineMinimapFallbackThreshold = function(value)
+	WG.minimap.setEngineMinimapFallbackThreshold = function(value)
 		config.engineMinimapFallbackThreshold = value
 	end
-	WG['minimap'].getEngineMinimapExplosionOverlay = function()
+	WG.minimap.getEngineMinimapExplosionOverlay = function()
 		return config.engineMinimapExplosionOverlay
 	end
-	WG['minimap'].setEngineMinimapExplosionOverlay = function(value)
+	WG.minimap.setEngineMinimapExplosionOverlay = function(value)
 		config.engineMinimapExplosionOverlay = value
 	end
-	WG['minimap'].setBaseIconScale = function(value)
+	WG.minimap.setBaseIconScale = function(value)
 		if miscState.engineMinimapActive then
 			miscState.baseMinimapIconScale = value
 		end
@@ -7728,7 +7728,7 @@ end
 
 function widget:ViewResize()
 
-	font = WG['fonts'].getFont(2)
+	font = WG.fonts.getFont(2)
 
 	local oldVsx, oldVsy = render.vsx, render.vsy
 	render.vsx, render.vsy = Spring.GetViewGeometry()
@@ -7762,8 +7762,8 @@ function widget:ViewResize()
 		local maxHeight = config.minimapModeMaxHeight
 		-- Dynamically determine max width from topbar position (like gui_minimap does)
 		local effectiveMaxWidth = config.minimapModeMaxWidth
-		if WG['topbar'] and WG['topbar'].GetPosition then
-			local topbarArea = WG['topbar'].GetPosition()
+		if WG.topbar and WG.topbar.GetPosition then
+			local topbarArea = WG.topbar.GetPosition()
 			if topbarArea and topbarArea[1] then
 				local margin = WG.FlowUI and (WG.FlowUI.elementMargin + WG.FlowUI.elementPadding) or 10
 				effectiveMaxWidth = (topbarArea[1] - margin) / render.vsx
@@ -8259,11 +8259,11 @@ function widget:Shutdown()
 	end
 
 	-- Remove guishader blur
-	if WG['guishader'] then
-		if WG['guishader'].RemoveDlist then
-			WG['guishader'].RemoveDlist('pip'..pipNumber)
-		elseif WG['guishader'].RemoveRect then
-			WG['guishader'].RemoveRect('pip'..pipNumber)
+	if WG.guishader then
+		if WG.guishader.RemoveDlist then
+			WG.guishader.RemoveDlist('pip'..pipNumber)
+		elseif WG.guishader.RemoveRect then
+			WG.guishader.RemoveRect('pip'..pipNumber)
 		end
 	end
 	-- Clean up guishader dlist
@@ -8294,7 +8294,7 @@ function widget:Shutdown()
 			Spring.SetConfigInt("MiniMapDrawPings", miscState.oldMinimapDrawPings)
 		end
 		-- Re-enable the gui_minimap widget if it exists
-		if widgetHandler.knownWidgets and widgetHandler.knownWidgets["Minimap"] then
+		if widgetHandler.knownWidgets and widgetHandler.knownWidgets.Minimap then
 			widgetHandler:EnableWidget("Minimap")
 		end
 	end
@@ -8315,7 +8315,7 @@ function widget:Shutdown()
 	WG['pip'..pipNumber] = nil
 	if isMinimapMode then
 		WG.pip_minimap = nil
-		WG['minimap'] = nil
+		WG.minimap = nil
 	end
 
 	for i = 1, #buttons do
@@ -8834,7 +8834,7 @@ local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 		-- Show only selected units (or tracked player's selected units)
 		if interactionState.trackingPlayerID then
 			-- Get tracked player's selected units — write directly into pool to avoid table alloc
-			local playerSelections = WG['allyselectedunits'] and WG['allyselectedunits'].getPlayerSelectedUnits(interactionState.trackingPlayerID)
+			local playerSelections = WG.allyselectedunits and WG.allyselectedunits.getPlayerSelectedUnits(interactionState.trackingPlayerID)
 			if playerSelections then
 				for unitID, _ in pairs(playerSelections) do
 					unitCount = unitCount + 1
@@ -9092,8 +9092,8 @@ local function DrawBuildPreview(mx, my, iconRadiusZoomDistMult)
 	-- Handle Area Mex command preview
 	if activeCmdID == CMD_AREA_MEX then
 		local wx, wz = PipToWorldCoords(mx, my)
-		local metalSpots = WG["resource_spot_finder"] and WG["resource_spot_finder"].metalSpotsList
-		local metalMap = WG["resource_spot_finder"] and WG["resource_spot_finder"].isMetalMap
+		local metalSpots = WG.resource_spot_finder and WG.resource_spot_finder.metalSpotsList
+		local metalMap = WG.resource_spot_finder and WG.resource_spot_finder.isMetalMap
 
 		if metalSpots and not metalMap then
 			-- Draw circle showing area
@@ -9114,12 +9114,12 @@ local function DrawBuildPreview(mx, my, iconRadiusZoomDistMult)
 			glFunc.Color(1, 1, 1, 1)
 
 			-- Draw preview icons for all spots in area
-			local mexBuildings = WG["resource_spot_builder"] and WG["resource_spot_builder"].GetMexBuildings()
+			local mexBuildings = WG.resource_spot_builder and WG.resource_spot_builder.GetMexBuildings()
 			if mexBuildings then
 				if not frameSel then frameSel = Spring.GetSelectedUnits() end
 				local selectedUnits = frameSel
-				local mexConstructors = WG["resource_spot_builder"] and WG["resource_spot_builder"].GetMexConstructors()
-				local selectedMex = WG["resource_spot_builder"] and WG["resource_spot_builder"].GetBestExtractorFromBuilders(selectedUnits, mexConstructors, mexBuildings)
+				local mexConstructors = WG.resource_spot_builder and WG.resource_spot_builder.GetMexConstructors()
+				local selectedMex = WG.resource_spot_builder and WG.resource_spot_builder.GetBestExtractorFromBuilders(selectedUnits, mexConstructors, mexBuildings)
 
 				if selectedMex then
 					local buildIcon = cache.unitIcon[selectedMex]
@@ -9157,22 +9157,22 @@ local function DrawBuildPreview(mx, my, iconRadiusZoomDistMult)
 		local wy = spFunc.GetGroundHeight(wx, wz)
 
 		-- Check if this is a mex/geo that needs spot snapping
-		local mexBuildings = WG["resource_spot_builder"] and WG["resource_spot_builder"].GetMexBuildings()
-		local geoBuildings = WG["resource_spot_builder"] and WG["resource_spot_builder"].GetGeoBuildings()
+		local mexBuildings = WG.resource_spot_builder and WG.resource_spot_builder.GetMexBuildings()
+		local geoBuildings = WG.resource_spot_builder and WG.resource_spot_builder.GetGeoBuildings()
 		local isMex = mexBuildings and mexBuildings[buildDefID]
 		local isGeo = geoBuildings and geoBuildings[buildDefID]
-		local metalMap = WG["resource_spot_finder"] and WG["resource_spot_finder"].isMetalMap
+		local metalMap = WG.resource_spot_finder and WG.resource_spot_finder.isMetalMap
 
-		if isMex and not metalMap and WG["resource_spot_finder"] and WG["resource_spot_builder"] then
-			local metalSpots = WG["resource_spot_finder"].metalSpotsList
-			local nearestSpot = WG["resource_spot_builder"].FindNearestValidSpotForExtractor(wx, wz, metalSpots, buildDefID)
+		if isMex and not metalMap and WG.resource_spot_finder and WG.resource_spot_builder then
+			local metalSpots = WG.resource_spot_finder.metalSpotsList
+			local nearestSpot = WG.resource_spot_builder.FindNearestValidSpotForExtractor(wx, wz, metalSpots, buildDefID)
 			if nearestSpot then
 				wx, wz = nearestSpot.x, nearestSpot.z
 				wy = nearestSpot.y
 			end
-		elseif isGeo and WG["resource_spot_finder"] and WG["resource_spot_builder"] then
-			local geoSpots = WG["resource_spot_finder"].geoSpotsList
-			local nearestSpot = WG["resource_spot_builder"].FindNearestValidSpotForExtractor(wx, wz, geoSpots, buildDefID)
+		elseif isGeo and WG.resource_spot_finder and WG.resource_spot_builder then
+			local geoSpots = WG.resource_spot_finder.geoSpotsList
+			local nearestSpot = WG.resource_spot_builder.FindNearestValidSpotForExtractor(wx, wz, geoSpots, buildDefID)
 			if nearestSpot then
 				wx, wz = nearestSpot.x, nearestSpot.z
 				wy = nearestSpot.y
@@ -9328,7 +9328,7 @@ local function DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
 	local selectedUnits
 	local selectedCount = 0
 	if interactionState.trackingPlayerID then
-		local playerSelections = WG['allyselectedunits'] and WG['allyselectedunits'].getPlayerSelectedUnits(interactionState.trackingPlayerID)
+		local playerSelections = WG.allyselectedunits and WG.allyselectedunits.getPlayerSelectedUnits(interactionState.trackingPlayerID)
 		if playerSelections then
 			selectedUnits = cachedSelectedUnits or {}
 			for unitID, _ in pairs(playerSelections) do
@@ -11064,7 +11064,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	-- Pre-fetch player selections once (avoids per-unit WG lookup)
 	local playerSelections = nil
 	if interactionState.trackingPlayerID then
-		playerSelections = WG['allyselectedunits'] and WG['allyselectedunits'].getPlayerSelectedUnits(interactionState.trackingPlayerID)
+		playerSelections = WG.allyselectedunits and WG.allyselectedunits.getPlayerSelectedUnits(interactionState.trackingPlayerID)
 		if not playerSelections then playerSelections = {} end  -- empty table signals "use tracking mode" to DrawUnit
 	end
 
@@ -11374,7 +11374,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	-- Build selection set for GL4 icon rendering (reuse pool table to avoid per-frame allocation)
 	local selectedSet
 	if interactionState.trackingPlayerID then
-		selectedSet = WG['allyselectedunits'] and WG['allyselectedunits'].getPlayerSelectedUnits(interactionState.trackingPlayerID)
+		selectedSet = WG.allyselectedunits and WG.allyselectedunits.getPlayerSelectedUnits(interactionState.trackingPlayerID)
 	else
 		local selUnits2 = cachedSelectedUnits or Spring.GetSelectedUnits()
 		local set = pools.selectedSet
@@ -11665,8 +11665,8 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	end
 
 	-- Draw ally cursors
-	if WG['allycursors'] and WG['allycursors'].getCursor and interactionState.trackingPlayerID then
-		local cursor, isNotIdle = WG['allycursors'].getCursor(interactionState.trackingPlayerID)
+	if WG.allycursors and WG.allycursors.getCursor and interactionState.trackingPlayerID then
+		local cursor, isNotIdle = WG.allycursors.getCursor(interactionState.trackingPlayerID)
 		if cursor and isNotIdle then
 			local wx, wz = cursor[1], cursor[3]
 			local cx, cy = WorldToPipCoords(wx, wz)
@@ -12405,8 +12405,8 @@ local function DrawBuildCursorWithRotation()
 		else
 			wx, wz = worldTraceX, worldTraceZ
 		end
-		local metalSpots = WG["resource_spot_finder"] and WG["resource_spot_finder"].metalSpotsList
-		local metalMap = WG["resource_spot_finder"] and WG["resource_spot_finder"].isMetalMap
+		local metalSpots = WG.resource_spot_finder and WG.resource_spot_finder.metalSpotsList
+		local metalMap = WG.resource_spot_finder and WG.resource_spot_finder.isMetalMap
 
 		if metalSpots and not metalMap then
 			-- Apply rotation transform
@@ -12437,12 +12437,12 @@ local function DrawBuildCursorWithRotation()
 			glFunc.Color(1, 1, 1, 1)
 
 			-- Draw preview icons for all spots in area
-			local mexBuildings = WG["resource_spot_builder"] and WG["resource_spot_builder"].GetMexBuildings()
+			local mexBuildings = WG.resource_spot_builder and WG.resource_spot_builder.GetMexBuildings()
 			if mexBuildings then
 				if not frameSel then frameSel = Spring.GetSelectedUnits() end
 				local selectedUnits = frameSel
-				local mexConstructors = WG["resource_spot_builder"] and WG["resource_spot_builder"].GetMexConstructors()
-				local selectedMex = WG["resource_spot_builder"] and WG["resource_spot_builder"].GetBestExtractorFromBuilders(selectedUnits, mexConstructors, mexBuildings)
+				local mexConstructors = WG.resource_spot_builder and WG.resource_spot_builder.GetMexConstructors()
+				local selectedMex = WG.resource_spot_builder and WG.resource_spot_builder.GetBestExtractorFromBuilders(selectedUnits, mexConstructors, mexBuildings)
 
 				if selectedMex then
 					local buildIcon = cache.unitIcon[selectedMex]
@@ -12520,22 +12520,22 @@ local function DrawBuildCursorWithRotation()
 	local wy = spFunc.GetGroundHeight(wx, wz)
 
 	-- Snap mex/geo to nearest resource spot, otherwise snap to build grid
-	local mexBuildings = WG["resource_spot_builder"] and WG["resource_spot_builder"].GetMexBuildings()
-	local geoBuildings = WG["resource_spot_builder"] and WG["resource_spot_builder"].GetGeoBuildings()
+	local mexBuildings = WG.resource_spot_builder and WG.resource_spot_builder.GetMexBuildings()
+	local geoBuildings = WG.resource_spot_builder and WG.resource_spot_builder.GetGeoBuildings()
 	local isMex = mexBuildings and mexBuildings[buildDefID]
 	local isGeo = geoBuildings and geoBuildings[buildDefID]
-	local metalMap = WG["resource_spot_finder"] and WG["resource_spot_finder"].isMetalMap
+	local metalMap = WG.resource_spot_finder and WG.resource_spot_finder.isMetalMap
 
-	if isMex and not metalMap and WG["resource_spot_finder"] and WG["resource_spot_builder"] then
-		local metalSpots = WG["resource_spot_finder"].metalSpotsList
-		local nearestSpot = WG["resource_spot_builder"].FindNearestValidSpotForExtractor(wx, wz, metalSpots, buildDefID)
+	if isMex and not metalMap and WG.resource_spot_finder and WG.resource_spot_builder then
+		local metalSpots = WG.resource_spot_finder.metalSpotsList
+		local nearestSpot = WG.resource_spot_builder.FindNearestValidSpotForExtractor(wx, wz, metalSpots, buildDefID)
 		if nearestSpot then
 			wx, wz = nearestSpot.x, nearestSpot.z
 			wy = nearestSpot.y
 		end
-	elseif isGeo and WG["resource_spot_finder"] and WG["resource_spot_builder"] then
-		local geoSpots = WG["resource_spot_finder"].geoSpotsList
-		local nearestSpot = WG["resource_spot_builder"].FindNearestValidSpotForExtractor(wx, wz, geoSpots, buildDefID)
+	elseif isGeo and WG.resource_spot_finder and WG.resource_spot_builder then
+		local geoSpots = WG.resource_spot_finder.geoSpotsList
+		local nearestSpot = WG.resource_spot_builder.FindNearestValidSpotForExtractor(wx, wz, geoSpots, buildDefID)
 		if nearestSpot then
 			wx, wz = nearestSpot.x, nearestSpot.z
 			wy = nearestSpot.y
@@ -13366,7 +13366,7 @@ local function DrawBoxSelection()
 	local maxY = math.min(math.max(interactionState.boxSelectStartY, interactionState.boxSelectEndY), render.dim.t)
 
 	-- Check if selectionbox widget is enabled
-	local selectionboxEnabled = widgetHandler:IsWidgetKnown("Selectionbox") and (widgetHandler.orderList["Selectionbox"] and widgetHandler.knownWidgets["Selectionbox"].active)
+	local selectionboxEnabled = widgetHandler:IsWidgetKnown("Selectionbox") and (widgetHandler.orderList.Selectionbox and widgetHandler.knownWidgets.Selectionbox.active)
 
 	-- Get modifier key states (ignoring alt as requested)
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
@@ -14922,7 +14922,7 @@ local function UpdateDecalTexture()
 	if (frame - pipR2T.decalLastCheckFrame) < pipR2T.decalCheckInterval then return end
 	pipR2T.decalLastCheckFrame = frame
 
-	local decalsAPI = WG['decalsgl4']
+	local decalsAPI = WG.decalsgl4
 	if not decalsAPI then return end
 	local getVBO = decalsAPI.GetVBOData
 	if not getVBO then return end
@@ -15150,8 +15150,8 @@ local function HandleHoverAndCursor(mx, my)
 	end
 
 	if not (interactionState.areBoxSelecting or (mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t)) then
-		if WG['info'] and WG['info'].clearCustomHover then
-			WG['info'].clearCustomHover()
+		if WG.info and WG.info.clearCustomHover then
+			WG.info.clearCustomHover()
 		end
 		interactionState.lastHoveredUnitID = nil
 		interactionState.lastHoveredFeatureID = nil
@@ -15167,11 +15167,11 @@ local function HandleHoverAndCursor(mx, my)
 		interactionState.lastHoverCursorCheckTime = currentTime
 
 		-- Update info widget with custom hover
-		if WG['info'] and WG['info'].setCustomHover then
+		if WG.info and WG.info.setCustomHover then
 			local wx, wz = PipToWorldCoords(mx, my)
 			local uID = GetUnitAtPoint(wx, wz)
 			if uID then
-				WG['info'].setCustomHover('unit', uID)
+				WG.info.setCustomHover('unit', uID)
 				interactionState.lastHoveredUnitID = uID
 				interactionState.lastHoveredFeatureID = nil
 			else
@@ -15179,16 +15179,16 @@ local function HandleHoverAndCursor(mx, my)
 				if cameraState.zoom >= config.zoomFeatures then
 					local fID = GetFeatureAtPoint(wx, wz)
 					if fID then
-						WG['info'].setCustomHover('feature', fID)
+						WG.info.setCustomHover('feature', fID)
 						interactionState.lastHoveredFeatureID = fID
 						interactionState.lastHoveredUnitID = nil
 					else
-						WG['info'].clearCustomHover()
+						WG.info.clearCustomHover()
 						interactionState.lastHoveredUnitID = nil
 						interactionState.lastHoveredFeatureID = nil
 					end
 				else
-					WG['info'].clearCustomHover()
+					WG.info.clearCustomHover()
 					interactionState.lastHoveredUnitID = nil
 					interactionState.lastHoveredFeatureID = nil
 				end
@@ -15376,7 +15376,7 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 		local bx = render.dim.l
 		for i = 1, #visibleButtons do
 			if mx >= bx and mx <= bx + render.usedButtonSize and my >= render.dim.b and my <= render.dim.b + render.usedButtonSize then
-				if visibleButtons[i].tooltipKey and WG['tooltip'] then
+				if visibleButtons[i].tooltipKey and WG.tooltip then
 					local tooltipKey = visibleButtons[i].tooltipKey
 					if visibleButtons[i].tooltipActiveKey then
 						if (visibleButtons[i].command == 'pip_track' and interactionState.areTracking) or
@@ -15403,7 +15403,7 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 					if shortcut and shortcut ~= "" then
 						tooltipText = tooltipText .. "\n" .. shortcut
 					end
-					WG['tooltip'].ShowTooltip('pip'..pipNumber, tooltipText, nil, nil, nil)
+					WG.tooltip.ShowTooltip('pip'..pipNumber, tooltipText, nil, nil, nil)
 				end
 				glFunc.Color(1,1,1,0.12)
 				glFunc.Texture(false)
@@ -15492,8 +15492,8 @@ function widget:DrawScreen()
 
 		-- Hover highlight
 		if mx >= btnL and mx <= btnR and my >= btnB and my <= btnT then
-			if WG['tooltip'] then
-				WG['tooltip'].ShowTooltip('pip'..pipNumber, Spring.I18N('ui.pip.minimap_maximize'), nil, nil, nil)
+			if WG.tooltip then
+				WG.tooltip.ShowTooltip('pip'..pipNumber, Spring.I18N('ui.pip.minimap_maximize'), nil, nil, nil)
 			end
 			glFunc.Color(1,1,1,0.12)
 			glFunc.Texture(false)
@@ -15571,8 +15571,8 @@ function widget:DrawScreen()
 		glFunc.Texture(false)
 		if mx >= uiState.minModeL - render.elementPadding and mx <= uiState.minModeL + buttonSize + render.elementPadding and
 			my >= uiState.minModeB - render.elementPadding and my <= uiState.minModeB + buttonSize + render.elementPadding then
-			if WG['tooltip'] then
-				WG['tooltip'].ShowTooltip('pip'..pipNumber, Spring.I18N('ui.pip.tooltip'), nil, nil, nil)
+			if WG.tooltip then
+				WG.tooltip.ShowTooltip('pip'..pipNumber, Spring.I18N('ui.pip.tooltip'), nil, nil, nil)
 			end
 			glFunc.Color(1,1,1,0.12)
 			glFunc.Texture(false)
@@ -15889,7 +15889,7 @@ function widget:DrawScreen()
 			
 			-- Draw minimap overlays from other widgets (only in minimap mode)
 			-- This is done here in DrawScreen (not in R2T) because matrix manipulation works correctly here
-			if isMinimapMode and WG['minimap'] and widgetHandler and widgetHandler.DrawInMiniMapList then
+			if isMinimapMode and WG.minimap and widgetHandler and widgetHandler.DrawInMiniMapList then
 				local minimapWidth = render.dim.r - render.dim.l
 				local minimapHeight = render.dim.t - render.dim.b
 				
@@ -15900,7 +15900,7 @@ function widget:DrawScreen()
 				gl.Scissor(render.dim.l, render.dim.b, minimapWidth, minimapHeight)
 				
 				-- Set a flag that widgets can check during their DrawInMiniMap
-				WG['minimap'].isDrawingInPip = true
+				WG.minimap.isDrawingInPip = true
 				
 				-- Update module-level upvalues for the minimap API functions (avoids per-frame closures)
 				-- For shaders: pass in world-normalized coords (NOT Y-flipped), shaders do their own flip
@@ -15911,8 +15911,8 @@ function widget:DrawScreen()
 				minimapApi.zoom = mapInfo.mapSizeX / (worldR - worldL)
 				
 				-- Expose pre-created functions (no per-frame allocation)
-				WG['minimap'].getNormalizedVisibleArea = minimapApi.getNormalizedVisibleArea
-				WG['minimap'].getZoomLevel = minimapApi.getZoomLevel
+				WG.minimap.getNormalizedVisibleArea = minimapApi.getNormalizedVisibleArea
+				WG.minimap.getZoomLevel = minimapApi.getZoomLevel
 				
 				-- Compute rotation-aware ortho bounds for fixed-function GL widgets.
 				-- Widgets handle rotation themselves via getCurrentMiniMapRotationOption(),
@@ -15993,7 +15993,7 @@ function widget:DrawScreen()
 				end
 				
 				-- Clear the flag and disable scissor
-				WG['minimap'].isDrawingInPip = false
+				WG.minimap.isDrawingInPip = false
 				gl.Scissor(false)
 				
 				-- Reset GL state that widgets may have left dirty
@@ -16072,8 +16072,8 @@ function widget:DrawScreen()
 			if mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t then
 				if (render.dim.r-mx + my-render.dim.b <= render.usedButtonSize) then
 					hover = true
-					if WG['tooltip'] then
-						WG['tooltip'].ShowTooltip('pip'..pipNumber, Spring.I18N('ui.pip.resize'), nil, nil, nil)
+					if WG.tooltip then
+						WG.tooltip.ShowTooltip('pip'..pipNumber, Spring.I18N('ui.pip.resize'), nil, nil, nil)
 					end
 				end
 			end
@@ -16112,8 +16112,8 @@ function widget:DrawScreen()
 			if mx >= render.dim.r - render.usedButtonSize - render.elementPadding and mx <= render.dim.r - render.elementPadding and
 				my >= render.dim.t - render.usedButtonSize - render.elementPadding and my <= render.dim.t - render.elementPadding then
 				hover = true
-				if WG['tooltip'] then
-					WG['tooltip'].ShowTooltip('pip'..pipNumber, Spring.I18N(isMinimapMode and 'ui.pip.minimap_minimize' or 'ui.pip.minimize'), nil, nil, nil)
+				if WG.tooltip then
+					WG.tooltip.ShowTooltip('pip'..pipNumber, Spring.I18N(isMinimapMode and 'ui.pip.minimap_minimize' or 'ui.pip.minimize'), nil, nil, nil)
 				end
 				glFunc.Color(1,1,1,0.12)
 				glFunc.Texture(false)
@@ -16401,7 +16401,7 @@ end
 -- Timer for periodic ghost building cleanup (checks ghosts outside PIP viewport)
 -- ghostCleanupTimer stored in cache table to avoid a top-level local
 cache.ghostCleanupTimer = 0
-cache.guishaderWasActive = WG['guishader'] ~= nil
+cache.guishaderWasActive = WG.guishader ~= nil
 cache.guishaderCheckTimer = 0
 
 function widget:Update(dt)
@@ -16410,7 +16410,7 @@ function widget:Update(dt)
 	cache.guishaderCheckTimer = cache.guishaderCheckTimer + dt
 	if cache.guishaderCheckTimer >= 0.5 then
 		cache.guishaderCheckTimer = 0
-		local guishaderActive = WG['guishader'] ~= nil
+		local guishaderActive = WG.guishader ~= nil
 		if guishaderActive and not cache.guishaderWasActive then
 			UpdateGuishaderBlur()
 		end
@@ -16660,11 +16660,11 @@ function widget:Update(dt)
 			gl.SlaveMiniMap(true)
 			-- Update guishader blur: remove when hidden, re-add when shown
 			if wantMinimized then
-				if WG['guishader'] then
-					if WG['guishader'].RemoveDlist then
-						WG['guishader'].RemoveDlist('pip'..pipNumber)
-					elseif WG['guishader'].RemoveRect then
-						WG['guishader'].RemoveRect('pip'..pipNumber)
+				if WG.guishader then
+					if WG.guishader.RemoveDlist then
+						WG.guishader.RemoveDlist('pip'..pipNumber)
+					elseif WG.guishader.RemoveRect then
+						WG.guishader.RemoveRect('pip'..pipNumber)
 					end
 				end
 			else
@@ -16916,7 +16916,7 @@ function widget:Update(dt)
 	end
 
 	-- Check if selectionbox widget state has changed and update command colors accordingly
-	local selectionboxEnabled = widgetHandler:IsWidgetKnown("Selectionbox") and (widgetHandler.orderList["Selectionbox"] and widgetHandler.knownWidgets["Selectionbox"].active)
+	local selectionboxEnabled = widgetHandler:IsWidgetKnown("Selectionbox") and (widgetHandler.orderList.Selectionbox and widgetHandler.knownWidgets.Selectionbox.active)
 	if selectionboxEnabled ~= drawData.lastSelectionboxEnabled then
 		drawData.lastSelectionboxEnabled = selectionboxEnabled
 		if selectionboxEnabled then

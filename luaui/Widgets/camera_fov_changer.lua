@@ -41,6 +41,6 @@ function widget:KeyRelease(key, modifier)
 			end
 		end
 		spEcho('target FOV: '..current_cam_state.fov)
-		Spring.SetCameraState(current_cam_state, WG['options'] and WG['options'].getCameraSmoothness() or 2)
+		Spring.SetCameraState(current_cam_state, WG.options and WG.options.getCameraSmoothness() or 2)
 	end
 end

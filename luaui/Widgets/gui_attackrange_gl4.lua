@@ -188,8 +188,8 @@ local weaponTypeMap = { 'ground', 'nano', 'AA', 'cannon', 'lrpc' }
 
 local unitDefRings = {} --each entry should be a unitdefIDkey to a table:
 
-local vtoldamagetag = Game.armorTypes['vtol']
-local defaultdamagetag = Game.armorTypes['default']
+local vtoldamagetag = Game.armorTypes.vtol
+local defaultdamagetag = Game.armorTypes.default
 
 -- globals
 local minimapUtils = VFS.Include("luaui/Include/minimap_utils.lua")
@@ -276,7 +276,7 @@ end
 
 local function initializeUnitDefRing(unitDefID)
 	local weapons = unitWeapons[unitDefID]
-	unitDefRings[unitDefID]['rings'] = {}
+	unitDefRings[unitDefID].rings = {}
 	local weaponCount = #weapons or 0
 	for weaponNum = 1, #weapons do
 		local weaponDefID = weapons[weaponNum].weaponDef
@@ -290,7 +290,7 @@ local function initializeUnitDefRing(unitDefID)
 
 		local range = weaponDef.range
 		local dps = 0
-		local weaponType = unitDefRings[unitDefID]['weapons'][weaponNum]
+		local weaponType = unitDefRings[unitDefID].weapons[weaponNum]
 
 		if weaponType ~= nil and weaponType > 0 then
 			local damage = 0
@@ -417,16 +417,16 @@ local function initializeUnitDefRing(unitDefID)
 				isDgun, --16
 				maxangledif  --17
 			}
-			unitDefRings[unitDefID]['rings'][weaponNum] = ringParams
+			unitDefRings[unitDefID].rings[weaponNum] = ringParams
 		end
 	end
 
 	-- for builders, we need to add a special nano ring def
 	if unitBuilder[unitDefID] then
 		local range = unitBuildDistance[unitDefID]
-		local color = colorConfig['nano'].color
-		local fadeparams = colorConfig['nano'].fadeparams
-		local groupselectionfadescale = colorConfig['nano'].groupselectionfadescale
+		local color = colorConfig.nano.color
+		local fadeparams = colorConfig.nano.fadeparams
+		local groupselectionfadescale = colorConfig.nano.groupselectionfadescale
 
 		local ringParams = { range, color[1], color[2], color[3], color[4],
 			fadeparams[1], fadeparams[2], fadeparams[3], fadeparams[4],
@@ -438,7 +438,7 @@ local function initializeUnitDefRing(unitDefID)
 			2,
 			0
 		}
-		unitDefRings[unitDefID]['rings'][weaponCount + 1] = ringParams -- weaponCount + 1 is nano
+		unitDefRings[unitDefID].rings[weaponCount + 1] = ringParams -- weaponCount + 1 is nano
 	end
 end
 
@@ -685,7 +685,7 @@ local function AddSelectedUnit(unitID, mouseover, newRange)
 
 	--for weaponNum = 1, #weapons do
 	local addedRings = 0
-	local weaponTypes = unitDefRings[unitDefID]['weapons']
+	local weaponTypes = unitDefRings[unitDefID].weapons
 	for j, weaponType in pairs(weaponTypes) do
 		local drawIt = true
 		-- we need to check if the unit has on/off weapon states, and only add the one active
@@ -718,11 +718,11 @@ local function AddSelectedUnit(unitID, mouseover, newRange)
 		local ringParams = {}
 		if newRange then
 			for i = 2, 17 do	-- See line 405.
-				ringParams[i] = unitDefRings[unitDefID]['rings'][j][i]	-- Preserves default range from unitDefs for use with enemy units.
+				ringParams[i] = unitDefRings[unitDefID].rings[j][i]	-- Preserves default range from unitDefs for use with enemy units.
 			end
 			ringParams[1] = newRange[j]
 		else
-			ringParams = unitDefRings[unitDefID]['rings'][j]
+			ringParams = unitDefRings[unitDefID].rings[j]
 		end
 		if drawIt and ringParams[1] > 0 then
 
@@ -975,7 +975,7 @@ end
 
 local function cycleUnitDisplayHandler(_, _, _, data)
 	local data = data or {}
-	local direction = data["direction"]
+	local direction = data.direction
 	cycleUnitDisplay(direction)
 end
 
@@ -1233,9 +1233,9 @@ function widget:DrawWorld(inMiniMap)
 	end
 
 	if chobbyInterface or not (selUnitCount > 0 or mouseUnit) then return end
-	if not Spring.IsGUIHidden() and (not WG['topbar'] or not WG['topbar'].showingQuit()) then
+	if not Spring.IsGUIHidden() and (not WG.topbar or not WG.topbar.showingQuit()) then
 		-- For PIP minimap, use thicker lines since PIP is larger than engine minimap
-		local inPip = inMiniMap and WG['minimap'] and WG['minimap'].isDrawingInPip
+		local inPip = inMiniMap and WG.minimap and WG.minimap.isDrawingInPip
 		if inPip then
 			cameraHeightFactor = 2.5  -- PIP is larger, needs thicker lines
 		else
@@ -1269,8 +1269,8 @@ function widget:DrawWorld(inMiniMap)
 			attackRangeShader:SetUniform("fadeDistOffset", colorConfig.outer_fade_height_difference)
 
 			-- Pass PIP visible area if drawing in PIP minimap
-			if inMiniMap and WG['minimap'] and WG['minimap'].isDrawingInPip and WG['minimap'].getNormalizedVisibleArea then
-				local left, right, bottom, top = WG['minimap'].getNormalizedVisibleArea()
+			if inMiniMap and WG.minimap and WG.minimap.isDrawingInPip and WG.minimap.getNormalizedVisibleArea then
+				local left, right, bottom, top = WG.minimap.getNormalizedVisibleArea()
 				attackRangeShader:SetUniform("pipVisibleArea", left, right, bottom, top)
 			else
 				attackRangeShader:SetUniform("pipVisibleArea", 0, 1, 0, 1)

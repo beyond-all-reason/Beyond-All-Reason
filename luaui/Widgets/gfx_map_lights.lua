@@ -42,12 +42,12 @@ local maplights = {
 function widget:Initialize()
 	--spEcho("Loading Maplights")
 	--spEcho(WG, WG['lighteffects'], WG['lighteffects'].createLight,Script.LuaUI("GadgetCreateLight"))
-	if (WG and WG['lighteffects'] and WG['lighteffects'].createLight) or Script.LuaUI("GadgetCreateLight") then
+	if (WG and WG.lighteffects and WG.lighteffects.createLight) or Script.LuaUI("GadgetCreateLight") then
 
 		for _, lightparams in pairs(maplights) do
 
 			if WG then
-				lightparams.lightID = WG['lighteffects'].createLight(
+				lightparams.lightID = WG.lighteffects.createLight(
 					lightparams.lightname,
 					lightparams.pos[1],
 					lightparams.pos[2],
@@ -73,9 +73,9 @@ end
 
 function widget:Shutdown()
 	for _, lightparams in pairs(maplights) do
-		if lightparams.lightID and ((WG and WG['lighteffects'] and WG['lighteffects'].removeLight) or Script.LuaUI("GadgetRemoveLight")) then
+		if lightparams.lightID and ((WG and WG.lighteffects and WG.lighteffects.removeLight) or Script.LuaUI("GadgetRemoveLight")) then
 			if WG then
-				WG['lighteffects'].removeLight(lightparams.lightID)
+				WG.lighteffects.removeLight(lightparams.lightID)
 			else
 				Script.LuaUI.GadgetRemoveLight(lightparams.lightID)
 			end

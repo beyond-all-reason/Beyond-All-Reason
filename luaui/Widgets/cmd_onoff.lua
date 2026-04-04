@@ -34,7 +34,7 @@ local function onoff(_, _, args)
 			anyOnOffable = true
 
 			if state == nil then
-				local isActive = spGetUnitStates(units[1])["active"]
+				local isActive = spGetUnitStates(units[1]).active
 				if isActive then state = 0 else state = 1 end
 			end
 

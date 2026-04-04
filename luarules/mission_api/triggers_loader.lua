@@ -68,7 +68,7 @@ local function preprocessRawTriggers(rawTriggers)
 end
 
 local function postvalidateTriggers()
-	local actions = GG['MissionAPI'].Actions
+	local actions = GG.MissionAPI.Actions
 	for triggerId, trigger in pairs(triggers) do
 		for _, actionId in pairs(trigger.actions) do
 			if not actions[actionId] then

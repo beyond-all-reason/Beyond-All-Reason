@@ -63,8 +63,8 @@ local function updateRejoin()
 			dlistRejoinGuishader = gl.CreateList(function()
 				RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
 			end)
-			if WG['guishader'] then
-				WG['guishader'].InsertDlist(dlistRejoinGuishader, 'rejoinprogress')
+			if WG.guishader then
+				WG.guishader.InsertDlist(dlistRejoinGuishader, 'rejoinprogress')
 			end
 		end
 
@@ -171,8 +171,8 @@ function widget:Update(dt)
 			elseif showRejoinUI then
 				showRejoinUI = false
 				if dlistRejoinGuishader ~= nil then
-					if WG['guishader'] then
-						WG['guishader'].RemoveDlist('rejoinprogress')
+					if WG.guishader then
+						WG.guishader.RemoveDlist('rejoinprogress')
 					end
 					gl.DeleteList(dlistRejoinGuishader)
 					dlistRejoinGuishader = nil
@@ -199,13 +199,13 @@ function widget:ViewResize()
 	TexturedRectRound = WG.FlowUI.Draw.TexturedRectRound
 	UiElement = WG.FlowUI.Draw.Element
 
-	font2 = WG['fonts'].getFont(2)
+	font2 = WG.fonts.getFont(2)
 
 	rejoinArea = { mathFloor(0.5*vsx)-mathFloor(width*0.5), mathFloor(posY*vsy)-mathFloor(height*0.5), mathFloor(0.5*vsx) + mathFloor(width*0.5), mathFloor(posY*vsy)+mathFloor(height*0.5) }
 
 	if dlistRejoinGuishader ~= nil then
-		if WG['guishader'] then
-			WG['guishader'].RemoveDlist('rejoinprogress')
+		if WG.guishader then
+			WG.guishader.RemoveDlist('rejoinprogress')
 		end
 		gl.DeleteList(dlistRejoinGuishader)
 		dlistRejoinGuishader = nil
@@ -235,8 +235,8 @@ end
 
 function widget:Initialize()
 	widget:ViewResize()
-	WG['rejoin'] = {}
-	WG['rejoin'].showingRejoining = function()
+	WG.rejoin = {}
+	WG.rejoin.showingRejoining = function()
 		return showRejoinUI
 	end
 end
@@ -245,8 +245,8 @@ function widget:Shutdown()
 	if dlistRejoin ~= nil then
 		gl.DeleteList(dlistRejoin)
 	end
-	if dlistRejoinGuishader ~= nil and WG['guishader'] then
-		WG['guishader'].RemoveDlist('rejoinprogress')
+	if dlistRejoinGuishader ~= nil and WG.guishader then
+		WG.guishader.RemoveDlist('rejoinprogress')
 	end
-	WG['rejoin'] = nil
+	WG.rejoin = nil
 end

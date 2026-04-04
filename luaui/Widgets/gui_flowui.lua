@@ -35,13 +35,13 @@ WG.FlowUI.tileSize = WG.FlowUI.tileScale
 
 -- Guishader display list lifecycle helpers
 WG.FlowUI.guishaderCheckDlist = function(currentDlist, name, drawFn, force)
-	if WG['guishader'] then
+	if WG.guishader then
 		if force and currentDlist then
 			currentDlist = gl.DeleteList(currentDlist)
 		end
 		if not currentDlist then
 			currentDlist = gl.CreateList(drawFn)
-			WG['guishader'].InsertDlist(currentDlist, name)
+			WG.guishader.InsertDlist(currentDlist, name)
 		end
 		return currentDlist
 	elseif currentDlist then
@@ -51,8 +51,8 @@ WG.FlowUI.guishaderCheckDlist = function(currentDlist, name, drawFn, force)
 end
 
 WG.FlowUI.guishaderRemoveDlist = function(currentDlist, name)
-	if WG['guishader'] then
-		WG['guishader'].RemoveDlist(name)
+	if WG.guishader then
+		WG.guishader.RemoveDlist(name)
 	end
 	if currentDlist then
 		gl.DeleteList(currentDlist)
@@ -61,8 +61,8 @@ WG.FlowUI.guishaderRemoveDlist = function(currentDlist, name)
 end
 
 WG.FlowUI.guishaderDeleteDlist = function(name)
-	if WG['guishader'] then
-		WG['guishader'].DeleteDlist(name)
+	if WG.guishader then
+		WG.guishader.DeleteDlist(name)
 	end
 end
 

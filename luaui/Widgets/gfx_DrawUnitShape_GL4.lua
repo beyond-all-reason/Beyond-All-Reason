@@ -224,10 +224,10 @@ void main() {
 }
 ]]
 
-local udefID = UnitDefNames["armcom"].id
+local udefID = UnitDefNames.armcom.id
 
-local corcomUnitDefID = UnitDefNames["corcom"].id
-local armcomUnitDefID = UnitDefNames["armcom"].id
+local corcomUnitDefID = UnitDefNames.corcom.id
+local armcomUnitDefID = UnitDefNames.armcom.id
 
 local corDrawUnitVBOTable, corDrawUnitShapeVBOTable
 local armDrawUnitVBOTable, armDrawUnitShapeVBOTable
@@ -564,13 +564,13 @@ function widget:Initialize()
 			widget:UnitCreated(unitID)
 		end
 	end
-	WG['DrawUnitGL4'] = DrawUnitGL4
-	WG['DrawUnitShapeGL4'] = DrawUnitShapeGL4
-	WG['StopDrawUnitGL4'] = StopDrawUnitGL4
-	WG['StopDrawUnitShapeGL4'] = StopDrawUnitShapeGL4
-	WG['StopDrawAll'] = StopDrawAll
-	WG['armDrawUnitShapeVBOTable'] = armDrawUnitShapeVBOTable
-	WG['corDrawUnitShapeVBOTable'] = corDrawUnitShapeVBOTable
+	WG.DrawUnitGL4 = DrawUnitGL4
+	WG.DrawUnitShapeGL4 = DrawUnitShapeGL4
+	WG.StopDrawUnitGL4 = StopDrawUnitGL4
+	WG.StopDrawUnitShapeGL4 = StopDrawUnitShapeGL4
+	WG.StopDrawAll = StopDrawAll
+	WG.armDrawUnitShapeVBOTable = armDrawUnitShapeVBOTable
+	WG.corDrawUnitShapeVBOTable = corDrawUnitShapeVBOTable
 	widgetHandler:RegisterGlobal('DrawUnitGL4', DrawUnitGL4)
 	widgetHandler:RegisterGlobal('DrawUnitShapeGL4', DrawUnitShapeGL4)
 	widgetHandler:RegisterGlobal('StopDrawUnitGL4', StopDrawUnitGL4)
@@ -603,13 +603,13 @@ function widget:Shutdown()
 	if unitShader then unitShader:Finalize() end
 	if unitShapeShader then unitShapeShader:Finalize() end
 
-	WG['DrawUnitGL4'] = nil
-	WG['DrawUnitShapeGL4'] = nil
-	WG['StopDrawUnitGL4'] = nil
-	WG['StopDrawUnitShapeGL4'] = nil
-	WG['StopDrawAll'] = nil
-	WG['armDrawUnitShapeVBOTable'] = nil
-	WG['corDrawUnitShapeVBOTable'] = nil
+	WG.DrawUnitGL4 = nil
+	WG.DrawUnitShapeGL4 = nil
+	WG.StopDrawUnitGL4 = nil
+	WG.StopDrawUnitShapeGL4 = nil
+	WG.StopDrawAll = nil
+	WG.armDrawUnitShapeVBOTable = nil
+	WG.corDrawUnitShapeVBOTable = nil
 	widgetHandler:DeregisterGlobal('DrawUnitGL4')
 	widgetHandler:DeregisterGlobal('DrawUnitShapeGL4')
 	widgetHandler:DeregisterGlobal('StopDrawUnitGL4')

@@ -688,13 +688,13 @@ function MapHST:UnitMexMoveTest(testUnit)--check how many time a unit(i chose co
 end
 
 function MapHST:SetStartLocation()-- find start locations (loading them into air's list for later localization)
-	if self.startLocations["air"] == nil then
-		self.startLocations["air"] = {}
+	if self.startLocations.air == nil then
+		self.startLocations.air = {}
 	end
-	self.startLocations["air"][1] = self:GuessStartLocations(self.METALS)
-	if self.startLocations["air"][1] ~= nil then
+	self.startLocations.air[1] = self:GuessStartLocations(self.METALS)
+	if self.startLocations.air[1] ~= nil then
 		-- localize start locations into mobility networks
-		for i, start in pairs(self.startLocations["air"][1]) do
+		for i, start in pairs(self.startLocations.air[1]) do
 			self:EchoDebug("start location guessed at: " .. start.x .. ", " .. start.z)
 			for layer, net in pairs(self.networks) do
 				if layer ~= "air" then -- air list is already filled

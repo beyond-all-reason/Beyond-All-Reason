@@ -35,7 +35,7 @@ local chobbyInterface = false
 
 function widget:Shutdown()
 	Spring.SetConfigInt("VSync", vsyncValueActive)
-	WG['limitidlefps'] = nil
+	WG.limitidlefps = nil
 end
 
 function widget:RecvLuaMsg(msg, playerID)
@@ -50,11 +50,11 @@ function widget:RecvLuaMsg(msg, playerID)
 end
 
 function widget:Initialize()
-	WG['limitidlefps'] = {}
-	WG['limitidlefps'].restrictFps = function()
+	WG.limitidlefps = {}
+	WG.limitidlefps.restrictFps = function()
 		return restrictFps
 	end
-	WG['limitidlefps'].update = function()
+	WG.limitidlefps.update = function()
 		lastUserInputTime = os.clock()
 	end
 end
