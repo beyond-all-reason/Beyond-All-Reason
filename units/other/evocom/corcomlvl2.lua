@@ -42,7 +42,7 @@ return {
 		mincloakdistance = 50,
 		movementclass = "COMMANDERBOT",
 		nochasecategory = "ALL",
-		objectname = "Units/CORCOM"..(Spring.GetModOptions().xmas and '-XMAS' or '')..".s3o",
+		objectname = "Units/CORCOM"..(SpringShared.GetModOptions().xmas and '-XMAS' or '')..".s3o",
 		radardistance = 700,
 		radaremitheight = 40,
 		reclaimable = false,

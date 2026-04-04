@@ -1,8 +1,8 @@
 local function paramsEcho(...)
 	local called_from = "Called from: " .. tostring(debug.getinfo(2).name) .. " args:"
-	Spring.Echo(called_from)
+	SpringShared.Echo(called_from)
 	local args = { ... }
-	Spring.Echo( table.toString(args) )
+	SpringShared.Echo( table.toString(args) )
 	return ...
 end
 
@@ -37,7 +37,7 @@ local function traceEcho(...)
 			arguments = arguments .. sep .. ((name and tostring(name)) or "name?") .. "=" .. tostring(value)
 		end
 	end
-	Spring.Echo(infostr .. functionstr .. " Args:(" .. arguments .. ")")
+	SpringShared.Echo(infostr .. functionstr .. " Args:(" .. arguments .. ")")
 end
 
 local function traceFullEcho(maxdepth, maxwidth, maxtableelements, ...)
@@ -48,7 +48,7 @@ local function traceFullEcho(maxdepth, maxwidth, maxtableelements, ...)
 	-- It will also try to print the source file+line of each function
 	if (debug) then 
 	else
-		Spring.Echo("traceFullEcho needs debug to work, this seems to be missing or overwritten", debug)
+		SpringShared.Echo("traceFullEcho needs debug to work, this seems to be missing or overwritten", debug)
 		return
 	end
 	local tracedebug = false -- to debug itself
@@ -63,10 +63,10 @@ local function traceFullEcho(maxdepth, maxwidth, maxtableelements, ...)
         for k,v in pairs(t) do
             count = count + 1
             if count < maxtableelements then
-				if tracedebug then Spring.Echo(count, k) end 
+				if tracedebug then SpringShared.Echo(count, k) end 
 				if type(k) == "number" and type(v) == "function" then -- try to get function lists?
 					local vinfo = debug.getinfo(v)
-					if tracedebug then Spring.Echo(k,v, vinfo, vinfo.name) end  --debug.getinfo(v).short_src)?
+					if tracedebug then SpringShared.Echo(k,v, vinfo, vinfo.name) end  --debug.getinfo(v).short_src)?
                 	res = res .. tostring(k) .. ':' .. ((vinfo and vinfo.name) or "<function>") ..', '
 				else
                 	res = res .. tostring(k) .. ':' .. tostring(v) ..', '
@@ -103,7 +103,7 @@ local function traceFullEcho(maxdepth, maxwidth, maxtableelements, ...)
 					for j = 1, maxwidth do
 						local name, value = debug.getlocal(i, j)
 						if not name then break end
-						if tracedebug then Spring.Echo(i,j, funcName,name) end 
+						if tracedebug then SpringShared.Echo(i,j, funcName,name) end 
 						local sep = ((arguments == "") and "") or  "; "
                         if tostring(name) == 'self'  then
     						arguments = arguments .. sep .. ((name and tostring(name)) or "name?") .. "=" .. tostring("??")
@@ -120,7 +120,7 @@ local function traceFullEcho(maxdepth, maxwidth, maxtableelements, ...)
 			end
 		else break end
 	end
-	Spring.Echo(infostr .. functionstr)
+	SpringShared.Echo(infostr .. functionstr)
 end
 
 return {

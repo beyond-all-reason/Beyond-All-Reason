@@ -160,7 +160,7 @@ function GenBrdfLut:Initialize()
 	})
 
 	if not self.tex then
-		Spring.Echo("GenBrdfLut: tex creation error:\n")
+		SpringShared.Echo("GenBrdfLut: tex creation error:\n")
 	end
 
 	self.fbo = gl.CreateFBO({
@@ -169,7 +169,7 @@ function GenBrdfLut:Initialize()
 	})
 
 	if not self.fbo then
-		Spring.Echo("GenBrdfLut: FBO creation error:\n")
+		SpringShared.Echo("GenBrdfLut: FBO creation error:\n")
 	end
 
 	lutFS = lutFS:gsub("###G_OPTION###", tostring(self.gOption))
@@ -185,10 +185,10 @@ function GenBrdfLut:Initialize()
 	local shLog = gl.GetShaderLog() or ""
 
 	if not self.shader then
-		Spring.Echo(string.format("GenBrdfLut: [%s] shader errors:\n%s", "GenBrdfLut", shLog))
+		SpringShared.Echo(string.format("GenBrdfLut: [%s] shader errors:\n%s", "GenBrdfLut", shLog))
 		return false
 	elseif shLog ~= "" then
-		Spring.Echo(string.format("GenBrdfLut: [%s] shader warnings:\n%s", "GenBrdfLut", shLog))
+		SpringShared.Echo(string.format("GenBrdfLut: [%s] shader warnings:\n%s", "GenBrdfLut", shLog))
 	end
 end
 
@@ -208,7 +208,7 @@ function GenBrdfLut:Execute(saveDebug)
 					gl.TexRect(-1, -1, 1, 1)
 				end)
 				if saveDebug then
-					local gf = Spring.GetGameFrame()
+					local gf = SpringShared.GetGameFrame()
 					gl.SaveImage(0, 0, self.textureSize, self.textureSize, string.format("brdf_%s.png", gf))
 				end
 			end)

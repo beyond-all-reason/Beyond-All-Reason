@@ -17,7 +17,7 @@ if not gadgetHandler:IsSyncedCode() then
     return false
 end
 
-local GetProjectilePosition = Spring.GetProjectilePosition
+local GetProjectilePosition = SpringShared.GetProjectilePosition
 
 
 local depthChargeWeapons = {}
@@ -63,7 +63,7 @@ function gadget:GameFrame(n)
         local x,y,z = GetProjectilePosition(proID)
         if y then
             if y < 0 then
-                Spring.SpawnCEG(missiles[proID],x,0,z)
+                SpringSynced.SpawnCEG(missiles[proID],x,0,z)
                 missiles[proID] = nil
             end
         else

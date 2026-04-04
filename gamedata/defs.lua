@@ -27,7 +27,7 @@ local function LoadDefs(name)
 	local success, result = pcall(VFS.Include, filename, nil, VFS_MODES)
 
 	if (not success) then
-		Spring.Log(section, LOG.ERROR, 'Failed to load ' .. name)
+		SpringShared.Log(section, LOG.ERROR, 'Failed to load ' .. name)
 		error(result)
 	end
 

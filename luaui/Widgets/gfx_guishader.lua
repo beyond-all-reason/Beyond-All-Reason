@@ -22,12 +22,12 @@ local mathMax = math.max
 local stringFind = string.find
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
-local spGetViewGeometry = Spring.GetViewGeometry
-local spIsGUIHidden = Spring.IsGUIHidden
-local spGetConfigFloat = Spring.GetConfigFloat
+local spEcho = SpringShared.Echo
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
+local spIsGUIHidden = SpringUnsynced.IsGUIHidden
+local spGetConfigFloat = SpringUnsynced.GetConfigFloat
 
-local uiOpacity = Spring.GetConfigFloat("ui_opacity", 0.7)
+local uiOpacity = SpringUnsynced.GetConfigFloat("ui_opacity", 0.7)
 local uiOpacityCheckFrame = 0
 
 -- hardware capability
@@ -133,7 +133,7 @@ local function DrawStencilTexture(world, fullscreen)
 			})
 
 			if usedStencilTex == nil then
-				Spring.Log(widget:GetInfo().name, LOG.ERROR, "guishader api: texture error")
+				SpringShared.Log(widget:GetInfo().name, LOG.ERROR, "guishader api: texture error")
 				widgetHandler:RemoveWidget()
 				return false
 			end
@@ -330,7 +330,7 @@ local function CreateShaders()
 
 
 	if not blurShader:Initialize() then
-		Spring.Log(widget:GetInfo().name, LOG.ERROR, "guishader blurShader: shader error: " .. gl.GetShaderLog())
+		SpringShared.Log(widget:GetInfo().name, LOG.ERROR, "guishader blurShader: shader error: " .. gl.GetShaderLog())
 		widgetHandler:RemoveWidget()
 		return false
 	end
@@ -346,7 +346,7 @@ local function CreateShaders()
 	})
 
 	if screencopyUI == nil then
-		Spring.Log(widget:GetInfo().name, LOG.ERROR, "guishader api: texture error")
+		SpringShared.Log(widget:GetInfo().name, LOG.ERROR, "guishader api: texture error")
 		widgetHandler:RemoveWidget()
 		return false
 	end

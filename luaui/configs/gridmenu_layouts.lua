@@ -2525,7 +2525,7 @@ local priorityUnits = {"armshltx","armshltxuw","corgant","corgantuw","leggant","
 
 unitGrids["dummycom"] = unitGrids["armcom"]
 
-if Spring.GetModOptions().experimentalextraunits or Spring.GetModOptions().scavunitsforplayers then
+if SpringShared.GetModOptions().experimentalextraunits or SpringShared.GetModOptions().scavunitsforplayers then
 	for _, builder in pairs({"armaca", "coraca", "legaca", "armack", "corack", "legack", "armacv", "coracv", "legacv"}) do
 		local faction = builder:sub(1, 3)
 		unitGrids[builder][1][3][3] =  faction .. "wint2"
@@ -2537,7 +2537,7 @@ if Spring.GetModOptions().experimentalextraunits or Spring.GetModOptions().scavu
 	
 end
 
-if Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().forceallunits then
+if Spring.Utilities.Gametype.IsScavengers() or SpringShared.GetModOptions().forceallunits then
 	local scavLabGrids = {}
 	local scavUnitGrids = {}
 	for unitName, content in pairs(labGrids) do
@@ -2581,7 +2581,7 @@ if Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().forceallun
 end
 
 
-if Spring.GetModOptions().techsplit then
+if SpringShared.GetModOptions().techsplit then
 
 	-- Unit Grids
 

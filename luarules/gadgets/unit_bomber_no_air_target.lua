@@ -41,7 +41,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 	-- accepts: CMD.ATTACK
 	-- Block bombers from attacking air units (single-target only, not ground attack)
 	if isBomber[unitDefID] and cmdParams[2] == nil and type(cmdParams[1]) == 'number' then
-		local targetDefID = Spring.GetUnitDefID(cmdParams[1])
+		local targetDefID = SpringShared.GetUnitDefID(cmdParams[1])
 		if targetDefID and isAir[targetDefID] then
 			return false
 		end

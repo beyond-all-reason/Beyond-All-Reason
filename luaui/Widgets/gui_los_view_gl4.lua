@@ -15,7 +15,7 @@ end
 
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 --------------------------------------------------------------------------------
 --- TODO:
@@ -68,7 +68,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:ViewResize()
-	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
+	vsx, vsy, vpx, vpy = SpringUnsynced.GetViewGeometry()
 	if ScreenCopyTexture then gl.DeleteTexture(ScreenCopyTexture) end
 	ScreenCopyTexture = gl.CreateTexture(vsx  , vsy, {
 		border = false,

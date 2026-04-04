@@ -24,7 +24,7 @@ local mathFloor = math.floor
 local mathMax = math.max
 
 -- Localized Spring API for performance
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
 local show = true	-- gets disabled when it has been loaded before
 
@@ -212,9 +212,9 @@ function widget:DrawScreen()
 		end
 		showOnceMore = false
 
-	  local x, y, pressed = Spring.GetMouseState()
+	  local x, y, pressed = SpringUnsynced.GetMouseState()
 	  if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) or math_isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
-		  Spring.SetMouseCursor('cursornormal')
+		  SpringUnsynced.SetMouseCursor('cursornormal')
 	  end
 
   elseif dlistcreated and WG['guishader'] then
@@ -260,7 +260,7 @@ function widget:MouseRelease(x, y, button)
 end
 
 function mouseEvent(x, y, button, release)
-  if Spring.IsGUIHidden() then return end
+  if SpringUnsynced.IsGUIHidden() then return end
 
 	if show then
 		-- on window
@@ -302,7 +302,7 @@ function widget:Initialize()
 		end
 		widget:ViewResize()
 	else
-		Spring.Echo("Text: couldn't load the text file")
+		SpringShared.Echo("Text: couldn't load the text file")
 		widgetHandler:RemoveWidget()
 	end
 end

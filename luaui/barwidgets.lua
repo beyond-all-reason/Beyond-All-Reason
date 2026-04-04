@@ -32,33 +32,33 @@ local SAFEDRAW = false  -- requires SAFEWRAP to work
 local glPopAttrib = gl.PopAttrib
 local glPushAttrib = gl.PushAttrib
 
-Spring.SendCommands({
+SpringUnsynced.SendCommands({
 	"unbindkeyset  Any+f11",
 	"unbindkeyset Ctrl+f11",
 	"bind    f11  luaui selector",
 	"echo LuaUI: bound F11 to the widget selector",
 })
 
-local allowuserwidgets = Spring.GetModOptions().allowuserwidgets
-local allowunitcontrolwidgets = Spring.GetModOptions().allowunitcontrolwidgets
+local allowuserwidgets = SpringShared.GetModOptions().allowuserwidgets
+local allowunitcontrolwidgets = SpringShared.GetModOptions().allowunitcontrolwidgets
 
 local SandboxedSystem = {}
 local SANDBOXED_ERROR_MSG = "User 'unit control' widgets disallowed on this game"
 
-local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+local anonymousMode = SpringShared.GetModOptions().teamcolors_anonymous_mode
 if anonymousMode ~= "disabled" then
 	allowuserwidgets = false
 
 	-- disabling individual Spring functions isnt really good enough
 	-- disabling user widget draw access would probably do the job but that wouldnt be easy to do
-	Spring.SetTeamColor = function() return true end
+	SpringUnsynced.SetTeamColor = function() return true end
 
-	if not Spring.GetSpectatingState() then
-		Spring.SendCommands("info 0")
+	if not SpringUnsynced.GetSpectatingState() then
+		SpringUnsynced.SendCommands("info 0")
 	end
 end
 
-if Spring.IsReplay() or Spring.GetSpectatingState() then
+if SpringUnsynced.IsReplay() or SpringUnsynced.GetSpectatingState() then
 	allowuserwidgets = true
 	allowunitcontrolwidgets = true
 end
@@ -252,11 +252,11 @@ function widgetHandler:LoadConfigData()
 	local chunk, err = loadfile(CONFIG_FILENAME)
 	if chunk == nil or err then
 		if err then
-			Spring.Log("barwidgets.lua", LOG.INFO, err)
+			SpringShared.Log("barwidgets.lua", LOG.INFO, err)
 		end
 		return {}
 	elseif chunk() == nil then
-		Spring.Log("barwidgets.lua", LOG.ERROR, 'Luaui config file was blank')
+		SpringShared.Log("barwidgets.lua", LOG.ERROR, 'Luaui config file was blank')
 		return {}
 	end
 	local tmp = {}
@@ -299,11 +299,11 @@ end
 
 --------------------------------------------------------------------------------
 local unsortedWidgets
-local doMoreYield = (Spring.Yield ~= nil);
+local doMoreYield = (SpringUnsynced.Yield ~= nil);
 
 local function Yield()
 	if doMoreYield then
-		doMoreYield = Spring.Yield()
+		doMoreYield = SpringUnsynced.Yield()
 	end
 end
 
@@ -361,7 +361,7 @@ function widgetHandler:Initialize()
 		self.allowUserWidgets = true
 	end
 
-	Spring.CreateDir(LUAUI_DIRNAME .. 'Config')
+	SpringUnsynced.CreateDir(LUAUI_DIRNAME .. 'Config')
 
 	unsortedWidgets = {}
 
@@ -370,11 +370,11 @@ function widgetHandler:Initialize()
 			CreateSandboxedSystem()
 		end
 
-		Spring.Echo("LuaUI: Allowing User Widgets")
+		SpringShared.Echo("LuaUI: Allowing User Widgets")
 		loadWidgetFiles(WIDGET_DIRNAME, VFS.RAW)
 		loadWidgetFiles(RML_WIDGET_DIRNAME, VFS.RAW)
 	else
-		Spring.Echo("LuaUI: Disallowing User Widgets")
+		SpringShared.Echo("LuaUI: Disallowing User Widgets")
 	end
 
 	loadWidgetFiles(WIDGET_DIRNAME, VFS.ZIP)
@@ -401,7 +401,7 @@ function widgetHandler:Initialize()
 		local name = w.whInfo.name
 		local basename = w.whInfo.basename
 		local source = self.knownWidgets[name].fromZip and "mod: " or "user:"
-		Spring.Echo(string.format("Loading widget from %s  %-18s  <%s> ...", source, name, basename))
+		SpringShared.Echo(string.format("Loading widget from %s  %-18s  <%s> ...", source, name, basename))
 		Yield()
 		widgetHandler:InsertWidgetRaw(w)
 	end
@@ -425,14 +425,14 @@ function widgetHandler:AddSpadsMessage(contents)
 	-- will get parsed by barmanager, and forwarded to autohostmonitor as:
 	-- match-event <UnnamedPlayer> <LuaUI\Widgets\test_unitshape_instancing.lua/czE3YEocdDJ8bLoO5++a2A==> <35>
 	local myPlayerID = Spring.GetMyPlayerID()
-	local myPlayerName = Spring.GetPlayerInfo(myPlayerID,false)
-	local gameSeconds = math.max(0,math.round(Spring.GetGameFrame() / 30))
+	local myPlayerName = SpringShared.GetPlayerInfo(myPlayerID,false)
+	local gameSeconds = math.max(0,math.round(SpringShared.GetGameFrame() / 30))
 	if type(contents) == 'table' then
 		contents = Json.encode(contents)
 	end
 	local rawmessage = string.format("<%s> <%s> <%d>", myPlayerName, contents, gameSeconds)
 	local b64message = 'lu@$p@d$:' .. string.base64Encode(rawmessage)
-	Spring.SendLuaRulesMsg(b64message)
+	SpringUnsynced.SendLuaRulesMsg(b64message)
 end
 
 
@@ -444,7 +444,7 @@ function widgetHandler:ReloadUserWidgetFromGameRaw(name)
 	local w = widgetHandler:LoadWidget(ki.filename, true, ki.localsAccess, true)
 	if w then
 		widgetHandler:InsertWidgetRaw(w)
-		Spring.Echo('Reloaded from game: ' .. name .. "  (user 'unit control' widgets disabled for this game)")
+		SpringShared.Echo('Reloaded from game: ' .. name .. "  (user 'unit control' widgets disabled for this game)")
 	end
 	return w
 end
@@ -454,7 +454,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	local basename = Basename(filename)
 	local text = VFS.LoadFile(filename, not (self.allowUserWidgets and allowuserwidgets and not reload) and VFS.ZIP or VFS.RAW_FIRST)
 	if text == nil then
-		Spring.Echo('Failed to load: ' .. basename .. '  (missing file: ' .. filename .. ')')
+		SpringShared.Echo('Failed to load: ' .. basename .. '  (missing file: ' .. filename .. ')')
 		return nil
 	end
 
@@ -469,7 +469,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 
 		local chunk, err = loadstring(textWithLocalsDetector, filename)
 		if chunk == nil then
-			Spring.Echo('Failed to load: ' .. basename .. '  (' .. err .. ')')
+			SpringShared.Echo('Failed to load: ' .. basename .. '  (' .. err .. ')')
 			return nil
 		end
 
@@ -477,7 +477,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		setfenv(chunk, widget)
 		local success, err = pcall(chunk)
 		if not success then
-			Spring.Echo('Failed to load: ' .. basename .. '  (' .. err .. ')')
+			SpringShared.Echo('Failed to load: ' .. basename .. '  (' .. err .. ')')
 			return nil
 		end
 		if err == false then
@@ -491,7 +491,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 
 	local chunk, err = loadstring(text, filename)
 	if chunk == nil then
-		Spring.Echo('Failed to load: ' .. basename .. '  (' .. err .. ')')
+		SpringShared.Echo('Failed to load: ' .. basename .. '  (' .. err .. ')')
 		return nil
 	end
 
@@ -499,7 +499,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	setfenv(chunk, widget)
 	local success, err = pcall(chunk)
 	if not success then
-		Spring.Echo('Failed to load: ' .. basename .. '  (' .. err .. ')')
+		SpringShared.Echo('Failed to load: ' .. basename .. '  (' .. err .. ')')
 		return nil
 	end
 	if err == false then
@@ -516,7 +516,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		if fromZip or true then
 			widget.widgetHandler = self
 		else
-			Spring.Echo('Failed to load: ' .. basename .. '  (user widgets may not access widgetHandler)', fromZip, filename, allowuserwidgets)
+			SpringShared.Echo('Failed to load: ' .. basename .. '  (user widgets may not access widgetHandler)', fromZip, filename, allowuserwidgets)
 			return nil
 		end
 	end
@@ -529,14 +529,14 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 
 	err = self:ValidateWidget(widget)
 	if err then
-		Spring.Echo('Failed to load: ' .. basename .. '  (' .. err .. ')')
+		SpringShared.Echo('Failed to load: ' .. basename .. '  (' .. err .. ')')
 		return nil
 	end
 
 	local knownInfo = self.knownWidgets[name]
 	if knownInfo and not reload then
 		if knownInfo.active then
-			Spring.Echo('Failed to load: ' .. basename .. '  (duplicate name)')
+			SpringShared.Echo('Failed to load: ' .. basename .. '  (duplicate name)')
 			return nil
 		end
 	else
@@ -555,7 +555,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	knownInfo.localsAccess = enableLocalsAccess
 
 	if widget.GetInfo == nil then
-		Spring.Echo('Failed to load: ' .. basename .. '  (no GetInfo() call)')
+		SpringShared.Echo('Failed to load: ' .. basename .. '  (no GetInfo() call)')
 		return nil
 	end
 
@@ -758,10 +758,10 @@ local function widgetFailure(w, funcName, errorMsg)
 			widgetHandler:ReloadUserWidgetFromGame(name)
 		end
 	else
-		Spring.Echo('Error in Shutdown()')
+		SpringShared.Echo('Error in Shutdown()')
 	end
-	Spring.Echo(errorBase .. ' in ' .. funcName .. '(): ' .. tostring(errorMsg))
-	Spring.Echo('Removed widget: ' .. name)
+	SpringShared.Echo(errorBase .. ' in ' .. funcName .. '(): ' .. tostring(errorMsg))
+	SpringShared.Echo('Removed widget: ' .. name)
 	return nil
 end
 
@@ -807,7 +807,7 @@ local function SafeWrapWidget(widget)
 		return
 	elseif SAFEWRAP == 1 then
 		if widget.GetInfo and widget.GetInfo().unsafe then
-			Spring.Echo('LuaUI: loaded unsafe widget: ' .. widget.whInfo.name)
+			SpringShared.Echo('LuaUI: loaded unsafe widget: ' .. widget.whInfo.name)
 			return
 		end
 	end
@@ -886,11 +886,11 @@ function widgetHandler:HookReorderPost(name, topMethod)
 	-- measure.
 	local func = self[name]
 	if not func or not type(func) == 'function' then
-		Spring.Log("barwidgets.lua", LOG.WARNING, name .. " does not exist or isn't a function")
+		SpringShared.Log("barwidgets.lua", LOG.WARNING, name .. " does not exist or isn't a function")
 		return
 	end
 	if self[name .. 'Raw'] then
-		Spring.Log("barwidgets.lua", LOG.WARNING, name .. "Raw already exists")
+		SpringShared.Log("barwidgets.lua", LOG.WARNING, name .. "Raw already exists")
 		return
 	end
 	self[name .. 'Raw'] = func
@@ -961,14 +961,14 @@ function widgetHandler:InsertWidgetRaw(widget)
 		if self.knownWidgets[name] then
 			self.knownWidgets[name].active = false
 		end
-		Spring.Echo('Missing capabilities:  ' .. name .. '. Disabling.')
+		SpringShared.Echo('Missing capabilities:  ' .. name .. '. Disabling.')
 		return
 	end
 	-- Gracefully ignore/reload good control widgets advertising themselves as such, if user 'unit control' widgets disabled.
 	if widget.GetInfo and widget:GetInfo().control and not widget.canControlUnits then
 		local name = widget.whInfo.name
 		if not self:ReloadUserWidgetFromGameRaw(name) then
-			Spring.Echo('Blocked loading: ' .. name .. "  (user 'unit control' widgets disabled for this game)")
+			SpringShared.Echo('Blocked loading: ' .. name .. "  (user 'unit control' widgets disabled for this game)")
 		end
 		return
 	end
@@ -1061,7 +1061,7 @@ function widgetHandler:UpdateWidgetCallInRaw(name, w)
 		end
 		self:UpdateCallIn(name)
 	else
-		Spring.Echo('UpdateWidgetCallIn: bad name: ' .. name)
+		SpringShared.Echo('UpdateWidgetCallIn: bad name: ' .. name)
 	end
 end
 
@@ -1072,7 +1072,7 @@ function widgetHandler:RemoveWidgetCallInRaw(name, w)
 		ArrayRemove(ciList, w)
 		self:UpdateCallIn(name)
 	else
-		Spring.Echo('RemoveWidgetCallIn: bad name: ' .. name)
+		SpringShared.Echo('RemoveWidgetCallIn: bad name: ' .. name)
 	end
 end
 
@@ -1091,11 +1091,11 @@ end
 function widgetHandler:EnableWidgetRaw(name, enableLocalsAccess)
 	local ki = self.knownWidgets[name]
 	if not ki then
-		Spring.Echo("EnableWidget(), could not find widget: " .. tostring(name))
+		SpringShared.Echo("EnableWidget(), could not find widget: " .. tostring(name))
 		return false
 	end
 	if not ki.active then
-		Spring.Echo('Loading:  ' .. ki.filename .. (enableLocalsAccess and " (with locals)" or ""))
+		SpringShared.Echo('Loading:  ' .. ki.filename .. (enableLocalsAccess and " (with locals)" or ""))
 		local order = widgetHandler.orderList[name]
 		if not order or order <= 0 then
 			self.orderList[name] = 1
@@ -1113,7 +1113,7 @@ end
 function widgetHandler:DisableWidgetRaw(name)
 	local ki = self.knownWidgets[name]
 	if not ki then
-		Spring.Echo("DisableWidget(), could not find widget: " .. tostring(name))
+		SpringShared.Echo("DisableWidget(), could not find widget: " .. tostring(name))
 		return false
 	end
 	if ki.active then
@@ -1121,7 +1121,7 @@ function widgetHandler:DisableWidgetRaw(name)
 		if not w then
 			return false
 		end
-		Spring.Echo('Removed:  ' .. ki.filename)
+		SpringShared.Echo('Removed:  ' .. ki.filename)
 		self:RemoveWidgetRaw(w)     -- deactivate
 		self.orderList[name] = 0 -- disable
 		self:SaveConfigData()
@@ -1132,7 +1132,7 @@ end
 function widgetHandler:ToggleWidgetRaw(name)
 	local ki = self.knownWidgets[name]
 	if not ki then
-		Spring.Echo("ToggleWidget(), could not find widget: " .. tostring(name))
+		SpringShared.Echo("ToggleWidget(), could not find widget: " .. tostring(name))
 		return
 	end
 	if ki.active then
@@ -1345,12 +1345,12 @@ function widgetHandler:Update()
 	if gcCheckCounter >= 30 then
 		gcCheckCounter = 0
 		if collectgarbage("count") > 1200000 then
-			Spring.Echo("Warning: Emergency garbage collection due to exceeding 1.2GB LuaRAM")
+			SpringShared.Echo("Warning: Emergency garbage collection due to exceeding 1.2GB LuaRAM")
 			collectgarbage("collect")
 		end
 	end
 
-	local deltaTime = Spring.GetLastUpdateSeconds()
+	local deltaTime = SpringUnsynced.GetLastUpdateSeconds()
 	-- update the hour timer
 	hourTimer = (hourTimer + deltaTime) % 3600.0
 	tracy.ZoneBeginN("W:Update")
@@ -1518,7 +1518,7 @@ end
 
 function widgetHandler:DrawScreen()
 	tracy.ZoneBeginN("W:DrawScreen")
-	if not Spring.IsGUIHidden() then
+	if not SpringUnsynced.IsGUIHidden() then
 		if not self.chobbyInterface  then
 			local list = self.DrawScreenList
 			for i = #list, 1, -1 do
@@ -1926,7 +1926,7 @@ end
 function widgetHandler:MouseRelease(x, y, button)
 	tracy.ZoneBeginN("W:MouseRelease")
 	local mo = self.mouseOwner
-	local _, _, lmb, mmb, rmb = Spring.GetMouseState()
+	local _, _, lmb, mmb, rmb = SpringUnsynced.GetMouseState()
 	if not (lmb or mmb or rmb) then
 		self.mouseOwner = nil
 	end
@@ -2151,8 +2151,8 @@ function widgetHandler:PlayerRemoved(playerID, reason)
 end
 
 function widgetHandler:PlayerChanged(playerID)
-	if anonymousMode ~= "disabled" and not Spring.GetSpectatingState() then
-		Spring.SendCommands("info 0")
+	if anonymousMode ~= "disabled" and not SpringUnsynced.GetSpectatingState() then
+		SpringUnsynced.SendCommands("info 0")
 	end
 	tracy.ZoneBeginN("W:PlayerChanged")
 	for _, w in ipairs(self.PlayerChangedList) do
@@ -2192,7 +2192,7 @@ local oldSelection = {}
 function widgetHandler:UpdateSelection()
 	tracy.ZoneBeginN("W:UpdateSelection")
 	local changed
-	local newSelection = Spring.GetSelectedUnits()
+	local newSelection = SpringUnsynced.GetSelectedUnits()
 	if #newSelection == #oldSelection then
 		for i = 1, #oldSelection do
 			if newSelection[i] ~= oldSelection[i] then
@@ -2237,7 +2237,7 @@ function widgetHandler:SelectionChanged(selectedUnits, subselection)
 	for _, w in ipairs(self.SelectionChangedList) do
 		local unitArray = w:SelectionChanged(selectedUnits, subselection)
 		if unitArray then
-			Spring.SelectUnitArray(unitArray)
+			SpringUnsynced.SelectUnitArray(unitArray)
 			tracy.ZoneEnd()
 			return true
 		end

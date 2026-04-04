@@ -16,7 +16,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local spSetUnitWeaponState = Spring.SetUnitWeaponState
+local spSetUnitWeaponState = SpringSynced.SetUnitWeaponState
 
 --use weaponDef.customparams.exclude_preaim = true to exclude units from being able to pre-aim at targets almost within firing range.
 --this is a good idea for pop-up turrets so they don't prematurely reveal themselves.

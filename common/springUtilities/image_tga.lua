@@ -34,7 +34,7 @@ local function loadTGA(fileName) -- returns texture | nil, error on failure
 
 	local data = string.sub(file,19, texture.width * texture.height * texture.channels + 18)
 	if string.len(data) ~= texture.width * texture.height * texture.channels  then  --WHY +1?????
-		Spring.Echo("Failed to load",fileName,string.len(data), texture.width, texture.height, texture.channels)
+		SpringShared.Echo("Failed to load",fileName,string.len(data), texture.width, texture.height, texture.channels)
 		return nil, "Error loading file, size mismatch"
 	end
 
@@ -64,7 +64,7 @@ local function loadTGA(fileName) -- returns texture | nil, error on failure
 end
 
 local function saveTGA(texture, fileName) --return nil | error on failure
-	Spring.Echo("Saving",fileName)
+	SpringShared.Echo("Saving",fileName)
 
 	local file = io.open(fileName,'wb')
 	if file == nil then
@@ -85,7 +85,7 @@ local function saveTGA(texture, fileName) --return nil | error on failure
 		end
 	end
 	file:close()
-	Spring.Echo("Saved",fileName)
+	SpringShared.Echo("Saved",fileName)
 	return nil
 end
 

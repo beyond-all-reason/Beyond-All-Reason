@@ -56,12 +56,12 @@ function gadget:GameFrame(n)
 	for i = 1, #affectedUnits do
 		local unitID = affectedUnits[i][1]
 		local unitDefID = affectedUnits[i][2]
-		local nearestAlly = Spring.GetUnitNearestAlly(unitID, isAffectedUnit[unitDefID][1])
+		local nearestAlly = SpringShared.GetUnitNearestAlly(unitID, isAffectedUnit[unitDefID][1])
 		if nearestAlly then
-			if not canMove[Spring.GetUnitDefID(nearestAlly)] then
-				if not Spring.GetUnitTransporter(unitID) then
-					local x,_,z = Spring.GetUnitPosition(unitID)
-					local ax,_,az = Spring.GetUnitPosition(nearestAlly)
+			if not canMove[SpringShared.GetUnitDefID(nearestAlly)] then
+				if not SpringShared.GetUnitTransporter(unitID) then
+					local x,_,z = SpringShared.GetUnitPosition(unitID)
+					local ax,_,az = SpringShared.GetUnitPosition(nearestAlly)
 					local r = math.random(1,3)
 					local movementTargetX = 0
 					local movementTargetZ = 0
@@ -87,7 +87,7 @@ function gadget:GameFrame(n)
 							movementTargetZ = -math.random(1,10)
 						end
 					end
-					local movementTargetY = Spring.GetGroundHeight(x+movementTargetX, z+movementTargetZ)
+					local movementTargetY = SpringShared.GetGroundHeight(x+movementTargetX, z+movementTargetZ)
 					local aboveMinWaterDepth = -(isAffectedUnit[unitDefID][2]) > movementTargetY
 					local belowMaxWaterDepth = -(isAffectedUnit[unitDefID][3]) < movementTargetY
 
@@ -99,7 +99,7 @@ function gadget:GameFrame(n)
 					end
 
 					if aboveMinWaterDepth and belowMaxWaterDepth and onMap then
-						Spring.SetUnitPosition(unitID, x+movementTargetX, z+movementTargetZ)
+						SpringSynced.SetUnitPosition(unitID, x+movementTargetX, z+movementTargetZ)
 					end
 				end
 			end

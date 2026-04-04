@@ -6,7 +6,7 @@ local currentLevel = 0
 
 local function setAutoHeightMap(enable)
 	autoHeightMap = enable
-	Spring.Echo("Set autoheightmap", enable)
+	SpringShared.Echo("Set autoheightmap", enable)
 end
 
 local function levelHeightMap(level)
@@ -15,8 +15,8 @@ local function levelHeightMap(level)
 	if prevLevel == level then return end
 	SyncedRun(function(locals)
 		local level = locals.level - locals.prevLevel
-		Spring.LevelHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, level)
-		Spring.RebuildSmoothMesh(0, 0, Game.mapSizeX, Game.mapSizeZ)
+		SpringSynced.LevelHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, level)
+		SpringSynced.RebuildSmoothMesh(0, 0, Game.mapSizeX, Game.mapSizeZ)
 	end, levelTimeout)
 	currentLevel = level
 	heightMapChanged = true
@@ -25,8 +25,8 @@ end
 local function restoreHeightMap(force)
 	if not force and not heightMapChanged then return end
 	SyncedRun(function()
-		Spring.RevertHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, 1.0)
-		Spring.RebuildSmoothMesh(0, 0, Game.mapSizeX, Game.mapSizeZ)
+		SpringSynced.RevertHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, 1.0)
+		SpringSynced.RebuildSmoothMesh(0, 0, Game.mapSizeX, Game.mapSizeZ)
 	end, levelTimeout)
 	heightMapChanged = false
 	currentLevel = 0

@@ -11,7 +11,7 @@ local glUniformInt = gl.UniformInt
 local glUniformMatrix = gl.UniformMatrix
 local glUniformArray = gl.UniformArray
 
-local gldebugannotations = (Spring.GetConfigInt("gldebugannotations") == 1)
+local gldebugannotations = (SpringUnsynced.GetConfigInt("gldebugannotations") == 1)
 
 local function new(class, shaderParams, shaderName, logEntries)
 	local logEntriesSanitized
@@ -44,11 +44,11 @@ local function IsTesselationShaderSupported()
 end
 
 local function IsDeferredShadingEnabled()
-	return (Spring.GetConfigInt("AllowDeferredMapRendering") == 1) and (Spring.GetConfigInt("AllowDeferredModelRendering") == 1) and (Spring.GetConfigInt("AdvMapShading") == 1)
+	return (SpringUnsynced.GetConfigInt("AllowDeferredMapRendering") == 1) and (SpringUnsynced.GetConfigInt("AllowDeferredModelRendering") == 1) and (SpringUnsynced.GetConfigInt("AdvMapShading") == 1)
 end
 
 local function GetAdvShadingActive()
-	local _, advMapShading = Spring.HaveAdvShading()
+	local _, advMapShading = SpringUnsynced.HaveAdvShading()
 	if advMapShading == nil then
 		advMapShading = true
 	end --old engine
@@ -520,8 +520,8 @@ LuaShader.GetQuaternionDefs = GetQuaternionDefs
 local function CheckShaderUpdates(shadersourcecache, delaytime)
 	-- todo: extract shaderconfig
 	if shadersourcecache.forceupdate or shadersourcecache.lastshaderupdate == nil or
-		Spring.DiffTimers(Spring.GetTimer(), shadersourcecache.lastshaderupdate) > (delaytime or 0.5) then
-		shadersourcecache.lastshaderupdate = Spring.GetTimer()
+		SpringUnsynced.DiffTimers(SpringUnsynced.GetTimer(), shadersourcecache.lastshaderupdate) > (delaytime or 0.5) then
+		shadersourcecache.lastshaderupdate = SpringUnsynced.GetTimer()
 		local vsSrcNew = (shadersourcecache.vssrcpath and VFS.LoadFile(shadersourcecache.vssrcpath)) or shadersourcecache.vsSrc
 		local fsSrcNew = (shadersourcecache.fssrcpath and VFS.LoadFile(shadersourcecache.fssrcpath)) or shadersourcecache.fsSrc
 		local gsSrcNew = (shadersourcecache.gssrcpath and VFS.LoadFile(shadersourcecache.gssrcpath)) or shadersourcecache.gsSrc
@@ -532,7 +532,7 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 			--Spring.Echo("No change in shaders")
 			return nil
 		else
-			local compilestarttime = Spring.GetTimer()
+			local compilestarttime = SpringUnsynced.GetTimer()
 			shadersourcecache.vsSrc = vsSrcNew
 			shadersourcecache.fsSrc = fsSrcNew
 			shadersourcecache.gsSrc = gsSrcNew
@@ -545,7 +545,7 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 			local printfpattern =  "^[^/]*printf%s*%(%s*([%w_%.]+)%s*%)"
 			local printf = nil
 			if not fsSrcNew then
-				Spring.Echo("Warning: No fragment shader source found for", shadersourcecache.shaderName)
+				SpringShared.Echo("Warning: No fragment shader source found for", shadersourcecache.shaderName)
 			end
 			local fsSrcNewLines = string.lines(fsSrcNew)
 			for i, line in ipairs(fsSrcNewLines) do
@@ -575,7 +575,7 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 					local replacementstring = string.format('if (all(lessThan(abs(mouseScreenPos.xy- (gl_FragCoord.xy + vec2(0.5, -1.5))),vec2(0.25) ))) {	printfData[%i].%s = %s;}	//printfData[INDEX] = vertexPos.xyzw;',
 							vardata.index, string.sub('xyzw', 1, vardata.count), vardata.name
 					)
-					Spring.Echo(string.format("Replacing f:%d %s", i, line))
+					SpringShared.Echo(string.format("Replacing f:%d %s", i, line))
 					fsSrcNewLines[i] = replacementstring
 				end
 			end
@@ -602,7 +602,7 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 				for i, line in ipairs(fsSrcNewLines) do
 					if string.find(line, "#version", nil, true) then
 						if line ~= "#version 430 core" then
-							Spring.Echo("Replacing shader version", line, "with #version 430 core")
+							SpringShared.Echo("Replacing shader version", line, "with #version 430 core")
 							fsSrcNewLines[i] = ""
 							table.insert(fsSrcNewLines,1, "#version 430 core\n")
 							break
@@ -664,7 +664,7 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 			)
 			local shaderCompiled = reinitshader:Initialize()
 			if not shadersourcecache.silent then
-				Spring.Echo(shadersourcecache.shaderName, " recompiled in ", Spring.DiffTimers(Spring.GetTimer(), compilestarttime, true), "ms at", Spring.GetGameFrame(), "success", shaderCompiled or false)
+				SpringShared.Echo(shadersourcecache.shaderName, " recompiled in ", SpringUnsynced.DiffTimers(SpringUnsynced.GetTimer(), compilestarttime, true), "ms at", SpringShared.GetGameFrame(), "success", shaderCompiled or false)
 			end
 			if shaderCompiled then
 				reinitshader.printf = printf
@@ -774,11 +774,11 @@ function LuaShader:OutputLogEntry(text, isError)
 	local warnErr = (isError and "error") or "warning"
 
 	message = string.format("LuaShader: [%s] shader %s(s):\n%s", self.shaderName, warnErr, text)
-	Spring.Echo(message)
+	SpringShared.Echo(message)
 
 	if isError then
 		local linetable = self:CreateLineTable()
-		Spring.Echo(translateLines(linetable, text))
+		SpringShared.Echo(translateLines(linetable, text))
 	end
 
 
@@ -792,7 +792,7 @@ function LuaShader:OutputLogEntry(text, isError)
 		if (newCnt == self.logEntries) then
 			message = message .. string.format("\nSupressing further %s of the same kind", warnErr)
 		end
-		Spring.Echo(message)
+		SpringShared.Echo(message)
 	end
 end
 
@@ -814,7 +814,7 @@ local includeRegexps = {
 
 function LuaShader:HandleIncludes(shaderCode, shaderName)
 	local incFiles = {}
-	local t1 = Spring.GetTimer()
+	local t1 = SpringUnsynced.GetTimer()
 	repeat
 		local incFile
 		local regEx
@@ -826,15 +826,15 @@ function LuaShader:HandleIncludes(shaderCode, shaderName)
 			end
 		end
 
-		Spring.Echo(shaderName, incFile)
+		SpringShared.Echo(shaderName, incFile)
 
 		if incFile then
 			shaderCode = string.gsub(shaderCode, regEx, '', 1)
 			table.insert(incFiles, incFile)
 		end
 	until (incFile == nil)
-	local t2 = Spring.GetTimer()
-	Spring.Echo(Spring.DiffTimers(t2, t1, true))
+	local t2 = SpringUnsynced.GetTimer()
+	SpringShared.Echo(SpringUnsynced.DiffTimers(t2, t1, true))
 
 	local includeText = ""
 	for _, incFile in ipairs(incFiles) do
@@ -914,7 +914,7 @@ function LuaShader:Compile(suppresswarnings)
 			if location then
 				self.uniformLocations[uniName] = location
 			else
-				Spring.Echo(string.format("Notice from shader %s: Could not find location of uniform name: %s", "dunno", uniName ))
+				SpringShared.Echo(string.format("Notice from shader %s: Could not find location of uniform name: %s", "dunno", uniName ))
 			end
 
 		end
@@ -950,7 +950,7 @@ function LuaShader:Activate()
 		-- bind the printf SSBO if present
 		if self.printf then
 			local bindingIndex = self.printf.SSBO:BindBufferRange(7)
-			if bindingIndex <= 0 then Spring.Echo("Failed to bind printfData SSBO for shader", self.shaderName) end
+			if bindingIndex <= 0 then SpringShared.Echo("Failed to bind printfData SSBO for shader", self.shaderName) end
 		end
 
 		self.active = true
@@ -1005,7 +1005,7 @@ function LuaShader:Deactivate()
 
 		if not self.DrawPrintf then
 			--Spring.Echo("creating DrawPrintf")
-			local fontfile3 = "fonts/monospaced/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Semibold.otf")
+			local fontfile3 = "fonts/monospaced/" .. SpringUnsynced.GetConfigString("bar_font3", "SourceCodePro-Semibold.otf")
 			local fontSize = 16
 			local font3 = gl.LoadFont(fontfile3, 32, 0.5, 1)
 
@@ -1022,7 +1022,7 @@ function LuaShader:Deactivate()
 					xoffset = sometimesself
 				end
 
-				local mx,my = Spring.GetMouseState()
+				local mx,my = SpringUnsynced.GetMouseState()
 				mx = mx + xoffset
 				my = my - 32 + yoffset
 
@@ -1044,7 +1044,7 @@ function LuaShader:Deactivate()
 					end
 
 					my = my - fontSize
-					local vsx, vsy = Spring.GetViewGeometry()
+					local vsx, vsy = SpringUnsynced.GetViewGeometry()
 					local alignment = ''
 					if mx > (vsx - 400) then alignment = 'r' end
 					--Spring.Echo(my,vsy)

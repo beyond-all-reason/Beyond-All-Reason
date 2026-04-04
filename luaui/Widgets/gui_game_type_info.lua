@@ -28,7 +28,7 @@ end
 
 
 -- Localized Spring API for performance
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
 local vsx, vsy = spGetViewGeometry()
 local widgetScale = 0.80 + (vsx * vsy / 6000000)
@@ -37,13 +37,13 @@ local glPopMatrix = gl.PopMatrix
 local glPushMatrix = gl.PushMatrix
 local glScale = gl.Scale
 local glTranslate = gl.Translate
-local spGetGameSeconds = Spring.GetGameSeconds
+local spGetGameSeconds = SpringShared.GetGameSeconds
 
 local messages = {}
 
 local font
 
-local draftMode = Spring.GetModOptions().draft_mode
+local draftMode = SpringShared.GetModOptions().draft_mode
 
 function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
@@ -68,14 +68,14 @@ function widget:ViewResize()
 end
 
 function widget:Initialize()
-	if Spring.GetModOptions().deathmode == "neverend" then
+	if SpringShared.GetModOptions().deathmode == "neverend" then
 		widgetHandler:RemoveWidget()
 		return
 	end
 
 	messages[1] = {}
 
-	if Spring.GetModOptions().deathmode == "own_com" then
+	if SpringShared.GetModOptions().deathmode == "own_com" then
 		messages[3] = {}
 	end
 
@@ -86,7 +86,7 @@ end
 
 function widget:LanguageChanged()
 	local key
-	local deathmode = Spring.GetModOptions().deathmode
+	local deathmode = SpringShared.GetModOptions().deathmode
 
 	if deathmode == "killall" then
 		key = 'killAllUnits'

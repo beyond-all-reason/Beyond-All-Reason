@@ -27,11 +27,11 @@ local DEFAULT_COLOR = { 0.9, 0.5, 1, DEFAULT_OPACITY }
 local highlightUnitNames = {}
 local prevMapDrawMode, prevSpectatingFullView
 
-local SpringGetAllFeatures = Spring.GetAllFeatures
-local SpringGetFeatureResurrect = Spring.GetFeatureResurrect
-local SpringGetFeatureTeam = Spring.GetFeatureTeam
-local SpringGetSpectatingState = Spring.GetSpectatingState
-local SpringGetMapDrawMode = Spring.GetMapDrawMode
+local SpringGetAllFeatures = SpringShared.GetAllFeatures
+local SpringGetFeatureResurrect = SpringShared.GetFeatureResurrect
+local SpringGetFeatureTeam = SpringShared.GetFeatureTeam
+local SpringGetSpectatingState = SpringUnsynced.GetSpectatingState
+local SpringGetMapDrawMode = SpringUnsynced.GetMapDrawMode
 
 -- util
 
@@ -186,16 +186,16 @@ local function shouldHighlight(unitName)
 end
 
 local function addHighlight(featureID, noUpload)
-    local m, dm, e, de, rl, rt = Spring.GetFeatureResources(featureID)
+    local m, dm, e, de, rl, rt = SpringShared.GetFeatureResources(featureID)
     if m > 0 then
-        local x, y, z = Spring.GetFeaturePosition(featureID)
-		y = Spring.GetGroundHeight(x,z) - 50 --account for deformable terrain
+        local x, y, z = SpringShared.GetFeaturePosition(featureID)
+		y = SpringShared.GetGroundHeight(x,z) - 50 --account for deformable terrain
         local color = DEFAULT_COLOR
         if useTeamColor then
             local featureTeamID = SpringGetFeatureTeam(featureID)
 
             if featureTeamID ~= nil then
-                local r, g, b = Spring.GetTeamColor(featureTeamID)
+                local r, g, b = SpringUnsynced.GetTeamColor(featureTeamID)
                 color = { r, g, b, DEFAULT_OPACITY }
             end
         end
@@ -246,7 +246,7 @@ local function checkAllFeatures()
 end
 
 function widget:DrawWorld()
-    if Spring.IsGUIHidden() then
+    if SpringUnsynced.IsGUIHidden() then
         return
     end
     if instanceVBO.usedElements == 0 then

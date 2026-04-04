@@ -17,7 +17,7 @@ end
 local mathFloor = math.floor
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
+local spGetGameFrame = SpringShared.GetGameFrame
 
 local SAVE_DIR = "Saves"
 local SAVE_DIR_LENGTH = string.len(SAVE_DIR) + 2
@@ -78,7 +78,7 @@ local function GetSave(path)
 		ret = saveData
 	end)
 	if (not success) then
-		Spring.Log(widget:GetInfo().name, LOG.ERROR, "Error getting save " .. path .. ": " .. err)
+		SpringShared.Log(widget:GetInfo().name, LOG.ERROR, "Error getting save " .. path .. ": " .. err)
 	else
 		local engineSaveFilename = GetSaveWithExtension(string.sub(path, 1, -5))
 		if not engineSaveFilename then
@@ -130,7 +130,7 @@ local function SaveGame(filename, description, requireOverwrite)
 	end
 	local success, err = pcall(
 		function()
-			Spring.CreateDir(SAVE_DIR)
+			SpringUnsynced.CreateDir(SAVE_DIR)
 			filename = (filename and trim(filename)) or ("save" .. string.format("%03d", FindFirstEmptySaveSlot()))
 			path = SAVE_DIR .. "/" .. filename .. ".lua"
 			local saveData = {}
@@ -141,10 +141,10 @@ local function SaveGame(filename, description, requireOverwrite)
 			saveData.gameVersion = Game.gameVersion
 			saveData.engineVersion = Engine.version
 			saveData.map = Game.mapName
-			saveData.gameID = (Spring.GetGameRulesParam("save_gameID") or (Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID")))
+			saveData.gameID = (SpringShared.GetGameRulesParam("save_gameID") or (Game.gameID and Game.gameID or SpringShared.GetGameRulesParam("GameID")))
 			saveData.gameframe = spGetGameFrame()
-			saveData.totalGameframe = spGetGameFrame() + (Spring.GetGameRulesParam("totalSaveGameFrame") or 0)
-			saveData.playerName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+			saveData.totalGameframe = spGetGameFrame() + (SpringShared.GetGameRulesParam("totalSaveGameFrame") or 0)
+			saveData.playerName = SpringShared.GetPlayerInfo(Spring.GetMyPlayerID(), false)
 			table.save(saveData, path)
 
 			-- TODO: back up existing save?
@@ -152,29 +152,29 @@ local function SaveGame(filename, description, requireOverwrite)
 			--end
 
 			if requireOverwrite then
-				Spring.SendCommands(SAVE_TYPE .. filename .. " -y")
+				SpringUnsynced.SendCommands(SAVE_TYPE .. filename .. " -y")
 			else
-				Spring.SendCommands(SAVE_TYPE .. filename)
+				SpringUnsynced.SendCommands(SAVE_TYPE .. filename)
 			end
-			Spring.Log(widget:GetInfo().name, LOG.INFO, "Saved game to " .. path)
+			SpringShared.Log(widget:GetInfo().name, LOG.INFO, "Saved game to " .. path)
 
 			--DisposeWindow()
 		end
 	)
 	if (not success) then
-		Spring.Log(widget:GetInfo().name, LOG.ERROR, "Error saving game: " .. err)
+		SpringShared.Log(widget:GetInfo().name, LOG.ERROR, "Error saving game: " .. err)
 	end
 end
 
 local function LoadGameByFilename(filename)
 	local saveData = GetSave(SAVE_DIR .. '/' .. filename .. ".lua")
 	if saveData then
-		if Spring.GetMenuName and Spring.SendLuaMenuMsg and Spring.GetMenuName() then
-			Spring.SendLuaMenuMsg(LOAD_GAME_STRING .. filename)
+		if SpringUnsynced.GetMenuName and SpringUnsynced.SendLuaMenuMsg and SpringUnsynced.GetMenuName() then
+			SpringUnsynced.SendLuaMenuMsg(LOAD_GAME_STRING .. filename)
 		else
 			local ext = GetSaveExtension(SAVE_DIR .. '/' .. filename)
 			if not ext then
-				Spring.Log(widget:GetInfo().name, LOG.ERROR, "Error loading game: cannot find save file.")
+				SpringShared.Log(widget:GetInfo().name, LOG.ERROR, "Error loading game: cannot find save file.")
 				return
 			end
 			local success, err = pcall(
@@ -193,15 +193,15 @@ local function LoadGameByFilename(filename)
 	]]
 					script = script:gsub("__FILE__", filename .. ext)
 					script = script:gsub("__PLAYERNAME__", saveData.playerName)
-					Spring.Reload(script)
+					SpringUnsynced.Reload(script)
 				end
 			)
 			if (not success) then
-				Spring.Log(widget:GetInfo().name, LOG.ERROR, "Error loading game: " .. err)
+				SpringShared.Log(widget:GetInfo().name, LOG.ERROR, "Error loading game: " .. err)
 			end
 		end
 	else
-		Spring.Log(widget:GetInfo().name, LOG.ERROR, "Save game " .. filename .. " not found")
+		SpringShared.Log(widget:GetInfo().name, LOG.ERROR, "Save game " .. filename .. " not found")
 	end
 	if saveFilenameEdit then
 		saveFilenameEdit:SetText(filename)
@@ -210,7 +210,7 @@ end
 
 local function DeleteSave(filename)
 	if not filename then
-		Spring.Log(widget:GetInfo().name, LOG.ERROR, "No filename specified for save deletion")
+		SpringShared.Log(widget:GetInfo().name, LOG.ERROR, "No filename specified for save deletion")
 	end
 	local success, err = pcall(function()
 		local pathNoExtension = SAVE_DIR .. "/" .. filename
@@ -221,17 +221,17 @@ local function DeleteSave(filename)
 		end
 	end)
 	if (not success) then
-		Spring.Log(widget:GetInfo().name, LOG.ERROR, "Error deleting save " .. filename .. ": " .. err)
+		SpringShared.Log(widget:GetInfo().name, LOG.ERROR, "Error deleting save " .. filename .. ": " .. err)
 	end
 end
 
 local function savegameCmd(_, _, params)
-	Spring.Echo("Trying to save:", params[1])
+	SpringShared.Echo("Trying to save:", params[1])
 	local savefilename = params[1]
 	SaveGame(savefilename, savefilename, true)
 
-	if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobby') ~= nil then
-		Spring.SendLuaMenuMsg("gameSaved")
+	if SpringUnsynced.GetMenuName and string.find(string.lower(SpringUnsynced.GetMenuName()), 'chobby') ~= nil then
+		SpringUnsynced.SendLuaMenuMsg("gameSaved")
 	end
 end
 

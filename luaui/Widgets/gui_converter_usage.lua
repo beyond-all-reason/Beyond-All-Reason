@@ -14,9 +14,9 @@ function widget:GetInfo()
 
 
 -- Localized Spring API for performance
-local spGetMouseState = Spring.GetMouseState
+local spGetMouseState = SpringUnsynced.GetMouseState
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = SpringUnsynced.GetViewGeometry()
 local widgetScale = (0.80 + (vsx * vsy / 6000000))
 
 local font2
@@ -26,7 +26,7 @@ local dlistGuishader, dlistCU
 local area = {0,0,0,0}
 
 local spGetMyTeamID = Spring.GetMyTeamID
-local spGetTeamRulesParam = Spring.GetTeamRulesParam
+local spGetTeamRulesParam = SpringShared.GetTeamRulesParam
 
 local glCreateList = gl.CreateList
 local glCallList = gl.CallList
@@ -129,7 +129,7 @@ function widget:DrawScreen()
     if area[1] then
         local x, y = spGetMouseState()
         if math.isInRect(x, y, area[1], area[2], area[3], area[4]) then
-            Spring.SetMouseCursor('cursornormal')
+            SpringUnsynced.SetMouseCursor('cursornormal')
         end
     end
 end

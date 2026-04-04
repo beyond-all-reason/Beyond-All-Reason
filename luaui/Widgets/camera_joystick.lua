@@ -17,7 +17,7 @@ local mathMax = math.max
 local mathPi = math.pi
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 ---------------------INFO------------------------
 -- 1. Start your joystick server: https://github.com/Beherith/camera_joystick_springrts
@@ -197,11 +197,11 @@ local function togglePlayback() end
 
 ------------- BIND COMMANDS TO BUTTONS DEBOUNCED! -------------------------------
 local buttonCommands = { -- key is button number, value is command like you would type into console without the beginning /
-	[Abutton[2]] = function() Spring.SendCommands("pause") end,
-	[Bbutton[2]] = function() Spring.SendCommands("hideinterface") end,
-	[Xbutton[2]] = function() Spring.SendCommands("togglelos") end,
-	[LShoulderbutton[2]] = function() Spring.SendCommands("slowdown") end,
-	[RShoulderbutton[2]] = function() Spring.SendCommands("speedup") end,
+	[Abutton[2]] = function() SpringUnsynced.SendCommands("pause") end,
+	[Bbutton[2]] = function() SpringUnsynced.SendCommands("hideinterface") end,
+	[Xbutton[2]] = function() SpringUnsynced.SendCommands("togglelos") end,
+	[LShoulderbutton[2]] = function() SpringUnsynced.SendCommands("slowdown") end,
+	[RShoulderbutton[2]] = function() SpringUnsynced.SendCommands("speedup") end,
 	--[RStickButton[2]] = function() Spring.SendCommands("MiniMap Maximize") end,
 	--[LStickButton[2]] = function() Spring.SendCommands("luaui togglewidget Defense Range GL4") end,
 	--[SelectButton[2]] = function() Spring.SendCommands("SpecFullView") end,
@@ -212,8 +212,8 @@ local buttonCommands = { -- key is button number, value is command like you woul
 
 
 --------------------------------------------------------------------------------
-local spGetCameraState	 = Spring.GetCameraState
-local spSetCameraState	 = Spring.SetCameraState
+local spGetCameraState	 = SpringUnsynced.GetCameraState
+local spSetCameraState	 = SpringUnsynced.SetCameraState
 
 --------------------------------------------------------------------------------
 local host = "127.0.0.1"
@@ -289,7 +289,7 @@ end
 local function dumpConfig()
 	-- dump all luasocket related config settings to console
 	for _, conf in ipairs({"TCPAllowConnect", "TCPAllowListen", "UDPAllowConnect", "UDPAllowListen"	}) do
-		spEcho(conf .. " = " .. Spring.GetConfigString(conf, ""))
+		spEcho(conf .. " = " .. SpringUnsynced.GetConfigString(conf, ""))
 	end
 end
 
@@ -360,12 +360,12 @@ function widget:TextCommand(command)
 end
 
 function widget:Initialize()
-	Spring.SendCommands({"set SmoothTimeOffset 2"})
+	SpringUnsynced.SendCommands({"set SmoothTimeOffset 2"})
 	spEcho("Started Camera Joystick, make sure you are running the joystick server, and switch camera to Ctrl+F4")
 	if debugMode then dumpConfig() end
 	local connected = SocketConnect(host, port)
 	if connected then
-		Spring.SetConfigInt("RotOverheadClampMap",0)
+		SpringUnsynced.SetConfigInt("RotOverheadClampMap",0)
 	else
 		widgetHandler:RemoveWidget()
 	end
@@ -549,7 +549,7 @@ function widget:Update(dt) -- dt in seconds
 		end
 		local ndx, ndz = norm2d(cs.dx, cs.dz)
 
-		if debugMode and Spring.GetGameFrame() %60 ==0 then
+		if debugMode and SpringShared.GetGameFrame() %60 ==0 then
 			spEcho(ndx, ndz, cs.dx, cs.dy, cs.dz)
 		end
 
@@ -600,7 +600,7 @@ function widget:Update(dt) -- dt in seconds
 		end
 
 		-- Prevent the camera from going too low
-		local gh = Spring.GetGroundHeight(cs.px,cs.pz)
+		local gh = SpringShared.GetGroundHeight(cs.px,cs.pz)
 		cs.py = mathMax(mincameraheight, mathMax(cs.py , gh + 32))
 		--if cs.py < gh + 32 then cs.py =gh + 32 end
 

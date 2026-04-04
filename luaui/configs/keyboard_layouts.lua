@@ -332,7 +332,7 @@ local function sanitizeKey(key, layout)
 		return ""
 	end
 
-	layout = layout or Spring.GetConfigString("KeyboardLayout", "qwerty")
+	layout = layout or SpringUnsynced.GetConfigString("KeyboardLayout", "qwerty")
 
 	key = key:upper():gsub("ANY%+", '')
 	key = key:gsub("SC_(.)", function(c)

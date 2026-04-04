@@ -56,9 +56,9 @@ local types = {
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local spGetCameraPosition		= Spring.GetCameraPosition
-local spTraceScreenRay			= Spring.TraceScreenRay
-local spGetMouseState			= Spring.GetMouseState
+local spGetCameraPosition		= SpringUnsynced.GetCameraPosition
+local spTraceScreenRay			= SpringUnsynced.TraceScreenRay
+local spGetMouseState			= SpringUnsynced.GetMouseState
 
 local glCreateList				= gl.CreateList
 local glDeleteList				= gl.DeleteList
@@ -162,7 +162,7 @@ end
 
 function widget:DrawWorldPreUnit()
 	if chobbyInterface then return end
-  if Spring.IsGUIHidden() then return end
+  if SpringUnsynced.IsGUIHidden() then return end
 
 	local osClock = os.clock()
 	local camX, camY, camZ = spGetCameraPosition()

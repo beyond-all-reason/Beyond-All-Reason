@@ -33,7 +33,7 @@ local function AddToSpawnQueue(unitName, posx, posy, posz, facing, team, frame, 
             QueuedSpawnList[1] = QueueSpawnCommand
         end
 	else
-		Spring.Echo("[Spawn Queue] Failed to queue "..unitName..", invalid unitDefName")
+		SpringShared.Echo("[Spawn Queue] Failed to queue "..unitName..", invalid unitDefName")
 	end
 end
 
@@ -44,7 +44,7 @@ local function SpawnUnitsFromQueue(n) -- Call this every frame in your gadget.
 		for i = 1,QueuedSpawnsNumber do
 			local item = QueuedSpawnList[1]
 			if item and n >= item.frame then
-				local unitID = Spring.CreateUnit(
+				local unitID = SpringSynced.CreateUnit(
                     item.unitName,
                     item.posx,
                     item.posy,
@@ -53,11 +53,11 @@ local function SpawnUnitsFromQueue(n) -- Call this every frame in your gadget.
                     item.team
                 )
 				if unitID and item.blocking == false then
-					Spring.SetUnitBlocking(unitID, false, false, true)
+					SpringSynced.SetUnitBlocking(unitID, false, false, true)
 				end
                 if unitID and item.resurrected == true then
-					Spring.SetUnitRulesParam(unitID, "resurrected", 1, {inlos=true})
-                    Spring.SetUnitHealth(unitID, 10)
+					SpringSynced.SetUnitRulesParam(unitID, "resurrected", 1, {inlos=true})
+                    SpringSynced.SetUnitHealth(unitID, 10)
 				elseif unitID then
                     GG.ScavengersSpawnEffectUnitID(unitID)
                 end
@@ -75,7 +75,7 @@ local function AddToDestroyQueue(unitID, selfd, reclaimed, frame)
     if selfd == nil then selfd = false end
     if reclaimed == nil then reclaimed = false end
 
-    if Spring.ValidUnitID(unitID) then
+    if SpringShared.ValidUnitID(unitID) then
 		local QueueDestroyCommand = {
             unitID = unitID,
             frame = frame,
@@ -108,7 +108,7 @@ local function DestroyUnitsFromQueue(n) -- Call this every frame in your gadget.
 		for i = 1,QueuedDestroyNumber do
 			local item = QueuedDestroyList[1]
 			if item and n >= item.frame then
-				Spring.DestroyUnit(
+				SpringSynced.DestroyUnit(
                     item.unitID,
                     item.selfd,
                     item.reclaimed

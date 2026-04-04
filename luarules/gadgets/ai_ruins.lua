@@ -1,5 +1,5 @@
 
-if not (Spring.GetModOptions().ruins == "enabled" or (Spring.GetModOptions().ruins == "scav_only" and Spring.Utilities.Gametype.IsScavengers())) then
+if not (SpringShared.GetModOptions().ruins == "enabled" or (SpringShared.GetModOptions().ruins == "scav_only" and Spring.Utilities.Gametype.IsScavengers())) then
 	return
 end
 
@@ -24,10 +24,10 @@ end
 -- these are used in poschecks.lua so arent localized here
 local mapsizeX = Game.mapSizeX
 local mapsizeZ = Game.mapSizeZ
-local GaiaTeamID = Spring.GetGaiaTeamID()
-local GaiaAllyTeamID = select(6, Spring.GetTeamInfo(GaiaTeamID))
+local GaiaTeamID = SpringShared.GetGaiaTeamID()
+local GaiaAllyTeamID = select(6, SpringShared.GetTeamInfo(GaiaTeamID))
 
-local ruinDensity = Spring.GetModOptions().ruins_density
+local ruinDensity = SpringShared.GetModOptions().ruins_density
 local ruinDensityMultiplier = 1
 local ruinMexGeoChance = 0.33
 if ruinDensity == "veryrare" then
@@ -132,7 +132,7 @@ for i = 1,#scavConfig.unprocessedScavTurrets do
 
 			if string.sub(unitName, -5, -1) == "_scav" and UnitDefNames[string.sub(unitName, 1, -6)] then unitName = string.sub(unitName, 1, -6) end -- convert scav unit into non-scav
 			if not UnitDefNames[unitName] then
-				Spring.Echo("We got a fucked unit name here: " .. unitName)
+				SpringShared.Echo("We got a fucked unit name here: " .. unitName)
 			end
 			if defs.type ~= "nuke" and UnitDefNames[unitName] and not UnitDefNames[unitName].isFactory then -- we don't want nukes and factories in ruins
 				if defs.surface == "land" then
@@ -282,26 +282,26 @@ local function spawnRuin(ruin, posx, posy, posz, blueprintTierLevel)
 			local nonscavname = string.gsub(name, "_scav", "")
 			local r = math.random(1,100)
 			if r < 40 and UnitDefNames[nonscavname] then
-				local posy = Spring.GetGroundHeight(posx + (xOffset*flipX*mirrorX), posz + (zOffset*flipZ*mirrorZ))
-				local unit = Spring.CreateUnit(UnitDefNames[nonscavname].id, posx + (xOffset*flipX*mirrorX), posy, posz + (zOffset*flipZ*mirrorZ), (building.direction+rotation+mirrorRotation)%4, GaiaTeamID)
+				local posy = SpringShared.GetGroundHeight(posx + (xOffset*flipX*mirrorX), posz + (zOffset*flipZ*mirrorZ))
+				local unit = SpringSynced.CreateUnit(UnitDefNames[nonscavname].id, posx + (xOffset*flipX*mirrorX), posy, posz + (zOffset*flipZ*mirrorZ), (building.direction+rotation+mirrorRotation)%4, GaiaTeamID)
 				if unit then
 					local radarRange = UnitDefs[building.unitDefID].radarDistance
 					local canMove = UnitDefs[building.unitDefID].canMove
 					local speed = UnitDefs[building.unitDefID].speed
 
-					Spring.SetUnitNeutral(unit, true)
-					Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
-					Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
+					SpringSynced.SetUnitNeutral(unit, true)
+					SpringSynced.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
+					SpringSynced.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
 					--Spring.SetUnitAlwaysVisible(unit, true)
 
 					if building.patrol and canMove and speed > 0 then
 						for i = 1, 6 do
-							Spring.GiveOrderToUnit(unit, CMD.PATROL, { posx + (math.random(-200, 200)), posy + 100, posz + (math.random(-200, 200)) }, {"shift", "alt", "ctrl"})
+							SpringSynced.GiveOrderToUnit(unit, CMD.PATROL, { posx + (math.random(-200, 200)), posy + 100, posz + (math.random(-200, 200)) }, {"shift", "alt", "ctrl"})
 						end
 					end
 
 					if radarRange and radarRange > 1000 then
-						Spring.GiveOrderToUnit(unit, CMD.ONOFF, {0}, 0)
+						SpringSynced.GiveOrderToUnit(unit, CMD.ONOFF, {0}, 0)
 					end
 				end
 			-- elseif r < 90 and FeatureDefNames[name .. "_dead"] then
@@ -322,7 +322,7 @@ local function SpawnMexes(mexSpots)
 			local spot = mexSpots[i]
 			local posx = math.ceil(spot.x/16)*16
 			local posz = math.ceil(spot.z/16)*16
-			local posy = Spring.GetGroundHeight(posx, posz)
+			local posy = SpringShared.GetGroundHeight(posx, posz)
 			local mexesList
 			if posy > 0 then
 				mexesList = landMexesList
@@ -344,11 +344,11 @@ local function SpawnMexes(mexSpots)
 
 			if canBuildHere then
 				local mex = mexesList[math.random(1,#mexesList)]
-				local unit = Spring.CreateUnit(UnitDefNames[mex].id, posx, posy, posz, math.random(0,3), GaiaTeamID)
+				local unit = SpringSynced.CreateUnit(UnitDefNames[mex].id, posx, posy, posz, math.random(0,3), GaiaTeamID)
 				if unit then
-					Spring.SetUnitNeutral(unit, true)
-					Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
-					Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
+					SpringSynced.SetUnitNeutral(unit, true)
+					SpringSynced.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
+					SpringSynced.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
 					SpawnedMexes[i] = math.random(1,2)
 				end
 			end
@@ -363,7 +363,7 @@ local function SpawnGeos(geoSpots)
 			local spot = geoSpots[i]
 			local posx = math.ceil(spot.x/16)*16
 			local posz = math.ceil(spot.z/16)*16
-			local posy = Spring.GetGroundHeight(posx, posz)
+			local posy = SpringShared.GetGroundHeight(posx, posz)
 			local geosList
 			if posy > 0 then
 				geosList = landGeosList
@@ -385,11 +385,11 @@ local function SpawnGeos(geoSpots)
 
 			if canBuildHere then
 				local geo = geosList[math.random(1,#geosList)]
-				local unit = Spring.CreateUnit(UnitDefNames[geo].id, posx, posy, posz, math.random(0,3), GaiaTeamID)
+				local unit = SpringSynced.CreateUnit(UnitDefNames[geo].id, posx, posy, posz, math.random(0,3), GaiaTeamID)
 				if unit then
-					Spring.SetUnitNeutral(unit, true)
-					Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
-					Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
+					SpringSynced.SetUnitNeutral(unit, true)
+					SpringSynced.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
+					SpringSynced.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
 					SpawnedGeos[i] = math.random(2,3)
 				end
 			end
@@ -406,7 +406,7 @@ local function SpawnMexGeoRandomStructures()
 				for j = 1,SpawnedMexes[i] do
 					local posx2 = math.ceil((spot.x+math.random(-512,512))/16)*16
 					local posz2 = math.ceil((spot.z+math.random(-512,512))/16)*16
-					local posy2 = Spring.GetGroundHeight(posx2, posz2)
+					local posy2 = SpringShared.GetGroundHeight(posx2, posz2)
 					local defencesList
 					if posy2 > 0 then
 						defencesList = landDefences
@@ -432,11 +432,11 @@ local function SpawnMexGeoRandomStructures()
 
 					if canBuildHere then
 						local defence = defencesList[math.random(1,#defencesList)]
-						local unit = Spring.CreateUnit(UnitDefNames[defence].id, posx2, posy2, posz2, math.random(0,3), GaiaTeamID)
+						local unit = SpringSynced.CreateUnit(UnitDefNames[defence].id, posx2, posy2, posz2, math.random(0,3), GaiaTeamID)
 						if unit then
-							Spring.SetUnitNeutral(unit, true)
-							Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
-							Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
+							SpringSynced.SetUnitNeutral(unit, true)
+							SpringSynced.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
+							SpringSynced.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
 						end
 					end
 				end
@@ -452,7 +452,7 @@ local function SpawnMexGeoRandomStructures()
 				for j = 1,SpawnedGeos[i] do
 					local posx2 = math.ceil((spot.x+math.random(-1024,1024))/16)*16
 					local posz2 = math.ceil((spot.z+math.random(-1024,1024))/16)*16
-					local posy2 = Spring.GetGroundHeight(posx2, posz2)
+					local posy2 = SpringShared.GetGroundHeight(posx2, posz2)
 					local defencesList
 					if posy2 > 0 then
 						defencesList = landDefences
@@ -478,11 +478,11 @@ local function SpawnMexGeoRandomStructures()
 
 					if canBuildHere then
 						local defence = defencesList[math.random(1,#defencesList)]
-						local unit = Spring.CreateUnit(UnitDefNames[defence].id, posx2, posy2, posz2, math.random(0,3), GaiaTeamID)
+						local unit = SpringSynced.CreateUnit(UnitDefNames[defence].id, posx2, posy2, posz2, math.random(0,3), GaiaTeamID)
 						if unit then
-							Spring.SetUnitNeutral(unit, true)
-							Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
-							Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
+							SpringSynced.SetUnitNeutral(unit, true)
+							SpringSynced.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
+							SpringSynced.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
 						end
 					end
 				end
@@ -496,7 +496,7 @@ local function SpawnRandomStructures()
 		for j = 1,math.ceil(10*ruinDensityMultiplier) do
 			local posx = math.ceil(math.random(196,Game.mapSizeX-196)/16)*16
 			local posz = math.ceil(math.random(196,Game.mapSizeZ-196)/16)*16
-			local posy = Spring.GetGroundHeight(posx, posz)
+			local posy = SpringShared.GetGroundHeight(posx, posz)
 			local defencesList
 			if posy > 0 then
 				defencesList = landDefences
@@ -522,11 +522,11 @@ local function SpawnRandomStructures()
 
 			if canBuildHere then
 				local defence = defencesList[math.random(1,#defencesList)]
-				local unit = Spring.CreateUnit(UnitDefNames[defence].id, posx, posy, posz, math.random(0,3), GaiaTeamID)
+				local unit = SpringSynced.CreateUnit(UnitDefNames[defence].id, posx, posy, posz, math.random(0,3), GaiaTeamID)
 				if unit then
-					Spring.SetUnitNeutral(unit, true)
-					Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
-					Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
+					SpringSynced.SetUnitNeutral(unit, true)
+					SpringSynced.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
+					SpringSynced.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
 				end
 				break
 			end
@@ -567,7 +567,7 @@ function gadget:GameFrame(n)
 		local ruin
 		posx = math.random(0, Game.mapSizeX)
 		posz = math.random(0, Game.mapSizeZ)
-		posy = Spring.GetGroundHeight(posx, posz)
+		posy = SpringShared.GetGroundHeight(posx, posz)
 		seaRuinChance = math.random(1, 2)
 
 		r = math.random(0,100) -- replace 100 with 200 when we get civilians
@@ -576,15 +576,15 @@ function gadget:GameFrame(n)
 		-- 	landRuin = blueprintController.Ruin.GetRandomLandBlueprint()
 		-- 	seaRuin = blueprintController.Ruin.GetRandomSeaBlueprint()
 		-- 	blueprintTierLevel = -1
-		if r > 98 and Spring.GetModOptions().ruins_only_t1 == false then -- elseif
+		if r > 98 and SpringShared.GetModOptions().ruins_only_t1 == false then -- elseif
 			landRuin = blueprintController.GetRandomLandBlueprint(4)
 			seaRuin = blueprintController.GetRandomSeaBlueprint(4)
 			blueprintTierLevel = 4
-		elseif r > 95 and Spring.GetModOptions().ruins_only_t1 == false then
+		elseif r > 95 and SpringShared.GetModOptions().ruins_only_t1 == false then
 			landRuin = blueprintController.GetRandomLandBlueprint(3)
 			seaRuin = blueprintController.GetRandomSeaBlueprint(3)
 			blueprintTierLevel = 3
-		elseif r > 85 and Spring.GetModOptions().ruins_only_t1 == false then
+		elseif r > 85 and SpringShared.GetModOptions().ruins_only_t1 == false then
 			landRuin = blueprintController.GetRandomLandBlueprint(2)
 			seaRuin = blueprintController.GetRandomSeaBlueprint(2)
 			blueprintTierLevel = 2

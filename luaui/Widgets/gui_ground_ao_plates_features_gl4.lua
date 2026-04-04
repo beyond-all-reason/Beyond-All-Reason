@@ -14,8 +14,8 @@ end
 
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
-local spGetSpectatingState = Spring.GetSpectatingState
+local spEcho = SpringShared.Echo
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 --------------- Configurables -------------------
 local decalAlpha = 0.66
@@ -100,8 +100,8 @@ local GL_BACK = GL.BACK
 local GL_LEQUAL = GL.LEQUAL
 
 local function AddPrimitiveAtUnit(featureID, featureDefID, noUpload)
-	local gf = Spring.GetGameFrame()
-	featureDefID = featureDefID or Spring.GetFeatureDefID(featureID)
+	local gf = SpringShared.GetGameFrame()
+	featureDefID = featureDefID or SpringShared.GetFeatureDefID(featureID)
 
 	if featureDefID == nil or featureDefIDtoDecalInfo[featureDefID] == nil then return end -- these cant have plates
 	local decalInfo = featureDefIDtoDecalInfo[featureDefID]
@@ -130,7 +130,7 @@ end
 
 local function ProcessAllFeatures()
 	InstanceVBOTable.clearInstanceTable(groundPlateVBO)
-	local features = Spring.GetAllFeatures()
+	local features = SpringShared.GetAllFeatures()
 	--spEcho("Refreshing Ground Plates", #features)
 	for _, featureID in ipairs(features) do
 		AddPrimitiveAtUnit(featureID, nil, true)
@@ -146,7 +146,7 @@ function widget:DrawWorldPreUnit()
 	end
 		
 	if groundPlateVBO.usedElements > 0 then 
-		local disticon = Spring.GetConfigInt("FeatureFadeDistance", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
+		local disticon = SpringUnsynced.GetConfigInt("FeatureFadeDistance", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		glCulling(GL_BACK)
 		glDepthTest(GL_LEQUAL)
 		gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
@@ -281,8 +281,8 @@ function widget:TextCommand(command)
 			end
 		end
 		if #matches > 0 then
-			local mx, my, mb = Spring.GetMouseState()
-			local _, coords = Spring.TraceScreenRay(mx, my, true) 
+			local mx, my, mb = SpringUnsynced.GetMouseState()
+			local _, coords = SpringUnsynced.TraceScreenRay(mx, my, true) 
 			local maxx = math.ceil(math.sqrt(#matches))
 			local size = 80
 			local i = 1
@@ -293,7 +293,7 @@ function widget:TextCommand(command)
 							commandqueue[#commandqueue+1] = string.format('give %s @%d,%d,%d',
 								matches[i],
 								x,
-								Spring.GetGroundHeight(x,z),
+								SpringShared.GetGroundHeight(x,z),
 								z)
 							i=i+1
 						end
@@ -306,7 +306,7 @@ end
 
 function widget:GameFrame()
 	if #commandqueue > 0 then 
-		Spring.SendCommands({commandqueue[#commandqueue]})
+		SpringUnsynced.SendCommands({commandqueue[#commandqueue]})
 		commandqueue[#commandqueue] = nil
 	end
 end

@@ -19,22 +19,22 @@ if gadgetHandler:IsSyncedCode() then
 	local unitCollisionVolume, pieceCollisionVolume, dynamicPieceCollisionVolume
 
 	-- Localization and speedups
-	local spSetPieceCollisionData = Spring.SetUnitPieceCollisionVolumeData
-	local spGetPieceList = Spring.GetUnitPieceList
-	local spGetUnitDefID = Spring.GetUnitDefID
-	local spGetUnitCollisionData = Spring.GetUnitCollisionVolumeData
-	local spSetUnitCollisionData = Spring.SetUnitCollisionVolumeData
-	local spSetUnitRadiusAndHeight = Spring.SetUnitRadiusAndHeight
-	local spGetUnitRadius = Spring.GetUnitRadius
-	local spGetUnitHeight = Spring.GetUnitHeight
-	local spSetUnitMidAndAimPos = Spring.SetUnitMidAndAimPos
-	local spGetFeatureCollisionData = Spring.GetFeatureCollisionVolumeData
-	local spSetFeatureCollisionData = Spring.SetFeatureCollisionVolumeData
-	local spSetFeatureRadiusAndHeight = Spring.SetFeatureRadiusAndHeight
-	local spGetFeatureRadius = Spring.GetFeatureRadius
-	local spGetFeatureHeight = Spring.GetFeatureHeight
+	local spSetPieceCollisionData = SpringSynced.SetUnitPieceCollisionVolumeData
+	local spGetPieceList = SpringShared.GetUnitPieceList
+	local spGetUnitDefID = SpringShared.GetUnitDefID
+	local spGetUnitCollisionData = SpringShared.GetUnitCollisionVolumeData
+	local spSetUnitCollisionData = SpringSynced.SetUnitCollisionVolumeData
+	local spSetUnitRadiusAndHeight = SpringSynced.SetUnitRadiusAndHeight
+	local spGetUnitRadius = SpringShared.GetUnitRadius
+	local spGetUnitHeight = SpringShared.GetUnitHeight
+	local spSetUnitMidAndAimPos = SpringSynced.SetUnitMidAndAimPos
+	local spGetFeatureCollisionData = SpringShared.GetFeatureCollisionVolumeData
+	local spSetFeatureCollisionData = SpringSynced.SetFeatureCollisionVolumeData
+	local spSetFeatureRadiusAndHeight = SpringSynced.SetFeatureRadiusAndHeight
+	local spGetFeatureRadius = SpringShared.GetFeatureRadius
+	local spGetFeatureHeight = SpringShared.GetFeatureHeight
 
-	local spArmor = Spring.GetUnitArmored
+	local spArmor = SpringShared.GetUnitArmored
 	local pairs = pairs
 	local pieceIndexStr = {}
 	for i = 0, 99 do pieceIndexStr[i] = tostring(i) end
@@ -86,12 +86,12 @@ if gadgetHandler:IsSyncedCode() then
 		unitCollisionVolume, pieceCollisionVolume, dynamicPieceCollisionVolume = include("LuaRules/Configs/CollisionVolumes.lua")
 		local mapConfig = "LuaRules/Configs/DynCVmapCFG/" .. Game.mapName .. ".lua"
 
-		local allFeatures = Spring.GetAllFeatures()
+		local allFeatures = SpringShared.GetAllFeatures()
 		if VFS.FileExists(mapConfig) then
 			local mapFeatures = VFS.Include(mapConfig)
 			for i=1,#allFeatures do
 				local featID = allFeatures[i]
-				local modelpath = FeatureDefs[Spring.GetFeatureDefID(featID)].modelpath
+				local modelpath = FeatureDefs[SpringShared.GetFeatureDefID(featID)].modelpath
 				local featureModel = modelpath:lower()
 				if featureModel:len() > 4 then
 					local featureModelTrim = featureModel:sub(1,-5) -- featureModel:match("/.*%."):sub(2,-2)
@@ -111,7 +111,7 @@ if gadgetHandler:IsSyncedCode() then
 		else
 			for i=1,#allFeatures do
 				local featID = allFeatures[i]
-				local modelpath = FeatureDefs[Spring.GetFeatureDefID(featID)].modelpath
+				local modelpath = FeatureDefs[SpringShared.GetFeatureDefID(featID)].modelpath
 				local featureModel = modelpath:lower()
 				if featureModel:find(".3do") then
 					local rs, hs
@@ -133,7 +133,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-		local allUnits = Spring.GetAllUnits()
+		local allUnits = SpringShared.GetAllUnits()
 		for i=1,#allUnits do
 			local unitID = allUnits[i]
 			gadget:UnitCreated(unitID, spGetUnitDefID(unitID))
@@ -151,7 +151,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if unitDefMidAndAimPos[unitDefID] then 
 			local midAndAimPos = unitDefMidAndAimPos[unitDefID]
-			Spring.SetUnitMidAndAimPos(unitID, 
+			SpringSynced.SetUnitMidAndAimPos(unitID, 
 				midAndAimPos['midx'] or 0,
 				midAndAimPos['midy'] or 0,
 				midAndAimPos['midz'] or 0,
@@ -253,7 +253,7 @@ if gadgetHandler:IsSyncedCode() then
 		if featureDefMidAndAimPos[featureDefID] then 
 			--Spring.SetFeatureMidAndAimPos ( number featureID, number mpX, number mpY, number mpZ, number apX, number apY, number apZ [, bool relative )
 			local midAndAimPos = featureDefMidAndAimPos[featureDefID]
-			Spring.SetFeatureMidAndAimPos(featureID, 
+			SpringSynced.SetFeatureMidAndAimPos(featureID, 
 				midAndAimPos['midx'] or 0,
 				midAndAimPos['midy'] or 0,
 				midAndAimPos['midz'] or 0,
@@ -262,7 +262,7 @@ if gadgetHandler:IsSyncedCode() then
 				midAndAimPos['aimz'] or 0-- relative?
 				)
 		end
-		if is3doFeature[Spring.GetFeatureDefID(featureID)] then
+		if is3doFeature[SpringShared.GetFeatureDefID(featureID)] then
 			local rs, hs
 			if spGetFeatureRadius(featureID)>47 then
 				rs, hs = 0.68, 0.60

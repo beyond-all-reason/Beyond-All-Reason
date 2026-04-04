@@ -1,5 +1,5 @@
 local function testMergeInPlace(deep)
-  Spring.Echo(string.format("[test] [table.mergeInPlace(deep: %s)] start", tostring(deep)))
+  SpringShared.Echo(string.format("[test] [table.mergeInPlace(deep: %s)] start", tostring(deep)))
   local mergeTarget = {
     shouldBeOverriden = "no",
     shouldBeMerged = {
@@ -24,7 +24,7 @@ local function testMergeInPlace(deep)
   }
 
   table.mergeInPlace(mergeTarget, mergeData, deep)
-  Spring.Echo(string.format("[test] [table.mergeInPlace(deep: %s)] %s", tostring(deep), table.toString(mergeTarget)))
+  SpringShared.Echo(string.format("[test] [table.mergeInPlace(deep: %s)] %s", tostring(deep), table.toString(mergeTarget)))
 
   local expectedYesCount = 12
   local yesCount = 0
@@ -53,19 +53,19 @@ local function testMergeInPlace(deep)
       "expected mergeData.shouldBeMerged.shouldBeAdded and mergeTarget.shouldBeMerged.shouldBeAdded to be same instance, due to non-deep merge")
   end
 
-  Spring.Echo(string.format("[test] [table.mergeInPlace(deep: %s)] success", tostring(deep)))
+  SpringShared.Echo(string.format("[test] [table.mergeInPlace(deep: %s)] success", tostring(deep)))
 end
 
 local function testTableRemoveIf()
-  Spring.Echo("[test] [table.removeIf] start")
+  SpringShared.Echo("[test] [table.removeIf] start")
   local t = { a = 1, b = 2, c = 3, d = 4, e = 5, }
   local tEven = table.copy(t)
   table.removeIf(tEven, function(v) return v % 2 == 1 end)
   local tOdd = table.copy(t)
   table.removeIf(tOdd, function(v) return v % 2 == 0 end)
 
-  Spring.Echo(string.format("[test] [table.removeIf] tEven: %s", table.toString(tEven)))
-  Spring.Echo(string.format("[test] [table.removeIf] tOdd: %s", table.toString(tOdd)))
+  SpringShared.Echo(string.format("[test] [table.removeIf] tEven: %s", table.toString(tEven)))
+  SpringShared.Echo(string.format("[test] [table.removeIf] tOdd: %s", table.toString(tOdd)))
 
   local assertions = {
     tEven = { table.count(tEven), 2 },
@@ -76,19 +76,19 @@ local function testTableRemoveIf()
     assert(assertion[1] == assertion[2],
       string.format("expected %s to have %s values (actual: %s)", tbl, assertion[1], assertion[2]))
   end
-  Spring.Echo("[test] [table.removeIf] success")
+  SpringShared.Echo("[test] [table.removeIf] success")
 end
 
 local function testTableRemoveAll()
-  Spring.Echo("[test] [table.removeAll] start")
+  SpringShared.Echo("[test] [table.removeAll] start")
   local t = { a = 1, b = 2, c = 1, d = 2, e = 1, }
   local tOnes = table.copy(t)
   table.removeAll(tOnes, 2)
   local tTwos = table.copy(t)
   table.removeAll(tTwos, 1)
 
-  Spring.Echo(string.format("[test] [table.removeAll] tOnes: %s", table.toString(tOnes)))
-  Spring.Echo(string.format("[test] [table.removeAll] tTwos: %s", table.toString(tTwos)))
+  SpringShared.Echo(string.format("[test] [table.removeAll] tOnes: %s", table.toString(tOnes)))
+  SpringShared.Echo(string.format("[test] [table.removeAll] tTwos: %s", table.toString(tTwos)))
 
   local assertions = {
     tOnes = { table.count(tOnes), 3 },
@@ -99,11 +99,11 @@ local function testTableRemoveAll()
     assert(assertion[1] == assertion[2],
       string.format("expected %s to have %s values (actual: %s)", tbl, assertion[1], assertion[2]))
   end
-  Spring.Echo("[test] [table.removeAll] success")
+  SpringShared.Echo("[test] [table.removeAll] success")
 end
 
 local function testTableRemoveFirst()
-  Spring.Echo("[test] [table.removeFirst] start")
+  SpringShared.Echo("[test] [table.removeFirst] start")
   local tests = {
     sequence = { "a", "b", "c" }, -- indexes should be kept without any gaps for this one
     notASequence = { "a", "b", [4] = "c" },
@@ -111,10 +111,10 @@ local function testTableRemoveFirst()
   }
 
   for name, test in pairs(tests) do
-    Spring.Echo(string.format("[test] [table.removeFirst] %s: %s", name, table.toString(test)))
+    SpringShared.Echo(string.format("[test] [table.removeFirst] %s: %s", name, table.toString(test)))
     for _, value in pairs({ "b", "c", "a", }) do
       table.removeFirst(test, value)
-      Spring.Echo(string.format("[test] [table.removeFirst] %s: %s (removed: %s)", name, table.toString(test), value))
+      SpringShared.Echo(string.format("[test] [table.removeFirst] %s: %s (removed: %s)", name, table.toString(test), value))
       -- special case for sequence: check that indexes are kept without any gaps
       if name == "sequence" then
         local prev_i = 0
@@ -127,11 +127,11 @@ local function testTableRemoveFirst()
     end
     assert(table.count(test) == 0, string.format("expected table %s to be empty, but it's not", name))
   end
-  Spring.Echo("[test] [table.removeFirst] success")
+  SpringShared.Echo("[test] [table.removeFirst] success")
 end
 
 local function testTableShuffle()
-  Spring.Echo("[test] [table.shuffle] start")
+  SpringShared.Echo("[test] [table.shuffle] start")
   local t = { "a", "b", "c" }
   local t0 = { [0] = "a", "b", "c" }
   local results = { abc = 0, acb = 0, bac = 0, bca = 0, cab = 0, cba = 0 }
@@ -148,8 +148,8 @@ local function testTableShuffle()
     results0[r0] = results0[r0] + 1
   end
 
-  Spring.Echo(string.format("[test] [table.shuffle] results : %s", table.toString(results)))
-  Spring.Echo(string.format("[test] [table.shuffle] results0: %s", table.toString(results0)))
+  SpringShared.Echo(string.format("[test] [table.shuffle] results : %s", table.toString(results)))
+  SpringShared.Echo(string.format("[test] [table.shuffle] results0: %s", table.toString(results0)))
 
   local function mean(tbl)
     local sum = 0
@@ -179,8 +179,8 @@ local function testTableShuffle()
 
   local standardDeviationResults = standardDeviation(results)
   local standardDeviationResults0 = standardDeviation(results0)
-  Spring.Echo(string.format("[test] [table.shuffle] [results ] standardDeviation: %s", standardDeviationResults))
-  Spring.Echo(string.format("[test] [table.shuffle] [results0] standardDeviation: %s", standardDeviationResults0))
+  SpringShared.Echo(string.format("[test] [table.shuffle] [results ] standardDeviation: %s", standardDeviationResults))
+  SpringShared.Echo(string.format("[test] [table.shuffle] [results0] standardDeviation: %s", standardDeviationResults0))
 
   local threshold = rounds * 0.005 -- this is not a p-norm but it'll be good enough
   assert(standardDeviationResults < threshold,
@@ -189,7 +189,7 @@ local function testTableShuffle()
     string.format("expected results0 standard deviation to be below %s (actual: %s)", threshold,
       standardDeviationResults0))
 
-  Spring.Echo("[test] [table.shuffle] success")
+  SpringShared.Echo("[test] [table.shuffle] success")
 end
 
 testMergeInPlace(false)

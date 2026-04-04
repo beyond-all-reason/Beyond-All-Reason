@@ -24,7 +24,7 @@ local cursors = {
 
 function gadget:Initialize()
 	for k, cursor in pairs(cursors) do
-		Spring.AssignMouseCursor(cursor, cursor, false)
+		SpringUnsynced.AssignMouseCursor(cursor, cursor, false)
 	end
 end
 

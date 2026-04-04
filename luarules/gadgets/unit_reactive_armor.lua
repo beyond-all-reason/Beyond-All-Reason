@@ -30,9 +30,9 @@ local table_new = table.new
 local math_floor = math.floor
 local math_clamp = math.clamp
 
-local spCallCobScript = Spring.CallCOBScript
-local spGetUnitDefID = Spring.GetUnitDefID
-local spSetUnitRulesParam = Spring.SetUnitRulesParam
+local spCallCobScript = SpringSynced.CallCOBScript
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spSetUnitRulesParam = SpringSynced.SetUnitRulesParam
 
 local gameSpeed = Game.gameSpeed
 
@@ -56,7 +56,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
-local callFromLus = Spring.UnitScript.CallAsUnit
+local callFromLus = SpringSynced.UnitScript.CallAsUnit
 local callFromCob = function(unitID, funcName, ...)
 	spCallCobScript(unitID, funcName, 0, ...) -- to add arg count 0
 end
@@ -65,7 +65,7 @@ end
 -- since that is the first time the game gives us info on them.
 local function checkReactiveArmor(unitID, unitDefID, params)
 	local hasMethod
-	local lusEnv = Spring.UnitScript.GetScriptEnv(unitID)
+	local lusEnv = SpringSynced.UnitScript.GetScriptEnv(unitID)
 
 	if lusEnv then
 		hasMethod = function(name)
@@ -73,7 +73,7 @@ local function checkReactiveArmor(unitID, unitDefID, params)
 		end
 	else
 		hasMethod = function(name)
-			return Spring.GetCOBScriptID(unitID, name) ~= nil
+			return SpringSynced.GetCOBScriptID(unitID, name) ~= nil
 		end
 	end
 
@@ -114,13 +114,13 @@ local function checkReactiveArmor(unitID, unitDefID, params)
 
 	if next(missing) then
 		-- The unit script is malformed in some way and we make no attempts to recover it.
-		Spring.Log("Reactive Armor", LOG.ERROR, ("Unit script missing %s: %s"):format(table.concat(missing, ", "), UnitDefs[unitDefID].name))
+		SpringShared.Log("Reactive Armor", LOG.ERROR, ("Unit script missing %s: %s"):format(table.concat(missing, ", "), UnitDefs[unitDefID].name))
 		success = false
 	end
 
 	if (params.pieces - 1) * gameSpeed > params.frames then
 		-- Armor pieces regenerate once per second until the end of the armor restore duration.
-		Spring.Log("Reactive Armor", LOG.ERROR, ("Too many armor pieces (%d) for restore time: "):format(params.pieces, UnitDefs[unitDefID].name))
+		SpringShared.Log("Reactive Armor", LOG.ERROR, ("Too many armor pieces (%d) for restore time: "):format(params.pieces, UnitDefs[unitDefID].name))
 		success = false
 	end
 
@@ -290,7 +290,7 @@ local debugReloads = false
 
 local function getUnitDebugInfo(unitID)
 	local unitDefID = spGetUnitDefID(unitID)
-	local x, y, z = Spring.GetUnitPosition(unitID)
+	local x, y, z = SpringShared.GetUnitPosition(unitID)
 	return {
 		x = x,
 		y = y,
@@ -299,7 +299,7 @@ local function getUnitDebugInfo(unitID)
 		unitDefID     = unitDefID,
 		unitDefName   = UnitDefs[unitDefID].name,
 		unitDefParams = armoredUnitDefs[unitDefID] or "none",
-		health        = Spring.GetUnitHealth(unitID),
+		health        = SpringShared.GetUnitHealth(unitID),
 		armorFrames   = unitArmorFrames[unitID] or "nil",
 		armorHealth   = unitArmorHealth[unitID] or "nil",
 		inCombatUntil = regenerateFrame[unitID] or "nil",
@@ -311,8 +311,8 @@ local function showDebugInfo(unitID)
 	local info = getUnitDebugInfo(unitID)
 	if info.unitCountdown then
 		local display = ("hp:%s res:%s"):format(tostring(info.armorHealth), tostring(info.unitCountdown))
-		Spring.MarkerAddPoint(info.x, info.y, info.z, display)
-		Spring.Echo("Reactive Armor", info)
+		SpringUnsynced.MarkerAddPoint(info.x, info.y, info.z, display)
+		SpringShared.Echo("Reactive Armor", info)
 	end
 end
 
@@ -372,18 +372,18 @@ function gadget:Initialize()
 		return
 	end
 
-	callFromLus = Spring.UnitScript.CallAsUnit
-	gameFrame = Spring.GetGameFrame()
+	callFromLus = SpringSynced.UnitScript.CallAsUnit
+	gameFrame = SpringShared.GetGameFrame()
 	combatEndFrame = gameFrame + unitCombatDuration
 
 	if gameFrame <= 0 then
 		return
 	end
 
-	local spGetUnitRulesParam = Spring.GetUnitRulesParam
+	local spGetUnitRulesParam = SpringShared.GetUnitRulesParam
 
 	local function reloadUnitState(unitID, unitDefID, unitTeam)
-		if Spring.GetUnitIsBeingBuilt(unitID) then
+		if SpringShared.GetUnitIsBeingBuilt(unitID) then
 			return
 		end
 
@@ -414,10 +414,10 @@ function gadget:Initialize()
 		end
 	end
 
-	for _, unitID in ipairs(Spring.GetAllUnits()) do
+	for _, unitID in ipairs(SpringShared.GetAllUnits()) do
 		local uDefID = spGetUnitDefID(unitID)
 		if armoredUnitDefs[uDefID] then
-			reloadUnitState(unitID, uDefID, Spring.GetUnitTeam(unitID))
+			reloadUnitState(unitID, uDefID, SpringShared.GetUnitTeam(unitID))
 		end
 	end
 end

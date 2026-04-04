@@ -1,5 +1,5 @@
 
-if not Spring.GetModOptions().emprework then
+if not SpringShared.GetModOptions().emprework then
 	return
 end
 
@@ -121,7 +121,7 @@ local function SetUnitWantedSpeed(unitID, unitDefID, wantedSpeed, forceUpdate)
 		return
 	end
 
-	if Spring.MoveCtrl.GetTag(unitID) then
+	if SpringSynced.MoveCtrl.GetTag(unitID) then
 		units[unitID].lastWantedSpeed = wantedSpeed
 		return
 	end
@@ -133,9 +133,9 @@ local function SetUnitWantedSpeed(unitID, unitDefID, wantedSpeed, forceUpdate)
 
 	--Spring.Utilities.UnitEcho(unitID, wantedSpeed or "f")
 	if units[unitID].moveType == 1 then
-		Spring.MoveCtrl.SetGunshipMoveTypeData(unitID, "maxWantedSpeed", (wantedSpeed or 2000))
+		SpringSynced.MoveCtrl.SetGunshipMoveTypeData(unitID, "maxWantedSpeed", (wantedSpeed or 2000))
 	elseif units[unitID].moveType == 2 then
-		Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxWantedSpeed", (wantedSpeed or 2000))
+		SpringSynced.MoveCtrl.SetGroundMoveTypeData(unitID, "maxWantedSpeed", (wantedSpeed or 2000))
 	end
 end
 
@@ -151,14 +151,14 @@ local function MaintainWantedSpeed(unitID)
 		return
 	end
 
-	if Spring.MoveCtrl.GetTag(unitID) then
+	if SpringSynced.MoveCtrl.GetTag(unitID) then
 		return
 	end
 
 	if units[unitID].moveType == 1 then
-		Spring.MoveCtrl.SetGunshipMoveTypeData(unitID, "maxWantedSpeed", units[unitID].lastWantedSpeed)
+		SpringSynced.MoveCtrl.SetGunshipMoveTypeData(unitID, "maxWantedSpeed", units[unitID].lastWantedSpeed)
 	elseif units[unitID].moveType == 2 then
-		Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxWantedSpeed", units[unitID].lastWantedSpeed)
+		SpringSynced.MoveCtrl.SetGroundMoveTypeData(unitID, "maxWantedSpeed", units[unitID].lastWantedSpeed)
 	end
 end
 

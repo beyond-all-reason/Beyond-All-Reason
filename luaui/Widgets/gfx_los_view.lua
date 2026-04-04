@@ -15,21 +15,21 @@ end
 
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 local myPlayerID = Spring.GetMyPlayerID()
-local lastMapDrawMode = Spring.GetMapDrawMode()
+local lastMapDrawMode = SpringUnsynced.GetMapDrawMode()
 
 local function TurnOnLOS()
-    if Spring.GetMapDrawMode()~="los" then
-        Spring.SendCommands("togglelos")
+    if SpringUnsynced.GetMapDrawMode()~="los" then
+        SpringUnsynced.SendCommands("togglelos")
     end
 end
 
 local function TurnOffLOS()
-    if Spring.GetMapDrawMode()=="los" then
-        Spring.SendCommands("togglelos")
+    if SpringUnsynced.GetMapDrawMode()=="los" then
+        SpringUnsynced.SendCommands("togglelos")
     end
 end
 
@@ -71,7 +71,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:GetConfigData() --save config
-	return {lastMapDrawMode=Spring.GetMapDrawMode()}
+	return {lastMapDrawMode=SpringUnsynced.GetMapDrawMode()}
 end
 
 function widget:SetConfigData(data) --load config

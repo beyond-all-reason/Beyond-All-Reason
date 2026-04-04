@@ -15,20 +15,20 @@ end
 
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
+local spGetGameFrame = SpringShared.GetGameFrame
 
-local spGetUnitDefID         = Spring.GetUnitDefID
-local spGetUnitPosition      = Spring.GetUnitPosition
-local spGetUnitsInCylinder   = Spring.GetUnitsInCylinder
-local spAreTeamsAllied       = Spring.AreTeamsAllied
-local spGetUnitTeam          = Spring.GetUnitTeam
-local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
-local spGetSelectedUnits     = Spring.GetSelectedUnits
+local spGetUnitDefID         = SpringShared.GetUnitDefID
+local spGetUnitPosition      = SpringShared.GetUnitPosition
+local spGetUnitsInCylinder   = SpringShared.GetUnitsInCylinder
+local spAreTeamsAllied       = SpringShared.AreTeamsAllied
+local spGetUnitTeam          = SpringShared.GetUnitTeam
+local spGiveOrderArrayToUnit = SpringSynced.GiveOrderArrayToUnit
+local spGetSelectedUnits     = SpringUnsynced.GetSelectedUnits
 local spGetMyTeamID          = Spring.GetMyTeamID
-local spGetActiveCommand 	 = Spring.GetActiveCommand
-local spGetMouseState    	 = Spring.GetMouseState
-local spTraceScreenRay   	 = Spring.TraceScreenRay
-local spGetModKeyState   	 = Spring.GetModKeyState
+local spGetActiveCommand 	 = SpringUnsynced.GetActiveCommand
+local spGetMouseState    	 = SpringUnsynced.GetMouseState
+local spTraceScreenRay   	 = SpringUnsynced.TraceScreenRay
+local spGetModKeyState   	 = SpringUnsynced.GetModKeyState
 
 local trackedUnitsToUnitDefID = {}
 local unitRanges = {}
@@ -278,7 +278,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 end
 
 function maybeRemoveSelf()
-	if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
+	if SpringUnsynced.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
 		widgetHandler:RemoveWidget()
 	end
 end
@@ -293,7 +293,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-	if Spring.IsReplay() or spGetGameFrame() > 0 then
+	if SpringUnsynced.IsReplay() or spGetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
 	WG.FindNearestEnemyUnit = FindNearestEnemyUnit

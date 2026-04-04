@@ -16,11 +16,11 @@ end
 
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
+local spGetGameFrame = SpringShared.GetGameFrame
 local spGetMyTeamID = Spring.GetMyTeamID
-local spEcho = Spring.Echo
-local spGetAllUnits = Spring.GetAllUnits
-local spGetSpectatingState = Spring.GetSpectatingState
+local spEcho = SpringShared.Echo
+local spGetAllUnits = SpringShared.GetAllUnits
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 local debuglevel = 0
 -- debuglevel 0 is no debugging
@@ -109,14 +109,14 @@ local function initGL4()
 end
 
 -- speedups
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPosition = Spring.GetUnitPosition
-local spValidUnitID = Spring.ValidUnitID
-local spGetUnitIsDead = Spring.GetUnitIsDead
-local spGetUnitLosState = Spring.GetUnitLosState
-local spAreTeamsAllied = Spring.AreTeamsAllied
-local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitTeam = SpringShared.GetUnitTeam
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spValidUnitID = SpringShared.ValidUnitID
+local spGetUnitIsDead = SpringShared.GetUnitIsDead
+local spGetUnitLosState = SpringShared.GetUnitLosState
+local spAreTeamsAllied = SpringShared.AreTeamsAllied
+local spGetUnitHealth = SpringShared.GetUnitHealth
 
 -- scriptproxies:
 --[[ NB: these are proxies, not the actual lua functions currently linked LuaUI-side,
@@ -140,14 +140,14 @@ local function Scream(reason, unitID) -- This will pause the game and play some 
 		spEcho('API Unit Tracker error unitID', unitID, unitDefID and (UnitDefs[unitDefID].name) or "nil", unitTeam, px, pz)
 	end
 	if lastknownunitpos[unitID] then
-		Spring.MarkerAddPoint(lastknownunitpos[unitID][1], lastknownunitpos[unitID][2], lastknownunitpos[unitID][3], lastknownunitpos[unitID][4], true)
+		SpringUnsynced.MarkerAddPoint(lastknownunitpos[unitID][1], lastknownunitpos[unitID][2], lastknownunitpos[unitID][3], lastknownunitpos[unitID][4], true)
 	end
 	Spring.Debug.TraceFullEcho()
 	local unittrackerapinil = nil
 	unittrackerapinil = unittrackerapinil + 1 -- this intentionally crashes this widget so that it will show up in analytics
 	if debuglevel >=3 then
-		Spring.SendCommands({"pause 1"})
-		Spring.PlaySoundFile("commanderspawn", 1.0, 'ui')
+		SpringUnsynced.SendCommands({"pause 1"})
+		SpringUnsynced.PlaySoundFile("commanderspawn", 1.0, 'ui')
 	end
 end
 
@@ -541,7 +541,7 @@ function widget:GameFrame()
 end
 
 function widget:DrawWorldPreUnit()
-	if Spring.IsGUIHidden() then
+	if SpringUnsynced.IsGUIHidden() then
 		return
 	end
 
@@ -721,14 +721,14 @@ function widget:GameStart()
 	local function LobbyInfo()
 		local test = false
 		if not test then
-			if Spring.IsReplay() then return end
+			if SpringUnsynced.IsReplay() then return end
 			if Spring.Utilities.GetPlayerCount() < 2 then return end
 			if Spring.Utilities.Gametype.IsSinglePlayer == true then return end
 		end
 
 		local pnl = {a = "a"}
-		for ct, id in ipairs(Spring.GetPlayerList()) do
-			local playername, _, spec = Spring.GetPlayerInfo(id, false)
+		for ct, id in ipairs(SpringShared.GetPlayerList()) do
+			local playername, _, spec = SpringShared.GetPlayerInfo(id, false)
 			pnl[ct] = playername
 			if (not test) and spec and (string.find(playername,"[teh]cluster", nil, true) or string.find(playername,"Host[", nil, true) )then
 				return
@@ -797,18 +797,18 @@ function widget:AddConsoleLine(lines, priority)
 	if iHaveDesynced then return end
     local username, frameNumber, gotChecksum, correctChecksum = lines:match(syncerrorpattern)
     if username and frameNumber and gotChecksum and correctChecksum  then
-        local myPlayerName = Spring.GetPlayerInfo(Spring.GetMyPlayerID())
+        local myPlayerName = SpringShared.GetPlayerInfo(Spring.GetMyPlayerID())
         if myPlayerName == username then
             -- Yes, we have desynced, time to send a LuaUIMsg to notify the server
             -- desyncee, gameID, frame, gameversion, engine version, map, chobby version?
             local jsondict = {
                 eventtype = "syncerror",
                 username = username, -- desyncee
-                lobbyName = tostring(Spring.GetMenuName and Spring.GetMenuName()), -- this returns rapid://byar-chobby:test, which is completely useless
+                lobbyName = tostring(SpringUnsynced.GetMenuName and SpringUnsynced.GetMenuName()), -- this returns rapid://byar-chobby:test, which is completely useless
                 gameVersion = tostring(Game.gameVersion), -- this better not be the rapid tag
                 engineVersion = tostring(Engine.versionFull), -- full complete engine version string
                 mapName = tostring(Game.mapName), -- full map name
-                gameID = tostring(Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID")), -- gameID parameter, not the same as server_match_id, we will match that in teiserver
+                gameID = tostring(Game.gameID and Game.gameID or SpringShared.GetGameRulesParam("GameID")), -- gameID parameter, not the same as server_match_id, we will match that in teiserver
                 frame = frameNumber, -- the frame where it happened.
                 gotChecksum = gotChecksum,
                 correctChecksum = correctChecksum,
@@ -820,7 +820,7 @@ function widget:AddConsoleLine(lines, priority)
             -- We will be forwarding this as a complex event:
             -- sayPrivate  complex-match-event <Beherith> <desyncreport> <67> <eyJrZXkiOiJ2YWx1ZSJ9>
             -- !sendLobby SAYPRIVATE AutohostMonitor 'complex-match-event <[teh]Beherith> <desyncreport> <67> <eyJrZXkiOiJ2YWx1ZSJ9>'
-            Spring.SendLuaUIMsg(complex_match_event)
+            SpringUnsynced.SendLuaUIMsg(complex_match_event)
 
 			-- then remove ourselves, no point to keep running after the first desync is detected
 			iHaveDesynced = true

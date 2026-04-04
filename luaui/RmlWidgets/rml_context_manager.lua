@@ -17,8 +17,8 @@ function widget:GetInfo()
 end
 
 local function calculateDpRatio()
-    local viewSizeX, viewSizeY = Spring.GetViewGeometry()
-    local userScale = Spring.GetConfigFloat("ui_scale", 1)
+    local viewSizeX, viewSizeY = SpringUnsynced.GetViewGeometry()
+    local userScale = SpringUnsynced.GetConfigFloat("ui_scale", 1)
     local baseWidth = 1920
     local baseHeight = 1080
     local resFactor = math.min(viewSizeX / baseWidth, viewSizeY / baseHeight)
@@ -48,5 +48,5 @@ end
 -- include also a listener for the ui_scale config variable changes
 
 function widget:Shutdown()
-    Spring.Echo("Rml Context Manager shutdown, dynamic context dp ratio updates to contexts disabled." )
+    SpringShared.Echo("Rml Context Manager shutdown, dynamic context dp ratio updates to contexts disabled." )
 end

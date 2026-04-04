@@ -14,14 +14,14 @@ end
 
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetUnitTeam = SpringShared.GetUnitTeam
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 local weaponEnergyCostFloor = 6
 
-local spGetTeamResources		= Spring.GetTeamResources
-local spGetUnitResources		= Spring.GetUnitResources
+local spGetTeamResources		= SpringShared.GetTeamResources
+local spGetUnitResources		= SpringShared.GetUnitResources
 local spGetUnitTeam		        = spGetUnitTeam
 
 local teamEnergy = {} -- table of teamid to current energy amount
@@ -143,9 +143,9 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 		fullview = select(2,spGetSpectatingState())
 	end
 	if not fullview then
-		teamList = Spring.GetTeamList(Spring.GetMyAllyTeamID())
+		teamList = SpringShared.GetTeamList(Spring.GetMyAllyTeamID())
 	else
-		teamList = Spring.GetTeamList()
+		teamList = SpringShared.GetTeamList()
 	end
 
 	UpdateTeamEnergy()
@@ -183,9 +183,9 @@ local function updateStalling()
 				if teamEnergy[teamID] and unitConf[unitDefID][3] > teamEnergy[teamID] and -- more neededEnergy than we have
 					(not unitConf[unitDefID][4] or ((unitConf[unitDefID][4] and (unitEnergy or 999999)) < unitConf[unitDefID][3])) then
 
-					if not Spring.GetUnitIsBeingBuilt(unitID) and
+					if not SpringShared.GetUnitIsBeingBuilt(unitID) and
 						energyIconVBO.instanceIDtoIndex[unitID] == nil then -- not already being drawn
-						if Spring.ValidUnitID(unitID) and not Spring.GetUnitIsDead(unitID) then
+						if SpringShared.ValidUnitID(unitID) and not SpringShared.GetUnitIsDead(unitID) then
 							pushElementInstance(
 								energyIconVBO, -- push into this Instance VBO Table
 									{unitConf[unitDefID][1], unitConf[unitDefID][1], 0, unitConf[unitDefID][2],  -- lengthwidthcornerheight
@@ -218,7 +218,7 @@ function widget:GameFrame(n)
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam) -- remove the corresponding ground plate if it exists
-	if unitConf[unitDefID] and not Spring.GetUnitIsBeingBuilt(unitID) then
+	if unitConf[unitDefID] and not SpringShared.GetUnitIsBeingBuilt(unitID) then
 		if teamUnits[unitTeam] == nil then teamUnits[unitTeam] = {} end
 		teamUnits[unitTeam][unitID] = unitDefID
 	end
@@ -242,10 +242,10 @@ end
 
 function widget:DrawWorld()
 	if chobbyInterface then return end
-	if Spring.IsGUIHidden() then return end
+	if SpringUnsynced.IsGUIHidden() then return end
 
 	if energyIconVBO.usedElements > 0 then
-		local disticon = Spring.GetConfigInt("UnitIconDistance", 200) * 27.5 -- iconLength = unitIconDist * unitIconDist * 750.0f;
+		local disticon = SpringUnsynced.GetConfigInt("UnitIconDistance", 200) * 27.5 -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		gl.DepthTest(true)
 		gl.DepthMask(false)
 		gl.Texture('LuaUI/Images/energy-red.png')

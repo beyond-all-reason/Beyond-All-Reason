@@ -1,5 +1,5 @@
 local mapName = Game.mapName
-Spring.Echo("Lava Mapname", mapName)
+SpringShared.Echo("Lava Mapname", mapName)
 
 local MAP_CONFIG_PATH = "mapconfig/lava.lua"
 local GAME_CONFIG_DIR = "common/configs/LavaMaps/"
@@ -91,20 +91,20 @@ local function getLavaConfig(mapName)
 		local mapNameNoVersion = trimMapVersion(mapName)
 		if VFS.FileExists(gameConfigPath(mapName)) then
 			gameConfig = VFS.Include(gameConfigPath(mapName))
-			Spring.Log('Lava', LOG.INFO, "Loaded map config for", mapName)
+			SpringShared.Log('Lava', LOG.INFO, "Loaded map config for", mapName)
 		elseif mapName ~= mapNameNoVersion and VFS.FileExists(gameConfigPath(mapNameNoVersion)) then
 			gameConfig = VFS.Include(gameConfigPath(mapNameNoVersion))
-			Spring.Log('Lava', LOG.INFO, "Loaded map config for", mapNameNoVersion)
+			SpringShared.Log('Lava', LOG.INFO, "Loaded map config for", mapNameNoVersion)
 		end
 	end
 	if VFS.FileExists(MAP_CONFIG_PATH) then
 		mapConfig = VFS.Include(MAP_CONFIG_PATH)
-		Spring.Log('Lava', LOG.INFO, "Loaded map config for", mapNameNoVersion)
+		SpringShared.Log('Lava', LOG.INFO, "Loaded map config for", mapNameNoVersion)
 	end
 	if mapConfig and gameConfig and gameConfig.overrideMap then
 		-- allow gameconfig to override map config when 'overrideMap' is set
 		mapConfig = gameConfig
-		Spring.Log('Lava', LOG.INFO, "Game config overrides map")
+		SpringShared.Log('Lava', LOG.INFO, "Game config overrides map")
 	end
 	return mapConfig or gameConfig
 end
@@ -169,23 +169,23 @@ local function validateTideRhythm(modoptionDataRaw)
 		local partRhythm = {}
 		for value in string.gmatch(tide, "[^,]+") do
 			if not tonumber(value) then
-				Spring.Echo("Lava Advanced Tide Rhythm data is not valid, non-number value: ", value)
+				SpringShared.Echo("Lava Advanced Tide Rhythm data is not valid, non-number value: ", value)
 				return false
 			else 
 			table.insert(partRhythm, tonumber(value))
 			end
 		end
 		if #partRhythm ~= 3 then
-			Spring.Echo("Lava Advanced Tide Rhythm data is not valid, invalid tide definition: ", partRhythm)
+			SpringShared.Echo("Lava Advanced Tide Rhythm data is not valid, invalid tide definition: ", partRhythm)
 			return false
 		elseif not ((partRhythm[1] >= 0) and (partRhythm[2] > 0) and (partRhythm[3] >= 0)) then
-			Spring.Echo("Lava Advanced Tide Rhythm data is not valid, negative or zero values: ", partRhythm)
+			SpringShared.Echo("Lava Advanced Tide Rhythm data is not valid, negative or zero values: ", partRhythm)
 			return false
 		end
 		table.insert(advancedRhythm, partRhythm)
 	end
 	if next(advancedRhythm) == nil then
-		Spring.Echo("Lava Advanced Tide Rhythm data is empty")
+		SpringShared.Echo("Lava Advanced Tide Rhythm data is empty")
 		return false
 	else
 		return advancedRhythm
@@ -201,7 +201,7 @@ local function lavaModGen(modOptions)
 			level = tideRhythm[1][1] + 1
 			grow = tideRhythm[1][2]
 		else 
-			Spring.Echo("Lava Advanced Tide Rhythm data is not valid, using default values")
+			SpringShared.Echo("Lava Advanced Tide Rhythm data is not valid, using default values")
 			if next(tideRhythm) == nil then 
 				level = defaultTide[1]
 				tideRhythm = { defaultTide }
@@ -224,12 +224,12 @@ end
 -- Process config
 
 local mapLavaConfig = getLavaConfig(mapName)
-local modTideRhythm = (Spring.GetModOptions().map_waterislava and Spring.GetModOptions().map_lavatiderhythm) or "default"
+local modTideRhythm = (SpringShared.GetModOptions().map_waterislava and SpringShared.GetModOptions().map_lavatiderhythm) or "default"
 
 if mapLavaConfig and (not voidWaterMap) then
 	applyConfig(mapLavaConfig)
 	if modTideRhythm == "enabled" then
-		lavaModGen(Spring.GetModOptions())
+		lavaModGen(SpringShared.GetModOptions())
 	elseif modTideRhythm == "disabled" then
 		tideRhythm = {tideRhythm[1]} -- only the first (starting) tide level is used
 		tideRhythm[1][3] = 5*6000 -- extend the first tide 
@@ -263,10 +263,10 @@ elseif Game.waterDamage > 0 and (not voidWaterMap) then -- Waterdamagemaps - kee
 	tideRhythm = { defaultTide }
 	--tideRhythm = { { 1, 7.5, 5*6000 } }
 
-elseif Spring.GetModOptions().map_waterislava and (not voidWaterMap) then
+elseif SpringShared.GetModOptions().map_waterislava and (not voidWaterMap) then
 	isLavaMap = true
 	if modTideRhythm == "enabled" then
-		lavaModGen(Spring.GetModOptions())
+		lavaModGen(SpringShared.GetModOptions())
 	elseif modTideRhythm == "disabled" or modTideRhythm == "default" then
 		level = defaultTide[1]
 		tideRhythm = { defaultTide }

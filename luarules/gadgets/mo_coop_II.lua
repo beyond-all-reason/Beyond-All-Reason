@@ -14,7 +14,7 @@ function gadget:GetInfo()
 end
 
 -- Modoption check
-if not Spring.GetModOptions().coop then
+if not SpringShared.GetModOptions().coop then
 	return false
 end
 
@@ -42,10 +42,10 @@ if gadgetHandler:IsSyncedCode() then
 	do
 		local coopHasEffect = false
 		local teamHasPlayers = {}
-		local playerList = Spring.GetPlayerList()
+		local playerList = SpringShared.GetPlayerList()
 		for i = 1, #playerList do
 			local playerID = playerList[i]
-			local _, _, isSpec, teamID = Spring.GetPlayerInfo(playerID,false)
+			local _, _, isSpec, teamID = SpringShared.GetPlayerInfo(playerID,false)
 			if not isSpec then
 				if teamHasPlayers[teamID] then
 					SetCoopStartPoint(playerID, -1, -1, -1)
@@ -80,14 +80,14 @@ if gadgetHandler:IsSyncedCode() then
 			-- his coop buddy readies up after, then the first will have his start point overwritten by the second.
 			-- This can be prevented by not allowing the first to place on second, either.
 
-			local _, _, _, teamID, allyID = Spring.GetPlayerInfo(playerID,false)
-			local osx, _, osz = Spring.GetTeamStartPosition(teamID)
+			local _, _, _, teamID, allyID = SpringShared.GetPlayerInfo(playerID,false)
+			local osx, _, osz = SpringShared.GetTeamStartPosition(teamID)
 			if x ~= osx or z ~= osz then
-				local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(allyID)
+				local xmin, zmin, xmax, zmax = SpringShared.GetAllyTeamStartBox(allyID)
 				x = math.clamp(x, xmin, xmax)
 				z = math.clamp(z, zmin, zmax)
 
-				SetCoopStartPoint(playerID, x, Spring.GetGroundHeight(x, z), z) -- record coop start point, display it
+				SetCoopStartPoint(playerID, x, SpringShared.GetGroundHeight(x, z), z) -- record coop start point, display it
 				return false
 			end
 		end
@@ -100,14 +100,14 @@ if gadgetHandler:IsSyncedCode() then
 		local mtta = math.acos(1.0 - 0.41221) - 0.02 -- http://springrts.com/wiki/Movedefs.lua#How_slope_is_determined & the -0.02 is for safety
 		local a1,a2,a3,a4 = 0,0,0,0
 		local d = 5
-		local y = Spring.GetGroundHeight(x,z)
-		local y1 = Spring.GetGroundHeight(x+d,z)
+		local y = SpringShared.GetGroundHeight(x,z)
+		local y1 = SpringShared.GetGroundHeight(x+d,z)
 		if math.abs(y1 - y) > 0.1 then a1 = math.atan((y1-y)/d) end
-		local y2 = Spring.GetGroundHeight(x,z+d)
+		local y2 = SpringShared.GetGroundHeight(x,z+d)
 		if math.abs(y2 - y) > 0.1 then a2 = math.atan((y2-y)/d) end
-		local y3 = Spring.GetGroundHeight(x-d,z)
+		local y3 = SpringShared.GetGroundHeight(x-d,z)
 		if math.abs(y3 - y) > 0.1 then a3 = math.atan((y3-y)/d) end
-		local y4 = Spring.GetGroundHeight(x,z+d)
+		local y4 = SpringShared.GetGroundHeight(x,z+d)
 		if math.abs(y4 - y) > 0.1 then a4 = math.atan((y4-y)/d) end
 		if math.abs(a1) > mtta or math.abs(a2) > mtta or math.abs(a3) > mtta or math.abs(a4) > mtta then
 			return true --too steep
@@ -117,7 +117,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function SpawnTeamStartUnit(playerID,teamID, allyID, x, z)
-		local startUnit = Spring.GetTeamRulesParam(teamID, 'startUnit')
+		local startUnit = SpringShared.GetTeamRulesParam(teamID, 'startUnit')
 		if GG.playerStartingUnits then --use that player specific start unit if available
 			startUnit = GG.playerStartingUnits[playerID] or startUnit
 		end
@@ -128,13 +128,13 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				startUnit = armcomDefID
 			end
-			if Spring.GetModOptions().experimentallegionfaction and math.random() > 0.33 then
+			if SpringShared.GetModOptions().experimentallegionfaction and math.random() > 0.33 then
 				startUnit = legcomDefID
 			end
 		end
 
 		if x <= 0 or z <= 0 then --TODO: improve this
-			local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(allyID)
+			local xmin, zmin, xmax, zmax = SpringShared.GetAllyTeamStartBox(allyID)
 			local tx,tz
 			if GG.teamStartPoints then
 				tx = GG.teamStartPoints[teamID][1]
@@ -159,18 +159,18 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		-- create
-		local unitID = Spring.CreateUnit(startUnit, x, Spring.GetGroundHeight(x, z), z, 0, teamID)
+		local unitID = SpringSynced.CreateUnit(startUnit, x, SpringShared.GetGroundHeight(x, z), z, 0, teamID)
 		coopStartPoints[playerID] = {x,z}
 		GG.playerStartingUnits[playerID] = startUnit
 		-- we set unit rule to mark who belongs to, so initial queue knows which com unitID belongs to which player's initial queue
-		Spring.SetUnitRulesParam(unitID, "startingOwner", playerID )
+		SpringSynced.SetUnitRulesParam(unitID, "startingOwner", playerID )
 	end
 
 	function gadget:GameFrame(n)
 		-- spawn cooped coms
 		if n==0 and GG.coopMode then
 			for playerID, startPos in pairs(coopStartPoints) do
-				local _, _, _, teamID, allyID = Spring.GetPlayerInfo(playerID,false)
+				local _, _, _, teamID, allyID = SpringShared.GetPlayerInfo(playerID,false)
 				SpawnTeamStartUnit(playerID,teamID, allyID, startPos[1], startPos[3])
 			end
 		end

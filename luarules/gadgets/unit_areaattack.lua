@@ -50,12 +50,12 @@ if gadgetHandler:IsSyncedCode() then
 			local phase = math_random(200*math_pi)/100.0
 			if o.radius > 0 then
 				local amp = math_random(o.radius)
-				Spring.GiveOrderToUnit(o.unit, CMD.INSERT, {0, CMD.ATTACK, 0, o.x + math_cos(phase)*amp, o.y, o.z + math_sin(phase)*amp}, {"alt"})
+				SpringSynced.GiveOrderToUnit(o.unit, CMD.INSERT, {0, CMD.ATTACK, 0, o.x + math_cos(phase)*amp, o.y, o.z + math_sin(phase)*amp}, {"alt"})
 			end
 		end
 		for i,o in pairs(closeList) do
 			closeList[i] = nil
-			Spring.SetUnitMoveGoal(o.unit,o.x,o.y,o.z,o.radius)
+			SpringSynced.SetUnitMoveGoal(o.unit,o.x,o.y,o.z,o.radius)
 		end
 	end
 
@@ -70,7 +70,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:CommandFallback(u,ud,team,cmd,param,opt)
 		if cmd == CMD_AREA_ATTACK_GROUND then
-			local x,_,z = Spring.GetUnitPosition(u)
+			local x,_,z = SpringShared.GetUnitPosition(u)
 			if not x then
 				return true, true
 			end
@@ -87,7 +87,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitCreated(u, ud, team)
 		if canAreaAttack[ud] then
-			Spring.InsertUnitCmdDesc(u,aadesc)
+			SpringSynced.InsertUnitCmdDesc(u,aadesc)
 		end
 	end
 
@@ -99,7 +99,7 @@ if gadgetHandler:IsSyncedCode() then
 else	-- UNSYNCED
 
 	function gadget:Initialize()
-		Spring.SetCustomCommandDrawData(CMD_AREA_ATTACK_GROUND, CMDTYPE.ICON_UNIT_OR_AREA, {1,0,0,.8},true)
+		SpringUnsynced.SetCustomCommandDrawData(CMD_AREA_ATTACK_GROUND, CMDTYPE.ICON_UNIT_OR_AREA, {1,0,0,.8},true)
 	end
 
 end

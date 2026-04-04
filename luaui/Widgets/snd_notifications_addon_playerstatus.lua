@@ -11,10 +11,10 @@ end
 
 
 -- Localized Spring API for performance
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetPlayerInfo = Spring.GetPlayerInfo
-local spGetLocalAllyTeamID = Spring.GetLocalAllyTeamID
-local spGetLocalTeamID = Spring.GetLocalTeamID
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
+local spGetPlayerInfo = SpringShared.GetPlayerInfo
+local spGetLocalAllyTeamID = SpringUnsynced.GetLocalAllyTeamID
+local spGetLocalTeamID = SpringUnsynced.GetLocalTeamID
 
 local gameOver = false
 local lockPlayerID
@@ -63,7 +63,7 @@ end
 UpdateTimer = 0
 function widget:Update(dt)
     UpdateTimer = UpdateTimer+dt
-    if UpdateTimer >= 1 and (not gameOver) and Spring.GetGameFrame() > 90 then
+    if UpdateTimer >= 1 and (not gameOver) and SpringShared.GetGameFrame() > 90 then
         UpdateTimer = UpdateTimer - 1
         if WG.lockcamera and WG.lockcamera.GetPlayerID ~= nil then
 			lockPlayerID = WG.lockcamera.GetPlayerID()
@@ -98,7 +98,7 @@ function widget:Update(dt)
 end
 
 function widget:Initialize()
-    local players = Spring.GetPlayerList()
+    local players = SpringShared.GetPlayerList()
     for i = 1,#players do
         UpdatePlayerData(players[i])
     end

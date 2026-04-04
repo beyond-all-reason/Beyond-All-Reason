@@ -14,8 +14,8 @@ end
 
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
-local spGetUnitTeam = Spring.GetUnitTeam
+local spEcho = SpringShared.Echo
+local spGetUnitTeam = SpringShared.GetUnitTeam
 
 local myvisibleUnits = {} -- table of unitID : unitDefID
 
@@ -46,7 +46,7 @@ end
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	spEcho("widget:VisibleUnitAdded",unitID, unitDefID, unitTeam)
 	local teamID = spGetUnitTeam(unitID) or 0 
-	local gf = Spring.GetGameFrame()
+	local gf = SpringShared.GetGameFrame()
 	myvisibleUnits[unitID] = unitDefID
 	pushElementInstance(
 		unitTrackerVBO, -- push into this Instance VBO Table
@@ -82,7 +82,7 @@ function widget:VisibleUnitRemoved(unitID)
 end
 
 function widget:DrawWorldPreUnit()
-	if Spring.IsGUIHidden() then
+	if SpringUnsynced.IsGUIHidden() then
 		return
 	end
 

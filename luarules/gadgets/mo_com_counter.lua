@@ -16,7 +16,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local spSetTeamRulesParam = Spring.SetTeamRulesParam
+local spSetTeamRulesParam = SpringSynced.SetTeamRulesParam
 
 local isCommander = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -27,12 +27,12 @@ end
 
 local teamComs = {}
 local teamAllyTeam = {}
-local teamList = Spring.GetTeamList()
+local teamList = SpringShared.GetTeamList()
 for _,teamID in pairs(teamList) do
-	teamAllyTeam[teamID] = select(6,Spring.GetTeamInfo(teamID,false))
+	teamAllyTeam[teamID] = select(6,SpringShared.GetTeamInfo(teamID,false))
 	local newCount = 0
 	for unitDefID,_ in pairs(isCommander) do
-		newCount = newCount + Spring.GetTeamUnitDefCount(teamID, unitDefID)
+		newCount = newCount + SpringShared.GetTeamUnitDefCount(teamID, unitDefID)
 	end
 	teamComs[teamID] = newCount
 end

@@ -18,7 +18,7 @@ local distToIgnore = 500 -- any initial commands outside of this distance from t
 ---------------------------------------------------------------
 
 function widget:UnitLoaded(unitID)
-	orders[unitID] = Spring.GetUnitCommands(unitID, -1)
+	orders[unitID] = SpringShared.GetUnitCommands(unitID, -1)
 end
 
 
@@ -30,7 +30,7 @@ function widget:UnitUnloaded(unitID)
 			if (#command.params >= 3) then
 				local dist = math.huge
 				if i == 1 then -- ditch first command if it's not near the starting point
-					local x, y, z = Spring.GetUnitPosition(unitID)
+					local x, y, z = SpringShared.GetUnitPosition(unitID)
 					dist = math.distance3d(x, y, z, command.params[1], command.params[2], command.params[3])
 				else
 					dist = 0
@@ -42,7 +42,7 @@ function widget:UnitUnloaded(unitID)
 			end
 		end
 
-		Spring.GiveOrderArrayToUnit( unitID , newOrders)
+		SpringSynced.GiveOrderArrayToUnit( unitID , newOrders)
 
 		orders[unitID] = nil
 	end
@@ -54,7 +54,7 @@ end
 ---------------------------------------------------------------
 
 local function maybeRemoveSelf()
-	if Spring.IsReplay() or Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0) then
+	if SpringUnsynced.IsReplay() or SpringUnsynced.GetSpectatingState() and (SpringShared.GetGameFrame() > 0) then
 		widgetHandler:RemoveWidget()
 	end
 end

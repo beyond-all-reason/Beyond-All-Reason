@@ -17,9 +17,9 @@ local counterNum = 25
 local blocklimit = 8
 local unblocklimit = 0.5
 
-local GetPlayerList = Spring.GetPlayerList
-local GetPlayerInfo = Spring.GetPlayerInfo
-local Echo = Spring.Echo
+local GetPlayerList = SpringShared.GetPlayerList
+local GetPlayerInfo = SpringShared.GetPlayerInfo
+local Echo = SpringShared.Echo
 
 -- drawCmds[playerid] = {counters = {point = {}, line = {}, erase = {}}, labels = {...}, blocked = false}
 local drawCmds = {}

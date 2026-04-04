@@ -40121,7 +40121,7 @@ for unitName, lights in pairs(unitLights) do
 end
 unitLights = nil
 
-if not (Spring.GetConfigInt("headlights", 1) == 1) then
+if not (SpringUnsynced.GetConfigInt("headlights", 1) == 1) then
 	for unitDefID, lights in pairs(unitDefLights) do
 		for name, params in pairs(lights) do
 			if string.find(name, "headlight") or string.find(name, "searchlight") then
@@ -40131,7 +40131,7 @@ if not (Spring.GetConfigInt("headlights", 1) == 1) then
 	end
 end
 
-if not (Spring.GetConfigInt("buildlights", 1) == 1) then
+if not (SpringUnsynced.GetConfigInt("buildlights", 1) == 1) then
 	for unitDefID, lights in pairs(unitDefLights) do
 		for name, params in pairs(lights) do
 			if string.find(name, "buildlight") then

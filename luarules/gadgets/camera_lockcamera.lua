@@ -40,14 +40,14 @@ if gadgetHandler:IsSyncedCode() then
 else	-- UNSYNCED
 
 
-	local GetCameraState = Spring.GetCameraState
-	local SetCameraState = Spring.SetCameraState
-	local GetLastUpdateSeconds = Spring.GetLastUpdateSeconds
+	local GetCameraState = SpringUnsynced.GetCameraState
+	local SetCameraState = SpringUnsynced.SetCameraState
+	local GetLastUpdateSeconds = SpringUnsynced.GetLastUpdateSeconds
 	local GetMyAllyTeamID = Spring.GetMyAllyTeamID
-	local GetSpectatingState = Spring.GetSpectatingState
-	local GetPlayerInfo = Spring.GetPlayerInfo
-	local SendLuaRulesMsg = Spring.SendLuaRulesMsg
-	local SendCommands = Spring.SendCommands
+	local GetSpectatingState = SpringUnsynced.GetSpectatingState
+	local GetPlayerInfo = SpringShared.GetPlayerInfo
+	local SendLuaRulesMsg = SpringUnsynced.SendLuaRulesMsg
+	local SendCommands = SpringUnsynced.SendCommands
 
 	local strByte = string.byte
 	local strChar = string.char
@@ -58,7 +58,7 @@ else	-- UNSYNCED
 
 	local timeSinceBroadcast = 0
 
-	local CAMERA_IDS = Spring.GetCameraNames()
+	local CAMERA_IDS = SpringUnsynced.GetCameraNames()
 	local CAMERA_NAMES = {}
 	local CAMERA_STATE_FORMATS = {}
 
@@ -196,7 +196,7 @@ else	-- UNSYNCED
 	end
 
 
-	Spring.Echo("<LockCamera>: Sorry for the camera switch spam, but this is the only reliable way to list camera states other than hardcoding them")
+	SpringShared.Echo("<LockCamera>: Sorry for the camera switch spam, but this is the only reliable way to list camera states other than hardcoding them")
 	local prevCameraState = GetCameraState()
 	for name, num in pairs(CAMERA_IDS) do
 		CAMERA_NAMES[num] = name
@@ -239,7 +239,7 @@ else	-- UNSYNCED
 		if msg ~= PACKET_HEADER then
 			cameraState = PacketToCameraState(msg)
 			if not cameraState then
-				Spring.Echo("<LockCamera>: Bad packet recieved.")
+				SpringShared.Echo("<LockCamera>: Bad packet recieved.")
 				return
 			end
 		end
@@ -301,7 +301,7 @@ else	-- UNSYNCED
 		local msg = CameraStateToPacket(state)
 
 		if not msg then
-			Spring.Echo("<LockCamera>: Error creating packet!")
+			SpringShared.Echo("<LockCamera>: Error creating packet!")
 			return
 		end
 

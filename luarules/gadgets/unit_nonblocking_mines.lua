@@ -26,11 +26,11 @@ for udid, ud in pairs(UnitDefs) do
 	unitSizing[udid] = {ud.xsize * 4 + 8, ud.zsize * 4 + 8} -- add 8 for the mines size too
 end
 
-local spSetUnitBlocking = Spring.SetUnitBlocking
+local spSetUnitBlocking = SpringSynced.SetUnitBlocking
 
 function gadget:UnitCreated(uID, uDefID, uTeam)
 	if isMine[uDefID] then
-		local x, _, z = Spring.GetUnitPosition(uID)
+		local x, _, z = SpringShared.GetUnitPosition(uID)
 		mines[uID] = { x, z }
 		spSetUnitBlocking(uID, false, false)
 	end
