@@ -59,6 +59,10 @@ function widget:GetInfo()
 		layer     = -(99020-pipNumber),
 		enabled   = false,
 		handler   = true,
+		dependents = {	-- for widget auto reloader to reload these as well
+			"Picture-in-Picture Minimap",
+			"Picture-in-Picture 2",
+		},
 	}
 end
 ----------------------------------------------------------------------------------------------------
