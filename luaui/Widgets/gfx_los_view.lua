@@ -16,7 +16,7 @@ end
 local spGetGameFrame = Spring.GetGameFrame
 local spGetSpectatingState = Spring.GetSpectatingState
 
-local myPlayerID = Spring.GetMyPlayerID()
+local myPlayerID = Spring.GetLocalPlayerID()
 local lastMapDrawMode = Spring.GetMapDrawMode()
 
 local function TurnOnLOS()
@@ -43,7 +43,7 @@ local gamestarted = false
 function widget:GameFrame(frame) -- somehow widget:GameStart() didnt work
 	if frame == 1 and not gamestarted then
 		gamestarted = true
-		myPlayerID = Spring.GetMyPlayerID()
+		myPlayerID = Spring.GetLocalPlayerID()
 		if spGetSpectatingState() then
 			TurnOffLOS()
 		else

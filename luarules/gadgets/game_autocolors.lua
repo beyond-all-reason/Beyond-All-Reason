@@ -26,8 +26,8 @@ local teamSizes = {}
 
 local myAllyTeamID, myTeamID
 if not gadgetHandler:IsSyncedCode() then
-	myAllyTeamID = Spring.GetMyAllyTeamID()
-	myTeamID = Spring.GetMyTeamID()
+	myAllyTeamID = Spring.GetLocalAllyTeamID()
+	myTeamID = Spring.GetLocalTeamID()
 end
 
 -- Special colors
@@ -685,7 +685,7 @@ else -- UNSYNCED
 
 	local function updateTeamColors()
 		if isDiscoEnabled() then
-			discoShuffle(Spring.GetMyTeamID())
+			discoShuffle(Spring.GetLocalTeamID())
 		end
 		for teamID, color in pairs(teamColorsTable) do
 			Spring.SetTeamColor(teamID, color.r / 255, color.g / 255, color.b / 255)
@@ -716,9 +716,9 @@ else -- UNSYNCED
 		if playerID ~= myPlayerID then
 			return
 		end
-		myAllyTeamID = Spring.GetMyAllyTeamID()
+		myAllyTeamID = Spring.GetLocalAllyTeamID()
 		local prevMyTeamID = myTeamID
-		myTeamID = Spring.GetMyTeamID()
+		myTeamID = Spring.GetLocalTeamID()
 		if mySpecState and prevMyTeamID ~= myTeamID and Spring.GetConfigInt("SimpleTeamColors", 0) == 1 then
 			Spring.SetConfigInt("UpdateTeamColors", 1)
 		end

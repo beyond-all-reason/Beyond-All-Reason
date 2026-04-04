@@ -140,7 +140,7 @@ local char = string.char
 
 local glColor = gl.Color
 
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetTeamResources = Spring.GetTeamResources
 local spGetTeamInfo = Spring.GetTeamInfo
 local spGetPlayerInfo = Spring.GetPlayerInfo
@@ -474,7 +474,7 @@ local function computeContent(uDefID, uID, shiftBool)
 
 	local uDef = uDefs[uDefID]
 	local maxHP = uDef.health
-	local uTeam = Spring.GetMyTeamID()
+	local uTeam = Spring.GetLocalTeamID()
 	local losRadius = uDef.sightDistance
 	local airLosRadius = uDef.airSightDistance
 	local radarRadius = uDef.radarDistance

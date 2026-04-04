@@ -145,7 +145,7 @@ end
 
 -- returns true if the given unitDefID can be built by the pregame start unit
 local function canSelectPreGameDef(uDefID)
-	local myTeamID = Spring.GetMyTeamID()
+	local myTeamID = Spring.GetLocalTeamID()
 	local startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
 	if not startDefID or not UnitDefs[startDefID] or not UnitDefs[startDefID].buildOptions then
 		return false

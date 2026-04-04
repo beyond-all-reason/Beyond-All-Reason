@@ -499,7 +499,7 @@ else -- Unsynced
 		if Spring.IsReplay() then
 			return
 		end
-		local myTeamID = Spring.GetMyAllyTeamID()
+		local myTeamID = Spring.GetLocalAllyTeamID()
 		local cur_max = Spring.GetTeamStatsHistory(myTeamID)
 		local stats = Spring.GetTeamStatsHistory(myTeamID, cur_max, cur_max)
 		stats = stats[1]

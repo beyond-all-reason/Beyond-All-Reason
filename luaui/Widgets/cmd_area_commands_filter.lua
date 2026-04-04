@@ -33,13 +33,13 @@ local spGetUnitTeam = Spring.GetUnitTeam
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetFeaturesInCylinder = Spring.GetFeaturesInCylinder
 local spGetSpectatingState = Spring.GetSpectatingState
-local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
+local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
 local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetUnitArrayCentroid = Spring.GetUnitArrayCentroid
 local spGetFeatureResurrect = Spring.GetFeatureResurrect
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 
 local ENEMY_UNITS = Spring.ENEMY_UNITS
 local ALLY_UNITS = Spring.ALLY_UNITS

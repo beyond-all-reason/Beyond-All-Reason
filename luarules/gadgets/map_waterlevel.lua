@@ -86,7 +86,7 @@ if gadgetHandler:IsSyncedCode() then
 		Spring.Echo("Changed waterlevel: " .. waterlevel)
 	end
 else -- UNSYNCED
-	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerID = Spring.GetLocalPlayerID()
 	local accountID = Spring.Utilities.GetAccountID(myPlayerID)
 	local authorized = SYNCED.permissions.waterlevel[accountID]
 

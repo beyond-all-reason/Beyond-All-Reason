@@ -17,7 +17,7 @@ local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 local spGetGameFrame = Spring.GetGameFrame
 
 local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetUnitStates = Spring.GetUnitStates
 
 local idCanBuildCloakMove = {}

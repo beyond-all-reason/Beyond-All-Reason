@@ -109,7 +109,7 @@ end
 --  Declarations
 ---------------------------------------------------------------------------------------------------
 
-local myPlayerID = Spring.GetMyPlayerID()
+local myPlayerID = Spring.GetLocalPlayerID()
 
 local glRotate = gl.Rotate
 local glTranslate = gl.Translate

@@ -32,14 +32,14 @@ local spGetProjectileDefID = Spring.GetProjectileDefID
 local spGetProjectileTarget = Spring.GetProjectileTarget
 local spGetProjectilePosition = Spring.GetProjectilePosition
 local spGetGroundHeight = Spring.GetGroundHeight
-local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
+local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
 local spGetProjectileTeamID = Spring.GetProjectileTeamID
 local spGetTeamInfo = Spring.GetTeamInfo
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetViewGeometry = Spring.GetViewGeometry
 local spIsGUIHidden = Spring.IsGUIHidden
 local spGetSpectatingState = Spring.GetSpectatingState
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spIsSphereInView = Spring.IsSphereInView
 
 local mapSizeX = Game.mapSizeX

@@ -27,7 +27,7 @@ if not gadgetHandler:IsSyncedCode() then
 		return
 	end
 
-	local DEBUG = select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID())) == "[teh]Flow"
+	local DEBUG = select(1, Spring.GetPlayerInfo(Spring.GetLocalPlayerID())) == "[teh]Flow"
 
 	local gameFramesPerSecond = 30 -- engine constant
 	local pingCutoff = 1500 -- players with higher ping wont participate in sending unit positions log
@@ -51,7 +51,7 @@ if not gadgetHandler:IsSyncedCode() then
 	local math_floor = math.floor
 	local math_ceil = math.ceil
 
-	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerID = Spring.GetLocalPlayerID()
 	local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
 	local logRate = minLogRate
