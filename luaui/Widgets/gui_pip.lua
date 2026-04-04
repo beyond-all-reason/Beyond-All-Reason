@@ -6789,6 +6789,10 @@ end
 local function IssueCommandAtPoint(cmdID, wx, wz, usingRMB, forceQueue, radius)
 
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	-- Respect InvertQueueKey setting (same as customformations widget)
+	if Spring.GetInvertQueueKey() then
+		shift = not shift
+	end
 	-- Force queue commands when explicitly requested (e.g., during formation drags)
 	if forceQueue then
 		shift = true
@@ -20135,6 +20139,7 @@ function widget:MouseRelease(mx, my, mButton)
 		local dragDistY = math.abs(my - interactionState.formationDragStartY)
 		local isDrag = dragDistX > minDragDistance or dragDistY > minDragDistance
 
+		local formationHandled = false
 		if WG.customformations and WG.customformations.EndFormation then
 			-- Add final position if still within PIP bounds
 			local finalPos = nil
@@ -20143,15 +20148,16 @@ function widget:MouseRelease(mx, my, mButton)
 				local wy = spFunc.GetGroundHeight(wx, wz)
 				finalPos = {wx, wy, wz}
 			end
-			WG.customformations.EndFormation(finalPos)
+			formationHandled = WG.customformations.EndFormation(finalPos)
 		end
 
 		-- Clear the force shift flag
 		WG.pipForceShift = nil
 		interactionState.formationDragShouldQueue = false
 
-		-- If it was just a click (not a drag), issue the original command
-		if not isDrag and mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t then
+		-- If it was just a click (not a drag) and EndFormation didn't already issue the command,
+		-- issue the command ourselves (EndFormation handles MOVE single-clicks internally)
+		if not isDrag and not formationHandled and mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t then
 			local wx, wz = PipToWorldCoords(mx, my)
 
 			-- Determine the original command
