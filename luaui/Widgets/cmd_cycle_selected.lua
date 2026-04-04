@@ -65,8 +65,14 @@ local function handleCycleSelected(_, _, _, data)
 
 	local direction = (data and data.direction) or 1
 
-	-- Advance cursor, wrapping around in either direction
-	unitIndex = ((unitIndex - 1 + direction) % unitCount) + 1
+	-- Try up to unitCount times in case some IDs became invalid
+	for _ = 1, unitCount do
+		-- Advance cursor, wrapping around in either direction
+		unitIndex = ((unitIndex - 1 + direction) % unitCount) + 1
+		if focusUnit(cycleUnits[unitIndex]) then
+			return true -- Halt the action chain
+		end
+	end
 
 	focusUnit(cycleUnits[unitIndex])
 
