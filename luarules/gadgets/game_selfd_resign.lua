@@ -1,6 +1,6 @@
 
 
-if Spring.Utilities.Gametype.IsSinglePlayer() then
+if Utilities.Gametype.IsSinglePlayer() then
 	return
 end
 

@@ -153,9 +153,9 @@ local function changeUnitTypeAutogroup(gr, removeAll)
 	for udid, _ in pairs(selUnitDefIDs) do
 		if verbose then
 			if gr then
-				Echo( Spring.I18N('ui.autogroups.unitAdded', { unit = UnitDefs[udid].translatedHumanName, groupNumber = gr }) )
+				Echo( I18N('ui.autogroups.unitAdded', { unit = UnitDefs[udid].translatedHumanName, groupNumber = gr }) )
 			else
-				Echo( Spring.I18N('ui.autogroups.unitRemoved', { unit = UnitDefs[udid].translatedHumanName }) )
+				Echo( I18N('ui.autogroups.unitRemoved', { unit = UnitDefs[udid].translatedHumanName }) )
 			end
 		end
 	end
@@ -222,7 +222,7 @@ local function loadAutogroupPreset(newPreset)
 
 	currPreset = newPreset
 
-	Echo(Spring.I18N("ui.autogroups.presetSelected", {presetNum = currPreset}))
+	Echo(I18N("ui.autogroups.presetSelected", {presetNum = currPreset}))
 	unit2group = presets[currPreset]
 
 	if not unit2group then

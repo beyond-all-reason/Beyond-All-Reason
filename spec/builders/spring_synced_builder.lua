@@ -733,7 +733,7 @@ function SB:WithGlobalsDefined(fn, persist)
     if not _G.Spring.GetConfigInt then
         _G.Spring.GetConfigInt = function(name, default) return default or 0 end
     end
-    _G.Spring.Utilities = _G.Spring.Utilities or { Gametype = { IsScavengers = function() return false end, IsRaptors = function() return false end, GetCurrentHolidays = function() return {} end } }
+    _G.Utilities = _G.Utilities or { Gametype = { IsScavengers = function() return false end, IsRaptors = function() return false end, GetCurrentHolidays = function() return {} end } }
 
     -- Mock VFS.Include cache to intercept system.lua load
     local originalVFSInclude = _G.VFS.Include

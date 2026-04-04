@@ -45,14 +45,14 @@ local commonFunctions = {
 
 if commonFunctions.spring[environment] then
 	local springFunctions = VFS.Include('common/springFunctions.lua')
-	Spring.Utilities = Spring.Utilities or springFunctions.Utilities
-	Spring.Debug = Spring.Debug or springFunctions.Debug
+	Utilities = Utilities or springFunctions.Utilities
+	Debug = Debug or springFunctions.Debug
 	VFS.Include('common/platformFunctions.lua')
 	VFS.Include('common/constants.lua')
 end
 
 if commonFunctions.i18n[environment] then
-	Spring.I18N = Spring.I18N or VFS.Include("modules/i18n/i18n.lua")
+	I18N = I18N or VFS.Include("modules/i18n/i18n.lua")
 end
 
 if commonFunctions.cmd[environment] then
@@ -61,7 +61,7 @@ if commonFunctions.cmd[environment] then
 end
 
 if commonFunctions.map[environment] then
-	Spring.Lava = VFS.Include("modules/lava.lua")
+	Lava = VFS.Include("modules/lava.lua")
 end
 
 if commonFunctions.graphics[environment] then

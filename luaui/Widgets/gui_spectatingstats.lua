@@ -19,9 +19,9 @@ local allyTeamName = {}
 local textcolor = "\255\200\200\200"
 
 local spGetUnitDefID = Spring.GetUnitDefID
-local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+local isSinglePlayer = Utilities.Gametype.IsSinglePlayer()
 
-local ColorString = Spring.Utilities.Color.ToString
+local ColorString = Utilities.Color.ToString
 
 local unitdefMobileDps = {}
 local unitdefStaticDps = {}

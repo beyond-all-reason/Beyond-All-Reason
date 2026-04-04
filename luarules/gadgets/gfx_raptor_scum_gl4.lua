@@ -20,7 +20,7 @@ end
 
 
 if gadgetHandler:IsSyncedCode() then
-	local pveTeamID = Spring.Utilities.GetScavTeamID() or Spring.Utilities.GetRaptorTeamID()
+	local pveTeamID = Utilities.GetScavTeamID() or Utilities.GetRaptorTeamID()
 
 	local scumSpawnerIDs = {}
 
@@ -302,7 +302,7 @@ if gadgetHandler:IsSyncedCode() then
 
 
 
-elseif not Spring.Utilities.Gametype.IsScavengers() then	-- UNSYNCED
+elseif not Utilities.Gametype.IsScavengers() then	-- UNSYNCED
 
 
 

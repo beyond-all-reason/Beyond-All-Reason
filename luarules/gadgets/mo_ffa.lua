@@ -12,7 +12,7 @@ function gadget:GetInfo()
 	}
 end
 
-if not Spring.Utilities.Gametype.IsFFA() then
+if not Utilities.Gametype.IsFFA() then
 	return false
 end
 
@@ -22,7 +22,7 @@ if gadgetHandler:IsSyncedCode() then
 	local earlyDropGrace = Game.gameSpeed * 60 * 1 -- in frames
 	local lateDropGrace = Game.gameSpeed * 60 * 2 -- in frames
 
-	local isTeamFFA = Spring.Utilities.Gametype.IsTeams()
+	local isTeamFFA = Utilities.Gametype.IsTeams()
 	if isTeamFFA then
 		lateDropGrace = Game.gameSpeed * 8
 	end

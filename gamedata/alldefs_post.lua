@@ -79,7 +79,7 @@ function UnitDef_Post(name, uDef)
 
 	-- Cache holiday checks for performance
 	if not holidays then
-		holidays = Spring.Utilities.Gametype.GetCurrentHolidays()
+		holidays = Utilities.Gametype.GetCurrentHolidays()
 		isAprilFools = holidays["aprilfools"]
 		isHalloween = holidays["halloween"]
 		isXmas = holidays["xmas"]
@@ -1777,7 +1777,7 @@ function WeaponDef_Post(name, wDef)
 		modOptions = Spring.GetModOptions()
 	end
 	if isXmas == nil then
-		isXmas = Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"]
+		isXmas = Utilities.Gametype.GetCurrentHolidays()["xmas"]
 	end
 
 	local customparams = wDef.customparams

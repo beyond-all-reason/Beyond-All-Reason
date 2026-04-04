@@ -188,12 +188,12 @@ local function drawContent()
 		font2:SetOutlineColor(0, 0, 0, 0.2)
 		font2:SetTextColor(0.45, 0.45, 0.45, 1)
 		offset = (fontSize*0.6)
-		font2:Print(Spring.I18N('ui.idleBuilders.sleeping'), iconRect[1]+((iconRect[3]-iconRect[1])/2)-offset, iconRect[2]+((iconRect[4]-iconRect[2])/2)+offset+offsetY, fontSize, style)
+		font2:Print(I18N('ui.idleBuilders.sleeping'), iconRect[1]+((iconRect[3]-iconRect[1])/2)-offset, iconRect[2]+((iconRect[4]-iconRect[2])/2)+offset+offsetY, fontSize, style)
 		fontSize = fontSize * 1.2
-		font2:Print(Spring.I18N('ui.idleBuilders.sleeping'), iconRect[1]+((iconRect[3]-iconRect[1])/2), iconRect[2]+((iconRect[4]-iconRect[2])/2)+offsetY, fontSize, style)
+		font2:Print(I18N('ui.idleBuilders.sleeping'), iconRect[1]+((iconRect[3]-iconRect[1])/2), iconRect[2]+((iconRect[4]-iconRect[2])/2)+offsetY, fontSize, style)
 		fontSize = fontSize * 1.2
 		offset = (fontSize*0.48)
-		font2:Print(Spring.I18N('ui.idleBuilders.sleeping'), iconRect[1]+((iconRect[3]-iconRect[1])/2)+offset, iconRect[2]+((iconRect[4]-iconRect[2])/2)-offset+offsetY, fontSize, style)
+		font2:Print(I18N('ui.idleBuilders.sleeping'), iconRect[1]+((iconRect[3]-iconRect[1])/2)+offset, iconRect[2]+((iconRect[4]-iconRect[2])/2)-offset+offsetY, fontSize, style)
 		font2:End()
 	end
 
@@ -609,18 +609,18 @@ local function Update()
 	if backgroundRect and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		hovered = true
 
-		local tooltipTitle = Spring.I18N('ui.idleBuilders.name')
+		local tooltipTitle = I18N('ui.idleBuilders.name')
 		local tooltipAddition = ''
 		if backgroundRect and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 			for i,v in pairs(iconButtons) do
 				if math_isInRect(x, y, iconButtons[i][1], iconButtons[i][2], iconButtons[i][3], iconButtons[i][4]) then
 					local unitDefID = existingIcons[i]
 					if unitDefID then
-						tooltipTitle = Spring.I18N('ui.idleBuilders.idle', { unit = unitHumanName[unitDefID], highlightColor = "\255\190\255\190" })
+						tooltipTitle = I18N('ui.idleBuilders.idle', { unit = unitHumanName[unitDefID], highlightColor = "\255\190\255\190" })
 						if #idleList[unitDefID] > 1 then
-							tooltipAddition = Spring.I18N('ui.idleBuilders.controls').. '\n'..Spring.I18N('ui.idleBuilders.controls1')
+							tooltipAddition = I18N('ui.idleBuilders.controls').. '\n'..I18N('ui.idleBuilders.controls1')
 						else
-							tooltipAddition = tooltipAddition ..Spring.I18N('ui.idleBuilders.controls1')
+							tooltipAddition = tooltipAddition ..I18N('ui.idleBuilders.controls1')
 						end
 					end
 					break

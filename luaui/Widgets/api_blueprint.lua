@@ -5,7 +5,7 @@ local BpDefs = VFS.Include("luaui/Include/blueprint_substitution/definitions.lua
 
 local SubLogic = VFS.Include("luaui/Include/blueprint_substitution/logic.lua")
 
-local ENABLE_REPORTS = Spring.Utilities.IsDevMode()
+local ENABLE_REPORTS = Utilities.IsDevMode()
 
 local reportFunctions = nil
 

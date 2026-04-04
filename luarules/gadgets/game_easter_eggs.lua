@@ -12,7 +12,7 @@ function gadget:GetInfo()
     }
 end
 
-if not Spring.Utilities.Gametype.GetCurrentHolidays()["easter"] then
+if not Utilities.Gametype.GetCurrentHolidays()["easter"] then
 	return false
 end
 

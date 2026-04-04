@@ -1,4 +1,4 @@
-if not (Spring.GetModOptions().assistdronesenabled == "enabled" or (Spring.GetModOptions().assistdronesenabled == "pve_only" and Spring.Utilities.Gametype.IsPvE())) then
+if not (Spring.GetModOptions().assistdronesenabled == "enabled" or (Spring.GetModOptions().assistdronesenabled == "pve_only" and Utilities.Gametype.IsPvE())) then
 	return
 end
 

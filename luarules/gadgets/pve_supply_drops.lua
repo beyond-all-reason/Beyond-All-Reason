@@ -1,10 +1,10 @@
 local teams = Spring.GetTeamList()
 mapsizeX = Game.mapSizeX
 mapsizeZ = Game.mapSizeZ
-local scavengerAITeamID = Spring.Utilities.GetScavTeamID()
-local scavengerAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
+local scavengerAITeamID = Utilities.GetScavTeamID()
+local scavengerAllyTeamID = Utilities.GetScavAllyTeamID()
 
-if Spring.Utilities.Gametype.IsScavengers() then
+if Utilities.Gametype.IsScavengers() then
 	scavengersAIEnabled = true
 	ScavengerStartboxXMin, ScavengerStartboxZMin, ScavengerStartboxXMax, ScavengerStartboxZMax = Spring.GetAllyTeamStartBox(scavengerAllyTeamID)
 	if ScavengerStartboxXMin == 0 and ScavengerStartboxZMin == 0 and ScavengerStartboxXMax == mapsizeX and ScavengerStartboxZMax == mapsizeZ then

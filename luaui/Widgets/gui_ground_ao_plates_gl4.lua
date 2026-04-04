@@ -163,7 +163,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 end
 
 function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground plate if it exists
-	if debugmode then Spring.Debug.TraceEcho("remove",unitID,reason) end
+	if debugmode then Debug.TraceEcho("remove",unitID,reason) end
 	if groundPlateVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(groundPlateVBO, unitID)
 	end

@@ -816,7 +816,7 @@ local function isSoloDevMode()
   local isSolo = allyTeamCount == 1 and teamCount == 1
 
   -- we only run in solo games with dev mode enabled, and not in replays
-  if not isSolo or not Spring.Utilities.IsDevMode() or Spring.IsReplay() then
+  if not isSolo or not Utilities.IsDevMode() or Spring.IsReplay() then
     return false
   end
   return true

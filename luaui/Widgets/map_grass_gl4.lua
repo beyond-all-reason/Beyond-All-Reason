@@ -682,7 +682,7 @@ local function defineUploadGrassInstanceVBOData()
 end
 
 local function LoadGrassTGA(filename)
-	local texture, loadfailed = Spring.Utilities.LoadTGA(filename)
+	local texture, loadfailed = Utilities.LoadTGA(filename)
 	if loadfailed then
 		spEcho("Grass: Failed to load image for grass:",filename, loadfailed)
 		return nil
@@ -841,7 +841,7 @@ local function savegrassCmd(_, _, params)
 	end
 	spEcho("Savegrass: ", filename)
 
-	texture = Spring.Utilities.NewTGA(
+	texture = Utilities.NewTGA(
 		mathFloor(mapSizeX / grassConfig.patchResolution),
 		mathFloor(mapSizeZ / grassConfig.patchResolution),
 		1)
@@ -852,7 +852,7 @@ local function savegrassCmd(_, _, params)
 			offset = offset + 1
 		end
 	end
-	local success = Spring.Utilities.SaveTGA(texture, filename)
+	local success = Utilities.SaveTGA(texture, filename)
 	if success then spEcho("Saving grass map image failed",filename,success) end
 end
 

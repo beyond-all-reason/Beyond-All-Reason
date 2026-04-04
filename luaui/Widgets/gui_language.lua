@@ -18,9 +18,9 @@ local customMessageProxies = {
 
 local function getMessageProxy(messageKey, parameters)
 	if customMessageProxies[messageKey] then
-		return Spring.I18N( messageKey, customMessageProxies[messageKey](parameters) )
+		return I18N( messageKey, customMessageProxies[messageKey](parameters) )
 	else
-		return Spring.I18N(messageKey, parameters)
+		return I18N(messageKey, parameters)
 	end
 end
 
@@ -37,7 +37,7 @@ function widget:Initialize()
 
 	WG['language'].setLanguage = function(language)
 		Spring.SetConfigString('language', language)
-		Spring.I18N.setLanguage(language)
+		I18N.setLanguage(language)
 
 		if Script.LuaUI('LanguageChanged') then
 			Script.LuaUI.LanguageChanged()

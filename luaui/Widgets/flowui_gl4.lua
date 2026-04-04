@@ -253,7 +253,7 @@ end
 
 local function newElement(o) -- This table contains the default properties
 	if o == nil then o = {} end
-	if type(o) ~= 'table' then Spring.Debug.TraceEcho() end
+	if type(o) ~= 'table' then Debug.TraceEcho() end
 	if o.name == nil then -- auto namer
 		nameCounter = nameCounter + 1
 	end
@@ -301,7 +301,7 @@ local function newElement(o) -- This table contains the default properties
 		if parent.layer then
 			obj.layer = parent.layer
 		else
-			Spring.Debug.TraceEcho(obj.name .. " parented to ".. obj.parent.name.. " has no layer")
+			Debug.TraceEcho(obj.name .. " parented to ".. obj.parent.name.. " has no layer")
 		end
 	end
 	-- Ok, so this is where parent-relative positioning comes in, and is expressed in percent
@@ -331,8 +331,8 @@ end
 -- [4 5 6]
 -- [7 8 9]
 function metaElement:UpdateTextPosition(newtext) -- for internal use only!
-	if newtext.text == nil then Spring.Debug.TraceEcho() end
-	if newtext.fontsize == nil then Spring.Debug.TraceEcho() end
+	if newtext.text == nil then Debug.TraceEcho() end
+	if newtext.fontsize == nil then Debug.TraceEcho() end
 	newtext.textwidth  = font:GetTextWidth(newtext.text)  * newtext.fontsize
 	newtext.textheight = font:GetTextHeight(newtext.text) * newtext.fontsize
 	if newtext.alignment == nil then return end
@@ -372,7 +372,7 @@ end
 function metaElement:AddText(ox, oy, text, fontsize, textoptions, alignment, textcolor, outlinecolor)
 	-- it is now that we need to cache text height, and width
 	if self.layer == nil then
-		Spring.Debug.TraceEcho(self.name)
+		Debug.TraceEcho(self.name)
 		--Spring.Debug.TraceFullEcho()
 	end
 	self.layer.textChanged = true
@@ -468,7 +468,7 @@ function metaElement:UpdateVBOKeys(keyname, value, delta)
 			local success = getElementInstanceData(VBO, instanceKey, self.vboCache) -- this is empty! probbly instance does not exist in this
 			if success == nil then
 				spEcho("element not found",self.name, VBO.myName,instanceKey)
-				Spring.Debug.TraceFullEcho()
+				Debug.TraceFullEcho()
 			end
 
 			if delta then
