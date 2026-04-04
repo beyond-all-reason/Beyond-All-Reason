@@ -30,12 +30,13 @@ local spGiveOrderToUnit      = Spring.GiveOrderToUnit
 local spValidUnitID          = Spring.ValidUnitID
 local spGetGameFrame         = Spring.GetGameFrame
 local spGetSelectedUnits     = Spring.GetSelectedUnits
+local spGetUnitRulesParam 	 = Spring.GetUnitRulesParam
 
 local CMD_REPAIR  	 = CMD.REPAIR
 local CMD_MOVE    	 = CMD.MOVE
 local CMD_RECLAIM    = CMD.RECLAIM
 local CMD_MOVE_STATE = CMD.MOVE_STATE
-
+local CMD_WANT_CLOAK = GameCMD.WANT_CLOAK
 local ALLY_UNITS = Spring.ALLY_UNITS
 
 -- Known issues
@@ -60,11 +61,14 @@ local RECLAIM_BLACKLIST_DURATION = 1800  -- 60 seconds * 30 fps
 ----------------------------------------------------------------
 local isMobileBuilder = {}
 local builderBuildDist = {}
+local cachedUnitDefs = {}
+
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.isBuilder and (unitDef.canAssist or unitDef.canResurrect) and unitDef.canMove and not unitDef.isFactory then
 		isMobileBuilder[unitDefID] = true
 		builderBuildDist[unitDefID] = unitDef.buildDistance
 	end
+	cachedUnitDefs[unitDefID] = { radius = unitDef.radius }
 end
 
 ----------------------------------------------------------------
@@ -156,7 +160,7 @@ function widget:Initialize()
 		return
 	end
 	for _, unitID in ipairs(spGetTeamUnits(myTeam)) do
-		local unitDefID = spGetUnitDefID(unitID)
+		local unitDefID = spGetUnitDefID(unitID) 
 		if isMobileBuilder[unitDefID] and spGetUnitCommandCount(unitID) == 0 then
 			local x, y, z = spGetUnitPosition(unitID)
 			idleBuilders[unitID] = { homeX = x, homeY = y, homeZ = z }
@@ -229,7 +233,7 @@ end
 ----------------------------------------------------------------
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	-- State changes (e.g. movestate) should not disrupt tracking
-	if cmdID == CMD_MOVE_STATE then return end
+	if cmdID == CMD_MOVE_STATE or cmdID == CMD_WANT_CLOAK then return end
 	local selectedUnits = spGetSelectedUnits()
 
 	-- Stop tracking reclaimers that received a new command
@@ -271,9 +275,11 @@ function widget:GameFrame(frame)
 
 	-- Phase 2: Monitor active repairs
 	for builderID, info in pairs(activeRepairs) do
+		local cloakState = spGetUnitRulesParam(builderID, 'wantcloak')
+		local wantsCloak = (cloakState and cloakState == 1)
 		if not isUnitAlive(builderID) then
 			activeRepairs[builderID] = nil
-		elseif not isUnitAlive(info.targetID) or reclaimBlacklist[info.targetID] then
+		elseif not isUnitAlive(info.targetID) or reclaimBlacklist[info.targetID] or wantsCloak then
 			sendHome(builderID, info)
 		else
 			local health, maxHealth = spGetUnitHealth(info.targetID)
@@ -281,11 +287,13 @@ function widget:GameFrame(frame)
 				-- Repair complete
 				sendHome(builderID, info)
 			else
+				local unitDefID = spGetUnitDefID(info.targetID) 
+				local unitDef = cachedUnitDefs[unitDefID]
 				-- Check if target has left leash radius
 				local tx, _, tz = spGetUnitPosition(info.targetID)
 				local dx, dz = tx - info.homeX, tz - info.homeZ
 				local distSq = dx * dx + dz * dz
-				local leash = getLeashRadius(builderID)
+				local leash = getLeashRadius(builderID) + unitDef.radius
 				if distSq > leash * leash then
 					sendHome(builderID, info)
 				else
@@ -301,8 +309,12 @@ function widget:GameFrame(frame)
 
 	-- Phase 3: Assign idle builders to repair targets
 	for builderID, homePos in pairs(idleBuilders) do
+		local cloakState = spGetUnitRulesParam(builderID, 'wantcloak')
+		local wantsCloak = (cloakState and cloakState == 1)
 		if activeRepairs[builderID] then
 			-- Already assigned (shouldn't happen but guard against it)
+		elseif wantsCloak then
+			-- It's still idle but wantscloak, so don't assign a target
 		elseif spGetUnitCommandCount(builderID) > 0 then
 			-- No longer idle
 			idleBuilders[builderID] = nil
