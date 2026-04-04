@@ -19,7 +19,7 @@ function gadget:GetInfo()
 		date = "March 2026",
 		license = "GNU GPL v2",
 		layer = 0,
-		enabled = true,
+		enabled = false, --(DEPRECATED - replaced by gfx_particle_engine_gl4 + gfx_crash_trails_gl4 + gfx_piece_trails_gl4)
 	}
 end
 
@@ -971,22 +971,31 @@ local function replayPieceBuffer(tracked, gameFrame)
 	-- end
 end
 
+-- Debug counters
+local debugPieceSpawnCount = 0
+local debugPieceCallCount = 0
+local debugPieceSkipAboveGround = 0
+local debugPieceSkipOffscreen = 0
+local debugPieceSkipExpired = 0
+local debugPieceSkipNoPos = 0
+
 local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 	local pieceAge = gameFrame - tracked.birthFrame
-	if pieceAge > tracked.lifeFrames then return end
+	if pieceAge > tracked.lifeFrames then debugPieceSkipExpired = debugPieceSkipExpired + 1 return end
 
 	local px, py, pz = spGetProjectilePosition(proID)
-	if not px then return end
+	if not px then debugPieceSkipNoPos = debugPieceSkipNoPos + 1 return end
 
 	local aboveGround = py > PIECE_GROUND_SKIP_HEIGHT
 	if not aboveGround then
 		local groundY = spGetGroundHeight(px, pz) or 0
 		aboveGround = py > groundY + 1
 	end
-	if not aboveGround then return end
+	if not aboveGround then debugPieceSkipAboveGround = debugPieceSkipAboveGround + 1 return end
 
 	local inView = spIsSphereInView(px, py, pz, PIECE_CULLING_RADIUS)
 	if not inView then
+		debugPieceSkipOffscreen = debugPieceSkipOffscreen + 1
 		-- Buffer position/velocity every 3rd frame for retroactive spawning
 		if not fastForward and gameFrame % 3 == 0 then
 			local pvx, pvy, pvz = spGetProjectileVelocity(proID)
@@ -1004,6 +1013,8 @@ local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 	if tracked.offscreenBuffer then
 		replayPieceBuffer(tracked, gameFrame)
 	end
+
+	debugPieceCallCount = debugPieceCallCount + 1
 
 	local dx, dy, dz = px - cachedCamX, py - cachedCamY, pz - cachedCamZ
 	local distSq = dx*dx + dy*dy + dz*dz
@@ -1047,6 +1058,7 @@ local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 			local smokeLife = (PIECE_LIFETIME_MIN + (tracked.lifeBias + mathRandom() * 0.3) * PIECE_LIFETIME_RANGE) * (1.0 + sizeRand * PARTICLE_SIZE_INV_RANGE) * smokeLifeBase
 			local smokeAlpha = (PIECE_ALPHA_MIN + mathRandom() * PIECE_ALPHA_RANGE) * smokeAlphaBase
 			spawnParticle(spx, spy, spz, svx, svy, svz, particleSize, 0, smokeLife, smokeAlpha)
+			debugPieceSpawnCount = debugPieceSpawnCount + 1
 		end
 	end
 
@@ -1062,6 +1074,7 @@ local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 			(FIRE_LIFETIME_MIN + mathRandom() * FIRE_LIFETIME_RANGE) * presetLifeMult * fi,
 			(FIRE_ALPHA_MIN + mathRandom() * 0.2) * (0.5 + 0.5 * fi)
 		)
+		debugPieceSpawnCount = debugPieceSpawnCount + 1
 	end
 end
 
@@ -1571,6 +1584,24 @@ function gadget:GameFrame(n)
 
 	if n % updateInterval == 0 then
 		updatePieceProjectiles(n)
+
+		-- Debug output every 30 frames
+		if n % 30 == 0 then
+			local trackedCount = 0
+			for _ in pairs(trackedPieceProjectiles) do trackedCount = trackedCount + 1 end
+			spEcho(string.format(
+				"[PieceTrails-OLD] spawned=%d  calls=%d  tracked=%d  skipGround=%d  skipOffscreen=%d  skipExpired=%d  skipNoPos=%d  preset=%s  interval=%d",
+				debugPieceSpawnCount, debugPieceCallCount, trackedCount,
+				debugPieceSkipAboveGround, debugPieceSkipOffscreen, debugPieceSkipExpired, debugPieceSkipNoPos,
+				cachedPreset.name, updateInterval
+			))
+			debugPieceSpawnCount = 0
+			debugPieceCallCount = 0
+			debugPieceSkipAboveGround = 0
+			debugPieceSkipOffscreen = 0
+			debugPieceSkipExpired = 0
+			debugPieceSkipNoPos = 0
+		end
 
 		if debugEcho then
 			t1 = spGetTimer()
