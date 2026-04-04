@@ -2,13 +2,13 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name      = "TurnRadius",
-		desc      = "Fixes TurnRadius Dynamically for bombers",
-		author    = "Doo",
-		date      = "Sept 19th 2017",
-		license   = "GNU GPL, v2 or later",
-		layer     = 0,
-		enabled   = true
+		name = "TurnRadius",
+		desc = "Fixes TurnRadius Dynamically for bombers",
+		author = "Doo",
+		date = "Sept 19th 2017",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
 
@@ -74,7 +74,7 @@ local function processNextCmd(unitID, unitDefID, cmdID)
 	local radius = (not cmdID or cmdID == CMD_ATTACK) and attackTurnRadius or bomberTurnRadius[unitDefID]
 	local success = pcall(spMoveCtrlSetAirMoveTypeData, unitID, "turnRadius", radius)
 	if not success then
-		Spring.Echo("Error: unit_airunitsturnradius incompatible movetype for unitdef "..UnitDefs[unitDefID].name)
+		Spring.Echo("Error: unit_airunitsturnradius incompatible movetype for unitdef " .. UnitDefs[unitDefID].name)
 	end
 	if curMoveCtrl then
 		spMoveCtrlEnable(unitID)

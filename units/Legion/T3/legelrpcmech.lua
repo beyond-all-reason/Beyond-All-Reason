@@ -159,7 +159,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 800,
 				customparams = {
-					cluster_def = 'cluster_munition',
+					cluster_def = "cluster_munition",
 					cluster_number = 6,
 				},
 				damage = {

@@ -43,7 +43,7 @@ return {
 			removewait = true,
 			selectionscalemult = 1,
 			subfolder = "Legion/Defenses",
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			usebuildinggrounddecal = true,
 		},
 		featuredefs = {
@@ -143,8 +143,8 @@ return {
 					vtol = 35,
 				},
 				customparams = {
-					exclude_preaim = true
-				}
+					exclude_preaim = true,
+				},
 			},
 		},
 		weapons = {

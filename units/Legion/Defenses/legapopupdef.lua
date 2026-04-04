@@ -31,7 +31,7 @@ return {
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "ZephyrSkies (Model), Johnathan Crimson (Proposal)",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,

@@ -20,7 +20,7 @@ function SleepST:GetSleeper(key)
 		end
 	end
 	local sleeper = { key = key, frames = 0 }
-	self.sleeping[#self.sleeping+1] = sleeper
+	self.sleeping[#self.sleeping + 1] = sleeper
 	return sleeper
 end
 
@@ -30,16 +30,16 @@ function SleepST:Update()
 	for i = 1, #self.sleeping do
 		local sleeper = self.sleeping[i]
 		local frames = sleeper.frames
-		if (frames-1) < 1 then
+		if (frames - 1) < 1 then
 			-- limit the number of things woken up each frame to 50
 			if #done < 50 then
 				self:Wakeup(sleeper)
-				table.insert(done,sleeper.key)
+				table.insert(done, sleeper.key)
 			end
 		end
-		sleeper.frames = frames -1
+		sleeper.frames = frames - 1
 	end
-	for i=1,#done do
+	for i = 1, #done do
 		self:Kill(done[i])
 	end
 	count = nil

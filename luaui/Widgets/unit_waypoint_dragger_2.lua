@@ -2,54 +2,53 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "Waypoint Dragger",
-		desc      = "Enables Waypoint Dragging",
-		author    = "Kloot",
-		date      = "Aug. 8, 2007 [updated Aug. 14, 2009]",
-		license   = "GNU GPL v2",
-		layer     = 5,
-		enabled   = true
+		name = "Waypoint Dragger",
+		desc = "Enables Waypoint Dragging",
+		author = "Kloot",
+		date = "Aug. 8, 2007 [updated Aug. 14, 2009]",
+		license = "GNU GPL v2",
+		layer = 5,
+		enabled = true,
 	}
 end
 
-local spGetActiveCommand    = Spring.GetActiveCommand
-local spGetGameSeconds      = Spring.GetGameSeconds
-local spGetSelectedUnits    = Spring.GetSelectedUnits
-local spGetUnitCommands     = Spring.GetUnitCommands
-local spGetMouseState       = Spring.GetMouseState
-local spGetModKeyState      = Spring.GetModKeyState
-local spGiveOrderToUnit     = Spring.GiveOrderToUnit
-local spIsAboveMiniMap      = Spring.IsAboveMiniMap
+local spGetActiveCommand = Spring.GetActiveCommand
+local spGetGameSeconds = Spring.GetGameSeconds
+local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetUnitCommands = Spring.GetUnitCommands
+local spGetMouseState = Spring.GetMouseState
+local spGetModKeyState = Spring.GetModKeyState
+local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spIsAboveMiniMap = Spring.IsAboveMiniMap
 
 local spWorldToScreenCoords = Spring.WorldToScreenCoords
-local spTraceScreenRay      = Spring.TraceScreenRay
+local spTraceScreenRay = Spring.TraceScreenRay
 
 local floor = math.floor
 
-local glVertex           = gl.Vertex
-local glBeginEnd         = gl.BeginEnd
-local glColor            = gl.Color
-local glLineStipple      = gl.LineStipple
+local glVertex = gl.Vertex
+local glBeginEnd = gl.BeginEnd
+local glColor = gl.Color
+local glLineStipple = gl.LineStipple
 local glDrawGroundCircle = gl.DrawGroundCircle
 
 local cmdColorsTbl = {
-	[CMD.MOVE]         = {0.5, 1.0, 0.5, 0.55},
-	[CMD.PATROL]       = {0.3, 0.3, 1.0, 0.55},
-	[CMD.RECLAIM]      = {1.0, 0.2, 1.0, 0.55},
-	[CMD.REPAIR]       = {0.3, 1.0, 1.0, 0.55},
-	[CMD.ATTACK]       = {1.0, 0.2, 0.2, 0.55},
-	[CMD.AREA_ATTACK]  = {1.0, 0.2, 0.2, 0.55},
-	[CMD.FIGHT]        = {0.5, 0.5, 1.0, 0.55},
-	[CMD.LOAD_UNITS]   = {0.3, 1.0, 1.0, 0.55},
-	[CMD.UNLOAD_UNITS] = {1.0, 1.0, 0.0, 0.55},
-	[CMD.RESURRECT]    = {0.2, 0.6, 1.0, 0.55},
-	[CMD.RESTORE]      = {0.0, 1.0, 0.0, 0.55},
+	[CMD.MOVE] = { 0.5, 1.0, 0.5, 0.55 },
+	[CMD.PATROL] = { 0.3, 0.3, 1.0, 0.55 },
+	[CMD.RECLAIM] = { 1.0, 0.2, 1.0, 0.55 },
+	[CMD.REPAIR] = { 0.3, 1.0, 1.0, 0.55 },
+	[CMD.ATTACK] = { 1.0, 0.2, 0.2, 0.55 },
+	[CMD.AREA_ATTACK] = { 1.0, 0.2, 0.2, 0.55 },
+	[CMD.FIGHT] = { 0.5, 0.5, 1.0, 0.55 },
+	[CMD.LOAD_UNITS] = { 0.3, 1.0, 1.0, 0.55 },
+	[CMD.UNLOAD_UNITS] = { 1.0, 1.0, 0.0, 0.55 },
+	[CMD.RESURRECT] = { 0.2, 0.6, 1.0, 0.55 },
+	[CMD.RESTORE] = { 0.0, 1.0, 0.0, 0.55 },
 }
 
 local wayPtSelDist = 15
 local wayPtSelDistSqr = wayPtSelDist * wayPtSelDist
 local selWayPtsTbl = {}
-
 
 local function GetCommandColor(cmdID)
 	if cmdColorsTbl[cmdID] ~= nil then
@@ -102,20 +101,20 @@ local function GetWayPointsNearCursor(wpTbl, mx, my)
 
 	for i = 1, #selUnitsTbl do
 		local unitID = selUnitsTbl[i]
-		local commands = spGetUnitCommands(unitID,20)
+		local commands = spGetUnitCommands(unitID, 20)
 		if commands then
 			for cmdNum = 1, #commands do
-				local curCmd      = commands[cmdNum    ]
+				local curCmd = commands[cmdNum]
 				if cmdColorsTbl[curCmd.id] then
-					local nxtCmd      = commands[cmdNum + 1]
+					local nxtCmd = commands[cmdNum + 1]
 					local x, y, z, fr = GetCommandWorldPosition(curCmd)
 					if x and y and z then
-						local p, q  = spWorldToScreenCoords(x, y, z)
-						if GetSqDist2D(mx,my,p,q) < wayPtSelDistSqr then
+						local p, q = spWorldToScreenCoords(x, y, z)
+						if GetSqDist2D(mx, my, p, q) < wayPtSelDistSqr then
 							-- save the tag of the next command
 							local wpLink = (nxtCmd and nxtCmd.tag) or nil
-							local wpData = {x, y, z, fr, wpLink, curCmd, unitID}
-							local wpKey  = tostring(unitID) .. "-" .. tostring(curCmd.tag)
+							local wpData = { x, y, z, fr, wpLink, curCmd, unitID }
+							local wpKey = tostring(unitID) .. "-" .. tostring(curCmd.tag)
 
 							wpTbl[wpKey] = wpData
 							numSelWayPts = numSelWayPts + 1
@@ -152,10 +151,10 @@ local function MoveWayPoints(wpTbl, mx, my, finalize)
 			-- facing for build orders,
 			-- radius for area orders
 			local cmdFacRad = wpData[4]
-			local cmdLink   = wpData[5]
-			local cmdID     = wpData[6].id
-			local cmdPars   = wpData[6].params
-			local cmdTag    = wpData[6].tag
+			local cmdLink = wpData[5]
+			local cmdID = wpData[6].id
+			local cmdPars = wpData[6].params
+			local cmdTag = wpData[6].tag
 			local cmdUnitID = wpData[7]
 
 			if finalize then
@@ -164,13 +163,13 @@ local function MoveWayPoints(wpTbl, mx, my, finalize)
 				end
 				if cmdFacRad > 0 then
 					-- spGiveOrderToUnit(cmdUnitID, CMD.INSERT, {cmdNum, cmdID, 0, cx, cy, cz, cmdFacRad}, {"alt"})
-					spGiveOrderToUnit(cmdUnitID, CMD.INSERT, {cmdLink, cmdID, 0, cx, cy, cz, cmdFacRad}, 0)
+					spGiveOrderToUnit(cmdUnitID, CMD.INSERT, { cmdLink, cmdID, 0, cx, cy, cz, cmdFacRad }, 0)
 				else
 					-- spGiveOrderToUnit(cmdUnitID, CMD.INSERT, {cmdNum, cmdID, 0, cx, cy, cz}, {"alt"})
-					spGiveOrderToUnit(cmdUnitID, CMD.INSERT, {cmdLink, cmdID, 0, cx, cy, cz}, 0)
+					spGiveOrderToUnit(cmdUnitID, CMD.INSERT, { cmdLink, cmdID, 0, cx, cy, cz }, 0)
 				end
 				if not alt then
-					spGiveOrderToUnit(cmdUnitID, CMD.REMOVE, {cmdTag}, 0)
+					spGiveOrderToUnit(cmdUnitID, CMD.REMOVE, { cmdTag }, 0)
 				end
 			else
 				wpData[1] = cx
@@ -192,11 +191,11 @@ local function UpdateWayPoints(wpTbl)
 	local badWayPtsTbl = {}
 
 	for wpKey, wpData in pairs(wpTbl) do
-		local cmdTag    = wpData[6].tag
+		local cmdTag = wpData[6].tag
 		local cmdUnitID = wpData[7]
-		local cmdValid  = false
+		local cmdValid = false
 
-		local unitCmds = spGetUnitCommands(cmdUnitID,20)
+		local unitCmds = spGetUnitCommands(cmdUnitID, 20)
 
 		-- check if the command has not been completed
 		-- since the MousePress() event occurred (tags
@@ -206,7 +205,8 @@ local function UpdateWayPoints(wpTbl)
 		if unitCmds then
 			for unitCmdNum = 1, #unitCmds do
 				if unitCmds[unitCmdNum].tag == cmdTag then
-					cmdValid = true; break
+					cmdValid = true
+					break
 				end
 			end
 		end
@@ -233,14 +233,18 @@ function widget:MousePress(mx, my, mb)
 	--   3. we pressed the LEFT mouse button (otherwise shift-move orders would break)
 	--   4. our mouse cursor is within "grabbing" radius of (at least)
 	--      one waypoint of at least one of the units we have selected
-	local _, actCmdID, _, _      = spGetActiveCommand()
+	local _, actCmdID, _, _ = spGetActiveCommand()
 	if actCmdID and actCmdID < 0 then
 		return false
 	end
 	local alt, ctrl, meta, shift = spGetModKeyState()
-	local numWayPts              = 0
-	if not shift then return false end
-	if mb ~= 1 then return false end
+	local numWayPts = 0
+	if not shift then
+		return false
+	end
+	if mb ~= 1 then
+		return false
+	end
 	numWayPts = GetWayPointsNearCursor(selWayPtsTbl, mx, my)
 	if numWayPts == 0 then
 		return false
@@ -272,12 +276,12 @@ function widget:DrawWorld()
 		return
 	end
 	for _, wpData in pairs(selWayPtsTbl) do
-		local cmd           = wpData[6]
-		local nx, ny, nz    = wpData[1], wpData[2], wpData[3]
+		local cmd = wpData[6]
+		local nx, ny, nz = wpData[1], wpData[2], wpData[3]
 		local ox, oy, oz, _ = GetCommandWorldPosition(cmd)
-		local p, q          = spWorldToScreenCoords(ox, oy, oz)
-		local d             = GetSqDist2D(mx, my, p, q)
-		local r, g, b, a    = GetCommandColor(cmd.id)
+		local p, q = spWorldToScreenCoords(ox, oy, oz)
+		local d = GetSqDist2D(mx, my, p, q)
+		local r, g, b, a = GetCommandColor(cmd.id)
 		glColor(r, g, b, a)
 
 		if d > (wayPtSelDist * wayPtSelDist) then
@@ -287,12 +291,10 @@ function widget:DrawWorld()
 		local pattern = (65536 - 775)
 		local offset = floor((spGetGameSeconds() * 16) % 16)
 		glLineStipple(2, pattern, -offset)
-		glBeginEnd(GL.LINES,
-			function()
-				glVertex(ox, oy, oz)
-				glVertex(nx, ny, nz)
-			end
-		)
+		glBeginEnd(GL.LINES, function()
+			glVertex(ox, oy, oz)
+			glVertex(nx, ny, nz)
+		end)
 		glLineStipple(false)
 	end
 	glColor(1.0, 1.0, 1.0, 1.0)

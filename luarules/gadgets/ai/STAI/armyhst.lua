@@ -8,10 +8,7 @@ function ArmyHST:internalName()
 	return "armyhst"
 end
 
-
 function ArmyHST:Init()
-
-
 	self.DebugEnabled = false
 	self.unitTable = {}
 	self.wrecks = {}
@@ -38,41 +35,33 @@ function ArmyHST:Init()
 		armcs = true,
 		corck = true,
 		armck = true,
-
-
-
-		}
+	}
 	self.engineers = {
-		armmls = 'armacs',
-		armfark = 'armack',
-		armconsul = 'amracv',
-		corfast = 'corack',
-		cormls = 'coracs',
-		}
+		armmls = "armacs",
+		armfark = "armack",
+		armconsul = "amracv",
+		corfast = "corack",
+		cormls = "coracs",
+	}
 	self.wartechs = {
 		armdecom = true,
 		cordecom = true,
 		cormando = true,
-
-
-		} --decoy etc
+	} --decoy etc
 	self.rezs = {
 		armrectr = true,
 		cornecro = true,
 		armrecl = true,
 		correcl = true,
-
-		}
+	}
 	self.amptechs = {
 		armbeaver = true,
 		cormuskrat = true,
-
-
-		} --amphibious builders
+	} --amphibious builders
 	self.miners = {
 		armmlv = true,
 		cormlv = true,
-		}
+	}
 
 	self.jammers = {
 		armsjam = true,
@@ -81,12 +70,10 @@ function ArmyHST:Init()
 		armjam = true,
 		corsjam = true,
 		corspec = true,
-
-
-		}
+	}
 	self.radars = {
-		corfink = true,--is a scout but is better used as radar cause no weapon
-		armpeep = true,--is a scout but is better used as radar cause no weapon
+		corfink = true, --is a scout but is better used as radar cause no weapon
+		armpeep = true, --is a scout but is better used as radar cause no weapon
 		corvrad = true,
 		armmark = true,
 		armseer = true,
@@ -95,20 +82,17 @@ function ArmyHST:Init()
 		armawac = true,
 		armsehak = true,
 		corhunt = true,
-
-
-		}
+	}
 	self.spys = {
 		armspy = true,
 		corspy = true,
-		}
+	}
 	self.transports = {
 		corvalk = true,
 		armatlas = true,
 		armdfly = true,
 		corseah = true,
-
-		}
+	}
 
 	self.scouts = {
 		armfav = true,
@@ -117,10 +101,7 @@ function ArmyHST:Init()
 		armfast = true,
 		armdecade = true,
 		coresupp = true,
-
-
-
-		}
+	}
 	self.raiders = {
 		armflash = true,
 		corgator = true,
@@ -138,8 +119,7 @@ function ArmyHST:Init()
 		corshark = true,
 		armraz = true,
 		corkarg = true,
-
-		}
+	}
 	self.artillerys = {
 		armrock = true,
 		corstorm = true,
@@ -149,53 +129,45 @@ function ArmyHST:Init()
 		cormort = true,
 		armmart = true,
 		cormart = true,
-		armvang = true,--t3a
-		corcat = true,--t3c
+		armvang = true, --t3a
+		corcat = true, --t3c
 		corbats = true,
 		armbats = true,
 
 		--cortrem = true,
 		corjugg = true,
-
-		}
+	}
 	self.rocketers = {
 		armmerl = true,
 		corvroc = true, -- T2C
--- 		corban = true,T2C
+		-- 		corban = true,T2C
 		corhrk = true,
 		cormship = true,
 		armmship = true,
 		armmh = true,
 		cormh = true,
-		}
+	}
 
 	self.battles = {
 		armham = true,
 		corthud = true,
 		armstump = true,
 		corraid = true,
-		armfido = 'armmav',
+		armfido = "armmav",
 		corcan = true,
 		armbull = true,
 		correap = true,
-		armanac = true,--ha
-		corsnap = true,--hc
-		armpship = true,--t1a
-		corpship = true,--t1c
+		armanac = true, --ha
+		corsnap = true, --hc
+		armpship = true, --t1a
+		corpship = true, --t1c
 		corcrus = true,
 		armcrus = true,
-		armbanth = true,--t3a
+		armbanth = true, --t3a
 		cordemon = true,
 
-
-
 		--corhal = true,
-
-
-
-
-
-		}
+	}
 	self.breaks = {
 		armwar = true,
 		armjanus = true,
@@ -204,19 +176,16 @@ function ArmyHST:Init()
 		corsumo = true,
 		corgol = true,
 		armmanni = true,
-		armlun = true,--hover
-		corsok = true,--hover
+		armlun = true, --hover
+		corsok = true, --hover
 		armroy = true,
 		corroy = true,
-
-
 
 		corblackhy = true,
 		armepoch = true,
 		armthor = true, --t3a
-		corkorg = true,--t3c
-
-		}
+		corkorg = true, --t3c
+	}
 	self.amphibious = {
 		armpincer = true,
 		corparrow = true,
@@ -226,32 +195,25 @@ function ArmyHST:Init()
 		coramph = true,
 		armmar = true,
 		corshiva = true,
-
-		}
+	}
 	self.heavyAmphibious = {
-	
+
 		corparrow = true,
 		armcroc = true,
-
-		}
+	}
 	self.spiders = {
 		cortermite = true,
 		armsptk = true,
-
-		}
+	}
 	self.paralyzers = {
 		corbw = true,
 		armspid = true,
 		armstil = true,
-
-		}
+	}
 	self.subkillers = {
 		armserp = true,
 		corssub = true,
-
-
-
-		} -- submarine weaponed
+	} -- submarine weaponed
 	self.bomberairs = {
 		corshad = true,
 		armthund = true,
@@ -259,8 +221,8 @@ function ArmyHST:Init()
 		corhurc = true,
 		armpnix = true,
 		armliche = true,
-		corsb = true,--plat
-		}
+		corsb = true, --plat
+	}
 
 	self.fighterairs = {
 		corveng = true,
@@ -269,14 +231,12 @@ function ArmyHST:Init()
 		armsfig = true, --plat
 		cortitan = true,
 		armhawk = true,
-		}
+	}
 
 	self.tpbombers = {
 		corvamp = true,
 		armlance = true,
-
-
-		}
+	}
 
 	self.airgun = {
 		armkam = true,
@@ -288,8 +248,7 @@ function ArmyHST:Init()
 		armsaber = true,
 		corseap = true,
 		corcut = true,
-
-		}
+	}
 
 	self.antiairs = {
 		armah = true,
@@ -306,323 +265,317 @@ function ArmyHST:Init()
 		corarch = true,
 		armpt = true, --aa+scout
 		corpt = true, --aa+scout
-		}
+	}
 
 	self.antinukes = {
 		armcarry = true,
 		corcarry = true,
 		cormabm = true,
 		armscab = true,
-		}
+	}
 
 	self.crawlings = {
 		armvader = true,
 		corroach = true,
 		corsktl = true,
-		}
+	}
 
 	self.cloakables = {
 		armsnipe = true,
 		armgremlin = true,
-		}
+	}
 
 	-------IMMOBILE--------
 	self._targeting_ = {
-		armtarg = true ,
-		armfatf = true ,
-		cortarg = true ,
-		corfatf = true ,
-		}
+		armtarg = true,
+		armfatf = true,
+		cortarg = true,
+		corfatf = true,
+	}
 
 	self._geo_ = {
-		corageo = true ,
-		armageo = true ,
-		armgeo = true ,
-		corgeo = true ,
-		corbhmth = true ,
-		armgmm = true ,
-		}
-
+		corageo = true,
+		armageo = true,
+		armgeo = true,
+		corgeo = true,
+		corbhmth = true,
+		armgmm = true,
+	}
 
 	self._nano_ = {
-		armnanotc = true ,
-		armnanotcplat = true ,
-		cornanotc = true ,
-		cornanotcplat = true ,
-
-		}
+		armnanotc = true,
+		armnanotcplat = true,
+		cornanotc = true,
+		cornanotcplat = true,
+	}
 
 	self._solar_ = {
-		corsolar = 'coradvsol' ,
-		armsolar = 'armadvsol' ,
-		}
-
+		corsolar = "coradvsol",
+		armsolar = "armadvsol",
+	}
 
 	self._mex_ = {
-		cormex = 'cormoho' ,
-		cormexp = true ,
-		armmex = "armmoho" ,
-		armamex = 'armmoho' ,
-		armmoho = true ,
-		cormoho = true ,
-		corexp = 'cormexp' ,
-		armuwmme = true ,
-		coruwmme = true ,
-		}
+		cormex = "cormoho",
+		cormexp = true,
+		armmex = "armmoho",
+		armamex = "armmoho",
+		armmoho = true,
+		cormoho = true,
+		corexp = "cormexp",
+		armuwmme = true,
+		coruwmme = true,
+	}
 	ArmyHST.t2mex = {
 		armmoho = true,
 		cormoho = true,
 		armuwmme = true,
 		coruwmme = true,
-		}
+	}
 	-- what mexes upgrade to what
 	ArmyHST.mexUpgrade = {
 		cormex = "cormoho",
 		armmex = "armmoho",
 		armamex = "armmoho",
 		corexp = "cormoho",
-		}
+	}
 
 	self._flak_ = {
-		armfflak = true ,
-		armflak = true ,
-		corflak = true ,
-		corenaa = true ,
-		}
+		armfflak = true,
+		armflak = true,
+		corflak = true,
+		corenaa = true,
+	}
 
 	self._mine_ = {
-		armmine1 = true ,
-		armmine2 = true ,
-		armmine3 = true ,
-		armfmine3 = true ,
-		cormine1 = true ,
-		cormine2 = true ,
-		cormine3 = true ,
-		cormine4 = true ,
-		corfmine3 = true ,
-		}
+		armmine1 = true,
+		armmine2 = true,
+		armmine3 = true,
+		armfmine3 = true,
+		cormine1 = true,
+		cormine2 = true,
+		cormine3 = true,
+		cormine4 = true,
+		corfmine3 = true,
+	}
 
 	self._eyes_ = {
-		armeyes = true ,
-		coreyes = true ,
-		}
+		armeyes = true,
+		coreyes = true,
+	}
 
 	-- 	self._afus_ = {
 	-- 		armafus = true ,
 	-- 		corafus = true ,
 	-- 	}
 
-
 	self._fus_ = {
-		armfus = 'armafus' ,--will become afus in buildersbst:specialfilter()
-		armuwfus = 'armuwfus' , --no advuwfus
-		corfus = 'corafus' ,--will become afus in buildersbst:specialfilter()
-		coruwfus = 'coruwfus' ,--no advuwfus
+		armfus = "armafus", --will become afus in buildersbst:specialfilter()
+		armuwfus = "armuwfus", --no advuwfus
+		corfus = "corafus", --will become afus in buildersbst:specialfilter()
+		coruwfus = "coruwfus", --no advuwfus
 		-- 		armckfus = true , --clackable, better to think about it later
 
 		-- 		armafus = true ,
 		-- 		corafus = true ,
 		--armdf = true, --fake fus
-		}
+	}
 
 	self._silo_ = {
-		armsilo = true ,
-		corsilo = true ,
-		}
+		armsilo = true,
+		corsilo = true,
+	}
 
-	self._wind_ ={
-		armwin = true ,
-		corwin = true ,
-		}
+	self._wind_ = {
+		armwin = true,
+		corwin = true,
+	}
 
 	self._tide_ = {
-		cortide = true ,
-		armtide = true ,
-		}
+		cortide = true,
+		armtide = true,
+	}
 
 	self._plat_ = {
-		corplat = true ,
-		armplat = true ,
-		}
+		corplat = true,
+		armplat = true,
+	}
 
 	self._radar_ = {
-		armrad = true ,
-		armarad = true ,
-		corrad = true ,
-		corarad = true ,
-		corfrad = true ,
-		armfrad = true ,
-		}
+		armrad = true,
+		armarad = true,
+		corrad = true,
+		corarad = true,
+		corfrad = true,
+		armfrad = true,
+	}
 
 	self._jam_ = {
-		armjamt = true ,
-		corjamt = true ,
-		armveil = true ,
-		corshroud = true ,
-		}
+		armjamt = true,
+		corjamt = true,
+		armveil = true,
+		corshroud = true,
+	}
 
 	self._sonar_ = {
-		armsonar = true ,
-		corsonar = true ,
+		armsonar = true,
+		corsonar = true,
 		armason = true,
 		corason = true,
-		}
+	}
 
 	self._shield_ = {
-		armgate = true ,
-		corgate = true ,
-		}
+		armgate = true,
+		corgate = true,
+	}
 
 	self._juno_ = {
-		corjuno = true ,
-		armjuno = true ,
-		}
+		corjuno = true,
+		armjuno = true,
+	}
 
 	self._popup1_ = {
 		armclaw = true,
 		cormaw = true,
-		}
+	}
 
 	self._llt_ = {
 		armllt = true,
 		corllt = true,
-		}
+	}
 
 	self._specialt_ = {
 		armbeamer = true,
 		corhllt = true,
-		}
+	}
 
 	self._heavyt_ = {
 		armhlt = true,
 		corhlt = true,
 		armfhlt = true,
 		corfhlt = true,
-		}
+	}
 
 	self._lol_ = {
-		corbuzz = true ,
-		armvulc = true ,
-		}
+		corbuzz = true,
+		armvulc = true,
+	}
 
 	self._laser2_ = {
-		cordoom = true ,
-		armanni = true ,
-		}
+		cordoom = true,
+		armanni = true,
+	}
 
 	self._coast1_ = {
-		corpun = true ,
-		armguard = true ,
-		}
+		corpun = true,
+		armguard = true,
+	}
 
 	self._coast2_ = {
-		cortoast = true ,
-		armamb = true ,
-		}
+		cortoast = true,
+		armamb = true,
+	}
 
 	self._popup2_ = {
-		armpb = true ,
-		corvipe = true ,
-		}
+		armpb = true,
+		corvipe = true,
+	}
 
 	self._plasma_ = {
-		armbrtha = true ,
-		corint = true ,
-		}
+		armbrtha = true,
+		corint = true,
+	}
 
 	self._torpedo1_ = {
-		cortl = true ,
-		armtl = true ,
-		}
+		cortl = true,
+		armtl = true,
+	}
 
 	self._torpedo2_ = {
-		coratl = true ,
-		armatl = true ,
-		}
+		coratl = true,
+		armatl = true,
+	}
 
 	self._torpedoground_ = {
-		armdl = true ,
-		cordl = true ,
-		}
+		armdl = true,
+		cordl = true,
+	}
 
 	self._aa1_ = {
-		armrl = true ,
-		corrl = true ,
-		armfrt = true ,
-		corfrt = true ,
-		}
+		armrl = true,
+		corrl = true,
+		armfrt = true,
+		corfrt = true,
+	}
 
 	self._aabomb_ = {
-		corerad = true ,
-		armferret = true ,
-		}
+		corerad = true,
+		armferret = true,
+	}
 
 	self._aaheavy_ = {
-		cormadsam = true ,
-		armcir = true ,
-		}
+		cormadsam = true,
+		armcir = true,
+	}
 	self._aa2_ = {
-		corscreamer = true ,
-		armmercury = true ,
-		}
+		corscreamer = true,
+		armmercury = true,
+	}
 
 	self._intrusion_ = {
-		corsd = true ,
-		armsd = true ,
-		}
+		corsd = true,
+		armsd = true,
+	}
 
 	self._antinuke_ = {
-		armamd = true ,
-		corfmd = true ,
-		}
+		armamd = true,
+		corfmd = true,
+	}
 
 	self._convs_ = {
-		armmmkr = true ,
-		armfmkr = true ,
-		armmakr = true ,
-		armuwmmm = true ,
-		cormmkr = true ,
-		corfmkr = true ,
-		cormakr = true ,
-		}
+		armmmkr = true,
+		armfmkr = true,
+		armmakr = true,
+		armuwmmm = true,
+		cormmkr = true,
+		corfmkr = true,
+		cormakr = true,
+	}
 
 	self._estor_ = {
-		armestor = true ,
-		armuwes = true ,
-		armuwadves = true ,
-		corestor = true ,
-		coruwes = true ,
-		coruwadves = true ,
-		}
+		armestor = true,
+		armuwes = true,
+		armuwadves = true,
+		corestor = true,
+		coruwes = true,
+		coruwadves = true,
+	}
 
 	self._mstor_ = {
-		cormstor = true ,
-		armmstor = true ,
-		armuwms = true ,
-		coruwms = true ,
-		coruwadvms = true ,
-		armuwadvms = true ,
-		coruwmmm = true ,
-		}
+		cormstor = true,
+		armmstor = true,
+		armuwms = true,
+		coruwms = true,
+		coruwadvms = true,
+		armuwadvms = true,
+		coruwmmm = true,
+	}
 
 	self._tactical_ = {
-		armemp = true ,
-		cortron = true ,
-		}
+		armemp = true,
+		cortron = true,
+	}
 
 	self._wall_ = {
-		corfdrag = true ,
-		armdrag = true ,
-		armfort = true ,
-		cordrag = true ,
-		armfdrag = true ,
-		}
+		corfdrag = true,
+		armdrag = true,
+		armfort = true,
+		cordrag = true,
+		armfdrag = true,
+	}
 
 	self:GetUnitTable()
 	self:GetFeatureTable()
-
 end
-
 
 ArmyHST.techPenalty = {
 	armamsub = -1,
@@ -631,38 +584,38 @@ ArmyHST.techPenalty = {
 	corfhp = -1,
 	armhp = -1,
 	corhp = -1,
-	}
+}
 
 ArmyHST.factoryMobilities = {
-	corap = {"air"},
-	armap = {"air"},
-	corlab = {"bot"},
-	armlab = {"bot"},
-	corvp = {"veh", "amp"},
-	armvp = {"veh", "amp"},
-	coralab = {"bot"},
-	coravp = {"veh", "amp"},
-	corhp = {"hov"},
-	armhp = {"hov"},
-	corfhp = {"hov"},
-	armfhp = {"hov"},
-	armalab = {"bot"},
-	armavp = {"veh", "amp"},
-	coraap = {"air"},
-	armaap = {"air"},
-	corplat = {"air"},
-	armplat = {"air"},
-	corsy = {"shp", "sub"},
-	armsy = {"shp", "sub"},
-	corasy = {"shp", "sub"},
-	armasy = {"shp", "sub"},
-	coramsub = {"amp","sub"},
-	armamsub = {"amp","sub"},
-	corgant = {"bot", "amp"},
-	armshltx = {"bot", "amp"},
-	corgantuw = {"amp","hov"},
-	armshltxuw = {"amp","hov"},
-	}
+	corap = { "air" },
+	armap = { "air" },
+	corlab = { "bot" },
+	armlab = { "bot" },
+	corvp = { "veh", "amp" },
+	armvp = { "veh", "amp" },
+	coralab = { "bot" },
+	coravp = { "veh", "amp" },
+	corhp = { "hov" },
+	armhp = { "hov" },
+	corfhp = { "hov" },
+	armfhp = { "hov" },
+	armalab = { "bot" },
+	armavp = { "veh", "amp" },
+	coraap = { "air" },
+	armaap = { "air" },
+	corplat = { "air" },
+	armplat = { "air" },
+	corsy = { "shp", "sub" },
+	armsy = { "shp", "sub" },
+	corasy = { "shp", "sub" },
+	armasy = { "shp", "sub" },
+	coramsub = { "amp", "sub" },
+	armamsub = { "amp", "sub" },
+	corgant = { "bot", "amp" },
+	armshltx = { "bot", "amp" },
+	corgantuw = { "amp", "hov" },
+	armshltxuw = { "amp", "hov" },
+}
 
 -- for calculating what factories to build
 -- higher values mean more effecient
@@ -674,7 +627,7 @@ ArmyHST.mobilityEffeciencyMultiplier = {
 	hov = 0.7,
 	amp = 0.4,
 	air = 0.55,
-	}
+}
 
 ArmyHST.factoryExitSides = {
 	corap = 0,
@@ -705,7 +658,7 @@ ArmyHST.factoryExitSides = {
 	armshltx = 1,
 	corgantuw = 1,
 	armshltxuw = 1,
-	}
+}
 
 -- ArmyHST.littlePlasmaList = {
 -- 	corpun = 1,
@@ -727,17 +680,17 @@ ArmyHST.factoryExitSides = {
 
 -- factories that can build advanced construction units (i.e. moho mines)
 ArmyHST.advFactories = {
-	coravp = 'corvp',
-	coralab = 'corlab',
-	corasy = 'corsy',
-	coraap = 'corap',
+	coravp = "corvp",
+	coralab = "corlab",
+	corasy = "corsy",
+	coraap = "corap",
 	corplat = 1,
-	armavp = 'armvp',
-	armalab = 'armlab',
-	armasy = 'armsy',
-	armaap = 'armap',
+	armavp = "armvp",
+	armalab = "armlab",
+	armasy = "armsy",
+	armaap = "armap",
 	armplat = 1,
-	}
+}
 
 -- experimental factories
 ArmyHST.expFactories = {
@@ -745,22 +698,22 @@ ArmyHST.expFactories = {
 	armshltx = 1,
 	corgantuw = 1,
 	armshltxuw = 1,
-	}
+}
 
 -- leads to experimental
 ArmyHST.t1tot2factory = {
-	corlab = 'coralab',
-	armlab = 'armalab',
-	corsy = 'corasy',
-	armsy = 'armasy',
-	armvp = 'armavp',
-	corvp = 'coravp',
-	}
+	corlab = "coralab",
+	armlab = "armalab",
+	corsy = "corasy",
+	armsy = "armasy",
+	armvp = "armavp",
+	corvp = "coravp",
+}
 
 ArmyHST.commanderList = {
 	armcom = 1,
 	corcom = 1,
-	}
+}
 
 ArmyHST.groundFacList = {
 	corvp = 1,
@@ -782,7 +735,7 @@ ArmyHST.groundFacList = {
 	corfast = 1,
 	armconsul = 1,
 	armfark = 1,
-	}
+}
 
 -- if any of these is found among enemy units, AA units and fighters will be built
 ArmyHST.airFacList = {
@@ -792,7 +745,7 @@ ArmyHST.airFacList = {
 	armaap = 1,
 	corplat = 1,
 	armplat = 1,
-	}
+}
 
 -- if any of these is found among enemy units, torpedo launchers and sonar will be built
 ArmyHST.subFacList = {
@@ -802,13 +755,13 @@ ArmyHST.subFacList = {
 	armasy = 1,
 	coramsub = 1,
 	armamsub = 1,
-	}
+}
 
 -- if any of these is found among enemy units, plasma shields will be built
 ArmyHST.bigPlasmaList = {
 	corint = 1,
 	armbrtha = 1,
-	}
+}
 
 -- if any of these is found among enemy units, antinukes will be built
 -- also used to assign nuke behaviour to own units
@@ -818,22 +771,22 @@ ArmyHST.nukeList = {
 	corsilo = 5400,
 	armemp = 2700,
 	cortron = 2250,
-	}
+}
 
 ArmyHST.cleanable = {
-	armsolar= 'ground',
-	corsolar= 'ground',
-	armadvsol = 'ground',
-	coradvsol = 'ground',
-	armtide = 'floating',
-	cortite = 'floating',
-	armfmkr = 'floating',
-	corfmkr = 'floating',
-	cormakr = 'ground',
-	armmakr = 'ground',
-	corwin = 'ground',
-	armwin = 'ground',
-	}
+	armsolar = "ground",
+	corsolar = "ground",
+	armadvsol = "ground",
+	coradvsol = "ground",
+	armtide = "floating",
+	cortite = "floating",
+	armfmkr = "floating",
+	corfmkr = "floating",
+	cormakr = "ground",
+	armmakr = "ground",
+	corwin = "ground",
+	armwin = "ground",
+}
 
 -- minimum, maximum, starting point units required to attack, bomb
 -- ArmyHST.minAttackCounter = 4
@@ -861,13 +814,13 @@ ArmyHST.UWMetalSpotCheckUnit = "cormex"
 -- for non-lua only; tests build orders of these units to determine mobility there
 -- multiple units for one mtype function as OR
 ArmyHST.mobUnitNames = {
-	veh = {"corcv", "armllt"},
-	bot = {"corck", "armeyes"},
-	amp = {"cormuskrat"},
-	hov = {"corsh", "armfdrag"},
-	shp = {"corcs"},
-	sub = {"coracsub"},
-	}
+	veh = { "corcv", "armllt" },
+	bot = { "corck", "armeyes" },
+	amp = { "cormuskrat" },
+	hov = { "corsh", "armfdrag" },
+	shp = { "corcs" },
+	sub = { "coracsub" },
+}
 
 -- tests move orders of these units to determine mobility there
 ArmyHST.mobUnitExampleName = {
@@ -876,7 +829,7 @@ ArmyHST.mobUnitExampleName = {
 	amp = "armbeaver",
 	hov = "armch",
 	shp = "armcs",
-	sub = "armacsub"
+	sub = "armacsub",
 }
 
 -- side names
@@ -886,40 +839,37 @@ ArmyHST.ARMSideName = "armada"
 -- how much metal to assume features with these strings in their names have
 ArmyHST.baseFeatureMetal = { rock = 30, heap = 80, wreck = 150 }
 
-
 local unitsLevels = {}
-local armTechLv ={}
-local corTechLv ={}
+local armTechLv = {}
+local corTechLv = {}
 corTechLv.corcom = false
 armTechLv.armcom = false
 local parent = 0
 local continue = false
 
-local featureKeysToGet = { "metal" , "energy", "reclaimable", "blocking", }
+local featureKeysToGet = { "metal", "energy", "reclaimable", "blocking" }
 
 local function getDPS(unitDefID)
 	local unitDef = UnitDefs[unitDefID]
 	local weapons = unitDef["weapons"]
 	local dps = 0
-	for i=1, #weapons do
+	for i = 1, #weapons do
 		local weaponDefID = weapons[i]["weaponDef"]
 		local weaponDef = WeaponDefs[weaponDefID]
-		dps = dps + weaponDef['damages'][0] / weaponDef['reload']
+		dps = dps + weaponDef["damages"][0] / weaponDef["reload"]
 	end
 	return dps
 end
-
-
 
 local function getInterceptor(unitDefID)
 	local unitDef = UnitDefs[unitDefID]
 	local weapons = unitDef["weapons"]
 	local interceptor = false
-	for i=1, #weapons do
+	for i = 1, #weapons do
 		local weaponDefID = weapons[i]["weaponDef"]
 		local weaponDef = WeaponDefs[weaponDefID]
-		if weaponDef['interceptor'] then
-			interceptor  =  weaponDef['interceptor'] == 1
+		if weaponDef["interceptor"] then
+			interceptor = weaponDef["interceptor"] == 1
 		end
 	end
 	return interceptor
@@ -929,11 +879,11 @@ local function getTargetableWeapon(unitDefID)
 	local unitDef = UnitDefs[unitDefID]
 	local weapons = unitDef["weapons"]
 	local targetable = false
-	for i=1, #weapons do
+	for i = 1, #weapons do
 		local weaponDefID = weapons[i]["weaponDef"]
 		local weaponDef = WeaponDefs[weaponDefID]
-		if weaponDef['targetable'] then
-			targetable  =  weaponDef['targetable'] == 1
+		if weaponDef["targetable"] then
+			targetable = weaponDef["targetable"] == 1
 		end
 	end
 	--('targetable',targetable)
@@ -944,20 +894,20 @@ local function getParalyzer(unitDefID)
 	local unitDef = UnitDefs[unitDefID]
 	local weapons = unitDef["weapons"]
 	local paralyzer = nil
-	for i=1, #weapons do
+	for i = 1, #weapons do
 		local weaponDefID = weapons[i]["weaponDef"]
 		local weaponDef = WeaponDefs[weaponDefID]
-		paralyzer  =  weaponDef['paralyzer']
+		paralyzer = weaponDef["paralyzer"]
 	end
 	return paralyzer
 end
 
 local function getOnlyTargets(weapons)
 	local targets = {}
-	for index,weapon in pairs (weapons) do
+	for index, weapon in pairs(weapons) do
 		if weapon.onlyTargets then
-			for name,_ in pairs(weapon.onlyTargets) do
-				local  weaponDefID = weapon["weaponDef"]
+			for name, _ in pairs(weapon.onlyTargets) do
+				local weaponDefID = weapon["weaponDef"]
 				local weaponDef = WeaponDefs[weaponDefID]
 				targets[name] = weaponDef.range
 			end
@@ -968,10 +918,10 @@ end
 
 local function getBadTargets(weapons)
 	local targets = {}
-	for index,weapon in pairs (weapons) do
+	for index, weapon in pairs(weapons) do
 		if weapon.badTargets then
-			for name,_ in pairs(weapon.badTargets) do
-				local  weaponDefID = weapon["weaponDef"]
+			for name, _ in pairs(weapon.badTargets) do
+				local weaponDefID = weapon["weaponDef"]
 				local weaponDef = WeaponDefs[weaponDefID]
 				targets[name] = weaponDef.range
 			end
@@ -984,7 +934,7 @@ local function GetLongestWeaponRange(unitDefID, GroundAirSubmerged)
 	local unitDef = UnitDefs[unitDefID]
 	local weapons = unitDef["weapons"]
 	local dps = 0
-	for i=1, #weapons do
+	for i = 1, #weapons do
 		local weaponDefID = weapons[i]["weaponDef"]
 		local weaponDef = WeaponDefs[weaponDefID]
 		--print(weaponDefID)
@@ -1006,7 +956,6 @@ local function GetLongestWeaponRange(unitDefID, GroundAirSubmerged)
 				weaponRange = weaponDef["range"]
 			end
 		end
-
 	end
 
 	return weaponRange
@@ -1014,7 +963,7 @@ end
 
 local function GetBuiltBy()
 	local builtBy = {}
-	for unitDefID,unitDef in pairs(UnitDefs) do
+	for unitDefID, unitDef in pairs(UnitDefs) do
 		if unitDef.buildOptions and #unitDef.buildOptions > 0 then
 			for i, buildDefID in pairs(unitDef.buildOptions) do
 				local buildDef = UnitDefs[buildDefID]
@@ -1056,30 +1005,29 @@ end
 -- 	return dps, weaponDamage, reloadTime
 -- end
 
-
-
-
-local function GetUnitSide(name)--TODO change to the internal name armada cortex
-	if string.find(name, 'arm') then
-		return 'arm'
-	elseif string.find(name, 'cor') then
-		return 'core'
-	elseif string.find(name, 'raptor') then
-		return 'raptor'
+local function GetUnitSide(name) --TODO change to the internal name armada cortex
+	if string.find(name, "arm") then
+		return "arm"
+	elseif string.find(name, "cor") then
+		return "core"
+	elseif string.find(name, "raptor") then
+		return "raptor"
 	end
-	return 'unknown'
+	return "unknown"
 end
 
 local function getTechTree(sideTechLv)
 	continue = false
 	local tmp = {}
-	for name,lv in pairs(sideTechLv) do
+	for name, lv in pairs(sideTechLv) do
 		if lv == false then
 			sideTechLv[name] = parent
-			if ArmyHST.techPenalty[name] then sideTechLv[name] = sideTechLv[name] + ArmyHST.techPenalty[name] end--here cause some not corresponding at true and seaplane maybe
+			if ArmyHST.techPenalty[name] then
+				sideTechLv[name] = sideTechLv[name] + ArmyHST.techPenalty[name]
+			end --here cause some not corresponding at true and seaplane maybe
 			local canBuild = UnitDefNames[name].buildOptions
 			if canBuild and #canBuild > 0 then
-				for index,id in pairs(UnitDefNames[name].buildOptions) do
+				for index, id in pairs(UnitDefNames[name].buildOptions) do
 					if not sideTechLv[UnitDefs[id].name] then
 						tmp[UnitDefs[id].name] = false
 						continue = true
@@ -1088,26 +1036,23 @@ local function getTechTree(sideTechLv)
 			end
 		end
 	end
-	for name,lv in pairs(tmp) do
+	for name, lv in pairs(tmp) do
 		sideTechLv[name] = lv
 	end
-	if continue  then
+	if continue then
 		parent = parent + 1
 		getTechTree(sideTechLv)
 	end
 	parent = 0
 end
 
-function ArmyHST:getThreatRange(unitName)
-end
+function ArmyHST:getThreatRange(unitName) end
 
 function ArmyHST:GetUnitTable()
 	--local builtBy = GetBuiltBy()
-	for unitDefID,unitDef in pairs(UnitDefs) do
+	for unitDefID, unitDef in pairs(UnitDefs) do
 		local side = GetUnitSide(unitDef.name)
 		--if unitsLevels[unitDef.name] then
-
-
 
 		-- --print(unitDef.name, "build slope", unitDef.maxHeightDif)
 		-- if unitDef.moveDef.maxSlope then
@@ -1179,10 +1124,10 @@ function ArmyHST:GetUnitTable()
 		utable.groundThreat = 0
 		utable.submergedThreat = 0
 		if utable.groundRange > 0 then
-			utable.longRange = 'ground'
+			utable.longRange = "ground"
 			utable.groundThreat = utable.metalCost
 			utable.maxRange = utable.groundRange
-			table.insert(utable.weaponLayer,'ground')
+			table.insert(utable.weaponLayer, "ground")
 			table.insert(utable.weaponMtype, "veh")
 			table.insert(utable.weaponMtype, "bot")
 			table.insert(utable.weaponMtype, "amp")
@@ -1192,20 +1137,20 @@ function ArmyHST:GetUnitTable()
 
 		if utable.airRange > 0 then
 			if utable.airRange > utable.groundRange and utable.airRange > utable.submergedRange then
-				utable.longRange = 'air'
+				utable.longRange = "air"
 				utable.maxRange = utable.airRange
 			end
 			utable.airThreat = utable.metalCost
-			table.insert(utable.weaponLayer,'air')
+			table.insert(utable.weaponLayer, "air")
 			table.insert(utable.weaponMtype, "air")
 		end
 		if utable.submergedRange > 0 then
 			if utable.submergedRange > utable.groundRange and utable.submergedRange > utable.airRange then
-				utable.longRange = 'submberged'
+				utable.longRange = "submberged"
 				utable.maxRange = utable.submergedRange
 			end
 			utable.submergedThreat = utable.metalCost
-			table.insert(utable.weaponLayer,'submerged')
+			table.insert(utable.weaponLayer, "submerged")
 			table.insert(utable.weaponMtype, "sub")
 			table.insert(utable.weaponMtype, "shp")
 			table.insert(utable.weaponMtype, "amp")
@@ -1218,9 +1163,9 @@ function ArmyHST:GetUnitTable()
 			utable.maxRange = 0
 		end
 		utable.threatLayers = {}
-		utable.threatLayers.air = { threat = utable.airThreat , range = utable.airRange }
-		utable.threatLayers.ground = { threat = utable.groundThreat , range = utable.groundRange }
-		utable.threatLayers.submerged = { threat = utable.submergedThreat , range = utable.submergedRange }
+		utable.threatLayers.air = { threat = utable.airThreat, range = utable.airRange }
+		utable.threatLayers.ground = { threat = utable.groundThreat, range = utable.groundRange }
+		utable.threatLayers.submerged = { threat = utable.submergedThreat, range = utable.submergedRange }
 		utable.dps = getDPS(unitDefID)
 		utable.antiNuke = getInterceptor(unitDefID)
 		utable.targetableWeapon = getTargetableWeapon(unitDefID)
@@ -1234,25 +1179,22 @@ function ArmyHST:GetUnitTable()
 			utable.onlyTargets = getOnlyTargets(unitDef["weapons"])
 			utable.badTargets = getBadTargets(unitDef["weapons"])
 			utable.firstWeapon = WeaponDefs[unitDef["weapons"][1]["weaponDef"]]
-			utable.weaponType = utable.firstWeapon['type']
-			utable.badTg = ''
+			utable.weaponType = utable.firstWeapon["type"]
+			utable.badTg = ""
 			if defWepon1.badTargets then
-				for ii,vv in pairs(defWepon1.badTargets) do
+				for ii, vv in pairs(defWepon1.badTargets) do
 					--Spring:Echo(ii)
 					utable.badTg = utable.badTg .. ii
-
 				end
 			end
-			utable.onlyTg = ''
+			utable.onlyTg = ""
 			if defWepon1.onlyTargets then
-				for ii,_ in pairs(defWepon1.onlyTargets) do
+				for ii, _ in pairs(defWepon1.onlyTargets) do
 					utable.onlyTg = utable.onlyTg .. ii
 				end
 			end
 			utable.onlyBadTg = utable.onlyTg .. utable.badTg
 		end
-
-
 
 		--Spring:Echo(unitDef.name,utable.antiNuke)
 		if unitDef.speed > 0 and utable.isWeapon then
@@ -1262,16 +1204,16 @@ function ArmyHST:GetUnitTable()
 			utable.isTurret = true
 			if unitDef.modCategories.mine then
 				utable.isMine = utable.techLevel
-			elseif utable.firstWeapon and utable.firstWeapon['type'] == ('StarburstLauncher' or 'MissileLauncher') then
-				utable.isTacticalTurret =  utable.techLevel
-			elseif utable.firstWeapon and utable.firstWeapon['type'] == 'Cannon' then
+			elseif utable.firstWeapon and utable.firstWeapon["type"] == ("StarburstLauncher" or "MissileLauncher") then
+				utable.isTacticalTurret = utable.techLevel
+			elseif utable.firstWeapon and utable.firstWeapon["type"] == "Cannon" then
 				utable.isCannonTurret = utable.techLevel
 				if not utable.firstWeapon.selfExplode then
 					utable.isPlasmaCannon = utable.techLevel
 				end
-			elseif utable.firstWeapon and utable.firstWeapon['type'] == 'BeamLaser' then
+			elseif utable.firstWeapon and utable.firstWeapon["type"] == "BeamLaser" then
 				utable.isLaserTurret = utable.techLevel
-			elseif utable.firstWeapon and utable.firstWeapon['type'] == 'TorpedoLauncher' then
+			elseif utable.firstWeapon and utable.firstWeapon["type"] == "TorpedoLauncher" then
 				utable.isTorpedoTurret = utable.techLevel
 			end
 			if utable.groundRange and utable.groundRange > 0 then
@@ -1290,38 +1232,38 @@ function ArmyHST:GetUnitTable()
 		utable.needsWater = unitDef.minWaterDepth > 0
 		if unitDef["canFly"] then
 			utable.mtype = "air"
-			utable.LAYER = 'A'
-		elseif	utable.isBuilding and utable.needsWater then
-			utable.mtype = 'sub'
-			utable.LAYER = 'S'
-		elseif	utable.isBuilding and not utable.needsWater then
-			utable.mtype = 'veh'
-			utable.LAYER = 'G'
-		elseif  unitDef.moveDef.name and (string.find(unitDef.moveDef.name, 'abot') or string.find(unitDef.moveDef.name, 'commanderbot') or string.find(unitDef.moveDef.name, 'vbot')  or string.find(unitDef.moveDef.name,'atank'))  then
-			utable.mtype = 'amp'
-			utable.LAYER = 'X'
-		elseif unitDef.moveDef.name and string.find(unitDef.moveDef.name, 'uboat') then
-			utable.mtype = 'sub'
-			utable.LAYER = 'S'
-		elseif unitDef.moveDef.name and  string.find(unitDef.moveDef.name, 'hover') then
-			utable.mtype = 'hov'
-			utable.LAYER = 'G'
-		elseif unitDef.moveDef.name and string.find(unitDef.moveDef.name, 'boat') then
-			utable.mtype = 'shp'
-			utable.LAYER = 'G'
-		elseif unitDef.moveDef.name and string.find(unitDef.moveDef.name, 'tank') then
-			utable.mtype = 'veh'
-			utable.LAYER = 'G'
-		elseif unitDef.moveDef.name and string.find(unitDef.moveDef.name, 'bot') then
-			utable.mtype = 'bot'
-			utable.LAYER = 'G'
+			utable.LAYER = "A"
+		elseif utable.isBuilding and utable.needsWater then
+			utable.mtype = "sub"
+			utable.LAYER = "S"
+		elseif utable.isBuilding and not utable.needsWater then
+			utable.mtype = "veh"
+			utable.LAYER = "G"
+		elseif unitDef.moveDef.name and (string.find(unitDef.moveDef.name, "abot") or string.find(unitDef.moveDef.name, "commanderbot") or string.find(unitDef.moveDef.name, "vbot") or string.find(unitDef.moveDef.name, "atank")) then
+			utable.mtype = "amp"
+			utable.LAYER = "X"
+		elseif unitDef.moveDef.name and string.find(unitDef.moveDef.name, "uboat") then
+			utable.mtype = "sub"
+			utable.LAYER = "S"
+		elseif unitDef.moveDef.name and string.find(unitDef.moveDef.name, "hover") then
+			utable.mtype = "hov"
+			utable.LAYER = "G"
+		elseif unitDef.moveDef.name and string.find(unitDef.moveDef.name, "boat") then
+			utable.mtype = "shp"
+			utable.LAYER = "G"
+		elseif unitDef.moveDef.name and string.find(unitDef.moveDef.name, "tank") then
+			utable.mtype = "veh"
+			utable.LAYER = "G"
+		elseif unitDef.moveDef.name and string.find(unitDef.moveDef.name, "bot") then
+			utable.mtype = "bot"
+			utable.LAYER = "G"
 		else
 			if unitDef.maxwaterdepth and unitDef.maxwaterdepth < 0 then
-				utable.mtype = 'shp'
-				utable.LAYER = 'G'
+				utable.mtype = "shp"
+				utable.LAYER = "G"
 			else
-				utable.mtype = 'veh'
-				utable.LAYER = 'G'
+				utable.mtype = "veh"
+				utable.LAYER = "G"
 			end
 		end
 
@@ -1332,26 +1274,23 @@ function ArmyHST:GetUnitTable()
 		if unitDef["isBuilder"] and #unitDef["buildOptions"] > 0 then
 			utable.buildOptions = true
 			if unitDef["isBuilding"] then
-				utable['isFactory'] = {}
+				utable["isFactory"] = {}
 				utable.unitsCanBuild = {}
-				for i, oid in pairs (unitDef["buildOptions"]) do
+				for i, oid in pairs(unitDef["buildOptions"]) do
 					local buildDef = UnitDefs[oid]
 					table.insert(utable.unitsCanBuild, buildDef["name"])
 					--and save all the mtype that can andle
 					--utable.isFactory[unitName[buildDef.name].mtype] = TODO
 				end
-
 			else
 				utable.factoriesCanBuild = {}
 				utable.buildingsCanBuild = {}
-				for i, oid in pairs (unitDef["buildOptions"]) do
-
+				for i, oid in pairs(unitDef["buildOptions"]) do
 					local buildDef = UnitDefs[oid]
 					table.insert(utable.buildingsCanBuild, buildDef["name"])
 					if #buildDef["buildOptions"] > 0 and buildDef["isBuilding"] then
 						-- build option is a factory, add it to factories this unit can build
 						table.insert(utable.factoriesCanBuild, buildDef["name"])
-
 					end
 				end
 				if #utable.factoriesCanBuild > 0 then
@@ -1362,8 +1301,8 @@ function ArmyHST:GetUnitTable()
 			end
 		end
 
-		utable.mtypedLv = tostring(utable.mtype)..utable.techLevel
-		if self.scouts[utable.name] or self.raiders[utable.name] or self.battles[utable.name] or self.breaks[utable.name] or self.airgun[utable.name] or self.cloakables[utable.name] or self.amphibious[utable.name] or self.subkillers[utable.name] or self.spiders[utable.name] or self.paralyzers[utable.name] or self.artillerys[utable.name] or self.crawlings[utable.name]then
+		utable.mtypedLv = tostring(utable.mtype) .. utable.techLevel
+		if self.scouts[utable.name] or self.raiders[utable.name] or self.battles[utable.name] or self.breaks[utable.name] or self.airgun[utable.name] or self.cloakables[utable.name] or self.amphibious[utable.name] or self.subkillers[utable.name] or self.spiders[utable.name] or self.paralyzers[utable.name] or self.artillerys[utable.name] or self.crawlings[utable.name] then
 			utable.isAttacker = true
 			--Spring:Echo(utable.name, 'isAttacker')
 		end
@@ -1394,5 +1333,9 @@ end
 
 getTechTree(armTechLv)
 getTechTree(corTechLv)
-for k,v in pairs(corTechLv) do unitsLevels[k] = v end
-for k,v in pairs(armTechLv) do unitsLevels[k] = v end
+for k, v in pairs(corTechLv) do
+	unitsLevels[k] = v
+end
+for k, v in pairs(armTechLv) do
+	unitsLevels[k] = v
+end

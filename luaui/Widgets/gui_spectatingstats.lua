@@ -2,19 +2,19 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "Spectating Stats",
-		desc      = "",
-		author    = "Floris",
-		date      = "April 2023",
-		license   = "",
-		layer     = 0,
-		enabled   = false,
+		name = "Spectating Stats",
+		desc = "",
+		author = "Floris",
+		date = "April 2023",
+		license = "",
+		layer = 0,
+		enabled = false,
 	}
 end
 
 local lastupdate = os.clock() - 10
 local allyTeamList = Spring.GetAllyTeamList()
-local numAllyTeams = #allyTeamList-1
+local numAllyTeams = #allyTeamList - 1
 local allyTeamName = {}
 local textcolor = "\255\200\200\200"
 
@@ -75,8 +75,8 @@ local function GetAllyTeamStats(allyTeamID)
 	local buildspeed = 0
 	if not allyTeamName[allyTeamID] then
 		local _, playerID, _, isAiTeam = Spring.GetTeamInfo(teamlist[1], false)
-        local name = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID) or Spring.GetPlayerInfo(playerID, false)
-		allyTeamName[allyTeamID] = ColorString(Spring.GetTeamColor(teamlist[1]))..name
+		local name = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID) or Spring.GetPlayerInfo(playerID, false)
+		allyTeamName[allyTeamID] = ColorString(Spring.GetTeamColor(teamlist[1])) .. name
 	end
 	for i, teamID in ipairs(teamlist) do
 		local units = Spring.GetTeamUnits(teamID)
@@ -105,7 +105,7 @@ function widget:DrawScreen()
 		for i, allyTeamID in ipairs(allyTeamList) do
 			if i <= numAllyTeams then
 				local unitCount, armyCount, armyDps, defenseCount, defenseDps, builders, buildspeed = GetAllyTeamStats(allyTeamID)
-				local text = string.format(allyTeamName[allyTeamID]..textcolor..": %d units, %d army (%d DPS), defenses %d (%d DPS), builders %d (%d bp)", unitCount, armyCount, armyDps, defenseCount, defenseDps, builders, buildspeed)
+				local text = string.format(allyTeamName[allyTeamID] .. textcolor .. ": %d units, %d army (%d DPS), defenses %d (%d DPS), builders %d (%d bp)", unitCount, armyCount, armyDps, defenseCount, defenseDps, builders, buildspeed)
 				Spring.Echo(text)
 			end
 		end
@@ -113,9 +113,7 @@ function widget:DrawScreen()
 end
 
 function widget:GetConfigData()
-	return {
-	}
+	return {}
 end
 
-function widget:SetConfigData(data)
-end
+function widget:SetConfigData(data) end

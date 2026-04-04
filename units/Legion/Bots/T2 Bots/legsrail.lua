@@ -32,7 +32,7 @@ return {
 		turninplacespeedlimit = 1,
 		turnrate = 800,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/gantry",

@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "13 Feb 2008",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -40,7 +40,7 @@ for featureDefID, featureDef in pairs(FeatureDefs) do
 				maxZ = maxZ,
 				y = math.floor(featureDef.model.maxy * 0.66),
 				rangeX = maxX - minX, -- Pre-calculate range to avoid subtraction in hot path
-				rangeZ = maxZ - minZ
+				rangeZ = maxZ - minZ,
 			}
 		end
 	end
@@ -65,7 +65,7 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, feature
 				x = x,
 				y = y + params.y,
 				z = z,
-				params = params
+				params = params,
 			}
 		end
 

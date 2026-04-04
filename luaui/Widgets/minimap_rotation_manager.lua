@@ -10,7 +10,6 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized functions for performance
 local mathFloor = math.floor
 
@@ -47,7 +46,8 @@ local spEcho = Spring.Echo
 			- minimap_rotate mode autoRotate
 			- minimap_rotate set 90 absolute
 			- minimap_rotate toggleTracking
-]]--
+]]
+--
 
 local CameraRotationModes = {
 	none = 1,
@@ -65,16 +65,15 @@ local autoFitTargetRot = nil
 local autoFitCameraApplied = false
 local lastGameID = nil
 
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local spSetMiniRot		= 	Spring.SetMiniMapRotation
-local spGetMiniRot		= 	Spring.GetMiniMapRotation
+local spSetMiniRot = Spring.SetMiniMapRotation
+local spGetMiniRot = Spring.GetMiniMapRotation
 local PI = math.pi
 local HALFPI = PI / 2
 local TWOPI = PI * 2
-local AUTOFIT_HYSTERESIS = PI / 6  -- ~30°: camera must move this far past the midpoint before the minimap flips
+local AUTOFIT_HYSTERESIS = PI / 6 -- ~30°: camera must move this far past the midpoint before the minimap flips
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -103,12 +102,10 @@ local function minimapRotateHandler(_, _, args)
 			return
 		end
 
-		WG['options'].applyOptionValue("minimaprotation", newMode)
+		WG["options"].applyOptionValue("minimaprotation", newMode)
 		spEcho("[MinimapManager] Mode set to " .. args[2])
 		return true
-
 	elseif module == "set" then
-
 		local rotationArg = tonumber(args[2]) or nil
 		local absoluteArg = args[3] == "absolute"
 
@@ -135,7 +132,6 @@ local function minimapRotateHandler(_, _, args)
 
 		spSetMiniRot(newRotation)
 		return true
-
 	elseif module == "toggleTracking" then
 		trackingLock = not trackingLock
 		spEcho("[MinimapManager] Tracking lock is now " .. (trackingLock and "enabled" or "disabled"))
@@ -146,13 +142,19 @@ local function minimapRotateHandler(_, _, args)
 end
 
 local function isValidOption(num)
-	if num == nil then return false end
-	if num < CameraRotationModes.none or num > CameraRotationModes.autoLandscape then return false end
+	if num == nil then
+		return false
+	end
+	if num < CameraRotationModes.none or num > CameraRotationModes.autoLandscape then
+		return false
+	end
 	return true
 end
 
 local function applyAutoFitRotation()
-	if mode ~= CameraRotationModes.autoLandscape then return end
+	if mode ~= CameraRotationModes.autoLandscape then
+		return
+	end
 	local mapSizeX = Game.mapSizeX
 	local mapSizeZ = Game.mapSizeZ
 	if mapSizeZ > mapSizeX then
@@ -207,8 +209,8 @@ local function applyAutoFitRotation()
 end
 
 function widget:Initialize()
-	WG['minimaprotationmanager'] = {}
-	WG['minimaprotationmanager'].setMode = function(newMode)
+	WG["minimaprotationmanager"] = {}
+	WG["minimaprotationmanager"].setMode = function(newMode)
 		if isValidOption(newMode) then
 			mode = newMode
 			prevSnap = nil
@@ -228,11 +230,11 @@ function widget:Initialize()
 		end
 	end
 
-	WG['minimaprotationmanager'].getMode = function()
+	WG["minimaprotationmanager"].getMode = function()
 		return mode
 	end
 
-	local temp = WG['options'].getOptionValue("minimaprotation")
+	local temp = WG["options"].getOptionValue("minimaprotation")
 	if isValidOption(temp) then -- Sync up when the widget was unloaded
 		mode = temp
 	end
@@ -245,14 +247,18 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	WG['minimaprotationmanager'] = nil
+	WG["minimaprotationmanager"] = nil
 end
 
 function widget:Update()
-	if mode ~= CameraRotationModes.autoLandscape or autoFitApplied then return end
+	if mode ~= CameraRotationModes.autoLandscape or autoFitApplied then
+		return
+	end
 
 	local currentGameID = Game.gameID or Spring.GetGameRulesParam("GameID")
-	if not currentGameID then return end  -- game not loaded yet
+	if not currentGameID then
+		return
+	end -- game not loaded yet
 
 	if currentGameID ~= lastGameID then
 		-- New game: reset so it recalculates direction
@@ -266,7 +272,9 @@ function widget:Update()
 end
 
 function widget:CameraRotationChanged(_, roty)
-	if trackingLock then return end
+	if trackingLock then
+		return
+	end
 
 	if mode == CameraRotationModes.autoLandscape then
 		if Game.mapSizeZ > Game.mapSizeX then
@@ -281,7 +289,7 @@ function widget:CameraRotationChanged(_, roty)
 			-- Hysteresis: only flip when camera is well past the midpoint boundary
 			if prevSnap ~= nil and newRot ~= prevSnap then
 				if distFromBoundary < AUTOFIT_HYSTERESIS then
-					return  -- too close to boundary, keep current orientation
+					return -- too close to boundary, keep current orientation
 				end
 			end
 			if newRot ~= prevSnap then
@@ -307,7 +315,7 @@ function widget:CameraRotationChanged(_, roty)
 			return
 		else
 			-- Square map: free 90° rotation like autoRotate
-			local newRot = HALFPI * (mathFloor((roty/HALFPI) + 0.5) % 4)
+			local newRot = HALFPI * (mathFloor((roty / HALFPI) + 0.5) % 4)
 			if newRot ~= prevSnap then
 				prevSnap = newRot
 				spSetMiniRot(newRot)
@@ -316,12 +324,14 @@ function widget:CameraRotationChanged(_, roty)
 		end
 	end
 
-	if mode == CameraRotationModes.none then return end
+	if mode == CameraRotationModes.none then
+		return
+	end
 	local newRot
 	if mode == CameraRotationModes.autoFlip then
-		newRot = PI * mathFloor((roty/PI) + 0.5)
+		newRot = PI * mathFloor((roty / PI) + 0.5)
 	elseif mode == CameraRotationModes.autoRotate then
-		newRot = HALFPI * (mathFloor((roty/HALFPI) + 0.5) % 4)
+		newRot = HALFPI * (mathFloor((roty / HALFPI) + 0.5) % 4)
 	end
 	if newRot and newRot ~= prevSnap then
 		prevSnap = newRot

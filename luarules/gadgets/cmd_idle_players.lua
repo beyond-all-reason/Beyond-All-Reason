@@ -1,4 +1,3 @@
-
 if Spring.Utilities.Gametype.IsSinglePlayer() then
 	return
 end
@@ -6,15 +5,15 @@ end
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
-    return {
-        name = "Take Manager",
-        desc = "Handles players AFK and drops",
-        author = "BrainDamage",
-        date = "2012",
-        license = "WTFPL",
-        layer = 1,
-        enabled = true
-    }
+	return {
+		name = "Take Manager",
+		desc = "Handles players AFK and drops",
+		author = "BrainDamage",
+		date = "2012",
+		license = "WTFPL",
+		layer = 1,
+		enabled = true,
+	}
 end
 
 local maxIdleTreshold = 80 --in seconds
@@ -28,17 +27,16 @@ local checkQueueTime = 25 -- in seconds
 -- in chose ingame startpostype, players must place beforehand, so take an action, grace period can be shorter
 minTimeToTake = Spring.GetModOptions().startpostype == 2 and 1 or minTimeToTake
 
-local AFKMessage = 'idleplayers '
+local AFKMessage = "idleplayers "
 local AFKMessageSize = #AFKMessage
 
 local errorKeys = {
-	shareAFK = 'shareAFK',
-	takeEnemies = 'takeEnemies',
-	nothingToTake = 'nothingToTake',
+	shareAFK = "shareAFK",
+	takeEnemies = "takeEnemies",
+	nothingToTake = "nothingToTake",
 }
 
 if gadgetHandler:IsSyncedCode() then
-
 	local playerInfoTable = {}
 	local currentGameFrame = 0
 
@@ -56,7 +54,7 @@ if gadgetHandler:IsSyncedCode() then
 	local GetTeamList = Spring.GetTeamList
 	local IsCheatingEnabled = Spring.IsCheatingEnabled
 
-	local resourceList = {"metal","energy"}
+	local resourceList = { "metal", "energy" }
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	local gameSpeed = Game.gameSpeed
 
@@ -79,12 +77,12 @@ if gadgetHandler:IsSyncedCode() then
 	local function updatePlayersInfo()
 		local TeamToRemainingPlayers = {}
 		local aiOwners = {}
-		for _,teamID in ipairs(GetTeamList()) do --initialize team count
-			if select(4,GetTeamInfo(teamID,false)) then
+		for _, teamID in ipairs(GetTeamList()) do --initialize team count
+			if select(4, GetTeamInfo(teamID, false)) then
 				-- store who hosts that engine ai, team will be controlled if player is present
-				local aiHost = select(3,GetAIInfo(teamID))
+				local aiHost = select(3, GetAIInfo(teamID))
 				local hostedAis = aiOwners[aiHost] or {}
-				hostedAis[#hostedAis+1] = teamID
+				hostedAis[#hostedAis + 1] = teamID
 				aiOwners[aiHost] = hostedAis
 			end
 			-- lua ai and gaia are always controlled
@@ -95,8 +93,8 @@ if gadgetHandler:IsSyncedCode() then
 				TeamToRemainingPlayers[teamID] = 0
 			end
 		end
-		for _,playerID in ipairs(GetPlayerList()) do -- update player infos
-			local name,active,spectator,teamID,allyTeamID,ping = GetPlayerInfo(playerID,false)
+		for _, playerID in ipairs(GetPlayerList()) do -- update player infos
+			local name, active, spectator, teamID, allyTeamID, ping = GetPlayerInfo(playerID, false)
 			local playerInfoTableEntry = playerInfoTable[playerID] or {}
 			playerInfoTableEntry.connected = active
 			playerInfoTableEntry.player = not spectator
@@ -122,8 +120,8 @@ if gadgetHandler:IsSyncedCode() then
 			local hostedAis = aiOwners[playerID]
 			if hostedAis then
 				-- a player only needs to be connected and low enough ping to host an ai
-				if playerInfoTableEntry.connected  and playerInfoTableEntry.pingOK then
-					for _,aiTeamID in ipairs(hostedAis) do
+				if playerInfoTableEntry.connected and playerInfoTableEntry.pingOK then
+					for _, aiTeamID in ipairs(hostedAis) do
 						TeamToRemainingPlayers[aiTeamID] = TeamToRemainingPlayers[aiTeamID] + 1
 					end
 				end
@@ -136,7 +134,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		for teamID, teamCount in pairs(TeamToRemainingPlayers) do
 			-- set to a public readable value that there's nobody controlling the team
-			SetTeamRulesParam(teamID, "numActivePlayers", teamCount )
+			SetTeamRulesParam(teamID, "numActivePlayers", teamCount)
 		end
 	end
 
@@ -146,7 +144,7 @@ if gadgetHandler:IsSyncedCode() then
 			return -- exclude taking rights from lagged players, etc
 		end
 		local targetTeam = tonumber(words[1])
-		local _,_,_,takerID,allyTeamID = GetPlayerInfo(playerID,false)
+		local _, _, _, takerID, allyTeamID = GetPlayerInfo(playerID, false)
 		local teamList = GetTeamList(allyTeamID)
 		if targetTeam then
 			if select(6, GetTeamInfo(targetTeam, false)) ~= allyTeamID then
@@ -154,23 +152,23 @@ if gadgetHandler:IsSyncedCode() then
 				SendToUnsynced("NotifyError", playerID, errorKeys.takeEnemies)
 				return
 			end
-			teamList = {targetTeam}
+			teamList = { targetTeam }
 		end
 		local numToTake = 0
-		for _,teamID in ipairs(teamList) do
-			if GetTeamRulesParam(teamID,"numActivePlayers") == 0 then
+		for _, teamID in ipairs(teamList) do
+			if GetTeamRulesParam(teamID, "numActivePlayers") == 0 then
 				numToTake = numToTake + 1
 				-- transfer all units
 				local teamUnits = GetTeamUnits(teamID)
-				for i=1, #teamUnits do
+				for i = 1, #teamUnits do
 					TransferUnit(teamUnits[i], takerID)
 				end
 				-- send all resources en-block to the taker
 				for _, resourceName in ipairs(resourceList) do
 					local shareAmount = GetTeamResources(teamID, resourceName)
-					local current,storage,_,_,_,shareSlider = GetTeamResources(takerID, resourceName)
-					shareAmount = math.min(shareAmount,shareSlider*storage-current)
-					ShareTeamResource( teamID, takerID, resourceName, shareAmount )
+					local current, storage, _, _, _, shareSlider = GetTeamResources(takerID, resourceName)
+					shareAmount = math.min(shareAmount, shareSlider * storage - current)
+					ShareTeamResource(teamID, takerID, resourceName, shareAmount)
 				end
 			end
 		end
@@ -188,7 +186,6 @@ if gadgetHandler:IsSyncedCode() then
 		gadgetHandler:RemoveChatAction(takeCommand)
 	end
 
-
 	function gadget:GameFrame(currentFrame)
 		currentGameFrame = currentFrame
 		if currentFrame == 10 then
@@ -201,17 +198,17 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if msg:sub(1,2)~=validation and msg:sub(3,2+AFKMessageSize) ~= AFKMessage then --invalid message
+		if msg:sub(1, 2) ~= validation and msg:sub(3, 2 + AFKMessageSize) ~= AFKMessage then --invalid message
 			return
 		end
-		local afk = tonumber(msg:sub(2+AFKMessageSize+1))
+		local afk = tonumber(msg:sub(2 + AFKMessageSize + 1))
 		local playerInfoTableEntry = playerInfoTable[playerID] or {}
 		local previousPresent = playerInfoTableEntry.present
 		playerInfoTableEntry.present = afk == 0
 		playerInfoTable[playerID] = playerInfoTableEntry
-		local name,active,spectator,teamID,allyTeamID,ping = GetPlayerInfo(playerID, false)
+		local name, active, spectator, teamID, allyTeamID, ping = GetPlayerInfo(playerID, false)
 		if not spectator and name ~= nil then
-			if currentGameFrame > minTimeToTake*gameSpeed then
+			if currentGameFrame > minTimeToTake * gameSpeed then
 				if previousPresent and not playerInfoTableEntry.present then
 					SendToUnsynced("PlayerAFK", allyTeamID, name)
 				elseif not previousPresent and playerInfoTableEntry.present then
@@ -223,18 +220,14 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:AllowResourceTransfer(fromTeamID, toTeamID, restype, level)
 		-- prevent resources to leak to uncontrolled teams
-		return GetTeamRulesParam(toTeamID,"numActivePlayers") ~= 0 or IsCheatingEnabled()
+		return GetTeamRulesParam(toTeamID, "numActivePlayers") ~= 0 or IsCheatingEnabled()
 	end
 
 	function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
 		-- prevent units to be shared to uncontrolled teams
-		return capture or GetTeamRulesParam(toTeamID,"numActivePlayers") ~= 0 or IsCheatingEnabled()
+		return capture or GetTeamRulesParam(toTeamID, "numActivePlayers") ~= 0 or IsCheatingEnabled()
 	end
-
-
-else	-- UNSYNCED
-
-
+else -- UNSYNCED
 	local GetLastUpdateSeconds = Spring.GetLastUpdateSeconds
 	local SendLuaRulesMsg = Spring.SendLuaRulesMsg
 	local GetMouseState = Spring.GetMouseState
@@ -252,7 +245,7 @@ else	-- UNSYNCED
 	local isIdle = true
 	local updateRefreshTime = 1 --in seconds
 	local initialQueueTime
-	local mx,my = GetMouseState()
+	local mx, my = GetMouseState()
 	local validation = SYNCED.validationIdle
 	local warningGiven = false
 	local myTeamID = Spring.GetMyTeamID()
@@ -269,19 +262,19 @@ else	-- UNSYNCED
 		unitBuildSpeedTime[unitDefID] = unitDef.buildTime / unitDef.buildSpeed
 	end
 
-	local function onInitialQueueTime(_,_,words)
+	local function onInitialQueueTime(_, _, words)
 		initialQueueTime = tonumber(words[1])
 		if initialQueueTime then
-			initialQueueTime = min(initialQueueTime,maxInitialQueueSlack)
+			initialQueueTime = min(initialQueueTime, maxInitialQueueSlack)
 		end
 		return true
 	end
 
 	local function notIdle()
-		lastActionTime = max(timer,lastActionTime)
+		lastActionTime = max(timer, lastActionTime)
 		warningGiven = false
 		if isIdle then
-			SendLuaRulesMsg(validation..AFKMessage.. "0")
+			SendLuaRulesMsg(validation .. AFKMessage .. "0")
 			isIdle = false
 		end
 	end
@@ -297,40 +290,40 @@ else	-- UNSYNCED
 
 	local function wentIdle()
 		if not isIdle then
-			SendLuaRulesMsg(validation..AFKMessage.. "1")
+			SendLuaRulesMsg(validation .. AFKMessage .. "1")
 			isIdle = true
 		end
 	end
 
 	local function notifyError(_, playerID, errorKey)
-		if Script.LuaUI('GadgetMessageProxy') then
-			local translationKey = 'ui.idlePlayers.' .. errorKey
+		if Script.LuaUI("GadgetMessageProxy") then
+			local translationKey = "ui.idlePlayers." .. errorKey
 			Spring.SendMessageToPlayer(playerID, Script.LuaUI.GadgetMessageProxy(translationKey))
 		end
 	end
 
 	local function playerLagging(_, playerName)
-		if Script.LuaUI('GadgetMessageProxy') then
-			Spring.Echo( Script.LuaUI.GadgetMessageProxy('ui.idlePlayers.lagging', { name = playerName }) )
+		if Script.LuaUI("GadgetMessageProxy") then
+			Spring.Echo(Script.LuaUI.GadgetMessageProxy("ui.idlePlayers.lagging", { name = playerName }))
 		end
 	end
 
 	local function playerResumed(_, playerName)
-		if Script.LuaUI('GadgetMessageProxy') then
-			Spring.Echo( Script.LuaUI.GadgetMessageProxy('ui.idlePlayers.resumed', { name = playerName }) )
+		if Script.LuaUI("GadgetMessageProxy") then
+			Spring.Echo(Script.LuaUI.GadgetMessageProxy("ui.idlePlayers.resumed", { name = playerName }))
 		end
 	end
 
 	local function playerAFK(_, allyTeamID, playerName)
-		if Script.LuaUI('GadgetMessageProxy') then
-			local message = Script.LuaUI.GadgetMessageProxy('ui.idlePlayers.afk', { name = playerName })
+		if Script.LuaUI("GadgetMessageProxy") then
+			local message = Script.LuaUI.GadgetMessageProxy("ui.idlePlayers.afk", { name = playerName })
 			Spring.SendMessageToAllyTeam(allyTeamID, message)
 		end
 	end
 
 	local function playerReturned(_, allyTeamID, playerName)
-		if Script.LuaUI('GadgetMessageProxy') then
-			local message = Script.LuaUI.GadgetMessageProxy('ui.idlePlayers.returned', { name = playerName })
+		if Script.LuaUI("GadgetMessageProxy") then
+			local message = Script.LuaUI.GadgetMessageProxy("ui.idlePlayers.returned", { name = playerName })
 			Spring.SendMessageToAllyTeam(allyTeamID, message)
 		end
 	end
@@ -342,7 +335,7 @@ else	-- UNSYNCED
 		gadgetHandler:AddSyncAction("PlayerResumed", playerResumed)
 		gadgetHandler:AddSyncAction("PlayerAFK", playerAFK)
 		gadgetHandler:AddSyncAction("PlayerReturned", playerReturned)
-		gadgetHandler:AddChatAction("initialQueueTime",onInitialQueueTime)
+		gadgetHandler:AddChatAction("initialQueueTime", onInitialQueueTime)
 		notIdle()
 	end
 
@@ -353,7 +346,7 @@ else	-- UNSYNCED
 
 	function gadget:Update()
 		local dt = GetLastUpdateSeconds()
-		timer = timer+dt
+		timer = timer + dt
 		updateTimer = updateTimer + dt
 		if updateTimer < updateRefreshTime then
 			return
@@ -364,13 +357,13 @@ else	-- UNSYNCED
 			local teamID = Spring.GetMyTeamID()
 			local myUnits = Spring.GetTeamUnits(teamID)
 			local queueTime = 0
-			for i=1, #myUnits do
+			for i = 1, #myUnits do
 				local unitID = myUnits[i]
 				local thisQueueTime = 0
 				if isBuilder[GetUnitDefID(unitID)] then
 					local buildQueue = GetRealBuildQueue(unitID)
 					if buildQueue then
-						for uDID,_ in pairs(buildQueue) do
+						for uDID, _ in pairs(buildQueue) do
 							thisQueueTime = thisQueueTime + unitBuildSpeedTime[uDID]
 						end
 					end
@@ -379,35 +372,35 @@ else	-- UNSYNCED
 					queueTime = thisQueueTime
 				end
 			end
-			lastActionTime = min(max(lastActionTime, timer+queueTime),gameStartTime+maxInitialQueueSlack) --treat this queue as though is was an initial queue
+			lastActionTime = min(max(lastActionTime, timer + queueTime), gameStartTime + maxInitialQueueSlack) --treat this queue as though is was an initial queue
 			checkQueueTime = nil
 		end
 
 		-- check if the mouse moved
-		local x,y = GetMouseState()
+		local x, y = GetMouseState()
 		if mx ~= x or my ~= y then
 			notIdle()
 		end
 		my = y
 		mx = x
 
-		if timer-lastActionTime > maxIdleTreshold-warningPeriod then
+		if timer - lastActionTime > maxIdleTreshold - warningPeriod then
 			if not warningGiven then
 				warningGiven = true
 				local spectator = Spring.GetSpectatingState()
 				if not spectator then
 					-- check first if user has team players... that could possibly take... and then give warning
 					local teamList = Spring.GetTeamList(myAllyTeamID)
-					for _,teamID in ipairs(teamList) do
+					for _, teamID in ipairs(teamList) do
 						local luaAI = Spring.GetTeamLuaAI(teamID)
 						local _, leader, isDead, isAiTeam, side, allyTeamID, incomeMultiplier, customTeamKeys = Spring.GetTeamInfo(teamID, false)
-						if Script.LuaUI('GadgetMessageProxy') and teamID ~= myTeamID and teamID ~= gaiaTeamID and not isDead and not isAiTeam and (not luaAI or luaAI == "") and Spring.GetTeamRulesParam(teamID, "numActivePlayers") > 0 then
-							Spring.Echo("\255\255\166\166" .. Script.LuaUI.GadgetMessageProxy('ui.idlePlayers.warning'))
+						if Script.LuaUI("GadgetMessageProxy") and teamID ~= myTeamID and teamID ~= gaiaTeamID and not isDead and not isAiTeam and (not luaAI or luaAI == "") and Spring.GetTeamRulesParam(teamID, "numActivePlayers") > 0 then
+							Spring.Echo("\255\255\166\166" .. Script.LuaUI.GadgetMessageProxy("ui.idlePlayers.warning"))
 							break
 						end
 					end
 				end
-			elseif timer-lastActionTime > maxIdleTreshold then
+			elseif timer - lastActionTime > maxIdleTreshold then
 				wentIdle()
 			end
 		end
@@ -424,5 +417,4 @@ else	-- UNSYNCED
 	function gadget:KeyPress()
 		notIdle()
 	end
-
 end

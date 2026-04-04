@@ -1,5 +1,4 @@
 local function communityBalanceTweaks(name, uDef, modOptions)
-
 	local communityBalancePatchDisabled = modOptions.community_balance_patch == "disabled"
 	if not communityBalancePatchDisabled then
 		local all = modOptions.community_balance_patch == "enabled"
@@ -101,7 +100,7 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 							weaponDef.range = 230
 							weaponDef.damage = {
 								default = 15,
-								vtol = 5
+								vtol = 5,
 							}
 						end
 					end

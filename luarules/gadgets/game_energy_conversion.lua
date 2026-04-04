@@ -2,14 +2,14 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name = 'Energy Conversion',
-		desc = 'Handles converting energy to metal',
-		author = 'Niobium(modified by TheFatController, Finkky)',
-		version = 'v2.3',
-		date = 'May 2011',
-		license = 'GNU GPL, v2 or later',
+		name = "Energy Conversion",
+		desc = "Handles converting energy to metal",
+		author = "Niobium(modified by TheFatController, Finkky)",
+		version = "v2.3",
+		date = "May 2011",
+		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -25,11 +25,11 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
-local alterLevelRegex = '^' .. string.char(137) .. '(%d+)$'
-local mmLevelParamName = 'mmLevel'
-local mmCapacityParamName = 'mmCapacity'
-local mmUseParamName = 'mmUse'
-local mmAvgEffiParamName = 'mmAvgEffi'
+local alterLevelRegex = "^" .. string.char(137) .. "(%d+)$"
+local mmLevelParamName = "mmLevel"
+local mmCapacityParamName = "mmCapacity"
+local mmUseParamName = "mmUse"
+local mmAvgEffiParamName = "mmAvgEffi"
 local function SetMMRulesParams()
 	-- make convertCapacities accessible to all
 	for uDID, conv in pairs(convertCapacities) do
@@ -80,7 +80,7 @@ local tableSort = table.sort
 ----------------------------------------------------------------
 
 local function prototype(t)
-	local u = { }
+	local u = {}
 	for k, v in pairs(t) do
 		u[k] = v
 	end
@@ -194,7 +194,9 @@ function EmpedVector:process(currentFrame)
 	for uID, frameID in pairs(self.unitBuffer) do
 		if currentFrame >= frameID then
 			UnitParalysisOver(uID, spGetUnitDefID(uID), spGetUnitTeam(uID))
-			if not toRemove then toRemove = {} end
+			if not toRemove then
+				toRemove = {}
+			end
 			removeCount = removeCount + 1
 			toRemove[removeCount] = uID
 		end
@@ -269,7 +271,6 @@ function gadget:Initialize()
 		spSetTeamRulesParam(tID, mmCapacityParamName, 0)
 		spSetTeamRulesParam(tID, mmUseParamName, 0)
 		spSetTeamRulesParam(tID, mmAvgEffiParamName, teamEfficiencies[tID]:avg())
-
 	end
 end
 
@@ -288,12 +289,11 @@ function BuildeSteps()
 		end
 	end
 	tableSort(eSteps, function(m1, m2)
-		return m1 > m2;
+		return m1 > m2
 	end)
 end
 
 function gadget:GameFrame(n)
-
 	-- process emped in the least likely used frame by the actual per team maker computations
 	if n % resourceRefreshRate == resourceRefreshRate - 1 then
 		currentFrameStamp = currentFrameStamp + 1
@@ -313,7 +313,7 @@ function gadget:GameFrame(n)
 			if tpos <= teamListCount then
 				tID = teamList[tpos]
 
-				local eCur, eStor = spGetTeamResources(tID, 'energy')
+				local eCur, eStor = spGetTeamResources(tID, "energy")
 				local mmLevel = spGetTeamRulesParam(tID, mmLevelParamName)
 				local convertAmount = eCur - eStor * mmLevel
 				local eConverted, mConverted, teamUsages = 0, 0, 0
@@ -443,7 +443,7 @@ function gadget:UnitGiven(uID, uDefID, newTeam, oldTeam)
 		capacity = oldUnitData.capacity,
 		status = oldUnitData.status,
 		emped = oldUnitData.emped,
-		built = oldUnitData.built
+		built = oldUnitData.built,
 	}
 
 	oldTeamMM[uID] = nil

@@ -1,17 +1,16 @@
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
-   return {
-      name      = "Mapmarks FX",
-      desc      = "Adds glow/rings at map marks",
-      author    = "Floris",
-      date      = "7 june 2015",
-      license   = "GNU GPL, v2 or later",
-      layer     = 2,
-      enabled   = true,
-   }
+	return {
+		name = "Mapmarks FX",
+		desc = "Adds glow/rings at map marks",
+		author = "Floris",
+		date = "7 june 2015",
+		license = "GNU GPL, v2 or later",
+		layer = 2,
+		enabled = true,
+	}
 end
-
 
 -- Localized Spring API for performance
 local spGetViewGeometry = Spring.GetViewGeometry
@@ -41,7 +40,7 @@ local mapDrawNicknameTime = {}
 local mapEraseNicknameTime = {}
 
 local ownPlayerID = Spring.GetMyPlayerID()
-local vsx,vsy = spGetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 
 local commandCount = 0
 local font, chobbyInterface
@@ -57,51 +56,51 @@ local nickNames = {}
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local nicknameOpacityMultiplier	= 6		-- multiplier applied to the given color opacity of the type: 'map_draw'
+local nicknameOpacityMultiplier = 6 -- multiplier applied to the given color opacity of the type: 'map_draw'
 
-local generalSize 				= 28		-- overall size
-local generalOpacity 			= 0.8		-- overall opacity
-local generalDuration			= 1.2		-- overall duration
+local generalSize = 28 -- overall size
+local generalOpacity = 0.8 -- overall opacity
+local generalDuration = 1.2 -- overall duration
 
-local ringStartSize				= 9
-local ringScale					= 0.75
+local ringStartSize = 9
+local ringScale = 0.75
 
-local imageDir					= ":n:LuaUI/Images/mapmarksfx/"
+local imageDir = ":n:LuaUI/Images/mapmarksfx/"
 
 local types = {
 	map_mark = {
-		size			= 3.2,
-		endSize			= 2.25,
-		duration		= 14,
-		glowColor		= {1.00 ,1.00 ,1.00 ,0.20},
-		ringColor		= {1.00 ,1.00 ,1.00 ,0.75},
+		size = 3.2,
+		endSize = 2.25,
+		duration = 14,
+		glowColor = { 1.00, 1.00, 1.00, 0.20 },
+		ringColor = { 1.00, 1.00, 1.00, 0.75 },
 		-- Precalculated values
 		sizeScaled = 0,
 		endSizeScaled = 0,
 		sizeDelta = 0,
 	},
 	map_draw = {
-		size			= 0.75,
-		endSize			= 0.2,
-		duration		= 2,
-		glowColor		= {1.00 ,1.00 ,1.00 ,0.15},
-		ringColor		= {1.00 ,1.00 ,1.00 ,0.00},
+		size = 0.75,
+		endSize = 0.2,
+		duration = 2,
+		glowColor = { 1.00, 1.00, 1.00, 0.15 },
+		ringColor = { 1.00, 1.00, 1.00, 0.00 },
 		-- Precalculated values
 		sizeScaled = 0,
 		endSizeScaled = 0,
 		sizeDelta = 0,
 	},
 	map_erase = {
-		size			= 3.5,
-		endSize			= 0.7,
-		duration		= 4,
-		glowColor		= {1.00 ,1.00 ,1.00 ,0.10},
-		ringColor		= {1.00 ,1.00 ,1.00 ,0.00},
+		size = 3.5,
+		endSize = 0.7,
+		duration = 4,
+		glowColor = { 1.00, 1.00, 1.00, 0.10 },
+		ringColor = { 1.00, 1.00, 1.00, 0.00 },
 		-- Precalculated values
 		sizeScaled = 0,
 		endSizeScaled = 0,
 		sizeDelta = 0,
-	}
+	},
 }
 
 -- Precalculate scaled sizes and durations
@@ -113,25 +112,28 @@ for _, typeData in pairs(types) do
 end
 
 -- Pre-cache texture paths (avoid string concat each frame)
-local glowTexture = imageDir .. 'glow.dds'
-local ringTexture = imageDir .. 'ring.dds'
-local pencilTexture = imageDir .. 'pencil.dds'
-local eraserTexture = imageDir .. 'eraser.dds'
+local glowTexture = imageDir .. "glow.dds"
+local ringTexture = imageDir .. "ring.dds"
+local pencilTexture = imageDir .. "pencil.dds"
+local eraserTexture = imageDir .. "eraser.dds"
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 local function DrawBatchedQuads(data, count)
 	for j = 1, count, 8 do
-		local x, y, z, s = data[j], data[j+1], data[j+2], data[j+3]
-		glColor(data[j+4], data[j+5], data[j+6], data[j+7])
-		glTexCoord(0, 0); glVertex(x - s, y, z - s)
-		glTexCoord(0, 1); glVertex(x - s, y, z + s)
-		glTexCoord(1, 1); glVertex(x + s, y, z + s)
-		glTexCoord(1, 0); glVertex(x + s, y, z - s)
+		local x, y, z, s = data[j], data[j + 1], data[j + 2], data[j + 3]
+		glColor(data[j + 4], data[j + 5], data[j + 6], data[j + 7])
+		glTexCoord(0, 0)
+		glVertex(x - s, y, z - s)
+		glTexCoord(0, 1)
+		glVertex(x - s, y, z + s)
+		glTexCoord(1, 1)
+		glVertex(x + s, y, z + s)
+		glTexCoord(1, 0)
+		glVertex(x + s, y, z - s)
 	end
 end
-
 
 local function AddEffect(cmdType, x, y, z, timestamp, unitID, playerID)
 	if not playerID then
@@ -144,52 +146,47 @@ local function AddEffect(cmdType, x, y, z, timestamp, unitID, playerID)
 
 	commandCount = commandCount + 1
 	commands[commandCount] = {
-		cmdType		= cmdType,
-		x			= x,
-		y			= y,
-		z			= z,
-		osClock		= timestamp,
-		playerID	= playerID,
-		r			= r,
-		g			= g,
-		b			= b,
-		spec		= spec,
-		nickname	= nickname
+		cmdType = cmdType,
+		x = x,
+		y = y,
+		z = z,
+		osClock = timestamp,
+		playerID = playerID,
+		r = r,
+		g = g,
+		b = b,
+		spec = spec,
+		nickname = nickname,
 	}
 end
 
-
 function widget:ViewResize()
-	vsx,vsy = spGetViewGeometry()
-	font = WG['fonts'].getFont(1, 1.5)
+	vsx, vsy = spGetViewGeometry()
+	font = WG["fonts"].getFont(1, 1.5)
 end
-
 
 function widget:Initialize()
 	widget:ViewResize()
 end
 
-
-function widget:Shutdown()
-end
+function widget:Shutdown() end
 
 function widget:MapDrawCmd(playerID, cmdType, x, y, z, a, b, c)
 	local currentTime = osClock()
-	if cmdType == 'point' then
-		AddEffect('map_mark', x, y, z, currentTime, false, playerID)
-	elseif cmdType == 'line' then
+	if cmdType == "point" then
+		AddEffect("map_mark", x, y, z, currentTime, false, playerID)
+	elseif cmdType == "line" then
 		mapDrawNicknameTime[playerID] = currentTime
-		AddEffect('map_draw', x, y, z, currentTime, false, playerID)
-	elseif cmdType == 'erase' then
+		AddEffect("map_draw", x, y, z, currentTime, false, playerID)
+	elseif cmdType == "erase" then
 		mapEraseNicknameTime[playerID] = currentTime
-		AddEffect('map_erase', x, y, z, currentTime, false, playerID)
+		AddEffect("map_erase", x, y, z, currentTime, false, playerID)
 	end
 end
 
-
 function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	if msg:sub(1, 18) == "LobbyOverlayActive" then
+		chobbyInterface = (msg:sub(1, 19) == "LobbyOverlayActive1")
 	end
 end
 
@@ -199,10 +196,18 @@ function widget:ClearMapMarks()
 end
 
 function widget:DrawWorldPreUnit()
-	if chobbyInterface then return end
-	if Spring.IsGUIHidden() then return end
-	if WG.clearmapmarks and WG.clearmapmarks.continuous then return end
-	if commandCount == 0 then return end
+	if chobbyInterface then
+		return
+	end
+	if Spring.IsGUIHidden() then
+		return
+	end
+	if WG.clearmapmarks and WG.clearmapmarks.continuous then
+		return
+	end
+	if commandCount == 0 then
+		return
+	end
 
 	local currentTime = osClock()
 
@@ -216,9 +221,7 @@ function widget:DrawWorldPreUnit()
 			commandCount = commandCount - 1
 		else
 			local totalDuration = types[cmd.cmdType].totalDuration
-			if currentTime - cmd.osClock > totalDuration
-				or (cmd.cmdType == 'map_draw' and mapDrawNicknameTime[cmd.playerID] ~= nil
-					and cmd.osClock < mapDrawNicknameTime[cmd.playerID]) then
+			if currentTime - cmd.osClock > totalDuration or (cmd.cmdType == "map_draw" and mapDrawNicknameTime[cmd.playerID] ~= nil and cmd.osClock < mapDrawNicknameTime[cmd.playerID]) then
 				commands[i] = commands[commandCount]
 				commands[commandCount] = nil
 				commandCount = commandCount - 1
@@ -228,7 +231,9 @@ function widget:DrawWorldPreUnit()
 		end
 	end
 
-	if commandCount == 0 then return end
+	if commandCount == 0 then
+		return
+	end
 
 	-- Phase 2: Build batch data
 	local glowN = 0
@@ -257,10 +262,14 @@ function widget:DrawWorldPreUnit()
 		if glowAlpha > 0 then
 			local n = glowN
 			local gs = size * 0.8
-			glowBatch[n+1] = cmd.x; glowBatch[n+2] = cmd.y; glowBatch[n+3] = cmd.z
-			glowBatch[n+4] = gs
-			glowBatch[n+5] = cr; glowBatch[n+6] = cg; glowBatch[n+7] = cb
-			glowBatch[n+8] = a * glowAlpha
+			glowBatch[n + 1] = cmd.x
+			glowBatch[n + 2] = cmd.y
+			glowBatch[n + 3] = cmd.z
+			glowBatch[n + 4] = gs
+			glowBatch[n + 5] = cr
+			glowBatch[n + 6] = cg
+			glowBatch[n + 7] = cb
+			glowBatch[n + 8] = a * glowAlpha
 			glowN = n + 8
 		end
 
@@ -269,39 +278,52 @@ function widget:DrawWorldPreUnit()
 		if ringAlpha > 0 then
 			local n = ringN
 			local rs = ringStartSize + (size * ringScale) * durationProcess
-			ringBatch[n+1] = cmd.x; ringBatch[n+2] = cmd.y; ringBatch[n+3] = cmd.z
-			ringBatch[n+4] = rs
-			ringBatch[n+5] = cr; ringBatch[n+6] = cg; ringBatch[n+7] = cb
-			ringBatch[n+8] = a * ringAlpha
+			ringBatch[n + 1] = cmd.x
+			ringBatch[n + 2] = cmd.y
+			ringBatch[n + 3] = cmd.z
+			ringBatch[n + 4] = rs
+			ringBatch[n + 5] = cr
+			ringBatch[n + 6] = cg
+			ringBatch[n + 7] = cb
+			ringBatch[n + 8] = a * ringAlpha
 			ringN = n + 8
 		end
 
 		-- Icons & Nicknames (spectator drawers only)
 		if cmd.spec and cmd.playerID and cmd.playerID ~= ownPlayerID then
 			local cmdType = cmd.cmdType
-			if cmdType == 'map_draw' or
-				(cmdType == 'map_erase' and cmd.osClock >= (mapEraseNicknameTime[cmd.playerID] or 0)) then
+			if cmdType == "map_draw" or (cmdType == "map_erase" and cmd.osClock >= (mapEraseNicknameTime[cmd.playerID] or 0)) then
 				local iconAlpha = a * glowAlpha * nicknameOpacityMultiplier
 				local is = 11
-				if cmdType == 'map_draw' then
+				if cmdType == "map_draw" then
 					local n = pencilN
-					pencilBatch[n+1] = cmd.x; pencilBatch[n+2] = cmd.y; pencilBatch[n+3] = cmd.z
-					pencilBatch[n+4] = is
-					pencilBatch[n+5] = cr; pencilBatch[n+6] = cg; pencilBatch[n+7] = cb
-					pencilBatch[n+8] = iconAlpha
+					pencilBatch[n + 1] = cmd.x
+					pencilBatch[n + 2] = cmd.y
+					pencilBatch[n + 3] = cmd.z
+					pencilBatch[n + 4] = is
+					pencilBatch[n + 5] = cr
+					pencilBatch[n + 6] = cg
+					pencilBatch[n + 7] = cb
+					pencilBatch[n + 8] = iconAlpha
 					pencilN = n + 8
 				else
 					local n = eraserN
-					eraserBatch[n+1] = cmd.x; eraserBatch[n+2] = cmd.y; eraserBatch[n+3] = cmd.z
-					eraserBatch[n+4] = is
-					eraserBatch[n+5] = cr; eraserBatch[n+6] = cg; eraserBatch[n+7] = cb
-					eraserBatch[n+8] = iconAlpha
+					eraserBatch[n + 1] = cmd.x
+					eraserBatch[n + 2] = cmd.y
+					eraserBatch[n + 3] = cmd.z
+					eraserBatch[n + 4] = is
+					eraserBatch[n + 5] = cr
+					eraserBatch[n + 6] = cg
+					eraserBatch[n + 7] = cb
+					eraserBatch[n + 8] = iconAlpha
 					eraserN = n + 8
 				end
 				nickN = nickN + 1
 				local nn = (nickN - 1) * 4
-				nickBatch[nn+1] = cmd.x; nickBatch[nn+2] = cmd.y; nickBatch[nn+3] = cmd.z
-				nickBatch[nn+4] = iconAlpha
+				nickBatch[nn + 1] = cmd.x
+				nickBatch[nn + 2] = cmd.y
+				nickBatch[nn + 3] = cmd.z
+				nickBatch[nn + 4] = iconAlpha
 				nickNames[nickN] = cmd.nickname
 			end
 		end
@@ -340,8 +362,8 @@ function widget:DrawWorldPreUnit()
 		for j = 1, nickN do
 			local nn = (j - 1) * 4
 			glPushMatrix()
-			glTranslate(nickBatch[nn+1], nickBatch[nn+2], nickBatch[nn+3])
-			glColor(1, 1, 1, nickBatch[nn+4])
+			glTranslate(nickBatch[nn + 1], nickBatch[nn + 2], nickBatch[nn + 3])
+			glColor(1, 1, 1, nickBatch[nn + 4])
 			glBillboard()
 			font:Print(nickNames[j], 0, -28, 20, "cn")
 			glPopMatrix()
@@ -351,4 +373,3 @@ function widget:DrawWorldPreUnit()
 
 	glColor(1, 1, 1, 1)
 end
-

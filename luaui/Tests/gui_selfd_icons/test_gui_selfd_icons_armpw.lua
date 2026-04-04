@@ -22,11 +22,7 @@ function test()
 	local y = Spring.GetGroundHeight(x, z)
 
 	unitID = SyncedRun(function(locals)
-		return Spring.CreateUnit(
-			"armpw",
-			locals.x, locals.y, locals.z,
-			0, 0
-		)
+		return Spring.CreateUnit("armpw", locals.x, locals.y, locals.z, 0, 0)
 	end)
 
 	assert(table.count(widget.activeSelfD) == 0)

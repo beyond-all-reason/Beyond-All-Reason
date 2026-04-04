@@ -14,7 +14,7 @@ local object = {
 	customparams = {
 		model_author = "Beherith",
 		normaltex = "unittextures/Arm_normal.dds",
-	}
+	},
 }
 local tombstones = {
 	armstone = table.copy(object),

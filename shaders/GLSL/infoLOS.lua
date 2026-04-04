@@ -133,9 +133,9 @@ return {
 	]],
 	uniformFloat = {
 		alwaysColor = alwaysColor,
-		losColor    = losColor,
+		losColor = losColor,
 		radarColor1 = radarColor,
-		jamColor    = jamColor,
+		jamColor = jamColor,
 		radarColor2 = radarColor2,
 	},
 	uniformInt = {

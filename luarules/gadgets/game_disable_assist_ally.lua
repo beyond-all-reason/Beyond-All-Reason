@@ -2,12 +2,12 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name    = 'Disable Assist Ally Construction',
-		desc    = 'Disable assisting allied units (e.g. labs and units/buildings under construction) when modoption is enabled',
-		author  = 'Rimilel',
-		date    = 'April 2024',
-		license = 'GNU GPL, v2 or later',
-		layer   = 1, -- after unit_mex_upgrade_reclaimer and unit_geo_upgrade_reclaimer
+		name = "Disable Assist Ally Construction",
+		desc = "Disable assisting allied units (e.g. labs and units/buildings under construction) when modoption is enabled",
+		author = "Rimilel",
+		date = "April 2024",
+		license = "GNU GPL, v2 or later",
+		layer = 1, -- after unit_mex_upgrade_reclaimer and unit_geo_upgrade_reclaimer
 		enabled = Spring.GetModOptions().disable_assist_ally_construction or Spring.GetModOptions().easytax,
 	}
 end
@@ -34,7 +34,11 @@ local footprintSize = Game.squareSize * Game.footprintScale
 -- Local state
 
 local builderMoveStateCmdDesc = {
-	params = { 1, "Hold pos", "Maneuver", --[["Roam"]] },
+	params = {
+		1,
+		"Hold pos",
+		"Maneuver", --[["Roam"]]
+	},
 }
 
 local gaiaTeam = Spring.GetGaiaTeamID()
@@ -172,22 +176,22 @@ end
 
 -- Temp anti-cheat-esque guard. We check on random frames for units bypassing the rules.
 local function AllowUnitBuildStep(self, builderID, builderTeam, unitID, unitDefID, part)
-    if part > 0 and builderTeam ~= spGetUnitTeam(unitID) and spGetUnitIsBeingBuilt(unitID) then
+	if part > 0 and builderTeam ~= spGetUnitTeam(unitID) and spGetUnitIsBeingBuilt(unitID) then
 		checkUnitCommandList[builderID] = builderTeam
 		return false
-    end
+	end
 	return true
 end
 
 local seed = mathRandom(Game.spawnWarpInFrame + 1, Game.spawnWarpInFrame + Game.gameSpeed - 1)
 
 function gadget:GameFrame(frame)
-    if frame % seed == 0 then
-        gadget.AllowUnitBuildStep = AllowUnitBuildStep
-        gadgetHandler:UpdateCallIn("AllowUnitBuildStep")
-    elseif gadget.AllowUnitBuildStep then
-        gadget.AllowUnitBuildStep = nil
-        gadgetHandler:UpdateCallIn("AllowUnitBuildStep")
-        seed = mathRandom(1, 119)
-    end
+	if frame % seed == 0 then
+		gadget.AllowUnitBuildStep = AllowUnitBuildStep
+		gadgetHandler:UpdateCallIn("AllowUnitBuildStep")
+	elseif gadget.AllowUnitBuildStep then
+		gadget.AllowUnitBuildStep = nil
+		gadgetHandler:UpdateCallIn("AllowUnitBuildStep")
+		seed = mathRandom(1, 119)
+	end
 end

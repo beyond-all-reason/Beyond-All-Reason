@@ -8,11 +8,13 @@ function gadget:GetInfo()
 		date = "2024.9.22",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
-if not gadgetHandler:IsSyncedCode() then return end
+if not gadgetHandler:IsSyncedCode() then
+	return
+end
 
 --use customParams.water_fall_damage_multiplier = 1.0 to change the amount of fall damage taken by specific units.
 
@@ -63,7 +65,7 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	defData.fallDamage = unitDef.health * fallDamage * defData.fallDamageMultiplier
 	defData.unitDefID = unitDefID
 	if unitDef.moveDef.depth and unitDef.moveDef.smClass ~= Game.speedModClasses.Boat and unitDef.moveDef.smClass ~= Game.speedModClasses.ship then
-		if unitDef.moveDef.depth >= isDrownableMaxWaterDepth  then
+		if unitDef.moveDef.depth >= isDrownableMaxWaterDepth then
 			if unitDef.moveDef.smClass == Game.speedModClasses.Hover then --units must have "hover" in their movedef name in order to be treated as hovercraft
 				defData.isHover = true
 			else
@@ -99,8 +101,8 @@ function gadget:UnitEnteredWater(unitID, unitDefID, unitTeam)
 		local velX, velY, velZ, velLength = spGetUnitVelocity(unitID)
 		local posX, posY, posZ = spGetUnitBasePosition(unitID)
 		if velLength > velocityThreshold then
-			spSpawnCEG('watersplash_large', posX, posY, posZ)
-			spPlaySoundFile('xplodep3', 0.5, posX, posY, posZ, 'sfx')
+			spSpawnCEG("watersplash_large", posX, posY, posZ)
+			spPlaySoundFile("xplodep3", 0.5, posX, posY, posZ, "sfx")
 			if unitDefData[unitDefID] then
 				local health, maxHealth = spGetUnitHealth(unitID)
 				local damage = (unitDefData[unitDefID].fallDamage * velLength) * (fallDamageCompoundingFactor ^ velLength)
@@ -111,8 +113,8 @@ function gadget:UnitEnteredWater(unitID, unitDefID, unitTeam)
 				end
 			end
 		else
-			spSpawnCEG('watersplash_small', posX, posY, posZ)
-			spPlaySoundFile('xplodep3', 0.3, posX, posY, posZ, 'sfx')
+			spSpawnCEG("watersplash_small", posX, posY, posZ)
+			spPlaySoundFile("xplodep3", 0.3, posX, posY, posZ, "sfx")
 		end
 		transportDrops[unitID] = nil
 	else
@@ -136,7 +138,9 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 local function getUnitPositionHeight(unitID) -- returns nil for invalid units
-	if spGetUnitIsDead(unitID) ~= false or spValidUnitID(unitID) ~= true then return nil, nil, nil end
+	if spGetUnitIsDead(unitID) ~= false or spValidUnitID(unitID) ~= true then
+		return nil, nil, nil
+	end
 	local posX, posY, posZ = spGetUnitPosition(unitID)
 	if posX and posY and posZ then
 		return posX, posY, posZ
@@ -161,10 +165,10 @@ function gadget:GameFrame(frame)
 			if posX then
 				local movableSpot = spTestMoveOrder(data.unitDefID, posX, posY, posZ, nil, nil, nil, true, true, true) --somehow, this works. Copied from elsewhere in the code, spring wiki and recoil and game repo didn't have any info on this format.
 				if not movableSpot then
-					spSpawnCEG('blacksmoke', posX, posY, posZ) --actually looks like tiny bubbles underwater
-					spPlaySoundFile('lavarumbleshort1', 0.40, posX, posY, posZ, 'sfx')
+					spSpawnCEG("blacksmoke", posX, posY, posZ) --actually looks like tiny bubbles underwater
+					spPlaySoundFile("lavarumbleshort1", 0.40, posX, posY, posZ, "sfx")
 					if math.random(1, 6) == 1 then
-						spPlaySoundFile('alien_electric', 0.50, posX, posY, posZ, 'sfx')
+						spPlaySoundFile("alien_electric", 0.50, posX, posY, posZ, "sfx")
 					end
 					spAddUnitDamage(unitID, data.drowningDamage, 0, gaiaTeamID, waterDamageDefID)
 				end

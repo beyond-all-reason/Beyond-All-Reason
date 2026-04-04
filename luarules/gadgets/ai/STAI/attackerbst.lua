@@ -22,7 +22,11 @@ function AttackerBST:Init()
 	self.defID = self.ai.armyhst.unitTable[self.name].defId
 	local ut = self.ai.armyhst.unitTable[self.name]
 	self.level = ut.techLevel - 1
-	if self.level == 0 then self.level = 0.5 elseif self.level < 0 then self.level = 0.25 end
+	if self.level == 0 then
+		self.level = 0.5
+	elseif self.level < 0 then
+		self.level = 0.25
+	end
 	self.size = math.max(ut.xsize, ut.zsize) * 8
 	self.congSize = self.size * 1.5 -- how much self.ai.tool:distance between it and other attackers when congregating
 	self.range = math.max(ut.groundRange, ut.airRange, ut.submergedRange)
@@ -46,7 +50,7 @@ function AttackerBST:OwnerBuilt()
 	self.ai.attackhst:AddRecruit(self)
 end
 
-function AttackerBST:OwnerDamaged(attacker,damage)
+function AttackerBST:OwnerDamaged(attacker, damage)
 	self.damaged = self.game:Frame()
 end
 
@@ -66,7 +70,7 @@ function AttackerBST:OwnerIdle()
 end
 
 function AttackerBST:OwnerMoveFailed(unit)
-	self:Warn('OWNER MOVE FAILED')
+	self:Warn("OWNER MOVE FAILED")
 	self:OwnerIdle()
 end
 
@@ -88,12 +92,14 @@ end
 
 function AttackerBST:Update()
 	local f = self.game:Frame()
-	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'AttackerBST' then return end
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= "AttackerBST" then
+		return
+	end
 	if not self.active and self.squad and self.target then
 		self.unit:ElectBehaviour()
 	end
 	if not self.mtype then
-		self:Warn('no mtype and network')
+		self:Warn("no mtype and network")
 	end
 	if self.damaged then
 		if f > self.damaged + 450 then
@@ -113,4 +119,3 @@ function AttackerBST:Free()
 	end
 	self.unit:ElectBehaviour()
 end
-

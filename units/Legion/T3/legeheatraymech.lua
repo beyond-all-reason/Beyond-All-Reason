@@ -159,7 +159,7 @@ return {
 				predictboost = 0,
 				--proximitypriority = -1,
 				range = 800,
-				reloadtime = .033,
+				reloadtime = 0.033,
 				rgbcolor = "1 0.3 0",
 				rgbcolor2 = "1 0.8 0.5",
 				soundhitdry = "flamhit1",

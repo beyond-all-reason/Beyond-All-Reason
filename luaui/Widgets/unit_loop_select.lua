@@ -1,16 +1,15 @@
-
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "Loop Select",
-		desc      = "Selects units inside drawn loop (Hold meta to draw loop)",
-		author    = "Niobium",
-		version   = "v1.1",
-		date      = "Jul 18, 2009",
-		license   = "GNU GPL, v2 or later",
-		layer     = 0,
-		enabled   = false
+		name = "Loop Select",
+		desc = "Selects units inside drawn loop (Hold meta to draw loop)",
+		author = "Niobium",
+		version = "v1.1",
+		date = "Jul 18, 2009",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = false,
 	}
 end
 
@@ -68,84 +67,94 @@ local add = false
 ---------------------------------------------------------------------------
 
 function widget:Update(dt)
-
-	if (fAlpha > 0) then
+	if fAlpha > 0 then
 		fAlpha = fAlpha - fadeRate * dt
 	end
 
 	if dragging then
-
 		local mx, my = spGetMouseState()
 		local _, pos = spTraceScreenRay(mx, my, true)
 
 		if pos then
-
 			local wx, wy, wz = pos[1], pos[2], pos[3]
 
-			if ((wx ~= lx) or (wy ~= ly) or (wz ~= lz)) then
-				sNodes[#sNodes + 1] = {wx, wy, wz}
-				lx = wx; ly = wy; lz = wz
+			if (wx ~= lx) or (wy ~= ly) or (wz ~= lz) then
+				sNodes[#sNodes + 1] = { wx, wy, wz }
+				lx = wx
+				ly = wy
+				lz = wz
 			end
 		end
 	end
 end
 
 local function sVerts(nodes)
-	for i=1, #nodes do
+	for i = 1, #nodes do
 		local node = nodes[i]
 		glVertex(node[1], node[2], node[3])
 	end
 end
 
 function widget:RecvLuaMsg(msg)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	if msg:sub(1, 18) == "LobbyOverlayActive" then
+		chobbyInterface = (msg:sub(1, 19) == "LobbyOverlayActive1")
 	end
 end
 
 function widget:DrawWorld()
-	if chobbyInterface then return end
+	if chobbyInterface then
+		return
+	end
 
 	glDepthTest(false)
 	glLineWidth(2.0)
 
-	if (#sNodes > 1) then
-
+	if #sNodes > 1 then
 		glColor(1.0, 1.0, 1.0, 1.0)
 		glBeginEnd(GL_LINE_STRIP, sVerts, sNodes)
 
 		glColor(1.0, 1.0, 1.0, conLineAlpha)
-		glBeginEnd(GL_LINE_STRIP, sVerts, {{sx, sy, sz}, {lx, ly, lz}})
+		glBeginEnd(GL_LINE_STRIP, sVerts, { { sx, sy, sz }, { lx, ly, lz } })
 	end
 
-	if ((fAlpha > 0) and (#fNodes > 1)) then
-
+	if (fAlpha > 0) and (#fNodes > 1) then
 		glColor(1.0, 1.0, 1.0, fAlpha)
 		glBeginEnd(GL_LINE_LOOP, sVerts, fNodes)
 	end
 end
 
 function widget:MousePress(mx, my, mButton)
-
 	-- Only left click
-	if (mButton ~= 1) then return false end
+	if mButton ~= 1 then
+		return false
+	end
 
 	-- Only handle if there is no active command
 	local _, actCmdID = spGetActiveCommand()
-	if (actCmdID ~= nil) then return false end
+	if actCmdID ~= nil then
+		return false
+	end
 
 	-- Only handle if active
-	if not active then return false end
+	if not active then
+		return false
+	end
 
 	-- Start dragging
 	local _, pos = spTraceScreenRay(mx, my, true)
 
-	if not pos then return false end
+	if not pos then
+		return false
+	end
 
 	local wx, wy, wz = pos[1], pos[2], pos[3]
-	sNodes[1] = {wx, wy, wz}
-	sx = wx; sy = wy; sz = wz
-	lx = wx; ly = wy; lz = wz
+	sNodes[1] = { wx, wy, wz }
+	sx = wx
+	sy = wy
+	sz = wz
+	lx = wx
+	ly = wy
+	lz = wz
 
 	-- Return true, this gives us the next MouseMove/MouseRelease calls.
 	dragging = true
@@ -153,30 +162,34 @@ function widget:MousePress(mx, my, mButton)
 end
 
 function widget:MouseMove(mx, my)
-
 	local _, pos = spTraceScreenRay(mx, my, true)
 
-	if not pos then return end
+	if not pos then
+		return
+	end
 
 	local wx, wy, wz = pos[1], pos[2], pos[3]
-	sNodes[#sNodes + 1] = {wx, wy, wz}
-	lx = wx; ly = wy; lz = wz
+	sNodes[#sNodes + 1] = { wx, wy, wz }
+	lx = wx
+	ly = wy
+	lz = wz
 end
 
 function widget:MouseRelease(mx, my)
-
 	-- Add final node (If different)
 	local _, pos = spTraceScreenRay(mx, my, true)
 
 	if pos then
 		local wx, wy, wz = pos[1], pos[2], pos[3]
-		if ((wx ~= lx) or (wy ~= ly) or (wz ~= lz)) then
-			sNodes[#sNodes + 1] = {wx, wy, wz}
-			lx = wx; ly = wy; lz = wz
+		if (wx ~= lx) or (wy ~= ly) or (wz ~= lz) then
+			sNodes[#sNodes + 1] = { wx, wy, wz }
+			lx = wx
+			ly = wy
+			lz = wz
 		end
 	end
 
-	if (#sNodes < 2) then
+	if #sNodes < 2 then
 		-- Not enough nodes
 		-- Reset nodes
 		sNodes = {}
@@ -196,15 +209,14 @@ function widget:MouseRelease(mx, my)
 	-- otherwise we can get a 'break' in the loop
 	local sp = sNodes[#sNodes - 1]
 	local spx, spy = sp[1], sp[3]
-	if (s2x == spx) then
+	if s2x == spx then
 		s2x = s2x + 0.01
 	end
-	if (s2y == spy) then
+	if s2y == spy then
 		s2y = s2y + 0.01
 	end
 
-	for i=1, #sNodes do
-
+	for i = 1, #sNodes do
 		local s1x = s2x
 		local s1y = s2y
 
@@ -218,16 +230,16 @@ function widget:MouseRelease(mx, my)
 		-- Easiest solution: Add small number to make non-vert/horz
 		-- Note: These changes will propogate due to 's1x = s2x' etc
 		-- So changing values does not bring about inconsistancies or non-connecting lines
-		if (s2y == s1y) then
+		if s2y == s1y then
 			s2y = s2y + 0.01
 		end
-		if (s2x == s1x) then
+		if s2x == s1x then
 			s2x = s2x + 0.01
 		end
 
 		local Ms = (s2y - s1y) / (s2x - s1x)
 
-		sLines[i] = {s1x, s1y, s2x, s2y, Ms, s1y - Ms * s1x}
+		sLines[i] = { s1x, s1y, s2x, s2y, Ms, s1y - Ms * s1x }
 	end
 
 	-- Now we find the selected units
@@ -247,8 +259,7 @@ function widget:MouseRelease(mx, my)
 	local toSelCount = 0
 
 	-- Loop over each unit
-	for i=1, #visUnits do
-
+	for i = 1, #visUnits do
 		-- Get screen position for unit
 		local uID = visUnits[i]
 		local ux, _, uz = spGetUnitPos(uID)
@@ -261,8 +272,7 @@ function widget:MouseRelease(mx, my)
 		-- Count intercepts
 		local intercepts = 0
 
-		for i=1, #sNodes do
-
+		for i = 1, #sNodes do
 			-- Speed
 			local sLine = sLines[i]
 
@@ -271,17 +281,13 @@ function widget:MouseRelease(mx, my)
 			local iy = Mu * ix
 
 			-- Check bounds
-			if ((-ix) * (ix - ux) >= 0) and
-			   ((-iy) * (iy - uz) >= 0) and
-			   ((sLine[1] - ix) * (ix - sLine[3]) >= 0) and
-			   ((sLine[2] - iy) * (iy - sLine[4]) >= 0) then
-
-			   intercepts = intercepts + 1
+			if (-ix * (ix - ux) >= 0) and (-iy * (iy - uz) >= 0) and ((sLine[1] - ix) * (ix - sLine[3]) >= 0) and ((sLine[2] - iy) * (iy - sLine[4]) >= 0) then
+				intercepts = intercepts + 1
 			end
 		end
 
 		-- Even = outside, Odd = inside.
-		if ((intercepts % 2) == 1) then
+		if (intercepts % 2) == 1 then
 			toSelCount = toSelCount + 1
 			toSel[toSelCount] = uID
 		end
@@ -294,14 +300,13 @@ function widget:MouseRelease(mx, my)
 		local selUnits = spGetSelUnits()
 
 		-- Loop over selected units
-		for i=1, #selUnits do
-
+		for i = 1, #selUnits do
 			local uID = selUnits[i]
 			local match = false
 
 			-- Check this unit against poly units
-			for j=1, toSelCount do
-				if (toSel[j] == uID) then
+			for j = 1, toSelCount do
+				if toSel[j] == uID then
 					match = j
 					break
 				end
@@ -319,19 +324,17 @@ function widget:MouseRelease(mx, my)
 		end
 	else
 		if add then
-
 			-- Easy, add units we already have selected, unless they are in poly
 			-- We probably don't want to have duplicates in what we select
 			local selUnits = spGetSelUnits()
 
-			for i=1, #selUnits do
-
+			for i = 1, #selUnits do
 				local uID = selUnits[i]
 				local inPoly = false
 
 				-- Check this unit against poly units
-				for j=1, toSelCount do
-					if (toSel[j] == uID) then
+				for j = 1, toSelCount do
+					if toSel[j] == uID then
 						inPoly = true
 						break
 					end
@@ -357,27 +360,27 @@ function widget:MouseRelease(mx, my)
 end
 
 local function setActive()
-  active = true
+	active = true
 end
 
 local function unsetActive()
-  active = false
+	active = false
 end
 
 local function setDeselect()
-  deselect = true
+	deselect = true
 end
 
 local function unsetDeselect()
-  deselect = false
+	deselect = false
 end
 
 local function setAdd()
-  add = true
+	add = true
 end
 
 local function unsetAdd()
-  add = false
+	add = false
 end
 
 function widget:Initialize()

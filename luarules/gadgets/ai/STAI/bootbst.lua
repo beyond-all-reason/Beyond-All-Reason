@@ -17,13 +17,17 @@ function BootBST:Init()
 	-- air units don't need to leave the factory
 	self.ignoreFactories = self.mtype == "air" or not self.mobile
 	self.finished = false
-	if not self.ignoreFactories then self:FindMyFactory() end
+	if not self.ignoreFactories then
+		self:FindMyFactory()
+	end
 	self.unit:ElectBehaviour()
 end
 
 function BootBST:OwnerBuilt()
 	self.finished = true
-	if self.active then self.lastOrderFrame = self.game:Frame() end
+	if self.active then
+		self.lastOrderFrame = self.game:Frame()
+	end
 end
 
 function BootBST:OwnerDead()
@@ -31,27 +35,31 @@ function BootBST:OwnerDead()
 end
 
 function BootBST:Update()
-	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'BootBST' then return end
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= "BootBST" then
+		return
+	end
 	local f = self.game:Frame()
-	if not self.finished  then return end
-	if self.ignoreFactories then return end
+	if not self.finished then
+		return
+	end
+	if self.ignoreFactories then
+		return
+	end
 	if self.factory then
-			local pos = self.ai.tool:UnitPos(self)
-			if not self.ai.tool:PositionWithinRect(pos, self.factory.exitRect) then
-				self.factory = nil
-				self.unit:ElectBehaviour()
-			elseif self.active and self.lastOrderFrame and self.lastExitSide then
-				-- 4 seconds after the first attempt, try a different side
-				-- if there's only one side, try it again
-				if f > self.lastOrderFrame + 12 then
-					local face, nsew =self.ai.buildingshst:GetFacing(pos)
-					self:ExitFactory(face)
-
-				end
+		local pos = self.ai.tool:UnitPos(self)
+		if not self.ai.tool:PositionWithinRect(pos, self.factory.exitRect) then
+			self.factory = nil
+			self.unit:ElectBehaviour()
+		elseif self.active and self.lastOrderFrame and self.lastExitSide then
+			-- 4 seconds after the first attempt, try a different side
+			-- if there's only one side, try it again
+			if f > self.lastOrderFrame + 12 then
+				local face, nsew = self.ai.buildingshst:GetFacing(pos)
+				self:ExitFactory(face)
 			end
+		end
 	else
 		if f > self.lastInFactoryCheck + 300 then
-			
 			-- units (especially construction units) can still get stuck in factories long after they're built
 			self.lastInFactoryCheck = f
 			self:FindMyFactory()
@@ -90,14 +98,14 @@ end
 function BootBST:SetMoveState()
 	local thisUnit = self.unit
 	if thisUnit then
-		self.ai.tool:GiveOrder(self.id, CMD.MOVE_STATE, 0, 0,'1-1')
+		self.ai.tool:GiveOrder(self.id, CMD.MOVE_STATE, 0, 0, "1-1")
 		--thisUnit:Internal():HoldPosition()
 	end
 end
 
 function BootBST:FindMyFactory()
 	local pos = self.ai.tool:UnitPos(self)
-	for id,lab in pairs(self.ai.labshst.labs) do
+	for id, lab in pairs(self.ai.labshst.labs) do
 		if self.ai.tool:PositionWithinRect(pos, lab.exitRect) then
 			self.factory = lab.behaviour
 		end
@@ -129,9 +137,9 @@ function BootBST:ExitFactory(face)
 	out.x = pos.x + outX
 	out.y = pos.y + 0
 	out.z = pos.z + outZ
--- 	local mapSize = self.map:MapDimensions()
--- 	local maxElmosX = mapSize.x * 8
--- 	local maxElmosZ = mapSize.z * 8
+	-- 	local mapSize = self.map:MapDimensions()
+	-- 	local maxElmosX = mapSize.x * 8
+	-- 	local maxElmosZ = mapSize.z * 8
 	if out.x > self.ai.maphst.elmoMapSizeX - 1 then
 		out.x = self.ai.maphst.elmoMapSizeX - 1
 	elseif out.x < 1 then
@@ -142,8 +150,8 @@ function BootBST:ExitFactory(face)
 	elseif out.z < 1 then
 		out.z = 1
 	end
- 	u:Move(out)
-	self.ai.tool:GiveOrderToUnit(u, CMD.MOVE, {out.x, out.y, out.z}, 0,'1-1')
+	u:Move(out)
+	self.ai.tool:GiveOrderToUnit(u, CMD.MOVE, { out.x, out.y, out.z }, 0, "1-1")
 	self.lastOrderFrame = self.game:Frame()
 	self.lastExitSide = face
 end

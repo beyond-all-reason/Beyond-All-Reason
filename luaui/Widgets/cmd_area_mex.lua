@@ -9,7 +9,7 @@ function widget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		handler = true,
 		layer = 1,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -31,23 +31,21 @@ local metalSpots
 
 local metalMap = false
 
-
 local function setAreaMexType(uDefID)
 	selectedMex = -uDefID
 end
 
 function widget:Initialize()
-	metalSpots = WG['resource_spot_finder'].metalSpotsList
-	metalMap = WG['resource_spot_finder'].isMetalMap
+	metalSpots = WG["resource_spot_finder"].metalSpotsList
+	metalMap = WG["resource_spot_finder"].isMetalMap
 	mexBuildings = WG["resource_spot_builder"].GetMexBuildings()
 	mexConstructors = WG["resource_spot_builder"].GetMexConstructors()
 
-	WG['areamex'] = {}
-	WG['areamex'].setAreaMexType = function(uDefID)
+	WG["areamex"] = {}
+	WG["areamex"].setAreaMexType = function(uDefID)
 		setAreaMexType(uDefID)
 	end
 end
-
 
 ---Gets the position of the last command in a unit's queue, or nil if the queue is empty
 ---@param unitID number
@@ -63,7 +61,6 @@ local function getLastQueuedPosition(unitID)
 	end
 	return nil, nil
 end
-
 
 ---Finds all builders among selected units that can make the specified building, and gets their average position.
 ---When useQueueEnd is true, uses the position of the last queued command instead of the unit's current position.
@@ -92,7 +89,7 @@ local function getAvgPositionOfValidBuilders(units, constructorIds, buildingId, 
 						x, _, z = spGetUnitPosition(id)
 					end
 					if z then
-						tX, tZ = tX+x, tZ+z
+						tX, tZ = tX + x, tZ + z
 						builderCount = builderCount + 1
 					end
 				end
@@ -100,10 +97,11 @@ local function getAvgPositionOfValidBuilders(units, constructorIds, buildingId, 
 		end
 	end
 
-	if builderCount == 0 then return end
+	if builderCount == 0 then
+		return
+	end
 	return { x = tX / builderCount, z = tZ / builderCount }
 end
-
 
 ---Get all mex spots in an area
 ---@param x number
@@ -121,7 +119,6 @@ local function getSpotsInArea(x, z, radius)
 	return validSpots
 end
 
-
 ---Make build commands for all passed in spots, but do not apply them
 ---@param spots table
 ---@return table An array of commands, in the same format as PreviewExtractorCommand
@@ -132,7 +129,7 @@ local function getCmdsForValidSpots(spots, shift)
 		local spotHasQueue = shift and WG["resource_spot_builder"].SpotHasExtractorQueued(spot) or false
 		if not spotHasQueue then
 			local pos = { spot.x, spot.y, spot.z }
-			local cmd = WG['resource_spot_builder'].PreviewExtractorCommand(pos, selectedMex, spot)
+			local cmd = WG["resource_spot_builder"].PreviewExtractorCommand(pos, selectedMex, spot)
 			if cmd then
 				cmds[#cmds + 1] = cmd
 			end
@@ -141,14 +138,15 @@ local function getCmdsForValidSpots(spots, shift)
 	return cmds
 end
 
-
 ---Nearest neighbor search. Spots are passed in to do minor weighting based on mex value
 ---@param cmds table
 ---@param spots table
 ---@param shift boolean Whether shift was held (appending to existing queue)
 local function calculateCmdOrder(cmds, spots, shift)
 	local builderPos = getAvgPositionOfValidBuilders(selectedUnits, mexConstructors, selectedMex, shift)
-	if not builderPos then return end
+	if not builderPos then
+		return
+	end
 	local orderedCommands = {}
 	local pos = {}
 	while #cmds > 0 do
@@ -162,7 +160,6 @@ local function calculateCmdOrder(cmds, spots, shift)
 				shortestIndex = i
 				pos = { x = cmds[i][2], z = cmds[i][4] }
 			end
-
 		end
 		orderedCommands[#orderedCommands + 1] = cmds[shortestIndex]
 		taremove(cmds, shortestIndex)
@@ -171,7 +168,6 @@ local function calculateCmdOrder(cmds, spots, shift)
 	end
 	return orderedCommands
 end
-
 
 function widget:CommandNotify(id, params, options)
 	if id ~= CMD_AREA_MEX then
@@ -182,39 +178,39 @@ function widget:CommandNotify(id, params, options)
 	local spots = getSpotsInArea(cmdX, cmdZ, cmdRadius)
 
 	if not selectedMex then
-		selectedMex = WG['resource_spot_builder'].GetBestExtractorFromBuilders(selectedUnits, mexConstructors, mexBuildings)
+		selectedMex = WG["resource_spot_builder"].GetBestExtractorFromBuilders(selectedUnits, mexConstructors, mexBuildings)
 	end
 
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 	local cmds = getCmdsForValidSpots(spots, shift)
 	local sortedCmds = calculateCmdOrder(cmds, spots, shift)
 
-
-	WG['resource_spot_builder'].ApplyPreviewCmds(sortedCmds, mexConstructors, shift)
+	WG["resource_spot_builder"].ApplyPreviewCmds(sortedCmds, mexConstructors, shift)
 
 	selectedMex = nil
 
 	if not options.shift then
-		if WG["gridmenu"] then WG["gridmenu"].clearCategory() end
+		if WG["gridmenu"] then
+			WG["gridmenu"].clearCategory()
+		end
 	end
 	return true
 end
-
 
 -- Adjust map view mode as needed
 function widget:Update(dt)
 	local _, cmd, _ = spGetActiveCommand()
 	if cmd == CMD_AREA_MEX then
-		if spGetMapDrawMode() ~= 'metal' then
+		if spGetMapDrawMode() ~= "metal" then
 			if Spring.GetMapDrawMode() == "los" then
 				retoggleLos = true
 			end
-			spSendCommands('ShowMetalMap')
+			spSendCommands("ShowMetalMap")
 			toggledMetal = true
 		end
 	else
 		if toggledMetal then
-			spSendCommands('ShowStandard')
+			spSendCommands("ShowStandard")
 			if retoggleLos then
 				Spring.SendCommands("togglelos")
 				retoggleLos = nil
@@ -224,25 +220,23 @@ function widget:Update(dt)
 	end
 end
 
-
 function widget:SelectionChanged(sel)
 	selectedUnits = sel
 end
-
 
 function widget:CommandsChanged()
 	if not metalMap then
 		if selectedUnits and #selectedUnits > 0 then
 			local customCommands = widgetHandler.customCommands
 			for i = 1, #selectedUnits do
-				if WG['resource_spot_builder'] and WG['resource_spot_builder'].GetMexConstructors()[selectedUnits[i]] then
+				if WG["resource_spot_builder"] and WG["resource_spot_builder"].GetMexConstructors()[selectedUnits[i]] then
 					customCommands[#customCommands + 1] = {
 						id = CMD_AREA_MEX,
 						type = CMDTYPE.ICON_AREA,
-						tooltip = 'Define an area (with metal spots in it) to make metal extractors in',
-						name = 'Mex',
-						cursor = 'areamex',
-						action = 'areamex',
+						tooltip = "Define an area (with metal spots in it) to make metal extractors in",
+						name = "Mex",
+						cursor = "areamex",
+						action = "areamex",
 					}
 					return
 				end
@@ -250,4 +244,3 @@ function widget:CommandsChanged()
 		end
 	end
 end
-

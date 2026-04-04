@@ -1,7 +1,7 @@
-shard_include( "behaviour" )
+shard_include("behaviour")
 BehaviourFactory = class(AIBase)
 
-shard_include( "behaviours" )
+shard_include("behaviours")
 function BehaviourFactory:Init()
 	--
 end
@@ -17,7 +17,7 @@ function BehaviourFactory:AddBehaviours(unit)
 	if b == nil then
 		b = defaultBehaviours(unit, ai)
 	end
-	for i,behaviour in ipairs(b) do
+	for i, behaviour in ipairs(b) do
 		t = behaviour()
 		t:SetAI(ai)
 		t:SetUnit(unit)
@@ -25,4 +25,3 @@ function BehaviourFactory:AddBehaviours(unit)
 		unit:AddBehaviour(t)
 	end
 end
-

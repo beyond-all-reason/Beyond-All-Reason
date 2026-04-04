@@ -1,75 +1,75 @@
 return {
-    legrampart = {
-        maxacc = 0,
-        activatewhenbuilt = true,
-        maxdec = 4.5,
-        buildangle = 4096,
-        energycost = 38000,
-        metalcost = 2600,
-        buildpic = "legrampart.DDS",
-        buildtime = 36000,
+	legrampart = {
+		maxacc = 0,
+		activatewhenbuilt = true,
+		maxdec = 4.5,
+		buildangle = 4096,
+		energycost = 38000,
+		metalcost = 2600,
+		buildpic = "legrampart.DDS",
+		buildtime = 36000,
 		canrepeat = false,
 		canmove = true,
-        collisionvolumeoffsets = "0 0 0",
-        collisionvolumescales = "96 86 96",
-        collisionvolumetype = "cylY",
-        energymake = 600,
-        energystorage = 4000,
-        explodeas = "advenergystorage",
-        footprintx = 5,
-        footprintz = 5,
-        health = 8600,
+		collisionvolumeoffsets = "0 0 0",
+		collisionvolumescales = "96 86 96",
+		collisionvolumetype = "cylY",
+		energymake = 600,
+		energystorage = 4000,
+		explodeas = "advenergystorage",
+		footprintx = 5,
+		footprintz = 5,
+		health = 8600,
 		radardistancejam = 500,
 		radardistance = 2100,
 		radaremitheight = 72,
-        maxslope = 20,
+		maxslope = 20,
 		mass = 20000,
-        maxwaterdepth = 5,
+		maxwaterdepth = 5,
 		nochasecategory = "VTOL",
 		name = "Gattling",
-        objectname = "Units/legrampart.s3o",
-        script = "Units/legrampart.cob",
-        seismicsignature = 0,
-        selfdestructas = "advenergystorageSelfd",
-        sightdistance = 1000,
+		objectname = "Units/legrampart.s3o",
+		script = "Units/legrampart.cob",
+		seismicsignature = 0,
+		selfdestructas = "advenergystorageSelfd",
+		sightdistance = 1000,
 		turnrate = 1,
 		yardmap = "h cbyybsygbc bsbssbbssb gsbsbssbby ybsssbsssy sbsbsssbsb bsbsssbsbs ysssbsssby ybbssbsbsg bssbbssbsb cbgysbyybc",
 		upright = true,
-        customparams = {
-            usebuildinggrounddecal = true,
-            buildinggrounddecaltype = "decals/legrampart_aoplane.dds",
-            buildinggrounddecalsizey = 10,
-            buildinggrounddecalsizex = 10,
-            buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'energy',
+		customparams = {
+			usebuildinggrounddecal = true,
+			buildinggrounddecaltype = "decals/legrampart_aoplane.dds",
+			buildinggrounddecalsizey = 10,
+			buildinggrounddecalsizex = 10,
+			buildinggrounddecaldecayspeed = 30,
+			unitgroup = "energy",
 			restrictions_exclusion = "_noantinuke_",
-            cvbuildable = true,
-            geothermal = 1,
-            model_author = "Tharsis",
-            normaltex = "unittextures/LEG_normal.dds",
-            removewait = true,
-            subfolder = "CorBuildings/LandEconomy",
-            techlevel = 2,
+			cvbuildable = true,
+			geothermal = 1,
+			model_author = "Tharsis",
+			normaltex = "unittextures/LEG_normal.dds",
+			removewait = true,
+			subfolder = "CorBuildings/LandEconomy",
+			techlevel = 2,
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",
 			parentsinheritxp = "DRONE",
-        },
-        sounds = {
-            canceldestruct = "cancel2",
-            underattack = "warning1",
-            count = {
-                [1] = "count6",
-                [2] = "count5",
-                [3] = "count4",
-                [4] = "count3",
-                [5] = "count2",
-                [6] = "count1"
-            },
-            select = {
-                [1] = "geothrm2"
-            }
-        },
-        weapondefs = {
+		},
+		sounds = {
+			canceldestruct = "cancel2",
+			underattack = "warning1",
+			count = {
+				[1] = "count6",
+				[2] = "count5",
+				[3] = "count4",
+				[4] = "count3",
+				[5] = "count2",
+				[6] = "count1",
+			},
+			select = {
+				[1] = "geothrm2",
+			},
+		},
+		weapondefs = {
 			fmd_rocket = {
 				areaofeffect = 420,
 				avoidfeature = false,
@@ -150,40 +150,40 @@ return {
 					default = 0,
 				},
 				customparams = {
-					carried_unit = "legheavydrone",     --Name of the unit spawned by this carrier unit.
+					carried_unit = "legheavydrone", --Name of the unit spawned by this carrier unit.
 					engagementrange = 1600,
-					spawns_surface = "LAND",    -- "LAND" or "SEA". The SEA option has not been tested currently.
-					spawnrate = 8, 				--Spawnrate roughly in seconds.
-					maxunits = 3,				--Will spawn units until this amount has been reached.
+					spawns_surface = "LAND", -- "LAND" or "SEA". The SEA option has not been tested currently.
+					spawnrate = 8, --Spawnrate roughly in seconds.
+					maxunits = 3, --Will spawn units until this amount has been reached.
 					startingdronecount = 1,
-					energycost = 1000,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					metalcost = 90,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					controlradius = 1500,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
+					energycost = 1000, --Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					metalcost = 90, --Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					controlradius = 1500, --The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
 					deathdecayrate = 50,
 					carrierdeaththroe = "release",
 					dockingarmor = 0.2,
 					dockinghealrate = 256,
 					docktohealthreshold = 33,
-					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
+					enabledocking = true, --If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
 					dockingpieces = "10 11 12",
-					dockingradius = 80,			--The range at which the units snap to the carrier unit when docking.
+					dockingradius = 80, --The range at which the units snap to the carrier unit when docking.
 					dronedocktime = 2,
 					droneairtime = 90,
 					droneammo = 40,
-				}
+				},
 			},
-        },
-        weapons = {
-            [1] = {
-                badtargetcategory = "ALL",
-                def = "FMD_ROCKET"
-            },
-            [2] = {
+		},
+		weapons = {
+			[1] = {
+				badtargetcategory = "ALL",
+				def = "FMD_ROCKET",
+			},
+			[2] = {
 				badtargetcategory = "VTOL",
 				def = "PLASMA",
 				onlytargetcategory = "NOTSUB",
-            },
-        }
-    }
+			},
+		},
+	},
 }

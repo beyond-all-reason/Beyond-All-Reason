@@ -99,7 +99,7 @@ return {
 			leg_t2_microflak_mobile = {
 				accuracy = 1000,
 				areaofeffect = 35,
-                burst = 3,
+				burst = 3,
 				burstrate = 0.02,
 				avoidfeature = false,
 				burnblow = true,

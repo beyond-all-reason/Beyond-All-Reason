@@ -2,13 +2,13 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name    = 'Restrict Unit Sharing',
-		desc    = 'Stun economy and builder units when transferred to ally when modoption enabled.',
-		author  = 'RebelNode',
-		date    = 'January 2026',
-		license = 'GNU GPL, v2 or later',
-		layer   = 0,
-		enabled = true
+		name = "Restrict Unit Sharing",
+		desc = "Stun economy and builder units when transferred to ally when modoption enabled.",
+		author = "RebelNode",
+		date = "January 2026",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
 
@@ -33,7 +33,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
-	if (capture) and (not Spring.AreTeamsAllied(fromTeamID, toTeamID)) then
+	if capture and (not Spring.AreTeamsAllied(fromTeamID, toTeamID)) then
 		return true
 	end
 	beingBuilt, buildProgress = Spring.GetUnitIsBeingBuilt(unitID)
@@ -46,9 +46,9 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, captu
 		end
 		return false
 	end
-    if ecoUnits[unitDefID] then
-        local _, maxHealth, _ = Spring.GetUnitHealth(unitID)
-        Spring.AddUnitDamage(unitID, maxHealth*5, 30) -- Stun for 30 seconds.
-    end
+	if ecoUnits[unitDefID] then
+		local _, maxHealth, _ = Spring.GetUnitHealth(unitID)
+		Spring.AddUnitDamage(unitID, maxHealth * 5, 30) -- Stun for 30 seconds.
+	end
 	return true
 end

@@ -47,7 +47,7 @@ return {
 			buildinggrounddecalsizey = 15,
 			buildinggrounddecalsizex = 15,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'buildert3',
+			unitgroup = "buildert3",
 			model_author = "Protar",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Labs",

@@ -33,7 +33,7 @@ return {
 		turnrate = 1316.75,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "ZephyrSkies (modeller), Protar (concept art)",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Bots/T2 Bots",
@@ -137,7 +137,7 @@ return {
 				},
 				customparams = {
 					--exclude_preaim = true
-				}
+				},
 			},
 		},
 		weapons = {

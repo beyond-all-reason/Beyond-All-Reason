@@ -1,12 +1,14 @@
-if not gadgetHandler:IsSyncedCode() then return end
+if not gadgetHandler:IsSyncedCode() then
+	return
+end
 
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name    = "Debris physics",
-		desc    = "Enable debris to move in directions other than Y",
-		enabled = true
+		name = "Debris physics",
+		desc = "Enable debris to move in directions other than Y",
+		enabled = true,
 	}
 end
 
@@ -18,12 +20,8 @@ for i = 1, #FeatureDefs do
 	end
 end
 
-function gadget:FeatureCreated (featureID)
+function gadget:FeatureCreated(featureID)
 	if validFeatureDefID[Spring.GetFeatureDefID(featureID)] then
-		Spring.SetFeatureMoveCtrl (featureID, false
-			, 1, 1, 1
-			, 1, 1, 1
-			, 1, 1, 1
-		)
+		Spring.SetFeatureMoveCtrl(featureID, false, 1, 1, 1, 1, 1, 1, 1, 1, 1)
 	end
 end

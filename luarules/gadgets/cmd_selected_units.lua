@@ -1,35 +1,33 @@
-
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
 		name = "Ally Selected Units",
 		desc = "sends your selected units to others",
-		author    = "very_bad_soldier",
-		date      = "August 1, 2008",
-		license   = "GNU GPL v2",
-		layer     = 0,
-		enabled = true
+		author = "very_bad_soldier",
+		date = "August 1, 2008",
+		license = "GNU GPL v2",
+		layer = 0,
+		enabled = true,
 	}
 end
 
 local updateDelay = 0.25
 local unitLimitPerFrame = 400 -- controls how many units will be send per frame
 local fullSelectionUpdateInt = 0 -- refresh full selection info once in n seconds, 0 = disabled
-local minZlibSize = 130  --minimum size threshold of msg to use zlib (msg smaller than this will not be compressed before sending)
+local minZlibSize = 130 --minimum size threshold of msg to use zlib (msg smaller than this will not be compressed before sending)
 
 local HEADER_SEL_UNCOMPRESSED = "cosu"
 local HEADER_SEL_COMPRESSED = "cosc"
 local HEADER_LENGTH = string.len(HEADER_SEL_UNCOMPRESSED)
-
 
 if gadgetHandler:IsSyncedCode() then
 	local validation = string.randomString(2)
 	_G.validationSelunits = validation
 
 	function gadget:RecvLuaMsg(inMsg, playerID)
-		if inMsg:sub(1,2)==validation and (inMsg:sub(3,HEADER_LENGTH+2)==HEADER_SEL_UNCOMPRESSED or inMsg:sub(3,HEADER_LENGTH+2)==HEADER_SEL_COMPRESSED) then
-			SendToUnsynced("selectionUpdate",playerID,inMsg:sub(7),inMsg:sub(6,6) == "c")
+		if inMsg:sub(1, 2) == validation and (inMsg:sub(3, HEADER_LENGTH + 2) == HEADER_SEL_UNCOMPRESSED or inMsg:sub(3, HEADER_LENGTH + 2) == HEADER_SEL_COMPRESSED) then
+			SendToUnsynced("selectionUpdate", playerID, inMsg:sub(7), inMsg:sub(6, 6) == "c")
 			return true
 		end
 	end
@@ -61,20 +59,20 @@ else
 		gadgetHandler:RemoveSyncAction("selectionUpdate")
 	end
 
-	function handleSelectionUpdateEvent(_,playerID,msg,compressed)
+	function handleSelectionUpdateEvent(_, playerID, msg, compressed)
 		local spec, fullView = GetSpectatingState()
 		if not spec then
-			local _,_,targetSpec,_,allyTeamID = GetPlayerInfo(playerID,false)
-			if targetSpec or allyTeamID ~= select(5,GetPlayerInfo(myPlayerID,false)) then
+			local _, _, targetSpec, _, allyTeamID = GetPlayerInfo(playerID, false)
+			if targetSpec or allyTeamID ~= select(5, GetPlayerInfo(myPlayerID, false)) then
 				return
 			end
 		end
 
-		if compressed then		-- we have a compressed msg here
-			msg = ZlibDeCompress( msg )
+		if compressed then -- we have a compressed msg here
+			msg = ZlibDeCompress(msg)
 		end
 
-		local counts = UnpackU16( msg, 1, 2 )
+		local counts = UnpackU16(msg, 1, 2)
 		if counts[1] == counts[2] and counts[1] == 0xffff then
 			--clear all
 			if Script.LuaUI("selectedUnitsClear") then
@@ -85,32 +83,32 @@ else
 			local removeCount = counts[2]
 
 			if removeCount > 0 and Script.LuaUI("selectedUnitsRemove") then
-				local remUnits = UnpackU16( msg, 5 + addCount * 2, removeCount )
-				for i=1,removeCount do
-					Script.LuaUI.selectedUnitsRemove(playerID,remUnits[i])
+				local remUnits = UnpackU16(msg, 5 + addCount * 2, removeCount)
+				for i = 1, removeCount do
+					Script.LuaUI.selectedUnitsRemove(playerID, remUnits[i])
 				end
 			end
 
 			if addCount > 0 and Script.LuaUI("selectedUnitsAdd") then
-				local addUnits = UnpackU16( msg, 5, addCount )
-				for i=1,addCount do
-					Script.LuaUI.selectedUnitsAdd(playerID,addUnits[i])
+				local addUnits = UnpackU16(msg, 5, addCount)
+				for i = 1, addCount do
+					Script.LuaUI.selectedUnitsAdd(playerID, addUnits[i])
 				end
 			end
 		end
 	end
 
-	function gadget:CommandsChanged( id, params, options )
+	function gadget:CommandsChanged(id, params, options)
 		sendSelectedUnits()
 	end
 
-	function gadget:UnitDestroyed(unitID, attacker )
-		myLastSelectedUnits[ unitID ] = nil
+	function gadget:UnitDestroyed(unitID, attacker)
+		myLastSelectedUnits[unitID] = nil
 	end
 
 	function gadget:Update()
 		local deltaTime = GetLastUpdateSeconds()
-		if time+deltaTime == time then
+		if time + deltaTime == time then
 			time = 0 --prevent floating point errors
 		end
 		time = time + deltaTime
@@ -121,7 +119,7 @@ else
 		end
 		time = 0
 
-		if fullSelectionUpdateInt ~= 0 and floor(timeSeconds)%fullSelectionUpdateInt == 0 then
+		if fullSelectionUpdateInt ~= 0 and floor(timeSeconds) % fullSelectionUpdateInt == 0 then
 			--its time for a full update
 			sendUnitsMsg(PackU16(0xffff) .. PackU16(0xffff))
 			myLastSelectedUnits = {}
@@ -135,11 +133,11 @@ else
 	--FORMAT: compressed msg "cosc{[addCount][removeCount]([unitIdToAdd]*)([unitIdToRemove]*)}"  the part in curly braces has to be zlib compressed
 	--FORMAT clear all: "cosu[0xffffff][0xffffff]"  --magic value. impossible to have as normal message
 
-	function sendUnitsMsg( msg )
+	function sendUnitsMsg(msg)
 		local finalMsg = msg
 		local header = HEADER_SEL_UNCOMPRESSED
 		if ZlibCompress and msg:len() >= minZlibSize then
-			finalMsg = ZlibCompress( finalMsg )
+			finalMsg = ZlibCompress(finalMsg)
 			header = HEADER_SEL_COMPRESSED
 		end
 
@@ -151,7 +149,7 @@ else
 
 		local partAdd = ""
 		local addCount = 0
-		for i=1,#units do
+		for i = 1, #units do
 			local unitId = units[i]
 			--check if unit is new this time
 			if not myLastSelectedUnits[unitId] then
@@ -189,11 +187,11 @@ else
 		local msg = partAdd .. partRemove
 		if msg:len() > 1 then
 			local msgToSend = ""
-			if #units > 0 and ( addCount + remCount) > #units then
+			if #units > 0 and (addCount + remCount) > #units then
 				--its more efficient to clear all and then start from zero
 				--so: 1. Clear All
 				msgToSend = PackU16(0xffff) .. PackU16(0xffff)
-				sendUnitsMsg( msgToSend)
+				sendUnitsMsg(msgToSend)
 				myLastSelectedUnits = {}
 				--2. do normal send
 				sendSelectedUnits()
@@ -205,10 +203,9 @@ else
 				else
 					--send standard message
 					msgToSend = PackU16(addCount) .. PackU16(remCount) .. msg
-
 				end
 
-				sendUnitsMsg( msgToSend)
+				sendUnitsMsg(msgToSend)
 			end
 		end
 	end

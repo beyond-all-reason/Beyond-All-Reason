@@ -19,27 +19,29 @@ end
 local shaderContents = {} -- maps shader filename to raw contents
 local interval = 10 -- seconds
 function widget:Initialize()
-    local shaders = VFS.DirList("Shaders/GLSL/", "*.glsl")
-    for i, filename in ipairs(shaders) do
-        shaderContents[filename] = VFS.LoadFile(filename)
-    end
+	local shaders = VFS.DirList("Shaders/GLSL/", "*.glsl")
+	for i, filename in ipairs(shaders) do
+		shaderContents[filename] = VFS.LoadFile(filename)
+	end
 end
 
 local lastUpdate = Spring.GetTimer()
 function widget:Update()
-	if Spring.DiffTimers(Spring.GetTimer() , lastUpdate) < interval then return end
+	if Spring.DiffTimers(Spring.GetTimer(), lastUpdate) < interval then
+		return
+	end
 	lastUpdate = Spring.GetTimer()
-    local changed = false
-    for fileName, oldContents in pairs(shaderContents) do
-        local newContents = VFS.LoadFile(fileName)
-        if newContents ~= oldContents then
-            interval = 1
-            changed = true
-            shaderContents[fileName] = newContents
-            Spring.Echo("Reloading shader: " .. fileName)
-        end
-    end
-    if changed then
-        Spring.SendCommands("reloadshaders")
-    end
+	local changed = false
+	for fileName, oldContents in pairs(shaderContents) do
+		local newContents = VFS.LoadFile(fileName)
+		if newContents ~= oldContents then
+			interval = 1
+			changed = true
+			shaderContents[fileName] = newContents
+			Spring.Echo("Reloading shader: " .. fileName)
+		end
+	end
+	if changed then
+		Spring.SendCommands("reloadshaders")
+	end
 end

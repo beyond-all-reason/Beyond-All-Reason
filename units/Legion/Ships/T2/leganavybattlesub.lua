@@ -103,8 +103,8 @@ return {
 				avoidfeature = false,
 				avoidfriendly = false,
 				burnblow = true,
-				burst = 3;
-				burstrate = 0.33;
+				burst = 3,
+				burstrate = 0.33,
 				cegtag = "torpedotrail-small",
 				collidefriendly = false,
 				craterareaofeffect = 0,

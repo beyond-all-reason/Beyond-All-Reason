@@ -1,15 +1,14 @@
-
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "Guard Remove",
-		desc      = "Removes non-terminating orders (guard/patrol) on builders when more commands are given with shift",
-		author    = "Google Frog, Born2Crawl (adapted for BAR)",
-		date      = "13 July 2017",
-		license   = "GNU GPL, v2 or later",
-		layer     = 0,
-		enabled   = true
+		name = "Guard Remove",
+		desc = "Removes non-terminating orders (guard/patrol) on builders when more commands are given with shift",
+		author = "Google Frog, Born2Crawl (adapted for BAR)",
+		date = "13 July 2017",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
 

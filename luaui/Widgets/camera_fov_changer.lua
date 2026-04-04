@@ -2,16 +2,15 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-	name      = "FOV changer",
-	desc      = "shortcuts: keypad 1/7 or CTRL+O/P",
-	author    = "",
-	date      = "",
-	license   = "GNU GPL, v2 or later",
-	layer     = 999999,
-	enabled   = false
+		name = "FOV changer",
+		desc = "shortcuts: keypad 1/7 or CTRL+O/P",
+		author = "",
+		date = "",
+		license = "GNU GPL, v2 or later",
+		layer = 999999,
+		enabled = false,
 	}
 end
-
 
 -- Localized functions for performance
 local mathFloor = math.floor
@@ -27,11 +26,11 @@ local FOVplus2 = 263 --KP7
 
 function widget:KeyRelease(key, modifier)
 	--spEcho(key)
-	if ((key == FOVplus and modifier.ctrl) or key == FOVplus2 or (key == FOVminus and modifier.ctrl) or key == FOVminus2) then
+	if (key == FOVplus and modifier.ctrl) or key == FOVplus2 or (key == FOVminus and modifier.ctrl) or key == FOVminus2 then
 		local current_cam_state = Spring.GetCameraState()
 		if key == FOVplus or key == FOVplus2 then
 			current_cam_state.fov = mathFloor(current_cam_state.fov + fovStep)
-			if current_cam_state.fov > 100 then	-- glitches beyond 100
+			if current_cam_state.fov > 100 then -- glitches beyond 100
 				current_cam_state.fov = 100
 			end
 		else
@@ -40,7 +39,7 @@ function widget:KeyRelease(key, modifier)
 				current_cam_state.fov = 0
 			end
 		end
-		spEcho('target FOV: '..current_cam_state.fov)
-		Spring.SetCameraState(current_cam_state, WG['options'] and WG['options'].getCameraSmoothness() or 2)
+		spEcho("target FOV: " .. current_cam_state.fov)
+		Spring.SetCameraState(current_cam_state, WG["options"] and WG["options"].getCameraSmoothness() or 2)
 	end
 end

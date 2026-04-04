@@ -1,50 +1,50 @@
 function widget:GetInfo()
 	return {
-		name    = "Clean Builder Queue",
-		desc    = "Removes completed buildings from all builders unit queue in case they werent there completing it (unless they have repeat enabled)",
-		author  = "Floris",
-		date    = "May 2025",
+		name = "Clean Builder Queue",
+		desc = "Removes completed buildings from all builders unit queue in case they werent there completing it (unless they have repeat enabled)",
+		author = "Floris",
+		date = "May 2025",
 		license = "GNU GPL v2",
-		layer   = 0,
+		layer = 0,
 		enabled = true,
 	}
 end
 
-local GetUnitCommands      = Spring.GetUnitCommands
-local GetUnitCommandCount  = Spring.GetUnitCommandCount
-local GetUnitStates        = Spring.GetUnitStates
-local GiveOrderToUnit      = Spring.GiveOrderToUnit
-local GetUnitPosition      = Spring.GetUnitPosition
-local GetUnitDefID         = Spring.GetUnitDefID
-local GetTeamUnits         = Spring.GetTeamUnits
-local GetMyTeamID          = Spring.GetMyTeamID
-local GetSpectatingState   = Spring.GetSpectatingState
-local GetUnitsInCylinder   = Spring.GetUnitsInCylinder
-local select               = select
+local GetUnitCommands = Spring.GetUnitCommands
+local GetUnitCommandCount = Spring.GetUnitCommandCount
+local GetUnitStates = Spring.GetUnitStates
+local GiveOrderToUnit = Spring.GiveOrderToUnit
+local GetUnitPosition = Spring.GetUnitPosition
+local GetUnitDefID = Spring.GetUnitDefID
+local GetTeamUnits = Spring.GetTeamUnits
+local GetMyTeamID = Spring.GetMyTeamID
+local GetSpectatingState = Spring.GetSpectatingState
+local GetUnitsInCylinder = Spring.GetUnitsInCylinder
+local select = select
 
-local CMD_REMOVE         = CMD.REMOVE
-local CMD_REPEAT         = CMD.REPEAT
+local CMD_REMOVE = CMD.REMOVE
+local CMD_REPEAT = CMD.REPEAT
 
-local REMOVE_TOLERANCE   = 5 * 5 -- squared distance
+local REMOVE_TOLERANCE = 5 * 5 -- squared distance
 
-local trackedBuilders    = {}
-local isBuilding         = {}
-local builderDefs        = {}
-local myTeamID           = GetMyTeamID()
+local trackedBuilders = {}
+local isBuilding = {}
+local builderDefs = {}
+local myTeamID = GetMyTeamID()
 
 -- Calculate maximum build distance from all builder units + margin
-local maxBuildDistance   = 0
+local maxBuildDistance = 0
 for udid, ud in pairs(UnitDefs) do
 	if ud.isBuilder and ud.buildDistance then
 		maxBuildDistance = math.max(maxBuildDistance, ud.buildDistance)
 	end
 end
-local SEARCH_RADIUS      = maxBuildDistance + 200  -- Max build distance + safety margin
+local SEARCH_RADIUS = maxBuildDistance + 200 -- Max build distance + safety margin
 
 -- Cache repeat status to avoid repeated lookups
-local repeatStatus       = {}
+local repeatStatus = {}
 -- Reusable table for nearby builders to reduce allocations
-local nearbyBuilders     = {}
+local nearbyBuilders = {}
 
 local function IsUnitRepeatOn(unitID)
 	if repeatStatus[unitID] ~= nil then
@@ -120,11 +120,15 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	end
 
 	local x, _, z = GetUnitPosition(unitID)
-	if not x then return end
+	if not x then
+		return
+	end
 
 	-- Use spatial query to only check nearby units (team-filtered to reduce table size)
 	local nearbyUnits = GetUnitsInCylinder(x, z, SEARCH_RADIUS, myTeamID)
-	if not nearbyUnits or #nearbyUnits == 0 then return end
+	if not nearbyUnits or #nearbyUnits == 0 then
+		return
+	end
 
 	-- Clear and reuse nearbyBuilders table to reduce allocations
 	local builderCount = 0
@@ -136,7 +140,9 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 		end
 	end
 
-	if builderCount == 0 then return end
+	if builderCount == 0 then
+		return
+	end
 
 	local targetCmdID = -unitDefID
 
@@ -145,9 +151,9 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	-- For subsequent builders with the same queue, we can either:
 	--   - Skip entirely if no match was found (saves full GetUnitCommands + scan)
 	--   - Fetch only up to the known match index to get the per-unit tag
-	local sharedCmdCount     -- command count of the first-scanned builder
-	local sharedMatchIndex   -- index of the matching command (nil = no match found)
-	local sharedFirstCmdId   -- first command id of the shared queue (for identity check)
+	local sharedCmdCount -- command count of the first-scanned builder
+	local sharedMatchIndex -- index of the matching command (nil = no match found)
+	local sharedFirstCmdId -- first command id of the shared queue (for identity check)
 
 	for i = 1, builderCount do
 		local builderID = nearbyBuilders[i]

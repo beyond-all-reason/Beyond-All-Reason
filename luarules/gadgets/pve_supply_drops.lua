@@ -21,25 +21,23 @@ else
 	lootboxSpawnEnabled = false
 end
 
-
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
-    return {
-      name      = "supply drops",
-      desc      = "123",
-      author    = "Damgam",
-      date      = "2020",
-	  license   = "GNU GPL, v2 or later",
-      layer     = -100,
-      enabled   = true,
-    }
+	return {
+		name = "supply drops",
+		desc = "123",
+		author = "Damgam",
+		date = "2020",
+		license = "GNU GPL, v2 or later",
+		layer = -100,
+		enabled = true,
+	}
 end
 
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
-
 
 local isLootbox = {}
 local lootboxTierByName = {} -- Map lootbox name to tier for fast lookup
@@ -67,46 +65,45 @@ local lootboxesListT2 = {}
 local lootboxesListT3 = {}
 local lootboxesListT4 = {}
 if scavengersAIEnabled then
-	lootboxesListT1[#lootboxesListT1+1] = "lootboxbronze_scav"
-	lootboxesListT2[#lootboxesListT2+1] = "lootboxsilver_scav"
-	lootboxesListT3[#lootboxesListT3+1] = "lootboxgold_scav"
-	lootboxesListT4[#lootboxesListT4+1] = "lootboxplatinum_scav"
+	lootboxesListT1[#lootboxesListT1 + 1] = "lootboxbronze_scav"
+	lootboxesListT2[#lootboxesListT2 + 1] = "lootboxsilver_scav"
+	lootboxesListT3[#lootboxesListT3 + 1] = "lootboxgold_scav"
+	lootboxesListT4[#lootboxesListT4 + 1] = "lootboxplatinum_scav"
 else
-	lootboxesListT1[#lootboxesListT1+1] = "lootboxbronze"
-	lootboxesListT2[#lootboxesListT2+1] = "lootboxsilver"
-	lootboxesListT3[#lootboxesListT3+1] = "lootboxgold"
-	lootboxesListT4[#lootboxesListT4+1] = "lootboxplatinum"
+	lootboxesListT1[#lootboxesListT1 + 1] = "lootboxbronze"
+	lootboxesListT2[#lootboxesListT2 + 1] = "lootboxsilver"
+	lootboxesListT3[#lootboxesListT3 + 1] = "lootboxgold"
+	lootboxesListT4[#lootboxesListT4 + 1] = "lootboxplatinum"
 end
 
-
 -- locals
-local mapsizeX              = Game.mapSizeX
-local mapsizeZ              = Game.mapSizeZ
-local xBorder               = math.floor(mapsizeX/10)
-local zBorder               = math.floor(mapsizeZ/10)
-local math_random           = math.random
-local spGroundHeight        = Spring.GetGroundHeight
-local spGaiaTeam            = Spring.GetGaiaTeamID()
-local spGaiaAllyTeam        = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID()))
-local spCreateUnit          = Spring.CreateUnit
-local spSetUnitNeutral      = Spring.SetUnitNeutral
+local mapsizeX = Game.mapSizeX
+local mapsizeZ = Game.mapSizeZ
+local xBorder = math.floor(mapsizeX / 10)
+local zBorder = math.floor(mapsizeZ / 10)
+local math_random = math.random
+local spGroundHeight = Spring.GetGroundHeight
+local spGaiaTeam = Spring.GetGaiaTeamID()
+local spGaiaAllyTeam = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID()))
+local spCreateUnit = Spring.CreateUnit
+local spSetUnitNeutral = Spring.SetUnitNeutral
 local spSetUnitAlwaysVisible = Spring.SetUnitAlwaysVisible
-local spSpawnCEG            = Spring.SpawnCEG
-local spPlaySoundFile       = Spring.PlaySoundFile
-local spGetUnitPosition     = Spring.GetUnitPosition
+local spSpawnCEG = Spring.SpawnCEG
+local spPlaySoundFile = Spring.PlaySoundFile
+local spGetUnitPosition = Spring.GetUnitPosition
 
 -- Use hash tables instead of arrays for O(1) lookup
-local aliveLootboxes        = {}
-local aliveLootboxesCount   = 0
+local aliveLootboxes = {}
+local aliveLootboxesCount = 0
 
-local aliveLootboxesT1        = {}
-local aliveLootboxesCountT1   = 0
-local aliveLootboxesT2        = {}
-local aliveLootboxesCountT2   = 0
-local aliveLootboxesT3        = {}
-local aliveLootboxesCountT3   = 0
-local aliveLootboxesT4        = {}
-local aliveLootboxesCountT4   = 0
+local aliveLootboxesT1 = {}
+local aliveLootboxesCountT1 = 0
+local aliveLootboxesT2 = {}
+local aliveLootboxesCountT2 = 0
+local aliveLootboxesT3 = {}
+local aliveLootboxesCountT3 = 0
+local aliveLootboxesT4 = {}
+local aliveLootboxesCountT4 = 0
 local aliveLootboxCaptureDifficulty = {}
 local aliveLootboxTier = {} -- Cache tier for each lootbox
 
@@ -122,7 +119,7 @@ elseif lootboxesDensity == "normal" then
 	lootboxDensityMultiplier = 1
 end
 
-local SpawnChance = math.ceil((150/lootboxDensityMultiplier)/(#teams-1))
+local SpawnChance = math.ceil((150 / lootboxDensityMultiplier) / (#teams - 1))
 
 if scavengersAIEnabled then
 	spGaiaTeam = scavengerAITeamID
@@ -141,24 +138,23 @@ local nearbyCaptureLibrary = VFS.Include("luarules/utilities/damgam_lib/nearby_c
 -- 	end
 -- end
 
-
 -- callins
 
 local function SpawnLootbox(posx, posy, posz)
-	if math.random() < math.min(0.8, (aliveLootboxesCountT3*0.4)/(#teams-1)) then
-		lootboxToSpawn = lootboxesListT4[math_random(1,#lootboxesListT4)]
-	elseif math.random() < math.min(0.8, (aliveLootboxesCountT2*0.4)/(#teams-1)) then
-		lootboxToSpawn = lootboxesListT3[math_random(1,#lootboxesListT3)]
-	elseif math.random() < math.min(0.8, (aliveLootboxesCountT1*0.4)/(#teams-1)) then
-		lootboxToSpawn = lootboxesListT2[math_random(1,#lootboxesListT2)]
+	if math.random() < math.min(0.8, (aliveLootboxesCountT3 * 0.4) / (#teams - 1)) then
+		lootboxToSpawn = lootboxesListT4[math_random(1, #lootboxesListT4)]
+	elseif math.random() < math.min(0.8, (aliveLootboxesCountT2 * 0.4) / (#teams - 1)) then
+		lootboxToSpawn = lootboxesListT3[math_random(1, #lootboxesListT3)]
+	elseif math.random() < math.min(0.8, (aliveLootboxesCountT1 * 0.4) / (#teams - 1)) then
+		lootboxToSpawn = lootboxesListT2[math_random(1, #lootboxesListT2)]
 	else
-		lootboxToSpawn = lootboxesListT1[math_random(1,#lootboxesListT1)]
+		lootboxToSpawn = lootboxesListT1[math_random(1, #lootboxesListT1)]
 	end
-	local spawnedUnit = spCreateUnit(lootboxToSpawn, posx, posy, posz, math_random(0,3), spGaiaTeam)
+	local spawnedUnit = spCreateUnit(lootboxToSpawn, posx, posy, posz, math_random(0, 3), spGaiaTeam)
 	if scavengersAIEnabled then
-		spCreateUnit("lootdroppod_gold_scav", posx, posy, posz, math_random(0,3), spGaiaTeam)
+		spCreateUnit("lootdroppod_gold_scav", posx, posy, posz, math_random(0, 3), spGaiaTeam)
 	else
-		spCreateUnit("lootdroppod_gold", posx, posy, posz, math_random(0,3), spGaiaTeam)
+		spCreateUnit("lootdroppod_gold", posx, posy, posz, math_random(0, 3), spGaiaTeam)
 	end
 	if spawnedUnit then
 		spSetUnitNeutral(spawnedUnit, true)
@@ -170,26 +166,25 @@ local function SpawnLootbox(posx, posy, posz)
 end
 
 function gadget:GameFrame(n)
-
-    if n%30 == 0 and n > 2 then
-		if SpawnChance < 1 or math.random(0,SpawnChance) == 0 then
-			LootboxesToSpawn = LootboxesToSpawn+0.1
+	if n % 30 == 0 and n > 2 then
+		if SpawnChance < 1 or math.random(0, SpawnChance) == 0 then
+			LootboxesToSpawn = LootboxesToSpawn + 0.1
 			if LootboxesToSpawn < 0 then
 				LootboxesToSpawn = 0
 			end
 		end
 
-        if aliveLootboxesCount > 0 then
+		if aliveLootboxesCount > 0 then
 			for lootboxID, _ in pairs(aliveLootboxes) do
 				nearbyCaptureLibrary.NearbyCapture(lootboxID, aliveLootboxCaptureDifficulty[lootboxID], 1024)
 			end
-        end
-        if LootboxesToSpawn >= 1 and lootboxSpawnEnabled then
+		end
+		if LootboxesToSpawn >= 1 and lootboxSpawnEnabled then
 			--Spring.Echo("LOOTBOXES ENABLED, We're Spawning!")
-            for k = 1,20 do
-                local posx = math.floor(math_random(xBorder,mapsizeX-xBorder)/16)*16
-                local posz = math.floor(math_random(zBorder,mapsizeZ-zBorder)/16)*16
-                local posy = spGroundHeight(posx, posz)
+			for k = 1, 20 do
+				local posx = math.floor(math_random(xBorder, mapsizeX - xBorder) / 16) * 16
+				local posz = math.floor(math_random(zBorder, mapsizeZ - zBorder) / 16) * 16
+				local posy = spGroundHeight(posx, posz)
 				local canSpawnLootbox = positionCheckLibrary.FlatAreaCheck(posx, posy, posz, 128)
 				if canSpawnLootbox then
 					canSpawnLootbox = positionCheckLibrary.OccupancyCheck(posx, posy, posz, 128)
@@ -197,22 +192,21 @@ function gadget:GameFrame(n)
 				if canSpawnLootbox then
 					canSpawnLootbox = positionCheckLibrary.VisibilityCheckEnemy(posx, posy, posz, 32, spGaiaAllyTeam, true, true, false)
 				end
-                if canSpawnLootbox then
+				if canSpawnLootbox then
 					SpawnLootbox(posx, posy, posz)
-                    break
-                end
-            end
-        end
-    end
+					break
+				end
+			end
+		end
+	end
 end
-
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	local UnitName = unitDefNameCache[unitDefID]
 	if isLootbox[unitDefID] then
 		spSetUnitNeutral(unitID, true)
 		spSetUnitAlwaysVisible(unitID, true)
-		LootboxesToSpawn = LootboxesToSpawn-1
+		LootboxesToSpawn = LootboxesToSpawn - 1
 		aliveLootboxes[unitID] = true
 		aliveLootboxesCount = aliveLootboxesCount + 1
 
@@ -242,18 +236,17 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	if UnitName == "lootdroppod_gold" or UnitName == "lootdroppod_gold_scav" then
 		spSetUnitNeutral(unitID, true)
 		spSetUnitAlwaysVisible(unitID, true)
-		Spring.GiveOrderToUnit(unitID, CMD.SELFD,{}, {"shift"})
+		Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, { "shift" })
 	end
 end
 
-
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if aliveLootboxes[unitID] then
-		LootboxesToSpawn = LootboxesToSpawn+0.5
+		LootboxesToSpawn = LootboxesToSpawn + 0.5
 		aliveLootboxes[unitID] = nil
 		aliveLootboxesCount = aliveLootboxesCount - 1
 		aliveLootboxCaptureDifficulty[unitID] = nil
-		
+
 		-- Remove from tier-specific tables
 		local tier = aliveLootboxTier[unitID]
 		if tier == 1 then
@@ -271,14 +264,14 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		end
 		aliveLootboxTier[unitID] = nil
 	end
-	
+
 	local unitName = unitDefNameCache[unitDefID]
 	if unitName and string.find(unitName, "scavbeacon", nil, true) then
 		if math.random() <= 0.33 then
 			local posx, posy, posz = spGetUnitPosition(unitID)
 			SpawnLootbox(posx, posy, posz)
 		else
-			LootboxesToSpawn = LootboxesToSpawn+0.33
+			LootboxesToSpawn = LootboxesToSpawn + 0.33
 		end
 	end
 end

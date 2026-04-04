@@ -129,7 +129,7 @@ return {
 				sprayangle = 1900,
 				thickness = 0.6,
 				tolerance = 6000,
-                firetolerance = 6000,
+				firetolerance = 6000,
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 969,

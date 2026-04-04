@@ -142,7 +142,6 @@ function gadget:GameStart()
 	end
 end
 
-
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	local power = UnitDefs[unitDefID].power
 	if power then
@@ -152,12 +151,12 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		end
 	end
 	if techPointsGeneratorDefs[unitDefID] and not ignoredTeams[unitTeam] then
-		xpGenerators[unitID] = {gain = techPointsGeneratorDefs[unitDefID], allyTeam = spGetUnitAllyTeam(unitID)}
+		xpGenerators[unitID] = { gain = techPointsGeneratorDefs[unitDefID], allyTeam = spGetUnitAllyTeam(unitID) }
 	end
 	if techCoreValueDefs[unitDefID] and not ignoredTeams[unitTeam] then
 		local allyTeam = spGetUnitAllyTeam(unitID)
 		local coreValue = techCoreValueDefs[unitDefID]
-		techCoreUnits[unitID] = {value = coreValue, allyTeam = allyTeam}
+		techCoreUnits[unitID] = { value = coreValue, allyTeam = allyTeam }
 	end
 end
 
@@ -167,7 +166,7 @@ function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 		techCoreUnits[unitID] = nil
 		return
 	elseif xpGenerators[unitID] then
-		xpGenerators[unitID] = {gain = techPointsGeneratorDefs[unitDefID], allyTeam = spGetUnitAllyTeam(unitID)}
+		xpGenerators[unitID] = { gain = techPointsGeneratorDefs[unitDefID], allyTeam = spGetUnitAllyTeam(unitID) }
 	end
 	if techCoreUnits[unitID] then
 		local newAllyTeam = spGetUnitAllyTeam(unitID)
@@ -193,7 +192,6 @@ function gadget:GameFrame(frame)
 	for unitID, data in pairs(techCoreUnits) do
 		allyTechCorePoints[data.allyTeam] = (allyTechCorePoints[data.allyTeam] or 0) + data.value
 	end
-
 
 	for allyTeamID, teamList in pairs(allyWatch) do
 		local techCorePoints = allyTechCorePoints[allyTeamID] or 0
