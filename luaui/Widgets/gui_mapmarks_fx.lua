@@ -40,7 +40,7 @@ local commands = {}
 local mapDrawNicknameTime = {}
 local mapEraseNicknameTime = {}
 
-local ownPlayerID = Spring.GetMyPlayerID()
+local ownPlayerID = Spring.GetLocalPlayerID()
 local vsx,vsy = spGetViewGeometry()
 
 local commandCount = 0

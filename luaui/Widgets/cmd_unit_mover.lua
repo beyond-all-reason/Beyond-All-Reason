@@ -32,7 +32,7 @@ local spGetGameFrame = Spring.GetGameFrame
 local GiveOrderToUnit = Spring.GiveOrderToUnit
 local GetUnitPosition = Spring.GetUnitPosition
 local GetUnitDirection = Spring.GetUnitDirection
-local GetMyTeamID = Spring.GetMyTeamID
+local GetMyTeamID = Spring.GetLocalTeamID
 local GetUnitDefID = Spring.GetUnitDefID
 
 local CMD_MOVE = CMD.MOVE

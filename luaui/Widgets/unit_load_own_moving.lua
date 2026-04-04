@@ -33,7 +33,7 @@ end
 -------------------------------------------------------------------
 -- Speedups
 -------------------------------------------------------------------
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 local spGiveOrderToUnit = Spring.GiveOrderToUnit

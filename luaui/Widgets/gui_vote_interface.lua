@@ -38,7 +38,7 @@ local vsx, vsy = spGetViewGeometry()
 
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
-local myPlayerID = Spring.GetMyPlayerID()
+local myPlayerID = Spring.GetLocalPlayerID()
 local myPlayerName, _, mySpec, myTeamID, myAllyTeamID = Spring.GetPlayerInfo(myPlayerID, false)
 
 local isreplay = Spring.IsReplay()
@@ -367,7 +367,7 @@ end
 function widget:GameFrame(n)
 	if n > 0 and not gameStarted then
 		gameStarted = true
-		myPlayerID = Spring.GetMyPlayerID()
+		myPlayerID = Spring.GetLocalPlayerID()
 		myPlayerName, _, mySpec, myTeamID, myAllyTeamID = Spring.GetPlayerInfo(myPlayerID, false)
 	end
 	widgetHandler:RemoveCallIn('GameFrame')

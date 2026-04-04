@@ -285,8 +285,8 @@ local sunChanged = true
 local glassShader
 
 local isSpec, fullview = Spring.GetSpectatingState()
-local myAllyTeamID = Spring.GetMyAllyTeamID()
-local myTeamID = Spring.GetMyTeamID()
+local myAllyTeamID = Spring.GetLocalAllyTeamID()
+local myTeamID = Spring.GetLocalTeamID()
 
 local unitTextureFilesArray = VFS.DirList("unittextures/")
 local unitTextureFiles = {}
@@ -310,8 +310,8 @@ function gadget:PlayerChanged(playerID)
 	local prevFullview = fullview
 	local prevMyAllyTeamID = myAllyTeamID
 	isSpec, fullview = Spring.GetSpectatingState()
-	myAllyTeamID = Spring.GetMyAllyTeamID()
-	myTeamID = Spring.GetMyTeamID()
+	myAllyTeamID = Spring.GetLocalAllyTeamID()
+	myTeamID = Spring.GetLocalTeamID()
 	if fullview ~= prevFullview or myAllyTeamID ~= prevMyAllyTeamID then
 		UpdateAllGlassUnits()
 	end

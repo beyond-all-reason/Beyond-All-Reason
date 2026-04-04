@@ -119,7 +119,7 @@ local sp = {
 	GetMouseState = spGetMouseState,
 	GetAIInfo = Spring.GetAIInfo,
 	GetTeamRulesParam = Spring.GetTeamRulesParam,
-	GetMyTeamID = Spring.GetMyTeamID,
+	GetMyTeamID = Spring.GetLocalTeamID,
 	AreTeamsAllied = Spring.AreTeamsAllied,
 	GetTeamStatsHistory = Spring.GetTeamStatsHistory,
 }
@@ -282,7 +282,7 @@ local accountIDLookup = {}    -- accountID -> playerID for fast duplicate detect
 --------------------------------------------------------------------------------
 
 -- local player info
-local myPlayerID = Spring.GetMyPlayerID()
+local myPlayerID = Spring.GetLocalPlayerID()
 local myAllyTeamID = Spring.GetLocalAllyTeamID()
 local myTeamID = Spring.GetLocalTeamID()
 local myTeamPlayerID = select(2, Spring.GetTeamInfo(myTeamID))
@@ -837,7 +837,7 @@ local function SetOriginalColourNames()
 end
 
 function widget:PlayerChanged(playerID)
-    myPlayerID = Spring.GetMyPlayerID()
+    myPlayerID = Spring.GetLocalPlayerID()
     myAllyTeamID = Spring.GetLocalAllyTeamID()
     myTeamID = Spring.GetLocalTeamID()
     myTeamPlayerID = select(2, Spring.GetTeamInfo(myTeamID))

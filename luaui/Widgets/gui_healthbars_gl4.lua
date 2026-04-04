@@ -362,7 +362,7 @@ end
 --------------------------------------------------------------------------------
 
 local spec, fullview = spGetSpectatingState()
-local myAllyTeamID = Spring.GetMyAllyTeamID()
+local myAllyTeamID = Spring.GetLocalAllyTeamID()
 local GetUnitWeaponState = Spring.GetUnitWeaponState
 
 local chobbyInterface
@@ -1039,7 +1039,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	unitStockPileWatch = {}
 	unitReloadWatch = {}
 	spec, fullview = spGetSpectatingState()
-	myAllyTeamID = Spring.GetMyAllyTeamID()
+	myAllyTeamID = Spring.GetLocalAllyTeamID()
 
 
 	InstanceVBOTable.clearInstanceTable(healthBarVBO) -- clear all instances
@@ -1052,9 +1052,9 @@ end
 function widget:PlayerChanged(playerID)
 
 	local currentspec, currentfullview = spGetSpectatingState()
-	local currentTeamID = Spring.GetMyTeamID()
-	local currentAllyTeamID = Spring.GetMyAllyTeamID()
-	local currentPlayerID = Spring.GetMyPlayerID()
+	local currentTeamID = Spring.GetLocalTeamID()
+	local currentAllyTeamID = Spring.GetLocalAllyTeamID()
+	local currentPlayerID = Spring.GetLocalPlayerID()
 	local reinit = false
 
 	if debugmode then spEcho("HBGL4 widget:PlayerChanged",'spec', currentspec, 'fullview', currentfullview, 'teamID', currentTeamID, 'allyTeamID', currentAllyTeamID, "playerID", currentPlayerID) end

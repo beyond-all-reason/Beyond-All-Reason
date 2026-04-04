@@ -397,7 +397,7 @@ else
 	local function Start(optName, line, words, pID, _)
 		if running then
 			Kill(nil, nil, nil, pID, nil)
-		elseif pID == Spring.GetMyPlayerID() then
+		elseif pID == Spring.GetLocalPlayerID() then
 			running = true
 
 			tick = (words and words[1] and tonumber(words[1])) or tick

@@ -165,7 +165,7 @@ local function fetchAllyTeamPlayerNames(allyTeamID)
 	
 	local playerNames = {}
 	local seenPlayerIDs = {}
-	local myTeamID = Spring.GetMyTeamID()
+	local myTeamID = Spring.GetLocalTeamID()
 	local mySpecStatus = spGetSpectatingState()
 	local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 	
@@ -272,10 +272,10 @@ local function getAllyTeamColor(allyTeamID)
 end
 
 local function isPlayerInFirstPlace()
-	local myTeamID = Spring.GetMyTeamID()
+	local myTeamID = Spring.GetLocalTeamID()
 	if myTeamID == nil then return false end
 
-	local myAllyTeamID = Spring.GetMyAllyTeamID()
+	local myAllyTeamID = Spring.GetLocalAllyTeamID()
 	if myAllyTeamID == nil then return false end
 
 	local allyTeams = widgetState.allyTeamData
@@ -641,7 +641,7 @@ local function hideRoundEndPopup()
 end
 
 local function getSelectedPlayerTeam()
-	local myAllyTeamID = Spring.GetMyAllyTeamID()
+	local myAllyTeamID = Spring.GetLocalAllyTeamID()
 	if not myAllyTeamID then return nil end
 	
 	local teamList = spGetTeamList(myAllyTeamID)

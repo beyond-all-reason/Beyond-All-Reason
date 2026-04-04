@@ -31,7 +31,7 @@ local height = 0
 local bgBorderOrg = 0.003
 local bgBorder = bgBorderOrg
 
-local myTeamID = Spring.GetMyTeamID()
+local myTeamID = Spring.GetLocalTeamID()
 local stickToBottom = true
 
 local startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')

@@ -134,7 +134,7 @@ else
 	end
 
 	function gadget:PlayerChanged()
-		myTeamID = Spring.GetMyTeamID()
+		myTeamID = Spring.GetLocalTeamID()
 		isSpec = Spring.GetSpectatingState()
 	end
 
