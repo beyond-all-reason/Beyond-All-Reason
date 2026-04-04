@@ -140,6 +140,10 @@ bind          Ctrl+sc_w  select AllMap+_InPrevSel+_ClearSelection_SelectAll+
 bind          Ctrl+sc_r  select AllMap+_Transport_Idle+_ClearSelection_SelectAll+
 bind          Ctrl+sc_y  select Visible+_Waiting+_ClearSelection_SelectAll+
 
+// cycle camera through selected units
+bind               sc_.  cycleselected
+bind               sc_,  cycleselected_prev
+
   // numpad movement
 bind            numpad2  moveback
 bind            numpad6  moveright
