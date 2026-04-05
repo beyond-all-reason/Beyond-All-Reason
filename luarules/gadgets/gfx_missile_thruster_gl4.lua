@@ -72,26 +72,28 @@ local glowTexture   = "bitmaps/projectiletextures/glow2.tga"
 local THRUSTER_CONFIGS = {
 	-- Standard small missiles (orange flame trailing behind)
 	missiletrailsmall = {
-		length = -16, lengthRand = 3.5,
-		size = 2.1, sizeGrowth = 0.2,
+		length = -20, lengthRand = 3.5,
+		size = 1.8, sizeGrowth = 0.2,
 		colorR = 1.0, colorG = 0.7, colorB = 0.4,
 		colorEndR = 1.0, colorEndG = 0.4, colorEndB = 0.1,
-		glowSize = 30, glowR = 0.12, glowG = 0.085, glowB = 0.017,
+		glowSize = 28, glowR = 0.09, glowG = 0.08, glowB = 0.012,
+		thrusterOffset = 3,
 	},
 	["missiletrailsmall-simple"] = {
-		length = -18, lengthRand = 3.8,
-		size = 2.0, sizeGrowth = 0.2,
+		length = -20, lengthRand = 3.8,
+		size = 1.8, sizeGrowth = 0.2,
 		colorR = 1.0, colorG = 0.7, colorB = 0.4,
 		colorEndR = 1.0, colorEndG = 0.4, colorEndB = 0.1,
-		glowSize = 30, glowR = 0.12, glowG = 0.085, glowB = 0.017,
+		glowSize = 28, glowR = 0.09, glowG = 0.08, glowB = 0.012,
 		thrusterOffset = 3,
 	},
 	["missiletrailsmall-red"] = {
 		length = -21, lengthRand = 6,
-		size = 3.45, sizeGrowth = 0.2,
+		size = 3.2, sizeGrowth = 0.2,
 		colorR = 1.0, colorG = 0.33, colorB = 0.17,
 		colorEndR = 1.0, colorEndG = 0.22, colorEndB = 0.05,
-		glowSize = 30, glowR = 0.2, glowG = 0.075, glowB = 0.075,
+		glowSize = 28, glowR = 0.11, glowG = 0.03, glowB = 0.03,
+		thrusterOffset = 3,
 	},
 	-- Tiny missiles
 	missiletrailtiny = {
@@ -109,6 +111,7 @@ local THRUSTER_CONFIGS = {
 		colorR = 1.0, colorG = 0.7, colorB = 0.4,
 		colorEndR = 1.0, colorEndG = 0.4, colorEndB = 0.1,
 		glowSize = 50, glowR = 0.15, glowG = 0.08, glowB = 0.02,
+		thrusterOffset = -1,
 	},
 	["missiletrailmedium-red"] = {
 		length = -24, lengthRand = 6,
@@ -116,13 +119,15 @@ local THRUSTER_CONFIGS = {
 		colorR = 1.0, colorG = 0.33, colorB = 0.17,
 		colorEndR = 1.0, colorEndG = 0.22, colorEndB = 0.05,
 		glowSize = 50, glowR = 0.25, glowG = 0.1, glowB = 0.01,
+		thrusterOffset = 3,
 	},
 	missiletrailviper = {
-		length = -24, lengthRand = 6,
-		size = 3.3, sizeGrowth = 0.2,
+		length = -32, lengthRand = 6,
+		size = 2.8, sizeGrowth = 0.5,
 		colorR = 1.0, colorG = 0.7, colorB = 0.4,
 		colorEndR = 1.0, colorEndG = 0.4, colorEndB = 0.1,
 		glowSize = 50, glowR = 0.15, glowG = 0.08, glowB = 0.02,
+		thrusterOffset = 4,
 	},
 	-- Fighter missiles (pinkish/purple-tinted, forward-facing)
 	missiletrailfighter = {
@@ -149,6 +154,7 @@ local THRUSTER_CONFIGS = {
 		colorR = 1.0, colorG = 0.25, colorB = 0.05,
 		colorEndR = 1.0, colorEndG = 0.15, colorEndB = 0.03,
 		glowSize = 44, glowR = 0.1, glowG = 0.05, glowB = 0.02,
+		thrusterOffset = 3,
 	},
 
 	-- Corroyspecial (no CBitmapMuzzleFlame engine, uses CSimpleParticleSystem fire only)
@@ -184,7 +190,7 @@ for _, cfg in pairs(weaponConfigs) do
 	cfg.glowB          = cfg.glowB or 0.02
 	cfg.lengthRand     = cfg.lengthRand or 0
 	cfg.hasRand        = cfg.lengthRand > 0
-	cfg.thrusterOffset = cfg.thrusterOffset or 4
+	cfg.thrusterOffset = cfg.thrusterOffset or 0
 end
 
 -- Check if we have any missiles to render
@@ -414,6 +420,14 @@ local glowShader
 local projectileCache = {}  -- proID -> {dx, dy, dz, px, py, pz}
 local cacheCleanupFrame = 0
 
+-- Idle skip: when no missiles found, throttle GetVisibleProjectiles polling
+local idleSkipCounter = 0
+local IDLE_SKIP_FRAMES = 5  -- only poll every Nth draw frame when idle
+
+-- Cached ally team (updated via PlayerChanged / spectator change)
+local cachedAllyTeamID = spGetMyAllyTeamID()
+local cachedSpecFullView = false
+
 local function goodbye(reason)
 	spEcho("Missile Thruster GL4 exiting: " .. reason)
 	gadgetHandler:RemoveGadget()
@@ -499,38 +513,26 @@ local function cleanupGL4()
 end
 
 --------------------------------------------------------------------------------
--- Drawing helpers
+-- Drawing
 --------------------------------------------------------------------------------
-local function drawFlames()
+local function drawAll()
 	if flameVBO.usedElements == 0 then return end
 
 	glDepthTest(true)
 	glDepthMask(false)
 	glCulling(false)
-	glBlending(GL_ONE, GL_ONE)  -- Pure additive: flames only add light, never darken
+	glBlending(GL_ONE, GL_ONE)
 
+	-- Flame pass
 	glTexture(0, muzzleTexture)
 	flameShader:Activate()
 	flameVBO:Draw()
 	flameShader:Deactivate()
-	glTexture(0, false)
 
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	glDepthMask(true)
-	glDepthTest(false)
-end
-
-local function drawGlows()
-	if flameVBO.usedElements == 0 then return end
-
-	glDepthTest(true)
-	glDepthMask(false)
-	glCulling(false)
-	glBlending(GL_ONE, GL_ONE)  -- Pure additive blending for glow
-
+	-- Glow pass (same VBO, glow shader reads glowData; zero-size glows culled in VS)
 	glTexture(0, glowTexture)
 	glowShader:Activate()
-	flameVBO:Draw()  -- same VBO; glow shader reads glowData attribute
+	flameVBO:Draw()
 	glowShader:Deactivate()
 	glTexture(0, false)
 
@@ -546,14 +548,21 @@ end
 --------------------------------------------------------------------------------
 
 local function updateMissiles()
+	-- When idle (no missiles last check), throttle polling to every Nth draw frame
+	if idleSkipCounter > 0 then
+		idleSkipCounter = idleSkipCounter - 1
+		return
+	end
+
 	flameVBO.usedElements = 0
 
 	local ftoAdj = spGetFrameTimeOffset() - 1.0
 
-	local _, specFullView = spGetSpectatingState()
-	local allyTeamID = specFullView and -1 or spGetMyAllyTeamID()
-	local projectiles = spGetVisibleProjectiles(allyTeamID, true, true, false)
-	if not projectiles then return end
+	local projectiles = spGetVisibleProjectiles(cachedAllyTeamID, true, true, false)
+	if not projectiles or #projectiles == 0 then
+		idleSkipCounter = IDLE_SKIP_FRAMES
+		return
+	end
 
 	local flameData = flameVBO.instanceData
 	local flameStep = 20  -- posAndSize(4) + dirAndLength(4) + color1(4) + color2(4) + glowData(4)
@@ -640,18 +649,10 @@ local function updateMissiles()
 
 	flameVBO.usedElements = flameCount
 	if flameCount > 0 then
+		idleSkipCounter = 0  -- missiles active, poll every frame
 		uploadAllElements(flameVBO)
-	end
-
-	-- Periodic cache cleanup
-	local frame = spGetGameFrame()
-	if frame > cacheCleanupFrame then
-		cacheCleanupFrame = frame + 90
-		for proID in pairs(projectileCache) do
-			if not spGetProjectilePosition(proID) then
-				projectileCache[proID] = nil
-			end
-		end
+	else
+		idleSkipCounter = IDLE_SKIP_FRAMES  -- no matching missiles, throttle
 	end
 end
 
@@ -666,12 +667,29 @@ function gadget:Initialize()
 	spEcho("Missile Thruster GL4: initialized with " .. n .. " weapon configs")
 end
 
+function gadget:GameFrame(n)
+	-- Periodic cache cleanup (runs in GameFrame to avoid per-draw overhead)
+	if n > cacheCleanupFrame then
+		cacheCleanupFrame = n + 90
+		for proID in pairs(projectileCache) do
+			if not spGetProjectilePosition(proID) then
+				projectileCache[proID] = nil
+			end
+		end
+	end
+end
+
+function gadget:PlayerChanged(playerID)
+	local _, specFullView = spGetSpectatingState()
+	cachedSpecFullView = specFullView
+	cachedAllyTeamID = specFullView and -1 or spGetMyAllyTeamID()
+end
+
 function gadget:Shutdown()
 	cleanupGL4()
 end
 
 function gadget:DrawWorld()
 	updateMissiles()
-	drawFlames()
-	drawGlows()
+	drawAll()
 end
