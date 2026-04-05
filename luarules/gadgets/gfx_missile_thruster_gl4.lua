@@ -80,7 +80,7 @@ local THRUSTER_CONFIGS = {
 		thrusterOffset = 3,
 	},
 	["missiletrailsmall-simple"] = {
-		length = -20, lengthRand = 3.8,
+		length = -20, lengthRand = 3.5,
 		size = 1.8, sizeGrowth = 0.2,
 		colorR = 1.0, colorG = 0.7, colorB = 0.4,
 		colorEndR = 1.0, colorEndG = 0.4, colorEndB = 0.1,
@@ -88,12 +88,12 @@ local THRUSTER_CONFIGS = {
 		thrusterOffset = 3,
 	},
 	["missiletrailsmall-red"] = {
-		length = -21, lengthRand = 6,
-		size = 3.2, sizeGrowth = 0.2,
+		length = -19, lengthRand = 6,
+		size = 2.5, sizeGrowth = 0.2,
 		colorR = 1.0, colorG = 0.33, colorB = 0.17,
 		colorEndR = 1.0, colorEndG = 0.22, colorEndB = 0.05,
-		glowSize = 28, glowR = 0.11, glowG = 0.03, glowB = 0.03,
-		thrusterOffset = 3,
+		glowSize = 28, glowR = 0.1, glowG = 0.025, glowB = 0.015,
+		thrusterOffset = 0,
 	},
 	-- Tiny missiles
 	missiletrailtiny = {
@@ -131,7 +131,7 @@ local THRUSTER_CONFIGS = {
 	},
 	-- Fighter missiles (pinkish/purple-tinted, forward-facing)
 	missiletrailfighter = {
-		length = -20, lengthRand = 0,
+		length = -20, lengthRand = 2,
 		size = 1.65, sizeGrowth = 0,
 		colorR = 1.0, colorG = 0.5, colorB = 0.85,
 		colorEndR = 0.5, colorEndG = 0.1, colorEndB = 0.4,
@@ -140,7 +140,7 @@ local THRUSTER_CONFIGS = {
 	},
 	-- AA missiles (pinkish, forward-facing, with large engineglow)
 	missiletrailaa = {
-		length = -32, lengthRand = 0,
+		length = -32, lengthRand = 2,
 		size = 2.3, sizeGrowth = 0,
 		colorR = 1.0, colorG = 0.5, colorB = 0.85,
 		colorEndR = 0.5, colorEndG = 0.1, colorEndB = 0.4,
@@ -156,6 +156,39 @@ local THRUSTER_CONFIGS = {
 		glowSize = 44, glowR = 0.1, glowG = 0.05, glowB = 0.02,
 		thrusterOffset = 3,
 	},
+	["missiletrail-juno"] = {
+		length = -50, lengthRand = 3,
+		size = 3.5, sizeGrowth = 0.2,
+		colorR = 0.75, colorG = 1.0, colorB = 0.5,
+		colorEndR = 0.15, colorEndG = 1.0, colorEndB = 0.03,
+		glowSize = 44, glowR = 0.03, glowG = 0.15, glowB = 0.01,
+		thrusterOffset = 3,
+	},
+	["cruisemissiletrail-tacnuke"] = {
+		length = -72, lengthRand = 6,
+		size = 5.0, sizeGrowth = 0.2,
+		colorR = 1.0, colorG = 0.3, colorB = 0.1,
+		colorEndR = 1.0, colorEndG = 0.15, colorEndB = 0.03,
+		glowSize = 44, glowR = 0.1, glowG = 0.05, glowB = 0.02,
+		thrusterOffset = 3,
+	},
+	["cruisemissiletrail-emp"] = {
+		length = -66, lengthRand = 5,
+		size = 4.5, sizeGrowth = 0.2,
+		colorR = 0.6, colorG = 0.6, colorB = 1.0,
+		colorEndR = 0.1, colorEndG = 0.1, colorEndB = 1.0,
+		glowSize = 44, glowR = 0.03, glowG = 0.03, glowB = 0.15,
+		thrusterOffset = 3,
+	},
+	nuketrail = {
+		length = -105, lengthRand = 36,
+		size = 7, sizeGrowth = 0.2,
+		colorR = 1.0, colorG = 0.66, colorB = 0.2,
+		colorEndR = 1.0, colorEndG = 0, colorEndB = 0,
+		glowSize = 44, glowR = 0.15, glowG = 0.06, glowB = 0.03,
+		thrusterOffset = -8,
+	},
+
 
 	-- Corroyspecial (no CBitmapMuzzleFlame engine, uses CSimpleParticleSystem fire only)
 	-- missiletrailcorroyspecial is intentionally NOT included here
@@ -171,7 +204,7 @@ local weaponConfigs = {}    -- weaponDefID -> thruster config table
 
 for weaponID, weaponDef in pairs(WeaponDefs) do
 	if weaponDef.type == "MissileLauncher" or weaponDef.type == "StarburstLauncher" then
-		local tag = weaponDef.cegTag
+		local tag = weaponDef.cegTag:lower()
 		if tag then
 			local cfg = THRUSTER_CONFIGS[tag]
 			if cfg then
@@ -244,10 +277,19 @@ void main()
 	// Use camera-facing perpendicular for width (ensures flame always visible from any angle)
 	vec3 camPos = cameraViewInv[3].xyz;
 	vec3 toCamera = normalize(camPos - worldPos);
-	vec3 right = normalize(cross(forward, toCamera));
-	// If forward and toCamera are parallel, fall back
-	if (length(right) < 0.001) {
-		right = normalize(cross(forward, vec3(0.0, 1.0, 0.0)));
+	vec3 right = cross(forward, toCamera);
+	float rightLen = length(right);
+	// When camera is roughly aligned with flight direction, blend in a fallback axis
+	// to prevent the flame from becoming paper-thin and invisible
+	if (rightLen < 0.5) {
+		vec3 fallback = normalize(cross(forward, vec3(0.0, 1.0, 0.0)));
+		if (length(fallback) < 0.001) {
+			fallback = normalize(cross(forward, vec3(1.0, 0.0, 0.0)));
+		}
+		float blend = clamp(rightLen * 2.0, 0.0, 1.0);  // 0 at parallel, 1 at 30+ degrees
+		right = normalize(mix(fallback, right / max(rightLen, 0.001), blend));
+	} else {
+		right = right / rightLen;
 	}
 
 	// The flame quad extends from the projectile position along the direction.
