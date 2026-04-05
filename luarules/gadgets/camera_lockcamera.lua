@@ -58,8 +58,6 @@ else	-- UNSYNCED
 
 	local timeSinceBroadcast = 0
 
-	local lastPacketSent
-
 	local CAMERA_IDS = Spring.GetCameraNames()
 	local CAMERA_NAMES = {}
 	local CAMERA_STATE_FORMATS = {}
@@ -256,14 +254,50 @@ else	-- UNSYNCED
 		end
 	end
 
+	local lastCameraName
+	local lastCameraValues = {}
+
+	local function CameraStateChanged(state)
+		local name = state.name
+		if name ~= lastCameraName then
+			lastCameraName = name
+			-- Camera type changed — must rebuild cache
+			local stateFormat = CAMERA_STATE_FORMATS[name]
+			if stateFormat then
+				for i = 1, #stateFormat do
+					lastCameraValues[stateFormat[i]] = state[stateFormat[i]]
+				end
+			end
+			return true
+		end
+		local stateFormat = CAMERA_STATE_FORMATS[name]
+		if not stateFormat then return false end
+		for i = 1, #stateFormat do
+			local key = stateFormat[i]
+			if state[key] ~= lastCameraValues[key] then
+				for j = i, #stateFormat do
+					local k2 = stateFormat[j]
+					lastCameraValues[k2] = state[k2]
+				end
+				return true
+			end
+		end
+		return false
+	end
+
 	function gadget:Update()
 		local dt = GetLastUpdateSeconds()
 		timeSinceBroadcast = timeSinceBroadcast + dt
 		if timeSinceBroadcast < broadcastPeriod then
 			return
 		end
+		timeSinceBroadcast = timeSinceBroadcast - broadcastPeriod
 
 		local state = GetCameraState()
+		if not CameraStateChanged(state) then
+			return
+		end
+
 		local msg = CameraStateToPacket(state)
 
 		if not msg then
@@ -271,13 +305,7 @@ else	-- UNSYNCED
 			return
 		end
 
-		--don't send duplicates
-		if msg ~= lastPacketSent then
-			SendLuaRulesMsg(msg)
-			lastPacketSent = msg
-		end
-
-		timeSinceBroadcast = timeSinceBroadcast - broadcastPeriod
+		SendLuaRulesMsg(msg)
 	end
 end
 

@@ -1922,26 +1922,26 @@ local definitions = {
                 ttl                = 1,
             },
         },
-        engineglow = {
-            air                = true,
-            class              = [[CBitmapMuzzleFlame]],
-            count              = 1,
-            ground             = true,
-            underwater         = 1,
-            water              = true,
-            properties = {
-                colormap           = [[0.15 0.045 0.135 0.01   0 0 0 0.01]],
-                dir                = [[dir]],
-                frontoffset        = 0,
-                fronttexture       = [[trans]],
-                length             = 55,
-                sidetexture        = [[glow2]],
-                size               = 35,
-                sizegrowth         = 0,
-                ttl                = 2,
-                -- pos                = [[5, 0, 0]],
-            },
-        },
+        -- engineglow = {
+        --     air                = true,
+        --     class              = [[CBitmapMuzzleFlame]],
+        --     count              = 1,
+        --     ground             = true,
+        --     underwater         = 1,
+        --     water              = true,
+        --     properties = {
+        --         colormap           = [[0.15 0.045 0.135 0.01   0 0 0 0.01]],
+        --         dir                = [[dir]],
+        --         frontoffset        = 0,
+        --         fronttexture       = [[trans]],
+        --         length             = 55,
+        --         sidetexture        = [[glow2]],
+        --         size               = 35,
+        --         sizegrowth         = 0,
+        --         ttl                = 2,
+        --         -- pos                = [[5, 0, 0]],
+        --     },
+        -- },
         -- Replaced with engine trail
         -- trail = {
         --     air                = true,
@@ -3367,8 +3367,8 @@ local definitions = {
         --  },
         --},
     },
-	
-	
+
+
     ["missiletrail-grenadesmoke"] = {        -- used by grenades
         engine = {
             air                = true,
@@ -3410,8 +3410,8 @@ local definitions = {
         --        ttl                = 3,
         --    },
         --},
-    },	
-	
+    },
+
 }
 
 definitions["antimissiletrail"] = table.copy(definitions["cruisemissiletrail"])
@@ -3579,5 +3579,11 @@ for defName, def in pairs(scavengerDefs) do
 end
 
 table.mergeInPlace(definitions, scavengerDefs)
+
+-- engine thruster effects are handled by a gadget now
+for defName, def in pairs(definitions) do
+	definitions[defName].engine = nil
+	definitions[defName].engineglow = nil
+end
 
 return definitions

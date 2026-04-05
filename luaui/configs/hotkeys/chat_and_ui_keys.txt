@@ -33,7 +33,7 @@ bind          Any+space  commandinsert prepend_between // prepend command into t
 // attackrange keys
 bind           alt+sc_. attack_range_inc        // cycle to next attack range display config for current unit type.
 bind       alt+sc_comma attack_range_dec        // cycle to previous attack range display config for current unit type.
-//bind           alt+sc_/ cursor_range_toggle     // toggles display of the attack range of the unit under the mouse cursor.
+// bind           alt+sc_/ cursor_range_toggle  // toggles display of the attack range of the unit under the mouse cursor.
 
 // common chat keys
 bind          Any+enter  chat
@@ -68,3 +68,16 @@ bind       Any+pagedown  movedown
 bind            Any+alt  movereset      // fast camera reset on mousewheel
 bind            Any+alt  moverotate     // rotate on x,y with mmb hold + move (Spring Camera)
 bind           Any+ctrl  movetilt       // rotate on x with mousewheel
+
+// picture in picture camera controls
+// bind                  pip0_activity      // Focus advanced minimap onto recently placed map markers
+// bind                  pip0_trackplayer   // Focus advanced minimap (while spectating)
+// bind                  pip0_tv            // Advanced minimap follows the current action
+// bind                  pip0_view          // Limit advanced minimap to team view (while spectating)
+bind      Meta+ctrl+tab  pip1_copy      // Copy the current camera location to pip1
+bind           Meta+tab  pip1_switch    // Switch the current camera location with pip1
+bind           Alt+sc_t  pip1_track     // track the selected units with pip1
+// bind                  pip2_copy
+// bind                  pip2_switch
+// bind                  pip2_track
+
