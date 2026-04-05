@@ -43,10 +43,6 @@ return {
 		featuredefs = {},
 		sfxtypes = {
 			explosiongenerators = {},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
-			},
 		},
 		weapondefs = {
 			weapon = {

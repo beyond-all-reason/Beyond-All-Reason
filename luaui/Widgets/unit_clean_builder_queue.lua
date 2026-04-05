@@ -10,15 +10,17 @@ function widget:GetInfo()
 	}
 end
 
-local GetUnitCmdDescs    = Spring.GetUnitCmdDescs
-local GetUnitCommands    = Spring.GetUnitCommands
-local GiveOrderToUnit    = Spring.GiveOrderToUnit
-local GetUnitPosition    = Spring.GetUnitPosition
-local GetUnitDefID       = Spring.GetUnitDefID
-local GetTeamUnits       = Spring.GetTeamUnits
-local GetMyTeamID        = Spring.GetMyTeamID
-local GetSpectatingState = Spring.GetSpectatingState
-local GetUnitsInCylinder = Spring.GetUnitsInCylinder
+local GetUnitCommands      = Spring.GetUnitCommands
+local GetUnitCommandCount  = Spring.GetUnitCommandCount
+local GetUnitStates        = Spring.GetUnitStates
+local GiveOrderToUnit      = Spring.GiveOrderToUnit
+local GetUnitPosition      = Spring.GetUnitPosition
+local GetUnitDefID         = Spring.GetUnitDefID
+local GetTeamUnits         = Spring.GetTeamUnits
+local GetMyTeamID          = Spring.GetMyTeamID
+local GetSpectatingState   = Spring.GetSpectatingState
+local GetUnitsInCylinder   = Spring.GetUnitsInCylinder
+local select               = select
 
 local CMD_REMOVE         = CMD.REMOVE
 local CMD_REPEAT         = CMD.REPEAT
@@ -39,7 +41,7 @@ for udid, ud in pairs(UnitDefs) do
 end
 local SEARCH_RADIUS      = maxBuildDistance + 200  -- Max build distance + safety margin
 
--- Cache repeat status to avoid repeated cmdDescs lookups
+-- Cache repeat status to avoid repeated lookups
 local repeatStatus       = {}
 -- Reusable table for nearby builders to reduce allocations
 local nearbyBuilders     = {}
@@ -48,21 +50,12 @@ local function IsUnitRepeatOn(unitID)
 	if repeatStatus[unitID] ~= nil then
 		return repeatStatus[unitID]
 	end
-
-	local cmdDescs = GetUnitCmdDescs(unitID)
-	if not cmdDescs then
-		repeatStatus[unitID] = false
-		return false
-	end
-	for _, desc in ipairs(cmdDescs) do
-		if desc.id == CMD_REPEAT then
-			local isOn = desc.params and desc.params[1] == "1"
-			repeatStatus[unitID] = isOn
-			return isOn
-		end
-	end
-	repeatStatus[unitID] = false
-	return false
+	-- GetUnitStates(id, false, true) returns individual values (no table alloc)
+	-- 4th return value is repeat state (0 = off, 1 = on)
+	local repeatState = select(4, GetUnitStates(unitID, false, true))
+	local isOn = repeatState == 1
+	repeatStatus[unitID] = isOn
+	return isOn
 end
 
 local function coordsMatch(x1, z1, x2, z2, tolerance)
@@ -129,8 +122,8 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	local x, _, z = GetUnitPosition(unitID)
 	if not x then return end
 
-	-- Use spatial query to only check nearby units instead of all builders
-	local nearbyUnits = GetUnitsInCylinder(x, z, SEARCH_RADIUS)
+	-- Use spatial query to only check nearby units (team-filtered to reduce table size)
+	local nearbyUnits = GetUnitsInCylinder(x, z, SEARCH_RADIUS, myTeamID)
 	if not nearbyUnits or #nearbyUnits == 0 then return end
 
 	-- Clear and reuse nearbyBuilders table to reduce allocations
@@ -147,25 +140,68 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 
 	local targetCmdID = -unitDefID
 
-	-- Process only nearby builders
+	-- Queue sharing: when builders were selected together, they have identical queues.
+	-- After scanning the first builder, we know if a match exists and at which index.
+	-- For subsequent builders with the same queue, we can either:
+	--   - Skip entirely if no match was found (saves full GetUnitCommands + scan)
+	--   - Fetch only up to the known match index to get the per-unit tag
+	local sharedCmdCount     -- command count of the first-scanned builder
+	local sharedMatchIndex   -- index of the matching command (nil = no match found)
+	local sharedFirstCmdId   -- first command id of the shared queue (for identity check)
+
 	for i = 1, builderCount do
 		local builderID = nearbyBuilders[i]
 
 		-- Skip if repeat is enabled (cached check)
 		if not IsUnitRepeatOn(builderID) then
-			local commands = GetUnitCommands(builderID, 32)
-			if commands then
-				-- Scan backwards to find matching build commands
-				for j = #commands, 1, -1 do
-					local cmd = commands[j]
-					-- Only check build commands for this specific unitDefID
-					if cmd.id == targetCmdID then
-						local params = cmd.params
-						if params and params[1] and params[3] then
-							if coordsMatch(x, z, params[1], params[3], REMOVE_TOLERANCE) then
-								GiveOrderToUnit(builderID, CMD_REMOVE, { cmd.tag }, {})
-								break -- Only remove first matching command per builder
+			local cmdCount = GetUnitCommandCount(builderID)
+			if cmdCount and cmdCount > 0 then
+				-- Try to reuse shared scan result
+				local didShare = false
+				if sharedCmdCount and cmdCount == sharedCmdCount then
+					-- Cheap probe: verify queue identity via first command
+					local probe = GetUnitCommands(builderID, 1)
+					if probe and probe[1] and probe[1].id == sharedFirstCmdId then
+						didShare = true
+						if sharedMatchIndex then
+							-- We know a match exists at this index — fetch just enough
+							local commands = GetUnitCommands(builderID, sharedMatchIndex)
+							if commands and commands[sharedMatchIndex] then
+								local cmd = commands[sharedMatchIndex]
+								if cmd.id == targetCmdID then
+									GiveOrderToUnit(builderID, CMD_REMOVE, { cmd.tag }, {})
+								end
 							end
+						end
+						-- else: no match in shared queue, skip this builder entirely
+					end
+				end
+
+				if not didShare then
+					-- Full fetch + scan path (first builder, or different queue)
+					local limit = cmdCount < 32 and cmdCount or 32
+					local commands = GetUnitCommands(builderID, limit)
+					if commands then
+						local matchIdx = nil
+						for j = #commands, 1, -1 do
+							local cmd = commands[j]
+							if cmd.id == targetCmdID then
+								local params = cmd.params
+								if params and params[1] and params[3] then
+									if coordsMatch(x, z, params[1], params[3], REMOVE_TOLERANCE) then
+										GiveOrderToUnit(builderID, CMD_REMOVE, { cmd.tag }, {})
+										matchIdx = j
+										break
+									end
+								end
+							end
+						end
+
+						-- Cache scan result for subsequent builders
+						if not sharedCmdCount then
+							sharedCmdCount = cmdCount
+							sharedMatchIndex = matchIdx
+							sharedFirstCmdId = commands[1] and commands[1].id or nil
 						end
 					end
 				end

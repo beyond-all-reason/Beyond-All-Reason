@@ -59,6 +59,10 @@ function widget:GetInfo()
 		layer     = -(99020-pipNumber),
 		enabled   = false,
 		handler   = true,
+		dependents = {	-- for widget auto reloader to reload these as well
+			"Picture-in-Picture Minimap",
+			"Picture-in-Picture 2",
+		},
 	}
 end
 ----------------------------------------------------------------------------------------------------
@@ -131,8 +135,10 @@ config = {
 	healthDarkenMax = 0.2,  -- Maximum darkening for damaged units on GL4 icons (0-1, 0.18 = 18%)
 	activityFocusIgnoreSpectators = true,  -- Don't trigger camera focus for spectator map markers
 	activityFocusHideForSpectators = true,  -- Hide the activity focus button when spectating (default: disabled for spectators)
-	activityFocusDuration = 1.8,  -- Seconds to hold focus on a marker before restoring camera
-	activityFocusZoom = 0.25,  -- Zoom level when focusing on a marker (higher = more zoomed in)
+	activityFocusDuration = 0.25,  -- Seconds to hold focus on a marker before restoring camera
+	activityFocusZoomInTime = 1.75,  -- Seconds for the zoom-in transition (smoothstep ease-in-out)
+	activityFocusZoomOutTime = 1.3,  -- Seconds for the zoom-out transition (smoothstep ease-in-out)
+	activityFocusZoom = 0.15,  -- Zoom level when focusing on a marker (higher = more zoomed in)
 	activityFocusShowMinimap = true,  -- Temporarily show pip-minimap overlay while focused on a map marker
 	activityFocusBlockIgnoredPlayers = true,  -- Completely block activity focus for players on your ignore list (WG.ignoredAccounts)
 	activityFocusCooldown = 3,  -- Minimum seconds between focus triggers from the same player
@@ -1401,6 +1407,17 @@ local cmdQueueCache = {
 	lastUnitHash = 0,     -- quick hash for unit list change detection
 }
 
+-- Segment deduplication for command-queue rendering: avoids drawing the same
+-- waypoint→waypoint segment multiple times when many units share overlapping
+-- build queues. Uses a generation counter so the table never needs clearing.
+local cmdSegDedup = {}         -- [combinedKey] = generation
+local cmdSegDedupGen = 0
+
+-- Maximum number of units whose full waypoint chains are drawn.
+-- When 50 constructors share the same build targets, drawing more than ~6
+-- full chains is pure visual overlap with zero benefit.
+local CMD_MAX_CHAIN_UNITS = 6
+
 ----------------------------------------------------------------------------------------------------
 -- GL4 Instanced Icon Rendering State
 ----------------------------------------------------------------------------------------------------
@@ -2272,49 +2289,12 @@ local buttons = {
 	},
 }
 
--- Per-pip keyboard shortcuts: command → keybind string
--- pip1 has the original shortcuts; pip0 and pip2 have none by default.
--- Modify the table for other pips to assign shortcuts (e.g. pip_copy = 'alt+w').
-local pipShortcuts = {
-	[0] = {
-		-- pip_copy = nil,
-		-- pip_switch = nil,
-		-- pip_track = nil,
-	},
-	[1] = {
-		pip_copy = 'alt+q',
-		pip_switch = 'shift+q',
-		pip_track = 'alt+a',
-	},
-	[2] = {
-		-- pip_copy = nil,
-		-- pip_switch = nil,
-		-- pip_track = nil,
-	},
-}
-
--- Helper: convert a keybind string like 'alt+q' to display format 'Alt + Q'
-local function formatShortcutDisplay(keybind)
-	if not keybind then return nil end
-	local parts = {}
-	for part in keybind:gmatch('[^+]+') do
-		part = part:match('^%s*(.-)%s*$')  -- trim whitespace
-		parts[#parts + 1] = part:sub(1, 1):upper() .. part:sub(2)
-	end
-	return table.concat(parts, ' + ')
-end
-
--- Compute per-pip action names and shortcut display text for each button
-local myShortcuts = pipShortcuts[pipNumber] or {}
+-- Compute per-pip action names
 for i = 1, #buttons do
 	local btn = buttons[i]
 	if btn.command then
 		-- Unique action name per pip instance (e.g. pip_copy → pip1_copy)
 		btn.actionName = 'pip' .. pipNumber .. '_' .. btn.command:sub(5)
-		-- Set display shortcut from per-pip config
-		local keybind = myShortcuts[btn.command]
-		btn.shortcut = formatShortcutDisplay(keybind)
-		btn.keybind = keybind  -- raw keybind string for bind/unbind
 	end
 end
 
@@ -5579,6 +5559,8 @@ end
 local function DrawIconShatters()
 	if #cache.iconShatters == 0 then return end
 
+	local _, _, isPaused = Spring.GetGameSpeed()
+
 	local wcx_cached = cameraState.wcx
 	local wcz_cached = cameraState.wcz
 
@@ -5662,11 +5644,14 @@ local function DrawIconShatters()
 			for j = 1, fragCount do
 				local frag = fragments[j]
 				-- Update fragment world position with deceleration that increases towards end
-				frag.wx = frag.wx + frag.vx * decel * 0.016
-				frag.wz = frag.wz + frag.vz * decel * 0.016
-				frag.vx = frag.vx * velocityDamping
-				frag.vz = frag.vz * velocityDamping
-				frag.rot = frag.rot + frag.rotSpeed * decel
+				-- Skip physics when paused so fragments freeze in place
+				if not isPaused then
+					frag.wx = frag.wx + frag.vx * decel * 0.016
+					frag.wz = frag.wz + frag.vz * decel * 0.016
+					frag.vx = frag.vx * velocityDamping
+					frag.vz = frag.vz * velocityDamping
+					frag.rot = frag.rot + frag.rotSpeed * decel
+				end
 
 				-- Convert world coordinates to PiP-local coordinates
 				local pipX = frag.wx - wcx_cached
@@ -6446,7 +6431,7 @@ local function UnitQueueVertices(uID)
 	end
 	
 	-- Fallback: fetch commands directly (first frame or uncached unit)
-	local uCmds = spFunc.GetUnitCommands(uID, 50)
+	local uCmds = spFunc.GetUnitCommands(uID, 100)
 	if not uCmds or #uCmds == 0 then return end
 	local ux, uy, uz = spFunc.GetUnitPosition(uID)
 	local px, pz = WorldToPipCoords(ux, uz)
@@ -6564,8 +6549,9 @@ end
 
 local function CalculateBuildDragPositions(startWX, startWZ, endWX, endWZ, buildDefID, alt, ctrl, shift)
 	-- Clear and reuse positions table
-	for i = #pools.buildPositions, 1, -1 do
-		pools.buildPositions[i] = nil
+	local positions = pools.buildPositions
+	for i = #positions, 1, -1 do
+		positions[i] = nil
 	end
 	local buildFacing = Spring.GetBuildFacing()
 	local buildWidth, buildHeight = GetBuildingDimensions(buildDefID, buildFacing)
@@ -6583,8 +6569,8 @@ local function CalculateBuildDragPositions(startWX, startWZ, endWX, endWZ, build
 
 	if distance < 1 then
 		-- Too short, just return start position
-		pools.buildPositions[1] = {wx = sx, wz = sz}
-		return pools.buildPositions
+		positions[1] = {wx = sx, wz = sz}
+		return positions
 	end
 
 	-- Shift+Ctrl: Only horizontal or vertical line (lock to strongest axis)
@@ -6747,6 +6733,7 @@ local function CalculateBuildDragPositions(startWX, startWZ, endWX, endWZ, build
 	return positions
 end
 
+
 -- Helper function to check if a transport can load a target unit
 local function CanTransportLoadUnit(transportUnitID, targetUnitID)
 	if not transportUnitID or not targetUnitID then
@@ -6802,6 +6789,10 @@ end
 local function IssueCommandAtPoint(cmdID, wx, wz, usingRMB, forceQueue, radius)
 
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	-- Respect InvertQueueKey setting (same as customformations widget)
+	if Spring.GetInvertQueueKey() then
+		shift = not shift
+	end
 	-- Force queue commands when explicitly requested (e.g., during formation drags)
 	if forceQueue then
 		shift = true
@@ -7736,12 +7727,6 @@ end
 		if button.command then
 			-- Register with pip-specific action name so each pip instance has unique commands
 			widgetHandler.actionHandler:AddAction(self, button.actionName, button.OnPress, nil, 'p')
-
-			-- Bind per-pip hotkey if configured
-			if button.keybind then
-				Spring.SendCommands("unbindkeyset " .. button.keybind)
-				Spring.SendCommands("bind " .. button.keybind .. " " .. button.actionName)
-			end
 		end
 	end
 
@@ -8346,10 +8331,6 @@ function widget:Shutdown()
 		if button.command then
 			widgetHandler.actionHandler:RemoveAction(self, button.actionName)
 
-			-- Unbind per-pip hotkey if configured
-			if button.keybind then
-				Spring.SendCommands("unbind " .. button.keybind .. " " .. button.actionName)
-			end
 		end
 	end
 end
@@ -8767,6 +8748,17 @@ local function DrawCommandFXOverlay()
 	-- Compact: remove expired entries and draw active ones
 	local writeIdx = 0
 
+	-- Use command-type colors when tracking a player camera or viewing own
+	-- commands as a player; otherwise use team colors so you can tell whose
+	-- orders are whose.
+	local useCommandColors = false
+	if interactionState.trackingPlayerID then
+		useCommandColors = true
+	elseif not cameraState.mySpecState then
+		useCommandColors = true  -- player viewing own ally commands
+	end
+	local myTeamID = not useCommandColors and Spring.GetMyTeamID() or nil
+
 	if useGL4 then
 		gl4Prim.normLines.count = 0
 
@@ -8780,8 +8772,18 @@ local function DrawCommandFXOverlay()
 				end
 				local progress = age / fxDuration
 				local alpha = fxAlpha * (1 - progress)
-				local color = fx.color
-				local r, g, b = color[1], color[2], color[3]
+				local r, g, b
+				if useCommandColors then
+					local color = fx.color
+					r, g, b = color[1], color[2], color[3]
+				else
+					local tc = teamColors[fx.unitTeam]
+					if tc then
+						r, g, b = tc[1], tc[2], tc[3]
+					else
+						r, g, b = 1, 1, 1
+					end
+				end
 
 				GL4AddNormLine(fx.unitX, fx.unitZ, fx.targetX, fx.targetZ,
 					r, g, b, alpha, r, g, b, alpha)
@@ -8896,19 +8898,29 @@ local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 	if unitCount > 1 then unitHash = unitHash + unitsToShow[unitCount] end
 	if unitCount > 2 then unitHash = unitHash + unitsToShow[math.floor(unitCount / 2)] end
 
-	local needRefresh = (cmdQueueCache.counter % 6 == 0)  -- CMD_CACHE_INTERVAL: refresh every ~100ms
-		or (unitHash ~= cmdQueueCache.lastUnitHash)
+	-- Rolling refresh: refresh a small rotating batch each frame to avoid
+	-- GC spikes from GetUnitCommands.  With 50 units and batch=3, the full
+	-- list cycles in ~17 frames (~280ms at 60fps) — fast enough for waypoint display.
+	local hashChanged = (unitHash ~= cmdQueueCache.lastUnitHash)
 	cmdQueueCache.lastUnitHash = unitHash
 
-	if needRefresh then
+	local refreshLimit = math.min(unitCount, 300)
+	-- Batch sizing: 3 per frame (tiny GC footprint), full refresh on selection change
+	local batchSize = hashChanged and refreshLimit or math.min(3, refreshLimit)
+	local counter = cmdQueueCache.counter
+	local batchStart = hashChanged and 1 or ((counter * batchSize) % refreshLimit) + 1
+	local batchEnd = math.min(batchStart + batchSize - 1, refreshLimit)
+	-- Fetch fewer commands per unit when many units are shown
+	local cmdsToFetch = unitCount > 20 and 15 or 30
+
+	do
 		local wpCache = cmdQueueCache.waypoints
-		local refreshLimit = math.min(unitCount, 300)  -- Cap GetUnitCommands calls to limit allocation spike
-		for i = 1, refreshLimit do
+		for i = batchStart, batchEnd do
 			local uID = unitsToShow[i]
 			local unitTeam = spFunc.GetUnitTeam(uID)
 			-- Skip gaia units, and skip AI units (always for scav/raptor, optionally for other AI)
 			if unitTeam ~= gaiaTeamID and not scavRaptorTeams[unitTeam] and not (config.hideAICommands and aiTeams[unitTeam]) then
-				local commands = spFunc.GetUnitCommands(uID, 30)
+				local commands = spFunc.GetUnitCommands(uID, cmdsToFetch)
 				local cached = wpCache[uID]
 				if not cached then
 					cached = { n = 0 }
@@ -8971,24 +8983,63 @@ local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 		gl4Prim.normLines.count = 0
 		gl4Prim.circles.count = 0
 
+		-- Increment generation to invalidate previous frame's dedup entries (no clearing needed)
+		cmdSegDedupGen = cmdSegDedupGen + 1
+		local segDedup = cmdSegDedup
+		local segGen   = cmdSegDedupGen
+		local mFloor   = math.floor
+
+		-- Periodically prune stale dedup entries (~every 5 seconds)
+		if segGen % 50 == 0 then
+			for k, gen in pairs(segDedup) do
+				if gen < segGen - 2 then segDedup[k] = nil end
+			end
+		end
+
 		local wpCache = cmdQueueCache.waypoints
+		local chainBudget = CMD_MAX_CHAIN_UNITS  -- only N units get full chain drawing
+
 		for i = 1, unitCount do
 			local uID = unitsToShow[i]
 			local cached = wpCache[uID]
 			if cached and cached.n > 0 then
 				local ux, _, uz = spFunc.GetUnitPosition(uID)
 				if ux then
-					local prevWX, prevWZ = ux, uz
-					for j = 1, cached.n do
-						local wp = cached[j]
-						local cmdX, cmdZ, cmdID = wp[1], wp[2], wp[3]
-						local color = cmdColors[cmdID] or cmdColors.unknown
-						local r, g, b = color[1], color[2], color[3]
+					local firstWP = cached[1]
 
-						GL4AddNormLine(prevWX, prevWZ, cmdX, cmdZ,
-							r, g, b, 0.8, r, g, b, 0.8)
+					-- Always draw unit → first waypoint (unique per unit position)
+					local firstColor = cmdColors[firstWP[3]] or cmdColors.unknown
+					GL4AddNormLine(ux, uz, firstWP[1], firstWP[2],
+						firstColor[1], firstColor[2], firstColor[3], 0.8,
+						firstColor[1], firstColor[2], firstColor[3], 0.8)
 
-						prevWX, prevWZ = cmdX, cmdZ
+					-- Full chain: only for first N units (rest is visual overlap).
+					-- Per-segment dedup ensures shared segments draw only once.
+					if cached.n > 1 and chainBudget > 0 then
+						chainBudget = chainBudget - 1
+						local prevWX, prevWZ = firstWP[1], firstWP[2]
+						for j = 2, cached.n do
+							local wp = cached[j]
+							local cmdX, cmdZ = wp[1], wp[2]
+							-- Dedup key: quantize coords to 8-unit grid (sub-icon precision)
+							-- and pack start+end into 4 values within 53-bit safe range.
+							-- 30000/8 = 3750, so each coord fits in 12 bits.
+							-- key = sx*2^36 + sz*2^24 + ex*2^12 + ez  (max ~48 bits, safe)
+							local sx = mFloor(prevWX * 0.125)
+							local sz = mFloor(prevWZ * 0.125)
+							local ex = mFloor(cmdX * 0.125)
+							local ez = mFloor(cmdZ * 0.125)
+							local dedupKey = sx * 68719476736 + sz * 16777216 + ex * 4096 + ez
+							if segDedup[dedupKey] ~= segGen then
+								segDedup[dedupKey] = segGen
+								local cmdID = wp[3]
+								local color = cmdColors[cmdID] or cmdColors.unknown
+								local r, g, b = color[1], color[2], color[3]
+								GL4AddNormLine(prevWX, prevWZ, cmdX, cmdZ,
+									r, g, b, 0.8, r, g, b, 0.8)
+							end
+							prevWX, prevWZ = cmdX, cmdZ
+						end
 					end
 				end
 			end
@@ -9265,6 +9316,21 @@ local function DrawBuildDragPreview(iconRadiusZoomDistMult)
 end
 
 -- Helper function to draw queued building ghosts
+-- Caches the deduplicated build list across frames and only refreshes when unit-list hash changes.
+-- Position dedup: when 50 constructors share the same 100-building queue, only 100 entries are
+-- drawn (not 5000). GetUnitCommands called for only a rolling batch each frame.
+local queuedBuildCache = {
+	builds = {},          -- array of {bitmapIdx, cx, cy, iconSize} — deduplicated
+	buildCount = 0,
+	positionSeen = {},    -- [quantizedKey] = generation — for within-refresh dedup
+	generation = 0,
+	lastHash = 0,         -- combined hash of unit list + counter for staleness
+	bitmaps = {},         -- [idx] = bitmap string — compact bitmap lookup
+	bitmapIdx = {},       -- [bitmap] = idx — reverse lookup
+	bitmapCount = 0,
+	refreshCounter = 0,   -- rolling counter for batch refresh
+}
+
 local function DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
 	-- When tracking another player, use their selected units instead of the local player's
 	local selectedUnits
@@ -9272,7 +9338,6 @@ local function DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
 	if interactionState.trackingPlayerID then
 		local playerSelections = WG['allyselectedunits'] and WG['allyselectedunits'].getPlayerSelectedUnits(interactionState.trackingPlayerID)
 		if playerSelections then
-			-- Convert set to array (reuse cachedSelectedUnits table to avoid alloc)
 			selectedUnits = cachedSelectedUnits or {}
 			for unitID, _ in pairs(playerSelections) do
 				selectedCount = selectedCount + 1
@@ -9292,21 +9357,56 @@ local function DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
 		selectedCount = 200
 	end
 
-	-- Clear and reuse texture grouping tables
-	for k in pairs(pools.buildsByTexture) do
-		pools.buildsByTexture[k] = nil
-	end
-	for k in pairs(pools.buildCountByTexture) do
-		pools.buildCountByTexture[k] = nil
+	-- ====================================================================
+	-- Build queue caching with position dedup: when 50 constructors share
+	-- the same 100-building queue, we only store and draw 100 entries (not
+	-- 5000).  GetUnitCommands is called for a rolling batch of 3 units per
+	-- frame to minimize GC pressure.
+	-- ====================================================================
+	local qbc = queuedBuildCache
+	qbc.refreshCounter = qbc.refreshCounter + 1
+
+	-- Hash to detect selection changes
+	local selHash = selectedCount
+	if selectedCount > 0 then selHash = selHash + selectedUnits[1] end
+	if selectedCount > 1 then selHash = selHash + selectedUnits[selectedCount] end
+	if selectedCount > 2 then selHash = selHash + selectedUnits[math.floor(selectedCount / 2)] end
+
+	local selChanged = (selHash ~= qbc.lastHash)
+	qbc.lastHash = selHash
+
+	-- Force a full rebuild every ~20 frames even without selection change,
+	-- so completed/cancelled buildings get cleared from the cache promptly.
+	local periodicRebuild = (not selChanged) and (qbc.refreshCounter % 20 == 0)
+	local fullRebuild = selChanged or periodicRebuild
+
+	-- Determine refresh batch
+	local batchSize = fullRebuild and selectedCount or math.min(3, selectedCount)
+	local bStart = fullRebuild and 1 or ((qbc.refreshCounter * batchSize) % selectedCount) + 1
+	local bEnd = math.min(bStart + batchSize - 1, selectedCount)
+
+	-- On full rebuild, reset with fresh dedup generation
+	if fullRebuild then
+		qbc.generation = qbc.generation + 1
+		qbc.buildCount = 0
+		qbc.bitmapCount = 0
+		for k in pairs(qbc.bitmapIdx) do qbc.bitmapIdx[k] = nil end
 	end
 
-	for i = 1, selectedCount do
+	local gen = qbc.generation
+	local posSeen = qbc.positionSeen
+	local mFloor = math.floor
+	local builds = qbc.builds
+	local bCount = qbc.buildCount
+	local bitmaps = qbc.bitmaps
+	local bitmapIdx = qbc.bitmapIdx
+	local bitmapCount = qbc.bitmapCount
+
+	for i = bStart, bEnd do
 		local unitID = selectedUnits[i]
-		local queue = spFunc.GetUnitCommands(unitID, -1)
-
+		local queue = spFunc.GetUnitCommands(unitID, 50)  -- cap at 50 (enough for build grid visibility)
 		if queue then
-			local queueLength = #queue
-			for j = 1, queueLength do
+			for j = 1, #queue do
 				local cmd = queue[j]
 				if cmd.id < 0 then
 					local buildDefID = -cmd.id
@@ -9315,25 +9415,30 @@ local function DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
 						local paramCount = #cmd.params
 						if paramCount >= 3 then
 							local bwx, bwz = cmd.params[1], cmd.params[3]
-
-							if bwx >= render.world.l and bwx <= render.world.r and bwz >= render.world.t and bwz <= render.world.b then
-								local cx, cy = WorldToPipCoords(bwx, bwz)
-								local iconSize = iconRadiusZoomDistMult * buildIcon.size
-
-								local bitmap = buildIcon.bitmap
-								local texBuilds = pools.buildsByTexture[bitmap]
-								local buildCount = pools.buildCountByTexture[bitmap] or 0
-								if not texBuilds then
-									texBuilds = {}
-									pools.buildsByTexture[bitmap] = texBuilds
+							-- Position dedup: quantize to 4-elmo grid (buildings snap to grid)
+							local posKey = mFloor(bwx * 0.25) * 131072 + mFloor(bwz * 0.25)
+							if posSeen[posKey] ~= gen then
+								posSeen[posKey] = gen
+								if bwx >= render.world.l and bwx <= render.world.r and bwz >= render.world.t and bwz <= render.world.b then
+									local bitmap = buildIcon.bitmap
+									local bIdx = bitmapIdx[bitmap]
+									if not bIdx then
+										bitmapCount = bitmapCount + 1
+										bIdx = bitmapCount
+										bitmapIdx[bitmap] = bIdx
+										bitmaps[bIdx] = bitmap
+									end
+									bCount = bCount + 1
+									local entry = builds[bCount]
+									if not entry then
+										entry = {}
+										builds[bCount] = entry
+									end
+									entry[1] = bIdx      -- bitmap index
+									entry[2] = bwx       -- world X (convert to screen at draw time)
+									entry[3] = bwz       -- world Z
+									entry[4] = buildIcon.size  -- icon base size
 								end
-								buildCount = buildCount + 1
-								pools.buildCountByTexture[bitmap] = buildCount
-								texBuilds[buildCount] = {
-									cx = cx,
-									cy = cy,
-									iconSize = iconSize,
-								}
 							end
 						end
 					end
@@ -9341,19 +9446,49 @@ local function DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
 			end
 		end
 	end
+	qbc.buildCount = bCount
+	qbc.bitmapCount = bitmapCount
+
+	if bCount == 0 then return end
 
 	-- Counter-rotate by minimap rotation so build queue icons stay upright,
 	-- matching the GL4 shader icons which handle rotation in the vertex shader
 	local mapRotDeg = render.minimapRotation ~= 0 and (-render.minimapRotation * 180 / math.pi) or 0
 
-	glFunc.Color(0.5, 1, 0.5, 0.4)
-	for bitmap, builds in pairs(pools.buildsByTexture) do
-		glFunc.Texture(bitmap)
-		local buildCount = pools.buildCountByTexture[bitmap]
-		for i = 1, buildCount do
-			local build = builds[i]
-			local cx, cy, iconSize = build.cx, build.cy, build.iconSize
+	-- Group by bitmap and draw
+	-- Clear texture grouping
+	for k in pairs(pools.buildsByTexture) do pools.buildsByTexture[k] = nil end
+	for k in pairs(pools.buildCountByTexture) do pools.buildCountByTexture[k] = nil end
 
+	for i = 1, bCount do
+		local entry = builds[i]
+		local bmpKey = entry[1]
+		local cx, cy = WorldToPipCoords(entry[2], entry[3])
+		local iconSize = iconRadiusZoomDistMult * entry[4]
+
+		local texBuilds = pools.buildsByTexture[bmpKey]
+		local texCount = pools.buildCountByTexture[bmpKey] or 0
+		if not texBuilds then
+			texBuilds = {}
+			pools.buildsByTexture[bmpKey] = texBuilds
+		end
+		texCount = texCount + 1
+		pools.buildCountByTexture[bmpKey] = texCount
+		local tb = texBuilds[texCount]
+		if not tb then
+			tb = {}
+			texBuilds[texCount] = tb
+		end
+		tb[1], tb[2], tb[3] = cx, cy, iconSize
+	end
+
+	glFunc.Color(0.5, 1, 0.5, 0.4)
+	for bmpKey, texBuilds in pairs(pools.buildsByTexture) do
+		glFunc.Texture(bitmaps[bmpKey])
+		local texCount = pools.buildCountByTexture[bmpKey]
+		for i = 1, texCount do
+			local b = texBuilds[i]
+			local cx, cy, iconSize = b[1], b[2], b[3]
 			if mapRotDeg ~= 0 then
 				glFunc.PushMatrix()
 				glFunc.Translate(cx, cy, 0)
@@ -9804,11 +9939,22 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	local bldgBlockWillRebuild = useUnitpics
 		or not gl4Icons._bldgBlock
 		or (Spring.GetGameFrame() - (gl4Icons._bldgBlockFrame or 0)) >= bldgBlockGameFrameLimit
+	local currentGameFrameKeysort = Spring.GetGameFrame()
 	for i = 1, unitCount do
 		local uID = pipUnits[i]
-		-- Skip crashing units early
-		if crashingUnits[uID] then
-			-- skip
+		-- Skip crashing/recently-died units.
+		-- crashingUnits values: true = actively crashing, number = death frame stamp.
+		-- Clear stale death stamps (older than 1 frame) so recycled IDs aren't blocked.
+		local crashVal = crashingUnits[uID]
+		if crashVal == true then
+			-- skip: actively crashing
+		elseif crashVal then
+			if currentGameFrameKeysort <= crashVal then
+				-- skip: died this frame, may still be in pipUnits
+			else
+				-- Stale death stamp from a previous frame — this is a new unit with a recycled ID.
+				crashingUnits[uID] = nil
+			end
 		else
 		-- Fast path for known immobile buildings: skip all classification lookups
 		local cachedBldgX = localBuildPosX[uID]
@@ -11394,17 +11540,17 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 						iconHalf = cappedIconRadius * (iconInfo and iconInfo.size or 0.5)
 					end
 					-- Rotate the icon center to match where the shader placed it
+					-- Radar wobble must be applied BEFORE rotation to match shader order
+					if inRadar then
+						local phase = (uID * 0.37) % 6.2832
+						local wobbleAmp = cappedIconRadius * 0.3
+						cx = cx + math.sin(gameTime * 3.0 + phase) * wobbleAmp
+						cy = cy + math.cos(gameTime * 2.7 + phase * 1.3) * wobbleAmp
+					end
 					if isRotated then
 						local dx, dy = cx - rotCX, cy - rotCY
 						cx = rotCX + dx * rotCos - dy * rotSin
 						cy = rotCY + dx * rotSin + dy * rotCos
-					end
-					-- Apply radar wobble to match the icon's shader wobble
-					if inRadar then
-						local phase = (uID * 0.37) % 6.2832
-						local wobbleAmp = iconHalf * 0.3
-						cx = cx + math.sin(gameTime * 3.0 + phase) * wobbleAmp
-						cy = cy + math.cos(gameTime * 2.7 + phase * 1.3) * wobbleAmp
 					end
 					-- Draw nametag above icon (always, including radar blips)
 					local entry = tID and comNametagCache[tID]
@@ -15255,14 +15401,11 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 					if visibleButtons[i].command == 'pip_help' and config.leftButtonPansCamera then
 						tooltipText = tooltipText .. Spring.I18N('ui.pip.help_leftclick')
 					end
-					-- Use button's shortcut field first, fall back to getActionHotkey
+					-- Use button's shortcut from getActionHotkey
 					-- In minimap mode, don't show shorcut for track units button
-					local shortcut = visibleButtons[i].shortcut
+					local shortcut = nil
 					local suppressShortcut = isMinimapMode and visibleButtons[i].command == 'pip_track'
-					if suppressShortcut then
-						shortcut = nil
-					end
-					if not shortcut and not suppressShortcut and visibleButtons[i].actionName then
+					if not suppressShortcut and visibleButtons[i].actionName then
 						shortcut = getActionHotkey(visibleButtons[i].actionName)
 					end
 					if shortcut and shortcut ~= "" then
@@ -16909,19 +17052,8 @@ function widget:Update(dt)
 		end
 	end
 
-	-- Activity focus: restore camera after hold duration expires
-	if miscState.activityFocusActive and miscState.activityFocusEnabled then
-		local elapsed = os.clock() - miscState.activityFocusTime
-		if elapsed >= config.activityFocusDuration then
-			-- Restore saved camera position
-			if miscState.activityFocusSavedWcx then
-				cameraState.targetWcx = miscState.activityFocusSavedWcx
-				cameraState.targetWcz = miscState.activityFocusSavedWcz
-				cameraState.targetZoom = miscState.activityFocusSavedZoom
-			end
-			miscState.activityFocusActive = false
-		end
-	end
+	-- Activity focus: duration check moved to the re-assertion block below
+	-- (unified 3-phase bell curve: zoom-in, hold, zoom-out)
 
 	-- TV mode: detect effective game-over (only one allyteam alive) and trigger zoom-out
 	if miscState.tvEnabled and pipTV.director.effectiveGameOver and not miscState.isGameOver then
@@ -17205,18 +17337,97 @@ function widget:Update(dt)
 		miscState.isSwitchingViews = false
 	end
 
-	-- Activity focus: re-assert target position each frame while active
-	-- Edge/center clamping at low zoom levels overwrites targetWcx/targetWcz;
-	-- re-applying from stored marker coords ensures the camera reaches the marker
-	-- Cancel if the user is actively panning or zooming the PIP
+	-- Activity focus: bell-curve zoom animation (smoothstep ease-in-out)
+	-- 3 phases: zoom-in → hold → zoom-out, driven by elapsed time
+	-- Directly drives wcx/wcz/zoom (actual camera values) instead of just targets,
+	-- bypassing normal camera smoothing and edge clamping which would double-smooth
+	-- or cause axes to desync when one hits a map edge before the other.
 	if miscState.activityFocusActive and miscState.activityFocusTargetX then
 		if interactionState.arePanning or interactionState.areIncreasingZoom or interactionState.areDecreasingZoom then
 			-- User is interacting — cancel focus and don't restore saved camera
 			miscState.activityFocusActive = false
 		else
-			cameraState.targetWcx = miscState.activityFocusTargetX
-			cameraState.targetWcz = miscState.activityFocusTargetZ
-			cameraState.targetZoom = math.max(config.activityFocusZoom, GetEffectiveZoomMin())
+			local elapsed = os.clock() - miscState.activityFocusTime
+			local zoomInTime = config.activityFocusZoomInTime
+			local zoomOutTime = config.activityFocusZoomOutTime
+			local holdTime = config.activityFocusDuration
+			local totalTime = zoomInTime + holdTime + zoomOutTime
+			local focusZoom = math.max(config.activityFocusZoom, GetEffectiveZoomMin())
+			local savedZoom = miscState.activityFocusSavedZoom or cameraState.zoom
+			local savedWcx = miscState.activityFocusSavedWcx or cameraState.wcx
+			local savedWcz = miscState.activityFocusSavedWcz or cameraState.wcz
+
+			local newWcx, newWcz, newZoom
+			if elapsed >= totalTime then
+				-- Animation complete — restore saved camera and deactivate
+				newWcx = savedWcx
+				newWcz = savedWcz
+				newZoom = savedZoom
+				miscState.activityFocusActive = false
+			elseif elapsed < zoomInTime then
+				-- Phase 1: Zoom in (double smootherstep: very pronounced ease-in-out)
+				local t = elapsed / zoomInTime
+				local s = t * t * t * (t * (t * 6 - 15) + 10)
+				local ease = s * s * s * (s * (s * 6 - 15) + 10)
+				newWcx = savedWcx + (miscState.activityFocusTargetX - savedWcx) * ease
+				newWcz = savedWcz + (miscState.activityFocusTargetZ - savedWcz) * ease
+				newZoom = savedZoom + (focusZoom - savedZoom) * ease
+			elseif elapsed < zoomInTime + holdTime then
+				-- Phase 2: Hold at focus position and zoom
+				newWcx = miscState.activityFocusTargetX
+				newWcz = miscState.activityFocusTargetZ
+				newZoom = focusZoom
+			else
+				-- Phase 3: Zoom out (double smootherstep: very pronounced ease-in-out)
+				local t = (elapsed - zoomInTime - holdTime) / zoomOutTime
+				local s = t * t * t * (t * (t * 6 - 15) + 10)
+				local ease = s * s * s * (s * (s * 6 - 15) + 10)
+				newWcx = miscState.activityFocusTargetX + (savedWcx - miscState.activityFocusTargetX) * ease
+				newWcz = miscState.activityFocusTargetZ + (savedWcz - miscState.activityFocusTargetZ) * ease
+				newZoom = focusZoom + (savedZoom - focusZoom) * ease
+			end
+
+			if newZoom then
+				-- Enforce zoom floor
+				local zoomMin = GetEffectiveZoomMin()
+				if newZoom < zoomMin then newZoom = zoomMin end
+
+				-- Gentle position clamp at the interpolated zoom level to prevent showing void.
+				-- Use the interpolated zoom (not current) so both axes hit bounds simultaneously.
+				local pipW, pipH = GetEffectivePipDimensions()
+				local visW = pipW / newZoom
+				local visH = pipH / newZoom
+				local halfW = visW / 2
+				local halfH = visH / 2
+				local minX = halfW
+				local maxX = mapInfo.mapSizeX - halfW
+				local minZ = halfH
+				local maxZ = mapInfo.mapSizeZ - halfH
+				if minX >= maxX then
+					newWcx = mapInfo.mapSizeX / 2
+				else
+					if newWcx < minX then newWcx = minX end
+					if newWcx > maxX then newWcx = maxX end
+				end
+				if minZ >= maxZ then
+					newWcz = mapInfo.mapSizeZ / 2
+				else
+					if newWcz < minZ then newWcz = minZ end
+					if newWcz > maxZ then newWcz = maxZ end
+				end
+
+				-- Directly drive actual camera values (bypass normal smoothing)
+				cameraState.wcx = newWcx
+				cameraState.wcz = newWcz
+				cameraState.zoom = newZoom
+				-- Sync targets to prevent the normal camera update from fighting next frame
+				cameraState.targetWcx = newWcx
+				cameraState.targetWcz = newWcz
+				cameraState.targetZoom = newZoom
+
+				RecalculateWorldCoordinates()
+				RecalculateGroundTextureCoordinates()
+			end
 		end
 	end
 
@@ -17576,10 +17787,12 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		-- Get unit velocity so shatter fragments carry the unit's momentum
 		local vx, vy, vz = Spring.GetUnitVelocity(unitID)
 		CreateIconShatter(unitID, unitDefID, unitTeam, vx, vz)
-		-- Suppress icon immediately so it doesn't linger during death animation
-		miscState.crashingUnits[unitID] = true
 	end
-	-- Don't clear crashingUnits[unitID] here - let it persist to prevent icon flash
+	-- Stamp with the death frame instead of clearing immediately.
+	-- The unit may still appear in GetUnitsInRectangle during the same frame's DrawScreen,
+	-- so we keep it suppressed. The keysort will clear entries older than 1 frame,
+	-- freeing the ID for reuse by newly created units.
+	miscState.crashingUnits[unitID] = Spring.GetGameFrame()
 
 	-- Clear GL4 caches for this unit
 	gl4Icons.unitDefCache[unitID] = nil
@@ -17612,6 +17825,12 @@ end
 function widget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
 	-- Clear GL4 cache so it picks up the new team color
 	gl4Icons.unitTeamCache[unitID] = nil
+	-- Invalidate VBO block caches — they bake team color into instance data,
+	-- so a team transfer requires a full rebuild to show the correct color.
+	gl4Icons._bldgBlockFrame = 0
+	gl4Icons._bldgVboValid = false
+	gl4Icons._slowVboValid = false
+	gl4Icons._mobileBlock = nil
 	-- Force re-classification in keysort (new team may change colors/LOS)
 	ownBuildingPosX[unitID] = nil
 	ownBuildingPosZ[unitID] = nil
@@ -17764,6 +17983,7 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 			cmdID = cmdID,
 			time = wallClockTime,
 			color = color,
+			unitTeam = unitTeam,
 		}
 	end
 end
@@ -18152,25 +18372,24 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 				end
 			end
 			if triggerFocus and not miscState.activityFocusActive then
-				-- Save current camera position before focusing
-				miscState.activityFocusSavedWcx = cameraState.targetWcx
-				miscState.activityFocusSavedWcz = cameraState.targetWcz
-				miscState.activityFocusSavedZoom = cameraState.targetZoom
-				-- Store marker position (re-asserted each frame to survive edge clamping)
+				-- Save current camera state (actual values, not targets, since targets may be mid-transition)
+				miscState.activityFocusSavedWcx = cameraState.wcx
+				miscState.activityFocusSavedWcz = cameraState.wcz
+				miscState.activityFocusSavedZoom = cameraState.zoom
+				-- Store marker position
 				miscState.activityFocusTargetX = mx
 				miscState.activityFocusTargetZ = mz
-				-- Move camera to marker
-				cameraState.targetWcx = mx
-				cameraState.targetWcz = mz
-				cameraState.targetZoom = math.max(config.activityFocusZoom, cameraState.targetZoom)
+				-- Don't immediately set camera targets — the bell curve in Update
+				-- drives wcx/wcz/zoom directly for smooth, jerk-free motion.
 				miscState.activityFocusTime = os.clock()
 				miscState.activityFocusActive = true
 			elseif triggerFocus and miscState.activityFocusActive then
-				-- Already focusing: update target to new marker, reset timer
+				-- Already focusing: redirect to new marker, restart bell curve from current position
+				miscState.activityFocusSavedWcx = cameraState.wcx
+				miscState.activityFocusSavedWcz = cameraState.wcz
+				miscState.activityFocusSavedZoom = cameraState.zoom
 				miscState.activityFocusTargetX = mx
 				miscState.activityFocusTargetZ = mz
-				cameraState.targetWcx = mx
-				cameraState.targetWcz = mz
 				miscState.activityFocusTime = os.clock()
 			end
 		end
@@ -19217,7 +19436,9 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 	-- Skip when minimized — panning makes no sense for the tiny button
 	if not uiState.inMinMode and interactionState.leftMousePressed and interactionState.rightMousePressed and not interactionState.arePanning and mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t then
 		-- Check if there's actual movement (not just mouse jitter)
-		if math.abs(dx) > 2 or math.abs(dy) > 2 then
+		-- Threshold scales with resolution (~2px at 1080p, ~5px at 5K)
+		local dragThreshold = math.max(2, math.floor(render.vsx / 500))
+		if math.abs(dx) > dragThreshold or math.abs(dy) > dragThreshold then
 			-- Cancel any ongoing operations
 			if interactionState.areBuildDragging then
 				interactionState.areBuildDragging = false
@@ -19256,9 +19477,12 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 
 	-- If middle mouse is pressed but not yet committed to a mode, check if moved
 	if interactionState.middleMousePressed and not interactionState.arePanning then
-		-- Check if there's actual movement (not just mouse jitter)
-		-- Use a small threshold to distinguish click from drag
-		if math.abs(dx) > 2 or math.abs(dy) > 2 then
+		-- Check total distance from initial press point (not per-frame delta)
+		-- Threshold scales with resolution (~5px at 1080p, ~13px at 5K)
+		local dragThreshold = math.max(5, math.floor(render.vsx / 384))
+		local totalDx = mx - interactionState.middleMousePressX
+		local totalDy = my - interactionState.middleMousePressY
+		if math.abs(totalDx) > dragThreshold or math.abs(totalDy) > dragThreshold then
 			interactionState.middleMouseMoved = true
 			-- Start hold-drag panning (cancel player tracking if config allows, otherwise block)
 			if interactionState.trackingPlayerID then
@@ -19920,6 +20144,7 @@ function widget:MouseRelease(mx, my, mButton)
 		local dragDistY = math.abs(my - interactionState.formationDragStartY)
 		local isDrag = dragDistX > minDragDistance or dragDistY > minDragDistance
 
+		local formationHandled = false
 		if WG.customformations and WG.customformations.EndFormation then
 			-- Add final position if still within PIP bounds
 			local finalPos = nil
@@ -19928,15 +20153,16 @@ function widget:MouseRelease(mx, my, mButton)
 				local wy = spFunc.GetGroundHeight(wx, wz)
 				finalPos = {wx, wy, wz}
 			end
-			WG.customformations.EndFormation(finalPos)
+			formationHandled = WG.customformations.EndFormation(finalPos)
 		end
 
 		-- Clear the force shift flag
 		WG.pipForceShift = nil
 		interactionState.formationDragShouldQueue = false
 
-		-- If it was just a click (not a drag), issue the original command
-		if not isDrag and mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t then
+		-- If it was just a click (not a drag) and EndFormation didn't already issue the command,
+		-- issue the command ourselves (EndFormation handles MOVE single-clicks internally)
+		if not isDrag and not formationHandled and mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t then
 			local wx, wz = PipToWorldCoords(mx, my)
 
 			-- Determine the original command

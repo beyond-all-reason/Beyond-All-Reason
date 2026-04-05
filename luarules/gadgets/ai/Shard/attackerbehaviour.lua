@@ -1,12 +1,12 @@
 shard_include( "attackers" )
 
+local attackerSet = {}
+for _, name in ipairs(attackerlist) do
+	attackerSet[name] = true
+end
+
 function IsAttacker(unit)
-	for i,name in ipairs(attackerlist) do
-		if name == unit:Internal():Name() then
-			return true
-		end
-	end
-	return false
+	return attackerSet[unit:Internal():Name()] or false
 end
 
 AttackerBehaviour = class(Behaviour)

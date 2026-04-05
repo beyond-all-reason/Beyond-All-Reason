@@ -53,13 +53,6 @@ return {						--costs should be same as legmohocon and legmohoconin
 			scav_swap_override_captured = "legmohocon", -- (delete = removes the unit, null = cancels swap, unitdefname = overrides what unit are we swapping into)
 			techlevel = 2,
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2-builder",
-				[2] = "deathceg3-builder",
-				[3] = "deathceg4-builder",
-			},
-		},
 		sounds = {
 			build = "nanlath2",
 			canceldestruct = "cancel2",

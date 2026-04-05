@@ -29,6 +29,16 @@ local spGetGameFrame = Spring.GetGameFrame
 local teamList = Spring.GetTeamList()
 local syncTables = {}
 local cmdCounter = {ii = 0 ,zi=0,iz=0,zz=0,old=0}
+local string_sub = string.sub
+local string_gmatch = string.gmatch
+local string_match = string.match
+local string_find = string.find
+local string_format = string.format
+local math_min = math.min
+local math_max = math.max
+local math_floor = math.floor
+local table_insert = table.insert
+local table_remove = table.remove
 
 
 
@@ -75,7 +85,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:RezTable()
-			return table.remove(syncTables) or {}
+			return table_remove(syncTables) or {}
 	end
 
 
@@ -91,10 +101,8 @@ if gadgetHandler:IsSyncedCode() then
 				gadget:KillTable(value)
 			end
 			t[key] = nil
-			if  next(t) == nil then
-				table.insert(syncTables, t)
-			end
 		end
+		table_insert(syncTables, t)
 	end
 
 	function gadget:ResetTable(t)
@@ -111,10 +119,10 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 		deserializedOrder = gadget:ResetTable(deserializedOrder)
-		for s in string.gmatch(str, "([^&]+)") do
-			local key, value = string.match(s, "(%w+):(.+)")
+		for s in string_gmatch(str, "([^&]+)") do
+			local key, value = string_match(s, "(%w+):(.+)")
 			if not value then spEcho('Deserialize Order missing value',s,key,value) return end
-			if string.find(value,'|') or string.find(value,',') then
+			if string_find(value,'|') or string_find(value,',') then
 				deserializedOrder[key] = self:StringToTable(value)
 			else
 				deserializedOrder[key] = tonumber(value) or value
@@ -127,18 +135,18 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:StringToTable(str)
 		StrToTbl = gadget:ResetTable()
 		local i = 1
-		if string.find(str,'|') then
-			for s in string.gmatch(str, "([^|]+)") do
+		if string_find(str,'|') then
+			for s in string_gmatch(str, "([^|]+)") do
 
 				StrToTbl[i] = gadget:RezTable()
-				for value in string.gmatch(s, "([^,]+)") do
-				table.insert(StrToTbl[i],tonumber(value) or value)
+				for value in string_gmatch(s, "([^,]+)") do
+				table_insert(StrToTbl[i],tonumber(value) or value)
 				end
 				i = i + 1
 			end
 		else
-			for value in string.gmatch(str, "([^,]+)") do
-				table.insert(StrToTbl,tonumber(value) or value)
+			for value in string_gmatch(str, "([^,]+)") do
+				table_insert(StrToTbl,tonumber(value) or value)
 			end
 		end
 		--spEcho("Sync Deserialized:", t)
@@ -147,17 +155,17 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:RecvLuaMsg(msg)
 
-		if string.sub(msg,1,17) == 'StGiveOrderToSync' then
+		if string_sub(msg,1,17) == 'StGiveOrderToSync' then
 			spEcho('warn:  Shard  receive a old give order protocol',msg)
 			cmdCounter.old = cmdCounter.old + 1
 			return
 		end
-		if string.sub(msg,1,12) ~= '@Shard[STGO]' or string.sub(msg,-12,-1) ~= '[STGO]Shard@' then
-			--spEcho('not a STAI Give Order ',string.sub(msg,1,10),string.sub(msg,-10,-1))
+		if string_sub(msg,1,12) ~= '@Shard[STGO]' or string_sub(msg,-12,-1) ~= '[STGO]Shard@' then
+			--spEcho('not a STAI Give Order ',string_sub(msg,1,10),string_sub(msg,-10,-1))
 			return
 
 		else
-			msg = string.sub(msg,13,-13)
+			msg = string_sub(msg,13,-13)
 			local order = gadget:RezTable()
 			order = gadget:DeserializeOrder(msg)
 			if not order then
@@ -184,10 +192,11 @@ if gadgetHandler:IsSyncedCode() then
 			elseif order.method == '2-1' then
 				local arrayOfCmd = gadget:RezTable()
 				for i in pairs(order.cmd) do
-					arrayOfCmd[i] = gadget:RezTable()
-					arrayOfCmd[i][1] = order.cmd[i]
-					arrayOfCmd[i][2] = order.parameters[i]
-					arrayOfCmd[i][3] = order.options[i]
+					local row = gadget:RezTable()
+					row[1] = order.cmd[i]
+					row[2] = order.parameters[i]
+					row[3] = order.options[i]
+					arrayOfCmd[i] = row
 				end
 				local cmd = spGiveOrderArrayTounit(order.id,arrayOfCmd)
 				cmdCounter.zi = cmdCounter.zi + 1
@@ -206,10 +215,11 @@ if gadgetHandler:IsSyncedCode() then
 			elseif order.method == '2-2' then
 				local arrayOfCmd = gadget:RezTable()
 				for i in pairs(order.cmd) do
-					arrayOfCmd[i] = gadget:RezTable()
-					arrayOfCmd[i][1] = order.cmd[i]
-					arrayOfCmd[i][2] = order.parameters[i]
-					arrayOfCmd[i][3] = order.options[i]
+					local row = gadget:RezTable()
+					row[1] = order.cmd[i]
+					row[2] = order.parameters[i]
+					row[3] = order.options[i]
+					arrayOfCmd[i] = row
 				end
 				local cmd = spGiveOrderArrayTounitArray(order.id,arrayOfCmd,true)
 				cmdCounter.zz = cmdCounter.zz + 1
@@ -324,8 +334,8 @@ else	-- UNSYNCED CODE
 			thisAI.startPos = { x, y, z }
 			thisAI:Prepare()
 			--thisAI:Init()
-			garbagelimit = math.min(1000000,garbagelimit + pershardmemlimit)
-			spEcho(string.format("AI %d (%s) using %d MB RAM, adjusting limit to %d MB", thisAI.id, thisAI.fullname, basememlimit/1000, garbagelimit/1000))
+			garbagelimit = math_min(1000000,garbagelimit + pershardmemlimit)
+			spEcho(string_format("AI %d (%s) using %d MB RAM, adjusting limit to %d MB", thisAI.id, thisAI.fullname, basememlimit/1000, garbagelimit/1000))
 			numShards = numShards + 1
 
 		end
@@ -343,14 +353,14 @@ else	-- UNSYNCED CODE
 
 			if i == 1 and n % 121 == 0 then
 				local ramuse = gcinfo()
-				memoryRecord = math.max(memoryRecord,ramuse)
+				memoryRecord = math_max(memoryRecord,ramuse)
 				--spEcho("STAI use",ramuse .. ' kb of RAM of ' .. garbagelimit, 'available' )
 				if ramuse > garbagelimit then
 					collectgarbage("collect")
 					local notgarbagemem = gcinfo()
-					local newgarbagelimit = math.min(1000000, notgarbagemem + basememlimit + pershardmemlimit * numShards) -- peak 1 GB
-					spEcho(string.format("%d STAIs using %d MB RAM > %d MB limit, performing garbage collection and adjusting limit to %d MB",
-						numShards, math.floor(ramuse/1000), math.floor(garbagelimit/1000), math.floor(newgarbagelimit/1000) ) )
+					local newgarbagelimit = math_min(1000000, notgarbagemem + basememlimit + pershardmemlimit * numShards) -- peak 1 GB
+					spEcho(string_format("%d STAIs using %d MB RAM > %d MB limit, performing garbage collection and adjusting limit to %d MB",
+						numShards, math_floor(ramuse/1000), math_floor(garbagelimit/1000), math_floor(newgarbagelimit/1000) ) )
 					garbagelimit = newgarbagelimit
 				end
 			end
@@ -362,21 +372,22 @@ else	-- UNSYNCED CODE
 		-- for each AI...
 
 		local unit = Shard:shardify_unit(unitId)
+		local unitTeam = spGetUnitTeam(unitId)
+		local unitAllyTeam = spGetUnitAllyTeam(unitId)
 		for _, thisAI in ipairs(Shard.AIs) do
-			if spGetUnitTeam(unitId) == thisAI.id then
+			if unitTeam == thisAI.id then
 				thisAI.ownUnitIds[unitId] = true
 				thisAI.friendlyUnitIds[unitId] = true
-			elseif thisAI.alliedTeamIds[spGetUnitTeam(unitId)] or spGetUnitTeam(unitId) == thisAI.id then
+			elseif thisAI.alliedTeamIds[unitTeam] then
 				thisAI.alliedUnitIds[unitId] = true
 				thisAI.friendlyUnitIds[unitId] = true
-			elseif spGetUnitAllyTeam(unitId) == spGetGaiaTeamID then
+			elseif unitAllyTeam == spGetGaiaTeamID then
 				thisAI.neutralUnitIds[unitId] = true
 			else
 				thisAI.enemyUnitIds[unitId] = true
-
 			end
 
-			if Spring.GetUnitTeam(unitId) == thisAI.id then
+			if unitTeam == thisAI.id then
 				thisAI:Prepare()
 				thisAI:UnitCreated(unit, unitDefId, teamId, builderId)
 			end
@@ -515,7 +526,7 @@ else	-- UNSYNCED CODE
 		if Shard then
 			Shard.gameID = gameID
 			local rseed = 0
-			local unpacked = VFS.UnpackU8(gameID, 1, string.len(gameID))
+			local unpacked = VFS.UnpackU8(gameID, 1, #gameID)
 			for i, part in ipairs(unpacked) do
 				-- local mult = 256 ^ (#unpacked-i)
 				-- rseed = rseed + (part*mult)

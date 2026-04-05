@@ -89,11 +89,6 @@ return {
 				[0] = "custom:subbubbles",
 				[1] = "custom:subwake",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

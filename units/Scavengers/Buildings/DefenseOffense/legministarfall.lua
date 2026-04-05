@@ -74,10 +74,6 @@ return {
 				[6] = "custom:smokegen-part2",
 				[7] = "custom:ventair-puff",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

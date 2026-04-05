@@ -71,6 +71,7 @@ local function cacheUnitIcons()
 
 	end
 	gl.Color(1, 1, 1, 1)
+	gl.Texture(false)
 	gl.Translate(vsx, 0, 0)
 end
 
@@ -119,6 +120,7 @@ function widget:DrawScreen()
 			end
 		end
 		gl.Color(1, 1, 1, 1)
+		gl.Texture(false)
 		gl.Translate(vsx, 0, 0)
 	end
 end
