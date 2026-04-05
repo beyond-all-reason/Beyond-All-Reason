@@ -53,8 +53,8 @@ local LEASH_EXTRA = {
 	[2] = 200,   -- roam
 }
 local DEFAULT_LEASH_EXTRA = 100
-local POLL_INTERVAL = 30                 -- every 1 second (30 fps)
-local RECLAIM_BLACKLIST_DURATION = 1800  -- 60 seconds * 30 fps
+local POLL_INTERVAL = Game.gameSpeed
+local RECLAIM_BLACKLIST_DURATION = 60 * Game.gameSpeed
 
 ----------------------------------------------------------------
 -- Static lookup (built once from UnitDefs)
@@ -68,6 +68,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		isMobileBuilder[unitDefID] = true
 		builderBuildDist[unitDefID] = unitDef.buildDistance
 	end
+
 	cachedUnitDefs[unitDefID] = { radius = unitDef.radius }
 end
 
@@ -103,6 +104,7 @@ local function getLeashRadius(unitID)
 	if states then
 		extra = LEASH_EXTRA[states.movestate] or DEFAULT_LEASH_EXTRA
 	end
+
 	return buildDist + extra
 end
 
@@ -132,12 +134,16 @@ local function hasActiveReclaimers(targetID)
 	for _, tid in pairs(activeReclaimers) do
 		if tid == targetID then return true end
 	end
+
 	return false
 end
 
 local function onReclaimerStopped(reclaimerID)
 	local targetID = activeReclaimers[reclaimerID]
-	if not targetID then return end
+	if not targetID then
+		return
+	end
+
 	activeReclaimers[reclaimerID] = nil
 	if not hasActiveReclaimers(targetID) then
 		reclaimBlacklist[targetID] = spGetGameFrame() + RECLAIM_BLACKLIST_DURATION
@@ -159,6 +165,7 @@ function widget:Initialize()
 	if maybeRemoveSelf() then
 		return
 	end
+
 	for _, unitID in ipairs(spGetTeamUnits(myTeam)) do
 		local unitDefID = spGetUnitDefID(unitID) 
 		if isMobileBuilder[unitDefID] and spGetUnitCommandCount(unitID) == 0 then
@@ -180,6 +187,7 @@ function widget:PlayerChanged()
 	if maybeRemoveSelf() then
 		return
 	end
+
 	idleBuilders = {}
 	activeRepairs = {}
 	activeReclaimers = {}
@@ -196,18 +204,25 @@ end
 -- Unit lifecycle
 ----------------------------------------------------------------
 function widget:UnitIdle(unitID, unitDefID, unitTeam)
-	if unitTeam ~= myTeam then return end
+	if unitTeam ~= myTeam then
+		return
+	end
+
 	onReclaimerStopped(unitID)
-	if not isMobileBuilder[unitDefID] then return end
+	if not isMobileBuilder[unitDefID] then 
+		return 
+	end
+
 	local x, y, z = spGetUnitPosition(unitID)
 	idleBuilders[unitID] = { homeX = x, homeY = y, homeZ = z }
 	activeRepairs[unitID] = nil
 end
 
 function widget:MetaUnitAdded(unitID, unitDefID, unitTeam)
-	if spGetUnitIsDead(unitID) then return end
-	if unitTeam ~= myTeam then return end
-	if not isMobileBuilder[unitDefID] then return end
+	if spGetUnitIsDead(unitID) or unitTeam ~= myTeam or not isMobileBuilder[unitDefID] then
+		return
+	end
+
 	if spGetUnitCommandCount(unitID) == 0 then
 		local x, y, z = spGetUnitPosition(unitID)
 		idleBuilders[unitID] = { homeX = x, homeY = y, homeZ = z }
@@ -233,7 +248,10 @@ end
 ----------------------------------------------------------------
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	-- State changes (e.g. movestate) should not disrupt tracking
-	if cmdID == CMD_MOVE_STATE or cmdID == CMD_WANT_CLOAK then return end
+	if cmdID == CMD_MOVE_STATE or cmdID == CMD_WANT_CLOAK then
+		return
+	end
+
 	local selectedUnits = spGetSelectedUnits()
 
 	-- Stop tracking reclaimers that received a new command
@@ -255,6 +273,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 			for _, unitID in ipairs(selectedUnits) do
 				activeReclaimers[unitID] = targetID
 			end
+
 			reclaimBlacklist[targetID] = math.huge
 		end
 	end
@@ -264,7 +283,9 @@ end
 -- Core loop
 ----------------------------------------------------------------
 function widget:GameFrame(frame)
-	if frame % POLL_INTERVAL ~= 0 then return end
+	if frame % POLL_INTERVAL ~= 0 then
+		return
+	end
 
 	-- Phase 1: Clean expired reclaim blacklist entries
 	for unitID, expiryFrame in pairs(reclaimBlacklist) do
@@ -346,7 +367,7 @@ function widget:GameFrame(frame)
 			end
 
 			if bestTarget then
-					spGiveOrderToUnit(builderID, CMD_REPAIR, bestTarget, 0)
+				spGiveOrderToUnit(builderID, CMD_REPAIR, bestTarget)
 
 				activeRepairs[builderID] = {
 					targetID = bestTarget,
