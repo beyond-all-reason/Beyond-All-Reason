@@ -27,6 +27,7 @@ local spGetUnitVelocity   = Spring.GetUnitVelocity
 local spValidUnitID       = Spring.ValidUnitID
 local spIsSphereInView    = Spring.IsSphereInView
 local spIsPosInAirLos     = Spring.IsPosInAirLos
+local spGetTeamAllyTeamID = Spring.GetTeamAllyTeamID
 local spGetMyAllyTeamID   = Spring.GetMyAllyTeamID
 local spGetSpectatingState = Spring.GetSpectatingState
 
@@ -218,8 +219,8 @@ local function spawnCrashTrailParticles(tracked, unitID, gameFrame)
 	local px, py, pz = spGetUnitPosition(unitID)
 	if not px then return end
 
-	-- LOS check: skip entirely if not visible to player (no buffering)
-	if not frameFullView and not spIsPosInAirLos(px, py, pz, frameAllyTeamID) then return end
+	-- LOS check: own allyteam crashes always visible, enemy ones need LOS
+	if not frameFullView and tracked.allyTeamID ~= frameAllyTeamID and not spIsPosInAirLos(px, py, pz, frameAllyTeamID) then return end
 
 	local inView = spIsSphereInView(px, py, pz, CRASH_CULLING_TOTAL)
 	if not inView then
@@ -334,6 +335,7 @@ local function apiCrashingAircraft(unitID, unitDefID, teamID)
 		fireIntensity = fi,
 		lifetimeMult = lifetimeMult,
 		spawnMult = spawnMult,
+		allyTeamID = teamID and spGetTeamAllyTeamID(teamID) or -1,
 	}
 	crashingAircraftCount = crashingAircraftCount + 1
 end

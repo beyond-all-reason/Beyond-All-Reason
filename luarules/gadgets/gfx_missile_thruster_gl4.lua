@@ -26,6 +26,9 @@ local spGetVisibleProjectiles     = Spring.GetVisibleProjectiles
 local spGetProjectilePosition     = Spring.GetProjectilePosition
 local spGetProjectileVelocity     = Spring.GetProjectileVelocity
 local spGetProjectileDefID        = Spring.GetProjectileDefID
+local spGetProjectileTeamID       = Spring.GetProjectileTeamID
+local spGetTeamAllyTeamID         = Spring.GetTeamAllyTeamID
+local spIsPosInLos                = Spring.IsPosInLos
 local spGetMyAllyTeamID           = Spring.GetMyAllyTeamID
 local spGetSpectatingState        = Spring.GetSpectatingState
 local spGetGameFrame              = Spring.GetGameFrame
@@ -600,7 +603,7 @@ local function updateMissiles()
 
 	local ftoAdj = spGetFrameTimeOffset() - 1.0
 
-	local projectiles = spGetVisibleProjectiles(cachedAllyTeamID, true, true, false)
+	local projectiles = spGetVisibleProjectiles(-1, true, true, false)
 	if not projectiles or #projectiles == 0 then
 		idleSkipCounter = IDLE_SKIP_FRAMES
 		return
@@ -609,6 +612,8 @@ local function updateMissiles()
 	local flameData = flameVBO.instanceData
 	local flameStep = 20  -- posAndSize(4) + dirAndLength(4) + color1(4) + color2(4) + glowData(4)
 	local flameCount = 0
+	local myAllyTeam = cachedAllyTeamID
+	local needLosCheck = not cachedSpecFullView
 
 	for i = 1, #projectiles do
 		local proID = projectiles[i]
@@ -616,72 +621,83 @@ local function updateMissiles()
 		if cfg then
 			local px, py, pz = spGetProjectilePosition(proID)
 			if px then
-				local vx, vy, vz = spGetProjectileVelocity(proID)
-				if vx then
-					local speedSq = vx*vx + vy*vy + vz*vz
-					local dx, dy, dz
-
-					if speedSq > 0.0001 then
-						local invSpeed = 1.0 / mathSqrt(speedSq)
-						dx, dy, dz = vx * invSpeed, vy * invSpeed, vz * invSpeed
-						px = px + vx * ftoAdj
-						py = py + vy * ftoAdj
-						pz = pz + vz * ftoAdj
-						local ofs = cfg.thrusterOffset
-						px = px - dx * ofs
-						py = py - dy * ofs
-						pz = pz - dz * ofs
-						local cached = projectileCache[proID]
-						if cached then
-							cached[1], cached[2], cached[3] = dx, dy, dz
-							cached[4], cached[5], cached[6] = px, py, pz
-						else
-							projectileCache[proID] = {dx, dy, dz, px, py, pz}
-						end
-					else
-						local cached = projectileCache[proID]
-						if cached then
-							dx, dy, dz = cached[1], cached[2], cached[3]
-							px, py, pz = cached[4], cached[5], cached[6]
-						end
+				-- LOS check: own allyteam projectiles always visible, enemy ones need LOS
+				local visible = true
+				if needLosCheck then
+					local proTeam = spGetProjectileTeamID(proID)
+					local proAlly = proTeam and spGetTeamAllyTeamID(proTeam)
+					if proAlly ~= myAllyTeam then
+						visible = spIsPosInLos(px, 0, pz, myAllyTeam)
 					end
+				end
+				if visible then
+					local vx, vy, vz = spGetProjectileVelocity(proID)
+					if vx then
+						local speedSq = vx*vx + vy*vy + vz*vz
+						local dx, dy, dz
 
-					if dx then
-						local length = cfg.length
-						local size = cfg.size
-						if cfg.hasRand then
-							local rand = mathRandom()
-							if length < 0 then
-								length = length - rand * cfg.lengthRand
+						if speedSq > 0.0001 then
+							local invSpeed = 1.0 / mathSqrt(speedSq)
+							dx, dy, dz = vx * invSpeed, vy * invSpeed, vz * invSpeed
+							px = px + vx * ftoAdj
+							py = py + vy * ftoAdj
+							pz = pz + vz * ftoAdj
+							local ofs = cfg.thrusterOffset
+							px = px - dx * ofs
+							py = py - dy * ofs
+							pz = pz - dz * ofs
+							local cached = projectileCache[proID]
+							if cached then
+								cached[1], cached[2], cached[3] = dx, dy, dz
+								cached[4], cached[5], cached[6] = px, py, pz
 							else
-								length = length + rand * cfg.lengthRand
+								projectileCache[proID] = {dx, dy, dz, px, py, pz}
 							end
-							size = size * (0.85 + 0.3 * mathRandom())
+						else
+							local cached = projectileCache[proID]
+							if cached then
+								dx, dy, dz = cached[1], cached[2], cached[3]
+								px, py, pz = cached[4], cached[5], cached[6]
+							end
 						end
 
-						flameCount = flameCount + 1
-						if flameCount <= MAX_FLAMES then
-							local offset = (flameCount - 1) * flameStep
-							flameData[offset + 1]  = px
-							flameData[offset + 2]  = py
-							flameData[offset + 3]  = pz
-							flameData[offset + 4]  = size
-							flameData[offset + 5]  = dx
-							flameData[offset + 6]  = dy
-							flameData[offset + 7]  = dz
-							flameData[offset + 8]  = length
-							flameData[offset + 9]  = cfg.colorR
-							flameData[offset + 10] = cfg.colorG
-							flameData[offset + 11] = cfg.colorB
-							flameData[offset + 12] = 1.0
-							flameData[offset + 13] = cfg.colorEndR
-							flameData[offset + 14] = cfg.colorEndG
-							flameData[offset + 15] = cfg.colorEndB
-							flameData[offset + 16] = cfg.sizeGrowth
-							flameData[offset + 17] = cfg.glowSize
-							flameData[offset + 18] = cfg.glowR
-							flameData[offset + 19] = cfg.glowG
-							flameData[offset + 20] = cfg.glowB
+						if dx then
+							local length = cfg.length
+							local size = cfg.size
+							if cfg.hasRand then
+								local rand = mathRandom()
+								if length < 0 then
+									length = length - rand * cfg.lengthRand
+								else
+									length = length + rand * cfg.lengthRand
+								end
+								size = size * (0.85 + 0.3 * mathRandom())
+							end
+
+							flameCount = flameCount + 1
+							if flameCount <= MAX_FLAMES then
+								local offset = (flameCount - 1) * flameStep
+								flameData[offset + 1]  = px
+								flameData[offset + 2]  = py
+								flameData[offset + 3]  = pz
+								flameData[offset + 4]  = size
+								flameData[offset + 5]  = dx
+								flameData[offset + 6]  = dy
+								flameData[offset + 7]  = dz
+								flameData[offset + 8]  = length
+								flameData[offset + 9]  = cfg.colorR
+								flameData[offset + 10] = cfg.colorG
+								flameData[offset + 11] = cfg.colorB
+								flameData[offset + 12] = 1.0
+								flameData[offset + 13] = cfg.colorEndR
+								flameData[offset + 14] = cfg.colorEndG
+								flameData[offset + 15] = cfg.colorEndB
+								flameData[offset + 16] = cfg.sizeGrowth
+								flameData[offset + 17] = cfg.glowSize
+								flameData[offset + 18] = cfg.glowR
+								flameData[offset + 19] = cfg.glowG
+								flameData[offset + 20] = cfg.glowB
+							end
 						end
 					end
 				end
