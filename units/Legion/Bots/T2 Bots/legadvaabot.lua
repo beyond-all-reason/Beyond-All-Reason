@@ -2,7 +2,7 @@ return {
 	legadvaabot = {
 		airsightdistance = 850,
 		buildpic = "legadvaabot.DDS",
-		buildtime = 7900,
+		buildtime = 11270,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "20 40 20",
@@ -13,8 +13,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 1200,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.138,
 		maxdec = 0.6486,
 		metalcost = 750,
@@ -74,11 +72,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small-aa",
 				[2] = "custom:barrelshot-flak",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

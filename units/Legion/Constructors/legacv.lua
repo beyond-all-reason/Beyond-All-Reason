@@ -18,8 +18,6 @@ return {
 		explodeas = "mediumexplosiongeneric-builder",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		health = 1950,
 		maxslope = 16,
@@ -40,7 +38,7 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.1616,
 		turnrate = 363,
-		workertime = 235,
+		workertime = 270,
 		buildoptions = {
 			"legfus",
 			"legafus",
@@ -112,11 +110,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:dust_cloud_dirt_light",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2-builder",
-				[2] = "deathceg3-builder",
-				[3] = "deathceg4-builder",
 			},
 		},
 		sounds = {

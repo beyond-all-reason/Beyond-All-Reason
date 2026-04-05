@@ -34,11 +34,14 @@ end
 Spring.SetConfigInt("CubeTexGenerateMipMaps", 1)
 Spring.SetConfigInt("CubeTexSizeReflection", 1024)
 
+
+Spring.SetConfigInt("AdvSky", 0)
+
 -- disable grass
 Spring.SetConfigInt("GrassDetail", 0)
 
 -- adv map shading
-Spring.SetConfigInt("AdvMapShading", 1)
+--Spring.SetConfigInt("AdvMapShading", 1)
 
 -- make sure default/minimum ui opacity is set
 if Spring.GetConfigFloat("ui_opacity", 0.6) < 0.3 then
@@ -154,12 +157,6 @@ if Spring.GetConfigInt("version", 0) < version then
 	Spring.SetConfigInt("CamSpringMinZoomDistance", 300)
 	Spring.SetConfigInt("OverheadMinZoomDistance", 300)
 end
-version = 7
-if Spring.GetConfigInt("version", 0) < version then
-	Spring.SetConfigInt("version", version)
-
-	Spring.SetConfigInt("ui_rendertotexture", 1)
-end
 version = 8
 if Spring.GetConfigInt("version", 0) < version then
 	Spring.SetConfigInt("version", version)
@@ -182,7 +179,7 @@ end
 -- in case we forget to save it once again
 Spring.SetConfigInt("version", version)
 
-Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1) * Spring.GetConfigInt("VSyncFraction", 1))
+Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1))
 
 -- Configure sane keychain settings, this is to provide a standard experience
 -- for users that is acceptable

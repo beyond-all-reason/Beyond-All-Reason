@@ -2,11 +2,11 @@ return {
 	legfhp = {
 		maxacc = 0,
 		maxdec = 0,
-		energycost = 2750,
-		metalcost = 750,
+		energycost = 2000,
+		metalcost = 670,
 		builder = true,
 		buildpic = "LEGFHP.DDS",
-		buildtime = 9500,
+		buildtime = 8700,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "96 35 96",
@@ -16,8 +16,6 @@ return {
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 6,
 		footprintz = 6,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 3750,
 		metalstorage = 200,
 		minwaterdepth = 5,
@@ -43,6 +41,7 @@ return {
 			model_author = "Protar, ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Labs",
+			techlevel = 1.5,
 		},
 		featuredefs = {
 			dead = {
@@ -58,13 +57,6 @@ return {
 				metal = 715,
 				object = "Units/legfhp_dead.s3o",
 				reclaimable = true,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

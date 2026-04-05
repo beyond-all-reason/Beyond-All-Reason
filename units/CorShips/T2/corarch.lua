@@ -3,7 +3,7 @@ return {
 		airsightdistance = 900,
 		buildangle = 16384,
 		buildpic = "CORARCH.DDS",
-		buildtime = 15000,
+		buildtime = 21000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -4 3",
 		collisionvolumescales = "37 37 74",
@@ -15,8 +15,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 3900,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.03127,
 		maxdec = 0.03127,
 		metalcost = 1000,
@@ -76,11 +74,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-flak",
 				[2] = "custom:waterwake-medium-splash",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

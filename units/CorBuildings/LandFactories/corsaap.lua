@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		builder = true,
 		buildpic = "LEGAAP.DDS",
-		buildtime = 35000,
+		buildtime = 51000,
 		canmove = true,
 		collisionvolumeoffsets = "0 4 0",
 		collisionvolumescales = "142 64 142",
@@ -15,8 +15,6 @@ return {
 		footprintx = 9,
 		footprintz = 9,
 		health = 3900,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 15,
@@ -89,10 +87,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:WhiteLight",
 				[2] = "custom:radarpulse_t1_slow",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

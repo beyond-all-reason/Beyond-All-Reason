@@ -1479,7 +1479,7 @@ local unitGrids = {
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "armnanotc", "armnanotcplat", },                -- nano, floating nano
+			{ "armnanotc", "armnanotcplat", "armaap"},                -- nano, floating nano
 			{ "armhp", "armfhp", "armamsub", "armplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
@@ -1503,7 +1503,7 @@ local unitGrids = {
 		},
 		{
 			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "cornanotcplat", },                -- nano, floating nano
+			{ "cornanotc", "cornanotcplat", "coraap"},                -- nano, floating nano
 			{ "corhp", "corfhp", "coramsub", "corplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
@@ -1527,7 +1527,7 @@ local unitGrids = {
 		},
 		{
 			{ "leglab", "legvp", "legap", "legsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "legnanotc", "legnanotcplat", "", },      -- nano, T2 veh lab, floating nano
+			{ "legnanotc", "legnanotcplat", "legaap", },      -- nano, T2 veh lab, floating nano
 			{ "leghp", "legfhp", "legamphlab", "legsplab", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
@@ -2335,13 +2335,13 @@ local unitGrids = {
 		},
 		{
 			{ "legdtr", "legstr", "legacluster", },               	  -- dragon's jaw, strider, t2 cluster arty
-			{ "legflak", "legrhapsis", "legaabot", "leggob", },    	  -- Ravager Flak, Rhapsis, T1 aa bot, Goblin
-			{ "legctl", "legnavyfrigate", },               			  -- coastal torp launcher, frigate
+			{ "legflak", "", "legaabot", "leggob", },                 -- Ravager Flak, intentional blank, T1 aa bot, Goblin
+			{ "legctl", "legnavyfrigate", "", "legamph" },            -- coastal torp launcher, frigate, intentional blank, Telchine
 		},
 		{
 			{ "legarad", "legeyes", "legforti", "legajam", },         -- adv radar, camera, wall, adv jammer
 			{ },                                                      --
-			{ },                                          			  -- med mine
+			{ },                                          			  -- med mine -- intentional blank
 		},
 		{
 			{ "leglab", "legck", },                                   -- bot lab, bot con
@@ -2411,9 +2411,9 @@ local unitGrids = {
 			{ },                                                     --
 		},
 		{
-			{ "corfink", "coreyes", "cordrag", "corjamt", },         -- scout plane, camera, dragon's teeth, jammer
+			{ "cormine2", "coreyes", "cordrag", "corjamt", },         -- commando mine, camera, dragon's teeth, jammer
 			{ "corvalk", },                                          -- transport
-			{ "cormine4" },                                          -- commando mine
+			{ "corfink" },                                          -- scout plane
 		},
 		{
 			{ },        --
@@ -2520,6 +2520,8 @@ local unitGrids = {
 		}
 	},
 }
+
+local priorityUnits = {"armshltx","armshltxuw","corgant","corgantuw","leggant","leggantuw","armalab", "armavp", "armasy", "armaap", "coralab", "coravp", "corasy", "coraap", "legalab", "legavp", "legadvshipyard", "legaap"}
 
 unitGrids["dummycom"] = unitGrids["armcom"]
 
@@ -3327,4 +3329,5 @@ end
 return {
 	LabGrids = labGrids,
 	UnitGrids = unitGrids,
+	PriorityUnits = priorityUnits
 }

@@ -2,7 +2,7 @@ return {
 	corhurc = {
 		blocking = false,
 		buildpic = "CORHURC.DDS",
-		buildtime = 31000,
+		buildtime = 36000,
 		canfly = true,
 		canmove = true,
 		collide = false,
@@ -12,8 +12,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 1520,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.0525,
 		maxaileron = 0.01273,
 		maxbank = 0.8,
@@ -43,20 +41,6 @@ return {
 			subfolder = "CorAircraft/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-large",
-				[2] = "crashing-large",
-				[3] = "crashing-large2",
-				[4] = "crashing-large3",
-				[5] = "crashing-large3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

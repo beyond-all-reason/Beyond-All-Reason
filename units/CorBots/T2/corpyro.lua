@@ -1,7 +1,7 @@
 return {
 	corpyro = {
 		buildpic = "CORPYRO.DDS",
-		buildtime = 5030,
+		buildtime = 6500,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "28 35 28",
@@ -12,8 +12,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 1060,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.5175,
 		maxdec = 2.2425,
 		maxslope = 17,
@@ -61,12 +59,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:pilotlight",
 				[2] = "custom:flamestream",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg3",
-				[4] = "deathceg4-fire",
 			},
 		},
 		sounds = {

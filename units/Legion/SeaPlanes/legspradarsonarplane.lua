@@ -2,7 +2,7 @@ return {
 	legspradarsonarplane = {
 		blocking = false,
 		buildpic = "legspradarsonarplane.DDS",
-		buildtime = 9050,
+		buildtime = 10680,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,
@@ -13,8 +13,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 580,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.1325,
 		maxaileron = 0.01403,
 		maxbank = 0.8,
@@ -47,20 +45,7 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:radarpulse_t2",
-			},
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-				[2] = "airdeathceg3",
-				[3] = "airdeathceg4",
-			},
-		},
+			},		},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",

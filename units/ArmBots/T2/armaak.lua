@@ -2,7 +2,7 @@ return {
 	armaak = {
 		airsightdistance = 1200,
 		buildpic = "ARMAAK.DDS",
-		buildtime = 7000,
+		buildtime = 10000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -1 1",
 		collisionvolumescales = "25 32 16",
@@ -13,8 +13,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 2200,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.138,
 		maxdec = 0.6486,
 		maxslope = 14,
@@ -74,11 +72,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium-aa",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

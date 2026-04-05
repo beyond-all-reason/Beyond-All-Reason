@@ -18,8 +18,6 @@ return {
 		footprintx = 1,
 		footprintz = 1,
 		health = 11,
-		idleautoheal = 10,
-		idletime = 300,
 		initcloaked = true,
 		maxacc = 0,
 		maxdec = 0,
@@ -48,13 +46,6 @@ return {
 			removewait = true,
 			subfolder = "ArmBuildings/SeaUtil",
 			unitgroup = "explo",
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

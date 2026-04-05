@@ -6,7 +6,7 @@ return {
 		energycost = 200000,
 		metalcost = 10000,
 		buildpic = "LEGMECH.DDS",
-		buildtime = 200000,
+		buildtime = 260000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -11 0",
 		collisionvolumescales = "66 86 66",
@@ -15,8 +15,6 @@ return {
 		explodeas = "bantha",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 25,
-		idletime = 900,
 		mass = 200000,
 		health = 60000,
 		maxslope = 17,
@@ -77,10 +75,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small-impulse",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

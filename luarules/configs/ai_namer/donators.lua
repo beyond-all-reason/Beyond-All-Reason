@@ -1,6 +1,7 @@
 local DonatorAINames = {
     -- Supporters ($40+ Donation & Personal Request)
 	"Arkounay",
+    "AurenTheAbsolute", --2x $20
 	"BamBamRVW",
 	"Buzzwellman",
 	"Chungus",
@@ -70,6 +71,7 @@ local DonatorAINames = {
     "niftybeaks",
     "Nunnsey",
     "obliterator",
+    "OConquor", --$40
     "OmegaWolf",
     "outerorbit",
     "panzerjaeger",
@@ -87,6 +89,7 @@ local DonatorAINames = {
     "Shadowisper",
     "Sinbearer",
     "SkyFire",
+    "Snowpocalypse", --$40
     "Sovgut",
     "Spanker",
     "Spooler", --$40

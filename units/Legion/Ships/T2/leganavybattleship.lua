@@ -2,7 +2,7 @@ return {
 	leganavybattleship = {
 		buildangle = 16000,
 		buildpic = "leganavybattleship.DDS",
-		buildtime = 36000,
+		buildtime = 49350,
 		canmove = true,
 		collisionvolumeoffsets = "0 -15 -2",
 		collisionvolumescales = "48 48 120",
@@ -14,9 +14,7 @@ return {
 		floater = true,
 		footprintx = 7,
 		footprintz = 7,
-		health = 9000,
-		idleautoheal = 5,
-		idletime = 1800,
+		health = 10350,
 		maxacc = 0.005,
 		maxdec = 0.005,
 		metalcost = 2900,
@@ -78,11 +76,6 @@ return {
 				[1] = "custom:barrelshot-large",
 				[2] = "custom:waterwake-large",
 				[3] = "custom:bowsplash-large",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

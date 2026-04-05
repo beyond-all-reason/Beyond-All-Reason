@@ -1,7 +1,7 @@
 return {
 	corvroc = {
 		buildpic = "CORVROC.DDS",
-		buildtime = 15000,
+		buildtime = 20000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -9 -2",
 		collisionvolumescales = "40 40 44",
@@ -12,8 +12,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1390,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.02489,
 		maxdec = 0.04978,
@@ -73,13 +71,6 @@ return {
 				object = "Units/cor3X3E.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

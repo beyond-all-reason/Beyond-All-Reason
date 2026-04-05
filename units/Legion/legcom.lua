@@ -29,8 +29,6 @@ return {
 		footprintz = 3,
 		hidedamage = true,
     	holdsteady = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		sightemitheight = 40,
 		mass = 4999,
 		health = 3700,
@@ -140,10 +138,6 @@ return {
 				[1] = "custom:com_sea_laser_bubbles",
 				[2] = "custom:barrelshot-medium",
 				[3] = "custom:footstep-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -269,7 +263,7 @@ return {
 				model = "legsmallrocket.s3o",
 				name = "Anti Air Missile Launcher",
 				noselfdamage = true,
-				range = 450,
+				range = 300,
 				reloadtime = 1.2,
 				smoketrail = true,
 				smokePeriod = 6,

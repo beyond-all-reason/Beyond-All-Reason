@@ -7,7 +7,7 @@ return {
 		energycost = 6200,
 		metalcost = 180,
 		buildpic = "legafigdef.DDS",
-		buildtime = 10000,
+		buildtime = 11850,
 		canfly = true,
 		canmove = true,
 		collide = false,
@@ -50,17 +50,7 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium-aa",
-			},
-			crashexplosiongenerators = {
-				[1] = "crashing-tiny",
-				[2] = "crashing-tiny2",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
-			},
-		},
+			},		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

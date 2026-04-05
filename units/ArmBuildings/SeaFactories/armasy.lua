@@ -2,7 +2,7 @@ return {
 	armasy = {
 		builder = true,
 		buildpic = "ARMASY.DDS",
-		buildtime = 16000,
+		buildtime = 24000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -9 -2",
 		collisionvolumescales = "192 60 192",
@@ -14,11 +14,9 @@ return {
 		footprintx = 12,
 		footprintz = 12,
 		health = 6000,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
-		metalcost = 3200,
+		metalcost = 2900,
 		metalstorage = 200,
 		minwaterdepth = 30,
 		objectname = "Units/ARMASY.s3o",
@@ -28,7 +26,7 @@ return {
 		sightdistance = 299,
 		terraformspeed = 1000,
 		waterline = 1.5,
-		workertime = 300,
+		workertime = 600,
 		yardmap = "weeeeeeeeeew eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee weeeeeeeeeew",
 		buildoptions = {
 			[1] = "armacsub",
@@ -65,13 +63,6 @@ return {
 				metal = 2232,
 				object = "Units/armasy_dead.s3o",
 				reclaimable = true,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

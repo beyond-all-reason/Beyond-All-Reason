@@ -2,7 +2,7 @@ return {
 	armhavp = {
 		builder = true,
 		buildpic = "ARMHAVP.DDS",
-		buildtime = 61400,
+		buildtime = 85000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "180 120 166",
@@ -14,8 +14,6 @@ return {
 		footprintx = 12,
 		footprintz = 12,
 		health = 16000,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -39,7 +37,7 @@ return {
 			[6] = "armjam",
 			[7] = "armgremlin",
 			[8] = "armlun",
-			[9] = "armlatnk"
+			[9] = "armlatnk",
 		},
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
@@ -80,13 +78,6 @@ return {
 				object = "Units/arm7X7D.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

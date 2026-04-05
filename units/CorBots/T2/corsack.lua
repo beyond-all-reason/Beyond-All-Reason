@@ -3,7 +3,7 @@ return {
 		builddistance = 136,
 		builder = true,
 		buildpic = "LEGACK.DDS",
-		buildtime = 9700,
+		buildtime = 12500,
 		canmove = true,
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "28 42 30",
@@ -16,8 +16,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 1000,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.4692,
 		maxdec = 2.9325,
 		maxslope = 20,
@@ -90,13 +88,6 @@ return {
 				object = "Units/cor2X2B.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2-builder",
-				[2] = "deathceg3-builder",
-				[3] = "deathceg4-builder",
 			},
 		},
 		sounds = {

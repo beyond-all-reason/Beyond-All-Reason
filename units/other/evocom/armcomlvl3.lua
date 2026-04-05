@@ -32,8 +32,6 @@ return {
 		hidedamage = true,
     	holdsteady = true,
 		icontype = "armcom",
-		idleautoheal = 54,
-		idletime = 1800,
 		sightemitheight = 40,
 		mass = 4900,
 		health = 6900,
@@ -185,10 +183,6 @@ return {
 				[2] = "custom:barrelshot-medium",
 				[3] = "custom:footstep-medium",
 				[4] = "custom:genericshellexplosion-huge-lightning",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

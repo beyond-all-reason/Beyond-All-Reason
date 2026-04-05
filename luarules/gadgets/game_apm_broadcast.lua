@@ -76,10 +76,17 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		-- Batch cleanup: only iterate when necessary
 		if next(ignoreUnits) then
+			local expired
+			local expiredCount = 0
 			for unitID, frame in pairs(ignoreUnits) do
 				if frame <= gf then
-					ignoreUnits[unitID] = nil
+					if not expired then expired = {} end
+					expiredCount = expiredCount + 1
+					expired[expiredCount] = unitID
 				end
+			end
+			for i = 1, expiredCount do
+				ignoreUnits[expired[i]] = nil
 			end
 		end
 	end

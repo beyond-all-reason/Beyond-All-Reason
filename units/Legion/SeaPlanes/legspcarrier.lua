@@ -9,7 +9,7 @@ return {
 		energycost = 5000,
 		metalcost = 250,
 		buildpic = "legspcarrier.DDS",
-		buildtime = 7500,
+		buildtime = 9250,
 		canfly = true,
 		canmove = true,
 		collide = true,
@@ -22,8 +22,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		hoverattack = true,
-		idleautoheal = 15,
-		idletime = 1200,
 		health = 1500,
 		maxslope = 10,
 		speed = 93.0,
@@ -46,26 +44,12 @@ return {
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",
 			parentsinheritxp = "DRONE",
-			techlevel = 2,
 			flyingcarrier = true,
 		},
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
-			},
-			crashexplosiongenerators = {
-				[1] = "crashing-large",
-				[2] = "crashing-large",
-				[3] = "crashing-large2",
-				[4] = "crashing-large3",
-				[5] = "crashing-large3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
-			},
-		},
+			},		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -175,10 +159,11 @@ return {
 					-- spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently.
 					spawnrate = 15, 				--Spawnrate roughly in seconds.
 					maxunits = 2,				--Will spawn units until this amount has been reached.
+					startingdronecount = 1,
 					energycost = 500,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					metalcost = 15,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					controlradius = 1200,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
-					decayrate = 4,
+					controlradius = 900,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
+					deathdecayrate = 4,
 					carrierdeaththroe = "release",
 					dockingarmor = 0.2,
 					dockinghealrate = 24,
@@ -193,6 +178,9 @@ return {
 					dronesusestockpile = true,
 					-- cobdockparam = 1,
 					-- cobundockparam = 1,
+					dronedocktime = 2,
+					droneairtime = 60,
+					droneammo = 9,
 				}
 			},
 		},

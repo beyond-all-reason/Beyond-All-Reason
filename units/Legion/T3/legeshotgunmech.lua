@@ -1,12 +1,12 @@
 return {
 	legeshotgunmech = {
-		maxacc = 0.11845,
+		maxacc = 0.18,
 		airsightdistance = 1100,
-		maxdec = 0.7521,
+		maxdec = 0.9,
 		energycost = 120000,
 		metalcost = 7000,
 		buildpic = "legeshotgunmech.DDS",
-		buildtime = 120000,
+		buildtime = 159000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "63 105 52",
@@ -15,12 +15,10 @@ return {
 		explodeas = "explosiont3",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 25,
-		idletime = 900,
 		mass = 200000,
 		health = 25000,
 		maxslope = 17,
-		speed = 60,
+		speed = 63,
 		maxwaterdepth = 12,
 		movementclass = "HBOT4",
 		nochasecategory = "VTOL",
@@ -32,7 +30,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.089,
-		turnrate = 450,
+		turnrate = 600,
 		upright = true,
 		customparams = {
 			unitgroup = 'weapon',
@@ -78,10 +76,6 @@ return {
 				[0] = "custom:barrelshot-small-impulse",
 				[1] = "custom:barrelshot-medium",
 				[2] = "custom:barrelshot-flak",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -199,7 +193,7 @@ return {
 				weaponvelocity = 350,
 				customparams = {
 					cluster_def = 'cluster_munition',
-					cluster_number = 6,
+					cluster_number = 4,
 					exclude_preaim = true,
 				},
 				damage = {
@@ -230,8 +224,8 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 450,
 				damage = {
-					default = 65,
-					lboats = 65,
+					default = 105,
+					lboats = 105,
 					subs = 20,
 					vtol = 20,
 				},

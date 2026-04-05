@@ -28,8 +28,6 @@ return {
 		footprintx = 5,
 		footprintz = 5,
 		hidedamage = true,
-		idleautoheal = 2000,
-		idletime = 1800,
 		sightemitheight = 100,
 		mass = 500000,
 		health = 2800000,
@@ -81,7 +79,7 @@ return {
 				footprintx = 2,
 				footprintz = 2,
 				height = 55,
-				metal = "2500",
+				metal = 2500,
 				object = "Units/scavboss/armcomboss_dead.s3o",
 				reclaimable = true,
 			},
@@ -104,10 +102,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:com_sea_laser_bubbles",
 				[2] = "custom:barrelshot-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

@@ -46,6 +46,9 @@ if gadgetHandler:IsSyncedCode() then
 
 	local allowEnemyAIPlacement = Spring.GetModOptions().allow_enemy_ai_spawn_placement or false
 
+	local spawnInitialFrame = Game.spawnInitialFrame
+	local spawnWarpInFrame = Game.spawnWarpInFrame
+
 	----------------------------------------------------------------
 	-- Vars
 	----------------------------------------------------------------
@@ -639,6 +642,29 @@ if gadgetHandler:IsSyncedCode() then
 	-- Spawning
 	----------------------------------------------------------------
 	function gadget:GameStart()
+		-- Only assign positions automatically for SPAWN_CHOOSE_IN_GAME mode
+		-- For AI teams or unplaced players that need positions assigned
+		if Game.startPosType == SPAWN_CHOOSE_IN_GAME then
+			for teamID, allyTeamID in pairs(teams) do
+				local _, _, _, isAI = spGetTeamInfo(teamID, false)
+				local needsPosition = false
+
+				if not startPointTable[teamID] or startPointTable[teamID][1] < 0 then
+					needsPosition = true
+				end
+
+				if needsPosition then
+					local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
+					local guessedX, guessedZ = GuessStartSpot(teamID, allyTeamID, xmin, zmin, xmax, zmax, startPointTable)
+					if guessedX and guessedZ then
+						local y = spGetGroundHeight(guessedX, guessedZ)
+						Spring.SetTeamStartPosition(teamID, guessedX, y, guessedZ)
+						startPointTable[teamID] = {guessedX, guessedZ}
+					end
+				end
+			end
+		end
+
 		-- if this a FFA match with automatic spawning (i.e. no start boxes) and a list of start points was provided by
 		-- `game_ffa_start_setup` for the ally teams in this match
 		if isFFA and Game.startPosType == SPAWN_CHOOSE_BEFORE_GAME and GG.ffaStartPoints then
@@ -666,7 +692,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:GameFrame(n)
 		if not scenarioSpawnsUnits then
-            if n == 60 then
+            if n == spawnInitialFrame then
 
                 for i = 1, #startUnitList do
                     local x = startUnitList[i].x
@@ -677,7 +703,7 @@ if gadgetHandler:IsSyncedCode() then
 
                 end
             end
-            if n == 90 then
+            if n == spawnWarpInFrame then
                 for i = 1, #startUnitList do
                     local unitID = startUnitList[i].unitID
                     Spring.MoveCtrl.Disable(unitID)
@@ -690,7 +716,7 @@ if gadgetHandler:IsSyncedCode() then
                 end
             end
 		end
-		if n > 90 then
+		if n > spawnWarpInFrame then
 			gadgetHandler:RemoveGadget(self)
 		end
 	end
@@ -709,17 +735,19 @@ else -- UNSYNCED
 		gadgetHandler:AddSyncAction("PositionTooClose", positionTooClose)
 	end
 
+	local spawnInitialFrame = Game.spawnInitialFrame
+	local spawnWarpInFrame = Game.spawnWarpInFrame
+
 	function gadget:GameFrame(n)
-		if n == 60 then
+		if n == spawnInitialFrame then
 			Spring.PlaySoundFile("commanderspawn", 0.6, 'ui')
 		end
-		if n > 90 then
+		if n > spawnWarpInFrame then
 			gadgetHandler:RemoveGadget(self)
 		end
 	end
 
 	function gadget:Shutdown()
 		gadgetHandler:RemoveSyncAction("PositionTooClose")
-
 	end
 end

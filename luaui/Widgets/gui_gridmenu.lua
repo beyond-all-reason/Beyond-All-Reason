@@ -23,8 +23,6 @@ function widget:GetInfo()
 	}
 end
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
-
 -------------------------------------------------------------------------------
 --- CACHED VALUES
 -------------------------------------------------------------------------------
@@ -2440,7 +2438,7 @@ local function drawGrid()
 end
 
 local function drawBuildMenu()
-	font2:Begin(useRenderToTexture)
+	font2:Begin(true)
 	font2:SetTextColor(1,1,1,1)
 	font2:SetOutlineColor(0,0,0,1)
 
@@ -2723,66 +2721,50 @@ function widget:DrawScreen()
 		local buildersRectYend = math_ceil((buildersRect.yEnd + bgpadding + (iconMargin * 2)))
 		if redraw then
 			redraw = nil
-			if useRenderToTexture then
-				if not buildmenuBgTex then
-					buildmenuBgTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x), math_floor(buildersRectYend-backgroundRect.y), {
-						target = GL.TEXTURE_2D,
-						format = GL.RGBA,
-						fbo = true,
-					})
-				end
-				if buildmenuBgTex then
-					gl.R2tHelper.RenderToTexture(buildmenuBgTex,
-						function()
-							gl.Translate(-1, -1, 0)
-							gl.Scale(2 / math_floor(backgroundRect.xEnd-backgroundRect.x), 2 / math_floor(buildersRectYend-backgroundRect.y), 0)
-							gl.Translate(-backgroundRect.x, -backgroundRect.y, 0)
-							drawBuildMenuBg()
-						end,
-						useRenderToTexture
-					)
-				end
-				if not buildmenuTex then
-					buildmenuTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x)*2, math_floor(buildersRectYend-backgroundRect.y)*2, {	--*(vsy<1400 and 2 or 2)
-						target = GL.TEXTURE_2D,
-						format = GL.RGBA,
-						fbo = true,
-					})
-				end
-				if buildmenuTex then
-					gl.R2tHelper.RenderToTexture(buildmenuTex,
-						function()
-							gl.Translate(-1, -1, 0)
-							gl.Scale(2 / math_floor(backgroundRect.xEnd-backgroundRect.x), 2 / math_floor(buildersRectYend-backgroundRect.y), 0)
-							gl.Translate(-backgroundRect.x, -backgroundRect.y, 0)
-							drawBuildMenu()
-						end,
-						useRenderToTexture
-					)
-				end
-			else
-				gl.DeleteList(dlistBuildmenu)
-				dlistBuildmenu = gl.CreateList(function()
-					drawBuildMenuBg()
-					drawBuildMenu()
-				end)
+			if not buildmenuBgTex then
+				buildmenuBgTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x), math_floor(buildersRectYend-backgroundRect.y), {
+					target = GL.TEXTURE_2D,
+					format = GL.RGBA,
+					fbo = true,
+				})
 			end
-		end
-		if useRenderToTexture then
 			if buildmenuBgTex then
-				-- background element
-				gl.R2tHelper.BlendTexRect(buildmenuBgTex, backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, buildersRectYend, useRenderToTexture)
+				gl.R2tHelper.RenderToTexture(buildmenuBgTex,
+					function()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / math_floor(backgroundRect.xEnd-backgroundRect.x), 2 / math_floor(buildersRectYend-backgroundRect.y), 0)
+						gl.Translate(-backgroundRect.x, -backgroundRect.y, 0)
+						drawBuildMenuBg()
+					end,
+					true
+				)
+			end
+			if not buildmenuTex then
+				buildmenuTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x)*2, math_floor(buildersRectYend-backgroundRect.y)*2, {	--*(vsy<1400 and 2 or 2)
+					target = GL.TEXTURE_2D,
+					format = GL.RGBA,
+					fbo = true,
+				})
+			end
+			if buildmenuTex then
+				gl.R2tHelper.RenderToTexture(buildmenuTex,
+					function()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / math_floor(backgroundRect.xEnd-backgroundRect.x), 2 / math_floor(buildersRectYend-backgroundRect.y), 0)
+						gl.Translate(-backgroundRect.x, -backgroundRect.y, 0)
+						drawBuildMenu()
+					end,
+					true
+				)
 			end
 		end
-		if useRenderToTexture then
-			if buildmenuTex then
-				-- content
-				gl.R2tHelper.BlendTexRect(buildmenuTex, backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, buildersRectYend, useRenderToTexture)
-			end
-		else
-			if dlistBuildmenu then
-				gl.CallList(dlistBuildmenu)
-			end
+		if buildmenuBgTex then
+			-- background element
+			gl.R2tHelper.BlendTexRect(buildmenuBgTex, backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, buildersRectYend, true)
+		end
+		if buildmenuTex then
+			-- content
+			gl.R2tHelper.BlendTexRect(buildmenuTex, backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, buildersRectYend, true)
 		end
 
 		if redrawProgress then

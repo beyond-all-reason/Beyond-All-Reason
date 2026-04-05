@@ -2,7 +2,7 @@ return {
 	legvflak = {
 		airsightdistance = 900,
 		buildpic = "legvflak.DDS",
-		buildtime = 12000,
+		buildtime = 15130,
 		canmove = true,
 		collisionvolumeoffsets = "0 -2 0",
 		collisionvolumescales = "32 22 50",
@@ -13,8 +13,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 2700,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.05823,
 		maxdec = 0.11647,
@@ -80,11 +78,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-flak",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -140,9 +133,6 @@ return {
 				weapontimer = 1,
 				weapontype = "Cannon",
 				weaponvelocity = 1900,
-				customparams = {
-					norangering = 1,
-				},
 				damage = {
 					vtol = 40,
 				},

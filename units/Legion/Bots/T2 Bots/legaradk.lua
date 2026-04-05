@@ -2,7 +2,7 @@ return {
 	legaradk = {
 		activatewhenbuilt = true,
 		buildpic = "legaradk.DDS",
-		buildtime = 3950,
+		buildtime = 4700,
 		canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 -1 0",
@@ -14,8 +14,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 390,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.05635,
 		maxdec = 0.05175,
 		maxslope = 16,
@@ -77,11 +75,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:radarpulse_t2",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

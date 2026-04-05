@@ -21,6 +21,7 @@ local RenderToTextureBlend = function(tex, drawFn, customBlend, scissors)
 			end
 			gl.Scissor(false)
 		else
+			gl.Scissor(false)
 			gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 		end
 		gl.PushMatrix()
@@ -52,7 +53,19 @@ local BlendTexRect = function(tex, x1, y1, x2, y2, customBlend)
 end
 
 
+local RenderInRect = function(tex, left, bottom, right, top, drawFn, customBlend, scissors)
+	local w = right - left
+	local h = top - bottom
+	RenderToTextureBlend(tex, function()
+		gl.Translate(-1, -1, 0)
+		gl.Scale(2 / w, 2 / h, 0)
+		gl.Translate(-left, -bottom, 0)
+		drawFn()
+	end, customBlend, scissors)
+end
+
 return {
 	RenderToTexture = RenderToTextureBlend,
+	RenderInRect = RenderInRect,
 	BlendTexRect = BlendTexRect,
 }

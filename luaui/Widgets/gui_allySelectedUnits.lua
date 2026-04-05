@@ -70,6 +70,7 @@ local myTeamID = spGetMyTeamID()
 local myAllyTeam = Spring.GetMyAllyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 local selectedUnits = {}
+local playerSelectedUnits = {}  -- [playerID][unitID] = true
 local lockPlayerID
 
 local unitAllyteam = {}
@@ -183,6 +184,10 @@ local function selectedUnitsClear(playerID)
 	if not spec and playerID == myPlayerID then
 		return
 	end
+	-- Clear per-player tracking
+	if playerSelectedUnits[playerID] then
+		playerSelectedUnits[playerID] = {}
+	end
 	if not playerIsSpec[playerID] or (lockPlayerID ~= nil and playerID == lockPlayerID) then
 		local teamID = select(4, spGetPlayerInfo(playerID))
 		for unitID, drawn in pairs(selectedUnits) do
@@ -201,6 +206,12 @@ local function selectedUnitsAdd(playerID,unitID)
 	if not spec and playerID == myPlayerID then
 		return
 	end
+	-- Track per player
+	if not playerSelectedUnits[playerID] then
+		playerSelectedUnits[playerID] = {}
+	end
+	playerSelectedUnits[playerID][unitID] = true
+
 	if not playerIsSpec[playerID] or (lockPlayerID ~= nil and playerID == lockPlayerID) then
 		if spGetUnitDefID(unitID) then
 			selectedUnits[unitID] = false
@@ -218,6 +229,11 @@ local function selectedUnitsRemove(playerID,unitID)
 	if not spec and playerID == myPlayerID then
 		return
 	end
+	-- Remove from per-player tracking
+	if playerSelectedUnits[playerID] then
+		playerSelectedUnits[playerID][unitID] = nil
+	end
+
 	if not playerIsSpec[playerID] or (lockPlayerID ~= nil and playerID == lockPlayerID) then
 		widget:VisibleUnitRemoved(unitID)
 	end
@@ -349,6 +365,9 @@ function widget:Initialize()
 	end
 	WG['allyselectedunits'].setSelectPlayerUnits = function(value)
 		selectPlayerUnits = value
+	end
+	WG['allyselectedunits'].getPlayerSelectedUnits = function(playerID)
+		return playerSelectedUnits[playerID]
 	end
 end
 

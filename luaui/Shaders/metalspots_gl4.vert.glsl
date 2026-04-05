@@ -3,7 +3,11 @@
 uniform sampler2D heightMap;
 
 uniform vec4 visibilitycontrols;
-// This shader is (c) Beherith (mysterme@gmail.com)
+uniform float drawPass; // 0 = above-water only, 1 = underwater only
+uniform float waterLevel; // dynamic water/lava surface level in elmos
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 Beherith (mysterme@gmail.com)
+// This shader is part of the Beyond All Reason repository.  
 
 layout (location = 0) in vec4 localpos_dir_angle;
 layout (location = 1) in vec4 worldpos_radius;
@@ -52,7 +56,19 @@ void main()
 	vertexWorldPos = roty * vertexWorldPos;
 
 	// scale the circle and move to world pos:
-	vec3 worldXYZ = vec3(worldpos_radius.x, heightAtWorldPos(worldpos_radius.xz), worldpos_radius.z);
+	float groundHeight = heightAtWorldPos(worldpos_radius.xz);
+
+	// drawPass 0 = above-water only (DrawWorldPreUnit), 1 = underwater only (DrawWorld)
+	if (drawPass < 0.5 && groundHeight < waterLevel) {
+		gl_Position = cameraViewProj * vec4(-1000,-1000,-1000,1);
+		return;
+	}
+	if (drawPass > 0.5 && groundHeight >= waterLevel) {
+		gl_Position = cameraViewProj * vec4(-1000,-1000,-1000,1);
+		return;
+	}
+
+	vec3 worldXYZ = vec3(worldpos_radius.x, groundHeight + 3.0, worldpos_radius.z);
 	vertexWorldPos = vertexWorldPos * (12.0 + ROTDIR) * 2.0 * worldpos_radius.w + worldXYZ;
 
 	//dump to FS:

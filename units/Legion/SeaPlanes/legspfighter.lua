@@ -3,7 +3,7 @@ return {
 		airsightdistance = 950,
 		blocking = false,
 		buildpic = "legspfighter.DDS",
-		buildtime = 5500,
+		buildtime = 6540,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,
@@ -47,17 +47,7 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[0] = "custom:barrelshot-tiny-aa",
-			},
-			crashexplosiongenerators = {
-				[1] = "crashing-tiny",
-				[2] = "crashing-tiny2",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-				[2] = "airdeathceg3",
-				[3] = "airdeathceg4",
-			},
-		},
+			},		},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",

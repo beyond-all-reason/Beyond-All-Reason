@@ -2536,6 +2536,10 @@ local icontypes = {
 		bitmap = "icons/air_trans.png",
 		size = 1.5
 	},
+	legavantinuke = {
+		bitmap = "icons/antinukevehicle.png",
+		size = 1.46999991
+	},
 	legavp = {
 		bitmap = "icons/factory_vehicle_t2.png",
 		size = 1.9425
@@ -2681,6 +2685,10 @@ local icontypes = {
 		size = 0.41999999
 	},
 	leghive = {
+		bitmap = "icons/defence_t15_dronecarry.png",
+		size = 1.65999997
+	},
+	legfhive = {
 		bitmap = "icons/defence_t15_dronecarry.png",
 		size = 1.65999997
 	},

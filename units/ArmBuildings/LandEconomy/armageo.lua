@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		buildangle = 0,
 		buildpic = "ARMAGEO.DDS",
-		buildtime = 33300,
+		buildtime = 50000,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "107 77 107",
@@ -15,8 +15,6 @@ return {
 		footprintx = 5,
 		footprintz = 5,
 		health = 3600,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 15,
@@ -43,13 +41,6 @@ return {
 			techlevel = 2,
 			unitgroup = "energy",
 			usebuildinggrounddecal = true,
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

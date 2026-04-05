@@ -3,10 +3,10 @@ return {
 		maxacc = 0,
 		maxdec = 0,
 		buildangle = 32700,
-		energycost = 69000,
-		metalcost = 4700,
+		energycost = 76000,
+		metalcost = 5200,
 		buildpic = "LEGLRPC.DDS",
-		buildtime = 85000,
+		buildtime = 93000,
 		canrepeat = false,
 		--collisionvolumeoffsets = "0 0 -20",
 		--collisionvolumescales = "48 90 48",
@@ -15,8 +15,6 @@ return {
 		explodeas = "hugeBuildingExplosionGeneric",
 		footprintx = 5,
 		footprintz = 5,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 4450,
 		maxslope = 12,
 		maxwaterdepth = 0,
@@ -34,6 +32,7 @@ return {
 			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'weapon',
+			restrictions_inclusion = "_nolrpc_",
 			canareaattack = 1,
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
@@ -75,10 +74,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-huge",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -138,12 +133,12 @@ return {
 				weaponvelocity = 1100,
 				customparams = {
 					cluster_def = 'cluster_munition',
-					cluster_number = 8,
+					cluster_number = 6,
 				},
 				damage = {
-					default = 500,
-					shields = 250,
-					subs = 100,
+					default = 600,
+					shields = 300,
+					subs = 120,
 				},
 			},
 			cluster_munition = {
@@ -166,8 +161,7 @@ return {
 				soundstart = "cannhvy5",
 				weapontype = "Cannon",
 				damage = {
-					default = 50,
-					lboats = 100,
+					default = 100,
 					subs = 25,
 					vtol = 25,
 				},

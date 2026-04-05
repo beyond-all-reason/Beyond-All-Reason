@@ -1,0 +1,60 @@
+-- TODO: delete when recoil-lua-library publishes SpringSynced types
+---@class SpringSynced
+---@field CMD table
+---@field Log fun(section: string, level: number, ...: any)
+---@field GetModOptions fun(): table
+---@field GetGameFrame fun(): number
+---@field IsCheatingEnabled fun(): boolean
+---@field GetTeamRulesParam fun(teamID: number, key: string): any
+---@field SetTeamRulesParam fun(teamID: number, key: string, value: any)
+---@field GetUnitDefID fun(unitID: number): number?
+---@field ValidUnitID fun(unitID: number): boolean
+---@field GetTeamLuaAI fun(teamID: number): string
+
+-- Engine types (temporary -- will move to recoil-lua-library when eco branch merges)
+---@class ResourceData
+---@field resourceType ResourceName
+---@field current number
+---@field storage number
+---@field pull number
+---@field income number
+---@field expense number
+---@field shareSlider number
+---@field sent number
+---@field received number
+---@field excess number
+
+---@class TeamResourceData
+---@field allyTeam number
+---@field isDead boolean
+---@field metal ResourceData
+---@field energy ResourceData
+
+-- TODO: delete when recoil-lua-library publishes TeamData types
+---@class TeamData
+---@field id number
+---@field name string
+---@field leader number
+---@field isDead boolean
+---@field isAI boolean
+---@field side string
+---@field allyTeam number
+
+---@class PlayerData
+---@field id number
+---@field name string
+---@field active boolean
+---@field spectator boolean
+---@field pingTime number
+---@field cpuUsage number
+---@field country string
+---@field rank number
+---@field hasSkirmishAIsInTeam boolean
+---@field playerOpts table
+---@field desynced boolean
+
+---@class UnitWrapper
+---@field unitDefId string
+---@field unitDef table?
+---@field [string] any
+

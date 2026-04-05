@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		buildangle = 0,
 		buildpic = "CORAGEO.DDS",
-		buildtime = 32000,
+		buildtime = 48000,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "96 86 96",
@@ -15,8 +15,6 @@ return {
 		footprintx = 5,
 		footprintz = 5,
 		health = 4150,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 20,
@@ -43,13 +41,6 @@ return {
 			techlevel = 2,
 			unitgroup = "energy",
 			usebuildinggrounddecal = true,
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

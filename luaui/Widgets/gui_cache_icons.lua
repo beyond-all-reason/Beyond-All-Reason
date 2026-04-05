@@ -71,6 +71,7 @@ local function cacheUnitIcons()
 
 	end
 	gl.Color(1, 1, 1, 1)
+	gl.Texture(false)
 	gl.Translate(vsx, 0, 0)
 end
 
@@ -96,7 +97,7 @@ function widget:DrawScreen()
 	end
 
 	-- Safety check: if no delayed cache was created, remove widget
-	if not delayedCacheUnitIcons then
+	if not delayedCacheUnitIcons or spGetGameFrame() > 2000 then
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -119,6 +120,7 @@ function widget:DrawScreen()
 			end
 		end
 		gl.Color(1, 1, 1, 1)
+		gl.Texture(false)
 		gl.Translate(vsx, 0, 0)
 	end
 end

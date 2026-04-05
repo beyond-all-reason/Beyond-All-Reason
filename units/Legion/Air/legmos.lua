@@ -15,8 +15,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hoverattack = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 415,
 		maxslope = 10,
 		speed = 165.0,
@@ -34,20 +32,6 @@ return {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "ArmAircraft",
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-				[2] = "airdeathceg3",
-				[3] = "airdeathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -72,7 +56,7 @@ return {
 		},
 		weapondefs = {
 			cor_bot_rocket = {
-				areaofeffect = 70,
+				areaofeffect = 72,
 				avoidfeature = false,
 				collideFriendly = false,
 				craterareaofeffect = 0,
@@ -101,7 +85,7 @@ return {
 				soundstart = "rocklit1",
 				startvelocity = 300,
 				stockpile = true,
-				stockpiletime = 2,
+				stockpiletime = 1.8,
 				texture1 = "null",
 				texture2 = "smoketraildark",
 				tolerance = 4000,

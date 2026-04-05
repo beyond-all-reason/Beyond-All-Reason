@@ -2,10 +2,10 @@ return {
 	leghades = {
 		maxacc = 0.06788,
 		maxdec = 0.13575,
-		energycost = 800,
+		energycost = 850,
 		metalcost = 65,
 		buildpic = "LEGHADES.DDS",
-		buildtime = 1600,
+		buildtime = 1650,
 		canmove = true,
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "16 10 23",
@@ -14,8 +14,6 @@ return {
 		explodeas = "smallExplosionGeneric",
 		footprintx = 1,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		health = 425,
 		maxslope = 10,
@@ -83,10 +81,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-tiny",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -124,7 +118,7 @@ return {
 				noselfdamage = true,
 				predictboost = 1,
 				range = 210,
-				reloadtime = 2.25,
+				reloadtime = 2.3,
 				size = 2,
 				soundhit = "xplomed1",
 				soundhitwet = "splsmed",

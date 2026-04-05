@@ -5,7 +5,7 @@ return {
 		builddistance = 275,
 		builder = true,
 		buildpic = "CORMANDO.DDS",
-		buildtime = 17100,
+		buildtime = 24000,
 		canassist = true,
 		canmove = true,
 		canreclaim = true,
@@ -21,8 +21,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 1560,
-		idleautoheal = 9,
-		idletime = 900,
 		mass = 750,
 		maxacc = 0.4025,
 		maxdec = 1.725,
@@ -67,11 +65,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
 				[2] = "custom:radarpulse_t1",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

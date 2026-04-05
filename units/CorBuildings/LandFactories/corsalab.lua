@@ -3,7 +3,7 @@ return {
 		buildangle = 1024,
 		builder = true,
 		buildpic = "LEGALAB.DDS",
-		buildtime = 35000,
+		buildtime = 51000,
 		canmove = true,
 		collisionvolumeoffsets = "0 2 0",
 		collisionvolumescales = "144 56 144",
@@ -15,8 +15,6 @@ return {
 		footprintx = 9,
 		footprintz = 9,
 		health = 4500,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 15,
@@ -84,10 +82,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:WhiteLight",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

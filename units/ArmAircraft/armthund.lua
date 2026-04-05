@@ -11,8 +11,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 670,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.0575,
 		maxaileron = 0.0144,
 		maxbank = 0.8,
@@ -30,7 +28,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 430,
-		speed = 255,
+		speed = 250,
 		speedtofront = 0.063,
 		turnradius = 64,
 		usesmoothmesh = true,
@@ -41,20 +39,6 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmAircraft",
 			unitgroup = "weapon",
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-				[2] = "airdeathceg3",
-				[3] = "airdeathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -100,7 +84,6 @@ return {
 				soundhit = "bombssml1",
 				soundhitwet = "splsmed",
 				soundstart = "bombrel",
-				sprayangle = 300,
 				weapontype = "AircraftBomb",
 				damage = {
 					default = 105,

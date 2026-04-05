@@ -19,8 +19,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hoverattack = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 195,
 		maxslope = 10,
 		speed = 203,
@@ -34,7 +32,7 @@ return {
 		terraformspeed = 650,
 		turninplaceanglelimit = 360,
 		turnrate = 240,
-		workertime = 100,
+		workertime = 115,
 		buildoptions = {
 			"legfus",
 			"legafus",
@@ -73,20 +71,6 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Constructors",
 			techlevel = 2,
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3-builder",
-				[2] = "airdeathceg4-builder",
-				[3] = "airdeathceg2-builder",
-			},
 		},
 		sounds = {
 			build = "nanlath2",

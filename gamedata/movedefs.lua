@@ -33,7 +33,7 @@ local DEPTH = {
 	NONE		= 0,
 	TICK		= 5,
 	MIN_SHALLOW = 8,  -- default minimum for ships
-	MAX_SHALLOW = Spring.GetModOptions().proposed_unit_reworks == true and 20 or 22, -- default maximum for land units
+	MAX_SHALLOW = 20, -- default maximum for land units
 	SUBMERGED	= 15, -- minimum depth for subs and huge ships
 	AMPHIBIOUS	= 5000,
 	MAXIMUM		= 9999, -- aribitrary limit
@@ -442,7 +442,7 @@ local moveDatas = {
 		overrideUnitWaterline = false,
 	},
 
-	-- leghive armnanotc cornanotc cornanotcplat
+	-- leghive legfhive armnanotc cornanotc cornanotcplat
 	NANO = {
 		crushstrength = CRUSH.NONE,
 		footprint = 3,

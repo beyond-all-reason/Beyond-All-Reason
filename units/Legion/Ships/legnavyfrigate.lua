@@ -3,7 +3,6 @@ return {
 		maxacc = 0.03,
 		activatewhenbuilt = true,
 		airsightdistance = 800,
-		autoheal = 1.5,
 		maxdec = 0.03,
 		energycost = 3700,
 		metalcost = 370,
@@ -18,8 +17,6 @@ return {
 		floater = true,
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 900,
 		health = 2600,
 		speed = 72,
 		minwaterdepth = 6,
@@ -78,10 +75,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:waterwake-small",
 				[2] = "custom:barrelshot-small",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {

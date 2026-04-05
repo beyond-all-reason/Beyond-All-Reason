@@ -1,5 +1,6 @@
 return {						--costs should be same as legmohocon and legmohoconin
 	legmohoconct = {
+		activatewhenbuilt = true,
 		maxacc = 0,
 		maxdec = 4.5,
 		energycost = 14500,
@@ -15,23 +16,21 @@ return {						--costs should be same as legmohocon and legmohoconin
 		canreclaim = true,
 		canrepeat = false,
 		canstop = true,
-		cantbetransported = false,
+		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "31 32 31",
 		collisionvolumetype = "CylY",
 		usePieceCollisionVolumes = true,
-		energyupkeep = 30,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 700,
 		health = 3900,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		movementclass = "NANO",
 		objectname = "Units/LEGMOHOCON.s3o",
+		onoffable = true,
 		script = "Units/legmohoconct.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
@@ -53,13 +52,6 @@ return {						--costs should be same as legmohocon and legmohoconin
 			scav_swap_override_created = "delete", -- (delete = removes the unit, null = cancels swap, unitdefname = overrides what unit are we swapping into)
 			scav_swap_override_captured = "legmohocon", -- (delete = removes the unit, null = cancels swap, unitdefname = overrides what unit are we swapping into)
 			techlevel = 2,
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2-builder",
-				[2] = "deathceg3-builder",
-				[3] = "deathceg4-builder",
-			},
 		},
 		sounds = {
 			build = "nanlath2",

@@ -13,8 +13,6 @@ return {
 		footprintz = 3,
 		health = 265,
 		holdsteady = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		loadingradius = 300,
 		maxacc = 0.1,
 		maxdec = 0.75,
@@ -41,20 +39,6 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0,
 			subfolder = "ArmAircraft",
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-				[2] = "airdeathceg3",
-				[3] = "airdeathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

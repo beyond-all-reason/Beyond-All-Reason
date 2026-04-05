@@ -2,7 +2,7 @@ return {
 	corawac = {
 		blocking = false,
 		buildpic = "CORAWAC.DDS",
-		buildtime = 13300,
+		buildtime = 16000,
 		canfly = true,
 		canmove = true,
 		collide = false,
@@ -12,8 +12,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 990,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.1575,
 		maxaileron = 0.01366,
 		maxbank = 0.8,
@@ -43,20 +41,6 @@ return {
 			subfolder = "CorAircraft/T2",
 			techlevel = 2,
 			unitgroup = "util",
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

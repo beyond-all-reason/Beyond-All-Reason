@@ -4,10 +4,10 @@ return {
 		maxacc = 0,
 		maxdec = 0,
 		energycost = 1100,
-		metalcost = 490,
+		metalcost = 430,
 		builder = true,
 		buildpic = "LEGAP.DDS",
-		buildtime = 6680,
+		buildtime = 6380,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "96 45 96",
@@ -17,8 +17,6 @@ return {
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 6,
 		footprintz = 6,
-		idleautoheal = 5,
-		idletime = 1800,
 		sightemitheight = 40,
 		health = 1780,
 		maxslope = 15,
@@ -50,6 +48,7 @@ return {
 			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'builder',
+			restrictions_inclusion = "_noair_",
 			airfactory = true,
 			model_author = "Protar/Ghoulish",
 			normaltex = "unittextures/leg_normal.dds",
@@ -87,11 +86,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:radarpulse_t1_slow",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

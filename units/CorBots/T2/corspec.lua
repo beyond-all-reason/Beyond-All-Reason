@@ -2,7 +2,7 @@ return {
 	corspec = {
 		activatewhenbuilt = true,
 		buildpic = "CORSPEC.DDS",
-		buildtime = 5440,
+		buildtime = 6500,
 		canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 -4 4",
@@ -15,8 +15,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 345,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.115,
 		maxdec = 0.414,
 		maxslope = 32,
@@ -76,13 +74,6 @@ return {
 				object = "Units/cor2X2B.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

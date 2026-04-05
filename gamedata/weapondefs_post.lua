@@ -12,14 +12,25 @@
 VFS.Include("gamedata/alldefs_post.lua")
 -- load functionality for saving to custom params
 VFS.Include("gamedata/post_save_to_customparams.lua")
+local system = VFS.Include("gamedata/system.lua")
 
 --------------------------------------------------------------------------------
 
+local function normalizeWeaponDef(weaponDef)
+	system.lowerkeys(weaponDef)
+	table.ensureTable(weaponDef, "customparams")
+	-- TODO: there are individual shield keys, also, not just a shield subtable
+	if weaponDef.weapontype == "Shield" then
+		table.ensureTable(weaponDef, "shield")
+		weaponDef.damage = nil
+	else
+		table.ensureTable(weaponDef, "damage")
+		weaponDef.shield = nil
+	end
+end
+
 local function ExtractWeaponDefs(unitDefName, unitDef)
 	local unitWeaponDefs = unitDef.weapondefs
-	if not unitWeaponDefs then
-		return
-	end
 
 	local prefix = unitDefName .. "_"
 
@@ -27,6 +38,7 @@ local function ExtractWeaponDefs(unitDefName, unitDef)
 	for weaponDefName, weaponDef in pairs(unitWeaponDefs) do
 		local fullName = prefix .. weaponDefName
 		WeaponDefs[fullName] = weaponDef
+		normalizeWeaponDef(weaponDef)
 
 		if SaveDefsToCustomParams then
 			MarkDefOmittedInCustomParams("WeaponDefs", fullName, weaponDef)
@@ -65,6 +77,11 @@ local function ExtractWeaponDefs(unitDefName, unitDef)
 end
 
 --------------------------------------------------------------------------------
+
+-- preprocess existing weapondefs entries
+for name, weaponDef in pairs(WeaponDefs) do
+	normalizeWeaponDef(weaponDef)
+end
 
 -- extract weapondefs from the unitdefs
 local UnitDefs = DEFS.unitDefs

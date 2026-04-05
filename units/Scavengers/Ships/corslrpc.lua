@@ -18,8 +18,6 @@ return {
 		floater = true,
 		footprintx = 7,
 		footprintz = 7,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 7200,
 		speed = 33.3,
 		minwaterdepth = 12,
@@ -74,11 +72,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

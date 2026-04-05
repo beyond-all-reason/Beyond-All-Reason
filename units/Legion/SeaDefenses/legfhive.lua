@@ -4,7 +4,7 @@ return {
 		maxdec = 4.5,
 		buildangle = 4096,
 		energycost = 9000,
-		metalcost = 300,
+		metalcost = 350,
 		buildpic = "legfhive.DDS",
 		buildtime = 7500,
 		canrepeat = false,
@@ -17,8 +17,6 @@ return {
 		explodeas = "mediumBuildingExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 700,
 		health = 1200,
 		maxslope = 10,
@@ -47,7 +45,7 @@ return {
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",
 			parentsinheritxp = "DRONE",
-			disable_when_no_air = true,
+			restrictions_inclusion = "_noair_",
 		},
 		featuredefs = {
 			dead = {
@@ -78,13 +76,6 @@ return {
 				object = "Units/cor2X2A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -146,14 +137,15 @@ return {
 					spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently.
 					spawnrate = 8, 				--Spawnrate roughly in seconds.
 					maxunits = 6,				--Will spawn units until this amount has been reached.
+					startingdronecount = 3,
 					energycost = 500,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					metalcost = 15,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					controlradius = 1200,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
-					decayrate = 4,
+					controlradius = 1000,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
+					deathdecayrate = 20,
 					carrierdeaththroe = "release",
 					dockingarmor = 0.2,
-					dockinghealrate = 16,
-					docktohealthreshold = 66,
+					dockinghealrate = 20,
+					docktohealthreshold = 75,
 					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
 					dockingpieces = "4 5 6 7 8 9",
@@ -162,6 +154,11 @@ return {
 					stockpilemetal = 15,
 					stockpileenergy = 500,
 					dronesusestockpile = true,
+					cobdockparam = 1,
+					cobundockparam = 1,
+					dronedocktime = 3,
+					droneairtime = 60,
+					droneammo = 12,
 				}
 			},
 		},

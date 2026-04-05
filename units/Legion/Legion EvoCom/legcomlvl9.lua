@@ -30,8 +30,6 @@ return {
 		hidedamage = true,
     	holdsteady = true,
 		icontype = "legcomlvl4",
-		idleautoheal = 30,
-		idletime = 1800,
 		sightemitheight = 40,
 		mass = 4900,
 		health = 20000,
@@ -189,10 +187,6 @@ return {
 				[2] = "custom:barrelshot-medium",
 				[3] = "custom:footstep-medium",
 				[4] = "custom:barrelshot-tiny",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

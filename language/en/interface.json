@@ -110,6 +110,8 @@
 				"needEnergyAmount": "I need %{amount} energy!",
 				"giveMetal": "I sent %{amount} metal to %{name}",
 				"giveEnergy": "I sent %{amount} energy to %{name}",
+				"giveMetal_taxed": "I sent %{amount} metal to %{name} and they received %{amount2} metal",
+				"giveEnergy_taxed": "I sent %{amount} energy to %{name} and they received %{amount2} energy",
 				"takeTeam": "I took %{name}.",
 				"takeTeamAmount": "I took %{name}: %{units} units, %{energy} energy and %{metal} metal."
 			}
@@ -147,11 +149,27 @@
 		"pip": {
 			"tooltip": "Toggle Picture-in-Picture",
 			"switch": "Switch view with main view",
-			"track": "Track selected units",
+			"copy": "Copy main camera to PIP",
+			"track": "Track selected units (focus camera on them)",
+			"untrack": "Track selected units",
+			"view": "Limit to team view",
+			"unview": "View full map again",
+			"camera": "View selected player's camera",
+			"uncamera": "Cancel camera tracking",
 			"move": "Move window",
+			"activity": "Briefly focus camera onto recently placed map markers",
+			"unactivity": "Disable map marker camera focus",
+			"tv": "Enable TV mode\nAuto-camera follows the action",
+			"untv": "Disable TV mode",
 			"resize": "Resize window",
-			"minimize": "Minimize",
-			"maximize": "Maximize"
+			"minimize": "Minimize\nALT+CLICK-DRAG to Move",
+			"maximize": "Maximize\nALT+CLICK-DRAG to Move",
+			"worldminimize": "ALT+CLICK to Minimize PiP\nALT+CLICK-DRAG to Move PiP\nALT+SCROLL to zoom",
+			"worldmaximize": "ALT+CLICK Maximize PiP\nALT+CLICK-DRAG to Move PiP\nALT+SCROLL to zoom",
+			"help": "Zoom with ALT+scroll (configurable in Settings)\nMiddle-click to move the game camera\nMiddle-click (or ALT+leftmouse) drag to pan the camera",
+			"help_leftclick": "\nLeft-click moves the game camera when fully zoomed out\nZoom in to select units and give commands (or disable 'left click moves camera' in Settings)",
+			"minimap_minimize": "Minimize minimap",
+			"minimap_maximize": "Maximize minimap"
 		},
 		"teamEconomy": {
 			"tooltipTitle": "Team Income",
@@ -401,7 +419,6 @@
 				"title": "Queueing orders",
 				"append": "Add order to end of order queue",
 				"appendKey": "shift + (some order)",
-				"prependKey": "space + (some order)",
 				"prepend": "Add order to start of order queue"
 			},
 			"buildOrders": {
@@ -416,7 +433,6 @@
 				"intel": "Cycle through radar/defence/etc",
 				"factoriesKey": "v",
 				"factories": "Cycle through factories",
-				"rotateKey": "[ and ]",
 				"rotate": "Change facing of buildings"
 			},
 			"issueBuildOrders": {
@@ -429,16 +445,12 @@
 				"line": "Build in a line",
 				"gridKey": "shift + alt + (build order)",
 				"grid": "Build in a square",
-				"spacingUpKey": "alt+z",
 				"spacingUp": "Increase build spacing",
-				"spacingDownKey": "alt+x",
 				"spacingDown": "Decrease build spacing"
 			},
 			"massSelect": {
 				"title": "Group selection",
-				"allKey": "ctrl + a",
 				"all": "Select all units",
-				"buildersKey": "ctrl + b",
 				"builders": "Select all constructors",
 				"createGroupKey": "ctrl + (num)",
 				"createGroup": "Add units to group (num=1,2,..)",
@@ -448,8 +460,8 @@
 				"removeAutoGroup": "Remove unit type from autogroup",
 				"groupKey": "(num)",
 				"group": "Select all units assigned to group (num)",
-				"sameTypeKey": "ctrl + z",
-				"sameType": "Select all units of same type as selected"
+				"sameType": "Select all units of same type as selected",
+				"damaged": "Select damaged units"
 			},
 			"drawing": {
 				"title": "Drawing",
@@ -493,7 +505,11 @@
 			"unpausedthegame": "%{name} %{textColor}unpaused the game",
 			"connectionattemptfrom": "%{textColor}Connection attempt from: %{name}",
 			"leftthegamenormal": "%{name} %{textColor}left the game %{textColor2}(normal quit)",
-			"leftthegametimeout": "%{name} %{textColor}left the game %{textColor2}(timeout)"
+			"leftthegametimeout": "%{name} %{textColor}left the game %{textColor2}(timeout)",
+			"moderation": {
+				"prefix": "Moderation:",
+				"blocked": "Words such as \"%{badWord}\" can be against the Code of Conduct if they are being used to abuse other players. Please take a moment to reevaluate your intentions. If your message was blocked in error, then you can send it again to bypass the filter."
+			}
 		},
 		"teamStats": {
 			"player": "Player",
@@ -924,6 +940,7 @@
 			"aim": "aim",
 			"firerate": "firerate",
 			"range": "range",
+			"coverage": "coverage",
 			"aoe": "aoe",
 			"edge": "edge",
 			"s": "s",
@@ -936,6 +953,7 @@
 			"infinite": "infinite",
 			"burst": "Burst",
 			"modifiers": "Modifiers",
+			"intercepts": "Intercepts",
 			"each": "each",
 			"dps": "DPS",
 			"persecond": "per second",
@@ -1104,7 +1122,7 @@
 				"vsync": "VSync",
 				"vsync_descr": "Prevent vertical screen tearing. Note this can introduce slight lag. Try adaptive for less screen draw delay.",
 				"vsync_fraction": "frame limiter",
-				"vsync_fraction_descr": "Render only a fractional number of frames\n\nPossibly only works in windowed mode",
+				"vsync_fraction_descr": "Render only a fractional number of frames",
 				"limitoffscreenfps": "Limit FPS when offscreen",
 				"limitoffscreenfps_descr": "Reduces fps when offscreen (by setting vsync to a high number)\n(for borderless window and fullscreen need engine not have focus)\nMakes your pc more responsive/cooler when you do stuff outside the game\nCamera movement will break idle mode",
 				"limitidlefps": "also limit when idle",
@@ -1351,8 +1369,6 @@
 				"guishader": "blur",
 				"guishader_descr": "Blurs the world under every user interface element",
 				"guishaderintensity": "   intensity",
-				"rendertotexture": "performance mode",
-				"rendertotexture_descr": "Draw various UI elements to texture instead of drawing lists of multiple OpenGL commands repeatedly\n\nNOTE: Quality may be reduced when enabled (especially on lower resolution screens)",
 				"font": "Font",
 				"font_descr": "Regular read friendly font used for text",
 				"font2": "Font 2",
@@ -1367,6 +1383,8 @@
 				"anonymous_b": "Anonymous Blue",
 				"playercolors": "Simple team colors",
 				"simpleteamcolors": "simple",
+				"simpleteamcolorsfactionspecific": "Faction Color",
+				"simpleteamcolorsfactionspecific_descr": "Replaces Simple Team Colors with Faction Colors based on player's starting commander, useful for cinematics.",
 				"simpleteamcolors_reset": "Reset (Restart to reset sliders)",
 				"simpleteamcolors_use_gradient": "Use a different shade for each player.",
 				"simpleteamcolors_player_r": "Player Red",
@@ -1401,6 +1419,21 @@
 				"minimaprotation_none": "None",
 				"minimaprotation_autoflip": "Auto Flip 180 Degree",
 				"minimaprotation_autorotate": "Auto Rotate 90 Degree",
+				"minimaprotation_autolandscape": "Auto-landscape",
+				"minimappip": "advanced (pip style)",
+				"minimappip_descr": "Have a picture-in-picture style camera minimap implementation",
+				"pip_altkeyzoom": "require ALT to zoom",
+				"pip_altkeyzoom_descr": "When enabled, scrolling over the minimap only zooms if ALT or middle mouse button is held. Otherwise scroll passes through to the game camera.",
+				"pip_commandfx": "command FX lines",
+				"pip_commandfx_descr": "Show brief fading lines when orders are given in the PIP minimap",
+				"pip_minimap_engine_fallback": "engine fallback",
+				"pip_minimap_engine_fallback_descr": "Use the engine minimap when fully zoomed out for better performance. The PIP takes over when you zoom in.",
+				"pip_engine_fallback_threshold": "engine fallback unit threshold",
+				"pip_engine_fallback_threshold_descr": "Unit count threshold before the engine minimap fallback activates. Lower values switch to the engine minimap sooner for better performance.",
+				"pip": "picture-in-picture",
+				"pip_descr": "Displays a floating camera minimap style window",
+				"pip2": "picture-in-picture 2",
+				"pip2_descr": "Displays a floating camera minimap style window",
 				"gridmenu": "Use Gridmenu",
 				"gridmenu_descr": "Alternative build menu, designed for comprehensive hotkey use",
 				"gridmenu_alwaysreturn": "Grid always returns to categories",
@@ -1479,10 +1512,6 @@
 				"systemprivacy_descr": "disallow other players to view your system specifications (in player list tooltip)\napplies to next game",
 				"mascot": "mascot",
 				"mascot_descr": "Shows a mascot on top of the playerlist",
-				"pip": "picture-in-picture",
-				"pip_descr": "Displays a floating camera minimap style window",
-				"pip2": "picture-in-picture 2",
-				"pip2_descr": "Displays a floating camera minimap style window",
 				"unittotals": "unit totals",
 				"unittotals_descr": "Show your unit totals on top of the playerlist",
 				"musicplayer": "music player",

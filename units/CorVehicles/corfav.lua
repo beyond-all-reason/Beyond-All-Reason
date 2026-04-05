@@ -13,8 +13,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 90,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = false,
 		maxacc = 0.2,
 		maxdec = 0.4,
@@ -80,11 +78,6 @@ return {
 				resurrectable = 0,
 			},
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -129,7 +122,7 @@ return {
 				name = "Light Close-Quarters g2g Laser",
 				noselfdamage = true,
 				range = 180,
-				reloadtime = 1,
+				reloadtime = 1.1,
 				rgbcolor = "1 1 0.4",
 				rgbcolor2 = "1 0.55 0.3",
 				soundhitdry = "",

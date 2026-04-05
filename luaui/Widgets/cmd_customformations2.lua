@@ -252,10 +252,8 @@ end
 
 local function CanUnitExecute(uID, cmdID)
     if cmdID == CMD_UNLOADUNIT then
-        local transporting = spGetUnitIsTransporting(uID)
-        return (transporting and #transporting > 0)
+        cmdID = CMD_UNLOADUNITS
     end
-
     return (spFindUnitCmdDesc(uID, cmdID) ~= nil)
 end
 
@@ -510,8 +508,12 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
         -- If the line is a path, start the units moving to this node
         if pathCandidate then
 
-            local alt, ctrl, meta, shift = GetModKeys()
-            local cmdOpts = GetCmdOpts(false, ctrl, meta, shift, usingRMB) -- using alt uses springs box formation, so we set it off always
+            -- For the first path command, use raw shift state to decide whether to clear queue
+            -- This ensures queue is cleared unless user explicitly holds shift
+            local alt, ctrl, meta, _ = GetModKeys()
+            local _, _, _, rawShift = spGetModKeyState()
+            if spGetInvertQueueKey() then rawShift = not rawShift end
+            local cmdOpts = GetCmdOpts(false, ctrl, meta, rawShift, usingRMB) -- using alt uses springs box formation, so we set it off always
 
             GiveNotifyingOrder(usingCmd, pos, cmdOpts)
             lastPathPos = pos
@@ -697,7 +699,9 @@ function widget:MouseRelease(mx, my, mButton)
                         end
                     end
                 end
-
+				if usingCmd == CMD_SETTARGET then
+					Spring.SendLuaRulesMsg("settarget_line")
+				end
                 spSetActiveCommand(0) -- Deselect command
             end
         end
@@ -1399,6 +1403,8 @@ function widget:Initialize()
 	end
 
 	-- External formation dragging API (for PIP window, etc.)
+	local isFirstPathCommand = true -- Track whether next path command should clear queue
+
 	WG.customformations.StartFormation = function(worldPos, cmdID, fromMinimap)
 		-- Reset state
 		fNodes = {}
@@ -1411,6 +1417,7 @@ function widget:Initialize()
 		pathPositions = {}
 		overriddenCmd = nil
 		overriddenTarget = nil
+		isFirstPathCommand = true -- Reset for new formation
 
 		-- Set command
 		usingCmd = cmdID or CMD_MOVE
@@ -1458,7 +1465,14 @@ function widget:Initialize()
 					-- Only add command if it's not too close to any previous position
 					if not tooClose then
 						draggingPath = true
+						-- Use raw shift for first path command, GetModKeys for subsequent
 						local alt, ctrl, meta, shift = GetModKeys()
+						if isFirstPathCommand then
+							-- First command: use raw shift to decide queue clearing
+							_, _, _, shift = spGetModKeyState()
+							if spGetInvertQueueKey() then shift = not shift end
+							isFirstPathCommand = false
+						end
 						local cmdOpts = GetCmdOpts(alt, ctrl, meta, shift, usingRMB)
 						GiveNotifyingOrder(usingCmd, worldPos, cmdOpts)
 						lastPathPos = worldPos
@@ -1487,7 +1501,13 @@ function widget:Initialize()
 		local result = false
 
 		if usingFormation then
+			-- Use raw shift for single-click orders (first command should clear queue unless user holds shift)
 			local alt, ctrl, meta, shift = GetModKeys()
+			if isFirstPathCommand then
+				-- This is effectively a single click or very short drag - use raw shift
+				_, _, _, shift = spGetModKeyState()
+				if spGetInvertQueueKey() then shift = not shift end
+			end
 			local cmdOpts = GetCmdOpts(alt, ctrl, meta, shift, usingRMB)
 
 			-- Get drag threshold

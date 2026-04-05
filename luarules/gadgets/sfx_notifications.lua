@@ -104,7 +104,7 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	function gadget:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
-		local event = "StealthyUnitsDetected"
+		local event = "UnitDetected/StealthyUnitsDetected"
 		local players = Spring.GetPlayerList()
 		local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
 		local _, _, spec, _, playerAllyTeam
@@ -131,9 +131,11 @@ else
 	local isBuilding = {}
 	local hasWeapons = {}
 	local isObjectified = {}
+	local isDefenseTurret = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		-- not critter/raptor/object
 		if not string.find(unitDef.name, 'critter') and not string.find(unitDef.name, 'raptor') and (not unitDef.modCategories or not unitDef.modCategories.object) then
+			isBuilding[unitDefID] = unitDef.isBuilding or unitDef.isFactory
 			if unitDef.customParams.iscommander or unitDef.customParams.isscavcommander then
 				isCommander[unitDefID] = true
 			end
@@ -160,7 +162,9 @@ else
 			if unitDef.customParams.objectify then
 				isObjectified[unitDefID] = true
 			end
-			isBuilding[unitDefID] = unitDef.isBuilding or unitDef.isFactory
+			if isBuilding[unitDefID] and hasWeapons[unitDefID] and unitDef.maxWeaponRange <= 2000 then
+				isDefenseTurret[unitDefID] = true
+			end
 		end
 	end
 
@@ -208,12 +212,12 @@ else
 				else
 					GG["notifications"].queueNotification('CommanderUnderAttack', "playerID", tostring(myPlayerID))
 				end
-			elseif isBuilding[unitDefID] == true and (not isMex[unitDefID]) and (hasWeapons[unitDefID]) and (not isRadar[unitDefID]) then
-				GG["notifications"].queueNotification('DefenseUnderAttack', "playerID", tostring(myPlayerID))
-			elseif isBuilding[unitDefID] == true and (not isMex[unitDefID]) and (isEconomy[unitDefID]) then
-				GG["notifications"].queueNotification('EconomyUnderAttack', "playerID", tostring(myPlayerID))
 			elseif isFactory[unitDefID] then
 				GG["notifications"].queueNotification('FactoryUnderAttack', "playerID", tostring(myPlayerID))
+			elseif isBuilding[unitDefID] == true and (not isMex[unitDefID]) and (isEconomy[unitDefID]) then
+				GG["notifications"].queueNotification('EconomyUnderAttack', "playerID", tostring(myPlayerID))
+			elseif isBuilding[unitDefID] == true and (not isMex[unitDefID]) and isDefenseTurret[unitDefID] then
+				GG["notifications"].queueNotification('DefenseUnderAttack', "playerID", tostring(myPlayerID))
 			else
 				GG["notifications"].queueNotification('UnitsUnderAttack', "playerID", tostring(myPlayerID))
 			end
@@ -263,7 +267,7 @@ else
 					end
 				end
 			end
-			if not isSpec then
+			if (not isSpec) and (unitTeam ~= myTeamID) then
 				if numTeams > 1 and not playingAsHorde then
 					local players =  PlayersInAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
 					for ct, player in pairs (players) do

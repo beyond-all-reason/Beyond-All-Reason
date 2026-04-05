@@ -12,8 +12,6 @@ return {
 		footprintx = 7,
 		footprintz = 7,
 		health = 6200,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -70,13 +68,6 @@ return {
 				resurrectable = 0,
 			},
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -117,6 +108,7 @@ return {
 				firestarter = 100,
 				flighttime = 400,
 				impulsefactor = 1.1,
+				interceptedbyshieldtype = 0,
 				metalpershot = 1500,
 				model = "crblmssl.s3o",
 				name = "Intercontinental thermonuclear ballistic missile",
@@ -124,7 +116,7 @@ return {
 				reloadtime = 30,
 				smokecolor = 0.85,
 				smokeperiod = 10,
-				smokesize = 28,
+				smokesize = 35,
 				smoketime = 130,
 				smoketrail = true,
 				smoketrailcastshadow = true,
@@ -147,7 +139,9 @@ return {
 				weaponvelocity = 1600,
 				customparams = {
 					place_target_on_ground = "true",
+					shield_aoe_penetration = true,
 					stockpilelimit = 10,
+					nuclear = 1,
 				},
 				damage = {
 					commanders = 2500,

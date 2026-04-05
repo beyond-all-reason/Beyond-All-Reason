@@ -18,8 +18,6 @@ return {
 		footprintx = 1,
 		footprintz = 1,
 		hoverattack = false,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 5000,
 		health = 335,
 		maxslope = 10,
@@ -71,19 +69,6 @@ return {
 			model_author = "FireStorm, Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmAircraft",
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3-builder",
-				[2] = "airdeathceg2-builder",
-			},
 		},
 		sounds = {
 			build = "nanlath1",

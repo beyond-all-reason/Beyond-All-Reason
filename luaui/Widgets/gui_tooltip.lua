@@ -7,7 +7,7 @@ function widget:GetInfo()
 		author = "Floris",
 		date = "April 2017",
 		license = "GNU GPL, v2 or later",
-		layer = -1000000,
+		layer = -1200000,
 		enabled = true,
 	}
 end
@@ -26,8 +26,6 @@ local glPushMatrix = gl.PushMatrix
 local glPopMatrix = gl.PopMatrix
 local glCallList = gl.CallList
 local glTranslate = gl.Translate
-
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1
 
 --[[
 
@@ -65,7 +63,6 @@ local tooltips = {}
 local cleanupGuishaderAreas = {}
 local font, font2
 local RectRound, UiElement, bgpadding
-local uiSec = 0
 
 -- Texture pool for reusing textures instead of recreating them
 local texturePool = {}
@@ -75,18 +72,18 @@ local currentTooltipName = nil  -- Track which tooltip is currently displayed
 local function getPooledTexture(width, height, key)
 	local w = math_floor(width)
 	local h = math_floor(height)
-	
+
 	if w < 1 or h < 1 then
 		return nil
 	end
-	
+
 	local sizeKey = w .. "x" .. h
-	
+
 	-- Try to find an existing texture of the right size
 	if texturePool[sizeKey] and #texturePool[sizeKey] > 0 then
 		return table.remove(texturePool[sizeKey])
 	end
-	
+
 	-- Create a new texture
 	return gl.CreateTexture(w, h, {
 		target = GL.TEXTURE_2D,
@@ -98,15 +95,15 @@ end
 -- Return a texture to the pool for reuse
 local function returnTextureToPool(texture, width, height)
 	if not texture then return end
-	
+
 	local w = math_floor(width)
 	local h = math_floor(height)
 	local sizeKey = w .. "x" .. h
-	
+
 	if not texturePool[sizeKey] then
 		texturePool[sizeKey] = {}
 	end
-	
+
 	-- Limit pool size per dimension to avoid memory bloat
 	if #texturePool[sizeKey] < 4 then
 		table.insert(texturePool[sizeKey], texture)
@@ -118,7 +115,7 @@ end
 -- Clear all textures for a tooltip (called when content changes)
 local function clearTooltipTextures(name)
 	if tooltips[name].bgTex then
-		returnTextureToPool(tooltips[name].bgTex, 
+		returnTextureToPool(tooltips[name].bgTex,
 			tooltips[name].bgTexWidth, tooltips[name].bgTexHeight)
 		tooltips[name].bgTex = nil
 		tooltips[name].bgTexWidth = nil
@@ -214,12 +211,12 @@ function widget:Shutdown()
 			end
 		end
 	end
-	
+
 	-- Clean up all tooltips (return textures to pool)
 	for name, _ in pairs(tooltips) do
 		clearTooltipTextures(name)
 	end
-	
+
 	-- Clean up the entire texture pool
 	for sizeKey, textures in pairs(texturePool) do
 		for _, tex in ipairs(textures) do
@@ -227,19 +224,8 @@ function widget:Shutdown()
 		end
 	end
 	texturePool = {}
-	
-	WG['tooltip'] = nil
-end
 
-function widget:Update(dt)
-	uiSec = uiSec + dt
-	if uiSec > 0.5 then
-		uiSec = 0
-		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
-			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
-			widget:ViewResize(vsx, vsy)
-		end
-	end
+	WG['tooltip'] = nil
 end
 
 function widget:ViewResize(x, y)
@@ -291,7 +277,7 @@ local function drawTooltipContent(name, addX, addY, paddingH, lines)
 
 	if tooltips[name].title and tooltips[name].title ~= '' then
 		maxHeight = math_ceil(maxHeight - (titleFontSize * 0.1))
-		font2:Begin(useRenderToTexture)
+		font2:Begin(true)
 		font2:SetOutlineColor(0,0,0,0.6)
 		font2:Print('\255\205\255\205'..tooltips[name].title, addX,
 			maxHeight+addY, titleFontSize, "o")
@@ -300,7 +286,7 @@ local function drawTooltipContent(name, addX, addY, paddingH, lines)
 	end
 
 	if tooltips[name].value and tooltips[name].value ~= '' then
-		font:Begin(useRenderToTexture)
+		font:Begin(true)
 		font:SetOutlineColor(0,0,0,0.4)
 		for i, line in ipairs(lines) do
 			font:Print('\255\244\244\244' .. line, addX, maxHeight+addY, fontSize, "o")
@@ -353,55 +339,46 @@ local function drawTooltip(name, x, y)
 	local borderSize = 1
 
 	-- Create display list or texture if not exists
-	if useRenderToTexture then
-		if not tooltips[name].bgTex then
-			local w = math_floor(maxWidth + paddingW + paddingW + borderSize + borderSize)
-			local h = math_floor(maxHeight + paddingH + paddingH + borderSize + borderSize)
-			if w >= 1 and h >= 1 then
-				tooltips[name].bgTex = getPooledTexture(w, h)
-				tooltips[name].bgTexWidth = w
-				tooltips[name].bgTexHeight = h
-				if tooltips[name].bgTex then
-					gl.R2tHelper.RenderToTexture(tooltips[name].bgTex,
-						function()
-							gl.Translate(-1, -1, 0)
-							gl.Scale(2 / w, 2 / h, 0)
-							gl.Translate(-addX + paddingW + borderSize,
-								-addY + maxHeight + paddingH + borderSize, 0)
-							drawTooltipBackground(addX, addY, paddingW, paddingH,
-								maxWidth, maxHeight, borderSize)
-						end,
-						useRenderToTexture
-					)
-				end
+	if not tooltips[name].bgTex then
+		local w = math_floor(maxWidth + paddingW + paddingW + borderSize + borderSize)
+		local h = math_floor(maxHeight + paddingH + paddingH + borderSize + borderSize)
+		if w >= 1 and h >= 1 then
+			tooltips[name].bgTex = getPooledTexture(w, h)
+			tooltips[name].bgTexWidth = w
+			tooltips[name].bgTexHeight = h
+			if tooltips[name].bgTex then
+				gl.R2tHelper.RenderToTexture(tooltips[name].bgTex,
+					function()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / w, 2 / h, 0)
+						gl.Translate(-addX + paddingW + borderSize,
+							-addY + maxHeight + paddingH + borderSize, 0)
+						drawTooltipBackground(addX, addY, paddingW, paddingH,
+							maxWidth, maxHeight, borderSize)
+					end,
+					true
+				)
 			end
 		end
-		if not tooltips[name].contentTex then
-			local w = math_floor(maxWidth + paddingW + paddingW)
-			local h = math_floor(maxHeight + paddingH + paddingH)
-			if w >= 1 and h >= 1 then
-				tooltips[name].contentTex = getPooledTexture(w, h)
-				tooltips[name].contentTexWidth = w
-				tooltips[name].contentTexHeight = h
-				if tooltips[name].contentTex then
-					gl.R2tHelper.RenderToTexture(tooltips[name].contentTex,
-						function()
-							gl.Translate(-1, -1, 0)
-							gl.Scale(2 / w, 2 / h, 0)
-							gl.Translate(-addX + paddingW, -addY + maxHeight + paddingH, 0)
-							drawTooltipContent(name, addX, addY, paddingH, tooltips[name].lines)
-						end,
-						useRenderToTexture
-					)
-				end
+	end
+	if not tooltips[name].contentTex then
+		local w = math_floor(maxWidth + paddingW + paddingW)
+		local h = math_floor(maxHeight + paddingH + paddingH)
+		if w >= 1 and h >= 1 then
+			tooltips[name].contentTex = getPooledTexture(w, h)
+			tooltips[name].contentTexWidth = w
+			tooltips[name].contentTexHeight = h
+			if tooltips[name].contentTex then
+				gl.R2tHelper.RenderToTexture(tooltips[name].contentTex,
+					function()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / w, 2 / h, 0)
+						gl.Translate(-addX + paddingW, -addY + maxHeight + paddingH, 0)
+						drawTooltipContent(name, addX, addY, paddingH, tooltips[name].lines)
+					end,
+					true
+				)
 			end
-		end
-	else
-		if not tooltips[name].dlist then
-			tooltips[name].dlist = gl.CreateList(function()
-				drawTooltipBackground(addX, addY, paddingW, paddingH, maxWidth, maxHeight, borderSize)
-				drawTooltipContent(name, addX, addY, paddingH, tooltips[name].lines)
-			end)
 		end
 	end
 
@@ -430,25 +407,17 @@ local function drawTooltip(name, x, y)
 			posY + paddingH - bgpadding, '2tooltip_' .. name)
 	end
 
-	if useRenderToTexture then
-		if tooltips[name].bgTex then
-			gl.R2tHelper.BlendTexRect(tooltips[name].bgTex,
-				posX - paddingW - borderSize, posY - maxHeight - paddingH - borderSize,
-				posX + maxWidth + paddingW + borderSize, posY + paddingH + borderSize,
-				useRenderToTexture)
-		end
-		if tooltips[name].contentTex then
-			gl.R2tHelper.BlendTexRect(tooltips[name].contentTex,
-				posX - paddingW, posY - maxHeight - paddingH,
-				posX + maxWidth + paddingW, posY + paddingH,
-				useRenderToTexture)
-		end
-	else
-		glPushMatrix()
-		glTranslate(posX-addX, posY-addY, 0)
-		glCallList(tooltips[name].dlist)
-		glTranslate(-posX+addX, -posY+addY, 0)
-		glPopMatrix()
+	if tooltips[name].bgTex then
+		gl.R2tHelper.BlendTexRect(tooltips[name].bgTex,
+			posX - paddingW - borderSize, posY - maxHeight - paddingH - borderSize,
+			posX + maxWidth + paddingW + borderSize, posY + paddingH + borderSize,
+			true)
+	end
+	if tooltips[name].contentTex then
+		gl.R2tHelper.BlendTexRect(tooltips[name].contentTex,
+			posX - paddingW, posY - maxHeight - paddingH,
+			posX + maxWidth + paddingW, posY + paddingH,
+			true)
 	end
 end
 

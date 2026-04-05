@@ -18,8 +18,6 @@ return {
 		explodeas = "mediumexplosiongeneric-builder",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 860,
 		maxslope = 20,
 		speed = 36.0,
@@ -37,7 +35,7 @@ return {
 		turninplacespeedlimit = 0.726,
 		turnrate = 1075.25,
 		upright = false,
-		workertime = 170,
+		workertime = 195,
 		buildoptions = {
 			"legfus",
 			"legafus",
@@ -115,13 +113,6 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2-builder",
-				[2] = "deathceg3-builder",
-				[3] = "deathceg4-builder",
 			},
 		},
 		sounds = {

@@ -16,8 +16,6 @@ return {
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 2900,
 		maxslope = 12,
 		maxwaterdepth = 0,
@@ -74,11 +72,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -119,7 +112,7 @@ return {
 				name = "Long-Range g2g Cluster Plasma Cannon",
 				noselfdamage = true,
 				range = 1000,
-				reloadtime = 4.0,
+				reloadtime = 6.0,
 				rgbcolor = "0.7 0.7 1.0",
 				soundhit = "xplomed2",
 				soundhitwet = "splsmed",
@@ -134,9 +127,9 @@ return {
 					smart_priority = true,
 				},
 				damage = {
-					default = 200,
-					subs = 50,
-					vtol = 50,
+					default = 300,
+					subs = 75,
+					vtol = 75,
 				},
 			},
 			cluster_munition = {
@@ -158,8 +151,8 @@ return {
 				soundstart = "cannhvy5",
 				weapontype = "Cannon",
 				damage = {
-					default = 70,
-					lboats = 70,
+					default = 105,
+					lboats = 105,
 					subs = 25,
 					vtol = 25,
 				},
@@ -180,7 +173,7 @@ return {
 				noselfdamage = true,
 				range = 1000,
 				hightrajectory = 1,
-				reloadtime = 4.0,
+				reloadtime = 6.0,
 				rgbcolor = "0.7 0.7 1.0",
 				soundhit = "xplomed2",
 				soundhitwet = "splsmed",
@@ -195,9 +188,9 @@ return {
 					smart_backup = true,
 				},
 				damage = {
-					default = 200,
-					subs = 50,
-					vtol = 50,
+					default = 300,
+					subs = 75,
+					vtol = 75,
 				},
 			},
 			smart_trajectory_dummy = {

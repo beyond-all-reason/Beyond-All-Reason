@@ -14,8 +14,6 @@ return {
 		explodeas = "nukeBuilding",
 		footprintx = 7,
 		footprintz = 7,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 6200,
 		maxslope = 10,
 		maxwaterdepth = 0,
@@ -68,13 +66,6 @@ return {
 				object = "Units/cor3X3A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -148,6 +139,7 @@ return {
 				customparams = {
 					place_target_on_ground = "true",
 					stockpilelimit = 10,
+					nuclear = 1,
 				},
 				damage = {
 					commanders = 2500,
