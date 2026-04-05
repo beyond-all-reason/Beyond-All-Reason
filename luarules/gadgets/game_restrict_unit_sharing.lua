@@ -23,6 +23,8 @@ end
 local DEBUFF_FRAMES = Game.gameSpeed * 30
 local debuffedUnits = {} -- unitID -> { expireFrame, buildSpeed }
 
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+
 -- gather all economy/builder units
 local ecoUnits = {}
 local builderUnits = {}
@@ -45,7 +47,7 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, captu
 	if (capture) and (not Spring.AreTeamsAllied(fromTeamID, toTeamID)) or fromTeamID == Spring.GetGaiaTeamID() or toTeamID == Spring.GetGaiaTeamID() then
 		return true
 	end
-	beingBuilt, buildProgress = Spring.GetUnitIsBeingBuilt(unitID)
+	beingBuilt, buildProgress = spGetUnitIsBeingBuilt(unitID)
 	if beingBuilt and buildProgress > 0 and next(Spring.GetPlayerList(fromTeamID, true)) ~= nil then
 		return false -- Sharing partly built nanoframes is not allowed because letting it decay bypasses taxation and letting it build runs out the debuff early. Also if you can't assist ally build the unit could get stuck in factory.
 	end
@@ -71,8 +73,8 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, feature
 	return true
 end
 
-function gadget:AllowUnitBuildStep(builderID, builderTeam, featureID, featureDefID, part)
-	if debuffedUnits[builderID] then
+function gadget:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part)
+	if debuffedUnits[builderID] and spGetUnitIsBeingBuilt(unitID) then
 		return false
 	end
 	return true
