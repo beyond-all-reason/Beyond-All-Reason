@@ -48,6 +48,7 @@ local ALLY_UNITS = Spring.ALLY_UNITS
 -- Constants
 ----------------------------------------------------------------
 local LEASH_EXTRA = {
+	[-1] = 0,    -- Structure
 	[0] = 0,     -- hold position
 	[1] = 100,   -- maneuver
 	[2] = 200,   -- roam
