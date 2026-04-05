@@ -19436,7 +19436,9 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 	-- Skip when minimized — panning makes no sense for the tiny button
 	if not uiState.inMinMode and interactionState.leftMousePressed and interactionState.rightMousePressed and not interactionState.arePanning and mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t then
 		-- Check if there's actual movement (not just mouse jitter)
-		if math.abs(dx) > 2 or math.abs(dy) > 2 then
+		-- Threshold scales with resolution (~2px at 1080p, ~5px at 5K)
+		local dragThreshold = math.max(2, math.floor(render.vsx / 500))
+		if math.abs(dx) > dragThreshold or math.abs(dy) > dragThreshold then
 			-- Cancel any ongoing operations
 			if interactionState.areBuildDragging then
 				interactionState.areBuildDragging = false
@@ -19475,9 +19477,12 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 
 	-- If middle mouse is pressed but not yet committed to a mode, check if moved
 	if interactionState.middleMousePressed and not interactionState.arePanning then
-		-- Check if there's actual movement (not just mouse jitter)
-		-- Use a small threshold to distinguish click from drag
-		if math.abs(dx) > 2 or math.abs(dy) > 2 then
+		-- Check total distance from initial press point (not per-frame delta)
+		-- Threshold scales with resolution (~5px at 1080p, ~13px at 5K)
+		local dragThreshold = math.max(5, math.floor(render.vsx / 384))
+		local totalDx = mx - interactionState.middleMousePressX
+		local totalDy = my - interactionState.middleMousePressY
+		if math.abs(totalDx) > dragThreshold or math.abs(totalDy) > dragThreshold then
 			interactionState.middleMouseMoved = true
 			-- Start hold-drag panning (cancel player tracking if config allows, otherwise block)
 			if interactionState.trackingPlayerID then
