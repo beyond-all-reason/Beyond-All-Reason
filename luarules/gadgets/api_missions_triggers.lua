@@ -343,23 +343,24 @@ local function checkFeatureDestroyed(trigger, featureID, featureDefID, attackerA
 end
 
 local resourceConsecutiveFrames = {}
-local function checkResources(trigger, triggerID, index)
+local function checkResources(trigger, triggerID, resourceType)
+	-- See Spring.GetTeamResources for resourceType indices: 1 = current level, 3 = pull/requested expense, 4 = income, 5 = expense
 	local conditionMet = true
-	if trigger.parameters.metal and select(index, Spring.GetTeamResources(trigger.parameters.teamID, "metal")) < trigger.parameters.metal then
+	if trigger.parameters.metal and select(resourceType, Spring.GetTeamResources(trigger.parameters.teamID, "metal")) < trigger.parameters.metal then
 		conditionMet = false
 	end
-	if trigger.parameters.energy and select(index, Spring.GetTeamResources(trigger.parameters.teamID, "energy")) < trigger.parameters.energy then
+	if trigger.parameters.energy and select(resourceType, Spring.GetTeamResources(trigger.parameters.teamID, "energy")) < trigger.parameters.energy then
 		conditionMet = false
 	end
 
 	local requiredConsecutiveFrames = trigger.parameters.stableFrames or 0
 	if conditionMet then
-		resourceConsecutiveFrames[triggerID] = (resourceConsecutiveFrames[triggerID] or 0) + gameFrameTriggersCheckInterval
+		resourceConsecutiveFrames[triggerID] = (resourceConsecutiveFrames[triggerID] or 0) + 1
 		if resourceConsecutiveFrames[triggerID] >= requiredConsecutiveFrames then
 			activateTrigger(trigger)
 		end
 	else
-		resourceConsecutiveFrames[triggerID] = 0
+		resourceConsecutiveFrames[triggerID] = nil
 	end
 end
 
@@ -401,16 +402,16 @@ function gadget:GameFrame(frameNumber)
 	end)
 
 	processTriggersOfType(types.ResourceStored, function(trigger, triggerID)
-		checkResources(trigger, triggerID, 1)
+		checkResources(trigger, triggerID, 1) -- current level
 	end)
 	processTriggersOfType(types.ResourceIncome, function(trigger, triggerID)
-		checkResources(trigger, triggerID, 4)
+		checkResources(trigger, triggerID, 4) -- income
 	end)
 	processTriggersOfType(types.ResourceExpense, function(trigger, triggerID)
-		checkResources(trigger, triggerID, 5)
+		checkResources(trigger, triggerID, 5) -- expense
 	end)
 	processTriggersOfType(types.ResourcePull, function(trigger, triggerID)
-		checkResources(trigger, triggerID, 3)
+		checkResources(trigger, triggerID, 3) -- pull, i.e. requested expense
 	end)
 end
 
