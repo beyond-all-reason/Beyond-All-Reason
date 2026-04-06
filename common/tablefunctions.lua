@@ -68,6 +68,28 @@ if not table.mergeInPlace then
 	end
 end
 
+if not table.sortStable then
+	local function compareDefault(a, b)
+		return a < b
+	end
+
+	---Sorts list elements in a given order, *in-place*, from `list[1]` to `list[#list]`.
+	---This method preserves elements' original order when possible, unlike `table.sort`.
+	---@generic T
+	---@param tbl T[]
+	---@param compare fun(a: T, b: T) : boolean|nil where true := less than, false := greater than, nil := equal to
+	table.sortStable = function(tbl, compare)
+		if not compare then
+			compare = compareDefault
+		end
+		local index = table.getKeyOf -- local speedup
+		table.sort(tbl, function(a, b)
+			local comparison = compare(a, b)
+			return comparison or (comparison == nil and index(tbl, a) < index(tbl, b))
+		end)
+	end
+end
+
 if not table.ensureTable then
 	---Ensures a table exists at the specified key, creating one if needed.
 	---@param tbl table

@@ -241,6 +241,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 700,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 550,
 					subs = 275,
@@ -281,6 +284,9 @@ return {
 				waterweapon = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					default = 400,
 					subs = 200,
@@ -319,6 +325,9 @@ return {
 				weapontimer = 4.2,
 				weapontype = "DGun",
 				weaponvelocity = 300,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					commanders = 0,
 					default = 99999,
@@ -356,6 +365,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 2250,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 85,
 					subs = 22,
@@ -422,6 +434,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 310,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 450,
 					subs = 225,

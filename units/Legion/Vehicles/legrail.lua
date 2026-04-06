@@ -140,9 +140,9 @@ return {
 				weaponvelocity = 3214,
 				customparams = {
 					overpenetrate = true,
+					weapons_group = 2,
 				},
 				damage = {
-					--commanders = 100,
 					default = 1,
 					vtol = 300,
 				},

@@ -64,7 +64,9 @@ local function processWeapons(unitDefName, unitDef)
 		weaponDef.burstrate = round_to_frames(weaponDef, "burstrate")
 
 		-- weaponDef is not processed by weapondefs_post, may not have some subtables:
-		if weaponDef.customparams and weaponDef.customparams.cluster_def then
+		table.ensureTable(weaponDef, "customparams")
+
+		if weaponDef.customparams.cluster_def then
 			weaponDef.customparams.cluster_def = unitDefName .. "_" .. weaponDef.customparams.cluster_def
 			weaponDef.customparams.cluster_number = weaponDef.customparams.cluster_number or 5
 		end
@@ -1718,6 +1720,20 @@ function UnitDef_Post(name, uDef)
 		-- Deduplicate buildoptions (various modoptions or later mods can add the same units)
 		-- Multiple unit defs can share the same table reference, so we create a new table for each
 		uDef.buildoptions = table.getUniqueArray(buildoptions)
+	end
+
+	if next(weapondefs) then
+		-- Some units can switch between exclusive weapon sets via their unit scripts.
+		-- [<0] := never active, [0] := always active, [1] := primary set, [>1] := alternate sets
+		for weaponName, weaponDef in pairs(weapondefs) do
+			local groupNumber = 0
+			if table.any(weapons, function(weapon) return weaponName:lower() == (weapon.def or ""):lower() end) then
+				groupNumber = tonumber(weaponDef.customparams.weapons_group or 0) or 0
+			else
+				groupNumber = -1
+			end
+			weaponDef.customparams.weapons_group = groupNumber
+		end
 	end
 
 	-- Suppress engine default piece explosion effects (handled by gfx_death_fire_smoke_gl4 widget)

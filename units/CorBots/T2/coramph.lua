@@ -121,6 +121,9 @@ return {
 				weapontimer = 3,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 135,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					default = 250,
 				},
@@ -154,6 +157,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 700,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 150,
 					vtol = 38,
