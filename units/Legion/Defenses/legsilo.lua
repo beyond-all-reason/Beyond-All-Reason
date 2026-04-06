@@ -167,6 +167,9 @@ return {
 				weapontimer = 0.1,
 				weapontype = "Cannon",
 				weaponvelocity = 100,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					default = 0,
 				},

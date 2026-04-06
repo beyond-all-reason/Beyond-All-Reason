@@ -112,6 +112,7 @@ return {
 				weaponvelocity = 1250,
 				customparams = {
 					noattackrangearc = 1,
+					weapons_role = "secondary",
 				},
 				damage = {
 					vtol = 76,

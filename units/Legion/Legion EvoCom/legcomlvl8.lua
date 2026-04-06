@@ -242,6 +242,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 600,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 475,
 					vtol = 235,
@@ -280,6 +283,9 @@ return {
 				weapontimer = 3,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 425,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					-- commanders = 375,
 					default = 350, --278.4375,
@@ -319,6 +325,9 @@ return {
 				weapontimer = 4.2,
 				weapontype = "DGun",
 				weaponvelocity = 300,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					commanders = 0,
 					default = 99999,
@@ -360,6 +369,9 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 3000,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 300,
 				},
@@ -412,6 +424,7 @@ return {
 					spawns_surface = "LAND", -- Available: "LAND SEA"
 					spawns_mode = "random",
 					stockpilelimit = 5,
+					weapons_group = 1,
 				},
 				damage = {
 					default = 0,
