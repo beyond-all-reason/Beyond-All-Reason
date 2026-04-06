@@ -2,12 +2,7 @@
 --- Loadout spawning logic used in :GamePreload() and the SpawnLoadout action.
 ---
 
--- Convert named facing to a heading integer (engine uses 0-65535 headings)
-local facingToHeading = {
-	s = 0, n = 32768, e = 16384, w = 49152,
-	south = 0, north = 32768, east = 16384, west = 49152,
-	[0] = 0, [1] = 32768, [2] = 16384, [3] = 49152,
-}
+local tracking = VFS.Include('luarules/mission_api/tracking.lua')
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
