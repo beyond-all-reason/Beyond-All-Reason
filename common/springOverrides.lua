@@ -47,27 +47,37 @@ if Spring.Echo then
 	local printOptions = { pretty = true }
 
 	local function multiEcho(...)
-		local args = table.pack(...)
-		local tableIndexes = {}
+		local n = select('#', ...)
+		local firstTableIndex
+		local tableCount = 0
 
-		for index = 1, args.n do
-			local value = args[index]
-
-			if type(value) == 'table' then
-				table.insert(tableIndexes, index)
+		for index = 1, n do
+			if type(select(index, ...)) == 'table' then
+				tableCount = tableCount + 1
+				if not firstTableIndex then
+					firstTableIndex = index
+				end
 			end
+		end
+
+		if tableCount == 0 then
+			echo(...)
+			return
 		end
 
 		-- When Spring.Echo is called with a single table parameter, engine will echo "TABLE: {value}",
 		-- where {value} is whatever value happens to be the first value in the table
-		if #tableIndexes == 1 and args.n == 1 then
+		if tableCount == 1 and n == 1 then
 			echo("<table>")
 		else
-			echo(unpack(args, 1, args.n))
+			echo(...)
 		end
 
-		for _, index in ipairs(tableIndexes) do
-			echo(table.toString(args[index], printOptions))
+		local args = table.pack(...)
+		for index = firstTableIndex, n do
+			if type(args[index]) == 'table' then
+				echo(table.toString(args[index], printOptions))
+			end
 		end
 	end
 

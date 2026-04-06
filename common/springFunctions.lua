@@ -6,6 +6,7 @@ local syncFunctions = VFS.Include(utilitiesDirectory .. 'synced.lua')
 local tableFunctions = VFS.Include(utilitiesDirectory .. 'tableFunctions.lua')
 local colorFunctions = VFS.Include(utilitiesDirectory .. 'color.lua')
 local safeLuaTableParser = VFS.Include(utilitiesDirectory .. 'safeluaparser.lua')
+local facingFunctions = VFS.Include(utilitiesDirectory .. 'facingFunctions.lua')
 
 local accountIDCache = {}
 
@@ -51,6 +52,8 @@ local utilities = {
 
 	CustomKeyToUsefulTable = tableFunctions.CustomKeyToUsefulTable,
 	SafeLuaTableParser = safeLuaTableParser.SafeLuaTableParser,
+
+	FacingToHeading = facingFunctions.FacingToHeading,
 
 	Color = colorFunctions,
 	ConvertColor = colorFunctions and colorFunctions.ConvertColor,

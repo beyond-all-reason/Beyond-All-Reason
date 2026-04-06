@@ -42,20 +42,6 @@ return {
 			subfolder = "ArmSeaplanes",
 			unitgroup = "util",
 		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-				[2] = "airdeathceg3",
-				[3] = "airdeathceg4",
-			},
-		},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",

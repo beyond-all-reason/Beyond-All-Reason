@@ -26,11 +26,11 @@ end
 
 ---Unpack the inner command from the params of a `CMD_INSERT`.
 ---@param cmdParams number[]
----@return integer index If `options.alt`, the command tag, else queue position.
+---@return integer tagOrPos The command tag value or, when `CMD.OPT_ALT` is true, the queue position. See CCommandAI::ExecuteInsert.
 ---@return CMD innerCommand
 ---@return CommandOptions innerOptions
 local function unpackInsertParams(cmdParams)
-	local index, innerCommand, innerOptionBits = cmdParams[1], cmdParams[2], cmdParams[3]
+	local tagOrPos, innerCommand, innerOptionBits = cmdParams[1], cmdParams[2], cmdParams[3]
 
 	-- Update in-place, and assume n >= 3:
 	local n = #cmdParams
@@ -54,7 +54,7 @@ local function unpackInsertParams(cmdParams)
 	}
 
 	---@diagnostic disable-next-line:return-type-mismatch -- OK: CMD/number
-	return index, innerCommand, innerOptions
+	return tagOrPos, innerCommand, innerOptions
 end
 
 ---Efficiently repack a command's `cmdParams` table in-place to use with `CMD_INSERT`.

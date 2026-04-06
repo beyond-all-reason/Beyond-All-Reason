@@ -80,11 +80,6 @@ return {
 				[3] = "custom:bowsplash-huge",
 				[4] = "custom:enginespurt-huge",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
