@@ -1,6 +1,7 @@
 -- TODOs:
 -- >> move command processing to gadget level entirely, script should just receive transportee and pos and perform load/unload
--- >>
+-- >> Use a global GG.GetTransporteeSize(transporteeID) instead of duplicate functions
+-- >> maybe move slots hiding logic to generic_air_transport_lus instead. Or maybe even erase it since link pieces are empty by definition (no model piece)
 
 CargoHandler = {}
 
@@ -181,6 +182,11 @@ end
 -- instantly unloads all current cargo then reloads everything (including newTeeID) in decreasing size order,
 -- so that larger units always claim the most appropriate slots first
 function CargoHandler.ReorganizeAndLoad(cargo, newTeeID)
+    -- kill all in-flight Load threads at once and repair the accounting they left dangling
+    Signal(TransportAnimator.SIG_LOAD)
+    cargo.loadingCount = 0
+    CargoHandler.CanUnload(true)
+
     local toLoad = {}
     for teeID in pairs(cargo.transportees) do
         toLoad[#toLoad + 1] = teeID
