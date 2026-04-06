@@ -1,15 +1,8 @@
 local actionsSchema = VFS.Include('luarules/mission_api/actions_schema.lua')
 local actionFunctions = VFS.Include('luarules/mission_api/actions.lua')
 local parameterSchema = actionsSchema.Parameters
-local types = GG['MissionAPI'].ActionTypes
 local actions = GG['MissionAPI'].Actions
 
-local typeMapping = {}
-for name, typeId in pairs(types) do
-	if actionFunctions[name] then
-		typeMapping[typeId] = actionFunctions[name]
-	end
-end
 
 -- unpack() does not handle optional parameters, as it cannot pass a value as nil
 local function unpackActionParameters(actionId, i)
@@ -26,7 +19,7 @@ end
 
 local function invoke(actionId)
 	local type = actions[actionId].type
-	local actionFunction = typeMapping[type]
+	local actionFunction = actionFunctions[type]
 
 	actionFunction(unpackActionParameters(actionId))
 end

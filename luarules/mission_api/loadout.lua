@@ -6,12 +6,12 @@ local tracking = VFS.Include('luarules/mission_api/tracking.lua')
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
-local function spawnUnitLoadout(unitLoadout, trackUnit)
+local function spawnUnitLoadout(unitLoadout)
 	for _, unit in ipairs(unitLoadout or {}) do
 		local y = Spring.GetGroundHeight(unit.x, unit.z)
 		local unitID = Spring.CreateUnit(unit.name, unit.x, y, unit.z, unit.facing or 's', unit.team)
 		if unitID then
-			if unit.neutral == true or unit.neutral == 'true' then
+			if unit.neutral == true then
 				Spring.SetUnitNeutral(unitID, true)
 			end
 			if not table.isNilOrEmpty(unit.orders) then
@@ -22,12 +22,8 @@ local function spawnUnitLoadout(unitLoadout, trackUnit)
 					-- TODO: update when orders can be on named units
 					Spring.GiveOrderToUnit(unitID, cmdID, params, opts)
 				end
-			else
-				Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
 			end
-			if unit.unitName and trackUnit then
-				trackUnit(unit.unitName, unitID)
-			end
+			tracking.TrackUnit(unit.unitName, unitID)
 		end
 	end
 end
@@ -46,13 +42,13 @@ local function createFeature(featureDefName, position, facing)
 	return featureID
 end
 
-local function spawnFeatureLoadout(featureLoadout, trackFeature)
+local function spawnFeatureLoadout(featureLoadout)
 	for _, feature in ipairs(featureLoadout or {}) do
 		feature.y = Spring.GetGroundHeight(feature.x, feature.z)
 		local featureID = createFeature(feature.name, feature, feature.facing)
 
-		if featureID and feature.featureName and trackFeature then
-			trackFeature(feature.featureName, featureID)
+		if featureID and feature.featureName then
+			tracking.TrackFeature(feature.featureName, featureID)
 		end
 	end
 end

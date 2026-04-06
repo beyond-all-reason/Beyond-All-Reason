@@ -1,3 +1,5 @@
+local actionsSchema = VFS.Include('luarules/mission_api/actions_schema.lua')
+local types = actionsSchema.Types
 local loadout = VFS.Include('luarules/mission_api/loadout.lua')
 local sounds = VFS.Include('luarules/mission_api/sounds.lua')
 local tracking = VFS.Include('luarules/mission_api/tracking.lua')
@@ -27,7 +29,7 @@ local function generateGridPositions(center, quantity, xSpacing, zSpacing)
 	for x = left, left + xGridSize - xSpacing, xSpacing do
 		for z = top, top + zGridSize - zSpacing, zSpacing do
 			if count >= quantity then return positions end
-			table.insert(positions, {x = x, z = z})
+			table.insert(positions, { x = x, z = z })
 			count = count + 1
 		end
 	end
@@ -48,7 +50,7 @@ local function disableTrigger(triggerID)
 end
 
 local function issueOrders(unitName, orders)
-    if isUnitNameUntracked(unitName) then return end
+	if isUnitNameUntracked(unitName) then return end
 
 	local commandsAcceptingName = { [CMD.GUARD] = true, [CMD.REPAIR] = true, [CMD.CAPTURE] = true, [CMD.ATTACK] = true,
 									[CMD.LOAD_UNITS] = true, [CMD.RECLAIM] = true, [CMD.RESURRECT] = true }
@@ -89,7 +91,6 @@ local function issueOrders(unitName, orders)
 end
 
 local function spawnUnits(unitName, unitDefName, teamID, position, quantity, facing, construction, spacing)
-
 	spacing = spacing or 0
 
 	local unitDef = UnitDefs[UnitDefNames[unitDefName].id]
@@ -169,7 +170,7 @@ local function nameUnits(unitName, teamID, unitDefName, area)
 	local unitsToName = {}
 	if hasFilterOtherThanTeamID then
 		unitsToName = table.valueIntersection(
-			unpack(table.filterArray({ unitsFromDef, unitsInArea},
+			unpack(table.filterArray({ unitsFromDef, unitsInArea },
 				function(tbl) return not table.isEmpty(tbl) end)))
 	else
 		unitsToName = allUnitsOfTeam
@@ -214,8 +215,8 @@ local function destroyFeature(featureName)
 end
 
 local function spawnLoadout(unitLoadout, featureLoadout)
-	loadout.SpawnUnitLoadout(unitLoadout, trackUnit)
-	loadout.SpawnFeatureLoadout(featureLoadout, trackFeature)
+	loadout.SpawnUnitLoadout(unitLoadout)
+	loadout.SpawnFeatureLoadout(featureLoadout)
 end
 
 local function spawnExplosion(weaponDefName, position, direction)
@@ -286,7 +287,7 @@ end
 
 local function defeat(losingAllyTeamIDs)
 	local allAllyTeamIDs = Spring.GetAllyTeamList()
-	local winningAllyTeamIDs = { }
+	local winningAllyTeamIDs = {}
 	for _, allyTeamID in pairs(allAllyTeamIDs) do
 		if not table.contains(losingAllyTeamIDs, allyTeamID) then
 			table.insert(winningAllyTeamIDs, allyTeamID)
@@ -298,46 +299,45 @@ end
 local function custom(func)
 	func()
 end
-
 return {
 	-- Triggers
-	EnableTrigger = enableTrigger,
-	DisableTrigger = disableTrigger,
+	[types.EnableTrigger]   = enableTrigger,
+	[types.DisableTrigger]  = disableTrigger,
 
 	-- Orders
-	IssueOrders = issueOrders,
+	[types.IssueOrders]     = issueOrders,
 
 	-- Build Options
 
 	-- Units
-	SpawnUnits = spawnUnits,
-	DespawnUnits = despawnUnits,
-	TransferUnits = transferUnits,
-	NameUnits = nameUnits,
-	UnnameUnits = unnameUnits,
-	SpawnLoadout = spawnLoadout,
+	[types.SpawnUnits]      = spawnUnits,
+	[types.DespawnUnits]    = despawnUnits,
+	[types.TransferUnits]   = transferUnits,
+	[types.NameUnits]       = nameUnits,
+	[types.UnnameUnits]     = unnameUnits,
+	[types.SpawnLoadout]    = spawnLoadout,
 
 	-- Features
-	CreateFeature = createFeature,
-	DestroyFeature = destroyFeature,
+	[types.CreateFeature]   = createFeature,
+	[types.DestroyFeature]  = destroyFeature,
 
 	-- SFX
-	SpawnExplosion = spawnExplosion,
+	[types.SpawnExplosion]  = spawnExplosion,
 
 	-- Map
 
 	-- Media
-	PlaySound = playSound,
-	SendMessage = sendMessage,
-	AddMarker = addMarker,
-	DrawLines = drawLines,
-	EraseMarker = eraseMarker,
-	ClearAllMarkers = clearAllMarkers,
+	[types.PlaySound]       = playSound,
+	[types.SendMessage]     = sendMessage,
+	[types.AddMarker]       = addMarker,
+	[types.DrawLines]       = drawLines,
+	[types.EraseMarker]     = eraseMarker,
+	[types.ClearAllMarkers] = clearAllMarkers,
 
 	-- Win Condition
-	Victory = victory,
-	Defeat = defeat,
+	[types.Victory]         = victory,
+	[types.Defeat]          = defeat,
 
 	-- Custom
-	Custom = custom,
+	[types.Custom]          = custom,
 }

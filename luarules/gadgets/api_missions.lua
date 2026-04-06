@@ -74,22 +74,9 @@ function gadget:Initialize()
 end
 
 function gadget:GamePreload()
-	if Spring.GetGameRulesParam("loadedGame") == 1 then
-		Spring.Echo("Mission API: Loading saved game, skipping loadout")
-		return
-	end
-
-	if GG['MissionAPI'].UnitLoadout then
-		Spring.Echo("Mission API: Creating unit loadout")
-	end
-	if GG['MissionAPI'].FeatureLoadout then
-		Spring.Echo("Mission API: Creating feature loadout")
-	end
-
-	local tracking = VFS.Include('luarules/mission_api/tracking.lua')
 	local loadoutModule = VFS.Include('luarules/mission_api/loadout.lua')
-	loadoutModule.SpawnUnitLoadout(GG['MissionAPI'].UnitLoadout, tracking.TrackUnit)
-	loadoutModule.SpawnFeatureLoadout(GG['MissionAPI'].FeatureLoadout, tracking.TrackFeature)
+	loadoutModule.SpawnUnitLoadout(GG['MissionAPI'].UnitLoadout)
+	loadoutModule.SpawnFeatureLoadout(GG['MissionAPI'].FeatureLoadout)
 end
 
 function gadget:GameFrame(frameNumber)
