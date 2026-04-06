@@ -5,6 +5,41 @@
 local triggerTypes = GG['MissionAPI'].TriggerTypes
 local actionTypes = GG['MissionAPI'].ActionTypes
 
+local lobbyData = {
+	missionId = "validation_test",
+	title = "Validation Test",
+	description = "Tests invalid mission scripts, e.g. parameter values, etc. All possible validation errors should be present in the log.",
+	unlocked = true,
+}
+
+local startScript = {
+	mapName = "Quicksilver Remake 1.24",
+	startPosType = 'chooseBeforeGame',
+	allyTeams = {
+		thePlayerAllyTeam = {
+			teams = {
+				thePlayerTeam = {
+					name = "TestPlayer",
+					Side = 'Cortex',
+					StartPosX = 2200,
+					StartPosZ = 1500,
+				},
+			},
+		},
+		theEnemyAllyTeam = {
+			teams = {
+				theEnemyTeam = {
+					name = "Mission Bots",
+					Side = 'Armada',
+					StartPosX = 3000,
+					StartPosZ = 2400,
+					ai = "NullAI",
+				},
+			}
+		},
+	},
+}
+
 local triggers = {
 
 	triggerMissingTypeAndActions = {},
@@ -40,7 +75,7 @@ local triggers = {
 	triggerWithInvalidAllyTeamID = {
 		type = triggerTypes.UnitSpotted,
 		parameters = {
-			spottingAllyTeamID = 777,
+			spottingAllyTeamName = 'invalidAllyTeamName',
 		},
 		actions = { 'actionMissingType' },
 	},
@@ -91,7 +126,7 @@ local actions = {
 	actionWithInvalidFacingNumber = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			position = { x = 1800, z = 1600 },
 			facing = 4,
 		},
@@ -100,7 +135,7 @@ local actions = {
 	actionWithInvalidFacingType = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			position = { x = 1800, z = 1600 },
 			facing = true,
 		},
@@ -109,14 +144,14 @@ local actions = {
 	actionWithInvalidAllyTeamID = {
 		type = actionTypes.Defeat,
 		parameters = {
-			allyTeamIDs = { 777 },
+			allyTeamNames = { 'invalidAllyTeamName' },
 		},
 	},
 
 	actionWithNoAllyTeamIDs = {
 		type = actionTypes.Defeat,
 		parameters = {
-			allyTeamIDs = { },
+			allyTeamNames = { },
 		},
 	},
 
@@ -293,6 +328,8 @@ local actions = {
 }
 
 return {
+	LobbyData = lobbyData,
+	StartScript = startScript,
 	Triggers = triggers,
 	Actions = actions,
 }

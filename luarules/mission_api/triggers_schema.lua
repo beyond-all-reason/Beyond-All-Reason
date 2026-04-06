@@ -77,9 +77,9 @@ local parameters = {
 			type = Types.UnitDefName,
 		},
 		[2] = {
-			name = 'teamID',
+			name = 'teamName',
 			required = false,
-			type = Types.TeamID,
+			type = Types.TeamName,
 		},
 		[3] = {
 			name = 'quantity',
@@ -99,9 +99,9 @@ local parameters = {
 			type = Types.UnitDefName
 		},
 		[3] = {
-			name = 'teamID',
+			name = 'teamName',
 			required = false,
-			type = Types.TeamID
+			type = Types.TeamName
 		},
 		requiresOneOf = { 'unitName', 'unitDefName' }
 	},
@@ -117,9 +117,9 @@ local parameters = {
 			type = Types.UnitDefName
 		},
 		[3] = {
-			name = 'teamID',
+			name = 'teamName',
 			required = false,
-			type = Types.TeamID
+			type = Types.TeamName
 		},
 		requiresOneOf = { 'unitName', 'unitDefName' }
 	},
@@ -135,14 +135,14 @@ local parameters = {
 			type = Types.UnitDefName
 		},
 		[3] = {
-			name = 'oldTeamID',
+			name = 'oldTeamName',
 			required = false,
-			type = Types.TeamID
+			type = Types.TeamName
 		},
 		[4] = {
-			name = 'newTeamID',
+			name = 'newTeamName',
 			required = false,
-			type = Types.TeamID
+			type = Types.TeamName
 		},
 		requiresOneOf = { 'unitName', 'unitDefName' }
 	},
@@ -153,9 +153,9 @@ local parameters = {
 			type = Types.UnitDefName
 		},
 		[2] = {
-			name = 'teamID',
+			name = 'teamName',
 			required = false,
-			type = Types.TeamID
+			type = Types.TeamName
 		},
 		[3] = {
 			name = 'featureName',
@@ -184,9 +184,9 @@ local parameters = {
 			type = Types.UnitDefName
 		},
 		[4] = {
-			name = 'teamID',
+			name = 'teamName',
 			required = false,
-			type = Types.TeamID
+			type = Types.TeamName
 		},
 		requiresOneOf = { 'unitName', 'unitDefName' }
 	},
@@ -210,9 +210,9 @@ local parameters = {
 			type = Types.UnitDefName
 		},
 		[4] = {
-			name = 'teamID',
+			name = 'teamName',
 			required = false,
-			type = Types.TeamID
+			type = Types.TeamName
 		},
 		requiresOneOf = { 'unitName', 'unitDefName' }
 	},
@@ -242,9 +242,9 @@ local parameters = {
 			type = Types.UnitDefName
 		},
 		[5] = {
-			name = 'teamID',
+			name = 'teamName',
 			required = false,
-			type = Types.TeamID
+			type = Types.TeamName
 		},
 		requiresOneOf = { 'unitName', 'unitDefName' }
 	},
@@ -260,14 +260,14 @@ local parameters = {
 			type = Types.UnitDefName
 		},
 		[3] = {
-			name = 'owningTeamID',
+			name = 'owningTeamName',
 			required = false,
-			type = Types.TeamID
+			type = Types.TeamName
 		},
 		[4] = {
-			name = 'spottingAllyTeamID',
+			name = 'spottingAllyTeamName',
 			required = false,
-			type = Types.AllyTeamID
+			type = Types.AllyTeamName
 		},
 		requiresOneOf = { 'unitName', 'unitDefName' }
 	},
@@ -283,14 +283,14 @@ local parameters = {
 			type = Types.UnitDefName
 		},
 		[3] = {
-			name = 'owningTeamID',
+			name = 'owningTeamName',
 			required = false,
-			type = Types.TeamID
+			type = Types.TeamName
 		},
 		[4] = {
-			name = 'spottingAllyTeamID',
+			name = 'spottingAllyTeamName',
 			required = false,
-			type = Types.AllyTeamID
+			type = Types.AllyTeamName
 		},
 		requiresOneOf = { 'unitName', 'unitDefName' }
 	},
@@ -301,9 +301,9 @@ local parameters = {
 			type = Types.UnitDefName
 		},
 		[2] = {
-			name = 'teamID',
+			name = 'teamName',
 			required = false,
-			type = Types.TeamID
+			type = Types.TeamName
 		},
 	 },
 	[triggerTypes.ConstructionFinished] = {
@@ -318,9 +318,9 @@ local parameters = {
 			type = Types.UnitDefName
 		},
 		[3] = {
-			name = 'teamID',
+			name = 'teamName',
 			required = false,
-			type = Types.TeamID
+			type = Types.TeamName
 		},
 	 },
 
@@ -398,7 +398,7 @@ local parameters = {
 	-- Team
 	[triggerTypes.TeamDestroyed] = {
 		[1] = {
-			name = 'teamID',
+			name = 'teamName',
 			required = true,
 			type = Types.Number,
 		},

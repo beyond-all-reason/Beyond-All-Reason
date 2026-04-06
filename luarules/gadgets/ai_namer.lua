@@ -19,7 +19,7 @@ end
 if gadgetHandler:IsSyncedCode() then
 	local cachedGameID
 	-- gameID seems to be the only fucking thing that is truly random in this space? but it's a random garbage of numbers and letters, and we need to filter it out
-	function gadget:GameID(gameID) 
+	function gadget:GameID(gameID)
 		-- make sure gameID is a string because i'm not actually sure
 		cachedGameID = tostring(gameID)
 
@@ -28,7 +28,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- because yes
 		for i = 1,1000 do
 			-- Check if the next character in the game ID is a number
-			if tonumber(string.sub(cachedGameID, i, i)) then 
+			if tonumber(string.sub(cachedGameID, i, i)) then
 				-- Make sure the number we are creating doesn't grow beyond the 32bit integrer limits
 				if (not tonumber(FakeRandomSeed)) or i <= 8 or (i > 8 and tonumber(FakeRandomSeed .. tonumber(string.sub(cachedGameID, i, i))) < 10) then
 					-- Add the next character that is for sure a number
@@ -147,7 +147,9 @@ if gadgetHandler:IsSyncedCode() then
 			local t = Spring.GetTeamList()
 			for _,teamID in ipairs(t) do
 				if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
-					Spring.SetGameRulesParam('ainame_'..teamID, getName(teamID, string.find(Spring.GetTeamLuaAI(teamID) or '', "Raptors"), string.find(Spring.GetTeamLuaAI(teamID) or '', "Scavenger")))
+					if not Spring.GetGameRulesParam('ainame_'..teamID) then
+						Spring.SetGameRulesParam('ainame_'..teamID, getName(teamID, string.find(Spring.GetTeamLuaAI(teamID) or '', "Raptors"), string.find(Spring.GetTeamLuaAI(teamID) or '', "Scavenger")))
+					end
 				end
 			end
 			gadgetHandler:RemoveGadget(self)

@@ -1,9 +1,40 @@
----
---- Feature triggers test mission.
----
-
 local triggerTypes = GG['MissionAPI'].TriggerTypes
 local actionTypes = GG['MissionAPI'].ActionTypes
+
+local lobbyData = {
+	missionId = "feature_triggers_test",
+	title = "Feature Triggers Test",
+	description = "Tests triggers related to features, including creation, destruction, reclamation, and resurrection.",
+	unlocked = true,
+}
+
+local startScript = {
+	mapName = "Quicksilver Remake 1.24",
+	startPosType = 'chooseBeforeGame',
+	allyTeams = {
+		thePlayerAllyTeam = {
+			teams = {
+				thePlayerTeam = {
+					name = "TestPlayer",
+					Side = 'Cortex',
+					StartPosX = 2200,
+					StartPosZ = 1500,
+				},
+			},
+		},
+		theEnemyAllyTeam = {
+			teams = {
+				theEnemyTeam = {
+					name = "Mission Bots",
+					Side = 'Armada',
+					StartPosX = 3000,
+					StartPosZ = 2400,
+					ai = "NullAI",
+				},
+			}
+		},
+	},
+}
 
 local triggers = {
 
@@ -45,7 +76,7 @@ local triggers = {
 		type = triggerTypes.FeatureReclaimed,
 		parameters = {
 			featureName = 'theRocks',
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 		},
 		actions = { 'messageRockReclaimed' },
 	},
@@ -61,8 +92,8 @@ local triggers = {
 	unitRessed = {
 		type = triggerTypes.UnitResurrected,
 		parameters = {
-			featureName  = 'wreck-to-resurrect',
-			teamID = 0,
+			featureName = 'wreck-to-resurrect',
+			teamName    = 'thePlayerTeam',
 		},
 		actions = { 'messageWreckResurrected' },
 	},
@@ -90,40 +121,40 @@ local actions = {
 	createRockToReclaim = {
 		type = actionTypes.CreateFeature,
 		parameters = {
-			featureName  = 'theRocks',
+			featureName    = 'theRocks',
 			featureDefName = 'rocks30_def_01',
-			position = { x = 1800, z = 1800 },
-			facing   = 's',
+			position       = { x = 1800, z = 1800 },
+			facing         = 's',
 		},
 	},
 
 	createRockToDestroy = {
 		type = actionTypes.CreateFeature,
 		parameters = {
-			featureName  = 'theRocks',
+			featureName    = 'theRocks',
 			featureDefName = 'rocks30_def_01',
-			position = { x = 1900, z = 1900 },
-			facing   = 's',
+			position       = { x = 1900, z = 1900 },
+			facing         = 's',
 		},
 	},
 
 	createWreckToAttack = {
 		type = actionTypes.CreateFeature,
 		parameters = {
-			featureName  = 'wreck-to-destroy',
+			featureName    = 'wreck-to-destroy',
 			featureDefName = 'armllt_dead',
-			position = { x = 2000, z = 2100 },
-			facing   = 'w',
+			position       = { x = 2000, z = 2100 },
+			facing         = 'w',
 		},
 	},
 
 	createWreckToResurrect = {
 		type = actionTypes.CreateFeature,
 		parameters = {
-			featureName  = 'wreck-to-resurrect',
+			featureName    = 'wreck-to-resurrect',
 			featureDefName = 'armpw_dead',
-			position = { x = 1900, z = 2000 },
-			facing   = 'w',
+			position       = { x = 1900, z = 2000 },
+			facing         = 'w',
 		},
 	},
 
@@ -132,7 +163,7 @@ local actions = {
 		parameters = {
 			unitName    = 'reclaimer',
 			unitDefName = 'armrectr',
-			teamID      = 0,
+			teamName    = 'thePlayerTeam',
 			position    = { x = 1800, z = 1900 },
 		},
 	},
@@ -142,7 +173,7 @@ local actions = {
 		parameters = {
 			unitName    = 'attacker',
 			unitDefName = 'armham',
-			teamID      = 0,
+			teamName    = 'thePlayerTeam',
 			position    = { x = 1800, z = 2100 },
 		},
 	},
@@ -152,7 +183,7 @@ local actions = {
 		parameters = {
 			unitName = 'reclaimer',
 			orders = {
-				{ CMD.RECLAIM, { 1800, 0, 1800, 80 } },
+				{ CMD.RECLAIM,   { 1800, 0, 1800, 80 } },
 				{ CMD.RESURRECT, { 1900, 0, 2000, 80 }, { 'shift' } },
 			},
 		},
@@ -219,6 +250,8 @@ local actions = {
 }
 
 return {
-	Triggers = triggers,
-	Actions  = actions,
+	LobbyData   = lobbyData,
+	StartScript = startScript,
+	Triggers    = triggers,
+	Actions     = actions,
 }

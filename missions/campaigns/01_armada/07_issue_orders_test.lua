@@ -1,6 +1,41 @@
 local triggerTypes = GG['MissionAPI'].TriggerTypes
 local actionTypes = GG['MissionAPI'].ActionTypes
 
+local lobbyData = {
+	missionId = "issue_orders_test",
+	title = "IssueOrders Test",
+	description = "Tests issuing orders to units, including by unit name, and area attacking.",
+	unlocked = true,
+}
+
+local startScript = {
+	mapName = "Quicksilver Remake 1.24",
+	startPosType = 'chooseBeforeGame',
+	allyTeams = {
+		thePlayerAllyTeam = {
+			teams = {
+				thePlayerTeam = {
+					name = "TestPlayer",
+					Side = 'Cortex',
+					StartPosX = 2200,
+					StartPosZ = 1500,
+				},
+			},
+		},
+		theEnemyAllyTeam = {
+			teams = {
+				theEnemyTeam = {
+					name = "Mission Bots",
+					Side = 'Armada',
+					StartPosX = 3000,
+					StartPosZ = 2400,
+					ai = "NullAI",
+				},
+			}
+		},
+	},
+}
+
 local triggers = {
 	spawnAttackers = {
 		type = triggerTypes.TimeElapsed,
@@ -73,7 +108,7 @@ local actions = {
 		parameters = {
 			unitName = 'attackers',
             unitDefName = 'cormando',
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			position = { x = 1800, z = 1900 },
 			quantity = 2,
 		},
@@ -100,7 +135,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
             unitDefName = 'armeyes',
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			position = { x = 1800, z = 2400 },
 		},
 	},
@@ -109,7 +144,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
             unitDefName = 'armeyes',
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			position = { x = 1700, z = 2900 },
 		},
 	},
@@ -119,7 +154,8 @@ local actions = {
 		parameters = {
 			unitName = 'targets',
             unitDefName = 'armsolar',
-			teamID = 1,
+			teamName = 'theEnemyTeam',
+
 			position = { x = 1700, z = 2300 },
 		},
 	},
@@ -129,7 +165,8 @@ local actions = {
 		parameters = {
 			unitName = 'targets',
             unitDefName = 'armsolar',
-			teamID = 1,
+			teamName = 'theEnemyTeam',
+
 			position = { x = 1900, z = 2350 },
 		},
 	},
@@ -139,7 +176,8 @@ local actions = {
 		parameters = {
 			unitName = 'targets',
             unitDefName = 'armsolar',
-			teamID = 1,
+			teamName = 'theEnemyTeam',
+
 			position = { x = 2100, z = 2300 },
 		},
 	},
@@ -210,7 +248,8 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitDefName = 'armwin',
-			teamID = 1,
+			teamName = 'theEnemyTeam',
+
 			position = { x = 1500, z = 2900 },
 			quantity = 9,
 			spacing = 16,
@@ -221,7 +260,8 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitDefName = 'armwin',
-			teamID = 1,
+			teamName = 'theEnemyTeam',
+
 			position = { x = 2000, z = 2500 },
 			quantity = 2,
 		},
@@ -249,7 +289,7 @@ local actions = {
 		parameters = {
 			unitName = 'artillery',
 			unitDefName = 'armart',
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			position = { x = 1700, z = 2500 },
 			quantity = 2,
 		},
@@ -277,7 +317,7 @@ local actions = {
 		parameters = {
 			unitName = 'fusions',
 			unitDefName = 'armfus',
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			position = { x = 2300, z = 2500 },
 			quantity = 3,
 		},
@@ -339,6 +379,8 @@ local actions = {
 }
 
 return {
+	LobbyData = lobbyData,
+	StartScript = startScript,
 	Triggers = triggers,
 	Actions = actions,
 }

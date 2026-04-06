@@ -1,6 +1,41 @@
 local triggerTypes = GG['MissionAPI'].TriggerTypes
 local actionTypes = GG['MissionAPI'].ActionTypes
 
+local lobbyData = {
+	missionId = "Test Mission",
+	title = "Test Mission",
+	description = "Tests various actions and triggers, a left over from before tests were added separately for different parts of the API.",
+	unlocked = true,
+}
+
+local startScript = {
+	mapName = "Quicksilver Remake 1.24",
+	startPosType = 'chooseBeforeGame',
+	allyTeams = {
+		thePlayerAllyTeam = {
+			teams = {
+				thePlayerTeam = {
+					name = "TestPlayer",
+					Side = 'Cortex',
+					StartPosX = 2200,
+					StartPosZ = 1500,
+				},
+			},
+		},
+		theEnemyAllyTeam = {
+			teams = {
+				theEnemyTeam = {
+					name = "Mission Bots",
+					Side = 'Armada',
+					StartPosX = 3000,
+					StartPosZ = 2400,
+					ai = "NullAI",
+				},
+			}
+		},
+	},
+}
+
 local triggers = {
 
 	spawnCons1 = {
@@ -103,7 +138,7 @@ local actions = {
 		parameters = {
 			unitName = 'con-bots',
             unitDefName = 'corck',
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			position = { x = 1800, z = 1600 },
 			quantity = 9,
 			facing = 'n',
@@ -115,7 +150,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
             unitDefName = 'armfus',
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			position = { x = 1900, z = 2200 },
 			quantity = 18,
 			facing = 'e',
@@ -126,7 +161,7 @@ local actions = {
 		type = actionTypes.NameUnits,
 		parameters = {
 			unitName = 'fusions',
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			unitDefName = 'armfus',
 			area = { x1 = 0, z1 = 0, x2 = 999999, z2 = 2200 },
 		},
@@ -200,7 +235,7 @@ local actions = {
 		type = actionTypes.TransferUnits,
 		parameters = {
 			unitName = 'con-bots',
-			newTeam = 1,
+			newTeamName = 'theEnemyTeam',
 		},
 	},
 
@@ -215,7 +250,7 @@ local actions = {
 		type = actionTypes.TransferUnits,
 		parameters = {
 			unitName = 'con-bots',
-			newTeam = 0,
+			newTeamName = 'thePlayerTeam',
 		},
 	},
 
@@ -251,12 +286,14 @@ local actions = {
 	gameEnd = {
 		type = actionTypes.Defeat,
 		parameters = {
-			allyTeamIDs = { 0 },
+			allyTeamNames = { 'thePlayerAllyTeam' },
 		},
 	},
 }
 
 return {
+	LobbyData = lobbyData,
+	StartScript = startScript,
 	Triggers = triggers,
 	Actions = actions,
 }

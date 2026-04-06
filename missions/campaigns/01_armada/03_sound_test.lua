@@ -1,6 +1,41 @@
 local triggerTypes = GG['MissionAPI'].TriggerTypes
 local actionTypes = GG['MissionAPI'].ActionTypes
 
+local lobbyData = {
+	missionId = "sound_test",
+	title = "Sound Test",
+	description = "Tests playing sounds at positions, and queuing sounds pausing the normal sound notifications.",
+	unlocked = true,
+}
+
+local startScript = {
+	mapName = "Quicksilver Remake 1.24",
+	startPosType = 'chooseBeforeGame',
+	allyTeams = {
+		thePlayerAllyTeam = {
+			teams = {
+				thePlayerTeam = {
+					name = "TestPlayer",
+					Side = 'Cortex',
+					StartPosX = 2200,
+					StartPosZ = 1500,
+				},
+			},
+		},
+		theEnemyAllyTeam = {
+			teams = {
+				theEnemyTeam = {
+					name = "Mission Bots",
+					Side = 'Armada',
+					StartPosX = 3000,
+					StartPosZ = 2400,
+					ai = "NullAI",
+				},
+			}
+		},
+	},
+}
+
 local triggers = {
 
 	spawnEye = {
@@ -54,7 +89,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitDefName = 'armeyes',
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			position = { x = 1800, z = 1600 },
 		},
 	},
@@ -102,7 +137,8 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitDefName = 'armsilo',
-			teamID = 1,
+			teamName = 'theEnemyTeam',
+
 			position = { x = 1900, z = 1800 },
 		},
 	},
@@ -116,6 +152,8 @@ local actions = {
 }
 
 return {
+	LobbyData = lobbyData,
+	StartScript = startScript,
 	Triggers = triggers,
 	Actions = actions,
 }

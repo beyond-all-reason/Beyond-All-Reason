@@ -1310,6 +1310,18 @@ function widget:Initialize()
 	isSpec = Spring.GetSpectatingState()
 	isPregame = Spring.GetGameFrame() == 0 and not isSpec
 
+	-- If mission disables the initial commander spawn, suppress the entire pregame build path (build menu, startDefID binding, buildmenuShows = true, etc.)
+	if isPregame then
+		local modOptions = Spring.GetModOptions()
+		local options = modOptions.scenariooptions or modOptions.missionoptions
+		if options then
+			local optionsDecoded = Json.decode(string.base64Decode(options))
+			if optionsDecoded and (optionsDecoded.disableInitialCommanderSpawn or not table.isNilOrEmpty(optionsDecoded.unitloadout)) then
+				isPregame = false
+			end
+		end
+	end
+
 	WG["gridmenu"] = {}
 	WG["buildmenu"] = {}
 
