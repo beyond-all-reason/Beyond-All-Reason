@@ -172,7 +172,6 @@ function TransportAnimator.Snap(teeData)
 end
 
 -- per-frame loop: damps transporter velocity during active animations and spawns tractor-beam CEGs
--- between each beam-anchor piece and the transportee's current world position
 function TransportAnimator.WatchBeams()
     SetSignalMask(SIG_WATCH)
     while true do
@@ -182,21 +181,32 @@ function TransportAnimator.WatchBeams()
         end
         for teeID, teeData in pairs(cargo.transportees) do
             if teeData.beamPieces then
-                local tpx, tpy, tpz
-                if teeData.wbX then -- if the load/unload animation is in progress, use the cached values from the animation thread instead of calling GetUnitPosition again.
-                    tpx, tpy, tpz = teeData.wbX, teeData.wbY, teeData.wbZ
-                else
-                    tpx, tpy, tpz = SpGetUnitPosition(teeID)
-                    tpy = tpy + teeData.height
-                end
                 for _, beamPiece in ipairs(teeData.beamPieces) do
                     local lpx, lpy, lpz = SpGetUnitPiecePosDir(unitID, beamPiece)
-                    SpSpawnCEG(cegName,
-                        tpx, tpy, tpz,
-                        (lpx - tpx) * cegScaleFactor,
-                        (lpy - tpy) * cegScaleFactor,
-                        (lpz - tpz) * cegScaleFactor,
-                        1, 0)
+                    if teeData.loading then
+                        -- tee is attached to slot: use actual slot world position as beam target
+                        local tpx, tpy, tpz = SpGetUnitPiecePosDir(unitID, teeData.slotID)
+                        SpSpawnCEG(cegName,
+                            tpx, tpy + teeData.height, tpz,
+                            (lpx - tpx) * cegScaleFactor,
+                            (lpy - (tpy + teeData.height)) * cegScaleFactor,
+                            (lpz - tpz) * cegScaleFactor,
+                            1, 0)
+                    elseif teeData.wbX then
+                        -- unloading: tee is detached and moved via MoveCtrl, use cached position
+                        SpSpawnCEG(cegName,
+                            teeData.wbX, teeData.wbY + teeData.height, teeData.wbZ,
+                            (lpx - teeData.wbX) * cegScaleFactor,
+                            (lpy - (teeData.wbY + teeData.height)) * cegScaleFactor,
+                            (lpz - teeData.wbZ) * cegScaleFactor,
+                            1, 0)
+                    else
+                        -- idle: simple downward beam from the anchor piece
+                        SpSpawnCEG(cegName,
+                            lpx, lpy, lpz,
+                            0, -10, 0,
+                            1, 0)
+                    end
                 end
             end
         end
@@ -228,10 +238,7 @@ function TransportAnimator.Load(teeData, doAnim)
             local cwx = t * terX   + (1 - t) * teePosX
             local cwy = t * terY   + (1 - t) * teePosY
             local cwz = t * terZ   + (1 - t) * teePosZ
-            -- cache transportee position
-            teeData.wbX = cwx
-            teeData.wbY = cwy - teeData.height * t
-            teeData.wbZ = cwz
+            teeData.loading = true -- flag for WatchBeams; tee is attached so slot pos is authoritative
 
             MovePieceWS(teeData.slotID,
                 cwx, cwy, cwz,
@@ -243,8 +250,9 @@ function TransportAnimator.Load(teeData, doAnim)
             Sleep(33)
             if isDead(teeData.id) then aborted = true ; break end
         end
-        -- invalidate the cache
-        teeData.wbX = nil ; teeData.wbY = nil ; teeData.wbZ = nil
+        -- clear loading flag
+        teeData.loading = nil
+        teeData.wbX = nil
     end
     resetSlot(teeData.slotID)
     if not aborted then -- finished the anim smoothly
