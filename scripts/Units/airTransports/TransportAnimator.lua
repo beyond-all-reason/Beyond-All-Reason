@@ -1,6 +1,7 @@
 TransportAnimator = {}
 
-local SIG_WATCH = 2 -- signal to stop the WatchBeam thread when cargo state changes
+local SIG_WATCH           = 2 -- signal to stop the WatchBeam thread when cargo state changes
+TransportAnimator.SIG_LOAD = 4 -- signal to kill all in-flight Load threads (used by ReorganizeAndLoad)
 
 
 -- helper to move/rotate a piece to a world-space position/rotation
@@ -69,21 +70,29 @@ local function WorldToUnitSpace(wsX, wsY, wsZ, wsRX, wsRY, wsRZ, ux, uy, uz, urx
            shortAngle(ury - wsRY),
            shortAngle(urz - wsRZ)
 end
+local defaultPiecePos  = {} -- [pieceID] = {x,y,z} rest position in unit-local space, cached on first use
 
 -- move and rotate a slot piece to match a world-space position/rotation, converting through unit-local space
-local function MovePieceWS(pce, wsX, wsY, wsZ, wsRX, wsRY, wsRZ, speed, tHeight, ux, uy, uz, urx, ury, urz)
+local function MovePieceWS(pce, wsX, wsY, wsZ, wsRX, wsRY, wsRZ, speed, tHeight, ux, uy, uz, urx, ury, urz, t)
     local usX, usY, usZ, usRX, usRY, usRZ = WorldToUnitSpace(wsX, wsY, wsZ, wsRX, wsRY, wsRZ, ux, uy, uz, urx, ury, urz)
-    Move(pce, 1, usX,           speed)
-    Move(pce, 2, usY - tHeight, speed)
-    Move(pce, 3, usZ,           speed)
+    -- Move() offsets are relative to the piece's own rest position, not the unit origin.
+    -- Subtract the rest position so the piece ends up at the correct unit-local coordinates.
+    if not defaultPiecePos[pce] then
+        local dpx, dpy, dpz = Spring.GetUnitPiecePosition(unitID, pce)
+        defaultPiecePos[pce] = { dpx, dpy, dpz }
+    end
+    local dp = defaultPiecePos[pce]
+    Move(pce, 1, (usX + (1-t) * dp[1]),           speed)
+    Move(pce, 2, usY - tHeight - (1-t) * dp[2], speed)
+    Move(pce, 3, usZ - (1-t) * dp[3],           speed)
     Turn(pce, 1, usRX, speed)
     Turn(pce, 2, usRY, speed)
     Turn(pce, 3, usRZ, speed)
 end
 
 local loadTime, ratio, ratioY, cegScaleFactor, cegName
-local progress      = {}
-local beamsBySlotID = {}
+local progress         = {}
+local beamsBySlotID    = {}
 
 local cachedFrame = -1
 local cUX, cUY, cUZ, cURX, cURY, cURZ
@@ -197,13 +206,14 @@ end
 
 -- Load logic for attaching and moving the transportee
 function TransportAnimator.Load(teeData, doAnim)
+    SetSignalMask(TransportAnimator.SIG_LOAD)
     teeData.beamPieces = beamsBySlotID[teeData.slotID]
     CargoHandler.BeginLoading(cargo)
 
     local teePosX, teePosY, teePosZ = SpGetUnitPosition(teeData.id)
     local teeRotX, teeRotY, teeRotZ = SpGetUnitRotation(teeData.id)
 
-    MovePieceWS(teeData.slotID, teePosX, teePosY, teePosZ, teeRotX, teeRotY, teeRotZ, nil, 0)
+    MovePieceWS(teeData.slotID, teePosX, teePosY, teePosZ, teeRotX, teeRotY, teeRotZ, nil, 0, nil, nil, nil, nil, nil, nil, 0) -- snap slot to transportee position at start of load anim
     SpUnitAttach(unitID, teeData.id, teeData.slotID)
     local count = CargoHandler.Register(teeData.id, teeData, cargo)
     if count == 1 then TransportAnimator.HasCargo(true) end
@@ -218,7 +228,7 @@ function TransportAnimator.Load(teeData, doAnim)
             local cwx = t * terX   + (1 - t) * teePosX
             local cwy = t * terY   + (1 - t) * teePosY
             local cwz = t * terZ   + (1 - t) * teePosZ
-            -- cache transportees position
+            -- cache transportee position
             teeData.wbX = cwx
             teeData.wbY = cwy - teeData.height * t
             teeData.wbZ = cwz
@@ -229,13 +239,12 @@ function TransportAnimator.Load(teeData, doAnim)
                 teeRotY + t * shortAngle(terRY - teeRotY),
                 teeRotZ + t * shortAngle(terRZ - teeRotZ),
                 nil, teeData.height * t,
-                terX, terY, terZ, terRX, terRY, terRZ)
+                terX, terY, terZ, terRX, terRY, terRZ, t)
             Sleep(33)
             if isDead(teeData.id) then aborted = true ; break end
         end
         -- invalidate the cache
         teeData.wbX = nil ; teeData.wbY = nil ; teeData.wbZ = nil
-
     end
     resetSlot(teeData.slotID)
     if not aborted then -- finished the anim smoothly
@@ -249,34 +258,35 @@ function TransportAnimator.Load(teeData, doAnim)
     CargoHandler.EndLoading(cargo)
 end
 
--- Unload logic for detaching and moving the transportee
+-- Unload logic for detaching and moving the transportee.
+-- When doAnim == false, the unit is only detached in-place with no position change.
 function TransportAnimator.Unload(teeData, goalX, goalY, goalZ, doAnim)
-    -- offset goal by the slot's world-space offset from unit center, so the tee drops from the slot's actual position
-    local px, py, pz    = SpGetUnitPiecePosDir(unitID, teeData.slotID)
-    local terX, _, terZ = SpGetUnitPosition(unitID)
-    goalX = goalX + (px - terX)
-    goalZ = goalZ + (pz - terZ)
-    goalY = SpGetGroundHeight(goalX, goalZ)
-
     CargoHandler.BeginUnloading(cargo)
-    SpMoveCtrl.Enable(teeData.id) -- unlike Load(), Unload first detaches (the unit is not considered a transportee anymore by engine), then move the unit via movectrl
     SpUnitDetach(teeData.id)
 
-    local startRX, startRY, startRZ   = SpGetUnitRotation(teeData.id)
-    local initTerRX, initTerRY, initTerRZ = SpGetUnitRotation(unitID)
-    local teeDefID = SpGetUnitDefID(teeData.id)
-    local goalRX, goalRY, goalRZ
-    if UnitDefs[teeDefID] and UnitDefs[teeDefID].upright then
-        goalRX, goalRY, goalRZ = 0, startRY, 0
-    else
-        local nx, ny, nz = SpGetGroundNormal(goalX, goalZ)
-        goalRX = math.atan2(-nz, ny)
-        goalRY = startRY
-        goalRZ = math.atan2(nx, ny)
-    end
-
-    local aborted = false
     if doAnim ~= false then
+        -- offset goal by the slot's world-space offset from unit center, so the tee drops from the slot's actual position
+        local px, py, pz    = SpGetUnitPiecePosDir(unitID, teeData.slotID)
+        local terX, _, terZ = SpGetUnitPosition(unitID)
+        goalX = goalX + (px - terX)
+        goalZ = goalZ + (pz - terZ)
+        goalY = SpGetGroundHeight(goalX, goalZ)
+
+        SpMoveCtrl.Enable(teeData.id) -- unlike Load(), Unload moves the unit via movectrl after detaching
+        local startRX, startRY, startRZ       = SpGetUnitRotation(teeData.id)
+        local initTerRX, initTerRY, initTerRZ = SpGetUnitRotation(unitID)
+        local teeDefID = SpGetUnitDefID(teeData.id)
+        local goalRX, goalRY, goalRZ
+        if UnitDefs[teeDefID] and UnitDefs[teeDefID].upright then
+            goalRX, goalRY, goalRZ = 0, startRY, 0
+        else
+            local nx, ny, nz = SpGetGroundNormal(goalX, goalZ)
+            goalRX = math.atan2(-nz, ny)
+            goalRY = startRY
+            goalRZ = math.atan2(nx, ny)
+        end
+
+        local aborted = false
         for f = 0, loadTime - 1 do
             local t = progress[f]
             teeData.animProgress = 1 - t -- keep track of our progress for Killed() script
@@ -302,12 +312,12 @@ function TransportAnimator.Unload(teeData, goalX, goalY, goalZ, doAnim)
             if isDead(teeData.id) then aborted = true ; break end
         end
         teeData.wbX = nil ; teeData.wbY = nil ; teeData.wbZ = nil -- invalidate cache
-    end
 
-    if not aborted then -- unload anim completed successfully, ensure unit is at final position/rotation
-        SpMoveCtrl.SetPosition(teeData.id, goalX, goalY, goalZ)
-        SpMoveCtrl.SetRotation(teeData.id, goalRX, goalRY, goalRZ)
-        SpMoveCtrl.Disable(teeData.id)
+        if not aborted then -- unload anim completed, ensure unit is at final position/rotation
+            SpMoveCtrl.SetPosition(teeData.id, goalX, goalY, goalZ)
+            SpMoveCtrl.SetRotation(teeData.id, goalRX, goalRY, goalRZ)
+            SpMoveCtrl.Disable(teeData.id)
+        end
     end
 
     resetSlot(teeData.slotID)
