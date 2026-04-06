@@ -19,6 +19,7 @@ end
 
 local GetProjectilePosition = Spring.GetProjectilePosition
 
+local waterIsLava = Spring.GetModOptions().map_waterislava
 
 local depthChargeWeapons = {}
 for weaponID, weaponDef in pairs(WeaponDefs) do
@@ -27,11 +28,11 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
         --    depthChargeWeapons[weaponID] = 'splash-tiny'
         if weaponDef.visuals.modelName == 'objects3d/torpedo.s3o' or weaponDef.visuals.modelName == 'objects3d/cordepthcharge.s3o'
         or weaponDef.visuals.modelName == 'objects3d/torpedo.3do' or weaponDef.visuals.modelName == 'objects3d/depthcharge.3do' then
-            depthChargeWeapons[weaponID] = 'splash-torpedo'
+            depthChargeWeapons[weaponID] = waterIsLava and 'lavasplash-torpedo' or 'splash-torpedo'
         elseif weaponDef.visuals.modelName == 'objects3d/coradvtorpedo.s3o' or weaponDef.visuals.modelName == 'objects3d/Advtorpedo.3do' then
-            depthChargeWeapons[weaponID] = 'splash-tiny'
+            depthChargeWeapons[weaponID] = waterIsLava and 'lavasplash-tiny' or 'splash-tiny'
         else
-            depthChargeWeapons[weaponID] = 'splash-torpedo'
+            depthChargeWeapons[weaponID] = waterIsLava and 'lavasplash-torpedo' or 'splash-torpedo'
         end
     end
 end
