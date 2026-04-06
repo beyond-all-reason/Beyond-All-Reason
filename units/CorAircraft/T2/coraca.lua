@@ -72,20 +72,6 @@ return {
 			techlevel = 2,
 			unitgroup = "buildert2",
 		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3-builder",
-				[2] = "airdeathceg4-builder",
-				[3] = "airdeathceg2-builder",
-			},
-		},
 		sounds = {
 			build = "nanlath2",
 			canceldestruct = "cancel2",

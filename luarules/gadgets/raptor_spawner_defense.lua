@@ -1298,6 +1298,9 @@ if gadgetHandler:IsSyncedCode() then
 	function spawnCreepStructuresWave()
 		tracy.ZoneBeginN("Raptors:spawnCreepStructuresWave")
 		for uName, uSettings in pairs(config.raptorTurrets) do
+			if not UnitDefNames[uName] then
+				-- skip unknown unit names from config
+			else
 			if not uSettings.maxQueenAnger then uSettings.maxQueenAnger = uSettings.minQueenAnger + 100 end
 			if uSettings.minQueenAnger <= techAnger and uSettings.maxQueenAnger >= techAnger then
 				local numOfTurrets = (uSettings.spawnedPerWave*(1-config.raptorPerPlayerMultiplier))+(uSettings.spawnedPerWave*config.raptorPerPlayerMultiplier)*(math.min(SetCount(humanTeams), 8))
@@ -1336,6 +1339,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 			end
+			end -- if UnitDefNames[uName]
 		end
 		tracy.ZoneEnd()
 	end
@@ -1931,7 +1935,7 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				techAnger = (t - (config.gracePeriodInitial/modOptions.raptor_graceperiodmult)) / ((queenTime/(modOptions.raptor_queentimemult)) - (config.gracePeriodInitial/modOptions.raptor_graceperiodmult)) * 100
 			end
-			
+
 			techAnger = math.ceil(techAnger*((config.economyScale*0.5)+0.5))
 			techAnger = math.clamp(techAnger, 0, 999)
 

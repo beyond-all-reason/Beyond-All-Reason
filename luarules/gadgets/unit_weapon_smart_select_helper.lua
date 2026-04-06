@@ -296,6 +296,7 @@ local function toggleTrajectory(unitID, state)
     local cmdDescID = spFindUnitCmdDesc(unitID, CMD_SMART_TOGGLE)
     if cmdDescID then
 		local unitData = smartUnits[unitID]
+		if not unitData then return end
         state = (state % 3)
         trajectoryCmdDesc.params[1] = state
         spEditUnitCmdDesc(unitID, cmdDescID, {params = trajectoryCmdDesc.params})

@@ -65,11 +65,5 @@ return {
 				shadtrans = 1,
 			},
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
-			},
-		},
 	},
 }
