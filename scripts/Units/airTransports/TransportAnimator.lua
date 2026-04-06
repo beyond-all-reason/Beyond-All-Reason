@@ -273,7 +273,7 @@ function TransportAnimator.Unload(teeData, goalX, goalY, goalZ, doAnim)
     SpUnitDetach(teeData.id)
 
     if doAnim ~= false then
-        -- offset goal by the slot's world-space offset from unit center, so the tee drops from the slot's actual position
+        Spring.SetUnitRulesParam(teeData.id, "inTransportAnim", 1)
         local px, py, pz    = SpGetUnitPiecePosDir(unitID, teeData.slotID)
         local terX, _, terZ = SpGetUnitPosition(unitID)
         goalX = goalX + (px - terX)
@@ -330,6 +330,7 @@ function TransportAnimator.Unload(teeData, goalX, goalY, goalZ, doAnim)
 
     resetSlot(teeData.slotID)
     local count = CargoHandler.Unregister(teeData.id, cargo)
+    Spring.SetUnitRulesParam(teeData.id, "inTransportAnim", 0)
     if count == 0 then TransportAnimator.HasCargo(false) end
     CargoHandler.EndUnloading(cargo)
 end

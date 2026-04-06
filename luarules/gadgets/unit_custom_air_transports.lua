@@ -112,6 +112,7 @@ end
 function gadget:AllowUnitTransport(transporterID, transporterUnitDefID, transporterTeam, transporteeID, transporteeUnitDefID, transporteeTeam)
 	local _, y, _ = spGetUnitPosition(transporteeID)
 	if isUnderwater(transporteeID, y) then return false end
+	if Spring.GetUnitRulesParam(transporteeID, "inTransportAnim") == 1 then return false end
 	if customTransportLoad[transporterUnitDefID] then
 		local nSeats       = Spring.GetUnitRulesParam(transporterID, "nSeats")    or 0
 		local usedSeats    = Spring.GetUnitRulesParam(transporterID, "usedSeats") or 0
