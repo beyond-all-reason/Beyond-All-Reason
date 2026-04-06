@@ -78,11 +78,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:rocketflare",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -175,7 +170,7 @@ return {
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 1,
 				range = 650,
-				reloadtime = 8,
+				reloadtime = 7.5,
 				rgbcolor = "0.34 0.64 0.94",
 				soundhit = "mavgun3",
 				soundhitwet = "splshbig",

@@ -254,6 +254,15 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
+	if modOptions.legionsimplifiedmexes then
+		local legiont15mex = {
+			legmext15	= true,
+		}
+		if legiont15mex[basename] then
+			uDef.customparams.modoption_blocked = true
+		end
+	end
+
 	if modOptions.unit_restrictions_noconverters then
 		if customparams.energyconv_capacity and customparams.energyconv_efficiency then
 			customparams.modoption_blocked = true
@@ -973,7 +982,7 @@ function UnitDef_Post(name, uDef)
 		--end
 	end
 
-	-- Sets idleautoheal to 5hp/s after 1800 frames aka 1 minute. 
+	-- Sets idleautoheal to 5hp/s after 1800 frames aka 1 minute.
 	if uDef.idleautoheal == nil then
 		uDef.idleautoheal = 5
 	end
@@ -1158,6 +1167,98 @@ function UnitDef_Post(name, uDef)
 	if modOptions.community_balance_patch ~= "disabled" then
 		local community_balance_patch = VFS.Include("unitbasedefs/community_balance_patch_defs.lua")
 		uDef = community_balance_patch.communityBalanceTweaks(name, uDef, modOptions)
+	end
+
+	-- Legion Simplified Mex Rebalance
+	if modOptions.legionsimplifiedmexes == true then
+		if name == "legmex" then
+			uDef.energyupkeep = 3
+			uDef.extractsmetal = 0.001
+		end
+		if name == "legck" then
+			uDef.metalcost = math.ceil(uDef.metalcost*1.1)
+			uDef.energycost = math.ceil(uDef.energycost*0.8)
+		end
+		if name == "leggob" then
+			uDef.metalcost = math.ceil(uDef.metalcost*1.25)
+			uDef.energycost = math.ceil(uDef.energycost*0.7)
+		end
+		if name == "leglob" then
+			uDef.metalcost = math.ceil(uDef.metalcost*1.1)
+			uDef.energycost = math.ceil(uDef.energycost*0.8)
+		end
+		if name == "legaabot" then
+			uDef.metalcost = math.ceil(uDef.metalcost*1.1)
+			uDef.energycost = math.ceil(uDef.energycost*0.8)
+		end
+		if name == "legcen" then
+			uDef.metalcost = math.ceil(uDef.metalcost*0.9)
+			uDef.energycost = math.ceil(uDef.energycost*1.1)
+		end
+		if name == "legkark" then
+			uDef.metalcost = math.ceil(uDef.metalcost*0.9)
+			uDef.energycost = math.ceil(uDef.energycost*1.3)
+		end
+		if name == "legbal" then
+			uDef.metalcost = math.ceil(uDef.metalcost*0.9)
+			uDef.energycost = math.ceil(uDef.energycost*1.2)
+		end
+		if name == "legcv" then
+			uDef.metalcost = math.ceil(uDef.metalcost*1.1)
+			uDef.energycost = math.ceil(uDef.energycost*0.8)
+		end
+		if name == "leghades" then
+			uDef.metalcost = math.ceil(uDef.metalcost*1.2)
+			uDef.energycost = math.ceil(uDef.energycost*0.6)
+		end
+		if name == "leghelios" then
+			uDef.metalcost = math.ceil(uDef.metalcost*1.1)
+			uDef.energycost = math.ceil(uDef.energycost*0.8)
+		end
+		if name == "legbar" then
+			uDef.metalcost = math.ceil(uDef.metalcost*0.9)
+			uDef.energycost = math.ceil(uDef.energycost*1.3)
+		end
+		if name == "legrail" then
+			uDef.metalcost = math.ceil(uDef.metalcost*0.95)
+			uDef.energycost = math.ceil(uDef.energycost*1.05)
+		end
+		if name == "leggat" then
+			uDef.metalcost = math.ceil(uDef.metalcost*0.9)
+			uDef.energycost = math.ceil(uDef.energycost*1.3)
+		end
+		if name == "legnavyscout" then
+			uDef.metalcost = math.ceil(uDef.metalcost*1.15)
+			uDef.energycost = math.ceil(uDef.energycost*0.7)
+		end
+		if name == "legnavyaaship" then
+			uDef.metalcost = math.ceil(uDef.metalcost*1.15)
+			uDef.energycost = math.ceil(uDef.energycost*0.7)
+		end
+		if name == "legnavysub" then
+			uDef.metalcost = math.ceil(uDef.metalcost*1.05)
+			uDef.energycost = math.ceil(uDef.energycost*0.9)
+		end
+		if name == "legnavysub" then
+			uDef.metalcost = math.ceil(uDef.metalcost*1.05)
+			uDef.energycost = math.ceil(uDef.energycost*0.9)
+		end
+		if name == "legnavyfrigate" then
+			uDef.metalcost = math.ceil(uDef.metalcost*1.2)
+			uDef.energycost = math.ceil(uDef.energycost*0.6)
+		end
+		if name == "legnavyconship" then
+			uDef.metalcost = math.ceil(uDef.metalcost*1.1)
+			uDef.energycost = math.ceil(uDef.energycost*0.8)
+		end
+		if name == "legnavydestro" then
+			uDef.metalcost = math.ceil(uDef.metalcost*0.95)
+			uDef.energycost = math.ceil(uDef.energycost*1.1)
+		end
+		if name == "legnavyartyship" then
+			uDef.metalcost = math.ceil(uDef.metalcost*0.95)
+			uDef.energycost = math.ceil(uDef.energycost*1.1)
+		end
 	end
 
 	-- Naval Balance Adjustments, if anything breaks here blame ZephyrSkies
@@ -1617,6 +1718,18 @@ function UnitDef_Post(name, uDef)
 		-- Deduplicate buildoptions (various modoptions or later mods can add the same units)
 		-- Multiple unit defs can share the same table reference, so we create a new table for each
 		uDef.buildoptions = table.getUniqueArray(buildoptions)
+	end
+
+	-- Suppress engine default piece explosion effects (handled by gfx_death_fire_smoke_gl4 widget)
+	if not uDef.sfxtypes then
+		uDef.sfxtypes = {}
+	end
+	if not uDef.sfxtypes.pieceexplosiongenerators then
+		uDef.sfxtypes.pieceexplosiongenerators = { "blank" }
+	end
+	-- Suppress engine default crash explosion effects (handled by gfx_death_fire_smoke_gl4 widget)
+	if not uDef.sfxtypes.crashexplosiongenerators then
+		uDef.sfxtypes.crashexplosiongenerators = { "blank" }
 	end
 end
 

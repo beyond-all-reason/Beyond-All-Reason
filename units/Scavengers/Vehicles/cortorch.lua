@@ -79,10 +79,6 @@ return {
 				[1] = "custom:pilotlight",
 				[2] = "custom:flamestream",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
