@@ -3,7 +3,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name    = "Replay metadata API",
-		desc    = "Provides an API for storing replay metadata. File I/O is handled by the companion widget (api_replay_metadata_writer).",
+		desc    = "Provides an API for storing replay metadata.",
 		author  = "uBdead",
 		date    = "February 2026",
 		license = "GNU GPL, v2 or later",
