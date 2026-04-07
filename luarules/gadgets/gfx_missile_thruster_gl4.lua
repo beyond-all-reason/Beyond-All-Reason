@@ -100,12 +100,12 @@ local THRUSTER_CONFIGS = {
 	},
 	-- Tiny missiles
 	missiletrailtiny = {
-		length = -16, lengthRand = 4,
-		size = 1.6, sizeGrowth = 0,
+		length = -13, lengthRand = 4,
+		size = 1.2, sizeGrowth = 0,
 		colorR = 1.0, colorG = 0.66, colorB = 0.25,
 		colorEndR = 0.55, colorEndG = 0.3, colorEndB = 0.05,
 		glowSize = 22, glowR = 0.1, glowG = 0.06, glowB = 0.01,
-		thrusterOffset = 3,
+		thrusterOffset = -5.5,
 	},
 	-- Medium missiles
 	missiletrailmedium = {

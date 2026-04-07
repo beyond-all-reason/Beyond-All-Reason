@@ -174,6 +174,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1000,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					default = 0,
 				},

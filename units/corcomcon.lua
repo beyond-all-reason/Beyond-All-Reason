@@ -173,6 +173,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 75,
 					subs = 5,
@@ -211,6 +214,9 @@ return {
 				waterweapon = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					default = 200,
 					subs = 100,
@@ -249,6 +255,9 @@ return {
 				weapontimer = 4.2,
 				weapontype = "DGun",
 				weaponvelocity = 300,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 99999,
 					scavboss = 1000,
