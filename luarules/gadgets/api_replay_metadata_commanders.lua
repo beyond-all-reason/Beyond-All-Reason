@@ -33,6 +33,11 @@ local function bufferCommanderMetadata()
 				local health, maxHealth = Spring.GetUnitHealth(unitID)
 				local xp = Spring.GetUnitExperience(unitID) or 0
 
+				-- round the positions
+				x = math.floor(x + 0.5)
+				y = math.floor(y + 0.5)
+				z = math.floor(z + 0.5)
+
 				-- Find or create the commander entry in the array
 				local entry = nil
 				for _, cmd in ipairs(commanders) do
