@@ -65,9 +65,14 @@ function gadget:Initialize()
 	end
 end
 
-function gadget:GameOver()
+local function delayedGameOver()
 	SaveReplayMetadata()
 	if GG.ReplayMetadata then
 		GG.ReplayMetadata = nil
 	end
+end
+
+function gadget:GameOver()
+	-- Schedule the save to be a frame later so all the other gadgets have a chance to write their metadata before we save
+	Script.DelayByFrames(1, delayedGameOver)
 end
