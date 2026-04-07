@@ -401,6 +401,11 @@ local parameters = {
 			required = true,
 			type = Types.Number,
 		},
+		[3] = {
+			name = 'unitDefName',
+			required = false,
+			type = Types.UnitDefName,
+		},
 	},
 	[triggerTypes.TotalUnitsBuilt] = {
 		[1] = {
@@ -412,6 +417,11 @@ local parameters = {
 			name = 'quantity',
 			required = true,
 			type = Types.Number,
+		},
+		[3] = {
+			name = 'unitDefName',
+			required = false,
+			type = Types.UnitDefName,
 		},
 	},
 	[triggerTypes.TotalUnitsKilled] = {
@@ -425,6 +435,11 @@ local parameters = {
 			required = true,
 			type = Types.Number,
 		},
+		[3] = {
+			name = 'unitDefName',
+			required = false,
+			type = Types.UnitDefName,
+		},
 	},
 	[triggerTypes.TotalUnitsCaptured] = {
 		[1] = {
@@ -436,6 +451,11 @@ local parameters = {
 			name = 'quantity',
 			required = true,
 			type = Types.Number,
+		},
+		[3] = {
+			name = 'unitDefName',
+			required = false,
+			type = Types.UnitDefName,
 		},
 	},
 
