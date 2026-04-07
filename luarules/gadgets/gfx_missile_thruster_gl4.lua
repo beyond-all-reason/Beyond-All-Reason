@@ -150,6 +150,14 @@ local THRUSTER_CONFIGS = {
 		glowSize = 32, glowR = 0.14, glowG = 0.045, glowB = 0.125,
 		thrusterOffset = -8,
 	},
+	["missiletrailaa-large"] = {
+		length = -100, lengthRand = 2,
+		size = 7.5, sizeGrowth = 0,
+		colorR = 1.0, colorG = 0.5, colorB = 0.85,
+		colorEndR = 0.5, colorEndG = 0.1, colorEndB = 0.4,
+		glowSize = 60, glowR = 0.14, glowG = 0.045, glowB = 0.125,
+		thrusterOffset = -35,
+	},
 	-- Mship (corroyspecial) - larger, redder
 	missiletrailmship = {
 		length = -7, lengthRand = 2,

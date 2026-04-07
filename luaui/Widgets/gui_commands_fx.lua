@@ -91,6 +91,9 @@ local lineTextureSpeed = 4
 -- limit amount of effects to keep performance sane
 local maxCommandCount = 700        -- dont draw more commands than this amount, but keep processing them
 local maxTotalCommandCount = 1200        -- dont add more commands above this amount
+local cmdLimitPerUnitBase = 50            -- max commands fetched per unit at low load
+local cmdLimitPerUnitMin = 8              -- min commands fetched per unit at high load
+local cmdLimitPerUnit = cmdLimitPerUnitBase
 
 local lineImg = ":n:LuaUI/Images/commandsfx/line.dds"
 
@@ -145,6 +148,8 @@ local osClock
 
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitCommands = Spring.GetUnitCommands
+local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
+local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spIsUnitInView = Spring.IsUnitInView
 local spIsSphereInView = Spring.IsSphereInView
 local spValidUnitID = Spring.ValidUnitID
@@ -191,6 +196,9 @@ local segDedupTbl = {}        -- [key] = generation
 local ghostDedupTbl = {}      -- [key] = generation
 local dedupGeneration = 0
 local MAX_BUILD_GHOSTS = 300  -- cap glUnitShape calls (expensive)
+
+-- Queue sharing: units with identical command queues share one parsed table
+local queueShareCache = {}  -- fingerprint -> { queue, queueSize, refCount }
 
 local function InitGL4()
 	if not gl.GetVBO or not gl.GetVAO or not gl.CreateShader then
@@ -373,6 +381,35 @@ local function releaseTable(t)
 	end
 end
 
+local function getQueueFingerprint(unitID)
+	local cmdCount = spGetUnitCommandCount(unitID)
+	if not cmdCount or cmdCount <= 0 then return nil end
+	-- GetUnitCurrentCommand returns values directly — zero table allocation
+	local cmdID, _, _, p1, p2, p3 = spGetUnitCurrentCommand(unitID)
+	if not cmdID then return nil end
+	-- Numeric fingerprint: cmdCount + cmdID + quantized position
+	local qp1 = mathFloor((p1 or 0) * 0.0625) % 1024
+	local qp3 = mathFloor((p3 or 0) * 0.0625) % 1024
+	local fid = cmdID < 0 and (50000 - cmdID) or cmdID
+	return cmdCount * 4294967296 + fid * 1048576 + qp1 * 1024 + qp3
+end
+
+local function releaseQueue(command)
+	if not command.queue then return end
+	local shared = command.sharedQueue
+	if shared then
+		shared.refCount = shared.refCount - 1
+		if shared.refCount <= 0 then
+			releaseTable(shared.queue)
+			shared.queue = nil
+		end
+	else
+		releaseTable(command.queue)
+	end
+	command.queue = nil
+	command.sharedQueue = nil
+end
+
 -- Cache for unit positions to avoid repeated API calls per frame
 -- Uses 3 flat tables instead of {x,y,z} sub-tables to avoid per-unit allocation
 local unitPosCacheX = {}
@@ -514,10 +551,7 @@ local function RemovePreviousCommand(unitID)
 	if unitCommand[unitID] and commands[unitCommand[unitID]] then
 		local prev = commands[unitCommand[unitID]]
 		prev.draw = false
-		if prev.queue then
-			releaseTable(prev.queue)
-		end
-		prev.queue = nil
+		releaseQueue(prev)
 		prev.queueSize = 0
 	end
 end
@@ -564,12 +598,12 @@ local QTARGET_UNIT = 2     -- unit target (needs live position each frame)
 local QTARGET_FEATURE = 3  -- feature target (position pre-extracted; features are static)
 
 local function getCommandsQueue(unitID)
-	local cmdCount = Spring.GetUnitCommandCount(unitID)
+	local cmdCount = spGetUnitCommandCount(unitID)
 	if not cmdCount or cmdCount <= 0 then
 		local empty = getTable()
 		return empty, 0
 	end
-	local fetchCount = cmdCount < 25 and cmdCount or 25
+	local fetchCount = cmdCount < cmdLimitPerUnit and cmdCount or cmdLimitPerUnit
 	local q = spGetUnitCommands(unitID, fetchCount) or {}
 	local our_q = getTable()
 	local our_qCount = 0
@@ -670,9 +704,21 @@ function widget:Update(dt)
 
 		-- process new commands (cant be done directly because at
 		-- widget:UnitCommand() the queue isnt updated yet)
-		-- Batch-limit: process at most 15 per tick to avoid allocation spikes
-		local processLimit = math.min(unprocessedCommandsNum, 15)
+		-- Batch-limit: process at most 80 per tick to avoid allocation spikes
+		local processLimit = math.min(unprocessedCommandsNum, 80)
 		local processedCount = 0
+
+		-- Scale per-unit command fetch limit based on total active commands
+		if totalCommands < 200 then
+			cmdLimitPerUnit = cmdLimitPerUnitBase
+		elseif totalCommands > 800 then
+			cmdLimitPerUnit = cmdLimitPerUnitMin
+		else
+			cmdLimitPerUnit = mathMax(cmdLimitPerUnitMin, mathFloor(cmdLimitPerUnitBase - (totalCommands - 200) * ((cmdLimitPerUnitBase - cmdLimitPerUnitMin) / 600)))
+		end
+
+		-- Clear queue share cache for this batch
+		for fp in pairs(queueShareCache) do queueShareCache[fp] = nil end
 
 		for k = 1, processLimit do
 			local cmd = unprocessedCommands[k]
@@ -685,11 +731,31 @@ function widget:Update(dt)
 				RemovePreviousCommand(cmd.unitID)
 				unitCommand[cmd.unitID] = i
 
-				-- get pruned command queue
-				local our_q, qsize = getCommandsQueue(cmd.unitID)
-				commands[i].queue = our_q
-				commands[i].queueSize = qsize
-				commands[i].sharedQueue = false
+				-- Try to share queue with another unit that has identical commands
+				local fingerprint = getQueueFingerprint(cmd.unitID)
+				local cached = fingerprint and queueShareCache[fingerprint]
+				local our_q, qsize
+				if cached and cached.queue then
+					-- Reuse existing parsed queue (zero allocation)
+					cached.refCount = cached.refCount + 1
+					our_q = cached.queue
+					qsize = cached.queueSize
+					commands[i].queue = our_q
+					commands[i].queueSize = qsize
+					commands[i].sharedQueue = cached
+				else
+					-- Full parse needed
+					our_q, qsize = getCommandsQueue(cmd.unitID)
+					commands[i].queue = our_q
+					commands[i].queueSize = qsize
+					if fingerprint then
+						local entry = { queue = our_q, queueSize = qsize, refCount = 1 }
+						queueShareCache[fingerprint] = entry
+						commands[i].sharedQueue = entry
+					else
+						commands[i].sharedQueue = false
+					end
+				end
 
 				if qsize > 0 then
 					commands[i].draw = true
@@ -698,7 +764,7 @@ function widget:Update(dt)
 				-- get location of final command (pre-extracted in getCommandsQueue)
 				if qsize > 0 then
 					local lastCmd = our_q[qsize]
-					if lastCmd.tx then
+					if lastCmd and lastCmd.tx then
 						commands[i].x = lastCmd.tx
 						commands[i].y = lastCmd.ty
 						commands[i].z = lastCmd.tz
@@ -801,10 +867,7 @@ function widget:DrawWorldPreUnit()
 			local unitID = command.unitID
 
 			if progress >= 1 then
-				if command.queue then
-					releaseTable(command.queue)
-				end
-				command.queue = nil
+				releaseQueue(command)
 				commands[i] = nil
 				totalCommands = totalCommands - 1
 				if unitCommand[unitID] == i then
@@ -916,10 +979,12 @@ function widget:DrawWorldPreUnit()
 	-- Build queue ghosts (legacy pass — requires gl.UnitShape)
 	local ghostCount = buildGhosts.count
 	if ghostCount > 0 then
-		-- UnitShape renders 3D models — needs proper depth/culling state
+		-- Additive blending so the fading ghost overlays without cancelling
+		-- the permanent shape from gfx_showbuilderqueue
 		glDepthTest(GL.LEQUAL)
-		gl.DepthMask(true)
+		gl.DepthMask(false)
 		gl.Culling(GL.BACK)
+		glBlending(GL.SRC_ALPHA, GL.ONE)
 		local bgX, bgY, bgZ = buildGhosts.x, buildGhosts.y, buildGhosts.z
 		local bgDefID, bgFacing = buildGhosts.defID, buildGhosts.facing
 		local bgR, bgG, bgB, bgA = buildGhosts.r, buildGhosts.g, buildGhosts.b, buildGhosts.a
@@ -932,7 +997,7 @@ function widget:DrawWorldPreUnit()
 			glPopMatrix()
 		end
 		gl.Culling(false)
-		gl.DepthMask(false)
+		glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		glDepthTest(false)
 	end
 
