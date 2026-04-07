@@ -12,8 +12,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 7800,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.01018,
 		maxdec = 0.02037,
@@ -90,10 +88,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-large",
 				[2] = "custom:dust_cloud_dirt",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

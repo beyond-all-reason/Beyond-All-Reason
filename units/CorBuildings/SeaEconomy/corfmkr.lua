@@ -10,8 +10,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 167,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -33,13 +31,6 @@ return {
 			removewait = true,
 			subfolder = "CorBuildings/SeaEconomy",
 			unitgroup = "metal",
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			activate = "arm-bld-mm-activate",

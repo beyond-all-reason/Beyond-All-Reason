@@ -37,6 +37,7 @@ local spTraceScreenRay = Spring.TraceScreenRay
 local spGetCameraPosition = Spring.GetCameraPosition
 local spEcho = Spring.Echo
 local spGetAllUnits = Spring.GetAllUnits
+local spGetVisibleUnits = Spring.GetVisibleUnits
 
 ----------IMPORTANT USAGE INSTRUCTIONS/ README----------
 
@@ -102,6 +103,10 @@ local grassConfig = {
     HASSHADOWS = 1, -- 0 for disable, no real difference in this (does not work yet)
 	GRASSBRIGHTNESS = 1.0; -- this is for future dark mode
 	COMPACTVBO = 1, -- if set to 1, then the grass patch vbo will be compacted to 8 vertices per patch, otherwise it will be 17 vertices per patch
+	UNITBENDENABLED = 1, -- 1 to enable grass bending away from units, 0 to disable
+	UNITBENDSTRENGTH = 7, -- how strongly grass bends away from nearby units
+	UNITBENDFALLOFF = 0.8, -- falloff exponent for bending effect (higher = sharper falloff)
+	UNITBENDSHRINK = 0.55, -- how much grass shrinks near unit center (0 = no shrink, 1 = fully gone)
   },
   grassBladeColorTex = "LuaUI/Images/luagrass/grass_field_medit_flowering.dds.cached.dds", -- rgb + alpha transp
   mapGrassColorModTex = "$grass", -- by default this means that grass will be colorized with the minimap
@@ -114,7 +119,9 @@ local grassConfig = {
 
 local nightFactor = {1,1,1,1}
 
-local distanceMult = 0.4
+local distanceMult = 0.45
+
+local MAX_BEND_UNITS = 128
 
 --------------------------------------------------------------------------------
 -- map custom config
@@ -213,6 +220,8 @@ local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local vsx, vsy = gl.GetViewSizes()
 local minHeight, maxHeight = Spring.GetGroundExtremes()
 local removedBelowHeight
+local lastLavaLevel
+local lavaCheckInterval = 30 -- check every N game frames
 
 local processChanges = false	-- auto enabled when map has grass or editmode toggles
 
@@ -257,10 +266,118 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
+-- Unit bending: pre-compute collision radii for non-building, non-flying units
+local unitBendSSBO = nil
+local unitBendData = {}
+local unitBendCount = 0
+for i = 1, MAX_BEND_UNITS * 4 do unitBendData[i] = 0 end
+
+local unitBendRadius = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	local isShip = unitDef.modCategories and unitDef.modCategories.ship
+	if not buildingRadius[unitDefID] and not unitDef.canFly and not isShip then
+		local radius = unitDef.radius or 20
+		if radius > 10 then
+			unitBendRadius[unitDefID] = radius
+		end
+	end
+end
+
+local cachedUnitList = {} -- array of {x, z, radius} for indexed iteration
+local cachedUnitCount = 0
+local lastUploadedCount = -1 -- track to skip redundant uploads
+local unitScanDirty = true
+local skipBendUntilGF = 0 -- when conditions fail, skip scanning for 30 frames to avoid table allocs
+
+local function scanUnitPositions(gf)
+	-- When previously skipped, avoid all API calls until recheck time
+	if gf < skipBendUntilGF then return end
+
+	local cx, cy, cz = spGetCameraPosition()
+	local gh = Spring.GetGroundHeight(cx, cz) or 0
+	local camHeight = cy - gh
+	-- Skip bending when camera is too high to see grass detail
+	if camHeight > grassConfig.grassShaderParams.FADEEND * distanceMult then
+		skipBendUntilGF = gf + 30
+		if cachedUnitCount > 0 then
+			cachedUnitCount = 0
+			unitScanDirty = true
+		end
+		return
+	end
+
+	local visibleUnits = spGetVisibleUnits(-1, nil, false)
+	-- Skip when too many units visible (zoomed out, expensive, not noticeable)
+	if visibleUnits and #visibleUnits > 250 then
+		skipBendUntilGF = gf + 30
+		if cachedUnitCount > 0 then
+			cachedUnitCount = 0
+			unitScanDirty = true
+		end
+		return
+	end
+
+	local count = 0
+	if visibleUnits then
+		for i = 1, #visibleUnits do
+			local unitID = visibleUnits[i]
+			local unitDefID = spGetUnitDefID(unitID)
+			if unitDefID then
+				local radius = unitBendRadius[unitDefID]
+				if radius then
+					local ux, _, uz = spGetUnitPosition(unitID)
+					if ux then
+						count = count + 1
+						local entry = cachedUnitList[count]
+						if entry then
+							entry[1], entry[2], entry[3] = ux, uz, radius + 15
+						else
+							cachedUnitList[count] = {ux, uz, radius + 15}
+						end
+					end
+				end
+			end
+		end
+	end
+	cachedUnitCount = count
+	unitScanDirty = true
+end
+
+local function updateUnitBendSSBO()
+	if not unitBendSSBO then return end
+
+	-- Skip upload if nothing changed
+	if not unitScanDirty and lastUploadedCount == cachedUnitCount then return end
+	unitScanDirty = false
+
+	-- Pack SSBO from cached unit list (indexed array, no pairs())
+	local count = mathMin(cachedUnitCount, MAX_BEND_UNITS)
+	unitBendCount = count
+	for i = 1, count do
+		local pos = cachedUnitList[i]
+		local offset = (i - 1) * 4
+		unitBendData[offset + 1] = pos[1]
+		unitBendData[offset + 2] = pos[2]
+		unitBendData[offset + 3] = pos[3]
+		unitBendData[offset + 4] = 1.0
+	end
+
+	-- Zero out remaining only if count decreased
+	if count < lastUploadedCount then
+		for i = count * 4 + 1, lastUploadedCount * 4 do
+			unitBendData[i] = 0
+		end
+	end
+	lastUploadedCount = count
+
+	unitBendSSBO:Upload(unitBendData)
+end
+
 local function goodbye(reason)
   spEcho("Map Grass GL4 widget exiting with reason: "..reason)
   if grassPatchVBO then grassPatchVBO = nil end
   if grassInstanceVBO then grassInstanceVBO = nil end
+  if unitBendSSBO then unitBendSSBO = nil end
   if grassVAO then grassVAO = nil end
   --if grassShader then grassShader:Finalize() end
   widgetHandler:RemoveWidget()
@@ -402,6 +519,7 @@ local gCT = {} -- Grass Cache Table
 local function updateGrassInstanceVBO(wx, wz, size, sizemod, vboOffset)
 	-- we are assuming that we can do this
 	--spEcho(wx, wz, sizemod)
+	if not grassInstanceVBO then return end
 	local vboOffset = vboOffset or world2grassmap(wx,wz) * grassInstanceVBOStep
 	if vboOffset<0 or vboOffset >= #grassInstanceData then	-- top left of map gets vboOffset: 0
 		--spEcho(boOffset > #grassInstanceData",vboOffset,#grassInstanceData, " you probably need to /editgrass")
@@ -566,6 +684,11 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function widget:GameFrame(gf)
+	-- Scan unit positions every other gameframe (units move on gameframes)
+	if unitBendSSBO then-- and gf % 2 == 0 then
+		scanUnitPositions(gf)
+	end
+
 	if not processChanges then
 		return
 	end
@@ -576,6 +699,17 @@ function widget:GameFrame(gf)
 			removeUnitGrassQueue[unitID] = removeUnitGrassQueue[unitID] - 1
 			if count <= 1 then
 				removeUnitGrassQueue[unitID] = nil
+			end
+		end
+	end
+
+	-- check lava level and remove grass where lava is higher than ground
+	if gf % lavaCheckInterval == 0 then
+		local lavaLevel = Spring.GetGameRulesParam("lavaLevel")
+		if lavaLevel and lavaLevel ~= -99999 and (not lastLavaLevel or lavaLevel > lastLavaLevel) then
+			lastLavaLevel = lavaLevel
+			if WG['grassgl4'] and WG['grassgl4'].removeGrassBelowHeight then
+				WG['grassgl4'].removeGrassBelowHeight(lavaLevel)
 			end
 		end
 	end
@@ -616,7 +750,6 @@ function widget:Update(dt)
 	end
 
 	if not placementMode then return end
-	local mx, my, lp, mp, rp, offscreen = spGetMouseState ( )
 	local mx, my, lp, mp, rp, offscreen = spGetMouseState ( )
 	local _ , coords = spTraceScreenRay(mx,my,true)
 	if coords then
@@ -786,6 +919,10 @@ local function makeShaderVAO()
 		silent = true,
 	}
 
+	if grassConfig.grassShaderParams.UNITBENDENABLED == 1 then
+		shaderSourceCache.uniformInt.unitBendCount = 0
+	end
+
   grassShader = LuaShader.CheckShaderUpdates(shaderSourceCache)
 
   if not grassShader then goodbye("Failed to compile grassShader GL4 ") end
@@ -908,6 +1045,9 @@ function widget:Initialize()
 	WG['grassgl4'].setDistanceMult = function(value)
 		distanceMult = value
 	end
+	WG['grassgl4'].getUnitBendEnabled = function()
+		return unitBendSSBO ~= nil
+	end
 	WG['grassgl4'].removeGrass = function(wx,wz,radius)
 		radius = radius or grassConfig.patchResolution
 		for x = wx - radius, wx + radius, grassConfig.patchResolution do
@@ -947,18 +1087,30 @@ function widget:Initialize()
 	makeGrassPatchVBO(grassConfig.patchSize)
 	makeGrassInstanceVBO()
 	makeShaderVAO()
+
+	-- Create unit bend SSBO after shader is ready
+	if grassConfig.grassShaderParams.UNITBENDENABLED == 1 then
+		unitBendSSBO = gl.GetVBO(GL.SHADER_STORAGE_BUFFER, false)
+		if unitBendSSBO then
+			unitBendSSBO:Define(MAX_BEND_UNITS, {{id = 0, name = 'unitBendPositions', size = 4}})
+			unitBendSSBO:Upload(unitBendData)
+		end
+	end
+
 	clearAllUnitGrass()
 	clearMetalspotGrass()
 	if Game.waterDamage > 0 then
 		WG['grassgl4'].removeGrassBelowHeight(20)
 	end
+	-- initial lava check
+	local initLavaLevel = Spring.GetGameRulesParam("lavaLevel")
+	if initLavaLevel and initLavaLevel ~= -99999 then
+		lastLavaLevel = initLavaLevel
+		WG['grassgl4'].removeGrassBelowHeight(initLavaLevel)
+	end
 	widgetHandler:RegisterGlobal('GadgetRemoveGrass', WG['grassgl4'].removeGrass)
 
-	processChanges = false
-	for k, v in pairs(grassInstanceData) do
-		processChanges = true
-		break
-	end
+	processChanges = next(grassInstanceData) ~= nil
 
 	widgetHandler:AddAction("placegrass", placegrassCmd, nil, 't')
 	widgetHandler:AddAction("savegrass", savegrassCmd, nil, 't')
@@ -970,6 +1122,7 @@ end
 
 function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('GadgetRemoveGrass')
+	if unitBendSSBO then unitBendSSBO = nil end
 
 	widgetHandler:RemoveAction("placegrass")
 	widgetHandler:RemoveAction("savegrass")
@@ -985,7 +1138,7 @@ function widget:SetConfigData(data)
 	end
 end
 
-function widget:GetConfigData(data)
+function widget:GetConfigData()
 	return {
 		distanceMult = distanceMult,
 	}
@@ -1089,20 +1242,22 @@ function widget:DrawWorldPreUnit()
   local cx, cy, cz = spGetCameraPosition()
   local gh = (Spring.GetGroundHeight(cx,cz) or 0)
 
-  local globalgrassfade = math.clamp(((grassConfig.grassShaderParams.FADEEND*distanceMult) - (cy-gh))/((grassConfig.grassShaderParams.FADEEND*distanceMult)-(grassConfig.grassShaderParams.FADESTART*distanceMult)), 0, 1)
+  local fadeEnd = grassConfig.grassShaderParams.FADEEND * distanceMult
+  local fadeStart = grassConfig.grassShaderParams.FADESTART * distanceMult
+  local camHeight = cy - gh
+  local globalgrassfade = math.clamp((fadeEnd - camHeight) / (fadeEnd - fadeStart), 0, 1)
 
   local expFactor = mathMin(1.0, 3 * timePassed) -- ADJUST THE TEMPORAL FACTOR OF 3
   smoothGrassFadeExp = smoothGrassFadeExp * (1.0 - expFactor) + globalgrassfade * expFactor
-  --spEcho(smoothGrassFadeExp, globalgrassfade)
 
-
-  if cy  < ((grassConfig.grassShaderParams.FADEEND*distanceMult) + gh) and grassVAO ~= nil and #grassInstanceData > 0 then
+  local grassDataLen = #grassInstanceData
+  if camHeight < fadeEnd and grassVAO ~= nil and grassDataLen > 0 then
 	local startInstanceIndex = 0
-	local instanceCount =  #grassInstanceData/4
+	local instanceCount = grassDataLen / 4
     if not placementMode then
 		startInstanceIndex, instanceCount = GetStartEndRows()
 	end
-	if instanceCount <= 0 or startInstanceIndex == #grassInstanceData/4 then return end
+	if instanceCount <= 0 or startInstanceIndex == grassDataLen / 4 then return end
     local _, _, isPaused = Spring.GetGameSpeed()
     if not isPaused then
       getWindSpeed()
@@ -1122,12 +1277,21 @@ function widget:DrawWorldPreUnit()
     glTexture(4, "$info")
     glTexture(5, "$heightmap")
 
+    -- Bind unit bending SSBO
+    if unitBendSSBO then
+      updateUnitBendSSBO()
+      unitBendSSBO:BindBufferRange(6)
+    end
+
     grassShader:Activate()
     --spEcho("globalgrassfade",globalgrassfade)
     local windStrength = mathMin(grassConfig.maxWindSpeed, mathMax(4.0, mathAbs(windDirX) + mathAbs(windDirZ)))
     grassShader:SetUniform("grassuniforms", offsetX, offsetZ, windStrength, smoothGrassFadeExp)
     grassShader:SetUniform("distanceMult", distanceMult)
 	grassShader:SetUniform("nightFactor", nightFactor[1], nightFactor[2], nightFactor[3], nightFactor[4])
+    if unitBendSSBO then
+      grassShader:SetUniformInt("unitBendCount", unitBendCount)
+    end
 
 
 	-- NOTE THAT INDEXED DRAWING DOESNT WORK YET!
@@ -1135,6 +1299,11 @@ function widget:DrawWorldPreUnit()
 
     if placementMode and Spring.GetGameFrame()%30 == 0 then spEcho("Drawing",instanceCount,"grass patches") end
     grassShader:Deactivate()
+
+    if unitBendSSBO then
+      unitBendSSBO:UnbindBufferRange(6)
+    end
+
     glTexture(0, false)
     glTexture(1, false)
     glTexture(2, false)

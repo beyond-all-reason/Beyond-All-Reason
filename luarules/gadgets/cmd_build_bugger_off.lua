@@ -21,9 +21,8 @@ local math_max = math.max
 local math_diag = math.diag
 local math_pointOnCircle = math.closestPointOnCircle
 
-local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
-local spGetUnitCommands = Spring.GetUnitCommands
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
+local spGetUnitStates = Spring.GetUnitStates
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 local spGetUnitIsDead = Spring.GetUnitIsDead
@@ -92,13 +91,7 @@ local USER_COMMAND_TIMEOUT	= 2 * gameSpeed
 -- Cooldown for area commands to prevent mass slowWatchBuilder calls
 local AREA_COMMAND_COOLDOWN = 2 * gameSpeed
 
-local function willBeNearTarget(unitID, tx, tz, maxDistance)
-	local ux, uy, uz = spGetUnitPosition(unitID)
-	if not ux then return false end
-
-	local vx, vy, vz = spGetUnitVelocity(unitID)
-	if not vx then return false end
-
+local function willBeNearTarget(ux, uz, vx, vz, tx, tz, maxDistance)
 	local sx = ux - tx
 	local sz = uz - tz
 
@@ -134,14 +127,8 @@ local function isInTargetArea(unitID, x, z, radius)
 end
 
 local function IsUnitRepeatOn(unitID)
-	local cmdDescs = spGetUnitCmdDescs(unitID)
-	if not cmdDescs then return false end
-	for _, desc in ipairs(cmdDescs) do
-		if desc.id == CMD.REPEAT then
-			return desc.params and desc.params[1] == "1"
-		end
-	end
-	return false
+	local states = spGetUnitStates(unitID)
+	return states and states["repeat"] == true
 end
 
 local function watchBuilder(builderID)
@@ -200,6 +187,12 @@ function gadget:GameFrame(frame)
 
 	local moveParams = insertMoveParams
 
+	-- Collect deferred actions to avoid modifying tables during pairs() iteration
+	local deferRemove = {}
+	local deferSlow = {}
+	local deferRemoveCount = 0
+	local deferSlowCount = 0
+
 	for builderID, _ in pairs(watchedBuilders) do
 		local cmdID, _, _, targetX, targetY, targetZ = spGetUnitCurrentCommand(builderID, 1)
 		local isBuilding  	 = spGetUnitIsBuilding(builderID) ~= nil
@@ -209,21 +202,29 @@ function gadget:GameFrame(frame)
 		local buildUnitDefData = cmdID and cachedUnitDefs[-cmdID]
 
 		if not x then
-			removeBuilder(builderID)
+			deferRemoveCount = deferRemoveCount + 1
+			deferRemove[deferRemoveCount] = builderID
 
 		elseif not buildUnitDefData or targetDistance > FAST_UPDATE_RADIUS then
-			slowWatchBuilder(builderID)
+			deferSlowCount = deferSlowCount + 1
+			deferSlow[deferSlowCount] = builderID
 
 		elseif not isBuilding and targetDistance < BUILDER_BUILD_RADIUS + buildUnitDefData.radius and spGetUnitIsBeingBuilt(builderID) == false then
 			local buildDefRadius    = buildUnitDefData.radius
 			local searchRadius		= SEARCH_RADIUS_OFFSET + buildDefRadius
 
 			-- Use cached cylinder lookup to reduce redundant API calls
-			local cacheKey = ("%.0f_%.0f_%.0f"):format(targetX, targetZ, searchRadius)
-			local interferingUnits = cylinderCache[cacheKey]
+			-- Nested numeric tables avoid string format allocation/GC overhead
+			local cache1 = cylinderCache[targetX]
+			if not cache1 then
+				cache1 = {}
+				cylinderCache[targetX] = cache1
+			end
+			local cacheKey2 = targetZ * 10000 + searchRadius
+			local interferingUnits = cache1[cacheKey2]
 			if not interferingUnits then
 				interferingUnits = spGetUnitsInCylinder(targetX, targetZ, searchRadius)
-				cylinderCache[cacheKey] = interferingUnits
+				cache1[cacheKey2] = interferingUnits
 			end
 
 			-- Escalate the radius every update. We want to send units away the minimum distance, but
@@ -244,26 +245,31 @@ function gadget:GameFrame(frame)
 				if not unitDefData or builderID == interferingID or visitedUnits[interferingID] then
 					-- continue
 				elseif shouldBuggeroff(interferingID, unitDefData, visitedUnits, builderTeam) then
-					-- todo: use blocking for "collision" detection, not unit radii, which are not the bounding radii (neither is bounding radius useful)
-					local unitRadius = unitDefData.radius
-					local areaRadius = math_max(buggerOffRadius, buildDefRadius + unitRadius)
-
-					if willBeNearTarget(interferingID, targetX, targetZ, areaRadius) then
-						local unitX, _, unitZ = spGetUnitPosition(interferingID)
+					local unitX, _, unitZ = spGetUnitPosition(interferingID)
+					if unitX then
 						local speedX, _, speedZ = spGetUnitVelocity(interferingID)
-						unitX, unitZ = unitX + speedX * BUGGEROFF_LOOKAHEAD, unitZ + speedZ * BUGGEROFF_LOOKAHEAD
-						local sendX, sendZ = math_pointOnCircle(targetX, targetZ, buggerOffRadius + unitRadius, unitX, unitZ)
+						if speedX then
+							local unitRadius = unitDefData.radius
+							local areaRadius = math_max(buggerOffRadius, buildDefRadius + unitRadius)
 
-						if spTestMoveOrder(unitDefID, sendX, targetY, sendZ) then
-							moveParams[4], moveParams[5], moveParams[6] = sendX, targetY, sendZ
-							spGiveOrderToUnit(interferingID, CMD_INSERT, moveParams, CMD_OPT_ALT)
+							if willBeNearTarget(unitX, unitZ, speedX, speedZ, targetX, targetZ, areaRadius) then
+								local predX = unitX + speedX * BUGGEROFF_LOOKAHEAD
+								local predZ = unitZ + speedZ * BUGGEROFF_LOOKAHEAD
+								local sendX, sendZ = math_pointOnCircle(targetX, targetZ, buggerOffRadius + unitRadius, predX, predZ)
+
+								if spTestMoveOrder(unitDefID, sendX, targetY, sendZ) then
+									moveParams[4], moveParams[5], moveParams[6] = sendX, targetY, sendZ
+									spGiveOrderToUnit(interferingID, CMD_INSERT, moveParams, CMD_OPT_ALT)
+								end
+							end
 						end
 					end
 				end
 			end
 
 			if buggerOffRadiusOffset > MAX_BUGGEROFF_RADIUS or (not buildUnitDefData.isImmobile and IsUnitRepeatOn(builderID)) then
-				removeBuilder(builderID)
+				deferRemoveCount = deferRemoveCount + 1
+				deferRemove[deferRemoveCount] = builderID
 			else
 				builderRadiusOffsets[builderID] = buggerOffRadiusOffset
 			end
@@ -274,36 +280,57 @@ function gadget:GameFrame(frame)
 		end
 	end
 
+	-- Apply deferred removals/transitions after iteration is complete
+	for i = 1, deferRemoveCount do
+		removeBuilder(deferRemove[i])
+	end
+	for i = 1, deferSlowCount do
+		slowWatchBuilder(deferSlow[i])
+	end
+
 	if frame % SLOW_UPDATE_FREQUENCY ~= 0 and not needsUpdate then
 		return
 	end
 
 	needsUpdate = false
 
+	local deferSlowRemove = {}
+	local deferWatch = {}
+	local deferSlowRemoveCount = 0
+	local deferWatchCount = 0
+
 	for builderID in pairs(slowUpdateBuilders) do
-		-- Only check first few commands instead of entire queue for performance
-		local builderCommands = spGetUnitCommands(builderID, 5)
+		-- Use spGetUnitCurrentCommand per-index to avoid allocating command tables
 		local hasBuildCommand, buildCommandFirst = false, false
 		local targetX, targetZ = 0, 0
 
-		if builderCommands then
-			for idx, command in ipairs(builderCommands) do
-				if command.id < 0 then
-					hasBuildCommand = true
-					if idx == 1 and command.params[1] and command.params[3] then
-						buildCommandFirst = true
-						targetX, targetZ  = command.params[1], command.params[3]
-					end
-					break  -- Early exit once we find a build command
+		for idx = 1, 5 do
+			local cmdID, _, _, px, _, pz = spGetUnitCurrentCommand(builderID, idx)
+			if not cmdID then break end
+			if cmdID < 0 then
+				hasBuildCommand = true
+				if idx == 1 and px and pz then
+					buildCommandFirst = true
+					targetX, targetZ = px, pz
 				end
+				break
 			end
 		end
 
 		if not hasBuildCommand then
-			removeBuilder(builderID)
+			deferSlowRemoveCount = deferSlowRemoveCount + 1
+			deferSlowRemove[deferSlowRemoveCount] = builderID
 		elseif buildCommandFirst and not spGetUnitIsBuilding(builderID) and isInTargetArea(builderID, targetX, targetZ, FAST_UPDATE_RADIUS) then
-			watchBuilder(builderID)
+			deferWatchCount = deferWatchCount + 1
+			deferWatch[deferWatchCount] = builderID
 		end
+	end
+
+	for i = 1, deferSlowRemoveCount do
+		removeBuilder(deferSlowRemove[i])
+	end
+	for i = 1, deferWatchCount do
+		watchBuilder(deferWatch[i])
 	end
 end
 

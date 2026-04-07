@@ -252,10 +252,8 @@ end
 
 local function CanUnitExecute(uID, cmdID)
     if cmdID == CMD_UNLOADUNIT then
-        local transporting = spGetUnitIsTransporting(uID)
-        return (transporting and #transporting > 0)
+        cmdID = CMD_UNLOADUNITS
     end
-
     return (spFindUnitCmdDesc(uID, cmdID) ~= nil)
 end
 
@@ -701,7 +699,9 @@ function widget:MouseRelease(mx, my, mButton)
                         end
                     end
                 end
-
+				if usingCmd == CMD_SETTARGET then
+					Spring.SendLuaRulesMsg("settarget_line")
+				end
                 spSetActiveCommand(0) -- Deselect command
             end
         end

@@ -32,8 +32,6 @@ return {
 		hidedamage = true,
     	holdsteady = true,
 		icontype = "corcom",
-		idleautoheal = 85,
-		idletime = 1800,
 		sightemitheight = 40,
 		mass = 4900,
 		health = 10000,
@@ -177,10 +175,6 @@ return {
 				[2] = "custom:barrelshot-medium",
 				[3] = "custom:footstep-medium",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
-			},
 		},
 		sounds = {
 			build = "nanlath2",
@@ -252,6 +246,9 @@ return {
 				weapontimer = 1,
 				weapontype = "Flame",
 				weaponvelocity = 500,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 90,
 					subs = 25,
@@ -290,6 +287,9 @@ return {
 				waterweapon = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 700,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					default = 1200,
 					subs = 600,
@@ -328,6 +328,9 @@ return {
 				weapontimer = 4.2,
 				weapontype = "DGun",
 				weaponvelocity = 300,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					commanders = 0,
 					default = 99999,
@@ -365,6 +368,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 2250,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 120,
 					subs = 30,
@@ -431,6 +437,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 310,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 450,
 					subs = 150,

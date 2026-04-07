@@ -13,8 +13,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 18000,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 6000,
 		maxacc = 0.2208,
 		maxdec = 1,
@@ -77,11 +75,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:flamestreamxxl",
 				[2] = "custom:pilotlightxl",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -194,6 +187,9 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 820,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 100,
 					vtol = 150,

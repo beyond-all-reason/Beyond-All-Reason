@@ -13,8 +13,6 @@ return {
 		explodeas = "explosiont3",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 32,
-		idletime = 1800,
 		health = 9400,
 		speed = 82.0,
 		maxslope = 17,
@@ -82,11 +80,6 @@ return {
 				[2] = "custom:barrelshot-lightning",
 				[3] = "custom:footstep-medium",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -135,8 +128,8 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 360,
 				customparams = {
-					noattackrangearc = 1,
 					bogus = 1,
+					noattackrangearc = 1,
 				},
 				damage = {
 					default = 0,
@@ -172,11 +165,13 @@ return {
 				waterweapon = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 600,
-				damage = {
-					commanders = 500,
-					default = 1500,},
 				customparams = {
 					overpenetrate = true,
+					weapons_role = "secondary",
+				},
+				damage = {
+					commanders = 500,
+					default = 1500,
 				},
 			},
 			railgunt2 = {
@@ -216,12 +211,12 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 3180,
+				customparams = {
+					overpenetrate = true,
+				},
 				damage = {
 					commanders = 250,
 					default = 475,
-				},
-				customparams = {
-					overpenetrate = true,
 				},
 			},
 		},

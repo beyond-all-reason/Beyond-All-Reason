@@ -32,8 +32,6 @@ return {
 		hidedamage = true,
     	holdsteady = true,
 		icontype = "armcom",
-		idleautoheal = 100,
-		idletime = 450,
 		sightemitheight = 40,
 		mass = 4900,
 		health = 10500,
@@ -186,10 +184,6 @@ return {
 				[3] = "custom:footstep-medium",
 				[4] = "custom:genericshellexplosion-huge-lightning",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
-			},
 		},
 		sounds = {
 			build = "nanlath1",
@@ -264,6 +258,7 @@ return {
 					overrange_distance = 840,
 					projectile_destruction_method = "descend",
 					stockpilelimit = 4,
+					weapons_group = 1,
 				},
 				damage = {
 					default = 1800,
@@ -304,6 +299,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 56000,
 				},
@@ -341,6 +339,9 @@ return {
 				waterweapon = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 700,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					default = 1200,
 					subs = 600,
@@ -380,6 +381,9 @@ return {
 				weapontimer = 4.2,
 				weapontype = "DGun",
 				weaponvelocity = 300,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					commanders = 0,
 					default = 99999,
@@ -461,10 +465,11 @@ return {
 					spark_forkdamage = "0.33",
 					spark_maxunits = "8",
 					spark_range = "75",
-					},
-					damage = {
-						default = 57,
-					},
+					weapons_group = 1,
+				},
+				damage = {
+					default = 57,
+				},
 			},
 			empflashbang = {
 				areaofeffect = 50,
@@ -502,6 +507,10 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 1,
+				customparams = {
+					weapons_group = 1,
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 20000,
 				},

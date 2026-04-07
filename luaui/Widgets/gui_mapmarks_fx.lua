@@ -19,17 +19,17 @@ local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetTeamColor = Spring.GetTeamColor
 
 -- Localized gl functions
-local glCreateList = gl.CreateList
-local glDeleteList = gl.DeleteList
-local glCallList = gl.CallList
 local glBlending = gl.Blending
 local glDepthTest = gl.DepthTest
 local glPushMatrix = gl.PushMatrix
 local glPopMatrix = gl.PopMatrix
 local glTranslate = gl.Translate
-local glScale = gl.Scale
 local glColor = gl.Color
 local glBillboard = gl.Billboard
+local glTexCoord = gl.TexCoord
+local glVertex = gl.Vertex
+local glTexture = gl.Texture
+local glBeginEnd = gl.BeginEnd
 
 -- Localized math functions
 local osClock = os.clock
@@ -44,11 +44,15 @@ local ownPlayerID = Spring.GetMyPlayerID()
 local vsx,vsy = spGetViewGeometry()
 
 local commandCount = 0
-local glowDlist, font, chobbyInterface, ringDlist, pencilDlist, eraserDlist
+local font, chobbyInterface
 
--- Reusable tables to avoid allocations
-local tempGlowColor = {1, 1, 1, 1}
-local tempRingColor = {1, 1, 1, 1}
+-- Module-level batch arrays (reused each frame, no allocations)
+local glowBatch = {}
+local ringBatch = {}
+local pencilBatch = {}
+local eraserBatch = {}
+local nickBatch = {}
+local nickNames = {}
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -100,25 +104,32 @@ local types = {
 	}
 }
 
--- Precalculate scaled sizes
+-- Precalculate scaled sizes and durations
 for _, typeData in pairs(types) do
 	typeData.sizeScaled = generalSize * typeData.size
 	typeData.endSizeScaled = generalSize * typeData.endSize
 	typeData.sizeDelta = typeData.endSizeScaled - typeData.sizeScaled
+	typeData.totalDuration = typeData.duration * generalDuration
 end
 
+-- Pre-cache texture paths (avoid string concat each frame)
+local glowTexture = imageDir .. 'glow.dds'
+local ringTexture = imageDir .. 'ring.dds'
+local pencilTexture = imageDir .. 'pencil.dds'
+local eraserTexture = imageDir .. 'eraser.dds'
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local function DrawGroundquad(x,y,z,size)
-	gl.TexCoord(0,0)
-	gl.Vertex(x-size,y,z-size)
-	gl.TexCoord(0,1)
-	gl.Vertex(x-size,y,z+size)
-	gl.TexCoord(1,1)
-	gl.Vertex(x+size,y,z+size)
-	gl.TexCoord(1,0)
-	gl.Vertex(x+size,y,z-size)
+local function DrawBatchedQuads(data, count)
+	for j = 1, count, 8 do
+		local x, y, z, s = data[j], data[j+1], data[j+2], data[j+3]
+		glColor(data[j+4], data[j+5], data[j+6], data[j+7])
+		glTexCoord(0, 0); glVertex(x - s, y, z - s)
+		glTexCoord(0, 1); glVertex(x - s, y, z + s)
+		glTexCoord(1, 1); glVertex(x + s, y, z + s)
+		glTexCoord(1, 0); glVertex(x + s, y, z - s)
+	end
 end
 
 
@@ -126,12 +137,10 @@ local function AddEffect(cmdType, x, y, z, timestamp, unitID, playerID)
 	if not playerID then
 		playerID = false
 	end
-	local nickname,_,spec,teamID = spGetPlayerInfo(playerID,false)
+	local nickname, _, spec, teamID = spGetPlayerInfo(playerID, false)
 	nickname = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or nickname
 
-	-- Reuse table from pool or create new color table
-	local teamcolor = {0, 0, 0}
-	teamcolor[1],teamcolor[2],teamcolor[3] = spGetTeamColor(teamID)
+	local r, g, b = spGetTeamColor(teamID)
 
 	commandCount = commandCount + 1
 	commands[commandCount] = {
@@ -141,7 +150,9 @@ local function AddEffect(cmdType, x, y, z, timestamp, unitID, playerID)
 		z			= z,
 		osClock		= timestamp,
 		playerID	= playerID,
-		color		= teamcolor,
+		r			= r,
+		g			= g,
+		b			= b,
 		spec		= spec,
 		nickname	= nickname
 	}
@@ -155,37 +166,11 @@ end
 
 
 function widget:Initialize()
-
-	glowDlist = glCreateList(function()
-		gl.Texture(imageDir..'glow.dds')
-		gl.BeginEnd(GL.QUADS,DrawGroundquad,0,0,0,1)
-		gl.Texture(false)
-	end)
-	pencilDlist = glCreateList(function()
-		gl.Texture(imageDir..'pencil.dds')
-		gl.BeginEnd(GL.QUADS,DrawGroundquad,0,0,0,1)
-		gl.Texture(false)
-	end)
-	eraserDlist = glCreateList(function()
-		gl.Texture(imageDir..'eraser.dds')
-		gl.BeginEnd(GL.QUADS,DrawGroundquad,0,0,0,1)
-		gl.Texture(false)
-	end)
-	ringDlist = glCreateList(function()
-		gl.Texture(imageDir..'ring.dds')
-		gl.BeginEnd(GL.QUADS,DrawGroundquad,0,0,0,1)
-		gl.Texture(false)
-	end)
-
 	widget:ViewResize()
 end
 
 
 function widget:Shutdown()
-	glDeleteList(glowDlist)
-	glDeleteList(pencilDlist)
-	glDeleteList(eraserDlist)
-	glDeleteList(ringDlist)
 end
 
 function widget:MapDrawCmd(playerID, cmdType, x, y, z, a, b, c)
@@ -210,144 +195,160 @@ end
 
 function widget:ClearMapMarks()
 	commands = {}
+	commandCount = 0
 end
 
 function widget:DrawWorldPreUnit()
 	if chobbyInterface then return end
 	if Spring.IsGUIHidden() then return end
 	if WG.clearmapmarks and WG.clearmapmarks.continuous then return end
+	if commandCount == 0 then return end
 
 	local currentTime = osClock()
-	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-	glDepthTest(false)
-	glPushMatrix()
 
-	local duration, durationProcess, size, a, glowColor, ringColor, aRing, ringSize, iconSize
-	
-	-- Use numeric iteration for better performance
+	-- Phase 1: Remove expired and obsolete commands
 	local i = 1
 	while i <= commandCount do
-		local cmdValue = commands[i]
-		
-		if not cmdValue then
-			-- Swap with last element and decrease count
+		local cmd = commands[i]
+		if not cmd then
 			commands[i] = commands[commandCount]
 			commands[commandCount] = nil
 			commandCount = commandCount - 1
 		else
-			local typeData = types[cmdValue.cmdType]
-			duration = typeData.duration * generalDuration
-			durationProcess = (currentTime - cmdValue.osClock) / duration
-
-			-- remove when duration has passed
-			if currentTime - cmdValue.osClock > duration then
+			local totalDuration = types[cmd.cmdType].totalDuration
+			if currentTime - cmd.osClock > totalDuration
+				or (cmd.cmdType == 'map_draw' and mapDrawNicknameTime[cmd.playerID] ~= nil
+					and cmd.osClock < mapDrawNicknameTime[cmd.playerID]) then
 				commands[i] = commands[commandCount]
 				commands[commandCount] = nil
 				commandCount = commandCount - 1
-
-			-- remove nicknames when user has drawn something new
-			elseif cmdValue.cmdType == 'map_draw' and mapDrawNicknameTime[cmdValue.playerID] ~= nil
-				and cmdValue.osClock < mapDrawNicknameTime[cmdValue.playerID] then
-				commands[i] = commands[commandCount]
-				commands[commandCount] = nil
-				commandCount = commandCount - 1
-
-			-- draw all
-			elseif typeData.glowColor[4] > 0 or typeData.ringColor[4] > 0 then
-				-- Use precalculated values
-				size = typeData.sizeScaled + (typeData.sizeDelta * durationProcess)
-				a = (1 - durationProcess) * generalOpacity
-
-				-- Reuse tables for colors instead of creating new ones
-				if cmdValue.spec then
-					tempGlowColor[1] = 1
-					tempGlowColor[2] = 1
-					tempGlowColor[3] = 1
-					tempGlowColor[4] = typeData.glowColor[4]
-					tempRingColor[1] = 1
-					tempRingColor[2] = 1
-					tempRingColor[3] = 1
-					tempRingColor[4] = typeData.ringColor[4]
-					glowColor = tempGlowColor
-					ringColor = tempRingColor
-				else
-					tempGlowColor[1] = cmdValue.color[1]
-					tempGlowColor[2] = cmdValue.color[2]
-					tempGlowColor[3] = cmdValue.color[3]
-					tempGlowColor[4] = typeData.glowColor[4]
-					tempRingColor[1] = cmdValue.color[1]
-					tempRingColor[2] = cmdValue.color[2]
-					tempRingColor[3] = cmdValue.color[3]
-					tempRingColor[4] = typeData.ringColor[4]
-					glowColor = tempGlowColor
-					ringColor = tempRingColor
-				end
-
-				aRing = a * ringColor[4]
-				a = a * glowColor[4]
-
-				glTranslate(cmdValue.x, cmdValue.y, cmdValue.z)
-
-				-- glow
-				if glowColor[4] > 0 then
-					glColor(glowColor[1], glowColor[2], glowColor[3], a)
-					local scaleGlow = size * 0.8
-					glScale(scaleGlow, 1, scaleGlow)
-					glCallList(glowDlist)
-					local invScaleGlow = 1 / scaleGlow
-					glScale(invScaleGlow, 1, invScaleGlow)
-				end
-				
-				-- ring
-				if aRing > 0 then
-					glColor(ringColor[1], ringColor[2], ringColor[3], aRing)
-					ringSize = ringStartSize + (size * ringScale) * durationProcess
-					glScale(ringSize, 1, ringSize)
-					glCallList(ringDlist)
-					local invRingSize = 1 / ringSize
-					glScale(invRingSize, 1, invRingSize)
-				end
-
-				-- draw + erase: nickname / draw icon
-				if cmdValue.playerID and cmdValue.playerID ~= ownPlayerID then
-					if (cmdValue.cmdType == 'map_draw' or
-						(cmdValue.cmdType == 'map_erase' and
-						cmdValue.osClock >= mapEraseNicknameTime[cmdValue.playerID])) then
-						if cmdValue.spec then
-							iconSize = 11
-							glColor(glowColor[1], glowColor[2], glowColor[3], a * nicknameOpacityMultiplier)
-
-							if cmdValue.cmdType == 'map_draw' then
-								glScale(iconSize, 1, iconSize)
-								glCallList(pencilDlist)
-								local invIconSize = 1 / iconSize
-								glScale(invIconSize, 1, invIconSize)
-							else
-								glScale(iconSize, 1, iconSize)
-								glCallList(eraserDlist)
-								local invIconSize = 1 / iconSize
-								glScale(invIconSize, 1, invIconSize)
-							end
-
-							glPushMatrix()
-							glBillboard()
-							font:Begin()
-							font:Print(cmdValue.nickname, 0, -28, 20, "cn")
-							font:End()
-							glPopMatrix()
-						end
-					end
-				end
-
-				glTranslate(-cmdValue.x, -cmdValue.y, -cmdValue.z)
-				i = i + 1
 			else
 				i = i + 1
 			end
 		end
 	end
 
-	glPopMatrix()
+	if commandCount == 0 then return end
+
+	-- Phase 2: Build batch data
+	local glowN = 0
+	local ringN = 0
+	local pencilN = 0
+	local eraserN = 0
+	local nickN = 0
+
+	for j = 1, commandCount do
+		local cmd = commands[j]
+		local typeData = types[cmd.cmdType]
+		local totalDuration = typeData.totalDuration
+		local durationProcess = (currentTime - cmd.osClock) / totalDuration
+		local a = (1 - durationProcess) * generalOpacity
+		local size = typeData.sizeScaled + (typeData.sizeDelta * durationProcess)
+
+		local cr, cg, cb
+		if cmd.spec then
+			cr, cg, cb = 1, 1, 1
+		else
+			cr, cg, cb = cmd.r, cmd.g, cmd.b
+		end
+
+		-- Glow
+		local glowAlpha = typeData.glowColor[4]
+		if glowAlpha > 0 then
+			local n = glowN
+			local gs = size * 0.8
+			glowBatch[n+1] = cmd.x; glowBatch[n+2] = cmd.y; glowBatch[n+3] = cmd.z
+			glowBatch[n+4] = gs
+			glowBatch[n+5] = cr; glowBatch[n+6] = cg; glowBatch[n+7] = cb
+			glowBatch[n+8] = a * glowAlpha
+			glowN = n + 8
+		end
+
+		-- Ring
+		local ringAlpha = typeData.ringColor[4]
+		if ringAlpha > 0 then
+			local n = ringN
+			local rs = ringStartSize + (size * ringScale) * durationProcess
+			ringBatch[n+1] = cmd.x; ringBatch[n+2] = cmd.y; ringBatch[n+3] = cmd.z
+			ringBatch[n+4] = rs
+			ringBatch[n+5] = cr; ringBatch[n+6] = cg; ringBatch[n+7] = cb
+			ringBatch[n+8] = a * ringAlpha
+			ringN = n + 8
+		end
+
+		-- Icons & Nicknames (spectator drawers only)
+		if cmd.spec and cmd.playerID and cmd.playerID ~= ownPlayerID then
+			local cmdType = cmd.cmdType
+			if cmdType == 'map_draw' or
+				(cmdType == 'map_erase' and cmd.osClock >= (mapEraseNicknameTime[cmd.playerID] or 0)) then
+				local iconAlpha = a * glowAlpha * nicknameOpacityMultiplier
+				local is = 11
+				if cmdType == 'map_draw' then
+					local n = pencilN
+					pencilBatch[n+1] = cmd.x; pencilBatch[n+2] = cmd.y; pencilBatch[n+3] = cmd.z
+					pencilBatch[n+4] = is
+					pencilBatch[n+5] = cr; pencilBatch[n+6] = cg; pencilBatch[n+7] = cb
+					pencilBatch[n+8] = iconAlpha
+					pencilN = n + 8
+				else
+					local n = eraserN
+					eraserBatch[n+1] = cmd.x; eraserBatch[n+2] = cmd.y; eraserBatch[n+3] = cmd.z
+					eraserBatch[n+4] = is
+					eraserBatch[n+5] = cr; eraserBatch[n+6] = cg; eraserBatch[n+7] = cb
+					eraserBatch[n+8] = iconAlpha
+					eraserN = n + 8
+				end
+				nickN = nickN + 1
+				local nn = (nickN - 1) * 4
+				nickBatch[nn+1] = cmd.x; nickBatch[nn+2] = cmd.y; nickBatch[nn+3] = cmd.z
+				nickBatch[nn+4] = iconAlpha
+				nickNames[nickN] = cmd.nickname
+			end
+		end
+	end
+
+	-- Phase 3: Render batched (one texture bind + one draw call per type)
+	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	glDepthTest(false)
+
+	if glowN > 0 then
+		glTexture(glowTexture)
+		glBeginEnd(GL.QUADS, DrawBatchedQuads, glowBatch, glowN)
+		glTexture(false)
+	end
+
+	if ringN > 0 then
+		glTexture(ringTexture)
+		glBeginEnd(GL.QUADS, DrawBatchedQuads, ringBatch, ringN)
+		glTexture(false)
+	end
+
+	if pencilN > 0 then
+		glTexture(pencilTexture)
+		glBeginEnd(GL.QUADS, DrawBatchedQuads, pencilBatch, pencilN)
+		glTexture(false)
+	end
+
+	if eraserN > 0 then
+		glTexture(eraserTexture)
+		glBeginEnd(GL.QUADS, DrawBatchedQuads, eraserBatch, eraserN)
+		glTexture(false)
+	end
+
+	if nickN > 0 then
+		font:Begin()
+		for j = 1, nickN do
+			local nn = (j - 1) * 4
+			glPushMatrix()
+			glTranslate(nickBatch[nn+1], nickBatch[nn+2], nickBatch[nn+3])
+			glColor(1, 1, 1, nickBatch[nn+4])
+			glBillboard()
+			font:Print(nickNames[j], 0, -28, 20, "cn")
+			glPopMatrix()
+		end
+		font:End()
+	end
+
 	glColor(1, 1, 1, 1)
 end
 

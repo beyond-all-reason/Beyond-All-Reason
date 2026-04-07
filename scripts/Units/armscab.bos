@@ -332,13 +332,15 @@ AimWeapon1(heading, pitch)
 	set-signal-mask SIGNAL_AIM1;
 	if( !isOpen )
 	{
+		// We trigger a bunch of other animations that _also_ turn the turret
+		// if isOpen is not true, so even though it is not true, set it true:
+		isOpen = TRUE;
 		turn turret to x-axis <90> speed <90>;
 		wait-for-turn turret around x-axis;
 
 		turn ldoor to y-axis <-25> speed <30>;
 		turn rdoor to y-axis <25> speed <30>;
 		wait-for-move ldoor along y-axis;
-		isOpen = TRUE;
 	}
 	return (1);
 }

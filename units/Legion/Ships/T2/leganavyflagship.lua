@@ -16,8 +16,6 @@ return {
 		footprintx = 8,
 		footprintz = 8,
 		health = 48000,
-		idleautoheal = 25,
-		idletime = 1800,
 		mass = 9999999,
 		maxacc = 0.012,
 		maxdec = 0.012,
@@ -81,11 +79,6 @@ return {
 				[2] = "custom:waterwake-huge",
 				[3] = "custom:bowsplash-huge",
 				[4] = "custom:enginespurt-huge",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

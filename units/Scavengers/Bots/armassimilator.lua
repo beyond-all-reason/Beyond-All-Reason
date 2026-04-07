@@ -14,8 +14,6 @@ return {
 		explodeas = "explosiont3",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 200000,
 		health = 7500,
 		maxslope = 15,
@@ -72,13 +70,6 @@ return {
 				object = "Units/arm3X3B.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

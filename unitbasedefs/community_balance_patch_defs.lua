@@ -77,34 +77,11 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 					end
 				end
 			end
-
-			-- Allow building cormando in amphib complex
-			if name == "coramsub" then
-				local numBuildoptions = #uDef.buildoptions
-				uDef.buildoptions[numBuildoptions + 1] = "cormando"
-			end
 		end
 
 		if all or (custom and modOptions.community_balance_cortermite) then
 			if name == "cortermite" then
 				uDef.stealth = true
-			end
-		end
-
-		if all or (custom and modOptions.community_balance_armwar) then
-			if name == "armwar" then
-				-- Reduce weapon range by 5 (330 - 5 = 325)
-				if uDef.weapondefs then
-					for weaponName, weaponDef in pairs(uDef.weapondefs) do
-						if weaponDef.range then
-							weaponDef.range = 325
-						end
-					end
-				end
-				-- Reduce LoS by 20 (350 - 20 = 330)
-				if uDef.sightdistance then
-					uDef.sightdistance = 330
-				end
 			end
 		end
 
@@ -132,14 +109,27 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 			end
 		end
 
-		if all or (custom and modOptions.community_balance_corjamt) then
-			if name == "corjamt" then
-				uDef.buildtime = 9950
-				uDef.energycost = 8500
-				uDef.energyupkeep = 40
-				uDef.health = 790
-				uDef.metalcost = 240
-				uDef.radardistancejam = 500
+		if all or (custom and modOptions.community_balance_armcroc) then
+			if name == "armcroc" then
+				uDef.health = 5250
+				if uDef.weapondefs and uDef.weapondefs.arm_triton then
+					uDef.weapondefs.arm_triton.areaofeffect = 80
+					uDef.weapondefs.arm_triton.impulsefactor = 0.5
+				end
+			end
+		end
+
+		if all or (custom and modOptions.community_balance_corkorg) then
+			if name == "corkorg" then
+				uDef.airsightdistance = 1600
+				uDef.metalcost = 26000
+			end
+		end
+
+		if all or (custom and modOptions.community_balance_corspy) then
+			if name == "corspy" then
+				uDef.energycost = 8800
+				uDef.metalcost = 135
 			end
 		end
 	end

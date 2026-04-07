@@ -17,8 +17,6 @@ return {
 		firestate = 0,
 		footprintx = 9,
 		footprintz = 9,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 26000,
 		maxslope = 13,
 		maxwaterdepth = 0,
@@ -35,6 +33,7 @@ return {
 			buildinggrounddecalsizex = 8,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'weapon',
+			restrictions_inclusion = "_nolrpc_noendgamelrpc_",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
@@ -81,10 +80,6 @@ return {
 				[5] = "custom:smokegen-part",
 				[6] = "custom:smokegen-part2",
 				[7] = "custom:ventair-puff",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -178,6 +173,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 1000,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					default = 0,
 				},

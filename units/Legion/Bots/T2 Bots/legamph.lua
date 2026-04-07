@@ -15,8 +15,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 2750,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.1035,
 		maxdec = 0.6486,
 		maxslope = 14,
@@ -37,7 +35,7 @@ return {
 		turninplacespeedlimit = 1.221,
 		turnrate = 450,
 		--usepiececollisionvolumes = 1,
-		upright = true,
+		upright = false,
 		customparams = {
 			maxrange = 400,
 			model_author = "Johanthan Crimson, Tuerk",
@@ -88,11 +86,6 @@ return {
 				[2] = "custom:subbubbles",
 				[3] = "custom:footstep-medium",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -126,23 +119,23 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
-				energypershot = 300,
+				energypershot = 10,
 				explosiongenerator = "custom:heatray-large",
 				firestarter = 30,
-				firetolerance = 5000,
+				firetolerance = 500,
 				impulsefactor = 0,
 				laserflaresize = 6,
 				name = "Heavy g2g Cleansing Heat Ray",
 				noselfdamage = true,
 				predictboost = 0.3,
 				proximitypriority = 1,
-				range = 400,
-				reloadtime = 6,
+				range = 450,
+				reloadtime = 0.033,
 				rgbcolor = "1 0.5 0",
 				rgbcolor2 = "0.8 1.0 0.3",
-				soundhitdry = "",
+				soundhitdry = "flamhit1",
 				soundhitwet = "sizzle",
-				soundstart = "heatray3",
+				soundstart = "heatray3burn",
 				soundstartvolume = 11,
 				soundtrigger = 1,
 				tolerance = 5000,
@@ -150,13 +143,13 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 950,
+				customparams = {
+					sweepfire = 4.5,
+				},
 				damage = {
 					default = 33,
 					vtol = 10,
 				},
-				customparams = {
-					sweepfire=4.5,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
-				}
 			},
 			coax_depthcharge = {
 				areaofeffect = 32,
@@ -173,6 +166,7 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small-uw",
 				firesubmersed = false,
+				firetolerance = 100,
 				flighttime = 1.75,
 				gravityaffected = "true",
 				groundbounce = true,
@@ -198,6 +192,9 @@ return {
 				weaponacceleration = 75,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 300,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 350,
 				},
@@ -207,6 +204,8 @@ return {
 			[1] = {
 				def = "HEAT_RAY",
 				onlytargetcategory = "SURFACE",
+				fastautoretargeting = true,
+				burstControlWhenOutOfArc = 2,
 				maxangledif = 180,
 				maindir = "0 0 1"
 			},

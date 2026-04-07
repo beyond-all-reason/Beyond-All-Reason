@@ -129,7 +129,7 @@ function widget:Update(dt)
 			gl.DeleteList(drawList)
 			drawList = gl.CreateList(DrawIcon)
 		end
-		prevCam = {camX,camY,camZ }
+		prevCam[1], prevCam[2], prevCam[3] = camX, camY, camZ
 	end
 end
 
@@ -159,9 +159,9 @@ function widget:DrawWorld()
 			end
 		else
 			if unit.selected then
-				givenUnits[unitID].selected = os.clock()
+				givenUnits[unitID].selected = osClock
 			else
-				givenUnits[unitID].osClock = os.clock()
+				givenUnits[unitID].osClock = osClock
 			end
 		end
 	end

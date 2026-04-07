@@ -46,11 +46,17 @@ for featureDefID, featureDef in pairs(FeatureDefs) do
 	end
 end
 
+local cegListTemp = {}
+
 function gadget:GameFrame(n)
-	if n % 2 == 0 then
-		for featureID, v in pairs(cegList) do
+	if n % 2 == 0 and next(cegList) then
+		-- Swap out cegList so AllowFeatureBuildStep can safely add to a fresh table
+		local toProcess = cegList
+		cegList = cegListTemp
+		cegListTemp = toProcess
+		for featureID, v in pairs(toProcess) do
 			SpawnCEG(v.ceg, v.x, v.y, v.z, 0, 1.0, 0, 0, 0)
-			cegList[featureID] = nil
+			toProcess[featureID] = nil
 		end
 	end
 end
@@ -73,7 +79,15 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, feature
 		local cached = processedFeatures[featureID]
 		local x = cached.x + cached.params.minX + (cached.params.rangeX * random())
 		local z = cached.z + cached.params.minZ + (cached.params.rangeZ * random())
-		cegList[featureID] = { ceg = cegs[random(1, #cegs)], x = x, y = cached.y, z = z }
+		local entry = cegList[featureID]
+		if not entry then
+			entry = {}
+			cegList[featureID] = entry
+		end
+		entry.ceg = cegs[random(1, #cegs)]
+		entry.x = x
+		entry.y = cached.y
+		entry.z = z
 	end
 	return true
 end

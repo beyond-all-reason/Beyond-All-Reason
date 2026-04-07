@@ -16,8 +16,6 @@ return {
 		footprintz = 4,
 		health = 2200,
 		hoverattack = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.15,
 		maxdec = 0.5,
 		maxslope = 10,
@@ -44,20 +42,6 @@ return {
 			paralyzemultiplier = 0,
 			subfolder = "CorAircraft/T2",
 			techlevel = 2,
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

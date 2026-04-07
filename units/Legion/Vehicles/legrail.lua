@@ -15,8 +15,6 @@ return {
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		health = 1100,
 		maxslope = 16,
@@ -80,11 +78,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:rocketflare",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -147,9 +140,9 @@ return {
 				weaponvelocity = 3214,
 				customparams = {
 					overpenetrate = true,
+					weapons_group = 2,
 				},
 				damage = {
-					--commanders = 100,
 					default = 1,
 					vtol = 300,
 				},
@@ -177,7 +170,7 @@ return {
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 1,
 				range = 650,
-				reloadtime = 8,
+				reloadtime = 7.5,
 				rgbcolor = "0.34 0.64 0.94",
 				soundhit = "mavgun3",
 				soundhitwet = "splshbig",

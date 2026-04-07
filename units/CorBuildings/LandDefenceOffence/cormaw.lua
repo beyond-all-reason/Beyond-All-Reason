@@ -13,8 +13,6 @@ return {
 		footprintz = 2,
 		health = 1610,
 		hidedamage = true,
-		idleautoheal = 10,
-		idletime = 900,
 		levelground = false,
 		mass = 10000000000,
 		maxacc = 0,
@@ -84,10 +82,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:flamestreamxm",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4-fire",
 			},
 		},
 		sounds = {

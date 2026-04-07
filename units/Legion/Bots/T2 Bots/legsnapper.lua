@@ -14,9 +14,7 @@ return {
 		explodeas = "crawl_blastsml",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
-		mass = 1500,
+		mass = 749,
 		health = 550,
 		maxslope = 32,
 		speed = 81.0,
@@ -40,13 +38,6 @@ return {
 			subfolder = "Legion/bots/t2 bots",
 			techlevel = 2,
 			instantselfd = true,
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -87,13 +78,13 @@ return {
 				soundhitwet = "splshbig",
 				weapontype = "Cannon",
 				weaponvelocity = 1000,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					crawlingbombs = 1000,
 					default = 0,
 				},
-				customparams = {
-					bogus = 1
-				}
 			},
 			crawl_dummy = {
 				areaofeffect = 0,
@@ -102,24 +93,25 @@ return {
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
+				cylindertargeting = 128,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "",
 				firesubmersed = true,
 				impulsefactor = 0,
 				name = "Crawlingbomb Dummy Weapon",
-				range = 80,
+				range = 42,
 				reloadtime = 0.1,
 				soundhitwet = "sizzle",
 				tolerance = 100000,
 				waterweapon = true,
 				weapontype = "Melee",
 				weaponvelocity = 100000,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					default = 0,
 				},
-				customparams = {
-					bogus = 1
-				}
 			},
 		},
 		weapons = {

@@ -13,8 +13,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 4450,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 12,
@@ -39,6 +37,7 @@ return {
 			subfolder = "ArmBuildings/LandDefenceOffence",
 			techlevel = 2,
 			unitgroup = "weapon",
+			restrictions_inclusion = "_nolrpc_",
 			usebuildinggrounddecal = true,
 		},
 		featuredefs = {
@@ -75,10 +74,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-huge",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

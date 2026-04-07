@@ -49,7 +49,7 @@ local data = {
     beach_rareSoundBank = {"ocean1", "ocean2", "ocean3", "ocean4", "ocean5", "ocean6", },
 }
 
-
+local spawnWarpInFrame = Game.spawnWarpInFrame
 
 
 
@@ -148,12 +148,11 @@ end
 
 function gadget:GameFrame(n)
     -- Collect data for sounds.
-    if n == 90 then 
+    if n == spawnWarpInFrame then
         CollectGeoVentPositions()
         UpdateAllData()
-    end
 
-    if n > 90 then
+	elseif n > spawnWarpInFrame then
 
         if data.geo_numberOfGeoVentPositions > 0 then
             if n%data.geo_soundDelay == 0 then -- play sound

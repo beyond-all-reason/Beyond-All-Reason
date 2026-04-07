@@ -58,7 +58,6 @@ for lvl, stats in pairs(lvlParams) do
 		footprintz = 2,
 		hidedamage = true,
     	holdsteady = true,
-		idleautoheal = 5000,
 		initcloaked = true,
 		sightemitheight = 40,
 		mass = 4900,
@@ -114,10 +113,6 @@ for lvl, stats in pairs(lvlParams) do
 				[1] = "custom:com_sea_laser_bubbles",
 				[2] = "custom:barrelshot-medium",
 				[3] = "custom:footstep-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

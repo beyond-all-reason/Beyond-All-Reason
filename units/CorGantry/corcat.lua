@@ -13,8 +13,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 6100,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.1242,
 		maxdec = 0.6486,
 		maxslope = 20,
@@ -75,11 +73,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:rocketflare-large",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

@@ -16,88 +16,57 @@ end
 if gadgetHandler:IsSyncedCode() then
 	local spGetUnitDefID = Spring.GetUnitDefID
 	local stringFind = string.find
-	local targetPriority = {
-		Bombers = 1,
-		Vtols = 10,
-		Fighters = 20,
-		Scouts = 1000,
-	}
 
-	local airCategories = {}
-	local hasPriorityAir = {}
+	local PRIORITY_BOMBERS = 1
+	local PRIORITY_VTOLS = 10
+	local PRIORITY_FIGHTERS = 20
+	local PRIORITY_SCOUTS = 1000
+
+	-- Pre-compute direct unitDefID → priority multiplier for all air units
+	local airPriorityMultiplier = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		local weapons = unitDef.weapons
 		if unitDef.isAirUnit then
-			airCategories[unitDefID] = "Scouts"
-			if unitDef.isTransport then
-				airCategories[unitDefID] = "Vtols"
-			elseif unitDef.isBuilder then
-				airCategories[unitDefID] = "Vtols"
-			end
-			for i = 1, #weapons do
-				local weaponDef = WeaponDefs[weapons[i].weaponDef]
-				if weaponDef.type == 'AircraftBomb' or weaponDef.type == 'TorpedoLauncher' or stringFind(weaponDef.name, 'arm_pidr', 1, true) then
-					airCategories[unitDefID] = "Bombers"
-				elseif weapons[i].onlyTargets.vtol then
-					airCategories[unitDefID] = "Fighters"
-				else
-					airCategories[unitDefID] = "Vtols"
-				end
-			end
-		end
-
-		for i = 1, #weapons do
-			if weapons[i].onlyTargets.vtol then
-				hasPriorityAir[unitDefID] = true
-
-				-- do Script.SetWatchWeapon so AllowWeaponTarget gets called
-				for wid, weapon in ipairs(unitDef.weapons) do
-					if weapon.onlyTargets then
-						for category, _ in pairs(weapon.onlyTargets) do
-							if category == 'vtol' then
-								Script.SetWatchAllowTarget(weapon.weaponDef, true) -- watch so AllowWeaponTarget works
-							end
-						end
+			local mult = PRIORITY_SCOUTS
+			if unitDef.isTransport or unitDef.isBuilder then
+				mult = PRIORITY_VTOLS
+			else
+				for i = 1, #weapons do
+					local weaponDef = WeaponDefs[weapons[i].weaponDef]
+					if weaponDef.type == 'AircraftBomb' or weaponDef.type == 'TorpedoLauncher' or stringFind(weaponDef.name, 'arm_pidr', 1, true) then
+						mult = PRIORITY_BOMBERS
+					elseif weapons[i].onlyTargets.vtol then
+						mult = PRIORITY_FIGHTERS
+					else
+						mult = PRIORITY_VTOLS
 					end
 				end
 			end
+			airPriorityMultiplier[unitDefID] = mult
+		end
+
+		-- Set watch on vtol-targeting weapons so AllowWeaponTarget gets called
+		for i = 1, #weapons do
+			if weapons[i].onlyTargets.vtol then
+				for wid = 1, #weapons do
+					local weapon = weapons[wid]
+					if weapon.onlyTargets and weapon.onlyTargets.vtol then
+						Script.SetWatchAllowTarget(weapon.weaponDef, true)
+					end
+				end
+				break
+			end
 		end
 	end
 
-	local targetCheckStats = {} -- unitDefID : count
+	-- AllowWeaponTarget is only called for weapons with SetWatchAllowTarget (vtol-targeting),
+	-- so the attacker always has AA priority — no need to check hasPriorityAir or call
+	-- spGetUnitDefID on the attacker.
 	function gadget:AllowWeaponTarget(unitID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
-		if targetID == -1 and attackerWeaponNum == -1 then
-			return true, defPriority
+		local mult = airPriorityMultiplier[spGetUnitDefID(targetID)]
+		if mult then
+			return true, (defPriority or 1.0) * mult
 		end
-		local unitDefID = spGetUnitDefID(targetID)
-		if unitDefID then
-			targetCheckStats[unitDefID] = (targetCheckStats[unitDefID] or 0) + 1
-			local priority = defPriority or 1.0
-			local airCategory = airCategories[unitDefID]
-			if airCategory then
-				if hasPriorityAir[spGetUnitDefID(unitID)] then
-					priority = priority * targetPriority[airCategory]
-				end
-			end
-			return true, priority
-		end
-	end
-	function gadget:Shutdown()
-		local totalChecks = 0 
-		local totalunitDefs = 1
-		for unitDefID, count in pairs(targetCheckStats) do
-			totalChecks = totalChecks + count
-			totalunitDefs = totalunitDefs + 1
-		end
-		-- Find outliers with more checks than average
-		local averageChecks = totalChecks / totalunitDefs
-		local resultStr = string.format("AA Targeting Priority Stats: total = %d, unitDefs = %d, average = %.2f; Above average:", totalChecks, totalunitDefs, averageChecks)
-		for unitDefID, count in pairs(targetCheckStats) do
-			if count > averageChecks then
-				local unitDef = UnitDefs[unitDefID]
-				resultStr = resultStr .. unitDef.name .. ": " .. tostring(count) .. ", "
-			end
-		end
-		Spring.Echo(resultStr)
+		return true, defPriority or 1.0
 	end
 end

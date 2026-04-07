@@ -13,8 +13,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 940,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.06,
 		maxaileron = 0.01347,
 		maxbank = 0.8,
@@ -43,20 +41,6 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorSeaplanes",
 			unitgroup = "weapon",
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-				[2] = "airdeathceg3",
-				[3] = "airdeathceg4",
-			},
 		},
 		sounds = {
 			build = "nanlath1",

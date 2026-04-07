@@ -14,8 +14,6 @@ return {
 		explodeas = "largeexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		health = 970,
 		maxslope = 12,
@@ -83,10 +81,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
 				[2] = "custom:dust_cloud_dirt_light",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

@@ -65,7 +65,11 @@ end
 -------------------------------------------------------------------
 function widget:UnitCommand(uID, uDefID, uTeam)
 	if isTransport[uDefID] and uTeam == spGetMyTeamID() and GetTransportTarget(uID) then
+		local wasEmpty = not next(watchList)
 		watchList[uID] = true
+		if wasEmpty then
+			widgetHandler:UpdateCallIn('GameFrame')
+		end
 	end
 end
 function widget:UnitCmdDone(uID, uDefID, uTeam)
@@ -96,6 +100,9 @@ function widget:GameFrame(n)
 			-- No trans or no valid target, stop watching
 			watchList[uID] = nil
 		end
+	end
+	if not next(watchList) then
+		widgetHandler:RemoveCallIn('GameFrame')
 	end
 end
 

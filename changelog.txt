@@ -1,3 +1,55 @@
+# April
+• [Legion changes]
+	- New modoption added (legionsimplifiedmexes) which rebalances T1 legion to use the same T1 mexes as arm/cor.  Light T1 units are given a higher m cost and lower E cost and heavy T1 units are given a lower m cost and higher E cost
+	- Impulse removed from Goblin, Wheelie, and Hippocampus
+	- Wheelie cost reduced 25m370E->23m350E, range increased 160->168, bullet velocity increased to improve accuracy
+	- Phobos health increased 750->800
+	- Barrage's napalm aoe reduced 75->60
+	- Cacophony cost reduced 420m5500E->380m5500E, health reduced 2350->2200, dps reduced 270->255
+	- Adv solar health increased 800->1100
+	- Octeres (T1 Artillery ship) reloadtime reduced 11->10s, range increased 930->960
+	- Decurion energycost increased 3000->3600
+	- Lance reloadtime reduced 8->7.5s
+	- Arquebus cost reduced 800m16000E->750m15000E
+	- Javelin speed increased 65->68
+	- Praetorian speed increased 60->63, acceleration and turnrate improved
+
+# March
+• [Legion changes]
+	- Telchine (T2 amphib bot) script and targeting improvements, range increased 400->450
+	- Incinerator firing E cost 500->300E/s
+	- Dolus (T2 radar/jammer ship) speed increased 36->42
+	- Phoenix (T2 heatray bomber) movement behavior adjusted to reduce heatray range/damage exploits
+	
+# February
+• [Centurion] 330 -> 325 range
+• [Hound] buildtime 6230 -> 6500
+• [Fatboy] energycost 15000 -> 20000, buildtime 28000 -> 32000
+• [Sprinter] range 220 -> 230
+• [Abductor] sightdistance 430 -> 520
+• [Minelayers] Transportable by basic transport
+• [Mines] mincloakdistance 8 -> 30
+• [T2 radars] 820 -> 1000 sight, 355 -> 500 health
+• [T1 radars] 90 -> 180 health
+• [Castro] -13% m/e/bt cost
+• [Lightning weapons,except Thor] Firing takes -10e for all, used to vary between -5e to -35e
+• [Rez subs] 
+	- Removed reclaimspeed reduction -> +20% faster reclaim. Matches its usual buildpower now
+	- Autoheal 2hp/s -> 5hp/s (lost its idleautoheal of 3hp/s after 10s)
+	- +16% energycost, metalcost
+• [T1 AA ships, subs, and frigates] Autoheal removed
+• Idleautoheal standardised to 5hp/s after 60 seconds without getting hit, for everything. 
+	- Rezbots got a 5hp/s normal autoheal to replace their near-instant idleautoheal.
+• [Legion changes]
+	- Carriers all start with half of their drones pre-built, with the cost of those drones added to the carrier
+	- T1 Drone health reduced 415->325, acceleration increased, drones retreat after taking 1 aa shot
+	- T2 Drone health reduced 2250->1650
+	- Removed health scaling for drones when gaining xp
+	- Drones no longer have health decay while in the air when the carrier is alive but decay quickly once the carrier is dead
+	- T1 drones now have to return to carrier to reload after firing 12 shots
+	- Reduced overall range of drones and made them more tied to their actual ranges to prevent range extension abuse
+
+
 # January 2026
 • [Incisor] 0.767s -> 0.8s reloadtime, 85.5 -> 85 speed, 2200 -> 2300 buildtime, 1040 -> 1100 energycost
 • [Blitz, Pawn] 500 -> 600 weaponvelocity

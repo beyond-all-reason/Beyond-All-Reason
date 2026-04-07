@@ -14,8 +14,6 @@ return {
 		footprintx = 7,
 		footprintz = 7,
 		health = 17000,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 4300,
 		maxacc = 0.02645,
 		maxdec = 0.345,
@@ -41,6 +39,7 @@ return {
 			subfolder = "Legion/T3",
 			techlevel = 3,
 			unitgroup = "weapon",
+			restrictions_inclusion = "_nolrpc_",
 		},
 		featuredefs = {
 			dead = {
@@ -76,11 +75,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-huge",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

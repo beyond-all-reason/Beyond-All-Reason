@@ -15,8 +15,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 2600,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 2700,
 		maxacc = 0.03446,
 		maxdec = 0.03446,
@@ -109,11 +107,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:waterwake-small",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

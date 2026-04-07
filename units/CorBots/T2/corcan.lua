@@ -12,8 +12,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 5940,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.138,
 		maxdec = 0.6486,
 		maxslope = 14,
@@ -70,13 +68,6 @@ return {
 				resurrectable = 0,
 			},
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -108,6 +99,7 @@ return {
 				soundhitdryvolume = 16,
 				weapontype = "Cannon",
 				customparams = {
+					bogus = 1,
 					noexplosionlight = 1,
 				},
 				damage = {

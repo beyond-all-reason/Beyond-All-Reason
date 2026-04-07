@@ -15,8 +15,6 @@ return {
 		explodeas = "hugeBuildingexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxdamage = 7000,
 		maxslope = 13,
 		maxwaterdepth = 0,
@@ -75,10 +73,6 @@ return {
 				[5] = "custom:smokegen-part",
 				[6] = "custom:smokegen-part2",
 				[7] = "custom:ventair-puff",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

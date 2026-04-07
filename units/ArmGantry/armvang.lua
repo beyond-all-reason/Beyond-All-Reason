@@ -14,8 +14,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 8500,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 3300,
 		maxacc = 0.02645,
 		maxdec = 0.345,
@@ -77,11 +75,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-huge",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -135,6 +128,7 @@ return {
 				customparams = {
 					exclude_preaim = true,
 					smart_backup = true,
+					weapons_group = 2,
 				},
 				damage = {
 					commanders = 1100,
@@ -173,6 +167,7 @@ return {
 				customparams = {
 					exclude_preaim = true,
 					smart_priority = true,
+					weapons_group = 1,
 				},
 				damage = {
 					commanders = 1100,
@@ -209,6 +204,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 500,
 				customparams = {
+					bogus = 1,
 					exclude_preaim = true,
 					smart_trajectory_checker = true,
 				},

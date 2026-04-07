@@ -2,7 +2,6 @@ return {
 	armpt = {
 		activatewhenbuilt = true,
 		airsightdistance = 800,
-		autoheal = 1.5,
 		buildpic = "ARMPT.DDS",
 		buildtime = 2700,
 		canmove = true,
@@ -16,8 +15,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 780,
-		idleautoheal = 5,
-		idletime = 900,
 		maxacc = 0.07011,
 		maxdec = 0.07011,
 		metalcost = 150,
@@ -83,10 +80,6 @@ return {
 				[1] = "custom:waterwake-tiny",
 				[2] = "custom:radarpulse_t1",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -151,7 +144,9 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 850,
-				customparams = {},
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					vtol = 80,
 				},

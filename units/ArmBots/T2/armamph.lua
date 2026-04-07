@@ -13,8 +13,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1170,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.138,
 		maxdec = 0.6486,
 		maxslope = 14,
@@ -68,13 +66,6 @@ return {
 				object = "Units/arm3X3D.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -140,7 +131,9 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 850,
-				customparams = {},
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					vtol = 90,
 				},

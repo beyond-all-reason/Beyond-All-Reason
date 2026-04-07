@@ -125,7 +125,7 @@ local function drawWindow(activetab)
 	if activetab == nil then activetab = 'Keybindings' end
 
 	-- background
-	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, WG.FlowUI.clampedOpacity)
 
 	local titleFontSize = 18 * widgetScale
 
@@ -140,7 +140,7 @@ local function drawWindow(activetab)
 			tabx
 		}
 		tabx = tabx + (tabwidth  * titleFontSize +  (titleFontSize*1.5))
-		gl.Color(0, 0, 0, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+		gl.Color(0, 0, 0, WG.FlowUI.clampedOpacity)
 		RectRound(tabrects[tab][1], tabrects[tab][2], tabrects[tab][3], tabrects[tab][4], elementCorner, 1, 1, 0, 0)
 	end
 
@@ -292,6 +292,7 @@ local function refreshText()
 		{ type = lineType.key, key = getActionHotkey('remove_from_autogroup'),	text = Spring.I18N('ui.keybinds.massSelect.removeAutoGroup')},
 		{ type = lineType.key, key = Spring.I18N('ui.keybinds.massSelect.groupKey'),		text = Spring.I18N('ui.keybinds.massSelect.group')		},
 		{ type = lineType.key, key = getActionHotkey('select_AllMap+_InPrevSel+_ClearSelection_SelectAll+'),		text = Spring.I18N('ui.keybinds.massSelect.sameType')	},
+		{ type = lineType.key, key = getActionHotkey('select_PrevSelection+_Not_Building_Not_RelativeHealth_60+_ClearSelection_SelectAll+'),		text = Spring.I18N('ui.keybinds.massSelect.damaged')	},
 		{ type = lineType.blank },
 		{ type = lineType.title, text = Spring.I18N('ui.keybinds.drawing.title') },
 		{ type = lineType.key, key = Spring.I18N('ui.keybinds.drawing.mapmarkKey'),	text = Spring.I18N('ui.keybinds.drawing.mapmark')	},

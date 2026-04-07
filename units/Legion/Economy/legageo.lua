@@ -17,8 +17,6 @@ return {
 		explodeas = "customfusionexplo",
 		footprintx = 5,
 		footprintz = 5,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 4150,
 		maxslope = 20,
 		maxwaterdepth = 5,
@@ -43,13 +41,6 @@ return {
 			removewait = true,
 			subfolder = "CorBuildings/LandEconomy",
 			techlevel = 2,
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

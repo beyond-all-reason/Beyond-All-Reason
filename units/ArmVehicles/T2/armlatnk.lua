@@ -12,8 +12,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1060,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.05833,
 		maxdec = 0.11666,
@@ -79,11 +77,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-lightning",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg3-lightning",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -148,6 +141,9 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 850,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					vtol = 90,
 				},
@@ -163,7 +159,7 @@ return {
 				cratermult = 0,
 				duration = 1,
 				edgeeffectiveness = 0.15,
-				energypershot = 5,
+				energypershot = 10,
 				explosiongenerator = "custom:genericshellexplosion-medium-lightning2",
 				firestarter = 50,
 				impactonly = 1,

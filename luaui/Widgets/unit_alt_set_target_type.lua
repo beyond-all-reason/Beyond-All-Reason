@@ -296,4 +296,9 @@ function widget:Initialize()
 	if Spring.IsReplay() or spGetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
+	WG.FindNearestEnemyUnit = FindNearestEnemyUnit
+end
+
+function widget:Shutdown()
+	WG.FindNearestEnemyUnit = nil
 end

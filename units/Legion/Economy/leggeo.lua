@@ -18,8 +18,6 @@ return {
 		explodeas = "geo",
 		footprintx = 5,
 		footprintz = 5,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 2050,
 		maxslope = 15,
 		maxwaterdepth = 5,
@@ -73,13 +71,6 @@ return {
 				object = "Units/cor4X4B.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

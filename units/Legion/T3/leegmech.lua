@@ -15,8 +15,6 @@ return {
 		explodeas = "bantha",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 25,
-		idletime = 900,
 		mass = 200000,
 		health = 60000,
 		maxslope = 17,
@@ -77,10 +75,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small-impulse",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -307,6 +301,9 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 975,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 75,
 				},

@@ -17,8 +17,6 @@ return {
 		explodeas = "customfusionexplo",
 		footprintx = 5,
 		footprintz = 5,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxdamage = 4150,
 		maxslope = 20,
 		maxwaterdepth = 99999,
@@ -48,11 +46,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:geobubbles",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

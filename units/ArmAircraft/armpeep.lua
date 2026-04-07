@@ -13,8 +13,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 89,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.1825,
 		maxaileron = 0.0144,
 		maxbank = 0.8,
@@ -45,11 +43,6 @@ return {
 			selectable_as_combat_unit = true,
 			subfolder = "ArmAircraft",
 			unitgroup = "util",
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

@@ -11,8 +11,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 1920,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.1325,
 		maxaileron = 0.01384,
 		maxbank = 0.8,
@@ -43,20 +41,6 @@ return {
 			subfolder = "ArmAircraft/T2",
 			techlevel = 2,
 			unitgroup = "sub",
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

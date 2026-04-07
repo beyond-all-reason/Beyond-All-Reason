@@ -12,8 +12,6 @@ return {
 		footprintx = 7,
 		footprintz = 7,
 		health = 5900,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -70,13 +68,6 @@ return {
 				resurrectable = 0,
 			},
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -120,6 +111,9 @@ return {
 				weapontimer = 0.1,
 				weapontype = "Cannon",
 				weaponvelocity = 100,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					default = 0,
 				},
@@ -150,7 +144,7 @@ return {
 				reloadtime = 30,
 				smokecolor = 0.85,
 				smokeperiod = 10,
-				smokesize = 28,
+				smokesize = 35,
 				smoketime = 130,
 				smoketrail = true,
 				smoketrailcastshadow = true,

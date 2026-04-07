@@ -15,8 +15,6 @@ return {
 		explodeas = "hugeBuildingExplosionGeneric",
 		footprintx = 5,
 		footprintz = 5,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 4450,
 		maxslope = 12,
 		maxwaterdepth = 0,
@@ -34,6 +32,7 @@ return {
 			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'weapon',
+			restrictions_inclusion = "_nolrpc_",
 			canareaattack = 1,
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
@@ -75,10 +74,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-huge",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

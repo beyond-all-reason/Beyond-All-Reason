@@ -12,8 +12,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 3550,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -36,6 +34,7 @@ return {
 			subfolder = "CorBuildings/LandDefenceOffence",
 			techlevel = 2,
 			unitgroup = "weapon",
+			restrictions_inclusion = "_notacnukes_",
 			usebuildinggrounddecal = true,
 		},
 		featuredefs = {
@@ -67,13 +66,6 @@ return {
 				object = "Units/cor3X3A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -125,8 +117,8 @@ return {
 				reloadtime = 2,
 				smokecolor = 0.7,
 				smokeperiod = 9,
-				smokesize = 14,
-				smoketime = 60,
+				smokesize = 20,
+				smoketime = 63,
 				smoketrail = true,
 				smoketrailcastshadow = false,
 				soundhit = "xplomed4",

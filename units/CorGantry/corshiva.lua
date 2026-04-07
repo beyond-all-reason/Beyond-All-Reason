@@ -13,8 +13,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 9400,
-		idleautoheal = 15,
-		idletime = 1800,
 		mass = 1550,
 		maxacc = 0.069,
 		maxdec = 0.8211,
@@ -78,11 +76,6 @@ return {
 				[1] = "custom:barrelshot-large",
 				[2] = "custom:subbubbles",
 				[3] = "custom:footstep-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

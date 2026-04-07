@@ -15,8 +15,6 @@ return {
 		explodeas = "largeexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.0525,
 		maxaileron = 0.01273,
 		maxbank = 0.8,
@@ -46,20 +44,6 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "CorAircraft/T2",
 			techlevel = 2,
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-large",
-				[2] = "crashing-large",
-				[3] = "crashing-large2",
-				[4] = "crashing-large3",
-				[5] = "crashing-large3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

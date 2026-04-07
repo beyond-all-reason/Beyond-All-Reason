@@ -14,8 +14,6 @@ return {
 		explodeas = "pyro",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		health = 1500,
 		maxslope = 17,
@@ -89,10 +87,6 @@ return {
 				[1] = "custom:barrelshot-large",
 				[2] = "custom:dust_cloud_dirt",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -117,7 +111,7 @@ return {
 		},
 		weapondefs = {
 			clusternapalm = {
-				areaofeffect = 150,
+				areaofeffect = 120,
 				avoidfeature = false,
 				cegtag = "burnflame",
 				--collidefriendly = false,
@@ -132,7 +126,7 @@ return {
 				impulsefactor = 0.123,
 				leadlimit = 0,
 				mygravity = 0.1,
-				name = "HeavyCannon",
+				name = "Napalm Launcher",
 				noselfdamage = true,
 				projectiles = 1,
 				range = 535,
@@ -147,11 +141,11 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 250,
 				customparams = {
-					area_onhit_ceg = "fire-area-75-repeat",
-					area_onhit_damageCeg = "burnflamexl-gen",
+					area_onhit_ceg = "fire-area-60-repeat",
+					area_onhit_damageCeg = "burnflamel-gen",
 					area_onhit_resistance = "fire",
 					area_onhit_damage = 60,--30,
-					area_onhit_range = 75,
+					area_onhit_range = 60,
 					area_onhit_time = 7,
 				},
 				damage = {

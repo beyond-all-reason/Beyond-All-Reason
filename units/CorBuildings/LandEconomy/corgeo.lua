@@ -16,8 +16,6 @@ return {
 		footprintx = 5,
 		footprintz = 5,
 		health = 2050,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 15,
@@ -73,13 +71,6 @@ return {
 				object = "Units/cor4X4B.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

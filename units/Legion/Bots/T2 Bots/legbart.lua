@@ -14,8 +14,6 @@ return {
 		explodeas = "pyro",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 1780,
 		maxslope = 14,
 		speed = 60.0,
@@ -74,11 +72,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -117,7 +110,7 @@ return {
 				gravityaffected = "true",
 				impulsefactor = 0.123,
 				leadlimit = 0,
-				name = "HeavyCannon",
+				name = "Heavy Napalm Launcher",
 				noselfdamage = true,
 				projectiles = 2,
 				range = 625,

@@ -15,8 +15,6 @@ return {
 		footprintx = 6,
 		footprintz = 6,
 		health = 2900,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 15,
@@ -82,10 +80,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:WhiteLight",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

@@ -14,8 +14,6 @@ return {
 		footprintx = 7,
 		footprintz = 7,
 		health = 8000,
-		idleautoheal = 2,
-		idletime = 2500,
 		mass = 9500,
 		maxacc = 0,
 		maxdec = 0,
@@ -59,10 +57,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-greenblaster",
 				[2] = "custom:barrelshot-large",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {

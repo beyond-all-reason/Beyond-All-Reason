@@ -495,6 +495,11 @@ void main()
 
 	technique_vs = int(floor(margin_teamID_shield_technique.w));
 
+	// fix issue for amd/linux when drawing to DrawWorldPreParticles
+	// https://github.com/beyond-all-reason/RecoilEngine/issues/2791
+	gl_ClipDistance[0] = 1.0;
+	gl_ClipDistance[1] = 1.0;
+	gl_ClipDistance[2] = 1.0;
 }
 ]]
 

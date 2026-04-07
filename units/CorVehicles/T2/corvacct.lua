@@ -17,8 +17,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 5125,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.02547,
 		maxdec = 0.05093,
@@ -58,13 +56,6 @@ return {
 			techlevel = 2,
 			unitgroup = "buildert2",
 			virtualunit = 1,
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

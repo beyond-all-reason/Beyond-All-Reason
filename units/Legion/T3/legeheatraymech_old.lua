@@ -15,8 +15,6 @@ return {
 		footprintx = 6,
 		footprintz = 6,
 		health = 110000,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 27000,
 		maxacc = 0.1750,
 		maxdec = 0.7500,
@@ -84,11 +82,6 @@ return {
 				[3] = "custom:barrelshot-flak",
 				[4] = "custom:footstep-medium",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -135,6 +128,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 360,
 				customparams = {
+					bogus = 1,
 					norangering = 1,
 				},
 				damage = {
@@ -255,6 +249,7 @@ return {
 				soundhitwet = "splssml",
 				weapontype = "Cannon",
 				customparams = {
+					bogus = 1,
 					nodecal = true,
 					noexplosionlight = 1,
 				},
@@ -299,6 +294,9 @@ return {
 				weapontimer = 1,
 				weapontype = "Cannon",
 				weaponvelocity = 1600,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					vtol = 190,
 				},

@@ -15,8 +15,6 @@ return {
 		footprintx = 5,
 		footprintz = 5,
 		health = 5600,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.028,
 		maxdec = 0.028,
 		metalcost = 900,
@@ -77,11 +75,6 @@ return {
 				[1] = "custom:waterwake-medium",
 				[2] = "custom:bowsplash-medium",
 				[3] = "custom:barrelshot-small",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

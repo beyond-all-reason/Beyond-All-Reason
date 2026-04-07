@@ -12,8 +12,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1590,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.0828,
 		maxdec = 0.8211,
 		maxslope = 17,
@@ -71,12 +69,6 @@ return {
 				resurrectable = 0,
 			},
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg2",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -116,7 +108,7 @@ return {
 				laserflaresize = 7.7,
 				name = "Dual close-quarters g2g laser",
 				noselfdamage = true,
-				range = 330,
+				range = 325,
 				reloadtime = 0.3,
 				rgbcolor = "1 0 0",
 				soundhitdry = "",

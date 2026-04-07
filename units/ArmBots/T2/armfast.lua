@@ -12,8 +12,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 690,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.414,
 		maxdec = 1.29375,
 		maxslope = 17,
@@ -76,11 +74,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-tiny",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -121,7 +114,7 @@ return {
 				intensity = 0.7,
 				name = "Rapid-firing close-quarters g2g plasma guns",
 				noselfdamage = true,
-				range = 220,
+				range = 230,
 				reloadtime = 0.5,
 				rgbcolor = "1 0.95 0.4",
 				size = 2.05,

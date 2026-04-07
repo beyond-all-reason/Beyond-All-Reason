@@ -74,6 +74,7 @@ local options = {
         desc   	= "Allow custom user widgets or disallow them",
         type   	= "bool",
         def    	= true,
+		hidden	= true,
         section	= "options_main",
     },
 
@@ -113,7 +114,7 @@ local options = {
     {
         key    	= "maxunits",
         name   	= "Max Units Per Player",
-        desc   	= "Keep in mind there is an absolute limit of units, 32000, divided between each team. If you set this value higher than possible it will force itself down to the maximum it can be.",
+        desc   	= "Keep in mind there is an absolute limit of units, 32 000, divided between each team. If you set this value higher than possible it will force itself down to the maximum it can be.",
         type   	= "number",
         def    	= 2000,
         min    	= 500,
@@ -306,7 +307,7 @@ local options = {
 		type	= "bool",
 		section	= "options_main",
 		def		=  false,
-		column	= 1.76,
+		column	= 1.66,
 	},
     {
         key     = "sub_header",
@@ -364,9 +365,9 @@ local options = {
     },
 
 	{
-		key		= "unit_restrictions_nodefence",
-		name	= "Disable Defences",
-		desc	= "Disables Defensive Structures, apart from basic LLTs and basic AA",
+		key		= "unit_restrictions_nosea",
+		name	= "Disable Sea Units",
+		desc	= "Disable Sea Units",
 		type	= "bool",
 		section	= "options_main",
 		def		= false,
@@ -514,6 +515,32 @@ local options = {
         type	= "bool",
         def		= false,
         section	= "options",
+    },
+
+    {
+        key		= "wreck_metal_ratio",
+        name	= "Wreck Metal Percent",
+        desc	= "Percent of unit metal that is left in its wrecks",
+        hidden 	= true,
+        type	= "number",
+        section	= "options",
+        def		= 0.6,
+        min		= 0,
+        max		= 1,
+        step	= 0.05,
+    },
+
+    {
+        key		= "heap_metal_ratio",
+        name	= "Heap Metal Percent",
+        desc	= "Percent of unit metal that is left in its heaps",
+        hidden 	= true,
+        type	= "number",
+        section	= "options",
+        def		= 0.25,
+        min		= 0,
+        max		= 1,
+        step	= 0.05,
     },
 
     {
@@ -870,6 +897,18 @@ local options = {
         def		= 1,
         min		= 1,
         max		= 5,
+        step	= 0.1,
+        section	= "scav_defense_options",
+    },
+
+    {
+        key		= "scav_graceperiodmult",
+        name	= "Grace Period Time Multiplier",
+        desc	= "(Range: 0.1 - 3). Time before Scavs become active. ",
+        type	= "number",
+        def		= 1,
+        min		= 0.1,
+        max		= 3,
         step	= 0.1,
         section	= "scav_defense_options",
     },
@@ -1519,45 +1558,32 @@ local options = {
 
     {
         key     = "community_balance_patch",
-        name    = "Community Balance Patch Jan '26",
+        name    = "Community Balance Patch Feb '26",
         desc    = "Enable community balance patch changes\n(overwrites changes in official seasonal balance test)",
         type    = "list",
         def     = "disabled",
         section = "options_experimental",
         items   = {
             { key = "disabled", name = "Disabled", desc = "No community balance changes",
-            lock = {"community_balance_commando","community_balance_cortermite","community_balance_armwar","community_balance_armfast","community_balance_corjamt"} },
+            lock = {"community_balance_commando","community_balance_cortermite","community_balance_armfast","community_balance_armcroc","community_balance_corkorg","community_balance_corspy"} },
 
-            { key = "enabled",  name = "Enabled",  desc = "Enable all community balance changes\nCommando\nTermite\nCenturion\nSprinter\nCastro",
-            lock = {"community_balance_commando","community_balance_cortermite","community_balance_armwar","community_balance_armfast","community_balance_corjamt"} },
+            { key = "enabled",  name = "Enabled",  desc = "Enable all community balance changes\nCommando\nTermite\nSprinter\nTurtle\nJuggernaut\nSpectre",
+            lock = {"community_balance_commando","community_balance_cortermite","community_balance_armfast","community_balance_armcroc","community_balance_corkorg","community_balance_corspy"} },
 
             { key = "custom",   name = "Custom",   desc = "Customize individual community balance changes",
-            unlock = {"community_balance_commando", "community_balance_cortermite", "community_balance_armwar", "community_balance_armfast", "community_balance_corjamt"} },
+            unlock = {"community_balance_commando", "community_balance_cortermite", "community_balance_armfast", "community_balance_armcroc", "community_balance_corkorg", "community_balance_corspy"} },
         }
     },
-    
+
     {
         key     = "community_balance_patch_changelog_link",
-        name    = "Changelog",
+        name    = "Changelog/Feedback",
         desc    = "Community Balance Patch changelog",
         section = "options_experimental",
         type    = "link",
-        link    = "https://github.com/beyond-all-reason/Beyond-All-Reason/pull/6550",
-        width   = 195,
+        link    = "https://discord.com/channels/549281623154229250/1462625474344783872/1462625474344783872",
+        width   = 235,
         column  = 2.025,
-        linkheight = 325,
-        linkwidth = 350,
-    },
-
-    {
-        key     = "community_balance_patch_feedback_link",
-        name    = "Feedback Thread",
-        desc    = "Discord discussion about Community Balance Patch.",
-        section = "options_experimental",
-        type    = "link",
-        link    = "https://discord.com/channels/549281623154229250/1447954953481228529/1447954953481228529",
-        width   = 215,
-        column  = 2.35,
         linkheight = 325,
         linkwidth = 350,
     },
@@ -1565,7 +1591,7 @@ local options = {
     {
         key     = "community_balance_commando",
         name    = "(CBP) Commando",
-        desc    = "+130 jammer range (150 -> 280)\n+300 radar and LoS (900 -> 1200, 600 -> 900)\nAdd light and heavy mines to build options\n80% EMP resist\n2s self-destruct timer\nx2 autoheal (9 -> 18)\nWeapon: Cannon -> Laser\n100 dmg, 50 vs air (w/ laser damage falloff)\n2 shots/second (unchanged)\n100% accuracy\n8 aoe, 20 e/shot\n300 -> 450 range\nTargets air units\nCan be built in amphibious complex",
+        desc    = "(From January)\n+130 jammer range (150 -> 280)\n+300 radar and LoS (900 -> 1200, 600 -> 900)\nAdd light and heavy mines to build options\n80% EMP resist\n2s self-destruct timer\nx2 autoheal (9 -> 18)\nWeapon: Cannon -> Laser\n100 dmg, 50 vs air (w/ laser damage falloff)\n2 shots/second (unchanged)\n100% accuracy\n8 aoe, 20 e/shot\n300 -> 450 range\nTargets air units\nCan be built in amphibious complex",
         type    = "bool",
         def     = false,
         section = "options_experimental",
@@ -1574,16 +1600,7 @@ local options = {
     {
         key     = "community_balance_cortermite",
         name    = "(CBP) Termite",
-        desc    = "Added stealth",
-        type    = "bool",
-        def     = false,
-        section = "options_experimental",
-    },
-
-    {
-        key     = "community_balance_armwar",
-        name    = "(CBP) Centurion",
-        desc    = "Weapon range: 325 (from 330)\nSight distance: 330 (from 350)",
+        desc    = "(From January)\nAdded stealth",
         type    = "bool",
         def     = false,
         section = "options_experimental",
@@ -1592,16 +1609,34 @@ local options = {
     {
         key     = "community_balance_armfast",
         name    = "(CBP) Sprinter",
-        desc    = "Energy cost: 3500 (from 4140)\nAcceleration: 0.37 (from 0.414)\nSpeed: 115 (from 111.3)\nTurn-in-place angle: 115° (from 90°)\nTurn-in-place speed: 2.75 (from 2.4486)\nTurn rate: 1320 (from 1644.5)\nSight distance: 380 (from 351)\nWeapon: 18 AoE (from 16), 230 range (from 220), 15/5 damage (from 12/4)",
+        desc    = "(From January)\nEnergy cost: 3500 (from 4140)\nAcceleration: 0.37 (from 0.414)\nSpeed: 115 (from 111.3)\nTurn-in-place angle: 115° (from 90°)\nTurn-in-place speed: 2.75 (from 2.4486)\nTurn rate: 1320 (from 1644.5)\nSight distance: 380 (from 351)\nWeapon: 18 AoE (from 16), 230 range (from 220), 15/5 damage (from 12/4)",
         type    = "bool",
         def     = false,
         section = "options_experimental",
     },
 
     {
-        key     = "community_balance_corjamt",
-        name    = "(CBP) Castro",
-        desc    = "Build time: 9950 (from 4570)\nEnergy cost: 8500 (from 5200)\nEnergy upkeep: 40 (from 25)\nHealth: 790 (from 1070)\nMetal cost: 240 (from 115)\nRadar jammer distance: 500 (from 360)",
+        key     = "community_balance_armcroc",
+        name    = "(CBP) Turtle",
+        desc    = "(New)\nHealth: 5250 (from 5000)\nMain gun AoE: 80 (from 64), impulse factor: 0.50 (from 0.123)",
+        type    = "bool",
+        def     = false,
+        section = "options_experimental",
+    },
+
+    {
+        key     = "community_balance_corkorg",
+        name    = "(CBP) Juggernaut",
+        desc    = "(New)\nAir LOS: 1600 (from 1260)\nMetal cost: 26000 (from 29000)",
+        type    = "bool",
+        def     = false,
+        section = "options_experimental",
+    },
+
+    {
+        key     = "community_balance_corspy",
+        name    = "(CBP) Spectre",
+        desc    = "(New)\nEnergy cost: 8800 (from 12500)\nMetal cost: 135 (from 165)",
         type    = "bool",
         def     = false,
         section = "options_experimental",
@@ -1611,6 +1646,15 @@ local options = {
         key    	= "experimentallegionfaction",
         name   	= "Legion Faction",
         desc   	= "3rd experimental faction",
+        type   	= "bool",
+        section = "options_experimental",
+        def  	= false,
+    },
+
+	{
+        key    	= "legionsimplifiedmexes",
+        name   	= "Legion Simplified Mexes",
+        desc   	= "Changes the legion T1 mex to act the same as the other T1 mexes.  Legion light T1 units are given a higher metal cost but lower E cost, and heavy T1 units are given a higher E cost and slightly lower metal cost.",
         type   	= "bool",
         section = "options_experimental",
         def  	= false,
@@ -1631,7 +1675,7 @@ local options = {
 
     {
         key 	= "easytax",
-        name 	= "Easy Sharing Tax",
+        name 	= "Easy Tax v2",
         desc 	= "Anti co-op sharing tax mod. Overwrites other tax settings. Don't combine with other sharing restriction mods, everything you need is included with easy tax.",
         type 	= "bool",
         section = "options_experimental",
@@ -1641,7 +1685,7 @@ local options = {
     {
         key     = "easytax_link",
         name    = "Changelog",
-        desc    = "Easy Sharing Tax description.",
+        desc    = "Easy Tax v2 description.",
         section = "options_experimental",
         type    = "link",
         link    = "https://gist.github.com/RebelNode/43b986f29b9cfacbe95cf634cac25c49",
@@ -1848,6 +1892,16 @@ local options = {
     },
 
     {
+        key     = "forge_volcano",
+        name    = "Forge Volcano Event",
+        desc    = "Enable the cinematic volcano eruption event on Forge v2.3.",
+        type    = "bool",
+        hidden 	= true,
+        section = "options_experimental",
+        def     = false,
+    },
+
+    {
         key 	= "factory_costs",
         name 	= "Factory Costs Test Patch",
         desc 	= "Cheaper and more efficient factories, more expensive nanos, and slower to build higher-tech units. Experimental, not expected to be balanced by itself - a test to try how the game plays if each player is more able to afford their own T2 factory, while making assisting them less efficient.",
@@ -1857,34 +1911,11 @@ local options = {
         def 	= false,
     },
 
-    {
-        key 	= "pip",
-        name 	= "Picture-in-picture window",
-        desc 	= "Enables the picture-in-picture window showing a minimap-sized view of a chosen location.",
-        type 	= "bool",
-        section = "options_experimental",
-        def 	= false,
-    },
-
-    {
-        key     = "pip_link",
-        name    = "Report Bugs",
-        desc    = "Thread to report bugs and suggest improvements.",
-        section = "options_experimental",
-        type    = "link",
-        link    = "https://discordapp.com/channels/549281623154229250/1453758532460478484",
-        width   = 200,
-        column  = 1.65,
-        linkheight = 325,
-        linkwidth = 350,
-    },
-
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     -- Unused Options
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 
     {
         key		= "modes",
@@ -1893,7 +1924,6 @@ local options = {
         hidden 	= true,
         type	= "section",
     },
-
 
     {
         key    	= "shareddynamicalliancevictory",
@@ -1917,7 +1947,6 @@ local options = {
         max    	= 10,
         step   	= 0.1,
     },
-
 
     {
         key     = "defaultdecals",
@@ -2146,7 +2175,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
     {
         key		= "startmetal",
         name	= "Starting Metal",
-        desc	= "(Range 0 - 10000). Determines amount of metal and metal storage that each player will start with",
+        desc	= "(Range 0 - 10 000). Determines amount of metal and metal storage that each player will start with",
         type	= "number",
         section	= "options_cheats",
         def		= 1000,
@@ -2154,11 +2183,11 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
         max		= 10000,
         step	= 1,
     },
-    
+
     {
         key		= "startmetalstorage",
         name	= "Starting Metal Storage",
-        desc	= "(Range 1000 - 20000). Only works if it's higher than Starting metal. Determines amount of metal and metal storage that each player will start with",
+        desc	= "(Range 1000 - 20 000). Only works if it's higher than Starting metal. Determines amount of metal and metal storage that each player will start with",
         type	= "number",
         section	= "options_cheats",
         def		= 1000,
@@ -2170,7 +2199,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
     {
         key		= "startenergy",
         name	= "Starting Energy",
-        desc	= "(Range 0 - 10000). Determines amount of energy and energy storage that each player will start with",
+        desc	= "(Range 0 - 10 000). Determines amount of energy and energy storage that each player will start with",
         type	= "number",
         section	= "options_cheats",
         def		= 1000,
@@ -2182,7 +2211,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
     {
         key		= "startenergystorage",
         name	= "Starting Energy Storage",
-        desc	= "(Range 1000 - 20000). Only works if it's higher than Starting energy. Determines amount of energy and energy storage that each player will start with",
+        desc	= "(Range 1000 - 20 000). Only works if it's higher than Starting energy. Determines amount of energy and energy storage that each player will start with",
         type	= "number",
         section	= "options_cheats",
         def		= 1000,

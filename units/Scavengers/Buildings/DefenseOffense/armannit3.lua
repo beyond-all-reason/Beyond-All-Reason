@@ -18,8 +18,6 @@ return {
 		explodeas = "fusionExplosion",
 		footprintx = 6,
 		footprintz = 6,
-		idleautoheal = 5,
-		idletime = 1800,
 		sightemitheight = 72,
 		health = 28000,
 		maxslope = 10,
@@ -82,11 +80,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:tachyonshot",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

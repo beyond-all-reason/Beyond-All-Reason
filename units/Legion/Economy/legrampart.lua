@@ -19,8 +19,6 @@ return {
         footprintx = 5,
         footprintz = 5,
         health = 8600,
-        idleautoheal = 18,
-        idletime = 1800,
 		radardistancejam = 500,
 		radardistance = 2100,
 		radaremitheight = 72,
@@ -44,6 +42,7 @@ return {
             buildinggrounddecalsizex = 10,
             buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'energy',
+			restrictions_exclusion = "_noantinuke_",
             cvbuildable = true,
             geothermal = 1,
             model_author = "Tharsis",
@@ -54,13 +53,6 @@ return {
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",
 			parentsinheritxp = "DRONE",
-        },
-        sfxtypes = {
-            pieceexplosiongenerators = {
-                [1] = "deathceg2",
-                [2] = "deathceg3",
-                [3] = "deathceg4"
-            }
         },
         sounds = {
             canceldestruct = "cancel2",
@@ -163,10 +155,11 @@ return {
 					spawns_surface = "LAND",    -- "LAND" or "SEA". The SEA option has not been tested currently.
 					spawnrate = 8, 				--Spawnrate roughly in seconds.
 					maxunits = 3,				--Will spawn units until this amount has been reached.
+					startingdronecount = 1,
 					energycost = 1000,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					metalcost = 90,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					controlradius = 1800,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
-					decayrate = 4,
+					controlradius = 1500,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
+					deathdecayrate = 50,
 					carrierdeaththroe = "release",
 					dockingarmor = 0.2,
 					dockinghealrate = 256,
@@ -175,7 +168,10 @@ return {
 					dockingHelperSpeed = 5,
 					dockingpieces = "10 11 12",
 					dockingradius = 80,			--The range at which the units snap to the carrier unit when docking.
-				}
+					dronedocktime = 2,
+					droneairtime = 90,
+					droneammo = 40,
+				},
 			},
         },
         weapons = {

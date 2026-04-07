@@ -16,8 +16,6 @@ return {
 		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 6,
 		footprintz = 6,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 2800,
 		maxslope = 10,
 		minwaterdepth = 25,
@@ -62,6 +60,7 @@ return {
 			model_author = "ZephyrSkies, Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Labs",
+			techlevel = 1.5,
 		},
 		featuredefs = {
 			dead = {
@@ -77,13 +76,6 @@ return {
 				metal = 800,
 				object = "Units/legamphlab_dead.s3o",
 				reclaimable = true,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

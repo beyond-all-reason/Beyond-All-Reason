@@ -2,8 +2,8 @@ return {
 	legscout = {
 		maxacc = 0.16659,
 		maxdec = 0.33318,
-		energycost = 370,
-		metalcost = 25,
+		energycost = 350,
+		metalcost = 23,
 		buildpic = "LEGSCOUT.DDS",
 		buildtime = 900,
 		canmove = true,
@@ -15,8 +15,6 @@ return {
 		explodeas = "tinyExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = false,
 		health = 75,
 		maxslope = 26,
@@ -85,9 +83,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-tiny",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -124,12 +119,12 @@ return {
 				duration = 0.04,
 				edgeeffectiveness = 0.5,
 				explosiongenerator = "custom:plasmahit-sparkonly",
-				impulsefactor = 0.123,
+				impulsefactor = 0,
 				intensity = 0.8,
 				name = "Burst-fire Machine Gun",
 				noselfdamage = true,
 				ownerExpAccWeight = 2.0,
-				range = 160,
+				range = 169,
 				reloadtime = 1.4,
 				rgbcolor = "1 0.95 0.4",
 				soundhit = "bimpact3",
@@ -143,7 +138,7 @@ return {
 				tolerance = 6000,
 				turret = true,
 				weapontype = "LaserCannon",
-				weaponvelocity = 500,
+				weaponvelocity = 720,
 				damage = {
 					default = 11,
 					vtol = 1,

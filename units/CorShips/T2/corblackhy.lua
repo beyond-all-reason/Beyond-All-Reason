@@ -15,8 +15,6 @@ return {
 		footprintx = 8,
 		footprintz = 8,
 		health = 53000,
-		idleautoheal = 25,
-		idletime = 1800,
 		mass = 9999999,
 		maxacc = 0.00809,
 		maxdec = 0.00809,
@@ -81,11 +79,6 @@ return {
 				[3] = "custom:bowsplash-huge",
 				[4] = "custom:enginespurt-huge",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -139,6 +132,9 @@ return {
 				weapontimer = 7,
 				weapontype = "Cannon",
 				weaponvelocity = 950,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 125,
 				},
@@ -191,6 +187,7 @@ return {
 				weaponvelocity = 1200,
 				customparams = {
 					noattackrangearc = 1,
+					weapons_role = "secondary",
 				},
 				damage = {
 					vtol = 150,

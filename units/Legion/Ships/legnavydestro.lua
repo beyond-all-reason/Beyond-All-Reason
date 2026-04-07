@@ -4,8 +4,8 @@ return {
 		activatewhenbuilt = true,
 		maxdec = 0.02757,
 		buildangle = 16384,
-		energycost = 9000,
-		metalcost = 860,
+		energycost = 9500,
+		metalcost = 875,
 		buildpic = "legnavydestro.DDS",
 		buildtime = 11500,
 		canmove = true,
@@ -17,8 +17,6 @@ return {
 		floater = true,
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 3800,
 		speed = 58,
 		minwaterdepth = 12,
@@ -78,11 +76,6 @@ return {
 				[1] = "custom:barrelshot-medium",
 				[2] = "custom:waterwake-small",
 				[3] = "custom:bowsplash-small",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -168,7 +161,7 @@ return {
 				noselfdamage = true,
 				metalpershot = 15,
 				energypershot = 500,
-				range = 1000,
+				range = 700,--1000,
 				reloadtime = 2.5,
 				size = 0,
 				soundhit = "",
@@ -178,7 +171,7 @@ return {
 				stockpiletime = 20,
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 360,
+				weaponvelocity = 1000,
 				damage = {
 					default = 0,
 				},
@@ -188,14 +181,15 @@ return {
 					spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently.
 					spawnrate = 20, 				--Spawnrate roughly in seconds.
 					maxunits = 2,				--Will spawn units until this amount has been reached.
+					startingdronecount = 1,
 					energycost = 500,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					metalcost = 15,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					controlradius = 1100,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
-					decayrate = 4,
-					carrierdeaththroe = "death",
+					controlradius = 900,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
+					deathdecayrate = 20,
+					carrierdeaththroe = "release",
 					dockingarmor = 0.2,
-					dockinghealrate = 16,
-					docktohealthreshold = 66,
+					dockinghealrate = 20,
+					docktohealthreshold = 75,
 					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
 					dockingpieces = "7 9",
@@ -206,6 +200,9 @@ return {
 					dronesusestockpile = true,
 					-- cobdockparam = 1,
 					-- cobundockparam = 1,
+					dronedocktime = 3,
+					droneairtime = 60,
+					droneammo = 12,
 				}
 			},
 

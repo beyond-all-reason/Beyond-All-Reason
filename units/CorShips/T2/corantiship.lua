@@ -10,6 +10,7 @@ return {
 		canmove = true,
 		canreclaim = false,
 		canrepair = false,
+		canrestore = false,
 		collisionvolumeoffsets = "0 0 2",
 		collisionvolumescales = "48 48 140",
 		collisionvolumetype = "CylZ",
@@ -23,8 +24,6 @@ return {
 		footprintx = 7,
 		footprintz = 7,
 		health = 5000,
-		idleautoheal = 15,
-		idletime = 600,
 		mass = 10000,
 		maxacc = 0.01722,
 		maxdec = 0.01722,
@@ -55,6 +54,7 @@ return {
 			subfolder = "CorShips/T2",
 			techlevel = 2,
 			unitgroup = "antinuke",
+			restrictions_exclusion = "_noantinuke_",
 		},
 		featuredefs = {
 			dead = {
@@ -90,11 +90,6 @@ return {
 				[1] = "custom:radarpulse_t2",
 				[2] = "custom:waterwake-large",
 				[3] = "custom:bowsplash-huge",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

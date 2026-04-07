@@ -24,8 +24,6 @@ return {
 		--extractsmetal = 0.001,
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 15,
-		idletime = 300,
 		levelground = false,
 		mass = 700,
 		health = 1670,
@@ -114,6 +112,7 @@ return {
 					area_onhit_damage = 200,
 					area_onhit_range = 150,
 					area_onhit_resistance = "_RAPTORACID_",
+					nofire = true,
 				},
 				damage = {
 					default = 1,

@@ -18,8 +18,6 @@ return {
 		floater = true,
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 1200,
 		speed = 60,
 		minwaterdepth = 30,
@@ -79,11 +77,6 @@ return {
 				[1] = "custom:barrelshot-flak",
 				[2] = "custom:waterwake-medium-splash",
 				[3] = "custom:radarpulse_t1_slow",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

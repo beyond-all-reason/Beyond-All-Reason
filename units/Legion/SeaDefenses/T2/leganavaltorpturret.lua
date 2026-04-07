@@ -11,8 +11,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 2800,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		metalcost = 1050,
@@ -47,13 +45,6 @@ return {
 				metal = 676,
 				object = "Units/leganavaltorpturret_dead.s3o",
 				reclaimable = true,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

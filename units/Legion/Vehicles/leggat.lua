@@ -2,7 +2,7 @@ return {
 	leggat	= {
 		maxacc = 0.02,
 		maxdec = 0.04,
-		energycost = 3000,
+		energycost = 3600,
 		metalcost = 300,
 		buildpic = "LEGGAT.DDS",
 		buildtime = 4800,
@@ -14,8 +14,6 @@ return {
 		explodeas = "smallExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		health = 2550,
 		maxslope = 10,
@@ -83,10 +81,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-tiny",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {
