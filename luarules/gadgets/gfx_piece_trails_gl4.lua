@@ -26,6 +26,8 @@ local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
 local spGetProjectilePosition     = Spring.GetProjectilePosition
 local spGetProjectileVelocity     = Spring.GetProjectileVelocity
 local spGetProjectileOwnerID      = Spring.GetProjectileOwnerID
+local spGetProjectileTeamID       = Spring.GetProjectileTeamID
+local spGetTeamAllyTeamID         = Spring.GetTeamAllyTeamID
 local spIsSphereInView            = Spring.IsSphereInView
 local spGetGroundHeight           = Spring.GetGroundHeight
 local spIsPosInAirLos             = Spring.IsPosInAirLos
@@ -232,8 +234,8 @@ local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 	end
 	if not aboveGround then debugPieceSkipAboveGround = debugPieceSkipAboveGround + 1 return end
 
-	-- LOS check: skip entirely if not visible to player (no buffering)
-	if not frameFullView and not spIsPosInAirLos(px, py, pz, frameAllyTeamID) then return end
+	-- LOS check: own allyteam pieces always visible, enemy ones need LOS
+	if not frameFullView and tracked.allyTeamID ~= frameAllyTeamID and not spIsPosInAirLos(px, py, pz, frameAllyTeamID) then return end
 
 	local inView = spIsSphereInView(px, py, pz, PIECE_CULLING_RADIUS)
 	if not inView then
@@ -334,6 +336,8 @@ local function updatePieceProjectiles(gameFrame)
 					local sizeScale = mathMax(PIECE_SIZE_SCALE_MIN, mathMin(PIECE_SIZE_SCALE_MAX, pieceRadius / PIECE_SIZE_SCALE_REF))
 					local fi = mathRandom() < PIECE_FIRE_CHANCE and (0.3 + mathRandom() * 0.7) or 0
 					local lifeScale = fi > 0 and (1.0 + 0.3 * fi) or 0.7
+					local proTeam = spGetProjectileTeamID(proID)
+					local proAlly = proTeam and spGetTeamAllyTeamID(proTeam) or -1
 					trackedPieceProjectiles[proID] = {
 						sizeScale = sizeScale,
 						birthFrame = gameFrame,
@@ -341,6 +345,7 @@ local function updatePieceProjectiles(gameFrame)
 						gen = gen,
 						fireIntensity = fi,
 						lifeBias = mathRandom() * 0.7,
+						allyTeamID = proAlly,
 					}
 				end
 			end

@@ -182,6 +182,9 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 950,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 0,
 					vtol = 10,

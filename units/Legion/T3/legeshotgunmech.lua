@@ -123,6 +123,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 360,
 				customparams = {
+					bogus = 1,
 					preaim_range = 650,
 				},
 				damage = {
@@ -322,6 +323,7 @@ return {
 				weaponvelocity = 1900,
 				customparams = {
 					norangering = 1,
+					weapons_role = "secondary",
 				},
 				damage = {
 					vtol = 40,
