@@ -1,8 +1,8 @@
-local schema = VFS.Include('luarules/mission_api/triggers_schema.lua')
-local parameters = schema.Parameters
+local validateTriggers = VFS.Include('luarules/mission_api/validation.lua').ValidateTriggers
 
+-- Example trigger
 --[[
-	triggerId = {
+	myTriggerName = {
 		type = triggerTypes.TimeElapsed,
 		settings = { -- all individual settings, and settings table itself, are optional
 			prerequisites = {},
@@ -16,39 +16,14 @@ local parameters = schema.Parameters
 			gameFrame = 123,
 			interval = 300,
 		},
-		actions = { 'actionId1', 'actionId2' },
+		actions = { 'actionID1', 'actionID2' },
 	}
 ]]
 
-local triggers = {}
+local function processRawTriggers(rawTriggers, rawActions)
+	local triggers = {}
 
-local function prevalidateTriggers()
-	for triggerId, trigger in pairs(triggers) do
-		if not trigger.type then
-			Spring.Log('triggers_loader.lua', LOG.ERROR, "[Mission API] Trigger missing type: " .. triggerId)
-		end
-
-		if not trigger.actions or next(trigger.actions) == nil then
-			Spring.Log('triggers_loader.lua', LOG.ERROR, "[Mission API] Trigger has no actions: " .. triggerId)
-		end
-
-		for _, parameter in pairs(parameters[trigger.type]) do
-			local value = trigger.parameters[parameter.name]
-			local type = type(value)
-
-			if value == nil and parameter.required then
-				Spring.Log('triggers_loader.lua', LOG.ERROR, "[Mission API] Trigger missing required parameter. Trigger: " .. triggerId .. ", Parameter: " .. parameter.name)
-			end
-
-			if value ~= nil and type ~= parameter.type then
-				Spring.Log('triggers_loader.lua', LOG.ERROR, "[Mission API] Unexpected parameter type, expected " .. parameter.type .. ", got " .. type .. ". Trigger: " .. triggerId .. ", Parameter: " .. parameter.name)
-			end
-		end
-	end
-end
-
-local function preprocessRawTriggers(rawTriggers)
-	for triggerId, rawTrigger in pairs(rawTriggers) do
+	for triggerID, rawTrigger in pairs(rawTriggers) do
 		local settings = rawTrigger.settings or {}
 		settings.prerequisites = settings.prerequisites or {}
 		settings.repeating = settings.repeating or false
@@ -61,33 +36,13 @@ local function preprocessRawTriggers(rawTriggers)
 		rawTrigger.triggered = false
 		rawTrigger.repeatCount = 0
 
-		triggers[triggerId] = table.copy(rawTrigger)
+		triggers[triggerID] = table.copy(rawTrigger)
 	end
 
-	prevalidateTriggers()
-end
-
-local function postvalidateTriggers()
-	local actions = GG['MissionAPI'].Actions
-	for triggerId, trigger in pairs(triggers) do
-		for _, actionId in pairs(trigger.actions) do
-			if not actions[actionId] then
-				Spring.Log('triggers_loader.lua', LOG.ERROR, "[Mission API] Trigger has action that does not exist. Trigger: " .. triggerId .. ", Action: " .. actionId)
-			end
-		end
-	end
-end
-
-local function postprocessTriggers()
-	postvalidateTriggers()
-end
-
-local function getTriggers()
+	validateTriggers(triggers, rawActions)
 	return triggers
 end
 
 return {
-	GetTriggers = getTriggers,
-	PreprocessRawTriggers = preprocessRawTriggers,
-	PostprocessTriggers = postprocessTriggers,
+	ProcessRawTriggers = processRawTriggers,
 }

@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		desc = "Load and populate global mission table",
 		date = "2023.03.14",
 		layer = 0,
-		enabled = false,
+		enabled = true,
 	}
 end
 
@@ -14,27 +14,37 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+local sounds = VFS.Include('luarules/mission_api/sounds.lua')
+
 local scriptPath
 local triggersController, actionsController
-local rawTriggers, rawActions
 
 local function loadMission()
 	local mission = VFS.Include("singleplayer/" .. scriptPath)
-	rawTriggers = mission.Triggers
-	rawActions = mission.Actions
+	local rawTriggers = mission.Triggers
+	local rawActions = mission.Actions
 
-	triggersController.PreprocessRawTriggers(rawTriggers)
-	actionsController.PreprocessRawActions(rawActions)
+	GG['MissionAPI'].Triggers = triggersController.ProcessRawTriggers(rawTriggers, rawActions)
+	GG['MissionAPI'].Actions = actionsController.ProcessRawActions(rawActions)
 
-	GG['MissionAPI'].Triggers = triggersController.GetTriggers()
-	GG['MissionAPI'].Actions = actionsController.GetActions()
+	local validateReferences = VFS.Include('luarules/mission_api/validation.lua').ValidateReferences
+	validateReferences()
 
-	triggersController.PostprocessTriggers()
+	-- TODO: refactor loaders after merging loadouts
+	local parameterProcessing = VFS.Include('luarules/mission_api/parameter_processing.lua')
+	parameterProcessing.ProcessActionParameters(GG['MissionAPI'].Actions)
+	parameterProcessing.ProcessTriggerParameters(GG['MissionAPI'].Triggers)
 end
 
 function gadget:Initialize()
-	-- TODO: Actually pass script path in modoptions
-	scriptPath = 'test_mission.lua'-- Spring.GetModOptions().mission_path
+	-- TODO: Actually pass script path
+	--scriptPath = 'mission-api-tests/validation_test.lua'
+	--scriptPath = 'mission-api-tests/test_mission.lua'
+	--scriptPath = 'mission-api-tests/markers_test.lua'
+	--scriptPath = 'mission-api-tests/sound_test.lua'
+	--scriptPath = 'mission-api-tests/issue_orders_test.lua'
+	--scriptPath = 'mission-api-tests/unit_triggers_test.lua'
+	scriptPath = 'mission-api-tests/feature_triggers_test.lua'
 
 	if not scriptPath then
 		gadgetHandler:RemoveGadget()
@@ -42,19 +52,27 @@ function gadget:Initialize()
 	end
 
 	GG['MissionAPI'] = {}
-	GG['MissionAPI'].Difficulty = Spring.GetModOptions().mission_difficulty --TODO: add mission difficulty modoption
+	GG['MissionAPI'].Difficulty = 0 --TODO: implement mission difficulties
 
 	local triggersSchema = VFS.Include('luarules/mission_api/triggers_schema.lua')
 	local actionsSchema = VFS.Include('luarules/mission_api/actions_schema.lua')
 	GG['MissionAPI'].TriggerTypes = triggersSchema.Types
 	GG['MissionAPI'].ActionTypes = actionsSchema.Types
-
-	GG['MissionAPI'].TrackedUnits = {}
+	GG['MissionAPI'].trackedUnitIDs      = {}
+	GG['MissionAPI'].trackedUnitNames    = {}
+	GG['MissionAPI'].trackedFeatureIDs   = {}
+	GG['MissionAPI'].trackedFeatureNames = {}
+	GG['MissionAPI'].soundFiles          = {}
+	GG['MissionAPI'].soundQueue          = {}
 
 	triggersController = VFS.Include('luarules/mission_api/triggers_loader.lua')
 	actionsController = VFS.Include('luarules/mission_api/actions_loader.lua')
 
 	loadMission();
+end
+
+function gadget:GameFrame(frameNumber)
+	sounds.ProcessSoundQueue(frameNumber)
 end
 
 function gadget:Shutdown()
