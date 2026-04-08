@@ -1749,18 +1749,6 @@ local definitions = {
   },
 
     ["missiletrailaa"] = {
-        --groundflash = {
-        --  circlealpha        = 0,
-        --  circlegrowth       = 0,
-        --  flashalpha         = 0.05,
-        --  flashsize          = 38,
-        --  ttl                = 10,
-        --  color = {
-        --    [1]  = 0.80000001192093,
-        --    [2]  = 0.50000000149012,
-        --    [3]  = 0.15,
-        --  },
-        --},
         engine = {
             air                = true,
             class              = [[CBitmapMuzzleFlame]],
@@ -1781,46 +1769,6 @@ local definitions = {
                 ttl                = 1,
             },
         },
-        -- engineglow = {
-        --     air                = true,
-        --     class              = [[CBitmapMuzzleFlame]],
-        --     count              = 1,
-        --     ground             = true,
-        --     underwater         = 1,
-        --     water              = true,
-        --     properties = {
-        --         colormap           = [[0.15 0.045 0.135 0.01   0 0 0 0.01]],
-        --         dir                = [[dir]],
-        --         frontoffset        = 0,
-        --         fronttexture       = [[trans]],
-        --         length             = 55,
-        --         sidetexture        = [[glow2]],
-        --         size               = 35,
-        --         sizegrowth         = 0,
-        --         ttl                = 2,
-        --         -- pos                = [[5, 0, 0]],
-        --     },
-        -- },
-        -- Replaced with engine trail
-        -- trail = {
-        --     air                = true,
-        --     class              = [[CBitmapMuzzleFlame]],
-        --     count              = 1,
-        --     ground             = true,
-        --     underwater         = 1,
-        --     water              = true,
-        --     properties = {
-        --         colormap           = [[0.22 0.05 0.2 0.28   0.04 0.033 0.036 0.14   0 0 0 0.01]],
-        --         dir                = [[dir]],
-        --         frontoffset        = 0,
-        --         fronttexture       = [[trans]],
-        --         length             = -48,
-        --         sidetexture        = [[smoketrail]],
-        --         size               = 2.2,
-        --         sizegrowth         = 0,
-        --         ttl                = 3,
-        --     },
-        -- },
     },
     ["missiletrailaa-smoke"] = {        -- used by gadget: fx_missile_smoke
         trail = {
@@ -3293,8 +3241,8 @@ definitions["missiletrailsmall-red"].sparks.properties.particlesize = 31
 -- definitions["missiletrailsmall-red"].trail.properties.length = -33
 definitions["missiletrailsmall-red"].fireglow.properties.colormap = [[0.2 0.075 0.075 0.01   0 0 0 0.01]]
 definitions["missiletrailsmall-red-smoke"] = table.copy(definitions["missiletrailsmall-simple-smoke"])
-definitions["missiletrailsmall-red-smoke"].engine.properties.length = [[-11 r1.5]]
-definitions["missiletrailsmall-red-smoke"].engine.properties.size = 2.5
+definitions["missiletrailsmall-red-smoke"].exhaustengine.properties.length = [[-11 r1.5]]
+definitions["missiletrailsmall-red-smoke"].exhaustengine.properties.size = 2.5
 --definitions["missiletrailsmall-red-smoke"].trail.properties.size = 2.75
 definitions["missiletrailmedium-red"] = table.copy(definitions["missiletrailmedium"])
 definitions["missiletrailmedium-red"].engine.properties.colormap = [[1 0.33 0.17 0.01   1.0 0.25 0.1 0.01   1.0 0.22 0.05 0.01   0 0 0 0.01]]

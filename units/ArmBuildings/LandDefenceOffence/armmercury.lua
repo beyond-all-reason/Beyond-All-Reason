@@ -112,7 +112,7 @@ return {
 				proximitypriority = -1,
 				range = 2400,
 				reloadtime = 1.8,
-				smokecolor = 0.75,
+				smokecolor = 0.9,
 				smokeperiod = 2,
 				smokesize = 9,
 				smoketime = 20,
