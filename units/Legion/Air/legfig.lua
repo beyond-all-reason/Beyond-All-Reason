@@ -7,7 +7,7 @@ return {
 		energycost = 1600,
 		metalcost = 40,
 		buildpic = "LEGFIG.DDS",
-		buildtime = 2000,
+		buildtime = 2400,
 		canfly = true,
 		canmove = true,
 		collide = false,
@@ -18,7 +18,7 @@ return {
 		maxacc = 0.2,
 		maxaileron = 0.0144,
 		maxbank = 0.8,
-		health = 220,
+		health = 200,
 		maxelevator = 0.01065,
 		maxpitch = 0.625,
 		maxrudder = 0.00615,
@@ -38,14 +38,16 @@ return {
 		usesmoothmesh = true,
 		wingangle = 0.06315,
 		wingdrag = 0.185,
+
 		customparams = {
-			unitgroup = 'aa',
+			unitgroup = "aa",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Air",
 			attacksafetydistance = 300,
 			fighter = 1,
 		},
+
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -67,6 +69,7 @@ return {
 				[1] = "vtolarac",
 			},
 		},
+
 		weapondefs = {
 			semiauto = {
 				accuracy = 7,
@@ -92,7 +95,7 @@ return {
 				ownerExpAccWeight = 4.0,
 				predictboost = 0.5,
 				proximitypriority = 1,
-				range = 600,
+				range = 620,
 				reloadtime = 0.6,
 				rgbcolor = "1 0.4 0.95",
 				soundhit = "bimpact3",
@@ -115,6 +118,7 @@ return {
 				},
 			},
 		},
+
 		weapons = {
 			[1] = {
 				badtargetcategory = "NOTAIR",
