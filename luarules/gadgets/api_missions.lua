@@ -31,6 +31,11 @@ local function loadMission(scriptPath)
 	local validateReferences = VFS.Include('luarules/mission_api/validation.lua').ValidateReferences
 	validateReferences()
 
+	if GG['MissionAPI'].HasValidationErrors then
+		gadgetHandler:RemoveGadget()
+		return
+	end
+
 	-- TODO: refactor loaders after merging loadouts
 	local parameterProcessing = VFS.Include('luarules/mission_api/parameter_processing.lua')
 	parameterProcessing.ProcessActionParameters(GG['MissionAPI'].Actions)
