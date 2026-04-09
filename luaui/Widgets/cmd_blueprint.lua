@@ -1136,9 +1136,8 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 			return false
 		end
 
-		local _, _, _, shift = Spring.GetModKeyState()
 		local activeModifier = WG['build_split'] and WG['build_split'].isActive()
-		local isBuildSplit = shift and activeModifier
+		local isBuildSplit = cmdOpts.shift and activeModifier
 
 		WG["api_blueprint"].placeBlueprint(
 			selectedBlueprint,
@@ -1148,7 +1147,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 			cmdOpts
 		)
 
-		if not shift then
+		if not cmdOpts.shift then
 			setBlueprintPlacementActive(false)
 		end
 
