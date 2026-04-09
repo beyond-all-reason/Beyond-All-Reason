@@ -348,7 +348,7 @@ end
 ----------------------------------------------------------------
 
 function gadget:Initialize()
-	if not GG['MissionAPI'] then
+	if not GG['MissionAPI'] or GG['MissionAPI'].HasValidationErrors then
 		gadgetHandler:RemoveGadget()
 		return
 	end

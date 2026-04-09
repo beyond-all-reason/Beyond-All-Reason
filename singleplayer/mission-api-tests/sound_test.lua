@@ -53,9 +53,9 @@ local actions = {
 	spawnEye = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitDefName = 'armeyes',
-			teamID = 0,
-			position = { x = 1800, z = 1600 },
+			unitLoadout = {
+				{ unitDefName = 'armeyes', x = 1800, z = 1600, team = 0 },
+			},
 		},
 	},
 
@@ -101,9 +101,9 @@ local actions = {
 	playSoundNotification = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitDefName = 'armsilo',
-			teamID = 1,
-			position = { x = 1900, z = 1800 },
+			unitLoadout = {
+				{ unitDefName = 'armsilo', x = 1900, z = 1800, team = 1 },
+			},
 		},
 	},
 

@@ -1,37 +1,16 @@
+local actionsSchema = VFS.Include('luarules/mission_api/actions_schema.lua')
+local types = actionsSchema.Types
+local loadout = VFS.Include('luarules/mission_api/loadout.lua')
 local sounds = VFS.Include('luarules/mission_api/sounds.lua')
 local tracking = VFS.Include('luarules/mission_api/tracking.lua')
 local trackUnit = tracking.TrackUnit
 local isUnitNameUntracked = tracking.IsUnitNameUntracked
 local untrackUnitName = tracking.UntrackUnitName
-local trackFeature = tracking.TrackFeature
 local isFeatureNameUntracked = tracking.IsFeatureNameUntracked
 
 local trackedUnitIDs = GG['MissionAPI'].trackedUnitIDs
 local trackedFeatureIDs = GG['MissionAPI'].trackedFeatureIDs
 local triggers = GG['MissionAPI'].Triggers
-
-
-----------------------------------------------------------------
---- Utility Functions:
-----------------------------------------------------------------
-
-local function generateGridPositions(center, quantity, xSpacing, zSpacing)
-	local positions = {}
-	local xGridSize = math.ceil(math.sqrt(quantity)) * xSpacing
-	local zGridSize = math.ceil(math.sqrt(quantity)) * zSpacing
-	local left = center.x - math.floor(xGridSize / 2)
-	local top = center.z - math.floor(zGridSize / 2)
-	local count = 0
-
-	for x = left, left + xGridSize - xSpacing, xSpacing do
-		for z = top, top + zGridSize - zSpacing, zSpacing do
-			if count >= quantity then return positions end
-			table.insert(positions, {x = x, z = z})
-			count = count + 1
-		end
-	end
-	return positions
-end
 
 
 ----------------------------------------------------------------
@@ -47,66 +26,14 @@ local function disableTrigger(triggerID)
 end
 
 local function issueOrders(unitName, orders)
-    if isUnitNameUntracked(unitName) then return end
+	if isUnitNameUntracked(unitName) then return end
 
-	local commandsAcceptingName = { [CMD.GUARD] = true, [CMD.REPAIR] = true, [CMD.CAPTURE] = true, [CMD.ATTACK] = true,
-									[CMD.LOAD_UNITS] = true, [CMD.RECLAIM] = true, [CMD.RESURRECT] = true }
-
-	-- Replace name param with unitIDs, duplicating order for each unitID
-	local newOrders = {}
-	for _, order in pairs(orders) do
-		local commandID = order[1]
-		local params = order[2] or {}
-		local options = order[3] or {}
-
-		if commandsAcceptingName[commandID] and type(params) == 'table' and (params.unitName or params.featureName) then
-			local thingIDs = {}
-			local offset = 0
-			if params.featureName then
-				thingIDs = trackedFeatureIDs[params.featureName]
-				if not Engine.FeatureSupport.noOffsetForFeatureID then
-					offset = Game.maxUnits
-				end
-			elseif params.unitName then
-				thingIDs = trackedUnitIDs[params.unitName]
-			end
-
-			local isFirstUnitID = true
-			for thingID in pairs(thingIDs) do
-				newOrders[#newOrders + 1] = { commandID, thingID + offset, table.copy(options) }
-				if isFirstUnitID then
-					table.insert(options, 'shift')
-					isFirstUnitID = false
-				end
-			end
-		else
-			newOrders[#newOrders + 1] = order
-		end
-	end
-
-	Spring.GiveOrderArrayToUnitMap(trackedUnitIDs[unitName], newOrders)
+	local convertedOrders = loadout.ConvertOrdersTargetingNames(orders)
+	Spring.GiveOrderArrayToUnitMap(trackedUnitIDs[unitName], convertedOrders)
 end
 
-local function spawnUnits(unitName, unitDefName, teamID, position, quantity, facing, construction, spacing)
-
-	spacing = spacing or 0
-
-	local unitDef = UnitDefs[UnitDefNames[unitDefName].id]
-	local xsize = unitDef.xsize * Game.squareSize + spacing
-	local zsize = unitDef.zsize * Game.squareSize + spacing
-
-	-- adjust for facing of non-square units
-	if facing == 'e' or facing == 'w' then
-		xsize, zsize = zsize, xsize
-	end
-
-	local positions = generateGridPositions(position, quantity or 1, xsize, zsize)
-
-	for _, pos in pairs(positions) do
-		pos.y = Spring.GetGroundHeight(pos.x, pos.z)
-		local unitID = Spring.CreateUnit(unitDefName, pos.x, pos.y, pos.z, facing or 's', teamID, construction)
-		trackUnit(unitName, unitID)
-	end
+local function spawnUnits(unitLoadout)
+	loadout.SpawnUnitLoadout(unitLoadout)
 end
 
 ----------------------------------------------------------------
@@ -168,7 +95,7 @@ local function nameUnits(unitName, teamID, unitDefName, area)
 	local unitsToName = {}
 	if hasFilterOtherThanTeamID then
 		unitsToName = table.valueIntersection(
-			unpack(table.filterArray({ unitsFromDef, unitsInArea},
+			unpack(table.filterArray({ unitsFromDef, unitsInArea },
 				function(tbl) return not table.isEmpty(tbl) end)))
 	else
 		unitsToName = allUnitsOfTeam
@@ -183,35 +110,14 @@ local function unnameUnits(unitName)
 	untrackUnitName(unitName)
 end
 
-local corpseToUnitDefName = {}
-for _, unitDef in pairs(UnitDefs) do
-	if unitDef.corpse and FeatureDefNames[unitDef.corpse] then
-		corpseToUnitDefName[unitDef.corpse] = unitDef.name
-	end
+local function createFeatures(featureLoadout)
+	loadout.SpawnFeatureLoadout(featureLoadout)
 end
 
-local function createFeature(featureDefName, position, featureName, facing)
-	-- Convert named facing to a heading integer (engine uses 0-65535 headings)
-	local facingToHeading = { s = 0, n = 32768, e = 16384, w = 49152,
-		south = 0, north = 32768, east = 16384, west = 49152,
-		[0] = 0, [1] = 32768, [2] = 16384, [3] = 49152 }
-	local heading = facing and (facingToHeading[facing] or 0) or 0
-
-	local gaiaTeamID = Spring.GetGaiaTeamID()
-	local featureID = Spring.CreateFeature(featureDefName, position.x, position.y, position.z, heading, gaiaTeamID)
-	local unitDefName = corpseToUnitDefName[featureDefName]
-	if unitDefName then
-		Spring.SetFeatureResurrect(featureID, unitDefName, facing)
-	end
-	if featureID and featureName then
-		trackFeature(featureName, featureID)
-	end
-end
-
-local function destroyFeature(featureName)
+local function destroyFeatures(featureName)
 	if isFeatureNameUntracked(featureName) then return end
 
-	-- Copying table as FeatureDestroyed trigger with CreateFeature with the same name could cause infinite loop.
+	-- Copying table as FeatureDestroyed trigger with CreateFeatures with the same name could cause infinite loop.
 	for featureID in pairs(table.copy(trackedFeatureIDs[featureName])) do
 		if Spring.ValidFeatureID(featureID) then
 			Spring.DestroyFeature(featureID)
@@ -287,7 +193,7 @@ end
 
 local function defeat(losingAllyTeamIDs)
 	local allAllyTeamIDs = Spring.GetAllyTeamList()
-	local winningAllyTeamIDs = { }
+	local winningAllyTeamIDs = {}
 	for _, allyTeamID in pairs(allAllyTeamIDs) do
 		if not table.contains(losingAllyTeamIDs, allyTeamID) then
 			table.insert(winningAllyTeamIDs, allyTeamID)
@@ -302,42 +208,42 @@ end
 
 return {
 	-- Triggers
-	EnableTrigger = enableTrigger,
-	DisableTrigger = disableTrigger,
+	[types.EnableTrigger]   = enableTrigger,
+	[types.DisableTrigger]  = disableTrigger,
 
 	-- Orders
-	IssueOrders = issueOrders,
+	[types.IssueOrders]     = issueOrders,
 
 	-- Build Options
 
 	-- Units
-	SpawnUnits = spawnUnits,
-	DespawnUnits = despawnUnits,
-	TransferUnits = transferUnits,
-	NameUnits = nameUnits,
-	UnnameUnits = unnameUnits,
+	[types.SpawnUnits]      = spawnUnits,
+	[types.DespawnUnits]    = despawnUnits,
+	[types.TransferUnits]   = transferUnits,
+	[types.NameUnits]       = nameUnits,
+	[types.UnnameUnits]     = unnameUnits,
 
 	-- Features
-	CreateFeature = createFeature,
-	DestroyFeature = destroyFeature,
+	[types.CreateFeatures]  = createFeatures,
+	[types.DestroyFeatures] = destroyFeatures,
 
 	-- SFX
-	SpawnExplosion = spawnExplosion,
+	[types.SpawnExplosion]  = spawnExplosion,
 
 	-- Map
 
 	-- Media
-	PlaySound = playSound,
-	SendMessage = sendMessage,
-	AddMarker = addMarker,
-	DrawLines = drawLines,
-	EraseMarker = eraseMarker,
-	ClearAllMarkers = clearAllMarkers,
+	[types.PlaySound]       = playSound,
+	[types.SendMessage]     = sendMessage,
+	[types.AddMarker]       = addMarker,
+	[types.DrawLines]       = drawLines,
+	[types.EraseMarker]     = eraseMarker,
+	[types.ClearAllMarkers] = clearAllMarkers,
 
 	-- Win Condition
-	Victory = victory,
-	Defeat = defeat,
+	[types.Victory]         = victory,
+	[types.Defeat]          = defeat,
 
 	-- Custom
-	Custom = custom,
+	[types.Custom]          = custom,
 }
