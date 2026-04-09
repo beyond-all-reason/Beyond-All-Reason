@@ -21,6 +21,15 @@ local function facingToHeading(facing)
 	return Spring.GetHeadingFromFacing(facingMap[facing or 0])
 end
 
+--- Whether the given facing is east or west
+--- @param facing string|integer
+--- @return boolean
+local function isFacingEW(facing)
+	local facingValue = facingMap[facing or 0]
+	return facingValue == 1 or facingValue == 3
+end
+
 return {
 	FacingToHeading = facingToHeading,
+	IsFacingEW = isFacingEW,
 }

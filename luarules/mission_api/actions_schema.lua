@@ -21,11 +21,10 @@ local actionTypes = {
 	TransferUnits      = 404,
 	NameUnits	       = 405,
 	UnnameUnits	       = 406,
-	SpawnLoadout       = 407,
 
 	-- Features
-	CreateFeature      = 450,
-	DestroyFeature     = 451,
+	CreateFeatures     = 450,
+	DestroyFeatures    = 451,
 
 	-- SFX
 	SpawnExplosion     = 500,
@@ -100,44 +99,10 @@ local parameters = {
 	-- Units
 	[actionTypes.SpawnUnits] = {
 		[1] = {
-			name = 'unitName',
-			required = false,
-			type = Types.String,
-		},
-		[2] = {
-			name = 'unitDefName',
+			name = 'unitLoadout',
 			required = true,
-			type = Types.UnitDefName
+			type = Types.UnitLoadout,
 		},
-		[3] = {
-			name = 'teamID',
-			required = true,
-			type = Types.TeamID
-		},
-		[4] = {
-			name = 'position',
-			required = true,
-			type = Types.Position
-		},
-		[5] = {
-			name = 'quantity',
-			required = false,
-			type = Types.Number,		},
-		[6] = {
-			name = 'facing',
-			required = false,
-			type = Types.Facing
-		},
-		[7] = {
-			name = 'construction',
-			required = false,
-			type = Types.Boolean
-		},
-		[8] = {
-			name = 'spacing',
-			required = false,
-			type = Types.Number
-		}
 	},
 
 	[actionTypes.DespawnUnits] = {
@@ -205,48 +170,19 @@ local parameters = {
 	},
 
 	-- Features
-	[actionTypes.CreateFeature] = {
+	[actionTypes.CreateFeatures] = {
 		[1] = {
-			name = 'featureDefName',
-			required = true,
-			type = Types.FeatureDefName,
-		},
-		[2] = {
-			name = 'position',
-			required = true,
-			type = Types.Position,
-		},
-		[3] = {
-			name = 'featureName',
-			required = false,
-			type = Types.String,
-		},
-		[4] = {
-			name = 'facing',
-			required = false,
-			type = Types.Facing,
-		},
-	},
-	[actionTypes.DestroyFeature] = {
-		[1] = {
-			name = 'featureName',
-			required = true,
-			type = Types.String,
-		},
-	},
-
-	[actionTypes.SpawnLoadout] = {
-		[1] = {
-			name = 'unitLoadout',
-			required = false,
-			type = Types.UnitLoadout,
-		},
-		[2] = {
 			name = 'featureLoadout',
-			required = false,
+			required = true,
 			type = Types.FeatureLoadout,
 		},
-		requiresOneOf = { 'unitLoadout', 'featureLoadout' },
+	},
+	[actionTypes.DestroyFeatures] = {
+		[1] = {
+			name = 'featureName',
+			required = true,
+			type = Types.String,
+		},
 	},
 
 	-- SFX

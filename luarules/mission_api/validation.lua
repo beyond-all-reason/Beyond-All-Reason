@@ -5,13 +5,26 @@
 VFS.Include('common/wav.lua')
 
 local function logError(message)
+	GG['MissionAPI'].HasValidationErrors = true
 	Spring.Log('validation.lua', LOG.ERROR, "[Mission API] " .. message)
+end
+local function logWarn(message)
+	Spring.Log('validation.lua', LOG.WARNING, "[Mission API] " .. message)
 end
 
 
 ----------------------------------------------------------------
 --- Parameter Type Validators:
 ----------------------------------------------------------------
+
+-- Set of command IDs from CMD and GameCMD:
+local knownCMDs = {}
+for cmdID in pairs(CMD) do
+	knownCMDs[cmdID] = true
+end
+for cmdID in pairs(GameCMD) do
+	knownCMDs[cmdID] = true
+end
 
 local function validateLuaType(value, expectedType)
 	local actualType = type(value)
@@ -122,147 +135,153 @@ validators[Types.AllyTeamIDs] = function(allyTeamIDs)
 
 validators[Types.Orders] = function(orders)
 
-		local result = {}
+	local result = {}
 
-		local function validateOrderCommandAndParams(order, orderNumber)
-			local commandID = order[1]
-			local params = order[2]
-			local function validateNumberArrayCurried(sizes, message, nameKeys)
-				return function()
-					local luaTypeResult = validateLuaType(params, 'table')
-					if luaTypeResult then
-						result[#result + 1] = { message = luaTypeResult, parameterNameSuffix = '[' .. orderNumber .. '][2]' }
-						return
-					end
-
-					if nameKeys and table.any(nameKeys, function(nameKey) return params[nameKey] ~= nil end) then
-						-- params has a nameKey field, so it's a unit or feature name parameter
-						return
-					end
-
-					if not table.contains(sizes, #(params or {})) then
-						result[#result + 1] = { message = "Parameter must be an array of " .. message, parameterNameSuffix = '[' .. orderNumber .. '][2]' }
-						return
-					end
-
-					for i, param in ipairs(params or {}) do
-						local luaTypeRes = validateLuaType(param, 'number')
-						if luaTypeRes then
-							result[#result + 1] = { message = luaTypeRes, parameterNameSuffix = '[' .. orderNumber .. '][2][' .. i .. ']' }
-							return
-						end
-					end
-				end
-			end
-
-			local function validateNumber()
-				local luaTypeResult = validateLuaType(params, 'number')
+	local function validateOrderCommandAndParams(order, orderNumber)
+		local commandID = order[1]
+		local params = order[2]
+		local function validateNumberArrayCurried(sizes, message, nameKeys)
+			return function()
+				local luaTypeResult = validateLuaType(params, 'table')
 				if luaTypeResult then
 					result[#result + 1] = { message = luaTypeResult, parameterNameSuffix = '[' .. orderNumber .. '][2]' }
-				end
-			end
-
-			local validateUnitName = validateNumberArrayCurried({ -1 }, "{ unitName = 'aUnitName' }", { 'unitName' })
-			local validate3 = validateNumberArrayCurried({ 3 }, "3 numbers {x, y, z}")
-			local validate3orUnitName = validateNumberArrayCurried({ 3 }, "3 numbers {x, y, z}, or a unit name", { 'unitName' })
-			local validate3or4 = validateNumberArrayCurried({ 3, 4 }, "3 or 4 numbers {x, y, z, optional radius}")
-			local validate4 = validateNumberArrayCurried({ 4 }, "4 numbers {x, y, z, radius}")
-			local validate4orUnitName = validateNumberArrayCurried({ 4 }, "4 numbers {x, y, z, radius}, or a unit name", { 'unitName' })
-			local validate4orFeatureName = validateNumberArrayCurried({ 4 }, "4 numbers {x, y, z, radius}, or a feature name", { 'featureName' })
-			local validate4orEitherName = validateNumberArrayCurried({ 4 }, "4 numbers {x, y, z, radius}, or a unit/feature name", { 'unitName', 'featureName' })
-
-			local commandValidators = {
-				-- No parameters:
-				[CMD.STOP] = false,
-				[CMD.SELFD] = false,
-				-- Unit name parameter:
-				[CMD.GUARD] = validateUnitName,
-				-- 3 number parameters:
-				[CMD.DGUN] = validate3,
-				[CMD.MOVE] = validate3,
-				[CMD.FIGHT] = validate3,
-				[CMD.PATROL] = validate3,
-				-- 3 or 4 number parameters:
-				[CMD.UNLOAD_UNITS] = validate3or4,
-				-- 4 number parameters:
-				[CMD.AREA_ATTACK] = false, -- currently broken in engine
-				[GameCMD.AREA_ATTACK_GROUND] = validate4, -- Only artillery units (customParams.canareaattack = 1) support this
-				[CMD.RESTORE] = validate4,
-				-- 3 number parameters, or unit name:
-				[CMD.ATTACK] = validate3orUnitName,
-				-- 4 number parameters, or unit name:
-				[CMD.CAPTURE] = validate4orUnitName,
-				[CMD.REPAIR] = validate4orUnitName,
-				[CMD.LOAD_UNITS] = validate4orUnitName,
-				-- 4 number parameters, or feature name:
-				[CMD.RESURRECT] = validate4orFeatureName,
-				-- 4 number parameters, or either unit or feature name:
-				[CMD.RECLAIM] = validate4orEitherName,
-				-- Single number parameter:
-				[CMD.CLOAK] = validateNumber,
-				[CMD.ONOFF] = validateNumber,
-				[CMD.FIRE_STATE] = validateNumber,
-				[CMD.MOVE_STATE] = validateNumber,
-			}
-			if commandValidators[commandID] then
-				commandValidators[commandID]()
-			elseif type(commandID) == 'string' then
-				-- build command: See https://springrts.com/wiki/Lua_CMDs#CMD.INTERNAL
-				-- commandID is a unitDefName string
-				local unitDef = UnitDefNames[commandID]
-				if not unitDef then
-					result[#result + 1] = { message = "Invalid build order unitDefName: " .. commandID, parameterNameSuffix = '[' .. orderNumber .. '][1]' }
-				end
-
-				-- parameters must be 3 or 4 numbers {x, y, z, optional facing}, or empty for factories
-				validateNumberArrayCurried({ 0, 3, 4 }, "3 or 4 numbers {x, y, z, optional facing}, or no parameters for factories")()
-				if #(params or {}) == 4 then
-					local validFacings = { [0] = true, [1] = true, [2] = true, [3] = true }
-					if not validFacings[params[4]] then
-						result[#result + 1] = { message = "Invalid build order facing: " .. params[4] .. ". Must be one of 0, 1, 2, 3", parameterNameSuffix = '[' .. orderNumber .. '][2][4]' }
-					end
-				end
-			end
-		end
-
-		local function validateOrderOptions(options, orderNumber)
-			local validOptions = { right = true, alt = true, ctrl = true, shift = true, meta = true }
-			if options then
-				local luaTypeResult = validateLuaType(options, 'table')
-				if luaTypeResult then
-					result[#result + 1] = { message = luaTypeResult, parameterNameSuffix = "[" .. orderNumber .. "][3]" }
 					return
 				end
 
-				for _, optionName in pairs(options) do
-					if not validOptions[optionName] then
-						result[#result + 1] = { message = "Invalid order option: " .. optionName, parameterNameSuffix = "[" .. orderNumber .. "][3]" }
+				if nameKeys and table.any(nameKeys, function(nameKey) return params[nameKey] ~= nil end) then
+					-- params has a nameKey field, so it's a unit or feature name parameter
+					return
+				end
+
+				if not table.contains(sizes, #(params or {})) then
+					result[#result + 1] = { message = "Parameter must be an array of " .. message, parameterNameSuffix = '[' .. orderNumber .. '][2]' }
+					return
+				end
+
+				for i, param in ipairs(params or {}) do
+					local luaTypeRes = validateLuaType(param, 'number')
+					if luaTypeRes then
+						result[#result + 1] = { message = luaTypeRes, parameterNameSuffix = '[' .. orderNumber .. '][2][' .. i .. ']' }
+						return
 					end
 				end
 			end
 		end
 
-		local luaTypeResult = validators[Types.Table](orders)
-		if luaTypeResult then
-			return luaTypeResult
-		end
-
-		if #orders == 0 then
-			return { { message = "Orders table is empty" } }
-		end
-
-		for i, order in pairs(orders) do
-			local fieldResult = validateField(order, "order #" .. i, 'table')
-			if fieldResult then
-				result[#result + 1] = fieldResult
-			else
-				validateOrderCommandAndParams(order, i)
-				validateOrderOptions(order[3], i)
+		local function validateNumber()
+			local luaTypeResult = validateLuaType(params, 'number')
+			if luaTypeResult then
+				result[#result + 1] = { message = luaTypeResult, parameterNameSuffix = '[' .. orderNumber .. '][2]' }
 			end
 		end
 
-		return result
+		local validateUnitName = validateNumberArrayCurried({ -1 }, "{ unitName = 'aUnitName' }", { 'unitName' })
+		local validate3 = validateNumberArrayCurried({ 3 }, "3 numbers {x, y, z}")
+		local validate3orUnitName = validateNumberArrayCurried({ 3 }, "3 numbers {x, y, z}, or a unit name", { 'unitName' })
+		local validate3or4 = validateNumberArrayCurried({ 3, 4 }, "3 or 4 numbers {x, y, z, optional radius}")
+		local validate4 = validateNumberArrayCurried({ 4 }, "4 numbers {x, y, z, radius}")
+		local validate4orUnitName = validateNumberArrayCurried({ 4 }, "4 numbers {x, y, z, radius}, or a unit name", { 'unitName' })
+		local validate4orFeatureName = validateNumberArrayCurried({ 4 }, "4 numbers {x, y, z, radius}, or a feature name", { 'featureName' })
+		local validate4orEitherName = validateNumberArrayCurried({ 4 }, "4 numbers {x, y, z, radius}, or a unit/feature name", { 'unitName', 'featureName' })
+
+		local commandValidators = {
+			-- No parameters:
+			[CMD.STOP] = false,
+			[CMD.SELFD] = false,
+			-- Unit name parameter:
+			[CMD.GUARD] = validateUnitName,
+			-- 3 number parameters:
+			[CMD.DGUN] = validate3,
+			[CMD.MOVE] = validate3,
+			[CMD.FIGHT] = validate3,
+			[CMD.PATROL] = validate3,
+			-- 3 or 4 number parameters:
+			[CMD.UNLOAD_UNITS] = validate3or4,
+			-- 4 number parameters:
+			[CMD.AREA_ATTACK] = false,        -- currently broken in engine
+			[GameCMD.AREA_ATTACK_GROUND] = validate4, -- Only artillery units (customParams.canareaattack = 1) support this
+			[CMD.RESTORE] = validate4,
+			-- 3 number parameters, or unit name:
+			[CMD.ATTACK] = validate3orUnitName,
+			-- 4 number parameters, or unit name:
+			[CMD.CAPTURE] = validate4orUnitName,
+			[CMD.REPAIR] = validate4orUnitName,
+			[CMD.LOAD_UNITS] = validate4orUnitName,
+			-- 4 number parameters, or feature name:
+			[CMD.RESURRECT] = validate4orFeatureName,
+			-- 4 number parameters, or either unit or feature name:
+			[CMD.RECLAIM] = validate4orEitherName,
+			-- Single number parameter:
+			[CMD.CLOAK] = validateNumber,
+			[CMD.ONOFF] = validateNumber,
+			[CMD.FIRE_STATE] = validateNumber,
+			[CMD.MOVE_STATE] = validateNumber,
+		}
+		if commandID == nil then
+			result[#result + 1] = { message = "Order is missing a command ID", parameterNameSuffix = '[' .. orderNumber .. ']' }
+		elseif commandValidators[commandID] then
+			commandValidators[commandID]()
+		elseif type(commandID) == 'string' then
+			-- build command: See https://springrts.com/wiki/Lua_CMDs#CMD.INTERNAL
+			-- commandID is a unitDefName string
+			local unitDef = UnitDefNames[commandID]
+			if not unitDef then
+				result[#result + 1] = { message = "Invalid build order unitDefName: " .. commandID, parameterNameSuffix = '[' .. orderNumber .. '][1]' }
+			end
+
+			-- parameters must be 3 or 4 numbers {x, y, z, optional facing}, or empty for factories
+			validateNumberArrayCurried({ 0, 3, 4 }, "3 or 4 numbers {x, y, z, optional facing}, or no parameters for factories")()
+			if #(params or {}) == 4 then
+				local validFacings = { [0] = true, [1] = true, [2] = true, [3] = true }
+				if not validFacings[params[4]] then
+					result[#result + 1] = { message = "Invalid build order facing: " .. params[4] .. ". Must be one of 0, 1, 2, 3", parameterNameSuffix = '[' .. orderNumber .. '][2][4]' }
+				end
+			end
+		elseif not knownCMDs[commandID] then
+			result[#result + 1] = { message = "Unknown command ID: " .. tostring(commandID), parameterNameSuffix = '[' .. orderNumber .. '][1]' }
+		else
+			logWarn("No validator implemented for orders with command ID: " .. tostring(commandID))
+		end
 	end
+
+	local function validateOrderOptions(options, orderNumber)
+		local validOptions = { right = true, alt = true, ctrl = true, shift = true, meta = true }
+		if options then
+			local luaTypeResult = validateLuaType(options, 'table')
+			if luaTypeResult then
+				result[#result + 1] = { message = luaTypeResult, parameterNameSuffix = "[" .. orderNumber .. "][3]" }
+				return
+			end
+
+			for _, optionName in pairs(options) do
+				if not validOptions[optionName] then
+					result[#result + 1] = { message = "Invalid order option: " .. optionName, parameterNameSuffix = "[" .. orderNumber .. "][3]" }
+				end
+			end
+		end
+	end
+
+	local luaTypeResult = validators[Types.Table](orders)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	if #orders == 0 then
+		return { { message = "Orders table is empty" } }
+	end
+
+	for i, order in pairs(orders) do
+		local fieldResult = validateField(order, "order #" .. i, 'table')
+		if fieldResult then
+			result[#result + 1] = fieldResult
+		else
+			validateOrderCommandAndParams(order, i)
+			validateOrderOptions(order[3], i)
+		end
+	end
+
+	return result
+end
 
 validators[Types.Area] = function(area)
 		local luaTypeResult = validators[Types.Table](area)
@@ -511,12 +530,12 @@ local function validateUnitLoadoutEntry(entry, index, context)
 	end
 
 	-- Required fields
-	if entry.name == nil then
-		logError(prefix .. ": missing required field 'name'")
+	if entry.unitDefName == nil then
+		logError(prefix .. ": missing required field 'unitDefName'")
 	else
-		local nameResult = validators[Types.UnitDefName](entry.name)
+		local nameResult = validators[Types.UnitDefName](entry.unitDefName)
 		if nameResult and not table.isEmpty(nameResult) then
-			logError(prefix .. ", field 'name': " .. (nameResult[1] and nameResult[1].message or "invalid"))
+			logError(prefix .. ", field 'unitDefName': " .. (nameResult[1] and nameResult[1].message or "invalid"))
 		end
 	end
 
@@ -549,6 +568,27 @@ local function validateUnitLoadoutEntry(entry, index, context)
 		end
 	end
 
+	if entry.construction ~= nil then
+		local constructionResult = validators[Types.Boolean](entry.construction)
+		if constructionResult and not table.isEmpty(constructionResult) then
+			logError(prefix .. ", field 'construction': " .. (constructionResult[1] and constructionResult[1].message or "invalid"))
+		end
+	end
+
+	if entry.quantity ~= nil then
+		local quantityResult = validators[Types.Number](entry.quantity)
+		if quantityResult and not table.isEmpty(quantityResult) then
+			logError(prefix .. ", field 'quantity': " .. (quantityResult[1] and quantityResult[1].message or "invalid"))
+		end
+	end
+
+	if entry.spacing ~= nil then
+		local spacingResult = validators[Types.Number](entry.spacing)
+		if spacingResult and not table.isEmpty(spacingResult) then
+			logError(prefix .. ", field 'spacing': " .. (spacingResult[1] and spacingResult[1].message or "invalid"))
+		end
+	end
+
 	if entry.neutral ~= nil then
 		local neutralResult = validators[Types.Boolean](entry.neutral)
 		if neutralResult and not table.isEmpty(neutralResult) then
@@ -575,12 +615,12 @@ local function validateFeatureLoadoutEntry(entry, index, context)
 	end
 
 	-- Required fields
-	if entry.name == nil then
-		logError(prefix .. ": missing required field 'name'")
+	if entry.featureDefName == nil then
+		logError(prefix .. ": missing required field 'featureDefName'")
 	else
-		local nameResult = validators[Types.FeatureDefName](entry.name)
+		local nameResult = validators[Types.FeatureDefName](entry.featureDefName)
 		if nameResult and not table.isEmpty(nameResult) then
-			logError(prefix .. ", field 'name': " .. (nameResult[1] and nameResult[1].message or "invalid"))
+			logError(prefix .. ", field 'featureDefName': " .. (nameResult[1] and nameResult[1].message or "invalid"))
 		end
 	end
 
@@ -681,7 +721,7 @@ local function validateUnitNameReferences(triggerTypes, actionTypes, triggers, a
 
 	-- SpawnLoadout actions with inline unitLoadout entries also create names.
 	for actionID, action in pairs(actions) do
-		if action.type == actionTypes.SpawnLoadout and action.parameters and action.parameters.unitLoadout then
+		if action.type == actionTypes.SpawnUnits and action.parameters and action.parameters.unitLoadout then
 			for i, entry in ipairs(action.parameters.unitLoadout) do
 				if type(entry) == 'table' and entry.unitName then
 					createdUnitNames[entry.unitName] = createdUnitNames[entry.unitName] or {}
@@ -724,12 +764,12 @@ local function validateUnitNameReferences(triggerTypes, actionTypes, triggers, a
 
 	for unitName, labels in pairs(referencedUnitNames) do
 		if not createdUnitNames[unitName] then
-			logError("Unit name '" .. unitName .. "' not created in any trigger or action. Referenced in: " .. table.concat(labels, ", "))
+			logWarn("Unit name '" .. unitName .. "' not created in any trigger or action. Referenced in: " .. table.concat(labels, ", "))
 		end
 	end
 	for unitName, labels in pairs(createdUnitNames) do
 		if not referencedUnitNames[unitName] then
-			logError("Unit name '" .. unitName .. "' created, but not referenced by any trigger or action. Created in: " .. table.concat(labels, ", "))
+			logWarn("Unit name '" .. unitName .. "' created, but not referenced by any trigger or action. Created in: " .. table.concat(labels, ", "))
 		end
 	end
 end
@@ -742,10 +782,10 @@ local function validateFeatureNameReferences(triggerTypes, actionTypes, triggers
 		[triggerTypes.FeatureDestroyed] = true,
 	}
 	local actionTypesNamingFeatures = {
-		[actionTypes.CreateFeature] = true,
+		[actionTypes.CreateFeatures] = true,
 	}
 	local actionTypesReferencingFeatureNames = {
-		[actionTypes.DestroyFeature] = true,
+		[actionTypes.DestroyFeatures] = true,
 	}
 
 	local createdFeatureNames = {}
@@ -761,7 +801,7 @@ local function validateFeatureNameReferences(triggerTypes, actionTypes, triggers
 
 	-- SpawnLoadout actions with inline featureLoadout entries also create names.
 	for actionID, action in pairs(actions) do
-		if action.type == actionTypes.SpawnLoadout and action.parameters and action.parameters.featureLoadout then
+		if action.type == actionTypes.CreateFeatures and action.parameters and action.parameters.featureLoadout then
 			for i, entry in ipairs(action.parameters.featureLoadout) do
 				if type(entry) == 'table' and entry.featureName then
 					createdFeatureNames[entry.featureName] = createdFeatureNames[entry.featureName] or {}
@@ -804,12 +844,12 @@ local function validateFeatureNameReferences(triggerTypes, actionTypes, triggers
 
 	for featureName, labels in pairs(referencedFeatureNames) do
 		if not createdFeatureNames[featureName] then
-			logError("Feature name '" .. featureName .. "' not created in any trigger or action. Referenced in: " .. table.concat(labels, ", "))
+			logWarn("Feature name '" .. featureName .. "' not created in any trigger or action. Referenced in: " .. table.concat(labels, ", "))
 		end
 	end
 	for featureName, labels in pairs(createdFeatureNames) do
 		if not referencedFeatureNames[featureName] then
-			logError("Feature name '" .. featureName .. "' created, but not referenced by any trigger or action. Created in: " .. table.concat(labels, ", "))
+			logWarn("Feature name '" .. featureName .. "' created, but not referenced by any trigger or action. Created in: " .. table.concat(labels, ", "))
 		end
 	end
 end
@@ -835,12 +875,12 @@ local function validateMarkerNameReferences(actionTypes, actions)
 
 	for markerName, actionIDs in pairs(referencedMarkerNames) do
 		if not createdMarkerNames[markerName] then
-			logError("Marker name '" .. markerName .. "' is not created in any action. Referenced in: " .. table.concat(actionIDs, ", "))
+			logWarn("Marker name '" .. markerName .. "' is not created in any action. Referenced in: " .. table.concat(actionIDs, ", "))
 		end
 	end
 	for markerName, actionIDs in pairs(createdMarkerNames) do
 		if not referencedMarkerNames[markerName] then
-			logError("Marker name '" .. markerName .. "' is not referenced by any action. Referenced in: " .. table.concat(actionIDs, ", "))
+			logWarn("Marker name '" .. markerName .. "' is not referenced by any action. Referenced in: " .. table.concat(actionIDs, ", "))
 		end
 	end
 end

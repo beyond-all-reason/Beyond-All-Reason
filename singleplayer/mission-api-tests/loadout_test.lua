@@ -2,10 +2,10 @@
 --- Test mission demonstrating UnitLoadout and FeatureLoadout.
 ---
 
-local triggerTypes = GG['MissionAPI'].TriggerTypes
-local actionTypes  = GG['MissionAPI'].ActionTypes
+local triggerTypes   = GG['MissionAPI'].TriggerTypes
+local actionTypes    = GG['MissionAPI'].ActionTypes
 
-local triggers = {
+local triggers       = {
 
 	intro = {
 		type = triggerTypes.TimeElapsed,
@@ -36,7 +36,7 @@ local triggers = {
 		parameters = {
 			gameFrame = 200,
 		},
-		actions = { 'spawnReinforcements', 'messageReinforcementsArrived' },
+		actions = { 'spawnReinforcements', 'createFeatures', 'messageReinforcementsArrived' },
 	},
 
 	actOnReinforcements = {
@@ -78,7 +78,7 @@ local actions = {
 	},
 
 	destroyWreck = {
-		type = actionTypes.DestroyFeature,
+		type = actionTypes.DestroyFeatures,
 		parameters = {
 			featureName = 'the-wreck',
 		},
@@ -92,18 +92,24 @@ local actions = {
 	},
 
 	spawnReinforcements = {
-		type = actionTypes.SpawnLoadout,
+		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ name = 'armck',   x = 1900, z = 1700, facing = 'e', team = 0, unitName = 'reinforcement-con' },
-				{ name = 'armflea', x = 1900, z = 1820, facing = 'e', team = 0,
+				{ unitDefName = 'armck',   x = 1900, z = 1700, facing = 'e', team = 0, unitName = 'reinforcement-con' },
+				{ unitDefName = 'armflea', x = 1900, z = 1820, facing = 'e', team = 0,
 				  orders = {
 				    { CMD.MOVE, { 2100, 0, 2220 }, {} },
 				  },
 				},
 			},
+		},
+	},
+
+	createFeatures = {
+		type = actionTypes.CreateFeatures,
+		parameters = {
 			featureLoadout = {
-				{ name = 'corak_dead', x = 1800, z = 1750, facing = 's', featureName = 'reinforcement-wreck' },
+				{ featureDefName = 'corak_dead', x = 1800, z = 1750, facing = 's', featureName = 'reinforcement-wreck' },
 			},
 		},
 	},
@@ -111,7 +117,7 @@ local actions = {
 	messageReinforcementsArrived = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'Reinforcements spawned via SpawnLoadout. Con tracked as "reinforcement-con", wreck as "reinforcement-wreck".',
+			message = 'Reinforcements spawned via SpawnUnits + CreateFeatures. Con tracked as "reinforcement-con", wreck as "reinforcement-wreck".',
 		},
 	},
 
@@ -126,7 +132,7 @@ local actions = {
 	},
 
 	destroyReinforcementWreck = {
-		type = actionTypes.DestroyFeature,
+		type = actionTypes.DestroyFeatures,
 		parameters = {
 			featureName = 'reinforcement-wreck',
 		},
@@ -135,7 +141,7 @@ local actions = {
 	messageReinforcementsActedOn = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'Reinforcement con moved and wreck destroyed via names registered by SpawnLoadout.',
+			message = 'Reinforcement con moved and wreck destroyed via names registered by SpawnUnits + CreateFeatures.',
 		},
 	},
 
@@ -154,23 +160,23 @@ local actions = {
 	},
 }
 
-local unitLoadout = {
+local unitLoadout    = {
 	-- Player team (team 0).
-	{ name = 'armck',  x = 1780, z = 1850, facing = 'e', team = 0, unitName = 'player-con' },
-	{ name = 'corck',  x = 1780, z = 1800, facing = 'e', team = 0,
+	{ unitDefName = 'armck', x = 1780, z = 1850, facing = 'e', team = 0, unitName = 'player-con' },
+	{ unitDefName = 'corck', x = 1780, z = 1800, facing = 'e', team = 0,
 	  orders = {
 	    { CMD.PATROL, { 1780, 0, 1950 }, {} },
 	  },
 	},
 
 	-- Enemy team (team 1)
-	{ name = 'corsolar', x = 1700, z = 2150, facing = 'w', team = 1 },
-	{ name = 'corsolar', x = 1800, z = 2150, facing = 's', team = 1 },
+	{ unitDefName = 'corsolar', x = 1700, z = 2150, facing = 'w', team = 1 },
+	{ unitDefName = 'corsolar', x = 1800, z = 2150, facing = 's', team = 1 },
 }
 
 local featureLoadout = {
-	{ name = 'corak_dead', x = 1900, z = 1800, facing = 's', featureName = 'the-wreck' },
-	{ name = 'armfus_dead', x = 1900, z = 2000, facing = 'e' },
+	{ featureDefName = 'corak_dead',  x = 1900, z = 1800, facing = 's', featureName = 'the-wreck' },
+	{ featureDefName = 'armfus_dead', x = 1900, z = 2000, facing = 'e' },
 }
 
 return {
