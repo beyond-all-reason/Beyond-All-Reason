@@ -343,13 +343,13 @@ local function checkFeatureDestroyed(trigger, featureID, featureDefID, attackerA
 end
 
 local resourceConsecutiveFrames = {}
-local function checkResources(trigger, triggerID, resourceType)
+local function checkResources(trigger, triggerID, resourceIndex)
 	-- See Spring.GetTeamResources for resourceType indices: 1 = current level, 3 = pull/requested expense, 4 = income, 5 = expense
 	local conditionMet = true
-	if trigger.parameters.metal and select(resourceType, Spring.GetTeamResources(trigger.parameters.teamID, "metal")) < trigger.parameters.metal then
+	if trigger.parameters.metal and select(resourceIndex, Spring.GetTeamResources(trigger.parameters.teamID, "metal")) < trigger.parameters.metal then
 		conditionMet = false
 	end
-	if trigger.parameters.energy and select(resourceType, Spring.GetTeamResources(trigger.parameters.teamID, "energy")) < trigger.parameters.energy then
+	if trigger.parameters.energy and select(resourceIndex, Spring.GetTeamResources(trigger.parameters.teamID, "energy")) < trigger.parameters.energy then
 		conditionMet = false
 	end
 
@@ -386,6 +386,10 @@ function gadget:Initialize()
 	untrackFeatureID    = tracking.UntrackFeatureID
 end
 
+-- Return value indices as on https://recoilengine.org/docs/lua-api/#Spring.GetTeamResources
+local CURRENT_RESOURCE_LEVEL_INDEX = 1
+local RESOURCE_INCOME_INDEX = 4
+local RESOURCE_PULL_INDEX = 3
 function gadget:GameFrame(frameNumber)
 	processTriggersOfType(types.TimeElapsed, function(trigger, _)
 		checkTimeElapsed(trigger, frameNumber)
@@ -402,16 +406,13 @@ function gadget:GameFrame(frameNumber)
 	end)
 
 	processTriggersOfType(types.ResourceStored, function(trigger, triggerID)
-		checkResources(trigger, triggerID, 1) -- current level
+		checkResources(trigger, triggerID, CURRENT_RESOURCE_LEVEL_INDEX)
 	end)
 	processTriggersOfType(types.ResourceIncome, function(trigger, triggerID)
-		checkResources(trigger, triggerID, 4) -- income
-	end)
-	processTriggersOfType(types.ResourceExpense, function(trigger, triggerID)
-		checkResources(trigger, triggerID, 5) -- expense
+		checkResources(trigger, triggerID, RESOURCE_INCOME_INDEX)
 	end)
 	processTriggersOfType(types.ResourcePull, function(trigger, triggerID)
-		checkResources(trigger, triggerID, 3) -- pull, i.e. requested expense
+		checkResources(trigger, triggerID, RESOURCE_PULL_INDEX)
 	end)
 end
 

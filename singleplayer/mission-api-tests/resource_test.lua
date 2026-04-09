@@ -117,26 +117,6 @@ local triggers = {
 		actions = { 'messageEnergyIncome' },
 	},
 
-	-- ── ResourceExpense ───────────────────────────────────────────────────────
-
-	metalExpenseReached = {
-		type = triggerTypes.ResourceExpense,
-		parameters = {
-			teamID = 0,
-			metal = 5,
-		},
-		actions = { 'messageMetalExpense' },
-	},
-
-	energyExpenseReached = {
-		type = triggerTypes.ResourceExpense,
-		parameters = {
-			teamID = 0,
-			energy = 5,
-		},
-		actions = { 'messageEnergyExpense' },
-	},
-
 	-- ── ResourcePull ──────────────────────────────────────────────────────────
 
 	metalPullReached = {
@@ -318,22 +298,6 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = "[Resource Test] Team 0 energy income >= 500 e/s.",
-		},
-	},
-
-	-- ── ResourceExpense messages ──────────────────────────────────────────────
-
-	messageMetalExpense = {
-		type = actionTypes.SendMessage,
-		parameters = {
-			message = "[Resource Test] Team 0 metal expense >= 5 m/s.",
-		},
-	},
-
-	messageEnergyExpense = {
-		type = actionTypes.SendMessage,
-		parameters = {
-			message = "[Resource Test] Team 0 energy expense >= 5 e/s.",
 		},
 	},
 
