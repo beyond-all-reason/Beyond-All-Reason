@@ -660,21 +660,12 @@ local function canBuild(builderGroup, building, side, allowSubstitution)
 	local builderUnitDefID = builderGroup[1].unitDefID
 	local builderUnitDef = UnitDefs[builderUnitDefID]
 
-	local substitutedUnitName = SubLogic.getEquivalentUnitDefID(building.originalName, side)
-	if not substitutedUnitName then
+	local substitutedUnitDefID = SubLogic.getEquivalentUnitDefID(building.unitDefID, side)
+	if not substitutedUnitDefID then
 		return false
 	end
 
-	if not allowSubstitution then
-		local originalUnitDef = UnitDefs[building.unitDefID]
-		if originalUnitDef and originalUnitDef.name ~= substitutedUnitName then
-			return false
-		end
-	end
-
-	local substitutedUnitDefID = substitutedUnitName and UnitDefNames[substitutedUnitName] and UnitDefNames[substitutedUnitName].id
-
-	if not substitutedUnitDefID then
+	if not allowSubstitution and substitutedUnitDefID ~= building.unitDefID then
 		return false
 	end
 
@@ -754,9 +745,8 @@ local function splitBuildOrders(builders, buildings, cmdOpts)
 				local building = sideBuildings[i]
 				local builderInfo = sideBuilders[builderIndex]
 
-				local substitutedUnitName = SubLogic.getEquivalentUnitDefID(building.originalName, side)
-				if substitutedUnitName and UnitDefNames[substitutedUnitName] then
-					local substitutedUnitDefID = UnitDefNames[substitutedUnitName].id
+				local substitutedUnitDefID = SubLogic.getEquivalentUnitDefID(building.unitDefID, side)
+				if substitutedUnitDefID then
 					Spring.GiveOrderToUnit(builderInfo.unitID, -substitutedUnitDefID, { building.position[1], building.position[2], building.position[3], building.facing }, cmdOpts)
 				end
 
@@ -776,17 +766,26 @@ end
 ---@param isBuildSplit boolean If true, split the work among builders. If false, builders of the same faction work together.
 ---@param cmdOpts table Command options.
 local function placeBlueprint(blueprint, buildPositions, builders, isBuildSplit, cmdOpts)
+	Spring.Echo("[API_BLUEPRINTS] placeBlueprint called"
+		.. " blueprint=" .. tostring(blueprint ~= nil)
+		.. " positions=" .. tostring(buildPositions and #buildPositions or "nil")
+		.. " builders=" .. tostring(builders and #builders or "nil")
+		.. " split=" .. tostring(isBuildSplit))
 	if not blueprint or not buildPositions or #buildPositions == 0 then
+		Spring.Echo("[API_BLUEPRINTS] early return: nil/empty args")
 		return
 	end
 
 	local builderGroups = groupBuilders(builders)
 	local allBuildings = createBuildings(blueprint, buildPositions)
+	Spring.Echo("[API_BLUEPRINTS] builderGroups=" .. tostring(#(builderGroups or {}))
+		.. " allBuildings=" .. #allBuildings)
 
 	local newOpts = table.copy(cmdOpts)
 	newOpts.shift = true
 
 	if isBuildSplit then
+		Spring.Echo("[API_BLUEPRINTS] mode=split")
 		local allBuilders = {}
 		for _, builderID in ipairs(builders) do
 			local builderInfo = getBuilderInfo(builderID)
@@ -801,6 +800,7 @@ local function placeBlueprint(blueprint, buildPositions, builders, isBuildSplit,
 
 		splitBuildOrders(allBuilders, allBuildings, newOpts)
 	else
+		Spring.Echo("[API_BLUEPRINTS] mode=sequential builders=" .. #builders)
 		-- Regular mode: Proportional, sequential assignment
 		local allBuilderGroups = {}
 		for unitDefID, builderGroup in pairs(builderGroups) do
@@ -812,6 +812,13 @@ local function placeBlueprint(blueprint, buildPositions, builders, isBuildSplit,
 					side = builderGroup[1].side,
 					key = unitDefID,
 				})
+				Spring.Echo("[API_BLUEPRINTS]   group unitDefID=" .. tostring(unitDefID)
+					.. " side=" .. tostring(builderGroup[1].side)
+					.. " count=" .. #builderGroup
+					.. " buildSpeed=" .. tostring(builderGroup[1].buildSpeed))
+			else
+				Spring.Echo("[API_BLUEPRINTS]   skip unitDefID=" .. tostring(unitDefID)
+					.. " buildSpeed=" .. tostring(builderGroup[1] and builderGroup[1].buildSpeed))
 			end
 		end
 		table.sort(allBuilderGroups, function(a, b) return a.power > b.power end)
@@ -822,6 +829,9 @@ local function placeBlueprint(blueprint, buildPositions, builders, isBuildSplit,
 			totalBuildPower = totalBuildPower + groupData.power
 		end
 
+		Spring.Echo("[API_BLUEPRINTS] totalBuildPower=" .. totalBuildPower
+			.. " groups=" .. #allBuilderGroups
+			.. " buildings=" .. #allBuildings)
 		if totalBuildPower > 0 then
 			local allBuildingsWithCost = {}
 			local totalBuildCost = 0
@@ -881,12 +891,12 @@ local function placeBlueprint(blueprint, buildPositions, builders, isBuildSplit,
 
 				for _, building in ipairs(chunk.buildings) do
 					if canBuild(builderGroup, building, groupSide, true) then
-						local substitutedUnitName = SubLogic.getEquivalentUnitDefID(building.originalName, groupSide)
-						if substitutedUnitName then
-							local substitutedUnitDefID = UnitDefNames[substitutedUnitName] and UnitDefNames[substitutedUnitName].id
-							if substitutedUnitDefID then
-								table.insert(finalOrders[groupKey], { -substitutedUnitDefID, { building.position[1], building.position[2], building.position[3], building.facing }, newOpts })
-							end
+						local substitutedUnitDefID = SubLogic.getEquivalentUnitDefID(building.unitDefID, groupSide)
+						if substitutedUnitDefID then
+							table.insert(finalOrders[groupKey], { -substitutedUnitDefID, { building.position[1], building.position[2], building.position[3], building.facing }, newOpts })
+						else
+							Spring.Echo("[API_BLUEPRINTS] getEquivalentUnitDefID=nil unitDefID="
+								.. tostring(building.unitDefID) .. " side=" .. tostring(groupSide))
 						end
 					else
 						table.insert(leftovers, building)
@@ -922,12 +932,9 @@ local function placeBlueprint(blueprint, buildPositions, builders, isBuildSplit,
 					if targetGroupData then
 						local groupKey = targetGroupData.key
 						local groupSide = targetGroupData.side
-						local substitutedUnitName = SubLogic.getEquivalentUnitDefID(building.originalName, groupSide)
-						if substitutedUnitName then
-							local substitutedUnitDefID = UnitDefNames[substitutedUnitName] and UnitDefNames[substitutedUnitName].id
-							if substitutedUnitDefID then
-								table.insert(finalOrders[groupKey], { -substitutedUnitDefID, { building.position[1], building.position[2], building.position[3], building.facing }, newOpts })
-							end
+						local substitutedUnitDefID = SubLogic.getEquivalentUnitDefID(building.unitDefID, groupSide)
+						if substitutedUnitDefID then
+							table.insert(finalOrders[groupKey], { -substitutedUnitDefID, { building.position[1], building.position[2], building.position[3], building.facing }, newOpts })
 						end
 					end
 				end

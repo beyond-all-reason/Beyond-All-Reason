@@ -20,13 +20,11 @@ BlueprintSubLogic.equivalentUnits = {}
 BlueprintSubLogic.MasterBuildingData = {}
 
 local unitNameToDefIDMap = {}
-Spring.Log("BlueprintSubLogic", LOG.INFO, "Precomputing UnitDefs Name->ID map...")
 for defID, def in pairs(UnitDefs) do
     if def and def.name then
         unitNameToDefIDMap[def.name:lower()] = defID
     end
 end
-Spring.Log("BlueprintSubLogic", LOG.INFO, "Finished precomputing Name->ID map.")
 
 function BlueprintSubLogic.validateCategoryDefinitions()
     local categoryKeys = {}
