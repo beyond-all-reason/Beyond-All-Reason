@@ -1,4 +1,3 @@
-
 --------------------------
 -- DOCUMENTATION
 -------------------------
@@ -32,7 +31,7 @@ SaveDefsToCustomParams = false
 -- 4. Delete changes from this section
 -------------------------
 
-function PrebakeUnitDefs()
+local function prebakeUnitDefs()
 	for name, unitDef in pairs(UnitDefs) do
 		-- UnitDef changes go here
 	end
@@ -41,6 +40,21 @@ end
 -------------------------
 -- DEFS POST PROCESSING
 -------------------------
+
+local modOptions = Spring.GetModOptions()
+
+local holidays = Spring.Utilities.Gametype.GetCurrentHolidays()
+local isAprilFools = holidays.aprilfools
+local isHalloween = holidays.halloween
+local isXmas = holidays.xmas
+
+local airReworkTweaks = VFS.Include("unitbasedefs/air_rework_defs.lua").airReworkTweaks
+local skyshiftUnitTweaks = VFS.Include("unitbasedefs/skyshiftunits_post.lua").skyshiftUnitTweaks
+local proposed_unit_reworksTweaks = VFS.Include("unitbasedefs/proposed_unit_reworks_defs.lua").proposed_unit_reworksTweaks
+local communityBalanceTweaks = VFS.Include("unitbasedefs/community_balance_patch_defs.lua").communityBalanceTweaks
+local techsplitTweaks = VFS.Include("unitbasedefs/techsplit_defs.lua").techsplitTweaks
+local techsplit_balanceTweaks = VFS.Include("unitbasedefs/techsplit_balance_defs.lua").techsplit_balanceTweaks
+local scavWeaponDefPost = VFS.Include("gamedata/scavengers/weapondef_post.lua").scavWeaponDefPost
 
 --[[ Sanitize to whole frames (plus leeways because float arithmetic is bonkers).
      The engine uses full frames for actual reload times, but forwards the raw
@@ -73,20 +87,73 @@ local function processWeapons(unitDefName, unitDef)
 	end
 end
 
+-- uDef.movementclass lists
+local hoverList = {
+	HOVER2 = true,
+	HOVER3 = true,
+	HHOVER4 = true,
+	AHOVER2 = true
+}
 
-function UnitDef_Post(name, uDef)
-	if not modOptions then
-		modOptions = Spring.GetModOptions()
-	end
+local shipList = {
+	BOAT3 = true,
+	BOAT4 = true,
+	BOAT5 = true,
+	BOAT9 = true,
+	EPICSHIP = true
+}
 
-	-- Cache holiday checks for performance
-	if not holidays then
-		holidays = Spring.Utilities.Gametype.GetCurrentHolidays()
-		isAprilFools = holidays["aprilfools"]
-		isHalloween = holidays["halloween"]
-		isXmas = holidays["xmas"]
-	end
+local subList = {
+	UBOAT4 = true,
+	EPICSUBMARINE = true
+}
 
+local amphibList = {
+	VBOT6 = true,
+	COMMANDERBOT = true,
+	SCAVCOMMANDERBOT = true,
+	ATANK3 = true,
+	ABOT3 = true,
+	HABOT5 = true,
+	ABOTBOMB2 = true,
+	EPICBOT = true,
+	EPICALLTERRAIN = true
+}
+
+local commanderList = {
+	COMMANDERBOT = true,
+	SCAVCOMMANDERBOT = true
+}
+
+local categories = {}
+
+-- Manual categories: OBJECT T4AIR LIGHTAIRSCOUT GROUNDSCOUT RAPTOR
+-- Deprecated caregories: BOT TANK PHIB NOTLAND SPACE
+
+categories["ALL"] = function() return true end
+categories["MOBILE"] = function(uDef) return uDef.speed and uDef.speed > 0 end
+categories["NOTMOBILE"] = function(uDef) return not categories.MOBILE(uDef) end
+categories["WEAPON"] = function(uDef) return next(uDef.weapondefs) ~= nil end
+categories["NOWEAPON"] = function(uDef) return next(uDef.weapondefs) == nil end
+categories["VTOL"] = function(uDef) return uDef.canfly == true end
+categories["NOTAIR"] = function(uDef) return not categories.VTOL(uDef) end
+categories["HOVER"] = function(uDef) return hoverList[uDef.movementclass] and (uDef.maxwaterdepth == nil or uDef.maxwaterdepth < 1) end -- convertible tank/boats have maxwaterdepth
+categories["NOTHOVER"] = function(uDef) return not categories.HOVER(uDef) end
+categories["SHIP"] = function(uDef) return shipList[uDef.movementclass] or (hoverList[uDef.movementclass] and uDef.maxwaterdepth and uDef.maxwaterdepth >=1) end
+categories["NOTSHIP"] = function(uDef) return not categories.SHIP(uDef) end
+categories["NOTSUB"] = function(uDef) return not subList[uDef.movementclass] end
+categories["CANBEUW"] = function(uDef) return amphibList[uDef.movementclass] or uDef.cansubmerge == true end
+categories["UNDERWATER"] = function(uDef) return (uDef.minwaterdepth and uDef.waterline == nil) or (uDef.minwaterdepth and uDef.waterline > uDef.minwaterdepth and uDef.speed and uDef.speed > 0) end
+categories["SURFACE"] = function(uDef) return not (categories.UNDERWATER(uDef) and categories.MOBILE(uDef)) and not categories.VTOL(uDef) end
+categories["MINE"] = function(uDef) return uDef.weapondefs.minerange end
+categories["COMMANDER"] = function(uDef) return commanderList[uDef.movementclass] end
+categories["EMPABLE"] = function(uDef) return categories.SURFACE(uDef) and uDef.customparams.paralyzemultiplier ~= 0 end
+
+-------------------------
+-- MODULE FUNCTIONS
+-------------------------
+
+local function unitDef_Post(name, uDef)
 	local isScav = string.sub(name, -5, -1) == "_scav"
 	local basename = isScav and string.sub(name, 1, -6) or name
 	local customparams = uDef.customparams
@@ -105,7 +172,6 @@ function UnitDef_Post(name, uDef)
 
 	-- Event Model Replacements: -----------------------------------------------------------------------------
 
-	-- April Fools
 	if isAprilFools then
 		-- Something to experiment with
 		--if VFS.FileExists("units/event/aprilfools/" .. uDef.objectname) then
@@ -149,7 +215,6 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	-- Halloween
 	if isHalloween then
 		if name == "armcom" or name == "armdecom" then
 			uDef.objectname = "units/event/halloween/armcom.s3o"
@@ -169,7 +234,6 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	-- Xmas
 	if isXmas then
 		if name == "armcom" or name == "armdecom" then
 			uDef.objectname = "units/event/xmas/armcom.s3o"
@@ -886,72 +950,6 @@ function UnitDef_Post(name, uDef)
 		uDef.maxslope = math.floor((uDef.maxslope * 1.5) + 0.5)
 	end
 
-	----------------------------------------------------------------------
-	-- CATEGORY ASSIGNER
-	----------------------------------------------------------------------
-
-	-- uDef.movementclass lists
-	local hoverList = {
-		HOVER2 = true,
-		HOVER3 = true,
-		HHOVER4 = true,
-		AHOVER2 = true
-	}
-
-	local shipList = {
-		BOAT3 = true,
-		BOAT4 = true,
-		BOAT5 = true,
-		BOAT9 = true,
-		EPICSHIP = true
-	}
-
-	local subList = {
-		UBOAT4 = true,
-		EPICSUBMARINE = true
-	}
-
-	local amphibList = {
-		VBOT6 = true,
-		COMMANDERBOT = true,
-		SCAVCOMMANDERBOT = true,
-		ATANK3 = true,
-		ABOT3 = true,
-		HABOT5 = true,
-		ABOTBOMB2 = true,
-		EPICBOT = true,
-		EPICALLTERRAIN = true
-	}
-
-	local commanderList = {
-		COMMANDERBOT = true,
-		SCAVCOMMANDERBOT = true
-	}
-
-	local categories = {}
-
-	-- Manual categories: OBJECT T4AIR LIGHTAIRSCOUT GROUNDSCOUT RAPTOR
-	-- Deprecated caregories: BOT TANK PHIB NOTLAND SPACE
-
-	categories["ALL"] = function() return true end
-	categories["MOBILE"] = function(uDef) return uDef.speed and uDef.speed > 0 end
-	categories["NOTMOBILE"] = function(uDef) return not categories.MOBILE(uDef) end
-	categories["WEAPON"] = function(uDef) return next(uDef.weapondefs) ~= nil end
-	categories["NOWEAPON"] = function(uDef) return next(uDef.weapondefs) == nil end
-	categories["VTOL"] = function(uDef) return uDef.canfly == true end
-	categories["NOTAIR"] = function(uDef) return not categories.VTOL(uDef) end
-	categories["HOVER"] = function(uDef) return hoverList[uDef.movementclass] and (uDef.maxwaterdepth == nil or uDef.maxwaterdepth < 1) end -- convertible tank/boats have maxwaterdepth
-	categories["NOTHOVER"] = function(uDef) return not categories.HOVER(uDef) end
-	categories["SHIP"] = function(uDef) return shipList[uDef.movementclass] or (hoverList[uDef.movementclass] and uDef.maxwaterdepth and uDef.maxwaterdepth >=1) end
-	categories["NOTSHIP"] = function(uDef) return not categories.SHIP(uDef) end
-	categories["NOTSUB"] = function(uDef) return not subList[uDef.movementclass] end
-	categories["CANBEUW"] = function(uDef) return amphibList[uDef.movementclass] or uDef.cansubmerge == true end
-	categories["UNDERWATER"] = function(uDef) return (uDef.minwaterdepth and uDef.waterline == nil) or (uDef.minwaterdepth and uDef.waterline > uDef.minwaterdepth and uDef.speed and uDef.speed > 0) end
-	categories["SURFACE"] = function(uDef) return not (categories.UNDERWATER(uDef) and categories.MOBILE(uDef)) and not categories.VTOL(uDef) end
-	categories["MINE"] = function(uDef) return uDef.weapondefs.minerange end
-	categories["COMMANDER"] = function(uDef) return commanderList[uDef.movementclass] end
-	categories["EMPABLE"] = function(uDef) return categories.SURFACE(uDef) and uDef.customparams.paralyzemultiplier ~= 0 end
-
 	local category = uDef.category or ""
 	if not string.find(category, "OBJECT", 1, true) then -- objects should not be targetable and therefore are not assigned any other category
 		local exemptcategory = uDef.exemptcategory
@@ -1149,26 +1147,22 @@ function UnitDef_Post(name, uDef)
 
 	--Air rework
 	if modOptions.air_rework == true then
-		local airReworkUnits = VFS.Include("unitbasedefs/air_rework_defs.lua")
-		uDef = airReworkUnits.airReworkTweaks(name, uDef)
+		uDef = airReworkTweaks(name, uDef)
 	end
 
 	-- Skyshift: Air rework
 	if modOptions.skyshift == true then
-		local skyshiftUnits = VFS.Include("unitbasedefs/skyshiftunits_post.lua")
-		uDef = skyshiftUnits.skyshiftUnitTweaks(name, uDef)
+		uDef = skyshiftUnitTweaks(name, uDef)
 	end
 
 	-- Proposed Unit Reworks
 	if modOptions.proposed_unit_reworks == true then
-		local proposed_unit_reworks = VFS.Include("unitbasedefs/proposed_unit_reworks_defs.lua")
-		uDef = proposed_unit_reworks.proposed_unit_reworksTweaks(name, uDef)
+		uDef = proposed_unit_reworksTweaks(name, uDef)
 	end
 
 	-- Community Balance Patch
 	if modOptions.community_balance_patch ~= "disabled" then
-		local community_balance_patch = VFS.Include("unitbasedefs/community_balance_patch_defs.lua")
-		uDef = community_balance_patch.communityBalanceTweaks(name, uDef, modOptions)
+		uDef = communityBalanceTweaks(name, uDef, modOptions)
 	end
 
 	-- Legion Simplified Mex Rebalance
@@ -1527,13 +1521,11 @@ function UnitDef_Post(name, uDef)
 	----------------
 
 	if modOptions.techsplit == true then
-		local techsplitUnits = VFS.Include("unitbasedefs/techsplit_defs.lua")
-		uDef = techsplitUnits.techsplitTweaks(name, uDef)
+		uDef = techsplitTweaks(name, uDef)
 	end
 
 	if modOptions.techsplit_balance == true then
-		local techsplit_balanceUnits = VFS.Include("unitbasedefs/techsplit_balance_defs.lua")
-		uDef = techsplit_balanceUnits.techsplit_balanceTweaks(name, uDef)
+		uDef = techsplit_balanceTweaks(name, uDef)
 	end
 
 	-- Experimental Low Priority Pacifists
@@ -1788,14 +1780,7 @@ local function ProcessSoundDefaults(wd)
 end
 
 -- process weapondef
-function WeaponDef_Post(name, wDef)
-	if not modOptions then
-		modOptions = Spring.GetModOptions()
-	end
-	if isXmas == nil then
-		isXmas = Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"]
-	end
-
+local function weaponDef_Post(name, wDef)
 	local customparams = wDef.customparams
 	local damage = wDef.damage
 	local shield = wDef.shield
@@ -2060,8 +2045,7 @@ function WeaponDef_Post(name, wDef)
 
 		-- scavengers
 		if string.find(name, '_scav', 1, true) then
-			VFS.Include("gamedata/scavengers/weapondef_post.lua")
-			wDef = scav_Wdef_Post(name, wDef)
+			wDef = scavWeaponDefPost(name, wDef)
 		end
 
 		ProcessSoundDefaults(wDef)
@@ -2117,7 +2101,7 @@ function WeaponDef_Post(name, wDef)
 end
 
 -- process effects
-function ExplosionDef_Post(name, eDef)
+local function explosionDef_Post(name, eDef)
 
 end
 
@@ -2126,7 +2110,7 @@ end
 -------------------------
 
 -- process modoptions (last, because they should not get baked)
-function ModOptions_Post (UnitDefs, WeaponDefs)
+local function modOptions_Post (UnitDefs, WeaponDefs)
 
 	-- transporting enemy coms
 	if Spring.GetModOptions().transportenemy == "notcoms" then
@@ -2146,3 +2130,15 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 		wDef.explosionScar = false
 	end
 end
+
+--------------------------
+-- MODULE EXPORT
+--------------------------
+
+return {
+	UnitDef_Post           = unitDef_Post,
+	WeaponDef_Post         = weaponDef_Post,
+	ExplosionDef_Post      = explosionDef_Post,
+	ModOptions_Post        = modOptions_Post,
+	PrebakeUnitDefs        = prebakeUnitDefs,
+}
