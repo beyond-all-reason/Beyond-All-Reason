@@ -69,7 +69,7 @@ local function getCmdDesc(state)
 		name = "bomber_targeting",
 		action = "bomber_targeting",
 		tooltip = "bomber_targeting_tooltip",
-		params = { state or DEFAULT_STATE, "manual_targeting", "auto_targeting" },
+		params = { state or DEFAULT_STATE, "Hold fire", "Fire at will" },
 	}
 end
 

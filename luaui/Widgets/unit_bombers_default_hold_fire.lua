@@ -2,8 +2,8 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
     return {
-        name    = "BombersManualTargeting",
-        desc    = "Sets produced bombers to Manual Targeting after leaving an airlab. Also hides the Move mode for bombers.",
+        name    = "BombersDefaultHoldFire",
+        desc    = "Sets produced bombers to Hold Fire after leaving an airlab and hides the Move mode for bombers.",
         author  = "Pexo",
         date    = "2026-02-27",
         license = "GNU GPL, v2 or later",
