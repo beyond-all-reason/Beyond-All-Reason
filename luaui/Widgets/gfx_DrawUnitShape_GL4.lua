@@ -292,7 +292,7 @@ local function DrawUnitGL4(unitID, unitDefID, px, py, pz, rotationY, alpha, team
 	elseif armUnitDefIDs[unitDefID] then DrawUnitVBOTable = armDrawUnitVBOTable
 	else
 		spEcho("DrawUnitGL4 : The given unitDefID", unitDefID, UnitDefs[unitDefID].name, "is neither arm nor cor, only those two are supported at the moment")
-		Spring.Debug.TraceFullEcho(nil,nil,nil,"DrawUnitGL4")
+		Debug.TraceFullEcho(nil,nil,nil,"DrawUnitGL4")
 		return nil
 	end
 	
@@ -343,7 +343,7 @@ local function DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, alpha, teamID,
 	
 	if not DrawUnitShapeVBOTable then 
 		spEcho("DrawUnitShapeGL4: The given unitDefID", unitDefID,  UnitDefs[unitDefID].name, "is missing a target DrawUnitShapeVBOTable")
-		Spring.Debug.TraceFullEcho(nil,nil,nil,"DrawUnitGL4")
+		Debug.TraceFullEcho(nil,nil,nil,"DrawUnitGL4")
 		return nil
 	end
 	uniqueIDtoUnitShapeVBOTable[uniqueID] = DrawUnitShapeVBOTable
@@ -584,7 +584,7 @@ end
 function widget:Shutdown()
 	for i,VBOTable in ipairs(VBOTables) do
 		if VBOTable.VAO then
-			if Spring.Utilities.IsDevMode() then
+			if Utilities.IsDevMode() then
 				InstanceVBOTable.dumpAndCompareInstanceData(VBOTable)
 			end
 			VBOTable.VAO:Delete()
@@ -593,7 +593,7 @@ function widget:Shutdown()
 	
 	for tex1,VBOTable in ipairs(tex1ToVBO) do
 		if VBOTable.VAO then
-			if Spring.Utilities.IsDevMode() then
+			if Utilities.IsDevMode() then
 				InstanceVBOTable.dumpAndCompareInstanceData(VBOTable)
 			end
 			VBOTable.VAO:Delete()

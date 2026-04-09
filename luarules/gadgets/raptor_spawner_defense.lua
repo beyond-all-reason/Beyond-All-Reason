@@ -1,5 +1,5 @@
 
-if Spring.Utilities.Gametype.IsRaptors() and not Spring.Utilities.Gametype.IsScavengers() then
+if Utilities.Gametype.IsRaptors() and not Utilities.Gametype.IsScavengers() then
 	Spring.Log("Raptor Defense Spawner", LOG.INFO, "Raptor Defense Spawner Activated!")
 else
 	Spring.Log("Raptor Defense Spawner", LOG.INFO, "Raptor Defense Spawner Deactivated!")
@@ -163,8 +163,8 @@ if gadgetHandler:IsSyncedCode() then
 	local queenResistance = {}
 	local queenIDs = {}
 	local bosses = {resistances = queenResistance, statuses = {}, playerDamages = {}}
-	local raptorTeamID = Spring.Utilities.GetRaptorTeamID()
-	local raptorAllyTeamID = Spring.Utilities.GetRaptorAllyTeamID()
+	local raptorTeamID = Utilities.GetRaptorTeamID()
+	local raptorAllyTeamID = Utilities.GetRaptorAllyTeamID()
 	local lsx1, lsz1, lsx2, lsz2
 	local burrows = {}
 	local heroRaptor = {}

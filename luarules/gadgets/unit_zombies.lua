@@ -1007,7 +1007,7 @@ local function isAuthorized(playerID)
 	if Spring.IsCheatingEnabled() then
 		return true
 	end
-	local accountID = Spring.Utilities.GetAccountID(playerID)
+	local accountID = Utilities.GetAccountID(playerID)
 	if (_G and _G.permissions.devhelpers[accountID]) or (SYNCED and SYNCED.permissions.devhelpers[accountID]) then
 		return true
 	end

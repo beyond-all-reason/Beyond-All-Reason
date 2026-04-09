@@ -87,7 +87,7 @@ local playerRankImages = "luaui\\images\\advplayerslist\\ranks\\"
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local ColorIsDark = Spring.Utilities.Color.ColorIsDark
+local ColorIsDark = Utilities.Color.ColorIsDark
 
 local GL_GREATER = GL.GREATER
 local GL_SRC_ALPHA = GL.SRC_ALPHA
@@ -115,7 +115,7 @@ if teamListLen - 1 == allyTeamListLen - 1 then
 	singleTeams = true
 end
 
-local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+local isSinglePlayer = Utilities.Gametype.IsSinglePlayer()
 
 local anonymousMode = spGetModOptions().teamcolors_anonymous_mode
 local anonymousName = '?????'
@@ -184,22 +184,22 @@ local function GetCommAttributes(unitID, unitDefID)
 		--name = "Scav Commander" -- todo: i18n this thing
 		local unitDefCustomParams = UnitDefs[unitDefID].customParams
 		if unitDefCustomParams.decoyfor then
-			name = Spring.I18N('units.scavDecoyCommanderNameTag')
+			name = I18N('units.scavDecoyCommanderNameTag')
 		else
-			name = Spring.I18N('units.scavCommanderNameTag')
+			name = I18N('units.scavCommanderNameTag')
 		end
 	elseif spGetGameRulesParam('ainame_' .. team) then
 		local unitDefCustomParams = UnitDefs[unitDefID].customParams
 		if unitDefCustomParams.decoyfor then
-			name = Spring.I18N('units.decoyCommanderNameTag')
+			name = I18N('units.decoyCommanderNameTag')
 		else
-			name = Spring.I18N('ui.playersList.aiName', { name = spGetGameRulesParam('ainame_' .. team) })
+			name = I18N('ui.playersList.aiName', { name = spGetGameRulesParam('ainame_' .. team) })
 		end
 
 	else
 		local unitDefCustomParams = UnitDefs[unitDefID].customParams
 		if unitDefCustomParams.decoyfor then
-			name = Spring.I18N('units.decoyCommanderNameTag')
+			name = I18N('units.decoyCommanderNameTag')
 		else
 			local players = spGetPlayerList(team)
 			local playersLen = players and #players or 0
@@ -650,9 +650,9 @@ function widget:Initialize()
 			local name = ''
 			local luaAI = spGetTeamLuaAI(teamID)
 			if luaAI and luaAI ~= "" and stringFind(luaAI, 'Scavengers') then
-				name = Spring.I18N('units.scavCommanderNameTag')
+				name = I18N('units.scavCommanderNameTag')
 			elseif spGetGameRulesParam('ainame_' .. teamID) then
-				name = Spring.I18N('ui.playersList.aiName', { name = spGetGameRulesParam('ainame_' .. teamID) })
+				name = I18N('ui.playersList.aiName', { name = spGetGameRulesParam('ainame_' .. teamID) })
 			else
 				local players = spGetPlayerList(teamID)
 				local playersLen = players and #players or 0

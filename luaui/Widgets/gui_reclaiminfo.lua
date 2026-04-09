@@ -42,7 +42,7 @@ local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetMiniMapGeometry = Spring.GetMiniMapGeometry
 local spGetGroundHeight = Spring.GetGroundHeight
-local spI18N = Spring.I18N
+local spI18N = I18N
 
 local start = false  --reclaim area cylinder drawing has been started
 local metal = 0  --metal count from features in cylinder

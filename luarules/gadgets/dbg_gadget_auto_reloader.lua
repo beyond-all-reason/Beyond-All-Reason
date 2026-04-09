@@ -1,4 +1,4 @@
-if not Spring.Utilities.IsDevMode() then
+if not Utilities.IsDevMode() then
 	return
 end
 

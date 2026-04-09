@@ -39,7 +39,7 @@ local utf8 = VFS.Include('common/luaUtilities/utf8.lua')
 local badWords = VFS.Include('luaui/configs/badwords.lua')
 
 local L_DEPRECATED = LOG.DEPRECATED
-local isDevSingle = (Spring.Utilities.IsDevMode() and Spring.Utilities.Gametype.IsSinglePlayer())
+local isDevSingle = (Utilities.IsDevMode() and Utilities.Gametype.IsSinglePlayer())
 
 -- Configuration consolidated into table to reduce local variable count
 local vsx, vsy = gl.GetViewSizes()
@@ -58,15 +58,15 @@ local config = {
 	maxLinesScrollChatInput = 9,
 	lineHeightMult = 1.36,
 	lineTTL = 40,
-	consoleLineCleanupTarget = Spring.Utilities.IsDevMode() and 1200 or 400,
-	orgLineCleanupTarget = Spring.Utilities.IsDevMode() and 1400 or 600,
+	consoleLineCleanupTarget = Utilities.IsDevMode() and 1200 or 400,
+	orgLineCleanupTarget = Utilities.IsDevMode() and 1400 or 600,
 	backgroundOpacity = 0.25,
 	handleTextInput = true,
 	maxTextInputChars = 127,
 	inputButton = true,
 	allowMultiAutocomplete = true,
 	allowMultiAutocompleteMax = 10,
-	soundErrorsLimit = Spring.Utilities.IsDevMode() and 999 or 10,
+	soundErrorsLimit = Utilities.IsDevMode() and 999 or 10,
 	ui_scale = Spring.GetConfigFloat("ui_scale", 1),
 	ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7),
 	widgetScale = 1,
@@ -208,7 +208,7 @@ local string_lines, schar, slen, ssub, sfind = string.lines, string.char, string
 local math_isInRect, floor, clock = math.isInRect, mathFloor, os.clock
 local spGetTeamColor, spGetPlayerInfo, spPlaySoundFile = Spring.GetTeamColor, Spring.GetPlayerInfo, Spring.PlaySoundFile
 local spGetGameFrame, spGetTeamInfo = Spring.GetGameFrame, Spring.GetTeamInfo
-local ColorString, ColorIsDark = Spring.Utilities and Spring.Utilities.Color and Spring.Utilities.Color.ToString, Spring.Utilities and Spring.Utilities.Color and Spring.Utilities.Color.ColorIsDark
+local ColorString, ColorIsDark = Utilities and Utilities.Color and Utilities.Color.ToString, Utilities and Utilities.Color and Utilities.Color.ColorIsDark
 
 local soundErrors = {}
 local teamColorKeys = {}
@@ -527,15 +527,15 @@ end
 
 function widget:LanguageChanged()
 	I18N = {
-		energy = Spring.I18N('ui.topbar.resources.energy'):lower(),
-		metal = Spring.I18N('ui.topbar.resources.metal'):lower(),
-		everyone = Spring.I18N('ui.chat.everyone'),
-		allies = Spring.I18N('ui.chat.allies'),
-		spectators = Spring.I18N('ui.chat.spectators'),
-		cmd = Spring.I18N('ui.chat.cmd'),
-		shortcut = Spring.I18N('ui.chat.shortcut'),
-		nohistory = Spring.I18N('ui.chat.nohistory'),
-		scroll = Spring.I18N('ui.chat.scroll', { textColor = "\255\255\255\255", highlightColor = "\255\255\255\001" }),
+		energy = I18N('ui.topbar.resources.energy'):lower(),
+		metal = I18N('ui.topbar.resources.metal'):lower(),
+		everyone = I18N('ui.chat.everyone'),
+		allies = I18N('ui.chat.allies'),
+		spectators = I18N('ui.chat.spectators'),
+		cmd = I18N('ui.chat.cmd'),
+		shortcut = I18N('ui.chat.shortcut'),
+		nohistory = I18N('ui.chat.nohistory'),
+		scroll = I18N('ui.chat.scroll', { textColor = "\255\255\255\255", highlightColor = "\255\255\255\001" }),
 	}
 	refreshUnitDefs()
 	-- Cache color strings after language change (optimization)
@@ -560,11 +560,11 @@ local function getAIName(teamID)
 	local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
 	if niceName then
 		name = niceName
-		if Spring.Utilities.ShowDevUI() and options.profile then
+		if Utilities.ShowDevUI() and options.profile then
 			name = name .. " [" .. options.profile .. "]"
 		end
 	end
-	return Spring.I18N('ui.playersList.aiName', { name = name })
+	return I18N('ui.playersList.aiName', { name = name })
 end
 
 local lastMessage
@@ -710,7 +710,7 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 					end
 				end
 			end
-			text = Spring.I18N(params[1], t)
+			text = I18N(params[1], t)
 			-- Fix a widget crash that could occur with message "> ."
 			if type(text) ~= "string" then text = text_orig end
 			if text:lower():find(I18N.energy, nil, true) then
@@ -873,7 +873,7 @@ local function formatSystemMessage(i18nKey, playername, gameFrame, lineColor, ex
 	local params = extraParams or {}
 	params.name = getPlayerColorString(playername, gameFrame) .. playername
 	params.textColor = lineColor
-	return Spring.I18N(i18nKey, params)
+	return I18N(i18nKey, params)
 end
 
 local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
@@ -984,7 +984,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		-- shared 5 Wind Turbine to Player2
 		if newTeamName and newTeamName ~= '' and shareDesc and shareDesc ~= '' then
 			local displayName = (playernames[newTeamName] and playernames[newTeamName][7]) or newTeamName
-			text = msgColor .. Spring.I18N('ui.unitShare.shared', {
+			text = msgColor .. I18N('ui.unitShare.shared', {
 				units = msgHighlightColor .. shareDesc .. msgColor,
 				name = getPlayerColorString(newTeamName, gameFrame) .. displayName
 			})
@@ -1064,16 +1064,16 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 				lineColor = msgHighlightColor
 				local startPos, endPos = sfind(line, 'Connection attempt from ', nil, true)
 				local playername = ssub(line, endPos + 1)
-				local spectator = (playernames[playername] and playernames[playername][2]) and msgColor..' ('..Spring.I18N('ui.chat.spectator')..')' or ''
+				local spectator = (playernames[playername] and playernames[playername][2]) and msgColor..' ('..I18N('ui.chat.spectator')..')' or ''
 				-- Format message and append spectator suffix if needed
 				local params = { textColor = lineColor, textColor2 = msgColor }
 				params.name = getPlayerColorString(playername, gameFrame) .. playername .. spectator
-				line = Spring.I18N('ui.chat.connectionattemptfrom', params)
+				line = I18N('ui.chat.connectionattemptfrom', params)
 			elseif sfind(line,'left the game:  normal quit', nil, true) then
 				local isSpec = sfind(line,'Spectator', nil, true)
 				local playername = ssub(line, isSpec and 11 or 8, sfind(line, ' left the game', nil, true)-1)
 				lineColor = isSpec and msgHighlightColor or '\255\255\133\133'
-				local spectator = isSpec and msgColor..' ('..Spring.I18N('ui.chat.spectator')..')' or ''
+				local spectator = isSpec and msgColor..' ('..I18N('ui.chat.spectator')..')' or ''
 				line = formatSystemMessage('ui.chat.leftthegamenormal', playername, gameFrame, lineColor, { textColor2 = isSpec and msgColor or lineColor })
 				if spectator ~= '' then
 					-- Append spectator suffix
@@ -1083,7 +1083,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 				local isSpec = sfind(line,'Spectator', nil, true)
 				local playername = ssub(line, isSpec and 11 or 8, sfind(line, ' left the game', nil, true)-1)
 				lineColor = isSpec and msgHighlightColor or '\255\255\133\133'
-				local spectator = isSpec and msgColor..' ('..Spring.I18N('ui.chat.spectator')..')' or ''
+				local spectator = isSpec and msgColor..' ('..I18N('ui.chat.spectator')..')' or ''
 				line = formatSystemMessage('ui.chat.leftthegametimeout', playername, gameFrame, lineColor, { textColor2 = isSpec and msgColor or lineColor })
 				if spectator ~= '' then
 					-- Append spectator suffix
@@ -2154,8 +2154,8 @@ function widget:KeyPress(key)
 					else
 						local badWord = findBadWords(inputText)
 						if badWord ~= nil and inputText ~= lastMessage then
-							addChatLine(Spring.GetGameFrame(), LineTypes.System, "Moderation", "\255\255\000\000" .. Spring.I18N('ui.chat.moderation.prefix'),
-								Spring.I18N('ui.chat.moderation.blocked', { badWord = badWord }))
+							addChatLine(Spring.GetGameFrame(), LineTypes.System, "Moderation", "\255\255\000\000" .. I18N('ui.chat.moderation.prefix'),
+								I18N('ui.chat.moderation.blocked', { badWord = badWord }))
 						else
 							Spring.SendCommands("say "..inputMode..inputText)
 						end
@@ -2682,9 +2682,9 @@ function widget:Initialize()
 	Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 
 	-- Ensure ColorString and ColorIsDark are initialized
-	if not ColorString and Spring.Utilities and Spring.Utilities.Color then
-		ColorString = Spring.Utilities.Color.ToString
-		ColorIsDark = Spring.Utilities.Color.ColorIsDark
+	if not ColorString and Utilities and Utilities.Color then
+		ColorString = Utilities.Color.ToString
+		ColorIsDark = Utilities.Color.ColorIsDark
 	end
 
 	if WG.ignoredAccounts then

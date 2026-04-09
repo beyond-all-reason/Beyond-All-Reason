@@ -118,7 +118,7 @@ local projectileDefDistortions  -- one distortion per weaponDefID
 local explosionDistortions  -- one distortion per weaponDefID
 local gibDistortion  -- one distortion for all pieceprojectiles
 
-local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+local isSinglePlayer = Utilities.Gametype.IsSinglePlayer()
 
 local shaderConfig = {
 	VOIDWATER = gl.GetMapRendering("voidWater") and 1 or 0,
@@ -413,7 +413,7 @@ local function InitializeDistortion(distortionTable, unitID)
 		if not distortionTable.distortionParamTable then -- perform correct init
 			local distortionparams = {}
 			for i = 1, distortionParamTableSize do distortionparams[i] = 0 end
-			if distortionTable.distortionConfig == nil then Spring.Debug.TraceFullEcho() end
+			if distortionTable.distortionConfig == nil then Debug.TraceFullEcho() end
 			for paramname, tablepos in pairs(distortionParamKeyOrder) do
 				if paramname == "effectType" and type(distortionTable.distortionConfig[paramname]) == 'string' then
 					distortionparams[tablepos] = distortionEffectTypes[distortionTable.distortionConfig[paramname]] or distortionparams[tablepos]
@@ -1016,7 +1016,7 @@ local function PrintProjectileInfo(projectileID)
 	local px, py, pz = spGetProjectilePosition(projectileID)
 	local weapon, piece = Spring.GetProjectileType(projectileID)
 	local weaponDefID = weapon and Spring.GetProjectileDefID ( projectileID )
-	Spring.Debug.TraceFullEcho()
+	Debug.TraceFullEcho()
 end
 
 
@@ -1336,7 +1336,7 @@ end
 
 function widget:Initialize()
 
-	Spring.Debug.TraceEcho("Initialize distortionGL4")
+	Debug.TraceEcho("Initialize distortionGL4")
 	if spGetConfigString("AllowDeferredMapRendering") == '0' or spGetConfigString("AllowDeferredModelRendering") == '0' then
 		spEcho('Distortion GL4  requires  AllowDeferredMapRendering and AllowDeferredModelRendering to be enabled in springsettings.cfg!')
 		widgetHandler:RemoveWidget()

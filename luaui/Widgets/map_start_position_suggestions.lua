@@ -498,16 +498,16 @@ local function getCaptions(role)
 	local roles = role:split("/")
 
 	if #roles == 1 then
-		title = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".title")
-		description = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".description")
+		title = I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".title")
+		description = I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".description")
 	elseif #roles > 1 then
-		local title1 = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".title")
-		local title2 = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[2] .. ".title")
-		title = Spring.I18N("ui.startPositionSuggestions.multiRole.title", { role1 = title1, role2 = title2})
+		local title1 = I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".title")
+		local title2 = I18N("ui.startPositionSuggestions.roles." .. roles[2] .. ".title")
+		title = I18N("ui.startPositionSuggestions.multiRole.title", { role1 = title1, role2 = title2})
 
-		local description1 = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".description")
-		local description2 = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[2] .. ".description")
-		description = Spring.I18N("ui.startPositionSuggestions.multiRole.description", { role1 = description1, role2 = description2})
+		local description1 = I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".description")
+		local description2 = I18N("ui.startPositionSuggestions.roles." .. roles[2] .. ".description")
+		description = I18N("ui.startPositionSuggestions.multiRole.description", { role1 = description1, role2 = description2})
 	end
 
 	captionsCache[role] = { title = title, description = description }
@@ -656,7 +656,7 @@ local function drawTutorial()
 
 	if not cachedTutorialText then
 		cachedTutorialText = wrapText(
-			Spring.I18N("ui.startPositionSuggestions.tutorial"),
+			I18N("ui.startPositionSuggestions.tutorial"),
 			config.tutorialMaxWidthChars
 		)
 	end

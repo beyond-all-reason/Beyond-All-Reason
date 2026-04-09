@@ -19,7 +19,7 @@ local spGetCameraState = Spring.GetCameraState
 local spGetMapDrawMode = Spring.GetMapDrawMode
 local spGetConfigString = Spring.GetConfigString
 local spGetViewGeometry = Spring.GetViewGeometry
-local i18n = Spring.I18N
+local i18n = I18N
 
 local glPopMatrix = gl.PopMatrix
 local glPushMatrix = gl.PushMatrix

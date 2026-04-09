@@ -22,7 +22,7 @@ local screenshotWidthHq = 900
 
 --------------------------------------------------------------------------------
 
-local isSingleplayer = Spring.Utilities.Gametype.IsSinglePlayer()
+local isSingleplayer = Utilities.Gametype.IsSinglePlayer()
 
 
 if gadgetHandler:IsSyncedCode() then
@@ -76,7 +76,7 @@ else
 
 	local myPlayerID = Spring.GetMyPlayerID()
 	local myPlayerName = Spring.GetPlayerInfo(myPlayerID)
-	local accountID = Spring.Utilities.GetAccountID(myPlayerID)
+	local accountID = Utilities.GetAccountID(myPlayerID)
 	local authorized = SYNCED.permissions.playerdata[accountID]
 
 	function gadget:Initialize()

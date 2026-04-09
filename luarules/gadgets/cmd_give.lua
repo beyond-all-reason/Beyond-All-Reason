@@ -94,7 +94,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local playername, _, spec = Spring.GetPlayerInfo(playerID)
-		local accountID = Spring.Utilities.GetAccountID(playerID)
+		local accountID = Utilities.GetAccountID(playerID)
 		local authorized = false
 		if _G.permissions.give[accountID] then
 			authorized = true
@@ -118,7 +118,7 @@ if gadgetHandler:IsSyncedCode() then
 else	-- UNSYNCED
 
 	local myPlayerID = Spring.GetMyPlayerID()
-	local accountID = Spring.Utilities.GetAccountID(myPlayerID)
+	local accountID = Utilities.GetAccountID(myPlayerID)
 	local authorized = SYNCED.permissions.give[accountID]
 
 	local function RequestGive(cmd, line, words, playerID)

@@ -99,7 +99,7 @@ local function drawFactionpicker()
 	font2:Begin()
 	font2:SetTextColor(1, 1, 1, 1)
 	font2:SetOutlineColor(0, 0, 0, 0.66)
-	font2:Print(Spring.I18N('ui.factionPicker.pick'), backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.7), fontSize, "o")
+	font2:Print(I18N('ui.factionPicker.pick'), backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.7), fontSize, "o")
 
 	local contentWidth = mathFloor(backgroundRect[3] - backgroundRect[1] - contentPadding)
 	local contentHeight = mathFloor(backgroundRect[4] - backgroundRect[2] - (contentPadding * 1.33))
@@ -129,15 +129,15 @@ local function drawFactionpicker()
 			'#' .. factions[i].startUnit
 		)
 		-- faction name
-		font2:Print((disabled and "\255\170\170\170" or "\255\255\255\255") .. Spring.I18N('units.factions.' .. factions[i].faction), factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.96, "co")
+		font2:Print((disabled and "\255\170\170\170" or "\255\255\255\255") .. I18N('units.factions.' .. factions[i].faction), factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.96, "co")
 
 		if WG['tooltip'] ~= nil then
-			local text = Spring.I18N('ui.factionPicker.factions.'..factions[i].faction)
+			local text = I18N('ui.factionPicker.factions.'..factions[i].faction)
 			local tooltip = ''
 			local maxWidth = WG['tooltip'].getFontsize() * 80
 			local textLines, numLines = font2:WrapText(text, maxWidth)
 			tooltip = tooltip..string.gsub(textLines, '[\n]', '\n')..'\n'
-			WG['tooltip'].AddTooltip('factionpicker_'..i, { factionRect[i][1] + bgpadding, factionRect[i][2] + bgpadding, factionRect[i][3], factionRect[i][4] }, tooltip, nil, Spring.I18N('units.factions.' .. factions[i].faction))
+			WG['tooltip'].AddTooltip('factionpicker_'..i, { factionRect[i][1] + bgpadding, factionRect[i][2] + bgpadding, factionRect[i][3], factionRect[i][4] }, tooltip, nil, I18N('units.factions.' .. factions[i].faction))
 		end
 	end
 	font2:End()
@@ -350,7 +350,7 @@ function widget:DrawScreen()
 				RectRound(factionRect[i][1] + bgpadding, factionRect[i][2] + bgpadding, factionRect[i][3], factionRect[i][4], bgpadding, 1, 1, 1, 1, { 0.3, 0.3, 0.3, (b and 0.5 or 0.25) }, { 1, 1, 1, (b and 0.3 or 0.15) })
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-				font2:Print(Spring.I18N('units.factions.' .. factions[i].faction), factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.96, "co")
+				font2:Print(I18N('units.factions.' .. factions[i].faction), factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.96, "co")
 				break
 			end
 		end

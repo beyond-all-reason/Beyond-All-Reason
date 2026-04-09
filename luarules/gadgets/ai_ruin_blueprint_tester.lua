@@ -1,7 +1,7 @@
 
 local cmdname = 'ruinblueprinttest'
 local blueprintspath = "luarules/gadgets/ruins/Blueprints/BYAR/Blueprints/"
-local enabled = Spring.Utilities.IsDevMode() -- only enable in test environment
+local enabled = Utilities.IsDevMode() -- only enable in test environment
 local queue = {}
 local mapsizeX = Game.mapSizeX
 local blueprintpositions = {}

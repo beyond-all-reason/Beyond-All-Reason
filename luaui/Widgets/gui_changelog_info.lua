@@ -253,7 +253,7 @@ function DrawWindow()
 	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, WG.FlowUI.clampedOpacity)
 
 	-- title background
-	local title = Spring.I18N('ui.changelog.title')
+	local title = I18N('ui.changelog.title')
 	local titleFontSize = 18 * widgetScale
 	titleRect = { screenX, screenY, mathFloor(screenX + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), mathFloor(screenY + (titleFontSize*1.7)) }
 

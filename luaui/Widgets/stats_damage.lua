@@ -93,7 +93,7 @@ end
 
 function widget:GameOver()
     if not info or Spring.IsReplay() then return end
-    if Spring.Utilities.IsDevMode() then return end
+    if Utilities.IsDevMode() then return end
 
     table.save(stats, STATS_FILE, '-- Damage Stats')
 end

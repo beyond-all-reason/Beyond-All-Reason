@@ -56,15 +56,15 @@ local CMD_OPT_RIGHT = CMD.OPT_RIGHT
 --- STATIC VALUES
 -------------------------------------------------------------------------------
 
-local BUILDCAT_ECONOMY = Spring.I18N("ui.buildMenu.category_econ")
-local BUILDCAT_COMBAT = Spring.I18N("ui.buildMenu.category_combat")
-local BUILDCAT_UTILITY = Spring.I18N("ui.buildMenu.category_utility")
-local BUILDCAT_PRODUCTION = Spring.I18N("ui.buildMenu.category_production")
+local BUILDCAT_ECONOMY = I18N("ui.buildMenu.category_econ")
+local BUILDCAT_COMBAT = I18N("ui.buildMenu.category_combat")
+local BUILDCAT_UTILITY = I18N("ui.buildMenu.category_utility")
+local BUILDCAT_PRODUCTION = I18N("ui.buildMenu.category_production")
 local categoryTooltips = {
-	[BUILDCAT_ECONOMY] = Spring.I18N("ui.buildMenu.category_econ_descr"),
-	[BUILDCAT_COMBAT] = Spring.I18N("ui.buildMenu.category_combat_descr"),
-	[BUILDCAT_UTILITY] = Spring.I18N("ui.buildMenu.category_utility_descr"),
-	[BUILDCAT_PRODUCTION] = Spring.I18N("ui.buildMenu.category_production_descr"),
+	[BUILDCAT_ECONOMY] = I18N("ui.buildMenu.category_econ_descr"),
+	[BUILDCAT_COMBAT] = I18N("ui.buildMenu.category_combat_descr"),
+	[BUILDCAT_UTILITY] = I18N("ui.buildMenu.category_utility_descr"),
+	[BUILDCAT_PRODUCTION] = I18N("ui.buildMenu.category_production_descr"),
 }
 
 local folder = "LuaUI/Images/groupicons/"
@@ -408,7 +408,7 @@ local function updateHoverState()
 
 		-- builder buttons
 		if nextBuilderRect:contains(x, y) then
-			setHoveredRectTooltip(nextBuilderRect, "\255\240\240\240" .. Spring.I18N("ui.buildMenu.nextBuilder"))
+			setHoveredRectTooltip(nextBuilderRect, "\255\240\240\240" .. I18N("ui.buildMenu.nextBuilder"))
 
 			return
 		end
@@ -462,7 +462,7 @@ local function updateHoverState()
 			local text
 			local textColor = "\255\215\255\215"
 			if cellRect.opts.disabled then
-				text = Spring.I18N("ui.buildMenu.disabled", {
+				text = I18N("ui.buildMenu.disabled", {
 					unit = unitTranslatedHumanName[uDefID],
 					textColor = textColor,
 					warnColor = "\255\166\166\166",
@@ -472,7 +472,7 @@ local function updateHoverState()
 			end
 			local tooltip = unitTranslatedTooltip[uDefID]
 			if unitMetal_extractor[uDefID] then
-				tooltip = tooltip .. "\n" .. Spring.I18N("ui.buildMenu.areamex_tooltip")
+				tooltip = tooltip .. "\n" .. I18N("ui.buildMenu.areamex_tooltip")
 			end
 
 			setHoveredRectTooltip(cellRect, "\255\240\240\240" .. tooltip, text, left or right)
@@ -500,7 +500,7 @@ local function updateHoverState()
 
 	-- build mode button
 	if builderIsFactory and (useLabBuildMode and not labBuildModeActive) and labBuildModeRect:contains(x, y) then
-		setHoveredRectTooltip(labBuildModeRect, "\255\240\240\240" .. Spring.I18N("ui.buildMenu.buildmode_descr"))
+		setHoveredRectTooltip(labBuildModeRect, "\255\240\240\240" .. I18N("ui.buildMenu.buildmode_descr"))
 
 		return
 	end
@@ -508,7 +508,7 @@ local function updateHoverState()
 	if currentCategory or labBuildModeActive then
 		-- back button
 		if backRect and backRect:contains(x, y) then
-			setHoveredRectTooltip(backRect, "\255\240\240\240" .. Spring.I18N("ui.buildMenu.homePage"))
+			setHoveredRectTooltip(backRect, "\255\240\240\240" .. I18N("ui.buildMenu.homePage"))
 
 			return
 		end
@@ -516,7 +516,7 @@ local function updateHoverState()
 
 	-- paginator buttons
 	if pages > 1 and nextPageRect and nextPageRect:contains(x, y) then
-		setHoveredRectTooltip(nextPageRect, "\255\240\240\240" .. Spring.I18N("ui.buildMenu.nextPage"))
+		setHoveredRectTooltip(nextPageRect, "\255\240\240\240" .. I18N("ui.buildMenu.nextPage"))
 
 		return
 	end
