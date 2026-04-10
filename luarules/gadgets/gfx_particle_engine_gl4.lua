@@ -14,7 +14,9 @@
 --   - Public API via GG.Particles (+ backward compat GG.FireSmoke)
 --------------------------------------------------------------------------------
 
-if gadgetHandler:IsSyncedCode() then return end
+if gadgetHandler:IsSyncedCode() then
+	return
+end
 
 function gadget:GetInfo()
 	return {
@@ -25,7 +27,7 @@ function gadget:GetInfo()
 		license = "GNU GPL v2",
 		layer = 0,
 		enabled = true,
-		dependents = {	-- for gadget auto reloader to reload these as well
+		dependents = { -- for gadget auto reloader to reload these as well
 			"Piece Trail Particles GL4",
 			"Crash Trail Particles GL4",
 		},
@@ -37,179 +39,179 @@ local debugEcho = false
 --------------------------------------------------------------------------------
 -- Localized functions
 --------------------------------------------------------------------------------
-local spGetGroundHeight       = Spring.GetGroundHeight
-local spEcho                  = Spring.Echo
-local spGetTimer              = Spring.GetTimer
-local spDiffTimers            = Spring.DiffTimers
-local spIsSphereInView        = Spring.IsSphereInView
-local spGetCameraPosition     = Spring.GetCameraPosition
-local spGetFPS                = Spring.GetFPS
-local spGetWind               = Spring.GetWind
-local spGetConfigInt          = Spring.GetConfigInt
-local spGetGameSpeed          = Spring.GetGameSpeed
+local spGetGroundHeight = Spring.GetGroundHeight
+local spEcho = Spring.Echo
+local spGetTimer = Spring.GetTimer
+local spDiffTimers = Spring.DiffTimers
+local spIsSphereInView = Spring.IsSphereInView
+local spGetCameraPosition = Spring.GetCameraPosition
+local spGetFPS = Spring.GetFPS
+local spGetWind = Spring.GetWind
+local spGetConfigInt = Spring.GetConfigInt
+local spGetGameSpeed = Spring.GetGameSpeed
 
-local glBlending  = gl.Blending
-local glTexture   = gl.Texture
+local glBlending = gl.Blending
+local glTexture = gl.Texture
 local glDepthTest = gl.DepthTest
 local glDepthMask = gl.DepthMask
-local glCulling   = gl.Culling
+local glCulling = gl.Culling
 
-local GL_ONE                  = GL.ONE
-local GL_ONE_MINUS_SRC_ALPHA  = GL.ONE_MINUS_SRC_ALPHA
-local GL_SRC_ALPHA            = GL.SRC_ALPHA
+local GL_ONE = GL.ONE
+local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
+local GL_SRC_ALPHA = GL.SRC_ALPHA
 
 local mathRandom = math.random
-local mathMin    = math.min
-local mathMax    = math.max
-local mathFloor  = math.floor
-local mathCeil   = math.ceil
-local mathSqrt   = math.sqrt
-local mathPi     = math.pi
+local mathMin = math.min
+local mathMax = math.max
+local mathFloor = math.floor
+local mathCeil = math.ceil
+local mathSqrt = math.sqrt
+local mathPi = math.pi
 
 local LuaShader = gl.LuaShader
-local pushElementInstance  = gl.InstanceVBOTable.pushElementInstance
-local popElementInstance   = gl.InstanceVBOTable.popElementInstance
-local uploadAllElements    = gl.InstanceVBOTable.uploadAllElements
+local pushElementInstance = gl.InstanceVBOTable.pushElementInstance
+local popElementInstance = gl.InstanceVBOTable.popElementInstance
+local uploadAllElements = gl.InstanceVBOTable.uploadAllElements
 
 --------------------------------------------------------------------------------
 -- Priority levels for particle budgeting
 --------------------------------------------------------------------------------
-local PRIORITY_ESSENTIAL = 1   -- always emit: crash trails, wreck fires
-local PRIORITY_NORMAL    = 2   -- standard: piece debris trails
-local PRIORITY_COSMETIC  = 3   -- reduced first: ambient fluff, extra detail
+local PRIORITY_ESSENTIAL = 1 -- always emit: crash trails, wreck fires
+local PRIORITY_NORMAL = 2 -- standard: piece debris trails
+local PRIORITY_COSMETIC = 3 -- reduced first: ambient fluff, extra detail
 
 --------------------------------------------------------------------------------
 -- Configuration
 --------------------------------------------------------------------------------
 
 -- Textures
-local fireTexture  = "bitmaps/projectiletextures/BARFlame02.tga"
+local fireTexture = "bitmaps/projectiletextures/BARFlame02.tga"
 local smokeTexture = "bitmaps/projectiletextures/smoke-beh-anim.tga"
 
 -- General (MAX_PARTICLES read from configint so the options widget can expose a slider)
-local minFireSmokeParticles  = 10000
-local MAX_PARTICLES          = ((spGetConfigInt("MaxParticles", 10000)-7500)*3) + minFireSmokeParticles
-local VBO_CAPACITY           = MAX_PARTICLES
+local minFireSmokeParticles = 10000
+local MAX_PARTICLES = ((spGetConfigInt("MaxParticles", 10000) - 7500) * 3) + minFireSmokeParticles
+local VBO_CAPACITY = MAX_PARTICLES
 
 -- Default particle property values (exposed via API for consumer overrides)
 local defaults = {
 	-- Particle size range
-	PARTICLE_SIZE_MIN      = 1,
-	PARTICLE_SIZE_MAX      = 4,
+	PARTICLE_SIZE_MIN = 1,
+	PARTICLE_SIZE_MAX = 4,
 
 	-- Shared smoke physics
-	SMOKE_VEL_UP_MIN       = 0.04,
-	SMOKE_VEL_UP_MAX       = 0.20,
-	SMOKE_VEL_RANDOM       = 0.1,
+	SMOKE_VEL_UP_MIN = 0.04,
+	SMOKE_VEL_UP_MAX = 0.20,
+	SMOKE_VEL_RANDOM = 0.1,
 
 	-- Fire particle settings
-	FIRE_LIFETIME_MIN      = 20,
-	FIRE_LIFETIME_RANGE    = 100,
-	FIRE_SIZE_MULT         = 7.5,
-	FIRE_ALPHA_MIN         = 0.55,
+	FIRE_LIFETIME_MIN = 20,
+	FIRE_LIFETIME_RANGE = 100,
+	FIRE_SIZE_MULT = 7.5,
+	FIRE_ALPHA_MIN = 0.55,
 
 	-- Smoke alpha range
-	SMOKE_ALPHA_MIN        = 0.25,
-	SMOKE_ALPHA_RANGE      = 0.75,
+	SMOKE_ALPHA_MIN = 0.25,
+	SMOKE_ALPHA_RANGE = 0.75,
 }
 
 -- Local aliases for hot-path use (updated when defaults change)
-local PARTICLE_SIZE_MIN      = defaults.PARTICLE_SIZE_MIN
-local PARTICLE_SIZE_MAX      = defaults.PARTICLE_SIZE_MAX
-local SMOKE_VEL_UP_MIN       = defaults.SMOKE_VEL_UP_MIN
-local SMOKE_VEL_UP_MAX       = defaults.SMOKE_VEL_UP_MAX
-local SMOKE_VEL_RANDOM       = defaults.SMOKE_VEL_RANDOM
-local FIRE_LIFETIME_MIN      = defaults.FIRE_LIFETIME_MIN
-local FIRE_LIFETIME_RANGE    = defaults.FIRE_LIFETIME_RANGE
-local FIRE_SIZE_MULT         = defaults.FIRE_SIZE_MULT
-local FIRE_ALPHA_MIN         = defaults.FIRE_ALPHA_MIN
-local SMOKE_ALPHA_MIN        = defaults.SMOKE_ALPHA_MIN
-local SMOKE_ALPHA_RANGE      = defaults.SMOKE_ALPHA_RANGE
+local PARTICLE_SIZE_MIN = defaults.PARTICLE_SIZE_MIN
+local PARTICLE_SIZE_MAX = defaults.PARTICLE_SIZE_MAX
+local SMOKE_VEL_UP_MIN = defaults.SMOKE_VEL_UP_MIN
+local SMOKE_VEL_UP_MAX = defaults.SMOKE_VEL_UP_MAX
+local SMOKE_VEL_RANDOM = defaults.SMOKE_VEL_RANDOM
+local FIRE_LIFETIME_MIN = defaults.FIRE_LIFETIME_MIN
+local FIRE_LIFETIME_RANGE = defaults.FIRE_LIFETIME_RANGE
+local FIRE_SIZE_MULT = defaults.FIRE_SIZE_MULT
+local FIRE_ALPHA_MIN = defaults.FIRE_ALPHA_MIN
+local SMOKE_ALPHA_MIN = defaults.SMOKE_ALPHA_MIN
+local SMOKE_ALPHA_RANGE = defaults.SMOKE_ALPHA_RANGE
 
 -- Priority-based budget: each level can fill the VBO up to this fraction
-local BUDGET_ESSENTIAL       = 1.0
-local BUDGET_NORMAL          = 0.85
-local BUDGET_COSMETIC        = 0.60
+local BUDGET_ESSENTIAL = 1.0
+local BUDGET_NORMAL = 0.85
+local BUDGET_COSMETIC = 0.60
 
 -- Smoke highlight: lighter particle layered above each smoke particle
 local SMOKE_HIGHLIGHT_OFFSET_Y = 2.2
-local SMOKE_HIGHLIGHT_BRIGHT   = 2.8
-local SMOKE_HIGHLIGHT_SIZE     = 0.85
-local SMOKE_HIGHLIGHT_LIFE     = 0.7
+local SMOKE_HIGHLIGHT_BRIGHT = 2.8
+local SMOKE_HIGHLIGHT_SIZE = 0.85
+local SMOKE_HIGHLIGHT_LIFE = 0.7
 
 -- Frustum culling margin (elmos beyond visible sphere to still spawn)
-local CULLING_MARGIN           = 200
+local CULLING_MARGIN = 200
 
 -- Point emitter defaults
-local POINT_SPAWN_INTERVAL     = 2
-local POINT_SPAWN_COUNT        = 2
-local POINT_SMOKE_LIFE_MIN     = 60
-local POINT_SMOKE_LIFE_RANGE   = 60
-local POINT_POS_SPREAD         = 2.0
-local POINT_CULLING_RADIUS     = 100
+local POINT_SPAWN_INTERVAL = 2
+local POINT_SPAWN_COUNT = 2
+local POINT_SMOKE_LIFE_MIN = 60
+local POINT_SMOKE_LIFE_RANGE = 60
+local POINT_POS_SPREAD = 2.0
+local POINT_CULLING_RADIUS = 100
 
 -- Pre-computed constants (recomputed via refreshDerivedConstants)
-local SMOKE_VEL_UP_RANGE       = SMOKE_VEL_UP_MAX - SMOKE_VEL_UP_MIN
-local SMOKE_VEL_RANDOM_2       = SMOKE_VEL_RANDOM * 2
-local PARTICLE_SIZE_RANGE      = PARTICLE_SIZE_MAX - PARTICLE_SIZE_MIN
-local PARTICLE_SIZE_INV_RANGE  = 1.0 / PARTICLE_SIZE_RANGE
-local POINT_CULLING_TOTAL      = POINT_CULLING_RADIUS + CULLING_MARGIN
+local SMOKE_VEL_UP_RANGE = SMOKE_VEL_UP_MAX - SMOKE_VEL_UP_MIN
+local SMOKE_VEL_RANDOM_2 = SMOKE_VEL_RANDOM * 2
+local PARTICLE_SIZE_RANGE = PARTICLE_SIZE_MAX - PARTICLE_SIZE_MIN
+local PARTICLE_SIZE_INV_RANGE = 1.0 / PARTICLE_SIZE_RANGE
+local POINT_CULLING_TOTAL = POINT_CULLING_RADIUS + CULLING_MARGIN
 
 local function refreshDerivedConstants()
-	PARTICLE_SIZE_MIN    = defaults.PARTICLE_SIZE_MIN
-	PARTICLE_SIZE_MAX    = defaults.PARTICLE_SIZE_MAX
-	SMOKE_VEL_UP_MIN     = defaults.SMOKE_VEL_UP_MIN
-	SMOKE_VEL_UP_MAX     = defaults.SMOKE_VEL_UP_MAX
-	SMOKE_VEL_RANDOM     = defaults.SMOKE_VEL_RANDOM
-	FIRE_LIFETIME_MIN    = defaults.FIRE_LIFETIME_MIN
-	FIRE_LIFETIME_RANGE  = defaults.FIRE_LIFETIME_RANGE
-	FIRE_SIZE_MULT       = defaults.FIRE_SIZE_MULT
-	FIRE_ALPHA_MIN       = defaults.FIRE_ALPHA_MIN
-	SMOKE_ALPHA_MIN      = defaults.SMOKE_ALPHA_MIN
-	SMOKE_ALPHA_RANGE    = defaults.SMOKE_ALPHA_RANGE
-	SMOKE_VEL_UP_RANGE   = SMOKE_VEL_UP_MAX - SMOKE_VEL_UP_MIN
-	SMOKE_VEL_RANDOM_2   = SMOKE_VEL_RANDOM * 2
-	PARTICLE_SIZE_RANGE  = PARTICLE_SIZE_MAX - PARTICLE_SIZE_MIN
+	PARTICLE_SIZE_MIN = defaults.PARTICLE_SIZE_MIN
+	PARTICLE_SIZE_MAX = defaults.PARTICLE_SIZE_MAX
+	SMOKE_VEL_UP_MIN = defaults.SMOKE_VEL_UP_MIN
+	SMOKE_VEL_UP_MAX = defaults.SMOKE_VEL_UP_MAX
+	SMOKE_VEL_RANDOM = defaults.SMOKE_VEL_RANDOM
+	FIRE_LIFETIME_MIN = defaults.FIRE_LIFETIME_MIN
+	FIRE_LIFETIME_RANGE = defaults.FIRE_LIFETIME_RANGE
+	FIRE_SIZE_MULT = defaults.FIRE_SIZE_MULT
+	FIRE_ALPHA_MIN = defaults.FIRE_ALPHA_MIN
+	SMOKE_ALPHA_MIN = defaults.SMOKE_ALPHA_MIN
+	SMOKE_ALPHA_RANGE = defaults.SMOKE_ALPHA_RANGE
+	SMOKE_VEL_UP_RANGE = SMOKE_VEL_UP_MAX - SMOKE_VEL_UP_MIN
+	SMOKE_VEL_RANDOM_2 = SMOKE_VEL_RANDOM * 2
+	PARTICLE_SIZE_RANGE = PARTICLE_SIZE_MAX - PARTICLE_SIZE_MIN
 	PARTICLE_SIZE_INV_RANGE = PARTICLE_SIZE_RANGE > 0 and (1.0 / PARTICLE_SIZE_RANGE) or 1.0
 end
 
 -- LOD settings (used by point emitters)
-local LOD_DIST_NEAR            = 4000
-local LOD_DIST_FAR             = 10000
-local LOD_MIN_MULT             = 0.33
-local LOD_DIST_RANGE_INV       = 1.0 / (LOD_DIST_FAR - LOD_DIST_NEAR)
-local LOD_MULT_RANGE           = 1.0 - LOD_MIN_MULT
-local LOD_DIST_NEAR_SQ         = LOD_DIST_NEAR * LOD_DIST_NEAR
+local LOD_DIST_NEAR = 4000
+local LOD_DIST_FAR = 10000
+local LOD_MIN_MULT = 0.33
+local LOD_DIST_RANGE_INV = 1.0 / (LOD_DIST_FAR - LOD_DIST_NEAR)
+local LOD_MULT_RANGE = 1.0 - LOD_MIN_MULT
+local LOD_DIST_NEAR_SQ = LOD_DIST_NEAR * LOD_DIST_NEAR
 
 -- Budget limits (computed from MAX_PARTICLES)
 local budgetLimits = {
 	[PRIORITY_ESSENTIAL] = mathFloor(MAX_PARTICLES * BUDGET_ESSENTIAL),
-	[PRIORITY_NORMAL]    = mathFloor(MAX_PARTICLES * BUDGET_NORMAL),
-	[PRIORITY_COSMETIC]  = mathFloor(MAX_PARTICLES * BUDGET_COSMETIC),
+	[PRIORITY_NORMAL] = mathFloor(MAX_PARTICLES * BUDGET_NORMAL),
+	[PRIORITY_COSMETIC] = mathFloor(MAX_PARTICLES * BUDGET_COSMETIC),
 }
 
 -- Quality presets: auto-switch based on average particle count
 local QUALITY_PRESETS = {
 	[1] = {
-		name            = "Low",
-		spawnMult       = 0.35,
-		pieceCountMult  = 0.5,
-		lifetimeMult    = 0.25,
-		maxPct          = 1.0,
+		name = "Low",
+		spawnMult = 0.35,
+		pieceCountMult = 0.5,
+		lifetimeMult = 0.25,
+		maxPct = 1.0,
 	},
 	[2] = {
-		name            = "Medium",
-		spawnMult       = 0.65,
-		pieceCountMult  = 0.75,
-		lifetimeMult    = 0.33,
-		maxPct          = 0.75,
+		name = "Medium",
+		spawnMult = 0.65,
+		pieceCountMult = 0.75,
+		lifetimeMult = 0.33,
+		maxPct = 0.75,
 	},
 	[3] = {
-		name            = "High",
-		spawnMult       = 1.0,
-		pieceCountMult  = 1.0,
-		lifetimeMult    = 0.4,
-		maxPct          = 0.45,
+		name = "High",
+		spawnMult = 1.0,
+		pieceCountMult = 1.0,
+		lifetimeMult = 0.4,
+		maxPct = 0.45,
 	},
 }
 -- temp just to test
@@ -454,7 +456,7 @@ void main(void)
 --------------------------------------------------------------------------------
 -- State
 --------------------------------------------------------------------------------
-local particleVBO    = nil
+local particleVBO = nil
 local particleShader = nil
 local nextParticleID = 0
 
@@ -463,7 +465,9 @@ local particleRemoveQueue = {}
 
 -- Quality preset state
 local currentPreset = spGetConfigInt("GfxFireSmokeQuality", 3)
-if not QUALITY_PRESETS[currentPreset] then currentPreset = 3 end
+if not QUALITY_PRESETS[currentPreset] then
+	currentPreset = 3
+end
 local particleCountSamples = {}
 local sampleIndex = 0
 local sampleCount = 0
@@ -499,8 +503,8 @@ local cachedPreset = QUALITY_PRESETS[currentPreset]
 local fastForward = false
 
 -- Adaptive batch upload: defer individual GPU uploads when ops/draw ratio is high
-local batchUploadMode = false  -- current mode: true = defer uploads, false = immediate
-local pendingOps = 0           -- ops since last DrawWorld
+local batchUploadMode = false -- current mode: true = defer uploads, false = immediate
+local pendingOps = 0 -- ops since last DrawWorld
 
 -- Pre-draw callbacks (called before DrawParticles, for consumer buffer flushing)
 local preDrawCallbacks = {}
@@ -527,7 +531,9 @@ end
 local maxSamples = mathCeil(15 / 4)
 
 local function updateQualityPreset(gameFrame)
-	if not particleVBO then return end
+	if not particleVBO then
+		return
+	end
 
 	if gameFrame % 4 == 0 then
 		sampleIndex = (sampleIndex % maxSamples) + 1
@@ -535,11 +541,15 @@ local function updateQualityPreset(gameFrame)
 		local newVal = particleVBO.usedElements
 		particleCountSamples[sampleIndex] = newVal
 		runningSum = runningSum - oldVal + newVal
-		if sampleCount < maxSamples then sampleCount = sampleCount + 1 end
+		if sampleCount < maxSamples then
+			sampleCount = sampleCount + 1
+		end
 		avgParticleCount = runningSum / sampleCount
 	end
 
-	if gameFrame - lastPresetSwitchFrame < 15 then return end
+	if gameFrame - lastPresetSwitchFrame < 15 then
+		return
+	end
 
 	local newPreset = 1
 	for i = #QUALITY_PRESETS, 1, -1 do
@@ -556,23 +566,31 @@ local function updateQualityPreset(gameFrame)
 end
 
 local function updateMaxParticles(gameFrame)
-	if gameFrame % 90 ~= 0 then return end
-	local newMax = ((spGetConfigInt("MaxParticles", 10000)-7000)*3) + minFireSmokeParticles
+	if gameFrame % 90 ~= 0 then
+		return
+	end
+	local newMax = ((spGetConfigInt("MaxParticles", 10000) - 7000) * 3) + minFireSmokeParticles
 
-	if newMax == MAX_PARTICLES then return end
+	if newMax == MAX_PARTICLES then
+		return
+	end
 	newMax = mathMin(newMax, VBO_CAPACITY)
-	if newMax < 1 then newMax = 1 end
+	if newMax < 1 then
+		newMax = 1
+	end
 	MAX_PARTICLES = newMax
 	budgetLimits[PRIORITY_ESSENTIAL] = mathFloor(MAX_PARTICLES * BUDGET_ESSENTIAL)
-	budgetLimits[PRIORITY_NORMAL]    = mathFloor(MAX_PARTICLES * BUDGET_NORMAL)
-	budgetLimits[PRIORITY_COSMETIC]  = mathFloor(MAX_PARTICLES * BUDGET_COSMETIC)
+	budgetLimits[PRIORITY_NORMAL] = mathFloor(MAX_PARTICLES * BUDGET_NORMAL)
+	budgetLimits[PRIORITY_COSMETIC] = mathFloor(MAX_PARTICLES * BUDGET_COSMETIC)
 	for i = 1, #QUALITY_PRESETS do
 		presetThresholds[i] = QUALITY_PRESETS[i].maxPct * MAX_PARTICLES
 	end
 end
 
 local function updateWind(gameFrame)
-	if gameFrame % 10 ~= 0 then return end
+	if gameFrame % 10 ~= 0 then
+		return
+	end
 	local _, _, _, strength, wx, _, wz = spGetWind()
 	windX = wx or 0
 	windZ = wz or 0
@@ -583,14 +601,18 @@ end
 -- Particle spawning
 --------------------------------------------------------------------------------
 
-local particleData = {0,0,0,0, 0,0,0,0, 0,0,0,0, 1,1,1,0}
+local particleData = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0 }
 
 local function spawnParticle(px, py, pz, vx, vy, vz, size, particleType, lifetime, alphaMult, tintBrightness, birthFrame)
-	if not particleVBO or particleVBO.usedElements >= currentBudgetLimit then return end
+	if not particleVBO or particleVBO.usedElements >= currentBudgetLimit then
+		return
+	end
 
 	local bf = birthFrame or cachedGameFrame
 	local deathFrame = bf + mathCeil(lifetime) + 2
-	if deathFrame <= cachedGameFrame then return end
+	if deathFrame <= cachedGameFrame then
+		return
+	end
 
 	local seed = mathRandom()
 
@@ -638,19 +660,19 @@ local shaderSourceCache = {
 	fsSrc = fsSrc,
 	shaderName = "ParticleEngineGL4",
 	uniformInt = {
-		fireTex  = 0,
+		fireTex = 0,
 		smokeTex = 1,
 	},
 	uniformFloat = {},
 	shaderConfig = {
-		SMOKE_GROWTH_MULT  = 1.05,
-		SMOKE_GROWTH_RATE  = 0.11,
+		SMOKE_GROWTH_MULT = 1.05,
+		SMOKE_GROWTH_RATE = 0.11,
 		SMOKE_WOBBLE_START = 0.6,
-		SMOKE_WOBBLE_RAMP  = 0.4,
-		SMOKE_WOBBLE_RATE  = 0.1,
-		WIND_SMOKE_MULT    = 0.0012,
-		WIND_FIRE_MULT     = 0.2,
-		HIGHLIGHT_BRIGHT   = SMOKE_HIGHLIGHT_BRIGHT,
+		SMOKE_WOBBLE_RAMP = 0.4,
+		SMOKE_WOBBLE_RATE = 0.1,
+		WIND_SMOKE_MULT = 0.0012,
+		WIND_FIRE_MULT = 0.2,
+		HIGHLIGHT_BRIGHT = SMOKE_HIGHLIGHT_BRIGHT,
 	},
 	forceupdate = true,
 }
@@ -662,22 +684,16 @@ local function initGL4()
 		return false
 	end
 
-	local quadVBO, numVertices = gl.InstanceVBOTable.makeRectVBO(
-		-1, -1, 1, 1,
-		0, 0, 1, 1,
-		"particleEngineQuadVBO"
-	)
+	local quadVBO, numVertices = gl.InstanceVBOTable.makeRectVBO(-1, -1, 1, 1, 0, 0, 1, 1, "particleEngineQuadVBO")
 
 	local particleLayout = {
-		{id = 1, name = 'worldPos',    size = 4},
-		{id = 2, name = 'velocity',    size = 4},
-		{id = 3, name = 'sizeAndType', size = 4},
-		{id = 4, name = 'colorTint',   size = 4},
+		{ id = 1, name = "worldPos", size = 4 },
+		{ id = 2, name = "velocity", size = 4 },
+		{ id = 3, name = "sizeAndType", size = 4 },
+		{ id = 4, name = "colorTint", size = 4 },
 	}
 
-	particleVBO = gl.InstanceVBOTable.makeInstanceVBOTable(
-		particleLayout, MAX_PARTICLES, "particleEngineVBO"
-	)
+	particleVBO = gl.InstanceVBOTable.makeInstanceVBOTable(particleLayout, MAX_PARTICLES, "particleEngineVBO")
 	if not particleVBO then
 		goodbye("Failed to create particle VBO")
 		return false
@@ -708,8 +724,12 @@ end
 local HIGHLIGHT_LIFE_INV = 1.0 / SMOKE_HIGHLIGHT_LIFE
 
 local function DrawParticles()
-	if not particleVBO or particleVBO.usedElements == 0 then return end
-	if not particleShader then return end
+	if not particleVBO or particleVBO.usedElements == 0 then
+		return
+	end
+	if not particleShader then
+		return
+	end
 
 	glDepthTest(true)
 	glDepthMask(false)
@@ -744,7 +764,9 @@ end
 
 local function removeExpiredParticles(gameFrame)
 	local queue = particleRemoveQueue[gameFrame]
-	if not queue then return end
+	if not queue then
+		return
+	end
 	local noUpload = batchUploadMode
 	for i = 1, #queue do
 		popElementInstance(particleVBO, queue[i], noUpload)
@@ -765,18 +787,24 @@ local pointEmitterCount = 0
 local function spawnPointEmitterParticles(emitter, gameFrame, preset)
 	local age = gameFrame - emitter.birthFrame
 
-	if emitter.duration > 0 and age > emitter.duration then return false end
+	if emitter.duration > 0 and age > emitter.duration then
+		return false
+	end
 
 	emitter.spawnTimer = emitter.spawnTimer + 1
-	if emitter.spawnTimer < emitter.spawnInterval then return true end
+	if emitter.spawnTimer < emitter.spawnInterval then
+		return true
+	end
 	emitter.spawnTimer = 0
 
 	local px, py, pz = emitter.x, emitter.y, emitter.z
 
-	if not spIsSphereInView(px, py, pz, POINT_CULLING_TOTAL) then return true end
+	if not spIsSphereInView(px, py, pz, POINT_CULLING_TOTAL) then
+		return true
+	end
 
 	local dx, dy, dz = px - cachedCamX, py - cachedCamY, pz - cachedCamZ
-	local distSq = dx*dx + dy*dy + dz*dz
+	local distSq = dx * dx + dy * dy + dz * dz
 	local lodMult = 1.0
 	if distSq > LOD_DIST_NEAR_SQ then
 		local t = (mathSqrt(distSq) - LOD_DIST_NEAR) * LOD_DIST_RANGE_INV
@@ -814,24 +842,16 @@ local function spawnPointEmitterParticles(emitter, gameFrame, preset)
 	if fi > 0 and mathRandom() < fi * decayMult then
 		local sizeRand = mathRandom() * PARTICLE_SIZE_RANGE
 		local particleSize = (PARTICLE_SIZE_MIN + sizeRand) * sc * FIRE_SIZE_MULT * emitter.fireSizeMult * fi
-		spawnParticle(
-			px + (mathRandom() * 2 - 1) * spread * 0.5,
-			py + mathRandom() * spread * 0.3,
-			pz + (mathRandom() * 2 - 1) * spread * 0.5,
-			(mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM) * emitter.velocityScale,
-			(mathRandom() * SMOKE_VEL_UP_RANGE + SMOKE_VEL_UP_MIN) * emitter.velocityScale,
-			(mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM) * emitter.velocityScale,
-			particleSize, 1,
-			(FIRE_LIFETIME_MIN + mathRandom() * FIRE_LIFETIME_RANGE) * presetLifeMult * emitter.fireLifeMult * fi,
-			(FIRE_ALPHA_MIN + mathRandom() * 0.2) * (0.5 + 0.5 * fi) * decayMult
-		)
+		spawnParticle(px + (mathRandom() * 2 - 1) * spread * 0.5, py + mathRandom() * spread * 0.3, pz + (mathRandom() * 2 - 1) * spread * 0.5, (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM) * emitter.velocityScale, (mathRandom() * SMOKE_VEL_UP_RANGE + SMOKE_VEL_UP_MIN) * emitter.velocityScale, (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM) * emitter.velocityScale, particleSize, 1, (FIRE_LIFETIME_MIN + mathRandom() * FIRE_LIFETIME_RANGE) * presetLifeMult * emitter.fireLifeMult * fi, (FIRE_ALPHA_MIN + mathRandom() * 0.2) * (0.5 + 0.5 * fi) * decayMult)
 	end
 
 	return true
 end
 
 local function updatePointEmitters(gameFrame)
-	if pointEmitterCount == 0 then return end
+	if pointEmitterCount == 0 then
+		return
+	end
 
 	for emitterID, emitter in pairs(pointEmitters) do
 		local alive = spawnPointEmitterParticles(emitter, gameFrame, cachedPreset)
@@ -851,31 +871,35 @@ local function apiBudget(priority)
 end
 
 local function apiAddEmitter(params)
-	if not particleVBO then return nil end
-	if not params or not params.x then return nil end
+	if not particleVBO then
+		return nil
+	end
+	if not params or not params.x then
+		return nil
+	end
 
 	nextEmitterID = nextEmitterID + 1
 	local id = nextEmitterID
 
 	pointEmitters[id] = {
-		x             = params.x,
-		y             = params.y or (spGetGroundHeight(params.x, params.z or 0) or 0),
-		z             = params.z or 0,
-		birthFrame    = cachedGameFrame,
-		duration      = params.duration or 300,
-		sizeScale     = params.sizeScale or 1.0,
+		x = params.x,
+		y = params.y or (spGetGroundHeight(params.x, params.z or 0) or 0),
+		z = params.z or 0,
+		birthFrame = cachedGameFrame,
+		duration = params.duration or 300,
+		sizeScale = params.sizeScale or 1.0,
 		fireIntensity = params.fireIntensity or 0,
-		spawnCount    = params.spawnCount or POINT_SPAWN_COUNT,
+		spawnCount = params.spawnCount or POINT_SPAWN_COUNT,
 		spawnInterval = params.spawnInterval or POINT_SPAWN_INTERVAL,
-		priority      = params.priority or PRIORITY_NORMAL,
+		priority = params.priority or PRIORITY_NORMAL,
 		smokeSizeMult = params.smokeSizeMult or 1.0,
 		smokeLifeMult = params.smokeLifeMult or 1.0,
-		smokeAlpha    = params.smokeAlpha or 1.0,
-		fireSizeMult  = params.fireSizeMult or 1.0,
-		fireLifeMult  = params.fireLifeMult or 1.0,
-		posSpread     = params.posSpread or POINT_POS_SPREAD,
+		smokeAlpha = params.smokeAlpha or 1.0,
+		fireSizeMult = params.fireSizeMult or 1.0,
+		fireLifeMult = params.fireLifeMult or 1.0,
+		posSpread = params.posSpread or POINT_POS_SPREAD,
 		velocityScale = params.velocityScale or 1.0,
-		spawnTimer    = 0,
+		spawnTimer = 0,
 	}
 	pointEmitterCount = pointEmitterCount + 1
 
@@ -893,7 +917,9 @@ end
 
 local function apiUpdateEmitterPos(emitterID, x, y, z)
 	local emitter = pointEmitters[emitterID]
-	if not emitter then return false end
+	if not emitter then
+		return false
+	end
 	emitter.x = x
 	emitter.y = y
 	emitter.z = z
@@ -901,7 +927,9 @@ local function apiUpdateEmitterPos(emitterID, x, y, z)
 end
 
 local function apiGetPreset(index)
-	if index then return QUALITY_PRESETS[index] end
+	if index then
+		return QUALITY_PRESETS[index]
+	end
 	return cachedPreset
 end
 
@@ -971,14 +999,18 @@ end
 -- Automatically skips during fast-forward.
 -- throttle: optional, only buffer every Nth frame (default 1 = every frame)
 local function apiBufferOffscreen(tracked, gameFrame, px, py, pz, vx, vy, vz, throttle)
-	if fastForward then return end
-	if throttle and throttle > 1 and gameFrame % throttle ~= 0 then return end
+	if fastForward then
+		return
+	end
+	if throttle and throttle > 1 and gameFrame % throttle ~= 0 then
+		return
+	end
 	local buf = tracked.offscreenBuffer
 	if not buf then
 		buf = {}
 		tracked.offscreenBuffer = buf
 	end
-	buf[#buf + 1] = {gameFrame, px, py, pz, vx, vy, vz}
+	buf[#buf + 1] = { gameFrame, px, py, pz, vx, vy, vz }
 end
 
 -- Replay buffered snapshots if buffer exists.
@@ -1005,10 +1037,10 @@ local function apiRegisterAutoFlush(params)
 	nextAutoFlushID = nextAutoFlushID + 1
 	local id = nextAutoFlushID
 	autoFlushConfigs[id] = {
-		entities      = params.entities,
-		positionFn    = params.positionFn,
+		entities = params.entities,
+		positionFn = params.positionFn,
 		cullingRadius = params.cullingRadius,
-		replayFn      = params.replayFn,
+		replayFn = params.replayFn,
 	}
 	return id
 end
@@ -1066,68 +1098,68 @@ function gadget:Initialize()
 	-- Expose public API
 	GG.Particles = {
 		-- Particle spawning
-		spawnParticle        = spawnParticle,
-		setBudget            = apiBudget,
+		spawnParticle = spawnParticle,
+		setBudget = apiBudget,
 
 		-- Point emitter management
-		addEmitter           = apiAddEmitter,
-		removeEmitter        = apiRemoveEmitter,
-		updateEmitterPos     = apiUpdateEmitterPos,
+		addEmitter = apiAddEmitter,
+		removeEmitter = apiRemoveEmitter,
+		updateEmitterPos = apiUpdateEmitterPos,
 
 		-- Callback registration (consumers use these instead of their own GameFrame/DrawWorld)
-		registerUpdateCallback      = apiRegisterUpdateCallback,
-		unregisterUpdateCallback    = apiUnregisterUpdateCallback,
-		registerPerFrameCallback    = apiRegisterPerFrameCallback,
-		unregisterPerFrameCallback  = apiUnregisterPerFrameCallback,
-		registerPreDrawCallback     = apiRegisterPreDrawCallback,
-		unregisterPreDrawCallback   = apiUnregisterPreDrawCallback,
+		registerUpdateCallback = apiRegisterUpdateCallback,
+		unregisterUpdateCallback = apiUnregisterUpdateCallback,
+		registerPerFrameCallback = apiRegisterPerFrameCallback,
+		unregisterPerFrameCallback = apiUnregisterPerFrameCallback,
+		registerPreDrawCallback = apiRegisterPreDrawCallback,
+		unregisterPreDrawCallback = apiUnregisterPreDrawCallback,
 
 		-- Off-screen buffer management (consumers use these for retroactive replay)
-		bufferOffscreen      = apiBufferOffscreen,
-		replayBuffer         = apiReplayBuffer,
-		registerAutoFlush    = apiRegisterAutoFlush,
-		unregisterAutoFlush  = apiUnregisterAutoFlush,
+		bufferOffscreen = apiBufferOffscreen,
+		replayBuffer = apiReplayBuffer,
+		registerAutoFlush = apiRegisterAutoFlush,
+		unregisterAutoFlush = apiUnregisterAutoFlush,
 
 		-- State queries (cached, cheap to call)
-		getPreset            = apiGetPreset,
-		getGameFrame         = apiGetGameFrame,
-		getCameraPos         = apiGetCameraPos,
-		getWindState         = apiGetWindState,
-		isFastForward        = apiIsFastForward,
-		getParticleCount     = apiGetParticleCount,
-		getMaxParticles      = apiGetMaxParticles,
-		getUpdateInterval    = apiGetUpdateInterval,
+		getPreset = apiGetPreset,
+		getGameFrame = apiGetGameFrame,
+		getCameraPos = apiGetCameraPos,
+		getWindState = apiGetWindState,
+		isFastForward = apiIsFastForward,
+		getParticleCount = apiGetParticleCount,
+		getMaxParticles = apiGetMaxParticles,
+		getUpdateInterval = apiGetUpdateInterval,
 
 		-- Priority constants
-		PRIORITY_ESSENTIAL   = PRIORITY_ESSENTIAL,
-		PRIORITY_NORMAL      = PRIORITY_NORMAL,
-		PRIORITY_COSMETIC    = PRIORITY_COSMETIC,
+		PRIORITY_ESSENTIAL = PRIORITY_ESSENTIAL,
+		PRIORITY_NORMAL = PRIORITY_NORMAL,
+		PRIORITY_COSMETIC = PRIORITY_COSMETIC,
 
 		-- Quality preset indices
-		QUALITY_LOW          = 1,
-		QUALITY_MEDIUM       = 2,
-		QUALITY_HIGH         = 3,
+		QUALITY_LOW = 1,
+		QUALITY_MEDIUM = 2,
+		QUALITY_HIGH = 3,
 
 		-- Default property accessors (consumers can read/write these)
-		getDefaults          = apiGetDefaults,
-		setDefaults          = apiSetDefaults,
+		getDefaults = apiGetDefaults,
+		setDefaults = apiSetDefaults,
 
 		-- Shared physics constants (snapshot of current defaults for consumer localization)
-		SMOKE_VEL_UP_MIN     = SMOKE_VEL_UP_MIN,
-		SMOKE_VEL_UP_RANGE   = SMOKE_VEL_UP_RANGE,
-		SMOKE_VEL_RANDOM     = SMOKE_VEL_RANDOM,
-		SMOKE_VEL_RANDOM_2   = SMOKE_VEL_RANDOM_2,
-		PARTICLE_SIZE_MIN    = PARTICLE_SIZE_MIN,
-		PARTICLE_SIZE_MAX    = PARTICLE_SIZE_MAX,
-		PARTICLE_SIZE_RANGE  = PARTICLE_SIZE_RANGE,
+		SMOKE_VEL_UP_MIN = SMOKE_VEL_UP_MIN,
+		SMOKE_VEL_UP_RANGE = SMOKE_VEL_UP_RANGE,
+		SMOKE_VEL_RANDOM = SMOKE_VEL_RANDOM,
+		SMOKE_VEL_RANDOM_2 = SMOKE_VEL_RANDOM_2,
+		PARTICLE_SIZE_MIN = PARTICLE_SIZE_MIN,
+		PARTICLE_SIZE_MAX = PARTICLE_SIZE_MAX,
+		PARTICLE_SIZE_RANGE = PARTICLE_SIZE_RANGE,
 		PARTICLE_SIZE_INV_RANGE = PARTICLE_SIZE_INV_RANGE,
-		FIRE_LIFETIME_MIN    = FIRE_LIFETIME_MIN,
-		FIRE_LIFETIME_RANGE  = FIRE_LIFETIME_RANGE,
-		FIRE_SIZE_MULT       = FIRE_SIZE_MULT,
-		FIRE_ALPHA_MIN       = FIRE_ALPHA_MIN,
-		SMOKE_ALPHA_MIN      = SMOKE_ALPHA_MIN,
-		SMOKE_ALPHA_RANGE    = SMOKE_ALPHA_RANGE,
-		CULLING_MARGIN       = CULLING_MARGIN,
+		FIRE_LIFETIME_MIN = FIRE_LIFETIME_MIN,
+		FIRE_LIFETIME_RANGE = FIRE_LIFETIME_RANGE,
+		FIRE_SIZE_MULT = FIRE_SIZE_MULT,
+		FIRE_ALPHA_MIN = FIRE_ALPHA_MIN,
+		SMOKE_ALPHA_MIN = SMOKE_ALPHA_MIN,
+		SMOKE_ALPHA_RANGE = SMOKE_ALPHA_RANGE,
+		CULLING_MARGIN = CULLING_MARGIN,
 	}
 
 	-- Backward compatibility alias
@@ -1141,7 +1173,9 @@ function gadget:Shutdown()
 end
 
 function gadget:GameFrame(n)
-	if not particleVBO then return end
+	if not particleVBO then
+		return
+	end
 
 	local t0, t1, tStart
 	if debugEcho then
@@ -1158,8 +1192,12 @@ function gadget:GameFrame(n)
 
 	-- Periodic housekeeping
 	local nMod = n % 90
-	if nMod == 0 then updateMaxParticles(n) end
-	if n % 10 == 0 then updateWind(n) end
+	if nMod == 0 then
+		updateMaxParticles(n)
+	end
+	if n % 10 == 0 then
+		updateWind(n)
+	end
 
 	if debugEcho then
 		t1 = spGetTimer()
@@ -1207,7 +1245,9 @@ function gadget:GameFrame(n)
 	-- Scale update interval with game speed during fast-forward
 	if fastForward then
 		local ffInterval = mathCeil((internalSpeed or userSpeed) * 0.5)
-		if ffInterval > interval then interval = ffInterval end
+		if ffInterval > interval then
+			interval = ffInterval
+		end
 	end
 	cachedUpdateInterval = interval
 
@@ -1232,21 +1272,10 @@ function gadget:GameFrame(n)
 
 		if n % 30 == 0 and debugTimingSamples > 0 then
 			local inv = 1000 / debugTimingSamples
-			spEcho(string.format(
-				"Particle Engine GL4 (us/frame avg %d): TOTAL=%.1f  housekeep=%.1f  quality=%.1f  removeExp=%.1f  pointEm=%.1f  | particles=%d  emitters=%d  preset=%s  interval=%d  wind=%d",
-				debugTimingSamples,
-				debugTimings.totalFrame * inv,
-				debugTimings.housekeeping * inv,
-				debugTimings.qualityPreset * inv,
-				debugTimings.removeExpired * inv,
-				debugTimings.pointEmitters * inv,
-				mathFloor(avgParticleCount),
-				pointEmitterCount,
-				cachedPreset.name,
-				cachedUpdateInterval,
-				mathFloor(windStrength)
-			))
-			for k in pairs(debugTimings) do debugTimings[k] = 0 end
+			spEcho(string.format("Particle Engine GL4 (us/frame avg %d): TOTAL=%.1f  housekeep=%.1f  quality=%.1f  removeExp=%.1f  pointEm=%.1f  | particles=%d  emitters=%d  preset=%s  interval=%d  wind=%d", debugTimingSamples, debugTimings.totalFrame * inv, debugTimings.housekeeping * inv, debugTimings.qualityPreset * inv, debugTimings.removeExpired * inv, debugTimings.pointEmitters * inv, mathFloor(avgParticleCount), pointEmitterCount, cachedPreset.name, cachedUpdateInterval, mathFloor(windStrength)))
+			for k in pairs(debugTimings) do
+				debugTimings[k] = 0
+			end
 			debugTimingSamples = 0
 		end
 	end

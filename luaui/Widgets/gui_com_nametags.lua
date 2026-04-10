@@ -12,7 +12,6 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
 local spGetMyTeamID = Spring.GetMyTeamID
@@ -69,14 +68,14 @@ local glDeleteFont = gl.DeleteFont
 -- config
 --------------------------------------------------------------------------------
 
-local hideBelowGameframe = 130	-- delay to give spawn fx some time
-local drawForIcon = true      -- note that commander icon still gets drawn on top of the name
+local hideBelowGameframe = 130 -- delay to give spawn fx some time
+local drawForIcon = true -- note that commander icon still gets drawn on top of the name
 local nameScaling = true
-local useThickLeterring = false  -- Sorry, the performance cost of this is quite high :( doubles the cost of a draw call
+local useThickLeterring = false -- Sorry, the performance cost of this is quite high :( doubles the cost of a draw call
 local heightOffset = 50
-local fontSize = 15        -- not real fontsize, it will be scaled
+local fontSize = 15 -- not real fontsize, it will be scaled
 local scaleFontAmount = 120
-local fontShadow = true        -- only shows if font has a white outline
+local fontShadow = true -- only shows if font has a white outline
 local shadowOpacity = 0.35
 
 local showPlayerRank = false
@@ -118,7 +117,7 @@ end
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
 local anonymousMode = spGetModOptions().teamcolors_anonymous_mode
-local anonymousName = '?????'
+local anonymousName = "?????"
 
 local usedFontSize = fontSize
 
@@ -144,12 +143,12 @@ local myTeamID = spGetMyTeamID()
 local GaiaTeam = spGetGaiaTeamID()
 
 -- Performance optimization caches
-local lastCameraPos = {0, 0, 0}
+local lastCameraPos = { 0, 0, 0 }
 local iconScaleCache = {} -- Cache icon scales to avoid recalculating
-local iconResScale = math.sqrt(vsy / 1080)  -- resolution compensation for icon nametags
+local iconResScale = math.sqrt(vsy / 1080) -- resolution compensation for icon nametags
 
 local comHeight = {}
-local comDefIDList = {}  -- array of commander DefIDs for GetTeamUnitsByDefs
+local comDefIDList = {} -- array of commander DefIDs for GetTeamUnitsByDefs
 for unitDefID, defs in pairs(UnitDefs) do
 	if defs.customParams.iscommander or defs.customParams.isdecoycommander or defs.customParams.isscavcommander or defs.customParams.isscavdecoycommander then
 		comHeight[unitDefID] = defs.height
@@ -158,8 +157,8 @@ for unitDefID, defs in pairs(UnitDefs) do
 end
 
 local sameTeamColors = false
-if WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors ~= nil then
-	sameTeamColors = WG['playercolorpalette'].getSameTeamColors()
+if WG["playercolorpalette"] ~= nil and WG["playercolorpalette"].getSameTeamColors ~= nil then
+	sameTeamColors = WG["playercolorpalette"].getSameTeamColors()
 end
 
 --------------------------------------------------------------------------------
@@ -178,38 +177,37 @@ local function GetCommAttributes(unitID, unitDefID)
 	end
 
 	local playerRank
-	local name = ''
+	local name = ""
 	local luaAI = spGetTeamLuaAI(team)
-	if luaAI and luaAI ~= "" and stringFind(luaAI, 'Scavengers')  then
+	if luaAI and luaAI ~= "" and stringFind(luaAI, "Scavengers") then
 		--name = "Scav Commander" -- todo: i18n this thing
 		local unitDefCustomParams = UnitDefs[unitDefID].customParams
 		if unitDefCustomParams.decoyfor then
-			name = Spring.I18N('units.scavDecoyCommanderNameTag')
+			name = Spring.I18N("units.scavDecoyCommanderNameTag")
 		else
-			name = Spring.I18N('units.scavCommanderNameTag')
+			name = Spring.I18N("units.scavCommanderNameTag")
 		end
-	elseif spGetGameRulesParam('ainame_' .. team) then
+	elseif spGetGameRulesParam("ainame_" .. team) then
 		local unitDefCustomParams = UnitDefs[unitDefID].customParams
 		if unitDefCustomParams.decoyfor then
-			name = Spring.I18N('units.decoyCommanderNameTag')
+			name = Spring.I18N("units.decoyCommanderNameTag")
 		else
-			name = Spring.I18N('ui.playersList.aiName', { name = spGetGameRulesParam('ainame_' .. team) })
+			name = Spring.I18N("ui.playersList.aiName", { name = spGetGameRulesParam("ainame_" .. team) })
 		end
-
 	else
 		local unitDefCustomParams = UnitDefs[unitDefID].customParams
 		if unitDefCustomParams.decoyfor then
-			name = Spring.I18N('units.decoyCommanderNameTag')
+			name = Spring.I18N("units.decoyCommanderNameTag")
 		else
 			local players = spGetPlayerList(team)
 			local playersLen = players and #players or 0
 			if playersLen > 0 then
 				local firstPlayer = players[1]
-				name = spGetPlayerInfo(firstPlayer, false) or '------'
+				name = spGetPlayerInfo(firstPlayer, false) or "------"
 				name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(firstPlayer)) or name
 				playerRank = select(9, spGetPlayerInfo(firstPlayer, false))
 			else
-				name = '------'
+				name = "------"
 			end
 
 			if playersLen > 0 then
@@ -230,7 +228,7 @@ local function GetCommAttributes(unitID, unitDefID)
 	local r, g, b, a = spGetTeamColor(team)
 	local bgColor = { 0, 0, 0, 1 }
 	if ColorIsDark(r, g, b) then
-		bgColor = { 1, 1, 1, 1 }	-- try to keep these values the same as the playerlist
+		bgColor = { 1, 1, 1, 1 } -- try to keep these values the same as the playerlist
 	end
 
 	local skill
@@ -252,7 +250,7 @@ local function GetCommAttributes(unitID, unitDefID)
 
 	local xp = 0
 	local height = comHeight[unitDefID] + heightOffset
-	return { name, { r, g, b, a }, height, bgColor, nil, playerRank and playerRank+1, xp, skill}
+	return { name, { r, g, b, a }, height, bgColor, nil, playerRank and playerRank + 1, xp, skill }
 end
 
 local function RemoveLists()
@@ -266,19 +264,18 @@ local function RemoveLists()
 	comnameIconList = {}
 end
 
-
 local function createComnameList(attributes)
 	if comnameList[attributes[1]] ~= nil then
 		glDeleteList(comnameList[attributes[1]])
 	end
 	comnameList[attributes[1]] = glCreateList(function()
-		local x,y = 0,0
+		local x, y = 0, 0
 		if (anonymousMode == "disabled" or spec) and showPlayerRank and attributes[6] and not isSinglePlayer then
-			x = (playerRankSize*0.5)
+			x = (playerRankSize * 0.5)
 		end
 		local outlineColor = { 0, 0, 0, 1 }
 		if ColorIsDark(attributes[2][1], attributes[2][2], attributes[2][3]) then
-			outlineColor = { 1, 1, 1, 1 }		-- try to keep these values the same as the playerlist
+			outlineColor = { 1, 1, 1, 1 } -- try to keep these values the same as the playerlist
 		end
 		local name = attributes[1]
 		if anonymousMode ~= "disabled" and not spec then
@@ -297,8 +294,8 @@ local function createComnameList(attributes)
 			font:SetTextColor(outlineColor)
 			font:SetOutlineColor(outlineColor)
 
-			font:Print(name, x-(fontSize / 38), y-(fontSize / 33), fontSize, "con")
-			font:Print(name, x+(fontSize / 38), y-(fontSize / 33), fontSize, "con")
+			font:Print(name, x - (fontSize / 38), y - (fontSize / 33), fontSize, "con")
+			font:Print(name, x + (fontSize / 38), y - (fontSize / 33), fontSize, "con")
 		end
 		font:Begin()
 		font:SetTextColor(attributes[2])
@@ -308,25 +305,24 @@ local function createComnameList(attributes)
 
 		-- player rank
 		if showPlayerRank and attributes[6] and (anonymousMode == "disabled" or spec) and not isSinglePlayer then
-			local halfSize = playerRankSize*0.5
+			local halfSize = playerRankSize * 0.5
 			local x_l = x - (((font:GetTextWidth(name) * fontSize) * 0.5) + halfSize + (fontSize * 0.1))
 			local y_l = y + (fontSize * 0.33)
-			glTexture(playerRankImages..attributes[6]..'.png')
-			glTexRect(x_l-halfSize, y_l-halfSize, x_l+halfSize, y_l+halfSize)
+			glTexture(playerRankImages .. attributes[6] .. ".png")
+			glTexRect(x_l - halfSize, y_l - halfSize, x_l + halfSize, y_l + halfSize)
 			glTexture(false)
 
 			-- skill value
 			if showSkillValue and attributes[8] then
 				font:Begin()
-				font:SetTextColor(0.66,0.66,0.66,1)
-				font:SetOutlineColor(0,0,0,0.6)
-				font:Print(attributes[8], x_l-(playerRankSize*0.86), y_l-(playerRankSize*0.29), playerRankSize*0.66, "con")
+				font:SetTextColor(0.66, 0.66, 0.66, 1)
+				font:SetOutlineColor(0, 0, 0, 0.6)
+				font:Print(attributes[8], x_l - (playerRankSize * 0.86), y_l - (playerRankSize * 0.29), playerRankSize * 0.66, "con")
 				font:End()
 			end
 		end
 	end)
 end
-
 
 local function CheckCom(unitID, unitDefID, unitTeam)
 	if comHeight[unitDefID] and unitTeam ~= GaiaTeam then
@@ -337,7 +333,6 @@ local function CheckCom(unitID, unitDefID, unitTeam)
 		comms[unitID] = nil
 	end
 end
-
 
 -- check if team colors have changed
 local function CheckTeamColors()
@@ -358,7 +353,6 @@ local function CheckTeamColors()
 	end
 	return detectedChanges
 end
-
 
 local function CheckAllComs()
 	-- Only check team colors if needed
@@ -412,7 +406,7 @@ function widget:Update(dt)
 	-- Check color palette changes less frequently (every 0.5 seconds instead of every frame)
 	if colorCheckSec > 0.5 then
 		colorCheckSec = 0
-		local playerColorPalette = WG['playercolorpalette']
+		local playerColorPalette = WG["playercolorpalette"]
 		if playerColorPalette ~= nil then
 			local getSameTeamColors = playerColorPalette.getSameTeamColors
 			if getSameTeamColors and sameTeamColors ~= getSameTeamColors() then
@@ -514,7 +508,7 @@ local function createComnameIconList(unitID, attributes)
 				outlineColor = { 1, 1, 1, 1 }
 			end
 			local name = attributes[1]
-			if anonymousMode ~= "disabled" and (not spec) then
+			if anonymousMode ~= "disabled" and not spec then
 				name = anonymousName
 			end
 			fonticon:Begin()
@@ -526,9 +520,13 @@ local function createComnameIconList(unitID, attributes)
 	end)
 end
 
-function widget:DrawScreenEffects()	-- using DrawScreenEffects so that guishader will blur it when needed
-	if spIsGUIHidden() then return end
-	if spGetGameFrame() < hideBelowGameframe then return end
+function widget:DrawScreenEffects() -- using DrawScreenEffects so that guishader will blur it when needed
+	if spIsGUIHidden() then
+		return
+	end
+	if spGetGameFrame() < hideBelowGameframe then
+		return
+	end
 
 	-- Batch process all screen units in one pass
 	if next(drawScreenUnits) then
@@ -577,12 +575,13 @@ function widget:DrawScreenEffects()	-- using DrawScreenEffects so that guishader
 	end
 end
 
-
-
-
 function widget:DrawWorld()
-	if spIsGUIHidden() then return end
-	if spGetGameFrame() < hideBelowGameframe then return end
+	if spIsGUIHidden() then
+		return
+	end
+	if spGetGameFrame() < hideBelowGameframe then
+		return
+	end
 
 	-- untested fix: when you resign, to also show enemy com playernames
 	if not CheckedForSpec and spGetGameFrame() > 1 then
@@ -647,12 +646,12 @@ function widget:Initialize()
 	for _, teamID in ipairs(spGetTeamList()) do
 		if teamID ~= GaiaTeam then
 			local playerRank
-			local name = ''
+			local name = ""
 			local luaAI = spGetTeamLuaAI(teamID)
-			if luaAI and luaAI ~= "" and stringFind(luaAI, 'Scavengers') then
-				name = Spring.I18N('units.scavCommanderNameTag')
-			elseif spGetGameRulesParam('ainame_' .. teamID) then
-				name = Spring.I18N('ui.playersList.aiName', { name = spGetGameRulesParam('ainame_' .. teamID) })
+			if luaAI and luaAI ~= "" and stringFind(luaAI, "Scavengers") then
+				name = Spring.I18N("units.scavCommanderNameTag")
+			elseif spGetGameRulesParam("ainame_" .. teamID) then
+				name = Spring.I18N("ui.playersList.aiName", { name = spGetGameRulesParam("ainame_" .. teamID) })
 			else
 				local players = spGetPlayerList(teamID)
 				local playersLen = players and #players or 0
@@ -667,17 +666,17 @@ function widget:Initialize()
 							break
 						end
 					end
-					if name == '' then
-						name = spGetPlayerInfo(players[1], false) or '------'
+					if name == "" then
+						name = spGetPlayerInfo(players[1], false) or "------"
 						name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(players[1])) or name
 						playerRank = select(9, spGetPlayerInfo(players[1], false))
 					end
 				else
-					name = '------'
+					name = "------"
 				end
 			end
 
-			if name ~= '' and not comnameList[name] then
+			if name ~= "" and not comnameList[name] then
 				local r, g, b, a = spGetTeamColor(teamID)
 				local skill
 				if showSkillValue then
@@ -758,7 +757,7 @@ function widget:GetConfigData()
 end
 
 function widget:SetConfigData(data)
-	widgetHandler:AddAction("comnamescale", toggleNameScaling, nil, 'p')
+	widgetHandler:AddAction("comnamescale", toggleNameScaling, nil, "p")
 	if data.nameScaling ~= nil then
 		nameScaling = data.nameScaling
 	end

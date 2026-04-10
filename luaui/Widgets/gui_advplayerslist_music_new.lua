@@ -2,16 +2,15 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name	= "AdvPlayersList Music Player New",
-		desc	= "Plays music and offers volume controls",
-		author	= "Damgam",
-		date	= "2021",
+		name = "AdvPlayersList Music Player New",
+		desc = "Plays music and offers volume controls",
+		author = "Damgam",
+		date = "2021",
 		license = "GNU GPL, v2 or later",
-		layer	= -3,
-		enabled	= true
+		layer = -3,
+		enabled = true,
 	}
 end
-
 
 -- Localized functions for performance
 local mathCeil = math.ceil
@@ -56,8 +55,8 @@ local songsSinceEvent = 5 -- start with higher number so event track can be play
 ----------------------------------------------------------------------
 
 local function applySpectatorThresholds()
-	warLowLevel = warLowLevel*1.5
-	warHighLevel = warHighLevel*1.5
+	warLowLevel = warLowLevel * 1.5
+	warHighLevel = warHighLevel * 1.5
 	appliedSpectatorThresholds = true
 	--spEcho("[Music Player] Spectator mode enabled")
 end
@@ -101,13 +100,13 @@ local isChangingTrack = false
 local function ReloadMusicPlaylists()
 	-----------------------------------SETTINGS---------------------------------------
 
-	interruptionEnabled 			= Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1
-	local newSoundtrackEnabled 		= Spring.GetConfigInt('UseSoundtrackNew', 1) == 1
-	local customSoundtrackEnabled	= Spring.GetConfigInt('UseSoundtrackCustom', 1) == 1
+	interruptionEnabled = Spring.GetConfigInt("UseSoundtrackInterruption", 1) == 1
+	local newSoundtrackEnabled = Spring.GetConfigInt("UseSoundtrackNew", 1) == 1
+	local customSoundtrackEnabled = Spring.GetConfigInt("UseSoundtrackCustom", 1) == 1
 
-	if Spring.GetConfigInt('UseSoundtrackNew', 1) == 0 and Spring.GetConfigInt('UseSoundtrackOld', 0) == 1 then
-		Spring.SetConfigInt('UseSoundtrackNew', 1)
-		Spring.SetConfigInt('UseSoundtrackOld', 0)
+	if Spring.GetConfigInt("UseSoundtrackNew", 1) == 0 and Spring.GetConfigInt("UseSoundtrackOld", 0) == 1 then
+		Spring.SetConfigInt("UseSoundtrackNew", 1)
+		Spring.SetConfigInt("UseSoundtrackOld", 0)
 	end
 
 	deviceLostSafetyCheck = 0
@@ -115,34 +114,34 @@ local function ReloadMusicPlaylists()
 
 	local allowedExtensions = "{*.ogg,*.mp3}"
 	-- New Soundtrack List
-	local musicDirNew 			= 'music/original'
-	local peaceTracksNew 			= VFS.DirList(musicDirNew..'/peace', allowedExtensions)
-	local warhighTracksNew 			= VFS.DirList(musicDirNew..'/warhigh', allowedExtensions)
-	local warlowTracksNew 			= VFS.DirList(musicDirNew..'/warlow', allowedExtensions)
-	local interludeTracksNew 		= VFS.DirList(musicDirNew..'/interludes', allowedExtensions)
-	local victoryTracksNew 			= VFS.DirList(musicDirNew..'/victory', allowedExtensions)
-	local defeatTracksNew 			= VFS.DirList(musicDirNew..'/defeat', allowedExtensions)
-	local gameoverTracksNew 		= VFS.DirList(musicDirNew..'/gameover', allowedExtensions)
-	local menuTracksNew 			= VFS.DirList(musicDirNew..'/menu', allowedExtensions)
-	local loadingTracksNew   		= VFS.DirList(musicDirNew..'/loading', allowedExtensions)
-	local bossFightTracksNew		= {}
-		  bonusTracks				= {}
-	      scavTracks				= {}
-		  raptorTracks				= {}
+	local musicDirNew = "music/original"
+	local peaceTracksNew = VFS.DirList(musicDirNew .. "/peace", allowedExtensions)
+	local warhighTracksNew = VFS.DirList(musicDirNew .. "/warhigh", allowedExtensions)
+	local warlowTracksNew = VFS.DirList(musicDirNew .. "/warlow", allowedExtensions)
+	local interludeTracksNew = VFS.DirList(musicDirNew .. "/interludes", allowedExtensions)
+	local victoryTracksNew = VFS.DirList(musicDirNew .. "/victory", allowedExtensions)
+	local defeatTracksNew = VFS.DirList(musicDirNew .. "/defeat", allowedExtensions)
+	local gameoverTracksNew = VFS.DirList(musicDirNew .. "/gameover", allowedExtensions)
+	local menuTracksNew = VFS.DirList(musicDirNew .. "/menu", allowedExtensions)
+	local loadingTracksNew = VFS.DirList(musicDirNew .. "/loading", allowedExtensions)
+	local bossFightTracksNew = {}
+	bonusTracks = {}
+	scavTracks = {}
+	raptorTracks = {}
 
 	-- Custom Soundtrack List
-	local musicDirCustom 		= 'music/custom'
-	local peaceTracksCustom 		= VFS.DirList(musicDirCustom..'/peace', allowedExtensions)
-	local warhighTracksCustom 		= VFS.DirList(musicDirCustom..'/warhigh', allowedExtensions)
-	local warlowTracksCustom 		= VFS.DirList(musicDirCustom..'/warlow', allowedExtensions)
-	local warTracksCustom 			= VFS.DirList(musicDirCustom..'/war', allowedExtensions)
-	local interludeTracksCustom 	= VFS.DirList(musicDirCustom..'/interludes', allowedExtensions)
-	local victoryTracksCustom 		= VFS.DirList(musicDirCustom..'/victory', allowedExtensions)
-	local defeatTracksCustom 		= VFS.DirList(musicDirCustom..'/defeat', allowedExtensions)
-	local gameoverTracksCustom 		= VFS.DirList(musicDirCustom..'/gameover', allowedExtensions)
-	local menuTracksCustom 			= VFS.DirList(musicDirCustom..'/menu', allowedExtensions)
-	local loadingTracksCustom  		= VFS.DirList(musicDirCustom..'/loading', allowedExtensions)
-	local bossFightTracksCustom 	= VFS.DirList(musicDirCustom..'/bossfight', allowedExtensions)
+	local musicDirCustom = "music/custom"
+	local peaceTracksCustom = VFS.DirList(musicDirCustom .. "/peace", allowedExtensions)
+	local warhighTracksCustom = VFS.DirList(musicDirCustom .. "/warhigh", allowedExtensions)
+	local warlowTracksCustom = VFS.DirList(musicDirCustom .. "/warlow", allowedExtensions)
+	local warTracksCustom = VFS.DirList(musicDirCustom .. "/war", allowedExtensions)
+	local interludeTracksCustom = VFS.DirList(musicDirCustom .. "/interludes", allowedExtensions)
+	local victoryTracksCustom = VFS.DirList(musicDirCustom .. "/victory", allowedExtensions)
+	local defeatTracksCustom = VFS.DirList(musicDirCustom .. "/defeat", allowedExtensions)
+	local gameoverTracksCustom = VFS.DirList(musicDirCustom .. "/gameover", allowedExtensions)
+	local menuTracksCustom = VFS.DirList(musicDirCustom .. "/menu", allowedExtensions)
+	local loadingTracksCustom = VFS.DirList(musicDirCustom .. "/loading", allowedExtensions)
+	local bossFightTracksCustom = VFS.DirList(musicDirCustom .. "/bossfight", allowedExtensions)
 
 	-- Events
 	eventPeaceTracks = {}
@@ -161,132 +160,131 @@ local function ReloadMusicPlaylists()
 	interludeTracks = {}
 
 	if newSoundtrackEnabled then
-
 		-- Raptors --------------------------------------------------------------------------------------------------------------------
 		if Spring.Utilities.Gametype.IsRaptors() then
-			table.append(eventPeaceTracks, VFS.DirList(musicDirNew..'/events/raptors/peace', allowedExtensions))
-			table.append(eventWarLowTracks, VFS.DirList(musicDirNew..'/events/raptors/warlow', allowedExtensions))
-			table.append(eventWarHighTracks, VFS.DirList(musicDirNew..'/events/raptors/warhigh', allowedExtensions))
-			table.append(interludeTracks, VFS.DirList(musicDirNew..'/events/raptors/interludes', allowedExtensions))
-			table.append(bossFightTracks, VFS.DirList(musicDirNew..'/events/raptors/bossfight', allowedExtensions))
-		elseif Spring.GetConfigInt('UseSoundtrackRaptors', 0) == 1 then
-			table.append(peaceTracksNew, VFS.DirList(musicDirNew..'/events/raptors/peace', allowedExtensions))
-			table.append(warlowTracksNew, VFS.DirList(musicDirNew..'/events/raptors/warlow', allowedExtensions))
-			table.append(warhighTracksNew, VFS.DirList(musicDirNew..'/events/raptors/warhigh', allowedExtensions))
-			table.append(interludeTracks, VFS.DirList(musicDirNew..'/events/raptors/interludes', allowedExtensions))
+			table.append(eventPeaceTracks, VFS.DirList(musicDirNew .. "/events/raptors/peace", allowedExtensions))
+			table.append(eventWarLowTracks, VFS.DirList(musicDirNew .. "/events/raptors/warlow", allowedExtensions))
+			table.append(eventWarHighTracks, VFS.DirList(musicDirNew .. "/events/raptors/warhigh", allowedExtensions))
+			table.append(interludeTracks, VFS.DirList(musicDirNew .. "/events/raptors/interludes", allowedExtensions))
+			table.append(bossFightTracks, VFS.DirList(musicDirNew .. "/events/raptors/bossfight", allowedExtensions))
+		elseif Spring.GetConfigInt("UseSoundtrackRaptors", 0) == 1 then
+			table.append(peaceTracksNew, VFS.DirList(musicDirNew .. "/events/raptors/peace", allowedExtensions))
+			table.append(warlowTracksNew, VFS.DirList(musicDirNew .. "/events/raptors/warlow", allowedExtensions))
+			table.append(warhighTracksNew, VFS.DirList(musicDirNew .. "/events/raptors/warhigh", allowedExtensions))
+			table.append(interludeTracks, VFS.DirList(musicDirNew .. "/events/raptors/interludes", allowedExtensions))
 		end
-		table.append(raptorTracks, VFS.DirList(musicDirNew..'/events/raptors/loading', allowedExtensions))
-		table.append(raptorTracks, VFS.DirList(musicDirNew..'/events/raptors/peace', allowedExtensions))
-		table.append(raptorTracks, VFS.DirList(musicDirNew..'/events/raptors/warlow', allowedExtensions))
-		table.append(raptorTracks, VFS.DirList(musicDirNew..'/events/raptors/warhigh', allowedExtensions))
-		table.append(raptorTracks, VFS.DirList(musicDirNew..'/events/raptors/interludes', allowedExtensions))
-		table.append(raptorTracks, VFS.DirList(musicDirNew..'/events/raptors/bossfight', allowedExtensions))
+		table.append(raptorTracks, VFS.DirList(musicDirNew .. "/events/raptors/loading", allowedExtensions))
+		table.append(raptorTracks, VFS.DirList(musicDirNew .. "/events/raptors/peace", allowedExtensions))
+		table.append(raptorTracks, VFS.DirList(musicDirNew .. "/events/raptors/warlow", allowedExtensions))
+		table.append(raptorTracks, VFS.DirList(musicDirNew .. "/events/raptors/warhigh", allowedExtensions))
+		table.append(raptorTracks, VFS.DirList(musicDirNew .. "/events/raptors/interludes", allowedExtensions))
+		table.append(raptorTracks, VFS.DirList(musicDirNew .. "/events/raptors/bossfight", allowedExtensions))
 
 		-- Scavengers --------------------------------------------------------------------------------------------------------------------
 		if Spring.Utilities.Gametype.IsScavengers() then
-			table.append(eventPeaceTracks, VFS.DirList(musicDirNew..'/events/scavengers/peace', allowedExtensions))
-			table.append(eventWarLowTracks, VFS.DirList(musicDirNew..'/events/scavengers/warlow', allowedExtensions))
-			table.append(eventWarHighTracks, VFS.DirList(musicDirNew..'/events/scavengers/warhigh', allowedExtensions))
-			table.append(interludeTracks, VFS.DirList(musicDirNew..'/events/scavengers/interludes', allowedExtensions))
-			table.append(bossFightTracks, VFS.DirList(musicDirNew..'/events/scavengers/bossfight', allowedExtensions))
-		elseif Spring.GetConfigInt('UseSoundtrackScavengers', 0) == 1 then
-			table.append(peaceTracksNew, VFS.DirList(musicDirNew..'/events/scavengers/peace', allowedExtensions))
-			table.append(warlowTracksNew, VFS.DirList(musicDirNew..'/events/scavengers/warlow', allowedExtensions))
-			table.append(warhighTracksNew, VFS.DirList(musicDirNew..'/events/scavengers/warhigh', allowedExtensions))
-			table.append(interludeTracks, VFS.DirList(musicDirNew..'/events/scavengers/interludes', allowedExtensions))
+			table.append(eventPeaceTracks, VFS.DirList(musicDirNew .. "/events/scavengers/peace", allowedExtensions))
+			table.append(eventWarLowTracks, VFS.DirList(musicDirNew .. "/events/scavengers/warlow", allowedExtensions))
+			table.append(eventWarHighTracks, VFS.DirList(musicDirNew .. "/events/scavengers/warhigh", allowedExtensions))
+			table.append(interludeTracks, VFS.DirList(musicDirNew .. "/events/scavengers/interludes", allowedExtensions))
+			table.append(bossFightTracks, VFS.DirList(musicDirNew .. "/events/scavengers/bossfight", allowedExtensions))
+		elseif Spring.GetConfigInt("UseSoundtrackScavengers", 0) == 1 then
+			table.append(peaceTracksNew, VFS.DirList(musicDirNew .. "/events/scavengers/peace", allowedExtensions))
+			table.append(warlowTracksNew, VFS.DirList(musicDirNew .. "/events/scavengers/warlow", allowedExtensions))
+			table.append(warhighTracksNew, VFS.DirList(musicDirNew .. "/events/scavengers/warhigh", allowedExtensions))
+			table.append(interludeTracks, VFS.DirList(musicDirNew .. "/events/scavengers/interludes", allowedExtensions))
 		end
-		table.append(scavTracks, VFS.DirList(musicDirNew..'/events/scavengers/loading', allowedExtensions))
-		table.append(scavTracks, VFS.DirList(musicDirNew..'/events/scavengers/peace', allowedExtensions))
-		table.append(scavTracks, VFS.DirList(musicDirNew..'/events/scavengers/warlow', allowedExtensions))
-		table.append(scavTracks, VFS.DirList(musicDirNew..'/events/scavengers/warhigh', allowedExtensions))
-		table.append(scavTracks, VFS.DirList(musicDirNew..'/events/scavengers/interludes', allowedExtensions))
-		table.append(scavTracks, VFS.DirList(musicDirNew..'/events/scavengers/bossfight', allowedExtensions))
+		table.append(scavTracks, VFS.DirList(musicDirNew .. "/events/scavengers/loading", allowedExtensions))
+		table.append(scavTracks, VFS.DirList(musicDirNew .. "/events/scavengers/peace", allowedExtensions))
+		table.append(scavTracks, VFS.DirList(musicDirNew .. "/events/scavengers/warlow", allowedExtensions))
+		table.append(scavTracks, VFS.DirList(musicDirNew .. "/events/scavengers/warhigh", allowedExtensions))
+		table.append(scavTracks, VFS.DirList(musicDirNew .. "/events/scavengers/interludes", allowedExtensions))
+		table.append(scavTracks, VFS.DirList(musicDirNew .. "/events/scavengers/bossfight", allowedExtensions))
 
 		-- April Fools --------------------------------------------------------------------------------------------------------------------
-		if (Spring.Utilities.Gametype.GetCurrentHolidays()["aprilfools"] and Spring.GetConfigInt('UseSoundtrackAprilFools', 1) == 1) then
-			table.append(eventPeaceTracks, VFS.DirList(musicDirNew..'/events/aprilfools/peace', allowedExtensions))
-			table.append(eventWarLowTracks, VFS.DirList(musicDirNew..'/events/aprilfools/war', allowedExtensions))
-			table.append(eventWarHighTracks, VFS.DirList(musicDirNew..'/events/aprilfools/war', allowedExtensions))
-			table.append(eventWarLowTracks, VFS.DirList(musicDirNew..'/events/aprilfools/warlow', allowedExtensions))
-			table.append(eventWarHighTracks, VFS.DirList(musicDirNew..'/events/aprilfools/warhigh', allowedExtensions))
-			table.append(interludeTracks, VFS.DirList(musicDirNew..'/events/aprilfools/interludes', allowedExtensions))
-		elseif ((not Spring.Utilities.Gametype.GetCurrentHolidays()["aprilfools"]) and Spring.GetConfigInt('UseSoundtrackAprilFoolsPostEvent', 0) == 1) then
-			table.append(peaceTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/peace', allowedExtensions))
-			table.append(warlowTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/war', allowedExtensions))
-			table.append(warhighTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/war', allowedExtensions))
-			table.append(warlowTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/warlow', allowedExtensions))
-			table.append(warhighTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/warhigh', allowedExtensions))
-			table.append(interludeTracks, VFS.DirList(musicDirNew..'/events/aprilfools/interludes', allowedExtensions))
+		if Spring.Utilities.Gametype.GetCurrentHolidays()["aprilfools"] and Spring.GetConfigInt("UseSoundtrackAprilFools", 1) == 1 then
+			table.append(eventPeaceTracks, VFS.DirList(musicDirNew .. "/events/aprilfools/peace", allowedExtensions))
+			table.append(eventWarLowTracks, VFS.DirList(musicDirNew .. "/events/aprilfools/war", allowedExtensions))
+			table.append(eventWarHighTracks, VFS.DirList(musicDirNew .. "/events/aprilfools/war", allowedExtensions))
+			table.append(eventWarLowTracks, VFS.DirList(musicDirNew .. "/events/aprilfools/warlow", allowedExtensions))
+			table.append(eventWarHighTracks, VFS.DirList(musicDirNew .. "/events/aprilfools/warhigh", allowedExtensions))
+			table.append(interludeTracks, VFS.DirList(musicDirNew .. "/events/aprilfools/interludes", allowedExtensions))
+		elseif (not Spring.Utilities.Gametype.GetCurrentHolidays()["aprilfools"]) and Spring.GetConfigInt("UseSoundtrackAprilFoolsPostEvent", 0) == 1 then
+			table.append(peaceTracksNew, VFS.DirList(musicDirNew .. "/events/aprilfools/peace", allowedExtensions))
+			table.append(warlowTracksNew, VFS.DirList(musicDirNew .. "/events/aprilfools/war", allowedExtensions))
+			table.append(warhighTracksNew, VFS.DirList(musicDirNew .. "/events/aprilfools/war", allowedExtensions))
+			table.append(warlowTracksNew, VFS.DirList(musicDirNew .. "/events/aprilfools/warlow", allowedExtensions))
+			table.append(warhighTracksNew, VFS.DirList(musicDirNew .. "/events/aprilfools/warhigh", allowedExtensions))
+			table.append(interludeTracks, VFS.DirList(musicDirNew .. "/events/aprilfools/interludes", allowedExtensions))
 		end
-		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/aprilfools/menu', allowedExtensions))
-		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/aprilfools/loading', allowedExtensions))
-		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/aprilfools/peace', allowedExtensions))
-		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/aprilfools/war', allowedExtensions))
-		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/aprilfools/warlow', allowedExtensions))
-		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/aprilfools/warhigh', allowedExtensions))
-		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/aprilfools/interludes', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew .. "/events/aprilfools/menu", allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew .. "/events/aprilfools/loading", allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew .. "/events/aprilfools/peace", allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew .. "/events/aprilfools/war", allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew .. "/events/aprilfools/warlow", allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew .. "/events/aprilfools/warhigh", allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew .. "/events/aprilfools/interludes", allowedExtensions))
 
 		-- Halloween --------------------------------------------------------------------------------------------------------------------
-		if (Spring.Utilities.Gametype.GetCurrentHolidays()["halloween"] and Spring.GetConfigInt('UseSoundtrackHalloween', 1) == 1) then
-			table.append(eventPeaceTracks, VFS.DirList(musicDirNew..'/events/halloween/peace', allowedExtensions))
-			table.append(eventWarLowTracks, VFS.DirList(musicDirNew..'/events/halloween/war', allowedExtensions))
-			table.append(eventWarHighTracks, VFS.DirList(musicDirNew..'/events/halloween/war', allowedExtensions))
-			table.append(eventWarLowTracks, VFS.DirList(musicDirNew..'/events/halloween/warlow', allowedExtensions))
-			table.append(eventWarHighTracks, VFS.DirList(musicDirNew..'/events/halloween/warhigh', allowedExtensions))
-			table.append(interludeTracks, VFS.DirList(musicDirNew..'/events/halloween/interludes', allowedExtensions))
-		elseif ((not Spring.Utilities.Gametype.GetCurrentHolidays()["halloween"]) and Spring.GetConfigInt('UseSoundtrackHalloweenPostEvent', 0) == 1) then
-			table.append(peaceTracksNew, VFS.DirList(musicDirNew..'/events/halloween/peace', allowedExtensions))
-			table.append(warlowTracksNew, VFS.DirList(musicDirNew..'/events/halloween/war', allowedExtensions))
-			table.append(warhighTracksNew, VFS.DirList(musicDirNew..'/events/halloween/war', allowedExtensions))
-			table.append(warlowTracksNew, VFS.DirList(musicDirNew..'/events/halloween/warlow', allowedExtensions))
-			table.append(warhighTracksNew, VFS.DirList(musicDirNew..'/events/halloween/warhigh', allowedExtensions))
-			table.append(interludeTracks, VFS.DirList(musicDirNew..'/events/halloween/interludes', allowedExtensions))
+		if Spring.Utilities.Gametype.GetCurrentHolidays()["halloween"] and Spring.GetConfigInt("UseSoundtrackHalloween", 1) == 1 then
+			table.append(eventPeaceTracks, VFS.DirList(musicDirNew .. "/events/halloween/peace", allowedExtensions))
+			table.append(eventWarLowTracks, VFS.DirList(musicDirNew .. "/events/halloween/war", allowedExtensions))
+			table.append(eventWarHighTracks, VFS.DirList(musicDirNew .. "/events/halloween/war", allowedExtensions))
+			table.append(eventWarLowTracks, VFS.DirList(musicDirNew .. "/events/halloween/warlow", allowedExtensions))
+			table.append(eventWarHighTracks, VFS.DirList(musicDirNew .. "/events/halloween/warhigh", allowedExtensions))
+			table.append(interludeTracks, VFS.DirList(musicDirNew .. "/events/halloween/interludes", allowedExtensions))
+		elseif (not Spring.Utilities.Gametype.GetCurrentHolidays()["halloween"]) and Spring.GetConfigInt("UseSoundtrackHalloweenPostEvent", 0) == 1 then
+			table.append(peaceTracksNew, VFS.DirList(musicDirNew .. "/events/halloween/peace", allowedExtensions))
+			table.append(warlowTracksNew, VFS.DirList(musicDirNew .. "/events/halloween/war", allowedExtensions))
+			table.append(warhighTracksNew, VFS.DirList(musicDirNew .. "/events/halloween/war", allowedExtensions))
+			table.append(warlowTracksNew, VFS.DirList(musicDirNew .. "/events/halloween/warlow", allowedExtensions))
+			table.append(warhighTracksNew, VFS.DirList(musicDirNew .. "/events/halloween/warhigh", allowedExtensions))
+			table.append(interludeTracks, VFS.DirList(musicDirNew .. "/events/halloween/interludes", allowedExtensions))
 		end
-		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/halloween/menu', allowedExtensions))
-		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/halloween/loading', allowedExtensions))
-		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/halloween/peace', allowedExtensions))
-		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/halloween/war', allowedExtensions))
-		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/halloween/warlow', allowedExtensions))
-		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/halloween/warhigh', allowedExtensions))
-		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/halloween/interludes', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew .. "/events/halloween/menu", allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew .. "/events/halloween/loading", allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew .. "/events/halloween/peace", allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew .. "/events/halloween/war", allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew .. "/events/halloween/warlow", allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew .. "/events/halloween/warhigh", allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew .. "/events/halloween/interludes", allowedExtensions))
 
 		-- Christmas --------------------------------------------------------------------------------------------------------------------
-		if (Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"] and Spring.GetConfigInt('UseSoundtrackXmas', 1) == 1) then
-			table.append(eventPeaceTracks, VFS.DirList(musicDirNew..'/events/xmas/peace', allowedExtensions))
-			table.append(eventWarLowTracks, VFS.DirList(musicDirNew..'/events/xmas/war', allowedExtensions))
-			table.append(eventWarHighTracks, VFS.DirList(musicDirNew..'/events/xmas/war', allowedExtensions))
-			table.append(eventWarLowTracks, VFS.DirList(musicDirNew..'/events/xmas/warlow', allowedExtensions))
-			table.append(eventWarHighTracks, VFS.DirList(musicDirNew..'/events/xmas/warhigh', allowedExtensions))
-			table.append(interludeTracks, VFS.DirList(musicDirNew..'/events/xmas/interludes', allowedExtensions))
-		elseif ((not Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"]) and Spring.GetConfigInt('UseSoundtrackXmasPostEvent', 0) == 1) then
-			table.append(peaceTracksNew, VFS.DirList(musicDirNew..'/events/xmas/peace', allowedExtensions))
-			table.append(warlowTracksNew, VFS.DirList(musicDirNew..'/events/xmas/war', allowedExtensions))
-			table.append(warhighTracksNew, VFS.DirList(musicDirNew..'/events/xmas/war', allowedExtensions))
-			table.append(warlowTracksNew, VFS.DirList(musicDirNew..'/events/xmas/warlow', allowedExtensions))
-			table.append(warhighTracksNew, VFS.DirList(musicDirNew..'/events/xmas/warhigh', allowedExtensions))
-			table.append(interludeTracks, VFS.DirList(musicDirNew..'/events/xmas/interludes', allowedExtensions))
+		if Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"] and Spring.GetConfigInt("UseSoundtrackXmas", 1) == 1 then
+			table.append(eventPeaceTracks, VFS.DirList(musicDirNew .. "/events/xmas/peace", allowedExtensions))
+			table.append(eventWarLowTracks, VFS.DirList(musicDirNew .. "/events/xmas/war", allowedExtensions))
+			table.append(eventWarHighTracks, VFS.DirList(musicDirNew .. "/events/xmas/war", allowedExtensions))
+			table.append(eventWarLowTracks, VFS.DirList(musicDirNew .. "/events/xmas/warlow", allowedExtensions))
+			table.append(eventWarHighTracks, VFS.DirList(musicDirNew .. "/events/xmas/warhigh", allowedExtensions))
+			table.append(interludeTracks, VFS.DirList(musicDirNew .. "/events/xmas/interludes", allowedExtensions))
+		elseif (not Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"]) and Spring.GetConfigInt("UseSoundtrackXmasPostEvent", 0) == 1 then
+			table.append(peaceTracksNew, VFS.DirList(musicDirNew .. "/events/xmas/peace", allowedExtensions))
+			table.append(warlowTracksNew, VFS.DirList(musicDirNew .. "/events/xmas/war", allowedExtensions))
+			table.append(warhighTracksNew, VFS.DirList(musicDirNew .. "/events/xmas/war", allowedExtensions))
+			table.append(warlowTracksNew, VFS.DirList(musicDirNew .. "/events/xmas/warlow", allowedExtensions))
+			table.append(warhighTracksNew, VFS.DirList(musicDirNew .. "/events/xmas/warhigh", allowedExtensions))
+			table.append(interludeTracks, VFS.DirList(musicDirNew .. "/events/xmas/interludes", allowedExtensions))
 		end
-		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/xmas/menu', allowedExtensions))
-		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/xmas/loading', allowedExtensions))
-		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/xmas/peace', allowedExtensions))
-		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/xmas/war', allowedExtensions))
-		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/xmas/warlow', allowedExtensions))
-		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/xmas/warhigh', allowedExtensions))
-		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/xmas/interludes', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew .. "/events/xmas/menu", allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew .. "/events/xmas/loading", allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew .. "/events/xmas/peace", allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew .. "/events/xmas/war", allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew .. "/events/xmas/warlow", allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew .. "/events/xmas/warhigh", allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew .. "/events/xmas/interludes", allowedExtensions))
 
 		---------------------------------------------------------------------------------------------------------------------------------
 
 		-- Map Music
-		table.append(eventPeaceTracks, VFS.DirList('music/map/peace', allowedExtensions))
-		table.append(eventWarLowTracks, VFS.DirList('music/map/warlow', allowedExtensions))
-		table.append(eventWarHighTracks, VFS.DirList('music/map/warhigh', allowedExtensions))
-		table.append(interludeTracks, VFS.DirList('music/map/interludes', allowedExtensions))
+		table.append(eventPeaceTracks, VFS.DirList("music/map/peace", allowedExtensions))
+		table.append(eventWarLowTracks, VFS.DirList("music/map/warlow", allowedExtensions))
+		table.append(eventWarHighTracks, VFS.DirList("music/map/warhigh", allowedExtensions))
+		table.append(interludeTracks, VFS.DirList("music/map/interludes", allowedExtensions))
 
-		table.append(bonusTracks, VFS.DirList('music/map/loading', allowedExtensions))
-		table.append(bonusTracks, VFS.DirList('music/map/peace', allowedExtensions))
-		table.append(bonusTracks, VFS.DirList('music/map/warlow', allowedExtensions))
-		table.append(bonusTracks, VFS.DirList('music/map/warhigh', allowedExtensions))
-		table.append(bonusTracks, VFS.DirList('music/map/interludes', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList("music/map/loading", allowedExtensions))
+		table.append(bonusTracks, VFS.DirList("music/map/peace", allowedExtensions))
+		table.append(bonusTracks, VFS.DirList("music/map/warlow", allowedExtensions))
+		table.append(bonusTracks, VFS.DirList("music/map/warhigh", allowedExtensions))
+		table.append(bonusTracks, VFS.DirList("music/map/interludes", allowedExtensions))
 	end
 
 	-------------------------------CREATE PLAYLISTS-----------------------------------
@@ -356,25 +354,25 @@ local function ReloadMusicPlaylists()
 				local r = mathRandom(#originalPlaylist)
 				table.insert(shuffledPlaylist, originalPlaylist[r])
 				table.remove(originalPlaylist, r)
-			until(#originalPlaylist == 0)
+			until #originalPlaylist == 0
 		else
 			shuffledPlaylist = originalPlaylist
 		end
 		return shuffledPlaylist
 	end
 
-	peaceTracks        = shuffleMusic(peaceTracks)
-	warhighTracks      = shuffleMusic(warhighTracks)
-	warlowTracks       = shuffleMusic(warlowTracks)
-	interludeTracks    = shuffleMusic(interludeTracks)
-	victoryTracks      = shuffleMusic(victoryTracks)
-	defeatTracks       = shuffleMusic(defeatTracks)
-	gameoverTracks     = shuffleMusic(gameoverTracks)
-	bossFightTracks    = shuffleMusic(bossFightTracks)
-	eventPeaceTracks   = shuffleMusic(eventPeaceTracks)
-	eventWarLowTracks  = shuffleMusic(eventWarLowTracks)
+	peaceTracks = shuffleMusic(peaceTracks)
+	warhighTracks = shuffleMusic(warhighTracks)
+	warlowTracks = shuffleMusic(warlowTracks)
+	interludeTracks = shuffleMusic(interludeTracks)
+	victoryTracks = shuffleMusic(victoryTracks)
+	defeatTracks = shuffleMusic(defeatTracks)
+	gameoverTracks = shuffleMusic(gameoverTracks)
+	bossFightTracks = shuffleMusic(bossFightTracks)
+	eventPeaceTracks = shuffleMusic(eventPeaceTracks)
+	eventWarLowTracks = shuffleMusic(eventWarLowTracks)
 	eventWarHighTracks = shuffleMusic(eventWarHighTracks)
-	bonusTracks        = shuffleMusic(bonusTracks)
+	bonusTracks = shuffleMusic(bonusTracks)
 
 	-- spEcho("----- MUSIC PLAYER PLAYLIST -----")
 	-- spEcho("----- peaceTracks -----")
@@ -479,7 +477,7 @@ local faderMin = 45 -- range in dB for volume faders, from -faderMin to 0dB
 local playedTime, totalTime = Spring.GetSoundStreamTime()
 local prevPlayedTime = playedTime
 
-local maxMusicVolume = Spring.GetConfigInt("snd_volmusic", 50)	-- user value, cause actual volume will change during fadein/outc
+local maxMusicVolume = Spring.GetConfigInt("snd_volmusic", 50) -- user value, cause actual volume will change during fadein/outc
 if maxMusicVolume > 99 then
 	Spring.SetConfigInt("snd_volmusic", 99)
 	maxMusicVolume = 99
@@ -497,7 +495,7 @@ local drawlist = {}
 local advplayerlistPos = {}
 local widgetScale = 1
 local widgetHeight = 22
-local top, left, bottom, right = 0,0,0,0
+local top, left, bottom, right = 0, 0, 0, 0
 local borderPadding = bgpadding
 local updateDrawing = false
 local guishaderWasActive = false
@@ -505,21 +503,21 @@ local guishaderWasActive = false
 local vsx, vsy = spGetViewGeometry()
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 
-local playing = (Spring.GetConfigInt('music', 1) == 1)
+local playing = (Spring.GetConfigInt("music", 1) == 1)
 local shutdown
 
-local playTex	= ":l:"..LUAUI_DIRNAME.."Images/music/play.png"
-local pauseTex	= ":l:"..LUAUI_DIRNAME.."Images/music/pause.png"
-local nextTex	= ":l:"..LUAUI_DIRNAME.."Images/music/next.png"
-local musicTex	= ":l:"..LUAUI_DIRNAME.."Images/music/music.png"
-local volumeTex	= ":l:"..LUAUI_DIRNAME.."Images/music/volume.png"
+local playTex = ":l:" .. LUAUI_DIRNAME .. "Images/music/play.png"
+local pauseTex = ":l:" .. LUAUI_DIRNAME .. "Images/music/pause.png"
+local nextTex = ":l:" .. LUAUI_DIRNAME .. "Images/music/next.png"
+local musicTex = ":l:" .. LUAUI_DIRNAME .. "Images/music/music.png"
+local volumeTex = ":l:" .. LUAUI_DIRNAME .. "Images/music/volume.png"
 
-local glColor        = gl.Color
-local glTexRect	     = gl.TexRect
-local glTexture      = gl.Texture
-local glCreateList   = gl.CreateList
-local glDeleteList   = gl.DeleteList
-local glCallList     = gl.CallList
+local glColor = gl.Color
+local glTexRect = gl.TexRect
+local glTexture = gl.Texture
+local glCreateList = gl.CreateList
+local glDeleteList = gl.DeleteList
+local glCallList = gl.CallList
 
 local glBlending = gl.Blending
 local GL_SRC_ALPHA = GL.SRC_ALPHA
@@ -546,7 +544,7 @@ local function getVolumePos(coef)
 		return 1
 	end
 	local db = math.log10(coef) * 20
-	return (db/faderMin) + 1
+	return (db / faderMin) + 1
 end
 
 local fadeDirection
@@ -598,22 +596,22 @@ local function updateFade()
 end
 
 local function getSliderWidth()
-	return mathFloor((4.5 * widgetScale)+0.5)
+	return mathFloor((4.5 * widgetScale) + 0.5)
 end
 
 local function capitalize(text)
-	local str = ''
+	local str = ""
 	local upperNext = true
-	local char = ''
-	for i=1, string.len(text) do
-		char = string.sub(text, i,i)
+	local char = ""
+	for i = 1, string.len(text) do
+		char = string.sub(text, i, i)
 		if upperNext then
-			str = str..string.upper(char)
+			str = str .. string.upper(char)
 			upperNext = false
 		else
-			str = str..char
+			str = str .. char
 		end
-		if char == ' ' then
+		if char == " " then
 			upperNext = true
 		end
 	end
@@ -627,10 +625,10 @@ local function processTrackname(trackname)
 end
 
 local function drawBackground()
-	UiElement(left, bottom, right, top, 1,0,0,1, 1,1,0,1, nil, nil, nil, nil)
+	UiElement(left, bottom, right, top, 1, 0, 0, 1, 1, 1, 0, 1, nil, nil, nil, nil)
 	borderPadding = bgpadding
 	borderPaddingRight = borderPadding
-	if right >= vsx-0.2 then
+	if right >= vsx - 0.2 then
 		borderPaddingRight = 0
 	end
 	borderPaddingLeft = borderPadding
@@ -642,90 +640,90 @@ end
 local function drawContent()
 	local trackname
 	local padding2 = mathFloor(2.5 * widgetScale) -- inner icon padding
-	local textsize = 11 * widgetScale * math.clamp(1+((1-(vsy/1200))*0.4), 1, 1.15)
+	local textsize = 11 * widgetScale * math.clamp(1 + ((1 - (vsy / 1200)) * 0.4), 1, 1.15)
 	local textXPadding = 10 * widgetScale
 	--local maxTextWidth = right-buttons['playpause'][3]-textXPadding-textXPadding
-	local maxTextWidth = right-textXPadding-textXPadding
+	local maxTextWidth = right - textXPadding - textXPadding
 
-	local button = 'playpause'
+	local button = "playpause"
 
 	if not mouseover and not draggingSlider and playing and volume > 0 and playedTime < totalTime then
 		-- track name
-		trackname = currentTrack or ''
-		glColor(0.45,0.45,0.45,1)
+		trackname = currentTrack or ""
+		glColor(0.45, 0.45, 0.45, 1)
 
 		trackname = processTrackname(trackname)
 
-		local text = ''
+		local text = ""
 		for i = 1, #trackname do
-			local c = string.sub(trackname, i,i)
-			local width = font:GetTextWidth(text..c) * textsize
+			local c = string.sub(trackname, i, i)
+			local width = font:GetTextWidth(text .. c) * textsize
 			if width > maxTextWidth then
 				break
 			else
-				text = text..c
+				text = text .. c
 			end
 		end
 		trackname = text
 
-		glColor(0.8,0.8,0.8,0.9)
+		glColor(0.8, 0.8, 0.8, 0.9)
 		glTexture(musicTex)
-		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
+		glTexRect(buttons[button][1] + padding2, buttons[button][2] + padding2, buttons[button][3] - padding2, buttons[button][4] - padding2)
 		glTexture(false)
 
 		font:Begin(true)
-		font:SetOutlineColor(0.15,0.15,0.15,0.8)
-		font:Print("\255\225\225\225"..trackname, buttons[button][3]+mathCeil(padding2*1.1), bottom+(0.48*widgetHeight*widgetScale)-(textsize*0.35), textsize, 'no')
+		font:SetOutlineColor(0.15, 0.15, 0.15, 0.8)
+		font:Print("\255\225\225\225" .. trackname, buttons[button][3] + mathCeil(padding2 * 1.1), bottom + (0.48 * widgetHeight * widgetScale) - (textsize * 0.35), textsize, "no")
 		font:End()
 	else
-		glColor(0.88,0.88,0.88,0.9)
+		glColor(0.88, 0.88, 0.88, 0.9)
 		if playing then
 			glTexture(pauseTex)
 		else
 			glTexture(playTex)
 		end
-		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
+		glTexRect(buttons[button][1] + padding2, buttons[button][2] + padding2, buttons[button][3] - padding2, buttons[button][4] - padding2)
 
-		button = 'next'
-		glColor(0.88,0.88,0.88,0.9)
+		button = "next"
+		glColor(0.88, 0.88, 0.88, 0.9)
 		glTexture(nextTex)
-		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
+		glTexRect(buttons[button][1] + padding2, buttons[button][2] + padding2, buttons[button][3] - padding2, buttons[button][4] - padding2)
 
-		local sliderWidth = mathFloor((4.5 * widgetScale)+0.5)
-		local lineHeight = mathFloor((1.65 * widgetScale)+0.5)
+		local sliderWidth = mathFloor((4.5 * widgetScale) + 0.5)
+		local lineHeight = mathFloor((1.65 * widgetScale) + 0.5)
 
-		local button = 'musicvolumeicon'
-		local sliderY = mathFloor(buttons[button][2] + (buttons[button][4] - buttons[button][2])/2)
-		glColor(0.8,0.8,0.8,0.9)
+		local button = "musicvolumeicon"
+		local sliderY = mathFloor(buttons[button][2] + (buttons[button][4] - buttons[button][2]) / 2)
+		glColor(0.8, 0.8, 0.8, 0.9)
 		glTexture(musicTex)
-		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
+		glTexRect(buttons[button][1] + padding2, buttons[button][2] + padding2, buttons[button][3] - padding2, buttons[button][4] - padding2)
 		glTexture(false)
 
-		button = 'musicvolume'
-		UiSlider(buttons[button][1], sliderY-lineHeight, buttons[button][3], sliderY+lineHeight)
-		UiSliderKnob(buttons[button][5]-(sliderWidth/2), sliderY, sliderWidth)
+		button = "musicvolume"
+		UiSlider(buttons[button][1], sliderY - lineHeight, buttons[button][3], sliderY + lineHeight)
+		UiSliderKnob(buttons[button][5] - (sliderWidth / 2), sliderY, sliderWidth)
 
-		button = 'volumeicon'
-		glColor(0.8,0.8,0.8,0.9)
+		button = "volumeicon"
+		glColor(0.8, 0.8, 0.8, 0.9)
 		glTexture(volumeTex)
-		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
+		glTexRect(buttons[button][1] + padding2, buttons[button][2] + padding2, buttons[button][3] - padding2, buttons[button][4] - padding2)
 		glTexture(false)
 
-		button = 'volume'
-		UiSlider(buttons[button][1], sliderY-lineHeight, buttons[button][3], sliderY+lineHeight)
-		UiSliderKnob(buttons[button][5]-(sliderWidth/2), sliderY, sliderWidth)
+		button = "volume"
+		UiSlider(buttons[button][1], sliderY - lineHeight, buttons[button][3], sliderY + lineHeight)
+		UiSliderKnob(buttons[button][5] - (sliderWidth / 2), sliderY, sliderWidth)
 	end
 end
 
 local function refreshUiDrawing()
-	if WG['guishader'] then
+	if WG["guishader"] then
 		if guishaderList then
 			guishaderList = glDeleteList(guishaderList)
 		end
-		guishaderList = glCreateList( function()
-			RectRound(left, bottom, right, top, elementCorner, 1,0,0,1)
+		guishaderList = glCreateList(function()
+			RectRound(left, bottom, right, top, elementCorner, 1, 0, 0, 1)
 		end)
-		WG['guishader'].InsertDlist(guishaderList, 'music', true)
+		WG["guishader"].InsertDlist(guishaderList, "music", true)
 	end
 
 	local trackname
@@ -735,35 +733,35 @@ local function refreshUiDrawing()
 	local textsize = 11 * widgetScale
 	local textXPadding = 10 * widgetScale
 	--local maxTextWidth = right-buttons['playpause'][3]-textXPadding-textXPadding
-	local maxTextWidth = right-textXPadding-textXPadding
+	local maxTextWidth = right - textXPadding - textXPadding
 
-	buttons['playpause'] = {left+padding+padding, bottom+padding+heightoffset, left+(widgetHeight*widgetScale), top-padding+heightoffset}
-	buttons['next'] = {buttons['playpause'][3]+padding, bottom+padding+heightoffset, buttons['playpause'][3]+((widgetHeight*widgetScale)-padding), top-padding+heightoffset}
+	buttons["playpause"] = { left + padding + padding, bottom + padding + heightoffset, left + (widgetHeight * widgetScale), top - padding + heightoffset }
+	buttons["next"] = { buttons["playpause"][3] + padding, bottom + padding + heightoffset, buttons["playpause"][3] + ((widgetHeight * widgetScale) - padding), top - padding + heightoffset }
 
-	buttons['musicvolumeicon'] = {buttons['next'][3]+padding+padding, bottom+padding+heightoffset, buttons['next'][3]+((widgetHeight * widgetScale)), top-padding+heightoffset}
+	buttons["musicvolumeicon"] = { buttons["next"][3] + padding + padding, bottom + padding + heightoffset, buttons["next"][3] + (widgetHeight * widgetScale), top - padding + heightoffset }
 	--buttons['musicvolumeicon'] = {left+padding+padding, bottom+padding+heightoffset, left+(widgetHeight*widgetScale), top-padding+heightoffset}
 
-	local sliderKnobWidth = mathFloor((4.5 * widgetScale)+0.5)
+	local sliderKnobWidth = mathFloor((4.5 * widgetScale) + 0.5)
 	local endPadding = mathFloor(1 * widgetScale)
 	local maxRight = vsx - endPadding - (sliderKnobWidth / 2)
 	local fixedWidth = padding * 4 + (widgetHeight * widgetScale)
-	local volumeWidth = mathMax(mathMin(mathFloor((maxRight - buttons['musicvolumeicon'][3] - fixedWidth) / 2), mathFloor(50 * widgetScale)), mathFloor(30 * widgetScale))
+	local volumeWidth = mathMax(mathMin(mathFloor((maxRight - buttons["musicvolumeicon"][3] - fixedWidth) / 2), mathFloor(50 * widgetScale)), mathFloor(30 * widgetScale))
 
-	buttons['musicvolume'] = {buttons['musicvolumeicon'][3]+padding, bottom+padding+heightoffset, buttons['musicvolumeicon'][3]+padding+volumeWidth, top-padding+heightoffset}
-	buttons['musicvolume'][5] = mathMax(buttons['musicvolume'][1] + (sliderKnobWidth / 2), mathMin(buttons['musicvolume'][3] - (sliderKnobWidth / 2), buttons['musicvolume'][1] + (buttons['musicvolume'][3] - buttons['musicvolume'][1]) * (getVolumePos(maxMusicVolume/99))))
+	buttons["musicvolume"] = { buttons["musicvolumeicon"][3] + padding, bottom + padding + heightoffset, buttons["musicvolumeicon"][3] + padding + volumeWidth, top - padding + heightoffset }
+	buttons["musicvolume"][5] = mathMax(buttons["musicvolume"][1] + (sliderKnobWidth / 2), mathMin(buttons["musicvolume"][3] - (sliderKnobWidth / 2), buttons["musicvolume"][1] + (buttons["musicvolume"][3] - buttons["musicvolume"][1]) * (getVolumePos(maxMusicVolume / 99))))
 
-	buttons['volumeicon'] = {buttons['musicvolume'][3]+padding*3, bottom+padding+heightoffset, buttons['musicvolume'][3]+(widgetHeight * widgetScale), top-padding+heightoffset}
-	buttons['volume'] = {buttons['volumeicon'][3]+padding, bottom+padding+heightoffset, buttons['volumeicon'][3]+padding+volumeWidth, top-padding+heightoffset}
-	buttons['volume'][5] = mathMax(buttons['volume'][1] + (sliderKnobWidth / 2), mathMin(buttons['volume'][3] - (sliderKnobWidth / 2), buttons['volume'][1] + (buttons['volume'][3] - buttons['volume'][1]) * (getVolumePos(volume/80))))
+	buttons["volumeicon"] = { buttons["musicvolume"][3] + padding * 3, bottom + padding + heightoffset, buttons["musicvolume"][3] + (widgetHeight * widgetScale), top - padding + heightoffset }
+	buttons["volume"] = { buttons["volumeicon"][3] + padding, bottom + padding + heightoffset, buttons["volumeicon"][3] + padding + volumeWidth, top - padding + heightoffset }
+	buttons["volume"][5] = mathMax(buttons["volume"][1] + (sliderKnobWidth / 2), mathMin(buttons["volume"][3] - (sliderKnobWidth / 2), buttons["volume"][1] + (buttons["volume"][3] - buttons["volume"][1]) * (getVolumePos(volume / 80))))
 
 	if drawlist[1] ~= nil then
-		for i=1, #drawlist do
+		for i = 1, #drawlist do
 			glDeleteList(drawlist[i])
 		end
 	end
-	if right-left >= 1 and top-bottom >= 1 then
+	if right - left >= 1 and top - bottom >= 1 then
 		if not uiBgTex then
-			uiBgTex = gl.CreateTexture(mathFloor(right-left), mathFloor(top-bottom), {
+			uiBgTex = gl.CreateTexture(mathFloor(right - left), mathFloor(top - bottom), {
 				target = GL.TEXTURE_2D,
 				format = GL.RGBA,
 				fbo = true,
@@ -771,7 +769,7 @@ local function refreshUiDrawing()
 			gl.R2tHelper.RenderInRect(uiBgTex, left, bottom, right, top, drawBackground, true)
 		end
 		if not uiTex then
-			uiTex = gl.CreateTexture(mathFloor(right-left), mathFloor(top-bottom), {	--*(vsy<1400 and 2 or 1)
+			uiTex = gl.CreateTexture(mathFloor(right - left), mathFloor(top - bottom), { --*(vsy<1400 and 2 or 1)
 				target = GL.TEXTURE_2D,
 				format = GL.RGBA,
 				fbo = true,
@@ -779,27 +777,27 @@ local function refreshUiDrawing()
 		end
 		gl.R2tHelper.RenderInRect(uiTex, left, bottom, right, top, drawContent, true)
 	end
-	if WG['tooltip'] ~= nil and trackname then
-		if trackname and trackname ~= '' then
-			WG['tooltip'].AddTooltip('music', {left, bottom, right, top}, trackname, 0.8)
+	if WG["tooltip"] ~= nil and trackname then
+		if trackname and trackname ~= "" then
+			WG["tooltip"].AddTooltip("music", { left, bottom, right, top }, trackname, 0.8)
 		else
-			WG['tooltip'].RemoveTooltip('music')
+			WG["tooltip"].RemoveTooltip("music")
 		end
 	end
 end
 
 local function updatePosition(force)
 	local prevPos = advplayerlistPos
-	if WG['advplayerlist_api'] ~= nil then
-		advplayerlistPos = WG['advplayerlist_api'].GetPosition()
+	if WG["advplayerlist_api"] ~= nil then
+		advplayerlistPos = WG["advplayerlist_api"].GetPosition()
 	else
 		local scale = (vsy / 880) * (1 + (Spring.GetConfigFloat("ui_scale", 1) - 1) / 1.25)
-		advplayerlistPos = {0,vsx-(220*scale),0,vsx,scale}
+		advplayerlistPos = { 0, vsx - (220 * scale), 0, vsx, scale }
 	end
 	left = advplayerlistPos[2]
 	bottom = advplayerlistPos[1]
 	right = advplayerlistPos[4]
-	top = mathCeil(advplayerlistPos[1]+(widgetHeight * advplayerlistPos[5]))
+	top = mathCeil(advplayerlistPos[1] + (widgetHeight * advplayerlistPos[5]))
 	widgetScale = advplayerlistPos[5]
 	if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
 		widget:ViewResize()
@@ -808,39 +806,39 @@ end
 
 function widget:Initialize()
 	isChangingTrack = false
-	if spGetGameFrame() == 0 and Spring.GetConfigInt('music_loadscreen', 1) == 1 then
-		currentTrack = Spring.GetConfigString('music_loadscreen_track', '')
+	if spGetGameFrame() == 0 and Spring.GetConfigInt("music_loadscreen", 1) == 1 then
+		currentTrack = Spring.GetConfigString("music_loadscreen_track", "")
 	end
 	ReloadMusicPlaylists()
 	widget:ViewResize()
 	--Spring.StopSoundStream() -- only for testing purposes
 
-	WG['music'] = {}
-	WG['music'].GetPosition = function()
+	WG["music"] = {}
+	WG["music"].GetPosition = function()
 		if shutdown then
 			return false
 		end
 		updatePosition()
-		return {showGUI and top or bottom,left,bottom,right,widgetScale}
+		return { showGUI and top or bottom, left, bottom, right, widgetScale }
 	end
-	WG['music'].GetMusicVolume = function()
+	WG["music"].GetMusicVolume = function()
 		return maxMusicVolume
 	end
-	WG['music'].SetMusicVolume = function(value)
+	WG["music"].SetMusicVolume = function(value)
 		maxMusicVolume = value
-		Spring.SetConfigInt("snd_volmusic", mathMin(99,mathCeil(maxMusicVolume))) -- It took us 2 and half year to realize that the engine is not saving value of a 100 because it's engine default, which is why we're maxing it at 99
+		Spring.SetConfigInt("snd_volmusic", mathMin(99, mathCeil(maxMusicVolume))) -- It took us 2 and half year to realize that the engine is not saving value of a 100 because it's engine default, which is why we're maxing it at 99
 		if fadeDirection then
 			setMusicVolume(fadeLevel)
 		end
 		updateDrawing = true
 	end
-	WG['music'].GetShowGui = function()
+	WG["music"].GetShowGui = function()
 		return showGUI
 	end
-	WG['music'].SetShowGui = function(value)
+	WG["music"].SetShowGui = function(value)
 		showGUI = value
 	end
-	WG['music'].getTracksConfig = function(value)
+	WG["music"].getTracksConfig = function(value)
 		local tracksConfig = {}
 
 		local function sortPlaylist(playlist)
@@ -853,95 +851,95 @@ function widget:Initialize()
 
 		local menuTracksSorted = table.copy(menuTracks)
 		sortPlaylist(menuTracksSorted)
-		for k,v in pairs(menuTracksSorted) do
+		for k, v in pairs(menuTracksSorted) do
 			if menuTracksSorted[k] and not string.find(menuTracksSorted[k], "/events/") then
-				tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.menu'), processTrackname(v), v}
+				tracksConfig[#tracksConfig + 1] = { Spring.I18N("ui.music.menu"), processTrackname(v), v }
 			end
 		end
 
 		local loadingTracksSorted = table.copy(loadingTracks)
 		sortPlaylist(loadingTracksSorted)
-		for k,v in pairs(loadingTracksSorted) do
+		for k, v in pairs(loadingTracksSorted) do
 			if loadingTracksSorted[k] and not string.find(loadingTracksSorted[k], "/events/") then
-				tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.loading'), processTrackname(v), v}
+				tracksConfig[#tracksConfig + 1] = { Spring.I18N("ui.music.loading"), processTrackname(v), v }
 			end
 		end
 
 		local peaceTracksSorted = table.copy(peaceTracks)
 		sortPlaylist(peaceTracksSorted)
-		for k,v in pairs(peaceTracksSorted) do
+		for k, v in pairs(peaceTracksSorted) do
 			if peaceTracksSorted[k] and not string.find(peaceTracksSorted[k], "/events/") then
-				tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.peace'), processTrackname(v), v}
+				tracksConfig[#tracksConfig + 1] = { Spring.I18N("ui.music.peace"), processTrackname(v), v }
 			end
 		end
 
 		local warlowTracksSorted = table.copy(warlowTracks)
 		sortPlaylist(warlowTracksSorted)
-		for k,v in pairs(warlowTracksSorted) do
+		for k, v in pairs(warlowTracksSorted) do
 			if warlowTracksSorted[k] and not string.find(warlowTracksSorted[k], "/events/") then
-				tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.warlow'), processTrackname(v), v}
+				tracksConfig[#tracksConfig + 1] = { Spring.I18N("ui.music.warlow"), processTrackname(v), v }
 			end
 		end
 
 		local warhighTracksSorted = table.copy(warhighTracks)
 		sortPlaylist(warhighTracksSorted)
-		for k,v in pairs(warhighTracksSorted) do
+		for k, v in pairs(warhighTracksSorted) do
 			if warhighTracksSorted[k] and not string.find(warhighTracksSorted[k], "/events/") then
-				tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.warhigh'), processTrackname(v), v}
+				tracksConfig[#tracksConfig + 1] = { Spring.I18N("ui.music.warhigh"), processTrackname(v), v }
 			end
 		end
 
 		local interludeTracksSorted = table.copy(interludeTracks)
 		sortPlaylist(interludeTracksSorted)
-		for k,v in pairs(interludeTracksSorted) do
+		for k, v in pairs(interludeTracksSorted) do
 			if interludeTracksSorted[k] and not string.find(interludeTracksSorted[k], "/events/") then
-				tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.interludes'), processTrackname(v), v}
+				tracksConfig[#tracksConfig + 1] = { Spring.I18N("ui.music.interludes"), processTrackname(v), v }
 			end
 		end
 
 		local raptorTracksSorted = table.copy(raptorTracks)
 		sortPlaylist(raptorTracksSorted)
-		for k,v in pairs(raptorTracksSorted) do
-			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.raptors'), processTrackname(v), v}
+		for k, v in pairs(raptorTracksSorted) do
+			tracksConfig[#tracksConfig + 1] = { Spring.I18N("ui.music.raptors"), processTrackname(v), v }
 		end
 
 		local scavTracksSorted = table.copy(scavTracks)
 		sortPlaylist(scavTracksSorted)
-		for k,v in pairs(scavTracksSorted) do
-			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.scavengers'), processTrackname(v), v}
+		for k, v in pairs(scavTracksSorted) do
+			tracksConfig[#tracksConfig + 1] = { Spring.I18N("ui.music.scavengers"), processTrackname(v), v }
 		end
 
 		local victoryTracksSorted = table.copy(victoryTracks)
 		sortPlaylist(victoryTracksSorted)
-		for k,v in pairs(victoryTracksSorted) do
-			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.victory'), processTrackname(v), v}
+		for k, v in pairs(victoryTracksSorted) do
+			tracksConfig[#tracksConfig + 1] = { Spring.I18N("ui.music.victory"), processTrackname(v), v }
 		end
 
 		local defeatTracksSorted = table.copy(defeatTracks)
 		sortPlaylist(defeatTracksSorted)
-		for k,v in pairs(defeatTracksSorted) do
-			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.defeat'), processTrackname(v), v}
+		for k, v in pairs(defeatTracksSorted) do
+			tracksConfig[#tracksConfig + 1] = { Spring.I18N("ui.music.defeat"), processTrackname(v), v }
 		end
 
 		local gameoverTracksSorted = table.copy(gameoverTracks)
 		sortPlaylist(gameoverTracksSorted)
-		for k,v in pairs(gameoverTracksSorted) do
-			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.gameover'), processTrackname(v), v}
+		for k, v in pairs(gameoverTracksSorted) do
+			tracksConfig[#tracksConfig + 1] = { Spring.I18N("ui.music.gameover"), processTrackname(v), v }
 		end
 
 		local bonusTracksSorted = table.copy(bonusTracks)
 		sortPlaylist(bonusTracksSorted)
-		for k,v in pairs(bonusTracksSorted) do
-			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.bonus'), processTrackname(v), v}
+		for k, v in pairs(bonusTracksSorted) do
+			tracksConfig[#tracksConfig + 1] = { Spring.I18N("ui.music.bonus"), processTrackname(v), v }
 		end
 		return tracksConfig
 	end
-	WG['music'].playTrack = function(track)
+	WG["music"].playTrack = function(track)
 		currentTrack = track
 		Spring.StopSoundStream()
 		Spring.PlaySoundStream(currentTrack, 1)
 		playing = true
-		Spring.SetConfigInt('music', (playing and 1 or 0))
+		Spring.SetConfigInt("music", (playing and 1 or 0))
 		local playedTime, totalTime = Spring.GetSoundStreamTime()
 		interruptionTime = totalTime + 2
 		if fadeDirection then
@@ -951,10 +949,10 @@ function widget:Initialize()
 		end
 		updateDrawing = true
 	end
-	WG['music'].RefreshSettings = function()
-		interruptionEnabled 			= Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1
+	WG["music"].RefreshSettings = function()
+		interruptionEnabled = Spring.GetConfigInt("UseSoundtrackInterruption", 1) == 1
 	end
-	WG['music'].RefreshTrackList = function()
+	WG["music"].RefreshTrackList = function()
 		Spring.StopSoundStream()
 		ReloadMusicPlaylists()
 		playInterlude = false
@@ -964,18 +962,20 @@ end
 
 function widget:Shutdown()
 	shutdown = true
-	Spring.SetConfigInt('music', (playing and 1 or 0))
+	Spring.SetConfigInt("music", (playing and 1 or 0))
 
-	if WG['guishader'] then
-		WG['guishader'].RemoveDlist('music')
+	if WG["guishader"] then
+		WG["guishader"].RemoveDlist("music")
 	end
-	if WG['tooltip'] ~= nil then
-		WG['tooltip'].RemoveTooltip('music')
+	if WG["tooltip"] ~= nil then
+		WG["tooltip"].RemoveTooltip("music")
 	end
-	for i=1,#drawlist do
+	for i = 1, #drawlist do
 		glDeleteList(drawlist[i])
 	end
-	if guishaderList then glDeleteList(guishaderList) end
+	if guishaderList then
+		glDeleteList(guishaderList)
+	end
 	if uiBgTex then
 		gl.DeleteTexture(uiBgTex)
 		uiBgTex = nil
@@ -984,15 +984,13 @@ function widget:Shutdown()
 		gl.DeleteTexture(uiTex)
 		uiTex = nil
 	end
-	WG['music'] = nil
+	WG["music"] = nil
 end
 
-
-
-function widget:ViewResize(newX,newY)
+function widget:ViewResize(newX, newY)
 	vsx, vsy = spGetViewGeometry()
 
-	font = WG['fonts'].getFont()
+	font = WG["fonts"].getFont()
 
 	bgpadding = WG.FlowUI.elementPadding
 	elementCorner = WG.FlowUI.elementCorner
@@ -1001,14 +999,14 @@ function widget:ViewResize(newX,newY)
 	UiButton = WG.FlowUI.Draw.Button
 	UiSliderKnob = WG.FlowUI.Draw.SliderKnob
 	UiSlider = function(px, py, sx, sy)
-		local cs = (sy-py)*0.25
-		local edgeWidth = mathMax(1, mathFloor((sy-py) * 0.1))
+		local cs = (sy - py) * 0.25
+		local edgeWidth = mathMax(1, mathFloor((sy - py) * 0.1))
 		-- faint dark outline edge
-		RectRound(px-edgeWidth, py-edgeWidth, sx+edgeWidth, sy+edgeWidth, cs*1.5, 1,1,1,1, { 0,0,0,0.05 })
+		RectRound(px - edgeWidth, py - edgeWidth, sx + edgeWidth, sy + edgeWidth, cs * 1.5, 1, 1, 1, 1, { 0, 0, 0, 0.05 })
 		-- bottom
-		RectRound(px, py, sx, sy, cs, 1,1,1,1, { 1, 1, 1, 0.1 }, { 1, 1, 1, 0 })
+		RectRound(px, py, sx, sy, cs, 1, 1, 1, 1, { 1, 1, 1, 0.1 }, { 1, 1, 1, 0 })
 		-- top
-		RectRound(px, py, sx, sy, cs, 1,1,1,1, { 0.1, 0.1, 0.1, 0.22 }, { 0.9,0.9,0.9, 0.22 })
+		RectRound(px, py, sx, sy, cs, 1, 1, 1, 1, { 0.1, 0.1, 0.1, 0.22 }, { 0.9, 0.9, 0.9, 0.22 })
 	end
 
 	updateDrawing = true
@@ -1022,23 +1020,27 @@ end
 
 local function getSliderValue(button, x)
 	local sliderWidth = buttons[button][3] - buttons[button][1]
-	local value = (x - buttons[button][1]) / (sliderWidth)
-	if value < 0 then value = 0 end
-	if value > 1 then value = 1 end
+	local value = (x - buttons[button][1]) / sliderWidth
+	if value < 0 then
+		value = 0
+	end
+	if value > 1 then
+		value = 1
+	end
 	return value
 end
 
 function widget:MouseMove(x, y)
 	if showGUI and draggingSlider ~= nil then
-		if draggingSlider == 'musicvolume' then
+		if draggingSlider == "musicvolume" then
 			maxMusicVolume = mathCeil(getVolumeCoef(getSliderValue(draggingSlider, x)) * 99)
-			Spring.SetConfigInt("snd_volmusic", mathMin(99,maxMusicVolume))  -- It took us 2 and half year to realize that the engine is not saving value of a 100 because it's engine default, which is why we're maxing it at 99
+			Spring.SetConfigInt("snd_volmusic", mathMin(99, maxMusicVolume)) -- It took us 2 and half year to realize that the engine is not saving value of a 100 because it's engine default, which is why we're maxing it at 99
 			if fadeDirection then
 				setMusicVolume(fadeLevel)
 			end
 			updateDrawing = true
 		end
-		if draggingSlider == 'volume' then
+		if draggingSlider == "volume" then
 			volume = mathCeil(getVolumeCoef(getSliderValue(draggingSlider, x)) * 80)
 			Spring.SetConfigInt("snd_volmaster", volume)
 			updateDrawing = true
@@ -1047,19 +1049,23 @@ function widget:MouseMove(x, y)
 end
 
 local function mouseEvent(x, y, button, release)
-	if Spring.IsGUIHidden() then return false end
-	if not showGUI then return end
+	if Spring.IsGUIHidden() then
+		return false
+	end
+	if not showGUI then
+		return
+	end
 	if button == 1 then
 		if not release then
 			local sliderWidth = (3.3 * widgetScale) -- should be same as in createlist()
-			local button = 'musicvolume'
+			local button = "musicvolume"
 			if math_isInRect(x, y, buttons[button][1] - sliderWidth, buttons[button][2], buttons[button][3] + sliderWidth, buttons[button][4]) then
 				draggingSlider = button
 				maxMusicVolume = mathCeil(getVolumeCoef(getSliderValue(button, x)) * 99)
-				Spring.SetConfigInt("snd_volmusic", mathMin(99, maxMusicVolume))   -- It took us 2 and half year to realize that the engine is not saving value of a 100 because it's engine default, which is why we're maxing it at 99
+				Spring.SetConfigInt("snd_volmusic", mathMin(99, maxMusicVolume)) -- It took us 2 and half year to realize that the engine is not saving value of a 100 because it's engine default, which is why we're maxing it at 99
 				updateDrawing = true
 			end
-			button = 'volume'
+			button = "volume"
 			if math_isInRect(x, y, buttons[button][1] - sliderWidth, buttons[button][2], buttons[button][3] + sliderWidth, buttons[button][4]) then
 				draggingSlider = button
 				volume = mathCeil(getVolumeCoef(getSliderValue(button, x)) * 80)
@@ -1071,14 +1077,14 @@ local function mouseEvent(x, y, button, release)
 			draggingSlider = nil
 		end
 		if button == 1 and not release and math_isInRect(x, y, left, bottom, right, top) then
-			if buttons['playpause'] ~= nil and math_isInRect(x, y, buttons['playpause'][1], buttons['playpause'][2], buttons['playpause'][3], buttons['playpause'][4]) then
+			if buttons["playpause"] ~= nil and math_isInRect(x, y, buttons["playpause"][1], buttons["playpause"][2], buttons["playpause"][3], buttons["playpause"][4]) then
 				playing = not playing
-				Spring.SetConfigInt('music', (playing and 1 or 0))
+				Spring.SetConfigInt("music", (playing and 1 or 0))
 				Spring.PauseSoundStream()
 				updateDrawing = true
-			elseif buttons['next'] ~= nil and math_isInRect(x, y, buttons['next'][1], buttons['next'][2], buttons['next'][3], buttons['next'][4]) then
+			elseif buttons["next"] ~= nil and math_isInRect(x, y, buttons["next"][1], buttons["next"][2], buttons["next"][3], buttons["next"][4]) then
 				playing = true
-				Spring.SetConfigInt('music', (playing and 1 or 0))
+				Spring.SetConfigInt("music", (playing and 1 or 0))
 				playInterlude = false
 				PlayNewTrack()
 			end
@@ -1102,7 +1108,7 @@ end
 local playingInit = false
 function widget:Update(dt)
 	local frame = spGetGameFrame()
-	local _,_,paused = Spring.GetGameSpeed()
+	local _, _, paused = Spring.GetGameSpeed()
 
 	playedTime, totalTime = Spring.GetSoundStreamTime()
 
@@ -1147,13 +1153,15 @@ end
 
 local prevShowTrackname = false
 function widget:DrawScreen()
-	if not showGUI then return end
+	if not showGUI then
+		return
+	end
 	updatePosition()
 
 	local mx, my, mlb = spGetMouseState()
 	prevMouseover = mouseover
 	mouseover = false
-	if WG['topbar'] and WG['topbar'].showingQuit() then
+	if WG["topbar"] and WG["topbar"].showingQuit() then
 		mouseover = false
 	else
 		if math_isInRect(mx, my, left, bottom, right, top) then
@@ -1169,7 +1177,7 @@ function widget:DrawScreen()
 	showTrackname = not (not mouseover and not draggingSlider and playing and volume > 0 and playedTime < totalTime)
 
 	-- detect guishader widget being toggled back on
-	local guishaderNow = WG['guishader'] ~= nil
+	local guishaderNow = WG["guishader"] ~= nil
 	if guishaderNow and not guishaderWasActive then
 		guishaderList = glDeleteList(guishaderList)
 		updateDrawing = true
@@ -1204,11 +1212,11 @@ function widget:DrawScreen()
 			local color = { 1, 1, 1, 0.1 }
 			local colorHighlight = { 1, 1, 1, 0.3 }
 			glBlending(GL_SRC_ALPHA, GL_ONE)
-			local button = 'playpause'
+			local button = "playpause"
 			if buttons[button] ~= nil and math_isInRect(mx, my, buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4]) then
 				UiButton(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4], 1, 1, 1, 1, 1, 1, 1, 1, 1, mlb and colorHighlight or color)
 			end
-			local button = 'next'
+			local button = "next"
 			if buttons[button] ~= nil and math_isInRect(mx, my, buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4]) then
 				UiButton(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4], 1, 1, 1, 1, 1, 1, 1, 1, 1, mlb and colorHighlight or color)
 			end
@@ -1217,15 +1225,17 @@ function widget:DrawScreen()
 	end
 
 	if mouseover then
-		Spring.SetMouseCursor('cursornormal')
+		Spring.SetMouseCursor("cursornormal")
 	end
 end
 
 function PlayNewTrack(paused)
-	if isChangingTrack then return end
+	if isChangingTrack then
+		return
+	end
 	isChangingTrack = true
 
-	if Spring.GetConfigInt('music', 1) ~= 1 then
+	if Spring.GetConfigInt("music", 1) ~= 1 then
 		isChangingTrack = false
 		return
 	end
@@ -1282,11 +1292,19 @@ function PlayNewTrack(paused)
 			currentTrackList = eventWarLowTracks
 			currentTrackListString = "eventWarLow"
 			songsSinceEvent = 0
-			if mathRandom() <= 0.25 and playInterlude == false then playInterlude = true else playInterlude = false end
+			if mathRandom() <= 0.25 and playInterlude == false then
+				playInterlude = true
+			else
+				playInterlude = false
+			end
 		else
 			currentTrackList = warlowTracks
 			currentTrackListString = "warLow"
-			if mathRandom() <= 0.5 and playInterlude == false then playInterlude = true else playInterlude = false end
+			if mathRandom() <= 0.5 and playInterlude == false then
+				playInterlude = true
+			else
+				playInterlude = false
+			end
 		end
 	else
 		if #interludeTracks > 0 and playInterlude then
@@ -1297,11 +1315,19 @@ function PlayNewTrack(paused)
 			currentTrackList = eventPeaceTracks
 			currentTrackListString = "eventPeace"
 			songsSinceEvent = 0
-			if mathRandom() <= 0.375 and playInterlude == false then playInterlude = true else playInterlude = false end
+			if mathRandom() <= 0.375 and playInterlude == false then
+				playInterlude = true
+			else
+				playInterlude = false
+			end
 		else
 			currentTrackList = peaceTracks
 			currentTrackListString = "peace"
-			if mathRandom() <= 0.75 and playInterlude == false then playInterlude = true else playInterlude = false end
+			if mathRandom() <= 0.75 and playInterlude == false then
+				playInterlude = true
+			else
+				playInterlude = false
+			end
 		end
 	end
 
@@ -1428,7 +1454,7 @@ end
 
 function widget:GameFrame(n)
 	gameFrame = n
-	if n%1800 == 0 then
+	if n % 1800 == 0 then
 		deviceLostSafetyCheck = 0
 	end
 
@@ -1441,10 +1467,10 @@ function widget:GameFrame(n)
 	end
 
 	if warMeter > 0 then
-		if n%30 == 15 then
+		if n % 30 == 15 then
 			warMeter = mathFloor(warMeter - (warMeter * 0.04))
-			if warMeter > warHighLevel*3 then
-				warMeter = warHighLevel*3
+			if warMeter > warHighLevel * 3 then
+				warMeter = warHighLevel * 3
 			end
 			warMeterResetTimer = warMeterResetTimer + 1
 			if warMeterResetTimer > warMeterResetTime then
@@ -1454,20 +1480,20 @@ function widget:GameFrame(n)
 	end
 
 	if Spring.Utilities.Gametype.IsRaptors() then
-		if (Spring.GetGameRulesParam("raptorQueenAnger", 0)) > 60 and warMeter < warHighLevel+1 then
-			warMeter = warHighLevel+1
-		elseif (Spring.GetGameRulesParam("raptorQueenAnger", 0)) > 20 and warMeter < warLowLevel+1 then
-			warMeter = warLowLevel+1
+		if (Spring.GetGameRulesParam("raptorQueenAnger", 0)) > 60 and warMeter < warHighLevel + 1 then
+			warMeter = warHighLevel + 1
+		elseif (Spring.GetGameRulesParam("raptorQueenAnger", 0)) > 20 and warMeter < warLowLevel + 1 then
+			warMeter = warLowLevel + 1
 		end
 	elseif Spring.Utilities.Gametype.IsScavengers() then
-		if (Spring.GetGameRulesParam("scavBossAnger", 0)) > 60 and warMeter < warHighLevel+1 then
-			warMeter = warHighLevel+1
-		elseif (Spring.GetGameRulesParam("scavBossAnger", 0)) > 20 and warMeter < warLowLevel+1 then
-			warMeter = warLowLevel+1
+		if (Spring.GetGameRulesParam("scavBossAnger", 0)) > 60 and warMeter < warHighLevel + 1 then
+			warMeter = warHighLevel + 1
+		elseif (Spring.GetGameRulesParam("scavBossAnger", 0)) > 20 and warMeter < warLowLevel + 1 then
+			warMeter = warLowLevel + 1
 		end
 	end
 
-	if n%30 == 15 then
+	if n % 30 == 15 then
 		if Spring.GetGameRulesParam("BossFightStarted") and Spring.GetGameRulesParam("BossFightStarted") == 1 then
 			bossHasSpawned = true
 		else
@@ -1490,16 +1516,19 @@ function widget:GameFrame(n)
 					if (bossHasSpawned and currentTrackListString ~= "bossFight") or ((not bossHasSpawned) and currentTrackListString == "bossFight") then
 						fadeDirection = -2
 						fadeOutSkipTrack = true
-					elseif (interruptionEnabled and (playedTime >= interruptionTime) and gameFrame >= serverFrame-300)
-					  and ((currentTrackListString == "intro" and n > 90)
-						or (currentTrackListString == "peace" and warMeter > (warHighLevel+warLowLevel)* 0.5 ) -- Peace in battle times, let's play some WarLow music at half of WarHigh threshold
-						or (currentTrackListString == "warLow" and warMeter > warHighLevel * 2 ) -- WarLow music is playing but battle intensity is very high, Let's switch to WarHigh at double of WarHigh threshold
-						or (currentTrackListString == "warHigh" and warMeter <= warLowLevel * 0.5 ) -- WarHigh music is playing, but it has been quite peaceful recently. Let's switch to peace music at 50% of WarLow threshold
-						or (currentTrackListString == "warLow" and warMeter <= warLowLevel * 0.25 ) -- WarLow music is playing, but it has been quite peaceful recently. Let's switch to peace music at 25% of WarLow threshold
-						or (currentTrackListString == "interlude" and warMeter > warHighLevel*1.05 )) then -- Interlude is playing but we're hitting WarHigh levels. Let's switch to WarHigh
-							fadeDirection = -2
-							fadeOutSkipTrack = true
-					elseif (playedTime >= totalTime - 12 and Spring.GetConfigInt("UseSoundtrackFades", 1) == 1) then
+					elseif
+						(interruptionEnabled and (playedTime >= interruptionTime) and gameFrame >= serverFrame - 300) and (
+							(currentTrackListString == "intro" and n > 90)
+							or (currentTrackListString == "peace" and warMeter > (warHighLevel + warLowLevel) * 0.5) -- Peace in battle times, let's play some WarLow music at half of WarHigh threshold
+							or (currentTrackListString == "warLow" and warMeter > warHighLevel * 2) -- WarLow music is playing but battle intensity is very high, Let's switch to WarHigh at double of WarHigh threshold
+							or (currentTrackListString == "warHigh" and warMeter <= warLowLevel * 0.5) -- WarHigh music is playing, but it has been quite peaceful recently. Let's switch to peace music at 50% of WarLow threshold
+							or (currentTrackListString == "warLow" and warMeter <= warLowLevel * 0.25) -- WarLow music is playing, but it has been quite peaceful recently. Let's switch to peace music at 25% of WarLow threshold
+							or (currentTrackListString == "interlude" and warMeter > warHighLevel * 1.05)
+						)
+					then -- Interlude is playing but we're hitting WarHigh levels. Let's switch to WarHigh
+						fadeDirection = -2
+						fadeOutSkipTrack = true
+					elseif playedTime >= totalTime - 12 and Spring.GetConfigInt("UseSoundtrackFades", 1) == 1 then
 						fadeDirection = -1
 					end
 				end
@@ -1531,7 +1560,7 @@ end
 function widget:GetConfigData(data)
 	return {
 		curTrack = currentTrack,
-		showGUI = showGUI
+		showGUI = showGUI,
 	}
 end
 

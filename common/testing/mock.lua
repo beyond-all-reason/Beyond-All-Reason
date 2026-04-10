@@ -12,7 +12,7 @@ local function spy(parent, target)
 		calls = calls,
 		remove = function()
 			parent[target] = original
-		end
+		end,
 	}
 end
 
@@ -32,7 +32,7 @@ local function mock(parent, target, fn)
 		calls = calls,
 		remove = function()
 			parent[target] = original
-		end
+		end,
 	}
 end
 

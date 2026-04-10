@@ -35,7 +35,7 @@ return {
 		turninplacespeedlimit = 1.6104,
 		turnrate = 300,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "base",
 			firingceg = "barrelshot-medium",
 			kickback = "-2.4",
@@ -144,8 +144,8 @@ return {
 					vtol = 10,
 				},
 				customparams = {
-					sweepfire=9,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
-				}
+					sweepfire = 9, --multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
+				},
 			},
 		},
 		weapons = {

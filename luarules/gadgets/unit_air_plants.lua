@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "15 Dec 2008",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -41,8 +41,8 @@ local isAirplantNames = {
 	legsplab = true,
 }
 local isAirplantNamesCopy = table.copy(isAirplantNames)
-for name,v in pairs(isAirplantNamesCopy) do
-	isAirplantNames[name..'_scav'] = true
+for name, v in pairs(isAirplantNamesCopy) do
+	isAirplantNames[name .. "_scav"] = true
 end
 -- convert unitname -> unitDefID
 local isAirplant = {}
@@ -62,7 +62,7 @@ local landCmd = {
 	action = "apLandAt",
 	type = CMDTYPE.ICON_MODE,
 	tooltip = "setting for Aircraft leaving the plant",
-	params = { '1', ' Fly ', 'Land' }
+	params = { "1", " Fly ", "Land" },
 }
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)

@@ -112,7 +112,7 @@ end
 -- of iteration.
 function IterableMap.Iterator(self)
 	local i = 0
-	return function ()
+	return function()
 		i = i + 1
 		if i <= self.indexMax then
 			local key = self.keyByIndex[i]

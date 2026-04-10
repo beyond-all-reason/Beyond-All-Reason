@@ -28,7 +28,7 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		hidedamage = true,
-    	holdsteady = true,
+		holdsteady = true,
 		sightemitheight = 40,
 		mass = 4999,
 		health = 3700,
@@ -45,7 +45,7 @@ return {
 		radardistance = 700,
 		radaremitheight = 40,
 		reclaimable = false,
-   		releaseheld  = true,
+		releaseheld = true,
 		script = "Units/legcom.cob",
 		seismicsignature = 0,
 		selfdestructas = "commanderexplosion",
@@ -93,7 +93,7 @@ return {
 			--[31] = "legjam",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			combatradius = 600,
 			maxrange = 300,
 			iscommander = true,
@@ -115,7 +115,7 @@ return {
 				footprintz = 2,
 				height = 20,
 				metal = 1250,
-				object = 'Units/legcom_dead.s3o',
+				object = "Units/legcom_dead.s3o",
 				reclaimable = true,
 			},
 			heap = {
@@ -353,7 +353,7 @@ return {
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "TORPEDO",
-				onlytargetcategory = "NOTAIR"
+				onlytargetcategory = "NOTAIR",
 			},
 			[3] = {
 				def = "disintegrator",

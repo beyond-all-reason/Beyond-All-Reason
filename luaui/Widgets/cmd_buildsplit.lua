@@ -13,7 +13,6 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized Spring API for performance
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetSpectatingState = Spring.GetSpectatingState

@@ -17,12 +17,14 @@ end
 
 function CommanderBST:Update()
 	local f = self.game:Frame()
-	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'CommanderBST' then return end
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= "CommanderBST" then
+		return
+	end
 	if self.ai.labshst.T2LAB then
 		self.save = 1
 	elseif self.unit:Internal():GetHealth() <= self.unit:Internal():GetMaxHealth() * 0.99 then
 		self.save = 2
-	elseif self.ai.maphst:getCellsFields(self.unit:Internal():GetPosition(),{'ARMED'},2,self.ai.loshst.ENEMY) > 500 then
+	elseif self.ai.maphst:getCellsFields(self.unit:Internal():GetPosition(), { "ARMED" }, 2, self.ai.loshst.ENEMY) > 500 then
 		self.save = 2
 	elseif self.unit:Internal():GetHealth() > self.unit:Internal():GetMaxHealth() * 0.99 then
 		self.save = false
@@ -31,9 +33,9 @@ function CommanderBST:Update()
 		if self.safeBuilder and game:GetUnitByID(self.safeBuilder) and game:GetUnitByID(self.safeBuilder):GetPosition() then
 			return
 		end
-		self.safeBuilder = self.ai.buildingshst:NearestBuilderRole(self.unit:Internal(), 'eco')
+		self.safeBuilder = self.ai.buildingshst:NearestBuilderRole(self.unit:Internal(), "eco")
 		if self.safeBuilder then
-			self.ai.tool:GiveOrder(self.id,CMD.GUARD,self.safeBuilder,0,'1-1')
+			self.ai.tool:GiveOrder(self.id, CMD.GUARD, self.safeBuilder, 0, "1-1")
 		else
 			self.safeHouse = self.ai.labshst:ClosestHighestLevelFactory(self.unit:Internal())
 			if self.safeHouse then
@@ -64,7 +66,7 @@ function CommanderBST:OwnerIdle()
 	self.unit:ElectBehaviour()
 end
 
-function CommanderBST:OwnerDamaged(attacker,damage)
+function CommanderBST:OwnerDamaged(attacker, damage)
 	if self.unit:Internal():GetHealth() < self.unit:Internal():GetMaxHealth() * 0.75 then
 		self.save = true
 	end
@@ -74,7 +76,7 @@ function CommanderBST:Activate()
 	self.active = true
 
 	if self.safeBuilder then
-		self.ai.tool:GiveOrder(self.id,CMD.GUARD,self.safeBuilder,0,'1-1')
+		self.ai.tool:GiveOrder(self.id, CMD.GUARD, self.safeBuilder, 0, "1-1")
 	elseif self.safeHouse then
 		self:HelpFactory()
 	end
@@ -96,9 +98,8 @@ function CommanderBST:Priority()
 	end
 end
 
-
 function CommanderBST:HelpFactory()
-	self.ai.tool:GiveOrder(self.id,CMD.GUARD, self.safeHouse.id, 0,'1-1')
+	self.ai.tool:GiveOrder(self.id, CMD.GUARD, self.safeHouse.id, 0, "1-1")
 	--[[
 	local angle = math.random() * twicePi
 	--self.unit:Internal():Move(self.ai.tool:RandomAway( self.safeHouse.position, 200, nil, angle))

@@ -12,7 +12,6 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized functions for performance
 local tableInsert = table.insert
 

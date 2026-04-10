@@ -59,7 +59,7 @@ local function bakeUnitDefs()
 		local filepath = getFilePath(name .. ".lua", "units/")
 		if filepath then
 			if not unitDef.customparams.subfolder or string.sub(filepath, 7, #filepath - 1) ~= string.lower(unitDef.customparams.subfolder) then
-				unitDef.customparams.subfolder = string.sub(filepath, 7, #filepath - 1)		-- not that this always gets to be lowercase despite whatever it is in the repo
+				unitDef.customparams.subfolder = string.sub(filepath, 7, #filepath - 1) -- not that this always gets to be lowercase despite whatever it is in the repo
 			end
 		end
 		SaveDefToCustomParams("UnitDefs", name, unitDef)
@@ -94,7 +94,6 @@ local function tableMergeSpecial(t1, t2)
 
 	return newTable
 end
-
 
 local function getDimensions(scale)
 	if not scale then
@@ -135,11 +134,7 @@ local function enlargeSelectionVolumes()
 
 			if ud.selectionvolumescales then
 				local dim = getDimensions(ud.selectionvolumescales)
-				ud.selectionvolumescales = math.ceil(dim[1] * scale)
-					.. " "
-					.. math.ceil(dim[2] * scale)
-					.. " "
-					.. math.ceil(dim[3] * scale)
+				ud.selectionvolumescales = math.ceil(dim[1] * scale) .. " " .. math.ceil(dim[2] * scale) .. " " .. math.ceil(dim[3] * scale)
 			else
 				local size = math.max(ud.footprintx or 0, ud.footprintz or 0) * 15
 				if size > 0 then
@@ -173,11 +168,7 @@ local function enlargeSelectionVolumes()
 						z = dimensions[3]
 						ud.selectionvolumetype = ud.selectionvolumetype or ud.collisionvolumetype
 					end
-					ud.selectionvolumescales = math.ceil(x * scale)
-						.. " "
-						.. math.ceil(y * scale)
-						.. " "
-						.. math.ceil(z * scale)
+					ud.selectionvolumescales = math.ceil(x * scale) .. " " .. math.ceil(y * scale) .. " " .. math.ceil(z * scale)
 				end
 			end
 		else
@@ -234,15 +225,15 @@ local function preProcessTweakOptions()
 	for name, value in pairs(modOptions) do
 		local tweakType = name:match("^tweak([a-z]+)%d*$")
 		local index = tonumber(name:match("^tweak[a-z]+(%d*)$")) or 0
-		if (tweakType == 'defs' or tweakType == 'units') and index then
-			table.insert(tweaks, {name = name, type = tweakType, index = index, value = value})
+		if (tweakType == "defs" or tweakType == "units") and index then
+			table.insert(tweaks, { name = name, type = tweakType, index = index, value = value })
 		end
 	end
 
 	table.sort(tweaks, function(a, b)
-		if a.type == 'defs' and b.type == 'units' then
+		if a.type == "defs" and b.type == "units" then
 			return true
-		elseif a.type == 'units' and b.type == 'defs' then
+		elseif a.type == "units" and b.type == "defs" then
 			return false
 		end
 		return a.index < b.index
@@ -253,14 +244,14 @@ local function preProcessTweakOptions()
 	for i = 1, #tweaks do
 		local tweak = tweaks[i]
 		local name = tweak.name
-		if tweak.type == 'defs' then
+		if tweak.type == "defs" then
 			local decodeSuccess, postsFuncStr = pcall(string.base64Decode, modOptions[name])
 			if decodeSuccess then
 				local postfunc, err = loadstring(postsFuncStr)
 				if err then
 					Spring.Echo("Error parsing modoption", name, "from string", postsFuncStr, "Error: " .. err)
 				else
-					Spring.Echo("Loading ".. name .. " modoption")
+					Spring.Echo("Loading " .. name .. " modoption")
 					Spring.Echo(postsFuncStr)
 					if postfunc then
 						local success, result = pcall(postfunc)
@@ -278,7 +269,7 @@ local function preProcessTweakOptions()
 			local success, tweakunits = pcall(Spring.Utilities.CustomKeyToUsefulTable, modOptions[name])
 			if success then
 				if type(tweakunits) == "table" then
-					Spring.Echo("Loading ".. name .. " modoption")
+					Spring.Echo("Loading " .. name .. " modoption")
 					for unitName, ud in pairs(UnitDefs) do
 						if tweakunits[unitName] then
 							Spring.Echo("Loading tweakunits for " .. unitName)
@@ -325,7 +316,6 @@ PrebakeUnitDefs()
 if SaveDefsToCustomParams then
 	bakeUnitDefs()
 end
-
 
 preProcessTweakOptions()
 preProcessUnitDefs()

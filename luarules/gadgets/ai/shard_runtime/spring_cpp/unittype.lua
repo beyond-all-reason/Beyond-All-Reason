@@ -1,3 +1,3 @@
-function shardify_unittype( unittype )
+function shardify_unittype(unittype)
 	return unittype
 end

@@ -179,12 +179,12 @@ local function drawAoE(tx, ty, tz, selectedTeam)
 end
 
 local function findPlayerName(teamId)
-	local name = ''
-	if GetGameRulesParam('ainame_' .. teamId) then
-		name = I18N('ui.playersList.aiName', { name = GetGameRulesParam('ainame_' .. teamId) })
+	local name = ""
+	if GetGameRulesParam("ainame_" .. teamId) then
+		name = I18N("ui.playersList.aiName", { name = GetGameRulesParam("ainame_" .. teamId) })
 	else
 		local players = GetPlayerList(teamId)
-		name = (#players > 0) and GetPlayerInfo(players[1], false) or '------'
+		name = (#players > 0) and GetPlayerInfo(players[1], false) or "------"
 
 		for _, pID in ipairs(players) do
 			local pname, active, isspec = GetPlayerInfo(pID, false)
@@ -213,10 +213,16 @@ local function drawName(teamId)
 		font:Begin()
 		font:SetTextColor(defaultColor)
 		font:SetOutlineColor({ 0, 0, 0, 1 })
-		font:Print(I18N("ui.quickShareToTarget.shareTo", {
-			playerColor = colourNames(teamId),
-			player = findPlayerName(teamId)
-		}), mouseX, textY, 24, "con")
+		font:Print(
+			I18N("ui.quickShareToTarget.shareTo", {
+				playerColor = colourNames(teamId),
+				player = findPlayerName(teamId),
+			}),
+			mouseX,
+			textY,
+			24,
+			"con"
+		)
 		font:End()
 	else
 		font:Begin()
@@ -225,7 +231,6 @@ local function drawName(teamId)
 		font:Print(I18N("ui.quickShareToTarget.noTarget"), mouseX, textY, 24, "con")
 		font:End()
 	end
-
 end
 
 local function isAlly(unitTeamId)
@@ -283,7 +288,7 @@ local function getSelectedTeam()
 
 	local tx, ty, tz, targetUnitID = getMouseTargetPosition()
 
-	if (not tx and not targetUnitID) then
+	if not tx and not targetUnitID then
 		return nil
 	end
 
@@ -304,17 +309,17 @@ end
 function widget:DrawWorld()
 	local targetX, targetY, targetZ, selectedTeam = getSelectedTeam()
 
-	if (not targetX) then
+	if not targetX then
 		return
 	end
 
-	drawAoE(targetX, targetY+10, targetZ, selectedTeam)
+	drawAoE(targetX, targetY + 10, targetZ, selectedTeam)
 end
 
 function widget:DrawScreen()
 	local targetX, _, _, selectedTeam = getSelectedTeam()
 
-	if (not targetX) then
+	if not targetX then
 		return
 	end
 
@@ -342,7 +347,7 @@ function widget:CommandNotify(cmdID, cmdParams, _)
 		end
 
 		ShareResources(targetTeamID, "units")
-		PlaySoundFile("beep4", 1, 'ui')
+		PlaySoundFile("beep4", 1, "ui")
 		return false
 	end
 end
@@ -358,15 +363,15 @@ function widget:CommandsChanged()
 		customCommands[#customCommands + 1] = {
 			id = cmdQuickShareToTargetId,
 			type = CMDTYPE.ICON_UNIT_OR_MAP,
-			name = 'Share Unit To Target',
-			cursor = 'settarget',
-			action = 'quicksharetotarget',
+			name = "Share Unit To Target",
+			cursor = "settarget",
+			action = "quicksharetotarget",
 		}
 	end
 end
 
 function widget:ViewResize(vsx, vsy)
-	font = WG['fonts'].getFont(2, 1.5)
+	font = WG["fonts"].getFont(2, 1.5)
 end
 
 function widget:Initialize()

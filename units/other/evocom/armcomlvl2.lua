@@ -28,7 +28,7 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-    	holdsteady = true,
+		holdsteady = true,
 		icontype = "armcom",
 		sightemitheight = 40,
 		mass = 4900,
@@ -41,11 +41,11 @@ return {
 		mincloakdistance = 50,
 		movementclass = "COMMANDERBOT",
 		nochasecategory = "ALL",
-		objectname = "Units/ARMCOM"..(Spring.GetModOptions().xmas and '-XMAS' or '')..".s3o",
+		objectname = "Units/ARMCOM" .. (Spring.GetModOptions().xmas and "-XMAS" or "") .. ".s3o",
 		radardistance = 700,
 		radaremitheight = 40,
 		reclaimable = false,
-   		releaseheld  = true,
+		releaseheld = true,
 		script = "Units/ARMCOM_lus.lua",
 		seismicsignature = 0,
 		selfdestructas = "commanderexplosion",
@@ -95,7 +95,7 @@ return {
 			"armfrock",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			area_mex_def = "armmex",
 			iscommander = true,
 			effigy_offset = 1,
@@ -121,7 +121,7 @@ return {
 			effigy = "comeffigylvl1",
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
-			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
+			fall_damage_multiplier = 5, --this ensures commander dies when it hits the ground so effigies can trigger respawn.
 		},
 		featuredefs = {
 			dead = {
@@ -373,12 +373,12 @@ return {
 			[1] = {
 				def = "SHORTGUN",
 				onlytargetcategory = "NOTSUB",
-                fastautoretargeting = true,
+				fastautoretargeting = true,
 			},
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "ARMCOMSEALASER",
-				onlytargetcategory = "NOTAIR"
+				onlytargetcategory = "NOTAIR",
 			},
 			[3] = {
 				def = "DISINTEGRATOR",

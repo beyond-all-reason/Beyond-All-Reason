@@ -115,12 +115,12 @@ local modKeyMultiplier = {
 	click = {
 		ctrl = 20,
 		shift = 5,
-		right = -1
+		right = -1,
 	},
 	keyPress = {
 		ctrl = -1,
-		shift = 5
-	}
+		shift = 5,
+	},
 }
 
 -------------------------------------------------------------------------------
@@ -161,7 +161,7 @@ local costOverrides = {}
 -------------------------------------------------------------------------------
 
 include("keysym.h.lua")
-local unitBlocking = VFS.Include('luaui/Include/unitBlocking.lua')
+local unitBlocking = VFS.Include("luaui/Include/unitBlocking.lua")
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
@@ -298,7 +298,6 @@ local isPregame
 local units = VFS.Include("luaui/configs/unit_buildmenu_config.lua")
 local grid = VFS.Include("luaui/configs/gridmenu_config.lua")
 
-
 local unitBuildOptions = {}
 local unitMetal_extractor = {}
 local unitTranslatedHumanName = {}
@@ -399,9 +398,7 @@ end
 local function updateHoverState()
 	local x, y, left, _, right = Spring.GetMouseState()
 	local isAboveBg = backgroundRect:contains(x, y)
-	local isAboveBuilders = not isAboveBg
-		and selectedBuildersCount > 1
-		and (buildersRect:contains(x, y) or nextBuilderRect:contains(x, y))
+	local isAboveBuilders = not isAboveBg and selectedBuildersCount > 1 and (buildersRect:contains(x, y) or nextBuilderRect:contains(x, y))
 
 	if isAboveBuilders then
 		Spring.SetMouseCursor("cursornormal")
@@ -420,11 +417,7 @@ local function updateHoverState()
 					break
 				end
 
-				setHoveredRectTooltip(
-					rect,
-					unitTranslatedTooltip[rect.opts.uDefID],
-					unitTranslatedHumanName[rect.opts.uDefID]
-				)
+				setHoveredRectTooltip(rect, unitTranslatedTooltip[rect.opts.uDefID], unitTranslatedHumanName[rect.opts.uDefID])
 
 				return
 			end
@@ -486,10 +479,7 @@ local function updateHoverState()
 	if not currentCategory and not builderIsFactory then
 		for cat, catRect in pairs(catRects) do
 			if catRect:contains(x, y) then
-				local text = categoryTooltips[cat]
-					.. "\255\240\240\240 - Hotkey: \255\215\255\215["
-					.. catRect.opts.keyText
-					.. "]"
+				local text = categoryTooltips[cat] .. "\255\240\240\240 - Hotkey: \255\215\255\215[" .. catRect.opts.keyText .. "]"
 
 				setHoveredRectTooltip(catRect, text, cat)
 
@@ -664,9 +654,7 @@ local function updateGrid()
 	-- well reindex the cellsidsperudef
 	uDefCellIds = {}
 
-	local showHotkeys = (builderIsFactory and not useLabBuildMode)
-		or (builderIsFactory and useLabBuildMode and labBuildModeActive)
-		or (activeBuilder and currentCategory)
+	local showHotkeys = (builderIsFactory and not useLabBuildMode) or (builderIsFactory and useLabBuildMode and labBuildModeActive) or (activeBuilder and currentCategory)
 
 	local offset = (currentPage - 1) * cellCount
 
@@ -761,12 +749,7 @@ local function setupCells()
 				arow = col < 3 and 2 or 1
 				acol = 6 - col % 2
 			end
-			cellRects[cellRectID]:set(
-				buildpicsRect.x + (acol - 1) * cellSize,
-				buildpicsRect.yEnd - (rows - arow + 1) * cellSize,
-				buildpicsRect.x + acol * cellSize,
-				buildpicsRect.yEnd - (rows - arow) * cellSize
-			)
+			cellRects[cellRectID]:set(buildpicsRect.x + (acol - 1) * cellSize, buildpicsRect.yEnd - (rows - arow + 1) * cellSize, buildpicsRect.x + acol * cellSize, buildpicsRect.yEnd - (rows - arow) * cellSize)
 		end
 	end
 end
@@ -780,13 +763,7 @@ local function setupCategoryRects()
 
 		for i, cat in ipairs(CONFIG.buildCategories) do
 			local y1 = categoriesRect.yEnd - i * contentHeight + 2
-			catRects[cat]:set(
-				x1,
-				y1,
-				x1 + contentWidth - activeAreaMargin,
-				y1 + contentHeight - 2,
-				defaultCategoryOpts[i]
-			)
+			catRects[cat]:set(x1, y1, x1 + contentWidth - activeAreaMargin, y1 + contentHeight - 2, defaultCategoryOpts[i])
 		end
 
 		local y1 = ((categoriesRect.yEnd - categoriesRect.y) / 2) - (contentHeight / 2)
@@ -799,21 +776,10 @@ local function setupCategoryRects()
 		for i, cat in ipairs(CONFIG.buildCategories) do
 			local x1 = categoriesRect.x + (i - 1) * buttonWidth
 
-			catRects[cat]:set(
-				x1,
-				y2 - categoryButtonHeight + padding,
-				x1 + buttonWidth,
-				y2 - activeAreaMargin - padding,
-				defaultCategoryOpts[i]
-			)
+			catRects[cat]:set(x1, y2 - categoryButtonHeight + padding, x1 + buttonWidth, y2 - activeAreaMargin - padding, defaultCategoryOpts[i])
 		end
 		local x1 = (math.round(categoriesRect.xEnd - categoriesRect.x) / 2) - (buttonWidth / 2)
-		currentCategoryRect:set(
-			x1,
-			y2 - categoryButtonHeight + padding,
-			x1 + buttonWidth,
-			y2 - activeAreaMargin - padding
-		)
+		currentCategoryRect:set(x1, y2 - categoryButtonHeight + padding, x1 + buttonWidth, y2 - activeAreaMargin - padding)
 	end
 end
 
@@ -953,9 +919,7 @@ end
 -- Helper function for iterating over the actions with builder and factory tags,
 -- with GetActionHotKeys those tags will be missed and the hotkey wont work
 local function getGridKey(action)
-	local key = getActionHotkey(action)
-		or getActionHotkey(action .. " builder")
-		or getActionHotkey(action .. " factory")
+	local key = getActionHotkey(action) or getActionHotkey(action .. " builder") or getActionHotkey(action .. " factory")
 	return key
 end
 
@@ -1001,8 +965,7 @@ local function setLabBuildMode(value)
 end
 
 local function setActiveCommand(cmd, button, leftClick, rightClick)
-	local didChangeCmd = button and Spring.SetActiveCommand(cmd, button, leftClick, rightClick, Spring.GetModKeyState())
-		or Spring.SetActiveCommand(cmd)
+	local didChangeCmd = button and Spring.SetActiveCommand(cmd, button, leftClick, rightClick, Spring.GetModKeyState()) or Spring.SetActiveCommand(cmd)
 
 	if not didChangeCmd then
 		Spring.Echo("<Grid menu> Unable to change active command", cmd)
@@ -1091,7 +1054,7 @@ local function queueUnit(uDefID, opts, quantity)
 	for unitDefID, unitIds in pairs(sel) do
 		if units.isFactory[unitDefID] then
 			for _, uid in ipairs(unitIds) do
-				for _ = 1,quantity do
+				for _ = 1, quantity do
 					spGiveOrderToUnit(uid, -uDefID, 0, opts)
 				end
 			end
@@ -1141,7 +1104,7 @@ local function multiQueue(uDefID, quantity, cap, opts)
 	if quantity >= cap then
 		multiqueue_quantity = math.floor(quantity / cap)
 		queueUnit(uDefID, opts, multiqueue_quantity)
-		quantity = math.fmod(quantity,cap)
+		quantity = math.fmod(quantity, cap)
 	end
 	return quantity
 end
@@ -1180,7 +1143,7 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 		end
 
 		if WG.Quotas and WG.Quotas.isOnQuotaMode(activeBuilderID) and not alt then
-			updateQuotaNumber(uDefID,quantity)
+			updateQuotaNumber(uDefID, quantity)
 			return true
 		else
 			if args[3] and args[3] == "builder" then
@@ -1197,11 +1160,11 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 				Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 			end
 			--if quantity is more than 100, more than 20 or more than 5 then use engine logic for better performance (fewer for loops inside queueUnit())
-			quantity = multiQueue(uDefID,quantity,100,{ "ctrl","shift", alt and "alt", removing and "right" })
-			quantity = multiQueue(uDefID,quantity,20,{ "ctrl", alt and "alt", removing and "right" })
-			quantity = multiQueue(uDefID,quantity,5,{ "shift", alt and "alt", removing and "right" })
+			quantity = multiQueue(uDefID, quantity, 100, { "ctrl", "shift", alt and "alt", removing and "right" })
+			quantity = multiQueue(uDefID, quantity, 20, { "ctrl", alt and "alt", removing and "right" })
+			quantity = multiQueue(uDefID, quantity, 5, { "shift", alt and "alt", removing and "right" })
 			--queue the remaining units
-			multiQueue(uDefID,quantity,1,{ alt and "alt", removing and "right" })
+			multiQueue(uDefID, quantity, 1, { alt and "alt", removing and "right" })
 
 			return true
 		end
@@ -1314,7 +1277,6 @@ function widget:Initialize()
 	WG["buildmenu"] = {}
 
 	doUpdateClock = os.clock()
-
 
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_key", gridmenuKeyHandler, nil, "pR")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_category", gridmenuCategoryHandler, nil, "p")
@@ -1528,7 +1490,7 @@ function widget:ViewResize()
 
 	activeAreaMargin = math_ceil(bgpadding * CONFIG.activeAreaMargin)
 
-	font2 = WG['fonts'].getFont(2)
+	font2 = WG["fonts"].getFont(2)
 
 	for i, rectOpts in ipairs(defaultCategoryOpts) do
 		defaultCategoryOpts[i].nameHeight = font2:GetTextHeight(rectOpts.name)
@@ -1558,36 +1520,16 @@ function widget:ViewResize()
 		-- assemble rects left to right
 		categoriesRect:set(posX + bgpadding, posYEnd, posX + categoryWidth, posY - bgpadding)
 
-		buildpicsRect:set(
-			categoriesRect.xEnd + bgpadding,
-			posYEnd,
-			categoriesRect.xEnd + (cellSize * columns) + bgpadding,
-			posY - bgpadding
-		)
+		buildpicsRect:set(categoriesRect.xEnd + bgpadding, posYEnd, categoriesRect.xEnd + (cellSize * columns) + bgpadding, posY - bgpadding)
 
 		backgroundRect:set(posX, posYEnd, buildpicsRect.xEnd + bgpadding, posY)
 
 		local buttonHeight = categoriesRect:getHeight() / 4
-		backRect:set(
-			categoriesRect.x,
-			categoriesRect.yEnd - buttonHeight + bgpadding,
-			categoriesRect.xEnd,
-			categoriesRect.yEnd
-		)
+		backRect:set(categoriesRect.x, categoriesRect.yEnd - buttonHeight + bgpadding, categoriesRect.xEnd, categoriesRect.yEnd)
 
-		nextPageRect:set(
-			categoriesRect.x,
-			categoriesRect.y + bgpadding,
-			categoriesRect.xEnd,
-			categoriesRect.y + buttonHeight - bgpadding
-		)
+		nextPageRect:set(categoriesRect.x, categoriesRect.y + bgpadding, categoriesRect.xEnd, categoriesRect.y + buttonHeight - bgpadding)
 
-		labBuildModeRect:set(
-			categoriesRect.x,
-			categoriesRect.y + buttonHeight + bgpadding,
-			categoriesRect.xEnd,
-			categoriesRect.yEnd - bgpadding
-		)
+		labBuildModeRect:set(categoriesRect.x, categoriesRect.y + buttonHeight + bgpadding, categoriesRect.xEnd, categoriesRect.yEnd - bgpadding)
 
 		-- start with no width and grow dynamically
 		buildersRect:set(posX, backgroundRect.yEnd, posX, backgroundRect.yEnd + builderButtonSize)
@@ -1616,48 +1558,23 @@ function widget:ViewResize()
 		categoryButtonHeight = categoryButtonHeight * 1.4
 
 		-- assemble rects, bottom to top
-		categoriesRect:set(
-			posX + bgpadding,
-			posYEnd + bgpadding,
-			posXEnd - bgpadding,
-			posYEnd + categoryButtonHeight + bgpadding
-		)
+		categoriesRect:set(posX + bgpadding, posYEnd + bgpadding, posXEnd - bgpadding, posYEnd + categoryButtonHeight + bgpadding)
 
 		rows = 3
 		columns = 4
 		cellSize = math_floor((width - (bgpadding * 2)) / columns)
 
-		buildpicsRect:set(
-			posX + bgpadding,
-			categoriesRect.yEnd,
-			posXEnd - bgpadding,
-			categoriesRect.yEnd + (cellSize * rows)
-		)
+		buildpicsRect:set(posX + bgpadding, categoriesRect.yEnd, posXEnd - bgpadding, categoriesRect.yEnd + (cellSize * rows))
 
 		backgroundRect:set(posX, posYEnd, posXEnd, math_floor(buildpicsRect.yEnd + (bgpadding * 1.5)))
 
 		local buttonWidth = (categoriesRect.xEnd - categoriesRect.x) / 3
 		local padding = math_max(1, math_floor(bgpadding * 0.52))
-		backRect:set(
-			categoriesRect.x,
-			categoriesRect.y + padding,
-			categoriesRect.x + buttonWidth - (bgpadding * 2),
-			categoriesRect.yEnd - padding
-		)
+		backRect:set(categoriesRect.x, categoriesRect.y + padding, categoriesRect.x + buttonWidth - (bgpadding * 2), categoriesRect.yEnd - padding)
 
-		nextPageRect:set(
-			categoriesRect.xEnd - buttonWidth + (2 * bgpadding),
-			categoriesRect.y + padding,
-			categoriesRect.xEnd,
-			categoriesRect.yEnd - padding
-		)
+		nextPageRect:set(categoriesRect.xEnd - buttonWidth + (2 * bgpadding), categoriesRect.y + padding, categoriesRect.xEnd, categoriesRect.yEnd - padding)
 
-		labBuildModeRect:set(
-			categoriesRect.x,
-			categoriesRect.y + padding,
-			nextPageRect.x - (2 * bgpadding),
-			categoriesRect.yEnd - padding
-		)
+		labBuildModeRect:set(categoriesRect.x, categoriesRect.y + padding, nextPageRect.x - (2 * bgpadding), categoriesRect.yEnd - padding)
 
 		-- start with no width and grow dynamically
 		buildersRect:set(posX, backgroundRect.yEnd, posX, backgroundRect.yEnd + builderButtonSize)
@@ -1728,14 +1645,7 @@ function widget:Update(dt)
 			ordermenuLeft = math_floor((oposX + owidth) * vsx)
 			ordermenuHeight = oheight
 		end
-		if
-			not prevAdvplayerlistLeft
-			or advplayerlistLeft ~= prevAdvplayerlistLeft
-			or not prevOrdermenuLeft
-			or ordermenuLeft ~= prevOrdermenuLeft
-			or not prevOrdermenuHeight
-			or ordermenuHeight ~= prevOrdermenuHeight
-		then
+		if not prevAdvplayerlistLeft or advplayerlistLeft ~= prevAdvplayerlistLeft or not prevOrdermenuLeft or ordermenuLeft ~= prevOrdermenuLeft or not prevOrdermenuHeight or ordermenuHeight ~= prevOrdermenuHeight then
 			widget:ViewResize()
 			if not isPregame then
 				updateBuilders() -- builder rects are defined dynamically
@@ -1756,11 +1666,11 @@ function widget:Update(dt)
 		buildmenuShows = true
 	end
 
-	if WG['guishader'] and prevBuildmenuShows ~= buildmenuShows and dlistGuishader then
+	if WG["guishader"] and prevBuildmenuShows ~= buildmenuShows and dlistGuishader then
 		if buildmenuShows then
-			WG['guishader'].InsertDlist(dlistGuishader, 'buildmenu')
+			WG["guishader"].InsertDlist(dlistGuishader, "buildmenu")
 		else
-			WG['guishader'].RemoveDlist('buildmenu')
+			WG["guishader"].RemoveDlist("buildmenu")
 		end
 	end
 
@@ -1804,32 +1714,11 @@ end
 local function drawBuildMenuBg()
 	local height = backgroundRect.yEnd - backgroundRect.y
 	local posY = backgroundRect.y
-	UiElement(
-		backgroundRect.x,
-		backgroundRect.y,
-		backgroundRect.xEnd,
-		backgroundRect.yEnd,
-		(backgroundRect.x > 0 and (#builderRects > 1 and 0 or 1) or 0),
-		1,
-		((posY - height > 0 or backgroundRect.x <= 0) and 1 or 0),
-		0
-	)
+	UiElement(backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, backgroundRect.yEnd, (backgroundRect.x > 0 and (#builderRects > 1 and 0 or 1) or 0), 1, ((posY - height > 0 or backgroundRect.x <= 0) and 1 or 0), 0)
 
 	if selectedBuildersCount > 1 and activeBuilder then
 		height = backgroundRect:getHeight()
-		UiElement(
-			buildersRect.x,
-			buildersRect.y,
-			buildersRect.xEnd + bgpadding * 2,
-			buildersRect.yEnd + bgpadding + (iconMargin * 2),
-			(backgroundRect.x > 0 and 1 or 0),
-			1,
-			((posY - height > 0 or backgroundRect.x <= 0) and 1 or 0),
-			0,
-			1,
-			1,
-			0
-		)
+		UiElement(buildersRect.x, buildersRect.y, buildersRect.xEnd + bgpadding * 2, buildersRect.yEnd + bgpadding + (iconMargin * 2), (backgroundRect.x > 0 and 1 or 0), 1, ((posY - height > 0 or backgroundRect.x <= 0) and 1 or 0), 0, 1, 1, 0)
 	end
 end
 
@@ -1859,20 +1748,7 @@ local function drawButton(rect)
 		local icon = ":l:" .. rect.opts.icon
 		gl.Color(dim, dim, dim, 0.9)
 		gl.Texture(icon)
-		gl.BeginEnd(
-			GL.QUADS,
-			TexRectRound,
-			rect.x + (bgpadding / 2),
-			rect.yEnd - iconSize,
-			rect.x + iconSize,
-			rect.yEnd - (bgpadding / 2),
-			0,
-			0,
-			0,
-			0,
-			0,
-			0.05
-		) -- this method with a lil zoom prevents faint edges aroudn the image
+		gl.BeginEnd(GL.QUADS, TexRectRound, rect.x + (bgpadding / 2), rect.yEnd - iconSize, rect.x + iconSize, rect.yEnd - (bgpadding / 2), 0, 0, 0, 0, 0, 0.05) -- this method with a lil zoom prevents faint edges aroudn the image
 		--	gl.TexRect(px, sy - iconSize, px + iconSize, sy)
 		gl.Texture(false)
 	end
@@ -1884,32 +1760,8 @@ local function drawButton(rect)
 	if hovered then
 		-- gloss highlight
 		gl.Blending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(
-			rect.x,
-			rect.yEnd - ((rect.yEnd - rect.y) * 0.42),
-			rect.xEnd,
-			rect.yEnd,
-			padding * 1.5,
-			2,
-			2,
-			0,
-			0,
-			{ 1, 1, 1, 0.035 },
-			{ 1, 1, 1, (disableInput and 0.11 or 0.24) }
-		)
-		RectRound(
-			rect.x,
-			rect.y,
-			rect.xEnd,
-			rect.y + ((rect.yEnd - rect.y) * 0.5),
-			padding * 1.5,
-			0,
-			0,
-			2,
-			2,
-			{ 1, 1, 1, (disableInput and 0.035 or 0.075) },
-			{ 1, 1, 1, 0 }
-		)
+		RectRound(rect.x, rect.yEnd - ((rect.yEnd - rect.y) * 0.42), rect.xEnd, rect.yEnd, padding * 1.5, 2, 2, 0, 0, { 1, 1, 1, 0.035 }, { 1, 1, 1, (disableInput and 0.11 or 0.24) })
+		RectRound(rect.x, rect.y, rect.xEnd, rect.y + ((rect.yEnd - rect.y) * 0.5), padding * 1.5, 0, 0, 2, 2, { 1, 1, 1, (disableInput and 0.035 or 0.075) }, { 1, 1, 1, 0 })
 		gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end
 end
@@ -1965,57 +1817,17 @@ local function drawCell(rect)
 	local groupIcon = rect.opts.groupIcon
 	local unitGroup = rect.opts.unitGroup
 
-	UiUnit(
-		rect.x + cellPadding + iconPadding,
-		rect.y + cellPadding + iconPadding,
-		rect.xEnd - cellPadding - iconPadding,
-		rect.yEnd - cellPadding - iconPadding,
-		cornerSize,
-		1,
-		1,
-		1,
-		1,
-		usedZoom,
-		nil,
-		disabled and 0 or nil,
-		"#" .. uid,
-		groupIcon and (groupIcon and ":l" .. (disabled and "t0.3,0.3,0.3" or "") .. ":" .. groupIcon or nil) or nil,
-		unitGroup and (unitGroup and ":l" .. (disabled and "t0.3,0.3,0.3:" or ":") .. unitGroup or nil) or nil,
-		{ rect.opts.metalCost, rect.opts.energyCost },
-		tonumber(queuenr)
-	)
+	UiUnit(rect.x + cellPadding + iconPadding, rect.y + cellPadding + iconPadding, rect.xEnd - cellPadding - iconPadding, rect.yEnd - cellPadding - iconPadding, cornerSize, 1, 1, 1, 1, usedZoom, nil, disabled and 0 or nil, "#" .. uid, groupIcon and (groupIcon and ":l" .. (disabled and "t0.3,0.3,0.3" or "") .. ":" .. groupIcon or nil) or nil, unitGroup and (unitGroup and ":l" .. (disabled and "t0.3,0.3,0.3:" or ":") .. unitGroup or nil) or nil, { rect.opts.metalCost, rect.opts.energyCost }, tonumber(queuenr))
 
 	-- colorize/highlight unit icon
 	if cellColor then
 		gl.Blending(GL.DST_ALPHA, GL_ONE_MINUS_SRC_COLOR)
 		gl.Color(cellColor[1], cellColor[2], cellColor[3], cellColor[4])
 		gl.Texture("#" .. uid)
-		UiUnit(
-			rect.x + cellPadding + iconPadding,
-			rect.y + cellPadding + iconPadding,
-			rect.xEnd - cellPadding - iconPadding,
-			rect.yEnd - cellPadding - iconPadding,
-			cornerSize,
-			1,
-			1,
-			1,
-			1,
-			usedZoom
-		)
+		UiUnit(rect.x + cellPadding + iconPadding, rect.y + cellPadding + iconPadding, rect.xEnd - cellPadding - iconPadding, rect.yEnd - cellPadding - iconPadding, cornerSize, 1, 1, 1, 1, usedZoom)
 		if cellColor[4] > 0 then
 			gl.Blending(GL_SRC_ALPHA, GL_ONE)
-			UiUnit(
-				rect.x + cellPadding + iconPadding,
-				rect.y + cellPadding + iconPadding,
-				rect.xEnd - cellPadding - iconPadding,
-				rect.yEnd - cellPadding - iconPadding,
-				cornerSize,
-				1,
-				1,
-				1,
-				1,
-				usedZoom
-			)
+			UiUnit(rect.x + cellPadding + iconPadding, rect.y + cellPadding + iconPadding, rect.xEnd - cellPadding - iconPadding, rect.yEnd - cellPadding - iconPadding, cornerSize, 1, 1, 1, 1, usedZoom)
 		end
 		gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end
@@ -2036,23 +1848,11 @@ local function drawCell(rect)
 				end
 				local costPrice = formatPrice(math.floor(topValue))
 				local costPriceText = costColor .. costPrice
-				font2:Print(
-					costPriceText,
-					rect.xEnd - cellPadding - (cellInnerSize * 0.048),
-					rect.y + cellPadding + (priceFontSize * 1.35),
-					priceFontSize,
-					"ro"
-				)
+				font2:Print(costPriceText, rect.xEnd - cellPadding - (cellInnerSize * 0.048), rect.y + cellPadding + (priceFontSize * 1.35), priceFontSize, "ro")
 			elseif not costOverride.top then
 				local metalColor = disabled and "\255\125\125\125" or "\255\245\245\245"
 				local metalPriceText = metalColor .. metalPrice
-				font2:Print(
-					metalPriceText,
-					rect.xEnd - cellPadding - (cellInnerSize * 0.048),
-					rect.y + cellPadding + (priceFontSize * 1.35),
-					priceFontSize,
-					"ro"
-				)
+				font2:Print(metalPriceText, rect.xEnd - cellPadding - (cellInnerSize * 0.048), rect.y + cellPadding + (priceFontSize * 1.35), priceFontSize, "ro")
 			end
 
 			if costOverride.bottom and not costOverride.bottom.disabled then
@@ -2062,43 +1862,19 @@ local function drawCell(rect)
 				end
 				local costPrice = formatPrice(math.floor(bottomValue))
 				local costPriceText = costColor .. costPrice
-				font2:Print(
-					costPriceText,
-					rect.xEnd - cellPadding - (cellInnerSize * 0.048),
-					rect.y + cellPadding + (priceFontSize * 0.35),
-					priceFontSize,
-					"ro"
-				)
+				font2:Print(costPriceText, rect.xEnd - cellPadding - (cellInnerSize * 0.048), rect.y + cellPadding + (priceFontSize * 0.35), priceFontSize, "ro")
 			elseif not costOverride.bottom then
 				local energyColor = disabled and "\255\135\135\135" or "\255\255\255\000"
 				local energyPriceText = energyColor .. energyPrice
-				font2:Print(
-					energyPriceText,
-					rect.xEnd - cellPadding - (cellInnerSize * 0.048),
-					rect.y + cellPadding + (priceFontSize * 0.35),
-					priceFontSize,
-					"ro"
-				)
+				font2:Print(energyPriceText, rect.xEnd - cellPadding - (cellInnerSize * 0.048), rect.y + cellPadding + (priceFontSize * 0.35), priceFontSize, "ro")
 			end
 		else
 			local metalColor = disabled and "\255\125\125\125" or "\255\245\245\245"
 			local energyColor = disabled and "\255\135\135\135" or "\255\255\255\000"
 			local metalPriceText = metalColor .. metalPrice
 			local energyPriceText = energyColor .. energyPrice
-			font2:Print(
-				metalPriceText,
-				rect.xEnd - cellPadding - (cellInnerSize * 0.048),
-				rect.y + cellPadding + (priceFontSize * 1.35),
-				priceFontSize,
-				"ro"
-			)
-			font2:Print(
-				energyPriceText,
-				rect.xEnd - cellPadding - (cellInnerSize * 0.048),
-				rect.y + cellPadding + (priceFontSize * 0.35),
-				priceFontSize,
-				"ro"
-			)
+			font2:Print(metalPriceText, rect.xEnd - cellPadding - (cellInnerSize * 0.048), rect.y + cellPadding + (priceFontSize * 1.35), priceFontSize, "ro")
+			font2:Print(energyPriceText, rect.xEnd - cellPadding - (cellInnerSize * 0.048), rect.y + cellPadding + (priceFontSize * 0.35), priceFontSize, "ro")
 		end
 	end
 
@@ -2108,13 +1884,7 @@ local function drawCell(rect)
 	if hotkeyText then
 		local keyFontSize = priceFontSize * 1.1
 		local hotkeyColor = disabled and "\255\100\100\100" or "\255\215\255\215"
-		font2:Print(
-			hotkeyColor .. hotkeyText,
-			rect.xEnd - cellPadding - (cellInnerSize * 0.048),
-			rect.yEnd - cellPadding - keyFontSize,
-			keyFontSize,
-			"ro"
-		)
+		font2:Print(hotkeyColor .. hotkeyText, rect.xEnd - cellPadding - (cellInnerSize * 0.048), rect.yEnd - cellPadding - keyFontSize, keyFontSize, "ro")
 	end
 
 	-- factory queue number
@@ -2135,13 +1905,7 @@ local function drawCell(rect)
 			{ 0.15, 0.15, 0.15, 0.95 },
 			{ 0.25, 0.25, 0.25, 0.95 }
 		)
-		font2:Print(
-			"\255\190\255\190" .. queuenr,
-			rect.x + cellPadding + textPad,
-			rect.y + cellPadding + math_floor(cellInnerSize * 0.735),
-			queueFontSize,
-			"o"
-		)
+		font2:Print("\255\190\255\190" .. queuenr, rect.x + cellPadding + textPad, rect.y + cellPadding + math_floor(cellInnerSize * 0.735), queueFontSize, "o")
 	end
 
 	if quotaNumber and quotaNumber ~= 0 then
@@ -2151,7 +1915,7 @@ local function drawCell(rect)
 		local textWidth = font2:GetTextWidth(quotaText) * queueFontSize
 		if textWidth > 0.75 * cellInnerSize then
 			local newFontSize = queueFontSize * 0.75 * cellInnerSize / textWidth
-			textPad = textPad * newFontSize/queueFontSize
+			textPad = textPad * newFontSize / queueFontSize
 			textWidth = font2:GetTextWidth(quotaText) * newFontSize
 			queueFontSize = newFontSize
 		end
@@ -2168,13 +1932,7 @@ local function drawCell(rect)
 			{ 0.15, 0.15, 0.15, 0.95 },
 			{ 0.25, 0.25, 0.25, 0.95 }
 		)
-		font2:Print(
-			"\255\255\130\190" .. quotaText,
-			rect.x + cellPadding + textPad,
-			rect.y + cellPadding + (math_floor(cellInnerSize * 0.365) - font2:GetTextHeight(quotaNumber)*queueFontSize)/2,
-			queueFontSize,
-			"o"
-		)
+		font2:Print("\255\255\130\190" .. quotaText, rect.x + cellPadding + textPad, rect.y + cellPadding + (math_floor(cellInnerSize * 0.365) - font2:GetTextHeight(quotaNumber) * queueFontSize) / 2, queueFontSize, "o")
 	end
 end
 
@@ -2189,13 +1947,7 @@ local function drawButtonHotkey(rect)
 	local textPadding = bgpadding * 2
 
 	local text = "\255\215\255\215" .. rect.opts.keyText
-	font2:Print(
-		text,
-		rect.xEnd - textPadding,
-		(rect.y - (rect.y - rect.yEnd) / 2) - keyFontHeightOffset,
-		hotkeyFontSize,
-		"ro"
-	)
+	font2:Print(text, rect.xEnd - textPadding, (rect.y - (rect.y - rect.yEnd) / 2) - keyFontHeightOffset, hotkeyFontSize, "ro")
 end
 
 local function drawCategories()
@@ -2205,13 +1957,7 @@ local function drawCategories()
 		local fontHeight = rect.opts.nameHeight * categoryFontSize
 		local fontHeightOffset = fontHeight * 0.34
 
-		font2:Print(
-			rect.opts.name,
-			rect.x + (bgpadding * 7),
-			(rect.y + rect:getHeight() / 2) - fontHeightOffset,
-			categoryFontSize,
-			"o"
-		)
+		font2:Print(rect.opts.name, rect.x + (bgpadding * 7), (rect.y + rect:getHeight() / 2) - fontHeightOffset, categoryFontSize, "o")
 
 		drawButton(rect)
 
@@ -2223,13 +1969,7 @@ local function drawCategories()
 
 		local fontHeight = rect.opts.nameHeight * categoryFontSize
 		local fontHeightOffset = fontHeight * 0.34
-		font2:Print(
-			rect.opts.name,
-			rect.x + (bgpadding * 7),
-			(rect.y + rect:getHeight() / 2) - fontHeightOffset,
-			categoryFontSize,
-			"o"
-		)
+		font2:Print(rect.opts.name, rect.x + (bgpadding * 7), (rect.y + rect:getHeight() / 2) - fontHeightOffset, categoryFontSize, "o")
 
 		if not rect.current then
 			drawButtonHotkey(rect)
@@ -2267,13 +2007,7 @@ local function drawPageButtons()
 	local fontHeight = font2:GetTextHeight(nextPageText) * pageFontSize
 	local fontHeightOffset = fontHeight * 0.34
 
-	font2:Print(
-		nextPageText,
-		nextPageRect.x + (bgpadding * 3),
-		(nextPageRect.y + (buttonHeight / 2)) - fontHeightOffset,
-		pageFontSize,
-		"o"
-	)
+	font2:Print(nextPageText, nextPageRect.x + (bgpadding * 3), (nextPageRect.y + (buttonHeight / 2)) - fontHeightOffset, pageFontSize, "o")
 
 	drawButtonHotkey(nextPageRect)
 	drawButton(nextPageRect)
@@ -2302,18 +2036,11 @@ local function drawBuildModeButtons()
 	if stickToBottom then
 		local rect = labBuildModeRect
 		local fullText = "\255\245\245\245" .. "Enable Build Mode"
-		local buildModeText, _ =
-			font2:WrapText(fullText, categoriesRect:getWidth() - (bgpadding * 2), nil, pageFontSize * 1.1)
+		local buildModeText, _ = font2:WrapText(fullText, categoriesRect:getWidth() - (bgpadding * 2), nil, pageFontSize * 1.1)
 		local buttonHeight = rect:getHeight()
 		local fontHeight = font2:GetTextHeight(buildModeText) * pageFontSize
 		local fontHeightOffset = fontHeight * 0.24
-		font2:Print(
-			buildModeText,
-			rect.x + (bgpadding * 3),
-			(rect.y + (buttonHeight / 2)) - fontHeightOffset,
-			pageFontSize,
-			"n"
-		)
+		font2:Print(buildModeText, rect.x + (bgpadding * 3), (rect.y + (buttonHeight / 2)) - fontHeightOffset, pageFontSize, "n")
 
 		-- draw hotkeys differently for this button
 		local keyFontHeight = font2:GetTextHeight(hotkeys) * hotkeyFontSize
@@ -2329,13 +2056,7 @@ local function drawBuildModeButtons()
 		local buttonHeight = labBuildModeRect:getHeight()
 		local fontHeight = font2:GetTextHeight(buildModeText) * pageFontSize
 		local fontHeightOffset = fontHeight * 0.24
-		font2:Print(
-			buildModeText,
-			labBuildModeRect.x + (bgpadding * 3),
-			(labBuildModeRect.y + (buttonHeight / 2)) - fontHeightOffset,
-			pageFontSize,
-			"o"
-		)
+		font2:Print(buildModeText, labBuildModeRect.x + (bgpadding * 3), (labBuildModeRect.y + (buttonHeight / 2)) - fontHeightOffset, pageFontSize, "o")
 
 		labBuildModeRect.opts.keyText = hotkeys
 		labBuildModeRect.opts.keyTextHeight = font2:GetTextHeight(hotkeys)
@@ -2360,55 +2081,24 @@ local function drawBuilder(rect)
 	local rectSize = rect.xEnd - rect.x
 
 	gl.Color(lightness, lightness, lightness, 1)
-	UiUnit(
-		rect.x,
-		rect.y,
-		rect.xEnd,
-		rect.yEnd,
-		math.ceil(bgpadding * 0.5),
-		1,
-		1,
-		1,
-		1,
-		zoom,
-		nil,
-		math_max(0.1, highlightOpacity or 0.1),
-		"#" .. unitDefID,
-		nil,
-		nil,
-		nil,
-		nil
-	)
+	UiUnit(rect.x, rect.y, rect.xEnd, rect.yEnd, math.ceil(bgpadding * 0.5), 1, 1, 1, 1, zoom, nil, math_max(0.1, highlightOpacity or 0.1), "#" .. unitDefID, nil, nil, nil, nil)
 
 	-- builder count number
 	if count > 1 then
 		local countFontSize = rectSize * 0.3
 		local pad = math_floor(rectSize * 0.03)
-		font2:Print(
-			"\255\240\240\240" .. count,
-			rect.x + (pad * 2),
-			rect.y + pad + math_floor(countFontSize * 2.2),
-			countFontSize,
-			"o"
-		)
+		font2:Print("\255\240\240\240" .. count, rect.x + (pad * 2), rect.y + pad + math_floor(countFontSize * 2.2), countFontSize, "o")
 	end
 
 	if highlightOpacity then
 		gl.Blending(GL_SRC_ALPHA, GL_ONE)
 		gl.Color(1, 1, 1, highlightOpacity)
-		RectRound(
-			rect.x,
-			rect.y,
-			rect.xEnd,
-			rect.yEnd,
-			math_min(math_max(1, math_floor((rect.xEnd - rect.x) * 0.024)), math_floor((vsy * 0.0015) + 0.5))
-		)
+		RectRound(rect.x, rect.y, rect.xEnd, rect.yEnd, math_min(math_max(1, math_floor((rect.xEnd - rect.x) * 0.024)), math_floor((vsy * 0.0015) + 0.5)))
 		gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end
 end
 
 local function drawBuilders()
-
 	-- draw builders
 	for i = 1, selectedBuildersCount do
 		drawBuilder(builderRects[i])
@@ -2419,13 +2109,7 @@ local function drawBuilders()
 	local fontSize = rectHeight * 1.2
 	local textHeight = nextBuilderRect.opts.nameHeight * fontSize
 
-	font2:Print(
-		"\255\255\255\255" .. nextBuilderRect.opts.name,
-		nextBuilderRect.x + math_floor(rectHeight * 0.2),
-		nextBuilderRect.y + (rectHeight / 2) - math_floor(textHeight / 2),
-		fontSize,
-		"o"
-	)
+	font2:Print("\255\255\255\255" .. nextBuilderRect.opts.name, nextBuilderRect.x + math_floor(rectHeight * 0.2), nextBuilderRect.y + (rectHeight / 2) - math_floor(textHeight / 2), fontSize, "o")
 
 	drawButton(nextBuilderRect)
 	drawButtonHotkey(nextBuilderRect)
@@ -2439,11 +2123,10 @@ end
 
 local function drawBuildMenu()
 	font2:Begin(true)
-	font2:SetTextColor(1,1,1,1)
-	font2:SetOutlineColor(0,0,0,1)
+	font2:SetTextColor(1, 1, 1, 1)
+	font2:SetOutlineColor(0, 0, 0, 1)
 
-	local drawBackScreen = (currentCategory and not builderIsFactory)
-		or (builderIsFactory and useLabBuildMode and labBuildModeActive)
+	local drawBackScreen = (currentCategory and not builderIsFactory) or (builderIsFactory and useLabBuildMode and labBuildModeActive)
 
 	if activeBuilder and not builderIsFactory then
 		drawCategories()
@@ -2520,10 +2203,7 @@ function widget:MousePress(x, y, button)
 		return
 	end
 
-	if
-		(buildmenuShows and backgroundRect:contains(x, y))
-		or (selectedBuildersCount > 1 and (buildersRect:contains(x, y) or nextBuilderRect:contains(x, y)))
-	then
+	if (buildmenuShows and backgroundRect:contains(x, y)) or (selectedBuildersCount > 1 and (buildersRect:contains(x, y) or nextBuilderRect:contains(x, y))) then
 		if activeBuilder then
 			if pages > 1 then
 				if nextPageRect and nextPageRect:contains(x, y) then
@@ -2579,12 +2259,7 @@ function widget:MousePress(x, y, button)
 
 				for _, cellRect in pairs(cellRects) do
 					local unitDefID = cellRect.opts.uDefID
-					if
-						unitDefID
-						and unitTranslatedHumanName[unitDefID]
-						and cellRect:contains(x, y)
-						and not cellRect.opts.disabled
-					then
+					if unitDefID and unitTranslatedHumanName[unitDefID] and cellRect:contains(x, y) and not cellRect.opts.disabled then
 						local alt, ctrl, meta, shift = Spring.GetModKeyState()
 						if button ~= 3 then
 							if builderIsFactory and WG.Quotas and WG.Quotas.isOnQuotaMode(activeBuilderID) and not alt then
@@ -2608,8 +2283,12 @@ function widget:MousePress(x, y, button)
 						elseif builderIsFactory and spGetCmdDescIndex(-unitDefID) then
 							local function decreaseQuota()
 								local amount = modKeyMultiplier.click.right
-								if ctrl then amount = amount * modKeyMultiplier.click.ctrl end
-								if shift then amount = amount * modKeyMultiplier.click.shift end
+								if ctrl then
+									amount = amount * modKeyMultiplier.click.ctrl
+								end
+								if shift then
+									amount = amount * modKeyMultiplier.click.shift
+								end
 								updateQuotaNumber(unitDefID, amount)
 							end
 
@@ -2665,23 +2344,11 @@ local function checkGuishaderBuilders()
 				dlistGuishaderBuildersNext = gl.DeleteList(dlistGuishaderBuildersNext)
 			end
 			dlistGuishaderBuilders = gl.CreateList(function()
-				RectRound(
-						buildersRect.x,
-						buildersRect.y,
-						buildersRect.xEnd + (bgpadding * 2),
-						buildersRect.yEnd + bgpadding + (iconMargin * 2),
-						elementCorner
-				)
+				RectRound(buildersRect.x, buildersRect.y, buildersRect.xEnd + (bgpadding * 2), buildersRect.yEnd + bgpadding + (iconMargin * 2), elementCorner)
 			end)
 			WG["guishader"].InsertDlist(dlistGuishaderBuilders, "buildmenubuilders")
 			dlistGuishaderBuildersNext = gl.CreateList(function()
-				RectRound(
-						nextBuilderRect.x,
-						nextBuilderRect.y,
-						nextBuilderRect.xEnd,
-						nextBuilderRect.yEnd,
-						elementCorner * 0.5
-				)
+				RectRound(nextBuilderRect.x, nextBuilderRect.y, nextBuilderRect.xEnd, nextBuilderRect.yEnd, elementCorner * 0.5)
 			end)
 			WG["guishader"].InsertDlist(dlistGuishaderBuildersNext, "buildmenubuildersnext")
 		end
@@ -2710,7 +2377,6 @@ function widget:DrawScreen()
 			end
 		end
 	else
-
 		if WG["guishader"] then
 			if dlistGuishader then
 				WG["guishader"].InsertDlist(dlistGuishader, "buildmenu")
@@ -2722,40 +2388,34 @@ function widget:DrawScreen()
 		if redraw then
 			redraw = nil
 			if not buildmenuBgTex then
-				buildmenuBgTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x), math_floor(buildersRectYend-backgroundRect.y), {
+				buildmenuBgTex = gl.CreateTexture(math_floor(backgroundRect.xEnd - backgroundRect.x), math_floor(buildersRectYend - backgroundRect.y), {
 					target = GL.TEXTURE_2D,
 					format = GL.RGBA,
 					fbo = true,
 				})
 			end
 			if buildmenuBgTex then
-				gl.R2tHelper.RenderToTexture(buildmenuBgTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / math_floor(backgroundRect.xEnd-backgroundRect.x), 2 / math_floor(buildersRectYend-backgroundRect.y), 0)
-						gl.Translate(-backgroundRect.x, -backgroundRect.y, 0)
-						drawBuildMenuBg()
-					end,
-					true
-				)
+				gl.R2tHelper.RenderToTexture(buildmenuBgTex, function()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / math_floor(backgroundRect.xEnd - backgroundRect.x), 2 / math_floor(buildersRectYend - backgroundRect.y), 0)
+					gl.Translate(-backgroundRect.x, -backgroundRect.y, 0)
+					drawBuildMenuBg()
+				end, true)
 			end
 			if not buildmenuTex then
-				buildmenuTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x)*2, math_floor(buildersRectYend-backgroundRect.y)*2, {	--*(vsy<1400 and 2 or 2)
+				buildmenuTex = gl.CreateTexture(math_floor(backgroundRect.xEnd - backgroundRect.x) * 2, math_floor(buildersRectYend - backgroundRect.y) * 2, { --*(vsy<1400 and 2 or 2)
 					target = GL.TEXTURE_2D,
 					format = GL.RGBA,
 					fbo = true,
 				})
 			end
 			if buildmenuTex then
-				gl.R2tHelper.RenderToTexture(buildmenuTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / math_floor(backgroundRect.xEnd-backgroundRect.x), 2 / math_floor(buildersRectYend-backgroundRect.y), 0)
-						gl.Translate(-backgroundRect.x, -backgroundRect.y, 0)
-						drawBuildMenu()
-					end,
-					true
-				)
+				gl.R2tHelper.RenderToTexture(buildmenuTex, function()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / math_floor(backgroundRect.xEnd - backgroundRect.x), 2 / math_floor(buildersRectYend - backgroundRect.y), 0)
+					gl.Translate(-backgroundRect.x, -backgroundRect.y, 0)
+					drawBuildMenu()
+				end, true)
 			end
 		end
 		if buildmenuBgTex then

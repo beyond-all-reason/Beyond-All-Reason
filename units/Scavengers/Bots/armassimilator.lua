@@ -33,7 +33,7 @@ return {
 		turnrate = 768.20001,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "PtaQ",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmGantry",
@@ -177,7 +177,7 @@ return {
 					default = 33,
 					vtol = 100,
 				},
-			}
+			},
 		},
 		weapons = {
 			[1] = {

@@ -14,10 +14,9 @@ function widget:GetInfo()
 		date = "October 16, 2025",
 		license = "GNU GPL, v2 or later",
 		layer = -1, -- Has to be run before Smart Area Reclaim widget
-		enabled = true
+		enabled = true,
 	}
 end
-
 
 -- Localized functions for performance
 local tableInsert = table.insert
@@ -134,7 +133,7 @@ local function distributeTargetsToTransports(transports, targets)
 							allValidPassengers = {},
 							passengersByPriority = {},
 							maxPriority = -1,
-							transportHealth = transportDef.health
+							transportHealth = transportDef.health,
 						}
 					end
 					local position = toPositionTable(spGetUnitPosition(transportUnitId))
@@ -239,14 +238,12 @@ local function distributeTargetsToTransports(transports, targets)
 			local transportPos = transportInfo.position
 
 			while transportInfo.capacity > 0 do
-
 				local bestPassengerId
 				local passengerFound = false
 
 				for priority = 1, transportTypeData.maxPriority do
 					local passengers = passengersByPriority[priority]
 					if passengers then
-
 						local closestPassengerId
 						local closestDistSq
 
@@ -281,7 +278,6 @@ local function distributeTargetsToTransports(transports, targets)
 				if not passengerFound then
 					break
 				end
-
 			end
 		end
 	end

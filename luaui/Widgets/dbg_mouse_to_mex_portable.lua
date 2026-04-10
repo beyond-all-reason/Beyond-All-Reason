@@ -8,10 +8,9 @@ function widget:GetInfo()
 		date = "April 28, 2012",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = false
+		enabled = false,
 	}
 end
-
 
 -- Localized Spring API for performance
 local spEcho = Spring.Echo
@@ -51,13 +50,13 @@ function widget:MousePress(mx, my, button)
 		local _, pos = Spring.TraceScreenRay(mx, my, true)
 		if legalPos(pos) then
 			--if true then
-				handle:write("[" .. mexIndex .. "] = {x = " .. floor(pos[1] + 0.5) .. ", z = " .. floor(pos[3] + 0.5) .. ", metal = " .. tostring(metal) .. "},\n")
-				handle:flush()
-				markers[#markers + 1] = { pos[1], 0, pos[3] }
-				Spring.MarkerAddPoint(pos[1], 0, pos[3], mexIndex)
-				mexIndex = mexIndex + 1
+			handle:write("[" .. mexIndex .. "] = {x = " .. floor(pos[1] + 0.5) .. ", z = " .. floor(pos[3] + 0.5) .. ", metal = " .. tostring(metal) .. "},\n")
+			handle:flush()
+			markers[#markers + 1] = { pos[1], 0, pos[3] }
+			Spring.MarkerAddPoint(pos[1], 0, pos[3], mexIndex)
+			mexIndex = mexIndex + 1
 			--else
-				-- TODO: make right click remove markers
+			-- TODO: make right click remove markers
 			--	Spring.MarkerErasePosition(pos[1], 0, pos[3])
 			--end
 		end
@@ -71,7 +70,7 @@ function widget:Initialize()
 		return
 	end
 	handle = io.open("MexSpots_" .. Game.mapName, "w")
-	if (handle == nil) then
+	if handle == nil then
 		widgetHandler:RemoveWidget()
 		return
 	end

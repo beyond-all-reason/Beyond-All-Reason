@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "2008-02-04",
 		license = "Public domain",
 		layer = 1,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -105,8 +105,8 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if isCommander[unitDefID] and not ignoredTeams[unitTeam] then
-		local x,_,z = spGetUnitPosition(unitID)
-		commanderDeathQueue[unitID] = {unitTeam, x, z}
+		local x, _, z = spGetUnitPosition(unitID)
+		commanderDeathQueue[unitID] = { unitTeam, x, z }
 	end
 end
 
@@ -118,8 +118,8 @@ local function transferCommander(unitID, unitTeam, newTeam)
 		aliveComCount[newAllyTeamID] = aliveComCount[newAllyTeamID] + 1
 		aliveTeamComCount[newTeam] = aliveTeamComCount[newTeam] + 1
 		-- remove from unitTeam
-		local x,_,z = spGetUnitPosition(unitID)
-		commanderDeathQueue[unitID] = {unitTeam, x, z}
+		local x, _, z = spGetUnitPosition(unitID)
+		commanderDeathQueue[unitID] = { unitTeam, x, z }
 	end
 end
 
@@ -138,7 +138,7 @@ end
 function gadget:Initialize()
 	-- disable gadget when deathmode is "killall" or "none", or scoremode isnt regular
 	local deathmode = Spring.GetModOptions().deathmode
-	if deathmode ~= 'com' and deathmode ~= 'own_com' and deathmode ~= 'territorial_domination' and deathmode ~= 'builders' then
+	if deathmode ~= "com" and deathmode ~= "own_com" and deathmode ~= "territorial_domination" and deathmode ~= "builders" then
 		gadgetHandler:RemoveGadget(self)
 	end
 

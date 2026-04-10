@@ -1,18 +1,16 @@
-
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name    = "Permissions",
-		desc	= 'provides a list of user permissions to other gadgets',
-		author	= 'Floris',
-		date	= 'February 2021',
-		license	= 'GNU GPL, v2 or later',
-		layer	= -999000,
-		enabled	= true
+		name = "Permissions",
+		desc = "provides a list of user permissions to other gadgets",
+		author = "Floris",
+		date = "February 2021",
+		license = "GNU GPL, v2 or later",
+		layer = -999000,
+		enabled = true,
 	}
 end
-
 
 local powerusers = include("LuaRules/configs/powerusers.lua")
 local singleplayerPermissions = powerusers[-1]
@@ -81,7 +79,9 @@ end
 
 local function ResolveTrustedName(playerID)
 	local name = Spring.GetPlayerInfo(playerID)
-	if not name or not trustedNames[name] then return false end
+	if not name or not trustedNames[name] then
+		return false
+	end
 	local accountID = originalGetAccountID(playerID)
 	if accountID == -1 then
 		-- Late joiner or reconnected player without accountID in customKeys
@@ -93,7 +93,9 @@ local function ResolveTrustedName(playerID)
 			trustedNameAccountIDs[playerID] = accountID
 		end
 	end
-	if powerusers[accountID] then return true end -- already has permissions
+	if powerusers[accountID] then
+		return true
+	end -- already has permissions
 	powerusers[accountID] = trustedNames[name]
 	for permission, value in pairs(trustedNames[name]) do
 		if not permissions[permission] then
@@ -109,11 +111,15 @@ end
 local resolvedAccountIDs = {}
 
 function gadget:PlayerChanged(playerID)
-	if not trustedNames then return end
+	if not trustedNames then
+		return
+	end
 	local currentAccountID = originalGetAccountID(playerID)
 	local prevAccountID = resolvedAccountIDs[playerID]
 	-- Skip if already resolved with this accountID, unless reconnected (accountID went to -1)
-	if prevAccountID and not (prevAccountID ~= -1 and currentAccountID == -1) then return end
+	if prevAccountID and not (prevAccountID ~= -1 and currentAccountID == -1) then
+		return
+	end
 	if ResolveTrustedName(playerID) then
 		resolvedAccountIDs[playerID] = currentAccountID
 	end
@@ -121,8 +127,12 @@ end
 
 function gadget:GameFrame(frame)
 	-- PlayerChanged/PlayerAdded don't fire in synced code, so we must poll.
-	if not trustedNames then return end
-	if frame % 200 ~= 0 then return end
+	if not trustedNames then
+		return
+	end
+	if frame % 200 ~= 0 then
+		return
+	end
 	for _, playerID in ipairs(Spring.GetPlayerList()) do
 		local currentAccountID = originalGetAccountID(playerID)
 		local prevAccountID = resolvedAccountIDs[playerID]

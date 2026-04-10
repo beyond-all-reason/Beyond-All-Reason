@@ -2,13 +2,13 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name      = "Air AttackSafetyDistance",
-		desc      = "Allows the setting of attackSafetyDistance for strafe runninng aircraft, so fighters and bombers",
-		author    = "Doo, Floris",
-		date      = "Sept 19th 2017",
-		license   = "GNU GPL, v2 or later",
-		layer     = 0,
-		enabled   = true
+		name = "Air AttackSafetyDistance",
+		desc = "Allows the setting of attackSafetyDistance for strafe runninng aircraft, so fighters and bombers",
+		author = "Doo, Floris",
+		date = "Sept 19th 2017",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
 
@@ -17,7 +17,8 @@ end
 	try to climb back to normal altitude while still moving toward target.	It's disabled by default. Set to half of
 	the minimum weapon range to avoid collisions, enemy fire, AOE damage. If set to greater than the weapon range,
 	the unit will fly over the target like a bomber.
-]]--
+]]
+--
 
 if not gadgetHandler:IsSyncedCode() then
 	return false

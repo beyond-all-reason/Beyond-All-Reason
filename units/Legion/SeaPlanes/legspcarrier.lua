@@ -37,7 +37,7 @@ return {
 		turnrate = 540,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/SeaPlanes",
@@ -49,7 +49,8 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
-			},		},
+			},
+		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -77,10 +78,10 @@ return {
 				avoidfeature = false,
 				burnblow = true,
 				canattackground = false,
-                avoidfriendly = false,
+				avoidfriendly = false,
 				burst = 3,
 				burstrate = 0.005,
-                collidefriendly = false,
+				collidefriendly = false,
 				--sprayangle = 20000,
 				dance = 150,
 				cegtag = "missiletrailaa",
@@ -115,7 +116,7 @@ return {
 				tracks = true,
 				turnrate = 68000,
 				turret = true,
-                fixedlauncher = true;
+				fixedlauncher = true,
 				weaponacceleration = 300,
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
@@ -157,24 +158,24 @@ return {
 					default = 0,
 				},
 				customparams = {
-					carried_unit = "legdrone",     --Name of the unit spawned by this carrier unit.
+					carried_unit = "legdrone", --Name of the unit spawned by this carrier unit.
 					engagementrange = 1100,
 					-- spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently.
-					spawnrate = 15, 				--Spawnrate roughly in seconds.
-					maxunits = 2,				--Will spawn units until this amount has been reached.
+					spawnrate = 15, --Spawnrate roughly in seconds.
+					maxunits = 2, --Will spawn units until this amount has been reached.
 					startingdronecount = 1,
-					energycost = 500,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					metalcost = 15,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					controlradius = 900,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
+					energycost = 500, --Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					metalcost = 15, --Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					controlradius = 900, --The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
 					deathdecayrate = 4,
 					carrierdeaththroe = "release",
 					dockingarmor = 0.2,
 					dockinghealrate = 24,
 					docktohealthreshold = 66,
-					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
+					enabledocking = true, --If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
 					dockingpieces = "11 13",
-					dockingradius = 80,			--The range at which the units snap to the carrier unit when docking.
+					dockingradius = 80, --The range at which the units snap to the carrier unit when docking.
 					stockpilelimit = 2,
 					stockpilemetal = 15,
 					stockpileenergy = 500,

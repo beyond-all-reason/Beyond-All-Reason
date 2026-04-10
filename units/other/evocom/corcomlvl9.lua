@@ -1,5 +1,5 @@
 return {
-	corcomlvl9	= {
+	corcomlvl9 = {
 		maxacc = 0.18,
 		activatewhenbuilt = true,
 		autoheal = 5,
@@ -30,7 +30,7 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-    	holdsteady = true,
+		holdsteady = true,
 		icontype = "corcom",
 		sightemitheight = 40,
 		mass = 4900,
@@ -70,27 +70,27 @@ return {
 			"coruwadvms",
 			"cortide",
 			"cormexp",
-			"coruwmmm", 
+			"coruwmmm",
 			"coruwmme",
-			"corarad", 
-			"coreyes", 
+			"corarad",
+			"coreyes",
 			"cordrag",
 			"corfort",
-			"cormaw", 
-			"corhllt", 
-			"corvipe", 
-			"cordoom", 
-			"cortoast", 
-			"corflak", 
-			"corscreamer", 
-			"cordl", 
-			"corshroud", 
+			"cormaw",
+			"corhllt",
+			"corvipe",
+			"cordoom",
+			"cortoast",
+			"corflak",
+			"corscreamer",
+			"cordl",
+			"corshroud",
 			"corjuno",
 			"corlab",
 			"corvp",
 			"corap",
-			"coratl", 
-			"corenaa", 
+			"coratl",
+			"corenaa",
 			"corfrad",
 			"corfus",
 			"corsy",
@@ -103,7 +103,7 @@ return {
 			"corgate",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			area_mex_def = "cormoho",
 			iscommander = true,
 			effigy_offset = 1,
@@ -128,7 +128,7 @@ return {
 			effigy = "comeffigylvl5",
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
-			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
+			fall_damage_multiplier = 5, --this ensures commander dies when it hits the ground so effigies can trigger respawn.
 		},
 		featuredefs = {
 			dead = {
@@ -259,7 +259,7 @@ return {
 				damage = {
 					default = 96,
 					subs = 38,
-				}
+				},
 			},
 			corcomsealaser = {
 				areaofeffect = 70,
@@ -376,7 +376,7 @@ return {
 				soundstart = "heatray3burn",
 				soundstartvolume = 11,
 				soundtrigger = 1,
-					thickness = 4.5,
+				thickness = 4.5,
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
@@ -467,7 +467,7 @@ return {
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "CORCOMSEALASER",
-				onlytargetcategory = "NOTAIR"
+				onlytargetcategory = "NOTAIR",
 			},
 			[3] = {
 				def = "DISINTEGRATOR",

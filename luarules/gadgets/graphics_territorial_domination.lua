@@ -7,13 +7,15 @@ function gadget:GetInfo()
 		license = "GNU GPL, v2",
 		layer = 1, --after game_territorial_domination.lua
 		enabled = true,
-		depends = { 'gl4' },
+		depends = { "gl4" },
 	}
 end
 
 local modOptions = Spring.GetModOptions()
 local isSynced = gadgetHandler:IsSyncedCode()
-if modOptions.deathmode ~= "territorial_domination" or isSynced then return false end
+if modOptions.deathmode ~= "territorial_domination" or isSynced then
+	return false
+end
 
 if Spring.Utilities.Gametype.IsRaptors() or Spring.Utilities.Gametype.IsScavengers() then
 	return false
@@ -70,9 +72,9 @@ local glTexture = gl.Texture
 local spPlaySoundFile = Spring.PlaySoundFile
 
 local planeLayout = {
-	{ id = 1, name = 'posscale', size = 4 }, -- a vec4 for pos + scale
-	{ id = 2, name = 'ownercolor', size = 4 }, -- vec4 the color of this square
-	{ id = 3, name = 'capturestate', size = 4 }, -- vec4 speed, progress, startframe, showSquareTimestamp
+	{ id = 1, name = "posscale", size = 4 }, -- a vec4 for pos + scale
+	{ id = 2, name = "ownercolor", size = 4 }, -- vec4 the color of this square
+	{ id = 3, name = "capturestate", size = 4 }, -- vec4 speed, progress, startframe, showSquareTimestamp
 }
 
 local vertexShaderSource = [[
@@ -335,16 +337,26 @@ local function createShader()
 end
 
 local function makeSquareVBO(xsize, ysize, xresolution, yresolution)
-	if not xsize then xsize = 1 end
-	if not ysize then ysize = xsize end
-	if not xresolution then xresolution = 1 end
-	if not yresolution then yresolution = xresolution end
+	if not xsize then
+		xsize = 1
+	end
+	if not ysize then
+		ysize = xsize
+	end
+	if not xresolution then
+		xresolution = 1
+	end
+	if not yresolution then
+		yresolution = xresolution
+	end
 
 	xresolution = math.floor(xresolution)
 	yresolution = math.floor(yresolution)
 
 	local squareVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
-	if squareVBO == nil then return nil end
+	if squareVBO == nil then
+		return nil
+	end
 
 	local VBOLayout = {
 		{ id = 0, name = "position", size = 4 },
@@ -401,9 +413,18 @@ end
 
 local function updateGridSquareInstanceVBO(gridID, posScale, instanceColor, captureState)
 	local instanceData = {
-		posScale[1], posScale[2], posScale[3], posScale[4], -- posscale: x, y, z, scale
-		instanceColor[1], instanceColor[2], instanceColor[3], instanceColor[4], -- instanceColor: r, g, b, a
-		captureState[1], captureState[2], captureState[3], captureState[4] -- capturestate: speed, progress, startframe, showSquareTimestamp
+		posScale[1],
+		posScale[2],
+		posScale[3],
+		posScale[4], -- posscale: x, y, z, scale
+		instanceColor[1],
+		instanceColor[2],
+		instanceColor[3],
+		instanceColor[4], -- instanceColor: r, g, b, a
+		captureState[1],
+		captureState[2],
+		captureState[3],
+		captureState[4], -- capturestate: speed, progress, startframe, showSquareTimestamp
 	}
 	pushElementInstance(instanceVBO, instanceData, gridID, true, false)
 end
@@ -411,7 +432,9 @@ end
 local function initializeOpenGL4()
 	local planeResolution = 32
 	local squareVBO, numVertices, squareIndexVBO, numIndices = makeSquareVBO(1, 1, planeResolution, planeResolution)
-	if not squareVBO then return false end
+	if not squareVBO then
+		return false
+	end
 
 	instanceVBO = makeInstanceVBOTable(planeLayout, 12, "territory_square_shader")
 	instanceVBO.vertexVBO = squareVBO
@@ -434,7 +457,7 @@ function gadget:Initialize()
 	amSpectating = Spring.GetSpectatingState()
 	myAllyID = Spring.GetMyAllyTeamID()
 	initializeAllyColors()
-	
+
 	cameraHeightUpdateNeeded = true
 end
 
@@ -501,12 +524,7 @@ local function updateGridSquareVisuals()
 			captureChangePerFrame = gridData.captureChange / UPDATE_FRAME_RATE_INTERVAL
 		end
 
-		updateGridSquareInstanceVBO(
-			gridID,
-			{ gridData.gridMidpointX, SQUARE_HEIGHT, gridData.gridMidpointZ, SQUARE_SIZE },
-			gridData.currentColor,
-			{ captureChangePerFrame, gridData.oldProgress, currentFrame, gridData.showSquareTimestamp }
-		)
+		updateGridSquareInstanceVBO(gridID, { gridData.gridMidpointX, SQUARE_HEIGHT, gridData.gridMidpointZ, SQUARE_SIZE }, gridData.currentColor, { captureChangePerFrame, gridData.oldProgress, currentFrame, gridData.showSquareTimestamp })
 		gridData.captureChange = nil
 	end
 
@@ -527,7 +545,7 @@ function gadget:RecvFromSynced(messageName, ...)
 			gridMidpointZ = gridMidpointZ,
 			isVisible = isVisible,
 			currentColor = blankColor,
-			showSquareTimestamp = 0
+			showSquareTimestamp = 0,
 		}
 	elseif messageName == "InitializeConfigs" then
 		SQUARE_SIZE, UPDATE_FRAME_RATE_INTERVAL = ...
@@ -595,8 +613,10 @@ local function updateMinimapFlipUniform()
 end
 
 local function updateIsMinimapRenderingUniform(isMinimapRendering)
-	if not squareShader then return end
-	
+	if not squareShader then
+		return
+	end
+
 	if cachedIsMinimapRendering ~= isMinimapRendering then
 		cachedIsMinimapRendering = isMinimapRendering
 		squareShader:SetUniformInt("isMinimapRendering", isMinimapRendering)
@@ -604,10 +624,14 @@ local function updateIsMinimapRenderingUniform(isMinimapRendering)
 end
 
 local function updateCameraHeightUniforms()
-	if not squareShader then return end
-	
-	if not cameraHeightUpdateNeeded then return end
-	
+	if not squareShader then
+		return
+	end
+
+	if not cameraHeightUpdateNeeded then
+		return
+	end
+
 	local minCameraHeight, maxCameraHeight = getMaxCameraHeight()
 	if cachedCameraHeights.min ~= minCameraHeight or cachedCameraHeights.max ~= maxCameraHeight then
 		cachedCameraHeights.min = minCameraHeight
@@ -615,13 +639,15 @@ local function updateCameraHeightUniforms()
 		squareShader:SetUniformFloat("minCameraDrawHeight", minCameraHeight)
 		squareShader:SetUniformFloat("maxCameraDrawHeight", maxCameraHeight)
 	end
-	
+
 	cameraHeightUpdateNeeded = false
 end
 
 local function updateHeightmapTextureUniform()
-	if not squareShader then return end
-	
+	if not squareShader then
+		return
+	end
+
 	if cachedHeightmapTexture == nil then
 		cachedHeightmapTexture = 0
 		squareShader:SetUniformInt("heightmapTexture", 0)
@@ -637,9 +663,13 @@ function gadget:CameraPositionChanged(posX, posY, posZ)
 end
 
 function gadget:DrawWorldPreUnit()
-	if not squareShader or not squareVAO or not instanceVBO then return end
+	if not squareShader or not squareVAO or not instanceVBO then
+		return
+	end
 
-	if spIsGUIHidden() then return end
+	if spIsGUIHidden() then
+		return
+	end
 
 	glTexture(0, "$heightmap")
 	glDepthTest(true)
@@ -657,9 +687,13 @@ function gadget:DrawWorldPreUnit()
 end
 
 function gadget:DrawInMiniMap()
-	if not squareShader or not squareVAO or not instanceVBO then return end
+	if not squareShader or not squareVAO or not instanceVBO then
+		return
+	end
 
-	if spIsGUIHidden() then return end
+	if spIsGUIHidden() then
+		return
+	end
 
 	squareShader:Activate()
 	updateIsMinimapRenderingUniform(1)

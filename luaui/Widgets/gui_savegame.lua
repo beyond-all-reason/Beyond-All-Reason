@@ -8,10 +8,9 @@ function widget:GetInfo()
 		date = "2021",
 		license = "GNU GPL, v2 or later",
 		layer = -9999,
-		enabled = true
+		enabled = true,
 	}
 end
-
 
 -- Localized functions for performance
 local mathFloor = math.floor
@@ -26,19 +25,18 @@ local LOAD_GAME_STRING = "loadFilename "
 local SAVE_TYPE = "save "
 
 local function WriteDate(dateTable)
-	return string.format("%02d/%02d/%04d", dateTable.day, dateTable.month, dateTable.year)
-		.. " " .. string.format("%02d:%02d:%02d", dateTable.hour, dateTable.min, dateTable.sec)
+	return string.format("%02d/%02d/%04d", dateTable.day, dateTable.month, dateTable.year) .. " " .. string.format("%02d:%02d:%02d", dateTable.hour, dateTable.min, dateTable.sec)
 end
 
 local function SecondsToClock(seconds)
 	local seconds = tonumber(seconds)
 
 	if seconds <= 0 then
-		return "00:00";
+		return "00:00"
 	else
-		hours = string.format("%02d", mathFloor(seconds / 3600));
-		mins = string.format("%02d", mathFloor(seconds / 60 - (hours * 60)));
-		secs = string.format("%02d", mathFloor(seconds - hours * 3600 - mins * 60));
+		hours = string.format("%02d", mathFloor(seconds / 3600))
+		mins = string.format("%02d", mathFloor(seconds / 60 - (hours * 60)))
+		secs = string.format("%02d", mathFloor(seconds - hours * 3600 - mins * 60))
 		if seconds >= 3600 then
 			return hours .. ":" .. mins .. ":" .. secs
 		else
@@ -48,7 +46,7 @@ local function SecondsToClock(seconds)
 end
 
 local function trim(str)
-	return str:match '^()%s*$' and '' or str:match '^%s*(.*%S)'
+	return str:match("^()%s*$") and "" or str:match("^%s*(.*%S)")
 end
 
 --------------------------------------------------------------------------------
@@ -73,11 +71,11 @@ local function GetSave(path)
 	local ret = nil
 	local success, err = pcall(function()
 		local saveData = VFS.Include(path)
-		saveData.filename = string.sub(path, SAVE_DIR_LENGTH, -5)    -- pure filename without directory or extension
+		saveData.filename = string.sub(path, SAVE_DIR_LENGTH, -5) -- pure filename without directory or extension
 		saveData.path = path
 		ret = saveData
 	end)
-	if (not success) then
+	if not success then
 		Spring.Log(widget:GetInfo().name, LOG.ERROR, "Error getting save " .. path .. ": " .. err)
 	else
 		local engineSaveFilename = GetSaveWithExtension(string.sub(path, 1, -5))
@@ -94,11 +92,7 @@ local function GetSaveDescText(saveFile)
 	if not saveFile then
 		return ""
 	end
-	return (saveFile.description or "no description")
-		.. "\n" .. saveFile.gameName .. " " .. saveFile.gameVersion
-		.. "\n" .. saveFile.map
-		.. "\n" .. (WG.Translate("interface", "time_ingame") or "Ingame time") .. ": " .. SecondsToClock((saveFile.totalGameframe or saveFile.gameframe or 0) / 30)
-		.. "\n" .. WriteDate(saveFile.date)
+	return (saveFile.description or "no description") .. "\n" .. saveFile.gameName .. " " .. saveFile.gameVersion .. "\n" .. saveFile.map .. "\n" .. (WG.Translate("interface", "time_ingame") or "Ingame time") .. ": " .. SecondsToClock((saveFile.totalGameframe or saveFile.gameframe or 0) / 30) .. "\n" .. WriteDate(saveFile.date)
 end
 
 local function FindFirstEmptySaveSlot()
@@ -128,61 +122,58 @@ local function SaveGame(filename, description, requireOverwrite)
 	if WG.Analytics and WG.Analytics.SendRepeatEvent then
 		WG.Analytics.SendRepeatEvent("game_start:savegame", filename)
 	end
-	local success, err = pcall(
-		function()
-			Spring.CreateDir(SAVE_DIR)
-			filename = (filename and trim(filename)) or ("save" .. string.format("%03d", FindFirstEmptySaveSlot()))
-			path = SAVE_DIR .. "/" .. filename .. ".lua"
-			local saveData = {}
-			--saveData.filename = filename
-			saveData.date = os.date('*t')
-			saveData.description = description or "No description"
-			saveData.gameName = Game.gameName
-			saveData.gameVersion = Game.gameVersion
-			saveData.engineVersion = Engine.version
-			saveData.map = Game.mapName
-			saveData.gameID = (Spring.GetGameRulesParam("save_gameID") or (Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID")))
-			saveData.gameframe = spGetGameFrame()
-			saveData.totalGameframe = spGetGameFrame() + (Spring.GetGameRulesParam("totalSaveGameFrame") or 0)
-			saveData.playerName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
-			table.save(saveData, path)
+	local success, err = pcall(function()
+		Spring.CreateDir(SAVE_DIR)
+		filename = (filename and trim(filename)) or ("save" .. string.format("%03d", FindFirstEmptySaveSlot()))
+		path = SAVE_DIR .. "/" .. filename .. ".lua"
+		local saveData = {}
+		--saveData.filename = filename
+		saveData.date = os.date("*t")
+		saveData.description = description or "No description"
+		saveData.gameName = Game.gameName
+		saveData.gameVersion = Game.gameVersion
+		saveData.engineVersion = Engine.version
+		saveData.map = Game.mapName
+		saveData.gameID = (Spring.GetGameRulesParam("save_gameID") or (Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID")))
+		saveData.gameframe = spGetGameFrame()
+		saveData.totalGameframe = spGetGameFrame() + (Spring.GetGameRulesParam("totalSaveGameFrame") or 0)
+		saveData.playerName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+		table.save(saveData, path)
 
-			-- TODO: back up existing save?
-			--if VFS.FileExists(SAVE_DIR .. "/" .. filename) then
-			--end
+		-- TODO: back up existing save?
+		--if VFS.FileExists(SAVE_DIR .. "/" .. filename) then
+		--end
 
-			if requireOverwrite then
-				Spring.SendCommands(SAVE_TYPE .. filename .. " -y")
-			else
-				Spring.SendCommands(SAVE_TYPE .. filename)
-			end
-			Spring.Log(widget:GetInfo().name, LOG.INFO, "Saved game to " .. path)
-
-			--DisposeWindow()
+		if requireOverwrite then
+			Spring.SendCommands(SAVE_TYPE .. filename .. " -y")
+		else
+			Spring.SendCommands(SAVE_TYPE .. filename)
 		end
-	)
-	if (not success) then
+		Spring.Log(widget:GetInfo().name, LOG.INFO, "Saved game to " .. path)
+
+		--DisposeWindow()
+	end)
+	if not success then
 		Spring.Log(widget:GetInfo().name, LOG.ERROR, "Error saving game: " .. err)
 	end
 end
 
 local function LoadGameByFilename(filename)
-	local saveData = GetSave(SAVE_DIR .. '/' .. filename .. ".lua")
+	local saveData = GetSave(SAVE_DIR .. "/" .. filename .. ".lua")
 	if saveData then
 		if Spring.GetMenuName and Spring.SendLuaMenuMsg and Spring.GetMenuName() then
 			Spring.SendLuaMenuMsg(LOAD_GAME_STRING .. filename)
 		else
-			local ext = GetSaveExtension(SAVE_DIR .. '/' .. filename)
+			local ext = GetSaveExtension(SAVE_DIR .. "/" .. filename)
 			if not ext then
 				Spring.Log(widget:GetInfo().name, LOG.ERROR, "Error loading game: cannot find save file.")
 				return
 			end
-			local success, err = pcall(
-				function()
-					-- This should perhaps be handled in chobby first?
-					--Spring.Log(widget:GetInfo().name, LOG.INFO, "Save file " .. path .. " loaded")
+			local success, err = pcall(function()
+				-- This should perhaps be handled in chobby first?
+				--Spring.Log(widget:GetInfo().name, LOG.INFO, "Save file " .. path .. " loaded")
 
-					local script = [[
+				local script = [[
 	[GAME]
 	{
 		SaveFile=__FILE__;
@@ -191,12 +182,11 @@ local function LoadGameByFilename(filename)
 		MyPlayerName=__PLAYERNAME__;
 	}
 	]]
-					script = script:gsub("__FILE__", filename .. ext)
-					script = script:gsub("__PLAYERNAME__", saveData.playerName)
-					Spring.Reload(script)
-				end
-			)
-			if (not success) then
+				script = script:gsub("__FILE__", filename .. ext)
+				script = script:gsub("__PLAYERNAME__", saveData.playerName)
+				Spring.Reload(script)
+			end)
+			if not success then
 				Spring.Log(widget:GetInfo().name, LOG.ERROR, "Error loading game: " .. err)
 			end
 		end
@@ -220,7 +210,7 @@ local function DeleteSave(filename)
 			os.remove(saveFilePath)
 		end
 	end)
-	if (not success) then
+	if not success then
 		Spring.Log(widget:GetInfo().name, LOG.ERROR, "Error deleting save " .. filename .. ": " .. err)
 	end
 end
@@ -230,18 +220,18 @@ local function savegameCmd(_, _, params)
 	local savefilename = params[1]
 	SaveGame(savefilename, savefilename, true)
 
-	if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobby') ~= nil then
+	if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), "chobby") ~= nil then
 		Spring.SendLuaMenuMsg("gameSaved")
 	end
 end
 
 function widget:Initialize()
-	WG['savegame'] = {}
-	widgetHandler:AddAction("savegame", savegameCmd, nil, 't')
+	WG["savegame"] = {}
+	widgetHandler:AddAction("savegame", savegameCmd, nil, "t")
 end
 
 function widget:Shutdown()
-	WG['savegame'] = nil
+	WG["savegame"] = nil
 	widgetHandler:RemoveAction("savegame")
 end
 
@@ -263,4 +253,5 @@ function widget:GameFrame(n)
 		SaveGame("autosave", "", true)
 	end
 end
-]]--
+]]
+--

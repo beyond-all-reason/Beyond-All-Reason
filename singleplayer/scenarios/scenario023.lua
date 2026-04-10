@@ -1,14 +1,14 @@
 local scenariodata = {
-	index			= 23, --  integer, sort order, MUST BE EQUAL TO FILENAME NUMBER
-	scenarioid		= "benchmark_lightside", -- no spaces, lowercase, this will be used to save the score
-    version         = "1.0", -- increment this to keep the score when changing a mission
-	title			= "Benchmark BAR", -- can be anything
-	author			= "Beherith, AKU", -- your name here
-	isnew 			= true,
-	imagepath		= "scenario023.jpg", -- placed next to lua file, should be 3:1 ratio banner style
-	imageflavor		= "Units will act automatically during the benchmark", -- This text will be drawn over image
-    summary         = [[This is a quick, ~3 minute benchmark script. You may leave after the benchmark is complete.]],
-	briefing 		= [[This scenario starts a benchmark by spawning 650 units to continously fight against 650 units. Use Bots/Tanks/Aircraft an option for close to a real game's match benchmark and collision an option for synthetic testing multithreading abilities of the game's engine. The average Sim, Draw and Update times are shown on screen. The game will automatically center the camera over the units, do not move the camera while the benchmark is running, and do not interact with the units. The game will return after printing the results to screen and infolog, and submitting them to the server.
+	index = 23, --  integer, sort order, MUST BE EQUAL TO FILENAME NUMBER
+	scenarioid = "benchmark_lightside", -- no spaces, lowercase, this will be used to save the score
+	version = "1.0", -- increment this to keep the score when changing a mission
+	title = "Benchmark BAR", -- can be anything
+	author = "Beherith, AKU", -- your name here
+	isnew = true,
+	imagepath = "scenario023.jpg", -- placed next to lua file, should be 3:1 ratio banner style
+	imageflavor = "Units will act automatically during the benchmark", -- This text will be drawn over image
+	summary = [[This is a quick, ~3 minute benchmark script. You may leave after the benchmark is complete.]],
+	briefing = [[This scenario starts a benchmark by spawning 650 units to continously fight against 650 units. Use Bots/Tanks/Aircraft an option for close to a real game's match benchmark and collision an option for synthetic testing multithreading abilities of the game's engine. The average Sim, Draw and Update times are shown on screen. The game will automatically center the camera over the units, do not move the camera while the benchmark is running, and do not interact with the units. The game will return after printing the results to screen and infolog, and submitting them to the server.
 		
 	A total of 2000 simulation frames are tested. 
 	
@@ -21,35 +21,35 @@ local scenariodata = {
 
 	]],
 
-	mapfilename		= "Starwatcher 1.0", -- the name of the map to be displayed here
-	playerstartx	= "10%", -- X position of where player comm icon should be drawn, from top left of the map
-	playerstarty	= "10%", -- Y position of where player comm icon should be drawn, from top left of the map
-	partime 		= 180, -- par time in seconds
-	parresources	= 1, -- par resource amount
-	difficulty		= 15, -- Percieved difficulty at 'normal' level: integer 1-10
-    defaultdifficulty = "Bots", -- an entry of the difficulty table
-    difficulties    = { -- Array for sortedness, Keys are text that appears in selector (as well as in scoring!), values are handicap levels
-		{name = "Bots", playerhandicap = "corak armpw 650 10 2040" , enemyhandicap = 0},
-		{name = "Tanks", playerhandicap = "armbull armbull 650 10 2040" , enemyhandicap = 0},
-		{name = "Aircraft", playerhandicap = "corvamp armhawk 650 10 2040" , enemyhandicap = 0},
-		{name = "Collision", simspeed = "setspeed 20", cpu80 = "speedcontrol 0", playerhandicap = "coracsub coracsub 1300 2 1" , enemyhandicap = 0},
-    },
-    allowedsides     = {""}, --these are the permitted factions for this mission
-	victorycondition= "None", -- This is plaintext, but should be reflected in startscript
-	losscondition	= "None",  -- This is plaintext, but should be reflected in startscript
-    unitlimits   = {},
-    scenariooptions = { -- this will get lua->json->base64 and passed to scenariooptions in game
-        --myoption = "dostuff",
-        scenarioid = "benchmark_lightside", --must be present for scores
+	mapfilename = "Starwatcher 1.0", -- the name of the map to be displayed here
+	playerstartx = "10%", -- X position of where player comm icon should be drawn, from top left of the map
+	playerstarty = "10%", -- Y position of where player comm icon should be drawn, from top left of the map
+	partime = 180, -- par time in seconds
+	parresources = 1, -- par resource amount
+	difficulty = 15, -- Percieved difficulty at 'normal' level: integer 1-10
+	defaultdifficulty = "Bots", -- an entry of the difficulty table
+	difficulties = { -- Array for sortedness, Keys are text that appears in selector (as well as in scoring!), values are handicap levels
+		{ name = "Bots", playerhandicap = "corak armpw 650 10 2040", enemyhandicap = 0 },
+		{ name = "Tanks", playerhandicap = "armbull armbull 650 10 2040", enemyhandicap = 0 },
+		{ name = "Aircraft", playerhandicap = "corvamp armhawk 650 10 2040", enemyhandicap = 0 },
+		{ name = "Collision", simspeed = "setspeed 20", cpu80 = "speedcontrol 0", playerhandicap = "coracsub coracsub 1300 2 1", enemyhandicap = 0 },
+	},
+	allowedsides = { "" }, --these are the permitted factions for this mission
+	victorycondition = "None", -- This is plaintext, but should be reflected in startscript
+	losscondition = "None", -- This is plaintext, but should be reflected in startscript
+	unitlimits = {},
+	scenariooptions = { -- this will get lua->json->base64 and passed to scenariooptions in game
+		--myoption = "dostuff",
+		scenarioid = "benchmark_lightside", --must be present for scores
 		disablefactionpicker = true, -- this is needed to prevent faction picking outside of the allowedsides
 		benchmarkcommand = "luarules fightertest corak armpw 650 10 2040", -- make sure the matches the debugcommands identically named modoption's info
 		benchmarkframes = 2000,
-		-- quiteforce sucks, does not end the game. 
-		--unitloadout = {},	
+		-- quiteforce sucks, does not end the game.
+		--unitloadout = {},
 		--featureloadout = {},
-    },
-    -- https://github.com/spring/spring/blob/105.0/doc/StartScriptFormat.txt
-	startscript		= [[
+	},
+	-- https://github.com/spring/spring/blob/105.0/doc/StartScriptFormat.txt
+	startscript = [[
 
 	[Game]
 {

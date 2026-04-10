@@ -29,7 +29,7 @@ local spGetGameFrame = Spring.GetGameFrame
 local spValidUnitID = Spring.ValidUnitID
 local teamList = Spring.GetTeamList()
 local syncTables = {}
-local cmdCounter = {ii = 0 ,zi=0,iz=0,zz=0,old=0}
+local cmdCounter = { ii = 0, zi = 0, iz = 0, zz = 0, old = 0 }
 local string_sub = string.sub
 local string_gmatch = string.gmatch
 local string_match = string.match
@@ -40,8 +40,6 @@ local math_max = math.max
 local math_floor = math.floor
 local table_insert = table.insert
 local table_remove = table.remove
-
-
 
 for i = 1, #teamList do
 	local luaAI = spGetTeamLuaAI(teamList[i])
@@ -79,26 +77,22 @@ Shard.AIsByTeamID = {}
 --end
 --math.fmod = math.mod
 
-
 if gadgetHandler:IsSyncedCode() then
-
-	function gadget:Initialize()
-	end
+	function gadget:Initialize() end
 
 	function gadget:RezTable()
-			return table_remove(syncTables) or {}
+		return table_remove(syncTables) or {}
 	end
-
 
 	-- Function to recursively process a table and discard everything that is not a table
 	function gadget:KillTable(t)
-		if not t or type(t) ~= 'table' then
-			spEcho("incorrect type in SIT_TABLE",t)
+		if not t or type(t) ~= "table" then
+			spEcho("incorrect type in SIT_TABLE", t)
 			return
 		end
 		--spEcho("SIT_TABLE: Before clearing", t)
 		for key, value in pairs(t) do
-			if type(value) == 'table' then
+			if type(value) == "table" then
 				gadget:KillTable(value)
 			end
 			t[key] = nil
@@ -107,7 +101,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:ResetTable(t)
-		if type(t) == 'table' then
+		if type(t) == "table" then
 			gadget:KillTable(t)
 		end
 		return gadget:RezTable()
@@ -116,14 +110,17 @@ if gadgetHandler:IsSyncedCode() then
 	local deserializedOrder = {}
 	function gadget:DeserializeOrder(str)
 		if not str then
-			spEcho('Deserialize Order missing parameters')
+			spEcho("Deserialize Order missing parameters")
 			return
 		end
 		deserializedOrder = gadget:ResetTable(deserializedOrder)
 		for s in string_gmatch(str, "([^&]+)") do
 			local key, value = string_match(s, "(%w+):(.+)")
-			if not value then spEcho('Deserialize Order missing value',s,key,value) return end
-			if string_find(value,'|') or string_find(value,',') then
+			if not value then
+				spEcho("Deserialize Order missing value", s, key, value)
+				return
+			end
+			if string_find(value, "|") or string_find(value, ",") then
 				deserializedOrder[key] = self:StringToTable(value)
 			else
 				deserializedOrder[key] = tonumber(value) or value
@@ -136,18 +133,17 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:StringToTable(str)
 		StrToTbl = gadget:ResetTable()
 		local i = 1
-		if string_find(str,'|') then
+		if string_find(str, "|") then
 			for s in string_gmatch(str, "([^|]+)") do
-
 				StrToTbl[i] = gadget:RezTable()
 				for value in string_gmatch(s, "([^,]+)") do
-				table_insert(StrToTbl[i],tonumber(value) or value)
+					table_insert(StrToTbl[i], tonumber(value) or value)
 				end
 				i = i + 1
 			end
 		else
 			for value in string_gmatch(str, "([^,]+)") do
-				table_insert(StrToTbl,tonumber(value) or value)
+				table_insert(StrToTbl, tonumber(value) or value)
 			end
 		end
 		--spEcho("Sync Deserialized:", t)
@@ -155,44 +151,46 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:RecvLuaMsg(msg)
-
-		if string_sub(msg,1,17) == 'StGiveOrderToSync' then
-			spEcho('warn:  Shard  receive a old give order protocol',msg)
+		if string_sub(msg, 1, 17) == "StGiveOrderToSync" then
+			spEcho("warn:  Shard  receive a old give order protocol", msg)
 			cmdCounter.old = cmdCounter.old + 1
 			return
 		end
-		if string_sub(msg,1,12) ~= '@Shard[STGO]' or string_sub(msg,-12,-1) ~= '[STGO]Shard@' then
+		if string_sub(msg, 1, 12) ~= "@Shard[STGO]" or string_sub(msg, -12, -1) ~= "[STGO]Shard@" then
 			--spEcho('not a STAI Give Order ',string_sub(msg,1,10),string_sub(msg,-10,-1))
 			return
-
 		else
-			msg = string_sub(msg,13,-13)
+			msg = string_sub(msg, 13, -13)
 			local order = gadget:RezTable()
 			order = gadget:DeserializeOrder(msg)
 			if not order then
-				spEcho('Deserialize Order failed')
+				spEcho("Deserialize Order failed")
 				return
 			end
 
-			if order.method == '1-1' then
-				if not spValidUnitID(order.id) then return end
+			if order.method == "1-1" then
+				if not spValidUnitID(order.id) then
+					return
+				end
 				--('Receiveluarulesmsg GiveOrder to:',UnitDefs[spGetUnitDefID ( order.id )].name,order.cmd)
-				local cmd = spGiveOrderTounit(order.id,order.cmd,order.parameters,order.options)
+				local cmd = spGiveOrderTounit(order.id, order.cmd, order.parameters, order.options)
 				--spEcho(order.id,order.cmd,order.parameters,order.options,cmd)
 				--spEcho('GiveOrderToUnit',order.id,UnitDefs[order.id].name,order.cmd,order.parameters,order.options)
 				cmdCounter.ii = cmdCounter.ii + 1
 				local cmdTag = order.cmd
 				if cmdTag < 0 then
-					cmdTag = 'BUILD'
+					cmdTag = "BUILD"
 				end
 
-				cmdCounter[cmdTag]	= cmdCounter[cmdTag]  or 0
+				cmdCounter[cmdTag] = cmdCounter[cmdTag] or 0
 				cmdCounter[cmdTag] = cmdCounter[cmdTag] + 1
 				if not cmd then
-					spEcho('GiveOrderToUnit Error:',cmd)
+					spEcho("GiveOrderToUnit Error:", cmd)
 				end
-			elseif order.method == '2-1' then
-				if not spValidUnitID(order.id) then return end
+			elseif order.method == "2-1" then
+				if not spValidUnitID(order.id) then
+					return
+				end
 				local arrayOfCmd = gadget:RezTable()
 				for i in pairs(order.cmd) do
 					local row = gadget:RezTable()
@@ -201,21 +199,21 @@ if gadgetHandler:IsSyncedCode() then
 					row[3] = order.options[i]
 					arrayOfCmd[i] = row
 				end
-				local cmd = spGiveOrderArrayTounit(order.id,arrayOfCmd)
+				local cmd = spGiveOrderArrayTounit(order.id, arrayOfCmd)
 				cmdCounter.zi = cmdCounter.zi + 1
 				if not cmd then
-					spEcho('GiveOrderArrayTounit Error:',cmd)
+					spEcho("GiveOrderArrayTounit Error:", cmd)
 				end
 				gadget:KillTable(arrayOfCmd)
 				gadget:KillTable(order)
-			elseif order.method == '1-2' then
+			elseif order.method == "1-2" then
 				--spEcho(type(order.id),type(order.cmd),type(order.parameters[1]),type(order.options))
-				local cmd = spGiveOrderTounitArray(order.id,order.cmd,order.parameters,order.options)
+				local cmd = spGiveOrderTounitArray(order.id, order.cmd, order.parameters, order.options)
 				cmdCounter.iz = cmdCounter.iz + 1
 				if not cmd then
-					spEcho('GiveOrderToUnitArray Error:',cmd)
+					spEcho("GiveOrderToUnitArray Error:", cmd)
 				end
-			elseif order.method == '2-2' then
+			elseif order.method == "2-2" then
 				local arrayOfCmd = gadget:RezTable()
 				for i in pairs(order.cmd) do
 					local row = gadget:RezTable()
@@ -224,17 +222,16 @@ if gadgetHandler:IsSyncedCode() then
 					row[3] = order.options[i]
 					arrayOfCmd[i] = row
 				end
-				local cmd = spGiveOrderArrayTounitArray(order.id,arrayOfCmd,true)
+				local cmd = spGiveOrderArrayTounitArray(order.id, arrayOfCmd, true)
 				cmdCounter.zz = cmdCounter.zz + 1
 				if not cmd then
-					spEcho('GiveOrderArrayTounitArray Error:',cmd)
+					spEcho("GiveOrderArrayTounitArray Error:", cmd)
 				end
 				gadget:KillTable(arrayOfCmd)
 				gadget:KillTable(order)
 			else
-				spEcho('Shard AI Loader: unknown method',order.method)
+				spEcho("Shard AI Loader: unknown method", order.method)
 			end
-
 		end
 		--spEcho('cmdCounter','1-1',cmdCounter.ii,'2-1',cmdCounter.zi,'1-2',cmdCounter.iz,'2-2',cmdCounter.zz,'old',cmdCounter.old)
 		--spEcho('cmdCounter',cmdCounter)
@@ -242,13 +239,9 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:Shutdown()
 		spEcho("Shard AI sync gadget shutdown")
-		spEcho('STAI commands issued:',cmdCounter)
-
+		spEcho("STAI commands issued:", cmdCounter)
 	end
-
-else	-- UNSYNCED CODE
-
-
+else -- UNSYNCED CODE
 	function gadget:Initialize()
 		spEcho("Looking for AIs")
 
@@ -273,7 +266,7 @@ else	-- UNSYNCED CODE
 				self:UnitFinished(uId, spGetUnitDefID(uId), spGetUnitTeam(uId))
 			end
 		end
-		collectgarbage('collect')
+		collectgarbage("collect")
 	end
 
 	function gadget:SetupAI(id)
@@ -288,10 +281,7 @@ else	-- UNSYNCED CODE
 			return nil
 		end
 
-		shard_include = shard_generate_include_func(
-			"luarules/gadgets/ai/shard_runtime",
-			"luarules/gadgets/ai/" .. aiInfo
-		)
+		shard_include = shard_generate_include_func("luarules/gadgets/ai/shard_runtime", "luarules/gadgets/ai/" .. aiInfo)
 
 		local thisAI = VFS.Include("luarules/gadgets/ai/" .. aiInfo .. "/boot.lua")
 		thisAI.loaded = false
@@ -303,7 +293,7 @@ else	-- UNSYNCED CODE
 		local alliedTeamIds = {}
 		local enemyTeamIds = {}
 		for i = 1, #teamList do
-			if (spAreTeamsAllied(thisAI.id, teamList[i])) then
+			if spAreTeamsAllied(thisAI.id, teamList[i]) then
 				alliedTeamIds[teamList[i]] = true
 			else
 				enemyTeamIds[teamList[i]] = true
@@ -337,14 +327,13 @@ else	-- UNSYNCED CODE
 			thisAI.startPos = { x, y, z }
 			thisAI:Prepare()
 			--thisAI:Init()
-			garbagelimit = math_min(1000000,garbagelimit + pershardmemlimit)
-			spEcho(string_format("AI %d (%s) using %d MB RAM, adjusting limit to %d MB", thisAI.id, thisAI.fullname, basememlimit/1000, garbagelimit/1000))
+			garbagelimit = math_min(1000000, garbagelimit + pershardmemlimit)
+			spEcho(string_format("AI %d (%s) using %d MB RAM, adjusting limit to %d MB", thisAI.id, thisAI.fullname, basememlimit / 1000, garbagelimit / 1000))
 			numShards = numShards + 1
-
 		end
 	end
---local lastRamRead= 0
---local RAM
+	--local lastRamRead= 0
+	--local RAM
 	function gadget:GameFrame(n)
 		-- for each AI...
 
@@ -356,18 +345,16 @@ else	-- UNSYNCED CODE
 
 			if i == 1 and n % 121 == 0 then
 				local ramuse = gcinfo()
-				memoryRecord = math_max(memoryRecord,ramuse)
+				memoryRecord = math_max(memoryRecord, ramuse)
 				--spEcho("STAI use",ramuse .. ' kb of RAM of ' .. garbagelimit, 'available' )
 				if ramuse > garbagelimit then
 					collectgarbage("collect")
 					local notgarbagemem = gcinfo()
 					local newgarbagelimit = math_min(1000000, notgarbagemem + basememlimit + pershardmemlimit * numShards) -- peak 1 GB
-					spEcho(string_format("%d STAIs using %d MB RAM > %d MB limit, performing garbage collection and adjusting limit to %d MB",
-						numShards, math_floor(ramuse/1000), math_floor(garbagelimit/1000), math_floor(newgarbagelimit/1000) ) )
+					spEcho(string_format("%d STAIs using %d MB RAM > %d MB limit, performing garbage collection and adjusting limit to %d MB", numShards, math_floor(ramuse / 1000), math_floor(garbagelimit / 1000), math_floor(newgarbagelimit / 1000)))
 					garbagelimit = newgarbagelimit
 				end
 			end
-
 		end
 	end
 
@@ -404,7 +391,7 @@ else	-- UNSYNCED CODE
 		if unit then
 			for _, thisAI in ipairs(Shard.AIs) do
 				thisAI:Prepare()
-				thisAI:UnitDead(unit,unitDefId, teamId, attackerId, attackerDefId, attackerTeamId)
+				thisAI:UnitDead(unit, unitDefId, teamId, attackerId, attackerDefId, attackerTeamId)
 
 				thisAI.ownUnitIds[unitId] = nil
 				thisAI.friendlyUnitIds[unitId] = nil
@@ -413,7 +400,7 @@ else	-- UNSYNCED CODE
 				thisAI.neutralUnitIds[unitId] = nil
 				-- thisAI:UnitDestroyed(unitId, unitDefId, teamId, attackerId, attackerDefId, attackerTeamId)
 			end
--- 			Shard:unshardify_unit(self.engineUnit)
+			-- 			Shard:unshardify_unit(self.engineUnit)
 		end
 	end
 
@@ -437,7 +424,7 @@ else	-- UNSYNCED CODE
 		if unit then
 			for _, thisAI in ipairs(Shard.AIs) do
 				thisAI:Prepare()
-				thisAI:UnitIdle(unit,unitDefId, teamId)
+				thisAI:UnitIdle(unit, unitDefId, teamId)
 			end
 		end
 	end
@@ -449,7 +436,7 @@ else	-- UNSYNCED CODE
 			for _, thisAI in ipairs(Shard.AIs) do
 				-- thisAI:UnitFinished(unitId, unitDefId, teamId)
 				thisAI:Prepare()
-				thisAI:UnitBuilt(unit,unitDefId,teamId)
+				thisAI:UnitBuilt(unit, unitDefId, teamId)
 			end
 		end
 	end
@@ -515,12 +502,12 @@ else	-- UNSYNCED CODE
 		end
 	end
 
--- 	function gadget:UnitMoved(a,b,c,d)
--- 		print('unit moved',a,b,c,d)
--- 	end
+	-- 	function gadget:UnitMoved(a,b,c,d)
+	-- 		print('unit moved',a,b,c,d)
+	-- 	end
 
- 	--function gadget:UnitMoveFailed(a,b,c,d)
- 	--end
+	--function gadget:UnitMoveFailed(a,b,c,d)
+	--end
 	function gadget:FeatureDestroyed(featureID)
 		Shard:unshardify_feature(featureID)
 	end
@@ -542,7 +529,7 @@ else	-- UNSYNCED CODE
 
 	function gadget:Shutdown()
 		spEcho("Shard AI unsync gadget shutdown")
-		spEcho('STAI memory record:',memoryRecord)
+		spEcho("STAI memory record:", memoryRecord)
 		gadgetHandler:RemoveSyncAction("shard_debug_position")
 	end
 
@@ -552,16 +539,14 @@ else	-- UNSYNCED CODE
 		end
 	end
 
-	function gadget:DrawScreen()--usefull drawing function
+	function gadget:DrawScreen() --usefull drawing function
 		return
 	end
-
 end
 
-
-	--UNSYNCED CODE
+--UNSYNCED CODE
 --else
-	--[[
+--[[
 	local function sdAddRectangle(_, x1, z1, x2, z2, r, g, b, a, label, filled, teamID, channel)
 		if (Script.LuaUI('ShardDrawAddRectangle')) then
 			Script.LuaUI.ShardDrawAddRectangle(x1, z1, x2, z2, { r, g, b, a }, label, filled, teamID, channel)
@@ -664,8 +649,6 @@ end
 --
 -- 	end
 
-
-
 --[[	function gadget:Initialize()
 		spEcho("Shard AI unsync gadget init")
 		gadgetHandler:AddSyncAction("shard_debug_position", handleShardDebugPosEvent)
@@ -687,7 +670,7 @@ end
 	end
 ]]
 
-		--[[
+--[[
 		spEcho("Shard AI unsync gadget init")
 		gadgetHandler:AddSyncAction("BuildingCommand", stBuildingCommand)
 		gadgetHandler:AddSyncAction("shard_debug_position", handleShardDebugPosEvent)
@@ -706,4 +689,3 @@ end
 		gadgetHandler:AddSyncAction('ShardStartTimer', sStartTimer)
 		gadgetHandler:AddSyncAction('ShardStopTimer', sStopTimer)
 		gadgetHandler:AddSyncAction('ShardSaveTable', sSaveTable)]]
-

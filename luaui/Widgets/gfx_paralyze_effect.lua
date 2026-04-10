@@ -1,18 +1,17 @@
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
-  return {
-    name      = "Paralyze Effect",
-    version   = "v0.2",
-    desc      = "Faster gl.UnitShape, Use WG.UnitShapeGL4",
-    author    = "Beherith",
-    date      = "2021.11.04",
-    license   = "GNU GPL v2",
-    layer     = 0,
-    enabled   = true,
-  }
+	return {
+		name = "Paralyze Effect",
+		version = "v0.2",
+		desc = "Faster gl.UnitShape, Use WG.UnitShapeGL4",
+		author = "Beherith",
+		date = "2021.11.04",
+		license = "GNU GPL v2",
+		layer = 0,
+		enabled = true,
+	}
 end
-
 
 -- Localized Spring API for performance
 local spGetUnitDefID = Spring.GetUnitDefID
@@ -25,13 +24,11 @@ local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOIdTable
 
 local pushElementInstance = InstanceVBOTable.pushElementInstance
-local popElementInstance  = InstanceVBOTable.popElementInstance
-
+local popElementInstance = InstanceVBOTable.popElementInstance
 
 -- for testing: /luarules fightertest corak armpw 100 10 3000
 
 local paralyzedUnitShader, unitShapeShader
-
 
 local vsSrc = [[
 #version 420
@@ -324,7 +321,6 @@ void main() {
 }
 ]]
 
-
 local paralyzeSourceShaderCache = {
 	vsSrc = vsSrc,
 	fsSrc = fsSrc,
@@ -334,13 +330,13 @@ local paralyzeSourceShaderCache = {
 	shaderConfig = {
 		USEQUATERNIONS = Engine.FeatureSupport.transformsInGL4 and "1" or "0",
 	},
-	forceupdate = true  -- otherwise file-less defines are not updated
+	forceupdate = true, -- otherwise file-less defines are not updated
 }
 
 --holy hacks batman
 if Spring.GetModOptions().emprework then
-	fsSrc = string.gsub(fsSrc,'//empreworktagdonotremove','paralysis_level = paralysis_level*3; if (paralysis_level> 1) { paralysis_level = 1; }')
-	fsSrc = string.gsub(fsSrc,'//empreworkherealsodonotremove','if (paralysis_level > 0.49) { wholeunitbasecolor = vec4(0.35, 0.43, 0.94, 0.18); }')
+	fsSrc = string.gsub(fsSrc, "//empreworktagdonotremove", "paralysis_level = paralysis_level*3; if (paralysis_level> 1) { paralysis_level = 1; }")
+	fsSrc = string.gsub(fsSrc, "//empreworkherealsodonotremove", "if (paralysis_level > 0.49) { wholeunitbasecolor = vec4(0.35, 0.43, 0.94, 0.18); }")
 end
 
 local paralyzedDrawUnitVBOTable
@@ -352,14 +348,14 @@ local function initGL4()
 	indxVBO:ModelsVBO()
 
 	local VBOLayout = {
-			{id = 6, name = "startcolorpower", size = 4},
-			{id = 7, name = "endcolor" , size = 4},
-			{id = 8, name = "instData", type = GL.UNSIGNED_INT, size = 4},
-		}
+		{ id = 6, name = "startcolorpower", size = 4 },
+		{ id = 7, name = "endcolor", size = 4 },
+		{ id = 8, name = "instData", type = GL.UNSIGNED_INT, size = 4 },
+	}
 
 	local maxElements = 32 -- start small for testing
 	local unitIDAttributeIndex = 8
-	paralyzedDrawUnitVBOTable         = InstanceVBOTable.makeInstanceVBOTable(VBOLayout, maxElements, "paralyzedDrawUnitVBOTable", unitIDAttributeIndex, "unitID")
+	paralyzedDrawUnitVBOTable = InstanceVBOTable.makeInstanceVBOTable(VBOLayout, maxElements, "paralyzedDrawUnitVBOTable", unitIDAttributeIndex, "unitID")
 
 	paralyzedDrawUnitVBOTable.VAO = InstanceVBOTable.makeVAOandAttach(vertVBO, paralyzedDrawUnitVBOTable.instanceVBO, indxVBO)
 	paralyzedDrawUnitVBOTable.indexVBO = indxVBO
@@ -367,13 +363,13 @@ local function initGL4()
 
 	paralyzedUnitShader = LuaShader.CheckShaderUpdates(paralyzeSourceShaderCache)
 
-	if not paralyzedUnitShader  then
+	if not paralyzedUnitShader then
 		spEcho("paralyzedUnitShaderCompiled shader compilation failed", paralyzedUnitShader)
 		widgetHandler:RemoveWidget()
 	end
 end
 
-local function DrawParalyzedUnitGL4(unitID, unitDefID, red_start,  green_start, blue_start,power_start, red_end, green_end, blue_end, time_end)
+local function DrawParalyzedUnitGL4(unitID, unitDefID, red_start, green_start, blue_start, power_start, red_end, green_end, blue_end, time_end)
 	-- Documentation for DrawParalyzedUnitGL4:
 	--	unitID: the actual unitID that you want to draw
 	--	unitDefID: which unitDef is it (leave nil for autocomplete)
@@ -381,28 +377,36 @@ local function DrawParalyzedUnitGL4(unitID, unitDefID, red_start,  green_start, 
 	-- note that widgets are responsible for stopping the drawing of every unit that they submit!
 
 	--spEcho("DrawParalyzedUnitGL4",unitID, unitDefID, UnitDefs[unitDefID].name)
-	if paralyzedDrawUnitVBOTable.instanceIDtoIndex[unitID] then return end -- already got this unit
-	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true then return end
+	if paralyzedDrawUnitVBOTable.instanceIDtoIndex[unitID] then
+		return
+	end -- already got this unit
+	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true then
+		return
+	end
 	red_start = red_start or 1.0
 	green_start = green_start or 1.0
 	blue_start = blue_start or 1.0
-	power_start = power_start or 4.0 
+	power_start = power_start or 4.0
 	red_end = red_end or 0
 	green_end = green_end or 0
 	blue_end = blue_end or 1.0
 	time_end = 500000 --time_end or spGetGameFrame()
 	unitDefID = unitDefID or spGetUnitDefID(unitID)
 
-	pushElementInstance(paralyzedDrawUnitVBOTable , {
-			red_start, green_start,blue_start, power_start,
-			red_end, green_end, blue_end, time_end,
-			0,0,0,0
-		},
-		unitID,
-		true,
-		nil,
-		unitID,
-		"unitID")
+	pushElementInstance(paralyzedDrawUnitVBOTable, {
+		red_start,
+		green_start,
+		blue_start,
+		power_start,
+		red_end,
+		green_end,
+		blue_end,
+		time_end,
+		0,
+		0,
+		0,
+		0,
+	}, unitID, true, nil, unitID, "unitID")
 	--spEcho("Pushed",  unitID, elementID)
 	return unitID
 end
@@ -426,9 +430,9 @@ local spec, fullview
 local function init()
 	InstanceVBOTable.clearInstanceTable(paralyzedDrawUnitVBOTable)
 	local allUnits = spGetAllUnits()
-	for i=1, #allUnits do
+	for i = 1, #allUnits do
 		local unitID = allUnits[i]
-		local health,maxHealth,paralyzeDamage,capture,build = spGetUnitHealth(unitID)
+		local health, maxHealth, paralyzeDamage, capture, build = spGetUnitHealth(unitID)
 		if paralyzeDamage and paralyzeDamage > 0 then
 			widget:UnitCreated(unitID, spGetUnitDefID(unitID))
 		end
@@ -450,7 +454,7 @@ function widget:UnitCreated(unitID, unitDefID)
 		DrawParalyzedUnitGL4(unitID, unitDefID)
 	end
 
-	local health,maxHealth,paralyzeDamage,capture,build = spGetUnitHealth(unitID)
+	local health, maxHealth, paralyzeDamage, capture, build = spGetUnitHealth(unitID)
 	if paralyzeDamage and paralyzeDamage > 0 then
 		DrawParalyzedUnitGL4(unitID, unitDefID)
 	end
@@ -465,7 +469,9 @@ function widget:UnitLeftLos(unitID)
 end
 
 function widget:UnitEnteredLos(unitID)
-	if fullview then return end
+	if fullview then
+		return
+	end
 	widget:UnitCreated(unitID, spGetUnitDefID(unitID))
 end
 
@@ -475,11 +481,11 @@ local function UnitParalyzeDamageEffect(unitID, unitDefID, damage) -- called fro
 	widget:UnitCreated(unitID, unitDefID)
 end
 
-local uniformcache = {0}
+local uniformcache = { 0 }
 local toremove = {}
 
 function widget:GameFrame(n)
-	if TESTMODE == false then 
+	if TESTMODE == false then
 		if n % 3 == 0 then
 			for unitID, index in pairs(paralyzedDrawUnitVBOTable.instanceIDtoIndex) do
 				local health, maxHealth, paralyzeDamage, capture, build = spGetUnitHealth(unitID)
@@ -508,18 +514,18 @@ function widget:Initialize()
 	if TESTMODE then
 		for i, unitID in ipairs(spGetAllUnits()) do
 			widget:UnitCreated(unitID)
-			gl.SetUnitBufferUniforms(unitID, {1.01}, 4)
+			gl.SetUnitBufferUniforms(unitID, { 1.01 }, 4)
 		end
 	end
-	WG['DrawParalyzedUnitGL4'] = DrawParalyzedUnitGL4
-	WG['StopDrawParalyzedUnitGL4'] = StopDrawParalyzedUnitGL4
-	widgetHandler:RegisterGlobal("UnitParalyzeDamageEffect",UnitParalyzeDamageEffect )
+	WG["DrawParalyzedUnitGL4"] = DrawParalyzedUnitGL4
+	WG["StopDrawParalyzedUnitGL4"] = StopDrawParalyzedUnitGL4
+	widgetHandler:RegisterGlobal("UnitParalyzeDamageEffect", UnitParalyzeDamageEffect)
 end
 
 function widget:Shutdown()
-	WG['DrawParalyzedUnitGL4'] = nil
-	WG['StopDrawParalyzedUnitGL4'] = nil
-	widgetHandler:DeregisterGlobal("UnitParalyzeDamageEffect" )
+	WG["DrawParalyzedUnitGL4"] = nil
+	WG["StopDrawParalyzedUnitGL4"] = nil
+	widgetHandler:DeregisterGlobal("UnitParalyzeDamageEffect")
 end
 
 function widget:DrawWorld()
@@ -528,13 +534,13 @@ function widget:DrawWorld()
 		gl.Culling(GL.BACK)
 		gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
 		gl.DepthTest(true)
-		gl.PolygonOffset( -2 ,-2)
+		gl.PolygonOffset(-2, -2)
 		paralyzedUnitShader:Activate()
 		--gl.Texture(0, "luaui/images/noisetextures/rgba_noise_256.tga")
 		paralyzedDrawUnitVBOTable.VAO:Submit()
 		paralyzedUnitShader:Deactivate()
 		--gl.Texture(0, false)
-		gl.PolygonOffset( false )
+		gl.PolygonOffset(false)
 		--gl.DepthMask(true) --"BK OpenGL state resets", was true but now commented out (redundant set of false states)
 		gl.Culling(false)
 	end

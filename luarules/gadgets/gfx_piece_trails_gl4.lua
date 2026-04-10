@@ -4,7 +4,9 @@
 -- Uses GG.Particles API from the core particle engine.
 --------------------------------------------------------------------------------
 
-if gadgetHandler:IsSyncedCode() then return end
+if gadgetHandler:IsSyncedCode() then
+	return
+end
 
 function gadget:GetInfo()
 	return {
@@ -21,25 +23,25 @@ end
 --------------------------------------------------------------------------------
 -- Localized functions
 --------------------------------------------------------------------------------
-local spEcho                      = Spring.Echo
+local spEcho = Spring.Echo
 local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
-local spGetProjectilePosition     = Spring.GetProjectilePosition
-local spGetProjectileVelocity     = Spring.GetProjectileVelocity
-local spGetProjectileOwnerID      = Spring.GetProjectileOwnerID
-local spGetProjectileTeamID       = Spring.GetProjectileTeamID
-local spGetTeamAllyTeamID         = Spring.GetTeamAllyTeamID
-local spIsSphereInView            = Spring.IsSphereInView
-local spGetGroundHeight           = Spring.GetGroundHeight
-local spIsPosInAirLos             = Spring.IsPosInAirLos
-local spGetMyAllyTeamID           = Spring.GetMyAllyTeamID
-local spGetSpectatingState        = Spring.GetSpectatingState
+local spGetProjectilePosition = Spring.GetProjectilePosition
+local spGetProjectileVelocity = Spring.GetProjectileVelocity
+local spGetProjectileOwnerID = Spring.GetProjectileOwnerID
+local spGetProjectileTeamID = Spring.GetProjectileTeamID
+local spGetTeamAllyTeamID = Spring.GetTeamAllyTeamID
+local spIsSphereInView = Spring.IsSphereInView
+local spGetGroundHeight = Spring.GetGroundHeight
+local spIsPosInAirLos = Spring.IsPosInAirLos
+local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
+local spGetSpectatingState = Spring.GetSpectatingState
 
 local mathRandom = math.random
-local mathMin    = math.min
-local mathMax    = math.max
-local mathFloor  = math.floor
-local mathCeil   = math.ceil
-local mathSqrt   = math.sqrt
+local mathMin = math.min
+local mathMax = math.max
+local mathFloor = math.floor
+local mathCeil = math.ceil
+local mathSqrt = math.sqrt
 
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
@@ -47,46 +49,46 @@ local mapSizeZ = Game.mapSizeZ
 --------------------------------------------------------------------------------
 -- Configuration
 --------------------------------------------------------------------------------
-local PIECE_SPAWN_COUNT_MAX    = 3
-local PIECE_SPAWN_TAPER        = 2
-local PIECE_SKIP_CHANCE        = 0.4
-local PIECE_VEL_SCALE          = 6.0
-local PIECE_LIFETIME_MIN       = 35
-local PIECE_LIFETIME_MAX       = 85
-local PIECE_SIZE_SCALE_MIN     = 0.18
-local PIECE_SIZE_SCALE_MAX     = 0.5
-local PIECE_SIZE_SCALE_REF     = 25.0
-local PIECE_LIFE_BASE          = 200
-local PIECE_LIFE_PER_RADIUS    = 1.5
-local PIECE_ALPHA_FADE         = 0.66
-local PIECE_ALPHA_MIN          = 0.25
+local PIECE_SPAWN_COUNT_MAX = 3
+local PIECE_SPAWN_TAPER = 2
+local PIECE_SKIP_CHANCE = 0.4
+local PIECE_VEL_SCALE = 6.0
+local PIECE_LIFETIME_MIN = 35
+local PIECE_LIFETIME_MAX = 85
+local PIECE_SIZE_SCALE_MIN = 0.18
+local PIECE_SIZE_SCALE_MAX = 0.5
+local PIECE_SIZE_SCALE_REF = 25.0
+local PIECE_LIFE_BASE = 200
+local PIECE_LIFE_PER_RADIUS = 1.5
+local PIECE_ALPHA_FADE = 0.66
+local PIECE_ALPHA_MIN = 0.25
 local PIECE_GROUND_SKIP_HEIGHT = 5
-local PIECE_FIRE_CHANCE        = 0.3
+local PIECE_FIRE_CHANCE = 0.3
 
 -- Distance LOD for piece trails
-local LOD_DIST_NEAR            = 4000
-local LOD_DIST_FAR             = 10000
-local LOD_MIN_MULT             = 0.33
-local LOD_DIST_RANGE_INV       = 1.0 / (LOD_DIST_FAR - LOD_DIST_NEAR)
-local LOD_MULT_RANGE           = 1.0 - LOD_MIN_MULT
-local LOD_DIST_NEAR_SQ         = LOD_DIST_NEAR * LOD_DIST_NEAR
+local LOD_DIST_NEAR = 4000
+local LOD_DIST_FAR = 10000
+local LOD_MIN_MULT = 0.33
+local LOD_DIST_RANGE_INV = 1.0 / (LOD_DIST_FAR - LOD_DIST_NEAR)
+local LOD_MULT_RANGE = 1.0 - LOD_MIN_MULT
+local LOD_DIST_NEAR_SQ = LOD_DIST_NEAR * LOD_DIST_NEAR
 
 -- Replay quality: preset index for off-screen buffer replay (1=Low, 0=use current)
-local REPLAY_PIECE_PRESET      = 1
+local REPLAY_PIECE_PRESET = 1
 
 -- Pre-computed
-local PIECE_VEL_COMBINED       = PIECE_VEL_SCALE * 0.05
-local PIECE_ALPHA_RANGE        = 1.0 - PIECE_ALPHA_MIN
-local PIECE_LIFETIME_RANGE     = PIECE_LIFETIME_MAX - PIECE_LIFETIME_MIN
+local PIECE_VEL_COMBINED = PIECE_VEL_SCALE * 0.05
+local PIECE_ALPHA_RANGE = 1.0 - PIECE_ALPHA_MIN
+local PIECE_LIFETIME_RANGE = PIECE_LIFETIME_MAX - PIECE_LIFETIME_MIN
 
 --------------------------------------------------------------------------------
 -- Particle engine API (localized at init for performance)
 --------------------------------------------------------------------------------
-local api                  -- GG.Particles reference
-local spawnParticle        -- api.spawnParticle
-local setBudget            -- api.setBudget
-local bufferOffscreen      -- api.bufferOffscreen
-local replayBuffer         -- api.replayBuffer
+local api -- GG.Particles reference
+local spawnParticle -- api.spawnParticle
+local setBudget -- api.setBudget
+local bufferOffscreen -- api.bufferOffscreen
+local replayBuffer -- api.replayBuffer
 
 -- Shared physics constants (localized from core at init)
 local SMOKE_VEL_UP_MIN
@@ -149,7 +151,9 @@ local function replayPieceEntries(tracked, gameFrame, buf)
 	local maxReplayAge = mathCeil(PIECE_LIFETIME_MAX * 2 * presetLifeMult) + 2
 	local startIdx = #buf
 	for i = #buf, 1, -1 do
-		if gameFrame - buf[i][1] > maxReplayAge then break end
+		if gameFrame - buf[i][1] > maxReplayAge then
+			break
+		end
 		startIdx = i
 	end
 
@@ -173,32 +177,14 @@ local function replayPieceEntries(tracked, gameFrame, buf)
 			if mathRandom() > PIECE_SKIP_CHANCE then
 				local sizeRand = mathRandom() * PARTICLE_SIZE_RANGE
 				local particleSize = (PARTICLE_SIZE_MIN + sizeRand) * smokeSizeSc
-				spawnParticle(
-					bpx + mathRandom() - 0.5, bpy + mathRandom(), bpz + mathRandom() - 0.5,
-					vxs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
-					vys + mathRandom() * SMOKE_VEL_UP_RANGE + SMOKE_VEL_UP_MIN,
-					vzs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
-					particleSize, 0,
-					(PIECE_LIFETIME_MIN + (tracked.lifeBias + mathRandom() * 0.3) * PIECE_LIFETIME_RANGE) * (1.0 + sizeRand * PARTICLE_SIZE_INV_RANGE) * smokeLifeBase,
-					(PIECE_ALPHA_MIN + mathRandom() * PIECE_ALPHA_RANGE) * smokeAlphaBase,
-					nil, frame
-				)
+				spawnParticle(bpx + mathRandom() - 0.5, bpy + mathRandom(), bpz + mathRandom() - 0.5, vxs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM), vys + mathRandom() * SMOKE_VEL_UP_RANGE + SMOKE_VEL_UP_MIN, vzs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM), particleSize, 0, (PIECE_LIFETIME_MIN + (tracked.lifeBias + mathRandom() * 0.3) * PIECE_LIFETIME_RANGE) * (1.0 + sizeRand * PARTICLE_SIZE_INV_RANGE) * smokeLifeBase, (PIECE_ALPHA_MIN + mathRandom() * PIECE_ALPHA_RANGE) * smokeAlphaBase, nil, frame)
 			end
 		end
 
 		if fi > 0 then
 			local sizeRand = mathRandom() * PARTICLE_SIZE_RANGE
 			local particleSize = (PARTICLE_SIZE_MIN + sizeRand) * sc * FIRE_SIZE_MULT * fi
-			spawnParticle(
-				bpx + mathRandom() * 0.6 - 0.3, bpy + mathRandom() * 0.5, bpz + mathRandom() * 0.6 - 0.3,
-				vxs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
-				vys + mathRandom() * SMOKE_VEL_UP_RANGE + SMOKE_VEL_UP_MIN,
-				vzs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
-				particleSize, 1,
-				(FIRE_LIFETIME_MIN + mathRandom() * FIRE_LIFETIME_RANGE) * presetLifeMult * fi,
-				(FIRE_ALPHA_MIN + mathRandom() * 0.2) * (0.5 + 0.5 * fi),
-				nil, frame
-			)
+			spawnParticle(bpx + mathRandom() * 0.6 - 0.3, bpy + mathRandom() * 0.5, bpz + mathRandom() * 0.6 - 0.3, vxs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM), vys + mathRandom() * SMOKE_VEL_UP_RANGE + SMOKE_VEL_UP_MIN, vzs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM), particleSize, 1, (FIRE_LIFETIME_MIN + mathRandom() * FIRE_LIFETIME_RANGE) * presetLifeMult * fi, (FIRE_ALPHA_MIN + mathRandom() * 0.2) * (0.5 + 0.5 * fi), nil, frame)
 		end
 	end
 end
@@ -222,20 +208,31 @@ local debugPieceSkipNoPos = 0
 
 local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 	local pieceAge = gameFrame - tracked.birthFrame
-	if pieceAge > tracked.lifeFrames then debugPieceSkipExpired = debugPieceSkipExpired + 1 return end
+	if pieceAge > tracked.lifeFrames then
+		debugPieceSkipExpired = debugPieceSkipExpired + 1
+		return
+	end
 
 	local px, py, pz = spGetProjectilePosition(proID)
-	if not px then debugPieceSkipNoPos = debugPieceSkipNoPos + 1 return end
+	if not px then
+		debugPieceSkipNoPos = debugPieceSkipNoPos + 1
+		return
+	end
 
 	local aboveGround = py > PIECE_GROUND_SKIP_HEIGHT
 	if not aboveGround then
 		local groundY = spGetGroundHeight(px, pz) or 0
 		aboveGround = py > groundY + 1
 	end
-	if not aboveGround then debugPieceSkipAboveGround = debugPieceSkipAboveGround + 1 return end
+	if not aboveGround then
+		debugPieceSkipAboveGround = debugPieceSkipAboveGround + 1
+		return
+	end
 
 	-- LOS check: own allyteam pieces always visible, enemy ones need LOS
-	if not frameFullView and tracked.allyTeamID ~= frameAllyTeamID and not spIsPosInAirLos(px, py, pz, frameAllyTeamID) then return end
+	if not frameFullView and tracked.allyTeamID ~= frameAllyTeamID and not spIsPosInAirLos(px, py, pz, frameAllyTeamID) then
+		return
+	end
 
 	local inView = spIsSphereInView(px, py, pz, PIECE_CULLING_RADIUS)
 	if not inView then
@@ -251,7 +248,7 @@ local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 	replayBuffer(tracked, gameFrame, replayPieceEntries)
 
 	local dx, dy, dz = px - frameCamX, py - frameCamY, pz - frameCamZ
-	local distSq = dx*dx + dy*dy + dz*dz
+	local distSq = dx * dx + dy * dy + dz * dz
 	local lodMult = 1.0
 	if distSq > LOD_DIST_NEAR_SQ then
 		local t = (mathSqrt(distSq) - LOD_DIST_NEAR) * LOD_DIST_RANGE_INV
@@ -297,15 +294,7 @@ local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 	if fi > 0 then
 		local sizeRand = mathRandom() * PARTICLE_SIZE_RANGE
 		local particleSize = (PARTICLE_SIZE_MIN + sizeRand) * sc * FIRE_SIZE_MULT * fi
-		spawnParticle(
-			px + mathRandom() * 0.6 - 0.3, py + mathRandom() * 0.5, pz + mathRandom() * 0.6 - 0.3,
-			vxs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
-			vys + mathRandom() * SMOKE_VEL_UP_RANGE + SMOKE_VEL_UP_MIN,
-			vzs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
-			particleSize, 1,
-			(FIRE_LIFETIME_MIN + mathRandom() * FIRE_LIFETIME_RANGE) * presetLifeMult * fi,
-			(FIRE_ALPHA_MIN + mathRandom() * 0.2) * (0.5 + 0.5 * fi)
-		)
+		spawnParticle(px + mathRandom() * 0.6 - 0.3, py + mathRandom() * 0.5, pz + mathRandom() * 0.6 - 0.3, vxs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM), vys + mathRandom() * SMOKE_VEL_UP_RANGE + SMOKE_VEL_UP_MIN, vzs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM), particleSize, 1, (FIRE_LIFETIME_MIN + mathRandom() * FIRE_LIFETIME_RANGE) * presetLifeMult * fi, (FIRE_ALPHA_MIN + mathRandom() * 0.2) * (0.5 + 0.5 * fi))
 		debugPieceSpawnCount = debugPieceSpawnCount + 1
 	end
 end
@@ -315,7 +304,9 @@ end
 --------------------------------------------------------------------------------
 local function updatePieceProjectiles(gameFrame)
 	local projectiles = spGetProjectilesInRectangle(0, 0, mapSizeX, mapSizeZ, true, false)
-	if not projectiles then return end
+	if not projectiles then
+		return
+	end
 
 	local _, ownerRadius = next(pendingDeathUnitRadii)
 
@@ -378,7 +369,9 @@ local function onUpdate(gameFrame, preset, camX, camY, camZ, isFastForward)
 	-- Debug output every 30 frames
 	if gameFrame % 30 == 0 then
 		local trackedCount = 0
-		for _ in pairs(trackedPieceProjectiles) do trackedCount = trackedCount + 1 end
+		for _ in pairs(trackedPieceProjectiles) do
+			trackedCount = trackedCount + 1
+		end
 		-- spEcho(string.format(
 		-- 	"[PieceTrails] spawned=%d  calls=%d  tracked=%d  skipGround=%d  skipOffscreen=%d  skipExpired=%d  skipNoPos=%d  preset=%s  interval=%d",
 		-- 	debugPieceSpawnCount, debugPieceCallCount, trackedCount,
@@ -423,26 +416,26 @@ function gadget:Initialize()
 	end
 
 	-- Localize API functions for hot-path performance
-	spawnParticle   = api.spawnParticle
-	setBudget       = api.setBudget
+	spawnParticle = api.spawnParticle
+	setBudget = api.setBudget
 	bufferOffscreen = api.bufferOffscreen
-	replayBuffer    = api.replayBuffer
+	replayBuffer = api.replayBuffer
 
 	-- Localize shared physics constants
-	SMOKE_VEL_UP_MIN      = api.SMOKE_VEL_UP_MIN
-	SMOKE_VEL_UP_RANGE    = api.SMOKE_VEL_UP_RANGE
-	SMOKE_VEL_RANDOM      = api.SMOKE_VEL_RANDOM
-	SMOKE_VEL_RANDOM_2    = api.SMOKE_VEL_RANDOM_2
-	PARTICLE_SIZE_MIN     = api.PARTICLE_SIZE_MIN
-	PARTICLE_SIZE_RANGE   = api.PARTICLE_SIZE_RANGE
+	SMOKE_VEL_UP_MIN = api.SMOKE_VEL_UP_MIN
+	SMOKE_VEL_UP_RANGE = api.SMOKE_VEL_UP_RANGE
+	SMOKE_VEL_RANDOM = api.SMOKE_VEL_RANDOM
+	SMOKE_VEL_RANDOM_2 = api.SMOKE_VEL_RANDOM_2
+	PARTICLE_SIZE_MIN = api.PARTICLE_SIZE_MIN
+	PARTICLE_SIZE_RANGE = api.PARTICLE_SIZE_RANGE
 	PARTICLE_SIZE_INV_RANGE = api.PARTICLE_SIZE_INV_RANGE
-	FIRE_LIFETIME_MIN     = api.FIRE_LIFETIME_MIN
-	FIRE_LIFETIME_RANGE   = api.FIRE_LIFETIME_RANGE
-	FIRE_SIZE_MULT        = api.FIRE_SIZE_MULT
-	FIRE_ALPHA_MIN        = api.FIRE_ALPHA_MIN
-	CULLING_MARGIN        = api.CULLING_MARGIN
-	PIECE_CULLING_RADIUS  = 50 + CULLING_MARGIN
-	PRIORITY_NORMAL       = api.PRIORITY_NORMAL
+	FIRE_LIFETIME_MIN = api.FIRE_LIFETIME_MIN
+	FIRE_LIFETIME_RANGE = api.FIRE_LIFETIME_RANGE
+	FIRE_SIZE_MULT = api.FIRE_SIZE_MULT
+	FIRE_ALPHA_MIN = api.FIRE_ALPHA_MIN
+	CULLING_MARGIN = api.CULLING_MARGIN
+	PIECE_CULLING_RADIUS = 50 + CULLING_MARGIN
+	PRIORITY_NORMAL = api.PRIORITY_NORMAL
 
 	buildUnitDeathSizeCache()
 

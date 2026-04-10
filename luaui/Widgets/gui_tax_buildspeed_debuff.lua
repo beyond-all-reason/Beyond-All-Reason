@@ -2,13 +2,13 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "Buildspeed Debuff Bar",
-		desc      = "Shows a pulsating icon above builder units debuffed after being transferred to an ally  in easytax modoption.",
-		author    = "RebelNode",
-		date      = "2026",
-		license   = "GNU GPL v2",
-		layer     = -1,
-		enabled   = true
+		name = "Buildspeed Debuff Bar",
+		desc = "Shows a pulsating icon above builder units debuffed after being transferred to an ally  in easytax modoption.",
+		author = "RebelNode",
+		date = "2026",
+		license = "GNU GPL v2",
+		layer = -1,
+		enabled = true,
 	}
 end
 
@@ -18,21 +18,21 @@ end
 
 local debuffedUnits = {} -- unitID -> { startFrame, expireFrame, yoffset }
 
-local spGetGameFrame   = Spring.GetGameFrame
+local spGetGameFrame = Spring.GetGameFrame
 local glDrawFuncAtUnit = gl.DrawFuncAtUnit
-local glTranslate      = gl.Translate
-local glBillboard      = gl.Billboard
-local glColor          = gl.Color
-local glTexRect        = gl.TexRect
-local glTexture        = gl.Texture
-local mathSin          = math.sin
-local mathPi           = math.pi
-local mathCeil         = math.ceil
-local mathMax          = math.max
-local mathMin          = math.min
+local glTranslate = gl.Translate
+local glBillboard = gl.Billboard
+local glColor = gl.Color
+local glTexRect = gl.TexRect
+local glTexture = gl.Texture
+local mathSin = math.sin
+local mathPi = math.pi
+local mathCeil = math.ceil
+local mathMax = math.max
+local mathMin = math.min
 
-local ICON_SIZE = 16  -- world units half-width
-local ICON_TEX  = 'luaui/images/easytax/share.dds'
+local ICON_SIZE = 16 -- world units half-width
+local ICON_TEX = "luaui/images/easytax/share.dds"
 local font
 
 local unitYOffset = {}
@@ -61,8 +61,12 @@ local function drawIcon(yoffset, secsLeft)
 end
 
 function widget:DrawWorld()
-	if next(debuffedUnits) == nil then return end
-	if Spring.IsGUIHidden() then return end
+	if next(debuffedUnits) == nil then
+		return
+	end
+	if Spring.IsGUIHidden() then
+		return
+	end
 	local gf = spGetGameFrame()
 	gl.DepthTest(false)
 
@@ -78,9 +82,9 @@ end
 local function onUnitBuildspeedDebuff(unitID, startFrame, expireFrame)
 	local unitDefID = Spring.GetUnitDefID(unitID)
 	debuffedUnits[unitID] = {
-		startFrame  = startFrame,
+		startFrame = startFrame,
 		expireFrame = expireFrame,
-		yoffset     = unitYOffset[unitDefID] or 20,
+		yoffset = unitYOffset[unitDefID] or 20,
 	}
 end
 
@@ -93,12 +97,12 @@ function widget:UnitDestroyed(unitID)
 end
 
 function widget:ViewResize()
-	font = WG['fonts'].getFont(nil, 1.2, 0.2, 20)
+	font = WG["fonts"].getFont(nil, 1.2, 0.2, 20)
 end
 
 function widget:Initialize()
 	widget:ViewResize()
-	widgetHandler:RegisterGlobal("UnitBuildspeedDebuffHealthbars",    onUnitBuildspeedDebuff)
+	widgetHandler:RegisterGlobal("UnitBuildspeedDebuffHealthbars", onUnitBuildspeedDebuff)
 	widgetHandler:RegisterGlobal("UnitBuildspeedDebuffEndHealthbars", onUnitBuildspeedDebuffEnd)
 end
 

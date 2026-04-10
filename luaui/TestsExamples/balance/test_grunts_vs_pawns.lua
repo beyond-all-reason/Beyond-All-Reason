@@ -15,7 +15,7 @@ end
 function test()
 	local units = {
 		[0] = "armpw",
-		[1] = "corak"
+		[1] = "corak",
 	}
 	local n = 20
 
@@ -42,7 +42,6 @@ function test()
 				local y = Spring.GetGroundHeight(x, z)
 				Spring.CreateUnit(locals.units[1], x, y, z + locals.zStep * i, "west", 1)
 			end
-
 		end
 	end)
 

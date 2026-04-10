@@ -3,7 +3,7 @@ local game = {}
 
 -- prints 'message' to ingame chat console
 function game:SendToConsole(...)
-	print( ... )
+	print(...)
 	return true
 end
 
@@ -12,7 +12,7 @@ function game:Frame() -- returns int/game frame number
 end
 
 function game:Test() -- debug
-	print( "Testing API" )
+	print("Testing API")
 	return true
 end
 
@@ -30,7 +30,7 @@ function game:ConfigFolderPath() -- returns string with path to the folder
 end
 
 function game:ReadFile(filename) -- returns string with file contents
-	return '' -- @TODO: Implement core lua IO
+	return "" -- @TODO: Implement core lua IO
 end
 
 function game:FileExists(filename) -- returns boolean
@@ -57,7 +57,7 @@ function game:GameName() -- returns the shortname of this game
 	return "nullgame"
 end
 
-function game:AddMarker(position,label) -- adds a marker
+function game:AddMarker(position, label) -- adds a marker
 	return false
 end
 
@@ -66,7 +66,7 @@ function game:SendToContent(stringvar) -- returns a string passed from any lua g
 end
 
 function game:GetResource(idx) --  returns a Resource object
-	return Shard:shardify_resource({currentLevel=0, storage=0, pull=0, income=0, expense=0, share=0, sent=0, received=0})
+	return Shard:shardify_resource({ currentLevel = 0, storage = 0, pull = 0, income = 0, expense = 0, share = 0, sent = 0, received = 0 })
 end
 
 function game:GetResourceCount() -- return the number of resources
@@ -74,10 +74,10 @@ function game:GetResourceCount() -- return the number of resources
 end
 
 function game:GetResourceByName(name) -- returns a Resource object, takes the name of the resource
-	return Shard:shardify_resource({currentLevel=0, storage=0, pull=0, income=0, expense=0, share=0, sent=0, received=0})
+	return Shard:shardify_resource({ currentLevel = 0, storage = 0, pull = 0, income = 0, expense = 0, share = 0, sent = 0, received = 0 })
 end
 
-function game:GetUnitByID( unit_id ) -- returns a Shard unit when given an engine unit ID number
+function game:GetUnitByID(unit_id) -- returns a Shard unit when given an engine unit ID number
 	return
 end
 

@@ -1,4 +1,3 @@
-
 --------------------------
 -- DOCUMENTATION
 -------------------------
@@ -73,7 +72,6 @@ local function processWeapons(unitDefName, unitDef)
 	end
 end
 
-
 function UnitDef_Post(name, uDef)
 	if not modOptions then
 		modOptions = Spring.GetModOptions()
@@ -144,8 +142,8 @@ function UnitDef_Post(name, uDef)
 			uDef.objectname = "units/event/aprilfools/armham.s3o"
 		elseif name == "corwin" then
 			uDef.objectname = "units/event/aprilfools/corwin.s3o"
-		--elseif name == "corthud" then -- Requires Model Update
-		--	uDef.objectname = "units/event/aprilfools/corthud.s3o"
+			--elseif name == "corthud" then -- Requires Model Update
+			--	uDef.objectname = "units/event/aprilfools/corthud.s3o"
 		end
 	end
 
@@ -157,7 +155,6 @@ function UnitDef_Post(name, uDef)
 			uDef.objectname = "units/event/halloween/corcom.s3o"
 		elseif name == "legcom" or name == "legdecom" then
 			uDef.objectname = "units/event/halloween/legcom.s3o"
-
 		elseif name == "correap" then
 			uDef.objectname = "units/event/halloween/correap.s3o"
 		elseif name == "leggob" then
@@ -179,8 +176,6 @@ function UnitDef_Post(name, uDef)
 	end
 
 	----------------------------------------------------------------------------------------------------------
-
-
 
 	if uDef.sounds then
 		if uDef.sounds.ok then
@@ -232,19 +227,19 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	if modOptions.unit_restrictions_noair and (not (customparams.restrictions_exclusion and string.find(customparams.restrictions_exclusion, "_noair_"))) then
+	if modOptions.unit_restrictions_noair and not (customparams.restrictions_exclusion and string.find(customparams.restrictions_exclusion, "_noair_")) then
 		if string.find(customparams.subfolder, "Aircraft", 1, true) then
 			customparams.modoption_blocked = true
 		elseif customparams.unitgroup and customparams.unitgroup == "aa" then
 			customparams.modoption_blocked = true
 		elseif uDef.canfly then
 			customparams.modoption_blocked = true
-		elseif (customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_noair_")) then --used to remove factories and drone carriers with no other purpose (ex. leghive but not rampart)
+		elseif customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_noair_") then --used to remove factories and drone carriers with no other purpose (ex. leghive but not rampart)
 			customparams.modoption_blocked = true
 		end
 	end
 
-	if modOptions.unit_restrictions_nosea and (not (customparams.restrictions_exclusion and string.find(customparams.restrictions_exclusion, "_nosea_"))) then
+	if modOptions.unit_restrictions_nosea and not (customparams.restrictions_exclusion and string.find(customparams.restrictions_exclusion, "_nosea_")) then
 		if (uDef.minwaterdepth and uDef.minwaterdepth > 0) or (uDef.category and string.find(uDef.category, "SHIP")) or (customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_nosea_")) then
 			customparams.modoption_blocked = true
 		end
@@ -258,7 +253,7 @@ function UnitDef_Post(name, uDef)
 
 	if modOptions.legionsimplifiedmexes then
 		local legiont15mex = {
-			legmext15	= true,
+			legmext15 = true,
 		}
 		if legiont15mex[basename] then
 			uDef.customparams.modoption_blocked = true
@@ -273,7 +268,7 @@ function UnitDef_Post(name, uDef)
 
 	if modOptions.unit_restrictions_nonukes then
 		for _, weapon in pairs(weapondefs) do
-			if (weapon.targetable and weapon.targetable == 1) then
+			if weapon.targetable and weapon.targetable == 1 then
 				customparams.modoption_blocked = true
 				break
 			end
@@ -296,11 +291,11 @@ function UnitDef_Post(name, uDef)
 			end
 			if hasAnti then
 				uDef.weapondefs = newWdefs
-				if numWeapons == 0 and (not (customparams.restrictions_exclusion and string.find(customparams.restrictions_exclusion, "_noantinuke_"))) then
+				if numWeapons == 0 and not (customparams.restrictions_exclusion and string.find(customparams.restrictions_exclusion, "_noantinuke_")) then
 					customparams.modoption_blocked = true
 				else
 					if uDef.metalcost then
-						uDef.metalcost = math.floor(uDef.metalcost * 0.6)	-- give a discount for removing anti-nuke
+						uDef.metalcost = math.floor(uDef.metalcost * 0.6) -- give a discount for removing anti-nuke
 						uDef.energycost = math.floor(uDef.energycost * 0.6)
 					end
 				end
@@ -309,31 +304,31 @@ function UnitDef_Post(name, uDef)
 	end
 
 	if modOptions.unit_restrictions_nofusion then
-		if (customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_nofusion_")) then
+		if customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_nofusion_") then
 			customparams.modoption_blocked = true
 		end
 	end
 
 	if modOptions.unit_restrictions_notacnukes then
-		if (customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_notacnukes_")) then
+		if customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_notacnukes_") then
 			customparams.modoption_blocked = true
 		end
 	end
 
 	if modOptions.unit_restrictions_nolrpc then
-		if (customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_nolrpc_")) then
+		if customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_nolrpc_") then
 			customparams.modoption_blocked = true
 		end
 	end
 
 	if modOptions.unit_restrictions_noendgamelrpc then
-		if (customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_noendgamelrpc_")) then
+		if customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_noendgamelrpc_") then
 			customparams.modoption_blocked = true
 		end
 	end
 
 	--normal commander respawning
-	if modOptions.comrespawn == "all" or (modOptions.comrespawn == "evocom" and modOptions.evocom)then
+	if modOptions.comrespawn == "all" or (modOptions.comrespawn == "evocom" and modOptions.evocom) then
 		if name == "armcom" or name == "corcom" or name == "legcom" then
 			customparams.effigy = "comeffigylvl1"
 			customparams.effigy_offset = 1
@@ -345,11 +340,10 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-
 	if modOptions.evocom then
 		if customparams.evocomlvl or name == "armcom" or name == "corcom" or name == "legcom" then
 			local comLevel = customparams.evocomlvl
-			if modOptions.comrespawn == "all" or modOptions.comrespawn == "evocom" then--add effigy respawning, if enabled
+			if modOptions.comrespawn == "all" or modOptions.comrespawn == "evocom" then --add effigy respawning, if enabled
 				customparams.respawn_condition = "health"
 
 				local numBuildoptions = #buildoptions
@@ -369,32 +363,32 @@ function UnitDef_Post(name, uDef)
 			customparams.evolution_health_transfer = "percentage"
 
 			if uDef.power then
-				uDef.power = uDef.power/modOptions.evocomxpmultiplier
+				uDef.power = uDef.power / modOptions.evocomxpmultiplier
 			else
-				uDef.power = ((uDef.metalcost+(uDef.energycost/60))/modOptions.evocomxpmultiplier)
+				uDef.power = ((uDef.metalcost + (uDef.energycost / 60)) / modOptions.evocomxpmultiplier)
 			end
 
-			if  name == "armcom" then
+			if name == "armcom" then
 				customparams.evolution_target = "armcomlvl2"
 				customparams.inheritxpratemultiplier = 0.5
 				customparams.childreninheritxp = "TURRET MOBILEBUILT"
 				customparams.parentsinheritxp = "TURRET MOBILEBUILT"
 				customparams.evocomlvl = 1
-				elseif name == "corcom" then
+			elseif name == "corcom" then
 				customparams.evolution_target = "corcomlvl2"
 				customparams.evocomlvl = 1
-				elseif name == "legcom" then
+			elseif name == "legcom" then
 				customparams.evolution_target = "legcomlvl2"
 				customparams.evocomlvl = 1
-				end
+			end
 
 			if modOptions.evocomlevelupmethod == "dynamic" then
 				customparams.evolution_condition = "power"
-				customparams.evolution_power_multiplier = 1			-- Scales the power calculated based on your own combined power.
+				customparams.evolution_power_multiplier = 1 -- Scales the power calculated based on your own combined power.
 				local evolutionPowerThreshold = customparams.evolution_power_threshold or 10000 --sets threshold for level 1 commanders
-				customparams.evolution_power_threshold = evolutionPowerThreshold*modOptions.evocomlevelupmultiplier
+				customparams.evolution_power_threshold = evolutionPowerThreshold * modOptions.evocomlevelupmultiplier
 			elseif modOptions.evocomlevelupmethod == "timed" then
-				customparams.evolution_timer = modOptions.evocomleveluptime*60*customparams.evocomlvl
+				customparams.evolution_timer = modOptions.evocomleveluptime * 60 * customparams.evocomlvl
 				customparams.evolution_condition = "timer_global"
 			end
 
@@ -410,15 +404,15 @@ function UnitDef_Post(name, uDef)
 	end
 
 	if customparams.evolution_target then
-		customparams.combatradius                     = customparams.combatradius or 1000
-		customparams.evolution_announcement_size      = tonumber(customparams.evolution_announcement_size)
-		customparams.evolution_condition              = customparams.evolution_condition or "timer"
-		customparams.evolution_health_threshold       = tonumber(customparams.evolution_health_threshold) or 0
-		customparams.evolution_health_transfer        = customparams.evolution_health_transfer or "flat"
+		customparams.combatradius = customparams.combatradius or 1000
+		customparams.evolution_announcement_size = tonumber(customparams.evolution_announcement_size)
+		customparams.evolution_condition = customparams.evolution_condition or "timer"
+		customparams.evolution_health_threshold = tonumber(customparams.evolution_health_threshold) or 0
+		customparams.evolution_health_transfer = customparams.evolution_health_transfer or "flat"
 		customparams.evolution_power_enemy_multiplier = tonumber(customparams.evolution_power_enemy_multiplier) or 1
-		customparams.evolution_power_multiplier       = tonumber(customparams.evolution_power_multiplier) or 1
-		customparams.evolution_power_threshold        = tonumber(customparams.evolution_power_threshold) or 600
-		customparams.evolution_timer                  = tonumber(customparams.evolution_timer) or 20
+		customparams.evolution_power_multiplier = tonumber(customparams.evolution_power_multiplier) or 1
+		customparams.evolution_power_threshold = tonumber(customparams.evolution_power_threshold) or 600
+		customparams.evolution_timer = tonumber(customparams.evolution_timer) or 20
 	end
 
 	-- Tech Blocking System -------------------------------------------------------------------------------------------------------------------------
@@ -537,7 +531,7 @@ function UnitDef_Post(name, uDef)
 		-- Cortex T2 Bots Factory
 		if name == "coralab" then
 			local numBuildoptions = #buildoptions
-			buildoptions[numBuildoptions+1] = "cordeadeye"
+			buildoptions[numBuildoptions + 1] = "cordeadeye"
 		end
 
 		-- Cortex T2 Vehicle Factory
@@ -668,7 +662,7 @@ function UnitDef_Post(name, uDef)
 		-- Cortex T1 Bots Factory
 		if name == "corlab" then
 			local numBuildoptions = #buildoptions
-			buildoptions[numBuildoptions+1] = "corkark" -- Archaic Karkinos
+			buildoptions[numBuildoptions + 1] = "corkark" -- Archaic Karkinos
 		end
 
 		-- Cortex T2 Land Constructors
@@ -695,14 +689,14 @@ function UnitDef_Post(name, uDef)
 		-- Cortex T2 Vehicle Factory
 		if name == "coravp" then
 			local numBuildoptions = #buildoptions
-			buildoptions[numBuildoptions+1] = "corgatreap" -- Laser Tiger
-			buildoptions[numBuildoptions+2] = "corftiger" -- Heat Tiger
+			buildoptions[numBuildoptions + 1] = "corgatreap" -- Laser Tiger
+			buildoptions[numBuildoptions + 2] = "corftiger" -- Heat Tiger
 		end
 
 		-- Cortex T2 Aircraft Plant
 		if name == "coraap" then
 			local numBuildoptions = #buildoptions
-			buildoptions[numBuildoptions+1] = "corcrw" -- Archaic Dragon
+			buildoptions[numBuildoptions + 1] = "corcrw" -- Archaic Dragon
 		end
 
 		-- Cortex T2 Shipyard
@@ -758,7 +752,6 @@ function UnitDef_Post(name, uDef)
 
 	-- Release candidate units --------------------------------------------------------------------------------------------------------------------------------------------------------
 	if modOptions.releasecandidates or modOptions.experimentalextraunits then
-
 	end
 
 	if string.find(name, "raptor", 1, true) and uDef.health then
@@ -771,7 +764,7 @@ function UnitDef_Post(name, uDef)
 		uDef.mass = raptorHealth
 		uDef.canhover = true
 		uDef.autoheal = math.ceil(math.sqrt(raptorHealth * 0.8))
-		customparams.paralyzemultiplier = customparams.paralyzemultiplier or .2
+		customparams.paralyzemultiplier = customparams.paralyzemultiplier or 0.2
 		customparams.areadamageresistance = "_RAPTORACID_"
 		uDef.upright = false
 		uDef.floater = true
@@ -803,22 +796,22 @@ function UnitDef_Post(name, uDef)
 			uDef.maxacc = uDef.speed * 0.00166
 			uDef.maxdec = uDef.speed * 0.00166
 		elseif uDef.canfly then
-				uDef.maxacc = 1
-				uDef.maxdec = 0.25
-				uDef.usesmoothmesh = true
+			uDef.maxacc = 1
+			uDef.maxdec = 0.25
+			uDef.usesmoothmesh = true
 
-				-- flightmodel
-				uDef.maxaileron = 0.025
-				uDef.maxbank = 0.8
-				uDef.maxelevator = 0.025
-				uDef.maxpitch = 0.75
-				uDef.maxrudder = 0.025
-				uDef.wingangle = 0.06593
-				uDef.wingdrag = 0.835
-				uDef.turnradius = 64
-				uDef.turnrate = 1600
-				uDef.speedtofront = 0.01
-				--uDef.attackrunlength = 32
+			-- flightmodel
+			uDef.maxaileron = 0.025
+			uDef.maxbank = 0.8
+			uDef.maxelevator = 0.025
+			uDef.maxpitch = 0.75
+			uDef.maxrudder = 0.025
+			uDef.wingangle = 0.06593
+			uDef.wingdrag = 0.835
+			uDef.turnradius = 64
+			uDef.turnrate = 1600
+			uDef.speedtofront = 0.01
+			--uDef.attackrunlength = 32
 		end
 	end
 
@@ -895,7 +888,7 @@ function UnitDef_Post(name, uDef)
 		HOVER2 = true,
 		HOVER3 = true,
 		HHOVER4 = true,
-		AHOVER2 = true
+		AHOVER2 = true,
 	}
 
 	local shipList = {
@@ -903,12 +896,12 @@ function UnitDef_Post(name, uDef)
 		BOAT4 = true,
 		BOAT5 = true,
 		BOAT9 = true,
-		EPICSHIP = true
+		EPICSHIP = true,
 	}
 
 	local subList = {
 		UBOAT4 = true,
-		EPICSUBMARINE = true
+		EPICSUBMARINE = true,
 	}
 
 	local amphibList = {
@@ -920,12 +913,12 @@ function UnitDef_Post(name, uDef)
 		HABOT5 = true,
 		ABOTBOMB2 = true,
 		EPICBOT = true,
-		EPICALLTERRAIN = true
+		EPICALLTERRAIN = true,
 	}
 
 	local commanderList = {
 		COMMANDERBOT = true,
-		SCAVCOMMANDERBOT = true
+		SCAVCOMMANDERBOT = true,
 	}
 
 	local categories = {}
@@ -933,24 +926,60 @@ function UnitDef_Post(name, uDef)
 	-- Manual categories: OBJECT T4AIR LIGHTAIRSCOUT GROUNDSCOUT RAPTOR
 	-- Deprecated caregories: BOT TANK PHIB NOTLAND SPACE
 
-	categories["ALL"] = function() return true end
-	categories["MOBILE"] = function(uDef) return uDef.speed and uDef.speed > 0 end
-	categories["NOTMOBILE"] = function(uDef) return not categories.MOBILE(uDef) end
-	categories["WEAPON"] = function(uDef) return next(uDef.weapondefs) ~= nil end
-	categories["NOWEAPON"] = function(uDef) return next(uDef.weapondefs) == nil end
-	categories["VTOL"] = function(uDef) return uDef.canfly == true end
-	categories["NOTAIR"] = function(uDef) return not categories.VTOL(uDef) end
-	categories["HOVER"] = function(uDef) return hoverList[uDef.movementclass] and (uDef.maxwaterdepth == nil or uDef.maxwaterdepth < 1) end -- convertible tank/boats have maxwaterdepth
-	categories["NOTHOVER"] = function(uDef) return not categories.HOVER(uDef) end
-	categories["SHIP"] = function(uDef) return shipList[uDef.movementclass] or (hoverList[uDef.movementclass] and uDef.maxwaterdepth and uDef.maxwaterdepth >=1) end
-	categories["NOTSHIP"] = function(uDef) return not categories.SHIP(uDef) end
-	categories["NOTSUB"] = function(uDef) return not subList[uDef.movementclass] end
-	categories["CANBEUW"] = function(uDef) return amphibList[uDef.movementclass] or uDef.cansubmerge == true end
-	categories["UNDERWATER"] = function(uDef) return (uDef.minwaterdepth and uDef.waterline == nil) or (uDef.minwaterdepth and uDef.waterline > uDef.minwaterdepth and uDef.speed and uDef.speed > 0) end
-	categories["SURFACE"] = function(uDef) return not (categories.UNDERWATER(uDef) and categories.MOBILE(uDef)) and not categories.VTOL(uDef) end
-	categories["MINE"] = function(uDef) return uDef.weapondefs.minerange end
-	categories["COMMANDER"] = function(uDef) return commanderList[uDef.movementclass] end
-	categories["EMPABLE"] = function(uDef) return categories.SURFACE(uDef) and uDef.customparams.paralyzemultiplier ~= 0 end
+	categories["ALL"] = function()
+		return true
+	end
+	categories["MOBILE"] = function(uDef)
+		return uDef.speed and uDef.speed > 0
+	end
+	categories["NOTMOBILE"] = function(uDef)
+		return not categories.MOBILE(uDef)
+	end
+	categories["WEAPON"] = function(uDef)
+		return next(uDef.weapondefs) ~= nil
+	end
+	categories["NOWEAPON"] = function(uDef)
+		return next(uDef.weapondefs) == nil
+	end
+	categories["VTOL"] = function(uDef)
+		return uDef.canfly == true
+	end
+	categories["NOTAIR"] = function(uDef)
+		return not categories.VTOL(uDef)
+	end
+	categories["HOVER"] = function(uDef)
+		return hoverList[uDef.movementclass] and (uDef.maxwaterdepth == nil or uDef.maxwaterdepth < 1)
+	end -- convertible tank/boats have maxwaterdepth
+	categories["NOTHOVER"] = function(uDef)
+		return not categories.HOVER(uDef)
+	end
+	categories["SHIP"] = function(uDef)
+		return shipList[uDef.movementclass] or (hoverList[uDef.movementclass] and uDef.maxwaterdepth and uDef.maxwaterdepth >= 1)
+	end
+	categories["NOTSHIP"] = function(uDef)
+		return not categories.SHIP(uDef)
+	end
+	categories["NOTSUB"] = function(uDef)
+		return not subList[uDef.movementclass]
+	end
+	categories["CANBEUW"] = function(uDef)
+		return amphibList[uDef.movementclass] or uDef.cansubmerge == true
+	end
+	categories["UNDERWATER"] = function(uDef)
+		return (uDef.minwaterdepth and uDef.waterline == nil) or (uDef.minwaterdepth and uDef.waterline > uDef.minwaterdepth and uDef.speed and uDef.speed > 0)
+	end
+	categories["SURFACE"] = function(uDef)
+		return not (categories.UNDERWATER(uDef) and categories.MOBILE(uDef)) and not categories.VTOL(uDef)
+	end
+	categories["MINE"] = function(uDef)
+		return uDef.weapondefs.minerange
+	end
+	categories["COMMANDER"] = function(uDef)
+		return commanderList[uDef.movementclass]
+	end
+	categories["EMPABLE"] = function(uDef)
+		return categories.SURFACE(uDef) and uDef.customparams.paralyzemultiplier ~= 0
+	end
 
 	local category = uDef.category or ""
 	if not string.find(category, "OBJECT", 1, true) then -- objects should not be targetable and therefore are not assigned any other category
@@ -966,7 +995,7 @@ function UnitDef_Post(name, uDef)
 	end
 
 	if uDef.canfly then
-		uDef.crashdrag = 0.01    -- default 0.005
+		uDef.crashdrag = 0.01 -- default 0.005
 		if not (string.find(name, "fepoch", 1, true) or string.find(name, "fblackhy", 1, true) or string.find(name, "corcrw", 1, true) or string.find(name, "legfort", 1, true)) then
 			--(string.find(name, "liche") or string.find(name, "crw") or string.find(name, "fepoch") or string.find(name, "fblackhy")) then
 			uDef.collide = false
@@ -974,7 +1003,7 @@ function UnitDef_Post(name, uDef)
 	end
 
 	if uDef.metalcost and uDef.health and uDef.canmove == true and uDef.mass == nil then
-		local healthmass = math.ceil(uDef.health/6)
+		local healthmass = math.ceil(uDef.health / 6)
 		uDef.mass = math.max(uDef.metalcost, healthmass)
 		if uDef.metalcost < 751 and uDef.mass > 750 then
 			uDef.mass = 750
@@ -1010,7 +1039,6 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-
 	--- EMP rework
 	if modOptions.emprework == true then
 		if name == "armstil" then
@@ -1031,13 +1059,10 @@ function UnitDef_Post(name, uDef)
 
 		if name == "armdfly" then
 			weapondefs.armdfly_paralyzer.paralyzetime = 1
-			weapondefs.armdfly_paralyzer.beamdecay = 0.05--testing
-			weapondefs.armdfly_paralyzer.beamtime = 0.1--testing
-			weapondefs.armdfly_paralyzer.areaofeffect = 8--testing
-			weapondefs.armdfly_paralyzer.targetmoveerror = 0.05--testing
-
-
-
+			weapondefs.armdfly_paralyzer.beamdecay = 0.05 --testing
+			weapondefs.armdfly_paralyzer.beamtime = 0.1 --testing
+			weapondefs.armdfly_paralyzer.areaofeffect = 8 --testing
+			weapondefs.armdfly_paralyzer.targetmoveerror = 0.05 --testing
 
 			--mono beam settings
 			--weapondefs.armdfly_paralyzer.reloadtime = 0.05--testing
@@ -1053,7 +1078,6 @@ function UnitDef_Post(name, uDef)
 			--weapondefs.armdfly_paralyzer.beamBurst = true--testing
 			--weapondefs.armdfly_paralyzer.burst = 10--testing
 			--weapondefs.armdfly_paralyzer.burstRate = 0.1--testing
-
 		end
 
 		if name == "armemp" then
@@ -1062,7 +1086,6 @@ function UnitDef_Post(name, uDef)
 			weapondefs.armemp_weapon.edgeeffectiveness = -0.10
 			weapondefs.armemp_weapon.paralyzetime = 22
 			weapondefs.armemp_weapon.damage.default = 60000
-
 		end
 		if name == "armshockwave" then
 			weapondefs.hllt_bottom.areaofeffect = 150
@@ -1078,7 +1101,7 @@ function UnitDef_Post(name, uDef)
 			weapondefs.empmissile.damage.default = 20000
 			weapondefs.empmissile.paralyzetime = 5
 			weapondefs.emp.damage.default = 200
-			weapondefs.emp.reloadtime = .5
+			weapondefs.emp.reloadtime = 0.5
 			weapondefs.emp.paralyzetime = 1
 		end
 
@@ -1095,17 +1118,16 @@ function UnitDef_Post(name, uDef)
 			weapondefs.bladewing_lyzer.paralyzetime = 1
 		end
 
-
-		if (name =="corfmd" or name =="armamd" or name =="cormabm" or name =="armscab") then
+		if name == "corfmd" or name == "armamd" or name == "cormabm" or name == "armscab" then
 			customparams.paralyzemultiplier = 1.5
 		end
 
-		if (name == "armvulc" or name == "corbuzz" or name == "legstarfall" or name == "corsilo" or name == "armsilo") then
+		if name == "armvulc" or name == "corbuzz" or name == "legstarfall" or name == "corsilo" or name == "armsilo" then
 			customparams.paralyzemultiplier = 2
 		end
 
 		--if name == "corsumo" then
-			--customparams.paralyzemultiplier = 0.9
+		--customparams.paralyzemultiplier = 0.9
 		--end
 
 		if name == "armmar" then
@@ -1117,34 +1139,33 @@ function UnitDef_Post(name, uDef)
 		end
 
 		--if name == "armraz" then
-			--customparams.paralyzemultiplier = 1.2
+		--customparams.paralyzemultiplier = 1.2
 		--end
 		--if name == "armvang" then
-			--customparams.paralyzemultiplier = 1.1
+		--customparams.paralyzemultiplier = 1.1
 		--end
 
 		--if name == "armlun" then
-			--customparams.paralyzemultiplier = 1.05
+		--customparams.paralyzemultiplier = 1.05
 		--end
 
 		--if name == "corshiva" then
-			--customparams.paralyzemultiplier = 1.1
+		--customparams.paralyzemultiplier = 1.1
 		--end
 
 		--if name == "corcat" then
-			--customparams.paralyzemultiplier = 1.05
+		--customparams.paralyzemultiplier = 1.05
 		--end
 
 		--if name == "corkarg" then
-			--customparams.paralyzemultiplier = 1.2
+		--customparams.paralyzemultiplier = 1.2
 		--end
 		--if name == "corsok" then
-			--customparams.paralyzemultiplier = 1.1
+		--customparams.paralyzemultiplier = 1.1
 		--end
 		--if name == "cordemont4" then
-			--customparams.paralyzemultiplier = 1.2
+		--customparams.paralyzemultiplier = 1.2
 		--end
-
 	end
 
 	--Air rework
@@ -1178,88 +1199,88 @@ function UnitDef_Post(name, uDef)
 			uDef.extractsmetal = 0.001
 		end
 		if name == "legck" then
-			uDef.metalcost = math.ceil(uDef.metalcost*1.1)
-			uDef.energycost = math.ceil(uDef.energycost*0.8)
+			uDef.metalcost = math.ceil(uDef.metalcost * 1.1)
+			uDef.energycost = math.ceil(uDef.energycost * 0.8)
 		end
 		if name == "leggob" then
-			uDef.metalcost = math.ceil(uDef.metalcost*1.25)
-			uDef.energycost = math.ceil(uDef.energycost*0.7)
+			uDef.metalcost = math.ceil(uDef.metalcost * 1.25)
+			uDef.energycost = math.ceil(uDef.energycost * 0.7)
 		end
 		if name == "leglob" then
-			uDef.metalcost = math.ceil(uDef.metalcost*1.1)
-			uDef.energycost = math.ceil(uDef.energycost*0.8)
+			uDef.metalcost = math.ceil(uDef.metalcost * 1.1)
+			uDef.energycost = math.ceil(uDef.energycost * 0.8)
 		end
 		if name == "legaabot" then
-			uDef.metalcost = math.ceil(uDef.metalcost*1.1)
-			uDef.energycost = math.ceil(uDef.energycost*0.8)
+			uDef.metalcost = math.ceil(uDef.metalcost * 1.1)
+			uDef.energycost = math.ceil(uDef.energycost * 0.8)
 		end
 		if name == "legcen" then
-			uDef.metalcost = math.ceil(uDef.metalcost*0.9)
-			uDef.energycost = math.ceil(uDef.energycost*1.1)
+			uDef.metalcost = math.ceil(uDef.metalcost * 0.9)
+			uDef.energycost = math.ceil(uDef.energycost * 1.1)
 		end
 		if name == "legkark" then
-			uDef.metalcost = math.ceil(uDef.metalcost*0.9)
-			uDef.energycost = math.ceil(uDef.energycost*1.3)
+			uDef.metalcost = math.ceil(uDef.metalcost * 0.9)
+			uDef.energycost = math.ceil(uDef.energycost * 1.3)
 		end
 		if name == "legbal" then
-			uDef.metalcost = math.ceil(uDef.metalcost*0.9)
-			uDef.energycost = math.ceil(uDef.energycost*1.2)
+			uDef.metalcost = math.ceil(uDef.metalcost * 0.9)
+			uDef.energycost = math.ceil(uDef.energycost * 1.2)
 		end
 		if name == "legcv" then
-			uDef.metalcost = math.ceil(uDef.metalcost*1.1)
-			uDef.energycost = math.ceil(uDef.energycost*0.8)
+			uDef.metalcost = math.ceil(uDef.metalcost * 1.1)
+			uDef.energycost = math.ceil(uDef.energycost * 0.8)
 		end
 		if name == "leghades" then
-			uDef.metalcost = math.ceil(uDef.metalcost*1.2)
-			uDef.energycost = math.ceil(uDef.energycost*0.6)
+			uDef.metalcost = math.ceil(uDef.metalcost * 1.2)
+			uDef.energycost = math.ceil(uDef.energycost * 0.6)
 		end
 		if name == "leghelios" then
-			uDef.metalcost = math.ceil(uDef.metalcost*1.1)
-			uDef.energycost = math.ceil(uDef.energycost*0.8)
+			uDef.metalcost = math.ceil(uDef.metalcost * 1.1)
+			uDef.energycost = math.ceil(uDef.energycost * 0.8)
 		end
 		if name == "legbar" then
-			uDef.metalcost = math.ceil(uDef.metalcost*0.9)
-			uDef.energycost = math.ceil(uDef.energycost*1.3)
+			uDef.metalcost = math.ceil(uDef.metalcost * 0.9)
+			uDef.energycost = math.ceil(uDef.energycost * 1.3)
 		end
 		if name == "legrail" then
-			uDef.metalcost = math.ceil(uDef.metalcost*0.95)
-			uDef.energycost = math.ceil(uDef.energycost*1.05)
+			uDef.metalcost = math.ceil(uDef.metalcost * 0.95)
+			uDef.energycost = math.ceil(uDef.energycost * 1.05)
 		end
 		if name == "leggat" then
-			uDef.metalcost = math.ceil(uDef.metalcost*0.9)
-			uDef.energycost = math.ceil(uDef.energycost*1.3)
+			uDef.metalcost = math.ceil(uDef.metalcost * 0.9)
+			uDef.energycost = math.ceil(uDef.energycost * 1.3)
 		end
 		if name == "legnavyscout" then
-			uDef.metalcost = math.ceil(uDef.metalcost*1.15)
-			uDef.energycost = math.ceil(uDef.energycost*0.7)
+			uDef.metalcost = math.ceil(uDef.metalcost * 1.15)
+			uDef.energycost = math.ceil(uDef.energycost * 0.7)
 		end
 		if name == "legnavyaaship" then
-			uDef.metalcost = math.ceil(uDef.metalcost*1.15)
-			uDef.energycost = math.ceil(uDef.energycost*0.7)
+			uDef.metalcost = math.ceil(uDef.metalcost * 1.15)
+			uDef.energycost = math.ceil(uDef.energycost * 0.7)
 		end
 		if name == "legnavysub" then
-			uDef.metalcost = math.ceil(uDef.metalcost*1.05)
-			uDef.energycost = math.ceil(uDef.energycost*0.9)
+			uDef.metalcost = math.ceil(uDef.metalcost * 1.05)
+			uDef.energycost = math.ceil(uDef.energycost * 0.9)
 		end
 		if name == "legnavysub" then
-			uDef.metalcost = math.ceil(uDef.metalcost*1.05)
-			uDef.energycost = math.ceil(uDef.energycost*0.9)
+			uDef.metalcost = math.ceil(uDef.metalcost * 1.05)
+			uDef.energycost = math.ceil(uDef.energycost * 0.9)
 		end
 		if name == "legnavyfrigate" then
-			uDef.metalcost = math.ceil(uDef.metalcost*1.2)
-			uDef.energycost = math.ceil(uDef.energycost*0.6)
+			uDef.metalcost = math.ceil(uDef.metalcost * 1.2)
+			uDef.energycost = math.ceil(uDef.energycost * 0.6)
 		end
 		if name == "legnavyconship" then
-			uDef.metalcost = math.ceil(uDef.metalcost*1.1)
-			uDef.energycost = math.ceil(uDef.energycost*0.8)
+			uDef.metalcost = math.ceil(uDef.metalcost * 1.1)
+			uDef.energycost = math.ceil(uDef.energycost * 0.8)
 		end
 		if name == "legnavydestro" then
-			uDef.metalcost = math.ceil(uDef.metalcost*0.95)
-			uDef.energycost = math.ceil(uDef.energycost*1.1)
+			uDef.metalcost = math.ceil(uDef.metalcost * 0.95)
+			uDef.energycost = math.ceil(uDef.energycost * 1.1)
 		end
 		if name == "legnavyartyship" then
-			uDef.metalcost = math.ceil(uDef.metalcost*0.95)
-			uDef.energycost = math.ceil(uDef.energycost*1.1)
+			uDef.metalcost = math.ceil(uDef.metalcost * 0.95)
+			uDef.energycost = math.ceil(uDef.energycost * 1.1)
 		end
 	end
 
@@ -1279,28 +1300,28 @@ function UnitDef_Post(name, uDef)
 			corcsa = { ["corfhlt"] = "cornavaldefturret" },
 
 			-- t1 leg cons
-			legnavyconship = { ["legfmg"]  = "legnavaldefturret" },
-			legch = { ["legfmg"]  = "legnavaldefturret" },
-			legotter = { ["legfmg"]  = "legnavaldefturret" },
-			legspcon = { ["legfmg"]  = "legnavaldefturret" },
+			legnavyconship = { ["legfmg"] = "legnavaldefturret" },
+			legch = { ["legfmg"] = "legnavaldefturret" },
+			legotter = { ["legfmg"] = "legnavaldefturret" },
+			legspcon = { ["legfmg"] = "legnavaldefturret" },
 
 			-- t2 arm cons
-			armacsub = { ["armkraken"]  = "armanavaldefturret" },
+			armacsub = { ["armkraken"] = "armanavaldefturret" },
 			armmls = {
-				["armfhlt"]  = "armnavaldefturret",
+				["armfhlt"] = "armnavaldefturret",
 				["armkraken"] = "armanavaldefturret",
 			},
 
 			-- t2 cor cons
-			coracsub = { ["corfdoom"]  = "coranavaldefturret" },
+			coracsub = { ["corfdoom"] = "coranavaldefturret" },
 			cormls = {
-				["corfhlt"]  = "cornavaldefturret",
+				["corfhlt"] = "cornavaldefturret",
 				["corfdoom"] = "coranavaldefturret",
 			},
 
 			-- t2 leg cons
 			leganavyengineer = {
-				["legfmg"]  = "legnavaldefturret",
+				["legfmg"] = "legnavaldefturret",
 			},
 		}
 
@@ -1322,7 +1343,6 @@ function UnitDef_Post(name, uDef)
 		if name == "legfrad" then
 			uDef.sightdistance = 800
 		end
-
 	end
 
 	--Lategame Rebalance
@@ -1411,7 +1431,7 @@ function UnitDef_Post(name, uDef)
 			weapondefs.stiletto_bomb.burst = 3
 			weapondefs.stiletto_bomb.burstrate = 0.2333
 			weapondefs.stiletto_bomb.damage = {
-				default = 3000
+				default = 3000,
 			}
 		end
 		if name == "armlance" then
@@ -1481,7 +1501,6 @@ function UnitDef_Post(name, uDef)
 	-- Factory costs test
 
 	if modOptions.factory_costs == true then
-
 		if name == "armmoho" or name == "cormoho" or name == "cormexp" then
 			uDef.metalcost = uDef.metalcost + 50
 			uDef.energycost = uDef.energycost + 2000
@@ -1495,7 +1514,7 @@ function UnitDef_Post(name, uDef)
 			uDef.workertime = 600
 			uDef.buildtime = uDef.buildtime * 2
 		end
-		if name == "armvp" or name == "corvp" or name == "armlab" or name == "corlab" or name == "armsy" or name == "corsy"then
+		if name == "armvp" or name == "corvp" or name == "armlab" or name == "corlab" or name == "armsy" or name == "corsy" then
 			uDef.metalcost = uDef.metalcost - 50
 			uDef.buildtime = uDef.buildtime - 1500
 			uDef.energycost = uDef.energycost - 280
@@ -1538,8 +1557,7 @@ function UnitDef_Post(name, uDef)
 
 	-- Experimental Low Priority Pacifists
 	if modOptions.experimental_low_priority_pacifists then
-		if uDef.energycost and uDef.metalcost and not next(weapons) and uDef.speed and uDef.speed > 0 and
-		(string.find(name, "arm") or string.find(name, "cor") or string.find(name, "leg")) then
+		if uDef.energycost and uDef.metalcost and not next(weapons) and uDef.speed and uDef.speed > 0 and (string.find(name, "arm") or string.find(name, "cor") or string.find(name, "leg")) then
 			uDef.power = uDef.power or ((uDef.metalcost + uDef.energycost / 60) * 0.1) --recreate the default power formula obtained from the spring wiki for target prioritization
 		end
 	end
@@ -1694,16 +1712,16 @@ function UnitDef_Post(name, uDef)
 	customparams.healthlookmod = 0
 
 	-- Animation Cleanup
-	if modOptions.animationcleanup  then
+	if modOptions.animationcleanup then
 		if uDef.script then
 			local oldscript = uDef.script:lower()
 			if oldscript:find(".cob", nil, true) and (not oldscript:find("_clean.", nil, true)) then
 				local newscript = string.sub(oldscript, 1, -5) .. "_clean.cob"
-				if VFS.FileExists('scripts/'..newscript) then
-					Spring.Echo("Using new script for", name, oldscript, '->', newscript)
+				if VFS.FileExists("scripts/" .. newscript) then
+					Spring.Echo("Using new script for", name, oldscript, "->", newscript)
 					uDef.script = newscript
 				else
-					Spring.Echo("Unable to find new script for", name, oldscript, '->', newscript, "using old one")
+					Spring.Echo("Unable to find new script for", name, oldscript, "->", newscript, "using old one")
 				end
 			end
 		end
@@ -1727,7 +1745,9 @@ function UnitDef_Post(name, uDef)
 		-- [<0] := never active, [0] := always active, [1] := primary set, [>1] := alternate sets
 		for weaponName, weaponDef in pairs(weapondefs) do
 			local groupNumber = 0
-			if table.any(weapons, function(weapon) return weaponName:lower() == (weapon.def or ""):lower() end) then
+			if table.any(weapons, function(weapon)
+				return weaponName:lower() == (weapon.def or ""):lower()
+			end) then
 				groupNumber = tonumber(weaponDef.customparams.weapons_group or 0) or 0
 			else
 				groupNumber = -1
@@ -1805,7 +1825,8 @@ function WeaponDef_Post(name, wDef)
 
 		-- Standard Gravity
 		local gravityOverwriteExemptions = { --add the name of the weapons (or just the name of the unit followed by _ ) to this table to exempt from gravity standardization.
-			'cormship_', 'armmship_'
+			"cormship_",
+			"armmship_",
 		}
 		if wDef.gravityaffected == "true" and wDef.mygravity == nil then
 			local isExempt = false
@@ -1824,25 +1845,24 @@ function WeaponDef_Post(name, wDef)
 		----EMP rework
 
 		if modOptions.emprework then
-			if name == 'empblast' then
+			if name == "empblast" then
 				wDef.areaofeffect = 350
 				wDef.edgeeffectiveness = 0.6
 				wDef.paralyzetime = 12
 				damage.default = 50000
 			end
-			if name == 'spybombx' then
+			if name == "spybombx" then
 				wDef.areaofeffect = 350
 				wDef.edgeeffectiveness = 0.4
 				wDef.paralyzetime = 20
 				damage.default = 16000
 			end
-			if name == 'spybombxscav' then
+			if name == "spybombxscav" then
 				wDef.edgeeffectiveness = 0.50
 				wDef.paralyzetime = 12
 				damage.default = 35000
 			end
 		end
-
 
 		--Air rework
 		if modOptions.air_rework == true then
@@ -1894,7 +1914,6 @@ function WeaponDef_Post(name, wDef)
 			end
 		end
 
-
 		local bounceShields = shieldModOption == "bounceeverything" or shieldModOption == "bounceplasma"
 		if bounceShields then
 			if shield then
@@ -1908,7 +1927,7 @@ function WeaponDef_Post(name, wDef)
 		end
 
 		-- allows unblocked weapons' aoe to reach inside shields
-		if ((not wDef.interceptedbyshieldtype or wDef.interceptedbyshieldtype ~= 1) and wDef.weapontype ~= "Cannon") then
+		if (not wDef.interceptedbyshieldtype or wDef.interceptedbyshieldtype ~= 1) and wDef.weapontype ~= "Cannon" then
 			customparams.shield_aoe_penetration = true
 		end
 
@@ -2002,8 +2021,8 @@ function WeaponDef_Post(name, wDef)
 			end
 		end
 
-		if isXmas and wDef.weapontype == "StarburstLauncher" and wDef.model and VFS.FileExists('objects3d\\candycane_' .. wDef.model) then
-			wDef.model = 'candycane_' .. wDef.model
+		if isXmas and wDef.weapontype == "StarburstLauncher" and wDef.model and VFS.FileExists("objects3d\\candycane_" .. wDef.model) then
+			wDef.model = "candycane_" .. wDef.model
 		end
 
 		-- prepared to strip these customparams for when we remove old deferred lighting widgets
@@ -2051,15 +2070,15 @@ function WeaponDef_Post(name, wDef)
 				wDef.thickness = wDef.thickness * 1.27
 			end
 			if wDef.laserflaresize then
-				wDef.laserflaresize = wDef.laserflaresize * 1.15        -- note: thickness affects this too
+				wDef.laserflaresize = wDef.laserflaresize * 1.15 -- note: thickness affects this too
 			end
-			wDef.texture1 = "largebeam"        -- The projectile texture
-			wDef.texture3 = "flare2"    -- Flare texture for #BeamLaser
-			wDef.texture4 = "flare2"    -- Flare texture for #BeamLaser with largeBeamLaser = true
+			wDef.texture1 = "largebeam" -- The projectile texture
+			wDef.texture3 = "flare2" -- Flare texture for #BeamLaser
+			wDef.texture4 = "flare2" -- Flare texture for #BeamLaser with largeBeamLaser = true
 		end
 
 		-- scavengers
-		if string.find(name, '_scav', 1, true) then
+		if string.find(name, "_scav", 1, true) then
 			VFS.Include("gamedata/scavengers/weapondef_post.lua")
 			wDef = scav_Wdef_Post(name, wDef)
 		end
@@ -2105,9 +2124,9 @@ function WeaponDef_Post(name, wDef)
 	-- ExplosionSpeed is calculated same way engine does it, and then doubled
 	-- Note that this modifier will only effect weapons fired from actual units, via super clever hax of using the weapon name as prefix
 	if damage and damage.default then
-		if string.find(name, '_', 1, true) then
+		if string.find(name, "_", 1, true) then
 			local prefix = string.sub(name, 1, 3)
-			if prefix == 'arm' or prefix == 'cor' or prefix == 'leg' or prefix == 'rap' then
+			if prefix == "arm" or prefix == "cor" or prefix == "leg" or prefix == "rap" then
 				local globaldamage = math.max(30, damage.default / 20)
 				local defExpSpeed = (8 + (globaldamage * 2.5)) / (9 + (math.sqrt(globaldamage) * 0.70)) * 0.5
 				wDef.explosionSpeed = defExpSpeed * 2
@@ -2117,17 +2136,14 @@ function WeaponDef_Post(name, wDef)
 end
 
 -- process effects
-function ExplosionDef_Post(name, eDef)
-
-end
+function ExplosionDef_Post(name, eDef) end
 
 --------------------------
 -- MODOPTIONS
 -------------------------
 
 -- process modoptions (last, because they should not get baked)
-function ModOptions_Post (UnitDefs, WeaponDefs)
-
+function ModOptions_Post(UnitDefs, WeaponDefs)
 	-- transporting enemy coms
 	if Spring.GetModOptions().transportenemy == "notcoms" then
 		for name, ud in pairs(UnitDefs) do

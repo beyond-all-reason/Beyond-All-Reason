@@ -12,7 +12,6 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized functions for performance
 local mathSin = math.sin
 local mathCos = math.cos
@@ -120,7 +119,7 @@ function widget:GameFrame(n)
 		return
 	end
 
-	if selectedUnitsCount < 1  or selectedUnitsCount > 20 then
+	if selectedUnitsCount < 1 or selectedUnitsCount > 20 then
 		return
 	end
 

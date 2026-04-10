@@ -1,4 +1,4 @@
-local base = piece "base"
+local base = piece("base")
 local f = 0
 
 function Sink()

@@ -12,7 +12,7 @@ local unitDeaths = {
 		},
 	},
 
-	empblast = {    -- for armamex
+	empblast = { -- for armamex
 		areaofeffect = 400,
 		commandfire = 1,
 		craterboost = 0,
@@ -30,7 +30,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	pyro = {
@@ -45,7 +45,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	pyroselfd = {
 		areaofeffect = 200,
@@ -60,7 +60,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	flamethrower = {
@@ -75,7 +75,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	flamethrowerSelfd = {
 		areaofeffect = 140,
@@ -90,7 +90,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	tidal = {
@@ -107,7 +107,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	tidalSelfd = {
@@ -124,7 +124,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	nanoboom = {
@@ -141,7 +141,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	nanoselfd = {
@@ -158,7 +158,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	smallbuilder = {
@@ -173,7 +173,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	smallbuilderSelfd = {
 		areaofeffect = 120,
@@ -187,7 +187,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	windboom = {
@@ -203,7 +203,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	metalmaker = {
@@ -218,7 +218,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	metalmakerSelfd = {
 		areaofeffect = 260,
@@ -232,7 +232,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	advmetalmaker = {
@@ -248,7 +248,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	advmetalmakerSelfd = {
 		areaofeffect = 480,
@@ -263,7 +263,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	energystorage = {
@@ -278,7 +278,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	energystorageSelfd = {
 		areaofeffect = 520,
@@ -292,9 +292,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['energystorage-uw'] = {
+	["energystorage-uw"] = {
 		areaofeffect = 420,
 		camerashake = 420,
 		impulsefactor = impulsefactor,
@@ -306,9 +306,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['energystorageSelfd-uw'] = {
+	["energystorageSelfd-uw"] = {
 		areaofeffect = 520,
 		camerashake = 520,
 		impulsefactor = impulsefactor,
@@ -320,7 +320,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	advenergystorage = {
@@ -336,7 +336,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	advenergystorageSelfd = {
 		AreaOfEffect = 768,
@@ -351,9 +351,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['advenergystorage-uw'] = {
+	["advenergystorage-uw"] = {
 		AreaOfEffect = 480,
 		cameraShake = 480,
 		impulsefactor = impulsefactor,
@@ -366,9 +366,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['advenergystorageSelfd-uw'] = {
+	["advenergystorageSelfd-uw"] = {
 		AreaOfEffect = 768,
 		cameraShake = 768,
 		impulsefactor = impulsefactor,
@@ -381,7 +381,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	geo = {
@@ -396,7 +396,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	advgeo = {
@@ -412,7 +412,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	nukeBuilding = {
@@ -428,7 +428,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	nukeBuildingSelfd = {
 		AreaOfEffect = 1280,
@@ -443,7 +443,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	nukeSub = {
 		AreaOfEffect = 780,
@@ -458,7 +458,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	penetrator = {
@@ -473,7 +473,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	penetratorSelfd = {
 		areaofeffect = 520,
@@ -487,7 +487,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	deadeyeSelfd = {
@@ -502,7 +502,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	bantha = {
@@ -518,7 +518,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	banthaSelfd = {
 		areaofeffect = 800,
@@ -533,7 +533,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	korgExplosion = {
 		AreaOfEffect = 1280,
@@ -548,7 +548,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	korgExplosionSelfd = {
 		AreaOfEffect = 1920,
@@ -563,7 +563,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	juggernaut = {
 		areaofeffect = 280,
@@ -579,7 +579,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	juggernautSelfd = {
 		areaofeffect = 430,
@@ -595,7 +595,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	flagshipExplosion = {
@@ -611,7 +611,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	flagshipExplosionSelfd = {
 		AreaOfEffect = 700,
@@ -626,9 +626,8 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-
 
 	decoycommander = {
 		AreaOfEffect = 48,
@@ -642,7 +641,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	decoycommanderSelfd = {
 		AreaOfEffect = 96,
@@ -656,7 +655,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	minifusionExplosion = {
 		AreaOfEffect = 320,
@@ -671,7 +670,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	fusionExplosion = {
 		AreaOfEffect = 480,
@@ -686,7 +685,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	fusionExplosionSelfd = {
 		AreaOfEffect = 768,
@@ -701,10 +700,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
-	['fusionExplosion-uw'] = {
+	["fusionExplosion-uw"] = {
 		AreaOfEffect = 480,
 		cameraShake = 480,
 		impulsefactor = impulsefactor,
@@ -717,9 +716,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['fusionExplosionSelfd-uw'] = {
+	["fusionExplosionSelfd-uw"] = {
 		AreaOfEffect = 768,
 		cameraShake = 768,
 		impulsefactor = impulsefactor,
@@ -732,7 +731,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	advancedFusionExplosion = { --this explosion does not generate a distortion effect for unknown reasons
@@ -748,7 +747,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	customfusionexplo = {
@@ -764,7 +763,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	advancedFusionExplosionSelfd = {
@@ -780,7 +779,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	scavcomexplosion = {
@@ -796,7 +795,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	ScavComBossExplo = {
@@ -813,7 +812,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	--NUKE EXPLOSIONS WITH DAMAGE--
@@ -839,7 +838,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	commanderexplosion = {
@@ -863,9 +862,8 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-
 
 	--BUILDING DEATHS--
 
@@ -951,7 +949,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	tinyBuildingExplosionGenericSelfd = {
 		AreaOfEffect = 40,
@@ -965,9 +963,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['tinyBuildingExplosionGeneric-uw'] = {
+	["tinyBuildingExplosionGeneric-uw"] = {
 		AreaOfEffect = 25,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -979,9 +977,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['tinyBuildingExplosionGenericSelfd-uw'] = {
+	["tinyBuildingExplosionGenericSelfd-uw"] = {
 		AreaOfEffect = 40,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -993,7 +991,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	smallBuildingExplosionGeneric = {
@@ -1008,7 +1006,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	smallBuildingExplosionGenericSelfd = {
 		AreaOfEffect = 240,
@@ -1022,7 +1020,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	smallMex = {
 		AreaOfEffect = 240,
@@ -1036,9 +1034,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['smallBuildingExplosionGeneric-uw'] = {
+	["smallBuildingExplosionGeneric-uw"] = {
 		AreaOfEffect = 180,
 		cameraShake = 180,
 		impulsefactor = impulsefactor,
@@ -1050,9 +1048,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['smallBuildingExplosionGenericSelfd-uw'] = {
+	["smallBuildingExplosionGenericSelfd-uw"] = {
 		AreaOfEffect = 240,
 		cameraShake = 240,
 		impulsefactor = impulsefactor,
@@ -1064,7 +1062,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	mediumBuildingExplosionGeneric = {
@@ -1079,7 +1077,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	mediumBuildingExplosionGenericSelfd = {
 		AreaOfEffect = 360,
@@ -1093,9 +1091,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['mediumBuildingExplosionGeneric-uw'] = {
+	["mediumBuildingExplosionGeneric-uw"] = {
 		AreaOfEffect = 260,
 		cameraShake = 260,
 		impulsefactor = impulsefactor,
@@ -1107,9 +1105,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['mediumBuildingExplosionGenericSelfd-uw'] = {
+	["mediumBuildingExplosionGenericSelfd-uw"] = {
 		AreaOfEffect = 360,
 		cameraShake = 360,
 		impulsefactor = impulsefactor,
@@ -1121,7 +1119,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	largeBuildingExplosionGeneric = {
@@ -1136,7 +1134,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	largeBuildingExplosionGenericSelfd = {
 		AreaOfEffect = 480,
@@ -1150,9 +1148,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['largeBuildingExplosionGeneric-uw'] = {
+	["largeBuildingExplosionGeneric-uw"] = {
 		AreaOfEffect = 340,
 		cameraShake = 340,
 		impulsefactor = impulsefactor,
@@ -1164,9 +1162,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['largeBuildingExplosionGenericSelfd-uw'] = {
+	["largeBuildingExplosionGenericSelfd-uw"] = {
 		AreaOfEffect = 480,
 		cameraShake = 480,
 		impulsefactor = impulsefactor,
@@ -1178,7 +1176,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	hugeBuildingExplosionGeneric = {
@@ -1193,7 +1191,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	hugeBuildingExplosionGenericSelfd = {
 		AreaOfEffect = 580,
@@ -1207,9 +1205,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['hugeBuildingExplosionGeneric-uw'] = {
+	["hugeBuildingExplosionGeneric-uw"] = {
 		AreaOfEffect = 420,
 		cameraShake = 420,
 		impulsefactor = impulsefactor,
@@ -1221,9 +1219,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['hugeBuildingExplosionGenericSelfd-uw'] = {
+	["hugeBuildingExplosionGenericSelfd-uw"] = {
 		AreaOfEffect = 580,
 		cameraShake = 580,
 		impulsefactor = impulsefactor,
@@ -1235,9 +1233,8 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-
 
 	--UNIT DEATHS--
 
@@ -1253,7 +1250,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	tinyExplosionGenericSelfd = {
 		AreaOfEffect = 44,
@@ -1267,9 +1264,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['tinyExplosionGeneric-builder'] = {
+	["tinyExplosionGeneric-builder"] = {
 		AreaOfEffect = 24,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -1281,9 +1278,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['tinyExplosionGenericSelfd-builder'] = {
+	["tinyExplosionGenericSelfd-builder"] = {
 		AreaOfEffect = 44,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -1295,9 +1292,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['tinyExplosionGeneric-uw'] = {
+	["tinyExplosionGeneric-uw"] = {
 		AreaOfEffect = 24,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -1309,9 +1306,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['tinyExplosionGenericSelfd-uw'] = {
+	["tinyExplosionGenericSelfd-uw"] = {
 		AreaOfEffect = 44,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -1323,9 +1320,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['tinyExplosionGeneric-phib'] = {
+	["tinyExplosionGeneric-phib"] = {
 		AreaOfEffect = 24,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -1337,9 +1334,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['tinyExplosionGenericSelfd-phib'] = {
+	["tinyExplosionGenericSelfd-phib"] = {
 		AreaOfEffect = 44,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -1351,7 +1348,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	smallExplosionGenericAir = {
@@ -1366,7 +1363,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	smallExplosionGeneric = {
@@ -1381,7 +1378,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	smallExplosionGenericSelfd = {
 		AreaOfEffect = 60,
@@ -1395,9 +1392,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['smallExplosionGeneric-builder'] = {
+	["smallExplosionGeneric-builder"] = {
 		AreaOfEffect = 36,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -1409,9 +1406,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['smallExplosionGenericSelfd-builder'] = {
+	["smallExplosionGenericSelfd-builder"] = {
 		AreaOfEffect = 60,
 		cameraShake = 60,
 		impulsefactor = impulsefactor,
@@ -1423,9 +1420,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['smallExplosionGeneric-uw'] = {
+	["smallExplosionGeneric-uw"] = {
 		AreaOfEffect = 36,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -1437,9 +1434,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['smallExplosionGenericSelfd-uw'] = {
+	["smallExplosionGenericSelfd-uw"] = {
 		AreaOfEffect = 60,
 		cameraShake = 60,
 		impulsefactor = impulsefactor,
@@ -1451,9 +1448,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['smallExplosionGeneric-phib'] = {
+	["smallExplosionGeneric-phib"] = {
 		AreaOfEffect = 36,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -1465,9 +1462,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['smallExplosionGenericSelfd-phib'] = {
+	["smallExplosionGenericSelfd-phib"] = {
 		AreaOfEffect = 60,
 		cameraShake = 60,
 		impulsefactor = impulsefactor,
@@ -1479,7 +1476,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	mediumExplosionGeneric = {
@@ -1494,7 +1491,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	mediumExplosionGenericSelfd = {
 		AreaOfEffect = 96,
@@ -1508,9 +1505,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['mediumExplosionGeneric-builder'] = {
+	["mediumExplosionGeneric-builder"] = {
 		AreaOfEffect = 48,
 		cameraShake = 48,
 		impulsefactor = impulsefactor,
@@ -1522,9 +1519,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['mediumExplosionGenericSelfd-builder'] = {
+	["mediumExplosionGenericSelfd-builder"] = {
 		AreaOfEffect = 96,
 		cameraShake = 96,
 		impulsefactor = impulsefactor,
@@ -1536,9 +1533,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['mediumExplosionGeneric-uw'] = {
+	["mediumExplosionGeneric-uw"] = {
 		AreaOfEffect = 48,
 		cameraShake = 48,
 		impulsefactor = impulsefactor,
@@ -1550,9 +1547,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['mediumExplosionGenericSelfd-uw'] = {
+	["mediumExplosionGenericSelfd-uw"] = {
 		AreaOfEffect = 96,
 		cameraShake = 96,
 		impulsefactor = impulsefactor,
@@ -1564,9 +1561,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['mediumExplosionGeneric-phib'] = {
+	["mediumExplosionGeneric-phib"] = {
 		AreaOfEffect = 48,
 		cameraShake = 48,
 		impulsefactor = impulsefactor,
@@ -1578,9 +1575,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['mediumExplosionGenericSelfd-phib'] = {
+	["mediumExplosionGenericSelfd-phib"] = {
 		AreaOfEffect = 96,
 		cameraShake = 96,
 		impulsefactor = impulsefactor,
@@ -1592,7 +1589,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	largeExplosionGeneric = {
@@ -1607,7 +1604,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	largeExplosionGenericSelfd = {
 		AreaOfEffect = 120,
@@ -1621,9 +1618,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['largeExplosionGeneric-builder'] = {
+	["largeExplosionGeneric-builder"] = {
 		AreaOfEffect = 64,
 		cameraShake = 64,
 		impulsefactor = impulsefactor,
@@ -1635,9 +1632,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['largeExplosionGenericSelfd-builder'] = {
+	["largeExplosionGenericSelfd-builder"] = {
 		AreaOfEffect = 120,
 		cameraShake = 120,
 		impulsefactor = impulsefactor,
@@ -1649,9 +1646,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['largeExplosionGeneric-uw'] = {
+	["largeExplosionGeneric-uw"] = {
 		AreaOfEffect = 64,
 		cameraShake = 64,
 		impulsefactor = impulsefactor,
@@ -1663,9 +1660,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['largeExplosionGenericSelfd-uw'] = {
+	["largeExplosionGenericSelfd-uw"] = {
 		AreaOfEffect = 120,
 		cameraShake = 120,
 		impulsefactor = impulsefactor,
@@ -1677,9 +1674,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['largeExplosionGeneric-phib'] = {
+	["largeExplosionGeneric-phib"] = {
 		AreaOfEffect = 64,
 		cameraShake = 64,
 		impulsefactor = impulsefactor,
@@ -1691,9 +1688,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['largeExplosionGenericSelfd-phib'] = {
+	["largeExplosionGenericSelfd-phib"] = {
 		AreaOfEffect = 120,
 		cameraShake = 120,
 		impulsefactor = impulsefactor,
@@ -1705,7 +1702,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	hugeExplosionGeneric = {
@@ -1720,7 +1717,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	explosiont3 = {
 		AreaOfEffect = 96,
@@ -1734,7 +1731,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	explosiont3med = {
 		AreaOfEffect = 48,
@@ -1748,7 +1745,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	explosiont3xl = {
 		AreaOfEffect = 160,
@@ -1762,7 +1759,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	explosiont3xxl = {
 		AreaOfEffect = 280,
@@ -1776,7 +1773,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	hugeExplosionGenericSelfd = {
 		AreaOfEffect = 160,
@@ -1790,9 +1787,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['hugeExplosionGeneric-builder'] = {
+	["hugeExplosionGeneric-builder"] = {
 		AreaOfEffect = 96,
 		cameraShake = 96,
 		impulsefactor = impulsefactor,
@@ -1804,9 +1801,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['hugeExplosionGenericSelfd-builder'] = {
+	["hugeExplosionGenericSelfd-builder"] = {
 		AreaOfEffect = 160,
 		cameraShake = 160,
 		impulsefactor = impulsefactor,
@@ -1818,9 +1815,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['hugeExplosionGeneric-uw'] = {
+	["hugeExplosionGeneric-uw"] = {
 		AreaOfEffect = 96,
 		cameraShake = 96,
 		impulsefactor = impulsefactor,
@@ -1832,9 +1829,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['hugeExplosionGenericSelfd-uw'] = {
+	["hugeExplosionGenericSelfd-uw"] = {
 		AreaOfEffect = 160,
 		cameraShake = 160,
 		impulsefactor = impulsefactor,
@@ -1846,9 +1843,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['hugeExplosionGeneric-phib'] = {
+	["hugeExplosionGeneric-phib"] = {
 		AreaOfEffect = 96,
 		cameraShake = 96,
 		impulsefactor = impulsefactor,
@@ -1860,9 +1857,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['hugeExplosionGenericSelfd-phib'] = {
+	["hugeExplosionGenericSelfd-phib"] = {
 		AreaOfEffect = 160,
 		cameraShake = 160,
 		impulsefactor = impulsefactor,
@@ -1874,7 +1871,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	lootboxExplosion1 = {
 		AreaOfEffect = 340,
@@ -1888,7 +1885,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	lootboxExplosion2 = {
 		AreaOfEffect = 620,
@@ -1902,7 +1899,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	lootboxExplosion3 = {
 		AreaOfEffect = 920,
@@ -1916,7 +1913,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	lootboxExplosion4 = {
 		AreaOfEffect = 1280,
@@ -1930,10 +1927,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
-	mistexplo = {    -- for scavmist
+	mistexplo = { -- for scavmist
 		areaofeffect = 200,
 		craterboost = 0,
 		cratermult = 0,
@@ -1951,10 +1948,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
-	mistexploxl = {    -- for scavmist
+	mistexploxl = { -- for scavmist
 		areaofeffect = 350,
 		craterboost = 0,
 		cratermult = 0,
@@ -1972,10 +1969,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
-	mistexploxxl = {    -- for scavmist
+	mistexploxxl = { -- for scavmist
 		areaofeffect = 400,
 		craterboost = 0,
 		cratermult = 0,
@@ -1993,19 +1990,18 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-
 }
 
 local scavengerDefs = {}
 for name, def in pairs(unitDeaths) do
-	if string.find(string.lower(name), 'explosiont3') or string.find(string.lower(name), 'explosiongeneric') or string.find(string.lower(name), 'buildingexplosiongeneric') then
-		scavengerDefs[name .. '-purple'] = table.copy(def)
-		scavengerDefs[name .. '-purple'].explosiongenerator = scavengerDefs[name .. '-purple'].explosiongenerator .. '-purple'
-	elseif string.find(def.explosiongenerator, 't3unitexplosion') then
-		scavengerDefs[name .. '-purple'] = table.copy(def)
-		scavengerDefs[name .. '-purple'].explosiongenerator = scavengerDefs[name .. '-purple'].explosiongenerator .. '-purple'
+	if string.find(string.lower(name), "explosiont3") or string.find(string.lower(name), "explosiongeneric") or string.find(string.lower(name), "buildingexplosiongeneric") then
+		scavengerDefs[name .. "-purple"] = table.copy(def)
+		scavengerDefs[name .. "-purple"].explosiongenerator = scavengerDefs[name .. "-purple"].explosiongenerator .. "-purple"
+	elseif string.find(def.explosiongenerator, "t3unitexplosion") then
+		scavengerDefs[name .. "-purple"] = table.copy(def)
+		scavengerDefs[name .. "-purple"].explosiongenerator = scavengerDefs[name .. "-purple"].explosiongenerator .. "-purple"
 	end
 end
 for name, ud in pairs(scavengerDefs) do

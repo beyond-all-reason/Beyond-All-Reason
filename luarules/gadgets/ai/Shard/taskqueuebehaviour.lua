@@ -16,19 +16,18 @@ function TaskQueueBehaviour:Init()
 
 	self.waiting = {}
 	self:OnToNextTask()
-
 end
 
 function dump(o)
-	if type(o) == 'table' then
-		local s = '{ '
-		for k,v in pairs(o) do
-			if type(k) ~= 'number' then
-				k = '"'..k..'"'
+	if type(o) == "table" then
+		local s = "{ "
+		for k, v in pairs(o) do
+			if type(k) ~= "number" then
+				k = '"' .. k .. '"'
 			end
-			s = s .. '['..k..'] = ' .. dump(v) .. ','
+			s = s .. "[" .. k .. "] = " .. dump(v) .. ","
 		end
-		return s .. '} '
+		return s .. "} "
 	else
 		return tostring(o)
 	end
@@ -62,7 +61,7 @@ end
 
 function TaskQueueBehaviour:OwnerDead()
 	if self.waiting ~= nil then
-		for k,v in pairs(self.waiting) do
+		for k, v in pairs(self.waiting) do
 			self.ai.modules.sleep.Kill(self.waiting[k])
 		end
 	end
@@ -97,7 +96,7 @@ function TaskQueueBehaviour:Update()
 	end
 end
 
-TaskQueueWakeup = class(function(a,tqb)
+TaskQueueWakeup = class(function(a, tqb)
 	a.tqb = tqb
 end)
 function TaskQueueWakeup:wakeup()
@@ -122,12 +121,12 @@ function TaskQueueBehaviour:ProgressQueue()
 	self.progress = false
 
 	if self.queue == nil then
-		self.game:SendToConsole("Warning: A "..self.name.." unit, has an empty task queue")
+		self.game:SendToConsole("Warning: A " .. self.name .. " unit, has an empty task queue")
 		self:OnToNextTask()
 		self:DebugPoint("nothing")
 		return
 	end
-	local idx, val = next(self.queue,self.idx)
+	local idx, val = next(self.queue, self.idx)
 	self.idx = idx
 	if idx == nil then
 		self:DebugPoint("nothing")
@@ -147,11 +146,11 @@ function TaskQueueBehaviour:ProgressQueue()
 		return
 	end
 	if type(val) == "table" then
-		self:HandleActionTask( value )
+		self:HandleActionTask(value)
 		return
 	end
 
-	success = self:TryToBuild( value )
+	success = self:TryToBuild(value)
 	if success ~= true then
 		self:DebugPoint("nothing")
 		self:OnToNextTask()
@@ -159,10 +158,10 @@ function TaskQueueBehaviour:ProgressQueue()
 	end
 end
 
-function TaskQueueBehaviour:TryToBuild( unit_name )
+function TaskQueueBehaviour:TryToBuild(unit_name)
 	utype = self.game:GetTypeByName(unit_name)
 	if not utype then
-		self.game:SendToConsole("Cannot build:"..unit_name..", could not grab the unit type from the engine")
+		self.game:SendToConsole("Cannot build:" .. unit_name .. ", could not grab the unit type from the engine")
 		return false
 	end
 	if unit:CanBuild(utype) ~= true then
@@ -181,12 +180,16 @@ function TaskQueueBehaviour:TryToBuild( unit_name )
 	return success
 end
 
-function TaskQueueBehaviour:HandleActionTask( task )
+function TaskQueueBehaviour:HandleActionTask(task)
 	local action = task.action
 	if action == "wait" then
 		t = TaskQueueWakeup(self)
 		tqb = self
-		self.ai.sleep:Wait({ wakeup = function() tqb:ProgressQueue() end, },task.frames)
+		self.ai.sleep:Wait({
+			wakeup = function()
+				tqb:ProgressQueue()
+			end,
+		}, task.frames)
 	elseif action == "move" then
 		self.unit:Internal():Move(task.position)
 	elseif action == "moverelative" then
@@ -215,24 +218,23 @@ function TaskQueueBehaviour:HandleActionTask( task )
 		newpos.z = upos.z + task.position.z
 		self.unit:Internal():MoveAndPatrol(newpos)
 	else
-		self.game:SendToConsole("Error: Unknown action task "..value.." given to a "..self.name)
+		self.game:SendToConsole("Error: Unknown action task " .. value .. " given to a " .. self.name)
 		self:DebugPoint("nothing")
 		self:OnToNextTask()
 	end
 end
 
-function onsuccess( job, pos )
-	job.tqb:OnBuildingPlacementSuccess( job, pos )
+function onsuccess(job, pos)
+	job.tqb:OnBuildingPlacementSuccess(job, pos)
 end
 
-function onfail( job )
-	job.tqb:OnBuildingPlacementFailure( job )
+function onfail(job)
+	job.tqb:OnBuildingPlacementFailure(job)
 end
 
 function TaskQueueBehaviour:IsWaitingForPosition()
 	return self.placementInProgress
 end
-
 
 function TaskQueueBehaviour:BeginWaitingForPosition()
 	self.placementInProgress = true
@@ -248,15 +250,15 @@ function TaskQueueBehaviour:BuildOnMap(utype)
 	unit = self.unit:Internal()
 
 	local job = {
-		start_position=unit:GetPosition(),
-		max_radius=1500,
-		onSuccess=onsuccess,
-		onFail=onfail,
-		unittype=utype,
-		cleanup_on_unit_death=self.unit.engineID,
-		tqb=self
+		start_position = unit:GetPosition(),
+		max_radius = 1500,
+		onSuccess = onsuccess,
+		onFail = onfail,
+		unittype = utype,
+		cleanup_on_unit_death = self.unit.engineID,
+		tqb = self,
 	}
-	local success = self.ai.placementhandler:NewJob( job )
+	local success = self.ai.placementhandler:NewJob(job)
 	if success ~= true then
 		self:StopWaitingForPosition()
 		return false
@@ -269,11 +271,11 @@ function TaskQueueBehaviour:BuildExtractor(utype)
 	-- find a free spot!
 	unit = self.unit:Internal()
 	p = unit:GetPosition()
-	p = self.ai.metalspothandler:ClosestFreeSpot(utype,p)
+	p = self.ai.metalspothandler:ClosestFreeSpot(utype, p)
 	if p == nil then
 		return false
 	end
-	return self.unit:Internal():Build(utype,p)
+	return self.unit:Internal():Build(utype, p)
 end
 
 function TaskQueueBehaviour:OnToNextTask()
@@ -281,19 +283,20 @@ function TaskQueueBehaviour:OnToNextTask()
 end
 
 function TaskQueueBehaviour:IsDoingSomething()
-	return ( self.progress == false )
+	return (self.progress == false)
 end
 
-function TaskQueueBehaviour:OnBuildingPlacementSuccess( job, pos )
+function TaskQueueBehaviour:OnBuildingPlacementSuccess(job, pos)
 	self:StopWaitingForPosition()
-	local p = dump( pos )
-	local success self.unit:Internal():Build( job.unittype, pos )
+	local p = dump(pos)
+	local success
+	self.unit:Internal():Build(job.unittype, pos)
 	if success == false then
 		self:OnToNextTask()
 	end
 end
 
-function TaskQueueBehaviour:OnBuildingPlacementFailure( job )
+function TaskQueueBehaviour:OnBuildingPlacementFailure(job)
 	self:StopWaitingForPosition()
 	self:OnToNextTask()
 end
@@ -311,8 +314,8 @@ function TaskQueueBehaviour:Priority()
 	return 50
 end
 
-function TaskQueueBehaviour:DebugPoint( type )
+function TaskQueueBehaviour:DebugPoint(type)
 	local unit = self.unit:Internal()
 	local p = unit:GetPosition()
-	SendToUnsynced("shard_debug_position",p.x,p.z,type)
+	SendToUnsynced("shard_debug_position", p.x, p.z, type)
 end

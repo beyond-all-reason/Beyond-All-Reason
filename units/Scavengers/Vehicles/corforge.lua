@@ -47,7 +47,7 @@ return {
 			[7] = "corspec",
 		},
 		customparams = {
-			unitgroup = 'buildert2',
+			unitgroup = "buildert2",
 			model_author = "MASHUP",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorVehicles/T2",

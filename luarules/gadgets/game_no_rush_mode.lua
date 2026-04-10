@@ -2,12 +2,12 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name    = "No Rush Mode",
-		desc    = "Stops players from getting out of their startbox for a set amount of time.",
-		author  = "Damgam",
-		date    = "2022",
+		name = "No Rush Mode",
+		desc = "Stops players from getting out of their startbox for a set amount of time.",
+		author = "Damgam",
+		date = "2022",
 		license = "GNU GPL, v2 or later",
-		layer   = -100,
+		layer = -100,
 		enabled = Spring.GetModOptions().norushtimer > 0,
 	}
 end
@@ -16,7 +16,7 @@ end
 local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
 local norushtimer = Spring.GetModOptions().norushtimer * 1800 -- modoption is stating minutes, and we need frames. 60 seconds * 30 frames = 1800
 
-local CommandsToCatchMap = {                                -- CMDTYPES: ICON_MAP, ICON_AREA, ICON_UNIT_OR_MAP, ICON_UNIT_OR_AREA, ICON_UNIT_FEATURE_OR_AREA, ICON_BUILDING
+local CommandsToCatchMap = { -- CMDTYPES: ICON_MAP, ICON_AREA, ICON_UNIT_OR_MAP, ICON_UNIT_OR_AREA, ICON_UNIT_FEATURE_OR_AREA, ICON_BUILDING
 	[CMD.MOVE] = true,
 	[CMD.PATROL] = true,
 	[CMD.FIGHT] = true,
@@ -61,7 +61,7 @@ local TeamIDsToExclude = {} -- dynamically filled below
 
 for _, teamID in ipairs(Spring.GetTeamList()) do
 	local teamLuaAI = Spring.GetTeamLuaAI(teamID)
-	if (teamLuaAI and LuaAIsToExclude[teamLuaAI]) then
+	if teamLuaAI and LuaAIsToExclude[teamLuaAI] then
 		TeamIDsToExclude[teamID] = true
 	end
 end
@@ -72,7 +72,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		local registered = { [CMD.BUILD] = true }
 
-		for _, commandList in ipairs { CommandsToCatchMap, CommandsToCatchUnit, CommandsToCatchFeature } do
+		for _, commandList in ipairs({ CommandsToCatchMap, CommandsToCatchUnit, CommandsToCatchFeature }) do
 			for command in pairs(commandList) do
 				if not registered[command] then
 					gadgetHandler:RegisterAllowCommand(command)
@@ -86,7 +86,7 @@ if gadgetHandler:IsSyncedCode() then
 		local allowed = true
 		local frame = Spring.GetGameFrame()
 
-		if frame < norushtimer and (not TeamIDsToExclude[unitTeam]) then
+		if frame < norushtimer and not TeamIDsToExclude[unitTeam] then
 			local _, _, _, _, _, allyTeamID = Spring.GetTeamInfo(unitTeam, false)
 
 			if cmdID < 0 then
@@ -101,10 +101,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 
 				if cmdParams[4] and not cmdParams[6] then -- might be map pos with radius, check radius range too
-					if not positionCheckLibrary.StartboxCheck(cmdParams[1] + cmdParams[4], cmdParams[2], cmdParams[3], allyTeamID) or
-						not positionCheckLibrary.StartboxCheck(cmdParams[1] - cmdParams[4], cmdParams[2], cmdParams[3], allyTeamID) or
-						not positionCheckLibrary.StartboxCheck(cmdParams[1], cmdParams[2], cmdParams[3] + cmdParams[4], allyTeamID) or
-						not positionCheckLibrary.StartboxCheck(cmdParams[1], cmdParams[2], cmdParams[3] - cmdParams[4], allyTeamID) then
+					if not positionCheckLibrary.StartboxCheck(cmdParams[1] + cmdParams[4], cmdParams[2], cmdParams[3], allyTeamID) or not positionCheckLibrary.StartboxCheck(cmdParams[1] - cmdParams[4], cmdParams[2], cmdParams[3], allyTeamID) or not positionCheckLibrary.StartboxCheck(cmdParams[1], cmdParams[2], cmdParams[3] + cmdParams[4], allyTeamID) or not positionCheckLibrary.StartboxCheck(cmdParams[1], cmdParams[2], cmdParams[3] - cmdParams[4], allyTeamID) then
 						allowed = false
 					end
 				end

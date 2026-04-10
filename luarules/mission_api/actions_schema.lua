@@ -28,92 +28,92 @@ local actionTypes = {
 local parameters = {
 	[actionTypes.EnableTrigger] = {
 		[1] = {
-			name = 'triggerId',
+			name = "triggerId",
 			required = true,
-			type = 'string',
+			type = "string",
 		},
-	 },
+	},
 
 	[actionTypes.DisableTrigger] = {
 		[1] = {
-			name = 'triggerId',
+			name = "triggerId",
 			required = true,
-			type = 'string',
+			type = "string",
 		},
-	 },
+	},
 
-	[actionTypes.IssueOrders] = {  },
-	[actionTypes.AllowCommands] = {  },
-	[actionTypes.RestrictCommands] = {  },
-	[actionTypes.AlterBuildlist] = {  },
-	[actionTypes.EnableBuildOption] = {  },
-	[actionTypes.DisableBuildOption] = {  },
+	[actionTypes.IssueOrders] = {},
+	[actionTypes.AllowCommands] = {},
+	[actionTypes.RestrictCommands] = {},
+	[actionTypes.AlterBuildlist] = {},
+	[actionTypes.EnableBuildOption] = {},
+	[actionTypes.DisableBuildOption] = {},
 
 	[actionTypes.SpawnUnits] = {
 		[1] = {
-			name = 'name',
+			name = "name",
 			required = false,
-			type = 'string',
+			type = "string",
 		},
 		[2] = {
-			name = 'unitDefName',
+			name = "unitDefName",
 			required = true,
-			type = 'string',
+			type = "string",
 		},
 		[3] = {
-			name = 'quantity',
+			name = "quantity",
 			required = false,
-			type = 'number',
+			type = "number",
 		},
 		[4] = {
-			name = 'x',
+			name = "x",
 			required = true,
-			type = 'number',
+			type = "number",
 		},
 		[5] = {
-			name = 'y',
+			name = "y",
 			required = false,
-			type = 'number',
+			type = "number",
 		},
 		[6] = {
-			name = 'z',
+			name = "z",
 			required = true,
-			type = 'number',
+			type = "number",
 		},
 	},
 
-	[actionTypes.SpawnConstruction] = {  },
+	[actionTypes.SpawnConstruction] = {},
 	[actionTypes.DespawnUnits] = {
 		[1] = {
-			name = 'name',
+			name = "name",
 			required = true,
-			type = 'string',
+			type = "string",
 		},
-	 },
-	[actionTypes.SpawnWeapons] = {  },
-	[actionTypes.SpawnEffects] = {  },
-	[actionTypes.RevealLOS] = {  },
-	[actionTypes.UnrevealLOS] = {  },
-	[actionTypes.AlterMapZones] = {  },
-	[actionTypes.TransferUnits] = {  },
-	[actionTypes.ControlCamera] = {  },
-	[actionTypes.Pause] = {  },
-	[actionTypes.Unpause] = {  },
-	[actionTypes.PlayMedia] = {  },
+	},
+	[actionTypes.SpawnWeapons] = {},
+	[actionTypes.SpawnEffects] = {},
+	[actionTypes.RevealLOS] = {},
+	[actionTypes.UnrevealLOS] = {},
+	[actionTypes.AlterMapZones] = {},
+	[actionTypes.TransferUnits] = {},
+	[actionTypes.ControlCamera] = {},
+	[actionTypes.Pause] = {},
+	[actionTypes.Unpause] = {},
+	[actionTypes.PlayMedia] = {},
 
 	[actionTypes.SendMessage] = {
 		[1] = {
-			name = 'message',
+			name = "message",
 			required = true,
-			type = 'string',
-		}
+			type = "string",
+		},
 	},
 
-	[actionTypes.Victory] = {  },
-	[actionTypes.Defeat] = {  },
+	[actionTypes.Victory] = {},
+	[actionTypes.Defeat] = {},
 }
 
 return {
 	Types = actionTypes,
-	Parameters = parameters
+	Parameters = parameters,
 }

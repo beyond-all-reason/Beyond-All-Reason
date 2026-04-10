@@ -38,8 +38,8 @@ return {
 			dead = {
 				blocking = false,
 				category = "corpses",
-                collisionvolumeoffsets = "0 0 0",
-                collisionvolumescales = "26 52 26",
+				collisionvolumeoffsets = "0 0 0",
+				collisionvolumescales = "26 52 26",
 				collisionvolumetype = "Box",
 				damage = 151,
 				footprintx = 3,
@@ -71,7 +71,7 @@ return {
 				[1] = "kbarmsel",
 			},
 		},
-        weapondefs = {
+		weapondefs = {
 			legrl_missile = {
 				areaofeffect = 48,
 				avoidfeature = false,

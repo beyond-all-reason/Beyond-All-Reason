@@ -1,8 +1,7 @@
-
-shard_include(  "taskqueues" )
-shard_include(  "taskqueuebehaviour" )
-shard_include(  "attackerbehaviour" )
-shard_include(  "bootbehaviour" )
+shard_include("taskqueues")
+shard_include("taskqueuebehaviour")
+shard_include("attackerbehaviour")
+shard_include("bootbehaviour")
 
 function defaultBehaviours(unit, ai)
 	b = {}
@@ -10,15 +9,15 @@ function defaultBehaviours(unit, ai)
 		return b
 	end
 	u = unit:Internal()
-	table.insert(b, BootBehaviour )
+	table.insert(b, BootBehaviour)
 	if u:CanBuild() then
-		table.insert(b,TaskQueueBehaviour)
+		table.insert(b, TaskQueueBehaviour)
 	else
 		if IsAttacker(unit) then
-			table.insert(b,AttackerBehaviour)
+			table.insert(b, AttackerBehaviour)
 		end
 	end
 	return b
 end
 
-return { }
+return {}

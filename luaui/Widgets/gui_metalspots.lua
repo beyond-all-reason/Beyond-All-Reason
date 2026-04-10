@@ -2,12 +2,12 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name    = "Metalspots",
-		desc    = "Displays rotating circles around metal spots",
-		author  = "Floris, Beherith GL4",
-		date    = "October 2019",
-		license  = "GNU GPL v2",
-		layer   = 2,
+		name = "Metalspots",
+		desc = "Displays rotating circles around metal spots",
+		author = "Floris, Beherith GL4",
+		date = "October 2019",
+		license = "GNU GPL v2",
+		layer = 2,
 		enabled = true,
 	}
 end
@@ -40,8 +40,8 @@ local spGetSpectatingState = Spring.GetSpectatingState
 -- 1. Could a prerendered texture be better at conveying metal spot value?
 -- 2. VertexVBO contains: x, y pos, rotdir and radians in angle?
 -- 3. InstanceVBO contains:
-	--x,y,z offsets, radius,
-	-- visibility, and gameframe num of the last change teamid of occupier?
+--x,y,z offsets, radius,
+-- visibility, and gameframe num of the last change teamid of occupier?
 -- 4. the way the updates are handled are far from ideal, the construction and destruction of any mex will trigger a full update
 -- 2023.05.12
 -- Add atlas text to all this
@@ -55,28 +55,28 @@ if Spring.GetModOptions().unit_restrictions_noextractorDefs then
 	return
 end
 
-local needsInit			= true
-local showValue			= false
-local metalViewOnly		= false
+local needsInit = true
+local showValue = false
+local metalViewOnly = false
 
-local circleSpaceUsage	= 0.62
-local circleInnerOffset	= 0.28
-local opacity			= 0.5
+local circleSpaceUsage = 0.62
+local circleInnerOffset = 0.28
+local opacity = 0.5
 
-local innersize			= 1.8		-- outersize-innersize = circle width
-local outersize			= 1.98		-- outersize-innersize = circle width
-local billboardsize 	= 0.38		-- actual fontsize
+local innersize = 1.8 -- outersize-innersize = circle width
+local outersize = 1.98 -- outersize-innersize = circle width
+local billboardsize = 0.38 -- actual fontsize
 
-local maxValue			= 15		-- ignore spots above this metal value (probably metalmap)
-local maxScale			= 4			-- ignore spots above this scale (probably metalmap)
+local maxValue = 15 -- ignore spots above this metal value (probably metalmap)
+local maxScale = 4 -- ignore spots above this scale (probably metalmap)
 
 local extractorRadius = Game.extractorRadius * 1.2
 
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGroundHeight = Spring.GetGroundHeight
-local spGetMapDrawMode  = Spring.GetMapDrawMode
-local spIsUnitAllied  = Spring.IsUnitAllied
+local spGetMapDrawMode = Spring.GetMapDrawMode
+local spIsUnitAllied = Spring.IsUnitAllied
 local spIsGUIHidden = Spring.IsGUIHidden
 
 local mySpots = {} -- {spotKey  = {x = spot.x, y= spGetGroundHeight(spot.x, spot.z), z = spot.z, value = value, scale = scale, occupied = occupied, t = currentClock, ally = false, enemy = false, instanceID = "1024_1023"}}
@@ -89,13 +89,13 @@ local myAllyTeamID = Spring.GetMyAllyTeamID()
 local incomeMultiplier = select(7, Spring.GetTeamInfo(spGetMyTeamID(), false))
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = 1  -- fixed scale: billboard size is resolution-independent (world-space)
+local vsx, vsy = Spring.GetViewGeometry()
+local fontfileScale = 1 -- fixed scale: billboard size is resolution-independent (world-space)
 local fontfileSize = 110
 local fontfileOutlineSize = 12
 local fontfileOutlineStrength = 20
 --spEcho("Loading Font",fontfile,fontfileSize*fontfileScale,fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 
 local chobbyInterface
 
@@ -115,8 +115,8 @@ local spotShader = nil
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
-local pushElementInstance    = InstanceVBOTable.pushElementInstance
-local drawInstanceVBO        = InstanceVBOTable.drawInstanceVBO
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local drawInstanceVBO = InstanceVBOTable.drawInstanceVBO
 local getElementInstanceData = InstanceVBOTable.getElementInstanceData
 
 local shaderConfig = {}
@@ -124,20 +124,20 @@ local vsSrcPath = "LuaUI/Shaders/metalspots_gl4.vert.glsl"
 local fsSrcPath = "LuaUI/Shaders/metalspots_gl4.frag.glsl"
 
 local shaderSourceCache = {
-		vssrcpath = vsSrcPath,
-		fssrcpath = fsSrcPath,
-		shaderName = "Metalspots GL4",
-		uniformInt = {
-			heightMap = 0,
-			textAtlas = 1,
-			},
-		uniformFloat = {
-			visibilitycontrols = {0,0,0,0},
-			drawPass = 0,
-			waterLevel = 0,
-		  },
-		shaderConfig = shaderConfig,
-	}
+	vssrcpath = vsSrcPath,
+	fssrcpath = fsSrcPath,
+	shaderName = "Metalspots GL4",
+	uniformInt = {
+		heightMap = 0,
+		textAtlas = 1,
+	},
+	uniformFloat = {
+		visibilitycontrols = { 0, 0, 0, 0 },
+		drawPass = 0,
+		waterLevel = 0,
+	},
+	shaderConfig = shaderConfig,
+}
 
 local MetalSpotTextAtlas
 local AtlasTextureID
@@ -145,104 +145,191 @@ local MakeAtlasOnDemand = VFS.Include("LuaUI/Include/AtlasOnDemand.lua")
 local valueToUVs = {} -- key value string to uvCoords object from atlas in xXyYwh array
 
 local function goodbye(reason)
-	spEcho("Metalspots GL4 widget exiting with reason: "..reason)
+	spEcho("Metalspots GL4 widget exiting with reason: " .. reason)
 	widgetHandler:RemoveWidget()
 end
 
 local function makeSpotVBO()
-	spotVBO = gl.GetVBO(GL.ARRAY_BUFFER,false)
-	if spotVBO == nil then goodbye("Failed to create spotVBO") end
-	local VBOLayout = {	 {id = 0, name = "localpos_dir_angle", size = 4},}
+	spotVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+	if spotVBO == nil then
+		goodbye("Failed to create spotVBO")
+	end
+	local VBOLayout = { { id = 0, name = "localpos_dir_angle", size = 4 } }
 	local VBOData = {}
 	local n = 0
 
-	local detailPartWidth, a1,a2,a3,a4
+	local detailPartWidth, a1, a2, a3, a4
 	local width = circleSpaceUsage
 	local pieces = 8
 	local detail = 6
 	local radstep = (2.0 * math.pi) / pieces
-	for _,dir in ipairs({-1,1}) do
+	for _, dir in ipairs({ -1, 1 }) do
 		for i = 1, pieces do -- pieces
 			for d = 1, detail do -- detail
-				detailPartWidth = ((width / detail) * d) + (dir+1)
-				a1 = ((i+detailPartWidth - (width / detail)) * radstep)
-				a2 = ((i+detailPartWidth) * radstep)
-				a3 = ((i+circleInnerOffset+detailPartWidth - (width / detail)) * radstep)
-				a4 = ((i+circleInnerOffset+detailPartWidth) * radstep)
+				detailPartWidth = ((width / detail) * d) + (dir + 1)
+				a1 = ((i + detailPartWidth - (width / detail)) * radstep)
+				a2 = ((i + detailPartWidth) * radstep)
+				a3 = ((i + circleInnerOffset + detailPartWidth - (width / detail)) * radstep)
+				a4 = ((i + circleInnerOffset + detailPartWidth) * radstep)
 
-				n=n+1; VBOData[n] = mathSin(a3)*innersize
-				n=n+1; VBOData[n] = mathCos(a3)*innersize
-				n=n+1; VBOData[n] = dir
-				n=n+1; VBOData[n] = 0
+				n = n + 1
+				VBOData[n] = mathSin(a3) * innersize
+				n = n + 1
+				VBOData[n] = mathCos(a3) * innersize
+				n = n + 1
+				VBOData[n] = dir
+				n = n + 1
+				VBOData[n] = 0
 
 				if dir == -1 then
-					n=n+1; VBOData[n] = mathSin(a4)*innersize
-					n=n+1; VBOData[n] = mathCos(a4)*innersize
-					n=n+1; VBOData[n] = dir
-					n=n+1; VBOData[n] = 0
-					n=n+1; VBOData[n] = mathSin(a1)*outersize
-					n=n+1; VBOData[n] = mathCos(a1)*outersize
-					n=n+1; VBOData[n] = dir
-					n=n+1; VBOData[n] = 0
+					n = n + 1
+					VBOData[n] = mathSin(a4) * innersize
+					n = n + 1
+					VBOData[n] = mathCos(a4) * innersize
+					n = n + 1
+					VBOData[n] = dir
+					n = n + 1
+					VBOData[n] = 0
+					n = n + 1
+					VBOData[n] = mathSin(a1) * outersize
+					n = n + 1
+					VBOData[n] = mathCos(a1) * outersize
+					n = n + 1
+					VBOData[n] = dir
+					n = n + 1
+					VBOData[n] = 0
 				else
-					n=n+1; VBOData[n] = mathSin(a1)*outersize
-					n=n+1; VBOData[n] = mathCos(a1)*outersize
-					n=n+1; VBOData[n] = dir
-					n=n+1; VBOData[n] = 0
-					n=n+1; VBOData[n] = mathSin(a4)*innersize
-					n=n+1; VBOData[n] = mathCos(a4)*innersize
-					n=n+1; VBOData[n] = dir
-					n=n+1; VBOData[n] = 0
+					n = n + 1
+					VBOData[n] = mathSin(a1) * outersize
+					n = n + 1
+					VBOData[n] = mathCos(a1) * outersize
+					n = n + 1
+					VBOData[n] = dir
+					n = n + 1
+					VBOData[n] = 0
+					n = n + 1
+					VBOData[n] = mathSin(a4) * innersize
+					n = n + 1
+					VBOData[n] = mathCos(a4) * innersize
+					n = n + 1
+					VBOData[n] = dir
+					n = n + 1
+					VBOData[n] = 0
 				end
 
 				if dir == 1 then
-					n=n+1; VBOData[n] = mathSin(a1)*outersize
-					n=n+1; VBOData[n] = mathCos(a1)*outersize
-					n=n+1; VBOData[n] = dir
-					n=n+1; VBOData[n] = 0
-					n=n+1; VBOData[n] = mathSin(a2)*outersize
-					n=n+1; VBOData[n] = mathCos(a2)*outersize
-					n=n+1; VBOData[n] = dir
-					n=n+1; VBOData[n] = 0
+					n = n + 1
+					VBOData[n] = mathSin(a1) * outersize
+					n = n + 1
+					VBOData[n] = mathCos(a1) * outersize
+					n = n + 1
+					VBOData[n] = dir
+					n = n + 1
+					VBOData[n] = 0
+					n = n + 1
+					VBOData[n] = mathSin(a2) * outersize
+					n = n + 1
+					VBOData[n] = mathCos(a2) * outersize
+					n = n + 1
+					VBOData[n] = dir
+					n = n + 1
+					VBOData[n] = 0
 				else
-					n=n+1; VBOData[n] = mathSin(a2)*outersize
-					n=n+1; VBOData[n] = mathCos(a2)*outersize
-					n=n+1; VBOData[n] = dir
-					n=n+1; VBOData[n] = 0
-					n=n+1; VBOData[n] = mathSin(a1)*outersize
-					n=n+1; VBOData[n] = mathCos(a1)*outersize
-					n=n+1; VBOData[n] = dir
-					n=n+1; VBOData[n] = 0
+					n = n + 1
+					VBOData[n] = mathSin(a2) * outersize
+					n = n + 1
+					VBOData[n] = mathCos(a2) * outersize
+					n = n + 1
+					VBOData[n] = dir
+					n = n + 1
+					VBOData[n] = 0
+					n = n + 1
+					VBOData[n] = mathSin(a1) * outersize
+					n = n + 1
+					VBOData[n] = mathCos(a1) * outersize
+					n = n + 1
+					VBOData[n] = dir
+					n = n + 1
+					VBOData[n] = 0
 				end
-				n=n+1; VBOData[n] = mathSin(a4)*innersize
-				n=n+1; VBOData[n] = mathCos(a4)*innersize
-				n=n+1; VBOData[n] = dir
-				n=n+1; VBOData[n] = 0
+				n = n + 1
+				VBOData[n] = mathSin(a4) * innersize
+				n = n + 1
+				VBOData[n] = mathCos(a4) * innersize
+				n = n + 1
+				VBOData[n] = dir
+				n = n + 1
+				VBOData[n] = 0
 			end
 		end
 	end
 
 	-- Add the 2 tris for the billboard:
-	n=n+1; VBOData[n] = billboardsize;  n=n+1; VBOData[n] = 0;             n=n+1; VBOData[n] = 1; n=n+1; VBOData[n] = 2
-	n=n+1; VBOData[n] = billboardsize;  n=n+1; VBOData[n] = billboardsize;  n=n+1; VBOData[n] = 1; n=n+1; VBOData[n] = 2
-	n=n+1; VBOData[n] = -billboardsize; n=n+1; VBOData[n] = 0;             n=n+1; VBOData[n] = 1; n=n+1; VBOData[n] = 2
-	n=n+1; VBOData[n] = billboardsize;  n=n+1; VBOData[n] = billboardsize;  n=n+1; VBOData[n] = 1; n=n+1; VBOData[n] = 2
-	n=n+1; VBOData[n] = -billboardsize; n=n+1; VBOData[n] = billboardsize;  n=n+1; VBOData[n] = 1; n=n+1; VBOData[n] = 2
-	n=n+1; VBOData[n] = -billboardsize; n=n+1; VBOData[n] = 0;             n=n+1; VBOData[n] = 1; n=n+1; VBOData[n] = 2
+	n = n + 1
+	VBOData[n] = billboardsize
+	n = n + 1
+	VBOData[n] = 0
+	n = n + 1
+	VBOData[n] = 1
+	n = n + 1
+	VBOData[n] = 2
+	n = n + 1
+	VBOData[n] = billboardsize
+	n = n + 1
+	VBOData[n] = billboardsize
+	n = n + 1
+	VBOData[n] = 1
+	n = n + 1
+	VBOData[n] = 2
+	n = n + 1
+	VBOData[n] = -billboardsize
+	n = n + 1
+	VBOData[n] = 0
+	n = n + 1
+	VBOData[n] = 1
+	n = n + 1
+	VBOData[n] = 2
+	n = n + 1
+	VBOData[n] = billboardsize
+	n = n + 1
+	VBOData[n] = billboardsize
+	n = n + 1
+	VBOData[n] = 1
+	n = n + 1
+	VBOData[n] = 2
+	n = n + 1
+	VBOData[n] = -billboardsize
+	n = n + 1
+	VBOData[n] = billboardsize
+	n = n + 1
+	VBOData[n] = 1
+	n = n + 1
+	VBOData[n] = 2
+	n = n + 1
+	VBOData[n] = -billboardsize
+	n = n + 1
+	VBOData[n] = 0
+	n = n + 1
+	VBOData[n] = 1
+	n = n + 1
+	VBOData[n] = 2
 
-	spotVBO:Define(n/4, VBOLayout)
+	spotVBO:Define(n / 4, VBOLayout)
 	spotVBO:Upload(VBOData)
-	return spotVBO, n/4
+	return spotVBO, n / 4
 end
 
 local function initGL4()
 	spotShader = LuaShader.CheckShaderUpdates(shaderSourceCache)
-	if not spotShader then goodbye("Failed to compile spotShader GL4 ") return false end
-	local spotVBO,numVertices = makeSpotVBO()
+	if not spotShader then
+		goodbye("Failed to compile spotShader GL4 ")
+		return false
+	end
+	local spotVBO, numVertices = makeSpotVBO()
 	local spotInstanceVBOLayout = {
-		{id = 1, name = 'worldpos_radius', size = 4},
-		{id = 2, name = 'visibility', size = 4},
-		{id = 3, name = 'uvcoords', size = 4},
+		{ id = 1, name = "worldpos_radius", size = 4 },
+		{ id = 2, name = "visibility", size = 4 },
+		{ id = 3, name = "uvcoords", size = 4 },
 	}
 	spotInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(spotInstanceVBOLayout, 8, "spotInstanceVBO")
 	spotInstanceVBO.numVertices = numVertices
@@ -252,7 +339,7 @@ local function initGL4()
 	return true
 end
 
-local function spotKey(posx,posz)
+local function spotKey(posx, posz)
 	return posx * 65536 + posz
 end
 
@@ -264,7 +351,7 @@ local function IsSpotOccupied(spot)
 	local prevOccupied = spot.occupied
 	local ally = false
 	local enemy = false
-	for j=1, #units do
+	for j = 1, #units do
 		if extractorDefs[spGetUnitDefID(units[j])] then
 			-- Actually check if we the ones are extracting from this spot?
 			occupied = true
@@ -286,7 +373,7 @@ end
 
 local function checkMetalspots()
 	local gf = spGetGameFrame()
-	for i=1, #mySpots do
+	for i = 1, #mySpots do
 		local spot = mySpots[i]
 		local ally, enemy, changed = IsSpotOccupied(spot)
 		local occupied = ally or enemy
@@ -307,13 +394,12 @@ local function valueToText(value)
 end
 
 local function CalcSpotScale(spot)
-	return 0.77 + ((mathMax(spot.maxX,spot.minX)-(mathMin(spot.maxX,spot.minX))) * (mathMax(spot.maxZ,spot.minZ)-(mathMin(spot.maxZ,spot.minZ)))) / 10000
+	return 0.77 + ((mathMax(spot.maxX, spot.minX) - (mathMin(spot.maxX, spot.minX))) * (mathMax(spot.maxZ, spot.minZ) - (mathMin(spot.maxZ, spot.minZ)))) / 10000
 end
 
-
 local function InitializeAtlas(mSpots)
-	local multipliers = {[1] = true} -- all unique multipliers
-	for i,teamID in ipairs(Spring.GetTeamList()) do
+	local multipliers = { [1] = true } -- all unique multipliers
+	for i, teamID in ipairs(Spring.GetTeamList()) do
 		local incomeMultiplier = select(7, Spring.GetTeamInfo(teamID, false))
 		if multipliers[incomeMultiplier] == nil then
 			multipliers[incomeMultiplier] = teamID
@@ -343,24 +429,23 @@ local function InitializeAtlas(mSpots)
 
 	-- Whats the size of one of these? I would say width 128, height 64
 	local textheight = 96
-	textheight = mathCeil(fontfileSize*fontfileScale +  fontfileOutlineSize*fontfileScale * 0.5)
+	textheight = mathCeil(fontfileSize * fontfileScale + fontfileOutlineSize * fontfileScale * 0.5)
 	--spEcho(textheight)
-	local textwidth  = 2 * textheight
+	local textwidth = 2 * textheight
 	-- attempt to make a square-ish, power of two-ish atlas:
 	local cellcount = mathMax(1, mathCeil(math.sqrt(numvalues)))
-	MetalSpotTextAtlas = MakeAtlasOnDemand({sizex = textwidth * cellcount, sizey =  textheight*cellcount, xresolution = textwidth, yresolution = textheight, name = "MetalSpotAtlas", defaultfont = {font = font, options = 'o'}})
+	MetalSpotTextAtlas = MakeAtlasOnDemand({ sizex = textwidth * cellcount, sizey = textheight * cellcount, xresolution = textwidth, yresolution = textheight, name = "MetalSpotAtlas", defaultfont = { font = font, options = "o" } })
 	AtlasTextureID = MetalSpotTextAtlas.textureID
 
 	for uniqueValue, value in pairs(uniquevalues) do
 		local uvcoords = MetalSpotTextAtlas:AddText(value)
 		valueToUVs[uniqueValue] = uvcoords
 	end
-
 end
 
 local function InitializeSpots(mSpots)
 	local spotsCount = 0
-	for i=1, #mSpots do
+	for i = 1, #mSpots do
 		local spot = mSpots[i]
 		local value = valueToText(spot.worth * incomeMultiplier)
 
@@ -370,7 +455,7 @@ local function InitializeSpots(mSpots)
 				-- Create a New myspot!
 				local instanceID = spotKey(spot.x, spot.z)
 
-				local mySpot = {x = spot.x, y= spGetGroundHeight(spot.x, spot.z), z = spot.z, value = value, scale = scale, occupied = false, ally = false, enemy = false, instanceID = instanceID, worth = spot.worth}
+				local mySpot = { x = spot.x, y = spGetGroundHeight(spot.x, spot.z), z = spot.z, value = value, scale = scale, occupied = false, ally = false, enemy = false, instanceID = instanceID, worth = spot.worth }
 
 				spotsCount = spotsCount + 1
 				mySpots[spotsCount] = mySpot
@@ -381,14 +466,13 @@ local function InitializeSpots(mSpots)
 				local uvcoords = valueToUVs[value]
 				if uvcoords then
 					local gh = Spring.GetGroundHeight(spot.x, spot.z)
-					pushElementInstance(spotInstanceVBO, -- vbo
-							{spot.x, gh, spot.z, scale,
-							(occupied and 0) or 1, -1000,uvcoords.w,uvcoords.h,
-							uvcoords.x,uvcoords.X,uvcoords.y,uvcoords.Y}, -- instanceData
+					pushElementInstance(
+						spotInstanceVBO, -- vbo
+						{ spot.x, gh, spot.z, scale, (occupied and 0) or 1, -1000, uvcoords.w, uvcoords.h, uvcoords.x, uvcoords.X, uvcoords.y, uvcoords.Y }, -- instanceData
 						instanceID, -- instanceID
 						true, -- updateExisting
 						true -- noUpload
-						)
+					)
 				end
 			end
 		end
@@ -409,10 +493,9 @@ local function UpdateSpotValues() -- This will only get called on playerchanged
 			local occupied = ally or enemy
 			local uvcoords = valueToUVs[spot.value]
 			if uvcoords then
-				pushElementInstance(spotInstanceVBO, -- vbo
-						{spot.x, spot.y, spot.z, spot.scale,
-						(occupied and 0) or 1, -1000,uvcoords.w,uvcoords.h,
-						uvcoords.x,uvcoords.X,uvcoords.y,uvcoords.Y}, -- instanceData
+				pushElementInstance(
+					spotInstanceVBO, -- vbo
+					{ spot.x, spot.y, spot.z, spot.scale, (occupied and 0) or 1, -1000, uvcoords.w, uvcoords.h, uvcoords.x, uvcoords.X, uvcoords.y, uvcoords.Y }, -- instanceData
 					spot.instanceID, -- instanceID
 					true, -- updateExisting
 					true -- noUpload
@@ -423,17 +506,16 @@ local function UpdateSpotValues() -- This will only get called on playerchanged
 	InstanceVBOTable.uploadAllElements(spotInstanceVBO)
 end
 
-
 function widget:Initialize()
 	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
 		widgetHandler:RemoveWidget()
 		return
 	end
-	if not WG['resource_spot_finder'].metalSpotsList then
+	if not WG["resource_spot_finder"].metalSpotsList then
 		spEcho("<metalspots> This widget requires the 'Metalspot Finder' widget to run.")
 		widgetHandler:RemoveWidget()
 	end
-	if WG['resource_spot_finder'].isMetalMap then
+	if WG["resource_spot_finder"].isMetalMap then
 		-- no need for this widget on metal maps
 		widgetHandler:RemoveWidget()
 	end
@@ -458,10 +540,14 @@ function widget:Initialize()
 		return metalViewOnly
 	end
 
-	if not initGL4() then return end
+	if not initGL4() then
+		return
+	end
 
-	local mSpots = WG['resource_spot_finder'].metalSpotsList
-	if not mSpots then return end
+	local mSpots = WG["resource_spot_finder"].metalSpotsList
+	if not mSpots then
+		return
+	end
 	InitializeAtlas(mSpots)
 	InitializeSpots(mSpots)
 
@@ -473,24 +559,30 @@ end
 function widget:DrawGenesis()
 	MetalSpotTextAtlas:RenderTasks()
 	-- cause the atlas is done once per initialize only
-	widget.widgetHandler.RemoveCallIn(widget.widget,"DrawGenesis")
+	widget.widgetHandler.RemoveCallIn(widget.widget, "DrawGenesis")
 end
 --[[
 function widget:DrawScreen()
 	MetalSpotTextAtlas:DrawToScreen()
 end
-]]--
-
+]]
+--
 
 function widget:Shutdown()
-	if MetalSpotTextAtlas then MetalSpotTextAtlas:Delete() end
+	if MetalSpotTextAtlas then
+		MetalSpotTextAtlas:Delete()
+	end
 	if spotShader then
 		spotShader:Finalize()
 		spotShader = nil
 	end
 	if spotInstanceVBO then
-		if spotInstanceVBO.VAO then spotInstanceVBO.VAO:Delete() end
-		if spotInstanceVBO.instanceVBO then spotInstanceVBO.instanceVBO:Delete() end
+		if spotInstanceVBO.VAO then
+			spotInstanceVBO.VAO:Delete()
+		end
+		if spotInstanceVBO.instanceVBO then
+			spotInstanceVBO.instanceVBO:Delete()
+		end
 		spotInstanceVBO = nil
 	end
 	if spotVBO then
@@ -503,8 +595,8 @@ function widget:Shutdown()
 end
 
 function widget:RecvLuaMsg(msg, playerID)
-	if stringFind(msg, 'LobbyOverlayActive', 1, true) == 1 then
-		chobbyInterface = (stringFind(msg, 'LobbyOverlayActive1', 1, true) == 1)
+	if stringFind(msg, "LobbyOverlayActive", 1, true) == 1 then
+		chobbyInterface = (stringFind(msg, "LobbyOverlayActive1", 1, true) == 1)
 	end
 end
 
@@ -531,7 +623,7 @@ end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID) -- THIS IS RETARDED TOO
 	if extractorDefs[unitDefID] then
-		sceduledCheckedSpotsFrame = spGetGameFrame() + 3	-- delay needed, i don't know why
+		sceduledCheckedSpotsFrame = spGetGameFrame() + 3 -- delay needed, i don't know why
 	end
 end
 
@@ -556,9 +648,15 @@ end
 -- Draw above-water metalspots before units (old method, no ghost occlusion)
 function widget:DrawWorldPreUnit()
 	local mapDrawMode = spGetMapDrawMode()
-	if metalViewOnly and mapDrawMode ~= 'metal' then return end
-	if chobbyInterface then return end
-	if spIsGUIHidden() then return end
+	if metalViewOnly and mapDrawMode ~= "metal" then
+		return
+	end
+	if chobbyInterface then
+		return
+	end
+	if spIsGUIHidden() then
+		return
+	end
 
 	gl.Culling(true)
 	gl.Texture(0, "$heightmap")
@@ -581,9 +679,15 @@ end
 -- Draw underwater metalspots after water (not distorted by water shader)
 function widget:DrawWorld()
 	local mapDrawMode = spGetMapDrawMode()
-	if metalViewOnly and mapDrawMode ~= 'metal' then return end
-	if chobbyInterface then return end
-	if spIsGUIHidden() then return end
+	if metalViewOnly and mapDrawMode ~= "metal" then
+		return
+	end
+	if chobbyInterface then
+		return
+	end
+	if spIsGUIHidden() then
+		return
+	end
 
 	gl.Culling(true)
 	gl.Texture(0, "$heightmap")
@@ -615,7 +719,7 @@ function widget:GetConfigData(data)
 	return {
 		showValue = showValue,
 		opacity = opacity,
-		metalViewOnly = metalViewOnly
+		metalViewOnly = metalViewOnly,
 	}
 end
 
@@ -630,7 +734,6 @@ function widget:SetConfigData(data)
 		metalViewOnly = data.metalViewOnly
 	end
 end
-
 
 -----------------------------------------------------------------------------------------------
 -- The following is a test script.txt for multiple different resource bonuses:
@@ -745,4 +848,5 @@ end
 	myplayername = Player;
 	nohelperais = 0;
 }
-]]--
+]]
+--

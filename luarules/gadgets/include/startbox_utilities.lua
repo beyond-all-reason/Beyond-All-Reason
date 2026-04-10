@@ -8,26 +8,26 @@ local function WrappedInclude(x)
 end
 
 local function GetStartboxName(midX, midZ)
-	if (midX < 0.33) then
-		if (midZ < 0.33) then
+	if midX < 0.33 then
+		if midZ < 0.33 then
 			return "North-West", "NW"
-		elseif (midZ > 0.66) then
+		elseif midZ > 0.66 then
 			return "South-West", "SW"
 		else
 			return "West", "W"
 		end
-	elseif (midX > 0.66) then
-		if (midZ < 0.33) then
+	elseif midX > 0.66 then
+		if midZ < 0.33 then
 			return "North-East", "NE"
-		elseif (midZ > 0.66) then
+		elseif midZ > 0.66 then
 			return "South-East", "SE"
 		else
 			return "East", "E"
 		end
 	else
-		if (midZ < 0.33) then
+		if midZ < 0.33 then
 			return "North", "N"
-		elseif (midZ > 0.66) then
+		elseif midZ > 0.66 then
 			return "South", "S"
 		else
 			return "Center", "Center"
@@ -35,46 +35,46 @@ local function GetStartboxName(midX, midZ)
 	end
 end
 
-local function ParseBoxes ()
+local function ParseBoxes()
 	local mapsideBoxes = "mapconfig/map_startboxes.lua"
 	local modsideBoxes = "LuaRules/Configs/StartBoxes/" .. (Game.mapName or "") .. ".lua"
 
 	local startBoxConfig
 
-	if VFS.FileExists (modsideBoxes) then
-		startBoxConfig = WrappedInclude (modsideBoxes)
-	elseif VFS.FileExists (mapsideBoxes) then
-		startBoxConfig = WrappedInclude (mapsideBoxes)
+	if VFS.FileExists(modsideBoxes) then
+		startBoxConfig = WrappedInclude(modsideBoxes)
+	elseif VFS.FileExists(mapsideBoxes) then
+		startBoxConfig = WrappedInclude(mapsideBoxes)
 	else
-		startBoxConfig = { }
+		startBoxConfig = {}
 		local startboxString = Spring.GetModOptions().startboxes
 		local startboxStringLoadedBoxes = false
 		if startboxString then
 			local springieBoxes = loadstring(startboxString)()
 			for id, box in pairs(springieBoxes) do
 				startboxStringLoadedBoxes = true -- Autohost always sends a table. Often it is empty.
-				local midX = (box[1]+box[3]) / 2
-				local midZ = (box[2]+box[4]) / 2
+				local midX = (box[1] + box[3]) / 2
+				local midZ = (box[2] + box[4]) / 2
 
-				box[1] = box[1]*Game.mapSizeX
-				box[2] = box[2]*Game.mapSizeZ
-				box[3] = box[3]*Game.mapSizeX
-				box[4] = box[4]*Game.mapSizeZ
+				box[1] = box[1] * Game.mapSizeX
+				box[2] = box[2] * Game.mapSizeZ
+				box[3] = box[3] * Game.mapSizeX
+				box[4] = box[4] * Game.mapSizeZ
 
 				local longName, shortName = GetStartboxName(midX, midZ)
 
 				startBoxConfig[id] = {
-					boxes = {{
-						{box[1], box[2]},
-						{box[1], box[4]},
-						{box[3], box[4]},
-						{box[3], box[2]},
-					}},
+					boxes = { {
+						{ box[1], box[2] },
+						{ box[1], box[4] },
+						{ box[3], box[4] },
+						{ box[3], box[2] },
+					} },
 					startpoints = {
-						{(box[1]+box[3]) / 2, (box[2]+box[4]) / 2}
+						{ (box[1] + box[3]) / 2, (box[2] + box[4]) / 2 },
 					},
 					nameLong = longName,
-					nameShort = shortName
+					nameShort = shortName,
 				}
 			end
 		end
@@ -84,57 +84,57 @@ local function ParseBoxes ()
 			local mapSizeZ = Game.mapSizeZ
 			if mapSizeZ > mapSizeX then
 				startBoxConfig[0] = {
-					boxes = {{
-						{0, 0},
-						{0, mapSizeZ * 0.2},
-						{mapSizeX, mapSizeZ * 0.2},
-						{mapSizeX, 0}
-					}},
+					boxes = { {
+						{ 0, 0 },
+						{ 0, mapSizeZ * 0.2 },
+						{ mapSizeX, mapSizeZ * 0.2 },
+						{ mapSizeX, 0 },
+					} },
 					startpoints = {
-						{mapSizeX * 0.5, mapSizeZ * 0.1}
+						{ mapSizeX * 0.5, mapSizeZ * 0.1 },
 					},
 					nameLong = "North",
-					nameShort = "N"
+					nameShort = "N",
 				}
 				startBoxConfig[1] = {
-					boxes = {{
-						{0, mapSizeZ * 0.8},
-						{0, mapSizeZ},
-						{mapSizeX, mapSizeZ},
-						{mapSizeX, mapSizeZ * 0.8}
-					}},
+					boxes = { {
+						{ 0, mapSizeZ * 0.8 },
+						{ 0, mapSizeZ },
+						{ mapSizeX, mapSizeZ },
+						{ mapSizeX, mapSizeZ * 0.8 },
+					} },
 					startpoints = {
-						{mapSizeX * 0.5, mapSizeZ * 0.9}
+						{ mapSizeX * 0.5, mapSizeZ * 0.9 },
 					},
 					nameLong = "South",
-					nameShort = "S"
+					nameShort = "S",
 				}
 			else
 				startBoxConfig[0] = {
-					boxes = {{
-						{0, 0},
-						{0, mapSizeZ},
-						{mapSizeX * 0.2, mapSizeZ},
-						{mapSizeX * 0.2, 0},
-					}},
+					boxes = { {
+						{ 0, 0 },
+						{ 0, mapSizeZ },
+						{ mapSizeX * 0.2, mapSizeZ },
+						{ mapSizeX * 0.2, 0 },
+					} },
 					startpoints = {
-						{mapSizeX * 0.1, mapSizeZ * 0.5}
+						{ mapSizeX * 0.1, mapSizeZ * 0.5 },
 					},
 					nameLong = "West",
-					nameShort = "W"
+					nameShort = "W",
 				}
 				startBoxConfig[1] = {
-					boxes = {{
-						{mapSizeX * 0.8, 0},
-						{mapSizeX * 0.8, mapSizeZ - 1},
-						{mapSizeX, mapSizeZ - 1},
-						{mapSizeX, 0},
-					}},
+					boxes = { {
+						{ mapSizeX * 0.8, 0 },
+						{ mapSizeX * 0.8, mapSizeZ - 1 },
+						{ mapSizeX, mapSizeZ - 1 },
+						{ mapSizeX, 0 },
+					} },
 					startpoints = {
-						{mapSizeX * 0.9, mapSizeZ * 0.5}
+						{ mapSizeX * 0.9, mapSizeZ * 0.5 },
 					},
 					nameLong = "East",
-					nameShort = "E"
+					nameShort = "E",
 				}
 			end
 		end
