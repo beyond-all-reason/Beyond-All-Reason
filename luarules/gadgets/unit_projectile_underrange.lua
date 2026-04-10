@@ -182,6 +182,10 @@ local function buildRotation(ox, oy, oz, ax, ay, az, bx, by, bz, angleMax)
 	local uw = math_diag(ux, uy, uz)
 	local vw = math_diag(vx, vy, vz)
 
+	if uw == 0 or vw == 0 then
+		return 0, 0, 0, 0
+	end
+
 	local cosAngle = math_clamp((ux * vx + uy * vy + uz * vz) / uw / vw, -1, 1)
 	local angle = math_acos(cosAngle)
 	local factor = math_min(1, angleMax / angle)
