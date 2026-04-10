@@ -52,6 +52,26 @@ local triggers = {
 		},
 		actions = { 'actionMissingType' },
 	},
+
+	triggerWithInvalidResourceIncomeSourcesType = {
+		type = triggerTypes.ResourceIncome,
+		parameters = {
+			teamID = 0,
+			metal = 10,
+			sources = 'notATable',
+		},
+		actions = { 'actionMissingType' },
+	},
+
+	triggerWithInvalidResourceIncomeSources = {
+		type = triggerTypes.ResourceIncome,
+		parameters = {
+			teamID = 0,
+			metal = 10,
+			sources = { 'invalidSource1', false, 123 },
+		},
+		actions = { 'actionMissingType' },
+	},
 }
 
 local actions = {
