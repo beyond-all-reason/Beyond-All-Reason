@@ -61,7 +61,7 @@ local losViewShaderSourceCache = {
 }
 
 function widget:PlayerChanged(playerID)
-	currentAllyTeam = Spring.GetMyAllyTeamID()
+	currentAllyTeam = Spring.GetLocalAllyTeamID()
 end
 
 function widget:ViewResize()

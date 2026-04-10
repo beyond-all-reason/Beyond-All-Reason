@@ -70,7 +70,7 @@ else
 	local fontfileOutlineSize = 9
 	local fontfileOutlineStrength = 1.7
 
-	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerID = Spring.GetLocalPlayerID()
 	local myPlayerName = Spring.GetPlayerInfo(myPlayerID)
 	local accountID = Spring.Utilities.GetAccountID(myPlayerID)
 	local authorized = SYNCED.permissions.playerdata[accountID]

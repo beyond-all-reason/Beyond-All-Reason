@@ -25,7 +25,7 @@ local tableRemove = table.remove
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetGroundHeight = Spring.GetGroundHeight
@@ -1406,7 +1406,7 @@ function widget:GameFrame(n)
 		local uID = units[u]
 		if GetUnitCanCompleteQueue(uID) then
 			tasker = uID
-			if Spring.GetUnitRulesParam(uID, "startingOwner") == Spring.GetMyPlayerID() then
+			if Spring.GetUnitRulesParam(uID, "startingOwner") == Spring.GetLocalPlayerID() then
 				-- we found our com even if cooping, assigning queue to this particular unit
 				break
 			end

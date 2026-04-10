@@ -14,7 +14,7 @@ end
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local CMD_INSERT = CMD.INSERT
