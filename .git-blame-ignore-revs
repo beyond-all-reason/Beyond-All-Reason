@@ -1,0 +1,18 @@
+# gen(stylua): initial formatting of entire codebase
+d79f326a160a2ab3cdf8c5178ae2db64e166678a
+
+# gen(bar_codemod): bracket-to-dot
+c1cf4d4027c8a3c7226332fd1458ddb934857553
+
+# gen(bar_codemod): rename-aliases
+ba676c725e26b4af31583462453d33946b3d076d
+
+# gen(bar_codemod): detach-bar-modules
+3aa390f205d31f5461e03eb6dd634ca680f73ac9
+
+# gen(bar_codemod): i18n-kikito
+7a393d3eb474d9daf263835b374a123e4d15f245
+
+# gen(bar_codemod): spring-split
+207878ff7a3de312d764ad86ca7a7da3444daff5
+
