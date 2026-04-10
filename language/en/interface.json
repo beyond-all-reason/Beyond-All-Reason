@@ -205,6 +205,8 @@
 			"move_tooltip": "Move a unit towards a position or follow other units",
 			"stop": "Stop",
 			"stop_tooltip": "Cancel the units current actions",
+			"transport_to": "Ferry",
+			"transport_to_tooltip": "Request the closest eligible transport to transport this unit to the target location",
 			"attack": "Attack",
 			"attack_tooltip": "Attack a unit or ground position",
 			"areaattack": "Area Attack",
