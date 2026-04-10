@@ -36,8 +36,8 @@ else
 	-- unsynced
 	--------------------------------------------------------------------------------
 
-	local GetLastUpdateSeconds = Spring.GetLastUpdateSeconds
-	local SendLuaRulesMsg = Spring.SendLuaRulesMsg
+	local GetLastUpdateSeconds = SpringUnsynced.GetLastUpdateSeconds
+	local SendLuaRulesMsg = SpringUnsynced.SendLuaRulesMsg
 	local validation = SYNCED.validationGpuMem
 	local updateTimer = 0
 
@@ -58,7 +58,7 @@ else
 	function gadget:Update()
 		updateTimer = updateTimer + GetLastUpdateSeconds()
 		if updateTimer > sendPacketEvery then
-			local used, max = Spring.GetVidMemUsage()
+			local used, max = SpringUnsynced.GetVidMemUsage()
 			if type(used) == "number" and used > 0 then
 				SendLuaRulesMsg("@" .. validation .. math.ceil((used / max) * 100))
 				updateTimer = 0

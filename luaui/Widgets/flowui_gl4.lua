@@ -20,7 +20,7 @@ local mathMin = math.min
 local mathRandom = math.random
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
@@ -151,7 +151,7 @@ iconTypes = nil
 -- and to use a smaller number elements
 
 local Draw = {}
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = SpringUnsynced.GetViewGeometry()
 local nameCounter = 0
 local ROOT -- this is the global root, its children can only be layers!
 local Layers = {} -- A sorted list of Layer objects, each containing its own text list, its own scissor, and all kinds of other fun stuff. Maybe even setting its own stying like textcolor, outlinecolor? , keyed with layername
@@ -2056,15 +2056,15 @@ end
 --
 
 Draw.Element = function(VBO, instanceID, z, px, py, sx, sy, tl, tr, br, bl, ptl, ptr, pbr, pbl, opacity, color1, color2, bgpadding)
-	local opacity = opacity or Spring.GetConfigFloat("ui_opacity", 0.7)
+	local opacity = opacity or SpringUnsynced.GetConfigFloat("ui_opacity", 0.7)
 	local color1 = color1 or { 0, 0, 0, opacity }
 	local color2 = color2 or { 1, 1, 1, opacity * 0.1 }
-	local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
+	local ui_scale = SpringUnsynced.GetConfigFloat("ui_scale", 1)
 	local bgpadding = bgpadding or WG.FlowUI.elementPadding
 	local cs = WG.FlowUI.elementCorner * (bgpadding / WG.FlowUI.elementPadding)
 	local glossMult = 1 + (2 - (opacity * 1.5))
-	local tileopacity = Spring.GetConfigFloat("ui_tileopacity", 0.014)
-	local bgtexScale = Spring.GetConfigFloat("ui_tilescale", 7)
+	local tileopacity = SpringUnsynced.GetConfigFloat("ui_tileopacity", 0.014)
+	local bgtexScale = SpringUnsynced.GetConfigFloat("ui_tilescale", 7)
 	local bgtexSize = mathFloor(WG.FlowUI.elementPadding * bgtexScale)
 
 	local tl = tl or 1
@@ -2693,7 +2693,7 @@ function widget:DrawScreen()
 	--local UiButton = WG.FlowUI.Draw.Button
 	--UiButton(500, 500, 600, 550, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.8, 0.2, 0.8 }, WG.FlowUI.elementCorner * 0.5)
 
-	local mx, my, left, middle, right = Spring.GetMouseState()
+	local mx, my, left, middle, right = SpringUnsynced.GetMouseState()
 	uiUpdate(mx, my, left, middle, right)
 	RefreshText()
 

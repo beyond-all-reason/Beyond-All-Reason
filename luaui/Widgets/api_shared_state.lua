@@ -14,15 +14,15 @@ function widget:GetInfo()
 end
 
 -- Local references to Spring API calls
-local spGetMyTeamID = Spring.GetLocalTeamID
-local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
-local spGetMyPlayerID = Spring.GetLocalPlayerID
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetGameFrame = Spring.GetGameFrame
-local spIsGUIHidden = Spring.IsGUIHidden
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
+local spGetMyAllyTeamID = SpringUnsynced.GetLocalAllyTeamID
+local spGetMyPlayerID = SpringUnsynced.GetLocalPlayerID
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
+local spGetGameFrame = SpringShared.GetGameFrame
+local spIsGUIHidden = SpringUnsynced.IsGUIHidden
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
-local isReplay = Spring.IsReplay()
+local isReplay = SpringUnsynced.IsReplay()
 
 -- The shared state table
 local state = {

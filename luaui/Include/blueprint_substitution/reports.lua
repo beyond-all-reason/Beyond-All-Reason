@@ -31,17 +31,17 @@ local function echoChunked(lines, chunkSize)
 		for j = i, chunkEnd do
 			table.insert(chunkLines, lines[j])
 		end
-		Spring.Echo(table.concat(chunkLines, "\n"))
+		SpringShared.Echo(table.concat(chunkLines, "\n"))
 	end
 end
 
 function REPORTS.SetDependencies(subLogic)
-	Spring.Log("BlueprintReports", "info", "Receiving dependencies via SetDependencies...")
+	SpringShared.Log("BlueprintReports", "info", "Receiving dependencies via SetDependencies...")
 	substitutionLogic = subLogic
 	if not substitutionLogic then
-		Spring.Log("BlueprintReports", "error", "Failed to receive necessary logic tables via SetDependencies!")
+		SpringShared.Log("BlueprintReports", "error", "Failed to receive necessary logic tables via SetDependencies!")
 	else
-		Spring.Log("BlueprintReports", "info", "Dependencies received successfully via SetDependencies.")
+		SpringShared.Log("BlueprintReports", "info", "Dependencies received successfully via SetDependencies.")
 	end
 end
 
@@ -50,7 +50,7 @@ end
 -- ===================================================================
 
 function REPORTS.generateMappingReport()
-	Spring.Echo("\n--- Blueprint Mapping Report Start (CSV Format) ---")
+	SpringShared.Echo("\n--- Blueprint Mapping Report Start (CSV Format) ---")
 	local SIDES = substitutionLogic.SIDES
 	local masterBuildingDataMinimal = substitutionLogic.MasterBuildingData
 	local reportLines = {}
@@ -165,7 +165,7 @@ function REPORTS.generateMappingReport()
 				table.insert(uncategorizedUnits.UNKNOWN, reportLine)
 			end
 		else
-			Spring.Log("BlueprintReports", "warning", "[Mapping Report] Could not find UnitDef for ID: " .. tostring(buildingCoreData.unitDefID) .. " Name: " .. unitNameLower)
+			SpringShared.Log("BlueprintReports", "warning", "[Mapping Report] Could not find UnitDef for ID: " .. tostring(buildingCoreData.unitDefID) .. " Name: " .. unitNameLower)
 		end
 	end
 
@@ -185,7 +185,7 @@ function REPORTS.generateMappingReport()
 end
 
 function REPORTS.generateCategoryListReport()
-	Spring.Echo("\n--- Blueprint Category List Start ---")
+	SpringShared.Echo("\n--- Blueprint Category List Start ---")
 
 	local UNIT_CATEGORIES = substitutionLogic.UNIT_CATEGORIES
 	local categoryUnits = substitutionLogic.categoryUnits
@@ -202,7 +202,7 @@ function REPORTS.generateCategoryListReport()
 	local reportLines = {}
 	local header = string.format("Found %d defined categories:", #sortedCategories)
 	table.insert(reportLines, header)
-	Spring.Log("BlueprintReports", "info", "[Category List] " .. header)
+	SpringShared.Log("BlueprintReports", "info", "[Category List] " .. header)
 
 	for _, entry in ipairs(sortedCategories) do
 		local categoryName = entry.cat

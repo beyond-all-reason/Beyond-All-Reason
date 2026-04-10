@@ -19,8 +19,8 @@ local CMD_STOP = CMD.STOP
 
 local excludedUnitsDefID = {}
 
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitNeutral = Spring.GetUnitNeutral
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitNeutral = SpringShared.GetUnitNeutral
 
 for id, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.objectify then
@@ -44,7 +44,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	end
 
 	local cmdX, _, cmdZ, cmdRadius = unpack(cmdParams)
-	local areaUnits = Spring.GetUnitsInCylinder(cmdX, cmdZ, cmdRadius, Spring.ENEMY_UNITS)
+	local areaUnits = SpringShared.GetUnitsInCylinder(cmdX, cmdZ, cmdRadius, SpringShared.ENEMY_UNITS)
 
 	local newCmds = {}
 	local somethingWasExcluded = false
@@ -61,7 +61,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		end
 	end
 	if #newCmds > 0 and somethingWasExcluded then
-		Spring.GiveOrderArrayToUnitArray(Spring.GetSelectedUnits(), newCmds)
+		SpringSynced.GiveOrderArrayToUnitArray(SpringUnsynced.GetSelectedUnits(), newCmds)
 		return true
 	end
 end

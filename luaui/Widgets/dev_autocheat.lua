@@ -17,15 +17,15 @@ function widget:GetInfo()
 end
 
 function widget:Update(f)
-	if not Spring.IsCheatingEnabled() then
-		Spring.SendCommands("say !cheats")
-		Spring.SendCommands("say !hostsay /globallos")
-		Spring.SendCommands("say !hostsay /godmode")
+	if not SpringShared.IsCheatingEnabled() then
+		SpringUnsynced.SendCommands("say !cheats")
+		SpringUnsynced.SendCommands("say !hostsay /globallos")
+		SpringUnsynced.SendCommands("say !hostsay /godmode")
 		--Spring.SendCommands("say !hostsay /nocost")
 
-		Spring.SendCommands("cheat")
-		Spring.SendCommands("globallos")
-		Spring.SendCommands("godmode")
+		SpringUnsynced.SendCommands("cheat")
+		SpringUnsynced.SendCommands("globallos")
+		SpringUnsynced.SendCommands("godmode")
 		--Spring.SendCommands("nocost")
 	end
 	widgetHandler:RemoveCallIn("Update")

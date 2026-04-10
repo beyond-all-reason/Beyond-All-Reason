@@ -18,7 +18,7 @@ local facingMap = {
 ---@param facing string|integer
 ---@return integer heading value in 0-65535 range
 local function facingToHeading(facing)
-	return Spring.GetHeadingFromFacing(facingMap[facing or 0])
+	return SpringShared.GetHeadingFromFacing(facingMap[facing or 0])
 end
 
 return {

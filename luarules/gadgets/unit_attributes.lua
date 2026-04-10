@@ -1,4 +1,4 @@
-if not Spring.GetModOptions().emprework then
+if not SpringShared.GetModOptions().emprework then
 	return
 end
 
@@ -29,21 +29,21 @@ local UPDATE_PERIOD = 3
 --------------------------------------------------------------------------------
 local floor = math.floor
 
-local spValidUnitID = Spring.ValidUnitID
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetGameFrame = Spring.GetGameFrame
-local spGetUnitRulesParam = Spring.GetUnitRulesParam
-local spSetUnitRulesParam = Spring.SetUnitRulesParam
+local spValidUnitID = SpringShared.ValidUnitID
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetUnitRulesParam = SpringShared.GetUnitRulesParam
+local spSetUnitRulesParam = SpringSynced.SetUnitRulesParam
 
-local spSetUnitBuildSpeed = Spring.SetUnitBuildSpeed
-local spSetUnitWeaponState = Spring.SetUnitWeaponState
-local spGetUnitWeaponState = Spring.GetUnitWeaponState
+local spSetUnitBuildSpeed = SpringSynced.SetUnitBuildSpeed
+local spSetUnitWeaponState = SpringSynced.SetUnitWeaponState
+local spGetUnitWeaponState = SpringShared.GetUnitWeaponState
 
-local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
-local spMoveCtrlGetTag = Spring.MoveCtrl.GetTag
-local spSetAirMoveTypeData = Spring.MoveCtrl.SetAirMoveTypeData
-local spSetGunshipMoveTypeData = Spring.MoveCtrl.SetGunshipMoveTypeData
-local spSetGroundMoveTypeData = Spring.MoveCtrl.SetGroundMoveTypeData
+local spGetUnitMoveTypeData = SpringShared.GetUnitMoveTypeData
+local spMoveCtrlGetTag = SpringSynced.MoveCtrl.GetTag
+local spSetAirMoveTypeData = SpringSynced.MoveCtrl.SetAirMoveTypeData
+local spSetGunshipMoveTypeData = SpringSynced.MoveCtrl.SetGunshipMoveTypeData
+local spSetGroundMoveTypeData = SpringSynced.MoveCtrl.SetGroundMoveTypeData
 
 local INLOS_ACCESS = { inlos = true }
 
@@ -127,17 +127,17 @@ end
 
 local function UpdateSensorAndJamm(unitID, unitDefID, enabled, radarOverride, sonarOverride, jammerOverride, sightOverride)
 	if radarUnitDef[unitDefID] or radarOverride then
-		Spring.SetUnitSensorRadius(unitID, "radar", (enabled and (radarOverride or radarUnitDef[unitDefID])) or 0)
+		SpringSynced.SetUnitSensorRadius(unitID, "radar", (enabled and (radarOverride or radarUnitDef[unitDefID])) or 0)
 	end
 	if sonarUnitDef[unitDefID] or sonarOverride then
-		Spring.SetUnitSensorRadius(unitID, "sonar", (enabled and (sonarOverride or sonarUnitDef[unitDefID])) or 0)
+		SpringSynced.SetUnitSensorRadius(unitID, "sonar", (enabled and (sonarOverride or sonarUnitDef[unitDefID])) or 0)
 	end
 	if jammerUnitDef[unitDefID] or jammerOverride then
-		Spring.SetUnitSensorRadius(unitID, "radarJammer", (enabled and (jammerOverride or jammerUnitDef[unitDefID])) or 0)
+		SpringSynced.SetUnitSensorRadius(unitID, "radarJammer", (enabled and (jammerOverride or jammerUnitDef[unitDefID])) or 0)
 	end
 	if sightOverride then
-		Spring.SetUnitSensorRadius(unitID, "los", sightOverride)
-		Spring.SetUnitSensorRadius(unitID, "airLos", sightOverride)
+		SpringSynced.SetUnitSensorRadius(unitID, "los", sightOverride)
+		SpringSynced.SetUnitSensorRadius(unitID, "airLos", sightOverride)
 	end
 end
 
@@ -307,11 +307,11 @@ local function UpdateMovementSpeed(unitID, unitDefID, speedFactor, turnAccelFact
 		speedFactor = 0
 
 		-- Set the units velocity to zero if it is attached to the ground.
-		local x, y, z = Spring.GetUnitPosition(unitID)
+		local x, y, z = SpringShared.GetUnitPosition(unitID)
 		if x then
-			local h = Spring.GetGroundHeight(x, z)
+			local h = SpringShared.GetGroundHeight(x, z)
 			if h and h >= y then
-				Spring.SetUnitVelocity(unitID, 0, 0, 0)
+				SpringSynced.SetUnitVelocity(unitID, 0, 0, 0)
 
 				-- Perhaps attributes should do this:
 				--local env = Spring.UnitScript.GetScriptEnv(unitID)
@@ -558,13 +558,13 @@ function UpdateUnitAttributes(unitID, frame)
 	if shieldWeaponDef[unitDefID] and shieldDisabled ~= unitShieldDisabled[unitID] then
 		spSetUnitRulesParam(unitID, "att_shieldDisabled", shieldDisabled and 1 or 0)
 		if shieldDisabled then
-			Spring.SetUnitShieldState(unitID, -1, 0)
+			SpringSynced.SetUnitShieldState(unitID, -1, 0)
 		end
 		if spGetUnitRulesParam(unitID, "comm_shield_max") ~= 0 then
 			if shieldDisabled then
-				Spring.SetUnitShieldState(unitID, spGetUnitRulesParam(unitID, "comm_shield_num") or -1, false)
+				SpringSynced.SetUnitShieldState(unitID, spGetUnitRulesParam(unitID, "comm_shield_num") or -1, false)
 			else
-				Spring.SetUnitShieldState(unitID, spGetUnitRulesParam(unitID, "comm_shield_num") or -1, true)
+				SpringSynced.SetUnitShieldState(unitID, spGetUnitRulesParam(unitID, "comm_shield_num") or -1, true)
 			end
 		end
 		changedAtt = true

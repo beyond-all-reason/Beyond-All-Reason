@@ -40,9 +40,9 @@ local SIG_AIM = 2
 local SIG_WALK = 4
 
 local function BelowWater(piecename)
-	local _, y, _ = Spring.GetUnitPiecePosition(unitID, piecename)
+	local _, y, _ = SpringShared.GetUnitPiecePosition(unitID, piecename)
 	-- this returns unit space, so why does it work for corcom?
-	local _, py, _ = Spring.GetUnitPosition(unitID)
+	local _, py, _ = SpringShared.GetUnitPosition(unitID)
 	if (y + py) <= 0 then
 		return true
 	else
@@ -222,7 +222,7 @@ function walk()
 			Sleep((33 * animSpeed) - 1)
 		end
 		if bMoving then --Frame:24
-			if not Spring.GetUnitIsCloaked(unitID) then
+			if not SpringShared.GetUnitIsCloaked(unitID) then
 				UnitScript.EmitSfx(r_foot, 1024 + 2)
 			end
 			if rightArm then
@@ -417,7 +417,7 @@ function walk()
 			Sleep((33 * animSpeed) - 1)
 		end
 		if bMoving then --Frame:48
-			if not Spring.GetUnitIsCloaked(unitID) then
+			if not SpringShared.GetUnitIsCloaked(unitID) then
 				UnitScript.EmitSfx(l_foot, 1024 + 2)
 			end
 			if rightArm then
@@ -604,11 +604,11 @@ function bigfire()
 end
 
 function UnitSpeed()
-	maxSpeed = UnitDefs[Spring.GetUnitDefID(unitID)].speed
+	maxSpeed = UnitDefs[SpringShared.GetUnitDefID(unitID)].speed
 	animFramesPerKeyframe = 6 --we need to calc the frames per keyframe value, from the known animtime
 	maxSpeed = maxSpeed + (maxSpeed / (2 * animFramesPerKeyframe)) -- add fudge
 	while true do
-		vx, vy, vz, Speed = Spring.GetUnitVelocity(unitID)
+		vx, vy, vz, Speed = SpringShared.GetUnitVelocity(unitID)
 		currentSpeed = Speed * 30
 		animSpeed = currentSpeed
 		if animSpeed < 1 then
@@ -769,7 +769,7 @@ function script.StartBuilding(heading, pitch)
 	Turn(aimy1, 2, heading, rad(300.000000))
 	Turn(aimx1, 1, rad(-5.000000) - pitch, rad(250.000000))
 	WaitForTurn(aimy1, 2)
-	Spring.UnitScript.SetUnitValue(COB.INBUILDSTANCE, true)
+	SpringSynced.UnitScript.SetUnitValue(COB.INBUILDSTANCE, true)
 	buildHeading = heading
 	buildPitch = pitch
 	StartThread(SprayNano, heading, pitch)
@@ -779,7 +779,7 @@ end
 function script.StopBuilding()
 	leftArm = true
 	isBuilding = false
-	Spring.UnitScript.SetUnitValue(COB.INBUILDSTANCE, false)
+	SpringSynced.UnitScript.SetUnitValue(COB.INBUILDSTANCE, false)
 	Signal(SIG_AIM)
 	SetSignalMask(SIG_AIM)
 	StartThread(Restore)

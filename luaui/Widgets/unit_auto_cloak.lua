@@ -42,8 +42,8 @@ unitdefConfigNames = nil
 local CMD_CLOAK = 37382
 local cloak = CMD_CLOAK --just simplified Var
 local cloakunits = {} -- get UnitID for initial local function
-local giveOrderToUnit = Spring.GiveOrderToUnit --optimization
-local spUnitTeam = Spring.GetLocalTeamID --optimization
+local giveOrderToUnit = SpringSynced.GiveOrderToUnit --optimization
+local spUnitTeam = SpringUnsynced.GetLocalTeamID --optimization
 
 local function cloakDeActive(unitID, unitDefID) --DeActivator of Cloak for all units with clock
 	if unitdefConfig[unitDefID] then
@@ -72,13 +72,13 @@ local function NewUnit(unitID, unitDefID, unitTeam) --check later if could be re
 end
 
 local function maybeRemoveSelf()
-	if Spring.GetSpectatingState() then
+	if SpringUnsynced.GetSpectatingState() then
 		widgetHandler:RemoveWidget()
 	end
 end
 
 function widget:Initialize()
-	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+	if SpringUnsynced.IsReplay() or SpringShared.GetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
 
@@ -91,10 +91,10 @@ function widget:Initialize()
 		unitdefConfig[type] = value
 	end
 
-	local allUnits = Spring.GetAllUnits()
+	local allUnits = SpringShared.GetAllUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
-		cloakActive(unitID, Spring.GetUnitDefID(unitID))
+		cloakActive(unitID, SpringShared.GetUnitDefID(unitID))
 	end
 end
 

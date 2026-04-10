@@ -23,14 +23,14 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 else
-	local chobbyLoaded = (Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), "chobby") ~= nil)
+	local chobbyLoaded = (SpringUnsynced.GetMenuName and string.find(string.lower(SpringUnsynced.GetMenuName()), "chobby") ~= nil)
 
-	local SendLuaRulesMsg = Spring.SendLuaRulesMsg
+	local SendLuaRulesMsg = SpringUnsynced.SendLuaRulesMsg
 	local systems = {}
 	local validation = SYNCED.validationSys
 
-	local myPlayerID = Spring.GetLocalPlayerID()
-	local myPlayerName = Spring.GetPlayerInfo(myPlayerID)
+	local myPlayerID = SpringUnsynced.GetLocalPlayerID()
+	local myPlayerName = SpringShared.GetPlayerInfo(myPlayerID)
 	local accountID = Utilities.GetAccountID(myPlayerID)
 	local authorized = SYNCED.permissions.sysinfo[accountID]
 
@@ -61,7 +61,7 @@ else
 
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("systemBroadcast", handleSystemEvent)
-		Spring.Echo(string.format("infologVersionTags:engine=%s,game=%s,lobby=%s,map=%s", Engine.version or "", (Game.gameName or "") .. " " .. (Game.gameVersion or ""), (VFS and VFS.GetNameFromRapidTag and VFS.GetNameFromRapidTag("byar-chobby:test") or ""), Game.mapName or ""))
+		SpringShared.Echo(string.format("infologVersionTags:engine=%s,game=%s,lobby=%s,map=%s", Engine.version or "", (Game.gameName or "") .. " " .. (Game.gameVersion or ""), (VFS and VFS.GetNameFromRapidTag and VFS.GetNameFromRapidTag("byar-chobby:test") or ""), Game.mapName or ""))
 
 		local myvalidation = validation
 
@@ -239,7 +239,7 @@ else
 
 	function gadget:MapDrawCmd(playerID, cmdType, px, py, pz, labelText)
 		if playerID == myPlayerID and cmdType == "point" and string.len(labelText) > 2 then
-			local msg = string.format("m@pm@rk%s:%d:%d:%d:%d:%s:%s", validation, Spring.GetGameFrame(), playerID, px, pz, myPlayerName, labelText)
+			local msg = string.format("m@pm@rk%s:%d:%d:%d:%d:%s:%s", validation, SpringShared.GetGameFrame(), playerID, px, pz, myPlayerName, labelText)
 			SendLuaRulesMsg(msg)
 		end
 	end

@@ -37,9 +37,9 @@ local function NewCreateContext(name)
 	local context = oldCreateContext(name)
 
 	-- set up dp_ratio considering the user's UI scale preference and the screen resolution
-	local viewSizeX, viewSizeY = Spring.GetViewGeometry()
+	local viewSizeX, viewSizeY = SpringUnsynced.GetViewGeometry()
 
-	local userScale = Spring.GetConfigFloat("ui_scale", 1)
+	local userScale = SpringUnsynced.GetConfigFloat("ui_scale", 1)
 
 	local baseWidth = 1920
 	local baseHeight = 1080
@@ -57,7 +57,7 @@ RmlUi.CreateContext = NewCreateContext
 RmlUi.LoadFontFace("fonts/Poppins-Regular.otf", true)
 local font_files = VFS.DirList("fonts/exo2", "*.ttf")
 for _, file in ipairs(font_files) do
-	Spring.Echo("loading font", file)
+	SpringShared.Echo("loading font", file)
 	RmlUi.LoadFontFace(file, true)
 end
 

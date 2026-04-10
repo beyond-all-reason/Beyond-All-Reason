@@ -19,7 +19,7 @@ local CMD_UNIT_SET_TARGET_RECTANGLE = GameCMD.UNIT_SET_TARGET_RECTANGLE
 
 local deleteMaxDistance = 30
 
-local spGetUnitRulesParam = Spring.GetUnitRulesParam
+local spGetUnitRulesParam = SpringShared.GetUnitRulesParam
 
 function GG.GetUnitTarget(unitID)
 	local targetID = spGetUnitRulesParam(unitID, "targetID")
@@ -40,27 +40,27 @@ if gadgetHandler:IsSyncedCode() then
 	-- Should be small enough to not be evident, and big enough to save perf.
 	local USEEN_UPDATE_FREQUENCY = 15
 
-	local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
-	local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-	local spSetUnitTarget = Spring.SetUnitTarget
-	local spValidUnitID = Spring.ValidUnitID
-	local spGetUnitDefID = Spring.GetUnitDefID
-	local spGetUnitLosState = Spring.GetUnitLosState
-	local spGetUnitTeam = Spring.GetUnitTeam
-	local spAreTeamsAllied = Spring.AreTeamsAllied
-	local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
-	local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
-	local spSetUnitRulesParam = Spring.SetUnitRulesParam
-	local spGetUnitCommandCount = Spring.GetUnitCommandCount
-	local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-	local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
-	local spGetUnitWeaponTryTarget = Spring.GetUnitWeaponTryTarget
-	local spGetUnitWeaponTestTarget = Spring.GetUnitWeaponTestTarget
-	local spGetUnitWeaponTestRange = Spring.GetUnitWeaponTestRange
-	local spGetUnitWeaponHaveFreeLineOfFire = Spring.GetUnitWeaponHaveFreeLineOfFire
-	local spGetGroundHeight = Spring.GetGroundHeight
-	local spGetAllUnits = Spring.GetAllUnits
-	local spGetPlayerInfo = Spring.GetPlayerInfo
+	local spInsertUnitCmdDesc = SpringSynced.InsertUnitCmdDesc
+	local spGetUnitAllyTeam = SpringShared.GetUnitAllyTeam
+	local spSetUnitTarget = SpringSynced.SetUnitTarget
+	local spValidUnitID = SpringShared.ValidUnitID
+	local spGetUnitDefID = SpringShared.GetUnitDefID
+	local spGetUnitLosState = SpringShared.GetUnitLosState
+	local spGetUnitTeam = SpringShared.GetUnitTeam
+	local spAreTeamsAllied = SpringShared.AreTeamsAllied
+	local spGetUnitsInRectangle = SpringShared.GetUnitsInRectangle
+	local spGetUnitsInCylinder = SpringShared.GetUnitsInCylinder
+	local spSetUnitRulesParam = SpringSynced.SetUnitRulesParam
+	local spGetUnitCommandCount = SpringShared.GetUnitCommandCount
+	local spGetUnitCurrentCommand = SpringShared.GetUnitCurrentCommand
+	local spGiveOrderArrayToUnit = SpringSynced.GiveOrderArrayToUnit
+	local spGetUnitWeaponTryTarget = SpringShared.GetUnitWeaponTryTarget
+	local spGetUnitWeaponTestTarget = SpringShared.GetUnitWeaponTestTarget
+	local spGetUnitWeaponTestRange = SpringShared.GetUnitWeaponTestRange
+	local spGetUnitWeaponHaveFreeLineOfFire = SpringShared.GetUnitWeaponHaveFreeLineOfFire
+	local spGetGroundHeight = SpringShared.GetGroundHeight
+	local spGetAllUnits = SpringShared.GetAllUnits
+	local spGetPlayerInfo = SpringShared.GetPlayerInfo
 
 	local tremove = table.remove
 
@@ -174,7 +174,7 @@ if gadgetHandler:IsSyncedCode() then
 			if currentCmdID and currentCmdID == CMD.ATTACK then
 				return false
 			else
-				Spring.SetUnitTarget(unitID, nil)
+				SpringSynced.SetUnitTarget(unitID, nil)
 				return false
 			end
 		end
@@ -607,7 +607,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 	local function unpauseTargetting(unitID)
-		addUnitTargets(unitID, Spring.GetUnitDefID(unitID), pausedTargets[unitID].targets, true, "unpauseTargetting")
+		addUnitTargets(unitID, SpringShared.GetUnitDefID(unitID), pausedTargets[unitID].targets, true, "unpauseTargetting")
 		pausedTargets[unitID] = nil
 	end
 
@@ -757,19 +757,19 @@ else -- UNSYNCED
 	local GL_LINE_STRIP = GL.LINE_STRIP
 	local GL_LINES = GL.LINES
 
-	local spGetUnitPosition = Spring.GetUnitPosition
-	local spValidUnitID = Spring.ValidUnitID
-	local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
-	local spGetMyTeamID = Spring.GetLocalTeamID
-	local spIsUnitSelected = Spring.IsUnitSelected
-	local spGetSpectatingState = Spring.GetSpectatingState
-	local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-	local spGetUnitTeam = Spring.GetUnitTeam
-	local spPlaySoundFile = Spring.PlaySoundFile
-	local spSetActiveCommand = Spring.SetActiveCommand
-	local spAssignMouseCursor = Spring.AssignMouseCursor
-	local spSetCustomCommandDrawData = Spring.SetCustomCommandDrawData
-	local spAddWorldIcon = Spring.AddWorldIcon
+	local spGetUnitPosition = SpringShared.GetUnitPosition
+	local spValidUnitID = SpringShared.ValidUnitID
+	local spGetMyAllyTeamID = SpringUnsynced.GetLocalAllyTeamID
+	local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
+	local spIsUnitSelected = SpringUnsynced.IsUnitSelected
+	local spGetSpectatingState = SpringUnsynced.GetSpectatingState
+	local spGetUnitAllyTeam = SpringShared.GetUnitAllyTeam
+	local spGetUnitTeam = SpringShared.GetUnitTeam
+	local spPlaySoundFile = SpringUnsynced.PlaySoundFile
+	local spSetActiveCommand = SpringUnsynced.SetActiveCommand
+	local spAssignMouseCursor = SpringUnsynced.AssignMouseCursor
+	local spSetCustomCommandDrawData = SpringUnsynced.SetCustomCommandDrawData
+	local spAddWorldIcon = SpringUnsynced.AddWorldIcon
 	local pairsNext = next
 
 	local myAllyTeam = spGetMyAllyTeamID()
@@ -971,7 +971,7 @@ else -- UNSYNCED
 	end
 
 	function gadget:DrawWorld()
-		if Spring.IsGUIHidden() then
+		if SpringUnsynced.IsGUIHidden() then
 			return
 		end
 

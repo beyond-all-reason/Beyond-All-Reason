@@ -13,7 +13,7 @@ function widget:GetInfo()
 	}
 end
 
-Spring.SendCommands("resbar 0")
+SpringUnsynced.SendCommands("resbar 0")
 
 -- Add new options at: function init
 
@@ -109,16 +109,16 @@ local sounds = {
 	toggleOffClick = "LuaUI/Sounds/switchoff.wav",
 }
 
-local continuouslyClean = Spring.GetConfigInt("ContinuouslyClearMapmarks", 0) == 1
+local continuouslyClean = SpringUnsynced.GetConfigInt("ContinuouslyClearMapmarks", 0) == 1
 
-local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+local anonymousMode = SpringShared.GetModOptions().teamcolors_anonymous_mode
 --local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local fontfile3 = "fonts/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Medium.otf")
+local fontfile = "fonts/" .. SpringUnsynced.GetConfigString("bar_font", "Poppins-Regular.otf")
+local fontfile2 = "fonts/" .. SpringUnsynced.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local fontfile3 = "fonts/" .. SpringUnsynced.GetConfigString("bar_font3", "SourceCodePro-Medium.otf")
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = SpringUnsynced.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx * vsy / 5700000))
 local fontfileSize = 36
 local fontfileOutlineSize = 7
@@ -145,7 +145,7 @@ local show = false
 local prevShow = show
 local manualChange = true
 
-local spGetGroundHeight = Spring.GetGroundHeight
+local spGetGroundHeight = SpringShared.GetGroundHeight
 
 local os_clock = os.clock
 local math_isInRect = math.isInRect
@@ -170,21 +170,21 @@ local GL_ONE = GL.ONE
 local RectRound, elementCorner, elementMargin, elementPadding, UiElement, UiButton, UiSlider, UiSliderKnob, UiToggle, UiSelector, UiSelectHighlight, bgpadding
 
 local isSinglePlayer = Utilities.Gametype.IsSinglePlayer()
-local isReplay = Spring.IsReplay()
+local isReplay = SpringUnsynced.IsReplay()
 
 local skipUnpauseOnHide = false
 local skipUnpauseOnLobbyHide = false
 
 local desiredWaterValue = 4
 local waterDetected = false
-if select(3, Spring.GetGroundExtremes()) < 0 then
+if select(3, SpringShared.GetGroundExtremes()) < 0 then
 	waterDetected = true
 end
 local heightmapChangeBuffer = {}
 
 local widgetScale = (vsy / 1080)
 
-local edgeMoveWidth = tonumber(Spring.GetConfigFloat("EdgeMoveWidth", 1) or 0.02)
+local edgeMoveWidth = tonumber(SpringUnsynced.GetConfigFloat("EdgeMoveWidth", 1) or 0.02)
 
 local defaultMapSunPos = { gl.GetSun("pos") }
 local defaultSunLighting = {
@@ -202,7 +202,7 @@ local defaultSkyAxisAngle = {
 
 -- Correct some maps fog
 if Game.mapName == "Nine_Metal_Islands_V1" then
-	Spring.SetAtmosphere({ fogStart = 999990, fogEnd = 9999999 })
+	SpringUnsynced.SetAtmosphere({ fogStart = 999990, fogEnd = 9999999 })
 end
 local defaultMapFog = {
 	fogStart = gl.GetAtmosphere("fogStart"),
@@ -286,10 +286,10 @@ if not startScript then
 		[player0]
 		{
 			team=0;
-			name=]] .. select(1, Spring.GetPlayerInfo(Spring.GetLocalPlayerID())) .. [[;
+			name=]] .. select(1, SpringShared.GetPlayerInfo(SpringUnsynced.GetLocalPlayerID())) .. [[;
 		}
 		mapname=]] .. Game.mapName .. [[;
-		myplayername=]] .. select(1, Spring.GetPlayerInfo(Spring.GetLocalPlayerID())) .. [[;
+		myplayername=]] .. select(1, SpringShared.GetPlayerInfo(SpringUnsynced.GetLocalPlayerID())) .. [[;
 		ishost=1;
 		gametype=]] .. Game.gameName .. " " .. Game.gameVersion .. [[;
 		nohelperais=0;
@@ -300,19 +300,19 @@ end
 local function setEngineFont()
 	local relativesize = 1
 	--"fonts/FreeSansBold.otf"
-	Spring.SetConfigInt("SmallFontSize", fontfileSize * fontfileScale * relativesize)
-	Spring.SetConfigInt("SmallFontOutlineWidth", fontfileOutlineSize * fontfileScale * relativesize * 0.85)
-	Spring.SetConfigInt("SmallFontOutlineWeight", 2)
+	SpringUnsynced.SetConfigInt("SmallFontSize", fontfileSize * fontfileScale * relativesize)
+	SpringUnsynced.SetConfigInt("SmallFontOutlineWidth", fontfileOutlineSize * fontfileScale * relativesize * 0.85)
+	SpringUnsynced.SetConfigInt("SmallFontOutlineWeight", 2)
 
-	Spring.SetConfigInt("FontSize", fontfileSize * fontfileScale * relativesize)
-	Spring.SetConfigInt("FontOutlineWidth", fontfileOutlineSize * fontfileScale * relativesize * 0.85)
-	Spring.SetConfigInt("FontOutlineWeight", 2)
+	SpringUnsynced.SetConfigInt("FontSize", fontfileSize * fontfileScale * relativesize)
+	SpringUnsynced.SetConfigInt("FontOutlineWidth", fontfileOutlineSize * fontfileScale * relativesize * 0.85)
+	SpringUnsynced.SetConfigInt("FontOutlineWeight", 2)
 
-	Spring.SendCommands("font " .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf"))
+	SpringUnsynced.SendCommands("font " .. SpringUnsynced.GetConfigString("bar_font2", "Exo2-SemiBold.otf"))
 
 	-- set spring engine default font cause it cant thee game archive fonts on launch
-	Spring.SetConfigString("SmallFontFile", "FreeSansBold.otf")
-	Spring.SetConfigString("FontFile", "FreeSansBold.otf")
+	SpringUnsynced.SetConfigString("SmallFontFile", "FreeSansBold.otf")
+	SpringUnsynced.SetConfigString("FontFile", "FreeSansBold.otf")
 end
 setEngineFont()
 
@@ -324,15 +324,15 @@ local function showOption(option)
 end
 
 local function adjustShadowQuality()
-	local quality = Spring.GetConfigInt("ShadowQuality", 3)
+	local quality = SpringUnsynced.GetConfigInt("ShadowQuality", 3)
 	local shadowMapSize = 600 + math.min(10240, (vsy + vsx) * 0.37) * (quality * 0.5)
-	Spring.SetConfigInt("Shadows", (quality == 0 and 0 or 1))
-	Spring.SetConfigInt("ShadowMapSize", shadowMapSize)
-	Spring.SendCommands("shadows " .. (quality == 0 and 0 or 1) .. " " .. shadowMapSize)
+	SpringUnsynced.SetConfigInt("Shadows", (quality == 0 and 0 or 1))
+	SpringUnsynced.SetConfigInt("ShadowMapSize", shadowMapSize)
+	SpringUnsynced.SendCommands("shadows " .. (quality == 0 and 0 or 1) .. " " .. shadowMapSize)
 end
 
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = SpringUnsynced.GetViewGeometry()
 
 	widgetScale = (vsy / 1080)
 
@@ -381,10 +381,10 @@ function widget:ViewResize()
 end
 
 local function detectWater()
-	local _, _, mapMinHeight, mapMaxHeight = Spring.GetGroundExtremes()
+	local _, _, mapMinHeight, mapMaxHeight = SpringShared.GetGroundExtremes()
 	if mapMinHeight <= -2 then
 		waterDetected = true
-		Spring.SendCommands("water " .. desiredWaterValue)
+		SpringUnsynced.SendCommands("water " .. desiredWaterValue)
 	end
 end
 
@@ -402,7 +402,7 @@ local floor = math.floor
 local inputMode = ""
 
 function widget:TextInput(char) -- if it isnt working: chobby probably hijacked it
-	if not chobbyInterface and not Spring.IsGUIHidden() and showTextInput and show then
+	if not chobbyInterface and not SpringUnsynced.IsGUIHidden() and showTextInput and show then
 		if inputTextInsertActive then
 			inputText = utf8.sub(inputText, 1, inputTextPosition) .. char .. utf8.sub(inputText, inputTextPosition + 2)
 			if inputTextPosition <= utf8.len(inputText) then
@@ -454,7 +454,7 @@ local function cancelChatInput()
 	if selectOptionsList then
 		selectOptionsList = glDeleteList(selectOptionsList)
 	end
-	Spring.SDLStopTextInput()
+	SpringUnsynced.SDLStopTextInput()
 	widgetHandler.textOwner = nil --widgetHandler:DisownText()
 	if doReinit then
 		applyFilter()
@@ -477,7 +477,7 @@ function updateInputDlist()
 		local activationArea = { screenX, screenY - screenHeight, screenX + screenWidth, screenY }
 		local usedFontSize = 15 * widgetScale
 		local lineHeight = floor(usedFontSize * 1.15)
-		local x, y, _ = Spring.GetMouseState()
+		local x, y, _ = SpringUnsynced.GetMouseState()
 		local chatlogHeightDiff = 0
 		local inputFontSize = floor(usedFontSize * 1.03)
 		local inputHeight = floor(inputFontSize * 2.15)
@@ -942,21 +942,21 @@ end
 
 local function updateGrabinput()
 	-- grabinput makes alt-tabbing harder, so loosen grip a bit when in lobby would be wise
-	if Spring.GetConfigInt("grabinput", 1) == 1 and not gameOver then
+	if SpringUnsynced.GetConfigInt("grabinput", 1) == 1 and not gameOver then
 		if chobbyInterface then
 			if enabledGrabinput then
 				enabledGrabinput = false
-				Spring.SendCommands("grabinput 0")
+				SpringUnsynced.SendCommands("grabinput 0")
 			end
 		else
 			if not enabledGrabinput then
 				enabledGrabinput = true
-				Spring.SendCommands("grabinput 1")
+				SpringUnsynced.SendCommands("grabinput 1")
 			end
 		end
 	else
 		enabledGrabinput = false
-		Spring.SendCommands("grabinput 0")
+		SpringUnsynced.SendCommands("grabinput 0")
 	end
 end
 
@@ -969,12 +969,12 @@ local isOffscreen = false
 local isOffscreenTime
 local prevOffscreenVolume
 local apiUnitTrackerEnabledCount = 0
-local cachedMuteOffscreen = Spring.GetConfigInt("muteOffscreen", 0) == 1
+local cachedMuteOffscreen = SpringUnsynced.GetConfigInt("muteOffscreen", 0) == 1
 local offscreenCheckTimer = 0
 
 function resetUserVolume()
 	if prevOffscreenVolume then
-		Spring.SetConfigInt("snd_volmaster", prevOffscreenVolume)
+		SpringUnsynced.SetConfigInt("snd_volmaster", prevOffscreenVolume)
 		prevOffscreenVolume = nil
 	end
 end
@@ -1000,7 +1000,7 @@ function widget:Update(dt)
 	end
 	if checkOffscreen then
 		local prevIsOffscreen = isOffscreen
-		isOffscreen = select(6, Spring.GetMouseState())
+		isOffscreen = select(6, SpringUnsynced.GetMouseState())
 		if isOffscreen and enabledGrabinput then
 			enabledGrabinput = false
 		end
@@ -1009,20 +1009,20 @@ function widget:Update(dt)
 				local prevIsOffscreenTime = isOffscreenTime
 				isOffscreenTime = now
 				if isOffscreen and not prevIsOffscreenTime then
-					prevOffscreenVolume = tonumber(Spring.GetConfigInt("snd_volmaster", 40) or 40)
+					prevOffscreenVolume = tonumber(SpringUnsynced.GetConfigInt("snd_volmaster", 40) or 40)
 				end
 			end
 			if isOffscreenTime then
 				if isOffscreenTime + muteFadeTime > now then
 					if isOffscreen then
-						Spring.SetConfigInt("snd_volmaster", prevOffscreenVolume * (1 - ((now - isOffscreenTime) / muteFadeTime)))
+						SpringUnsynced.SetConfigInt("snd_volmaster", prevOffscreenVolume * (1 - ((now - isOffscreenTime) / muteFadeTime)))
 					else
-						Spring.SetConfigInt("snd_volmaster", prevOffscreenVolume * ((now - isOffscreenTime) / muteFadeTime))
+						SpringUnsynced.SetConfigInt("snd_volmaster", prevOffscreenVolume * ((now - isOffscreenTime) / muteFadeTime))
 					end
 				else
 					isOffscreenTime = nil
 					if isOffscreen then
-						Spring.SetConfigInt("snd_volmaster", 0)
+						SpringUnsynced.SetConfigInt("snd_volmaster", 0)
 					else
 						resetUserVolume()
 					end
@@ -1060,14 +1060,14 @@ function widget:Update(dt)
 	--	Spring.SetCameraState(nil, 1)
 	--else
 	if WG.lockcamera and not WG.lockcamera.GetPlayerID() and WG.setcamera_bugfix == true then
-		Spring.SetCameraState(nil, cameraTransitionTime)
+		SpringUnsynced.SetCameraState(nil, cameraTransitionTime)
 	end
 	--end
 
 	-- check if there is water shown 	(we do this because basic water 0 saves perf when no water is rendered)
 	if not waterDetected then
 		-- in case of modoption waterlevel has been made to show water
-		if not checkedForWaterAfterGamestart and Spring.GetGameFrame() <= 30 then
+		if not checkedForWaterAfterGamestart and SpringShared.GetGameFrame() <= 30 then
 			detectWater()
 			checkedForWaterAfterGamestart = true
 		end
@@ -1080,7 +1080,7 @@ function widget:Update(dt)
 					while z <= coords[4] do
 						if spGetGroundHeight(x, z) <= 0 then
 							waterDetected = true
-							Spring.SendCommands("water " .. desiredWaterValue)
+							SpringUnsynced.SendCommands("water " .. desiredWaterValue)
 							break
 						end
 						z = z + 8
@@ -1099,8 +1099,8 @@ function widget:Update(dt)
 	sec2 = sec2 + dt
 	if sec2 > 0.5 then
 		sec2 = 0
-		continuouslyClean = Spring.GetConfigInt("ContinuouslyClearMapmarks", 0) == 1
-		cachedMuteOffscreen = Spring.GetConfigInt("muteOffscreen", 0) == 1
+		continuouslyClean = SpringUnsynced.GetConfigInt("ContinuouslyClearMapmarks", 0) == 1
+		cachedMuteOffscreen = SpringUnsynced.GetConfigInt("muteOffscreen", 0) == 1
 
 		-- detect guishader toggle: force refresh when it comes back on
 		local guishaderActive = WG.guishader ~= nil
@@ -1139,13 +1139,13 @@ function widget:Update(dt)
 			applyFilter()
 		end
 		if getOptionByID("sndvolmaster") then
-			options[getOptionByID("sndvolmaster")].value = tonumber(Spring.GetConfigInt("snd_volmaster", 40) or 40) -- update value because other widgets can adjust this too
+			options[getOptionByID("sndvolmaster")].value = tonumber(SpringUnsynced.GetConfigInt("snd_volmaster", 40) or 40) -- update value because other widgets can adjust this too
 		end
 		if getOptionByID("sndvolmusic") then
 			if WG.music and WG.music.GetMusicVolume then
 				options[getOptionByID("sndvolmusic")].value = WG.music.GetMusicVolume()
 			else
-				options[getOptionByID("sndvolmusic")].value = tonumber(Spring.GetConfigInt("snd_volmusic", 50) or 50)
+				options[getOptionByID("sndvolmusic")].value = tonumber(SpringUnsynced.GetConfigInt("snd_volmusic", 50) or 50)
 			end
 		end
 	end
@@ -1154,7 +1154,7 @@ end
 function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 	if show then
 		--on window
-		local mx, my, ml = Spring.GetMouseState()
+		local mx, my, ml = SpringUnsynced.GetMouseState()
 		if math_isInRect(mx, my, windowRect[1], windowRect[2], windowRect[3], windowRect[4]) then
 			return true
 		elseif titleRect and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
@@ -1176,16 +1176,16 @@ function widget:RecvLuaMsg(msg, playerID)
 		chobbyInterface = (msg:sub(1, 19) == "LobbyOverlayActive1")
 		updateGrabinput()
 		if (isSinglePlayer or isReplay) and pauseGameWhenSingleplayer and not skipUnpauseOnHide then
-			local _, _, isClientPaused, _ = Spring.GetGameState()
+			local _, _, isClientPaused, _ = SpringUnsynced.GetGameState()
 			if chobbyInterface and isClientPaused then
 				skipUnpauseOnLobbyHide = true
 			end
 			if not skipUnpauseOnLobbyHide then
-				Spring.SendCommands("pause " .. (chobbyInterface and "1" or "0"))
+				SpringUnsynced.SendCommands("pause " .. (chobbyInterface and "1" or "0"))
 				pauseGameWhenSingleplayerExecuted = chobbyInterface
 			end
 			if not chobbyInterface then
-				Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1) * Spring.GetConfigInt("VSyncFraction", 1))
+				SpringUnsynced.SetConfigInt("VSync", SpringUnsynced.GetConfigInt("VSyncGame", -1) * SpringUnsynced.GetConfigInt("VSyncFraction", 1))
 			end
 		end
 	end
@@ -1193,7 +1193,7 @@ end
 
 local function checkPause()
 	-- pause/unpause when the options/quitscreen interface shows
-	local _, _, isClientPaused, _ = Spring.GetGameState()
+	local _, _, isClientPaused, _ = SpringUnsynced.GetGameState()
 	if not isClientPaused then
 		skipUnpauseOnHide = false
 		skipUnpauseOnLobbyHide = false
@@ -1204,7 +1204,7 @@ local function checkPause()
 			skipUnpauseOnHide = true
 		end
 		if not skipUnpauseOnHide then
-			Spring.SendCommands("pause " .. (show and "1" or "0")) -- cause several widgets are still using old colors
+			SpringUnsynced.SendCommands("pause " .. (show and "1" or "0")) -- cause several widgets are still using old colors
 			showToggledOff = not show
 			pauseGameWhenSingleplayerExecuted = show
 		end
@@ -1226,7 +1226,7 @@ local function checkQuitscreen()
 			skipUnpauseOnHide = true
 		end
 		if not skipUnpauseOnHide then
-			Spring.SendCommands("pause " .. (quitscreen and "1" or "0")) -- cause several widgets are still using old colors
+			SpringUnsynced.SendCommands("pause " .. (quitscreen and "1" or "0")) -- cause several widgets are still using old colors
 			pauseGameWhenSingleplayerExecuted = quitscreen
 		end
 	end
@@ -1272,16 +1272,16 @@ function widget:DrawScreen()
 
 		if (show or showOnceMore) and windowList then
 			--on window
-			local mx, my, ml = Spring.GetMouseState()
+			local mx, my, ml = SpringUnsynced.GetMouseState()
 			if (math_isInRect(mx, my, windowRect[1], windowRect[2], windowRect[3], windowRect[4])) or (titleRect and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4])) or (chatInputArea and math_isInRect(mx, my, chatInputArea[1], chatInputArea[2], chatInputArea[3], chatInputArea[4])) then
-				Spring.SetMouseCursor("cursornormal")
+				SpringUnsynced.SetMouseCursor("cursornormal")
 			end
 			if groupRect ~= nil then
 				for id, group in pairs(optionGroups) do
 					if group.numOptions > 0 then
 						if devMode or devUI or group.id ~= "dev" then
 							if math_isInRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
-								Spring.SetMouseCursor("cursornormal")
+								SpringUnsynced.SetMouseCursor("cursornormal")
 								break
 							end
 						end
@@ -1465,7 +1465,7 @@ function widget:DrawScreen()
 						if math_isInRect(mx, my, optionSelect[#optionSelect][1], optionSelect[#optionSelect][2], optionSelect[#optionSelect][3], optionSelect[#optionSelect][4]) then
 							UiSelectHighlight(optionButtons[showSelectOptions][1], math.floor(yPos - oHeight - oPadding), optionButtons[showSelectOptions][1] + maxWidth, math.floor(yPos + oPadding))
 							if playSounds and (prevSelectHover == nil or prevSelectHover ~= i) then
-								Spring.PlaySoundFile(sounds.selectHoverClick, 0.04, "ui")
+								SpringUnsynced.PlaySoundFile(sounds.selectHoverClick, 0.04, "ui")
 							end
 							prevSelectHover = k
 						end
@@ -1685,7 +1685,7 @@ function getSliderValue(draggingSlider, mx)
 end
 
 function widget:MouseWheel(up, value)
-	local x, y = Spring.GetMouseState()
+	local x, y = SpringUnsynced.GetMouseState()
 	if show then
 		return true
 	end
@@ -1699,7 +1699,7 @@ function widget:MouseMove(mx, my)
 			applyOptionValue(draggingSlider, newValue) -- disabled so only on release it gets applied
 			if playSounds and (lastSliderSound == nil or os_clock() - lastSliderSound > 0.04) then
 				lastSliderSound = os_clock()
-				Spring.PlaySoundFile(sounds.sliderDrag, 0.4, "ui")
+				SpringUnsynced.PlaySoundFile(sounds.sliderDrag, 0.4, "ui")
 			end
 		end
 	end
@@ -1714,7 +1714,7 @@ function widget:MouseRelease(x, y, button)
 end
 
 function mouseEvent(mx, my, button, release)
-	if Spring.IsGUIHidden() then
+	if SpringUnsynced.IsGUIHidden() then
 		return false
 	end
 
@@ -1734,7 +1734,7 @@ function mouseEvent(mx, my, button, release)
 								showSelectOptions = nil
 								selectClickAllowHide = nil
 								if playSounds then
-									Spring.PlaySoundFile(sounds.paginatorClick, 0.9, "ui")
+									SpringUnsynced.PlaySoundFile(sounds.paginatorClick, 0.9, "ui")
 								end
 							end
 							tabClick = true
@@ -1757,7 +1757,7 @@ function mouseEvent(mx, my, button, release)
 						startColumn = (totalColumns - maxShownColumns) + 1
 					end
 					if playSounds then
-						Spring.PlaySoundFile(sounds.paginatorClick, 0.6, "ui")
+						SpringUnsynced.PlaySoundFile(sounds.paginatorClick, 0.6, "ui")
 					end
 					showSelectOptions = nil
 					selectClickAllowHide = nil
@@ -1768,7 +1768,7 @@ function mouseEvent(mx, my, button, release)
 						startColumn = 1
 					end
 					if playSounds then
-						Spring.PlaySoundFile(sounds.paginatorClick, 0.6, "ui")
+						SpringUnsynced.PlaySoundFile(sounds.paginatorClick, 0.6, "ui")
 					end
 					showSelectOptions = nil
 					selectClickAllowHide = nil
@@ -1788,7 +1788,7 @@ function mouseEvent(mx, my, button, release)
 						if math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
 							applyOptionValue(showSelectOptions, o[5])
 							if playSounds then
-								Spring.PlaySoundFile(sounds.selectClick, 0.5, "ui")
+								SpringUnsynced.PlaySoundFile(sounds.selectClick, 0.5, "ui")
 							end
 						end
 					end
@@ -1814,9 +1814,9 @@ function mouseEvent(mx, my, button, release)
 										applyOptionValue(i, not options[i].value)
 										if playSounds then
 											if options[i] and options[i].value then
-												Spring.PlaySoundFile(sounds.toggleOnClick, 0.75, "ui")
+												SpringUnsynced.PlaySoundFile(sounds.toggleOnClick, 0.75, "ui")
 											else
-												Spring.PlaySoundFile(sounds.toggleOffClick, 0.75, "ui")
+												SpringUnsynced.PlaySoundFile(sounds.toggleOffClick, 0.75, "ui")
 											end
 										end
 									elseif options[i].type == "slider" and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
@@ -1840,12 +1840,12 @@ function mouseEvent(mx, my, button, release)
 								if options[draggingSlider].value ~= newValue then
 									applyOptionValue(draggingSlider, getSliderValue(draggingSlider, mx)) -- disabled so only on release it gets applied
 									if playSounds then
-										Spring.PlaySoundFile(sounds.sliderDrag, 0.3, "ui")
+										SpringUnsynced.PlaySoundFile(sounds.sliderDrag, 0.3, "ui")
 									end
 								end
 							elseif options[i].type == "select" and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
 								if playSounds then
-									Spring.PlaySoundFile(sounds.selectUnfoldClick, 0.6, "ui")
+									SpringUnsynced.PlaySoundFile(sounds.selectUnfoldClick, 0.6, "ui")
 								end
 								if showSelectOptions == nil then
 									showSelectOptions = i
@@ -1939,7 +1939,7 @@ function applyOptionValue(i, newValue, skipRedrawWindow, force)
 	if options[i].id ~= "preset" and presets.lowest[options[i].id] ~= nil and manualChange then
 		if options[getOptionByID("preset")] then
 			options[getOptionByID("preset")].value = I18N("ui.settings.option.select_custom")
-			Spring.SetConfigString("graphicsPreset", "custom")
+			SpringUnsynced.SetConfigString("graphicsPreset", "custom")
 		end
 	end
 
@@ -1957,7 +1957,7 @@ function applyOptionValue(i, newValue, skipRedrawWindow, force)
 		end
 		forceUpdate = true
 		if id == "teamcolors" then
-			Spring.SendCommands("luarules reloadluaui") -- cause several widgets are still using old colors
+			SpringUnsynced.SendCommands("luarules reloadluaui") -- cause several widgets are still using old colors
 		end
 	end
 
@@ -2363,7 +2363,7 @@ function init()
 	local displays = WG.screenMode and WG.screenMode.GetDisplays() or {}
 
 	local currentDisplay = 1
-	local v_sx, v_sy, v_px, v_py = Spring.GetViewGeometry()
+	local v_sx, v_sy, v_px, v_py = SpringUnsynced.GetViewGeometry()
 	local displayNames = {}
 	local hasMultiDisplayOption = false
 	for index, display in ipairs(displays) do
@@ -2390,9 +2390,9 @@ function init()
 	end
 
 	-- only allow dualscreen-mode on single displays when super ultrawide screen or Multi Display option shows
-	if (#displayNames <= 1 and vsx / vsy < 2.5) or (#displayNames > 1 and #displayNames == Spring.GetNumDisplays()) then
-		if Spring.GetConfigInt("DualScreenMode", 0) ~= 0 then
-			Spring.SetConfigInt("DualScreenMode", 0)
+	if (#displayNames <= 1 and vsx / vsy < 2.5) or (#displayNames > 1 and #displayNames == SpringUnsynced.GetNumDisplays()) then
+		if SpringUnsynced.GetConfigInt("DualScreenMode", 0) ~= 0 then
+			SpringUnsynced.SetConfigInt("DualScreenMode", 0)
 		end
 	end
 
@@ -2409,7 +2409,7 @@ function init()
 			end
 			-- scan for shader version error
 			if string.find(line, "error: GLSL 1.50 is not supported", nil, true) then
-				Spring.SetConfigInt("LuaShaders", 0)
+				SpringUnsynced.SetConfigInt("LuaShaders", 0)
 			end
 
 			-- look for system hardware
@@ -2444,10 +2444,10 @@ function init()
 	-- restrict options for potato systems
 	if isPotatoCpu or isPotatoGpu then
 		if isPotatoCpu then
-			Spring.Echo("potato CPU detected")
+			SpringShared.Echo("potato CPU detected")
 		end
 		if isPotatoGpu then
-			Spring.Echo("potato Graphics Card detected")
+			SpringShared.Echo("potato Graphics Card detected")
 		end
 	end
 	-- restric gfx preset options for potato gpu, lowest preset is added and high preset is removed
@@ -2522,7 +2522,7 @@ function init()
 			type = "select",
 			options = presetNames,
 			onload = function(i)
-				local preset = Spring.GetConfigString("graphicsPreset", "custom")
+				local preset = SpringUnsynced.GetConfigString("graphicsPreset", "custom")
 				local configSettingValues = { "lowest", "low", "medium", "high", "ultra", "custom" }
 				for k, value in pairs(configSettingValues) do
 					if value == preset then
@@ -2535,12 +2535,12 @@ function init()
 				local configSetting = "custom"
 				local configSettingValues = { "lowest", "low", "medium", "high", "ultra", "custom" }
 				configSetting = configSettingValues[value]
-				Spring.SetConfigString("graphicsPreset", configSetting)
+				SpringUnsynced.SetConfigString("graphicsPreset", configSetting)
 				if configSetting == "custom" then
 					return
 				end
 
-				Spring.Echo("Loading preset:   " .. options[i].options[value])
+				SpringShared.Echo("Loading preset:   " .. options[i].options[value])
 				manualChange = false
 				for optionID, value in pairs(presets[configSetting]) do
 					local i = getOptionByID(optionID)
@@ -2569,7 +2569,7 @@ function init()
 			onchange = function(i, value)
 				--currentDisplay = value
 				selectedDisplay = value
-				Spring.SetConfigInt("SelectedDisplay", value)
+				SpringUnsynced.SetConfigInt("SelectedDisplay", value)
 				resolutionNames = {}
 				screenmodeOffset = 0
 				for _, screenMode in ipairs(screenModes) do
@@ -2581,7 +2581,7 @@ function init()
 				end
 				options[getOptionByID("resolution")].options = resolutionNames
 				if selectedDisplay == currentDisplay then
-					options[getOptionByID("resolution")].value = Spring.GetConfigInt("SelectedScreenMode", 1)
+					options[getOptionByID("resolution")].value = SpringUnsynced.GetConfigInt("SelectedScreenMode", 1)
 				else
 					options[getOptionByID("resolution")].value = 0
 				end
@@ -2595,7 +2595,7 @@ function init()
 			name = widgetOptionColor .. "  " .. I18N("ui.settings.option.resolution"),
 			type = "select",
 			options = resolutionNames,
-			value = Spring.GetConfigInt("SelectedScreenMode", 1),
+			value = SpringUnsynced.GetConfigInt("SelectedScreenMode", 1),
 			description = I18N("ui.settings.option.resolution_descr"),
 			onload = function(i, value)
 				-- FIXME: disabled for now due to "Now whenever i do fullscreen or borderless the game will go to monitor 2 regardless of the chosen option. (I want the game on monitor 1)."
@@ -2604,12 +2604,12 @@ function init()
 				--end
 			end,
 			onchange = function(i, value)
-				Spring.SetConfigInt("SelectedScreenMode", value)
+				SpringUnsynced.SetConfigInt("SelectedScreenMode", value)
 
 				if WG.screenMode then
 					WG.screenMode.SetScreenMode(value + screenmodeOffset)
 					currentDisplay = 1
-					local v_sx, v_sy, v_px, v_py = Spring.GetViewGeometry()
+					local v_sx, v_sy, v_px, v_py = SpringUnsynced.GetViewGeometry()
 					for index, display in ipairs(displays) do
 						if v_px >= display.x and v_px < display.x + display.width and v_py >= display.y and v_py < display.y + display.height then
 							currentDisplay = index
@@ -2624,10 +2624,10 @@ function init()
 			category = types.dev,
 			name = I18N("ui.settings.option.dualmode"),
 			type = "bool",
-			value = Spring.GetConfigInt("DualScreenMode"),
+			value = SpringUnsynced.GetConfigInt("DualScreenMode"),
 			description = I18N("ui.settings.option.dualmode_enabled_descr"),
 			onchange = function(_, value)
-				Spring.SetConfigInt("DualScreenMode", value and 1 or 0)
+				SpringUnsynced.SetConfigInt("DualScreenMode", value and 1 or 0)
 			end,
 		},
 		{
@@ -2636,10 +2636,10 @@ function init()
 			category = types.dev,
 			name = widgetOptionColor .. "  " .. I18N("ui.settings.option.dualmode_left"),
 			type = "bool",
-			value = Spring.GetConfigInt("DualScreenMiniMapOnLeft"),
+			value = SpringUnsynced.GetConfigInt("DualScreenMiniMapOnLeft"),
 			description = I18N("ui.settings.option.dualmode_left_descr"),
 			onchange = function(_, value)
-				Spring.SetConfigInt("DualScreenMiniMapOnLeft", value and 1 or 0)
+				SpringUnsynced.SetConfigInt("DualScreenMiniMapOnLeft", value and 1 or 0)
 			end,
 		},
 		{
@@ -2648,10 +2648,10 @@ function init()
 			category = types.dev,
 			name = widgetOptionColor .. "  " .. I18N("ui.settings.option.dualmode_minimap_aspectratio"),
 			type = "bool",
-			value = Spring.GetConfigInt("DualScreenMiniMapAspectRatio"),
+			value = SpringUnsynced.GetConfigInt("DualScreenMiniMapAspectRatio"),
 			description = I18N("ui.settings.option.dualmode_minimap_aspectratio_descr"),
 			onchange = function(_, value)
-				Spring.SetConfigInt("DualScreenMiniMapAspectRatio", value and 1 or 0)
+				SpringUnsynced.SetConfigInt("DualScreenMiniMapAspectRatio", value and 1 or 0)
 			end,
 		},
 		{
@@ -2664,7 +2664,7 @@ function init()
 			value = 2,
 			description = I18N("ui.settings.option.vsync_descr"),
 			onload = function(i)
-				local vsync = Spring.GetConfigInt("VSyncGame", -1)
+				local vsync = SpringUnsynced.GetConfigInt("VSyncGame", -1)
 				if vsync > 0 then
 					options[i].value = 2
 				elseif vsync < 0 then
@@ -2676,12 +2676,12 @@ function init()
 			onchange = function(i, value)
 				local vsync = 0
 				if value == 2 then
-					vsync = Spring.GetConfigInt("VSyncFraction", 1)
+					vsync = SpringUnsynced.GetConfigInt("VSyncFraction", 1)
 				elseif value == 3 then
-					vsync = -Spring.GetConfigInt("VSyncFraction", 1)
+					vsync = -SpringUnsynced.GetConfigInt("VSyncFraction", 1)
 				end
-				Spring.SetConfigInt("VSync", vsync)
-				Spring.SetConfigInt("VSyncGame", vsync) -- stored here as assurance cause lobby/game also changes vsync when idle and lobby could think game has set vsync 4 after a hard crash
+				SpringUnsynced.SetConfigInt("VSync", vsync)
+				SpringUnsynced.SetConfigInt("VSyncGame", vsync) -- stored here as assurance cause lobby/game also changes vsync when idle and lobby could think game has set vsync 4 after a hard crash
 			end,
 		},
 		{
@@ -2693,13 +2693,13 @@ function init()
 			max = 4,
 			step = 1,
 			type = "slider",
-			value = Spring.GetConfigInt("VSyncFraction", 1),
+			value = SpringUnsynced.GetConfigInt("VSyncFraction", 1),
 			description = I18N("ui.settings.option.vsync_fraction_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("VSyncFraction", value)
-				local vsync = Spring.GetConfigInt("VSyncGame", -1)
+				SpringUnsynced.SetConfigInt("VSyncFraction", value)
+				local vsync = SpringUnsynced.GetConfigInt("VSyncGame", -1)
 				if vsync ~= 0 then
-					Spring.SetConfigInt("VSync", vsync * value)
+					SpringUnsynced.SetConfigInt("VSync", vsync * value)
 				end
 			end,
 		},
@@ -2711,10 +2711,10 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. I18N("ui.settings.option.limitidlefps"),
 			type = "bool",
-			value = (Spring.GetConfigInt("LimitIdleFps", 0) == 1),
+			value = (SpringUnsynced.GetConfigInt("LimitIdleFps", 0) == 1),
 			description = I18N("ui.settings.option.limitidlefps_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("LimitIdleFps", (value and 1 or 0))
+				SpringUnsynced.SetConfigInt("LimitIdleFps", (value and 1 or 0))
 			end,
 		},
 
@@ -2726,10 +2726,10 @@ function init()
 			type = "select",
 			options = { I18N("ui.settings.option.select_off"), "x2", "x4", "x8" },
 			restart = true,
-			value = tonumber(Spring.GetConfigInt("MSAALevel", 0) or 0),
+			value = tonumber(SpringUnsynced.GetConfigInt("MSAALevel", 0) or 0),
 			description = I18N("ui.settings.option.msaa_descr"),
 			onload = function(i)
-				local msaa = tonumber(Spring.GetConfigInt("MSAALevel", 0) or 0)
+				local msaa = tonumber(SpringUnsynced.GetConfigInt("MSAALevel", 0) or 0)
 				if msaa <= 0 then
 					options[getOptionByID("msaa")].value = 1
 				else
@@ -2743,11 +2743,11 @@ function init()
 			end,
 			onchange = function(i, value)
 				if value == 1 then
-					Spring.SetConfigInt("MSAA", 0)
-					Spring.SetConfigInt("MSAALevel", -1) -- setting 0 will reset it to default x4 :(
+					SpringUnsynced.SetConfigInt("MSAA", 0)
+					SpringUnsynced.SetConfigInt("MSAALevel", -1) -- setting 0 will reset it to default x4 :(
 				else
-					Spring.SetConfigInt("MSAA", 1)
-					Spring.SetConfigInt("MSAALevel", tonumber(string.sub(options[getOptionByID("msaa")].options[value], 2)))
+					SpringUnsynced.SetConfigInt("MSAA", 1)
+					SpringUnsynced.SetConfigInt("MSAALevel", tonumber(string.sub(options[getOptionByID("msaa")].options[value], 2)))
 				end
 			end,
 		},
@@ -2759,10 +2759,10 @@ function init()
 			name = widgetOptionColor .. "   " .. I18N("ui.settings.option.supersampling"),
 			type = "bool",
 			restart = false,
-			value = (Spring.GetConfigFloat("MinSampleShadingRate", 0.0) == 1.0),
+			value = (SpringUnsynced.GetConfigFloat("MinSampleShadingRate", 0.0) == 1.0),
 			description = I18N("ui.settings.option.supersampling_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigFloat("MinSampleShadingRate", (value and 1.0 or 0.0))
+				SpringUnsynced.SetConfigFloat("MinSampleShadingRate", (value and 1.0 or 0.0))
 			end,
 		},
 
@@ -2882,11 +2882,11 @@ function init()
 			category = types.basic,
 			name = I18N("ui.settings.option.advmapshading"),
 			type = "bool",
-			value = (Spring.GetConfigInt("AdvMapShading", 1) == 1),
+			value = (SpringUnsynced.GetConfigInt("AdvMapShading", 1) == 1),
 			description = I18N("ui.settings.option.advmapshading_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("AdvMapShading", (value and 1 or 0))
-				Spring.SendCommands("advmapshading " .. (value and "1" or "0"))
+				SpringUnsynced.SetConfigInt("AdvMapShading", (value and 1 or 0))
+				SpringUnsynced.SendCommands("advmapshading " .. (value and "1" or "0"))
 			end,
 		},
 
@@ -2896,14 +2896,14 @@ function init()
 			name = I18N("ui.settings.option.cus"),
 			category = types.basic,
 			type = "bool",
-			value = (Spring.GetConfigInt("cus2", 1) == 1),
+			value = (SpringUnsynced.GetConfigInt("cus2", 1) == 1),
 			description = I18N("ui.settings.option.cus_descr"),
 			onchange = function(i, value)
 				if value == 0.5 then
-					Spring.SendCommands("luarules disablecusgl4")
+					SpringUnsynced.SendCommands("luarules disablecusgl4")
 				else
-					Spring.SetConfigInt("cus2", (value and 1 or 0))
-					Spring.SendCommands("luarules " .. (value and "reloadcusgl4" or "disablecusgl4"))
+					SpringUnsynced.SetConfigInt("cus2", (value and 1 or 0))
+					SpringUnsynced.SendCommands("luarules " .. (value and "reloadcusgl4" or "disablecusgl4"))
 				end
 			end,
 		},
@@ -2915,10 +2915,10 @@ function init()
 			name = I18N("ui.settings.option.shadowslider"),
 			type = "select",
 			options = { I18N("ui.settings.option.select_off"), I18N("ui.settings.option.select_lowest"), I18N("ui.settings.option.select_low"), I18N("ui.settings.option.select_medium"), I18N("ui.settings.option.select_high"), I18N("ui.settings.option.select_ultra") },
-			value = Spring.GetConfigInt("ShadowQuality", 3) + 1,
+			value = SpringUnsynced.GetConfigInt("ShadowQuality", 3) + 1,
 			description = I18N("ui.settings.option.shadowslider_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("ShadowQuality", value - 1)
+				SpringUnsynced.SetConfigInt("ShadowQuality", value - 1)
 				adjustShadowQuality()
 			end,
 		},
@@ -2935,7 +2935,7 @@ function init()
 			value = gl.GetSun("shadowDensity"),
 			description = "",
 			onchange = function(i, value)
-				Spring.SetSunLighting({ groundShadowDensity = value, modelShadowDensity = value })
+				SpringUnsynced.SetSunLighting({ groundShadowDensity = value, modelShadowDensity = value })
 			end,
 		},
 
@@ -3038,10 +3038,10 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. I18N("ui.settings.option.lighteffects_headlights"),
 			type = "bool",
-			value = Spring.GetConfigInt("headlights", 1) == 1,
+			value = SpringUnsynced.GetConfigInt("headlights", 1) == 1,
 			description = I18N("ui.settings.option.lighteffects_headlights_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("headlights", value and 1 or 0)
+				SpringUnsynced.SetConfigInt("headlights", value and 1 or 0)
 				if widgetHandler.orderList["Deferred rendering GL4"] ~= nil then
 					widgetHandler:DisableWidget("Deferred rendering GL4")
 					widgetHandler:EnableWidget("Deferred rendering GL4")
@@ -3054,10 +3054,10 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. I18N("ui.settings.option.lighteffects_buildlights"),
 			type = "bool",
-			value = Spring.GetConfigInt("buildlights", 1) == 1,
+			value = SpringUnsynced.GetConfigInt("buildlights", 1) == 1,
 			description = I18N("ui.settings.option.lighteffects_buildlights_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("buildlights", value and 1 or 0)
+				SpringUnsynced.SetConfigInt("buildlights", value and 1 or 0)
 				if widgetHandler.orderList["Deferred rendering GL4"] ~= nil then
 					widgetHandler:DisableWidget("Deferred rendering GL4")
 					widgetHandler:EnableWidget("Deferred rendering GL4")
@@ -3153,11 +3153,11 @@ function init()
 			min = 2500,
 			max = 40000,
 			step = 500,
-			value = tonumber(Spring.GetConfigInt("FeatureDrawDistance", 10000)),
+			value = tonumber(SpringUnsynced.GetConfigInt("FeatureDrawDistance", 10000)),
 			description = I18N("ui.settings.option.featuredrawdist_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("FeatureFadeDistance", math.floor(value * 0.8))
-				Spring.SetConfigInt("FeatureDrawDistance", value)
+				SpringUnsynced.SetConfigInt("FeatureFadeDistance", math.floor(value * 0.8))
+				SpringUnsynced.SetConfigInt("FeatureDrawDistance", value)
 			end,
 		},
 
@@ -3195,8 +3195,8 @@ function init()
 					if desiredWaterValue > 0 then
 						desiredWaterValue = 4
 					end
-					Spring.SendCommands("water " .. desiredWaterValue)
-					Spring.SetConfigInt("water", 4)
+					SpringUnsynced.SendCommands("water " .. desiredWaterValue)
+					SpringUnsynced.SetConfigInt("water", 4)
 				end
 			end,
 		},
@@ -3266,11 +3266,11 @@ function init()
 			max = 3,
 			step = 1,
 			type = "slider",
-			value = Spring.GetConfigInt("GroundDecals", 0),
+			value = SpringUnsynced.GetConfigInt("GroundDecals", 0),
 			description = I18N("ui.settings.option.decals_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("GroundDecals", value)
-				Spring.SendCommands("GroundDecals " .. value)
+				SpringUnsynced.SetConfigInt("GroundDecals", value)
+				SpringUnsynced.SendCommands("GroundDecals " .. value)
 			end,
 		},
 
@@ -3300,12 +3300,12 @@ function init()
 			category = types.dev,
 			name = I18N("ui.settings.option.treewind"),
 			type = "bool",
-			value = tonumber(Spring.GetConfigInt("TreeWind", 1) or 1) == 1,
+			value = tonumber(SpringUnsynced.GetConfigInt("TreeWind", 1) or 1) == 1,
 			description = I18N("ui.settings.option.treewind_descr"),
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SendCommands("luarules treewind " .. (value and 1 or 0))
-				Spring.SetConfigInt("TreeWind", (value and 1 or 0))
+				SpringUnsynced.SendCommands("luarules treewind " .. (value and 1 or 0))
+				SpringUnsynced.SetConfigInt("TreeWind", (value and 1 or 0))
 			end,
 		},
 
@@ -3387,20 +3387,20 @@ function init()
 			min = 0,
 			max = 1,
 			step = 0.01,
-			value = Spring.GetConfigFloat("FogMult", 1),
+			value = SpringUnsynced.GetConfigFloat("FogMult", 1),
 			description = I18N("ui.settings.option.fogmult_descr"),
 			onload = function(i)
 				options[i].onchange(i, options[i].value)
 			end,
 			onchange = function(i, value)
-				Spring.SetConfigFloat("FogMult", value)
+				SpringUnsynced.SetConfigFloat("FogMult", value)
 				value = 1 / value -- inverse
 				local newFogStart = math.min(9, (defaultMapFog.fogStart * ((value + 4) * 0.2)))
 				local newFogEnd = math.min(9, defaultMapFog.fogEnd * ((value + 1) * 0.5))
 				if newFogStart >= newFogEnd then
 					newFogStart = newFogEnd - 0.01
 				end
-				Spring.SetAtmosphere({ fogStart = newFogStart, fogEnd = newFogEnd })
+				SpringUnsynced.SetAtmosphere({ fogStart = newFogStart, fogEnd = newFogEnd })
 			end,
 		},
 
@@ -3416,12 +3416,12 @@ function init()
 			min = 10000,
 			max = 40000,
 			step = 1000,
-			value = tonumber(Spring.GetConfigInt("MaxParticles", 1) or 15000),
+			value = tonumber(SpringUnsynced.GetConfigInt("MaxParticles", 1) or 15000),
 			description = I18N("ui.settings.option.particles_descr"),
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetConfigInt("MaxParticles", value)
-				Spring.SetConfigInt("MaxNanoParticles", math.floor(value * 0.34))
+				SpringUnsynced.SetConfigInt("MaxParticles", value)
+				SpringUnsynced.SetConfigInt("MaxNanoParticles", math.floor(value * 0.34))
 			end,
 		},
 
@@ -3473,13 +3473,13 @@ function init()
 			type = "select",
 			restart = true,
 			options = soundDevices,
-			value = soundDevicesByName[Spring.GetConfigString("snd_device")],
+			value = soundDevicesByName[SpringUnsynced.GetConfigString("snd_device")],
 			description = I18N("ui.settings.option.snddevice_descr"),
 			onchange = function(i, value)
 				if options[i].options[options[i].value] == "default" then
-					Spring.SetConfigString("snd_device", "")
+					SpringUnsynced.SetConfigString("snd_device", "")
 				else
-					Spring.SetConfigString("snd_device", options[i].options[options[i].value])
+					SpringUnsynced.SetConfigString("snd_device", options[i].options[options[i].value])
 				end
 			end,
 		},
@@ -3493,10 +3493,10 @@ function init()
 			min = 0,
 			max = 80,
 			step = 2,
-			value = tonumber(Spring.GetConfigInt("snd_volmaster", 1) or 80),
+			value = tonumber(SpringUnsynced.GetConfigInt("snd_volmaster", 1) or 80),
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetConfigInt("snd_volmaster", value)
+				SpringUnsynced.SetConfigInt("snd_volmaster", value)
 			end,
 		},
 		{
@@ -3508,10 +3508,10 @@ function init()
 			min = 0,
 			max = 100,
 			step = 2,
-			value = tonumber(Spring.GetConfigInt("snd_volgeneral", 1) or 100),
+			value = tonumber(SpringUnsynced.GetConfigInt("snd_volgeneral", 1) or 100),
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetConfigInt("snd_volgeneral", value)
+				SpringUnsynced.SetConfigInt("snd_volgeneral", value)
 			end,
 		},
 		{
@@ -3523,10 +3523,10 @@ function init()
 			min = 0,
 			max = 100,
 			step = 2,
-			value = tonumber(Spring.GetConfigInt("snd_volbattle_options", 100) or 100),
+			value = tonumber(SpringUnsynced.GetConfigInt("snd_volbattle_options", 100) or 100),
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetConfigInt("snd_volbattle_options", value)
+				SpringUnsynced.SetConfigInt("snd_volbattle_options", value)
 			end,
 		},
 		{
@@ -3538,10 +3538,10 @@ function init()
 			min = 0,
 			max = 100,
 			step = 2,
-			value = tonumber(Spring.GetConfigInt("snd_volui", 1) or 100),
+			value = tonumber(SpringUnsynced.GetConfigInt("snd_volui", 1) or 100),
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetConfigInt("snd_volui", value)
+				SpringUnsynced.SetConfigInt("snd_volui", value)
 			end,
 		},
 		--{ id = "sndambient", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sndvolambient'), type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volambient", 1) or 100),
@@ -3603,13 +3603,13 @@ function init()
 			min = 0,
 			max = 99,
 			step = 1,
-			value = tonumber(Spring.GetConfigInt("snd_volmusic", 50) or 50),
+			value = tonumber(SpringUnsynced.GetConfigInt("snd_volmusic", 50) or 50),
 			onload = function(i) end,
 			onchange = function(i, value)
 				if WG.music and WG.music.SetMusicVolume then
 					WG.music.SetMusicVolume(value)
 				else
-					Spring.SetConfigInt("snd_volmusic", value)
+					SpringUnsynced.SetConfigInt("snd_volmusic", value)
 				end
 			end,
 		},
@@ -3620,10 +3620,10 @@ function init()
 			category = types.advanced,
 			name = I18N("ui.settings.option.sndunitsound"),
 			type = "bool",
-			value = (Spring.GetConfigInt("snd_unitsound", 1) == 1),
+			value = (SpringUnsynced.GetConfigInt("snd_unitsound", 1) == 1),
 			description = I18N("ui.settings.option.sndunitsound_desc"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("snd_unitsound", (value and 1 or 0))
+				SpringUnsynced.SetConfigInt("snd_unitsound", (value and 1 or 0))
 			end,
 		},
 
@@ -3636,11 +3636,11 @@ function init()
 			min = 0,
 			max = 0.4,
 			step = 0.01,
-			value = tonumber(Spring.GetConfigFloat("snd_airAbsorption", 0.35) or 0.35),
+			value = tonumber(SpringUnsynced.GetConfigFloat("snd_airAbsorption", 0.35) or 0.35),
 			description = I18N("ui.settings.option.sndairabsorption_descr"),
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetConfigFloat("snd_airAbsorption", value)
+				SpringUnsynced.SetConfigFloat("snd_airAbsorption", value)
 			end,
 		},
 
@@ -3653,11 +3653,11 @@ function init()
 			min = 0,
 			max = 3,
 			step = 0.01,
-			value = tonumber(Spring.GetConfigFloat("snd_zoomVolume", 1.00) or 1.00),
+			value = tonumber(SpringUnsynced.GetConfigFloat("snd_zoomVolume", 1.00) or 1.00),
 			description = I18N("ui.settings.option.sndzoomvolume_descr"),
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetConfigFloat("snd_zoomVolume", value)
+				SpringUnsynced.SetConfigFloat("snd_zoomVolume", value)
 			end,
 		},
 
@@ -3667,10 +3667,10 @@ function init()
 			category = types.advanced,
 			name = I18N("ui.settings.option.muteoffscreen"),
 			type = "bool",
-			value = (Spring.GetConfigInt("muteOffscreen", 0) == 1),
+			value = (SpringUnsynced.GetConfigInt("muteOffscreen", 0) == 1),
 			description = I18N("ui.settings.option.muteoffscreen_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("muteOffscreen", (value and 1 or 0))
+				SpringUnsynced.SetConfigInt("muteOffscreen", (value and 1 or 0))
 			end,
 		},
 
@@ -3683,10 +3683,10 @@ function init()
 			category = types.basic,
 			name = I18N("ui.settings.option.soundtracknew"),
 			type = "bool",
-			value = Spring.GetConfigInt("UseSoundtrackNew", 1) == 1,
+			value = SpringUnsynced.GetConfigInt("UseSoundtrackNew", 1) == 1,
 			description = I18N("ui.settings.option.soundtracknew_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("UseSoundtrackNew", value and 1 or 0)
+				SpringUnsynced.SetConfigInt("UseSoundtrackNew", value and 1 or 0)
 				if WG.music and WG.music.RefreshTrackList then
 					WG.music.RefreshTrackList()
 					init()
@@ -3699,10 +3699,10 @@ function init()
 			category = types.basic,
 			name = widgetOptionColor .. "   " .. I18N("ui.settings.option.soundtrackraptors"),
 			type = "bool",
-			value = Spring.GetConfigInt("UseSoundtrackRaptors", 0) == 1,
+			value = SpringUnsynced.GetConfigInt("UseSoundtrackRaptors", 0) == 1,
 			description = I18N("ui.settings.option.soundtrackraptors_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("UseSoundtrackRaptors", value and 1 or 0)
+				SpringUnsynced.SetConfigInt("UseSoundtrackRaptors", value and 1 or 0)
 				if WG.music and WG.music.RefreshTrackList then
 					WG.music.RefreshTrackList()
 					init()
@@ -3715,10 +3715,10 @@ function init()
 			category = types.basic,
 			name = widgetOptionColor .. "   " .. I18N("ui.settings.option.soundtrackscavengers"),
 			type = "bool",
-			value = Spring.GetConfigInt("UseSoundtrackScavengers", 0) == 1,
+			value = SpringUnsynced.GetConfigInt("UseSoundtrackScavengers", 0) == 1,
 			description = I18N("ui.settings.option.soundtrackscavengers_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("UseSoundtrackScavengers", value and 1 or 0)
+				SpringUnsynced.SetConfigInt("UseSoundtrackScavengers", value and 1 or 0)
 				if WG.music and WG.music.RefreshTrackList then
 					WG.music.RefreshTrackList()
 					init()
@@ -3731,10 +3731,10 @@ function init()
 			category = types.basic,
 			name = widgetOptionColor .. "   " .. I18N("ui.settings.option.soundtrackaprilfools"),
 			type = "bool",
-			value = Spring.GetConfigInt("UseSoundtrackAprilFools", 1) == 1,
+			value = SpringUnsynced.GetConfigInt("UseSoundtrackAprilFools", 1) == 1,
 			description = I18N("ui.settings.option.soundtrackaprilfools_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("UseSoundtrackAprilFools", value and 1 or 0)
+				SpringUnsynced.SetConfigInt("UseSoundtrackAprilFools", value and 1 or 0)
 				if WG.music and WG.music.RefreshTrackList then
 					WG.music.RefreshTrackList()
 					init()
@@ -3747,10 +3747,10 @@ function init()
 			category = types.basic,
 			name = widgetOptionColor .. "   " .. I18N("ui.settings.option.soundtrackaprilfoolspostevent"),
 			type = "bool",
-			value = Spring.GetConfigInt("UseSoundtrackAprilFoolsPostEvent", 0) == 1,
+			value = SpringUnsynced.GetConfigInt("UseSoundtrackAprilFoolsPostEvent", 0) == 1,
 			description = I18N("ui.settings.option.soundtrackaprilfoolspostevent_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("UseSoundtrackAprilFoolsPostEvent", value and 1 or 0)
+				SpringUnsynced.SetConfigInt("UseSoundtrackAprilFoolsPostEvent", value and 1 or 0)
 				if WG.music and WG.music.RefreshTrackList then
 					WG.music.RefreshTrackList()
 					init()
@@ -3763,10 +3763,10 @@ function init()
 			category = types.basic,
 			name = widgetOptionColor .. "   " .. I18N("ui.settings.option.soundtrackhalloween"),
 			type = "bool",
-			value = Spring.GetConfigInt("UseSoundtrackHalloween", 1) == 1,
+			value = SpringUnsynced.GetConfigInt("UseSoundtrackHalloween", 1) == 1,
 			description = I18N("ui.settings.option.soundtrackhalloween_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("UseSoundtrackHalloween", value and 1 or 0)
+				SpringUnsynced.SetConfigInt("UseSoundtrackHalloween", value and 1 or 0)
 				if WG.music and WG.music.RefreshTrackList then
 					WG.music.RefreshTrackList()
 					init()
@@ -3779,10 +3779,10 @@ function init()
 			category = types.basic,
 			name = widgetOptionColor .. "   " .. I18N("ui.settings.option.soundtrackhalloweenpostevent"),
 			type = "bool",
-			value = Spring.GetConfigInt("UseSoundtrackHalloweenPostEvent", 0) == 1,
+			value = SpringUnsynced.GetConfigInt("UseSoundtrackHalloweenPostEvent", 0) == 1,
 			description = I18N("ui.settings.option.soundtrackhalloweenpostevent_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("UseSoundtrackHalloweenPostEvent", value and 1 or 0)
+				SpringUnsynced.SetConfigInt("UseSoundtrackHalloweenPostEvent", value and 1 or 0)
 				if WG.music and WG.music.RefreshTrackList then
 					WG.music.RefreshTrackList()
 					init()
@@ -3795,10 +3795,10 @@ function init()
 			category = types.basic,
 			name = widgetOptionColor .. "   " .. I18N("ui.settings.option.soundtrackxmas"),
 			type = "bool",
-			value = Spring.GetConfigInt("UseSoundtrackXmas", 1) == 1,
+			value = SpringUnsynced.GetConfigInt("UseSoundtrackXmas", 1) == 1,
 			description = I18N("ui.settings.option.soundtrackxmas_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("UseSoundtrackXmas", value and 1 or 0)
+				SpringUnsynced.SetConfigInt("UseSoundtrackXmas", value and 1 or 0)
 				if WG.music and WG.music.RefreshTrackList then
 					WG.music.RefreshTrackList()
 					init()
@@ -3811,10 +3811,10 @@ function init()
 			category = types.basic,
 			name = widgetOptionColor .. "   " .. I18N("ui.settings.option.soundtrackxmaspostevent"),
 			type = "bool",
-			value = Spring.GetConfigInt("UseSoundtrackXmasPostEvent", 0) == 1,
+			value = SpringUnsynced.GetConfigInt("UseSoundtrackXmasPostEvent", 0) == 1,
 			description = I18N("ui.settings.option.soundtrackxmaspostevent_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("UseSoundtrackXmasPostEvent", value and 1 or 0)
+				SpringUnsynced.SetConfigInt("UseSoundtrackXmasPostEvent", value and 1 or 0)
 				if WG.music and WG.music.RefreshTrackList then
 					WG.music.RefreshTrackList()
 					init()
@@ -3827,10 +3827,10 @@ function init()
 			category = types.advanced,
 			name = I18N("ui.settings.option.soundtrackcustom"),
 			type = "bool",
-			value = Spring.GetConfigInt("UseSoundtrackCustom", 1) == 1,
+			value = SpringUnsynced.GetConfigInt("UseSoundtrackCustom", 1) == 1,
 			description = I18N("ui.settings.option.soundtrackcustom_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("UseSoundtrackCustom", value and 1 or 0)
+				SpringUnsynced.SetConfigInt("UseSoundtrackCustom", value and 1 or 0)
 				if WG.music and WG.music.RefreshTrackList then
 					WG.music.RefreshTrackList()
 					init()
@@ -3843,10 +3843,10 @@ function init()
 			category = types.basic,
 			name = I18N("ui.settings.option.soundtrackinterruption"),
 			type = "bool",
-			value = Spring.GetConfigInt("UseSoundtrackInterruption", 1) == 1,
+			value = SpringUnsynced.GetConfigInt("UseSoundtrackInterruption", 1) == 1,
 			description = I18N("ui.settings.option.soundtrackinterruption_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("UseSoundtrackInterruption", value and 1 or 0)
+				SpringUnsynced.SetConfigInt("UseSoundtrackInterruption", value and 1 or 0)
 				if WG.music and WG.music.RefreshSettings then
 					WG.music.RefreshSettings()
 				end
@@ -3858,10 +3858,10 @@ function init()
 			category = types.basic,
 			name = I18N("ui.settings.option.soundtrackfades"),
 			type = "bool",
-			value = Spring.GetConfigInt("UseSoundtrackFades", 1) == 1,
+			value = SpringUnsynced.GetConfigInt("UseSoundtrackFades", 1) == 1,
 			description = I18N("ui.settings.option.soundtrackfades_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("UseSoundtrackFades", value and 1 or 0)
+				SpringUnsynced.SetConfigInt("UseSoundtrackFades", value and 1 or 0)
 				if WG.music and WG.music.RefreshSettings then
 					WG.music.RefreshSettings()
 				end
@@ -3884,7 +3884,7 @@ function init()
 			value = 1,
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetConfigString("voiceset", options[i].options[options[i].value])
+				SpringUnsynced.SetConfigString("voiceset", options[i].options[options[i].value])
 				if widgetHandler.orderList.Notifications ~= nil then
 					widgetHandler:DisableWidget("Notifications")
 					widgetHandler:EnableWidget("Notifications")
@@ -3955,10 +3955,10 @@ function init()
 			category = types.advanced,
 			name = I18N("ui.settings.option.notifications_substitute"),
 			type = "bool",
-			value = Spring.GetConfigInt("NotificationsSubstitute", 0) == 1,
+			value = SpringUnsynced.GetConfigInt("NotificationsSubstitute", 0) == 1,
 			description = I18N("ui.settings.option.notifications_substitute_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("NotificationsSubstitute", value and 1 or 0)
+				SpringUnsynced.SetConfigInt("NotificationsSubstitute", value and 1 or 0)
 				widgetHandler:DisableWidget("Notifications")
 				widgetHandler:EnableWidget("Notifications")
 				init()
@@ -3996,11 +3996,11 @@ function init()
 			value = 1,
 			description = I18N("ui.settings.option.keylayout_descr"),
 			onload = function()
-				local keyLayout = Spring.GetConfigString("KeyboardLayout")
+				local keyLayout = SpringUnsynced.GetConfigString("KeyboardLayout")
 
 				if not keyLayout or keyLayout == "" then
 					keyLayout = keyLayouts.layouts[1]
-					Spring.SetConfigString("KeyboardLayout", keyLayouts.layouts[1])
+					SpringUnsynced.SetConfigString("KeyboardLayout", keyLayouts.layouts[1])
 				end
 
 				local value = 1
@@ -4014,7 +4014,7 @@ function init()
 				options[getOptionByID("keylayout")].value = value
 			end,
 			onchange = function(_, value)
-				Spring.SetConfigString("KeyboardLayout", keyLayouts.layouts[value])
+				SpringUnsynced.SetConfigString("KeyboardLayout", keyLayouts.layouts[value])
 				if WG.bar_hotkeys and WG.bar_hotkeys.reloadBindings then
 					WG.bar_hotkeys.reloadBindings()
 				end
@@ -4031,7 +4031,7 @@ function init()
 			value = 1,
 			description = I18N("ui.settings.option.keybindings_descr"),
 			onload = function()
-				local keyFile = Spring.GetConfigString("KeybindingFile")
+				local keyFile = SpringUnsynced.GetConfigString("KeybindingFile")
 				local value = 1
 
 				if (not keyFile) or (keyFile == "") or (not VFS.FileExists(keyFile)) then
@@ -4057,17 +4057,17 @@ function init()
 				local isCustom = keyLayouts.keybindingPresets.Custom == keyFile
 
 				if isCustom and not VFS.FileExists(keyFile) then
-					Spring.SendCommands("keysave " .. keyFile)
-					Spring.Echo("Preset Custom selected, file saved at: " .. keyFile)
+					SpringUnsynced.SendCommands("keysave " .. keyFile)
+					SpringShared.Echo("Preset Custom selected, file saved at: " .. keyFile)
 				end
 
-				Spring.SetConfigString("KeybindingFile", keyFile)
+				SpringUnsynced.SetConfigString("KeybindingFile", keyFile)
 				if isCustom then
-					Spring.Echo("To test your custom bindings after changes type in chat: /keyreload")
+					SpringShared.Echo("To test your custom bindings after changes type in chat: /keyreload")
 				end
 				-- enable grid menu for grid keybinds
 				local preset = options[getOptionByID("keybindings")].options[value]
-				Spring.Echo(preset)
+				SpringShared.Echo(preset)
 				if string.find(string.lower(preset), "grid", nil, true) then
 					widgetHandler:DisableWidget("Build menu")
 					widgetHandler:EnableWidget("Grid menu")
@@ -4186,12 +4186,12 @@ function init()
 			category = types.basic,
 			name = I18N("ui.settings.option.hwcursor"),
 			type = "bool",
-			value = tonumber(Spring.GetConfigInt("HardwareCursor", 0) or 0) == 1,
+			value = tonumber(SpringUnsynced.GetConfigInt("HardwareCursor", 0) or 0) == 1,
 			description = I18N("ui.settings.option.hwcursor_descr"),
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SendCommands("HardwareCursor " .. (value and 1 or 0))
-				Spring.SetConfigInt("HardwareCursor", (value and 1 or 0))
+				SpringUnsynced.SendCommands("HardwareCursor " .. (value and 1 or 0))
+				SpringUnsynced.SetConfigInt("HardwareCursor", (value and 1 or 0))
 			end,
 		},
 		{
@@ -4234,11 +4234,11 @@ function init()
 			category = types.basic,
 			name = I18N("ui.settings.option.containmouse"),
 			type = "bool",
-			value = Spring.GetConfigInt("grabinput", 1) == 1,
+			value = SpringUnsynced.GetConfigInt("grabinput", 1) == 1,
 			description = I18N("ui.settings.option.containmouse_descr"),
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetConfigInt("grabinput", (value and 1 or 0))
+				SpringUnsynced.SetConfigInt("grabinput", (value and 1 or 0))
 				updateGrabinput()
 			end,
 		},
@@ -4253,11 +4253,11 @@ function init()
 			min = 150,
 			max = 400,
 			step = 10,
-			value = Spring.GetConfigInt("DoubleClickTime", 200),
+			value = SpringUnsynced.GetConfigInt("DoubleClickTime", 200),
 			description = I18N("ui.settings.option.doubleclicktime_descr"),
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetConfigInt("DoubleClickTime", value)
+				SpringUnsynced.SetConfigInt("DoubleClickTime", value)
 			end,
 		},
 
@@ -4271,14 +4271,14 @@ function init()
 			min = 4,
 			max = 50,
 			step = 1,
-			value = Spring.GetConfigInt("MouseDragSelectionThreshold", 4),
+			value = SpringUnsynced.GetConfigInt("MouseDragSelectionThreshold", 4),
 			description = I18N("ui.settings.option.dragthreshold_descr"),
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetConfigInt("MouseDragSelectionThreshold", value)
-				Spring.SetConfigInt("MouseDragCircleCommandThreshold", value)
-				Spring.SetConfigInt("MouseDragBoxCommandThreshold", value + 12)
-				Spring.SetConfigInt("MouseDragFrontCommandThreshold", value + 26)
+				SpringUnsynced.SetConfigInt("MouseDragSelectionThreshold", value)
+				SpringUnsynced.SetConfigInt("MouseDragCircleCommandThreshold", value)
+				SpringUnsynced.SetConfigInt("MouseDragBoxCommandThreshold", value + 12)
+				SpringUnsynced.SetConfigInt("MouseDragFrontCommandThreshold", value + 26)
 			end,
 		},
 
@@ -4291,11 +4291,11 @@ function init()
 			category = types.basic,
 			name = I18N("ui.settings.option.middleclicktoggle"),
 			type = "bool",
-			value = (Spring.GetConfigFloat("MouseDragScrollThreshold", 0.3) ~= 0),
+			value = (SpringUnsynced.GetConfigFloat("MouseDragScrollThreshold", 0.3) ~= 0),
 			description = I18N("ui.settings.option.middleclicktoggle_descr"),
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetConfigFloat("MouseDragScrollThreshold", (value and 0.3 or 0))
+				SpringUnsynced.SetConfigFloat("MouseDragScrollThreshold", (value and 0.3 or 0))
 			end,
 		},
 
@@ -4306,15 +4306,15 @@ function init()
 			name = I18N("ui.settings.option.screenedgemove"),
 			type = "bool",
 			restart = true,
-			value = tonumber(Spring.GetConfigInt("FullscreenEdgeMove", 1) or 1) == 1,
+			value = tonumber(SpringUnsynced.GetConfigInt("FullscreenEdgeMove", 1) or 1) == 1,
 			description = I18N("ui.settings.option.screenedgemove_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("FullscreenEdgeMove", (value and 1 or 0))
-				Spring.SetConfigInt("WindowedEdgeMove", (value and 1 or 0))
+				SpringUnsynced.SetConfigInt("FullscreenEdgeMove", (value and 1 or 0))
+				SpringUnsynced.SetConfigInt("WindowedEdgeMove", (value and 1 or 0))
 				if value then
-					Spring.SetConfigFloat("EdgeMoveWidth", edgeMoveWidth)
+					SpringUnsynced.SetConfigFloat("EdgeMoveWidth", edgeMoveWidth)
 				else
-					Spring.SetConfigFloat("EdgeMoveWidth", 0)
+					SpringUnsynced.SetConfigFloat("EdgeMoveWidth", 0)
 				end
 			end,
 		},
@@ -4331,7 +4331,7 @@ function init()
 			description = I18N("ui.settings.option.screenedgemovewidth_descr"),
 			onchange = function(i, value)
 				edgeMoveWidth = value
-				Spring.SetConfigFloat("EdgeMoveWidth", value)
+				SpringUnsynced.SetConfigFloat("EdgeMoveWidth", value)
 			end,
 		},
 		{
@@ -4341,10 +4341,10 @@ function init()
 			name = widgetOptionColor .. "   " .. I18N("ui.settings.option.screenedgemovedynamic"),
 			type = "bool",
 			restart = true,
-			value = tonumber(Spring.GetConfigInt("EdgeMoveDynamic", 1) or 1) == 1,
+			value = tonumber(SpringUnsynced.GetConfigInt("EdgeMoveDynamic", 1) or 1) == 1,
 			description = I18N("ui.settings.option.screenedgemovedynamic_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("EdgeMoveDynamic", (value and 1 or 0))
+				SpringUnsynced.SetConfigInt("EdgeMoveDynamic", (value and 1 or 0))
 			end,
 		},
 
@@ -4355,19 +4355,19 @@ function init()
 			name = I18N("ui.settings.option.camera"),
 			type = "select",
 			options = { I18N("ui.settings.option.select_firstperson"), I18N("ui.settings.option.select_overhead"), I18N("ui.settings.option.select_springcam"), I18N("ui.settings.option.select_rotoverhead"), I18N("ui.settings.option.select_free") },
-			value = (tonumber((Spring.GetConfigInt("CamMode", 1) + 1) or 2)),
+			value = (tonumber((SpringUnsynced.GetConfigInt("CamMode", 1) + 1) or 2)),
 			onchange = function(i, value)
-				Spring.SetConfigInt("CamMode", (value - 1))
+				SpringUnsynced.SetConfigInt("CamMode", (value - 1))
 				if value == 1 then
-					Spring.SendCommands("viewfps")
+					SpringUnsynced.SendCommands("viewfps")
 				elseif value == 2 then
-					Spring.SendCommands("viewta")
+					SpringUnsynced.SendCommands("viewta")
 				elseif value == 3 then
-					Spring.SendCommands("viewspring")
+					SpringUnsynced.SendCommands("viewspring")
 				elseif value == 4 then
-					Spring.SendCommands("viewrot")
+					SpringUnsynced.SendCommands("viewrot")
 				elseif value == 5 then
-					Spring.SendCommands("viewfree")
+					SpringUnsynced.SendCommands("viewfree")
 				end
 				init()
 			end,
@@ -4379,10 +4379,10 @@ function init()
 			name = widgetOptionColor .. "   " .. I18N("ui.settings.option.springcamheightmode"),
 			type = "select",
 			options = { I18N("ui.settings.option.select_constant"), I18N("ui.settings.option.select_terrain"), I18N("ui.settings.option.select_smooth") },
-			value = Spring.GetConfigInt("CamSpringTrackMapHeightMode", 0) + 1,
+			value = SpringUnsynced.GetConfigInt("CamSpringTrackMapHeightMode", 0) + 1,
 			description = I18N("ui.settings.option.springcamheightmode_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("CamSpringTrackMapHeightMode", value - 1)
+				SpringUnsynced.SetConfigInt("CamSpringTrackMapHeightMode", value - 1)
 			end,
 		},
 		{
@@ -4394,11 +4394,11 @@ function init()
 			min = 0,
 			max = 1500,
 			step = 1,
-			value = Spring.GetConfigInt("CamSpringMinZoomDistance", 0),
+			value = SpringUnsynced.GetConfigInt("CamSpringMinZoomDistance", 0),
 			description = I18N("ui.settings.option.mincamheight_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("CamSpringMinZoomDistance", value)
-				Spring.SetConfigInt("OverheadMinZoomDistance", value)
+				SpringUnsynced.SetConfigInt("CamSpringMinZoomDistance", value)
+				SpringUnsynced.SetConfigInt("OverheadMinZoomDistance", value)
 			end,
 		},
 		{
@@ -4446,9 +4446,9 @@ function init()
 			name = widgetOptionColor .. "   " .. I18N("ui.settings.option.smoothingmode"),
 			type = "select",
 			options = { I18N("ui.settings.option.smoothing_exponential"), I18N("ui.settings.option.smoothing_spring") },
-			value = (Spring.GetConfigInt("CamTransitionMode", 1) + 1),
+			value = (SpringUnsynced.GetConfigInt("CamTransitionMode", 1) + 1),
 			onchange = function(i, value)
-				Spring.SetConfigInt("CamTransitionMode", (value - 1))
+				SpringUnsynced.SetConfigInt("CamTransitionMode", (value - 1))
 			end,
 		},
 		{
@@ -4471,7 +4471,7 @@ function init()
 				else
 					halfLife = halfLife * 600 - 400
 				end
-				Spring.SetConfigFloat("CamSpringHalflife", halfLife)
+				SpringUnsynced.SetConfigFloat("CamSpringHalflife", halfLife)
 			end,
 		},
 		{
@@ -4483,11 +4483,11 @@ function init()
 			min = -0.01,
 			max = -0.00195,
 			step = 0.0001,
-			value = Spring.GetConfigFloat("MiddleClickScrollSpeed", 0.0035),
+			value = SpringUnsynced.GetConfigFloat("MiddleClickScrollSpeed", 0.0035),
 			description = I18N("ui.settings.option.camerapanspeed_descr"),
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetConfigFloat("MiddleClickScrollSpeed", value)
+				SpringUnsynced.SetConfigFloat("MiddleClickScrollSpeed", value)
 			end,
 		},
 		{
@@ -4499,16 +4499,16 @@ function init()
 			min = 0,
 			max = 100,
 			step = 1,
-			value = Spring.GetConfigInt("CamSpringScrollSpeed", 10),
+			value = SpringUnsynced.GetConfigInt("CamSpringScrollSpeed", 10),
 			description = I18N("ui.settings.option.cameramovespeed_descr"),
 			onload = function(i) end,
 			onchange = function(i, value)
 				--cameraPanTransitionTime = value
-				Spring.SetConfigInt("FPSScrollSpeed", value) -- spring default: 10
-				Spring.SetConfigInt("OverheadScrollSpeed", value) -- spring default: 10
-				Spring.SetConfigInt("RotOverheadScrollSpeed", value) -- spring default: 10
-				Spring.SetConfigFloat("CamFreeScrollSpeed", value * 50) -- spring default: 500
-				Spring.SetConfigInt("CamSpringScrollSpeed", value) -- spring default: 10
+				SpringUnsynced.SetConfigInt("FPSScrollSpeed", value) -- spring default: 10
+				SpringUnsynced.SetConfigInt("OverheadScrollSpeed", value) -- spring default: 10
+				SpringUnsynced.SetConfigInt("RotOverheadScrollSpeed", value) -- spring default: 10
+				SpringUnsynced.SetConfigFloat("CamFreeScrollSpeed", value * 50) -- spring default: 500
+				SpringUnsynced.SetConfigInt("CamSpringScrollSpeed", value) -- spring default: 10
 			end,
 		},
 		{
@@ -4520,14 +4520,14 @@ function init()
 			min = 1,
 			max = 50,
 			step = 1,
-			value = math.abs(tonumber(Spring.GetConfigInt("ScrollWheelSpeed", 1) or 25)),
+			value = math.abs(tonumber(SpringUnsynced.GetConfigInt("ScrollWheelSpeed", 1) or 25)),
 			description = "",
 			onload = function(i) end,
 			onchange = function(i, value)
 				if getOptionByID("scrollinverse") and options[getOptionByID("scrollinverse")].value then
-					Spring.SetConfigInt("ScrollWheelSpeed", -value)
+					SpringUnsynced.SetConfigInt("ScrollWheelSpeed", -value)
 				else
-					Spring.SetConfigInt("ScrollWheelSpeed", value)
+					SpringUnsynced.SetConfigInt("ScrollWheelSpeed", value)
 				end
 			end,
 		},
@@ -4537,15 +4537,15 @@ function init()
 			category = types.basic,
 			name = widgetOptionColor .. "   " .. I18N("ui.settings.option.scrollinverse"),
 			type = "bool",
-			value = (tonumber(Spring.GetConfigInt("ScrollWheelSpeed", 1) or 25) < 0),
+			value = (tonumber(SpringUnsynced.GetConfigInt("ScrollWheelSpeed", 1) or 25) < 0),
 			description = "",
 			onload = function(i) end,
 			onchange = function(i, value)
 				if getOptionByID("scrollspeed") then
 					if value then
-						Spring.SetConfigInt("ScrollWheelSpeed", -options[getOptionByID("scrollspeed")].value)
+						SpringUnsynced.SetConfigInt("ScrollWheelSpeed", -options[getOptionByID("scrollspeed")].value)
 					else
-						Spring.SetConfigInt("ScrollWheelSpeed", options[getOptionByID("scrollspeed")].value)
+						SpringUnsynced.SetConfigInt("ScrollWheelSpeed", options[getOptionByID("scrollspeed")].value)
 					end
 				end
 			end,
@@ -4556,11 +4556,11 @@ function init()
 			category = types.basic,
 			name = widgetOptionColor .. "   " .. I18N("ui.settings.option.invertmouse"),
 			type = "bool",
-			value = tonumber(Spring.GetConfigInt("InvertMouse", 0)) == 1,
+			value = tonumber(SpringUnsynced.GetConfigInt("InvertMouse", 0)) == 1,
 			description = "",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetConfigInt("InvertMouse", value and 1 or 0)
+				SpringUnsynced.SetConfigInt("InvertMouse", value and 1 or 0)
 			end,
 		},
 		{ id = "scrolltoggleoverview", group = "control", category = types.advanced, widget = "Scrolldown Toggleoverview", name = widgetOptionColor .. "   " .. I18N("ui.settings.option.scrolltoggleoverview"), type = "bool", value = GetWidgetToggleValue("Scrolldown Toggleoverview"), description = I18N("ui.settings.option.scrolltoggleoverview_descr") },
@@ -4675,7 +4675,7 @@ function init()
 			category = types.basic,
 			name = widgetOptionColor .. "   " .. I18N("ui.settings.option.language_english_unit_names"),
 			type = "bool",
-			value = Spring.GetConfigInt("language_english_unit_names", 0) == 1,
+			value = SpringUnsynced.GetConfigInt("language_english_unit_names", 0) == 1,
 			onchange = function(i, value)
 				WG.language.setEnglishUnitNames(value)
 			end,
@@ -4689,13 +4689,13 @@ function init()
 			min = 0.8,
 			max = 1.3,
 			step = 0.01,
-			value = Spring.GetConfigFloat("ui_scale", 1),
+			value = SpringUnsynced.GetConfigFloat("ui_scale", 1),
 			description = "",
 			onload = function(i) end,
 			onchange = function(i, value, force)
 				if force then
-					Spring.SetConfigFloat("ui_scale", value)
-					Spring.SendCommands("luarules reloadluaui")
+					SpringUnsynced.SetConfigFloat("ui_scale", value)
+					SpringUnsynced.SendCommands("luarules reloadluaui")
 				else
 					sceduleOptionApply = { os.clock() + 1.5, getOptionByID("uiscale") }
 				end
@@ -4710,17 +4710,17 @@ function init()
 			min = 0.3,
 			max = 1,
 			step = 0.01,
-			value = Spring.GetConfigFloat("ui_opacity", 0.7),
+			value = SpringUnsynced.GetConfigFloat("ui_opacity", 0.7),
 			description = "",
 			onload = function(i) end,
 			onchange = function(i, value, force)
-				Spring.SetConfigFloat("ui_opacity", value)
-				ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
+				SpringUnsynced.SetConfigFloat("ui_opacity", value)
+				ui_opacity = SpringUnsynced.GetConfigFloat("ui_opacity", 0.7)
 				forceUpdate = true
 
 				if force then
-					Spring.SetConfigFloat("ui_opacity", value)
-					Spring.SendCommands("luarules reloadluaui")
+					SpringUnsynced.SetConfigFloat("ui_opacity", value)
+					SpringUnsynced.SendCommands("luarules reloadluaui")
 				else
 					sceduleOptionApply = { os.clock() + 1.5, getOptionByID("guiopacity") }
 				end
@@ -4735,13 +4735,13 @@ function init()
 			min = 4,
 			max = 40,
 			step = 1,
-			value = Spring.GetConfigFloat("ui_tilescale", 7),
+			value = SpringUnsynced.GetConfigFloat("ui_tilescale", 7),
 			description = "",
 			onload = function(i) end,
 			onchange = function(i, value, force)
 				if force then
-					Spring.SetConfigFloat("ui_tilescale", value)
-					Spring.SendCommands("luarules reloadluaui")
+					SpringUnsynced.SetConfigFloat("ui_tilescale", value)
+					SpringUnsynced.SendCommands("luarules reloadluaui")
 				else
 					sceduleOptionApply = { os.clock() + 1.5, getOptionByID("guitilescale") }
 				end
@@ -4756,13 +4756,13 @@ function init()
 			min = 0,
 			max = 0.03,
 			step = 0.001,
-			value = Spring.GetConfigFloat("ui_tileopacity", 0.014),
+			value = SpringUnsynced.GetConfigFloat("ui_tileopacity", 0.014),
 			description = "",
 			onload = function(i) end,
 			onchange = function(i, value, force)
 				if force then
-					Spring.SetConfigFloat("ui_tileopacity", value)
-					Spring.SendCommands("luarules reloadluaui")
+					SpringUnsynced.SetConfigFloat("ui_tileopacity", value)
+					SpringUnsynced.SendCommands("luarules reloadluaui")
 				else
 					sceduleOptionApply = { os.clock() + 1.5, getOptionByID("guitileopacity") }
 				end
@@ -4780,10 +4780,10 @@ function init()
 			min = 0.2,
 			max = 0.4,
 			step = 0.01,
-			value = Spring.GetConfigFloat("MinimapMaxHeight", 0.32),
+			value = SpringUnsynced.GetConfigFloat("MinimapMaxHeight", 0.32),
 			description = I18N("ui.settings.option.minimap_maxheight_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigFloat("MinimapMaxHeight", value)
+				SpringUnsynced.SetConfigFloat("MinimapMaxHeight", value)
 			end,
 		},
 		{
@@ -4792,10 +4792,10 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. I18N("ui.settings.option.minimapleftclick"),
 			type = "bool",
-			value = Spring.GetConfigInt("MinimapLeftClickMove", 1) == 1,
+			value = SpringUnsynced.GetConfigInt("MinimapLeftClickMove", 1) == 1,
 			description = I18N("ui.settings.option.minimapleftclick_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("MinimapLeftClickMove", value and 1 or 0)
+				SpringUnsynced.SetConfigInt("MinimapLeftClickMove", value and 1 or 0)
 				if WG.minimap and WG.minimap.setLeftClickMove then
 					WG.minimap.setLeftClickMove(value)
 				end
@@ -4810,12 +4810,12 @@ function init()
 			min = 2,
 			max = 5,
 			step = 0.25,
-			value = tonumber(Spring.GetConfigFloat("MinimapIconScale", 3.5) or 1),
+			value = tonumber(SpringUnsynced.GetConfigFloat("MinimapIconScale", 3.5) or 1),
 			description = "",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetConfigFloat("MinimapIconScale", value)
-				Spring.SendCommands("minimap unitsize " .. value) -- spring wont remember what you set with '/minimap iconssize #'
+				SpringUnsynced.SetConfigFloat("MinimapIconScale", value)
+				SpringUnsynced.SendCommands("minimap unitsize " .. value) -- spring wont remember what you set with '/minimap iconssize #'
 				if WG.minimap and WG.minimap.setBaseIconScale then
 					WG.minimap.setBaseIconScale(value)
 				end
@@ -4827,11 +4827,11 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. I18N("ui.settings.option.minimapminimized"),
 			type = "bool",
-			value = Spring.GetConfigInt("MinimapMinimize", 0) == 1,
+			value = SpringUnsynced.GetConfigInt("MinimapMinimize", 0) == 1,
 			description = I18N("ui.settings.option.minimapminimized_descr"),
 			onchange = function(i, value)
-				Spring.SendCommands("minimap minimize " .. (value and "1" or "0"))
-				Spring.SetConfigInt("MinimapMinimize", (value and "1" or "0"))
+				SpringUnsynced.SendCommands("minimap minimize " .. (value and "1" or "0"))
+				SpringUnsynced.SetConfigInt("MinimapMinimize", (value and "1" or "0"))
 			end,
 		},
 		{
@@ -4845,7 +4845,7 @@ function init()
 			onload = function(i)
 				loadWidgetData("Minimap Rotation Manager", "minimaprotation", { "mode" })
 				if options[i].value == nil then -- first load to migrate from old behavior smoothly, might wanna remove it later
-					options[i].value = Spring.GetConfigInt("MiniMapCanFlip", 0) + 1
+					options[i].value = SpringUnsynced.GetConfigInt("MiniMapCanFlip", 0) + 1
 				end
 			end,
 			onchange = function(i, value)
@@ -4863,10 +4863,10 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "      " .. I18N("ui.settings.option.pip_altkeyzoom"),
 			type = "bool",
-			value = Spring.GetConfigInt("PipAltKeyRequiredForZoom", 1) == 1,
+			value = SpringUnsynced.GetConfigInt("PipAltKeyRequiredForZoom", 1) == 1,
 			description = I18N("ui.settings.option.pip_altkeyzoom_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("PipAltKeyRequiredForZoom", value and 1 or 0)
+				SpringUnsynced.SetConfigInt("PipAltKeyRequiredForZoom", value and 1 or 0)
 				for _, n in ipairs({ 0, 1, 2, 3, 4 }) do
 					if WG["pip" .. n] and WG["pip" .. n].setAltKeyRequiredForZoom then
 						WG["pip" .. n].setAltKeyRequiredForZoom(value)
@@ -4881,10 +4881,10 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "      " .. I18N("ui.settings.option.pip_commandfx"),
 			type = "bool",
-			value = Spring.GetConfigInt("PipDrawCommandFX", 1) == 1,
+			value = SpringUnsynced.GetConfigInt("PipDrawCommandFX", 1) == 1,
 			description = I18N("ui.settings.option.pip_commandfx_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("PipDrawCommandFX", value and 1 or 0)
+				SpringUnsynced.SetConfigInt("PipDrawCommandFX", value and 1 or 0)
 				for _, n in ipairs({ 0, 1, 2, 3, 4 }) do
 					if WG["pip" .. n] and WG["pip" .. n].setDrawCommandFX then
 						WG["pip" .. n].setDrawCommandFX(value)
@@ -5401,11 +5401,11 @@ function init()
 			category = types.basic,
 			name = widgetOptionColor .. "   " .. I18N("ui.settings.option.console_hidespecchat"),
 			type = "bool",
-			value = (Spring.GetConfigInt("HideSpecChat", 0) == 1),
+			value = (SpringUnsynced.GetConfigInt("HideSpecChat", 0) == 1),
 			description = I18N("ui.settings.option.console_hidespecchat_descr"),
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetConfigInt("HideSpecChat", value and 1 or 0)
+				SpringUnsynced.SetConfigInt("HideSpecChat", value and 1 or 0)
 			end,
 		},
 		{
@@ -5414,11 +5414,11 @@ function init()
 			category = types.basic,
 			name = widgetOptionColor .. "      " .. widgetOptionColor .. I18N("ui.settings.option.console_hidespecchatplayer"),
 			type = "bool",
-			value = (Spring.GetConfigInt("HideSpecChatPlayer", 1) == 1),
+			value = (SpringUnsynced.GetConfigInt("HideSpecChatPlayer", 1) == 1),
 			description = I18N("ui.settings.option.console_hidespecchatplayer_descr"),
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetConfigInt("HideSpecChatPlayer", value and 1 or 0)
+				SpringUnsynced.SetConfigInt("HideSpecChatPlayer", value and 1 or 0)
 			end,
 		},
 		{
@@ -5529,12 +5529,12 @@ function init()
 			category = types.dev,
 			name = I18N("ui.settings.option.continuouslyclearmapmarks"),
 			type = "bool",
-			value = Spring.GetConfigInt("ContinuouslyClearMapmarks", 0) == 1,
+			value = SpringUnsynced.GetConfigInt("ContinuouslyClearMapmarks", 0) == 1,
 			description = I18N("ui.settings.option.continuouslyclearmapmarks_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("ContinuouslyClearMapmarks", (value and 1 or 0))
+				SpringUnsynced.SetConfigInt("ContinuouslyClearMapmarks", (value and 1 or 0))
 				if value then
-					Spring.SendCommands({ "clearmapmarks" })
+					SpringUnsynced.SendCommands({ "clearmapmarks" })
 				end
 			end,
 		},
@@ -5551,10 +5551,10 @@ function init()
 			category = types.advanced,
 			name = I18N("ui.settings.option.widgetselector"),
 			type = "bool",
-			value = Spring.GetConfigInt("widgetselector", 0) == 1,
+			value = SpringUnsynced.GetConfigInt("widgetselector", 0) == 1,
 			description = I18N("ui.settings.option.widgetselector_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("widgetselector", (value and 1 or 0))
+				SpringUnsynced.SetConfigInt("widgetselector", (value and 1 or 0))
 			end,
 		},
 
@@ -5570,11 +5570,11 @@ function init()
 			min = 0.85,
 			max = 3,
 			step = 0.05,
-			value = tonumber(Spring.GetConfigFloat("UnitIconScaleUI", 1) or 1),
+			value = tonumber(SpringUnsynced.GetConfigFloat("UnitIconScaleUI", 1) or 1),
 			description = I18N("ui.settings.option.uniticonscaleui_descr"),
 			onchange = function(i, value)
-				Spring.SendCommands("iconscaleui " .. value)
-				Spring.SetConfigFloat("UnitIconScaleUI", value)
+				SpringUnsynced.SendCommands("iconscaleui " .. value)
+				SpringUnsynced.SetConfigFloat("UnitIconScaleUI", value)
 			end,
 		},
 		{
@@ -5586,14 +5586,14 @@ function init()
 			min = 1,
 			max = 12000,
 			step = 50,
-			value = tonumber(Spring.GetConfigInt("UnitIconFadeVanish", 2700) or 1),
+			value = tonumber(SpringUnsynced.GetConfigInt("UnitIconFadeVanish", 2700) or 1),
 			description = I18N("ui.settings.option.uniticondistance_descr"),
 			onchange = function(i, value)
-				Spring.SendCommands("iconfadestart " .. value)
-				Spring.SetConfigInt("UnitIconFadeStart", value)
+				SpringUnsynced.SendCommands("iconfadestart " .. value)
+				SpringUnsynced.SetConfigInt("UnitIconFadeStart", value)
 				-- update UnitIconFadeVanish too
-				Spring.SendCommands("iconfadevanish " .. value)
-				Spring.SetConfigInt("UnitIconFadeVanish", value)
+				SpringUnsynced.SendCommands("iconfadevanish " .. value)
+				SpringUnsynced.SetConfigInt("UnitIconFadeVanish", value)
 			end,
 		},
 		{
@@ -5602,11 +5602,11 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. I18N("ui.settings.option.uniticonhidewithui"),
 			type = "bool",
-			value = (Spring.GetConfigInt("UnitIconsHideWithUI", 0) == 1),
+			value = (SpringUnsynced.GetConfigInt("UnitIconsHideWithUI", 0) == 1),
 			description = I18N("ui.settings.option.uniticonhidewithui_descr"),
 			onchange = function(i, value)
-				Spring.SendCommands("iconshidewithui " .. (value and 1 or 0))
-				Spring.SetConfigInt("UnitIconsHideWithUI", (value and 1 or 0))
+				SpringUnsynced.SendCommands("iconshidewithui " .. (value and 1 or 0))
+				SpringUnsynced.SetConfigInt("UnitIconsHideWithUI", (value and 1 or 0))
 			end,
 		},
 
@@ -5771,10 +5771,10 @@ function init()
 			max = 1.0,
 			step = 0.15,
 			type = "slider",
-			value = Spring.GetConfigFloat("UnitGhostIconsDimming", 0.8),
+			value = SpringUnsynced.GetConfigFloat("UnitGhostIconsDimming", 0.8),
 			description = I18N("ui.settings.option.ghosticons_brightness_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigFloat("UnitGhostIconsDimming", value)
+				SpringUnsynced.SetConfigFloat("UnitGhostIconsDimming", value)
 			end,
 		},
 
@@ -6198,11 +6198,11 @@ function init()
 			category = types.basic,
 			name = I18N("ui.settings.option.displaydps"),
 			type = "bool",
-			value = tonumber(Spring.GetConfigInt("DisplayDPS", 0) or 0) == 1,
+			value = tonumber(SpringUnsynced.GetConfigInt("DisplayDPS", 0) or 0) == 1,
 			description = I18N("ui.settings.option.displaydps_descr"),
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetConfigInt("DisplayDPS", (value and 1 or 0))
+				SpringUnsynced.SetConfigInt("DisplayDPS", (value and 1 or 0))
 			end,
 		},
 
@@ -6815,8 +6815,8 @@ function init()
 			description = I18N("ui.settings.option.devmode_descr"),
 			onchange = function(i, value)
 				devUI = value
-				Spring.SetConfigInt("DevUI", value and 1 or 0)
-				Spring.SendCommands("luaui reload")
+				SpringUnsynced.SetConfigInt("DevUI", value and 1 or 0)
+				SpringUnsynced.SendCommands("luaui reload")
 			end,
 		},
 
@@ -6836,19 +6836,19 @@ function init()
 			onchange = function(i, value)
 				useNetworkSmoothing = value
 				if useNetworkSmoothing then
-					Spring.SetConfigInt("UseNetMessageSmoothingBuffer", 1)
-					Spring.SetConfigInt("NetworkLossFactor", 0)
-					Spring.SetConfigInt("LinkOutgoingBandwidth", 196608)
-					Spring.SetConfigInt("LinkIncomingSustainedBandwidth", 196608)
-					Spring.SetConfigInt("LinkIncomingPeakBandwidth", 196608)
-					Spring.SetConfigInt("LinkIncomingMaxPacketRate", 1024)
+					SpringUnsynced.SetConfigInt("UseNetMessageSmoothingBuffer", 1)
+					SpringUnsynced.SetConfigInt("NetworkLossFactor", 0)
+					SpringUnsynced.SetConfigInt("LinkOutgoingBandwidth", 196608)
+					SpringUnsynced.SetConfigInt("LinkIncomingSustainedBandwidth", 196608)
+					SpringUnsynced.SetConfigInt("LinkIncomingPeakBandwidth", 196608)
+					SpringUnsynced.SetConfigInt("LinkIncomingMaxPacketRate", 1024)
 				else
-					Spring.SetConfigInt("UseNetMessageSmoothingBuffer", 0)
-					Spring.SetConfigInt("NetworkLossFactor", 2)
-					Spring.SetConfigInt("LinkOutgoingBandwidth", 196608)
-					Spring.SetConfigInt("LinkIncomingSustainedBandwidth", 1048576)
-					Spring.SetConfigInt("LinkIncomingPeakBandwidth", 1048576)
-					Spring.SetConfigInt("LinkIncomingMaxPacketRate", 2048)
+					SpringUnsynced.SetConfigInt("UseNetMessageSmoothingBuffer", 0)
+					SpringUnsynced.SetConfigInt("NetworkLossFactor", 2)
+					SpringUnsynced.SetConfigInt("LinkOutgoingBandwidth", 196608)
+					SpringUnsynced.SetConfigInt("LinkIncomingSustainedBandwidth", 1048576)
+					SpringUnsynced.SetConfigInt("LinkIncomingPeakBandwidth", 1048576)
+					SpringUnsynced.SetConfigInt("LinkIncomingMaxPacketRate", 2048)
 				end
 			end,
 		},
@@ -6866,10 +6866,10 @@ function init()
 				pauseGameWhenSingleplayer = value
 				if (isSinglePlayer or isReplay) and show then
 					if pauseGameWhenSingleplayer then
-						Spring.SendCommands("pause " .. (pauseGameWhenSingleplayer and "1" or "0"))
+						SpringUnsynced.SendCommands("pause " .. (pauseGameWhenSingleplayer and "1" or "0"))
 						pauseGameWhenSingleplayerExecuted = pauseGameWhenSingleplayer
 					elseif pauseGameWhenSingleplayerExecuted then
-						Spring.SendCommands("pause 0")
+						SpringUnsynced.SendCommands("pause 0")
 						pauseGameWhenSingleplayerExecuted = false
 					end
 				end
@@ -6886,10 +6886,10 @@ function init()
 			min = 0.05,
 			max = 0.3,
 			step = 0.01,
-			value = Spring.GetConfigFloat("MinSimDrawBalance", 0.15),
+			value = SpringUnsynced.GetConfigFloat("MinSimDrawBalance", 0.15),
 			description = I18N("ui.settings.option.catchupsmoothness_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigFloat("MinSimDrawBalance", value)
+				SpringUnsynced.SetConfigFloat("MinSimDrawBalance", value)
 			end,
 		},
 		{
@@ -6902,10 +6902,10 @@ function init()
 			min = 2,
 			max = 15,
 			step = 1,
-			value = Spring.GetConfigInt("MinDrawFPS", 2),
+			value = SpringUnsynced.GetConfigInt("MinDrawFPS", 2),
 			description = I18N("ui.settings.option.catchupminfps_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("MinDrawFPS", value)
+				SpringUnsynced.SetConfigInt("MinDrawFPS", value)
 			end,
 		},
 
@@ -7134,12 +7134,12 @@ function init()
 			min = 0,
 			max = 255,
 			step = 1,
-			value = tonumber(Spring.GetConfigInt("anonymousColorR", 255)),
+			value = tonumber(SpringUnsynced.GetConfigInt("anonymousColorR", 255)),
 			description = I18N("ui.settings.option.anonymous_descr"),
 			onchange = function(i, value, force)
 				if force then
-					Spring.SetConfigInt("anonymousColorR", value)
-					Spring.SendCommands("luarules reloadluaui")
+					SpringUnsynced.SetConfigInt("anonymousColorR", value)
+					SpringUnsynced.SendCommands("luarules reloadluaui")
 				else
 					sceduleOptionApply = { os.clock() + 1.5, getOptionByID("anonymous_r") }
 				end
@@ -7155,12 +7155,12 @@ function init()
 			min = 0,
 			max = 255,
 			step = 1,
-			value = tonumber(Spring.GetConfigInt("anonymousColorG", 0)),
+			value = tonumber(SpringUnsynced.GetConfigInt("anonymousColorG", 0)),
 			description = I18N("ui.settings.option.anonymous_descr"),
 			onchange = function(i, value, force)
 				if force then
-					Spring.SetConfigInt("anonymousColorG", value)
-					Spring.SendCommands("luarules reloadluaui")
+					SpringUnsynced.SetConfigInt("anonymousColorG", value)
+					SpringUnsynced.SendCommands("luarules reloadluaui")
 				else
 					sceduleOptionApply = { os.clock() + 1.5, getOptionByID("anonymous_g") }
 				end
@@ -7176,12 +7176,12 @@ function init()
 			min = 0,
 			max = 255,
 			step = 1,
-			value = tonumber(Spring.GetConfigInt("anonymousColorB", 0)),
+			value = tonumber(SpringUnsynced.GetConfigInt("anonymousColorB", 0)),
 			description = I18N("ui.settings.option.anonymous_descr"),
 			onchange = function(i, value, force)
 				if force then
-					Spring.SetConfigInt("anonymousColorB", value)
-					Spring.SendCommands("luarules reloadluaui")
+					SpringUnsynced.SetConfigInt("anonymousColorB", value)
+					SpringUnsynced.SendCommands("luarules reloadluaui")
 				else
 					sceduleOptionApply = { os.clock() + 1.5, getOptionByID("anonymous_b") }
 				end
@@ -7194,11 +7194,11 @@ function init()
 			category = types.basic,
 			name = I18N("ui.settings.option.playercolors"),
 			type = "bool",
-			value = tonumber(Spring.GetConfigInt("SimpleTeamColors", 0) or 0) == 1,
+			value = tonumber(SpringUnsynced.GetConfigInt("SimpleTeamColors", 0) or 0) == 1,
 			description = I18N("ui.settings.option.simpleteamcolors_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("SimpleTeamColors", (value and 1 or 0))
-				Spring.SetConfigInt("UpdateTeamColors", 1)
+				SpringUnsynced.SetConfigInt("SimpleTeamColors", (value and 1 or 0))
+				SpringUnsynced.SetConfigInt("UpdateTeamColors", 1)
 			end,
 		},
 
@@ -7208,19 +7208,19 @@ function init()
 			category = types.basic,
 			name = widgetOptionColor .. "   " .. I18N("ui.settings.option.simpleteamcolors_reset"),
 			type = "bool",
-			value = tonumber(Spring.GetConfigInt("SimpleTeamColors_Reset", 0) or 0) == 1,
+			value = tonumber(SpringUnsynced.GetConfigInt("SimpleTeamColors_Reset", 0) or 0) == 1,
 			onchange = function(i, value)
-				Spring.SetConfigInt("SimpleTeamColorsUseGradient", 0)
-				Spring.SetConfigInt("SimpleTeamColorsPlayerR", 0)
-				Spring.SetConfigInt("SimpleTeamColorsPlayerG", 77)
-				Spring.SetConfigInt("SimpleTeamColorsPlayerB", 255)
-				Spring.SetConfigInt("SimpleTeamColorsAllyR", 0)
-				Spring.SetConfigInt("SimpleTeamColorsAllyG", 255)
-				Spring.SetConfigInt("SimpleTeamColorsAllyB", 0)
-				Spring.SetConfigInt("SimpleTeamColorsEnemyR", 255)
-				Spring.SetConfigInt("SimpleTeamColorsEnemyG", 16)
-				Spring.SetConfigInt("SimpleTeamColorsEnemyB", 5)
-				Spring.SetConfigInt("UpdateTeamColors", 1)
+				SpringUnsynced.SetConfigInt("SimpleTeamColorsUseGradient", 0)
+				SpringUnsynced.SetConfigInt("SimpleTeamColorsPlayerR", 0)
+				SpringUnsynced.SetConfigInt("SimpleTeamColorsPlayerG", 77)
+				SpringUnsynced.SetConfigInt("SimpleTeamColorsPlayerB", 255)
+				SpringUnsynced.SetConfigInt("SimpleTeamColorsAllyR", 0)
+				SpringUnsynced.SetConfigInt("SimpleTeamColorsAllyG", 255)
+				SpringUnsynced.SetConfigInt("SimpleTeamColorsAllyB", 0)
+				SpringUnsynced.SetConfigInt("SimpleTeamColorsEnemyR", 255)
+				SpringUnsynced.SetConfigInt("SimpleTeamColorsEnemyG", 16)
+				SpringUnsynced.SetConfigInt("SimpleTeamColorsEnemyB", 5)
+				SpringUnsynced.SetConfigInt("UpdateTeamColors", 1)
 			end,
 		},
 		{
@@ -7229,10 +7229,10 @@ function init()
 			category = types.basic,
 			name = widgetOptionColor .. "   " .. I18N("ui.settings.option.simpleteamcolors_use_gradient"),
 			type = "bool",
-			value = tonumber(Spring.GetConfigInt("SimpleTeamColorsUseGradient", 0) or 0) == 1,
+			value = tonumber(SpringUnsynced.GetConfigInt("SimpleTeamColorsUseGradient", 0) or 0) == 1,
 			onchange = function(i, value)
-				Spring.SetConfigInt("SimpleTeamColorsUseGradient", (value and 1 or 0))
-				Spring.SetConfigInt("UpdateTeamColors", 1)
+				SpringUnsynced.SetConfigInt("SimpleTeamColorsUseGradient", (value and 1 or 0))
+				SpringUnsynced.SetConfigInt("UpdateTeamColors", 1)
 			end,
 		},
 		{
@@ -7241,11 +7241,11 @@ function init()
 			category = types.dev,
 			name = widgetOptionColor .. "   " .. I18N("ui.settings.option.simpleteamcolorsfactionspecific"),
 			type = "bool",
-			value = tonumber(Spring.GetConfigInt("SimpleTeamColorsFactionSpecific", 0) or 0) == 1,
+			value = tonumber(SpringUnsynced.GetConfigInt("SimpleTeamColorsFactionSpecific", 0) or 0) == 1,
 			description = I18N("ui.settings.option.simpleteamcolorsfactionspecific_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("SimpleTeamColorsFactionSpecific", (value and 1 or 0))
-				Spring.SetConfigInt("UpdateTeamColors", 1)
+				SpringUnsynced.SetConfigInt("SimpleTeamColorsFactionSpecific", (value and 1 or 0))
+				SpringUnsynced.SetConfigInt("UpdateTeamColors", 1)
 			end,
 		},
 		{
@@ -7257,10 +7257,10 @@ function init()
 			min = 0,
 			max = 255,
 			step = 1,
-			value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerR", 0)),
+			value = tonumber(SpringUnsynced.GetConfigInt("SimpleTeamColorsPlayerR", 0)),
 			onchange = function(i, value)
-				Spring.SetConfigInt("SimpleTeamColorsPlayerR", value)
-				Spring.SetConfigInt("UpdateTeamColors", 1)
+				SpringUnsynced.SetConfigInt("SimpleTeamColorsPlayerR", value)
+				SpringUnsynced.SetConfigInt("UpdateTeamColors", 1)
 			end,
 		},
 		{
@@ -7272,10 +7272,10 @@ function init()
 			min = 0,
 			max = 255,
 			step = 1,
-			value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerG", 77)),
+			value = tonumber(SpringUnsynced.GetConfigInt("SimpleTeamColorsPlayerG", 77)),
 			onchange = function(i, value)
-				Spring.SetConfigInt("SimpleTeamColorsPlayerG", value)
-				Spring.SetConfigInt("UpdateTeamColors", 1)
+				SpringUnsynced.SetConfigInt("SimpleTeamColorsPlayerG", value)
+				SpringUnsynced.SetConfigInt("UpdateTeamColors", 1)
 			end,
 		},
 		{
@@ -7287,10 +7287,10 @@ function init()
 			min = 0,
 			max = 255,
 			step = 1,
-			value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerB", 255)),
+			value = tonumber(SpringUnsynced.GetConfigInt("SimpleTeamColorsPlayerB", 255)),
 			onchange = function(i, value)
-				Spring.SetConfigInt("SimpleTeamColorsPlayerB", value)
-				Spring.SetConfigInt("UpdateTeamColors", 1)
+				SpringUnsynced.SetConfigInt("SimpleTeamColorsPlayerB", value)
+				SpringUnsynced.SetConfigInt("UpdateTeamColors", 1)
 			end,
 		},
 
@@ -7303,10 +7303,10 @@ function init()
 			min = 0,
 			max = 255,
 			step = 1,
-			value = tonumber(Spring.GetConfigInt("SimpleTeamColorsAllyR", 0)),
+			value = tonumber(SpringUnsynced.GetConfigInt("SimpleTeamColorsAllyR", 0)),
 			onchange = function(i, value)
-				Spring.SetConfigInt("SimpleTeamColorsAllyR", value)
-				Spring.SetConfigInt("UpdateTeamColors", 1)
+				SpringUnsynced.SetConfigInt("SimpleTeamColorsAllyR", value)
+				SpringUnsynced.SetConfigInt("UpdateTeamColors", 1)
 			end,
 		},
 		{
@@ -7318,10 +7318,10 @@ function init()
 			min = 0,
 			max = 255,
 			step = 1,
-			value = tonumber(Spring.GetConfigInt("SimpleTeamColorsAllyG", 255)),
+			value = tonumber(SpringUnsynced.GetConfigInt("SimpleTeamColorsAllyG", 255)),
 			onchange = function(i, value)
-				Spring.SetConfigInt("SimpleTeamColorsAllyG", value)
-				Spring.SetConfigInt("UpdateTeamColors", 1)
+				SpringUnsynced.SetConfigInt("SimpleTeamColorsAllyG", value)
+				SpringUnsynced.SetConfigInt("UpdateTeamColors", 1)
 			end,
 		},
 		{
@@ -7333,10 +7333,10 @@ function init()
 			min = 0,
 			max = 255,
 			step = 1,
-			value = tonumber(Spring.GetConfigInt("SimpleTeamColorsAllyB", 0)),
+			value = tonumber(SpringUnsynced.GetConfigInt("SimpleTeamColorsAllyB", 0)),
 			onchange = function(i, value)
-				Spring.SetConfigInt("SimpleTeamColorsAllyB", value)
-				Spring.SetConfigInt("UpdateTeamColors", 1)
+				SpringUnsynced.SetConfigInt("SimpleTeamColorsAllyB", value)
+				SpringUnsynced.SetConfigInt("UpdateTeamColors", 1)
 			end,
 		},
 
@@ -7349,10 +7349,10 @@ function init()
 			min = 0,
 			max = 255,
 			step = 1,
-			value = tonumber(Spring.GetConfigInt("SimpleTeamColorsEnemyR", 255)),
+			value = tonumber(SpringUnsynced.GetConfigInt("SimpleTeamColorsEnemyR", 255)),
 			onchange = function(i, value)
-				Spring.SetConfigInt("SimpleTeamColorsEnemyR", value)
-				Spring.SetConfigInt("UpdateTeamColors", 1)
+				SpringUnsynced.SetConfigInt("SimpleTeamColorsEnemyR", value)
+				SpringUnsynced.SetConfigInt("UpdateTeamColors", 1)
 			end,
 		},
 		{
@@ -7364,10 +7364,10 @@ function init()
 			min = 0,
 			max = 255,
 			step = 1,
-			value = tonumber(Spring.GetConfigInt("SimpleTeamColorsEnemyG", 16)),
+			value = tonumber(SpringUnsynced.GetConfigInt("SimpleTeamColorsEnemyG", 16)),
 			onchange = function(i, value)
-				Spring.SetConfigInt("SimpleTeamColorsEnemyG", value)
-				Spring.SetConfigInt("UpdateTeamColors", 1)
+				SpringUnsynced.SetConfigInt("SimpleTeamColorsEnemyG", value)
+				SpringUnsynced.SetConfigInt("UpdateTeamColors", 1)
 			end,
 		},
 		{
@@ -7379,10 +7379,10 @@ function init()
 			min = 0,
 			max = 255,
 			step = 1,
-			value = tonumber(Spring.GetConfigInt("SimpleTeamColorsEnemyB", 5)),
+			value = tonumber(SpringUnsynced.GetConfigInt("SimpleTeamColorsEnemyB", 5)),
 			onchange = function(i, value)
-				Spring.SetConfigInt("SimpleTeamColorsEnemyB", value)
-				Spring.SetConfigInt("UpdateTeamColors", 1)
+				SpringUnsynced.SetConfigInt("SimpleTeamColorsEnemyB", value)
+				SpringUnsynced.SetConfigInt("UpdateTeamColors", 1)
 			end,
 		},
 
@@ -7397,7 +7397,7 @@ function init()
 			description = I18N("ui.settings.option.customwidgets_descr"),
 			onchange = function(i, value)
 				widgetHandler.__allowUserWidgets = value
-				Spring.SendCommands("luarules reloadluaui")
+				SpringUnsynced.SendCommands("luarules reloadluaui")
 			end,
 		},
 
@@ -7412,7 +7412,7 @@ function init()
 			description = I18N("ui.settings.option.restart_descr"),
 			onchange = function(i, value)
 				options[getOptionByID("restart")].value = false
-				Spring.Restart("", startScript)
+				SpringUnsynced.Restart("", startScript)
 			end,
 		},
 
@@ -7428,7 +7428,7 @@ function init()
 			type = "bool",
 			value = false,
 			onchange = function(i, value)
-				Spring.SendCommands("luarules profile")
+				SpringUnsynced.SendCommands("luarules profile")
 			end,
 		},
 		{
@@ -7437,10 +7437,10 @@ function init()
 			category = types.dev,
 			name = widgetOptionColor .. "   " .. I18N("ui.settings.option.profiler_sort_by_load"),
 			type = "bool",
-			value = Spring.GetConfigInt("profiler_sort_by_load", 1),
+			value = SpringUnsynced.GetConfigInt("profiler_sort_by_load", 1),
 			description = I18N("ui.settings.option.profiler_sort_by_load_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("profiler_sort_by_load", (value and "1" or "0"))
+				SpringUnsynced.SetConfigInt("profiler_sort_by_load", (value and "1" or "0"))
 			end,
 		},
 		{
@@ -7452,10 +7452,10 @@ function init()
 			min = 0.1,
 			max = 10,
 			step = 0.1,
-			value = Spring.GetConfigFloat("profiler_averagetime", 2),
+			value = SpringUnsynced.GetConfigFloat("profiler_averagetime", 2),
 			description = I18N("ui.settings.option.profiler_averagetime_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigFloat("profiler_averagetime", value)
+				SpringUnsynced.SetConfigFloat("profiler_averagetime", value)
 			end,
 		},
 		{ id = "framegrapher", group = "dev", category = types.dev, widget = "Frame Grapher", name = I18N("ui.settings.option.framegrapher"), type = "bool", value = GetWidgetToggleValue("Frame Grapher"), description = "" },
@@ -7469,7 +7469,7 @@ function init()
 			value = false,
 			description = "",
 			onchange = function(i, value)
-				Spring.SendCommands("DebugColVol " .. (value and "1" or "0"))
+				SpringUnsynced.SendCommands("DebugColVol " .. (value and "1" or "0"))
 			end,
 		},
 		{
@@ -7482,7 +7482,7 @@ function init()
 			description = I18N("ui.settings.option.echocamerastate_descr"),
 			onchange = function(i, value)
 				options[getOptionByID("echocamerastate")].value = false
-				Spring.Echo(Spring.GetCameraState())
+				SpringShared.Echo(SpringUnsynced.GetCameraState())
 			end,
 		},
 
@@ -7495,10 +7495,10 @@ function init()
 			category = types.dev,
 			name = I18N("ui.settings.option.storedefaultsettings"),
 			type = "bool",
-			value = tonumber(Spring.GetConfigInt("StoreDefaultSettings", 0) or 0) == 1,
+			value = tonumber(SpringUnsynced.GetConfigInt("StoreDefaultSettings", 0) or 0) == 1,
 			description = I18N("ui.settings.option.storedefaultsettings_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigInt("StoreDefaultSettings", (value and 1 or 0))
+				SpringUnsynced.SetConfigInt("StoreDefaultSettings", (value and 1 or 0))
 			end,
 		},
 
@@ -7529,8 +7529,8 @@ function init()
 			onload = function(i) end,
 			onchange = function(i, value)
 				if VFS.FileExists("fonts/" .. options[i].optionsFont[value]) then
-					Spring.SetConfigString("bar_font", options[i].optionsFont[value])
-					Spring.SendCommands("luarules reloadluaui")
+					SpringUnsynced.SetConfigString("bar_font", options[i].optionsFont[value])
+					SpringUnsynced.SendCommands("luarules reloadluaui")
 				end
 			end,
 		},
@@ -7546,8 +7546,8 @@ function init()
 			onload = function(i) end,
 			onchange = function(i, value)
 				if VFS.FileExists("fonts/" .. options[i].optionsFont[value]) then
-					Spring.SetConfigString("bar_font2", options[i].optionsFont[value])
-					Spring.SendCommands("luarules reloadluaui")
+					SpringUnsynced.SetConfigString("bar_font2", options[i].optionsFont[value])
+					SpringUnsynced.SendCommands("luarules reloadluaui")
 				end
 			end,
 		},
@@ -7667,10 +7667,10 @@ function init()
 					sunY = options[getOptionByID("sun_y")].max
 				end
 				options[getOptionByID("sun_y")].value = sunY
-				Spring.SetSunDirection(sunX, sunY, sunZ)
+				SpringUnsynced.SetSunDirection(sunX, sunY, sunZ)
 				-- just so that map/model lighting gets updated
-				Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
-				Spring.Echo(gl.GetSun())
+				SpringUnsynced.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
+				SpringShared.Echo(gl.GetSun())
 			end,
 		},
 		{
@@ -7693,10 +7693,10 @@ function init()
 					sunX = options[getOptionByID("sun_x")].max
 				end
 				options[getOptionByID("sun_x")].value = sunX
-				Spring.SetSunDirection(sunX, sunY, sunZ)
+				SpringUnsynced.SetSunDirection(sunX, sunY, sunZ)
 				-- just so that map/model lighting gets updated
-				Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
-				Spring.Echo(gl.GetSun())
+				SpringUnsynced.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
+				SpringShared.Echo(gl.GetSun())
 			end,
 		},
 		{
@@ -7720,10 +7720,10 @@ function init()
 					sunZ = options[getOptionByID("sun_z")].max
 				end
 				options[getOptionByID("sun_z")].value = sunZ
-				Spring.SetSunDirection(sunX, sunY, sunZ)
+				SpringUnsynced.SetSunDirection(sunX, sunY, sunZ)
 				-- just so that map/model lighting gets updated
-				Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
-				Spring.Echo(gl.GetSun())
+				SpringUnsynced.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
+				SpringShared.Echo(gl.GetSun())
 			end,
 		},
 		{
@@ -7739,10 +7739,10 @@ function init()
 				options[getOptionByID("sun_y")].value = defaultMapSunPos[2]
 				options[getOptionByID("sun_z")].value = defaultMapSunPos[3]
 				options[getOptionByID("sun_reset")].value = false
-				Spring.SetSunDirection(defaultMapSunPos[1], defaultMapSunPos[2], defaultMapSunPos[3])
+				SpringUnsynced.SetSunDirection(defaultMapSunPos[1], defaultMapSunPos[2], defaultMapSunPos[3])
 				-- just so that map/model lighting gets updated
-				Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
-				Spring.Echo(gl.GetSun())
+				SpringUnsynced.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
+				SpringShared.Echo(gl.GetSun())
 			end,
 		},
 
@@ -7761,7 +7761,7 @@ function init()
 				if getOptionByID("fog_end") and value >= options[getOptionByID("fog_end")].value then
 					applyOptionValue(getOptionByID("fog_end"), value + 0.01)
 				end
-				Spring.SetAtmosphere({ fogStart = value })
+				SpringUnsynced.SetAtmosphere({ fogStart = value })
 			end,
 		},
 		{
@@ -7779,7 +7779,7 @@ function init()
 				if getOptionByID("fog_start") and value <= options[getOptionByID("fog_start")].value then
 					applyOptionValue(getOptionByID("fog_start"), value - 0.01)
 				end
-				Spring.SetAtmosphere({ fogEnd = value })
+				SpringUnsynced.SetAtmosphere({ fogEnd = value })
 			end,
 		},
 		{
@@ -7797,7 +7797,7 @@ function init()
 					options[getOptionByID("fog_end")].value = defaultMapFog.fogEnd
 					options[getOptionByID("fog_reset")].value = false
 				end
-				Spring.SetAtmosphere({ fogStart = defaultMapFog.fogStart, fogEnd = defaultMapFog.fogEnd })
+				SpringUnsynced.SetAtmosphere({ fogStart = defaultMapFog.fogStart, fogEnd = defaultMapFog.fogEnd })
 			end,
 		},
 
@@ -7815,7 +7815,7 @@ function init()
 			onload = function(i) end,
 			onchange = function(i, value)
 				local fogColor = { gl.GetAtmosphere("fogColor") }
-				Spring.SetAtmosphere({ fogColor = { value, fogColor[2], fogColor[3], fogColor[4] } })
+				SpringUnsynced.SetAtmosphere({ fogColor = { value, fogColor[2], fogColor[3], fogColor[4] } })
 			end,
 		},
 		{
@@ -7832,7 +7832,7 @@ function init()
 			onload = function(i) end,
 			onchange = function(i, value)
 				local fogColor = { gl.GetAtmosphere("fogColor") }
-				Spring.SetAtmosphere({ fogColor = { fogColor[1], value, fogColor[3], fogColor[4] } })
+				SpringUnsynced.SetAtmosphere({ fogColor = { fogColor[1], value, fogColor[3], fogColor[4] } })
 			end,
 		},
 		{
@@ -7849,7 +7849,7 @@ function init()
 			onload = function(i) end,
 			onchange = function(i, value)
 				local fogColor = { gl.GetAtmosphere("fogColor") }
-				Spring.SetAtmosphere({ fogColor = { fogColor[1], fogColor[2], value, fogColor[4] } })
+				SpringUnsynced.SetAtmosphere({ fogColor = { fogColor[1], fogColor[2], value, fogColor[4] } })
 			end,
 		},
 		{
@@ -7866,8 +7866,8 @@ function init()
 				options[getOptionByID("fog_g")].value = defaultMapFog.fogColor[2]
 				options[getOptionByID("fog_b")].value = defaultMapFog.fogColor[3]
 				options[getOptionByID("fog_color_reset")].value = false
-				Spring.SetAtmosphere({ fogColor = defaultMapFog.fogColor })
-				Spring.Echo("resetted map fog color defaults")
+				SpringUnsynced.SetAtmosphere({ fogColor = defaultMapFog.fogColor })
+				SpringShared.Echo("resetted map fog color defaults")
 			end,
 		},
 
@@ -7883,7 +7883,7 @@ function init()
 				options[i].value = gl.GetMapRendering("voidWater")
 			end,
 			onchange = function(i, value)
-				Spring.SetMapRenderingParams({ voidWater = value })
+				SpringUnsynced.SetMapRenderingParams({ voidWater = value })
 			end,
 		},
 		{
@@ -7898,7 +7898,7 @@ function init()
 				options[i].value = gl.GetMapRendering("voidGround")
 			end,
 			onchange = function(i, value)
-				Spring.SetMapRenderingParams({ voidGround = value })
+				SpringUnsynced.SetMapRenderingParams({ voidGround = value })
 			end,
 		},
 
@@ -7914,7 +7914,7 @@ function init()
 				options[i].value = gl.GetMapRendering("splatDetailNormalDiffuseAlpha")
 			end,
 			onchange = function(i, value)
-				Spring.SetMapRenderingParams({ splatDetailNormalDiffuseAlpha = value })
+				SpringUnsynced.SetMapRenderingParams({ splatDetailNormalDiffuseAlpha = value })
 			end,
 		},
 
@@ -7935,7 +7935,7 @@ function init()
 			end,
 			onchange = function(i, value)
 				local r, g, b, a = gl.GetMapRendering("splatTexMults")
-				Spring.SetMapRenderingParams({ splatTexMults = { value, g, b, a } })
+				SpringUnsynced.SetMapRenderingParams({ splatTexMults = { value, g, b, a } })
 			end,
 		},
 		{
@@ -7955,7 +7955,7 @@ function init()
 			end,
 			onchange = function(i, value)
 				local r, g, b, a = gl.GetMapRendering("splatTexMults")
-				Spring.SetMapRenderingParams({ splatTexMults = { r, value, b, a } })
+				SpringUnsynced.SetMapRenderingParams({ splatTexMults = { r, value, b, a } })
 			end,
 		},
 		{
@@ -7975,7 +7975,7 @@ function init()
 			end,
 			onchange = function(i, value)
 				local r, g, b, a = gl.GetMapRendering("splatTexMults")
-				Spring.SetMapRenderingParams({ splatTexMults = { r, g, value, a } })
+				SpringUnsynced.SetMapRenderingParams({ splatTexMults = { r, g, value, a } })
 			end,
 		},
 		{
@@ -7995,7 +7995,7 @@ function init()
 			end,
 			onchange = function(i, value)
 				local r, g, b, a = gl.GetMapRendering("splatTexMults")
-				Spring.SetMapRenderingParams({ splatTexMults = { r, g, b, value } })
+				SpringUnsynced.SetMapRenderingParams({ splatTexMults = { r, g, b, value } })
 			end,
 		},
 
@@ -8016,7 +8016,7 @@ function init()
 			end,
 			onchange = function(i, value)
 				local r, g, b, a = gl.GetMapRendering("splatTexScales")
-				Spring.SetMapRenderingParams({ splatTexScales = { value, g, b, a } })
+				SpringUnsynced.SetMapRenderingParams({ splatTexScales = { value, g, b, a } })
 			end,
 		},
 		{
@@ -8036,7 +8036,7 @@ function init()
 			end,
 			onchange = function(i, value)
 				local r, g, b, a = gl.GetMapRendering("splatTexScales")
-				Spring.SetMapRenderingParams({ splatTexScales = { r, value, b, a } })
+				SpringUnsynced.SetMapRenderingParams({ splatTexScales = { r, value, b, a } })
 			end,
 		},
 		{
@@ -8056,7 +8056,7 @@ function init()
 			end,
 			onchange = function(i, value)
 				local r, g, b, a = gl.GetMapRendering("splatTexScales")
-				Spring.SetMapRenderingParams({ splatTexScales = { r, g, value, a } })
+				SpringUnsynced.SetMapRenderingParams({ splatTexScales = { r, g, value, a } })
 			end,
 		},
 		{
@@ -8076,7 +8076,7 @@ function init()
 			end,
 			onchange = function(i, value)
 				local r, g, b, a = gl.GetMapRendering("splatTexScales")
-				Spring.SetMapRenderingParams({ splatTexScales = { r, g, b, value } })
+				SpringUnsynced.SetMapRenderingParams({ splatTexScales = { r, g, b, value } })
 			end,
 		},
 
@@ -8096,8 +8096,8 @@ function init()
 				options[i].value = groundshadowDensity
 			end,
 			onchange = function(i, value)
-				Spring.SetSunLighting({ groundShadowDensity = value })
-				Spring.SendCommands("luarules updatesun")
+				SpringUnsynced.SetSunLighting({ groundShadowDensity = value })
+				SpringUnsynced.SendCommands("luarules updatesun")
 			end,
 		},
 
@@ -8117,8 +8117,8 @@ function init()
 				options[i].value = groundshadowDensity
 			end,
 			onchange = function(i, value)
-				Spring.SetSunLighting({ modelShadowDensity = value })
-				Spring.SendCommands("luarules updatesun")
+				SpringUnsynced.SetSunLighting({ modelShadowDensity = value })
+				SpringUnsynced.SendCommands("luarules updatesun")
 			end,
 		},
 
@@ -8139,8 +8139,8 @@ function init()
 			end,
 			onchange = function(i, value)
 				local r, g, b = gl.GetSun("ambient")
-				Spring.SetSunLighting({ groundAmbientColor = { value, g, b } })
-				Spring.SendCommands("luarules updatesun")
+				SpringUnsynced.SetSunLighting({ groundAmbientColor = { value, g, b } })
+				SpringUnsynced.SendCommands("luarules updatesun")
 			end,
 		},
 		{
@@ -8160,8 +8160,8 @@ function init()
 			end,
 			onchange = function(i, value)
 				local r, g, b = gl.GetSun("ambient")
-				Spring.SetSunLighting({ groundAmbientColor = { r, value, b } })
-				Spring.SendCommands("luarules updatesun")
+				SpringUnsynced.SetSunLighting({ groundAmbientColor = { r, value, b } })
+				SpringUnsynced.SendCommands("luarules updatesun")
 			end,
 		},
 		{
@@ -8181,8 +8181,8 @@ function init()
 			end,
 			onchange = function(i, value)
 				local r, g, b = gl.GetSun("ambient")
-				Spring.SetSunLighting({ groundAmbientColor = { r, g, value } })
-				Spring.SendCommands("luarules updatesun")
+				SpringUnsynced.SetSunLighting({ groundAmbientColor = { r, g, value } })
+				SpringUnsynced.SendCommands("luarules updatesun")
 			end,
 		},
 
@@ -8203,8 +8203,8 @@ function init()
 			end,
 			onchange = function(i, value)
 				local r, g, b = gl.GetSun("diffuse")
-				Spring.SetSunLighting({ groundDiffuseColor = { value, g, b } })
-				Spring.SendCommands("luarules updatesun")
+				SpringUnsynced.SetSunLighting({ groundDiffuseColor = { value, g, b } })
+				SpringUnsynced.SendCommands("luarules updatesun")
 			end,
 		},
 		{
@@ -8224,8 +8224,8 @@ function init()
 			end,
 			onchange = function(i, value)
 				local r, g, b = gl.GetSun("diffuse")
-				Spring.SetSunLighting({ groundDiffuseColor = { r, value, b } })
-				Spring.SendCommands("luarules updatesun")
+				SpringUnsynced.SetSunLighting({ groundDiffuseColor = { r, value, b } })
+				SpringUnsynced.SendCommands("luarules updatesun")
 			end,
 		},
 		{
@@ -8245,8 +8245,8 @@ function init()
 			end,
 			onchange = function(i, value)
 				local r, g, b = gl.GetSun("diffuse")
-				Spring.SetSunLighting({ groundDiffuseColor = { r, g, value } })
-				Spring.SendCommands("luarules updatesun")
+				SpringUnsynced.SetSunLighting({ groundDiffuseColor = { r, g, value } })
+				SpringUnsynced.SendCommands("luarules updatesun")
 			end,
 		},
 
@@ -8267,8 +8267,8 @@ function init()
 			end,
 			onchange = function(i, value)
 				local r, g, b = gl.GetSun("specular")
-				Spring.SetSunLighting({ groundSpecularColor = { value, g, b } })
-				Spring.SendCommands("luarules updatesun")
+				SpringUnsynced.SetSunLighting({ groundSpecularColor = { value, g, b } })
+				SpringUnsynced.SendCommands("luarules updatesun")
 			end,
 		},
 		{
@@ -8288,8 +8288,8 @@ function init()
 			end,
 			onchange = function(i, value)
 				local r, g, b = gl.GetSun("specular")
-				Spring.SetSunLighting({ groundSpecularColor = { r, value, b } })
-				Spring.SendCommands("luarules updatesun")
+				SpringUnsynced.SetSunLighting({ groundSpecularColor = { r, value, b } })
+				SpringUnsynced.SendCommands("luarules updatesun")
 			end,
 		},
 		{
@@ -8309,8 +8309,8 @@ function init()
 			end,
 			onchange = function(i, value)
 				local r, g, b = gl.GetSun("specular")
-				Spring.SetSunLighting({ groundSpecularColor = { r, g, value } })
-				Spring.SendCommands("luarules updatesun")
+				SpringUnsynced.SetSunLighting({ groundSpecularColor = { r, g, value } })
+				SpringUnsynced.SendCommands("luarules updatesun")
 			end,
 		},
 
@@ -8331,8 +8331,8 @@ function init()
 			end,
 			onchange = function(i, value)
 				local r, g, b = gl.GetSun("ambient", "unit")
-				Spring.SetSunLighting({ unitAmbientColor = { value, g, b } })
-				Spring.SendCommands("luarules updatesun")
+				SpringUnsynced.SetSunLighting({ unitAmbientColor = { value, g, b } })
+				SpringUnsynced.SendCommands("luarules updatesun")
 			end,
 		},
 		{
@@ -8352,8 +8352,8 @@ function init()
 			end,
 			onchange = function(i, value)
 				local r, g, b = gl.GetSun("ambient", "unit")
-				Spring.SetSunLighting({ unitAmbientColor = { r, value, b } })
-				Spring.SendCommands("luarules updatesun")
+				SpringUnsynced.SetSunLighting({ unitAmbientColor = { r, value, b } })
+				SpringUnsynced.SendCommands("luarules updatesun")
 			end,
 		},
 		{
@@ -8373,8 +8373,8 @@ function init()
 			end,
 			onchange = function(i, value)
 				local r, g, b = gl.GetSun("ambient", "unit")
-				Spring.SetSunLighting({ unitAmbientColor = { r, g, value } })
-				Spring.SendCommands("luarules updatesun")
+				SpringUnsynced.SetSunLighting({ unitAmbientColor = { r, g, value } })
+				SpringUnsynced.SendCommands("luarules updatesun")
 			end,
 		},
 
@@ -8395,8 +8395,8 @@ function init()
 			end,
 			onchange = function(i, value)
 				local r, g, b = gl.GetSun("diffuse", "unit")
-				Spring.SetSunLighting({ unitDiffuseColor = { value, g, b } })
-				Spring.SendCommands("luarules updatesun")
+				SpringUnsynced.SetSunLighting({ unitDiffuseColor = { value, g, b } })
+				SpringUnsynced.SendCommands("luarules updatesun")
 			end,
 		},
 		{
@@ -8416,8 +8416,8 @@ function init()
 			end,
 			onchange = function(i, value)
 				local r, g, b = gl.GetSun("diffuse", "unit")
-				Spring.SetSunLighting({ unitDiffuseColor = { r, value, b } })
-				Spring.SendCommands("luarules updatesun")
+				SpringUnsynced.SetSunLighting({ unitDiffuseColor = { r, value, b } })
+				SpringUnsynced.SendCommands("luarules updatesun")
 			end,
 		},
 		{
@@ -8437,8 +8437,8 @@ function init()
 			end,
 			onchange = function(i, value)
 				local r, g, b = gl.GetSun("diffuse", "unit")
-				Spring.SetSunLighting({ unitDiffuseColor = { r, g, value } })
-				Spring.SendCommands("luarules updatesun")
+				SpringUnsynced.SetSunLighting({ unitDiffuseColor = { r, g, value } })
+				SpringUnsynced.SendCommands("luarules updatesun")
 			end,
 		},
 
@@ -8459,8 +8459,8 @@ function init()
 			end,
 			onchange = function(i, value)
 				local r, g, b = gl.GetSun("specular", "unit")
-				Spring.SetSunLighting({ unitSpecularColor = { value, g, b } })
-				Spring.SendCommands("luarules updatesun")
+				SpringUnsynced.SetSunLighting({ unitSpecularColor = { value, g, b } })
+				SpringUnsynced.SendCommands("luarules updatesun")
 			end,
 		},
 		{
@@ -8480,8 +8480,8 @@ function init()
 			end,
 			onchange = function(i, value)
 				local r, g, b = gl.GetSun("specular", "unit")
-				Spring.SetSunLighting({ unitSpecularColor = { r, value, b } })
-				Spring.SendCommands("luarules updatesun")
+				SpringUnsynced.SetSunLighting({ unitSpecularColor = { r, value, b } })
+				SpringUnsynced.SendCommands("luarules updatesun")
 			end,
 		},
 		{
@@ -8501,8 +8501,8 @@ function init()
 			end,
 			onchange = function(i, value)
 				local r, g, b = gl.GetSun("specular", "unit")
-				Spring.SetSunLighting({ unitSpecularColor = { r, g, value } })
-				Spring.SendCommands("luarules updatesun")
+				SpringUnsynced.SetSunLighting({ unitSpecularColor = { r, g, value } })
+				SpringUnsynced.SendCommands("luarules updatesun")
 			end,
 		},
 
@@ -8523,8 +8523,8 @@ function init()
 			end,
 			onchange = function(i, value)
 				local r, g, b = gl.GetAtmosphere("sunColor")
-				Spring.SetAtmosphere({ sunColor = { value, g, b } })
-				Spring.SendCommands("luarules updatesun")
+				SpringUnsynced.SetAtmosphere({ sunColor = { value, g, b } })
+				SpringUnsynced.SendCommands("luarules updatesun")
 			end,
 		},
 		{
@@ -8544,8 +8544,8 @@ function init()
 			end,
 			onchange = function(i, value)
 				local r, g, b = gl.GetAtmosphere("sunColor")
-				Spring.SetAtmosphere({ sunColor = { r, value, b } })
-				Spring.SendCommands("luarules updatesun")
+				SpringUnsynced.SetAtmosphere({ sunColor = { r, value, b } })
+				SpringUnsynced.SendCommands("luarules updatesun")
 			end,
 		},
 		{
@@ -8565,8 +8565,8 @@ function init()
 			end,
 			onchange = function(i, value)
 				local r, g, b = gl.GetAtmosphere("sunColor")
-				Spring.SetAtmosphere({ sunColor = { r, g, value } })
-				Spring.SendCommands("luarules updatesun")
+				SpringUnsynced.SetAtmosphere({ sunColor = { r, g, value } })
+				SpringUnsynced.SendCommands("luarules updatesun")
 			end,
 		},
 
@@ -8587,8 +8587,8 @@ function init()
 			end,
 			onchange = function(i, value)
 				local r, g, b = gl.GetAtmosphere("skyColor")
-				Spring.SetAtmosphere({ skyColor = { value, g, b } })
-				Spring.SendCommands("luarules updatesun")
+				SpringUnsynced.SetAtmosphere({ skyColor = { value, g, b } })
+				SpringUnsynced.SendCommands("luarules updatesun")
 			end,
 		},
 		{
@@ -8608,8 +8608,8 @@ function init()
 			end,
 			onchange = function(i, value)
 				local r, g, b = gl.GetAtmosphere("skyColor")
-				Spring.SetAtmosphere({ skyColor = { r, value, b } })
-				Spring.SendCommands("luarules updatesun")
+				SpringUnsynced.SetAtmosphere({ skyColor = { r, value, b } })
+				SpringUnsynced.SendCommands("luarules updatesun")
 			end,
 		},
 		{
@@ -8629,8 +8629,8 @@ function init()
 			end,
 			onchange = function(i, value)
 				local r, g, b = gl.GetAtmosphere("skyColor")
-				Spring.SetAtmosphere({ skyColor = { r, g, value } })
-				Spring.SendCommands("luarules updatesun")
+				SpringUnsynced.SetAtmosphere({ skyColor = { r, g, value } })
+				SpringUnsynced.SendCommands("luarules updatesun")
 			end,
 		},
 
@@ -8646,8 +8646,8 @@ function init()
 			onchange = function(i, value)
 				options[getOptionByID("sunlighting_reset")].value = false
 				-- just so that map/model lighting gets updated
-				Spring.SetSunLighting(defaultSunLighting)
-				Spring.Echo("resetted ground/unit coloring")
+				SpringUnsynced.SetSunLighting(defaultSunLighting)
+				SpringShared.Echo("resetted ground/unit coloring")
 				init()
 			end,
 		},
@@ -8670,7 +8670,7 @@ function init()
 			onchange = function(i, value)
 				local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
 				angle = value
-				Spring.SetAtmosphere({ skyAxisAngle = { x, y, z, angle } })
+				SpringUnsynced.SetAtmosphere({ skyAxisAngle = { x, y, z, angle } })
 			end,
 		},
 		{
@@ -8691,7 +8691,7 @@ function init()
 			onchange = function(i, value)
 				local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
 				x = value
-				Spring.SetAtmosphere({ skyAxisAngle = { x, y, z, angle } })
+				SpringUnsynced.SetAtmosphere({ skyAxisAngle = { x, y, z, angle } })
 			end,
 		},
 		{
@@ -8712,7 +8712,7 @@ function init()
 			onchange = function(i, value)
 				local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
 				y = value
-				Spring.SetAtmosphere({ skyAxisAngle = { x, y, z, angle } })
+				SpringUnsynced.SetAtmosphere({ skyAxisAngle = { x, y, z, angle } })
 			end,
 		},
 		{
@@ -8733,7 +8733,7 @@ function init()
 			onchange = function(i, value)
 				local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
 				z = value
-				Spring.SetAtmosphere({ skyAxisAngle = { x, y, z, angle } })
+				SpringUnsynced.SetAtmosphere({ skyAxisAngle = { x, y, z, angle } })
 			end,
 		},
 
@@ -8748,8 +8748,8 @@ function init()
 			onload = function(i) end,
 			onchange = function(i, value)
 				options[getOptionByID("skyaxisangle_reset")].value = false
-				Spring.SetAtmosphere({ skyAxisAngle = defaultSkyAxisAngle })
-				Spring.Echo("resetted skyAxisAngle atmosphere")
+				SpringUnsynced.SetAtmosphere({ skyAxisAngle = defaultSkyAxisAngle })
+				SpringShared.Echo("resetted skyAxisAngle atmosphere")
 				init()
 			end,
 		},
@@ -8763,12 +8763,12 @@ function init()
 			category = types.dev,
 			name = "Bumpwater settings " .. widgetOptionColor .. "  shorewaves",
 			type = "bool",
-			value = Spring.GetConfigInt("BumpWaterShoreWaves", 1) == 1,
+			value = SpringUnsynced.GetConfigInt("BumpWaterShoreWaves", 1) == 1,
 			description = "",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetWaterParams({ shoreWaves = value })
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetWaterParams({ shoreWaves = value })
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		{
@@ -8777,12 +8777,12 @@ function init()
 			category = types.dev,
 			name = widgetOptionColor .. "   dynamic waves",
 			type = "bool",
-			value = Spring.GetConfigInt("BumpWaterDynamicWaves", 1) == 1,
+			value = SpringUnsynced.GetConfigInt("BumpWaterDynamicWaves", 1) == 1,
 			description = "Springsettings.cfg config, Probably requires a restart",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetConfigInt("BumpWaterDynamicWaves", (value and 1 or 0))
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetConfigInt("BumpWaterDynamicWaves", (value and 1 or 0))
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		{
@@ -8791,12 +8791,12 @@ function init()
 			category = types.dev,
 			name = widgetOptionColor .. "   endless",
 			type = "bool",
-			value = Spring.GetConfigInt("BumpWaterEndlessOcean", 1) == 1,
+			value = SpringUnsynced.GetConfigInt("BumpWaterEndlessOcean", 1) == 1,
 			description = "Springsettings.cfg config, Probably requires a restart",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetConfigInt("BumpWaterEndlessOcean", (value and 1 or 0))
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetConfigInt("BumpWaterEndlessOcean", (value and 1 or 0))
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		{
@@ -8805,12 +8805,12 @@ function init()
 			category = types.dev,
 			name = widgetOptionColor .. "   occlusion query",
 			type = "bool",
-			value = Spring.GetConfigInt("BumpWaterOcclusionQuery", 1) == 1,
+			value = SpringUnsynced.GetConfigInt("BumpWaterOcclusionQuery", 1) == 1,
 			description = "Springsettings.cfg config, Probably requires a restart",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetConfigInt("BumpWaterOcclusionQuery", (value and 1 or 0))
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetConfigInt("BumpWaterOcclusionQuery", (value and 1 or 0))
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		{
@@ -8819,12 +8819,12 @@ function init()
 			category = types.dev,
 			name = widgetOptionColor .. "   blur reflection",
 			type = "bool",
-			value = Spring.GetConfigInt("BumpWaterBlurReflection", 1) == 1,
+			value = SpringUnsynced.GetConfigInt("BumpWaterBlurReflection", 1) == 1,
 			description = "Springsettings.cfg config, Probably requires a restart",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetConfigInt("BumpWaterBlurReflection", (value and 1 or 0))
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetConfigInt("BumpWaterBlurReflection", (value and 1 or 0))
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		{
@@ -8833,12 +8833,12 @@ function init()
 			category = types.dev,
 			name = widgetOptionColor .. "   anisotropy",
 			type = "bool",
-			value = Spring.GetConfigInt("BumpWaterAnisotropy", 1) == 1,
+			value = SpringUnsynced.GetConfigInt("BumpWaterAnisotropy", 1) == 1,
 			description = "Springsettings.cfg config, Probably requires a restart",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetConfigInt("BumpWaterAnisotropy", (value and 1 or 0))
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetConfigInt("BumpWaterAnisotropy", (value and 1 or 0))
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		{
@@ -8847,12 +8847,12 @@ function init()
 			category = types.dev,
 			name = widgetOptionColor .. "   use depth texture",
 			type = "bool",
-			value = Spring.GetConfigInt("BumpWaterUseDepthTexture", 1) == 1,
+			value = SpringUnsynced.GetConfigInt("BumpWaterUseDepthTexture", 1) == 1,
 			description = "Springsettings.cfg config, Probably requires a restart",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetConfigInt("BumpWaterUseDepthTexture", (value and 1 or 0))
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetConfigInt("BumpWaterUseDepthTexture", (value and 1 or 0))
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		{
@@ -8861,12 +8861,12 @@ function init()
 			category = types.dev,
 			name = widgetOptionColor .. "   use uniforms",
 			type = "bool",
-			value = Spring.GetConfigInt("BumpWaterUseUniforms", 1) == 1,
+			value = SpringUnsynced.GetConfigInt("BumpWaterUseUniforms", 1) == 1,
 			description = "Springsettings.cfg config, Probably requires a restart",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetConfigInt("BumpWaterUseUniforms", (value and 1 or 0))
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetConfigInt("BumpWaterUseUniforms", (value and 1 or 0))
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 
@@ -8881,8 +8881,8 @@ function init()
 			description = "Springsettings.cfg config, Probably requires a restart",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetWaterParams({ shoreWaves = value })
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetWaterParams({ shoreWaves = value })
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		{
@@ -8895,8 +8895,8 @@ function init()
 			description = "The WaterPlane is a single Quad beneath the map.\nIt should have the same color as the ocean floor to hide the map -> background boundary. Specifying waterPlaneColor in mapinfo.lua will turn this on.",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetWaterParams({ hasWaterPlane = value })
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetWaterParams({ hasWaterPlane = value })
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		{
@@ -8909,8 +8909,8 @@ function init()
 			description = "Should the water be rendered even when minMapHeight>0.\nUse it to avoid the jumpin of the outside-map water rendering (BumpWater: endlessOcean option) when combat explosions reach groundwater.",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetWaterParams({ forceRendering = value })
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetWaterParams({ forceRendering = value })
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		{
@@ -8926,8 +8926,8 @@ function init()
 			description = "water 0 texture repeat horizontal",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetWaterParams({ repeatX = value })
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetWaterParams({ repeatX = value })
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		{
@@ -8943,8 +8943,8 @@ function init()
 			description = "water 0 texture repeat vertical",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetWaterParams({ repeatY = value })
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetWaterParams({ repeatY = value })
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		{
@@ -8960,8 +8960,8 @@ function init()
 			description = "",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetWaterParams({ surfaceAlpha = value })
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetWaterParams({ surfaceAlpha = value })
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		-- gl.GetWaterRendering("windSpeed") seems to not exist
@@ -8986,8 +8986,8 @@ function init()
 			description = "How much ambient lighting the water surface gets (ideally very little)",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetWaterParams({ ambientFactor = value })
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetWaterParams({ ambientFactor = value })
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		{
@@ -9003,8 +9003,8 @@ function init()
 			description = "How strong the diffuse lighting should be on the water",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetWaterParams({ diffuseFactor = value })
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetWaterParams({ diffuseFactor = value })
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		{
@@ -9020,8 +9020,8 @@ function init()
 			description = "How much light should be reflected straight from the sun",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetWaterParams({ specularFactor = value })
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetWaterParams({ specularFactor = value })
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		{
@@ -9037,8 +9037,8 @@ function init()
 			description = "How polished the surface of the water is",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetWaterParams({ specularPower = value })
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetWaterParams({ specularPower = value })
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		{
@@ -9054,8 +9054,8 @@ function init()
 			description = "The initial frequency of the bump map repetetion rate. Larger numbers mean more tiles",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetWaterParams({ perlinStartFreq = value })
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetWaterParams({ perlinStartFreq = value })
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		{
@@ -9071,8 +9071,8 @@ function init()
 			description = "How much smaller each additional repetion of the normal map should be. Larger numbers mean smaller",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetWaterParams({ perlinLacunarity = value })
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetWaterParams({ perlinLacunarity = value })
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		{
@@ -9088,8 +9088,8 @@ function init()
 			description = "How strong each additional repetetion of the normal map should be",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetWaterParams({ perlinAmplitude = value })
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetWaterParams({ perlinAmplitude = value })
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		{
@@ -9105,8 +9105,8 @@ function init()
 			description = "Minimum reflection strength, e.g. the reflectivity of the water when looking straight down on it",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetWaterParams({ fresnelMin = value })
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetWaterParams({ fresnelMin = value })
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		{
@@ -9122,8 +9122,8 @@ function init()
 			description = "Maximum reflection strength, the reflectivity of the water when looking parallel to the water plane",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetWaterParams({ fresnelMax = value })
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetWaterParams({ fresnelMax = value })
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		{
@@ -9139,8 +9139,8 @@ function init()
 			description = "Determines how fast the reflection increases when going from straight down view to parallel.",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetWaterParams({ fresnelPower = value })
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetWaterParams({ fresnelPower = value })
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		{
@@ -9156,8 +9156,8 @@ function init()
 			description = "How many (squared) Tiles does the `normalTexture` have?\nSuch Tiles are used when DynamicWaves are enabled in BumpWater, the more the better.\nCheck the example php script to generate such tiled bumpmaps.",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetWaterParams({ numTiles = value })
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetWaterParams({ numTiles = value })
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		{
@@ -9173,8 +9173,8 @@ function init()
 			description = "How much should the reflection be blurred",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetWaterParams({ blurBase = value })
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetWaterParams({ blurBase = value })
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		{
@@ -9190,8 +9190,8 @@ function init()
 			description = "How much should the reflection be blurred",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetWaterParams({ blurExponent = value })
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetWaterParams({ blurExponent = value })
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		{
@@ -9207,8 +9207,8 @@ function init()
 			description = "",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetWaterParams({ reflectionDistortion = value })
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetWaterParams({ reflectionDistortion = value })
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		-- new water 4 params since engine 105BAR 582
@@ -9225,8 +9225,8 @@ function init()
 			description = "Set this to 0.1 to make waves break shores not all at the same time",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetWaterParams({ waveOffsetFactor = value })
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetWaterParams({ waveOffsetFactor = value })
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		{
@@ -9242,8 +9242,8 @@ function init()
 			description = "How long the waves are",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetWaterParams({ waveLength = value })
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetWaterParams({ waveLength = value })
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		{
@@ -9259,8 +9259,8 @@ function init()
 			description = "How much the waters movement distorts the foam texture",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetWaterParams({ waveFoamDistortion = value })
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetWaterParams({ waveFoamDistortion = value })
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		{
@@ -9276,8 +9276,8 @@ function init()
 			description = "How strong the foam texture is",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetWaterParams({ waveFoamIntensity = value })
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetWaterParams({ waveFoamIntensity = value })
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		{
@@ -9293,8 +9293,8 @@ function init()
 			description = "The tiling rate of the caustics texture",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetWaterParams({ causticsResolution = value })
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetWaterParams({ causticsResolution = value })
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		{
@@ -9310,8 +9310,8 @@ function init()
 			description = "How intense the caustics effects are",
 			onload = function(i) end,
 			onchange = function(i, value)
-				Spring.SetWaterParams({ causticsStrength = value })
-				Spring.SendCommands("water 4")
+				SpringUnsynced.SetWaterParams({ causticsStrength = value })
+				SpringUnsynced.SendCommands("water 4")
 			end,
 		},
 		-- TODO add SetWaterParams:
@@ -9326,8 +9326,8 @@ function init()
 
 	if not isPotatoGpu and not devMode and not devUI then
 		options[getOptionByID("advmapshading")] = nil
-		Spring.SetConfigInt("AdvMapShading", 1)
-		Spring.SendCommands("advmapshading 1")
+		SpringUnsynced.SetConfigInt("AdvMapShading", 1)
+		SpringUnsynced.SendCommands("advmapshading 1")
 	end
 
 	-- reset tonemap defaults (only once)
@@ -9383,21 +9383,21 @@ function init()
 
 	if not Utilities.Gametype.GetCurrentHolidays().aprilfools then
 		options[getOptionByID("soundtrackAprilFools")] = nil
-		Spring.SetConfigInt("UseSoundtrackAprilFools", 1)
+		SpringUnsynced.SetConfigInt("UseSoundtrackAprilFools", 1)
 	else
 		options[getOptionByID("soundtrackAprilFoolsPostEvent")] = nil
 	end
 
 	if not Utilities.Gametype.GetCurrentHolidays().halloween then
 		options[getOptionByID("soundtrackHalloween")] = nil
-		Spring.SetConfigInt("UseSoundtrackHalloween", 1)
+		SpringUnsynced.SetConfigInt("UseSoundtrackHalloween", 1)
 	else
 		options[getOptionByID("soundtrackHalloweenPostEvent")] = nil
 	end
 
 	if not Utilities.Gametype.GetCurrentHolidays().xmas then
 		options[getOptionByID("soundtrackXmas")] = nil
-		Spring.SetConfigInt("UseSoundtrackXmas", 1)
+		SpringUnsynced.SetConfigInt("UseSoundtrackXmas", 1)
 	else
 		options[getOptionByID("soundtrackXmasPostEvent")] = nil
 	end
@@ -9431,12 +9431,12 @@ function init()
 
 		options[getOptionByID("font")].options = fonts
 		options[getOptionByID("font")].optionsFont = fontsFull
-		local fname = Spring.GetConfigString("bar_font", "Poppins-Regular.otf"):lower()
+		local fname = SpringUnsynced.GetConfigString("bar_font", "Poppins-Regular.otf"):lower()
 		options[getOptionByID("font")].value = getSelectKey(getOptionByID("font"), string.sub(fname, 1, string.len(fname) - 4))
 
 		options[getOptionByID("font2")].options = fonts
 		options[getOptionByID("font2")].optionsFont = fontsFull
-		local fname = Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf"):lower()
+		local fname = SpringUnsynced.GetConfigString("bar_font2", "Exo2-SemiBold.otf"):lower()
 		options[getOptionByID("font2")].value = getSelectKey(getOptionByID("font2"), string.sub(fname, 1, string.len(fname) - 4))
 	end
 
@@ -9444,14 +9444,14 @@ function init()
 	if getOptionByID("sun_y") then
 		local sunX, sunY, sunZ = gl.GetSun("pos")
 		if sunY < options[getOptionByID("sun_y")].min then
-			Spring.SetSunDirection(sunX, options[getOptionByID("sun_y")].min, sunZ)
+			SpringUnsynced.SetSunDirection(sunX, options[getOptionByID("sun_y")].min, sunZ)
 		end
 	end
 
 	-- set minimal shadow opacity
 	if getOptionByID("shadows_opacity") then
 		if gl.GetSun("shadowDensity") < options[getOptionByID("shadows_opacity")].min then
-			Spring.SetSunLighting({ groundShadowDensity = options[getOptionByID("shadows_opacity")].min, modelShadowDensity = options[getOptionByID("shadows_opacity")].min })
+			SpringUnsynced.SetSunLighting({ groundShadowDensity = options[getOptionByID("shadows_opacity")].min, modelShadowDensity = options[getOptionByID("shadows_opacity")].min })
 		end
 	end
 
@@ -9462,14 +9462,14 @@ function init()
 		options[getOptionByID("anonymous_b")] = nil
 	end
 
-	if Spring.GetGameFrame() == 0 then
+	if SpringShared.GetGameFrame() == 0 then
 		detectWater()
 
 		-- set vsync
-		Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1) * Spring.GetConfigInt("VSyncFraction", 1))
+		SpringUnsynced.SetConfigInt("VSync", SpringUnsynced.GetConfigInt("VSyncGame", -1) * SpringUnsynced.GetConfigInt("VSyncFraction", 1))
 	end
 	if not waterDetected then
-		Spring.SendCommands("water 0")
+		SpringUnsynced.SendCommands("water 0")
 	end
 
 	if #displayNames <= 1 then
@@ -9478,7 +9478,7 @@ function init()
 	end
 
 	-- only allow dualscreen-mode on single displays when super ultrawide screen or Multi Display option shows
-	if (#displayNames <= 1 and vsx / vsy < 2.5) or (#displayNames > 1 and #displayNames == Spring.GetNumDisplays()) then
+	if (#displayNames <= 1 and vsx / vsy < 2.5) or (#displayNames > 1 and #displayNames == SpringUnsynced.GetNumDisplays()) then
 		options[getOptionByID("dualmode_enabled")] = nil
 		options[getOptionByID("dualmode_left")] = nil
 		options[getOptionByID("dualmode_minimap_aspectratio")] = nil
@@ -9495,9 +9495,9 @@ function init()
 
 		-- disable engine decals (footprints)
 		options[getOptionByID("decals")] = nil
-		if Spring.GetConfigInt("GroundDecals", 3) > 0 then
-			Spring.SendCommands("GroundDecals 0")
-			Spring.SetConfigInt("GroundDecals", 0)
+		if SpringUnsynced.GetConfigInt("GroundDecals", 3) > 0 then
+			SpringUnsynced.SendCommands("GroundDecals 0")
+			SpringUnsynced.SetConfigInt("GroundDecals", 0)
 		end
 
 		if isPotatoGpu then
@@ -9547,7 +9547,7 @@ function init()
 			--end
 		end
 	elseif gpuMem >= 3000 then
-		if Spring.GetConfigInt("cus2", 1) ~= 1 then
+		if SpringUnsynced.GetConfigInt("cus2", 1) ~= 1 then
 			local id = getOptionByID("cusgl4")
 			options[id].onchange(id, 1)
 		end
@@ -9563,9 +9563,9 @@ function init()
 			options[getOptionByID("cusgl4")] = nil
 			options[getOptionByID("water")] = nil
 		else
-			if Spring.GetConfigInt("Water", 0) ~= 4 then
-				Spring.SendCommands("water 4")
-				Spring.SetConfigInt("Water", 4)
+			if SpringUnsynced.GetConfigInt("Water", 0) ~= 4 then
+				SpringUnsynced.SendCommands("water 4")
+				SpringUnsynced.SetConfigInt("Water", 4)
 			end
 		end
 	end
@@ -9585,7 +9585,7 @@ function init()
 	end
 
 	-- while we have set config-ints, that isnt enough to have these settings applied ingame
-	if savedConfig and Spring.GetGameFrame() == 0 then
+	if savedConfig and SpringShared.GetGameFrame() == 0 then
 		for k, v in pairs(savedConfig) do
 			if getOptionByID(k) then
 				applyOptionValue(getOptionByID(k))
@@ -9596,9 +9596,9 @@ function init()
 
 	-- detect AI
 	local aiDetected = false
-	local t = Spring.GetTeamList()
+	local t = SpringShared.GetTeamList()
 	for _, teamID in ipairs(t) do
-		if select(4, Spring.GetTeamInfo(teamID, false)) then
+		if select(4, SpringShared.GetTeamInfo(teamID, false)) then
 			aiDetected = true
 		end
 	end
@@ -9656,7 +9656,7 @@ function init()
 
 	-- add sound notification sets
 	if getOptionByID("notifications_set") then
-		local voiceset = Spring.GetConfigString("voiceset", "en/cephis")
+		local voiceset = SpringUnsynced.GetConfigString("voiceset", "en/cephis")
 		local currentVoiceSetOption
 		local sets = {}
 		local languageDirs = VFS.SubDirs("sounds/voice", "*")
@@ -9846,7 +9846,7 @@ function init()
 	end
 
 	-- not sure if needed: remove vsync option when its done by monitor (freesync/gsync) -> config value is set as 'x'
-	if Spring.GetConfigInt("VSync", 1) == "x" then
+	if SpringUnsynced.GetConfigInt("VSync", 1) == "x" then
 		options[getOptionByID("vsync")] = nil
 		options[getOptionByID("vsync_spec")] = nil
 		options[getOptionByID("vsync_level")] = nil
@@ -9865,11 +9865,11 @@ function init()
 		options[getOptionByID("lockcamera_hideenemies")] = nil
 	end
 
-	if Spring.GetConfigInt("CamMode", 2) ~= 2 then
+	if SpringUnsynced.GetConfigInt("CamMode", 2) ~= 2 then
 		options[getOptionByID("springcamheightmode")] = nil
 	end
 
-	if Spring.GetConfigString("KeybindingFile") ~= "uikeys.txt" then
+	if SpringUnsynced.GetConfigString("KeybindingFile") ~= "uikeys.txt" then
 		options[getOptionByID("gridmenu")] = nil
 	end
 
@@ -10008,7 +10008,7 @@ function widget:MapDrawCmd(playerID, cmdType, startx, starty, startz, a, b, c)
 end
 
 function widget:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
-	if not waterDetected and Spring.GetGameFrame() > 30 then
+	if not waterDetected and SpringShared.GetGameFrame() > 30 then
 		if heightmapChangeClock == nil then
 			heightmapChangeClock = os_clock()
 		end
@@ -10030,7 +10030,7 @@ local function optionsCmd(_, _, params)
 	if showTextInput then
 		if show then
 			widgetHandler.textOwner = self --widgetHandler:OwnText()
-			Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+			SpringUnsynced.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 		else
 			cancelChatInput()
 		end
@@ -10054,7 +10054,7 @@ local function optionCmd(_, _, params)
 			show = true
 			if showTextInput then
 				widgetHandler.textOwner = self --widgetHandler:OwnText()
-				Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+				SpringUnsynced.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 			end
 		end
 	else
@@ -10080,7 +10080,7 @@ local function optionCmd(_, _, params)
 end
 
 local function devmodeCmd(_, _, params)
-	Spring.SendCommands("option devmode")
+	SpringUnsynced.SendCommands("option devmode")
 end
 
 local function profileCmd(_, _, params)
@@ -10118,7 +10118,7 @@ function widget:Initialize()
 		widgetHandler:EnableWidget("Mex Snap")
 	end
 	-- set nano particle rotation: rotValue, rotVelocity, rotAcceleration, rotValueRNG, rotVelocityRNG, rotAccelerationRNG (in degrees)
-	Spring.SetNanoProjectileParams(-180, -50, -50, 360, 100, 100)
+	SpringUnsynced.SetNanoProjectileParams(-180, -50, -50, 360, 100, 100)
 
 	-- just making sure
 	if widgetHandler.orderList["Pregame UI"] < 0.5 then
@@ -10159,83 +10159,83 @@ function widget:Initialize()
 	--end
 
 	-- make sure new icon system is used
-	if Spring.GetConfigInt("UnitIconsAsUI", 0) == 0 then
-		Spring.SendCommands("iconsasui 1")
-		Spring.SetConfigInt("UnitIconsAsUI", 1)
+	if SpringUnsynced.GetConfigInt("UnitIconsAsUI", 0) == 0 then
+		SpringUnsynced.SendCommands("iconsasui 1")
+		SpringUnsynced.SetConfigInt("UnitIconsAsUI", 1)
 	end
 
 	if firstlaunchsetupDone == false then
 		firstlaunchsetupDone = true
 
-		Spring.Echo("First time setup:  done")
-		Spring.SetConfigFloat("snd_airAbsorption", 0.35)
+		SpringShared.Echo("First time setup:  done")
+		SpringUnsynced.SetConfigFloat("snd_airAbsorption", 0.35)
 
 		-- Set lower defaults for lower end/potato systems
 		if gpuMem < 3300 then
-			if Spring.GetConfigInt("MSAALevel", 2) > 2 then
-				Spring.SetConfigInt("MSAALevel", 2)
+			if SpringUnsynced.GetConfigInt("MSAALevel", 2) > 2 then
+				SpringUnsynced.SetConfigInt("MSAALevel", 2)
 			end
 		end
 		if isPotatoGpu then
-			Spring.SendCommands("water 0")
-			Spring.SetConfigInt("Water", 0)
+			SpringUnsynced.SendCommands("water 0")
+			SpringUnsynced.SetConfigInt("Water", 0)
 
 			--Spring.SetConfigInt("AdvMapShading", 0)
 			--Spring.SendCommands("advmapshading 0")
-			Spring.SendCommands("Shadows 0 1024")
-			Spring.SetConfigInt("Shadows", 0)
-			Spring.GetConfigInt("ShadowQuality", 0)
-			Spring.SetConfigInt("ShadowMapSize", 1024)
-			Spring.SetConfigInt("Shadows", 0)
-			Spring.SetConfigInt("MSAALevel", 0)
-			Spring.SetConfigFloat("ui_opacity", 0.7) -- set to be more opaque cause guishader isnt availible
+			SpringUnsynced.SendCommands("Shadows 0 1024")
+			SpringUnsynced.SetConfigInt("Shadows", 0)
+			SpringUnsynced.GetConfigInt("ShadowQuality", 0)
+			SpringUnsynced.SetConfigInt("ShadowMapSize", 1024)
+			SpringUnsynced.SetConfigInt("Shadows", 0)
+			SpringUnsynced.SetConfigInt("MSAALevel", 0)
+			SpringUnsynced.SetConfigFloat("ui_opacity", 0.7) -- set to be more opaque cause guishader isnt availible
 		else
-			Spring.SendCommands("water 4")
-			Spring.SetConfigInt("Water", 4)
+			SpringUnsynced.SendCommands("water 4")
+			SpringUnsynced.SetConfigInt("Water", 4)
 		end
 
 		local minMaxparticles = 12000
-		if tonumber(Spring.GetConfigInt("MaxParticles", 1) or 0) < minMaxparticles then
-			Spring.SetConfigInt("MaxParticles", minMaxparticles)
-			Spring.Echo("First time setup:  setting MaxParticles config value to " .. minMaxparticles)
+		if tonumber(SpringUnsynced.GetConfigInt("MaxParticles", 1) or 0) < minMaxparticles then
+			SpringUnsynced.SetConfigInt("MaxParticles", minMaxparticles)
+			SpringShared.Echo("First time setup:  setting MaxParticles config value to " .. minMaxparticles)
 		end
 
-		Spring.SetConfigInt("CamMode", 3)
-		Spring.SendCommands("viewspring")
+		SpringUnsynced.SetConfigInt("CamMode", 3)
+		SpringUnsynced.SendCommands("viewspring")
 	end
 
-	Spring.SetConfigFloat("CamTimeFactor", 1)
-	Spring.SetConfigString("InputTextGeo", "0.35 0.72 0.03 0.04") -- input chat position posX, posY, ?, ?
+	SpringUnsynced.SetConfigFloat("CamTimeFactor", 1)
+	SpringUnsynced.SetConfigString("InputTextGeo", "0.35 0.72 0.03 0.04") -- input chat position posX, posY, ?, ?
 
-	if Spring.GetGameFrame() == 0 then
+	if SpringShared.GetGameFrame() == 0 then
 		-- set minimum particle amount
-		if tonumber(Spring.GetConfigInt("MaxParticles", 1) or 10000) <= 10000 then
-			Spring.SetConfigInt("MaxParticles", 10000)
+		if tonumber(SpringUnsynced.GetConfigInt("MaxParticles", 1) or 10000) <= 10000 then
+			SpringUnsynced.SetConfigInt("MaxParticles", 10000)
 		end
 
-		if Spring.GetConfigInt("MaxSounds", 128) < 128 then
-			Spring.SetConfigInt("MaxSounds", 128)
+		if SpringUnsynced.GetConfigInt("MaxSounds", 128) < 128 then
+			SpringUnsynced.SetConfigInt("MaxSounds", 128)
 		end
 
 		-- limit MSAA
-		if Spring.GetConfigInt("MSAALevel", 0) > 8 then
-			Spring.SetConfigInt("MSAALevel", 8)
+		if SpringUnsynced.GetConfigInt("MSAALevel", 0) > 8 then
+			SpringUnsynced.SetConfigInt("MSAALevel", 8)
 		end
 	end
 
 	-- make sure vertical angle is proper (not horizontal view)
-	if Spring.GetGameFrame() == 0 and (Spring.GetConfigInt("CamMode", 2) == 2 or Spring.GetConfigInt("CamMode", 2) == 3) then
-		local cameraState = Spring.GetCameraState()
+	if SpringShared.GetGameFrame() == 0 and (SpringUnsynced.GetConfigInt("CamMode", 2) == 2 or SpringUnsynced.GetConfigInt("CamMode", 2) == 3) then
+		local cameraState = SpringUnsynced.GetCameraState()
 		cameraState.rx = 2.6
-		Spring.SetCameraState(cameraState, 0.1)
+		SpringUnsynced.SetCameraState(cameraState, 0.1)
 	end
 
 	-- make sure fog-start is smaller than fog-end in case maps have configured it this way
 	if gl.GetAtmosphere("fogEnd") <= gl.GetAtmosphere("fogStart") then
-		Spring.SetAtmosphere({ fogEnd = gl.GetAtmosphere("fogStart") + 0.01 })
+		SpringUnsynced.SetAtmosphere({ fogEnd = gl.GetAtmosphere("fogStart") + 0.01 })
 	end
 
-	Spring.SendCommands("minimap unitsize " .. (Spring.GetConfigFloat("MinimapIconScale", 3.5))) -- spring wont remember what you set with '/minimap iconssize #'
+	SpringUnsynced.SendCommands("minimap unitsize " .. (SpringUnsynced.GetConfigFloat("MinimapIconScale", 3.5))) -- spring wont remember what you set with '/minimap iconssize #'
 
 	WG.options = {}
 	WG.options.toggle = function(state)
@@ -10250,7 +10250,7 @@ function widget:Initialize()
 		if showTextInput then
 			if show then
 				widgetHandler.textOwner = self --widgetHandler:OwnText()
-				Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+				SpringUnsynced.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 			else
 				cancelChatInput()
 			end
@@ -10311,7 +10311,7 @@ function widget:Initialize()
 	WG.options.applyOptionValue = function(option, value)
 		local optionID = getOptionByID(option)
 		if not optionID then
-			Spring.Echo("Options widget: applyOptionValue: option '" .. option .. "' not found")
+			SpringShared.Echo("Options widget: applyOptionValue: option '" .. option .. "' not found")
 			return
 		end
 		applyOptionValue(optionID, tonumber(value))
@@ -10352,7 +10352,7 @@ function widget:Shutdown()
 	WG.options = nil
 
 	resetUserVolume()
-	Spring.SendCommands("grabinput 0")
+	SpringUnsynced.SendCommands("grabinput 0")
 
 	widgetHandler.actionHandler:RemoveAction(self, "options")
 	widgetHandler.actionHandler:RemoveAction(self, "option")
@@ -10428,7 +10428,7 @@ function widget:SetConfigData(data)
 	if data.edgeMoveWidth then
 		edgeMoveWidth = data.edgeMoveWidth
 	end
-	if Spring.GetGameFrame() > 0 then
+	if SpringShared.GetGameFrame() > 0 then
 		if data.requireRestartDefaults then
 			requireRestartDefaults = data.requireRestartDefaults
 		end
@@ -10442,11 +10442,11 @@ function widget:SetConfigData(data)
 			show = data.show
 			if show and showTextInput then
 				widgetHandler.textOwner = self --widgetHandler:OwnText()
-				Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+				SpringUnsynced.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 			end
 		end
 	end
-	if data.pauseGameWhenSingleplayerExecuted ~= nil and Spring.GetGameFrame() > 0 then
+	if data.pauseGameWhenSingleplayerExecuted ~= nil and SpringShared.GetGameFrame() > 0 then
 		pauseGameWhenSingleplayerExecuted = data.pauseGameWhenSingleplayerExecuted
 	end
 	if data.pauseGameWhenSingleplayer ~= nil then
@@ -10458,7 +10458,7 @@ function widget:SetConfigData(data)
 	if data.savedConfig ~= nil then
 		savedConfig = data.savedConfig
 		for k, v in pairs(savedConfig) do
-			Spring.SetConfigFloat(v[1], v[2])
+			SpringUnsynced.SetConfigFloat(v[1], v[2])
 		end
 	end
 	if data.mapChecksum and data.mapChecksum == Game.mapChecksum then

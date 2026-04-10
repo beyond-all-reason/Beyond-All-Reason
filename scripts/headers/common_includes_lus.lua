@@ -2,9 +2,9 @@ common = {
 
 	CustomEmitter = function(pieceName, effectName)
 		--Spring.Echo(pieceName, effectName)
-		local x, y, z, dx, dy, dz = Spring.GetUnitPiecePosDir(unitID, pieceName)
+		local x, y, z, dx, dy, dz = SpringShared.GetUnitPiecePosDir(unitID, pieceName)
 
-		Spring.SpawnCEG(effectName, x, y, z, dx, dy, dz)
+		SpringSynced.SpawnCEG(effectName, x, y, z, dx, dy, dz)
 	end,
 
 	HbotLift = function()

@@ -19,12 +19,12 @@ end
 local attackTurnRadius = 500
 
 local CMD_ATTACK = CMD.ATTACK
-local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
-local spMoveCtrlEnable = Spring.MoveCtrl.Enable
-local spMoveCtrlIsEnabled = Spring.MoveCtrl.IsEnabled
-local spMoveCtrlDisable = Spring.MoveCtrl.Disable
-local spMoveCtrlSetAirMoveTypeData = Spring.MoveCtrl.SetAirMoveTypeData
+local spGetUnitCurrentCommand = SpringShared.GetUnitCurrentCommand
+local spGetUnitMoveTypeData = SpringShared.GetUnitMoveTypeData
+local spMoveCtrlEnable = SpringSynced.MoveCtrl.Enable
+local spMoveCtrlIsEnabled = SpringSynced.MoveCtrl.IsEnabled
+local spMoveCtrlDisable = SpringSynced.MoveCtrl.Disable
+local spMoveCtrlSetAirMoveTypeData = SpringSynced.MoveCtrl.SetAirMoveTypeData
 
 local Bombers = {}
 local bomberTurnRadius = {}
@@ -44,8 +44,8 @@ end
 
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD.ANY)
-	for ct, unitID in pairs(Spring.GetAllUnits()) do
-		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
+	for ct, unitID in pairs(SpringShared.GetAllUnits()) do
+		gadget:UnitCreated(unitID, SpringShared.GetUnitDefID(unitID))
 	end
 end
 
@@ -74,7 +74,7 @@ local function processNextCmd(unitID, unitDefID, cmdID)
 	local radius = (not cmdID or cmdID == CMD_ATTACK) and attackTurnRadius or bomberTurnRadius[unitDefID]
 	local success = pcall(spMoveCtrlSetAirMoveTypeData, unitID, "turnRadius", radius)
 	if not success then
-		Spring.Echo("Error: unit_airunitsturnradius incompatible movetype for unitdef " .. UnitDefs[unitDefID].name)
+		SpringShared.Echo("Error: unit_airunitsturnradius incompatible movetype for unitdef " .. UnitDefs[unitDefID].name)
 	end
 	if curMoveCtrl then
 		spMoveCtrlEnable(unitID)

@@ -1,4 +1,4 @@
-if not (Spring.GetModOptions().assistdronesenabled == "enabled" or (Spring.GetModOptions().assistdronesenabled == "pve_only" and Utilities.Gametype.IsPvE())) then
+if not (SpringShared.GetModOptions().assistdronesenabled == "enabled" or (SpringShared.GetModOptions().assistdronesenabled == "pve_only" and Utilities.Gametype.IsPvE())) then
 	return
 end
 
@@ -20,10 +20,10 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local droneCount = Spring.GetModOptions().assistdronescount
+local droneCount = SpringShared.GetModOptions().assistdronescount
 local teamIDDroneList = {}
 
-local teamsList = Spring.GetTeamList()
+local teamsList = SpringShared.GetTeamList()
 
 function CountItemsInArray(array)
 	local count = 0
@@ -35,7 +35,7 @@ end
 
 local drones = {}
 --local UDN = UnitDefNames
-if Spring.GetModOptions().assistdronesair == true then
+if SpringShared.GetModOptions().assistdronesair == true then
 	--drones = {
 	--	[UDN.armcom.id] = "armassistdrone",
 	--	[UDN.corcom.id] = "corassistdrone",
@@ -65,13 +65,13 @@ function SpawnAssistDrone(unitID, unitDefID, unitTeam)
 	end
 	local droneunit = drones[unitDefID]
 	if CountItemsInArray(teamIDDroneList[unitTeam]) < droneCount then
-		local posx, posy, posz = Spring.GetUnitPosition(unitID)
-		local droneID = Spring.CreateUnit(droneunit, posx, posy + 100, posz, 0, unitTeam)
+		local posx, posy, posz = SpringShared.GetUnitPosition(unitID)
+		local droneID = SpringSynced.CreateUnit(droneunit, posx, posy + 100, posz, 0, unitTeam)
 		if droneID then
 			GG.ScavengersSpawnEffectUnitID(droneID)
-			Spring.GiveOrderToUnit(droneID, CMD.GUARD, unitID, {})
+			SpringSynced.GiveOrderToUnit(droneID, CMD.GUARD, unitID, {})
 			teamIDDroneList[unitTeam][droneID] = true
-			Spring.SetUnitCosts(droneID, { buildTime = 500, metalCost = 1, energyCost = 1 })
+			SpringSynced.SetUnitCosts(droneID, { buildTime = 500, metalCost = 1, energyCost = 1 })
 		end
 	end
 end
@@ -98,8 +98,8 @@ end
 function gadget:GameFrame(n)
 	if n == 150 or n > 150 and n % 1800 == 0 then -- Drone respawn
 		for comID, _ in pairs(commandersList) do
-			local comDefID = Spring.GetUnitDefID(comID)
-			local comTeam = Spring.GetUnitTeam(comID)
+			local comDefID = SpringShared.GetUnitDefID(comID)
+			local comTeam = SpringShared.GetUnitTeam(comID)
 			SpawnAssistDrone(comID, comDefID, comTeam)
 		end
 	end

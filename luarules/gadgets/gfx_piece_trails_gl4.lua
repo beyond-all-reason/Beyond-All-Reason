@@ -23,18 +23,18 @@ end
 --------------------------------------------------------------------------------
 -- Localized functions
 --------------------------------------------------------------------------------
-local spEcho = Spring.Echo
-local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
-local spGetProjectilePosition = Spring.GetProjectilePosition
-local spGetProjectileVelocity = Spring.GetProjectileVelocity
-local spGetProjectileOwnerID = Spring.GetProjectileOwnerID
-local spGetProjectileTeamID = Spring.GetProjectileTeamID
-local spGetTeamAllyTeamID = Spring.GetTeamAllyTeamID
-local spIsSphereInView = Spring.IsSphereInView
-local spGetGroundHeight = Spring.GetGroundHeight
-local spIsPosInAirLos = Spring.IsPosInAirLos
-local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
-local spGetSpectatingState = Spring.GetSpectatingState
+local spEcho = SpringShared.Echo
+local spGetProjectilesInRectangle = SpringShared.GetProjectilesInRectangle
+local spGetProjectilePosition = SpringShared.GetProjectilePosition
+local spGetProjectileVelocity = SpringShared.GetProjectileVelocity
+local spGetProjectileOwnerID = SpringShared.GetProjectileOwnerID
+local spGetProjectileTeamID = SpringShared.GetProjectileTeamID
+local spGetTeamAllyTeamID = SpringShared.GetTeamAllyTeamID
+local spIsSphereInView = SpringUnsynced.IsSphereInView
+local spGetGroundHeight = SpringShared.GetGroundHeight
+local spIsPosInAirLos = SpringShared.IsPosInAirLos
+local spGetMyAllyTeamID = SpringUnsynced.GetLocalAllyTeamID
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 local mathRandom = math.random
 local mathMin = math.min

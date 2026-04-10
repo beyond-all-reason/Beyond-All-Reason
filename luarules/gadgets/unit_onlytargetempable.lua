@@ -37,11 +37,11 @@ end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	-- accepts: CMD.ATTACK
-	if empUnits[unitDefID] and cmdParams[2] == nil and type(cmdParams[1]) == "number" and UnitDefs[Spring.GetUnitDefID(cmdParams[1])] ~= nil then
-		if unEmpableUnits[Spring.GetUnitDefID(cmdParams[1])] then --	and UnitDefs[Spring.GetUnitDefID(cmdParams[1])].customParams.paralyzemultiplier == '0' then
+	if empUnits[unitDefID] and cmdParams[2] == nil and type(cmdParams[1]) == "number" and UnitDefs[SpringShared.GetUnitDefID(cmdParams[1])] ~= nil then
+		if unEmpableUnits[SpringShared.GetUnitDefID(cmdParams[1])] then --	and UnitDefs[Spring.GetUnitDefID(cmdParams[1])].customParams.paralyzemultiplier == '0' then
 			return false
 		else
-			local _, _, _, _, y = Spring.GetUnitPosition(cmdParams[1], true)
+			local _, _, _, _, y = SpringShared.GetUnitPosition(cmdParams[1], true)
 			if y and y >= 0 then
 				return true
 			else

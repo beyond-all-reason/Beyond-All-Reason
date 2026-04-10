@@ -18,7 +18,7 @@
 --------------------------------------------------------------------------------
 
 local VFSMODE = VFS.ZIP_ONLY -- FIXME: ZIP_FIRST ?
-if Spring.IsDevLuaEnabled() then
+if SpringShared.IsDevLuaEnabled() then
 	VFSMODE = VFS.RAW_FIRST
 end
 
@@ -49,7 +49,7 @@ end
 
 if IsSyncedCode() then
 	local devModeEnabled = string.find(string.upper(Game.gameVersion), "$VERSION", 1, true)
-	Spring.SetGameRulesParam("isDevMode", devModeEnabled)
+	SpringSynced.SetGameRulesParam("isDevMode", devModeEnabled)
 end
 
 --------------------------------------------------------------------------------
@@ -313,7 +313,7 @@ function gadgetHandler:Initialize()
 	--  for k,gf in ipairs(gadgetFiles) do
 	--    Spring.Echo('gf1 = ' .. gf) -- FIXME
 	--  end
-	local doMoreYield = (Spring.Yield ~= nil)
+	local doMoreYield = (SpringUnsynced.Yield ~= nil)
 	-- stuff the gadgets into unsortedGadgets
 	for k, gf in ipairs(gadgetFiles) do
 		--    Spring.Echo('gf2 = ' .. gf) -- FIXME
@@ -321,7 +321,7 @@ function gadgetHandler:Initialize()
 		if gadget then
 			table.insert(unsortedGadgets, gadget)
 			if not IsSyncedCode() and doMoreYield then
-				doMoreYield = Spring.Yield()
+				doMoreYield = SpringUnsynced.Yield()
 				if doMoreYield == false then --GetThreadSafety == false
 					--Spring.Echo("GadgetHandler Yield: entering critical section")
 				end
@@ -355,7 +355,7 @@ function gadgetHandler:Initialize()
 		local gname = g.ghInfo.name
 		local gbasename = g.ghInfo.basename
 
-		Spring.Log(LOG_SECTION, LOG.INFO, string.format("Loaded %s gadget:  %-18s  <%s>", gtype, gname, gbasename))
+		SpringShared.Log(LOG_SECTION, LOG.INFO, string.format("Loaded %s gadget:  %-18s  <%s>", gtype, gname, gbasename))
 	end
 	-- Since Initialize is run out of the normal callin wrapper, we
 	-- need to reorder explicitly here.
@@ -373,12 +373,12 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode)
 	local basename = Basename(filename)
 	local text = VFS.LoadFile(filename, overridevfsmode or VFSMODE)
 	if text == nil then
-		Spring.Log(LOG_SECTION, LOG.ERROR, "Failed to load: " .. filename)
+		SpringShared.Log(LOG_SECTION, LOG.ERROR, "Failed to load: " .. filename)
 		return nil
 	end
 	local chunk, err = loadstring(text, filename)
 	if chunk == nil then
-		Spring.Log(LOG_SECTION, LOG.ERROR, "Failed to load: " .. basename .. "  (" .. err .. ")")
+		SpringShared.Log(LOG_SECTION, LOG.ERROR, "Failed to load: " .. basename .. "  (" .. err .. ")")
 		return nil
 	end
 
@@ -387,7 +387,7 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode)
 	setfenv(chunk, gadget)
 	local success, err = pcall(chunk)
 	if not success then
-		Spring.Log(LOG_SECTION, LOG.ERROR, "Failed to load: " .. basename .. "  (" .. err .. ")")
+		SpringShared.Log(LOG_SECTION, LOG.ERROR, "Failed to load: " .. basename .. "  (" .. err .. ")")
 		return nil
 	end
 	if err == false then -- note that all "normal" gadgets return `nil` implicitly at EOF, so don't do "if not err"
@@ -395,7 +395,7 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode)
 	end
 
 	if gadget.GetInfo and (Platform and not Platform.check(gadget.GetInfo().depends)) then
-		Spring.Echo("Missing capabilities:  " .. gadget:GetInfo().name .. ". Disabling.")
+		SpringShared.Echo("Missing capabilities:  " .. gadget:GetInfo().name .. ". Disabling.")
 		return nil
 	end
 
@@ -409,14 +409,14 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode)
 
 	err = self:ValidateGadget(gadget)
 	if err then
-		Spring.Log(LOG_SECTION, LOG.ERROR, "Failed to load: " .. basename .. "  (" .. err .. ")")
+		SpringShared.Log(LOG_SECTION, LOG.ERROR, "Failed to load: " .. basename .. "  (" .. err .. ")")
 		return nil
 	end
 
 	local knownInfo = self.knownGadgets[name]
 	if knownInfo then
 		if knownInfo.active then
-			Spring.Log(LOG_SECTION, LOG.ERROR, "Failed to load: " .. basename .. "  (duplicate name)")
+			SpringShared.Log(LOG_SECTION, LOG.ERROR, "Failed to load: " .. basename .. "  (duplicate name)")
 			return nil
 		end
 	else
@@ -450,7 +450,7 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode)
 	if kbytes then
 		collectgarbage("collect") -- mark
 		collectgarbage("collect") -- sweep
-		Spring.Echo("LoadGadget", filename, "delta=", collectgarbage("count") - kbytes, "total=", collectgarbage("count"), "KB, synced =", IsSyncedCode())
+		SpringShared.Echo("LoadGadget", filename, "delta=", collectgarbage("count") - kbytes, "total=", collectgarbage("count"), "KB, synced =", IsSyncedCode())
 	end
 	return gadget
 end
@@ -598,11 +598,11 @@ local function SafeWrap(func, funcName)
 			if funcName ~= "Shutdown" then
 				gadgetHandler:RemoveGadget(g)
 			else
-				Spring.Log(LOG_SECTION, LOG.ERROR, "Error in Shutdown")
+				SpringShared.Log(LOG_SECTION, LOG.ERROR, "Error in Shutdown")
 			end
 			local name = g.ghInfo.name
-			Spring.Log(LOG_SECTION, LOG.INFO, r1)
-			Spring.Log(LOG_SECTION, LOG.INFO, "Removed gadget: " .. name)
+			SpringShared.Log(LOG_SECTION, LOG.INFO, r1)
+			SpringShared.Log(LOG_SECTION, LOG.INFO, "Removed gadget: " .. name)
 			return nil
 		end
 	end
@@ -613,7 +613,7 @@ local function SafeWrapGadget(gadget)
 		return
 	elseif SAFEWRAP == 1 then
 		if gadget.GetInfo and gadget.GetInfo().unsafe then
-			Spring.Log(LOG_SECTION, LOG.ERROR, "LuaUI: loaded unsafe gadget: " .. gadget.ghInfo.name)
+			SpringShared.Log(LOG_SECTION, LOG.ERROR, "LuaUI: loaded unsafe gadget: " .. gadget.ghInfo.name)
 			return
 		end
 	end
@@ -739,14 +739,14 @@ function gadgetHandler:InsertGadgetRaw(gadget)
 	self:UpdateCallIns()
 
 	if gadget.AllowCommand and not self:HasAllowCommands(gadget) then
-		Spring.Log("AllowCommand", LOG.WARNING, "<" .. gadget.ghInfo.basename .. "> AllowCommand defined but didn't register any commands. Autoregistering for all commands!")
+		SpringShared.Log("AllowCommand", LOG.WARNING, "<" .. gadget.ghInfo.basename .. "> AllowCommand defined but didn't register any commands. Autoregistering for all commands!")
 		self:RegisterAllowCommand(gadget, CMD.ANY)
 	end
 
 	if kbytes then
 		collectgarbage("collect")
 		collectgarbage("collect")
-		Spring.Echo("Initialize", gadget.ghInfo.name, "delta=", collectgarbage("count") - kbytes, "total=", collectgarbage("count"), "KB, synced =", IsSyncedCode())
+		SpringShared.Echo("Initialize", gadget.ghInfo.name, "delta=", collectgarbage("count") - kbytes, "total=", collectgarbage("count"), "KB, synced =", IsSyncedCode())
 	end
 end
 
@@ -804,7 +804,7 @@ function gadgetHandler:UpdateCallIn(name)
 				return res1, res2
 			end
 		else
-			Spring.Log(LOG_SECTION, LOG.ERROR, "UpdateCallIn: " .. name .. " is not implemented")
+			SpringShared.Log(LOG_SECTION, LOG.ERROR, "UpdateCallIn: " .. name .. " is not implemented")
 		end
 	end
 
@@ -823,7 +823,7 @@ function gadgetHandler:UpdateGadgetCallInRaw(name, g)
 		end
 		self:UpdateCallIn(name)
 	else
-		Spring.Log(LOG_SECTION, LOG.ERROR, "UpdateGadgetCallIn: bad name: " .. name)
+		SpringShared.Log(LOG_SECTION, LOG.ERROR, "UpdateGadgetCallIn: bad name: " .. name)
 	end
 end
 
@@ -834,7 +834,7 @@ function gadgetHandler:RemoveGadgetCallInRaw(name, g)
 		ArrayRemove(ciList, g)
 		self:UpdateCallIn(name)
 	else
-		Spring.Log(LOG_SECTION, LOG.ERROR, "RemoveGadgetCallIn: bad name: " .. name)
+		SpringShared.Log(LOG_SECTION, LOG.ERROR, "RemoveGadgetCallIn: bad name: " .. name)
 	end
 end
 
@@ -850,11 +850,11 @@ end
 function gadgetHandler:EnableGadgetRaw(name)
 	local ki = self.knownGadgets[name]
 	if not ki then
-		Spring.Log(LOG_SECTION, LOG.ERROR, "EnableGadget(), could not find gadget: " .. tostring(name))
+		SpringShared.Log(LOG_SECTION, LOG.ERROR, "EnableGadget(), could not find gadget: " .. tostring(name))
 		return false
 	end
 	if not ki.active then
-		Spring.Log(LOG_SECTION, LOG.INFO, "Loading:  " .. ki.filename)
+		SpringShared.Log(LOG_SECTION, LOG.INFO, "Loading:  " .. ki.filename)
 		local order = gadgetHandler.orderList[name]
 		if not order or order <= 0 then
 			self.orderList[name] = 1
@@ -871,7 +871,7 @@ end
 function gadgetHandler:DisableGadgetRaw(name)
 	local ki = self.knownGadgets[name]
 	if not ki then
-		Spring.Log(LOG_SECTION, LOG.ERROR, "DisableGadget(), could not find gadget: " .. tostring(name))
+		SpringShared.Log(LOG_SECTION, LOG.ERROR, "DisableGadget(), could not find gadget: " .. tostring(name))
 		return false
 	end
 	if ki.active then
@@ -879,7 +879,7 @@ function gadgetHandler:DisableGadgetRaw(name)
 		if not w then
 			return false
 		end
-		Spring.Log(LOG_SECTION, LOG.INFO, "Removed:  " .. ki.filename)
+		SpringShared.Log(LOG_SECTION, LOG.INFO, "Removed:  " .. ki.filename)
 		self:RemoveGadgetRaw(w) -- deactivate
 		self.orderList[name] = 0 -- disable
 	end
@@ -889,7 +889,7 @@ end
 function gadgetHandler:ToggleGadget(name)
 	local ki = self.knownGadgets[name]
 	if not ki then
-		Spring.Log(LOG_SECTION, LOG.ERROR, "ToggleGadget(), could not find gadget: " .. tostring(name))
+		SpringShared.Log(LOG_SECTION, LOG.ERROR, "ToggleGadget(), could not find gadget: " .. tostring(name))
 		return
 	end
 	if ki.active then
@@ -1067,12 +1067,12 @@ end
 
 function gadgetHandler:RegisterCMDID(gadget, id)
 	if id <= 1000 then
-		Spring.Log(LOG_SECTION, LOG.ERROR, "Gadget (" .. gadget.ghInfo.name .. ") " .. "tried to register a reserved CMD_ID")
+		SpringShared.Log(LOG_SECTION, LOG.ERROR, "Gadget (" .. gadget.ghInfo.name .. ") " .. "tried to register a reserved CMD_ID")
 		Script.Kill("Reserved CMD_ID code: " .. id)
 	end
 
 	if self.CMDIDs[id] ~= nil then
-		Spring.Log(LOG_SECTION, LOG.ERROR, "Gadget (" .. gadget.ghInfo.name .. ") " .. "tried to register a duplicated CMD_ID")
+		SpringShared.Log(LOG_SECTION, LOG.ERROR, "Gadget (" .. gadget.ghInfo.name .. ") " .. "tried to register a duplicated CMD_ID")
 		Script.Kill("Duplicate CMD_ID code: " .. id)
 	end
 
@@ -1169,7 +1169,7 @@ function gadgetHandler:RecvFromSynced(...)
 end
 
 function gadgetHandler:GotChatMsg(msg, player)
-	if player == 0 and Spring.IsCheatingEnabled() then
+	if player == 0 and SpringShared.IsCheatingEnabled() then
 		local sp = "^%s*" -- start pattern
 		local ep = "%s+(.*)" -- end pattern
 		local s, e, match
@@ -1350,14 +1350,14 @@ end
 function gadgetHandler:RegisterAllowCommand(gadget, cmdID)
 	-- cmdID accepts CMD.ANY and CMD.NIL in addition to usual cmdIDs
 	-- CMD.ANY subscribes to any command
-	Spring.Log("AllowCommand", LOG.INFO, "<" .. gadget.ghInfo.basename .. "> Register " .. tostring(cmdID))
+	SpringShared.Log("AllowCommand", LOG.INFO, "<" .. gadget.ghInfo.basename .. "> Register " .. tostring(cmdID))
 	if cmdID == nil then
 		-- use CMD.NIL instead
-		Spring.Log("AllowCommand", LOG.ERROR, "<" .. gadget.ghInfo.basename .. "> Invalid cmdID " .. tostring(cmdID))
+		SpringShared.Log("AllowCommand", LOG.ERROR, "<" .. gadget.ghInfo.basename .. "> Invalid cmdID " .. tostring(cmdID))
 		return
 	end
 	if not gadget.AllowCommand then
-		Spring.Log("AllowCommand", LOG.ERROR, "<" .. gadget.ghInfo.basename .. "> No callin method")
+		SpringShared.Log("AllowCommand", LOG.ERROR, "<" .. gadget.ghInfo.basename .. "> No callin method")
 		return
 	end
 	local cmdList = allowCommandList[cmdID]
@@ -2100,7 +2100,7 @@ function gadgetHandler:SunChanged()
 end
 
 function gadgetHandler:Update()
-	local deltaTime = Spring.GetLastUpdateSeconds()
+	local deltaTime = SpringUnsynced.GetLastUpdateSeconds()
 	tracy.ZoneBeginN("G:Update")
 	for _, g in ipairs(self.UpdateList) do
 		tracy.ZoneBeginN("G:Update:" .. g.ghInfo.name)
@@ -2331,7 +2331,7 @@ end
 function gadgetHandler:MouseRelease(x, y, button)
 	tracy.ZoneBeginN("G:MouseRelease")
 	local mo = self.mouseOwner
-	local mx, my, lmb, mmb, rmb = Spring.GetMouseState()
+	local mx, my, lmb, mmb, rmb = SpringUnsynced.GetMouseState()
 	if not (lmb or mmb or rmb) then
 		self.mouseOwner = nil
 	end

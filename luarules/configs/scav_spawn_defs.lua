@@ -8,17 +8,17 @@ local difficulties = {
 	--survival = 6,
 }
 
-local difficulty = difficulties[Spring.GetModOptions().scav_difficulty]
-local economyScale = 1 * Spring.GetModOptions().multiplier_resourceincome * (0.67 + (Spring.GetModOptions().multiplier_metalextraction * 0.33)) * (0.67 + (Spring.GetModOptions().multiplier_energyconversion * 0.33)) * (0.67 + (Spring.GetModOptions().multiplier_energyproduction * 0.33)) * (((((Spring.GetModOptions().startmetal - 1000) / 9000) + 1) * 0.1) + 0.9) * (((((Spring.GetModOptions().startenergy - 1000) / 9000) + 1) * 0.1) + 0.9)
+local difficulty = difficulties[SpringShared.GetModOptions().scav_difficulty]
+local economyScale = 1 * SpringShared.GetModOptions().multiplier_resourceincome * (0.67 + (SpringShared.GetModOptions().multiplier_metalextraction * 0.33)) * (0.67 + (SpringShared.GetModOptions().multiplier_energyconversion * 0.33)) * (0.67 + (SpringShared.GetModOptions().multiplier_energyproduction * 0.33)) * (((((SpringShared.GetModOptions().startmetal - 1000) / 9000) + 1) * 0.1) + 0.9) * (((((SpringShared.GetModOptions().startenergy - 1000) / 9000) + 1) * 0.1) + 0.9)
 
 economyScale = math.min(5, (economyScale * 0.33) + 0.67)
 
-local teams = Spring.GetTeamList()
+local teams = SpringShared.GetTeamList()
 local humanTeamCount = -1 -- starts at -1 to disregard gaia
 local scavTeamCount
 local scavTeamID
 for _, teamID in ipairs(teams) do
-	local teamLuaAI = Spring.GetTeamLuaAI(teamID)
+	local teamLuaAI = SpringShared.GetTeamLuaAI(teamID)
 	if not (teamLuaAI and string.find(teamLuaAI, "ScavengersAI")) then
 		humanTeamCount = humanTeamCount + 1
 	end
@@ -27,11 +27,11 @@ end
 local difficultyParameters = {
 
 	[difficulties.veryeasy] = {
-		gracePeriod = 360 * Spring.GetModOptions().scav_graceperiodmult,
-		bossTime = 65 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
-		scavSpawnRate = 240 / Spring.GetModOptions().scav_spawntimemult / economyScale,
-		burrowSpawnRate = 240 / Spring.GetModOptions().scav_spawntimemult / economyScale,
-		turretSpawnRate = 500 / Spring.GetModOptions().scav_spawntimemult / economyScale,
+		gracePeriod = 360 * SpringShared.GetModOptions().scav_graceperiodmult,
+		bossTime = 65 * SpringShared.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
+		scavSpawnRate = 240 / SpringShared.GetModOptions().scav_spawntimemult / economyScale,
+		burrowSpawnRate = 240 / SpringShared.GetModOptions().scav_spawntimemult / economyScale,
+		turretSpawnRate = 500 / SpringShared.GetModOptions().scav_spawntimemult / economyScale,
 		bossSpawnMult = 1,
 		angerBonus = 0.1,
 		maxXP = 0.1 * economyScale,
@@ -47,11 +47,11 @@ local difficultyParameters = {
 	},
 
 	[difficulties.easy] = {
-		gracePeriod = 240 * Spring.GetModOptions().scav_graceperiodmult,
-		bossTime = 60 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
-		scavSpawnRate = 200 / Spring.GetModOptions().scav_spawntimemult / economyScale,
-		burrowSpawnRate = 210 / Spring.GetModOptions().scav_spawntimemult / economyScale,
-		turretSpawnRate = 420 / Spring.GetModOptions().scav_spawntimemult / economyScale,
+		gracePeriod = 240 * SpringShared.GetModOptions().scav_graceperiodmult,
+		bossTime = 60 * SpringShared.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
+		scavSpawnRate = 200 / SpringShared.GetModOptions().scav_spawntimemult / economyScale,
+		burrowSpawnRate = 210 / SpringShared.GetModOptions().scav_spawntimemult / economyScale,
+		turretSpawnRate = 420 / SpringShared.GetModOptions().scav_spawntimemult / economyScale,
 		bossSpawnMult = 1,
 		angerBonus = 0.15,
 		maxXP = 0.2 * economyScale,
@@ -66,11 +66,11 @@ local difficultyParameters = {
 		bossResistanceMult = 1.5 * economyScale,
 	},
 	[difficulties.normal] = {
-		gracePeriod = 180 * Spring.GetModOptions().scav_graceperiodmult,
-		bossTime = 55 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
-		scavSpawnRate = 180 / Spring.GetModOptions().scav_spawntimemult / economyScale,
-		burrowSpawnRate = 180 / Spring.GetModOptions().scav_spawntimemult / economyScale,
-		turretSpawnRate = 380 / Spring.GetModOptions().scav_spawntimemult / economyScale,
+		gracePeriod = 180 * SpringShared.GetModOptions().scav_graceperiodmult,
+		bossTime = 55 * SpringShared.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
+		scavSpawnRate = 180 / SpringShared.GetModOptions().scav_spawntimemult / economyScale,
+		burrowSpawnRate = 180 / SpringShared.GetModOptions().scav_spawntimemult / economyScale,
+		turretSpawnRate = 380 / SpringShared.GetModOptions().scav_spawntimemult / economyScale,
 		bossSpawnMult = 3,
 		angerBonus = 0.2,
 		maxXP = 0.3 * economyScale,
@@ -85,11 +85,11 @@ local difficultyParameters = {
 		bossResistanceMult = 2 * economyScale,
 	},
 	[difficulties.hard] = {
-		gracePeriod = 160 * Spring.GetModOptions().scav_graceperiodmult,
-		bossTime = 50 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
-		scavSpawnRate = 160 / Spring.GetModOptions().scav_spawntimemult / economyScale,
-		burrowSpawnRate = 150 / Spring.GetModOptions().scav_spawntimemult / economyScale,
-		turretSpawnRate = 340 / Spring.GetModOptions().scav_spawntimemult / economyScale,
+		gracePeriod = 160 * SpringShared.GetModOptions().scav_graceperiodmult,
+		bossTime = 50 * SpringShared.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
+		scavSpawnRate = 160 / SpringShared.GetModOptions().scav_spawntimemult / economyScale,
+		burrowSpawnRate = 150 / SpringShared.GetModOptions().scav_spawntimemult / economyScale,
+		turretSpawnRate = 340 / SpringShared.GetModOptions().scav_spawntimemult / economyScale,
 		bossSpawnMult = 3,
 		angerBonus = 0.25,
 		maxXP = 0.4 * economyScale,
@@ -104,11 +104,11 @@ local difficultyParameters = {
 		bossResistanceMult = 2.5 * economyScale,
 	},
 	[difficulties.veryhard] = {
-		gracePeriod = 140 * Spring.GetModOptions().scav_graceperiodmult,
-		bossTime = 45 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
-		scavSpawnRate = 140 / Spring.GetModOptions().scav_spawntimemult / economyScale,
-		burrowSpawnRate = 120 / Spring.GetModOptions().scav_spawntimemult / economyScale,
-		turretSpawnRate = 320 / Spring.GetModOptions().scav_spawntimemult / economyScale,
+		gracePeriod = 140 * SpringShared.GetModOptions().scav_graceperiodmult,
+		bossTime = 45 * SpringShared.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
+		scavSpawnRate = 140 / SpringShared.GetModOptions().scav_spawntimemult / economyScale,
+		burrowSpawnRate = 120 / SpringShared.GetModOptions().scav_spawntimemult / economyScale,
+		turretSpawnRate = 320 / SpringShared.GetModOptions().scav_spawntimemult / economyScale,
 		bossSpawnMult = 3,
 		angerBonus = 0.30,
 		maxXP = 0.5 * economyScale,
@@ -123,11 +123,11 @@ local difficultyParameters = {
 		bossResistanceMult = 3 * economyScale,
 	},
 	[difficulties.epic] = {
-		gracePeriod = 120 * Spring.GetModOptions().scav_graceperiodmult,
-		bossTime = 40 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
-		scavSpawnRate = 120 / Spring.GetModOptions().scav_spawntimemult / economyScale,
-		burrowSpawnRate = 90 / Spring.GetModOptions().scav_spawntimemult / economyScale,
-		turretSpawnRate = 260 / Spring.GetModOptions().scav_spawntimemult / economyScale,
+		gracePeriod = 120 * SpringShared.GetModOptions().scav_graceperiodmult,
+		bossTime = 40 * SpringShared.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
+		scavSpawnRate = 120 / SpringShared.GetModOptions().scav_spawntimemult / economyScale,
+		burrowSpawnRate = 90 / SpringShared.GetModOptions().scav_spawntimemult / economyScale,
+		turretSpawnRate = 260 / SpringShared.GetModOptions().scav_spawntimemult / economyScale,
 		bossSpawnMult = 3,
 		angerBonus = 0.35,
 		maxXP = 0.6 * economyScale,
@@ -925,7 +925,7 @@ local SeaUnitsList = {
 ----------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------
-if not Spring.GetModOptions().unit_restrictions_noair then
+if not SpringShared.GetModOptions().unit_restrictions_noair then
 	local t1landairconstructors = {
 		armca_scav = 2,
 		corca_scav = 2,
@@ -1379,7 +1379,7 @@ local scavTurrets = {}
 -- Turrets table creation loop
 for tier, _ in pairs(Turrets) do
 	for turret, turretInfo in pairs(Turrets[tier]) do
-		if (not scavTurrets[turret]) and not (Spring.GetModOptions().unit_restrictions_noair and turretInfo.type == "antiair") and not (Spring.GetModOptions().unit_restrictions_nonukes and turretInfo.type == "nuke") and not (Spring.GetModOptions().unit_restrictions_nolrpc and turretInfo.type == "lrpc") then
+		if (not scavTurrets[turret]) and not (SpringShared.GetModOptions().unit_restrictions_noair and turretInfo.type == "antiair") and not (SpringShared.GetModOptions().unit_restrictions_nonukes and turretInfo.type == "nuke") and not (SpringShared.GetModOptions().unit_restrictions_nolrpc and turretInfo.type == "lrpc") then
 			scavTurrets[turret] = {
 				minBossAnger = tierConfiguration[tier].minAnger,
 				spawnedPerWave = turretInfo.spawnedPerWave or 1,
@@ -2709,7 +2709,7 @@ end
 -- Settings -- Adjust these
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 local airStartAnger = 0 -- needed for air waves to work correctly.
-if Spring.GetModOptions().unit_restrictions_noair then -- Disable air waves when No Air restriction is enabled
+if SpringShared.GetModOptions().unit_restrictions_noair then -- Disable air waves when No Air restriction is enabled
 	airStartAnger = 10000
 end
 local useScum = true -- Use scum as space where turrets can spawn (requires scum gadget from Beyond All Reason)
@@ -2801,7 +2801,7 @@ local highValueTargetsNames = { -- Priority targets for Scav. Must be immobile t
 local highValueTargets = {}
 for unitName, params in pairs(highValueTargetsNames) do
 	if not UnitDefNames[unitName] then
-		Spring.Log(gadget:GetInfo().name, LOG.ERROR, "couldnt find unit name: " .. unitName)
+		SpringShared.Log(gadget:GetInfo().name, LOG.ERROR, "couldnt find unit name: " .. unitName)
 	else
 		highValueTargets[UnitDefNames[unitName].id] = params
 	end
@@ -2815,9 +2815,9 @@ local config = { -- Don't touch this! ------------------------------------------
 	difficulty = difficulty,
 	difficulties = difficulties,
 	burrowUnitsList = BurrowUnitsList, -- burrow unit name
-	scavSpawnMultiplier = Spring.GetModOptions().scav_spawncountmult,
-	burrowSpawnType = Spring.GetModOptions().scav_scavstart,
-	swarmMode = Spring.GetModOptions().scav_swarmmode,
+	scavSpawnMultiplier = SpringShared.GetModOptions().scav_spawncountmult,
+	burrowSpawnType = SpringShared.GetModOptions().scav_scavstart,
+	swarmMode = SpringShared.GetModOptions().scav_swarmmode,
 	spawnSquare = spawnSquare,
 	spawnSquareIncrement = spawnSquareIncrement,
 	scavTurrets = table.copy(scavTurrets),

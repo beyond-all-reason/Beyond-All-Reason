@@ -33,11 +33,11 @@ local watchUpdateRate = 0.5000 ---@type number in seconds | slow watch interval 
 
 local math_clamp = math.clamp
 
-local spGetUnitIsDead = Spring.GetUnitIsDead
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetMoveTypeData = Spring.GetUnitMoveTypeData
-local spSetGroundMoveTypeData = Spring.MoveCtrl.SetGroundMoveTypeData
+local spGetUnitIsDead = SpringShared.GetUnitIsDead
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetGroundHeight = SpringShared.GetGroundHeight
+local spGetMoveTypeData = SpringShared.GetUnitMoveTypeData
+local spSetGroundMoveTypeData = SpringSynced.MoveCtrl.SetGroundMoveTypeData
 
 -- Setup
 
@@ -221,7 +221,7 @@ function gadget:Initialize()
 	end
 
 	local unitFinished = gadget.UnitFinished
-	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		unitFinished(gadget, unitID, Spring.GetUnitDefID(unitID), 0)
+	for _, unitID in ipairs(SpringShared.GetAllUnits()) do
+		unitFinished(gadget, unitID, SpringShared.GetUnitDefID(unitID), 0)
 	end
 end

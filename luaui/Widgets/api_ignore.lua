@@ -13,7 +13,7 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 local playernames = {} -- current game: playername to playerID
 local validAccounts = {} -- current game: accountID to playername
@@ -23,9 +23,9 @@ local ignoredPlayers = {} -- old playernames method, we'll keep storing and try 
 
 -- late rejoined/added spectators dont get a their own accountid but the last assigned playerID one instead so we'll have to ignore those
 -- THIS IS FUCKED UP BUT IT IS WHAT IT IS SOMEHOW
-local playerList = Spring.GetPlayerList()
+local playerList = SpringShared.GetPlayerList()
 for _, playerID in ipairs(playerList) do
-	local name, _, _, _, _, _, _, _, _, _, playerInfo = Spring.GetPlayerInfo(playerID)
+	local name, _, _, _, _, _, _, _, _, _, playerInfo = SpringShared.GetPlayerInfo(playerID)
 	accountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid)
 	if accountID and not validAccounts[accountID] then
 		validAccounts[accountID] = name
@@ -33,9 +33,9 @@ for _, playerID in ipairs(playerList) do
 end
 
 local function processPlayerlist()
-	local playerList = Spring.GetPlayerList()
+	local playerList = SpringShared.GetPlayerList()
 	for _, playerID in ipairs(playerList) do
-		local name, _, _, _, _, _, _, _, _, _, playerInfo = Spring.GetPlayerInfo(playerID)
+		local name, _, _, _, _, _, _, _, _, _, playerInfo = SpringShared.GetPlayerInfo(playerID)
 		if name and name ~= "" then
 			playernames[name] = playerID
 		end
@@ -147,7 +147,7 @@ function widget:PlayerChanged()
 end
 
 function widget:MapDrawCmd(playerID, cmdType, startx, starty, startz, a, b, c)
-	local _, _, _, _, _, _, _, _, _, _, playerInfo = Spring.GetPlayerInfo(playerID, false)
+	local _, _, _, _, _, _, _, _, _, _, playerInfo = SpringShared.GetPlayerInfo(playerID, false)
 	local accountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid) or nil
 	if accountID and ignoredAccounts[accountID] then
 		return true

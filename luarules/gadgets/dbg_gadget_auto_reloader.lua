@@ -19,7 +19,7 @@ end
 
 local SELF_NAME = "Gadget Auto Reloader"
 
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 local gadgetContents = {}
 local gadgetFileNames = {}
@@ -128,7 +128,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 else
-	local spGetMouseState = Spring.GetMouseState
+	local spGetMouseState = SpringUnsynced.GetMouseState
 	local mouseOffscreen = select(6, spGetMouseState())
 
 	function gadget:Initialize()

@@ -31,7 +31,7 @@ local charDelay = 0.022
 local maxLines = 4
 local lineTTL = 15
 
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+local ui_scale = tonumber(SpringUnsynced.GetConfigFloat("ui_scale", 1) or 1)
 local widgetScale = (((vsx + vsy) / 2000) * 0.55) * (0.95 + (ui_scale - 1) / 1.5)
 
 local glPopMatrix = gl.PopMatrix
@@ -48,11 +48,11 @@ local lineMaxWidth = 0
 
 local font, buildmenuBottomPosition
 
-local hideSpecChat = tonumber(Spring.GetConfigInt("HideSpecChat", 0) or 0) == 1
+local hideSpecChat = tonumber(SpringUnsynced.GetConfigInt("HideSpecChat", 0) or 0) == 1
 local string_lines = string.lines
 
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = SpringUnsynced.GetViewGeometry()
 	lineMaxWidth = lineMaxWidth / widgetScale
 	widgetScale = (((vsx + vsy) / 2000) * 0.55) * (0.95 + (ui_scale - 1) / 1.5)
 	lineMaxWidth = lineMaxWidth * widgetScale
@@ -175,8 +175,8 @@ function widget:Update(dt)
 	uiSec = uiSec + dt
 	if uiSec > 0.5 then
 		uiSec = 0
-		if hideSpecChat ~= tonumber(Spring.GetConfigInt("HideSpecChat", 0) or 0) == 1 then
-			hideSpecChat = tonumber(Spring.GetConfigInt("HideSpecChat", 0) or 0) == 1
+		if hideSpecChat ~= tonumber(SpringUnsynced.GetConfigInt("HideSpecChat", 0) or 0) == 1 then
+			hideSpecChat = tonumber(SpringUnsynced.GetConfigInt("HideSpecChat", 0) or 0) == 1
 		end
 		if WG.buildmenu and WG.buildmenu.getBottomPosition then
 			local prevbuildmenuBottomPos = buildmenuBottomPos
@@ -274,7 +274,7 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
-	if Spring.GetGameFrame() > 0 and data.messageLines ~= nil then
+	if SpringShared.GetGameFrame() > 0 and data.messageLines ~= nil then
 		messageLines = data.messageLines
 		currentLine = #messageLines
 		currentTypewriterLine = currentLine

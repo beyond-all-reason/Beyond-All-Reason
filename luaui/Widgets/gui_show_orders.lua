@@ -30,7 +30,7 @@ end
 -----------------------------------------------------
 
 -- Localized Spring API for performance
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
 local vsx, vsy = spGetViewGeometry()
 local widgetScale = vsy / 2000
@@ -61,7 +61,7 @@ local maxScale = 1.0 -- Maximum scale factor (1.0 = 100% of original size)
 -- Globals
 -----------------------------------------------------
 local isFactory = {}
-local GaiaTeamID = Spring.GetGaiaTeamID() -- set to -1 to include Gaia units
+local GaiaTeamID = SpringShared.GetGaiaTeamID() -- set to -1 to include Gaia units
 
 local font, chobbyInterface
 
@@ -140,20 +140,20 @@ end
 -----------------------------------------------------
 local floor = math.floor
 
-local spGetModKeyState = Spring.GetModKeyState
-local spDrawUnitCommands = Spring.DrawUnitCommands
-local spGetFactoryCommands = Spring.GetFactoryCommands
-local spGetSpecState = Spring.GetSpectatingState
-local spGetTeamList = Spring.GetTeamList
-local spGetTeamUnits = Spring.GetTeamUnits
-local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPosition = Spring.GetUnitPosition
-local spWorldToScreenCoords = Spring.WorldToScreenCoords
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spGetUnitStates = Spring.GetUnitStates
-local spGetCameraPosition = Spring.GetCameraPosition
-local spGetTeamInfo = Spring.GetTeamInfo
+local spGetModKeyState = SpringUnsynced.GetModKeyState
+local spDrawUnitCommands = SpringUnsynced.DrawUnitCommands
+local spGetFactoryCommands = SpringShared.GetFactoryCommands
+local spGetSpecState = SpringUnsynced.GetSpectatingState
+local spGetTeamList = SpringShared.GetTeamList
+local spGetTeamUnits = SpringShared.GetTeamUnits
+local spGetMyAllyTeamID = SpringUnsynced.GetLocalAllyTeamID
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spWorldToScreenCoords = SpringUnsynced.WorldToScreenCoords
+local spGetUnitIsBeingBuilt = SpringShared.GetUnitIsBeingBuilt
+local spGetUnitStates = SpringShared.GetUnitStates
+local spGetCameraPosition = SpringUnsynced.GetCameraPosition
+local spGetTeamInfo = SpringShared.GetTeamInfo
 
 local glColor = gl.Color
 local glTexture = gl.Texture

@@ -12,7 +12,7 @@ function gadget:GetInfo()
 	}
 end
 
-if (not gadgetHandler:IsSyncedCode()) or (not Utilities.Gametype.IsScavengers()) or Spring.GetModOptions().unit_restrictions_noair then
+if (not gadgetHandler:IsSyncedCode()) or (not Utilities.Gametype.IsScavengers()) or SpringShared.GetModOptions().unit_restrictions_noair then
 	return false
 elseif Utilities.Gametype.IsRaptors() then
 	return false
@@ -59,7 +59,7 @@ local aliveSpawners = {}
 local aliveSpawnersCount = 0
 local lastTransportSentFrame = 0
 local handledLootboxesList = {}
-local RaptorStartboxXMin, RaptorStartboxZMin, RaptorStartboxXMax, RaptorStartboxZMax = Spring.GetAllyTeamStartBox(scavAllyTeamID)
+local RaptorStartboxXMin, RaptorStartboxZMin, RaptorStartboxXMax, RaptorStartboxZMax = SpringShared.GetAllyTeamStartBox(scavAllyTeamID)
 
 local config = VFS.Include("LuaRules/Configs/scav_spawn_defs.lua")
 
@@ -88,7 +88,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function gadget:GameFrame(frame)
-	if frame % 30 == 12 and Spring.GetGameRulesParam("scavBossAnger") >= 1 and Spring.GetGameRulesParam("scavTechAnger") >= config.airStartAnger then
+	if frame % 30 == 12 and SpringShared.GetGameRulesParam("scavBossAnger") >= 1 and SpringShared.GetGameRulesParam("scavTechAnger") >= config.airStartAnger then
 		if aliveLootboxesCount > 0 and aliveSpawnersCount > 0 then
 			if SetCount(handledLootboxesList) > 0 then
 				handledLootboxesList = {}
@@ -98,7 +98,7 @@ function gadget:GameFrame(frame)
 				local loopCount = 0
 				local success = false
 				for lootboxID, lootboxTier in pairs(aliveLootboxes) do
-					local lootboxPosX, lootboxPosY, lootboxPosZ = Spring.GetUnitPosition(lootboxID)
+					local lootboxPosX, lootboxPosY, lootboxPosZ = SpringShared.GetUnitPosition(lootboxID)
 					if lootboxPosX and not GG.IsPosInRaptorScum(lootboxPosX, lootboxPosY, lootboxPosZ) then
 						if math.random(0, aliveLootboxesCount) == 0 and not handledLootboxesList[lootboxID] then
 							for transportDefID, transportTier in pairs(transportsList) do
@@ -106,24 +106,24 @@ function gadget:GameFrame(frame)
 									for spawnerID, _ in pairs(aliveSpawners) do
 										if math.random(0, SetCount(aliveSpawners)) == 0 and not handledLootboxesList[lootboxID] then
 											targetLootboxID = lootboxID
-											local spawnerPosX, spawnerPosY, spawnerPosZ = Spring.GetUnitPosition(spawnerID)
+											local spawnerPosX, spawnerPosY, spawnerPosZ = SpringShared.GetUnitPosition(spawnerID)
 											for j = 1, 5 do
 												if math.random() <= config.spawnChance then
-													local transportID = Spring.CreateUnit(transportDefID, spawnerPosX + math.random(-1024, 1024), spawnerPosY + 100, spawnerPosZ + math.random(-1024, 1024), math.random(0, 3), scavTeamID)
+													local transportID = SpringSynced.CreateUnit(transportDefID, spawnerPosX + math.random(-1024, 1024), spawnerPosY + 100, spawnerPosZ + math.random(-1024, 1024), math.random(0, 3), scavTeamID)
 													if transportID then
 														handledLootboxesList[targetLootboxID] = true
 														success = true
 														lastTransportSentFrame = frame
-														Spring.GiveOrderToUnit(transportID, CMD.LOAD_UNITS, { targetLootboxID }, { "shift" })
+														SpringSynced.GiveOrderToUnit(transportID, CMD.LOAD_UNITS, { targetLootboxID }, { "shift" })
 														for i = 1, 100 do
 															local randomX = math.random(0, Game.mapSizeX)
 															local randomZ = math.random(0, Game.mapSizeZ)
-															local randomY = math.max(0, Spring.GetGroundHeight(randomX, randomZ))
+															local randomY = math.max(0, SpringShared.GetGroundHeight(randomX, randomZ))
 															if GG.IsPosInRaptorScum(randomX, randomY, randomZ) then
-																Spring.GiveOrderToUnit(transportID, CMD.UNLOAD_UNITS, { randomX, randomY, randomZ, 1024 }, { "shift" })
+																SpringSynced.GiveOrderToUnit(transportID, CMD.UNLOAD_UNITS, { randomX, randomY, randomZ, 1024 }, { "shift" })
 															end
 															if i == 100 then
-																Spring.GiveOrderToUnit(transportID, CMD.MOVE, { randomX + math.random(-256, 256), randomY, randomZ + math.random(-256, 256) }, { "shift" })
+																SpringSynced.GiveOrderToUnit(transportID, CMD.MOVE, { randomX + math.random(-256, 256), randomY, randomZ + math.random(-256, 256) }, { "shift" })
 															end
 														end
 													end

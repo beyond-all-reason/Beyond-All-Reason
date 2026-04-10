@@ -26,7 +26,7 @@ local mathCeil = math.ceil
 local mathMax = math.max
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 local version = 1.1
 
@@ -113,7 +113,7 @@ local function RemoveMe(msg)
 end
 
 local function MakeBloomShaders()
-	local viewSizeX, viewSizeY = Spring.GetViewGeometry()
+	local viewSizeX, viewSizeY = SpringUnsynced.GetViewGeometry()
 	local downscale = presets[preset].quality
 	--spEcho("New bloom init preset:", preset)
 	vsx = mathMax(4, viewSizeX)
@@ -514,11 +514,11 @@ function widget:Initialize()
 		return
 	end
 
-	local hasdeferredmodelrendering = (Spring.GetConfigString("AllowDeferredModelRendering") == "1")
+	local hasdeferredmodelrendering = (SpringUnsynced.GetConfigString("AllowDeferredModelRendering") == "1")
 	if hasdeferredmodelrendering == false then
 		RemoveMe("[BloomShader::Initialize] removing widget, AllowDeferredModelRendering is required")
 	end
-	local hasdeferredmaprendering = (Spring.GetConfigString("AllowDeferredMapRendering") == "1")
+	local hasdeferredmaprendering = (SpringUnsynced.GetConfigString("AllowDeferredMapRendering") == "1")
 	if hasdeferredmaprendering == false then
 		RemoveMe("[BloomShader::Initialize] removing widget, AllowDeferredMapRendering is required")
 	end

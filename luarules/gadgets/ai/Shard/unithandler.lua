@@ -165,7 +165,7 @@ end
 function UnitHandler:Update()
 	for k, v in pairs(self.myActiveUnits) do
 		if ShardSpringLua then
-			local ux, uy, uz = Spring.GetUnitPosition(v:Internal():ID())
+			local ux, uy, uz = SpringShared.GetUnitPosition(v:Internal():ID())
 			if not ux then
 				-- game:SendToConsole(self.ai.id, "nil unit position", v:Internal():ID(), v:Internal():Name(), k)
 				self.myActiveUnits[k] = nil

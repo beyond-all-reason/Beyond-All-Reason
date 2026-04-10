@@ -17,10 +17,10 @@ local mathCeil = math.ceil
 local mathFloor = math.floor
 
 -- Localized Spring API for performance
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetGameFrame = Spring.GetGameFrame
-local spGetViewGeometry = Spring.GetViewGeometry
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetSelectedUnits = SpringUnsynced.GetSelectedUnits
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local currentLayout
@@ -77,8 +77,8 @@ local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
 
 local soundButton = "LuaUI/Sounds/buildbar_waypoint.wav"
 
-local uiOpacity = Spring.GetConfigFloat("ui_opacity", 0.7)
-local uiScale = Spring.GetConfigFloat("ui_scale", 1)
+local uiOpacity = SpringUnsynced.GetConfigFloat("ui_opacity", 0.7)
+local uiScale = SpringUnsynced.GetConfigFloat("ui_scale", 1)
 
 local backgroundRect = {}
 local activeRect = {}
@@ -169,8 +169,8 @@ local hiddenCommandTypes = {
 local CMDTYPE_ICON_BUILDING = CMDTYPE.ICON_BUILDING
 local CMDTYPE_ICON_MODE = CMDTYPE.ICON_MODE
 
-local spGetActiveCommand = Spring.GetActiveCommand
-local spGetActiveCmdDescs = Spring.GetActiveCmdDescs
+local spGetActiveCommand = SpringUnsynced.GetActiveCommand
+local spGetActiveCmdDescs = SpringUnsynced.GetActiveCmdDescs
 
 local os_clock = os.clock
 
@@ -309,12 +309,12 @@ local function computeWaitState()
 	end
 	-- Use cached first unit instead of calling spGetSelectedUnits() which allocates a large table
 	local ref = cachedFirstUnit
-	if ref and Spring.ValidUnitID(ref) and Spring.FindUnitCmdDesc(ref, CMD.WAIT) then
+	if ref and SpringShared.ValidUnitID(ref) and SpringShared.FindUnitCmdDesc(ref, CMD.WAIT) then
 		local commandQueue
-		if isFactory[Spring.GetUnitDefID(ref)] then
-			commandQueue = Spring.GetFactoryCommands(ref, 1)
+		if isFactory[SpringShared.GetUnitDefID(ref)] then
+			commandQueue = SpringShared.GetFactoryCommands(ref, 1)
 		else
-			commandQueue = Spring.GetUnitCommands(ref, 1)
+			commandQueue = SpringShared.GetUnitCommands(ref, 1)
 		end
 		if commandQueue and commandQueue[1] and commandQueue[1].id == CMD.WAIT then
 			cachedWaitState = 2
@@ -550,7 +550,7 @@ function widget:ViewResize()
 end
 
 local function reloadBindings()
-	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
+	currentLayout = SpringUnsynced.GetConfigString("KeyboardLayout", "qwerty")
 	actionHotkeys = VFS.Include("luaui/Include/action_hotkeys.lua")
 end
 
@@ -649,7 +649,7 @@ function widget:Update(dt)
 		end
 
 		disableInput = isSpectating
-		if Spring.IsGodModeEnabled() then
+		if SpringShared.IsGodModeEnabled() then
 			disableInput = false
 		end
 	end
@@ -907,11 +907,11 @@ local function drawOrders()
 end
 
 function widget:DrawScreen()
-	local x, y = Spring.GetMouseState()
+	local x, y = SpringUnsynced.GetMouseState()
 	local cellHovered
 	if not WG.topbar or not WG.topbar.showingQuit() then
 		if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-			Spring.SetMouseCursor("cursornormal")
+			SpringUnsynced.SetMouseCursor("cursornormal")
 			for cell = 1, #cellRects do
 				if commands[cell] then
 					if math_isInRect(x, y, cellRects[cell][1], cellRects[cell][2], cellRects[cell][3], cellRects[cell][4]) then
@@ -1113,7 +1113,7 @@ function widget:DrawScreen()
 end
 
 function widget:MousePress(x, y, button)
-	if Spring.IsGUIHidden() then
+	if SpringUnsynced.IsGUIHidden() then
 		return
 	end
 	if ordermenuShows and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
@@ -1144,10 +1144,10 @@ function widget:MousePress(x, y, button)
 							end
 
 							if playSounds then
-								Spring.PlaySoundFile(soundButton, 0.6, "ui")
+								SpringUnsynced.PlaySoundFile(soundButton, 0.6, "ui")
 							end
-							if cmd.id and Spring.GetCmdDescIndex(cmd.id) then
-								Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id), button, true, false, Spring.GetModKeyState())
+							if cmd.id and SpringUnsynced.GetCmdDescIndex(cmd.id) then
+								SpringUnsynced.SetActiveCommand(SpringUnsynced.GetCmdDescIndex(cmd.id), button, true, false, SpringUnsynced.GetModKeyState())
 							end
 							break
 						end

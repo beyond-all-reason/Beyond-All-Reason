@@ -13,7 +13,7 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 local iconTexture = ":n:LuaUI/Images/mapmarksfx/eraser.dds"
 local iconSize = 18
@@ -66,7 +66,7 @@ end
 
 local function updatePosition(force)
 	if WG.advplayerlist_api ~= nil then
-		local vsx, vsy = Spring.GetViewGeometry()
+		local vsx, vsy = SpringUnsynced.GetViewGeometry()
 		local margin = WG.FlowUI.elementPadding
 		xPos = vsx - margin
 		local prevPos = advplayerlistPos
@@ -114,7 +114,7 @@ end
 
 function widget:DrawScreen()
 	if drawlist[1] ~= nil then
-		local mx, my = Spring.GetMouseState()
+		local mx, my = SpringUnsynced.GetMouseState()
 		glPushMatrix()
 		glTranslate(xPos, yPos, 0)
 		if math_isInRect(mx, my, xPos - usedImgSize, yPos, xPos, yPos + usedImgSize) then
@@ -136,12 +136,12 @@ end
 
 function widget:MouseRelease(mx, my, mb)
 	if mb == 1 and math_isInRect(mx, my, xPos - usedImgSize, yPos, xPos, yPos + usedImgSize) then
-		Spring.SendCommands({ "clearmapmarks" })
+		SpringUnsynced.SendCommands({ "clearmapmarks" })
 		updatePosition(true)
 		if Script.LuaUI("ClearMapMarks") then
 			Script.LuaUI.ClearMapMarks()
 		end
-		local alt, ctrl, meta, shift = Spring.GetModKeyState()
+		local alt, ctrl, meta, shift = SpringUnsynced.GetModKeyState()
 		if ctrl then
 			continuouslyClean = not continuouslyClean
 			WG.clearmapmarks.continuous = continuouslyClean

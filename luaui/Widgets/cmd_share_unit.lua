@@ -28,25 +28,25 @@ local range = 200
 --------------------------------------------------------------------------------
 --speedups
 --------------------------------------------------------------------------------
-local GetUnitsInCylinder = Spring.GetUnitsInCylinder
-local GetMyTeamID = Spring.GetLocalTeamID
-local GetUnitTeam = Spring.GetUnitTeam
-local GetSelectedUnits = Spring.GetSelectedUnits
-local GetTeamAllyTeamID = Spring.GetTeamAllyTeamID
-local ShareResources = Spring.ShareResources
+local GetUnitsInCylinder = SpringShared.GetUnitsInCylinder
+local GetMyTeamID = SpringUnsynced.GetLocalTeamID
+local GetUnitTeam = SpringShared.GetUnitTeam
+local GetSelectedUnits = SpringUnsynced.GetSelectedUnits
+local GetTeamAllyTeamID = SpringShared.GetTeamAllyTeamID
+local ShareResources = SpringUnsynced.ShareResources
 local I18N = I18N
-local GetSpectatingState = Spring.GetSpectatingState
-local WorldToScreenCoords = Spring.WorldToScreenCoords
-local PlaySoundFile = Spring.PlaySoundFile
-local GetTeamColor = Spring.GetTeamColor
-local GetActiveCommand = Spring.GetActiveCommand
-local GetCameraPosition = Spring.GetCameraPosition
-local GetMouseState = Spring.GetMouseState
-local TraceScreenRay = Spring.TraceScreenRay
-local GetPlayerList = Spring.GetPlayerList
-local GetPlayerInfo = Spring.GetPlayerInfo
-local GetGameRulesParam = Spring.GetGameRulesParam
-local GetViewGeometry = Spring.GetViewGeometry
+local GetSpectatingState = SpringUnsynced.GetSpectatingState
+local WorldToScreenCoords = SpringUnsynced.WorldToScreenCoords
+local PlaySoundFile = SpringUnsynced.PlaySoundFile
+local GetTeamColor = SpringUnsynced.GetTeamColor
+local GetActiveCommand = SpringUnsynced.GetActiveCommand
+local GetCameraPosition = SpringUnsynced.GetCameraPosition
+local GetMouseState = SpringUnsynced.GetMouseState
+local TraceScreenRay = SpringUnsynced.TraceScreenRay
+local GetPlayerList = SpringShared.GetPlayerList
+local GetPlayerInfo = SpringShared.GetPlayerInfo
+local GetGameRulesParam = SpringShared.GetGameRulesParam
+local GetViewGeometry = SpringUnsynced.GetViewGeometry
 
 local glBeginEnd = gl.BeginEnd
 local glCallList = gl.CallList
@@ -201,7 +201,7 @@ local function colourNames(teamId)
 	if tonumber(teamId) < 0 then
 		return ""
 	end
-	local nameColourR, nameColourG, nameColourB, nameColourA = Spring.GetTeamColor(teamId)
+	local nameColourR, nameColourG, nameColourB, nameColourA = SpringUnsynced.GetTeamColor(teamId)
 	return Utilities.Color.ToString(nameColourR, nameColourG, nameColourB)
 end
 

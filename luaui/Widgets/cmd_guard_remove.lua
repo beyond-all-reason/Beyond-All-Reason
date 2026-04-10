@@ -28,11 +28,11 @@ include("keysym.h.lua")
 
 local math_distsq = math.distance3dSquared
 
-local spGetCmdDescIndex = Spring.GetCmdDescIndex
-local spGetActiveCmdDesc = Spring.GetActiveCmdDesc
-local spGetUnitCommandCount = Spring.GetUnitCommandCount
-local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spGetCmdDescIndex = SpringUnsynced.GetCmdDescIndex
+local spGetActiveCmdDesc = SpringUnsynced.GetActiveCmdDesc
+local spGetUnitCommandCount = SpringShared.GetUnitCommandCount
+local spGetUnitCurrentCommand = SpringShared.GetUnitCurrentCommand
+local spGiveOrderToUnit = SpringSynced.GiveOrderToUnit
 
 local CMD_REMOVE = CMD.REMOVE
 local CMDTYPE_ICON_MODE = CMDTYPE.ICON_MODE
@@ -44,7 +44,7 @@ local recentUnits = {}
 local updateTime = 0
 local gameTime = 0
 -- Regardless of the preference above, we don't need to go any lower than the double-click speed.
-safeguardDuration = math.max(safeguardDuration, Spring.GetConfigInt("DoubleClickTime", 200) / 1000)
+safeguardDuration = math.max(safeguardDuration, SpringUnsynced.GetConfigInt("DoubleClickTime", 200) / 1000)
 
 local validUnit = {}
 for udid, ud in pairs(UnitDefs) do

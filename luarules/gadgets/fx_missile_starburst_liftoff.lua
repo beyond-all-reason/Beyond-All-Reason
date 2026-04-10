@@ -20,9 +20,9 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local GetProjectilePosition = Spring.GetProjectilePosition
-local GetProjectileDirection = Spring.GetProjectileDirection
-local GetGroundHeight = Spring.GetGroundHeight
+local GetProjectilePosition = SpringShared.GetProjectilePosition
+local GetProjectileDirection = SpringShared.GetProjectileDirection
+local GetGroundHeight = SpringShared.GetGroundHeight
 
 local missiles = {} --subMissiles that are below the surface still
 local missileWeapons = {}
@@ -137,7 +137,7 @@ function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 		if groundHeight < 0 then
 			groundHeight = 0
 		end
-		local gf = Spring.GetGameFrame()
+		local gf = SpringShared.GetGameFrame()
 		missiles[proID] = {
 			weaponDefID,
 			groundHeight + missileWeapons[weaponDefID][1],
@@ -171,14 +171,14 @@ function gadget:GameFrame(gf)
 				local dirX, dirY, dirZ = GetProjectileDirection(proID)
 				if gf <= missile[5] or gf % 2 == 1 then
 					-- add extra missiletrail
-					Spring.SpawnCEG(missile[4], x, y, z, dirX, dirY, dirZ)
+					SpringSynced.SpawnCEG(missile[4], x, y, z, dirX, dirY, dirZ)
 					if y <= missile[8] or (y <= missile[9] and gf % 2 == 1) then
 						-- add ground dust
-						Spring.SpawnCEG(missile[7], x, missile[2], z, dirX, dirY, dirZ)
+						SpringSynced.SpawnCEG(missile[7], x, missile[2], z, dirX, dirY, dirZ)
 					end
 					if y <= missile[11] or (y <= missile[12] and gf % 2 == 1) then
 						--add ground fire
-						Spring.SpawnCEG(missile[10], x, missile[2], z, dirX, dirY, dirZ)
+						SpringSynced.SpawnCEG(missile[10], x, missile[2], z, dirX, dirY, dirZ)
 					end
 				end
 			else

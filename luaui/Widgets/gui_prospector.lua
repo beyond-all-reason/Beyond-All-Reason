@@ -25,12 +25,12 @@ local textSize = 16
 -- speedups
 ------------------------------------------------
 
-local GetActiveCommand = Spring.GetActiveCommand
-local GetMouseState = Spring.GetMouseState
-local TraceScreenRay = Spring.TraceScreenRay
-local GetGroundInfo = Spring.GetGroundInfo
-local GetGameFrame = Spring.GetGameFrame
-local GetMapDrawMode = Spring.GetMapDrawMode
+local GetActiveCommand = SpringUnsynced.GetActiveCommand
+local GetMouseState = SpringUnsynced.GetMouseState
+local TraceScreenRay = SpringUnsynced.TraceScreenRay
+local GetGroundInfo = SpringShared.GetGroundInfo
+local GetGameFrame = SpringShared.GetGameFrame
+local GetMapDrawMode = SpringUnsynced.GetMapDrawMode
 
 local glColor = gl.Color
 local glRect = gl.Rect
@@ -49,7 +49,7 @@ local strFormat = string.format
 -- vars
 ------------------------------------------------
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = SpringUnsynced.GetViewGeometry()
 --unitDefID = {extractsMetal, extractSquare, oddX, oddZ}
 local mexDefInfos = {}
 local defaultDefID

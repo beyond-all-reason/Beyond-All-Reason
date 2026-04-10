@@ -11,6 +11,6 @@ function addon:GetInfo()
 end
 
 function addon:Initialize()
-	Spring.SetWMIcon("bitmaps/logo.png", true)
-	Spring.SetWMCaption(Game.gameName .. " (Spring " .. ((Game and Game.version) or (Engine and Engine.version) or "") .. ")", Game.modName)
+	SpringUnsynced.SetWMIcon("bitmaps/logo.png", true)
+	SpringUnsynced.SetWMCaption(Game.gameName .. " (Spring " .. ((Game and Game.version) or (Engine and Engine.version) or "") .. ")", Game.modName)
 end

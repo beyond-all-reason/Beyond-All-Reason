@@ -27,12 +27,12 @@ local utilities = {
 	GetRaptorAllyTeamID = team.GetRaptorAllyTeamID,
 
 	IsDevMode = function()
-		local devMode = Spring.GetGameRulesParam("isDevMode")
+		local devMode = SpringShared.GetGameRulesParam("isDevMode")
 		return (devMode and devMode > 0) and true or false
 	end,
 
 	ShowDevUI = function()
-		local devUI = Spring.GetConfigInt("DevUI", 0)
+		local devUI = SpringUnsynced.GetConfigInt("DevUI", 0)
 		return (devUI > 0) and true or false
 	end,
 
@@ -41,9 +41,9 @@ local utilities = {
 	_devModeCache = nil,
 	_devModeCacheFrame = -1,
 	IsDevModeCached = function()
-		local frame = Spring.GetGameFrame()
+		local frame = SpringShared.GetGameFrame()
 		if frame ~= utilities._devModeCacheFrame then
-			local devMode = Spring.GetGameRulesParam("isDevMode")
+			local devMode = SpringShared.GetGameRulesParam("isDevMode")
 			utilities._devModeCache = (devMode and devMode > 0) and true or false
 			utilities._devModeCacheFrame = frame
 		end
@@ -63,7 +63,7 @@ local utilities = {
 		if cached then
 			return cached
 		end
-		local accountInfo = select(11, Spring.GetPlayerInfo(playerID))
+		local accountInfo = select(11, SpringShared.GetPlayerInfo(playerID))
 		local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
 		if accountID ~= -1 then
 			accountIDCache[playerID] = accountID

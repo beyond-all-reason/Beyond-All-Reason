@@ -1,7 +1,7 @@
 local voidWater = false
-local waterLevel = Spring.GetModOptions().map_waterlevel
+local waterLevel = SpringShared.GetModOptions().map_waterlevel
 local waterIsLava = Lava.isLavaMap
-local minHeight, _, _, _ = Spring.GetGroundExtremes()
+local minHeight, _, _, _ = SpringShared.GetGroundExtremes()
 local success, mapinfo = pcall(VFS.Include, "mapinfo.lua") -- load mapinfo.lua confs
 if success and mapinfo then
 	voidWater = mapinfo.voidwater
@@ -25,16 +25,16 @@ end
 local tableInsert = table.insert
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
+local spGetGameFrame = SpringShared.GetGameFrame
 
 local isPregame = spGetGameFrame() == 0 and not isSpec
 
 local uDefNames = UnitDefNames
 
-local GetActiveCommand = Spring.GetActiveCommand
-local SetActiveCommand = Spring.SetActiveCommand
-local spGetMouseState = Spring.GetMouseState
-local spTraceScreenRay = Spring.TraceScreenRay
+local GetActiveCommand = SpringUnsynced.GetActiveCommand
+local SetActiveCommand = SpringUnsynced.SetActiveCommand
+local spGetMouseState = SpringUnsynced.GetMouseState
+local spTraceScreenRay = SpringUnsynced.TraceScreenRay
 local currentTime = os.clock
 
 --- Human friendly list. Automatically converted to unitdef IDs on init
@@ -145,8 +145,8 @@ end
 
 -- returns true if the given unitDefID can be built by the pregame start unit
 local function canSelectPreGameDef(uDefID)
-	local myTeamID = Spring.GetLocalTeamID()
-	local startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+	local myTeamID = SpringUnsynced.GetLocalTeamID()
+	local startDefID = SpringShared.GetTeamRulesParam(myTeamID, "startUnit")
 	if not startDefID or not UnitDefs[startDefID] or not UnitDefs[startDefID].buildOptions then
 		return false
 	end
@@ -280,7 +280,7 @@ local function addUnitDefPair(firstUnitName, lastUnitName)
 	local lastUnitDef = uDefNames[lastUnitName]
 
 	if not (firstUnitDef and lastUnitDef and firstUnitDef.id and lastUnitDef.id) then
-		Spring.Echo(string.format("%s: can't add %s/%s pair", "cmd_context_build", firstUnitName, lastUnitName))
+		SpringShared.Echo(string.format("%s: can't add %s/%s pair", "cmd_context_build", firstUnitName, lastUnitName))
 		return
 	end
 
@@ -298,11 +298,11 @@ local function addUnitDefPair(firstUnitName, lastUnitName)
 end
 
 function widget:Initialize()
-	if Spring.IsReplay() or spGetGameFrame() > 0 then
+	if SpringUnsynced.IsReplay() or spGetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
 
-	if Spring.GetModOptions().experimentallegionfaction then
+	if SpringShared.GetModOptions().experimentallegionfaction then
 		for _, v in ipairs(legionUnitlist) do
 			tableInsert(unitlist, v)
 		end

@@ -42,7 +42,7 @@ function gadget:Initialize()
 	end
 
 	GG.MissionAPI = {}
-	GG.MissionAPI.Difficulty = Spring.GetModOptions().mission_difficulty --TODO: add mission difficulty modoption
+	GG.MissionAPI.Difficulty = SpringShared.GetModOptions().mission_difficulty --TODO: add mission difficulty modoption
 
 	local triggersSchema = VFS.Include("luarules/mission_api/triggers_schema.lua")
 	local actionsSchema = VFS.Include("luarules/mission_api/actions_schema.lua")

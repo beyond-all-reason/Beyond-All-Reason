@@ -20,13 +20,13 @@ BlueprintSubLogic.equivalentUnits = {}
 BlueprintSubLogic.MasterBuildingData = {}
 
 local unitNameToDefIDMap = {}
-Spring.Log("BlueprintSubLogic", LOG.INFO, "Precomputing UnitDefs Name->ID map...")
+SpringShared.Log("BlueprintSubLogic", LOG.INFO, "Precomputing UnitDefs Name->ID map...")
 for defID, def in pairs(UnitDefs) do
 	if def and def.name then
 		unitNameToDefIDMap[def.name:lower()] = defID
 	end
 end
-Spring.Log("BlueprintSubLogic", LOG.INFO, "Finished precomputing Name->ID map.")
+SpringShared.Log("BlueprintSubLogic", LOG.INFO, "Finished precomputing Name->ID map.")
 
 function BlueprintSubLogic.validateCategoryDefinitions()
 	local categoryKeys = {}
@@ -43,10 +43,10 @@ function BlueprintSubLogic.validateCategoryDefinitions()
 		for dupe in pairs(duplicateCategories) do
 			table.insert(dupes, dupe)
 		end
-		Spring.Log("BlueprintSubLogic", LOG.ERROR, string.format("[BlueprintSubLogic ERROR] Found duplicate category keys: %s", table.concat(dupes, ", ")))
+		SpringShared.Log("BlueprintSubLogic", LOG.ERROR, string.format("[BlueprintSubLogic ERROR] Found duplicate category keys: %s", table.concat(dupes, ", ")))
 	end
 
-	Spring.Log("BlueprintSubLogic", LOG.DEBUG, "Validating category definitions (Unit Assignments)...")
+	SpringShared.Log("BlueprintSubLogic", LOG.DEBUG, "Validating category definitions (Unit Assignments)...")
 	local multiAssigned = {}
 	local unitAssignments = {}
 	for unitName, categoryName in pairs(BlueprintSubLogic.unitCategories) do
@@ -59,17 +59,17 @@ function BlueprintSubLogic.validateCategoryDefinitions()
 	local count = 0
 	for unitName, categories in pairs(multiAssigned) do
 		count = count + 1
-		Spring.Log("BlueprintSubLogic", LOG.WARNING, string.format("Unit '%s' is assigned to multiple categories: %s", unitName, table.concat(categories, ", ")))
+		SpringShared.Log("BlueprintSubLogic", LOG.WARNING, string.format("Unit '%s' is assigned to multiple categories: %s", unitName, table.concat(categories, ", ")))
 	end
 	if count > 0 then
-		Spring.Log("BlueprintSubLogic", LOG.WARNING, string.format("Found %d units with multiple category assignments (This may be intended)", count))
+		SpringShared.Log("BlueprintSubLogic", LOG.WARNING, string.format("Found %d units with multiple category assignments (This may be intended)", count))
 	else
-		Spring.Log("BlueprintSubLogic", LOG.DEBUG, "No duplicate unit assignments found")
+		SpringShared.Log("BlueprintSubLogic", LOG.DEBUG, "No duplicate unit assignments found")
 	end
 end
 
 function BlueprintSubLogic.generateEquivalentUnits()
-	Spring.Log("BlueprintSubLogic", LOG.INFO, "Generating equivalent units...")
+	SpringShared.Log("BlueprintSubLogic", LOG.INFO, "Generating equivalent units...")
 	local categoryUnits = BlueprintSubLogic.categoryUnits
 	local equivalentUnits = BlueprintSubLogic.equivalentUnits
 	for k in pairs(equivalentUnits) do
@@ -98,7 +98,7 @@ function BlueprintSubLogic.generateEquivalentUnits()
 			end
 		end
 	end
-	Spring.Log("BlueprintSubLogic", LOG.INFO, string.format("Generated %d unit mappings.", mappingCount))
+	SpringShared.Log("BlueprintSubLogic", LOG.INFO, string.format("Generated %d unit mappings.", mappingCount))
 end
 
 function BlueprintSubLogic.getSideFromUnitName(unitName)
@@ -218,7 +218,7 @@ end
 BlueprintSubLogic.validateCategoryDefinitions()
 BlueprintSubLogic.generateEquivalentUnits()
 
-Spring.Log("BlueprintSubLogic", LOG.INFO, "Generating Master Building Data...")
+SpringShared.Log("BlueprintSubLogic", LOG.INFO, "Generating Master Building Data...")
 local buildingCount = 0
 if BlueprintSubLogic.unitCategories then
 	for unitNameLower, categoryName in pairs(BlueprintSubLogic.unitCategories) do
@@ -241,8 +241,8 @@ if BlueprintSubLogic.unitCategories then
 		buildingCount = buildingCount + 1
 	end
 end
-Spring.Log("BlueprintSubLogic", LOG.INFO, string.format("Generated Master Building Data for %d buildings.", buildingCount))
-Spring.Log("BlueprintSubLogic", LOG.INFO, "Internal data structures for substitution logic generated. Module ready to be used.")
+SpringShared.Log("BlueprintSubLogic", LOG.INFO, string.format("Generated Master Building Data for %d buildings.", buildingCount))
+SpringShared.Log("BlueprintSubLogic", LOG.INFO, "Internal data structures for substitution logic generated. Module ready to be used.")
 
 local function _getActualSubstitutedUnitName(originalUnitName, targetSide)
 	if not originalUnitName or not targetSide then
@@ -252,13 +252,13 @@ local function _getActualSubstitutedUnitName(originalUnitName, targetSide)
 	local unitNameLower = originalUnitName:lower()
 	local buildingData = BlueprintSubLogic.MasterBuildingData[unitNameLower]
 	if not buildingData then
-		Spring.Log("BlueprintSubLogic", LOG.INFO, string.format("_getActualSubstitutedUnitDefID: No building data for unit '%s'. Returning original.", unitNameLower))
+		SpringShared.Log("BlueprintSubLogic", LOG.INFO, string.format("_getActualSubstitutedUnitDefID: No building data for unit '%s'. Returning original.", unitNameLower))
 		return originalUnitName
 	end
 
 	local equivalentUnitName = buildingData.equivalents[targetSide]
 	if not equivalentUnitName or equivalentUnitName == "" then
-		Spring.Log("BlueprintSubLogic", LOG.WARNING, string.format("_getActualSubstitutedUnitDefID: No mapping for unit '%s' to target side '%s'.", unitNameLower, targetSide))
+		SpringShared.Log("BlueprintSubLogic", LOG.WARNING, string.format("_getActualSubstitutedUnitDefID: No mapping for unit '%s' to target side '%s'.", unitNameLower, targetSide))
 		return originalUnitName
 	end
 
@@ -313,7 +313,7 @@ local function _generateSubstitutionSummary(aggregatedStats, itemTypeString, sou
 		verboseMessage = verboseMessage .. string.format(" (No relevant %s items to process for substitution)", itemTypeString:lower())
 	end
 
-	Spring.Log("BlueprintSubLogic", LOG.INFO, verboseMessage)
+	SpringShared.Log("BlueprintSubLogic", LOG.INFO, verboseMessage)
 
 	local simpleMessage
 	if stats.totalConsidered > 0 then
@@ -355,7 +355,7 @@ function BlueprintSubLogic.processBlueprintSubstitution(originalBlueprint, targe
 	local sourceSide = originalBlueprint and originalBlueprint.sourceInfo and originalBlueprint.sourceInfo.primarySourceSide
 
 	if not (originalBlueprint and originalBlueprint.units and targetSide) then
-		Spring.Log("BlueprintSubLogic", LOG.ERROR, "processBlueprintSubstitution: Called with invalid arguments (nil blueprint, units, or targetSide).")
+		SpringShared.Log("BlueprintSubLogic", LOG.ERROR, "processBlueprintSubstitution: Called with invalid arguments (nil blueprint, units, or targetSide).")
 		local errorStats = { totalConsidered = 0, substituted = 0, failedNoMapping = 0, failedInvalidEquivalent = 0, unchangedSameSide = 0, unchangedOther = 0, unchangedNotBuilding = 0, hadMappingFailures = true }
 		return { stats = errorStats, summaryMessage = "Internal error: Invalid arguments for substitution.", substitutionFailed = true }
 	end
@@ -366,7 +366,7 @@ function BlueprintSubLogic.processBlueprintSubstitution(originalBlueprint, targe
 		return { stats = errorStats, summaryMessage = summary, substitutionFailed = true }
 	end
 
-	Spring.Log("BlueprintSubLogic", LOG.DEBUG, string.format("Processing blueprint substitution (in-place) from %s to %s for %d units.", tostring(sourceSide), tostring(targetSide), originalBlueprint and #originalBlueprint.units or 0))
+	SpringShared.Log("BlueprintSubLogic", LOG.DEBUG, string.format("Processing blueprint substitution (in-place) from %s to %s for %d units.", tostring(sourceSide), tostring(targetSide), originalBlueprint and #originalBlueprint.units or 0))
 
 	local aggregatedStats = {
 		totalConsidered = 0,
@@ -411,12 +411,12 @@ end
 
 function BlueprintSubLogic.processBuildQueueSubstitution(originalBuildQueue, sourceSide, targetSide)
 	if not (originalBuildQueue and sourceSide and targetSide) then
-		Spring.Log("BlueprintSubLogic", LOG.ERROR, "processBuildQueueSubstitution: Called with incomplete arguments (nil sourceSide or targetSide). Review caller logic.")
+		SpringShared.Log("BlueprintSubLogic", LOG.ERROR, "processBuildQueueSubstitution: Called with incomplete arguments (nil sourceSide or targetSide). Review caller logic.")
 		local errorStats = { totalConsidered = 0, substituted = 0, failedNoMapping = 0, failedInvalidEquivalent = 0, unchangedSameSide = 0, unchangedOther = 0, unchangedNotBuilding = 0, hadMappingFailures = true }
 		return { stats = errorStats, summaryMessage = "Internal error: Incomplete arguments for substitution.", substitutionFailed = true }
 	end
 
-	Spring.Log("BlueprintSubLogic", LOG.DEBUG, string.format("Processing build queue substitution (in-place) from %s to %s for %d items.", sourceSide, targetSide, #originalBuildQueue))
+	SpringShared.Log("BlueprintSubLogic", LOG.DEBUG, string.format("Processing build queue substitution (in-place) from %s to %s for %d items.", sourceSide, targetSide, #originalBuildQueue))
 
 	local aggregatedStats = {
 		totalConsidered = 0,
@@ -454,7 +454,7 @@ function BlueprintSubLogic.processBuildQueueSubstitution(originalBuildQueue, sou
 						end
 					else
 						aggregatedStats.unchangedOther = aggregatedStats.unchangedOther + 1
-						Spring.Log("BlueprintSubLogic", LOG.DEBUG, string.format("processBuildQueueSubstitution: No MasterBuildingData for %s. Item not substituted.", originalUnitName:lower()))
+						SpringShared.Log("BlueprintSubLogic", LOG.DEBUG, string.format("processBuildQueueSubstitution: No MasterBuildingData for %s. Item not substituted.", originalUnitName:lower()))
 					end
 				end
 			else
@@ -462,7 +462,7 @@ function BlueprintSubLogic.processBuildQueueSubstitution(originalBuildQueue, sou
 			end
 		else
 			aggregatedStats.unchangedNotBuilding = aggregatedStats.unchangedNotBuilding + 1
-			Spring.Log("BlueprintSubLogic", LOG.WARNING, string.format("processBuildQueueSubstitution: Skipping malformed item: %s", tostring(bq_item)))
+			SpringShared.Log("BlueprintSubLogic", LOG.WARNING, string.format("processBuildQueueSubstitution: Skipping malformed item: %s", tostring(bq_item)))
 		end
 	end
 	local summaryMsg, subFailed = _generateSubstitutionSummary(aggregatedStats, "Build queue", sourceSide, targetSide)

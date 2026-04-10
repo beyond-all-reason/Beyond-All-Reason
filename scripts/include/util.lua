@@ -1,9 +1,9 @@
 function still_building()
-	return Spring.GetUnitIsBeingBuilt(unitID)
+	return SpringShared.GetUnitIsBeingBuilt(unitID)
 end
 
 function get_health_percent()
-	local health, maxHealth = Spring.GetUnitHealth(unitID)
+	local health, maxHealth = SpringShared.GetUnitHealth(unitID)
 	return ((health / maxHealth) * 100)
 end
 
@@ -20,7 +20,7 @@ function smoke_unit(emit_piece)
 			if math.random(1, 66) < health_percent then
 				smoketype = 257
 			end
-			Spring.UnitScript.EmitSfx(emit_piece, smoketype)
+			SpringSynced.UnitScript.EmitSfx(emit_piece, smoketype)
 		end
 
 		local sleep_time = health_percent * 50

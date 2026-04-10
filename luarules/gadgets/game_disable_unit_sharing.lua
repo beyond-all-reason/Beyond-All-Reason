@@ -19,7 +19,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-if not Spring.GetModOptions().disable_unit_sharing then
+if not SpringShared.GetModOptions().disable_unit_sharing then
 	return false
 end
 

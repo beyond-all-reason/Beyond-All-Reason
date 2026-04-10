@@ -1327,7 +1327,7 @@ local SizeRadius = {
 	Planetary = 5000,
 }
 
-local globalDamageMult = Spring.GetModOptions().multiplier_weapondamage or 1
+local globalDamageMult = SpringShared.GetModOptions().multiplier_weapondamage or 1
 
 local function GetClosestSizeClass(desiredsize)
 	local delta = math.huge
@@ -1520,7 +1520,7 @@ local function AssignDistortionsToAllWeapons()
 
 			-- if it's a machine-gun or rapid-fire, give it NO distortion
 			if lname:find("mg_weapon") or lname:find("legflak") or lname:find("machinegun") or lname:find("shotgun") then
-				Spring.Echo("LaserCannon no distortion for " .. weaponDef.name)
+				SpringShared.Echo("LaserCannon no distortion for " .. weaponDef.name)
 				--projectileDefDistortions[weaponID] = GetDistortionClass("NoEffect", sizeclass, overrideTable)
 
 				-- otherwise give it the regular cannon distortion
@@ -1687,7 +1687,7 @@ local function AssignDistortionsToAllWeapons()
 			end
 		end
 	end
-	Spring.Echo(Spring.GetGameFrame(), "DLGL4 weapons conf using", usedclasses, "distortion types")
+	SpringShared.Echo(SpringShared.GetGameFrame(), "DLGL4 weapons conf using", usedclasses, "distortion types")
 end
 AssignDistortionsToAllWeapons() -- disable this if it doest work
 

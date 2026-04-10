@@ -30,26 +30,26 @@ local distance3dSquared = math.distance3dSquared
 
 local CallAsTeam = CallAsTeam
 
-local spDeleteProjectile = Spring.DeleteProjectile
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetGroundNormal = Spring.GetGroundNormal
-local spGetProjectileDefID = Spring.GetProjectileDefID
-local spGetProjectileOwnerID = Spring.GetProjectileOwnerID
-local spGetProjectilePosition = Spring.GetProjectilePosition
-local spGetProjectileTarget = Spring.GetProjectileTarget
-local spGetProjectileTeamID = Spring.GetProjectileTeamID
-local spGetProjectileTimeToLive = Spring.GetProjectileTimeToLive
-local spGetProjectileVelocity = Spring.GetProjectileVelocity
-local spGetUnitIsDead = Spring.GetUnitIsDead
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitWeaponState = Spring.GetUnitWeaponState
-local spGetUnitWeaponTarget = Spring.GetUnitWeaponTarget
-local spSetProjectilePosition = Spring.SetProjectilePosition
-local spSetProjectileTarget = Spring.SetProjectileTarget
-local spSetProjectileVelocity = Spring.SetProjectileVelocity
-local spSpawnCEG = Spring.SpawnCEG
-local spSpawnProjectile = Spring.SpawnProjectile
+local spDeleteProjectile = SpringSynced.DeleteProjectile
+local spGetGroundHeight = SpringShared.GetGroundHeight
+local spGetGroundNormal = SpringShared.GetGroundNormal
+local spGetProjectileDefID = SpringShared.GetProjectileDefID
+local spGetProjectileOwnerID = SpringShared.GetProjectileOwnerID
+local spGetProjectilePosition = SpringShared.GetProjectilePosition
+local spGetProjectileTarget = SpringShared.GetProjectileTarget
+local spGetProjectileTeamID = SpringShared.GetProjectileTeamID
+local spGetProjectileTimeToLive = SpringShared.GetProjectileTimeToLive
+local spGetProjectileVelocity = SpringShared.GetProjectileVelocity
+local spGetUnitIsDead = SpringShared.GetUnitIsDead
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetUnitTeam = SpringShared.GetUnitTeam
+local spGetUnitWeaponState = SpringShared.GetUnitWeaponState
+local spGetUnitWeaponTarget = SpringShared.GetUnitWeaponTarget
+local spSetProjectilePosition = SpringSynced.SetProjectilePosition
+local spSetProjectileTarget = SpringSynced.SetProjectileTarget
+local spSetProjectileVelocity = SpringSynced.SetProjectileVelocity
+local spSpawnCEG = SpringSynced.SpawnCEG
+local spSpawnProjectile = SpringSynced.SpawnProjectile
 
 local gravityPerFrame = -Game.gravity / (Game.gameSpeed * Game.gameSpeed)
 
@@ -79,7 +79,7 @@ local function parseCustomParams(weaponDef)
 
 	if not specialEffectFunction[effectName] then
 		local message = weaponDef.name .. " has bad speceffect: " .. tostring(effectName)
-		Spring.Log(gadget:GetInfo().name, LOG.ERROR, message)
+		SpringShared.Log(gadget:GetInfo().name, LOG.ERROR, message)
 
 		success = false
 	end
@@ -94,7 +94,7 @@ local function parseCustomParams(weaponDef)
 					effectParams[key] = value
 				else
 					local message = weaponDef.name .. " has bad customparam: " .. tostring(key)
-					Spring.Log(gadget:GetInfo().name, LOG.ERROR, message)
+					SpringShared.Log(gadget:GetInfo().name, LOG.ERROR, message)
 
 					success = false
 				end
@@ -105,7 +105,7 @@ local function parseCustomParams(weaponDef)
 	-- Modders/tweakdefs are likely to use these values for a while:
 	if weaponDef.customParams.def or weaponDef.customParams.when then
 		local message = weaponDef.name .. " uses old customparams (def/when)"
-		Spring.Log(gadget:GetInfo().name, LOG.DEPRECATED, message)
+		SpringShared.Log(gadget:GetInfo().name, LOG.DEPRECATED, message)
 	end
 
 	if success then
@@ -651,9 +651,9 @@ function gadget:Initialize()
 		for weaponDefID in pairs(weaponDefEffect) do
 			Script.SetWatchProjectile(weaponDefID, true)
 		end
-		gameFrame = Spring.GetGameFrame()
+		gameFrame = SpringShared.GetGameFrame()
 	else
-		Spring.Log(gadget:GetInfo().name, LOG.INFO, "No custom weapons found.")
+		SpringShared.Log(gadget:GetInfo().name, LOG.INFO, "No custom weapons found.")
 		gadgetHandler:RemoveGadget(self)
 	end
 end

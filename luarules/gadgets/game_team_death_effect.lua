@@ -32,9 +32,9 @@ for udefID, def in ipairs(UnitDefs) do
 	end
 end
 
-local spDestroyUnit = Spring.DestroyUnit
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitDefID = Spring.GetUnitDefID
+local spDestroyUnit = SpringSynced.DestroyUnit
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetUnitDefID = SpringShared.GetUnitDefID
 local DISTANCE_LIMIT = math.max(Game.mapSizeX, Game.mapSizeZ) * math.max(Game.mapSizeX, Game.mapSizeZ)
 local destroyUnitQueue = {}
 local wipedoutTeams = {}
@@ -45,11 +45,11 @@ local function getSqrDistance(x1, z1, x2, z2)
 end
 
 local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult) -- only teamID is required
-	wipedoutTeams[teamID] = Spring.GetGameFrame()
+	wipedoutTeams[teamID] = SpringShared.GetGameFrame()
 	periodMult = periodMult or 1
-	local gf = Spring.GetGameFrame()
+	local gf = SpringShared.GetGameFrame()
 	local maxDeathFrame = 0
-	local teamUnits = Spring.GetTeamUnits(teamID)
+	local teamUnits = SpringShared.GetTeamUnits(teamID)
 	for i = 1, #teamUnits do
 		local unitID = teamUnits[i]
 		if not unitDecoration[spGetUnitDefID(unitID)] then
@@ -69,21 +69,21 @@ local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult)
 			end
 
 			-- neutralize units
-			Spring.SetUnitNeutral(unitID, true)
-			Spring.SetUnitSensorRadius(unitID, "los", 0)
-			Spring.SetUnitSensorRadius(unitID, "airLos", 0)
-			Spring.SetUnitSensorRadius(unitID, "radar", 0)
-			Spring.SetUnitSensorRadius(unitID, "sonar", 0)
+			SpringSynced.SetUnitNeutral(unitID, true)
+			SpringSynced.SetUnitSensorRadius(unitID, "los", 0)
+			SpringSynced.SetUnitSensorRadius(unitID, "airLos", 0)
+			SpringSynced.SetUnitSensorRadius(unitID, "radar", 0)
+			SpringSynced.SetUnitSensorRadius(unitID, "sonar", 0)
 			local i = 0
 			for weaponID, _ in pairs(UnitDefs[spGetUnitDefID(unitID)].weapons) do
-				Spring.UnitWeaponHoldFire(unitID, weaponID)
+				SpringSynced.UnitWeaponHoldFire(unitID, weaponID)
 				i = i + 1
 			end
 			if i > 0 then
-				Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, { 0 }, 0)
-				Spring.SetUnitTarget(unitID, nil)
+				SpringSynced.GiveOrderToUnit(unitID, CMD.FIRE_STATE, { 0 }, 0)
+				SpringSynced.SetUnitTarget(unitID, nil)
 				if GameCMD and GameCMD.UNIT_CANCEL_TARGET then -- remove any settarget cmd
-					Spring.GiveOrderToUnit(unitID, GameCMD.UNIT_CANCEL_TARGET, {}, {})
+					SpringSynced.GiveOrderToUnit(unitID, GameCMD.UNIT_CANCEL_TARGET, {}, {})
 				end
 			end
 			--Spring.SetUnitNoMinimap(unitID, true)
@@ -101,14 +101,14 @@ local function wipeoutAllyTeam(allyTeamID, attackerUnitID, originX, originZ, per
 
 	-- define smaller destruction period when few units
 	local totalUnits = 0
-	for _, teamID in ipairs(Spring.GetTeamList(allyTeamID)) do
-		local units = Spring.GetTeamUnits(teamID)
+	for _, teamID in ipairs(SpringShared.GetTeamList(allyTeamID)) do
+		local units = SpringShared.GetTeamUnits(teamID)
 		totalUnits = totalUnits + #units
 	end
 	periodMult = (periodMult or 1) * math.clamp(totalUnits / 300, 0.33, 1) -- make low unitcount blow up faster
 
 	-- destroy all teams
-	for _, teamID in ipairs(Spring.GetTeamList(allyTeamID)) do
+	for _, teamID in ipairs(SpringShared.GetTeamList(allyTeamID)) do
 		wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult)
 	end
 end
@@ -157,7 +157,7 @@ end
 
 -- i've seen a resurrected unit being left-over so lets remove units being created after a team wipeout was initiated
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	if wipedoutTeams[unitTeam] and wipedoutTeams[unitTeam] + 300 > Spring.GetGameFrame() then
-		Spring.DestroyUnit(unitID, not GG.wipeoutWithWreckage, false)
+	if wipedoutTeams[unitTeam] and wipedoutTeams[unitTeam] + 300 > SpringShared.GetGameFrame() then
+		SpringSynced.DestroyUnit(unitID, not GG.wipeoutWithWreckage, false)
 	end
 end

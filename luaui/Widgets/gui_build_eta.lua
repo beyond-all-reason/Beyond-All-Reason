@@ -12,16 +12,16 @@ function widget:GetInfo()
 	}
 end
 
-local lastGameUpdate = Spring.GetGameSeconds()
+local lastGameUpdate = SpringShared.GetGameSeconds()
 
-local spGetUnitViewPosition = Spring.GetUnitViewPosition
-local spGetGameSeconds = Spring.GetGameSeconds
-local spGetGameFrame = Spring.GetGameFrame
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetUnitViewPosition = SpringUnsynced.GetUnitViewPosition
+local spGetGameSeconds = SpringShared.GetGameSeconds
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetUnitIsBeingBuilt = SpringShared.GetUnitIsBeingBuilt
+local spGetUnitAllyTeam = SpringShared.GetUnitAllyTeam
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 local spec, fullview = spGetSpectatingState()
-local myAllyTeam = Spring.GetLocalAllyTeamID()
+local myAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
 
 local glColor = gl.Color
 local glDepthTest = gl.DepthTest
@@ -69,11 +69,11 @@ end
 
 local function init()
 	etaTable = {}
-	local units = Spring.GetAllUnits()
+	local units = SpringShared.GetAllUnits()
 	for i = 1, #units do
 		local unitID = units[i]
 		if fullview or spGetUnitAllyTeam(unitID) == myAllyTeam then
-			etaTable[unitID] = makeETA(unitID, Spring.GetUnitDefID(unitID))
+			etaTable[unitID] = makeETA(unitID, SpringShared.GetUnitDefID(unitID))
 		end
 	end
 end
@@ -155,8 +155,8 @@ function widget:Update(dt)
 end
 
 function widget:PlayerChanged()
-	if myAllyTeam ~= Spring.GetLocalAllyTeamID() or fullview ~= select(2, spGetSpectatingState()) then
-		myAllyTeam = Spring.GetLocalAllyTeamID()
+	if myAllyTeam ~= SpringUnsynced.GetLocalAllyTeamID() or fullview ~= select(2, spGetSpectatingState()) then
+		myAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
 		spec, fullview = spGetSpectatingState()
 		init()
 	end
@@ -203,9 +203,9 @@ local function drawEtaText(timeLeft, yoffset)
 end
 
 function widget:DrawWorld()
-	if Spring.IsGUIHidden() == false then
+	if SpringUnsynced.IsGUIHidden() == false then
 		local glStateReady = false
-		local cx, cy, cz = Spring.GetCameraPosition()
+		local cx, cy, cz = SpringUnsynced.GetCameraPosition()
 		for unitID, bi in pairs(etaTable) do
 			local ux, uy, uz = spGetUnitViewPosition(unitID)
 			if ux ~= nil then

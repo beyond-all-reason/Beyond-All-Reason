@@ -4,13 +4,13 @@
 
 -- Fog of War check needed for some functions
 local noFogOfWar = false
-if Spring.GetModOptions().disable_fogofwar then
+if SpringShared.GetModOptions().disable_fogofwar then
 	noFogOfWar = true
 end
 
 -- GaiaTeamID and GaiaAllyTeamID
-local GaiaTeamID = Spring.GetGaiaTeamID()
-local GaiaAllyTeamID = select(6, Spring.GetTeamInfo(GaiaTeamID))
+local GaiaTeamID = SpringShared.GetGaiaTeamID()
+local GaiaAllyTeamID = select(6, SpringShared.GetTeamInfo(GaiaTeamID))
 
 -- Map size
 local mapSizeX = Game.mapSizeX
@@ -22,9 +22,9 @@ local scavengerAllyTeamID = Utilities.GetScavAllyTeamID()
 
 -- Team Startboxes
 local AllyTeamStartboxes = {}
-for _, testAllyTeamID in ipairs(Spring.GetAllyTeamList()) do
+for _, testAllyTeamID in ipairs(SpringShared.GetAllyTeamList()) do
 	local allyTeamHasStartbox = true
-	local xMin, zMin, xMax, zMax = Spring.GetAllyTeamStartBox(testAllyTeamID)
+	local xMin, zMin, xMax, zMax = SpringShared.GetAllyTeamStartBox(testAllyTeamID)
 	if xMin == 0 and zMin == 0 and xMax == mapSizeX and zMax == mapSizeZ then
 		allyTeamHasStartbox = false
 	end
@@ -46,7 +46,7 @@ local function FlatAreaCheck(posx, posy, posz, posradius, heightTollerance, chec
 	posradius = posradius or 1000
 	heightTollerance = heightTollerance or 30
 	local deathwater = Game.waterDamage
-	local lavaLevel = Spring.GetGameRulesParam("lavaLevel")
+	local lavaLevel = SpringShared.GetGameRulesParam("lavaLevel")
 
 	-- Pre-compute coordinate offsets
 	local xPlus = posx + posradius
@@ -55,14 +55,14 @@ local function FlatAreaCheck(posx, posy, posz, posradius, heightTollerance, chec
 	local zMinus = posz - posradius
 
 	-- Check height of test points in all 8 directions.
-	local testpos1 = Spring.GetGroundHeight(xPlus, zPlus)
-	local testpos2 = Spring.GetGroundHeight(xPlus, zMinus)
-	local testpos3 = Spring.GetGroundHeight(xMinus, zPlus)
-	local testpos4 = Spring.GetGroundHeight(xMinus, zMinus)
-	local testpos5 = Spring.GetGroundHeight(xPlus, posz)
-	local testpos6 = Spring.GetGroundHeight(posx, zPlus)
-	local testpos7 = Spring.GetGroundHeight(xMinus, posz)
-	local testpos8 = Spring.GetGroundHeight(posx, zMinus)
+	local testpos1 = SpringShared.GetGroundHeight(xPlus, zPlus)
+	local testpos2 = SpringShared.GetGroundHeight(xPlus, zMinus)
+	local testpos3 = SpringShared.GetGroundHeight(xMinus, zPlus)
+	local testpos4 = SpringShared.GetGroundHeight(xMinus, zMinus)
+	local testpos5 = SpringShared.GetGroundHeight(xPlus, posz)
+	local testpos6 = SpringShared.GetGroundHeight(posx, zPlus)
+	local testpos7 = SpringShared.GetGroundHeight(xMinus, posz)
+	local testpos8 = SpringShared.GetGroundHeight(posx, zMinus)
 
 	-- Compare with original height
 	if (not checkWater) and (not deathwater or deathwater == 0) and posy <= 0 then
@@ -107,7 +107,7 @@ end
 local function LandOrSeaCheck(posx, posy, posz, posradius) -- returns string, "land", "sea", "mixed", "death"
 	posradius = posradius or 1000
 	local deathwater = Game.waterDamage
-	local lavaLevel = Spring.GetGameRulesParam("lavaLevel")
+	local lavaLevel = SpringShared.GetGameRulesParam("lavaLevel")
 
 	-- Pre-compute coordinate offsets
 	local xPlus = posx + posradius
@@ -116,14 +116,14 @@ local function LandOrSeaCheck(posx, posy, posz, posradius) -- returns string, "l
 	local zMinus = posz - posradius
 
 	-- Check height of test points in all 8 directions.
-	local testpos1 = Spring.GetGroundHeight(xPlus, zPlus)
-	local testpos2 = Spring.GetGroundHeight(xPlus, zMinus)
-	local testpos3 = Spring.GetGroundHeight(xMinus, zPlus)
-	local testpos4 = Spring.GetGroundHeight(xMinus, zMinus)
-	local testpos5 = Spring.GetGroundHeight(xPlus, posz)
-	local testpos6 = Spring.GetGroundHeight(posx, zPlus)
-	local testpos7 = Spring.GetGroundHeight(xMinus, posz)
-	local testpos8 = Spring.GetGroundHeight(posx, zMinus)
+	local testpos1 = SpringShared.GetGroundHeight(xPlus, zPlus)
+	local testpos2 = SpringShared.GetGroundHeight(xPlus, zMinus)
+	local testpos3 = SpringShared.GetGroundHeight(xMinus, zPlus)
+	local testpos4 = SpringShared.GetGroundHeight(xMinus, zMinus)
+	local testpos5 = SpringShared.GetGroundHeight(xPlus, posz)
+	local testpos6 = SpringShared.GetGroundHeight(posx, zPlus)
+	local testpos7 = SpringShared.GetGroundHeight(xMinus, posz)
+	local testpos8 = SpringShared.GetGroundHeight(posx, zMinus)
 
 	local minimumheight = math.min(testpos1, testpos2, testpos3, testpos4, testpos5, testpos6, testpos7, testpos8)
 	local maximumheight = math.max(testpos1, testpos2, testpos3, testpos4, testpos5, testpos6, testpos7, testpos8)
@@ -147,7 +147,7 @@ end
 
 local function OccupancyCheck(posx, posy, posz, posradius) -- Returns true if there are no units in the spawn area
 	local posradius = posradius or 1000
-	local unitcount = #Spring.GetUnitsInRectangle(posx - posradius, posz - posradius, posx + posradius, posz + posradius)
+	local unitcount = #SpringShared.GetUnitsInRectangle(posx - posradius, posz - posradius, posx + posradius, posz + posradius)
 	if unitcount > 0 then
 		return false
 	else
@@ -189,15 +189,15 @@ local function VisibilityCheck(posx, posy, posz, posradius, allyTeamID, checkLoS
 	local zPlus = posz + posradius
 	local zMinus = posz - posradius
 
-	if checkLoS and (Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true or Spring.IsPosInLos(xPlus, posy, zPlus, allyTeamID) == true or Spring.IsPosInLos(xPlus, posy, zMinus, allyTeamID) == true or Spring.IsPosInLos(xMinus, posy, zPlus, allyTeamID) == true or Spring.IsPosInLos(xMinus, posy, zMinus, allyTeamID) == true) then
+	if checkLoS and (SpringShared.IsPosInLos(posx, posy, posz, allyTeamID) == true or SpringShared.IsPosInLos(xPlus, posy, zPlus, allyTeamID) == true or SpringShared.IsPosInLos(xPlus, posy, zMinus, allyTeamID) == true or SpringShared.IsPosInLos(xMinus, posy, zPlus, allyTeamID) == true or SpringShared.IsPosInLos(xMinus, posy, zMinus, allyTeamID) == true) then
 		return false
 	end
 
-	if checkRadar and (Spring.IsPosInRadar(posx, posy, posz, allyTeamID) == true or Spring.IsPosInRadar(xPlus, posy, zPlus, allyTeamID) == true or Spring.IsPosInRadar(xPlus, posy, zMinus, allyTeamID) == true or Spring.IsPosInRadar(xMinus, posy, zPlus, allyTeamID) == true or Spring.IsPosInRadar(xMinus, posy, zMinus, allyTeamID) == true) then
+	if checkRadar and (SpringShared.IsPosInRadar(posx, posy, posz, allyTeamID) == true or SpringShared.IsPosInRadar(xPlus, posy, zPlus, allyTeamID) == true or SpringShared.IsPosInRadar(xPlus, posy, zMinus, allyTeamID) == true or SpringShared.IsPosInRadar(xMinus, posy, zPlus, allyTeamID) == true or SpringShared.IsPosInRadar(xMinus, posy, zMinus, allyTeamID) == true) then
 		return false
 	end
 
-	if checkAirLos and (Spring.IsPosInAirLos(posx, posy, posz, allyTeamID) == true or Spring.IsPosInAirLos(xPlus, posy, zPlus, allyTeamID) == true or Spring.IsPosInAirLos(xPlus, posy, zMinus, allyTeamID) == true or Spring.IsPosInAirLos(xMinus, posy, zPlus, allyTeamID) == true or Spring.IsPosInAirLos(xMinus, posy, zMinus, allyTeamID) == true) then
+	if checkAirLos and (SpringShared.IsPosInAirLos(posx, posy, posz, allyTeamID) == true or SpringShared.IsPosInAirLos(xPlus, posy, zPlus, allyTeamID) == true or SpringShared.IsPosInAirLos(xPlus, posy, zMinus, allyTeamID) == true or SpringShared.IsPosInAirLos(xMinus, posy, zPlus, allyTeamID) == true or SpringShared.IsPosInAirLos(xMinus, posy, zMinus, allyTeamID) == true) then
 		return false
 	end
 
@@ -205,7 +205,7 @@ local function VisibilityCheck(posx, posy, posz, posradius, allyTeamID, checkLoS
 end
 
 local function VisibilityCheckEnemy(posx, posy, posz, posradius, allyTeamID, checkLoS, checkAirLos, checkRadar) -- Return True when position is not in sensor ranges of all enemies of specified allyTeam.
-	for _, testAllyTeamID in ipairs(Spring.GetAllyTeamList()) do
+	for _, testAllyTeamID in ipairs(SpringShared.GetAllyTeamList()) do
 		local posCheck = true
 		if testAllyTeamID ~= allyTeamID and testAllyTeamID ~= GaiaAllyTeamID then
 			posCheck = VisibilityCheck(posx, posy, posz, posradius, testAllyTeamID, checkLoS, checkAirLos, checkRadar)
@@ -260,17 +260,17 @@ local function SurfaceCheck(posx, posy, posz, posradius, sea) -- if true then po
 	local zPlus = posz + posradius
 	local zMinus = posz - posradius
 
-	local testpos0 = Spring.GetGroundHeight(posx, posz)
-	local testpos1 = Spring.GetGroundHeight(xPlus, zPlus)
-	local testpos2 = Spring.GetGroundHeight(xPlus, zMinus)
-	local testpos3 = Spring.GetGroundHeight(xMinus, zPlus)
-	local testpos4 = Spring.GetGroundHeight(xMinus, zMinus)
-	local testpos5 = Spring.GetGroundHeight(xPlus, posz)
-	local testpos6 = Spring.GetGroundHeight(posx, zPlus)
-	local testpos7 = Spring.GetGroundHeight(xMinus, posz)
-	local testpos8 = Spring.GetGroundHeight(posx, zMinus)
+	local testpos0 = SpringShared.GetGroundHeight(posx, posz)
+	local testpos1 = SpringShared.GetGroundHeight(xPlus, zPlus)
+	local testpos2 = SpringShared.GetGroundHeight(xPlus, zMinus)
+	local testpos3 = SpringShared.GetGroundHeight(xMinus, zPlus)
+	local testpos4 = SpringShared.GetGroundHeight(xMinus, zMinus)
+	local testpos5 = SpringShared.GetGroundHeight(xPlus, posz)
+	local testpos6 = SpringShared.GetGroundHeight(posx, zPlus)
+	local testpos7 = SpringShared.GetGroundHeight(xMinus, posz)
+	local testpos8 = SpringShared.GetGroundHeight(posx, zMinus)
 	local deathwater = Game.waterDamage
-	local lavaLevel = Spring.GetGameRulesParam("lavaLevel")
+	local lavaLevel = SpringShared.GetGameRulesParam("lavaLevel")
 
 	if deathwater > 0 and posy <= 0 then
 		return false
@@ -343,9 +343,9 @@ end
 local function ScavengerSpawnAreaCheck(posx, posy, posz, posradius) -- if true then position is within Scavengers spawn area.
 	local posradius = posradius or 1000
 	if scavengerAllyTeamID then
-		local scavTechPercentage = Spring.GetGameRulesParam("scavStatsTechPercentage")
+		local scavTechPercentage = SpringShared.GetGameRulesParam("scavStatsTechPercentage")
 		if scavTechPercentage then
-			if Spring.GetModOptions().scavspawnarea == true then
+			if SpringShared.GetModOptions().scavspawnarea == true then
 				if not AllyTeamStartboxes[scavengerAllyTeamID + 1].allyTeamHasStartbox then
 					return true
 				end -- Scavs do not have a startbox so we allow them to spawn anywhere
@@ -395,7 +395,7 @@ end
 
 local function LavaCheck(posx, posy, posz, posradius) -- Returns false if area is in lava
 	local posradius = posradius or 1000
-	local lavaLevel = Spring.GetGameRulesParam("lavaLevel")
+	local lavaLevel = SpringShared.GetGameRulesParam("lavaLevel")
 	if lavaLevel and posy <= lavaLevel then
 		return false
 	end -- Is lava
@@ -412,7 +412,7 @@ local function MapIsLandOrSea()
 		local seaNodes = 0
 		for i = 1, grid do
 			if x <= mapSizeX then
-				y = Spring.GetGroundHeight(x, z)
+				y = SpringShared.GetGroundHeight(x, z)
 				if y > -15 then
 					landNodes = landNodes + 1
 				elseif y <= -15 then
@@ -426,7 +426,7 @@ local function MapIsLandOrSea()
 					break
 				end
 
-				y = Spring.GetGroundHeight(x, z)
+				y = SpringShared.GetGroundHeight(x, z)
 				if y > 0 then
 					landNodes = landNodes + 1
 				elseif y <= 0 then

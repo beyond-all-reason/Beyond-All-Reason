@@ -38,8 +38,8 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if builderID then
-		if infestor[unitDefID] and infestor[Spring.GetUnitDefID(builderID)] then
-			Spring.GiveOrderToUnit(unitID, CMD.GUARD, { builderID }, { "shift" })
+		if infestor[unitDefID] and infestor[SpringShared.GetUnitDefID(builderID)] then
+			SpringSynced.GiveOrderToUnit(unitID, CMD.GUARD, { builderID }, { "shift" })
 		end
 	end
 end

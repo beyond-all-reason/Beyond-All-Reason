@@ -1,14 +1,14 @@
 VFS.Include("luaui/Scenarios/stresstest/multi_attack.lua")
 
 function radius_attack(attackers, targetsCenter)
-	local y = Spring.GetGroundHeight(targetsCenter[1], targetsCenter[2])
+	local y = SpringShared.GetGroundHeight(targetsCenter[1], targetsCenter[2])
 	local targetPosition = { targetsCenter[1], y + 5, targetsCenter[2], targetsCenter[3] }
 
 	local CMD_ATTACK = CMD.ATTACK
-	local spGiveOrderToUnit = Spring.GiveOrderToUnit
+	local spGiveOrderToUnit = SpringSynced.GiveOrderToUnit
 
-	Spring.SelectUnitArray(attackers)
-	Spring.GiveOrder(CMD_ATTACK, targetPosition, 0)
+	SpringUnsynced.SelectUnitArray(attackers)
+	SpringUnsynced.GiveOrder(CMD_ATTACK, targetPosition, 0)
 end
 
 function test()
@@ -26,5 +26,5 @@ function test()
 
 	radius_attack(attackers, targetsCenter)
 
-	Spring.Echo("total time:", os.clock() - t0)
+	SpringShared.Echo("total time:", os.clock() - t0)
 end

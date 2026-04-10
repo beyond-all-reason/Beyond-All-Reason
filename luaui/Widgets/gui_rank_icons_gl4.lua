@@ -13,11 +13,11 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetUnitDefID = Spring.GetUnitDefID
-local spEcho = Spring.Echo
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetAllUnits = Spring.GetAllUnits
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spEcho = SpringShared.Echo
+local spGetUnitTeam = SpringShared.GetUnitTeam
+local spGetAllUnits = SpringShared.GetAllUnits
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 local iconsize = 1
 local iconoffset = 24
@@ -81,9 +81,9 @@ local function makeAtlas()
 end
 
 local GetUnitDefID = spGetUnitDefID
-local GetUnitExperience = Spring.GetUnitExperience
+local GetUnitExperience = SpringShared.GetUnitExperience
 local GetAllUnits = spGetAllUnits
-local IsUnitAllied = Spring.IsUnitAllied
+local IsUnitAllied = SpringUnsynced.IsUnitAllied
 local GetUnitTeam = spGetUnitTeam
 
 local glDepthTest = gl.DepthTest
@@ -94,9 +94,9 @@ local glTexture = gl.Texture
 local GL_GREATER = GL.GREATER
 
 local ignoreTeams = {}
-for _, teamID in ipairs(Spring.GetTeamList()) do
-	if select(4, Spring.GetTeamInfo(teamID, false)) then -- is AI?
-		local luaAI = Spring.GetTeamLuaAI(teamID)
+for _, teamID in ipairs(SpringShared.GetTeamList()) do
+	if select(4, SpringShared.GetTeamInfo(teamID, false)) then -- is AI?
+		local luaAI = SpringShared.GetTeamLuaAI(teamID)
 		if luaAI and luaAI ~= "" and (string.find(luaAI, "Scavengers") or string.find(luaAI, "Raptors")) then
 			ignoreTeams[teamID] = true
 		end
@@ -106,7 +106,7 @@ end
 local unitIconMult = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if not unitDef.customParams.drone then
-		unitIconMult[unitDefID] = math.clamp((Spring.GetUnitDefDimensions(unitDefID).radius / 40) + math.min(unitDef.power / 400, 2), 1.25, 1.4)
+		unitIconMult[unitDefID] = math.clamp((SpringShared.GetUnitDefDimensions(unitDefID).radius / 40) + math.min(unitDef.power / 400, 2), 1.25, 1.4)
 	end
 end
 
@@ -140,13 +140,13 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload, reason, rank, fla
 	if debugmode then
 		Debug.TraceEcho("add", unitID, reason)
 	end
-	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true then
+	if SpringShared.ValidUnitID(unitID) ~= true or SpringShared.GetUnitIsDead(unitID) == true then
 		if debugmode then
 			spEcho("Warning: Rank Icons GL4 attempted to add an invalid unitID:", unitID)
 		end
 		return nil
 	end
-	local gf = (flash and Spring.GetGameFrame()) or 0
+	local gf = (flash and SpringShared.GetGameFrame()) or 0
 	unitDefID = unitDefID or spGetUnitDefID(unitID)
 
 	--if unitDefID == nil or unitDefIDtoDecalInfo[unitDefID] == nil then return end -- these cant have plates
@@ -371,7 +371,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 end
 
 function widget:DrawWorld()
-	if Spring.IsGUIHidden() then
+	if SpringUnsynced.IsGUIHidden() then
 		return
 	end
 	if doRefresh then

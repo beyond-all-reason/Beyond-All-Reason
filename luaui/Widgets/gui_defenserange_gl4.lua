@@ -20,8 +20,8 @@ local mathMax = math.max
 local tableInsert = table.insert
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
-local spGetUnitTeam = Spring.GetUnitTeam
+local spEcho = SpringShared.Echo
+local spGetUnitTeam = SpringShared.GetUnitTeam
 
 -- GL4 dev Notes:
 -- AA should be purple :D
@@ -402,9 +402,9 @@ end
 --Button display configuration
 --position only relevant if no saved config data found
 
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 local spec, fullview = spGetSpectatingState()
-local myAllyTeam = Spring.GetLocalAllyTeamID()
+local myAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
 local numallyteams = 2
 
 local defenses = {} -- table of unitID keys to info tables:
@@ -430,9 +430,9 @@ local glStencilOp = gl.StencilOp
 local GL_KEEP = 0x1E00 --GL.KEEP
 local GL_REPLACE = GL.REPLACE --GL.KEEP
 
-local spGetPositionLosState = Spring.GetPositionLosState
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPosition = Spring.GetUnitPosition
+local spGetPositionLosState = SpringShared.GetPositionLosState
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitPosition = SpringShared.GetUnitPosition
 
 local chobbyInterface
 
@@ -595,8 +595,8 @@ function widget:Initialize()
 			end
 		end
 	end
-	myAllyTeam = Spring.GetLocalAllyTeamID()
-	local allyteamlist = Spring.GetAllyTeamList()
+	myAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
+	local allyteamlist = SpringShared.GetAllyTeamList()
 	--spEcho("# of allyteams = ", #allyteamlist)
 	numallyteams = #allyteamlist
 
@@ -627,7 +627,7 @@ local function UnitDetected(unitID, unitDefID, unitTeam, noUpload)
 	-- otherwise we must add it!
 
 	--local weapons = unitWeapons[unitDefID]
-	local alliedUnit = (Spring.GetUnitAllyTeam(unitID) == myAllyTeam)
+	local alliedUnit = (SpringShared.GetUnitAllyTeam(unitID) == myAllyTeam)
 	local x, y, z, mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition(unitID, true, true)
 
 	--for weaponNum = 1, #weapons do
@@ -641,7 +641,7 @@ local function UnitDetected(unitID, unitDefID, unitTeam, noUpload)
 			local weaponID = i
 			local ringParams = unitDefRings[unitDefID].rings[i]
 			local x, y, z, mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition(unitID, true, true)
-			local wpx, wpy, wpz, wdx, wdy, wdz = Spring.GetUnitWeaponVectors(unitID, weaponID)
+			local wpx, wpy, wpz, wdx, wdy, wdz = SpringShared.GetUnitWeaponVectors(unitID, weaponID)
 			--spEcho("Defranges: unitID", unitID,x,y,z,"weaponID", weaponID, "y", y, "mpy",  mpy,"wpy", wpy)
 
 			-- Now this is a truly terrible hack, we cache each unitDefID's max weapon turret height at position 18 in the table
@@ -691,7 +691,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	-- the set of visible units changed. Now is a good time to reevalueate our life choices
 	-- This happens when we move from team to team, or when we move from spec to other
 	-- my
-	spec, fullview = Spring.GetSpectatingState()
+	spec, fullview = SpringUnsynced.GetSpectatingState()
 	if (not enabledAsSpec) and spec then
 		spEcho("Defense Range GL4 disabled in spectating state")
 		widget:RemoveWidget()
@@ -717,7 +717,7 @@ local function checkEnemyUnitConfirmedDead(unitID, defense)
 	local _, losState, _ = spGetPositionLosState(x, y, z)
 	--spEcho("checkEnemyUnitConfirmedDead",unitID, losState, spGetUnitDefID(unitID), Spring.GetUnitIsDead(unitID))
 	if losState then -- visible
-		if Spring.GetUnitIsDead(unitID) ~= false then -- If its cloaked and jammed, we cant see it i think
+		if SpringShared.GetUnitIsDead(unitID) ~= false then -- If its cloaked and jammed, we cant see it i think
 			return true
 		end
 	end
@@ -766,9 +766,9 @@ function widget:FeatureCreated(featureID, allyTeam)
 	-- check if the feature we created could be related to a defense that we currently have active?
 	-- ugh this will require a unitdefid based hash and some other nasty tricks
 	-- check if the feature was created outside of LOS
-	local featureDefID = Spring.GetFeatureDefID(featureID)
+	local featureDefID = SpringShared.GetFeatureDefID(featureID)
 	if featureDefID and featureDefIDtoUnitDefID[featureDefID] then
-		local fx, fy, fz = Spring.GetFeaturePosition(featureID)
+		local fx, fy, fz = SpringShared.GetFeaturePosition(featureID)
 		local poshash = floor(fx / 8) * 4096 + floor(fz / 8)
 		local unitID = defensePosHash[poshash]
 		if unitID then
@@ -790,7 +790,7 @@ function widget:PlayerChanged(playerID)
 	]]
 	--
 	local nowspec, nowfullview = spGetSpectatingState()
-	local nowmyAllyTeam = Spring.GetLocalAllyTeamID()
+	local nowmyAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
 	-- When we start, check if there are >2 allyteams
 	local reinit = false
 	-- check spec transition
@@ -841,7 +841,7 @@ function widget:Update(dt)
 	--end
 
 	-- detect if our “myAllyTeam” has changed (e.g. a spec following a different player)
-	local currentAllyTeam = Spring.GetLocalAllyTeamID()
+	local currentAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
 	if currentAllyTeam ~= myAllyTeam then
 		myAllyTeam = currentAllyTeam
 		-- clear out all the old rings
@@ -852,7 +852,7 @@ function widget:Update(dt)
 		-- rebuild from whatever visibleUnits API you have
 		local extVisibleUnits = (WG.unittrackerapi and WG.unittrackerapi.visibleUnits) or (function()
 			local t = {}
-			for _, uid in ipairs(Spring.GetAllUnits()) do
+			for _, uid in ipairs(SpringShared.GetAllUnits()) do
 				t[uid] = spGetUnitDefID(uid)
 			end
 			return t
@@ -907,7 +907,7 @@ function widget:Update(dt)
 		--spEcho("removestep", removestep , scanned)
 	end
 	-- DRAW THE ATTACK RING FOR THE ACTIVELY BUILDING UNIT
-	local cmdID = select(2, Spring.GetActiveCommand())
+	local cmdID = select(2, SpringUnsynced.GetActiveCommand())
 	-- remove from queue every frame cause mouse will probably move anyway
 	-- we kinda also need to remove if the allyenemy state changed
 	if buildUnitDefID ~= nil then
@@ -938,13 +938,13 @@ function widget:Update(dt)
 			-- Ergo we should rather gate addition on buttonConfig in visibleUnitCreated
 			-- instead of during the draw pass
 
-			local mx, my, lp, mp, rp, offscreen = Spring.GetMouseState()
-			local _, coords = Spring.TraceScreenRay(mx, my, true)
+			local mx, my, lp, mp, rp, offscreen = SpringUnsynced.GetMouseState()
+			local _, coords = SpringUnsynced.TraceScreenRay(mx, my, true)
 			--spEcho(cmdID, "Attempting to draw rings at")
 			--spEcho(mx, my, coords[1], coords[2], coords[3])
 
 			if coords and coords[1] and coords[2] and coords[3] then
-				local bpx, bpy, bpz = Spring.Pos2BuildPos(buildUnitDefID, coords[1], coords[2], coords[3])
+				local bpx, bpy, bpz = SpringShared.Pos2BuildPos(buildUnitDefID, coords[1], coords[2], coords[3])
 				local allystring = "ally"
 				for i, weaponType in pairs(unitDefRings[buildUnitDefID].weapons) do
 					local allystring = "ally"
@@ -980,8 +980,8 @@ local drawcounts = {}
 local cameraHeightFactor = 0
 
 local function GetCameraHeightFactor() -- returns a smoothstepped value between 0 and 1 for height based rescaling of line width.
-	local camX, camY, camZ = Spring.GetCameraPosition()
-	local camheight = camY - mathMax(Spring.GetGroundHeight(camX, camZ), 0)
+	local camX, camY, camZ = SpringUnsynced.GetCameraPosition()
+	local camheight = camY - mathMax(SpringShared.GetGroundHeight(camX, camZ), 0)
 	-- Smoothstep to half line width as camera goes over 2k height to 4k height
 	--genType t;  /* Or genDType t; */
 	--t = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
@@ -1043,7 +1043,7 @@ function widget:DrawWorld()
 	if chobbyInterface then
 		return
 	end
-	if not Spring.IsGUIHidden() and (not WG.topbar or not WG.topbar.showingQuit()) then
+	if not SpringUnsynced.IsGUIHidden() and (not WG.topbar or not WG.topbar.showingQuit()) then
 		cameraHeightFactor = GetCameraHeightFactor() * 0.5 + 0.5
 		glTexture(0, "$heightmap")
 		glTexture(1, "$info")
@@ -1082,7 +1082,7 @@ function widget:DrawWorld()
 		glTexture(0, false)
 		glTexture(1, false)
 		glDepthTest(false)
-		if false and Spring.GetDrawFrame() % 60 == 0 then
+		if false and SpringUnsynced.GetDrawFrame() % 60 == 0 then
 			local s = "drawcounts: "
 			for k, v in pairs(drawcounts) do
 				s = s .. " " .. tostring(k) .. ":" .. tostring(v)

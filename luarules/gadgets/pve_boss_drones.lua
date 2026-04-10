@@ -1,5 +1,5 @@
 if not (Utilities.Gametype.IsRaptors() or Utilities.Gametype.IsScavengers()) then
-	Spring.Echo("REMOVED PVE BOSS DRONES")
+	SpringShared.Echo("REMOVED PVE BOSS DRONES")
 	return false
 end
 
@@ -22,7 +22,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local pveTeamID = Utilities.GetScavTeamID() or Utilities.GetRaptorTeamID()
-local raptorQueenCount = Spring.GetModOptions().raptor_queen_count
+local raptorQueenCount = SpringShared.GetModOptions().raptor_queen_count
 
 local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
 
@@ -528,7 +528,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		for i = 1, #unitList[unitDefID] do
 			aliveCarriers[unitID][i] = {
 				aliveDrones = 0,
-				lastSpawned = Spring.GetGameSeconds(),
+				lastSpawned = SpringShared.GetGameSeconds(),
 			}
 		end
 	end
@@ -555,16 +555,16 @@ end
 function gadget:GameFrame(frame)
 	if frame % 30 == 13 then
 		for unitID, unitDroneStats in pairs(aliveCarriers) do
-			local unitDefID = Spring.GetUnitDefID(unitID)
+			local unitDefID = SpringShared.GetUnitDefID(unitID)
 			for index, stats in pairs(unitDroneStats) do
-				if stats.aliveDrones <= (unitList[unitDefID][index].maxAllowed - unitList[unitDefID][index].spawnedPerWave) and Spring.GetGameSeconds() >= stats.lastSpawned + unitList[unitDefID][index].spawnTimer then
+				if stats.aliveDrones <= (unitList[unitDefID][index].maxAllowed - unitList[unitDefID][index].spawnedPerWave) and SpringShared.GetGameSeconds() >= stats.lastSpawned + unitList[unitDefID][index].spawnTimer then
 					for _ = 1, unitList[unitDefID][index].spawnedPerWave do
-						local x, y, z = Spring.GetUnitPosition(unitID)
+						local x, y, z = SpringShared.GetUnitPosition(unitID)
 						local spawnx = x + math.random(-unitList[unitDefID][index].spawnRadius, unitList[unitDefID][index].spawnRadius)
 						local spawny = y
 						local spawnz = z + math.random(-unitList[unitDefID][index].spawnRadius, unitList[unitDefID][index].spawnRadius)
-						if (unitList[unitDefID][index].type == "air" and UnitDefNames[unitList[unitDefID][index].name].canFly) or (unitList[unitDefID][index].type == "ground" and positionCheckLibrary.FlatAreaCheck(spawnx, spawny, spawnz, 64, 30, true)) or (unitList[unitDefID][index].type == "land" and positionCheckLibrary.FlatAreaCheck(spawnx, spawny, spawnz, 64, 30, true) and Spring.GetGroundHeight(spawnx, spawnz) > 0) or (unitList[unitDefID][index].type == "sea" and positionCheckLibrary.FlatAreaCheck(spawnx, spawny, spawnz, 64, 30, true) and Spring.GetGroundHeight(spawnx, spawnz) <= 0) then
-							local droneID = Spring.CreateUnit(unitList[unitDefID][index].name, spawnx, spawny, spawnz, math.random(0, 3), Spring.GetUnitTeam(unitID))
+						if (unitList[unitDefID][index].type == "air" and UnitDefNames[unitList[unitDefID][index].name].canFly) or (unitList[unitDefID][index].type == "ground" and positionCheckLibrary.FlatAreaCheck(spawnx, spawny, spawnz, 64, 30, true)) or (unitList[unitDefID][index].type == "land" and positionCheckLibrary.FlatAreaCheck(spawnx, spawny, spawnz, 64, 30, true) and SpringShared.GetGroundHeight(spawnx, spawnz) > 0) or (unitList[unitDefID][index].type == "sea" and positionCheckLibrary.FlatAreaCheck(spawnx, spawny, spawnz, 64, 30, true) and SpringShared.GetGroundHeight(spawnx, spawnz) <= 0) then
+							local droneID = SpringSynced.CreateUnit(unitList[unitDefID][index].name, spawnx, spawny, spawnz, math.random(0, 3), SpringShared.GetUnitTeam(unitID))
 							if droneID then
 								aliveDrones[droneID] = {
 									owner = unitID,
@@ -573,8 +573,8 @@ function gadget:GameFrame(frame)
 									fightRadius = unitList[unitDefID][index].fightRadius,
 								}
 								aliveCarriers[unitID][index].aliveDrones = aliveCarriers[unitID][index].aliveDrones + 1
-								aliveCarriers[unitID][index].lastSpawned = Spring.GetGameSeconds()
-								Spring.GiveOrderToUnit(droneID, 37382, { 1 }, 0)
+								aliveCarriers[unitID][index].lastSpawned = SpringShared.GetGameSeconds()
+								SpringSynced.GiveOrderToUnit(droneID, 37382, { 1 }, 0)
 								--Spring.GiveOrderToUnit(droneID, CMD.MOVE_STATE, 2, 0)
 							end
 						end
@@ -587,15 +587,15 @@ function gadget:GameFrame(frame)
 	if frame % 30 == 14 then
 		for droneID, stats in pairs(aliveDrones) do
 			if stats.owner then
-				local x, y, z = Spring.GetUnitPosition(stats.owner)
+				local x, y, z = SpringShared.GetUnitPosition(stats.owner)
 				if math.random(0, 4) == 0 then
-					Spring.GiveOrderToUnit(droneID, CMD.PATROL, { x + math.random(-stats.fightRadius, stats.fightRadius), y, z + math.random(-stats.fightRadius, stats.fightRadius) }, { "shift" })
+					SpringSynced.GiveOrderToUnit(droneID, CMD.PATROL, { x + math.random(-stats.fightRadius, stats.fightRadius), y, z + math.random(-stats.fightRadius, stats.fightRadius) }, { "shift" })
 				elseif math.random(0, 6) == 0 then
-					Spring.GiveOrderToUnit(droneID, CMD.PATROL, { x + math.random(-stats.fightRadius, stats.fightRadius), y, z + math.random(-stats.fightRadius, stats.fightRadius) }, {})
+					SpringSynced.GiveOrderToUnit(droneID, CMD.PATROL, { x + math.random(-stats.fightRadius, stats.fightRadius), y, z + math.random(-stats.fightRadius, stats.fightRadius) }, {})
 				end
 			else
 				if math.random(0, 10) == 0 then
-					Spring.GiveOrderToUnit(droneID, CMD.PATROL, { math.random(0, Game.mapSizeX), 0, math.random(0, Game.mapSizeZ) }, { "shift" })
+					SpringSynced.GiveOrderToUnit(droneID, CMD.PATROL, { math.random(0, Game.mapSizeX), 0, math.random(0, Game.mapSizeZ) }, { "shift" })
 				end
 			end
 		end
