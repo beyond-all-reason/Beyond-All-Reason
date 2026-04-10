@@ -99,6 +99,13 @@ local wordList = {
 	"^genaalf?$",
 	"^juvttref?$",
 	"^mvccreurnqf?$",
+	"^puvaxf?$",
+	"^wrrgf?$",
+	"^xlf$",
+	"^x[1v]yyl?[b0]?hefr?ys$",
+	"^zbatf?$",
+	"^zbatbybvqf?$",
+	"^cnxvf?$",
 
 
 	--DE
@@ -171,13 +178,6 @@ local wordList = {
 	"^jvpufre$",
 	"^jvpuftrohegr?a?$",
 	"^jvpufynccra$",
-	"^puvaxf?$",
-	"^wrrgf?$",
-	"^xlf$",
-	"^x[1v]yyl?[b0]?hefr?ys$",
-	"^zbatf?$",
-	"^zbatbybvqf?$",
-	"^cnxvf?$",
 	}
 
 local from = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
