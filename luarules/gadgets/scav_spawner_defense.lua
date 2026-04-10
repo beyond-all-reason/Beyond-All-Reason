@@ -12,7 +12,7 @@ function gadget:GetInfo()
 	}
 end
 
-if Spring.Utilities.Gametype.IsScavengers() and not Spring.Utilities.Gametype.IsRaptors() then
+if Utilities.Gametype.IsScavengers() and not Utilities.Gametype.IsRaptors() then
 	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Scav Defense Spawner Activated!")
 else
 	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Scav Defense Spawner Deactivated!")
@@ -150,8 +150,8 @@ if gadgetHandler:IsSyncedCode() then
 	local bossResistance = {}
 	local bossIDs = {}
 	local bosses = { resistances = bossResistance, statuses = {}, playerDamages = {} }
-	local scavTeamID = Spring.Utilities.GetScavTeamID()
-	local scavAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
+	local scavTeamID = Utilities.GetScavTeamID()
+	local scavAllyTeamID = Utilities.GetScavAllyTeamID()
 	local lsx1, lsz1, lsx2, lsz2
 	local burrows = {}
 	local squadsTable = {}

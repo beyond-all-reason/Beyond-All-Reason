@@ -21,7 +21,7 @@ local historyFrames = 180
 local maxCommands = 600
 local startWarningOffences = 3
 local maxOffences = 6
-local isSingleplayer = Spring.Utilities.Gametype.IsSinglePlayer()
+local isSingleplayer = Utilities.Gametype.IsSinglePlayer()
 local mathFloor = math.floor
 local mathMax = math.max
 

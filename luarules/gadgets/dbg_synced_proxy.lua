@@ -14,7 +14,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-if not Spring.Utilities.IsDevMode() or not Spring.Utilities.Gametype.IsSinglePlayer() then
+if not Utilities.IsDevMode() or not Utilities.Gametype.IsSinglePlayer() then
 	Spring.SetGameRulesParam("isSyncedProxyEnabled", false)
 	return
 end

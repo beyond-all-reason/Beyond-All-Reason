@@ -73,7 +73,7 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 
-		local accountID = Spring.Utilities.GetAccountID(playerID)
+		local accountID = Utilities.GetAccountID(playerID)
 		local authorized = _G.permissions.waterlevel[accountID]
 
 		if not (authorized or Spring.IsCheatingEnabled()) then
@@ -87,7 +87,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 else -- UNSYNCED
 	local myPlayerID = Spring.GetLocalPlayerID()
-	local accountID = Spring.Utilities.GetAccountID(myPlayerID)
+	local accountID = Utilities.GetAccountID(myPlayerID)
 	local authorized = SYNCED.permissions.waterlevel[accountID]
 
 	local function waterlevel(cmd, line, words, playerID)

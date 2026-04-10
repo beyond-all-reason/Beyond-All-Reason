@@ -136,7 +136,7 @@ local function updateRejoin()
 			font2:Begin()
 			font2:SetTextColor(0.92, 0.92, 0.92, 1)
 			font2:SetOutlineColor(0, 0, 0, 1)
-			font2:Print("\255\225\255\225" .. Spring.I18N("ui.rejoin.catchingUp") .. " \255\166\166\166" .. gametime, area[1] + ((area[3] - area[1]) / 2), area[2] + barHeight * 2 + (fontsize * 0.89), fontsize, "cor")
+			font2:Print("\255\225\255\225" .. I18N("ui.rejoin.catchingUp") .. " \255\166\166\166" .. gametime, area[1] + ((area[3] - area[1]) / 2), area[2] + barHeight * 2 + (fontsize * 0.89), fontsize, "cor")
 			font2:End()
 		end)
 	end

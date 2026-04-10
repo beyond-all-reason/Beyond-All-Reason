@@ -29,7 +29,7 @@ local uiScale = (0.7 + (vsx * vsy / 6500000))
 local myPlayerID = Spring.GetLocalPlayerID()
 local myPlayerName, _, mySpec, myTeamID = Spring.GetPlayerInfo(myPlayerID, false)
 myPlayerName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(myPlayerID)) or myPlayerName
-local isFFA = Spring.Utilities.Gametype.IsFFA()
+local isFFA = Utilities.Gametype.IsFFA()
 local isReplay = Spring.IsReplay()
 
 local readyButtonColor = { 0.05, 0.28, 0 }
@@ -47,7 +47,7 @@ local gameStarting = false
 local timer = 0
 local timer2 = 0
 local auto_ready_timer = 120
-local auto_ready = not Spring.Utilities.Gametype.IsSinglePlayer()
+local auto_ready = not Utilities.Gametype.IsSinglePlayer()
 
 local buttonPosX = 0.8
 local buttonPosY = 0.76
@@ -78,7 +78,7 @@ local function updateReadyTooltip()
 				if cachedTooltipText ~= "" then
 					cachedTooltipText = cachedTooltipText .. "\n"
 				end
-				cachedTooltipText = cachedTooltipText .. Spring.I18N(description)
+				cachedTooltipText = cachedTooltipText .. I18N(description)
 			end
 		end
 	else
@@ -94,7 +94,7 @@ local offeredAsSub = false
 --local allowUnready = false	-- not enabled cause unreadying doesnt work, have to do workaroud
 local showLockButton = true
 
-local numPlayers = Spring.Utilities.GetPlayerCount()
+local numPlayers = Utilities.GetPlayerCount()
 
 local shapeOpacity = 0.6
 local unitshapes = {}
@@ -140,19 +140,19 @@ end
 function widget:ViewResize(viewSizeX, viewSizeY)
 	if mySpec then
 		if not offeredAsSub then
-			buttonText = Spring.I18N("ui.substitutePlayers.offer")
+			buttonText = I18N("ui.substitutePlayers.offer")
 		else
-			buttonText = Spring.I18N("ui.substitutePlayers.withdraw")
+			buttonText = I18N("ui.substitutePlayers.withdraw")
 		end
 	else
 		if readied then
 			if locked then
-				buttonText = Spring.I18N("ui.initialSpawn.unlock")
+				buttonText = I18N("ui.initialSpawn.unlock")
 			else
-				buttonText = Spring.I18N("ui.initialSpawn.lock")
+				buttonText = I18N("ui.initialSpawn.lock")
 			end
 		else
-			buttonText = Spring.I18N("ui.initialSpawn.ready")
+			buttonText = I18N("ui.initialSpawn.ready")
 		end
 	end
 
@@ -244,7 +244,7 @@ function widget:MousePress(sx, sy)
 								locked = true
 								Spring.SendLuaRulesMsg("locking_in_place")
 							else
-								spEcho(Spring.I18N("ui.initialSpawn.choosePoint"))
+								spEcho(I18N("ui.initialSpawn.choosePoint"))
 							end
 						end
 
@@ -252,9 +252,9 @@ function widget:MousePress(sx, sy)
 					elseif eligibleAsSub then
 						offeredAsSub = not offeredAsSub
 						if offeredAsSub then
-							spEcho(Spring.I18N("ui.substitutePlayers.substitutionMessage"))
+							spEcho(I18N("ui.substitutePlayers.substitutionMessage"))
 						else
-							spEcho(Spring.I18N("ui.substitutePlayers.offerWithdrawn"))
+							spEcho(I18N("ui.substitutePlayers.offerWithdrawn"))
 						end
 						Spring.SendLuaRulesMsg(offeredAsSub and "\144" or "\145")
 					end
@@ -363,7 +363,7 @@ function widget:DrawScreen()
 	-- display autoready timer
 	if Spring.GetGameRulesParam("all_players_joined") == 1 and not gameStarting and auto_ready then
 		local colorString = auto_ready_timer % 0.75 <= 0.375 and "\255\233\233\233" or "\255\255\255\255"
-		local text = colorString .. Spring.I18N("ui.initialSpawn.startCountdown", { time = mathMax(1, mathFloor(auto_ready_timer)) })
+		local text = colorString .. I18N("ui.initialSpawn.startCountdown", { time = mathMax(1, mathFloor(auto_ready_timer)) })
 		font:Begin()
 		font:Print(text, vsx * 0.5, vsy * 0.67, 18.5 * uiScale, "co")
 		font:End()
@@ -386,7 +386,7 @@ function widget:DrawScreen()
 	if gameStarting then
 		timer = timer + Spring.GetLastUpdateSeconds()
 		local colorString = timer % 0.75 <= 0.375 and "\255\233\233\233" or "\255\255\255\255"
-		local text = colorString .. Spring.I18N("ui.initialSpawn.startCountdown", { time = mathMax(1, 3 - mathFloor(timer)) })
+		local text = colorString .. I18N("ui.initialSpawn.startCountdown", { time = mathMax(1, 3 - mathFloor(timer)) })
 		font:Begin()
 		font:Print(text, vsx * 0.5, vsy * 0.67, 18.5 * uiScale, "co")
 		font:End()

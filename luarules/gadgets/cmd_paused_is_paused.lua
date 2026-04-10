@@ -1,4 +1,4 @@
-if Spring.GetModOptions().allowpausegameplay or Spring.Utilities.Gametype.IsSinglePlayer() then
+if Spring.GetModOptions().allowpausegameplay or Utilities.Gametype.IsSinglePlayer() then
 	return
 end
 

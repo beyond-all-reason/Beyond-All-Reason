@@ -46,7 +46,7 @@ local buttonclick = "LuaUI/Sounds/buildbar_waypoint.wav"
 
 local lineHeight = fontSize
 
-local isFFA = Spring.Utilities.Gametype.IsFFA()
+local isFFA = Utilities.Gametype.IsFFA()
 
 local header = {
 	"frame",
@@ -222,19 +222,19 @@ end
 
 local function refreshHeaders()
 	headerRemap = {
-		frame = { " ", Spring.I18N("ui.teamStats.player") },
-		metalProduced = { Spring.I18N("ui.teamStats.metal"), Spring.I18N("ui.teamStats.resourceProduced") },
-		metalExcess = { Spring.I18N("ui.teamStats.metal"), Spring.I18N("ui.teamStats.resourceExcess") },
-		energyProduced = { Spring.I18N("ui.teamStats.energy"), Spring.I18N("ui.teamStats.resourceProduced") },
-		energyExcess = { Spring.I18N("ui.teamStats.energy"), Spring.I18N("ui.teamStats.resourceExcess") },
-		damageDealt = { Spring.I18N("ui.teamStats.damage"), Spring.I18N("ui.teamStats.damageDealt") },
-		damageReceived = { Spring.I18N("ui.teamStats.damage"), Spring.I18N("ui.teamStats.damageReceived") },
-		damageEfficiency = { Spring.I18N("ui.teamStats.damage"), Spring.I18N("ui.teamStats.damageEfficiency") },
-		unitsProduced = { Spring.I18N("ui.teamStats.units"), Spring.I18N("ui.teamStats.unitsProduced") },
-		unitsDied = { Spring.I18N("ui.teamStats.units"), Spring.I18N("ui.teamStats.unitsDied") },
-		unitsKilled = { Spring.I18N("ui.teamStats.units"), Spring.I18N("ui.teamStats.unitsKilled") },
-		aggressionLevel = { Spring.I18N("ui.teamStats.aggression"), Spring.I18N("ui.teamStats.aggressionLevel") },
-		actionsPerMinute = { Spring.I18N("ui.teamStats.actionsPerMinute1"), Spring.I18N("ui.teamStats.actionsPerMinute2") },
+		frame = { " ", I18N("ui.teamStats.player") },
+		metalProduced = { I18N("ui.teamStats.metal"), I18N("ui.teamStats.resourceProduced") },
+		metalExcess = { I18N("ui.teamStats.metal"), I18N("ui.teamStats.resourceExcess") },
+		energyProduced = { I18N("ui.teamStats.energy"), I18N("ui.teamStats.resourceProduced") },
+		energyExcess = { I18N("ui.teamStats.energy"), I18N("ui.teamStats.resourceExcess") },
+		damageDealt = { I18N("ui.teamStats.damage"), I18N("ui.teamStats.damageDealt") },
+		damageReceived = { I18N("ui.teamStats.damage"), I18N("ui.teamStats.damageReceived") },
+		damageEfficiency = { I18N("ui.teamStats.damage"), I18N("ui.teamStats.damageEfficiency") },
+		unitsProduced = { I18N("ui.teamStats.units"), I18N("ui.teamStats.unitsProduced") },
+		unitsDied = { I18N("ui.teamStats.units"), I18N("ui.teamStats.unitsDied") },
+		unitsKilled = { I18N("ui.teamStats.units"), I18N("ui.teamStats.unitsKilled") },
+		aggressionLevel = { I18N("ui.teamStats.aggression"), I18N("ui.teamStats.aggressionLevel") },
+		actionsPerMinute = { I18N("ui.teamStats.actionsPerMinute1"), I18N("ui.teamStats.actionsPerMinute2") },
 	}
 end
 
@@ -356,14 +356,14 @@ function widget:GameFrame(n, forceupdate)
 					end
 					if gameStarted ~= nil then
 						if not playerName then
-							playerName = teamControllers[teamID] or Spring.I18N("ui.teamStats.gone", { player = "" })
+							playerName = teamControllers[teamID] or I18N("ui.teamStats.gone", { player = "" })
 						else
 							teamControllers[teamID] = playerName
 						end
 						if isDead then
-							playerName = Spring.I18N("ui.teamStats.dead", { player = playerName })
+							playerName = I18N("ui.teamStats.dead", { player = playerName })
 						elseif not isActive then
-							playerName = Spring.I18N("ui.teamStats.gone", { player = playerName })
+							playerName = I18N("ui.teamStats.gone", { player = playerName })
 						end
 					end
 					if history.damageReceived ~= 0 then
@@ -385,7 +385,7 @@ function widget:GameFrame(n, forceupdate)
 
 					playerName = playerName or ""
 
-					history.frame = Spring.Utilities.ConvertColor(teamColor[1], teamColor[2], teamColor[3]) .. playerName .. "    "
+					history.frame = Utilities.ConvertColor(teamColor[1], teamColor[2], teamColor[3]) .. playerName .. "    "
 
 					allyVec[teamInsertCount] = history
 					totalNumLines = totalNumLines + 1

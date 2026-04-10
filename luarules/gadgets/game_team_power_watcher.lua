@@ -21,8 +21,8 @@ local mathHuge = math.huge
 local mathMax = math.max
 
 local teamList = Spring.GetTeamList()
-local scavengerTeam = Spring.Utilities.GetScavTeamID()
-local raptorTeam = Spring.Utilities.GetRaptorTeamID()
+local scavengerTeam = Utilities.GetScavTeamID()
+local raptorTeam = Utilities.GetRaptorTeamID()
 local aiTeams = {}
 local neutralTeam
 local humanTeams = {}

@@ -977,13 +977,13 @@ function widget:DrawScreen()
 							local text
 							local textColor = "\255\215\255\215"
 							if units.unitRestricted[uDefID] then
-								text = Spring.I18N("ui.buildMenu.disabled", { unit = unitTranslatedHumanName[uDefID], textColor = textColor, warnColor = "\255\166\166\166" })
+								text = I18N("ui.buildMenu.disabled", { unit = unitTranslatedHumanName[uDefID], textColor = textColor, warnColor = "\255\166\166\166" })
 							else
 								text = UnitDefs[uDefID].translatedHumanName
 							end
 							local tooltip = unitTranslatedTooltip[uDefID]
 							if unitMetal_extractor[uDefID] then
-								tooltip = tooltip .. "\n" .. Spring.I18N("ui.buildMenu.areamex_tooltip")
+								tooltip = tooltip .. "\n" .. I18N("ui.buildMenu.areamex_tooltip")
 							end
 							WG.tooltip.ShowTooltip("buildmenu", "\255\240\240\240" .. tooltip, nil, nil, text)
 						end
@@ -1024,7 +1024,7 @@ function widget:DrawScreen()
 				end
 				if paginatorHovered then
 					if WG.tooltip then
-						local text = "\255\240\240\240" .. (paginatorHovered == 1 and Spring.I18N("ui.buildMenu.previousPage") or Spring.I18N("ui.buildMenu.nextPage"))
+						local text = "\255\240\240\240" .. (paginatorHovered == 1 and I18N("ui.buildMenu.previousPage") or I18N("ui.buildMenu.nextPage"))
 						WG.tooltip.ShowTooltip("buildmenu", text)
 					end
 					RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][2] + cellPadding, paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][4] - cellPadding, cellSize * 0.03, 2, 2, 2, 2, { 1, 1, 1, 0 }, { 1, 1, 1, (b and 0.35 or 0.15) })

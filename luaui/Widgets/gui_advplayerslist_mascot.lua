@@ -127,7 +127,7 @@ local xPos = 0
 local yPos = 0
 
 local drawSantahat = false
-if Spring.Utilities.Gametype.GetCurrentHolidays().xmas then
+if Utilities.Gametype.GetCurrentHolidays().xmas then
 	drawSantahat = true
 end
 

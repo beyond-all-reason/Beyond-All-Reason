@@ -518,8 +518,8 @@ function widget:Initialize()
 		end
 
 		tableSort(soundInfo, function(a, b)
-			local nameA = Spring.I18N(a[3]) or ""
-			local nameB = Spring.I18N(b[3]) or ""
+			local nameA = I18N(a[3]) or ""
+			local nameB = I18N(b[3]) or ""
 			return string.lower(nameA) < string.lower(nameB)
 		end)
 
@@ -579,7 +579,7 @@ function widget:Initialize()
 			end
 			if displayMessages and WG.messages and notification[event].textID and not notification[event].notext then
 				if not notification[event].customText then
-					WG.messages.addMessage(Spring.I18N(notification[event].textID))
+					WG.messages.addMessage(I18N(notification[event].textID))
 				else
 					WG.messages.addMessage(notification[event].textID)
 				end
@@ -622,7 +622,7 @@ function widget:Initialize()
 		Spring.Echo("Notification Sound Items Loaded")
 	end
 
-	if Spring.Utilities.Gametype.IsRaptors() and Spring.Utilities.Gametype.IsScavengers() then
+	if Utilities.Gametype.IsRaptors() and Utilities.Gametype.IsScavengers() then
 		queueNotification("RaptorsAndScavsMixed")
 	end
 end
@@ -643,7 +643,7 @@ function widget:GameFrame(gf)
 		m_currentLevel, m_storage, m_pull, m_income, m_expense, m_share, m_sent, m_received = spGetTeamResources(myTeamID, "metal")
 
 		-- raptors and scavs mixed check
-		if Spring.Utilities.Gametype.IsRaptors() and Spring.Utilities.Gametype.IsScavengers() then
+		if Utilities.Gametype.IsRaptors() and Utilities.Gametype.IsScavengers() then
 			queueNotification("RaptorsAndScavsMixed")
 		end
 
@@ -898,7 +898,7 @@ local function playNextSound()
 				Spring.PlaySoundFile(soundEffectsFolder .. notification[event].soundEffect .. ".wav", globalVolume, "ui")
 			end
 			if displayMessages and WG.messages and notification[event].textID and not notification[event].notext then
-				WG.messages.addMessage(Spring.I18N(notification[event].textID))
+				WG.messages.addMessage(I18N(notification[event].textID))
 			end
 		end
 

@@ -31,7 +31,7 @@ else
 
 	local myPlayerID = Spring.GetLocalPlayerID()
 	local myPlayerName = Spring.GetPlayerInfo(myPlayerID)
-	local accountID = Spring.Utilities.GetAccountID(myPlayerID)
+	local accountID = Utilities.GetAccountID(myPlayerID)
 	local authorized = SYNCED.permissions.sysinfo[accountID]
 
 	local function handleSystemEvent(_, playerID, system)

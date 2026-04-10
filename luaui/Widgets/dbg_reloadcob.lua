@@ -31,7 +31,7 @@ function widget:KeyPress(key, modifier, isRepeat)
 end
 
 function widget:Initialize()
-	if not Spring.Utilities.IsDevMode() then
+	if not Utilities.IsDevMode() then
 		spEcho("ReloadCob widget requires devmode")
 		widgetHandler:RemoveWidget()
 		return

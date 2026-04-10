@@ -228,7 +228,7 @@ local function drawPause(now)
 	--draw text
 	if not gameover then
 		if not cachedPauseText then
-			cachedPauseText = Spring.I18N("ui.pauseScreen.paused")
+			cachedPauseText = I18N("ui.pauseScreen.paused")
 		end
 		font:Begin()
 		font:SetOutlineColor(outlineColor)

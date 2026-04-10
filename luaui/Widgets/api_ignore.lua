@@ -79,14 +79,14 @@ local function ignoreAccount(accountID)
 			if resolvedName ~= "" then
 				ignoredAccountsAndNames[resolvedName] = playerID or true
 			end
-			spEcho(Spring.I18N("ui.ignore.ignored", { name = resolvedName, accountID = accountID }))
+			spEcho(I18N("ui.ignore.ignored", { name = resolvedName, accountID = accountID }))
 		end
 	elseif accountID ~= "" then -- if accountID wasnt known and player name was supplied instead
 		local name = accountID
 		if playernames[name] then
 			ignoredPlayers[name] = true
 			ignoredAccountsAndNames[name] = playernames[name]
-			spEcho(Spring.I18N("ui.ignore.ignored", { name = name, accountID = Spring.I18N("ui.ignore.unknown") }))
+			spEcho(I18N("ui.ignore.ignored", { name = name, accountID = I18N("ui.ignore.unknown") }))
 		end
 	end
 end
@@ -95,7 +95,7 @@ local function unignoreAccount(accountID)
 	if type(tonumber(accountID)) == "number" then
 		accountID = tonumber(accountID)
 		if ignoredAccounts[accountID] and validAccounts[accountID] then
-			spEcho(Spring.I18N("ui.ignore.unignored", { name = ignoredAccounts[accountID], accountID = accountID }))
+			spEcho(I18N("ui.ignore.unignored", { name = ignoredAccounts[accountID], accountID = accountID }))
 			ignoredAccountsAndNames[accountID] = nil
 			ignoredAccountsAndNames[ignoredAccounts[accountID]] = nil
 			ignoredAccountsAndNames[validAccounts[accountID]] = nil
@@ -106,7 +106,7 @@ local function unignoreAccount(accountID)
 		if playernames[name] then
 			ignoredPlayers[name] = nil
 			ignoredAccountsAndNames[name] = nil
-			spEcho(Spring.I18N("ui.ignore.unignored", { name = name, accountID = Spring.I18N("ui.ignore.unknown") }))
+			spEcho(I18N("ui.ignore.unignored", { name = name, accountID = I18N("ui.ignore.unknown") }))
 		end
 	end
 end
