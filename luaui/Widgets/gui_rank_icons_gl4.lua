@@ -135,7 +135,7 @@ local vbocachetable = {}
 for i = 1, 18 do vbocachetable[i] = 0 end -- init this caching table to preserve mem allocs
 
 local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload, reason, rank, flash)
-	if debugmode then Spring.Debug.TraceEcho("add",unitID,reason) end
+	if debugmode then Debug.TraceEcho("add",unitID,reason) end
 	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true then
 		if debugmode then spEcho("Warning: Rank Icons GL4 attempted to add an invalid unitID:", unitID) end
 		return nil
@@ -180,7 +180,7 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload, reason, rank, fla
 end
 
 local function RemovePrimitive(unitID,reason)
-	if debugmode then Spring.Debug.TraceEcho("remove",unitID,reason) end
+	if debugmode then Debug.TraceEcho("remove",unitID,reason) end
 	if rankVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(rankVBO, unitID)
 	end

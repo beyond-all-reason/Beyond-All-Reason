@@ -237,7 +237,7 @@ function widget:DrawScreen()
 		coords[3] = pos.z
 	end
 	IntegrateMetal(mexDefInfo, coords[1], coords[3], forceUpdate)
-	DrawTextWithBackground(Spring.I18N('ui.prospector.metalExtraction', { amount = strFormat("%.2f", extraction) }), mx, my, textSize, "do")
+	DrawTextWithBackground(I18N('ui.prospector.metalExtraction', { amount = strFormat("%.2f", extraction) }), mx, my, textSize, "do")
 	glColor(1, 1, 1, 1)
 end
 

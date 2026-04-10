@@ -1,5 +1,5 @@
 local playerCountScale = 1
-if Spring.Utilities.Gametype.IsRaptors() then
+if Utilities.Gametype.IsRaptors() then
 	playerCountScale = (#Spring.GetTeamList() - 2)/8 -- -2 because scavs and gaia shouldn't count, divided by 8 because we use 8 player games as a baseline
 end
 

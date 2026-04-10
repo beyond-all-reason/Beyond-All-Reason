@@ -18,7 +18,7 @@ end
 
 local modOptions = Spring.GetModOptions()
 if modOptions.deathmode ~= "territorial_domination" then return false end
-if Spring.Utilities.Gametype.IsRaptors() or Spring.Utilities.Gametype.IsScavengers() then return false end
+if Utilities.Gametype.IsRaptors() or Utilities.Gametype.IsScavengers() then return false end
 
 local MODEL_NAME = "territorial_score_model"
 local RML_PATH = "luaui/RmlWidgets/gui_territorial_domination/gui_territorial_domination.rml"
@@ -29,12 +29,12 @@ local spGetAllyTeamList = Spring.GetAllyTeamList
 local spGetTeamList = Spring.GetTeamList
 local spGetTeamColor = Spring.GetTeamColor
 local spGetSpectatingState = Spring.GetSpectatingState
-local spI18N = Spring.I18N
+local spI18N = I18N
 local spGetGaiaTeamID = Spring.GetGaiaTeamID
 local spGetTeamInfo = Spring.GetTeamInfo
 local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetAIInfo = Spring.GetAIInfo
-local ColorString = Spring.Utilities.Color.ToString
+local ColorString = Utilities.Color.ToString
 
 local DEFAULT_MAX_ROUNDS = 7
 local DEFAULT_POINTS_CAP = 100
@@ -149,12 +149,12 @@ local function getAIName(teamID)
 	if niceName then
 		name = niceName
 		
-		if Spring.Utilities.ShowDevUI() and options.profile then
+		if Utilities.ShowDevUI() and options.profile then
 			name = name .. " [" .. options.profile .. "]"
 		end
 	end
 	
-	return Spring.I18N('ui.playersList.aiName', { name = name })
+	return I18N('ui.playersList.aiName', { name = name })
 end
 
 local function fetchAllyTeamPlayerNames(allyTeamID)

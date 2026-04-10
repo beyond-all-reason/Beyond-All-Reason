@@ -17,7 +17,7 @@ local gaiaTeamID = Spring.GetGaiaTeamID()
 local teamList = Spring.GetTeamList()
 local allyTeamList = Spring.GetAllyTeamList()
 local allyTeamCount = #allyTeamList - 1
-local isSurvival = Spring.Utilities.Gametype.IsPvE()
+local isSurvival = Utilities.Gametype.IsPvE()
 
 local survivalColorNum = 1 -- Starting from color #1
 local survivalColorVariation = 0 -- Current color variation
@@ -440,7 +440,7 @@ local function hex2RGB(hex)
 end
 
 -- we don't want to use FFA colors for TeamFFA, because we want each team to have its own color theme
-local useFFAColors = Spring.Utilities.Gametype.IsFFA() and not Spring.Utilities.Gametype.IsTeams()
+local useFFAColors = Utilities.Gametype.IsFFA() and not Utilities.Gametype.IsTeams()
 if not useFFAColors and not teamColors[allyTeamCount] and not isSurvival then -- Edge case for TeamFFA with more than supported number of teams
 	useFFAColors = true
 end

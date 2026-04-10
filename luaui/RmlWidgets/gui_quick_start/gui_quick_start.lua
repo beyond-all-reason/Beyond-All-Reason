@@ -37,7 +37,7 @@ local shouldApplyFactoryDiscount = modOptions.quick_start == "factory_discount" 
 
 local spGetGameRulesParam = Spring.GetGameRulesParam
 local spGetMyTeamID = Spring.GetMyTeamID
-local spI18N = Spring.I18N
+local spI18N = I18N
 
 local wgBuildMenu, wgGridMenu, wgTopbar, wgPregameBuild, wgPregameUI, wgPregameUIDraft, wgGetBuildQueueFunc, wgGetBuildPositionsFunc, wgGetPregameUnitSelectedFunc
 

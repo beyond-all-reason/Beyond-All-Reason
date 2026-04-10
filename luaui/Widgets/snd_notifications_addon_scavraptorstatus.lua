@@ -9,7 +9,7 @@ function widget:GetInfo()
     }
 end
 
-if not (Spring.Utilities.Gametype.IsRaptors() and not Spring.Utilities.Gametype.IsScavengers()) then
+if not (Utilities.Gametype.IsRaptors() and not Utilities.Gametype.IsScavengers()) then
 	return false
 end
 
@@ -21,7 +21,7 @@ function widget:Update(dt)
     if UpdateTimer >= 1 then
         UpdateTimer = UpdateTimer - 1
 
-        if Spring.Utilities.Gametype.IsRaptors() then
+        if Utilities.Gametype.IsRaptors() then
             FinalBossProgress = Spring.GetGameRulesParam("raptorQueenAnger")
             FinalBossHealth = Spring.GetGameRulesParam("raptorQueenHealth")
             TechProgress = Spring.GetGameRulesParam("raptorTechAnger")
@@ -98,7 +98,7 @@ function widget:Update(dt)
 
 
 
-        elseif Spring.Utilities.Gametype.IsScavengers() then
+        elseif Utilities.Gametype.IsScavengers() then
             FinalBossProgress = Spring.GetGameRulesParam("scavBossAnger")
             FinalBossHealth = Spring.GetGameRulesParam("scavBossHealth")
             TechProgress = Spring.GetGameRulesParam("scavTechAnger")

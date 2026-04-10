@@ -92,16 +92,16 @@ function widget:LanguageChanged()
 		key = 'killAllUnits'
 	elseif deathmode == "builders" then
 		key = 'killAllBuilders'
-	elseif deathmode == "territorial_domination" and not Spring.Utilities.Gametype.IsRaptors() and not Spring.Utilities.Gametype.IsScavengers() then
+	elseif deathmode == "territorial_domination" and not Utilities.Gametype.IsRaptors() and not Utilities.Gametype.IsScavengers() then
 		key = 'territorialDomination'
 	else
 		key = 'killAllCommanders'
 	end
 
-	messages[1].str = "\255\255\255\255" .. Spring.I18N('ui.gametypeInfo.victoryCondition') .. ": " .. Spring.I18N('ui.gametypeInfo.' .. key)
+	messages[1].str = "\255\255\255\255" .. I18N('ui.gametypeInfo.victoryCondition') .. ": " .. I18N('ui.gametypeInfo.' .. key)
 
 	if deathmode == "own_com" then
-		messages[3].str = "\255\255\150\150" .. Spring.I18N('ui.gametypeInfo.owncomends')
+		messages[3].str = "\255\255\150\150" .. I18N('ui.gametypeInfo.owncomends')
 	end
 end
 

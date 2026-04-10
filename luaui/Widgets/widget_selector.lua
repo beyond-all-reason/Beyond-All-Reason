@@ -224,7 +224,7 @@ function drawChatInput()
 			local leftOffset = floor(lineHeight*0.7)
 			local distance = 0 --elementMargin
 			local usedFont = inputMode == '' and font3 or font
-			local modeText = Spring.I18N('ui.settings.filter')
+			local modeText = I18N('ui.settings.filter')
 			if inputMode ~= '' then
 				modeText = inputMode
 			end
@@ -346,19 +346,19 @@ end
 function widget:Initialize()
 
 	buttons = { --see MouseRelease for which functions are called by which buttons
-		[1] = Spring.I18N('ui.widgetselector.button_reloadluaui'),
-		[2] = Spring.I18N('ui.widgetselector.button_unloadallwidgets'),
-		[3] = Spring.I18N('ui.widgetselector.button_disallowuserwidgets'),
-		[4] = Spring.I18N('ui.widgetselector.button_resetluaui'),
-		[5] = Spring.I18N('ui.widgetselector.button_factoryresetluaui'),
+		[1] = I18N('ui.widgetselector.button_reloadluaui'),
+		[2] = I18N('ui.widgetselector.button_unloadallwidgets'),
+		[3] = I18N('ui.widgetselector.button_disallowuserwidgets'),
+		[4] = I18N('ui.widgetselector.button_resetluaui'),
+		[5] = I18N('ui.widgetselector.button_factoryresetluaui'),
 	}
 	if not allowuserwidgets then
 		buttons[3] = ''
 	else
 		if widgetHandler.allowUserWidgets then
-			buttons[3] = Spring.I18N('ui.widgetselector.button_disallowuserwidgets')
+			buttons[3] = I18N('ui.widgetselector.button_disallowuserwidgets')
 		else
-			buttons[3] = Spring.I18N('ui.widgetselector.button_allowuserwidgets')
+			buttons[3] = I18N('ui.widgetselector.button_allowuserwidgets')
 		end
 	end
 
@@ -675,7 +675,7 @@ function widget:KeyPress(key, mods, isRepeat)
 				WG['topbar'].hideWindows()
 			end
 			show = newShow
-			if show and not (Spring.Utilities.IsDevMode() or Spring.Utilities.ShowDevUI() or Spring.GetConfigInt("widgetselector", 0) == 1 or localWidgetCount > 0) then
+			if show and not (Utilities.IsDevMode() or Utilities.ShowDevUI() or Spring.GetConfigInt("widgetselector", 0) == 1 or localWidgetCount > 0) then
 				show = false
 			end
 			if show then
@@ -801,7 +801,7 @@ function widget:DrawScreen()
 
 	if updateUi then
 		updateTextInputDlist = true
-		local title = Spring.I18N('ui.widgetselector.title')
+		local title = I18N('ui.widgetselector.title')
 		local titleFontSize = 18 * widgetScale
 		titleRect = { backgroundRect[1], backgroundRect[4], mathFloor(backgroundRect[1] + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), mathFloor(backgroundRect[4] + (titleFontSize*1.7)) }
 		dlistGuishader = gl.DeleteList(dlistGuishader)
@@ -870,7 +870,7 @@ function widget:DrawScreen()
 				if prevFromZip ~= data.fromZip then
 					customWidgetPosy = posy
 					font2:SetTextColor(0.5, 0.5, 0.5, 0.4)
-					font2:Print(Spring.I18N('ui.widgetselector.islocal'), minx + fontSize * sizeMultiplier * 0.25, posy + (fontSize * sizeMultiplier) * 0.33, fontSize * sizeMultiplier, "")
+					font2:Print(I18N('ui.widgetselector.islocal'), minx + fontSize * sizeMultiplier * 0.25, posy + (fontSize * sizeMultiplier) * 0.33, fontSize * sizeMultiplier, "")
 				end
 
 				local color = ''
@@ -1016,9 +1016,9 @@ function widget:DrawScreen()
 			end
 			if d.author and d.author ~= '' then
 				local textLines, numLines = font:WrapText(d.author, maxWidth)
-				tooltip = tooltip.."\255\175\175\175" .. Spring.I18N('ui.widgetselector.author')..':  ' ..string.gsub(textLines, '[\n]', "\n\255\175\175\175")..'\n'
+				tooltip = tooltip.."\255\175\175\175" .. I18N('ui.widgetselector.author')..':  ' ..string.gsub(textLines, '[\n]', "\n\255\175\175\175")..'\n'
 			end
-			tooltip = tooltip .."\255\175\175\175".. Spring.I18N('ui.widgetselector.file')..':  '  ..d.basename .. (not d.fromZip and '   ('..Spring.I18N('ui.widgetselector.islocal')..')' or '')
+			tooltip = tooltip .."\255\175\175\175".. I18N('ui.widgetselector.file')..':  '  ..d.basename .. (not d.fromZip and '   ('..I18N('ui.widgetselector.islocal')..')' or '')
 			if WG['tooltip'] then
 				WG['tooltip'].ShowTooltip('info', tooltip, nil, nil, tooltipTitle)
 			end

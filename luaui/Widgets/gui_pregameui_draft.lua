@@ -36,7 +36,7 @@ local uiScale = (0.7 + (vsx * vsy / 6500000))
 local myPlayerID = Spring.GetMyPlayerID()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 local _, _, mySpec, myTeamID = Spring.GetPlayerInfo(myPlayerID, false)
-local isFFA = Spring.Utilities.Gametype.IsFFA()
+local isFFA = Utilities.Gametype.IsFFA()
 local isReplay = Spring.IsReplay()
 
 local readyButtonColor = {0.05, 0.28, 0}
@@ -55,7 +55,7 @@ local gameStarting = false
 local timer = 0
 local timer2 = 0
 local auto_ready_timer = 120
-local auto_ready = not Spring.Utilities.Gametype.IsSinglePlayer()
+local auto_ready = not Utilities.Gametype.IsSinglePlayer()
 
 local buttonPosX = 0.8
 local buttonPosY = 0.76
@@ -105,7 +105,7 @@ local function updateTooltip()
 				if cachedTooltipText ~= "" then
 					cachedTooltipText = cachedTooltipText .. "\n"
 				end
-				cachedTooltipText = cachedTooltipText .. Spring.I18N(description)
+				cachedTooltipText = cachedTooltipText .. I18N(description)
 			end
 		end
 	else
@@ -125,7 +125,7 @@ local eligibleAsSub = false
 local offeredAsSub = false
 --local allowUnready = false	-- not enabled cause unreadying doesnt work, have to do workaroud
 
-local numPlayers = Spring.Utilities.GetPlayerCount()
+local numPlayers = Utilities.GetPlayerCount()
 
 local shapeOpacity = 0.6
 local unitshapes = {}
@@ -299,7 +299,7 @@ local function colourNames(teamID, blink)
 	if anonymousMode ~= "disabled" and teamID ~= myTeamID then
 		nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 	end
-	return Spring.Utilities.Color.ToString(nameColourR * mult, nameColourG * mult, nameColourB * mult)
+	return Utilities.Color.ToString(nameColourR * mult, nameColourG * mult, nameColourB * mult)
 end
 
 local function canPlayerPlaceNow(playerID)
@@ -352,7 +352,7 @@ local function draftModeInited() -- We want to ensure the player's UI is loaded 
 	if draftModeLoaded then return end
 
 	local mode = draftMode:gsub("^%l", string.upper) -- Random/Captain/Skill/Fair
-	spEcho(Spring.I18N('ui.draftOrderMod.mode' .. mode)..".")
+	spEcho(I18N('ui.draftOrderMod.mode' .. mode)..".")
 	draftModeLoaded = true
 	if mode == "Fair" then
 		fairTimeout = os.clock() + 2
@@ -375,9 +375,9 @@ local function buttonTextRefresh()
 		if eligibleAsSub then
 			showLockButton = true
 			if not offeredAsSub then
-				buttonText = Spring.I18N('ui.substitutePlayers.offer')
+				buttonText = I18N('ui.substitutePlayers.offer')
 			else
-				buttonText = Spring.I18N('ui.substitutePlayers.withdraw')
+				buttonText = I18N('ui.substitutePlayers.withdraw')
 			end
 		else
 			showLockButton = false
@@ -387,18 +387,18 @@ local function buttonTextRefresh()
 			showLockButton = true
 			if readied then
 				if locked then
-					buttonText = Spring.I18N('ui.initialSpawn.unlock')
+					buttonText = I18N('ui.initialSpawn.unlock')
 				else
-					buttonText = Spring.I18N('ui.initialSpawn.lock')
+					buttonText = I18N('ui.initialSpawn.lock')
 				end
 			else
-				buttonText = Spring.I18N('ui.initialSpawn.ready')
+				buttonText = I18N('ui.initialSpawn.ready')
 			end
 		else -- modded
 			checkStartPointChosen()
 			if not myAllyTeamJoined then -- all draftModes
 				showLockButton = true
-				local text = Spring.I18N('ui.draftOrderMod.waitingForPlayers')
+				local text = I18N('ui.draftOrderMod.waitingForPlayers')
 				if (voteConTimeout) then
 					vcttimer = mathFloor(voteConTimeout-os.clock())+1
 					if (vcttimer > 0) then
@@ -410,9 +410,9 @@ local function buttonTextRefresh()
 				if startPointChosen then
 					showLockButton = true
 					if locked then
-						buttonText = Spring.I18N('ui.initialSpawn.unlock')
+						buttonText = I18N('ui.initialSpawn.unlock')
 					else
-						buttonText = Spring.I18N('ui.initialSpawn.lock')
+						buttonText = I18N('ui.initialSpawn.lock')
 					end
 				else
 					showLockButton = false
@@ -420,7 +420,7 @@ local function buttonTextRefresh()
 				end
 			elseif myAllyTeamJoined then -- allyTeamJoined and draftMode is random/skill
 				showLockButton = true
-				buttonText = Spring.I18N('ui.draftOrderMod.waitingForTurn')
+				buttonText = I18N('ui.draftOrderMod.waitingForTurn')
 			else showLockButton = false end -- how did we get here?
 		end
 	end
@@ -477,16 +477,16 @@ local function DrawTeamPlacement()
 			local tname = findPlayerName(current_playerID)
 			local tTeamID = select(4, Spring.GetPlayerInfo(current_playerID, false))
 			local text = colourNames(tTeamID, false)..tname
-			font:Print(DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.waitingFor', { name = text}), vsx * 0.5, vsy * 0.23, 22.0 * uiScale, "co")
+			font:Print(DMDefaultColorString .. I18N('ui.draftOrderMod.waitingFor', { name = text}), vsx * 0.5, vsy * 0.23, 22.0 * uiScale, "co")
 		end
 	elseif not startPointChosen then
-		font:Print(DMWarnColor .. Spring.I18N('ui.draftOrderMod.placeYourCom'), vsx * 0.5, vsy * 0.23, 22.0 * uiScale, "co")
+		font:Print(DMWarnColor .. I18N('ui.draftOrderMod.placeYourCom'), vsx * 0.5, vsy * 0.23, 22.0 * uiScale, "co")
 	end
 	if (current_playerID > -1 and next_playerID > -1) then
 		local tname = findPlayerName(next_playerID)
 		local tTeamID = select(4, Spring.GetPlayerInfo(next_playerID, false))
 		local text = colourNames(tTeamID, false)..tname
-		font:Print(DMDefaultColorString .. Spring.I18N('ui.draftOrderMod.nextIsPlayer', { name = text}), vsx * 0.5, vsy * 0.205, 15.0 * uiScale, "co")
+		font:Print(DMDefaultColorString .. I18N('ui.draftOrderMod.nextIsPlayer', { name = text}), vsx * 0.5, vsy * 0.205, 15.0 * uiScale, "co")
 	end
 
 	-- Team Placement UI
@@ -523,7 +523,7 @@ local function DrawTeamPlacement()
 	font:SetOutlineColor(0, 0, 0, 0.5)
 	UiElement(x, y - max_height, x + max_width, y, 1, 1, 1, 1, 1, 1, 1, 1, nil)
 	gl_Color(1, 1, 1, 1)
-	font:Print(DMWarnColor .. Spring.I18N('ui.draftOrderMod.teamPlacement'), x + max_width/2, y - 32, player_name_font_size * uiScale, "co")
+	font:Print(DMWarnColor .. I18N('ui.draftOrderMod.teamPlacement'), x + max_width/2, y - 32, player_name_font_size * uiScale, "co")
 	local y_shift
 	for i, data in ipairs(myTeamPlayersOrder) do
 		y_shift = y - (i * 26 * uiScale) - 40
@@ -904,7 +904,7 @@ function widget:MousePress(sx, sy)
 								locked = true
 								Spring.SendLuaRulesMsg("locking_in_place")
 							else
-								spEcho(Spring.I18N('ui.initialSpawn.choosePoint'))
+								spEcho(I18N('ui.initialSpawn.choosePoint'))
 							end
 
 						end
@@ -913,9 +913,9 @@ function widget:MousePress(sx, sy)
 					elseif eligibleAsSub then
 						offeredAsSub = not offeredAsSub
 						if offeredAsSub then
-							spEcho(Spring.I18N('ui.substitutePlayers.substitutionMessage'))
+							spEcho(I18N('ui.substitutePlayers.substitutionMessage'))
 						else
-							spEcho(Spring.I18N('ui.substitutePlayers.offerWithdrawn'))
+							spEcho(I18N('ui.substitutePlayers.offerWithdrawn'))
 						end
 						Spring.SendLuaRulesMsg(offeredAsSub and '\144' or '\145')
 					end
@@ -1040,7 +1040,7 @@ function widget:DrawScreen()
 	-- display autoready timer
 	if Spring.GetGameRulesParam("all_players_joined") == 1 and not gameStarting and auto_ready and not auto_ready_disable then
 		local colorString = auto_ready_timer % 0.75 <= 0.375 and "\255\233\233\233" or "\255\255\255\255"
-		local text = colorString .. Spring.I18N('ui.initialSpawn.startCountdown', { time = mathMax(1, mathFloor(auto_ready_timer)) })
+		local text = colorString .. I18N('ui.initialSpawn.startCountdown', { time = mathMax(1, mathFloor(auto_ready_timer)) })
 		font:Begin()
 		font:Print(text, vsx * 0.5, vsy * 0.67, 18.5 * uiScale, "co")
 		font:End()
@@ -1060,8 +1060,8 @@ function widget:DrawScreen()
 			end
 			if draftMode == "fair" or myAllyTeamJoined then
 				if hasStartbox then
-					local infotext = Spring.I18N('ui.startSpot.anywhere')
-					local infotextBoxes = Spring.I18N('ui.startSpot.startbox')
+					local infotext = I18N('ui.startSpot.anywhere')
+					local infotextBoxes = I18N('ui.startSpot.startbox')
 					font:Begin()
 					font:Print(DMDefaultColorString .. infotextBoxes or infotext, vsx * 0.5, vsy * 0.20315, 15.0 * uiScale, "co")
 					font:End()
@@ -1095,7 +1095,7 @@ function widget:DrawScreen()
 
 	if not mySpec and draftMode ~= "disabled" then
 		if not myAllyTeamJoined then
-			local text = DMWarnColor .. Spring.I18N('ui.draftOrderMod.waitingForTeamToLoad')
+			local text = DMWarnColor .. I18N('ui.draftOrderMod.waitingForTeamToLoad')
 			if (voteConTimeout) then
 				vcttimer = mathFloor(voteConTimeout-os.clock())+1
 				if (vcttimer > 0) then
@@ -1128,7 +1128,7 @@ function widget:DrawScreen()
 	if gameStarting then
 		timer = timer + Spring.GetLastUpdateSeconds()
 		local colorString = timer % 0.75 <= 0.375 and "\255\233\233\233" or "\255\255\255\255"
-		local text = colorString .. Spring.I18N('ui.initialSpawn.startCountdown', { time = mathMax(1, 3 - mathFloor(timer)) })
+		local text = colorString .. I18N('ui.initialSpawn.startCountdown', { time = mathMax(1, 3 - mathFloor(timer)) })
 		font:Begin()
 		font:Print(text, vsx * 0.5, vsy * 0.67, 18.5 * uiScale, "co")
 		font:End()

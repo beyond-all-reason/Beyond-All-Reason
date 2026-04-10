@@ -240,7 +240,7 @@ end
 if next(glasstriggerfeaturedefsids) == nil then return end
 
 function widget:Initialize()
-	if Spring.Utilities.Gametype.IsSinglePlayer ~= true then
+	if Utilities.Gametype.IsSinglePlayer ~= true then
 		widgetHandler:RemoveWidget()
 		return 
 	end

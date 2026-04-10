@@ -379,7 +379,7 @@ local function popElementInstance(iT, instanceID, noUpload)
 									--Spring.SendCommands({"pause 1"})
 								end
 								Spring.Echo(s)
-								Spring.Debug.TraceFullEcho(nil,nil, nil, dbgt(iT.indextoUnitID), dbgt(iT.indextoInstanceID))
+								Debug.TraceFullEcho(nil,nil, nil, dbgt(iT.indextoUnitID), dbgt(iT.indextoInstanceID))
 								iT.zombies = {}
 								iT.numZombies = 0
 							end
@@ -432,7 +432,7 @@ local function popElementInstance(iT, instanceID, noUpload)
 							end
 						else
 							Spring.Echo("Tried to pop back an invalid unitID ", myunitID, "from", iT.myName, "while removing instance", instanceID,". Ensure that you remove invalid units from your instance tables")
-							Spring.Debug.TraceFullEcho()
+							Debug.TraceFullEcho()
 						end
 					end
 				elseif objecttype == "unitDefID" then

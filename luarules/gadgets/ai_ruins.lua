@@ -1,5 +1,5 @@
 
-if not (Spring.GetModOptions().ruins == "enabled" or (Spring.GetModOptions().ruins == "scav_only" and Spring.Utilities.Gametype.IsScavengers())) then
+if not (Spring.GetModOptions().ruins == "enabled" or (Spring.GetModOptions().ruins == "scav_only" and Utilities.Gametype.IsScavengers())) then
 	return
 end
 

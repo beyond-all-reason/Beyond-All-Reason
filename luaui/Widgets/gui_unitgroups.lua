@@ -533,14 +533,14 @@ function widget:Update(dt)
 		hovered = true
 		local tooltipAddition = ''
 		if numGroups >= 1 then
-			tooltipAddition = tooltipAddition .. Spring.I18N('ui.unitGroups.shiftclick')..'\n'..Spring.I18N('ui.unitGroups.ctrlclick')..'\n'..Spring.I18N('ui.unitGroups.rightclick')
+			tooltipAddition = tooltipAddition .. I18N('ui.unitGroups.shiftclick')..'\n'..I18N('ui.unitGroups.ctrlclick')..'\n'..I18N('ui.unitGroups.rightclick')
 		end
-		tooltipAddition = tooltipAddition .. (tooltipAddition~='' and '\n' or '') .. Spring.I18N('ui.unitGroups.tooltip')
+		tooltipAddition = tooltipAddition .. (tooltipAddition~='' and '\n' or '') .. I18N('ui.unitGroups.tooltip')
 		if WG['autogroup'] ~= nil then
-			tooltipAddition = tooltipAddition .. (tooltipAddition~='' and '\n\n' or '') .. "\255\200\255\200" .. Spring.I18N('ui.unitGroups.autogroupTooltip')
+			tooltipAddition = tooltipAddition .. (tooltipAddition~='' and '\n\n' or '') .. "\255\200\255\200" .. I18N('ui.unitGroups.autogroupTooltip')
 		end
 		if WG['tooltip'] then
-			WG['tooltip'].ShowTooltip('unitgroups', tooltipAddition, nil, nil, Spring.I18N('ui.unitGroups.name'))
+			WG['tooltip'].ShowTooltip('unitgroups', tooltipAddition, nil, nil, I18N('ui.unitGroups.name'))
 		end
 		Spring.SetMouseCursor('cursornormal')
 		if b then

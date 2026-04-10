@@ -577,7 +577,7 @@ end
 
 local function addBarForUnit(unitID, unitDefID, barname, reason)
 	--Spring.Debug.TraceFullEcho()
-	if debugmode then Spring.Debug.TraceEcho(unitBars[unitID]) end
+	if debugmode then Debug.TraceEcho(unitBars[unitID]) end
 	--spEcho("Caller1:", tostring()".name), "caller2:", tostring(debug.getinfo(3).name))
 	unitDefID = unitDefID or spGetUnitDefID(unitID)
 
@@ -598,7 +598,7 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 
 	if unitDefID == nil or Spring.ValidUnitID(unitID) == false or Spring.GetUnitIsDead(unitID) == true then -- dead or invalid
 		if debugmode then
-			Spring.Debug.TraceEcho("Tried to add a bar to dead/invalid/nounitdef unit", unitID, unitdefID, barname)
+			Debug.TraceEcho("Tried to add a bar to dead/invalid/nounitdef unit", unitID, unitdefID, barname)
 		end
 		return nil
 	end
@@ -606,7 +606,7 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 	if unitBars[unitID] == nil then
 		if debugmode then
 			spEcho("A unit has no bars yet", UnitDefs[unitDefID].name, spGetUnitPosition(unitID))
-			Spring.Debug.TraceFullEcho()
+			Debug.TraceFullEcho()
 			Spring.SendCommands({"pause 1"})
 			spEcho("No bars unit, last seen at", unitID)
 			Spring.MarkerAddPoint(spGetUnitPosition(unitID) )
@@ -661,7 +661,7 @@ end
 local function removeBarFromUnit(unitID, barname, reason) -- this will bite me in the ass later, im sure, yes it did, we need to just update them :P
 	local instanceKey = unitID .. "_" .. barname
 	if healthBarVBO.instanceIDtoIndex[instanceKey] then
-		if debugmode then Spring.Debug.TraceEcho(reason) end
+		if debugmode then Debug.TraceEcho(reason) end
 		unitBars[unitID] = unitBars[unitID] - 1
 		popElementInstance(healthBarVBO, instanceKey)
 	end
@@ -767,7 +767,7 @@ end
 
 
 local function addBarToFeature(featureID,  barname)
-	if debugmode then Spring.Debug.TraceEcho() end
+	if debugmode then Debug.TraceEcho() end
 	local featureDefID = Spring.GetFeatureDefID(featureID)
 
 	local bt = barTypeMap[barname]
@@ -1185,7 +1185,7 @@ function widget:GameFrame(n)
 			if stockpileBuild and stockpileBuild ~= stockpilebuild then
 				-- we somehow need to forward 3 vars, all 3 of the above. packed into a float, this is nasty
 				--spEcho("Stockpiling", numStockpiled, numStockpileQued, stockpileBuild)
-				if numStockpiled == nil then Spring.Debug.TraceFullEcho(nil,nil,nil, 'nostockpile', unitID, spGetUnitPosition(unitID)) end
+				if numStockpiled == nil then Debug.TraceFullEcho(nil,nil,nil, 'nostockpile', unitID, spGetUnitPosition(unitID)) end
 
 				uniformcache[1] =  numStockpiled + stockpileBuild -- less hacky
 				--uniformcache[1] =  128*numStockpileQued + numStockpiled + stockpileBuild -- the worlds nastiest hack

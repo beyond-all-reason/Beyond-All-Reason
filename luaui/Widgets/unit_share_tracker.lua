@@ -26,7 +26,7 @@ local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spEcho = Spring.Echo
 local spPlaySoundFile = Spring.PlaySoundFile
-local spI18N = Spring.I18N
+local spI18N = I18N
 local spWorldToScreenCoords = Spring.WorldToScreenCoords
 
 -- Localized GL functions

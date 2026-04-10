@@ -46,7 +46,7 @@ if gadgetHandler:IsSyncedCode() then
 	local teamsList = Spring.GetTeamList()
 
 	local ignoredTeams = {}
-	local scavTeamID, raptorTeamID = Spring.Utilities.GetScavTeamID(), Spring.Utilities.GetRaptorTeamID()
+	local scavTeamID, raptorTeamID = Utilities.GetScavTeamID(), Utilities.GetRaptorTeamID()
 	if scavTeamID then
 		ignoredTeams[scavTeamID] = true
 	end
@@ -75,7 +75,7 @@ if gadgetHandler:IsSyncedCode() then
 		if Spring.IsCheatingEnabled() then
 			return true
 		else
-			local accountID = Spring.Utilities.GetAccountID(playerID)
+			local accountID = Utilities.GetAccountID(playerID)
 			if _G.permissions.cmd[accountID] and not _G.isSinglePlayer then
 				return true
 			end
