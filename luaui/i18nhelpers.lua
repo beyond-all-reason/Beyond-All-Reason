@@ -12,7 +12,7 @@ local function refreshUnitDefs()
 			local proxyUnitDef = UnitDefNames[proxyUnitDefName]
 			proxyUnitDefName = proxyUnitDef and proxyUnitDef.customParams.i18nfromunit or proxyUnitDefName
 
-			local fromUnitHumanName = I18N("units.names." .. proxyUnitDefName)
+			local fromUnitHumanName = I18N.unitName(proxyUnitDefName)
 			humanName = I18N("units.scavenger", { name = fromUnitHumanName })
 
 			if i18nDescriptionEntries[unitDefName] then
@@ -22,7 +22,7 @@ local function refreshUnitDefs()
 			end
 		else
 			local proxyUnitDefName = unitDef.customParams.i18nfromunit or unitDefName
-			humanName = I18N("units.names." .. proxyUnitDefName)
+			humanName = I18N.unitName(proxyUnitDefName)
 			tooltip = I18N("units.descriptions." .. proxyUnitDefName)
 		end
 
