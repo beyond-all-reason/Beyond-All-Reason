@@ -116,17 +116,17 @@ function widget:Initialize()
 		return false
 	end
 	self:ViewResize(vsx, vsy)
-	WG['screencopymanager'] = {}
-	WG['screencopymanager'].GetScreenCopy = GetScreenCopy
-	WG['screencopymanager'].GetDepthCopy = GetDepthCopy
-	widgetHandler:RegisterGlobal('GetScreenCopy', WG['screencopymanager'].GetScreenCopy)
-	widgetHandler:RegisterGlobal('GetDepthCopy', WG['screencopymanager'].GetDepthCopy)
+	WG.screencopymanager = {}
+	WG.screencopymanager.GetScreenCopy = GetScreenCopy
+	WG.screencopymanager.GetDepthCopy = GetDepthCopy
+	widgetHandler:RegisterGlobal('GetScreenCopy', WG.screencopymanager.GetScreenCopy)
+	widgetHandler:RegisterGlobal('GetDepthCopy', WG.screencopymanager.GetDepthCopy)
 end
 
 function widget:Shutdown()
 	gl.DeleteTexture(ScreenCopy or 0)
 	gl.DeleteTexture(DepthCopy or 0)
-	WG['screencopymanager'] = nil
+	WG.screencopymanager = nil
 	widgetHandler:DeregisterGlobal('GetScreenCopy')
 	widgetHandler:DeregisterGlobal('GetDepthCopy')
 end

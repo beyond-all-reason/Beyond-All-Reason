@@ -93,7 +93,7 @@ function widget:UnitDestroyed(unitID)
 end
 
 function widget:ViewResize()
-	font = WG['fonts'].getFont(nil, 1.2, 0.2, 20)
+	font = WG.fonts.getFont(nil, 1.2, 0.2, 20)
 end
 
 function widget:Initialize()

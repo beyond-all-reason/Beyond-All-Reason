@@ -1,6 +1,6 @@
 
 local definitions = {
-    ["flak"] = {
+    flak = {
         shardcloud = {
             air                = true,
             class              = [[CExpGenSpawner]],
@@ -122,7 +122,7 @@ local definitions = {
             },
         },
     },
-    ["flakshard"] = {
+    flakshard = {
         explosion = {
             air                = true,
             class              = [[CSimpleParticleSystem]],

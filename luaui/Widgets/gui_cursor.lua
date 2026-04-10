@@ -18,10 +18,10 @@ end
 local mathAbs = math.abs
 
 local Settings = {}
-Settings['cursorSet'] = 'icexuick'
-Settings['cursorSize'] = 100
-Settings['sizeMult'] = Spring.GetConfigFloat('cursorsize', 1)
-Settings['version'] = 6		-- just so it wont restore configdata on load if it differs format
+Settings.cursorSet = 'icexuick'
+Settings.cursorSize = 100
+Settings.sizeMult = Spring.GetConfigFloat('cursorsize', 1)
+Settings.version = 6		-- just so it wont restore configdata on load if it differs format
 
 local force = true
 local autoCursorSize
@@ -52,39 +52,39 @@ end
 function widget:ViewResize()
 	local ssx,ssy = Spring.GetScreenGeometry()	-- doesnt change when you unplug external display
 	autoCursorSize = 100 * (0.6 + (ssx*ssy / 10000000)) * Spring.GetConfigFloat('cursorsize', 1)
-	SetCursor(Settings['cursorSet'])
+	SetCursor(Settings.cursorSet)
 end
 
 function widget:Initialize()
 	force = true
 	widget:ViewResize()
 
-	WG['cursors'] = {}
-	WG['cursors'].getcursor = function()
-		return Settings['cursorSet']
+	WG.cursors = {}
+	WG.cursors.getcursor = function()
+		return Settings.cursorSet
 	end
-	WG['cursors'].getcursorsets = function()
+	WG.cursors.getcursorsets = function()
 		local sets = {}
 		for i, y in pairs(cursorSets) do
 			sets[#sets+1] = i
 		end
 		return sets
 	end
-	WG['cursors'].setcursor = function(value)
+	WG.cursors.setcursor = function(value)
 		force = true
 		SetCursor(value)
 	end
-	WG['cursors'].getsizemult = function()
+	WG.cursors.getsizemult = function()
 		return Spring.GetConfigFloat('cursorsize', 1)
 	end
-	WG['cursors'].setsizemult = function(value)
+	WG.cursors.setsizemult = function(value)
         Spring.SetConfigFloat('cursorsize', value)
 		widget:ViewResize()
 	end
 end
 
 function widget:Shutdown()
-	WG['cursors'] = nil
+	WG.cursors = nil
 	local file = VFS.LoadFile("cmdcolors.txt")
 	if file then
 		Spring.LoadCmdColorsConfig(file)
@@ -95,10 +95,10 @@ end
 -- load cursors
 function SetCursor(cursorSet)
 	--Spring.Echo(autoCursorSize..'   '..cursorSets[cursorSet][NearestValue(cursorSets[cursorSet], autoCursorSize)])
-	local oldSetName = Settings['cursorSet']..'_'..Settings['cursorSize']
-	Settings['cursorSet'] = cursorSet
-	Settings['cursorSize'] = cursorSets[cursorSet][NearestValue(cursorSets[cursorSet], autoCursorSize)]
-	local cursorDir = cursorSet..'_'..Settings['cursorSize']
+	local oldSetName = Settings.cursorSet..'_'..Settings.cursorSize
+	Settings.cursorSet = cursorSet
+	Settings.cursorSize = cursorSets[cursorSet][NearestValue(cursorSets[cursorSet], autoCursorSize)]
+	local cursorDir = cursorSet..'_'..Settings.cursorSize
 	if cursorDir ~= oldSetName or force then
 		force = false
 		local cursorNames = {
@@ -137,7 +137,7 @@ function SetCursor(cursorSet)
 		end
 
 		-- Hide metal extractor circles on non-metal maps
-		if WG["resource_spot_finder"] and (not WG["resource_spot_finder"].isMetalMap) then
+		if WG.resource_spot_finder and (not WG.resource_spot_finder.isMetalMap) then
 			Spring.LoadCmdColorsConfig('rangeExtract         1.0  0.3  0.3  0.0')
 		end
 	end
@@ -153,6 +153,6 @@ function widget:SetConfigData(data)
 			Spring.SetConfigFloat('cursorsize', data.sizeMult)
 		end
 		Settings = data
-		Settings['sizeMult'] = Spring.GetConfigFloat('cursorsize', 1)
+		Settings.sizeMult = Spring.GetConfigFloat('cursorsize', 1)
 	end
 end

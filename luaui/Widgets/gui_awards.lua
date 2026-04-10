@@ -183,8 +183,8 @@ local function createBackground()
 	if Background then
 		Background = gl.DeleteList(Background)
 	end
-	if WG['guishader'] then
-		WG['guishader'].InsertRect(widgetX, widgetY, widgetX + widgetWidthScaled, widgetY + widgetHeightScaled, 'awards')
+	if WG.guishader then
+		WG.guishader.InsertRect(widgetX, widgetY, widgetX + widgetWidthScaled, widgetY + widgetHeightScaled, 'awards')
 	end
 
 	Background = gl.CreateList(function()
@@ -207,9 +207,9 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 
 	viewScreenX, viewScreenY = spGetViewGeometry()
 
-	font = WG['fonts'].getFont()
-	font2 = WG['fonts'].getFont(2)
-	titleFont = WG['fonts'].getFont(2, 4, 0.2, 1)
+	font = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2)
+	titleFont = WG.fonts.getFont(2, 4, 0.2, 1)
 
 	-- fix geometry
 	widgetScale = (0.75 + (viewScreenX * viewScreenY / 7500000))
@@ -310,8 +310,8 @@ function widget:MousePress(x, y, button)
 					and (y < widgetY + mathFloor((50 + 17 + 5)*widgetScale))) then
 			Spring.SendCommands('endgraph 2')
 
-			if WG['guishader'] then
-				WG['guishader'].RemoveRect('awards')
+			if WG.guishader then
+				WG.guishader.RemoveRect('awards')
 			end
 			drawAwards = false
 		end
@@ -321,8 +321,8 @@ function widget:MousePress(x, y, button)
 				and (x < widgetX + widgetWidthScaled - closeRightX + mathFloor(20*widgetScale) * font:GetTextWidth('X') + mathFloor(5*widgetScale))
 				and (y > widgetY + widgetHeightScaled - mathFloor((10 + 17 + 5)*widgetScale)
 				and (y < widgetY + widgetHeightScaled - mathFloor((10 - 5)*widgetScale))) then
-			if WG['guishader'] then
-				WG['guishader'].RemoveRect('awards')
+			if WG.guishader then
+				WG.guishader.RemoveRect('awards')
 			end
 			drawAwards = false
 		end
@@ -431,7 +431,7 @@ function widget:Shutdown()
 	if Background then
 		gl.DeleteList(Background)
 	end
-	if WG['guishader'] then
-		WG['guishader'].RemoveRect('awards')
+	if WG.guishader then
+		WG.guishader.RemoveRect('awards')
 	end
 end

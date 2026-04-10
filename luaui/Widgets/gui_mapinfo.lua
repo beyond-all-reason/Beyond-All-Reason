@@ -59,7 +59,7 @@ local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua co
 function widget:ViewResize()
 	vsx,vsy = spGetViewGeometry()
 
-	font = WG['fonts'].getFont()
+	font = WG.fonts.getFont()
 
 	for opacity, list in pairs(mapinfoList) do
 		glDeleteList(list)

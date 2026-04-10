@@ -1,7 +1,7 @@
 -- XP Effects
 
 return {
- ["levelup_fp_arm1"] = {
+ levelup_fp_arm1 = {
     levelup_rings = {
             air                = true,
             class              = [[CExpGenSpawner]],
@@ -112,7 +112,7 @@ return {
     },
   },
 
- ["levelup_fp_arm2"] = {
+ levelup_fp_arm2 = {
     levelup_rings = {
             air                = true,
             class              = [[CExpGenSpawner]],
@@ -223,7 +223,7 @@ return {
     },
   },
 
-  ["levelup_fp_arm3"] = {
+  levelup_fp_arm3 = {
     levelup_rings = {
             air                = true,
             class              = [[CExpGenSpawner]],
@@ -334,7 +334,7 @@ return {
     },
   },
 
-  ["levelup_fp_arm4"] = {
+  levelup_fp_arm4 = {
     levelup_rings = {
             air                = true,
             class              = [[CExpGenSpawner]],
@@ -445,7 +445,7 @@ return {
     },
   },
 
-  ["levelup_fp_arm5"] = {
+  levelup_fp_arm5 = {
     levelup_rings = {
             air                = true,
             class              = [[CExpGenSpawner]],
@@ -574,7 +574,7 @@ return {
     },
   },
 
-  ["levelup_ring_fp_arm1"] = {
+  levelup_ring_fp_arm1 = {
     levelupring = {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
@@ -599,7 +599,7 @@ return {
   },
 
 
-  ["levelup_ring_fp_arm2"] = {
+  levelup_ring_fp_arm2 = {
     levelupring = {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
@@ -623,7 +623,7 @@ return {
     },
   },
 
-  ["levelup_ring_fp_arm3"] = {
+  levelup_ring_fp_arm3 = {
     levelupring = {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
@@ -647,7 +647,7 @@ return {
     },
   },
 
-  ["levelup_ring_fp_arm4"] = {
+  levelup_ring_fp_arm4 = {
     levelupring = {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
@@ -671,7 +671,7 @@ return {
     },
   },
 
-  ["levelup_ring_fp_arm5"] = {
+  levelup_ring_fp_arm5 = {
     levelupring = {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],

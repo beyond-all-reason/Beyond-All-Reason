@@ -188,8 +188,8 @@ local function refreshUnitInfo()
 		end
 
 		if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan'
-			or (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship'])  then
-			if not (unitDef.modCategories['hover'] or (unitDef.modCategories['mobile'] and unitDef.modCategories['canbeuw'])) then
+			or (unitDef.minWaterDepth > 0 or unitDef.modCategories.ship)  then
+			if not (unitDef.modCategories.hover or (unitDef.modCategories.mobile and unitDef.modCategories.canbeuw)) then
 				isWaterUnit[unitDefID] = true
 			end
 		end
@@ -352,7 +352,7 @@ local function refreshUnitInfo()
 		local function refreshUnitWeaponInfo(i, weaponDef, isPrimaryWeapon)
 			unitDefInfo[unitDefID].weapons[i] = weaponDef
 
-			if isPrimaryWeapon and weapons[i].onlyTargets['vtol'] then
+			if isPrimaryWeapon and weapons[i].onlyTargets.vtol then
 				unitDefInfo[unitDefID].isAaUnit = true -- displays airLOS range
 			end
 
@@ -401,7 +401,7 @@ local function refreshUnitInfo()
 							addDPS(calculateLaserDPS(weaponDef, weaponDef.damages[0]))
 						elseif weaponDef.customParams.cluster then -- Bullets that shoot other, smaller bullets
 							addDPS(calculateClusterDPS(weaponDef, weaponDef.damages[0]))
-						elseif weapons[i].onlyTargets['vtol'] ~= nil then
+						elseif weapons[i].onlyTargets.vtol ~= nil then
 							addDPS(calculateWeaponDPS(weaponDef, weaponDef.damages[armorIndex.vtol])) --Damage to air category
 						else
 							addDPS(calculateWeaponDPS(weaponDef, weaponDef.damages[0])) --Damage to default armor category
@@ -459,7 +459,7 @@ local function refreshUnitInfo()
 
 					local defDmg
 
-					if weapons[1].onlyTargets['vtol'] ~= nil then	--if main weapon isn't dedicated aa, then all weapons calculate using default armor category
+					if weapons[1].onlyTargets.vtol ~= nil then	--if main weapon isn't dedicated aa, then all weapons calculate using default armor category
 						defDmg = weaponDef.damages[armorIndex.vtol]
 					else
 						defDmg = weaponDef.damages[0]
@@ -504,7 +504,7 @@ local function refreshUnitInfo()
 
 					local defDmg
 
-					if weapons[1].onlyTargets['vtol'] ~= nil then	--if main weapon isn't dedicated aa, then all weapons calculate using default armor category
+					if weapons[1].onlyTargets.vtol ~= nil then	--if main weapon isn't dedicated aa, then all weapons calculate using default armor category
 						defDmg = weaponDef.damages[armorIndex.vtol]
 					else
 						defDmg = weaponDef.damages[0]
@@ -538,7 +538,7 @@ local function refreshUnitInfo()
 		if unitDef.customParams.unitgroup and unitDef.customParams.unitgroup == 'explo' and unitDef.deathExplosion and WeaponDefNames[unitDef.deathExplosion] then
 			local weapon = WeaponDefs[WeaponDefNames[unitDef.deathExplosion].id]
 			if weapon then
-				local dmg = weapon.damages[Game.armorTypes["default"]]
+				local dmg = weapon.damages[Game.armorTypes.default]
 				unitDefInfo[unitDefID].mindps = dmg
 				unitDefInfo[unitDefID].maxdps = dmg
 				unitDefInfo[unitDefID].reloadTime = nil
@@ -674,8 +674,8 @@ function widget:ViewResize()
 
 	checkGuishader(true)
 
-	font, loadedFontSize = WG['fonts'].getFont()
-	font2 = WG['fonts'].getFont(2)
+	font, loadedFontSize = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2)
 end
 
 function GetColor(colormap, slider)
@@ -718,58 +718,58 @@ function widget:Initialize()
 
 	widget:ViewResize()
 
-	WG['info'] = {}
-	WG['info'].getShowBuilderBuildlist = function()
+	WG.info = {}
+	WG.info.getShowBuilderBuildlist = function()
 		return showBuilderBuildlist
 	end
-	WG['info'].setShowBuilderBuildlist = function(value)
+	WG.info.setShowBuilderBuildlist = function(value)
 		showBuilderBuildlist = value
 	end
-	WG['info'].getDisplayMapPosition = function()
+	WG.info.getDisplayMapPosition = function()
 		return displayMapPosition
 	end
-	WG['info'].setDisplayMapPosition = function(value)
+	WG.info.setDisplayMapPosition = function(value)
 		displayMapPosition = value
 	end
-	WG['info'].getAlwaysShow = function()
+	WG.info.getAlwaysShow = function()
 		return alwaysShow
 	end
-	WG['info'].setAlwaysShow = function(value)
+	WG.info.setAlwaysShow = function(value)
 		alwaysShow = value
 	end
-	WG['info'].displayUnitID = function(unitID)
+	WG.info.displayUnitID = function(unitID)
 		cfgDisplayUnitID = unitID
 	end
-	WG['info'].clearDisplayUnitID = function()
+	WG.info.clearDisplayUnitID = function()
 		cfgDisplayUnitID = nil
 	end
-	WG['info'].displayUnitDefID = function(unitDefID)
+	WG.info.displayUnitDefID = function(unitDefID)
 		cfgDisplayUnitDefID = unitDefID
 	end
-	WG['info'].clearDisplayUnitDefID = function()
+	WG.info.clearDisplayUnitDefID = function()
 		cfgDisplayUnitDefID = nil
 	end
-	WG['info'].getPosition = function()
+	WG.info.getPosition = function()
 		return width, height
 	end
-	WG['info'].getIsShowing = function()
+	WG.info.getIsShowing = function()
 		return infoShows
 	end
-	WG['info'].setCustomHover = function(hType, hData)
+	WG.info.setCustomHover = function(hType, hData)
 		-- Allow external widgets to supply custom hover info (e.g., PIP window)
 		customHoverType = hType
 		customHoverData = hData
 	end
-	WG['info'].clearCustomHover = function()
+	WG.info.clearCustomHover = function()
 		customHoverType = nil
 		customHoverData = nil
 	end
-	if WG['buildmenu'] then
-		if WG['buildmenu'].getGroups then
-			groups, unitGroup = WG['buildmenu'].getGroups()
+	if WG.buildmenu then
+		if WG.buildmenu.getGroups then
+			groups, unitGroup = WG.buildmenu.getGroups()
 		end
-		if WG['buildmenu'].getOrder then
-			unitOrder = WG['buildmenu'].getOrder()
+		if WG.buildmenu.getOrder then
+			unitOrder = WG.buildmenu.getOrder()
 
 			-- order buildoptions
 			for uDefID, def in pairs(unitDefInfo) do
@@ -795,8 +795,8 @@ function widget:Initialize()
 	Spring.SetDrawSelectionInfo(false)    -- disables springs default display of selected units count
 	Spring.SendCommands("tooltip 0")
 
-	if WG['rankicons'] then
-		rankTextures = WG['rankicons'].getRankTextures()
+	if WG.rankicons then
+		rankTextures = WG.rankicons.getRankTextures()
 	end
 
 	bfcolormap = {}
@@ -815,7 +815,7 @@ function widget:Shutdown()
 	if infoTex then
 		gl.DeleteTexture(infoTex)
 	end
-	if WG['guishader'] and dlistGuishader then
+	if WG.guishader and dlistGuishader then
 		WG.FlowUI.guishaderDeleteDlist('info')
 		dlistGuishader = nil
 	end
@@ -833,7 +833,7 @@ function widget:Update(dt)
 	if not alwaysShow and ((cameraPanMode and not doUpdate) or mouseOffScreen) and not isPregame then
 		if SelectedUnitsCount == 0 then
 			if dlistGuishader then
-				WG['guishader'].DeleteDlist('info')
+				WG.guishader.DeleteDlist('info')
 				dlistGuishader = nil
 			end
 		end
@@ -852,8 +852,8 @@ function widget:Update(dt)
 	if sec2 > 0.5 then
 		sec2 = 0
 
-		if not rankTextures and WG['rankicons'] then
-			rankTextures = WG['rankicons'].getRankTextures()
+		if not rankTextures and WG.rankicons then
+			rankTextures = WG.rankicons.getRankTextures()
 		end
 
 		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
@@ -1285,9 +1285,9 @@ local function drawUnitInfo()
 
 	if displayUnitID then
 		exp = spGetUnitExperience(displayUnitID)
-		if exp and exp > 0.009 and WG['rankicons'] and rankTextures then
+		if exp and exp > 0.009 and WG.rankicons and rankTextures then
 			if displayUnitID then
-				local rank = WG['rankicons'].getRank(displayUnitDefID, exp)
+				local rank = WG.rankicons.getRank(displayUnitDefID, exp)
 				if rankTextures[rank] then
 					local rankIconSize = math_floor((height * vsy * 0.24) + 0.5)
 					local rankIconMarginX = math_floor((height * vsy * 0.015) + 0.5)
@@ -1318,7 +1318,7 @@ local function drawUnitInfo()
 
 	local unitNameColor = tooltipTitleColor
 	if SelectedUnitsCount > 0 then
-		if displayMode ~= 'unitdef' or (WG['buildmenu'] and (activeCmdID and activeCmdID < 0 and (not WG['buildmenu'].hoverID or (-activeCmdID == WG['buildmenu'].hoverID)))) then
+		if displayMode ~= 'unitdef' or (WG.buildmenu and (activeCmdID and activeCmdID < 0 and (not WG.buildmenu.hoverID or (-activeCmdID == WG.buildmenu.hoverID)))) then
 			unitNameColor = '\255\125\255\125'
 		end
 	end
@@ -1360,7 +1360,7 @@ local function drawUnitInfo()
 	-- custom unit info area
 	customInfoArea = { math_floor(backgroundRect[3] - width - bgpadding), math_floor(backgroundRect[2]), math_floor(backgroundRect[3] - bgpadding), math_floor(backgroundRect[2] + height) }
 
-	if displayMode ~= 'unitdef' or not showBuilderBuildlist or not unitDefInfo[displayUnitDefID].buildOptions or (not (WG['buildmenu'] and WG['buildmenu'].hoverID)) then
+	if displayMode ~= 'unitdef' or not showBuilderBuildlist or not unitDefInfo[displayUnitDefID].buildOptions or (not (WG.buildmenu and WG.buildmenu.hoverID)) then
 		RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], elementCorner*0.66, 1, 0, 0, 0, { 0.8, 0.8, 0.8, 0.07 }, { 0.8, 0.8, 0.8, 0.1 })
 	end
 
@@ -2137,7 +2137,7 @@ function widget:DrawScreen()
 
 	if (not alwaysShow and (cameraPanMode or mouseOffScreen) and SelectedUnitsCount == 0 and not isPregame) then
 		if dlistGuishader then
-			WG['guishader'].DeleteDlist('info')
+			WG.guishader.DeleteDlist('info')
 			dlistGuishader = nil
 		end
 		return
@@ -2187,7 +2187,7 @@ function widget:DrawScreen()
 			gl.R2tHelper.BlendTexRect(infoTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], true)
 		end
 	elseif dlistGuishader then
-		WG['guishader'].DeleteDlist('info')
+		WG.guishader.DeleteDlist('info')
 		dlistGuishader = nil
 	end
 
@@ -2239,7 +2239,7 @@ function widget:DrawScreen()
 				end
 			end
 
-			if WG['tooltip'] then
+			if WG.tooltip then
 				local statsIndent = '  '
 				local stats = ''
 				--local cells = cellHovered and { [cellHovered] = selectionCells[cellHovered] } or selectionCells
@@ -2258,7 +2258,7 @@ function widget:DrawScreen()
 					text = selectionHowto
 				end
 
-				WG['tooltip'].ShowTooltip('info', text, nil, nil, textTitle)
+				WG.tooltip.ShowTooltip('info', text, nil, nil, textTitle)
 			end
 		end
 
@@ -2302,8 +2302,8 @@ function widget:DrawScreen()
 				end
 			end
 		elseif displayMode == 'unit' then
-			if WG['unitstats'] and WG['unitstats'].showUnit then
-				WG['unitstats'].showUnit(displayUnitID)
+			if WG.unitstats and WG.unitstats.showUnit then
+				WG.unitstats.showUnit(displayUnitID)
 			end
 		end
 	end
@@ -2318,7 +2318,7 @@ function checkChanges()
 	if customHoverType and customHoverData then
 		hoverType = customHoverType
 		hoverData = customHoverData
-	elseif WG['guiPip'] and WG['guiPip'].IsAbove and WG['guiPip'].IsAbove(x, y) then
+	elseif WG.guiPip and WG.guiPip.IsAbove and WG.guiPip.IsAbove(x, y) then
 		-- PIP window is above the cursor, don't detect anything below it
 		hoverType = nil
 		hoverData = nil
@@ -2343,9 +2343,9 @@ function checkChanges()
 	end
 
 	-- buildmenu unitdef
-	if WG['buildmenu'] and WG['buildmenu'].hoverID then
+	if WG.buildmenu and WG.buildmenu.hoverID then
 		displayMode = 'unitdef'
-		displayUnitDefID = WG['buildmenu'].hoverID
+		displayUnitDefID = WG.buildmenu.hoverID
 	elseif cfgDisplayUnitDefID then
 		displayMode = 'unitdef'
 		displayUnitDefID = cfgDisplayUnitDefID

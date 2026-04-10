@@ -319,7 +319,7 @@ function widget:DrawScreenEffects()
 	if spIsGUIHidden() then
 		return
 	end
-	if shaderProgram and showPauseScreen and WG['screencopymanager'] and WG['screencopymanager'].GetScreenCopy then
+	if shaderProgram and showPauseScreen and WG.screencopymanager and WG.screencopymanager.GetScreenCopy then
 		glCopyToTexture(screencopy, 0, 0, vpx, vpy, vsx, vsy)
 		--screencopy = WG['screencopymanager'].GetScreenCopy()	-- cant get this method to work
 		glTexture(0, screencopy)

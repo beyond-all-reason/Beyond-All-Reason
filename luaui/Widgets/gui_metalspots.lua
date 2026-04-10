@@ -429,11 +429,11 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	if not WG['resource_spot_finder'].metalSpotsList then
+	if not WG.resource_spot_finder.metalSpotsList then
 		spEcho("<metalspots> This widget requires the 'Metalspot Finder' widget to run.")
 		widgetHandler:RemoveWidget()
 	end
-	if WG['resource_spot_finder'].isMetalMap then
+	if WG.resource_spot_finder.isMetalMap then
 		-- no need for this widget on metal maps
 		widgetHandler:RemoveWidget()
 	end
@@ -460,7 +460,7 @@ function widget:Initialize()
 
 	if not initGL4() then return end
 
-	local mSpots = WG['resource_spot_finder'].metalSpotsList
+	local mSpots = WG.resource_spot_finder.metalSpotsList
 	if not mSpots then return end
 	InitializeAtlas(mSpots)
 	InitializeSpots(mSpots)

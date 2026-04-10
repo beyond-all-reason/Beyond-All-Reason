@@ -1,7 +1,7 @@
 -- Atmospheric Map Effects
 
 return {
-  ["fogdirty"] = {
+  fogdirty = {
     usedefaultexplosions = false,
     grounddust = {
       air                = true,
@@ -141,7 +141,7 @@ return {
     },
   },
 
-  ["mistycloud"] = {
+  mistycloud = {
     usedefaultexplosions = false,
     cloud = {
       air                = true,
@@ -176,7 +176,7 @@ return {
     },
   },
 
-  ["mistycloudpurple"] = {
+  mistycloudpurple = {
     usedefaultexplosions = false,
     cloud = {
       air                = true,
@@ -211,7 +211,7 @@ return {
     },
   },
 
-  ["mistycloudpurplemist"] = {
+  mistycloudpurplemist = {
     usedefaultexplosions = false,
     cloud = {
               air                = true,
@@ -238,7 +238,7 @@ return {
     },
   },
 
-  ["mistycloudpurplemistxl"] = {
+  mistycloudpurplemistxl = {
     usedefaultexplosions = false,
     cloud = {
               air                = true,
@@ -265,7 +265,7 @@ return {
     },
   },
 
-  ["mistycloudbrownmistxl"] = {
+  mistycloudbrownmistxl = {
     usedefaultexplosions = false,
     cloud = {
               air                = true,
@@ -292,7 +292,7 @@ return {
     },
   },
 
-  ["thickcloud"] = {
+  thickcloud = {
     usedefaultexplosions = false,
     cloud = {
       air                = true,
@@ -327,7 +327,7 @@ return {
     },
   },
 
-  ["lightningstorm"] = {
+  lightningstorm = {
     usedefaultexplosions = false,
     raindrops = {
       air                = true,
@@ -344,7 +344,7 @@ return {
     },
   },
 
-  ["lightningstormgreen"] = {
+  lightningstormgreen = {
     usedefaultexplosions = false,
     raindrops = {
       air                = true,
@@ -361,7 +361,7 @@ return {
     },
   },
 
-  ["lightninginair"] = {
+  lightninginair = {
     lightningbolt = {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
@@ -386,7 +386,7 @@ return {
       },
     },
   },
-  ["lightninginairgreen"] = {
+  lightninginairgreen = {
     lightningbolt = {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
@@ -410,7 +410,7 @@ return {
       },
     },
   },
-  ["lightningstrike"] = {
+  lightningstrike = {
     lightningbolt = {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
@@ -560,7 +560,7 @@ return {
     },
   },
 
-  ["lightningstrikegreen"] = {
+  lightningstrikegreen = {
     lightningbolt = {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
@@ -710,7 +710,7 @@ return {
     },
   },
 
-  ["sandstorm"] = {
+  sandstorm = {
     usedefaultexplosions = false,
     raindrops = {
       air                = true,
@@ -727,7 +727,7 @@ return {
     },
   },
 
-  ["sandblast"] = {
+  sandblast = {
     usedefaultexplosions = false,
     grounddust = {
       air                = true,
@@ -761,7 +761,7 @@ return {
     },
   },
 
-  ["sandcloud"] = {
+  sandcloud = {
     usedefaultexplosions = false,
     raindrops = {
       air                = true,
@@ -778,7 +778,7 @@ return {
     },
   },
 
-  ["sandcloud_sparse"] = {
+  sandcloud_sparse = {
     usedefaultexplosions = false,
     raindrops = {
       air                = true,
@@ -795,7 +795,7 @@ return {
     },
   },
 
-  ["sandclouddense"] = {
+  sandclouddense = {
     usedefaultexplosions = false,
     raindrops = {
       air                = true,
@@ -812,7 +812,7 @@ return {
     },
   },
 
-  ["sandclouddensexl"] = {
+  sandclouddensexl = {
     usedefaultexplosions = false,
     raindrops = {
       air                = true,
@@ -829,7 +829,7 @@ return {
     },
   },
 
-["sanddustgray"] = {
+sanddustgray = {
     usedefaultexplosions = false,
     grounddust = {
       air                = true,
@@ -865,7 +865,7 @@ return {
     },
   },
 
-["sanddust"] = {
+sanddust = {
     usedefaultexplosions = false,
     grounddust = {
       air                = true,
@@ -901,7 +901,7 @@ return {
     },
   },
 
-  ["sanddustdense"] = {
+  sanddustdense = {
     usedefaultexplosions = false,
     grounddust = {
       air                = true,
@@ -937,7 +937,7 @@ return {
     },
   },
 
-  ["dunecloud"] = {
+  dunecloud = {
     usedefaultexplosions = false,
     raindrops = {
       air                = true,
@@ -954,7 +954,7 @@ return {
     },
   },
 
-["dunedust"] = {
+dunedust = {
     usedefaultexplosions = false,
     grounddust = {
       air                = true,
@@ -990,7 +990,7 @@ return {
     },
   },
 
-  ["ventairburst"] = {
+  ventairburst = {
     usedefaultexplosions = false,
     raindrops = {
       air                = true,
@@ -1039,7 +1039,7 @@ return {
     },
   },
 
-  ["fireflies"] = {
+  fireflies = {
     usedefaultexplosions = false,
     raindrops = {
       air                = true,
@@ -1056,7 +1056,7 @@ return {
     },
   },
 
-  ["firefliesgreen"] = {
+  firefliesgreen = {
     usedefaultexplosions = false,
     raindrops = {
       air                = true,
@@ -1073,7 +1073,7 @@ return {
     },
   },
 
-  ["firefliespurple"] = {
+  firefliespurple = {
     usedefaultexplosions = false,
     raindrops = {
       air                = true,
@@ -1090,7 +1090,7 @@ return {
     },
   },
 
-  ["firefly"] = {
+  firefly = {
     lightningballs = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
@@ -1123,7 +1123,7 @@ return {
     },
   },
 
-  ["fireflygreen"] = {
+  fireflygreen = {
     lightningballs = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
@@ -1156,7 +1156,7 @@ return {
     },
   },
 
-  ["fireflypurple"] = {
+  fireflypurple = {
     lightningballs = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
@@ -1189,7 +1189,7 @@ return {
     },
   },
 
-  ["dustparticles"] = {
+  dustparticles = {
     usedefaultexplosions = false,
     raindrops = {
       air                = true,
@@ -1206,7 +1206,7 @@ return {
     },
   },
 
-  ["dustparticle"] = {
+  dustparticle = {
     lightningballs = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
@@ -1239,7 +1239,7 @@ return {
     },
   },
 
-["powerupwhite"] = {
+powerupwhite = {
     usedefaultexplosions = false,
     raindrops = {
       air                = true,
@@ -1256,7 +1256,7 @@ return {
     },
   },
 
-["powerupspritewhite"] = {
+powerupspritewhite = {
     lightningballs = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
@@ -1288,7 +1288,7 @@ return {
       },
     },
   },
-  ["rain"] = {
+  rain = {
     usedefaultexplosions = false,
     raindrops = {
       air                = true,
@@ -1305,7 +1305,7 @@ return {
     },
   },
 
-  ["rainlight"] = {
+  rainlight = {
     usedefaultexplosions = false,
     raindrops = {
       air                = true,
@@ -1356,7 +1356,7 @@ return {
     },
   },
 
-  ["rainpatch"] = {
+  rainpatch = {
     usedefaultexplosions = false,
     raindrops = {
       air                = true,
@@ -1373,7 +1373,7 @@ return {
     },
   },
 
-  ["raindrop"] = {
+  raindrop = {
     usedefaultexplosions = false,
     grounddust = {
       air                = true,
@@ -1469,7 +1469,7 @@ return {
       },
     },
   },
-["smokeblack"] = {
+smokeblack = {
     usedefaultexplosions = false,
     grounddust = {
       air                = true,
@@ -1503,7 +1503,7 @@ return {
       },
     },
   },
-  ["noceg"] = {
+  noceg = {
     grounddust = {
       air                = false,
       class              = [[CSimpleParticleSystem]],

@@ -1,5 +1,5 @@
 return {
-  ["unitsmokegen"] = {
+  unitsmokegen = {
         smoke = {
           air                = true,
              class              = [[CExpGenSpawner]],
@@ -49,7 +49,7 @@ return {
     },
   },
 
-    ["unitsmokegen2"] = {
+    unitsmokegen2 = {
         smoke = {
           air                = true,
              class              = [[CExpGenSpawner]],
@@ -151,7 +151,7 @@ return {
 
 
   --- old effects below
-  ["unitsmoke"] = {
+  unitsmoke = {
         smoke = {
          air                = true,
          class              = [[CSimpleParticleSystem]],
@@ -181,7 +181,7 @@ return {
          },
     },
   },
-    ["unitsmokefire"] = {
+    unitsmokefire = {
         smoke = {
          air                = true,
          class              = [[CSimpleParticleSystem]],
@@ -267,7 +267,7 @@ return {
          },
        },
   },
-     ["unitfire"] = {
+     unitfire = {
        fire = {
          air                = true,
          class              = [[CSimpleParticleSystem]],
@@ -325,7 +325,7 @@ return {
          },
        },
   },
-  ["unitsparkles"] = {
+  unitsparkles = {
       lightningballs = {
         air                = true,
         class              = [[CSimpleParticleSystem]],

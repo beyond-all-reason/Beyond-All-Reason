@@ -2,7 +2,7 @@
 -- treeburn
 
 local definitions = {
-  ["treeburnexplode"] = {
+  treeburnexplode = {
     -- groundflash = {
     --   air                = true,
     --   circlealpha        = 0.0,
@@ -50,7 +50,7 @@ local definitions = {
   },
 
 
-  ["treeburn"] = {
+  treeburn = {
     flame = {
       air                = true,
       class              = [[CSimpleParticleSystem]],

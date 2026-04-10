@@ -364,7 +364,7 @@ definitions["lavasplash-nukexl"] = {
 
 -- Lava versions of old watersplash effects (used by unit_water_depth_damage.lua)
 
-definitions["lavasplash_small"] = {
+definitions.lavasplash_small = {
 	lavaball = {
 		air = true, class = [[CSimpleParticleSystem]], count = 1,
 		ground = true, underwater = 1, water = true,
@@ -394,7 +394,7 @@ definitions["lavasplash_small"] = {
 	lavachunks  = lavachunks(5, 1, 3, [[2 i0.2]], 1.5, 11, 8),
 }
 
-definitions["lavasplash_large"] = {
+definitions.lavasplash_large = {
 	lavapool    = lavapool(12, 55),
 	circlewaves = lavawaves(3, [[1 r2.5]], [[1.8 i0.2]], 22),
 	lavarush    = lavarush(1, 1, [[6 r14]], 16, [[3 i0.5]], 0, 22, 42),

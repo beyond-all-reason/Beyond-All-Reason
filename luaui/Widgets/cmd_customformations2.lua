@@ -913,11 +913,11 @@ end
 
 function widget:GetConfigData() -- Saving
     return {
-        ['maxHungarianUnits'] = maxHungarianUnits,
+        maxHungarianUnits = maxHungarianUnits,
     }
 end
 function widget:SetConfigData(data) -- Loading
-    maxHungarianUnits = data['maxHungarianUnits'] or defaultHungarianUnits
+    maxHungarianUnits = data.maxHungarianUnits or defaultHungarianUnits
 end
 
 

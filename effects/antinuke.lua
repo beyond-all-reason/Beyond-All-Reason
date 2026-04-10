@@ -6,7 +6,7 @@
 -- burngreen
 
 return {
-  ["antinuke"] = {
+  antinuke = {
     explosion = {
       air                = true,
       class              = [[CSimpleParticleSystem]],

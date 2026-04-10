@@ -194,9 +194,9 @@ local function storeReclaimOrders(uid)
 	local reclaimOrdersCount = 0
 
 	for _, order in pairs(cmds) do
-		if order["id"] == RECLAIM then
+		if order.id == RECLAIM then
 			reclaimOrdersCount = reclaimOrdersCount + 1
-			reclaimOrders[uid][reclaimOrdersCount] = order["params"][1]
+			reclaimOrders[uid][reclaimOrdersCount] = order.params[1]
 		end
 	end
 

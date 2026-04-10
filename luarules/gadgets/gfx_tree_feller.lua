@@ -27,7 +27,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local treefireExplosion = {
 		tiny = {
-			weaponDef = WeaponDefNames['treefire_tiny'].id,
+			weaponDef = WeaponDefNames.treefire_tiny.id,
 			-- owner = -1,
 			hitUnit = 1,
 			hitFeature = 1,
@@ -40,7 +40,7 @@ if gadgetHandler:IsSyncedCode() then
 			damageGround = true,
 		},
 		small = {
-			weaponDef = WeaponDefNames['treefire_small'].id,
+			weaponDef = WeaponDefNames.treefire_small.id,
 			-- owner = -1,
 			hitUnit = 1,
 			hitFeature = 1,
@@ -53,7 +53,7 @@ if gadgetHandler:IsSyncedCode() then
 			damageGround = true,
 		},
 		medium = {
-			weaponDef = WeaponDefNames['treefire_medium'].id,
+			weaponDef = WeaponDefNames.treefire_medium.id,
 			-- owner = -1,
 			hitUnit = 1,
 			hitFeature = 1,
@@ -66,7 +66,7 @@ if gadgetHandler:IsSyncedCode() then
 			damageGround = true,
 		},
 		large = {
-			weaponDef = WeaponDefNames['treefire_large'].id,
+			weaponDef = WeaponDefNames.treefire_large.id,
 			-- owner = -1,
 			hitUnit = 1,
 			hitFeature = 1,
@@ -80,10 +80,10 @@ if gadgetHandler:IsSyncedCode() then
 		},
 	}
 	local treeWeapons = {}
-	treeWeapons[WeaponDefNames['treefire_tiny'].id] = true
-	treeWeapons[WeaponDefNames['treefire_small'].id] = true
-	treeWeapons[WeaponDefNames['treefire_medium'].id] = true
-	treeWeapons[WeaponDefNames['treefire_large'].id] = true
+	treeWeapons[WeaponDefNames.treefire_tiny.id] = true
+	treeWeapons[WeaponDefNames.treefire_small.id] = true
+	treeWeapons[WeaponDefNames.treefire_medium.id] = true
+	treeWeapons[WeaponDefNames.treefire_large.id] = true
 
 	local noFireWeapons = {}
 	for id, wDefs in pairs(WeaponDefs) do

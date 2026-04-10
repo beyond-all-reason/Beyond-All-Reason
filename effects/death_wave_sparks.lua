@@ -1,6 +1,6 @@
 return {
-    ["death_wave_sparks"] = {
-        ["unit_sparkles"] = {
+    death_wave_sparks = {
+        unit_sparkles = {
             class = [[CSimpleParticleSystem]],
             air = true,
             water = true,

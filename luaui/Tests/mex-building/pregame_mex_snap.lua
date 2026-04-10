@@ -34,8 +34,8 @@ function cleanup()
 end
 
 function test()
-	mexUnitDefId = UnitDefNames["armmex"].id
-	metalSpots = WG['resource_spot_finder'].metalSpotsList
+	mexUnitDefId = UnitDefNames.armmex.id
+	metalSpots = WG.resource_spot_finder.metalSpotsList
 
 	midX, midZ = Game.mapSizeX / 2, Game.mapSizeZ / 2
 	targetMex = nil

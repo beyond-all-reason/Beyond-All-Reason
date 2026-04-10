@@ -1,4 +1,4 @@
 return {
-  ["blank"] = {},
+  blank = {},
 }
 

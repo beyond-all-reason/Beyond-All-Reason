@@ -88,7 +88,7 @@ local jammerFilter = {}
 local customFilter = {}
 
 for udid, udef in pairs(UnitDefs) do
-	if udef.modCategories['object'] or udef.customParams.objectify then
+	if udef.modCategories.object or udef.customParams.objectify then
 		ignoreUnits[udid] = true
 	end
 
@@ -484,7 +484,7 @@ end
 --end
 --
 function widget:Shutdown()
-	WG['smartselect'] = nil
+	WG.smartselect = nil
 
 	WG.SmartSelect_MousePress2 = nil
 	WG.SmartSelect_SelectUnits = nil
@@ -679,35 +679,35 @@ function widget:Initialize()
 	widgetHandler:AddAction("selectbox", handleSetCustomFilter, nil, "p")
 	widgetHandler:AddAction("selectbox", handleClearCustomFilter, nil, "r")
 
-	WG['smartselect'] = {}
-	WG['smartselect'].getIncludeBuildings = function()
+	WG.smartselect = {}
+	WG.smartselect.getIncludeBuildings = function()
 		return selectBuildingsWithMobile
 	end
-	WG['smartselect'].setIncludeBuildings = function(value)
+	WG.smartselect.setIncludeBuildings = function(value)
 		selectBuildingsWithMobile = value
 	end
-	WG['smartselect'].getIncludeBuilders = function()
+	WG.smartselect.getIncludeBuilders = function()
 		return includeBuilders
 	end
-	WG['smartselect'].setIncludeBuilders = function(value)
+	WG.smartselect.setIncludeBuilders = function(value)
 		includeBuilders = value
 	end
-	WG['smartselect'].getIncludeAntinuke = function()
+	WG.smartselect.getIncludeAntinuke = function()
 		return includeAntinuke
 	end
-	WG['smartselect'].setIncludeAntinuke = function(value)
+	WG.smartselect.setIncludeAntinuke = function(value)
 		includeAntinuke = value
 	end
-	WG['smartselect'].getIncludeRadar = function()
+	WG.smartselect.getIncludeRadar = function()
 		return includeRadar
 	end
-	WG['smartselect'].setIncludeRadar = function(value)
+	WG.smartselect.setIncludeRadar = function(value)
 		includeRadar = value
 	end
-	WG['smartselect'].getIncludeJammer = function()
+	WG.smartselect.getIncludeJammer = function()
 		return includeJammer
 	end
-	WG['smartselect'].setIncludeJammer = function(value)
+	WG.smartselect.setIncludeJammer = function(value)
 		includeJammer = value
 	end
 

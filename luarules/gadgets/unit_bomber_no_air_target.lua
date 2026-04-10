@@ -19,7 +19,7 @@ local isBomber = {}
 local isAir = {}
 
 for udid, unitDef in pairs(UnitDefs) do
-	if unitDef.modCategories and unitDef.modCategories['vtol'] then
+	if unitDef.modCategories and unitDef.modCategories.vtol then
 		isAir[udid] = true
 	end
 	if unitDef.canFly and not unitDef.hoverAttack and unitDef.weapons and unitDef.weapons[1] then

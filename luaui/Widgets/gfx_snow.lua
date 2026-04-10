@@ -155,7 +155,7 @@ end
 
 function widget:Shutdown()
 	removeSnow()
-	WG['snow'] = nil
+	WG.snow = nil
 end
 
 -- creating multiple lists per particleType so we can switch to less particles without causing lag
@@ -302,21 +302,21 @@ end
 function widget:Initialize()
 	widget:ViewResize()
 
-	WG['snow'] = {}
-	WG['snow'].getSnowMap = function()
+	WG.snow = {}
+	WG.snow.getSnowMap = function()
 		if enabled or widgetDisabledSnow then
 			return true
 		else
 			return false
 		end
 	end
-	WG['snow'].setMultiplier = function(value)
+	WG.snow.setMultiplier = function(value)
 		customParticleMultiplier = value
 		if enabled or widgetDisabledSnow  then
 			CreateParticleLists()
 		end
 	end
-	WG['snow'].setAutoReduce = function(value)
+	WG.snow.setAutoReduce = function(value)
 		autoReduce = value
 		if autoReduce == false then
 			enabled = true
@@ -326,7 +326,7 @@ function widget:Initialize()
 			averageFps = spGetFPS()
 		end
 	end
-	WG['snow'].setSnowMap = function(value)
+	WG.snow.setSnowMap = function(value)
 		snowMaps[currentMapname] = value
 		enabled = value
 		if value then

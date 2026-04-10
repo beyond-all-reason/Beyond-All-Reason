@@ -86,8 +86,8 @@ function widget:Initialize()
 	vsx,vsy = spGetViewGeometry()
 	widget:ViewResize(vsx, vsy, true)
 
-	WG['fonts'] = {}
-	WG['fonts'].getFont = function(file, size, outlineSize, outlineStrength)
+	WG.fonts = {}
+	WG.fonts.getFont = function(file, size, outlineSize, outlineStrength)
 		if not file or file == 1 then
 			file = defaultFont
 		elseif file == 2 then

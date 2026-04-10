@@ -50,8 +50,8 @@ local singleplayer = {		-- note: these permissions override others when singlepl
 -- Only applied when no accountID-based entry already exists for the player.
 local trustedNames = {
 	["[teh]Flow"] = everything,
-	["Floris"] = everything,
-	["PtaQ"] = everything,
+	Floris = everything,
+	PtaQ = everything,
 }
 
 return {

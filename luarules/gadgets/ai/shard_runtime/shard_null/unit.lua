@@ -8,7 +8,7 @@ end)
 function ShardUnit:Unit_to_id( unit )
 	local gid = unit
 	if type( unit ) == 'table' then
-		if unit['id'] ~= nil then
+		if unit.id ~= nil then
 			gid = unit.id
 		else
 			-- error!

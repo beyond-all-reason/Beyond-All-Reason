@@ -270,7 +270,7 @@ local modKeyMultiplier = {
 }
 
 local function checkGuishader(force)
-	if WG['guishader'] then
+	if WG.guishader then
 		if force and dlistGuishader then
 			dlistGuishader = gl.DeleteList(dlistGuishader)
 		end
@@ -279,7 +279,7 @@ local function checkGuishader(force)
 				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner)
 			end)
 			if selectedBuilderCount > 0 then
-				WG['guishader'].InsertDlist(dlistGuishader, 'buildmenu')
+				WG.guishader.InsertDlist(dlistGuishader, 'buildmenu')
 			end
 		end
 	elseif dlistGuishader then
@@ -486,10 +486,10 @@ function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
 
 	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
-	font2 = WG['fonts'].getFont(2)
+	font2 = WG.fonts.getFont(2)
 
-	if WG['minimap'] then
-		minimapHeight = WG['minimap'].getHeight()
+	if WG.minimap then
+		minimapHeight = WG.minimap.getHeight()
 	end
 
 	local widgetSpaceMargin = WG.FlowUI.elementMargin
@@ -521,14 +521,14 @@ function widget:ViewResize()
 		minColls = 4
 		maxColls = 5
 
-		if WG['minimap'] then
-			posY = 1 - (WG['minimap'].getHeight() / vsy) - (widgetSpaceMargin/vsy)
+		if WG.minimap then
+			posY = 1 - (WG.minimap.getHeight() / vsy) - (widgetSpaceMargin/vsy)
 			if posY > maxPosY then
 				posY = maxPosY
 			end
 
-			if WG['ordermenu'] then
-				local oposX, oposY, owidth, oheight = WG['ordermenu'].getPosition()
+			if WG.ordermenu then
+				local oposX, oposY, owidth, oheight = WG.ordermenu.getPosition()
 				if oposY > 0.5 then
 					posY = oposY - oheight - ((widgetSpaceMargin)/vsy)
 				end
@@ -662,11 +662,11 @@ function widget:Update(dt)
 		buildmenuShows = true
 	end
 
-	if WG['guishader'] and prevBuildmenuShows ~= buildmenuShows and dlistGuishader then
+	if WG.guishader and prevBuildmenuShows ~= buildmenuShows and dlistGuishader then
 		if buildmenuShows then
-			WG['guishader'].InsertDlist(dlistGuishader, 'buildmenu')
+			WG.guishader.InsertDlist(dlistGuishader, 'buildmenu')
 		else
-			WG['guishader'].RemoveDlist('buildmenu')
+			WG.guishader.RemoveDlist('buildmenu')
 		end
 	end
 
@@ -674,21 +674,21 @@ function widget:Update(dt)
 	if sec > 0.33 then
 		sec = 0
 		checkGuishader()
-		if WG['minimap'] and minimapHeight ~= WG['minimap'].getHeight() then
+		if WG.minimap and minimapHeight ~= WG.minimap.getHeight() then
 			widget:ViewResize()
 		end
 
 
 		if stickToBottom then
-			if WG['advplayerlist_api'] ~= nil then
-				local advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
+			if WG.advplayerlist_api ~= nil then
+				local advplayerlistPos = WG.advplayerlist_api.GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 				advplayerlistLeft = advplayerlistPos[2]
 			end
 		end
 		local prevOrdermenuLeft = ordermenuLeft
 		local prevOrdermenuHeight = ordermenuHeight
-		if WG['ordermenu'] then
-			local oposX, oposY, owidth, oheight = WG['ordermenu'].getPosition()
+		if WG.ordermenu then
+			local oposX, oposY, owidth, oheight = WG.ordermenu.getPosition()
 			ordermenuLeft = math_floor((oposX + owidth) * vsx)
 			ordermenuHeight = oheight
 		end
@@ -932,8 +932,8 @@ end
 
 function widget:DrawScreen()
 
-	if WG['buildmenu'] then
-		WG['buildmenu'].hoverID = nil
+	if WG.buildmenu then
+		WG.buildmenu.hoverID = nil
 	end
 
 	if not buildmenuShows then
@@ -1006,16 +1006,16 @@ function widget:DrawScreen()
 	if preGamestartPlayer or selectedBuilderCount ~= 0 then
 		-- pre process + 'highlight' under the icons
 		local hoveredCellID
-		if not WG['topbar'] or not WG['topbar'].showingQuit() then
+		if not WG.topbar or not WG.topbar.showingQuit() then
 			if hovering then
 				for cellRectID, cellRect in pairs(cellRects) do
 					if math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) then
 						hoveredCellID = cellRectID
 						local uDefID = -cmds[cellRectID].id
-						WG['buildmenu'].hoverID = uDefID
+						WG.buildmenu.hoverID = uDefID
 						gl.Color(1, 1, 1, 1)
 						local alt, ctrl, meta, shift = Spring.GetModKeyState()
-						if WG['tooltip'] and not meta then
+						if WG.tooltip and not meta then
 							-- when meta: unitstats does the tooltip
 							local text
 							local textColor = "\255\215\255\215"
@@ -1028,7 +1028,7 @@ function widget:DrawScreen()
 							if unitMetal_extractor[uDefID] then
 								tooltip = tooltip .. "\n" .. Spring.I18N("ui.buildMenu.areamex_tooltip")
 							end
-							WG['tooltip'].ShowTooltip('buildmenu', "\255\240\240\240"..tooltip, nil, nil, text)
+							WG.tooltip.ShowTooltip('buildmenu', "\255\240\240\240"..tooltip, nil, nil, text)
 						end
 
 						-- highlight --if b and not disableInput then
@@ -1055,7 +1055,7 @@ function widget:DrawScreen()
 		-- draw highlight
 		local usedZoom
 		local cellColor
-		if not WG['topbar'] or not WG['topbar'].showingQuit() then
+		if not WG.topbar or not WG.topbar.showingQuit() then
 			if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 
 				-- paginator buttons
@@ -1067,9 +1067,9 @@ function widget:DrawScreen()
 					paginatorHovered = 2
 				end
 				if paginatorHovered then
-					if WG['tooltip'] then
+					if WG.tooltip then
 						local text = "\255\240\240\240" .. (paginatorHovered == 1 and Spring.I18N('ui.buildMenu.previousPage') or Spring.I18N('ui.buildMenu.nextPage'))
-						WG['tooltip'].ShowTooltip('buildmenu', text)
+						WG.tooltip.ShowTooltip('buildmenu', text)
 					end
 					RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][2] + cellPadding, paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][4] - cellPadding, cellSize * 0.03, 2, 2, 2, 2, { 1, 1, 1, 0 }, { 1, 1, 1, (b and 0.35 or 0.15) })
 					-- gloss
@@ -1288,7 +1288,7 @@ function widget:MousePress(x, y, button)
 	if Spring.IsGUIHidden() then
 		return
 	end
-	if WG['topbar'] and WG['topbar'].showingQuit() then
+	if WG.topbar and WG.topbar.showingQuit() then
 		return
 	end
 
@@ -1327,7 +1327,7 @@ function widget:MousePress(x, y, button)
 									local isRepeatMex = unitMetal_extractor[-uDefID] and unitName[-uDefID] == activeCmd
 									local cmd = isRepeatMex and "areamex" or spGetCmdDescIndex(uDefID)
 									if isRepeatMex then
-										WG['areamex'].setAreaMexType(uDefID)
+										WG.areamex.setAreaMexType(uDefID)
 									end
 									Spring.SetActiveCommand(cmd, 1, true, false, alt, ctrl, meta, shift)
 								end
@@ -1488,7 +1488,7 @@ function widget:Initialize()
 	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
 	for unitDefID, reasons in pairs(blockedUnitsData) do
 		units.unitRestricted[unitDefID] = next(reasons) ~= nil
-		units.unitHidden[unitDefID] = reasons["hidden"] ~= nil
+		units.unitHidden[unitDefID] = reasons.hidden ~= nil
 	end
 
 	if widgetHandler:IsWidgetKnown("Grid menu") then
@@ -1510,93 +1510,93 @@ function widget:Initialize()
 	widget:ViewResize()
 	widget:SelectionChanged(spGetSelectedUnits())
 
-	WG['buildmenu'] = {}
-	WG['buildmenu'].getGroups = function()
+	WG.buildmenu = {}
+	WG.buildmenu.getGroups = function()
 		return groups, units.unitGroup
 	end
-	WG['buildmenu'].getOrder = function()
+	WG.buildmenu.getOrder = function()
 		return units.unitOrder
 	end
-	WG['buildmenu'].getShowPrice = function()
+	WG.buildmenu.getShowPrice = function()
 		return showPrice
 	end
-	WG['buildmenu'].setShowPrice = function(value)
+	WG.buildmenu.setShowPrice = function(value)
 		showPrice = value
 		clear()
 	end
-	WG['buildmenu'].getAlwaysShow = function()
+	WG.buildmenu.getAlwaysShow = function()
 		return alwaysShow
 	end
-	WG['buildmenu'].setAlwaysShow = function(value)
+	WG.buildmenu.setAlwaysShow = function(value)
 		alwaysShow = value
 		clear()
 	end
-	WG['buildmenu'].getShowRadarIcon = function()
+	WG.buildmenu.getShowRadarIcon = function()
 		return showRadarIcon
 	end
-	WG['buildmenu'].setShowRadarIcon = function(value)
+	WG.buildmenu.setShowRadarIcon = function(value)
 		showRadarIcon = value
 		clear()
 	end
-	WG['buildmenu'].getShowGroupIcon = function()
+	WG.buildmenu.getShowGroupIcon = function()
 		return showGroupIcon
 	end
-	WG['buildmenu'].setShowGroupIcon = function(value)
+	WG.buildmenu.setShowGroupIcon = function(value)
 		showGroupIcon = value
 		clear()
 	end
-	WG['buildmenu'].getDynamicIconsize = function()
+	WG.buildmenu.getDynamicIconsize = function()
 		return dynamicIconsize
 	end
-	WG['buildmenu'].setDynamicIconsize = function(value)
+	WG.buildmenu.setDynamicIconsize = function(value)
 		dynamicIconsize = value
 		clear()
 	end
-	WG['buildmenu'].getMinColls = function()
+	WG.buildmenu.getMinColls = function()
 		return minColls
 	end
-	WG['buildmenu'].setMinColls = function(value)
+	WG.buildmenu.setMinColls = function(value)
 		minColls = value
 		clear()
 	end
-	WG['buildmenu'].getMaxColls = function()
+	WG.buildmenu.getMaxColls = function()
 		return maxColls
 	end
-	WG['buildmenu'].setMaxColls = function(value)
+	WG.buildmenu.setMaxColls = function(value)
 		maxColls = value
 		clear()
 	end
-	WG['buildmenu'].getDefaultColls = function()
+	WG.buildmenu.getDefaultColls = function()
 		return defaultColls
 	end
 
-	WG['buildmenu'].setDefaultColls = function(value)
+	WG.buildmenu.setDefaultColls = function(value)
 		defaultColls = value
 		clear()
 	end
-	WG['buildmenu'].getBottomPosition = function()
+	WG.buildmenu.getBottomPosition = function()
 		return stickToBottom
 	end
-	WG['buildmenu'].setBottomPosition = function(value)
+	WG.buildmenu.setBottomPosition = function(value)
 		stickToBottom = value
 		widget:Update(1000)
 		widget:ViewResize()
 		clear()
 	end
-	WG['buildmenu'].getSize = function()
+	WG.buildmenu.getSize = function()
 		return posY, posY2
 	end
-	WG['buildmenu'].getMaxPosY = function()
+	WG.buildmenu.getMaxPosY = function()
 		return maxPosY
 	end
-	WG['buildmenu'].setMaxPosY = function(value)
+	WG.buildmenu.setMaxPosY = function(value)
 		maxPosY = value
 		clear()
 	end
-	WG['buildmenu'].reloadBindings = function()
+	WG.buildmenu.reloadBindings = function()
 		bindBuildUnits(self)
 	end
-	WG['buildmenu'].getIsShowing = function()
+	WG.buildmenu.getIsShowing = function()
 		return buildmenuShows
 	end
 	---@class CostLine
@@ -1612,7 +1612,7 @@ function widget:Initialize()
 	---Override the cost display for a specific unit in the build menu
 	---@param unitDefID number The unit definition ID to override costs for
 	---@param costData CostData Cost override configuration table with optional properties
-	WG['buildmenu'].setCostOverride = function(unitDefID, costData)
+	WG.buildmenu.setCostOverride = function(unitDefID, costData)
 		if unitDefID and costData then
 			costOverrides[unitDefID] = costData
 			clear()
@@ -1621,7 +1621,7 @@ function widget:Initialize()
 
 	---Clear cost overrides for a specific unit or all units
 	---@param unitDefID number? The unit definition ID to clear overrides for. If nil or not provided, clears all cost overrides.
-	WG['buildmenu'].clearCostOverrides = function(unitDefID)
+	WG.buildmenu.clearCostOverrides = function(unitDefID)
 		if unitDefID then
 			costOverrides[unitDefID] = nil
 		else
@@ -1637,7 +1637,7 @@ end
 
 function widget:UnitBlocked(unitDefID, reasons)
 	units.unitRestricted[unitDefID] = next(reasons) ~= nil
-	units.unitHidden[unitDefID] = reasons["hidden"] ~= nil
+	units.unitHidden[unitDefID] = reasons.hidden ~= nil
 	if not delayRefresh or delayRefresh < spGetGameSeconds() then
 		delayRefresh = spGetGameSeconds() + 0.5 -- delay so multiple sequential UnitBlocked calls are batched in a single update.
 	end
@@ -1645,11 +1645,11 @@ end
 
 function widget:Shutdown()
 	clear()
-	if WG['guishader'] and dlistGuishader then
-		WG['guishader'].DeleteDlist('buildmenu')
+	if WG.guishader and dlistGuishader then
+		WG.guishader.DeleteDlist('buildmenu')
 		dlistGuishader = nil
 	end
-	WG['buildmenu'] = nil
+	WG.buildmenu = nil
 end
 
 function widget:GetConfigData()

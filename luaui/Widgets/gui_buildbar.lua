@@ -144,7 +144,7 @@ local sound_queue_rem = 'LuaUI/Sounds/buildbar_rem.wav'
 -------------------------------------------------------------------------------
 
 local function checkGuishader(force)
-	if WG['guishader'] and backgroundRect then
+	if WG.guishader and backgroundRect then
 		if force then
 			if dlistGuishader then
 				dlistGuishader = gl.DeleteList(dlistGuishader)
@@ -188,7 +188,7 @@ function widget:ViewResize()
 	UiElement = WG.FlowUI.Draw.Element
 	UiUnit = WG.FlowUI.Draw.Unit
 
-	font = WG['fonts'].getFont(2)
+	font = WG.fonts.getFont(2)
 
 	iconSizeY = mathFloor((vsy / 19) * (1 + (ui_scale - 1) / 1.5))
 	iconSizeX = iconSizeY
@@ -390,12 +390,12 @@ end
 -------------------------------------------------------------------------------
 
 function widget:Initialize()
-	if WG['buildmenu'] then
-		if WG['buildmenu'].getGroups then
-			groups, unitGroup = WG['buildmenu'].getGroups()
+	if WG.buildmenu then
+		if WG.buildmenu.getGroups then
+			groups, unitGroup = WG.buildmenu.getGroups()
 		end
-		if WG['buildmenu'].getOrder then
-			unitOrder = WG['buildmenu'].getOrder()
+		if WG.buildmenu.getOrder then
+			unitOrder = WG.buildmenu.getOrder()
 
 			-- order buildoptions
 			for uDefID, def in pairs(unitBuildOptions) do
@@ -455,9 +455,9 @@ function widget:Shutdown()
 		buildOptionsTex = nil
 	end
 
-	if WG['guishader'] then
-		WG['guishader'].RemoveDlist('buildbar')
-		WG['guishader'].RemoveDlist('buildbar2')
+	if WG.guishader then
+		WG.guishader.RemoveDlist('buildbar')
+		WG.guishader.RemoveDlist('buildbar2')
 		if dlistGuishader then
 			dlistGuishader = gl.DeleteList(dlistGuishader)
 		end
@@ -662,7 +662,7 @@ function widget:Update(dt)
 		myTeamID = spGetMyTeamID()
 		updateFactoryList()
 	end
-	if WG['topbar'] and WG['topbar'].showingQuit() then
+	if WG.topbar and WG.topbar.showingQuit() then
 		openedMenu = -1
 		return false
 	end
@@ -675,27 +675,27 @@ function widget:Update(dt)
 	hoveredFac = mouseOverIcon(mx, my)
 	hoveredBOpt = mouseOverSubIcon(mx, my)
 	-- set hover unitdef id for buildmenu so info widget can show it
-	if WG['info'] then
+	if WG.info then
 		if hoveredFac >= 0 then
 			if(not setInfoDisplayUnitID or (hoveredBOpt < 0 and setInfoDisplayUnitID ~= facs[hoveredFac + 1].unitID))then
 				Spring.PlaySoundFile(sound_hover, 0.8, 'ui')
 				setInfoDisplayUnitID = facs[hoveredFac + 1].unitID
-				WG['info'].displayUnitID(setInfoDisplayUnitID)
+				WG.info.displayUnitID(setInfoDisplayUnitID)
 			end
 		elseif hoveredBOpt >= 0 then
 			if(setInfoDisplayUnitID and setInfoDisplayUnitDefID ~= facs[openedMenu + 1].buildList[hoveredBOpt + 1])then
 				Spring.PlaySoundFile(sound_hover, 0.8, 'ui')
 				setInfoDisplayUnitDefID = facs[openedMenu + 1].buildList[hoveredBOpt + 1]
-				WG['info'].displayUnitDefID(setInfoDisplayUnitDefID)
+				WG.info.displayUnitDefID(setInfoDisplayUnitDefID)
 			end
 		else
 			if setInfoDisplayUnitID then
 				setInfoDisplayUnitID = nil
-				WG['info'].clearDisplayUnitID()
+				WG.info.clearDisplayUnitID()
 			end
 			if setInfoDisplayUnitDefID then
 				setInfoDisplayUnitDefID = nil
-				WG['info'].clearDisplayUnitDefID()
+				WG.info.clearDisplayUnitDefID()
 			end
 		end
 	end
@@ -846,7 +846,7 @@ function widget:Update(dt)
 
 		if factoriesArea then
 			dlists[1] = gl.CreateList(drawBackground)
-			if WG['guishader'] then
+			if WG.guishader then
 				if hoveredFac >= 0 then
 					dlists[dlistsCount+1] = gl.CreateList(drawOptionsBackground)
 
@@ -858,12 +858,12 @@ function widget:Update(dt)
 					end)
 
 					if dlistGuishader2 then
-						WG['guishader'].RemoveDlist('buildbar2')
-						WG['guishader'].InsertDlist(dlistGuishader2, 'buildbar2')
+						WG.guishader.RemoveDlist('buildbar2')
+						WG.guishader.InsertDlist(dlistGuishader2, 'buildbar2')
 					end
 				else
 					backgroundOptionsRect = nil
-					WG['guishader'].RemoveDlist('buildbar2')
+					WG.guishader.RemoveDlist('buildbar2')
 				end
 			end
 		end
@@ -1257,14 +1257,14 @@ function widget:DrawScreen()
 
 	local mx, my, lb, mb, rb, moffscreen = GetMouseState()
 
-	if WG['guishader'] then
+	if WG.guishader then
 		if #dlists == 0 then
 			if dlistGuishader then
-				WG['guishader'].RemoveDlist('buildbar')
+				WG.guishader.RemoveDlist('buildbar')
 			end
 		else
 			if dlistGuishader then
-				WG['guishader'].InsertDlist(dlistGuishader, 'buildbar')
+				WG.guishader.InsertDlist(dlistGuishader, 'buildbar')
 			end
 		end
 	end
@@ -1325,7 +1325,7 @@ function widget:DrawScreen()
 		renderBuildOptions(mx, my, lb, mb, rb, moffscreen)
 
 		-- Update guishader for build options background only when menu changes
-		if WG['guishader'] and backgroundOptionsRect and openedMenu >= 0 and lastGuishaderMenu ~= openedMenu then
+		if WG.guishader and backgroundOptionsRect and openedMenu >= 0 and lastGuishaderMenu ~= openedMenu then
 			if dlistGuishader2 then
 				dlistGuishader2 = gl.DeleteList(dlistGuishader2)
 			end
@@ -1333,16 +1333,16 @@ function widget:DrawScreen()
 				RectRound(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], elementCorner * ui_scale)
 			end)
 			if dlistGuishader2 then
-				WG['guishader'].RemoveDlist('buildbar2')
-				WG['guishader'].InsertDlist(dlistGuishader2, 'buildbar2')
+				WG.guishader.RemoveDlist('buildbar2')
+				WG.guishader.InsertDlist(dlistGuishader2, 'buildbar2')
 			end
 			lastGuishaderMenu = openedMenu
 		end
 	else
 		buildoptionsArea = nil
 		backgroundOptionsRect = nil
-		if WG['guishader'] then
-			WG['guishader'].RemoveDlist('buildbar2')
+		if WG.guishader then
+			WG.guishader.RemoveDlist('buildbar2')
 		end
 		lastGuishaderMenu = -1
 	end

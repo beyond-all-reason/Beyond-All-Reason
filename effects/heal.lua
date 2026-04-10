@@ -1,7 +1,7 @@
 -- heal
 
 return {
-  ["heal"] = {
+  heal = {
     healg = {
       air                = true,
       class              = [[CSimpleParticleSystem]],

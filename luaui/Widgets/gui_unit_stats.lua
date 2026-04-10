@@ -368,9 +368,9 @@ end
 
 local guishaderEnabled = false	-- not a config var
 function RemoveGuishader()
-	if guishaderEnabled and WG['guishader'] then
-		WG['guishader'].DeleteScreenDlist('unit_stats_title')
-		WG['guishader'].DeleteScreenDlist('unit_stats_data')
+	if guishaderEnabled and WG.guishader then
+		WG.guishader.DeleteScreenDlist('unit_stats_title')
+		WG.guishader.DeleteScreenDlist('unit_stats_data')
 		guishaderEnabled = false
 	end
 	if dlistGuishaderTitle then
@@ -415,8 +415,8 @@ function widget:Initialize()
 
 	widget:ViewResize(vsx,vsy)
 
-	WG['unitstats'] = {}
-	WG['unitstats'].showUnit = function(unitID)
+	WG.unitstats = {}
+	WG.unitstats.showUnit = function(unitID)
 		showUnitID = unitID
 	end
 
@@ -427,7 +427,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	WG['unitstats'] = nil
+	WG.unitstats = nil
 	RemoveGuishader()
 	invalidateContent()
 end
@@ -456,7 +456,7 @@ function widget:ViewResize(n_vsx,n_vsy)
 	UiElement = WG.FlowUI.Draw.Element
 	UiUnit = WG.FlowUI.Draw.Unit
 
-	font = WG['fonts'].getFont()
+	font = WG.fonts.getFont()
 
 	init()
 	invalidateContent()
@@ -916,8 +916,8 @@ local function computeContent(uDefID, uID, shiftBool)
 
 	-- Compute title text
 	local effectivenessRate = ''
-	if damageStats and damageStats[gameName] and damageStats[gameName]["team"] and damageStats[gameName]["team"][uDef.name] and damageStats[gameName]["team"][uDef.name].cost and damageStats[gameName]["team"][uDef.name].killed_cost then
-		effectivenessRate = "   "..damageStats[gameName]["team"][uDef.name].killed_cost / damageStats[gameName]["team"][uDef.name].cost
+	if damageStats and damageStats[gameName] and damageStats[gameName].team and damageStats[gameName].team[uDef.name] and damageStats[gameName].team[uDef.name].cost and damageStats[gameName].team[uDef.name].killed_cost then
+		effectivenessRate = "   "..damageStats[gameName].team[uDef.name].killed_cost / damageStats[gameName].team[uDef.name].cost
 	end
 	cachedTitleText = "\255\190\255\190" .. UnitDefs[uDefID].translatedHumanName
 	if uID then
@@ -944,8 +944,8 @@ end
 local function drawStats(uDefID, uID)
 	local mx, my = spGetMouseState()
 	local alt, ctrl, meta, shift = spGetModKeyState()
-	if WG['chat'] and WG['chat'].isInputActive then
-		if WG['chat'].isInputActive() then
+	if WG.chat and WG.chat.isInputActive then
+		if WG.chat.isInputActive() then
 			showStats = false
 		end
 	end
@@ -997,7 +997,7 @@ local function drawStats(uDefID, uID)
 		true)
 
 	-- Update guishader only when position changed
-	if WG['guishader'] then
+	if WG.guishader then
 		if cachedGuishaderX ~= screenX or cachedGuishaderY ~= screenY then
 			guishaderEnabled = true
 			cachedGuishaderX = screenX
@@ -1013,7 +1013,7 @@ local function drawStats(uDefID, uID)
 			dlistGuishaderTitle = gl.CreateList(function()
 				RectRound(tLeft, tBottom, tRight, tTop, elementCorner, 1,1,1,0)
 			end)
-			WG['guishader'].InsertScreenDlist(dlistGuishaderTitle, 'unit_stats_title')
+			WG.guishader.InsertScreenDlist(dlistGuishaderTitle, 'unit_stats_title')
 
 			local sLeft = floor(screenX - bgpadding)
 			local sBottom = ceil(screenY + cachedContentBottom + (fontSize / 3) + (bgpadding * 0.3))
@@ -1024,18 +1024,18 @@ local function drawStats(uDefID, uID)
 			dlistGuishaderStats = gl.CreateList(function()
 				RectRound(sLeft, sBottom, sRight, sTop, elementCorner, 0,1,1,1)
 			end)
-			WG['guishader'].InsertScreenDlist(dlistGuishaderStats, 'unit_stats_data')
+			WG.guishader.InsertScreenDlist(dlistGuishaderStats, 'unit_stats_data')
 		end
 	end
 end
 
 function widget:DrawScreen()
-	if WG['topbar'] and WG['topbar'].showingQuit() then
+	if WG.topbar and WG.topbar.showingQuit() then
 		return
 	end
 
-	if WG['chat'] and WG['chat'].isInputActive then
-		if WG['chat'].isInputActive() then
+	if WG.chat and WG.chat.isInputActive then
+		if WG.chat.isInputActive() then
 			showStats = false
 		end
 	end
@@ -1061,9 +1061,9 @@ function widget:DrawScreen()
 	local useHoverID = false
 	local _, activeID = Spring.GetActiveCommand()
 	if not activeID then activeID = 0 end
-	if not uID and (WG['buildmenu'] and not WG['buildmenu'].hoverID) and not (activeID < 0) then
+	if not uID and (WG.buildmenu and not WG.buildmenu.hoverID) and not (activeID < 0) then
 		RemoveGuishader() return
-	elseif WG['buildmenu'] and WG['buildmenu'].hoverID and not (activeID < 0) then
+	elseif WG.buildmenu and WG.buildmenu.hoverID and not (activeID < 0) then
 		uID = nil
 		useHoverID = true
 	elseif activeID < 0 then
@@ -1074,7 +1074,7 @@ function widget:DrawScreen()
 		RemoveGuishader()
 		return
 	end
-	local uDefID = (uID and spGetUnitDefID(uID)) or (useHoverID and WG['buildmenu'] and WG['buildmenu'].hoverID) or (UnitDefs[-activeID] and -activeID)
+	local uDefID = (uID and spGetUnitDefID(uID)) or (useHoverID and WG.buildmenu and WG.buildmenu.hoverID) or (UnitDefs[-activeID] and -activeID)
 
 	if not uDefID then
 		RemoveGuishader()

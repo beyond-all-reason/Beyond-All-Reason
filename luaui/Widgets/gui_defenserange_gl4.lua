@@ -196,11 +196,11 @@ for udid, ud in pairs(UnitDefs) do
 end
 
 
-local vtoldamagetag = Game.armorTypes['vtol']
-local defaultdamagetag = Game.armorTypes['default']
+local vtoldamagetag = Game.armorTypes.vtol
+local defaultdamagetag = Game.armorTypes.default
 local function initializeUnitDefRing(unitDefID)
 
-	unitDefRings[unitDefID]['rings'] = {}
+	unitDefRings[unitDefID].rings = {}
 	local weapons = unitWeapons[unitDefID]
 	for weaponNum = 1, #weapons do
 		local weaponDef = weapons[weaponNum]
@@ -208,7 +208,7 @@ local function initializeUnitDefRing(unitDefID)
 		local weaponDef = WeaponDefs[weaponDefID]
 
 		local range = weaponDef.range
-		local weaponType = unitDefRings[unitDefID]['weapons'][weaponNum]
+		local weaponType = unitDefRings[unitDefID].weapons[weaponNum]
 		--spEcho(weaponType)
 		if weaponType ~= nil  then
 			if  weaponType == 'nuke' then -- antinuke
@@ -239,7 +239,7 @@ local function initializeUnitDefRing(unitDefID)
 				isCylinder,
 				weaponDef.heightBoostFactor or 0,
 				weaponDef.heightMod or 0 }
-			unitDefRings[unitDefID]['rings'][weaponNum] = ringParams
+			unitDefRings[unitDefID].rings[weaponNum] = ringParams
 		end
 	end
 end
@@ -247,119 +247,119 @@ end
 local function initUnitList()
 	local unitDefRingsNames = {
 		-- ARMADA
-		['armclaw'] = { weapons = { 'ground' } },
-		['armllt'] = { weapons = { 'ground' } },
-		['armbeamer'] = { weapons = { 'ground' } },
-		['armhlt'] = { weapons = { 'ground' } },
-		['armguard'] = { weapons = { 'cannon'} },
-		['armrl'] = { weapons = { 'air' } }, --light aa
-		['armferret'] = { weapons = { 'air' } },
-		['armcir'] = { weapons = { 'air' } }, --chainsaw
-		['armdl'] = { weapons = { 'ground' } }, --depthcharge
-		['armjuno'] = { weapons = { 'ground' } },
-		['armtl'] = { weapons = { 'ground' } }, --torp launcher
-		['armfhlt'] = { weapons = { 'ground' } },  --floating hlt
-		['armnavaldefturret'] = { weapons = { 'ground' } },  --cauterizer
-		['armanavaldefturret'] = { weapons = { 'ground' } },  --liquifier
-		['armfrt'] = { weapons = { 'air' } },  --floating rocket laucher
-		['armfflak'] = { weapons = { 'air' } },  --floating flak AA
-		['armatl'] = { weapons = { 'ground' } }, --adv torpedo launcher
-		['armkraken'] = { weapons = { 'cannon' } }, --adv torpedo launcher
+		armclaw = { weapons = { 'ground' } },
+		armllt = { weapons = { 'ground' } },
+		armbeamer = { weapons = { 'ground' } },
+		armhlt = { weapons = { 'ground' } },
+		armguard = { weapons = { 'cannon'} },
+		armrl = { weapons = { 'air' } }, --light aa
+		armferret = { weapons = { 'air' } },
+		armcir = { weapons = { 'air' } }, --chainsaw
+		armdl = { weapons = { 'ground' } }, --depthcharge
+		armjuno = { weapons = { 'ground' } },
+		armtl = { weapons = { 'ground' } }, --torp launcher
+		armfhlt = { weapons = { 'ground' } },  --floating hlt
+		armnavaldefturret = { weapons = { 'ground' } },  --cauterizer
+		armanavaldefturret = { weapons = { 'ground' } },  --liquifier
+		armfrt = { weapons = { 'air' } },  --floating rocket laucher
+		armfflak = { weapons = { 'air' } },  --floating flak AA
+		armatl = { weapons = { 'ground' } }, --adv torpedo launcher
+		armkraken = { weapons = { 'cannon' } }, --adv torpedo launcher
 
-		['armamb'] = { weapons = { 'cannon' } }, --ambusher 'cannon'
-		['armpb'] = { weapons = { 'ground' } }, --pitbull 'cannon'
-		['armanni'] = { weapons = { 'ground' } },
-		['armflak'] = { weapons = { 'air' } },
-		['armmercury'] = { weapons = { 'air' } },
-		['armemp'] = { weapons = { 'ground' } },
-		['armamd'] = { weapons = { 'nuke' } }, --antinuke
+		armamb = { weapons = { 'cannon' } }, --ambusher 'cannon'
+		armpb = { weapons = { 'ground' } }, --pitbull 'cannon'
+		armanni = { weapons = { 'ground' } },
+		armflak = { weapons = { 'air' } },
+		armmercury = { weapons = { 'air' } },
+		armemp = { weapons = { 'ground' } },
+		armamd = { weapons = { 'nuke' } }, --antinuke
 
-		['armbrtha'] = { weapons = { 'lrpc' } },
-		['armvulc'] = { weapons = { 'lrpc' } },
+		armbrtha = { weapons = { 'lrpc' } },
+		armvulc = { weapons = { 'lrpc' } },
 
 		-- CORTEX
-		['cormaw'] = { weapons = { 'ground' } },
-		['corexp'] = { weapons = { 'ground'} },
-		['cormexp'] = { weapons = { 'ground','ground' } },
-		['corllt'] = { weapons = { 'ground' } },
-		['corhllt'] = { weapons = { 'ground' } },
-		['corhlt'] = { weapons = { 'ground' } },
-		['corpun'] = { weapons = { 'cannon'} },
-		['corrl'] = { weapons = { 'air' } },
-		['cormadsam'] = { weapons = { 'air' } },
-		['corerad'] = { weapons = { 'air' } },
-		['cordl'] = { weapons = { 'ground' } },
-		['corjuno'] = { weapons = { 'ground' } },
+		cormaw = { weapons = { 'ground' } },
+		corexp = { weapons = { 'ground'} },
+		cormexp = { weapons = { 'ground','ground' } },
+		corllt = { weapons = { 'ground' } },
+		corhllt = { weapons = { 'ground' } },
+		corhlt = { weapons = { 'ground' } },
+		corpun = { weapons = { 'cannon'} },
+		corrl = { weapons = { 'air' } },
+		cormadsam = { weapons = { 'air' } },
+		corerad = { weapons = { 'air' } },
+		cordl = { weapons = { 'ground' } },
+		corjuno = { weapons = { 'ground' } },
 
-		['corfhlt'] = { weapons = { 'ground' } },  --floating hlt
-		['cornavaldefturret'] = { weapons = { 'ground' } },  --cyclops
-		['coranavaldefturret'] = { weapons = { 'ground' } },  --orthrus
-		['cortl'] = { weapons = { 'ground' } }, --torp launcher
-		['coratl'] = { weapons = { 'ground' } }, --T2 torp launcher
-		['corfrt'] = { weapons = { 'air' } }, --floating rocket laucher
-		['corenaa'] = { weapons = { 'air' } }, --floating flak AA
-		['corfdoom'] = { weapons = { [1] = 'cannon' } },
+		corfhlt = { weapons = { 'ground' } },  --floating hlt
+		cornavaldefturret = { weapons = { 'ground' } },  --cyclops
+		coranavaldefturret = { weapons = { 'ground' } },  --orthrus
+		cortl = { weapons = { 'ground' } }, --torp launcher
+		coratl = { weapons = { 'ground' } }, --T2 torp launcher
+		corfrt = { weapons = { 'air' } }, --floating rocket laucher
+		corenaa = { weapons = { 'air' } }, --floating flak AA
+		corfdoom = { weapons = { [1] = 'cannon' } },
 
-		['cortoast'] = { weapons = { 'cannon' } },
-		['corvipe'] = { weapons = { 'ground' } },
-		['cordoom'] = { weapons = { 'ground', 'ground', 'ground'} },
-		['corflak'] = { weapons = { 'air' } },
-		['corscreamer'] = { weapons = { 'air' } },
-		['cortron'] = { weapons = { 'cannon' } },
-		['corfmd'] = { weapons = { 'nuke' } },
-		['corint'] = { weapons = { 'lrpc' } },
-		['corbuzz'] = { weapons = { 'lrpc' } },
+		cortoast = { weapons = { 'cannon' } },
+		corvipe = { weapons = { 'ground' } },
+		cordoom = { weapons = { 'ground', 'ground', 'ground'} },
+		corflak = { weapons = { 'air' } },
+		corscreamer = { weapons = { 'air' } },
+		cortron = { weapons = { 'cannon' } },
+		corfmd = { weapons = { 'nuke' } },
+		corint = { weapons = { 'lrpc' } },
+		corbuzz = { weapons = { 'lrpc' } },
 
 		-- LEGION
-		['legabm'] = { weapons = { 'nuke' } }, --antinuke
-		['legrampart'] = { weapons = { 'nuke', 'ground' } }, --rampart
-		['leglht'] = { weapons = { 'ground' } }, --llt
-		['legtl'] = { weapons = { 'ground' } }, --torpedo launcher
-		['legcluster'] = { weapons = { 'cannon' } }, --short range arty T1
-		['legacluster'] = { weapons = { 'cannon' } }, --T2 arty
-		['legdtr'] = { weapons = { 'ground' } }, --dragons jaw
-		['leghive'] = { weapons = { 'ground' } }, --Drone-defense
-		['legfhive'] = { weapons = { 'ground' } }, --Drone-defense
-		['legmg'] = { weapons = { 'ground' } }, --ground-AA MG defense
-		['legfmg'] = { weapons = { 'ground' } },  --cyclops
-		['legnavaldefturret'] = { weapons = { 'ground' } },  --cyclops
-		['leganavaldefturret'] = { weapons = { 'ground' } },  --Ionia
-		['legbombard'] = { weapons = { 'ground' } }, --Grenadier defense
-		['legbastion'] = { weapons = { 'ground' } }, --T2 Heatray Tower
-		['legrl'] = { weapons = { 'air' } }, --T1 AA
-		['leglupara'] = { weapons = { 'air' } }, --T1.5 AA
-		['legrhapsis'] = { weapons = { 'air' } }, --T1.5 AA
-		['legflak'] = { weapons = { 'air' } }, --T2 AA FLAK
-		['leglraa'] = { weapons = { 'air' } }, --T2 LR-AA
-		['legperdition'] = { weapons = { 'cannon' } }, --T2 LR-AA
-		['legapopupdef'] = { weapons = { 'ground' } }, --popup riot/minigun turret
-		['leganavaltorpturret'] = { weapons = { 'ground' } }, --torpedo launcher
+		legabm = { weapons = { 'nuke' } }, --antinuke
+		legrampart = { weapons = { 'nuke', 'ground' } }, --rampart
+		leglht = { weapons = { 'ground' } }, --llt
+		legtl = { weapons = { 'ground' } }, --torpedo launcher
+		legcluster = { weapons = { 'cannon' } }, --short range arty T1
+		legacluster = { weapons = { 'cannon' } }, --T2 arty
+		legdtr = { weapons = { 'ground' } }, --dragons jaw
+		leghive = { weapons = { 'ground' } }, --Drone-defense
+		legfhive = { weapons = { 'ground' } }, --Drone-defense
+		legmg = { weapons = { 'ground' } }, --ground-AA MG defense
+		legfmg = { weapons = { 'ground' } },  --cyclops
+		legnavaldefturret = { weapons = { 'ground' } },  --cyclops
+		leganavaldefturret = { weapons = { 'ground' } },  --Ionia
+		legbombard = { weapons = { 'ground' } }, --Grenadier defense
+		legbastion = { weapons = { 'ground' } }, --T2 Heatray Tower
+		legrl = { weapons = { 'air' } }, --T1 AA
+		leglupara = { weapons = { 'air' } }, --T1.5 AA
+		legrhapsis = { weapons = { 'air' } }, --T1.5 AA
+		legflak = { weapons = { 'air' } }, --T2 AA FLAK
+		leglraa = { weapons = { 'air' } }, --T2 LR-AA
+		legperdition = { weapons = { 'cannon' } }, --T2 LR-AA
+		legapopupdef = { weapons = { 'ground' } }, --popup riot/minigun turret
+		leganavaltorpturret = { weapons = { 'ground' } }, --torpedo launcher
 
-		['legstarfall'] = { weapons = { 'lrpc' } },
-		['leglrpc'] = { weapons = { 'lrpc' } },
+		legstarfall = { weapons = { 'lrpc' } },
+		leglrpc = { weapons = { 'lrpc' } },
 
 		-- MOBILE ANTINUKES
-		['armscab'] = { weapons = { 'nuke' } },
-		['armcarry'] = { weapons = { 'nuke' } },
-		['cormabm'] = { weapons = { 'nuke' } },
-		['corcarry'] = { weapons = { 'nuke' } },
-		['legavantinuke'] = { weapons = { 'nuke' } },
-		['armantiship'] = { weapons = { 'nuke' } },
-		['corantiship'] = { weapons = { 'nuke' } },
-		['leganavyantinukecarrier'] = { weapons = { 'nuke' } }, -- NOTE: drone weapon shown in attack ranges
+		armscab = { weapons = { 'nuke' } },
+		armcarry = { weapons = { 'nuke' } },
+		cormabm = { weapons = { 'nuke' } },
+		corcarry = { weapons = { 'nuke' } },
+		legavantinuke = { weapons = { 'nuke' } },
+		armantiship = { weapons = { 'nuke' } },
+		corantiship = { weapons = { 'nuke' } },
+		leganavyantinukecarrier = { weapons = { 'nuke' } }, -- NOTE: drone weapon shown in attack ranges
 
 		-- SCAVENGERS
-		['scavbeacon_t1_scav'] = { weapons = { 'ground' } },
-		['scavbeacon_t2_scav'] = { weapons = { 'ground' } },
-		['scavbeacon_t3_scav'] = { weapons = { 'ground' } },
-		['scavbeacon_t4_scav'] = { weapons = { 'ground' } },
+		scavbeacon_t1_scav = { weapons = { 'ground' } },
+		scavbeacon_t2_scav = { weapons = { 'ground' } },
+		scavbeacon_t3_scav = { weapons = { 'ground' } },
+		scavbeacon_t4_scav = { weapons = { 'ground' } },
 
-		['armannit3'] = { weapons = { 'ground' } },
-		['armminivulc'] = { weapons = { 'ground' } },
+		armannit3 = { weapons = { 'ground' } },
+		armminivulc = { weapons = { 'ground' } },
 
-		['cordoomt3'] = { weapons = { 'ground' } },
-		['corhllllt'] = { weapons = { 'ground' } },
-		['corminibuzz'] = { weapons = { 'ground' } }
+		cordoomt3 = { weapons = { 'ground' } },
+		corhllllt = { weapons = { 'ground' } },
+		corminibuzz = { weapons = { 'ground' } }
 	}
 	-- convert unitname -> unitDefID
 	unitDefRings = {}
@@ -468,8 +468,8 @@ function widget:TextCommand(command)
 			enabled = true
 		end
 		if rangetype == 'ground' then
-			buttonConfig[ally]['ground']=enabled
-			buttonConfig[ally]['cannon']=enabled
+			buttonConfig[ally].ground=enabled
+			buttonConfig[ally].cannon=enabled
 		else
 			buttonConfig[ally][rangetype]=enabled
 		end
@@ -586,22 +586,22 @@ function widget:Initialize()
 		return
 	end
 
-	WG['defrange'] = {}
+	WG.defrange = {}
 	for _,ae in ipairs({'ally','enemy'}) do
 		local Ae = string.upper(string.sub(ae, 1, 1)) .. string.sub(ae, 2)
 		for _,wt in ipairs({'ground','air','nuke'}) do
 			local Wt = string.upper(string.sub(wt, 1, 1)) .. string.sub(wt, 2)
-			WG['defrange']['get'..Ae..Wt] = function() return buttonConfig[ae][wt] end
-			WG['defrange']['set'..Ae..Wt] = function(value)
+			WG.defrange['get'..Ae..Wt] = function() return buttonConfig[ae][wt] end
+			WG.defrange['set'..Ae..Wt] = function(value)
 				if wt == 'ground' then
-					buttonConfig[ae]['ground'] = value
-					buttonConfig[ae]['lrpc'] = value
+					buttonConfig[ae].ground = value
+					buttonConfig[ae].lrpc = value
 				else
 					buttonConfig[ae][wt] = value
 				end
 				spEcho(string.format("Defense Range GL4 Setting %s%s to %s",Ae,Wt, value and 'on' or 'off'))
-				if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
-					widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
+				if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+					widget:VisibleUnitsChanged(WG.unittrackerapi.visibleUnits, nil)
 				end
 			end
 		end
@@ -611,8 +611,8 @@ function widget:Initialize()
 	--spEcho("# of allyteams = ", #allyteamlist)
 	numallyteams = #allyteamlist
 
-	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
-		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
+	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+		widget:VisibleUnitsChanged(WG.unittrackerapi.visibleUnits, nil)
 	end
 end
 
@@ -637,7 +637,7 @@ local function UnitDetected(unitID, unitDefID, unitTeam, noUpload)
 
 	--for weaponNum = 1, #weapons do
 	local addedrings = 0
-	for i, weaponType in pairs(unitDefRings[unitDefID]['weapons']) do
+	for i, weaponType in pairs(unitDefRings[unitDefID].weapons) do
 		local allystring = alliedUnit and "ally" or "enemy"
 		-- We want to continue to maintain ally lists, because these ally lists will be
 		if buttonConfig[allystring][weaponType] or (colorConfig.drawAllyCategoryBuildQueue and (allystring == "ally")) then
@@ -645,7 +645,7 @@ local function UnitDetected(unitID, unitDefID, unitTeam, noUpload)
 			--local weaponType = unitDefRings[unitDefID]['weapons'][weaponNum]
 
 			local weaponID = i
-			local ringParams = unitDefRings[unitDefID]['rings'][i]
+			local ringParams = unitDefRings[unitDefID].rings[i]
 			local x, y, z, mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition(unitID, true, true)
 			local wpx, wpy, wpz, wdx, wdy, wdz = Spring.GetUnitWeaponVectors(unitID, weaponID)
 			--spEcho("Defranges: unitID", unitID,x,y,z,"weaponID", weaponID, "y", y, "mpy",  mpy,"wpy", wpy)
@@ -721,7 +721,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 end
 
 local function checkEnemyUnitConfirmedDead(unitID, defense)
-	local x, y, z = defense["posx"], defense["posy"], defense["posz"]
+	local x, y, z = defense.posx, defense.posy, defense.posz
 	local _, losState, _ = spGetPositionLosState(x, y, z)
 	--spEcho("checkEnemyUnitConfirmedDead",unitID, losState, spGetUnitDefID(unitID), Spring.GetUnitIsDead(unitID))
 	if losState then -- visible
@@ -819,8 +819,8 @@ function widget:PlayerChanged(playerID)
 	if reinit then
 		myAllyTeam = nowmyAllyTeam -- only update if we reinit
 		--spEcho("DefenseRange GL4 allyteam change detected, reinitializing")
-		if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
-			widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
+		if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+			widget:VisibleUnitsChanged(WG.unittrackerapi.visibleUnits, nil)
 		end
 	else
 		--spEcho("No change needed", numallyteams, myAllyTeam)
@@ -902,7 +902,7 @@ function widget:Update(dt)
 				local defense = defenses[unitID]
 				scanned = scanned + 1
 				if defense.allied == false then
-					local x, y, z = defense["posx"], defense["posy"], defense["posz"]
+					local x, y, z = defense.posx, defense.posy, defense.posz
 					local _, losState, _ = spGetPositionLosState(x, y, z)
 					--spEcho("removal",unitID, losState)
 					if losState then
@@ -924,7 +924,7 @@ function widget:Update(dt)
 		if rings then
 			-- find out which VBO to remove from:
 			local allystring = 'ally'
-			for i, weaponType in ipairs(rings['weapons']) do
+			for i, weaponType in ipairs(rings.weapons) do
 				buildDrawOverride[weaponType] = false
 				for j,allyenemy in ipairs(allyenemypairs) do -- remove from all
 					local vaokey = allyenemy .. weaponType
@@ -955,14 +955,14 @@ function widget:Update(dt)
 			if coords and coords[1] and coords[2] and coords[3] then
 				local bpx, bpy, bpz = Spring.Pos2BuildPos(buildUnitDefID, coords[1], coords[2], coords[3])
 				local allystring = 'ally'
-				for i, weaponType in pairs(unitDefRings[buildUnitDefID]['weapons']) do
+				for i, weaponType in pairs(unitDefRings[buildUnitDefID].weapons) do
                    local allystring = "ally"
                    buildDrawOverride[weaponType] = true
                    -- allow rings if either normal ally-rings are on, OR build-queue preview is explicitly enabled
                    if buttonConfig[allystring][weaponType]
                       or colorConfig.drawAllyCategoryBuildQueue
                    then
-                       local ringParams = unitDefRings[buildUnitDefID]['rings'][i]
+                       local ringParams = unitDefRings[buildUnitDefID].rings[i]
                        if ringParams then
                            cacheTable[1] = bpx
                            cacheTable[2] = ringParams[18]
@@ -1056,7 +1056,7 @@ function widget:DrawWorld()
 
 
 	if chobbyInterface then return end
-	if not Spring.IsGUIHidden() and (not WG['topbar'] or not WG['topbar'].showingQuit()) then
+	if not Spring.IsGUIHidden() and (not WG.topbar or not WG.topbar.showingQuit()) then
 		cameraHeightFactor = GetCameraHeightFactor() * 0.5 + 0.5
 		glTexture(0, "$heightmap")
 		glTexture(1, "$info")
@@ -1126,14 +1126,14 @@ end
 --SAVE / LOAD CONFIG FILE
 function widget:GetConfigData()
 	local data = {}
-	data["enabled"] = buttonConfig
+	data.enabled = buttonConfig
 	return data
 end
 
 function widget:SetConfigData(data)
 	if data ~= nil then
-		if data["enabled"] ~= nil then
-			local newconfig = data["enabled"]
+		if data.enabled ~= nil then
+			local newconfig = data.enabled
 			local configstr = ""
 			for allyenemy, weapontypes in pairs(newconfig) do
 				for wt, enabledstate in pairs(weapontypes) do

@@ -295,8 +295,8 @@ function widget:Initialize()
         maybeRemoveSelf()
     end
 
-	WG['easyfacing'] = {}
-	WG['easyfacing'].setForceShow = function(reason, enabled, unitDefID)
+	WG.easyfacing = {}
+	WG.easyfacing.setForceShow = function(reason, enabled, unitDefID)
 		if enabled then
 			forceShow[reason] = unitDefID
 		else
@@ -306,7 +306,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	WG['easyfacing'] = nil
+	WG.easyfacing = nil
 end
 
 function widget:Update()

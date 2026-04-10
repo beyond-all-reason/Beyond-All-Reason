@@ -206,8 +206,8 @@ local THRUSTER_CONFIGS = {
 }
 
 -- Also add starburst variants that share the same CBitmapMuzzleFlame configs
-THRUSTER_CONFIGS["missiletrailsmall-starburst"] = THRUSTER_CONFIGS["missiletrailsmall"]
-THRUSTER_CONFIGS["missiletrailmedium-starburst"] = THRUSTER_CONFIGS["missiletrailmedium"]
+THRUSTER_CONFIGS["missiletrailsmall-starburst"] = THRUSTER_CONFIGS.missiletrailsmall
+THRUSTER_CONFIGS["missiletrailmedium-starburst"] = THRUSTER_CONFIGS.missiletrailmedium
 
 
 -- Build weaponDefID -> config lookup

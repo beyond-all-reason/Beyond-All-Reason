@@ -166,26 +166,26 @@ function gadget:GameFrame(gf)
 
 					if unitDefCanWearHats[unitDefID] then
 
-						if MatchPlayer(halloween, playerName, accountID) and UnitDefNames['cor_hat_hw'] then
-							local hatDefID = UnitDefNames['cor_hat_hw'].id
+						if MatchPlayer(halloween, playerName, accountID) and UnitDefNames.cor_hat_hw then
+							local hatDefID = UnitDefNames.cor_hat_hw.id
 							local unitID = Spring.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
 							gadget:UnitGiven(unitID, hatDefID, teamID)
 						end
 
-						if MatchPlayer(legchamps, playerName, accountID) and UnitDefNames['cor_hat_legfn'] then
-							local hatDefID = UnitDefNames['cor_hat_legfn'].id
+						if MatchPlayer(legchamps, playerName, accountID) and UnitDefNames.cor_hat_legfn then
+							local hatDefID = UnitDefNames.cor_hat_legfn.id
 							local unitID = Spring.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
 							gadget:UnitGiven(unitID, hatDefID, teamID)
 						end
 
-						if MatchPlayer(champion, playerName, accountID) and UnitDefNames['cor_hat_fightnight'] then
-							local hatDefID = UnitDefNames['cor_hat_fightnight'].id
+						if MatchPlayer(champion, playerName, accountID) and UnitDefNames.cor_hat_fightnight then
+							local hatDefID = UnitDefNames.cor_hat_fightnight.id
 							local unitID = Spring.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
 							gadget:UnitGiven(unitID, hatDefID, teamID)
 						end
 
-						if MatchPlayer(vikings, playerName, accountID) and UnitDefNames['cor_hat_viking'] then
-							local hatDefID = UnitDefNames['cor_hat_viking'].id
+						if MatchPlayer(vikings, playerName, accountID) and UnitDefNames.cor_hat_viking then
+							local hatDefID = UnitDefNames.cor_hat_viking.id
 							local unitID = Spring.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
 							gadget:UnitGiven(unitID, hatDefID, teamID)
 						end
@@ -199,17 +199,17 @@ function gadget:GameFrame(gf)
 						if string.sub(UnitDefs[unitDefID].name, 1, 3) == 'arm' then
 							local scriptEnv = Spring.UnitScript.GetScriptEnv(unitID)
 							if scriptEnv then
-								if MatchPlayer(kings, playerName, accountID) and scriptEnv['ShowCrown'] then
-									Spring.UnitScript.CallAsUnit(unitID, scriptEnv['ShowCrown'], true)
+								if MatchPlayer(kings, playerName, accountID) and scriptEnv.ShowCrown then
+									Spring.UnitScript.CallAsUnit(unitID, scriptEnv.ShowCrown, true)
 								end
-								if MatchPlayer(goldMedals, playerName, accountID) and scriptEnv['ShowMedalGold'] then
-									Spring.UnitScript.CallAsUnit(unitID, scriptEnv['ShowMedalGold'], true)
+								if MatchPlayer(goldMedals, playerName, accountID) and scriptEnv.ShowMedalGold then
+									Spring.UnitScript.CallAsUnit(unitID, scriptEnv.ShowMedalGold, true)
 								end
-								if MatchPlayer(silverMedals, playerName, accountID) and scriptEnv['ShowMedalSilver'] then
-									Spring.UnitScript.CallAsUnit(unitID, scriptEnv['ShowMedalSilver'], true)
+								if MatchPlayer(silverMedals, playerName, accountID) and scriptEnv.ShowMedalSilver then
+									Spring.UnitScript.CallAsUnit(unitID, scriptEnv.ShowMedalSilver, true)
 								end
-								if MatchPlayer(bronzeMedals, playerName, accountID) and scriptEnv['ShowMedalBronze'] then
-									Spring.UnitScript.CallAsUnit(unitID, scriptEnv['ShowMedalBronze'], true)
+								if MatchPlayer(bronzeMedals, playerName, accountID) and scriptEnv.ShowMedalBronze then
+									Spring.UnitScript.CallAsUnit(unitID, scriptEnv.ShowMedalBronze, true)
 								end
 							end
 						else

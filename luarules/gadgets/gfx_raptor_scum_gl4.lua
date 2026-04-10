@@ -889,12 +889,12 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then	-- UNSYNCED
 		local df = Spring.GetDrawFrame()
 		if df == lastSunChanged then return end
 		lastSunChanged = df
-		if GG['NightFactor'] then
+		if GG.NightFactor then
 			local altitudefactor = 1.0 --+ (1.0 - WG['NightFactor'].altitude) * 0.5
-			nightFactor[1] = GG['NightFactor'].red
-			nightFactor[2] = GG['NightFactor'].green
-			nightFactor[3] = GG['NightFactor'].blue
-			nightFactor[4] = GG['NightFactor'].shadow
+			nightFactor[1] = GG.NightFactor.red
+			nightFactor[2] = GG.NightFactor.green
+			nightFactor[3] = GG.NightFactor.blue
+			nightFactor[4] = GG.NightFactor.shadow
 		end
 	end
 

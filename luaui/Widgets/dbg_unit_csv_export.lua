@@ -104,8 +104,8 @@ function widget:Initialize()
         end
     end
 
-    local inBuildoptions = buildTree(UnitDefNames["armcom"].id, {})
-    inBuildoptions = buildTree(UnitDefNames["corcom"].id, inBuildoptions)
+    local inBuildoptions = buildTree(UnitDefNames.armcom.id, {})
+    inBuildoptions = buildTree(UnitDefNames.corcom.id, inBuildoptions)
 
     for udid, unitDef in pairs(UnitDefs) do
         if inBuildoptions[udid] or unitDef.name == 'armcom' or unitDef.name == 'corcom' or unitDef.name == 'legcom' then
@@ -119,7 +119,7 @@ function widget:Initialize()
             --if string.sub(unitDef.name, 1, 3) == 'leg' then
             --    faction = 'LEGION'
             --end
-            if unitDef.modCategories["raptor"] then
+            if unitDef.modCategories.raptor then
                 faction = 'CHICKS'
             end
             if string.find(unitDef.name, "_scav") then
@@ -222,10 +222,10 @@ function widget:Initialize()
                                     weapName = 'EMP-StarburstLauncher'
                                 end
                             else
-								if weaponDef.damages[Game.armorTypes["vtol"]] > weaponDef.damages[Game.armorTypes["default"] or 0] then
-									dps = dps + (((weaponDef.damages[Game.armorTypes["vtol"]]*(1/weaponDef.reload)) * weaponDef.salvoSize) * weaponDef.projectiles)
+								if weaponDef.damages[Game.armorTypes.vtol] > weaponDef.damages[Game.armorTypes.default or 0] then
+									dps = dps + (((weaponDef.damages[Game.armorTypes.vtol]*(1/weaponDef.reload)) * weaponDef.salvoSize) * weaponDef.projectiles)
                                 else
-                                    dps = dps + (((weaponDef.damages[Game.armorTypes["default"] or 0]*(1/weaponDef.reload)) * weaponDef.salvoSize) * weaponDef.projectiles)
+                                    dps = dps + (((weaponDef.damages[Game.armorTypes.default or 0]*(1/weaponDef.reload)) * weaponDef.salvoSize) * weaponDef.projectiles)
                                 end
                             end
                             if weaponTable[weapName] then
@@ -255,7 +255,7 @@ function widget:Initialize()
                 if unitDef.customParams.unitgroup and unitDef.customParams.unitgroup == 'explo' and unitDef.deathExplosion and WeaponDefNames[unitDef.deathExplosion] then
                     local weapon = WeaponDefs[WeaponDefNames[unitDef.deathExplosion].id]
                     if weapon then
-                        dps = weapon.damages[Game.armorTypes["default"]]
+                        dps = weapon.damages[Game.armorTypes.default]
                     end
                 end
 
@@ -320,13 +320,13 @@ function widget:Initialize()
                     unitDef.buildSpeed..columnSeparator..
                     round(unitDef.speed, 0)..columnSeparator..
                     unitDef.health..columnSeparator..
-                    ((unitDef.modCategories["phib"] ~= nil or (unitDef.modCategories["canbeuw"] ~= nil and unitDef.modCategories["underwater"] == nil)) and '1' or '')..columnSeparator..
-                    ((unitDef.modCategories["underwater"] ~= nil) and '1' or '')..columnSeparator..
+                    ((unitDef.modCategories.phib ~= nil or (unitDef.modCategories.canbeuw ~= nil and unitDef.modCategories.underwater == nil)) and '1' or '')..columnSeparator..
+                    ((unitDef.modCategories.underwater ~= nil) and '1' or '')..columnSeparator..
                     (unitDef.canFly and '1' or '')..columnSeparator..
-                    (unitDef.modCategories["hover"] and '1' or '')..columnSeparator..
-                    (unitDef.modCategories["ship"] and '1' or '')..columnSeparator..
-                    (unitDef.modCategories["tank"] and '1' or '')..columnSeparator..
-                    (unitDef.modCategories["bot"] and '1' or '')..columnSeparator..
+                    (unitDef.modCategories.hover and '1' or '')..columnSeparator..
+                    (unitDef.modCategories.ship and '1' or '')..columnSeparator..
+                    (unitDef.modCategories.tank and '1' or '')..columnSeparator..
+                    (unitDef.modCategories.bot and '1' or '')..columnSeparator..
                     ((unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0) and '1' or '')..columnSeparator..
                     dps..columnSeparator..
                     weaponRange..columnSeparator..

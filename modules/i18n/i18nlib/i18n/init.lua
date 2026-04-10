@@ -161,9 +161,9 @@ function i18n.translate(key, data)
     missingTranslations[key] = { }
   end
   local missingTranslation = missingTranslations[key]
-  if not missingTranslation["_all"] and data.default == nil then
+  if not missingTranslation._all and data.default == nil then
     Spring.Log("i18n", "notice", "No translation found for \"" .. key .. "\"")
-    missingTranslation["_all"] = true
+    missingTranslation._all = true
   end
   return data.default or key
 end

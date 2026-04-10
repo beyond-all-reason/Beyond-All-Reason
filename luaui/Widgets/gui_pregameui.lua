@@ -159,7 +159,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 
 	vsx, vsy = spGetViewGeometry()
 
-	font = WG['fonts'].getFont(2)
+	font = WG.fonts.getFont(2)
 
 	uiScale = (0.75 + (vsx * vsy / 6000000))
 	buttonX = mathFloor(vsx * buttonPosX)
@@ -332,8 +332,8 @@ function widget:Initialize()
 	widget:ViewResize(vsx, vsy)
 	checkStartPointChosen()
 	
-	WG['pregameui'] = {}
-	WG['pregameui'].addReadyCondition = function(conditionKey, description)
+	WG.pregameui = {}
+	WG.pregameui.addReadyCondition = function(conditionKey, description)
 		if conditionKey and description then
 			readyBlockedConditions[conditionKey] = description
 			isReadyBlocked = true
@@ -341,14 +341,14 @@ function widget:Initialize()
 			createButton()
 		end
 	end
-	WG['pregameui'].removeReadyCondition = function(conditionKey)
+	WG.pregameui.removeReadyCondition = function(conditionKey)
 		if conditionKey and readyBlockedConditions[conditionKey] then
 			readyBlockedConditions[conditionKey] = nil
 			updateReadyTooltip()
 			createButton()
 		end
 	end
-	WG['pregameui'].clearAllReadyConditions = function()
+	WG.pregameui.clearAllReadyConditions = function()
 		readyBlockedConditions = {}
 		isReadyBlocked = false
 		updateReadyTooltip()
@@ -361,8 +361,8 @@ function widget:DrawScreen()
 		checkStartPointChosen()
 	end
 
-	if WG['guishader'] then
-		WG['guishader'].RemoveRect('pregameui')
+	if WG.guishader then
+		WG.guishader.RemoveRect('pregameui')
 	end
 
 	buttonDrawn = false
@@ -414,8 +414,8 @@ function widget:DrawScreen()
 		end
 
 		buttonDrawn = true
-		if WG['guishader'] then
-			WG['guishader'].InsertRect(
+		if WG.guishader then
+			WG.guishader.InsertRect(
 				uiElementRect[1],
 				uiElementRect[2],
 				uiElementRect[3],
@@ -431,8 +431,8 @@ function widget:DrawScreen()
 			gl.CallList(buttonHoverList)
 			colorString = "\255\210\210\210"
 			
-			if isReadyBlocked and WG['tooltip'] then
-				WG['tooltip'].ShowTooltip('pregameui', cachedTooltipText)
+			if isReadyBlocked and WG.tooltip then
+				WG.tooltip.ShowTooltip('pregameui', cachedTooltipText)
 			end
 		else
 			gl.CallList(buttonList)
@@ -485,8 +485,8 @@ function widget:DrawWorld()
 	for i = 1, #teamList do
 		local teamID = teamList[i]
 		local tsx, tsy, tsz
-		if WG['map_startbox'] and WG['map_startbox'].GetEffectiveStartPosition then
-			tsx, tsy, tsz = WG['map_startbox'].GetEffectiveStartPosition(teamID)
+		if WG.map_startbox and WG.map_startbox.GetEffectiveStartPosition then
+			tsx, tsy, tsz = WG.map_startbox.GetEffectiveStartPosition(teamID)
 		else
 			tsx, tsy, tsz = Spring.GetTeamStartPosition(teamID)
 		end
@@ -507,13 +507,13 @@ end
 function widget:Shutdown()
 	gl.DeleteList(buttonList)
 	gl.DeleteList(buttonHoverList)
-	if WG['guishader'] then
-		WG['guishader'].RemoveRect('pregameui')
+	if WG.guishader then
+		WG.guishader.RemoveRect('pregameui')
 	end
 	if WG.StopDrawUnitShapeGL4 then
 		for id, _ in pairs(unitshapes) do
 			removeUnitShape(id)
 		end
 	end
-	WG['pregameui'] = nil
+	WG.pregameui = nil
 end

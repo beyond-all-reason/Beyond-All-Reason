@@ -1,7 +1,7 @@
 -- lava-splash
 
 return {
-  ["lavasplash"] = {
+  lavasplash = {
     waterring = {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
@@ -173,7 +173,7 @@ return {
     },
   },
 
-  ["lavadamage"] = {
+  lavadamage = {
     waterring = {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],

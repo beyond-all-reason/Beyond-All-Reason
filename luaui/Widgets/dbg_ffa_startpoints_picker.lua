@@ -655,8 +655,8 @@ local function initializeUI()
   panelHotkeys.panelWidth = 15.7 * (padding + textSizeText)
   panelHotkeys.panelHeight = 5.75 * (padding + textSizeText) - padding
   panelHotkeys.px = vsx * 0.75 - panelHotkeys.panelWidth
-  if WG['advplayerlist_api'] then
-    local advPlayerListLeft = WG['advplayerlist_api'].GetPosition()[2]
+  if WG.advplayerlist_api then
+    local advPlayerListLeft = WG.advplayerlist_api.GetPosition()[2]
     panelHotkeys.px = advPlayerListLeft - panelHotkeys.panelWidth - WG.FlowUI.elementMargin
   end
   panelHotkeys.py = 0

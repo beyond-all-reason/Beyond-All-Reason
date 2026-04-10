@@ -18,14 +18,14 @@ local pointsToErase = {}
 local recentlyErased = {}
 
 function widget:Initialize()
-	WG['autoeraser'] = {}
-	WG['autoeraser'].getEraseTime = function()
+	WG.autoeraser = {}
+	WG.autoeraser.getEraseTime = function()
 		return eraseTime
 	end
-	WG['autoeraser'].setEraseTime = function(value)
+	WG.autoeraser.setEraseTime = function(value)
 		eraseTime = value
 	end
-	WG['autoeraser'].getRecentlyErased = function(value)	-- so mapmarks fx widget can call this and wont activate on auto erasing
+	WG.autoeraser.getRecentlyErased = function(value)	-- so mapmarks fx widget can call this and wont activate on auto erasing
 		return recentlyErased
 	end
 end
