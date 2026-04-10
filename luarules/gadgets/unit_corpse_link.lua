@@ -27,7 +27,7 @@ local function getPositionHash(x, z)
 end
 
 local function GetFeatureResurrectDefID(featureID)
-	local resurrectUnitName = Spring.GetFeatureResurrect(featureID)
+	local resurrectUnitName = SpringShared.GetFeatureResurrect(featureID)
 	if not resurrectUnitName then
 		return
 	end
@@ -50,7 +50,7 @@ local function GetCorpsePriorUnitID(featureID)
 		return
 	end
 
-	local x, y, z = Spring.GetFeaturePosition(featureID)
+	local x, y, z = SpringShared.GetFeaturePosition(featureID)
 	local positionHash = getPositionHash(x, z)
 	local corpseLink = unitDefLink[positionHash]
 	if not corpseLink then
@@ -67,7 +67,7 @@ function gadget:UnitDestroyed(unitID, unitDefID)
 		unitDefLink = {}
 		corpseRegistryByDefID[unitDefID] = unitDefLink
 	end
-	local x, y, z = Spring.GetUnitPosition(unitID)
+	local x, y, z = SpringShared.GetUnitPosition(unitID)
 	if not x then
 		return
 	end
@@ -75,7 +75,7 @@ function gadget:UnitDestroyed(unitID, unitDefID)
 	local positionHash = getPositionHash(x, z)
 	unitDefLink[positionHash] = {
 		unitID = unitID,
-		timeout = Spring.GetGameFrame() + CORPSE_LINK_TIMEOUT
+		timeout = SpringShared.GetGameFrame() + CORPSE_LINK_TIMEOUT
 	}
 end
 

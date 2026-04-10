@@ -93,16 +93,16 @@ function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
 	-- hide all but the choosen hat
 	local numberOfHats = hatCounts[unitDefID]
 	if numberOfHats then
-		local unitPieceList = Spring.GetUnitPieceMap(unitID)
+		local unitPieceList = SpringShared.GetUnitPieceMap(unitID)
 		-- @NOTE: current formula means all units will have a hat
 		local hatRoll = unitCount % numberOfHats + 1
 		for i = 1, numberOfHats do
 			if i ~= hatRoll then
-				Spring.SetUnitPieceVisible(unitID, unitPieceList["h"..i], false)
+				SpringSynced.SetUnitPieceVisible(unitID, unitPieceList["h"..i], false)
 			else
 				-- hats should be zeroed so that when on 0,0,0 they are where they should be, otherwise buried in the ground
 				-- (the 16 numbers is a matrix that positions them at 0,0,0, of scale 1,1,1, unrotated (rotation gets baked in, in upspring))
-				Spring.SetUnitPieceMatrix(unitID, unitPieceList["h"..i], { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1})
+				SpringSynced.SetUnitPieceMatrix(unitID, unitPieceList["h"..i], { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1})
 			end
 		end
 	end

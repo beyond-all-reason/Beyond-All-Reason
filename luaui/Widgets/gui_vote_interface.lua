@@ -18,8 +18,8 @@ local mathFloor = math.floor
 local mathMax = math.max
 
 -- Localized Spring API for performance
-local spGetMouseState = Spring.GetMouseState
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetMouseState = SpringUnsynced.GetMouseState
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
 local L_DEPRECATED = LOG.DEPRECATED
 
@@ -36,12 +36,12 @@ local voteTimeout = 75	-- fallback timeout in case vote is aborted undetected
 
 local vsx, vsy = spGetViewGeometry()
 
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+local ui_scale = tonumber(SpringUnsynced.GetConfigFloat("ui_scale", 1) or 1)
 
 local myPlayerID = Spring.GetMyPlayerID()
-local myPlayerName, _, mySpec, myTeamID, myAllyTeamID = Spring.GetPlayerInfo(myPlayerID, false)
+local myPlayerName, _, mySpec, myTeamID, myAllyTeamID = SpringShared.GetPlayerInfo(myPlayerID, false)
 
-local isreplay = Spring.IsReplay()
+local isreplay = SpringUnsynced.IsReplay()
 
 local ColorString = Spring.Utilities.Color.ToString
 local math_isInRect = math.isInRect
@@ -63,9 +63,9 @@ local minimized = false
 local voteStartTime
 
 local function isTeamPlayer(playerName)
-	local players = Spring.GetPlayerList()
+	local players = SpringShared.GetPlayerList()
 	for _, pID in ipairs(players) do
-		local name, _, _, _, allyTeamID = Spring.GetPlayerInfo(pID, false)
+		local name, _, _, _, allyTeamID = SpringShared.GetPlayerInfo(pID, false)
 		if name == playerName then
 			if allyTeamID == myAllyTeamID then
 				return true
@@ -310,8 +310,8 @@ function widget:ViewResize()
 end
 
 function widget:PlayerChanged(playerID)
-	mySpec = Spring.GetSpectatingState()
-	myPlayerName, _, mySpec, myTeamID, myAllyTeamID = Spring.GetPlayerInfo(myPlayerID, false)
+	mySpec = SpringUnsynced.GetSpectatingState()
+	myPlayerName, _, mySpec, myTeamID, myAllyTeamID = SpringShared.GetPlayerInfo(myPlayerID, false)
 end
 
 local debug = false
@@ -368,13 +368,13 @@ function widget:GameFrame(n)
 	if n > 0 and not gameStarted then
 		gameStarted = true
 		myPlayerID = Spring.GetMyPlayerID()
-		myPlayerName, _, mySpec, myTeamID, myAllyTeamID = Spring.GetPlayerInfo(myPlayerID, false)
+		myPlayerName, _, mySpec, myTeamID, myAllyTeamID = SpringShared.GetPlayerInfo(myPlayerID, false)
 	end
 	widgetHandler:RemoveCallIn('GameFrame')
 end
 
 local function colourNames(teamID)
-	local nameColourR, nameColourG, nameColourB, nameColourA = Spring.GetTeamColor(teamID)
+	local nameColourR, nameColourG, nameColourB, nameColourA = SpringUnsynced.GetTeamColor(teamID)
 	--if (not mySpecStatus) and anonymousMode ~= "disabled" and teamID ~= myTeamID then
 	--	nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 	--end
@@ -399,9 +399,9 @@ function widget:AddConsoleLine(lines, priority)
 					-- find who started the vote, and see if we're allied
 					local ownerPlayername = false
 					local alliedWithVoteOwner = false
-					local players = Spring.GetPlayerList()
+					local players = SpringShared.GetPlayerList()
 					for _, playerID in ipairs(players) do
-						local playerName, _, spec, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, false)
+						local playerName, _, spec, teamID, allyTeamID = SpringShared.GetPlayerInfo(playerID, false)
 						if sfind(line, string.gsub(playerName, "%p", "%%%1") .. " called a vote ") then
 							ownerPlayername = playerName
 							if allyTeamID == myAllyTeamID then
@@ -441,9 +441,9 @@ function widget:AddConsoleLine(lines, priority)
 
 					-- colorize playername
 					if isResignVote or isResignVoteMyTeam then
-						local players = Spring.GetPlayerList()
+						local players = SpringShared.GetPlayerList()
 						for _, pID in ipairs(players) do
-							local name, _, spec, teamID, allyTeamID = Spring.GetPlayerInfo(pID, false)
+							local name, _, spec, teamID, allyTeamID = SpringShared.GetPlayerInfo(pID, false)
 							name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(pID)) or name
 							local pos = sfind(title, ' '..name..' ', nil, true)
 							if pos then
@@ -548,18 +548,18 @@ function widget:MousePress(x, y, button)
 	if voteDlist and eligibleToVote and not voteEndText and button == 1 then
 		if math_isInRect(x, y, windowArea[1], windowArea[2], windowArea[3], windowArea[4]) then
 			if not weAreVoteOwner and math_isInRect(x, y, yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4]) then
-				Spring.SendCommands("say !vote y")
+				SpringUnsynced.SendCommands("say !vote y")
 				MinimizeVote()
 			elseif math_isInRect(x, y, noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4]) then
 				if weAreVoteOwner then
-					Spring.SendCommands("say !endvote")
+					SpringUnsynced.SendCommands("say !endvote")
 					MinimizeVote()
 				else
-					Spring.SendCommands("say !vote n")
+					SpringUnsynced.SendCommands("say !vote n")
 					MinimizeVote()
 				end
 			elseif math_isInRect(x, y, closeButtonArea[1], closeButtonArea[2], closeButtonArea[3], closeButtonArea[4]) then
-				Spring.SendCommands("say !vote b")
+				SpringUnsynced.SendCommands("say !vote b")
 				MinimizeVote()
 			end
 			return true

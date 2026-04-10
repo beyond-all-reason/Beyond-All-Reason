@@ -15,7 +15,7 @@ end
 
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 -- Key Idea: make a 1/2 or 1/4 sized texture 'stencil buffer' that can be used for units and features.
 -- Draw features first at 0.5, then units at 1.0, clear if no draw happened
@@ -200,7 +200,7 @@ local resolution = 4
 local vsx, vsy  
 function widget:ViewResize()
     local GL_R8 = 0x8229
-    vsx, vsy = Spring.GetViewGeometry()
+    vsx, vsy = SpringUnsynced.GetViewGeometry()
     if unitFeatureStencilTex then gl.DeleteTexture(unitFeatureStencilTex) end
     unitFeatureStencilTex = gl.CreateTexture(vsx/resolution, vsy/resolution, {
 		--format = GL.RGBA8,
@@ -311,7 +311,7 @@ function widget:VisibleUnitRemoved(unitID)
 end
 
 function widget:FeatureCreated(featureID, allyTeam)
-    local featureDefID = Spring.GetFeatureDefID(featureID)
+    local featureDefID = SpringShared.GetFeatureDefID(featureID)
     --spEcho(featureDefID, featureID)
 
     if featureDimensionsXYZ[featureDefID] == nil then
@@ -412,7 +412,7 @@ function widget:Initialize()
 		for unitID, unitDefID in pairs(visibleUnits) do
 			widget:VisibleUnitAdded(unitID, unitDefID)
 		end
-        for _, featureID in ipairs(Spring.GetAllFeatures()) do
+        for _, featureID in ipairs(SpringShared.GetAllFeatures()) do
             widget:FeatureCreated(featureID)
         end
 	end

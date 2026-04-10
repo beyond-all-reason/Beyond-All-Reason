@@ -27,8 +27,8 @@ local color
 --speedups
 --------------------------------------------------------------------------------
 local CMD_UNLOAD_UNITS = CMD.UNLOAD_UNITS
-local spGetActiveCmd = Spring.GetActiveCommand
-local GetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
+local spGetActiveCmd = SpringUnsynced.GetActiveCommand
+local GetSelectedUnitsSorted = SpringUnsynced.GetSelectedUnitsSorted
 local glColor = gl.Color
 local glLineWidth = gl.LineWidth
 local glDrawGroundCircle = gl.DrawGroundCircle
@@ -104,8 +104,8 @@ function widget:DrawWorldPreUnit()
 	local turret = isTurret[ranges[1].unitDefID]
 	color = turret and colors.turret or colors.tower
 	--Spring.Echo(transportWithBuilding[unitId])
-	local mouseX, mouseY = Spring.GetMouseState()
-	local desc, args = Spring.TraceScreenRay(mouseX, mouseY, true)
+	local mouseX, mouseY = SpringUnsynced.GetMouseState()
+	local desc, args = SpringUnsynced.TraceScreenRay(mouseX, mouseY, true)
 	if desc == nil then return end
 	local x, y, z = args[1], args[2], args[3]
 	DrawNanoRange(x, y, z, range)

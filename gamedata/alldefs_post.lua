@@ -76,7 +76,7 @@ end
 
 function UnitDef_Post(name, uDef)
 	if not modOptions then
-		modOptions = Spring.GetModOptions()
+		modOptions = SpringShared.GetModOptions()
 	end
 
 	-- Cache holiday checks for performance
@@ -1700,10 +1700,10 @@ function UnitDef_Post(name, uDef)
 			if oldscript:find(".cob", nil, true) and (not oldscript:find("_clean.", nil, true)) then
 				local newscript = string.sub(oldscript, 1, -5) .. "_clean.cob"
 				if VFS.FileExists('scripts/'..newscript) then
-					Spring.Echo("Using new script for", name, oldscript, '->', newscript)
+					SpringShared.Echo("Using new script for", name, oldscript, '->', newscript)
 					uDef.script = newscript
 				else
-					Spring.Echo("Unable to find new script for", name, oldscript, '->', newscript, "using old one")
+					SpringShared.Echo("Unable to find new script for", name, oldscript, '->', newscript, "using old one")
 				end
 			end
 		end
@@ -1713,7 +1713,7 @@ function UnitDef_Post(name, uDef)
 		-- Remove invalid unit defs.
 		for index, option in pairs(buildoptions) do
 			if not UnitDefs[option] then
-				Spring.Log("AllDefs", LOG.INFO, "Removed buildoption (unit not loaded?): " .. tostring(option))
+				SpringShared.Log("AllDefs", LOG.INFO, "Removed buildoption (unit not loaded?): " .. tostring(option))
 				buildoptions[index] = nil
 			end
 		end
@@ -1790,7 +1790,7 @@ end
 -- process weapondef
 function WeaponDef_Post(name, wDef)
 	if not modOptions then
-		modOptions = Spring.GetModOptions()
+		modOptions = SpringShared.GetModOptions()
 	end
 	if isXmas == nil then
 		isXmas = Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"]
@@ -2129,13 +2129,13 @@ end
 function ModOptions_Post (UnitDefs, WeaponDefs)
 
 	-- transporting enemy coms
-	if Spring.GetModOptions().transportenemy == "notcoms" then
+	if SpringShared.GetModOptions().transportenemy == "notcoms" then
 		for name, ud in pairs(UnitDefs) do
 			if ud.customparams.iscommander then
 				ud.transportbyenemy = false
 			end
 		end
-	elseif Spring.GetModOptions().transportenemy == "none" then
+	elseif SpringShared.GetModOptions().transportenemy == "none" then
 		for name, ud in pairs(UnitDefs) do
 			ud.transportbyenemy = false
 		end

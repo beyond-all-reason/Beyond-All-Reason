@@ -26,12 +26,12 @@ local mathAbs = math.abs
 local mathMin = math.min
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spEcho = Spring.Echo
+local spGetGameFrame = SpringShared.GetGameFrame
+local spEcho = SpringShared.Echo
 
 ---------------------------Speedups-----------------------------
-local spGetTimer = Spring.GetTimer
-local spDiffTimers = Spring.DiffTimers
+local spGetTimer = SpringUnsynced.GetTimer
+local spDiffTimers = SpringUnsynced.DiffTimers
 ---------------------------Internal vars---------------------------
 local timerstart = nil
 ----------------------------GL4 vars----------------------------
@@ -157,8 +157,8 @@ function widget:Initialize()
    spEcho("Failed to compile shaders for: frame grapher v2")
    widgetHandler:RemoveWidget(self)
   end
-  timerstart = Spring.GetTimerMicros()
-  timerold = Spring.GetTimerMicros()
+  timerstart = SpringUnsynced.GetTimerMicros()
+  timerold = SpringUnsynced.GetTimerMicros()
 end
 
 function widget:Shutdown()
@@ -176,7 +176,7 @@ local eventBuffer = {}
 -- Even types are : "sim","update", "draw", "swap", params are start, duration, type
 
 local lastCallin = 'DrawGenesis'
-local lastTime = Spring.GetTimerMicros()
+local lastTime = SpringUnsynced.GetTimerMicros()
 
 local frametypeidx = {
   sim = 1, -- 
@@ -226,7 +226,7 @@ local nowToPrevToFrameType = {
 }
 local function nowEvent(e)
     local frameType = nowToPrevToFrameType[e][lastCallin]
-      local nowTime = Spring.GetTimerMicros()
+      local nowTime = SpringUnsynced.GetTimerMicros()
     if frameType ~= "error" then
       local lastframetime = spDiffTimers(nowTime, timerstart, nil, true) * 1000 -- in MILLISECONDS
       local lastframeduration = spDiffTimers(nowTime, lastTime, nil, true) * 1000 -- in MILLISECONDS
@@ -323,7 +323,7 @@ function widget:DrawScreen()
 
   rectShader:Activate()
    -- We should be setting individual uniforms AFTER activate
-  local shadertime = spDiffTimers(Spring.GetTimerMicros(), timerstart, nil, true) * 1000 -- in MILLISECONDS
+  local shadertime = spDiffTimers(SpringUnsynced.GetTimerMicros(), timerstart, nil, true) * 1000 -- in MILLISECONDS
   rectShader:SetUniform("shaderparams", shadertime,0,0,0)
   drawInstanceVBO(rectInstanceTable)
   rectShader:Deactivate()

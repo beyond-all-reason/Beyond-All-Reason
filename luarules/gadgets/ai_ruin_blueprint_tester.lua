@@ -57,7 +57,7 @@ if gadgetHandler:IsSyncedCode() then
                         lastposX = lastposX+high_radius*3
                         lastposZ = lastposZ
                     end
-                    Spring.MarkerAddPoint(blueprintpositions[i].posx, Spring.GetGroundHeight(blueprintpositions[i].posx, blueprintpositions[i].posz), blueprintpositions[i].posz , "#"..i )
+                    SpringUnsynced.MarkerAddPoint(blueprintpositions[i].posx, SpringShared.GetGroundHeight(blueprintpositions[i].posx, blueprintpositions[i].posz), blueprintpositions[i].posz , "#"..i )
                 end
 
                 for i = 1,#blueprints do
@@ -80,21 +80,21 @@ if gadgetHandler:IsSyncedCode() then
         if #queue > 0 then
             local unitDefID = queue[1].unitDefID
             if unitDefID then
-                Spring.Echo("UnitDefID: "..unitDefID)
+                SpringShared.Echo("UnitDefID: "..unitDefID)
                 local basePosX = queue[1].basePosX
-                Spring.Echo("basePosX: "..basePosX)
+                SpringShared.Echo("basePosX: "..basePosX)
                 local basePosZ = queue[1].basePosZ
-                Spring.Echo("basePosZ: "..basePosZ)
+                SpringShared.Echo("basePosZ: "..basePosZ)
                 local xOffset = queue[1].xOffset
-                Spring.Echo("xOffset: "..xOffset)
+                SpringShared.Echo("xOffset: "..xOffset)
                 local zOffset = queue[1].zOffset
-                Spring.Echo("zOffset: "..zOffset)
+                SpringShared.Echo("zOffset: "..zOffset)
                 local direction = queue[1].direction
-                Spring.Echo("direction: "..direction)
+                SpringShared.Echo("direction: "..direction)
                 local nonscavname = string.gsub(UnitDefs[unitDefID].name, "_scav", "")
 				if UnitDefNames[nonscavname] then
 					local nonscavDefID = UnitDefNames[nonscavname].id
-					Spring.CreateUnit(nonscavDefID, basePosX+xOffset, Spring.GetGroundHeight(basePosX+xOffset, basePosZ+zOffset), basePosZ+zOffset, direction, 0)
+					SpringSynced.CreateUnit(nonscavDefID, basePosX+xOffset, SpringShared.GetGroundHeight(basePosX+xOffset, basePosZ+zOffset), basePosZ+zOffset, direction, 0)
 				end
             end
             table.remove(queue, 1)
@@ -112,9 +112,9 @@ else
 
     function RequestScavTest(cmd, line, words, playerID)
         if words and #words == 1 then
-            Spring.SendLuaRulesMsg(cmdname .. " "..words[1])
+            SpringUnsynced.SendLuaRulesMsg(cmdname .. " "..words[1])
         else
-            Spring.SendMessageToPlayer(playerID, "Please specify which file you want to spawn (Enter the filename only without .lua)")
+            SpringUnsynced.SendMessageToPlayer(playerID, "Please specify which file you want to spawn (Enter the filename only without .lua)")
         end
     end
 

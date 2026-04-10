@@ -1,4 +1,4 @@
-Spring.Echo("Enabled generic atmosphere config")
+SpringShared.Echo("Enabled generic atmosphere config")
 
 local math_random = math.random
 

@@ -30,9 +30,9 @@ function gadget:Initialize()
 	Script.SetWatchExplosion(-1, true) -- well that doesnt register anything!
 end
 
-local spGetProjectileType = Spring.GetProjectileType
-local spSpawnCEG = Spring.SpawnCEG
-local spGetProjectilePosition = Spring.GetProjectilePosition
+local spGetProjectileType = SpringShared.GetProjectileType
+local spSpawnCEG = SpringSynced.SpawnCEG
+local spGetProjectilePosition = SpringShared.GetProjectilePosition
 
 function gadget:ProjectileDestroyed(proID) -- Catch debris explosions, get position, pick random ceg, spawn it at position.
 	local weapon, piece = spGetProjectileType(proID)

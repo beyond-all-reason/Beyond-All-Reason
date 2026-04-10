@@ -2,7 +2,7 @@
 -- Try to keep resolution as low as you can get away with and for small zones.
 -- Remember changes in terrain will invalidate the grid. Re-generations are expensive.
 
-local spGetGroundNormal = Spring.GetGroundNormal
+local spGetGroundNormal = SpringShared.GetGroundNormal
 local floor = math.floor
 local distance2dSquared = math.distance2dSquared
 

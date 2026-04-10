@@ -16,8 +16,8 @@ function gadget:GetInfo()
   }
 end
 
-local spEditUnitCmdDesc = Spring.EditUnitCmdDesc
-local spFindUnitCmdDesc   = Spring.FindUnitCmdDesc
+local spEditUnitCmdDesc = SpringSynced.EditUnitCmdDesc
+local spFindUnitCmdDesc   = SpringShared.FindUnitCmdDesc
 
 VFS.Include("luarules/configs/onoffdescs.lua")
 onoffNames = {}
@@ -39,8 +39,8 @@ function gadget:UnitCreated(unitID, unitDefID)
 end
 
 function gadget:Initialize()
-	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		local unitDefID = Spring.GetUnitDefID(unitID)
+	for _, unitID in ipairs(SpringShared.GetAllUnits()) do
+		local unitDefID = SpringShared.GetUnitDefID(unitID)
 		gadget:UnitCreated(unitID, unitDefID)
 	end
 end

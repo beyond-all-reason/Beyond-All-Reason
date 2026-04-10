@@ -16,7 +16,7 @@ if gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-if not Spring.GetModOptions().easytax then
+if not SpringShared.GetModOptions().easytax then
 	return false
 end
 

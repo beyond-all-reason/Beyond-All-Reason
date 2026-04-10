@@ -26,7 +26,7 @@ local takeCommand = "take2"
 local minTimeToTake = 12 -- in seconds
 local checkQueueTime = 25 -- in seconds
 -- in chose ingame startpostype, players must place beforehand, so take an action, grace period can be shorter
-minTimeToTake = Spring.GetModOptions().startpostype == 2 and 1 or minTimeToTake
+minTimeToTake = SpringShared.GetModOptions().startpostype == 2 and 1 or minTimeToTake
 
 local AFKMessage = 'idleplayers '
 local AFKMessageSize = #AFKMessage
@@ -42,22 +42,22 @@ if gadgetHandler:IsSyncedCode() then
 	local playerInfoTable = {}
 	local currentGameFrame = 0
 
-	local TransferUnit = Spring.TransferUnit
-	local GetPlayerList = Spring.GetPlayerList
-	local ShareTeamResource = Spring.ShareTeamResource
-	local GetTeamResources = Spring.GetTeamResources
-	local GetPlayerInfo = Spring.GetPlayerInfo
-	local GetTeamLuaAI = Spring.GetTeamLuaAI
-	local GetAIInfo = Spring.GetAIInfo
-	local SetTeamRulesParam = Spring.SetTeamRulesParam
-	local GetTeamRulesParam = Spring.GetTeamRulesParam
-	local GetTeamUnits = Spring.GetTeamUnits
-	local GetTeamInfo = Spring.GetTeamInfo
-	local GetTeamList = Spring.GetTeamList
-	local IsCheatingEnabled = Spring.IsCheatingEnabled
+	local TransferUnit = SpringSynced.TransferUnit
+	local GetPlayerList = SpringShared.GetPlayerList
+	local ShareTeamResource = SpringSynced.ShareTeamResource
+	local GetTeamResources = SpringShared.GetTeamResources
+	local GetPlayerInfo = SpringShared.GetPlayerInfo
+	local GetTeamLuaAI = SpringShared.GetTeamLuaAI
+	local GetAIInfo = SpringShared.GetAIInfo
+	local SetTeamRulesParam = SpringSynced.SetTeamRulesParam
+	local GetTeamRulesParam = SpringShared.GetTeamRulesParam
+	local GetTeamUnits = SpringShared.GetTeamUnits
+	local GetTeamInfo = SpringShared.GetTeamInfo
+	local GetTeamList = SpringShared.GetTeamList
+	local IsCheatingEnabled = SpringShared.IsCheatingEnabled
 
 	local resourceList = {"metal","energy"}
-	local gaiaTeamID = Spring.GetGaiaTeamID()
+	local gaiaTeamID = SpringShared.GetGaiaTeamID()
 	local gameSpeed = Game.gameSpeed
 
 	local validation = string.randomString(2)
@@ -235,12 +235,12 @@ if gadgetHandler:IsSyncedCode() then
 else	-- UNSYNCED
 
 
-	local GetLastUpdateSeconds = Spring.GetLastUpdateSeconds
-	local SendLuaRulesMsg = Spring.SendLuaRulesMsg
-	local GetMouseState = Spring.GetMouseState
-	local GetGameSeconds = Spring.GetGameSeconds
-	local GetUnitDefID = Spring.GetUnitDefID
-	local GetRealBuildQueue = Spring.GetRealBuildQueue
+	local GetLastUpdateSeconds = SpringUnsynced.GetLastUpdateSeconds
+	local SendLuaRulesMsg = SpringUnsynced.SendLuaRulesMsg
+	local GetMouseState = SpringUnsynced.GetMouseState
+	local GetGameSeconds = SpringShared.GetGameSeconds
+	local GetUnitDefID = SpringShared.GetUnitDefID
+	local GetRealBuildQueue = SpringShared.GetRealBuildQueue
 
 	local min = math.min
 	local max = math.max
@@ -257,7 +257,7 @@ else	-- UNSYNCED
 	local warningGiven = false
 	local myTeamID = Spring.GetMyTeamID()
 	local myAllyTeamID = Spring.GetMyAllyTeamID()
-	local gaiaTeamID = Spring.GetGaiaTeamID()
+	local gaiaTeamID = SpringShared.GetGaiaTeamID()
 
 	local isBuilder = {}
 	local unitBuildSpeedTime = {}
@@ -305,33 +305,33 @@ else	-- UNSYNCED
 	local function notifyError(_, playerID, errorKey)
 		if Script.LuaUI('GadgetMessageProxy') then
 			local translationKey = 'ui.idlePlayers.' .. errorKey
-			Spring.SendMessageToPlayer(playerID, Script.LuaUI.GadgetMessageProxy(translationKey))
+			SpringUnsynced.SendMessageToPlayer(playerID, Script.LuaUI.GadgetMessageProxy(translationKey))
 		end
 	end
 
 	local function playerLagging(_, playerName)
 		if Script.LuaUI('GadgetMessageProxy') then
-			Spring.Echo( Script.LuaUI.GadgetMessageProxy('ui.idlePlayers.lagging', { name = playerName }) )
+			SpringShared.Echo( Script.LuaUI.GadgetMessageProxy('ui.idlePlayers.lagging', { name = playerName }) )
 		end
 	end
 
 	local function playerResumed(_, playerName)
 		if Script.LuaUI('GadgetMessageProxy') then
-			Spring.Echo( Script.LuaUI.GadgetMessageProxy('ui.idlePlayers.resumed', { name = playerName }) )
+			SpringShared.Echo( Script.LuaUI.GadgetMessageProxy('ui.idlePlayers.resumed', { name = playerName }) )
 		end
 	end
 
 	local function playerAFK(_, allyTeamID, playerName)
 		if Script.LuaUI('GadgetMessageProxy') then
 			local message = Script.LuaUI.GadgetMessageProxy('ui.idlePlayers.afk', { name = playerName })
-			Spring.SendMessageToAllyTeam(allyTeamID, message)
+			SpringUnsynced.SendMessageToAllyTeam(allyTeamID, message)
 		end
 	end
 
 	local function playerReturned(_, allyTeamID, playerName)
 		if Script.LuaUI('GadgetMessageProxy') then
 			local message = Script.LuaUI.GadgetMessageProxy('ui.idlePlayers.returned', { name = playerName })
-			Spring.SendMessageToAllyTeam(allyTeamID, message)
+			SpringUnsynced.SendMessageToAllyTeam(allyTeamID, message)
 		end
 	end
 
@@ -362,7 +362,7 @@ else	-- UNSYNCED
 
 		if checkQueueTime and GetGameSeconds() > checkQueueTime then
 			local teamID = Spring.GetMyTeamID()
-			local myUnits = Spring.GetTeamUnits(teamID)
+			local myUnits = SpringShared.GetTeamUnits(teamID)
 			local queueTime = 0
 			for i=1, #myUnits do
 				local unitID = myUnits[i]
@@ -394,15 +394,15 @@ else	-- UNSYNCED
 		if timer-lastActionTime > maxIdleTreshold-warningPeriod then
 			if not warningGiven then
 				warningGiven = true
-				local spectator = Spring.GetSpectatingState()
+				local spectator = SpringUnsynced.GetSpectatingState()
 				if not spectator then
 					-- check first if user has team players... that could possibly take... and then give warning
-					local teamList = Spring.GetTeamList(myAllyTeamID)
+					local teamList = SpringShared.GetTeamList(myAllyTeamID)
 					for _,teamID in ipairs(teamList) do
-						local luaAI = Spring.GetTeamLuaAI(teamID)
-						local _, leader, isDead, isAiTeam, side, allyTeamID, incomeMultiplier, customTeamKeys = Spring.GetTeamInfo(teamID, false)
-						if Script.LuaUI('GadgetMessageProxy') and teamID ~= myTeamID and teamID ~= gaiaTeamID and not isDead and not isAiTeam and (not luaAI or luaAI == "") and Spring.GetTeamRulesParam(teamID, "numActivePlayers") > 0 then
-							Spring.Echo("\255\255\166\166" .. Script.LuaUI.GadgetMessageProxy('ui.idlePlayers.warning'))
+						local luaAI = SpringShared.GetTeamLuaAI(teamID)
+						local _, leader, isDead, isAiTeam, side, allyTeamID, incomeMultiplier, customTeamKeys = SpringShared.GetTeamInfo(teamID, false)
+						if Script.LuaUI('GadgetMessageProxy') and teamID ~= myTeamID and teamID ~= gaiaTeamID and not isDead and not isAiTeam and (not luaAI or luaAI == "") and SpringShared.GetTeamRulesParam(teamID, "numActivePlayers") > 0 then
+							SpringShared.Echo("\255\255\166\166" .. Script.LuaUI.GadgetMessageProxy('ui.idlePlayers.warning'))
 							break
 						end
 					end

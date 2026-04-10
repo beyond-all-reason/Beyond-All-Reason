@@ -121,7 +121,7 @@ end
 
 for name, def in pairs(FeatureDefs) do
 	if not isModelOK(def) then
-		Spring.Log("featuredefs_post.lua", LOG.WARNING, "Removing feature def", name, "for having invalid model that would crash the engine", def.object)
+		SpringShared.Log("featuredefs_post.lua", LOG.WARNING, "Removing feature def", name, "for having invalid model that would crash the engine", def.object)
 		FeatureDefs[name] = nil
 	end
 end

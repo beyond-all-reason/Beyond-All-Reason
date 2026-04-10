@@ -24,8 +24,8 @@ if gadgetHandler:IsSyncedCode() then
 
 else
 
-	local spSendLuaRulesMsg = Spring.SendLuaRulesMsg
-	local spAreTeamsAllied = Spring.AreTeamsAllied
+	local spSendLuaRulesMsg = SpringUnsynced.SendLuaRulesMsg
+	local spAreTeamsAllied = SpringShared.AreTeamsAllied
 	local validation = SYNCED.validationLog
 
 	local isCommander = {}
@@ -54,12 +54,12 @@ else
 
 	local myTeamID = Spring.GetMyTeamID()
 	local myPlayerID = Spring.GetMyPlayerID()
-	local mySpec, fullview = Spring.GetSpectatingState()
+	local mySpec, fullview = SpringUnsynced.GetSpectatingState()
 
 	function gadget:PlayerChanged(playerID)
 		if playerID == myPlayerID then
 			myTeamID = Spring.GetMyTeamID()
-			mySpec, fullview = Spring.GetSpectatingState()
+			mySpec, fullview = SpringUnsynced.GetSpectatingState()
 		end
 	end
 
@@ -71,7 +71,7 @@ else
 			if (isEcoUnit[unitDefID] or isCommander[unitDefID]) and spAreTeamsAllied(unitTeam, attackerTeam) and isCommander[attackerDefID] then
 				-- This is an 'only attack friendlies with commander' type thing
 				local msg = string.format("l0g%s:friendlyfire:%d:%s:%d:%d:%d", validation,
-					Spring.GetGameFrame(), 'ud',
+					SpringShared.GetGameFrame(), 'ud',
 					unitTeam, attackerTeam, unitDefID)
 				--Spring.Echo(msg)
 				spSendLuaRulesMsg(msg)
@@ -81,10 +81,10 @@ else
 
 	function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 		if not mySpec and transportTeam == myTeamID and unitTeam ~= transportTeam and isCommander[unitDefID] then
-			local _, _, _, isAiTeam = Spring.GetTeamInfo(unitTeam, false)
+			local _, _, _, isAiTeam = SpringShared.GetTeamInfo(unitTeam, false)
 			if isAiTeam then return end
 			local msg = string.format("l0g%s:allycommloaded:%d:%s:%d:%d:%d", validation,
-			Spring.GetGameFrame(), 'ud',
+			SpringShared.GetGameFrame(), 'ud',
 			unitTeam, transportTeam, unitDefID)
 			spSendLuaRulesMsg(msg)
 		end

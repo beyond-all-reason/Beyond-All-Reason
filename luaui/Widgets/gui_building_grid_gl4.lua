@@ -27,10 +27,10 @@ local config = {
 	lineColor = { 0.70, 1.0, 0.70 }, -- color of the lines
 }
 
-local waterLevel = Spring.GetWaterPlaneLevel and Spring.GetWaterPlaneLevel() or 0
+local waterLevel = SpringShared.GetWaterPlaneLevel and SpringShared.GetWaterPlaneLevel() or 0
 
 local cmdShowForUnitDefID
-local isPregame = Spring.GetGameFrame() == 0 and not isSpec
+local isPregame = SpringShared.GetGameFrame() == 0 and not isSpec
 
 local gridVBO = nil -- the vertex buffer object, an array of vec2 coords
 local gridVAO = nil -- the vertex array object, a way of collecting buffer objects for submission to opengl
@@ -111,7 +111,7 @@ void main(void) {
 ]]
 
 local function goodbye(reason)
-    Spring.Echo("Building Grid GL4 widget exiting with reason: " .. reason)
+    SpringShared.Echo("Building Grid GL4 widget exiting with reason: " .. reason)
     widgetHandler:RemoveWidget()
 end
 
@@ -218,7 +218,7 @@ end
 
 
 function widget:Update()
-	local _, cmdID = Spring.GetActiveCommand()
+	local _, cmdID = SpringUnsynced.GetActiveCommand()
 
 	cmdShowForUnitDefID = cmdID ~= nil and cmdID < 0 and -cmdID or nil
 end
@@ -231,8 +231,8 @@ function widget:DrawWorldPreUnit()
 
 	local waterSurfaceMode = not UnitDefs[showUnitDefID].modCategories.underwater
 
-	local mx, my, _ = Spring.GetMouseState()
-	local _, mousePos = Spring.TraceScreenRay(mx, my, true, false, false, not waterSurfaceMode)
+	local mx, my, _ = SpringUnsynced.GetMouseState()
+	local _, mousePos = SpringUnsynced.TraceScreenRay(mx, my, true, false, false, not waterSurfaceMode)
 
 	if not mousePos then
 		return

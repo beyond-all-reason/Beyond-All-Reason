@@ -12,13 +12,13 @@ function widget:GetInfo()
 	}
 end
 
-if not Spring.GetModOptions().easytax then
+if not SpringShared.GetModOptions().easytax then
 	return false
 end
 
 local debuffedUnits = {} -- unitID -> { startFrame, expireFrame, yoffset }
 
-local spGetGameFrame   = Spring.GetGameFrame
+local spGetGameFrame   = SpringShared.GetGameFrame
 local glDrawFuncAtUnit = gl.DrawFuncAtUnit
 local glTranslate      = gl.Translate
 local glBillboard      = gl.Billboard
@@ -62,7 +62,7 @@ end
 
 function widget:DrawWorld()
 	if next(debuffedUnits) == nil then return end
-	if Spring.IsGUIHidden() then return end
+	if SpringUnsynced.IsGUIHidden() then return end
 	local gf = spGetGameFrame()
 	gl.DepthTest(false)
 
@@ -76,7 +76,7 @@ function widget:DrawWorld()
 end
 
 local function onUnitBuildspeedDebuff(unitID, startFrame, expireFrame)
-	local unitDefID = Spring.GetUnitDefID(unitID)
+	local unitDefID = SpringShared.GetUnitDefID(unitID)
 	debuffedUnits[unitID] = {
 		startFrame  = startFrame,
 		expireFrame = expireFrame,

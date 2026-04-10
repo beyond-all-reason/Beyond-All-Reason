@@ -14,8 +14,8 @@ end
 
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
-local spGetViewGeometry = Spring.GetViewGeometry
+local spEcho = SpringShared.Echo
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
 local myshader = nil
 local myshaderDebgDrawLoc = nil
@@ -195,7 +195,7 @@ function widget:Initialize()
 		RemoveMe("[deferred buffer visualizer] removing widget, no shader support")
 		return
 	end
-	hasdeferredrendering = (Spring.GetConfigString("AllowDeferredModelRendering")=='1') and (Spring.GetConfigString("AllowDeferredMapRendering")=='1')
+	hasdeferredrendering = (SpringUnsynced.GetConfigString("AllowDeferredModelRendering")=='1') and (SpringUnsynced.GetConfigString("AllowDeferredMapRendering")=='1')
 	if hasdeferredrendering == false then
 		RemoveMe("[deferred buffer visualizer] removing widget, AllowDeferred Model and Map Rendering is required")
 	end

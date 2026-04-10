@@ -17,7 +17,7 @@ end
 
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
+local spGetGameFrame = SpringShared.GetGameFrame
 
 -- 1.1 Tweaks by Pako, big thx!
 
@@ -49,16 +49,16 @@ for udefID, def in ipairs(UnitDefs) do
 	unitZsize[udefID] = def.zsize
 end
 
-local spGetModKeyState      = Spring.GetModKeyState
-local spGetGameSeconds      = Spring.GetGameSeconds
-local spGetActiveCommand 	= Spring.GetActiveCommand
-local spGetMouseState       = Spring.GetMouseState
-local spTraceScreenRay      = Spring.TraceScreenRay
-local spGetCameraVectors    = Spring.GetCameraVectors
-local spWarpMouse			= Spring.WarpMouse
-local spGetBuildFacing		= Spring.GetBuildFacing
-local spSetBuildFacing 		= Spring.SetBuildFacing
-local spPos2BuildPos 		= Spring.Pos2BuildPos
+local spGetModKeyState      = SpringUnsynced.GetModKeyState
+local spGetGameSeconds      = SpringShared.GetGameSeconds
+local spGetActiveCommand 	= SpringUnsynced.GetActiveCommand
+local spGetMouseState       = SpringUnsynced.GetMouseState
+local spTraceScreenRay      = SpringUnsynced.TraceScreenRay
+local spGetCameraVectors    = SpringUnsynced.GetCameraVectors
+local spWarpMouse			= SpringUnsynced.WarpMouse
+local spGetBuildFacing		= SpringUnsynced.GetBuildFacing
+local spSetBuildFacing 		= SpringUnsynced.SetBuildFacing
+local spPos2BuildPos 		= SpringShared.Pos2BuildPos
 
 local floor                 = math.floor
 local atan2                 = math.atan2
@@ -78,7 +78,7 @@ local GL_TRIANGLES			= GL.TRIANGLES
 
 
 local function maybeRemoveSelf()
-    if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
+    if SpringUnsynced.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
         widgetHandler:RemoveWidget()
     end
 end
@@ -291,7 +291,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-    if Spring.IsReplay() or spGetGameFrame() > 0 then
+    if SpringUnsynced.IsReplay() or spGetGameFrame() > 0 then
         maybeRemoveSelf()
     end
 

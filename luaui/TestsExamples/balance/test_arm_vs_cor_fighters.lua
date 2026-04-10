@@ -1,5 +1,5 @@
 function skip()
-	return Spring.GetGameFrame() <= 0
+	return SpringShared.GetGameFrame() <= 0
 end
 
 function setup()
@@ -9,7 +9,7 @@ end
 function cleanup()
 	Test.clearMap()
 
-	Spring.SendCommands("setspeed " .. 1)
+	SpringUnsynced.SendCommands("setspeed " .. 1)
 end
 
 function test()
@@ -30,8 +30,8 @@ function test()
 			local x = locals.midX - locals.xOffset
 			for i = 1, locals.n do
 				local z = locals.startZ + locals.zStep * i
-				local y = Spring.GetGroundHeight(x, z)
-				local unitID = Spring.CreateUnit(locals.units[0], x, y, z, "east", 0)
+				local y = SpringShared.GetGroundHeight(x, z)
+				local unitID = SpringSynced.CreateUnit(locals.units[0], x, y, z, "east", 0)
 			end
 		end
 
@@ -39,8 +39,8 @@ function test()
 			local x = locals.midX + locals.xOffset
 			for i = 1, locals.n do
 				local z = locals.startZ + locals.zStep * i
-				local y = Spring.GetGroundHeight(x, z)
-				local unitID = Spring.CreateUnit(locals.units[1], x, y, z, "west", 1)
+				local y = SpringShared.GetGroundHeight(x, z)
+				local unitID = SpringSynced.CreateUnit(locals.units[1], x, y, z, "west", 1)
 			end
 
 		end
@@ -49,29 +49,29 @@ function test()
 	Test.waitFrames(1)
 
 	if false then
-		Spring.GiveOrderToUnitArray(Spring.GetTeamUnits(0), CMD.FIGHT, { midX, 0, midZ }, 0)
-		Spring.GiveOrderToUnitArray(Spring.GetTeamUnits(1), CMD.FIGHT, { midX, 0, midZ }, 0)
+		SpringSynced.GiveOrderToUnitArray(SpringShared.GetTeamUnits(0), CMD.FIGHT, { midX, 0, midZ }, 0)
+		SpringSynced.GiveOrderToUnitArray(SpringShared.GetTeamUnits(1), CMD.FIGHT, { midX, 0, midZ }, 0)
 	else
-		for _, unitID in ipairs(Spring.GetAllUnits()) do
-			local ux, uy, uz = Spring.GetUnitPosition(unitID)
+		for _, unitID in ipairs(SpringShared.GetAllUnits()) do
+			local ux, uy, uz = SpringShared.GetUnitPosition(unitID)
 
-			Spring.GiveOrderToUnit(unitID, CMD.FIGHT, { 2 * midX - ux, 0, uz }, 0)
-			Spring.GiveOrderToUnit(unitID, CMD.FIGHT, { midX, 0, midZ }, { "shift" })
+			SpringSynced.GiveOrderToUnit(unitID, CMD.FIGHT, { 2 * midX - ux, 0, uz }, 0)
+			SpringSynced.GiveOrderToUnit(unitID, CMD.FIGHT, { midX, 0, midZ }, { "shift" })
 		end
 	end
 
-	Spring.SendCommands("setspeed " .. 5)
+	SpringUnsynced.SendCommands("setspeed " .. 5)
 
 	-- wait until one team has no units left
 	Test.waitUntil(function()
-		return #(Spring.GetTeamUnits(0)) == 0 or #(Spring.GetTeamUnits(1)) == 0
+		return #(SpringShared.GetTeamUnits(0)) == 0 or #(SpringShared.GetTeamUnits(1)) == 0
 	end, 60 * 30)
 
-	Spring.SendCommands("setspeed " .. 1)
+	SpringUnsynced.SendCommands("setspeed " .. 1)
 
-	if #(Spring.GetTeamUnits(0)) > #(Spring.GetTeamUnits(1)) then
+	if #(SpringShared.GetTeamUnits(0)) > #(SpringShared.GetTeamUnits(1)) then
 		winner = 0
-	elseif #(Spring.GetTeamUnits(1)) > #(Spring.GetTeamUnits(0)) then
+	elseif #(SpringShared.GetTeamUnits(1)) > #(SpringShared.GetTeamUnits(0)) then
 		winner = 1
 	end
 
@@ -81,7 +81,7 @@ function test()
 		if UnitDefNames and units[winner] and UnitDefNames[units[winner]] then
 			unitName = UnitDefNames[units[winner]].translatedHumanName or units[winner]
 		end
-		unitsLeft = #(Spring.GetAllUnits())
+		unitsLeft = #(SpringShared.GetAllUnits())
 		resultStr = resultStr .. "team " .. winner .. " wins"
 		resultStr = resultStr .. " with " .. unitsLeft
 		resultStr = resultStr .. " (" .. string.format("%.f%%", 100 * unitsLeft / n) .. ")"
@@ -90,7 +90,7 @@ function test()
 		resultStr = resultStr .. "tie"
 	end
 
-	Spring.Echo(resultStr)
+	SpringShared.Echo(resultStr)
 
 	-- cor fighters should win
 	assert(winner == 1)

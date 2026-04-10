@@ -24,14 +24,14 @@ for udid, ud in pairs(UnitDefs) do
 	end
 end
 
-local spGetUnitStockpile = Spring.GetUnitStockpile
-local spCallCOBScript = Spring.CallCOBScript
-local spGetCOBScriptID = Spring.GetCOBScriptID
+local spGetUnitStockpile = SpringShared.GetUnitStockpile
+local spCallCOBScript = SpringSynced.CallCOBScript
+local spGetCOBScriptID = SpringSynced.GetCOBScriptID
 
 function gadget:Initialize()
-    for i, unitID in pairs(Spring.GetAllUnits()) do
-        gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
-		if hasSetStockpile[Spring.GetUnitDefID(unitID)] then
+    for i, unitID in pairs(SpringShared.GetAllUnits()) do
+        gadget:UnitCreated(unitID, SpringShared.GetUnitDefID(unitID))
+		if hasSetStockpile[SpringShared.GetUnitDefID(unitID)] then
 			spCallCOBScript(unitID, 'SetStockpile', 0, spGetUnitStockpile(unitID))
 		end
     end

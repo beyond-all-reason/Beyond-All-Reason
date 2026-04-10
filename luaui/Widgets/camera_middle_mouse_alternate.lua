@@ -17,17 +17,17 @@ end
 local mathSqrt = math.sqrt
 
 -- Localized Spring API for performance
-local spGetMouseState = Spring.GetMouseState
+local spGetMouseState = SpringUnsynced.GetMouseState
 
-local spGetCameraState   = Spring.GetCameraState
-local spGetCameraVectors = Spring.GetCameraVectors
-local spGetModKeyState   = Spring.GetModKeyState
+local spGetCameraState   = SpringUnsynced.GetCameraState
+local spGetCameraVectors = SpringUnsynced.GetCameraVectors
+local spGetModKeyState   = SpringUnsynced.GetModKeyState
 local spGetMouseState    = spGetMouseState
-local spIsAboveMiniMap   = Spring.IsAboveMiniMap
-local spSendCommands     = Spring.SendCommands
-local spSetCameraState   = Spring.SetCameraState
-local spSetMouseCursor   = Spring.SetMouseCursor
-local spWarpMouse        = Spring.WarpMouse
+local spIsAboveMiniMap   = SpringUnsynced.IsAboveMiniMap
+local spSendCommands     = SpringUnsynced.SendCommands
+local spSetCameraState   = SpringUnsynced.SetCameraState
+local spSetMouseCursor   = SpringUnsynced.SetMouseCursor
+local spWarpMouse        = SpringUnsynced.WarpMouse
 
 local blockModeSwitching = true
 
@@ -45,7 +45,7 @@ local drawing = false
 function widget:Update(dt)
   if (active) then
 
-    local speedFactor = Spring.GetConfigInt('OverheadScrollSpeed', 10)
+    local speedFactor = SpringUnsynced.GetConfigInt('OverheadScrollSpeed', 10)
     local x, y, lmb, mmb, rmb = spGetMouseState()
     local cs = spGetCameraState()
     local speed = dt * speedFactor
@@ -131,8 +131,8 @@ end
 -- Adjust the camera position when the user scrolls the mouse wheel
 function widget:MouseWheel(up, value)
     -- Get the current camera state and mod key state
-    local cameraState = Spring.GetCameraState()
-    local altDown, ctrlDown, metaDown, shiftDown = Spring.GetModKeyState()
+    local cameraState = SpringUnsynced.GetCameraState()
+    local altDown, ctrlDown, metaDown, shiftDown = SpringUnsynced.GetModKeyState()
 
     -- If the Alt key is down, adjust the camera height
     if altDown then
@@ -143,7 +143,7 @@ function widget:MouseWheel(up, value)
 			py = absCameraY + cameraYDelta
 		}
 
-        Spring.SetCameraState(newCameraState, 0)		
+        SpringUnsynced.SetCameraState(newCameraState, 0)		
         return true
     end
 
@@ -154,12 +154,12 @@ function widget:MouseWheel(up, value)
 
     -- Get the mouse position and position on ground
     local mouseX, mouseY = spGetMouseState()
-    local _, groundPos = Spring.TraceScreenRay(mouseX, mouseY, true)
+    local _, groundPos = SpringUnsynced.TraceScreenRay(mouseX, mouseY, true)
 
     -- If there is no ground position, adjust the camera vertically
     if not groundPos then
         local cameraYDelta = value * 10
-        Spring.SetCameraState({
+        SpringUnsynced.SetCameraState({
             vy = cameraState.vy + cameraYDelta
         }, 0)
     else
@@ -183,7 +183,7 @@ function widget:MouseWheel(up, value)
             vz = 0
         }
 
-        Spring.SetCameraState(newCameraState, 0)
+        SpringUnsynced.SetCameraState(newCameraState, 0)
     end
 
     return true

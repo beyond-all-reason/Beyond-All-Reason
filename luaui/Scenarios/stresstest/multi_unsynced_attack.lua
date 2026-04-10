@@ -10,12 +10,12 @@ function test()
 	local radarDef = Scenario.radarDef
 
 	SyncedRun(synced_setup)
-	Spring.Echo("init time preinit:", os.clock()-t0)
+	SpringShared.Echo("init time preinit:", os.clock()-t0)
 
 	Test.waitFrames(1)
 
 	run_commands(nattackers, ntargets, attackerDef, targetDef)
 
-	Spring.Echo("total time:", os.clock()-t0)
+	SpringShared.Echo("total time:", os.clock()-t0)
 end
 

@@ -26,7 +26,7 @@ if customparamDefsDetected then
 
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 	local savedTables = {}
 
@@ -240,7 +240,7 @@ local spEcho = Spring.Echo
         local subfolder = ''
         if folder == "baked_defs/units" and v.customParams and v.customParams.subfolder then
             subfolder = v.customParams.subfolder .. "/"
-            Spring.CreateDir(folder.."/"..subfolder)
+            SpringUnsynced.CreateDir(folder.."/"..subfolder)
         end
 
         save2(ud_table, folder .. "/" .. subfolder .. v.name .. ".lua")
@@ -269,8 +269,8 @@ local spEcho = Spring.Echo
     function widget:Initialize()
 
         -- make folder if does not already exist
-        Spring.CreateDir("baked_defs/units")
-        Spring.CreateDir("baked_defs/weapons")
+        SpringUnsynced.CreateDir("baked_defs/units")
+        SpringUnsynced.CreateDir("baked_defs/weapons")
         --Spring.CreateDir("baked_defs/features")
         --Spring.CreateDir("baked_defs/armordefs")
         --Spring.CreateDir("baked_defs/movedefs")

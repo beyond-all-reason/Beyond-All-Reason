@@ -26,7 +26,7 @@ local mathSin = math.sin
 local mathPi = math.pi
 
 -- Localized Spring API for performance
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 --------------------------------------------------------------------------------
 -- OPTIONS
@@ -56,18 +56,18 @@ local glLineWidth          = gl.LineWidth
 local glDepthTest          = gl.DepthTest
 local glDrawGroundCircle   = gl.DrawGroundCircle
 
-local spGetAllUnits        = Spring.GetAllUnits
-local spGetTeamUnitsByDefs = Spring.GetTeamUnitsByDefs
-local spGetTeamList        = Spring.GetTeamList
-local spGetCameraPosition  = Spring.GetCameraPosition
-local spGetUnitPosition    = Spring.GetUnitPosition
-local spIsSphereInView     = Spring.IsSphereInView
-local spIsUnitSelected     = Spring.IsUnitSelected
-local spValidUnitID        = Spring.ValidUnitID
-local spGiveOrderToUnit    = Spring.GiveOrderToUnit
-local spGetUnitDefID       = Spring.GetUnitDefID
-local spGetUnitIsCloaked   = Spring.GetUnitIsCloaked
-local spGetGameSeconds     = Spring.GetGameSeconds
+local spGetAllUnits        = SpringShared.GetAllUnits
+local spGetTeamUnitsByDefs = SpringShared.GetTeamUnitsByDefs
+local spGetTeamList        = SpringShared.GetTeamList
+local spGetCameraPosition  = SpringUnsynced.GetCameraPosition
+local spGetUnitPosition    = SpringShared.GetUnitPosition
+local spIsSphereInView     = SpringUnsynced.IsSphereInView
+local spIsUnitSelected     = SpringUnsynced.IsUnitSelected
+local spValidUnitID        = SpringShared.ValidUnitID
+local spGiveOrderToUnit    = SpringSynced.GiveOrderToUnit
+local spGetUnitDefID       = SpringShared.GetUnitDefID
+local spGetUnitIsCloaked   = SpringShared.GetUnitIsCloaked
+local spGetGameSeconds     = SpringShared.GetGameSeconds
 
 --------------------------------------------------------------------------------
 -- COMMAND CONSTANTS
@@ -211,7 +211,7 @@ end
 -- DRAWING
 --------------------------------------------------------------------------------
 function widget:DrawWorldPreUnit()
-    if chobbyInterface or Spring.IsGUIHidden() then return end
+    if chobbyInterface or SpringUnsynced.IsGUIHidden() then return end
 
     local camX, camY, camZ = spGetCameraPosition()
     glDepthTest(true)

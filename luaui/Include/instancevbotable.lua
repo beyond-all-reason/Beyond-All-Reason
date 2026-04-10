@@ -4,7 +4,7 @@ if not LuaVBOTableNewLocationMessageShown then
 	local info = dest.GetInfo()
 	local name = info and info.name or 'unknown'
 	local msg = "A user widget (" .. name .. ") is including LuaUI/Include/instancevbotable.lua directly, please change it to use gl.InstanceVBOTable instead."
-	Spring.Log('UserWidget', LOG.DEPRECATED, msg)
+	SpringShared.Log('UserWidget', LOG.DEPRECATED, msg)
 	LuaVBOTableNewLocationMessageShown = true
 end
 

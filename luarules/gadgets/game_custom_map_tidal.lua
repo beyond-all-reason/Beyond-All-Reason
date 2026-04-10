@@ -15,7 +15,7 @@ function gadget:GetInfo()
 end
 
 function gadget:Initialize()
-	local newTidal = Spring.GetModOptions().map_tidal
+	local newTidal = SpringShared.GetModOptions().map_tidal
 	local tidalSpeeds = {
 		high=23,
 		medium=18,
@@ -24,6 +24,6 @@ function gadget:Initialize()
 	}
 	local newValue = tidalSpeeds[newTidal]
 	if newValue then
-		Spring.SetTidal(newValue)
+		SpringSynced.SetTidal(newValue)
 	end
 end

@@ -19,7 +19,7 @@ local mathFloor = math.floor
 local mathMax = math.max
 
 -- Localized Spring API for performance
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
 -- Localized gl functions for performance
 local glPushMatrix = gl.PushMatrix
@@ -52,13 +52,13 @@ local vsx, vsy = spGetViewGeometry()
 local widgetScale = 1
 local usedFontSize = cfgFontSize
 
-local spGetMouseState = Spring.GetMouseState
+local spGetMouseState = SpringUnsynced.GetMouseState
 local math_floor = mathFloor
 local math_ceil = mathCeil
 local math_isInRect = math.isInRect
 local string_lines = string.lines
 
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+local ui_scale = tonumber(SpringUnsynced.GetConfigFloat("ui_scale", 1) or 1)
 local tooltips = {}
 local cleanupGuishaderAreas = {}
 local font, font2

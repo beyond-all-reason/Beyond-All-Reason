@@ -61,21 +61,21 @@ local cmdPassiveDesc = {
       params  = {1, 'Low Prio', 'High Prio'}
 }
 
-local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
-local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
-local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
-local spEditUnitCmdDesc = Spring.EditUnitCmdDesc
-local spGetTeamResources = Spring.GetTeamResources
-local spGetTeamList = Spring.GetTeamList
-local spSetUnitRulesParam = Spring.SetUnitRulesParam
-local spGetUnitRulesParam = Spring.GetUnitRulesParam
-local spGetTeamRulesParam = Spring.GetTeamRulesParam
-local spSetUnitBuildSpeed = Spring.SetUnitBuildSpeed
-local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
-local spValidUnitID = Spring.ValidUnitID
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetAllUnits = Spring.GetAllUnits
-local spGetUnitDefID = Spring.GetUnitDefID
+local spInsertUnitCmdDesc = SpringSynced.InsertUnitCmdDesc
+local spFindUnitCmdDesc = SpringShared.FindUnitCmdDesc
+local spGetUnitCmdDescs = SpringShared.GetUnitCmdDescs
+local spEditUnitCmdDesc = SpringSynced.EditUnitCmdDesc
+local spGetTeamResources = SpringShared.GetTeamResources
+local spGetTeamList = SpringShared.GetTeamList
+local spSetUnitRulesParam = SpringSynced.SetUnitRulesParam
+local spGetUnitRulesParam = SpringShared.GetUnitRulesParam
+local spGetTeamRulesParam = SpringShared.GetTeamRulesParam
+local spSetUnitBuildSpeed = SpringSynced.SetUnitBuildSpeed
+local spGetUnitIsBuilding = SpringShared.GetUnitIsBuilding
+local spValidUnitID = SpringShared.ValidUnitID
+local spGetUnitTeam = SpringShared.GetUnitTeam
+local spGetAllUnits = SpringShared.GetAllUnits
+local spGetUnitDefID = SpringShared.GetUnitDefID
 local simSpeed = Game.gameSpeed
 
 local mathMax = math.max
@@ -124,7 +124,7 @@ function gadget:Initialize()
 	for i = 1, #teamList do
 		local teamID = teamList[i]
 		-- Distribute initial update frames. They will drift on their own afterward.
-		local gameFrame = Spring.GetGameFrame()
+		local gameFrame = SpringShared.GetGameFrame()
 		if not updateFrame[teamID] then
 			updateFrame[teamID] = gameFrame + (teamID % 6)
 		end
@@ -133,7 +133,7 @@ function gadget:Initialize()
 		passiveCons[teamID] = passiveCons[teamID] or {}
 		passiveConsCount[teamID] = passiveConsCount[teamID] or 0
 		buildTargetOwnersByTeam[teamID] = buildTargetOwnersByTeam[teamID] or {}
-		Spring.SetTeamRulesParam(teamID, "suspendbuilderpriority", 0)
+		SpringSynced.SetTeamRulesParam(teamID, "suspendbuilderpriority", 0)
 	end
 
 	local allUnits = spGetAllUnits()

@@ -19,8 +19,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local spIsCheatingEnabled = Spring.IsCheatingEnabled
-local spGetTeamUnitCount = Spring.GetTeamUnitCount
+local spIsCheatingEnabled = SpringShared.IsCheatingEnabled
+local spGetTeamUnitCount = SpringShared.GetTeamUnitCount
 
 ----------------------------------------------------------------
 -- Callins
@@ -39,13 +39,13 @@ function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType
 	end
 
 	-- Calculate the maximum amount the receiver can receive
-	local rCur, rStor, rPull, rInc, rExp, rShare = Spring.GetTeamResources(receiverTeamId, resourceName)
+	local rCur, rStor, rPull, rInc, rExp, rShare = SpringShared.GetTeamResources(receiverTeamId, resourceName)
 	local maxShare = rStor * rShare - rCur
 
 	-- Is the sender trying to send more than the maximum? Block it, possibly sending a reduced amount instead
 	if amount > maxShare then
 		if maxShare > 0 then
-			Spring.ShareTeamResource(senderTeamId, receiverTeamId, resourceName, maxShare)
+			SpringSynced.ShareTeamResource(senderTeamId, receiverTeamId, resourceName, maxShare)
 		end
 		return false
 	end
@@ -56,7 +56,7 @@ end
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
 	local unitCount = spGetTeamUnitCount(newTeam)
-	if capture or spIsCheatingEnabled() or unitCount < Spring.GetTeamMaxUnits(newTeam) then
+	if capture or spIsCheatingEnabled() or unitCount < SpringShared.GetTeamMaxUnits(newTeam) then
 		return true
 	end
 	return false

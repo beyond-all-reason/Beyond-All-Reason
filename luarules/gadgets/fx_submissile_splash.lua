@@ -17,8 +17,8 @@ if not gadgetHandler:IsSyncedCode() then
     return false
 end
 
-local GetProjectilePosition = Spring.GetProjectilePosition
-local GetProjectileDirection = Spring.GetProjectileDirection
+local GetProjectilePosition = SpringShared.GetProjectilePosition
+local GetProjectileDirection = SpringShared.GetProjectileDirection
 local random = math.random
 
 local splashCEG = "torpedo-launch"
@@ -52,7 +52,7 @@ function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
     if subMissileWeapons[weaponDefID] then
         missiles[proID] = subMissileWeapons[weaponDefID]
         local x,_,z = GetProjectilePosition(proID)
-        Spring.SpawnCEG(splashCEG,x,0,z)
+        SpringSynced.SpawnCEG(splashCEG,x,0,z)
     end
 end
 
@@ -68,7 +68,7 @@ function gadget:GameFrame(n)
         if y then
             if y < 0 and random() < 0.95 then
                 local dirX,dirY,dirZ = GetProjectileDirection(proID)
-                Spring.SpawnCEG(CEG,x,y,z,dirX,dirY,dirZ)
+                SpringSynced.SpawnCEG(CEG,x,y,z,dirX,dirY,dirZ)
             end
         else
             removeCount = removeCount + 1

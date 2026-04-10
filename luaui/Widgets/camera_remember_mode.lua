@@ -12,9 +12,9 @@ function widget:GetInfo()
 	}
 end
 
-local spEcho = Spring.Echo
-local spGetCameraState = Spring.GetCameraState
-local spSetCameraState = Spring.SetCameraState
+local spEcho = SpringShared.Echo
+local spGetCameraState = SpringUnsynced.GetCameraState
+local spSetCameraState = SpringUnsynced.SetCameraState
 
 local savedCamState
 local defaultCamState = { mode = 2, rx = 2.677, ry = 0.0, rz = 0.0 } --spring
@@ -65,7 +65,7 @@ end
 
 function widget:GetConfigData()
 	local camState = table.copy(spGetCameraState())
-	if camState.ry and Spring.GetConfigInt("CamSpringLockCardinalDirections") == 1 and camState.mode == 2 then
+	if camState.ry and SpringUnsynced.GetConfigInt("CamSpringLockCardinalDirections") == 1 and camState.mode == 2 then
 		camState.ry = GetCardinalLockSafeYaw(camState.ry)
 	elseif camState.ry then
 		camState.ry = math.clampRadians(camState.ry)

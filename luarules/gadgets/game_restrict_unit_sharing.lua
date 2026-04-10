@@ -16,14 +16,14 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-if not Spring.GetModOptions().easytax then
+if not SpringShared.GetModOptions().easytax then
 	return false
 end
 
 local DEBUFF_FRAMES = Game.gameSpeed * 30
 local debuffedUnits = {} -- unitID -> { expireFrame, buildSpeed }
 
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+local spGetUnitIsBeingBuilt = SpringShared.GetUnitIsBeingBuilt
 
 -- gather all economy/builder units
 local ecoUnits = {}
@@ -44,24 +44,24 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
-	if (capture) and (not Spring.AreTeamsAllied(fromTeamID, toTeamID)) or fromTeamID == Spring.GetGaiaTeamID() or toTeamID == Spring.GetGaiaTeamID() then
+	if (capture) and (not SpringShared.AreTeamsAllied(fromTeamID, toTeamID)) or fromTeamID == SpringShared.GetGaiaTeamID() or toTeamID == SpringShared.GetGaiaTeamID() then
 		return true
 	end
 	beingBuilt, buildProgress = spGetUnitIsBeingBuilt(unitID)
-	if beingBuilt and buildProgress > 0 and next(Spring.GetPlayerList(fromTeamID, true)) ~= nil then
+	if beingBuilt and buildProgress > 0 and next(SpringShared.GetPlayerList(fromTeamID, true)) ~= nil then
 		return false -- Sharing partly built nanoframes is not allowed because letting it decay bypasses taxation and letting it build runs out the debuff early. Also if you can't assist ally build the unit could get stuck in factory.
 	end
 	if builderUnits[unitDefID] then
 		local unitDef = UnitDefs[unitDefID]
-		local startFrame = Spring.GetGameFrame()
+		local startFrame = SpringShared.GetGameFrame()
 		local expireFrame = startFrame + DEBUFF_FRAMES
 		debuffedUnits[unitID] = {
 			expireFrame  = expireFrame,
 		}
 		SendToUnsynced("unitBuildspeedDebuff", unitID, startFrame, expireFrame)
 	elseif ecoUnits[unitDefID] then
-		local _, maxHealth = Spring.GetUnitHealth(unitID)
-		Spring.AddUnitDamage(unitID, maxHealth * 5, 30) -- Stun for 30 seconds.
+		local _, maxHealth = SpringShared.GetUnitHealth(unitID)
+		SpringSynced.AddUnitDamage(unitID, maxHealth * 5, 30) -- Stun for 30 seconds.
 	end
 	return true
 end

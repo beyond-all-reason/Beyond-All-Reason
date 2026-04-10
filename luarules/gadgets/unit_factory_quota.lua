@@ -16,11 +16,11 @@ function gadget:GetInfo()
 	}
 end
 
-local SpringFindUnitCmdDesc = Spring.FindUnitCmdDesc
-local SpringEditUnitCmdDesc = Spring.EditUnitCmdDesc
-local SpringInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
-local SpringGetAllUnits = Spring.GetAllUnits
-local SpringGetUnitDefID = Spring.GetUnitDefID
+local SpringFindUnitCmdDesc = SpringShared.FindUnitCmdDesc
+local SpringEditUnitCmdDesc = SpringSynced.EditUnitCmdDesc
+local SpringInsertUnitCmdDesc = SpringSynced.InsertUnitCmdDesc
+local SpringGetAllUnits = SpringShared.GetAllUnits
+local SpringGetUnitDefID = SpringShared.GetUnitDefID
 
 local CMD_QUOTA_BUILD_TOGGLE = GameCMD.QUOTA_BUILD_TOGGLE
 

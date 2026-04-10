@@ -45,13 +45,13 @@ local animationFrames = 120
 local nextFrame, unitnumber
 
 function buildslowly(_, _, params)
-	nextFrame = Spring.GetGameFrame()
+	nextFrame = SpringShared.GetGameFrame()
 	if #params == 1 then
 		if type(tonumber(params[1])) == "number" then
 			index = tonumber(params[1])
 		end
 	end
-	Spring.Echo('building icons all slow-like, starting from ' .. index)
+	SpringShared.Echo('building icons all slow-like, starting from ' .. index)
 
 	local counter = 1
 	for unitName, unitdefname in pairs(UnitDefNames) do
@@ -87,7 +87,7 @@ function buildUnitAnim(unitName)
 end
 
 function buildanim(_, _, params)
-	nextFrame = Spring.GetGameFrame()
+	nextFrame = SpringShared.GetGameFrame()
 	if #params == 1 then
 		local unitName = params[1]
 		if type(tonumber(params[1])) == "number" then
@@ -101,7 +101,7 @@ function buildanim(_, _, params)
 				end
 			end
 		end
-		Spring.Echo('building icon with animation frames all slow-like, starting from ' .. index)
+		SpringShared.Echo('building icon with animation frames all slow-like, starting from ' .. index)
 
 		local filepath = '../buildicons/__256x256/' .. unitName .. '.png'
 		if VFS.FileExists(filepath, VFS.RAW) then
@@ -114,13 +114,13 @@ function buildanim(_, _, params)
 end
 
 function buildanimslowly(_, _, params)
-	nextFrame = Spring.GetGameFrame()
+	nextFrame = SpringShared.GetGameFrame()
 	if #params == 1 then
 		if type(tonumber(params[1])) == "number" then
 			unitnumber = tonumber(params[1])
 		end
 	end
-	Spring.Echo('building icons with animation frames all slow-like, starting from ' .. index)
+	SpringShared.Echo('building icons with animation frames all slow-like, starting from ' .. index)
 
 	local counter = 1
 	for unitName, _ in pairs(UnitDefNames) do
@@ -128,10 +128,10 @@ function buildanimslowly(_, _, params)
 		if not unitnumber or counter >= unitnumber then
 			local filepath = '../buildicons/256x256/' .. unitName .. '.png'
 			if VFS.FileExists(filepath, VFS.RAW) then
-				Spring.Echo("File exists for: " .. unitName .. ' ' .. filepath)
+				SpringShared.Echo("File exists for: " .. unitName .. ' ' .. filepath)
 			else
 				if not skipUnits[unitName] then
-					Spring.Echo("Building filepath: " .. filepath)
+					SpringShared.Echo("Building filepath: " .. filepath)
 					buildUnitAnim(unitName)
 				end
 			end
@@ -171,7 +171,7 @@ local unitConfigs = {   -- copy from configs/icon_generator.lua, included.. beca
 }
 function gadget:GameFrame(n)
 	if (nextFrame and n > nextFrame and index <= #unitnames) then
-		Spring.SendCommands("luarules buildicon " .. unitnames[index])
+		SpringUnsynced.SendCommands("luarules buildicon " .. unitnames[index])
 		index = index + 1
 		counter = counter + 1
 

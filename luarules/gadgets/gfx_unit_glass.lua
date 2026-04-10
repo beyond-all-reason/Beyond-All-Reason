@@ -16,11 +16,11 @@ end
 -- Global Acceleration
 -----------------------------------------------------------------
 
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPieceList = Spring.GetUnitPieceList
-local spGetUnitTeam = Spring.GetUnitTeam
-local spSetUnitPieceVisible = Spring.SetUnitPieceVisible
-local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitPieceList = SpringShared.GetUnitPieceList
+local spGetUnitTeam = SpringShared.GetUnitTeam
+local spSetUnitPieceVisible = SpringSynced.SetUnitPieceVisible
+local spGetUnitIsCloaked = SpringShared.GetUnitIsCloaked
 
 if gadgetHandler:IsSyncedCode() then -- Synced
 
@@ -61,7 +61,7 @@ function gadget:UnitFinished(unitID, unitDefID)
 end
 
 function gadget:Initialize()
-	local allUnits = Spring.GetAllUnits()
+	local allUnits = SpringShared.GetAllUnits()
 	for _, unitID in ipairs(allUnits) do
 		local unitDefID = spGetUnitDefID(unitID)
 		local unitTeamID = spGetUnitTeam(unitID)
@@ -70,7 +70,7 @@ function gadget:Initialize()
 end
 
 function gadget:Shutdown()
-	local allUnits = Spring.GetAllUnits()
+	local allUnits = SpringShared.GetAllUnits()
 	for _, unitID in ipairs(allUnits) do
 		local unitDefID = spGetUnitDefID(unitID)
 		if glassUnitDefs[unitDefID] then
@@ -94,8 +94,8 @@ local LuaShader = gl.LuaShader
 -- Acceleration
 -----------------------------------------------------------------
 
-local spGetVisibleUnits = Spring.GetVisibleUnits
-local spGetTeamColor = Spring.GetTeamColor
+local spGetVisibleUnits = SpringUnsynced.GetVisibleUnits
+local spGetTeamColor = SpringUnsynced.GetTeamColor
 
 local glGetSun = gl.GetSun
 
@@ -284,7 +284,7 @@ local pieceList
 local sunChanged = true
 local glassShader
 
-local isSpec, fullview = Spring.GetSpectatingState()
+local isSpec, fullview = SpringUnsynced.GetSpectatingState()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 local myTeamID = Spring.GetMyTeamID()
 
@@ -309,7 +309,7 @@ end
 function gadget:PlayerChanged(playerID)
 	local prevFullview = fullview
 	local prevMyAllyTeamID = myAllyTeamID
-	isSpec, fullview = Spring.GetSpectatingState()
+	isSpec, fullview = SpringUnsynced.GetSpectatingState()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
 	myTeamID = Spring.GetMyTeamID()
 	if fullview ~= prevFullview or myAllyTeamID ~= prevMyAllyTeamID then
@@ -337,14 +337,14 @@ local function RenderGlassUnits()
 			glassShader:SetUniformFloatAlways("sunPos", glGetSun("pos"))
 
 			glassShader:SetUniformFloatArrayAlways("pbrParams", {
-				Spring.GetConfigFloat("tonemapA", 4.8),
-				Spring.GetConfigFloat("tonemapB", 0.8),
-				Spring.GetConfigFloat("tonemapC", 3.35),
-				Spring.GetConfigFloat("tonemapD", 1.0),
-				Spring.GetConfigFloat("tonemapE", 1.15),
-				Spring.GetConfigFloat("envAmbient", 0.3),
-				Spring.GetConfigFloat("unitSunMult", 1.35),
-				Spring.GetConfigFloat("unitExposureMult", 1.0),
+				SpringUnsynced.GetConfigFloat("tonemapA", 4.8),
+				SpringUnsynced.GetConfigFloat("tonemapB", 0.8),
+				SpringUnsynced.GetConfigFloat("tonemapC", 3.35),
+				SpringUnsynced.GetConfigFloat("tonemapD", 1.0),
+				SpringUnsynced.GetConfigFloat("tonemapE", 1.15),
+				SpringUnsynced.GetConfigFloat("envAmbient", 0.3),
+				SpringUnsynced.GetConfigFloat("unitSunMult", 1.35),
+				SpringUnsynced.GetConfigFloat("unitExposureMult", 1.0),
 			})
 
 			sunChanged = false
@@ -441,7 +441,7 @@ function UpdateAllGlassUnits()
 	for k in pairs(teamColors) do teamColors[k] = nil end
 	local units
 	if fullview then
-		units = Spring.GetAllUnits()
+		units = SpringShared.GetAllUnits()
 	else
 		units = CallAsTeam(myTeamID, spGetVisibleUnits, -1, nil, false)
 	end
@@ -463,13 +463,13 @@ function gadget:UnitTaken(unitID, unitDefID, newTeam, oldTeam)
 end
 
 function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
-	if (glassUnitDefs[unitDefID] or not solidUnitDefs[unitDefID]) and CallAsTeam(myTeamID, Spring.IsUnitVisible, unitID, nil, false) then
+	if (glassUnitDefs[unitDefID] or not solidUnitDefs[unitDefID]) and CallAsTeam(myTeamID, SpringUnsynced.IsUnitVisible, unitID, nil, false) then
 		UpdateGlassUnit(unitID)
 	end
 end
 
 function gadget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
-	if (glassUnitDefs[unitDefID] or not solidUnitDefs[unitDefID]) and not CallAsTeam(myTeamID, Spring.IsUnitVisible, unitID, nil, false) then
+	if (glassUnitDefs[unitDefID] or not solidUnitDefs[unitDefID]) and not CallAsTeam(myTeamID, SpringUnsynced.IsUnitVisible, unitID, nil, false) then
 		GlassUnitDestroyed(unitID)
 	end
 end
@@ -481,7 +481,7 @@ function gadget:UnitCloaked(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitDecloaked(unitID, unitDefID, unitTeam)
-	if (glassUnitDefs[unitDefID] or not solidUnitDefs[unitDefID]) and CallAsTeam(myTeamID, Spring.IsUnitVisible, unitID, nil, false) then
+	if (glassUnitDefs[unitDefID] or not solidUnitDefs[unitDefID]) and CallAsTeam(myTeamID, SpringUnsynced.IsUnitVisible, unitID, nil, false) then
 		UpdateGlassUnit(unitID)
 	end
 end

@@ -14,30 +14,30 @@ local function getSettings()
 	local scavTeamID, scavAllyTeamID, raptorTeamID, raptorAllyTeamID
 	local isHoliday = {}
 
-	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID(), false))
-	local springAllyTeamList = Spring.GetAllyTeamList()
+	local gaiaAllyTeamID = select(6, SpringShared.GetTeamInfo(SpringShared.GetGaiaTeamID(), false))
+	local springAllyTeamList = SpringShared.GetAllyTeamList()
 	local allyTeamList = {}
 	local allyTeamSizes = {}
 	local entirelyHumanAllyTeams = {}
 
 	for _, allyTeamID in ipairs(springAllyTeamList) do
-		local teamList = Spring.GetTeamList(allyTeamID) or {}
+		local teamList = SpringShared.GetTeamList(allyTeamID) or {}
 		local allyteamEntirelyHuman = true
 
 		if #teamList > 0 and allyTeamID ~= gaiaAllyTeamID then
 			local isAllyTeamValid = true
 
 			for _, teamID in ipairs(teamList) do
-				if select (4, Spring.GetTeamInfo(teamID, false)) then
+				if select (4, SpringShared.GetTeamInfo(teamID, false)) then
 					allyteamEntirelyHuman = false
 				else
-					local teamPlayers = Spring.GetPlayerList(teamID)
+					local teamPlayers = SpringShared.GetPlayerList(teamID)
 					for _, playerID in ipairs(teamPlayers) do
 						playerCount = playerCount + 1
 					end
 				end
 
-				local luaAI = Spring.GetTeamLuaAI(teamID)
+				local luaAI = SpringShared.GetTeamLuaAI(teamID)
 
 				if luaAI then
 					if luaAI:find("Raptors") then
@@ -89,14 +89,14 @@ local function getSettings()
 		is1v1 = true
 	end
 
-	if #entirelyHumanAllyTeams == 1 and #Spring.GetTeamList(entirelyHumanAllyTeams[1]) > 1 then
+	if #entirelyHumanAllyTeams == 1 and #SpringShared.GetTeamList(entirelyHumanAllyTeams[1]) > 1 then
 		isCoop = true
 	end
 
-	if holidaysList and Spring.GetModOptions and Spring.GetModOptions().date_day then
-		local currentDay = Spring.GetModOptions().date_day
-		local currentMonth = Spring.GetModOptions().date_month
-		local currentYear = Spring.GetModOptions().date_year
+	if holidaysList and SpringShared.GetModOptions and SpringShared.GetModOptions().date_day then
+		local currentDay = SpringShared.GetModOptions().date_day
+		local currentMonth = SpringShared.GetModOptions().date_month
+		local currentYear = SpringShared.GetModOptions().date_year
 
 		-- FIXME: This doesn't support events that start and end in different years.
 		for holiday, dates in pairs(holidaysList) do

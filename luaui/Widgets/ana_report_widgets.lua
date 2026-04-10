@@ -14,7 +14,7 @@ function widget:GetInfo()
 end
 
 function widget:Initialize()
-	local isReplay = Spring.IsReplay()
+	local isReplay = SpringUnsynced.IsReplay()
 	if not WG.Analytics or isReplay then
 		widgetHandler:RemoveWidget(self)
 		return

@@ -20,10 +20,10 @@ if gadgetHandler:IsSyncedCode() then
 	local math_min = math.min
 	local math_floor = math.floor
 
-	local spSpawnCEG = Spring.SpawnCEG
-	local spSpawnExplosion = Spring.SpawnExplosion
-	local spSetFeatureResources = Spring.SetFeatureResources
-	local spGetGroundHeight = Spring.GetGroundHeight
+	local spSpawnCEG = SpringSynced.SpawnCEG
+	local spSpawnExplosion = SpringSynced.SpawnExplosion
+	local spSetFeatureResources = SpringSynced.SetFeatureResources
+	local spGetGroundHeight = SpringShared.GetGroundHeight
 
 	local treefireExplosion = {
 		tiny = {
@@ -92,16 +92,16 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local GetFeaturePosition = Spring.GetFeaturePosition
-	local GetFeatureHealth = Spring.GetFeatureHealth
-	local GetFeatureDirection = Spring.GetFeatureDirection
-	local GetFeatureResources = Spring.GetFeatureResources
-	local SetFeatureDirection = Spring.SetFeatureDirection
-	local SetFeatureBlocking = Spring.SetFeatureBlocking
-	local SetFeaturePosition = Spring.SetFeaturePosition
-	local CreateFeature = Spring.CreateFeature
-	local DestroyFeature = Spring.DestroyFeature
-	local GetGameFrame = Spring.GetGameFrame
+	local GetFeaturePosition = SpringShared.GetFeaturePosition
+	local GetFeatureHealth = SpringShared.GetFeatureHealth
+	local GetFeatureDirection = SpringShared.GetFeatureDirection
+	local GetFeatureResources = SpringShared.GetFeatureResources
+	local SetFeatureDirection = SpringSynced.SetFeatureDirection
+	local SetFeatureBlocking = SpringSynced.SetFeatureBlocking
+	local SetFeaturePosition = SpringSynced.SetFeaturePosition
+	local CreateFeature = SpringSynced.CreateFeature
+	local DestroyFeature = SpringSynced.DestroyFeature
+	local GetGameFrame = SpringShared.GetGameFrame
 
 	local treesdying = {}
 	local falltime = 55.0 -- in frames
@@ -136,11 +136,11 @@ if gadgetHandler:IsSyncedCode() then
 	local function ComSpawnDefoliate(spawnx,spawny,spawnz)
 
 
-		local blasted_trees = Spring.GetFeaturesInCylinder ( spawnx, spawnz, 125)
+		local blasted_trees = SpringShared.GetFeaturesInCylinder ( spawnx, spawnz, 125)
 
 		for i, tree in pairs(blasted_trees) do
 
-			local featureDefID = Spring.GetFeatureDefID(tree)
+			local featureDefID = SpringShared.GetFeatureDefID(tree)
 
 			if geothermals[featureDefID] then
 				return 0
@@ -161,15 +161,15 @@ if gadgetHandler:IsSyncedCode() then
 						elseif treeScaleY[featureDefID] > 65 then
 							size = 'large'
 						end
-						dissapearSpeed = 0.15 + Spring.GetFeatureHeight(tree) / math_random(3700, 4700)
+						dissapearSpeed = 0.15 + SpringShared.GetFeatureHeight(tree) / math_random(3700, 4700)
 					end
 
 					local destroyFrame = GetGameFrame() + falltime + 150 + (dissapearSpeed * 4000)
 
 				local dmg = treeMass[featureDefID] * 2
-				Spring.SetFeatureResources(0,0,0,0)
-				Spring.SetFeatureNoSelect(tree, true)
-				Spring.PlaySoundFile("treefall", 2, fx, fy, fz, 'sfx')
+				SpringSynced.SetFeatureResources(0,0,0,0)
+				SpringSynced.SetFeatureNoSelect(tree, true)
+				SpringUnsynced.PlaySoundFile("treefall", 2, fx, fy, fz, 'sfx')
 				treesdying[tree] = {
 					frame = GetGameFrame(),
 					posx = fx, posy = fy, posz = fz,
@@ -198,14 +198,14 @@ if gadgetHandler:IsSyncedCode() then
 	local lavaCheckInterval = 30
 
 	local function checkLavaTreesDestroy()
-		local lavaLevel = Spring.GetGameRulesParam("lavaLevel")
+		local lavaLevel = SpringShared.GetGameRulesParam("lavaLevel")
 		if not lavaLevel or lavaLevel <= -99999 then
 			return
 		end
-		local allFeatures = Spring.GetAllFeatures()
+		local allFeatures = SpringShared.GetAllFeatures()
 		for i = 1, #allFeatures do
 			local featureID = allFeatures[i]
-			local featureDefID = Spring.GetFeatureDefID(featureID)
+			local featureDefID = SpringShared.GetFeatureDefID(featureID)
 			if treeMass[featureDefID] and not geothermals[featureDefID] then
 				local remainingMetal, maxMetal, remainingEnergy, maxEnergy = GetFeatureResources(featureID)
 				if maxMetal == 0 and maxEnergy > 0 then
@@ -220,15 +220,15 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function checkLavaTreesFire(gf)
-		local lavaLevel = Spring.GetGameRulesParam("lavaLevel")
+		local lavaLevel = SpringShared.GetGameRulesParam("lavaLevel")
 		if not lavaLevel or lavaLevel <= -99999 or lavaLevel <= lastLavaLevel then
 			return
 		end
-		local allFeatures = Spring.GetAllFeatures()
+		local allFeatures = SpringShared.GetAllFeatures()
 		for i = 1, #allFeatures do
 			local featureID = allFeatures[i]
 			if not treesdying[featureID] then
-				local featureDefID = Spring.GetFeatureDefID(featureID)
+				local featureDefID = SpringShared.GetFeatureDefID(featureID)
 				if treeMass[featureDefID] and not geothermals[featureDefID] then
 					local remainingMetal, maxMetal, remainingEnergy, maxEnergy = GetFeatureResources(featureID)
 					if maxMetal == 0 and maxEnergy > 0 then
@@ -245,12 +245,12 @@ if gadgetHandler:IsSyncedCode() then
 								elseif treeScaleY[featureDefID] > 65 then
 									size = 'large'
 								end
-								dissapearSpeed = 0.15 + Spring.GetFeatureHeight(featureID) / math_random(3700, 4700)
+								dissapearSpeed = 0.15 + SpringShared.GetFeatureHeight(featureID) / math_random(3700, 4700)
 							end
 							local destroyFrame = gf + falltime + 150 + (dissapearSpeed * 4000)
 							SetFeatureBlocking(featureID, false, false, false, false, false, false, false)
 							spSetFeatureResources(0, 0, 0, 0)
-							Spring.SetFeatureNoSelect(featureID, true)
+							SpringSynced.SetFeatureNoSelect(featureID, true)
 							treesdying[featureID] = {
 								frame = gf,
 								posx = fx, posy = fy, posz = fz,
@@ -314,7 +314,7 @@ if gadgetHandler:IsSyncedCode() then
 					elseif treeScaleY[featureDefID] > 65 then
 						size = 'large'
 					end
-					dissapearSpeed = 0.15 + Spring.GetFeatureHeight(featureID) / math_random(3700, 4700)
+					dissapearSpeed = 0.15 + SpringShared.GetFeatureHeight(featureID) / math_random(3700, 4700)
 				end
 				--local destroyFrame = GetGameFrame() + (falltime * (treeMass[featureDefID] / dmg)) + 150 + (dissapearSpeed*4000)
 				local destroyFrame = GetGameFrame() + falltime + 150 + (dissapearSpeed * 4000)
@@ -351,8 +351,8 @@ if gadgetHandler:IsSyncedCode() then
 
 					-- PROJECTILE EXPLOSION
 					elseif projectileID > 0 and weaponDefID and not (noFireWeapons[weaponDefID]) then
-						ppx, ppy, ppz = Spring.GetProjectilePosition(projectileID)
-						local vpx, vpy, vpz = Spring.GetProjectileVelocity(projectileID)
+						ppx, ppy, ppz = SpringShared.GetProjectilePosition(projectileID)
+						local vpx, vpy, vpz = SpringShared.GetProjectileVelocity(projectileID)
 						ppx = ppx - 2 * vpx
 						ppy = ppy - 2 * vpy
 						ppz = ppz - 2 * vpz
@@ -363,8 +363,8 @@ if gadgetHandler:IsSyncedCode() then
 
 					-- CRUSH
 					elseif attackerID and weaponDefID < 0 then
-						ppx, ppy, ppz = Spring.GetUnitPosition(attackerID)
-						local vpx, vpy, vpz = Spring.GetUnitVelocity(attackerID)
+						ppx, ppy, ppz = SpringShared.GetUnitPosition(attackerID)
+						local vpx, vpy, vpz = SpringShared.GetUnitVelocity(attackerID)
 						ppx = ppx - 2 * vpx
 						ppy = ppy - 2 * vpy
 						ppz = ppz - 2 * vpz
@@ -373,15 +373,15 @@ if gadgetHandler:IsSyncedCode() then
 
 					-- UNITEXPLOSION
 					elseif attackerID and weaponDefID and not (noFireWeapons[weaponDefID]) then
-						ppx, ppy, ppz = Spring.GetUnitPosition(attackerID)
+						ppx, ppy, ppz = SpringShared.GetUnitPosition(attackerID)
 						dmg = math_min(treeMass[featureDefID] * 2, dmg)
 						if fy >= 0 then
 							fire = true
 						end
 					end
 					spSetFeatureResources(0,0,0,0)
-					Spring.SetFeatureNoSelect(featureID, true)
-					Spring.PlaySoundFile("treefall", 2, fx, fy, fz, 'sfx')
+					SpringSynced.SetFeatureNoSelect(featureID, true)
+					SpringUnsynced.PlaySoundFile("treefall", 2, fx, fy, fz, 'sfx')
 					treesdying[featureID] = {
 						frame = GetGameFrame(),
 						posx = fx, posy = fy, posz = fz,

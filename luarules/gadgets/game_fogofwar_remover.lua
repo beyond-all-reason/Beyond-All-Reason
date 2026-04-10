@@ -3,7 +3,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local gadgetEnabled = false
-if Spring.GetModOptions().disable_fogofwar then
+if SpringShared.GetModOptions().disable_fogofwar then
 	gadgetEnabled = true
 end
 
@@ -21,14 +21,14 @@ function gadget:GetInfo()
     }
 end
 
-local spGetAllyTeamList= Spring.GetAllyTeamList
+local spGetAllyTeamList= SpringShared.GetAllyTeamList
 
 function gadget:GameFrame(n)
     if n%1800 == 10 then
         local allyteams = spGetAllyTeamList()
         for i = 1,#allyteams do
             local allyTeamID = allyteams[i]
-            Spring.SetGlobalLos(allyTeamID, true)
+            SpringSynced.SetGlobalLos(allyTeamID, true)
         end
     end
 end

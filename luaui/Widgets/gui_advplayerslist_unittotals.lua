@@ -19,7 +19,7 @@ local mathFloor = math.floor
 
 -- Localized Spring API for performance
 local spGetMyTeamID = Spring.GetMyTeamID
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
 local displayFeatureCount = false
 
@@ -32,7 +32,7 @@ local glCreateList   = gl.CreateList
 local glDeleteList   = gl.DeleteList
 local glCallList     = gl.CallList
 
-local spGetTeamUnitCount = Spring.GetTeamUnitCount
+local spGetTeamUnitCount = SpringShared.GetTeamUnitCount
 
 local RectRound, UiElement, elementCorner
 local font
@@ -52,9 +52,9 @@ local POSITION_CHECK_INTERVAL = 0.05
 local allTeamIDs = {}
 local allTeamCount = 0
 do
-	local allyTeamList = Spring.GetAllyTeamList()
+	local allyTeamList = SpringShared.GetAllyTeamList()
 	for i = 1, #allyTeamList do
-		local teams = Spring.GetTeamList(allyTeamList[i])
+		local teams = SpringShared.GetTeamList(allyTeamList[i])
 		for j = 1, #teams do
 			allTeamCount = allTeamCount + 1
 			allTeamIDs[allTeamCount] = teams[j]
@@ -72,11 +72,11 @@ local function drawContent()
 	local textsize = 11*widgetScale * math.clamp(1+((1-(vsy/1200))*0.4), 1, 1.15)
 	local textXPadding = 10*widgetScale
 
-	local maxUnits, currentUnits = Spring.GetTeamMaxUnits(myTeamID)
+	local maxUnits, currentUnits = SpringShared.GetTeamMaxUnits(myTeamID)
 	local text = Spring.I18N('ui.unitTotals.totals', { titleColor = '\255\210\210\210', textColor = '\255\245\245\245', units = currentUnits, maxUnits = maxUnits, totalUnits = totalUnits })
 
 	if displayFeatureCount then
-		local features = Spring.GetAllFeatures()
+		local features = SpringShared.GetAllFeatures()
 		text = text..'    \255\170\170\170'..#features
 	end
 	font:Begin(true)
@@ -123,7 +123,7 @@ local function updatePosition(force)
 	elseif WG['advplayerlist_api'] ~= nil then
 		advplayerlistPos = WG['advplayerlist_api'].GetPosition()
 	else
-		local scale = (vsy / 880) * (1 + (Spring.GetConfigFloat("ui_scale", 1) - 1) / 1.25)
+		local scale = (vsy / 880) * (1 + (SpringUnsynced.GetConfigFloat("ui_scale", 1) - 1) / 1.25)
 		advplayerlistPos = {0,vsx-(220*scale),0,vsx,scale}
 	end
 	left = advplayerlistPos[2]
@@ -176,7 +176,7 @@ function widget:Update(dt)
 		updatePosition()
 	end
 
-	if passedTime > 1 and Spring.GetGameFrame() > 0 then
+	if passedTime > 1 and SpringShared.GetGameFrame() > 0 then
 		local count = 0
 		for i = 1, allTeamCount do
 			count = count + spGetTeamUnitCount(allTeamIDs[i])

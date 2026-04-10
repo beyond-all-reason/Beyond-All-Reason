@@ -13,7 +13,7 @@ end
 
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
+local spGetGameFrame = SpringShared.GetGameFrame
 
 if not Spring.Utilities.IsDevMode() or not Spring.Utilities.Gametype.IsSinglePlayer() then
 	return
@@ -62,7 +62,7 @@ local function log(level, str, ...)
 	if level < LOG_LEVEL then
 		return
 	end
-	Spring.Log(
+	SpringShared.Log(
 		widget:GetInfo().name,
 		LOG.NOTICE,
 		str
@@ -200,19 +200,19 @@ local testTimer
 
 local function getGameTime()
 	if gameTimer ~= nil then
-		return Spring.DiffTimers(Spring.GetTimer(), gameTimer, true)
+		return SpringUnsynced.DiffTimers(SpringUnsynced.GetTimer(), gameTimer, true)
 	end
 end
 
 local function getRunTestsTime()
 	if runTestsTimer ~= nil then
-		return Spring.DiffTimers(Spring.GetTimer(), runTestsTimer, true)
+		return SpringUnsynced.DiffTimers(SpringUnsynced.GetTimer(), runTestsTimer, true)
 	end
 end
 
 local function getTestTime()
 	if testTimer ~= nil then
-		return Spring.DiffTimers(Spring.GetTimer(), testTimer, true)
+		return SpringUnsynced.DiffTimers(SpringUnsynced.GetTimer(), testTimer, true)
 	end
 end
 
@@ -488,7 +488,7 @@ local function startTests(patterns)
 		return
 	end
 
-	if not Spring.GetGameRulesParam("isSyncedProxyEnabled") then
+	if not SpringShared.GetGameRulesParam("isSyncedProxyEnabled") then
 		log(
 			LOG.ERROR,
 			"The Synced Proxy gadget is required in order to run tests. It requires single player, dev mode, " ..
@@ -498,23 +498,23 @@ local function startTests(patterns)
 	end
 
 	local neededActions = {}
-	if not Spring.IsCheatingEnabled() then
+	if not SpringShared.IsCheatingEnabled() then
 		neededActions[#neededActions+1] = {'cheat',
 						   'Cheats are disabled; attempting to enable them...',
 						   'Could not enable cheats; tests cannot be run.'}
 	end
-	if not Spring.IsDevLuaEnabled() then
+	if not SpringShared.IsDevLuaEnabled() then
 		neededActions[#neededActions+1] = {'devlua',
 						   'DevLua mode disabled; attempting to enable it...',
 						   'Could not enable DevLua mode; tests cannot be run.'}
 	end
-	if Spring.GetModOptions().deathmode ~= 'neverend' and not Spring.GetGameRulesParam('testEndConditionsOverride') then
+	if SpringShared.GetModOptions().deathmode ~= 'neverend' and not SpringShared.GetGameRulesParam('testEndConditionsOverride') then
 		neededActions[#neededActions+1] = {'luarules setTestEndConditions',
 						   "Disabling end conditions...",
 						   "Could not override game end condition. Please use deathmode='neverend' game end mode. " ..
 					           "This is required in order to run tests, so that the game stays active between tests."}
 	end
-	if spGetGameFrame() < 1 and not Spring.GetGameRulesParam('testEnvironmentStarting') then
+	if spGetGameFrame() < 1 and not SpringShared.GetGameRulesParam('testEnvironmentStarting') then
 		neededActions[#neededActions+1] = {'luarules setTestReadyPlayers',
 						   "Preparing players to start game...",
 						   'Could not prepare players. Please start game manually.'}
@@ -524,7 +524,7 @@ local function startTests(patterns)
 			-- enable required actions, then wait for them to go through
 			for _, action in ipairs(neededActions) do
 				log(LOG.INFO, action[2])
-				Spring.SendCommands(action[1])
+				SpringUnsynced.SendCommands(action[1])
 			end
 			queueStartTests(patterns)
 			return
@@ -580,7 +580,7 @@ local function startTests(patterns)
 
 	log(LOG.NOTICE, "=====RUNNING TESTS=====")
 
-	runTestsTimer = Spring.GetTimer()
+	runTestsTimer = SpringUnsynced.GetTimer()
 end
 
 local function finishTest(result)
@@ -620,7 +620,7 @@ local function finishTest(result)
 		logEndTests(getRunTestsTime())
 
 		if config.quitWhenDone then
-			Spring.SendCommands("quitforce")
+			SpringUnsynced.SendCommands("quitforce")
 		end
 	end
 end
@@ -643,7 +643,7 @@ local function createNestedProxy(prefix, path)
 			}
 
 			log(LOG.DEBUG, "[createNestedProxy." .. prefix .. ".send]")
-			Spring.SendLuaRulesMsg(prefix .. serializedFn)
+			SpringUnsynced.SendLuaRulesMsg(prefix .. serializedFn)
 
 			local resumeOk, resumeResult = coroutine.yield()
 
@@ -674,7 +674,7 @@ SyncedRun = function(fn, timeout)
 	}
 
 	log(LOG.DEBUG, "[SyncedRun.send]")
-	Spring.SendLuaRulesMsg(Proxy.PREFIX.RUN .. serializedFn)
+	SpringUnsynced.SendLuaRulesMsg(Proxy.PREFIX.RUN .. serializedFn)
 
 	local resumeOk, resumeResult = coroutine.yield()
 
@@ -726,10 +726,10 @@ Test = {
 	end,
 	waitTime = function(milliseconds, timeout)
 		log(LOG.DEBUG, "[waitTime] " .. milliseconds)
-		local startTimer = Spring.GetTimer()
+		local startTimer = SpringUnsynced.GetTimer()
 		Test.waitUntil(
 			function()
-				return Spring.DiffTimers(Spring.GetTimer(), startTimer, true) >= milliseconds
+				return SpringUnsynced.DiffTimers(SpringUnsynced.GetTimer(), startTimer, true) >= milliseconds
 			end,
 			timeout or (milliseconds * 30 / 1000 + 5),
 			1
@@ -787,11 +787,11 @@ Test = {
 	end,
 	clearMap = function()
 		SyncedRun(function()
-			for _, unitID in ipairs(Spring.GetAllUnits()) do
-				Spring.DestroyUnit(unitID, false, true, nil, false)
+			for _, unitID in ipairs(SpringShared.GetAllUnits()) do
+				SpringSynced.DestroyUnit(unitID, false, true, nil, false)
 			end
-			for _, featureID in ipairs(Spring.GetAllFeatures()) do
-				Spring.DestroyFeature(featureID)
+			for _, featureID in ipairs(SpringShared.GetAllFeatures()) do
+				SpringSynced.DestroyFeature(featureID)
 			end
 		end)
 	end,
@@ -1226,7 +1226,7 @@ local function step()
 			activeTestState.coroutine = coroutine.create(activeTestState.environment.__runTestInternal)
 			activeTestState.startFrame = spGetGameFrame()
 
-			testTimer = Spring.GetTimer()
+			testTimer = SpringUnsynced.GetTimer()
 		else
 			finishTest({
 				result = TestResults.TEST_RESULT.ERROR,
@@ -1354,7 +1354,7 @@ function widget:Initialize()
 	)
 
 	TestExtraUtils.linkActions(self)
-	gameTimer = Spring.GetTimer()
+	gameTimer = SpringUnsynced.GetTimer()
 end
 
 function widget:Shutdown()

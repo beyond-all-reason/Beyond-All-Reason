@@ -1,4 +1,4 @@
-local range = Spring.GetModOptions().commanderbuildersrange
+local range = SpringShared.GetModOptions().commanderbuildersrange
 return {
 	legnanotcbase = {
 		maxacc = 0,
@@ -39,7 +39,7 @@ return {
 		turnrate = 1,
 		upright = true,
 		waterline = 0,
-		workertime = Spring.GetModOptions().commanderbuildersbuildpower,
+		workertime = SpringShared.GetModOptions().commanderbuildersbuildpower,
 		customparams = {
 			usebuildinggrounddecal = false,
 			buildinggrounddecaltype = "decals/legnanotcbase_aoplane.dds",

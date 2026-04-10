@@ -20,17 +20,17 @@ local mathMin = math.min
 local mathPi = math.pi
 
 -- Localized Spring API for performance
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
 WG.FlowUI = WG.FlowUI or {}
 WG.FlowUI.version = 1
 WG.FlowUI.initialized = false
 
-WG.FlowUI.opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
+WG.FlowUI.opacity = SpringUnsynced.GetConfigFloat("ui_opacity", 0.7)
 WG.FlowUI.clampedOpacity = mathMax(0.75, WG.FlowUI.opacity)
-WG.FlowUI.scale = Spring.GetConfigFloat("ui_scale", 1)
-WG.FlowUI.tileOpacity = Spring.GetConfigFloat("ui_tileopacity", 0.014)
-WG.FlowUI.tileScale = Spring.GetConfigFloat("ui_tilescale", 7)
+WG.FlowUI.scale = SpringUnsynced.GetConfigFloat("ui_scale", 1)
+WG.FlowUI.tileOpacity = SpringUnsynced.GetConfigFloat("ui_tileopacity", 0.014)
+WG.FlowUI.tileScale = SpringUnsynced.GetConfigFloat("ui_tilescale", 7)
 WG.FlowUI.tileSize = WG.FlowUI.tileScale
 
 -- Guishader display list lifecycle helpers
@@ -108,7 +108,7 @@ function widget:Shutdown()
 end
 
 function widget:DrawScreenEffects()
-	if Spring.IsGUIHidden() then
+	if SpringUnsynced.IsGUIHidden() then
 		return
 	end
 end

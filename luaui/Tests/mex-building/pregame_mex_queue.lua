@@ -1,5 +1,5 @@
 function skip()
-	return Spring.GetGameFrame() > 0
+	return SpringShared.GetGameFrame() > 0
 end
 
 -- Test whether mexes are able to clear queued buildings by shift-clicking
@@ -15,9 +15,9 @@ function setup()
 	WG['pregame-build'].setBuildQueue({})
 	WG["pregame-build"].setPreGamestartDefID(nil)
 
-	initialCameraState = Spring.GetCameraState()
+	initialCameraState = SpringUnsynced.GetCameraState()
 
-	Spring.SetCameraState({
+	SpringUnsynced.SetCameraState({
 		mode = 5,
 	})
 
@@ -31,7 +31,7 @@ function cleanup()
 	WG['pregame-build'].setBuildQueue({})
 	WG["pregame-build"].setPreGamestartDefID(nil)
 
-	Spring.SetCameraState(initialCameraState)
+	SpringUnsynced.SetCameraState(initialCameraState)
 end
 
 -- tests both pregame mex snap behavior, as well as basic queue and blueprint handling
@@ -54,8 +54,8 @@ function test()
 	WG["pregame-build"].setPreGamestartDefID(mexUnitDefId)
 	local activeBlueprint = WG["pregame-build"].getPreGameDefID()
 	assert(activeBlueprint == mexUnitDefId, "Active blueprint should be armmex")
-	local sx, sy, sz = Spring.WorldToScreenCoords(targetMex.x - 200, targetMex.y, targetMex.z - 200)
-	Spring.WarpMouse(sx, sy)
+	local sx, sy, sz = SpringUnsynced.WorldToScreenCoords(targetMex.x - 200, targetMex.y, targetMex.z - 200)
+	SpringUnsynced.WarpMouse(sx, sy)
 
 	-- wait for widgets to respond
 	Test.waitTime(10)
@@ -80,8 +80,8 @@ function test()
 	Test.waitTime(10)
 
 	-- move mouse to snapped position
-	sx, sy, sz = Spring.WorldToScreenCoords(snappedPosition.x, snappedPosition.y, snappedPosition.z)
-	Spring.WarpMouse(sx, sy)
+	sx, sy, sz = SpringUnsynced.WorldToScreenCoords(snappedPosition.x, snappedPosition.y, snappedPosition.z)
+	SpringUnsynced.WarpMouse(sx, sy)
 
 	-- select mex again
 	WG["pregame-build"].setPreGamestartDefID(mexUnitDefId)

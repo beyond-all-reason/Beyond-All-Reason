@@ -19,10 +19,10 @@ end
 local tableInsert = table.insert
 
 -- Localized Spring API for performance
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetGameFrame = Spring.GetGameFrame
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetGameFrame = SpringShared.GetGameFrame
 local spGetMyTeamID = Spring.GetMyTeamID
-local spGetTeamUnits = Spring.GetTeamUnits
+local spGetTeamUnits = SpringShared.GetTeamUnits
 
 include("keysym.h.lua")
 
@@ -86,19 +86,19 @@ local prevHealth = {}
 
 local gameStarted
 
-local GetUnitGroup = Spring.GetUnitGroup
-local SetUnitGroup = Spring.SetUnitGroup
-local GetSelectedUnits = Spring.GetSelectedUnits
+local GetUnitGroup = SpringUnsynced.GetUnitGroup
+local SetUnitGroup = SpringUnsynced.SetUnitGroup
+local GetSelectedUnits = SpringUnsynced.GetSelectedUnits
 local GetUnitDefID = spGetUnitDefID
-local GetUnitHealth = Spring.GetUnitHealth
-local GetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local GetMouseState = Spring.GetMouseState
-local SelectUnitArray = Spring.SelectUnitArray
-local TraceScreenRay = Spring.TraceScreenRay
-local GetUnitPosition = Spring.GetUnitPosition
+local GetUnitHealth = SpringShared.GetUnitHealth
+local GetUnitIsBeingBuilt = SpringShared.GetUnitIsBeingBuilt
+local GetMouseState = SpringUnsynced.GetMouseState
+local SelectUnitArray = SpringUnsynced.SelectUnitArray
+local TraceScreenRay = SpringUnsynced.TraceScreenRay
+local GetUnitPosition = SpringShared.GetUnitPosition
 local GetGameFrame = spGetGameFrame
-local Echo = Spring.Echo
-local GetUnitRulesParam = Spring.GetUnitRulesParam
+local Echo = SpringShared.Echo
+local GetUnitRulesParam = SpringShared.GetUnitRulesParam
 
 
 function widget:GameStart()
@@ -107,7 +107,7 @@ function widget:GameStart()
 end
 
 function widget:PlayerChanged(playerID)
-	if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
+	if SpringUnsynced.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -305,7 +305,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 		finiGroup[unitID] = 1
 	end
 
-	if not immediate and ((builtInPlace[unitID] and Spring.GetUnitCommandCount(unitID) == 0) or builtInFrame) then
+	if not immediate and ((builtInPlace[unitID] and SpringShared.GetUnitCommandCount(unitID) == 0) or builtInFrame) then
 		local gr = unit2group[unitDefID]
 		if gr ~= nil and GetUnitGroup(unitID) == nil then
 			SetUnitGroup(unitID, gr)

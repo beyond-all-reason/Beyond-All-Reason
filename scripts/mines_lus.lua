@@ -1,6 +1,6 @@
 
 local base = piece("base")
-local unitDefID = Spring.GetUnitDefID(unitID)
+local unitDefID = SpringShared.GetUnitDefID(unitID)
 local triggerRange = tonumber(UnitDefs[unitDefID].customParams.detonaterange) or 64
 
 local math_sqrt = math.sqrt
@@ -10,9 +10,9 @@ local math_sqrt = math.sqrt
 -- Possible enhancements: Use GetUnitsInCylinder(or sphere) of detonaterange and check for any restriction on target units
 
 function GetClosestEnemyDistance()
-	targetID = Spring.GetUnitNearestEnemy(unitID, triggerRange)
+	targetID = SpringShared.GetUnitNearestEnemy(unitID, triggerRange)
 	if targetID then
-		local tx,ty,tz = Spring.GetUnitPosition(targetID)
+		local tx,ty,tz = SpringShared.GetUnitPosition(targetID)
 		local dis = distance(ux,uy,uz,tx,ty,tz)
 		return dis
 	else
@@ -44,15 +44,15 @@ function script.FireWeapon()
 end
 
 function script.Create()
-	ux,uy,uz = Spring.GetUnitPosition(unitID)
+	ux,uy,uz = SpringShared.GetUnitPosition(unitID)
 	StartThread(EnemyDetect)
 end
 
 function EnemyDetect()
 	while true do
-		local inProgress = Spring.GetUnitIsBeingBuilt(unitID)
-		local firestate = Spring.GetUnitStates(unitID, false)
-		local stunned = Spring.GetUnitIsStunned (unitID) 
+		local inProgress = SpringShared.GetUnitIsBeingBuilt(unitID)
+		local firestate = SpringShared.GetUnitStates(unitID, false)
+		local stunned = SpringShared.GetUnitIsStunned (unitID) 
 		if not inProgress and firestate and firestate > 0 and GetClosestEnemyDistance() <= triggerRange and not stunned then
 			StartThread(Detonate)
 			break
@@ -64,7 +64,7 @@ end
 
 function Detonate()
 	Sleep(500)
-	Spring.DestroyUnit(unitID, false, false)
+	SpringSynced.DestroyUnit(unitID, false, false)
 end
 
 function script.Killed()

@@ -31,14 +31,14 @@ local showEngineTooltip = false		-- straight up display old engine delivered tex
 
 local iconTypes = VFS.Include("gamedata/icontypes.lua")
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = SpringUnsynced.GetViewGeometry()
 
 local hoverType, hoverData = '', ''
 local customHoverType, customHoverData = nil, nil  -- For external widgets (like PIP) to supply hover info
 local sound_button = 'LuaUI/Sounds/buildbar_add.wav'
 local sound_button2 = 'LuaUI/Sounds/buildbar_rem.wav'
 
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+local ui_scale = tonumber(SpringUnsynced.GetConfigFloat("ui_scale", 1) or 1)
 
 local backgroundRect = { 0, 0, 0, 0 }
 local currentTooltip = ''
@@ -73,26 +73,26 @@ local contentWidth, bfcolormap, selUnitTypes
 
 local RectRound, UiElement, UiUnit, elementCorner
 
-local spGetCurrentTooltip = Spring.GetCurrentTooltip
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetSelectedUnitsCounts = Spring.GetSelectedUnitsCounts
-local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
-local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
-local SelectedUnitsCount = Spring.GetSelectedUnitsCount()
-local selectedUnits = Spring.GetSelectedUnits()
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetFeatureDefID = Spring.GetFeatureDefID
-local spTraceScreenRay = Spring.TraceScreenRay
-local spGetMouseState = Spring.GetMouseState
-local spGetModKeyState = Spring.GetModKeyState
-local spSelectUnitArray = Spring.SelectUnitArray
-local spGetTeamUnitsSorted = Spring.GetTeamUnitsSorted
-local spSelectUnitMap = Spring.SelectUnitMap
-local spGetUnitHealth = Spring.GetUnitHealth
-local spGetUnitResources = Spring.GetUnitResources
-local spGetUnitExperience = Spring.GetUnitExperience
-local spGetUnitWeaponState = Spring.GetUnitWeaponState
-local spGetUnitRulesParam = Spring.GetUnitRulesParam
+local spGetCurrentTooltip = SpringUnsynced.GetCurrentTooltip
+local spGetSelectedUnits = SpringUnsynced.GetSelectedUnits
+local spGetSelectedUnitsCounts = SpringUnsynced.GetSelectedUnitsCounts
+local spGetSelectedUnitsSorted = SpringUnsynced.GetSelectedUnitsSorted
+local spGetSelectedUnitsCount = SpringUnsynced.GetSelectedUnitsCount
+local SelectedUnitsCount = SpringUnsynced.GetSelectedUnitsCount()
+local selectedUnits = SpringUnsynced.GetSelectedUnits()
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetFeatureDefID = SpringShared.GetFeatureDefID
+local spTraceScreenRay = SpringUnsynced.TraceScreenRay
+local spGetMouseState = SpringUnsynced.GetMouseState
+local spGetModKeyState = SpringUnsynced.GetModKeyState
+local spSelectUnitArray = SpringUnsynced.SelectUnitArray
+local spGetTeamUnitsSorted = SpringShared.GetTeamUnitsSorted
+local spSelectUnitMap = SpringUnsynced.SelectUnitMap
+local spGetUnitHealth = SpringShared.GetUnitHealth
+local spGetUnitResources = SpringShared.GetUnitResources
+local spGetUnitExperience = SpringShared.GetUnitExperience
+local spGetUnitWeaponState = SpringShared.GetUnitWeaponState
+local spGetUnitRulesParam = SpringShared.GetUnitRulesParam
 local spColorString = Spring.Utilities.Color.ToString
 
 
@@ -106,7 +106,7 @@ local string_lines = string.lines
 local os_clock = os.clock
 
 local myTeamID = Spring.GetMyTeamID()
-local mySpec = Spring.GetSpectatingState()
+local mySpec = SpringUnsynced.GetSpectatingState()
 
 local GL_QUADS = GL.QUADS
 local glTexture = gl.Texture
@@ -590,7 +590,7 @@ local unitOrder = {}	-- retrieves from buildmenu in initialize
 local unitDisabled = {}
 local minWaterUnitDepth = -11
 local showWaterUnits = false
-local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
+local _, _, mapMinWater, _ = SpringShared.GetGroundExtremes()
 if mapMinWater <= minWaterUnitDepth then
 	showWaterUnits = true
 end
@@ -610,9 +610,9 @@ local function checkGeothermalFeatures()
 			geoThermalFeatures[defID] = true
 		end
 	end
-	local features = Spring.GetAllFeatures()
+	local features = SpringShared.GetAllFeatures()
 	for i = 1, #features do
-		if geoThermalFeatures[Spring.GetFeatureDefID(features[i])] then
+		if geoThermalFeatures[SpringShared.GetFeatureDefID(features[i])] then
 			showGeothermalUnits = true
 			break
 		end
@@ -637,13 +637,13 @@ end
 
 function widget:PlayerChanged(playerID)
 	myTeamID = Spring.GetMyTeamID()
-	mySpec = Spring.GetSpectatingState()
+	mySpec = SpringUnsynced.GetSpectatingState()
 end
 
 function widget:ViewResize()
 	ViewResizeUpdate = true
 
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = SpringUnsynced.GetViewGeometry()
 
 	width = 0.2125
 	height = 0.14 * ui_scale
@@ -710,7 +710,7 @@ function widget:GameFrame()
 end
 
 function widget:Initialize()
-	isPregame = Spring.GetGameFrame() < 1
+	isPregame = SpringShared.GetGameFrame() < 1
 
 	refreshUnitInfo()
 
@@ -792,8 +792,8 @@ function widget:Initialize()
 		end
 	end
 
-	Spring.SetDrawSelectionInfo(false)    -- disables springs default display of selected units count
-	Spring.SendCommands("tooltip 0")
+	SpringUnsynced.SetDrawSelectionInfo(false)    -- disables springs default display of selected units count
+	SpringUnsynced.SendCommands("tooltip 0")
 
 	if WG['rankicons'] then
 		rankTextures = WG['rankicons'].getRankTextures()
@@ -807,8 +807,8 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	Spring.SetDrawSelectionInfo(true) --disables springs default display of selected units count
-	Spring.SendCommands("tooltip 1")
+	SpringUnsynced.SetDrawSelectionInfo(true) --disables springs default display of selected units count
+	SpringUnsynced.SendCommands("tooltip 1")
 	if infoBgTex then
 		gl.DeleteTexture(infoBgTex)
 	end
@@ -856,7 +856,7 @@ function widget:Update(dt)
 			rankTextures = WG['rankicons'].getRankTextures()
 		end
 
-		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
+		local _, _, mapMinWater, _ = SpringShared.GetGroundExtremes()
 		if mapMinWater <= minWaterUnitDepth then
 			if not showWaterUnits then
 				showWaterUnits = true
@@ -892,7 +892,7 @@ function widget:Update(dt)
 		lastUpdateClock = os_clock()
 	end
 
-	if displayUnitID and not Spring.ValidUnitID(displayUnitID) then
+	if displayUnitID and not SpringShared.ValidUnitID(displayUnitID) then
 		displayMode = 'text'
 		displayUnitID = nil
 		displayUnitDefID = nil
@@ -1225,8 +1225,8 @@ local function drawSelection()
 end
 
 local function GetAIName(teamID)
-	local _, _, _, name, _, options = Spring.GetAIInfo(teamID)
-	local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
+	local _, _, _, name, _, options = SpringShared.GetAIInfo(teamID)
+	local niceName = SpringShared.GetGameRulesParam('ainame_' .. teamID)
 	if niceName then
 		name = niceName
 		--if Spring.Utilities.ShowDevUI() and options.profile then
@@ -1397,15 +1397,15 @@ local function drawUnitInfo()
 		end
 
 		-- display unit owner name
-		local teamID = Spring.GetUnitTeam(displayUnitID)
+		local teamID = SpringShared.GetUnitTeam(displayUnitID)
 		if mySpec or (myTeamID ~= teamID) then
-			local _, playerID, _, isAiTeam = Spring.GetTeamInfo(teamID, false)
-			local name = Spring.GetPlayerInfo(playerID, false)
+			local _, playerID, _, isAiTeam = SpringShared.GetTeamInfo(teamID, false)
+			local name = SpringShared.GetPlayerInfo(playerID, false)
 			name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
 			if isAiTeam then
 				name = GetAIName(teamID)
 			end
-			if not mySpec and Spring.GetModOptions().teamcolors_anonymous_mode ~= 'disabled' then
+			if not mySpec and SpringShared.GetModOptions().teamcolors_anonymous_mode ~= 'disabled' then
 				name = anonymousName
 			end
 			if name then
@@ -1413,7 +1413,7 @@ local function drawUnitInfo()
 				--if not mySpec and Spring.GetModOptions().teamcolors_anonymous_mode ~= 'disabled' then
 				--	name = ColourString(Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255) .. name
 				--else
-				name = spColorString(Spring.GetTeamColor(teamID)) .. name
+				name = spColorString(SpringUnsynced.GetTeamColor(teamID)) .. name
 				--end
 				font2:Print(name, backgroundRect[3] - bgpadding - bgpadding, backgroundRect[2] + (fontSizeOwner * 0.44), fontSizeOwner, "or")
 			end
@@ -1512,8 +1512,8 @@ local function drawUnitInfo()
 
 
 		-- draw transported unit list
-	elseif displayMode == 'unit' and unitDefInfo[displayUnitDefID].transport and (Spring.GetUnitIsTransporting(displayUnitID) and #Spring.GetUnitIsTransporting(displayUnitID) or 0) > 0 then
-		local units = Spring.GetUnitIsTransporting(displayUnitID)
+	elseif displayMode == 'unit' and unitDefInfo[displayUnitDefID].transport and (SpringShared.GetUnitIsTransporting(displayUnitID) and #SpringShared.GetUnitIsTransporting(displayUnitID) or 0) > 0 then
+		local units = SpringShared.GetUnitIsTransporting(displayUnitID)
 		if #units > 0 then
 			gridHeight = math_ceil(height * 0.975)
 			local rows = 2
@@ -1620,7 +1620,7 @@ local function drawUnitInfo()
 		if displayMode == 'unit' then
 			-- get lots of unit info from functions: https://springrts.com/wiki/Lua_SyncedRead
 			if unitDefInfo[displayUnitDefID].mainWeapon ~= nil then
-				maxRange = Spring.GetUnitWeaponState(displayUnitID, unitDefInfo[displayUnitDefID].mainWeapon, "range")
+				maxRange = SpringShared.GetUnitWeaponState(displayUnitID, unitDefInfo[displayUnitDefID].mainWeapon, "range")
 			else
 				maxRange = range
 			end
@@ -1833,7 +1833,7 @@ local function drawEngineTooltip()
 			end
 			if hoverType == 'ground' then
 				local desc, coords = spTraceScreenRay(mouseX, mouseY, true)
-				local groundType1, groundType2, metal, hardness, tankSpeed, botSpeed, hoverSpeed, shipSpeed, receiveTracks = Spring.GetGroundInfo(coords[1], coords[3])
+				local groundType1, groundType2, metal, hardness, tankSpeed, botSpeed, hoverSpeed, shipSpeed, receiveTracks = SpringShared.GetGroundInfo(coords[1], coords[3])
 				local text = ''
 				local height = 0
 				font:Begin(true)
@@ -1842,7 +1842,7 @@ local function drawEngineTooltip()
 				if displayMapPosition then
 					font:Print(tooltipValueColor..math.floor(hoverData[1])..',', backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 					font:Print(math.floor(hoverData[3]), backgroundRect[1] + contentPadding + (fontSize * 3.2), backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
-					font:Print(tooltipLabelTextColor..Spring.I18N('ui.info.elevation')..'  '..tooltipValueColor..math.floor(Spring.GetGroundHeight(coords[1], coords[3])), backgroundRect[1] + contentPadding + (fontSize * 6.6), backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
+					font:Print(tooltipLabelTextColor..Spring.I18N('ui.info.elevation')..'  '..tooltipValueColor..math.floor(SpringShared.GetGroundHeight(coords[1], coords[3])), backgroundRect[1] + contentPadding + (fontSize * 6.6), backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 					height = height + heightStep
 				end
 				if tankSpeed ~= 1 or botSpeed ~= 1 or hoverSpeed ~= 1 or (shipSpeed ~= 1 and coords[2] <= 0) then
@@ -1881,7 +1881,7 @@ local function drawEngineTooltip()
 				--end
 				font:End()
 			elseif hoverType == 'feature' then
-				local featureDefID = Spring.GetFeatureDefID(hoverData)
+				local featureDefID = SpringShared.GetFeatureDefID(hoverData)
 				local text = FeatureDefs[featureDefID].tooltip
 				local height = 0
 				if text == '' then
@@ -1898,7 +1898,7 @@ local function drawEngineTooltip()
 				font:SetTextColor(1, 1, 1, 1)
 				font:SetOutlineColor(0.1, 0.1, 0.1, 1)
 				text = ''
-				local metal, _, energy, _ = Spring.GetFeatureResources(hoverData)
+				local metal, _, energy, _ = SpringShared.GetFeatureResources(hoverData)
 				if energy > 0 then
 					height = height + heightStep
 					text = tooltipLabelTextColor..Spring.I18N('ui.info.energy').."  \255\255\255\000"..string.formatSI(energy)
@@ -1966,7 +1966,7 @@ local function LeftMouseButton(unitDefID, unitTable)
 	selectedUnits = spGetSelectedUnits()
 	SelectedUnitsCount = spGetSelectedUnitsCount()
 	if acted then
-		Spring.PlaySoundFile(sound_button, 0.5, 'ui')
+		SpringUnsynced.PlaySoundFile(sound_button, 0.5, 'ui')
 	end
 end
 
@@ -1974,16 +1974,16 @@ local function MiddleMouseButton(unitDefID, unitTable)
 	local alt, ctrl, meta, shift = spGetModKeyState()
 	if ctrl then
 		-- center the view on the entire selection
-		Spring.SendCommands(viewSelectionCmd)
+		SpringUnsynced.SendCommands(viewSelectionCmd)
 	else
 		-- center the view on this type on unit
 		spSelectUnitArray(unitTable)
-		Spring.SendCommands(viewSelectionCmd)
+		SpringUnsynced.SendCommands(viewSelectionCmd)
 		spSelectUnitArray(selectedUnits)
 	end
 	selectedUnits = spGetSelectedUnits()
 	SelectedUnitsCount = spGetSelectedUnitsCount()
-	Spring.PlaySoundFile(sound_button, 0.5, 'ui')
+	SpringUnsynced.PlaySoundFile(sound_button, 0.5, 'ui')
 end
 
 local function RightMouseButton(unitDefID, unitTable)
@@ -2006,11 +2006,11 @@ local function RightMouseButton(unitDefID, unitTable)
 	spSelectUnitMap(rightMouseButtonMap)
 	selectedUnits = spGetSelectedUnits()
 	SelectedUnitsCount = spGetSelectedUnitsCount()
-	Spring.PlaySoundFile(sound_button2, 0.5, 'ui')
+	SpringUnsynced.PlaySoundFile(sound_button2, 0.5, 'ui')
 end
 
 function widget:MousePress(x, y, button)
-	if Spring.IsGUIHidden() then
+	if SpringUnsynced.IsGUIHidden() then
 		return
 	end
 	if infoShows and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
@@ -2026,12 +2026,12 @@ local function unloadTransport(transportID, unitID, x, z, shift, depth)
 	end
 	local radius = 20 * depth
 	local orgX, orgZ = x, z
-	local y = Spring.GetGroundHeight(x, z)
+	local y = SpringShared.GetGroundHeight(x, z)
 	local unitSphereRadius = 60	-- too low value will result in unload conflicts
-	local areaUnits = Spring.GetUnitsInSphere(x, y, z, unitSphereRadius)
+	local areaUnits = SpringShared.GetUnitsInSphere(x, y, z, unitSphereRadius)
 	if #areaUnits == 0 then	-- unblocked spot!
 		unloadParams[1], unloadParams[2], unloadParams[3], unloadParams[4] = x, y, z, unitID
-		Spring.GiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, unloadParams, shift and shiftTable or emptyTable)
+		SpringSynced.GiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, unloadParams, shift and shiftTable or emptyTable)
 	else
 		-- unload is blocked by unit at ground just lets find free alternative spot in a radius around it
 		local samples = 8
@@ -2041,13 +2041,13 @@ local function unloadTransport(transportID, unitID, x, z, shift, depth)
 			x = x + (radius * math.cos(i * sideAngle))
 			z = z + (radius * math.sin(i * sideAngle))
 			if x > 0 and z > 0 and x < mapSizeX and z < mapSizeZ then
-				y = Spring.GetGroundHeight(x, z)
-				areaUnits = Spring.GetUnitsInSphere(x, y, z, unitSphereRadius)
+				y = SpringShared.GetGroundHeight(x, z)
+				areaUnits = SpringShared.GetUnitsInSphere(x, y, z, unitSphereRadius)
 				if #areaUnits == 0 then	-- unblocked spot!
-					local areaFeatures = Spring.GetFeaturesInSphere(x, y, z, unitSphereRadius)
+					local areaFeatures = SpringShared.GetFeaturesInSphere(x, y, z, unitSphereRadius)
 					if #areaFeatures == 0 then
 						unloadParams[1], unloadParams[2], unloadParams[3], unloadParams[4] = x, y, z, unitID
-						Spring.GiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, unloadParams, shift and shiftTable or emptyTable)
+						SpringSynced.GiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, unloadParams, shift and shiftTable or emptyTable)
 						foundUnloadSpot = true
 						break
 					end
@@ -2063,7 +2063,7 @@ end
 
 
 function widget:MouseRelease(x, y, button)
-	if Spring.IsGUIHidden() then
+	if SpringUnsynced.IsGUIHidden() then
 		return
 	end
 
@@ -2100,22 +2100,22 @@ function widget:MouseRelease(x, y, button)
 
 		-- transported unit list
 		if displayMode == 'unit' and button == 1 then
-			local units = Spring.GetUnitIsTransporting(displayUnitID)
+			local units = SpringShared.GetUnitIsTransporting(displayUnitID)
 			if units and #units > 0 then
 				for cellID, unitID in pairs(units) do
 					if cellRect[cellID] and math_isInRect(x, y, cellRect[cellID][1], cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][4]) then
-						local x,y,z = Spring.GetUnitPosition(displayUnitID)
+						local x,y,z = SpringShared.GetUnitPosition(displayUnitID)
 						local alt, ctrl, meta, shift = spGetModKeyState()
 						if shift then
-							local cmdQueue = Spring.GetUnitCommands(displayUnitID, 35) or {}
+							local cmdQueue = SpringShared.GetUnitCommands(displayUnitID, 35) or {}
 							if cmdQueue[1] then
 								if cmdQueue[#cmdQueue] and cmdQueue[#cmdQueue].id == CMD.MOVE and cmdQueue[#cmdQueue].params[3] then
 									x, z = cmdQueue[#cmdQueue].params[1], cmdQueue[#cmdQueue].params[3]
 									-- remove the last move command (to replace it with the unload cmd after)
-									Spring.GiveOrderToUnit(displayUnitID, CMD.STOP, emptyTable, 0)
+									SpringSynced.GiveOrderToUnit(displayUnitID, CMD.STOP, emptyTable, 0)
 									for c = 1, #cmdQueue do
 										if c < #cmdQueue then
-											Spring.GiveOrderToUnit(displayUnitID, cmdQueue[c].id, cmdQueue[c].params, shiftTable)
+											SpringSynced.GiveOrderToUnit(displayUnitID, cmdQueue[c].id, cmdQueue[c].params, shiftTable)
 										end
 									end
 								end
@@ -2194,7 +2194,7 @@ function widget:DrawScreen()
 	-- widget hovered
 	if infoShows and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 
-		Spring.SetMouseCursor('cursornormal')
+		SpringUnsynced.SetMouseCursor('cursornormal')
 
 		-- selection grid
 		if displayMode == 'selection' and selectionCells and selectionCells[1] and cellRect then
@@ -2264,7 +2264,7 @@ function widget:DrawScreen()
 
 		-- transport load list
 		if displayMode == 'unit' and unitDefInfo[displayUnitDefID].transport and cellRect then
-			local units = Spring.GetUnitIsTransporting(displayUnitID)
+			local units = SpringShared.GetUnitIsTransporting(displayUnitID)
 			if #units > 0 then
 				for cellID, unitID in pairs(units) do
 
@@ -2339,7 +2339,7 @@ function checkChanges()
  		activeCmdID = WG["pregame-build"] and WG["pregame-build"].getPreGameDefID()
 		activeCmdID = activeCmdID and -activeCmdID
 	else
-		activeCmdID = select(2, Spring.GetActiveCommand())
+		activeCmdID = select(2, SpringUnsynced.GetActiveCommand())
 	end
 
 	-- buildmenu unitdef
@@ -2352,7 +2352,7 @@ function checkChanges()
 	elseif activeCmdID and activeCmdID < 0 then
 		displayMode = 'unitdef'
 		displayUnitDefID = -activeCmdID
-	elseif cfgDisplayUnitID and Spring.ValidUnitID(cfgDisplayUnitID) then
+	elseif cfgDisplayUnitID and SpringShared.ValidUnitID(cfgDisplayUnitID) then
 		displayMode = 'unit'
 		displayUnitID = cfgDisplayUnitID
 		displayUnitDefID = spGetUnitDefID(displayUnitID)
@@ -2391,7 +2391,7 @@ function checkChanges()
 		local newTooltip = featureDef.translatedDescription or ''
 
 		if featureDef.reclaimable then
-			local metal, _, energy, _ = Spring.GetFeatureResources(featureID)
+			local metal, _, energy, _ = SpringShared.GetFeatureResources(featureID)
 			local reclaimText = Spring.I18N('ui.reclaimInfo.metal', { metal = string.formatSI(metal) }) .. "\255\255\255\128" .. " " .. Spring.I18N('ui.reclaimInfo.energy', { energy = string.formatSI(energy) })
 			newTooltip = newTooltip .. "\n\n" .. reclaimText
 		end
@@ -2433,7 +2433,7 @@ function checkChanges()
 	if displayMode == 'text' and isPregame then
 		if not mySpec then
 			displayMode = 'unitdef'
-			displayUnitDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
+			displayUnitDefID = SpringShared.GetTeamRulesParam(myTeamID, 'startUnit')
 			hideBuildlist = true
 		else
 			emptyInfo = true

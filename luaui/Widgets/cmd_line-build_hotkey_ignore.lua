@@ -19,10 +19,10 @@ function widget:KeyPress(key, mods, isRepeat)
     
         if key ~= KEYSYMS['UP'] and key ~= KEYSYMS['DOWN'] and key ~= KEYSYMS['LEFT'] and key ~= KEYSYMS['RIGHT'] then -- Don't ignore arrow keys
         
-            local x, y, leftPressed, middlePressed, rightPressed, offscreen = Spring.GetMouseState()
+            local x, y, leftPressed, middlePressed, rightPressed, offscreen = SpringUnsynced.GetMouseState()
             if leftPressed then
             
-                local idx, cmd_id, cmd_type, cmd_name = Spring.GetActiveCommand()
+                local idx, cmd_id, cmd_type, cmd_name = SpringUnsynced.GetActiveCommand()
                 if cmd_id and cmd_id < 0 then
                     return true
                 end

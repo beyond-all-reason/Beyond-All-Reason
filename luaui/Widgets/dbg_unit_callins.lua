@@ -18,8 +18,8 @@ end
 local tableInsert = table.insert
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spEcho = Spring.Echo
+local spGetGameFrame = SpringShared.GetGameFrame
+local spEcho = SpringShared.Echo
 
 -- UNIT CALLINS:
 local showcallins = true
@@ -74,8 +74,8 @@ local function addEvent(unitID,callin, param1, param2, param3, param4)
 		px = unitID[1]
 		py = unitID[2]
 		pz = unitID[3]
-	elseif Spring.ValidUnitID(unitID) then 
-		px, py, pz = Spring.GetUnitPosition(unitID)
+	elseif SpringShared.ValidUnitID(unitID) then 
+		px, py, pz = SpringShared.GetUnitPosition(unitID)
 	end
 	if px == nil then return end 
 	local caption = 'w:'..callin
@@ -115,7 +115,7 @@ function widget:DrawWorld()
 	if numevents > 0 then 
 		gl.Color(1,1,1,1)
 		for key, event in pairs(eventlist) do 
-			if Spring.IsSphereInView(event.x, event.y, event.z, 128) then 
+			if SpringUnsynced.IsSphereInView(event.x, event.y, event.z, 128) then 
 				gl.PushMatrix()
 				gl.Translate(event.x, event.y, event.z)
 				gl.Text( event.caption,0,0,16,'n')
@@ -297,10 +297,10 @@ end
 
 function widget:FeatureCreated(featureID)
 	if enabledcallins.FeatureCreated == nil then return end
-	local featureDefID = Spring.GetFeatureDefID(featureID)
+	local featureDefID = SpringShared.GetFeatureDefID(featureID)
 	if printcallins then spEcho("w:FeatureCreated",featureID, FeatureDefs[featureDefID].name) end
 	if showcallins then 	
-		local fx, fy, fz = Spring.GetFeaturePosition(featureID)
+		local fx, fy, fz = SpringShared.GetFeaturePosition(featureID)
 		local pos = {fx,fy,fz}
 		addEvent(pos, "FeatureCreated") 
 	end 
@@ -308,10 +308,10 @@ end
 
 function widget:FeatureDestroyed(featureID)
 	if enabledcallins.FeatureDestroyed == nil then return end
-	local featureDefID = Spring.GetFeatureDefID(featureID)
+	local featureDefID = SpringShared.GetFeatureDefID(featureID)
 	if printcallins then spEcho("w:FeatureDestroyed",featureID, FeatureDefs[featureDefID].name) end
 	if showcallins then 	
-		local fx, fy, fz = Spring.GetFeaturePosition(featureID)
+		local fx, fy, fz = SpringShared.GetFeaturePosition(featureID)
 		local pos = {fx,fy,fz}
 		addEvent(pos, "FeatureDestroyed") 
 	end 

@@ -21,15 +21,15 @@ end
 --------------------------------------------------------------------------------
 -- Localized functions
 --------------------------------------------------------------------------------
-local spEcho              = Spring.Echo
-local spGetUnitPosition   = Spring.GetUnitPosition
-local spGetUnitVelocity   = Spring.GetUnitVelocity
-local spValidUnitID       = Spring.ValidUnitID
-local spIsSphereInView    = Spring.IsSphereInView
-local spIsPosInAirLos     = Spring.IsPosInAirLos
-local spGetTeamAllyTeamID = Spring.GetTeamAllyTeamID
+local spEcho              = SpringShared.Echo
+local spGetUnitPosition   = SpringShared.GetUnitPosition
+local spGetUnitVelocity   = SpringShared.GetUnitVelocity
+local spValidUnitID       = SpringShared.ValidUnitID
+local spIsSphereInView    = SpringUnsynced.IsSphereInView
+local spIsPosInAirLos     = SpringShared.IsPosInAirLos
+local spGetTeamAllyTeamID = SpringShared.GetTeamAllyTeamID
 local spGetMyAllyTeamID   = Spring.GetMyAllyTeamID
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 local mathRandom = math.random
 local mathMin    = math.min

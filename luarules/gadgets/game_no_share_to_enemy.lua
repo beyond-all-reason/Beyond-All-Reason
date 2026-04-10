@@ -19,14 +19,14 @@ if not gadgetHandler:IsSyncedCode() then
     return
 end
 
-local AreTeamsAllied = Spring.AreTeamsAllied
-local IsCheatingEnabled = Spring.IsCheatingEnabled
+local AreTeamsAllied = SpringShared.AreTeamsAllied
+local IsCheatingEnabled = SpringShared.IsCheatingEnabled
 
-local isNonPlayerTeam = { [Spring.GetGaiaTeamID()] = true }
-local teams = Spring.GetTeamList()
+local isNonPlayerTeam = { [SpringShared.GetGaiaTeamID()] = true }
+local teams = SpringShared.GetTeamList()
 for i=1,#teams do
-    local _,_,_,isAiTeam = Spring.GetTeamInfo(teams[i],false)
-    local isLuaAI = (Spring.GetTeamLuaAI(teams[i]) ~= nil)
+    local _,_,_,isAiTeam = SpringShared.GetTeamInfo(teams[i],false)
+    local isLuaAI = (SpringShared.GetTeamLuaAI(teams[i]) ~= nil)
     if isAiTeam or isLuaAI then
         isNonPlayerTeam[teams[i]] = true
     end

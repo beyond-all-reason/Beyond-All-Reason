@@ -37,16 +37,16 @@ local debugEcho = false
 --------------------------------------------------------------------------------
 -- Localized functions
 --------------------------------------------------------------------------------
-local spGetGroundHeight       = Spring.GetGroundHeight
-local spEcho                  = Spring.Echo
-local spGetTimer              = Spring.GetTimer
-local spDiffTimers            = Spring.DiffTimers
-local spIsSphereInView        = Spring.IsSphereInView
-local spGetCameraPosition     = Spring.GetCameraPosition
-local spGetFPS                = Spring.GetFPS
-local spGetWind               = Spring.GetWind
-local spGetConfigInt          = Spring.GetConfigInt
-local spGetGameSpeed          = Spring.GetGameSpeed
+local spGetGroundHeight       = SpringShared.GetGroundHeight
+local spEcho                  = SpringShared.Echo
+local spGetTimer              = SpringUnsynced.GetTimer
+local spDiffTimers            = SpringUnsynced.DiffTimers
+local spIsSphereInView        = SpringUnsynced.IsSphereInView
+local spGetCameraPosition     = SpringUnsynced.GetCameraPosition
+local spGetFPS                = SpringUnsynced.GetFPS
+local spGetWind               = SpringShared.GetWind
+local spGetConfigInt          = SpringUnsynced.GetConfigInt
+local spGetGameSpeed          = SpringUnsynced.GetGameSpeed
 
 local glBlending  = gl.Blending
 local glTexture   = gl.Texture

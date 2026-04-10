@@ -15,21 +15,21 @@ end
 
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 local myPlayerID = Spring.GetMyPlayerID()
-local lastMapDrawMode = Spring.GetMapDrawMode()
+local lastMapDrawMode = SpringUnsynced.GetMapDrawMode()
 
 local function TurnOnLOS()
-    if Spring.GetMapDrawMode()~="los" then
-        Spring.SendCommands("togglelos")
+    if SpringUnsynced.GetMapDrawMode()~="los" then
+        SpringUnsynced.SendCommands("togglelos")
     end
 end
 
 local function TurnOffLOS()
-    if Spring.GetMapDrawMode()=="los" then
-        Spring.SendCommands("togglelos")
+    if SpringUnsynced.GetMapDrawMode()=="los" then
+        SpringUnsynced.SendCommands("togglelos")
     end
 end
 
@@ -55,7 +55,7 @@ function widget:GameFrame(frame)	-- somehow widget:GameStart() didnt work
 end
 
 function widget:Shutdown()
-    lastMapDrawMode = Spring.GetMapDrawMode()
+    lastMapDrawMode = SpringUnsynced.GetMapDrawMode()
     TurnOffLOS()
 end
 

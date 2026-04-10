@@ -12,7 +12,7 @@ local mathSqrt = math.sqrt
 local mathFloor = math.floor
 local mathMax = math.max
 local mathClamp = math.clamp
-local spGetGroundHeight = Spring.GetGroundHeight
+local spGetGroundHeight = SpringShared.GetGroundHeight
 
 local mtta = mathAcos(1.0 - 0.41221) - 0.02 --http://springrts.com/wiki/Movedefs.lua#How_slope_is_determined & the -0.02 is for safety
 
@@ -209,7 +209,7 @@ end
 
 function GuessTwo(teamID, allyID, xmin, zmin, xmax, zmax, startPointTable) --TODO: make this more efficient, atm it akes 1-2 sec to run
 	-- search over metal map and find a point with a reasonable amount of non-claimed metal near to it
-    local mmapx,mmapz = Spring.GetMetalMapSize() -- metal map cords * 16 = world coords
+    local mmapx,mmapz = SpringShared.GetMetalMapSize() -- metal map cords * 16 = world coords
     local xres = mathMax(1,mathFloor(mmapx/16))
     local zres = mathMax(1,mathFloor(mmapz/16))
 
@@ -256,7 +256,7 @@ function GuessTwo(teamID, allyID, xmin, zmin, xmax, zmax, startPointTable) --TOD
         end
 
         -- if it is, add this metal into points
-        local m = Spring.GetMetalAmount(x,z)
+        local m = SpringShared.GetMetalAmount(x,z)
 		if isFree and m > 0.1 then
             local y = spGetGroundHeight(x*16,z*16)
             for _,p in ipairs(points) do

@@ -19,20 +19,20 @@ end
 local strSub = string.sub
 local mathAbs = math.abs
 
-local spGetPlayerInfo = Spring.GetPlayerInfo
-local spGetGameFrame = Spring.GetGameFrame
-local spSendMessageToPlayer = Spring.SendMessageToPlayer
-local spValidUnitID = Spring.ValidUnitID
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitVelocity = Spring.GetUnitVelocity
-local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
-local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local spGetCOBScriptID = Spring.GetCOBScriptID
-local spCallCOBScript = Spring.CallCOBScript
-local spIsCheatingEnabled = Spring.IsCheatingEnabled
+local spGetPlayerInfo = SpringShared.GetPlayerInfo
+local spGetGameFrame = SpringShared.GetGameFrame
+local spSendMessageToPlayer = SpringUnsynced.SendMessageToPlayer
+local spValidUnitID = SpringShared.ValidUnitID
+local spGetUnitTeam = SpringShared.GetUnitTeam
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitVelocity = SpringShared.GetUnitVelocity
+local spGetUnitIsBuilding = SpringShared.GetUnitIsBuilding
+local spGetUnitCurrentCommand = SpringShared.GetUnitCurrentCommand
+local spGetCOBScriptID = SpringSynced.GetCOBScriptID
+local spCallCOBScript = SpringSynced.CallCOBScript
+local spIsCheatingEnabled = SpringShared.IsCheatingEnabled
 
-local UnitScript = Spring.UnitScript
+local UnitScript = SpringSynced.UnitScript
 local usGetScriptEnv = UnitScript.GetScriptEnv
 local usCallAsUnit = UnitScript.CallAsUnit
 

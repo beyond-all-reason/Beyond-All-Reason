@@ -19,7 +19,7 @@ local mathMax = math.max
 local tableInsert = table.insert
 
 -- Localized Spring API for performance
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
 local titlecolor = "\255\255\205\100"
 local keycolor = ""
@@ -36,7 +36,7 @@ local raptorsEnabled = Spring.Utilities.Gametype.IsRaptors()
 local content = ''
 
 local tidal = Game.tidal
-local map_tidal = Spring.GetModOptions().map_tidal
+local map_tidal = SpringShared.GetModOptions().map_tidal
 local reclaimable_metal = 0
 local reclaimable_energy = 0
 
@@ -49,8 +49,8 @@ elseif map_tidal == "high" then
 	tidal = 23
 end
 
-if Spring.GetTidal then
-	tidal = Spring.GetTidal()
+if SpringShared.GetTidal then
+	tidal = SpringShared.GetTidal()
 end
 
 -- modoptions
@@ -343,9 +343,9 @@ function widget:DrawScreen()
 		end
 		showOnceMore = false
 
-		local x, y, pressed = Spring.GetMouseState()
+		local x, y, pressed = SpringUnsynced.GetMouseState()
 		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) or math_isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
-			Spring.SetMouseCursor('cursornormal')
+			SpringUnsynced.SetMouseCursor('cursornormal')
 		end
 
 	else
@@ -391,7 +391,7 @@ function widget:MouseRelease(x, y, button)
 end
 
 function mouseEvent(x, y, button, release)
-	if Spring.IsGUIHidden() then
+	if SpringUnsynced.IsGUIHidden() then
 		return false
 	end
 
@@ -477,10 +477,10 @@ local function closeInfoHandler()
   end
 end
 
-local spGetAllFeatures = Spring.GetAllFeatures
-local spGetFeatureResources = Spring.GetFeatureResources
-local spGetFeatureTeam = Spring.GetFeatureTeam
-local spGetGaiaTeamID = Spring.GetGaiaTeamID
+local spGetAllFeatures = SpringShared.GetAllFeatures
+local spGetFeatureResources = SpringShared.GetFeatureResources
+local spGetFeatureTeam = SpringShared.GetFeatureTeam
+local spGetGaiaTeamID = SpringShared.GetGaiaTeamID
 local gaiaTeamId = spGetGaiaTeamID()
 
 function widget:GamePreload()

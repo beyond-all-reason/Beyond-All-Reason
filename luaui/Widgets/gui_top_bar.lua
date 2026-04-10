@@ -27,18 +27,18 @@ local stringFormat = string.format
 
 -- Localized Spring API as table (avoids global lookups, saves local slots)
 local sp = {
-	GetGameFrame = Spring.GetGameFrame,
-	GetTeamRulesParam = Spring.GetTeamRulesParam,
-	GetTeamList = Spring.GetTeamList,
-	SetMouseCursor = Spring.SetMouseCursor,
+	GetGameFrame = SpringShared.GetGameFrame,
+	GetTeamRulesParam = SpringShared.GetTeamRulesParam,
+	GetTeamList = SpringShared.GetTeamList,
+	SetMouseCursor = SpringUnsynced.SetMouseCursor,
 	GetMyAllyTeamID = Spring.GetMyAllyTeamID,
-	GetTeamUnitDefCount = Spring.GetTeamUnitDefCount,
-	GetSpectatingState = Spring.GetSpectatingState,
-	GetTeamResources = Spring.GetTeamResources,
+	GetTeamUnitDefCount = SpringShared.GetTeamUnitDefCount,
+	GetSpectatingState = SpringUnsynced.GetSpectatingState,
+	GetTeamResources = SpringShared.GetTeamResources,
 	GetMyTeamID = Spring.GetMyTeamID,
-	GetMouseState = Spring.GetMouseState,
-	GetWind = Spring.GetWind,
-	GetGameSpeed = Spring.GetGameSpeed,
+	GetMouseState = SpringUnsynced.GetMouseState,
+	GetWind = SpringShared.GetWind,
+	GetGameSpeed = SpringUnsynced.GetGameSpeed,
 }
 
 -- Configuration (consolidated into table to save local slots)
@@ -53,7 +53,7 @@ local cfg = {
 
 -- System
 local guishaderEnabled = false
-local gaiaTeamID = Spring.GetGaiaTeamID()
+local gaiaTeamID = SpringShared.GetGaiaTeamID()
 local spec = sp.GetSpectatingState()
 local myAllyTeamID = sp.GetMyAllyTeamID()
 local myTeamID = sp.GetMyTeamID()
@@ -86,7 +86,7 @@ local isMetalmap = false
 local avgWindValue, riskWindValue
 local currentWind = 0
 local displayTidalSpeed = not Spring.Lava.isLavaMap
-local tidalSpeed = Spring.GetTidal() -- for now assumed that it is not dynamically changed
+local tidalSpeed = SpringShared.GetTidal() -- for now assumed that it is not dynamically changed
 local tidalWaveAnimationHeight = 10
 local windRotation = 0
 local minWind = Game.windMin
@@ -141,10 +141,10 @@ local buttonsArea = {}
 
 -- UI State
 local orgHeight = 46
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
-local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
+local ui_scale = tonumber(SpringUnsynced.GetConfigFloat("ui_scale", 1) or 1)
+local ui_opacity = SpringUnsynced.GetConfigFloat("ui_opacity", 0.7)
 local height = orgHeight * (1 + (ui_scale - 1) / 1.7)
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = SpringUnsynced.GetViewGeometry()
 local mx = -1
 local my = -1
 local widgetScale = (0.80 + (vsx * vsy / 6000000))
@@ -233,7 +233,7 @@ local function getPlayerLiveAllyCount()
 	local nAllies = 0
 	for _, teamID in ipairs(myAllyTeamList) do
 		if teamID ~= myTeamID then
-			local _, _, isDead, hasAI = Spring.GetTeamInfo(teamID,false)
+			local _, _, isDead, hasAI = SpringShared.GetTeamInfo(teamID,false)
 			if not isDead and not hasAI then
 				nAllies = nAllies + 1
 			end
@@ -473,18 +473,18 @@ local function checkTidalRelevant()
 	local mapMinHeight = 0
 
 	-- account for invertmap to the best of our abiltiy
-	if string.find(Spring.GetModOptions().debugcommands,"invertmap") then
-		if string.find(Spring.GetModOptions().debugcommands,"wet") then
+	if string.find(SpringShared.GetModOptions().debugcommands,"invertmap") then
+		if string.find(SpringShared.GetModOptions().debugcommands,"wet") then
 			-- assume that they want water if keyword "wet" is involved, too violitile between initilization and subsequent post terraform checks
 			return true
 		--else
 		--	mapMinHeight = 0
 		end
 	else
-		mapMinHeight = select(3,Spring.GetGroundExtremes())
+		mapMinHeight = select(3,SpringShared.GetGroundExtremes())
 	end
 
-	mapMinHeight = mapMinHeight - (Spring.GetModOptions().map_waterlevel or 0)
+	mapMinHeight = mapMinHeight - (SpringShared.GetModOptions().map_waterlevel or 0)
 	return mapMinHeight <= -20	-- armtide/cortide can be built from 20 waterdepth (hardcoded here cause am too lazy to auto cycle trhough unitdefs and read it from there)
 end
 
@@ -814,7 +814,7 @@ local function updateResbar(res)
 	dlist.resbar[res][2] = glCreateList(function()
 		-- Metalmaker Conversion slider
 		if res == 'energy' then
-			mmLevel = Spring.GetTeamRulesParam(myTeamID, 'mmLevel')
+			mmLevel = SpringShared.GetTeamRulesParam(myTeamID, 'mmLevel')
 			local convValue = mmLevel
 			if draggingConversionIndicatorValue then convValue = draggingConversionIndicatorValue / 100 end
 			if convValue == nil then convValue = 1 end
@@ -1482,7 +1482,7 @@ local function drawQuitScreen()
 	local fadeProgress = (now - showQuitscreen) / fadeTime
 	if fadeProgress > 1 then fadeProgress = 1 end
 
-	Spring.SetMouseCursor('cursornormal')
+	SpringUnsynced.SetMouseCursor('cursornormal')
 
 	dlist.quit = glCreateList(function()
 		if WG['guishader'] then
@@ -1884,7 +1884,7 @@ local function adjustSliders(x, y)
 		local shareValue = (x - resbarDrawinfo[draggingShareIndicator]['barArea'][1]) / (resbarDrawinfo[draggingShareIndicator]['barArea'][3] - resbarDrawinfo[draggingShareIndicator]['barArea'][1])
 		if shareValue < 0 then shareValue = 0 end
 		if shareValue > 1 then shareValue = 1 end
-		Spring.SetShareLevel(draggingShareIndicator, shareValue)
+		SpringUnsynced.SetShareLevel(draggingShareIndicator, shareValue)
 		draggingShareIndicatorValue[draggingShareIndicator] = shareValue
 		updateResbar(draggingShareIndicator)
 	end
@@ -1893,7 +1893,7 @@ local function adjustSliders(x, y)
 		local convValue = mathFloor((x - resbarDrawinfo['energy']['barArea'][1]) / (resbarDrawinfo['energy']['barArea'][3] - resbarDrawinfo['energy']['barArea'][1]) * 100)
 		if convValue < 12 then convValue = 12 end
 		if convValue > 88 then convValue = 88 end
-		Spring.SendLuaRulesMsg(stringFormat(string.char(137) .. '%i', convValue))
+		SpringUnsynced.SendLuaRulesMsg(stringFormat(string.char(137) .. '%i', convValue))
 		draggingConversionIndicatorValue = convValue
 		updateResbar('energy')
 	end
@@ -1928,7 +1928,7 @@ local function hideWindows()
 
 	if gameIsOver then -- Graphs window can only be open after game end
 		-- Closing Graphs window if open, no way to tell if it was open or not
-		Spring.SendCommands('endgraph 0')
+		SpringUnsynced.SendCommands('endgraph 0')
 		graphsWindowVisible = false
 	end
 
@@ -1948,12 +1948,12 @@ local function toggleWindow(name)
 end
 
 local function applyButtonAction(button)
-	if playSounds then Spring.PlaySoundFile(leftclick, 0.8, 'ui') end
+	if playSounds then SpringUnsynced.PlaySoundFile(leftclick, 0.8, 'ui') end
 
 	local isvisible = false
 	if button == 'quit' or button == 'resign' then
 		if not gameIsOver and chobbyLoaded and button == 'quit' then
-			Spring.SendLuaMenuMsg("showLobby")
+			SpringUnsynced.SendLuaMenuMsg("showLobby")
 		else
 			local oldShowQuitscreen
 			if showQuitscreen then
@@ -1977,7 +1977,7 @@ local function applyButtonAction(button)
 	elseif button == 'save' then
 		if isSinglePlayer and cfg.allowSavegame and WG['savegame'] then
 			local time = os.date("%Y%m%d_%H%M%S")
-			Spring.SendCommands("savegame "..time)
+			SpringUnsynced.SendCommands("savegame "..time)
 		end
 	elseif button == 'scavengers' then
 		toggleWindow('scavengerinfo')
@@ -1991,7 +1991,7 @@ local function applyButtonAction(button)
 		isvisible = graphsWindowVisible
 		hideWindows()
 		if gameIsOver and not isvisible then
-			Spring.SendCommands('endgraph 2')
+			SpringUnsynced.SendCommands('endgraph 2')
 			graphsWindowVisible = true
 		end
 	end
@@ -2024,32 +2024,32 @@ function widget:MousePress(x, y, button)
 		if showQuitscreen and quitscreenArea then
 			if mathIsInRect(x, y, quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4]) then
 				if (gameIsOver or not chobbyLoaded or not spec) and mathIsInRect(x, y, quitscreenStayArea[1], quitscreenStayArea[2], quitscreenStayArea[3], quitscreenStayArea[4]) then
-					if playSounds then Spring.PlaySoundFile(leftclick, 0.75, 'ui') end
+					if playSounds then SpringUnsynced.PlaySoundFile(leftclick, 0.75, 'ui') end
 
 					showQuitscreen = nil
 					if WG['guishader'] then WG['guishader'].setScreenBlur(false) end
 				end
 				if (gameIsOver or not chobbyLoaded) and mathIsInRect(x, y, quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4]) then
-					if playSounds then Spring.PlaySoundFile(leftclick, 0.75, 'ui') end
+					if playSounds then SpringUnsynced.PlaySoundFile(leftclick, 0.75, 'ui') end
 
 					if not chobbyLoaded then
-						Spring.SendCommands("QuitForce") -- Exit the game completely
+						SpringUnsynced.SendCommands("QuitForce") -- Exit the game completely
 					else
-						Spring.SendCommands("ReloadForce") -- Exit to the lobby
+						SpringUnsynced.SendCommands("ReloadForce") -- Exit to the lobby
 					end
 
 					showQuitscreen = nil
 					hideQuitWindow = now
 				end
 				if not spec and not gameIsOver and mathIsInRect(x, y, quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4]) then
-					if playSounds then Spring.PlaySoundFile(leftclick, 0.75, 'ui') end
-					Spring.SendCommands("spectator")
+					if playSounds then SpringUnsynced.PlaySoundFile(leftclick, 0.75, 'ui') end
+					SpringUnsynced.SendCommands("spectator")
 					showQuitscreen = nil
 					if WG['guishader'] then WG['guishader'].setScreenBlur(false) end
 				end
 				if not spec and not gameIsOver and teamResign and mathIsInRect(x, y, quitscreenTeamResignArea[1], quitscreenTeamResignArea[2], quitscreenTeamResignArea[3], quitscreenTeamResignArea[4]) then
-					if playSounds then Spring.PlaySoundFile(leftclick, 0.75, 'ui') end
-					Spring.SendCommands("say !cv resign")
+					if playSounds then SpringUnsynced.PlaySoundFile(leftclick, 0.75, 'ui') end
+					SpringUnsynced.SendCommands("say !cv resign")
 					showQuitscreen = nil
 					if WG['guishader'] then WG['guishader'].setScreenBlur(false) end
 				end
@@ -2076,7 +2076,7 @@ function widget:MousePress(x, y, button)
 			end
 
 			if draggingShareIndicator or draggingConversionIndicator then
-				if playSounds then Spring.PlaySoundFile(resourceclick, 0.7, 'ui') end
+				if playSounds then SpringUnsynced.PlaySoundFile(resourceclick, 0.7, 'ui') end
 				return true
 			end
 		end
@@ -2114,7 +2114,7 @@ function widget:PlayerChanged()
 	local prevSpec = spec
 	spec = sp.GetSpectatingState()
 	checkSelfStatus()
-	numTeamsInAllyTeam = #Spring.GetTeamList(myAllyTeamID)
+	numTeamsInAllyTeam = #SpringShared.GetTeamList(myAllyTeamID)
 	if displayComCounter then countComs(true) end
 	if spec then
 		resbarHover = nil
@@ -2131,7 +2131,7 @@ end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	if isCommander[unitDefID] then
-		if select(6, Spring.GetTeamInfo(unitTeam, false)) == myAllyTeamID then
+		if select(6, SpringShared.GetTeamInfo(unitTeam, false)) == myAllyTeamID then
 			allyComs = allyComs + 1
 		elseif spec then
 			enemyComs = enemyComs + 1
@@ -2142,7 +2142,7 @@ end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if isCommander[unitDefID] then
-		if select(6, Spring.GetTeamInfo(unitTeam, false)) == myAllyTeamID then
+		if select(6, SpringShared.GetTeamInfo(unitTeam, false)) == myAllyTeamID then
 			allyComs = allyComs - 1
 		elseif spec then
 			enemyComs = enemyComs - 1
@@ -2157,20 +2157,20 @@ end
 
 function widget:Initialize()
 	gameFrame = sp.GetGameFrame()
-	Spring.SendCommands("resbar 0")
+	SpringUnsynced.SendCommands("resbar 0")
 
 	-- determine if we want to show comcounter
-	local allteams = Spring.GetTeamList()
+	local allteams = SpringShared.GetTeamList()
 	local teamN = table.maxn(allteams) - 1               --remove gaia
 	if teamN > 2 then displayComCounter = true end
 
-	if UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), 'startUnit')] then
-		textures.com = ':n:Icons/'..UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), 'startUnit')].name..'.png'
+	if UnitDefs[SpringShared.GetTeamRulesParam(Spring.GetMyTeamID(), 'startUnit')] then
+		textures.com = ':n:Icons/'..UnitDefs[SpringShared.GetTeamRulesParam(Spring.GetMyTeamID(), 'startUnit')].name..'.png'
 	end
 
 	for _, teamID in ipairs(myAllyTeamList) do
-		if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
-			local luaAI = Spring.GetTeamLuaAI(teamID)
+		if select(4,SpringShared.GetTeamInfo(teamID,false)) then	-- is AI?
+			local luaAI = SpringShared.GetTeamLuaAI(teamID)
 			if luaAI and luaAI ~= "" and (string.find(luaAI, 'Scavengers') or string.find(luaAI, 'Raptors')) then
 				supressOverflowNotifs = true
 				break
@@ -2178,13 +2178,13 @@ function widget:Initialize()
 		end
 	end
 
-	if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobby') then
+	if SpringUnsynced.GetMenuName and string.find(string.lower(SpringUnsynced.GetMenuName()), 'chobby') then
 		chobbyLoaded = true
-		Spring.SendLuaMenuMsg("disableLobbyButton")
+		SpringUnsynced.SendLuaMenuMsg("disableLobbyButton")
 	end
 
 	if not spec then
-		local teamList = Spring.GetTeamList(myAllyTeamID) or {}
+		local teamList = SpringShared.GetTeamList(myAllyTeamID) or {}
 		isSingle = #teamList == 1
 	end
 

@@ -15,14 +15,14 @@ end
 
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
+local spGetGameFrame = SpringShared.GetGameFrame
 local spGetMyTeamID = Spring.GetMyTeamID
 
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local CMD_INSERT = CMD.INSERT
 local CMD_STOP = CMD.STOP
 local CMD_UNIT_CANCEL_TARGET = GameCMD.UNIT_CANCEL_TARGET
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spGiveOrderToUnit = SpringSynced.GiveOrderToUnit
 local gameStarted
 local myTeam
 
@@ -33,7 +33,7 @@ local function DropCurrentTarget(unitID)
 end
 
 function maybeRemoveSelf()
-    if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
+    if SpringUnsynced.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
         widgetHandler:RemoveWidget()
     end
 end
@@ -50,7 +50,7 @@ end
 
 function widget:Initialize()
 	myTeam = spGetMyTeamID()
-    if Spring.IsReplay() or spGetGameFrame() > 0 then
+    if SpringUnsynced.IsReplay() or spGetGameFrame() > 0 then
         maybeRemoveSelf()
     end
 end

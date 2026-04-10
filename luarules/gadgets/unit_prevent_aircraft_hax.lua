@@ -20,15 +20,15 @@ end
 local rangeLimit = 1800
 local rangeLimitGaia = 20000
 
-local gaiaTeamID = Spring.GetGaiaTeamID()
+local gaiaTeamID = SpringShared.GetGaiaTeamID()
 local mapX = Game.mapSizeX
 local mapZ = Game.mapSizeZ
 local allMobileUnits = {}
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitDefID = Spring.GetUnitDefID
-local spValidUnitID = Spring.ValidUnitID
-local spIsPosInMap = Spring.IsPosInMap
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetUnitTeam = SpringShared.GetUnitTeam
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spValidUnitID = SpringShared.ValidUnitID
+local spIsPosInMap = SpringShared.IsPosInMap
 local CMD_STOP = CMD.STOP
 local CMD_GUARD = CMD.GUARD
 
@@ -46,8 +46,8 @@ end
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_STOP)
 	gadgetHandler:RegisterAllowCommand(CMD_GUARD)
-	for _, unitID in pairs(Spring.GetAllUnits()) do
-		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), spGetUnitTeam(unitID))
+	for _, unitID in pairs(SpringShared.GetAllUnits()) do
+		gadget:UnitCreated(unitID, SpringShared.GetUnitDefID(unitID), spGetUnitTeam(unitID))
 	end
 end
 
@@ -75,11 +75,11 @@ function gadget:GameFrame(f)
 				local unitTeam = spGetUnitTeam(unitID)
 				if unitTeam == gaiaTeamID then
 					if z < minMapGaia or x < minMapGaia or z > maxMapZGaia or x > maxMapXGaia then
-						Spring.DestroyUnit(unitID, false, true)
+						SpringSynced.DestroyUnit(unitID, false, true)
 					end
 				else
 					if z < minMap or x < minMap or z > maxMapZ or x > maxMapX then
-						Spring.DestroyUnit(unitID, false, true)
+						SpringSynced.DestroyUnit(unitID, false, true)
 					end
 				end
 			end

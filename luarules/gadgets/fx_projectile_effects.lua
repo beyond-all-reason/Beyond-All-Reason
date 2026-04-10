@@ -24,12 +24,12 @@ if not gadgetHandler:IsSyncedCode() then
     return false
 end
 
-local GetProjectilePosition = Spring.GetProjectilePosition
-local GetProjectileDirection = Spring.GetProjectileDirection
-local GetProjectileTimeToLive = Spring.GetProjectileTimeToLive
-local GetGroundHeight = Spring.GetGroundHeight
-local GetGameFrame = Spring.GetGameFrame
-local SpawnCEG = Spring.SpawnCEG
+local GetProjectilePosition = SpringShared.GetProjectilePosition
+local GetProjectileDirection = SpringShared.GetProjectileDirection
+local GetProjectileTimeToLive = SpringShared.GetProjectileTimeToLive
+local GetGroundHeight = SpringShared.GetGroundHeight
+local GetGameFrame = SpringShared.GetGameFrame
+local SpawnCEG = SpringSynced.SpawnCEG
 local mathMax = math.max
 
 -- Helpful debug wrapper:
@@ -138,10 +138,10 @@ end
 local allWatchedWeaponDefIDs = {}
 local allWatchedProjectileIDs = {}
 
-local waterIsLava = Spring.GetModOptions().map_waterislava
+local waterIsLava = SpringShared.GetModOptions().map_waterislava
 
 function gadget:Initialize()
-	local minheight, maxheight = Spring.GetGroundExtremes()
+	local minheight, maxheight = SpringShared.GetGroundExtremes()
 	if minheight > 100 then
 		mapHasWater = false
 	end

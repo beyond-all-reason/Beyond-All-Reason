@@ -28,23 +28,23 @@ local debugEcho = false
 --------------------------------------------------------------------------------
 -- Localized functions
 --------------------------------------------------------------------------------
-local spGetGroundHeight       = Spring.GetGroundHeight
-local spEcho                  = Spring.Echo
-local spGetTimer              = Spring.GetTimer
-local spDiffTimers            = Spring.DiffTimers
-local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
-local spGetProjectilePosition = Spring.GetProjectilePosition
-local spGetProjectileVelocity = Spring.GetProjectileVelocity
-local spIsSphereInView        = Spring.IsSphereInView
-local spGetCameraPosition     = Spring.GetCameraPosition
-local spGetProjectileOwnerID  = Spring.GetProjectileOwnerID
-local spGetFPS                = Spring.GetFPS
-local spGetUnitPosition       = Spring.GetUnitPosition
-local spGetUnitVelocity       = Spring.GetUnitVelocity
-local spValidUnitID           = Spring.ValidUnitID
-local spGetWind               = Spring.GetWind
-local spGetConfigInt          = Spring.GetConfigInt
-local spGetGameSpeed          = Spring.GetGameSpeed
+local spGetGroundHeight       = SpringShared.GetGroundHeight
+local spEcho                  = SpringShared.Echo
+local spGetTimer              = SpringUnsynced.GetTimer
+local spDiffTimers            = SpringUnsynced.DiffTimers
+local spGetProjectilesInRectangle = SpringShared.GetProjectilesInRectangle
+local spGetProjectilePosition = SpringShared.GetProjectilePosition
+local spGetProjectileVelocity = SpringShared.GetProjectileVelocity
+local spIsSphereInView        = SpringUnsynced.IsSphereInView
+local spGetCameraPosition     = SpringUnsynced.GetCameraPosition
+local spGetProjectileOwnerID  = SpringShared.GetProjectileOwnerID
+local spGetFPS                = SpringUnsynced.GetFPS
+local spGetUnitPosition       = SpringShared.GetUnitPosition
+local spGetUnitVelocity       = SpringShared.GetUnitVelocity
+local spValidUnitID           = SpringShared.ValidUnitID
+local spGetWind               = SpringShared.GetWind
+local spGetConfigInt          = SpringUnsynced.GetConfigInt
+local spGetGameSpeed          = SpringUnsynced.GetGameSpeed
 
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ

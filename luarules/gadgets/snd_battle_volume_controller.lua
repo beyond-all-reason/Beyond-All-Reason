@@ -16,11 +16,11 @@ end
 local math_clamp = math.clamp
 local math_sqrt = math.sqrt
 local math_round = math.round
-local spIsUnitInView = Spring.IsUnitInView
-local spGetCameraState = Spring.GetCameraState
-local spGetConfigFloat = Spring.GetConfigFloat
-local spGetConfigInt = Spring.GetConfigInt
-local spSetConfigInt = Spring.SetConfigInt
+local spIsUnitInView = SpringUnsynced.IsUnitInView
+local spGetCameraState = SpringUnsynced.GetCameraState
+local spGetConfigFloat = SpringUnsynced.GetConfigFloat
+local spGetConfigInt = SpringUnsynced.GetConfigInt
+local spSetConfigInt = SpringUnsynced.SetConfigInt
 
 local VolumeSetting = spGetConfigInt("snd_volbattle_options", 100)
 local VolumeTarget = 1

@@ -180,7 +180,7 @@ function GenEnvLut:Initialize()
 	self.tex = gl.CreateTexture(3, 3, texParams)
 
 	if not self.tex then
-		Spring.Echo("GenEnvLut: tex creation error:\n")
+		SpringShared.Echo("GenEnvLut: tex creation error:\n")
 	end
 
 	lutFS = lutFS:gsub("###ENV_SMPL_NUM###", tostring(self.numSamples))
@@ -197,10 +197,10 @@ function GenEnvLut:Initialize()
 	local shLog = gl.GetShaderLog() or ""
 
 	if not self.shader then
-		Spring.Echo(string.format("GenEnvLut: [%s] shader errors:\n%s", "GenEnvLut", shLog))
+		SpringShared.Echo(string.format("GenEnvLut: [%s] shader errors:\n%s", "GenEnvLut", shLog))
 		return false
 	elseif shLog ~= "" then
-		Spring.Echo(string.format("GenEnvLut: [%s] shader warnings:\n%s", "GenEnvLut", shLog))
+		SpringShared.Echo(string.format("GenEnvLut: [%s] shader warnings:\n%s", "GenEnvLut", shLog))
 	end
 
 end
@@ -223,7 +223,7 @@ function GenEnvLut:Execute(saveDebug)
 					gl.TexRect(-1, -1, 1, 1)
 				--gl.PopMatrix()
 				if saveDebug then
-					local gf = Spring.GetGameFrame()
+					local gf = SpringShared.GetGameFrame()
 					gl.SaveImage(0, 0, 3, 3, string.format("envLut_%s.png", gf))
 				end
 				gl.Blending(true)
