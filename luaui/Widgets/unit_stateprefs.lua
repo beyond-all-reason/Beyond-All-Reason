@@ -173,7 +173,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	local name = unitName[unitDefID]
 
 	unitSet[name] = unitSet[unitName[unitDefID]] or {}
-	if unitTeam == Spring.GetMyTeamID() then
+	if unitTeam == Spring.GetLocalTeamID() then
 		for cmdID, cmdParam in pairs(unitSet[name]) do
 			if cmdID == 115 then
 				return

@@ -52,13 +52,13 @@ else
 		end
 	end
 
-	local myTeamID = Spring.GetMyTeamID()
-	local myPlayerID = Spring.GetMyPlayerID()
+	local myTeamID = Spring.GetLocalTeamID()
+	local myPlayerID = Spring.GetLocalPlayerID()
 	local mySpec, fullview = Spring.GetSpectatingState()
 
 	function gadget:PlayerChanged(playerID)
 		if playerID == myPlayerID then
-			myTeamID = Spring.GetMyTeamID()
+			myTeamID = Spring.GetLocalTeamID()
 			mySpec, fullview = Spring.GetSpectatingState()
 		end
 	end

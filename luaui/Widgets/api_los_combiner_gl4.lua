@@ -173,7 +173,7 @@ end
 
 
 function widget:PlayerChanged(playerID)
-	local newAllyTeam = Spring.GetMyAllyTeamID()
+	local newAllyTeam = Spring.GetLocalAllyTeamID()
 	if currentAllyTeam ~= newAllyTeam then -- do a few quick renders
 		currentAllyTeam = newAllyTeam
 		updateInfoLOSTexture = numFastUpdates
@@ -195,7 +195,7 @@ function widget:Initialize()
 		shaderConfig[name .. 'XSIZE'] = texInfo.xsize
 		shaderConfig[name .. 'YSIZE'] = texInfo.ysize
 	end
-	currentAllyTeam = Spring.GetMyAllyTeamID()
+	currentAllyTeam = Spring.GetLocalAllyTeamID()
 
 	for _, a in ipairs(Spring.GetAllyTeamList()) do
 		infoTextures[a] = CreateLosTexture()

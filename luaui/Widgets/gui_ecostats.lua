@@ -34,21 +34,21 @@ local osClock = os.clock
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spEcho = Spring.Echo
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetTeamUnitsByDefs = Spring.GetTeamUnitsByDefs
 local spGetGameSeconds = Spring.GetGameSeconds
 local spGetGameSpeed = Spring.GetGameSpeed
 local spGetTeamUnitCount = Spring.GetTeamUnitCount
-local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
+local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
 local spGetTeamList = Spring.GetTeamList
 local spGetTeamInfo = Spring.GetTeamInfo
 local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetTeamColor = Spring.GetTeamColor
 local spGetTeamResources = Spring.GetTeamResources
 local spGetUnitResources = Spring.GetUnitResources
-local spGetMyPlayerID = Spring.GetMyPlayerID
+local spGetMyPlayerID = Spring.GetLocalPlayerID
 local spGetGaiaTeamID = Spring.GetGaiaTeamID
 local spGetAllyTeamList = Spring.GetAllyTeamList
 local spIsReplay = Spring.IsReplay

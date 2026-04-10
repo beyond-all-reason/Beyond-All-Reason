@@ -17,7 +17,7 @@ end
 
 
 -- Localized Spring API for performance
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 
 -- this widget is a variant of unit_air_allways_fly: project page on github: https://github.com/jamerlan/unit_air_allways_fly
 

@@ -105,7 +105,7 @@ local string_lines = string.lines
 
 local os_clock = os.clock
 
-local myTeamID = Spring.GetMyTeamID()
+local myTeamID = Spring.GetLocalTeamID()
 local mySpec = Spring.GetSpectatingState()
 
 local GL_QUADS = GL.QUADS
@@ -636,7 +636,7 @@ local function checkGuishader(force)
 end
 
 function widget:PlayerChanged(playerID)
-	myTeamID = Spring.GetMyTeamID()
+	myTeamID = Spring.GetLocalTeamID()
 	mySpec = Spring.GetSpectatingState()
 end
 

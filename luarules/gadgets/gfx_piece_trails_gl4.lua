@@ -31,7 +31,7 @@ local spGetTeamAllyTeamID         = Spring.GetTeamAllyTeamID
 local spIsSphereInView            = Spring.IsSphereInView
 local spGetGroundHeight           = Spring.GetGroundHeight
 local spIsPosInAirLos             = Spring.IsPosInAirLos
-local spGetMyAllyTeamID           = Spring.GetMyAllyTeamID
+local spGetMyAllyTeamID           = Spring.GetLocalAllyTeamID
 local spGetSpectatingState        = Spring.GetSpectatingState
 
 local mathRandom = math.random

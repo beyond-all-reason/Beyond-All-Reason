@@ -123,7 +123,7 @@ local function toggleLOSColors()
 end
 
 function widget:PlayerChanged(playerID)
-	if playerID == Spring.GetMyPlayerID() then
+	if playerID == Spring.GetLocalPlayerID() then
 		if Spring.GetSpectatingState() then
 			specDetected = true
 			if losWithRadarEnabled then

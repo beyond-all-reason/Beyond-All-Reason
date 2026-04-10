@@ -84,7 +84,7 @@ local heightList = {}
 local drawTextLists = {}
 local drawTextListsDeath = {}
 local drawTextListsEmp = {}
-local myTeamID = Spring.GetMyTeamID()
+local myTeamID = Spring.GetLocalTeamID()
 local _, fullview = Spring.GetSpectatingState()
 local chobbyInterface
 
@@ -296,7 +296,7 @@ local function DrawUnitFunc(yshift, xshift, damage, textSize, alpha, paralyze)
 end
 
 function gadget:PlayerChanged(playerID)
-	myTeamID = Spring.GetMyTeamID()
+	myTeamID = Spring.GetLocalTeamID()
 	_, fullview = Spring.GetSpectatingState()
 end
 

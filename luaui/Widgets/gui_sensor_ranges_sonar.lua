@@ -185,7 +185,7 @@ local GL_REPLACE = GL.REPLACE
 
 -- Globals
 local spec, fullview = spGetSpectatingState()
-local allyTeamID = Spring.GetMyAllyTeamID()
+local allyTeamID = Spring.GetLocalAllyTeamID()
 
 -- find all unit types with sonar in the game and place ranges into unitRange table
 local unitRange = {} -- table of unit types with their sonar ranges
@@ -225,7 +225,7 @@ function widget:PlayerChanged()
 	local prevFullview = fullview
 	local myPrevAllyTeamID = allyTeamID
 	spec, fullview = spGetSpectatingState()
-	allyTeamID = Spring.GetMyAllyTeamID()
+	allyTeamID = Spring.GetLocalAllyTeamID()
 	if fullview ~= prevFullview or allyTeamID ~= myPrevAllyTeamID then
 		InitializeUnits()
 	end

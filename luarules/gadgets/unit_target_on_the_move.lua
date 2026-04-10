@@ -772,8 +772,8 @@ else	-- UNSYNCED
 
 	local spGetUnitPosition = Spring.GetUnitPosition
 	local spValidUnitID = Spring.ValidUnitID
-	local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
-	local spGetMyTeamID = Spring.GetMyTeamID
+	local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
+	local spGetMyTeamID = Spring.GetLocalTeamID
 	local spIsUnitSelected = Spring.IsUnitSelected
 	local spGetSpectatingState = Spring.GetSpectatingState
 	local spGetUnitAllyTeam = Spring.GetUnitAllyTeam

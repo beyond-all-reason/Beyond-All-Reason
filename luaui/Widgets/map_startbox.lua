@@ -21,7 +21,7 @@ local mathRandom = math.random
 local mathAbs = math.abs
 
 local spGetGameFrame = Spring.GetGameFrame
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spEcho = Spring.Echo
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetTeamList = Spring.GetTeamList
@@ -129,7 +129,7 @@ local draggingTeamID = nil
 local dragOffsetX = 0
 local dragOffsetZ = 0
 
-local myAllyTeamID = Spring.GetMyAllyTeamID()
+local myAllyTeamID = Spring.GetLocalAllyTeamID()
 local gameFrame = 0
 
 local CONE_CLICK_RADIUS = 75
@@ -1144,7 +1144,7 @@ local lastKnownPlacements = {}
 local currentPlacements = {}
 local startPointTable = {}
 function widget:Update(delta)
-	myAllyTeamID = Spring.GetMyAllyTeamID()
+	myAllyTeamID = Spring.GetLocalAllyTeamID()
 	gameFrame = spGetGameFrame()
 	local currRot = getCurrentMiniMapRotationOption()
 	if lastRot ~= currRot then
@@ -1350,14 +1350,14 @@ function widget:RecvLuaMsg(msg)
 				aiPlacedPositions[teamID] = nil
 				aiPlacementStatus[teamID] = false
 				invalidatePosCacheEntry(teamID)
-				aiLocationI18NTable.playerName = spGetPlayerInfo(Spring.GetMyPlayerID(), false)
+				aiLocationI18NTable.playerName = spGetPlayerInfo(Spring.GetLocalPlayerID(), false)
 				aiLocationI18NTable.aiName = getAIName(teamID)
 				Spring.SendMessage(Spring.I18N('ui.startbox.aiStartLocationRemoved', aiLocationI18NTable))
 			else
 				aiPlacedPositions[teamID] = {x = x, z = z}
 				aiPlacementStatus[teamID] = true
 				invalidatePosCacheEntry(teamID)
-				aiLocationI18NTable.playerName = spGetPlayerInfo(Spring.GetMyPlayerID(), false)
+				aiLocationI18NTable.playerName = spGetPlayerInfo(Spring.GetLocalPlayerID(), false)
 				aiLocationI18NTable.aiName = getAIName(teamID)
 				Spring.SendMessage(Spring.I18N('ui.startbox.aiStartLocationChanged', aiLocationI18NTable))
 			end

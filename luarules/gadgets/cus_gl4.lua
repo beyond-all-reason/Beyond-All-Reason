@@ -1784,7 +1784,7 @@ end
 local function ReloadCUSGL4(optName, line, words, playerID)
 	if initiated and (not words) then return end
 	manualReload = true
-	if playerID ~= Spring.GetMyPlayerID() then
+	if playerID ~= Spring.GetLocalPlayerID() then
 		return
 	end
 	Spring.Echo("[CustomUnitShadersGL4] Reloading")
@@ -1794,7 +1794,7 @@ local function ReloadCUSGL4(optName, line, words, playerID)
 end
 
 local function DisableCUSGL4(optName, _, _, playerID)
-	if playerID ~= Spring.GetMyPlayerID() then
+	if playerID ~= Spring.GetLocalPlayerID() then
 		return
 	end
 	Spring.Echo("[CustomUnitShadersGL4] Disabling")
@@ -1806,7 +1806,7 @@ function gadget:GameFrame(n)
 	if not itsXmas and SYNCED.itsXmas then
 		itsXmas = true
 		initiated = false
-		ReloadCUSGL4(nil,nil,nil, Spring.GetMyPlayerID())
+		ReloadCUSGL4(nil,nil,nil, Spring.GetLocalPlayerID())
 	end
 	for unitID, buildProgress in pairs(buildProgresses) do 
 		local health, maxHealth, paralyzeDamage, capture, build = spGetUnitHealth(unitID)
@@ -1824,7 +1824,7 @@ end
 
 local updaterate = 1
 local function CUSGL4updaterate(optName, line, words, playerID)
-	if playerID ~= Spring.GetMyPlayerID() then
+	if playerID ~= Spring.GetLocalPlayerID() then
 		return
 	end
 	if updaterate == 1 then
@@ -1836,7 +1836,7 @@ local function CUSGL4updaterate(optName, line, words, playerID)
 end
 
 local function DebugCUSGL4(optName, line, words, playerID)
-	if playerID ~= Spring.GetMyPlayerID() then
+	if playerID ~= Spring.GetLocalPlayerID() then
 		return
 	end
 	debugmode = not debugmode
@@ -1844,7 +1844,7 @@ local function DebugCUSGL4(optName, line, words, playerID)
 end
 
 local function DumpCUSGL4(optName, line, words, playerID)
-	if playerID ~= Spring.GetMyPlayerID() then
+	if playerID ~= Spring.GetLocalPlayerID() then
 		return
 	end
 	Spring.Echo("[CustomUnitShadersGL4] Dumping unit bins:", debugmode)
@@ -1893,7 +1893,7 @@ end
 
 
 local function MarkBinCUSGL4(optName, line, words, playerID)
-	if (playerID ~= Spring.GetMyPlayerID()) then
+	if (playerID ~= Spring.GetLocalPlayerID()) then
 		return
 	end
 	Spring.Echo("[CustomUnitShadersGL4] Marking Bins", optName, line, words, playerID)

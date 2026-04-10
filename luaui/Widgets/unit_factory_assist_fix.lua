@@ -14,7 +14,7 @@ end
 
 
 -- Localized Spring API for performance
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetTeamUnits = Spring.GetTeamUnits
 
 ----------------------------------------------------------------

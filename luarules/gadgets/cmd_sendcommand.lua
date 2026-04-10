@@ -64,12 +64,12 @@ if gadgetHandler:IsSyncedCode() then
 
 else	-- UNSYNCED
 
-	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerID = Spring.GetLocalPlayerID()
 	local accountID = Spring.Utilities.GetAccountID(myPlayerID)
 	local authorized = SYNCED.permissions.cmd[accountID]
 
 	local function execCmd(_, playername, cmd)
-		if playername == select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID())) or playername == '*' then
+		if playername == select(1, Spring.GetPlayerInfo(Spring.GetLocalPlayerID())) or playername == '*' then
 			Spring.SendCommands(cmd)
 		end
 	end

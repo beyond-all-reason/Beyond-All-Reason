@@ -564,12 +564,12 @@ local function parseSource(sourceDef)
 
 	if sourceDefLower == "allmap" then
 		return function()
-			local myTeamId = Spring.GetMyTeamID()
+			local myTeamId = Spring.GetLocalTeamID()
 			return Spring.GetTeamUnits(myTeamId)
 		end
 	elseif sourceDefLower == "visible" then
 		return function()
-			local myTeamId = Spring.GetMyTeamID()
+			local myTeamId = Spring.GetLocalTeamID()
 			return Spring.GetVisibleUnits(myTeamId)
 		end
 	elseif sourceDefLower == "prevselection" or sourceDefLower == "previousselection" then

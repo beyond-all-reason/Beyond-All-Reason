@@ -259,13 +259,13 @@ function widget:Initialize()
 end
 
 local spec, fullview = spGetSpectatingState()
-local allyTeamID = Spring.GetMyAllyTeamID()
+local allyTeamID = Spring.GetLocalAllyTeamID()
 
 function widget:PlayerChanged()
 	local prevFullview = fullview
 	local myPrevAllyTeamID = allyTeamID
 	spec, fullview = spGetSpectatingState()
-	allyTeamID = Spring.GetMyAllyTeamID()
+	allyTeamID = Spring.GetLocalAllyTeamID()
 end
 
 local commandqueue = {}

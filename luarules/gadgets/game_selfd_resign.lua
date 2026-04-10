@@ -111,8 +111,8 @@ if gadgetHandler:IsSyncedCode() then
 else -- UNSYNCED
 
 
-	local myPlayerID = Spring.GetMyPlayerID()
-	local myTeamID = Spring.GetMyTeamID()
+	local myPlayerID = Spring.GetLocalPlayerID()
+	local myTeamID = Spring.GetLocalTeamID()
 
 	local function forceResignMessage(_, playerID)
 		if playerID == myPlayerID then

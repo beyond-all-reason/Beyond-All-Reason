@@ -18,7 +18,7 @@ local spGetGameFrame = Spring.GetGameFrame
 
 local CMD_MOVE_STATE		= CMD.MOVE_STATE
 local CMD_FIGHT				= CMD.FIGHT
-local spGetMyTeamID			= Spring.GetMyTeamID
+local spGetMyTeamID			= Spring.GetLocalTeamID
 local spGetTeamUnits		= Spring.GetTeamUnits
 local spGetUnitDefID		= Spring.GetUnitDefID
 local spGetUnitPosition		= Spring.GetUnitPosition

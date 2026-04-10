@@ -438,7 +438,7 @@ end
 function widget:PlayerChanged(playerID)
 	spec, fullview = Spring.GetSpectatingState()
 	local prevMyTeamID = myTeamID
-	myTeamID = Spring.GetMyTeamID()
+	myTeamID = Spring.GetLocalTeamID()
 	if myTeamID ~= prevMyTeamID then -- TODO only really needed if onlyShowOwnTeam, or if allyteam changed?
 		--spEcho("Initializing Paralyze Effect")
 		init()

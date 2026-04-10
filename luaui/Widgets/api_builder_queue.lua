@@ -504,7 +504,7 @@ end
 
 function widget:PlayerChanged(playerId)
 	-- Clear all data when player changes (spectating state changes)
-	local myPlayerId = Spring.GetMyPlayerID()
+	local myPlayerId = Spring.GetLocalPlayerID()
 	if playerId == myPlayerId then
 		resetStateAndReinitialize()
 	end

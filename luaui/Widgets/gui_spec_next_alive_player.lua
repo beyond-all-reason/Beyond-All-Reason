@@ -15,7 +15,7 @@ end
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetSpectatingState = Spring.GetSpectatingState
 
 local processTeamDiedFrame, processTeamDiedTeamID
@@ -33,7 +33,7 @@ end
 local function processTeamDied(teamID)
 	local _, _, isDead = Spring.GetTeamInfo(teamID, false)
 	if isDead and spGetMyTeamID() == teamID then
-		local myAllyTeamID = Spring.GetMyAllyTeamID()
+		local myAllyTeamID = Spring.GetLocalAllyTeamID()
 		-- first try alive team mates
 		local teamList = Spring.GetTeamList(myAllyTeamID)
 		for _, teamListID in ipairs(teamList) do

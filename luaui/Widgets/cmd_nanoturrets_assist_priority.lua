@@ -19,7 +19,7 @@ local GetUnitDefID = Spring.GetUnitDefID
 local UnitDefs = UnitDefs
 local CMD_REPAIR = CMD.REPAIR
 local CMD_FIGHT = CMD.FIGHT
-local myTeam = Spring.GetMyTeamID()
+local myTeam = Spring.GetLocalTeamID()
 
 local nanoDefs = {}
 

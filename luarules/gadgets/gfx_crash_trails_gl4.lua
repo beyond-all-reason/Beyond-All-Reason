@@ -28,7 +28,7 @@ local spValidUnitID       = Spring.ValidUnitID
 local spIsSphereInView    = Spring.IsSphereInView
 local spIsPosInAirLos     = Spring.IsPosInAirLos
 local spGetTeamAllyTeamID = Spring.GetTeamAllyTeamID
-local spGetMyAllyTeamID   = Spring.GetMyAllyTeamID
+local spGetMyAllyTeamID   = Spring.GetLocalAllyTeamID
 local spGetSpectatingState = Spring.GetSpectatingState
 
 local mathRandom = math.random
