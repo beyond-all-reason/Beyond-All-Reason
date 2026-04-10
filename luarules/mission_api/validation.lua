@@ -298,6 +298,23 @@ validators[Types.Area] = function(area)
 		end
 	end
 
+validators[Types.ResourceIncomeSources] = function(sources)
+	local luaTypeResult = validators[Types.Table](sources)
+	if luaTypeResult then return luaTypeResult end
+	if #sources == 0 then
+		return { { message = "Resource income sources table must not be empty" } }
+	end
+
+	local validResourceIncomeSources = { extractor = true, production = true, reclaim = true, ally = true }
+	local result = {}
+	for i, source in ipairs(sources) do
+		if not validResourceIncomeSources[source] then
+			result[#result + 1] = { message = "Invalid resource income source [" .. i .. "]: '" .. tostring(source) .. "'. Must be one of: 'extractor', 'production', 'reclaim', 'ally'" }
+		end
+	end
+	if #result > 0 then return result end
+end
+
 --- String Validators:
 
 validators[Types.TriggerID] = function(triggerID)

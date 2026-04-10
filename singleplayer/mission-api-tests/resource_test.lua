@@ -41,6 +41,14 @@ local triggers = {
 		actions = { 'addEnergyOnly', 'messageWaveEnergyOnly' },
 	},
 
+	waveMex = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = 480,
+		},
+		actions = { 'spawnMex', 'messageWaveMex' },
+	},
+
 	waveFusion = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
@@ -63,6 +71,38 @@ local triggers = {
 			gameFrame = 900,
 		},
 		actions = { 'spawnNuke', 'messageWaveNuke' },
+	},
+
+	waveReclaim = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = 960,
+		},
+		actions = { 'createWreckToReclaimIncome', 'spawnIncomeReclaimer', 'messageWaveReclaim' },
+	},
+
+	orderIncomeReclaimer = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = 990,
+		},
+		actions = { 'orderIncomeReclaimerReclaim' },
+	},
+
+	waveUnitReclaim = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = 1080,
+		},
+		actions = { 'spawnUnitReclaimTarget', 'messageWaveUnitReclaim' },
+	},
+
+	orderUnitIncomeReclaimer = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = 1110,
+		},
+		actions = { 'orderUnitIncomeReclaimerReclaim' },
 	},
 
 	-- ── ResourceStored ────────────────────────────────────────────────────────
@@ -102,7 +142,6 @@ local triggers = {
 		parameters = {
 			teamID = 0,
 			metal = 5,
-			stableFrames = 150,
 		},
 		actions = { 'messageMetalIncome' },
 	},
@@ -112,9 +151,73 @@ local triggers = {
 		parameters = {
 			teamID = 0,
 			energy = 500,
-			stableFrames = 150,
 		},
 		actions = { 'messageEnergyIncome' },
+	},
+
+	-- ── ResourceIncome (sources) ──────────────────────────────────────────────
+
+	extractorMetalIncomeReached = {
+		type = triggerTypes.ResourceIncome,
+		parameters = {
+			teamID = 0,
+			metal = 1,
+			sources = { 'extractor' },
+		},
+		actions = { 'messageExtractorMetalIncome' },
+	},
+
+	productionEnergyIncomeReached = {
+		-- Triggered once armfus (frame 600) is generating production energy income.
+		type = triggerTypes.ResourceIncome,
+		parameters = {
+			teamID = 0,
+			energy = 200,
+			sources = { 'production' },
+		},
+		actions = { 'messageProductionEnergyIncome' },
+	},
+
+	productionMetalIncomeReached = {
+		-- Triggered once armmmkr (frame 720) is producing metal from energy.
+		type = triggerTypes.ResourceIncome,
+		parameters = {
+			teamID = 0,
+			metal = 0.5,
+			sources = { 'production' },
+		},
+		actions = { 'messageProductionMetalIncome' },
+	},
+
+	multipleSourcesMetalIncomeReached = {
+		-- Combined extractor + production metal income.
+		type = triggerTypes.ResourceIncome,
+		parameters = {
+			teamID = 0,
+			metal = 2,
+			sources = { 'extractor', 'production' },
+		},
+		actions = { 'messageMultipleSourcesMetalIncome' },
+	},
+
+	reclaimMetalIncomeReached = {
+		type = triggerTypes.ResourceIncome,
+		parameters = {
+			teamID = 0,
+			metal = 0.1,
+			sources = { 'reclaim' },
+		},
+		actions = { 'messageFeatureReclaimMetalIncome' },
+	},
+
+	unitReclaimMetalIncomeReached = {
+		type = triggerTypes.ResourceIncome,
+		parameters = {
+			teamID = 0,
+			metal = 70,
+			sources = { 'reclaim' },
+		},
+		actions = { 'messageUnitReclaimMetalIncome' },
 	},
 
 	-- ── ResourcePull ──────────────────────────────────────────────────────────
@@ -160,6 +263,15 @@ local actions = {
 		},
 	},
 
+	spawnMex = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			unitDefName = 'armmex',
+			teamID = 0,
+			position = { x = 2220, z = 2210 },
+		},
+	},
+
 	spawnFusion = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
@@ -183,7 +295,56 @@ local actions = {
 		parameters = {
 			unitDefName = 'corsilo',
 			teamID = 0,
-			position = { x = 2000, z = 2100 },
+			position = { x = 2000, z = 2110 },
+		},
+	},
+
+	createWreckToReclaimIncome = {
+		type = actionTypes.CreateFeature,
+		parameters = {
+			featureDefName = 'armllt_dead',
+			position = { x = 2100, z = 2000 },
+			facing = 's',
+		},
+	},
+
+	spawnIncomeReclaimer = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			unitName = 'incomeReclaimer',
+			unitDefName = 'armrectr',
+			teamID = 0,
+			position = { x = 2100, z = 2100 },
+		},
+	},
+
+	spawnUnitReclaimTarget = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			unitName = 'unitReclaimTarget',
+			unitDefName = 'armllt',
+			teamID = 0,
+			position = { x = 2200, z = 2100 },
+		},
+	},
+
+	orderIncomeReclaimerReclaim = {
+		type = actionTypes.IssueOrders,
+		parameters = {
+			unitName = 'incomeReclaimer',
+			orders = {
+				{ CMD.RECLAIM, { 2100, 0, 2000, 80 } },
+			},
+		},
+	},
+
+	orderUnitIncomeReclaimerReclaim = {
+		type = actionTypes.IssueOrders,
+		parameters = {
+			unitName = 'incomeReclaimer',
+			orders = {
+				{ CMD.RECLAIM, { unitName = 'unitReclaimTarget' } },
+			},
 		},
 	},
 
@@ -220,6 +381,13 @@ local actions = {
 
 	-- ── Wave messages ─────────────────────────────────────────────────────────
 
+	messageWaveMex = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "[Resource Test] Spawning Arm Metal Extractor (armmex).",
+		},
+	},
+
 	messageWaveFusion = {
 		type = actionTypes.SendMessage,
 		parameters = {
@@ -241,6 +409,20 @@ local actions = {
 		},
 	},
 
+	messageWaveReclaim = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "[Resource Test] Spawning Arm LLT wreck and reclaimer.",
+		},
+	},
+
+	messageWaveUnitReclaim = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "[Resource Test] Spawning Arm LLT unit and reclaimer.",
+		},
+	},
+
 	messageWaveMetalAndEnergy = {
 		type = actionTypes.SendMessage,
 		parameters = {
@@ -251,14 +433,14 @@ local actions = {
 	messageWaveMetalOnly = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] Adding 250 metal only.",
+			message = "[Resource Test] Adding 250 metal.",
 		},
 	},
 
 	messageWaveEnergyOnly = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] Adding 2000 energy only.",
+			message = "[Resource Test] Adding 500 energy.",
 		},
 	},
 
@@ -267,21 +449,21 @@ local actions = {
 	messageMetalStored = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] Team 0 has >= 1500 metal stored.",
+			message = "[Resource Test] has >= 1500 metal stored.",
 		},
 	},
 
 	messageEnergyStored = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] Team 0 has >= 3000 energy stored.",
+			message = "[Resource Test] has >= 3000 energy stored.",
 		},
 	},
 
 	messageBothStored = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] Team 0 has >= 2000 metal AND >= 5000 energy stored.",
+			message = "[Resource Test] has >= 1800 metal AND >= 3500 energy stored.",
 		},
 	},
 
@@ -290,14 +472,58 @@ local actions = {
 	messageMetalIncome = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] Team 0 metal income >= 5 m/s.",
+			message = "[Resource Test] metal income >= 5 m/s.",
 		},
 	},
 
 	messageEnergyIncome = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] Team 0 energy income >= 500 e/s.",
+			message = "[Resource Test] energy income >= 500 e/s.",
+		},
+	},
+
+	-- ── ResourceIncome (sources) messages ────────────────────────────────────
+
+	messageExtractorMetalIncome = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "[Resource Test] extractor metal income >= 1 m/s.",
+		},
+	},
+
+	messageProductionEnergyIncome = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "[Resource Test] production energy income >= 200 e/s.",
+		},
+	},
+
+	messageProductionMetalIncome = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "[Resource Test] production metal income >= 0.5 m/s.",
+		},
+	},
+
+	messageMultipleSourcesMetalIncome = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "[Resource Test] extractor+production metal income >= 2 m/s.",
+		},
+	},
+
+	messageFeatureReclaimMetalIncome = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "[Resource Test] feature reclaim metal income >= 0.1 m/s.",
+		},
+	},
+
+	messageUnitReclaimMetalIncome = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "[Resource Test] unit reclaim metal income >= 70 m/s.",
 		},
 	},
 
@@ -306,14 +532,14 @@ local actions = {
 	messageMetalPull = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] Team 0 metal pull >= 1 m/s.",
+			message = "[Resource Test] metal pull >= 1 m/s.",
 		},
 	},
 
 	messageEnergyPull = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Resource Test] Team 0 energy pull >= 100 e/s.",
+			message = "[Resource Test] energy pull >= 100 e/s.",
 		},
 	},
 }

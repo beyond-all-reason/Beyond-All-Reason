@@ -422,9 +422,11 @@ local parameters = {
 			type = Types.Number,
 		},
 		[4] = {
-			name = 'stableFrames',
+			-- Filter income by sources: 'extractor' (metal only), 'reclaim' (features + units), 'ally' (shared), 'production' (everything else)
+			-- Example: sources = { 'extractor', 'production' }
+			name = 'sources',
 			required = false,
-			type = Types.Number,
+			type = Types.ResourceIncomeSources,
 		},
 		requiresOneOf = { 'metal', 'energy', },
 	},
@@ -441,11 +443,6 @@ local parameters = {
 		},
 		[3] = {
 			name = 'energy',
-			required = false,
-			type = Types.Number,
-		},
-		[4] = {
-			name = 'stableFrames',
 			required = false,
 			type = Types.Number,
 		},
