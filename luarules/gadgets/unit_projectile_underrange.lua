@@ -55,7 +55,7 @@ local gameSpeed = Game.gameSpeed
 local gravityPerFrame = -Game.gravity / (gameSpeed ^ 2)
 
 local ARC_EPSILON = 1e-6
-local TAANG2RAD = 9.58738e-05
+local TAANG2RAD = math.tau / COBSCALE
 local UNIT = string.byte("u")
 local TRAJECTORY_UNIT = 2
 
