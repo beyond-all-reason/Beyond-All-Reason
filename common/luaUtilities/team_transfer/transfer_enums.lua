@@ -37,6 +37,7 @@ M.UnitValidationOutcome = {
 
 M.UnitType = {
 	Combat = "combat",
+	Commander = "commander",
 	Production = "production",
 	T2Constructor = "t2_constructor",
 	Resource = "resource",

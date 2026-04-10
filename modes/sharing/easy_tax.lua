@@ -5,7 +5,7 @@ return {
     key = ModeEnums.Modes.EasyTax,
     category = ModeEnums.ModeCategories.Sharing,
     name = "Easy Tax",
-    desc = "Anti co-op sharing tax mode. Leverages stun to penalize sharing.",
+    desc = "Anti co-op sharing tax mode. Tax on resource sharing, assist, and resurrection. Eco buildings stunned, mobile constructors debuffed.",
     allowRanked = true,
     modOptions = {
         [ModeEnums.ModOptions.UnitSharingMode] = {
@@ -20,6 +20,10 @@ return {
             value = ModeEnums.UnitFilterCategory.Resource,
             locked = false,
         },
+        [ModeEnums.ModOptions.ConstructorBuildDelay] = {
+            value = true,
+            locked = false,
+        },
         [ModeEnums.ModOptions.ResourceSharingEnabled] = {
             value = true,
             locked = false,
@@ -29,16 +33,16 @@ return {
             locked = false,
         },
         [ModeEnums.ModOptions.AlliedAssistMode] = {
-            value = ModeEnums.AlliedAssistMode.Disabled,
-            locked = false,
+            value = ModeEnums.AlliedAssistMode.Enabled,
+            locked = true,
         },
         [ModeEnums.ModOptions.AlliedUnitReclaimMode] = {
             value = ModeEnums.AlliedUnitReclaimMode.Enabled,
             locked = false,
         },
         [ModeEnums.ModOptions.AllowPartialResurrection] = {
-            value = ModeEnums.AllowPartialResurrection.Disabled,
-            locked = false,
+            value = ModeEnums.AllowPartialResurrection.Enabled,
+            locked = true,
         },
         [ModeEnums.ModOptions.TakeMode] = {
             value = ModeEnums.TakeMode.StunDelay,

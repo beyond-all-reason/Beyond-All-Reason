@@ -41,6 +41,7 @@ end
 -- Module imports
 --------------------------------------------------------------------------------
 
+local ModeEnums = VFS.Include("modes/sharing_mode_enums.lua")
 local ResourceTypes = VFS.Include("gamedata/resource_types.lua")
 local ContextFactoryModule = VFS.Include("common/luaUtilities/team_transfer/context_factory.lua")
 local ResourceTransfer = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_synced.lua")
@@ -52,6 +53,21 @@ local EconomyLog = VFS.Include("common/luaUtilities/economy/economy_log.lua")
 local WaterfillSolver = VFS.Include("common/luaUtilities/economy/economy_waterfill_solver.lua")
 
 local tracyAvailable = tracy and tracy.ZoneBeginN and tracy.ZoneEnd
+
+--------------------------------------------------------------------------------
+-- Build Step Taxation (assist ally construction + resurrection)
+--------------------------------------------------------------------------------
+
+local modOptions = Spring.GetModOptions()
+local taxRate = tonumber(modOptions[ModeEnums.ModOptions.TaxResourceSharingAmount]) or 0
+
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+local spGetUnitTeam = Spring.GetUnitTeam
+local spGetTeamResources = Spring.GetTeamResources
+local spUseUnitResource = Spring.UseUnitResource
+local spGetFeatureResources = Spring.GetFeatureResources
+local spGetFeatureResurrect = Spring.GetFeatureResurrect
+local spAreTeamsAllied = Spring.AreTeamsAllied
 
 --------------------------------------------------------------------------------
 -- Module globals
@@ -212,3 +228,82 @@ end
 function gadget:GameFrame(frame)
 	DeferredPolicyUpdate()
 end
+
+--------------------------------------------------------------------------------
+-- Tax on assisting ally construction
+--------------------------------------------------------------------------------
+
+if taxRate > 0 then
+
+function gadget:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part)
+	if part <= 0 then -- reclaiming
+		return true
+	end
+
+	local beingBuilt = spGetUnitIsBeingBuilt(unitID)
+	if not beingBuilt then -- repair, not construction
+		return true
+	end
+
+	local unitTeam = spGetUnitTeam(unitID)
+	if not unitTeam or builderTeam == unitTeam then
+		return true -- own unit, no tax
+	end
+
+	if not spAreTeamsAllied(builderTeam, unitTeam) then
+		return true -- enemy, not taxable
+	end
+
+	local unitDef = UnitDefs[unitDefID]
+	if not unitDef then
+		return true
+	end
+
+	local metalCost = unitDef.metalCost
+	local energyCost = unitDef.energyCost
+	local metalTax = metalCost * part * taxRate
+	local energyTax = energyCost * part * taxRate
+	local currentMetal = spGetTeamResources(builderTeam, "metal")
+	local currentEnergy = spGetTeamResources(builderTeam, "energy")
+
+	if currentMetal < (metalTax + metalCost * part) or currentEnergy < (energyTax + energyCost * part) then
+		return false -- can't afford tax
+	end
+
+	spUseUnitResource(builderID, "metal", metalTax)
+	spUseUnitResource(builderID, "energy", energyTax)
+	return true
+end
+
+--------------------------------------------------------------------------------
+-- Tax on resurrection (inserting metal into wreck)
+--------------------------------------------------------------------------------
+
+function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
+	if part < 0 then -- reclaiming
+		return true
+	end
+
+	local resurrectUnitName = spGetFeatureResurrect(featureID)
+	if not resurrectUnitName or resurrectUnitName == "" then
+		return true -- not a resurrectable wreck
+	end
+
+	-- Only tax during metal insertion phase (phase 1)
+	local featureMetal, featureMaxMetal = spGetFeatureResources(featureID)
+	if not featureMetal or featureMaxMetal <= 0 or featureMetal >= featureMaxMetal then
+		return true -- phase 2 (actual resurrection), no metal cost
+	end
+
+	local metalTax = featureMaxMetal * part * taxRate
+	local teamMetal = spGetTeamResources(builderTeam, "metal")
+
+	if teamMetal < (metalTax + featureMaxMetal * part) then
+		return false -- can't afford tax
+	end
+
+	spUseUnitResource(builderID, "metal", metalTax)
+	return true
+end
+
+end -- if taxRate > 0

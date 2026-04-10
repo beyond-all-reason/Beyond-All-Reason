@@ -46,6 +46,7 @@ local M = {}
 M.ModOptions = {
 	AlliedAssistMode = "allied_assist_mode",
 	AlliedUnitReclaimMode = "allied_reclaim_mode",
+	ConstructorBuildDelay = "constructor_build_delay",
 	PlayerEnergySendThreshold = "player_energy_send_threshold",
 	PlayerMetalSendThreshold = "player_metal_send_threshold",
 	ResourceSharingEnabled = "resource_sharing_enabled",

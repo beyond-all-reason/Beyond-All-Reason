@@ -26,7 +26,42 @@ local TransferEnums = VFS.Include("common/luaUtilities/team_transfer/transfer_en
 local ContextFactoryModule = VFS.Include("common/luaUtilities/team_transfer/context_factory.lua")
 local Shared = VFS.Include("common/luaUtilities/team_transfer/unit_transfer_shared.lua")
 local UnitTransfer = VFS.Include("common/luaUtilities/team_transfer/unit_transfer_synced.lua")
+local UnitSharingCategories = VFS.Include("common/luaUtilities/team_transfer/unit_sharing_categories.lua")
 local LuaRulesMsg = VFS.Include("common/luaUtilities/lua_rules_msg.lua")
+
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+
+local modOptions = Spring.GetModOptions()
+local constructorBuildDelay = modOptions[ModeEnums.ModOptions.ConstructorBuildDelay] == true
+  or modOptions[ModeEnums.ModOptions.ConstructorBuildDelay] == "1"
+
+--------------------------------------------------------------------------------
+-- Constructor Build Delay (buildspeed = 0 debuff for mobile builders)
+--------------------------------------------------------------------------------
+
+local debuffedUnits = {} -- unitID -> expireFrame
+
+-- Precompute which unitDefIDs are mobile builders (not factories/conturrets)
+local mobileBuilderDefs = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+  if unitDef.isBuilder and not unitDef.isImmobile and not unitDef.isFactory then
+    mobileBuilderDefs[unitDefID] = true
+  end
+end
+
+local function applyBuildDelay(unitID, unitDefID, stunSeconds)
+  if not constructorBuildDelay then return end
+  if not mobileBuilderDefs[unitDefID] then return end
+
+  local startFrame = Spring.GetGameFrame()
+  local expireFrame = startFrame + (stunSeconds * Game.gameSpeed)
+  debuffedUnits[unitID] = expireFrame
+  SendToUnsynced("unitBuildspeedDebuff", unitID, startFrame, expireFrame)
+end
+
+--------------------------------------------------------------------------------
+-- Stun logic
+--------------------------------------------------------------------------------
 
 local function shouldStunUnit(unitDefID, stunCategory)
   if not stunCategory then
@@ -40,15 +75,19 @@ local function applyStun(unitID, unitDefID, policyResult)
   if stunSeconds <= 0 then
     return
   end
+
+  -- Mobile builders get the build delay debuff instead of stun when enabled
+  if constructorBuildDelay and mobileBuilderDefs[unitDefID] then
+    applyBuildDelay(unitID, unitDefID, stunSeconds)
+    return
+  end
+
   local stunCategory = policyResult.stunCategory
   if not shouldStunUnit(unitDefID, stunCategory) then
     return
   end
-  -- Apply stun using AddUnitDamage with high damage and paralyze time
-  -- The paralyze time parameter sets how long the paralyze effect lasts
   local _, maxHealth = Spring.GetUnitHealth(unitID)
   local paralyzeFrames = stunSeconds * 30
-  Spring.Echo("[UnitTransfer] Stunning unit " .. unitID .. " for " .. stunSeconds .. "s (" .. paralyzeFrames .. " frames)")
   Spring.AddUnitDamage(unitID, maxHealth * 5, paralyzeFrames)
 end
 
@@ -276,4 +315,33 @@ end
 
 function gadget:GameFrame(frame)
   UpdatePolicyCache(frame)
+
+  -- Expire build delay debuffs
+  for unitID, expireFrame in pairs(debuffedUnits) do
+    if frame >= expireFrame then
+      debuffedUnits[unitID] = nil
+      SendToUnsynced("unitBuildspeedDebuffEnd", unitID)
+    end
+  end
+end
+
+function gadget:UnitDestroyed(unitID)
+  if debuffedUnits[unitID] then
+    debuffedUnits[unitID] = nil
+    SendToUnsynced("unitBuildspeedDebuffEnd", unitID)
+  end
+end
+
+function gadget:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part)
+  if debuffedUnits[builderID] and spGetUnitIsBeingBuilt(unitID) then
+    return false
+  end
+  return true
+end
+
+function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
+  if debuffedUnits[builderID] then
+    return false
+  end
+  return true
 end

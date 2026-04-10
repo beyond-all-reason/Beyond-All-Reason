@@ -171,8 +171,11 @@ function Shared.DeserializePolicy(serialized, senderId, receiverId)
   return result
 end
 
+local Commander = TransferEnums.UnitType.Commander
+
 local allUnitTypes = {
   TransferEnums.UnitType.Combat,
+  TransferEnums.UnitType.Commander,
   TransferEnums.UnitType.Production,
   TransferEnums.UnitType.T2Constructor,
   TransferEnums.UnitType.Resource,
@@ -189,44 +192,45 @@ function Shared.GetModeUnitTypes(category)
     return allUnitTypes
   end
 
+  -- Commanders are always shareable regardless of category
   if category == ModeEnums.UnitFilterCategory.Combat then
-    return {TransferEnums.UnitType.Combat}
+    return {TransferEnums.UnitType.Combat, Commander}
   end
 
   if category == ModeEnums.UnitFilterCategory.CombatT2Cons then
-    return {TransferEnums.UnitType.Combat, TransferEnums.UnitType.T2Constructor}
+    return {TransferEnums.UnitType.Combat, TransferEnums.UnitType.T2Constructor, Commander}
   end
 
   if category == ModeEnums.UnitFilterCategory.Production then
-    return {TransferEnums.UnitType.Production, TransferEnums.UnitType.T2Constructor}
+    return {TransferEnums.UnitType.Production, TransferEnums.UnitType.T2Constructor, Commander}
   end
 
   if category == ModeEnums.UnitFilterCategory.ProductionResource then
-    return {TransferEnums.UnitType.Production, TransferEnums.UnitType.T2Constructor, TransferEnums.UnitType.Resource}
+    return {TransferEnums.UnitType.Production, TransferEnums.UnitType.T2Constructor, TransferEnums.UnitType.Resource, Commander}
   end
 
   if category == ModeEnums.UnitFilterCategory.ProductionResourceUtility then
-    return {TransferEnums.UnitType.Production, TransferEnums.UnitType.T2Constructor, TransferEnums.UnitType.Resource, TransferEnums.UnitType.Utility}
+    return {TransferEnums.UnitType.Production, TransferEnums.UnitType.T2Constructor, TransferEnums.UnitType.Resource, TransferEnums.UnitType.Utility, Commander}
   end
 
   if category == ModeEnums.UnitFilterCategory.ProductionUtility then
-    return {TransferEnums.UnitType.Production, TransferEnums.UnitType.T2Constructor, TransferEnums.UnitType.Utility}
+    return {TransferEnums.UnitType.Production, TransferEnums.UnitType.T2Constructor, TransferEnums.UnitType.Utility, Commander}
   end
 
   if category == ModeEnums.UnitFilterCategory.Resource then
-    return {TransferEnums.UnitType.Resource}
+    return {TransferEnums.UnitType.Resource, Commander}
   end
 
   if category == ModeEnums.UnitFilterCategory.T2Cons then
-    return {TransferEnums.UnitType.T2Constructor}
+    return {TransferEnums.UnitType.T2Constructor, Commander}
   end
 
   if category == ModeEnums.UnitFilterCategory.Transport then
-    return {TransferEnums.UnitType.Transport}
+    return {TransferEnums.UnitType.Transport, Commander}
   end
 
   if category == ModeEnums.UnitFilterCategory.Utility then
-    return {TransferEnums.UnitType.Utility}
+    return {TransferEnums.UnitType.Utility, Commander}
   end
 
   return {}

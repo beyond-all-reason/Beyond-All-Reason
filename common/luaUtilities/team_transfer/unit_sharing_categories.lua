@@ -7,6 +7,10 @@ local sharing = {}
 ---@param unitDef table Unit definition from UnitDefs
 ---@return string unitType One of TransferEnums.UnitType values
 function sharing.classifyUnitDef(unitDef)
+	if sharing.isCommanderDef(unitDef) then
+		return TransferEnums.UnitType.Commander
+	end
+
 	if sharing.isT1TransportDef(unitDef) then
 		return TransferEnums.UnitType.Transport
 	end
@@ -31,6 +35,12 @@ function sharing.classifyUnitDef(unitDef)
 	end
 
 	return TransferEnums.UnitType.Combat
+end
+
+---@param unitDef table
+---@return boolean
+function sharing.isCommanderDef(unitDef)
+	return unitDef.customParams and unitDef.customParams.iscommander ~= nil
 end
 
 ---@param unitDef table

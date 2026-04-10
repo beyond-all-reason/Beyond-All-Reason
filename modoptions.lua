@@ -383,6 +383,14 @@ local options = {
 		items	= unitSharingCategoriesWithAll,
 	},
 	{
+		key		= ModeEnums.ModOptions.ConstructorBuildDelay,
+		name	= "Constructor Build Delay",
+		desc	= "Shared mobile constructors have their build speed set to 0 for the stun duration. They can still move and start builds, but cannot make progress until the delay expires.",
+		type	= "bool",
+		section	= ModeEnums.ModeCategories.Sharing,
+		def		= false,
+	},
+	{
 		key		= ModeEnums.ModOptions.TakeMode,
 		name	= "Take Mode",
 		desc	= "Controls what happens when a player uses /take on an inactive ally's units",
