@@ -737,10 +737,17 @@ function gadget:GameFrame(n)
 	-- Periodic cache cleanup (runs in GameFrame to avoid per-draw overhead)
 	if n > cacheCleanupFrame then
 		cacheCleanupFrame = n + 90
+		local removeList
+		local removeCount = 0
 		for proID in pairs(projectileCache) do
 			if not spGetProjectilePosition(proID) then
-				projectileCache[proID] = nil
+				removeCount = removeCount + 1
+				if not removeList then removeList = {} end
+				removeList[removeCount] = proID
 			end
+		end
+		for i = 1, removeCount do
+			projectileCache[removeList[i]] = nil
 		end
 	end
 end
