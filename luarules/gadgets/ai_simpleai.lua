@@ -58,6 +58,7 @@ local MakeHashedPosTable = VFS.Include("luarules/utilities/damgam_lib/hashpostab
 local HashPosTable = MakeHashedPosTable()
 
 local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
+local ResourceTypes = VFS.Include("gamedata/resource_types.lua")
 
 -- manually appoint units to avoid making
 -- (note that transports, stockpilers and objects/walls are auto skipped)
@@ -187,12 +188,10 @@ local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-local spGetTeamResources = Spring.GetTeamResources
 local spTestBuildOrder = Spring.TestBuildOrder
 local spGetFullBuildQueue = Spring.GetFullBuildQueue
 local spGetTeamUnits = Spring.GetTeamUnits
 local spGetAllUnits = Spring.GetAllUnits
-local spSetTeamResource = Spring.SetTeamResource
 local spGetTeamInfo = Spring.GetTeamInfo
 local spGetTeamLuaAI = Spring.GetTeamLuaAI
 local spDgunCommand = CMD.DGUN
@@ -320,8 +319,8 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitTeam, u
 	--tracy.ZoneBeginN("SimpleAI:SimpleConstructionProjectSelection")
 	local success = false
 
-	local mcurrent, mstorage, _, _, _ = spGetTeamResources(unitTeam, "metal")
-	local ecurrent, estorage, _, _, _ = spGetTeamResources(unitTeam, "energy")
+	local mcurrent, mstorage, _, _, _ = GG.GetTeamResources(unitTeam, "metal")
+	local ecurrent, estorage, _, _, _ = GG.GetTeamResources(unitTeam, "energy")
 	local unitposx, _, unitposz = spGetUnitPosition(unitID)
 
 	local buildOptions = BuildOptions[unitDefID]
@@ -487,15 +486,21 @@ if gadgetHandler:IsSyncedCode() then
 					--tracy.ZoneBeginN("SimpleAI:GameFrame")
 					local teamID = SimpleAITeamIDs[i]
 					local _, _, _, _, _, allyTeamID = spGetTeamInfo(teamID)
-					local mcurrent, mstorage = spGetTeamResources(teamID, "metal")
-					local ecurrent, estorage = spGetTeamResources(teamID, "energy")
+					local mcurrent, mstorage = GG.GetTeamResources(teamID, "metal")
+					local ecurrent, estorage = GG.GetTeamResources(teamID, "energy")
 					
 					-- resource boost (teamID is always in SimpleAITeamIDs)
 					if mcurrent < mstorage * 0.20 then
 						spSetTeamResource(teamID, "m", mstorage * 0.25)
 					end
-					if ecurrent < estorage * 0.20 then
-						spSetTeamResource(teamID, "e", estorage * 0.25)
+
+					if isCheaterTeam then
+						if mcurrent < mstorage * 0.20 then
+							Spring.SetTeamResource(teamID, ResourceTypes.METAL, mstorage * 0.25)
+						end
+						if ecurrent < estorage * 0.20 then
+							Spring.SetTeamResource(teamID, ResourceTypes.ENERGY, estorage * 0.25)
+						end
 					end
 
 					local luaAI = spGetTeamLuaAI(teamID)
@@ -528,7 +533,7 @@ if gadgetHandler:IsSyncedCode() then
 
 											if nearestEnemy and unitHealthPercentage > 30 then
 												if ecurrent < estorage*0.9 then
-													spSetTeamResource(teamID, "e", estorage*0.9)
+													Spring.SetTeamResource(teamID, ResourceTypes.ENERGY, estorage * 0.9)
 												end
 												spGiveOrderToUnit(unitID, spDgunCommand, {nearestEnemy}, 0)
 												local nearestEnemies = spGetUnitsInCylinder(unitposx, unitposz, 300)

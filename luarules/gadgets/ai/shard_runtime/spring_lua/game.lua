@@ -149,7 +149,7 @@ local game = {}
 	end
 
 	function game:GetResource(idx) --  returns a Resource object
-		local currentLevel, storage, pull, income, expense, share, sent, received = Spring.GetTeamResources(self.ai.id, Shard.resourceIds[idx])
+		local currentLevel, storage, pull, income, expense, share, sent, received = GG.GetTeamResources(self.ai.id, Shard.resourceIds[idx])
 		return Shard:shardify_resource({currentLevel=currentLevel, storage=storage, pull=pull, income=income, expense=expense, share=share, sent=sent, received=received})
 	end
 
@@ -159,7 +159,7 @@ local game = {}
 
 	function game:GetResourceByName(name) -- returns a Resource object, takes the name of the resource
 		name = string.lower(name)
-		local currentLevel, storage, pull, income, expense, share, sent, received = Spring.GetTeamResources(self.ai.id, name)
+		local currentLevel, storage, pull, income, expense, share, sent, received = GG.GetTeamResources(self.ai.id, name)
 		return Shard:shardify_resource({currentLevel=currentLevel, storage=storage, pull=pull, income=income, expense=expense, share=share, sent=sent, received=received})
 	end
 

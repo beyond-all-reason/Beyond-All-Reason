@@ -39,13 +39,15 @@ local errorKeys = {
 
 if gadgetHandler:IsSyncedCode() then
 
+	local ModeEnums = VFS.Include("modes/sharing_mode_enums.lua")
+	local Shared = VFS.Include("common/luaUtilities/team_transfer/unit_transfer_shared.lua")
+	local TakeComms = VFS.Include("common/luaUtilities/team_transfer/take_comms.lua")
+
 	local playerInfoTable = {}
 	local currentGameFrame = 0
 
 	local TransferUnit = Spring.TransferUnit
 	local GetPlayerList = Spring.GetPlayerList
-	local ShareTeamResource = Spring.ShareTeamResource
-	local GetTeamResources = Spring.GetTeamResources
 	local GetPlayerInfo = Spring.GetPlayerInfo
 	local GetTeamLuaAI = Spring.GetTeamLuaAI
 	local GetAIInfo = Spring.GetAIInfo
@@ -60,7 +62,38 @@ if gadgetHandler:IsSyncedCode() then
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	local gameSpeed = Game.gameSpeed
 
-	local validation = string.randomString(2)
+	local modOptions = Spring.GetModOptions()
+	local takeMode = modOptions[ModeEnums.ModOptions.TakeMode] or ModeEnums.TakeMode.Enabled
+	local takeDelaySeconds = tonumber(modOptions[ModeEnums.ModOptions.TakeDelaySeconds]) or 30
+	local takeDelayCategory = modOptions[ModeEnums.ModOptions.TakeDelayCategory] or ModeEnums.UnitCategory.Resource
+	local pendingDelayedTakes = {}
+
+	local function matchesCategory(unitDefID, category)
+		if category == ModeEnums.UnitFilterCategory.All then
+			return true
+		end
+		return Shared.IsShareableDef(unitDefID, category, UnitDefs)
+	end
+
+	local function stunUnit(unitID, seconds)
+		local _, maxHealth = Spring.GetUnitHealth(unitID)
+		if maxHealth and maxHealth > 0 then
+			Spring.AddUnitDamage(unitID, maxHealth * 5, seconds * 30)
+		end
+	end
+
+	local charset = {}  do -- [0-9a-zA-Z]
+		for c = 48, 57  do table.insert(charset, string.char(c)) end
+		for c = 65, 90  do table.insert(charset, string.char(c)) end
+		for c = 97, 122 do table.insert(charset, string.char(c)) end
+	end
+
+	local function randomString(length)
+		if not length or length <= 0 then return '' end
+		return randomString(length - 1) .. charset[math.random(1, #charset)]
+	end
+
+	local validation = randomString(2)
 	_G.validationIdle = validation
 
 	local function CheckPlayerState(playerID)
@@ -140,17 +173,54 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	local function transferResources(fromTeamID, toTeamID)
+		for _, resourceName in ipairs(resourceList) do
+			local shareAmount = GG.GetTeamResources(fromTeamID, resourceName)
+			local current,storage,_,_,_,shareSlider = GG.GetTeamResources(toTeamID, resourceName)
+			shareAmount = math.min(shareAmount, shareSlider * storage - current)
+			GG.ShareTeamResource(fromTeamID, toTeamID, resourceName, shareAmount)
+		end
+	end
+
+	local function getPlayerName(pID)
+		local name = GetPlayerInfo(pID, false)
+		return name or ("Player " .. pID)
+	end
+
+	local function getTeamLeaderName(tID)
+		local _, leaderID = GetTeamInfo(tID, false)
+		if leaderID then
+			return getPlayerName(leaderID)
+		end
+		return "Team " .. tID
+	end
+
+	local function notifyTake(playerID, result)
+		local msg = TakeComms.FormatMessage(result)
+		if msg and msg ~= "" then
+			SendToUnsynced("TakeNotify", playerID, msg)
+		end
+	end
+
 	local function takeTeam(cmd, line, words, playerID)
 		if not CheckPlayerState(playerID) then
 			SendToUnsynced("NotifyError", playerID, errorKeys.shareAFK)
-			return -- exclude taking rights from lagged players, etc
+			return
 		end
+
+		local takerName = getPlayerName(playerID)
+
+		if takeMode == ModeEnums.TakeMode.Disabled then
+			notifyTake(playerID, { mode = takeMode, takerName = takerName, sourceName = "", transferred = 0, stunned = 0, delayed = 0, total = 0, category = takeDelayCategory, delaySeconds = takeDelaySeconds })
+			return
+		end
+
+		Spring.SetGameRulesParam("isTakeInProgress", 1)
 		local targetTeam = tonumber(words[1])
 		local _,_,_,takerID,allyTeamID = GetPlayerInfo(playerID,false)
 		local teamList = GetTeamList(allyTeamID)
 		if targetTeam then
 			if select(6, GetTeamInfo(targetTeam, false)) ~= allyTeamID then
-				-- don't let enemies take
 				SendToUnsynced("NotifyError", playerID, errorKeys.takeEnemies)
 				return
 			end
@@ -160,20 +230,78 @@ if gadgetHandler:IsSyncedCode() then
 		for _,teamID in ipairs(teamList) do
 			if GetTeamRulesParam(teamID,"numActivePlayers") == 0 then
 				numToTake = numToTake + 1
-				-- transfer all units
-				local teamUnits = GetTeamUnits(teamID)
-				for i=1, #teamUnits do
-					TransferUnit(teamUnits[i], takerID)
-				end
-				-- send all resources en-block to the taker
-				for _, resourceName in ipairs(resourceList) do
-					local shareAmount = GetTeamResources(teamID, resourceName)
-					local current,storage,_,_,_,shareSlider = GetTeamResources(takerID, resourceName)
-					shareAmount = math.min(shareAmount,shareSlider*storage-current)
-					ShareTeamResource( teamID, takerID, resourceName, shareAmount )
+				local sourceName = getTeamLeaderName(teamID)
+
+				if takeMode == ModeEnums.TakeMode.Enabled then
+					local teamUnits = GetTeamUnits(teamID)
+					local transferred = #teamUnits
+					for i=1, #teamUnits do
+						TransferUnit(teamUnits[i], takerID)
+					end
+					transferResources(teamID, takerID)
+					notifyTake(playerID, { mode = takeMode, takerName = takerName, sourceName = sourceName, transferred = transferred, stunned = 0, delayed = 0, total = transferred, category = takeDelayCategory, delaySeconds = 0 })
+
+				elseif takeMode == ModeEnums.TakeMode.StunDelay then
+					local teamUnits = GetTeamUnits(teamID)
+					local transferred = #teamUnits
+					for i=1, #teamUnits do
+						TransferUnit(teamUnits[i], takerID)
+					end
+					local stunned = 0
+					if takeDelaySeconds > 0 then
+						for _, unitID in ipairs(GetTeamUnits(takerID)) do
+							local unitDefID = Spring.GetUnitDefID(unitID)
+							if unitDefID and matchesCategory(unitDefID, takeDelayCategory) then
+								stunUnit(unitID, takeDelaySeconds)
+								stunned = stunned + 1
+							end
+						end
+					end
+					transferResources(teamID, takerID)
+					notifyTake(playerID, { mode = takeMode, takerName = takerName, sourceName = sourceName, transferred = transferred, stunned = stunned, delayed = 0, total = transferred, category = takeDelayCategory, delaySeconds = takeDelaySeconds })
+
+				elseif takeMode == ModeEnums.TakeMode.TakeDelay then
+					local pending = pendingDelayedTakes[teamID]
+					local delayFrames = takeDelaySeconds * 30
+
+					if pending and pending.takerTeamID == takerID then
+						if currentGameFrame >= pending.expiryFrame then
+							local units = GetTeamUnits(teamID)
+							local transferred = #units
+							for _, unitID in ipairs(units) do
+								TransferUnit(unitID, takerID)
+							end
+							transferResources(teamID, takerID)
+							pendingDelayedTakes[teamID] = nil
+							notifyTake(playerID, { mode = takeMode, takerName = takerName, sourceName = sourceName, transferred = transferred, stunned = 0, delayed = 0, total = transferred, category = takeDelayCategory, delaySeconds = takeDelaySeconds, isSecondPass = true })
+						else
+							local remaining = math.ceil((pending.expiryFrame - currentGameFrame) / 30)
+							notifyTake(playerID, { mode = takeMode, takerName = takerName, sourceName = sourceName, transferred = 0, stunned = 0, delayed = 0, total = 0, category = takeDelayCategory, delaySeconds = takeDelaySeconds, remainingSeconds = remaining })
+						end
+					else
+						local units = GetTeamUnits(teamID)
+						local total = #units
+						local transferred = 0
+						local delayed = 0
+						for _, unitID in ipairs(units) do
+							local unitDefID = Spring.GetUnitDefID(unitID)
+							if unitDefID and not matchesCategory(unitDefID, takeDelayCategory) then
+								TransferUnit(unitID, takerID)
+								transferred = transferred + 1
+							else
+								delayed = delayed + 1
+							end
+						end
+						pendingDelayedTakes[teamID] = {
+							takerTeamID = takerID,
+							expiryFrame = currentGameFrame + delayFrames,
+						}
+						notifyTake(playerID, { mode = takeMode, takerName = takerName, sourceName = sourceName, transferred = transferred, stunned = 0, delayed = delayed, total = total, category = takeDelayCategory, delaySeconds = takeDelaySeconds })
+					end
 				end
 			end
 		end
+		Spring.SetGameRulesParam("isTakeInProgress", 0)
 		if numToTake == 0 then
 			SendToUnsynced("NotifyError", playerID, errorKeys.nothingToTake)
 		end
@@ -220,17 +348,6 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
-
-	function gadget:AllowResourceTransfer(fromTeamID, toTeamID, restype, level)
-		-- prevent resources to leak to uncontrolled teams
-		return GetTeamRulesParam(toTeamID,"numActivePlayers") ~= 0 or IsCheatingEnabled()
-	end
-
-	function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
-		-- prevent units to be shared to uncontrolled teams
-		return capture or GetTeamRulesParam(toTeamID,"numActivePlayers") ~= 0 or IsCheatingEnabled()
-	end
-
 
 else	-- UNSYNCED
 
@@ -302,6 +419,10 @@ else	-- UNSYNCED
 		end
 	end
 
+	local function takeNotify(_, playerID, message)
+		Spring.SendMessageToPlayer(playerID, message)
+	end
+
 	local function notifyError(_, playerID, errorKey)
 		if Script.LuaUI('GadgetMessageProxy') then
 			local translationKey = 'ui.idlePlayers.' .. errorKey
@@ -338,6 +459,7 @@ else	-- UNSYNCED
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("OnGameStart", onGameStart)
 		gadgetHandler:AddSyncAction("NotifyError", notifyError)
+		gadgetHandler:AddSyncAction("TakeNotify", takeNotify)
 		gadgetHandler:AddSyncAction("PlayerLagging", playerLagging)
 		gadgetHandler:AddSyncAction("PlayerResumed", playerResumed)
 		gadgetHandler:AddSyncAction("PlayerAFK", playerAFK)

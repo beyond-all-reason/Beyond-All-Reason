@@ -1,4 +1,4 @@
-/* Tech Points Display - Responsive design using vh, vw, dp units */
+/* Tech Points Display - Catalyst-based system */
 
 body {
     pointer-events: none;
@@ -7,19 +7,16 @@ body {
 .tech-points-root {
     pointer-events: auto;
     position: fixed;
-    /* Center the panel on screen using viewport units */
     left: 27.54vw;
     top: -3dp;
-    width: 42dp; /* Based on 46px base * 1.18 scale factor for 1080p */
-    height: 42dp; /* Same as width for square panel */
+    width: 42dp;
     z-index: 1000;
     font-family: Exo 2;
 }
 
 .tech-points-container {
-    position: absolute;
     width: 100%;
-    height: 100%;
+    height: 42dp;
     background-color: rgba(40, 40, 40, 40);
     border-radius: 6dp;
     border-width: 4dp;
@@ -31,27 +28,28 @@ body {
     align-items: center;
 }
 
-/* Square progress bar - 90% of panel size */
-
-
-/* Vertical fill from bottom to top */
 .tech-points-fill {
     position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 0%; /* Start empty, will be set dynamically */
+    height: 0%;
     background-color: #585757;
     decorator: vertical-gradient(rgba(121, 121, 121, 0.62) #585757);
 }
 
-/* Negative progress style (red) */
-.tech-points-fill.negative-progress {
-    background-color: #aa0000;
-    decorator: vertical-gradient(rgba(255, 50, 50, 0.62) #aa0000);
+.tech-points-fill.one-more {
+    background-color: #4a7a2e;
+    decorator: vertical-gradient(rgba(100, 200, 60, 0.7) #4a7a2e);
+    animation: 1.5s 0s linear infinite tech-one-more-pulse;
 }
 
-/* Text container for header and number */
+@keyframes tech-one-more-pulse {
+    0% { image-color: rgba(100, 200, 60, 180); }
+    50% { image-color: rgba(140, 255, 80, 255); }
+    100% { image-color: rgba(100, 200, 60, 180); }
+}
+
 .tech-text-container {
     position: absolute;
     top: 50%;
@@ -60,29 +58,61 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     height: 100%;
     z-index: 2;
 }
 
-/* Tech level header text */
 .tech-level-header {
-    font-size: 14dp;
+    font-size: 10dp;
     font-weight: bold;
     color: #ffffff;
     text-align: center;
     font-effect: outline(1dp black);
-    margin-bottom: 0dp;
 }
 
-/* Tech level number - centered and scaled */
 .tech-level-number {
-    font-size: 24dp;
-    margin-bottom: 4dp;
+    font-size: 22dp;
     font-weight: 900;
     color: #ffffff;
     text-align: center;
     font-effect: outline(1dp black);
+}
+
+.tech-catalyst-count {
+    font-size: 9dp;
+    font-weight: bold;
+    color: #cccccc;
+    text-align: center;
+    font-effect: outline(1dp black);
+    white-space: nowrap;
+    margin-bottom: 2dp;
+}
+
+/* Milestone indicators below the main square */
+.tech-milestones {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 2dp;
+}
+
+.milestone {
+    font-size: 8dp;
+    font-weight: bold;
+    color: rgba(150, 150, 150, 0.6);
+    text-align: center;
+    font-effect: outline(1dp black);
+    flex: 1;
+}
+
+.milestone.active {
+    color: #ffffff;
+}
+
+.milestone.reached {
+    color: rgba(100, 200, 60, 0.9);
 }
 
 .tech-level-popup {
@@ -103,12 +133,10 @@ body {
     opacity: 0;
 }
 
-/* Tech popup animation when active */
 .tech-level-popup.show-popup {
     animation: 3s 0s cubic-in-out 1 tech-popup-fade;
 }
 
-/* Tech popup fade animation */
 @keyframes tech-popup-fade {
     0% { opacity: 0; }
     20% { opacity: 1; }
