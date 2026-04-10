@@ -351,8 +351,8 @@ if gadgetHandler:IsSyncedCode() then
 							Spring.CallCOBScript(unitID, "GameOverAnim", 0, true)
 						else
 							local scriptEnv = Spring.UnitScript.GetScriptEnv(unitID)
-							if scriptEnv and scriptEnv["GameOverAnim"] then
-								Spring.UnitScript.CallAsUnit(unitID, scriptEnv["GameOverAnim"], true)
+							if scriptEnv and scriptEnv.GameOverAnim then
+								Spring.UnitScript.CallAsUnit(unitID, scriptEnv.GameOverAnim, true)
 							end
 						end
 					end

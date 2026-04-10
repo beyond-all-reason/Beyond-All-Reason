@@ -475,7 +475,7 @@ local definitions = {
 			},
 		},
 	},
-	["railgun"] = {
+	railgun = {
 		shockwaves = {
 			air = true,
 			class = [[CBitmapMuzzleFlame]],
@@ -586,7 +586,7 @@ local definitions = {
 		},
 	},
 
-	["starfire"] = {
+	starfire = {
 		flame = {
 			air = true,
 			class = [[CBitmapMuzzleFlame]],
@@ -726,7 +726,7 @@ local definitions = {
 		-- },
 	},
 
-	["starfire_tiny"] = {
+	starfire_tiny = {
 		flame = {
 			air = true,
 			class = [[CBitmapMuzzleFlame]],
@@ -781,7 +781,7 @@ local definitions = {
 		},
 	},
 
-	["ministarfire"] = {
+	ministarfire = {
 		flame = {
 			air = true,
 			class = [[CBitmapMuzzleFlame]],
@@ -836,7 +836,7 @@ local definitions = {
 			},
 		},
 	},
-	["starfire_arty"] = {
+	starfire_arty = {
 		flame = {
 			air = true,
 			class = [[CBitmapMuzzleFlame]],

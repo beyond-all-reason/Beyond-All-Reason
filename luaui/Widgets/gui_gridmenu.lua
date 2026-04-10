@@ -356,7 +356,7 @@ local function resetHovered()
 		rect.opts.hovered = false
 	end
 
-	WG["buildmenu"].hoverID = nil
+	WG.buildmenu.hoverID = nil
 	labBuildModeRect.opts.hovered = false
 	nextBuilderRect.opts.hovered = false
 	backRect.opts.hovered = false
@@ -390,8 +390,8 @@ end
 local function setHoveredRectTooltip(rect, text, title, clicked)
 	setHoveredRect(rect, clicked)
 
-	if WG["tooltip"] then
-		WG["tooltip"].ShowTooltip("buildmenu", text, nil, nil, title)
+	if WG.tooltip then
+		WG.tooltip.ShowTooltip("buildmenu", text, nil, nil, title)
 	end
 end
 
@@ -469,7 +469,7 @@ local function updateHoverState()
 			end
 
 			setHoveredRectTooltip(cellRect, "\255\240\240\240" .. tooltip, text, left or right)
-			WG["buildmenu"].hoverID = uDefID
+			WG.buildmenu.hoverID = uDefID
 
 			return
 		end
@@ -979,9 +979,9 @@ end
 
 local function pickBlueprint(uDefID)
 	local isRepeatMex = unitMetal_extractor[uDefID] and -uDefID == activeCmd
-	local cmd = (WG["areamex"] and isRepeatMex and "areamex") or spGetCmdDescIndex(-uDefID)
-	if isRepeatMex and WG["areamex"] then
-		WG["areamex"].setAreaMexType(-uDefID)
+	local cmd = (WG.areamex and isRepeatMex and "areamex") or spGetCmdDescIndex(-uDefID)
+	if isRepeatMex and WG.areamex then
+		WG.areamex.setAreaMexType(-uDefID)
 	end
 	setActiveCommand(cmd)
 end
@@ -1260,7 +1260,7 @@ function widget:Initialize()
 	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
 	for unitDefID, reasons in pairs(blockedUnitsData) do
 		units.unitRestricted[unitDefID] = next(reasons) ~= nil
-		units.unitHidden[unitDefID] = reasons["hidden"] ~= nil
+		units.unitHidden[unitDefID] = reasons.hidden ~= nil
 	end
 
 	if widgetHandler:IsWidgetKnown("Build menu") then
@@ -1273,8 +1273,8 @@ function widget:Initialize()
 	isSpec = Spring.GetSpectatingState()
 	isPregame = Spring.GetGameFrame() == 0 and not isSpec
 
-	WG["gridmenu"] = {}
-	WG["buildmenu"] = {}
+	WG.gridmenu = {}
+	WG.buildmenu = {}
 
 	doUpdateClock = os.clock()
 
@@ -1312,94 +1312,94 @@ function widget:Initialize()
 		widget:SelectionChanged(Spring.GetSelectedUnits())
 	end
 
-	WG["gridmenu"].getAlwaysReturn = function()
+	WG.gridmenu.getAlwaysReturn = function()
 		return alwaysReturn
 	end
-	WG["gridmenu"].setAlwaysReturn = function(value)
+	WG.gridmenu.setAlwaysReturn = function(value)
 		alwaysReturn = value
 	end
-	WG["gridmenu"].getAutoSelectFirst = function()
+	WG.gridmenu.getAutoSelectFirst = function()
 		return autoSelectFirst
 	end
-	WG["gridmenu"].setAutoSelectFirst = function(value)
+	WG.gridmenu.setAutoSelectFirst = function(value)
 		autoSelectFirst = value
 	end
-	WG["gridmenu"].getUseLabBuildMode = function()
+	WG.gridmenu.getUseLabBuildMode = function()
 		return useLabBuildMode
 	end
-	WG["gridmenu"].setUseLabBuildMode = function(value)
+	WG.gridmenu.setUseLabBuildMode = function(value)
 		useLabBuildMode = value
 		updateGrid()
 	end
-	WG["gridmenu"].setCurrentCategory = function(category)
+	WG.gridmenu.setCurrentCategory = function(category)
 		setCurrentCategory(category)
 	end
-	WG["gridmenu"].clearCategory = function()
+	WG.gridmenu.clearCategory = function()
 		clearCategory()
 	end
 
-	WG["gridmenu"].getCtrlKeyModifier = function()
+	WG.gridmenu.getCtrlKeyModifier = function()
 		return modKeyMultiplier.keyPress.ctrl
 	end
-	WG["gridmenu"].setCtrlKeyModifier = function(value)
+	WG.gridmenu.setCtrlKeyModifier = function(value)
 		modKeyMultiplier.keyPress.ctrl = value
 	end
-	WG["gridmenu"].getShiftKeyModifier = function()
+	WG.gridmenu.getShiftKeyModifier = function()
 		return modKeyMultiplier.keyPress.shift
 	end
-	WG["gridmenu"].setShiftKeyModifier = function(value)
+	WG.gridmenu.setShiftKeyModifier = function(value)
 		modKeyMultiplier.keyPress.shift = value
 	end
 
-	WG["buildmenu"].getGroups = function()
+	WG.buildmenu.getGroups = function()
 		return groups, units.unitGroup
 	end
-	WG["buildmenu"].getOrder = function()
+	WG.buildmenu.getOrder = function()
 		return units.unitOrder
 	end
-	WG["buildmenu"].getShowPrice = function()
+	WG.buildmenu.getShowPrice = function()
 		return showPrice
 	end
-	WG["buildmenu"].setShowPrice = function(value)
+	WG.buildmenu.setShowPrice = function(value)
 		showPrice = value
 		updateGrid()
 	end
-	WG["buildmenu"].getAlwaysShow = function()
+	WG.buildmenu.getAlwaysShow = function()
 		return alwaysShow
 	end
-	WG["buildmenu"].setAlwaysShow = function(value)
+	WG.buildmenu.setAlwaysShow = function(value)
 		alwaysShow = value
 		refreshCommands()
 	end
-	WG["buildmenu"].getShowRadarIcon = function()
+	WG.buildmenu.getShowRadarIcon = function()
 		return showRadarIcon
 	end
-	WG["buildmenu"].setShowRadarIcon = function(value)
+	WG.buildmenu.setShowRadarIcon = function(value)
 		showRadarIcon = value
 		updateGrid()
 	end
-	WG["buildmenu"].getShowGroupIcon = function()
+	WG.buildmenu.getShowGroupIcon = function()
 		return showGroupIcon
 	end
-	WG["buildmenu"].setShowGroupIcon = function(value)
+	WG.buildmenu.setShowGroupIcon = function(value)
 		showGroupIcon = value
 		updateGrid()
 	end
-	WG["buildmenu"].getBottomPosition = function()
+	WG.buildmenu.getBottomPosition = function()
 		return stickToBottom
 	end
-	WG["buildmenu"].setBottomPosition = function(value)
+	WG.buildmenu.setBottomPosition = function(value)
 		stickToBottom = value
 		widget:ViewResize()
 	end
-	WG["buildmenu"].getSize = function()
+	WG.buildmenu.getSize = function()
 		return backgroundRect.y, backgroundRect.yEnd
 	end
-	WG["buildmenu"].reloadBindings = function()
+	WG.buildmenu.reloadBindings = function()
 		reloadBindings()
 		refreshCommands()
 	end
-	WG["buildmenu"].getIsShowing = function()
+	WG.buildmenu.getIsShowing = function()
 		return buildmenuShows
 	end
 	---@class CostLine
@@ -1415,7 +1415,7 @@ function widget:Initialize()
 	---Override the cost display for a specific unit in the grid menu
 	---@param unitDefID number The unit definition ID to override costs for
 	---@param costData CostData Cost override configuration table with optional properties
-	WG["gridmenu"].setCostOverride = function(unitDefID, costData)
+	WG.gridmenu.setCostOverride = function(unitDefID, costData)
 		if unitDefID and costData then
 			costOverrides[unitDefID] = costData
 			redraw = true
@@ -1425,7 +1425,7 @@ function widget:Initialize()
 
 	---Clear cost overrides for a specific unit or all units
 	---@param unitDefID number? The unit definition ID to clear overrides for. If nil or not provided, clears all cost overrides.
-	WG["gridmenu"].clearCostOverrides = function(unitDefID)
+	WG.gridmenu.clearCostOverrides = function(unitDefID)
 		if unitDefID then
 			costOverrides[unitDefID] = nil
 		else
@@ -1442,7 +1442,7 @@ function widget:Initialize()
 	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
 	for unitDefID, reasons in pairs(blockedUnitsData) do
 		units.unitRestricted[unitDefID] = next(reasons) ~= nil
-		units.unitHidden[unitDefID] = reasons["hidden"] ~= nil
+		units.unitHidden[unitDefID] = reasons.hidden ~= nil
 	end
 end
 
@@ -1451,7 +1451,7 @@ end
 -------------------------------------------------------------------------------
 
 local function checkGuishader(force)
-	if WG["guishader"] then
+	if WG.guishader then
 		if force and dlistGuishader then
 			dlistGuishader = gl.DeleteList(dlistGuishader)
 		end
@@ -1460,7 +1460,7 @@ local function checkGuishader(force)
 				RectRound(backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, backgroundRect.yEnd, elementCorner)
 			end)
 			if activeBuilder then
-				WG["guishader"].InsertDlist(dlistGuishader, "buildmenu")
+				WG.guishader.InsertDlist(dlistGuishader, "buildmenu")
 			end
 		end
 	elseif dlistGuishader then
@@ -1490,7 +1490,7 @@ function widget:ViewResize()
 
 	activeAreaMargin = math_ceil(bgpadding * CONFIG.activeAreaMargin)
 
-	font2 = WG["fonts"].getFont(2)
+	font2 = WG.fonts.getFont(2)
 
 	for i, rectOpts in ipairs(defaultCategoryOpts) do
 		defaultCategoryOpts[i].nameHeight = font2:GetTextHeight(rectOpts.name)
@@ -1499,8 +1499,8 @@ function widget:ViewResize()
 
 	backRect.opts.keyTextHeight = font2:GetTextHeight(backRect.opts.name)
 
-	if WG["minimap"] then
-		minimapHeight = WG["minimap"].getHeight()
+	if WG.minimap then
+		minimapHeight = WG.minimap.getHeight()
 	end
 
 	-- if stick to bottom we know cells are 2 row by 6 column
@@ -1543,8 +1543,8 @@ function widget:ViewResize()
 		local posY = math_floor(posYEnd + ((0.74 * vsx) * width)) / vsy
 		local posX = 0
 
-		if WG["ordermenu"] and not WG["ordermenu"].getBottomPosition() then
-			local _, oposY, _, oheight = WG["ordermenu"].getPosition()
+		if WG.ordermenu and not WG.ordermenu.getBottomPosition() then
+			local _, oposY, _, oheight = WG.ordermenu.getPosition()
 			if posY > oposY then
 				posY = (oposY - oheight - (widgetSpaceMargin / vsy))
 			end
@@ -1631,7 +1631,7 @@ function widget:Update(dt)
 			delayRefresh = nil
 		end
 		checkGuishader()
-		if WG["minimap"] and minimapHeight ~= WG["minimap"].getHeight() then
+		if WG.minimap and minimapHeight ~= WG.minimap.getHeight() then
 			widget:ViewResize()
 
 			if not isPregame then
@@ -1640,8 +1640,8 @@ function widget:Update(dt)
 		end
 		local prevOrdermenuLeft = ordermenuLeft
 		local prevOrdermenuHeight = ordermenuHeight
-		if WG["ordermenu"] then
-			local oposX, _, owidth, oheight = WG["ordermenu"].getPosition()
+		if WG.ordermenu then
+			local oposX, _, owidth, oheight = WG.ordermenu.getPosition()
 			ordermenuLeft = math_floor((oposX + owidth) * vsx)
 			ordermenuHeight = oheight
 		end
@@ -1666,11 +1666,11 @@ function widget:Update(dt)
 		buildmenuShows = true
 	end
 
-	if WG["guishader"] and prevBuildmenuShows ~= buildmenuShows and dlistGuishader then
+	if WG.guishader and prevBuildmenuShows ~= buildmenuShows and dlistGuishader then
 		if buildmenuShows then
-			WG["guishader"].InsertDlist(dlistGuishader, "buildmenu")
+			WG.guishader.InsertDlist(dlistGuishader, "buildmenu")
 		else
-			WG["guishader"].RemoveDlist("buildmenu")
+			WG.guishader.RemoveDlist("buildmenu")
 		end
 	end
 
@@ -2199,7 +2199,7 @@ function widget:MousePress(x, y, button)
 	if Spring.IsGUIHidden() then
 		return
 	end
-	if WG["topbar"] and WG["topbar"].showingQuit() then
+	if WG.topbar and WG.topbar.showingQuit() then
 		return
 	end
 
@@ -2346,16 +2346,16 @@ local function checkGuishaderBuilders()
 			dlistGuishaderBuilders = gl.CreateList(function()
 				RectRound(buildersRect.x, buildersRect.y, buildersRect.xEnd + (bgpadding * 2), buildersRect.yEnd + bgpadding + (iconMargin * 2), elementCorner)
 			end)
-			WG["guishader"].InsertDlist(dlistGuishaderBuilders, "buildmenubuilders")
+			WG.guishader.InsertDlist(dlistGuishaderBuilders, "buildmenubuilders")
 			dlistGuishaderBuildersNext = gl.CreateList(function()
 				RectRound(nextBuilderRect.x, nextBuilderRect.y, nextBuilderRect.xEnd, nextBuilderRect.yEnd, elementCorner * 0.5)
 			end)
-			WG["guishader"].InsertDlist(dlistGuishaderBuildersNext, "buildmenubuildersnext")
+			WG.guishader.InsertDlist(dlistGuishaderBuildersNext, "buildmenubuildersnext")
 		end
 	elseif dlistGuishaderBuilders then
 		prevSelectedBuildersCount = 0
-		WG["guishader"].DeleteDlist("buildmenubuilders")
-		WG["guishader"].DeleteDlist("buildmenubuildersNext")
+		WG.guishader.DeleteDlist("buildmenubuilders")
+		WG.guishader.DeleteDlist("buildmenubuildersNext")
 		dlistGuishaderBuilders = nil
 		dlistGuishaderBuildersNext = nil
 	end
@@ -2367,19 +2367,19 @@ end
 
 function widget:DrawScreen()
 	if not (activeBuilder or alwaysShow) then
-		if WG["guishader"] and dlistGuishader then
+		if WG.guishader and dlistGuishader then
 			if dlistGuishader then
-				WG["guishader"].RemoveDlist("buildmenu")
+				WG.guishader.RemoveDlist("buildmenu")
 			end
 			if dlistGuishaderBuilders then
-				WG["guishader"].RemoveDlist("buildmenubuilders")
-				WG["guishader"].RemoveDlist("buildmenubuildersnext")
+				WG.guishader.RemoveDlist("buildmenubuilders")
+				WG.guishader.RemoveDlist("buildmenubuildersnext")
 			end
 		end
 	else
-		if WG["guishader"] then
+		if WG.guishader then
 			if dlistGuishader then
-				WG["guishader"].InsertDlist(dlistGuishader, "buildmenu")
+				WG.guishader.InsertDlist(dlistGuishader, "buildmenu")
 			end
 			checkGuishaderBuilders()
 		end
@@ -2534,7 +2534,7 @@ function widget:SelectionChanged(newSel)
 		if alwaysShow then
 			refreshCommands()
 		else
-			WG["buildmenu"].hoverID = nil
+			WG.buildmenu.hoverID = nil
 		end
 
 		return
@@ -2560,7 +2560,7 @@ function widget:SelectionChanged(newSel)
 		if alwaysShow then
 			refreshCommands()
 		else
-			WG["buildmenu"].hoverID = nil
+			WG.buildmenu.hoverID = nil
 		end
 
 		return
@@ -2643,7 +2643,7 @@ end
 
 function widget:UnitBlocked(unitDefID, reasons)
 	units.unitRestricted[unitDefID] = next(reasons) ~= nil
-	units.unitHidden[unitDefID] = reasons["hidden"] ~= nil
+	units.unitHidden[unitDefID] = reasons.hidden ~= nil
 	if not delayRefresh or delayRefresh < Spring.GetGameSeconds() then
 		delayRefresh = Spring.GetGameSeconds() + 0.5 -- delay so multiple sequential UnitBlocked calls are batched in a single update.
 	end
@@ -2658,11 +2658,11 @@ function widget:Shutdown()
 		gl.DeleteTexture(buildmenuTex)
 		buildmenuTex = nil
 	end
-	if WG["guishader"] and dlistGuishader then
-		WG["guishader"].DeleteDlist("buildmenu")
-		WG["guishader"].DeleteDlist("buildmenubuilders")
-		WG["guishader"].DeleteDlist("buildmenubuildersnext")
+	if WG.guishader and dlistGuishader then
+		WG.guishader.DeleteDlist("buildmenu")
+		WG.guishader.DeleteDlist("buildmenubuilders")
+		WG.guishader.DeleteDlist("buildmenubuildersnext")
 		dlistGuishader = nil
 	end
-	WG["buildmenu"] = nil
+	WG.buildmenu = nil
 end

@@ -88,12 +88,12 @@ local function minimapRotateHandler(_, _, args)
 		end
 
 		local modeMap = {
-			["none"] = CameraRotationModes.none,
-			["autoFlip"] = CameraRotationModes.autoFlip,
+			none = CameraRotationModes.none,
+			autoFlip = CameraRotationModes.autoFlip,
 			["180"] = CameraRotationModes.autoFlip,
-			["autoRotate"] = CameraRotationModes.autoRotate,
+			autoRotate = CameraRotationModes.autoRotate,
 			["90"] = CameraRotationModes.autoRotate,
-			["autoLandscape"] = CameraRotationModes.autoLandscape,
+			autoLandscape = CameraRotationModes.autoLandscape,
 		}
 
 		local newMode = modeMap[args[2]]
@@ -102,7 +102,7 @@ local function minimapRotateHandler(_, _, args)
 			return
 		end
 
-		WG["options"].applyOptionValue("minimaprotation", newMode)
+		WG.options.applyOptionValue("minimaprotation", newMode)
 		spEcho("[MinimapManager] Mode set to " .. args[2])
 		return true
 	elseif module == "set" then
@@ -209,8 +209,8 @@ local function applyAutoFitRotation()
 end
 
 function widget:Initialize()
-	WG["minimaprotationmanager"] = {}
-	WG["minimaprotationmanager"].setMode = function(newMode)
+	WG.minimaprotationmanager = {}
+	WG.minimaprotationmanager.setMode = function(newMode)
 		if isValidOption(newMode) then
 			mode = newMode
 			prevSnap = nil
@@ -230,11 +230,11 @@ function widget:Initialize()
 		end
 	end
 
-	WG["minimaprotationmanager"].getMode = function()
+	WG.minimaprotationmanager.getMode = function()
 		return mode
 	end
 
-	local temp = WG["options"].getOptionValue("minimaprotation")
+	local temp = WG.options.getOptionValue("minimaprotation")
 	if isValidOption(temp) then -- Sync up when the widget was unloaded
 		mode = temp
 	end
@@ -247,7 +247,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	WG["minimaprotationmanager"] = nil
+	WG.minimaprotationmanager = nil
 end
 
 function widget:Update()

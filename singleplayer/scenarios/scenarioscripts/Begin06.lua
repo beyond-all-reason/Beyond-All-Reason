@@ -595,7 +595,7 @@ local function Loadout()
 			local unitID = Spring.CreateUnit(unit.name, unit.x, unit.y, unit.z, unit.rot, unit.teamID)
 			for i = 1, #unit.queue do
 				local order = unit.queue[i]
-				local position = { order.position["px"], order.position["py"], order.position["pz"] }
+				local position = { order.position.px, order.position.py, order.position.pz }
 				Spring.GiveOrderToUnit(unitID, order.cmdID, position, CMD.OPT_SHIFT)
 			end
 		end
@@ -612,7 +612,7 @@ function ObjectiveLoadout()
 					objectiveUnits[unitID] = unit.objectiveUnitID
 				end
 				for k, order in ipairs(unit.queue) do
-					local position = { order.position["px"], order.position["py"], order.position["pz"] }
+					local position = { order.position.px, order.position.py, order.position.pz }
 					Spring.GiveOrderToUnit(unitID, order.cmdID, position, CMD.OPT_SHIFT)
 				end
 			end
@@ -643,7 +643,7 @@ local function BackupOne()
 			local unitID = Spring.CreateUnit(unit.name, unit.x, unit.y, unit.z, unit.rot, unit.teamID)
 			for i = 1, #unit.queue do
 				local order = unit.queue[i]
-				local position = { order.position["px"], order.position["py"], order.position["pz"] }
+				local position = { order.position.px, order.position.py, order.position.pz }
 				Spring.GiveOrderToUnit(unitID, order.cmdID, position, CMD.OPT_SHIFT)
 			end
 		end
@@ -657,7 +657,7 @@ local function BackupTwo()
 			local unitID = Spring.CreateUnit(unit.name, unit.x, unit.y, unit.z, unit.rot, unit.teamID)
 			for i = 1, #unit.queue do
 				local order = unit.queue[i]
-				local position = { order.position["px"], order.position["py"], order.position["pz"] }
+				local position = { order.position.px, order.position.py, order.position.pz }
 				Spring.GiveOrderToUnit(unitID, order.cmdID, position, CMD.OPT_SHIFT)
 			end
 		end
@@ -671,7 +671,7 @@ local function Timed()
 			local unitID = Spring.CreateUnit(unit.name, unit.x, unit.y, unit.z, unit.rot, unit.teamID)
 			for i = 1, #unit.queue do
 				local order = unit.queue[i]
-				local position = { order.position["px"], order.position["py"], order.position["pz"] }
+				local position = { order.position.px, order.position.py, order.position.pz }
 				Spring.GiveOrderToUnit(unitID, order.cmdID, position, CMD.OPT_SHIFT)
 			end
 		end
@@ -685,7 +685,7 @@ local function Special()
 			local unitID = Spring.CreateUnit(unit.name, unit.x, unit.y, unit.z, unit.rot, unit.teamID)
 			for i = 1, #unit.queue do
 				local order = unit.queue[i]
-				local position = { order.position["px"], order.position["py"], order.position["pz"] }
+				local position = { order.position.px, order.position.py, order.position.pz }
 				Spring.GiveOrderToUnit(unitID, order.cmdID, position, CMD.OPT_SHIFT)
 			end
 		end

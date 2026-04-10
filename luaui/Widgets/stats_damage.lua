@@ -68,9 +68,9 @@ function RecieveGameMode(mode)
 	info.games = info.games or 0
 	info.games = info.games + 1
 
-	info["_games_per_version"] = info["_games_per_version"] or {}
-	info["_games_per_version"][version] = info["_games_per_version"][version] or 0
-	info["_games_per_version"][version] = info["_games_per_version"][version] + 1
+	info._games_per_version = info._games_per_version or {}
+	info._games_per_version[version] = info._games_per_version[version] or 0
+	info._games_per_version[version] = info._games_per_version[version] + 1
 end
 
 function RecieveStats(uDID, n, ts, dmg_dealt, dmg_rec, minutes, kills, killed_cost)

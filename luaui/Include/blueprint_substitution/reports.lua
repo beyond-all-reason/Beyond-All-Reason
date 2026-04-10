@@ -87,7 +87,7 @@ function REPORTS.generateMappingReport()
 
 	sideTotals = { [SIDES.ARMADA] = 0, [SIDES.CORTEX] = 0, [SIDES.LEGION] = 0 }
 	sideComplete = { [SIDES.ARMADA] = 0, [SIDES.CORTEX] = 0, [SIDES.LEGION] = 0 }
-	uncategorizedUnits = { [SIDES.ARMADA] = {}, [SIDES.CORTEX] = {}, [SIDES.LEGION] = {}, ["UNKNOWN"] = {} }
+	uncategorizedUnits = { [SIDES.ARMADA] = {}, [SIDES.CORTEX] = {}, [SIDES.LEGION] = {}, UNKNOWN = {} }
 
 	-- Iterate the minimal data, but fetch details from UnitDefs
 	for unitNameLower, buildingCoreData in pairs(masterBuildingDataMinimal) do
@@ -162,7 +162,7 @@ function REPORTS.generateMappingReport()
 					table.insert(uncategorizedUnits[side], reportLine)
 				end
 			else
-				table.insert(uncategorizedUnits["UNKNOWN"], reportLine)
+				table.insert(uncategorizedUnits.UNKNOWN, reportLine)
 			end
 		else
 			Spring.Log("BlueprintReports", "warning", "[Mapping Report] Could not find UnitDef for ID: " .. tostring(buildingCoreData.unitDefID) .. " Name: " .. unitNameLower)
@@ -175,7 +175,7 @@ function REPORTS.generateMappingReport()
 		local percentage = total > 0 and (complete / total * 100) or 0
 		table.insert(reportLines, string.format("[Mapping Report Summary] %s: %d / %d buildings categorized (%.2f%%)", side, complete, total, percentage))
 	end
-	local unknownCount = #uncategorizedUnits["UNKNOWN"]
+	local unknownCount = #uncategorizedUnits.UNKNOWN
 	if unknownCount > 0 then
 		table.insert(reportLines, string.format("[Mapping Report Summary] Buildings with UNKNOWN side: %d", unknownCount))
 	end

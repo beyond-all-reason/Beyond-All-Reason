@@ -2439,13 +2439,13 @@ else -- UNSYNCED
 		if hasScavEvent then
 			local scavEventArgs = {}
 			if type ~= nil then
-				scavEventArgs["type"] = type
+				scavEventArgs.type = type
 			end
 			if num ~= nil then
-				scavEventArgs["number"] = num
+				scavEventArgs.number = num
 			end
 			if tech ~= nil then
-				scavEventArgs["tech"] = tech
+				scavEventArgs.tech = tech
 			end
 			Script.LuaUI.ScavEvent(scavEventArgs)
 		end

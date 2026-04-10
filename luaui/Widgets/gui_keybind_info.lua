@@ -315,8 +315,8 @@ function widget:ViewResize()
 	screenX = mathFloor((vsx * centerPosX) - (screenWidth / 2))
 	screenY = mathFloor((vsy * centerPosY) + (screenHeight / 2))
 
-	font = WG["fonts"].getFont()
-	font2 = WG["fonts"].getFont(2)
+	font = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2)
 
 	elementCorner = WG.FlowUI.elementCorner
 
@@ -349,7 +349,7 @@ function widget:DrawScreen()
 	if show or showOnceMore then
 		gl.Texture(false) -- some other widget left it on
 		glCallList(keybinds)
-		if WG["guishader"] then
+		if WG.guishader then
 			if backgroundGuishader ~= nil then
 				glDeleteList(backgroundGuishader)
 			end
@@ -361,7 +361,7 @@ function widget:DrawScreen()
 					RectRound(tabrect[1], tabrect[2], tabrect[3], tabrect[4], elementCorner, 1, 1, 0, 0)
 				end
 			end)
-			WG["guishader"].InsertDlist(backgroundGuishader, "keybindinfo")
+			WG.guishader.InsertDlist(backgroundGuishader, "keybindinfo")
 		end
 		showOnceMore = false
 
@@ -370,8 +370,8 @@ function widget:DrawScreen()
 			Spring.SetMouseCursor("cursornormal")
 		end
 	else
-		if WG["guishader"] then
-			WG["guishader"].DeleteDlist("keybindinfo")
+		if WG.guishader then
+			WG.guishader.DeleteDlist("keybindinfo")
 		end
 	end
 end
@@ -422,18 +422,18 @@ end
 function widget:Initialize()
 	refreshText()
 
-	WG["keybinds"] = {}
-	WG["keybinds"].toggle = function(state)
+	WG.keybinds = {}
+	WG.keybinds.toggle = function(state)
 		if state ~= nil then
 			show = state
 		else
 			show = not show
 		end
 	end
-	WG["keybinds"].isvisible = function()
+	WG.keybinds.isvisible = function()
 		return show
 	end
-	WG["keybinds"].reloadBindings = function()
+	WG.keybinds.reloadBindings = function()
 		refreshText()
 		doUpdate = true
 	end
@@ -445,8 +445,8 @@ function widget:Shutdown()
 		glDeleteList(keybinds)
 		keybinds = nil
 	end
-	if WG["guishader"] then
-		WG["guishader"].RemoveDlist("keybindinfo")
+	if WG.guishader then
+		WG.guishader.RemoveDlist("keybindinfo")
 	end
 	if backgroundGuishader ~= nil then
 		glDeleteList(backgroundGuishader)

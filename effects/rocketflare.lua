@@ -1,6 +1,6 @@
 local definitions = {
 
-	["RocketFlare"] = {
+	RocketFlare = {
 		fire = {
 			class = [[CBitmapMuzzleFlame]],
 			water = 1,

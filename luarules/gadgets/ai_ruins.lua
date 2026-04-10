@@ -219,7 +219,7 @@ end
 
 function getNearestBlocker(x, z)
 	local lowestDist = math.huge
-	local metalSpots = GG["resource_spot_finder"] and GG["resource_spot_finder"].metalSpotsList or nil
+	local metalSpots = GG.resource_spot_finder and GG.resource_spot_finder.metalSpotsList or nil
 	if metalSpots then
 		for i = 1, #metalSpots do
 			local spot = metalSpots[i]
@@ -232,7 +232,7 @@ function getNearestBlocker(x, z)
 			end
 		end
 	end
-	local geoSpots = GG["resource_spot_finder"] and GG["resource_spot_finder"].geoSpotsList or nil
+	local geoSpots = GG.resource_spot_finder and GG.resource_spot_finder.geoSpotsList or nil
 	if geoSpots then
 		for i = 1, #geoSpots do
 			local spot = geoSpots[i]
@@ -389,7 +389,7 @@ local function SpawnGeos(geoSpots)
 end
 
 local function SpawnMexGeoRandomStructures()
-	local mexSpots = GG["resource_spot_finder"] and GG["resource_spot_finder"].metalSpotsList or nil
+	local mexSpots = GG.resource_spot_finder and GG.resource_spot_finder.metalSpotsList or nil
 	if mexSpots and #mexSpots > 5 then
 		for i = 1, #mexSpots do
 			if SpawnedMexes[i] then
@@ -432,7 +432,7 @@ local function SpawnMexGeoRandomStructures()
 		end
 	end
 
-	local geoSpots = GG["resource_spot_finder"] and GG["resource_spot_finder"].geoSpotsList or nil
+	local geoSpots = GG.resource_spot_finder and GG.resource_spot_finder.geoSpotsList or nil
 	if geoSpots and #geoSpots >= 1 then
 		for i = 1, #geoSpots do
 			if SpawnedGeos[i] then
@@ -518,14 +518,14 @@ end
 
 function gadget:GameFrame(n)
 	if n == math.ceil(spawnCutoffFrame * 0.5) then
-		local mexSpots = GG["resource_spot_finder"] and GG["resource_spot_finder"].metalSpotsList or nil
+		local mexSpots = GG.resource_spot_finder and GG.resource_spot_finder.metalSpotsList or nil
 		if mexSpots and #mexSpots > 5 then
 			SpawnMexes(mexSpots)
 		end
 	end
 
 	if n == 30 then
-		local geoSpots = GG["resource_spot_finder"] and GG["resource_spot_finder"].geoSpotsList or nil
+		local geoSpots = GG.resource_spot_finder and GG.resource_spot_finder.geoSpotsList or nil
 		if geoSpots and #geoSpots >= 1 then
 			SpawnGeos(geoSpots)
 		end

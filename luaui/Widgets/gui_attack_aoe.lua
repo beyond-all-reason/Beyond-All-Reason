@@ -310,9 +310,9 @@ local function GetMouseTargetPosition(weaponType, aimingUnitID)
 		local shouldIgnoreUnit = false
 
 		if isDgun then
-			shouldIgnoreUnit = (isAlly and WG["dgunnoally"]) or (not isAlly and WG["dgunnoenemy"])
+			shouldIgnoreUnit = (isAlly and WG.dgunnoally) or (not isAlly and WG.dgunnoenemy)
 		else
-			shouldIgnoreUnit = (isAlly and WG["attacknoally"])
+			shouldIgnoreUnit = (isAlly and WG.attacknoally)
 		end
 
 		if not shouldIgnoreUnit then

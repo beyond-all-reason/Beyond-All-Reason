@@ -20,7 +20,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		end
 	end
 
-	if (unitDef.minWaterDepth > 0 or unitDef.modCategories["ship"]) and not (unitDef.customParams.restrictions_exclusion and string.find(unitDef.customParams.restrictions_exclusion, "_nosea_")) then
+	if (unitDef.minWaterDepth > 0 or unitDef.modCategories.ship) and not (unitDef.customParams.restrictions_exclusion and string.find(unitDef.customParams.restrictions_exclusion, "_nosea_")) then
 		isWaterUnit[unitDefID] = true
 	end
 end

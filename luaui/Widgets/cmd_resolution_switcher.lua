@@ -268,17 +268,17 @@ function widget:Initialize()
 
 	refreshScreenModes()
 
-	WG["screenMode"] = {}
+	WG.screenMode = {}
 
-	WG["screenMode"].GetDisplays = function()
+	WG.screenMode.GetDisplays = function()
 		return displays
 	end
 
-	WG["screenMode"].GetScreenModes = function()
+	WG.screenMode.GetScreenModes = function()
 		return screenModes
 	end
 
-	WG["screenMode"].SetScreenMode = function(index)
+	WG.screenMode.SetScreenMode = function(index)
 		local prevScreenmode = screenModeIndex
 		screenModeIndex = index
 		if screenModeIndex ~= prevScreenmode then

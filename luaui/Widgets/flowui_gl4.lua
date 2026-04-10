@@ -669,8 +669,8 @@ function metaElement:NewSlider(o)
 			end
 		end,
 		hover = function(obj, mx, my)
-			if obj.tooltip and WG and WG["tooltip"] and WG["tooltip"].ShowTooltip then
-				WG["tooltip"].ShowTooltip(obj.name, obj.tooltip) -- x/y (optional): display coordinates
+			if obj.tooltip and WG and WG.tooltip and WG.tooltip.ShowTooltip then
+				WG.tooltip.ShowTooltip(obj.name, obj.tooltip) -- x/y (optional): display coordinates
 			end
 		end,
 	}
@@ -1221,7 +1221,7 @@ local function makeunitbuttonarray()
 		right = vsx,
 	})
 	-- what can my boy build?
-	local unitDef = UnitDefs[UnitDefNames["armcom"].id]
+	local unitDef = UnitDefs[UnitDefNames.armcom.id]
 	for k, v in pairs(unitDef.buildOptions) do
 		spEcho(k, v)
 	end
@@ -2559,23 +2559,23 @@ function widget:Initialize()
 	rectRoundVBO = makeRectRoundVBO("ROOT")
 	makeShaders()
 
-	WG["flowui_gl4"] = {}
-	WG["flowui_gl4"].forwardslider = forwardslider
-	WG["flowui_gl4"].requestWidgetLayer = requestWidgetLayer
+	WG.flowui_gl4 = {}
+	WG.flowui_gl4.forwardslider = forwardslider
+	WG.flowui_gl4.requestWidgetLayer = requestWidgetLayer
 
 	--WG['flowui_shader'] = rectRoundShader
 	--WG['flowui_draw'] = Draw
 
-	font, loadedFontSize = WG["fonts"].getFont(nil, 1.4, 0.35, 1.4)
-	if WG["buildmenu"] then
-		if WG["buildmenu"].getGroups then
-			groups, unitGroup = WG["buildmenu"].getGroups()
+	font, loadedFontSize = WG.fonts.getFont(nil, 1.4, 0.35, 1.4)
+	if WG.buildmenu then
+		if WG.buildmenu.getGroups then
+			groups, unitGroup = WG.buildmenu.getGroups()
 		end
 	end
 
 	if atlasID == nil then
-		atlasID = WG["flowui_atlas"]
-		atlassedImages = WG["flowui_atlassedImages"]
+		atlasID = WG.flowui_atlas
+		atlassedImages = WG.flowui_atlassedImages
 	end
 
 	--makebuttonarray()
@@ -2586,7 +2586,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	WG["flowui_gl4"] = nil
+	WG.flowui_gl4 = nil
 
 	if rectRoundShader then
 		rectRoundShader:Finalize()
@@ -2636,8 +2636,8 @@ end
 
 function widget:DrawScreen()
 	if atlasID == nil then
-		atlasID = WG["flowui_atlas"]
-		atlassedImages = WG["flowui_atlassedImages"]
+		atlasID = WG.flowui_atlas
+		atlassedImages = WG.flowui_atlassedImages
 	end
 	if elems < 0 then
 		elems = elems + 1

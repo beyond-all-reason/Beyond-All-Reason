@@ -1147,7 +1147,7 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 end
 
 local UnitScriptDecalsNames = {
-	["corkorg"] = {
+	corkorg = {
 		[1] = {
 			texture = footprintsPath .. "f_corkorg_a.png",
 			offsetx = 2, --offset from what the UnitScriptDecal returns
@@ -1167,7 +1167,7 @@ local UnitScriptDecalsNames = {
 		},
 	},
 
-	["armfboy"] = {
+	armfboy = {
 		[1] = { -- LFOOT
 			texture = footprintsPath .. "f_armfboy_a.png",
 			offsetx = -1, --offset from what the UnitScriptDecal returns
@@ -1203,7 +1203,7 @@ local UnitScriptDecalsNames = {
 			fadeintime = 5,
 		},
 	},
-	["armwar"] = {
+	armwar = {
 		[1] = { -- LFOOT
 			texture = footprintsPath .. "f_armwar_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
@@ -1240,7 +1240,7 @@ local UnitScriptDecalsNames = {
 		},
 	},
 
-	["armck"] = {
+	armck = {
 		[1] = { -- LFOOT
 			texture = footprintsPath .. "f_armck_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
@@ -1260,7 +1260,7 @@ local UnitScriptDecalsNames = {
 		},
 	},
 
-	["armrock"] = {
+	armrock = {
 		[1] = { -- LFOOT
 			texture = footprintsPath .. "f_armrock_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
@@ -1279,7 +1279,7 @@ local UnitScriptDecalsNames = {
 			fadeintime = 5,
 		},
 	},
-	["armham"] = {
+	armham = {
 		[1] = { -- LFOOT
 			texture = footprintsPath .. "f_armham_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
@@ -1299,7 +1299,7 @@ local UnitScriptDecalsNames = {
 		},
 	},
 
-	["armack"] = {
+	armack = {
 		[1] = { -- LFOOT
 			texture = footprintsPath .. "f_armack_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
@@ -1319,7 +1319,7 @@ local UnitScriptDecalsNames = {
 		},
 	},
 
-	["armzeus"] = {
+	armzeus = {
 		[1] = { -- LFOOT
 			texture = footprintsPath .. "f_armzeus_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
@@ -1339,7 +1339,7 @@ local UnitScriptDecalsNames = {
 		},
 	},
 
-	["armmav"] = {
+	armmav = {
 		[1] = { -- LFOOT
 			texture = footprintsPath .. "f_armmav_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
@@ -1359,7 +1359,7 @@ local UnitScriptDecalsNames = {
 		},
 	},
 
-	["armmar"] = {
+	armmar = {
 		[1] = { -- LFOOT
 			texture = footprintsPath .. "f_armmar_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
@@ -1379,7 +1379,7 @@ local UnitScriptDecalsNames = {
 		},
 	},
 
-	["armraz"] = {
+	armraz = {
 		[1] = { -- LFOOT
 			texture = footprintsPath .. "f_armraz_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
@@ -1399,7 +1399,7 @@ local UnitScriptDecalsNames = {
 		},
 	},
 
-	["armvang"] = {
+	armvang = {
 		[1] = { -- FOOT
 			texture = footprintsPath .. "f_armvang_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
@@ -1437,7 +1437,7 @@ local UnitScriptDecalsNames = {
 		},
 	},
 
-	["armbanth"] = {
+	armbanth = {
 		[1] = {
 			texture = footprintsPath .. "f_armbanth_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
@@ -1457,7 +1457,7 @@ local UnitScriptDecalsNames = {
 		},
 	},
 
-	["corck"] = {
+	corck = {
 		[1] = { -- LFOOT
 			texture = footprintsPath .. "f_corck_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
@@ -1477,7 +1477,7 @@ local UnitScriptDecalsNames = {
 		},
 	},
 
-	["corstorm"] = {
+	corstorm = {
 		[1] = { -- LFOOT
 			texture = footprintsPath .. "f_corstorm_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
@@ -1497,7 +1497,7 @@ local UnitScriptDecalsNames = {
 		},
 	},
 
-	["corthud"] = {
+	corthud = {
 		[1] = {
 			texture = footprintsPath .. "f_corthud_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
@@ -1517,7 +1517,7 @@ local UnitScriptDecalsNames = {
 		},
 	},
 
-	["corack"] = {
+	corack = {
 		[1] = {
 			texture = footprintsPath .. "f_corthud_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
@@ -1537,7 +1537,7 @@ local UnitScriptDecalsNames = {
 		},
 	},
 
-	["cormando"] = {
+	cormando = {
 		[1] = { --lfoot
 			texture = footprintsPath .. "f_cormando_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
@@ -1574,7 +1574,7 @@ local UnitScriptDecalsNames = {
 		},
 	},
 
-	["corpyro"] = {
+	corpyro = {
 		[1] = { -- LFOOT
 			texture = footprintsPath .. "f_corpyro_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
@@ -1593,7 +1593,7 @@ local UnitScriptDecalsNames = {
 			fadeintime = 2,
 		},
 	},
-	["corhrk"] = {
+	corhrk = {
 		[1] = { -- LFOOT
 			texture = footprintsPath .. "f_corhrk_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
@@ -1612,7 +1612,7 @@ local UnitScriptDecalsNames = {
 			fadeintime = 2,
 		},
 	},
-	["corcan"] = {
+	corcan = {
 		[1] = { -- LFOOT
 			texture = footprintsPath .. "f_corcan_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
@@ -1649,7 +1649,7 @@ local UnitScriptDecalsNames = {
 		},
 	},
 
-	["corsumo"] = {
+	corsumo = {
 		[1] = { -- LFOOT
 			texture = footprintsPath .. "f_corsumo_a.png",
 			offsetx = -1, --offset from what the UnitScriptDecal returns
@@ -1668,7 +1668,7 @@ local UnitScriptDecalsNames = {
 			fadeintime = 5,
 		},
 	},
-	["coramph"] = {
+	coramph = {
 		[1] = { -- LFOOT
 			texture = footprintsPath .. "f_coramph_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
@@ -1687,7 +1687,7 @@ local UnitScriptDecalsNames = {
 			fadeintime = 2,
 		},
 	},
-	["corcat"] = {
+	corcat = {
 		[1] = { -- LFOOT
 			texture = footprintsPath .. "f_corcat_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
@@ -1706,7 +1706,7 @@ local UnitScriptDecalsNames = {
 			fadeintime = 2,
 		},
 	},
-	["corshiva"] = {
+	corshiva = {
 		[1] = { -- LFOOT
 			texture = footprintsPath .. "f_corshiva_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
@@ -1725,7 +1725,7 @@ local UnitScriptDecalsNames = {
 			fadeintime = 2,
 		},
 	},
-	["corjugg"] = {
+	corjugg = {
 		[1] = { -- LFOOT
 			texture = footprintsPath .. "f_corjugg_a.png",
 			offsetx = -1, --offset from what the UnitScriptDecal returns
@@ -1745,7 +1745,7 @@ local UnitScriptDecalsNames = {
 		},
 	},
 
-	["raptor_land_swarmer_basic_t1_v1"] = {
+	raptor_land_swarmer_basic_t1_v1 = {
 		[1] = { -- LFOOT
 			texture = footprintsPath .. "f_raptor_a.tga",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
@@ -1913,26 +1913,26 @@ function widget:Initialize()
 		end
 	end
 
-	WG["decalsgl4"] = {}
-	WG["decalsgl4"].AddDecalGL4 = AddDecal
-	WG["decalsgl4"].RemoveDecalGL4 = RemoveDecal
-	WG["decalsgl4"].SetLifeTimeMult = function(value)
+	WG.decalsgl4 = {}
+	WG.decalsgl4.AddDecalGL4 = AddDecal
+	WG.decalsgl4.RemoveDecalGL4 = RemoveDecal
+	WG.decalsgl4.SetLifeTimeMult = function(value)
 		lifeTimeMult = value
 	end
-	WG["decalsgl4"].GetActiveDecals = function()
+	WG.decalsgl4.GetActiveDecals = function()
 		return activeDecalData
 	end
-	WG["decalsgl4"].GetLifeTimeMult = function()
+	WG.decalsgl4.GetLifeTimeMult = function()
 		return lifeTimeMult
 	end
-	WG["decalsgl4"].RebuildActiveDecalData = RebuildActiveDecalData
+	WG.decalsgl4.RebuildActiveDecalData = RebuildActiveDecalData
 	local vboTableCache = { decalVBO, decalLargeVBO, decalExtraLargeVBO }
-	WG["decalsgl4"].GetVBOData = function()
+	WG.decalsgl4.GetVBOData = function()
 		return vboTableCache, footprintDecalSet
 	end
 
-	widgetHandler:RegisterGlobal("AddDecalGL4", WG["decalsgl4"].AddDecalGL4)
-	widgetHandler:RegisterGlobal("RemoveDecalGL4", WG["decalsgl4"].RemoveDecalGL4)
+	widgetHandler:RegisterGlobal("AddDecalGL4", WG.decalsgl4.AddDecalGL4)
+	widgetHandler:RegisterGlobal("RemoveDecalGL4", WG.decalsgl4.RemoveDecalGL4)
 	widgetHandler:RegisterGlobal("UnitScriptDecal", UnitScriptDecal)
 	--spEcho(string.format("Decals GL4 loaded %d textures in %.3fs",numFiles, Spring.DiffTimers(Spring.GetTimer(), t0)))
 	--spEcho("Trying to access _G[NightModeParams]", _G["NightModeParams"])
@@ -2084,7 +2084,7 @@ function widget:SunChanged()
 end
 
 function widget:ShutDown()
-	WG["decalsgl4"] = nil
+	WG.decalsgl4 = nil
 	widgetHandler:DeregisterGlobal("AddDecalGL4")
 	widgetHandler:DeregisterGlobal("RemoveDecalGL4")
 	widgetHandler:DeregisterGlobal("UnitScriptDecal")

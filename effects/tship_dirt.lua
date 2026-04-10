@@ -1,6 +1,6 @@
 return {
-	["shallow_water_dirt"] = {
-		["POOF01"] = {
+	shallow_water_dirt = {
+		POOF01 = {
 			class = [[CSimpleParticleSystem]],
 			air = true,
 			water = true,
@@ -28,7 +28,7 @@ return {
 				useAirLos = true,
 			},
 		},
-		["POOF02"] = {
+		POOF02 = {
 			class = [[CSimpleParticleSystem]],
 			air = true,
 			water = true,
