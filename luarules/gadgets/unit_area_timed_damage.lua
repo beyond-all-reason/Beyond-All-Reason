@@ -97,6 +97,8 @@ local timedDamageWeapons = {}
 local unitDamageImmunity = {}
 local featureDamageImmunity = {}
 local isFactory = {}
+local unitRadiusMax = 0
+local featureRadiusMax = 0
 
 local aliveExplosions = {}
 local frameExplosions = {}
@@ -373,7 +375,7 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
         local area = timedAreas[index]
         local x, z, radius = area.x, area.z, area.range
 
-        local unitsInRange = spGetUnitsInCylinder(x, z, radius)
+        local unitsInRange = spGetUnitsInCylinder(x, z, max(radius, unitRadiusMax))
 
         for j = 1, #unitsInRange do
             local unitID = unitsInRange[j]
@@ -412,7 +414,7 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
         local area = timedAreas[index]
         local x, z, radius = area.x, area.z, area.range
 
-        local featuresInRange = spGetFeaturesInCylinder(x, z, radius)
+        local featuresInRange = spGetFeaturesInCylinder(x, z, max(radius, featureRadiusMax))
 
         for j = 1, #featuresInRange do
             local featureID = featuresInRange[j]
@@ -544,6 +546,30 @@ function gadget:Initialize()
 	for featureDefID, featureDef in ipairs(FeatureDefs) do
 		featureDamageImmunity[featureDefID] = featureDef.indestructible or featureDef.geoThermal
 	end
+
+	unitRadiusMax = table.reduce(
+		UnitDefs,
+		function(radiusMax, unitDef, unitDefID)
+			if unitDamageImmunity[unitDefID] ~= immunities.all and unitDef.radius > radiusMax then
+				return unitDef.radius
+			else
+				return radiusMax
+			end
+		end,
+		0
+	)
+
+	featureRadiusMax = table.reduce(
+		FeatureDefs,
+		function(radiusMax, featureDef, featureDefID)
+			if not featureDamageImmunity[featureDefID] and featureDef.radius > radiusMax then
+				return featureDef.radius
+			else
+				return radiusMax
+			end
+		end,
+		0
+	)
 
 	aliveExplosions = {}
 	for ii = 1, frameInterval do
