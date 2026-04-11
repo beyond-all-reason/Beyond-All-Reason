@@ -438,7 +438,7 @@ if not table.map then
 	--- Applies a function to all elements of a table and returns a new table with the results.
 	---@generic K, V, RV, RK
 	---@param tbl table<K, V> The input table.
-	---@param callback fun(value: V, key: K, tbl: table<K, V>): RV, RK The function to apply to each element. It receives three arguments: the element's value, its key, and the original table. It should return the new value, and optionally, a new key.
+	---@param callback fun(value: V, key: K, tbl: table<K, V>): RV, RK? The function to apply to each element. It receives three arguments: the element's value, its key, and the original table. It should return the new value, and optionally, a new key.
 	---@return table<RK, RV> A new table containing the results of applying the callback to each element.
 	function table.map(tbl, callback)
 		local result = {}
