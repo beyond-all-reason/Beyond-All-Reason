@@ -19,7 +19,7 @@ end
 --------------------------------------------------------------------------------
 -- Configuration ---------------------------------------------------------------
 
-local correctionAngleMax = math.rad(12) -- The maximum change in direction.
+local correctionAngleMax = math.rad(12) -- Try to prevent noticeable corrections with nearby targets.
 
 --------------------------------------------------------------------------------
 -- Localization ----------------------------------------------------------------
@@ -114,9 +114,9 @@ local function clampToCone(fromX, fromY, fromZ, toX, toY, toZ, range, radius)
 end
 
 local instantDuration = 0.1667 * Game.gameSpeed ---Should be pretty fast
-local instantWeapons = { BeamLaser = true, LaserCannon = true, Rifle = true, }
+local instantWeapons = { BeamLaser = true, LaserCannon = true, LightningCannon = true, Rifle = true, }
 local reaimEffects = { guidance = true, sector_fire = true }
-local spreadDistanceMax = Game.squareSize * Game.footprintScale * 5 ---Measures inaccuracy at max range
+local spreadDistanceMax = Game.squareSize * Game.footprintScale * 5 -- Use the reference dimension of a large-ish unit as an accuracy cutoff
 
 local function getAimCorrectionParams(weaponDef)
 	local isFakeWeapon = weaponDef.range <= 10 or weaponDef.customParams.bogus == "1"
@@ -267,7 +267,7 @@ local function updateAimDirection(projectileID, params, targetID)
 
 	local timeRemainingMax = params.leadLimit / (unitSpeed + projSpeed) -- close enough
 
-	for _ = 1, 2 do
+	for convergenceStep = 1, 2 do
 		local timeRemainingMid = math_min(math_diag(targetX - px, targetY - py, targetZ - pz) / projSpeed, timeRemainingMax)
 		targetX = targetX + uvx * timeRemainingMid
 		targetY = targetY + uvy * timeRemainingMid
