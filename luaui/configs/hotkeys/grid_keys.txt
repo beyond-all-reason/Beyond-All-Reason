@@ -54,8 +54,8 @@ bind               sc_m  restore
 bind         Shift+sc_m  restore
 bind               sc_n  command_skip_current
 bind          Ctrl+sc_n  command_cancel_last
-bind               sc_o  guard
-bind         Shift+sc_o  guard
+bind               sc_o  areaguard
+bind         Shift+sc_o  areaguard
 bind               sc_p  gatherwait
 bind         Shift+sc_p  gatherwait
 bind               sc_r  repair
