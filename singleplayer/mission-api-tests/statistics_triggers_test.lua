@@ -14,7 +14,7 @@ local triggers = {
 		parameters = {
 			gameFrame = 30,
 		},
-		actions = { 'spawnFriendlyBot', 'spawnEnemyBot' },
+		actions = { 'spawnFriendlyBot', 'spawnEnemyBot', 'nameFriendlyBotAlias', 'nameEnemyBotAlias' },
 	},
 
 	killFriendlyBot = {
@@ -30,7 +30,7 @@ local triggers = {
 		parameters = {
 			gameFrame = 240,
 		},
-		actions = { 'spawnCapturable', 'spawnCapturer' },
+		actions = { 'spawnCapturable', 'spawnCapturer', 'nameCaptureTargetAlias' },
 	},
 
 	orderCapture = {
@@ -60,6 +60,26 @@ local triggers = {
 		actions = { 'messageTotalUnitsKilled' },
 	},
 
+	totalUnitsKilledNamedReached = {
+		type = triggerTypes.TotalUnitsKilled,
+		parameters = {
+			teamID = 0,
+			unitName = 'enemyBot',
+			quantity = 1,
+		},
+		actions = { 'messageTotalUnitsKilledNamed' },
+	},
+
+	totalUnitsKilledAliasReached = {
+		type = triggerTypes.TotalUnitsKilled,
+		parameters = {
+			teamID = 0,
+			unitName = 'enemyScout',
+			quantity = 1,
+		},
+		actions = { 'messageTotalUnitsKilledAlias' },
+	},
+
 	totalUnitsLostReached = {
 		type = triggerTypes.TotalUnitsLost,
 		parameters = {
@@ -69,6 +89,26 @@ local triggers = {
 		actions = { 'messageTotalUnitsLost' },
 	},
 
+	totalUnitsLostNamedReached = {
+		type = triggerTypes.TotalUnitsLost,
+		parameters = {
+			teamID = 0,
+			unitName = 'friendlyBot',
+			quantity = 1,
+		},
+		actions = { 'messageTotalUnitsLostNamed' },
+	},
+
+	totalUnitsLostAliasReached = {
+		type = triggerTypes.TotalUnitsLost,
+		parameters = {
+			teamID = 0,
+			unitName = 'friendlyAce',
+			quantity = 1,
+		},
+		actions = { 'messageTotalUnitsLostAlias' },
+	},
+
 	totalUnitsCapturedReached = {
 		type = triggerTypes.TotalUnitsCaptured,
 		parameters = {
@@ -76,6 +116,27 @@ local triggers = {
 			quantity = 1,
 		},
 		actions = { 'messageTotalUnitsCaptured' },
+	},
+
+	totalUnitsCapturedNamedReached = {
+		type = triggerTypes.TotalUnitsCaptured,
+		parameters = {
+			teamID = 0,
+			unitName = 'capturableSolar',
+			quantity = 1,
+		},
+		actions = { 'messageTotalUnitsCapturedNamed' },
+	},
+
+	totalUnitsCapturedNamedByDefReached = {
+		type = triggerTypes.TotalUnitsCaptured,
+		parameters = {
+			teamID = 0,
+			unitDefName = 'armsolar',
+			unitName = 'capturePrize',
+			quantity = 1,
+		},
+		actions = { 'messageTotalUnitsCapturedNamedByDef' },
 	},
 
 	totalUnitsBuiltReached = {
@@ -105,18 +166,50 @@ local actions = {
 	spawnEnemyBot = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
+			unitName = 'enemyBot',
 			unitDefName = 'armpw',
 			teamID = 1,
 			position = { x = 1880, z = 1800 },
 		},
 	},
 
+	nameFriendlyBotAlias = {
+		type = actionTypes.NameUnits,
+		parameters = {
+			unitName = 'friendlyAce',
+			teamID = 0,
+			unitDefName = 'armwar',
+			area = { x = 1800, z = 1800, radius = 120 },
+		},
+	},
+
+	nameEnemyBotAlias = {
+		type = actionTypes.NameUnits,
+		parameters = {
+			unitName = 'enemyScout',
+			teamID = 1,
+			unitDefName = 'armpw',
+			area = { x = 1880, z = 1800, radius = 120 },
+		},
+	},
+
 	spawnCapturable = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
+			unitName = 'capturableSolar',
 			unitDefName = 'armsolar',
 			teamID = 1,
 			position = { x = 1800, z = 1950 },
+		},
+	},
+
+	nameCaptureTargetAlias = {
+		type = actionTypes.NameUnits,
+		parameters = {
+			unitName = 'capturePrize',
+			teamID = 1,
+			unitDefName = 'armsolar',
+			area = { x = 1800, z = 1950, radius = 120 },
 		},
 	},
 
@@ -180,6 +273,20 @@ local actions = {
 		},
 	},
 
+	messageTotalUnitsKilledNamed = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "[Statistics Test] TotalUnitsKilled fired for unitName enemyBot.",
+		},
+	},
+
+	messageTotalUnitsKilledAlias = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "[Statistics Test] TotalUnitsKilled fired for alias enemyScout.",
+		},
+	},
+
 	messageTotalUnitsLost = {
 		type = actionTypes.SendMessage,
 		parameters = {
@@ -187,10 +294,38 @@ local actions = {
 		},
 	},
 
+	messageTotalUnitsLostNamed = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "[Statistics Test] TotalUnitsLost fired for unitName friendlyBot.",
+		},
+	},
+
+	messageTotalUnitsLostAlias = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "[Statistics Test] TotalUnitsLost fired for alias friendlyAce.",
+		},
+	},
+
 	messageTotalUnitsCaptured = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = "[Statistics Test] TotalUnitsCaptured fired: Team 0 has captured >= 1 unit.",
+		},
+	},
+
+	messageTotalUnitsCapturedNamed = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "[Statistics Test] TotalUnitsCaptured fired for unitName capturableSolar.",
+		},
+	},
+
+	messageTotalUnitsCapturedNamedByDef = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "[Statistics Test] TotalUnitsCaptured fired for unitName capturePrize + unitDefName armsolar.",
 		},
 	},
 

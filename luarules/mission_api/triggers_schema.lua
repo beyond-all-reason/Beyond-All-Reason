@@ -402,6 +402,11 @@ local parameters = {
 			type = Types.Number,
 		},
 		[3] = {
+			name = 'unitName',
+			required = false,
+			type = Types.String,
+		},
+		[4] = {
 			name = 'unitDefName',
 			required = false,
 			type = Types.UnitDefName,
@@ -436,6 +441,11 @@ local parameters = {
 			type = Types.Number,
 		},
 		[3] = {
+			name = 'unitName',
+			required = false,
+			type = Types.String,
+		},
+		[4] = {
 			name = 'unitDefName',
 			required = false,
 			type = Types.UnitDefName,
@@ -453,6 +463,11 @@ local parameters = {
 			type = Types.Number,
 		},
 		[3] = {
+			name = 'unitName',
+			required = false,
+			type = Types.String,
+		},
+		[4] = {
 			name = 'unitDefName',
 			required = false,
 			type = Types.UnitDefName,

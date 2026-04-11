@@ -21,6 +21,7 @@ end
 
 local actionsDispatcher
 local types, triggers
+local trackedUnitNames, statisticsTriggerCounts
 
 
 ----------------------------------------------------------------
@@ -342,27 +343,22 @@ local function checkFeatureDestroyed(trigger, featureID, featureDefID, attackerA
 	activateTrigger(trigger)
 end
 
--- Per-team running totals, incremented by call-ins and checked by statistics triggers:
-local totalUnitsLostByTeam     = {}
-local totalUnitsKilledByTeam   = {}
-local totalUnitsBuiltByTeam    = {}
-local totalUnitsCapturedByTeam = {}
--- Per-(team, unitDefName) running totals for unitDefName-filtered statistics triggers:
-local totalUnitsLostByTeamAndDef     = {}
-local totalUnitsKilledByTeamAndDef   = {}
-local totalUnitsBuiltByTeamAndDef    = {}
-local totalUnitsCapturedByTeamAndDef = {}
-local function checkStatisticsTriggers(triggerType, countersByTeam, countersByTeamAndDef, teamID, unitDefName)
-	processTriggersOfType(triggerType, function(trigger, _)
-		if trigger.parameters.teamID ~= teamID then return end
-		if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= unitDefName then return end
-		local count
-		if trigger.parameters.unitDefName then
-			count = (countersByTeamAndDef[teamID] or {})[unitDefName] or 0
-		else
-			count = countersByTeam[teamID] or 0
+local function incrementStatistics(triggerType, teamID, unitDefName, unitNames)
+	processTriggersOfType(triggerType, function(trigger, triggerID)
+		if teamID ~= trigger.parameters.teamID then
+			return
 		end
-		if count >= trigger.parameters.quantity then
+		if trigger.parameters.unitDefName and unitDefName ~= trigger.parameters.unitDefName then
+			return
+		end
+		if trigger.parameters.unitName and not (unitNames or {})[trigger.parameters.unitName] then
+			return
+		end
+
+		statisticsTriggerCounts[triggerID] = (statisticsTriggerCounts[triggerID] or 0) + 1
+
+		-- The % is for repeating triggers
+		if statisticsTriggerCounts[triggerID] % trigger.parameters.quantity == 0 then
 			activateTrigger(trigger)
 		end
 	end)
@@ -379,15 +375,18 @@ function gadget:Initialize()
 		return
 	end
 
-	types = GG['MissionAPI'].TriggerTypes
-	triggers = GG['MissionAPI'].Triggers
-	actionsDispatcher = VFS.Include('luarules/mission_api/actions_dispatcher.lua')
+	types                   = GG['MissionAPI'].TriggerTypes
+	triggers                = GG['MissionAPI'].Triggers
+	trackedUnitNames        = GG['MissionAPI'].trackedUnitNames
+	actionsDispatcher       = VFS.Include('luarules/mission_api/actions_dispatcher.lua')
 
-	local tracking = VFS.Include('luarules/mission_api/tracking.lua')
-	doesUnitHaveName = tracking.DoesUnitHaveName
-	untrackUnitID = tracking.UntrackUnitID
-	doesFeatureHaveName = tracking.DoesFeatureHaveName
-	untrackFeatureID    = tracking.UntrackFeatureID
+	local tracking          = VFS.Include('luarules/mission_api/tracking.lua')
+	doesUnitHaveName        = tracking.DoesUnitHaveName
+	untrackUnitID           = tracking.UntrackUnitID
+	doesFeatureHaveName     = tracking.DoesFeatureHaveName
+	untrackFeatureID        = tracking.UntrackFeatureID
+
+	statisticsTriggerCounts = {}
 end
 
 function gadget:GameFrame(frameNumber)
@@ -432,7 +431,6 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-
 	if unitTeam == nil then
 		Spring.Echo("UnitDestroyed nil team " .. tostring(unitDefID))
 		return
@@ -443,19 +441,14 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	end)
 
 	local unitDefName = UnitDefs[unitDefID].name
+	local unitNames = trackedUnitNames[unitID] or {}
 
 	-- The unit's team lost a unit:
-	totalUnitsLostByTeam[unitTeam] = (totalUnitsLostByTeam[unitTeam] or 0) + 1
-	table.ensureTable(totalUnitsLostByTeamAndDef, unitTeam)
-	totalUnitsLostByTeamAndDef[unitTeam][unitDefName] = (totalUnitsLostByTeamAndDef[unitTeam][unitDefName] or 0) + 1
-	checkStatisticsTriggers(types.TotalUnitsLost, totalUnitsLostByTeam, totalUnitsLostByTeamAndDef, unitTeam, unitDefName)
+	incrementStatistics(types.TotalUnitsLost, unitTeam, unitDefName, unitNames)
 
 	-- The attacker's team kills an enemy unit:
 	if attackerTeam and not Spring.AreTeamsAllied(attackerTeam, unitTeam) then
-		totalUnitsKilledByTeam[attackerTeam] = (totalUnitsKilledByTeam[attackerTeam] or 0) + 1
-		table.ensureTable(totalUnitsKilledByTeamAndDef, attackerTeam)
-		totalUnitsKilledByTeamAndDef[attackerTeam][unitDefName] = (totalUnitsKilledByTeamAndDef[attackerTeam][unitDefName] or 0) + 1
-		checkStatisticsTriggers(types.TotalUnitsKilled, totalUnitsKilledByTeam, totalUnitsKilledByTeamAndDef, attackerTeam, unitDefName)
+		incrementStatistics(types.TotalUnitsKilled, attackerTeam, unitDefName, unitNames)
 	end
 
 	untrackUnitID(unitID)
@@ -467,10 +460,8 @@ function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
 	end)
 
 	local unitDefName = UnitDefs[unitDefID].name
-	totalUnitsCapturedByTeam[newTeam] = (totalUnitsCapturedByTeam[newTeam] or 0) + 1
-	table.ensureTable(totalUnitsCapturedByTeamAndDef, newTeam)
-	totalUnitsCapturedByTeamAndDef[newTeam][unitDefName] = (totalUnitsCapturedByTeamAndDef[newTeam][unitDefName] or 0) + 1
-	checkStatisticsTriggers(types.TotalUnitsCaptured, totalUnitsCapturedByTeam, totalUnitsCapturedByTeamAndDef, newTeam, unitDefName)
+	local unitNames = trackedUnitNames[unitID] or {}
+	incrementStatistics(types.TotalUnitsCaptured, newTeam, unitDefName, unitNames)
 end
 
 function gadget:UnitEnteredLos(unitID, unitTeam, losAllyTeamID, unitDefID)
@@ -492,13 +483,11 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 
 	-- Don't count units spawned by SpawnUnits action
 	if GG['MissionAPI'].spawningUnit then return end
-	-- Don't count starting commanders, initial loadout, etc.
+	-- Don't count starting commanders, initial loadout, wildlife, etc.
 	if Spring.GetGameFrame() <= 0 then return end
+
 	local unitDefName = UnitDefs[unitDefID].name
-	totalUnitsBuiltByTeam[unitTeam] = (totalUnitsBuiltByTeam[unitTeam] or 0) + 1
-	table.ensureTable(totalUnitsBuiltByTeamAndDef, unitTeam)
-	totalUnitsBuiltByTeamAndDef[unitTeam][unitDefName] = (totalUnitsBuiltByTeamAndDef[unitTeam][unitDefName] or 0) + 1
-	checkStatisticsTriggers(types.TotalUnitsBuilt, totalUnitsBuiltByTeam, totalUnitsBuiltByTeamAndDef, unitTeam, unitDefName)
+	incrementStatistics(types.TotalUnitsBuilt, unitTeam, unitDefName)
 end
 
 function gadget:TeamDied(teamID)

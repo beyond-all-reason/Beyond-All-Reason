@@ -498,18 +498,23 @@ local function validateActions(actions)
 	end
 end
 
+local function getTypesWithParameter(schemaParameters, parameterName)
+	local typesWithParameter = {}
+
+	for actionOrTriggerType, parameters in pairs(schemaParameters) do
+		for _, parameter in ipairs(parameters) do
+			if parameter.name == parameterName then
+				typesWithParameter[actionOrTriggerType] = true
+				break
+			end
+		end
+	end
+
+	return typesWithParameter
+end
+
 local function validateUnitNameReferences(triggerTypes, actionTypes, triggers, actions)
-	local triggerTypesReferencingUnitNames = {
-		[triggerTypes.UnitNotExists] = true,
-		[triggerTypes.UnitKilled] = true,
-		[triggerTypes.UnitCaptured] = true,
-		[triggerTypes.UnitEnteredLocation] = true,
-		[triggerTypes.UnitLeftLocation] = true,
-		[triggerTypes.UnitDwellLocation] = true,
-		[triggerTypes.UnitSpotted] = true,
-		[triggerTypes.UnitUnspotted] = true,
-		[triggerTypes.ConstructionFinished] = true,
-	}
+	local triggerTypesReferencingUnitNames = getTypesWithParameter(triggersSchemaParameters, 'unitName')
 	local actionTypesNamingUnits = {
 		[actionTypes.SpawnUnits] = true,
 		[actionTypes.NameUnits] = true,
@@ -569,12 +574,7 @@ local function validateUnitNameReferences(triggerTypes, actionTypes, triggers, a
 end
 
 local function validateFeatureNameReferences(triggerTypes, actionTypes, triggers, actions)
-	local triggerTypesReferencingFeatureNames = {
-		[triggerTypes.UnitResurrected]  = true,
-		[triggerTypes.FeatureCreated]   = true,
-		[triggerTypes.FeatureReclaimed] = true,
-		[triggerTypes.FeatureDestroyed] = true,
-	}
+	local triggerTypesReferencingFeatureNames = getTypesWithParameter(triggersSchemaParameters, 'featureName')
 	local actionTypesNamingFeatures = {
 		[actionTypes.CreateFeature] = true,
 	}
