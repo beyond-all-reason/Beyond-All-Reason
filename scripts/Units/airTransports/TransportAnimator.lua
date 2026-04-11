@@ -126,7 +126,7 @@ function TransportAnimator.Init(setup)
     cegName        = setup.cegName
 
     local def    = UnitDefs[unitDefID]
-    local vmax   = def.speed
+    local vmax   = def.speed/30 -- it's in elmos/sec, not per frame (unlike Spring.GetUnitVelocity)
     local a      = math.max(0.01, def.maxAcc)
     local vmax_y = def.verticalSpeed
     -- velocity damping ratio: tuned to unit speed and acceleration so the aircraft slows to near-stop during
