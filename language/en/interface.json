@@ -221,6 +221,8 @@
 			"resurrect_tooltip": "Revive wrecks to become units again (click-drag for area)",
 			"guard": "Guard",
 			"guard_tooltip": "Guard another unit against enemy units attacking it",
+			"areaguard": "Guard",
+			"areaguard_tooltip": "Guard a unit or area. Drag to issue multiple guard orders in an area.",
 			"factoryguard": "Factory Guard",
 			"factoryguard_tooltip": "Builders produced by this factory will automatically guard it",
 			"wait": "Wait",
