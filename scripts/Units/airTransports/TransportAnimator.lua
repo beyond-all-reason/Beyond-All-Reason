@@ -275,6 +275,8 @@ end
 -- Unload logic for detaching and moving the transportee.
 -- When doAnim == false, the unit is only detached in-place with no position change.
 function TransportAnimator.Unload(teeData, goalX, goalY, goalZ, doAnim)
+    if teeData.unloading then return end
+    teeData.unloading = true
     CargoHandler.BeginUnloading(cargo)
     SpUnitDetach(teeData.id)
 
