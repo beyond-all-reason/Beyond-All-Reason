@@ -24,7 +24,7 @@ return {
 		sightdistance = 169,
 		sonardistance = 800,
 		terraformspeed = 1000,
-		waterline = 0,
+		waterline = 50,
 		workertime = 300,
 		yardmap = "wwwwww weeeew weeeew weeeew weeeew wwwwww",
 		buildoptions = {
