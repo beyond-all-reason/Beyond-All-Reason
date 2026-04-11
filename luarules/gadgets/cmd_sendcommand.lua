@@ -65,8 +65,12 @@ if gadgetHandler:IsSyncedCode() then
 else	-- UNSYNCED
 
 	local myPlayerID = Spring.GetMyPlayerID()
-	local accountID = Spring.Utilities.GetAccountID(myPlayerID)
-	local authorized = SYNCED.permissions.cmd[accountID]
+	local myPlayerName = Spring.GetPlayerInfo(myPlayerID)
+	local function isAuthorized()
+		local acID = Spring.Utilities.GetAccountID(myPlayerID)
+		local perms = SYNCED.permissions.cmd
+		return perms and (perms[acID] or (myPlayerName and perms[myPlayerName]))
+	end
 
 	local function execCmd(_, playername, cmd)
 		if playername == select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID())) or playername == '*' then
@@ -75,7 +79,7 @@ else	-- UNSYNCED
 	end
 
 	local function RequestCmd(cmd, line, words, playerID)
-		if authorized and playerID == myPlayerID then
+		if isAuthorized() and playerID == myPlayerID then
 			if words[1] ~= nil and words[2] ~= nil then
 				local command = words[2]
 				if #words > 2 then

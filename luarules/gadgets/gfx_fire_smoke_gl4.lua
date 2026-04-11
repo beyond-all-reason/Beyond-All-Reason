@@ -19,7 +19,7 @@ function gadget:GetInfo()
 		date = "March 2026",
 		license = "GNU GPL v2",
 		layer = 0,
-		enabled = true, --(DEPRECATED - replaced by gfx_particle_engine_gl4 + gfx_crash_trails_gl4 + gfx_piece_trails_gl4)
+		enabled = true,
 	}
 end
 
