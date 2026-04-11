@@ -58,6 +58,7 @@ local gameSpeed = Game.gameSpeed
 local gravityPerFrame = -Game.gravity / (gameSpeed ^ 2)
 
 local ARC_EPSILON = 1e-6
+local NAN_EPSILON = 1e-5
 local TAANG2RAD = math.tau / COBSCALE
 local UNIT = string.byte("u")
 local TRAJECTORY_UNIT = 2
@@ -186,7 +187,7 @@ local function buildRotation(ox, oy, oz, ax, ay, az, bx, by, bz, angleMax)
 	local uw = math_diag(ux, uy, uz)
 	local vw = math_diag(vx, vy, vz)
 
-	if uw == 0 or vw == 0 then
+	if uw <= NAN_EPSILON or vw <= NAN_EPSILON then
 		return 0, 0, 0, 0
 	end
 
