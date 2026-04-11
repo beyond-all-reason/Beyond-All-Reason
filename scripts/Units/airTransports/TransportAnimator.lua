@@ -135,8 +135,15 @@ function TransportAnimator.Init(setup)
     ratioY = (0.05 * vmax_y) / (0.05 * vmax_y + a)
 
     -- pre-compute cosine ease-in-out curve for each frame in [0, loadTime]
+    -- pre-compute cubic ease-in-out curve for each frame in [0, loadTime]
     for f = 0, loadTime do
-        progress[f] = (-math.cos(math.pi * f / loadTime) + 1) / 2
+        local t = f / loadTime
+        if t < 0.5 then
+            progress[f] = 4*t*t*t
+        else
+            local u = 2 - 2*t
+            progress[f] = 1 - u*u*u * 0.5
+        end
     end
 
     -- resolve beam piece name strings from setup into piece IDs, keyed by slot piece ID
