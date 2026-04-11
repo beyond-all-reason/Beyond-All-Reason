@@ -47,6 +47,7 @@ local holidays = Spring.Utilities.Gametype.GetCurrentHolidays()
 local isAprilFools = holidays.aprilfools
 local isHalloween = holidays.halloween
 local isXmas = holidays.xmas
+local holidayModels = VFS.Include("unitbasedefs/holiday_models.lua")
 
 local airReworkTweaks = VFS.Include("unitbasedefs/air_rework_defs.lua").airReworkTweaks
 local skyshiftUnitTweaks = VFS.Include("unitbasedefs/skyshiftunits_post.lua").skyshiftUnitTweaks
@@ -172,74 +173,12 @@ local function unitDef_Post(name, uDef)
 
 	-- Event Model Replacements: -----------------------------------------------------------------------------
 
-	if isAprilFools then
-		-- Something to experiment with
-		--if VFS.FileExists("units/event/aprilfools/" .. uDef.objectname) then
-		--	uDef.objectname = "units/event/aprilfools/" .. uDef.objectname
-		--end
-
-		if name == "corak" then
-			uDef.objectname = "units/event/aprilfools/CORAK.s3o"
-		elseif name == "corllt" then
-			uDef.objectname = "units/event/aprilfools/CORllt.s3o"
-		elseif name == "corhllt" then
-			uDef.objectname = "units/event/aprilfools/CORhllt.s3o"
-		elseif name == "corack" then
-			uDef.objectname = "units/event/aprilfools/CORACK.s3o"
-		elseif name == "corck" then
-			uDef.objectname = "units/event/aprilfools/CORCK.s3o"
-		elseif name == "armpw" then
-			uDef.objectname = "units/event/aprilfools/ARMPW.s3o"
-		elseif name == "cordemon" then
-			uDef.objectname = "units/event/aprilfools/cordemon.s3o"
-		--elseif name == "correap" then -- Requires Model Update
-		--	uDef.objectname = "units/event/aprilfools/correap.s3o"
-		elseif name == "corstorm" then
-			uDef.objectname = "units/event/aprilfools/corstorm.s3o"
-		elseif name == "armcv" then
-			uDef.objectname = "units/event/aprilfools/armcv.s3o"
-		elseif name == "armrock" then
-			uDef.objectname = "units/event/aprilfools/armrock.s3o"
-		elseif name == "armbull" then
-			uDef.objectname = "units/event/aprilfools/armbull.s3o"
-		elseif name == "armllt" then
-			uDef.objectname = "units/event/aprilfools/armllt.s3o"
-		elseif name == "armwin" then
-			uDef.objectname = "units/event/aprilfools/armwin.s3o"
-		elseif name == "armham" then
-			uDef.objectname = "units/event/aprilfools/armham.s3o"
-		elseif name == "corwin" then
-			uDef.objectname = "units/event/aprilfools/corwin.s3o"
-		--elseif name == "corthud" then -- Requires Model Update
-		--	uDef.objectname = "units/event/aprilfools/corthud.s3o"
-		end
-	end
-
-	if isHalloween then
-		if name == "armcom" or name == "armdecom" then
-			uDef.objectname = "units/event/halloween/armcom.s3o"
-		elseif name == "corcom" or name == "cordecom" then
-			uDef.objectname = "units/event/halloween/corcom.s3o"
-		elseif name == "legcom" or name == "legdecom" then
-			uDef.objectname = "units/event/halloween/legcom.s3o"
-
-		elseif name == "correap" then
-			uDef.objectname = "units/event/halloween/correap.s3o"
-		elseif name == "leggob" then
-			uDef.objectname = "units/event/halloween/leggob.s3o"
-		elseif name == "armrectr" then
-			uDef.objectname = "units/event/halloween/armrectr.s3o"
-		elseif name == "armspy" then
-			uDef.objectname = "units/event/halloween/armspy.s3o"
-		end
-	end
-
-	if isXmas then
-		if name == "armcom" or name == "armdecom" then
-			uDef.objectname = "units/event/xmas/armcom.s3o"
-		elseif name == "corcom" or name == "cordecom" then
-			uDef.objectname = "units/event/xmas/corcom.s3o"
-		end
+	if isAprilFools and holidayModels.AprilFools[basename] then
+		uDef.objectname = holidayModels.AprilFools[basename]
+	elseif isHalloween and holidayModels.Halloween[basename] then
+		uDef.objectname = holidayModels.Halloween[basename]
+	elseif isXmas and holidayModels.Xmas[basename] then
+		uDef.objectname = holidayModels.Xmas[basename]
 	end
 
 	----------------------------------------------------------------------------------------------------------
