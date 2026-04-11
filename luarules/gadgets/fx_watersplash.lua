@@ -28,6 +28,8 @@ local nonexplosiveWeapons = {
 	LightningCannon = true,
 }
 
+local waterIsLava = Spring.GetModOptions().map_waterislava
+
 local splashCEGs = {
 	"splash-tiny",
 	"splash-small",
@@ -38,6 +40,12 @@ local splashCEGs = {
 	"splash-nuke",
 	"splash-nukexl",
 }
+
+if waterIsLava then
+	for i = 1, #splashCEGs do
+		splashCEGs[i] = "lava" .. splashCEGs[i]
+	end
+end
 
 local function getWeaponAOE(weaponDef, waterSplash)
 	local aoe = weaponDef.damageAreaOfEffect
@@ -105,6 +113,9 @@ for weaponDefID, def in pairs(WeaponDefs) do
 			splashCEG = getSplashCEG(def, weaponAoe[weaponDefID])
 		end
 		if splashCEG then
+			if waterIsLava and splashCEG:sub(1, 7) == "splash-" then
+				splashCEG = "lava" .. splashCEG
+			end
 			weaponSplashCEG[weaponDefID] = splashCEG
 		end
 	end

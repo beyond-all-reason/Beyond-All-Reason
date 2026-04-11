@@ -206,6 +206,7 @@ return {
 				soundhitwet = "splssml",
 				weapontype = "Cannon",
 				customparams = {
+					bogus = 1,
 					nodecal = true,
 					noexplosionlight = 1,
 				},

@@ -201,7 +201,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if msg:sub(1,2)~=validation and msg:sub(3,2+AFKMessageSize) ~= AFKMessage then --invalid message
+		if msg:sub(1,2)~=validation or msg:sub(3,2+AFKMessageSize) ~= AFKMessage then --invalid message
 			return
 		end
 		local afk = tonumber(msg:sub(2+AFKMessageSize+1))

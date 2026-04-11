@@ -19,7 +19,7 @@ function gadget:GetInfo()
 		date = "March 2026",
 		license = "GNU GPL v2",
 		layer = 0,
-		enabled = true,
+		enabled = false, --(DEPRECATED - replaced by gfx_particle_engine_gl4 + gfx_crash_trails_gl4 + gfx_piece_trails_gl4)
 	}
 end
 
@@ -44,6 +44,7 @@ local spGetUnitVelocity       = Spring.GetUnitVelocity
 local spValidUnitID           = Spring.ValidUnitID
 local spGetWind               = Spring.GetWind
 local spGetConfigInt          = Spring.GetConfigInt
+local spGetGameSpeed          = Spring.GetGameSpeed
 
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
@@ -86,7 +87,9 @@ local fireTexture  = "bitmaps/projectiletextures/BARFlame02.tga"
 local smokeTexture = "bitmaps/projectiletextures/smoke-beh-anim.tga"
 
 -- General (MAX_PARTICLES read from configint so the options widget can expose a slider)
-local MAX_PARTICLES          = spGetConfigInt("GfxMaxFireSmokeParticles", 128000)
+local minFireSmokeParticles  = 10000	-- before MaxParticles is added
+local MAX_PARTICLES          = ((spGetConfigInt("MaxParticles", 10000)-7500)*3) + minFireSmokeParticles	-- NOTE: actual calc is in func updateMaxParticles
+
 local VBO_CAPACITY           = MAX_PARTICLES  -- fixed at init; VBO cannot be resized
 local PARTICLE_SIZE_MIN      = 1
 local PARTICLE_SIZE_MAX      = 4
@@ -110,21 +113,21 @@ local SMOKE_HIGHLIGHT_LIFE     = 0.7   -- lifetime relative to base smoke partic
 -- Wind influence (WIND_SMOKE_MULT=0.0012, WIND_FIRE_MULT=0.2 defined in shaderConfig)
 
 -- Frustum culling margin (elmos beyond visible sphere to still spawn)
-local CULLING_MARGIN           = 350
+local CULLING_MARGIN           = 200
 
 -- Fire particle settings (shared base, each trail type can scale)
 local FIRE_LIFETIME_MIN        = 20    -- min fire particle lifetime in frames
 local FIRE_LIFETIME_RANGE      = 100    -- fire lifetime variation
-local FIRE_SIZE_MULT           = 7     -- fire particles relative to smoke
+local FIRE_SIZE_MULT           = 7.5     -- fire particles relative to smoke
 local FIRE_ALPHA_MIN           = 0.55   -- fire particles base alpha
 
 -- Piece projectile trails (smoke and fire on flying debris)
 local PIECE_SPAWN_COUNT_MAX    = 3
 local PIECE_SPAWN_TAPER        = 2
-local PIECE_SKIP_CHANCE        = 0.33
+local PIECE_SKIP_CHANCE        = 0.4
 local PIECE_VEL_SCALE          = 6.0
-local PIECE_LIFETIME_MIN       = 45
-local PIECE_LIFETIME_MAX       = 95
+local PIECE_LIFETIME_MIN       = 35
+local PIECE_LIFETIME_MAX       = 85
 local PIECE_SIZE_SCALE_MIN     = 0.18
 local PIECE_SIZE_SCALE_MAX     = 0.5
 local PIECE_SIZE_SCALE_REF     = 25.0
@@ -152,7 +155,6 @@ local CRASH_SKIP_CHANCE        = 0.05
 local CRASH_FIRE_LIFETIME_MULT = 1.6
 local CRASH_FIRE_SIZE_MULT     = 1
 local CRASH_CULLING_RADIUS     = 200
-local CRASH_ALWAYS_EMIT        = true
 local CRASH_MAX_DURATION       = 450
 local CRASH_LIFETIME_MIN       = 120
 local CRASH_LIFETIME_RANGE     = 90
@@ -213,14 +215,14 @@ local QUALITY_PRESETS = {
 		name            = "Low",
 		spawnMult       = 0.35,
 		pieceCountMult  = 0.5,
-		lifetimeMult    = 0.2,
+		lifetimeMult    = 0.25,
 		maxPct          = 1.0,
 	},
 	[2] = {
 		name            = "Medium",
 		spawnMult       = 0.65,
 		pieceCountMult  = 0.75,
-		lifetimeMult    = 0.3,
+		lifetimeMult    = 0.33,
 		maxPct          = 0.66,
 	},
 	[3] = {
@@ -519,6 +521,7 @@ local cachedCamX, cachedCamY, cachedCamZ = 0, 0, 0
 local cachedPreset = QUALITY_PRESETS[currentPreset]
 local cachedBudgetNormal = budgetLimits[PRIORITY_NORMAL]
 local cachedBudgetEssential = budgetLimits[PRIORITY_ESSENTIAL]
+local fastForward = false  -- true when gamespeed > 1.5 or catching up (rejoining)
 
 --------------------------------------------------------------------------------
 -- Helper functions
@@ -565,7 +568,8 @@ end
 
 local function updateMaxParticles(gameFrame)
 	if gameFrame % 90 ~= 0 then return end  -- re-read configint every ~3 seconds
-	local newMax = spGetConfigInt("GfxMaxFireSmokeParticles", 128000)
+	local newMax = ((spGetConfigInt("MaxParticles", 10000)-7000)*3) + minFireSmokeParticles
+
 	if newMax == MAX_PARTICLES then return end
 	newMax = mathMin(newMax, VBO_CAPACITY)
 	if newMax < 1 then newMax = 1 end
@@ -609,15 +613,19 @@ end
 
 local particleData = {0,0,0,0, 0,0,0,0, 0,0,0,0, 1,1,1,0}
 
-local function spawnParticle(px, py, pz, vx, vy, vz, size, cmapVariant, lifetime, alphaMult, tintBrightness)
+local function spawnParticle(px, py, pz, vx, vy, vz, size, cmapVariant, lifetime, alphaMult, tintBrightness, birthFrame)
 	if particleVBO.usedElements >= currentBudgetLimit then return end
+
+	local bf = birthFrame or cachedGameFrame
+	local deathFrame = bf + mathCeil(lifetime) + 2
+	if deathFrame <= cachedGameFrame then return end  -- already expired (retroactive particle)
 
 	local seed = mathRandom()
 
 	particleData[1] = px
 	particleData[2] = py
 	particleData[3] = pz
-	particleData[4] = cachedGameFrame
+	particleData[4] = bf
 	particleData[5] = vx
 	particleData[6] = vy
 	particleData[7] = vz
@@ -636,7 +644,6 @@ local function spawnParticle(px, py, pz, vx, vy, vz, size, cmapVariant, lifetime
 	local particleID = nextParticleID
 	pushElementInstance(particleVBO, particleData, particleID, true, false)
 
-	local deathFrame = cachedGameFrame + mathCeil(lifetime) + 2
 	local queue = particleRemoveQueue[deathFrame]
 	if not queue then
 		queue = {}
@@ -880,19 +887,134 @@ local pendingDeathUnitRadii = {}
 local excludedDeathUnits = {}
 local pieceGeneration = 0
 
+-- Replay buffered off-screen piece frames retroactively.
+-- Only replays the last few buffered positions (piece particles are short-lived,
+-- so older entries would be dead on arrival anyway).
+local function replayPieceBuffer(tracked, gameFrame)
+	local buf = tracked.offscreenBuffer
+	if not buf or #buf == 0 then
+		tracked.offscreenBuffer = nil
+		return
+	end
+
+	local preset = cachedPreset
+	local sc = tracked.sizeScale
+	local fi = tracked.fireIntensity
+	local presetLifeMult = preset.lifetimeMult
+	local smokeSizeSc = sc * (fi > 0 and 1.0 or 0.75)
+	currentBudgetLimit = cachedBudgetNormal
+
+	-- Only replay recent entries that could still produce alive particles
+	-- Max possible lifetime: PIECE_LIFETIME_MAX * 2.0 (sizeRand factor) * presetLifeMult + 2 (deathFrame buffer)
+	local maxReplayAge = mathCeil(PIECE_LIFETIME_MAX * 2 * presetLifeMult) + 2
+	local startIdx = #buf
+	for i = #buf, 1, -1 do
+		if gameFrame - buf[i][1] > maxReplayAge then break end
+		startIdx = i
+	end
+
+	local replayedCount = 0
+	for i = startIdx, #buf do
+		local entry = buf[i]
+		local frame = entry[1]
+		local bpx, bpy, bpz = entry[2], entry[3], entry[4]
+		local bvx, bvy, bvz = entry[5], entry[6], entry[7]
+
+		local pieceAge = frame - tracked.birthFrame
+		local ageFrac = pieceAge / tracked.lifeFrames
+		local vxs = bvx * PIECE_VEL_COMBINED
+		local vys = bvy * PIECE_VEL_COMBINED
+		local vzs = bvz * PIECE_VEL_COMBINED
+
+		local smokeLifeBase = presetLifeMult
+		local smokeAlphaBase = (1.0 - ageFrac * PIECE_ALPHA_FADE) * (fi > 0 and 1.0 or 0.6)
+		local spawnCount = mathMax(1, mathFloor((PIECE_SPAWN_COUNT_MAX - ageFrac * PIECE_SPAWN_TAPER + 0.5) * preset.spawnMult * preset.pieceCountMult))
+
+		for p = 1, spawnCount do
+			if mathRandom() > PIECE_SKIP_CHANCE then
+				local sizeRand = mathRandom() * PARTICLE_SIZE_RANGE
+				local particleSize = (PARTICLE_SIZE_MIN + sizeRand) * smokeSizeSc
+				spawnParticle(
+					bpx + mathRandom() - 0.5, bpy + mathRandom(), bpz + mathRandom() - 0.5,
+					vxs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
+					vys + mathRandom() * SMOKE_VEL_UP_RANGE + SMOKE_VEL_UP_MIN,
+					vzs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
+					particleSize, 0,
+					(PIECE_LIFETIME_MIN + (tracked.lifeBias + mathRandom() * 0.3) * PIECE_LIFETIME_RANGE) * (1.0 + sizeRand * PARTICLE_SIZE_INV_RANGE) * smokeLifeBase,
+					(PIECE_ALPHA_MIN + mathRandom() * PIECE_ALPHA_RANGE) * smokeAlphaBase,
+					nil, frame  -- birthFrame override
+				)
+				replayedCount = replayedCount + 1
+			end
+		end
+
+		if fi > 0 then
+			local sizeRand = mathRandom() * PARTICLE_SIZE_RANGE
+			local particleSize = (PARTICLE_SIZE_MIN + sizeRand) * sc * FIRE_SIZE_MULT * fi
+			spawnParticle(
+				bpx + mathRandom() * 0.6 - 0.3, bpy + mathRandom() * 0.5, bpz + mathRandom() * 0.6 - 0.3,
+				vxs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
+				vys + mathRandom() * SMOKE_VEL_UP_RANGE + SMOKE_VEL_UP_MIN,
+				vzs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
+				particleSize, 1,
+				(FIRE_LIFETIME_MIN + mathRandom() * FIRE_LIFETIME_RANGE) * presetLifeMult * fi,
+				(FIRE_ALPHA_MIN + mathRandom() * 0.2) * (0.5 + 0.5 * fi),
+				nil, frame  -- birthFrame override
+			)
+			replayedCount = replayedCount + 1
+		end
+	end
+
+	tracked.offscreenBuffer = nil
+	-- if debugEcho and replayedCount > 0 then
+	-- 	spEcho(string.format("[FireSmoke] Replayed %d retroactive piece particles (%d buffered frames, started at %d/%d)", replayedCount, #buf, startIdx, #buf))
+	-- end
+end
+
+-- Debug counters
+local debugPieceSpawnCount = 0
+local debugPieceCallCount = 0
+local debugPieceSkipAboveGround = 0
+local debugPieceSkipOffscreen = 0
+local debugPieceSkipExpired = 0
+local debugPieceSkipNoPos = 0
+
 local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 	local pieceAge = gameFrame - tracked.birthFrame
-	if pieceAge > tracked.lifeFrames then return end
+	if pieceAge > tracked.lifeFrames then debugPieceSkipExpired = debugPieceSkipExpired + 1 return end
 
 	local px, py, pz = spGetProjectilePosition(proID)
-	if not px then return end
+	if not px then debugPieceSkipNoPos = debugPieceSkipNoPos + 1 return end
 
 	local aboveGround = py > PIECE_GROUND_SKIP_HEIGHT
 	if not aboveGround then
 		local groundY = spGetGroundHeight(px, pz) or 0
 		aboveGround = py > groundY + 1
 	end
-	if not (aboveGround and spIsSphereInView(px, py, pz, PIECE_CULLING_RADIUS)) then return end
+	if not aboveGround then debugPieceSkipAboveGround = debugPieceSkipAboveGround + 1 return end
+
+	local inView = spIsSphereInView(px, py, pz, PIECE_CULLING_RADIUS)
+	if not inView then
+		debugPieceSkipOffscreen = debugPieceSkipOffscreen + 1
+		-- Buffer position/velocity every 3rd frame for retroactive spawning
+		if not fastForward and gameFrame % 3 == 0 then
+			local pvx, pvy, pvz = spGetProjectileVelocity(proID)
+			local buf = tracked.offscreenBuffer
+			if not buf then
+				buf = {}
+				tracked.offscreenBuffer = buf
+			end
+			buf[#buf + 1] = {gameFrame, px, py, pz, pvx or 0, pvy or 0, pvz or 0}
+		end
+		return
+	end
+
+	-- Transition to in-view: replay buffered particles
+	if tracked.offscreenBuffer then
+		replayPieceBuffer(tracked, gameFrame)
+	end
+
+	debugPieceCallCount = debugPieceCallCount + 1
 
 	local dx, dy, dz = px - cachedCamX, py - cachedCamY, pz - cachedCamZ
 	local distSq = dx*dx + dy*dy + dz*dz
@@ -936,6 +1058,7 @@ local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 			local smokeLife = (PIECE_LIFETIME_MIN + (tracked.lifeBias + mathRandom() * 0.3) * PIECE_LIFETIME_RANGE) * (1.0 + sizeRand * PARTICLE_SIZE_INV_RANGE) * smokeLifeBase
 			local smokeAlpha = (PIECE_ALPHA_MIN + mathRandom() * PIECE_ALPHA_RANGE) * smokeAlphaBase
 			spawnParticle(spx, spy, spz, svx, svy, svz, particleSize, 0, smokeLife, smokeAlpha)
+			debugPieceSpawnCount = debugPieceSpawnCount + 1
 		end
 	end
 
@@ -951,6 +1074,7 @@ local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 			(FIRE_LIFETIME_MIN + mathRandom() * FIRE_LIFETIME_RANGE) * presetLifeMult * fi,
 			(FIRE_ALPHA_MIN + mathRandom() * 0.2) * (0.5 + 0.5 * fi)
 		)
+		debugPieceSpawnCount = debugPieceSpawnCount + 1
 	end
 end
 
@@ -1030,6 +1154,79 @@ do
 	end
 end
 
+-- Replay buffered off-screen crash frames retroactively.
+-- Since the vertex shader computes everything from birthFrame, particles pushed
+-- retroactively render at the correct age/position/size/color immediately.
+local function replayCrashBuffer(tracked, gameFrame)
+	local buf = tracked.offscreenBuffer
+	if not buf or #buf == 0 then return end
+
+	local preset = cachedPreset
+	local sc = tracked.sizeScale
+	local fi = tracked.fireIntensity
+	local unitLifeMult = tracked.lifetimeMult
+	local unitSpawnMult = tracked.spawnMult
+
+	local spawnCount = mathMax(1, mathFloor(CRASH_SPAWN_COUNT * preset.spawnMult * unitSpawnMult + 0.5))
+	local presetLifeMult = preset.lifetimeMult
+	local smokeSizeSc = sc * (fi > 0 and 1.0 or 0.75)
+	currentBudgetLimit = cachedBudgetEssential
+
+	local replayedCount = 0
+	for i = 1, #buf do
+		local entry = buf[i]
+		local frame = entry[1]
+		local bpx, bpy, bpz = entry[2], entry[3], entry[4]
+		local bvx, bvy, bvz = entry[5], entry[6], entry[7]
+
+		local crashAge = frame - tracked.birthFrame
+		local ageFrac = crashAge / CRASH_MAX_DURATION
+		local vxs = bvx * CRASH_VEL_INHERIT
+		local vys = bvy * CRASH_VEL_INHERIT
+		local vzs = bvz * CRASH_VEL_INHERIT
+
+		local smokeLifeBase = presetLifeMult * unitLifeMult
+		local smokeAlphaBase = (1.0 - ageFrac * CRASH_ALPHA_FADE) * (fi > 0 and 1.0 or 0.6)
+
+		for p = 1, spawnCount do
+			local sizeRand = mathRandom() * PARTICLE_SIZE_RANGE
+			local particleSize = (PARTICLE_SIZE_MIN + sizeRand) * smokeSizeSc
+			spawnParticle(
+				bpx + mathRandom() * 4 - 2, bpy + mathRandom() * 2, bpz + mathRandom() * 4 - 2,
+				vxs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
+				vys + mathRandom() * SMOKE_VEL_UP_RANGE + SMOKE_VEL_UP_MIN,
+				vzs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
+				particleSize, 0,
+				(CRASH_LIFETIME_MIN + mathRandom() * CRASH_LIFETIME_RANGE) * (1.0 + sizeRand * PARTICLE_SIZE_INV_RANGE) * smokeLifeBase,
+				(CRASH_ALPHA_MIN + mathRandom() * CRASH_ALPHA_RANGE) * smokeAlphaBase,
+				nil, frame  -- birthFrame override
+			)
+			replayedCount = replayedCount + 1
+		end
+
+		if fi > 0 then
+			local sizeRand = mathRandom() * PARTICLE_SIZE_RANGE
+			local particleSize = (PARTICLE_SIZE_MIN + sizeRand) * sc * FIRE_SIZE_MULT * CRASH_FIRE_SIZE_MULT * fi
+			spawnParticle(
+				bpx + mathRandom() * 2 - 1, bpy + mathRandom(), bpz + mathRandom() * 2 - 1,
+				vxs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
+				vys + mathRandom() * SMOKE_VEL_UP_RANGE + SMOKE_VEL_UP_MIN,
+				vzs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
+				particleSize, 1,
+				(FIRE_LIFETIME_MIN + mathRandom() * FIRE_LIFETIME_RANGE) * presetLifeMult * CRASH_FIRE_LIFETIME_MULT * fi * unitLifeMult,
+				(FIRE_ALPHA_MIN + mathRandom() * 0.2) * (0.5 + 0.5 * fi),
+				nil, frame  -- birthFrame override
+			)
+			replayedCount = replayedCount + 1
+		end
+	end
+
+	tracked.offscreenBuffer = nil
+	-- if debugEcho and replayedCount > 0 then
+	-- 	spEcho(string.format("[FireSmoke] Replayed %d retroactive crash particles (%d buffered frames)", replayedCount, #buf))
+	-- end
+end
+
 local function spawnCrashTrailParticles(tracked, unitID, gameFrame)
 	local crashAge = gameFrame - tracked.birthFrame
 	if crashAge > CRASH_MAX_DURATION then return end
@@ -1038,7 +1235,24 @@ local function spawnCrashTrailParticles(tracked, unitID, gameFrame)
 	if not px then return end
 
 	local inView = spIsSphereInView(px, py, pz, CRASH_CULLING_TOTAL)
-	if not CRASH_ALWAYS_EMIT and not inView then return end
+	if not inView then
+		-- Buffer position/velocity for retroactive spawning when coming into view
+		if not fastForward then
+			local uvx, uvy, uvz = spGetUnitVelocity(unitID)
+			local buf = tracked.offscreenBuffer
+			if not buf then
+				buf = {}
+				tracked.offscreenBuffer = buf
+			end
+			buf[#buf + 1] = {gameFrame, px, py, pz, uvx or 0, uvy or 0, uvz or 0}
+		end
+		return
+	end
+
+	-- Transition to in-view: replay buffered particles with low preset
+	if tracked.offscreenBuffer then
+		replayCrashBuffer(tracked, gameFrame)
+	end
 
 	local dx, dy, dz = px - cachedCamX, py - cachedCamY, pz - cachedCamZ
 	local distSq = dx*dx + dy*dy + dz*dz
@@ -1314,6 +1528,10 @@ function gadget:GameFrame(n)
 	cachedGameFrame = n
 	cachedCamX, cachedCamY, cachedCamZ = spGetCameraPosition()
 
+	-- Detect fast-forward: actual sim speed > 1.5 means catching up or user speed-up
+	local userSpeed, internalSpeed = spGetGameSpeed()
+	fastForward = (internalSpeed or userSpeed) > 1.5
+
 	-- Periodic housekeeping (staggered across frames)
 	local nMod = n % 90
 	if nMod == 0 then updateMaxParticles(n) end
@@ -1327,6 +1545,9 @@ function gadget:GameFrame(n)
 
 	-- Quality auto-scaling
 	updateQualityPreset(n)
+
+	-- Override to Low preset during fast-forward; restore from currentPreset otherwise
+	cachedPreset = fastForward and QUALITY_PRESETS[1] or QUALITY_PRESETS[currentPreset]
 
 	if debugEcho then
 		t1 = spGetTimer()
@@ -1363,6 +1584,24 @@ function gadget:GameFrame(n)
 
 	if n % updateInterval == 0 then
 		updatePieceProjectiles(n)
+
+		-- Debug output every 30 frames
+		if n % 30 == 0 then
+			local trackedCount = 0
+			for _ in pairs(trackedPieceProjectiles) do trackedCount = trackedCount + 1 end
+			spEcho(string.format(
+				"[PieceTrails-OLD] spawned=%d  calls=%d  tracked=%d  skipGround=%d  skipOffscreen=%d  skipExpired=%d  skipNoPos=%d  preset=%s  interval=%d",
+				debugPieceSpawnCount, debugPieceCallCount, trackedCount,
+				debugPieceSkipAboveGround, debugPieceSkipOffscreen, debugPieceSkipExpired, debugPieceSkipNoPos,
+				cachedPreset.name, updateInterval
+			))
+			debugPieceSpawnCount = 0
+			debugPieceCallCount = 0
+			debugPieceSkipAboveGround = 0
+			debugPieceSkipOffscreen = 0
+			debugPieceSkipExpired = 0
+			debugPieceSkipNoPos = 0
+		end
 
 		if debugEcho then
 			t1 = spGetTimer()
@@ -1439,5 +1678,27 @@ function gadget:GameFrame(n)
 end
 
 function gadget:DrawWorld()
+	-- Flush off-screen crash buffers that are now in view (works while paused too)
+	if crashingAircraftCount > 0 then
+		for unitID, tracked in pairs(trackedCrashingAircraft) do
+			if tracked.offscreenBuffer then
+				local px, py, pz = spGetUnitPosition(unitID)
+				if px and spIsSphereInView(px, py, pz, CRASH_CULLING_TOTAL) then
+					replayCrashBuffer(tracked, cachedGameFrame)
+				end
+			end
+		end
+	end
+
+	-- Flush off-screen piece buffers that are now in view (works while paused too)
+	for proID, tracked in pairs(trackedPieceProjectiles) do
+		if tracked.offscreenBuffer then
+			local px, py, pz = spGetProjectilePosition(proID)
+			if px and spIsSphereInView(px, py, pz, PIECE_CULLING_RADIUS) then
+				replayPieceBuffer(tracked, cachedGameFrame)
+			end
+		end
+	end
+
 	DrawParticles()
 end

@@ -258,6 +258,7 @@ return {
 					overrange_distance = 633,
 					projectile_destruction_method = "descend",
 					stockpilelimit = 3,
+					weapons_group = 1,
 				},
 				damage = {
 					default = 800,
@@ -298,6 +299,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 22000,
 				},
@@ -336,6 +340,9 @@ return {
 				waterweapon = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					default = 400,
 					subs = 200,
@@ -374,6 +381,9 @@ return {
 				weapontimer = 4.2,
 				weapontype = "DGun",
 				weaponvelocity = 300,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					commanders = 0,
 					default = 99999,
@@ -456,6 +466,9 @@ return {
 					turret = true,
 					weapontype = "BeamLaser",
 					weaponvelocity = 1000,
+					customparams = {
+						weapons_group = 1,
+					},
 					damage = {
 						default = 25,
 					},
@@ -496,6 +509,10 @@ return {
 					turret = true,
 					weapontype = "LaserCannon",
 					weaponvelocity = 1,
+					customparams = {
+						weapons_group = 1,
+						weapons_role = "secondary",
+					},
 					damage = {
 						default = 20000,
 					},

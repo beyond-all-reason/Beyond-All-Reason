@@ -24,6 +24,7 @@ local spEcho = Spring.Echo
 local gadgetContents = {}
 local gadgetFileNames = {}
 local failedGadgets = {}
+local gadgetDependents = {}  -- gadgetName -> {dependentName1, dependentName2, ...}
 
 local function CacheGadgets()
 	for _, g in pairs(gadgetHandler.gadgets) do
@@ -33,6 +34,12 @@ local function CacheGadgets()
 			gadgetFileNames[name] = ghInfo.filename
 			if not gadgetContents[name] then
 				gadgetContents[name] = VFS.LoadFile(ghInfo.filename)
+			end
+			if g.GetInfo then
+				local info = g:GetInfo()
+				if info.dependents then
+					gadgetDependents[name] = info.dependents
+				end
 			end
 		end
 	end
@@ -56,6 +63,13 @@ local function ReHookProfiler(gadgetName)
 	end
 end
 
+local function ReloadGadget(gadgetName, label)
+	spEcho("Reloading gadget (" .. label .. "): " .. gadgetName)
+	gadgetHandler:DisableGadget(gadgetName)
+	gadgetHandler:EnableGadget(gadgetName)
+	pendingReHook[gadgetName] = true
+end
+
 local function CheckForChanges(gadgetName, fileName, label)
 	local newContents = VFS.LoadFile(fileName)
 	if newContents ~= gadgetContents[gadgetName] then
@@ -67,10 +81,17 @@ local function CheckForChanges(gadgetName, fileName, label)
 			return
 		end
 		failedGadgets[gadgetName] = nil
-		spEcho("Reloading gadget (" .. label .. "): " .. gadgetName)
-		gadgetHandler:DisableGadget(gadgetName)
-		gadgetHandler:EnableGadget(gadgetName)
-		pendingReHook[gadgetName] = true
+		ReloadGadget(gadgetName, label)
+		-- Reload dependents
+		local deps = gadgetDependents[gadgetName]
+		if deps then
+			for i = 1, #deps do
+				local depName = deps[i]
+				if gadgetHandler:FindGadget(depName) then
+					ReloadGadget(depName, label .. ", dependent of " .. gadgetName)
+				end
+			end
+		end
 	end
 end
 
@@ -81,6 +102,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local lastCheckFrame = 0
+	local lastFullScanFrame = 0
 	function gadget:GameFrame(frame)
 		if next(pendingReHook) then
 			for name in pairs(pendingReHook) do
@@ -95,6 +117,14 @@ if gadgetHandler:IsSyncedCode() then
 		for name, fileName in pairs(failedGadgets) do
 			CheckForChanges(name, fileName, "synced")
 		end
+		-- Full scan every ~3 seconds to catch synced-side changes
+		if frame - lastFullScanFrame >= 90 then
+			lastFullScanFrame = frame
+			CacheGadgets()
+			for gadgetName, fileName in pairs(gadgetFileNames) do
+				CheckForChanges(gadgetName, fileName, "synced")
+			end
+		end
 	end
 
 else
@@ -106,18 +136,19 @@ else
 		CacheGadgets()
 	end
 
-	local lastCheckFrame = 0
-	function gadget:GameFrame(frame)
+	local timeSinceCheck = 0
+	function gadget:Update(dt)
 		if next(pendingReHook) then
 			for name in pairs(pendingReHook) do
 				ReHookProfiler(name)
 			end
 			pendingReHook = {}
 		end
-		if frame - lastCheckFrame < 30 then
+		timeSinceCheck = timeSinceCheck + dt
+		if timeSinceCheck < 1 then
 			return
 		end
-		lastCheckFrame = frame
+		timeSinceCheck = 0
 
 		local prevMouseOffscreen = mouseOffscreen
 		mouseOffscreen = select(6, spGetMouseState())
