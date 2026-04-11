@@ -72,10 +72,12 @@ local spAddUnitDamage         = Spring.AddUnitDamage
 local spAddFeatureDamage      = Spring.AddFeatureDamage
 local spGetFeaturePosition    = Spring.GetFeaturePosition
 local spGetFeaturesInCylinder = Spring.GetFeaturesInCylinder
+local spGetFeatureRadius      = Spring.GetFeatureRadius
 local spGetGroundHeight       = Spring.GetGroundHeight
 local spGetGroundNormal       = Spring.GetGroundNormal
 local spGetUnitDefID          = Spring.GetUnitDefID
 local spGetUnitPosition       = Spring.GetUnitPosition
+local spGetUnitRadius         = Spring.GetUnitRadius
 local spGetUnitsInCylinder    = Spring.GetUnitsInCylinder
 local spSpawnCEG              = Spring.SpawnCEG
 
@@ -310,41 +312,47 @@ end
 ---@return number? hitX reference coordinates <x, y, z>
 ---@return number? hitY
 ---@return number? hitZ
-local function getAreaHitPosition(area, baseX, baseY, baseZ, midX, midY, midZ)
-	if not baseX then
-		return
-	end
+local function getAreaHitPosition(area, targetRadius, baseX, baseY, baseZ, midX, midY, midZ)
+	local radius = max(area.range, targetRadius)
 
-	local radius = area.range
-
-	if midY >= area.ymin and midY <= area.ymax then
-		if diag(midX - area.x, midY - area.y, midZ - area.z) <= radius then
-			return midX, midY, midZ
+	if radius > targetRadius then
+		-- Check if the area contains the target.
+		if midY >= area.ymin and midY <= area.ymax then
+			if diag(midX - area.x, midY - area.y, midZ - area.z) <= radius then
+				return midX, midY, midZ
+			end
 		end
-	end
 
-	if baseY >= area.ymin and baseY <= area.ymax then
-		local dx = baseX - area.x
-		local dy = baseY - area.y
-		local dz = baseZ - area.z
+		if baseY >= area.ymin and baseY <= area.ymax then
+			local dx = baseX - area.x
+			local dy = baseY - area.y
+			local dz = baseZ - area.z
 
-		if diag(dx, dy, dz) <= radius then
-			-- The unit base point is in the area and the mid point is not.
-			-- Find the intersection of a ray from mid->base onto the area.
-			local rx, ry, rz = normalize(baseX - midX, baseY - midY, baseZ - midZ)
+			if diag(dx, dy, dz) <= radius then
+				-- The unit base point is in the area and the mid point is not.
+				-- Find the intersection of a ray from mid->base onto the area.
+				local rx, ry, rz = normalize(baseX - midX, baseY - midY, baseZ - midZ)
 
-			local a = rx * rx + ry * ry + rz * rz
-			local b = (dx * rx + dy * ry + dz * rz) * 2
-			local c = dx * dx + dy * dy + dz * dz - radius * radius
+				local a = rx * rx + ry * ry + rz * rz
+				local b = (dx * rx + dy * ry + dz * rz) * 2
+				local c = dx * dx + dy * dy + dz * dz - radius * radius
 
-			-- We already know the discriminant is positive:
-			local discriminant = b * b - 4 * a * c
-			local t = (b + sqrt(discriminant)) / (2 * a)
+				-- We already know the discriminant is positive:
+				local discriminant = b * b - 4 * a * c
+				local t = (b + sqrt(discriminant)) / (2 * a)
 
-			return
-				midX + t * rx,
-				midY + t * ry,
-				midZ + t * rz
+				return
+					midX + t * rx,
+					midY + t * ry,
+					midZ + t * rz
+			end
+		end
+	else
+		-- Check if the target contains the area.
+		if baseY >= area.ymin and baseY <= area.ymax then
+			if diag(baseX - area.x, baseY - area.y, baseZ - area.z) <= radius then
+				return area.x, midY, area.z
+			end
 		end
 	end
 end
@@ -365,7 +373,7 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
             local unitID = unitsInRange[j]
 			local data = unitData[unitID]
             if data and not data.resistances[area.resistance] and data.immuneUntil < gameFrame then
-                local hitX, hitY, hitZ = getAreaHitPosition(area, spGetUnitPosition(unitID, true))
+                local hitX, hitY, hitZ = getAreaHitPosition(area, spGetUnitRadius(unitID), spGetUnitPosition(unitID, true))
 
 				if hitX then
 					local damageTaken = data.damageTaken
@@ -405,7 +413,7 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
 			local data = featureData[featureID]
 
             if data and not data.damageImmune then
-                local hitX, hitY, hitZ = getAreaHitPosition(area, spGetFeaturePosition(featureID, true))
+                local hitX, hitY, hitZ = getAreaHitPosition(area, spGetFeatureRadius(featureID), spGetFeaturePosition(featureID, true))
 
                 if hitX then
                     local damageTaken = data.damageTaken
