@@ -40,7 +40,7 @@ local mathSqrt   = math.sqrt
 --------------------------------------------------------------------------------
 -- Configuration
 --------------------------------------------------------------------------------
-local CRASH_SPAWN_COUNT        = 2
+local CRASH_SPAWN_COUNT        = 1
 local CRASH_VEL_INHERIT        = 0.6
 local CRASH_ALPHA_FADE         = 0.66
 local CRASH_ALPHA_MIN          = 0.25
