@@ -58,7 +58,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 			end
 		end
 	else	 -- CMD_UNLOAD_UNITS
-		if GetUnitIsTransporting(unitID) then
+		if cmdParams[1] and cmdParams[3] and GetUnitIsTransporting(unitID) then
 			local intrans = GetUnitIsTransporting(unitID)
 			if #intrans >= 1 then
 				-- no unloading underwater

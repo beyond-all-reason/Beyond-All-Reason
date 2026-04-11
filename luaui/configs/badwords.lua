@@ -99,6 +99,14 @@ local wordList = {
 	"^genaalf?$",
 	"^juvttref?$",
 	"^mvccreurnqf?$",
+	"^puvaxf?$",
+	"^wrrgf?$",
+	"^xlf$",
+	"^x[1v]yyl?[b0]?hefr?ys$",
+	"^zbatf?$",
+	"^zbatbybvqf?$",
+	"^cnxvf?$",
+
 
 	--DE
 	"^nefputrfvpugr?e?$",
