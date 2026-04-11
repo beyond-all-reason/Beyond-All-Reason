@@ -72,10 +72,12 @@ local spAddUnitDamage         = Spring.AddUnitDamage
 local spAddFeatureDamage      = Spring.AddFeatureDamage
 local spGetFeaturePosition    = Spring.GetFeaturePosition
 local spGetFeaturesInCylinder = Spring.GetFeaturesInCylinder
+local spGetFeatureRadius      = Spring.GetFeatureRadius
 local spGetGroundHeight       = Spring.GetGroundHeight
 local spGetGroundNormal       = Spring.GetGroundNormal
 local spGetUnitDefID          = Spring.GetUnitDefID
 local spGetUnitPosition       = Spring.GetUnitPosition
+local spGetUnitRadius         = Spring.GetUnitRadius
 local spGetUnitsInCylinder    = Spring.GetUnitsInCylinder
 local spSpawnCEG              = Spring.SpawnCEG
 
@@ -95,6 +97,8 @@ local timedDamageWeapons = {}
 local unitDamageImmunity = {}
 local featureDamageImmunity = {}
 local isFactory = {}
+local unitRadiusMax = 0
+local featureRadiusMax = 0
 
 local aliveExplosions = {}
 local frameExplosions = {}
@@ -298,53 +302,65 @@ local function spawnAreaCEGs(loopIndex)
     end
 end
 
+local function getUnitHitData(unitID)
+	return spGetUnitRadius(unitID), spGetUnitPosition(unitID, true)
+end
+
+local function getFeatureHitData(featureID)
+	return spGetFeatureRadius(featureID), spGetFeaturePosition(featureID, true)
+end
+
 ---We prefer the target's midpoint if it is in the radius since the damaged CEGs are easier to see higher up
 ---on the model, but if it is too high/awkward then the base position is fine, with a small vertical offset.
----@param area table contains the timed area properties
----@param baseX? number unit base position coordinates <x, y, z>
----@param baseY number
----@param baseZ number
----@param midX number unit midpoint position coordinates <x, y, z>
----@param midY number
----@param midZ number
 ---@return number? hitX reference coordinates <x, y, z>
 ---@return number? hitY
 ---@return number? hitZ
-local function getAreaHitPosition(area, baseX, baseY, baseZ, midX, midY, midZ)
-	if not baseX then
-		return
-	end
+local function getAreaHitPosition(area, targetRadius, baseX, baseY, baseZ, midX, midY, midZ)
+	local radius = max(area.range, targetRadius)
 
-	local radius = area.range
-
-	if midY >= area.ymin and midY <= area.ymax then
-		if diag(midX - area.x, midY - area.y, midZ - area.z) <= radius then
-			return midX, midY, midZ
+	if radius > targetRadius then
+		-- Check if the area contains the target.
+		if midY >= area.ymin and midY <= area.ymax then
+			if diag(midX - area.x, midY - area.y, midZ - area.z) <= radius then
+				return midX, midY, midZ
+			end
 		end
-	end
 
-	if baseY >= area.ymin and baseY <= area.ymax then
-		local dx = baseX - area.x
-		local dy = baseY - area.y
-		local dz = baseZ - area.z
+		if baseY >= area.ymin and baseY <= area.ymax then
+			local dx = baseX - area.x
+			local dy = baseY - area.y
+			local dz = baseZ - area.z
 
-		if diag(dx, dy, dz) <= radius then
-			-- The unit base point is in the area and the mid point is not.
-			-- Find the intersection of a ray from mid->base onto the area.
-			local rx, ry, rz = normalize(baseX - midX, baseY - midY, baseZ - midZ)
+			if diag(dx, dy, dz) <= radius then
+				-- The unit base point is in the area and the mid point is not.
+				-- Find the intersection of a ray from mid->base onto the area.
+				local rx, ry, rz = normalize(baseX - midX, baseY - midY, baseZ - midZ)
 
-			local a = rx * rx + ry * ry + rz * rz
-			local b = (dx * rx + dy * ry + dz * rz) * 2
-			local c = dx * dx + dy * dy + dz * dz - radius * radius
+				local a = rx * rx + ry * ry + rz * rz
+				local b = (dx * rx + dy * ry + dz * rz) * 2
+				local c = dx * dx + dy * dy + dz * dz - radius * radius
 
-			-- We already know the discriminant is positive:
-			local discriminant = b * b - 4 * a * c
-			local t = (b + sqrt(discriminant)) / (2 * a)
+				-- We already know the discriminant is positive:
+				local discriminant = b * b - 4 * a * c
+				local t = (b + sqrt(discriminant)) / (2 * a)
 
-			return
-				midX + t * rx,
-				midY + t * ry,
-				midZ + t * rz
+				return
+					midX + t * rx,
+					midY + t * ry,
+					midZ + t * rz
+			end
+		end
+	else
+		-- Check if the target contains the area.
+		if baseY >= area.ymin and baseY <= area.ymax then
+			if diag(baseX - area.x, baseY - area.y, baseZ - area.z) <= radius then
+				return area.x, midY, area.z
+			end
+		end
+		if midY >= area.ymin and midY <= area.ymax then
+			if diag(midX - area.x, midY - area.y, midZ - area.z) <= radius then
+				return area.x, midY, area.z
+			end
 		end
 	end
 end
@@ -359,13 +375,13 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
         local area = timedAreas[index]
         local x, z, radius = area.x, area.z, area.range
 
-        local unitsInRange = spGetUnitsInCylinder(x, z, radius)
+        local unitsInRange = spGetUnitsInCylinder(x, z, max(radius, unitRadiusMax))
 
         for j = 1, #unitsInRange do
             local unitID = unitsInRange[j]
 			local data = unitData[unitID]
             if data and not data.resistances[area.resistance] and data.immuneUntil < gameFrame then
-                local hitX, hitY, hitZ = getAreaHitPosition(area, spGetUnitPosition(unitID, true))
+                local hitX, hitY, hitZ = getAreaHitPosition(area, getUnitHitData(unitID))
 
 				if hitX then
 					local damageTaken = data.damageTaken
@@ -398,14 +414,14 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
         local area = timedAreas[index]
         local x, z, radius = area.x, area.z, area.range
 
-        local featuresInRange = spGetFeaturesInCylinder(x, z, radius)
+        local featuresInRange = spGetFeaturesInCylinder(x, z, max(radius, featureRadiusMax))
 
         for j = 1, #featuresInRange do
             local featureID = featuresInRange[j]
 			local data = featureData[featureID]
 
             if data and not data.damageImmune then
-                local hitX, hitY, hitZ = getAreaHitPosition(area, spGetFeaturePosition(featureID, true))
+                local hitX, hitY, hitZ = getAreaHitPosition(area, getFeatureHitData(featureID))
 
                 if hitX then
                     local damageTaken = data.damageTaken
@@ -530,6 +546,30 @@ function gadget:Initialize()
 	for featureDefID, featureDef in ipairs(FeatureDefs) do
 		featureDamageImmunity[featureDefID] = featureDef.indestructible or featureDef.geoThermal
 	end
+
+	unitRadiusMax = table.reduce(
+		UnitDefs,
+		function(radiusMax, unitDef, unitDefID)
+			if unitDamageImmunity[unitDefID] ~= immunities.all and unitDef.radius > radiusMax then
+				return unitDef.radius
+			else
+				return radiusMax
+			end
+		end,
+		0
+	)
+
+	featureRadiusMax = table.reduce(
+		FeatureDefs,
+		function(radiusMax, featureDef, featureDefID)
+			if not featureDamageImmunity[featureDefID] and featureDef.radius > radiusMax then
+				return featureDef.radius
+			else
+				return radiusMax
+			end
+		end,
+		0
+	)
 
 	aliveExplosions = {}
 	for ii = 1, frameInterval do
