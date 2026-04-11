@@ -302,13 +302,6 @@ end
 
 ---We prefer the target's midpoint if it is in the radius since the damaged CEGs are easier to see higher up
 ---on the model, but if it is too high/awkward then the base position is fine, with a small vertical offset.
----@param area table contains the timed area properties
----@param baseX? number unit base position coordinates <x, y, z>
----@param baseY number
----@param baseZ number
----@param midX number unit midpoint position coordinates <x, y, z>
----@param midY number
----@param midZ number
 ---@return number? hitX reference coordinates <x, y, z>
 ---@return number? hitY
 ---@return number? hitZ
