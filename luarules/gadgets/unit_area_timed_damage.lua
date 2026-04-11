@@ -354,6 +354,11 @@ local function getAreaHitPosition(area, targetRadius, baseX, baseY, baseZ, midX,
 				return area.x, midY, area.z
 			end
 		end
+		if midY >= area.ymin and midY <= area.ymax then
+			if diag(midX - area.x, midY - area.y, midZ - area.z) <= radius then
+				return area.x, midY, area.z
+			end
+		end
 	end
 end
 
