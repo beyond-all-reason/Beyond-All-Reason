@@ -175,6 +175,10 @@ unitCollisionVolume['corplat'] = {
 	on={96,60,96,0,28,0,1,1,1},
 	off={96,42,96,0,-20,0,1,1,1},
 }
+unitCollisionVolume['legsplab'] = {
+	on={96,76,96,0,24,0,1,1,1},
+	off={96,46,96,0,-12,0,1,1,1},
+}
 unitCollisionVolume['legsolar'] = {
 
 	on={70,70,70,0,-12,1,0,1,0},
