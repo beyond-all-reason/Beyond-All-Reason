@@ -134,7 +134,6 @@ function TransportAnimator.Init(setup)
     ratio  = (0.20 * vmax)   / (0.20 * vmax   + a)
     ratioY = (0.05 * vmax_y) / (0.05 * vmax_y + a)
 
-    -- pre-compute cosine ease-in-out curve for each frame in [0, loadTime]
     -- pre-compute cubic ease-in-out curve for each frame in [0, loadTime]
     for f = 0, loadTime do
         local t = f / loadTime
