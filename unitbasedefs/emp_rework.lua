@@ -1,4 +1,4 @@
-local function empReworkTweaks(name, unitDef)
+local function empReworkUnitTweaks(name, unitDef)
 	local weapondefs = unitDef.weapondefs
 
 	if name == "armstil" then
@@ -135,6 +135,27 @@ local function empReworkTweaks(name, unitDef)
 	--end
 end
 
+local function empReworkWeaponTweaks(name, wDef)
+	if name == 'empblast' then
+		wDef.areaofeffect = 350
+		wDef.edgeeffectiveness = 0.6
+		wDef.paralyzetime = 12
+		wDef.damage.default = 50000
+	end
+	if name == 'spybombx' then
+		wDef.areaofeffect = 350
+		wDef.edgeeffectiveness = 0.4
+		wDef.paralyzetime = 20
+		wDef.damage.default = 16000
+	end
+	if name == 'spybombxscav' then
+		wDef.edgeeffectiveness = 0.50
+		wDef.paralyzetime = 12
+		wDef.damage.default = 35000
+	end
+end
+
 return {
-	Tweaks = empReworkTweaks,
+	UnitTweaks = empReworkUnitTweaks,
+	WeaponTweaks = empReworkWeaponTweaks,
 }

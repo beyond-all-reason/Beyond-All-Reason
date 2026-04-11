@@ -53,8 +53,6 @@ local evocomTweaks = VFS.Include("unitbasedefs/evocom.lua").Tweaks
 local extraUnitsTweaks = VFS.Include("unitbasedefs/experimental_extra_units.lua").Tweaks
 local processRaptorsUnit = VFS.Include("unitbasedefs/raptor_unitdefs_post.lua").Tweaks
 local scavUnitsForPlayers = VFS.Include("unitbasedefs/scavenger_units_for_players.lua").Tweaks
-local airReworkTweaks = VFS.Include("unitbasedefs/air_rework_defs.lua").airReworkTweaks
-local empReworkTweaks = VFS.Include("unitbasedefs/emp_rework.lua").Tweaks
 local legionSimpleMexes = VFS.Include("unitbasedefs/legion_simplified_mexes.lua").Tweaks
 local lateGameRebalance = VFS.Include("unitbasedefs/lategame_rebalance.lua").Tweaks
 local junoReworkTweaks = VFS.Include("unitbasedefs/juno_rework.lua").Tweaks
@@ -64,6 +62,14 @@ local proposed_unit_reworksTweaks = VFS.Include("unitbasedefs/proposed_unit_rewo
 local communityBalanceTweaks = VFS.Include("unitbasedefs/community_balance_patch_defs.lua").communityBalanceTweaks
 local techsplitTweaks = VFS.Include("unitbasedefs/techsplit_defs.lua").techsplitTweaks
 local techsplit_balanceTweaks = VFS.Include("unitbasedefs/techsplit_balance_defs.lua").techsplit_balanceTweaks
+
+local airRework = VFS.Include("unitbasedefs/air_rework_defs.lua")
+local airReworkUnitTweaks = airRework.UnitTweaks
+local airReworkWeaponTweaks = airRework.WeaponTweaks
+local empRework = VFS.Include("unitbasedefs/emp_rework.lua")
+local empReworkUnitTweaks = empRework.UnitTweaks
+local empReworkWeaponTweaks = empRework.WeaponTweaks
+
 local scavWeaponDefPost = VFS.Include("gamedata/scavengers/weapondef_post.lua").scavWeaponDefPost
 
 --[[ Sanitize to whole frames (plus leeways because float arithmetic is bonkers).
@@ -519,12 +525,12 @@ local function unitDef_Post(name, uDef)
 
 	--- EMP rework
 	if modOptions.emprework == true then
-		empReworkTweaks(name, uDef)
+		empReworkUnitTweaks(name, uDef)
 	end
 
 	--Air rework
 	if modOptions.air_rework == true then
-		uDef = airReworkTweaks(name, uDef)
+		uDef = airReworkUnitTweaks(name, uDef)
 	end
 
 	-- Skyshift: Air rework
@@ -856,38 +862,12 @@ local function weaponDef_Post(name, wDef)
 		----EMP rework
 
 		if modOptions.emprework then
-			if name == 'empblast' then
-				wDef.areaofeffect = 350
-				wDef.edgeeffectiveness = 0.6
-				wDef.paralyzetime = 12
-				damage.default = 50000
-			end
-			if name == 'spybombx' then
-				wDef.areaofeffect = 350
-				wDef.edgeeffectiveness = 0.4
-				wDef.paralyzetime = 20
-				damage.default = 16000
-			end
-			if name == 'spybombxscav' then
-				wDef.edgeeffectiveness = 0.50
-				wDef.paralyzetime = 12
-				damage.default = 35000
-			end
+			empReworkWeaponTweaks(name, wDef)
 		end
-
 
 		--Air rework
 		if modOptions.air_rework == true then
-			if wDef.weapontype == "BeamLaser" then
-				damage.vtol = damage.default * 0.25
-			end
-			if wDef.range == 300 and wDef.reloadtime == 0.4 then
-				--comm lasers
-				damage.vtol = damage.default
-			end
-			if wDef.weapontype == "Cannon" and damage.default then
-				damage.vtol = damage.default * 0.35
-			end
+			airReworkWeaponTweaks(wDef)
 		end
 
 		--[[Skyshift: Air rework
