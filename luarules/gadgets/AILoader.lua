@@ -26,6 +26,7 @@ local spGiveOrderTounitArray = Spring.GiveOrderToUnitArray
 local spGiveOrderArrayTounitArray = Spring.GiveOrderArrayToUnitArray
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGameFrame = Spring.GetGameFrame
+local spValidUnitID = Spring.ValidUnitID
 local teamList = Spring.GetTeamList()
 local syncTables = {}
 local cmdCounter = {ii = 0 ,zi=0,iz=0,zz=0,old=0}
@@ -174,6 +175,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			if order.method == '1-1' then
+				if not spValidUnitID(order.id) then return end
 				--('Receiveluarulesmsg GiveOrder to:',UnitDefs[spGetUnitDefID ( order.id )].name,order.cmd)
 				local cmd = spGiveOrderTounit(order.id,order.cmd,order.parameters,order.options)
 				--spEcho(order.id,order.cmd,order.parameters,order.options,cmd)
@@ -190,6 +192,7 @@ if gadgetHandler:IsSyncedCode() then
 					spEcho('GiveOrderToUnit Error:',cmd)
 				end
 			elseif order.method == '2-1' then
+				if not spValidUnitID(order.id) then return end
 				local arrayOfCmd = gadget:RezTable()
 				for i in pairs(order.cmd) do
 					local row = gadget:RezTable()
