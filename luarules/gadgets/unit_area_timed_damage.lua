@@ -300,6 +300,14 @@ local function spawnAreaCEGs(loopIndex)
     end
 end
 
+local function getUnitHitData(unitID)
+	return spGetUnitRadius(unitID), spGetUnitPosition(unitID, true)
+end
+
+local function getFeatureHitData(featureID)
+	return spGetFeatureRadius(featureID), spGetFeaturePosition(featureID, true)
+end
+
 ---We prefer the target's midpoint if it is in the radius since the damaged CEGs are easier to see higher up
 ---on the model, but if it is too high/awkward then the base position is fine, with a small vertical offset.
 ---@return number? hitX reference coordinates <x, y, z>
@@ -371,7 +379,7 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
             local unitID = unitsInRange[j]
 			local data = unitData[unitID]
             if data and not data.resistances[area.resistance] and data.immuneUntil < gameFrame then
-                local hitX, hitY, hitZ = getAreaHitPosition(area, spGetUnitRadius(unitID), spGetUnitPosition(unitID, true))
+                local hitX, hitY, hitZ = getAreaHitPosition(area, getUnitHitData(unitID))
 
 				if hitX then
 					local damageTaken = data.damageTaken
@@ -411,7 +419,7 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
 			local data = featureData[featureID]
 
             if data and not data.damageImmune then
-                local hitX, hitY, hitZ = getAreaHitPosition(area, spGetFeatureRadius(featureID), spGetFeaturePosition(featureID, true))
+                local hitX, hitY, hitZ = getAreaHitPosition(area, getFeatureHitData(featureID))
 
                 if hitX then
                     local damageTaken = data.damageTaken
