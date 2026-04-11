@@ -131,8 +131,8 @@ function TransportAnimator.Init(setup)
     local vmax_y = def.verticalSpeed
     -- velocity damping ratio: tuned to unit speed and acceleration so the aircraft slows to near-stop during
     -- load/unload; applied as ratio^2 per 66ms tick in WatchBeams
-    ratio  = (0.20 * vmax)   / (0.20 * vmax   + a)
-    ratioY = (0.05 * vmax_y) / (0.05 * vmax_y + a)
+    ratio  = (0.30 * vmax)   / (0.30 * vmax   + a)
+    ratioY = (0.1 * vmax_y) / (0.1 * vmax_y + a)
 
     -- pre-compute cubic ease-in-out curve for each frame in [0, loadTime]
     for f = 0, loadTime do
