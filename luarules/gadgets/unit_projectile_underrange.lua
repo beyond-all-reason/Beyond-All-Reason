@@ -208,8 +208,6 @@ local function buildRotation(ox, oy, oz, ax, ay, az, bx, by, bz, angleMax)
 		local cw = math_diag(cx, cy, cz)
 		return cx / cw, cy / cw, cz / cw, angle * factor
 	end
-
-	return cosAngle > 0
 end
 
 local function applyRotation(rx, ry, rz, angle, px, py, pz)
@@ -283,6 +281,11 @@ local function updateAimDirection(projectileID, params, targetID)
 	aimPosX, aimPosY, aimPosZ = params.clamp(px, py, pz, aimPosX, aimPosY, aimPosZ, params.range, targetRadius)
 
 	local rx, ry, rz, rw = buildRotation(px, py, pz, targetX, targetY, targetZ, aimPosX, aimPosY, aimPosZ, params.angleMax)
+
+	if (rw or 0) == 0 then
+		return
+	end
+
 	spSetProjectileVelocity(projectileID, applyRotation(rx, ry, rz, rw, pvx, pvy, pvz))
 end
 
