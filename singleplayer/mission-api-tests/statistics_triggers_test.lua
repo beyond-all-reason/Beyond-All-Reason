@@ -147,6 +147,48 @@ local triggers = {
 		},
 		actions = { 'messageTotalUnitsBuilt' },
 	},
+
+	-- ── UnitsOwned triggers ───────────────────────────────────────────────────
+
+	unitsOwnedReached = {
+		type = triggerTypes.UnitsOwned,
+		parameters = {
+			teamID = 0,
+			quantity = 1,
+		},
+		actions = { 'messageUnitsOwned' },
+	},
+
+	unitsOwnedByNameReached = {
+		type = triggerTypes.UnitsOwned,
+		parameters = {
+			teamID = 0,
+			unitName = 'friendlyBot',
+			quantity = 1,
+		},
+		actions = { 'messageUnitsOwnedByName' },
+	},
+
+	unitsOwnedByDefReached = {
+		type = triggerTypes.UnitsOwned,
+		parameters = {
+			teamID = 0,
+			unitDefName = 'armck',
+			quantity = 4,
+		},
+		actions = { 'messageUnitsOwnedByDef' },
+	},
+
+	unitsOwnedByNameAndDefReached = {
+		type = triggerTypes.UnitsOwned,
+		parameters = {
+			teamID = 0,
+			unitName = 'friendlyBot',
+			unitDefName = 'armwar',
+			quantity = 1,
+		},
+		actions = { 'messageUnitsOwnedByNameAndDef' },
+	},
 }
 
 local actions = {
@@ -333,6 +375,36 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = "[Statistics Test] TotalUnitsBuilt fired: Team 0 has built >= 1 unit.",
+		},
+	},
+
+	-- ── UnitsOwned trigger messages ───────────────────────────────────────────
+
+	messageUnitsOwned = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "[Statistics Test] UnitsOwned fired: Team 0 owns >= 1 unit.",
+		},
+	},
+
+	messageUnitsOwnedByName = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "[Statistics Test] UnitsOwned fired for unitName friendlyBot.",
+		},
+	},
+
+	messageUnitsOwnedByDef = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "[Statistics Test] UnitsOwned fired for unitDefName armck x4.",
+		},
+	},
+
+	messageUnitsOwnedByNameAndDef = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "[Statistics Test] UnitsOwned fired for unitName friendlyBot + unitDefName armwar.",
 		},
 	},
 }

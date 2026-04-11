@@ -21,7 +21,7 @@ end
 
 local actionsDispatcher
 local types, triggers
-local trackedUnitNames, statisticsTriggerCounts
+local trackedUnitNames, trackedUnitIDs, statisticsTriggerCounts
 
 
 ----------------------------------------------------------------
@@ -364,6 +364,34 @@ local function incrementStatistics(triggerType, teamID, unitDefName, unitNames)
 	end)
 end
 
+local function checkUnitsOwned(trigger)
+	local teamID = trigger.parameters.teamID
+	local requiredUnitName = trigger.parameters.unitName
+	local requiredUnitDefName = trigger.parameters.unitDefName
+
+	local count
+	if requiredUnitName then
+		count = 0
+		for uid in pairs(trackedUnitIDs[requiredUnitName] or {}) do
+			if Spring.GetUnitTeam(uid) == teamID then
+				if not requiredUnitDefName or UnitDefs[Spring.GetUnitDefID(uid)].name == requiredUnitDefName then
+					count = count + 1
+				end
+			end
+		end
+	elseif requiredUnitDefName then
+		local unitDef = UnitDefNames[requiredUnitDefName]
+		count = unitDef and Spring.GetTeamUnitDefCount(teamID, unitDef.id) or 0
+	else
+		count = #Spring.GetTeamUnits(teamID)
+	end
+
+	-- The % is for repeating triggers
+	if count > 0 and count % trigger.parameters.quantity == 0 then
+		activateTrigger(trigger)
+	end
+end
+
 
 ----------------------------------------------------------------
 --- Call-ins:
@@ -378,6 +406,8 @@ function gadget:Initialize()
 	types                   = GG['MissionAPI'].TriggerTypes
 	triggers                = GG['MissionAPI'].Triggers
 	trackedUnitNames        = GG['MissionAPI'].trackedUnitNames
+	trackedUnitIDs          = GG['MissionAPI'].trackedUnitIDs
+
 	actionsDispatcher       = VFS.Include('luarules/mission_api/actions_dispatcher.lua')
 
 	local tracking          = VFS.Include('luarules/mission_api/tracking.lua')
@@ -407,9 +437,12 @@ function gadget:GameFrame(frameNumber)
 	end)
 end
 
-function gadget:MetaUnitAdded(_, unitDefID, unitTeam)
+function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 	processTriggersOfType(types.UnitExists, function(trigger, _)
 		checkUnitExists(trigger, unitDefID, unitTeam)
+	end)
+	processTriggersOfType(types.UnitsOwned, function(trigger, _)
+		checkUnitsOwned(trigger)
 	end)
 end
 
