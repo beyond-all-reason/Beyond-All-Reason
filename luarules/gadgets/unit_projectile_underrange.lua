@@ -113,8 +113,8 @@ local function clampToCone(fromX, fromY, fromZ, toX, toY, toZ, range, radius)
 	return toX, toY, toZ
 end
 
-local instantDuration = 0.1667 * Game.gameSpeed ---Should be pretty fast
-local instantWeapons = { BeamLaser = true, LaserCannon = true, LightningCannon = true, Rifle = true, }
+local instantDuration = 0.3333 * Game.gameSpeed -- Fast enough, anyway
+local instantWeapons = { LightningCannon = true, Rifle = true, }
 local reaimEffects = { guidance = true, sector_fire = true }
 local spreadDistanceMax = Game.squareSize * Game.footprintScale * 5 -- Use the reference dimension of a large-ish unit as an accuracy cutoff
 
@@ -126,8 +126,9 @@ local function getAimCorrectionParams(weaponDef)
 	local canTrackTarget = weaponDef.tracks and weaponDef.turnRate > weaponDef.projectilespeed * 0.1
 	local hasReaimEffect = weaponDef.customParams.speceffect and reaimEffects[weaponDef.customParams.speceffect]
 	local hasLowAccuracy = (weaponDef.accuracy + weaponDef.sprayAngle) * TAANG2RAD * weaponDef.range >= spreadDistanceMax + weaponDef.damageAreaOfEffect * 0.5
+	local hasLargeSalvo = weaponDef.salvoSize >= 6
 
-	if isFakeWeapon or isShieldWeapon or isInstantHit or isHighTrajectory or canTrackTarget or hasReaimEffect or hasLowAccuracy then
+	if isFakeWeapon or isShieldWeapon or isInstantHit or isHighTrajectory or canTrackTarget or hasReaimEffect or hasLowAccuracy or hasLargeSalvo then
 		return false
 	end
 
