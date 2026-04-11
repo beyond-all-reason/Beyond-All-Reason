@@ -139,16 +139,24 @@ end
 function CargoHandler.GetUnloadTargets(transporterID, transporteeID, cargo)
     local Q = SpGetUnitCommands(transporterID, -1)
     local isAreaUnload = Q and Q[1] and (
-        Q[1].id == CMD.UNLOAD_UNITS or
-        (#Q > 1 and Q[1].id == CMD.UNLOAD_UNIT and Q[2] and Q[2].id == CMD.UNLOAD_UNITS)
+        Q[1].id == CMD.UNLOAD_UNITS or -- UNLOAD UNITS CMD
+        (
+		Q[1].id == CMD.UNLOAD_UNIT and -- UNLOAD_UNIT CMD
+		(
+		(#Q > 1 and Q[2] and Q[2].id == CMD.UNLOAD_UNITS) or -- issued by UNLOAD_UNITS area cmds
+		Q[1].params[4] ==nil -- no defined unitID, issued by customFormation and areaUnload widgets
+		)
+		) 
     )
     if isAreaUnload then
         local targets = {}
         for teeID in pairs(cargo.transportees) do
             targets[#targets + 1] = teeID
         end
+		Spring.UnitFinishCommand(unitID) -- consume the command, if it's an area command preceded by an unload_unit command, it should trigger slowupdate and realize it has nothing to unload anymore => finish the second command too, but who cares
         return targets
     end
+	Spring.UnitFinishCommand(unitID)  -- consume the command
     return { transporteeID }
 end
 
