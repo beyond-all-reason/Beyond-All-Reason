@@ -33,7 +33,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 	local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
-	local spEditUnitCmdDesc = Spring.EditUnitCmdDesc
+	local spRemoveUnitCmdDesc = Spring.RemoveUnitCmdDesc
 	local spGetUnitDefID = Spring.GetUnitDefID
 	local spGetUnitTeam = Spring.GetUnitTeam
 	local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
@@ -41,8 +41,13 @@ if gadgetHandler:IsSyncedCode() then
 	local spAreTeamsAllied = Spring.AreTeamsAllied
 	local spValidUnitID = Spring.ValidUnitID
 	local spGiveOrderToUnit = Spring.GiveOrderToUnit
+	local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
 	local spGetUnitCommands = Spring.GetUnitCommands
 	local spGetAllUnits = Spring.GetAllUnits
+    local spEcho = Spring.Echo
+
+	-- Maximum number of guard orders we'll issue in one area-guard operation
+	local MAX_GUARD_ORDERS = 200
 
 	--------------------------------------------------------------------------------
 	-- Command description (replaces engine GUARD button)
@@ -68,13 +73,13 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function findGuardTargets(unitID, x, z, radius)
 		local unitDefID = spGetUnitDefID(unitID)
-		if not unitDefID then return {} end
+		if not unitDefID then return nil end
 
 		-- local guardersIsAir = isAirDef[unitDefID] or false
 		local allyTeamID = spGetUnitAllyTeam(unitID)
 
 		local unitsInArea = spGetUnitsInCylinder(x, z, radius)
-		if not unitsInArea then return {} end
+		if not unitsInArea then return nil end
 
 		local targets = {}
 		for i = 1, #unitsInArea do
@@ -94,8 +99,8 @@ if gadgetHandler:IsSyncedCode() then
 		return targets
 	end
 
-	local function giveGuardOrders(unitID, targets)
-		if #targets == 0 then return end
+	local function giveGuardOrders(unitID, targets, append)
+		if not targets or #targets == 0 then return end
 
 		-- Build set of targets already in the command queue
 		local alreadyGuarded = {}
@@ -108,10 +113,44 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		for _, targetID in ipairs(targets) do
+		-- Build list of new targets (exclude ones already guarded)
+		local newTargets = {}
+		for i = 1, #targets do
+			local targetID = targets[i]
 			if not alreadyGuarded[targetID] then
-				spGiveOrderToUnit(unitID, CMD_GUARD, { targetID }, { "shift" })
+				newTargets[#newTargets + 1] = targetID
 			end
+		end
+
+		local attempted = #newTargets
+		local truncated = false
+		if attempted > MAX_GUARD_ORDERS then
+			truncated = true
+			for i = MAX_GUARD_ORDERS + 1, attempted do
+				newTargets[i] = nil
+			end
+		end
+
+		-- Build command array and send in one call to avoid many GiveOrder calls.
+		local cmdArray = {}
+		for i = 1, #newTargets do
+			local targetID = newTargets[i]
+			local options = CMD.OPT_SHIFT
+			if #cmdArray == 0 then
+				-- First command: only shift if user requested append
+				if not append then
+					options = 0
+				end
+			end
+			cmdArray[#cmdArray + 1] = { CMD_GUARD, targetID, options }
+		end
+
+		if #cmdArray > 0 then
+			spGiveOrderArrayToUnit(unitID, cmdArray)
+		end
+
+		if truncated then
+			spEcho(string.format("Area guard: attempted %d guard targets, truncated to %d.", attempted, MAX_GUARD_ORDERS))
 		end
 	end
 
@@ -119,13 +158,19 @@ if gadgetHandler:IsSyncedCode() then
 	-- Replace engine GUARD button with our area-guard version
 
 	local function replaceGuardCommand(unitID)
-		local guardIndex = spFindUnitCmdDesc(unitID, CMD_GUARD)
-		if guardIndex then
-			-- Hide engine GUARD but keep it so right-click default on allies still works
-			spEditUnitCmdDesc(unitID, guardIndex, { hidden = true })
-			-- Insert our AREA_GUARD button in its place
-			spInsertUnitCmdDesc(unitID, guardIndex, areaGuardCmdDesc)
+		-- If we've already inserted our AREA_GUARD button, skip
+		if spFindUnitCmdDesc(unitID, CMD_AREA_GUARD) then
+			return
 		end
+
+		local guardIndex = spFindUnitCmdDesc(unitID, CMD_GUARD)
+		if not guardIndex then
+			return
+		end
+
+		-- Remove engine GUARD button and insert our AREA_GUARD in its place
+		spRemoveUnitCmdDesc(unitID, guardIndex)
+		spInsertUnitCmdDesc(unitID, guardIndex, areaGuardCmdDesc)
 	end
 
 	--------------------------------------------------------------------------------
@@ -147,7 +192,21 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+	-- Use UnitFinished to ensure the engine has added its default commands first
+	function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+		if canGuardDefs[unitDefID] then
+			replaceGuardCommand(unitID)
+		end
+	end
+
+	-- Handle transfer of units between teams (capture/share)
+	function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+		if canGuardDefs[unitDefID] then
+			replaceGuardCommand(unitID)
+		end
+	end
+
+	function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
 		if canGuardDefs[unitDefID] then
 			replaceGuardCommand(unitID)
 		end
@@ -173,7 +232,7 @@ if gadgetHandler:IsSyncedCode() then
 			-- Direct click on a unit via AREA_GUARD button: forward as engine CMD.GUARD
 			local targetID = cmdParams[1]
 			if spValidUnitID(targetID) and isAllied(unitID, targetID) then
-				spGiveOrderToUnit(unitID, CMD_GUARD, { targetID }, cmdOptions.coded or 0)
+				spGiveOrderToUnit(unitID, CMD_GUARD, targetID, cmdOptions.coded or 0)
 			end
 			return false
 
@@ -190,22 +249,15 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 else -- UNSYNCED
-
 	local spSetCustomCommandDrawData = Spring.SetCustomCommandDrawData
-	local spIsUnitAllied = Spring.IsUnitAllied
-	local spGetSelectedUnitsCounts = Spring.GetSelectedUnitsCounts
 
 	function gadget:Initialize()
 		spSetCustomCommandDrawData(CMD_AREA_GUARD, "Guard", { 136/255, 251/255, 255, 0.7 }, true)
 	end
 
-	function gadget:DefaultCommand(type, id)
-		if type ~= "unit" then return end
-		if not spIsUnitAllied(id) then return end
-		for unitDefID in pairs(spGetSelectedUnitsCounts()) do
-			if canGuardDefs[unitDefID] then
-				return CMD_AREA_GUARD
-			end
+	function gadget:DefaultCommand(type, id, defaultCmd)
+		if defaultCmd == CMD_GUARD then
+			return CMD_AREA_GUARD
 		end
 	end
 
