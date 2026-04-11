@@ -155,13 +155,13 @@ local function getAimCorrectionParams(weaponDef)
 		range        = weaponDef.range,
 		speed        = weaponDef.projectilespeed,
 
-		leadLimit    = math.abs(weaponDef.leadLimit),
-		leadBonus    = weaponDef.leadBonus,
+		leadLimit    = math.abs(weaponDef.leadLimit), -- todo: the mystery of the negative lead limit
+		leadBonus    = weaponDef.leadBonus, -- todo: bonus/boost unused
 		predictBoost = weaponDef.predictBoost,
 
 		gravity      = weaponDef.gravityAffected, -- todo: handle special gravities
 		heightMod    = weaponDef.heightMod,
-		trajectory   = weaponDef.highTrajectory,
+		trajectory   = weaponDef.highTrajectory == TRAJECTORY_UNIT,
 
 		clamp        = clampToTargetingVolume,
 	}
@@ -253,7 +253,7 @@ local function updateAimDirection(projectileID, params, targetID)
 	end
 
 	-- todo: High trajectories need to use a counter-rotation for reaiming.
-	if params.trajectory == TRAJECTORY_UNIT and pvy >= math_diag(pvx, pvz) then
+	if params.trajectory and pvy >= math_diag(pvx, pvz) then
 		return
 	end
 
