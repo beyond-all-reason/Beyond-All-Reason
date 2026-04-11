@@ -495,11 +495,11 @@ local function initGL4()
 		uniformInt = { flameTex = 0 },
 		uniformFloat = {},
 		shaderConfig = {
-			SHIMMER_AMPLITUDE  = 0.15,   -- width oscillation strength (0 = off)
-			SHIMMER_SPEED      = 0.17,   -- width oscillation speed
+			SHIMMER_AMPLITUDE  = 0.2,   -- width oscillation strength (0 = off)
+			SHIMMER_SPEED      = 0.2,   -- width oscillation speed
 			SHIMMER_TAIL_BIAS  = 0.5,    -- how much shimmer at base vs tail (0 = tail only, 1 = uniform)
-			BREATHE_BASE       = 0.88,   -- minimum brightness (pulse trough)
-			BREATHE_RANGE      = 0.12,   -- brightness pulse range (peak = base + range)
+			BREATHE_BASE       = 0.9,   -- minimum brightness (pulse trough)
+			BREATHE_RANGE      = 0.13,   -- brightness pulse range (peak = base + range)
 			BREATHE_SPEED      = 0.13,   -- brightness pulse speed
 			COLOR_GRADIENT_END = 0.7,    -- normalized position where color fully transitions to endColor
 			TAIL_FADE_START    = 0.6,    -- normalized position where tail alpha begins fading
