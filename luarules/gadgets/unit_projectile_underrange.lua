@@ -19,7 +19,10 @@ end
 --------------------------------------------------------------------------------
 -- Configuration ---------------------------------------------------------------
 
-local correctionAngleMax = math.rad(12) -- Try to prevent noticeable corrections with nearby targets.
+-- Try to prevent noticeable corrections with nearby targets. The typical angle
+-- difference between the initial velocity and the post-correction velocity is
+-- from 1 to 4 degrees. Closer targets tend to cause angles from 5 to 8 degrees.
+local correctionAngleMax = math.rad(12)
 
 --------------------------------------------------------------------------------
 -- Localization ----------------------------------------------------------------
