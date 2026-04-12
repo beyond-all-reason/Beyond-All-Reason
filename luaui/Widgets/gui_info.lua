@@ -532,7 +532,7 @@ local function refreshUnitInfo()
 			local weaponDef = WeaponDefs[weapons[i].weaponDef]
 			-- Only groups 0 [always active] and 1 [primary weapon set] are aggregated.
 			-- Others might be checked for abilities still, e.g. antinuke interceptors.
-			if showWeaponGroups[weaponDef.customParams.weapons_group] then
+			if showWeaponGroups[weaponDef.customParams.weapons_group] and weaponDef.customParams.bogus ~= "1" then
 				refreshUnitWeaponInfo(i, weaponDef, weaponDef.customParams.weapons_role ~= "secondary")
 			end
 		end
