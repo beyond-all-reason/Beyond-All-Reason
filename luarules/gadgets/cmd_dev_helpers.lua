@@ -33,14 +33,16 @@ function isAuthorized(playerID, subPermission)
 	local playername = Spring.GetPlayerInfo(playerID)
 	local accountID = Spring.Utilities.GetAccountID(playerID)
 	local hasPermission = false
-	-- check catch-all devhelpers permission
-	if (_G and _G.permissions.devhelpers and _G.permissions.devhelpers[accountID]) or (SYNCED and SYNCED.permissions.devhelpers and SYNCED.permissions.devhelpers[accountID]) then
+	-- check catch-all devhelpers permission (by accountID and by name for late joiners)
+	if (_G and _G.permissions.devhelpers and (_G.permissions.devhelpers[accountID] or (playername and _G.permissions.devhelpers[playername]))) or
+	   (SYNCED and SYNCED.permissions.devhelpers and (SYNCED.permissions.devhelpers[accountID] or (playername and SYNCED.permissions.devhelpers[playername]))) then
 		hasPermission = true
 	end
 	-- check specific sub-permission
 	if not hasPermission and subPermission then
 		local permKey = "devhelpers_" .. subPermission
-		if (_G and _G.permissions[permKey] and _G.permissions[permKey][accountID]) or (SYNCED and SYNCED.permissions[permKey] and SYNCED.permissions[permKey][accountID]) then
+		if (_G and _G.permissions[permKey] and (_G.permissions[permKey][accountID] or (playername and _G.permissions[permKey][playername]))) or
+		   (SYNCED and SYNCED.permissions[permKey] and (SYNCED.permissions[permKey][accountID] or (playername and SYNCED.permissions[permKey][playername]))) then
 			hasPermission = true
 		end
 	end
