@@ -12,7 +12,7 @@ function gadget:GetInfo()
 		name = "Beam Laser GL4",
 		desc = "GL4 instanced beam laser replacement effects",
 		author = "Floris",
-		date = "June 2025",
+		date = "April 2026",
 		license = "GNU GPL v2",
 		layer = 0,
 		enabled = true,
@@ -59,9 +59,14 @@ local uploadAllElements = gl.InstanceVBOTable.uploadAllElements
 
 -- Limits
 local INITIAL_VBO_SIZE = 64    -- starting VBO capacity (doubles automatically when exceeded)
-local GHOST_FRAMES       = 8     -- frames a ghost beam persists for fade-out after projectile expires
-local FLARE_GHOST_FRAMES = 3     -- frames the flare stays visible during ghost fade-out (must be <= GHOST_FRAMES)
 local IDLE_SKIP_FRAMES = 3     -- draw-frames to skip polling when no beams active
+
+-- Per-weapon ghost frames: scaled by beam thickness so small lasers fade fast
+local GHOST_FRAMES_MIN      = 3     -- ghost frames for thinnest beams
+local GHOST_FRAMES_MAX      = 7     -- ghost frames for thickest beams
+local GHOST_THICKNESS_MIN   = 1.5   -- thickness at or below which gets min ghost frames
+local GHOST_THICKNESS_MAX   = 4.0   -- thickness at or above which gets max ghost frames
+local FLARE_GHOST_FRAC      = 0.4   -- fraction of weapon ghostFrames where flare stays visible (0..1)
 
 -- Textures
 local beamTexture  = "bitmaps/projectiletextures/largebeam.tga"
@@ -125,6 +130,11 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
 		-- Paralyzer beams get a unique tint
 		local isParalyzer = weaponDef.paralyzer or false
 
+		-- Per-weapon ghost frames based on thickness
+		local ghostFrac = mathMin(1, mathMax(0, (thickness - GHOST_THICKNESS_MIN) / (GHOST_THICKNESS_MAX - GHOST_THICKNESS_MIN)))
+		local ghostFrames = math.floor(GHOST_FRAMES_MIN + ghostFrac * (GHOST_FRAMES_MAX - GHOST_FRAMES_MIN) + 0.5)
+		local flareGhostFrames = mathMax(1, math.floor(ghostFrames * FLARE_GHOST_FRAC + 0.5))
+
 		weaponConfigs[weaponID] = {
 			colorR = r,     colorG = g,     colorB = b,
 			coreR = coreR,  coreG = coreG,  coreB = coreB,
@@ -135,6 +145,10 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
 			beamttl = beamttl,
 			beamtime = beamtime,
 			isParalyzer = isParalyzer,
+			-- Per-weapon ghost config
+			ghostFrames = ghostFrames,
+			flareGhostFrames = flareGhostFrames,
+			invGhostFrames = 1.0 / ghostFrames,
 			-- Pre-computed for hot loop
 			beamWidth = thickness * BEAM_WIDTH_MULT,
 			invRangeSq = 1.0 / mathMax(range * range, 1),
@@ -557,7 +571,6 @@ end
 -- Cache config values as locals for hot loop
 local FADE_OUT_START_CACHED = shaderConfig.FADE_OUT_START
 local ONE_MINUS_FADE_OUT = 1.0 - FADE_OUT_START_CACHED
-local INV_GHOST_FRAMES = 1.0 / GHOST_FRAMES
 
 -- Pre-computed constants for live beams (lifeFrac is fixed at BEAM_SUSTAIN_LIFEFRAC)
 local LIVE_LIFEFRAC = BEAM_SUSTAIN_LIFEFRAC
@@ -670,17 +683,17 @@ local function updateBeams()
 	if hasGhosts then
 		for wbKey, tracked in pairs(weaponBeams) do
 			if not liveKeys[wbKey] and tracked.px then
+				local cfg = tracked.cfg
 				local ghostAge = gameFrame - tracked.lastSeenFrame
-				if ghostAge >= 1 and ghostAge <= GHOST_FRAMES then
-					local cfg = tracked.cfg
-					local lifeFrac = FADE_OUT_START_CACHED + (ghostAge * INV_GHOST_FRAMES) * ONE_MINUS_FADE_OUT
+				if ghostAge >= 1 and ghostAge <= cfg.ghostFrames then
+					local lifeFrac = FADE_OUT_START_CACHED + (ghostAge * cfg.invGhostFrames) * ONE_MINUS_FADE_OUT
 
 					local vx = tracked.endX - tracked.px
 					local vy = tracked.endY - tracked.py
 					local vz = tracked.endZ - tracked.pz
 					local beamLenSq = vx*vx + vy*vy + vz*vz
 					local intensityFalloff = BEAM_RANGE_FALLOFF_BASE + BEAM_RANGE_FALLOFF_MULT * mathMin(beamLenSq * cfg.invRangeSq, 1.0)
-					local flareVisible = ghostAge <= FLARE_GHOST_FRAMES
+					local flareVisible = ghostAge <= cfg.flareGhostFrames
 					local flarePulse = flareVisible and (1.0 - lifeFrac * FLARE_LIFE_DIM) or 0
 
 					beamCount = beamCount + 1
@@ -741,7 +754,7 @@ function gadget:GameFrame(n)
 		local removeCount = 0
 		local anyRemain = false
 		for wbKey, tracked in pairs(weaponBeams) do
-			if n - (tracked.lastSeenFrame or 0) > GHOST_FRAMES + 2 then
+			if n - (tracked.lastSeenFrame or 0) > GHOST_FRAMES_MAX + 2 then
 				removeCount = removeCount + 1
 				if not removeList then removeList = {} end
 				removeList[removeCount] = wbKey
