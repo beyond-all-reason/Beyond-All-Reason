@@ -1975,14 +1975,35 @@ local function weaponDef_Post(name, wDef)
 			if not wDef.model then
 				-- do not cast shadows on plasma shells
 				wDef.castshadow = false
-			end
 
-			if wDef.stages == nil then
-				wDef.stages = 10
-				if damage and damage.default and wDef.areaofeffect then
-					wDef.stages = math.floor(7.5 + math.min(damage.default * 0.0033, wDef.areaofeffect * 0.13))
-					wDef.alphadecay = 1 - ((1 / wDef.stages) / 1.5)
-					wDef.sizedecay = 0.4 / wDef.stages
+				if wDef.stages == nil then
+					wDef.stages = 10
+					if damage and damage.default and wDef.areaofeffect then
+						wDef.stages = math.floor(7.5 + math.min(damage.default * 0.0033, wDef.areaofeffect * 0.13))
+						wDef.alphadecay = 1 - ((1 / wDef.stages) / 1.5)
+						wDef.sizedecay = 0.4 / wDef.stages
+					end
+				end
+
+				-- Store original visual properties before zeroing (GL4 gadget reads WeaponDefs at runtime)
+				if not wDef.customparams then wDef.customparams = {} end
+				wDef.customparams.plasma_size_orig = wDef.size or 2
+
+				-- Hide engine cannon projectile rendering (GL4 gadget replaces it)
+				-- Keep size tiny but non-zero so projectile stays in GetVisibleProjectiles
+				wDef.size = 0.001
+				wDef.stages = 1
+				wDef.alphadecay = 1
+				wDef.sizedecay = 1
+				wDef.texture1 = "plasma_gl4_invis"
+			else
+				if wDef.stages == nil then
+					wDef.stages = 10
+					if damage and damage.default and wDef.areaofeffect then
+						wDef.stages = math.floor(7.5 + math.min(damage.default * 0.0033, wDef.areaofeffect * 0.13))
+						wDef.alphadecay = 1 - ((1 / wDef.stages) / 1.5)
+						wDef.sizedecay = 0.4 / wDef.stages
+					end
 				end
 			end
 		end
