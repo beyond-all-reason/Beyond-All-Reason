@@ -68,7 +68,7 @@ local glowTexture   = "bitmaps/projectiletextures/glow2.tga"
 
 -- Glow billboard config
 local GLOW_SIZE_MULT   = 13   -- glow billboard size as multiple of projectile cross-section size
-local GLOW_BRIGHTNESS  = 0.11   -- glow color multiplier (faint)
+local GLOW_BRIGHTNESS  = 0.1   -- glow color multiplier (faint)
 local GLOW_REF_SIZE    = 5.0   -- weapons at this size (after SIZE_MULT) get full glow; smaller ones dim proportionally
 
 -- Projectile sizing: the quad is elongated along velocity to create the trail shape
@@ -90,19 +90,19 @@ local shaderConfig = {
 	-- Noise displacement for blobby organic shape
 	NOISE_SCALE        = 4.5,    -- frequency of noise pattern (lower = bigger blobs)
 	NOISE_STRENGTH     = 0.8,   -- how much noise distorts the shape (higher = more blobby)
-	NOISE_SPEED        = 25.0,    -- animation speed of noise
+	NOISE_SPEED        = 33.0,    -- animation speed of noise
 	SWIRL_SPEED        = 5.0,    -- rotation speed of swirl effect
 	SWIRL_STRENGTH     = 1.4,    -- intensity of swirl distortion (higher = more visible rotation)
 
 	-- Core/edge color blending (radially from center)
 	CORE_EDGE_START    = 0.05,   -- radial distance where core-to-edge blend starts
 	CORE_EDGE_END      = 0.15,    -- radial distance where blend is fully edge color
-	CORE_BRIGHTNESS    = 2.0,    -- extra brightness for core center
+	CORE_BRIGHTNESS    = 1.5,    -- extra brightness for core center
 	BRIGHTNESS_MULT    = 1.0,    -- overall brightness multiplier
 	EDGE_SOFTNESS      = 0.25,    -- how soft the outer edge is
 
 	-- Trail shape: the blob is shifted forward and fades toward the back
-	TRAIL_SHIFT        = 0.2,    -- how much the bright center shifts toward the front (0 = centered)
+	TRAIL_SHIFT        = 0,    -- how much the bright center shifts toward the front (0 = centered)
 	TRAIL_FALLOFF      = 2,    -- how quickly brightness drops off toward the back (higher = sharper tail)
 }
 

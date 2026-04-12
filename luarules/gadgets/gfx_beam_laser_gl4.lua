@@ -73,7 +73,7 @@ local beamTexture  = "bitmaps/projectiletextures/largebeam.tga"
 local flareTexture = "bitmaps/projectiletextures/flare2.tga"
 
 -- Beam body
-local BEAM_WIDTH_MULT         = 0.6   -- multiplier on weapon thickness for beam quad width
+local BEAM_WIDTH_MULT         = 0.66   -- multiplier on weapon thickness for beam quad width
 local BEAM_SUSTAIN_LIFEFRAC   = 0.33   -- lifeFrac value for live beams (must be between FADE_IN_END and FADE_OUT_START)
 local BEAM_RANGE_FALLOFF_BASE = 0.1   -- minimum intensity falloff along beam length
 local BEAM_RANGE_FALLOFF_MULT = 0.5  -- additional falloff scaled by beam-length / weapon-range
@@ -88,15 +88,15 @@ local FLARE_LIFE_DIM        = 0.7   -- how much flare dims over beam lifetime (0
 
 -- Shader config (injected as #defines into beam vertex+fragment shaders)
 local shaderConfig = {
-	FADE_IN_END        = 0.12,    -- lifeFrac where width/alpha fade-in completes
-	FADE_OUT_START     = 0.8,   -- lifeFrac where width/alpha fade-out begins
-	RANGE_TAPER        = 0.20,   -- width reduction at beam end (0 = none, 1 = full taper to zero)
-	SHIMMER_AMPLITUDE  = 0.08,   -- width oscillation strength (0 = off)
-	SHIMMER_SPEED      = 0.35,   -- width oscillation speed (timeInfo.z multiplier)
-	CORE_EDGE_START    = 0.07,   -- |x| distance where core-to-edge color blend starts (0 = only center pixel)
-	CORE_EDGE_END      = 0.3,    -- |x| distance where blend is fully edge color
+	FADE_IN_END        = 0.1,    -- lifeFrac where width/alpha fade-in completes
+	FADE_OUT_START     = 0.85,   -- lifeFrac where width/alpha fade-out begins
+	RANGE_TAPER        = 0.25,   -- width reduction at beam end (0 = none, 1 = full taper to zero)
+	SHIMMER_AMPLITUDE  = 0.13,   -- width oscillation strength (0 = off)
+	SHIMMER_SPEED      = 40.0,   -- width oscillation speed (timeInfo.z multiplier)
+	CORE_EDGE_START    = 0.02,   -- |x| distance where core-to-edge color blend starts (0 = only center pixel)
+	CORE_EDGE_END      = 0.35,    -- |x| distance where blend is fully edge color
 	CORE_BRIGHTNESS    = 3.3,    -- extra brightness multiplier for core (squared falloff)
-	BRIGHTNESS_MULT    = 2.5,    -- overall beam brightness multiplier
+	BRIGHTNESS_MULT    = 2,    -- overall beam brightness multiplier
 }
 
 --------------------------------------------------------------------------------
