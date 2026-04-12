@@ -67,8 +67,9 @@ local plasmaTexture = "bitmaps/projectiletextures/plasmaball.tga"
 local glowTexture   = "bitmaps/projectiletextures/glow2.tga"
 
 -- Glow billboard config
-local GLOW_SIZE_MULT   = 3.5    -- glow billboard size as multiple of projectile cross-section size
-local GLOW_BRIGHTNESS  = 0.08   -- glow color multiplier (faint)
+local GLOW_SIZE_MULT   = 13   -- glow billboard size as multiple of projectile cross-section size
+local GLOW_BRIGHTNESS  = 0.11   -- glow color multiplier (faint)
+local GLOW_REF_SIZE    = 5.0   -- weapons at this size (after SIZE_MULT) get full glow; smaller ones dim proportionally
 
 -- Projectile sizing: the quad is elongated along velocity to create the trail shape
 local SIZE_MULT          = 1.4   -- global multiplier on weapon projectile size (cross-section width)
@@ -87,21 +88,21 @@ local shaderConfig = {
 	ELONGATION         = 5.5,    -- how much longer the quad is along velocity vs width (trail stretch)
 
 	-- Noise displacement for blobby organic shape
-	NOISE_SCALE        = 2.2,    -- frequency of noise pattern (lower = bigger blobs)
-	NOISE_STRENGTH     = 1.1,   -- how much noise distorts the shape (higher = more blobby)
-	NOISE_SPEED        = 6.0,    -- animation speed of noise
+	NOISE_SCALE        = 4.5,    -- frequency of noise pattern (lower = bigger blobs)
+	NOISE_STRENGTH     = 0.8,   -- how much noise distorts the shape (higher = more blobby)
+	NOISE_SPEED        = 25.0,    -- animation speed of noise
 	SWIRL_SPEED        = 5.0,    -- rotation speed of swirl effect
 	SWIRL_STRENGTH     = 1.4,    -- intensity of swirl distortion (higher = more visible rotation)
 
 	-- Core/edge color blending (radially from center)
-	CORE_EDGE_START    = 0.01,   -- radial distance where core-to-edge blend starts
-	CORE_EDGE_END      = 0.13,    -- radial distance where blend is fully edge color
-	CORE_BRIGHTNESS    = 1.0,    -- extra brightness for core center
+	CORE_EDGE_START    = 0.05,   -- radial distance where core-to-edge blend starts
+	CORE_EDGE_END      = 0.15,    -- radial distance where blend is fully edge color
+	CORE_BRIGHTNESS    = 2.0,    -- extra brightness for core center
 	BRIGHTNESS_MULT    = 1.0,    -- overall brightness multiplier
-	EDGE_SOFTNESS      = 0.22,    -- how soft the outer edge is
+	EDGE_SOFTNESS      = 0.25,    -- how soft the outer edge is
 
 	-- Trail shape: the blob is shifted forward and fades toward the back
-	TRAIL_SHIFT        = 0.6,    -- how much the bright center shifts toward the front (0 = centered)
+	TRAIL_SHIFT        = 0.2,    -- how much the bright center shifts toward the front (0 = centered)
 	TRAIL_FALLOFF      = 2,    -- how quickly brightness drops off toward the back (higher = sharper tail)
 }
 
@@ -374,6 +375,7 @@ layout (location = 0) in vec4 position_xy_uv;
 // Per-instance (shared layout with plasma VBO)
 layout (location = 1) in vec4 posAndSize;       // xyz = world pos, w = cross-section size
 layout (location = 3) in vec4 edgeColorAndSeed; // rgb = edge color
+layout (location = 4) in vec4 velocityAndLife;  // xyz = velocity dir (normalized)
 
 out DataVS {
 	vec2 texCoords;
@@ -390,19 +392,25 @@ void main()
 		return;
 	}
 
+	// Offset glow center to match the visual bright center of the plasma shape,
+	// which is shifted backward along velocity by TRAIL_SHIFT in UV space.
+	vec3 velDir = velocityAndLife.xyz;
+	vec3 glowCenter = worldPos - velDir * (size * ELONGATION * TRAIL_SHIFT);
+
 	float glowSize = size * GLOW_SIZE_MULT;
 
 	// Camera-facing billboard
 	vec3 camRight = cameraViewInv[0].xyz;
 	vec3 camUp    = cameraViewInv[1].xyz;
 
-	vec3 vertexWorld = worldPos
+	vec3 vertexWorld = glowCenter
 		+ camRight * position_xy_uv.x * glowSize
 		+ camUp    * position_xy_uv.y * glowSize;
 
 	gl_Position = cameraViewProj * vec4(vertexWorld, 1.0);
 	texCoords = position_xy_uv.zw;
-	glowColor = edgeColorAndSeed.rgb * GLOW_BRIGHTNESS;
+	float glowBright = GLOW_BRIGHTNESS * clamp(size / GLOW_REF_SIZE, 0.0, 1.0);
+	glowColor = edgeColorAndSeed.rgb * glowBright;
 }
 ]]
 
@@ -478,6 +486,9 @@ local function initGL4()
 		shaderConfig = {
 			GLOW_SIZE_MULT = GLOW_SIZE_MULT,
 			GLOW_BRIGHTNESS = GLOW_BRIGHTNESS,
+			GLOW_REF_SIZE = GLOW_REF_SIZE,
+			ELONGATION = shaderConfig.ELONGATION,
+			TRAIL_SHIFT = shaderConfig.TRAIL_SHIFT,
 		},
 		forceupdate = true,
 	}
