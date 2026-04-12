@@ -547,29 +547,19 @@ function gadget:Initialize()
 		featureDamageImmunity[featureDefID] = featureDef.indestructible or featureDef.geoThermal
 	end
 
-	unitRadiusMax = table.reduce(
-		UnitDefs,
-		function(radiusMax, unitDef, unitDefID)
-			if unitDamageImmunity[unitDefID] ~= immunities.all and unitDef.radius > radiusMax then
-				return unitDef.radius
-			else
-				return radiusMax
-			end
-		end,
-		0
-	)
+	unitRadiusMax = 0
+	for unitDefID = 1, #UnitDefs do
+		if unitDamageImmunity[unitDefID] ~= immunities.all and UnitDefs[unitDefID].radius > unitRadiusMax then
+			unitRadiusMax = UnitDefs[unitDefID].radius
+		end
+	end
 
-	featureRadiusMax = table.reduce(
-		FeatureDefs,
-		function(radiusMax, featureDef, featureDefID)
-			if not featureDamageImmunity[featureDefID] and featureDef.radius > radiusMax then
-				return featureDef.radius
-			else
-				return radiusMax
-			end
-		end,
-		0
-	)
+	featureRadiusMax = 0
+	for featureDefID = 1, #FeatureDefs do
+		if not featureDamageImmunity[featureDefID] and FeatureDefs[featureDefID].radius > featureRadiusMax then
+			featureRadiusMax = FeatureDefs[featureDefID].radius
+		end
+	end
 
 	aliveExplosions = {}
 	for ii = 1, frameInterval do
