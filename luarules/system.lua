@@ -97,6 +97,13 @@ if System == nil then
 		--
 		Json = Json,
 
+		-- BAR modules (set by init.lua; detached from Spring table)
+		Utilities = Utilities,
+		I18N = I18N,
+		Debug = Debug,
+		Lava = Lava,
+		GetModOptionsCopy = GetModOptionsCopy,
+
 		--
 		--  Standard functions and variables
 		--
