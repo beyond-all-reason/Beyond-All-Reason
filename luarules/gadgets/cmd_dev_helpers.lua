@@ -651,11 +651,13 @@ if gadgetHandler:IsSyncedCode() then
 					))
 			ExecuteRemoveUnitDefName(team1unitDefName)
 			ExecuteRemoveUnitDefName(team2unitDefName)
+			SendToUnsynced("fightertest_synchash_end")
 			return
 		end
 		fighterteststartgameframe = Spring.GetGameFrame()
 		fightertesttotalunitsspawned = 0
 		initrandom(7654321)
+		SendToUnsynced("fightertest_synchash_begin")
 		if words[2] and UnitDefNames[words[2]] then	team1unitDefName = words[2]
 		else Spring.Echo(words[2], "is not a valid unitDefName, using", team1unitDefName, "instead") end
 
@@ -740,6 +742,10 @@ if gadgetHandler:IsSyncedCode() then
 			adjustFeatureHeight()
 		end
 		if fightertestenabled then
+			if Engine.FeatureSupport.hasChecksums then
+				SendToUnsynced("fightertest_synchash_frame", n, Spring.GetPrevFrameChecksum())
+			end
+
 			if (n % 3 == 0)  then
 				SpawnUnitDefsForTeamSynced(0, team1unitDefName)
 				SpawnUnitDefsForTeamSynced(1, team2unitDefName)
@@ -947,6 +953,62 @@ else	-- UNSYNCED
 	local vsx,vsy = Spring.GetViewGeometry()
 	local uiScale = vsy / 1080
 
+	-- ----- Fightertest sync-hash collection -----
+	-- Receives per-frame sync checksums from the synced half during a
+	-- fightertest run, folds them into a single MD5 on end, and writes the
+	-- result to "fightertest_synchash.txt" in the Spring write directory.
+	-- Used by the engine CI sync test (RecoilEngine#2910).
+	local synchashBuffer = {}
+	local synchashFirstFrame, synchashLastFrame
+
+	local function onSynchashBegin()
+		synchashBuffer = {}
+		synchashFirstFrame, synchashLastFrame = nil, nil
+	end
+
+	local function onSynchashFrame(_, frame, checksum)
+		frame = tonumber(frame) or 0
+		checksum = tostring(checksum or "")
+		synchashBuffer[#synchashBuffer + 1] = string.format("%d:%s", frame, checksum)
+		if not synchashFirstFrame then synchashFirstFrame = frame end
+		synchashLastFrame = frame
+	end
+
+	local function onSynchashEnd()
+		local count = #synchashBuffer
+		if count == 0 then
+			Spring.Echo("[fightertest] sync-hash: no frames collected (engine may lack Spring.GetPrevFrameChecksum)")
+			return
+		end
+		local blob = table.concat(synchashBuffer, "\n")
+		local digest = VFS.CalculateHash(blob, 0)
+
+		local path = "fightertest_synchash.txt"
+		local content = digest .. "\n"
+			.. string.format("frames=%d first=%d last=%d\n",
+				count, synchashFirstFrame or -1, synchashLastFrame or -1)
+			.. blob .. "\n"
+
+		-- Unsynced gadgets have no io (LuaHandleSynced.cpp comments it out),
+		-- so we delegate the file write to a widget via Script.LuaUI, which
+		-- runs in the LuaUI context where io is available.
+		if Script.LuaUI('FightertestSyncHashWrite') then
+			local ok, result = Script.LuaUI.FightertestSyncHashWrite(path, content)
+			if ok then
+				Spring.Echo(string.format(
+					"[fightertest] sync-hash: wrote %s (md5=%s, %d frames %d..%d)",
+					result, digest, count, synchashFirstFrame or -1, synchashLastFrame or -1))
+			end
+		else
+			Spring.Echo("[fightertest] sync-hash: widget 'Fightertest Sync-Hash Writer' not loaded, cannot write file")
+			Spring.Echo(string.format(
+				"[fightertest_synchash] md5=%s frames=%d first=%d last=%d",
+				digest, count, synchashFirstFrame or -1, synchashLastFrame or -1))
+		end
+
+		synchashBuffer = {}
+	end
+
 	function gadget:Initialize()
 		-- doing it via GotChatMsg ensures it will only listen to the caller
 		gadgetHandler:AddChatAction('givecat', GiveCat, "")   -- Give a category of units, options /luarules givecat [cor|arm|scav|raptor] or /luarules givecat unitname [teamid]
@@ -973,6 +1035,10 @@ else	-- UNSYNCED
 		gadgetHandler:AddChatAction('playertoteam', playertoteam, "") -- /luarules playertoteam [playerID] [teamID] -- playerID+teamID are optional, no playerID given = your own playerID, no teamID = selected unit team or hovered unit team
 		gadgetHandler:AddChatAction('killteam', killteam, "") -- /luarules killteam [teamID] -- kills the team
 		gadgetHandler:AddChatAction('desync', desync) -- /luarules desync
+
+		gadgetHandler:AddSyncAction('fightertest_synchash_begin', onSynchashBegin)
+		gadgetHandler:AddSyncAction('fightertest_synchash_frame', onSynchashFrame)
+		gadgetHandler:AddSyncAction('fightertest_synchash_end',   onSynchashEnd)
 	end
 
 	function gadget:Shutdown()
@@ -996,6 +1062,10 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction('playertoteam')
 		gadgetHandler:RemoveChatAction('killteam')
 		gadgetHandler:RemoveChatAction('desync')
+
+		gadgetHandler:RemoveSyncAction('fightertest_synchash_begin')
+		gadgetHandler:RemoveSyncAction('fightertest_synchash_frame')
+		gadgetHandler:RemoveSyncAction('fightertest_synchash_end')
 	end
 
 	function xpUnits(_, line, words, playerID)
