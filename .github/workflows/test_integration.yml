@@ -26,6 +26,22 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Install Lux
+        uses: lumen-oss/gh-actions-lux@v1
+        with:
+          version: 0.26.1
+
+      - name: Cache Lux dependencies
+        uses: actions/cache@v4
+        with:
+          path: .lux
+          key: lux-5.1-${{ runner.os }}-${{ hashFiles('lux.lock') }}
+          restore-keys: |
+            lux-5.1-${{ runner.os }}-
+
+      - name: Install Lux dependencies
+        run: lx --lua-version 5.1 build
+
       - name: Build Test Image
         env:
           CUSTOM_ENGINE_URL: ${{ github.event.inputs.custom_engine_url || vars.CUSTOM_ENGINE_URL || '' }}
