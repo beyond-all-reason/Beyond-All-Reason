@@ -2029,18 +2029,27 @@ local function weaponDef_Post(name, wDef)
 				wDef.beamttl = 3
 				wDef.beamdecay = 0.7
 			end
+			-- Store original visual properties before zeroing (GL4 gadget reads WeaponDefs at runtime)
+			if not wDef.customparams then wDef.customparams = {} end
+			wDef.customparams.beam_thickness_orig = wDef.thickness or 2
+			wDef.customparams.beam_corethickness_orig = wDef.corethickness or 0.3
+			wDef.customparams.beam_laserflaresize_orig = wDef.laserflaresize or 7
 			if wDef.corethickness then
-				wDef.corethickness = wDef.corethickness * 1.21
+				wDef.customparams.beam_corethickness_orig = wDef.corethickness * 1.21
 			end
 			if wDef.thickness then
-				wDef.thickness = wDef.thickness * 1.27
+				wDef.customparams.beam_thickness_orig = wDef.thickness * 1.27
 			end
 			if wDef.laserflaresize then
-				wDef.laserflaresize = wDef.laserflaresize * 1.15        -- note: thickness affects this too
+				wDef.customparams.beam_laserflaresize_orig = wDef.laserflaresize * 1.15
 			end
-			wDef.texture1 = "largebeam"        -- The projectile texture
-			wDef.texture3 = "flare2"    -- Flare texture for #BeamLaser
-			wDef.texture4 = "flare2"    -- Flare texture for #BeamLaser with largeBeamLaser = true
+			-- Hide engine beam rendering (GL4 gadget replaces it)
+			wDef.thickness = 0.001
+			wDef.corethickness = 0
+			wDef.laserflaresize = 0
+			wDef.texture1 = "beam_gl4_invis"   -- nonexistent texture -> engine Draw() early-outs
+			wDef.texture3 = "beam_gl4_invis"
+			wDef.texture4 = "beam_gl4_invis"
 		end
 
 		-- scavengers
