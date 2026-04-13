@@ -1758,7 +1758,7 @@ local definitions = {
             water              = true,
             properties = {
                 --colormap           = [[1 0.5 0.1 0.01   1.0 0.4 0.05 0.01   1.0 0.2 0.02 0.01   0.5 0.1 0 0.01   0 0 0 0.01]],
-                colormap           = [[1 0.5 0.85 0.01   1.0 0.4 0.85 0.01   1.0 0.2 0.8 0.01   0.5 0.1 0.4 0.01   0 0 0 0.01]],
+                colormap           = [[1 0.5 0.85 0.0   1 0.5 0.85 0.01   1.0 0.4 0.85 0.01   1.0 0.2 0.8 0.01   0.5 0.1 0.4 0.01   0 0 0 0.01]],
                 dir                = [[dir]],
                 frontoffset        = 0,
                 fronttexture       = [[none]],
@@ -1793,62 +1793,7 @@ local definitions = {
     },
 
     ["flaktrailaa"] = {
-        --groundflash = {
-        --  circlealpha        = 0,
-        --  circlegrowth       = 0,
-        --  flashalpha         = 0.05,
-        --  flashsize          = 38,
-        --  ttl                = 10,
-        --  color = {
-        --    [1]  = 0.80000001192093,
-        --    [2]  = 0.50000000149012,
-        --    [3]  = 0.15,
-        --  },
-        --},
-
-        -- engine = {
-        --    air                = true,
-        --    class              = [[CBitmapMuzzleFlame]],
-        --   count              = 1,
-        --    ground             = true,
-        --    underwater         = 1,
-        --    water              = true,
-        --    properties = {
-        --        --colormap           = [[1 0.5 0.1 0.01   1.0 0.4 0.05 0.01   1.0 0.2 0.02 0.01   0.5 0.1 0 0.01   0 0 0 0.01]],
-        --        colormap           = [[1 0.5 0.85 0.01   1.0 0.4 0.85 0.01   1.0 0.2 0.8 0.01   0.5 0.1 0.4 0.01   0 0 0 0.01]],
-        --        dir                = [[dir]],
-        --        frontoffset        = 0,
-        --        fronttexture       = [[none]],
-        --        length             = 32,
-        --        sidetexture        = [[muzzlesideflipped]],
-        --        size               = 2.8,
-        --        sizegrowth         = 0,
-        --        ttl                = 1,
-        --    },
-        -- },
-        -- brightflare = {
-        --   air                = true,
-        --   class              = [[CBitmapMuzzleFlame]],
-        --   count              = 1,
-        --   ground             = true,
-        --   underwater         = true,
-        --   water              = true,
-        --   properties = {
-        --     colormap           = [[1.0 0.96 0.80 0.1    0.35 0.28 0.18 0.05    0 0 0 0]],
-        --     dir                = [[0, 1, 0]],
-        --     --gravity            = [[0.0, 0.1, 0.0]],
-        --     frontoffset        = 0,
-        --     fronttexture       = [[exploflare]],
-        --     length             = 40,
-        --     sidetexture        = [[none]],
-        --     size               = 12,
-        --     sizegrowth         = [[0.4 r0.2]],
-        --     ttl                = 2,
-        --     pos                = [[0, 0, 0]],
-        --     drawOrder          = 1,
-        --   },
-        -- },
-        engineglow = {
+        trail = {
             air                = true,
             class              = [[CBitmapMuzzleFlame]],
             count              = 1,
@@ -1856,7 +1801,7 @@ local definitions = {
             underwater         = 1,
             water              = true,
             properties = {
-                colormap           = [[0.90 0.35 0.80 0.4   0.40 0.11 0.34 0.1   0 0 0 0.01]],
+                colormap           = [[0.90 0.35 0.80 0.0  0.90 0.35 0.80 0.0  0.90 0.35 0.80 0.4   0.8 0.22 0.68 0.2   0.40 0.11 0.34 0.1   0 0 0 0.01]],
                 dir                = [[dir]],
                 frontoffset        = 0,
                 fronttexture       = [[trans]],
@@ -1865,35 +1810,14 @@ local definitions = {
                 sidetexture        = [[trail3]],
                 size               = 4.2,
                 sizegrowth         = -0.08,
-                ttl                = 3,
+                ttl                = 2,
                 pos                = [[0, -2, 0]],
             },
         },
-        -- trail = {
-        --    air                = false,
-        --    class              = [[CBitmapMuzzleFlame]],
-        --    count              = 1,
-        --    ground             = true,
-        --    underwater         = 1,
-        --    water              = true,
-        --    properties = {
-        --        colormap           = [[0.88 0.20 0.8 0.8   0.16 0.12 0.14 0.6   0 0 0 0.01]],
-        --        dir                = [[dir]],
-        --        frontoffset        = 0,
-        --        fronttexture       = [[trans]],
-        --        length             = -2,
-        --        sidetexture        = [[smoketrail]],
-        --        size               = 1.8,
-        --        sizegrowth         = -0.1,
-        --        ttl                = 3,
-        --    },
-        --},
     },
 
     ["flaktrailaamg"] = {
-
-
-        engineglow = {
+        trail = {
             air                = true,
             class              = [[CBitmapMuzzleFlame]],
             count              = 1,
@@ -1901,7 +1825,7 @@ local definitions = {
             underwater         = 1,
             water              = true,
             properties = {
-                colormap           = [[0.90 0.35 0.80 0.4   0.40 0.11 0.34 0.1   0 0 0 0.01]],
+                colormap           = [[0.90 0.35 0.80 0.0  0.90 0.35 0.80 0.0  0.90 0.35 0.80 0.4   0.8 0.22 0.68 0.2   0.40 0.11 0.34 0.1   0 0 0 0.01]],
                 dir                = [[dir]],
                 frontoffset        = 0,
                 fronttexture       = [[trans]],
@@ -1910,14 +1834,13 @@ local definitions = {
                 sidetexture        = [[trail3]],
                 size               = 1.2,
                 sizegrowth         = -0.08,
-                ttl                = 3,
+                ttl                = 2,
                 pos                = [[0, 2, 0]],
             },
         },
     },
 
     ["missiletrailaa-medium"] = {
-
       fire = {
           air                = true,
           class              = [[CSimpleParticleSystem]],
