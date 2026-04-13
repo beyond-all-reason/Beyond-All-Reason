@@ -19,17 +19,22 @@ end
 --------------------------------------------------------------------------------
 -- Configuration ---------------------------------------------------------------
 
-local correctionAngleMax = math.rad(12) -- Try to prevent noticeable corrections with nearby targets.
+-- Try to prevent noticeable corrections with nearby targets. The typical angle
+-- difference between the initial velocity and the post-correction velocity is
+-- from 1 to 4 degrees. Closer targets tend to cause angles from 5 to 8 degrees.
+local correctionAngleMax = math.rad(12)
 
 --------------------------------------------------------------------------------
 -- Localization ----------------------------------------------------------------
 
-local math_abs = math.abs
 local math_min = math.min
 local math_max = math.max
 local math_clamp = math.clamp
 local math_sqrt = math.sqrt
 local math_diag = math.diag
+local math_normalize = math.normalize
+local math_dot = math.dot_product
+local math_cross = math.cross_vector
 local dist2dSquared = math.distance2dSquared
 local dist3dSquared = math.distance3dSquared
 local math_cos = math.cos
@@ -54,7 +59,7 @@ local spValidUnitID = Spring.ValidUnitID
 local gameSpeed = Game.gameSpeed
 local gravityPerFrame = -Game.gravity / (gameSpeed ^ 2)
 
-local ARC_EPSILON = 1e-6
+local NAN_EPSILON = 1e-5
 local TAANG2RAD = math.tau / COBSCALE
 local UNIT = string.byte("u")
 local TRAJECTORY_UNIT = 2
@@ -113,8 +118,8 @@ local function clampToCone(fromX, fromY, fromZ, toX, toY, toZ, range, radius)
 	return toX, toY, toZ
 end
 
-local instantDuration = 0.1667 * Game.gameSpeed ---Should be pretty fast
-local instantWeapons = { BeamLaser = true, LaserCannon = true, LightningCannon = true, Rifle = true, }
+local instantDuration = 0.3333 * Game.gameSpeed -- Fast enough, anyway
+local instantWeapons = { LightningCannon = true, Rifle = true, }
 local reaimEffects = { guidance = true, sector_fire = true }
 local spreadDistanceMax = Game.squareSize * Game.footprintScale * 5 -- Use the reference dimension of a large-ish unit as an accuracy cutoff
 
@@ -126,8 +131,9 @@ local function getAimCorrectionParams(weaponDef)
 	local canTrackTarget = weaponDef.tracks and weaponDef.turnRate > weaponDef.projectilespeed * 0.1
 	local hasReaimEffect = weaponDef.customParams.speceffect and reaimEffects[weaponDef.customParams.speceffect]
 	local hasLowAccuracy = (weaponDef.accuracy + weaponDef.sprayAngle) * TAANG2RAD * weaponDef.range >= spreadDistanceMax + weaponDef.damageAreaOfEffect * 0.5
+	local hasLargeSalvo = weaponDef.salvoSize >= 6
 
-	if isFakeWeapon or isShieldWeapon or isInstantHit or isHighTrajectory or canTrackTarget or hasReaimEffect or hasLowAccuracy then
+	if isFakeWeapon or isShieldWeapon or isInstantHit or isHighTrajectory or canTrackTarget or hasReaimEffect or hasLowAccuracy or hasLargeSalvo then
 		return false
 	end
 
@@ -150,13 +156,13 @@ local function getAimCorrectionParams(weaponDef)
 		range        = weaponDef.range,
 		speed        = weaponDef.projectilespeed,
 
-		leadLimit    = math.abs(weaponDef.leadLimit),
-		leadBonus    = weaponDef.leadBonus,
+		leadLimit    = math.abs(weaponDef.leadLimit), -- todo: the mystery of the negative lead limit
+		leadBonus    = weaponDef.leadBonus, -- todo: bonus/boost unused
 		predictBoost = weaponDef.predictBoost,
 
 		gravity      = weaponDef.gravityAffected, -- todo: handle special gravities
 		heightMod    = weaponDef.heightMod,
-		trajectory   = weaponDef.highTrajectory,
+		trajectory   = weaponDef.highTrajectory == TRAJECTORY_UNIT,
 
 		clamp        = clampToTargetingVolume,
 	}
@@ -182,52 +188,37 @@ local function buildRotation(ox, oy, oz, ax, ay, az, bx, by, bz, angleMax)
 	local uw = math_diag(ux, uy, uz)
 	local vw = math_diag(vx, vy, vz)
 
-	if uw == 0 or vw == 0 then
+	if uw * vw <= NAN_EPSILON then
 		return 0, 0, 0, 0
 	end
 
-	local cosAngle = math_clamp((ux * vx + uy * vy + uz * vz) / uw / vw, -1, 1)
-	local angle = math_acos(cosAngle)
-	local factor = math_min(1, angleMax / angle)
+	ux, uy, uz = ux / uw, uy / uw, uz / uw
+	vx, vy, vz = vx / vw, vy / vw, vz / vw
 
-	if factor <= ARC_EPSILON then
+	local angle = math_acos(math_clamp(math_dot(ux, uy, uz, vx, vy, vz), -1, 1))
+	if angle <= NAN_EPSILON then
 		return 0, 0, 0, 0
 	end
 
-	if factor >= 1 - ARC_EPSILON then
-		return vx / vw, vy / vw, vz / vw, angle
-	end
-
-	if math_abs(cosAngle) < 1 - ARC_EPSILON then
-		local weight1 = math_sin(angle * (1 - factor)) / uw
-		local weight2 = math_sin(angle * (    factor)) / vw
-		local rescale = uw / math_sin(angle)
-		local cx = (ux * weight1 + vx * weight2) * rescale
-		local cy = (uy * weight1 + vy * weight2) * rescale
-		local cz = (uz * weight1 + vz * weight2) * rescale
-		local cw = math_diag(cx, cy, cz)
-		return cx / cw, cy / cw, cz / cw, angle * factor
-	end
-
-	return cosAngle > 0
+	local cx, cy, cz = math_normalize(math_cross(ux, uy, uz, vx, vy, vz))
+	return cx, cy, cz, math_min(angle, angleMax) * 0.5 -- This was double-ish somehow?
 end
 
 local function applyRotation(rx, ry, rz, angle, px, py, pz)
-	local crossX = ry * pz - rz * py
-	local crossY = rz * px - rx * pz
-	local crossZ = rx * py - ry * px
-	local dot = rx * px + ry * py + rz * pz
 	local cosAngle = math_cos(angle)
 	local sinAngle = math_sin(angle)
+	local cx, cy, cz = math_cross(rx, ry, rz, px, py, pz)
+	local dotTerm = math_dot(rx, ry, rz, px, py, pz) * (1 - cosAngle)
+	-- Rodrigues: p' = p * cos(θ) + (r × p) * sin(θ) + r * (r · p) * (1 - cos(θ))
 	return
-		px * cosAngle + crossX * sinAngle + dot * rx * (1 - cosAngle),
-		py * cosAngle + crossY * sinAngle + dot * ry * (1 - cosAngle),
-		pz * cosAngle + crossZ * sinAngle + dot * rz * (1 - cosAngle)
+		px * cosAngle + cx * sinAngle + rx * dotTerm,
+		py * cosAngle + cy * sinAngle + ry * dotTerm,
+		pz * cosAngle + cz * sinAngle + rz * dotTerm
 end
 
 local function getTargetData(targetID)
-	local _, _, _, midX, midY, midZ, aimX, aimY, aimZ = spGetUnitPosition(targetID, true, true)
-	return midX, midY, midZ, aimX, aimY, aimZ, spGetUnitDefID(targetID), spGetUnitRadius(targetID)
+	local baseX, baseY, baseZ, midX, midY, midZ, aimX, aimY, aimZ = spGetUnitPosition(targetID, true, true)
+	return baseX, baseY, baseZ, midX, midY, midZ, aimX, aimY, aimZ, spGetUnitDefID(targetID), spGetUnitRadius(targetID)
 end
 
 local readAs = { read = -1 }
@@ -237,8 +228,10 @@ local function readAsTeam(teamID, ...)
 	return CallAsTeam(read, ...)
 end
 
+local corrected = 0
+
 local function updateAimDirection(projectileID, params, targetID)
-	local midX, midY, midZ, aimX, aimY, aimZ, targetDefID, targetRadius = getTargetData(targetID)
+	local baseX, baseY, baseZ, midX, midY, midZ, aimX, aimY, aimZ, targetDefID, targetRadius = getTargetData(targetID)
 	if not midX or not targetDefID or targetRadius == 0 then
 		return
 	end
@@ -248,9 +241,12 @@ local function updateAimDirection(projectileID, params, targetID)
 	if not uvx or (projSpeed or 0) == 0 then
 		return
 	end
+	if math.dot_product(uvx, uvy, uvz, pvx, pvy, pvz) < projSpeed * 0.25 then
+		return -- target is not retreating, underrange doesn't matter
+	end
 
 	-- todo: High trajectories need to use a counter-rotation for reaiming.
-	if params.trajectory == TRAJECTORY_UNIT and pvy >= math_diag(pvx, pvz) then
+	if params.trajectory and pvy >= math_diag(pvx, pvz) then
 		return
 	end
 
@@ -259,6 +255,12 @@ local function updateAimDirection(projectileID, params, targetID)
 
 	local targetX, targetY, targetZ = midX, midY, midZ -- The inferred targetBorder-based position.
 	local aimPosX, aimPosY, aimPosZ = aimX, aimY, aimZ -- The new, preferred aimPos-based position.
+
+	if params.gravityAffected and baseY <= Spring.GetGroundHeight(baseX, baseZ) + 1 then
+		aimPosX = (aimPosX + baseX) * 0.5
+		aimPosY = (aimPosY + baseY) * 0.5
+		aimPosZ = (aimPosZ + baseZ) * 0.5
+	end
 
 	local targetBorderRadius = params.targetBorder * targetRadius
 	targetX = targetX - pdx * targetBorderRadius
@@ -283,7 +285,23 @@ local function updateAimDirection(projectileID, params, targetID)
 	aimPosX, aimPosY, aimPosZ = params.clamp(px, py, pz, aimPosX, aimPosY, aimPosZ, params.range, targetRadius)
 
 	local rx, ry, rz, rw = buildRotation(px, py, pz, targetX, targetY, targetZ, aimPosX, aimPosY, aimPosZ, params.angleMax)
+
+	if (rw or 0) == 0 then
+		return
+	end
+
+	corrected = corrected + 1
+
 	spSetProjectileVelocity(projectileID, applyRotation(rx, ry, rz, rw, pvx, pvy, pvz))
+
+	-- lol just spawn two:
+	Spring.SpawnProjectile(Spring.GetProjectileDefID(projectileID), {
+		pos     = { px, py, pz },
+		speed   = { pvx, pvy, pvz },
+		owner   = Spring.GetProjectileOwnerID(projectileID),
+		team    = Spring.GetProjectileTeamID(projectileID),
+		gravity = gravityPerFrame,
+	})
 end
 
 local function applyAimCorrection(projectileID, ownerID, params)
@@ -315,5 +333,69 @@ end
 function gadget:ProjectileCreated(projectileID, ownerID, weaponDefID)
 	if weaponAimCorrection[weaponDefID] then
 		applyAimCorrection(projectileID, ownerID, weaponAimCorrection[weaponDefID])
+	end
+end
+
+local collectStats = true -- ! testing
+
+if collectStats then
+	local projectiles = {}
+	local destroyed = {}
+	local full = 0
+	local partial = 0
+	local hitRate = 0
+	local hitCount = 0
+	local fired = 0
+	local destroyed = 0
+
+	function gadget:ProjectileCreated(projectileID, ownerID, weaponDefID)
+		if weaponAimCorrection[weaponDefID] then
+			applyAimCorrection(projectileID, ownerID, weaponAimCorrection[weaponDefID])
+			projectiles[projectileID] = 0
+			fired = fired + 1
+		end
+	end
+
+	local spGetProjectileDamages = Spring.GetProjectileDamages
+
+	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
+		if projectiles[projectileID] and unitTeam ~= attackerTeam then
+			local damageBase = spGetProjectileDamages(projectileID, 0)
+			projectiles[projectileID] = math_clamp(projectiles[projectileID] + damage / damageBase, 0, 2)
+			if damage >= damageBase - 1 then
+				full = full + damage
+			else
+				partial = partial + damage
+			end
+		end
+	end
+
+	function gadget:ProjectileDestroyed(projectileID)
+		if projectiles[projectileID] then
+			destroyed[projectileID] = projectiles[projectileID]
+			projectiles[projectileID] = nil
+			destroyed = destroyed + 1
+		end
+	end
+
+	function gadget:GameFramePost(frame)
+		for _, damageRate in pairs(destroyed) do
+			hitRate = (hitRate * hitCount + damageRate) / (hitCount + 1)
+			hitCount = hitCount + 1
+		end
+		destroyed = {}
+		if frame % 300 == 0 or destroyed == 30000 then
+			Spring.Echo(
+				"corrections",
+				fired > 0 and corrected / fired or 0,
+				"hits",
+				hitCount,
+				hitRate,
+				(full > 0 or partial > 0) and partial / (full + partial) or 0
+			)
+		end
+		if destroyed == 30000 then
+			Spring.Echo("test completed")
+		end
 	end
 end
