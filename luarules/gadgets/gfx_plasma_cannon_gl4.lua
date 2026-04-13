@@ -72,7 +72,7 @@ local GLOW_BRIGHTNESS  = 0.1   -- glow color multiplier (faint)
 local GLOW_REF_SIZE    = 5.0   -- weapons at this size (after SIZE_MULT) get full glow; smaller ones dim proportionally
 
 -- Projectile sizing: the quad is elongated along velocity to create the trail shape
-local SIZE_MULT          = 1.4   -- global multiplier on weapon projectile size (cross-section width)
+local SIZE_MULT          = 1.5   -- global multiplier on weapon projectile size (cross-section width)
 
 -- Core color boost
 local CORE_COLOR_ADD     = 0.4  -- added to weapon RGB to create brighter core color
@@ -85,21 +85,21 @@ local DEFAULT_COLOR = { 1.0, 0.55, 0.1 }  -- warm orange (matches old plasmaball
 -- Shader config (injected as #defines)
 local shaderConfig = {
 	-- Shape
-	ELONGATION         = 5.5,    -- how much longer the quad is along velocity vs width (trail stretch)
+	ELONGATION         = 4,    -- how much longer the quad is along velocity vs width (trail stretch)
 
 	-- Noise displacement for blobby organic shape
 	NOISE_SCALE        = 4.5,    -- frequency of noise pattern (lower = bigger blobs)
-	NOISE_STRENGTH     = 0.8,   -- how much noise distorts the shape (higher = more blobby)
-	NOISE_SPEED        = 33.0,    -- animation speed of noise
-	SWIRL_SPEED        = 5.0,    -- rotation speed of swirl effect
-	SWIRL_STRENGTH     = 1.4,    -- intensity of swirl distortion (higher = more visible rotation)
+	NOISE_STRENGTH     = 1.1,   -- how much noise distorts the shape (higher = more blobby)
+	NOISE_SPEED        = 50.0,    -- animation speed of noise
+	SWIRL_SPEED        = 365.0,    -- rotation speed of swirl effect
+	SWIRL_STRENGTH     = 5,    -- intensity of swirl distortion (higher = more visible rotation)
 
 	-- Core/edge color blending (radially from center)
-	CORE_EDGE_START    = 0.05,   -- radial distance where core-to-edge blend starts
-	CORE_EDGE_END      = 0.15,    -- radial distance where blend is fully edge color
-	CORE_BRIGHTNESS    = 1.5,    -- extra brightness for core center
+	CORE_EDGE_START    = 0.1,   -- radial distance where core-to-edge blend starts
+	CORE_EDGE_END      = 0.25,    -- radial distance where blend is fully edge color
+	CORE_BRIGHTNESS    = 1.0,    -- extra brightness for core center
 	BRIGHTNESS_MULT    = 1.0,    -- overall brightness multiplier
-	EDGE_SOFTNESS      = 0.25,    -- how soft the outer edge is
+	EDGE_SOFTNESS      = 0.22,    -- how soft the outer edge is
 
 	-- Trail shape: the blob is shifted forward and fades toward the back
 	TRAIL_SHIFT        = 0,    -- how much the bright center shifts toward the front (0 = centered)
@@ -129,6 +129,8 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
 
 		local cp = weaponDef.customParams or {}
 		local size = tonumber(cp.plasma_size_orig) or weaponDef.size or 2
+
+		size = (size * 0.85) + (weaponDef.damageAreaOfEffect / 125)  -- add blast radius to size for better core/edge color distribution
 
 		weaponConfigs[weaponID] = {
 			colorR = r,    colorG = g,    colorB = b,
