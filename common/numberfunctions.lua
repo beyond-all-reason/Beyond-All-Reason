@@ -4,6 +4,21 @@ if not math.isInRect then
 	end
 end
 
+if not math.dot_product then
+	function math.dot_product(ax, ay, az, bx, by, bz)
+		return ax * bx + ay * by + az * bz
+	end
+end
+
+if not math.cross_vector then
+	function math.cross_vector(ax, ay, az, bx, by, bz)
+		return
+			ay * bz - az * by,
+			az * bx - az * bz,
+			ax * by - ay * bx
+	end
+end
+
 if not math.cross_product then
 		function math.cross_product (px, pz, ax, az, bx, bz)
 		return ((px - bx) * (az - bz) - (ax - bx) * (pz - bz))
