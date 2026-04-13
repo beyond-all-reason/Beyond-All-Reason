@@ -68,8 +68,11 @@ local glowTexture   = "bitmaps/projectiletextures/glow2.tga"
 
 -- Glow billboard config
 local GLOW_SIZE_MULT   = 13   -- glow billboard size as multiple of projectile cross-section size
-local GLOW_BRIGHTNESS  = 0.1   -- glow color multiplier (faint)
+local GLOW_BRIGHTNESS  = 0.14   -- glow color multiplier (faint)
 local GLOW_REF_SIZE    = 5.0   -- weapons at this size (after SIZE_MULT) get full glow; smaller ones dim proportionally
+
+-- Cross-section billboard (camera-facing round blob, visible when looking along velocity)
+local CROSS_SECTION_BRIGHTNESS = 0.7  -- brightness multiplier for the head-on cross-section
 
 -- Projectile sizing: the quad is elongated along velocity to create the trail shape
 local SIZE_MULT          = 1.5   -- global multiplier on weapon projectile size (cross-section width)
@@ -112,8 +115,8 @@ local shaderConfig = {
 local weaponConfigs = {}
 
 for weaponID, weaponDef in pairs(WeaponDefs) do
-	if weaponDef.type == "Cannon" and not weaponDef.model then
-		local vis = weaponDef.visuals or {}
+	local vis = weaponDef.visuals or {}
+	if weaponDef.type == "Cannon" and not weaponDef.model and (not vis.modelName or vis.modelName == "") then
 		local r = vis.colorR or 1
 		local g = vis.colorG or 1
 		local b = vis.colorB or 1
@@ -199,15 +202,15 @@ void main()
 	vec3 velDir = velocityAndLife.xyz;
 	float speed = velocityAndLife.w;
 
-	// Build orientation: forward = velocity, right = camera-perpendicular
-	vec3 camPos = cameraViewInv[3].xyz;
-	vec3 toCamera = normalize(camPos - worldPos);
-	vec3 right = cross(velDir, toCamera);
-	float rightLen = length(right);
-	if (rightLen < 0.001) {
-		right = normalize(cross(velDir, vec3(0.0, 1.0, 0.0)));
+	// Fixed world-derived perpendicular axis (does not rotate with camera).
+	// The cross pass uses the other perpendicular — together they form a
+	// stable cross shape visible from all angles.
+	vec3 axis1 = cross(velDir, vec3(0.0, 1.0, 0.0));
+	float axis1Len = length(axis1);
+	if (axis1Len < 0.001) {
+		axis1 = normalize(cross(velDir, vec3(1.0, 0.0, 0.0)));
 	} else {
-		right = right / rightLen;
+		axis1 = axis1 / axis1Len;
 	}
 
 	// Vertex x: across width (-1..1), vertex y: along velocity (-1..1)
@@ -221,7 +224,7 @@ void main()
 	float paddedHalfLength = halfLength * (1.0 + abs(TRAIL_SHIFT));
 
 	vec3 vertexWorld = worldPos
-		+ right  * position_xy_uv.x * halfWidth
+		+ axis1  * position_xy_uv.x * halfWidth
 		+ velDir * position_xy_uv.y * paddedHalfLength;
 
 	gl_Position = cameraViewProj * vec4(vertexWorld, 1.0);
@@ -359,6 +362,230 @@ void main(void)
 ]]
 
 --------------------------------------------------------------------------------
+-- Shader sources: Cross billboard (90-degree rotated plasma quad)
+-- Uses 'up' vector instead of 'right' so the two quads form a cross shape
+-- that provides visual volume from all camera angles.
+-- Reuses the same fragment shader as the main plasma pass.
+--------------------------------------------------------------------------------
+local crossVsSrc = [[
+#version 420
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shading_language_420pack: require
+#line 50000
+
+//__DEFINES__
+//__ENGINEUNIFORMBUFFERDEFS__
+
+layout (location = 0) in vec4 position_xy_uv;
+
+layout (location = 1) in vec4 posAndSize;
+layout (location = 2) in vec4 coreColor;
+layout (location = 3) in vec4 edgeColorAndSeed;
+layout (location = 4) in vec4 velocityAndLife;
+
+out DataVS {
+	vec2 texCoords;
+	vec4 vCoreColor;
+	vec4 vEdgeColor;
+	float noiseSeed;
+};
+
+void main()
+{
+	vec3 worldPos = posAndSize.xyz;
+	float size = posAndSize.w;
+
+	if (size <= 0.0) {
+		gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+		return;
+	}
+
+	vec3 velDir = velocityAndLife.xyz;
+
+	// Second perpendicular axis: cross(axis1, velDir) where axis1 = cross(velDir, worldUp).
+	// Together with the main pass (which uses axis1) this forms a stable cross.
+	vec3 axis1 = cross(velDir, vec3(0.0, 1.0, 0.0));
+	float axis1Len = length(axis1);
+	if (axis1Len < 0.001) {
+		axis1 = normalize(cross(velDir, vec3(1.0, 0.0, 0.0)));
+	} else {
+		axis1 = axis1 / axis1Len;
+	}
+	vec3 axis2 = cross(axis1, velDir);
+
+	float halfWidth  = size;
+	float halfLength = size * ELONGATION;
+	float paddedHalfLength = halfLength * (1.0 + abs(TRAIL_SHIFT));
+
+	vec3 vertexWorld = worldPos
+		+ axis2  * position_xy_uv.x * halfWidth
+		+ velDir * position_xy_uv.y * paddedHalfLength;
+
+	gl_Position = cameraViewProj * vec4(vertexWorld, 1.0);
+
+	texCoords = position_xy_uv.zw;
+	vCoreColor = coreColor;
+	vEdgeColor = edgeColorAndSeed;
+	noiseSeed = edgeColorAndSeed.a;
+}
+]]
+
+--------------------------------------------------------------------------------
+-- Shader sources: Cross-section (camera-facing circular billboard)
+-- Visible when looking along the velocity direction (head-on).
+-- Fades out when viewed from the side so it doesn't double-up with the
+-- main elongated quads.
+--------------------------------------------------------------------------------
+local crossSectionVsSrc = [[
+#version 420
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shading_language_420pack: require
+#line 60000
+
+//__DEFINES__
+//__ENGINEUNIFORMBUFFERDEFS__
+
+layout (location = 0) in vec4 position_xy_uv;
+
+layout (location = 1) in vec4 posAndSize;
+layout (location = 2) in vec4 coreColor;
+layout (location = 3) in vec4 edgeColorAndSeed;
+layout (location = 4) in vec4 velocityAndLife;
+
+out DataVS {
+	vec2 texCoords;
+	vec4 vCoreColor;
+	vec4 vEdgeColor;
+	float noiseSeed;
+	float headOnFactor;
+};
+
+void main()
+{
+	vec3 worldPos = posAndSize.xyz;
+	float size = posAndSize.w;
+
+	if (size <= 0.0) {
+		gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+		return;
+	}
+
+	vec3 velDir = velocityAndLife.xyz;
+
+	// How head-on is the camera view? (1 = looking along velocity, 0 = side view)
+	vec3 camPos = cameraViewInv[3].xyz;
+	vec3 toCamera = normalize(camPos - worldPos);
+	float headOn = abs(dot(velDir, toCamera));
+
+	// Only visible when looking along velocity; fade out from side view
+	if (headOn < 0.3) {
+		gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+		return;
+	}
+
+	// Camera-facing billboard, circular (same size in both axes)
+	vec3 camRight = cameraViewInv[0].xyz;
+	vec3 camUp    = cameraViewInv[1].xyz;
+
+	vec3 vertexWorld = worldPos
+		+ camRight * position_xy_uv.x * size
+		+ camUp    * position_xy_uv.y * size;
+
+	gl_Position = cameraViewProj * vec4(vertexWorld, 1.0);
+
+	texCoords = position_xy_uv.zw;
+	vCoreColor = coreColor;
+	vEdgeColor = edgeColorAndSeed;
+	noiseSeed = edgeColorAndSeed.a;
+	headOnFactor = smoothstep(0.3, 0.7, headOn);
+}
+]]
+
+local crossSectionFsSrc = [[
+#version 420
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shading_language_420pack: require
+#line 70000
+
+//__DEFINES__
+//__ENGINEUNIFORMBUFFERDEFS__
+
+in DataVS {
+	vec2 texCoords;
+	vec4 vCoreColor;
+	vec4 vEdgeColor;
+	float noiseSeed;
+	float headOnFactor;
+};
+
+out vec4 fragColor;
+
+vec3 hash33(vec3 p) {
+	p = vec3(dot(p, vec3(127.1, 311.7, 74.7)),
+			  dot(p, vec3(269.5, 183.3, 246.1)),
+			  dot(p, vec3(113.5, 271.9, 124.6)));
+	return fract(sin(p) * 43758.5453123) * 2.0 - 1.0;
+}
+
+float noise3D(vec3 p) {
+	vec3 i = floor(p);
+	vec3 f = fract(p);
+	vec3 u = f * f * (3.0 - 2.0 * f);
+
+	return mix(mix(mix(dot(hash33(i + vec3(0,0,0)), f - vec3(0,0,0)),
+					   dot(hash33(i + vec3(1,0,0)), f - vec3(1,0,0)), u.x),
+				   mix(dot(hash33(i + vec3(0,1,0)), f - vec3(0,1,0)),
+					   dot(hash33(i + vec3(1,1,0)), f - vec3(1,1,0)), u.x), u.y),
+			   mix(mix(dot(hash33(i + vec3(0,0,1)), f - vec3(0,0,1)),
+					   dot(hash33(i + vec3(1,0,1)), f - vec3(1,0,1)), u.x),
+				   mix(dot(hash33(i + vec3(0,1,1)), f - vec3(0,1,1)),
+					   dot(hash33(i + vec3(1,1,1)), f - vec3(1,1,1)), u.x), u.y), u.z);
+}
+
+void main(void)
+{
+	vec2 centered = texCoords * 2.0 - 1.0;
+	float dist = length(centered);
+
+	if (dist > 1.0) discard;
+
+	float time = timeInfo.z;
+	float seed = noiseSeed;
+
+	// Swirling noise for blobby circular shape
+	float swirlAngle = time * SWIRL_SPEED + seed * 6.28;
+	float cosA = cos(swirlAngle);
+	float sinA = sin(swirlAngle);
+	vec2 swirled = vec2(
+		centered.x * cosA - centered.y * sinA,
+		centered.x * sinA + centered.y * cosA
+	);
+
+	vec3 noisePos = vec3(swirled * NOISE_SCALE, time * NOISE_SPEED + seed * 100.0);
+	float displacement = noise3D(noisePos);
+	float noisedDist = dist + displacement * NOISE_STRENGTH * 0.5;
+
+	// Soft circular edge
+	float outerEdge = 1.0 - smoothstep(0.4, 0.7, noisedDist);
+	if (outerEdge < 0.001) discard;
+
+	// Core factor
+	float coreFactor = 1.0 - smoothstep(CORE_EDGE_START, CORE_EDGE_END, noisedDist);
+
+	vec3 plasmaCol = mix(vEdgeColor.rgb, vCoreColor.rgb, coreFactor);
+
+	float alpha = vCoreColor.a * outerEdge * headOnFactor * CROSS_SECTION_BRIGHTNESS;
+	vec3 color = plasmaCol * alpha;
+	color *= (1.0 + coreFactor * coreFactor * CORE_BRIGHTNESS);
+
+	float lum = dot(color, vec3(0.299, 0.587, 0.114));
+	if (lum < 0.001) discard;
+
+	fragColor = vec4(color, 0.0);
+}
+]]
+
+--------------------------------------------------------------------------------
 -- Shader sources: Glow (camera-facing billboard)
 -- Reads the same VBO as the plasma shader. Uses posAndSize for position,
 -- edgeColorAndSeed.rgb for tint color. Creates a camera-facing billboard.
@@ -451,6 +678,8 @@ void main(void)
 --------------------------------------------------------------------------------
 local plasmaVBO
 local plasmaShader
+local crossShader        -- 90-degree rotated copy for volume from all angles
+local crossSectionShader -- camera-facing circular billboard for head-on view
 local glowShader
 
 local idleSkipCounter = 0
@@ -475,6 +704,47 @@ local function initGL4()
 	plasmaShader = LuaShader.CheckShaderUpdates(plasmaShaderCache)
 	if not plasmaShader then
 		goodbye("Failed to compile plasma shader")
+		return false
+	end
+
+	-- Cross shader (90-degree rotated plasma quad, same FS)
+	local crossShaderCache = {
+		vsSrc = crossVsSrc,
+		fsSrc = plasmaFsSrc,
+		shaderName = "PlasmaCannonCrossGL4",
+		uniformInt = { plasmaTex = 0 },
+		uniformFloat = {},
+		shaderConfig = shaderConfig,
+		forceupdate = true,
+	}
+	crossShader = LuaShader.CheckShaderUpdates(crossShaderCache)
+	if not crossShader then
+		goodbye("Failed to compile cross shader")
+		return false
+	end
+
+	-- Cross-section shader (camera-facing circular blob for head-on view)
+	local crossSectionShaderCache = {
+		vsSrc = crossSectionVsSrc,
+		fsSrc = crossSectionFsSrc,
+		shaderName = "PlasmaCannonCrossSectionGL4",
+		uniformInt = {},
+		uniformFloat = {},
+		shaderConfig = {
+			NOISE_SCALE = shaderConfig.NOISE_SCALE,
+			NOISE_STRENGTH = shaderConfig.NOISE_STRENGTH,
+			NOISE_SPEED = shaderConfig.NOISE_SPEED,
+			SWIRL_SPEED = shaderConfig.SWIRL_SPEED,
+			CORE_EDGE_START = shaderConfig.CORE_EDGE_START,
+			CORE_EDGE_END = shaderConfig.CORE_EDGE_END,
+			CORE_BRIGHTNESS = shaderConfig.CORE_BRIGHTNESS,
+			CROSS_SECTION_BRIGHTNESS = CROSS_SECTION_BRIGHTNESS,
+		},
+		forceupdate = true,
+	}
+	crossSectionShader = LuaShader.CheckShaderUpdates(crossSectionShaderCache)
+	if not crossSectionShader then
+		goodbye("Failed to compile cross-section shader")
 		return false
 	end
 
@@ -566,6 +836,18 @@ local function drawAll()
 	plasmaShader:Activate()
 	plasmaVBO:Draw()
 	plasmaShader:Deactivate()
+
+	-- Cross pass (90-degree rotated plasma quad for volume from all angles)
+	crossShader:Activate()
+	plasmaVBO:Draw()
+	crossShader:Deactivate()
+
+	glTexture(0, false)
+
+	-- Cross-section pass (camera-facing circular blob for head-on view)
+	crossSectionShader:Activate()
+	plasmaVBO:Draw()
+	crossSectionShader:Deactivate()
 
 	-- Glow pass (same VBO, glow shader reads posAndSize + edgeColor)
 	glTexture(0, glowTexture)
