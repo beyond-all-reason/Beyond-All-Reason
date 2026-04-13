@@ -27,11 +27,11 @@ local spGetProjectilePosition     = Spring.GetProjectilePosition
 local spGetProjectileVelocity     = Spring.GetProjectileVelocity
 local spGetProjectileDefID        = Spring.GetProjectileDefID
 local spGetProjectileTeamID       = Spring.GetProjectileTeamID
+local spGetProjectileTimeToLive   = Spring.GetProjectileTimeToLive
 local spGetTeamAllyTeamID         = Spring.GetTeamAllyTeamID
-local spIsPosInLos                = Spring.IsPosInLos
+local spIsPosInAirLos             = Spring.IsPosInAirLos
 local spGetMyAllyTeamID           = Spring.GetMyAllyTeamID
 local spGetSpectatingState        = Spring.GetSpectatingState
-local spGetGameFrame              = Spring.GetGameFrame
 local spGetFrameTimeOffset        = Spring.GetFrameTimeOffset
 
 local glBlending  = gl.Blending
@@ -237,7 +237,7 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
 	end
 end
 
--- Precompute config defaults to avoid per-frame 'or' fallbacks
+-- Precompute config defaults and per-frame constants to avoid per-missile overhead
 for _, cfg in pairs(weaponConfigs) do
 	cfg.sizeGrowth     = cfg.sizeGrowth or 0.2
 	cfg.glowSize       = cfg.glowSize or 0
@@ -247,6 +247,11 @@ for _, cfg in pairs(weaponConfigs) do
 	cfg.lengthRand     = cfg.lengthRand or 0
 	cfg.hasRand        = cfg.lengthRand > 0
 	cfg.thrusterOffset = cfg.thrusterOffset or 0
+	-- Pre-multiply glow values with global multipliers (avoids 4 muls per missile per frame)
+	cfg.glowSizeFinal  = cfg.glowSize * GLOW_SIZE_MULT
+	cfg.glowRFinal     = cfg.glowR * GLOW_MULT
+	cfg.glowGFinal     = cfg.glowG * GLOW_MULT
+	cfg.glowBFinal     = cfg.glowB * GLOW_MULT
 end
 
 -- Check if we have any missiles to render
@@ -861,6 +866,9 @@ local function updateMissiles()
 		local proID = projectiles[i]
 		local cfg = weaponConfigs[spGetProjectileDefID(proID)]
 		if cfg then
+			-- Skip thruster if missile has run out of propulsion (TTL expired)
+			local ttl = spGetProjectileTimeToLive(proID)
+			if not ttl or ttl > 0 then
 			local px, py, pz = spGetProjectilePosition(proID)
 			if px then
 				-- LOS check: own allyteam projectiles always visible, enemy ones need LOS
@@ -869,7 +877,7 @@ local function updateMissiles()
 					local proTeam = spGetProjectileTeamID(proID)
 					local proAlly = proTeam and spGetTeamAllyTeamID(proTeam)
 					if proAlly ~= myAllyTeam then
-						visible = spIsPosInLos(px, 0, pz, myAllyTeam)
+						visible = spIsPosInAirLos(px, 0, pz, myAllyTeam)
 					end
 				end
 				if visible then
@@ -913,38 +921,38 @@ local function updateMissiles()
 								else
 									length = length + rand * cfg.lengthRand
 								end
-								size = size * (0.85 + 0.3 * mathRandom())
+								size = size * (0.85 + 0.3 * rand)
 							end
 
 							flameCount = flameCount + 1
-							if flameCount <= MAX_FLAMES then
-								local offset = (flameCount - 1) * flameStep
-								flameData[offset + 1]  = px
-								flameData[offset + 2]  = py
-								flameData[offset + 3]  = pz
-								flameData[offset + 4]  = size
-								flameData[offset + 5]  = dx
-								flameData[offset + 6]  = dy
-								flameData[offset + 7]  = dz
-								flameData[offset + 8]  = length
-								flameData[offset + 9]  = cfg.colorR
-								flameData[offset + 10] = cfg.colorG
-								flameData[offset + 11] = cfg.colorB
-								flameData[offset + 12] = 1.0
-								flameData[offset + 13] = cfg.colorEndR
-								flameData[offset + 14] = cfg.colorEndG
-								flameData[offset + 15] = cfg.colorEndB
-								flameData[offset + 16] = cfg.sizeGrowth
-								flameData[offset + 17] = cfg.glowSize * GLOW_SIZE_MULT
-								flameData[offset + 18] = cfg.glowR * GLOW_MULT
-								flameData[offset + 19] = cfg.glowG * GLOW_MULT
-								flameData[offset + 20] = cfg.glowB * GLOW_MULT
-							end
+							if flameCount > MAX_FLAMES then break end
+							local offset = (flameCount - 1) * flameStep
+							flameData[offset + 1]  = px
+							flameData[offset + 2]  = py
+							flameData[offset + 3]  = pz
+							flameData[offset + 4]  = size
+							flameData[offset + 5]  = dx
+							flameData[offset + 6]  = dy
+							flameData[offset + 7]  = dz
+							flameData[offset + 8]  = length
+							flameData[offset + 9]  = cfg.colorR
+							flameData[offset + 10] = cfg.colorG
+							flameData[offset + 11] = cfg.colorB
+							flameData[offset + 12] = 1.0
+							flameData[offset + 13] = cfg.colorEndR
+							flameData[offset + 14] = cfg.colorEndG
+							flameData[offset + 15] = cfg.colorEndB
+							flameData[offset + 16] = cfg.sizeGrowth
+							flameData[offset + 17] = cfg.glowSizeFinal
+							flameData[offset + 18] = cfg.glowRFinal
+							flameData[offset + 19] = cfg.glowGFinal
+							flameData[offset + 20] = cfg.glowBFinal
 						end
 					end
 				end
 			end
-		end
+			end -- ttl check
+		end -- cfg check
 	end
 
 	flameVBO.usedElements = flameCount
@@ -971,17 +979,19 @@ function gadget:GameFrame(n)
 	-- Periodic cache cleanup (runs in GameFrame to avoid per-draw overhead)
 	if n > cacheCleanupFrame then
 		cacheCleanupFrame = n + 90
-		local removeList
-		local removeCount = 0
+		-- Two-pass cleanup: mark then sweep (avoids table alloc for removeList)
+		local hasEntries = false
 		for proID in pairs(projectileCache) do
 			if not spGetProjectilePosition(proID) then
-				removeCount = removeCount + 1
-				if not removeList then removeList = {} end
-				removeList[removeCount] = proID
+				projectileCache[proID] = false  -- mark for removal
+			else
+				hasEntries = true
 			end
 		end
-		for i = 1, removeCount do
-			projectileCache[removeList[i]] = nil
+		for proID, v in pairs(projectileCache) do
+			if v == false then
+				projectileCache[proID] = nil
+			end
 		end
 	end
 end

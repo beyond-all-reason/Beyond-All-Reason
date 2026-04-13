@@ -29,6 +29,7 @@ local spGetProjectileDefID        = Spring.GetProjectileDefID
 local spGetProjectileTeamID       = Spring.GetProjectileTeamID
 local spGetTeamAllyTeamID         = Spring.GetTeamAllyTeamID
 local spIsPosInLos                = Spring.IsPosInLos
+local spIsPosInAirLos             = Spring.IsPosInAirLos
 local spGetMyAllyTeamID           = Spring.GetMyAllyTeamID
 local spGetSpectatingState        = Spring.GetSpectatingState
 local spGetGameFrame              = Spring.GetGameFrame
@@ -48,6 +49,7 @@ local GL_SRC_ALPHA            = GL.SRC_ALPHA
 
 local mathMin    = math.min
 local mathMax    = math.max
+local mathSqrt   = math.sqrt
 
 local LuaShader = gl.LuaShader
 local uploadAllElements = gl.InstanceVBOTable.uploadAllElements
@@ -71,6 +73,15 @@ local FLARE_GHOST_FRAC      = 0.4   -- fraction of weapon ghostFrames where flar
 -- Textures
 local beamTexture  = "bitmaps/projectiletextures/largebeam.tga"
 local flareTexture = "bitmaps/projectiletextures/flare2.tga"
+
+-- LOS clipping
+local CLIP_BEAM_TO_LOS = true  -- when true, only the portion of enemy beams inside LOS is rendered
+local USE_AIR_LOS      = true  -- use air los instead of regular los
+local LOS_CLIP_STEPS   = 6    -- binary search iterations to find the LOS boundary (6 ≈ 1.5% precision)
+local LOS_BONUS_RANGE  = 100   -- when not USE_AIR_LOS then extra elmos of beam shown beyond strict LOS boundary (so beams always render a bit more)
+
+-- Resolve LOS check function once (avoids per-call branch in hot loop)
+local spLosCheck = USE_AIR_LOS and spIsPosInAirLos or spIsPosInLos
 
 -- Beam body
 local BEAM_WIDTH_MULT         = 0.66   -- multiplier on weapon thickness for beam quad width
@@ -592,6 +603,25 @@ local LIVE_FLARE_PULSE = 1.0 - LIVE_LIFEFRAC * FLARE_LIFE_DIM
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
 
+-- Binary search along a beam to find the LOS boundary.
+-- Returns the interpolation fraction (0..1 from start to end) where LOS flips.
+-- 'startInLos' indicates whether the start point is in LOS.
+local function findLosBoundary(sx, sz, ex, ez, allyTeam, startInLos)
+	local lo, hi = 0, 1
+	for _ = 1, LOS_CLIP_STEPS do
+		local mid = (lo + hi) * 0.5
+		local mx = sx + (ex - sx) * mid
+		local mz = sz + (ez - sz) * mid
+		local midInLos = spLosCheck(mx, 0, mz, allyTeam)
+		if (midInLos and startInLos) or (not midInLos and not startInLos) then
+			lo = mid
+		else
+			hi = mid
+		end
+	end
+	return (lo + hi) * 0.5
+end
+
 local function updateBeams()
 	-- Idle skip: throttle when no beams or ghosts active
 	if idleSkipCounter > 0 then
@@ -626,21 +656,59 @@ local function updateBeams()
 			if cfg then
 				local px, py, pz = spGetProjectilePosition(proID)
 				if px then
-					-- LOS check
+					local vx, vy, vz = spGetProjectileVelocity(proID)
+					if vx then
+					local endX = px + vx
+					local endY = py + vy
+					local endZ = pz + vz
+
+					-- LOS check: beam is visible if start OR end is in LOS
 					local visible = true
+					local startInLos = true
+					local endInLos = true
+					local proAlly
 					if needLosCheck then
 						local proTeam = spGetProjectileTeamID(proID)
-						local proAlly = proTeam and spGetTeamAllyTeamID(proTeam)
+						proAlly = proTeam and spGetTeamAllyTeamID(proTeam)
 						if proAlly ~= myAllyTeam then
-							visible = spIsPosInLos(px, 0, pz, myAllyTeam)
+							startInLos = spLosCheck(px, 0, pz, myAllyTeam)
+							endInLos   = spLosCheck(endX, 0, endZ, myAllyTeam)
+							visible = startInLos or endInLos
 						end
 					end
 					if visible then
-						local vx, vy, vz = spGetProjectileVelocity(proID)
-						if vx then
-							local endX = px + vx
-							local endY = py + vy
-							local endZ = pz + vz
+
+							-- Save original (unclipped) positions for ghost beam tracking
+							local origPx, origPy, origPz = px, py, pz
+							local origEndX, origEndY, origEndZ = endX, endY, endZ
+
+							-- Clip beam to LOS boundary when only one end is visible
+							local clipStart = false
+							if CLIP_BEAM_TO_LOS and needLosCheck and startInLos ~= endInLos then
+								local t = findLosBoundary(px, pz, endX, endZ, myAllyTeam, startInLos)
+								-- Extend visible portion by bonus range (ground LOS only)
+								if not USE_AIR_LOS and LOS_BONUS_RANGE > 0 then
+									local beamLen = mathSqrt(vx*vx + vy*vy + vz*vz)
+									local bonusFrac = LOS_BONUS_RANGE / mathMax(beamLen, 1)
+									if startInLos then
+										t = mathMin(1, t + bonusFrac)
+									else
+										t = mathMax(0, t - bonusFrac)
+									end
+								end
+								if startInLos then
+									-- Clip the end (keep start)
+									endX = px + vx * t
+									endY = py + vy * t
+									endZ = pz + vz * t
+								else
+									-- Clip the start (keep end)
+									px = px + vx * t
+									py = py + vy * t
+									pz = pz + vz * t
+									clipStart = true
+								end
+							end
 
 							-- Check if any part of the beam is in the camera view
 							local pad = cfg.beamWidth
@@ -660,9 +728,10 @@ local function updateBeams()
 									weaponBeams[wbKey] = tracked
 									hasGhosts = true
 								end
-								tracked.px = px;   tracked.py = py;   tracked.pz = pz
-								tracked.endX = endX; tracked.endY = endY; tracked.endZ = endZ
+								tracked.px = origPx;   tracked.py = origPy;   tracked.pz = origPz
+								tracked.endX = origEndX; tracked.endY = origEndY; tracked.endZ = origEndZ
 								tracked.lastSeenFrame = gameFrame
+								tracked.ownerAllyTeam = proAlly
 
 								-- Range falloff: use squared length (avoid sqrt)
 								local beamLenSq = vx*vx + vy*vy + vz*vz
@@ -687,15 +756,23 @@ local function updateBeams()
 								beamData[offset + 14] = cfg.colorG
 								beamData[offset + 15] = cfg.colorB
 								beamData[offset + 16] = intensityFalloff
-								beamData[offset + 17] = cfg.liveFlareSize
-								beamData[offset + 18] = cfg.liveFlareR
-								beamData[offset + 19] = cfg.liveFlareG
-								beamData[offset + 20] = cfg.liveFlareB
-							end
-						end
-					end
-				end
-			end
+								-- Suppress flare when beam start is clipped to LOS boundary
+								if clipStart then
+									beamData[offset + 17] = 0
+									beamData[offset + 18] = 0
+									beamData[offset + 19] = 0
+									beamData[offset + 20] = 0
+								else
+									beamData[offset + 17] = cfg.liveFlareSize
+									beamData[offset + 18] = cfg.liveFlareR
+									beamData[offset + 19] = cfg.liveFlareG
+									beamData[offset + 20] = cfg.liveFlareB
+								end
+							end -- spIsAABBInView
+					end -- visible
+					end -- vx
+				end -- px
+			end -- cfg
 		end
 	end
 
@@ -709,31 +786,70 @@ local function updateBeams()
 				local cfg = tracked.cfg
 				local ghostAge = gameFrame - tracked.lastSeenFrame
 				if ghostAge >= 1 and ghostAge <= cfg.ghostFrames then
+					local gpx, gpy, gpz = tracked.px, tracked.py, tracked.pz
+					local gex, gey, gez = tracked.endX, tracked.endY, tracked.endZ
+
+					-- LOS check for ghost beams (skip for own allyteam)
+					local ghostVisible = true
+					local ghostClipStart = false
+					if needLosCheck and tracked.ownerAllyTeam ~= myAllyTeam then
+						local startInLos = spLosCheck(gpx, 0, gpz, myAllyTeam)
+						local endInLos   = spLosCheck(gex, 0, gez, myAllyTeam)
+						ghostVisible = startInLos or endInLos
+						if ghostVisible and CLIP_BEAM_TO_LOS and startInLos ~= endInLos then
+							local dvx = gex - gpx
+							local dvy = gey - gpy
+							local dvz = gez - gpz
+							local t = findLosBoundary(gpx, gpz, gex, gez, myAllyTeam, startInLos)
+							-- Extend visible portion by bonus range (ground LOS only)
+							if not USE_AIR_LOS and LOS_BONUS_RANGE > 0 then
+								local beamLen = mathSqrt(dvx*dvx + dvy*dvy + dvz*dvz)
+								local bonusFrac = LOS_BONUS_RANGE / mathMax(beamLen, 1)
+								if startInLos then
+									t = mathMin(1, t + bonusFrac)
+								else
+									t = mathMax(0, t - bonusFrac)
+								end
+							end
+							if startInLos then
+								gex = gpx + dvx * t
+								gey = gpy + dvy * t
+								gez = gpz + dvz * t
+							else
+								gpx = gpx + dvx * t
+								gpy = gpy + dvy * t
+								gpz = gpz + dvz * t
+								ghostClipStart = true
+							end
+						end
+					end
+
+					if ghostVisible then
 					-- Check if any part of the ghost beam is in the camera view
 					local pad = cfg.beamWidth
 					if spIsAABBInView(
-						mathMin(tracked.px, tracked.endX) - pad, mathMin(tracked.py, tracked.endY) - pad, mathMin(tracked.pz, tracked.endZ) - pad,
-						mathMax(tracked.px, tracked.endX) + pad, mathMax(tracked.py, tracked.endY) + pad, mathMax(tracked.pz, tracked.endZ) + pad
+						mathMin(gpx, gex) - pad, mathMin(gpy, gey) - pad, mathMin(gpz, gez) - pad,
+						mathMax(gpx, gex) + pad, mathMax(gpy, gey) + pad, mathMax(gpz, gez) + pad
 					) then
 						local lifeFrac = FADE_OUT_START_CACHED + (ghostAge * cfg.invGhostFrames) * ONE_MINUS_FADE_OUT
 
-						local vx = tracked.endX - tracked.px
-						local vy = tracked.endY - tracked.py
-						local vz = tracked.endZ - tracked.pz
+						local vx = gex - gpx
+						local vy = gey - gpy
+						local vz = gez - gpz
 						local beamLenSq = vx*vx + vy*vy + vz*vz
 						local intensityFalloff = BEAM_RANGE_FALLOFF_BASE + BEAM_RANGE_FALLOFF_MULT * mathMin(beamLenSq * cfg.invRangeSq, 1.0)
 						local flareVisible = ghostAge <= cfg.flareGhostFrames
-						local flarePulse = flareVisible and (1.0 - lifeFrac * FLARE_LIFE_DIM) or 0
+						local flarePulse = (flareVisible and not ghostClipStart) and (1.0 - lifeFrac * FLARE_LIFE_DIM) or 0
 
 						beamCount = beamCount + 1
 						local offset = (beamCount - 1) * 20
-						beamData[offset + 1]  = tracked.px
-						beamData[offset + 2]  = tracked.py
-						beamData[offset + 3]  = tracked.pz
+						beamData[offset + 1]  = gpx
+						beamData[offset + 2]  = gpy
+						beamData[offset + 3]  = gpz
 						beamData[offset + 4]  = cfg.beamWidth
-						beamData[offset + 5]  = tracked.endX
-						beamData[offset + 6]  = tracked.endY
-						beamData[offset + 7]  = tracked.endZ
+						beamData[offset + 5]  = gex
+						beamData[offset + 6]  = gey
+						beamData[offset + 7]  = gez
 						beamData[offset + 8]  = lifeFrac
 						beamData[offset + 9]  = cfg.coreR
 						beamData[offset + 10] = cfg.coreG
@@ -748,6 +864,7 @@ local function updateBeams()
 						beamData[offset + 19] = cfg.flareColorG * flarePulse
 						beamData[offset + 20] = cfg.flareColorB * flarePulse
 					end
+					end -- ghostVisible
 				end
 			end
 		end
