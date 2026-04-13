@@ -128,6 +128,14 @@ local THRUSTER_CONFIGS = {
 		glowSize = 50, glowR = 0.25, glowG = 0.1, glowB = 0.01,
 		thrusterOffset = 3,
 	},
+	["missiletraillarge-red"] = {
+		length = -28, lengthRand = 8,
+		size = 3.7, sizeGrowth = 0.2,
+		colorR = 1.0, colorG = 0.33, colorB = 0.11,
+		colorEndR = 1.0, colorEndG = 0.12, colorEndB = 0.05,
+		glowSize = 50, glowR = 0.25, glowG = 0.1, glowB = 0.01,
+		thrusterOffset = -2,
+	},
 	missiletrailviper = {
 		length = -32, lengthRand = 6,
 		size = 2.8, sizeGrowth = 0.5,

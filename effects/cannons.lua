@@ -122,31 +122,12 @@ local definitions = {
                 sidetexture        = [[trail]],
                 size               = 1.8,
                 sizegrowth         = -0.05,
-                ttl                = 6,
+                ttl                = 5,
                 useairlos          = true,
             },
         },
-	-- traillight = {
-	--         air                = true,
-	--         class              = [[CBitmapMuzzleFlame]],
-	--         count              = 1,
-	--         ground             = true,
-	--         underwater         = 1,
-	--         water              = true,
-	--         properties = {
-	--             colormap           = [[0.7 0.40 0.08 0.008   0.6 0.35 0.32 0.009   0.5 0.28 0.08 0.004   0.05 0.05 0.05 0.003    0 0 0 0]],
-	--             dir                = [[dir]],
-	--             frontoffset        = 0,
-	--             fronttexture       = [[trans]],
-	--             length             = -1.5,
-	--             sidetexture        = [[shot]],
-	--             size               = 2.0,
-	--             sizegrowth         = -0.3,
-	--             ttl                = 3,
- --        	},
- --    	},
 	},
-		["Heavy-Plasma"] = {
+	["Heavy-Plasma"] = {
 		flame = {
             air                = true,
             class              = [[CBitmapMuzzleFlame]],
