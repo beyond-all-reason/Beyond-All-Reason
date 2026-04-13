@@ -30,7 +30,7 @@ local spGetProjectileDefID        = Spring.GetProjectileDefID
 local spGetProjectileType         = Spring.GetProjectileType
 local spGetProjectileTeamID       = Spring.GetProjectileTeamID
 local spGetTeamAllyTeamID         = Spring.GetTeamAllyTeamID
-local spIsPosInLos                = Spring.IsPosInLos
+local spIsPosInAirLos             = Spring.IsPosInAirLos
 local spGetMyAllyTeamID           = Spring.GetMyAllyTeamID
 local spGetSpectatingState        = Spring.GetSpectatingState
 local spGetGameFrame              = Spring.GetGameFrame
@@ -904,7 +904,7 @@ local function updateProjectiles()
 				if needLosCheck then
 					local proTeam = spGetProjectileTeamID(proID)
 					local proAlly = proTeam and spGetTeamAllyTeamID(proTeam)
-					if proAlly ~= myAllyTeam and not spIsPosInLos(px, 0, pz, myAllyTeam) then
+					if proAlly ~= myAllyTeam and not spIsPosInAirLos(px, 0, pz, myAllyTeam) then
 						cfg = nil  -- reuse variable to skip without deep nesting
 					end
 				end

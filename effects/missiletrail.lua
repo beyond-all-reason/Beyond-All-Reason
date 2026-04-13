@@ -1541,8 +1541,8 @@ local definitions = {
               numparticles       = [[3 r2]],
               particlelife       = 6,
               particlelifespread = 11,
-              particlesize       = 3.4,
-              particlesizespread = 4,
+              particlesize       = 2.5,
+              particlesizespread = 3,
               particlespeed      = 2,
               particlespeedspread = 6,
               rotParams          = [[-360 r720, -120 r240, -180 r360]],
@@ -1570,8 +1570,8 @@ local definitions = {
               numparticles       = 3,
               particlelife       = 4,
               particlelifespread = 5,
-              particlesize       = 6,
-              particlesizespread = 5.5,
+              particlesize       = 4,
+              particlesizespread = 5,
               particlespeed      = 2,
               particlespeedspread = 6,
               rotParams          = [[-360 r720, -120 r240, -180 r360]],
@@ -1582,34 +1582,6 @@ local definitions = {
               useairlos          = true,
           },
       },
-    --smoke = {
-    --  air                = true,
-    --  class              = [[CSimpleParticleSystem]],
-    --  count              = 1,
-    --  ground             = true,
-    --  water              = true,
-    --  properties = {
-    --    airdrag            = 0.915,
-    --    colormap           = [[0.16 0.13 0.1 0.2   0.16 0.13 0.1 0.34   0.11 0.105 0.1 0.28   0.085 0.085 0.085 0.21   0.07 0.07 0.07 0.17    0.04 0.04 0.04 0.1   0 0 0 0.01]],
-    --    directional        = true,
-    --    emitrot            = -180,
-    --    emitrotspread      = 11,
-    --    emitvector         = [[dir]],
-    --    gravity            = [[0.0, -0.03, 0.0]],
-    --    numparticles       = 2,
-    --    particlelife       = 16,
-    --    particlelifespread = 8,
-    --    particlesize       = 5,
-    --    particlesizespread = 5,
-    --    particlespeed      = 3,
-    --    particlespeedspread = 5,
-    --    pos                = [[0.0, 0, 0.0]],
-    --    sizegrowth         = 0.18,
-    --    sizemod            = 1,
-    --    texture            = [[dirt]],
-    --    useairlos          = true,
-    --  },
-    --},
 	dustparticles = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
@@ -1619,7 +1591,7 @@ local definitions = {
       water              = true,
       properties = {
         airdrag            = 0.94,
-        colormap           = [[0.5 0.45 0.4 0.01    1 0.75 0.5 0.02    0.66 0.37 0.3 0.18    0.5 0.27 0.22 0.15    0.17 0.1 0.1 0.1    0 0 0 0.01]],
+        colormap           = [[0.5 0.45 0.4 0.01    1 0.75 0.5 0.03    0.77 0.44 0.33 0.18    0.5 0.27 0.22 0.15    0.17 0.1 0.1 0.1    0 0 0 0.01]],
         directional        = true,
         emitrot            = -180,
         emitrotspread      = 28,
@@ -1661,34 +1633,6 @@ local definitions = {
               ttl                = 2,
           },
       },
-      --smoke = {
-      --    air                = true,
-      --    class              = [[CSimpleParticleSystem]],
-      --    count              = 1,
-      --    ground             = true,
-      --    water              = true,
-      --    properties = {
-      --        airdrag            = 0.91,
-      --        colormap           = [[0.075 0.073 0.07 0.01    0 0 0 0.01]],
-      --        directional        = true,
-      --        emitrot            = -180,
-      --        emitrotspread      = 7.5,
-      --        emitvector         = [[dir]],
-      --        gravity            = [[0.0, -0.01, 0.0]],
-      --        numparticles       = 1,
-      --        particlelife       = 11,
-      --        particlelifespread = 4,
-      --        particlesize       = 2.2,
-      --        particlesizespread = 2.2,
-      --        particlespeed      = 1,
-      --        particlespeedspread = 1,
-      --        pos                = [[0.0, 1, 0.0]],
-      --        sizegrowth         = 0.13,
-      --        sizemod            = 1,
-      --        texture            = [[dirt]],
-      --        useairlos          = true,
-      --    },
-      --},
   },
 
   ["missiletrailbomber"] = {
@@ -3173,8 +3117,10 @@ definitions["missiletrailmedium-red"].engine.properties.colormap = [[1 0.33 0.17
 definitions["missiletrailmedium-red"].fireglow.properties.colormap = [[0.25 0.1 0.01 0.01   0 0 0 0.01]]
 definitions["missiletrailmedium-red"].sparks.properties.colormap = [[0.9 0.44 0.4 0.01   0.9 0.36 0.1 0.007  0.4 0.13 0.05 0.007   0 0 0 0.01]]
 definitions["missiletraillarge-red"] = table.copy(definitions["missiletraillarge"])
-definitions["missiletraillarge-red"].fire.properties.colormap  = [[0.9 0.45 0.16 0.01   0.44 0.22 0.05 0.01    0.14 0.03 0.005 0.01    0.02 0.007 0.003 0.01	 0 0 0 0.01]]
-definitions["missiletraillarge-red"].fireglow.properties.colormap = [[0.25 0.09 0.018 0.01   0 0 0 0.01]]
+definitions["missiletraillarge-red"].fire = nil
+definitions["missiletraillarge-red"].fireglow = nil
+definitions["missiletraillarge-red"].smoke = nil
+definitions["missiletraillarge-red"].smoke2 = nil
 definitions["missiletraillarge-red"].sparks.properties.colormap = [[1 0.85 0.7 0.01   0.9 0.4 0.14 0.007  0.4 0.13 0.05 0.007   0 0 0 0.01]]
 
 definitions["missiletrailsmall-starburst"] = table.copy(definitions["missiletrailsmall"])
