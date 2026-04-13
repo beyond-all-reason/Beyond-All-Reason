@@ -23,11 +23,9 @@ end
 -- Localized functions
 --------------------------------------------------------------------------------
 local spEcho                      = Spring.Echo
-local spGetVisibleProjectiles     = Spring.GetVisibleProjectiles
 local spGetProjectilePosition     = Spring.GetProjectilePosition
 local spGetProjectileVelocity     = Spring.GetProjectileVelocity
 local spGetProjectileDefID        = Spring.GetProjectileDefID
-local spGetProjectileType         = Spring.GetProjectileType
 local spGetProjectileTeamID       = Spring.GetProjectileTeamID
 local spGetTeamAllyTeamID         = Spring.GetTeamAllyTeamID
 local spIsPosInLos                = Spring.IsPosInLos
@@ -96,9 +94,10 @@ local shaderConfig = {
 	SHIMMER_AMPLITUDE  = 0.13,   -- width oscillation strength (0 = off)
 	SHIMMER_SPEED      = 40.0,   -- width oscillation speed (timeInfo.z multiplier)
 	CORE_EDGE_START    = 0.02,   -- |x| distance where core-to-edge color blend starts (0 = only center pixel)
-	CORE_EDGE_END      = 0.35,    -- |x| distance where blend is fully edge color
-	CORE_BRIGHTNESS    = 3.3,    -- extra brightness multiplier for core (squared falloff)
-	BRIGHTNESS_MULT    = 2,    -- overall beam brightness multiplier
+	CORE_EDGE_END      = 0.25,    -- |x| distance where blend is fully edge color
+	CORE_BRIGHTNESS    = 1.0,    -- extra brightness multiplier for core (squared falloff)
+	BRIGHTNESS_MULT    = 1.5,    -- overall beam brightness multiplier
+	MIN_PIXEL_WIDTH    = 0.0012, -- minimum beam width as fraction of camera distance (prevents sub-pixel aliasing at distance)
 }
 
 --------------------------------------------------------------------------------
@@ -266,7 +265,19 @@ void main()
 
 	float width = beamWidth * lifePulse * rangeTaper * shimmer;
 
-	vec3 vertexWorld = mix(startPos, endPos, yNorm)
+	// Minimum screen-space width: prevent the beam from becoming sub-pixel
+	// at distance, which causes aliasing/jaggedness. If the beam would be
+	// thinner than MIN_PIXEL_WIDTH pixels, expand it and dim alpha to compensate.
+	vec3 vertPos = mix(startPos, endPos, yNorm);
+	float camDist = length(camPos - vertPos);
+	// Approximate world-units-per-pixel using perspective projection:
+	// proj[1][1] = 2*near/height_at_near, so pixelSize ≈ 2*camDist / (proj[1][1] * viewportHeightPixels)
+	// We fold viewport height into MIN_PIXEL_WIDTH as a tunable constant.
+	float minWidth = camDist * MIN_PIXEL_WIDTH;
+	float coverage = clamp(width / max(minWidth, 0.001), 0.0, 1.0);
+	width = max(width, minWidth);
+
+	vec3 vertexWorld = vertPos
 		+ right * position_xy_uv.x * width;
 
 	gl_Position = cameraViewProj * vec4(vertexWorld, 1.0);
@@ -282,7 +293,7 @@ void main()
 	// Alpha: fade with lifetime and slight range falloff
 	float rangeFalloff = edgeColor.a;
 	float alphaFalloff = 1.0 - rangeFalloff * yNorm;
-	alpha = coreColor.a * lifePulse * alphaFalloff;
+	alpha = coreColor.a * lifePulse * alphaFalloff * coverage;
 }
 ]]
 
@@ -324,7 +335,7 @@ void main(void)
 	color *= BRIGHTNESS_MULT;
 
 	// Core gets extra brightness for a hot inner line
-	color *= (1.0 + coreFactor * coreFactor * CORE_BRIGHTNESS);
+	color *= (1.0 + coreFactor * CORE_BRIGHTNESS);
 
 	float lum = dot(color, vec3(0.299, 0.587, 0.114));
 	if (lum < 0.001) discard;
@@ -423,7 +434,7 @@ void main(void)
 	vec3 color = flareCol * shape * BRIGHTNESS_MULT;
 
 	// Core gets extra brightness for a hot center (same as beam)
-	color *= (1.0 + coreFactor * coreFactor * CORE_BRIGHTNESS);
+	color *= (1.0 + coreFactor * CORE_BRIGHTNESS);
 
 	float lum = dot(color, vec3(0.299, 0.587, 0.114));
 	if (lum < 0.001) discard;
