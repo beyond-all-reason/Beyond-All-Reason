@@ -493,6 +493,8 @@ local autocompleteCommands = {
 	'defrange enemy air',
 	'defrange enemy nuke',
 	'defrange enemy ground',
+	'set_camera_anchor',
+	'focus_camera_anchor',
 }
 
 local playernames = {}
