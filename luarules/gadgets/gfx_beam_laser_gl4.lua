@@ -35,6 +35,8 @@ local spGetMyAllyTeamID           = Spring.GetMyAllyTeamID
 local spGetSpectatingState        = Spring.GetSpectatingState
 local spGetGameFrame              = Spring.GetGameFrame
 local spGetProjectileOwnerID      = Spring.GetProjectileOwnerID
+local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
+local spIsAABBInView              = Spring.IsAABBInView
 
 local glBlending  = gl.Blending
 local glTexture   = gl.Texture
@@ -73,7 +75,7 @@ local beamTexture  = "bitmaps/projectiletextures/largebeam.tga"
 local flareTexture = "bitmaps/projectiletextures/flare2.tga"
 
 -- Beam body
-local BEAM_WIDTH_MULT         = 0.6   -- multiplier on weapon thickness for beam quad width
+local BEAM_WIDTH_MULT         = 0.66   -- multiplier on weapon thickness for beam quad width
 local BEAM_SUSTAIN_LIFEFRAC   = 0.33   -- lifeFrac value for live beams (must be between FADE_IN_END and FADE_OUT_START)
 local BEAM_RANGE_FALLOFF_BASE = 0.1   -- minimum intensity falloff along beam length
 local BEAM_RANGE_FALLOFF_MULT = 0.5  -- additional falloff scaled by beam-length / weapon-range
@@ -88,15 +90,15 @@ local FLARE_LIFE_DIM        = 0.7   -- how much flare dims over beam lifetime (0
 
 -- Shader config (injected as #defines into beam vertex+fragment shaders)
 local shaderConfig = {
-	FADE_IN_END        = 0.12,    -- lifeFrac where width/alpha fade-in completes
-	FADE_OUT_START     = 0.8,   -- lifeFrac where width/alpha fade-out begins
-	RANGE_TAPER        = 0.20,   -- width reduction at beam end (0 = none, 1 = full taper to zero)
-	SHIMMER_AMPLITUDE  = 0.08,   -- width oscillation strength (0 = off)
-	SHIMMER_SPEED      = 0.35,   -- width oscillation speed (timeInfo.z multiplier)
-	CORE_EDGE_START    = 0.07,   -- |x| distance where core-to-edge color blend starts (0 = only center pixel)
-	CORE_EDGE_END      = 0.3,    -- |x| distance where blend is fully edge color
+	FADE_IN_END        = 0.1,    -- lifeFrac where width/alpha fade-in completes
+	FADE_OUT_START     = 0.85,   -- lifeFrac where width/alpha fade-out begins
+	RANGE_TAPER        = 0.25,   -- width reduction at beam end (0 = none, 1 = full taper to zero)
+	SHIMMER_AMPLITUDE  = 0.13,   -- width oscillation strength (0 = off)
+	SHIMMER_SPEED      = 40.0,   -- width oscillation speed (timeInfo.z multiplier)
+	CORE_EDGE_START    = 0.02,   -- |x| distance where core-to-edge color blend starts (0 = only center pixel)
+	CORE_EDGE_END      = 0.35,    -- |x| distance where blend is fully edge color
 	CORE_BRIGHTNESS    = 3.3,    -- extra brightness multiplier for core (squared falloff)
-	BRIGHTNESS_MULT    = 2.5,    -- overall beam brightness multiplier
+	BRIGHTNESS_MULT    = 2,    -- overall beam brightness multiplier
 }
 
 --------------------------------------------------------------------------------
@@ -576,6 +578,9 @@ local ONE_MINUS_FADE_OUT = 1.0 - FADE_OUT_START_CACHED
 local LIVE_LIFEFRAC = BEAM_SUSTAIN_LIFEFRAC
 local LIVE_FLARE_PULSE = 1.0 - LIVE_LIFEFRAC * FLARE_LIFE_DIM
 
+local mapSizeX = Game.mapSizeX
+local mapSizeZ = Game.mapSizeZ
+
 local function updateBeams()
 	-- Idle skip: throttle when no beams or ghosts active
 	if idleSkipCounter > 0 then
@@ -593,7 +598,10 @@ local function updateBeams()
 	end
 	local liveKeysCount = 0
 
-	local projectiles = spGetVisibleProjectiles(-1, true, true, false)
+	-- Scan ALL weapon projectiles map-wide (not just camera-visible ones).
+	-- GetVisibleProjectiles culls by projectile origin, which misses beams
+	-- whose start is off-screen but whose middle or end is on-screen.
+	local projectiles = spGetProjectilesInRectangle(0, 0, mapSizeX, mapSizeZ, false, true)
 	local beamData = beamVBO.instanceData
 	local beamCount = 0
 	local myAllyTeam = cachedAllyTeamID
@@ -602,29 +610,33 @@ local function updateBeams()
 	if projectiles then
 		for i = 1, #projectiles do
 			local proID = projectiles[i]
-			local weapon, piece = spGetProjectileType(proID)
-			if weapon and not piece then
-				local wDefID = spGetProjectileDefID(proID)
-				local cfg = wDefID and weaponConfigs[wDefID]
-				if cfg then
-					local px, py, pz = spGetProjectilePosition(proID)
-					if px then
-						-- LOS check
-						local visible = true
-						if needLosCheck then
-							local proTeam = spGetProjectileTeamID(proID)
-							local proAlly = proTeam and spGetTeamAllyTeamID(proTeam)
-							if proAlly ~= myAllyTeam then
-								visible = spIsPosInLos(px, 0, pz, myAllyTeam)
-							end
+			local wDefID = spGetProjectileDefID(proID)
+			local cfg = wDefID and weaponConfigs[wDefID]
+			if cfg then
+				local px, py, pz = spGetProjectilePosition(proID)
+				if px then
+					-- LOS check
+					local visible = true
+					if needLosCheck then
+						local proTeam = spGetProjectileTeamID(proID)
+						local proAlly = proTeam and spGetTeamAllyTeamID(proTeam)
+						if proAlly ~= myAllyTeam then
+							visible = spIsPosInLos(px, 0, pz, myAllyTeam)
 						end
-						if visible then
-							local vx, vy, vz = spGetProjectileVelocity(proID)
-							if vx then
-								local endX = px + vx
-								local endY = py + vy
-								local endZ = pz + vz
+					end
+					if visible then
+						local vx, vy, vz = spGetProjectileVelocity(proID)
+						if vx then
+							local endX = px + vx
+							local endY = py + vy
+							local endZ = pz + vz
 
+							-- Check if any part of the beam is in the camera view
+							local pad = cfg.beamWidth
+							if spIsAABBInView(
+								mathMin(px, endX) - pad, mathMin(py, endY) - pad, mathMin(pz, endZ) - pad,
+								mathMax(px, endX) + pad, mathMax(py, endY) + pad, mathMax(pz, endZ) + pad
+							) then
 								local ownerID = spGetProjectileOwnerID(proID) or 0
 								local wbKey = ownerID * 65536 + wDefID
 								liveKeys[wbKey] = true
@@ -686,38 +698,45 @@ local function updateBeams()
 				local cfg = tracked.cfg
 				local ghostAge = gameFrame - tracked.lastSeenFrame
 				if ghostAge >= 1 and ghostAge <= cfg.ghostFrames then
-					local lifeFrac = FADE_OUT_START_CACHED + (ghostAge * cfg.invGhostFrames) * ONE_MINUS_FADE_OUT
+					-- Check if any part of the ghost beam is in the camera view
+					local pad = cfg.beamWidth
+					if spIsAABBInView(
+						mathMin(tracked.px, tracked.endX) - pad, mathMin(tracked.py, tracked.endY) - pad, mathMin(tracked.pz, tracked.endZ) - pad,
+						mathMax(tracked.px, tracked.endX) + pad, mathMax(tracked.py, tracked.endY) + pad, mathMax(tracked.pz, tracked.endZ) + pad
+					) then
+						local lifeFrac = FADE_OUT_START_CACHED + (ghostAge * cfg.invGhostFrames) * ONE_MINUS_FADE_OUT
 
-					local vx = tracked.endX - tracked.px
-					local vy = tracked.endY - tracked.py
-					local vz = tracked.endZ - tracked.pz
-					local beamLenSq = vx*vx + vy*vy + vz*vz
-					local intensityFalloff = BEAM_RANGE_FALLOFF_BASE + BEAM_RANGE_FALLOFF_MULT * mathMin(beamLenSq * cfg.invRangeSq, 1.0)
-					local flareVisible = ghostAge <= cfg.flareGhostFrames
-					local flarePulse = flareVisible and (1.0 - lifeFrac * FLARE_LIFE_DIM) or 0
+						local vx = tracked.endX - tracked.px
+						local vy = tracked.endY - tracked.py
+						local vz = tracked.endZ - tracked.pz
+						local beamLenSq = vx*vx + vy*vy + vz*vz
+						local intensityFalloff = BEAM_RANGE_FALLOFF_BASE + BEAM_RANGE_FALLOFF_MULT * mathMin(beamLenSq * cfg.invRangeSq, 1.0)
+						local flareVisible = ghostAge <= cfg.flareGhostFrames
+						local flarePulse = flareVisible and (1.0 - lifeFrac * FLARE_LIFE_DIM) or 0
 
-					beamCount = beamCount + 1
-					local offset = (beamCount - 1) * 20
-					beamData[offset + 1]  = tracked.px
-					beamData[offset + 2]  = tracked.py
-					beamData[offset + 3]  = tracked.pz
-					beamData[offset + 4]  = cfg.beamWidth
-					beamData[offset + 5]  = tracked.endX
-					beamData[offset + 6]  = tracked.endY
-					beamData[offset + 7]  = tracked.endZ
-					beamData[offset + 8]  = lifeFrac
-					beamData[offset + 9]  = cfg.coreR
-					beamData[offset + 10] = cfg.coreG
-					beamData[offset + 11] = cfg.coreB
-					beamData[offset + 12] = 1.0
-					beamData[offset + 13] = cfg.colorR
-					beamData[offset + 14] = cfg.colorG
-					beamData[offset + 15] = cfg.colorB
-					beamData[offset + 16] = intensityFalloff
-					beamData[offset + 17] = cfg.flareSize * flarePulse * FLARE_SIZE_MULT
-					beamData[offset + 18] = cfg.flareColorR * flarePulse
-					beamData[offset + 19] = cfg.flareColorG * flarePulse
-					beamData[offset + 20] = cfg.flareColorB * flarePulse
+						beamCount = beamCount + 1
+						local offset = (beamCount - 1) * 20
+						beamData[offset + 1]  = tracked.px
+						beamData[offset + 2]  = tracked.py
+						beamData[offset + 3]  = tracked.pz
+						beamData[offset + 4]  = cfg.beamWidth
+						beamData[offset + 5]  = tracked.endX
+						beamData[offset + 6]  = tracked.endY
+						beamData[offset + 7]  = tracked.endZ
+						beamData[offset + 8]  = lifeFrac
+						beamData[offset + 9]  = cfg.coreR
+						beamData[offset + 10] = cfg.coreG
+						beamData[offset + 11] = cfg.coreB
+						beamData[offset + 12] = 1.0
+						beamData[offset + 13] = cfg.colorR
+						beamData[offset + 14] = cfg.colorG
+						beamData[offset + 15] = cfg.colorB
+						beamData[offset + 16] = intensityFalloff
+						beamData[offset + 17] = cfg.flareSize * flarePulse * FLARE_SIZE_MULT
+						beamData[offset + 18] = cfg.flareColorR * flarePulse
+						beamData[offset + 19] = cfg.flareColorG * flarePulse
+						beamData[offset + 20] = cfg.flareColorB * flarePulse
+					end
 				end
 			end
 		end

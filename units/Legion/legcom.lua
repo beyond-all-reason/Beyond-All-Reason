@@ -99,7 +99,7 @@ return {
 			iscommander = true,
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			paralyzemultiplier = 0.025,
+			paralyzemultiplier = 0,
 			subfolder = "",
 		},
 		featuredefs = {
