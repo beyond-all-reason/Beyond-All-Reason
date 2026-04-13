@@ -61,6 +61,10 @@ local MAX_FLAMES = 4096
 local muzzleTexture = "bitmaps/projectiletextures/muzzleside.tga"
 local glowTexture   = "bitmaps/projectiletextures/glow2.tga"
 
+-- Global glow multiplier (scales glow color intensity for all missiles)
+local GLOW_MULT = 1.2
+local GLOW_SIZE_MULT = 1.1   -- global multiplier on glow billboard size
+
 --------------------------------------------------------------------------------
 -- Thruster flame configs per cegTag
 -- Fields:
@@ -79,7 +83,7 @@ local THRUSTER_CONFIGS = {
 		size = 1.8, sizeGrowth = 0.2,
 		colorR = 1.0, colorG = 0.7, colorB = 0.4,
 		colorEndR = 1.0, colorEndG = 0.4, colorEndB = 0.1,
-		glowSize = 28, glowR = 0.09, glowG = 0.08, glowB = 0.012,
+		glowSize = 28, glowR = 0.09, glowG = 0.06, glowB = 0.012,
 		thrusterOffset = 3,
 	},
 	["missiletrailsmall-simple"] = {
@@ -87,7 +91,7 @@ local THRUSTER_CONFIGS = {
 		size = 1.8, sizeGrowth = 0.2,
 		colorR = 1.0, colorG = 0.7, colorB = 0.4,
 		colorEndR = 1.0, colorEndG = 0.4, colorEndB = 0.1,
-		glowSize = 28, glowR = 0.09, glowG = 0.08, glowB = 0.012,
+		glowSize = 28, glowR = 0.09, glowG = 0.06, glowB = 0.012,
 		thrusterOffset = 3,
 	},
 	["missiletrailsmall-red"] = {
@@ -95,7 +99,7 @@ local THRUSTER_CONFIGS = {
 		size = 2.5, sizeGrowth = 0.2,
 		colorR = 1.0, colorG = 0.33, colorB = 0.17,
 		colorEndR = 1.0, colorEndG = 0.22, colorEndB = 0.05,
-		glowSize = 28, glowR = 0.1, glowG = 0.025, glowB = 0.015,
+		glowSize = 28, glowR = 0.1, glowG = 0.025, glowB = 0.005,
 		thrusterOffset = 0,
 	},
 	-- Tiny missiles
@@ -129,7 +133,7 @@ local THRUSTER_CONFIGS = {
 		size = 2.8, sizeGrowth = 0.5,
 		colorR = 1.0, colorG = 0.7, colorB = 0.4,
 		colorEndR = 1.0, colorEndG = 0.4, colorEndB = 0.1,
-		glowSize = 50, glowR = 0.15, glowG = 0.08, glowB = 0.02,
+		glowSize = 50, glowR = 0.15, glowG = 0.07, glowB = 0.02,
 		thrusterOffset = 4,
 	},
 	-- Fighter missiles (pinkish/purple-tinted, forward-facing)
@@ -138,7 +142,7 @@ local THRUSTER_CONFIGS = {
 		size = 1.65, sizeGrowth = 0,
 		colorR = 1.0, colorG = 0.5, colorB = 0.85,
 		colorEndR = 0.5, colorEndG = 0.1, colorEndB = 0.4,
-		glowSize = 22, glowR = 0.1, glowG = 0.04, glowB = 0.08,
+		glowSize = 22, glowR = 0.1, glowG = 0.045, glowB = 0.09,
 		thrusterOffset = -16,
 	},
 	-- AA missiles (pinkish, forward-facing, with large engineglow)
@@ -147,7 +151,7 @@ local THRUSTER_CONFIGS = {
 		size = 2.3, sizeGrowth = 0,
 		colorR = 1.0, colorG = 0.5, colorB = 0.85,
 		colorEndR = 0.5, colorEndG = 0.1, colorEndB = 0.4,
-		glowSize = 32, glowR = 0.14, glowG = 0.045, glowB = 0.125,
+		glowSize = 32, glowR = 0.1, glowG = 0.045, glowB = 0.09,
 		thrusterOffset = -8,
 	},
 	["missiletrailaa-large"] = {
@@ -285,20 +289,13 @@ void main()
 	// The flame quad is stretched along 'dir', with width perpendicular
 	vec3 forward = normalize(dir);
 
-	// Use camera-facing perpendicular for width (ensures flame always visible from any angle)
-	vec3 camPos = cameraViewInv[3].xyz;
-	vec3 toCamera = normalize(camPos - worldPos);
-	vec3 right = cross(forward, toCamera);
+	// Fixed world-derived perpendicular axis (does not rotate with camera).
+	// The cross pass uses the other perpendicular — together they form a
+	// stable cross shape visible from all angles.
+	vec3 right = cross(forward, vec3(0.0, 1.0, 0.0));
 	float rightLen = length(right);
-	// When camera is roughly aligned with flight direction, blend in a fallback axis
-	// to prevent the flame from becoming paper-thin and invisible
-	if (rightLen < 0.5) {
-		vec3 fallback = normalize(cross(forward, vec3(0.0, 1.0, 0.0)));
-		if (length(fallback) < 0.001) {
-			fallback = normalize(cross(forward, vec3(1.0, 0.0, 0.0)));
-		}
-		float blend = clamp(rightLen * 2.0, 0.0, 1.0);  // 0 at parallel, 1 at 30+ degrees
-		right = normalize(mix(fallback, right / max(rightLen, 0.001), blend));
+	if (rightLen < 0.001) {
+		right = normalize(cross(forward, vec3(1.0, 0.0, 0.0)));
 	} else {
 		right = right / rightLen;
 	}
@@ -385,6 +382,178 @@ void main(void)
 ]]
 
 --------------------------------------------------------------------------------
+-- Shader sources: Cross flame (90-degree rotated flame quad)
+-- Uses axis2 = cross(axis1, forward) so the two flame quads form a cross.
+-- Reuses the same fragment shader as the main flame pass.
+--------------------------------------------------------------------------------
+local crossFlameVsSrc = [[
+#version 420
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shading_language_420pack: require
+#line 50000
+
+//__DEFINES__
+//__ENGINEUNIFORMBUFFERDEFS__
+
+layout (location = 0) in vec4 position_xy_uv;
+
+layout (location = 1) in vec4 posAndSize;
+layout (location = 2) in vec4 dirAndLength;
+layout (location = 3) in vec4 color1;
+layout (location = 4) in vec4 color2;
+
+out DataVS {
+	vec2 texCoords;
+	vec4 flameColor;
+};
+
+void main()
+{
+	vec3 worldPos = posAndSize.xyz;
+	float flameWidth = posAndSize.w;
+	vec3 dir = dirAndLength.xyz;
+	float flameLength = dirAndLength.w;
+
+	vec3 forward = normalize(dir);
+
+	// Second perpendicular axis: cross(axis1, forward) where axis1 = cross(forward, worldUp).
+	// Together with the main pass (which uses axis1) this forms a stable cross.
+	vec3 axis1 = cross(forward, vec3(0.0, 1.0, 0.0));
+	float axis1Len = length(axis1);
+	if (axis1Len < 0.001) {
+		axis1 = normalize(cross(forward, vec3(1.0, 0.0, 0.0)));
+	} else {
+		axis1 = axis1 / axis1Len;
+	}
+	vec3 right = cross(axis1, forward);
+
+	float yNorm = position_xy_uv.y * 0.5 + 0.5;
+
+	float sizeGrowth = color2.a;
+	float widthScale = 1.0 + sizeGrowth * yNorm;
+
+	float phase = worldPos.x * 1.0 + worldPos.z * 1.3;
+	float shimmer = 1.0 + SHIMMER_AMPLITUDE * sin(timeInfo.z * SHIMMER_SPEED + phase) * (SHIMMER_TAIL_BIAS + (1.0 - SHIMMER_TAIL_BIAS) * yNorm);
+
+	float width = flameWidth * widthScale * shimmer;
+
+	vec3 vertexWorld = worldPos
+		+ right * position_xy_uv.x * width
+		+ forward * yNorm * flameLength;
+
+	gl_Position = cameraViewProj * vec4(vertexWorld, 1.0);
+
+	texCoords = vec2(position_xy_uv.w, position_xy_uv.z);
+
+	float t = yNorm;
+	vec3 tipColor = color1.rgb;
+	vec3 endColor = color2.rgb;
+	float alpha = color1.a;
+
+	vec3 col = mix(tipColor, endColor, smoothstep(0.0, COLOR_GRADIENT_END, t));
+
+	float breathe = BREATHE_BASE + BREATHE_RANGE * sin(timeInfo.z * BREATHE_SPEED + phase * 3.1);
+	alpha *= breathe * (1.0 - smoothstep(TAIL_FADE_START, TAIL_FADE_END, t));
+
+	flameColor = vec4(col, alpha);
+}
+]]
+
+--------------------------------------------------------------------------------
+-- Shader sources: Cross-section (camera-facing circular billboard)
+-- Visible when looking along the missile velocity direction (head-on).
+-- Fades out from the side so it doesn't double-up with flame quads.
+--------------------------------------------------------------------------------
+local crossSectionVsSrc = [[
+#version 420
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shading_language_420pack: require
+#line 60000
+
+//__DEFINES__
+//__ENGINEUNIFORMBUFFERDEFS__
+
+layout (location = 0) in vec4 position_xy_uv;
+
+layout (location = 1) in vec4 posAndSize;
+layout (location = 2) in vec4 dirAndLength;
+layout (location = 3) in vec4 color1;
+
+out DataVS {
+	vec2 texCoords;
+	vec3 flameColor;
+	float headOnFactor;
+};
+
+void main()
+{
+	vec3 worldPos = posAndSize.xyz;
+	float flameWidth = posAndSize.w;
+	vec3 dir = dirAndLength.xyz;
+
+	vec3 forward = normalize(dir);
+
+	// How head-on is the camera view? (1 = looking along velocity, 0 = side view)
+	vec3 camPos = cameraViewInv[3].xyz;
+	vec3 toCamera = normalize(camPos - worldPos);
+	float headOn = abs(dot(forward, toCamera));
+
+	// Only visible when looking along velocity; cull from side view
+	if (headOn < 0.3) {
+		gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+		return;
+	}
+
+	// Camera-facing billboard, circular
+	vec3 camRight = cameraViewInv[0].xyz;
+	vec3 camUp    = cameraViewInv[1].xyz;
+
+	float crossSize = flameWidth * CROSS_SECTION_SIZE_MULT;
+
+	vec3 vertexWorld = worldPos
+		+ camRight * position_xy_uv.x * crossSize
+		+ camUp    * position_xy_uv.y * crossSize;
+
+	gl_Position = cameraViewProj * vec4(vertexWorld, 1.0);
+
+	texCoords = position_xy_uv.zw;
+	flameColor = color1.rgb;
+	headOnFactor = smoothstep(0.3, 0.7, headOn);
+}
+]]
+
+local crossSectionFsSrc = [[
+#version 420
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shading_language_420pack: require
+#line 70000
+
+//__DEFINES__
+//__ENGINEUNIFORMBUFFERDEFS__
+
+uniform sampler2D crossSectionTex;
+
+in DataVS {
+	vec2 texCoords;
+	vec3 flameColor;
+	float headOnFactor;
+};
+
+out vec4 fragColor;
+
+void main(void)
+{
+	vec4 texSample = texture(crossSectionTex, texCoords);
+	vec3 color = flameColor * texSample.rgb * headOnFactor * CROSS_SECTION_BRIGHTNESS;
+
+	float lum = dot(color, vec3(0.299, 0.587, 0.114));
+	if (lum < 0.002) discard;
+
+	fragColor = vec4(color, 0.0);
+}
+]]
+
+--------------------------------------------------------------------------------
 -- Shader sources: Glow (camera-facing billboard)
 --------------------------------------------------------------------------------
 local glowVsSrc = [[
@@ -400,6 +569,7 @@ layout (location = 0) in vec4 position_xy_uv;
 
 // Per-instance (shared layout with flame VBO)
 layout (location = 1) in vec4 posAndSize;      // xyz = world pos, w = flame width (unused for glow)
+layout (location = 2) in vec4 dirAndLength;     // xyz = normalized direction, w = flame length
 layout (location = 5) in vec4 glowData;         // x = glowSize, yzw = glow RGB
 
 out DataVS {
@@ -418,11 +588,16 @@ void main()
 		return;
 	}
 
+	// Offset glow center 1/3 along the flame length (toward the tail)
+	vec3 dir = dirAndLength.xyz;
+	float flameLength = dirAndLength.w;
+	vec3 glowCenter = worldPos + dir * flameLength * 0.4;
+
 	// Billboard: camera-facing quad
 	vec3 camRight = cameraViewInv[0].xyz;
 	vec3 camUp    = cameraViewInv[1].xyz;
 
-	vec3 vertexWorld = worldPos
+	vec3 vertexWorld = glowCenter
 		+ camRight * position_xy_uv.x * glowSize
 		+ camUp    * position_xy_uv.y * glowSize;
 
@@ -467,11 +642,17 @@ void main(void)
 --------------------------------------------------------------------------------
 local flameVBO
 local flameShader
+local crossFlameShader     -- 90-degree rotated flame for volume from all angles
+local crossSectionShader   -- camera-facing billboard for head-on view
 local glowShader
 
 -- Per-projectile persistent state (direction + position cache for pause fallback)
 local projectileCache = {}  -- proID -> {dx, dy, dz, px, py, pz}
 local cacheCleanupFrame = 0
+
+-- Cross-section billboard (camera-facing, visible when looking along missile velocity)
+local CROSS_SECTION_BRIGHTNESS = 0.5   -- brightness for head-on cross-section glow
+local CROSS_SECTION_SIZE_MULT  = 1.5   -- cross-section billboard size relative to flame width
 
 -- Idle skip: when no missiles found, throttle GetVisibleProjectiles polling
 local idleSkipCounter = 0
@@ -511,6 +692,41 @@ local function initGL4()
 	flameShader = LuaShader.CheckShaderUpdates(flameShaderCache)
 	if not flameShader then
 		goodbye("Failed to compile flame shader")
+		return false
+	end
+
+	-- Cross flame shader (reuses flame FS with different VS axes)
+	local crossFlameShaderCache = {
+		vsSrc = crossFlameVsSrc,
+		fsSrc = flameFsSrc,
+		shaderName = "MissileThrusterCrossFlameGL4",
+		uniformInt = { flameTex = 0 },
+		uniformFloat = {},
+		shaderConfig = flameShaderCache.shaderConfig,
+		forceupdate = true,
+	}
+	crossFlameShader = LuaShader.CheckShaderUpdates(crossFlameShaderCache)
+	if not crossFlameShader then
+		goodbye("Failed to compile cross flame shader")
+		return false
+	end
+
+	-- Cross-section shader (camera-facing head-on view)
+	local crossSectionShaderCache = {
+		vsSrc = crossSectionVsSrc,
+		fsSrc = crossSectionFsSrc,
+		shaderName = "MissileThrusterCrossSectionGL4",
+		uniformInt = { crossSectionTex = 0 },
+		uniformFloat = {},
+		shaderConfig = {
+			CROSS_SECTION_BRIGHTNESS = CROSS_SECTION_BRIGHTNESS,
+			CROSS_SECTION_SIZE_MULT  = CROSS_SECTION_SIZE_MULT,
+		},
+		forceupdate = true,
+	}
+	crossSectionShader = LuaShader.CheckShaderUpdates(crossSectionShaderCache)
+	if not crossSectionShader then
+		goodbye("Failed to compile cross-section shader")
 		return false
 	end
 
@@ -576,14 +792,24 @@ local function drawAll()
 	glCulling(false)
 	glBlending(GL_ONE, GL_ONE)
 
-	-- Flame pass
+	-- Flame pass (axis1: cross(forward, worldUp))
 	glTexture(0, muzzleTexture)
 	flameShader:Activate()
 	flameVBO:Draw()
 	flameShader:Deactivate()
 
-	-- Glow pass (same VBO, glow shader reads glowData; zero-size glows culled in VS)
+	-- Cross flame pass (axis2: cross(axis1, forward) — 90-degree rotated)
+	crossFlameShader:Activate()
+	flameVBO:Draw()
+	crossFlameShader:Deactivate()
+
+	-- Cross-section pass (camera-facing, head-on view)
 	glTexture(0, glowTexture)
+	crossSectionShader:Activate()
+	flameVBO:Draw()
+	crossSectionShader:Deactivate()
+
+	-- Glow pass (same VBO, glow shader reads glowData; zero-size glows culled in VS)
 	glowShader:Activate()
 	flameVBO:Draw()
 	glowShader:Deactivate()
@@ -701,10 +927,10 @@ local function updateMissiles()
 								flameData[offset + 14] = cfg.colorEndG
 								flameData[offset + 15] = cfg.colorEndB
 								flameData[offset + 16] = cfg.sizeGrowth
-								flameData[offset + 17] = cfg.glowSize
-								flameData[offset + 18] = cfg.glowR
-								flameData[offset + 19] = cfg.glowG
-								flameData[offset + 20] = cfg.glowB
+								flameData[offset + 17] = cfg.glowSize * GLOW_SIZE_MULT
+								flameData[offset + 18] = cfg.glowR * GLOW_MULT
+								flameData[offset + 19] = cfg.glowG * GLOW_MULT
+								flameData[offset + 20] = cfg.glowB * GLOW_MULT
 							end
 						end
 					end
