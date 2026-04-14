@@ -68,12 +68,12 @@ if gadgetHandler:IsSyncedCode() then
 	local areaFraction = 1.0
 	local areaOffsetX = 0.0
 	local areaOffsetZ = 0.0
-	local unitMultiplier = 2.0
+	local unitMultiplier = 1.0
 
 	local seededrand = {}
 	local randindex = 1
 
-	local anchorsByClass = { land = {}, water = {}, deepwater = {}, air = {} }
+	local anchorsByClass = { land = {}, water = {}, air = {} }
 
 	-- TODO: add `cons` (with mex-build onSpawn) and `transports` (with
 	-- load/unload onSpawn).
@@ -83,7 +83,7 @@ if gadgetHandler:IsSyncedCode() then
 		{ name = "fighters",   t1 = "corvamp",  t2 = "armhawk",  max = 280, step = 14, class = "air" },
 		{ name = "bombers",    t1 = "armpnix",  t2 = "corshad",  max = 140, step = 7,  class = "air" },
 		{ name = "hover",      t1 = "armanac",  t2 = "corsh",    max = 200, step = 14, class = "land" },
-		{ name = "subs",       t1 = "armsub",   t2 = "corsub",   max = 200, step = 14, class = "deepwater" },
+		{ name = "subs",       t1 = "armsub",   t2 = "corsub",   max = 200, step = 14, class = "water" },
 		{ name = "ships",      t1 = "armpt",    t2 = "corpt",    max = 200, step = 14, class = "water" },
 		{ name = "spiders",    t1 = "armspid",  t2 = "armflea",  max = 200, step = 14, class = "land" },
 		{ name = "commanders", t1 = "armcom",   t2 = "corcom",   max = 3,   step = 1,  class = "land",
@@ -102,7 +102,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local initrandom, getrandom
 	local scanAnchors
-	local filterCategories
+	local initCategoriesForRun
 	local spawnBurstForCategory, spawnBurstForCategoryAtAnchor
 	local computeFeatureDefsToRemove, removeAllSpawnedUnits
 
@@ -110,6 +110,13 @@ if gadgetHandler:IsSyncedCode() then
 	-- Run lifecycle
 	--------------------------------------------------------------------
 
+	-- Supported positional arguments (all optional, parsed from the chat command):
+	--   words[2] totalFrames    how many frames to run        integer, >= 60      (default 2000)
+	--   words[3] areaFraction   fraction of the map used      number in (0, 1]    (default 1.0)
+	--   words[4] areaOffsetX    normalized x start of area    number in [0, 1]    (default 0.0)
+	--   words[5] areaOffsetZ    normalized z start of area    number in [0, 1]    (default 0.0)
+	--   words[6] unitMultiplier scales nuymber of units       number in (0, 8]    (default 1.0)
+	-- areaOffsetX/Z are clamped so offset + areaFraction <= 1.
 	local function startRun(words)
 		if words[2] then
 			local f = tonumber(words[2])
@@ -137,14 +144,14 @@ if gadgetHandler:IsSyncedCode() then
 		runStartFrame = Spring.GetGameFrame()
 		initrandom(RUN_SEED)
 		scanAnchors()
-		filterCategories()
+		initCategoriesForRun()
 		computeFeatureDefsToRemove()
 		featurestoremove = {}
 
 		Spring.Echo(string.format(
-			"[fightersynctest] starting: totalframes=%d area=%.2f offset=%.2f,%.2f mult=%.2f categories=%d anchors land/water/deep/air=%d/%d/%d/%d",
+			"[fightersynctest] starting: totalframes=%d area=%.2f offset=%.2f,%.2f mult=%.2f categories=%d anchors land/water/air=%d/%d/%d",
 			totalFrames, areaFraction, areaOffsetX, areaOffsetZ, unitMultiplier, #enabledCats,
-			#anchorsByClass.land, #anchorsByClass.water, #anchorsByClass.deepwater, #anchorsByClass.air))
+			#anchorsByClass.land, #anchorsByClass.water, #anchorsByClass.air))
 		SendToUnsynced("fightersynctest_synchash_begin", totalFrames, runStartFrame)
 		active = true
 	end
@@ -175,6 +182,8 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
+		-- remove wreckage left behind by unit deaths after a delay
+		-- this keeps the map from getting too cluttered
 		if runFrame % cleanupMod == 1 then
 			for featureID, deathtime in pairs(featurestoremove) do
 				if deathtime < runFrame then
@@ -196,7 +205,7 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------
 
 	function scanAnchors()
-		anchorsByClass = { land = {}, water = {}, deepwater = {}, air = {} }
+		anchorsByClass = { land = {}, water = {}, air = {} }
 		local stride = 256
 		local originX = mapSX * areaOffsetX
 		local originZ = mapSZ * areaOffsetZ
@@ -206,7 +215,7 @@ if gadgetHandler:IsSyncedCode() then
 		local regionH = areaZ / anchorRegions
 		for rz = 0, anchorRegions - 1 do
 			for rx = 0, anchorRegions - 1 do
-				local pickedLand, pickedWater, pickedDeep = false, false, false
+				local pickedLand, pickedWater = false, false
 				local z0 = originZ + rz * regionH + stride * 0.5
 				local x0 = originX + rx * regionW + stride * 0.5
 				for z = z0, originZ + (rz + 1) * regionH, stride do
@@ -216,17 +225,13 @@ if gadgetHandler:IsSyncedCode() then
 							anchorsByClass.land[#anchorsByClass.land + 1] = { x = x, z = z }
 							pickedLand = true
 						end
-						if not pickedWater and h < -16 then
+						if not pickedWater and h < -15 then
 							anchorsByClass.water[#anchorsByClass.water + 1] = { x = x, z = z }
 							pickedWater = true
 						end
-						if not pickedDeep and h < -48 then
-							anchorsByClass.deepwater[#anchorsByClass.deepwater + 1] = { x = x, z = z }
-							pickedDeep = true
-						end
-						if pickedLand and pickedWater and pickedDeep then break end
+						if pickedLand and pickedWater then break end
 					end
-					if pickedLand and pickedWater and pickedDeep then break end
+					if pickedLand and pickedWater then break end
 				end
 			end
 		end
@@ -265,6 +270,8 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
+		-- Give some randomized orders to the new units, to mix up the execution paths and
+		-- make sure they actually do something instead of just sitting idle.
 		if #newUnitIDs > 0 then
 			Spring.GiveOrderToUnitArray(newUnitIDs, CMD.REPEAT, { 1 }, 0)
 			local classAnchors = anchorsByClass[cat.class]
@@ -285,15 +292,17 @@ if gadgetHandler:IsSyncedCode() then
 		if not anchors or #anchors == 0 then return end
 		cat.anchorCounter = cat.anchorCounter + 1
 		local anchor = anchors[((cat.anchorCounter - 1) % #anchors) + 1]
+		
+		-- make sure we spawn for both teams
 		spawnBurstForCategoryAtAnchor(cat, 0, cat.t1id, anchor)
 		spawnBurstForCategoryAtAnchor(cat, 1, cat.t2id, anchor)
 	end
 
 	--------------------------------------------------------------------
-	-- Unit categories
+	-- Unit category setup
 	--------------------------------------------------------------------
 
-	function filterCategories()
+	function initCategoriesForRun()
 		enabledCats = {}
 		allTeamUnitDefNames = {}
 		for _, cat in ipairs(categoryDefs) do
@@ -389,6 +398,11 @@ if gadgetHandler:IsSyncedCode() then
 		recordStartPlayers()
 	end
 
+	-- Entry point for the `/fightersynctest` chat command, relayed from unsynced
+	-- via Spring.SendLuaRulesMsg. Expected packet format:
+	--   "$fts$:fightersynctest [totalFrames] [areaFraction] [areaOffsetX] [areaOffsetZ] [unitMultiplier]"
+	-- See startRun() above for per-argument meaning, ranges, and defaults.
+	-- Toggles a run: starts if idle, ends if already active.
 	function gadget:RecvLuaMsg(msg, playerID)
 		if string.sub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
 			return
