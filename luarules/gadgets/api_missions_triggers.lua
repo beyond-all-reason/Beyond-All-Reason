@@ -348,14 +348,8 @@ local RESOURCE_PULL_INDEX          = 3
 local RESOURCE_INCOME_INDEX        = 4
 local RESOURCE_RECEIVED_INDEX      = 8  -- resources received from allied teams via sharing
 
-local TEAM_SLOWUPDATE_RATE = 30 -- from GlobalConstants.h
 local teamReclaimIncome         = {}
 local teamReclaimIncomeSnapshot = {}
-
--- Mirror reclaim modrules through engine-exposed Game constants to avoid including gamedata/modrules.lua here.
-local RECLAIM_UNIT_METHOD        = Game.reclaimUitMethod or 1
-local RECLAIM_UNIT_EFFICIENCY    = Game.reclaimUnitEfficiency or 1
-local RECLAIM_UNIT_DRAIN_HEALTH  = (Game.reclaimUnitDrainHealth ~= false) -- engine default is true
 
 local function checkTeamResources(trigger, resourceIndex)
 	if trigger.parameters.metal and select(resourceIndex, Spring.GetTeamResources(trigger.parameters.teamID, "metal")) < trigger.parameters.metal then
@@ -369,10 +363,10 @@ local function checkTeamResources(trigger, resourceIndex)
 end
 
 local function getTeamResourceIncomeForSources(teamID, resourceType, sources)
-	local extractorIncome  = 0
-	local reclaimIncome    = 0
-	local productionIncome = 0
-	local allyIncome       = 0
+	local extractorIncome
+	local reclaimIncome
+	local productionIncome
+	local allyIncome
 
 	if (sources.extractor or sources.production) and resourceType ~= "energy" then
 		for _, unitID in pairs(Spring.GetTeamUnits(teamID)) do
@@ -445,19 +439,17 @@ function gadget:Initialize()
 end
 
 function gadget:GameFrame(frameNumber)
-	if frameNumber % TEAM_SLOWUPDATE_RATE == 0 then
+	if frameNumber % Game.gameSpeed == 0 then
 		-- Reset reclaim income counters:
 		teamReclaimIncomeSnapshot = teamReclaimIncome
 		teamReclaimIncome = {}
 
-		if frameNumber % TEAM_SLOWUPDATE_RATE == 0 then
-			processTriggersOfType(types.ResourceIncome, function(trigger, _)
-				checkResourceIncome(trigger)
-			end)
-			processTriggersOfType(types.ResourcePull, function(trigger, _)
-				checkTeamResources(trigger, RESOURCE_PULL_INDEX)
-			end)
-		end
+		processTriggersOfType(types.ResourceIncome, function(trigger, _)
+			checkResourceIncome(trigger)
+		end)
+		processTriggersOfType(types.ResourcePull, function(trigger, _)
+			checkTeamResources(trigger, RESOURCE_PULL_INDEX)
+		end)
 	end
 	processTriggersOfType(types.ResourceStored, function(trigger, _)
 		checkTeamResources(trigger, CURRENT_RESOURCE_LEVEL_INDEX)
@@ -559,13 +551,14 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeamID, featureID, featu
 end
 
 function gadget:AllowUnitBuildStep(builderID, builderTeamID, unitID, unitDefID, buildStep)
-	if buildStep < 0 and RECLAIM_UNIT_METHOD == 1 and RECLAIM_UNIT_DRAIN_HEALTH then
+	if buildStep < 0 and Game.reclaimUnitMethod == 1 and Game.reclaimUnitDrainHealth then
 		local health, maxHealth, _, _, buildProgress = Spring.GetUnitHealth(unitID)
 		if health and maxHealth and (health + maxHealth * buildStep) <= 0 then
 			local unitDef = UnitDefs[unitDefID]
 			if unitDef then
 				-- BAR uses lump-at-end unit reclaim and awards metal only.
-				local reclaimMetal = unitDef.metalCost * (buildProgress or 1) * RECLAIM_UNIT_EFFICIENCY
+				local reclaimMetal = unitDef.metalCost * (buildProgress or 1) * Game.reclaimUnitEfficiency
+
 				local t = table.ensureTable(teamReclaimIncome, builderTeamID)
 				t.metal = (t.metal or 0) + reclaimMetal
 			end
