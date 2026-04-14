@@ -1,10 +1,10 @@
 local widgetName = "Blueprint"
 
-function skip()
+local function skip()
 	return not Platform.gl
 end
 
-function setup()
+local function setup()
 	assert(widgetHandler.knownWidgets[widgetName] ~= nil)
 
 	Test.clearMap()
@@ -21,14 +21,14 @@ function setup()
 	})
 end
 
-function cleanup()
+local function cleanup()
 	Test.clearMap()
 
 	Spring.SetCameraState(initialCameraState)
 end
 
 local delay = 5
-function test()
+local function test()
 	widget = widgetHandler:FindWidget(widgetName)
 	assert(widget)
 
@@ -105,3 +105,5 @@ function test()
 	assert(#builderQueue == bpCount, #builderQueue)
 	assert(builderQueue[1].id == -blueprintUnitDefID)
 end
+
+return { skip = skip, setup = setup, test = test, cleanup = cleanup }

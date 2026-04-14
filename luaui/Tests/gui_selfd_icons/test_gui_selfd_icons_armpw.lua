@@ -1,21 +1,21 @@
 local widgetName = "Self-Destruct Icons"
 
-function skip()
+local function skip()
 	return Spring.GetGameFrame() <= 0
 end
 
-function setup()
+local function setup()
 	Test.clearMap()
 
 	Test.prepareWidget(widgetName)
 	Test.expectCallin("UnitCommand")
 end
 
-function cleanup()
+local function cleanup()
 	Test.clearMap()
 end
 
-function test()
+local function test()
 	widget = widgetHandler:FindWidget(widgetName)
 	assert(widget)
 
@@ -54,3 +54,5 @@ function test()
 		return table.count(widget.activeSelfD) == 1 and table.count(widget.queuedSelfD) == 0
 	end, 10)
 end
+
+return { skip = skip, setup = setup, test = test, cleanup = cleanup }
