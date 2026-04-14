@@ -2138,6 +2138,7 @@ end
 
 
 function widget:DrawScreen()
+	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode = spGetMouseState()
 
 	if (not alwaysShow and (cameraPanMode or mouseOffScreen) and SelectedUnitsCount == 0 and not isPregame) then
