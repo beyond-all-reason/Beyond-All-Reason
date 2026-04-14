@@ -1,18 +1,18 @@
-function skip()
+local function skip()
 	return Spring.GetGameFrame() <= 0
 end
 
-function setup()
+local function setup()
 	Test.clearMap()
 	-- Enable UnitCommand callin for tests
 	Test.expectCallin("UnitCommand")
 end
 
-function cleanup()
+local function cleanup()
 	Test.clearMap()
 end
 
-function test()
+local function test()
 	widget = widgetHandler:FindWidget("Stop means Stop")
 	assert(widget)
 
@@ -45,3 +45,5 @@ function test()
 	assert(Spring.GetUnitSelfDTime(unitID) == 0)
 	assert(Spring.GetUnitCommandCount(unitID) == 0)
 end
+
+return { skip = skip, setup = setup, test = test, cleanup = cleanup }

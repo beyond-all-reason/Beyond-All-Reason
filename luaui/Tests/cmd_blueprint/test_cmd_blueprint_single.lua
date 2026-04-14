@@ -1,6 +1,6 @@
 local widgetName = "Blueprint"
 
-function setup()
+local function setup()
 	assert(widgetHandler.knownWidgets[widgetName] ~= nil)
 
 	Test.clearMap()
@@ -16,14 +16,14 @@ function setup()
 	})
 end
 
-function cleanup()
+local function cleanup()
 	Test.clearMap()
 
 	Spring.SetCameraState(initialCameraState)
 end
 
 local delay = 5
-function test()
+local function test()
 	widget = widgetHandler:FindWidget(widgetName)
 	assert(widget)
 

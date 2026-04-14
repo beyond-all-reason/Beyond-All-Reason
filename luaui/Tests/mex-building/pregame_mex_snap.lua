@@ -1,8 +1,8 @@
-function skip()
+local function skip()
 	return Spring.GetGameFrame() > 0
 end
 
-function setup()
+local function setup()
 	Test.clearMap()
 
 	widget_cmd_extractor_snap = widgetHandler:FindWidget("Extractor Snap (mex/geo)")
@@ -24,7 +24,7 @@ function setup()
 	Test.waitTime(10)
 end
 
-function cleanup()
+local function cleanup()
 	Test.clearMap()
 
 	WG["pregame-build"].setBuildQueue({})
@@ -33,7 +33,7 @@ function cleanup()
 	Spring.SetCameraState(initialCameraState)
 end
 
-function test()
+local function test()
 	mexUnitDefId = UnitDefNames["armmex"].id
 	metalSpots = WG["resource_spot_finder"].metalSpotsList
 
@@ -81,3 +81,5 @@ function test()
 		0,
 	}, 0.1)
 end
+
+return { skip = skip, setup = setup, test = test, cleanup = cleanup }

@@ -1,16 +1,16 @@
-function skip()
+local function skip()
 	return Spring.GetGameFrame() <= 0
 end
 
-function setup()
+local function setup()
 	Test.clearMap()
 end
 
-function cleanup()
+local function cleanup()
 	Test.clearMap()
 end
 
-function runBaseTests()
+local function runBaseTests()
 	-- double expect should throw
 	Test.expectCallin("UnitCommand")
 
@@ -39,7 +39,7 @@ function runBaseTests()
 	Test.clearCallins()
 end
 
-function runWaitUntil(countOnly, reallyCountOnly, wait, expect, clear)
+local function runWaitUntil(countOnly, reallyCountOnly, wait, expect, clear)
 	-- test waitUntilCallinArgs with and without expectCallin preregister
 	local myTeamID = Spring.GetMyTeamID()
 	if expect then
@@ -71,7 +71,7 @@ function runWaitUntil(countOnly, reallyCountOnly, wait, expect, clear)
 	end
 end
 
-function test()
+local function test()
 	local FULL = false
 	local COUNT = true
 	local EXPECT = true
@@ -98,3 +98,5 @@ function test()
 	runWaitUntil(FULL, FULL, 0, not EXPECT, CLEAR)
 	Test.setUnsafeCallins(false)
 end
+
+return { skip = skip, setup = setup, test = test, cleanup = cleanup }
