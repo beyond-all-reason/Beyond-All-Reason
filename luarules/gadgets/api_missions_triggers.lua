@@ -369,25 +369,26 @@ local function checkUnitsOwned(trigger)
 	local requiredUnitName = trigger.parameters.unitName
 	local requiredUnitDefName = trigger.parameters.unitDefName
 
-	local count
+	local unitCount
 	if requiredUnitName then
-		count = 0
+		unitCount = 0
 		for uid in pairs(trackedUnitIDs[requiredUnitName] or {}) do
 			if Spring.GetUnitTeam(uid) == teamID then
 				if not requiredUnitDefName or UnitDefs[Spring.GetUnitDefID(uid)].name == requiredUnitDefName then
-					count = count + 1
+					unitCount = unitCount + 1
 				end
 			end
 		end
 	elseif requiredUnitDefName then
 		local unitDef = UnitDefNames[requiredUnitDefName]
-		count = unitDef and Spring.GetTeamUnitDefCount(teamID, unitDef.id) or 0
+		unitCount = unitDef and Spring.GetTeamUnitDefCount(teamID, unitDef.id) or 0
 	else
-		count = #Spring.GetTeamUnits(teamID)
+		unitCount = #Spring.GetTeamUnits(teamID)
 	end
 
-	-- The % is for repeating triggers
-	if count > 0 and count % trigger.parameters.quantity == 0 then
+	-- Repeat at quantity, 2*quantity, 3*quantity, ...
+	local nextThreshold = (trigger.repeatCount + 1) * trigger.parameters.quantity
+	if unitCount >= nextThreshold then
 		activateTrigger(trigger)
 	end
 end

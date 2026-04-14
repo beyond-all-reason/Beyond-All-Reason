@@ -179,6 +179,22 @@ local triggers = {
 		actions = { 'messageUnitsOwnedByDef' },
 	},
 
+	-- Repeating: fires at 2 armck owned, then again at 4 armck owned.
+	-- The same message appearing twice in the log confirms milestone advancement
+	-- without re-firing at an already-passed milestone.
+	unitsOwnedByDefRepeating = {
+		type = triggerTypes.UnitsOwned,
+		settings = {
+			repeating = true,
+		},
+		parameters = {
+			teamID = 0,
+			unitDefName = 'armck',
+			quantity = 2,
+		},
+		actions = { 'messageUnitsOwnedByDefRepeating' },
+	},
+
 	unitsOwnedByNameAndDefReached = {
 		type = triggerTypes.UnitsOwned,
 		parameters = {
@@ -398,6 +414,13 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = "[Statistics Test] UnitsOwned fired for unitDefName armck x4.",
+		},
+	},
+
+	messageUnitsOwnedByDefRepeating = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "[Statistics Test] UnitsOwned repeating fired for unitDefName armck (milestone x2 each).",
 		},
 	},
 
