@@ -73,8 +73,9 @@ bind               sc_w  resurrect
 bind         Shift+sc_w  resurrect
 bind               sc_w  capture
 bind         Shift+sc_w  capture
-bind               sc_y  wait
-bind         Shift+sc_y  wait queued
+bind          sc_y,sc_y  wait 0
+bind               sc_y  wait 1
+bind         Shift+sc_y  wait 1 queued
 
 bind          sc_b,sc_b  onoff 0
 bind               sc_b  onoff 1
