@@ -145,7 +145,7 @@ if gadgetHandler:IsSyncedCode() then
 			"[fightersynctest] starting: totalframes=%d area=%.2f offset=%.2f,%.2f mult=%.2f categories=%d anchors land/water/deep/air=%d/%d/%d/%d",
 			totalFrames, areaFraction, areaOffsetX, areaOffsetZ, unitMultiplier, #enabledCats,
 			#anchorsByClass.land, #anchorsByClass.water, #anchorsByClass.deepwater, #anchorsByClass.air))
-		SendToUnsynced("fightersynctest_synchash_begin", totalFrames)
+		SendToUnsynced("fightersynctest_synchash_begin", totalFrames, runStartFrame)
 		active = true
 	end
 
@@ -169,15 +169,15 @@ if gadgetHandler:IsSyncedCode() then
 
 		local runFrame = n - runStartFrame
 
-		if n % feedMod == 0 then
+		if runFrame % feedMod == 0 then
 			for _, cat in ipairs(enabledCats) do
 				spawnBurstForCategory(cat)
 			end
 		end
 
-		if n % cleanupMod == 1 then
+		if runFrame % cleanupMod == 1 then
 			for featureID, deathtime in pairs(featurestoremove) do
-				if deathtime < n then
+				if deathtime < runFrame then
 					if Spring.ValidFeatureID(featureID) then
 						Spring.DestroyFeature(featureID)
 					end
@@ -341,7 +341,7 @@ if gadgetHandler:IsSyncedCode() then
 		if not active then return end
 		local fdID = Spring.GetFeatureDefID(featureID)
 		if fdID and featureDefsToRemove[fdID] then
-			featurestoremove[featureID] = Spring.GetGameFrame() + cleanupFeatureLife
+			featurestoremove[featureID] = (Spring.GetGameFrame() - runStartFrame) + cleanupFeatureLife
 		end
 	end
 
@@ -458,21 +458,22 @@ else	-- UNSYNCED
 	local synchashBuffer = {}
 	local synchashFirstFrame, synchashLastFrame
 
-	local function onSynchashBegin(_, totalFrames)
+	local function onSynchashBegin(_, totalFrames, runStartFrame)
 		synchashBuffer = {}
 		synchashFirstFrame, synchashLastFrame = nil, nil
 		hudActive = true
 		hudTotalFrames = tonumber(totalFrames) or 0
-		hudRunStartFrame = Spring.GetGameFrame()
+		hudRunStartFrame = tonumber(runStartFrame) or Spring.GetGameFrame()
 	end
 
 	function gadget:GameFrame(n)
 		if not hudActive then return end
 		if not Engine.hasSyncChecksums then return end
 		local checksum = Spring.GetPrevFrameSyncChecksum()
-		synchashBuffer[#synchashBuffer + 1] = string.format("%d:%s", n, checksum)
-		if not synchashFirstFrame then synchashFirstFrame = n end
-		synchashLastFrame = n
+		local runFrame = n - hudRunStartFrame
+		synchashBuffer[#synchashBuffer + 1] = string.format("%d:%s", runFrame, checksum)
+		if not synchashFirstFrame then synchashFirstFrame = runFrame end
+		synchashLastFrame = runFrame
 	end
 
 	local function onSynchashEnd()
