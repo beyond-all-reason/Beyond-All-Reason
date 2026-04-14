@@ -27,14 +27,12 @@ local spGetVisibleProjectiles     = Spring.GetVisibleProjectiles
 local spGetProjectilePosition     = Spring.GetProjectilePosition
 local spGetProjectileVelocity     = Spring.GetProjectileVelocity
 local spGetProjectileDefID        = Spring.GetProjectileDefID
-local spGetProjectileType         = Spring.GetProjectileType
 local spGetProjectileTeamID       = Spring.GetProjectileTeamID
 local spGetTeamAllyTeamID         = Spring.GetTeamAllyTeamID
 local spIsPosInAirLos             = Spring.IsPosInAirLos
 local spGetMyAllyTeamID           = Spring.GetMyAllyTeamID
 local spGetSpectatingState        = Spring.GetSpectatingState
 local spGetGameFrame              = Spring.GetGameFrame
-local spGetProjectileTimeToLive   = Spring.GetProjectileTimeToLive
 local spGetFrameTimeOffset        = Spring.GetFrameTimeOffset
 
 local glBlending  = gl.Blending
@@ -48,7 +46,6 @@ local GL_ONE_MINUS_SRC_ALPHA  = GL.ONE_MINUS_SRC_ALPHA
 local GL_SRC_ALPHA            = GL.SRC_ALPHA
 
 local mathMin    = math.min
-local mathMax    = math.max
 local mathSqrt   = math.sqrt
 
 local LuaShader = gl.LuaShader
@@ -75,7 +72,9 @@ local GLOW_REF_SIZE    = 5.0   -- weapons at this size (after SIZE_MULT) get ful
 local CROSS_SECTION_BRIGHTNESS = 0.7  -- brightness multiplier for the head-on cross-section
 
 -- Projectile sizing: the quad is elongated along velocity to create the trail shape
-local SIZE_MULT          = 1.5   -- global multiplier on weapon projectile size (cross-section width)
+local SIZE_MULT          = 1.5    -- global multiplier on weapon projectile size (cross-section width)
+local RANGE_SIZE_BONUS   = 2.0    -- max extra size added for long-range weapons (at RANGE_SIZE_REF range)
+local RANGE_SIZE_REF     = 1500   -- weapon range (elmos) at which full RANGE_SIZE_BONUS is applied
 
 -- Core color boost
 local CORE_COLOR_ADD     = 0.4  -- added to weapon RGB to create brighter core color
@@ -87,8 +86,10 @@ local DEFAULT_COLOR = { 1.0, 0.55, 0.1 }  -- warm orange (matches old plasmaball
 
 -- Shader config (injected as #defines)
 local shaderConfig = {
-	-- Shape
-	ELONGATION         = 4,    -- how much longer the quad is along velocity vs width (trail stretch)
+	-- Shape (elongation scales with speed: min at rest, max at ELONGATION_SPEED_REF elmos/frame)
+	ELONGATION_MIN     = 2.5,  -- elongation at zero speed (nearly round)
+	ELONGATION_MAX     = 7.0,  -- elongation at or above reference speed
+	ELONGATION_SPEED_REF = 25, -- speed (elmos/frame) at which max elongation is reached
 
 	-- Noise displacement for blobby organic shape
 	NOISE_SCALE        = 4.5,    -- frequency of noise pattern (lower = bigger blobs)
@@ -131,9 +132,11 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
 		local coreB = mathMin(1, b + CORE_COLOR_ADD)
 
 		local cp = weaponDef.customParams or {}
-		local size = tonumber(cp.plasma_size_orig) or weaponDef.size or 2
+		local size = tonumber(cp.plasma_size_orig) or weaponDef.size or 1.5
+		local range = weaponDef.range or 300
 
-		size = (size * 0.85) + (weaponDef.damageAreaOfEffect / 125)  -- add blast radius to size for better core/edge color distribution
+		size = (size * 0.6) + (weaponDef.damageAreaOfEffect / 66)  -- add blast radius to size for better core/edge color distribution
+		size = size + RANGE_SIZE_BONUS * mathMin(1, range / RANGE_SIZE_REF)  -- longer-range weapons get bigger projectiles
 
 		weaponConfigs[weaponID] = {
 			colorR = r,    colorG = g,    colorB = b,
@@ -214,9 +217,11 @@ void main()
 	}
 
 	// Vertex x: across width (-1..1), vertex y: along velocity (-1..1)
-	// Elongate along velocity direction
+	// Elongate along velocity direction, scaled by speed
+	float speedFrac = clamp(speed / float(ELONGATION_SPEED_REF), 0.0, 1.0);
+	float elongation = mix(float(ELONGATION_MIN), float(ELONGATION_MAX), speedFrac);
 	float halfWidth  = size;
-	float halfLength = size * ELONGATION;
+	float halfLength = size * elongation;
 
 	// No center shift here — the FS handles TRAIL_SHIFT in UV space.
 	// The quad must be large enough to contain the shifted shape at any TRAIL_SHIFT.
@@ -413,8 +418,11 @@ void main()
 	}
 	vec3 axis2 = cross(axis1, velDir);
 
+	float speed = velocityAndLife.w;
+	float speedFrac = clamp(speed / float(ELONGATION_SPEED_REF), 0.0, 1.0);
+	float elongation = mix(float(ELONGATION_MIN), float(ELONGATION_MAX), speedFrac);
 	float halfWidth  = size;
-	float halfLength = size * ELONGATION;
+	float halfLength = size * elongation;
 	float paddedHalfLength = halfLength * (1.0 + abs(TRAIL_SHIFT));
 
 	vec3 vertexWorld = worldPos
@@ -624,7 +632,10 @@ void main()
 	// Offset glow center to match the visual bright center of the plasma shape,
 	// which is shifted backward along velocity by TRAIL_SHIFT in UV space.
 	vec3 velDir = velocityAndLife.xyz;
-	vec3 glowCenter = worldPos - velDir * (size * ELONGATION * TRAIL_SHIFT);
+	float speed = velocityAndLife.w;
+	float speedFrac = clamp(speed / float(ELONGATION_SPEED_REF), 0.0, 1.0);
+	float elongation = mix(float(ELONGATION_MIN), float(ELONGATION_MAX), speedFrac);
+	vec3 glowCenter = worldPos - velDir * (size * elongation * float(TRAIL_SHIFT));
 
 	float glowSize = size * GLOW_SIZE_MULT;
 
@@ -759,7 +770,9 @@ local function initGL4()
 			GLOW_SIZE_MULT = GLOW_SIZE_MULT,
 			GLOW_BRIGHTNESS = GLOW_BRIGHTNESS,
 			GLOW_REF_SIZE = GLOW_REF_SIZE,
-			ELONGATION = shaderConfig.ELONGATION,
+			ELONGATION_MIN = shaderConfig.ELONGATION_MIN,
+			ELONGATION_MAX = shaderConfig.ELONGATION_MAX,
+			ELONGATION_SPEED_REF = shaderConfig.ELONGATION_SPEED_REF,
 			TRAIL_SHIFT = shaderConfig.TRAIL_SHIFT,
 		},
 		forceupdate = true,
