@@ -7006,10 +7006,8 @@ local function DrawIconShatters()
 			local flashFactor = 0
 			if shatter.flashIntensity > 0 then
 				local ft = progress -- 0 at birth, 1 at expiry
-				flashFactor = shatter.flashIntensity * math.min(
-					1,
-					(1 - ft) * (1 - ft) * (1 - ft) * 1.3 + (1 - ft) * 0.08
-				)
+				flashFactor = shatter.flashIntensity
+					* math.min(1, (1 - ft) * (1 - ft) * (1 - ft) * 1.3 + (1 - ft) * 0.08)
 			end
 
 			local fragments = shatter.fragments
