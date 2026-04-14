@@ -1,18 +1,18 @@
-function skip()
+local function skip()
 	return Spring.GetGameFrame() <= 0
 end
 
-function setup()
+local function setup()
 	Test.clearMap()
 end
 
-function cleanup()
+local function cleanup()
 	Test.clearMap()
 
 	Spring.SendCommands("setspeed " .. 1)
 end
 
-function test()
+local function test()
 	local units = {
 		[0] = "armfig",
 		[1] = "corveng",
@@ -94,3 +94,5 @@ function test()
 	-- cor fighters should win
 	assert(winner == 1)
 end
+
+return { skip = skip, setup = setup, test = test, cleanup = cleanup }

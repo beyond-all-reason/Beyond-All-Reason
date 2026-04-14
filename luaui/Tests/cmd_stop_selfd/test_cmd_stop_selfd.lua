@@ -1,18 +1,18 @@
-function skip()
+local function skip()
 	return Spring.GetGameFrame() <= 0
 end
 
-function setup()
+local function setup()
 	Test.clearMap()
 	-- Enable UnitCommand callin for tests
 	Test.expectCallin("UnitCommand")
 end
 
-function cleanup()
+local function cleanup()
 	Test.clearMap()
 end
 
-function test()
+local function test()
 	widget = widgetHandler:FindWidget("Stop means Stop")
 	assert(widget, "Stop means Stop widget not found via FindWidget")
 
@@ -45,3 +45,5 @@ function test()
 	assertEqual(Spring.GetUnitSelfDTime(unitID), 0, string.format("GetUnitSelfDTime after stop of queued selfd: expected 0, got %d", Spring.GetUnitSelfDTime(unitID)))
 	assertEqual(Spring.GetUnitCommandCount(unitID), 0, string.format("GetUnitCommandCount after stop of queued selfd: expected 0, got %d", Spring.GetUnitCommandCount(unitID)))
 end
+
+return { skip = skip, setup = setup, test = test, cleanup = cleanup }
