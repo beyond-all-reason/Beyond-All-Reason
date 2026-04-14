@@ -66,6 +66,9 @@ local mathabs = math.abs
 local glColor = gl.Color
 local glRect = gl.Rect
 
+local GL_SRC_ALPHA = GL.SRC_ALPHA
+local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
+
 local gaiaID = Spring.GetGaiaTeamID()
 local gaiaAllyID = select(6, Spring.GetTeamInfo(gaiaID, false))
 
@@ -2118,6 +2121,7 @@ function widget:DrawGenesis()
 end
 
 function widget:DrawScreen()
+	gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 	if not widgetEnabled or not haveFullView then
 		if WG['guishader'] and guishaderDlist then
