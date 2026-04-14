@@ -92,7 +92,7 @@ local parameters = {
 		[1] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String,
+			type = Types.UnitName,
 		},
 		[2] = {
 			name = 'unitDefName',
@@ -110,7 +110,7 @@ local parameters = {
 		[1] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String,
+			type = Types.UnitName,
 		},
 		[2] = {
 			name = 'unitDefName',
@@ -128,7 +128,7 @@ local parameters = {
 		[1] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String,
+			type = Types.UnitName,
 		},
 		[2] = {
 			name = 'unitDefName',
@@ -161,7 +161,7 @@ local parameters = {
 		[3] = {
 			name = 'featureName',
 			required = false,
-			type = Types.String,
+			type = Types.FeatureName,
 		},
 		requiresOneOf = { 'featureName', 'unitDefName' }
 	},
@@ -177,7 +177,7 @@ local parameters = {
 		[2] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String
+			type = Types.UnitName
 		},
 		[3] = {
 			name = 'unitDefName',
@@ -203,7 +203,7 @@ local parameters = {
 		[2] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String
+			type = Types.UnitName
 		},
 		[3] = {
 			name = 'unitDefName',
@@ -235,7 +235,7 @@ local parameters = {
 		[3] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String
+			type = Types.UnitName
 		},
 		[4] = {
 			name = 'unitDefName',
@@ -253,7 +253,7 @@ local parameters = {
 		[1] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String
+			type = Types.UnitName
 		},
 		[2] = {
 			name = 'unitDefName',
@@ -276,7 +276,7 @@ local parameters = {
 		[1] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String
+			type = Types.UnitName
 		},
 		[2] = {
 			name = 'unitDefName',
@@ -311,7 +311,7 @@ local parameters = {
 		[1] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String
+			type = Types.UnitName
 		},
 		[2] = {
 			name = 'unitDefName',
@@ -343,7 +343,7 @@ local parameters = {
 		[1] = {
 			name = 'featureName',
 			required = false,
-			type = Types.String,
+			type = Types.FeatureName,
 		},
 		[2] = {
 			name = 'featureDefName',
@@ -366,7 +366,7 @@ local parameters = {
 		[1] = {
 			name = 'featureName',
 			required = false,
-			type = Types.String,
+			type = Types.FeatureName,
 		},
 		[2] = {
 			name = 'featureDefName',
@@ -405,7 +405,7 @@ local parameters = {
 		[3] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String,
+			type = Types.UnitName,
 		},
 		[4] = {
 			name = 'unitDefName',
@@ -444,7 +444,7 @@ local parameters = {
 		[3] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String,
+			type = Types.UnitName,
 		},
 		[4] = {
 			name = 'unitDefName',
@@ -466,7 +466,7 @@ local parameters = {
 		[3] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String,
+			type = Types.UnitName,
 		},
 		[4] = {
 			name = 'unitDefName',
@@ -488,7 +488,7 @@ local parameters = {
 		[3] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String,
+			type = Types.UnitName,
 		},
 		[4] = {
 			name = 'unitDefName',

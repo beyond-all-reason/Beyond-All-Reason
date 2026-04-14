@@ -311,6 +311,9 @@ validators[Types.TriggerID] = function(triggerID)
 		end
 	end
 
+validators[Types.UnitName] = validators[Types.String]
+validators[Types.FeatureName] = validators[Types.String]
+
 validators[Types.UnitDefName] = function(unitDefName)
 		local luaTypeResult = validators[Types.String](unitDefName)
 		if luaTypeResult then
@@ -498,12 +501,12 @@ local function validateActions(actions)
 	end
 end
 
-local function getTypesWithParameter(schemaParameters, parameterName)
+local function getTypesWithParameterType(schemaParameters, parameterType)
 	local typesWithParameter = {}
 
 	for actionOrTriggerType, parameters in pairs(schemaParameters) do
 		for _, parameter in ipairs(parameters) do
-			if parameter.name == parameterName then
+			if parameter.type == parameterType then
 				typesWithParameter[actionOrTriggerType] = true
 				break
 			end
@@ -514,7 +517,7 @@ local function getTypesWithParameter(schemaParameters, parameterName)
 end
 
 local function validateUnitNameReferences(triggerTypes, actionTypes, triggers, actions)
-	local triggerTypesReferencingUnitNames = getTypesWithParameter(triggersSchemaParameters, 'unitName')
+	local triggerTypesReferencingUnitNames = getTypesWithParameterType(triggersSchemaParameters, Types.UnitName)
 	local actionTypesNamingUnits = {
 		[actionTypes.SpawnUnits] = true,
 		[actionTypes.NameUnits] = true,
@@ -574,7 +577,7 @@ local function validateUnitNameReferences(triggerTypes, actionTypes, triggers, a
 end
 
 local function validateFeatureNameReferences(triggerTypes, actionTypes, triggers, actions)
-	local triggerTypesReferencingFeatureNames = getTypesWithParameter(triggersSchemaParameters, 'featureName')
+	local triggerTypesReferencingFeatureNames = getTypesWithParameterType(triggersSchemaParameters, Types.FeatureName)
 	local actionTypesNamingFeatures = {
 		[actionTypes.CreateFeature] = true,
 	}
