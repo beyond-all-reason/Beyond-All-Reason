@@ -1,0 +1,41 @@
+name: Type Check
+
+on:
+  push:
+    branches: ['*']
+  pull_request:
+    branches: ['*']
+  workflow_dispatch:
+
+jobs:
+  emmylua_check:
+    name: emmylua_check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Install emmylua_check
+        env:
+          # Pin to the same version as the dev container in BAR-Devtools
+          # (docker/dev.Containerfile -- ARG EMMYLUA_VERSION). Bump both
+          # at the same time so editor IDE results match CI results.
+          EMMYLUA_VERSION: 0.22.0
+        run: |
+          set -euo pipefail
+          ARCH=$(uname -m)
+          case "$ARCH" in
+            x86_64)  ASSET=emmylua_check-linux-x64.tar.gz ;;
+            aarch64) ASSET=emmylua_check-linux-arm64-glibc.2.17.tar.gz ;;
+            *) echo "unsupported arch for emmylua_check: $ARCH" >&2; exit 1 ;;
+          esac
+          URL="https://github.com/EmmyLuaLs/emmylua-analyzer-rust/releases/download/${EMMYLUA_VERSION}/${ASSET}"
+          curl -fsSL "$URL" | sudo tar xz -C /usr/local/bin
+          sudo chmod +x /usr/local/bin/emmylua_check
+          /usr/local/bin/emmylua_check --version
+
+      - name: Run emmylua_check
+        run: emmylua_check -c .emmyrc.json .

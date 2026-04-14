@@ -1021,6 +1021,8 @@ function gadgetHandler:RegisterGlobal(owner, name, value)
 	if self.globals[name] ~= nil then
 		return false
 	end
+	-- TODO: CALLIN_MAP is never defined — this branch is likely dead code.
+	---@diagnostic disable-next-line: undefined-global
 	if CALLIN_MAP[name] ~= nil then
 		return false
 	end

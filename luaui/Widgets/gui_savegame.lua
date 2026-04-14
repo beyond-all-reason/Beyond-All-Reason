@@ -24,6 +24,13 @@ local SAVE_DIR_LENGTH = string.len(SAVE_DIR) + 2
 local LOAD_GAME_STRING = "loadFilename "
 local SAVE_TYPE = "save "
 
+-- Forward declaration for a UI element this widget references but never
+-- creates (legacy from a fuller savegame menu — see the file's comment
+-- crediting "stripped down to nothing by beherith"). The `if saveFilenameEdit
+-- then` guard below always returns false; left in place in case someone
+-- restores the missing UI later.
+local saveFilenameEdit = nil
+
 local function WriteDate(dateTable)
 	return string.format("%02d/%02d/%04d", dateTable.day, dateTable.month, dateTable.year) .. " " .. string.format("%02d:%02d:%02d", dateTable.hour, dateTable.min, dateTable.sec)
 end

@@ -1,5 +1,11 @@
 local gadget = gadget ---@type Gadget
 
+-- Hoisted upvalue: the unsynced half (line ~372) sets `running` while the
+-- profiler is active. StartHook (synced, defined above the unsynced setup)
+-- and the DrawScreen draw path (also above) read it. Without this forward
+-- declaration the reads resolve to a nil global.
+local running = false
+
 function gadget:GetInfo()
 	return {
 		name = "Gadget Profiler",
@@ -376,7 +382,9 @@ else
 	-- Unsynced Setup
 	--------------------------------------------------------------------------------
 
-	local running = false
+	-- (`running` is hoisted to file scope above so the synced StartHook /
+	-- DrawScreen path can read it. Reassign here as plain global, not local.)
+	running = false
 
 	-- Per-callin drill-down state (only populated for the gadget currently drilled into).
 	-- Declared here, above Start/Kill, so every function captures the same upvalues.

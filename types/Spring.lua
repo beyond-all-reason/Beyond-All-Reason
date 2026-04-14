@@ -65,3 +65,4 @@
 ---@class ObjectRenderingTable
 ---@field ActivateMaterial fun(objectID: integer, lod: integer)
 ---@field DeactivateMaterial fun(objectID: integer, lod: integer)
+
