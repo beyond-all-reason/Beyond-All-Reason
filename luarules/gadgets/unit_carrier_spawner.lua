@@ -1610,7 +1610,8 @@ local function updateCarrier(carrierID, carrierMetaData, frame)
 						droneData.engaged = engaged
 						-- if not engaged and ((frame % DEFAULT_UPDATE_ORDER_FREQUENCY) == 0) then
 						if
-							not engaged and ((DEFAULT_UPDATE_ORDER_FREQUENCY + carrierMetaData.lastOrderUpdate) < frame)
+							not engaged
+							and ((DEFAULT_UPDATE_ORDER_FREQUENCY + carrierMetaData.lastOrderUpdate) < frame)
 						then
 							orderUpdate = true
 							if carrierMetaData.docking and idleRadius == 0 then

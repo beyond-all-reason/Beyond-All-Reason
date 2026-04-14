@@ -141,33 +141,26 @@ local function updateIcons()
 	for unitID, unitDefID in pairs(waitingUnits) do
 		if not iconVBO.instanceIDtoIndex[unitID] then --if visibleUnits[unitID] then
 			if spValidUnitID(unitID) then
-				pushElementInstance(
-					iconVBO,
-					{
-						unitConf[unitDefID][1],
-						unitConf[unitDefID][1],
-						0,
-						unitConf[unitDefID][2],
-						0,
-						4,
-						gf,
-						0,
-						0.75,
-						0,
-						0,
-						1,
-						0,
-						1,
-						0,
-						0,
-						0,
-						0,
-					},
-					unitID,
-					false,
-					true,
-					unitID
-				)
+				pushElementInstance(iconVBO, {
+					unitConf[unitDefID][1],
+					unitConf[unitDefID][1],
+					0,
+					unitConf[unitDefID][2],
+					0,
+					4,
+					gf,
+					0,
+					0.75,
+					0,
+					0,
+					1,
+					0,
+					1,
+					0,
+					0,
+					0,
+					0,
+				}, unitID, false, true, unitID)
 			end
 		end
 	end

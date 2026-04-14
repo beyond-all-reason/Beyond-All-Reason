@@ -318,79 +318,44 @@ local function drawContent()
 				end
 				if showStack then
 					if unitCount > 4 then
-						drawIcon(
-							unitDefID,
-							{
-								iconRect[1] + iconMargin + (offset * 4),
-								iconRect[4] - iconMargin - (offset * 4) - usedIconSize,
-								iconRect[1] + iconMargin + (offset * 4) + usedIconSize,
-								iconRect[4] - iconMargin - (offset * 4),
-							},
-							0.33,
-							zoom,
-							texSize,
-							highlightOpacity
-						)
+						drawIcon(unitDefID, {
+							iconRect[1] + iconMargin + (offset * 4),
+							iconRect[4] - iconMargin - (offset * 4) - usedIconSize,
+							iconRect[1] + iconMargin + (offset * 4) + usedIconSize,
+							iconRect[4] - iconMargin - (offset * 4),
+						}, 0.33, zoom, texSize, highlightOpacity)
 					end
 					if unitCount > 3 then
-						drawIcon(
-							unitDefID,
-							{
-								iconRect[1] + iconMargin + (offset * 3),
-								iconRect[4] - iconMargin - (offset * 3) - usedIconSize,
-								iconRect[1] + iconMargin + (offset * 3) + usedIconSize,
-								iconRect[4] - iconMargin - (offset * 3),
-							},
-							0.45,
-							zoom,
-							texSize,
-							highlightOpacity
-						)
+						drawIcon(unitDefID, {
+							iconRect[1] + iconMargin + (offset * 3),
+							iconRect[4] - iconMargin - (offset * 3) - usedIconSize,
+							iconRect[1] + iconMargin + (offset * 3) + usedIconSize,
+							iconRect[4] - iconMargin - (offset * 3),
+						}, 0.45, zoom, texSize, highlightOpacity)
 					end
 					if unitCount > 2 then
-						drawIcon(
-							unitDefID,
-							{
-								iconRect[1] + iconMargin + (offset * 2),
-								iconRect[4] - iconMargin - (offset * 2) - usedIconSize,
-								iconRect[1] + iconMargin + (offset * 2) + usedIconSize,
-								iconRect[4] - iconMargin - (offset * 2),
-							},
-							0.55,
-							zoom,
-							texSize,
-							highlightOpacity
-						)
+						drawIcon(unitDefID, {
+							iconRect[1] + iconMargin + (offset * 2),
+							iconRect[4] - iconMargin - (offset * 2) - usedIconSize,
+							iconRect[1] + iconMargin + (offset * 2) + usedIconSize,
+							iconRect[4] - iconMargin - (offset * 2),
+						}, 0.55, zoom, texSize, highlightOpacity)
 					end
 					if unitCount > 1 then
-						drawIcon(
-							unitDefID,
-							{
-								iconRect[1] + iconMargin + offset,
-								iconRect[4] - iconMargin - offset - usedIconSize,
-								iconRect[1] + iconMargin + offset + usedIconSize,
-								iconRect[4] - iconMargin - offset,
-							},
-							0.7,
-							zoom,
-							texSize,
-							highlightOpacity
-						)
+						drawIcon(unitDefID, {
+							iconRect[1] + iconMargin + offset,
+							iconRect[4] - iconMargin - offset - usedIconSize,
+							iconRect[1] + iconMargin + offset + usedIconSize,
+							iconRect[4] - iconMargin - offset,
+						}, 0.7, zoom, texSize, highlightOpacity)
 					end
 				end
-				drawIcon(
-					unitDefID,
-					{
-						iconRect[1] + iconMargin,
-						iconRect[4] - iconMargin - usedIconSize,
-						iconRect[1] + iconMargin + usedIconSize,
-						iconRect[4] - iconMargin,
-					},
-					1,
-					zoom,
-					texSize,
-					highlightOpacity
-				)
+				drawIcon(unitDefID, {
+					iconRect[1] + iconMargin,
+					iconRect[4] - iconMargin - usedIconSize,
+					iconRect[1] + iconMargin + usedIconSize,
+					iconRect[4] - iconMargin,
+				}, 1, zoom, texSize, highlightOpacity)
 
 				if unitCount > 1 then
 					local fontSize = height * vsy * 0.39
