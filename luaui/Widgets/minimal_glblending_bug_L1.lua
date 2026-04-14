@@ -2,7 +2,7 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name = "DEBUG NOMERGE",
+		name = "DEBUG NOMERGE1",
 		desc = "Minimal reproducing example for the gl.Blending bug",
 		author = "TheDujin",
 		date = "April 2026",
@@ -24,6 +24,6 @@ function widget:DrawScreen()
 	local frame = Spring.GetGameFrame()
 	if frame - lastEchoFrame >= 60 then
 		lastEchoFrame = frame
-		Spring.Echo("REMOVE DEBUG NOMERGE WIDGET BEFORE MERGE")
+		Spring.Echo("REMOVE DEBUG NOMERGE WIDGET LAYER 1 BEFORE MERGE")
 	end
 end
