@@ -125,7 +125,7 @@ local longestPlayername = "(s) [xx]playername"
 
 -- State tables to reduce local variable count
 local state = {
-	I18N = {},
+	i18nStrings = {},
 	orgLines = {},
 	chatLines = {},
 	consoleLines = {},
@@ -182,7 +182,7 @@ local state = {
 }
 
 -- Essential state aliases (heavily accessed - keep as locals)
-local I18N, orgLines, chatLines, consoleLines = state.I18N, state.orgLines, state.chatLines, state.consoleLines
+local i18nStrings, orgLines, chatLines, consoleLines = state.i18nStrings, state.orgLines, state.chatLines, state.consoleLines
 local activationArea, font = state.activationArea, state.font
 local showTextInput, inputText, cursorBlinkTimer, cursorBlinkDuration = false, "", 0, 1
 local inputSelectionStart = nil
@@ -527,7 +527,7 @@ local function refreshUnitDefs()
 end
 
 function widget:LanguageChanged()
-	I18N = {
+	i18nStrings = {
 		energy = I18N("ui.topbar.resources.energy"):lower(),
 		metal = I18N("ui.topbar.resources.metal"):lower(),
 		everyone = I18N("ui.chat.everyone"),
@@ -722,14 +722,14 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 			if type(text) ~= "string" then
 				text = text_orig
 			end
-			if text:lower():find(I18N.energy, nil, true) then
-				local pos = text:lower():find(I18N.energy, nil, true)
-				local len = slen(I18N.energy)
+			if text:lower():find(i18nStrings.energy, nil, true) then
+				local pos = text:lower():find(i18nStrings.energy, nil, true)
+				local len = slen(i18nStrings.energy)
 				text = ssub(text, 1, pos - 1) .. energyColor .. ssub(text, pos, pos + len - 1) .. msgColor .. ssub(text, pos + len)
 			end
-			if text:lower():find(I18N.metal, nil, true) then
-				local pos = text:lower():find(I18N.metal, nil, true)
-				local len = slen(I18N.metal)
+			if text:lower():find(i18nStrings.metal, nil, true) then
+				local pos = text:lower():find(i18nStrings.metal, nil, true)
+				local len = slen(i18nStrings.metal)
 				text = ssub(text, 1, pos - 1) .. metalColor .. ssub(text, pos, pos + len - 1) .. msgColor .. ssub(text, pos + len)
 			end
 		end
@@ -1498,13 +1498,13 @@ drawChatInput = function()
 			local distance = (historyMode and inputHeight + elementMargin + elementMargin or elementMargin)
 			local isCmd = ssub(inputText, 1, 1) == "/"
 			local usedFont = isCmd and font3 or font
-			local modeText = I18N.everyone
+			local modeText = i18nStrings.everyone
 			if isCmd then
-				modeText = I18N.cmd
+				modeText = i18nStrings.cmd
 			elseif inputMode == "a:" then
-				modeText = I18N.allies
+				modeText = i18nStrings.allies
 			elseif inputMode == "s:" then
-				modeText = I18N.spectators
+				modeText = i18nStrings.spectators
 			end
 			local modeTextPosX = floor(activationArea[1] + elementPadding + elementPadding + leftOffset)
 			local textPosX = floor(modeTextPosX + (usedFont:GetTextWidth(modeText) * inputFontSize) + leftOffset + inputFontSize)
@@ -1682,7 +1682,7 @@ drawUi = function()
 			if hovering then --and Spring.GetGameFrame() < 30*60*7 then
 				font:Begin(true)
 				font:SetTextColor(0.1, 0.1, 0.1, 0.66)
-				font:Print(I18N.shortcut, activationArea[3] - elementPadding - elementPadding, activationArea[2] + elementPadding + elementPadding, usedConsoleFontSize, "r")
+				font:Print(i18nStrings.shortcut, activationArea[3] - elementPadding - elementPadding, activationArea[2] + elementPadding + elementPadding, usedConsoleFontSize, "r")
 				font:End()
 			end
 		end
@@ -1722,7 +1722,7 @@ drawUi = function()
 		if #chatLines == 0 and historyMode == "chat" then
 			font:Begin(true)
 			font:SetTextColor(0.35, 0.35, 0.35, 0.66)
-			font:Print(I18N.nohistory, activationArea[1] + (activationArea[3] - activationArea[1]) / 2, activationArea[2] + elementPadding + elementPadding, usedConsoleFontSize * 1.1, "c")
+			font:Print(i18nStrings.nohistory, activationArea[1] + (activationArea[3] - activationArea[1]) / 2, activationArea[2] + elementPadding + elementPadding, usedConsoleFontSize * 1.1, "c")
 			font:End()
 		end
 		local checkedLines = 0
@@ -2524,7 +2524,7 @@ function widget:WorldTooltip(ttType, data1, data2, data3)
 	local x, y, _ = spGetMouseState()
 	local chatlogHeightDiff = historyMode and floor(vsy * (scrollingPosY - posY)) or 0
 	if #chatLines > 0 and math_isInRect(x, y, activationArea[1], activationArea[2] + chatlogHeightDiff, activationArea[3], activationArea[4]) then
-		return I18N.scroll
+		return i18nStrings.scroll
 	end
 end
 

@@ -3431,11 +3431,14 @@ GUIUnitSoundEffects = {
 	lootboxnano_t4_var3 = LootboxNanoSoundEffects,
 	lootboxnano_t4_var4 = LootboxNanoSoundEffects,
 
-	coruwgeo = corgeo,
-	coruwageo = corageo,
-	armuwgeo = armgeo,
-	armuwageo = armageo,
 }
+
+-- Underwater geo variants share sound effects with their land counterparts.
+-- Cannot self-reference keys inside a table literal, so assign after construction.
+GUIUnitSoundEffects.coruwgeo = GUIUnitSoundEffects.corgeo
+GUIUnitSoundEffects.coruwageo = GUIUnitSoundEffects.corageo
+GUIUnitSoundEffects.armuwgeo = GUIUnitSoundEffects.armgeo
+GUIUnitSoundEffects.armuwageo = GUIUnitSoundEffects.armageo
 
 local scavCopies = {}
 for _, udef in pairs(UnitDefs) do

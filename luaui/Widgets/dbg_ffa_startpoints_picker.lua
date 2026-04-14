@@ -28,6 +28,7 @@ end
 -- Localized functions for performance
 local tableInsert = table.insert
 local tableRemove = table.remove
+local tableRemoveFirst = table.removeFirst
 
 -- Localized Spring API for performance
 local spGetUnitDefID = SpringShared.GetUnitDefID

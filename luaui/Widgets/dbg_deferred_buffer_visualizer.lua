@@ -218,7 +218,6 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	RemoveChatActions()
 	if gl.DeleteShader then
 		if myshader ~= nil then
 			gl.DeleteShader(myshader or 0)

@@ -1,9 +1,13 @@
 shard_include("behaviour")
 BehaviourFactory = class(AIBase)
 
-shard_include("behaviours")
 function BehaviourFactory:Init()
-	--
+	-- mirrors STAI/behaviourfactory.lua: shard_include returns the behaviours
+	-- table (currently always {}), AddBehaviours falls through to
+	-- defaultBehaviours() for every unit. Without this assignment the
+	-- bare-global `behaviours[...]` lookup below crashes at runtime with
+	-- "attempt to index a nil value (global 'behaviours')".
+	self.behaviours = shard_include("behaviours")
 end
 
 function BehaviourFactory:AddBehaviours(unit)
@@ -13,7 +17,7 @@ function BehaviourFactory:AddBehaviours(unit)
 	end
 	-- add behaviours here
 	-- unit:AddBehaviour(behaviour)
-	local b = behaviours[unit:Internal():Name()]
+	local b = self.behaviours[unit:Internal():Name()]
 	if b == nil then
 		b = defaultBehaviours(unit, ai)
 	end

@@ -12,7 +12,15 @@ return {
       "luarules/?.lua", "luarules/?/init.lua",
       "luaui/?.lua", "luaui/?/init.lua",
       "spec/?.lua", "spec/?/init.lua",
-    }, ";")
+    }, ";"),
+    -- spec_helper installs the Spring/SpringShared/SpringSynced/SpringUnsynced
+    -- shims that unit-def loading (via Builders.Spring:WithRealUnitDefs)
+    -- relies on. Without it, any spring-split'd unit def that references
+    -- SpringShared.GetModOptions() nil-derefs at require-time. Previously
+    -- only `_all` and `coverage` named tasks set this; default didn't, so
+    -- `just bar::units` (which runs default) silently swallowed ~20 unit
+    -- def load failures per run.
+    helper = "spec/spec_helper.lua",
   },
   -- Default configuration
   verbose = true,

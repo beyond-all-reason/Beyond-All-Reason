@@ -3,6 +3,11 @@
 --
 --  Icon Generator Config File
 --
+-- This file is `VFS.Include`d by an icon-generator gadget that injects
+-- `info`, `scheme`, and `faction` into the include's environment as
+-- template parameters. They look like undefined globals to the analyzer
+-- because the analyzer can't follow the include's fenv setup.
+---@diagnostic disable: undefined-global
 
 --// Info
 if info then

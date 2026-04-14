@@ -216,6 +216,12 @@ function BuildersBST:findPlace(utype, value, cat, loc)
 		return
 	end
 	local POS = nil
+	-- minDist/maxDist are passed to site:FindClosestBuildSite below; both nil
+	-- means "use the function's defaults". Declared here as forward locals
+	-- because the original code referenced them as bare globals (the legacy
+	-- `--local minDist = nil` / `--minDist = 0` comments below show where
+	-- they used to live before being removed).
+	local minDist, maxDist = nil, nil
 	local builder = self.unit:Internal()
 	local builderPos = self.position
 	local army = self.ai.armyhst

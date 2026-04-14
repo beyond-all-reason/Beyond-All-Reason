@@ -1182,7 +1182,7 @@ end
 
 local function unbindBuildUnits()
 	for _, buildOption in ipairs(boundUnits) do
-		widgetHandler.actionHandler:RemoveAction(self, "buildunit_" .. buildOption, "p")
+		widgetHandler.actionHandler:RemoveAction(self, "buildunit_" .. buildOption, "p") ---@diagnostic disable-line: undefined-global
 	end
 
 	boundUnits = {}

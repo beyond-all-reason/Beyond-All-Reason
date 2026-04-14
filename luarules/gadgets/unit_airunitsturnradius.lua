@@ -62,7 +62,9 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	if Bombers[unitID] and spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
-		gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+		-- UnitDamaged doesn't carry attacker info; UnitDestroyed only uses unitID
+		-- to clear its tracking entry, so the other args don't matter here.
+		gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	end
 end
 

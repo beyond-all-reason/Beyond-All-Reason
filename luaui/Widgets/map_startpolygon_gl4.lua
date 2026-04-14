@@ -37,6 +37,13 @@ local scavengerStartBoxTexture = "LuaUI/Images/scav-tileable_v002_small.tga"
 
 local raptorStartBoxTexture = "LuaUI/Images/rapt-tileable_v002_small.tga"
 
+-- noRushTime is only declared as a local in gfx_norush_timer_gl4.lua; this
+-- widget has always read it as a bare identifier at the shader-uniform call
+-- site (master, pre-tighten-globals), so the value is effectively 0 at
+-- runtime. Declaring the default here matches runtime behavior and lets the
+-- analyzer type-check the reference.
+local noRushTime = 0
+
 local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
 local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
 

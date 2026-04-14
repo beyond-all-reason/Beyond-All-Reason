@@ -774,6 +774,13 @@ function SB:WithGlobalsDefined(fn, persist)
 				end,
 				VFS = _G.VFS,
 				Spring = _G.Spring,
+				-- Type-split aliases (real engine: LuaSpringContext::SetupAliases).
+				-- spring-split codemod rewrites Spring.X -> SpringShared.X etc., so
+				-- def-loader sandboxes need these to exist or unit/weapon/feature
+				-- defs crash with "attempt to index global 'SpringShared' (nil)".
+				SpringShared = _G.Spring,
+				SpringSynced = _G.Spring,
+				SpringUnsynced = _G.Spring,
 				-- Export standard Lua libs as system.lua does
 				pairs = pairs,
 				ipairs = ipairs,

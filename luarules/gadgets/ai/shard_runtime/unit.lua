@@ -4,6 +4,13 @@
 -- that controls it
 Unit = class(AIBase)
 
+-- Forward declarations for the dead Tracy-memory branch below (the
+-- `if tracy and not tracy then` guard is unreachable, but the block
+-- references `logRAM` and `lastGCinfo` and the type-checker still walks
+-- it). Defaults match the disabled state.
+local logRAM = false
+local lastGCinfo = 0
+
 local function tracyZoneBeginMem()
 	return
 end

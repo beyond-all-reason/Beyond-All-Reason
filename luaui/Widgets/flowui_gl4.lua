@@ -1667,7 +1667,7 @@ void main() {
 
 local function goodbye(reason)
 	spEcho(widget:GetInfo().name .. " widget exiting with reason: " .. reason)
-	widgetHandler:RemoveWidget(self)
+	widgetHandler:RemoveWidget(self) ---@diagnostic disable-line: undefined-global
 end
 
 local function makeRectRoundVBO(name)

@@ -1,9 +1,9 @@
 local function _findI18nBase()
-	local luxDirs = VFS.SubDirs(".lux/5.1/", VFS.RAW_ONLY) or {}
+	local luxDirs = VFS.SubDirs(".lux/5.1/", VFS.RAW_FIRST) or {}
 	for _, dir in ipairs(luxDirs) do
 		if dir:match("i18n@") then
 			local initPath = dir .. "src/i18n/init.lua"
-			if VFS.FileExists(initPath, VFS.RAW_ONLY) then
+			if VFS.FileExists(initPath, VFS.RAW_FIRST) then
 				return dir .. "src/"
 			end
 		end

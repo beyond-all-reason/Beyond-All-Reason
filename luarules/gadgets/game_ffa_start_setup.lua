@@ -75,8 +75,10 @@ local function tryLoadConfig(currentMapName, requiredStartPointCount)
 	-- duplicated in every file. We now properly pass local variables up the stack via VFS.Include and handle logic only
 	-- here, but we also add additional backwards compatibility logic in case any such legacy start points config exists
 	-- in the wild.
+	---@diagnostic disable-next-line: undefined-global
 	if ffaStartPoints and ffaStartPoints[requiredStartPointCount] then
 		SpringShared.Log(gadget:GetInfo().name, LOG.WARNING, string.format("backwards compatibility layer: using legacy FFA start points config for %s start points", requiredStartPointCount))
+		---@diagnostic disable-next-line: undefined-global
 		layout = ffaStartPoints[requiredStartPointCount]
 	end
 

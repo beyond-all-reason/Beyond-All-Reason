@@ -252,7 +252,7 @@ function widget:Update()
 				activeUnitShape = WG.DrawUnitShapeGL4(unitShape[1], unitShape[2], unitShape[3], unitShape[4], unitShape[5] * (math.pi / 2), 0.66, unitShape[6], 0.15, 0.3)
 			end
 		elseif activeUnitShape then
-			clearGhostBuild()
+			clear()
 		end
 	end
 end

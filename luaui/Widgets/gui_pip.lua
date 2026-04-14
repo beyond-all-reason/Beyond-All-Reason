@@ -4220,6 +4220,7 @@ local UpdateTracking -- forward declaration (called in StartMaximizeAnimation, d
 local InitGL4Decals -- forward declaration (called in Initialize, defined after decalGL4 table)
 local DestroyGL4Decals -- forward declaration (called in Shutdown, defined after decalGL4 table)
 local decalGL4 -- forward declaration (referenced in DrawDecalsOverlay, defined later)
+local UpdateGuishaderBlur -- forward declaration (called in StartMaximizeAnimation, defined later)
 
 local function StartMaximizeAnimation()
 	local buttonSize = math.floor(render.usedButtonSize * config.maximizeSizemult)
@@ -4308,7 +4309,7 @@ local function RecoverInvalidAnimationState()
 	UpdateGuishaderBlur()
 end
 
-local function UpdateGuishaderBlur()
+function UpdateGuishaderBlur()
 	if WG.guishader then
 		-- Determine the correct bounds based on mode
 		local blurL, blurB, blurR, blurT

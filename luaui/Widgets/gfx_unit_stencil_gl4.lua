@@ -426,7 +426,7 @@ local function GetUnitStencilTexture()
 end
 
 function widget:Initialize()
-	unitStencilShader = InitDrawPrimitiveAtUnit(shaderConfig, "unitStencils")
+	unitStencilShader = InitDrawPrimitiveAtUnit(nil, "unitStencils")
 	widget:ViewResize()
 
 	WG.unitstencilapi = {}
