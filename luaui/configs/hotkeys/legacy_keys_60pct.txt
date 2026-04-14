@@ -78,8 +78,9 @@ bind Shift+sc_s stop
 bind Ctrl+sc_s stopproduction
 bind sc_u unloadunits
 bind Shift+sc_u unloadunits
-bind sc_w wait
-bind Shift+sc_w wait queued
+bind sc_y,sc_y wait 0
+bind sc_y wait 1
+bind Shift+sc_w wait 1 queued
 bind sc_x onoff
 bind Shift+sc_x onoff
 
