@@ -1,0 +1,58 @@
+<rml>
+    <head>
+        <!-- The default styling for html elements, must be imported to be used -->
+        <link type="text/rcss" href="/LuaUI/rml_common/styles.rcss"/>
+        <!-- Style based on the flow_ui api -->
+        <link type="text/rcss" href="/LuaUI/rml_common/flow_ui.rcss"/>
+        <style>
+            body {
+                top: 10%;
+                left: 20%;
+                min-width: 300px;
+                height: 70%;
+                pointer-events: none;
+            }
+
+            body > * {
+                pointer-events: auto;
+                cursor: default;
+            }
+        </style>
+    </head>
+    <body data-model="ground_fog_data_model">
+        <handle move_target="#document">
+            <div class="element" id="topbar">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h5 style="margin: 0.25em">GROUND FOG SLIDERS (Click and Drag to Move)</h5>
+                    <button id="toggleSliders" style="margin: 0.25em; padding: 0.2em 0.5em;">Hide</button>
+                </div>
+            </div>
+        </handle>
+
+        <div class="element" id="sliders" style="display: flex; flex-direction: row; gap: 1.0em; align-items: flex-start;">
+            <div id="fogsliders_col1" style="display: flex; flex-direction: column; gap: 0.1em;">
+                <div style="display: flex; flex-direction: column; gap: 0em;">
+                    <h6 style="margin: 0.25em 0; color: #FFD700;">Global Parameters</h6>
+                    <div id="fogparameters-global" style="display: flex; flex-direction: column; gap: 0.0em;"> </div>
+
+                    <h6 style="margin: 0.25em 0; color: #FFD700;">Ground Fog Parameters</h6>
+                    <div id="fogparameters-ground" style="display: flex; flex-direction: column; gap: 0.0em;"> </div>
+
+                    <h6 style="margin: 0.25em 0; color: #FFD700;">Height Fog Parameters</h6>
+                    <div id="fogparameters-height" style="display: flex; flex-direction: column; gap: 0.0em;"> </div>
+
+                    <h6 style="margin: 0.25em 0; color: #FFD700;">Shadow Parameters</h6>
+                    <div id="fogparameters-shadow" style="display: flex; flex-direction: column; gap: 0.0em;"> </div>
+                </div>
+            </div>
+        </div>
+        <div class="element" id="buttons">
+            <h6>FOG BUTTONS</h6>
+
+            <div id="fogbuttons" style="display: flex; gap: 1em; align-items: center;">
+            </div>
+        </div>
+        <div id="target" style="display: flex;"></div>
+
+    </body>
+</rml>

@@ -2,13 +2,13 @@
 --------------------------------------------------------------------------------
 function widget:GetInfo()
 	return {
-		name = "Global Fog GL4",
-		version = 3,
-		desc = "Draws new Global fog",
-		author = "Beherith",
-		date = "2022.07.14",
+		name = "Ground Fog GL4",
+		version = 1,
+		desc = "Stripped-down height/ground fog only (no clouds, no distance fog, no underwater). Based on Global Fog GL4 by Beherith.",
+		author = "Beherith (stripped)",
+		date = "2026.04.15",
 		license = "Lua code is GPL V2, GLSL is (c) Beherith",
-		layer = 100010, -- lol this isnt even a number
+		layer = 100010,
 		enabled = false
 	}
 end
@@ -154,26 +154,22 @@ function onFogColorChange(uniformName, hexColor)
 	fogUniforms[uniformName] = vec4
 	Spring.Echo("Fog color updated:", uniformName, vec4[1], vec4[2], vec4[3], vec4[4])
 	-- If you have a SetFogParams function, call it:
-	if WG and WG.SetFogParams then WG.SetFogParams(uniformName, vec4) end
+	if WG and WG.SetGroundFogParams then WG.SetGroundFogParams(uniformName, vec4) end
 end
 
 local paramGroups = {
-	global = "Global Parameters", 
-	ground = "Ground Fog Parameters", 
-	underwater = "Underwater Shadows Parameters",
-	cloud = "Cloud Layer Parameters",
-	cloudshadows = "Cloud Shadow Parameters",
+	global = "Global Parameters",
+	ground = "Ground Fog Parameters",
 	height = "Height Fog Parameters",
-	distance = "Distance Fog Parameters",
-	scavenger = "Scavenger Cloud Parameters",
-	shadow = "Shadow Parameters", 
+	shadow = "Shadow Parameters",
 }
 
--- THIS IS UNIFIED BETWEEN FOG SHADER AND COMBINE SHADER
+-- Stripped ground-fog-only version. Cloud, distance, underwater and scavenger
+-- features are disabled via shader #defines set to 0 below (the branches become
+-- no-ops at shader compile time). Their sliders are removed from the UI.
 local definesSlidersParamsList = {
 --global
 	{name = 'RESOLUTION', default = 1, min = 1, max = 8, digits = 0, tooltip = 'Fog resolution divider, 1 = full resolution, 2 = half', group = "global"},
-	--{name = 'MINISHADOWS', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Wether to draw a downsampled shadow sampler'},
 	{name = 'OFFSETX', default = 0, min = -4, max = 4, digits = 0, tooltip = 'OFFSETX', group = "global"},
 	{name = 'OFFSETY', default = 0, min = -4, max = 4, digits = 0, tooltip = 'OFFSETY', group = "global"},
 	{name = 'HALFSHIFT', default = 1, min = 0, max = 1, digits = 0, tooltip = 'If the resolution is half, perform a half-pixel shifting', group = "global"},
@@ -181,41 +177,37 @@ local definesSlidersParamsList = {
 	{name = 'QUADNOISEFETCHING', default = 1, min = 0, max = 1, digits = 0,  tooltip = 'Enable Quad Message Passing [0 or 1]', group = "global"},
 	{name = 'NOISESCALE', default = 0.3, min = 0.001, max = 0.999, digits = 3, tooltip = 'The tiling frequency of noise', group = "global"},
 	{name = 'SHADOWSAMPLER', default = 1, min = 0, max = 3, digits = 0, tooltip =  '0 use texture fetch, 1 use sampler fetch, 2 use texelfetch', group = "global"},
-	{name = 'TEXTURESAMPLER', default = 1, min = 0, max = 6, digits = 0,  tooltip = '0:None 1=Packed3D 2=Tex2D 3=Tex2D 4=FBM 5=Value3D 6=SimplexPerlin', group = "global"},
-	{name = 'USEDDS', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Use DDS compressed version of packedNoise. Most important when using very high frequencies of LF noise (reduces cache pressure)', group = "global"},
 	{name = 'USELOS', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Use the LOS map at all, 1 = yes, 0 = no', group = "global"},
 	{name = 'LOSREDUCEFOG', default = 0, min = 0, max = 1, digits = 2, tooltip = 'How much less fog there is in LOS , 0 is no height based fog in los, 1 is full fog in los', group = "global"},
 	{name = 'LOSFOGUNDISCOVERED', default = 1.0, min = 0, max = 1, digits= 2, tooltip = 'This specifies how much more fog there should be where the map has not yet been discovered ever (0 is none, 1 is a lot)', group = "global"},
-	{name = 'USEMINIMAP', default = 0, min = 0, max = 1, digits = 0, tooltip = '0 or 1 to use the minimap for back-scatter', group = "global"},
-	{name = 'SUNCHROMASHIFT', default = 0.2,  min = -0.5, max = 1, digits = 2, tooltip = 'How much colors are shifted towards sun', group = "global"},
-	{name = 'RISERATE', default = 0.025, min = 0.00, max = 0.2, digits = 3, tooltip = 'Rate at which cloud noise rises, in elmos per frame', group = "global"},
 	{name = 'WINDSTRENGTH', default = 0.01, min = 0, max = 0.1, digits = 2, tooltip = 'Speed multiplier for wind', group = "global"},
--- global debug	
-	{name = 'MINIMAPSCATTER', default = 0.1, min = -0.5, max = 0.5, digits = 2, tooltip = 'How much the minimap color sdditively back-scatters into fog color, 0 is off', group = "global"},
+-- global debug
 	{name = 'FULLALPHA',default = 0, min = 0, max = 1, digits = 0, tooltip = 'Show ONLY fog', group = "global"},
 	{name = 'COMBINESHADER', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Run the combine shader if RESOLUTION > 1', group = "global"},
 	{name = 'ENABLED', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Dont do anything', group = "global"},
 	{name = 'EASEHEIGHT', default = 1, min = 0.0, max = 5, digits = 2, tooltip = 'How much to reduce height-based fog close to camera', group = "global"},
--- ground	
+-- ground
 	{name = 'HEIGHTNOISESTEPS', default = 8, min = 0, max = 32, digits = 0, tooltip =  'How many times to sample ground fog noise', group = "ground"},
 	{name = 'HEIGHTSHADOWSTEPS', default = 12, min = 0, max = 32, digits = 0, tooltip =  'How many times to sample shadows for pure height-based fog', group = "ground"},
-	
+
 -- shadow
 	{name = 'HEIGHTSHADOWQUAD', default = 2, min = 0, max = 2, digits = 0, tooltip =  'How to Quad sample height-based fog', group = "shadow"},
-	
--- underwater	
-	{name = 'UWSHADOWSTEPS', default = (minHeight < -20) and 8 or 0, min = 0, max = 64, digits = 0, tooltip =  'How many times to sample shadows for underwater scattering' , group = "underwater"},
-	{name = 'UWCAUSTICS', default = 2, min = 0, max = 8, digits = 1, tooltip =  'How strongly caustics should distort underwater shadows' , group = "underwater"},
-	--{name = 'BLUENOISESTRENGTH', default = 1.1, min = 0, max = 1.1, digits = 1, tooltip =  'Amount of blue noise added to shadow sampling'},
---clouds	
-	{name = 'CLOUDSTEPS',default = 16, min = 0, max = 64, digits = 0, tooltip = 'How many Cloud samples to take, 0 to disable clouds', group = "cloud"},
-	{name = 'NOISETHRESHOLD', default = 0, min = -1, max = 1, digits = 2, tooltip =  'The 0 level of noise', group = "global"},
---cloudshadows
-	{name = 'CLOUDSHADOWS', default = 8, min = 0, max = 16, digits = 0, tooltip = 'How many rays to cast in the direction of the sun for shadows', group = "cloudshadows"},
-	--{name = 'HEIGHTDENSITY', default = 2, min = 1, max = 10, digits = 2, tooltip = 'How quickly height fog reaches its max density'},
--- distance
-	{name = 'DISTANCEFOGPOWER', default = 4, min = 0, max = 10, digits = 2, tooltip = 'How strongly distance fog should come in', group = "distance"},
-		
+
+-- Disabled features — kept as hidden defines so the shader still compiles.
+-- These are not exposed as sliders and should stay at 0.
+	{name = 'TEXTURESAMPLER', default = 1, min = 0, max = 6, digits = 0, tooltip = 'hidden', group = "hidden"},
+	{name = 'USEDDS', default = 0, min = 0, max = 1, digits = 0, tooltip = 'hidden', group = "hidden"},
+	{name = 'USEMINIMAP', default = 0, min = 0, max = 1, digits = 0, tooltip = 'hidden', group = "hidden"},
+	{name = 'MINIMAPSCATTER', default = 0, min = 0, max = 0, digits = 2, tooltip = 'hidden', group = "hidden"},
+	{name = 'SUNCHROMASHIFT', default = 0, min = 0, max = 0, digits = 2, tooltip = 'hidden', group = "hidden"},
+	{name = 'RISERATE', default = 0, min = 0, max = 0, digits = 3, tooltip = 'hidden', group = "hidden"},
+	{name = 'UWSHADOWSTEPS', default = 0, min = 0, max = 0, digits = 0, tooltip = 'hidden — underwater shadows disabled', group = "hidden"},
+	{name = 'UWCAUSTICS', default = 0, min = 0, max = 0, digits = 1, tooltip = 'hidden', group = "hidden"},
+	{name = 'CLOUDSTEPS', default = 0, min = 0, max = 0, digits = 0, tooltip = 'hidden — clouds disabled', group = "hidden"},
+	{name = 'CLOUDSHADOWS', default = 0, min = 0, max = 0, digits = 0, tooltip = 'hidden — cloud shadows disabled', group = "hidden"},
+	{name = 'NOISETHRESHOLD', default = 0, min = 0, max = 0, digits = 2, tooltip = 'hidden', group = "hidden"},
+	{name = 'DISTANCEFOGPOWER', default = 0, min = 0, max = 0, digits = 2, tooltip = 'hidden — distance fog disabled', group = "hidden"},
+
 }
 
 for i, shaderDefine in ipairs(definesSlidersParamsList) do 
@@ -225,14 +217,25 @@ for i, shaderDefine in ipairs(definesSlidersParamsList) do
 	end
 end
 
+-- Ground mist defaults: thin layer hugging terrain, moderate density.
+-- heightFogTop / heightFogBottom bound the altitude range where fog exists.
+-- heightFogColor.a is the density multiplier (0.0 = none, ~1.0 = wall-of-fog).
 local fogUniforms = {
-	heightFogColor = {0.6,0.7,0.8,0.98}, -- bluish, alpha is the ABSOLUTE MAXIMUM FOG
-	cloudGlobalColor = {0.6,0.7,0.8,0.98}, -- bluish, alpha is the ABSOLUTE MAXIMUM FOG
-	distanceFogColor = {1.0,0.9,0.8,0.35}, -- yellowish, alpha is power
-	shadowedColor = {0.1,0.05,0.1,0.5}, -- purleish tint, alpha is power
-	heightFogTop = maxHeight * 0.5 , -- Start of the height thing
-	heightFogBottom = 0, -- Start of the height thing
-	cloudDensity = 0.01, -- How dense the height-based fog is
+	heightFogColor = {0.55, 0.62, 0.72, 0.45}, -- cool desaturated blue-grey, moderate density
+	cloudGlobalColor = {0.6,0.7,0.8,0.98}, -- unused (clouds disabled), kept so shader uniform stays bound
+	distanceFogColor = {1.0,0.9,0.8,0.35}, -- unused (distance fog disabled), kept so shader uniform stays bound
+	shadowedColor = {0.08, 0.06, 0.12, 0.55}, -- purple-tinted shadowed mist
+	heightFogTop = minHeight + 220, -- thin ~220 elmo layer above the map's lowest point
+	heightFogBottom = minHeight, -- mist starts at the ground on the lowest point
+	fogMaxOpacity = 0.75, -- ceiling on per-pixel fog alpha so particles keep (1 - value) of their light
+	heightFogFalloff = 1.5, -- >1 hugs the ground (thin at top), <1 fills top more
+	cloudCoverage = 0.55,    -- how much of the world has fog (0 = none, 1 = full)
+	cloudScale = 0.6,        -- base noise frequency on XZ (texture-space units)
+	cloudErodeAmount = 0.35, -- how hard high-freq worley eats into the bank edges
+	cloudWindSpeed = 0.25,   -- wind multiplier (multiplies windFractFull.xy)
+	cloudMorphSpeed = 0.05,  -- in-place mutation speed (0 = frozen)
+	cloudTime = 0,           -- pushed per-frame from Spring.GetGameSeconds()
+	cloudDensity = 0.01, -- unused
 	cloudVolumeMin = {0,maxHeight,0,0}, -- XYZ coords of the cloud volume start, along with the bottom density in W
 	cloudVolumeMax= {Game.mapSizeX, 2* maxHeight, Game.mapSizeZ,1024}, -- XYZ coords of fog volume end, along with the top density
 	scavengerPlane = {Game.mapSizeX, Game.mapSizeZ, 100,100}, -- The assumption here is that we can specify an X and Z limit on fog, and a density transition function. negative numbers should swap plane dir 
@@ -251,20 +254,17 @@ local fogUniforms = {
 	}
 	
 local uniformSliderParamsList = {
-	{name = 'distanceFogColor', default = fogUniforms.distanceFogColor, min = 0, max = 2, digits = 3, tooltip =  'distanceFogColor, alpha is density multiplier', group = "distance", membernames = {'r','g','b','a'}},
+	{name = 'fogMaxOpacity', default = fogUniforms.fogMaxOpacity, min = 0, max = 1, digits = 2, tooltip =  'Ceiling on fog opacity. 1.0 = fog can fully hide scene. Lower values preserve particle/unit light through thick mist (e.g. 0.75 keeps 25% of bright CEG light)', group = "global"},
 	{name = 'shadowedColor', default = fogUniforms.shadowedColor, min = 0, max = 2, digits = 3, tooltip =  'shadowedColor, Color of the shadowed areas, ideally black, alpha is strength', group = "shadow", membernames = {'r','g','b','a'}},
 	{name = 'heightFogColor', default = fogUniforms.heightFogColor, min = 0, max = 2, digits = 3, tooltip =  'heightFogColor, alpha is the ABSOLUTE MAXIMUM FOG', group = "height", membernames = {'r','g','b','a'}},
 	{name = 'heightFogTop', default = fogUniforms.heightFogTop, min = math.floor(minHeight), max = math.floor(maxHeight * 2), digits = 0, tooltip =  'heightFogTop, in elmos', group = "height"},
 	{name = 'heightFogBottom', default = fogUniforms.heightFogBottom, min = math.floor(minHeight), max = math.floor(maxHeight), digits = 0, tooltip =  'heightFogBottom, in elmos', group = "height"},
-	{name = 'scavengerPlane', default = fogUniforms.scavengerPlane, min = 0, max = math.max(Game.mapSizeX, Game.mapSizeZ), digits = 0, tooltip =  'Where the scavenger cloud is', group = "scavenger", membernames = {'minx','maxx','minz','maxz'}},
-
-	{name = 'cloudVolumeMin', default = fogUniforms.cloudVolumeMin, min = 0,max = math.max(Game.mapSizeX, Game.mapSizeZ), digits = 0, tooltip =  'Start of the cloud volume', group = "cloud", membernames = {'x','y','z','NONE'}},
-	{name = 'cloudVolumeMax', default = fogUniforms.cloudVolumeMax, min = 0, max = math.max(Game.mapSizeX, Game.mapSizeZ), digits = 0, tooltip =  'End of the cloud volume', group = "cloud", membernames = {'x','y','z','edge'}},
-
-	{name = 'cloudGlobalColor', default = fogUniforms.cloudGlobalColor, min = 0, max = 2, digits = 3, tooltip =  'cloudGlobalColor, alpha is the ABSOLUTE MAXIMUM FOG', group = "cloud", membernames = {'r','g','b','a'}},
-	{name = 'cloudDensity', default = fogUniforms.cloudDensity, min = 0.000, max = 0.1, digits = 3, tooltip =  'How dense the clouds are', group = "cloud" },
-	{name = 'noiseLFParams', default = fogUniforms.noiseLFParams, min = -1, max = 5, digits = 3, tooltip =  '1:Frequency, 2: threshold, 3-4 unused', group = "cloud", membernames = {'hfscale','hfbias','lfscale','lfbias'}},
-	{name = 'noiseHFParams', default = fogUniforms.noiseHFParams, min = -1, max = 5, digits = 3, tooltip =  '1:Frequency, 2: Perturb, 3: SpeedX, 4: SpeedZ', group = "cloud", membernames = {'hfscale','perturb','speedx','speedz'}},
+	{name = 'heightFogFalloff', default = fogUniforms.heightFogFalloff, min = 0.25, max = 4, digits = 2, tooltip =  'Vertical falloff shape. 1 = linear, >1 hugs the ground (thin top), <1 fills the top more', group = "height"},
+	{name = 'cloudCoverage', default = fogUniforms.cloudCoverage, min = 0, max = 1, digits = 2, tooltip =  'How much of the world has fog banks. 0 = almost none, 1 = fully covered. The low-cutoff threshold from the Nubis pipeline', group = "cloud"},
+	{name = 'cloudScale', default = fogUniforms.cloudScale, min = 0.05, max = 4, digits = 3, tooltip =  'Base noise frequency on worldXZ (texture-space). Lower = bigger banks, higher = smaller more frequent banks', group = "cloud"},
+	{name = 'cloudErodeAmount', default = fogUniforms.cloudErodeAmount, min = 0, max = 1, digits = 2, tooltip =  'How much the high-frequency Worley noise eats into the bank edges. 0 = smooth banks, ~0.4 = rafelige wispy edges', group = "cloud"},
+	{name = 'cloudWindSpeed', default = fogUniforms.cloudWindSpeed, min = 0, max = 2, digits = 2, tooltip =  'Horizontal drift speed along the global wind direction', group = "cloud"},
+	{name = 'cloudMorphSpeed', default = fogUniforms.cloudMorphSpeed, min = 0, max = 0.5, digits = 3, tooltip =  'How fast the banks mutate in place (independent of wind drift)', group = "cloud"},
 }
 
 local fogUniformSliders = {
@@ -293,6 +293,51 @@ local fogUniformsBluish = { -- bluish tint, not very good
 	}
 
 ---------------------------------------------------------------------------
+-- Explosion fog carve-out
+-- Active shock-wave spheres that temporarily push back the fog. The shader
+-- has room for MAX_FOG_BLASTS = 16 simultaneous blasts; oldest is dropped
+-- when exceeded. Filtered on damage + radius so small weapons don't trigger.
+local MAX_FOG_BLASTS = 64
+local BLAST_FADE_IN = 0.2         -- seconds to ramp from 0 to full radius (fast punch)
+local BLAST_FADE_OUT = 4.0        -- seconds to ramp from full back to 0 (slow dissipate)
+local BLAST_LIFETIME = BLAST_FADE_IN + BLAST_FADE_OUT
+local BLAST_RADIUS_MULT = 2.8     -- shock-wave pushes farther than crater
+local BLAST_MIN_AREA = 16         -- skip bullets/lasers, allow tank rounds and up
+local BLAST_GRID_SIZE = 100       -- elmos; multiple blasts in the same cell merge into the largest
+local BLAST_DEBUG = false         -- set true to log rejected/accepted blasts
+
+local floor = math.floor
+local function gridKeyFor(x, z)
+	return floor(x / BLAST_GRID_SIZE) * 65536 + floor(z / BLAST_GRID_SIZE)
+end
+local BLAST_SHRINK_TO = 0.5       -- radius at end of fade-out as fraction of peak
+local activeBlasts = {}           -- list of {x, y, z, maxRadius, bornTime, gridKey}
+local blastUniformBuf = {}        -- flat array of MAX_FOG_BLASTS*4 floats, reused
+local blastOpacityBuf = {}        -- flat array of MAX_FOG_BLASTS floats, reused
+for i = 1, MAX_FOG_BLASTS * 4 do blastUniformBuf[i] = 0 end
+for i = 1, MAX_FOG_BLASTS     do blastOpacityBuf[i] = 0 end
+
+-- Lazy weapon cache: first time we see a weaponDefID, compute its blast
+-- radius (or false if it's too small). Subsequent hits are a table lookup.
+local fogBlastWeaponCache = {}
+local function getBlastRadiusForWeapon(weaponDefID)
+	local cached = fogBlastWeaponCache[weaponDefID]
+	if cached ~= nil then return cached end
+	local def = WeaponDefs and WeaponDefs[weaponDefID]
+	if not def then
+		fogBlastWeaponCache[weaponDefID] = false
+		return false
+	end
+	local area = def.damageAreaOfEffect or def.craterAreaOfEffect or 0
+	if area < BLAST_MIN_AREA then
+		fogBlastWeaponCache[weaponDefID] = false
+		return false
+	end
+	local radius = area * BLAST_RADIUS_MULT
+	fogBlastWeaponCache[weaponDefID] = radius
+	return radius
+end
+
 local autoreload = true
 
 --local noisetex3dcube =  "LuaUI/images/noisetextures/noise64_cube_3.dds"
@@ -330,8 +375,8 @@ local function goodbye(reason)
 	widgetHandler:RemoveWidget()
 end
 
-local vsSrcPath = "LuaUI/Shaders/global_fog.vert.glsl"
-local fsSrcPath = "LuaUI/Shaders/global_fog.frag.glsl"
+local vsSrcPath = "LuaUI/Shaders/ground_fog.vert.glsl"
+local fsSrcPath = "LuaUI/Shaders/ground_fog.frag.glsl"
 
 local shaderSourceCache = {
 		vssrcpath = vsSrcPath,
@@ -363,8 +408,8 @@ local shaderSourceCache = {
 	}
 
 
-local vsSrcPathCombine = "LuaUI/Shaders/global_fog_combine.vert.glsl"
-local fsSrcPathCombine = "LuaUI/Shaders/global_fog_combine.frag.glsl"
+local vsSrcPathCombine = "LuaUI/Shaders/ground_fog_combine.vert.glsl"
+local fsSrcPathCombine = "LuaUI/Shaders/ground_fog_combine.frag.glsl"
 
 local combineShaderSourceCache = {
 		vssrcpath = vsSrcPathCombine,
@@ -372,7 +417,7 @@ local combineShaderSourceCache = {
 		--gssrcpath = gsSrcPath,
 		uniformInt = { mapDepths = 0, modelDepths = 1,  fogbase = 2},
 		uniformFloat = { gameframe = 0, resolution = 2},
-		shaderName = "Global Fog Combine GL4",
+		shaderName = "Ground Fog Combine GL4",
 		shaderConfig = shaderConfig,
 	}
   
@@ -770,7 +815,7 @@ function widget:Initialize()
 		goodbye("[Global Fog::shadowShader] shadowShader compilation failed")
 		return false
 	end
-	WG['SetFogParams'] = SetFogParams
+	WG['SetGroundFogParams'] = SetFogParams
 
 	-- Register RML event callback for color pickers
 	if RmlUi and widget.rmlContext then
@@ -804,7 +849,7 @@ function widget:Initialize()
 
 				-- use the DataModel handle to set values
 		-- only keys declared at the DataModel's creation can be used
-		dataModelHandle = widget.rmlContext:OpenDataModel("data_model_test", {
+		dataModelHandle = widget.rmlContext:OpenDataModel("ground_fog_data_model", {
 			exampleValue = 'Changes when clicked',
 			-- Functions inside a DataModel cannot be changed later
 			-- so instead a function variable external to the DataModel is called and _that_ can be changed
@@ -854,7 +899,7 @@ function widget:Initialize()
 		end
 	end
 	
-	document = widget.rmlContext:LoadDocument("LuaUi/Widgets/rml_widget_assets/global_fog.rml", widget)
+	document = widget.rmlContext:LoadDocument("LuaUi/Widgets/rml_widget_assets/ground_fog.rml", widget)
 
 		-- Function to create slider elements with event listeners
 	local function createSliderElement(sliderConfig, eventCallback)
@@ -936,7 +981,7 @@ function widget:Initialize()
 		end
 		
 		-- Create group sections and place them in appropriate divs
-		local groupOrder = {"global", "ground", "height", "other", "cloud", "cloudshadows", "distance", "underwater", "shadow", "scavenger"}
+		local groupOrder = {"global", "ground", "height", "shadow"}
 		
 		for _, groupKey in ipairs(groupOrder) do
 			local groupSliders = sliderGroups[groupKey]
@@ -1058,7 +1103,7 @@ end
 
 function widget:Shutdown()
 	if fogTexture then gl.DeleteTexture(fogTexture) end
-	WG.SetFogParams = nil
+	WG.SetGroundFogParams = nil
 	if fogUniformSliders and fogUniformSliders.Destroy then fogUniformSliders:Destroy() end
 	if shaderDefinedSlidersLayer and shaderDefinedSlidersLayer.Destroy then shaderDefinedSlidersLayer:Destroy() end 
 
@@ -1160,12 +1205,71 @@ function YCLine(horz, vert)
 	end
 end
 
-function widget:DrawWorldPreParticles(drawAboveWater, drawBelowWater, drawReflection, drawRefraction)
-	-- Compositing runs in DrawWorldPreParticles (not DrawWorld) so the engine's
-	-- particle/CEG pass draws on top of the fogged scene. Otherwise additive
-	-- explosions and fire effects get drowned by in-scatter and disappear.
-	if not drawAboveWater or drawReflection or drawRefraction then return end
+-- BAR uses widgetHandler:VisibleExplosion (see luaui/barwidgets.lua) with the
+-- signature (px, py, pz, weaponID, ownerID) — position first, weaponID fourth.
+-- There is no widget:Explosion in BAR.
+function widget:VisibleExplosion(px, py, pz, weaponDefID, ownerID)
+	if BLAST_DEBUG then
+		Spring.Echo(string.format("[fogblast RAW] wid=%s at (%s,%s,%s)",
+			tostring(weaponDefID), tostring(px), tostring(py), tostring(pz)))
+	end
+	local baseRadius = getBlastRadiusForWeapon(weaponDefID)
+	if not baseRadius then
+		if BLAST_DEBUG then
+			local def = WeaponDefs and WeaponDefs[weaponDefID]
+			local area = def and (def.damageAreaOfEffect or def.craterAreaOfEffect) or -1
+			Spring.Echo(string.format("[fogblast] REJECT wid=%s area=%s", tostring(weaponDefID), tostring(area)))
+		end
+		return
+	end
+	-- Grid deduplication: if there's already an active blast in the same
+	-- BLAST_GRID_SIZE cell, merge with it instead of adding a new entry.
+	-- Keep the larger of the two radii so a huge bomb after small ones wins.
+	-- Reset the fade-out timer so the shock-wave gets "refreshed" as long as
+	-- explosions keep landing in the zone. If the existing blast is already
+	-- past its fade-in peak, rewind only to the peak (not to 0) so we don't
+	-- visually pop the carve back down during sustained bombardment.
+	local gkey = gridKeyFor(px, pz)
+	local nowSecs = Spring.GetGameSeconds()
+	for i = 1, #activeBlasts do
+		local existing = activeBlasts[i]
+		if existing[6] == gkey then
+			if baseRadius > existing[4] then
+				existing[1] = px
+				existing[2] = py
+				existing[3] = pz
+				existing[4] = baseRadius
+			end
+			-- Refresh timer: rewind bornTime so the blast is at or before
+			-- the peak. If it was still ramping in, leave that ramp alone.
+			local existingAge = nowSecs - existing[5]
+			if existingAge > BLAST_FADE_IN then
+				-- Past the peak → rewind to peak (age == BLAST_FADE_IN).
+				existing[5] = nowSecs - BLAST_FADE_IN
+			end
+			-- (If still in fade-in, don't touch bornTime — let it keep ramping.)
+			if BLAST_DEBUG then
+				Spring.Echo(string.format("[fogblast] REFRESH cell=%d r=%.0f", gkey, existing[4]))
+			end
+			return
+		end
+	end
+	-- Buffer full: drop this new blast rather than evicting an older one.
+	-- Prevents visible popping of active shock-waves when combat peaks.
+	if #activeBlasts >= MAX_FOG_BLASTS then
+		if BLAST_DEBUG then
+			Spring.Echo(string.format("[fogblast] DROP wid=%d (buffer full)", weaponDefID))
+		end
+		return
+	end
+	activeBlasts[#activeBlasts + 1] = {px, py, pz, baseRadius, Spring.GetGameSeconds(), gkey}
+	if BLAST_DEBUG then
+		Spring.Echo(string.format("[fogblast] ACCEPT wid=%d r=%.0f at (%.0f,%.0f,%.0f) active=%d",
+			weaponDefID, baseRadius, px, py, pz, #activeBlasts))
+	end
+end
 
+function widget:DrawWorld()
 	if autoreload then
 		groundFogShader =  LuaShader.CheckShaderUpdates(shaderSourceCache) or groundFogShader
 		combineShader =  LuaShader.CheckShaderUpdates(combineShaderSourceCache) or combineShader
@@ -1213,8 +1317,60 @@ function widget:DrawWorldPreParticles(drawAboveWater, drawBelowWater, drawReflec
 	
 	groundFogShader:Activate()
 	groundFogShader:SetUniformFloat("windFractFull", windFractFull[1],windFractFull[2],windFractFull[3],windFractFull[4])
-	
-	for uniformName, uniformValue in pairs(fogUniforms) do 
+
+	-- Advance blast lifetimes and build the uniform buffer in-place.
+	local now = Spring.GetGameSeconds()
+	local writeIdx = 0
+	for i = #activeBlasts, 1, -1 do
+		local blast = activeBlasts[i]
+		local age = now - blast[5]
+		if age >= BLAST_LIFETIME then
+			table.remove(activeBlasts, i)
+		end
+	end
+	for i = 1, #activeBlasts do
+		local blast = activeBlasts[i]
+		local age = now - blast[5]
+		-- Split envelope: during fade-in both radius and opacity ramp 0 → 1.
+		-- During fade-out the radius only shrinks to BLAST_SHRINK_TO (e.g. 50%)
+		-- while the opacity dissipates all the way to 0. Both halves use
+		-- smoothstep so the curve is C1-continuous at the peak.
+		local radiusScale, opacity
+		if age < BLAST_FADE_IN then
+			local t = age / BLAST_FADE_IN
+			local s = t * t * (3.0 - 2.0 * t)
+			radiusScale = s
+			opacity = s
+		else
+			local t = (age - BLAST_FADE_IN) / BLAST_FADE_OUT
+			local s = (1.0 - t) * (1.0 - t) * (3.0 - 2.0 * (1.0 - t))
+			radiusScale = BLAST_SHRINK_TO + (1.0 - BLAST_SHRINK_TO) * s
+			opacity = s
+		end
+		local r = blast[4] * radiusScale
+		local base = writeIdx * 4
+		blastUniformBuf[base + 1] = blast[1]
+		blastUniformBuf[base + 2] = blast[2]
+		blastUniformBuf[base + 3] = blast[3]
+		blastUniformBuf[base + 4] = r
+		blastOpacityBuf[writeIdx + 1] = opacity
+		writeIdx = writeIdx + 1
+	end
+	-- Zero out unused tail slots so stale data can't leak in.
+	for i = writeIdx * 4 + 1, MAX_FOG_BLASTS * 4 do
+		blastUniformBuf[i] = 0
+	end
+	for i = writeIdx + 1, MAX_FOG_BLASTS do
+		blastOpacityBuf[i] = 0
+	end
+	groundFogShader:SetUniformFloatArrayAlways("fogBlasts", blastUniformBuf)
+	groundFogShader:SetUniformFloatArrayAlways("fogBlastOpacity", blastOpacityBuf)
+	groundFogShader:SetUniformInt("fogBlastCount", writeIdx)
+
+	-- Push game seconds into cloudTime so the shader morph advances.
+	fogUniforms.cloudTime = now
+
+	for uniformName, uniformValue in pairs(fogUniforms) do
 		local vtype = type(uniformValue)
 		if vtype == 'number' then 
 			groundFogShader:SetUniformFloat(uniformName, uniformValue)
@@ -1247,8 +1403,7 @@ function widget:DrawWorldPreParticles(drawAboveWater, drawBelowWater, drawReflec
 	end
 	
 	for i = 0, 9 do gl.Texture(i, false) end
-	-- Extremely important, this is the state that we have to leave when exiting DrawWorldPreParticles!
-	gl.Blending(GL.ONE, GL.ONE_MINUS_SRC_ALPHA)
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	gl.DepthMask(false)
 	gl.DepthTest(true)
 end
