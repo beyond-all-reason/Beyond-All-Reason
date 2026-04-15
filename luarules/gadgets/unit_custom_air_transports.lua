@@ -21,7 +21,7 @@ end
 -- All flying transports get distance gating. Custom ones (with PerformLoad/Unload
 -- in their LUS) additionally get slot/seat gating and script dispatch.
 
-local LOAD_RADIUS = 128 -- elmos XZ; transporter must be within this range
+local LOAD_RADIUS = 64 -- elmos XZ; transporter must be within this range
 -- in the future we use UnitDefs[unitdefID].loadingRadius or a custom param for this
 
 local isAirTransport = {}
@@ -67,6 +67,7 @@ local spGetUnitHeight   = Spring.GetUnitHeight
 local spAreTeamsAllied  = Spring.AreTeamsAllied
 local spGetUnitTeam     = Spring.GetUnitTeam
 local spGetUnitVelocity = Spring.GetUnitVelocity
+local spGetGroundHeight   = Spring.GetGroundHeight
 
 local function isUnderwater(unitID, y)
 	local height = spGetUnitHeight(unitID)
@@ -81,7 +82,7 @@ end
 local function inRange(transporterID, goalX, goalY, goalZ)
 	local tx, ty, tz = spGetUnitPosition(transporterID)
 	local dY = ty - goalY
-	return dist2D(tx, tz, goalX, goalZ) <= LOAD_RADIUS and dY >= 0 and dY < LOAD_RADIUS -- equivalent to a cylinder of radius load_radius and height load_radius over transporteePosition
+	return dist2D(tx, tz, goalX, goalZ) <= LOAD_RADIUS and dY >= 0 -- equivalent to a cylinder of radius load_radius and height load_radius over transporteePosition
 end
 
 -- ── Gadget callbacks ──────────────────────────────────────────────────────────
@@ -125,6 +126,10 @@ function gadget:AllowUnitTransportLoad(transporterID, transporterUnitDefID, tran
 	if isAirTransport[transporterUnitDefID] then
 		Spring.SetUnitMoveGoal(transporterID, goalX, goalY + LOAD_RADIUS/2, goalZ)
 		if not inRange(transporterID, goalX, goalY, goalZ) then 
+			-- optional, bring transporteeID towards transporterID
+			local px, _, pz = spGetUnitPosition(transporterID)
+			local py = spGetGroundHeight(px, pz) or 0
+			Spring.SetUnitMoveGoal(transporteeID, px, py, pz)
 			return false
 		end
 		if not spAreTeamsAllied(spGetUnitTeam(transporterID), spGetUnitTeam(transporteeID))
