@@ -66,20 +66,30 @@ local GLOW_MULT = 1.2
 local GLOW_SIZE_MULT = 1.1   -- global multiplier on glow billboard size
 
 --------------------------------------------------------------------------------
--- Thruster flame configs per cegTag
+-- Thruster flame configs (shared config file, loadable by other gadgets/widgets)
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Missile Thruster Flame Configs
+-- Per-cegTag thruster visual parameters used by gfx_missile_thruster_gl4 and
+-- available for other gadgets/widgets that need missile flame data.
+--
 -- Fields:
 --   length     : flame length (negative = behind projectile)
+--   lengthRand : random length variation as fraction of length (0.25 = ±25%)
 --   size       : flame width
---   colorR/G/B : base color (tip of flame, first colormap entry)
---   colorEndR/G/B : end color (last non-black colormap entry)
+--   widthRand  : random width variation as fraction of size (0.15 = ±15%)
+--   sizeGrowth : how much the flame widens from base to tail
+--   colorR/G/B : base color (tip of flame)
+--   colorEndR/G/B : end color (tail of flame)
 --   glowSize   : fireglow billboard size (0 = no glow)
 --   glowR/G/B  : glow color
 --   thrusterOffset : backward offset along flight direction (positive = further behind model)
 --------------------------------------------------------------------------------
+local defaultLengthRand = 0.3
+local defaultWidthRand = 0.2
 local THRUSTER_CONFIGS = {
 	-- Standard small missiles (orange flame trailing behind)
 	missiletrailsmall = {
-		length = -20, lengthRand = 3.5,
+		length = -20,
 		size = 1.8, sizeGrowth = 0.2,
 		colorR = 1.0, colorG = 0.7, colorB = 0.4,
 		colorEndR = 1.0, colorEndG = 0.4, colorEndB = 0.1,
@@ -87,7 +97,7 @@ local THRUSTER_CONFIGS = {
 		thrusterOffset = 3,
 	},
 	["missiletrailsmall-simple"] = {
-		length = -20, lengthRand = 3.5,
+		length = -20,
 		size = 1.8, sizeGrowth = 0.2,
 		colorR = 1.0, colorG = 0.7, colorB = 0.4,
 		colorEndR = 1.0, colorEndG = 0.4, colorEndB = 0.1,
@@ -95,7 +105,7 @@ local THRUSTER_CONFIGS = {
 		thrusterOffset = 3,
 	},
 	["missiletrailsmall-red"] = {
-		length = -19, lengthRand = 6,
+		length = -19,
 		size = 2.5, sizeGrowth = 0.2,
 		colorR = 1.0, colorG = 0.33, colorB = 0.17,
 		colorEndR = 1.0, colorEndG = 0.22, colorEndB = 0.05,
@@ -104,7 +114,7 @@ local THRUSTER_CONFIGS = {
 	},
 	-- Tiny missiles
 	missiletrailtiny = {
-		length = -13, lengthRand = 4,
+		length = -13,
 		size = 1.2, sizeGrowth = 0,
 		colorR = 1.0, colorG = 0.66, colorB = 0.25,
 		colorEndR = 0.55, colorEndG = 0.3, colorEndB = 0.05,
@@ -113,7 +123,7 @@ local THRUSTER_CONFIGS = {
 	},
 	-- Medium missiles
 	missiletrailmedium = {
-		length = -24, lengthRand = 6,
+		length = -24,
 		size = 3.3, sizeGrowth = 0.2,
 		colorR = 1.0, colorG = 0.7, colorB = 0.4,
 		colorEndR = 1.0, colorEndG = 0.4, colorEndB = 0.1,
@@ -121,7 +131,7 @@ local THRUSTER_CONFIGS = {
 		thrusterOffset = -1,
 	},
 	["missiletrailmedium-red"] = {
-		length = -24, lengthRand = 6,
+		length = -24,
 		size = 3.3, sizeGrowth = 0.2,
 		colorR = 1.0, colorG = 0.33, colorB = 0.17,
 		colorEndR = 1.0, colorEndG = 0.22, colorEndB = 0.05,
@@ -129,7 +139,7 @@ local THRUSTER_CONFIGS = {
 		thrusterOffset = 3,
 	},
 	["missiletraillarge-red"] = {
-		length = -28, lengthRand = 8,
+		length = -28,
 		size = 3.7, sizeGrowth = 0.2,
 		colorR = 1.0, colorG = 0.33, colorB = 0.11,
 		colorEndR = 1.0, colorEndG = 0.12, colorEndB = 0.05,
@@ -137,7 +147,7 @@ local THRUSTER_CONFIGS = {
 		thrusterOffset = -2,
 	},
 	missiletrailviper = {
-		length = -32, lengthRand = 6,
+		length = -32,
 		size = 2.8, sizeGrowth = 0.5,
 		colorR = 1.0, colorG = 0.7, colorB = 0.4,
 		colorEndR = 1.0, colorEndG = 0.4, colorEndB = 0.1,
@@ -146,7 +156,7 @@ local THRUSTER_CONFIGS = {
 	},
 	-- Fighter missiles (pinkish/purple-tinted, forward-facing)
 	missiletrailfighter = {
-		length = -20, lengthRand = 2,
+		length = -20,
 		size = 1.65, sizeGrowth = 0,
 		colorR = 1.0, colorG = 0.5, colorB = 0.85,
 		colorEndR = 0.5, colorEndG = 0.1, colorEndB = 0.4,
@@ -155,7 +165,7 @@ local THRUSTER_CONFIGS = {
 	},
 	-- AA missiles (pinkish, forward-facing, with large engineglow)
 	missiletrailaa = {
-		length = -32, lengthRand = 2,
+		length = -32,
 		size = 2.3, sizeGrowth = 0,
 		colorR = 1.0, colorG = 0.5, colorB = 0.85,
 		colorEndR = 0.5, colorEndG = 0.1, colorEndB = 0.4,
@@ -163,7 +173,7 @@ local THRUSTER_CONFIGS = {
 		thrusterOffset = -8,
 	},
 	["missiletrailaa-large"] = {
-		length = -100, lengthRand = 2,
+		length = -100,
 		size = 7.5, sizeGrowth = 0,
 		colorR = 1.0, colorG = 0.5, colorB = 0.85,
 		colorEndR = 0.5, colorEndG = 0.1, colorEndB = 0.4,
@@ -172,7 +182,7 @@ local THRUSTER_CONFIGS = {
 	},
 	-- Mship (corroyspecial) - larger, redder
 	missiletrailmship = {
-		length = -7, lengthRand = 2,
+		length = -7,
 		size = 4.0, sizeGrowth = 0.2,
 		colorR = 1.0, colorG = 0.25, colorB = 0.05,
 		colorEndR = 1.0, colorEndG = 0.15, colorEndB = 0.03,
@@ -180,7 +190,7 @@ local THRUSTER_CONFIGS = {
 		thrusterOffset = 3,
 	},
 	["missiletrail-juno"] = {
-		length = -50, lengthRand = 3,
+		length = -50,
 		size = 3.5, sizeGrowth = 0.2,
 		colorR = 0.75, colorG = 1.0, colorB = 0.5,
 		colorEndR = 0.15, colorEndG = 1.0, colorEndB = 0.03,
@@ -188,7 +198,7 @@ local THRUSTER_CONFIGS = {
 		thrusterOffset = 3,
 	},
 	["cruisemissiletrail-tacnuke"] = {
-		length = -72, lengthRand = 6,
+		length = -72,
 		size = 5.0, sizeGrowth = 0.2,
 		colorR = 1.0, colorG = 0.3, colorB = 0.1,
 		colorEndR = 1.0, colorEndG = 0.15, colorEndB = 0.03,
@@ -196,7 +206,7 @@ local THRUSTER_CONFIGS = {
 		thrusterOffset = 3,
 	},
 	["cruisemissiletrail-emp"] = {
-		length = -66, lengthRand = 5,
+		length = -66,
 		size = 4.5, sizeGrowth = 0.2,
 		colorR = 0.6, colorG = 0.6, colorB = 1.0,
 		colorEndR = 0.1, colorEndG = 0.1, colorEndB = 1.0,
@@ -204,7 +214,7 @@ local THRUSTER_CONFIGS = {
 		thrusterOffset = 3,
 	},
 	nuketrail = {
-		length = -105, lengthRand = 36,
+		length = -105,
 		size = 7, sizeGrowth = 0.2,
 		colorR = 1.0, colorG = 0.66, colorB = 0.2,
 		colorEndR = 1.0, colorEndG = 0, colorEndB = 0,
@@ -212,12 +222,11 @@ local THRUSTER_CONFIGS = {
 		thrusterOffset = -8,
 	},
 
-
 	-- Corroyspecial (no CBitmapMuzzleFlame engine, uses CSimpleParticleSystem fire only)
 	-- missiletrailcorroyspecial is intentionally NOT included here
 }
 
--- Also add starburst variants that share the same CBitmapMuzzleFlame configs
+-- Starburst variants share the same configs
 THRUSTER_CONFIGS["missiletrailsmall-starburst"] = THRUSTER_CONFIGS["missiletrailsmall"]
 THRUSTER_CONFIGS["missiletrailmedium-starburst"] = THRUSTER_CONFIGS["missiletrailmedium"]
 
@@ -244,8 +253,9 @@ for _, cfg in pairs(weaponConfigs) do
 	cfg.glowR          = cfg.glowR or 0.1
 	cfg.glowG          = cfg.glowG or 0.06
 	cfg.glowB          = cfg.glowB or 0.02
-	cfg.lengthRand     = cfg.lengthRand or 0
-	cfg.hasRand        = cfg.lengthRand > 0
+	cfg.lengthRand     = cfg.lengthRand or defaultLengthRand
+	cfg.widthRand      = cfg.widthRand or defaultWidthRand
+	cfg.hasRand        = cfg.lengthRand > 0 or cfg.widthRand > 0
 	cfg.thrusterOffset = cfg.thrusterOffset or 0
 	-- Pre-multiply glow values with global multipliers (avoids 4 muls per missile per frame)
 	cfg.glowSizeFinal  = cfg.glowSize * GLOW_SIZE_MULT
@@ -916,12 +926,8 @@ local function updateMissiles()
 							local size = cfg.size
 							if cfg.hasRand then
 								local rand = mathRandom()
-								if length < 0 then
-									length = length - rand * cfg.lengthRand
-								else
-									length = length + rand * cfg.lengthRand
-								end
-								size = size * (0.85 + 0.3 * rand)
+								length = length * (1 + rand * cfg.lengthRand)
+								size = size * (1 + rand * cfg.widthRand)
 							end
 
 							flameCount = flameCount + 1
