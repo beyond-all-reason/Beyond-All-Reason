@@ -1468,14 +1468,19 @@ local function bindBuildUnits(widget)
 
 	unbindBuildUnits()
 
-	comBuildOptions = { armcom = {}, corcom = {} }
+	comBuildOptions = table.filterTable({
+		armcom = {},
+		corcom = {},
+		legcom = {}
+	}, function(value, key)
+		return UnitDefNames[key] ~= nil
+	end)
 
-	for _, comDefName in ipairs({ "armcom", "corcom" }) do
+	for comDefName, buildOptions in pairs(comBuildOptions) do
 		for _, buildOption in ipairs(UnitDefNames[comDefName].buildOptions) do
 			if not units.unitRestricted[buildOption] then
 				local unitDefName = unitName[buildOption]
-
-				comBuildOptions[comDefName][buildOption] = true
+				buildOptions[buildOption] = true
 				table.insert(boundUnits, unitDefName)
 				widgetHandler.actionHandler:AddAction(widget, "buildunit_" .. unitDefName, buildUnitHandler, { unitDefID = buildOption }, 'p')
 			end
