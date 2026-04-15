@@ -545,7 +545,7 @@ describe("mission_api.validation", function()
 	-- ── ValidateReferences ────────────────────────────────────────────────────
 
 	describe("ValidateReferences", function()
-		it("passes for valid unit, feature, and marker references, including statistics trigger unitName", function()
+		it("passes for valid unit, feature, and marker references", function()
 			GG['MissionAPI'].Triggers = {
 				statsKill = {
 					type       = triggerTypes.TotalUnitsKilled,
