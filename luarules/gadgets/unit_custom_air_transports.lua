@@ -129,9 +129,12 @@ end
 
 -- Distance gate; for custom transports hand off to LUS (return false = engine skips attach).
 function gadget:AllowUnitTransportLoad(transporterID, transporterUnitDefID, transporterTeam, transporteeID, transporteeUnitDefID, transporteeTeam, goalX, goalY, goalZ)
-	if isUnderwater(transporteeID, goalY) then return false end
+	if isUnderwater(transporteeID, goalY) then return false end -- AllowUnitTransport will drop that command anyway
 	if isAirTransport[transporterUnitDefID] then
-		if not inRange(transporterID, goalX, goalY, goalZ) then return false end
+		Spring.SetUnitMoveGoal(transporterID, goalX, goalY + LOAD_RADIUS/2, goalZ)
+		if not inRange(transporterID, goalX, goalY, goalZ) then 
+			return false
+		end
 		if not spAreTeamsAllied(spGetUnitTeam(transporterID), spGetUnitTeam(transporteeID))
 		and select(4, spGetUnitVelocity(transporteeID)) >= 0.5 then
 			return false
@@ -139,6 +142,7 @@ function gadget:AllowUnitTransportLoad(transporterID, transporterUnitDefID, tran
 		if customTransportLoad[transporterUnitDefID] then
 			if Spring.GetUnitRulesParam(transporterID, "canLoad") == 0 then return false end
 			customTransportLoad[transporterUnitDefID](transporterID, 'PerformLoad', transporteeID)
+			Spring.UnitFinishCommand(transporterID)
 			return false -- LUS handles the attachment
 		end
 	end
@@ -149,6 +153,7 @@ end
 function gadget:AllowUnitTransportUnload(transporterID, transporterUnitDefID, transporterTeam, transporteeID, transporteeUnitDefID, transporteeTeam, goalX, goalY, goalZ)
 	if isUnderwater(transporteeID, goalY) then return false end
 	if isAirTransport[transporterUnitDefID] then
+		Spring.SetUnitMoveGoal(transporterID, goalX, goalY + LOAD_RADIUS/2, goalZ)
 		if not inRange(transporterID, goalX, goalY, goalZ) then return false end
 		if customTransportUnload[transporterUnitDefID] then
 			if Spring.GetUnitRulesParam(transporterID, "canUnload") == 0 then return false end
