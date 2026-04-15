@@ -64,7 +64,7 @@ local plasmaTexture = "bitmaps/projectiletextures/plasmaball.tga"
 local glowTexture   = "bitmaps/projectiletextures/glow2.tga"
 
 -- Glow billboard config
-local GLOW_SIZE_MULT   = 13   -- glow billboard size as multiple of projectile cross-section size
+local GLOW_SIZE_MULT   = 12   -- glow billboard size as multiple of projectile cross-section size
 local GLOW_BRIGHTNESS  = 0.14   -- glow color multiplier (faint)
 local GLOW_REF_SIZE    = 5.0   -- weapons at this size (after SIZE_MULT) get full glow; smaller ones dim proportionally
 
@@ -79,15 +79,10 @@ local RANGE_SIZE_REF     = 1500   -- weapon range (elmos) at which full RANGE_SI
 -- Core color boost
 local CORE_COLOR_ADD     = 0.4  -- added to weapon RGB to create brighter core color
 
--- Default color for weapons with no explicit rgbcolor (engine default = white 1,1,1).
--- The old engine rendered white through the orange plasmaball.tga texture, giving an
--- orange appearance. We apply this warm default to match the old look.
-local DEFAULT_COLOR = { 1.0, 0.55, 0.1 }  -- warm orange (matches old plasmaball.tga tint)
-
 -- Shader config (injected as #defines)
 local shaderConfig = {
 	-- Shape (elongation scales with speed: min at rest, max at ELONGATION_SPEED_REF elmos/frame)
-	ELONGATION_MIN     = 2.5,  -- elongation at zero speed (nearly round)
+	ELONGATION_MIN     = 2.2,  -- elongation at zero speed (nearly round)
 	ELONGATION_MAX     = 7.0,  -- elongation at or above reference speed
 	ELONGATION_SPEED_REF = 25, -- speed (elmos/frame) at which max elongation is reached
 
@@ -102,7 +97,7 @@ local shaderConfig = {
 	CORE_EDGE_START    = 0.1,   -- radial distance where core-to-edge blend starts
 	CORE_EDGE_END      = 0.25,    -- radial distance where blend is fully edge color
 	CORE_BRIGHTNESS    = 1.0,    -- extra brightness for core center
-	BRIGHTNESS_MULT    = 1.0,    -- overall brightness multiplier
+	BRIGHTNESS_MULT    = 0.75,    -- overall brightness multiplier (compensates for 2 additive cross passes)
 	EDGE_SOFTNESS      = 0.22,    -- how soft the outer edge is
 
 	-- Trail shape: the blob is shifted forward and fades toward the back
@@ -122,11 +117,6 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
 		local g = vis.colorG or 1
 		local b = vis.colorB or 1
 
-		-- The old engine tinted these orange via the plasmaball texture.
-		if r >= 0.99 and g >= 0.99 and b >= 0.99 then
-			r, g, b = DEFAULT_COLOR[1], DEFAULT_COLOR[2], DEFAULT_COLOR[3]
-		end
-
 		local coreR = mathMin(1, r + CORE_COLOR_ADD)
 		local coreG = mathMin(1, g + CORE_COLOR_ADD)
 		local coreB = mathMin(1, b + CORE_COLOR_ADD)
@@ -135,7 +125,7 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
 		local size = tonumber(cp.plasma_size_orig) or weaponDef.size or 1.5
 		local range = weaponDef.range or 300
 
-		size = (size * 0.6) + (weaponDef.damageAreaOfEffect / 66)  -- add blast radius to size for better core/edge color distribution
+		size = (size * 0.55) + (weaponDef.damageAreaOfEffect / 66)  -- add blast radius to size for better core/edge color distribution
 		size = size + RANGE_SIZE_BONUS * mathMin(1, range / RANGE_SIZE_REF)  -- longer-range weapons get bigger projectiles
 
 		weaponConfigs[weaponID] = {
