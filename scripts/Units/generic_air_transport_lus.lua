@@ -66,7 +66,7 @@ function script.Create()
     -- load preexisting cargo (save/load)
     local existing = SpGetUnitIsTransporting(unitID)
     table.sort(existing, function(a, b)
-        return CargoHandler.GetTransporteeSize(a) > CargoHandler.GetTransporteeSize(b) -- largest first for correct slot assignment
+        return TransportAPI.GetTransporteeSize(a) > TransportAPI.GetTransporteeSize(b) -- largest first for correct slot assignment
     end)
     for _, teeID in ipairs(existing) do
         local teeData = CargoHandler.FindSlot(teeID, cargo)
