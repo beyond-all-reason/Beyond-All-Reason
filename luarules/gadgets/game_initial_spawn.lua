@@ -590,6 +590,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		-- share info
 		teamStartPoints[teamID] = { x, y, z }
+		SendToUnsynced("FinalStartPosition", teamID, x, y, z)
 		--spSetTeamRulesParam(teamID, startUnitParamName, startUnit, { public = true }) -- visible to all (and picked up by advpllist)
 		spSetTeamRulesParam(teamID, startUnitParamName, startUnit, { allied = true, public = false })
 
@@ -724,6 +725,38 @@ if gadgetHandler:IsSyncedCode() then
 	------------------------------------------------------------------------------
 	------------------------------------------------------------------------------
 else -- UNSYNCED
+	local startPositions = {}
+
+	local function finalStartPosition(_, teamID, x, y, z)
+		startPositions[teamID] = { x = x, y = y, z = z }
+	end
+
+	local function sendStartPositions()
+		local myPlayerID = Spring.GetMyPlayerID()
+		local players = Spring.GetPlayerList()
+		local lowestActive
+		for i = 1, #players do
+			local _, active = Spring.GetPlayerInfo(players[i], false)
+			if active then
+				if not lowestActive or players[i] < lowestActive then
+					lowestActive = players[i]
+				end
+			end
+		end
+		if lowestActive == nil or myPlayerID ~= lowestActive then
+			return
+		end
+
+		local gaiaTeamID = Spring.GetGaiaTeamID()
+		local parts = { "startpos" }
+		for teamID, pos in pairs(startPositions) do
+			if teamID ~= gaiaTeamID then
+				parts[#parts + 1] = teamID .. "," .. pos.x .. "," .. pos.y .. "," .. pos.z
+			end
+		end
+		Spring.SendLuaRulesMsg(table.concat(parts, "|"))
+	end
+
 	local function positionTooClose(_, playerID)
 		if Script.LuaUI('GadgetMessageProxy') then
 			local message = Script.LuaUI.GadgetMessageProxy('ui.initialSpawn.tooClose')
@@ -732,6 +765,7 @@ else -- UNSYNCED
 	end
 
 	function gadget:Initialize()
+		gadgetHandler:AddSyncAction("FinalStartPosition", finalStartPosition)
 		gadgetHandler:AddSyncAction("PositionTooClose", positionTooClose)
 	end
 
@@ -741,6 +775,7 @@ else -- UNSYNCED
 	function gadget:GameFrame(n)
 		if n == spawnInitialFrame then
 			Spring.PlaySoundFile("commanderspawn", 0.6, 'ui')
+			sendStartPositions()
 		end
 		if n > spawnWarpInFrame then
 			gadgetHandler:RemoveGadget(self)
@@ -748,6 +783,7 @@ else -- UNSYNCED
 	end
 
 	function gadget:Shutdown()
+		gadgetHandler:RemoveSyncAction("FinalStartPosition")
 		gadgetHandler:RemoveSyncAction("PositionTooClose")
 	end
 end
