@@ -2699,6 +2699,7 @@ end
 -------------------------------------------------------------------------------
 
 function widget:DrawScreen()
+	gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	if not (activeBuilder or alwaysShow) then
 		if WG["guishader"] and dlistGuishader then
 			if dlistGuishader then

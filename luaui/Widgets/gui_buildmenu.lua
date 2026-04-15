@@ -931,6 +931,7 @@ end
 
 
 function widget:DrawScreen()
+	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 	if WG['buildmenu'] then
 		WG['buildmenu'].hoverID = nil
