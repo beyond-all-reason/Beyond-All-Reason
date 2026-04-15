@@ -32,7 +32,6 @@ return {
     -- -------------------------------------------------------------------------
     -- Tractor-beam load method configuration.
     loadMethod = {
-        loadTime       = 90,    -- frames for the reel-in / lower-out animation
         cegScaleFactor = 0.7,   -- scales the beam direction vector passed to SpawnCEG, which weirdly affects the length of the CEG
         cegName        = "tractorbeam", -- placeholder CEG
         cruiseHeight   = 150,   -- elmos above terrain; also used by engine as approach altitude

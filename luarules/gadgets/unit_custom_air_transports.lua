@@ -31,6 +31,12 @@ for udefID, def in ipairs(UnitDefs) do
 	end
 end
 
+local TransportAPI = GG.TransportAPI
+if not TransportAPI then
+	Spring.Echo("TransportAPI must be loaded before this gadget")
+	return false
+end
+
 -- ── Script function cache ─────────────────────────────────────────────────────
 -- [unitDefID] = function  → custom transport, call to dispatch to LUS
 -- [unitDefID] = false     → checked, not a custom transport
@@ -51,20 +57,6 @@ local function GetScriptFunc(unitID, functionName)
 		end
 	end
 	return false
-end
-
-local function getTransporteeSize(udefID)
-	local def = UnitDefs[udefID]
-	if def.customParams and def.customParams.nseats then
-		return tonumber(def.customParams.nseats)
-	end
-	local footprint = math.max(def.xsize, def.zsize) / 2
-	if     footprint <= 2  then return 1
-	elseif footprint <= 4  then return 4
-	elseif footprint <= 8  then return 8
-	elseif footprint <= 16 then return 16
-	else                        return 1000
-	end
 end
 
 -- ── Helpers ───────────────────────────────────────────────────────────────────
@@ -116,7 +108,7 @@ function gadget:AllowUnitTransport(transporterID, transporterUnitDefID, transpor
 	if customTransportLoad[transporterUnitDefID] then
 		local nSeats       = Spring.GetUnitRulesParam(transporterID, "nSeats")    or 0
 		local usedSeats    = Spring.GetUnitRulesParam(transporterID, "usedSeats") or 0
-		local teeSize      = getTransporteeSize(transporteeUnitDefID)
+		local teeSize      = TransportAPI.GetTransporteeSize(transporteeID)
 		if nSeats - usedSeats < teeSize then return false end
 		local slotSizesStr = Spring.GetUnitRulesParam(transporterID, "slotSizes") or ""
 		for sizeStr in slotSizesStr:gmatch("[^,]+") do
@@ -157,7 +149,11 @@ function gadget:AllowUnitTransportUnload(transporterID, transporterUnitDefID, tr
 		if not inRange(transporterID, goalX, goalY, goalZ) then return false end
 		if customTransportUnload[transporterUnitDefID] then
 			if Spring.GetUnitRulesParam(transporterID, "canUnload") == 0 then return false end
-			customTransportUnload[transporterUnitDefID](transporterID, 'PerformUnload', transporteeID, goalX, goalY, goalZ)
+			local targets = TransportAPI.GetUnloadTargets(transporterID, transporteeID)
+			for _, teeID in ipairs(targets) do
+				customTransportUnload[transporterUnitDefID](transporterID, 'PerformUnload', teeID, goalX, goalY, goalZ)
+			end
+			Spring.UnitFinishCommand(transporterID)
 			return false -- LUS handles the detachment
 		end
 	end

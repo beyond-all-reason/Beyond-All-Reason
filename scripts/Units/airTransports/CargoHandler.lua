@@ -1,6 +1,5 @@
 -- TODOs:
 -- >> move command processing to gadget level entirely, script should just receive transportee and pos and perform load/unload
--- >> Use a global GG.GetTransporteeSize(transporteeID) instead of duplicate functions
 -- >> maybe move slots hiding logic to generic_air_transport_lus instead. Or maybe even erase it since link pieces are empty by definition (no model piece)
 
 CargoHandler = {}
@@ -76,23 +75,6 @@ function CargoHandler.HasSlotOfSize(size, cargo)
     return cargo.slotSizes[size] == true
 end
 
--- returns the seat cost of a transportee: from customParams.nseats if set, otherwise derived from footprint
--- NOTE: duplicated in unit_custom_air_transports.lua gadget; keep in sync
-function CargoHandler.GetTransporteeSize(transporteeID)
-    local teeDefID = SpGetUnitDefID(transporteeID)
-    local def      = UnitDefs[teeDefID]
-    if def.customParams and def.customParams.nseats then
-        return tonumber(def.customParams.nseats)
-    end
-    local footprint = math.max(def.xsize, def.zsize) / 2
-    if     footprint <= 2  then return 1
-    elseif footprint <= 4  then return 4
-    elseif footprint <= 8  then return 8
-    elseif footprint <= 16 then return 16
-    else                        return 1000
-    end
-end
-
 -- set the rules param the gadget reads to block or allow new load attempts
 function CargoHandler.CanLoad(bool)
     SpSetUnitRulesParam(unitID, "canLoad", bool and 1 or 0)
@@ -133,37 +115,10 @@ function CargoHandler.EndUnloading(cargo)
     end
 end
 
--- hacky method to figure out whether to unload all cargo at once or just the one unit:
--- inspects the command queue to detect an area-unload order, including the transitional frame
--- where a single UNLOAD_UNIT is still at the front but UNLOAD_UNITS follows immediately behind
-function CargoHandler.GetUnloadTargets(transporterID, transporteeID, cargo)
-    local Q = SpGetUnitCommands(transporterID, -1)
-    local isAreaUnload = Q and Q[1] and (
-        Q[1].id == CMD.UNLOAD_UNITS or -- UNLOAD UNITS CMD
-        (
-		Q[1].id == CMD.UNLOAD_UNIT and -- UNLOAD_UNIT CMD
-		(
-		(#Q > 1 and Q[2] and Q[2].id == CMD.UNLOAD_UNITS) or -- issued by UNLOAD_UNITS area cmds
-		Q[1].params[4] ==nil -- no defined unitID, issued by customFormation and areaUnload widgets
-		)
-		) 
-    )
-    if isAreaUnload then
-        local targets = {}
-        for teeID in pairs(cargo.transportees) do
-            targets[#targets + 1] = teeID
-        end
-		Spring.UnitFinishCommand(unitID) -- consume the command, if it's an area command preceded by an unload_unit command, it should trigger slowupdate and realize it has nothing to unload anymore => finish the second command too, but who cares
-        return targets
-    end
-	Spring.UnitFinishCommand(unitID)  -- consume the command
-    return { transporteeID }
-end
-
 -- assigns a slot to the incoming transportee and returns its teeData, or nil if no slot is available.
 -- if no direct slot match is found but reorganizing could make room, triggers ReorganizeAndLoad instead.
 function CargoHandler.FindSlot(transporteeID, cargo, allowReorganize)
-    local seats = CargoHandler.GetTransporteeSize(transporteeID)
+    local seats = TransportAPI.GetTransporteeSize(transporteeID)
     for slotID, slotData in pairs(cargo.slots) do
         if slotData.cargo == nil and slotData.size == seats then
             local ok = true
@@ -201,7 +156,7 @@ function CargoHandler.ReorganizeAndLoad(cargo, newTeeID)
     end
     toLoad[#toLoad + 1] = newTeeID
     table.sort(toLoad, function(a, b)
-        return CargoHandler.GetTransporteeSize(a) > CargoHandler.GetTransporteeSize(b)
+        return TransportAPI.GetTransporteeSize(a) > TransportAPI.GetTransporteeSize(b)
     end)
 
     local teeSnapshot = {}

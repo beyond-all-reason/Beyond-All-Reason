@@ -91,7 +91,7 @@ local function MovePieceWS(pce, wsX, wsY, wsZ, wsRX, wsRY, wsRZ, speed, tHeight,
 end
 
 local loadTime, ratio, ratioY, cegScaleFactor, cegName
-local progress         = {}
+local progress         -- set in Init from precomputedProgress[unitDefID]
 local beamsBySlotID    = {}
 
 local cachedFrame = -1
@@ -121,7 +121,7 @@ end
 
 -- initialise loadTime, CEG params, velocity damping ratios, easing curve, and beam pieces from setup
 function TransportAnimator.Init(setup)
-    loadTime       = setup.loadTime
+    loadTime       = tonumber(UnitDefs[unitDefID].customParams.loadtime)
     cegScaleFactor = setup.cegScaleFactor
     cegName        = setup.cegName
 
@@ -134,16 +134,7 @@ function TransportAnimator.Init(setup)
     ratio  = (0.30 * vmax)   / (0.30 * vmax   + a)
     ratioY = (0.1 * vmax_y) / (0.1 * vmax_y + a)
 
-    -- pre-compute cubic ease-in-out curve for each frame in [0, loadTime]
-    for f = 0, loadTime do
-        local t = f / loadTime
-        if t < 0.5 then
-            progress[f] = 4*t*t*t
-        else
-            local u = 2 - 2*t
-            progress[f] = 1 - u*u*u * 0.5
-        end
-    end
+    progress = GG.TransportAPI.precomputedProgress[unitDefID]
 
     -- resolve beam piece name strings from setup into piece IDs, keyed by slot piece ID
     if setup.beams then

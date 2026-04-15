@@ -10,11 +10,19 @@
 -- Per-unit config file (via VFS.Include(), path relative to game root):
 --   <unitName>/setup.lua  -- cargo slots, load method, and anim config in one table
 
+TransportAPI = GG.TransportAPI
+if not TransportAPI then
+	Spring.Echo("TransportAPI must be loaded before this unit script")
+	return false
+end
+
 local unitDef            = UnitDefs[unitDefID]
 local unitName           = unitDef.name
 local AIR_TRANSPORT_PATH = "scripts/Units/airTransports/"  -- prefix for VFS.Include (from game root)
 local AIR_TRANSPORT_INC  = "Units/airTransports/"          -- prefix for include()    (from scripts/)
 local UNIT_CONFIG_PATH   = AIR_TRANSPORT_PATH .. unitName .. "/"
+
+
 
 SpGetUnitDefID          = Spring.GetUnitDefID
 SpGetUnitHeight         = Spring.GetUnitHeight
@@ -85,22 +93,17 @@ function PerformLoadInstant(transporteeID) -- instant load not used currently
     StartThread(TransportAnimator.Load, teeData, false)
 end
 
-function PerformUnload(transporteeID, goalX, goalY, goalZ) -- entry point from gadget transport handler: called on unload approval, and by ReorganizeAndLoad
-    -- GetUnloadTargets expands a single-unit unload command into all cargo if it's an area-unload order
-    -- TODO: consider moving this expansion logic into the gadget transport handler instead
-    local targets = CargoHandler.GetUnloadTargets(unitID, transporteeID, cargo)
-    for _, teeID in ipairs(targets) do
-        local teeData = cargo.transportees[teeID]
-        if teeData and SpValidUnitID(teeID) and not SpGetUnitIsDead(teeID) then
-            StartThread(TransportAnimator.Unload, teeData, goalX, goalY, goalZ)
-        else -- unit invalid/dead: reset slot and unregister without animating
-            if teeData and teeData.slotID then
-                Move(teeData.slotID, 1, 0)  Move(teeData.slotID, 2, 0)  Move(teeData.slotID, 3, 0)
-                Turn(teeData.slotID, 1, 0)  Turn(teeData.slotID, 2, 0)  Turn(teeData.slotID, 3, 0)
-            end
-            local count = CargoHandler.Unregister(teeID, cargo)
-            if count == 0 then TransportAnimator.HasCargo(false) end
+function PerformUnload(transporteeID, goalX, goalY, goalZ) -- entry point from gadget transport handler: called once per transportee
+    local teeData = cargo.transportees[transporteeID]
+    if teeData and SpValidUnitID(transporteeID) and not SpGetUnitIsDead(transporteeID) then
+        StartThread(TransportAnimator.Unload, teeData, goalX, goalY, goalZ)
+    else -- unit invalid/dead: reset slot and unregister without animating
+        if teeData and teeData.slotID then
+            Move(teeData.slotID, 1, 0)  Move(teeData.slotID, 2, 0)  Move(teeData.slotID, 3, 0)
+            Turn(teeData.slotID, 1, 0)  Turn(teeData.slotID, 2, 0)  Turn(teeData.slotID, 3, 0)
         end
+        local count = CargoHandler.Unregister(transporteeID, cargo)
+        if count == 0 then TransportAnimator.HasCargo(false) end
     end
 end
 

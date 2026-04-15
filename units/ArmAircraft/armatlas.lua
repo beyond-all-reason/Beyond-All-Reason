@@ -35,6 +35,7 @@ return {
 		verticalspeed = 3.75,
 		customparams = {
 			crashable = 0,
+			loadtime = 90,
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0,
