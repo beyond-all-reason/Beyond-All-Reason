@@ -229,7 +229,7 @@ return {
 				firestarter = 100,
 				flighttime = 7.4,
 				impulsefactor = 0.123,
-				model = "corkbmissl1.s3o",
+				model = "corkbmissl0.s3o",
 				name = "HeavyRockets",
 				noselfdamage = true,
 				range = 435,
