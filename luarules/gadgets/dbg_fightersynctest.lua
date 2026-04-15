@@ -469,11 +469,13 @@ else	-- UNSYNCED
 	-- Sync-hash capture
 	--------------------------------------------------------------------
 
-	local synchashBuffer = {}
+	local frameBuffer = {}
+	local checksumBuffer = {}
 	local synchashFirstFrame, synchashLastFrame
 
 	local function onSynchashBegin(_, totalFrames, runStartFrame)
-		synchashBuffer = {}
+		frameBuffer = {}
+		checksumBuffer = {}
 		synchashFirstFrame, synchashLastFrame = nil, nil
 		hudActive = true
 		hudTotalFrames = tonumber(totalFrames) or 0
@@ -485,26 +487,38 @@ else	-- UNSYNCED
 		if not Engine.hasSyncChecksums then return end
 		local checksum = Spring.GetPrevFrameSyncChecksum()
 		local runFrame = n - hudRunStartFrame
-		synchashBuffer[#synchashBuffer + 1] = string.format("%d:%s", runFrame, checksum)
+		local i = #checksumBuffer + 1
+		frameBuffer[i] = runFrame
+		checksumBuffer[i] = checksum
 		if not synchashFirstFrame then synchashFirstFrame = runFrame end
 		synchashLastFrame = runFrame
 	end
 
 	local function onSynchashEnd()
 		hudActive = false
-		local count = #synchashBuffer
+		local count = #checksumBuffer
 		if count == 0 then
 			Spring.Echo("[fightersynctest] sync-hash: no frames collected (Engine.hasSyncChecksums is false — engine built without SYNCCHECK)")
 			return
 		end
-		local blob = table.concat(synchashBuffer, "\n")
-		local digest = VFS.CalculateHash(blob, 0)
 
-		local path = "fightersynctest_synchash.txt"
-		local content = digest .. "\n"
-			.. string.format("frames=%d first=%d last=%d\n",
-				count, synchashFirstFrame or -1, synchashLastFrame or -1)
-			.. blob .. "\n"
+		-- Digest is computed purely over the checksum values in frame order, so it
+		-- stays stable across any future change to the file format.
+		local digest = VFS.CalculateHash(table.concat(checksumBuffer, "\n"), 0)
+
+		local checksums = {}
+		for i = 1, count do
+			checksums[i] = { frame = frameBuffer[i], checksum = checksumBuffer[i] }
+		end
+
+		local path = "fightersynctest_synchash.json"
+		local content = Json.encode({
+			digest = digest,
+			frameCount = count,
+			firstFrame = synchashFirstFrame or -1,
+			lastFrame = synchashLastFrame or -1,
+			checksums = checksums,
+		})
 
 		local f, err = io.open(path, "w")
 		if not f then
@@ -516,7 +530,8 @@ else	-- UNSYNCED
 		Spring.Echo(string.format(
 			"[fightersynctest] sync-hash: wrote %s (md5=%s, %d frames %d..%d)",
 			path, digest, count, synchashFirstFrame or -1, synchashLastFrame or -1))
-		synchashBuffer = {}
+		frameBuffer = {}
+		checksumBuffer = {}
 	end
 
 	--------------------------------------------------------------------
