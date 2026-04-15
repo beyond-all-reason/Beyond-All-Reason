@@ -363,10 +363,10 @@ local function checkTeamResources(trigger, resourceIndex)
 end
 
 local function getTeamResourceIncomeForSources(teamID, resourceType, sources)
-	local extractorIncome
-	local reclaimIncome
-	local productionIncome
-	local allyIncome
+	local extractorIncome  = 0
+	local reclaimIncome    = 0
+	local productionIncome = 0
+	local transferIncome   = 0
 
 	if (sources.extractor or sources.production) and resourceType ~= "energy" then
 		for _, unitID in pairs(Spring.GetTeamUnits(teamID)) do
@@ -388,14 +388,14 @@ local function getTeamResourceIncomeForSources(teamID, resourceType, sources)
 		productionIncome = totalIncome - extractorIncome - reclaimIncome
 	end
 
-	if sources.ally then
-		allyIncome = select(RESOURCE_RECEIVED_INDEX, Spring.GetTeamResources(teamID, resourceType)) or 0
+	if sources.transfer then
+		transferIncome = select(RESOURCE_RECEIVED_INDEX, Spring.GetTeamResources(teamID, resourceType)) or 0
 	end
 
 	return (sources.extractor  and extractorIncome  or 0)
 		 + (sources.reclaim    and reclaimIncome    or 0)
 		 + (sources.production and productionIncome or 0)
-		 + (sources.ally       and allyIncome       or 0)
+		 + (sources.transfer   and transferIncome   or 0)
 end
 
 local function checkResourceIncome(trigger)
@@ -550,14 +550,17 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeamID, featureID, featu
 	return true
 end
 
+local RECLAIM_UNIT_EFFICIENCY = Game.reclaimUnitEfficiency -- Engine default is 1.0 metal and 0.0 energy
+local RECLAIM_UNIT_IS_BAR_STYLE =
+	Game.reclaimUnitMethod == 1 and                        -- From SSkirmishAICallback.h: 0 = Revert to wireframe, gradual reclaim, 1 = Subtract HP, give full metal at end, default 1
+	Game.reclaimUnitDrainHealth                            -- default true in engine
 function gadget:AllowUnitBuildStep(builderID, builderTeamID, unitID, unitDefID, buildStep)
-	if buildStep < 0 and Game.reclaimUnitMethod == 1 and Game.reclaimUnitDrainHealth then
+	if buildStep < 0 and RECLAIM_UNIT_IS_BAR_STYLE then
 		local health, maxHealth, _, _, buildProgress = Spring.GetUnitHealth(unitID)
 		if health and maxHealth and (health + maxHealth * buildStep) <= 0 then
 			local unitDef = UnitDefs[unitDefID]
 			if unitDef then
-				-- BAR uses lump-at-end unit reclaim and awards metal only.
-				local reclaimMetal = unitDef.metalCost * (buildProgress or 1) * Game.reclaimUnitEfficiency
+				local reclaimMetal = unitDef.metalCost * (buildProgress or 1) * RECLAIM_UNIT_EFFICIENCY
 
 				local t = table.ensureTable(teamReclaimIncome, builderTeamID)
 				t.metal = (t.metal or 0) + reclaimMetal

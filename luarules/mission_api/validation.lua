@@ -305,11 +305,11 @@ validators[Types.ResourceIncomeSources] = function(sources)
 		return { { message = "Resource income sources table must not be empty" } }
 	end
 
-	local validResourceIncomeSources = { extractor = true, production = true, reclaim = true, ally = true }
+	local validResourceIncomeSources = { extractor = true, production = true, reclaim = true, transfer = true }
 	local result = {}
 	for i, source in ipairs(sources) do
 		if not validResourceIncomeSources[source] then
-			result[#result + 1] = { message = "Invalid resource income source [" .. i .. "]: '" .. tostring(source) .. "'. Must be one of: 'extractor', 'production', 'reclaim', 'ally'" }
+			result[#result + 1] = { message = "Invalid resource income source [" .. i .. "]: '" .. tostring(source) .. "'. Must be one of: 'extractor', 'production', 'reclaim', 'transfer'" }
 		end
 	end
 	if #result > 0 then return result end
