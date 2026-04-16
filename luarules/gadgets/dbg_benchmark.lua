@@ -575,10 +575,13 @@ else	-- UNSYNCED
 
 	function gadget:Initialize()
 		gadgetHandler:AddChatAction('benchmark', benchmark, "") -- /luarules benchmark unitdefname1 unitdefname2 count
+		-- TODO: remove once chobby is updated to use `/luarules benchmark`.
+		gadgetHandler:AddChatAction('fightertest', benchmark, "")
 	end
 
 	function gadget:Shutdown()
 		gadgetHandler:RemoveChatAction('benchmark')
+		gadgetHandler:RemoveChatAction('fightertest')
 	end
 
 end
