@@ -40,6 +40,7 @@ local unitETATable = {}
 local featureETATable = {}
 local etaMaxDist = 750000 -- max dist at which to draw ETA
 local blinkTime = 20
+local minETASecs = 5 -- Don't show ETA if it is less than 5 seconds
 
 -- Pre-cache I18N strings to avoid per-unit per-frame lookups
 local i18n_buildTime = "\255\255\255\1" .. Spring.I18N('ui.buildEstimate.time') .. "\255\255\255\255 "
@@ -175,6 +176,12 @@ local function updateEta(eta, newProgress, gameSeconds, abs)
 				if abs then newTime = math.abs(newTime) end
 				eta.timeLeft = newTime
 			end
+			
+			if eta.display == nil and eta.timeLeft < minETASecs then
+				eta.display = false
+			elseif eta.timeLeft >= minETASecs then
+				eta.display = true
+			end
 		end
 		eta.lastTime = gameSeconds
 		eta.lastProg = newProgress
@@ -268,25 +275,29 @@ function widget:DrawWorld()
 		local cx, cy, cz = Spring.GetCameraPosition()
 		glDepthTest(false)
 		
-		for unitID, bi in pairs(unitETATable) do
-			local ux, uy, uz = spGetUnitViewPosition(unitID)
-			if ux ~= nil then
-				local dx, dy, dz = ux - cx, uy - cy, uz - cz
-				local dist = dx * dx + dy * dy + dz * dz
-				if dist < etaMaxDist then
-					glDrawFuncAtUnit(unitID, false, drawEtaText, bi.timeLeft, bi.yoffset)
+		for unitID, eta in pairs(unitETATable) do
+			if eta.display then
+				local ux, uy, uz = spGetUnitViewPosition(unitID)
+				if ux ~= nil then
+					local dx, dy, dz = ux - cx, uy - cy, uz - cz
+					local dist = dx * dx + dy * dy + dz * dz
+					if dist < etaMaxDist then
+						glDrawFuncAtUnit(unitID, false, drawEtaText, eta.timeLeft, eta.yoffset)
+					end
 				end
 			end
 		end
 		
 		for featureID, eta in pairs(featureETATable) do
-			local fx, fy, fz = spGetFeaturePosition(featureID)
-			if fx ~= nil then
-				local dx, dy, dz = fx - cx, fy - cy, fz - cz
-				local dist = dx * dx + dy * dy + dz * dz
-				if dist < etaMaxDist then
-					glTranslate(fx, fy, fz)
-					glPushPopMatrix(drawEtaText, eta.timeLeft, eta.yoffset)
+			if eta.display then
+				local fx, fy, fz = spGetFeaturePosition(featureID)
+				if fx ~= nil then
+					local dx, dy, dz = fx - cx, fy - cy, fz - cz
+					local dist = dx * dx + dy * dy + dz * dz
+					if dist < etaMaxDist then
+						glTranslate(fx, fy, fz)
+						glPushPopMatrix(drawEtaText, eta.timeLeft, eta.yoffset)
+					end
 				end
 			end
 		end
