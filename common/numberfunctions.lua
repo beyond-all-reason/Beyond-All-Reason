@@ -235,12 +235,6 @@ if not math.distance3d then
 	end
 end
 
-if not math.magnitudeSquared then
-	function math.magnitudeSquared(dx, dy, dz)
-		return dx * dx + dy * dy + dz * dz
-	end
-end
-
 if not math.getClosestPosition then
 	---Gets the closest position out of a list to given coordinates. 2d.
 	---@param x number

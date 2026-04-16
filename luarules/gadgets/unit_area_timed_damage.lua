@@ -58,9 +58,9 @@ local prefixes = { unit = 'area_ondeath_', weapon = 'area_onhit_' }
 local max                     = math.max
 local min                     = math.min
 local floor                   = math.floor
-local sqrt                    = math.sqrt
 local round                   = math.round
-local distanceSquared         = math.magnitudeSquared
+local sqrt                    = math.sqrt
+local diag                    = math.diag
 local normalize               = math.normalize
 local stringFind              = string.find
 local stringGsub              = string.gsub
@@ -321,7 +321,7 @@ local function getAreaHitPosition(area, targetRadius, baseX, baseY, baseZ, midX,
 	if radiusSquared > targetRadius * targetRadius then
 		-- Check if the area contains the target.
 		if midY >= area.ymin and midY <= area.ymax then
-			if distanceSquared(midX - area.x, midY - area.y, midZ - area.z) <= radiusSquared then
+			if diag(midX - area.x, midY - area.y, midZ - area.z) ^ 2 <= radiusSquared then
 				return midX, midY, midZ
 			end
 		end
@@ -331,7 +331,7 @@ local function getAreaHitPosition(area, targetRadius, baseX, baseY, baseZ, midX,
 			local dy = baseY - area.y
 			local dz = baseZ - area.z
 
-			if distanceSquared(dx, dy, dz) <= radiusSquared then
+			if diag(dx, dy, dz) ^ 2 <= radiusSquared then
 				-- The unit base point is in the area and the mid point is not.
 				-- Find the intersection of a ray from mid->base onto the area.
 				local rx, ry, rz = normalize(baseX - midX, baseY - midY, baseZ - midZ)
@@ -353,12 +353,12 @@ local function getAreaHitPosition(area, targetRadius, baseX, baseY, baseZ, midX,
 	else
 		-- Check if the target contains the area.
 		if baseY >= area.ymin and baseY <= area.ymax then
-			if distanceSquared(baseX - area.x, baseY - area.y, baseZ - area.z) <= radiusSquared then
+			if diag(baseX - area.x, baseY - area.y, baseZ - area.z) ^ 2 <= radiusSquared then
 				return area.x, midY, area.z
 			end
 		end
 		if midY >= area.ymin and midY <= area.ymax then
-			if distanceSquared(midX - area.x, midY - area.y, midZ - area.z) <= radiusSquared then
+			if diag(midX - area.x, midY - area.y, midZ - area.z) ^ 2 <= radiusSquared then
 				return area.x, midY, area.z
 			end
 		end
