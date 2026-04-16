@@ -2,7 +2,7 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name = "Fightertest Benchmark",
+		name = "Benchmark",
 		desc = "Performance benchmarking tool: spawns units and measures sim/draw/update frame times. Extracted from cmd_dev_helpers.",
 		author = "Bluestone",
 		date = "",
@@ -12,7 +12,7 @@ function gadget:GetInfo()
 	}
 end
 
-local PACKET_HEADER = "$ft$"
+local PACKET_HEADER = "$bm$"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 
 if gadgetHandler:IsSyncedCode() then
@@ -69,11 +69,11 @@ if gadgetHandler:IsSyncedCode() then
 	local mapcx = Game.mapSizeX/2
 	local mapcz = Game.mapSizeZ/2
 	local mapcy = Spring.GetGroundHeight(mapcx,mapcz)
-	local fightertestenabled = false
+	local benchmarkenabled = false
 	local placementradius = 2000
 	local keepfeatures = 150
-	local fighterteststartgameframe = 0
-	local fightertesttotalunitsspawned = 0
+	local benchmarkstartgameframe = 0
+	local benchmarktotalunitsspawned = 0
 
 	local team1unitDefName = "armbull"
 	local team2unitDefName = "armbull"
@@ -145,7 +145,7 @@ if gadgetHandler:IsSyncedCode() then
 			gh = Spring.GetGroundHeight(cx,cz)
 			Spring.GiveOrderToUnitArray(newUnitIDs, CMD.MOVE, {cx,gh,cz}, {"shift"})
 
-			fightertesttotalunitsspawned = fightertesttotalunitsspawned + numspawned
+			benchmarktotalunitsspawned = benchmarktotalunitsspawned + numspawned
 		end
 	end
 
@@ -189,20 +189,20 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function fightertest(words)
-		fightertestenabled = not fightertestenabled
-		if not fightertestenabled then
-			Spring.Echo(string.format("Fightertest ended, %d units spawned over %d gameframes, Units/frame = %f",
-					fightertesttotalunitsspawned,
-					Spring.GetGameFrame() - fighterteststartgameframe,
-					fightertesttotalunitsspawned * (1.0 / (Spring.GetGameFrame() - fighterteststartgameframe))
+	function benchmark(words)
+		benchmarkenabled = not benchmarkenabled
+		if not benchmarkenabled then
+			Spring.Echo(string.format("Benchmark ended, %d units spawned over %d gameframes, Units/frame = %f",
+					benchmarktotalunitsspawned,
+					Spring.GetGameFrame() - benchmarkstartgameframe,
+					benchmarktotalunitsspawned * (1.0 / (Spring.GetGameFrame() - benchmarkstartgameframe))
 					))
 			ExecuteRemoveUnitDefName(team1unitDefName)
 			ExecuteRemoveUnitDefName(team2unitDefName)
 			return
 		end
-		fighterteststartgameframe = Spring.GetGameFrame()
-		fightertesttotalunitsspawned = 0
+		benchmarkstartgameframe = Spring.GetGameFrame()
+		benchmarktotalunitsspawned = 0
 		initrandom(7654321)
 		if words[2] and UnitDefNames[words[2]] then	team1unitDefName = words[2]
 		else Spring.Echo(words[2], "is not a valid unitDefName, using", team1unitDefName, "instead") end
@@ -244,7 +244,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		Spring.Echo(string.format("Starting fightertest %s vs %s with %i maxunits and %i units per step in a %d radius, features live %d frames",
+		Spring.Echo(string.format("Starting benchmark %s vs %s with %i maxunits and %i units per step in a %d radius, features live %d frames",
 				team1unitDefName,
 				team2unitDefName,
 				maxunits,
@@ -265,7 +265,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local featurestoremove = {}
 	function gadget:FeatureCreated(featureID, allyTeam)
-		if fightertestenabled then
+		if benchmarkenabled then
 			local featureDefID = Spring.GetFeatureDefID(featureID)
 			if featureDefID and featuredefstoremove[featureDefID] then
 				featurestoremove[featureID] = Spring.GetGameFrame() + keepfeatures
@@ -274,7 +274,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:GameFrame(n)
-		if fightertestenabled then
+		if benchmarkenabled then
 			if (n % 3 == 0)  then
 				SpawnUnitDefsForTeamSynced(0, team1unitDefName)
 				SpawnUnitDefsForTeamSynced(1, team2unitDefName)
@@ -305,10 +305,10 @@ if gadgetHandler:IsSyncedCode() then
 			table.insert(words, word)
 		end
 
-		if words[1] ~= "fightertest" then return end
+		if words[1] ~= "benchmark" then return end
 		if not isAuthorized(playerID, "terrain") then return end
 
-		fightertest(words)
+		benchmark(words)
 	end
 
 	function gadget:Initialize()
@@ -345,8 +345,8 @@ else	-- UNSYNCED
 	end
 
 	------------------------------UNSYNCED-----------------------------
-	local fightertestactive = false
-	local fighterteststats
+	local benchmarkactive = false
+	local benchmarkstats
 
 
 	-- An Update is always done before a Draw Frame
@@ -382,14 +382,14 @@ else	-- UNSYNCED
 	end
 
 	function gadget:Update() -- START OF UPDATE
-		if fightertestactive then
+		if benchmarkactive then
 			local now = Spring.GetTimerMicros()
 			if lastFrameType == 'draw' then
 				-- We are doing a double draw
 			else
 				-- We are ending a sim frame, so better push the sim frame time number
 				simTime = Spring.DiffTimers(now, lastSimTimerUS)
-				fighterteststats.simFrameTimes[#fighterteststats.simFrameTimes + 1] = simTime
+				benchmarkstats.simFrameTimes[#benchmarkstats.simFrameTimes + 1] = simTime
 				ss = alpha * ss + (1-alpha) * simTime
 			end
 			lastUpdateTimerUs = Spring.GetTimerMicros()
@@ -397,12 +397,12 @@ else	-- UNSYNCED
 	end
 
 	function gadget:GameFrame(n) -- START OF SIM FRAME
-		if fightertestactive then
+		if benchmarkactive then
 			local now = Spring.GetTimerMicros()
 			if lastFrameType == 'sim' then
 				-- We are doing double sim, push a sim frame time number
 				simTime = Spring.DiffTimers(now, lastSimTimerUS)
-				fighterteststats.simFrameTimes[#fighterteststats.simFrameTimes + 1] = simTime
+				benchmarkstats.simFrameTimes[#benchmarkstats.simFrameTimes + 1] = simTime
 				ss = alpha * ss + (1-alpha) * simTime
 			else -- we are coming off a draw frame
 
@@ -413,19 +413,19 @@ else	-- UNSYNCED
 	end
 
 	function gadget:DrawGenesis() -- START OF DRAW
-		if fightertestactive then
+		if benchmarkactive then
 			local now = Spring.GetTimerMicros()
 			updateTime = Spring.DiffTimers(now, lastUpdateTimerUs)
-			fighterteststats.updateFrameTimes[#fighterteststats.updateFrameTimes + 1] = updateTime
+			benchmarkstats.updateFrameTimes[#benchmarkstats.updateFrameTimes + 1] = updateTime
 			su = alpha * su + (1-alpha) * updateTime
 			lastDrawTimerUS = now
 		end
 	end
 
 	function gadget:DrawScreenPost() -- END OF DRAW
-		if fightertestactive then
+		if benchmarkactive then
 			drawTime = Spring.DiffTimers(Spring.GetTimerMicros(), lastDrawTimerUS)
-			fighterteststats.drawFrameTimes[#fighterteststats.drawFrameTimes + 1] = drawTime
+			benchmarkstats.drawFrameTimes[#benchmarkstats.drawFrameTimes + 1] = drawTime
 			sd = alpha * sd + (1-alpha) * drawTime
 
 			lastFrameType = 'draw'
@@ -434,10 +434,10 @@ else	-- UNSYNCED
 	end
 
 	function gadget:DrawScreen()
-		if fightertestactive or isBenchMark then
+		if benchmarkactive or isBenchMark then
 			local s = ""
 			if isBenchMark then
-				s = s .. string.format("Benchmark Frame %d/%d\n", #fighterteststats.simFrameTimes,benchMarkFrames)
+				s = s .. string.format("Benchmark Frame %d/%d\n", #benchmarkstats.simFrameTimes,benchMarkFrames)
 			end
 			s = s .. string.format("Sim = ~%3.2fms  (%3.2fms)\nUpdate = ~%3.2fms (%3.2fms)\nDraw = ~%3.2fms (%3.2fms)", ss, simTime, su, updateTime, sd,  drawTime)
 			gl.Text(s, 600*uiScale, 600*uiScale, 16*uiScale)
@@ -445,32 +445,32 @@ else	-- UNSYNCED
 	end
 
 	function gadget:UnitCreated()
-		if fightertestactive then
-			fighterteststats.numunitscreated = fighterteststats.numunitscreated + 1
+		if benchmarkactive then
+			benchmarkstats.numunitscreated = benchmarkstats.numunitscreated + 1
 		end
 	end
 
 	function gadget:UnitDestroyed()
-		if fightertestactive then
-			fighterteststats.numunitsdestroyed = fighterteststats.numunitsdestroyed + 1
+		if benchmarkactive then
+			benchmarkstats.numunitsdestroyed = benchmarkstats.numunitsdestroyed + 1
 		end
 	end
 
-	function fightertest(_, line, words, playerID, action)
+	function benchmark(_, line, words, playerID, action)
 		if playerID ~= Spring.GetMyPlayerID() then
 			return
 		end
-		Spring.Echo("Fightertest",line, words, playerID, action)
+		Spring.Echo("Benchmark",line, words, playerID, action)
 		if not isAuthorized(playerID, "terrain") then
 			return
 		end
-		if fightertestactive then
+		if benchmarkactive then
 			-- We need to dump the stats
-			local s1 = string.format("Fightertest complete, #created = %d, #destroyed = %d",  fighterteststats.numunitscreated, fighterteststats.numunitsdestroyed)
+			local s1 = string.format("Benchmark complete, #created = %d, #destroyed = %d",  benchmarkstats.numunitscreated, benchmarkstats.numunitsdestroyed)
 			Spring.Echo(s1)
 			local res = {}
 			local stats = {}
-			for n, t in pairs({Sim = fighterteststats.simFrameTimes, Draw = fighterteststats.drawFrameTimes, Update = fighterteststats.updateFrameTimes}) do
+			for n, t in pairs({Sim = benchmarkstats.simFrameTimes, Draw = benchmarkstats.drawFrameTimes, Update = benchmarkstats.updateFrameTimes}) do
 				local ms = {
 					count = 0,
 					total = 0,
@@ -537,9 +537,9 @@ else	-- UNSYNCED
 
 
 			-- clean up
-			--fighterteststats = {}
+			--benchmarkstats = {}
 		else
-			Spring.Echo("Starting Fightertest")
+			Spring.Echo("Starting Benchmark")
 			if Spring.GetModOptions().scenariooptions then
 				--Spring.Echo("Scenario: Spawning on frame", Spring.GetGameFrame())
 				local scenariooptions = string.base64Decode(Spring.GetModOptions().scenariooptions)
@@ -552,8 +552,8 @@ else	-- UNSYNCED
 				end
 			end
 			-- initialize stats table
-			fighterteststats = {
-				fightertestcommand = line,
+			benchmarkstats = {
+				commandline = line,
 				simFrameTimes = {},
 				drawFrameTimes = {},
 				updateFrameTimes = {},
@@ -564,8 +564,8 @@ else	-- UNSYNCED
 			lastSimTimerUS = Spring.GetTimerMicros()
 			lastUpdateTimerUs = Spring.GetTimerMicros()
 		end
-		fightertestactive = not fightertestactive
-		local msg = PACKET_HEADER .. ':fightertest'
+		benchmarkactive = not benchmarkactive
+		local msg = PACKET_HEADER .. ':benchmark'
 		for i=1,5 do
 			if words[i] then msg = msg .. " " .. tostring(words[i]) end
 		end
@@ -574,11 +574,11 @@ else	-- UNSYNCED
 	end
 
 	function gadget:Initialize()
-		gadgetHandler:AddChatAction('fightertest', fightertest, "") -- /luarules fightertest unitdefname1 unitdefname2 count
+		gadgetHandler:AddChatAction('benchmark', benchmark, "") -- /luarules benchmark unitdefname1 unitdefname2 count
 	end
 
 	function gadget:Shutdown()
-		gadgetHandler:RemoveChatAction('fightertest')
+		gadgetHandler:RemoveChatAction('benchmark')
 	end
 
 end

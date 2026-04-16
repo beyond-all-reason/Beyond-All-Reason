@@ -2,8 +2,8 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name = "Fightertest Synctest",
-		desc = "Expanded engine-API sync test: spawns a broad mix of unit categories (bots, tanks, air, hover, subs, ships, spiders, commanders) concurrently and collects a per-frame sync-hash artifact for RecoilEngine#2910. Independent of the fightertest benchmark gadget. See RecoilEngine#2928.",
+		name = "Synctest",
+		desc = "Expanded engine-API sync test: spawns a broad mix of unit categories (bots, tanks, air, hover, subs, ships, spiders, commanders) concurrently and collects a per-frame sync-hash artifact for RecoilEngine#2910. Independent of the benchmark gadget. See RecoilEngine#2928.",
 		author = "Bruno-DaSilva",
 		date = "2026-04-13",
 		license = "GNU GPL, v2 or later",
@@ -12,7 +12,7 @@ function gadget:GetInfo()
 	}
 end
 
-local PACKET_HEADER = "$fts$"
+local PACKET_HEADER = "$st$"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 
 local RUN_SEED = 7654321
@@ -149,18 +149,18 @@ if gadgetHandler:IsSyncedCode() then
 		featurestoremove = {}
 
 		Spring.Echo(string.format(
-			"[fightersynctest] starting: totalframes=%d area=%.2f offset=%.2f,%.2f mult=%.2f categories=%d anchors land/water/air=%d/%d/%d",
+			"[synctest] starting: totalframes=%d area=%.2f offset=%.2f,%.2f mult=%.2f categories=%d anchors land/water/air=%d/%d/%d",
 			totalFrames, areaFraction, areaOffsetX, areaOffsetZ, unitMultiplier, #enabledCats,
 			#anchorsByClass.land, #anchorsByClass.water, #anchorsByClass.air))
-		SendToUnsynced("fightersynctest_synchash_begin", totalFrames, runStartFrame)
+		SendToUnsynced("synctest_synchash_begin", totalFrames, runStartFrame)
 		active = true
 	end
 
 	local function endRun()
 		active = false
-		Spring.Echo(string.format("[fightersynctest] ending after %d frames", Spring.GetGameFrame() - runStartFrame))
+		Spring.Echo(string.format("[synctest] ending after %d frames", Spring.GetGameFrame() - runStartFrame))
 		removeAllSpawnedUnits()
-		SendToUnsynced("fightersynctest_synchash_end")
+		SendToUnsynced("synctest_synchash_end")
 	end
 
 	local function toggleRun(words)
@@ -324,7 +324,7 @@ if gadgetHandler:IsSyncedCode() then
 					allTeamUnitDefNames[cat.t2] = true
 				else
 					Spring.Echo(string.format(
-						"[fightersynctest] skipping category %s: no %s anchors", cat.name, cat.class))
+						"[synctest] skipping category %s: no %s anchors", cat.name, cat.class))
 				end
 			end
 		end
@@ -373,7 +373,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		for name, n in pairs(removedByDef) do
-			Spring.Echo(string.format("[fightersynctest] removed %d x %s", n, name))
+			Spring.Echo(string.format("[synctest] removed %d x %s", n, name))
 		end
 	end
 
@@ -398,9 +398,9 @@ if gadgetHandler:IsSyncedCode() then
 		recordStartPlayers()
 	end
 
-	-- Entry point for the `/fightersynctest` chat command, relayed from unsynced
+	-- Entry point for the `/synctest` chat command, relayed from unsynced
 	-- via Spring.SendLuaRulesMsg. Expected packet format:
-	--   "$fts$:fightersynctest [totalFrames] [areaFraction] [areaOffsetX] [areaOffsetZ] [unitMultiplier]"
+	--   "$st$:synctest [totalFrames] [areaFraction] [areaOffsetX] [areaOffsetZ] [unitMultiplier]"
 	-- See startRun() above for per-argument meaning, ranges, and defaults.
 	-- Toggles a run: starts if idle, ends if already active.
 	function gadget:RecvLuaMsg(msg, playerID)
@@ -412,7 +412,7 @@ if gadgetHandler:IsSyncedCode() then
 		for word in msg:gmatch("[%-_%w%.]+") do
 			table.insert(words, word)
 		end
-		if words[1] ~= "fightersynctest" then return end
+		if words[1] ~= "synctest" then return end
 		if not isAuthorized(playerID, "terrain") then return end
 		toggleRun(words)
 	end
@@ -461,7 +461,7 @@ else	-- UNSYNCED
 		local gameFrame = Spring.GetGameFrame()
 		local runFrame = hudRunStartFrame and (gameFrame - hudRunStartFrame) or 0
 		gl.Color(1, 1, 1, 1)
-		gl.Text(string.format("Fightertest Synctest  frame %d / %d", runFrame, hudTotalFrames),
+		gl.Text(string.format("Synctest  frame %d / %d", runFrame, hudTotalFrames),
 			600 * uiScale, 600 * uiScale, 16 * uiScale)
 	end
 
@@ -498,7 +498,7 @@ else	-- UNSYNCED
 		hudActive = false
 		local count = #checksumBuffer
 		if count == 0 then
-			Spring.Echo("[fightersynctest] sync-hash: no frames collected (Engine.hasSyncChecksums is false — engine built without SYNCCHECK)")
+			Spring.Echo("[synctest] sync-hash: no frames collected (Engine.hasSyncChecksums is false — engine built without SYNCCHECK)")
 			return
 		end
 
@@ -511,7 +511,7 @@ else	-- UNSYNCED
 			checksums[i] = { frame = frameBuffer[i], checksum = checksumBuffer[i] }
 		end
 
-		local path = "fightersynctest_synchash.json"
+		local path = "synctest_synchash.json"
 		local content = Json.encode({
 			digest = digest,
 			frameCount = count,
@@ -522,13 +522,13 @@ else	-- UNSYNCED
 
 		local f, err = io.open(path, "w")
 		if not f then
-			Spring.Echo("[fightersynctest] sync-hash: failed to open " .. tostring(path) .. ": " .. tostring(err))
+			Spring.Echo("[synctest] sync-hash: failed to open " .. tostring(path) .. ": " .. tostring(err))
 			return
 		end
 		f:write(content)
 		f:close()
 		Spring.Echo(string.format(
-			"[fightersynctest] sync-hash: wrote %s (md5=%s, %d frames %d..%d)",
+			"[synctest] sync-hash: wrote %s (md5=%s, %d frames %d..%d)",
 			path, digest, count, synchashFirstFrame or -1, synchashLastFrame or -1))
 		frameBuffer = {}
 		checksumBuffer = {}
@@ -538,11 +538,11 @@ else	-- UNSYNCED
 	-- Chat action + gadget lifecycle
 	--------------------------------------------------------------------
 
-	local function fightersynctest(_, line, words, playerID, action)
+	local function synctest(_, line, words, playerID, action)
 		if playerID ~= Spring.GetMyPlayerID() then return end
-		Spring.Echo("[fightersynctest]", line, playerID, action)
+		Spring.Echo("[synctest]", line, playerID, action)
 		if not isAuthorized(playerID, "terrain") then return end
-		local msg = PACKET_HEADER .. ':fightersynctest'
+		local msg = PACKET_HEADER .. ':synctest'
 		for i = 1, 6 do
 			if words[i] then msg = msg .. " " .. tostring(words[i]) end
 		end
@@ -550,15 +550,15 @@ else	-- UNSYNCED
 	end
 
 	function gadget:Initialize()
-		gadgetHandler:AddChatAction('fightersynctest', fightersynctest, "")
-		gadgetHandler:AddSyncAction('fightersynctest_synchash_begin', onSynchashBegin)
-		gadgetHandler:AddSyncAction('fightersynctest_synchash_end',   onSynchashEnd)
+		gadgetHandler:AddChatAction('synctest', synctest, "")
+		gadgetHandler:AddSyncAction('synctest_synchash_begin', onSynchashBegin)
+		gadgetHandler:AddSyncAction('synctest_synchash_end',   onSynchashEnd)
 	end
 
 	function gadget:Shutdown()
-		gadgetHandler:RemoveChatAction('fightersynctest')
-		gadgetHandler:RemoveSyncAction('fightersynctest_synchash_begin')
-		gadgetHandler:RemoveSyncAction('fightersynctest_synchash_end')
+		gadgetHandler:RemoveChatAction('synctest')
+		gadgetHandler:RemoveSyncAction('synctest_synchash_begin')
+		gadgetHandler:RemoveSyncAction('synctest_synchash_end')
 	end
 
 end
