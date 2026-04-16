@@ -316,12 +316,12 @@ end
 ---@return number? hitY
 ---@return number? hitZ
 local function getAreaHitPosition(area, targetRadius, baseX, baseY, baseZ, midX, midY, midZ)
-	local radiusSquared = max(area.range, targetRadius) ^ 2
+	local radius = max(area.range, targetRadius)
 
-	if radiusSquared > targetRadius * targetRadius then
+	if radius > targetRadius then
 		-- Check if the area contains the target.
 		if midY >= area.ymin and midY <= area.ymax then
-			if diag(midX - area.x, midY - area.y, midZ - area.z) ^ 2 <= radiusSquared then
+			if diag(midX - area.x, midY - area.y, midZ - area.z) <= radius then
 				return midX, midY, midZ
 			end
 		end
@@ -331,14 +331,14 @@ local function getAreaHitPosition(area, targetRadius, baseX, baseY, baseZ, midX,
 			local dy = baseY - area.y
 			local dz = baseZ - area.z
 
-			if diag(dx, dy, dz) ^ 2 <= radiusSquared then
+			if diag(dx, dy, dz) <= radius then
 				-- The unit base point is in the area and the mid point is not.
 				-- Find the intersection of a ray from mid->base onto the area.
 				local rx, ry, rz = normalize(baseX - midX, baseY - midY, baseZ - midZ)
 
 				local a = rx * rx + ry * ry + rz * rz
 				local b = (dx * rx + dy * ry + dz * rz) * 2
-				local c = dx * dx + dy * dy + dz * dz - radiusSquared
+				local c = dx * dx + dy * dy + dz * dz - radius * radius
 
 				-- We already know the discriminant is positive:
 				local discriminant = b * b - 4 * a * c
@@ -353,12 +353,12 @@ local function getAreaHitPosition(area, targetRadius, baseX, baseY, baseZ, midX,
 	else
 		-- Check if the target contains the area.
 		if baseY >= area.ymin and baseY <= area.ymax then
-			if diag(baseX - area.x, baseY - area.y, baseZ - area.z) ^ 2 <= radiusSquared then
+			if diag(baseX - area.x, baseY - area.y, baseZ - area.z) <= radius then
 				return area.x, midY, area.z
 			end
 		end
 		if midY >= area.ymin and midY <= area.ymax then
-			if diag(midX - area.x, midY - area.y, midZ - area.z) ^ 2 <= radiusSquared then
+			if diag(midX - area.x, midY - area.y, midZ - area.z) <= radius then
 				return area.x, midY, area.z
 			end
 		end
