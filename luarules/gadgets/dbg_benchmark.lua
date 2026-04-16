@@ -370,7 +370,6 @@ else	-- UNSYNCED
 	local updateTime = 0
 	local isBenchMark = false
 	local benchMarkFrames = 0
-	local LOG2_INV = 1 / math.log(2)
 
 	-- Exponential histogram (idea taken from Prometheus/OTel native histograms)
 	-- Record in a large number of histogram bucckets, 
@@ -386,7 +385,7 @@ else	-- UNSYNCED
 		local numBuckets = 0
 		for _, v in ipairs(values) do
 			if v > 0 then
-				local idx = math.ceil(math.log(v) * LOG2_INV * scale)
+				local idx = math.ceil(math.log(v, 2) * scale)
 				if not hist[idx] then
 					numBuckets = numBuckets + 1
 				end
@@ -528,6 +527,7 @@ else	-- UNSYNCED
 					mean = 0,
 					spread = 0,
 					buckets = {},
+					percentiles = {},
 
 				}  --mystats
 				-- Discard first 10%
@@ -551,7 +551,6 @@ else	-- UNSYNCED
 
 				ms.buckets = buildExpHistogram(ct, 20)
 
-				ms.percentiles = {}
 				for _,i in ipairs({0,1,2,5,10,20,35,50,65,80,90,95,98,99,100}) do
 					ms.percentiles[i] = ct[math.min(#ct, 1 + math.floor(i*0.01 * #ct))]
 				end
