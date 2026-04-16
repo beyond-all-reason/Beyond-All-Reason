@@ -4,7 +4,7 @@ function gadget:GetInfo()
 	return {
 		name = "Benchmark",
 		desc = "Performance benchmarking tool: spawns units and measures sim/draw/update frame times. Extracted from cmd_dev_helpers.",
-		author = "Bluestone",
+		author = "Bluestone, Beherith, Bruno-DaSilva",
 		date = "",
 		license = "GNU GPL, v2 or later",
 		layer = -1999999999,
