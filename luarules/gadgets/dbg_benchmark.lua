@@ -370,6 +370,57 @@ else	-- UNSYNCED
 	local updateTime = 0
 	local isBenchMark = false
 	local benchMarkFrames = 0
+	local LOG2_INV = 1 / math.log(2)
+
+	-- Exponential histogram (idea taken from Prometheus/OTel native histograms)
+	-- Record in a large number of histogram bucckets, 
+	--   then reduce until <= maxBuckets non-empty buckets or we hit ~20 buckets
+	-- Returns table of {[bucketMin] = count} pairs
+	local function buildExpHistogram(values, maxBuckets)
+		-- "schema" is the exponent of 2 that defines the bucket growth rate. 
+		--   Higher schema means more buckets but more precision.
+		local schema = 5
+		local scale = 2 ^ schema  -- 32
+		-- Phase 1: Record each value into exponential buckets
+		local hist = {}
+		local numBuckets = 0
+		for _, v in ipairs(values) do
+			if v > 0 then
+				local idx = math.ceil(math.log(v) * LOG2_INV * scale)
+				if not hist[idx] then
+					numBuckets = numBuckets + 1
+				end
+				hist[idx] = (hist[idx] or 0) + 1
+			end
+		end
+		-- Phase 2: Merge pairs until bucket count + 1 (trailing boundary) fits
+		while numBuckets + 1 > maxBuckets and schema > 1 do
+			schema = schema - 1
+			local merged = {}
+			local mergedCount = 0
+			for idx, count in pairs(hist) do
+				local newIdx = math.ceil(idx / 2)
+				if not merged[newIdx] then
+					mergedCount = mergedCount + 1
+				end
+				merged[newIdx] = (merged[newIdx] or 0) + count
+			end
+			hist = merged
+			numBuckets = mergedCount
+		end
+		-- Phase 3: Emit as {[bucketMin] = count}, with trailing boundary
+		local base = 2 ^ (2 ^ (-schema))
+		local result = {}
+		local maxIdx = -math.huge
+		for idx, count in pairs(hist) do
+			result[base ^ (idx - 1)] = count
+			if idx > maxIdx then maxIdx = idx end
+		end
+		if maxIdx > -math.huge then
+			result[base ^ maxIdx] = 0
+		end
+		return result
+	end
 
 	local ss = 0
 	local sd = 0
@@ -476,7 +527,7 @@ else	-- UNSYNCED
 					total = 0,
 					mean = 0,
 					spread = 0,
-					percentiles = {},
+					buckets = {},
 
 				}  --mystats
 				-- Discard first 10%
@@ -498,6 +549,9 @@ else	-- UNSYNCED
 				end
 				ms.spread = ms.spread/ms.count
 
+				ms.buckets = buildExpHistogram(ct, 20)
+
+				ms.percentiles = {}
 				for _,i in ipairs({0,1,2,5,10,20,35,50,65,80,90,95,98,99,100}) do
 					ms.percentiles[i] = ct[math.min(#ct, 1 + math.floor(i*0.01 * #ct))]
 				end
@@ -529,6 +583,10 @@ else	-- UNSYNCED
 				Spring.Echo(stats)
 
 				if Spring.GetMenuName then
+					-- but remove percentiles when sending to menu to keep the data lean
+					for _, key in ipairs({"Sim", "Draw", "Update"}) do
+						if stats[key] then stats[key].percentiles = nil end
+					end
 					local message = Json.encode(stats)
 					--Spring.Echo("Sending Message", message)
 					Spring.SendLuaMenuMsg("ScenarioGameEnd " .. message)
