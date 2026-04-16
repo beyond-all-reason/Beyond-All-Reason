@@ -1240,8 +1240,6 @@
 				"mincamheight_descr": "Limitar la cantidad máxima de enfoque de la cámara\n\nAlto = la cámara puede hacer menos enfoque",
 				"scrollspeed": "velocidad del desplazamiento del enfoque",
 				"invertmouse": "Invertir ratón",
-				"zoomtocursor": "Zoom al cursor",
-				"zoomfromcursor": "Zoom desde el cursor",
 				"scrollinverse": "desplazamiento inverso",
 				"scrolltoggleoverview": "alternar vista general al desplazarse",
 				"scrolltoggleoverview_descr": "cambiar la vista general de la cámara al utilizar la rueda de desplazamiento",

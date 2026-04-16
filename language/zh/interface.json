@@ -1232,8 +1232,6 @@
 				"mincamheight_descr": "显示镜头能放大得程度的最小数值\n\n越高 = 镜头能放大得程度越小",
 				"scrollspeed": "滚轮放大速度",
 				"invertmouse": "反转鼠标",
-				"zoomtocursor": "缩放至光标",
-				"zoomfromcursor": "从光标处缩放",
 				"scrollinverse": "反转滚轮缩放",
 				"scrolltoggleoverview": "当缩放时切换为总览视角",
 				"scrolltoggleoverview_descr": "用滚轮缩放时切换为总览视角",
