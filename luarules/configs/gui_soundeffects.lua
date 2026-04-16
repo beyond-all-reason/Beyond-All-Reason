@@ -3430,7 +3430,6 @@ GUIUnitSoundEffects = {
 	lootboxnano_t4_var2 = LootboxNanoSoundEffects,
 	lootboxnano_t4_var3 = LootboxNanoSoundEffects,
 	lootboxnano_t4_var4 = LootboxNanoSoundEffects,
-
 }
 
 -- Underwater geo variants share sound effects with their land counterparts.
