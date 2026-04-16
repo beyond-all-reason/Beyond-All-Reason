@@ -7,8 +7,8 @@
 -- etc.) run on both old and new engine builds. Once the engine PR is merged
 -- into mainline this block becomes a harmless no-op (the globals already
 -- exist and `or Spring` never fires).
-SpringShared   = SpringShared   or Spring
-SpringSynced   = SpringSynced   or Spring
+SpringShared = SpringShared or Spring
+SpringSynced = SpringSynced or Spring
 SpringUnsynced = SpringUnsynced or Spring
 
 -- Universal Lua functions applicable to any Lua code
