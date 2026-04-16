@@ -35,16 +35,21 @@ function table.tostring( tbl )
 	return "{" .. table.concat( result, "," ) .. "}"
 end
 
-function SaveDefToCustomParams(defType, name, def)
+local function saveDefToCustomParams(defType, name, def)
 	-- save def as a string
 	def.customparams = def.customparams or {}
 	def.customparams.__def = table.tostring(def)
 	Spring.Echo("saved " .. defType .. "." .. name .. " to customparams.__def as string")
 end
 
-function MarkDefOmittedInCustomParams(defType, name, def)
+local function markDefOmittedInCustomParams(defType, name, def)
 	-- mark that this def is saved elsewhere as part of another def
 	def.customparams = def.customparams or {}
 	def.customparams.__def = "omitted"
 	Spring.Echo("marked omitted " .. defType .. "." .. name .. " in customparams.__def")
 end
+
+return {
+	SaveDefToCustomParams        = saveDefToCustomParams,
+	MarkDefOmittedInCustomParams = markDefOmittedInCustomParams,
+}

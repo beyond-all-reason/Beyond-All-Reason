@@ -67,7 +67,7 @@ local BaseClasses = {
 			lifeTime = 0, sustain = 0, 	effectType = 0,
 		},
 	},
-	
+
 	LaserProjectile = {
 		distortionType = 'beam', -- or cone or beam
 		distortionConfig = {
@@ -249,6 +249,8 @@ local BaseClasses = {
 						rampUp = 15, lifeTime = 0, sustain = 0, effectType = 0},
 	},
 
+
+
 	MissileProjectileXL = {
 		distortionType = 'cone',
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 130,
@@ -371,7 +373,7 @@ local BaseClasses = {
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 200,
 						distanceFalloff = 0.9, noiseStrength = 0.5, noiseScaleSpace = 0.7,
 						lifeTime = 200, decay = 150, rampUp = 50,
-						effectStrength = 1.2, --needed for shockwaves
+						effectStrength = 0.75, --needed for shockwaves
 						windAffected = -0.5, riseRate = 6, --used for width of shockwave
 						shockWidth = 6, refractiveIndex = -1.2, startRadius = 0.5,
 						onlyModelMap = 1,
@@ -744,7 +746,7 @@ local BaseClasses = {
 	},
 
 	EMPShockWave = { -- Short distortion wave for EMP
-		distortionType = 'point', 
+		distortionType = 'point',
 		yOffset = 0, -- Y offsets are only ever used for explosions!
 		distortionConfig = {
 			posx = 0, posy = 0, posz = 0, radius = 200,
@@ -990,6 +992,29 @@ local projectileDefDistortions  = {
 
 
 
+	-- CegTag -> distortion override tables for missile thruster trails
+	-- Uses MissileProjectile as base class with per-size overrides (same pattern as manual overrides)
+	local missileDistortionByCeg = {
+		missiletrailtiny             = { radius = 70,  theta = 0.07, noiseStrength = 4.0, noiseScaleSpace = 0.85, distanceFalloff = 1.4, effectStrength = 3, yoffset = 10 },
+		missiletrailsmall            = { radius = 75, theta = 0.08, noiseStrength = 4.0, noiseScaleSpace = 0.75, distanceFalloff = 1.4, effectStrength = 3.3, yoffset = 12 },
+		["missiletrailsmall-simple"] = { radius = 75, theta = 0.08, noiseStrength = 4.0, noiseScaleSpace = 0.75, distanceFalloff = 1.4, effectStrength = 3.3, yoffset = 12 },
+		["missiletrailsmall-red"]    = { radius = 75, theta = 0.08, noiseStrength = 4.0, noiseScaleSpace = 0.75, distanceFalloff = 1.4, effectStrength = 3.3, yoffset = 12 },
+		["missiletrailsmall-starburst"] = { radius = 75, theta = 0.08, noiseStrength = 4.5, noiseScaleSpace = 0.75, distanceFalloff = 1.4, effectStrength = 3.3, yoffset = 12 },
+		missiletrailfighter          = { radius = 75, theta = 0.08, noiseStrength = 4.5, noiseScaleSpace = 0.75, distanceFalloff = 1.4, effectStrength = 3.3, yoffset = 12 },
+		missiletrailaa               = { radius = 110, theta = 0.08,  noiseStrength = 4.5, noiseScaleSpace = 0.75, distanceFalloff = 1.4, effectStrength = 3.3, yoffset = 16 },
+		missiletrailmedium           = { radius = 110, theta = 0.08,  noiseStrength = 4.5, noiseScaleSpace = 0.75, distanceFalloff = 1.4, effectStrength = 3.3, yoffset = 16 },
+		["missiletrailmedium-red"]   = { radius = 110, theta = 0.08,  noiseStrength = 4.5, noiseScaleSpace = 0.75, distanceFalloff = 1.4, effectStrength = 3.3, yoffset = 16 },
+		["missiletrailmedium-starburst"] = { radius = 110, theta = 0.08,  noiseStrength = 4.5, noiseScaleSpace = 0.75, distanceFalloff = 1.4, effectStrength = 3.3, yoffset = 16 },
+		missiletrailviper            = { radius = 110, theta = 0.08,  noiseStrength = 4.5, noiseScaleSpace = 0.75, distanceFalloff = 1.4, effectStrength = 3.3, yoffset = 16 },
+		["missiletraillarge-red"]    = { radius = 140, theta = 0.08, noiseStrength = 4.5, noiseScaleSpace = 0.7,  distanceFalloff = 1.4, effectStrength = 4, yoffset = 20 },
+		["missiletrailaa-large"]     = { radius = 140, theta = 0.08, noiseStrength = 4.5, noiseScaleSpace = 0.7,  distanceFalloff = 1.4, effectStrength = 4, yoffset = 20 },
+		missiletrailmship            = { radius = 140, theta = 0.08, noiseStrength = 5.0, noiseScaleSpace = 0.7,  distanceFalloff = 1.4, effectStrength = 4, yoffset = 20 },
+		["missiletrail-juno"]        = { radius = 140, theta = 0.08,  noiseStrength = 5.0, noiseScaleSpace = 0.65,  distanceFalloff = 1.2, effectStrength = 4, yoffset = 20 },
+		["cruisemissiletrail-tacnuke"] = { radius = 160, theta = 0.08,  noiseStrength = 5.0, noiseScaleSpace = 0.65,  distanceFalloff = 1.2, effectStrength = 4, yoffset = 20 },
+		["cruisemissiletrail-emp"]   = { radius = 150, theta = 0.08,  noiseStrength = 5.0, noiseScaleSpace = 0.65,  distanceFalloff = 1.2, effectStrength = 4, yoffset = 20 },
+		nuketrail                    = { radius = 230, theta = 0.08,  noiseStrength = 5.0, noiseScaleSpace = 0.6,  distanceFalloff = 1.0, effectStrength = 4, yoffset = 20 },
+	}
+
 	local function AssignDistortionsToAllWeapons()
 		for weaponID=1, #WeaponDefs do
 			local weaponDef = WeaponDefs[weaponID]
@@ -1074,19 +1099,33 @@ local projectileDefDistortions  = {
 					local sizeclass = GetClosestSizeClass(radius)
 					projectileDefDistortions[weaponID] = GetDistortionClass("CannonProjectile", sizeclass, overrideTable)
 				end
-			
-				
-				
+
+
+
 
 			elseif weaponDef.type == 'DistortionningCannon' then
 				--sizeclass = GetClosestSizeClass(33 + (radius*2.5))
 				projectileDefDistortions[weaponID] = GetDistortionClass("LaserProjectile", sizeclass, overrideTable)
 
 			elseif weaponDef.type == 'MissileLauncher'then
-				projectileDefDistortions[weaponID] = GetDistortionClass("MissileProjectile", sizeclass, overrideTable)
+				local tag = weaponDef.cegTag and weaponDef.cegTag:lower() or ""
+				local thrusterOverrides = missileDistortionByCeg[tag]
+				if thrusterOverrides then
+					--Spring.Echo("[DistortionConfig] MissileLauncher " .. weaponDef.name .. " cegTag=" .. tag .. " radius=" .. thrusterOverrides.radius)
+					projectileDefDistortions[weaponID] = GetDistortionClass("MissileProjectile", sizeclass, thrusterOverrides)
+				else
+					projectileDefDistortions[weaponID] = GetDistortionClass("MissileProjectile", sizeclass, overrideTable)
+				end
 
 			elseif weaponDef.type == 'StarburstLauncher' then
-				projectileDefDistortions[weaponID] = GetDistortionClass("MissileProjectile", sizeclass, overrideTable)
+				local tag = weaponDef.cegTag and weaponDef.cegTag:lower() or ""
+				local thrusterOverrides = missileDistortionByCeg[tag]
+				if thrusterOverrides then
+					--Spring.Echo("[DistortionConfig] StarburstLauncher " .. weaponDef.name .. " cegTag=" .. tag .. " radius=" .. thrusterOverrides.radius)
+					projectileDefDistortions[weaponID] = GetDistortionClass("MissileProjectile", sizeclass, thrusterOverrides)
+				else
+					projectileDefDistortions[weaponID] = GetDistortionClass("MissileProjectile", sizeclass, overrideTable)
+				end
 				sizeclass = GetClosestSizeClass(radius)
 
 
@@ -1099,8 +1138,8 @@ local projectileDefDistortions  = {
 				--muzzleFlash = true
 				sizeclass = GetClosestSizeClass(radius)
 				--projectileDefDistortions[weaponID] = GetDistortionClass("CannonProjectile", sizeclass, overrideTable)
-				
-				
+
+
 
 
 			elseif weaponDef.type == 'DGun' then
@@ -1158,10 +1197,10 @@ local projectileDefDistortions  = {
 
 				-- elseif weaponDef.type == 'LaserCannon' then -- No shockwaves for lasercannons
 				-- 	explosionDistortions[weaponID] = {GetDistortionClass("AirShockWaveMG", GetClosestSizeClass(radius), overrideTable)}
-				
+
 				elseif weaponDef.type == 'TorpedoLauncher' then
 					explosionDistortions[weaponID] = {GetDistortionClass("TorpedoShockWave", GetClosestSizeClass(radius), overrideTable)}
-		
+
 				elseif weaponDef.type == 'BeamLaser' then
 					sizeclass = GetClosestSizeClass(radius*0.15) -- works
 					overrideTable = {lifeTime = 2} -- doesnt work
@@ -1231,7 +1270,7 @@ local projectileDefDistortions  = {
 							distortionClass = "UnitExploShockWaveXL"
 						end
 
-						
+
 
 					else	-- regular CANNON explosions
 						if effectiveRangeExplo < 24 then
@@ -1250,12 +1289,12 @@ local projectileDefDistortions  = {
 					if string.find(weaponDef.name, 'flak') then
 						areaofeffect = 0
 					end
-					
+
 					-- Check weapon distortion class assignment (enter weapon name here)
 					-- if string.find(weaponDef.name, 'cortruck_missile') then
 					-- 	Spring.Echo('-==--===-', weaponDef.customParams.unitexplosion, distortionClass, effectiveRangeExplo, GetClosestSizeClass(effectiveRangeExplo), GetDistortionClass(distortionClass, GetClosestSizeClass(effectiveRangeExplo), overrideTable))
 					-- end
-					
+
 					if not weaponDef.customParams.noexplosionlight and areaofeffect > 15 then --need to add noexplosiondistortion to units - now used same as lights
 						explosionDistortions[weaponID] = {GetDistortionClass(distortionClass, GetClosestSizeClass(effectiveRangeExplo), overrideTable)}
 					end
@@ -1319,7 +1358,7 @@ explosionDistortionsNames['armemp_armemp_weapon'] = {
 	effectStrength = -2.5,
 	}),
 	GetDistortionClass("EMPNoise", "SmallMedium", {
-	}),	
+	}),
  	GetDistortionClass("EMPRipples", "Medium", {
 	}),
 	GetDistortionClass("AirShockWaveEMP", "Tiny", {
@@ -1331,7 +1370,7 @@ explosionDistortionsNames['armthor_empmissile'] = {
 	effectStrength = -2.5,
 	}),
 	GetDistortionClass("EMPNoise", "Smallest", {
-	}),	
+	}),
  	GetDistortionClass("EMPRipples", "Small", {
 	}),
 	GetDistortionClass("AirShockWaveEMP", "Nano", {
@@ -1343,7 +1382,7 @@ explosionDistortionsNames['spybombx'] = {
 	effectStrength = -2.5,
 	}),
 	GetDistortionClass("EMPNoise", "SmallMedium", {
-	}),	
+	}),
  	GetDistortionClass("EMPRipples", "Medium", {
 	}),
 	GetDistortionClass("AirShockWaveEMP", "Tiny", {
@@ -1354,7 +1393,7 @@ explosionDistortionsNames['armstil_stiletto_bomb'] = {
 	GetDistortionClass("EMPShockWave", "Smaller", {
 	}),
 	GetDistortionClass("EMPNoise", "Smaller", {
-	}),	
+	}),
  	GetDistortionClass("EMPRipples", "SmallMedium", {
 	}),
 	GetDistortionClass("AirShockWaveEMP", "Micro", {
@@ -1374,7 +1413,7 @@ explosionDistortionsNames['armstil_stiletto_bomb'] = {
 -- }
 
 explosionDistortionsNames['raptor_air_bomber_acid_t2_v1_acidbomb'] = {
-	GetDistortionClass("GroundAcidExplo", "SmallMedium", {
+	GetDistortionClass("GroundAcidExplo", "Small", {
 		-- noiseStrength = 15.0, noiseScaleSpace = 0.90, distanceFalloff = 0.9, onlyModelMap = 1,
 		-- lifeTime = 190, effectStrength = 2,
 		-- windAffected = -1, riseRate = 6,
@@ -1384,7 +1423,7 @@ explosionDistortionsNames['raptor_air_bomber_acid_t2_v1_acidbomb'] = {
 }
 
 explosionDistortionsNames['raptor_land_assault_acid_t2_v1_acidspit'] = {
-	GetDistortionClass("GroundAcidExplo", "Medium", {
+	GetDistortionClass("GroundAcidExplo", "SmallMedium", {
 		-- noiseStrength = 15.0, noiseScaleSpace = 0.90, distanceFalloff = 0.9, onlyModelMap = 1,
 		-- lifeTime = 190, effectStrength = 2,
 		-- windAffected = -1, riseRate = 6,
@@ -1395,7 +1434,7 @@ explosionDistortionsNames['raptor_land_assault_acid_t2_v1_acidspit'] = {
 
 explosionDistortionsNames['raptor_allterrain_arty_acid_t2_v1_acidspit'] = {
 	GetDistortionClass("GroundAcidExplo", "Medium", {
-		noiseStrength = 0.9, noiseScaleSpace = 0.50, distanceFalloff = 0.9, 
+		noiseStrength = 0.9, noiseScaleSpace = 0.50, distanceFalloff = 0.9,
 		effectStrength = 1.7,
 		--onlyModelMap = 1,
 		-- lifeTime = 190, effectStrength = 2,
@@ -1570,13 +1609,13 @@ projectileDefDistortionsNames["armmship_rocket"] =
 
 
 
-projectileDefDistortionsNames["corkarg_super_missile"] =
-	GetDistortionClass("MissileProjectile", "Medium", {
-	theta = 0.08, noiseStrength = 4, noiseScaleSpace = 0.67,
-	lifeTime = 46, rampUp = 4, decay = 5, radius = 150, yoffset = 18,
-	effectStrength = 2.2, distanceFalloff = 1.3,
-	startRadius = 0.3, onlyModelMap = 1,
-})
+-- projectileDefDistortionsNames["corkarg_super_missile"] =
+-- 	GetDistortionClass("MissileProjectile", "Medium", {
+-- 	theta = 0.08, noiseStrength = 4, noiseScaleSpace = 0.67,
+-- 	lifeTime = 46, rampUp = 4, decay = 5, radius = 150, yoffset = 18,
+-- 	effectStrength = 2.2, distanceFalloff = 1.3,
+-- 	startRadius = 0.3, onlyModelMap = 1,
+-- })
 explosionDistortionsNames['corkarg_super_missile'] = {
 	GetDistortionClass("GroundShockWaveXS", "Tiny", {
 		lifeTime = 8, decay = 3, rampUp = 1,
@@ -1586,25 +1625,21 @@ explosionDistortionsNames['corkarg_super_missile'] = {
 		effectStrength = 2.0, }),
 }
 
-projectileDefDistortionsNames["corhrk_corhrk_rocket"] =
-	GetDistortionClass("MissileProjectile", "Smallest", {
-	theta = 0.19, noiseStrength = 2, noiseScaleSpace = 0.47,
-	lifeTime = 120, rampUp = 50, decay = 30, radius = 130, yoffset = 10,
-	effectStrength = 1.3,
-	startRadius = 0.5, onlyModelMap = 1,
-})
+-- projectileDefDistortionsNames["corhrk_corhrk_rocket"] =
+-- 	GetDistortionClass("MissileProjectile", "Smallest", {
+-- 	theta = 0.19, noiseStrength = 2, noiseScaleSpace = 0.47,
+-- 	lifeTime = 120, rampUp = 50, decay = 30, radius = 130, yoffset = 10,
+-- 	effectStrength = 1.3,
+-- 	startRadius = 0.5, onlyModelMap = 1,
+-- })
 
-projectileDefDistortionsNames["corstorm_cor_bot_rocket"] =
-	GetDistortionClass("MissileProjectile", "Smallest")
+--projectileDefDistortionsNames["corstorm_cor_bot_rocket"] = GetDistortionClass("MissileProjectile", "Smallest")
 
-projectileDefDistortionsNames["corban_banisher"] =
-	GetDistortionClass("MissileProjectile", "Medium")
+--projectileDefDistortionsNames["corban_banisher"] = GetDistortionClass("MissileProjectile", "Medium")
 
-projectileDefDistortionsNames["armsubk_armsmart_torpedo"] =
-	GetDistortionClass("TorpedoProjectile", "SmallMedium")
+projectileDefDistortionsNames["armsubk_armsmart_torpedo"] = GetDistortionClass("TorpedoProjectile", "SmallMedium")
 
-explosionDistortionsNames["armsubk_armsmart_torpedo"] = {
-	GetDistortionClass("TorpedoShockWave", "Nano")}
+explosionDistortionsNames["armsubk_armsmart_torpedo"] = { GetDistortionClass("TorpedoShockWave", "Nano")}
 
 -- projectileDefDistortionsNames['armmanni_atam'] =
 -- 	GetDistortionClass("AirShockWaveBeam", "Small")
@@ -1754,7 +1789,7 @@ explosionDistortionsNames['armmercury_arm_advsam'] = {
 	GetDistortionClass("AirShockWave", "Small"),
 }
 
-projectileDefDistortionsNames["legphoenix_legphtarg"] = 
+projectileDefDistortionsNames["legphoenix_legphtarg"] =
 	GetDistortionClass("NoEffect", 0)
 
 explosionDistortionsNames['armfboy_arm_fatboy_notalaser'] = {
@@ -1802,8 +1837,8 @@ explosionDistortionsNames['armsilo_nuclear_missile'] = {
 	-- GetDistortionClass("ExplosionHeatNuke", "Larger"),
 }
 
-projectileDefDistortionsNames["armsilo_nuclear_missile"] = --armnuke
-	GetDistortionClass("MissileNukeProjectile", "Large")
+-- projectileDefDistortionsNames["armsilo_nuclear_missile"] = --armnuke
+-- 	GetDistortionClass("MissileNukeProjectile", "Large")
 
 explosionDistortionsNames['geo'] = {
 	--GetDistortionClass("ExplosionHeatNuke", "Larger"),
@@ -1866,13 +1901,13 @@ explosionDistortionsNames['korgexplosionselfd'] = {
 	--GetDistortionClass("ExplosionHeatNuke", "Mega"),
 	GetDistortionClass("AirShockWaveNuke", "Cornuke"),
 	GetDistortionClass("GroundShockWaveNuke", "Cornuke"),
-}	
+}
 
 explosionDistortionsNames['advancedfusionexplosionselfd'] = {
 	GetDistortionClass("ExplosionHeatNuke", "Mega"),
 	GetDistortionClass("AirShockWaveNuke", "Cornuke"),
 	GetDistortionClass("GroundShockWaveNuke", "Cornuke"),
-}	
+}
 
 explosionDistortionsNames['corsilo_crblmssl'] = {
 	GetDistortionClass("ExplosionHeatNuke", "Mega"),
@@ -1880,8 +1915,8 @@ explosionDistortionsNames['corsilo_crblmssl'] = {
 	GetDistortionClass("GroundShockWaveNuke", "Cornuke"),
 }
 
-projectileDefDistortionsNames["corsilo_crblmssl"] = --armnuke
-	GetDistortionClass("MissileNukeProjectile", "Large")
+-- projectileDefDistortionsNames["corsilo_crblmssl"] = --armnuke
+-- 	GetDistortionClass("MissileNukeProjectile", "Large")
 
 explosionDistortionsNames['legsilo_legicbm'] = {
 	GetDistortionClass("ExplosionHeatNuke", "Mega"),
@@ -1889,8 +1924,8 @@ explosionDistortionsNames['legsilo_legicbm'] = {
 	GetDistortionClass("GroundShockWaveNuke", "Cornuke"),
 }
 
-projectileDefDistortionsNames["legsilo_legicbm"] = --armnuke
-	GetDistortionClass("MissileNukeProjectile", "Large")
+-- projectileDefDistortionsNames["legsilo_legicbm"] = --armnuke
+-- 	GetDistortionClass("MissileNukeProjectile", "Large")
 
 -- RAPTOR meteor Nuke Tentacle
 explosionDistortionsNames['raptor_turret_meteor_t4_v1_weapon'] = {
@@ -1918,11 +1953,11 @@ explosionDistortionsNames['armguardnuke_plasma'] = {
 	--GetDistortionClass("AirShockWaveNukeBlast", "MegaXXL"),
 
 }
-projectileDefDistortionsNames["armguardnuke_plasma"] = --armnuke
-	GetDistortionClass("MissileNukeProjectile", "Large")
+-- projectileDefDistortionsNames["armguardnuke_plasma"] = --armnuke
+-- 	GetDistortionClass("MissileNukeProjectile", "Large")
 
-projectileDefDistortionsNames["armguardnuke_plasma_high"] = --armnuke
-	GetDistortionClass("MissileNukeProjectile", "Large")
+-- projectileDefDistortionsNames["armguardnuke_plasma_high"] = --armnuke
+-- 	GetDistortionClass("MissileNukeProjectile", "Large")
 
 explosionDistortionsNames['armguardnuke_plasma_high'] = { --cornuke
 	GetDistortionClass("ExplosionHeatNuke", "Mega"),
@@ -2110,7 +2145,7 @@ end
 
 -- duplicate all weapondistortions for scavengers
 function applyScavVariants(name, params)
-    local scavName    
+    local scavName
     local pos = name:find("_", 1, true)
     if pos then
         scavName = string.sub(name, 1, pos-1)..'_scav'..string.sub(name, pos)
@@ -2128,7 +2163,7 @@ end
 for name, distortionList in pairs(explosionDistortionsNames) do
 	if WeaponDefNames[name] then
 		explosionDistortions[WeaponDefNames[name].id] = distortionList
-	end	
+	end
 	-- loop through each distortion in the list and add them to the scavenger variant
 	local scavName, paramsScav = applyScavVariants(name, distortionList)
 	if scavName and WeaponDefNames[scavName] then

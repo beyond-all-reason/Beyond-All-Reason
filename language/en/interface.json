@@ -460,7 +460,8 @@
 				"removeAutoGroup": "Remove unit type from autogroup",
 				"groupKey": "(num)",
 				"group": "Select all units assigned to group (num)",
-				"sameType": "Select all units of same type as selected"
+				"sameType": "Select all units of same type as selected",
+				"damaged": "Select damaged units"
 			},
 			"drawing": {
 				"title": "Drawing",

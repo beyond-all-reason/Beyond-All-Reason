@@ -1068,7 +1068,6 @@ local function updateProjectileDistortions(newgameframe)
 						local distortionParamTable = projectileDefDistortion.distortionParamTable
 						distortionType = projectileDefDistortion.distortionType
 
-
 						distortionParamTable[1] = px
 						distortionParamTable[2] = py
 						distortionParamTable[3] = pz
@@ -1090,8 +1089,6 @@ local function updateProjectileDistortions(newgameframe)
 
 						AddDistortion(projectileID, nil, nil, projectileDistortionVBOMapCache[distortionType], distortionParamTable,noUpload)
 						--AddDistortion(projectileID, nil, nil, projectilePointDistortionVBO, distortionParamTable)
-					else
-						--spEcho("No projectile distortion defined for", projectileID, weaponDefID, px, pz)
 					end
 				end
 				numadded = numadded + 1

@@ -177,6 +177,9 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 800,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					vtol = 60,
 				},

@@ -190,6 +190,7 @@ return {
 				weaponvelocity = 2250,
 				customparams = {
 					norangering = 1,
+					weapons_role = "secondary",
 				},
 				damage = {
 					default = 40,

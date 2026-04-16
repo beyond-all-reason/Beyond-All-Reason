@@ -8,11 +8,14 @@
 --------------------------------------------------------------------------------
 
 -- see alldefs.lua for documentation
--- load the games _Post functions for defs, and find out if saving to custom params is wanted
-VFS.Include("gamedata/alldefs_post.lua")
--- load functionality for saving to custom params
-VFS.Include("gamedata/post_save_to_customparams.lua")
 local system = VFS.Include("gamedata/system.lua")
+local alldefs = VFS.Include("gamedata/alldefs_post.lua")
+local savedefs = VFS.Include("gamedata/post_save_to_customparams.lua")
+
+local weaponDefPost = alldefs.WeaponDef_Post
+local modOptionsPost = alldefs.ModOptions_Post
+local saveDefToCustomParams = savedefs.SaveDefToCustomParams
+local markDefOmittedInCustomParams = savedefs.MarkDefOmittedInCustomParams
 
 --------------------------------------------------------------------------------
 
@@ -41,7 +44,7 @@ local function ExtractWeaponDefs(unitDefName, unitDef)
 		normalizeWeaponDef(weaponDef)
 
 		if SaveDefsToCustomParams then
-			MarkDefOmittedInCustomParams("WeaponDefs", fullName, weaponDef)
+			markDefOmittedInCustomParams("WeaponDefs", fullName, weaponDef)
 		end
 	end
 
@@ -91,13 +94,12 @@ end
 
 -- postprocess weapondefs
 for name, weaponDef in pairs(WeaponDefs) do
-	WeaponDef_Post(name, weaponDef)
+	weaponDefPost(name, weaponDef)
 
 	if SaveDefsToCustomParams then
-		SaveDefToCustomParams("WeaponDefs", name, weaponDef)
+		saveDefToCustomParams("WeaponDefs", name, weaponDef)
 	end
 end
 
-
 -- apply mod options that need _post
-ModOptions_Post(UnitDefs, WeaponDefs)
+modOptionsPost(UnitDefs, WeaponDefs)

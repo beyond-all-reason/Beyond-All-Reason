@@ -74,9 +74,9 @@ bind           Any+ctrl  movetilt       // rotate on x with mousewheel
 // bind                  pip0_trackplayer   // Focus advanced minimap (while spectating)
 // bind                  pip0_tv            // Advanced minimap follows the current action
 // bind                  pip0_view          // Limit advanced minimap to team view (while spectating)
-bind           alt+sc_q  pip1_copy      // Copy the current camera location to pip1
-bind         shift+sc_q  pip1_switch    // Switch the current camera location with pip1
-bind           alt+sc_a  pip1_track     // track the selected units with pip1
+bind      Meta+ctrl+tab  pip1_copy      // Copy the current camera location to pip1
+bind           Meta+tab  pip1_switch    // Switch the current camera location with pip1
+bind           Alt+sc_t  pip1_track     // track the selected units with pip1
 // bind                  pip2_copy
 // bind                  pip2_switch
 // bind                  pip2_track

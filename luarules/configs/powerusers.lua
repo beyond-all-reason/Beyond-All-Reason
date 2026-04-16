@@ -59,11 +59,11 @@ return {
 	[-1] = singleplayer,		-- SPECIAL NAME/ADDITION: dont change it
 
 	-- admins
-	--[112] = everything,		-- [teh]Flow
+	[112] = everything,		-- [teh]Flow
 	[4430] = everything,	-- Floris
 	[2585] = everything,	-- IceXuick
 	[1214] = everything,	-- [teh]Beherith
-	--[1172] = everything,	-- PtaQ
+	[1172] = everything,	-- PtaQ
 	[2260] = everything,	-- TarnishedKnight
 	[84658] = everything,	-- OPman
 	[51535] = everything,	-- Nightmare2512

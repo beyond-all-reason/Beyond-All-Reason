@@ -75,6 +75,8 @@ end
 
 
 function gadget:GameFrame(gf)
+    local removeList
+    local removeCount = 0
     for proID, missile in pairs(missiles) do
         if gf > missile[1] then
             local x,y,z = GetProjectilePosition(proID)
@@ -82,9 +84,14 @@ function gadget:GameFrame(gf)
                 local dirX,dirY,dirZ = GetProjectileDirection(proID)
                 Spring.SpawnCEG(missile[2],x,y,z,dirX,dirY,dirZ)
             else
-                missiles[proID] = nil
+                removeCount = removeCount + 1
+                if not removeList then removeList = {} end
+                removeList[removeCount] = proID
             end
         end
+    end
+    for i = 1, removeCount do
+        missiles[removeList[i]] = nil
     end
 end
 

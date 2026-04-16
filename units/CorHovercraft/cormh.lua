@@ -110,7 +110,7 @@ return {
 				flighttime = 10,
 				impulsefactor = 0.123,
 				metalpershot = 0,
-				model = "corkbmissl1.s3o",
+				model = "corkbmissl0.s3o",
 				name = "Rocket",
 				noselfdamage = true,
 				range = 700,

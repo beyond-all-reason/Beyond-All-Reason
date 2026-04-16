@@ -116,7 +116,7 @@ return {
 				reloadtime = 30,
 				smokecolor = 0.85,
 				smokeperiod = 10,
-				smokesize = 28,
+				smokesize = 35,
 				smoketime = 130,
 				smoketrail = true,
 				smoketrailcastshadow = true,
@@ -169,6 +169,9 @@ return {
 				weapontimer = 0.1,
 				weapontype = "Cannon",
 				weaponvelocity = 100,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					default = 0,
 				},

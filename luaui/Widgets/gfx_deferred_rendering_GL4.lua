@@ -253,6 +253,8 @@ end
 
 ------------------------------ Light and Shader configurations ------------------
 
+local enableProjectileLightFlares = false  -- set to true to show lens flare textures on projectile lights
+
 local unitDefLights
 local featureDefLights
 local unitEventLights -- Table of lights per unitDefID
@@ -1055,6 +1057,9 @@ local function LoadLightConfig()
 		projectileDefLights = result2.projectileDefLights
 		for weaponID, lightTable in pairs(projectileDefLights) do
 			InitializeLight(lightTable)
+			if not enableProjectileLightFlares and lightTable.lightParamTable then
+				lightTable.lightParamTable[16] = 0  -- lensflare
+			end
 		end
 	else
 		spEcho("Failed to load GL4 weapon light config", success2, result2)
