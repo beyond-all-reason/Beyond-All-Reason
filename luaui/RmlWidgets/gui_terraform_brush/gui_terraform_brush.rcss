@@ -1,0 +1,542 @@
+/* Terraform Brush - Widget-specific styles */
+/* Layout utilities, palette colors, and theme classes come from shared style guide files */
+
+.text-keybind { color: #6b8a5aCC; }
+
+/* Keybind badge in top-left corner of buttons */
+.tf-keybind-badge {
+	position: absolute;
+	top: -1dp;
+	left: 1dp;
+	font-size: 1.5rem;
+	font-weight: bold;
+	color: #6b8a5aCC;
+	pointer-events: none;
+}
+
+body {
+	pointer-events: none;
+}
+
+/* === Root Positioning === */
+.tf-root {
+	pointer-events: auto;
+	position: absolute;
+	left: 78vw;
+	top: 25vh;
+	width: 15vw;
+	z-index: 900;
+}
+
+/* === Drag Handle === */
+.tf-drag-handle {
+	cursor: move;
+	padding: 4dp 0;
+}
+
+/* === Mode Buttons === */
+.tf-mode-btn {
+	flex: 1;
+	height: 64dp;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 2dp;
+	background-color: #4a4a4a;
+	border-radius: 7dp;
+	border: 2dp #4a4a4a80;
+	cursor: pointer;
+	transition: background-color 0.2s;
+	position: relative;
+}
+
+.tf-mode-btn:hover {
+	background-color: #5a5a5a;
+	border-color: #6a6a6a;
+}
+
+.tf-btn-text {
+	font-size: 1.1rem;
+	color: #d1d5db;
+}
+
+.tf-mode-btn.active .tf-btn-text {
+	color: #e5e7eb;
+}
+
+/* Mode active states - semantic palette colors */
+.tf-btn-raise.active {
+	border-color: #22c55e;
+	background-color: #1a3a2a;
+}
+
+.tf-btn-lower.active {
+	border-color: #ef4444;
+	background-color: #3a1a1a;
+}
+
+.tf-btn-level.active {
+	border-color: #06b6d4;
+	background-color: #1a2a3a;
+}
+
+.tf-btn-ramp.active {
+	border-color: #fad400;
+	background-color: #3a3010;
+}
+
+.tf-btn-restore.active {
+	border-color: #a855f7;
+	background-color: #2a1a3a;
+}
+
+/* === Shape Buttons === */
+.tf-shape-btn {
+	width: 46dp;
+	height: 46dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: #4a4a4a;
+	border-radius: 7dp;
+	border: 2dp #4a4a4a80;
+	cursor: pointer;
+	transition: background-color 0.2s;
+	position: relative;
+}
+
+.tf-shape-btn:hover {
+	background-color: #5a5a5a;
+	border-color: #6a6a6a;
+}
+
+.tf-shape-btn.active {
+	border-color: #22c55e;
+	background-color: #1a3a2a;
+}
+
+.tf-shape-btn.disabled {
+	background-color: #2a2a2a;
+	border-color: #3a3a3a80;
+	cursor: default;
+	opacity: 0.4;
+}
+
+.tf-shape-btn.disabled:hover {
+	background-color: #2a2a2a;
+	border-color: #3a3a3a80;
+}
+
+/* === Undo Button (in shape row) === */
+.tf-undo-btn {
+	background-color: #3a2a1a;
+	border-color: #e8960080;
+}
+
+.tf-undo-btn:hover {
+	background-color: #4a3820;
+	border-color: #e89600cc;
+}
+
+/* === History Row (Undo / Slider / Redo) === */
+.tf-history-btn {
+	width: 28dp;
+	height: 28dp;
+	min-width: 28dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: #3a2a1a;
+	border-radius: 5dp;
+	border: 2dp #e8960060;
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+
+.tf-history-btn:hover {
+	background-color: #4a3820;
+	border-color: #e89600cc;
+}
+
+
+
+.tf-slider-history slidertrack {
+	background-color: #1a1a22;
+	border-radius: 5dp;
+	height: 8dp;
+	margin-top: 8dp;
+}
+
+.tf-slider-history sliderbar {
+	width: 16dp;
+	height: 22dp;
+	background-color: #e89600;
+	border-radius: 4dp;
+	border: 2dp #ffffff33;
+	margin-top: 1dp;
+}
+
+.tf-slider-history sliderbar:hover {
+	background-color: #ffa820;
+}
+
+/* === Small Buttons (rotation, curve, intensity) === */
+.tf-sm-btn {
+	width: 20dp;
+	height: 20dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: #4a4a4a;
+	border-radius: 4dp;
+	border: 1dp #4a4a4a80;
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+
+.tf-sm-btn:hover {
+	background-color: #5a5a5a;
+	border-color: #6a6a6a;
+}
+
+/* === Quit Button === */
+.tf-quit-btn {
+	width: 22dp;
+	height: 22dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	border-radius: 4dp;
+}
+
+.tf-quit-btn:hover {
+	background-color: #3a1a1a;
+}
+
+/* === Colored Slider Variants (Height Cap) === */
+.tf-slider-cap-max sliderbar {
+	width: 21dp;
+	height: 21dp;
+	background-color: #f0a030;
+	border-radius: 10dp;
+	border: 2dp #ffffff33;
+	margin-top: 2dp;
+}
+
+.tf-slider-cap-max sliderbar:hover {
+	background-color: #ffb848;
+}
+
+.tf-slider-cap-min sliderbar {
+	width: 21dp;
+	height: 21dp;
+	background-color: #30a0f0;
+	border-radius: 10dp;
+	border: 2dp #ffffff33;
+	margin-top: 2dp;
+}
+
+.tf-slider-cap-min sliderbar:hover {
+	background-color: #48b8ff;
+}
+
+/* === Tooltip === */
+@keyframes pulse-opacity {
+	0% { opacity: 0.6; }
+	50% { opacity: 1.0; }
+	100% { opacity: 0.6; }
+}
+
+.tf-tooltip {
+	position: absolute;
+	z-index: 1000;
+	background-color: #1a1a1add;
+	border: 1dp #787878aa;
+	border-radius: 4dp;
+	padding: 4dp 8dp;
+	font-size: 0.9rem;
+	color: #d1d5db;
+	pointer-events: none;
+	animation: pulse-opacity 2s infinite;
+}
+
+/* === Disabled Load Button === */
+.tf-load-btn-disabled {
+	background-color: #2a2a2a;
+	border-color: #4a4a4a80;
+	cursor: default;
+}
+
+/* === Range Slider === */
+.tf-slider {
+	flex: 1;
+	height: 25dp;
+	tab-index: none;
+}
+
+.tf-slider slidertrack {
+	background-color: #282828;
+	border-radius: 5dp;
+	height: 10dp;
+	margin-top: 7dp;
+}
+
+.tf-slider sliderbar {
+	width: 21dp;
+	height: 21dp;
+	background-color: #9ca3af;
+	border-radius: 10dp;
+	border: 2dp #ffffff33;
+	margin-top: 2dp;
+}
+
+.tf-slider sliderbar:hover {
+	background-color: #d1d5db;
+}
+
+.tf-slider sliderarrowdec,
+.tf-slider sliderarrowinc {
+	display: none;
+}
+
+/* === Restore Defaults Button === */
+.tf-defaults-btn {
+	height: 30dp;
+	background-color: #3a3a3a;
+	border-color: #6a6a6a80;
+}
+
+.tf-defaults-btn:hover {
+	background-color: #4a4a4a;
+	border-color: #8a8a8ab3;
+}
+
+.tf-defaults-btn:hover .text-medium {
+	color: #e5e7eb;
+}
+
+/* === Preset System === */
+.tf-preset-input {
+	flex: 1;
+	height: 26dp;
+	padding: 2dp 6dp;
+	font-size: 1.1rem;
+	color: #d1d5db;
+	background-color: #1a1a22;
+	border: 2dp #4a4a4a80;
+	border-radius: 5dp;
+}
+
+.tf-preset-input:focus {
+	border-color: #6a6a6acc;
+}
+
+.tf-preset-btn {
+	height: 26dp;
+	padding: 0 10dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 5dp;
+	border: 2dp;
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+
+.tf-preset-save {
+	background-color: #324a5a;
+	border-color: #508cc880;
+}
+
+.tf-preset-save:hover {
+	background-color: #3c5a78;
+	border-color: #64aae6b3;
+}
+
+.tf-preset-toggle {
+	padding: 0 6dp;
+	background-color: #3a3a3a;
+	border-color: #5a5a5a80;
+}
+
+.tf-preset-toggle:hover {
+	background-color: #4a4a4a;
+	border-color: #7a7a7acc;
+}
+
+.tf-preset-toggle.open {
+	background-color: #4a4a4a;
+	border-color: #8a8a8acc;
+}
+
+.tf-dropdown-arrow {
+	font-size: 0.8rem;
+	color: #9ca3af;
+}
+
+.tf-preset-dropdown {
+	max-height: 168dp;
+	overflow-y: auto;
+	background-color: #1a1a22ee;
+	border: 2dp #4a4a4a80;
+	border-radius: 5dp;
+	margin-top: 2dp;
+	margin-bottom: 4dp;
+}
+
+.tf-preset-dropdown scrollbarvertical {
+	width: 8dp;
+	margin-left: 2dp;
+}
+
+.tf-preset-dropdown scrollbarvertical sliderbar {
+	background-color: #6a6a6a;
+	border-radius: 4dp;
+}
+
+.tf-preset-dropdown scrollbarvertical sliderbar:hover {
+	background-color: #8a8a8a;
+}
+
+.tf-preset-dropdown scrollbarvertical slidertrack {
+	background-color: #2a2a2a;
+	border-radius: 4dp;
+}
+
+.tf-preset-row {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 4dp;
+	height: 26dp;
+	padding: 2dp 6dp;
+	border-radius: 4dp;
+	cursor: pointer;
+	transition: background-color 0.15s;
+}
+
+.tf-preset-row:hover {
+	background-color: #3a3a4a;
+}
+
+.tf-preset-row.selected {
+	background-color: #2a3a4a;
+	border: 1dp #508cc860;
+}
+
+.tf-preset-name {
+	flex: 1;
+	font-size: 1.1rem;
+	color: #d1d5db;
+	overflow: hidden;
+}
+
+.tf-preset-delete {
+	width: 18dp;
+	height: 18dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 3dp;
+	cursor: pointer;
+	font-size: 1.2rem;
+	color: #ef4444aa;
+	font-weight: bold;
+}
+
+.tf-preset-delete:hover {
+	background-color: #3a1a1a;
+	color: #ef4444;
+}
+
+/* === Absolute Height Cap Toggle === */
+.tf-abs-toggle {
+	width: 20dp;
+	height: 20dp;
+	min-width: 20dp;
+	max-width: 20dp;
+	min-height: 20dp;
+	max-height: 20dp;
+	padding: 0;
+	display: block;
+	border: 2dp #78787899;
+	background-color: #1d1d1dc8;
+	border-radius: 4dp;
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+
+.tf-abs-toggle:hover {
+	background-color: #2a2a2adc;
+	border-color: #9a9a9a99;
+}
+
+.tf-abs-toggle.active {
+	border-color: #fad400cc;
+	background-color: #3c3214dc;
+	color: #fad400;
+}
+
+/* === Action Buttons (Save/Load) === */
+.tf-action-btn {
+	flex: 1;
+	height: 50dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 7dp;
+	border: 2dp;
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+
+.tf-save-btn {
+	background-color: #324a5a;
+	border-color: #508cc880;
+}
+
+.tf-save-btn:hover {
+	background-color: #3c5a78;
+	border-color: #64aae6b3;
+}
+
+.tf-save-btn:hover .text-medium {
+	color: #e5e7eb;
+}
+
+.tf-load-btn {
+	background-color: #46325a;
+	border-color: #a064dc80;
+}
+
+.tf-load-btn:hover {
+	background-color: #5a3c78;
+	border-color: #b478f0b3;
+}
+
+.tf-load-btn:hover .text-medium {
+	color: #e5e7eb;
+}
+
+/* === Icon Sizes === */
+.tf-icon-lg {
+	width: 33dp;
+	height: 33dp;
+}
+
+.tf-icon-md {
+	width: 28dp;
+	height: 28dp;
+}
+
+.tf-icon-sm {
+	width: 18dp;
+	height: 18dp;
+}
+
+.tf-icon-xs {
+	width: 14dp;
+	height: 14dp;
+}
