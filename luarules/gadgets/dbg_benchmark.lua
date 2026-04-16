@@ -582,7 +582,12 @@ else	-- UNSYNCED
 				Spring.Echo(stats)
 
 				if Spring.GetMenuName then
-					-- but remove percentiles when sending to menu to keep the data lean
+					-- Strip percentiles before sending: SendLuaMenuMsg has a 4096-byte
+					-- payload cap, and the histogram buckets already push the JSON
+					-- near ~2KiB — we want headroom rather than shipping both.
+					-- Percentiles are also redundant server-side: they're derivable
+					-- from the buckets and, unlike buckets, can't be aggregated
+					-- across runs, so keeping them would just waste bandwidth and DB space.
 					for _, key in ipairs({"Sim", "Draw", "Update"}) do
 						if stats[key] then stats[key].percentiles = nil end
 					end
