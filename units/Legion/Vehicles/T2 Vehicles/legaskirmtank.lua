@@ -143,6 +143,7 @@ return {
 		},
 		weapons = {
 			[1] = {
+				accurateleading = 2,
 				badtargetcategory = "VTOL",
 				def = "LEGMGPLASMA",
 				onlytargetcategory = "SURFACE",
