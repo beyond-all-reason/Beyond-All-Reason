@@ -65,9 +65,9 @@ local IDLE_SKIP_FRAMES = 3     -- draw-frames to skip polling when no beams acti
 
 -- Per-weapon ghost frames: scaled by beam thickness so small lasers fade fast
 local GHOST_FRAMES_MIN      = 3     -- ghost frames for thinnest beams
-local GHOST_FRAMES_MAX      = 7     -- ghost frames for thickest beams
+local GHOST_FRAMES_MAX      = 8     -- ghost frames for thickest beams
 local GHOST_THICKNESS_MIN   = 1.5   -- thickness at or below which gets min ghost frames
-local GHOST_THICKNESS_MAX   = 4.0   -- thickness at or above which gets max ghost frames
+local GHOST_THICKNESS_MAX   = 5.0   -- thickness at or above which gets max ghost frames
 local FLARE_GHOST_FRAC      = 0.4   -- fraction of weapon ghostFrames where flare stays visible (0..1)
 
 -- Textures
@@ -84,7 +84,7 @@ local LOS_BONUS_RANGE  = 100   -- when not USE_AIR_LOS then extra elmos of beam 
 local spLosCheck = USE_AIR_LOS and spIsPosInAirLos or spIsPosInLos
 
 -- Beam body
-local BEAM_WIDTH_MULT         = 0.6   -- multiplier on weapon thickness for beam quad width
+local BEAM_WIDTH_MULT         = 0.45   -- multiplier on weapon thickness for beam quad width
 local BEAM_SUSTAIN_LIFEFRAC   = 0.33   -- lifeFrac value for live beams (must be between FADE_IN_END and FADE_OUT_START)
 local BEAM_RANGE_FALLOFF_BASE = 0.1   -- minimum intensity falloff along beam length
 local BEAM_RANGE_FALLOFF_MULT = 0.5  -- additional falloff scaled by beam-length / weapon-range
@@ -98,12 +98,20 @@ local FLARE_COLOR_MULT      = 1.0   -- multiplier on core color for flare RGB
 local FLARE_LIFE_DIM        = 0.7   -- how much flare dims over beam lifetime (0 = none, 1 = fully dark at end)
 
 -- Beam glow halo
-local GLOW_WIDTH_MULT       = 9.0   -- glow quad width as multiple of beam width
-local GLOW_BRIGHTNESS       = 0.07  -- glow intensity (additive)
-local GLOW_FALLOFF_POWER    = 2.7  -- falloff curve exponent (<1 = fast initial drop + long tail, 1 = linear, >1 = slow start + sharp cutoff)
+local GLOW_WIDTH_MULT       = 6.0   -- glow quad width as multiple of beam width
+local GLOW_BRIGHTNESS       = 0.09  -- glow intensity (additive)
+local GLOW_FALLOFF_POWER    = 1.8  -- falloff curve exponent (<1 = fast initial drop + long tail, 1 = linear, >1 = slow start + sharp cutoff)
 local GLOW_THICKNESS_DIM    = 2.0   -- beams thinner than this get minimum glow
 local GLOW_THICKNESS_FULL   = 4.0   -- beams thicker than this get full glow
 local GLOW_DIM_FACTOR       = 0.2  -- glow brightness multiplier for thinnest beams (0..1)
+
+-- Traveling pulse
+local PULSE_WIDTH_MULT      = 1.6   -- pulse quad width as multiple of beam width
+local PULSE_BRIGHTNESS      = 3.0   -- pulse intensity (additive, on top of beam)
+local PULSE_SPEED           = 1000.0 -- pulse travel speed in world units (elmos) per second
+local PULSE_SPACING         = 200.0  -- distance between pulse centers in world units (elmos)
+local PULSE_SIGMA           = 35.0  -- gaussian half-width of each pulse in world units (elmos)
+local PULSE_CORE_FRAC       = 0.25   -- fraction of pulse width that is bright core (0..1)
 
 -- Shader config (injected as #defines into beam vertex+fragment shaders)
 local shaderConfig = {
@@ -277,6 +285,7 @@ void main()
 	float fadeIn  = smoothstep(0.0, FADE_IN_END, lifeFrac);
 	float fadeOut = 1.0 - smoothstep(FADE_OUT_START, 1.0, lifeFrac);
 	float lifePulse = fadeIn * fadeOut;
+	if (lifePulse < 0.001) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); return; }
 
 	// Width also narrows slightly toward the end of the beam (range falloff)
 	float rangeTaper = 1.0 - RANGE_TAPER * yNorm;
@@ -554,6 +563,7 @@ void main()
 	float fadeIn  = smoothstep(0.0, FADE_IN_END, lifeFrac);
 	float fadeOut = 1.0 - smoothstep(FADE_OUT_START, 1.0, lifeFrac);
 	float lifePulse = fadeIn * fadeOut;
+	if (lifePulse < 0.001) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); return; }
 
 	float phase = startPos.x * 0.7 + startPos.z * 1.1 + lifeFrac * 13.0;
 	float yNorm = position_xy_uv.y * 0.5 + 0.5;
@@ -641,12 +651,176 @@ void main(void)
 ]]
 
 --------------------------------------------------------------------------------
+-- Shader sources: Pulse (traveling energy blobs along beam)
+-- Reuses the same VBO. Renders bright spots that travel from origin to target.
+--------------------------------------------------------------------------------
+local pulseShaderConfig = {
+	FADE_IN_END        = shaderConfig.FADE_IN_END,
+	FADE_OUT_START     = shaderConfig.FADE_OUT_START,
+	PULSE_WIDTH_MULT   = PULSE_WIDTH_MULT,
+	PULSE_BRIGHTNESS   = PULSE_BRIGHTNESS,
+	PULSE_SPEED        = PULSE_SPEED,
+	PULSE_SPACING      = PULSE_SPACING,
+	PULSE_SIGMA        = PULSE_SIGMA,
+	PULSE_CORE_FRAC    = PULSE_CORE_FRAC,
+	MIN_PIXEL_WIDTH    = shaderConfig.MIN_PIXEL_WIDTH,
+}
+
+local pulseVsSrc = [[
+#version 420
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shading_language_420pack: require
+#line 50000
+
+//__DEFINES__
+//__ENGINEUNIFORMBUFFERDEFS__
+
+layout (location = 0) in vec4 position_xy_uv;
+
+layout (location = 1) in vec4 startPosAndWidth;
+layout (location = 2) in vec4 endPosAndLife;
+layout (location = 3) in vec4 coreColor;
+layout (location = 4) in vec4 edgeColor;
+
+out DataVS {
+	float yWorld;      // world-space position along beam (elmos)
+	float widthPos;    // -1..1 across beam width
+	vec3 pulseColor;   // bright core color
+	float alpha;
+	float phase;       // per-beam phase offset for pulse animation
+	float beamLen;     // total beam length in world units
+};
+
+void main()
+{
+	vec3 startPos = startPosAndWidth.xyz;
+	float beamWidth = startPosAndWidth.w;
+	vec3 endPos = endPosAndLife.xyz;
+	float lifeFrac = endPosAndLife.w;
+
+	vec3 beamDir = endPos - startPos;
+	float beamLength = length(beamDir);
+	if (beamLength < 0.01) {
+		gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+		return;
+	}
+	vec3 forward = beamDir / beamLength;
+
+	vec3 camPos = cameraViewInv[3].xyz;
+	vec3 toCamera = normalize(camPos - mix(startPos, endPos, 0.5));
+	vec3 right = cross(forward, toCamera);
+	float rightLen = length(right);
+	if (rightLen < 0.3) {
+		vec3 fallback = normalize(cross(forward, vec3(0.0, 1.0, 0.0)));
+		if (length(fallback) < 0.001) {
+			fallback = normalize(cross(forward, vec3(1.0, 0.0, 0.0)));
+		}
+		float blend = clamp(rightLen / 0.3, 0.0, 1.0);
+		right = normalize(mix(fallback, right / max(rightLen, 0.001), blend));
+	} else {
+		right = right / rightLen;
+	}
+
+	float yNorm = position_xy_uv.y * 0.5 + 0.5;
+
+	float fadeIn  = smoothstep(0.0, FADE_IN_END, lifeFrac);
+	float fadeOut = 1.0 - smoothstep(FADE_OUT_START, 1.0, lifeFrac);
+	float lifePulse = fadeIn * fadeOut;
+	if (lifePulse < 0.001) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); return; }
+
+	float pulseWidth = beamWidth * PULSE_WIDTH_MULT * lifePulse;
+
+	vec3 vertPos = mix(startPos, endPos, yNorm);
+	float camDist = length(camPos - vertPos);
+	// Track the beam body's effective width so pulse stays proportional at all distances
+	float baseWidth = beamWidth * lifePulse;
+	float minWidth = camDist * MIN_PIXEL_WIDTH;
+	float coverage = clamp(baseWidth / max(minWidth, 0.001), 0.0, 1.0);
+	// Lerp width multiplier toward 1.0 at distance so pulse doesn't extend
+	// past beam edges when both are at sub-pixel widths
+	// (avoid mix() here because integer #define values break GLSL mix())
+	float effectiveMult = 1.0 + (PULSE_WIDTH_MULT - 1.0) * coverage;
+	pulseWidth = max(baseWidth, minWidth) * effectiveMult;
+
+	vec3 vertexWorld = vertPos + right * position_xy_uv.x * pulseWidth;
+
+	gl_Position = cameraViewProj * vec4(vertexWorld, 1.0);
+
+	widthPos = position_xy_uv.x;
+	yWorld = yNorm * beamLength;
+	beamLen = beamLength;
+
+	// Use edge (weapon) color for pulse to avoid color shift from CORE_COLOR_ADD
+	pulseColor = edgeColor.rgb;
+
+	// Per-beam unique phase derived from start position
+	phase = startPos.x * 0.31 + startPos.y * 0.17 + startPos.z * 0.43;
+
+	float rangeFalloff = edgeColor.a;
+	float alphaFalloff = 1.0 - rangeFalloff * yNorm;
+	// coverage² so pulse fades faster than beam body at distance
+	// (additive pulse is perceptually more prominent on a dim beam)
+	alpha = coreColor.a * lifePulse * lifePulse * alphaFalloff * coverage * coverage;
+}
+]]
+
+local pulseFsSrc = [[
+#version 420
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shading_language_420pack: require
+#line 60000
+
+//__DEFINES__
+//__ENGINEUNIFORMBUFFERDEFS__
+
+in DataVS {
+	float yWorld;
+	float widthPos;
+	vec3 pulseColor;
+	float alpha;
+	float phase;
+	float beamLen;
+};
+
+out vec4 fragColor;
+
+void main(void)
+{
+	// Radial falloff across beam width
+	float edgeDist = abs(widthPos);
+	float radial = 1.0 - smoothstep(PULSE_CORE_FRAC, 1.0, edgeDist);
+	if (radial < 0.001) discard;
+
+	// World-space distance to nearest pulse center (repeating pattern)
+	float scrolledY = yWorld - timeInfo.z * PULSE_SPEED - phase * 100.0;
+	float halfSpacing = PULSE_SPACING * 0.5;
+	float distToPulse = abs(mod(scrolledY + halfSpacing, PULSE_SPACING) - halfSpacing);
+
+	// Gaussian falloff in world units
+	float invSigmaSq = 1.0 / (2.0 * PULSE_SIGMA * PULSE_SIGMA);
+	float pulseVal = exp(-distToPulse * distToPulse * invSigmaSq);
+
+	// Fade at beam start and tip so pulses appear/disappear smoothly
+	float fadeDist = PULSE_SIGMA * 2.0;
+	float edgeFade = smoothstep(0.0, fadeDist, yWorld) * (1.0 - smoothstep(beamLen - fadeDist, beamLen, yWorld));
+
+	vec3 color = pulseColor * (pulseVal * radial * edgeFade * alpha * PULSE_BRIGHTNESS);
+
+	float lum = dot(color, vec3(0.299, 0.587, 0.114));
+	if (lum < 0.0005) discard;
+
+	fragColor = vec4(color, 0.0);
+}
+]]
+
+--------------------------------------------------------------------------------
 -- GL4 state
 --------------------------------------------------------------------------------
 local beamVBO
 local beamShader
 local flareShader
 local glowShader
+local pulseShader
 
 -- Idle skip
 local idleSkipCounter = 0
@@ -704,6 +878,21 @@ local function initGL4()
 	glowShader = LuaShader.CheckShaderUpdates(glowShaderCache)
 	if not glowShader then
 		goodbye("Failed to compile glow shader")
+		return false
+	end
+
+	-- Pulse shader (traveling energy blobs along beam)
+	local pulseShaderCache = {
+		vsSrc = pulseVsSrc,
+		fsSrc = pulseFsSrc,
+		shaderName = "BeamLaserPulseGL4",
+		uniformFloat = {},
+		shaderConfig = pulseShaderConfig,
+		forceupdate = true,
+	}
+	pulseShader = LuaShader.CheckShaderUpdates(pulseShaderCache)
+	if not pulseShader then
+		goodbye("Failed to compile pulse shader")
 		return false
 	end
 
@@ -781,6 +970,11 @@ local function drawAll()
 	beamShader:Activate()
 	beamVBO:Draw()
 	beamShader:Deactivate()
+
+	-- Pulse pass (traveling energy blobs, drawn on top of beam)
+	pulseShader:Activate()
+	beamVBO:Draw()
+	pulseShader:Deactivate()
 
 	-- Flare pass (same VBO, flare shader reads flareData; zero-size flares culled in VS)
 	glTexture(0, flareTexture)
