@@ -19,8 +19,11 @@ end
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitCosts = Spring.GetUnitCosts
 local spAddUnitResource = Spring.AddUnitResource
+local spAddTeamResource = Spring.AddTeamResource
 local spAreTeamsAllied = Spring.AreTeamsAllied
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+local spValidUnitID = Spring.ValidUnitID
+local spGetUnitIsDead = Spring.GetUnitIsDead
 
 local reclaimedWeaponDefID = Game.envDamageTypes.Reclaimed
 
@@ -36,7 +39,10 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if builderID and isFactory[spGetUnitDefID(builderID)] then
-		factoryQueue[builderID] = unitID
+		factoryQueue[builderID] = {
+			unitID = unitID,
+			unitDefID = unitDefID,
+		}
 	end
 end
 
@@ -45,10 +51,13 @@ function gadget:UnitFromFactory(unitID, unitDefID, unitTeam, factoryID)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	local unitBeingBuiltId = factoryQueue[unitID]
-	if not unitBeingBuiltId then 
+	local queuedData = factoryQueue[unitID]
+	if not queuedData then
 		return
 	end
+
+	local unitBeingBuiltId = queuedData.unitID or queuedData -- backwards compatibility with old numeric queue entries
+	local queuedUnitDefID = queuedData.unitDefID
 
 	factoryQueue[unitID] = nil
 	if weaponDefID ~= reclaimedWeaponDefID then 
@@ -60,7 +69,31 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	end
 
 	local _, buildProgress = spGetUnitIsBeingBuilt(unitBeingBuiltId)
-	local _, metalCost, _ = spGetUnitCosts(unitBeingBuiltId)
+	if not buildProgress or buildProgress <= 0 then
+		return
+	end
+
+	local unitDefID = queuedUnitDefID or spGetUnitDefID(unitBeingBuiltId)
+	local metalCost
+	if unitDefID and UnitDefs[unitDefID] then
+		metalCost = UnitDefs[unitDefID].metalCost
+	else
+		local _, fallbackMetalCost = spGetUnitCosts(unitBeingBuiltId)
+		metalCost = fallbackMetalCost
+	end
+
+	if not metalCost or metalCost <= 0 then
+		return
+	end
+
 	local refund = metalCost * buildProgress
-	spAddUnitResource(unitBeingBuiltId, "m", refund)
+	if refund <= 0 then
+		return
+	end
+
+	if spValidUnitID(unitBeingBuiltId) and not spGetUnitIsDead(unitBeingBuiltId) then
+		spAddUnitResource(unitBeingBuiltId, "m", refund)
+	else
+		spAddTeamResource(unitTeam, "m", refund)
+	end
 end
