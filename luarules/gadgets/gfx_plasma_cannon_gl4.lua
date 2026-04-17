@@ -64,8 +64,8 @@ local plasmaTexture = "bitmaps/projectiletextures/plasmaball.tga"
 local glowTexture   = "bitmaps/projectiletextures/glow2.tga"
 
 -- Glow billboard config
-local GLOW_SIZE_MULT   = 12   -- glow billboard size as multiple of projectile cross-section size
-local GLOW_BRIGHTNESS  = 0.14   -- glow color multiplier (faint)
+local GLOW_SIZE_MULT   = 11   -- glow billboard size as multiple of projectile cross-section size
+local GLOW_BRIGHTNESS  = 0.125   -- glow color multiplier (faint)
 local GLOW_REF_SIZE    = 5.0   -- weapons at this size (after SIZE_MULT) get full glow; smaller ones dim proportionally
 
 -- Cross-section billboard (camera-facing round blob, visible when looking along velocity)
