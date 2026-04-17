@@ -373,7 +373,7 @@ local BaseClasses = {
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 200,
 						distanceFalloff = 0.9, noiseStrength = 0.5, noiseScaleSpace = 0.7,
 						lifeTime = 200, decay = 150, rampUp = 50,
-						effectStrength = 1.2, --needed for shockwaves
+						effectStrength = 0.75, --needed for shockwaves
 						windAffected = -0.5, riseRate = 6, --used for width of shockwave
 						shockWidth = 6, refractiveIndex = -1.2, startRadius = 0.5,
 						onlyModelMap = 1,
@@ -995,24 +995,24 @@ local projectileDefDistortions  = {
 	-- CegTag -> distortion override tables for missile thruster trails
 	-- Uses MissileProjectile as base class with per-size overrides (same pattern as manual overrides)
 	local missileDistortionByCeg = {
-		missiletrailtiny             = { radius = 70,  theta = 0.07, noiseStrength = 4.0, noiseScaleSpace = 0.85, distanceFalloff = 1.4, effectStrength = 3, yoffset = 10 },
-		missiletrailsmall            = { radius = 75, theta = 0.08, noiseStrength = 4.0, noiseScaleSpace = 0.75, distanceFalloff = 1.4, effectStrength = 3.3, yoffset = 12 },
-		["missiletrailsmall-simple"] = { radius = 75, theta = 0.08, noiseStrength = 4.0, noiseScaleSpace = 0.75, distanceFalloff = 1.4, effectStrength = 3.3, yoffset = 12 },
-		["missiletrailsmall-red"]    = { radius = 75, theta = 0.08, noiseStrength = 4.0, noiseScaleSpace = 0.75, distanceFalloff = 1.4, effectStrength = 3.3, yoffset = 12 },
-		["missiletrailsmall-starburst"] = { radius = 75, theta = 0.08, noiseStrength = 4.5, noiseScaleSpace = 0.75, distanceFalloff = 1.4, effectStrength = 3.3, yoffset = 12 },
-		missiletrailfighter          = { radius = 75, theta = 0.08, noiseStrength = 4.5, noiseScaleSpace = 0.75, distanceFalloff = 1.4, effectStrength = 3.3, yoffset = 12 },
-		missiletrailaa               = { radius = 110, theta = 0.08,  noiseStrength = 4.5, noiseScaleSpace = 0.75, distanceFalloff = 1.4, effectStrength = 3.3, yoffset = 16 },
-		missiletrailmedium           = { radius = 110, theta = 0.08,  noiseStrength = 4.5, noiseScaleSpace = 0.75, distanceFalloff = 1.4, effectStrength = 3.3, yoffset = 16 },
-		["missiletrailmedium-red"]   = { radius = 110, theta = 0.08,  noiseStrength = 4.5, noiseScaleSpace = 0.75, distanceFalloff = 1.4, effectStrength = 3.3, yoffset = 16 },
-		["missiletrailmedium-starburst"] = { radius = 110, theta = 0.08,  noiseStrength = 4.5, noiseScaleSpace = 0.75, distanceFalloff = 1.4, effectStrength = 3.3, yoffset = 16 },
-		missiletrailviper            = { radius = 110, theta = 0.08,  noiseStrength = 4.5, noiseScaleSpace = 0.75, distanceFalloff = 1.4, effectStrength = 3.3, yoffset = 16 },
-		["missiletraillarge-red"]    = { radius = 140, theta = 0.08, noiseStrength = 4.5, noiseScaleSpace = 0.7,  distanceFalloff = 1.4, effectStrength = 4, yoffset = 20 },
-		["missiletrailaa-large"]     = { radius = 140, theta = 0.08, noiseStrength = 4.5, noiseScaleSpace = 0.7,  distanceFalloff = 1.4, effectStrength = 4, yoffset = 20 },
-		missiletrailmship            = { radius = 140, theta = 0.08, noiseStrength = 5.0, noiseScaleSpace = 0.7,  distanceFalloff = 1.4, effectStrength = 4, yoffset = 20 },
-		["missiletrail-juno"]        = { radius = 140, theta = 0.08,  noiseStrength = 5.0, noiseScaleSpace = 0.65,  distanceFalloff = 1.2, effectStrength = 4, yoffset = 20 },
-		["cruisemissiletrail-tacnuke"] = { radius = 160, theta = 0.08,  noiseStrength = 5.0, noiseScaleSpace = 0.65,  distanceFalloff = 1.2, effectStrength = 4, yoffset = 20 },
-		["cruisemissiletrail-emp"]   = { radius = 150, theta = 0.08,  noiseStrength = 5.0, noiseScaleSpace = 0.65,  distanceFalloff = 1.2, effectStrength = 4, yoffset = 20 },
-		nuketrail                    = { radius = 230, theta = 0.08,  noiseStrength = 5.0, noiseScaleSpace = 0.6,  distanceFalloff = 1.0, effectStrength = 4, yoffset = 20 },
+		missiletrailtiny             = { radius = 70,  theta = 0.07, noiseStrength = 4.0, noiseScaleSpace = 0.85, distanceFalloff = 1.4, effectStrength = 2.5, yoffset = 10 },
+		missiletrailsmall            = { radius = 75, theta = 0.08, noiseStrength = 4.0, noiseScaleSpace = 0.75, distanceFalloff = 1.4, effectStrength = 2.5, yoffset = 12 },
+		["missiletrailsmall-simple"] = { radius = 75, theta = 0.08, noiseStrength = 4.0, noiseScaleSpace = 0.75, distanceFalloff = 1.4, effectStrength = 2.5, yoffset = 12 },
+		["missiletrailsmall-red"]    = { radius = 75, theta = 0.08, noiseStrength = 4.0, noiseScaleSpace = 0.75, distanceFalloff = 1.4, effectStrength = 2.5, yoffset = 12 },
+		["missiletrailsmall-starburst"] = { radius = 75, theta = 0.08, noiseStrength = 4.5, noiseScaleSpace = 0.75, distanceFalloff = 1.4, effectStrength = 2.5, yoffset = 12 },
+		missiletrailfighter          = { radius = 75, theta = 0.08, noiseStrength = 4.5, noiseScaleSpace = 0.75, distanceFalloff = 1.4, effectStrength = 2.5, yoffset = 12 },
+		missiletrailaa               = { radius = 110, theta = 0.08,  noiseStrength = 4.5, noiseScaleSpace = 0.75, distanceFalloff = 1.4, effectStrength = 2.5, yoffset = 16 },
+		missiletrailmedium           = { radius = 110, theta = 0.08,  noiseStrength = 4.5, noiseScaleSpace = 0.75, distanceFalloff = 1.4, effectStrength = 2.5, yoffset = 16 },
+		["missiletrailmedium-red"]   = { radius = 110, theta = 0.08,  noiseStrength = 4.5, noiseScaleSpace = 0.75, distanceFalloff = 1.4, effectStrength = 2.5, yoffset = 16 },
+		["missiletrailmedium-starburst"] = { radius = 110, theta = 0.08,  noiseStrength = 4.5, noiseScaleSpace = 0.75, distanceFalloff = 1.4, effectStrength = 2.5, yoffset = 16 },
+		missiletrailviper            = { radius = 110, theta = 0.08,  noiseStrength = 4.5, noiseScaleSpace = 0.75, distanceFalloff = 1.4, effectStrength = 2.5, yoffset = 16 },
+		["missiletraillarge-red"]    = { radius = 140, theta = 0.08, noiseStrength = 4.5, noiseScaleSpace = 0.7,  distanceFalloff = 1.4, effectStrength = 3.3, yoffset = 20 },
+		["missiletrailaa-large"]     = { radius = 140, theta = 0.08, noiseStrength = 4.5, noiseScaleSpace = 0.7,  distanceFalloff = 1.4, effectStrength = 3.3, yoffset = 20 },
+		missiletrailmship            = { radius = 140, theta = 0.08, noiseStrength = 5.0, noiseScaleSpace = 0.7,  distanceFalloff = 1.4, effectStrength = 3.3, yoffset = 20 },
+		["missiletrail-juno"]        = { radius = 140, theta = 0.08,  noiseStrength = 5.0, noiseScaleSpace = 0.65,  distanceFalloff = 1.2, effectStrength = 3.3, yoffset = 20 },
+		["cruisemissiletrail-tacnuke"] = { radius = 160, theta = 0.08,  noiseStrength = 5.0, noiseScaleSpace = 0.65,  distanceFalloff = 1.2, effectStrength = 3.3, yoffset = 20 },
+		["cruisemissiletrail-emp"]   = { radius = 150, theta = 0.08,  noiseStrength = 5.0, noiseScaleSpace = 0.65,  distanceFalloff = 1.2, effectStrength = 3.3, yoffset = 20 },
+		nuketrail                    = { radius = 230, theta = 0.08,  noiseStrength = 5.0, noiseScaleSpace = 0.6,  distanceFalloff = 1.0, effectStrength = 3.3, yoffset = 20 },
 	}
 
 	local function AssignDistortionsToAllWeapons()
@@ -1413,7 +1413,7 @@ explosionDistortionsNames['armstil_stiletto_bomb'] = {
 -- }
 
 explosionDistortionsNames['raptor_air_bomber_acid_t2_v1_acidbomb'] = {
-	GetDistortionClass("GroundAcidExplo", "SmallMedium", {
+	GetDistortionClass("GroundAcidExplo", "Small", {
 		-- noiseStrength = 15.0, noiseScaleSpace = 0.90, distanceFalloff = 0.9, onlyModelMap = 1,
 		-- lifeTime = 190, effectStrength = 2,
 		-- windAffected = -1, riseRate = 6,
@@ -1423,7 +1423,7 @@ explosionDistortionsNames['raptor_air_bomber_acid_t2_v1_acidbomb'] = {
 }
 
 explosionDistortionsNames['raptor_land_assault_acid_t2_v1_acidspit'] = {
-	GetDistortionClass("GroundAcidExplo", "Medium", {
+	GetDistortionClass("GroundAcidExplo", "SmallMedium", {
 		-- noiseStrength = 15.0, noiseScaleSpace = 0.90, distanceFalloff = 0.9, onlyModelMap = 1,
 		-- lifeTime = 190, effectStrength = 2,
 		-- windAffected = -1, riseRate = 6,

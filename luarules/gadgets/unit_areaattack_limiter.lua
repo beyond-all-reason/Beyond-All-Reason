@@ -22,13 +22,31 @@ local CMD_FIGHT = CMD.FIGHT
 local CMD_STOP = CMD.STOP
 
 local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetUnitDefID = Spring.GetUnitDefID
 local spGiveOrderArrayToUnitArray = Spring.GiveOrderArrayToUnitArray
+
+local isBombWeapon = {}
+for weaponDefID, weaponDef in pairs(WeaponDefs) do
+	if weaponDef.type == "AircraftBomb" then
+		isBombWeapon[weaponDefID] = true
+	end
+end
+
+local isBomberUnitDef = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if (unitDef.weapons and unitDef.weapons[1] and isBombWeapon[unitDef.weapons[1].weaponDef])
+		or string.find(unitDef.name, "armlance")
+		or string.find(unitDef.name, "cortitan")
+		or string.find(unitDef.name, "legatorpbomber") then
+		isBomberUnitDef[unitDefID] = true
+	end
+end
 
 -- Max units allowed to use the expensive engine-side area attack.
 -- Excess units receive a FIGHT command to the area center instead,
 -- which makes them converge and auto-engage without the costly
 -- per-unit target resolution the engine performs for area attacks.
-local BATCH_LIMIT = 25
+local BATCH_LIMIT = 30
 
 function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	-- Only intercept area-format commands (4 params: x, y, z, radius)
@@ -36,11 +54,12 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		return
 	end
 
+	-- UI can report area attack as CMD_ATTACK with 4 params, but when reissuing
+	-- through GiveOrderArrayToUnitArray we must use CMD_AREA_ATTACK.
+	local issueCmdID = (cmdID == CMD_ATTACK) and CMD_AREA_ATTACK or cmdID
+
 	local selUnits = spGetSelectedUnits()
 	local count = #selUnits
-	if count <= BATCH_LIMIT then
-		return
-	end
 
 	-- Preserve command options
 	local opts = 0
@@ -51,24 +70,37 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 
 	local x, y, z = cmdParams[1], cmdParams[2], cmdParams[3]
 
-	-- Split: first BATCH_LIMIT units get the area attack for proper
-	-- target distribution, the rest get FIGHT to the area center
+	-- Split: bombers are always exempt from the batch limit.
+	-- Only non-bombers are counted against BATCH_LIMIT.
 	local attackUnits = {}
 	local fightUnits = {}
+	local nonBomberCount = 0
 	for i = 1, count do
-		if i <= BATCH_LIMIT then
-			attackUnits[i] = selUnits[i]
+		local unitID = selUnits[i]
+		local unitDefID = spGetUnitDefID(unitID)
+		if unitDefID and isBomberUnitDef[unitDefID] then
+			attackUnits[#attackUnits + 1] = unitID
 		else
-			fightUnits[#fightUnits + 1] = selUnits[i]
+			nonBomberCount = nonBomberCount + 1
+			if nonBomberCount <= BATCH_LIMIT then
+				attackUnits[#attackUnits + 1] = unitID
+			else
+				fightUnits[#fightUnits + 1] = unitID
+			end
 		end
+	end
+
+	-- If no non-bomber exceeded the limit, keep engine default behavior.
+	if #fightUnits == 0 then
+		return
 	end
 
 	if cmdOpts.shift then
 		local shiftOpts = opts + CMD.OPT_SHIFT
-		spGiveOrderArrayToUnitArray(attackUnits, {{cmdID, cmdParams, shiftOpts}})
+		spGiveOrderArrayToUnitArray(attackUnits, {{issueCmdID, cmdParams, shiftOpts}})
 		spGiveOrderArrayToUnitArray(fightUnits, {{CMD_FIGHT, {x, y, z}, shiftOpts}})
 	else
-		spGiveOrderArrayToUnitArray(attackUnits, {{CMD_STOP, {}, 0}, {cmdID, cmdParams, CMD.OPT_SHIFT}})
+		spGiveOrderArrayToUnitArray(attackUnits, {{CMD_STOP, {}, 0}, {issueCmdID, cmdParams, CMD.OPT_SHIFT}})
 		spGiveOrderArrayToUnitArray(fightUnits, {{CMD_STOP, {}, 0}, {CMD_FIGHT, {x, y, z}, CMD.OPT_SHIFT}})
 	end
 

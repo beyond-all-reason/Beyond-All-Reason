@@ -147,6 +147,7 @@ return {
 					area_onhit_damage = 60,--30,
 					area_onhit_range = 60,
 					area_onhit_time = 7,
+					water_splash = 0,
 				},
 				damage = {
 					default = 60,
