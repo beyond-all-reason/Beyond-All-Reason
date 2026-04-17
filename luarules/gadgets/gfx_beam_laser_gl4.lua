@@ -84,7 +84,7 @@ local LOS_BONUS_RANGE  = 100   -- when not USE_AIR_LOS then extra elmos of beam 
 local spLosCheck = USE_AIR_LOS and spIsPosInAirLos or spIsPosInLos
 
 -- Beam body
-local BEAM_WIDTH_MULT         = 0.4   -- multiplier on weapon thickness for beam quad width
+local BEAM_WIDTH_MULT         = 0.3   -- multiplier on weapon thickness for beam quad width
 local BEAM_SUSTAIN_LIFEFRAC   = 0.33   -- lifeFrac value for live beams (must be between FADE_IN_END and FADE_OUT_START)
 local BEAM_RANGE_FALLOFF_BASE = 0.1   -- minimum intensity falloff along beam length
 local BEAM_RANGE_FALLOFF_MULT = 0.5  -- additional falloff scaled by beam-length / weapon-range
@@ -106,18 +106,18 @@ local GLOW_THICKNESS_FULL   = 4.0   -- beams thicker than this get full glow
 local GLOW_DIM_FACTOR       = 0.2  -- glow brightness multiplier for thinnest beams (0..1)
 
 -- Traveling pulse
-local PULSE_WIDTH_MULT      = 1.6   -- pulse quad width as multiple of beam width
-local PULSE_BRIGHTNESS      = 3.0   -- pulse intensity (additive, on top of beam)
-local PULSE_SPEED           = 1000.0 -- pulse travel speed in world units (elmos) per second
-local PULSE_SPACING         = 200.0  -- distance between pulse centers in world units (elmos)
-local PULSE_SIGMA           = 35.0  -- gaussian half-width of each pulse in world units (elmos)
+local PULSE_WIDTH_MULT      = 2.2   -- pulse quad width as multiple of beam width
+local PULSE_BRIGHTNESS      = 3.3   -- pulse intensity (additive, on top of beam)
+local PULSE_SPEED           = 850.0 -- pulse travel speed in world units (elmos) per second
+local PULSE_SPACING         = 220.0  -- distance between pulse centers in world units (elmos)
+local PULSE_SIGMA           = 30.0  -- gaussian half-width of each pulse in world units (elmos)
 local PULSE_CORE_FRAC       = 0.25   -- fraction of pulse width that is bright core (0..1)
 
 -- Paralyzer beam pulse overrides (faster, brighter, tighter)
 local PULSE_PARA_BRIGHTNESS = 8.0    -- pulse intensity for paralyzer beams
 local PULSE_PARA_SPEED      = 250.0 -- pulse travel speed for paralyzer beams (elmos/sec)
 local PULSE_PARA_SPACING    = 15.0  -- distance between pulses for paralyzer beams (elmos)
-local PULSE_PARA_SIGMA      = 1   -- gaussian half-width of each pulse for paralyzer beams (elmos)
+local PULSE_PARA_SIGMA      = 1.1   -- gaussian half-width of each pulse for paralyzer beams (elmos)
 local PULSE_PARA_WIDTH_MULT = 2.5   -- pulse quad width as multiple of beam width for paralyzer beams
 
 -- Shader config (injected as #defines into beam vertex+fragment shaders)
@@ -128,8 +128,8 @@ local shaderConfig = {
 	SHIMMER_AMPLITUDE  = 0.13,   -- width oscillation strength (0 = off)
 	SHIMMER_SPEED      = 40.0,   -- width oscillation speed (timeInfo.z multiplier)
 	CORE_EDGE_START    = 0.02,   -- |x| distance where core-to-edge color blend starts (0 = only center pixel)
-	CORE_EDGE_END      = 0.25,    -- |x| distance where blend is fully edge color
-	CORE_BRIGHTNESS    = 1.0,    -- extra brightness multiplier for core (squared falloff)
+	CORE_EDGE_END      = 0.44,    -- |x| distance where blend is fully edge color
+	CORE_BRIGHTNESS    = 1.1,    -- extra brightness multiplier for core (squared falloff)
 	BRIGHTNESS_MULT    = 1.5,    -- overall beam brightness multiplier
 	MIN_PIXEL_WIDTH    = 0.0018, -- minimum beam width as fraction of camera distance (prevents sub-pixel aliasing at distance)
 	TIP_FADE_START     = 0.93,   -- beam length fraction (0..1) where tip fade-out begins
@@ -308,10 +308,9 @@ void main()
 	// at distance, which causes aliasing/jaggedness. If the beam would be
 	// thinner than MIN_PIXEL_WIDTH pixels, expand it and dim alpha to compensate.
 	vec3 vertPos = mix(startPos, endPos, yNorm);
-	float camDist = length(camPos - vertPos);
-	// Approximate world-units-per-pixel using perspective projection:
-	// proj[1][1] = 2*near/height_at_near, so pixelSize ≈ 2*camDist / (proj[1][1] * viewportHeightPixels)
-	// We fold viewport height into MIN_PIXEL_WIDTH as a tunable constant.
+	// Use beam midpoint for camDist so min-pixel-width is uniform along the
+	// entire beam (per-vertex camDist causes start to appear narrower than middle)
+	float camDist = length(camPos - mix(startPos, endPos, 0.5));
 	float minWidth = camDist * MIN_PIXEL_WIDTH;
 	float coverage = clamp(width / max(minWidth, 0.001), 0.0, 1.0);
 	width = max(width, minWidth);
@@ -602,7 +601,7 @@ void main()
 	glowColor = edgeColor.rgb;
 
 	// Scale glow brightness by beam thickness: thin beams get dimmer glow
-	float glowScale = mix(GLOW_DIM_FACTOR, 1.0, smoothstep(GLOW_WIDTH_DIM, GLOW_WIDTH_FULL, beamWidth));
+	float glowScale = mix(float(GLOW_DIM_FACTOR), 1.0, smoothstep(float(GLOW_WIDTH_DIM), float(GLOW_WIDTH_FULL), beamWidth));
 
 	float rangeFalloff = edgeColor.a;
 	float yBeamClamped = clamp(yExtended, 0.0, 1.0);
@@ -704,6 +703,7 @@ out DataVS {
 	float phase;         // per-beam phase offset for pulse animation
 	float beamLen;       // total beam length in world units
 	float isParalyzer;   // 1.0 for paralyzer beams, 0.0 otherwise
+	float coverage;      // beam width / min-pixel width (0..1), used to scale pulse length
 };
 
 void main()
@@ -748,17 +748,17 @@ void main()
 	float pulseWidth = beamWidth * PULSE_WIDTH_MULT * lifePulse;
 
 	vec3 vertPos = mix(startPos, endPos, yNorm);
-	float camDist = length(camPos - vertPos);
+	// Use beam midpoint for camDist so min-pixel-width is uniform along beam
+	float camDist = length(camPos - mix(startPos, endPos, 0.5));
 	// Track the beam body's effective width so pulse stays proportional at all distances
 	float baseWidth = beamWidth * lifePulse;
 	float minWidth = camDist * MIN_PIXEL_WIDTH;
-	float coverage = clamp(baseWidth / max(minWidth, 0.001), 0.0, 1.0);
+	float coverageVal = clamp(baseWidth / max(minWidth, 0.001), 0.0, 1.0);
 	// Per-beam width multiplier: paralyzer uses PULSE_PARA_WIDTH_MULT
-	float widthMult = mix(PULSE_WIDTH_MULT, PULSE_PARA_WIDTH_MULT, paraFlag);
-	// Lerp width multiplier toward 1.0 at distance so pulse doesn't extend
-	// past beam edges when both are at sub-pixel widths
-	// (avoid mix() here because integer #define values break GLSL mix())
-	float effectiveMult = 1.0 + (widthMult - 1.0) * coverage;
+	float widthMult = mix(float(PULSE_WIDTH_MULT), float(PULSE_PARA_WIDTH_MULT), paraFlag);
+	// Lerp width multiplier toward 0.3 at distance so pulse shrinks below beam width
+	// when both are at sub-pixel sizes (avoids pulse dominating a thin beam)
+	float effectiveMult = 0.3 + (widthMult - 0.3) * coverageVal;
 	pulseWidth = max(baseWidth, minWidth) * effectiveMult;
 
 	vec3 vertexWorld = vertPos + right * position_xy_uv.x * pulseWidth;
@@ -777,11 +777,12 @@ void main()
 
 	isParalyzer = paraFlag;
 
+	coverage = coverageVal;
+
 	float rangeFalloff = edgeColor.a;
 	float alphaFalloff = 1.0 - rangeFalloff * yNorm;
-	// coverage² so pulse fades faster than beam body at distance
-	// (additive pulse is perceptually more prominent on a dim beam)
-	alpha = coreColor.a * lifePulse * lifePulse * alphaFalloff * coverage * coverage;
+	// coverage dims pulse at distance so it doesn't dominate a sub-pixel beam
+	alpha = coreColor.a * lifePulse * lifePulse * alphaFalloff * coverageVal;
 }
 ]]
 
@@ -802,6 +803,7 @@ in DataVS {
 	float phase;
 	float beamLen;
 	float isParalyzer;
+	float coverage;
 };
 
 out vec4 fragColor;
@@ -809,10 +811,12 @@ out vec4 fragColor;
 void main(void)
 {
 	// Select pulse parameters: paralyzer beams get faster, brighter, tighter pulses
-	float pulseSpeed   = mix(PULSE_SPEED,      PULSE_PARA_SPEED,      isParalyzer);
-	float pulseSpacing = mix(PULSE_SPACING,    PULSE_PARA_SPACING,    isParalyzer);
-	float pulseSigma   = mix(PULSE_SIGMA,      PULSE_PARA_SIGMA,      isParalyzer);
-	float pulseBright  = mix(PULSE_BRIGHTNESS, PULSE_PARA_BRIGHTNESS, isParalyzer);
+	// float() casts needed because Lua tostring() strips ".0" from whole numbers,
+	// making #defines integer literals which break mix() overload resolution.
+	float pulseSpeed   = mix(float(PULSE_SPEED),      float(PULSE_PARA_SPEED),      isParalyzer);
+	float pulseSpacing = mix(float(PULSE_SPACING),     float(PULSE_PARA_SPACING),    isParalyzer);
+	float pulseSigma   = mix(float(PULSE_SIGMA),       float(PULSE_PARA_SIGMA),      isParalyzer);
+	float pulseBright  = mix(float(PULSE_BRIGHTNESS),  float(PULSE_PARA_BRIGHTNESS), isParalyzer);
 
 	// Radial falloff across beam width
 	float edgeDist = abs(widthPos);
@@ -828,9 +832,9 @@ void main(void)
 	float invSigmaSq = 1.0 / (2.0 * pulseSigma * pulseSigma);
 	float pulseVal = exp(-distToPulse * distToPulse * invSigmaSq);
 
-	// Fade at beam start and tip so pulses appear/disappear smoothly
+	// Fade at beam tip so pulses disappear smoothly (no fade at start — flare covers origin)
 	float fadeDist = pulseSigma * 2.0;
-	float edgeFade = smoothstep(0.0, fadeDist, yWorld) * (1.0 - smoothstep(beamLen - fadeDist, beamLen, yWorld));
+	float edgeFade = 1.0 - smoothstep(beamLen - fadeDist, beamLen, yWorld);
 
 	vec3 color = pulseColor * (pulseVal * radial * edgeFade * alpha * pulseBright);
 
@@ -861,7 +865,25 @@ local function goodbye(reason)
 	gadgetHandler:RemoveGadget()
 end
 
+-- Ensure all numeric values in a shader config table will produce GLSL float
+-- literals. Lua's tostring() strips ".0" from whole numbers (e.g. 3.0 → "3"),
+-- which becomes a GLSL integer literal and breaks functions like mix/smoothstep.
+-- Adding a tiny epsilon forces Lua to keep the decimal point.
+local function ensureFloatDefines(config)
+	for k, v in pairs(config) do
+		if type(v) == "number" and v == math.floor(v) then
+			config[k] = v + 0.00001
+		end
+	end
+	return config
+end
+
 local function initGL4()
+	-- Sanitize all shader config tables to prevent integer #define values
+	ensureFloatDefines(shaderConfig)
+	ensureFloatDefines(glowShaderConfig)
+	ensureFloatDefines(pulseShaderConfig)
+
 	-- Beam shader
 	local beamShaderCache = {
 		vsSrc = beamVsSrc,
