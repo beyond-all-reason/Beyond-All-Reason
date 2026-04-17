@@ -84,7 +84,7 @@ local LOS_BONUS_RANGE  = 100   -- when not USE_AIR_LOS then extra elmos of beam 
 local spLosCheck = USE_AIR_LOS and spIsPosInAirLos or spIsPosInLos
 
 -- Beam body
-local BEAM_WIDTH_MULT         = 0.45   -- multiplier on weapon thickness for beam quad width
+local BEAM_WIDTH_MULT         = 0.4   -- multiplier on weapon thickness for beam quad width
 local BEAM_SUSTAIN_LIFEFRAC   = 0.33   -- lifeFrac value for live beams (must be between FADE_IN_END and FADE_OUT_START)
 local BEAM_RANGE_FALLOFF_BASE = 0.1   -- minimum intensity falloff along beam length
 local BEAM_RANGE_FALLOFF_MULT = 0.5  -- additional falloff scaled by beam-length / weapon-range
@@ -98,8 +98,8 @@ local FLARE_COLOR_MULT      = 1.0   -- multiplier on core color for flare RGB
 local FLARE_LIFE_DIM        = 0.7   -- how much flare dims over beam lifetime (0 = none, 1 = fully dark at end)
 
 -- Beam glow halo
-local GLOW_WIDTH_MULT       = 6.0   -- glow quad width as multiple of beam width
-local GLOW_BRIGHTNESS       = 0.09  -- glow intensity (additive)
+local GLOW_WIDTH_MULT       = 8.0   -- glow quad width as multiple of beam width
+local GLOW_BRIGHTNESS       = 0.17  -- glow intensity (additive)
 local GLOW_FALLOFF_POWER    = 1.8  -- falloff curve exponent (<1 = fast initial drop + long tail, 1 = linear, >1 = slow start + sharp cutoff)
 local GLOW_THICKNESS_DIM    = 2.0   -- beams thinner than this get minimum glow
 local GLOW_THICKNESS_FULL   = 4.0   -- beams thicker than this get full glow
@@ -113,6 +113,13 @@ local PULSE_SPACING         = 200.0  -- distance between pulse centers in world 
 local PULSE_SIGMA           = 35.0  -- gaussian half-width of each pulse in world units (elmos)
 local PULSE_CORE_FRAC       = 0.25   -- fraction of pulse width that is bright core (0..1)
 
+-- Paralyzer beam pulse overrides (faster, brighter, tighter)
+local PULSE_PARA_BRIGHTNESS = 8.0    -- pulse intensity for paralyzer beams
+local PULSE_PARA_SPEED      = 250.0 -- pulse travel speed for paralyzer beams (elmos/sec)
+local PULSE_PARA_SPACING    = 15.0  -- distance between pulses for paralyzer beams (elmos)
+local PULSE_PARA_SIGMA      = 1   -- gaussian half-width of each pulse for paralyzer beams (elmos)
+local PULSE_PARA_WIDTH_MULT = 2.5   -- pulse quad width as multiple of beam width for paralyzer beams
+
 -- Shader config (injected as #defines into beam vertex+fragment shaders)
 local shaderConfig = {
 	FADE_IN_END        = 0.1,    -- lifeFrac where width/alpha fade-in completes
@@ -125,6 +132,7 @@ local shaderConfig = {
 	CORE_BRIGHTNESS    = 1.0,    -- extra brightness multiplier for core (squared falloff)
 	BRIGHTNESS_MULT    = 1.5,    -- overall beam brightness multiplier
 	MIN_PIXEL_WIDTH    = 0.0018, -- minimum beam width as fraction of camera distance (prevents sub-pixel aliasing at distance)
+	TIP_FADE_START     = 0.93,   -- beam length fraction (0..1) where tip fade-out begins
 }
 
 --------------------------------------------------------------------------------
@@ -374,7 +382,7 @@ void main(void)
 	color *= (1.0 + coreFactor * CORE_BRIGHTNESS);
 
 	// Fade beam tip over final few % of length for a soft end instead of hard cutoff
-	float tipFade = 1.0 - smoothstep(0.92, 1.0, texCoords.x);
+	float tipFade = 1.0 - smoothstep(TIP_FADE_START, 1.0, texCoords.x);
 	color *= tipFade;
 
 	// Soft discard: fade out near-black fragments instead of hard discard
@@ -571,9 +579,9 @@ void main()
 
 	float glowWorldWidth = beamWidth * GLOW_WIDTH_MULT * lifePulse * shimmer;
 
-	float camDist = length(camPos - mix(startPos, endPos, 0.5));
-	float minWidth = camDist * MIN_PIXEL_WIDTH * GLOW_WIDTH_MULT;
-	glowWorldWidth = max(glowWorldWidth, minWidth);
+	// No min-pixel-width clamping for glow: it is a soft additive halo that degrades
+	// gracefully at distance. Inflating it at zoom-out made it disproportionately
+	// large relative to the beam; removing inflation keeps proportions consistent.
 
 	// Extend quad past beam endpoints by glowWorldWidth along forward direction
 	// This creates the capsule-like rounded ends
@@ -655,15 +663,20 @@ void main(void)
 -- Reuses the same VBO. Renders bright spots that travel from origin to target.
 --------------------------------------------------------------------------------
 local pulseShaderConfig = {
-	FADE_IN_END        = shaderConfig.FADE_IN_END,
-	FADE_OUT_START     = shaderConfig.FADE_OUT_START,
-	PULSE_WIDTH_MULT   = PULSE_WIDTH_MULT,
-	PULSE_BRIGHTNESS   = PULSE_BRIGHTNESS,
-	PULSE_SPEED        = PULSE_SPEED,
-	PULSE_SPACING      = PULSE_SPACING,
-	PULSE_SIGMA        = PULSE_SIGMA,
-	PULSE_CORE_FRAC    = PULSE_CORE_FRAC,
-	MIN_PIXEL_WIDTH    = shaderConfig.MIN_PIXEL_WIDTH,
+	FADE_IN_END             = shaderConfig.FADE_IN_END,
+	FADE_OUT_START          = shaderConfig.FADE_OUT_START,
+	PULSE_WIDTH_MULT        = PULSE_WIDTH_MULT,
+	PULSE_BRIGHTNESS        = PULSE_BRIGHTNESS,
+	PULSE_SPEED             = PULSE_SPEED,
+	PULSE_SPACING           = PULSE_SPACING,
+	PULSE_SIGMA             = PULSE_SIGMA,
+	PULSE_CORE_FRAC         = PULSE_CORE_FRAC,
+	PULSE_PARA_BRIGHTNESS   = PULSE_PARA_BRIGHTNESS,
+	PULSE_PARA_SPEED        = PULSE_PARA_SPEED,
+	PULSE_PARA_SPACING      = PULSE_PARA_SPACING,
+	PULSE_PARA_SIGMA        = PULSE_PARA_SIGMA,
+	PULSE_PARA_WIDTH_MULT   = PULSE_PARA_WIDTH_MULT,
+	MIN_PIXEL_WIDTH         = shaderConfig.MIN_PIXEL_WIDTH,
 }
 
 local pulseVsSrc = [[
@@ -681,14 +694,16 @@ layout (location = 1) in vec4 startPosAndWidth;
 layout (location = 2) in vec4 endPosAndLife;
 layout (location = 3) in vec4 coreColor;
 layout (location = 4) in vec4 edgeColor;
+layout (location = 5) in vec4 flareData;           // y = isParalyzer flag (0 or 1)
 
 out DataVS {
-	float yWorld;      // world-space position along beam (elmos)
-	float widthPos;    // -1..1 across beam width
-	vec3 pulseColor;   // bright core color
+	float yWorld;        // world-space position along beam (elmos)
+	float widthPos;      // -1..1 across beam width
+	vec3 pulseColor;     // bright core color
 	float alpha;
-	float phase;       // per-beam phase offset for pulse animation
-	float beamLen;     // total beam length in world units
+	float phase;         // per-beam phase offset for pulse animation
+	float beamLen;       // total beam length in world units
+	float isParalyzer;   // 1.0 for paralyzer beams, 0.0 otherwise
 };
 
 void main()
@@ -728,6 +743,8 @@ void main()
 	float lifePulse = fadeIn * fadeOut;
 	if (lifePulse < 0.001) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); return; }
 
+	float paraFlag = flareData.y;  // 1.0 for paralyzer beams, 0.0 otherwise
+
 	float pulseWidth = beamWidth * PULSE_WIDTH_MULT * lifePulse;
 
 	vec3 vertPos = mix(startPos, endPos, yNorm);
@@ -736,10 +753,12 @@ void main()
 	float baseWidth = beamWidth * lifePulse;
 	float minWidth = camDist * MIN_PIXEL_WIDTH;
 	float coverage = clamp(baseWidth / max(minWidth, 0.001), 0.0, 1.0);
+	// Per-beam width multiplier: paralyzer uses PULSE_PARA_WIDTH_MULT
+	float widthMult = mix(PULSE_WIDTH_MULT, PULSE_PARA_WIDTH_MULT, paraFlag);
 	// Lerp width multiplier toward 1.0 at distance so pulse doesn't extend
 	// past beam edges when both are at sub-pixel widths
 	// (avoid mix() here because integer #define values break GLSL mix())
-	float effectiveMult = 1.0 + (PULSE_WIDTH_MULT - 1.0) * coverage;
+	float effectiveMult = 1.0 + (widthMult - 1.0) * coverage;
 	pulseWidth = max(baseWidth, minWidth) * effectiveMult;
 
 	vec3 vertexWorld = vertPos + right * position_xy_uv.x * pulseWidth;
@@ -755,6 +774,8 @@ void main()
 
 	// Per-beam unique phase derived from start position
 	phase = startPos.x * 0.31 + startPos.y * 0.17 + startPos.z * 0.43;
+
+	isParalyzer = paraFlag;
 
 	float rangeFalloff = edgeColor.a;
 	float alphaFalloff = 1.0 - rangeFalloff * yNorm;
@@ -780,31 +801,38 @@ in DataVS {
 	float alpha;
 	float phase;
 	float beamLen;
+	float isParalyzer;
 };
 
 out vec4 fragColor;
 
 void main(void)
 {
+	// Select pulse parameters: paralyzer beams get faster, brighter, tighter pulses
+	float pulseSpeed   = mix(PULSE_SPEED,      PULSE_PARA_SPEED,      isParalyzer);
+	float pulseSpacing = mix(PULSE_SPACING,    PULSE_PARA_SPACING,    isParalyzer);
+	float pulseSigma   = mix(PULSE_SIGMA,      PULSE_PARA_SIGMA,      isParalyzer);
+	float pulseBright  = mix(PULSE_BRIGHTNESS, PULSE_PARA_BRIGHTNESS, isParalyzer);
+
 	// Radial falloff across beam width
 	float edgeDist = abs(widthPos);
 	float radial = 1.0 - smoothstep(PULSE_CORE_FRAC, 1.0, edgeDist);
 	if (radial < 0.001) discard;
 
 	// World-space distance to nearest pulse center (repeating pattern)
-	float scrolledY = yWorld - timeInfo.z * PULSE_SPEED - phase * 100.0;
-	float halfSpacing = PULSE_SPACING * 0.5;
-	float distToPulse = abs(mod(scrolledY + halfSpacing, PULSE_SPACING) - halfSpacing);
+	float scrolledY = yWorld - timeInfo.z * pulseSpeed - phase * 100.0;
+	float halfSpacing = pulseSpacing * 0.5;
+	float distToPulse = abs(mod(scrolledY + halfSpacing, pulseSpacing) - halfSpacing);
 
 	// Gaussian falloff in world units
-	float invSigmaSq = 1.0 / (2.0 * PULSE_SIGMA * PULSE_SIGMA);
+	float invSigmaSq = 1.0 / (2.0 * pulseSigma * pulseSigma);
 	float pulseVal = exp(-distToPulse * distToPulse * invSigmaSq);
 
 	// Fade at beam start and tip so pulses appear/disappear smoothly
-	float fadeDist = PULSE_SIGMA * 2.0;
+	float fadeDist = pulseSigma * 2.0;
 	float edgeFade = smoothstep(0.0, fadeDist, yWorld) * (1.0 - smoothstep(beamLen - fadeDist, beamLen, yWorld));
 
-	vec3 color = pulseColor * (pulseVal * radial * edgeFade * alpha * PULSE_BRIGHTNESS);
+	vec3 color = pulseColor * (pulseVal * radial * edgeFade * alpha * pulseBright);
 
 	float lum = dot(color, vec3(0.299, 0.587, 0.114));
 	if (lum < 0.0005) discard;
@@ -1164,7 +1192,7 @@ local function updateBeams()
 									beamData[offset + 20] = 0
 								else
 									beamData[offset + 17] = cfg.liveFlareSize
-									beamData[offset + 18] = cfg.liveFlareR
+									beamData[offset + 18] = cfg.isParalyzer and 1.0 or 0.0  -- flareData.y: paralyzer flag for pulse shader
 									beamData[offset + 19] = cfg.liveFlareG
 									beamData[offset + 20] = cfg.liveFlareB
 								end
@@ -1260,7 +1288,7 @@ local function updateBeams()
 						beamData[offset + 15] = cfg.colorB
 						beamData[offset + 16] = intensityFalloff
 						beamData[offset + 17] = cfg.flareSize * flarePulse * FLARE_SIZE_MULT
-						beamData[offset + 18] = cfg.flareColorR * flarePulse
+						beamData[offset + 18] = cfg.isParalyzer and 1.0 or 0.0  -- flareData.y: paralyzer flag for pulse shader
 						beamData[offset + 19] = cfg.flareColorG * flarePulse
 						beamData[offset + 20] = cfg.flareColorB * flarePulse
 						offset = offset + 20

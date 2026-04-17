@@ -64,8 +64,8 @@ local plasmaTexture = "bitmaps/projectiletextures/plasmaball.tga"
 local glowTexture   = "bitmaps/projectiletextures/glow2.tga"
 
 -- Glow billboard config
-local GLOW_SIZE_MULT   = 11   -- glow billboard size as multiple of projectile cross-section size
-local GLOW_BRIGHTNESS  = 0.125   -- glow color multiplier (faint)
+local GLOW_SIZE_MULT   = 10   -- glow billboard size as multiple of projectile cross-section size
+local GLOW_BRIGHTNESS  = 0.1   -- glow color multiplier (faint)
 local GLOW_REF_SIZE    = 5.0   -- weapons at this size (after SIZE_MULT) get full glow; smaller ones dim proportionally
 
 -- Cross-section billboard (camera-facing round blob, visible when looking along velocity)
@@ -83,7 +83,7 @@ local CORE_COLOR_ADD     = 0.4  -- added to weapon RGB to create brighter core c
 local shaderConfig = {
 	-- Shape (elongation scales with speed: min at rest, max at ELONGATION_SPEED_REF elmos/frame)
 	ELONGATION_MIN     = 2.2,  -- elongation at zero speed (nearly round)
-	ELONGATION_MAX     = 7.0,  -- elongation at or above reference speed
+	ELONGATION_MAX     = 6.5,  -- elongation at or above reference speed
 	ELONGATION_SPEED_REF = 25, -- speed (elmos/frame) at which max elongation is reached
 
 	-- Noise displacement for blobby organic shape
