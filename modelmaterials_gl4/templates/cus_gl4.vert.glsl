@@ -100,6 +100,10 @@ uniform int drawPass = 1;
 //4: refraction
 //5: shadows
 
+// Feature fade: squared distances for distance-based fade (0 = disabled)
+uniform float featureFadeDistSq = 0.0;
+uniform float featureDrawDistSq = 0.0;
+
 /***********************************************************************/
 vec3 cameraPos	 = cameraViewInv[3].xyz;
 vec3 cameraDir = -1.0 * vec3(cameraView[0].z,cameraView[1].z,cameraView[2].z);
@@ -484,6 +488,24 @@ void main(void)
 	//userDefined2 = UNITUNIFORMS.userDefined[2];
 	//userDefined2.w = UNITUNIFORMS.userDefined[0].x; // pass in construction progress 0-1
 
+	// Feature fade: distance-based culling and scale-down for features/trees
+	// Only check in non-shadow passes (shadow pass cameraPos is the light position)
+	float featureFadeFactor = 1.0;
+	#if (RENDERING_MODE != 2)
+	if (featureFadeDistSq > 0.0) {
+		vec3 toCamera = cameraPos - UNITUNIFORMS.drawPos.xyz;
+		float distSq = dot(toCamera, toCamera);
+		if (distSq > featureDrawDistSq) {
+			// Beyond draw distance: collapse to degenerate triangle (no FS cost)
+			gl_Position = vec4(0.0, 0.0, -2.0, 1.0);
+			return;
+		} else if (distSq > featureFadeDistSq) {
+			// In fade zone: scale model down toward base (shrink-to-nothing)
+			featureFadeFactor = 1.0 - (distSq - featureFadeDistSq) / (featureDrawDistSq - featureFadeDistSq);
+		}
+	}
+	#endif
+
 	// 
 	vec4 piecePos = vec4(pos, 1.0);
 
@@ -503,6 +525,9 @@ void main(void)
 		float randomScale = fract(float(UNITID)*0.01)*0.2 + 0.9;
 		piecePos.xyz *= randomScale;
 	#endif
+
+	// Feature fade: scale model down in the fade zone (shrinks toward base)
+	piecePos.xyz *= featureFadeFactor;
 
 	#if (XMAS == 1)
 	//	piecePos.xyz +=  piecePos.xyz * 10.0 * UNITUNIFORMS.userDefined[2].y; // number 9

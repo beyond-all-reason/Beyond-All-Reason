@@ -37,6 +37,14 @@ vec3 hash32(vec2 p) {
 	return fract((p3.xxy+p3.yzz)*p3.zyx);
 }
 
+// Interleaved Gradient Noise (Jorge Jimenez, "Next Generation Post Processing in CoD:AW", 2014).
+// Same cost as a hash, but produces a structured screen-space pattern that the bilateral
+// blur can dissolve into a smooth result far more effectively than uncorrelated white noise.
+// This lets us use significantly fewer SSAO samples for the same perceived quality.
+float IGN(vec2 p) {
+	return fract(52.9829189 * fract(dot(p, vec2(0.06711056, 0.00583715))));
+}
+
 uniform float testuniform = 0.5;
 
 in DataVS {
@@ -122,7 +130,10 @@ void main() {
 
 	if ( dot(viewNormal, viewNormal) > 0.1 && fragDistFactor > 0.0 && (validFragment > 0.5) ) {
 		// Calculate the rotation matrix for the kernel.
-		vec3 randomVector = normalize( NORM2SNORM(hash32(gl_FragCoord.xy)) );
+		// IGN gives a structured 2D rotation phase per pixel (much better blur convergence than white-noise hash).
+		// We construct an in-plane random direction and combine with a stable z lift to avoid degeneracy.
+		float ignPhase = IGN(gl_FragCoord.xy) * 6.28318530718;
+		vec3 randomVector = normalize(vec3(cos(ignPhase), sin(ignPhase), 0.5));
 
 		// Using Gram-Schmidt process to get an orthogonal vector to the normal vector.
 		// The resulting tangent is on the same plane as the random and normal vector.
@@ -135,6 +146,14 @@ void main() {
 		// Final matrix to reorient the kernel depending on the normal and the random vector.
 		// TBN matrix. Transforms from tangent space to view space
 		mat3 kernelMatrix = mat3(viewTangent, viewBitangent, viewNormal);
+
+		// Distance-adaptive radius: as the camera zooms out, a fixed-world-space radius
+		// projects to fewer screen pixels, so AO regions become sub-pixel and get washed
+		// away by the blur. Scaling radius linearly with depth (clamped to a max) keeps
+		// the screen-space crater size roughly constant — AO stays visible at long zoom
+		// while close-up detail is preserved.
+		float depthScale = clamp(abs(viewPosition.z) / 600.0, 1.0, SSAO_RADIUS_FAR_SCALE);
+		float effectiveRadius = SSAO_RADIUS * depthScale;
 
 		// Go through the kernel samples and create occlusion factor.
 		float occlusion = 0.0; // higher numbers mean more occlusion
@@ -171,7 +190,7 @@ void main() {
 			vec3 viewSampleVector = kernelMatrix * samplingKernel[i];
 
 			// ... and calculate sample point.
-			vec4 viewTestPosition = viewPosition + SSAO_RADIUS * vec4(viewSampleVector, 0.0);
+			vec4 viewTestPosition = viewPosition + effectiveRadius * vec4(viewSampleVector, 0.0);
 
 			// projection
 			vec4 ndcTestPosition = cameraProj * viewTestPosition;
@@ -201,8 +220,8 @@ void main() {
 			float occlDelta = smoothstep(0,1,delta);
 
 			// hits further thay the rays length shouldnt occlude either
-
-			float toofar = 1.0 - smoothstep (SSAO_RADIUS * 0.75, SSAO_RADIUS * 1.25, delta);
+			// Scaled by depthScale so the reject window tracks the actual ray length used.
+			float toofar = 1.0 - smoothstep (effectiveRadius * 0.75, effectiveRadius * 1.25, delta);
 
 			occlusionCondition *= myraylen * occlDelta *toofar;
 			// old method:
