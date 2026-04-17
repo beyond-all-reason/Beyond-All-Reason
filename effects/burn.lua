@@ -1065,6 +1065,7 @@ return {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = true,
+	  water              = true,
       properties = {
         airdrag            = 0.99,
         colormap           = [[ 0.91 0.90 0.95 0.98  0.92 0.88 0.80 0.95   0.75 0.45 0.1 0.3    0.01 0 0 0.01]],
@@ -1100,6 +1101,7 @@ return {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = true,
+	  water              = true,
       properties = {
         airdrag            = 0.99,
         colormap           = [[0.92 0.92 0.91 0.98  0.92 0.90 0.78 0.95   0.75 0.43 0.09 0.3    0.01 0 0 0.01]],

@@ -39,6 +39,7 @@ return {
 		customparams = {
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
+			selectable_as_combat_unit = true,
 			subfolder = "Legion/SeaPlanes",
 			unitgroup = "util",
 		},

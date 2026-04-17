@@ -900,6 +900,7 @@ local function drawOrders()
 end
 
 function widget:DrawScreen()
+	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	local x, y = Spring.GetMouseState()
 	local cellHovered
 	if not WG['topbar'] or not WG['topbar'].showingQuit() then

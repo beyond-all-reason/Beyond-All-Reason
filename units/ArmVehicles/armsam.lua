@@ -144,7 +144,7 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 670,
 				customparams = {
-					weapons_group = 2,
+					weapons_group = 1,
 				},
 				damage = {
 					default = 1,
@@ -194,7 +194,7 @@ return {
 				customparams = {
 					overrange_distance = 633,
 					projectile_destruction_method = "descend",
-					weapons_group = 1,
+					weapons_group = 2,
 				},
 				damage = {
 					default = 86,
