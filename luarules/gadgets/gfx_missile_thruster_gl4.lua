@@ -62,7 +62,7 @@ local muzzleTexture = "bitmaps/projectiletextures/muzzleside.tga"
 local glowTexture   = "bitmaps/projectiletextures/glow2.tga"
 
 -- Global glow multiplier (scales glow color intensity for all missiles)
-local GLOW_MULT = 1.2
+local GLOW_MULT = 1.1
 local GLOW_SIZE_MULT = 1.1   -- global multiplier on glow billboard size
 
 --------------------------------------------------------------------------------
@@ -127,7 +127,7 @@ local THRUSTER_CONFIGS = {
 		size = 3.3, sizeGrowth = 0.2,
 		colorR = 1.0, colorG = 0.7, colorB = 0.4,
 		colorEndR = 1.0, colorEndG = 0.4, colorEndB = 0.1,
-		glowSize = 50, glowR = 0.15, glowG = 0.08, glowB = 0.02,
+		glowSize = 50, glowR = 0.12, glowG = 0.08, glowB = 0.02,
 		thrusterOffset = -1,
 	},
 	["missiletrailmedium-red"] = {
@@ -135,7 +135,7 @@ local THRUSTER_CONFIGS = {
 		size = 3.3, sizeGrowth = 0.2,
 		colorR = 1.0, colorG = 0.33, colorB = 0.17,
 		colorEndR = 1.0, colorEndG = 0.22, colorEndB = 0.05,
-		glowSize = 50, glowR = 0.25, glowG = 0.1, glowB = 0.01,
+		glowSize = 50, glowR = 0.13, glowG = 0.06, glowB = 0.01,
 		thrusterOffset = 3,
 	},
 	["missiletraillarge-red"] = {
@@ -143,7 +143,7 @@ local THRUSTER_CONFIGS = {
 		size = 3.7, sizeGrowth = 0.2,
 		colorR = 1.0, colorG = 0.33, colorB = 0.11,
 		colorEndR = 1.0, colorEndG = 0.12, colorEndB = 0.05,
-		glowSize = 50, glowR = 0.25, glowG = 0.1, glowB = 0.01,
+		glowSize = 50, glowR = 0.13, glowG = 0.06, glowB = 0.01,
 		thrusterOffset = -2,
 	},
 	missiletrailviper = {
@@ -151,7 +151,7 @@ local THRUSTER_CONFIGS = {
 		size = 2.8, sizeGrowth = 0.5,
 		colorR = 1.0, colorG = 0.7, colorB = 0.4,
 		colorEndR = 1.0, colorEndG = 0.4, colorEndB = 0.1,
-		glowSize = 50, glowR = 0.15, glowG = 0.07, glowB = 0.02,
+		glowSize = 50, glowR = 0.12, glowG = 0.07, glowB = 0.02,
 		thrusterOffset = 4,
 	},
 	-- Fighter missiles (pinkish/purple-tinted, forward-facing)
