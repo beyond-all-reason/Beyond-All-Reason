@@ -21,6 +21,10 @@ uniform float gameFrame;
 
 uniform vec4 translationScale;
 
+// 0..1 fade-in/out multiplier driven by gadget when shield turns on/depletes
+uniform float shieldFade;
+uniform float overlapScale; // [0..1] dims this shield when it overlaps with others, so dense shield clusters don't fully obscure the map
+
 struct ImpactInfo {
 	int count;
 	vec4 impactInfoArray[MAX_POINTS];
@@ -266,8 +270,20 @@ void main() {
 		float outlineFactor = smoothstep( 0.0, abs(viewPos.z - minDepthView), outlineEffectSize * valueNoise );
 		outlineFactor *= mix(0.25, 1.0, SNORM2NORM(sin(0.1*gameFrame + 5.0*(modelPos.x + modelPos.z +  modelPos.y))));
 
+		// Animated crackle on the outline edge so where the shield meets terrain/units
+		// it shimmers like a contact arc rather than a static halo.
+		const float OUTLINE_CRACKLE_SCALE = 130.0;  // noise frequency along the edge
+		const float OUTLINE_CRACKLE_SPEED = 0.110; // scroll speed
+		const float OUTLINE_CRACKLE_AMOUNT = 0.25; // modulation depth (0 = off, 1 = full flicker)
+		vec3 outlineCrackleP = modelPos.xyz * OUTLINE_CRACKLE_SCALE;
+		outlineCrackleP.y -= gameFrame * OUTLINE_CRACKLE_SPEED;
+		outlineCrackleP.x += gameFrame * OUTLINE_CRACKLE_SPEED * 0.37;
+		float outlineCrackle = SNORM2NORM(SimplexPerlin3D(outlineCrackleP));
+		outlineFactor *= mix(1.0 - OUTLINE_CRACKLE_AMOUNT, 1.0 + OUTLINE_CRACKLE_AMOUNT, outlineCrackle);
+		outlineFactor = clamp(outlineFactor, 0.0, 1.0);
 
-		color.a = mix(color.a, outlineAlpha, outlineFactor);
+		// Scale by shieldFade so outline alpha fades with the rest of the shield
+		color.a = mix(color.a, outlineAlpha * shieldFade, outlineFactor);
 	}
 
 	if (BITMASK_FIELD(effects, 3)) { // impact animation
@@ -298,7 +314,7 @@ void main() {
 			if (BITMASK_FIELD(effects, 8)) { // impactRipples
 				vec2 rippleOffset = GetRippleOffset(impactNoiseVec, vec3(0.0, 0.0, 1.0), thisImpactFactor.r);
 				impactNoiseVec.xy += rippleOffset;
-				thisImpactFactor *= 1.0 + length(rippleOffset) * 10.0;
+				thisImpactFactor *= 1.0 + length(rippleOffset) * 1.0;
 			}
 
 			impactNoiseVec *= 36.0 / cameraDistanceFactors.x;
@@ -316,7 +332,123 @@ void main() {
 			impactFactor.a = 0.333333 * (impactFactor.r + impactFactor.g + impactFactor.b);
 		}
 
-		color += impactColor * impactFactor;
+		// Scale by shieldFade so impact flashes fade with the shield
+		color += impactColor * impactFactor * shieldFade;
+	}
+
+	// --- Idle rim energy field ----------------------------------------------
+	// Always-on enhancement that gives shields a visible, animated silhouette
+	// without obstructing the units inside. Fresnel acts as the master mask:
+	// rim ~= 0 head-on, ~= 1 at the silhouette, so the interior stays clear
+	// even when many shields overlap.
+	vec3  rimHotBoost  = vec3(0.0); // applied AFTER tonemap to keep saturation
+	float rimHotAlpha  = 0.0;
+	{
+		const float RIM_SHARPNESS  = 1.5;   // higher = thinner edge band
+		const float RIM_ALPHA      = 0.45;  // peak alpha contribution at silhouette
+		const float RIM_COLOR_GAIN = 2.2;   // how much rim brightens (lower = more saturated)
+		const float HEX_SCALE_U    = 1.6;   // hex pattern density around belly
+		const float HEX_SCALE_V    = 3.0;   // hex pattern density vertically
+		const float HEX_DRIFT_U    = 0.0014;// horizontal drift speed
+		const float HEX_DRIFT_V    = 0.0006;// vertical drift speed
+		const float SWEEP_FREQ     = 5.5;   // vertical scanline density
+		const float SWEEP_SPEED    = 0.040; // scanline upward speed
+		const float SWEEP_SHARP    = 5.0;   // higher = thinner sweep band
+		const float BREATH_SPEED   = 0.018; // overall pulse speed
+		const float CRACKLE_SCALE  = 100.0;  // micro-noise frequency on rim
+		const float CRACKLE_SPEED  = 0.170; // micro-noise scroll speed
+		const float CRACKLE_AMOUNT = 0.44;  // crackle modulation strength
+		const float HEX_FIRE_PROB  = 0.18;  // fraction of "charged" hex cells
+		const float HEX_FIRE_GAIN  = 1.8;   // brightness boost on charged cells
+		const float ARC_BURST_FREQ = 0.013; // arc-flash frequency (per frame)
+		const float ARC_BURST_GAIN = 1.5;   // arc-flash brightness peak
+		const float CHROMA_SPLIT   = 0.5;  // cyan-positive split at extreme rim
+		const float HOT_ESCAPE     = 0.85;  // fraction of rim color to keep post-tonemap
+
+		float rim = 1.0 - clamp(colormix, 0.0, 1.0);
+		rim = pow(rim, RIM_SHARPNESS);
+
+		// Hex energy cells drifting around the sphere; spherical UV from modelPos
+		vec2 hexUV;
+		hexUV.x = atan(modelPos.x, modelPos.z) * (1.0 / PI) * HEX_SCALE_U;
+		hexUV.y = modelPos.y * HEX_SCALE_V;
+		hexUV  += vec2(gameFrame * HEX_DRIFT_U, gameFrame * HEX_DRIFT_V);
+		// Hexagon2D returns 1 in gaps, 0 inside cells; we want lit cells -> invert
+		float hex = 1.0 - Hexagon2D(hexUV, 0.30, 0.55);
+
+		// Per-cell randomization: use floor(hexUV) as cell id, hash with Value3D
+		// to pick which cells "fire" brighter. Slow time evolution so cells
+		// charge/discharge over a few seconds.
+		vec3 cellId = vec3(floor(hexUV * 1.7), floor(gameFrame * 0.020));
+		float cellHash = Value3D(cellId);
+		float cellFire = smoothstep(1.0 - HEX_FIRE_PROB, 1.0, cellHash);
+		hex *= mix(1.0, HEX_FIRE_GAIN, cellFire);
+
+		// Vertical scanline sweep traveling up the shield
+		float sweep = SNORM2NORM(sin(modelPos.y * SWEEP_FREQ - gameFrame * SWEEP_SPEED));
+		sweep = pow(sweep, SWEEP_SHARP);
+
+		// Occasional arc-burst: a much brighter, faster, narrower sweep band
+		// that fires irregularly. Hash by gameFrame buckets for randomness.
+		float arcPhase = floor(gameFrame * ARC_BURST_FREQ);
+		float arcSeed  = Value3D(vec3(arcPhase, translationScale.x * 0.07, translationScale.z * 0.11));
+		float arcGate  = smoothstep(0.78, 0.92, arcSeed);
+		float arcLocal = SNORM2NORM(sin(modelPos.y * SWEEP_FREQ * 2.2 - gameFrame * SWEEP_SPEED * 5.0));
+		arcLocal = pow(arcLocal, SWEEP_SHARP * 1.6);
+		float arc = arcLocal * arcGate * ARC_BURST_GAIN;
+
+		// Slow breathing brightness modulation so idle shields feel alive
+		float breath = 0.85 + 0.15 * SNORM2NORM(sin(gameFrame * BREATH_SPEED + translationScale.x * 0.13));
+
+		// High-freq crackle noise modulating only the rim alpha for that
+		// "containment field" feel (no color contribution -> stays cheap).
+		vec3 crackleP = modelPos.xyz * CRACKLE_SCALE;
+		crackleP.y -= gameFrame * CRACKLE_SPEED;
+		float crackle = SNORM2NORM(SimplexPerlin3D(crackleP));
+		float crackleMod = mix(1.0 - CRACKLE_AMOUNT, 1.0 + CRACKLE_AMOUNT, crackle);
+
+		// Combine: rim is the master mask, hex/sweep/arc are texture, breath modulates
+		float idle = rim * (0.55 + 0.30 * hex + 0.45 * sweep + arc) * breath;
+
+		// Rim color follows shield charge state. We derive a "warmness" from
+		// color1 itself (high R, low B = damaged orange/red), and blend the
+		// rim target between cool teal (healthy) and a hot orange (damaged).
+		// This way the rim still announces low-charge urgency.
+		const vec3 RIM_COOL_COLOR = vec3(0.10, 0.95, 1.20); // teal/cyan, healthy
+		const vec3 RIM_WARM_COLOR = vec3(1.40, 0.45, 0.10); // orange/red, damaged
+		float warmness = clamp(color1.r - color1.b * 0.8, 0.0, 1.0);
+		vec3 rimTarget = mix(RIM_COOL_COLOR, RIM_WARM_COLOR, warmness);
+		vec3 rimTint   = mix(color1.rgb * 0.5, rimTarget, pow(rim, 0.6));
+
+		// Chromatic dispersion at the extreme silhouette: bias toward the
+		// rim target's dominant channel so the brightest hot edge keeps its
+		// hue (cool when healthy, warm when damaged) instead of clipping.
+		float chromaMask = pow(rim, 4.0);
+		vec3 chromaDir   = mix(vec3(-1.0, 0.4, 1.0), vec3(1.0, -0.2, -0.8), warmness);
+		vec3 chromaSplit = chromaDir * CHROMA_SPLIT * chromaMask * idle;
+
+		vec3 rimColor = rimTint * idle * RIM_COLOR_GAIN + chromaSplit;
+		float rimA    = idle * RIM_ALPHA * crackleMod;
+
+		// Apply global fade so rim disappears when shield turns off / depletes
+		rimColor *= shieldFade;
+		rimA     *= shieldFade;
+
+		// Replace (lerp) rather than add: additive + tonemap clamp was making
+		// both G and B channels clip to 1.0 and the rim went white. By lerping
+		// toward rimTint weighted by idle, the silhouette adopts the rim hue.
+		float replaceWeight = clamp(idle * 1.2, 0.0, 1.0) * shieldFade;
+		color.rgb = mix(color.rgb, rimTint, replaceWeight);
+		// Small additive contribution for "hot" brightness, limited so it
+		// does not push channels into the white clamp.
+		vec3 hotAdd = rimTint * idle * (RIM_COLOR_GAIN - 1.0) * shieldFade + chromaSplit;
+		color.rgb += hotAdd * (1.0 - HOT_ESCAPE) * 0.4;
+		color.a   += rimA;
+
+		// Post-tonemap: add the remaining hot contribution so saturated hue
+		// survives the YCbCr luma clamp.
+		rimHotBoost = hotAdd * HOT_ESCAPE * 0.4;
+		rimHotAlpha = rimA * 0.35;
 	}
 
 	//poor man's tonemapping ahead
@@ -325,8 +457,24 @@ void main() {
 	ycbcrColor.x = min(ycbcrColor.x, maxLuma);
 	color.rgb = YCBCR2RGB * ycbcrColor;
 
+	// Apply rim hot-boost AFTER tonemap so the silhouette keeps its color
+	color.rgb += rimHotBoost;
+	color.a   += rimHotAlpha;
+
 	const float maxAlpha = 0.6;
 	color.a = min(color.a, maxAlpha);
+
+	// Final safeguard: multiply by shieldFade so the shield can never leave
+	// residual opacity behind when it fades out (covers any contribution that
+	// doesn't individually scale with shieldFade).
+	color.a *= shieldFade;
+
+	// Overlap dimming: when many shields stack on the same screen volume the
+	// scene becomes unreadable. Each shield is given a per-frame opacity
+	// scalar by the gadget based on how many other shields it overlaps and
+	// whether it sits in front of or behind them. We dim only alpha so the
+	// rim/glow color stays correct and shields just become more transparent.
+	color.a *= overlapScale;
 
 	gl_FragColor = color;
 }

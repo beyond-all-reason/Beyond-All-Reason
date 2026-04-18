@@ -29,11 +29,11 @@ local mathMax = math.max
 -- Localized Spring API for performance
 local spEcho = Spring.Echo
 
-local version = 2
+local version = 2.1
 
 local dbgDraw = 0              -- draw only the bloom-mask? [0 | 1]
 
-local glowAmplifier = 0.18            -- intensity multiplier on glow source fragments (HDR pipeline -- much lower than the old 8-bit pipeline needed)
+local glowAmplifier = 1.0            -- intensity multiplier on glow source fragments (HDR pipeline -- much lower than the old 8-bit pipeline needed)
 local maxBrightContribution = 0.9     -- per-pixel cap on the bright pass output to prevent fireflies / overwhelming bloom on intense emissive blink frames
 local illumThreshold = 0            -- soft-knee threshold for the bright pass (computed from sun lighting)
 local kneeWidth = 0.5               -- width of the soft knee around illumThreshold

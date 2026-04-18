@@ -801,8 +801,11 @@ local function DoDrawSSAO()
 	texrectPaddedVAO:DrawArrays(GL_TRIANGLES)
 	ssaoCompositeShader:Deactivate()
 
-	glDepthMask(true)
-	glDepthTest(GL.LESS) -- restore default depth function for downstream passes
+	-- Restore default depth function but keep depth writes OFF: the upcoming
+	-- DrawWorldParticles pass renders translucent geometry that must not
+	-- write to the depth buffer, otherwise later (further) particle layers
+	-- get LEQUAL-rejected and you get triangulated/sliced particle billboards.
+	glDepthTest(GL.LESS)
 
 	glTexture(1, false)
 	glTexture(4, false)
@@ -818,6 +821,16 @@ local function DoDrawSSAO()
 	-- Required exit state for DrawWorldPreParticles
 	glBlending(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
 	glDepthTest(true)
+
+	-- Our texrect_screen.vert.glsl writes gl_ClipDistance[0..2] = 1.0 to work
+	-- around an engine quirk at DrawWorldPreParticles (recoil#2791). The side
+	-- effect is that GL_CLIP_DISTANCE0..2 remain enabled when we return, and
+	-- subsequent CEG particle vertex shaders (which do not write gl_ClipDistance)
+	-- get undefined values -> visually sliced/clipped particles. Disable here.
+	-- gl.ClipDistance is 0-indexed (maps to GL_CLIP_DISTANCE0 + clipId).
+	gl.ClipDistance(0, false)
+	gl.ClipDistance(1, false)
+	gl.ClipDistance(2, false)
 end
 
 function widget:DrawWorldPreParticles(drawAboveWater, drawBelowWater, drawReflection, drawRefraction)

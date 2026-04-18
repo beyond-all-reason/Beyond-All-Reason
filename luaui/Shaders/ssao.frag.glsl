@@ -147,14 +147,6 @@ void main() {
 		// TBN matrix. Transforms from tangent space to view space
 		mat3 kernelMatrix = mat3(viewTangent, viewBitangent, viewNormal);
 
-		// Distance-adaptive radius: as the camera zooms out, a fixed-world-space radius
-		// projects to fewer screen pixels, so AO regions become sub-pixel and get washed
-		// away by the blur. Scaling radius linearly with depth (clamped to a max) keeps
-		// the screen-space crater size roughly constant — AO stays visible at long zoom
-		// while close-up detail is preserved.
-		float depthScale = clamp(abs(viewPosition.z) / 600.0, 1.0, SSAO_RADIUS_FAR_SCALE);
-		float effectiveRadius = SSAO_RADIUS * depthScale;
-
 		// Go through the kernel samples and create occlusion factor.
 		float occlusion = 0.0; // higher numbers mean more occlusion
 
@@ -190,7 +182,7 @@ void main() {
 			vec3 viewSampleVector = kernelMatrix * samplingKernel[i];
 
 			// ... and calculate sample point.
-			vec4 viewTestPosition = viewPosition + effectiveRadius * vec4(viewSampleVector, 0.0);
+			vec4 viewTestPosition = viewPosition + SSAO_RADIUS * vec4(viewSampleVector, 0.0);
 
 			// projection
 			vec4 ndcTestPosition = cameraProj * viewTestPosition;
@@ -220,8 +212,8 @@ void main() {
 			float occlDelta = smoothstep(0,1,delta);
 
 			// hits further thay the rays length shouldnt occlude either
-			// Scaled by depthScale so the reject window tracks the actual ray length used.
-			float toofar = 1.0 - smoothstep (effectiveRadius * 0.75, effectiveRadius * 1.25, delta);
+
+			float toofar = 1.0 - smoothstep (SSAO_RADIUS * 0.75, SSAO_RADIUS * 1.25, delta);
 
 			occlusionCondition *= myraylen * occlDelta *toofar;
 			// old method:
@@ -239,6 +231,15 @@ void main() {
 		float fullylit = clamp(1.0 - occlusion, 0.0, 1.0);
 
 		fullylit = pow(fullylit, SSAO_OCCLUSION_POWER);
+
+		// Jimenez multi-bounce AO approximation (Activision GDC 2016, "Practical Realtime Strategies for
+		// Accurate Indirect Occlusion"). Pre-baked for an average albedo of 0.95 since this widget outputs
+		// scalar AO that gets multiplied into deferred lighting downstream. The curve mostly affects the
+		// dark end: it lifts already-dark crevices back up to account for indirect light bouncing back into
+		// them, so AO no longer over-darkens regions that physical light would partially fill in.
+		// Coefficients: a = 2.0404*albedo - 0.3324; b = -4.7951*albedo + 0.6417; c = 2.7552*albedo + 0.6903.
+		fullylit = max(fullylit, ((fullylit * 1.6060 - 3.9136) * fullylit + 3.3077) * fullylit);
+		fullylit = clamp(fullylit, 0.0, 1.0);
 
 		#if DEBUG_SSAO == 1
 			fragColor = vec4(vec3( fullylit ), 1.0 );
