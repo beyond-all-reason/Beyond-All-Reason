@@ -106,12 +106,12 @@ local GLOW_THICKNESS_FULL   = 4.0   -- beams thicker than this get full glow
 local GLOW_DIM_FACTOR       = 0.2  -- glow brightness multiplier for thinnest beams (0..1)
 
 -- Traveling pulse
-local PULSE_WIDTH_MULT      = 2.2   -- pulse quad width as multiple of beam width
+local PULSE_WIDTH_MULT      = 2.0   -- pulse quad width as multiple of beam width
 local PULSE_BRIGHTNESS      = 3.3   -- pulse intensity (additive, on top of beam)
-local PULSE_SPEED           = 850.0 -- pulse travel speed in world units (elmos) per second
-local PULSE_SPACING         = 220.0  -- distance between pulse centers in world units (elmos)
-local PULSE_SIGMA           = 30.0  -- gaussian half-width of each pulse in world units (elmos)
-local PULSE_CORE_FRAC       = 0.25   -- fraction of pulse width that is bright core (0..1)
+local PULSE_SPEED           = 950.0 -- pulse travel speed in world units (elmos) per second
+local PULSE_SPACING         = 200.0  -- distance between pulse centers in world units (elmos)
+local PULSE_SIGMA           = 35.0  -- gaussian half-width of each pulse in world units (elmos)
+local PULSE_CORE_FRAC       = 0.3   -- fraction of pulse width that is bright core (0..1)
 
 -- Paralyzer beam pulse overrides (faster, brighter, tighter)
 local PULSE_PARA_BRIGHTNESS = 8.0    -- pulse intensity for paralyzer beams
@@ -221,6 +221,7 @@ local beamCleanupFrame = 0
 local hasGhosts = false    -- true when weaponBeams has any entries (skip ghost loop when empty)
 local liveKeys = {}        -- reused each frame, nil-cleared instead of reallocated
 local liveKeysList = {}    -- tracks keys to clear
+local liveBeamSlot = {}    -- wbKey -> offset slot in beamData (dedupe multiple projectiles per emitter)
 local removeList = {}      -- reused across cleanup cycles
 local removeCount = 0
 
@@ -1086,6 +1087,7 @@ local function updateBeams()
 	-- Clear liveKeys from previous frame (nil-clear, no table alloc)
 	for i = 1, #liveKeysList do
 		liveKeys[liveKeysList[i]] = nil
+		liveBeamSlot[liveKeysList[i]] = nil
 	end
 	local liveKeysCount = 0
 
@@ -1169,9 +1171,11 @@ local function updateBeams()
 							) then
 								local ownerID = spGetProjectileOwnerID(proID) or 0
 								local wbKey = ownerID * 65536 + wDefID
-								liveKeys[wbKey] = true
-								liveKeysCount = liveKeysCount + 1
-								liveKeysList[liveKeysCount] = wbKey
+								if not liveKeys[wbKey] then
+									liveKeys[wbKey] = true
+									liveKeysCount = liveKeysCount + 1
+									liveKeysList[liveKeysCount] = wbKey
+								end
 
 								local tracked = weaponBeams[wbKey]
 								if not tracked then
@@ -1189,7 +1193,19 @@ local function updateBeams()
 								local rangeFracSq = beamLenSq * cfg.invRangeSq
 								local intensityFalloff = BEAM_RANGE_FALLOFF_BASE + BEAM_RANGE_FALLOFF_MULT * mathMin(rangeFracSq, 1.0)
 
-								beamCount = beamCount + 1
+								-- Dedupe: if this emitter already wrote a beam this frame
+								-- (target-switch creates overlapping projectiles), reuse its
+								-- slot so the newest projectile overwrites the previous one
+								-- instead of rendering as a parallel beam.
+								local slotOffset = liveBeamSlot[wbKey]
+								local savedOffset
+								if slotOffset then
+									savedOffset = offset
+									offset = slotOffset
+								else
+									beamCount = beamCount + 1
+									liveBeamSlot[wbKey] = offset
+								end
 								beamData[offset + 1]  = px
 								beamData[offset + 2]  = py
 								beamData[offset + 3]  = pz
@@ -1218,7 +1234,11 @@ local function updateBeams()
 									beamData[offset + 19] = cfg.liveFlareG
 									beamData[offset + 20] = cfg.liveFlareB
 								end
-								offset = offset + 20
+								if savedOffset then
+									offset = savedOffset
+								else
+									offset = offset + 20
+								end
 							end -- spIsAABBInView
 					end -- visible
 					end -- vx
