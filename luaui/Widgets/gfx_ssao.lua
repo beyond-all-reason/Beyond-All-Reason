@@ -1,5 +1,6 @@
+local glRendererLower = Platform.glRenderer and string.lower(Platform.glRenderer) or ""
 local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 1000
-if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+if Platform ~= nil and Platform.gpuVendor == 'Intel' and not string.find(glRendererLower, "arc") then
 	return false
 end
 if gpuMem and gpuMem > 0 and gpuMem < 1800 then
@@ -80,7 +81,7 @@ local definesSlidersParamsList = {
 	{name = 'SSAO_RADIUS', default = 8, min = 4, max = 16, digits = 1, tooltip = 'world space maximum sampling radius'},
 	{name = 'SSAO_RADIUS_FAR_SCALE', default = 3, min = 1, max = 8, digits = 1, tooltip = 'How much to grow SSAO radius at far distance to keep AO visible when zoomed out (1 = disabled)'},
 	{name = 'SSAO_MIN', default = 0.7, min = 0, max = 4, digits = 2, tooltip = 'minimum depth difference between fragment and sample depths to trigger SSAO sample occlusion. Absolute value in world space coords.'},
-	{name = 'SSAO_OCCLUSION_POWER', default = 3, min = 0, max = 16, digits = 1, tooltip = 'how much effect each SSAO sample has'},
+	{name = 'SSAO_OCCLUSION_POWER', default = 4, min = 0, max = 16, digits = 1, tooltip = 'how much effect each SSAO sample has'},
 	{name = 'SSAO_FADE_DIST_1', default = 1200, min = 200, max = 3000, digits = 1, tooltip = 'near distance for max SSAO'},
 	{name = 'SSAO_FADE_DIST_0', default = 2400, min = 1000, max = 4000, digits = 1, tooltip = 'far distance for min SSAO'},
 	{name = 'DEBUG_SSAO', default = 0, min = 0, max = 1, digits = 0, tooltip = 'DEBUG_SSAO show the raw samples'},
@@ -105,7 +106,7 @@ local definesSlidersParamsList = {
 	{name = 'SLOWFUSE', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Only fuse every 30 frames. DO NOT TOUCH!'},
 	{name = 'NOFUSE', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Dont use the gbuf fuse texture'},
 
-	{name = 'SSAO_ALPHA_POW', default = 8, min = 1, max = 20, digits = 0, tooltip = 'Legacy setting'},
+	{name = 'SSAO_ALPHA_POW', default = 10, min = 1, max = 20, digits = 0, tooltip = 'Legacy setting'},
 }
 local function InitShaderDefines()
 	for i, shaderDefine in ipairs(definesSlidersParamsList) do
@@ -166,7 +167,7 @@ local presets = {
 		SSAO_FADE_DIST_0 = 6000, -- BAR camera zooms far past this; pushed out so AO survives strategic zoom
 		SSAO_FADE_DIST_1 = 3000,
 		SSAO_KERNEL_SIZE = 12, -- IGN noise + bilateral blur dissolves a 12-tap kernel cleanly at half-res
-		SSAO_MIN = 0.69,
+		SSAO_MIN = 0.60,
 		SSAO_RADIUS = 9,
 		SSAO_RADIUS_FAR_SCALE = 2.5, -- modest scale-up; cheap preset doesnt need maximum reach
 		USE_STENCIL = 0, -- There is a non-zero cpu cost of drawing the stencil, and at low resolutions, it doesnt help really
@@ -183,7 +184,7 @@ local presets = {
 		SSAO_FADE_DIST_0 = 7000,
 		SSAO_FADE_DIST_1 = 3500,
 		SSAO_KERNEL_SIZE = 20, -- bumped slightly vs LOW (12) to compensate for half-res; still ~3.5x cheaper than full-res 32
-		SSAO_MIN = 0.74,
+		SSAO_MIN = 0.64,
 		SSAO_RADIUS = 8,
 		SSAO_RADIUS_FAR_SCALE = 3.5,
 	},
@@ -199,7 +200,7 @@ local presets = {
 		SSAO_FADE_DIST_0 = 9000,
 		SSAO_FADE_DIST_1 = 4500,
 		SSAO_KERNEL_SIZE = 28, -- was 64 (~2.3x perf win); visually indistinguishable with IGN
-		SSAO_MIN = 0.71,
+		SSAO_MIN = 0.61,
 		SSAO_RADIUS = 7,
 		SSAO_RADIUS_FAR_SCALE = 4.5, -- HIGH gets the most reach so contact shadows stay readable at full zoom
 	},
