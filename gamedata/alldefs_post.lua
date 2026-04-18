@@ -364,7 +364,7 @@ local function unitDef_Post(name, uDef)
 	end
 
 	if modOptions.evocom then
-		evocomTweaks(uDef, modOptions) -- also adds effigies for higher-level commanders
+		evocomTweaks(name, uDef, modOptions) -- also adds effigies for higher-level commanders
 	end
 
 	if customparams.evolution_target then
