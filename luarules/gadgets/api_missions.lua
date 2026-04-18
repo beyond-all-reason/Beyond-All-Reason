@@ -44,7 +44,9 @@ function gadget:Initialize()
 	--scriptPath = 'mission-api-tests/sound_test.lua'
 	--scriptPath = 'mission-api-tests/issue_orders_test.lua'
 	--scriptPath = 'mission-api-tests/unit_triggers_test.lua'
-	scriptPath = 'mission-api-tests/feature_triggers_test.lua'
+	--scriptPath = 'mission-api-tests/feature_triggers_test.lua'
+	--scriptPath = 'mission-api-tests/resource_test.lua'
+	scriptPath = 'mission-api-tests/statistics_triggers_test.lua'
 
 	if not scriptPath then
 		gadgetHandler:RemoveGadget()
