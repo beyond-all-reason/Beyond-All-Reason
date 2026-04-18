@@ -4,6 +4,19 @@ local commanderLevel1 = {
 	legcom = true,
 }
 
+local commanderEffigies = {
+	[1]  = nil, -- already set up by the effigy modoption
+	[2]  = "comeffigylvl1",
+	[3]  = "comeffigylvl2",
+	[4]  = "comeffigylvl2",
+	[5]  = "comeffigylvl3",
+	[6]  = "comeffigylvl3",
+	[7]  = "comeffigylvl4",
+	[8]  = "comeffigylvl4",
+	[9]  = "comeffigylvl5",
+	[10] = "comeffigylvl5",
+}
+
 local function evolvingCommanders(name, unitDef, modOptions)
 	local customparams = unitDef.customparams
 
@@ -12,20 +25,10 @@ local function evolvingCommanders(name, unitDef, modOptions)
 
 		if modOptions.comrespawn == "all" or modOptions.comrespawn == "evocom" then --add effigy respawning, if enabled
 			customparams.respawn_condition = "health"
-
-			local buildoptions = unitDef.buildoptions
-			local numBuildoptions = #buildoptions
-
-			if comLevel == 2 then
-				buildoptions[numBuildoptions + 1] = "comeffigylvl1"
-			elseif comLevel == 3 or comLevel == 4 then
-				buildoptions[numBuildoptions + 1] = "comeffigylvl2"
-			elseif comLevel == 5 or comLevel == 6 then
-				buildoptions[numBuildoptions + 1] = "comeffigylvl3"
-			elseif comLevel == 7 or comLevel == 8 then
-				buildoptions[numBuildoptions + 1] = "comeffigylvl4"
-			elseif comLevel == 9 or comLevel == 10 then
-				buildoptions[numBuildoptions + 1] = "comeffigylvl5"
+			if comLevel then
+				local buildoptions = unitDef.buildoptions
+				local numBuildoptions = #buildoptions
+				buildoptions[numBuildoptions + 1] = commanderEffigies[comLevel]
 			end
 		end
 
