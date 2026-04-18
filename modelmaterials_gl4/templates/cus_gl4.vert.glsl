@@ -518,6 +518,15 @@ void main(void)
 		if (buildProgress > -0.5){
 			// healthFraction, cannot, in theory be more than buildProgress
 			aoterm_fogFactor_selfIllumMod_healthFraction.w = clamp(aoterm_fogFactor_selfIllumMod_healthFraction.w / max(0.00000001,buildProgress), 0.0, 1.0);
+
+			// Push under-construction units upward by a small amount in model space so
+			// they don't z-fight with the engine-drawn build preview ghost (the engine
+			// renders gl.UnitShape() at the build position for each selected builder's
+			// queued build orders, including the one currently being constructed).
+			// Fades out near completion so the placed unit lands at exactly groundheight.
+			if (buildProgress < 0.999){
+				piecePos.y += 0.5 * (1.0 - smoothstep(0.95, 1.0, buildProgress));
+			}
 		}
 	#endif
 
