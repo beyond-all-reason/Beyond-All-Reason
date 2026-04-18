@@ -23,6 +23,7 @@ local data = {}
 function gadget:Initialize()
     data.mapName = Game.mapName
     data.gameVersion = Game.gameVersion
+    data.gameLoaded = os.time() -- epoch
 
     GG.ReplayMetadata.SetReplayMetadata("gameInfo", data)
 end
@@ -30,12 +31,13 @@ end
 function gadget:GameStart()
     local teamList = Spring.GetTeamList()
     data.teams = {}
+    data.gameStarted = os.time() -- epoch
     local gaiaTeamID = Spring.GetGaiaTeamID and Spring.GetGaiaTeamID() or 666
     for _, teamID in ipairs(teamList) do
         if teamID ~= gaiaTeamID then
             local x, y, z = Spring.GetTeamStartPosition(teamID)
             local _, _, _, isAI, side = Spring.GetTeamInfo(teamID, false)
-            local playerNames = {}
+            local players = {}
             if isAI then
                 local _, _, _, aiName = Spring.GetAIInfo(teamID)
                 local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
@@ -43,22 +45,37 @@ function gadget:GameStart()
                     aiName = tostring(niceName)
                 end
                 aiName = aiName or "AI"
-                table.insert(playerNames, aiName)
+                table.insert(players, {
+                    id = teamID,
+                    name = aiName,
+                    isAI = true,
+                })
             else
-                local players = Spring.GetPlayerList(teamID) or {}
-                for _, playerID in ipairs(players) do
+                local playerList = Spring.GetPlayerList(teamID) or {}
+                for _, playerID in ipairs(playerList) do
                     local name = Spring.GetPlayerInfo(playerID, false)
                     if GG.playernames and GG.playernames.getPlayername then
                         name = GG.playernames.getPlayername(playerID) or name
                     end
-                    table.insert(playerNames, name)
+                    table.insert(players, {
+                        id = playerID,
+                        name = name,
+                        isAI = false,
+                    })
                 end
             end
+
+            local r,g,b,a = Spring.GetTeamColor(teamID)
+            r = math.floor(r * 255)
+            g = math.floor(g * 255)
+            b = math.floor(b * 255)
+            a = math.floor(a * 255)
+
             data.teams[teamID] = {
-                playerNames = playerNames,
+                players = players,
                 startPos = { x, y, z },
-                isAI = isAI,
-                faction = side
+                faction = side,
+                color = { r, g, b, a }
             }
         end
     end
