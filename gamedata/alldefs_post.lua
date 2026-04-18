@@ -77,6 +77,7 @@ function UnitDef_Post(name, uDef)
 		modOptions = Spring.GetModOptions()
 	end
 
+	uDef.loadingRadius = 512
 	-- Cache holiday checks for performance
 	if not holidays then
 		holidays = Spring.Utilities.Gametype.GetCurrentHolidays()
