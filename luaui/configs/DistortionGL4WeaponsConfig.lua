@@ -1078,15 +1078,15 @@ local projectileDefDistortions  = {
 					-- Distortion radius: floor of 20 so even light beams produce visible shimmer
 					local beamDistRadius = math.max(4, beamThickness * 1.1 + beamSize * 1.1)
 					if weaponDef.paralyzer then
-						beamDistRadius = beamDistRadius * 0.5
+						beamDistRadius = beamDistRadius * 0.6
 					end
 					sizeclass = GetClosestSizeClass(beamDistRadius)
 
 					-- Scale noise and effect strength by power
 					local beamOverrides = {
-						noiseStrength = 0.7 + 0.7 * powerFactor,
-						effectStrength = 1.2 + 0.5 * powerFactor,
-						noiseScaleSpace = 0.07 - 0.5 * powerFactor,  -- tighter noise for heavier beams
+						noiseStrength = 0.3 + 0.3 * powerFactor,
+						effectStrength = 1.0 + 0.7 * powerFactor,
+						noiseScaleSpace = 2.2 - 4.0 * powerFactor,  -- tighter noise for heavier beams
 					}
 					projectileDefDistortions[weaponID] = GetDistortionClass("LaserBeamHeat", sizeclass, beamOverrides)
 				end
