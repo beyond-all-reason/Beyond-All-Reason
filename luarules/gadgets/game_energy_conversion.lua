@@ -314,8 +314,12 @@ function gadget:GameFrame(n)
 				tID = teamList[tpos]
 
 				local eCur, eStor = spGetTeamResources(tID, 'energy')
+				local mCur, mStor = spGetTeamResources(tID, 'metal')
 				local mmLevel = spGetTeamRulesParam(tID, mmLevelParamName)
 				local convertAmount = eCur - eStor * mmLevel
+				if mCur >= mStor then
+					convertAmount = 0
+				end
 				local eConverted, mConverted, teamUsages = 0, 0, 0
 
 				local teamCaps = teamCapacities[tID]
