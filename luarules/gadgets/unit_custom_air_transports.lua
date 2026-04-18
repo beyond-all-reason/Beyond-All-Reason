@@ -96,7 +96,8 @@ local transporterClaims = {}
 
 local function claimTransportee(transporterID, transporteeID, teeSize)
 
-	if claimedBy[transporteeID] then return true end -- already claimed (double-call guard)
+	if claimedBy[transporteeID] == transporterID then return true end  -- same transporter, double-call guard
+	if claimedBy[transporteeID] then return false end                  -- already claimed by a different transporter
 	
 	queuedSeats[transporterID] = queuedSeats[transporterID] or 0 -- TODO: initialize in UnitCreated instead
 	
@@ -207,7 +208,7 @@ function gadget:AllowUnitTransportLoad(transporterID, transporterUnitDefID, tran
 
 	if duringAreaCmd then -- pre-queue phase: accumulate claims
 		-- move coarsely toward the area command center
-		Spring.SetUnitMoveGoal(transporterID, Q[2].params[1], Q[2].params[2], Q[2].params[3])
+		Spring.SetUnitMoveGoal(transporterID, goalX, goalY, goalZ)
 
 		-- finish the current sub-command to re-trigger the scan on the next SlowUpdate (CMD.REMOVE might also work)
 		Spring.UnitFinishCommand(transporterID)
