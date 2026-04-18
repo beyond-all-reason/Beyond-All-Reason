@@ -1,14 +1,13 @@
-local baseCommanderDefs = {
+local commanderLevel1 = {
 	armcom = true,
 	corcom = true,
 	legcom = true,
 }
 
-local function evolvingCommanders(unitDef, modOptions)
-	local name = unitDef.name
+local function evolvingCommanders(name, unitDef, modOptions)
 	local customparams = unitDef.customparams
 
-	if customparams.evocomlvl or baseCommanderDefs[unitDef.name] then
+	if customparams.evocomlvl or commanderLevel1[name] then
 		local comLevel = customparams.evocomlvl
 
 		if modOptions.comrespawn == "all" or modOptions.comrespawn == "evocom" then --add effigy respawning, if enabled
@@ -56,8 +55,7 @@ local function evolvingCommanders(unitDef, modOptions)
 		if modOptions.evocomlevelupmethod == "dynamic" then
 			customparams.evolution_condition = "power"
 			customparams.evolution_power_multiplier = 1                             -- Scales the power calculated based on your own combined power.
-			local evolutionPowerThreshold = customparams.evolution_power_threshold or
-			10000                                                                   --sets threshold for level 1 commanders
+			local evolutionPowerThreshold = customparams.evolution_power_threshold or 10000 --sets threshold for level 1 commanders
 			customparams.evolution_power_threshold = evolutionPowerThreshold * modOptions.evocomlevelupmultiplier
 		elseif modOptions.evocomlevelupmethod == "timed" then
 			customparams.evolution_timer = modOptions.evocomleveluptime * 60 * customparams.evocomlvl
