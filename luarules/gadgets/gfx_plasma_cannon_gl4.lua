@@ -122,6 +122,7 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
 		local coreB = mathMin(1, b + CORE_COLOR_ADD)
 
 		local cp = weaponDef.customParams or {}
+		if not cp.bogus then
 		local size = tonumber(cp.plasma_size_orig) or weaponDef.size or 1.5
 		local range = weaponDef.range or 300
 
@@ -133,6 +134,7 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
 			coreR = coreR, coreG = coreG, coreB = coreB,
 			size = size * SIZE_MULT,
 		}
+		end
 	end
 end
 
