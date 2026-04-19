@@ -236,12 +236,15 @@ local weaponConfigs = {}    -- weaponDefID -> thruster config table
 
 for weaponID, weaponDef in pairs(WeaponDefs) do
 	if weaponDef.type == "MissileLauncher" or weaponDef.type == "StarburstLauncher" then
+		local cp = weaponDef.customParams or {}
+		if not cp.bogus then
 		local tag = weaponDef.cegTag:lower()
 		if tag then
 			local cfg = THRUSTER_CONFIGS[tag]
 			if cfg then
 				weaponConfigs[weaponID] = cfg
 			end
+		end
 		end
 	end
 end

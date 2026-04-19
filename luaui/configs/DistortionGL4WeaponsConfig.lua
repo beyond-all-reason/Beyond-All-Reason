@@ -1084,9 +1084,9 @@ local projectileDefDistortions  = {
 
 					-- Scale noise and effect strength by power
 					local beamOverrides = {
-						noiseStrength = 0.3 + 0.3 * powerFactor,
-						effectStrength = 1.0 + 0.7 * powerFactor,
-						noiseScaleSpace = 2.2 - 4.0 * powerFactor,  -- tighter noise for heavier beams
+						noiseStrength = 0.35 + 0.3 * powerFactor,
+						effectStrength = 1.2 + 0.75 * powerFactor,
+						noiseScaleSpace = 2.3 - 4.0 * powerFactor,  -- tighter noise for heavier beams
 					}
 					projectileDefDistortions[weaponID] = GetDistortionClass("LaserBeamHeat", sizeclass, beamOverrides)
 				end

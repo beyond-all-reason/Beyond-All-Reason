@@ -33,6 +33,7 @@ local spIsPosInAirLos             = Spring.IsPosInAirLos
 local spGetMyAllyTeamID           = Spring.GetMyAllyTeamID
 local spGetSpectatingState        = Spring.GetSpectatingState
 local spGetGameFrame              = Spring.GetGameFrame
+local spGetFrameTimeOffset        = Spring.GetFrameTimeOffset
 local spGetProjectileOwnerID      = Spring.GetProjectileOwnerID
 local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
 local spIsAABBInView              = Spring.IsAABBInView
@@ -82,6 +83,10 @@ local LOS_BONUS_RANGE  = 100   -- when not USE_AIR_LOS then extra elmos of beam 
 
 -- Resolve LOS check function once (avoids per-call branch in hot loop)
 local spLosCheck = USE_AIR_LOS and spIsPosInAirLos or spIsPosInLos
+
+-- Retarget transition: smooth endpoint sweep when beam switches targets
+local RETARGET_FRAMES      = 4       -- game frames to sweep endpoint from old to new target
+local RETARGET_DISTANCE_SQ = 40 * 40 -- minimum endpoint jump² (elmos²) to trigger transition
 
 -- Beam body
 local BEAM_WIDTH_MULT         = 0.3   -- multiplier on weapon thickness for beam quad width
@@ -144,6 +149,8 @@ local LIVE_FLARE_PULSE_INIT = 1.0 - BEAM_SUSTAIN_LIFEFRAC * FLARE_LIFE_DIM  -- p
 
 for weaponID, weaponDef in pairs(WeaponDefs) do
 	if weaponDef.type == "BeamLaser" then
+		local cp = weaponDef.customParams or {}
+		if not cp.bogus then
 		local vis = weaponDef.visuals or {}
 		local r = vis.colorR or 1
 		local g = vis.colorG or 1
@@ -155,7 +162,6 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
 		local coreB = mathMin(1, b + CORE_COLOR_ADD)
 
 		-- Read original visual properties from customparams (alldefs_post stores them before zeroing)
-		local cp = weaponDef.customParams or {}
 		local thickness     = tonumber(cp.beam_thickness_orig) or weaponDef.thickness or 2
 		local corethickness = tonumber(cp.beam_corethickness_orig) or weaponDef.corethickness or 0.3
 		local laserflaresize = tonumber(cp.beam_laserflaresize_orig) or weaponDef.laserflaresize or 7
@@ -197,6 +203,7 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
 			liveFlareG = coreG * FLARE_COLOR_MULT * LIVE_FLARE_PULSE_INIT,
 			liveFlareB = coreB * FLARE_COLOR_MULT * LIVE_FLARE_PULSE_INIT,
 		}
+		end
 	end
 end
 
@@ -827,7 +834,13 @@ void main(void)
 	// World-space distance to nearest pulse center (repeating pattern)
 	float scrolledY = yWorld - timeInfo.z * pulseSpeed - phase * 100.0;
 	float halfSpacing = pulseSpacing * 0.5;
-	float distToPulse = abs(mod(scrolledY + halfSpacing, pulseSpacing) - halfSpacing);
+
+	// Per-pulse random offset: hash the pulse index for organic irregularity
+	float pulseIndex = floor(scrolledY / pulseSpacing + 0.5);
+	float jitter = fract(sin(pulseIndex * 127.1 + phase * 311.7) * 43758.5453) - 0.5;
+	float jitteredY = scrolledY + jitter * pulseSpacing * 0.3;
+
+	float distToPulse = abs(mod(jitteredY + halfSpacing, pulseSpacing) - halfSpacing);
 
 	// Gaussian falloff in world units
 	float invSigmaSq = 1.0 / (2.0 * pulseSigma * pulseSigma);
@@ -1083,6 +1096,7 @@ local function updateBeams()
 	beamVBO.usedElements = 0
 
 	local gameFrame = spGetGameFrame()
+	local dto = spGetFrameTimeOffset()
 
 	-- Clear liveKeys from previous frame (nil-clear, no table alloc)
 	for i = 1, #liveKeysList do
@@ -1170,7 +1184,13 @@ local function updateBeams()
 								mathMax(px, endX) + pad, mathMax(py, endY) + pad, mathMax(pz, endZ) + pad
 							) then
 								local ownerID = spGetProjectileOwnerID(proID) or 0
-								local wbKey = ownerID * 65536 + wDefID
+								-- Key includes quantized start position to distinguish
+								-- multiple hardpoints of the same weapon type on one unit,
+								-- while still deduping overlapping beams from target switches
+								-- (which share the same muzzle point).
+								local qx = math.floor(origPx * 0.25)  -- quantize to 4 elmos
+								local qz = math.floor(origPz * 0.25)
+								local wbKey = ownerID * 67108864 + qx * 8192 + qz  -- 2^26, 2^13
 								if not liveKeys[wbKey] then
 									liveKeys[wbKey] = true
 									liveKeysCount = liveKeysCount + 1
@@ -1183,10 +1203,38 @@ local function updateBeams()
 									weaponBeams[wbKey] = tracked
 									hasGhosts = true
 								end
+
+								-- Detect target switch: large endpoint jump triggers smooth transition
+								if tracked.endX then
+									local dx = origEndX - tracked.endX
+									local dy = origEndY - tracked.endY
+									local dz = origEndZ - tracked.endZ
+									if dx*dx + dy*dy + dz*dz > RETARGET_DISTANCE_SQ then
+										tracked.transEndX = tracked.endX
+										tracked.transEndY = tracked.endY
+										tracked.transEndZ = tracked.endZ
+										tracked.transFrame = gameFrame
+									end
+								end
+
 								tracked.px = origPx;   tracked.py = origPy;   tracked.pz = origPz
 								tracked.endX = origEndX; tracked.endY = origEndY; tracked.endZ = origEndZ
 								tracked.lastSeenFrame = gameFrame
 								tracked.ownerAllyTeam = proAlly
+
+								-- Apply retarget transition (smooth endpoint sweep)
+								if tracked.transFrame then
+									local transAge = (gameFrame - tracked.transFrame) + dto
+									if transAge < RETARGET_FRAMES then
+										local t = transAge / RETARGET_FRAMES
+										t = t * t * (3 - 2 * t)  -- smoothstep
+										endX = tracked.transEndX + (origEndX - tracked.transEndX) * t
+										endY = tracked.transEndY + (origEndY - tracked.transEndY) * t
+										endZ = tracked.transEndZ + (origEndZ - tracked.transEndZ) * t
+									else
+										tracked.transFrame = nil
+									end
+								end
 
 								-- Range falloff: use squared length (avoid sqrt)
 								local beamLenSq = vx*vx + vy*vy + vz*vz
