@@ -1170,7 +1170,13 @@ local function updateBeams()
 								mathMax(px, endX) + pad, mathMax(py, endY) + pad, mathMax(pz, endZ) + pad
 							) then
 								local ownerID = spGetProjectileOwnerID(proID) or 0
-								local wbKey = ownerID * 65536 + wDefID
+								-- Key includes quantized start position to distinguish
+								-- multiple hardpoints of the same weapon type on one unit,
+								-- while still deduping overlapping beams from target switches
+								-- (which share the same muzzle point).
+								local qx = math.floor(origPx * 0.25)  -- quantize to 4 elmos
+								local qz = math.floor(origPz * 0.25)
+								local wbKey = ownerID * 67108864 + qx * 8192 + qz  -- 2^26, 2^13
 								if not liveKeys[wbKey] then
 									liveKeys[wbKey] = true
 									liveKeysCount = liveKeysCount + 1
