@@ -194,7 +194,13 @@ end
 
 function widget:Update()
 	local _, cmdID = spGetActiveCommand()
-	activeUnitDefID = (cmdID and cmdID < 0) and -cmdID or nil
+	local udID = (cmdID and cmdID < 0) and -cmdID or nil
+	-- Pre-gamestart build queue: no active command exists yet, so fall back to
+	-- the unit selected in the pregame build menu (gui_pregame_build).
+	if not udID and WG["pregame-build"] and WG["pregame-build"].getPreGameDefID then
+		udID = WG["pregame-build"].getPreGameDefID()
+	end
+	activeUnitDefID = udID
 end
 
 function widget:DrawWorldPreUnit()
