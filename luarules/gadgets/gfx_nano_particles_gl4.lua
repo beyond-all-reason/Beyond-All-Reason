@@ -188,14 +188,14 @@ local MODE_SETTINGS = {
 		-- Shapes benefit from visible variation -- they read as discrete chunks.
 		sizeVar     = 0.33,
 		speedVar    = 0.15,
-		alphaVar    = 2.5,
+		alphaVar    = 1.8,
 		-- 3D look: shade faces by view direction so back-facing faces are dimmed
 		-- but visible through the front faces -- gives real volume instead of a
 		-- flat shaded patch. 0 = flat shading, 1 = full view-dependent depth.
 		cubeShowInside = 3.0,
-		cubeNoise       = 2.0,
-		cubeNoiseSpeed  = 20.0,
-		cubeNoiseScale  = 1.5,
+		cubeNoise       = 3.5,
+		cubeNoiseSpeed  = 25.0,
+		cubeNoiseScale  = 1.6,
 		-- The geometry shader applies its own per-axis 3D tumble on top of
 		-- rotVal, so the base 2D rotation can be slower and more uniform.
 		rotValBase  = -180, rotValRange = 360,
@@ -207,7 +207,7 @@ local MODE_SETTINGS = {
 		-- Energy enhancement (subset; size pulsation is not wired
 		-- through the shape GS, so omitted here -- halo + jitter + breath +
 		-- core boost is enough to read shapes as energy chunks).
-		coreBoost      = 1.1,    -- multiplies face shading; keep modest so dark faces still read
+		coreBoost      = 1.0,    -- multiplies face shading; keep modest so dark faces still read
 		hueJitter      = 0.07,    -- shapes already have face-noise variation, so less hue drift needed
 		glowBreath     = 4.0,    -- halo pulse amplitude (0..1)
 		glowBreathFreq = 3.0,     -- cycles/sec; slightly slower than billboards (chunks are bigger)
