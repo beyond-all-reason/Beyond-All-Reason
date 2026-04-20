@@ -250,7 +250,7 @@ for i= 1, 14 do instanceCache[i] = 0 end
 
 
 ---DrawUnitGL4(unitID, unitDefID, px, py, pz, rotationY, alpha, teamID, teamcoloroverride, highlight, updateID, ownerID)
----Draw a copy of an actual unit, with all of its animations too. That unit must be in view. For things like highlighting under construction stuff. 
+---Draw a copy of an actual unit, with all of its animations too. That unit must be in view. For things like highlighting under construction stuff.
 ---note that widgets are responsible for stopping the drawing of every unit that they submit! They may use RemoveMyDraws(ownerID). Note that prompt removal when widget:VisibleUnitRemoved(unitID) is essential here!
 ---@param unitID number the actual unitID that you want to draw
 ---@param unitDefID number which unitDef do you want to draw
@@ -269,23 +269,23 @@ local function DrawUnitGL4(unitID, unitDefID, px, py, pz, rotationY, alpha, team
 
 	unitDefID = unitDefID or spGetUnitDefID(unitID)
 
-	px = px or 0 
+	px = px or 0
 	py = py or 0
 	pz = pz or 0
-	rotationY = rotationY or 0 
+	rotationY = rotationY or 0
 	alpha = alpha or 1
 	teamID = teamID or 256
 	--teamID = Spring.GetUnitTeam(unitID)
 	highlight = highlight or 0
 	teamcoloroverride = teamcoloroverride or 0
 
-	if not updateID then 
+	if not updateID then
 		uniqueID = uniqueID + 1
 		updateID = uniqueID
 	end
-	
+
 	if ownerID then owners[updateID] = ownerID end
-	
+
 	local DrawUnitVBOTable
 	--spEcho("DrawUnitGL4", objecttype, UnitDefs[unitDefID].name, unitID, "to uniqueID", uniqueID,"elemID", elementID)
 	if corUnitDefIDs[unitDefID] then DrawUnitVBOTable = corDrawUnitVBOTable
@@ -295,11 +295,11 @@ local function DrawUnitGL4(unitID, unitDefID, px, py, pz, rotationY, alpha, team
 		Spring.Debug.TraceFullEcho(nil,nil,nil,"DrawUnitGL4")
 		return nil
 	end
-	
+
 	instanceCache[1], instanceCache[2], instanceCache[3], instanceCache[4] = px, py, pz, rotationY
 	instanceCache[5], instanceCache[6], instanceCache[7], instanceCache[8] = alpha, 0, teamcoloroverride, highlight
 	instanceCache[9] = teamID
-	
+
 	local elementID = pushElementInstance(
 		DrawUnitVBOTable,
 		instanceCache,
@@ -312,8 +312,8 @@ local function DrawUnitGL4(unitID, unitDefID, px, py, pz, rotationY, alpha, team
 end
 
 ---DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, alpha, teamID, teamcoloroverride, highlight, updateID, ownerID)
----Draw a static unit shape model anywhere. Like for ghosted buildings 
----note that widgets are responsible for stopping the drawing of every unit that they submit! They may use RemoveMyDraws(ownerID) 
+---Draw a static unit shape model anywhere. Like for ghosted buildings
+---note that widgets are responsible for stopping the drawing of every unit that they submit! They may use RemoveMyDraws(ownerID)
 ---@param unitDefID number which unitDef do you want to draw
 ---@param px number where in the world to do you want to draw it
 ---@param py number where in the world to do you want to draw it
@@ -331,28 +331,28 @@ local function DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, alpha, teamID,
 	teamcoloroverride = teamcoloroverride or 0
 	teamID = teamID or 256
 	highlight = highlight or 0
-	
-	if not updateID then 
+
+	if not updateID then
 		uniqueID = uniqueID + 1
 		updateID = uniqueID
 	end
-	
+
 	if ownerID then owners[updateID] = ownerID end
 
 	local DrawUnitShapeVBOTable = unitDeftoUnitShapeVBOTable[unitDefID]
-	
-	if not DrawUnitShapeVBOTable then 
+
+	if not DrawUnitShapeVBOTable then
 		spEcho("DrawUnitShapeGL4: The given unitDefID", unitDefID,  UnitDefs[unitDefID].name, "is missing a target DrawUnitShapeVBOTable")
 		Spring.Debug.TraceFullEcho(nil,nil,nil,"DrawUnitGL4")
 		return nil
 	end
 	uniqueIDtoUnitShapeVBOTable[uniqueID] = DrawUnitShapeVBOTable
 	--spEcho("DrawUnitShapeGL4", "unitDefID", unitDefID, UnitDefs[unitDefID].name, "to unitDefID", uniqueID,"elemID", elementID)
-	
+
 	instanceCache[1], instanceCache[2], instanceCache[3], instanceCache[4] = px, py, pz, rotationY
 	instanceCache[5], instanceCache[6], instanceCache[7], instanceCache[8] = alpha, 1, teamcoloroverride, highlight
 	instanceCache[9] = teamID
-	
+
 	local elementID = pushElementInstance(
 		DrawUnitShapeVBOTable,
 		instanceCache,
@@ -385,22 +385,22 @@ end
 ---@param uniqueID number the unique id of whatever you want to stop drawing
 ---@return the ownerID the uniqueID was associated to
 local function StopDrawUnitShapeGL4(uniqueID)
-	
-	if uniqueIDtoUnitShapeVBOTable[uniqueID] then 
+
+	if uniqueIDtoUnitShapeVBOTable[uniqueID] then
 		local DrawUnitShapeVBOTable = uniqueIDtoUnitShapeVBOTable[uniqueID]
 		if DrawUnitShapeVBOTable.instanceIDtoIndex[uniqueID] then
-			popElementInstance(DrawUnitShapeVBOTable, uniqueID) 
+			popElementInstance(DrawUnitShapeVBOTable, uniqueID)
 		else
 			spEcho("DrawUnitShapeGL4: the given uniqueID", uniqueID," is not present in the DrawUnitShapeVBOTable", DrawUnitShapeVBOTable.vboname, "that we expected it to be in" )
 		end
-		
+
 	else
-	
-		spEcho("DrawUnitShapeGL4: the given uniqueID", uniqueID," is not present in the uniqueIDtoUnitShapeVBOTable, it might already have been removed?")	
+
+		spEcho("DrawUnitShapeGL4: the given uniqueID", uniqueID," is not present in the uniqueIDtoUnitShapeVBOTable, it might already have been removed?")
 	end
-	
+
 	uniqueIDtoUnitShapeVBOTable[uniqueID] = nil
-	
+
 	local owner = owners[uniqueID]
 	owners[uniqueID] = nil
 	--spEcho("Popped element", uniqueID)
@@ -412,35 +412,35 @@ end
 ---@return ownedCount number how many items were removed
 local function StopDrawAll(ownerID)
 	local ownedCount = 0
-	for uniqueID, owner in pairs(owners) do 
-		if owner == ownerID or ownerID == nil then 
+	for uniqueID, owner in pairs(owners) do
+		if owner == ownerID or ownerID == nil then
 			for _,VBOTable in ipairs(VBOTables) do -- attach everything together
-				if VBOTable.instanceIDtoIndex[uniqueID] then 
+				if VBOTable.instanceIDtoIndex[uniqueID] then
 					popElementInstance(VBOTable, uniqueID)
 					break
 				end
 			end
-			if uniqueIDtoUnitShapeVBOTable[uniqueID] then 
+			if uniqueIDtoUnitShapeVBOTable[uniqueID] then
 				local DrawUnitShapeVBOTable = uniqueIDtoUnitShapeVBOTable[uniqueID]
 				if DrawUnitShapeVBOTable.instanceIDtoIndex[uniqueID] then
-					popElementInstance(DrawUnitShapeVBOTable, uniqueID) 
+					popElementInstance(DrawUnitShapeVBOTable, uniqueID)
 				else
 					spEcho("DrawUnitShapeGL4 StopDrawAll: the given uniqueID", uniqueID," is not present in the DrawUnitShapeVBOTable", DrawUnitShapeVBOTable.vboname, "that we expected it to be in" )
 				end
-			end 
-			
+			end
+
 			owners[uniqueID] = nil
 			ownedCount = ownedCount + 1
-			
+
 		end
-		
+
 	end
 	return ownedCount
 end
 
 local TESTMODE = false
 
-if TESTMODE then 
+if TESTMODE then
 	local unitIDtoUniqueID = {}
 	local unitDefIDtoUniqueID = {}
 	function widget:UnitCreated(unitID, unitDefID)
@@ -460,10 +460,10 @@ end
 
 function widget:Initialize()
 	for unitDefID, unitDef in pairs(UnitDefs) do
-		if unitDef.model and unitDef.model.textures and unitDef.model.textures.tex1 then 
+		if unitDef.model and unitDef.model.textures and unitDef.model.textures.tex1 then
 			unitDefIDtoTex1[unitDefID] = unitDef.model.textures.tex1:lower()
 		end
-		
+
 		if unitDef.model and unitDef.model.textures and unitDef.model.textures.tex1:lower() == "arm_color.dds" then
 			armUnitDefIDs[unitDefID] = true
 		elseif unitDef.model and unitDef.model.textures and unitDef.model.textures.tex1:lower() == "cor_color.dds" then
@@ -471,7 +471,7 @@ function widget:Initialize()
 		end
 	end
 
-	
+
 
 	local vertexVBO = gl.GetVBO(GL.ARRAY_BUFFER, false) -- GL.ARRAY_BUFFER, false
 	local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false) -- GL.ARRAY_BUFFER, false
@@ -497,15 +497,15 @@ function widget:Initialize()
 		VBOTable.indexVBO = indexVBO
 		VBOTable.vertexVBO = vertexVBO
 	end
-		
+
 	-- This section is for automatically creating all vbos for all posible tex combos.
 	-- However it is disabled here, as there are only 4 true tex combos, as defined above in tex1ToVBOx
-	--for unitDefID, tex1 in pairs(unitDefIDtoTex1) do 
+	--for unitDefID, tex1 in pairs(unitDefIDtoTex1) do
 	--	if not tex1ToVBO[tex1] then spEcho("DrawUnitShape unique tex1 is",tex1) end
-	--	tex1ToVBO[tex1] = true 
-	--end 
-	
-	for tex1, _ in pairs(tex1ToVBO) do 
+	--	tex1ToVBO[tex1] = true
+	--end
+
+	for tex1, _ in pairs(tex1ToVBO) do
 		local vboname = 'DrawUnitShapeVBOTable:' .. tex1
 		local vboTable = InstanceVBOTable.makeInstanceVBOTable(VBOLayout, maxElements, vboname, unitIDAttributeIndex, "unitDefID")
 		vboTable.VAO = InstanceVBOTable.makeVAOandAttach(vertexVBO, vboTable.instanceVBO, indexVBO)
@@ -513,9 +513,9 @@ function widget:Initialize()
 		vboTable.vertexVBO = vertexVBO
 		tex1ToVBO[tex1] = vboTable
 	end
-	
-	for unitDefID, tex1 in pairs(unitDefIDtoTex1) do 
-		if tex1ToVBO[tex1] then 
+
+	for unitDefID, tex1 in pairs(unitDefIDtoTex1) do
+		if tex1ToVBO[tex1] then
 			unitDeftoUnitShapeVBOTable[unitDefID] = tex1ToVBO[tex1]
 			-- This is very important, we need to remember an example unitDefID here
 			-- to use to retrive the corresponding texture bucket
@@ -590,7 +590,7 @@ function widget:Shutdown()
 			VBOTable.VAO:Delete()
 		end
 	end
-	
+
 	for tex1,VBOTable in ipairs(tex1ToVBO) do
 		if VBOTable.VAO then
 			if Spring.Utilities.IsDevMode() then
@@ -599,7 +599,7 @@ function widget:Shutdown()
 			VBOTable.VAO:Delete()
 		end
 	end
-	
+
 	if unitShader then unitShader:Finalize() end
 	if unitShapeShader then unitShapeShader:Finalize() end
 
@@ -622,28 +622,32 @@ end
 
 function widget:DrawWorldPreUnit() -- this is for UnitDef
 	local active = false
-	
-	for tex1, unitShapeVBOTable in pairs(tex1ToVBO) do 
-		if unitShapeVBOTable.usedElements > 0 then 
-			
-			if not active then 
+
+	for tex1, unitShapeVBOTable in pairs(tex1ToVBO) do
+		if unitShapeVBOTable.usedElements > 0 then
+
+			if not active then
 				gl.Culling(GL.BACK)
-				gl.DepthMask(true)
+				-- Alpha-blended ghost shapes: keep depth test (so solid world
+				-- geometry hides ghosts behind it) but DO NOT write depth, or any
+				-- transparent pass drawn after us (nano particles, beams, jet
+				-- trails, other effects) would be depth-rejected wherever a ghost
+				-- silhouette overlaps them on screen.
+				gl.DepthMask(false)
 				gl.DepthTest(GL.LEQUAL)
 				gl.PolygonOffset(1, 1) -- so as not to clash with engine ghosts
 				unitShapeShader:Activate()
 				unitShapeShader:SetUniform("iconDistance",27 * Spring.GetConfigInt("UnitIconDist", 200))
 				active = true
 			end
-			
+
 			gl.UnitShapeTextures(unitShapeVBOTable.UnitShapeTexturesUnitDefID, true)
 			unitShapeVBOTable.VAO:Submit()
 		end
 	end
-	if active then 
+	if active then
 		unitShapeShader:Deactivate()
 		gl.UnitShapeTextures(udefID, false)
-		--gl.PolygonOffset( false )
 		gl.Culling(false)
 	end
 end
@@ -651,9 +655,12 @@ end
 function widget:DrawWorld()
 	if armDrawUnitVBOTable.usedElements > 0 or corDrawUnitVBOTable.usedElements > 0 then
 		gl.Culling(GL.BACK)
-		gl.DepthMask(true)
+		-- Alpha-blended preview shapes: depth test only, no depth write (see
+		-- DrawWorldPreUnit comment). Otherwise these ghosts punch holes through
+		-- subsequent transparent rendering (nano particles, beams, etc.).
+		gl.DepthMask(false)
 		gl.DepthTest(true)
-		gl.PolygonOffset( -2 ,-2)
+		gl.PolygonOffset(-2, -2)
 		unitShader:Activate()
 		unitShader:SetUniform("iconDistance",27 * Spring.GetConfigInt("UnitIconDist", 200))
 		if (corDrawUnitVBOTable.usedElements > 0 ) then
@@ -667,8 +674,7 @@ function widget:DrawWorld()
 		end
 		unitShader:Deactivate()
 		gl.UnitShapeTextures(udefID, false)
-		gl.PolygonOffset( false )
+		gl.PolygonOffset(false)
 		gl.Culling(false)
-    gl.DepthMask(false) --"BK OpenGL state resets", reset to default state
 	end
 end
