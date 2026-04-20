@@ -10,7 +10,7 @@ return {
 		category = "NOWEAPON",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "69 40 66",
-		collisionvolumetype = "CylY",
+		collisionvolumetype = "Sphere",
 		corpse = "DEAD",
 		energycost = 55000,
 		energystorage = 1000,

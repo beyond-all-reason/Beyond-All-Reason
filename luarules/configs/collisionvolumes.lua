@@ -141,6 +141,26 @@ dynamicPieceCollisionVolume['leganavybattleship'] = {
 		offsets = { 0, 0, 0 },
 	},
 }
+dynamicPieceCollisionVolume['legacluster'] = {
+	on = {
+		['0'] = { 47, 48, 47, 0, 0, 0, 1, 1 },
+		offsets = { 0, 48, 0 },
+	},
+	off = {
+		['0'] = { 47, 20, 47, 0, 0, 0, 1, 1 },
+		offsets = { 0, 0, 0 },
+	},
+}
+dynamicPieceCollisionVolume['legapopupdef'] = {
+	on = {
+		['0'] = { 35, 68, 35, 0, 0, 0, 1, 1 },
+		offsets = { 0, 18, 0 },
+	},
+	off = {
+		['0'] = { 42, 42, 42, 0, 0, 0, 3, 1 },
+		offsets = { 0, 10, 0 },
+	},
+}
 
 unitCollisionVolume['armanni'] = {
 	on={54,81,54,0,-2,0,2,1,0},
@@ -187,10 +207,6 @@ unitCollisionVolume['legsolar'] = {
 
 }
 
-
-
-
-
 for name, v in pairs(unitCollisionVolume) do
 	for udid, ud in pairs(UnitDefs) do
 		if string.find(ud.name, name) then
@@ -198,6 +214,9 @@ for name, v in pairs(unitCollisionVolume) do
 		end
 	end
 end
+
+
+
 pieceCollisionVolume['corhrk'] = {
 	['2']={35,40,30,0,-8,0,2,1},
 
@@ -206,13 +225,29 @@ pieceCollisionVolume['legpede'] = {
 	['0']={26,28,90,0,5,-23,2,1},
 	['32']={26,28,86,0,0,7,2,1},
 }
+pieceCollisionVolume['legelrpcmech'] = {
+    ['0']={56,56,80,0,0,0,1,2},
+    ['10']={24,40,24,0,-6,0,1,1},
+    ['22']={24,40,24,0,2,0,1,1},
+    ['15']={30,40,30,0,-6,0,1,1},
+    ['28']={30,40,30,0,-6,0,1,1},
+    ['29']={28,28,74,0,8,8,1,2},
+}
 pieceCollisionVolume['legrail'] = {
-	['2']={31,20,38,-0.5,-4,-4,2,1},
+	['2']={29,20,34,-0.5,-4,-4,2,1},
 	['5']={10,10,36,0,0,9,1,2},
 }
 pieceCollisionVolume['legsrail'] = {
 	['0']={55,24,55,0,12,0,1,1},
 	['7']={12,12,60,0,3,9,1,2},
+}
+pieceCollisionVolume['leggat'] = {
+	['0']={33,12,43, 0,0,2, 2,1},
+	['5']={20,20,20, 0,2,0, 3,0},
+}
+pieceCollisionVolume['legaheattank'] = {
+	['0']={46,17,56, 0,0,0, 2,1},
+	['2']={20,20,27, 0,0,0, 2,1},
 }
 pieceCollisionVolume['legerailtank'] = {
 	['0']={65,20,75, 0,-4,0, 2,1}, 
@@ -220,9 +255,10 @@ pieceCollisionVolume['legerailtank'] = {
 	--['10']={50,50,50,0,0,0,2,1},
 }
 pieceCollisionVolume['leginf'] = {
-	['1']={38,49,88, 0,22.8,14.3, 2,1},
-	['0']={35,37,88, 0,21,11, 2,1},
+	['1']={30,22,76, 0,28,14, 2,1},
+	['0']={35,20,80, 0,8,16, 2,1},
 }
+
 ---pieceCollisionVolume['legsrailt4'] = {
 ---	['0']={121,53,121,0,26,0,2,2},
 ---	['7']={26,26,132,0,7,20,2,4},
@@ -374,7 +410,7 @@ pieceCollisionVolume['legfloat'] = {
 	['8']={18,9,30,0,1,-5,2,1},
 }
 pieceCollisionVolume['legnavyfrigate'] = {
-	['0']={30,18,52,-1,-4,1,2,1},
+	['0']={30,18,52,-1,-4,1,1,1},
 	['3']={11,13,20,0,5,0,2,1},
 }
 pieceCollisionVolume['legcar'] = {

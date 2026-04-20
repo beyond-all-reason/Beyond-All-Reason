@@ -8,8 +8,8 @@ return {
 		buildtime = 10490,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "30 30 34", ---not respected used collisionvolumes.lua
-		collisionvolumetype = "BOX",
+		collisionvolumescales = "30 30 34",
+		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		explodeas = "largeexplosiongeneric",
 		footprintx = 3,
