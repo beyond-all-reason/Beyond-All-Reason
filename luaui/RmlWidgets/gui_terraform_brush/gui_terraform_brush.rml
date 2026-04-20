@@ -674,32 +674,6 @@
 		<!-- Grass controls (visible only when Grass mode active) -->
 		<div id="tf-grass-controls" class="hidden">
 
-			<!-- Grass Shape (under tools row, same pattern as other tools) -->
-			<div id="btn-toggle-gb-shape" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
-				<img id="img-toggle-gb-shape" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
-				<div class="tf-collapsible-title">SHAPE</div>
-			</div>
-			<div id="section-gb-shape">
-			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-gb-circle" class="tf-shape-btn active">
-					<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_circle.png" />
-				</div>
-				<div id="btn-gb-square" class="tf-shape-btn">
-					<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_square.png" />
-				</div>
-				<div id="btn-gb-hexagon" class="tf-shape-btn">
-					<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_hexagon.png" />
-				</div>
-				<div id="btn-gb-octagon" class="tf-shape-btn">
-					<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_octagon.png" />
-				</div>
-				<div id="btn-gb-triangle" class="tf-shape-btn">
-					<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_triangle.png" />
-				</div>
-			</div>
-			</div><!-- /section-gb-shape -->
-			<div class="divider-horizontal-dark"></div>
-
 			<!-- Undo & Redo -->
 			<div id="btn-toggle-gb-undo" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
 				<img id="img-toggle-gb-undo" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
