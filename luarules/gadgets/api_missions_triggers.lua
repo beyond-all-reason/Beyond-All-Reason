@@ -77,7 +77,7 @@ end
 
 local function getUnitsInArea(trigger)
 	local area = trigger.parameters.area
-	local teamID = trigger.parameters.teamID
+	local teamID = GG['MissionAPI'].Teams[trigger.parameters.teamName]
 	local unitsInArea = {}
 
 	if area.x1 and area.z1 and area.x2 and area.z2 then
@@ -133,14 +133,14 @@ local function checkUnitExists(trigger, unitDefID, teamID)
 	activateTrigger(trigger)
 end
 
-local function checkUnitRemoved(trigger, unitID, unitDefID, unitTeam)
+local function checkUnitRemoved(trigger, unitID, unitDefID, unitTeamID)
 	if trigger.parameters.unitName and not doesUnitHaveName(unitID, trigger.parameters.unitName) then
 		return
 	end
 	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
 		return
 	end
-	if trigger.parameters.teamName and GG['MissionAPI'].Teams[trigger.parameters.teamName] ~= unitTeam then
+	if trigger.parameters.teamName and GG['MissionAPI'].Teams[trigger.parameters.teamName] ~= unitTeamID then
 		return
 	end
 	activateTrigger(trigger)
@@ -282,7 +282,7 @@ local function checkConstructionStarted(trigger, unitID, unitDefID, unitTeam)
 	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
 		return
 	end
-	if trigger.parameters.teamID and GG['MissionAPI'].Teams[trigger.parameters.teamName] ~= unitTeam then
+	if trigger.parameters.teamName and GG['MissionAPI'].Teams[trigger.parameters.teamName] ~= unitTeam then
 		return
 	end
 	activateTrigger(trigger)
@@ -295,14 +295,14 @@ local function checkConstructionFinished(trigger, unitID, unitDefID, unitTeam)
 	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
 		return
 	end
-	if trigger.parameters.teamID and GG['MissionAPI'].Teams[trigger.parameters.teamName] ~= unitTeam then
+	if trigger.parameters.teamName and GG['MissionAPI'].Teams[trigger.parameters.teamName] ~= unitTeam then
 		return
 	end
 	activateTrigger(trigger)
 end
 
 local function checkTeamDestroyed(trigger, teamID)
-	if teamID == trigger.parameters.teamID then
+	if teamID == GG['MissionAPI'].Teams[trigger.parameters.teamName] then
 		activateTrigger(trigger)
 	end
 end
@@ -329,7 +329,7 @@ local function checkFeatureReclaimed(trigger, featureID, featureDefID, teamID)
 	if trigger.parameters.featureDefName and trigger.parameters.featureDefName ~= FeatureDefs[featureDefID].name then
 		return
 	end
-	if trigger.parameters.teamID and teamID ~= trigger.parameters.teamID then
+	if trigger.parameters.teamName and teamID ~= GG['MissionAPI'].Teams[trigger.parameters.teamName] then
 		return
 	end
 	if trigger.parameters.area and not isFeatureInArea(featureID, trigger.parameters.area) then
@@ -356,7 +356,7 @@ end
 
 local function incrementStatistics(triggerType, teamID, unitDefName, unitNames)
 	processTriggersOfType(triggerType, function(trigger, triggerID)
-		if teamID ~= trigger.parameters.teamID then
+		if teamID ~= GG['MissionAPI'].Teams[trigger.parameters.teamName] then
 			return
 		end
 		if trigger.parameters.unitDefName and unitDefName ~= trigger.parameters.unitDefName then
@@ -376,7 +376,7 @@ local function incrementStatistics(triggerType, teamID, unitDefName, unitNames)
 end
 
 local function checkUnitsOwned(trigger)
-	local teamID = trigger.parameters.teamID
+	local teamID = GG['MissionAPI'].Teams[trigger.parameters.teamName]
 	local requiredUnitName = trigger.parameters.unitName
 	local requiredUnitDefName = trigger.parameters.unitDefName
 
@@ -475,19 +475,19 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	end)
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeamID, attackerID, attackerDefID, attackerTeam)
 	processTriggersOfType(types.UnitKilled, function(trigger, _)
-		checkUnitRemoved(trigger, unitID, unitDefID, unitTeam)
+		checkUnitRemoved(trigger, unitID, unitDefID, unitTeamID)
 	end)
 
 	local unitDefName = UnitDefs[unitDefID].name
 	local unitNames = trackedUnitNames[unitID] or {}
 
 	-- The unit's team lost a unit:
-	incrementStatistics(types.TotalUnitsLost, unitTeam, unitDefName, unitNames)
+	incrementStatistics(types.TotalUnitsLost, unitTeamID, unitDefName, unitNames)
 
 	-- The attacker's team kills an enemy unit:
-	if attackerTeam and not Spring.AreTeamsAllied(attackerTeam, unitTeam) then
+	if attackerTeam and not Spring.AreTeamsAllied(attackerTeam, unitTeamID) then
 		incrementStatistics(types.TotalUnitsKilled, attackerTeam, unitDefName, unitNames)
 	end
 
