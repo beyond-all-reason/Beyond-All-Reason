@@ -104,8 +104,25 @@ local CMD_REPAIR    = CMD.REPAIR
 -- Configuration
 --------------------------------------------------------------------------------
 
-local MAX_PARTICLES   = 8192*2
-MAX_PARTICLES = math.min(MAX_PARTICLES, math.max(6000, math.floor(Spring.GetConfigInt("MaxParticles", 15000) * 0.33)))
+-- Hard VBO ceiling. The InstanceVBOTable is allocated once at init for this
+-- many slots; the live cap (MAX_PARTICLES, below) can shrink at runtime when
+-- the user lowers the MaxParticles config but never grows past this value.
+local MAX_PARTICLES_VBO = 15000
+
+-- Live soft cap. Driven by the MaxParticles springsetting (~33% share, with a
+-- 6000 floor so the gadget always has *some* headroom). Polled in GameFrame
+-- so the gfx options menu can adjust it without a /luarules reload.
+local MAX_PARTICLES_FLOOR = 5000
+local MAX_PARTICLES_FRACTION = 0.33
+local function computeMaxParticles()
+	local cfg = Spring.GetConfigInt("MaxParticles", 15000) or 15000
+	local soft = math.max(MAX_PARTICLES_FLOOR, math.floor(cfg * MAX_PARTICLES_FRACTION))
+	return math.min(MAX_PARTICLES_VBO, soft)
+end
+local MAX_PARTICLES = computeMaxParticles()
+local function refreshMaxParticles()
+	MAX_PARTICLES = computeMaxParticles()
+end
 
 local NANO_TEXTURE    = "bitmaps/projectiletextures/nanopart.tga"
 local LOS_FILTER      = true   -- drop emissions outside our LOS
@@ -268,11 +285,19 @@ local MAX_SCAN_RUN_EVERY         = 2
 -- (turret, building, paused com) cases to a near-no-op.
 local STATIONARY_SKIP_AFTER      = 3
 -- Off-screen emission throttle. When the builder's spray endpoints are both
--- outside the view frustum, only OFFSCREEN_EMIT_KEEP fraction of emissions
--- are kept (the rest return cheaply before any spawn / homing register).
--- Frustum visibility is cached per builder for OFFSCREEN_VIS_CACHE_FRAMES,
--- since the camera moves slowly relative to the per-builder emit rate.
-local OFFSCREEN_EMIT_KEEP        = 0.25
+-- outside the view frustum, only a fraction of emissions are kept (the rest
+-- return cheaply before any spawn / homing register). Frustum visibility is
+-- cached per builder for OFFSCREEN_VIS_CACHE_FRAMES, since the camera moves
+-- slowly relative to the per-builder emit rate.
+--
+-- Keep-fraction scales with pool saturation so at low fill we stay responsive
+-- (camera might pan and reveal those builders) and at high fill we throttle
+-- harder (the saturation gate would drop most emissions anyway): MAX at or
+-- below SAT_PIVOT, linearly ramping to MIN at full saturation.
+local OFFSCREEN_EMIT_KEEP_MAX       = 0.5
+local OFFSCREEN_EMIT_KEEP_MIN       = 0.25
+local OFFSCREEN_EMIT_KEEP_SAT_PIVOT = 0.25
+local OFFSCREEN_EMIT_KEEP_BAND_INV  = 1.0 / (1.0 - OFFSCREEN_EMIT_KEEP_SAT_PIVOT)
 local OFFSCREEN_VIS_CACHE_FRAMES = 6
 -- Distance-based emission throttle. Linearly ramps the keep-fraction from
 -- 1.0 at DISTANT_EMIT_NEAR_RANGE down to DISTANT_EMIT_KEEP at
@@ -1223,7 +1248,7 @@ local function initGL4()
 		{ id = 3, name = "instColor",        size = 4 },
 		{ id = 4, name = "rotData",          size = 4 },
 	}
-	nanoVBO = InstanceVBOTable.makeInstanceVBOTable(layout, MAX_PARTICLES, "nanoParticleVBO")
+	nanoVBO = InstanceVBOTable.makeInstanceVBOTable(layout, MAX_PARTICLES_VBO, "nanoParticleVBO")
 	if not nanoVBO then
 		goodbye("Failed to create instance VBO")
 		return false
@@ -1971,6 +1996,17 @@ local function scanBuilders(frame)
 	if speedThrottle > 0.0 then
 		emitProb = emitProb * (1.0 - GAMESPEED_EMIT_CUT * speedThrottle)
 	end
+
+	-- Pool-saturation-driven offscreen keep-fraction. Cheap (one branch + one
+	-- lerp), recomputed once per scan so all per-emit checks below use the
+	-- same value.
+	local offscreenKeep
+	if saturation <= OFFSCREEN_EMIT_KEEP_SAT_PIVOT then
+		offscreenKeep = OFFSCREEN_EMIT_KEEP_MAX
+	else
+		local t = (saturation - OFFSCREEN_EMIT_KEEP_SAT_PIVOT) * OFFSCREEN_EMIT_KEEP_BAND_INV
+		offscreenKeep = OFFSCREEN_EMIT_KEEP_MAX + t * (OFFSCREEN_EMIT_KEEP_MIN - OFFSCREEN_EMIT_KEEP_MAX)
+	end
 	if emitProb > 1.0 then emitProb = 1.0 end
 
 	local list = trackedBuildersList
@@ -2029,7 +2065,7 @@ local function scanBuilders(frame)
 							-- one IsSphereInView per scan frame, and the dropped
 							-- emissions skip emitNano entirely (no piece pos, no
 							-- jitter RNG, no homing register).
-							if OFFSCREEN_EMIT_KEEP < 1.0 then
+							if offscreenKeep < 1.0 then
 								local meta = info.targetMeta
 								local visible
 								if meta and meta.visEpoch == piecePosEpoch then
@@ -2041,7 +2077,7 @@ local function scanBuilders(frame)
 										meta.visible  = visible
 									end
 								end
-								if not visible and mathRandom() > OFFSCREEN_EMIT_KEEP then
+								if not visible and mathRandom() > offscreenKeep then
 									ex = nil
 								end
 							end
@@ -2224,6 +2260,7 @@ function gadget:GameFrame(n)
 		-- the cached map-draw-mode (heightmap / metalmap / pathmap views).
 		refreshSpeedThrottle()
 		refreshInfoIsLos()
+		refreshMaxParticles()
 	end
 
 	-- Mode 0 = engine renders the spray; we just track builders for a quick
