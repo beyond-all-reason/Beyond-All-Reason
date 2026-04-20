@@ -74,11 +74,20 @@ input[type="checkbox"]
 	width: 20dp;
 	height: 20dp;
 	margin-right: 5dp;
+	border: 2dp #4a4a4a;
+	border-radius: 4dp;
+	background-color: #282828;
+}
+
+input[type="checkbox"]:hover
+{
+	border-color: #22c55e80;
 }
 
 input[type="checkbox"]:checked
 {
-	background-color: rgba(0, 0, 0, 100);
+	border-color: #22c55e;
+	decorator: image("/luaui/images/terraform_brush/check_on.png" scale-down);
 }
 
 select { 

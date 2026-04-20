@@ -1,0 +1,308 @@
+/* Feature Placer Asset Library - Styles */
+
+
+.text-keybind { color: #6b8a5aCC; }
+
+body {
+	pointer-events: none;
+}
+
+/* === Root === */
+.fp-root {
+	pointer-events: auto;
+	position: absolute;
+	left: 60vw;
+	top: 10vh;
+	width: 220dp;
+	z-index: 900;
+}
+
+.fp-drag-handle {
+	cursor: move;
+	padding: 4dp 0;
+}
+
+/* === Button Text === */
+.fp-btn-text {
+	font-size: 1.1rem;
+	color: #d1d5db;
+}
+
+/* === Small Buttons === */
+.fp-sm-btn {
+	width: 20dp;
+	height: 20dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: #4a4a4a;
+	border-radius: 4dp;
+	border: 1dp #4a4a4a80;
+	cursor: pointer;
+	transition: background-color 0.15s;
+}
+
+.fp-sm-btn:hover {
+	background-color: #626262;
+	border-color: #8a8a8a;
+}
+
+/* === Quit Button === */
+.fp-quit-btn {
+	width: 22dp;
+	height: 22dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	border-radius: 4dp;
+}
+
+.fp-quit-btn:hover {
+	background-color: #4a2424;
+}
+
+/* === Icon Sizes === */
+.fp-icon-sm {
+	width: 18dp;
+	height: 18dp;
+}
+
+/* === Feature Search Input === */
+.fp-search-input {
+	flex: 1;
+	height: 24dp;
+	padding: 2dp 6dp;
+	font-size: 1.0rem;
+	color: #d1d5db;
+	background-color: #1a1a22;
+	border: 1dp #4a4a4a80;
+	border-radius: 4dp;
+}
+
+.fp-search-input:focus {
+	border-color: #6a6a6acc;
+}
+
+/* === Category Button Row === */
+.fp-cat-row {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 3dp;
+	margin-bottom: 6dp;
+}
+
+.fp-cat-btn {
+	padding: 4dp 8dp;
+	font-size: 1.1rem;
+	color: #9ca3af;
+	background-color: #2a2a32;
+	border: 1dp #3a3a4a80;
+	border-radius: 4dp;
+	cursor: pointer;
+	transition: background-color 0.15s;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 3dp;
+}
+
+.fp-cat-btn:hover {
+	background-color: #3a3a4a;
+	color: #d1d5db;
+}
+
+.fp-cat-btn.active {
+	background-color: #1a3a2a;
+	color: #22c55e;
+	border-color: #22c55e40;
+}
+
+/* === Category Icon Image === */
+.fp-cat-icon {
+	width: 14dp;
+	height: 14dp;
+}
+
+/* === Category Label === */
+.fp-cat-label {
+}
+
+/* === Feature List (Asset Library) — tile grid === */
+.fp-feature-list {
+	max-height: 500dp;
+	overflow-y: auto;
+	background-color: #1a1a22;
+	border: 1dp #3a3a3a80;
+	border-radius: 4dp;
+	padding: 4dp;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 2dp;
+	align-content: flex-start;
+}
+
+/* === Feature Tile Items === */
+.fp-feature-item {
+	cursor: pointer;
+	border-radius: 4dp;
+	border: 2dp transparent;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	background-color: #1e1e28;
+	transition: border-color 0.15s;
+}
+
+.fp-feature-item:hover {
+	border-color: #5a5a7a;
+}
+
+.fp-feature-item.selected {
+	border-color: #22c55e80;
+	background-color: #1a2a22;
+}
+
+/* === Feature Item Thumbnail (fills tile body) === */
+.fp-feature-thumb {
+	flex: 1;
+	width: 100%;
+	border-radius: 0;
+}
+
+/* === Feature Name Bar (bottom of tile) === */
+.fp-feature-name {
+	height: 16dp;
+	flex-shrink: 0;
+	padding: 1dp 2dp;
+	font-size: 0.7rem;
+	color: #e0e0e8;
+	background-color: #0c0c14ee;
+	display: block;
+	text-align: center;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+.fp-thumb-rocks { background-color: #78716c; }
+.fp-thumb-trees { background-color: #4ade80; }
+.fp-thumb-bushes { background-color: #86efac; }
+.fp-thumb-crystals { background-color: #a78bfa; }
+.fp-thumb-christmas { background-color: #fbbf24; }
+.fp-thumb-raptor { background-color: #f87171; }
+.fp-thumb-armada_wrecks { background-color: #60a5fa; }
+.fp-thumb-cortex_wrecks { background-color: #f87171; }
+.fp-thumb-legion_wrecks { background-color: #a78bfa; }
+.fp-thumb-other { background-color: #6b7280; }
+
+/* === Thumbnail Loading Bar === */
+.fp-loading-bar {
+	height: 18dp;
+	background-color: #2a2a32;
+	border-radius: 3dp;
+	margin-bottom: 4dp;
+	position: relative;
+	overflow: hidden;
+}
+
+.fp-loading-fill {
+	height: 100%;
+	background-color: #22c55e40;
+	border-radius: 3dp;
+	position: absolute;
+	left: 0;
+	top: 0;
+}
+
+.fp-loading-label {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 0.85rem;
+	color: #9ca3af;
+}
+
+/* === Search Wrapper with Clear Button === */
+.fp-search-wrapper {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	position: relative;
+}
+
+.fp-search-wrapper .fp-search-input {
+	flex: 1;
+	padding-right: 22dp;
+}
+
+.fp-search-clear-btn {
+	position: absolute;
+	right: 5dp;
+	top: 5dp;
+	width: 18dp;
+	height: 18dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	border-radius: 3dp;
+	opacity: 0.5;
+}
+
+.fp-search-clear-btn:hover {
+	opacity: 0.85;
+	background-color: #3a3a4a;
+}
+
+.fp-search-clear-icon {
+	width: 10dp;
+	height: 10dp;
+}
+
+/* === CLR Button (full width, matching searchbar) === */
+.fp-clr-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 24dp;
+	background-color: #4a4a4a;
+	border: 2dp #4a4a4a80;
+	border-radius: 5dp;
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+
+.fp-clr-btn:hover {
+	background-color: #5a5a5a;
+	border-color: #6a6a6a;
+}
+
+.fp-clr-btn .fp-btn-text {
+	font-size: 1.0rem;
+	color: #d1d5db;
+}
+
+/* === Scrollbar for feature list === */
+.fp-feature-list scrollbarvertical {
+	width: 8dp;
+}
+
+.fp-feature-list scrollbarvertical slidertrack {
+	background-color: #1a1a2200;
+}
+
+.fp-feature-list scrollbarvertical sliderbar {
+	background-color: #4a4a5a;
+	border-radius: 4dp;
+}
+
+.fp-feature-list scrollbarvertical sliderbar:hover {
+	background-color: #6a6a7a;
+}

@@ -1,0 +1,276 @@
+/* Weather Brush Library - Widget-specific styles */
+
+
+.text-keybind { color: #6b8a5aCC; }
+
+body {
+	pointer-events: none;
+}
+
+/* === Root Positioning === */
+.wb-root {
+	pointer-events: auto;
+	position: absolute;
+	left: 60vw;
+	top: 25vh;
+	width: 15vw;
+	z-index: 900;
+}
+
+/* === Drag Handle === */
+.wb-drag-handle {
+	cursor: move;
+	padding: 6dp 0;
+}
+
+/* === Quit button === */
+.wb-quit-btn {
+	width: 22dp;
+	height: 22dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	border-radius: 4dp;
+}
+
+.wb-quit-btn:hover {
+	background-color: #4a2424;
+}
+
+/* === Icon sizes === */
+.wb-icon-xs { width: 12dp; height: 12dp; }
+.wb-icon-sm { width: 16dp; height: 16dp; }
+
+/* === Section Headers === */
+.wb-section-header {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 6dp;
+	padding: 2dp 0 4dp 0;
+}
+
+.wb-section-label {
+	font-size: 0.85rem;
+	color: #6b7280;
+	letter-spacing: 0.5dp;
+}
+
+.wb-section-line {
+	flex: 1;
+	height: 1dp;
+	background-color: #3a3a4a;
+}
+
+/* === Category group headers inside library === */
+.wb-category-header {
+	padding: 6dp 6dp 2dp 6dp;
+	font-size: 0.8rem;
+	color: #06b6d4;
+	letter-spacing: 0.5dp;
+}
+
+.wb-category-header:first-child {
+	padding-top: 2dp;
+}
+
+/* === Weather Library Grid === */
+.wb-library-grid {
+	max-height: 480dp;
+	overflow-y: auto;
+	padding: 2dp;
+}
+
+.wb-library-grid scrollbarvertical {
+	width: 6dp;
+	margin-left: 2dp;
+}
+
+.wb-library-grid scrollbarvertical sliderbar {
+	background-color: #505060;
+	border-radius: 3dp;
+}
+
+.wb-library-grid scrollbarvertical sliderbar:hover {
+	background-color: #7a7a8a;
+}
+
+.wb-library-grid scrollbarvertical slidertrack {
+	background-color: #1a1a22;
+	border-radius: 3dp;
+}
+
+.wb-library-item {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 8dp;
+	padding: 5dp 8dp;
+	margin-bottom: 3dp;
+	border-radius: 6dp;
+	border: 1dp #ffffff08;
+	background-color: #22222c;
+	cursor: pointer;
+	transition: background-color 0.15s;
+}
+
+.wb-library-item:hover {
+	background-color: #2e2e3c;
+	border-color: #505068;
+}
+
+.wb-library-item.selected {
+	border-color: #06b6d4;
+	background-color: #14222e;
+}
+
+.wb-library-item-icon {
+	width: 30dp;
+	height: 30dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 1.2rem;
+	border-radius: 6dp;
+	background-color: #181820;
+	flex-shrink: 0;
+}
+
+.wb-library-item-info {
+	flex: 1;
+	overflow: hidden;
+}
+
+.wb-library-item-name {
+	font-size: 1.05rem;
+	color: #e5e7eb;
+	font-weight: bold;
+}
+
+.wb-library-item-desc {
+	font-size: 0.85rem;
+	color: #9ca3af;
+	margin-top: 1dp;
+}
+
+/* === Filter Input === */
+.wb-filter-input {
+	flex: 1;
+	height: 28dp;
+	padding: 2dp 24dp 2dp 8dp;
+	font-size: 1.0rem;
+	color: #e5e7eb;
+	background-color: #161620;
+	border: 1dp #3a3a4a;
+	border-radius: 5dp;
+}
+
+.wb-filter-input:focus {
+	border-color: #06b6d4aa;
+}
+
+/* === Search Wrapper with Clear Button === */
+.wb-search-wrapper {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	position: relative;
+}
+
+.wb-search-clear-btn {
+	position: absolute;
+	right: 5dp;
+	top: 5dp;
+	width: 18dp;
+	height: 18dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	border-radius: 3dp;
+	opacity: 0.4;
+}
+
+.wb-search-clear-btn:hover {
+	opacity: 0.85;
+	background-color: #3a3a4a;
+}
+
+.wb-search-clear-icon {
+	width: 10dp;
+	height: 10dp;
+}
+
+/* === CEG list browser === */
+.wb-ceg-list {
+	max-height: 160dp;
+	overflow-y: auto;
+	background-color: #161620;
+	border: 1dp #3a3a4a;
+	border-radius: 5dp;
+	padding: 3dp;
+}
+
+.wb-ceg-list scrollbarvertical {
+	width: 6dp;
+	margin-left: 2dp;
+}
+
+.wb-ceg-list scrollbarvertical sliderbar {
+	background-color: #505060;
+	border-radius: 3dp;
+}
+
+.wb-ceg-list scrollbarvertical sliderbar:hover {
+	background-color: #7a7a8a;
+}
+
+.wb-ceg-list scrollbarvertical slidertrack {
+	background-color: #1a1a22;
+	border-radius: 3dp;
+}
+
+.wb-ceg-item {
+	padding: 4dp 8dp;
+	font-size: 0.95rem;
+	color: #9ca3af;
+	cursor: pointer;
+	border-radius: 4dp;
+	transition: background-color 0.1s;
+}
+
+.wb-ceg-item:hover {
+	background-color: #262636;
+	color: #d1d5db;
+}
+
+.wb-ceg-item.selected {
+	background-color: #14222e;
+	color: #06b6d4;
+	font-weight: bold;
+}
+
+/* === Selected CEGs footer === */
+.wb-selected-footer {
+	display: flex;
+	flex-direction: row;
+	gap: 4dp;
+	align-items: center;
+	padding: 4dp 6dp;
+	border-radius: 4dp;
+	background-color: #1a1a22;
+}
+
+.wb-selected-label {
+	font-size: 0.85rem;
+	color: #6b7280;
+	flex-shrink: 0;
+}
+
+.wb-selected-value {
+	font-size: 0.95rem;
+	color: #d1d5db;
+	flex: 1;
+	overflow: hidden;
+}

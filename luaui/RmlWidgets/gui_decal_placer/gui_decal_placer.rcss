@@ -1,0 +1,45 @@
+/* Decal Placer Library — extends fp- styles from gui_feature_placer */
+
+.dp-root {
+	width: 162dp;
+	z-index: 901;
+}
+
+/* Decal tile thumbnail — when no decorator is set, show name centered on a
+   subtle diagonal-stripe pattern so engine-packed atlas textures still look
+   intentional rather than blank */
+.dp-thumb-scars        { background-color: #6b4838; }
+.dp-thumb-explosions   { background-color: #b04030; }
+.dp-thumb-tracks       { background-color: #4a4a52; }
+.dp-thumb-builds       { background-color: #406090; }
+.dp-thumb-footprints   { background-color: #604838; }
+.dp-thumb-scorch       { background-color: #2a2018; }
+.dp-thumb-groundplates { background-color: #506060; }
+.dp-thumb-other        { background-color: #4a4a4a; }
+
+.dp-mode-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 26dp;
+	background-color: #2a2a32;
+	border: 1dp #3a3a4a80;
+	border-radius: 4dp;
+	cursor: pointer;
+	transition: background-color 0.15s;
+}
+.dp-mode-btn:hover {
+	background-color: #3a3a4a;
+}
+.dp-mode-btn.active {
+	background-color: #1a3a2a;
+	border-color: #22c55e80;
+}
+.dp-mode-btn.active .dp-btn-text {
+	color: #22c55e;
+}
+.dp-btn-text {
+	font-size: 1.0rem;
+	color: #d1d5db;
+	font-weight: bold;
+}

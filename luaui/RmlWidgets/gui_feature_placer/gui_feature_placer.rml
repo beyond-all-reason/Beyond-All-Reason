@@ -1,0 +1,51 @@
+<rml>
+<head>
+	<link type="text/rcss" href="../styles.rcss" />
+	<link type="text/rcss" href="../rml-utility-classes.rcss" />
+	<link type="text/rcss" href="../palette-standard-global.rcss" />
+	<link type="text/rcss" href="../themes/theme-base.rcss" />
+	<link type="text/rcss" href="../themes/theme-armada.rcss" />
+	<link type="text/rcss" href="../themes/theme-cortex.rcss" />
+	<link type="text/rcss" href="../themes/theme-legion.rcss" />
+	<link type="text/rcss" href="gui_feature_placer.rcss" />
+</head>
+<body>
+	<div id="fp-root" class="fp-root hidden widget-shadow rounded-md bg-darkest p-2">
+		<div class="flex flex-row justify-between items-center mb-2">
+			<div id="fp-handle" class="fp-drag-handle text-2xl font-bold text-light text-outline-darker" style="flex: 1;">Asset Library</div>
+			<div id="btn-quit" class="fp-quit-btn"><img class="fp-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
+		</div>
+
+		<div class="flex flex-row justify-between items-center mb-1">
+			<div class="text-lg text-light">FEATURES</div>
+			<div class="text-sm text-keybind">
+				<span id="selected-count">0</span> selected
+			</div>
+		</div>
+		<div class="text-sm text-keybind mb-1" style="text-align: right;">Shift+Click to select multiple</div>
+		<div id="category-buttons" class="fp-cat-row">
+			<div id="btn-cat-all" class="fp-cat-btn active"><span class="fp-cat-label">All</span></div>
+			<div id="btn-cat-rocks" class="fp-cat-btn"><img class="fp-cat-icon" src="/luaui/images/terraform_brush/cat_rocks.png" /><span class="fp-cat-label">Rocks</span></div>
+			<div id="btn-cat-trees" class="fp-cat-btn"><img class="fp-cat-icon" src="/luaui/images/terraform_brush/cat_trees.png" /><span class="fp-cat-label">Trees</span></div>
+			<div id="btn-cat-bushes" class="fp-cat-btn"><img class="fp-cat-icon" src="/luaui/images/terraform_brush/cat_bushes.png" /><span class="fp-cat-label">Bushes</span></div>
+			<div id="btn-cat-crystals" class="fp-cat-btn"><img class="fp-cat-icon" src="/luaui/images/terraform_brush/cat_crystals.png" /><span class="fp-cat-label">Crystals</span></div>
+			<div id="btn-cat-christmas" class="fp-cat-btn"><img class="fp-cat-icon" src="/luaui/images/terraform_brush/cat_christmas.png" /><span class="fp-cat-label">Xmas</span></div>
+			<div id="btn-cat-raptor" class="fp-cat-btn"><img class="fp-cat-icon" src="/luaui/images/terraform_brush/cat_raptor.png" /><span class="fp-cat-label">Raptor</span></div>
+			<div id="btn-cat-armada_wrecks" class="fp-cat-btn"><img class="fp-cat-icon" src="/luaui/images/terraform_brush/cat_armada_wrecks.png" /><span class="fp-cat-label">Armada</span></div>
+			<div id="btn-cat-cortex_wrecks" class="fp-cat-btn"><img class="fp-cat-icon" src="/luaui/images/terraform_brush/cat_cortex_wrecks.png" /><span class="fp-cat-label">Cortex</span></div>
+			<div id="btn-cat-legion_wrecks" class="fp-cat-btn"><img class="fp-cat-icon" src="/luaui/images/terraform_brush/cat_legion_wrecks.png" /><span class="fp-cat-label">Legion</span></div>
+			<div id="btn-cat-other" class="fp-cat-btn"><img class="fp-cat-icon" src="/luaui/images/terraform_brush/cat_other.png" /><span class="fp-cat-label">Other</span></div>
+		</div>
+		<div class="fp-search-wrapper mb-1">
+			<input type="text" id="feature-search" class="fp-search-input" placeholder="Search features..." />
+			<div id="btn-search-clear" class="fp-search-clear-btn"><img class="fp-search-clear-icon" src="/luaui/images/terraform_brush/close.png" /></div>
+		</div>
+		<div id="btn-clear-selection" class="fp-clr-btn mb-1">
+			<div class="fp-btn-text">CLR</div>
+		</div>
+		<div id="feature-list" class="fp-feature-list">
+			<!-- Populated dynamically by Lua -->
+		</div>
+	</div>
+</body>
+</rml>

@@ -222,6 +222,23 @@ local mousepos = {0,0,0}
 local cursorradius = 50
 local removeUnitGrassFrames = 25
 local placementMode = false -- this controls wether we are in 'game mode' or placement map dev mode
+local externalBrushActive = false -- when true, suppress built-in painting UI (mouse, keys, circle)
+
+-- Spawn animation: grass grows from ground with elastic wobble when placed
+local SPAWN_ANIM_DURATION = 0.45 -- seconds for grow animation
+local SPAWN_ANIM_MAX = 800       -- max concurrent animations (ring buffer)
+local spawnAnims = {}             -- keyed by vboElementIndex: {target=size, start=clock, prev=oldSize}
+local spawnAnimCount = 0
+local spawnAnimClock = os.clock()
+
+-- Elastic-out easing: overshoots then settles (simulates sprouting wobble)
+local function elasticOut(t)
+	if t <= 0 then return 0 end
+	if t >= 1 then return 1 end
+	local p = 0.35
+	return math.pow(2, -10 * t) * math.sin((t - p / 4) * (2 * math.pi) / p) + 1
+end
+
 include("keysym.h.lua") -- so we can do hacky keypress
 local grassInstanceData = {}
 ---------------------------VAO VBO stuff:---------------------------------------
@@ -441,6 +458,7 @@ end
 
 function widget:KeyPress(key, modifier, isRepeat)
 	if not placementMode then return false end
+	if externalBrushActive then return false end
 	if key == KEYSYMS.LEFTBRACKET then cursorradius = mathMax(8, cursorradius *0.8) end
 	if key == KEYSYMS.RIGHTBRACKET then cursorradius = mathMin(512, cursorradius *1.2) end
 	return false
@@ -612,7 +630,7 @@ function widget:GameFrame(gf)
 end
 
 function widget:MousePress(x,y,button)
-	if placementMode then
+	if placementMode and not externalBrushActive then
 		return true
 	end
 end
@@ -629,6 +647,40 @@ function widget:Update(dt)
 	end
 
 	if not placementMode then return end
+
+	-- Process spawn grow animations (runs even when external brush is active)
+	spawnAnimClock = os.clock()
+	if spawnAnimCount > 0 then
+		for elemIdx, anim in pairs(spawnAnims) do
+			local elapsed = spawnAnimClock - anim.start
+			local progress = elapsed / SPAWN_ANIM_DURATION
+			local vboOffset = elemIdx * grassInstanceVBOStep
+			if progress >= 1.0 then
+				-- Animation complete: set final target size
+				grassInstanceData[vboOffset + 4] = anim.target
+				gCT[1] = grassInstanceData[vboOffset + 1]
+				gCT[2] = grassInstanceData[vboOffset + 2]
+				gCT[3] = grassInstanceData[vboOffset + 3]
+				gCT[4] = anim.target
+				grassInstanceVBO:Upload(gCT, 7, elemIdx)
+				spawnAnims[elemIdx] = nil
+				spawnAnimCount = spawnAnimCount - 1
+			else
+				-- Interpolate with elastic easing from previous size to target
+				local factor = elasticOut(progress)
+				local visualSize = anim.prev + (anim.target - anim.prev) * factor
+				if visualSize < 0 then visualSize = 0 end
+				grassInstanceData[vboOffset + 4] = visualSize
+				gCT[1] = grassInstanceData[vboOffset + 1]
+				gCT[2] = grassInstanceData[vboOffset + 2]
+				gCT[3] = grassInstanceData[vboOffset + 3]
+				gCT[4] = visualSize
+				grassInstanceVBO:Upload(gCT, 7, elemIdx)
+			end
+		end
+	end
+
+	if externalBrushActive then return end -- painting handled by external grass brush
 	local mx, my, lp, mp, rp, offscreen = spGetMouseState ( )
 	local mx, my, lp, mp, rp, offscreen = spGetMouseState ( )
 	local _ , coords = spTraceScreenRay(mx,my,true)
@@ -971,6 +1023,125 @@ function widget:Initialize()
 		lastLavaLevel = initLavaLevel
 		WG['grassgl4'].removeGrassBelowHeight(initLavaLevel)
 	end
+	-- Brush-aware grass painting for integration with Grass Brush tool
+	WG['grassgl4'].getConfig = function()
+		return {
+			patchResolution = grassConfig.patchResolution,
+			grassMinSize = grassConfig.grassMinSize,
+			grassMaxSize = grassConfig.grassMaxSize,
+			mapSizeX = mapSizeX,
+			mapSizeZ = mapSizeZ,
+		}
+	end
+	WG['grassgl4'].getDensityAt = function(wx, wz)
+		local vboOffset = world2grassmap(wx, wz) * grassInstanceVBOStep
+		if vboOffset < 0 or vboOffset >= #grassInstanceData then return 0 end
+		local size = grassInstanceData[vboOffset + 4]
+		if not size or size <= 0 then return 0 end
+		return size / grassConfig.grassMaxSize
+	end
+	WG['grassgl4'].setDensityAt = function(wx, wz, density, skipAnim)
+		local vboOffset = world2grassmap(wx, wz) * grassInstanceVBOStep
+		if vboOffset < 0 or vboOffset >= #grassInstanceData then return end
+		local size = density * grassConfig.grassMaxSize
+		if size < grassConfig.grassMinSize then size = 0 end
+		local oldSize = grassInstanceData[vboOffset + 4] or 0
+		local oldpx = grassInstanceData[vboOffset + 1]
+		local oldry = grassInstanceData[vboOffset + 2]
+		local oldpz = grassInstanceData[vboOffset + 3]
+
+		-- Register spawn grow animation when density increases
+		local elemIdx = vboOffset / grassInstanceVBOStep
+		if not skipAnim and externalBrushActive and size > oldSize and size > 0 then
+			if spawnAnimCount < SPAWN_ANIM_MAX then
+				if not spawnAnims[elemIdx] then
+					spawnAnimCount = spawnAnimCount + 1
+				end
+				spawnAnims[elemIdx] = {
+					target = size,
+					start = spawnAnimClock,
+					prev = oldSize,
+				}
+			end
+			-- Set initial visual size (start small, animation will grow it)
+			local initSize = oldSize
+			grassInstanceData[vboOffset + 4] = initSize
+			gCT[1], gCT[2], gCT[3], gCT[4] = oldpx, oldry, oldpz, initSize
+			grassInstanceVBO:Upload(gCT, 7, elemIdx)
+		else
+			-- No animation: immediate set
+			if spawnAnims[elemIdx] then
+				spawnAnims[elemIdx] = nil
+				spawnAnimCount = spawnAnimCount - 1
+			end
+			grassInstanceData[vboOffset + 4] = size
+			gCT[1], gCT[2], gCT[3], gCT[4] = oldpx, oldry, oldpz, size
+			grassInstanceVBO:Upload(gCT, 7, elemIdx)
+		end
+	end
+	WG['grassgl4'].enableEditMode = function()
+		if not placementMode then
+			placementMode = true
+			processChanges = true
+			if #grassInstanceData == 0 then
+				makeGrassInstanceVBO()
+			else
+				defineUploadGrassInstanceVBOData()
+				MakeAndAttachToVAO()
+			end
+		end
+	end
+	WG['grassgl4'].disableEditMode = function()
+		placementMode = false
+		externalBrushActive = false
+	end
+	WG['grassgl4'].isEditMode = function()
+		return placementMode
+	end
+	WG['grassgl4'].setExternalBrush = function(active)
+		externalBrushActive = active and true or false
+		if not active then
+			-- Flush all pending spawn animations to final values
+			for elemIdx, anim in pairs(spawnAnims) do
+				local vboOffset = elemIdx * grassInstanceVBOStep
+				grassInstanceData[vboOffset + 4] = anim.target
+				gCT[1] = grassInstanceData[vboOffset + 1]
+				gCT[2] = grassInstanceData[vboOffset + 2]
+				gCT[3] = grassInstanceData[vboOffset + 3]
+				gCT[4] = anim.target
+				grassInstanceVBO:Upload(gCT, 7, elemIdx)
+			end
+			spawnAnims = {}
+			spawnAnimCount = 0
+		end
+	end
+	WG['grassgl4'].hasGrass = function()
+		return #grassInstanceData > 0
+	end
+	WG['grassgl4'].saveGrassTGA = function(filename)
+		if not filename or #filename < 2 then
+			filename = Game.mapName .. "_grassDist.tga"
+		end
+		local texture = Spring.Utilities.NewTGA(
+			mathFloor(mapSizeX / grassConfig.patchResolution),
+			mathFloor(mapSizeZ / grassConfig.patchResolution),
+			1)
+		local offset = 0
+		for y = 1, texture.height do
+			for x = 1, texture.width do
+				texture[y][x] = grassPatchMultToByte(grassInstanceData[offset * 4 + 4])
+				offset = offset + 1
+			end
+		end
+		local success = Spring.Utilities.SaveTGA(texture, filename)
+		if not success then
+			spEcho("[Grass] Saved grass map: " .. filename)
+		else
+			spEcho("[Grass] Failed to save grass map: " .. filename)
+		end
+		return not success
+	end
+
 	widgetHandler:RegisterGlobal('GadgetRemoveGrass', WG['grassgl4'].removeGrass)
 
 	processChanges = false
@@ -1095,7 +1266,7 @@ function widget:DrawWorldPreUnit()
   if #grassInstanceData == 0 then return end
   local mapDrawMode = Spring.GetMapDrawMode()
   if mapDrawMode ~= 'normal' and mapDrawMode ~= 'los' then return end
-	if placementMode then
+	if placementMode and not externalBrushActive then
 		--spEcho("circle",mousepos[1],mousepos[2]+10,mousepos[3])
 		gl.LineWidth(2)
 		gl.Color(0.3, 1.0, 0.2, 0.75)

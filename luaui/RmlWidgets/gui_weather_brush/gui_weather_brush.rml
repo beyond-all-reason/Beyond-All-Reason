@@ -1,0 +1,48 @@
+<rml>
+<head>
+	<link type="text/rcss" href="../styles.rcss" />
+	<link type="text/rcss" href="../rml-utility-classes.rcss" />
+	<link type="text/rcss" href="../palette-standard-global.rcss" />
+	<link type="text/rcss" href="../themes/theme-base.rcss" />
+	<link type="text/rcss" href="../themes/theme-armada.rcss" />
+	<link type="text/rcss" href="../themes/theme-cortex.rcss" />
+	<link type="text/rcss" href="../themes/theme-legion.rcss" />
+	<link type="text/rcss" href="gui_weather_brush.rcss" />
+</head>
+<body data-model="weather_brush_model">
+	<div id="wb-root" class="wb-root hidden widget-shadow rounded-md bg-darkest p-2">
+		<!-- Title bar -->
+		<div class="flex flex-row justify-between items-center" style="padding: 0 2dp 6dp 2dp;">
+			<div id="wb-handle" class="wb-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Weather Library</div>
+			<div id="btn-wb-quit" class="wb-quit-btn"><img class="wb-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
+		</div>
+
+		<!-- Weather Library section header -->
+		<div class="wb-section-header">
+			<div class="wb-section-label">PRESETS</div>
+			<div class="wb-section-line"></div>
+		</div>
+		<div id="wb-library-grid" class="wb-library-grid mb-2">
+			<!-- Populated dynamically from weatherLibrary -->
+		</div>
+
+		<!-- CEG Browser section header -->
+		<div class="wb-section-header">
+			<div class="wb-section-label">CEG BROWSER</div>
+			<div class="wb-section-line"></div>
+		</div>
+		<div class="wb-search-wrapper mb-1" style="margin-top: 4dp;">
+			<input type="text" id="wb-ceg-filter" class="wb-filter-input" maxlength="40" value="" />
+			<div id="btn-wb-ceg-clear" class="wb-search-clear-btn"><img class="wb-search-clear-icon" src="/luaui/images/terraform_brush/close.png" /></div>
+		</div>
+		<div id="wb-ceg-list" class="wb-ceg-list mb-1">
+			<!-- Populated dynamically with matching CEG names -->
+		</div>
+		<div class="wb-selected-footer">
+			<div class="wb-selected-label">Active:</div>
+			<div id="wb-selected-cegs-label" class="wb-selected-value">none</div>
+		</div>
+
+	</div>
+</body>
+</rml>
