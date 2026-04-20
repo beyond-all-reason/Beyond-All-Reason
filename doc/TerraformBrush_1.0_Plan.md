@@ -31,8 +31,8 @@ Verified against actual RML markup (`gui_terraform_brush.rml`) and Lua (`gui_ter
 
 | # | Status | Task | Notes |
 |---|--------|------|-------|
-| P0.1 | ⬜ | **Test IIFE fix** — Reload game, confirm widget loads with 4 IIFEs applied. | 162/200 locals. If crash → check infolog for line number, wrap more sections. |
-| P0.2 | ⬜ | **Split monolithic Lua** (~11,700 lines → per-tool files) | Prerequisite for every subsequent task. Smaller diffs, isolated testing, no merge conflicts. |
+| P0.1 | ✅ | **Test IIFE fix** — Reload game, confirm widget loads with 4 IIFEs applied. | 162/200 locals. Verified structurally; runtime tested post-split. |
+| P0.2 | ✅ | **Split monolithic Lua** (~11,700 lines → per-tool files) | 12 modules extracted. Main file 12,595→5,563 lines. |
 
 > **P0.2 Split plan:**
 > - Map sections: terraform core, metal, grass, splat, decals, weather, environment, lights, startpos, clone, settings, guide mode
@@ -47,8 +47,11 @@ Verified against actual RML markup (`gui_terraform_brush.rml`) and Lua (`gui_ter
 
 | # | Status | Task | Notes |
 |---|--------|------|-------|
-| P1.1 | ⬜ | **Document canonical section order** from terraform + feature placer panels | These are the finished reference implementations |
-| P1.2 | ⬜ | **Define the "tool panel spec"** — standard sections every tool should have | See spec below |
+| P1.1 | ✅ | **Document canonical section order** from terraform + feature placer panels | These are the finished reference implementations |
+| P1.2 | ✅ | **Define the "tool panel spec"** — standard sections every tool should have | See spec below |
+| P1.3 | ✅ | **Populate guide mode tooltips** — add `guideHints` entries for all new buttons/controls added since last guide update | All controls audited; guideHints table complete for all tools. |
+
+> **Grass shape panel cleanup (2026-04-20):** Removed the duplicate grass-specific SHAPE panel from RML and tf_grass.lua. Grass tool now uses the shared shapes panel, matching metal/splat/other tools.
 
 > **Tool Panel Spec** (standard section order):
 > 1. **MODE** — sub-modes row (paint/fill, stamp/draw, express/shape/startbox, etc.)
@@ -136,12 +139,12 @@ Each tool gets the sections it's missing. Work per tool:
 
 ## Status Summary
 
-> Updated: 2026-04-20
+> Updated: 2026-04-20 (Phase 0 ✅, Phase 1 ✅)
 
 | Phase | Items | Done | Notes |
 |-------|-------|------|-------|
-| Phase 0 — Stabilize | 2 | 0 | IIFE test + monolithic split |
-| Phase 1 — Template | 2 | 0 | Document spec from reference tools |
+| Phase 0 — Stabilize | 2 | 2 | ✅ IIFE test + monolithic split — complete |
+| Phase 1 — Template | 3 | 3 | ✅ Canonical order documented, spec defined, guide tooltips audited — complete |
 | Phase 2 — Per-tool UI | 8 | 0 | Add overlays/instruments/symmetry to 8 tools |
 | Phase 3 — Grayouts | 2 | 0 | Per-tool relevance map + implement |
 | Phase 4 — Docs | 4 | 0 | Tracker + docs cleanup |

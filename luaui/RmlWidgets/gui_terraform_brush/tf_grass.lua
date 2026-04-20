@@ -1,0 +1,629 @@
+-- tf_grass.lua — Grass Brush attach + sync (extracted from gui_terraform_brush.lua)
+local M = {}
+
+function M.attach(doc, ctx)
+	local widgetState = ctx.widgetState
+	local uiState = ctx.uiState
+	local playSound = ctx.playSound
+	local setActiveClass = ctx.setActiveClass
+	local trackSliderDrag = ctx.trackSliderDrag
+	local WG = ctx.WG
+	local RADIUS_STEP = ctx.RADIUS_STEP
+	local ROTATION_STEP = ctx.ROTATION_STEP
+	local CURVE_STEP = ctx.CURVE_STEP
+
+	widgetState.gbSubmodesEl = doc:GetElementById("tf-grass-submodes")
+	widgetState.gbControlsEl = doc:GetElementById("tf-grass-controls")
+	widgetState.gbSubModeButtons = {}
+	widgetState.gbSubModeButtons.paint = doc:GetElementById("btn-gb-paint")
+	widgetState.gbSubModeButtons.fill = doc:GetElementById("btn-gb-fill")
+	widgetState.gbSubModeButtons.erase = doc:GetElementById("btn-gb-erase")
+
+	for gbMode, element in pairs(widgetState.gbSubModeButtons) do
+		if element then
+			element:AddEventListener("click", function(event)
+				playSound("modeSwitch")
+				if WG.GrassBrush then WG.GrassBrush.setSubMode(gbMode) end
+				setActiveClass(widgetState.gbSubModeButtons, gbMode)
+				event:StopPropagation()
+			end, false)
+		end
+	end
+
+	do
+		local sl = doc:GetElementById("slider-grass-density")
+		if sl then
+			trackSliderDrag(sl, "gb-density")
+			sl:AddEventListener("change", function(event)
+				if uiState.updatingFromCode then event:StopPropagation(); return end
+				local v = tonumber(sl:GetAttribute("value")) or 80
+				local density = v / 100
+				if WG.GrassBrush then WG.GrassBrush.setDensity(density) end
+				local label = doc:GetElementById("gb-density-label")
+				if label then label.inner_rml = tostring(math.floor(density * 100 + 0.5)) .. "%" end
+				event:StopPropagation()
+			end, false)
+		end
+		local densUp = doc:GetElementById("btn-grass-density-up")
+		if densUp then
+			densUp:AddEventListener("click", function(event)
+				if WG.GrassBrush then
+					local s = WG.GrassBrush.getState()
+					local cur = s and s.density or 0.8
+					WG.GrassBrush.setDensity(math.min(1.0, cur + 0.05))
+				end
+				event:StopPropagation()
+			end, false)
+		end
+		local densDn = doc:GetElementById("btn-grass-density-down")
+		if densDn then
+			densDn:AddEventListener("click", function(event)
+				if WG.GrassBrush then
+					local s = WG.GrassBrush.getState()
+					local cur = s and s.density or 0.8
+					WG.GrassBrush.setDensity(math.max(0.0, cur - 0.05))
+				end
+				event:StopPropagation()
+			end, false)
+		end
+	end
+
+	do
+		local btn = doc:GetElementById("btn-grass-save")
+		if btn then
+			btn:AddEventListener("click", function(event)
+				playSound("save")
+				if WG.GrassBrush then WG.GrassBrush.saveGrassMap() end
+				event:StopPropagation()
+			end, false)
+		end
+	end
+
+	-- Grass undo/redo history controls
+	do
+		local btnUndo = doc:GetElementById("btn-gb-undo")
+		if btnUndo then
+			btnUndo:AddEventListener("click", function(event)
+				if WG.GrassBrush then playSound("undo"); WG.GrassBrush.undo() end
+				event:StopPropagation()
+			end, false)
+		end
+
+		local btnRedo = doc:GetElementById("btn-gb-redo")
+		if btnRedo then
+			btnRedo:AddEventListener("click", function(event)
+				if WG.GrassBrush then playSound("redo"); WG.GrassBrush.redo() end
+				event:StopPropagation()
+			end, false)
+		end
+
+		local slHist = doc:GetElementById("slider-gb-history")
+		if slHist then
+			trackSliderDrag(slHist, "gb-history")
+			slHist:AddEventListener("change", function(event)
+				if uiState.updatingFromCode then event:StopPropagation(); return end
+				local v = tonumber(slHist:GetAttribute("value")) or 0
+				if WG.GrassBrush then WG.GrassBrush.undoToIndex(v) end
+				event:StopPropagation()
+			end, false)
+		end
+	end
+
+
+
+	-- Grass size slider
+	do
+		local sl = doc:GetElementById("slider-gb-size")
+		if sl then
+			trackSliderDrag(sl, "gb-size")
+			sl:AddEventListener("change", function(event)
+				if not uiState.updatingFromCode and WG.GrassBrush then
+					local val = tonumber(sl:GetAttribute("value")) or 100
+					WG.GrassBrush.setRadius(val)
+				end
+				event:StopPropagation()
+			end, false)
+		end
+		local up = doc:GetElementById("btn-gb-size-up")
+		if up then
+			up:AddEventListener("click", function(event)
+				if WG.GrassBrush then
+					local state = WG.GrassBrush.getState()
+					WG.GrassBrush.setRadius(state.radius + RADIUS_STEP)
+				end
+				event:StopPropagation()
+			end, false)
+		end
+		local dn = doc:GetElementById("btn-gb-size-down")
+		if dn then
+			dn:AddEventListener("click", function(event)
+				if WG.GrassBrush then
+					local state = WG.GrassBrush.getState()
+					WG.GrassBrush.setRadius(state.radius - RADIUS_STEP)
+				end
+				event:StopPropagation()
+			end, false)
+		end
+	end
+
+	-- Grass rotation slider
+	do
+		local sl = doc:GetElementById("slider-gb-rotation")
+		if sl then
+			trackSliderDrag(sl, "gb-rotation")
+			sl:AddEventListener("change", function(event)
+				if not uiState.updatingFromCode and WG.GrassBrush then
+					local val = tonumber(sl:GetAttribute("value")) or 0
+					WG.GrassBrush.setRotation(val)
+				end
+				event:StopPropagation()
+			end, false)
+		end
+		local cw = doc:GetElementById("btn-gb-rot-cw")
+		if cw then
+			cw:AddEventListener("click", function(event)
+				if WG.GrassBrush then
+					local state = WG.GrassBrush.getState()
+					WG.GrassBrush.setRotation((state.rotationDeg or 0) + ROTATION_STEP)
+				end
+				event:StopPropagation()
+			end, false)
+		end
+		local ccw = doc:GetElementById("btn-gb-rot-ccw")
+		if ccw then
+			ccw:AddEventListener("click", function(event)
+				if WG.GrassBrush then
+					local state = WG.GrassBrush.getState()
+					WG.GrassBrush.setRotation((state.rotationDeg or 0) - ROTATION_STEP)
+				end
+				event:StopPropagation()
+			end, false)
+		end
+	end
+
+	-- Grass curve/falloff slider
+	do
+		local sl = doc:GetElementById("slider-gb-curve")
+		if sl then
+			trackSliderDrag(sl, "gb-curve")
+			sl:AddEventListener("change", function(event)
+				if not uiState.updatingFromCode and WG.GrassBrush then
+					local val = tonumber(sl:GetAttribute("value")) or 10
+					WG.GrassBrush.setCurve(val / 10)
+				end
+				event:StopPropagation()
+			end, false)
+		end
+		local up = doc:GetElementById("btn-gb-curve-up")
+		if up then
+			up:AddEventListener("click", function(event)
+				if WG.GrassBrush then
+					local state = WG.GrassBrush.getState()
+					WG.GrassBrush.setCurve(state.curve + CURVE_STEP)
+				end
+				event:StopPropagation()
+			end, false)
+		end
+		local dn = doc:GetElementById("btn-gb-curve-down")
+		if dn then
+			dn:AddEventListener("click", function(event)
+				if WG.GrassBrush then
+					local state = WG.GrassBrush.getState()
+					WG.GrassBrush.setCurve(state.curve - CURVE_STEP)
+				end
+				event:StopPropagation()
+			end, false)
+		end
+	end
+
+	-- Grass length scale slider
+	do
+		local sl = doc:GetElementById("slider-gb-length")
+		if sl then
+			trackSliderDrag(sl, "gb-length")
+			sl:AddEventListener("change", function(event)
+				if uiState.updatingFromCode then event:StopPropagation(); return end
+				local v = tonumber(sl:GetAttribute("value")) or 10
+				if WG.GrassBrush then WG.GrassBrush.setLengthScale(v / 10) end
+				event:StopPropagation()
+			end, false)
+		end
+		local up = doc:GetElementById("btn-gb-length-up")
+		if up then
+			up:AddEventListener("click", function(event)
+				if WG.GrassBrush then
+					local state = WG.GrassBrush.getState()
+					WG.GrassBrush.setLengthScale(state.lengthScale + 0.1)
+				end
+				event:StopPropagation()
+			end, false)
+		end
+		local dn = doc:GetElementById("btn-gb-length-down")
+		if dn then
+			dn:AddEventListener("click", function(event)
+				if WG.GrassBrush then
+					local state = WG.GrassBrush.getState()
+					WG.GrassBrush.setLengthScale(state.lengthScale - 0.1)
+				end
+				event:StopPropagation()
+			end, false)
+		end
+	end
+
+	-- Grass smart filter toggles
+	do
+		local function wireGbSmartToggle(btnId, filterKey)
+			local btn = doc:GetElementById(btnId)
+			if btn then
+				btn:AddEventListener("click", function(event)
+					if WG.GrassBrush then
+						local sf = WG.GrassBrush.getState().smartFilters
+						playSound(sf[filterKey] and "toggleOff" or "toggleOn")
+						WG.GrassBrush.setSmartFilter(filterKey, not sf[filterKey])
+					end
+					event:StopPropagation()
+				end, false)
+			end
+		end
+
+		local toggle = doc:GetElementById("btn-gb-smart-toggle")
+		if toggle then
+			toggle:AddEventListener("click", function(event)
+				if WG.GrassBrush then
+					local st = WG.GrassBrush.getState()
+					playSound(st.smartEnabled and "toggleOff" or "toggleOn")
+					WG.GrassBrush.setSmartEnabled(not st.smartEnabled)
+				end
+				event:StopPropagation()
+			end, false)
+		end
+
+		wireGbSmartToggle("btn-gb-avoid-water",    "avoidWater")
+		wireGbSmartToggle("btn-gb-avoid-cliffs",   "avoidCliffs")
+		wireGbSmartToggle("btn-gb-prefer-slopes",  "preferSlopes")
+		wireGbSmartToggle("btn-gb-alt-min-enable", "altMinEnable")
+		wireGbSmartToggle("btn-gb-alt-max-enable", "altMaxEnable")
+
+		local slSlopeMax = doc:GetElementById("slider-gb-slope-max")
+		if slSlopeMax then
+			trackSliderDrag(slSlopeMax, "gb-slope-max")
+			slSlopeMax:AddEventListener("change", function(event)
+				if uiState.updatingFromCode then event:StopPropagation(); return end
+				local v = tonumber(slSlopeMax:GetAttribute("value")) or 45
+				if WG.GrassBrush then WG.GrassBrush.setSmartFilter("slopeMax", v) end
+				event:StopPropagation()
+			end, false)
+		end
+
+		local slSlopeMin = doc:GetElementById("slider-gb-slope-min")
+		if slSlopeMin then
+			trackSliderDrag(slSlopeMin, "gb-slope-min")
+			slSlopeMin:AddEventListener("change", function(event)
+				if uiState.updatingFromCode then event:StopPropagation(); return end
+				local v = tonumber(slSlopeMin:GetAttribute("value")) or 10
+				if WG.GrassBrush then WG.GrassBrush.setSmartFilter("slopeMin", v) end
+				event:StopPropagation()
+			end, false)
+		end
+
+		local slAltMin = doc:GetElementById("slider-gb-alt-min")
+		if slAltMin then
+			trackSliderDrag(slAltMin, "gb-alt-min")
+			slAltMin:AddEventListener("change", function(event)
+				if uiState.updatingFromCode then event:StopPropagation(); return end
+				local v = tonumber(slAltMin:GetAttribute("value")) or 0
+				if WG.GrassBrush then WG.GrassBrush.setSmartFilter("altMin", v) end
+				event:StopPropagation()
+			end, false)
+		end
+
+		local slAltMax = doc:GetElementById("slider-gb-alt-max")
+		if slAltMax then
+			trackSliderDrag(slAltMax, "gb-alt-max")
+			slAltMax:AddEventListener("change", function(event)
+				if uiState.updatingFromCode then event:StopPropagation(); return end
+				local v = tonumber(slAltMax:GetAttribute("value")) or 200
+				if WG.GrassBrush then WG.GrassBrush.setSmartFilter("altMax", v) end
+				event:StopPropagation()
+			end, false)
+		end
+
+		-- Grass smart filter +/- buttons
+		local function wireGbSmartBtn(btnId, filterKey, step)
+			local btn = doc:GetElementById(btnId)
+			if btn then
+				btn:AddEventListener("click", function(event)
+					if WG.GrassBrush then
+						local sf = WG.GrassBrush.getState().smartFilters
+						WG.GrassBrush.setSmartFilter(filterKey, (sf[filterKey] or 0) + step)
+					end
+					event:StopPropagation()
+				end, false)
+			end
+		end
+		wireGbSmartBtn("btn-gb-slope-max-up",   "slopeMax",  5)
+		wireGbSmartBtn("btn-gb-slope-max-down", "slopeMax", -5)
+		wireGbSmartBtn("btn-gb-slope-min-up",   "slopeMin",  5)
+		wireGbSmartBtn("btn-gb-slope-min-down", "slopeMin", -5)
+		wireGbSmartBtn("btn-gb-alt-min-up",     "altMin",   10)
+		wireGbSmartBtn("btn-gb-alt-min-down",   "altMin",  -10)
+		wireGbSmartBtn("btn-gb-alt-max-up",     "altMax",   10)
+		wireGbSmartBtn("btn-gb-alt-max-down",   "altMax",  -10)
+	end
+
+	-- Grass color filter controls
+	do
+		local colorToggle = doc:GetElementById("btn-gb-color-toggle")
+		if colorToggle then
+			colorToggle:AddEventListener("click", function(event)
+				if WG.GrassBrush then
+					local st = WG.GrassBrush.getState()
+					playSound(st.texFilterEnabled and "toggleOff" or "toggleOn")
+					WG.GrassBrush.setTexFilterEnabled(not st.texFilterEnabled)
+				end
+				event:StopPropagation()
+			end, false)
+		end
+
+		local pipetteBtn = doc:GetElementById("btn-gb-pipette")
+		if pipetteBtn then
+			pipetteBtn:AddEventListener("click", function(event)
+				if WG.GrassBrush then
+					local st = WG.GrassBrush.getState()
+					if st.pipetteMode then
+						WG.GrassBrush.setPipetteMode(false)
+					else
+						playSound("click")
+						WG.GrassBrush.setPipetteMode(true)
+					end
+				end
+				event:StopPropagation()
+			end, false)
+		end
+
+		local slThresh = doc:GetElementById("slider-gb-color-thresh")
+		if slThresh then
+			trackSliderDrag(slThresh, "gb-color-thresh")
+			slThresh:AddEventListener("change", function(event)
+				if uiState.updatingFromCode then event:StopPropagation(); return end
+				local v = tonumber(slThresh:GetAttribute("value")) or 35
+				if WG.GrassBrush then WG.GrassBrush.setTexFilterThreshold(v / 100) end
+				event:StopPropagation()
+			end, false)
+		end
+
+		local slPad = doc:GetElementById("slider-gb-color-pad")
+		if slPad then
+			trackSliderDrag(slPad, "gb-color-pad")
+			slPad:AddEventListener("change", function(event)
+				if uiState.updatingFromCode then event:StopPropagation(); return end
+				local v = tonumber(slPad:GetAttribute("value")) or 0
+				if WG.GrassBrush then WG.GrassBrush.setTexFilterPadding(v) end
+				event:StopPropagation()
+			end, false)
+		end
+
+		local excludeToggle = doc:GetElementById("btn-gb-exclude-toggle")
+		if excludeToggle then
+			excludeToggle:AddEventListener("click", function(event)
+				if WG.GrassBrush then
+					local st = WG.GrassBrush.getState()
+					playSound(st.texExcludeEnabled and "toggleOff" or "toggleOn")
+					WG.GrassBrush.setTexExcludeEnabled(not st.texExcludeEnabled)
+				end
+				event:StopPropagation()
+			end, false)
+		end
+
+		local excludePipetteBtn = doc:GetElementById("btn-gb-exclude-pipette")
+		if excludePipetteBtn then
+			excludePipetteBtn:AddEventListener("click", function(event)
+				if WG.GrassBrush then
+					local st = WG.GrassBrush.getState()
+					if st.pipetteExcludeMode then
+						WG.GrassBrush.setPipetteExcludeMode(false)
+					else
+						playSound("click")
+						WG.GrassBrush.setPipetteExcludeMode(true)
+					end
+				end
+				event:StopPropagation()
+			end, false)
+		end
+	end
+end
+
+function M.sync(doc, ctx, gbState, setSummary, sumEl)
+	local widgetState = ctx.widgetState
+	local uiState = ctx.uiState
+	local setActiveClass = ctx.setActiveClass
+	local syncAndFlash = ctx.syncAndFlash
+	local shapeNames = ctx.shapeNames
+	local WG = ctx.WG
+
+	local grassBtn = doc and doc:GetElementById("btn-grass")
+	if grassBtn then grassBtn:SetClass("active", true) end
+	setActiveClass(widgetState.modeButtons, nil)
+
+	-- Grass sub-mode buttons
+	setActiveClass(widgetState.gbSubModeButtons, gbState.subMode)
+
+	-- Update clay button: unavailable in grass mode
+	local clayBtnG = doc and doc:GetElementById("btn-clay-mode")
+	if clayBtnG then
+		clayBtnG:SetClass("unavailable", true)
+	end
+
+	-- Grass density slider & label sync
+	if doc then
+		uiState.updatingFromCode = true
+
+		local gbDensityLabel = doc:GetElementById("gb-density-label")
+		if gbDensityLabel then gbDensityLabel.inner_rml = tostring(math.floor(gbState.density * 100 + 0.5)) .. "%" end
+
+		do
+			local sv = math.floor(gbState.density * 100 + 0.5)
+			syncAndFlash(doc:GetElementById("slider-grass-density"), "gb-density", tostring(sv))
+		end
+
+		-- Sync size, rotation, curve, length from grass brush own state
+		do
+			local gbSizeLabel = doc:GetElementById("gb-size-label")
+			if gbSizeLabel then gbSizeLabel.inner_rml = tostring(gbState.radius or 100) end
+			syncAndFlash(doc:GetElementById("slider-gb-size"), "gb-size", tostring(gbState.radius or 100))
+
+			local gbRotLabel = doc:GetElementById("gb-rotation-label")
+			if gbRotLabel then gbRotLabel.inner_rml = tostring(gbState.rotationDeg or 0) .. "&#176;" end
+			syncAndFlash(doc:GetElementById("slider-gb-rotation"), "gb-rotation", tostring(gbState.rotationDeg or 0))
+
+			local gbCurveLabel = doc:GetElementById("gb-curve-label")
+			if gbCurveLabel then gbCurveLabel.inner_rml = string.format("%.1f", gbState.curve or 1.0) end
+			syncAndFlash(doc:GetElementById("slider-gb-curve"), "gb-curve", tostring(math.floor((gbState.curve or 1.0) * 10 + 0.5)))
+
+			local gbLenLabel = doc:GetElementById("gb-length-label")
+			if gbLenLabel then gbLenLabel.inner_rml = string.format("%.1f", gbState.lengthScale or 1.0) end
+			syncAndFlash(doc:GetElementById("slider-gb-length"), "gb-length", tostring(math.floor((gbState.lengthScale or 1.0) * 10 + 0.5)))
+		end
+
+		-- Smart filter UI sync
+		do
+			local smartOn = gbState.smartEnabled
+			local smartToggle = doc:GetElementById("btn-gb-smart-toggle")
+			if smartToggle then smartToggle:SetAttribute("src", smartOn and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png") end
+			local smartOpts = doc:GetElementById("gb-smart-options")
+			if smartOpts then smartOpts:SetClass("hidden", not smartOn) end
+
+			local sf = gbState.smartFilters or {}
+			local function syncSmartCheck(id, key)
+				local el = doc:GetElementById(id)
+				if el then el:SetAttribute("src", sf[key] and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png") end
+			end
+			syncSmartCheck("btn-gb-avoid-water",    "avoidWater")
+			syncSmartCheck("btn-gb-avoid-cliffs",   "avoidCliffs")
+			syncSmartCheck("btn-gb-prefer-slopes",  "preferSlopes")
+			syncSmartCheck("btn-gb-alt-min-enable", "altMinEnable")
+			syncSmartCheck("btn-gb-alt-max-enable", "altMaxEnable")
+
+			local slopeMaxRow = doc:GetElementById("gb-smart-slope-max-row")
+			local slopeMaxSl = doc:GetElementById("gb-smart-slope-max-slider-row")
+			if slopeMaxRow then slopeMaxRow:SetClass("hidden", not sf.avoidCliffs) end
+			if slopeMaxSl then slopeMaxSl:SetClass("hidden", not sf.avoidCliffs) end
+			local slopeMaxLabel = doc:GetElementById("gb-smart-slope-max-label")
+			if slopeMaxLabel then slopeMaxLabel.inner_rml = tostring(sf.slopeMax or 45) end
+			syncAndFlash(doc:GetElementById("slider-gb-slope-max"), "gb-slope-max", tostring(sf.slopeMax or 45))
+
+			local slopeMinRow = doc:GetElementById("gb-smart-slope-min-row")
+			local slopeMinSl = doc:GetElementById("gb-smart-slope-min-slider-row")
+			if slopeMinRow then slopeMinRow:SetClass("hidden", not sf.preferSlopes) end
+			if slopeMinSl then slopeMinSl:SetClass("hidden", not sf.preferSlopes) end
+			local slopeMinLabel = doc:GetElementById("gb-smart-slope-min-label")
+			if slopeMinLabel then slopeMinLabel.inner_rml = tostring(sf.slopeMin or 10) end
+			syncAndFlash(doc:GetElementById("slider-gb-slope-min"), "gb-slope-min", tostring(sf.slopeMin or 10))
+
+			local altMinSl = doc:GetElementById("gb-smart-alt-min-slider-row")
+			if altMinSl then altMinSl:SetClass("hidden", not sf.altMinEnable) end
+			local altMinLabel = doc:GetElementById("gb-smart-alt-min-label")
+			if altMinLabel then altMinLabel.inner_rml = tostring(sf.altMin or 0) end
+			syncAndFlash(doc:GetElementById("slider-gb-alt-min"), "gb-alt-min", tostring(sf.altMin or 0))
+
+			local altMaxSl = doc:GetElementById("gb-smart-alt-max-slider-row")
+			if altMaxSl then altMaxSl:SetClass("hidden", not sf.altMaxEnable) end
+			local altMaxLabel = doc:GetElementById("gb-smart-alt-max-label")
+			if altMaxLabel then altMaxLabel.inner_rml = tostring(sf.altMax or 200) end
+			syncAndFlash(doc:GetElementById("slider-gb-alt-max"), "gb-alt-max", tostring(sf.altMax or 200))
+		end
+
+		-- Color filter UI sync
+		do
+			local colorOn = gbState.texFilterEnabled
+			local colorToggle = doc:GetElementById("btn-gb-color-toggle")
+			if colorToggle then colorToggle:SetAttribute("src", colorOn and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png") end
+			local colorOpts = doc:GetElementById("gb-color-options")
+			if colorOpts then colorOpts:SetClass("hidden", not colorOn) end
+
+			local tc = gbState.texFilterColor or {}
+			local swatchEl = doc:GetElementById("gb-tex-color-swatch")
+			if swatchEl then
+				local ri = math.floor(math.min(math.max(tc[1] or 0, 0), 1) * 255 + 0.5)
+				local gi = math.floor(math.min(math.max(tc[2] or 0, 0), 1) * 255 + 0.5)
+				local bi = math.floor(math.min(math.max(tc[3] or 0, 0), 1) * 255 + 0.5)
+				swatchEl:SetAttribute("style", string.format("background-color: rgb(%d, %d, %d);", ri, gi, bi))
+			end
+
+			local pipBtn = doc:GetElementById("btn-gb-pipette")
+			if pipBtn then pipBtn:SetClass("active", gbState.pipetteMode or false) end
+
+			local threshVal = math.floor((gbState.texFilterThreshold or 0.35) * 100 + 0.5)
+			syncAndFlash(doc:GetElementById("slider-gb-color-thresh"), "gb-color-thresh", tostring(threshVal))
+			local threshLabel = doc:GetElementById("gb-color-thresh-label")
+			if threshLabel then threshLabel.inner_rml = tostring(threshVal) end
+
+			local padVal = gbState.texFilterPadding or 0
+			syncAndFlash(doc:GetElementById("slider-gb-color-pad"), "gb-color-pad", tostring(math.floor(padVal + 0.5)))
+			local padLabel = doc:GetElementById("gb-color-pad-label")
+			if padLabel then padLabel.inner_rml = tostring(math.floor(padVal + 0.5)) end
+
+			local exOn = gbState.texExcludeEnabled
+			local exToggle = doc:GetElementById("btn-gb-exclude-toggle")
+			if exToggle then exToggle:SetAttribute("src", exOn and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png") end
+
+			local ec = gbState.texFilterColor or {}
+			local exSwatchEl = doc:GetElementById("gb-tex-exclude-swatch")
+			if exSwatchEl then
+				local ri = math.floor(math.min(math.max(ec[5] or 0.65, 0), 1) * 255 + 0.5)
+				local gi = math.floor(math.min(math.max(ec[6] or 0.35, 0), 1) * 255 + 0.5)
+				local bi = math.floor(math.min(math.max(ec[7] or 0.10, 0), 1) * 255 + 0.5)
+				exSwatchEl:SetAttribute("style", string.format("background-color: rgb(%d, %d, %d);", ri, gi, bi))
+			end
+
+			local exPipBtn = doc:GetElementById("btn-gb-exclude-pipette")
+			if exPipBtn then exPipBtn:SetClass("active", gbState.pipetteExcludeMode or false) end
+		end
+
+		-- History slider sync
+		do
+			local histIdx = gbState.historyIndex or 0
+			local histMax = gbState.historyMax or 0
+			local slH = doc:GetElementById("slider-gb-history")
+			if slH then
+				slH:SetAttribute("max", tostring(histMax))
+				syncAndFlash(slH, "gb-history", tostring(histIdx))
+			end
+			local numH = doc:GetElementById("slider-gb-history-numbox")
+			if numH then numH:SetAttribute("value", tostring(histIdx)) end
+		end
+
+		uiState.updatingFromCode = false
+	end
+
+	-- Shape: use grass brush shape (own state)
+	if gbState.shape then
+		setActiveClass(widgetState.gbShapeButtons, gbState.shape)
+	end
+
+	-- Gray out ring and unsupported shapes
+	for shape, element in pairs(widgetState.shapeButtons) do
+		if element and shape ~= "ring" then
+			element:SetClass("disabled", false)
+		end
+	end
+
+	do
+		local gApi = WG['grassgl4']
+		local hasGrass = gApi and gApi.hasGrass and gApi.hasGrass()
+		if not hasGrass then
+			if sumEl then
+				local sep = '<span class="tf-ss-sep">|</span>'
+				sumEl.inner_rml = '<span class="tf-ss-mode" style="color: #10b981;">GRASS</span>' .. sep .. '<span class="tf-ss-val" style="color: #fbbf24;">No grass data for this map</span>'
+			end
+		else
+			setSummary("GRASS", "#10b981",
+				"", (gbState.subMode or "paint"):upper(),
+				"", shapeNames[gbState.shape] or "Circle",
+				"R ", tostring(gbState.radius or 0),
+				"Density ", string.format("%.0f", (gbState.density or 0) * 100) .. "%")
+		end
+	end
+end
+
+return M
