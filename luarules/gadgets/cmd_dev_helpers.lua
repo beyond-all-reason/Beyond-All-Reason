@@ -1022,7 +1022,7 @@ else	-- UNSYNCED
 		if playerID ~= Spring.GetMyPlayerID() then
 			return
 		end
-		if not isAuthorized(playerID) then
+		if not isAuthorized(playerID, "units") then
 			return
 		end
 		-- Spring.Echo(line)
@@ -1038,7 +1038,7 @@ else	-- UNSYNCED
 		if playerID ~= Spring.GetMyPlayerID() then
 			return
 		end
-		if not isAuthorized(playerID) then
+		if not isAuthorized(playerID, "terrain") then
 			return
 		end
 		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':clearwrecks')
@@ -1048,7 +1048,7 @@ else	-- UNSYNCED
 		if playerID ~= Spring.GetMyPlayerID() then
 			return
 		end
-		if not isAuthorized(playerID) then
+		if not isAuthorized(playerID, "terrain") then
 			return
 		end
 		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':reducewrecks')
@@ -1058,7 +1058,7 @@ else	-- UNSYNCED
 		if playerID ~= Spring.GetMyPlayerID() then
 			return
 		end
-		if not isAuthorized(playerID) then
+		if not isAuthorized(playerID, "units") then
 			return
 		end
 		local msg = ''
@@ -1094,7 +1094,7 @@ else	-- UNSYNCED
 		if playerID ~= Spring.GetMyPlayerID() then
 			return
 		end
-		if not isAuthorized(playerID) then
+		if not isAuthorized(playerID, "units") then
 			return
 		end
 		local features=Spring.GetAllFeatures()
@@ -1113,7 +1113,7 @@ else	-- UNSYNCED
 		if playerID ~= Spring.GetMyPlayerID() then
 			return
 		end
-		if not isAuthorized(playerID) then
+		if not isAuthorized(playerID, "units") then
 			return
 		end
 		Spring.Echo("Dumping all units")
@@ -1267,7 +1267,7 @@ else	-- UNSYNCED
 			return
 		end
 		Spring.Echo("Fightertest",line, words, playerID, action)
-		if not isAuthorized(playerID) then
+		if not isAuthorized(playerID, "terrain") then
 			return
 		end
 		if fightertestactive then
@@ -1383,7 +1383,7 @@ else	-- UNSYNCED
 		if playerID ~= Spring.GetMyPlayerID() then
 			return
 		end
-		if not isAuthorized(playerID) then
+		if not isAuthorized(playerID, "terrain") then
 			return
 		end
 		if words[2] then
@@ -1398,7 +1398,7 @@ else	-- UNSYNCED
 		if playerID ~= Spring.GetMyPlayerID() then
 			return
 		end
-		if not isAuthorized(playerID) then
+		if not isAuthorized(playerID, "teams") then
 			return
 		end
 		if not words[1] then
@@ -1426,7 +1426,7 @@ else	-- UNSYNCED
 		if playerID ~= Spring.GetMyPlayerID() then
 			return
 		end
-		if not isAuthorized(playerID) then
+		if not isAuthorized(playerID, "teams") then
 			return
 		end
 		if not words[1] then
@@ -1439,7 +1439,7 @@ else	-- UNSYNCED
 		if playerID ~= Spring.GetMyPlayerID() then
 			return
 		end
-		if not isAuthorized(playerID) then
+		if not isAuthorized(playerID, "test") then
 			return
 		end
 		Spring.Echo("Unsynced: Attempting to trigger a /desync")
@@ -1453,7 +1453,7 @@ else	-- UNSYNCED
 		if playerID ~= Spring.GetMyPlayerID() then
 			return
 		end
-		if not isAuthorized(playerID) then
+		if not isAuthorized(playerID, "units") then
 			return
 		end
 		local height = 32
@@ -1479,7 +1479,7 @@ else	-- UNSYNCED
 		if playerID ~= Spring.GetMyPlayerID() then
 			return
 		end
-		if not isAuthorized(playerID) then
+		if not isAuthorized(playerID, "units") then
 			return
 		end
 		local mx, my = Spring.GetMouseState()
@@ -1496,7 +1496,7 @@ else	-- UNSYNCED
 		if playerID ~= Spring.GetMyPlayerID() then
 			return
 		end
-		if not isAuthorized(playerID) then
+		if not isAuthorized(playerID, "units") then
 			return
 		end
 

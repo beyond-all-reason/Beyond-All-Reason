@@ -292,6 +292,7 @@ local function refreshText()
 		{ type = lineType.key, key = getActionHotkey('remove_from_autogroup'),	text = Spring.I18N('ui.keybinds.massSelect.removeAutoGroup')},
 		{ type = lineType.key, key = Spring.I18N('ui.keybinds.massSelect.groupKey'),		text = Spring.I18N('ui.keybinds.massSelect.group')		},
 		{ type = lineType.key, key = getActionHotkey('select_AllMap+_InPrevSel+_ClearSelection_SelectAll+'),		text = Spring.I18N('ui.keybinds.massSelect.sameType')	},
+		{ type = lineType.key, key = getActionHotkey('select_PrevSelection+_Not_Building_Not_RelativeHealth_60+_ClearSelection_SelectAll+'),		text = Spring.I18N('ui.keybinds.massSelect.damaged')	},
 		{ type = lineType.blank },
 		{ type = lineType.title, text = Spring.I18N('ui.keybinds.drawing.title') },
 		{ type = lineType.key, key = Spring.I18N('ui.keybinds.drawing.mapmarkKey'),	text = Spring.I18N('ui.keybinds.drawing.mapmark')	},

@@ -75,6 +75,8 @@ local showPrice = false		-- false will still show hover
 local showRadarIcon = true		-- false will still show hover
 local showGroupIcon = true		-- false will still show hover
 local showBuildProgress = true
+local progressColor = { 0.08, 0.08, 0.08, 0.6 }
+local drawnBuildTargets = {}
 
 local zoomMult = 1.5
 local defaultCellZoom = 0.025 * zoomMult
@@ -1152,17 +1154,21 @@ function widget:DrawScreen()
 		if showBuildProgress then
 			for builderUnitID, _ in pairs(selectedBuilders) do
 				local unitBuildID = spGetUnitIsBuilding(builderUnitID)
-				if unitBuildID then
+				if unitBuildID and not drawnBuildTargets[unitBuildID] then
+					drawnBuildTargets[unitBuildID] = true
 					local unitBuildDefID = spGetUnitDefID(unitBuildID)
 					if unitBuildDefID then
 						local cellRectID = unitDefToCellMap[unitBuildDefID]
 						if cellRectID and cellRects[cellRectID] then
 							local _, progress = spGetUnitIsBeingBuilt(unitBuildID)
 							progress = 1 - progress -- make the effect wind counter-clockwise
-							RectRoundProgress(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cellSize * 0.03, progress, { 0.08, 0.08, 0.08, 0.6 })
+							RectRoundProgress(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cellSize * 0.03, progress, progressColor)
 						end
 					end
 				end
+			end
+			for k in pairs(drawnBuildTargets) do
+				drawnBuildTargets[k] = nil
 			end
 		end
 	end

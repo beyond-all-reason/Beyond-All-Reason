@@ -61,10 +61,6 @@ return {
 				[1] = "custom:LootboxLightGold",
 				[2] = "custom:LootboxBeaconBronze",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
-			},
 		},
 	},
 }

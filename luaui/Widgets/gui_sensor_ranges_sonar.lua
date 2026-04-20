@@ -30,7 +30,7 @@ local circleSegments = 62 -- To ensure its only 2 warps per instance
 local rangecorrectionelmos = debugmode and -16 or 16 -- how much smaller they are drawn than truth due to LOS mipping
 --------- End configurables ------
 
-local minSonarDistance = 250
+local minSonarDistance = 150
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
 ------- GL4 NOTES -----
@@ -193,7 +193,7 @@ local unitRange = {} -- table of unit types with their sonar ranges
 local unitList = {} -- all ally units and their coordinates and sonar ranges
 
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.sonarDistance and unitDef.sonarDistance > minSonarDistance then	-- save perf by excluding low sonar range units
+	if unitDef.sonarDistance and unitDef.sonarDistance >= minSonarDistance then	-- save perf by excluding low sonar range units
 		if  string.find(unitDef.name, "raptor", nil, true) then
 			-- skip raptors from sonar
 		else	

@@ -32,13 +32,6 @@ return {
 			subfolder = "CorBuildings/SeaEconomy",
 			unitgroup = "metal",
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
-		},
 		sounds = {
 			activate = "arm-bld-mm-activate",
 			canceldestruct = "cancel2",

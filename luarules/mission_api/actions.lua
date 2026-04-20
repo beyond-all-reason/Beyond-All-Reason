@@ -105,7 +105,10 @@ local function spawnUnits(unitName, unitDefName, teamName, position, quantity, f
 	local teamID = GG['MissionAPI'].Teams[teamName]
 	for _, pos in pairs(positions) do
 		pos.y = Spring.GetGroundHeight(pos.x, pos.z)
+		-- Set flag for TotalUnitsBuilt trigger not to count units not actually built by the player.
+		GG['MissionAPI'].spawningUnit = true
 		local unitID = Spring.CreateUnit(unitDefName, pos.x, pos.y, pos.z, facing or 's', teamID, construction)
+		GG['MissionAPI'].spawningUnit = false
 		trackUnit(unitName, unitID)
 	end
 end

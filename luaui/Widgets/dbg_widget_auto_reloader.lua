@@ -24,6 +24,7 @@ local spEcho = Spring.Echo
 
 local widgetContents = {} -- maps widgetname to raw code
 local widgetFilesNames = {} -- maps widgetname to filename
+local widgetDependents = {} -- maps widgetname to {dependentName1, ...}
 local mouseOffscreen = select(6, spGetMouseState())
 
 function widget:Initialize()
@@ -34,7 +35,19 @@ function widget:Initialize()
 		if not widgetContents[whInfo.name] then
 			widgetContents[whInfo.name] = VFS.LoadFile(whInfo.filename)
 		end
+		if widget.GetInfo then
+			local info = widget:GetInfo()
+			if info.dependents then
+				widgetDependents[whInfo.name] = info.dependents
+			end
+		end
 	end
+end
+
+local function ReloadWidget(widgetName)
+	spEcho("Reloading widget: " .. widgetName)
+	widgetHandler:DisableWidget(widgetName)
+	widgetHandler:EnableWidget(widgetName)
 end
 
 local function CheckForChanges(widgetName, fileName)
@@ -46,9 +59,17 @@ local function CheckForChanges(widgetName, fileName)
 			spEcho('Failed to load: ' .. fileName .. '  (' .. err .. ')')
 			return nil
 		end
-		widgetHandler:DisableWidget(widgetName)
-		--spEcho("Reloading widget: " .. widgetName)
-		widgetHandler:EnableWidget(widgetName)
+		ReloadWidget(widgetName)
+		local deps = widgetDependents[widgetName]
+		if deps then
+			for i = 1, #deps do
+				local depName = deps[i]
+				if widgetHandler:FindWidget(depName) then
+					spEcho("Reloading dependent widget: " .. depName .. " (of " .. widgetName .. ")")
+					ReloadWidget(depName)
+				end
+			end
+		end
 	end
 end
 

@@ -19,12 +19,15 @@ local iconSequenceFrametime = 0.02	-- duration per frame
 local CMD_WAIT = CMD.WAIT
 
 local waitingUnits = {}
-local needsCheck = {} -- unitID → {frame = n+5, defID = …, team = …}
+local needsCheckFrame = {}  -- unitID → frame
+local needsCheckDefID = {}  -- unitID → defID
+local needsCheckTeam = {}   -- unitID → team
 local checkDelay = 5
 local unitsPerFrame = 300
 local gf = Spring.GetGameFrame()
 
 local spGetUnitCommands = Spring.GetUnitCommands
+local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spGetFactoryCommands = Spring.GetFactoryCommands
 local spec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
@@ -112,7 +115,12 @@ end
 
 local function CheckWaitingStatus(unitID, unitDefID, unitTeam)
 	if not unitConf[unitDefID] then return end
-	local queue = unitConf[unitDefID] and unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 1) or spGetUnitCommands(unitID, 1)
+	local cmdCount = spGetUnitCommandCount(unitID)
+	if not cmdCount or cmdCount <= 0 then
+		UnmarkAsWaiting(unitID, unitDefID, unitTeam)
+		return
+	end
+	local queue = unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 1) or spGetUnitCommands(unitID, 1)
 	if queue ~= nil and queue[1] and queue[1].id == CMD_WAIT then
 		MarkAsWaiting(unitID, unitDefID, unitTeam)
 	else
@@ -122,7 +130,9 @@ end
 
 
 function forgetUnit(unitID, unitDefID, unitTeam)
-	needsCheck[unitID]   = nil
+	needsCheckFrame[unitID] = nil
+	needsCheckDefID[unitID] = nil
+	needsCheckTeam[unitID]  = nil
 	UnmarkAsWaiting(unitID, unitDefID, unitTeam)
 end
 
@@ -156,20 +166,27 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
-	if unitTeam ~= myTeamID then return end -- onlyOwnTeam and
-		needsCheck[unitID] = {
-		frame = gf + checkDelay,
-		defID = unitDefID,
-		team  = unitTeam
-		}
+	if unitTeam ~= myTeamID then return end
+	needsCheckFrame[unitID] = gf + checkDelay
+	needsCheckDefID[unitID] = unitDefID
+	needsCheckTeam[unitID]  = unitTeam
 end
 
 function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID)
-	CheckWaitingStatus(unitID, unitDefID, unitTeam)
+	if cmdID == CMD_WAIT then
+		-- wait command just completed (toggled off), directly unmark
+		UnmarkAsWaiting(unitID, unitDefID, unitTeam)
+	else
+		-- another command finished, defer check to GameFrame batch
+		needsCheckFrame[unitID] = gf + 1
+		needsCheckDefID[unitID] = unitDefID
+		needsCheckTeam[unitID]  = unitTeam
+	end
 end
 
 function widget:UnitIdle(unitID, unitDefID, unitTeam)
-	CheckWaitingStatus(unitID, unitDefID, unitTeam)
+	-- idle = no commands, can't be waiting
+	UnmarkAsWaiting(unitID, unitDefID, unitTeam)
 end
 
 function initUnits()
@@ -177,11 +194,9 @@ function initUnits()
 	local unitDefID
 	for _, unitID in pairs(Spring.GetTeamUnits(myTeamID)) do
 		unitDefID = Spring.GetUnitDefID(unitID)
-		needsCheck[unitID] = {
-			frame = gf + checkDelay,
-			defID = unitDefID,
-			team  = myTeamID
-		}
+		needsCheckFrame[unitID] = gf + checkDelay
+		needsCheckDefID[unitID] = unitDefID
+		needsCheckTeam[unitID]  = myTeamID
 	end
 end
 
@@ -189,12 +204,14 @@ end
 function widget:GameFrame(n)
 	local currentUnitPerFrame = 0
 	gf = n
-	for unitID, data in pairs(needsCheck) do
-		currentUnitPerFrame = currentUnitPerFrame +1
-		if currentUnitPerFrame < unitsPerFrame then
-			if n >= data.frame then
-				CheckWaitingStatus(unitID, data.defID, data.team)
-				needsCheck[unitID] = nil -- done, remove from queue
+	for unitID, frame in pairs(needsCheckFrame) do
+		if n >= frame then
+			currentUnitPerFrame = currentUnitPerFrame + 1
+			if currentUnitPerFrame < unitsPerFrame then
+				CheckWaitingStatus(unitID, needsCheckDefID[unitID], needsCheckTeam[unitID])
+				needsCheckFrame[unitID] = nil
+				needsCheckDefID[unitID] = nil
+				needsCheckTeam[unitID]  = nil
 			end
 		end
 	end

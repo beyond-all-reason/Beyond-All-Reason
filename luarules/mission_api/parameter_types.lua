@@ -15,6 +15,8 @@ local types = {
 	-- String Validators:
 	String = 'String',
 	TriggerID = 'TriggerID',
+	UnitName = 'UnitName',
+	FeatureName = 'FeatureName',
 	UnitDefName = 'UnitDefName',
 	FeatureDefName = 'FeatureDefName',
 	WeaponDefName = 'WeaponDefName',

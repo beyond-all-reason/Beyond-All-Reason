@@ -21,6 +21,7 @@ end
 
 local actionsDispatcher
 local types, triggers
+local trackedUnitNames, trackedUnitIDs, statisticsTriggerCounts
 
 
 ----------------------------------------------------------------
@@ -353,6 +354,56 @@ local function checkFeatureDestroyed(trigger, featureID, featureDefID, attackerA
 	activateTrigger(trigger)
 end
 
+local function incrementStatistics(triggerType, teamID, unitDefName, unitNames)
+	processTriggersOfType(triggerType, function(trigger, triggerID)
+		if teamID ~= trigger.parameters.teamID then
+			return
+		end
+		if trigger.parameters.unitDefName and unitDefName ~= trigger.parameters.unitDefName then
+			return
+		end
+		if trigger.parameters.unitName and not (unitNames or {})[trigger.parameters.unitName] then
+			return
+		end
+
+		statisticsTriggerCounts[triggerID] = (statisticsTriggerCounts[triggerID] or 0) + 1
+
+		-- The % is for repeating triggers
+		if statisticsTriggerCounts[triggerID] % trigger.parameters.quantity == 0 then
+			activateTrigger(trigger)
+		end
+	end)
+end
+
+local function checkUnitsOwned(trigger)
+	local teamID = trigger.parameters.teamID
+	local requiredUnitName = trigger.parameters.unitName
+	local requiredUnitDefName = trigger.parameters.unitDefName
+
+	local unitCount
+	if requiredUnitName then
+		unitCount = 0
+		for uid in pairs(trackedUnitIDs[requiredUnitName] or {}) do
+			if Spring.GetUnitTeam(uid) == teamID then
+				if not requiredUnitDefName or UnitDefs[Spring.GetUnitDefID(uid)].name == requiredUnitDefName then
+					unitCount = unitCount + 1
+				end
+			end
+		end
+	elseif requiredUnitDefName then
+		local unitDef = UnitDefNames[requiredUnitDefName]
+		unitCount = unitDef and Spring.GetTeamUnitDefCount(teamID, unitDef.id) or 0
+	else
+		unitCount = #Spring.GetTeamUnits(teamID)
+	end
+
+	-- Repeat at quantity, 2*quantity, 3*quantity, ...
+	local nextThreshold = (trigger.repeatCount + 1) * trigger.parameters.quantity
+	if unitCount >= nextThreshold then
+		activateTrigger(trigger)
+	end
+end
+
 
 ----------------------------------------------------------------
 --- Call-ins:
@@ -364,15 +415,20 @@ function gadget:Initialize()
 		return
 	end
 
-	types = GG['MissionAPI'].TriggerTypes
-	triggers = GG['MissionAPI'].Triggers
-	actionsDispatcher = VFS.Include('luarules/mission_api/actions_dispatcher.lua')
+	types                   = GG['MissionAPI'].TriggerTypes
+	triggers                = GG['MissionAPI'].Triggers
+	trackedUnitNames        = GG['MissionAPI'].trackedUnitNames
+	trackedUnitIDs          = GG['MissionAPI'].trackedUnitIDs
 
-	local tracking = VFS.Include('luarules/mission_api/tracking.lua')
-	doesUnitHaveName = tracking.DoesUnitHaveName
-	untrackUnitID = tracking.UntrackUnitID
-	doesFeatureHaveName = tracking.DoesFeatureHaveName
-	untrackFeatureID    = tracking.UntrackFeatureID
+	actionsDispatcher       = VFS.Include('luarules/mission_api/actions_dispatcher.lua')
+
+	local tracking          = VFS.Include('luarules/mission_api/tracking.lua')
+	doesUnitHaveName        = tracking.DoesUnitHaveName
+	untrackUnitID           = tracking.UntrackUnitID
+	doesFeatureHaveName     = tracking.DoesFeatureHaveName
+	untrackFeatureID        = tracking.UntrackFeatureID
+
+	statisticsTriggerCounts = {}
 end
 
 function gadget:GameFrame(frameNumber)
@@ -393,9 +449,12 @@ function gadget:GameFrame(frameNumber)
 	end)
 end
 
-function gadget:MetaUnitAdded(_, unitDefID, unitTeam)
+function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 	processTriggersOfType(types.UnitExists, function(trigger, _)
 		checkUnitExists(trigger, unitDefID, unitTeam)
+	end)
+	processTriggersOfType(types.UnitsOwned, function(trigger, _)
+		checkUnitsOwned(trigger)
 	end)
 end
 
@@ -416,10 +475,21 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	end)
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, _, _, _)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	processTriggersOfType(types.UnitKilled, function(trigger, _)
 		checkUnitRemoved(trigger, unitID, unitDefID, unitTeam)
 	end)
+
+	local unitDefName = UnitDefs[unitDefID].name
+	local unitNames = trackedUnitNames[unitID] or {}
+
+	-- The unit's team lost a unit:
+	incrementStatistics(types.TotalUnitsLost, unitTeam, unitDefName, unitNames)
+
+	-- The attacker's team kills an enemy unit:
+	if attackerTeam and not Spring.AreTeamsAllied(attackerTeam, unitTeam) then
+		incrementStatistics(types.TotalUnitsKilled, attackerTeam, unitDefName, unitNames)
+	end
 
 	untrackUnitID(unitID)
 end
@@ -428,6 +498,10 @@ function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
 	processTriggersOfType(types.UnitCaptured, function(trigger, _)
 		checkUnitCaptured(trigger, unitID, unitDefID, oldTeam, newTeam)
 	end)
+
+	local unitDefName = UnitDefs[unitDefID].name
+	local unitNames = trackedUnitNames[unitID] or {}
+	incrementStatistics(types.TotalUnitsCaptured, newTeam, unitDefName, unitNames)
 end
 
 function gadget:UnitEnteredLos(unitID, unitTeam, losAllyTeamID, unitDefID)
@@ -446,6 +520,14 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	processTriggersOfType(types.ConstructionFinished, function(trigger, _)
 		checkConstructionFinished(trigger, unitID, unitDefID, unitTeam)
 	end)
+
+	-- Don't count units spawned by SpawnUnits action
+	if GG['MissionAPI'].spawningUnit then return end
+	-- Don't count starting commanders, initial loadout, wildlife, etc.
+	if Spring.GetGameFrame() <= 0 then return end
+
+	local unitDefName = UnitDefs[unitDefID].name
+	incrementStatistics(types.TotalUnitsBuilt, unitTeam, unitDefName)
 end
 
 function gadget:TeamDied(teamID)

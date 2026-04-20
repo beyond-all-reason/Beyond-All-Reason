@@ -80,7 +80,7 @@ local parameters = {
 		[1] = {
 			name = 'unitName',
 			required = true,
-			type = Types.String
+			type = Types.UnitName
 		},
 		[2] = {
 			name = 'orders',
@@ -101,7 +101,7 @@ local parameters = {
 		[1] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String,
+			type = Types.UnitName,
 		},
 		[2] = {
 			name = 'unitDefName',
@@ -144,7 +144,7 @@ local parameters = {
 		[1] = {
 			name = 'unitName',
 			required = true,
-			type = Types.String,
+			type = Types.UnitName,
 		},
 		[2] = {
 			name = 'selfDestruct',
@@ -162,7 +162,7 @@ local parameters = {
 		[1] = {
 			name = 'unitName',
 			required = true,
-			type = Types.String
+			type = Types.UnitName
 		},
 		[2] = {
 			name = 'newTeamName',
@@ -174,7 +174,7 @@ local parameters = {
 		[1] = {
 			name = 'unitName',
 			required = true,
-			type = Types.String
+			type = Types.UnitName
 		},
 		[2] = {
 			name = 'teamName',
@@ -200,7 +200,7 @@ local parameters = {
 		[1] = {
 			name = 'unitName',
 			required = true,
-			type = Types.String
+			type = Types.UnitName
 		}
 	},
 
@@ -219,7 +219,7 @@ local parameters = {
 		[3] = {
 			name = 'featureName',
 			required = false,
-			type = Types.String,
+			type = Types.FeatureName,
 		},
 		[4] = {
 			name = 'facing',
@@ -231,7 +231,7 @@ local parameters = {
 		[1] = {
 			name = 'featureName',
 			required = true,
-			type = Types.String,
+			type = Types.FeatureName,
 		},
 	},
 
