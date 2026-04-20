@@ -330,6 +330,9 @@ validators[Types.TriggerID] = function(triggerID)
 		end
 	end
 
+validators[Types.UnitName] = validators[Types.String]
+validators[Types.FeatureName] = validators[Types.String]
+
 validators[Types.UnitDefName] = function(unitDefName)
 		local luaTypeResult = validators[Types.String](unitDefName)
 		if luaTypeResult then
@@ -684,18 +687,23 @@ local function validateLoadouts(unitLoadout, featureLoadout)
 	end
 end
 
+local function getTypesWithParameterType(schemaParameters, parameterType)
+	local typesWithParameter = {}
+
+	for actionOrTriggerType, parameters in pairs(schemaParameters) do
+		for _, parameter in ipairs(parameters) do
+			if parameter.type == parameterType then
+				typesWithParameter[actionOrTriggerType] = true
+				break
+			end
+		end
+	end
+
+	return typesWithParameter
+end
+
 local function validateUnitNameReferences(triggerTypes, actionTypes, triggers, actions, unitLoadout)
-	local triggerTypesReferencingUnitNames = {
-		[triggerTypes.UnitNotExists] = true,
-		[triggerTypes.UnitKilled] = true,
-		[triggerTypes.UnitCaptured] = true,
-		[triggerTypes.UnitEnteredLocation] = true,
-		[triggerTypes.UnitLeftLocation] = true,
-		[triggerTypes.UnitDwellLocation] = true,
-		[triggerTypes.UnitSpotted] = true,
-		[triggerTypes.UnitUnspotted] = true,
-		[triggerTypes.ConstructionFinished] = true,
-	}
+	local triggerTypesReferencingUnitNames = getTypesWithParameterType(triggersSchemaParameters, Types.UnitName)
 	local actionTypesNamingUnits = {
 		[actionTypes.SpawnUnits] = true,
 		[actionTypes.NameUnits] = true,
@@ -775,12 +783,7 @@ local function validateUnitNameReferences(triggerTypes, actionTypes, triggers, a
 end
 
 local function validateFeatureNameReferences(triggerTypes, actionTypes, triggers, actions, featureLoadout)
-	local triggerTypesReferencingFeatureNames = {
-		[triggerTypes.UnitResurrected]  = true,
-		[triggerTypes.FeatureCreated]   = true,
-		[triggerTypes.FeatureReclaimed] = true,
-		[triggerTypes.FeatureDestroyed] = true,
-	}
+	local triggerTypesReferencingFeatureNames = getTypesWithParameterType(triggersSchemaParameters, Types.FeatureName)
 	local actionTypesNamingFeatures = {
 		[actionTypes.CreateFeatures] = true,
 	}

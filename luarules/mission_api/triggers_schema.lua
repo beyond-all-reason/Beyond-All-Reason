@@ -32,6 +32,7 @@ local triggerTypes = {
 	TotalUnitsBuilt      = 501,
 	TotalUnitsKilled     = 502,
 	TotalUnitsCaptured   = 503,
+	UnitsOwned           = 504,
 
 	-- Team
 	TeamDestroyed        = 601,
@@ -91,7 +92,7 @@ local parameters = {
 		[1] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String,
+			type = Types.UnitName,
 		},
 		[2] = {
 			name = 'unitDefName',
@@ -109,7 +110,7 @@ local parameters = {
 		[1] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String,
+			type = Types.UnitName,
 		},
 		[2] = {
 			name = 'unitDefName',
@@ -127,7 +128,7 @@ local parameters = {
 		[1] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String,
+			type = Types.UnitName,
 		},
 		[2] = {
 			name = 'unitDefName',
@@ -160,7 +161,7 @@ local parameters = {
 		[3] = {
 			name = 'featureName',
 			required = false,
-			type = Types.String,
+			type = Types.FeatureName,
 		},
 		requiresOneOf = { 'featureName', 'unitDefName' }
 	},
@@ -176,7 +177,7 @@ local parameters = {
 		[2] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String
+			type = Types.UnitName
 		},
 		[3] = {
 			name = 'unitDefName',
@@ -202,7 +203,7 @@ local parameters = {
 		[2] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String
+			type = Types.UnitName
 		},
 		[3] = {
 			name = 'unitDefName',
@@ -234,7 +235,7 @@ local parameters = {
 		[3] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String
+			type = Types.UnitName
 		},
 		[4] = {
 			name = 'unitDefName',
@@ -252,7 +253,7 @@ local parameters = {
 		[1] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String
+			type = Types.UnitName
 		},
 		[2] = {
 			name = 'unitDefName',
@@ -275,7 +276,7 @@ local parameters = {
 		[1] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String
+			type = Types.UnitName
 		},
 		[2] = {
 			name = 'unitDefName',
@@ -310,7 +311,7 @@ local parameters = {
 		[1] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String
+			type = Types.UnitName
 		},
 		[2] = {
 			name = 'unitDefName',
@@ -342,7 +343,7 @@ local parameters = {
 		[1] = {
 			name = 'featureName',
 			required = false,
-			type = Types.String,
+			type = Types.FeatureName,
 		},
 		[2] = {
 			name = 'featureDefName',
@@ -365,7 +366,7 @@ local parameters = {
 		[1] = {
 			name = 'featureName',
 			required = false,
-			type = Types.String,
+			type = Types.FeatureName,
 		},
 		[2] = {
 			name = 'featureDefName',
@@ -390,10 +391,111 @@ local parameters = {
 	[triggerTypes.ResourceProduction] = {  },
 
 	-- Statistics
-	[triggerTypes.TotalUnitsLost] = {  },
-	[triggerTypes.TotalUnitsBuilt] = {  },
-	[triggerTypes.TotalUnitsKilled] = {  },
-	[triggerTypes.TotalUnitsCaptured] = {  },
+	[triggerTypes.TotalUnitsLost] = {
+		[1] = {
+			name = 'teamID',
+			required = true,
+			type = Types.TeamID,
+		},
+		[2] = {
+			name = 'quantity',
+			required = true,
+			type = Types.Number,
+		},
+		[3] = {
+			name = 'unitName',
+			required = false,
+			type = Types.UnitName,
+		},
+		[4] = {
+			name = 'unitDefName',
+			required = false,
+			type = Types.UnitDefName,
+		},
+	},
+	[triggerTypes.TotalUnitsBuilt] = {
+		[1] = {
+			name = 'teamID',
+			required = true,
+			type = Types.TeamID,
+		},
+		[2] = {
+			name = 'quantity',
+			required = true,
+			type = Types.Number,
+		},
+		[3] = {
+			name = 'unitDefName',
+			required = false,
+			type = Types.UnitDefName,
+		},
+	},
+	[triggerTypes.TotalUnitsKilled] = {
+		[1] = {
+			name = 'teamID',
+			required = true,
+			type = Types.TeamID,
+		},
+		[2] = {
+			name = 'quantity',
+			required = true,
+			type = Types.Number,
+		},
+		[3] = {
+			name = 'unitName',
+			required = false,
+			type = Types.UnitName,
+		},
+		[4] = {
+			name = 'unitDefName',
+			required = false,
+			type = Types.UnitDefName,
+		},
+	},
+	[triggerTypes.TotalUnitsCaptured] = {
+		[1] = {
+			name = 'teamID',
+			required = true,
+			type = Types.TeamID,
+		},
+		[2] = {
+			name = 'quantity',
+			required = true,
+			type = Types.Number,
+		},
+		[3] = {
+			name = 'unitName',
+			required = false,
+			type = Types.UnitName,
+		},
+		[4] = {
+			name = 'unitDefName',
+			required = false,
+			type = Types.UnitDefName,
+		},
+	},
+	[triggerTypes.UnitsOwned] = {
+		[1] = {
+			name = 'teamID',
+			required = true,
+			type = Types.TeamID,
+		},
+		[2] = {
+			name = 'quantity',
+			required = true,
+			type = Types.Number,
+		},
+		[3] = {
+			name = 'unitName',
+			required = false,
+			type = Types.UnitName,
+		},
+		[4] = {
+			name = 'unitDefName',
+			required = false,
+			type = Types.UnitDefName,
+		},
+	},
 
 	-- Team
 	[triggerTypes.TeamDestroyed] = {
