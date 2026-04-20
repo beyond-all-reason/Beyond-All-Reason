@@ -243,7 +243,7 @@ local DRAW_RADIUS
 -- gets a snappier dissolve.
 local FADE_FRAMES_REPAIR  = 4   -- gentle polish on outbound repair/capture
 local FADE_FRAMES_RECLAIM = 3    -- no fade -- particles converge fully
-local FADE_FRAMES_DEATH   = 20   -- dissolve when target unit dies or fully repaired
+local FADE_FRAMES_DEATH   = 40   -- dissolve when target unit dies or fully repaired
 
 -- Skip forward-homing registration when the target unit is still being built
 -- (buildProgress < 1). Avoids the visually odd effect of particles chasing a
@@ -264,12 +264,10 @@ local HOMING_SKIP_GRACE_FRAMES = 60   -- ~2s at 30Hz
 --   * HOMING_RUN_EVERY: run the per-frame in-place re-aim on every Nth frame
 --     instead of every frame. Particle speed is small relative to typical
 --     unit movement over 1-2 frames so 2 looks identical.
---   * REPAIRED_CHECK_EVERY: per-target full-HP check rate in applyForwardHoming.
 local WORKER_TASK_CACHE_FRAMES   = 4
 local BUILD_POWER_CACHE_FRAMES   = 2
 local LOS_CACHE_FRAMES           = 6
 local HOMING_RUN_EVERY           = 3
-local REPAIRED_CHECK_EVERY       = 6
 -- Run the per-frame builder scan only every Nth sim frame. Scales with pool
 -- saturation: at empty pool we scan every frame (full responsiveness), at
 -- full pool we scan once per MAX_SCAN_RUN_EVERY frames (the saturation gate
@@ -594,7 +592,7 @@ void main() {
 		pulseScale = 1.0 + sizePulseAmp * sin(ph);
 	}
 
-	float size = drawRadius * sizeMult * glowScale * pulseScale;
+	float size = drawRadius * sizeMult * glowScale * pulseScale * (0.5 + 0.5 * fade);
 	vec3 right = cameraViewInv[0].xyz;
 	vec3 up    = cameraViewInv[1].xyz;
 
@@ -845,8 +843,11 @@ void main() {
 
 	v_worldPos = worldPos;
 	v_color    = instColor * fade;
+	// Shrink during the death-fade alongside the alpha ramp: 100% size at
+	// fade=1 (no fade active), down to 50% at fade=0. Reads as the chunk
+	// dissolving into nothing instead of just becoming transparent.
 	v_rotVal   = rotVal;
-	v_sizeMult = sizeMult;
+	v_sizeMult = sizeMult * (0.5 + 0.5 * fade);
 	// Stable per-particle seed for cube tumble phase. Homing rewrites spawnPos
 	// every frame, so we hash spawn-time random rotData (untouched by homing)
 	// instead -- otherwise the phase jumps and the cube rotation goes wild.
@@ -1814,14 +1815,13 @@ local function applyForwardHoming(frame, dirtyMin, dirtyMax)
 			-- when a repair finishes or a unit is just-built. Trigger the same
 			-- per-particle death fade as UnitDestroyed so the trailing spray
 			-- dissolves instead of getting yanked off when the builder moves on.
-			-- Throttled per target: stagger by targetID so checks spread across
-			-- frames instead of all firing on the same one. Use the call-tick
-			-- (frame / HOMING_RUN_EVERY) rather than raw frame -- otherwise raw
-			-- frame is always a multiple of HOMING_RUN_EVERY here, and target
-			-- IDs whose modulus doesn't line up never satisfy the check.
+			-- Checked every applyForwardHoming pass (per HOMING_RUN_EVERY) for
+			-- every active target -- one spGetUnitHealth per target is cheap and
+			-- the previous per-target stagger meant in-flight particles closest
+			-- to the unit could land + die naturally before the staggered check
+			-- fired, popping without a fade.
 			local fadedOut = false
-			local checkTick = mathFloor(frame / HOMING_RUN_EVERY)
-			if ((checkTick + targetID) % REPAIRED_CHECK_EVERY) == 0 then
+			do
 				local h, maxH, _, _, bp = spGetUnitHealth(targetID)
 				if h and maxH and h >= maxH and (bp == nil or bp >= 1.0) then
 					fadeOutHomingFwd(targetID)
@@ -1883,7 +1883,7 @@ local function applyForwardHoming(frame, dirtyMin, dirtyMax)
 					local writeIdx = 0
 					for i = 1, #list do
 						local p = list[i]
-						if (p.death - frame) > 1 and idtoIndex[p.id] then
+						if (p.death - frame) >= 1 and idtoIndex[p.id] then
 							writeIdx = writeIdx + 1
 							list[writeIdx] = p
 						end
@@ -1898,7 +1898,7 @@ local function applyForwardHoming(frame, dirtyMin, dirtyMax)
 				for i = 1, #list do
 					local p = list[i]
 					local remaining = p.death - frame
-					local slot = (remaining > 1) and idtoIndex[p.id] or nil
+					local slot = (remaining >= 1) and idtoIndex[p.id] or nil
 					if slot then
 						local base = (slot - 1) * step
 						local sx, sy, sz   = data[base+1], data[base+2], data[base+3]
@@ -2368,6 +2368,11 @@ function gadget:UnitCreated(unitID, unitDefID)
 end
 
 function gadget:UnitFinished(unitID, unitDefID)
+	-- Construction completed: fade trailing build-spray particles instead of
+	-- letting them coast into the now-finished unit and pop on natural death.
+	fadeOutHomingFwd(unitID)
+	homingFwdByTarget[unitID] = nil
+	targetPosCache[unitID]    = nil
 	trackUnit(unitID, unitDefID)
 end
 
