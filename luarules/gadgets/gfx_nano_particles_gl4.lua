@@ -65,6 +65,7 @@ local spGetTeamColor             = Spring.GetTeamColor
 local spGetUnitCurrentBuildPower = Spring.GetUnitCurrentBuildPower
 local spGetUnitWorkerTask        = Spring.GetUnitWorkerTask
 local spGetUnitHealth            = Spring.GetUnitHealth
+local spGetUnitMoveTypeData      = Spring.GetUnitMoveTypeData
 local spIsSphereInView           = Spring.IsSphereInView
 local spGetCameraPosition        = Spring.GetCameraPosition
 
@@ -255,6 +256,24 @@ local FADE_FRAMES_DEATH   = 40   -- dissolve when target unit dies or fully repa
 -- factory pad don't suddenly start chasing it.
 local HOMING_SKIP_INCOMPLETE = true
 local HOMING_SKIP_GRACE_FRAMES = 60   -- ~2s at 30Hz
+
+-- Range gating for emission. Builders normally only emit when the target is
+-- within buildDistance, but fast targets (planes, jumpjets) can leave that
+-- range mid-build before the worker task is re-evaluated, leading to nano
+-- streams that visibly chase the target far past the builder's actual reach.
+-- Allow up to BUILD_RANGE_MAX_EXTENSION beyond buildDistance, with a linear
+-- emission falloff inside [buildDistance, buildDistance * MAX_EXTENSION].
+local BUILD_RANGE_MAX_EXTENSION = 1.15
+
+-- Per-visit emission rate is scaled by (buildSpeed * currentBuildPower) /
+-- EMIT_REF_BUILDSPEED. This gives total particles roughly proportional to a
+-- builder's actual throughput rather than its nanopiece count -- otherwise
+-- multi-arm factories with modest buildpower (e.g. shipyards) hog far more
+-- of the particle budget than a high-power single-piece constructor doing
+-- the same amount of work. Per-visit count is capped at nPieces so no piece
+-- emits twice in one visit. A fractional accumulator on info preserves
+-- sub-1.0 rates across visits.
+local EMIT_REF_BUILDSPEED = 100
 
 -- Throttling knobs. These trade a small amount of visual latency for a large
 -- CPU win in builder-heavy games (hundreds of active nanos):
@@ -1275,6 +1294,17 @@ end
 -- type always re-resolve, while non-builder defs are skipped cheaply.
 local nonBuilderDefs = {}
 
+-- Air-unit defs: precomputed once at file load. Used by the forward-homing
+-- crashing-aircraft check so we only call spGetUnitMoveTypeData on targets
+-- that can actually be in the "crashing" aircraftState. Saves the engine call
+-- for every ground/sea repair target.
+local isAirUnitDef = {}
+for udid, def in pairs(UnitDefs) do
+	if def.canFly then
+		isAirUnitDef[udid] = true
+	end
+end
+
 -- Team color cache: spGetTeamColor is a Spring->C call; teamID -> {r, g, b}.
 -- Colors can change mid-game (commshare, alliance, modoptions), so a periodic
 -- refresh in GameFrame re-fetches every cached team and propagates any change
@@ -1378,13 +1408,23 @@ local function getBuilderInfo(builderID)
 
 	local r, g, b = getTeamColor(team)
 	local ud = UnitDefs[udid]
+	-- buildDistance is used to gate emissions on fast-moving targets (planes
+	-- etc.) that fly out of the builder's reach mid-build. Factories do not
+	-- need this -- their target is a buildee on the pad. nil disables the gate.
+	local buildDistance = (ud and ud.buildDistance) or 0
+	if buildDistance <= 0 or (ud and ud.isFactory) then
+		buildDistance = nil
+	end
 	local info = {
-		pieces    = pieces,
-		nPieces   = #pieces,
+		pieces        = pieces,
+		nPieces       = #pieces,
 		r = r, g = g, b = b,
-		team      = team,
-		allyTeam  = spGetUnitAllyTeam(builderID),
-		isFactory = ud and ud.isFactory or false,
+		team          = team,
+		allyTeam      = spGetUnitAllyTeam(builderID),
+		isFactory     = ud and ud.isFactory or false,
+		buildDistance = buildDistance,
+		buildSpeed    = (ud and ud.buildSpeed) or 0,
+		emitAccum     = 0,
 	}
 	builderCache[builderID] = info
 	local bucket = builderCacheByTeam[team]
@@ -1396,10 +1436,19 @@ local function getBuilderInfo(builderID)
 	return info
 end
 
--- Engine: gsRNG.NextInt(cnt) - random pick each call.
-local function pickNanoPiece(pieces, n)
-	if n == 1 then return pieces[1] end
-	return pieces[mathRandom(n)]
+-- Round-robin piece selection: each scan visit advances a per-builder cursor
+-- so all nano pieces emit in turn. Random pick (engine behaviour) statistically
+-- leaves some pieces unselected for many consecutive visits when the visit
+-- cadence is throttled (heavy saturation -> stride 6, runEvery 2 = ~2.5 visits/s),
+-- which makes multi-piece units (factories, big reclaim turrets) look like only
+-- some emitters are active. Round-robin guarantees equal coverage.
+local function pickNanoPiece(info)
+	local n = info.nPieces
+	if n == 1 then return info.pieces[1] end
+	local cursor = (info.pieceCursor or 0) + 1
+	if cursor > n then cursor = 1 end
+	info.pieceCursor = cursor
+	return info.pieces[cursor]
 end
 
 --------------------------------------------------------------------------------
@@ -1442,8 +1491,8 @@ local function spawnParticle(px, py, pz, vx, vy, vz, lifetime, r, g, b, frame, f
 	end
 end
 
-local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius, frame, targetUnitID)
-	local pieceIdx = pickNanoPiece(info.pieces, info.nPieces)
+local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius, frame, targetUnitID, pieceIdx)
+	pieceIdx = pieceIdx or pickNanoPiece(info)
 
 	-- Spring.GetUnitPiecePosDir is the hot Spring->C call here. Within a single
 	-- scan frame the same builder/piece often emits multiple particles (resurrect
@@ -1469,6 +1518,22 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 	local lenSq = dx*dx + dy*dy + dz*dz
 	if lenSq < 1.0 then return end
 	local len = mathSqrt(lenSq)
+
+	-- Range gate for moving-unit targets. The engine ostensibly stops the build
+	-- step once a target leaves buildDistance, but the worker-task lookup is
+	-- cached on our side and a fast target (plane, jumpjet) can fly well past
+	-- the builder before we re-check. Drop emissions beyond MAX_EXTENSION and
+	-- linearly fade between [buildDistance, buildDistance * MAX_EXTENSION].
+	if targetUnitID and info.buildDistance then
+		local bd = info.buildDistance
+		local maxLen = bd * BUILD_RANGE_MAX_EXTENSION
+		if len > maxLen then return end
+		if len > bd then
+			local keep = (maxLen - len) / (bd * (BUILD_RANGE_MAX_EXTENSION - 1.0))
+			if mathRandom() > keep then return end
+		end
+	end
+
 	local invLen = 1.0 / len
 	dx, dy, dz = dx * invLen, dy * invLen, dz * invLen
 
@@ -1828,6 +1893,22 @@ local function applyForwardHoming(frame, dirtyMin, dirtyMax)
 					homingFwdByTarget[targetID] = nil
 					targetPosCache[targetID]    = nil
 					fadedOut = true
+				else
+					-- Crashing aircraft: treat as already-dead. The unit still
+					-- exists (UnitDestroyed hasn't fired yet) and is moving fast
+					-- and predictably downward, so left untreated the spray
+					-- would chase the wreck all the way to the ground.
+					-- Only call spGetUnitMoveTypeData on actual air units --
+					-- ground/sea targets can never be in the "crashing" state.
+					if isAirUnitDef[spGetUnitDefID(targetID)] then
+						local mt = spGetUnitMoveTypeData(targetID)
+						if mt and mt.aircraftState == "crashing" then
+							fadeOutHomingFwd(targetID)
+							homingFwdByTarget[targetID] = nil
+							targetPosCache[targetID]    = nil
+							fadedOut = true
+						end
+					end
 				end
 			end
 			if not fadedOut then
@@ -2040,6 +2121,31 @@ local function scanBuilders(frame)
 				end
 				if bp and bp > 0 then
 					if DEBUG then _dbgBuilders = _dbgBuilders + 1 end
+					-- Lazy nano-piece refresh: factories cheated in via /give (or
+					-- otherwise instantiated) often have an incomplete nanopiece
+					-- list at UnitCreated time because the COB script hasn't fully
+					-- registered them yet. Re-fetch on first activity, and once
+					-- more after a short delay in case the script registers
+					-- additional pieces lazily on first build (e.g. some scripts
+					-- only set pieces inside QueryNanoPiece). Adopt the larger set.
+					local refreshStage = info.piecesRefreshStage or 0
+					if refreshStage < 2 then
+						local refreshAt = info.piecesRefreshAt
+						if refreshStage == 0 or (refreshAt and frame >= refreshAt) then
+							local fresh = spGetUnitNanoPieces(unitID)
+							if fresh and #fresh > info.nPieces then
+								info.pieces  = fresh
+								info.nPieces = #fresh
+							end
+							if refreshStage == 0 then
+								info.piecesRefreshStage = 1
+								info.piecesRefreshAt    = frame + 90 -- ~3s @ 30Hz
+							else
+								info.piecesRefreshStage = 2
+								info.piecesRefreshAt    = nil
+							end
+						end
+					end
 					-- Throttled worker-task lookup. spGetUnitWorkerTask is the
 					-- single most expensive engine call in this scan when many
 					-- builders are active. Builder-task transitions happen on a
@@ -2108,11 +2214,57 @@ local function scanBuilders(frame)
 							if DEBUG then _dbgEmits = _dbgEmits + 1 end
 							-- Factories always use the engine's fixed 0.15 jitter regardless of buildee size.
 							if info.isFactory then jitterRadius = nil end
-							emitNano(unitID, info, ex, ey, ez, inverse, jitterRadius, frame, targetUnitID)
-							-- Resurrect: emit the matching inbound particle so the spray
-							-- visibly travels both ways at once (engine behaviour).
-							if isResurrect then
-								emitNano(unitID, info, ex, ey, ez, true, jitterRadius, frame, nil)
+							-- Per-visit emission count scales with actual buildpower
+							-- throughput (buildSpeed * bp), not nanopiece count, so a
+							-- multi-arm low-buildpower factory doesn't out-spam a
+							-- single-arm high-buildpower constructor.
+							-- Fractional rate is carried in emitAccum across visits.
+							local rate = info.buildSpeed * bp / EMIT_REF_BUILDSPEED
+							if rate < 1.0 then rate = 1.0 end
+							local n = info.nPieces
+							if n == 1 then
+								emitNano(unitID, info, ex, ey, ez, inverse, jitterRadius, frame, targetUnitID)
+								if isResurrect then
+									emitNano(unitID, info, ex, ey, ez, true, jitterRadius, frame, nil)
+								end
+							else
+								-- Multi-piece: each piece fires with probability rate/n
+								-- so all bays statistically participate every visit
+								-- instead of slow-cycling 2-3 at a time. Total
+								-- per-visit emissions still average ~rate (capped at n).
+								-- Round-robin start ensures even short visits hit
+								-- different pieces over time.
+								local pPiece = rate / n
+								if pPiece > 1.0 then pPiece = 1.0 end
+								local pieces  = info.pieces
+								local cursor  = info.pieceCursor or 0
+								local emitted = 0
+								for i = 1, n do
+									cursor = cursor + 1
+									if cursor > n then cursor = 1 end
+									if mathRandom() < pPiece then
+										local pIdx = pieces[cursor]
+										emitNano(unitID, info, ex, ey, ez, inverse, jitterRadius, frame, targetUnitID, pIdx)
+										if isResurrect then
+											emitNano(unitID, info, ex, ey, ez, true, jitterRadius, frame, nil, pIdx)
+										end
+										emitted = emitted + 1
+									end
+								end
+								info.pieceCursor = cursor
+								-- Guarantee at least one emission per visit so a
+								-- working builder is never silent (low rate +
+								-- unlucky RNG could produce zero emits).
+								if emitted == 0 then
+									cursor = cursor + 1
+									if cursor > n then cursor = 1 end
+									local pIdx = pieces[cursor]
+									emitNano(unitID, info, ex, ey, ez, inverse, jitterRadius, frame, targetUnitID, pIdx)
+									if isResurrect then
+										emitNano(unitID, info, ex, ey, ez, true, jitterRadius, frame, nil, pIdx)
+									end
+									info.pieceCursor = cursor
+								end
 							end
 						end
 					elseif info.targetMeta then
