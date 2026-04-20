@@ -3026,7 +3026,39 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("MaxParticles", value)
-			  Spring.SetConfigInt("MaxNanoParticles", math.floor(value*0.34))
+			  -- Keep the engine nano-spray budget in sync when the gadget is
+			  -- handing particles back to the engine (NanoParticleMode 0).
+			  if Spring.GetConfigInt("NanoParticleMode", 2) == 0 then
+				  Spring.SetConfigInt("MaxNanoParticles", math.floor(value * 0.34))
+				if Spring.GetConfigInt("NanoParticleMode", 2) == 0 then
+					Spring.SetConfigInt("MaxNanoParticles", math.floor(Spring.GetConfigInt("MaxParticles", 15000) * 0.34))
+				else
+					Spring.SetConfigInt("MaxNanoParticles", 0)
+				end
+			  end
+		  end,
+		},
+
+		{ id = "nanoparticletype", group = "gfx", category = types.basic,
+		  name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.nanoparticletype'),
+		  type = "select",
+		  options = {
+			  Spring.I18N('ui.settings.option.nanoparticletype_simple'),
+			  Spring.I18N('ui.settings.option.nanoparticletype_smart'),
+			  Spring.I18N('ui.settings.option.nanoparticletype_shapes'),
+		  },
+		  value = (tonumber(Spring.GetConfigInt("NanoParticleMode", 2)) or 2) + 1,
+		  description = Spring.I18N('ui.settings.option.nanoparticletype_descr'),
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  local mode = value - 1
+			  Spring.SetConfigInt("NanoParticleMode", mode)
+			  if mode == 0 then
+				  Spring.SetConfigInt("MaxNanoParticles", math.floor(Spring.GetConfigInt("MaxParticles", 15000) * 0.34))
+			  else
+				  Spring.SetConfigInt("MaxNanoParticles", 0)
+			  end
 		  end,
 		},
 
