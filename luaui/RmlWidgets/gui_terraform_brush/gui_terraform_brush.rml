@@ -131,6 +131,7 @@
 			<div id="btn-toggle-sp-mode" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
 				<img id="img-toggle-sp-mode" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
 				<div class="tf-collapsible-title">START POSITIONS</div>
+				<div id="startpos-mode-notify-dot" class="tf-notify-dot hidden"></div>
 			</div>
 			<div id="section-sp-mode">
 			<div class="flex flex-row gap-1 mb-1">
@@ -477,7 +478,10 @@
 			<div class="divider-horizontal-dark"></div>
 
 			<!-- Layer toggles — compact secondary row -->
-			<div class="text-sm text-keybind mb-1">Include Layers</div>
+			<div class="flex flex-row items-center gap-1 mb-1">
+				<div class="text-sm text-keybind">Include Layers</div>
+				<div id="clone-layers-notify-dot" class="tf-notify-dot hidden"></div>
+			</div>
 			<div class="tf-cl-layer-grid mb-1">
 				<div id="btn-cl-terrain" class="tf-cl-chip active">
 					<div class="tf-cl-chip-label">Terrain</div>
@@ -646,6 +650,7 @@
 			<div id="btn-toggle-mb-mode" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
 				<img id="img-toggle-mb-mode" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
 				<div class="tf-collapsible-title">PLACEMENT MODE</div>
+				<div id="metal-mode-notify-dot" class="tf-notify-dot hidden"></div>
 			</div>
 			<div id="section-mb-mode">
 			<div class="flex flex-row gap-1 mb-1">
@@ -1158,6 +1163,7 @@
 					<div class="tf-overlay-chip-label">Active</div>
 				</div>
 				<img id="btn-gb-smart-toggle" class="tf-icon-sm hidden" src="/luaui/images/terraform_brush/check_off.png" />
+				<div id="grass-color-filter-notify-dot" class="tf-notify-dot hidden"></div>
 			</div>
 			<div id="section-gb-smart" class="hidden">
 
@@ -2230,6 +2236,7 @@
 			<div id="warn-chip-fp-smart" class="tf-overlay-chip tf-overlay-chip-warn hidden">
 				<div class="tf-overlay-chip-label">Active</div>
 			</div>
+			<div id="features-filters-notify-dot" class="tf-notify-dot hidden"></div>
 		</div>
 		<div id="section-fp-smart" class="hidden">
 		<div class="flex flex-row items-center gap-1 mb-1">
@@ -2615,6 +2622,7 @@
 		<div id="btn-toggle-wb-controls" class="flex flex-row items-center gap-1 mb-1" style="cursor: pointer;">
 			<img id="img-toggle-wb-controls" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
 			<div class="text-base text-keybind" style="margin-right: 2dp;">CONTROLS</div>
+			<div id="weather-persist-notify-dot" class="tf-notify-dot hidden"></div>
 		</div>
 		<div id="section-wb-controls">
 
@@ -3131,6 +3139,7 @@
 			<div id="warn-chip-sp-smart" class="tf-overlay-chip tf-overlay-chip-warn hidden">
 				<div class="tf-overlay-chip-label">Active</div>
 			</div>
+			<div id="splat-filters-notify-dot" class="tf-notify-dot hidden"></div>
 		</div>
 		<div id="section-sp-smart" class="hidden">
 		<div class="flex flex-row items-center gap-1 mb-1">
@@ -3525,9 +3534,10 @@
 		<div id="section-env-buttons">
 
 		<div class="flex flex-row gap-1 mb-1">
-			<div id="btn-env-skybox-library" class="tf-env-btn" style="flex: 1;">
+			<div id="btn-env-skybox-library" class="tf-env-btn" style="flex: 1; position: relative;">
 				<img class="tf-env-btn-icon" src="/luaui/images/terraform_brush/env_skybox.png" />
 				<div class="tf-env-btn-text">SKYBOX LIBRARY</div>
+				<div id="scene-skybox-notify-dot" class="tf-notify-dot hidden" style="position: absolute; top: 3dp; right: 3dp;"></div>
 			</div>
 		</div>
 		<div class="flex flex-row gap-1 mb-1">
@@ -3594,6 +3604,7 @@
 			<div id="btn-toggle-lt-type" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
 				<img id="img-toggle-lt-type" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
 				<div class="tf-collapsible-title">LIGHT TYPE</div>
+				<div id="lights-type-notify-dot" class="tf-notify-dot hidden"></div>
 			</div>
 			<div id="section-lt-type">
 			<div class="flex flex-row gap-1 mb-1">

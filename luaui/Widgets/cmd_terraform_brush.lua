@@ -524,7 +524,11 @@ local extraState = {
 	penOverUI = false,       -- true when pen/cursor is over the UI panel (suppress brush modulation)
 	penPressureFile = nil,   -- resolved at runtime via WRITEDIR
 	penPressureReadTimer = 0,
-	penPressureReadInterval = 0.016,  -- ~60Hz file poll rate
+	-- 20Hz file poll rate. Pen hardware reports at ~200Hz but the file is
+	-- written by pen_pressure_server.py at a lower rate, and human perception
+	-- of brush-modulation latency becomes noticeable only above ~80ms. 50ms
+	-- poll keeps feel smooth while cutting per-frame file I/O by 3x.
+	penPressureReadInterval = 0.05,
 	penPressureModulateIntensity = true,  -- pressure affects intensity
 	penPressureModulateSize = false,      -- pressure affects brush size
 	penPressureModulateRadius = false, -- legacy: also scales brush radius (via sendTerraformMessage)
@@ -1924,6 +1928,17 @@ local function doImportHeightmapSend()
 	end
 end
 
+-- Pre-bundle noise setters into extraState to keep widget:Initialize under the 60-upvalue limit
+-- without adding a new chunk-level local (which would breach the 200-local limit).
+extraState._noiseSetters = {
+	setNoiseType        = setNoiseType,
+	setNoiseScale       = setNoiseScale,
+	setNoiseOctaves     = setNoiseOctaves,
+	setNoisePersistence = setNoisePersistence,
+	setNoiseLacunarity  = setNoiseLacunarity,
+	setNoiseSeed        = setNoiseSeed,
+}
+
 function widget:Initialize()
 	widgetHandler:AddAction("terraformbrush", function(_, _, args)
 		if activeMode then
@@ -2105,13 +2120,41 @@ function widget:Initialize()
 		setPenOverUI = function(value)
 			extraState.penOverUI = value and true or false
 		end,
+		-- Returns world X, Z to park a sub-tool brush when cursor is over the terraform UI panel.
+		-- Returns nil, nil when cursor is not over the panel (caller should use real mouse position).
+		getUnmouseTarget = function(radius, lengthScale)
+			local tfUI = WG.TerraformBrushUI
+			if not tfUI or not tfUI.getPanelBounds then return nil, nil end
+			local bounds = tfUI.getPanelBounds()
+			if not bounds then return nil, nil end
+			local mx, my = GetMouseState()
+			local overPanel = mx >= bounds.left and mx <= bounds.right
+			                  and my >= bounds.bottomY and my <= bounds.topY
+			if not overPanel then return nil, nil end
+			local vsx, vsy = Spring.GetViewGeometry()
+			local span = (radius or 200) * math.max(1.0, lengthScale or 1.0) + 70
+			local midY = math.floor(vsy * 0.5)
+			local candidates = {
+				math.floor(vsx * 0.5),
+				math.floor(vsx * 0.25),
+				math.floor(vsx * 0.75),
+			}
+			for _, sx in ipairs(candidates) do
+				if not (sx >= bounds.left - span and sx <= bounds.right + span) then
+					local _, pos = TraceScreenRay(sx, midY, true)
+					if pos then return pos[1], pos[3] end
+				end
+			end
+			local _, pos = TraceScreenRay(math.floor(vsx * 0.5), midY, true)
+			return pos and pos[1] or nil, pos and pos[3] or nil
+		end,
 
-		setNoiseType = setNoiseType,
-		setNoiseScale = setNoiseScale,
-		setNoiseOctaves = setNoiseOctaves,
-		setNoisePersistence = setNoisePersistence,
-		setNoiseLacunarity = setNoiseLacunarity,
-		setNoiseSeed = setNoiseSeed,
+		setNoiseType = extraState._noiseSetters.setNoiseType,
+		setNoiseScale = extraState._noiseSetters.setNoiseScale,
+		setNoiseOctaves = extraState._noiseSetters.setNoiseOctaves,
+		setNoisePersistence = extraState._noiseSetters.setNoisePersistence,
+		setNoiseLacunarity = extraState._noiseSetters.setNoiseLacunarity,
+		setNoiseSeed = extraState._noiseSetters.setNoiseSeed,
 		-- Symmetry API
 		setSymmetryActive = function(value)
 			extraState.symmetryActive = value and true or false
@@ -3240,10 +3283,24 @@ extraState.drawSymmetryOverlay = function(worldX, worldZ, groundY)
 	glPolygonOffset(0, 0)
 end
 
+-- Shape corner cache. Callers treat the returned array as read-only; we
+-- memoise by (shape, radius, angleDeg, lengthScale) so per-frame outline,
+-- prism, and ground-fill draws reuse the same geometry when brush params
+-- are stable. Small bounded FIFO (8 entries) prevents unbounded growth
+-- when parameters animate (scroll-drag, rotation slider).
+extraState.shapeCornerCache = {}
+extraState.shapeCornerCacheOrder = {}
+
 function extraState.getShapeCorners(shape, radius, angleDeg, lengthScale)
 	lengthScale = lengthScale or 1.0
+	-- Cache lookup. Key format is cheap concat; numeric params rounded to
+	-- avoid float churn (sub-0.1° / sub-0.01 length diffs are invisible).
+	local key = shape .. "|" .. radius .. "|" .. math.floor(angleDeg * 10 + 0.5) .. "|" .. math.floor(lengthScale * 100 + 0.5)
+	local cached = extraState.shapeCornerCache[key]
+	if cached then return cached end
+	local corners
 	if shape == "circle" or shape == "ring" then
-		local corners = {}
+		corners = {}
 		local segments = 32
 		for i = 0, segments - 1 do
 			local angle = (i / segments) * 2 * pi
@@ -3252,8 +3309,6 @@ function extraState.getShapeCorners(shape, radius, angleDeg, lengthScale)
 			local rx, rz = rotatePoint(lx, lz, angleDeg)
 			corners[#corners + 1] = { rx, rz }
 		end
-
-		return corners
 	elseif shape == "square" then
 		local raw = {
 			{ -radius, -radius * lengthScale },
@@ -3261,7 +3316,7 @@ function extraState.getShapeCorners(shape, radius, angleDeg, lengthScale)
 			{  radius,  radius * lengthScale },
 			{ -radius,  radius * lengthScale },
 		}
-		local corners = {}
+		corners = {}
 		for i = 1, 4 do
 			local next = (i % 4) + 1
 			local x0, z0 = raw[i][1], raw[i][2]
@@ -3274,12 +3329,10 @@ function extraState.getShapeCorners(shape, radius, angleDeg, lengthScale)
 				corners[#corners + 1] = { rx, rz }
 			end
 		end
-
-		return corners
 	elseif shape == "triangle" or shape == "hexagon" or shape == "octagon" then
 		local numSides = shape == "triangle" and 3 or (shape == "hexagon" and 6 or 8)
 		local angleStep = 2 * pi / numSides
-		local corners = {}
+		corners = {}
 		for i = 0, numSides - 1 do
 			local a0 = i * angleStep
 			local a1 = (i + 1) * angleStep
@@ -3295,72 +3348,198 @@ function extraState.getShapeCorners(shape, radius, angleDeg, lengthScale)
 				corners[#corners + 1] = { rx, rz }
 			end
 		end
-
-		return corners
+	else
+		corners = {}
 	end
 
-	return {}
+	-- Cache store with bounded FIFO eviction (8 entries max). Callers treat
+	-- returned arrays as read-only; no defensive copy required.
+	extraState.shapeCornerCache[key] = corners
+	local order = extraState.shapeCornerCacheOrder
+	order[#order + 1] = key
+	if #order > 8 then
+		local oldKey = table.remove(order, 1)
+		extraState.shapeCornerCache[oldKey] = nil
+	end
+	return corners
 end
 
 -- Draws a terrain-following semi-transparent fill for the brush footprint.
 -- Vertices sample GetGroundHeight so the poly hugs hills/valleys.
-
-function extraState.drawShapeGroundFill(cx, cz, radius, shape, angleDeg, groundY, lengthScale)
+-- When curvePower is provided, the fill is rendered with a falloff-based alpha
+-- gradient: bright at the center (strong terrain effect) and fading to transparent
+-- at the edges (weak effect). This visualises where the brush will raise/lower
+-- fast vs. slow. r,g,b default to white if not supplied; maxAlpha caps center
+-- opacity.
+function extraState.drawShapeGroundFill(cx, cz, radius, shape, angleDeg, groundY, lengthScale, curvePower, r, g, b, maxAlpha)
 	lengthScale = lengthScale or 1.0
-	local segments = 48
-
-	-- Fill shape: no footprint fill (it has no fixed footprint)
 	if shape == "fill" then return end
 
-	-- Ring shape: draw an annulus (donut) with transparent center
+	local useFalloff = (curvePower ~= nil)
+	r = r or 1; g = g or 1; b = b or 1
+	maxAlpha = maxAlpha or 0.6
+
+	-- Adaptive tangential segment count (same tiers as before)
+	local segments
+	if radius < 80 then segments = 16
+	elseif radius < 200 then segments = 24
+	elseif radius < 600 then segments = 36
+	else segments = 48 end
+
+	-- Radial rings: more rings = smoother gradient. Keep cheap on small brushes.
+	local rings
+	if not useFalloff then
+		rings = 1
+	elseif radius < 120 then rings = 8
+	elseif radius < 400 then rings = 12
+	else rings = 16 end
+
+	-- Ring shape: annulus, falloff peaks near the mid-radius, dims to inner/outer edges.
 	if shape == "ring" then
 		local innerR = radius * ringInnerRatio
+		local midR   = (innerR + radius) * 0.5
+		local halfW  = (radius - innerR) * 0.5
+		if halfW <= 0 then return end
 		gl.DepthTest(false)
-		glBeginEnd(GL.TRIANGLE_STRIP, function()
-			for i = 0, segments do
-				local a = (i / segments) * 2 * pi
-				-- outer vertex
-				local olx = cos(a) * radius
-				local olz = sin(a) * radius * lengthScale
-				local orx, orz = rotatePoint(olx, olz, angleDeg)
-				local owx, owz = cx + orx, cz + orz
-				glVertex(owx, GetGroundHeight(owx, owz), owz)
-				-- inner vertex
-				local ilx = cos(a) * innerR
-				local ilz = sin(a) * innerR * lengthScale
-				local irx, irz = rotatePoint(ilx, ilz, angleDeg)
-				local iwx, iwz = cx + irx, cz + irz
-				glVertex(iwx, GetGroundHeight(iwx, iwz), iwz)
+		if useFalloff then
+			local strips = rings * 2  -- bands across the ring width
+			for k = 1, strips do
+				local t0 = (k - 1) / strips
+				local t1 = k / strips
+				local r0 = innerR + (radius - innerR) * t0
+				local r1 = innerR + (radius - innerR) * t1
+				local nd0 = (r0 - midR) / halfW; if nd0 < 0 then nd0 = -nd0 end
+				local nd1 = (r1 - midR) / halfW; if nd1 < 0 then nd1 = -nd1 end
+				local f0 = 1 - nd0 * nd0; if f0 < 0 then f0 = 0 end
+				local f1 = 1 - nd1 * nd1; if f1 < 0 then f1 = 0 end
+				local a0 = maxAlpha * (f0 ^ curvePower)
+				local a1 = maxAlpha * (f1 ^ curvePower)
+				glBeginEnd(GL.TRIANGLE_STRIP, function()
+					for i = 0, segments do
+						local a = (i / segments) * 2 * pi
+						local cs, sn = cos(a), sin(a)
+						local lx0, lz0 = cs * r0, sn * r0 * lengthScale
+						local lx1, lz1 = cs * r1, sn * r1 * lengthScale
+						local rx0, rz0 = rotatePoint(lx0, lz0, angleDeg)
+						local rx1, rz1 = rotatePoint(lx1, lz1, angleDeg)
+						local wx0, wz0 = cx + rx0, cz + rz0
+						local wx1, wz1 = cx + rx1, cz + rz1
+						glColor(r, g, b, a0)
+						glVertex(wx0, GetGroundHeight(wx0, wz0), wz0)
+						glColor(r, g, b, a1)
+						glVertex(wx1, GetGroundHeight(wx1, wz1), wz1)
+					end
+				end)
 			end
+		else
+			glBeginEnd(GL.TRIANGLE_STRIP, function()
+				for i = 0, segments do
+					local a = (i / segments) * 2 * pi
+					local olx, olz = cos(a) * radius, sin(a) * radius * lengthScale
+					local orx, orz = rotatePoint(olx, olz, angleDeg)
+					local owx, owz = cx + orx, cz + orz
+					glVertex(owx, GetGroundHeight(owx, owz), owz)
+					local ilx, ilz = cos(a) * innerR, sin(a) * innerR * lengthScale
+					local irx, irz = rotatePoint(ilx, ilz, angleDeg)
+					local iwx, iwz = cx + irx, cz + irz
+					glVertex(iwx, GetGroundHeight(iwx, iwz), iwz)
+				end
+			end)
+		end
+		gl.DepthTest(true)
+		return
+	end
+
+	-- Build full-size boundary corners.
+	local corners
+	if shape == "circle" then
+		corners = {}
+		for i = 0, segments - 1 do
+			local a = (i / segments) * 2 * pi
+			corners[#corners + 1] = {
+				cos(a) * radius,
+				sin(a) * radius * lengthScale,
+			}
+			-- rotate
+			local c = corners[#corners]
+			c[1], c[2] = rotatePoint(c[1], c[2], angleDeg)
+		end
+	else
+		corners = extraState.getShapeCorners(shape, radius, angleDeg, lengthScale)
+	end
+	local nc = #corners
+	if nc < 3 then return end
+
+	gl.DepthTest(false)
+
+	if not useFalloff then
+		glBeginEnd(GL.TRIANGLE_FAN, function()
+			glVertex(cx, groundY, cz)
+			for i = 1, nc do
+				local wx = cx + corners[i][1]
+				local wz = cz + corners[i][2]
+				glVertex(wx, GetGroundHeight(wx, wz), wz)
+			end
+			-- close loop
+			glVertex(cx + corners[1][1], GetGroundHeight(cx + corners[1][1], cz + corners[1][2]), cz + corners[1][2])
 		end)
 		gl.DepthTest(true)
 		return
 	end
 
-	local corners
-	if shape == "circle" then
-		corners = {}
-		for i = 0, segments do
-			local a = (i / segments) * 2 * pi
-			local lx = cos(a) * radius
-			local lz = sin(a) * radius * lengthScale
-			local rx, rz = rotatePoint(lx, lz, angleDeg)
-			corners[#corners + 1] = { rx, rz }
+	-- Circle uses (1 - nd^2)^curve; polygons use (1 - nd)^curve.
+	-- For uniform shape scaling, boundary points at scale s have nd = s.
+	local isCircle = (shape == "circle")
+
+	-- Concentric TRIANGLE_STRIP rings from outer (nd=1, alpha=0) toward centre.
+	-- k runs from 1..rings. s goes 1 -> 0. Last strip terminates at centre.
+	for k = 1, rings do
+		local s0 = 1 - (k - 1) / rings  -- outer ring scale
+		local s1 = 1 - k / rings        -- inner ring scale (0 at last)
+		local nd0, nd1 = s0, s1
+		local raw0, raw1
+		if isCircle then
+			raw0 = 1 - nd0 * nd0
+			raw1 = 1 - nd1 * nd1
+		else
+			raw0 = 1 - nd0
+			raw1 = 1 - nd1
 		end
-	else
-		corners = extraState.getShapeCorners(shape, radius, angleDeg, lengthScale)
-		-- close the loop
-		corners[#corners + 1] = corners[1]
+		if raw0 < 0 then raw0 = 0 end
+		if raw1 < 0 then raw1 = 0 end
+		local a0 = maxAlpha * (raw0 ^ curvePower)
+		local a1 = maxAlpha * (raw1 ^ curvePower)
+		-- Degenerate inner ring: draw as a fan to the centre for crisp core.
+		if s1 <= 1e-4 then
+			glBeginEnd(GL.TRIANGLE_FAN, function()
+				glColor(r, g, b, a1)
+				glVertex(cx, groundY, cz)
+				glColor(r, g, b, a0)
+				for i = 1, nc do
+					local wx = cx + corners[i][1] * s0
+					local wz = cz + corners[i][2] * s0
+					glVertex(wx, GetGroundHeight(wx, wz), wz)
+				end
+				local wx = cx + corners[1][1] * s0
+				local wz = cz + corners[1][2] * s0
+				glVertex(wx, GetGroundHeight(wx, wz), wz)
+			end)
+		else
+			glBeginEnd(GL.TRIANGLE_STRIP, function()
+				for i = 0, nc do
+					local idx = (i % nc) + 1
+					local ox = corners[idx][1]
+					local oz = corners[idx][2]
+					local wx0, wz0 = cx + ox * s0, cz + oz * s0
+					local wx1, wz1 = cx + ox * s1, cz + oz * s1
+					glColor(r, g, b, a0)
+					glVertex(wx0, GetGroundHeight(wx0, wz0), wz0)
+					glColor(r, g, b, a1)
+					glVertex(wx1, GetGroundHeight(wx1, wz1), wz1)
+				end
+			end)
+		end
 	end
-	gl.DepthTest(false)
-	glBeginEnd(GL.TRIANGLE_FAN, function()
-		glVertex(cx, groundY, cz)
-		for i = 1, #corners do
-			local wx = cx + corners[i][1]
-			local wz = cz + corners[i][2]
-			glVertex(wx, GetGroundHeight(wx, wz), wz)
-		end
-	end)
 	gl.DepthTest(true)
 end
 
@@ -3489,36 +3668,68 @@ function extraState.drawRingPrism(cx, cz, radius, angleDeg, groundY, capMin, cap
 end
 
 
-function extraState.drawFalloffCurveCircle(cx, cz, radius, curvePower, baseY, effectHeight, angleDeg, lengthScale)
-	lengthScale = lengthScale or 1.0
-	angleDeg = angleDeg or 0
+-- Falloff-curve vertex cache. The XZ positions + per-vertex falloff factors
+-- depend only on (shape, radius, curvePower, angleDeg, lengthScale). baseY +
+-- effectHeight change every frame (cursor moves across terrain) but Y is a
+-- trivial `baseY + falloff * effectHeight` computation. Caching the cos/sin/
+-- pow results removes 64 trig + 64 pow ops per frame when brush params are
+-- stable.
+extraState.falloffCurveCache = {}
+extraState.falloffCurveCacheOrder = {}
+
+extraState.getFalloffCurveArc = function(kind, radius, curvePower, angleDeg, lengthScale)
+	local key = kind .. "|" .. radius .. "|" .. math.floor(curvePower * 100 + 0.5)
+		.. "|" .. math.floor(angleDeg * 10 + 0.5)
+		.. "|" .. math.floor(lengthScale * 100 + 0.5)
+	local cached = extraState.falloffCurveCache[key]
+	if cached then return cached end
+
 	local segments = 64
-	-- Collect vertices for reuse across arc and curtain passes
-	local vx, vy, vz = {}, {}, {}
+	local dx, dz, falloff = {}, {}, {}
+	local effectiveR = radius
+	if kind == "ring" then
+		effectiveR = radius * (1 + ringInnerRatio) * 0.5
+	end
 	for i = 0, segments - 1 do
 		local theta = (i / segments) * 2 * pi
 		local nd = cos(theta)
-		local rawFalloff = 1 - nd * nd
-		if rawFalloff < 0 then rawFalloff = 0 end
-		local falloff = rawFalloff ^ curvePower
-		local lx = cos(theta) * radius
-		local lz = sin(theta) * radius * lengthScale
+		local rawF = 1 - nd * nd
+		if rawF < 0 then rawF = 0 end
+		falloff[i] = rawF ^ curvePower
+		local lx = cos(theta) * effectiveR
+		local lz = sin(theta) * effectiveR * lengthScale
 		local rx, rz = rotatePoint(lx, lz, angleDeg)
-		vx[i] = cx + rx
-		vy[i] = baseY + falloff * effectHeight
-		vz[i] = cz + rz
+		dx[i] = rx
+		dz[i] = rz
 	end
+	local entry = { dx = dx, dz = dz, falloff = falloff, segments = segments }
+	extraState.falloffCurveCache[key] = entry
+	local order = extraState.falloffCurveCacheOrder
+	order[#order + 1] = key
+	if #order > 6 then
+		local oldKey = table.remove(order, 1)
+		extraState.falloffCurveCache[oldKey] = nil
+	end
+	return entry
+end
+
+function extraState.drawFalloffCurveCircle(cx, cz, radius, curvePower, baseY, effectHeight, angleDeg, lengthScale)
+	lengthScale = lengthScale or 1.0
+	angleDeg = angleDeg or 0
+	local arc = extraState.getFalloffCurveArc("circle", radius, curvePower, angleDeg, lengthScale)
+	local dx, dz, falloff, segments = arc.dx, arc.dz, arc.falloff, arc.segments
 	-- Arc line
 	glBeginEnd(GL.LINE_LOOP, function()
 		for i = 0, segments - 1 do
-			glVertex(vx[i], vy[i], vz[i])
+			glVertex(cx + dx[i], baseY + falloff[i] * effectHeight, cz + dz[i])
 		end
 	end)
 	-- Curtain: sparse vertical drops every 4 segments
 	glBeginEnd(GL.LINES, function()
 		for i = 0, segments - 1, 4 do
-			glVertex(vx[i], vy[i], vz[i])
-			glVertex(vx[i], baseY, vz[i])
+			local wx, wz = cx + dx[i], cz + dz[i]
+			glVertex(wx, baseY + falloff[i] * effectHeight, wz)
+			glVertex(wx, baseY, wz)
 		end
 	end)
 end
@@ -3526,31 +3737,18 @@ end
 function extraState.drawFalloffCurveRing(cx, cz, radius, curvePower, baseY, effectHeight, angleDeg, lengthScale)
 	lengthScale = lengthScale or 1.0
 	angleDeg = angleDeg or 0
-	local midR = radius * (1 + ringInnerRatio) * 0.5
-	local segments = 64
-	local vx, vy, vz = {}, {}, {}
-	for i = 0, segments - 1 do
-		local theta = (i / segments) * 2 * pi
-		local nd = cos(theta)
-		local rawFalloff = 1 - nd * nd
-		if rawFalloff < 0 then rawFalloff = 0 end
-		local falloff = rawFalloff ^ curvePower
-		local lx = cos(theta) * midR
-		local lz = sin(theta) * midR * lengthScale
-		local rx, rz = rotatePoint(lx, lz, angleDeg)
-		vx[i] = cx + rx
-		vy[i] = baseY + falloff * effectHeight
-		vz[i] = cz + rz
-	end
+	local arc = extraState.getFalloffCurveArc("ring", radius, curvePower, angleDeg, lengthScale)
+	local dx, dz, falloff, segments = arc.dx, arc.dz, arc.falloff, arc.segments
 	glBeginEnd(GL.LINE_LOOP, function()
 		for i = 0, segments - 1 do
-			glVertex(vx[i], vy[i], vz[i])
+			glVertex(cx + dx[i], baseY + falloff[i] * effectHeight, cz + dz[i])
 		end
 	end)
 	glBeginEnd(GL.LINES, function()
 		for i = 0, segments - 1, 4 do
-			glVertex(vx[i], vy[i], vz[i])
-			glVertex(vx[i], baseY, vz[i])
+			local wx, wz = cx + dx[i], cz + dz[i]
+			glVertex(wx, baseY + falloff[i] * effectHeight, wz)
+			glVertex(wx, baseY, wz)
 		end
 	end)
 end
@@ -5342,8 +5540,20 @@ function widget:DrawWorld()
 
 	-- Full-map grid overlay: visible across the whole map regardless of brush active state
 	if gridOverlay then
-		if extraState.gridDirty or not extraState.gridDL then
+		-- Debounce rebuilds: while actively terraforming, `gridDirty` flips true
+		-- every stroke tick. Rebuilding the full-map display list (thousands of
+		-- GetGroundHeight calls) every frame is wasted work — the visual is
+		-- indistinguishable at 5Hz vs every-frame. Rebuild at most every 0.2s,
+		-- OR immediately if the display list is missing.
+		if not extraState.gridDL then
 			extraState.buildFullMapGrid()
+		elseif extraState.gridDirty then
+			local nowT = Spring.GetTimer()
+			local lastT = extraState.gridLastBuildT
+			if (not lastT) or Spring.DiffTimers(nowT, lastT) >= 0.2 then
+				extraState.gridLastBuildT = nowT
+				extraState.buildFullMapGrid()
+			end
 		end
 		glCallList(extraState.gridDL)
 	end
@@ -5661,20 +5871,35 @@ function widget:DrawWorld()
 
 	-- Animated glow outline â€” drawn every frame outside the display-list cache so it can pulse.
 	if activeMode and activeMode ~= "ramp" and not suppressBrush then
-		local drawFrame = GetDrawFrame()
-		local pulseT = (drawFrame % 90) / 90.0
 		-- Map intensity (0.1-100) to a 0-1 strength via log scale
 		local intFrac = (math.log(activeIntensity + 1) / math.log(101))
-		local baseAlpha   = 0.04 + 0.20 * intFrac
-		local swingAlpha  = 0.03 + 0.18 * intFrac
-		local pulseAlpha = baseAlpha + swingAlpha * sin(pulseT * 2 * pi)
+		if intFrac < 0 then intFrac = 0 elseif intFrac > 1 then intFrac = 1 end
+		-- Pulse speed: slow (~0.45 Hz) at low intensity, a bit faster (~1.1 Hz) at high.
+		-- Use a continuous timer so phase stays smooth when intensity changes.
+		if not extraState.brushPulseTimer then
+			extraState.brushPulseTimer = Spring.GetTimer()
+		end
+		local elapsed = Spring.DiffTimers(Spring.GetTimer(), extraState.brushPulseTimer)
+		local freqHz = 0.45 + 0.65 * intFrac
+		local pulse = sin(elapsed * freqHz * 2 * pi)      -- -1..1
+		local pulse01 = 0.5 + 0.5 * pulse                 -- 0..1
+
+		local baseAlpha  = 0.05 + 0.22 * intFrac
+		local swingAlpha = 0.04 + 0.20 * intFrac
+		local pulseAlpha = baseAlpha + swingAlpha * pulse
+
+		-- Thickness also breathes slightly, more noticeably at low intensity where
+		-- the slow pulse is the primary visual cue.
+		local halo = 14 + 3 * intFrac + (2.5 - 1.2 * intFrac) * pulse01
+		local core = 6  + 2 * intFrac + (1.8 - 0.8 * intFrac) * pulse01
+
 		local mr, mg, mb = getModeRGB()
 		-- Outer soft halo
-		glLineWidth(11)
+		glLineWidth(halo)
 		glColor(mr, mg, mb, pulseAlpha * 0.7)
 		extraState.drawCurrentOutline(worldX, worldZ, groundY)
 		-- Inner sharper halo
-		glLineWidth(5)
+		glLineWidth(core)
 		glColor(mr, mg, mb, pulseAlpha * 1.6)
 		extraState.drawCurrentOutline(worldX, worldZ, groundY)
 		glColor(1, 1, 1, 1)
@@ -5810,10 +6035,25 @@ function widget:DrawWorld()
 		local intensityT = log(activeIntensity / MIN_INTENSITY) / log(MAX_INTENSITY / MIN_INTENSITY)
 		intensityT = max(0, min(1, intensityT))
 
-		-- Semi-transparent footprint fill -- opacity scales with intensity
-		local fillAlpha = min(0.6, 0.05 + intensityT * 0.40)
-		glColor(mr, mg, mb, fillAlpha)
-		extraState.drawShapeGroundFill(worldX, worldZ, activeRadius, activeShape, activeRotation, groundY, activeLengthScale)
+		-- Semi-transparent footprint fill -- falloff-shaded gradient:
+		-- center (strong terrain change) is bright, edges (slow change) fade to
+		-- transparent so the user can read the brush's effective strength profile
+		-- at a glance. Overall opacity still scales with intensity.
+		local fillAlpha = min(0.6, 0.08 + intensityT * 0.45)
+		-- Noise / restore / ramp apply uniformly inside the footprint, so we
+		-- skip the falloff gradient for those modes and keep the flat fill.
+		local usesFalloff = (activeMode == "raise" or activeMode == "lower" or activeMode == "level")
+		if usesFalloff then
+			-- Slightly brighten the mode color for the hot core so the gradient reads
+			-- as "intensity" rather than a flat wash.
+			local cr = mr * 0.55 + br * 0.45
+			local cg = mg * 0.55 + bg * 0.45
+			local cb = mb * 0.55 + bb * 0.45
+			extraState.drawShapeGroundFill(worldX, worldZ, activeRadius, activeShape, activeRotation, groundY, activeLengthScale, activeCurve, cr, cg, cb, fillAlpha)
+		else
+			glColor(mr, mg, mb, fillAlpha)
+			extraState.drawShapeGroundFill(worldX, worldZ, activeRadius, activeShape, activeRotation, groundY, activeLengthScale)
+		end
 
 		-- Height colormap: topographic elevation visualization within brush footprint
 		if extraState.heightColormap then
@@ -5822,7 +6062,7 @@ function widget:DrawWorld()
 
 		-- Outline
 		glColor(mr, mg, mb, 0.4 + intensityT * 0.55)
-		glLineWidth(2.5)
+		glLineWidth(3.5)
 
 		if activeShape == "circle" then
 			extraState.drawRegularPolygon(worldX, worldZ, activeRadius, activeRotation, CIRCLE_SEGMENTS, activeLengthScale)

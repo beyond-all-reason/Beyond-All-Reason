@@ -118,6 +118,11 @@ local dragStartY     = nil  -- screen coords at mouse-down
 local mouseDownWorldX = nil
 local mouseDownWorldZ = nil
 
+-- Undo history: each entry = { count=N, prevNextAllyTeam=M }
+-- Means: the last N entries in `positions` were added in one action;
+-- restoring removes them and rewinds nextAllyTeam to M.
+local undoHistory    = {}
+
 -- ============================================================
 -- Helper Functions
 -- ============================================================
@@ -320,6 +325,7 @@ end
 local function clearAllPositions()
 	positions = {}
 	nextAllyTeam = 1
+	undoHistory = {}
 end
 
 local function placeShapePositions(cx, cz)
@@ -440,10 +446,11 @@ local function loadStartPositions(name)
 		return VFS.Include(filename, nil, VFS.RAW_FIRST)
 	end)
 	if ok and data then
-		clearAllPositions()
+		clearAllPositions()  -- also clears undoHistory
 		for i, pos in ipairs(data) do
 			addPosition(pos.x, pos.z, pos.allyTeam or i)
 		end
+		undoHistory = {}  -- load is a clean slate
 		Echo("[StartPos Tool] Loaded start positions from: " .. filename)
 		return true
 	else
@@ -806,6 +813,8 @@ function widget:MousePress(mx, my, button)
 			do
 				local tb = WG.TerraformBrush
 				local stb = tb and tb.getState and tb.getState() or nil
+				local prevNext = nextAllyTeam
+				local prevCount = #positions
 				if stb and stb.symmetryActive and tb.getSymmetricPositions then
 					local copies = tb.getSymmetricPositions(wx, wz, 0)
 					for k, p in ipairs(copies) do
@@ -815,6 +824,10 @@ function widget:MousePress(mx, my, button)
 					nextAllyTeam = ((nextAllyTeam - 1 + #copies) % numAllyTeams) + 1
 				elseif addPosition(wx, wz, nextAllyTeam) then
 					nextAllyTeam = (nextAllyTeam % numAllyTeams) + 1
+				end
+				local added = #positions - prevCount
+				if added > 0 then
+					undoHistory[#undoHistory + 1] = { count = added, prevNextAllyTeam = prevNext }
 				end
 			end
 			return true
@@ -838,6 +851,8 @@ function widget:MousePress(mx, my, button)
 			if stb and stb.gridSnap and tb.snapWorld then
 				sx, sz = tb.snapWorld(wx, wz, shapeRotation)
 			end
+			local prevNext = nextAllyTeam
+			local prevCount = #positions
 			if stb and stb.symmetryActive and tb.getSymmetricPositions then
 				local copies = tb.getSymmetricPositions(sx, sz, shapeRotation)
 				if copies and #copies > 0 then
@@ -851,6 +866,10 @@ function widget:MousePress(mx, my, button)
 				end
 			else
 				placeShapePositions(sx, sz)
+			end
+			local added = #positions - prevCount
+			if added > 0 then
+				undoHistory[#undoHistory + 1] = { count = added, prevNextAllyTeam = prevNext }
 			end
 			return true
 		elseif button == 3 then
@@ -981,13 +1000,32 @@ function widget:MouseWheel(up, value)
 	return false
 end
 
+function widget:KeyPress(key, mods, isRepeat)
+	if not active then return false end
+	-- Ctrl+Z: undo last placement
+	if key == 122 and mods.ctrl then  -- 122 = 'z'
+		local entry = undoHistory[#undoHistory]
+		if entry then
+			for i = 1, entry.count do
+				if #positions > 0 then
+					positions[#positions] = nil
+				end
+			end
+			nextAllyTeam = entry.prevNextAllyTeam
+			undoHistory[#undoHistory] = nil
+		end
+		return true
+	end
+	return false
+end
+
 -- ============================================================
 -- Drawing
 -- ============================================================
 
 -- Helper: draw a sleek start-position marker (outer ring + inner pip + subtle fill)
 local function drawStartPosMarker(px, pz, color, alpha)
-	local gy = GetGroundHeight(px, pz) or 0
+	local gy = (GetGroundHeight(px, pz) or 0) + 5
 	local a = alpha or 1.0
 
 	-- Subtle filled disc

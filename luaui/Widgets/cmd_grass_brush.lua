@@ -933,8 +933,10 @@ local function drawCursorInfo(worldX, worldZ)
 	local modeName = subMode:upper()
 	local text = format("%s: D%.0f%% R%d [cur: %.0f%%]", modeName, targetDensity * 100, brushRadius, currentDensity * 100)
 
-	glColor(1, 1, 1, 0.9)
-	glText(text, sx, sy + 20, 13, "co")
+	glColor(0, 0, 0, 0.92)
+	glText(text, sx + 2, sy + 18, 24, "co")
+	glColor(1, 1, 1, 1.0)
+	glText(text, sx, sy + 20, 24, "co")
 end
 
 
@@ -1344,7 +1346,13 @@ function widget:DrawWorld()
 	if checkConflictAndDeactivate() then return end
 
 	local worldX, worldZ = getWorldPos()
-	if not worldX then return end
+	if not worldX then
+		local tb = WG.TerraformBrush
+		if tb and tb.getUnmouseTarget then
+			worldX, worldZ = tb.getUnmouseTarget(brushRadius, brushLengthScale or 1.0)
+		end
+		if not worldX then return end
+	end
 
 	-- Smart filter / texture filter overlay
 	drawSmartFilterOverlay(worldX, worldZ)
