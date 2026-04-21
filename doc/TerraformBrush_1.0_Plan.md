@@ -6,24 +6,29 @@
 
 ---
 
-## Per-Tool UI Audit (Verified 2026-04-20)
+## Per-Tool UI Audit (Verified 2026-04-21)
 
 Verified against actual RML markup (`gui_terraform_brush.rml`) and Lua (`gui_terraform_brush.lua`).
 
-| Tool | RML Overlays section | RML Instruments section | RML Controls section | Symmetry | Undo | Notes |
-|------|:---:|:---:|:---:|:---:|:---:|-------|
-| **Terraform** | ✅ `section-overlays` | ✅ `section-instruments` | — | ✅ (inside instruments) | ✅ `section-undo` | Complete — the reference template |
-| **Feature Placer** | ✅ `section-fp-overlays` | ✅ `section-fp-instruments` | ✅ `section-fp-controls` | ❌ | ✅ | Complete — second reference template |
-| **Metal** | ❌ | ❌ | — | ❌ | ✅ `section-mb-undo` | Lua stubs exist (L2348-2349) but NO RML elements — dead code |
-| **Grass** | ❌ | ❌ | — | ❌ | ✅ `section-gb-undo` | Lua stubs exist (L2351-2352) but NO RML elements — dead code |
-| **Splat** | ❌ | ❌ | — | ❌ | ✅ `section-sp-undo` | Lua stubs exist (L2415-2416) but NO RML elements — dead code |
-| **Decals** | ❌ | ❌ | — | ❌ | ✅ `section-dc-undo` | Lua stubs exist (L2418-2419) but NO RML elements — dead code |
-| **Weather** | ❌ | ❌ | — | ❌ | — | Lua stubs exist (L2411-2412) but NO RML elements — dead code |
-| **Lights** | ❌ | ❌ | — | ❌ | ✅ `section-lp-undo` | Lua stubs exist (L2421-2422) but NO RML elements — dead code |
-| **StartPos** | ❌ | ❌ | — | ❌ | — | No Lua stubs, no RML elements — blank slate |
-| **Clone** | ❌ | ❌ | — | ❌ | ✅ `section-cl-undo` | Has Mirror X/Z paste transforms (not symmetry). No overlays/instruments stubs |
+| Tool | RML Overlays section | RML Instruments section | RML Controls section | RML Smart/Filters | Symmetry | Undo | Notes |
+|------|:---:|:---:|:---:|:---:|:---:|:---:|-------|
+| **Terraform** | ✅ `section-overlays` | ✅ `section-instruments` | — | — | ✅ (inside instruments) | ✅ `section-undo` | Complete — reference template. INSTRUMENTS header now shows a notify dot + chip-2pulse on Measure after a ramp is drawn (manipulator discoverability). |
+| **Feature Placer** | ✅ `section-fp-overlays` | ✅ `section-fp-instruments` | ✅ `section-fp-controls` | ✅ `section-fp-smart` | ✅ | ✅ | Complete — reference template with FILTERS pill chips (Slope/Altitude). |
+| **Metal** | ✅ `section-mb-overlays` | ✅ `section-mb-instruments` | — | — | ✅ | ✅ `section-mb-undo` | DISPLAY + INSTRUMENTS done (P2.1). No CONTROLS/SMART wrappers. |
+| **Grass** | ✅ `section-gb-overlays` | ✅ `section-gb-instruments` | — | ✅ `section-gb-smart` | ✅ | ✅ `section-gb-undo` | DISPLAY + INSTRUMENTS + SMART done (P2.2). Uses exclusive pill tabs (Slope/Altitude/Color). No CONTROLS wrapper. |
+| **Splat** | ✅ `section-sp-overlays` | ✅ `section-sp-instruments` | ✅ `section-sp-controls` | ✅ `section-sp-smart` | ✅ | ✅ `section-sp-undo` | **Complete** (P2.3). Splat Map overlay chip with notify dot + chip-2pulse discoverability. FILTERS restructured to FP pattern (Slope/Altitude independent pills). |
+| **Decals** | ❌ | ❌ | — | — | ❌ | ✅ `section-dc-undo` | Only UNDO wired. Lua stubs register `section-dc-overlays`/`section-dc-instruments`/`section-dc-controls` but RML elements don't exist — dead code. |
+| **Weather** | ❌ | ❌ | — | — | ❌ | — | Lua stubs register `section-wb-overlays`/`section-wb-instruments`/`section-wb-controls`/`section-wb-undo` but RML elements don't exist — dead code. |
+| **Lights** | ❌ | ❌ | — | — | ❌ | ✅ `section-lp-undo` | Only UNDO wired. Lua stubs register `section-lp-overlays`/`section-lp-instruments`/`section-lp-controls` but RML elements don't exist — dead code. |
+| **StartPos** | ❌ | ❌ | — | — | ❌ | — | No Lua stubs, no RML elements — blank slate. |
+| **Clone** | ❌ | ❌ | — | — | ❌ | ✅ `section-cl-undo` | Only UNDO wired. Has Mirror X/Z paste transforms (not symmetry). No overlays/instruments stubs. |
 
-**Key finding:** The Lua at L2348-2422 registers `envSectionToggle()` calls for mb/gb/wb/sp/dc/lp overlays+instruments, but the corresponding RML `<div>` elements were never created. Those toggle calls silently fail (`getElementById` returns nil). Only **Terraform** and **Feature Placer** have actual working overlays/instruments in the UI.
+**Status:** 5 of 10 tools have DISPLAY+INSTRUMENTS (Terraform, FP, Metal, Grass, Splat). Splat and FP are fully complete with CONTROLS+SMART wrappers. Decals/Weather/Lights/StartPos/Clone still pending (P2.4–P2.8).
+
+**Dead Lua registrations** (in `tf_environment.lua` — elements never created in RML, toggle calls silently no-op):
+- `btn-toggle-wb-mode`, `btn-toggle-wb-dist`, `btn-toggle-wb-undo`, `btn-toggle-wb-overlays`, `btn-toggle-wb-instruments`, `btn-toggle-wb-controls`
+- `btn-toggle-dc-overlays`, `btn-toggle-dc-instruments`, `btn-toggle-dc-controls`
+- `btn-toggle-lp-overlays`, `btn-toggle-lp-instruments`, `btn-toggle-lp-controls`
 
 ---
 
@@ -70,14 +75,33 @@ Each tool gets the sections it's missing. Work per tool:
 
 | # | Status | Tool | Work needed |
 |---|--------|------|-------------|
-| P2.1 | ⬜ | **Metal** | Add RML: overlays section, instruments section, symmetry. Remove dead Lua stubs, replace with real wiring. |
-| P2.2 | ⬜ | **Grass** | Add RML: overlays section, instruments section, symmetry. Remove dead Lua stubs, replace with real wiring. |
-| P2.3 | ⬜ | **Splat** | Add RML: overlays section, instruments section, symmetry. Remove dead Lua stubs, replace with real wiring. |
+| P2.1 | ✅ | **Metal** | DISPLAY + INSTRUMENTS + CONTROLS + SMART wrapped collapsibles. All chips wired through `WG.TerraformBrush.set*`. |
+| P2.2 | ✅ | **Grass** | DISPLAY + INSTRUMENTS + CONTROLS + SMART wrapped collapsibles. Shape/rotation pulled from shared TB state. |
+| P2.3 | ✅ | **Splat** | DISPLAY + INSTRUMENTS + CONTROLS + SMART wrapped. `paintAtSymmetric` helper integrates snapWorld + symmetric fan-out. Height-colormap + protractor overlays now include splat branch. Measure Ruler/Sticky chips omitted (not applicable to click-based paint). drawSymmetryOverlay gate fixed to include SplatPainter. **Splat Map** overlay chip added to DISPLAY — channel-colorized world overlay (R=red, G=green, B=blue, A=yellow) via `WG.SplatPainter.setSplatOverlay()`, rendered in `DrawWorld` with GLSL colorization shader and 32×32 terrain-following grid. **SMART FILTER restructured** to match Feature Placer FILTERS pattern: renamed header, removed master enable toggle, added Slope/Altitude independent pill chips (toggle sub-divs), warn chip shows when smart is active. **Notify dot** (pulsating cyan dot) in DISPLAY header advertises the feature; **chip-2pulse** animation fires on the Splat Map chip each time DISPLAY section is opened. |
 | P2.4 | ⬜ | **Decals** | Add RML: overlays section, instruments section, symmetry. Remove dead Lua stubs, replace with real wiring. |
 | P2.5 | ⬜ | **Weather** | Add RML: overlays section, instruments section, symmetry. Remove dead Lua stubs, replace with real wiring. |
 | P2.6 | ⬜ | **Lights** | Add RML: overlays section, instruments section, symmetry. Remove dead Lua stubs, replace with real wiring. |
 | P2.7 | ⬜ | **StartPos** | Full UI scaffolding: overlays, instruments, symmetry. Blank slate — no existing stubs. |
 | P2.8 | ⬜ | **Clone** | Full UI scaffolding: overlays, instruments, symmetry. Has mirror X/Z already (paste transforms) — evaluate whether symmetry applies differently here. |
+
+### Per-tool chore checklist (DO NOT SKIP)
+
+When rolling INSTRUMENTS/DISPLAY to a new tool, every single item below must be ticked before moving on. Items were missed repeatedly on earlier passes.
+
+- [ ] RML: add `btn-toggle-XX-overlays` + `section-XX-overlays` collapsible (DISPLAY).
+- [ ] RML: add `btn-toggle-XX-instruments` + `section-XX-instruments` collapsible (INSTRUMENTS).
+- [ ] RML: wrap existing CONTROLS block in `btn-toggle-XX-controls` + `section-XX-controls` collapsible.
+- [ ] RML: wrap SMART FILTER block (if any) in `btn-toggle-XX-smart` + `section-XX-smart` collapsible.
+- [ ] `tf_environment.lua`: register all four `envSectionToggle(...)` for the four wrappers above.
+- [ ] `tf_<tool>.lua`: wire chips through `WG.TerraformBrush.set*` — do NOT maintain parallel state.
+- [ ] `tf_<tool>.lua`: `M.sync` reflects shared TB state onto chips + sub-row visibility + labels every frame.
+- [ ] Measure toolbar: use only `Show Length` + `Clear All`. Drop `Ruler Mode` + `Sticky` — not applicable to any tool past metal where they had no wired effect.
+- [ ] Widget (`cmd_<tool>.lua`): paint/place entry point calls `tb.snapWorld(x, z, rot)` and iterates `tb.getSymmetricPositions(x, z, rot)`.
+- [ ] Widget: `widget:MousePress` defers to measure tool (`if st.measureActive then return false`).
+- [ ] `cmd_terraform_brush.lua` DrawWorld: add tool branch to the **heightColormap overlay** block (else its chip draws nothing).
+- [ ] `cmd_terraform_brush.lua` DrawWorld: add tool branch to the **protractor overlay** block (else its chip draws nothing).
+- [ ] `cmd_terraform_brush.lua` `extraState.drawSymmetryOverlay`: add tool's `WG.<Tool>.getState().active` to the allow-list early-return guard (else symmetry lines don't draw for the tool).
+- [ ] Smoke test: toggle each chip; paint a stroke with symmetry on; confirm fan-out visually.
 
 > **Per-tool details:**
 > - **Symmetry** = forwarding the existing `WG.TerraformBrush.setSymmetryActive()` API to each tool's gadget/widget. The terraform brush already has radial + mirror-X + mirror-Y — reuse the same UI pattern (chip toggle + sub-toolbar).
@@ -139,7 +163,7 @@ Each tool gets the sections it's missing. Work per tool:
 
 ## Status Summary
 
-> Updated: 2026-04-20 (Phase 0 ✅, Phase 1 ✅)
+> Updated: 2026-04-21 (Phase 0 ✅, Phase 1 ✅, P2.1–P2.3 ✅)
 
 | Phase | Items | Done | Notes |
 |-------|-------|------|-------|

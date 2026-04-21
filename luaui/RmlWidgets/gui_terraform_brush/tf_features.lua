@@ -468,12 +468,6 @@ function M.attach(doc, ctx)
 				WG.TerraformBrush.setSymmetryMirrorY(not (s and s.symmetryMirrorY))
 			end
 		end)
-		fpSymBtn("fp-btn-symmetry-flipped", function()
-			if WG.TerraformBrush then
-				local s = WG.TerraformBrush.getState()
-				WG.TerraformBrush.setSymmetryFlipped(not (s and s.symmetryFlipped))
-			end
-		end)
 		fpSymBtn("fp-btn-symmetry-place-origin", function()
 			if WG.TerraformBrush then
 				WG.TerraformBrush.setSymmetryPlacingOrigin(true)
@@ -814,8 +808,6 @@ function M.sync(doc, ctx, fpState, setSummary)
 					if fpSymMX then fpSymMX:SetClass("active", tbState.symmetryMirrorX == true) end
 					local fpSymMY = doc:GetElementById("fp-btn-symmetry-mirror-y")
 					if fpSymMY then fpSymMY:SetClass("active", tbState.symmetryMirrorY == true) end
-					local fpSymFlip = doc:GetElementById("fp-btn-symmetry-flipped")
-					if fpSymFlip then fpSymFlip:SetClass("active", tbState.symmetryFlipped == true) end
 					local fpSymRadRow = doc:GetElementById("fp-symmetry-radial-count-row")
 					if fpSymRadRow then fpSymRadRow:SetClass("hidden", not tbState.symmetryRadial) end
 					local fpSymRadLabel = doc:GetElementById("fp-symmetry-radial-count-label")

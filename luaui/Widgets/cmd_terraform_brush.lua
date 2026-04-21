@@ -444,7 +444,7 @@ local extraState = {
 	measureHoverMidSeg = nil,     -- {chain=c, seg=s, wx, wz} when cursor is near a segment body
 	measureStickyMode = false,    -- linked-brush mode: recorded strokes follow spline reshaping
 	measureDistortMode = false,   -- origin drag re-mirrors lines instead of translating them
-	measureShowLength = false,    -- when true, draw elmos/km labels on each segment
+	measureShowLength = true,     -- when true, draw elmos/km labels on each segment
 	linkedStrokes = {},           -- parametric records of ruler-mode brush strokes
 	linkedStrokeGroupCount = 0,  -- how many undo entries the current linkedStrokes span
 	gadgetUndoCount = 0,         -- latest undo-stack depth reported by the gadget
@@ -862,6 +862,7 @@ local function snapToGrid(x, z, angleDeg)
 	return lx * cr - lz * sr,
 	       lx * sr + lz * cr
 end
+extraState.snapToGrid = snapToGrid
 
 local function constrainToAxis(originX, originZ, rawX, rawZ)
 	-- Convert world-space displacement to screen-space pixels for zoom-independent threshold
@@ -1568,6 +1569,7 @@ local function getState()
 		measureDistortMode = extraState.measureDistortMode,
 		measureShowLength = extraState.measureShowLength,
 		linkedStrokeCount = #(extraState.linkedStrokes or {}),
+		measureChainCount = #(extraState.measureLines or {}),
 		rampAutoAttach = extraState.rampAutoAttach,
 		curveOverlay = extraState.curveOverlay,
 		velocityIntensity = extraState.velocityIntensity,
@@ -1595,6 +1597,8 @@ local function getState()
 		symmetryPlacingOrigin = extraState.symmetryPlacingOrigin,
 		symmetryMirrorAngle = extraState.symmetryMirrorAngle,
 		symmetryFlipped = extraState.symmetryFlipped,
+		symmetryHoveringOrigin = extraState.symmetryHoveringOrigin,
+		symmetryDraggingOrigin = extraState.symmetryDraggingOrigin,
 		penPressureEnabled = extraState.penPressureEnabled,
 		penPressure = extraState.penPressure,
 		penPressureMapped = extraState.penPressureMapped or extraState.penPressure,
@@ -2166,6 +2170,10 @@ function widget:Initialize()
 		end,
 		getSymmetricPositions = extraState.getSymmetricPositions,
 		getSymmetryOrigin = extraState.getSymmetryOrigin,
+		snapWorld = function(x, z, angleDeg)
+			if not extraState.gridSnap then return x, z end
+			return extraState.snapToGrid(x, z, angleDeg or 0)
+		end,
 		getState = getState,
 		isStampMode = isStampMode,
 		savePreset = savePreset,
@@ -2314,22 +2322,40 @@ extraState.getSmoothedSplineWindow = function()
 end
 
 -- Package and send a SPLINE_RAMP message. snapFull=true → gadget uses factor 1.0 (instant snap).
+-- Respects symmetry: sends one SPLINE_RAMP per symmetric copy, transforming all points.
 extraState.sendSplinePts = function(pts, snapFull)
 	if #pts < 2 then return end
-	local parts = { MSG.SPLINE_RAMP, tostring(activeRadius), " ", tostring(#pts) }
-	for i = 1, #pts do
-		parts[#parts + 1] = " "
-		parts[#parts + 1] = tostring(floor(pts[i][1]))
-		parts[#parts + 1] = " "
-		parts[#parts + 1] = tostring(floor(pts[i][2]))
+	local nPts = #pts
+	-- Build per-point symmetric copies in one pass (getSymmetricPositions once per point)
+	local symPts = {}  -- symPts[k][i] = {x,z} for copy k of point i
+	local nCopies = 1
+	for i = 1, nPts do
+		local copies = extraState.getSymmetricPositions(pts[i][1], pts[i][2], 0)
+		if i == 1 then
+			nCopies = #copies
+			for k = 1, nCopies do symPts[k] = {} end
+		end
+		for k = 1, nCopies do
+			symPts[k][i] = copies[k] or copies[1]
+		end
 	end
-	parts[#parts + 1] = " "
-	parts[#parts + 1] = clayMode and "1" or "0"
-	parts[#parts + 1] = " "
-	parts[#parts + 1] = djMode and dustEffects and "1" or "0"
-	parts[#parts + 1] = " "
-	parts[#parts + 1] = snapFull and "1" or "0"
-	SendLuaRulesMsg(table.concat(parts))
+	for k = 1, nCopies do
+		local parts = { MSG.SPLINE_RAMP, tostring(activeRadius), " ", tostring(nPts) }
+		for i = 1, nPts do
+			local p = symPts[k][i]
+			parts[#parts + 1] = " "
+			parts[#parts + 1] = tostring(floor(p.x))
+			parts[#parts + 1] = " "
+			parts[#parts + 1] = tostring(floor(p.z))
+		end
+		parts[#parts + 1] = " "
+		parts[#parts + 1] = clayMode and "1" or "0"
+		parts[#parts + 1] = " "
+		parts[#parts + 1] = djMode and dustEffects and "1" or "0"
+		parts[#parts + 1] = " "
+		parts[#parts + 1] = snapFull and "1" or "0"
+		SendLuaRulesMsg(table.concat(parts))
+	end
 	afterBrushTick()
 end
 
@@ -2697,18 +2723,26 @@ function widget:Update(dt)
 			end
 
 			if rampEndX then
-				local endY = GetGroundHeight(rampEndX, rampEndZ)
-				local msg = MSG.RAMP
-					.. floor(lockedWorldX) .. " "
-					.. floor(lockedWorldZ) .. " "
-					.. string.format("%.0f", lockedGroundY) .. " "
-					.. floor(rampEndX) .. " "
-					.. floor(rampEndZ) .. " "
-					.. string.format("%.0f", endY) .. " "
-					.. activeRadius .. " "
-					.. (clayMode and "1" or "0") .. " "
-					.. (djMode and dustEffects and "1" or "0")
-				SendLuaRulesMsg(msg)
+				-- Apply symmetry: transform both start and end through each symmetric copy
+				local startCopies = extraState.getSymmetricPositions(lockedWorldX, lockedWorldZ, 0)
+				local endCopies   = extraState.getSymmetricPositions(rampEndX, rampEndZ, 0)
+				for i = 1, #startCopies do
+					local sp = startCopies[i]
+					local ep = endCopies[i] or endCopies[1]
+					local startY = (i == 1) and lockedGroundY or GetGroundHeight(sp.x, sp.z)
+					local endY   = GetGroundHeight(ep.x, ep.z)
+					local msg = MSG.RAMP
+						.. floor(sp.x) .. " "
+						.. floor(sp.z) .. " "
+						.. string.format("%.0f", startY) .. " "
+						.. floor(ep.x) .. " "
+						.. floor(ep.z) .. " "
+						.. string.format("%.0f", endY) .. " "
+						.. activeRadius .. " "
+						.. (clayMode and "1" or "0") .. " "
+						.. (djMode and dustEffects and "1" or "0")
+					SendLuaRulesMsg(msg)
+				end
 				afterBrushTick()
 			end
 		end
@@ -3048,7 +3082,16 @@ end
 -- Symmetry overlay: guide lines radiating from origin + ghost brush outlines at mirror positions
 extraState.drawSymmetryOverlay = function(worldX, worldZ, groundY)
 	if not extraState.symmetryActive then return end
-	if not activeMode or activeMode == "ramp" then return end
+	-- Allow drawing when any terrain tool (terraform/metal/grass/feature-placer/splat) is active
+	if not activeMode then
+		local mbSt = WG.MetalBrush and WG.MetalBrush.getState()
+		local gbSt = WG.GrassBrush and WG.GrassBrush.getState()
+		local fpSt = WG.FeaturePlacer and WG.FeaturePlacer.getState()
+		local spSt = WG.SplatPainter and WG.SplatPainter.getState()
+		if not ((mbSt and mbSt.active) or (gbSt and gbSt.active) or (fpSt and fpSt.active) or (spSt and spSt.active)) then
+			return
+		end
+	end
 
 	local ox, oz = extraState.getSymmetryOrigin()
 	local BUMP = 5
@@ -5207,6 +5250,83 @@ function widget:DrawScreenEffects()
 	-- G8: future hook — overlay cursor graphics here when custom artwork is added
 end
 
+-- Protractor spokes overlay: reusable across terraform / metal / grass / feature placer.
+-- Draws angle-step spokes radiating from (cx, cz) plus a highlighted snap axis.
+-- Also updates activeRotation to the highlighted spoke so paint ops pick it up.
+extraState.drawProtractorOverlay = function(cx, cz, radius)
+	local step      = extraState.angleSnapStep
+	if not step or step <= 0 then return end
+	local spokeLen  = (radius or 100) * 1.85
+	local activeLen = (radius or 100) * 2.3
+	local numSpokes = floor(360 / step)
+	local BUMP = 4
+	local SEGS = 14
+
+	-- Determine which spoke to highlight
+	local highlightAngle
+	if extraState.angleSnapAuto then
+		local nearest = floor(activeRotation / step + 0.5) % numSpokes
+		highlightAngle = nearest * step
+		activeRotation = highlightAngle
+	else
+		local idx = (extraState.angleSnapManualSpoke or 0) % numSpokes
+		highlightAngle = idx * step
+		activeRotation = highlightAngle
+	end
+
+	local function drawSpoke(rad, len)
+		local dx = cos(rad) * (len / SEGS)
+		local dz = sin(rad) * (len / SEGS)
+		glBeginEnd(GL.LINE_STRIP, function()
+			for s = 0, SEGS do
+				local sx = cx + dx * s
+				local sz = cz + dz * s
+				glVertex(sx, GetGroundHeight(sx, sz) + BUMP, sz)
+			end
+		end)
+	end
+	local function drawBiSpoke(rad, len)
+		local dx = cos(rad) * (len / SEGS)
+		local dz = sin(rad) * (len / SEGS)
+		glBeginEnd(GL.LINE_STRIP, function()
+			for s = -SEGS, SEGS do
+				local sx = cx + dx * s
+				local sz = cz + dz * s
+				glVertex(sx, GetGroundHeight(sx, sz) + BUMP, sz)
+			end
+		end)
+	end
+
+	extraState.protractorCursorX  = cx
+	extraState.protractorCursorZ  = cz
+	extraState.protractorSpokeLen = spokeLen
+	extraState.protractorStep     = step
+	extraState.protractorHighlight = highlightAngle
+
+	glPolygonOffset(-1, -1)
+	glLineWidth(1)
+	glColor(1.0, 0.92, 0.25, 0.22)
+	for si = 0, numSpokes - 1 do
+		local angleDeg = si * step
+		if angleDeg ~= highlightAngle then
+			drawSpoke(angleDeg * pi / 180, spokeLen)
+		end
+	end
+	local aRad = highlightAngle * pi / 180
+	glLineWidth(9)
+	glColor(1.0, 0.88, 0.1, 0.12)
+	drawBiSpoke(aRad, activeLen)
+	glLineWidth(5)
+	glColor(1.0, 0.88, 0.1, 0.40)
+	drawBiSpoke(aRad, activeLen)
+	glLineWidth(2)
+	glColor(1.0, 1.0, 0.6, 1.0)
+	drawBiSpoke(aRad, activeLen)
+	glLineWidth(1)
+	glColor(1, 1, 1, 1)
+	glPolygonOffset(0, 0)
+end
+
 function widget:DrawWorld()
 	if tessellationDirtyFrames > 0 then
 		ForceTesselationUpdate(true)
@@ -5265,7 +5385,45 @@ function widget:DrawWorld()
 				if wx then
 					extraState.drawHeightColormap(wx, wz, fpState.radius or 200, fpState.shape or "circle", fpState.rotation or 0, 1.0)
 				end
+			else
+				local mbState = WG.MetalBrush and WG.MetalBrush.getState()
+				local gbState = WG.GrassBrush and WG.GrassBrush.getState()
+				local spState = WG.SplatPainter and WG.SplatPainter.getState()
+				if (mbState and mbState.active) or (gbState and gbState.active) then
+					local wx, wz = getWorldMousePosition()
+					if wx then
+						extraState.drawHeightColormap(wx, wz, activeRadius, activeShape, activeRotation, activeLengthScale)
+					end
+				elseif spState and spState.active then
+					local wx, wz = getWorldMousePosition()
+					if wx then
+						extraState.drawHeightColormap(wx, wz, spState.radius or 200, spState.shape or "circle", spState.rotationDeg or 0, 1.0)
+					end
+				end
 			end
+		end
+		-- Protractor overlay: runs for feature placer / metal / grass when angle snap is on
+		if extraState.angleSnap then
+			local fpState = WG.FeaturePlacer and WG.FeaturePlacer.getState()
+			local mbState = WG.MetalBrush and WG.MetalBrush.getState()
+			local gbState = WG.GrassBrush and WG.GrassBrush.getState()
+			local spState = WG.SplatPainter and WG.SplatPainter.getState()
+			local r
+			if fpState and fpState.active then r = fpState.radius or 200
+			elseif (mbState and mbState.active) or (gbState and gbState.active) then r = activeRadius
+			elseif spState and spState.active then r = spState.radius or 200 end
+			if r then
+				local wx, wz = getWorldMousePosition()
+				if wx then
+					extraState.drawProtractorOverlay(wx, wz, r)
+				else
+					extraState.protractorCursorX = nil
+				end
+			else
+				extraState.protractorCursorX = nil
+			end
+		else
+			extraState.protractorCursorX = nil
 		end
 		-- Symmetry overlay: works when feature placer or other tools are active
 		if extraState.symmetryActive then
@@ -5479,89 +5637,15 @@ function widget:DrawWorld()
 	-- Unmouse amber glow + landing ring (only drawn while brush is parked beside UI)
 	extraState.doUnmouseDraw(worldX, worldZ, groundY)
 
-	-- Protractor spokes: angle grid radiating from brush center when angle snap is on
-	if extraState.angleSnap and activeMode ~= "ramp" then
-		local step      = extraState.angleSnapStep
-		local spokeLen  = activeRadius * 1.85
-		local activeLen = activeRadius * 2.3   -- highlighted spoke slightly longer
-		local numSpokes = floor(360 / step)
-		local BUMP = 4
-		local SEGS = 14   -- ground-following segments per spoke
-
-		-- Determine which spoke to highlight
-		local highlightAngle
-		if extraState.angleSnapAuto then
-			-- Auto: nearest spoke to current activeRotation
-			local nearest = floor(activeRotation / step + 0.5) % numSpokes
-			highlightAngle = nearest * step
-			activeRotation = highlightAngle
-		else
-			-- Manual: use the pinned spoke index
-			local idx = extraState.angleSnapManualSpoke % numSpokes
-			highlightAngle = idx * step
-			activeRotation = highlightAngle
+	-- Protractor spokes: angle grid radiating from brush center when angle snap is on.
+	-- Ramp mode: anchor spokes at the drag origin while dragging so they visibly radiate
+	-- from the ramp start point; before press, use the live cursor.
+	if extraState.angleSnap then
+		local pcx, pcz = worldX, worldZ
+		if activeMode == "ramp" and dragOriginX then
+			pcx, pcz = dragOriginX, dragOriginZ
 		end
-
-		-- Terrain-following one-directional spoke from center outward
-		local function drawSpoke(rad, len)
-			local dx = cos(rad) * (len / SEGS)
-			local dz = sin(rad) * (len / SEGS)
-			glBeginEnd(GL.LINE_STRIP, function()
-				for s = 0, SEGS do
-					local sx = worldX + dx * s
-					local sz = worldZ + dz * s
-					glVertex(sx, GetGroundHeight(sx, sz) + BUMP, sz)
-				end
-			end)
-		end
-
-		-- Terrain-following bidirectional spoke (for highlighted axis)
-		local function drawBiSpoke(rad, len)
-			local dx = cos(rad) * (len / SEGS)
-			local dz = sin(rad) * (len / SEGS)
-			glBeginEnd(GL.LINE_STRIP, function()
-				for s = -SEGS, SEGS do
-					local sx = worldX + dx * s
-					local sz = worldZ + dz * s
-					glVertex(sx, GetGroundHeight(sx, sz) + BUMP, sz)
-				end
-			end)
-		end
-
-		-- Store brush center + spoke params for DrawScreen degree labels
-		extraState.protractorCursorX  = worldX
-		extraState.protractorCursorZ  = worldZ
-		extraState.protractorSpokeLen = spokeLen
-		extraState.protractorStep     = step
-		extraState.protractorHighlight = highlightAngle
-
-		glPolygonOffset(-1, -1)
-		-- Dim reference spokes
-		glLineWidth(1)
-		glColor(1.0, 0.92, 0.25, 0.22)
-		for si = 0, numSpokes - 1 do
-			local angleDeg = si * step
-			if angleDeg ~= highlightAngle then
-				drawSpoke(angleDeg * pi / 180, spokeLen)
-			end
-		end
-		-- Highlighted snap axis: bidirectional spoke with glow layers
-		local aRad = highlightAngle * pi / 180
-		-- Outer glow
-		glLineWidth(9)
-		glColor(1.0, 0.88, 0.1, 0.12)
-		drawBiSpoke(aRad, activeLen)
-		-- Mid glow
-		glLineWidth(5)
-		glColor(1.0, 0.88, 0.1, 0.40)
-		drawBiSpoke(aRad, activeLen)
-		-- Core bright line
-		glLineWidth(2)
-		glColor(1.0, 1.0, 0.6, 1.0)
-		drawBiSpoke(aRad, activeLen)
-		glLineWidth(1)
-		glColor(1, 1, 1, 1)
-		glPolygonOffset(0, 0)
+		extraState.drawProtractorOverlay(pcx, pcz, activeRadius)
 	else
 		-- Protractor not active: clear cached position so DrawScreen skips labels
 		extraState.protractorCursorX = nil
@@ -5973,6 +6057,25 @@ function widget:KeyPress(key, mods, isRepeat)
 end
 
 function widget:MousePress(mx, my, button)
+	-- ── Symmetry origin (works regardless of terraform mode; also during metal/grass/FP) ──
+	if button == 1 and extraState.symmetryActive then
+		if extraState.symmetryPlacingOrigin then
+			local wx, wz = getWorldMousePosition()
+			if wx then
+				extraState.symmetryOriginX = wx
+				extraState.symmetryOriginZ = wz
+				extraState.symmetryPlacingOrigin = false
+			end
+			return true
+		end
+		if extraState.symmetryHoveringOrigin and not extraState.symmetryDraggingOrigin then
+			extraState.symmetryDraggingOrigin = true
+			local ox, oz = extraState.getSymmetryOrigin()
+			extraState.symmetryDragPrevX = ox
+			extraState.symmetryDragPrevZ = oz
+			return true
+		end
+	end
 	-- ── Measure tool (works regardless of terraform mode) ──────────────────────
 	if extraState.measureActive and extraState.measureDrawing then
 		if button == 1 then

@@ -880,6 +880,25 @@ end)
 
 All FBO operations (`gl.RenderToTexture`, `gl.ReadPixels`, `gl.CreateTexture`) must run inside `widget:DrawScreen()`, never `DrawWorld()`. The deferred G-buffer textures (`$map_gbuffer_difftex`) are only valid during the screen-space render pass.
 
+### RmlUI Icon Rendering Rule
+
+BAR's RmlUI path is picky about PNG icon pixels. Semi-transparent white source art can render as flat white, pick up fringe artifacts, or even show boxy backgrounds if transparent pixels carry color.
+
+**Safe icon export recipe for Terraform Brush toolbar/panel icons:**
+
+- Visible pixels: avoid pure white RGB. Use a neutral gray instead, while preserving the intended alpha shape.
+- Fully transparent pixels: force them to true transparent black: `RGBA(0,0,0,0)`.
+- If edges still look ragged, use alpha-weighted grayscale for visible pixels rather than a constant white fill.
+- Prefer fixing the PNG pixel data directly. Do **not** rely on RCSS `image-color` to rescue bad source art; it can introduce mismatched brightness and extra artifacts.
+
+**Practical rule of thumb used here:**
+
+- For each visible pixel, keep or slightly tune alpha as needed for crispness.
+- Set RGB to a gray value that tracks alpha, instead of leaving it at `255,255,255`.
+- For any pixel with `alpha == 0`, zero all channels.
+
+This rule fixed repeated issues with Terraform Brush shape, paint, distribution, light, ramp, and environment icons.
+
 ---
 
 ## AI Disclosure

@@ -64,7 +64,7 @@
 	margin-left: 6dp;
 }
 
-/* Warning notice banner (e.g. no grass on map) */
+/* Warning notice banner (e.g. no grass on map, map damage disabled) */
 .tf-notice-banner {
 	padding: 4dp 8dp;
 	margin-bottom: 4dp;
@@ -74,6 +74,18 @@
 	font-size: 0.9rem;
 	color: #fbbf24;
 	text-align: center;
+}
+
+/* Highlighted text inside notice banners */
+.tf-notice-highlight {
+	color: #fcd34d;
+	font-weight: bold;
+}
+
+/* Terrain section locked when map damage is disabled */
+.tf-terrain-locked .tf-mode-btn {
+	opacity: 0.28;
+	pointer-events: none;
 }
 
 /* Keybind badge in top-left corner of buttons */
@@ -438,6 +450,29 @@ body {
 	width: 8dp;
 	height: 18dp;
 	margin-top: 0dp;
+}
+
+/* RGB channel tinting for color sliders (thumb color indicates channel) */
+.tf-slider.lp-slider-channel-r sliderbar {
+	background-color: #e03030;
+	border: 1dp #ffffff30;
+}
+.tf-slider.lp-slider-channel-r sliderbar:hover {
+	background-color: #ff5050;
+}
+.tf-slider.lp-slider-channel-g sliderbar {
+	background-color: #30c040;
+	border: 1dp #ffffff30;
+}
+.tf-slider.lp-slider-channel-g sliderbar:hover {
+	background-color: #50e060;
+}
+.tf-slider.lp-slider-channel-b sliderbar {
+	background-color: #3060e8;
+	border: 1dp #ffffff30;
+}
+.tf-slider.lp-slider-channel-b sliderbar:hover {
+	background-color: #5080ff;
 }
 
 /* === Color Palette Grid === */
@@ -1849,6 +1884,7 @@ body {
 #section-dc-mode .tf-mode-btn,
 #section-wb-mode .tf-mode-btn,
 #section-mb-mode .tf-mode-btn,
+#section-gb-mode .tf-mode-btn,
 #section-sp-mode .tf-mode-btn,
 #section-smooth-mode .tf-mode-btn,
 #section-ramp-type .tf-mode-btn,
@@ -1864,6 +1900,7 @@ body {
 #section-dc-mode .tf-icon-md,
 #section-wb-mode .tf-icon-md,
 #section-mb-mode .tf-icon-md,
+#section-gb-mode .tf-icon-md,
 #section-sp-mode .tf-icon-md,
 #section-smooth-mode .tf-icon-md,
 #section-ramp-type .tf-icon-md,
@@ -1878,6 +1915,7 @@ body {
 #section-dc-mode .tf-btn-text,
 #section-wb-mode .tf-btn-text,
 #section-mb-mode .tf-btn-text,
+#section-gb-mode .tf-btn-text,
 #section-sp-mode .tf-btn-text,
 #section-smooth-mode .tf-btn-text,
 #section-ramp-type .tf-btn-text,
@@ -2017,6 +2055,7 @@ body {
 #tf-decal-controls .tf-mode-btn,
 #tf-dc-submodes .tf-mode-btn,
 #tf-metal-submodes .tf-mode-btn,
+#tf-grass-submodes .tf-mode-btn,
 #tf-smooth-submodes .tf-mode-btn,
 #tf-ramp-type-row .tf-mode-btn,
 #tf-light-controls .tf-mode-btn {
@@ -2735,4 +2774,34 @@ padding: 5dp 8dp;
 border: 1dp #3a3a5060;
 border-radius: 4dp;
 margin-top: 3dp;
+}
+
+/* === Notify Dot === */
+/* Small pulsating dot placed in a section header to hint the user something interesting is inside */
+@keyframes notify-dot-pulse {
+	0%   { opacity: 0.35; }
+	50%  { opacity: 1.0; }
+	100% { opacity: 0.35; }
+}
+.tf-notify-dot {
+	width: 7dp;
+	height: 7dp;
+	border-radius: 4dp;
+	background-color: #22d3ee;
+	box-shadow: 0dp 0dp 5dp 0dp #22d3ee99;
+	animation: notify-dot-pulse 1.3s infinite;
+}
+
+/* === Chip 2-pulse attention animation === */
+/* Plays once when a section is opened to draw attention to a chip inside */
+@keyframes chip-2pulse {
+	0%   { background-color: #2a2a34; border-color: #3e3e4a50; }
+	20%  { background-color: #0c3858; border-color: #22d3eeff; }
+	40%  { background-color: #2a2a34; border-color: #3e3e4a50; }
+	62%  { background-color: #0c3858; border-color: #22d3eeff; }
+	82%  { background-color: #2a2a34; border-color: #3e3e4a50; }
+	100% { background-color: #2a2a34; border-color: #3e3e4a50; }
+}
+.tf-chip-2pulse {
+	animation: chip-2pulse 1.1s 1;
 }

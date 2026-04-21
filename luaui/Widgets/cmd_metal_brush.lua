@@ -16,6 +16,8 @@ local MSG_PAINT = "$metal_paint$"
 local MSG_STAMP = "$metal_stamp$"
 local MSG_CLEAR = "$metal_clear$"
 local MSG_LOAD  = "$metal_load$"
+local MSG_UNDO  = "$metal_undo$"
+local MSG_REDO  = "$metal_redo$"
 local CHEAT_TAG = "$c$"
 
 local function SendLuaRulesMsg(header, payload)
@@ -101,29 +103,57 @@ end
 local function sendPaintMessage(worldX, worldZ)
 	local ss = getSharedState()
 	local direction = (paintButton == 1) and 1 or -1
-	local payload = direction .. " "
-		.. floor(worldX) .. " "
-		.. floor(worldZ) .. " "
-		.. ss.radius .. " "
-		.. ss.shape .. " "
-		.. ss.rotationDeg .. " "
-		.. format("%.1f", ss.curve) .. " "
-		.. format("%.1f", ss.intensity) .. " "
-		.. format("%.2f", metalValue)
-	SendLuaRulesMsg(MSG_PAINT, payload)
+	local tb = WG.TerraformBrush
+	local positions
+	if tb and tb.snapWorld then
+		worldX, worldZ = tb.snapWorld(worldX, worldZ, ss.rotationDeg)
+	end
+	if tb and tb.getSymmetricPositions then
+		positions = tb.getSymmetricPositions(worldX, worldZ, ss.rotationDeg)
+	end
+	if not positions or #positions == 0 then
+		positions = { { x = worldX, z = worldZ, rot = ss.rotationDeg } }
+	end
+	for i = 1, #positions do
+		local p = positions[i]
+		local payload = direction .. " "
+			.. floor(p.x) .. " "
+			.. floor(p.z) .. " "
+			.. ss.radius .. " "
+			.. ss.shape .. " "
+			.. (p.rot or ss.rotationDeg) .. " "
+			.. format("%.1f", ss.curve) .. " "
+			.. format("%.1f", ss.intensity) .. " "
+			.. format("%.2f", metalValue)
+		SendLuaRulesMsg(MSG_PAINT, payload)
+	end
 end
 
 local function sendStampMessage(worldX, worldZ)
 	local ss = getSharedState()
 	local direction = (paintButton == 3) and -1 or 1
-	local payload = floor(worldX) .. " "
-		.. floor(worldZ) .. " "
-		.. ss.radius .. " "
-		.. format("%.2f", metalValue) .. " "
-		.. ss.shape .. " "
-		.. ss.rotationDeg .. " "
-		.. direction
-	SendLuaRulesMsg(MSG_STAMP, payload)
+	local tb = WG.TerraformBrush
+	local positions
+	if tb and tb.snapWorld then
+		worldX, worldZ = tb.snapWorld(worldX, worldZ, ss.rotationDeg)
+	end
+	if tb and tb.getSymmetricPositions then
+		positions = tb.getSymmetricPositions(worldX, worldZ, ss.rotationDeg)
+	end
+	if not positions or #positions == 0 then
+		positions = { { x = worldX, z = worldZ, rot = ss.rotationDeg } }
+	end
+	for i = 1, #positions do
+		local p = positions[i]
+		local payload = floor(p.x) .. " "
+			.. floor(p.z) .. " "
+			.. ss.radius .. " "
+			.. format("%.2f", metalValue) .. " "
+			.. ss.shape .. " "
+			.. (p.rot or ss.rotationDeg) .. " "
+			.. direction
+		SendLuaRulesMsg(MSG_STAMP, payload)
+	end
 end
 
 -- ============================================================
@@ -365,6 +395,8 @@ function widget:Initialize()
 		saveMetalMap = saveMetalMap,
 		loadMetalMap = loadMetalMap,
 		clearMetalMap = clearMetalMap,
+		undo = function() SendLuaRulesMsg(MSG_UNDO, "") end,
+		redo = function() SendLuaRulesMsg(MSG_REDO, "") end,
 	}
 end
 
@@ -379,6 +411,19 @@ end
 function widget:MousePress(mx, my, button)
 	if not active then return false end
 	if not IsCheatingEnabled() then return false end
+
+	-- Defer to measure tool when active so metal paint doesn't consume the click
+	local tb = WG.TerraformBrush
+	if tb and tb.getState then
+		local st = tb.getState()
+		if st and st.measureActive then return false end
+		-- Defer to symmetry origin placement / drag-grab so terraform can handle it
+		if st and st.symmetryActive then
+			if st.symmetryPlacingOrigin or st.symmetryHoveringOrigin or st.symmetryDraggingOrigin then
+				return false
+			end
+		end
+	end
 
 	local worldX, worldZ = getWorldPos()
 	if not worldX then return false end
