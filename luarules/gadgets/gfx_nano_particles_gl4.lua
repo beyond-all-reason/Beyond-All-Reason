@@ -185,6 +185,14 @@ local MODE_SETTINGS = {
 		--   visible jumps when sub-frame interpolation kicks in.
 		sizePulseAmp   = 0.05,
 		sizePulseFreq  = 4.0,
+		-- wobbleAmp + wobbleFreq: vortex/swirl displacement perpendicular to the
+		--   particle velocity. Amplitude (in elmos) is bell-shaped over the
+		--   particle lifetime so spawn point and landing point are unchanged --
+		--   the spray bows out in the middle. Set wobbleAmp = 0 to disable.
+		wobbleAmp      = 0.8,    -- elmos peak displacement (mid-flight)
+		wobbleFreq     = 1.8,    -- cycles per sim-second around the velocity axis
+		wobbleVar      = 0.5,    -- ± fractional per-particle amplitude variation (0..1)
+		wobbleFreqVar  = 0.5,   -- ± fractional per-particle frequency variation (0..1)
 		-- cubeNoise* + whiteHotspot*: same uniforms as the shape mode, but
 		-- sampled in quad-UV space (centered + v_seed) instead of object-local
 		-- coords. cubeNoise modulates the textured-core brightness so the
@@ -205,23 +213,23 @@ local MODE_SETTINGS = {
 		dirJitter   = 0.10,       -- chunks read better with less spread
 		-- Shapes benefit from visible variation -- they read as discrete chunks.
 		sizeVar     = 0.33,
-		speedVar    = 0.15,
+		speedVar    = 0.17,
 		alphaVar    = 1.8,
 		-- 3D look: shade faces by view direction so back-facing faces are dimmed
 		-- but visible through the front faces -- gives real volume instead of a
 		-- flat shaded patch. 0 = flat shading, 1 = full view-dependent depth.
-		cubeShowInside = 3.0,
-		cubeNoise       = 3.5,
+		cubeShowInside = 4.0,
+		cubeNoise       = 3.3,
 		cubeNoiseSpeed  = 25.0,
-		cubeNoiseScale  = 1.6,
+		cubeNoiseScale  = 1.75,
 		-- The geometry shader applies its own per-axis 3D tumble on top of
 		-- rotVal, so the base 2D rotation can be slower and more uniform.
 		rotValBase  = -180, rotValRange = 360,
 		rotVelBase  = -40,  rotVelRange = 80,
-		rotAccBase  = -40,    rotAccRange = 870,
+		rotAccBase  = -40,  rotAccRange = 80,
 		glowIntensity = 0.22,
-		glowFalloff = 7.5,
-		glowScale = 10.0,
+		glowFalloff = 8.0,
+		glowScale = 11.0,
 		-- Energy enhancement (subset; size pulsation is not wired
 		-- through the shape GS, so omitted here -- halo + jitter + breath +
 		-- core boost is enough to read shapes as energy chunks).
@@ -231,7 +239,12 @@ local MODE_SETTINGS = {
 		glowBreathFreq = 3.0,     -- cycles/sec; slightly slower than billboards (chunks are bigger)
 
 		whiteHotspot          = 0.5,
-		whiteHotspotThreshold = 0.66,
+		whiteHotspotThreshold = 0.7,
+
+		wobbleAmp      = 1.0,
+		wobbleFreq     = 2.0,
+		wobbleVar      = 0.5,    -- ± fractional per-particle amplitude variation (0..1)
+		wobbleFreqVar  = 0.4,   -- ± fractional per-particle frequency variation (0..1)
 	},
 }
 local MODE
@@ -244,7 +257,7 @@ local DRAW_RADIUS
 -- gets a snappier dissolve.
 local FADE_FRAMES_REPAIR  = 4   -- gentle polish on outbound repair/capture
 local FADE_FRAMES_RECLAIM = 3    -- no fade -- particles converge fully
-local FADE_FRAMES_DEATH   = 40   -- dissolve when target unit dies or fully repaired
+local FADE_FRAMES_DEATH   = 35   -- dissolve when target unit dies or fully repaired
 
 -- Skip forward-homing registration when the target unit is still being built
 -- (buildProgress < 1). Avoids the visually odd effect of particles chasing a
@@ -361,6 +374,10 @@ local GLOW_BREATH
 local GLOW_BREATH_FREQ
 local SIZE_PULSE_AMP
 local SIZE_PULSE_FREQ
+local WOBBLE_AMP
+local WOBBLE_FREQ
+local WOBBLE_VAR
+local WOBBLE_FREQ_VAR
 local WHITE_HOTSPOT
 local WHITE_HOTSPOT_THRESHOLD
 
@@ -420,6 +437,10 @@ local function applyRenderMode(name)
 	GLOW_BREATH_FREQ = MODE.glowBreathFreq  or 0.0
 	SIZE_PULSE_AMP   = MODE.sizePulseAmp    or 0.0
 	SIZE_PULSE_FREQ  = MODE.sizePulseFreq   or 0.0
+	WOBBLE_AMP       = MODE.wobbleAmp       or 0.0
+	WOBBLE_FREQ      = MODE.wobbleFreq      or 0.0
+	WOBBLE_VAR       = MODE.wobbleVar       or 0.0
+	WOBBLE_FREQ_VAR  = MODE.wobbleFreqVar   or 0.0
 	WHITE_HOTSPOT           = MODE.whiteHotspot          or 0.0
 	WHITE_HOTSPOT_THRESHOLD = MODE.whiteHotspotThreshold or 0.7
 	SHAPE_ID         = SHAPE_IDS[MODE.shape or "cube"] or 0
@@ -554,6 +575,10 @@ uniform float glowScale;      // quad expansion factor (1.0 = no glow)
 uniform float glowIntensity;  // peak outer-falloff brightness (0.0 = no glow)
 uniform float sizePulseAmp;   // \u00b1 fractional size oscillation (0 = no pulse)
 uniform float sizePulseFreq;  // size pulse frequency (cycles/sim-second)
+uniform float wobbleAmp;      // peak vortex displacement perpendicular to vel (elmos)
+uniform float wobbleFreq;     // vortex rotation rate around vel (cycles/sim-second)
+uniform float wobbleVar;      // ± fractional per-particle amplitude variation (0..1)
+uniform float wobbleFreqVar;  // ± fractional per-particle frequency variation (0..1)
 
 out vec2 v_uv;
 out vec4 v_color;
@@ -579,6 +604,38 @@ void main() {
 
 	// World-space center: pos = spawn + vel * elapsed
 	vec3 worldPos = spawnPosAndSize.xyz + velAndSpawnFrame.xyz * t;
+
+	// Vortex / swirl displacement perpendicular to the velocity axis. Amplitude
+	// is bell-shaped over the particle lifetime (4*p*(1-p), peaks at mid-flight,
+	// zero at endpoints) so spawn point and landing point are unchanged -- the
+	// spray bows out into a curved trail. Per-particle phase / freq scale /
+	// direction sign so adjacent particles aren't in lockstep -- shared wobbleFreq
+	// alone would just rotate them all at the same rate in the same plane.
+	if (wobbleAmp > 0.0001) {
+		float lifetime = max(deathFrame - spawnFrame, 1.0);
+		float p        = clamp(t / lifetime, 0.0, 1.0);
+		float bell     = 4.0 * p * (1.0 - p);
+		vec3  vdir     = velAndSpawnFrame.xyz;
+		float vlen2    = dot(vdir, vdir);
+		if (vlen2 > 1e-6) {
+			vdir /= sqrt(vlen2);
+			// Stable perpendicular basis. Pick world-up unless vel is near vertical.
+			vec3 ref = (abs(vdir.y) < 0.95) ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
+			vec3 axA = normalize(cross(vdir, ref));
+			vec3 axB = cross(vdir, axA);
+			// rotData.x and .y are spawn-time random (untouched by homing). Use
+			// hashed fract for stable per-particle freq scale (0.55..1.45) and
+			// direction sign (±1) so half spiral CW and half CCW at varying rates.
+			float phaseOff = radians(rotData.x);
+			float hash     = fract(sin(rotData.x * 12.9898 + rotData.y * 78.233) * 43758.5453);
+			float freqScale = max(0.0, 1.0 + wobbleFreqVar * (2.0 * hash - 1.0));
+			float dirSign  = (fract(hash * 7.31) < 0.5) ? -1.0 : 1.0;
+			float hash2    = fract(hash * 113.7 + 0.317);
+			float ampScale = max(0.0, 1.0 + wobbleVar * (2.0 * hash2 - 1.0));
+			float ph = currentFrame * wobbleFreq * freqScale * dirSign * (6.2831853 / 30.0) + phaseOff;
+			worldPos += (axA * cos(ph) + axB * sin(ph)) * (wobbleAmp * ampScale * bell);
+		}
+	}
 
 	// Decode packed w: floor sizeMult times 256 in low 1024, fadeFrames times 1024 above.
 	float fadeFrames = floor(spawnPosAndSize.w / 1024.0);
@@ -820,6 +877,11 @@ layout(location = 4) in vec4 rotData;           // x=rotVal0, y=rotVel0, z=rotAc
 
 //__ENGINEUNIFORMBUFFERDEFS__
 
+uniform float wobbleAmp;      // peak vortex displacement perpendicular to vel (elmos)
+uniform float wobbleFreq;     // vortex rotation rate around vel (cycles/sim-second)
+uniform float wobbleVar;      // ± fractional per-particle amplitude variation (0..1)
+uniform float wobbleFreqVar;  // ± fractional per-particle frequency variation (0..1)
+
 out vec3 v_worldPos;
 out vec4 v_color;
 out float v_rotVal;
@@ -848,6 +910,30 @@ void main() {
 	if (t < 0.0) t = 0.0;
 
 	vec3 worldPos = spawnPosAndSize.xyz + velAndSpawnFrame.xyz * t;
+
+	// Vortex / swirl displacement perpendicular to vel. See vsSrc for full notes
+	// on the per-particle freq/direction decoherence scheme.
+	if (wobbleAmp > 0.0001) {
+		float lifetime = max(deathFrame - spawnFrame, 1.0);
+		float p        = clamp(t / lifetime, 0.0, 1.0);
+		float bell     = 4.0 * p * (1.0 - p);
+		vec3  vdir     = velAndSpawnFrame.xyz;
+		float vlen2    = dot(vdir, vdir);
+		if (vlen2 > 1e-6) {
+			vdir /= sqrt(vlen2);
+			vec3 ref = (abs(vdir.y) < 0.95) ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
+			vec3 axA = normalize(cross(vdir, ref));
+			vec3 axB = cross(vdir, axA);
+			float phaseOff = radians(rotData.x);
+			float hash     = fract(sin(rotData.x * 12.9898 + rotData.y * 78.233) * 43758.5453);
+			float freqScale = max(0.0, 1.0 + wobbleFreqVar * (2.0 * hash - 1.0));
+			float dirSign  = (fract(hash * 7.31) < 0.5) ? -1.0 : 1.0;
+			float hash2    = fract(hash * 113.7 + 0.317);
+			float ampScale = max(0.0, 1.0 + wobbleVar * (2.0 * hash2 - 1.0));
+			float ph = currentFrame * wobbleFreq * freqScale * dirSign * (6.2831853 / 30.0) + phaseOff;
+			worldPos += (axA * cos(ph) + axB * sin(ph)) * (wobbleAmp * ampScale * bell);
+		}
+	}
 
 	// Decode packed w: sizeMult in low 1024, fadeFrames * 1024 above.
 	float fadeFrames = floor(spawnPosAndSize.w / 1024.0);
@@ -1234,6 +1320,7 @@ local function initGL4()
 		                 coreBoost = CORE_BOOST,
 		                 hueJitter = HUE_JITTER, glowBreath = GLOW_BREATH, glowBreathFreq = GLOW_BREATH_FREQ,
 		                 sizePulseAmp = SIZE_PULSE_AMP, sizePulseFreq = SIZE_PULSE_FREQ,
+		                 wobbleAmp = WOBBLE_AMP, wobbleFreq = WOBBLE_FREQ, wobbleVar = WOBBLE_VAR, wobbleFreqVar = WOBBLE_FREQ_VAR,
 		                 whiteHotspot = WHITE_HOTSPOT, whiteHotspotThreshold = WHITE_HOTSPOT_THRESHOLD },
 		shaderConfig = {},
 		forceupdate = true,
@@ -1388,6 +1475,16 @@ local homingFwdByTarget = {}
 local targetPosCache    = {}    -- unitID -> [epoch, x, y, z]
 local targetIncompleteCache = {} -- unitID -> [epoch, isBeingBuilt]
 local HOMING_FWD_MAX_PER_TARGET = 192   -- safety cap per repaired/captured unit
+
+-- Forward-emission particles aimed at an UNFINISHED unit are deliberately NOT
+-- registered in homingFwdByTarget (HOMING_SKIP_INCOMPLETE early-returns), so
+-- they don't curve toward a moving factory exit. We still want the same
+-- per-particle death fade if that unit dies / is cancelled mid-build, so we
+-- track them here in a fade-only list (same {id, death} layout). Cleared on
+-- UnitFinished (also faded then so trailing spray dissolves cleanly) and on
+-- UnitDestroyed (also faded so cancelled construction doesn't pop).
+local fadeFwdByTarget = {}
+local FADE_FWD_MAX_PER_TARGET = HOMING_FWD_MAX_PER_TARGET
 
 local function getBuilderInfo(builderID)
 	local cached = builderCache[builderID]
@@ -1635,7 +1732,24 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 					targetIncompleteCache[targetUnitID] = { piecePosEpoch, beingBuilt, beingBuilt and frame or -1 }
 				end
 			end
-			if beingBuilt then return end
+			if beingBuilt then
+				-- Track for death-fade: if the unfinished target dies / build
+				-- gets cancelled before completion, UnitDestroyed will fade
+				-- these so the trailing spray dissolves instead of popping.
+				local flist = fadeFwdByTarget[targetUnitID]
+				if not flist then
+					flist = {}
+					fadeFwdByTarget[targetUnitID] = flist
+				end
+				local fn = #flist
+				if fn >= FADE_FWD_MAX_PER_TARGET then
+					for i = 1, fn - 1 do flist[i] = flist[i + 1] end
+					flist[fn] = { id = pid, death = frame + lifetime }
+				else
+					flist[fn + 1] = { id = pid, death = frame + lifetime }
+				end
+				return
+			end
 			-- Grace window: still skip for a short time after completion so the
 			-- last particles don't chase the unit as it rolls out.
 			local lastIncompleteFrame = entry and entry[3] or -1
@@ -2223,9 +2337,24 @@ local function scanBuilders(frame)
 							if rate < 1.0 then rate = 1.0 end
 							local n = info.nPieces
 							if n == 1 then
-								emitNano(unitID, info, ex, ey, ez, inverse, jitterRadius, frame, targetUnitID)
-								if isResurrect then
-									emitNano(unitID, info, ex, ey, ez, true, jitterRadius, frame, nil)
+								-- Single-piece builders (commanders, most constructors)
+								-- need to respect `rate` too -- a commander has
+								-- buildSpeed=300, so rate=3 at full BP and it should
+								-- emit ~3 particles per visit, not 1. Without this,
+								-- single-piece builders were under-emitting by ~3x
+								-- relative to factories / the engine's own spray.
+								-- Floor + Bernoulli on the fractional remainder.
+								local whole = mathFloor(rate)
+								local frac  = rate - whole
+								local emits = whole
+								if frac > 0 and mathRandom() < frac then
+									emits = emits + 1
+								end
+								for e = 1, emits do
+									emitNano(unitID, info, ex, ey, ez, inverse, jitterRadius, frame, targetUnitID)
+									if isResurrect then
+										emitNano(unitID, info, ex, ey, ez, true, jitterRadius, frame, nil)
+									end
 								end
 							else
 								-- Multi-piece: each piece fires with probability rate/n
@@ -2338,6 +2467,7 @@ local function applyParticleMode(newMode, force)
 	-- destroyed (or we're entering mode 0 where they're meaningless).
 	for k in pairs(homingByBuilder)     do homingByBuilder[k]     = nil end
 	for k in pairs(homingFwdByTarget)   do homingFwdByTarget[k]   = nil end
+	for k in pairs(fadeFwdByTarget)     do fadeFwdByTarget[k]     = nil end
 	for k in pairs(targetPosCache)      do targetPosCache[k]      = nil end
 	for k in pairs(targetIncompleteCache) do targetIncompleteCache[k] = nil end
 	for k in pairs(deathBuckets)        do deathBuckets[k]        = nil end
@@ -2524,6 +2654,7 @@ function gadget:UnitFinished(unitID, unitDefID)
 	-- letting them coast into the now-finished unit and pop on natural death.
 	fadeOutHomingFwd(unitID)
 	homingFwdByTarget[unitID] = nil
+	fadeFwdByTarget[unitID]   = nil
 	targetPosCache[unitID]    = nil
 	trackUnit(unitID, unitDefID)
 end
@@ -2565,9 +2696,11 @@ end
 -- abruptly freezing in mid-air.
 -- Slot reclamation still happens at the original death frame (we don't touch
 -- deathBuckets), the shader simply renders nothing in the gap.
-fadeOutHomingFwd = function(unitID)
-	local list = homingFwdByTarget[unitID]
-	if not list or not nanoVBO then return end
+fadeOutHomingFwd = function(unitID, includeSkipList)
+	if not nanoVBO then return end
+	local list  = homingFwdByTarget[unitID]
+	local flist = includeSkipList and fadeFwdByTarget[unitID] or nil
+	if not list and not flist then return end
 	local data      = nanoVBO.instanceData
 	local idtoIndex = nanoVBO.instanceIDtoIndex
 	local step      = nanoVBO.instanceStep
@@ -2576,56 +2709,63 @@ fadeOutHomingFwd = function(unitID)
 	-- dissolve across the spray so particles don't all wink out on the same
 	-- frame -- looks more like a soft cloud breaking up.
 	local dirtyMin, dirtyMax = math.huge, -1
-	for i = 1, #list do
-		local p = list[i]
-		local slot = idtoIndex[p.id]
-		if slot then
-			local remaining = p.death - frame
-			if remaining > 0 then
-				local fadeFrames = mathFloor(FADE_FRAMES_DEATH * (0.4 + mathRandom()))
-				if fadeFrames < 1 then fadeFrames = 1 end
-				-- Clamp to remaining lifetime: never extend a particle's life,
-				-- only shorten/replace it. Particles already close to the target
-				-- (small remaining) get a proportionally shorter fade so they
-				-- still dissolve instead of converging cleanly into the unit.
-				if fadeFrames > remaining then fadeFrames = remaining end
-				local newDeath = frame + fadeFrames
-				local base = (slot - 1) * step
-				data[base+16] = newDeath
-				-- Force per-particle fade window so even reclaim-style (fadeFrames=0)
-				-- particles dissolve when the target dies. w is packed: preserve the
-				-- low (sizeMult) bits and replace only the fadeFrames portion.
-				local packed   = data[base+4]
-				local oldFade  = mathFloor(packed / 1024)
-				local sizeBits = packed - oldFade * 1024
-				data[base+4]   = sizeBits + fadeFrames * 1024
-				local s0 = slot - 1
-				if s0 < dirtyMin     then dirtyMin = s0     end
-				if s0 + 1 > dirtyMax then dirtyMax = s0 + 1 end
+	local function fadeList(plist)
+		if not plist then return end
+		for i = 1, #plist do
+			local p = plist[i]
+			local slot = idtoIndex[p.id]
+			if slot then
+				local remaining = p.death - frame
+				if remaining > 0 then
+					local fadeFrames = mathFloor(FADE_FRAMES_DEATH * (0.4 + mathRandom()))
+					if fadeFrames < 1 then fadeFrames = 1 end
+					-- Clamp to remaining lifetime: never extend a particle's life,
+					-- only shorten/replace it. Particles already close to the target
+					-- (small remaining) get a proportionally shorter fade so they
+					-- still dissolve instead of converging cleanly into the unit.
+					if fadeFrames > remaining then fadeFrames = remaining end
+					local newDeath = frame + fadeFrames
+					local base = (slot - 1) * step
+					data[base+16] = newDeath
+					-- Force per-particle fade window so even reclaim-style (fadeFrames=0)
+					-- particles dissolve when the target dies. w is packed: preserve the
+					-- low (sizeMult) bits and replace only the fadeFrames portion.
+					local packed   = data[base+4]
+					local oldFade  = mathFloor(packed / 1024)
+					local sizeBits = packed - oldFade * 1024
+					data[base+4]   = sizeBits + fadeFrames * 1024
+					local s0 = slot - 1
+					if s0 < dirtyMin     then dirtyMin = s0     end
+					if s0 + 1 > dirtyMax then dirtyMax = s0 + 1 end
+				end
 			end
 		end
 	end
+	fadeList(list)
+	fadeList(flist)
 	if dirtyMax > dirtyMin then
 		uploadElementRange(nanoVBO, dirtyMin, dirtyMax)
 	end
 end
 
 function gadget:UnitDestroyed(unitID)
-	fadeOutHomingFwd(unitID)
+	fadeOutHomingFwd(unitID, true)
 	clearPiecePosCache(unitID)
 	builderCache[unitID] = nil
 	homingByBuilder[unitID] = nil
 	homingFwdByTarget[unitID] = nil
+	fadeFwdByTarget[unitID]   = nil
 	targetPosCache[unitID]    = nil
 	targetIncompleteCache[unitID] = nil
 	untrackUnit(unitID)
 end
 function gadget:RenderUnitDestroyed(unitID)
-	fadeOutHomingFwd(unitID)
+	fadeOutHomingFwd(unitID, true)
 	clearPiecePosCache(unitID)
 	builderCache[unitID] = nil
 	homingByBuilder[unitID] = nil
 	homingFwdByTarget[unitID] = nil
+	fadeFwdByTarget[unitID]   = nil
 	targetPosCache[unitID]    = nil
 	targetIncompleteCache[unitID] = nil
 	untrackUnit(unitID)
