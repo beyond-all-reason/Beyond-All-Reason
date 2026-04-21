@@ -1,4 +1,3 @@
-
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
@@ -17,33 +16,52 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
--- ── Air transport detection ───────────────────────────────────────────────────
--- All flying transports get distance gating. Custom ones (with PerformLoad/Unload
--- in their LUS) additionally get slot/seat gating and script dispatch.
-
-local LOAD_RADIUS = 64 -- elmos XZ; transporter must be within this range
--- TODO: use UnitDefs[unitDefID].loadingRadius or a custom param instead
-
-local isAirTransport = {}
-for udefID, def in ipairs(UnitDefs) do
-	if def.canFly and def.isTransport then
-		isAirTransport[udefID] = true
-	end
-end
-
 local TransportAPI = GG.TransportAPI
 if not TransportAPI then
 	Spring.Echo("TransportAPI must be loaded before this gadget")
 	return false
 end
 
--- ── Script function cache ─────────────────────────────────────────────────────
--- [unitDefID] = function  → custom transport, call to dispatch to LUS
--- [unitDefID] = false     → checked, not a custom transport
--- [unitDefID] = nil       → not yet checked
+-- Math locals
+local mathSqrt          = math.sqrt
 
-local customTransportLoad   = {}
-local customTransportUnload = {}
+-- Spring API locals
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitHeight   = Spring.GetUnitHeight
+local spAreTeamsAllied  = Spring.AreTeamsAllied
+local spGetUnitTeam     = Spring.GetUnitTeam
+local spGetUnitVelocity = Spring.GetUnitVelocity
+local spGetGroundHeight   = Spring.GetGroundHeight
+
+-- Constants
+local mapSizeX   = Game.mapSizeX
+local mapSizeZ   = Game.mapSizeZ
+local alliedDist = mapSizeX * mapSizeZ          -- priority offset: own team < allied < enemy (never)
+local maxDistSq  = 2 * alliedDist               -- guaranteed > any real sq distance on the map
+local LOAD_RADIUS   = 128    -- elmos XZ; transporter must be within this range to fire PerformLoad
+local CMD_AREA_LOAD = 39751 -- custom area-load command; needs to be logged in customcmds
+
+local customTransportLoad   = {} -- transporterDefID → LUS function or COB script function
+local customTransportUnload = {} -- transporterDefID → LUS function or COB script function
+local claimedBy          = {} -- transporteeID → transporterID;
+local queuedSeats        = {} -- transporterID → number seats
+local transporterClaims   = {} -- transporterID → { transporteeID, transporteeID, ... }
+local areaLoadCoroutines = {} -- transporterID → coroutine
+local cylinderCache = {} -- [key] = { frame = N, units = {...} }
+local isAirTransport = {} -- transporterDefID → bool;
+
+for udefID, def in ipairs(UnitDefs) do
+	if def.canFly and def.isTransport then
+		isAirTransport[udefID] = true
+	end
+end
+
+
+
+-- Helper functions
+---@param unitID number
+---@param functionName string
+---@return function|false
 
 local function GetScriptFunc(unitID, functionName) 
 	if Spring.GetCOBScriptID(unitID, functionName) then
@@ -59,96 +77,301 @@ local function GetScriptFunc(unitID, functionName)
 	return false
 end
 
--- ── Helpers ───────────────────────────────────────────────────────────────────
-
-local mathSqrt          = math.sqrt
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitHeight   = Spring.GetUnitHeight
-local spAreTeamsAllied  = Spring.AreTeamsAllied
-local spGetUnitTeam     = Spring.GetUnitTeam
-local spGetUnitVelocity = Spring.GetUnitVelocity
-local spGetGroundHeight   = Spring.GetGroundHeight
+---@param unitID number
+---@param y number
+---@return boolean isUnderwater
 
 local function isUnderwater(unitID, y)
 	local height = spGetUnitHeight(unitID)
 	return not height or y + height < 0
 end
 
+---@param x1 number
+---@param z1 number
+---@param x2 number
+---@param z2 number
+---@return number distance
+
 local function dist2D(x1, z1, x2, z2)
 	local dx, dz = x1 - x2, z1 - z2
 	return mathSqrt(dx * dx + dz * dz)
 end
 
+---@param transporterID number
+---@param goalX number
+---@param goalY number
+---@param goalZ number
+---@return boolean inRange
+
 local function inRange(transporterID, goalX, goalY, goalZ)
 	local tx, ty, tz = spGetUnitPosition(transporterID)
 	local dY = ty - goalY
-	return dist2D(tx, tz, goalX, goalZ) <= LOAD_RADIUS and dY >= 0 -- cylinder of radius LOAD_RADIUS with open top above the goal position
+	return dist2D(tx, tz, goalX, goalZ) <= LOAD_RADIUS and dY >= 0
 end
 
--- ── Pre-queue bookkeeping ─────────────────────────────────────────────────────
--- claimedBy[transporteeID]        = transporterID  (unit is queued for this transporter)
--- queuedSeats[transporterID]      = number of seat-units already claimed but not yet loaded
--- transporterClaims[transporterID] = { transporteeID, ... }  (reverse map for cleanup and processing)
+---@param cx number
+---@param cz number
+---@param radius number
+---@param allyTeam number
+---@return number[] units
 
-local claimedBy        = {}
-local queuedSeats      = {}
-local transporterClaims = {}
+local function getCachedUnitsInCylinder(cx, cz, radius, allyTeam)
+	local key = allyTeam .. "," .. cx .. "," .. cz .. "," .. radius
+	local cached = cylinderCache[key]
+	local frame = Spring.GetGameFrame()
+	if cached and cached.frame == frame then
+		return cached.units
+	end
+	local units = Spring.GetUnitsInCylinder(cx, cz, radius, allyTeam)
+	cylinderCache[key] = { frame = frame, units = units }
+	return units
+end
 
-local function claimTransportee(transporterID, transporteeID, teeSize)
+-- Core logic functions
 
-	if claimedBy[transporteeID] == transporterID then return true end  -- same transporter, double-call guard
-	if claimedBy[transporteeID] then return false end                  -- already claimed by a different transporter
-	
-	queuedSeats[transporterID] = queuedSeats[transporterID] or 0 -- TODO: initialize in UnitCreated instead
-	
-	-- guard: queuedSeats + teeSize must not exceed total seats (TODO: also account for usedSeats / current cargo)
-	if queuedSeats[transporterID] + teeSize > (Spring.GetUnitRulesParam(transporterID, "nSeats") or 0) then
+---@param transporterID number
+---@param transporteeID number
+---@param transporterDefID number
+---@param fromAreaScan boolean
+---@return boolean canTransport
+
+function CanTransport(transporterID, transporteeID, transporterDefID, fromAreaScan)
+	local _, y, _ = spGetUnitPosition(transporteeID)
+	if isUnderwater(transporteeID, y) then return false end
+	if Spring.GetUnitRulesParam(transporteeID, "inTransportAnim") == 1 then
 		return false
 	end
-
-	-- claim it
-	claimedBy[transporteeID] = transporterID
-	queuedSeats[transporterID] = (queuedSeats[transporterID] or 0) + teeSize
-	local claims = transporterClaims[transporterID]
-	if not claims then claims = {} transporterClaims[transporterID] = claims end
-	claims[#claims + 1] = transporteeID
-	Spring.SetUnitLoadingTransport(transporteeID, transporteeID)
+	if customTransportLoad[transporterDefID] then
+		local nSeats    = Spring.GetUnitRulesParam(transporterID, "nSeats")    or 0
+		local usedSeats = Spring.GetUnitRulesParam(transporterID, "usedSeats") or 0
+		local queued    = fromAreaScan and (queuedSeats[transporterID] or 0) or 0 -- include queued seats only if from area scan
+		local teeSize   = TransportAPI.GetTransporteeSize(transporteeID)
+		if nSeats - usedSeats - queued < teeSize then
+			return false
+		end
+		local slotSizesStr = Spring.GetUnitRulesParam(transporterID, "slotSizes") or ""
+		local foundSlot = false
+		for sizeStr in slotSizesStr:gmatch("[^,]+") do
+			if tonumber(sizeStr) == teeSize then foundSlot = true; break end
+		end
+		if not foundSlot then
+			return false
+		end
+		return true
+	end
 	return true
 end
 
-local function releaseTransportee(transporteeID)
+---@param transporterID number
+---@param transporteeID number
+---@param teeSize number
+---@param manualClaim boolean
+---@return boolean claimSuccessful
+
+function claimTransportee(transporterID, transporteeID, teeSize, manualClaim)
+	if not manualClaim and claimedBy[transporteeID] then return false end -- already claimed by another transporter, and this is not a manual claim (ie from AllowUnitTransportLoad)
+	if claimedBy[transporteeID] then 
+		releaseTransportee(transporteeID) -- release previous claim
+	end
+	claimedBy[transporteeID] = transporterID
+	transporterClaims[transporterID][#transporterClaims[transporterID] + 1] = transporteeID
+	local total = 0
+	for i = #transporterClaims[transporterID], 1, -1 do
+		total = total + (TransportAPI.GetTransporteeSize(transporterClaims[transporterID][i]) or 0)
+	end
+	queuedSeats[transporterID] = total
+	return true
+end
+
+---@param transporteeID number
+---@return nil
+
+function releaseTransportee(transporteeID)
 	local transporterID = claimedBy[transporteeID]
 	if not transporterID then return end
 	claimedBy[transporteeID] = nil
-	Spring.SetUnitLoadingTransport(transporteeID, nil)
-	local teeSize = TransportAPI.GetTransporteeSize(transporteeID)
-	queuedSeats[transporterID] = math.max(0, (queuedSeats[transporterID] or 0) - teeSize)
-	local claims = transporterClaims[transporterID]
-	if claims then
-		for i = #claims, 1, -1 do
-			if claims[i] == transporteeID then table.remove(claims, i) break end
+	if transporterClaims[transporterID] then
+		local total = 0
+		local resumeFrom = #transporterClaims[transporterID]
+		for i = resumeFrom, 1, -1 do
+			if transporterClaims[transporterID][i] == transporteeID then 
+				table.remove(transporterClaims[transporterID], i) 
+				resumeFrom = i - 1
+				break
+			end
+			total = total + (TransportAPI.GetTransporteeSize(transporterClaims[transporterID][i]) or 0)
 		end
+		if resumeFrom > 0 then
+			for i = resumeFrom, 1, -1 do
+				total = total + (TransportAPI.GetTransporteeSize(transporterClaims[transporterID][i]) or 0)
+			end
+		end
+		queuedSeats[transporterID] = total
+	else
+		queuedSeats[transporterID] = 0
 	end
 end
 
-local function releaseAllClaims(transporterID)
+---@param transporterID number
+---@return nil
+
+function releaseAllClaims(transporterID)
 	local claims = transporterClaims[transporterID]
 	if not claims then return end
 	for _, teeID in ipairs(claims) do
 		claimedBy[teeID] = nil
-		Spring.SetUnitLoadingTransport(teeID, nil)
 	end
-	transporterClaims[transporterID] = nil
-	queuedSeats[transporterID] = nil
+	transporterClaims[transporterID] = {}
+	queuedSeats[transporterID] = 0
 end
 
-local function processAllClaims(transporterID)
-	local claims = transporterClaims[transporterID]
-	if not claims then return end
-	for _, teeID in ipairs(claims) do
-		Spring.GiveOrderToUnit(teeID, CMD.LOAD_ONTO, { transporterID }, {})
+
+---@param transporterID number
+---@param transporterDefID number
+---@param transporterTeam number
+---@param cx number
+---@param cz number
+---@param radius number
+---@return number|nil bestUnit
+
+function findUnitToTransport(transporterID, transporterDefID, transporterTeam, cx, cz, radius)
+
+	local allyTeam      = Spring.GetUnitAllyTeam(transporterID)
+	local terx, _, terz = spGetUnitPosition(transporterID)
+	local units = getCachedUnitsInCylinder(cx, cz, radius, allyTeam)
+	local bestUnit = nil
+	local bestDist = maxDistSq
+
+	if Spring.GetUnitRulesParam(transporterID, "nSeats") <= Spring.GetUnitRulesParam(transporterID, "usedSeats") + (queuedSeats[transporterID] or 0) then
+		-- early exit if no seats
+		return nil
+	end
+	
+
+	-- TODO: remove unclaimable units from cache at runtime
+	for idx, unitID in ipairs(units) do
+		repeat
+			if unitID == transporterID then 
+				break
+			end
+			if Spring.GetUnitTransporter(unitID) ~= nil then
+				break
+			end
+			if claimedBy[unitID] then
+				break
+			end
+			local losState = Spring.GetUnitLosState(unitID, allyTeam, false)
+			if not losState or not (losState.los or losState.radar) then
+				break
+			end
+			local teeDefID = Spring.GetUnitDefID(unitID)
+			local teeDef   = UnitDefs[teeDefID]
+			if teeDef.cantBeTransported then
+				break
+			end
+			if Spring.GetUnitIsBeingBuilt(unitID) then
+				break
+			end
+			local teeTeam   = spGetUnitTeam(unitID)
+			local tx, _, tz = spGetUnitPosition(unitID)
+			local dx, dz    = tx - terx, tz - terz
+			local rawDistSq = dx * dx + dz * dz
+
+			-- alliedDist is the offset applied to allied units, by definition dist < alliedDist for all units (alliedDist = mapSizeX*mapSizeZ)
+			local unitDist  = (teeTeam == transporterTeam) and rawDistSq or (rawDistSq + alliedDist)
+			if unitDist >= bestDist then break end
+			if not CanTransport(transporterID, unitID, transporterDefID, true) then break end
+			bestDist = unitDist
+			bestUnit = unitID
+		until true
+	end
+	return bestUnit
+end
+
+---@param transporterID number
+---@param transporterDefID number
+---@param transporterTeam number
+---@param cx number
+---@param cy number
+---@param cz number
+---@param radius number
+---@return nil
+
+function ExecuteLoadUnits(transporterID, transporterDefID, transporterTeam, cx, cy, cz, radius)
+	local terPosX, terPosY, terPosZ = spGetUnitPosition(transporterID)
+	for i = #transporterClaims[transporterID], 1, -1 do
+
+		if claimedBy[transporterClaims[transporterID][i]] ~= transporterID then -- keep it during test runs so we can debug if this ever happens
+			Spring.Echo("Error: claim mismatch for transportee " .. transporterClaims[transporterID][i])
+		end
+
+		local teeID = transporterClaims[transporterID][i]
+		if Spring.ValidUnitID(teeID) then
+			local tx, ty, tz = spGetUnitPosition(teeID)
+			local skip = false
+
+			if not CanTransport(transporterID, teeID, transporterDefID, false) then
+				-- if for some reason, we can't load anymore, release the claim so it can be targeted by future loads
+				releaseTransportee(teeID)
+				skip = true
+			elseif dist2D(tx, tz, cx, cz) > radius then
+				-- tee exited area
+				releaseTransportee(teeID)
+				skip = true
+			elseif inRange(transporterID, tx, ty, tz) then
+				if customTransportLoad[transporterDefID] then --nil check will be gone once code is finished
+					if Spring.GetUnitRulesParam(transporterID, "canLoad") == 1 then
+						customTransportLoad[transporterDefID](transporterID, 'PerformLoad', teeID)
+						releaseTransportee(teeID)
+						skip = true
+					end
+				end
+			end
+			if not skip then -- do not order skipped transportees
+				Spring.SetUnitMoveGoal(teeID, terPosX, Spring.GetGroundHeight(terPosX, terPosZ), terPosZ,64,nil, true) -- moves to the transport
+			end
+		else
+			-- invalid (dead ?) teeID
+			releaseTransportee(teeID)
+		end
+	end
+	if Spring.ValidUnitID(transporterClaims[transporterID][1]) then
+		-- move to first in queue, not avg pos, in case of blocked or immobile tees
+		local tee1x, tee1y, tee1z = spGetUnitPosition(transporterClaims[transporterID][1])
+		Spring.SetUnitMoveGoal(transporterID, tee1x, tee1y, tee1z)
 	end
 end
+
+---@param transporterID number
+---@param transporterDefID number
+---@param transporterTeam number
+---@param cx number
+---@param cy number
+---@param cz number
+---@param radius number
+---@return boolean commandFinished
+
+function ExecuteAreaLoad(transporterID, transporterDefID, transporterTeam, cx, cy, cz, radius)
+
+    local teeID = findUnitToTransport(transporterID, transporterDefID, transporterTeam, cx, cz, radius)
+    while teeID do
+        claimTransportee(transporterID, teeID, TransportAPI.GetTransporteeSize(teeID), false)
+        teeID = findUnitToTransport(transporterID, transporterDefID, transporterTeam, cx, cz, radius)
+    end
+    if queuedSeats[transporterID] == 0 then -- queuedSeats val ~= #transporterClaims but both are 0 when no queue.
+        areaLoadCoroutines[transporterID] = nil
+        return true -- either no claimable units, or all claims loaded, command is finished
+    end
+    local terX, terY, terZ = spGetUnitPosition(transporterID)
+    local distToArea = dist2D(terX, terZ, cx, cz)
+    if distToArea < radius then
+        ExecuteLoadUnits(transporterID, transporterDefID, transporterTeam, cx, cy, cz, radius)
+    else
+        Spring.SetUnitMoveGoal(transporterID, cx, cy, cz, 64)
+    end
+    return false -- command is still in progress
+end
+
 
 -- ── Gadget callbacks ──────────────────────────────────────────────────────────
 
@@ -156,78 +379,150 @@ function gadget:Initialize()
 	for _, unitID in pairs(Spring.GetAllUnits()) do -- save/load compat
 		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
 	end
+	Spring.SetCustomCommandDrawData(CMD_AREA_LOAD, CMD.LOAD_UNITS, {0.6, 0.6, 1, 0.5}, true)
 end
 
-function gadget:UnitCreated(unitID, unitDefID, unitTeam) -- cache custom load/unload functions for custom transports
+function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	if customTransportLoad[unitDefID] == nil or customTransportUnload[unitDefID] == nil then
 		customTransportLoad[unitDefID]   = GetScriptFunc(unitID, 'PerformLoad')
 		customTransportUnload[unitDefID] = GetScriptFunc(unitID, 'PerformUnload')
 	end
+	if isAirTransport[unitDefID] then
+		transporterClaims[unitID] = {}
+		queuedSeats[unitID] = 0
+	end
 end
 
--- Blocks underwater pickups and capacity-exceeded pickups.
-function gadget:AllowUnitTransport(transporterID, transporterUnitDefID, transporterTeam, transporteeID, transporteeUnitDefID, transporteeTeam)
-	local _, y, _ = spGetUnitPosition(transporteeID)
-	if isUnderwater(transporteeID, y) then return false end
-	if Spring.GetUnitRulesParam(transporteeID, "inTransportAnim") == 1 then return false end
-	if customTransportLoad[transporterUnitDefID] then
-		local nSeats    = Spring.GetUnitRulesParam(transporterID, "nSeats")    or 0
-		local usedSeats = Spring.GetUnitRulesParam(transporterID, "usedSeats") or 0
-		local teeSize   = TransportAPI.GetTransporteeSize(transporteeID)
-		if nSeats - usedSeats < teeSize then
-			return false
+function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+	if transporterClaims[unitID] then
+		local cmds = Spring.GetUnitCommands(unitID, 1)
+		if not (cmds[1] and (cmds[1].id == CMD_AREA_LOAD or cmds[1].id == CMD.LOAD_UNITS)) then
+			releaseAllClaims(unitID)
 		end
-		local slotSizesStr = Spring.GetUnitRulesParam(transporterID, "slotSizes") or ""
-		for sizeStr in slotSizesStr:gmatch("[^,]+") do
-			if tonumber(sizeStr) == teeSize then
-				return true
+	end
+end
+
+function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
+	if transporterClaims[unitID] then
+		local cmds = Spring.GetUnitCommands(unitID, 1)
+		if not (cmds[1] and (cmds[1].id == CMD_AREA_LOAD or cmds[1].id == CMD.LOAD_UNITS)) then
+			releaseAllClaims(unitID)
+		end
+	end
+end
+
+function gadget:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
+	releaseTransportee(unitID)
+	releaseAllClaims(unitID)
+end
+
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+	releaseTransportee(unitID)  -- no-op if not claimed
+	releaseAllClaims(unitID)    -- no-op if not a transporter with claims
+	local transporterID = Spring.GetUnitTransporter(unitID)
+	if not transporterID then return end
+	local transporterDefID = Spring.GetUnitDefID(transporterID)
+	if customTransportUnload[transporterDefID] then
+		local gx, gy, gz = spGetUnitPosition(transporterID)
+		customTransportUnload[transporterDefID](transporterID, 'PerformUnload', unitID, gx, gy, gz)
+	end
+end
+
+function gadget:GameFrame(frame)
+		local count = 0
+		for transporterID, co in pairs(areaLoadCoroutines) do count = count + 1 end
+		for transporterID, co in pairs(areaLoadCoroutines) do
+			local status = coroutine.status(co)
+			if status == "suspended" then
+				local ok, err = coroutine.resume(co)
+				if not ok then
+					Spring.Echo("Error in CMD_AREA_LOAD coroutine for transporter " .. transporterID .. ": " .. err)
+					areaLoadCoroutines[transporterID] = nil
+				end
+			else
+				areaLoadCoroutines[transporterID] = nil
 			end
 		end
-		return false
-	end
-	return true
 end
 
--- Transport loading in 4 phases:
--- 1: Engine coarse move (pre-AllowUnitTransportLoad): the transporter moves toward the load target until dist < uDef.loadingRadius.
--- 2: Optional pre-queue phase for area commands: the transporter moves coarsely toward the area center and accumulates claims.
---    Each transporter gets its own AllowUnitTransportLoad call per SlowUpdate() (per Update() in the enhance_transports branch),
---    and they all claim in processing order. Overlap is prevented by calling SetUnitLoadingTransport(teeID, teeID),
---    which makes the target invisible to engine scans. The area command is consumed (UnitFinishCommand) when all seats are
---    pre-filled or when the engine finds no more valid targets; claims are then dispatched via processAllClaims().
--- 3: Single-target phase: move closer until inRange() is true; velocity-gate enemy units.
--- 4: Load the unit and finish the command.
+
+-- CMD_AREA_LOAD lifecycle:
+-- 1. On first CommandFallback, ExecuteAreaLoad runs: if no claimable units (or all are instantly loaded), the command finishes immediately with no coroutine.
+-- 2. If there are claimable units, a coroutine is started to monitor the area and manage claiming/loading over time.
+-- 3. The coroutine continues running until the command is either completed or removed from the queue.
+-- 4. When all claims are resolved, a final CommandFallback call with finished = true is required to finish the command; the coroutine will then detect this and stop.
+
+function gadget:CommandFallback(transporterID, transporterDefID, transporterTeam, cmdID, cmdParams, cmdOptions, cmdTag)
+	if cmdID ~= CMD_AREA_LOAD then return false, false end -- we do not handle this command;
+	local finished = ExecuteAreaLoad(transporterID, transporterDefID, transporterTeam, cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4])
+	-- 1st pass of ExecuteAreaLoad: attempt to instantly finish cmd to avoid spawning a coroutine
+	if finished and Spring.GetUnitRulesParam(transporterID, "canLoad") == 0 then
+		-- optional: if we're busy unloading, don't finish the command yet
+		-- this enables overlapping area load/unload cycles
+		finished = false
+	end
+	if not finished then
+		if not areaLoadCoroutines[transporterID] then -- only start a coroutine if one doesn't already exist for this transporter.
+			local cx, cy, cz, radius = cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4]
+			-- coroutine params on start
+			local co = coroutine.create(function()
+				while true do
+					coroutine.yield() -- ticked by GameFrame every frame
+					coroutine.lastKnownParams = { cx, cy, cz, radius }
+					-- update the coroutine's last known params 
+					-- so we can detect mid-coroutine changes, instead of exiting + recreating
+					local Q = Spring.GetUnitCommands(transporterID, 1)
+					local cmd = Q and Q[1]
+					-- are we still performing a CMD_AREA_LOAD ?
+					if not (cmd and cmd.id == CMD_AREA_LOAD) then
+						-- exit coroutine and clean up if command is finished or removed from queue
+						areaLoadCoroutines[transporterID] = nil
+						releaseAllClaims(transporterID)
+						break
+					-- have our params changed mid-coroutine ?
+					elseif coroutine.lastKnownParams[1] ~= cmd.params[1] or coroutine.lastKnownParams[2] ~= cmd.params[2] or coroutine.lastKnownParams[3] ~= cmd.params[3] or coroutine.lastKnownParams[4] ~= cmd.params[4] then
+						-- release all claims but keep the coroutine alive
+						releaseAllClaims(transporterID)
+						coroutine.lastKnownParams = cmd.params
+						cx, cy, cz, radius = cmd.params[1], cmd.params[2], cmd.params[3], cmd.params[4]
+			
+					end
+					-- Execute our command logic every tick
+					ExecuteAreaLoad(transporterID, transporterDefID, transporterTeam, cx, cy, cz, radius)					
+					-- Could Spring.UnitFinishCommand() here instead of waiting next CommandFallback if we need to stop the coroutine ASAP for perfs
+				end
+			end)
+			areaLoadCoroutines[transporterID] = co
+		end
+		return true, false -- handled, but not finished; keep command in queue
+	end
+	return true, true -- handled and finished; remove command from queue
+
+end
+
+function gadget:AllowUnitTransport(transporterID, transporterUnitDefID, transporterTeam, transporteeID, transporteeUnitDefID, transporteeTeam, fromAreaScan)
+	--use our helper CanTransport
+	--I separated both to avoid FindUnitToTransport calling gadget:AllowUnitTransportLoad with an additional arg
+	return CanTransport(transporterID, transporteeID, transporterUnitDefID, false)
+end
+
+-- since the custom command is only CMD_AREA_LOAD
+-- single targets CMD.LOAD_UNITS are handled from AllowUnitTransportLoad
+-- which only fires during LOAD_UNITS cmds, once ter,tee dist is < Udef.loadingRadius
+-- I guess at some point this should become its own custom command instead
 
 function gadget:AllowUnitTransportLoad(transporterID, transporterUnitDefID, transporterTeam, transporteeID, transporteeUnitDefID, transporteeTeam, goalX, goalY, goalZ)
-
-	if isUnderwater(transporteeID, goalY) then return false end -- AllowUnitTransport will drop that command anyway
+	if isUnderwater(transporteeID, goalY) then 
+		releaseTransportee(transporteeID)
+		return false 
+	end
 	if not isAirTransport[transporterUnitDefID] then return true end -- we're not handling this
 
-	local Q = Spring.GetUnitCommands(transporterID, 2)
-	local duringAreaCmd = (Q[2] and Q[2].id == CMD.LOAD_UNITS and #Q[2].params == 4)
+	-- distance gate for individual load commands
+	claimTransportee(transporterID, transporteeID, TransportAPI.GetTransporteeSize(transporteeID),true) -- claim the transportee for this load command; will be released in UnitLoaded or if the unit dies while claimed
+	
+	Spring.SetUnitMoveGoal(transporterID, goalX, goalY, goalZ) -- move closer
 
-	if duringAreaCmd then -- pre-queue phase: accumulate claims
-		-- move coarsely toward the area command center
-		Spring.SetUnitMoveGoal(transporterID, goalX, goalY, goalZ)
-
-		-- finish the current sub-command to re-trigger the scan on the next SlowUpdate (CMD.REMOVE might also work)
-		Spring.UnitFinishCommand(transporterID)
-
-		-- attempt to claim the offered transportee
-		local teeSize = TransportAPI.GetTransporteeSize(transporteeID)
-		local canSeat = claimTransportee(transporterID, transporteeID, teeSize)
-
-		if not canSeat then -- transport is full; force the area command to finish
-			Spring.UnitFinishCommand(transporterID)
-		end
-
-		-- the other exit is handled by the engine, which drops the area command when no more valid targets are found
-		return false
-	end
-
-	-- post-queue phase: distance gate for individual load commands
-	-- the transportee moves to the transporter on its own via the CMD.LOAD_ONTO command issued in processAllClaims()
-	Spring.SetUnitMoveGoal(transporterID, goalX, goalY, goalZ)
 	if not inRange(transporterID, goalX, goalY, goalZ) then -- not in range yet
 		return false
 	end
@@ -238,10 +533,7 @@ function gadget:AllowUnitTransportLoad(transporterID, transporterUnitDefID, tran
 		return false
 	end
 
-	-- all checks passed; proceed to loading
-	-- for custom transports, dispatch to LUS after a final canLoad gate (equivalent to isBusy);
-	-- for standard transports, return true (they manage their own busy state)
-
+	-- handle custom transports
 	if customTransportLoad[transporterUnitDefID] then
 		if Spring.GetUnitRulesParam(transporterID, "canLoad") == 0 then return false end -- canLoad gate
 		releaseTransportee(transporteeID) -- release the pre-queue claim; also done in UnitLoaded as a safety net
@@ -252,59 +544,47 @@ function gadget:AllowUnitTransportLoad(transporterID, transporterUnitDefID, tran
 	return true -- default for standard transports
 end
 
--- Distance gate; for custom transports hand off to LUS (return false = engine skips detach).
 function gadget:AllowUnitTransportUnload(transporterID, transporterUnitDefID, transporterTeam, transporteeID, transporteeUnitDefID, transporteeTeam, goalX, goalY, goalZ)
 	if isUnderwater(transporteeID, goalY) then return false end
-	if isAirTransport[transporterUnitDefID] then
-		Spring.SetUnitMoveGoal(transporterID, goalX, goalY + LOAD_RADIUS/2, goalZ)
-		if not inRange(transporterID, goalX, goalY, goalZ) then return false end
-		if customTransportUnload[transporterUnitDefID] then
-			if Spring.GetUnitRulesParam(transporterID, "canUnload") == 0 then return false end
-			local targets = TransportAPI.GetUnloadTargets(transporterID, transporteeID)
-			for _, teeID in ipairs(targets) do
-				customTransportUnload[transporterUnitDefID](transporterID, 'PerformUnload', teeID, goalX, goalY, goalZ)
-			end
-			Spring.UnitFinishCommand(transporterID)
-			return false -- LUS handles the detachment
+	if not isAirTransport[transporterUnitDefID] then return true end
+	
+	Spring.SetUnitMoveGoal(transporterID, goalX, goalY, goalZ) -- move closer
+
+	-- distance gate for individual unload commands
+	if not inRange(transporterID, goalX, goalY, goalZ) then
+		return false
+	end
+	
+	-- handle custom transports
+	if customTransportUnload[transporterUnitDefID] then
+		if Spring.GetUnitRulesParam(transporterID, "canUnload") == 0 then return false end
+		local targets = TransportAPI.GetUnloadTargets(transporterID, transporteeID)
+		for _, teeID in ipairs(targets) do
+			customTransportUnload[transporterUnitDefID](transporterID, 'PerformUnload', teeID, goalX, goalY, goalZ)
 		end
+		Spring.UnitFinishCommand(transporterID) -- consume the command so the transporter proceeds to the next
+		return false
 	end
-	return true
+	return true -- default for standard transports
 end
 
 
--- Transportee loaded: release its queued-seat reservation (LUS now owns the slot via usedSeats).
-function gadget:UnitLoaded(unitID, unitDefID, transporterID, transporterDefID)
-	releaseTransportee(unitID)
-end
+function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+	if not isAirTransport[unitDefID] then return true, true end
 
-function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
-	if cmdID == CMD.LOAD_UNITS and #cmdParams == 4 then -- area load cmd finished/canceled
-		processAllClaims(unitID)
-	elseif cmdID == CMD.LOAD_UNITS and #cmdParams == 1 and claimedBy[cmdParams[1]] then -- note: UnitFinishCommand on sub-commands in AllowUnitTransportLoad also fires this; the claimedBy guard prevents false releases
-		releaseTransportee(cmdParams[1])
+	if cmdID == CMD.LOAD_UNITS and #cmdParams == 4 then
+		Spring.GiveOrderToUnit(unitID, CMD_AREA_LOAD, cmdParams, cmdOptions)
+		return false
 	end
-end
 
--- Transportee died while loaded or while claimed: clean up bookkeeping and slot.
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	releaseTransportee(unitID)  -- no-op if not claimed
-	releaseAllClaims(unitID)    -- no-op if not a transporter with claims
-
-	-- TODO: handle the case of a transportee dying while queued for a claim,
-	-- freeing up seats for other units. Since the area command is likely already consumed,
-	-- the transporter will not automatically seek a replacement.
-	-- Option: if a queued transportee dies, CMD.INSERT a new area load command using the stored
-	-- area data. If the transporter is still in the area-command phase, do nothing; if it is in
-	-- the single-load phase, reinsert the area command at the front and let the claiming cycle
-	-- refill the queue, then resume the single-load phase once done.
-
-	local transporterID = Spring.GetUnitTransporter(unitID)
-	if not transporterID then return end
-
-	local transporterDefID = Spring.GetUnitDefID(transporterID)
-
-	if customTransportUnload[transporterDefID] then
-		local gx, gy, gz = spGetUnitPosition(transporterID)
-		customTransportUnload[transporterDefID](transporterID, 'PerformUnload', unitID, gx, gy, gz)
+	if cmdID == CMD.INSERT and cmdParams[2] == CMD.LOAD_UNITS and #cmdParams - 3 == 4 then
+		local newParams = { cmdParams[1], CMD_AREA_LOAD, cmdParams[3],
+		                    cmdParams[4], cmdParams[5], cmdParams[6], cmdParams[7] }
+		Spring.GiveOrderToUnit(unitID, CMD.INSERT, newParams, cmdOptions)
+		return false
 	end
+
+	return true, true
 end
+
+
