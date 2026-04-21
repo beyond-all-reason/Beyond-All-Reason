@@ -975,12 +975,15 @@ function widget:MouseWheel(up, value)
 	local alt, ctrl, _, shift = GetModKeyState()
 
 	if alt then
-		-- Alt+Scroll = rotate brush
-		if up then
-			fp.rotation = (fp.rotation + ROTATION_STEP) % 360
-		else
-			fp.rotation = (fp.rotation - ROTATION_STEP) % 360
+		-- Alt+Scroll = rotate brush (snap to TB protractor step when angleSnap on)
+		local step = ROTATION_STEP
+		local tb = WG.TerraformBrush
+		local tbs = tb and tb.getState and tb.getState() or nil
+		if tbs and tbs.angleSnap and (tbs.angleSnapStep or 0) > 0 then
+			step = tbs.angleSnapStep
 		end
+		local dir = up and 1 or -1
+		fp.rotation = ((fp.rotation + dir * step) % 360 + 360) % 360
 		Echo("[Feature Placer] Rotation: " .. fp.rotation .. "°")
 		return true
 	end

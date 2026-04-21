@@ -2,6 +2,7 @@
 local M = {}
 
 function M.attach(doc, ctx)
+	if ctx.attachTBMirrorControls then ctx.attachTBMirrorControls(doc, "cl") end
 	local widgetState = ctx.widgetState
 	local uiState = ctx.uiState
 	local WG = ctx.WG
@@ -260,6 +261,7 @@ function M.attach(doc, ctx)
 end
 
 function M.sync(doc, ctx, clState, setSummary)
+	if ctx.syncTBMirrorControls then ctx.syncTBMirrorControls(doc, "cl") end
 	local widgetState = ctx.widgetState
 	local uiState = ctx.uiState
 	local WG = ctx.WG

@@ -3082,13 +3082,20 @@ end
 -- Symmetry overlay: guide lines radiating from origin + ghost brush outlines at mirror positions
 extraState.drawSymmetryOverlay = function(worldX, worldZ, groundY)
 	if not extraState.symmetryActive then return end
-	-- Allow drawing when any terrain tool (terraform/metal/grass/feature-placer/splat) is active
+	-- Allow drawing when any terrain/placement tool is active
 	if not activeMode then
 		local mbSt = WG.MetalBrush and WG.MetalBrush.getState()
 		local gbSt = WG.GrassBrush and WG.GrassBrush.getState()
 		local fpSt = WG.FeaturePlacer and WG.FeaturePlacer.getState()
 		local spSt = WG.SplatPainter and WG.SplatPainter.getState()
-		if not ((mbSt and mbSt.active) or (gbSt and gbSt.active) or (fpSt and fpSt.active) or (spSt and spSt.active)) then
+		local dcSt = WG.DecalPlacer and WG.DecalPlacer.getState()
+		local wbSt = WG.WeatherBrush and WG.WeatherBrush.getState()
+		local lpSt = WG.LightPlacer and WG.LightPlacer.getState()
+		local stSt = WG.StartPosTool and WG.StartPosTool.getState()
+		local clSt = WG.CloneTool and WG.CloneTool.getState()
+		if not ((mbSt and mbSt.active) or (gbSt and gbSt.active) or (fpSt and fpSt.active) or (spSt and spSt.active)
+			or (dcSt and dcSt.active) or (wbSt and wbSt.active) or (lpSt and lpSt.active)
+			or (stSt and stSt.active) or (clSt and clSt.active)) then
 			return
 		end
 	end
@@ -5389,6 +5396,11 @@ function widget:DrawWorld()
 				local mbState = WG.MetalBrush and WG.MetalBrush.getState()
 				local gbState = WG.GrassBrush and WG.GrassBrush.getState()
 				local spState = WG.SplatPainter and WG.SplatPainter.getState()
+				local dcState = WG.DecalPlacer and WG.DecalPlacer.getState()
+				local wbState = WG.WeatherBrush and WG.WeatherBrush.getState()
+				local lpState = WG.LightPlacer and WG.LightPlacer.getState()
+				local stState = WG.StartPosTool and WG.StartPosTool.getState()
+				local clState = WG.CloneTool and WG.CloneTool.getState()
 				if (mbState and mbState.active) or (gbState and gbState.active) then
 					local wx, wz = getWorldMousePosition()
 					if wx then
@@ -5399,19 +5411,54 @@ function widget:DrawWorld()
 					if wx then
 						extraState.drawHeightColormap(wx, wz, spState.radius or 200, spState.shape or "circle", spState.rotationDeg or 0, 1.0)
 					end
+				elseif dcState and dcState.active then
+					local wx, wz = getWorldMousePosition()
+					if wx then
+						extraState.drawHeightColormap(wx, wz, dcState.radius or 200, "circle", dcState.rotation or 0, 1.0)
+					end
+				elseif wbState and wbState.active then
+					local wx, wz = getWorldMousePosition()
+					if wx then
+						extraState.drawHeightColormap(wx, wz, wbState.radius or 200, "circle", wbState.rotation or 0, wbState.lengthScale or 1.0)
+					end
+				elseif lpState and lpState.active then
+					local wx, wz = getWorldMousePosition()
+					if wx then
+						extraState.drawHeightColormap(wx, wz, lpState.radius or 200, "circle", lpState.rotation or 0, 1.0)
+					end
+				elseif stState and stState.active then
+					local wx, wz = getWorldMousePosition()
+					if wx then
+						extraState.drawHeightColormap(wx, wz, stState.shapeRadius or 500, stState.shapeType or "circle", stState.shapeRotation or 0, 1.0)
+					end
+				elseif clState and clState.active then
+					local wx, wz = getWorldMousePosition()
+					if wx then
+						extraState.drawHeightColormap(wx, wz, clState.radius or 300, "circle", clState.rotation or 0, 1.0)
+					end
 				end
 			end
 		end
-		-- Protractor overlay: runs for feature placer / metal / grass when angle snap is on
+		-- Protractor overlay: runs for feature placer / metal / grass / splat / decals / weather / lights / startpos / clone when angle snap is on
 		if extraState.angleSnap then
 			local fpState = WG.FeaturePlacer and WG.FeaturePlacer.getState()
 			local mbState = WG.MetalBrush and WG.MetalBrush.getState()
 			local gbState = WG.GrassBrush and WG.GrassBrush.getState()
 			local spState = WG.SplatPainter and WG.SplatPainter.getState()
+			local dcState = WG.DecalPlacer and WG.DecalPlacer.getState()
+			local wbState = WG.WeatherBrush and WG.WeatherBrush.getState()
+			local lpState = WG.LightPlacer and WG.LightPlacer.getState()
+			local stState = WG.StartPosTool and WG.StartPosTool.getState()
+			local clState = WG.CloneTool and WG.CloneTool.getState()
 			local r
 			if fpState and fpState.active then r = fpState.radius or 200
 			elseif (mbState and mbState.active) or (gbState and gbState.active) then r = activeRadius
-			elseif spState and spState.active then r = spState.radius or 200 end
+			elseif spState and spState.active then r = spState.radius or 200
+			elseif dcState and dcState.active then r = dcState.radius or 200
+			elseif wbState and wbState.active then r = wbState.radius or 200
+			elseif lpState and lpState.active then r = lpState.radius or 200
+			elseif stState and stState.active then r = stState.shapeRadius or 500
+			elseif clState and clState.active then r = clState.radius or 300 end
 			if r then
 				local wx, wz = getWorldMousePosition()
 				if wx then

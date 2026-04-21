@@ -80,6 +80,8 @@ local undoStack = {}
 local redoStack = {}
 local MAX_UNDO = 50
 
+local isInsideShape  -- forward declaration
+
 local function snapshotShape(centerX, centerZ, radius, shape, angleDeg)
 	local halfSq = METAL_SQ * 0.5
 	local mxMin = max(0, floor((centerX - radius) / METAL_SQ))
@@ -148,7 +150,7 @@ end
 
 -- Test if world-space offset (dx, dz) from brush center is inside the shape,
 -- returns (isInside, normalizedDistance)
-local function isInsideShape(dx, dz, radius, shape, angleDeg)
+isInsideShape = function(dx, dz, radius, shape, angleDeg)
 	local rx, rz = rotateInv(dx, dz, angleDeg)
 	if shape == "circle" then
 		local d = sqrt(rx * rx + rz * rz)

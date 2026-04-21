@@ -398,8 +398,7 @@ function M.attach(doc, ctx)
 		envSectionToggle("btn-toggle-cl-undo",      "img-toggle-cl-undo",      "section-cl-undo",      false)
 		envSectionToggle("btn-toggle-tf-undo",      "img-toggle-tf-undo",      "section-tf-undo",      false)
 		envSectionToggle("btn-toggle-spl-channel",  "img-toggle-spl-channel",  "section-spl-channel",  true)
-		envSectionToggle("btn-toggle-dc-heatmap",   "img-toggle-dc-heatmap",   "section-dc-heatmap",   false)
-		envSectionToggle("btn-toggle-dc-library",   "img-toggle-dc-library",   "section-dc-library",   true)
+		envSectionToggle("btn-toggle-dc-saveload",  "img-toggle-dc-saveload",  "section-dc-saveload",  false)
 		envSectionToggle("btn-toggle-dc-dist",      "img-toggle-dc-dist",      "section-dc-dist",      true)
 		envSectionToggle("btn-toggle-dc-mode",      "img-toggle-dc-mode",      "section-dc-mode",      true)
 		envSectionToggle("btn-toggle-dc-undo",      "img-toggle-dc-undo",      "section-dc-undo",      false)
@@ -424,6 +423,10 @@ function M.attach(doc, ctx)
 					local sec = doc:GetElementById("section-sp-overlays")
 					if sec and not sec:IsClassSet("hidden") then
 						widgetState.splatDisplayPulseFrame = Spring.GetGameFrame() + 1
+						if widgetState.uiPrefs and not widgetState.uiPrefs.seenSplatDisplayHint then
+							widgetState.uiPrefs.seenSplatDisplayHint = true
+							if widgetState.saveUiPrefs then widgetState.saveUiPrefs() end
+						end
 					end
 				end, false)
 			end
@@ -482,11 +485,48 @@ function M.attach(doc, ctx)
 					end
 				end
 			end
-			wirePillTabs({
-				{ btnId = "btn-gb-pill-slope",    contentId = "gb-smart-slope-content" },
-				{ btnId = "btn-gb-pill-altitude",  contentId = "gb-smart-altitude-content" },
-				{ btnId = "btn-gb-pill-color",     contentId = "gb-smart-color-content" },
-			})
+			-- Independent toggle pills for grass brush (matches FP pattern).
+			-- Slope/Altitude chips enable/disable their sub-filters on toggle; Color chip = texFilterEnabled.
+			do
+				local function wireGbFilterChip(btnId, contentId, filterKeys, defaultKey)
+					local btn = doc:GetElementById(btnId)
+					local content = doc:GetElementById(contentId)
+					if not btn or not content then return end
+					btn:AddEventListener("click", function()
+						local isActive = btn:IsClassSet("active")
+						local newActive = not isActive
+						btn:SetClass("active", newActive)
+						content:SetClass("hidden", not newActive)
+						if WG.GrassBrush then
+							if newActive then
+								WG.GrassBrush.setSmartEnabled(true)
+								-- Enable the default sub-filter so the category is actually doing something
+								if defaultKey then WG.GrassBrush.setSmartFilter(defaultKey, true) end
+							else
+								-- Deactivating the chip disables all sub-filters in this category
+								for _, k in ipairs(filterKeys) do
+									WG.GrassBrush.setSmartFilter(k, false)
+								end
+							end
+						end
+					end)
+				end
+				wireGbFilterChip("btn-gb-pill-slope",    "gb-smart-slope-content",
+					{ "avoidCliffs", "preferSlopes" }, "avoidCliffs")
+				wireGbFilterChip("btn-gb-pill-altitude", "gb-smart-altitude-content",
+					{ "altMinEnable", "altMaxEnable" }, "altMinEnable")
+			end
+			do
+				local colorChip = doc:GetElementById("btn-gb-pill-color")
+				if colorChip then
+					colorChip:AddEventListener("click", function()
+						if WG.GrassBrush then
+							local on = WG.GrassBrush.getState().texFilterEnabled
+							WG.GrassBrush.setTexFilterEnabled(not on)
+						end
+					end)
+				end
+			end
 		end
 		envSectionToggle("btn-toggle-wb-undo",         "img-toggle-wb-undo",         "section-wb-undo",         false)
 		envSectionToggle("btn-toggle-wb-overlays",     "img-toggle-wb-overlays",     "section-wb-overlays",     false)
@@ -500,7 +540,18 @@ function M.attach(doc, ctx)
 		envSectionToggle("btn-toggle-dc-controls",     "img-toggle-dc-controls",     "section-dc-controls",     true)
 		envSectionToggle("btn-toggle-lp-overlays",     "img-toggle-lp-overlays",     "section-lp-overlays",     false)
 		envSectionToggle("btn-toggle-lp-instruments",  "img-toggle-lp-instruments",  "section-lp-instruments",  false)
+		envSectionToggle("btn-toggle-lt-type",         "img-toggle-lt-type",         "section-lt-type",         true)
+		envSectionToggle("btn-toggle-lt-placement",    "img-toggle-lt-placement",    "section-lt-placement",    true)
+		envSectionToggle("btn-toggle-lt-dist",         "img-toggle-lt-dist",         "section-lt-dist",         true)
 		envSectionToggle("btn-toggle-lp-controls",     "img-toggle-lp-controls",     "section-lp-controls",     true)
+		envSectionToggle("btn-toggle-lp-undo",         "img-toggle-lp-undo",         "section-lp-undo",         false)
+		envSectionToggle("btn-toggle-lp-color",        "img-toggle-lp-color",        "section-lp-color",        true)
+		envSectionToggle("btn-toggle-lp-saveload",     "img-toggle-lp-saveload",     "section-lp-saveload",     false)
+		envSectionToggle("btn-toggle-cl-instruments",  "img-toggle-cl-instruments",  "section-cl-instruments",  false)
+		envSectionToggle("btn-toggle-cl-controls",     "img-toggle-cl-controls",     "section-cl-controls",     true)
+		envSectionToggle("btn-toggle-st-overlays",     "img-toggle-st-overlays",     "section-st-overlays",     false)
+		envSectionToggle("btn-toggle-st-instruments",  "img-toggle-st-instruments",  "section-st-instruments",  false)
+		envSectionToggle("btn-toggle-st-controls",     "img-toggle-st-controls",     "section-st-controls",     true)
 		envSectionToggle("btn-toggle-env-buttons",  "img-toggle-env-buttons",  "section-env-buttons",  true)
 		envSectionToggle("btn-toggle-lt-type",      "img-toggle-lt-type",      "section-lt-type",      true)
 		envSectionToggle("btn-toggle-lt-placement", "img-toggle-lt-placement", "section-lt-placement", true)
@@ -586,6 +637,10 @@ function M.attach(doc, ctx)
 					local sec = doc:GetElementById("section-instruments")
 					if sec and not sec:IsClassSet("hidden") then
 						widgetState.instrumentsPulseFrame = Spring.GetGameFrame() + 1
+						if widgetState.uiPrefs and not widgetState.uiPrefs.seenInstrumentsHint then
+							widgetState.uiPrefs.seenInstrumentsHint = true
+							if widgetState.saveUiPrefs then widgetState.saveUiPrefs() end
+						end
 					end
 				end, false)
 			end

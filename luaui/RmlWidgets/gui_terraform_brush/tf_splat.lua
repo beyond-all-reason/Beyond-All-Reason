@@ -923,15 +923,18 @@ function M.sync(doc, ctx, spState, setSummary)
 				do
 					local hintDot = doc:GetElementById("sp-display-notify-dot")
 					if hintDot then
+						local tipsDisabled = widgetState.uiPrefs and widgetState.uiPrefs.disableTips
+						local alreadySeen = widgetState.uiPrefs and widgetState.uiPrefs.seenSplatDisplayHint
 						local sec = doc:GetElementById("section-sp-overlays")
-						hintDot:SetClass("hidden", sec and not sec:IsClassSet("hidden") or false)
+						hintDot:SetClass("hidden", tipsDisabled or alreadySeen or (sec and not sec:IsClassSet("hidden")) or false)
 					end
 				end
 				-- Chip 2-pulse: fires the frame after DISPLAY section is opened
 				if widgetState.splatDisplayPulseFrame and Spring.GetGameFrame() >= widgetState.splatDisplayPulseFrame then
 					widgetState.splatDisplayPulseFrame = nil
+					local tipsDisabled = widgetState.uiPrefs and widgetState.uiPrefs.disableTips
 					local splatChip = doc:GetElementById("btn-sp-splat-overlay")
-					if splatChip then
+					if splatChip and not tipsDisabled then
 						splatChip:SetClass("tf-chip-2pulse", false)
 						splatChip:SetClass("tf-chip-2pulse", true)
 						widgetState.splatChip2PulseExpiry = (Spring.GetGameSeconds() or 0) + 1.25

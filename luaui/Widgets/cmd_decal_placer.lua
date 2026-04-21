@@ -352,6 +352,28 @@ local function placeRemove(cx, cz)
 	end
 end
 
+-- Apply TerraformBrush grid-snap + symmetric fan-out to a placement call.
+-- `fn(x, z)` is one of placeScatter / placePoint / placeRemove.
+local function placeSymmetric(fn, cx, cz)
+	local tb = WG.TerraformBrush
+	local rot = dp.rotation or 0
+	if tb and tb.getState then
+		local st = tb.getState()
+		if st.angleSnap then rot = st.rotationDeg or rot end
+		if st.gridSnap and tb.snapWorld then
+			cx, cz = tb.snapWorld(cx, cz, rot)
+		end
+		if st.symmetryActive and tb.getSymmetricPositions then
+			local positions = tb.getSymmetricPositions(cx, cz, rot)
+			if positions and #positions > 0 then
+				for _, p in ipairs(positions) do fn(p.x, p.z) end
+				return
+			end
+		end
+	end
+	fn(cx, cz)
+end
+
 local function decalUndo()
 	local entry = dp.undoStack[#dp.undoStack]
 	if not entry then return end
@@ -693,6 +715,12 @@ end
 
 function widget:MousePress(mx, my, button)
 	if not dp.active or not dp.mode then return false end
+	-- Defer to measure tool when active so decal placement doesn't consume the click
+	do
+		local tb = WG.TerraformBrush
+		local st = tb and tb.getState and tb.getState() or nil
+		if st and st.measureActive then return false end
+	end
 	if button == 1 then
 		local wx, wz = getWorldMousePosition()
 		if not wx then return false end
@@ -701,9 +729,9 @@ function widget:MousePress(mx, my, button)
 		dp.lockedWorldX = wx
 		dp.lockedWorldZ = wz
 		dp.placeTimer = 0
-		if dp.mode == "scatter" then placeScatter(wx, wz)
-		elseif dp.mode == "point" then placePoint(wx, wz)
-		elseif dp.mode == "remove" then placeRemove(wx, wz) end
+		if dp.mode == "scatter" then placeSymmetric(placeScatter, wx, wz)
+		elseif dp.mode == "point" then placeSymmetric(placePoint, wx, wz)
+		elseif dp.mode == "remove" then placeSymmetric(placeRemove, wx, wz) end
 		return true
 	end
 	if button == 3 then
@@ -713,7 +741,7 @@ function widget:MousePress(mx, my, button)
 		dp.dragAction = "remove"
 		dp.lockedWorldX = wx
 		dp.lockedWorldZ = wz
-		placeRemove(wx, wz)
+		placeSymmetric(placeRemove, wx, wz)
 		return true
 	end
 	return false
@@ -734,8 +762,14 @@ function widget:MouseWheel(up, _)
 	if not dp.active then return false end
 	local alt, ctrl, _, shift = GetModKeyState()
 	if alt then
-		if up then dp.rotation = (dp.rotation + ROTATION_STEP) % 360
-		else dp.rotation = (dp.rotation - ROTATION_STEP) % 360 end
+		local step = ROTATION_STEP
+		local tb = WG.TerraformBrush
+		local tbs = tb and tb.getState and tb.getState() or nil
+		if tbs and tbs.angleSnap and (tbs.angleSnapStep or 0) > 0 then
+			step = tbs.angleSnapStep
+		end
+		local dir = up and 1 or -1
+		dp.rotation = ((dp.rotation + dir * step) % 360 + 360) % 360
 		return true
 	end
 	if shift then
@@ -765,13 +799,13 @@ function widget:Update(dt)
 			dp.placeTimer = 0
 			local wx, wz = getWorldMousePosition()
 			if wx then
-				if dp.mode == "scatter" then placeScatter(wx, wz)
-				elseif dp.mode == "point" then placePoint(wx, wz) end
+				if dp.mode == "scatter" then placeSymmetric(placeScatter, wx, wz)
+				elseif dp.mode == "point" then placeSymmetric(placePoint, wx, wz) end
 			end
 		end
 	elseif dp.dragging and dp.dragAction == "remove" then
 		local wx, wz = getWorldMousePosition()
-		if wx then placeRemove(wx, wz) end
+		if wx then placeSymmetric(placeRemove, wx, wz) end
 	end
 end
 

@@ -781,6 +781,27 @@ local function doRemove(cx, cz)
 	end
 end
 
+-- Apply TerraformBrush grid-snap + symmetric fan-out to a placement call.
+local function placeSymmetric(fn, cx, cz)
+	local tb = WG.TerraformBrush
+	local rot = wb.rotation or 0
+	if tb and tb.getState then
+		local st = tb.getState()
+		if st.angleSnap then rot = st.rotationDeg or rot end
+		if st.gridSnap and tb.snapWorld then
+			cx, cz = tb.snapWorld(cx, cz, rot)
+		end
+		if st.symmetryActive and tb.getSymmetricPositions then
+			local positions = tb.getSymmetricPositions(cx, cz, rot)
+			if positions and #positions > 0 then
+				for _, p in ipairs(positions) do fn(p.x, p.z) end
+				return
+			end
+		end
+	end
+	fn(cx, cz)
+end
+
 -- ===========================================================================
 -- Mode Management
 -- ===========================================================================
@@ -1018,6 +1039,13 @@ function widget:MousePress(mx, my, button)
 	if not wb.active then return false end
 	if button ~= 1 and button ~= 3 then return false end
 
+	-- Defer to measure tool when active
+	do
+		local tb = WG.TerraformBrush
+		local st = tb and tb.getState and tb.getState() or nil
+		if st and st.measureActive then return false end
+	end
+
 	local wx, wy, wz = getWorldMousePosition()
 	if not wx then return false end
 
@@ -1029,16 +1057,16 @@ function widget:MousePress(mx, my, button)
 
 	if button == 3 then
 		wb.dragAction = "remove"
-		doRemove(wx, wz)
+		placeSymmetric(doRemove, wx, wz)
 	elseif wb.mode == "scatter" then
 		wb.dragAction = "place"
-		doScatterPlace(wx, wz)
+		placeSymmetric(doScatterPlace, wx, wz)
 	elseif wb.mode == "point" then
 		wb.dragAction = "place"
-		doPointPlace(wx, wz)
+		placeSymmetric(doPointPlace, wx, wz)
 	elseif wb.mode == "remove" then
 		wb.dragAction = "remove"
-		doRemove(wx, wz)
+		placeSymmetric(doRemove, wx, wz)
 	end
 
 	return true
@@ -1059,6 +1087,22 @@ function widget:MouseWheel(up, value)
 	if ctrl and alt then
 		local delta = up and 0.1 or -0.1
 		setLengthScale(wb.lengthScale + delta)
+		return true
+	end
+
+	if alt then
+		-- Alt+Scroll: rotate brush (snap to TB protractor step when angleSnap on)
+		local step = 15
+		local tb = WG.TerraformBrush
+		local tbs = tb and tb.getState and tb.getState() or nil
+		if tbs and tbs.angleSnap and (tbs.angleSnapStep or 0) > 0 then
+			step = tbs.angleSnapStep
+		end
+		local newRot = (((wb.rotation or 0) + (up and step or -step)) % 360 + 360) % 360
+		wb.rotation = newRot
+		if tbs and tbs.angleSnap and tb and tb.setRotation then
+			tb.setRotation(newRot)
+		end
 		return true
 	end
 
@@ -1101,11 +1145,11 @@ function widget:Update(dt)
 	wb.lockedWorldZ = wz
 
 	if wb.dragAction == "remove" then
-		doRemove(wx, wz)
+		placeSymmetric(doRemove, wx, wz)
 	elseif wb.mode == "scatter" then
-		doScatterPlace(wx, wz)
+		placeSymmetric(doScatterPlace, wx, wz)
 	elseif wb.mode == "point" then
-		doPointPlace(wx, wz)
+		placeSymmetric(doPointPlace, wx, wz)
 	end
 end
 
