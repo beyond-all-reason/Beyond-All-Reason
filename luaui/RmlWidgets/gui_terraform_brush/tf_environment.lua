@@ -1959,6 +1959,55 @@ function M.attach(doc, ctx)
 		end, false)
 	end
 
+	-- Blue-dot hint wiring: delegated to a module-level helper to avoid
+	-- adding more locals to M.attach (which is near the Lua 5.1 200-local cap).
+	M._attachHintDots(doc, widgetState)
+
+end
+
+-- Wires click listeners for every entry in widgetState.hintDots:
+--   * Clicking any button in h.markOnClick marks the hint seen + saves prefs.
+--   * If h.sectionToggleId/sectionId are set, clicking the section toggle
+--     while the section becomes open schedules a chip 2-pulse (handled in
+--     the main widget Update loop) and marks seen.
+function M._attachHintDots(doc, widgetState)
+	local hintDots = widgetState.hintDots
+	if not hintDots or not doc then return end
+	local function makeMarkSeen(prefKey)
+		return function()
+			if widgetState.uiPrefs and not widgetState.uiPrefs[prefKey] then
+				widgetState.uiPrefs[prefKey] = true
+				if widgetState.saveUiPrefs then widgetState.saveUiPrefs() end
+			end
+		end
+	end
+	for _, h in ipairs(hintDots) do
+		local markSeen = makeMarkSeen(h.prefKey)
+		if h.sectionToggleId and h.sectionId then
+			local sectBtn = doc:GetElementById(h.sectionToggleId)
+			if sectBtn then
+				local sectionId = h.sectionId
+				local pulseKey = h.pulseKey
+				sectBtn:AddEventListener("click", function()
+					local sec = doc:GetElementById(sectionId)
+					if sec and not sec:IsClassSet("hidden") then
+						if pulseKey then
+							widgetState[pulseKey] = Spring.GetGameFrame() + 1
+						end
+						markSeen()
+					end
+				end, false)
+			end
+		end
+		if h.markOnClick then
+			for _, btnId in ipairs(h.markOnClick) do
+				local b = doc:GetElementById(btnId)
+				if b then
+					b:AddEventListener("click", function() markSeen() end, false)
+				end
+			end
+		end
+	end
 end
 
 function M.sync(doc, ctx, setSummary)

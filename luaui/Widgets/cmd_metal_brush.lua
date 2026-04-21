@@ -55,6 +55,8 @@ local sqrt = math.sqrt
 local format = string.format
 
 local METAL_SQ = Game.metalMapSquareSize or 16
+local EXTRACTOR_RADIUS = Game.extractorRadius or 90
+local EXTRACTOR_RADIUS_SQ = EXTRACTOR_RADIUS * EXTRACTOR_RADIUS
 local CIRCLE_SEGMENTS = 48
 local UPDATE_INTERVAL = 0.05
 local MIN_METAL_VALUE = 0.01
@@ -226,20 +228,42 @@ local function drawMetalOverlay(worldX, worldZ, radius)
 end
 
 local function drawCursorInfo(worldX, worldZ)
-	local mx = floor(worldX / METAL_SQ)
-	local mz = floor(worldZ / METAL_SQ)
-	local currentMetal = GetMetalAmount(mx, mz)
+	-- Sum metal within extractor radius (predicted mex "spot worth" at baseline T1)
+	local cx = floor(worldX / METAL_SQ)
+	local cz = floor(worldZ / METAL_SQ)
+	local cellRange = floor(EXTRACTOR_RADIUS / METAL_SQ) + 1
+	local mmX, mmZ = GetMetalMapSize()
+	local spotMetal = 0
+	local halfSq = METAL_SQ * 0.5
+	for dz = -cellRange, cellRange do
+		local mz = cz + dz
+		if mz >= 0 and mz < mmZ then
+			local worldDz = (mz * METAL_SQ + halfSq) - worldZ
+			for dx = -cellRange, cellRange do
+				local mx = cx + dx
+				if mx >= 0 and mx < mmX then
+					local worldDx = (mx * METAL_SQ + halfSq) - worldX
+					if worldDx * worldDx + worldDz * worldDz < EXTRACTOR_RADIUS_SQ then
+						spotMetal = spotMetal + GetMetalAmount(mx, mz)
+					end
+				end
+			end
+		end
+	end
+
 	local sx, sy = WorldToScreenCoords(worldX, GetGroundHeight(worldX, worldZ), worldZ)
 
 	local text
 	if subMode == "stamp" then
-		text = format("STAMP: %.1f  [cur: %.1f]", metalValue, currentMetal)
+		text = format("STAMP: %.1f  [spot: %.2f]", metalValue, spotMetal * 0.001)
 	else
-		text = format("Metal: %.1f  [cur: %.1f]", metalValue, currentMetal)
+		text = format("Metal: %.1f  [spot: %.2f]", metalValue, spotMetal * 0.001)
 	end
 
-	glColor(1, 1, 1, 0.9)
-	glText(text, sx, sy + 20, 13, "co")
+	glColor(0, 0, 0, 0.92)
+	glText(text, sx + 2, sy + 18, 24, "co")
+	glColor(1, 1, 1, 1.0)
+	glText(text, sx, sy + 20, 24, "co")
 end
 
 -- ============================================================
@@ -529,7 +553,14 @@ function widget:DrawWorld()
 	if not active then return end
 
 	local worldX, worldZ = getWorldPos()
-	if not worldX then return end
+	if not worldX then
+		local tb = WG.TerraformBrush
+		if tb and tb.getUnmouseTarget then
+			local ss2 = getSharedState()
+			worldX, worldZ = tb.getUnmouseTarget(ss2 and ss2.radius or 200, 1.0)
+		end
+		if not worldX then return end
+	end
 
 	local ss = getSharedState()
 

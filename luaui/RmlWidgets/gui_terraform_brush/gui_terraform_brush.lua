@@ -337,8 +337,59 @@ local widgetState = {
 		disableTips = false,
 		seenInstrumentsHint = false,
 		seenSplatDisplayHint = false,
+		seenStartposShapeHint = false,
+		seenMetalStampHint = false,
+		seenFeaturesFiltersHint = false,
+		seenGrassColorFilterHint = false,
+		seenSplatFiltersHint = false,
+		seenWeatherPersistHint = false,
+		seenLightsTypeHint = false,
+		seenCloneLayersHint = false,
+		seenSceneSkyboxHint = false,
 	},
+	-- ========================================================================
+	-- Per-frame RmlUI performance caches (cleared on doc close in Shutdown).
+	-- elCache:        id -> element (avoid repeated doc:GetElementById in sync loop)
+	-- lastInnerRml:   id -> last-written inner_rml string (dirty-check)
+	-- lastAttrValue:  id -> last-written `value` attribute (dirty-check)
+	-- ========================================================================
+	elCache = {},
+	lastInnerRml = {},
+	lastAttrValue = {},
 }
+
+-- Cached getElementById. Returns same element as doc:GetElementById(id) on
+-- first call, then serves subsequent calls from widgetState.elCache. Caches
+-- are invalidated in widget:Shutdown when the document closes. `nil` lookups
+-- are NOT cached (so late-loaded elements can be found on subsequent frames).
+local function getCachedEl(doc, id)
+	local cache = widgetState.elCache
+	local el = cache[id]
+	if el ~= nil then return el end
+	if not doc then return nil end
+	-- NOTE: use raw DOM lookup here (method-call form). Do NOT recurse.
+	el = doc.GetElementById(doc, id)
+	if el then cache[id] = el end
+	return el
+end
+
+-- Dirty-check inner_rml write: skip if last-written string matches. Avoids
+-- RmlUI re-parse + style recalc cascade on unchanged labels. Uses element id
+-- as cache key (caller passes the id alongside the element).
+local function setInnerRmlIfChanged(el, id, str)
+	if not el then return end
+	if widgetState.lastInnerRml[id] == str then return end
+	widgetState.lastInnerRml[id] = str
+	el.inner_rml = str
+end
+
+-- Dirty-check `value` attribute write (for sliders/numboxes). Skip if unchanged.
+local function setAttrValueIfChanged(el, id, str)
+	if not el then return end
+	if widgetState.lastAttrValue[id] == str then return end
+	widgetState.lastAttrValue[id] = str
+	el:SetAttribute("value", str)
+end
 
 function loadUiPrefs()
 	if not VFS.FileExists(UI_PREFS_FILE, VFS.RAW) then return end
@@ -357,19 +408,100 @@ function loadUiPrefs()
 	if type(data.seenSplatDisplayHint) == "boolean" then
 		widgetState.uiPrefs.seenSplatDisplayHint = data.seenSplatDisplayHint
 	end
+	if type(data.seenStartposShapeHint) == "boolean" then
+		widgetState.uiPrefs.seenStartposShapeHint = data.seenStartposShapeHint
+	end
+	if type(data.seenMetalStampHint) == "boolean" then
+		widgetState.uiPrefs.seenMetalStampHint = data.seenMetalStampHint
+	end
+	if type(data.seenFeaturesFiltersHint) == "boolean" then
+		widgetState.uiPrefs.seenFeaturesFiltersHint = data.seenFeaturesFiltersHint
+	end
+	if type(data.seenGrassColorFilterHint) == "boolean" then
+		widgetState.uiPrefs.seenGrassColorFilterHint = data.seenGrassColorFilterHint
+	end
+	if type(data.seenSplatFiltersHint) == "boolean" then
+		widgetState.uiPrefs.seenSplatFiltersHint = data.seenSplatFiltersHint
+	end
+	if type(data.seenWeatherPersistHint) == "boolean" then
+		widgetState.uiPrefs.seenWeatherPersistHint = data.seenWeatherPersistHint
+	end
+	if type(data.seenLightsTypeHint) == "boolean" then
+		widgetState.uiPrefs.seenLightsTypeHint = data.seenLightsTypeHint
+	end
+	if type(data.seenCloneLayersHint) == "boolean" then
+		widgetState.uiPrefs.seenCloneLayersHint = data.seenCloneLayersHint
+	end
+	if type(data.seenSceneSkyboxHint) == "boolean" then
+		widgetState.uiPrefs.seenSceneSkyboxHint = data.seenSceneSkyboxHint
+	end
 end
 
 function saveUiPrefs()	Spring.CreateDir(UI_PREFS_DIR)
 	local f = io.open(UI_PREFS_FILE, "w")
 	if not f then return end
-	f:write(string.format("return {\n\tdisableTips = %s,\n\tseenInstrumentsHint = %s,\n\tseenSplatDisplayHint = %s,\n}\n",
+	f:write(string.format("return {\n\tdisableTips = %s,\n\tseenInstrumentsHint = %s,\n\tseenSplatDisplayHint = %s,\n\tseenStartposShapeHint = %s,\n\tseenMetalStampHint = %s,\n\tseenFeaturesFiltersHint = %s,\n\tseenGrassColorFilterHint = %s,\n\tseenSplatFiltersHint = %s,\n\tseenWeatherPersistHint = %s,\n\tseenLightsTypeHint = %s,\n\tseenCloneLayersHint = %s,\n\tseenSceneSkyboxHint = %s,\n}\n",
 		tostring(widgetState.uiPrefs.disableTips and true or false),
 		tostring(widgetState.uiPrefs.seenInstrumentsHint and true or false),
-		tostring(widgetState.uiPrefs.seenSplatDisplayHint and true or false)))
+		tostring(widgetState.uiPrefs.seenSplatDisplayHint and true or false),
+		tostring(widgetState.uiPrefs.seenStartposShapeHint and true or false),
+		tostring(widgetState.uiPrefs.seenMetalStampHint and true or false),
+		tostring(widgetState.uiPrefs.seenFeaturesFiltersHint and true or false),
+		tostring(widgetState.uiPrefs.seenGrassColorFilterHint and true or false),
+		tostring(widgetState.uiPrefs.seenSplatFiltersHint and true or false),
+		tostring(widgetState.uiPrefs.seenWeatherPersistHint and true or false),
+		tostring(widgetState.uiPrefs.seenLightsTypeHint and true or false),
+		tostring(widgetState.uiPrefs.seenCloneLayersHint and true or false),
+		tostring(widgetState.uiPrefs.seenSceneSkyboxHint and true or false)))
 	f:close()
 end
 
 widgetState.saveUiPrefs = saveUiPrefs
+
+-- =============================================================================
+-- Blue-dot hint config: advertises one ergonomy-enhancing subtool per tool
+-- via a cyan pulsing dot on the section header / target button.
+-- Each entry:
+--   dotId            : element id of the <div class="tf-notify-dot">
+--   prefKey          : widgetState.uiPrefs.<key> boolean (persisted)
+--   markOnClick      : list of element ids; clicking any marks hint as seen
+--   sectionToggleId  : (optional) section toggle button id; clicking it while
+--                      the section opens triggers a chip 2-pulse on pulseTargets
+--   sectionId        : (optional) the section element id (for open-state check)
+--   pulseTargets     : (optional) list of chip ids to animate on section open
+--   pulseKey         : (optional) widgetState field storing pulse-fire frame
+--   pulseExpiryKey   : (optional) widgetState field storing pulse-clear time
+-- Listeners are wired in tf_environment.lua; per-frame gating lives in Update.
+-- =============================================================================
+widgetState.hintDots = {
+	{ dotId = "startpos-mode-notify-dot",      prefKey = "seenStartposShapeHint",
+	  markOnClick = { "btn-sp-shape", "btn-sp-startbox" } },
+	{ dotId = "metal-mode-notify-dot",         prefKey = "seenMetalStampHint",
+	  markOnClick = { "btn-mb-stamp" } },
+	{ dotId = "features-filters-notify-dot",   prefKey = "seenFeaturesFiltersHint",
+	  markOnClick = { "btn-toggle-fp-smart", "fp-filter-chip-slope", "fp-filter-chip-altitude" },
+	  sectionToggleId = "btn-toggle-fp-smart", sectionId = "section-fp-smart",
+	  pulseTargets = { "fp-filter-chip-slope", "fp-filter-chip-altitude" },
+	  pulseKey = "featuresFiltersPulseFrame", pulseExpiryKey = "featuresFiltersPulseExpiry" },
+	{ dotId = "grass-color-filter-notify-dot", prefKey = "seenGrassColorFilterHint",
+	  markOnClick = { "btn-toggle-gb-smart", "btn-gb-pill-color" },
+	  sectionToggleId = "btn-toggle-gb-smart", sectionId = "section-gb-smart",
+	  pulseTargets = { "btn-gb-pill-color" },
+	  pulseKey = "grassColorFilterPulseFrame", pulseExpiryKey = "grassColorFilterPulseExpiry" },
+	{ dotId = "splat-filters-notify-dot",      prefKey = "seenSplatFiltersHint",
+	  markOnClick = { "btn-toggle-sp-smart", "sp-filter-chip-slope", "sp-filter-chip-altitude" },
+	  sectionToggleId = "btn-toggle-sp-smart", sectionId = "section-sp-smart",
+	  pulseTargets = { "sp-filter-chip-slope", "sp-filter-chip-altitude" },
+	  pulseKey = "splatFiltersPulseFrame", pulseExpiryKey = "splatFiltersPulseExpiry" },
+	{ dotId = "weather-persist-notify-dot",    prefKey = "seenWeatherPersistHint",
+	  markOnClick = { "btn-wb-persistent" } },
+	{ dotId = "lights-type-notify-dot",        prefKey = "seenLightsTypeHint",
+	  markOnClick = { "btn-lt-cone", "btn-lt-beam" } },
+	{ dotId = "clone-layers-notify-dot",       prefKey = "seenCloneLayersHint",
+	  markOnClick = { "btn-cl-decals", "btn-cl-weather", "btn-cl-lights" } },
+	{ dotId = "scene-skybox-notify-dot",       prefKey = "seenSceneSkyboxHint",
+	  markOnClick = { "btn-env-skybox-library" } },
+}
 
 -- Skybox fade transition state (outside widgetState to avoid serialisation concerns)
 local skyFade = {
@@ -666,11 +798,11 @@ local function clearPassthrough()
 		widgetState.passthroughSaved = nil
 		local doc = widgetState.document
 		if doc then
-			local ptBtn = doc:GetElementById("btn-passthrough")
+			local ptBtn = getCachedEl(doc, "btn-passthrough")
 			if ptBtn then ptBtn:SetClass("active", false) end
-			local pauseIcon = doc:GetElementById("passthrough-icon-pause")
+			local pauseIcon = getCachedEl(doc, "passthrough-icon-pause")
 			if pauseIcon then pauseIcon:SetClass("hidden", false) end
-			local playIcon = doc:GetElementById("passthrough-icon-play")
+			local playIcon = getCachedEl(doc, "passthrough-icon-play")
 			if playIcon then playIcon:SetClass("hidden", true) end
 		end
 		if widgetState.rootElement then
@@ -714,12 +846,12 @@ local function onModeClick(mode)
 
 		setActiveClass(widgetState.modeButtons, mode)
 		local inRestore = mode == "restore"
-		local clayBtn = widgetState.document and widgetState.document:GetElementById("btn-clay-mode")
+		local clayBtn = widgetState.document and getCachedEl(widgetState.document, "btn-clay-mode")
 		if clayBtn then
 			clayBtn:SetClass("hidden", inRestore)
 			clayBtn:SetClass("unavailable", CLAY_UNAVAILABLE_MODES[mode] == true)
 		end
-		local frEl = widgetState.fullRestoreEl or (widgetState.document and widgetState.document:GetElementById("btn-full-restore"))
+		local frEl = widgetState.fullRestoreEl or (widgetState.document and getCachedEl(widgetState.document, "btn-full-restore"))
 		if frEl then
 			frEl:SetClass("hidden", not inRestore)
 		end
@@ -768,7 +900,7 @@ local function onShapeClick(shape)
 
 		setActiveClass(widgetState.shapeButtons, shape)
 
-		local ringWidthRowEl = widgetState.document and widgetState.document:GetElementById("ring-width-row")
+		local ringWidthRowEl = widgetState.document and getCachedEl(widgetState.document, "ring-width-row")
 		if ringWidthRowEl then
 			ringWidthRowEl:SetClass("hidden", shape ~= "ring")
 		end
@@ -905,7 +1037,14 @@ local function syncAndFlash(el, id, newValStr)
 	if not el or not newValStr then return end
 	if uiState.draggingSlider == id then return end
 	local prev = widgetState.prevSyncValues[id]
-	el:SetAttribute("value", newValStr)
+	-- Dirty-check: skip SetAttribute if value unchanged since last write.
+	-- Avoids triggering RmlUI slider re-layout on no-op syncs.
+	if prev ~= newValStr then
+		el:SetAttribute("value", newValStr)
+		-- Keep lastAttrValue cache coherent so setAttrValueIfChanged users
+		-- don't re-issue the same write if they target the same element.
+		widgetState.lastAttrValue[id] = newValStr
+	end
 	widgetState.prevSyncValues[id] = newValStr
 	if prev and prev ~= newValStr and not widgetState.lockedSliders[id] then
 		widgetState.sliderFlashes[id] = { el = el, timer = 1.0 }
@@ -1369,7 +1508,7 @@ local function updateAllKeybindBadges()
 			["kbhint-sp-curve"]     = "scroll_curve",
 		}
 		for hintId, hintAction in pairs(hintMap) do
-			local hintEl = doc:GetElementById(hintId)
+			local hintEl = getCachedEl(doc, hintId)
 			local kb = binds[hintAction]
 			if hintEl and kb then
 				local p1 = normKey(kb.label)
@@ -1387,7 +1526,7 @@ end
 -- Initialize badge element references (call once from attachEventListeners)
 local function initBadgeElements(doc)
 	for btnId, _ in pairs(BADGE_ACTION_MAP) do
-		local btn = doc:GetElementById(btnId)
+		local btn = getCachedEl(doc, btnId)
 		if btn then
 			-- The keybind badge is always the first child div
 			local child = btn:GetChild(0)
@@ -1400,7 +1539,7 @@ end
 
 -- Populate keybind list in settings window
 local function populateKeybindList(doc)
-	local listEl = doc:GetElementById("keybind-list")
+	local listEl = getCachedEl(doc, "keybind-list")
 	if not listEl then return end
 	local binds = widgetState.settingsPendingBinds
 	if not binds then return end
@@ -1624,7 +1763,7 @@ local function handleToolKey(keyCode)
 		if kb and kb.key == keyCode then
 			local doc = widgetState.document
 			if doc then
-				local btn = doc:GetElementById(btnId)
+				local btn = getCachedEl(doc, btnId)
 				if btn then
 					btn:Click()
 					return true
@@ -1719,7 +1858,7 @@ local function attachSliderInputBoxes(doc)
 			local numboxId = numbox.id or ""
 			local sliderId = numboxId:match("^(.+)-numbox$")
 			if sliderId then
-				local slider = doc:GetElementById(sliderId)
+				local slider = getCachedEl(doc, sliderId)
 				if slider then
 					wireSliderNumbox(slider, numbox)
 				end
@@ -1774,17 +1913,17 @@ widgetState.regTransports = function(doc)
 	end
 	widgetState.updateTransportBtns = updateTransportBtns
 	for _, sid in ipairs(TIDS) do
-		local slEl = doc:GetElementById(sid)
+		local slEl = getCachedEl(doc, sid)
 		if slEl then
-			local bEl   = doc:GetElementById(sid .. "-back")
-			local pEl   = doc:GetElementById(sid .. "-play")
-			local fEl   = doc:GetElementById(sid .. "-fwd")
+			local bEl   = getCachedEl(doc, sid .. "-back")
+			local pEl   = getCachedEl(doc, sid .. "-play")
+			local fEl   = getCachedEl(doc, sid .. "-fwd")
 			if bEl and pEl and fEl then
 				local ts = { el=slEl, dir=0, speed=0, paused=false, accum=0,
 				             backEl=bEl, playEl=pEl, fwdEl=fEl,
 				             wrap = (sid:find("rotation") ~= nil),
-				             toggleEl=doc:GetElementById(sid .. "-transport-toggle"),
-				             groupEl=doc:GetElementById(sid .. "-transport"),
+				             toggleEl=getCachedEl(doc, sid .. "-transport-toggle"),
+				             groupEl=getCachedEl(doc, sid .. "-transport"),
 				             toggleVisible=false }
 				widgetState.transports[sid] = ts
 				if ts.toggleEl then
@@ -1912,7 +2051,7 @@ local ctx = {
 ctx.attachTBMirrorControls = function(doc, prefix)
 	if not doc or not prefix then return end
 	local P = prefix
-	local function byId(id) return doc:GetElementById(id) end
+	local function byId(id) return getCachedEl(doc, id) end
 	local function click(id, fn)
 		local el = byId(id)
 		if el then
@@ -2015,11 +2154,11 @@ ctx.syncTBMirrorControls = function(doc, prefix)
 	local tb = WG.TerraformBrush
 	local s = tb and tb.getState() or {}
 	local function setCls(id, on)
-		local el = doc:GetElementById(id)
+		local el = getCachedEl(doc, id)
 		if el then el:SetClass("active", on and true or false) end
 	end
 	local function setHidden(id, on)
-		local el = doc:GetElementById(id)
+		local el = getCachedEl(doc, id)
 		if el then el:SetClass("hidden", not on) end
 	end
 	setCls("btn-"..P.."-grid-overlay",     s.gridOverlay)
@@ -2044,17 +2183,17 @@ local function attachEventListeners()
 	-- Safety net: clear drag state if mouseup happens anywhere on document
 	doc:AddEventListener("mouseup", function() uiState.draggingSlider = nil end, false)
 
-	widgetState.modeButtons.raise = doc:GetElementById("btn-raise")
-	widgetState.modeButtons.lower = doc:GetElementById("btn-lower")
-	widgetState.modeButtons.smooth = doc:GetElementById("btn-level")
-	widgetState.modeButtons.ramp = doc:GetElementById("btn-ramp")
-	widgetState.modeButtons.restore = doc:GetElementById("btn-restore")
-	widgetState.modeButtons.noise = doc:GetElementById("btn-noise")
+	widgetState.modeButtons.raise = getCachedEl(doc, "btn-raise")
+	widgetState.modeButtons.lower = getCachedEl(doc, "btn-lower")
+	widgetState.modeButtons.smooth = getCachedEl(doc, "btn-level")
+	widgetState.modeButtons.ramp = getCachedEl(doc, "btn-ramp")
+	widgetState.modeButtons.restore = getCachedEl(doc, "btn-restore")
+	widgetState.modeButtons.noise = getCachedEl(doc, "btn-noise")
 
 	-- Smooth/Level submode buttons (child of primary SMOOTH button)
 	widgetState.smoothSubModeButtons = {
-		smooth = doc:GetElementById("btn-smooth-sub-smooth"),
-		level  = doc:GetElementById("btn-smooth-sub-level"),
+		smooth = getCachedEl(doc, "btn-smooth-sub-smooth"),
+		level  = getCachedEl(doc, "btn-smooth-sub-level"),
 	}
 	for subMode, subEl in pairs(widgetState.smoothSubModeButtons) do
 		if subEl then
@@ -2067,16 +2206,16 @@ local function attachEventListeners()
 		end
 	end
 
-	widgetState.shapeButtons.circle = doc:GetElementById("btn-circle")
-	widgetState.shapeButtons.square = doc:GetElementById("btn-square")
-	widgetState.shapeButtons.hexagon = doc:GetElementById("btn-hexagon")
-	widgetState.shapeButtons.octagon = doc:GetElementById("btn-octagon")
-	widgetState.shapeButtons.triangle = doc:GetElementById("btn-triangle")
-	widgetState.shapeButtons.ring = doc:GetElementById("btn-ring")
-	widgetState.shapeButtons.fill = doc:GetElementById("btn-fill")
+	widgetState.shapeButtons.circle = getCachedEl(doc, "btn-circle")
+	widgetState.shapeButtons.square = getCachedEl(doc, "btn-square")
+	widgetState.shapeButtons.hexagon = getCachedEl(doc, "btn-hexagon")
+	widgetState.shapeButtons.octagon = getCachedEl(doc, "btn-octagon")
+	widgetState.shapeButtons.triangle = getCachedEl(doc, "btn-triangle")
+	widgetState.shapeButtons.ring = getCachedEl(doc, "btn-ring")
+	widgetState.shapeButtons.fill = getCachedEl(doc, "btn-fill")
 
-	widgetState.rampTypeButtons.straight = doc:GetElementById("btn-ramp-straight")
-	widgetState.rampTypeButtons.spline   = doc:GetElementById("btn-ramp-spline")
+	widgetState.rampTypeButtons.straight = getCachedEl(doc, "btn-ramp-straight")
+	widgetState.rampTypeButtons.spline   = getCachedEl(doc, "btn-ramp-spline")
 
 	for mode, element in pairs(widgetState.modeButtons) do
 		if element then
@@ -2085,7 +2224,7 @@ local function attachEventListeners()
 	end
 
 	-- Feature Placer launch button
-	local featuresBtn = doc:GetElementById("btn-features")
+	local featuresBtn = getCachedEl(doc, "btn-features")
 	if featuresBtn then
 		featuresBtn:AddEventListener("click", function(event)
 			playSound("toolSwitch")
@@ -2121,7 +2260,7 @@ local function attachEventListeners()
 	end
 
 	-- Weather Brush launch button
-	local weatherBtn = doc:GetElementById("btn-weather")
+	local weatherBtn = getCachedEl(doc, "btn-weather")
 	if weatherBtn then
 		weatherBtn:AddEventListener("click", function(event)
 			playSound("toolSwitch")
@@ -2156,7 +2295,7 @@ local function attachEventListeners()
 	end
 
 	-- Environment tool button
-	local envBtn = doc:GetElementById("btn-environment")
+	local envBtn = getCachedEl(doc, "btn-environment")
 	if envBtn then
 		envBtn:AddEventListener("click", function(event)
 			playSound("toolSwitch")
@@ -2196,7 +2335,7 @@ local function attachEventListeners()
 	end
 
 	-- Light Placer launch button
-	local lightsBtn = doc:GetElementById("btn-lights")
+	local lightsBtn = getCachedEl(doc, "btn-lights")
 	if lightsBtn then
 		lightsBtn:AddEventListener("click", function(event)
 			playSound("toolSwitch")
@@ -2237,7 +2376,7 @@ local function attachEventListeners()
 	end
 
 	-- Start Positions Tool launch button
-	local startposBtn = doc:GetElementById("btn-startpos")
+	local startposBtn = getCachedEl(doc, "btn-startpos")
 	if startposBtn then
 		startposBtn:AddEventListener("click", function(event)
 			playSound("toolSwitch")
@@ -2280,7 +2419,7 @@ local function attachEventListeners()
 	end
 
 	-- Splat Painter launch button
-	local splatBtn = doc:GetElementById("btn-splat")
+	local splatBtn = getCachedEl(doc, "btn-splat")
 	if splatBtn then
 		splatBtn:AddEventListener("click", function(event)
 			playSound("toolSwitch")
@@ -2311,7 +2450,7 @@ local function attachEventListeners()
 				widgetState.decalsActive = false
 				if WG.DecalPlacer then WG.DecalPlacer.deactivate() end
 				WG.SplatPainter.activate()
-				local clayBtn = doc:GetElementById("btn-clay-mode")
+				local clayBtn = getCachedEl(doc, "btn-clay-mode")
 				if clayBtn then
 					clayBtn:SetClass("unavailable", true)
 				end
@@ -2341,7 +2480,7 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local undoBtn = doc:GetElementById("btn-undo")
+	local undoBtn = getCachedEl(doc, "btn-undo")
 	if undoBtn then
 		undoBtn:AddEventListener("click", function(event)
 			playSound("undo")
@@ -2352,7 +2491,7 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local redoBtn = doc:GetElementById("btn-redo")
+	local redoBtn = getCachedEl(doc, "btn-redo")
 	if redoBtn then
 		redoBtn:AddEventListener("click", function(event)
 			playSound("undo")
@@ -2363,7 +2502,7 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local sliderHistory = doc:GetElementById("slider-history")
+	local sliderHistory = getCachedEl(doc, "slider-history")
 	if sliderHistory then
 		trackSliderDrag(sliderHistory, "history")
 		sliderHistory:AddEventListener("change", function(event)
@@ -2374,6 +2513,13 @@ local function attachEventListeners()
 			if not state then event:StopPropagation(); return end
 			local currentUndoCount = state.undoCount or 0
 			local diff = val - currentUndoCount
+			-- Cap per-event undo/redo steps. Each step triggers a gadget msg +
+			-- heightmap rebuild, so unbounded loops here stall the frame on fast
+			-- slider drags. At 8 steps/event and multi-event drag semantics the
+			-- user still scrubs smoothly across arbitrary ranges.
+			local STEP_CAP = 8
+			if diff > STEP_CAP then diff = STEP_CAP
+			elseif diff < -STEP_CAP then diff = -STEP_CAP end
 			if diff > 0 then
 				for i = 1, diff do
 					WG.TerraformBrush.redo()
@@ -2388,7 +2534,7 @@ local function attachEventListeners()
 	end
 
 	-- Metal undo/redo (per-tool undo via metal gadget)
-	local mbUndoBtn = doc:GetElementById("btn-mb-undo")
+	local mbUndoBtn = getCachedEl(doc, "btn-mb-undo")
 	if mbUndoBtn then
 		mbUndoBtn:AddEventListener("click", function(event)
 			playSound("undo")
@@ -2397,7 +2543,7 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local mbRedoBtn = doc:GetElementById("btn-mb-redo")
+	local mbRedoBtn = getCachedEl(doc, "btn-mb-redo")
 	if mbRedoBtn then
 		mbRedoBtn:AddEventListener("click", function(event)
 			playSound("undo")
@@ -2406,7 +2552,7 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local mbSliderHistory = doc:GetElementById("slider-mb-history")
+	local mbSliderHistory = getCachedEl(doc, "slider-mb-history")
 	if mbSliderHistory then
 		trackSliderDrag(mbSliderHistory, "mb-history")
 		mbSliderHistory:AddEventListener("change", function(event)
@@ -2417,6 +2563,11 @@ local function attachEventListeners()
 			if not state then event:StopPropagation(); return end
 			local currentUndoCount = state.undoCount or 0
 			local diff = val - currentUndoCount
+			-- See slider-history above: cap per-event step count to avoid
+			-- frame stalls on fast drags.
+			local STEP_CAP = 8
+			if diff > STEP_CAP then diff = STEP_CAP
+			elseif diff < -STEP_CAP then diff = -STEP_CAP end
 			if diff > 0 then
 				for i = 1, diff do WG.TerraformBrush.redo() end
 			elseif diff < 0 then
@@ -2426,8 +2577,8 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local rotCW = doc:GetElementById("btn-rot-cw")
-	local rotCCW = doc:GetElementById("btn-rot-ccw")
+	local rotCW = getCachedEl(doc, "btn-rot-cw")
+	local rotCCW = getCachedEl(doc, "btn-rot-ccw")
 
 	if rotCW then
 		rotCW:AddEventListener("click", onRotateCW, false)
@@ -2437,7 +2588,7 @@ local function attachEventListeners()
 		rotCCW:AddEventListener("click", onRotateCCW, false)
 	end
 
-	local sliderRotation = doc:GetElementById("slider-rotation")
+	local sliderRotation = getCachedEl(doc, "slider-rotation")
 	if sliderRotation then
 		trackSliderDrag(sliderRotation, "rotation")
 		sliderRotation:AddEventListener("change", function(event)
@@ -2449,8 +2600,8 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local curveUpBtn = doc:GetElementById("btn-curve-up")
-	local curveDownBtn = doc:GetElementById("btn-curve-down")
+	local curveUpBtn = getCachedEl(doc, "btn-curve-up")
+	local curveDownBtn = getCachedEl(doc, "btn-curve-down")
 
 	if curveUpBtn then
 		curveUpBtn:AddEventListener("click", onCurveUp, false)
@@ -2460,8 +2611,8 @@ local function attachEventListeners()
 		curveDownBtn:AddEventListener("click", onCurveDown, false)
 	end
 
-	local intensityUpBtn = doc:GetElementById("btn-intensity-up")
-	local intensityDownBtn = doc:GetElementById("btn-intensity-down")
+	local intensityUpBtn = getCachedEl(doc, "btn-intensity-up")
+	local intensityDownBtn = getCachedEl(doc, "btn-intensity-down")
 
 	if intensityUpBtn then
 		intensityUpBtn:AddEventListener("click", onIntensityUp, false)
@@ -2471,7 +2622,7 @@ local function attachEventListeners()
 		intensityDownBtn:AddEventListener("click", onIntensityDown, false)
 	end
 
-	local sliderCurve = doc:GetElementById("slider-curve")
+	local sliderCurve = getCachedEl(doc, "slider-curve")
 	if sliderCurve then
 		trackSliderDrag(sliderCurve, "curve")
 		sliderCurve:AddEventListener("change", function(event)
@@ -2483,7 +2634,7 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local sliderIntensity = doc:GetElementById("slider-intensity")
+	local sliderIntensity = getCachedEl(doc, "slider-intensity")
 	if sliderIntensity then
 		trackSliderDrag(sliderIntensity, "intensity")
 		sliderIntensity:AddEventListener("change", function(event)
@@ -2495,8 +2646,8 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local sliderRestoreStrength = doc:GetElementById("slider-restore-strength")
-	local restoreStrengthLabel = doc:GetElementById("restore-strength-label")
+	local sliderRestoreStrength = getCachedEl(doc, "slider-restore-strength")
+	local restoreStrengthLabel = getCachedEl(doc, "restore-strength-label")
 	if sliderRestoreStrength then
 		trackSliderDrag(sliderRestoreStrength, "restoreStrength")
 		sliderRestoreStrength:AddEventListener("change", function(event)
@@ -2511,7 +2662,7 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local restoreStrengthUpBtn = doc:GetElementById("btn-restore-strength-up")
+	local restoreStrengthUpBtn = getCachedEl(doc, "btn-restore-strength-up")
 	if restoreStrengthUpBtn then
 		restoreStrengthUpBtn:AddEventListener("click", function(event)
 			if WG.TerraformBrush then
@@ -2523,7 +2674,7 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local restoreStrengthDownBtn = doc:GetElementById("btn-restore-strength-down")
+	local restoreStrengthDownBtn = getCachedEl(doc, "btn-restore-strength-down")
 	if restoreStrengthDownBtn then
 		restoreStrengthDownBtn:AddEventListener("click", function(event)
 			if WG.TerraformBrush then
@@ -2535,7 +2686,7 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local sliderLength = doc:GetElementById("slider-length")
+	local sliderLength = getCachedEl(doc, "slider-length")
 	if sliderLength then
 		trackSliderDrag(sliderLength, "length")
 		sliderLength:AddEventListener("change", function(event)
@@ -2547,7 +2698,7 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local lengthUpBtn = doc:GetElementById("btn-length-up")
+	local lengthUpBtn = getCachedEl(doc, "btn-length-up")
 	if lengthUpBtn then
 		lengthUpBtn:AddEventListener("click", function(event)
 			if WG.TerraformBrush then
@@ -2558,7 +2709,7 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local lengthDownBtn = doc:GetElementById("btn-length-down")
+	local lengthDownBtn = getCachedEl(doc, "btn-length-down")
 	if lengthDownBtn then
 		lengthDownBtn:AddEventListener("click", function(event)
 			if WG.TerraformBrush then
@@ -2569,7 +2720,7 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local sliderSize = doc:GetElementById("slider-size")
+	local sliderSize = getCachedEl(doc, "slider-size")
 	if sliderSize then
 		trackSliderDrag(sliderSize, "size")
 		sliderSize:AddEventListener("change", function(event)
@@ -2581,7 +2732,7 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local sizeUpBtn = doc:GetElementById("btn-size-up")
+	local sizeUpBtn = getCachedEl(doc, "btn-size-up")
 	if sizeUpBtn then
 		sizeUpBtn:AddEventListener("click", function(event)
 			if WG.TerraformBrush then
@@ -2592,7 +2743,7 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local sizeDownBtn = doc:GetElementById("btn-size-down")
+	local sizeDownBtn = getCachedEl(doc, "btn-size-down")
 	if sizeDownBtn then
 		sizeDownBtn:AddEventListener("click", function(event)
 			if WG.TerraformBrush then
@@ -2603,14 +2754,14 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local sliderRingWidth = doc:GetElementById("slider-ring-width")
+	local sliderRingWidth = getCachedEl(doc, "slider-ring-width")
 	if sliderRingWidth then
 		trackSliderDrag(sliderRingWidth, "ring-width")
 		sliderRingWidth:AddEventListener("change", function(event)
 			if not uiState.updatingFromCode and WG.TerraformBrush then
 				local val = tonumber(sliderRingWidth:GetAttribute("value")) or 40
 				ringWidthPct = val
-				local lbl = doc:GetElementById("ring-width-label")
+				local lbl = getCachedEl(doc, "ring-width-label")
 				if lbl then lbl.inner_rml = tostring(val) .. "%" end
 				WG.TerraformBrush.setRingInnerRatio(1 - val / 100)
 			end
@@ -2618,14 +2769,14 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local ringWidthUpBtn = doc:GetElementById("btn-ring-width-up")
+	local ringWidthUpBtn = getCachedEl(doc, "btn-ring-width-up")
 	if ringWidthUpBtn then
 		ringWidthUpBtn:AddEventListener("click", function(event)
 			if WG.TerraformBrush then
 				ringWidthPct = math.min(95, ringWidthPct + 5)
-				local sl = doc:GetElementById("slider-ring-width")
+				local sl = getCachedEl(doc, "slider-ring-width")
 				if sl then sl:SetAttribute("value", tostring(ringWidthPct)) end
-				local lbl = doc:GetElementById("ring-width-label")
+				local lbl = getCachedEl(doc, "ring-width-label")
 				if lbl then lbl.inner_rml = tostring(ringWidthPct) .. "%" end
 				WG.TerraformBrush.setRingInnerRatio(1 - ringWidthPct / 100)
 			end
@@ -2633,14 +2784,14 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local ringWidthDownBtn = doc:GetElementById("btn-ring-width-down")
+	local ringWidthDownBtn = getCachedEl(doc, "btn-ring-width-down")
 	if ringWidthDownBtn then
 		ringWidthDownBtn:AddEventListener("click", function(event)
 			if WG.TerraformBrush then
 				ringWidthPct = math.max(5, ringWidthPct - 5)
-				local sl = doc:GetElementById("slider-ring-width")
+				local sl = getCachedEl(doc, "slider-ring-width")
 				if sl then sl:SetAttribute("value", tostring(ringWidthPct)) end
-				local lbl = doc:GetElementById("ring-width-label")
+				local lbl = getCachedEl(doc, "ring-width-label")
 				if lbl then lbl.inner_rml = tostring(ringWidthPct) .. "%" end
 				WG.TerraformBrush.setRingInnerRatio(1 - ringWidthPct / 100)
 			end
@@ -2648,7 +2799,7 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local sliderCapMax = doc:GetElementById("slider-cap-max")
+	local sliderCapMax = getCachedEl(doc, "slider-cap-max")
 	if sliderCapMax then
 		trackSliderDrag(sliderCapMax, "capmax")
 		sliderCapMax:AddEventListener("change", function(event)
@@ -2664,7 +2815,7 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local sliderCapMin = doc:GetElementById("slider-cap-min")
+	local sliderCapMin = getCachedEl(doc, "slider-cap-min")
 	if sliderCapMin then
 		trackSliderDrag(sliderCapMin, "capmin")
 		sliderCapMin:AddEventListener("change", function(event)
@@ -2682,7 +2833,7 @@ local function attachEventListeners()
 
 	-- Height cap +/- buttons (reuse a single local to stay under 200-local limit)
 	local capBtn
-	capBtn = doc:GetElementById("btn-cap-max-up")
+	capBtn = getCachedEl(doc, "btn-cap-max-up")
 	if capBtn then
 		capBtn:AddEventListener("click", function(event)
 			capMaxValue = math.min(500, capMaxValue + HEIGHT_CAP_STEP)
@@ -2695,7 +2846,7 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	capBtn = doc:GetElementById("btn-cap-max-down")
+	capBtn = getCachedEl(doc, "btn-cap-max-down")
 	if capBtn then
 		capBtn:AddEventListener("click", function(event)
 			capMaxValue = math.max(-500, capMaxValue - HEIGHT_CAP_STEP)
@@ -2708,7 +2859,7 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	capBtn = doc:GetElementById("btn-cap-min-up")
+	capBtn = getCachedEl(doc, "btn-cap-min-up")
 	if capBtn then
 		capBtn:AddEventListener("click", function(event)
 			capMinValue = math.min(500, capMinValue + HEIGHT_CAP_STEP)
@@ -2721,7 +2872,7 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	capBtn = doc:GetElementById("btn-cap-min-down")
+	capBtn = getCachedEl(doc, "btn-cap-min-down")
 	if capBtn then
 		capBtn:AddEventListener("click", function(event)
 			capMinValue = math.max(-500, capMinValue - HEIGHT_CAP_STEP)
@@ -2735,7 +2886,7 @@ local function attachEventListeners()
 	end
 
 	-- SAMPLE buttons: toggle height-sampling mode for each cap endpoint
-	capBtn = doc:GetElementById("btn-sample-max")
+	capBtn = getCachedEl(doc, "btn-sample-max")
 	if capBtn then
 		capBtn:AddEventListener("click", function(event)
 			if WG.TerraformBrush then
@@ -2746,7 +2897,7 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	capBtn = doc:GetElementById("btn-sample-min")
+	capBtn = getCachedEl(doc, "btn-sample-min")
 	if capBtn then
 		capBtn:AddEventListener("click", function(event)
 			if WG.TerraformBrush then
@@ -2757,7 +2908,7 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local capAbsoluteBtn = doc:GetElementById("btn-cap-absolute")
+	local capAbsoluteBtn = getCachedEl(doc, "btn-cap-absolute")
 	if capAbsoluteBtn then
 		capAbsoluteBtn:AddEventListener("click", function(event)
 			playSound(capAbsolute and "toggleOff" or "toggleOn")
@@ -2774,7 +2925,7 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local clayBtn = doc:GetElementById("btn-clay-mode")
+	local clayBtn = getCachedEl(doc, "btn-clay-mode")
 	if clayBtn then
 		clayBtn:AddEventListener("click", function(event)
 			local spActive = WG.SplatPainter and WG.SplatPainter.getState() and WG.SplatPainter.getState().active
@@ -2792,7 +2943,7 @@ local function attachEventListeners()
 	end
 
 	do
-		local frBtn = doc:GetElementById("btn-full-restore")
+		local frBtn = getCachedEl(doc, "btn-full-restore")
 		if frBtn then
 			frBtn:AddEventListener("click", function(event)
 				if widgetState.fullRestoreConfirmExpiry > 0 then
@@ -2818,7 +2969,7 @@ local function attachEventListeners()
 		end
 	end
 
-	local gridBtn = doc:GetElementById("btn-grid-overlay")
+	local gridBtn = getCachedEl(doc, "btn-grid-overlay")
 	if gridBtn then
 		gridBtn:AddEventListener("click", function(event)
 			if WG.TerraformBrush then
@@ -2833,7 +2984,7 @@ local function attachEventListeners()
 	end
 
 	do
-		local snapBtn = doc:GetElementById("btn-grid-snap")
+		local snapBtn = getCachedEl(doc, "btn-grid-snap")
 		if snapBtn then
 			snapBtn:AddEventListener("click", function(event)
 				if WG.TerraformBrush then
@@ -2846,21 +2997,21 @@ local function attachEventListeners()
 				event:StopPropagation()
 			end, false)
 		end
-		local sliderSnapSize = doc:GetElementById("slider-grid-snap-size")
+		local sliderSnapSize = getCachedEl(doc, "slider-grid-snap-size")
 		if sliderSnapSize then
 			sliderSnapSize:AddEventListener("change", function(event)
 				if not uiState.updatingFromCode and WG.TerraformBrush then
 					local val = tonumber(sliderSnapSize:GetAttribute("value")) or 48
 					WG.TerraformBrush.setGridSnapSize(val)
-					local lbl = doc:GetElementById("grid-snap-size-label")
+					local lbl = getCachedEl(doc, "grid-snap-size-label")
 					if lbl then lbl.inner_rml = tostring(val) end
-					local nb = doc:GetElementById("slider-grid-snap-size-numbox")
+					local nb = getCachedEl(doc, "slider-grid-snap-size-numbox")
 					if nb then nb:SetAttribute("value", tostring(val)) end
 				end
 				event:StopPropagation()
 			end, false)
 		end
-		local snapSizeDownBtn = doc:GetElementById("btn-snap-size-down")
+		local snapSizeDownBtn = getCachedEl(doc, "btn-snap-size-down")
 		if snapSizeDownBtn then
 			snapSizeDownBtn:AddEventListener("click", function(event)
 				if WG.TerraformBrush then
@@ -2869,15 +3020,15 @@ local function attachEventListeners()
 					local newVal = math.max(16, cur - 16)
 					WG.TerraformBrush.setGridSnapSize(newVal)
 					if sliderSnapSize then sliderSnapSize:SetAttribute("value", tostring(newVal)) end
-					local lbl = doc:GetElementById("grid-snap-size-label")
+					local lbl = getCachedEl(doc, "grid-snap-size-label")
 					if lbl then lbl.inner_rml = tostring(newVal) end
-					local nb = doc:GetElementById("slider-grid-snap-size-numbox")
+					local nb = getCachedEl(doc, "slider-grid-snap-size-numbox")
 					if nb then nb:SetAttribute("value", tostring(newVal)) end
 				end
 				event:StopPropagation()
 			end, false)
 		end
-		local snapSizeUpBtn = doc:GetElementById("btn-snap-size-up")
+		local snapSizeUpBtn = getCachedEl(doc, "btn-snap-size-up")
 		if snapSizeUpBtn then
 			snapSizeUpBtn:AddEventListener("click", function(event)
 				if WG.TerraformBrush then
@@ -2886,9 +3037,9 @@ local function attachEventListeners()
 					local newVal = math.min(128, cur + 16)
 					WG.TerraformBrush.setGridSnapSize(newVal)
 					if sliderSnapSize then sliderSnapSize:SetAttribute("value", tostring(newVal)) end
-					local lbl = doc:GetElementById("grid-snap-size-label")
+					local lbl = getCachedEl(doc, "grid-snap-size-label")
 					if lbl then lbl.inner_rml = tostring(newVal) end
-					local nb = doc:GetElementById("slider-grid-snap-size-numbox")
+					local nb = getCachedEl(doc, "slider-grid-snap-size-numbox")
 					if nb then nb:SetAttribute("value", tostring(newVal)) end
 				end
 				event:StopPropagation()
@@ -2898,7 +3049,7 @@ local function attachEventListeners()
 
 	-- ── Protractor: angle-snap toggle + step slider ─────────────────────────────
 	do
-		local angleSnapBtn = doc:GetElementById("btn-angle-snap")
+		local angleSnapBtn = getCachedEl(doc, "btn-angle-snap")
 		if angleSnapBtn then
 			angleSnapBtn:AddEventListener("click", function(event)
 				if WG.TerraformBrush then
@@ -2926,14 +3077,14 @@ local function attachEventListeners()
 			local pval = ANGLE_PRESETS[idx]
 			local pstr = (pval == math.floor(pval)) and tostring(math.floor(pval)) or tostring(pval)
 			if WG.TerraformBrush then WG.TerraformBrush.setAngleSnapStep(pval) end
-			local sl = doc:GetElementById("slider-angle-snap-step")
+			local sl = getCachedEl(doc, "slider-angle-snap-step")
 			if sl then sl:SetAttribute("value", tostring(idx - 1)) end
-			local lbl = doc:GetElementById("angle-snap-step-label")
+			local lbl = getCachedEl(doc, "angle-snap-step-label")
 			if lbl then lbl.inner_rml = pstr end
-			local nb = doc:GetElementById("slider-angle-snap-step-numbox")
+			local nb = getCachedEl(doc, "slider-angle-snap-step-numbox")
 			if nb then nb:SetAttribute("value", pstr) end
 		end
-		local sliderAngleStep = doc:GetElementById("slider-angle-snap-step")
+		local sliderAngleStep = getCachedEl(doc, "slider-angle-snap-step")
 		if sliderAngleStep then
 			sliderAngleStep:AddEventListener("change", function(event)
 				if not uiState.updatingFromCode and WG.TerraformBrush then
@@ -2943,7 +3094,7 @@ local function attachEventListeners()
 				event:StopPropagation()
 			end, false)
 		end
-		local angleStepDownBtn = doc:GetElementById("btn-angle-step-down")
+		local angleStepDownBtn = getCachedEl(doc, "btn-angle-step-down")
 		if angleStepDownBtn then
 			angleStepDownBtn:AddEventListener("click", function(event)
 				if WG.TerraformBrush then
@@ -2954,7 +3105,7 @@ local function attachEventListeners()
 				event:StopPropagation()
 			end, false)
 		end
-		local angleStepUpBtn = doc:GetElementById("btn-angle-step-up")
+		local angleStepUpBtn = getCachedEl(doc, "btn-angle-step-up")
 		if angleStepUpBtn then
 			angleStepUpBtn:AddEventListener("click", function(event)
 				if WG.TerraformBrush then
@@ -2966,7 +3117,7 @@ local function attachEventListeners()
 			end, false)
 		end
 		-- Autosnap toggle
-		local autoSnapBtn = doc:GetElementById("btn-angle-autosnap")
+		local autoSnapBtn = getCachedEl(doc, "btn-angle-autosnap")
 		if autoSnapBtn then
 			autoSnapBtn:AddEventListener("click", function(event)
 				if WG.TerraformBrush then
@@ -2975,21 +3126,21 @@ local function attachEventListeners()
 					playSound(newVal and "toggleOn" or "toggleOff")
 					WG.TerraformBrush.setAngleSnapAuto(newVal)
 					autoSnapBtn:SetClass("active", newVal)
-					local manualRow = doc:GetElementById("angle-manual-spoke-row")
+					local manualRow = getCachedEl(doc, "angle-manual-spoke-row")
 					if manualRow then manualRow:SetClass("hidden", newVal) end
 				end
 				event:StopPropagation()
 			end, false)
 		end
 		-- Manual spoke slider
-		local manualSpokeSlider = doc:GetElementById("slider-manual-spoke")
+		local manualSpokeSlider = getCachedEl(doc, "slider-manual-spoke")
 		local function applyManualSpoke(idx)
 			if WG.TerraformBrush then
 				WG.TerraformBrush.setAngleSnapManualSpoke(idx)
 				local state = WG.TerraformBrush.getState()
 				local step  = state and state.angleSnapStep or 15
 				local deg   = idx * step
-				local lbl   = doc:GetElementById("angle-manual-spoke-label")
+				local lbl   = getCachedEl(doc, "angle-manual-spoke-label")
 				if lbl then lbl.inner_rml = tostring(deg % 360) end
 				if manualSpokeSlider then manualSpokeSlider:SetAttribute("value", tostring(idx)) end
 			end
@@ -3003,7 +3154,7 @@ local function attachEventListeners()
 				event:StopPropagation()
 			end, false)
 		end
-		local manualSpokeDown = doc:GetElementById("btn-manual-spoke-down")
+		local manualSpokeDown = getCachedEl(doc, "btn-manual-spoke-down")
 		if manualSpokeDown then
 			manualSpokeDown:AddEventListener("click", function(event)
 				if WG.TerraformBrush then
@@ -3016,7 +3167,7 @@ local function attachEventListeners()
 				event:StopPropagation()
 			end, false)
 		end
-		local manualSpokeUp = doc:GetElementById("btn-manual-spoke-up")
+		local manualSpokeUp = getCachedEl(doc, "btn-manual-spoke-up")
 		if manualSpokeUp then
 			manualSpokeUp:AddEventListener("click", function(event)
 				if WG.TerraformBrush then
@@ -3033,7 +3184,7 @@ local function attachEventListeners()
 
 	-- ── Measure tool: toggle + clear ────────────────────────────────────────────
 	do
-		local measureBtn = doc:GetElementById("btn-measure")
+		local measureBtn = getCachedEl(doc, "btn-measure")
 		if measureBtn then
 			measureBtn:AddEventListener("click", function(event)
 				if WG.TerraformBrush then
@@ -3046,7 +3197,7 @@ local function attachEventListeners()
 				event:StopPropagation()
 			end, false)
 		end
-		local measureClearBtn = doc:GetElementById("btn-measure-clear")
+		local measureClearBtn = getCachedEl(doc, "btn-measure-clear")
 		if measureClearBtn then
 			measureClearBtn:AddEventListener("click", function(event)
 				if WG.TerraformBrush then
@@ -3056,7 +3207,7 @@ local function attachEventListeners()
 				event:StopPropagation()
 			end, false)
 		end
-		local rulerModeBtn = doc:GetElementById("btn-measure-ruler")
+		local rulerModeBtn = getCachedEl(doc, "btn-measure-ruler")
 		if rulerModeBtn then
 			rulerModeBtn:AddEventListener("click", function(event)
 				if WG.TerraformBrush then
@@ -3069,7 +3220,7 @@ local function attachEventListeners()
 				event:StopPropagation()
 			end, false)
 		end
-		local stickyModeBtn = doc:GetElementById("btn-measure-sticky")
+		local stickyModeBtn = getCachedEl(doc, "btn-measure-sticky")
 		if stickyModeBtn then
 			stickyModeBtn:AddEventListener("click", function(event)
 				if WG.TerraformBrush then
@@ -3082,7 +3233,7 @@ local function attachEventListeners()
 				event:StopPropagation()
 			end, false)
 		end
-		local showLengthBtn = doc:GetElementById("btn-measure-show-length")
+		local showLengthBtn = getCachedEl(doc, "btn-measure-show-length")
 		if showLengthBtn then
 			showLengthBtn:AddEventListener("click", function(event)
 				if WG.TerraformBrush then
@@ -3096,7 +3247,7 @@ local function attachEventListeners()
 			end, false)
 		end
 		-- G4: Auto-Ramp toggle — enable/disable automatic ramp chain attachment
-		local rampAttachBtn = doc:GetElementById("btn-measure-ramp-attach")
+		local rampAttachBtn = getCachedEl(doc, "btn-measure-ramp-attach")
 		if rampAttachBtn then
 			rampAttachBtn:AddEventListener("click", function(event)
 				if WG.TerraformBrush then
@@ -3110,7 +3261,7 @@ local function attachEventListeners()
 			end, false)
 		end
 		-- G4: Clear Ramps — removes only ramp-linked chains, keeps hand-drawn ones
-		local clearRampsBtn = doc:GetElementById("btn-measure-clear-ramps")
+		local clearRampsBtn = getCachedEl(doc, "btn-measure-clear-ramps")
 		if clearRampsBtn then
 			clearRampsBtn:AddEventListener("click", function(event)
 				if WG.TerraformBrush then
@@ -3124,7 +3275,7 @@ local function attachEventListeners()
 
 	-- ── Symmetry tool ───────────────────────────────────────────────────────────
 	do
-		local symmetryBtn = doc:GetElementById("btn-symmetry")
+		local symmetryBtn = getCachedEl(doc, "btn-symmetry")
 		if symmetryBtn then
 			symmetryBtn:AddEventListener("click", function(event)
 				if WG.TerraformBrush then
@@ -3137,7 +3288,7 @@ local function attachEventListeners()
 				event:StopPropagation()
 			end, false)
 		end
-		local mirrorXBtn = doc:GetElementById("btn-symmetry-mirror-x")
+		local mirrorXBtn = getCachedEl(doc, "btn-symmetry-mirror-x")
 		if mirrorXBtn then
 			mirrorXBtn:AddEventListener("click", function(event)
 				if WG.TerraformBrush then
@@ -3147,13 +3298,13 @@ local function attachEventListeners()
 					WG.TerraformBrush.setSymmetryMirrorX(newVal)
 					mirrorXBtn:SetClass("active", newVal)
 					-- Radial is mutually exclusive
-					local radialBtn = doc:GetElementById("btn-symmetry-radial")
+					local radialBtn = getCachedEl(doc, "btn-symmetry-radial")
 					if radialBtn then radialBtn:SetClass("active", false) end
 				end
 				event:StopPropagation()
 			end, false)
 		end
-		local mirrorYBtn = doc:GetElementById("btn-symmetry-mirror-y")
+		local mirrorYBtn = getCachedEl(doc, "btn-symmetry-mirror-y")
 		if mirrorYBtn then
 			mirrorYBtn:AddEventListener("click", function(event)
 				if WG.TerraformBrush then
@@ -3162,13 +3313,13 @@ local function attachEventListeners()
 					playSound(newVal and "toggleOn" or "toggleOff")
 					WG.TerraformBrush.setSymmetryMirrorY(newVal)
 					mirrorYBtn:SetClass("active", newVal)
-					local radialBtn = doc:GetElementById("btn-symmetry-radial")
+					local radialBtn = getCachedEl(doc, "btn-symmetry-radial")
 					if radialBtn then radialBtn:SetClass("active", false) end
 				end
 				event:StopPropagation()
 			end, false)
 		end
-		local radialBtn = doc:GetElementById("btn-symmetry-radial")
+		local radialBtn = getCachedEl(doc, "btn-symmetry-radial")
 		if radialBtn then
 			radialBtn:AddEventListener("click", function(event)
 				if WG.TerraformBrush then
@@ -3179,9 +3330,9 @@ local function attachEventListeners()
 					radialBtn:SetClass("active", newVal)
 					-- Clear mirror buttons when radial on
 					if newVal then
-						local mxBtn = doc:GetElementById("btn-symmetry-mirror-x")
+						local mxBtn = getCachedEl(doc, "btn-symmetry-mirror-x")
 						if mxBtn then mxBtn:SetClass("active", false) end
-						local myBtn = doc:GetElementById("btn-symmetry-mirror-y")
+						local myBtn = getCachedEl(doc, "btn-symmetry-mirror-y")
 						if myBtn then myBtn:SetClass("active", false) end
 					end
 				end
@@ -3189,20 +3340,20 @@ local function attachEventListeners()
 			end, false)
 		end
 		-- Radial count slider
-		local radialCountSlider = doc:GetElementById("slider-symmetry-radial-count")
+		local radialCountSlider = getCachedEl(doc, "slider-symmetry-radial-count")
 		if radialCountSlider then
 			radialCountSlider:AddEventListener("change", function(event)
 				if not uiState.updatingFromCode and WG.TerraformBrush then
 					local val = tonumber(radialCountSlider:GetAttribute("value")) or 2
 					WG.TerraformBrush.setSymmetryRadialCount(val)
-					local lbl = doc:GetElementById("symmetry-radial-count-label")
+					local lbl = getCachedEl(doc, "symmetry-radial-count-label")
 					if lbl then lbl.inner_rml = tostring(val) end
 				end
 				event:StopPropagation()
 			end, false)
 			trackSliderDrag(radialCountSlider, "symmetry-radial-count")
 		end
-		local countDownBtn = doc:GetElementById("btn-symmetry-count-down")
+		local countDownBtn = getCachedEl(doc, "btn-symmetry-count-down")
 		if countDownBtn then
 			countDownBtn:AddEventListener("click", function(event)
 				if WG.TerraformBrush then
@@ -3210,15 +3361,15 @@ local function attachEventListeners()
 					local cur = (state and state.symmetryRadialCount) or 2
 					local newVal = math.max(2, cur - 1)
 					WG.TerraformBrush.setSymmetryRadialCount(newVal)
-					local lbl = doc:GetElementById("symmetry-radial-count-label")
+					local lbl = getCachedEl(doc, "symmetry-radial-count-label")
 					if lbl then lbl.inner_rml = tostring(newVal) end
-					local sl = doc:GetElementById("slider-symmetry-radial-count")
+					local sl = getCachedEl(doc, "slider-symmetry-radial-count")
 					if sl then sl:SetAttribute("value", tostring(newVal)) end
 				end
 				event:StopPropagation()
 			end, false)
 		end
-		local countUpBtn = doc:GetElementById("btn-symmetry-count-up")
+		local countUpBtn = getCachedEl(doc, "btn-symmetry-count-up")
 		if countUpBtn then
 			countUpBtn:AddEventListener("click", function(event)
 				if WG.TerraformBrush then
@@ -3226,16 +3377,16 @@ local function attachEventListeners()
 					local cur = (state and state.symmetryRadialCount) or 2
 					local newVal = math.min(16, cur + 1)
 					WG.TerraformBrush.setSymmetryRadialCount(newVal)
-					local lbl = doc:GetElementById("symmetry-radial-count-label")
+					local lbl = getCachedEl(doc, "symmetry-radial-count-label")
 					if lbl then lbl.inner_rml = tostring(newVal) end
-					local sl = doc:GetElementById("slider-symmetry-radial-count")
+					local sl = getCachedEl(doc, "slider-symmetry-radial-count")
 					if sl then sl:SetAttribute("value", tostring(newVal)) end
 				end
 				event:StopPropagation()
 			end, false)
 		end
 		-- Place origin button
-		local placeOriginBtn = doc:GetElementById("btn-symmetry-place-origin")
+		local placeOriginBtn = getCachedEl(doc, "btn-symmetry-place-origin")
 		if placeOriginBtn then
 			placeOriginBtn:AddEventListener("click", function(event)
 				if WG.TerraformBrush then
@@ -3246,7 +3397,7 @@ local function attachEventListeners()
 			end, false)
 		end
 		-- Center origin button
-		local centerOriginBtn = doc:GetElementById("btn-symmetry-center-origin")
+		local centerOriginBtn = getCachedEl(doc, "btn-symmetry-center-origin")
 		if centerOriginBtn then
 			centerOriginBtn:AddEventListener("click", function(event)
 				if WG.TerraformBrush then
@@ -3257,20 +3408,20 @@ local function attachEventListeners()
 			end, false)
 		end
 		-- Mirror axis angle slider
-		local mirrorAngleSlider = doc:GetElementById("slider-symmetry-mirror-angle")
+		local mirrorAngleSlider = getCachedEl(doc, "slider-symmetry-mirror-angle")
 		if mirrorAngleSlider then
 			mirrorAngleSlider:AddEventListener("change", function(event)
 				if not uiState.updatingFromCode and WG.TerraformBrush then
 					local val = tonumber(mirrorAngleSlider:GetAttribute("value")) or 0
 					WG.TerraformBrush.setSymmetryMirrorAngle(val)
-					local lbl = doc:GetElementById("symmetry-mirror-angle-label")
+					local lbl = getCachedEl(doc, "symmetry-mirror-angle-label")
 					if lbl then lbl.inner_rml = tostring(math.floor(val)) end
 				end
 				event:StopPropagation()
 			end, false)
 			trackSliderDrag(mirrorAngleSlider, "symmetry-mirror-angle")
 		end
-		local angleDownBtn = doc:GetElementById("btn-symmetry-angle-down")
+		local angleDownBtn = getCachedEl(doc, "btn-symmetry-angle-down")
 		if angleDownBtn then
 			angleDownBtn:AddEventListener("click", function(event)
 				if WG.TerraformBrush then
@@ -3278,15 +3429,15 @@ local function attachEventListeners()
 					local cur = (state and state.symmetryMirrorAngle) or 0
 					local newVal = (cur - 5) % 360
 					WG.TerraformBrush.setSymmetryMirrorAngle(newVal)
-					local lbl = doc:GetElementById("symmetry-mirror-angle-label")
+					local lbl = getCachedEl(doc, "symmetry-mirror-angle-label")
 					if lbl then lbl.inner_rml = tostring(math.floor(newVal)) end
-					local sl = doc:GetElementById("slider-symmetry-mirror-angle")
+					local sl = getCachedEl(doc, "slider-symmetry-mirror-angle")
 					if sl then sl:SetAttribute("value", tostring(newVal)) end
 				end
 				event:StopPropagation()
 			end, false)
 		end
-		local angleUpBtn = doc:GetElementById("btn-symmetry-angle-up")
+		local angleUpBtn = getCachedEl(doc, "btn-symmetry-angle-up")
 		if angleUpBtn then
 			angleUpBtn:AddEventListener("click", function(event)
 				if WG.TerraformBrush then
@@ -3294,16 +3445,16 @@ local function attachEventListeners()
 					local cur = (state and state.symmetryMirrorAngle) or 0
 					local newVal = (cur + 5) % 360
 					WG.TerraformBrush.setSymmetryMirrorAngle(newVal)
-					local lbl = doc:GetElementById("symmetry-mirror-angle-label")
+					local lbl = getCachedEl(doc, "symmetry-mirror-angle-label")
 					if lbl then lbl.inner_rml = tostring(math.floor(newVal)) end
-					local sl = doc:GetElementById("slider-symmetry-mirror-angle")
+					local sl = getCachedEl(doc, "slider-symmetry-mirror-angle")
 					if sl then sl:SetAttribute("value", tostring(newVal)) end
 				end
 				event:StopPropagation()
 			end, false)
 		end
 		-- Flipped mode toggle
-		local flippedBtn = doc:GetElementById("btn-symmetry-flipped")
+		local flippedBtn = getCachedEl(doc, "btn-symmetry-flipped")
 		if flippedBtn then
 			flippedBtn:AddEventListener("click", function(event)
 				if WG.TerraformBrush then
@@ -3317,7 +3468,7 @@ local function attachEventListeners()
 			end, false)
 		end
 		-- Distort mode toggle (visible when measure tool active)
-		local distortModeBtn = doc:GetElementById("btn-measure-distort")
+		local distortModeBtn = getCachedEl(doc, "btn-measure-distort")
 		if distortModeBtn then
 			distortModeBtn:AddEventListener("click", function(event)
 				if WG.TerraformBrush then
@@ -3331,7 +3482,7 @@ local function attachEventListeners()
 			end, false)
 		end
 		-- Clear all symmetry settings
-		local clearBtn = doc:GetElementById("btn-symmetry-clear")
+		local clearBtn = getCachedEl(doc, "btn-symmetry-clear")
 		if clearBtn then
 			clearBtn:AddEventListener("click", function(event)
 				if WG.TerraformBrush then
@@ -3343,7 +3494,7 @@ local function attachEventListeners()
 		end
 	end
 
-	local colormapBtn = doc:GetElementById("btn-height-colormap")
+	local colormapBtn = getCachedEl(doc, "btn-height-colormap")
 	if colormapBtn then
 		colormapBtn:AddEventListener("click", function(event)
 			if WG.TerraformBrush then
@@ -3357,7 +3508,7 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local curveOverlayBtn = doc:GetElementById("btn-curve-overlay")
+	local curveOverlayBtn = getCachedEl(doc, "btn-curve-overlay")
 	if curveOverlayBtn then
 		curveOverlayBtn:AddEventListener("click", function(event)
 			if WG.TerraformBrush then
@@ -3371,7 +3522,7 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local velocityIntensityBtn = doc:GetElementById("btn-velocity-intensity")
+	local velocityIntensityBtn = getCachedEl(doc, "btn-velocity-intensity")
 	if velocityIntensityBtn then
 		velocityIntensityBtn:AddEventListener("click", function(event)
 			if WG.TerraformBrush then
@@ -3387,7 +3538,7 @@ local function attachEventListeners()
 
 	-- Pen Pressure inline chip toggles (intensity + size rows)
 	do
-		local penIntChip = doc:GetElementById("btn-pen-intensity")
+		local penIntChip = getCachedEl(doc, "btn-pen-intensity")
 		if penIntChip then
 			penIntChip:AddEventListener("click", function(event)
 				if WG.TerraformBrush then
@@ -3400,7 +3551,7 @@ local function attachEventListeners()
 				event:StopPropagation()
 			end, false)
 		end
-		local penSizeChip = doc:GetElementById("btn-pen-size")
+		local penSizeChip = getCachedEl(doc, "btn-pen-size")
 		if penSizeChip then
 			penSizeChip:AddEventListener("click", function(event)
 				if WG.TerraformBrush then
@@ -3417,7 +3568,7 @@ local function attachEventListeners()
 
 
 
-	local exportBtn = doc:GetElementById("btn-export")
+	local exportBtn = getCachedEl(doc, "btn-export")
 	if exportBtn then
 		exportBtn:AddEventListener("click", function(event)
 			Spring.SendCommands("terraformexport")
@@ -3425,8 +3576,8 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local importBtn = doc:GetElementById("btn-import")
-	local tooltipLoad = doc:GetElementById("tooltip-load")
+	local importBtn = getCachedEl(doc, "btn-import")
+	local tooltipLoad = getCachedEl(doc, "tooltip-load")
 	if importBtn and tooltipLoad then
 		importBtn:AddEventListener("mouseover", function(event)
 			tooltipLoad:SetClass("hidden", false)
@@ -3436,7 +3587,7 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local metalBtn = doc:GetElementById("btn-metal")
+	local metalBtn = getCachedEl(doc, "btn-metal")
 	if metalBtn then
 		metalBtn:AddEventListener("click", function(event)
 			playSound("toolSwitch")
@@ -3465,7 +3616,7 @@ local function attachEventListeners()
 				widgetState.cloneActive = false
 				if WG.CloneTool then WG.CloneTool.deactivate() end
 				WG.MetalBrush.activate("paint")
-				local clayBtn = doc:GetElementById("btn-clay-mode")
+				local clayBtn = getCachedEl(doc, "btn-clay-mode")
 				if clayBtn then
 					clayBtn:SetClass("unavailable", true)
 				end
@@ -3475,7 +3626,7 @@ local function attachEventListeners()
 	end
 
 	-- Grass launch button
-	local grassBtn = doc:GetElementById("btn-grass")
+	local grassBtn = getCachedEl(doc, "btn-grass")
 	if grassBtn then
 		grassBtn:AddEventListener("mouseover", function(event)
 			local gApi = WG['grassgl4']
@@ -3519,7 +3670,7 @@ local function attachEventListeners()
 				widgetState.cloneActive = false
 				if WG.CloneTool then WG.CloneTool.deactivate() end
 				WG.GrassBrush.activate("paint")
-				local clayBtn = doc:GetElementById("btn-clay-mode")
+				local clayBtn = getCachedEl(doc, "btn-clay-mode")
 				if clayBtn then
 					clayBtn:SetClass("unavailable", true)
 				end
@@ -3529,7 +3680,7 @@ local function attachEventListeners()
 	end
 
 	-- Decals launch button
-	local decalsBtn = doc:GetElementById("btn-decals")
+	local decalsBtn = getCachedEl(doc, "btn-decals")
 	if decalsBtn then
 		decalsBtn:AddEventListener("click", function(event)
 			playSound("toolSwitch")
@@ -3554,7 +3705,7 @@ local function attachEventListeners()
 					WG.DecalPlacer.setMode("point")
 				end
 			end
-			local clayBtn = doc:GetElementById("btn-clay-mode")
+			local clayBtn = getCachedEl(doc, "btn-clay-mode")
 			if clayBtn then
 				clayBtn:SetClass("unavailable", true)
 			end
@@ -3562,7 +3713,7 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local quitBtn = doc:GetElementById("btn-quit")
+	local quitBtn = getCachedEl(doc, "btn-quit")
 	if quitBtn then
 		quitBtn:AddEventListener("click", function(event)
 			playSound("exit")
@@ -3586,7 +3737,7 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local defaultsBtn = doc:GetElementById("btn-defaults")
+	local defaultsBtn = getCachedEl(doc, "btn-defaults")
 	if defaultsBtn then
 		defaultsBtn:AddEventListener("click", function(event)
 			playSound("reset")
@@ -3612,39 +3763,39 @@ local function attachEventListeners()
 			capMinValue = 0
 			capMaxValue = 0
 			capAbsolute = true
-			local absImg = doc:GetElementById("btn-cap-absolute")
+			local absImg = getCachedEl(doc, "btn-cap-absolute")
 			if absImg then
 				absImg:SetAttribute("src", "/luaui/images/terraform_brush/check_on.png")
 			end
-			local clayImg = doc:GetElementById("btn-clay-mode")
+			local clayImg = getCachedEl(doc, "btn-clay-mode")
 			if clayImg then
 				clayImg:SetClass("active", false)
 			end
-			local gridImg = doc:GetElementById("btn-grid-overlay")
+			local gridImg = getCachedEl(doc, "btn-grid-overlay")
 			if gridImg then
 				gridImg:SetClass("active", false)
 			end
-			local dustEl = doc:GetElementById("btn-dust-effects")
+			local dustEl = getCachedEl(doc, "btn-dust-effects")
 			if dustEl then
 				dustEl:SetClass("active", false)
-				local pill = doc:GetElementById("pill-dust-effects")
+				local pill = getCachedEl(doc, "pill-dust-effects")
 				if pill then pill.inner_rml = "OFF" end
 			end
-			local seismicEl = doc:GetElementById("btn-seismic-effects")
+			local seismicEl = getCachedEl(doc, "btn-seismic-effects")
 			if seismicEl then
 				seismicEl:SetClass("active", false)
-				local pill2 = doc:GetElementById("pill-seismic-effects")
+				local pill2 = getCachedEl(doc, "pill-seismic-effects")
 				if pill2 then pill2.inner_rml = "OFF" end
 			end
-			local cmapImg = doc:GetElementById("btn-height-colormap")
+			local cmapImg = getCachedEl(doc, "btn-height-colormap")
 			if cmapImg then
 				cmapImg:SetClass("active", false)
 			end
-			local curveOvImg = doc:GetElementById("btn-curve-overlay")
+			local curveOvImg = getCachedEl(doc, "btn-curve-overlay")
 			if curveOvImg then
 				curveOvImg:SetClass("active", false)
 			end
-			local velIntImg = doc:GetElementById("btn-velocity-intensity")
+			local velIntImg = getCachedEl(doc, "btn-velocity-intensity")
 			if velIntImg then
 				velIntImg:SetClass("active", false)
 			end
@@ -3653,10 +3804,10 @@ local function attachEventListeners()
 	end
 
 	-- Preset combobox system
-	local presetNameInput = doc:GetElementById("preset-name-input")
-	local presetDropdown = doc:GetElementById("preset-dropdown")
-	local presetSaveBtn = doc:GetElementById("btn-preset-save")
-	local presetToggleBtn = doc:GetElementById("btn-preset-toggle")
+	local presetNameInput = getCachedEl(doc, "preset-name-input")
+	local presetDropdown = getCachedEl(doc, "preset-dropdown")
+	local presetSaveBtn = getCachedEl(doc, "btn-preset-save")
+	local presetToggleBtn = getCachedEl(doc, "btn-preset-toggle")
 	local dropdownOpen = false
 	local lastFilter = ""
 
@@ -3863,7 +4014,7 @@ local function attachEventListeners()
 
 		local function makeWindowDraggable(handleId, rootEl)
 			if not rootEl then return end
-			local handleEl = doc:GetElementById(handleId)
+			local handleEl = getCachedEl(doc, handleId)
 			if not handleEl then return end
 			allW[#allW + 1] = { rootEl = rootEl, handleId = handleId }
 
@@ -3937,9 +4088,9 @@ local function attachEventListeners()
 	if Game.mapDamage == false then
 		widgetState.noTerraform = true
 		do
-			local noticeEl = doc:GetElementById("tf-mapdamage-notice")
+			local noticeEl = getCachedEl(doc, "tf-mapdamage-notice")
 			if noticeEl then noticeEl:SetClass("hidden", false) end
-			local terrainSectionEl = doc:GetElementById("section-terrain")
+			local terrainSectionEl = getCachedEl(doc, "section-terrain")
 			if terrainSectionEl then terrainSectionEl:SetClass("tf-terrain-locked", true) end
 		end
 	end
@@ -3969,7 +4120,7 @@ function widget:Initialize()
 	-- Load persisted UI prefs (disableTips, etc.)
 	if loadUiPrefs then loadUiPrefs() end
 
-	widgetState.rootElement = document:GetElementById("tf-root")
+	widgetState.rootElement = getCachedEl(document, "tf-root")
 	widgetState.rootElement:SetClass("hidden", true)
 
 	local vsx = GetViewGeometry()
@@ -4845,7 +4996,7 @@ function widget:Update()
 	-- Ensure full-restore button only shows in terraform restore mode
 	do
 		local inTfRestore = tfActive and tfState and tfState.mode == "restore"
-		local clayEl = doc and doc:GetElementById("btn-clay-mode")
+		local clayEl = doc and getCachedEl(doc, "btn-clay-mode")
 		if clayEl then clayEl:SetClass("hidden", inTfRestore == true) end
 		local frEl = widgetState.fullRestoreEl
 		if frEl then frEl:SetClass("hidden", not inTfRestore) end
@@ -4883,15 +5034,55 @@ function widget:Update()
 	if fillBtn then
 		fillBtn:SetClass("disabled", mbActive or fpActive or gbActive or wbActive or lpActive or noiseActive or false)
 	end
-	local clayBtn = doc and doc:GetElementById("btn-clay-mode")
+	local clayBtn = doc and getCachedEl(doc, "btn-clay-mode")
 	if clayBtn then
 		clayBtn:SetClass("disabled", mbActive or lpActive or false)
 	end
 
 	local doc = widgetState.document
 
+	-- Blue-dot hint gating: hide dots already seen or when tips disabled,
+	-- and handle chip 2-pulse animations scheduled by tf_environment listeners.
+	do
+		if doc and widgetState.hintDots then
+			local up = widgetState.uiPrefs
+			local tipsDisabled = up and up.disableTips
+			local nowFrame = Spring.GetGameFrame()
+			local nowSec = Spring.GetGameSeconds() or 0
+			for _, h in ipairs(widgetState.hintDots) do
+				local dot = getCachedEl(doc, h.dotId)
+				if dot then
+					local alreadySeen = up and up[h.prefKey]
+					dot:SetClass("hidden", tipsDisabled or alreadySeen or false)
+				end
+				if h.pulseKey and widgetState[h.pulseKey] and nowFrame >= widgetState[h.pulseKey] then
+					widgetState[h.pulseKey] = nil
+					if not tipsDisabled and h.pulseTargets then
+						for _, tid in ipairs(h.pulseTargets) do
+							local t = getCachedEl(doc, tid)
+							if t then
+								t:SetClass("tf-chip-2pulse", false)
+								t:SetClass("tf-chip-2pulse", true)
+							end
+						end
+						widgetState[h.pulseExpiryKey] = nowSec + 1.25
+					end
+				end
+				if h.pulseExpiryKey and widgetState[h.pulseExpiryKey] and nowSec >= widgetState[h.pulseExpiryKey] then
+					widgetState[h.pulseExpiryKey] = nil
+					if h.pulseTargets then
+						for _, tid in ipairs(h.pulseTargets) do
+							local t = getCachedEl(doc, tid)
+							if t then t:SetClass("tf-chip-2pulse", false) end
+						end
+					end
+				end
+			end
+		end
+	end
+
 	-- Status summary helper (shared by all tool branches)
-	local sumEl = doc and doc:GetElementById("status-summary")
+	local sumEl = doc and getCachedEl(doc, "status-summary")
 	local function setSummary(title, color, ...)
 		if not sumEl then return end
 		local sep = '<span class="tf-ss-sep">|</span>'
@@ -4915,16 +5106,16 @@ function widget:Update()
 		do
 			local toolBtnIds = {"btn-metal", "btn-features", "btn-splat", "btn-decals", "btn-weather", "btn-environment", "btn-lights", "btn-grass", "btn-startpos", "btn-clone"}
 			for _, btnId in ipairs(toolBtnIds) do
-				local el = doc:GetElementById(btnId)
+				local el = getCachedEl(doc, btnId)
 				if el then el:SetClass("active", false) end
 			end
 		end
 
 		-- Hide ramp-type row by default; the terrain-mode branch re-shows it when in ramp mode
 		do
-			local rampTypeRowEl = doc:GetElementById("tf-ramp-type-row")
+			local rampTypeRowEl = getCachedEl(doc, "tf-ramp-type-row")
 			if rampTypeRowEl then rampTypeRowEl:SetClass("hidden", true) end
-			local shapeRowEl = doc:GetElementById("tf-shape-row")
+			local shapeRowEl = getCachedEl(doc, "tf-shape-row")
 			-- Scene (env), clone, and startpos do not use shapes — keep hidden for those
 			local hideShape2 = envActive or clActive or stpActive
 				or widgetState.cloneActive or widgetState.startposActive or widgetState.envActive
@@ -4937,7 +5128,7 @@ function widget:Update()
 		do
 			local gApi = WG['grassgl4']
 			local hasGrass = gApi and gApi.hasGrass and gApi.hasGrass()
-			local grassBtnEl = doc:GetElementById("btn-grass")
+			local grassBtnEl = getCachedEl(doc, "btn-grass")
 			if grassBtnEl then
 				grassBtnEl:SetClass("disabled", not hasGrass)
 			end
@@ -4984,7 +5175,7 @@ function widget:Update()
 	elseif wbState and wbState.active then
 		-- Weather Brush has no M.sync; drive mirror chips directly here.
 		do
-			local weatherBtnEl = doc and doc:GetElementById("btn-weather")
+			local weatherBtnEl = doc and getCachedEl(doc, "btn-weather")
 			if weatherBtnEl then weatherBtnEl:SetClass("active", true) end
 		end
 		if ctx.syncTBMirrorControls then ctx.syncTBMirrorControls(doc, "wb") end
@@ -5008,7 +5199,7 @@ function widget:Update()
 			widgetState.dmHandle.intensity = string.format("%.1f", state.intensity)
 
 			-- Stamp mode badge visibility
-			local stampBadge = doc and doc:GetElementById("stamp-badge")
+			local stampBadge = doc and getCachedEl(doc, "stamp-badge")
 			if stampBadge then
 				local isStamp = WG.TerraformBrush.isStampMode and WG.TerraformBrush.isStampMode() or false
 				stampBadge:SetClass("hidden", not isStamp)
@@ -5023,12 +5214,12 @@ function widget:Update()
 			uiState.updatingFromCode = true
 			local ds = uiState.draggingSlider
 
-			syncAndFlash(doc:GetElementById("slider-rotation"), "rotation", tostring(state.rotationDeg))
+			syncAndFlash(getCachedEl(doc, "slider-rotation"), "rotation", tostring(state.rotationDeg))
 
-			syncAndFlash(doc:GetElementById("slider-curve"), "curve", tostring(math.floor(state.curve * 10 + 0.5)))
+			syncAndFlash(getCachedEl(doc, "slider-curve"), "curve", tostring(math.floor(state.curve * 10 + 0.5)))
 
 			do
-				local elIntensity = doc:GetElementById("slider-intensity")
+				local elIntensity = getCachedEl(doc, "slider-intensity")
 				if elIntensity then
 					elIntensity:SetAttribute("max", tostring(intensityToSlider(effectiveMaxIntensity)))
 				end
@@ -5044,7 +5235,7 @@ function widget:Update()
 				end
 			end
 
-			syncAndFlash(doc:GetElementById("slider-length"), "length", tostring(math.floor(state.lengthScale * 10 + 0.5)))
+			syncAndFlash(getCachedEl(doc, "slider-length"), "length", tostring(math.floor(state.lengthScale * 10 + 0.5)))
 
 			do
 				local penEnabled = state.penPressureEnabled == true
@@ -5053,13 +5244,13 @@ function widget:Update()
 					local pm = state.penPressureMapped or state.penPressure or 0
 					local sens = state.penPressureSensitivity or 1.0
 					local effSize = math.floor((state.radius or 100) * (1.0 + pm * sens) + 0.5)
-					syncAndFlash(doc:GetElementById("slider-size"), "size", tostring(effSize))
+					syncAndFlash(getCachedEl(doc, "slider-size"), "size", tostring(effSize))
 				else
-					syncAndFlash(doc:GetElementById("slider-size"), "size", tostring(state.radius))
+					syncAndFlash(getCachedEl(doc, "slider-size"), "size", tostring(state.radius))
 				end
 			end
 
-			local ringWidthRowEl = doc:GetElementById("ring-width-row")
+			local ringWidthRowEl = getCachedEl(doc, "ring-width-row")
 			if ringWidthRowEl then
 				ringWidthRowEl:SetClass("hidden", state.shape ~= "ring")
 			end
@@ -5067,36 +5258,36 @@ function widget:Update()
 			if state.ringInnerRatio then
 				ringWidthPct = math.floor((1 - state.ringInnerRatio) * 100 + 0.5)
 			end
-			syncAndFlash(doc:GetElementById("slider-ring-width"), "ring-width", tostring(ringWidthPct))
-			local ringWidthLabelEl = doc:GetElementById("ring-width-label")
+			syncAndFlash(getCachedEl(doc, "slider-ring-width"), "ring-width", tostring(ringWidthPct))
+			local ringWidthLabelEl = getCachedEl(doc, "ring-width-label")
 			if ringWidthLabelEl then
 				ringWidthLabelEl.inner_rml = tostring(ringWidthPct) .. "%"
 			end
 
-			local restoreStrengthRow = doc:GetElementById("restore-strength-row")
+			local restoreStrengthRow = getCachedEl(doc, "restore-strength-row")
 			if restoreStrengthRow then
 				restoreStrengthRow:SetClass("hidden", state.mode ~= "restore")
 			end
-			local sliderRestoreStrength = doc:GetElementById("slider-restore-strength")
+			local sliderRestoreStrength = getCachedEl(doc, "slider-restore-strength")
 			if sliderRestoreStrength and ds ~= "restoreStrength" then
 				sliderRestoreStrength:SetAttribute("value", tostring(math.floor((state.restoreStrength or 1.0) * 100 + 0.5)))
 			end
-			local restoreStrengthLabel = doc:GetElementById("restore-strength-label")
+			local restoreStrengthLabel = getCachedEl(doc, "restore-strength-label")
 			if restoreStrengthLabel then
 				restoreStrengthLabel.inner_rml = tostring(math.floor((state.restoreStrength or 1.0) * 100 + 0.5)) .. "%"
 			end
 
-			local sliderCapMax = doc:GetElementById("slider-cap-max")
+			local sliderCapMax = getCachedEl(doc, "slider-cap-max")
 			if sliderCapMax and ds ~= "capmax" then
 				sliderCapMax:SetAttribute("value", tostring(capMaxValue))
 			end
 
-			local sliderCapMin = doc:GetElementById("slider-cap-min")
+			local sliderCapMin = getCachedEl(doc, "slider-cap-min")
 			if sliderCapMin and ds ~= "capmin" then
 				sliderCapMin:SetAttribute("value", tostring(capMinValue))
 			end
 
-			local sliderHistory = doc:GetElementById("slider-history")
+			local sliderHistory = getCachedEl(doc, "slider-history")
 			if sliderHistory and ds ~= "history" then
 				local totalSteps = (state.undoCount or 0) + (state.redoCount or 0)
 				local maxVal = math.min(totalSteps, 400)
@@ -5105,45 +5296,45 @@ function widget:Update()
 				sliderHistory:SetAttribute("value", tostring(state.undoCount or 0))
 			end
 
-			local clayImg = doc:GetElementById("btn-clay-mode")
+			local clayImg = getCachedEl(doc, "btn-clay-mode")
 			if clayImg then
 				clayImg:SetClass("active", state.clayMode == true)
 				clayImg:SetClass("unavailable", CLAY_UNAVAILABLE_MODES[state.mode] == true)
 			end
 
-			local gridImg = doc:GetElementById("btn-grid-overlay")
+			local gridImg = getCachedEl(doc, "btn-grid-overlay")
 			if gridImg then
 				gridImg:SetClass("active", state.gridOverlay == true)
 			end
 
-			local snapImg = doc:GetElementById("btn-grid-snap")
+			local snapImg = getCachedEl(doc, "btn-grid-snap")
 			if snapImg then
 				snapImg:SetClass("active", state.gridSnap == true)
 			end
 
-			local snapSizeRow = doc:GetElementById("grid-snap-size-row")
+			local snapSizeRow = getCachedEl(doc, "grid-snap-size-row")
 			if snapSizeRow then
 				snapSizeRow:SetClass("hidden", not state.gridSnap)
 			end
-			local sliderSnapSizeSync = doc:GetElementById("slider-grid-snap-size")
+			local sliderSnapSizeSync = getCachedEl(doc, "slider-grid-snap-size")
 			if sliderSnapSizeSync then
 				sliderSnapSizeSync:SetAttribute("value", tostring(state.gridSnapSize or 48))
 			end
-			local snapSizeLabel = doc:GetElementById("grid-snap-size-label")
+			local snapSizeLabel = getCachedEl(doc, "grid-snap-size-label")
 			if snapSizeLabel then
 				snapSizeLabel.inner_rml = tostring(state.gridSnapSize or 48)
 			end
-			local snapSizeNb = doc:GetElementById("slider-grid-snap-size-numbox")
+			local snapSizeNb = getCachedEl(doc, "slider-grid-snap-size-numbox")
 			if snapSizeNb then
 				snapSizeNb:SetAttribute("value", tostring(state.gridSnapSize or 48))
 			end
 
 			-- Protractor state sync
-			local angleSnapImg = doc:GetElementById("btn-angle-snap")
+			local angleSnapImg = getCachedEl(doc, "btn-angle-snap")
 			if angleSnapImg then
 				angleSnapImg:SetClass("active", state.angleSnap == true)
 			end
-			local angleStepRow = doc:GetElementById("angle-snap-step-row")
+			local angleStepRow = getCachedEl(doc, "angle-snap-step-row")
 			if angleStepRow then
 				angleStepRow:SetClass("hidden", not state.angleSnap)
 			end
@@ -5159,15 +5350,15 @@ function widget:Update()
 			local curStep = state.angleSnapStep or 15
 			local curIdx  = findAnglePresetIdxSync(curStep)
 			local curStr  = (curStep == math.floor(curStep)) and tostring(math.floor(curStep)) or tostring(curStep)
-			local sliderAngleStepSync = doc:GetElementById("slider-angle-snap-step")
+			local sliderAngleStepSync = getCachedEl(doc, "slider-angle-snap-step")
 			if sliderAngleStepSync then
 				sliderAngleStepSync:SetAttribute("value", tostring(curIdx - 1))
 			end
-			local angleStepLbl = doc:GetElementById("angle-snap-step-label")
+			local angleStepLbl = getCachedEl(doc, "angle-snap-step-label")
 			if angleStepLbl then
 				angleStepLbl.inner_rml = curStr
 			end
-			local angleStepNb = doc:GetElementById("slider-angle-snap-step-numbox")
+			local angleStepNb = getCachedEl(doc, "slider-angle-snap-step-numbox")
 			if angleStepNb then
 				angleStepNb:SetAttribute("value", curStr)
 			end
@@ -5175,18 +5366,18 @@ function widget:Update()
 			-- Autosnap toggle + manual spoke sync
 			do
 				local isAuto = state.angleSnapAuto ~= false
-				local asBtn = doc:GetElementById("btn-angle-autosnap")
+				local asBtn = getCachedEl(doc, "btn-angle-autosnap")
 				if asBtn then asBtn:SetClass("active", isAuto) end
-				local msRow = doc:GetElementById("angle-manual-spoke-row")
+				local msRow = getCachedEl(doc, "angle-manual-spoke-row")
 				if msRow then msRow:SetClass("hidden", isAuto) end
 				if not isAuto then
 					local step2 = state.angleSnapStep or 15
 					local numSpokes2 = math.max(1, math.floor(360 / step2))
 					local spokeIdx = state.angleSnapManualSpoke or 0
 					local spokeAngle = (spokeIdx * step2) % 360
-					local msLbl = doc:GetElementById("angle-manual-spoke-label")
+					local msLbl = getCachedEl(doc, "angle-manual-spoke-label")
 					if msLbl then msLbl.inner_rml = tostring(spokeAngle) end
-					local msSlider = doc:GetElementById("slider-manual-spoke")
+					local msSlider = getCachedEl(doc, "slider-manual-spoke")
 					if msSlider then
 						uiState.updatingFromCode = true
 						msSlider:SetAttribute("max", tostring(numSpokes2 - 1))
@@ -5197,7 +5388,7 @@ function widget:Update()
 			end
 
 			-- Measure tool state sync
-			local measureImg = doc:GetElementById("btn-measure")
+			local measureImg = getCachedEl(doc, "btn-measure")
 			if measureImg then
 				measureImg:SetClass("active", state.measureActive == true)
 			end
@@ -5210,8 +5401,8 @@ function widget:Update()
 					widgetState.instrumentsHintActive = true
 				end
 				widgetState.lastMeasureChainCount = curCount
-				local instSec = doc:GetElementById("section-instruments")
-				local instDot = doc:GetElementById("instruments-notify-dot")
+				local instSec = getCachedEl(doc, "section-instruments")
+				local instDot = getCachedEl(doc, "instruments-notify-dot")
 				if instDot then
 					local secHidden = instSec and instSec:IsClassSet("hidden") or false
 					local alreadySeen = widgetState.uiPrefs and widgetState.uiPrefs.seenInstrumentsHint
@@ -5233,20 +5424,20 @@ function widget:Update()
 					if measureImg then measureImg:SetClass("tf-chip-2pulse", false) end
 				end
 			end
-			local measureToolRow = doc:GetElementById("measure-toolbar-row")
+			local measureToolRow = getCachedEl(doc, "measure-toolbar-row")
 			if measureToolRow then
 				measureToolRow:SetClass("hidden", not state.measureActive)
 			end
 			do
-				local rulerBtn = doc:GetElementById("btn-measure-ruler")
+				local rulerBtn = getCachedEl(doc, "btn-measure-ruler")
 				if rulerBtn then
 					rulerBtn:SetClass("active", state.measureRulerMode == true)
 				end
-				local stickyBtn = doc:GetElementById("btn-measure-sticky")
+				local stickyBtn = getCachedEl(doc, "btn-measure-sticky")
 				if stickyBtn then
 					stickyBtn:SetClass("active", state.measureStickyMode == true)
 				end
-				local showLenBtn = doc:GetElementById("btn-measure-show-length")
+				local showLenBtn = getCachedEl(doc, "btn-measure-show-length")
 				if showLenBtn then
 					showLenBtn:SetClass("active", state.measureShowLength == true)
 				end
@@ -5254,76 +5445,76 @@ function widget:Update()
 
 			-- Symmetry tool state sync
 			do
-				local symBtn = doc:GetElementById("btn-symmetry")
+				local symBtn = getCachedEl(doc, "btn-symmetry")
 				if symBtn then symBtn:SetClass("active", state.symmetryActive == true) end
-				local symRow = doc:GetElementById("symmetry-toolbar-row")
+				local symRow = getCachedEl(doc, "symmetry-toolbar-row")
 				if symRow then symRow:SetClass("hidden", not state.symmetryActive) end
-				local symRadialBtn = doc:GetElementById("btn-symmetry-radial")
+				local symRadialBtn = getCachedEl(doc, "btn-symmetry-radial")
 				if symRadialBtn then symRadialBtn:SetClass("active", state.symmetryRadial == true) end
-				local symMirrorXBtn = doc:GetElementById("btn-symmetry-mirror-x")
+				local symMirrorXBtn = getCachedEl(doc, "btn-symmetry-mirror-x")
 				if symMirrorXBtn then symMirrorXBtn:SetClass("active", state.symmetryMirrorX == true) end
-				local symMirrorYBtn = doc:GetElementById("btn-symmetry-mirror-y")
+				local symMirrorYBtn = getCachedEl(doc, "btn-symmetry-mirror-y")
 				if symMirrorYBtn then symMirrorYBtn:SetClass("active", state.symmetryMirrorY == true) end
-				local symFlippedBtn = doc:GetElementById("btn-symmetry-flipped")
+				local symFlippedBtn = getCachedEl(doc, "btn-symmetry-flipped")
 				if symFlippedBtn then symFlippedBtn:SetClass("active", state.symmetryFlipped == true) end
-				local distortBtn = doc:GetElementById("btn-measure-distort")
+				local distortBtn = getCachedEl(doc, "btn-measure-distort")
 				if distortBtn then
 					distortBtn:SetClass("active", state.measureDistortMode == true)
 					distortBtn:SetClass("hidden", not state.measureActive)
 				end
-				local symRadialRow = doc:GetElementById("symmetry-radial-count-row")
+				local symRadialRow = getCachedEl(doc, "symmetry-radial-count-row")
 				if symRadialRow then symRadialRow:SetClass("hidden", not state.symmetryRadial) end
-				local symCountLabel = doc:GetElementById("symmetry-radial-count-label")
+				local symCountLabel = getCachedEl(doc, "symmetry-radial-count-label")
 				if symCountLabel then symCountLabel.inner_rml = tostring(state.symmetryRadialCount or 2) end
-				local symCountSlider = doc:GetElementById("slider-symmetry-radial-count")
+				local symCountSlider = getCachedEl(doc, "slider-symmetry-radial-count")
 				if symCountSlider then symCountSlider:SetAttribute("value", tostring(state.symmetryRadialCount or 2)) end
 				local hasAxial = state.symmetryMirrorX or state.symmetryMirrorY
-				local mirrorAngleRow = doc:GetElementById("symmetry-mirror-angle-row")
+				local mirrorAngleRow = getCachedEl(doc, "symmetry-mirror-angle-row")
 				if mirrorAngleRow then mirrorAngleRow:SetClass("hidden", not hasAxial) end
-				local mirrorAngleLabel = doc:GetElementById("symmetry-mirror-angle-label")
+				local mirrorAngleLabel = getCachedEl(doc, "symmetry-mirror-angle-label")
 				if mirrorAngleLabel then mirrorAngleLabel.inner_rml = tostring(math.floor(state.symmetryMirrorAngle or 0)) end
-				local mirrorAngleSlider = doc:GetElementById("slider-symmetry-mirror-angle")
+				local mirrorAngleSlider = getCachedEl(doc, "slider-symmetry-mirror-angle")
 				if mirrorAngleSlider then mirrorAngleSlider:SetAttribute("value", tostring(state.symmetryMirrorAngle or 0)) end
 			end
 
-			local dustEl = doc:GetElementById("btn-dust-effects")
+			local dustEl = getCachedEl(doc, "btn-dust-effects")
 			if dustEl then
 				dustEl:SetClass("active", state.dustEffects == true)
-				local pill = doc:GetElementById("pill-dust-effects")
+				local pill = getCachedEl(doc, "pill-dust-effects")
 				if pill then pill.inner_rml = state.dustEffects and "ON" or "OFF" end
 			end
-			local seismicEl = doc:GetElementById("btn-seismic-effects")
+			local seismicEl = getCachedEl(doc, "btn-seismic-effects")
 			if seismicEl then
 				seismicEl:SetClass("active", state.seismicEffects == true)
-				local pill2 = doc:GetElementById("pill-seismic-effects")
+				local pill2 = getCachedEl(doc, "pill-seismic-effects")
 				if pill2 then pill2.inner_rml = state.seismicEffects and "ON" or "OFF" end
 			end
-			local djActivateEl = doc:GetElementById("btn-dj-activate")
+			local djActivateEl = getCachedEl(doc, "btn-dj-activate")
 			if djActivateEl then
 				djActivateEl:SetClass("active", state.djMode == true)
-				local pillDj = doc:GetElementById("pill-dj-activate")
+				local pillDj = getCachedEl(doc, "pill-dj-activate")
 				if pillDj then pillDj.inner_rml = state.djMode and "ON" or "OFF" end
 			end
-			local subSettings = doc:GetElementById("dj-sub-settings")
+			local subSettings = getCachedEl(doc, "dj-sub-settings")
 			if subSettings then subSettings:SetClass("dj-disabled", not state.djMode) end
-			local cmapImg = doc:GetElementById("btn-height-colormap")
+			local cmapImg = getCachedEl(doc, "btn-height-colormap")
 			if cmapImg then
 				cmapImg:SetClass("active", state.heightColormap == true)
 			end
 
 			do
-				local sampleMax = doc:GetElementById("btn-sample-max")
+				local sampleMax = getCachedEl(doc, "btn-sample-max")
 				if sampleMax then sampleMax:SetClass("active", state.heightSamplingMode == "max") end
-				local sampleMin = doc:GetElementById("btn-sample-min")
+				local sampleMin = getCachedEl(doc, "btn-sample-min")
 				if sampleMin then sampleMin:SetClass("active", state.heightSamplingMode == "min") end
 			end
 
-			local curveOvImg = doc:GetElementById("btn-curve-overlay")
+			local curveOvImg = getCachedEl(doc, "btn-curve-overlay")
 			if curveOvImg then
 				curveOvImg:SetClass("active", state.curveOverlay == true)
 			end
 
-			local velIntImg = doc:GetElementById("btn-velocity-intensity")
+			local velIntImg = getCachedEl(doc, "btn-velocity-intensity")
 			if velIntImg then
 				velIntImg:SetClass("active", state.velocityIntensity == true)
 			end
@@ -5336,13 +5527,13 @@ function widget:Update()
 				local pctStr = string.format("%d%%", math.floor(pm * 100 + 0.5))
 
 				-- Intensity pen pill: show only when pen enabled AND modulate intensity is on
-				local penIntChip = doc:GetElementById("btn-pen-intensity")
+				local penIntChip = getCachedEl(doc, "btn-pen-intensity")
 				if penIntChip then
 					local showInt = penEnabled and (state.penPressureModulateIntensity == true)
 					penIntChip:SetClass("hidden", not showInt)
 					penIntChip:SetClass("active", showInt)
 				end
-				local penIntLabel = doc:GetElementById("pen-intensity-label")
+				local penIntLabel = getCachedEl(doc, "pen-intensity-label")
 				if penIntLabel then
 					local showInt = penEnabled and (state.penPressureModulateIntensity == true)
 					penIntLabel:SetClass("hidden", not showInt)
@@ -5350,13 +5541,13 @@ function widget:Update()
 				end
 
 				-- Size pen pill: show only when pen enabled AND modulate size is on
-				local penSizeChip = doc:GetElementById("btn-pen-size")
+				local penSizeChip = getCachedEl(doc, "btn-pen-size")
 				if penSizeChip then
 					local showSize = penEnabled and (state.penPressureModulateSize == true)
 					penSizeChip:SetClass("hidden", not showSize)
 					penSizeChip:SetClass("active", showSize)
 				end
-				local penSizeLabel = doc:GetElementById("pen-size-label")
+				local penSizeLabel = getCachedEl(doc, "pen-size-label")
 				if penSizeLabel then
 					local showSize = penEnabled and (state.penPressureModulateSize == true)
 					penSizeLabel:SetClass("hidden", not showSize)
@@ -5367,17 +5558,17 @@ function widget:Update()
 				uiState.updatingFromCode = false
 
 				-- Settings panel sync
-				local penToggle = doc:GetElementById("btn-pen-pressure-toggle")
+				local penToggle = getCachedEl(doc, "btn-pen-pressure-toggle")
 				if penToggle then penToggle:SetClass("active", penEnabled) end
-				local pillPen = doc:GetElementById("pill-pen-pressure")
+				local pillPen = getCachedEl(doc, "pill-pen-pressure")
 				if pillPen then pillPen.inner_rml = penEnabled and "ON" or "OFF" end
-				local penSub = doc:GetElementById("pen-pressure-sub")
+				local penSub = getCachedEl(doc, "pen-pressure-sub")
 				if penSub then penSub:SetClass("dj-disabled", not penEnabled) end
-				local modIntImg = doc:GetElementById("btn-pen-mod-intensity")
+				local modIntImg = getCachedEl(doc, "btn-pen-mod-intensity")
 				if modIntImg then
 					modIntImg:SetAttribute("src", (state.penPressureModulateIntensity) and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png")
 				end
-				local modSizeImg = doc:GetElementById("btn-pen-mod-size")
+				local modSizeImg = getCachedEl(doc, "btn-pen-mod-size")
 				if modSizeImg then
 					modSizeImg:SetAttribute("src", (state.penPressureModulateSize) and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png")
 				end
@@ -5385,7 +5576,7 @@ function widget:Update()
 				local curveMap = { [1]="btn-curve-linear", [2]="btn-curve-quad", [3]="btn-curve-cubic", [4]="btn-curve-scurve", [5]="btn-curve-log" }
 				local curveVal = state.penPressureCurve or 2
 				for cv, cid in pairs(curveMap) do
-					local el = doc:GetElementById(cid)
+					local el = getCachedEl(doc, cid)
 					if el then el:SetClass("active", cv == curveVal) end
 				end
 			end
@@ -5406,8 +5597,8 @@ function widget:Update()
 		end
 
 		-- Show ramp-type-row when in ramp mode; hide normal shape row
-		local rampTypeRowEl = doc and doc:GetElementById("tf-ramp-type-row")
-		local shapeRowEl    = doc and doc:GetElementById("tf-shape-row")
+		local rampTypeRowEl = doc and getCachedEl(doc, "tf-ramp-type-row")
+		local shapeRowEl    = doc and getCachedEl(doc, "tf-shape-row")
 		if rampTypeRowEl then
 			local isRamp = state.mode == "ramp"
 			rampTypeRowEl:SetClass("hidden", not isRamp)
@@ -5420,7 +5611,7 @@ function widget:Update()
 
 		-- D4: Update contextual status summary line
 		do
-			local sumEl = doc and doc:GetElementById("status-summary")
+			local sumEl = doc and getCachedEl(doc, "status-summary")
 			if sumEl then
 				local modeColors = {
 					raise = "#22c55e", lower = "#ef4444", level = "#06b6d4", smooth = "#06b6d4",
@@ -5463,64 +5654,64 @@ function widget:Update()
 			uiState.updatingFromCode = true
 			local ds = uiState.draggingSlider
 
-			local noiseSliderScale = doc:GetElementById("slider-noise-scale")
+			local noiseSliderScale = getCachedEl(doc, "slider-noise-scale")
 			if noiseSliderScale and ds ~= "noise-scale" then
 				noiseSliderScale:SetAttribute("value", tostring(state.noiseScale))
 			end
-			local nsLabel = doc:GetElementById("noise-scale-label")
+			local nsLabel = getCachedEl(doc, "noise-scale-label")
 			if nsLabel then nsLabel.inner_rml = tostring(state.noiseScale) end
 
-			local noiseSliderOctaves = doc:GetElementById("slider-noise-octaves")
+			local noiseSliderOctaves = getCachedEl(doc, "slider-noise-octaves")
 			if noiseSliderOctaves and ds ~= "noise-octaves" then
 				noiseSliderOctaves:SetAttribute("value", tostring(state.noiseOctaves))
 			end
-			local noLabel = doc:GetElementById("noise-octaves-label")
+			local noLabel = getCachedEl(doc, "noise-octaves-label")
 			if noLabel then noLabel.inner_rml = tostring(state.noiseOctaves) end
 
-			local noiseSliderPersist = doc:GetElementById("slider-noise-persistence")
+			local noiseSliderPersist = getCachedEl(doc, "slider-noise-persistence")
 			if noiseSliderPersist and ds ~= "noise-persistence" then
 				noiseSliderPersist:SetAttribute("value", tostring(math.floor(state.noisePersistence * 100 + 0.5)))
 			end
-			local npLabel = doc:GetElementById("noise-persistence-label")
+			local npLabel = getCachedEl(doc, "noise-persistence-label")
 			if npLabel then npLabel.inner_rml = string.format("%.2f", state.noisePersistence) end
 
-			local noiseSliderLacun = doc:GetElementById("slider-noise-lacunarity")
+			local noiseSliderLacun = getCachedEl(doc, "slider-noise-lacunarity")
 			if noiseSliderLacun and ds ~= "noise-lacunarity" then
 				noiseSliderLacun:SetAttribute("value", tostring(math.floor(state.noiseLacunarity * 10 + 0.5)))
 			end
-			local nlLabel = doc:GetElementById("noise-lacunarity-label")
+			local nlLabel = getCachedEl(doc, "noise-lacunarity-label")
 			if nlLabel then nlLabel.inner_rml = string.format("%.1f", state.noiseLacunarity) end
 
-			local noiseSliderSeed = doc:GetElementById("slider-noise-seed")
+			local noiseSliderSeed = getCachedEl(doc, "slider-noise-seed")
 			if noiseSliderSeed and ds ~= "noise-seed" then
 				noiseSliderSeed:SetAttribute("value", tostring(state.noiseSeed))
 			end
-			local seedLabel = doc:GetElementById("noise-seed-label")
+			local seedLabel = getCachedEl(doc, "noise-seed-label")
 			if seedLabel then seedLabel.inner_rml = tostring(state.noiseSeed) end
 
 			uiState.updatingFromCode = false
 		end
 
 		-- Clear feature mode highlights
-		local featuresBtn = doc and doc:GetElementById("btn-features")
+		local featuresBtn = doc and getCachedEl(doc, "btn-features")
 		if featuresBtn then
 			featuresBtn:SetClass("active", false)
 		end
 		-- Clear weather mode highlight
-		local weatherBtn = doc and doc:GetElementById("btn-weather")
+		local weatherBtn = doc and getCachedEl(doc, "btn-weather")
 		if weatherBtn then
 			weatherBtn:SetClass("active", false)
 		end
 		-- Clear splat mode highlight
-		local splatBtn3 = doc and doc:GetElementById("btn-splat")
+		local splatBtn3 = doc and getCachedEl(doc, "btn-splat")
 		if splatBtn3 then splatBtn3:SetClass("active", false) end
 		-- Clear decals mode highlight
-		local decalsBtn5 = doc and doc:GetElementById("btn-decals")
+		local decalsBtn5 = doc and getCachedEl(doc, "btn-decals")
 		if decalsBtn5 then decalsBtn5:SetClass("active", false) end
 		-- Clear metal mode highlight
-		local metalBtn5 = doc and doc:GetElementById("btn-metal")
+		local metalBtn5 = doc and getCachedEl(doc, "btn-metal")
 		if metalBtn5 then metalBtn5:SetClass("active", false) end
-		local grassBtn7 = doc and doc:GetElementById("btn-grass")
+		local grassBtn7 = doc and getCachedEl(doc, "btn-grass")
 		if grassBtn7 then grassBtn7:SetClass("active", false) end
 
 		-- Gray out unsupported shapes per mode
@@ -5535,14 +5726,14 @@ function widget:Update()
 		end
 
 		-- Import progress bar
-		local importRow = doc and doc:GetElementById("import-progress-row")
+		local importRow = doc and getCachedEl(doc, "import-progress-row")
 		if importRow then
 			if state.importProgress and state.importTotal and state.importTotal > 0 then
 				importRow:SetClass("hidden", false)
 				local pct = math.floor(state.importProgress / state.importTotal * 100)
-				local fill = doc:GetElementById("import-progress-fill")
+				local fill = getCachedEl(doc, "import-progress-fill")
 				if fill then fill:SetAttribute("style", "height: 6dp; width: " .. pct .. "%; background-color: #4a9eff; border-radius: 3dp;") end
-				local label = doc:GetElementById("import-progress-label")
+				local label = getCachedEl(doc, "import-progress-label")
 				if label then label.inner_rml = pct .. "%" end
 			else
 				importRow:SetClass("hidden", true)
@@ -5601,7 +5792,7 @@ function widget:Update()
 	-- Override status summary when hovering the grass button on maps with no grass data.
 	-- Done last so it beats any per-tool summary written above.
 	if widgetState.grassHoverNoData and widgetState.grassNoDataThisMap then
-		local sumEl2 = widgetState.document and widgetState.document:GetElementById("status-summary")
+		local sumEl2 = widgetState.document and getCachedEl(widgetState.document, "status-summary")
 		if sumEl2 then
 			local sep = '<span class="tf-ss-sep">|</span>'
 			sumEl2.inner_rml = '<span class="tf-ss-mode tf-ss-pulse" style="color: #10b981;">GRASS</span>' .. sep .. '<span class="tf-ss-val tf-ss-pulse" style="color: #fbbf24;">No grass data for this map</span>'
@@ -5744,6 +5935,13 @@ function widget:Shutdown()
 		widgetState.document:Close()
 		widgetState.document = nil
 	end
+
+	-- Invalidate per-frame element + write caches (elements belong to the
+	-- just-closed document and must not be reused on next LoadDocument).
+	widgetState.elCache = {}
+	widgetState.lastInnerRml = {}
+	widgetState.lastAttrValue = {}
+	widgetState.prevSyncValues = {}
 
 	if widgetState.rmlContext then
 		widgetState.rmlContext:RemoveDataModel(MODEL_NAME)
