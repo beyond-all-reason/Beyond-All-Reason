@@ -771,15 +771,45 @@ local function applyEraseBrush(worldX, worldZ)
 end
 
 local function applyBrush(worldX, worldZ)
-	if subMode == "erase" then
-		applyEraseBrush(worldX, worldZ)
-	elseif subMode == "fill" then
-		local direction = (paintButton == 1) and 1 or -1
-		applyFillBrush(worldX, worldZ, direction)
-	else
-		-- paint mode: LMB = add, RMB = remove
-		local direction = (paintButton == 1) and 1 or -1
-		applyPaintBrush(worldX, worldZ, direction)
+	local tb = WG.TerraformBrush
+	local rotDeg = 0
+	if tb and tb.getState then
+		local st = tb.getState()
+		rotDeg = st.rotationDeg or 0
+		-- Pull shared shape so the Shape row selection actually affects grass
+		if st.shape then
+			local s = st.shape
+			if s == "circle" or s == "square" or s == "hexagon" or s == "octagon" or s == "triangle" then
+				brushShape = s
+			else
+				brushShape = "circle"
+			end
+		end
+		brushRotation = rotDeg
+	end
+	if tb and tb.snapWorld then
+		worldX, worldZ = tb.snapWorld(worldX, worldZ, rotDeg)
+	end
+	local positions
+	if tb and tb.getSymmetricPositions then
+		positions = tb.getSymmetricPositions(worldX, worldZ, rotDeg)
+	end
+	if not positions or #positions == 0 then
+		positions = { { x = worldX, z = worldZ, rot = rotDeg } }
+	end
+	for i = 1, #positions do
+		local p = positions[i]
+		local px, pz = p.x, p.z
+		if subMode == "erase" then
+			applyEraseBrush(px, pz)
+		elseif subMode == "fill" then
+			local direction = (paintButton == 1) and 1 or -1
+			applyFillBrush(px, pz, direction)
+		else
+			-- paint mode: LMB = add, RMB = remove
+			local direction = (paintButton == 1) and 1 or -1
+			applyPaintBrush(px, pz, direction)
+		end
 	end
 end
 
@@ -1129,6 +1159,19 @@ function widget:MousePress(mx, my, button)
 	-- Middle mouse: always pass through for camera
 	if button == 2 then return false end
 
+	-- Defer to measure tool when active so grass paint doesn't consume the click
+	local tb = WG.TerraformBrush
+	if tb and tb.getState then
+		local st = tb.getState()
+		if st and st.measureActive then return false end
+		-- Defer to symmetry origin placement / drag-grab so terraform can handle it
+		if st and st.symmetryActive then
+			if st.symmetryPlacingOrigin or st.symmetryHoveringOrigin or st.symmetryDraggingOrigin then
+				return false
+			end
+		end
+	end
+
 	local worldX, worldZ = getWorldPos()
 	if not worldX then return false end
 
@@ -1320,6 +1363,17 @@ function widget:DrawWorld()
 
 	glColor(colorR, colorG, colorB, 0.85)
 	glLineWidth(2)
+	-- Sync shape/rotation from shared state for outline preview
+	do
+		local tb = WG.TerraformBrush
+		if tb and tb.getState then
+			local st = tb.getState()
+			if st.shape == "circle" or st.shape == "square" or st.shape == "hexagon" or st.shape == "octagon" or st.shape == "triangle" then
+				brushShape = st.shape
+			end
+			brushRotation = st.rotationDeg or brushRotation
+		end
+	end
 	drawShapeOutline(worldX, worldZ, brushRadius, brushShape, brushRotation, brushLengthScale)
 
 	-- Center cross

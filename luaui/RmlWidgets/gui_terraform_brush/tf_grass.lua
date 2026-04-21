@@ -431,6 +431,292 @@ function M.attach(doc, ctx)
 			end, false)
 		end
 	end
+
+	-- ── DISPLAY + INSTRUMENTS chips (forward to shared WG.TerraformBrush state) ──
+	do
+		local function chipToggle(id, getCur, setter)
+			local el = doc:GetElementById(id)
+			if not el then return end
+			el:AddEventListener("click", function(ev)
+				if WG.TerraformBrush then
+					local newVal = not getCur()
+					playSound(newVal and "toggleOn" or "toggleOff")
+					setter(newVal)
+					el:SetClass("active", newVal)
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+		local function getTFState() return WG.TerraformBrush and WG.TerraformBrush.getState() or {} end
+
+		chipToggle("btn-gb-grid-overlay",
+			function() return getTFState().gridOverlay end,
+			function(v) WG.TerraformBrush.setGridOverlay(v) end)
+		chipToggle("btn-gb-height-colormap",
+			function() return getTFState().heightColormap end,
+			function(v) WG.TerraformBrush.setHeightColormap(v) end)
+		local gbSnapRow = doc:GetElementById("gb-grid-snap-size-row")
+		local gbSnapBtn = doc:GetElementById("btn-gb-grid-snap")
+		if gbSnapBtn then
+			gbSnapBtn:AddEventListener("click", function(ev)
+				if WG.TerraformBrush then
+					local newVal = not getTFState().gridSnap
+					playSound(newVal and "toggleOn" or "toggleOff")
+					WG.TerraformBrush.setGridSnap(newVal)
+					gbSnapBtn:SetClass("active", newVal)
+					if gbSnapRow then gbSnapRow:SetClass("hidden", not newVal) end
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+		local gbMeasureRow = doc:GetElementById("gb-measure-toolbar-row")
+		local gbMeasureBtn = doc:GetElementById("btn-gb-measure")
+		if gbMeasureBtn then
+			gbMeasureBtn:AddEventListener("click", function(ev)
+				if WG.TerraformBrush then
+					local newVal = not getTFState().measureActive
+					playSound(newVal and "toggleOn" or "toggleOff")
+					WG.TerraformBrush.setMeasureActive(newVal)
+					gbMeasureBtn:SetClass("active", newVal)
+					if gbMeasureRow then gbMeasureRow:SetClass("hidden", not newVal) end
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+
+		local gbSnapSlider = doc:GetElementById("gb-slider-grid-snap-size")
+		if gbSnapSlider then
+			gbSnapSlider:AddEventListener("change", function(ev)
+				if uiState.updatingFromCode then ev:StopPropagation(); return end
+				if WG.TerraformBrush then
+					local v = tonumber(gbSnapSlider:GetAttribute("value")) or 48
+					WG.TerraformBrush.setGridSnapSize(v)
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+		local function gbSnapStep(delta)
+			if WG.TerraformBrush then
+				local cur = tonumber(getTFState().gridSnapSize) or 48
+				local v = math.max(16, math.min(128, cur + delta))
+				WG.TerraformBrush.setGridSnapSize(v)
+			end
+		end
+		local gsd = doc:GetElementById("gb-btn-snap-size-down")
+		if gsd then gsd:AddEventListener("click", function(ev) gbSnapStep(-16); ev:StopPropagation() end, false) end
+		local gsu = doc:GetElementById("gb-btn-snap-size-up")
+		if gsu then gsu:AddEventListener("click", function(ev) gbSnapStep(16); ev:StopPropagation() end, false) end
+
+		-- INSTRUMENTS: Protractor (angle snap) — shared state via WG.TerraformBrush
+		local gbAngleRow = doc:GetElementById("gb-angle-snap-step-row")
+		local gbAngleBtn = doc:GetElementById("btn-gb-angle-snap")
+		if gbAngleBtn then
+			gbAngleBtn:AddEventListener("click", function(ev)
+				if WG.TerraformBrush then
+					local newVal = not getTFState().angleSnap
+					playSound(newVal and "toggleOn" or "toggleOff")
+					WG.TerraformBrush.setAngleSnap(newVal)
+					gbAngleBtn:SetClass("active", newVal)
+					if gbAngleRow then gbAngleRow:SetClass("hidden", not newVal) end
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+		local GB_ANGLE_PRESETS = {7.5, 15, 30, 45, 60, 90}
+		local function gbFindAnglePresetIdx(val)
+			local best, bestD = 2, math.huge
+			for i, p in ipairs(GB_ANGLE_PRESETS) do
+				local d = math.abs(p - (val or 15))
+				if d < bestD then bestD = d; best = i end
+			end
+			return best
+		end
+		local function gbApplyAnglePreset(idx)
+			idx = math.max(1, math.min(#GB_ANGLE_PRESETS, idx))
+			local pval = GB_ANGLE_PRESETS[idx]
+			local pstr = (pval == math.floor(pval)) and tostring(math.floor(pval)) or tostring(pval)
+			if WG.TerraformBrush then WG.TerraformBrush.setAngleSnapStep(pval) end
+			local sl = doc:GetElementById("gb-slider-angle-snap-step")
+			if sl then sl:SetAttribute("value", tostring(idx - 1)) end
+			local lbl = doc:GetElementById("gb-angle-snap-step-label")
+			if lbl then lbl.inner_rml = pstr end
+			local nb = doc:GetElementById("gb-slider-angle-snap-step-numbox")
+			if nb then nb:SetAttribute("value", pstr) end
+		end
+		local gbAngleSlider = doc:GetElementById("gb-slider-angle-snap-step")
+		if gbAngleSlider then
+			gbAngleSlider:AddEventListener("change", function(ev)
+				if uiState.updatingFromCode then ev:StopPropagation(); return end
+				local idx = (tonumber(gbAngleSlider:GetAttribute("value")) or 1) + 1
+				gbApplyAnglePreset(idx)
+				ev:StopPropagation()
+			end, false)
+		end
+		local gbStepDn = doc:GetElementById("gb-btn-angle-step-down")
+		if gbStepDn then gbStepDn:AddEventListener("click", function(ev)
+			if WG.TerraformBrush then gbApplyAnglePreset(gbFindAnglePresetIdx(getTFState().angleSnapStep) - 1) end
+			ev:StopPropagation()
+		end, false) end
+		local gbStepUp = doc:GetElementById("gb-btn-angle-step-up")
+		if gbStepUp then gbStepUp:AddEventListener("click", function(ev)
+			if WG.TerraformBrush then gbApplyAnglePreset(gbFindAnglePresetIdx(getTFState().angleSnapStep) + 1) end
+			ev:StopPropagation()
+		end, false) end
+		local gbAutoBtn = doc:GetElementById("gb-btn-angle-autosnap")
+		if gbAutoBtn then
+			gbAutoBtn:AddEventListener("click", function(ev)
+				if WG.TerraformBrush then
+					local newVal = not getTFState().angleSnapAuto
+					playSound(newVal and "toggleOn" or "toggleOff")
+					WG.TerraformBrush.setAngleSnapAuto(newVal)
+					gbAutoBtn:SetClass("active", newVal)
+					local manualRow = doc:GetElementById("gb-angle-manual-spoke-row")
+					if manualRow then manualRow:SetClass("hidden", newVal) end
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+		local gbManualSlider = doc:GetElementById("gb-slider-manual-spoke")
+		local function gbApplyManualSpoke(idx)
+			if WG.TerraformBrush then
+				WG.TerraformBrush.setAngleSnapManualSpoke(idx)
+				local step = getTFState().angleSnapStep or 15
+				local deg  = (idx * step) % 360
+				local lbl  = doc:GetElementById("gb-angle-manual-spoke-label")
+				if lbl then lbl.inner_rml = tostring(deg) end
+				if gbManualSlider then gbManualSlider:SetAttribute("value", tostring(idx)) end
+			end
+		end
+		if gbManualSlider then
+			gbManualSlider:AddEventListener("change", function(ev)
+				if uiState.updatingFromCode then ev:StopPropagation(); return end
+				gbApplyManualSpoke(tonumber(gbManualSlider:GetAttribute("value")) or 0)
+				ev:StopPropagation()
+			end, false)
+		end
+		local gbMsDn = doc:GetElementById("gb-btn-manual-spoke-down")
+		if gbMsDn then gbMsDn:AddEventListener("click", function(ev)
+			if WG.TerraformBrush then
+				local s = getTFState()
+				local step = s.angleSnapStep or 15
+				local num  = math.max(1, math.floor(360 / step))
+				gbApplyManualSpoke(((s.angleSnapManualSpoke or 0) - 1 + num) % num)
+			end
+			ev:StopPropagation()
+		end, false) end
+		local gbMsUp = doc:GetElementById("gb-btn-manual-spoke-up")
+		if gbMsUp then gbMsUp:AddEventListener("click", function(ev)
+			if WG.TerraformBrush then
+				local s = getTFState()
+				local step = s.angleSnapStep or 15
+				local num  = math.max(1, math.floor(360 / step))
+				gbApplyManualSpoke(((s.angleSnapManualSpoke or 0) + 1) % num)
+			end
+			ev:StopPropagation()
+		end, false) end
+
+		local function gbMeasureBtnClick(id, fn)
+			local el = doc:GetElementById(id)
+			if el then el:AddEventListener("click", function(ev) fn(); ev:StopPropagation() end, false) end
+		end
+		gbMeasureBtnClick("gb-btn-measure-ruler",       function() if WG.TerraformBrush then WG.TerraformBrush.setMeasureRulerMode(not getTFState().measureRulerMode) end end)
+		gbMeasureBtnClick("gb-btn-measure-sticky",      function() if WG.TerraformBrush then WG.TerraformBrush.setMeasureStickyMode(not getTFState().measureStickyMode) end end)
+		gbMeasureBtnClick("gb-btn-measure-show-length", function() if WG.TerraformBrush then WG.TerraformBrush.setMeasureShowLength(not getTFState().measureShowLength) end end)
+		gbMeasureBtnClick("gb-btn-measure-clear",       function() if WG.TerraformBrush then WG.TerraformBrush.clearMeasureLines() end end)
+
+		local gbSymRow = doc:GetElementById("gb-symmetry-toolbar-row")
+		local gbSymBtn = doc:GetElementById("btn-gb-symmetry")
+		if gbSymBtn then
+			gbSymBtn:AddEventListener("click", function(ev)
+				if WG.TerraformBrush then
+					local s = getTFState()
+					local newVal = not s.symmetryActive
+					playSound(newVal and "toggleOn" or "toggleOff")
+					WG.TerraformBrush.setSymmetryActive(newVal)
+					if newVal and not (s.symmetryRadial or s.symmetryMirrorX or s.symmetryMirrorY) then
+						WG.TerraformBrush.setSymmetryMirrorX(true)
+						local mxBtn = doc:GetElementById("gb-btn-symmetry-mirror-x")
+						if mxBtn then mxBtn:SetClass("active", true) end
+					end
+					gbSymBtn:SetClass("active", newVal)
+					if gbSymRow then gbSymRow:SetClass("hidden", not newVal) end
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+
+		local function gbSymBtnClick(id, fn)
+			local el = doc:GetElementById(id)
+			if el then el:AddEventListener("click", function(ev) fn(); ev:StopPropagation() end, false) end
+		end
+		local function syncGbSymChipClasses()
+			local s = getTFState()
+			local radialEl = doc:GetElementById("gb-btn-symmetry-radial")
+			local mxEl     = doc:GetElementById("gb-btn-symmetry-mirror-x")
+			local myEl     = doc:GetElementById("gb-btn-symmetry-mirror-y")
+			if radialEl then radialEl:SetClass("active", s.symmetryRadial and true or false) end
+			if mxEl     then mxEl:SetClass("active",     s.symmetryMirrorX and true or false) end
+			if myEl     then myEl:SetClass("active",     s.symmetryMirrorY and true or false) end
+			local countRow = doc:GetElementById("gb-symmetry-radial-count-row")
+			if countRow then countRow:SetClass("hidden", not s.symmetryRadial) end
+			local angleRow = doc:GetElementById("gb-symmetry-mirror-angle-row")
+			if angleRow then angleRow:SetClass("hidden", not (s.symmetryMirrorX or s.symmetryMirrorY)) end
+		end
+		gbSymBtnClick("gb-btn-symmetry-radial",    function() if WG.TerraformBrush then WG.TerraformBrush.setSymmetryRadial(not getTFState().symmetryRadial); syncGbSymChipClasses() end end)
+		gbSymBtnClick("gb-btn-symmetry-mirror-x",  function() if WG.TerraformBrush then WG.TerraformBrush.setSymmetryMirrorX(not getTFState().symmetryMirrorX); syncGbSymChipClasses() end end)
+		gbSymBtnClick("gb-btn-symmetry-mirror-y",  function() if WG.TerraformBrush then WG.TerraformBrush.setSymmetryMirrorY(not getTFState().symmetryMirrorY); syncGbSymChipClasses() end end)
+		gbSymBtnClick("gb-btn-symmetry-place-origin",  function() if WG.TerraformBrush then WG.TerraformBrush.setSymmetryPlacingOrigin(true); playSound("toggleOn") end end)
+		gbSymBtnClick("gb-btn-symmetry-center-origin", function() if WG.TerraformBrush then WG.TerraformBrush.setSymmetryOrigin(nil, nil); playSound("toggleOff") end end)
+		gbSymBtnClick("gb-btn-symmetry-count-down", function()
+			if WG.TerraformBrush then
+				local c = math.max(2, (getTFState().symmetryRadialCount or 2) - 1)
+				WG.TerraformBrush.setSymmetryRadialCount(c)
+			end
+		end)
+		gbSymBtnClick("gb-btn-symmetry-count-up", function()
+			if WG.TerraformBrush then
+				local c = math.min(16, (getTFState().symmetryRadialCount or 2) + 1)
+				WG.TerraformBrush.setSymmetryRadialCount(c)
+			end
+		end)
+		gbSymBtnClick("gb-btn-symmetry-angle-down", function()
+			if WG.TerraformBrush then
+				local a = ((getTFState().symmetryMirrorAngle or 0) - 5) % 360
+				WG.TerraformBrush.setSymmetryMirrorAngle(a)
+			end
+		end)
+		gbSymBtnClick("gb-btn-symmetry-angle-up", function()
+			if WG.TerraformBrush then
+				local a = ((getTFState().symmetryMirrorAngle or 0) + 5) % 360
+				WG.TerraformBrush.setSymmetryMirrorAngle(a)
+			end
+		end)
+
+		local gbCountSlider = doc:GetElementById("gb-slider-symmetry-radial-count")
+		if gbCountSlider then
+			trackSliderDrag(gbCountSlider, "gb-symmetry-radial-count")
+			gbCountSlider:AddEventListener("change", function(ev)
+				if uiState.updatingFromCode then ev:StopPropagation(); return end
+				if WG.TerraformBrush then
+					local v = tonumber(gbCountSlider:GetAttribute("value")) or 2
+					WG.TerraformBrush.setSymmetryRadialCount(v)
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+		local gbAngleSlider = doc:GetElementById("gb-slider-symmetry-mirror-angle")
+		if gbAngleSlider then
+			trackSliderDrag(gbAngleSlider, "gb-symmetry-mirror-angle")
+			gbAngleSlider:AddEventListener("change", function(ev)
+				if uiState.updatingFromCode then ev:StopPropagation(); return end
+				if WG.TerraformBrush then
+					local v = tonumber(gbAngleSlider:GetAttribute("value")) or 0
+					WG.TerraformBrush.setSymmetryMirrorAngle(v)
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+	end
 end
 
 function M.sync(doc, ctx, gbState, setSummary, sumEl)

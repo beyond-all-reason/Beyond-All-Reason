@@ -904,6 +904,18 @@ end
 function widget:MousePress(mx, my, button)
 	if not fp.active or not fp.mode then return false end
 
+	-- Defer to measure / symmetry origin tools when active
+	local tb = WG.TerraformBrush
+	if tb and tb.getState then
+		local st = tb.getState()
+		if st and st.measureActive then return false end
+		if st and st.symmetryActive then
+			if st.symmetryPlacingOrigin or st.symmetryHoveringOrigin or st.symmetryDraggingOrigin then
+				return false
+			end
+		end
+	end
+
 	if button == 1 then
 		local worldX, worldZ = getWorldMousePosition()
 		if not worldX then return false end
